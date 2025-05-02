@@ -52,11 +52,21 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 	private Vector2 _mouse1StartPosition;
 	private bool _isTrackingBall;
 
+	// *** BALL-LOCK – offset we keep between camera and ball while tracking
+	private Vector3 _ballFollowOffset = Vector3.zero;
+	private Vector3 _ballFollowVel = Vector3.zero;
+	private float   _orbitYaw;                 // ★ track user-added yaw
+	private float   _orbitPitch;               // ★   …and pitch
+	private Vector3 _smoothedBallPos;
+	private Vector3 _ballPosVel;
+
 	public Vector3 positionOffset = Vector3.zero;
 	public bool isAnimating;
 	private Keyboard _keyboard;
 	private Mouse _mouse;
 	private PhysicsEngine _physicsEngine;
+
+	/* -------------------------------------------------------- */
 
 	private void Start()
 	{
@@ -104,17 +114,58 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 		if (_mouse != null) {
 			UpdateMouse();
 		}
+	}
 
-		/* ΔΔΔ NEW – apply (or blend) “look-at target” AFTER all motion is done ΔΔΔ */
-		if (lockTarget != null) {
+	private void LateUpdate()
+	{
+		if (lockTarget == null) return;
 
+		/* ------- STEP 1: smooth the ball itself -------- */
+		_smoothedBallPos = Vector3.SmoothDamp(
+			_smoothedBallPos,
+			lockTarget.position,
+			ref _ballPosVel,
+			ballCamSmoothing * Time.deltaTime);
+
+		/* ------- STEP 2: place the camera -------------- */
+		_transformCache.position = _smoothedBallPos + _ballFollowOffset;
+
+		/* ------- STEP 3: aim the camera ---------------- */
+		var desiredRot = Quaternion.LookRotation(
+			_smoothedBallPos - _transformCache.position,
+			Vector3.up);
+
+		if (_isTrackingMouse0)                           // ★ user is orbit-dragging
+		{
+			_transformCache.rotation = desiredRot;       // ★ snap to target—no easing
 		}
+		else
+		{
+			_transformCache.rotation = Quaternion.Slerp( // ★ smooth only when not dragging
+				_transformCache.rotation,
+				desiredRot,
+				Time.deltaTime / ballCamSmoothing * 80f);
+		}
+
+		/* keep helper transforms coherent */
+		_dummyTransform.position = _transformCache.position;
+		_dummyTransform.rotation = _transformCache.rotation;
+		_rot2 = _transformCache.rotation;
 	}
 
 	private void LockBall()
 	{
 		if (player.BallManager.FindBall(out var ballData)) {
 			lockTarget = _physicsEngine.GetTransform(ballData.Id);
+
+			// Remember the offset at the moment we lock-on
+			if (lockTarget != null) {
+				_ballFollowOffset = _transformCache.position - lockTarget.position;
+				_ballFollowVel    = Vector3.zero;
+				_orbitYaw = 0f;
+				_orbitPitch = 0f;
+				_smoothedBallPos = lockTarget.position;          // ★ start filtered pos here
+			}
 		}
 	}
 
@@ -125,68 +176,92 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 		var allowUserOrbit = lockTarget == null;
 
 		_transformCache.position = _dummyTransform.position = Vector3.zero;
-		var hasHitRestrictedHitArea = false;
+		bool hasHitRestrictedHitArea = false;
 
-		/* ---------------- left mouse: orbit ---------------- */
+		/* ========== ORBIT (left mouse) ========== */
 		if (_mouse.leftButton.wasPressedThisFrame) {
 			_mouse0StartPosition = _mouse.position.ReadValue();
 			_isTrackingMouse0 = true;
 		}
 
-		if (_mouse0StartPosition.x < 200f && _mouse0StartPosition.y > Screen.height - 200f) {
-			hasHitRestrictedHitArea = true;
-		}
-
-		if (!hasHitRestrictedHitArea && allowUserOrbit && _isTrackingMouse0) {
-
+		if (_isTrackingMouse0) {
 			var delta = _mouse.position.ReadValue() - _mouse0StartPosition;
-			_dummyTransform.Rotate(Vector3.up, delta.x * orbitSpeed / 75f, Space.World);
-			_dummyTransform.Rotate(_dummyTransform.right.normalized, -delta.y * orbitSpeed / 75f, Space.World);
-			_rot2 = _dummyTransform.rotation;
 			_mouse0StartPosition = _mouse.position.ReadValue();
+
+			if (!hasHitRestrictedHitArea) {
+				float yawDelta   =  delta.x * orbitSpeed / 75f;  // yaw around Y
+				float pitchDelta = -delta.y * orbitSpeed / 75f;  // pitch around local X
+
+				/* ★ rotate the offset vector about the target */
+				if (lockTarget != null) {
+					_orbitYaw   += yawDelta;
+					_orbitPitch = Mathf.Clamp(_orbitPitch + pitchDelta, -80f, 80f);
+
+					Quaternion q =
+						Quaternion.Euler(_orbitPitch, _orbitYaw, 0f);
+					_ballFollowOffset = q * Vector3.back * _ballFollowOffset.magnitude;
+				}
+				else {
+					/* original free-orbit path (unchanged) */
+					_transformCache.position = _dummyTransform.position = Vector3.zero;
+					_dummyTransform.Rotate(Vector3.up,  yawDelta,   Space.World);
+					_dummyTransform.Rotate(_dummyTransform.right.normalized, pitchDelta, Space.World);
+					_rot2 = _dummyTransform.rotation;
+				}
+			}
 		}
+
 
 		if (_mouse.leftButton.wasReleasedThisFrame) {
 			_isTrackingMouse0 = false;
 		}
 
-		/* ---------------- right mouse: pan ---------------- */
-		if (_mouse.rightButton.wasPressedThisFrame) {
-			_mouse1StartPosition = _mouse.position.ReadValue();
-			_isTrackingMouse1 = true;
-		}
+		if (lockTarget == null) {
 
-		if (!hasHitRestrictedHitArea && _isTrackingMouse1) {
-			var delta = _mouse.position.ReadValue() - _mouse1StartPosition;
-			positionOffset += _transformCache.up * (-delta.y * (_radius * panSpeed / 60000f));
-			positionOffset += _transformCache.right * (-delta.x * (_radius * panSpeed / 60000f));
-			_mouse1StartPosition = _mouse.position.ReadValue();
-		}
+			/* ---------------- right mouse: pan ---------------- */
+			if (_mouse.rightButton.wasPressedThisFrame) {
+				_mouse1StartPosition = _mouse.position.ReadValue();
+				_isTrackingMouse1 = true;
+			}
 
-		if (_mouse.rightButton.wasReleasedThisFrame) {
-			_isTrackingMouse1 = false;
-		}
+			if (!hasHitRestrictedHitArea && _isTrackingMouse1) {
+				var delta = _mouse.position.ReadValue() - _mouse1StartPosition;
+				positionOffset += _transformCache.up * (-delta.y * (_radius * panSpeed / 60000f));
+				positionOffset += _transformCache.right * (-delta.x * (_radius * panSpeed / 60000f));
+				_mouse1StartPosition = _mouse.position.ReadValue();
+			}
 
-		/* ---------------- scroll: zoom ---------------- */
-		if (!hasHitRestrictedHitArea && !isAnimating) {
-
-			var deltaScroll = _mouse.scroll.y.ReadValue() / 300f * zoomSpeed * -_radius;
-			_radius += deltaScroll;
-			if (_radius < RadiusMin) {
-				var diff = RadiusMin - _radius;
-				positionOffset += _transformCache.forward * (diff * 4f);
-				_radius = RadiusMin;
+			if (_mouse.rightButton.wasReleasedThisFrame) {
+				_isTrackingMouse1 = false;
 			}
 		}
 
-		/* ---------------- smooth interpolation ---------------- */
-		_transformCache.rotation = Quaternion.Lerp(_transformCache.rotation, _rot2, Time.deltaTime / smoothing * 80f);
+		/* ========== ZOOM (scroll) ========== */
+		if (!isAnimating && !hasHitRestrictedHitArea) {
+			float deltaScroll = _mouse.scroll.y.ReadValue() / 300f * zoomSpeed;
+			if (lockTarget != null) {
+				/* ★ zoom by scaling the follow-offset’s length */
+				float r = Mathf.Max(_ballFollowOffset.magnitude * (1f - deltaScroll), RadiusMin);
+				_ballFollowOffset = _ballFollowOffset.normalized * r;
+			}
+			else {
+				/* original zoom path (unchanged) */
+				_radius  = Mathf.Max(_radius  - deltaScroll * _radius, RadiusMin);
+			}
+		}
 
-		_positionOffsetCurrent = Vector3.Lerp(_positionOffsetCurrent, positionOffset, Time.deltaTime / smoothing * 80f);
-		_radiusCurrent = Mathf.Lerp(_radiusCurrent, _radius, Time.deltaTime / smoothing * 80f);
+		/* ========== free-orbit smoothing (only when unlocked) ========== */
+		if (lockTarget == null) {
+			_transformCache.rotation = Quaternion.Lerp(
+				_transformCache.rotation, _rot2, Time.deltaTime / smoothing * 80f);
 
-		_focusPoint = _transformCache.forward * -_radiusCurrent;
-		_transformCache.position = _focusPoint + _positionOffsetCurrent;
-		_dummyTransform.position = _transformCache.position;
+			_positionOffsetCurrent = Vector3.Lerp(
+				_positionOffsetCurrent, positionOffset, Time.deltaTime / smoothing * 80f);
+			_radiusCurrent = Mathf.Lerp(_radiusCurrent, _radius, Time.deltaTime / smoothing * 80f);
+
+			_focusPoint          = _transformCache.forward * -_radiusCurrent;
+			_transformCache.position = _focusPoint + _positionOffsetCurrent;
+			_dummyTransform.position = _transformCache.position;
+		}
 	}
 }
