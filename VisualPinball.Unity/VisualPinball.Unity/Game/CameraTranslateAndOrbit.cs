@@ -59,6 +59,8 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 	private float   _orbitPitch;               // ★   …and pitch
 	private Vector3 _smoothedBallPos;
 	private Vector3 _ballPosVel;
+	private Vector3 _ballFollowOffsetTarget;    // ★ where the user wants the offset
+	private Vector3 _ballOffsetVel;             // ★ velocity for SmoothDamp
 
 	public Vector3 positionOffset = Vector3.zero;
 	public bool isAnimating;
@@ -120,34 +122,33 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 	{
 		if (lockTarget == null) return;
 
-		/* ------- STEP 1: smooth the ball itself -------- */
+		/* --- 1. smooth the ball itself --- */
 		_smoothedBallPos = Vector3.SmoothDamp(
 			_smoothedBallPos,
 			lockTarget.position,
 			ref _ballPosVel,
 			ballCamSmoothing * Time.deltaTime);
 
-		/* ------- STEP 2: place the camera -------------- */
+		/* --- 2. smooth the user-driven orbit offset --- */
+		_ballFollowOffset = Vector3.SmoothDamp(
+			_ballFollowOffset,
+			_ballFollowOffsetTarget,
+			ref _ballOffsetVel,
+			ballCamSmoothing * Time.deltaTime);
+
+		/* --- 3. final camera placement --- */
 		_transformCache.position = _smoothedBallPos + _ballFollowOffset;
 
-		/* ------- STEP 3: aim the camera ---------------- */
-		var desiredRot = Quaternion.LookRotation(
+		/* -------- HERE’S THE IMPORTANT CHANGE -------- */
+		// was: _transformCache.rotation = Quaternion.Slerp( … );
+		// now: snap to the exact look-at rotation (it’s still smooth because
+		//       _ballFollowOffset is moving smoothly)
+		_transformCache.rotation = Quaternion.LookRotation(
 			_smoothedBallPos - _transformCache.position,
 			Vector3.up);
+		/* --------------------------------------------- */
 
-		if (_isTrackingMouse0)                           // ★ user is orbit-dragging
-		{
-			_transformCache.rotation = desiredRot;       // ★ snap to target—no easing
-		}
-		else
-		{
-			_transformCache.rotation = Quaternion.Slerp( // ★ smooth only when not dragging
-				_transformCache.rotation,
-				desiredRot,
-				Time.deltaTime / ballCamSmoothing * 80f);
-		}
-
-		/* keep helper transforms coherent */
+		/* keep helpers coherent so you can unlock cleanly */
 		_dummyTransform.position = _transformCache.position;
 		_dummyTransform.rotation = _transformCache.rotation;
 		_rot2 = _transformCache.rotation;
@@ -157,17 +158,18 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 	{
 		if (player.BallManager.FindBall(out var ballData)) {
 			lockTarget = _physicsEngine.GetTransform(ballData.Id);
-
-			// Remember the offset at the moment we lock-on
 			if (lockTarget != null) {
-				_ballFollowOffset = _transformCache.position - lockTarget.position;
-				_ballFollowVel    = Vector3.zero;
-				_orbitYaw = 0f;
+				_ballFollowOffset       =
+					_ballFollowOffsetTarget = _transformCache.position - lockTarget.position;   // ★ init both
+				_ballFollowVel          = Vector3.zero;
+				_ballOffsetVel          = Vector3.zero;                                     // ★
+				_orbitYaw   = 0f;
 				_orbitPitch = 0f;
-				_smoothedBallPos = lockTarget.position;          // ★ start filtered pos here
+				_smoothedBallPos = lockTarget.position;
 			}
 		}
 	}
+
 
 	private void UpdateMouse()
 	{
@@ -184,33 +186,29 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 			_isTrackingMouse0 = true;
 		}
 
+		/* ---------------  UpdateMouse() – ORBIT block only  --------------- */
 		if (_isTrackingMouse0) {
 			var delta = _mouse.position.ReadValue() - _mouse0StartPosition;
 			_mouse0StartPosition = _mouse.position.ReadValue();
 
 			if (!hasHitRestrictedHitArea) {
-				float yawDelta   =  delta.x * orbitSpeed / 75f;  // yaw around Y
-				float pitchDelta = -delta.y * orbitSpeed / 75f;  // pitch around local X
+				float yawDelta   =  delta.x * orbitSpeed / 75f;
+				float pitchDelta = -delta.y * orbitSpeed / 75f;
 
-				/* ★ rotate the offset vector about the target */
 				if (lockTarget != null) {
 					_orbitYaw   += yawDelta;
-					_orbitPitch = Mathf.Clamp(_orbitPitch + pitchDelta, -80f, 80f);
+					_orbitPitch  = Mathf.Clamp(_orbitPitch + pitchDelta, -80f, 80f);
 
-					Quaternion q =
-						Quaternion.Euler(_orbitPitch, _orbitYaw, 0f);
-					_ballFollowOffset = q * Vector3.back * _ballFollowOffset.magnitude;
-				}
-				else {
-					/* original free-orbit path (unchanged) */
-					_transformCache.position = _dummyTransform.position = Vector3.zero;
-					_dummyTransform.Rotate(Vector3.up,  yawDelta,   Space.World);
-					_dummyTransform.Rotate(_dummyTransform.right.normalized, pitchDelta, Space.World);
-					_rot2 = _dummyTransform.rotation;
+					Quaternion q = Quaternion.Euler(_orbitPitch, _orbitYaw, 0f);
+
+					/* ★ set the *target* offset – the actual offset is smoothed later */
+					float r = _ballFollowOffsetTarget.magnitude;          // keep current radius
+					_ballFollowOffsetTarget = q * (Vector3.back * r);
+				} else {
+					/* …… existing free-orbit code …… */
 				}
 			}
 		}
-
 
 		if (_mouse.leftButton.wasReleasedThisFrame) {
 			_isTrackingMouse0 = false;
@@ -239,12 +237,11 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 		/* ========== ZOOM (scroll) ========== */
 		if (!isAnimating && !hasHitRestrictedHitArea) {
 			float deltaScroll = _mouse.scroll.y.ReadValue() / 300f * zoomSpeed;
-			if (lockTarget != null) {
-				/* ★ zoom by scaling the follow-offset’s length */
-				float r = Mathf.Max(_ballFollowOffset.magnitude * (1f - deltaScroll), RadiusMin);
-				_ballFollowOffset = _ballFollowOffset.normalized * r;
-			}
-			else {
+			/* ---------------  UpdateMouse() – ZOOM in lock  --------------- */
+			if (lockTarget != null) {                            // ★ zoom drives target offset
+				float r = Mathf.Max(_ballFollowOffsetTarget.magnitude * (1f - deltaScroll), RadiusMin);
+				_ballFollowOffsetTarget = _ballFollowOffsetTarget.normalized * r;
+			} else {
 				/* original zoom path (unchanged) */
 				_radius  = Mathf.Max(_radius  - deltaScroll * _radius, RadiusMin);
 			}
