@@ -101,13 +101,20 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 	{
 		// toggle ball lock if "b" pressed
 		if (player && _keyboard.bKey.wasPressedThisFrame) {
-			if (_isTrackingBall) {
-				lockTarget = null;
+
+			if (_keyboard.shiftKey.isPressed) {
+				LockBallTarget();
 
 			} else {
-				LockBall();
+
+				if (_isTrackingBall) {
+					lockTarget = null;
+
+				} else {
+					LockBall();
+				}
+				_isTrackingBall = !_isTrackingBall;
 			}
-			_isTrackingBall = !_isTrackingBall;
 		}
 		if (_isTrackingBall && lockTarget == null) { // if ball got destroyed but still tracking, try to lock again.
 			LockBall();
@@ -170,14 +177,23 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 		}
 	}
 
+	private void LockBallTarget()
+	{
+		//  implementation here.
+	}
 
 	private void UpdateMouse()
 	{
-		// If we are locked-on, we ignore user orbit-drag (left-mouse) but
-		// still allow pan/zoom.  Easiest is to short-circuit early:
-		var allowUserOrbit = lockTarget == null;
+		/* -------------- KEEP THIS NEW BLOCK AT THE VERY TOP -------------- */
+		// ★ When we’re **not** locked-on, keep the “dummy” pivot parked at
+		//   (0,0,0) every frame so free-orbit behaves exactly like before.
+		if (lockTarget == null)
+		{
+			_transformCache.position  = Vector3.zero;
+			_dummyTransform.position  = Vector3.zero;
+		}
+		/* ----------------------------------------------------------------- */
 
-		_transformCache.position = _dummyTransform.position = Vector3.zero;
 		bool hasHitRestrictedHitArea = false;
 
 		/* ========== ORBIT (left mouse) ========== */
@@ -186,7 +202,7 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 			_isTrackingMouse0 = true;
 		}
 
-		/* ---------------  UpdateMouse() – ORBIT block only  --------------- */
+		/* ---------------- ORBIT (left mouse) ---------------- */
 		if (_isTrackingMouse0) {
 			var delta = _mouse.position.ReadValue() - _mouse0StartPosition;
 			_mouse0StartPosition = _mouse.position.ReadValue();
@@ -196,16 +212,23 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 				float pitchDelta = -delta.y * orbitSpeed / 75f;
 
 				if (lockTarget != null) {
+					/* ---------- locked-on orbit (already working) ---------- */
 					_orbitYaw   += yawDelta;
 					_orbitPitch  = Mathf.Clamp(_orbitPitch + pitchDelta, -80f, 80f);
 
 					Quaternion q = Quaternion.Euler(_orbitPitch, _orbitYaw, 0f);
-
-					/* ★ set the *target* offset – the actual offset is smoothed later */
-					float r = _ballFollowOffsetTarget.magnitude;          // keep current radius
+					float r = _ballFollowOffsetTarget.magnitude;
 					_ballFollowOffsetTarget = q * (Vector3.back * r);
-				} else {
-					/* …… existing free-orbit code …… */
+				}
+				else {
+					/* ---------- FREE ORBIT  —  PUT THESE LINES BACK ---------- */
+					_transformCache.position  = Vector3.zero;         // pivot at world-origin
+					_dummyTransform.position  = Vector3.zero;
+
+					_dummyTransform.Rotate(Vector3.up,              yawDelta,   Space.World);
+					_dummyTransform.Rotate(_dummyTransform.right.normalized,   pitchDelta, Space.World);
+
+					_rot2 = _dummyTransform.rotation;                 // used by smoothing
 				}
 			}
 		}
