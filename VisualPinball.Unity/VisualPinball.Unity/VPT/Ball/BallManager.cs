@@ -76,6 +76,19 @@ namespace VisualPinball.Unity
 			Object.DestroyImmediate(ballTransform.gameObject);
 		}
 
+		public bool FindBall(out BallState ball)
+		{
+			var ballFound = false;
+			using var enumerator = _physicsEngine.Balls.GetEnumerator();
+			ball = default;
+			while (enumerator.MoveNext()) {
+				ball = enumerator.Current.Value;
+				ballFound = true;
+				break;
+			}
+			return ballFound;
+		}
+
 		public bool FindNearest(float2 fromPosition, out BallState nearestBall)
 		{
 			var nearestDistance = float.PositiveInfinity;
