@@ -51,6 +51,7 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 	private bool _isTrackingMouse1;
 	private Vector2 _mouse1StartPosition;
 	private bool _isTrackingBall;
+	private bool _isTrackingBallTarget;				// ★ NEW: shift-B look-at lock
 
 	// *** BALL-LOCK – offset we keep between camera and ball while tracking
 	private Vector3 _ballFollowOffset = Vector3.zero;
@@ -102,10 +103,17 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 		// toggle ball lock if "b" pressed
 		if (player && _keyboard.bKey.wasPressedThisFrame) {
 
-			if (_keyboard.shiftKey.isPressed) {
-				LockBallTarget();
+			if (_keyboard.shiftKey.isPressed) {					// ⇧B → target-lock
+				if (_isTrackingBallTarget) {
+					lockTarget = null;
+					_isTrackingBallTarget = false;
+				} else {
+					LockBallTarget();
+					_isTrackingBallTarget = lockTarget != null;
+					_isTrackingBall = false;
+				}
 
-			} else {
+			} else {											// B → follow-lock
 
 				if (_isTrackingBall) {
 					lockTarget = null;
@@ -114,10 +122,14 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 					LockBall();
 				}
 				_isTrackingBall = !_isTrackingBall;
+				if (_isTrackingBall) _isTrackingBallTarget = false;
 			}
 		}
-		if (_isTrackingBall && lockTarget == null) { // if ball got destroyed but still tracking, try to lock again.
-			LockBall();
+		// if (_isTrackingBall && lockTarget == null) {			// if ball got destroyed but still tracking, try to lock again.
+		// 	LockBall();
+		// }
+		if (_isTrackingBallTarget && lockTarget == null) {
+			LockBallTarget();
 		}
 
 		if (_mouse != null) {
@@ -136,24 +148,25 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 			ref _ballPosVel,
 			ballCamSmoothing * Time.deltaTime);
 
-		/* --- 2. smooth the user-driven orbit offset --- */
-		_ballFollowOffset = Vector3.SmoothDamp(
-			_ballFollowOffset,
-			_ballFollowOffsetTarget,
-			ref _ballOffsetVel,
-			ballCamSmoothing * Time.deltaTime);
+		/* --- follow-lock moves camera; target-lock doesn’t --- */
+		if (_isTrackingBall) {
 
-		/* --- 3. final camera placement --- */
-		_transformCache.position = _smoothedBallPos + _ballFollowOffset;
+			/* --- 2. smooth the user-driven orbit offset --- */
+			_ballFollowOffset = Vector3.SmoothDamp(
+				_ballFollowOffset,
+				_ballFollowOffsetTarget,
+				ref _ballOffsetVel,
+				ballCamSmoothing * Time.deltaTime);
 
-		/* -------- HERE’S THE IMPORTANT CHANGE -------- */
-		// was: _transformCache.rotation = Quaternion.Slerp( … );
-		// now: snap to the exact look-at rotation (it’s still smooth because
-		//       _ballFollowOffset is moving smoothly)
+			/* --- 3. final camera placement --- */
+			_transformCache.position = _smoothedBallPos + _ballFollowOffset;
+		}
+
+		/* -------- look-at rotation (shared) -------- */
 		_transformCache.rotation = Quaternion.LookRotation(
 			_smoothedBallPos - _transformCache.position,
 			Vector3.up);
-		/* --------------------------------------------- */
+		/* ------------------------------------------- */
 
 		/* keep helpers coherent so you can unlock cleanly */
 		_dummyTransform.position = _transformCache.position;
@@ -179,7 +192,13 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 
 	private void LockBallTarget()
 	{
-		//  implementation here.
+		if (player.BallManager.FindBall(out var ballData)) {
+			lockTarget = _physicsEngine.GetTransform(ballData.Id);
+			if (lockTarget != null) {
+				_smoothedBallPos = lockTarget.position;
+				_ballPosVel = Vector3.zero;
+			}
+		}
 	}
 
 	private void UpdateMouse()
@@ -211,7 +230,7 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 				float yawDelta   =  delta.x * orbitSpeed / 75f;
 				float pitchDelta = -delta.y * orbitSpeed / 75f;
 
-				if (lockTarget != null) {
+				if (lockTarget != null && _isTrackingBall) {
 					/* ---------- locked-on orbit (already working) ---------- */
 					_orbitYaw   += yawDelta;
 					_orbitPitch  = Mathf.Clamp(_orbitPitch + pitchDelta, -80f, 80f);
@@ -220,7 +239,7 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 					float r = _ballFollowOffsetTarget.magnitude;
 					_ballFollowOffsetTarget = q * (Vector3.back * r);
 				}
-				else {
+				else if (lockTarget == null) {
 					/* ---------- FREE ORBIT  —  PUT THESE LINES BACK ---------- */
 					_transformCache.position  = Vector3.zero;         // pivot at world-origin
 					_dummyTransform.position  = Vector3.zero;
@@ -261,10 +280,10 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 		if (!isAnimating && !hasHitRestrictedHitArea) {
 			float deltaScroll = _mouse.scroll.y.ReadValue() / 300f * zoomSpeed;
 			/* ---------------  UpdateMouse() – ZOOM in lock  --------------- */
-			if (lockTarget != null) {                            // ★ zoom drives target offset
+			if (lockTarget != null && _isTrackingBall) {      // ★ only follow-lock zooms
 				float r = Mathf.Max(_ballFollowOffsetTarget.magnitude * (1f - deltaScroll), RadiusMin);
 				_ballFollowOffsetTarget = _ballFollowOffsetTarget.normalized * r;
-			} else {
+			} else if (lockTarget == null) {
 				/* original zoom path (unchanged) */
 				_radius  = Mathf.Max(_radius  - deltaScroll * _radius, RadiusMin);
 			}
