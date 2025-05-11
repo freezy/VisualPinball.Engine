@@ -574,8 +574,15 @@ namespace VisualPinball.Unity.Editor
 		{
 			_thumbnailSize = (int)evt.newValue;
 			foreach (var e in _elementByAsset.Values) {
-				e.style.width = _thumbnailSize;
-				e.style.height = _thumbnailSize;
+				var img = e.Q<VisualElement>("thumbnail-mask");
+				img.style.width = _thumbnailSize;
+				img.style.height = _thumbnailSize;
+				img.style.borderBottomLeftRadius = _thumbnailSize * LibraryAssetElement.RadiusRatio;
+				img.style.borderBottomRightRadius = _thumbnailSize * LibraryAssetElement.RadiusRatio;
+				img.style.borderTopLeftRadius = _thumbnailSize * LibraryAssetElement.RadiusRatio;
+				img.style.borderTopRightRadius = _thumbnailSize * LibraryAssetElement.RadiusRatio;
+
+				e.style.width = _thumbnailSize + 20;
 			}
 		}
 
