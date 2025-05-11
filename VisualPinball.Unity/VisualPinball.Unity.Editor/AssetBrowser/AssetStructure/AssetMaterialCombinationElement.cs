@@ -16,10 +16,12 @@
 
 using System;
 using System.IO;
+using NetVips;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Image = UnityEngine.UIElements.Image;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -49,13 +51,10 @@ namespace VisualPinball.Unity.Editor
 
 			ui.Q<Label>("label").text = Name;
 
-			var thumbPath = $"{asset.Library.ThumbnailRoot}/{Combination.ThumbId}.png";
-			if (File.Exists(thumbPath)) {
-				var tex = new Texture2D(AssetBrowser.ThumbSize, AssetBrowser.ThumbSize);
-				tex.LoadImage(File.ReadAllBytes(thumbPath));
+			if (asset.HasThumbnail) {
+				var tex = asset.LoadThumbTexture();
 				ui.Q<Image>("thumbnail").image = tex;
 			}
-
 			Add(ui);
 		}
 	}

@@ -24,8 +24,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Dot Matrix Display (SRP)
-  m_Shader: {fileID: -6465566751694194690, guid: 3dfbd2115636a284d89d71fdefd9b4d2,
-    type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 3dfbd2115636a284d89d71fdefd9b4d2, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
@@ -197,6 +196,7 @@ Material:
     - _DoubleSidedGIMode: 0
     - _DoubleSidedNormalMode: 1
     - _DstBlend: 0
+    - _DstBlend2: 0
     - _EmissiveColorMode: 1
     - _EmissiveExposureWeight: 1
     - _EmissiveIntensity: 1
@@ -205,6 +205,7 @@ Material:
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
     - _EnergyConservingSpecularColor: 1
+    - _ExcludeFromTUAndAA: 0
     - _HeightAmplitude: 0.02
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
@@ -220,6 +221,7 @@ Material:
     - _IridescenceThickness: 1
     - _LinkDetailsWithBase: 1
     - _MaterialID: 1
+    - _MaterialTypeMask: 2
     - _Metallic: 0
     - _MetallicRemapMax: 1
     - _MetallicRemapMin: 0
@@ -231,6 +233,9 @@ Material:
     - _PPDMinSamples: 5
     - _PPDPrimitiveLength: 1
     - _PPDPrimitiveWidth: 1
+    - _PerPixelSorting: 0
+    - _QueueControl: -1
+    - _QueueOffset: 0
     - _RayTracing: 0
     - _ReceivesSSR: 1
     - _ReceivesSSRTransparent: 0
@@ -250,10 +255,10 @@ Material:
     - _StencilRefGBuffer: 10
     - _StencilRefMV: 40
     - _StencilWriteMask: 6
-    - _StencilWriteMaskDepth: 8
+    - _StencilWriteMaskDepth: 9
     - _StencilWriteMaskDistortionVec: 4
-    - _StencilWriteMaskGBuffer: 14
-    - _StencilWriteMaskMV: 40
+    - _StencilWriteMaskGBuffer: 15
+    - _StencilWriteMaskMV: 41
     - _SubsurfaceMask: 1
     - _SupportDecals: 1
     - _SurfaceType: 0
@@ -287,8 +292,7 @@ Material:
     - __SkewAngle: 0
     m_Colors:
     - Color_754dade2513142578632eb55adb8f59b: {r: 1, g: 0.36865607, b: 0, a: 0}
-    - Color_a1cf9b5e0df34a8c907984367d220f54: {r: 0.25471696, g: 0.25471696, b: 0.25471696,
-        a: 0}
+    - Color_a1cf9b5e0df34a8c907984367d220f54: {r: 0.25471696, g: 0.25471696, b: 0.25471696, a: 0}
     - Vector2_59fda9737b9e42259b122fbd66ccd94d: {r: 0.7, g: 0.28, b: 0, a: 0}
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _BaseColorMap_MipInfo: {r: 0, g: 0, b: 0, a: 0}
@@ -311,6 +315,7 @@ Material:
     - __Padding: {r: 0.3, g: 0.5, b: 0, a: 0}
     - __UnlitColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!114 &3792289215621747627
 MonoBehaviour:
   m_ObjectHideFlags: 11
@@ -323,4 +328,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 5
+  version: 9

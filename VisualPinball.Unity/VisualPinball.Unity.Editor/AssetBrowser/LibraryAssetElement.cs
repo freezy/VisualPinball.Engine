@@ -27,6 +27,8 @@ namespace VisualPinball.Unity.Editor
 	{
 		public AssetResult Result;
 
+		public const float RadiusRatio = 0.1f;
+
 		private enum DragState
 		{
 			AtRest,

@@ -42,6 +42,7 @@ namespace VisualPinball.Unity.Editor
 		private Slider _sizeSlider;
 
 		private VisualTreeAsset _assetTree;
+		private StyleSheet _assetStyle;
 
 		private readonly Dictionary<string, Texture2D> _thumbCache = new();
 
@@ -84,6 +85,7 @@ namespace VisualPinball.Unity.Editor
 			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetBrowser.uxml");
 			visualTree.CloneTree(rootVisualElement);
 			_assetTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/LibraryAssetElement.uxml");
+			_assetStyle = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/LibraryAssetElement.uss");
 
 			var ui = rootVisualElement;
 
@@ -148,11 +150,18 @@ namespace VisualPinball.Unity.Editor
 		{
 			var item = new VisualElement();
 			_assetTree.CloneTree(item);
+			item.styleSheets.Add(_assetStyle);
 			item.Q<LibraryAssetElement>().Result = result;
 
 			LoadThumb(item, result.Asset);
-			item.style.width = _thumbnailSize;
-			item.style.height = _thumbnailSize;
+			var img = item.Q<VisualElement>("thumbnail-mask");
+			img.style.width = _thumbnailSize;
+			img.style.height = _thumbnailSize;
+			img.style.borderBottomLeftRadius = _thumbnailSize * LibraryAssetElement.RadiusRatio;
+			img.style.borderBottomRightRadius = _thumbnailSize * LibraryAssetElement.RadiusRatio;
+			img.style.borderTopLeftRadius = _thumbnailSize * LibraryAssetElement.RadiusRatio;
+			img.style.borderTopRightRadius = _thumbnailSize * LibraryAssetElement.RadiusRatio;
+
 			var label = item.Q<Label>("label");
 			label.text = result.Asset.Name;
 			label.style.textOverflow = TextOverflow.Ellipsis;
@@ -166,15 +175,11 @@ namespace VisualPinball.Unity.Editor
 		private void LoadThumb(VisualElement el, Asset asset)
 		{
 			if (!_thumbCache.ContainsKey(asset.GUID)) {
-				var thumbPath = $"{asset.Library.ThumbnailRoot}/{asset.GUID}.png";
-				if (File.Exists(thumbPath)) {
-					var tex = new Texture2D(ThumbSize, ThumbSize);
-					tex.LoadImage(File.ReadAllBytes(thumbPath));
-
+				if (asset.HasThumbnail) {
+					var tex = asset.LoadThumbTexture();
 					_thumbCache[asset.GUID] = tex;
 				}
 			}
-
 			if (_thumbCache.ContainsKey(asset.GUID)) {
 				var img = el.Q<Image>("thumbnail");
 				img.image = _thumbCache[asset.GUID];
