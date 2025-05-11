@@ -27,7 +27,7 @@ namespace VisualPinball.Unity.Editor
 		public string Name => string.Join(", ", _variations.Select(v => $"{v.Item2.Name} {v.Item1.Name}"));
 
 		public string ThumbId => GenerateThumbID();
-		public string ThumbPath => $"{Asset.Library.ThumbnailRoot}/{ThumbId}.png";
+		public string ThumbPath => $"{Asset.Library.ThumbnailRoot}/{ThumbId}.webp";
 
 		public bool IsOriginal => _variations.Length == 0;
 

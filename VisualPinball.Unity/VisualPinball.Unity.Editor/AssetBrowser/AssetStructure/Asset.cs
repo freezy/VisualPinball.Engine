@@ -18,10 +18,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using NetVips;
 using UnityEditor;
 using UnityEditor.Presets;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
@@ -94,6 +98,9 @@ namespace VisualPinball.Unity.Editor
 				throw new Exception($"Could not get GUID from {Object.name}");
 			}
 		}
+
+		public string ThumbnailPath => Path.GetFullPath($"{Library.ThumbnailRoot}/{GUID}.webp");
+		public bool HasThumbnail => File.Exists(ThumbnailPath);
 
 		public Asset SetCategory(LibraryDatabase lib)
 		{
@@ -170,6 +177,41 @@ namespace VisualPinball.Unity.Editor
 					attr.Value += $",{srcValue}";
 				}
 			}
+		}
+
+		public Texture2D LoadThumbTexture()
+		{
+			var sw = Stopwatch.StartNew();
+
+			// Load the image using NetVips
+			var image = Image.NewFromBuffer(File.ReadAllBytes(ThumbnailPath), access: Enums.Access.Sequential);
+
+			// only use rgb
+			if (image.Bands > 3) {
+				image = image.ExtractBand(0, 3); // Use only the first 3 channels
+			}
+
+			// Ensure format is 8-bit unsigned char
+			if (image.Format != Enums.BandFormat.Uchar) {
+				image = image.Cast(Enums.BandFormat.Uchar);
+			}
+
+			image = image.Flip(Enums.Direction.Vertical);
+
+			// Get raw pixel data in RGBA format
+			var raw = image.WriteToMemory();
+			var width = image.Width;
+			var height = image.Height;
+			image.Close();
+			image.Dispose();
+
+			// Create Texture2D
+			var texture = new Texture2D(width, height, TextureFormat.RGB24, false);
+			texture.LoadRawTextureData(raw);
+			texture.Apply();
+
+			Debug.Log($"Texture loaded in {sw.ElapsedMilliseconds}ms: {width}x{height}");
+			return texture;
 		}
 	}
 }
