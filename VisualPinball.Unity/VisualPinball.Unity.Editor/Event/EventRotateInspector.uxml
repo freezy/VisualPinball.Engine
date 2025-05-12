@@ -1,0 +1,7 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <ui:DropdownField name="eventName" label="Event" binding-path="EventName" />
+    <uie:PropertyField label="Axis" binding-path="Axis" />
+    <uie:PropertyField label="Global Rotation" binding-path="RotateGlobally" />
+    <uie:PropertyField label="Factor" binding-path="Factor" />
+    <uie:PropertyField label="Offset" binding-path="Offset" />
+</ui:UXML>

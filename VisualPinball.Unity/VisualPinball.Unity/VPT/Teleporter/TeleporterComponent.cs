@@ -67,6 +67,8 @@ namespace VisualPinball.Unity
 			}
 		};
 
+		IApiCoil ICoilDeviceComponent.CoilDevice(string deviceId) => ((IApiCoilDevice)TeleporterApi).Coil(deviceId);
+
 		#endregion
 
 		#region Runtime

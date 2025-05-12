@@ -44,6 +44,8 @@ namespace VisualPinball.Unity
 			}
 		};
 
+		IApiCoil ICoilDeviceComponent.CoilDevice(string deviceId) => ((IApiCoilDevice)DropTargetBankApi).Coil(deviceId);
+
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
 			new GamelogicEngineSwitch(SequenceCompletedSwitchItem) {
 				Description = "Sequence Completed Switch"

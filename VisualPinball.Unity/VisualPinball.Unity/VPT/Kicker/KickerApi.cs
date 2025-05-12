@@ -53,6 +53,7 @@ namespace VisualPinball.Unity
 
 		private readonly Dictionary<string, KickerDeviceCoil> _coils = new Dictionary<string, KickerDeviceCoil>();
 		private readonly Transform _ballParent;
+		private readonly Matrix4x4 _worldToPlayfieldMatrix;
 
 		public KickerApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
@@ -62,6 +63,7 @@ namespace VisualPinball.Unity
 
 			var pf = go.GetComponentInParent<PlayfieldComponent>();
 			_ballParent = pf ? pf.transform : go.transform;
+			_worldToPlayfieldMatrix = pf.transform.worldToLocalMatrix;
 		}
 
 		void IApi.OnInit(BallManager ballManager)
@@ -200,12 +202,24 @@ namespace VisualPinball.Unity
 					ballData.Position.y + y,
 					ballData.Position.z + z
 				);
-				ballData.Velocity = new float3(
+				var velocity = new float3(
 					math.sin(angleRad) * speed,
 					-math.cos(angleRad) * speed,
 					speedZ
 				);
-				Debug.Log($"Kick: inclination {math.degrees(inclination)}, speedz = {speedZ}, velocity = {ballData.Velocity} ({x}, {y}, {z}), pos = {ballData.Position}");
+
+				// rotate with kicker parent
+				var m = Physics.GetLocalToPlayfieldMatrixInVpx(MainComponent.transform.localToWorldMatrix, _worldToPlayfieldMatrix);
+				var rotMatrix = new float3x3(
+					math.normalize(m.c0.xyz),
+					math.normalize(m.c1.xyz),
+					math.normalize(m.c2.xyz)
+				);
+				var rotQuaternion = new quaternion(rotMatrix);
+				ballData.Velocity = math.mul(rotQuaternion, velocity);
+
+				Debug.Log($"Kick[{MainComponent.name}]: inclination {math.degrees(inclination)}, speedz = {speedZ}, velocity = {ballData.Velocity} ({velocity}) ({x}, {y}, {z}), pos = {ballData.Position}");
+
 				ballData.IsFrozen = false;
 				ballData.AngularMomentum = float3.zero;
 
