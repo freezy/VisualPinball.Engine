@@ -65,6 +65,7 @@ namespace VisualPinball.Unity
 		public float Scatter;
 		public float HitAccuracy;
 		public float HitHeight;
+		public float BallZOffset;
 		public bool FallThrough;
 		public bool FallIn;
 		public bool LegacyMode;
@@ -76,6 +77,7 @@ namespace VisualPinball.Unity
 				Scatter = comp.Scatter,
 				HitAccuracy = comp.HitAccuracy,
 				HitHeight = comp.HitHeight,
+				BallZOffset = comp.BallZOffset,
 				FallThrough = comp.FallThrough,
 				FallIn = comp.FallIn,
 				LegacyMode = comp.LegacyMode
@@ -89,6 +91,7 @@ namespace VisualPinball.Unity
 			comp.Scatter = data.Scatter;
 			comp.HitAccuracy = data.HitAccuracy;
 			comp.HitHeight = data.HitHeight;
+			comp.BallZOffset = data.BallZOffset;
 			comp.FallThrough = data.FallThrough;
 			comp.FallIn = data.FallIn;
 			comp.LegacyMode = data.LegacyMode;

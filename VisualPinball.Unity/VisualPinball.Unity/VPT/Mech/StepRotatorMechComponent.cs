@@ -67,6 +67,8 @@ namespace VisualPinball.Unity
 			}
 		};
 
+		IApiCoil ICoilDeviceComponent.CoilDevice(string deviceId) => ((IApiCoilDevice)StepRotatorMechApi).Coil(deviceId);
+
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => Marks.Select(m => m.Switch);
 
 		public SwitchDefault SwitchDefault => SwitchDefault.NormallyOpen;

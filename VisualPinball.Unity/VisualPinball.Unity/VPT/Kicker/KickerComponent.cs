@@ -111,6 +111,7 @@ namespace VisualPinball.Unity
 		public SwitchDefault SwitchDefault => SwitchDefault.Configurable;
 
 		public IEnumerable<GamelogicEngineCoil> AvailableCoils => Coils.Select(c => new GamelogicEngineCoil(c.Id) { Description = c.Name });
+		IApiCoil ICoilDeviceComponent.CoilDevice(string deviceId) => ((IApiCoilDevice)KickerApi).Coil(deviceId);
 
 		IEnumerable<GamelogicEngineCoil> IDeviceComponent<GamelogicEngineCoil>.AvailableDeviceItems => AvailableCoils;
 		IEnumerable<GamelogicEngineSwitch> IDeviceComponent<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;

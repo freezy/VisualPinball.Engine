@@ -28,6 +28,7 @@ namespace VisualPinball.Unity
 		/// A list of available coils supported by the coil device
 		/// </summary>
 		IEnumerable<GamelogicEngineCoil> AvailableCoils { get; }
-	}
 
+		public IApiCoil CoilDevice(string deviceId);
+	}
 }
