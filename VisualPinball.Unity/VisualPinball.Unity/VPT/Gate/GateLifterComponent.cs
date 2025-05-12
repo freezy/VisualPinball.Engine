@@ -60,6 +60,8 @@ namespace VisualPinball.Unity
 			}
 		};
 
+		IApiCoil ICoilDeviceComponent.CoilDevice(string deviceId) => ((IApiCoilDevice)GateLifterApi).Coil(deviceId);
+
 		#endregion
 
 		public GateLifterApi GateLifterApi { get; private set; }

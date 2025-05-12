@@ -49,6 +49,9 @@ namespace VisualPinball.Unity
 		[Tooltip("Use a better collision model. Currently disabled.")]
 		public bool LegacyMode = true;
 
+		[Tooltip("Z-Position of the ball when locked in the kicker.")]
+		public float BallZOffset = -25f;
+
 		#endregion
 
 		#region Packaging

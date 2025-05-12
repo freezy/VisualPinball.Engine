@@ -223,7 +223,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal Transform GetTransform(int itemId) => _transforms[itemId];
+		public Transform GetTransform(int itemId) => _transforms[itemId];
 
 		#endregion
 
