@@ -133,6 +133,21 @@ namespace VisualPinball.Unity.Editor
 			return true;
 		}
 
+		public bool AddAsset(Asset asset, AssetLibrary lib)
+		{
+			if (Assets.Contains(asset.Object)) {
+				return false;
+			}
+			var assetMetaPath = AssetMetaPath(asset, lib);
+			var assetMetaFolder = Path.GetDirectoryName(assetMetaPath);
+			if (!Directory.Exists(assetMetaFolder)) {
+				Directory.CreateDirectory(assetMetaFolder!);
+			}
+			Assets.Add(asset);
+
+			return true;
+		}
+
 		public void RemoveAsset(Asset asset)
 		{
 			if (Assets.Contains(asset)) {
@@ -144,6 +159,25 @@ namespace VisualPinball.Unity.Editor
 				}
 				File.Delete(AssetMetaPath(asset, asset.Library));
 				File.Delete(AssetMetaPath(asset, asset.Library) + ".meta");
+			}
+		}
+
+		public void MoveAsset(Asset asset, AssetLibrary destLibrary)
+		{
+			if (Assets.Contains(asset)) {
+
+				// first, move material combination thumbs before we switch the reference to the library.
+				foreach (var materialCombination in AssetMaterialCombination.GetCombinations(asset)) { // includes the original
+					materialCombination.MoveThumb(destLibrary);
+				}
+				// move the .asset file to the new library.
+				AssetDatabase.MoveAsset(AssetMetaPath(asset, asset.Library), AssetMetaPath(asset, destLibrary));
+
+				// move the reference in the database.
+				destLibrary.AddAsset(asset);
+
+				// finally, remove the reference from the old library.
+				Assets.Remove(asset);
 			}
 		}
 
@@ -172,8 +206,11 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		public AssetCategory GetCategory(string id) => Categories[id];
+		public AssetCategory GetCategoryByName(string name) => Categories.Values.First(c=> c.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 
 		public IEnumerable<AssetCategory> GetCategories() => Categories.Values.OrderBy(c => c.Name).ToList();
+
+		public bool HasCategory(string name) => Categories.Contains(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 
 		public void SetCategory(Asset asset, AssetCategory category)
 		{
@@ -286,6 +323,11 @@ namespace VisualPinball.Unity.Editor
 	{
 		public void Add(AssetCategory category) => this[category.Id] = category;
 		public bool Remove(AssetCategory category) => Remove(category.Id);
+
+		public bool Contains(Func<AssetCategory, bool> predicate)
+		{
+			return Values.Any(predicate);
+		}
 	}
 
 	[Serializable]
