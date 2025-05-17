@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
-using System.IO;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -45,6 +44,8 @@ namespace VisualPinball.Unity.Editor
 		private StyleSheet _assetStyle;
 
 		private readonly Dictionary<string, Texture2D> _thumbCache = new();
+
+		private const string ClassDrag = "library-element--dragover";
 
 		public string DragErrorLeft {
 			get => _dragErrorContainerLeft.ClassListContains("hidden") ? null : _dragErrorLabelLeft.text;
@@ -202,12 +203,72 @@ namespace VisualPinball.Unity.Editor
 				image = lib.IsLocked ? Icons.Locked(IconSize.Small) : Icons.Unlocked(IconSize.Small)
 			};
 			icon.RegisterCallback<MouseDownEvent>(evt => OnLibraryLockClicked(evt, lib, icon));
+
 			item.Add(icon);
 
 			toggle.value = lib.IsActive;
 			toggle.RegisterValueChangedCallback(evt => OnLibraryToggled(lib, evt.newValue));
 			label.RegisterCallback<MouseDownEvent>(evt => OnLibraryLabelClicked(evt, lib, toggle, icon));
+
+			item.RegisterCallback<DragUpdatedEvent>(OnDragUpdated);
+			item.RegisterCallback<DragPerformEvent>(OnDragPerform);
+			item.RegisterCallback<DragEnterEvent>(OnDragEnter);
+			item.RegisterCallback<DragLeaveEvent>(OnDragLeave);
+			item.userData = lib;
+
 			return item;
+		}
+
+		private void OnDragPerform(DragPerformEvent evt)
+		{
+			if (evt.currentTarget is not VisualElement item) {
+				return;
+			}
+			var lib = item.userData as AssetLibrary;
+			if (lib == null) {
+				return;
+			}
+			item.RemoveFromClassList(ClassDrag);
+
+			if (EditorUtility.DisplayDialog("Asset Library", "Are you sure you want to move the assets to this library?", "Yes", "No")) {
+				DragAndDrop.AcceptDrag();
+
+				var assets = DragAndDrop.GetGenericData("assets") as HashSet<AssetResult>;
+				foreach (var asset in assets) {
+					asset.Asset.Library.MoveAsset(asset.Asset, lib);
+				}
+				AssetDatabase.SaveAssets();
+				AssetDatabase.Refresh();
+				Debug.Log("assets: " + assets?.Count);
+			}
+		}
+
+		private static void OnDragUpdated(DragUpdatedEvent evt)
+		{
+			DragAndDrop.visualMode = IsDraggingExistingAssets
+				? DragAndDropVisualMode.Move
+				: DragAndDropVisualMode.Rejected;
+		}
+
+		private void OnDragEnter(DragEnterEvent evt)
+		{
+			if (evt.currentTarget is not VisualElement item) {
+				return;
+			}
+			if (IsDraggingExistingAssets) {
+				item.AddToClassList(ClassDrag);
+			} else {
+				return;
+			}
+			Debug.Log("Got a new drag enter! " + evt);
+		}
+
+		private void OnDragLeave(DragLeaveEvent evt)
+		{
+			if (evt.currentTarget is not VisualElement item) {
+				return;
+			}
+			item.RemoveFromClassList(ClassDrag);
 		}
 
 		private void OnLibraryLabelClicked(IMouseEvent evt, AssetLibrary lib, Toggle toggle, VisualElement icon)
