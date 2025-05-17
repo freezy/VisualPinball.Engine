@@ -77,6 +77,15 @@ namespace VisualPinball.Unity.Editor
 			return combinations;
 		}
 
+
+		public void MoveThumb(AssetLibrary destLibrary)
+		{
+			if (File.Exists(ThumbPath)) {
+				var destPath = $"{destLibrary.ThumbnailRoot}/{ThumbId}.webp";
+				File.Move(ThumbPath, destPath);
+			}
+		}
+
 		public void ApplyObjectPos(GameObject go)
 		{
 			var pos = go.transform.position;
@@ -170,5 +179,6 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		public override string ToString() => Name;
+
 	}
 }

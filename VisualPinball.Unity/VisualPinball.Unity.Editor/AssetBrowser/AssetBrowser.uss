@@ -24,6 +24,10 @@
 	-unity-text-align: middle-center;
 }
 
+.library-element--dragover {
+	background-color: #515151 !important;
+}
+
 /*AssetDetails > TemplateContainer {
 	flex-grow: 1;
 }*/

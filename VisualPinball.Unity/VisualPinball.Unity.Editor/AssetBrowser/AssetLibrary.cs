@@ -73,6 +73,20 @@ namespace VisualPinball.Unity.Editor
 			return wasAdded;
 		}
 
+		public void AddAsset(Asset asset)
+		{
+			if (IsLocked) {
+				throw new InvalidOperationException($"Cannot add new asset because library {Name} is locked.");
+			}
+
+			_db.AddAsset(asset, this);
+			asset.Category = !_db.HasCategory(asset.Category.Name)
+				? _db.AddCategory(asset.Category.Name)
+				: _db.GetCategoryByName(asset.Category.Name);
+			asset.Library = this;
+			SaveLibrary();
+		}
+
 		public void SaveAsset(Asset asset)
 		{
 			if (IsLocked) {
@@ -92,6 +106,14 @@ namespace VisualPinball.Unity.Editor
 			RecordUndo("remove asset from library");
 			_db.RemoveAsset(asset);
 			SaveLibrary();
+		}
+
+		public void MoveAsset(Asset asset, AssetLibrary destLibrary)
+		{
+			if (destLibrary == this) {
+				return;
+			}
+			_db.MoveAsset(asset, destLibrary);
 		}
 
 		public bool HasAsset(string guid) => _db.HasAsset(guid);
@@ -252,6 +274,5 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		#endregion
-
 	}
 }
