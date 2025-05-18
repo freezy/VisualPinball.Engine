@@ -221,6 +221,9 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnDragPerform(DragPerformEvent evt)
 		{
+			if (!IsValidDrag(evt.currentTarget)) {
+				return;
+			}
 			if (evt.currentTarget is not VisualElement item) {
 				return;
 			}
@@ -245,13 +248,45 @@ namespace VisualPinball.Unity.Editor
 
 		private static void OnDragUpdated(DragUpdatedEvent evt)
 		{
-			DragAndDrop.visualMode = IsDraggingExistingAssets
+			DragAndDrop.visualMode = IsValidDrag(evt.currentTarget)
 				? DragAndDropVisualMode.Move
 				: DragAndDropVisualMode.Rejected;
 		}
 
+		private static bool IsValidDrag(IEventHandler currentTarget)
+		{
+			DragAndDrop.visualMode = DragAndDropVisualMode.Rejected;
+			if (currentTarget is not VisualElement item) {
+				return false;
+			}
+			var lib = item.userData as AssetLibrary;
+			if (lib == null || lib.IsLocked) {
+				return false;
+			}
+			if (DragAndDrop.GetGenericData("assets") is not HashSet<AssetResult> assets) {
+				return false;
+			}
+
+			foreach (var asset in assets) {
+				// check for locked libraries
+				if (asset.Asset.Library.IsLocked) {
+					DragAndDrop.visualMode = DragAndDropVisualMode.Rejected;
+					return false;
+				}
+
+				if (asset.Asset.Library == lib) {
+					// don't allow dragging to the same library
+					return false;
+				}
+			}
+			return true;
+		}
+
 		private void OnDragEnter(DragEnterEvent evt)
 		{
+			if (!IsValidDrag(evt.currentTarget)) {
+				return;
+			}
 			if (evt.currentTarget is not VisualElement item) {
 				return;
 			}
