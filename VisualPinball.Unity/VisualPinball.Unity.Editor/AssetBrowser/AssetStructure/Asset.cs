@@ -179,12 +179,12 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		public Texture2D LoadThumbTexture()
+		public Texture2D LoadThumbTexture(string thumbnailPath)
 		{
 			var sw = Stopwatch.StartNew();
 
 			// Load the image using NetVips
-			var image = Image.NewFromBuffer(File.ReadAllBytes(ThumbnailPath), access: Enums.Access.Sequential);
+			var image = Image.NewFromBuffer(File.ReadAllBytes(thumbnailPath), access: Enums.Access.Sequential);
 
 			// only use rgb
 			if (image.Bands > 3) {
