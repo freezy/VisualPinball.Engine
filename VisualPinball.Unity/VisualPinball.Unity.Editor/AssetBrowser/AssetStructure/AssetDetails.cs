@@ -273,8 +273,8 @@ namespace VisualPinball.Unity.Editor
 			var go = InstantiateAsset(parentTransform);
 
 			// move to the middle of the playfield
-			go.transform.localPosition = new Vector3(Physics.ScaleToWorld(pf.Width / 2), 0, -Physics.ScaleToWorld(pf.Height / 2));
 			if (pf != null && go.GetComponent(typeof(IMainRenderableComponent)) is IMainRenderableComponent comp) {
+				go.transform.localPosition = new Vector3(Physics.ScaleToWorld(pf.Width / 2), 0, -Physics.ScaleToWorld(pf.Height / 2));
 				comp.UpdateTransforms();
 			}
 
