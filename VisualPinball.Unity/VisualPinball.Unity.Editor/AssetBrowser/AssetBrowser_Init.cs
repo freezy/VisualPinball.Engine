@@ -177,7 +177,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			if (!_thumbCache.ContainsKey(asset.GUID)) {
 				if (asset.HasThumbnail) {
-					var tex = asset.LoadThumbTexture();
+					var tex = asset.LoadThumbTexture(asset.ThumbnailPath);
 					_thumbCache[asset.GUID] = tex;
 				}
 			}
@@ -242,7 +242,6 @@ namespace VisualPinball.Unity.Editor
 				}
 				AssetDatabase.SaveAssets();
 				AssetDatabase.Refresh();
-				Debug.Log("assets: " + assets?.Count);
 			}
 		}
 
