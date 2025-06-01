@@ -83,9 +83,7 @@ namespace VisualPinball.Unity.Editor
 			_tags.Clear();
 			var tagRegex = new Regex(@"\[([^\]]+)\]");
 			foreach (Match match in tagRegex.Matches(q)) {
-				if (!_tags.Contains(match.Groups[1].Value)) {
-					_tags.Add(match.Groups[1].Value);
-				}
+				_tags.Add(match.Groups[1].Value);
 				q = q.Replace(match.Value, "");
 			}
 

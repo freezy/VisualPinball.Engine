@@ -50,8 +50,6 @@ namespace VisualPinball.Unity.Editor
 		[NonSerialized]
 		public AssetQuery Query;
 
-		public const int ThumbSize = 256;
-
 		private AssetResult LastSelectedResult {
 			set => _detailsElement.Asset = value?.Asset;
 		}
@@ -98,7 +96,7 @@ namespace VisualPinball.Unity.Editor
 			Libraries = AssetDatabase.FindAssets($"t:{typeof(AssetLibrary)}")
 				.Select(AssetDatabase.GUIDToAssetPath)
 				.Select(AssetDatabase.LoadAssetAtPath<AssetLibrary>)
-				.Where(asset => asset != null).ToList();
+				.Where(lib => lib != null).ToList();
 
 			// toggle label
 			if (Libraries.Count == 0) {
@@ -198,115 +196,123 @@ namespace VisualPinball.Unity.Editor
 			_statusLabel.text = $"Found {results.Count} asset" + (results.Count == 1 ? "" : "s") + $" in {duration}ms.";
 		}
 
-		private void AddAssetContextMenu(ContextualMenuPopulateEvent evt)
-		{
-			if (evt.target is not VisualElement ve || !_resultByElement.ContainsKey(ve)) {
-				return;
-			}
-
-			var clickedAsset = _resultByElement[ve];
-			var lib = _resultByElement[ve].Asset.Library;
-			if (lib.IsLocked) {
-				return;
-			}
-
-			// lib is not locked, and asset is known.
-			evt.menu.AppendAction("Remove from Library", _ => {
-				if (!_selectedResults.Contains(clickedAsset)) {
-					_selectedResults.Add(clickedAsset);
-					ToggleSelectionClass(_elementByAsset[clickedAsset.Asset]);
-				}
-				var numRemovedAssets = 0;
-				foreach (var assetResult in _selectedResults.Where(a => !a.Asset.Library.IsLocked).ToList()) {
-					_selectedResults.Remove(assetResult);
-					assetResult.Asset.Library.RemoveAsset(assetResult.Asset);
-					if (_thumbCache.ContainsKey(assetResult.Asset.GUID)) {
-						DestroyImmediate(_thumbCache[assetResult.Asset.GUID]);
-						_thumbCache.Remove(assetResult.Asset.GUID);
-					}
-					numRemovedAssets++;
+			private void AddAssetContextMenu(ContextualMenuPopulateEvent evt)
+			{
+				if (evt.target is not VisualElement target) {
+					Debug.Log("Early out in AddAssetContextMenu, target is no VisualElement.");
+					return;
 				}
 
-				RefreshCategories();
-				RefreshAssets();
-				_statusLabel.text = $"Removed {numRemovedAssets} assets from library.";
-			});
+				if (!_resultByElement.ContainsKey(target.parent.parent)) {
+					Debug.Log($"Early out in AddAssetContextMenu, {target.parent.parent} not in resultByElement.");
+					return;
+				}
 
-			if (_selectedResults.Count > 1) {
-				var srcAsset = clickedAsset.Asset;
-				evt.menu.AppendSeparator();
-				evt.menu.AppendAction("Add Attributes to Selected", _ => {
-					var destAssets = OtherSelected(clickedAsset).ToList();
-					foreach (var destAsset in destAssets) {
-						foreach (var attr in srcAsset.Attributes) {
-							destAsset.AddAttribute(attr.Key, attr.Value);
-						}
-						destAsset.Save();
-					}
-					EditorUtility.DisplayDialog("Add Attributes to Selected", $"Added {srcAsset.Attributes.Count} attributes to {destAssets.Count} other assets.", "OK");
+				var clickedAsset = _resultByElement[target.parent.parent];
+				var libs = clickedAsset.Asset.Libraries;
+				if (libs.All(l => l.IsLocked)) {
+					Debug.Log("Early out in AddAssetContextMenu, all libraries are locked.");
+					return;
+				}
 
-				});
-				evt.menu.AppendAction("Replace Attributes in Selected", _ => {
-					var destAssets = OtherSelected(clickedAsset).ToList();
-					foreach (var destAsset in destAssets) {
-						foreach (var attr in srcAsset.Attributes) {
-							destAsset.ReplaceAttribute(attr.Key, attr.Value);
+				// lib is not locked, and asset is known.
+				foreach (var lib in libs.Where(l => !l.IsLocked)) {
+					evt.menu.AppendAction($"Remove from {lib.Name}", _ => {
+						if (_selectedResults.Add(clickedAsset)) {
+							ToggleSelectionClass(_elementByAsset[clickedAsset.Asset]);
 						}
-						destAsset.Save();
-					}
-					EditorUtility.DisplayDialog("Replace Attributes to Selected", $"Replaced {srcAsset.Attributes.Count} attributes in {destAssets.Count} other assets.", "OK");
-				});
-
-				evt.menu.AppendSeparator();
-				evt.menu.AppendAction("Add Tags to Selected", _ => {
-					var destAssets = OtherSelected(clickedAsset).ToList();
-					foreach (var destAsset in destAssets) {
-						foreach (var tag in srcAsset.Tags) {
-							destAsset.AddTag(tag.TagName);
-						}
-						destAsset.Save();
-					}
-					EditorUtility.DisplayDialog("Add Tags to Selected", $"Added {srcAsset.Tags.Count} tags to {destAssets.Count} other assets.", "OK");
-				});
-
-				evt.menu.AppendAction("Replace Tags in Selected", _ => {
-					var destAssets = OtherSelected(clickedAsset).ToList();
-					foreach (var destAsset in destAssets) {
-						destAsset.Tags.Clear();
-						foreach (var tag in srcAsset.Tags) {
-							destAsset.AddTag(tag.TagName);
-						}
-						destAsset.Save();
-					}
-					EditorUtility.DisplayDialog("Replace Tags in Selected", $"Replaced {srcAsset.Tags.Count} tags in {destAssets.Count} other assets.", "OK");
-				});
-
-				evt.menu.AppendSeparator();
-				evt.menu.AppendAction("Copy All to Selected", _ => {
-					var destAssets = OtherSelected(clickedAsset).ToList();
-					foreach (var destAsset in destAssets) {
-						if (string.IsNullOrEmpty(destAsset.Description)) {
-							destAsset.Description = srcAsset.Description;
-						}
-						foreach (var tag in srcAsset.Tags) {
-							destAsset.AddTag(tag.TagName);
-						}
-						foreach (var attr in srcAsset.Attributes) {
-							destAsset.AddAttribute(attr.Key, attr.Value);
-						}
-						foreach (var link in srcAsset.Links.Where(link => destAsset.Links.FirstOrDefault(l => l.Name == link.Name) != null)) {
-							destAsset.Links.Add(new AssetLink(link.Name, link.Url));
+						var numRemovedAssets = 0;
+						foreach (var assetResult in _selectedResults.Where(a => lib.HasAsset(a.Asset.GUID)).ToList()) {
+							_selectedResults.Remove(assetResult);
+							lib.RemoveAsset(assetResult.Asset);
+							if (libs.Length == 1 && _thumbCache.ContainsKey(assetResult.Asset.GUID)) {
+								DestroyImmediate(_thumbCache[assetResult.Asset.GUID]);
+								_thumbCache.Remove(assetResult.Asset.GUID);
+							}
+							numRemovedAssets++;
 						}
 
-						destAsset.Quality = srcAsset.Quality;
-						destAsset.ThumbCameraPreset = srcAsset.ThumbCameraPreset;
+						RefreshCategories();
+						RefreshAssets();
+						_statusLabel.text = $"Removed {numRemovedAssets} asset(s) from library {lib.Name}.";
+					});
+				}
 
-						destAsset.Save();
-					}
-					EditorUtility.DisplayDialog("Copy All to Selected", $"Copied data of to {destAssets.Count} other assets.", "OK");
-				});
+				if (_selectedResults.Count > 1) {
+					var srcAsset = clickedAsset.Asset;
+					evt.menu.AppendSeparator();
+					evt.menu.AppendAction("Add Attributes to Selected", _ => {
+						var destAssets = OtherSelected(clickedAsset).ToList();
+						foreach (var destAsset in destAssets) {
+							foreach (var attr in srcAsset.Attributes) {
+								destAsset.AddAttribute(attr.Key, attr.Value);
+							}
+							destAsset.Save();
+						}
+						EditorUtility.DisplayDialog("Add Attributes to Selected", $"Added {srcAsset.Attributes.Count} attributes to {destAssets.Count} other assets.", "OK");
+
+					});
+					evt.menu.AppendAction("Replace Attributes in Selected", _ => {
+						var destAssets = OtherSelected(clickedAsset).ToList();
+						foreach (var destAsset in destAssets) {
+							foreach (var attr in srcAsset.Attributes) {
+								destAsset.ReplaceAttribute(attr.Key, attr.Value);
+							}
+							destAsset.Save();
+						}
+						EditorUtility.DisplayDialog("Replace Attributes to Selected", $"Replaced {srcAsset.Attributes.Count} attributes in {destAssets.Count} other assets.", "OK");
+					});
+
+					evt.menu.AppendSeparator();
+					evt.menu.AppendAction("Add Tags to Selected", _ => {
+						var destAssets = OtherSelected(clickedAsset).ToList();
+						foreach (var destAsset in destAssets) {
+							foreach (var tag in srcAsset.Tags) {
+								destAsset.AddTag(tag.TagName);
+							}
+							destAsset.Save();
+						}
+						EditorUtility.DisplayDialog("Add Tags to Selected", $"Added {srcAsset.Tags.Count} tags to {destAssets.Count} other assets.", "OK");
+					});
+
+					evt.menu.AppendAction("Replace Tags in Selected", _ => {
+						var destAssets = OtherSelected(clickedAsset).ToList();
+						foreach (var destAsset in destAssets) {
+							destAsset.Tags.Clear();
+							foreach (var tag in srcAsset.Tags) {
+								destAsset.AddTag(tag.TagName);
+							}
+							destAsset.Save();
+						}
+						EditorUtility.DisplayDialog("Replace Tags in Selected", $"Replaced {srcAsset.Tags.Count} tags in {destAssets.Count} other assets.", "OK");
+					});
+
+					evt.menu.AppendSeparator();
+					evt.menu.AppendAction("Copy All to Selected", _ => {
+						var destAssets = OtherSelected(clickedAsset).ToList();
+						foreach (var destAsset in destAssets) {
+							if (string.IsNullOrEmpty(destAsset.Description)) {
+								destAsset.Description = srcAsset.Description;
+							}
+							foreach (var tag in srcAsset.Tags) {
+								destAsset.AddTag(tag.TagName);
+							}
+							foreach (var attr in srcAsset.Attributes) {
+								destAsset.AddAttribute(attr.Key, attr.Value);
+							}
+							foreach (var link in srcAsset.Links.Where(link => destAsset.Links.FirstOrDefault(l => l.Name == link.Name) != null)) {
+								destAsset.Links.Add(new AssetLink(link.Name, link.Url));
+							}
+
+							destAsset.Quality = srcAsset.Quality;
+							destAsset.ThumbCameraPreset = srcAsset.ThumbCameraPreset;
+
+							destAsset.Save();
+						}
+						EditorUtility.DisplayDialog("Copy All to Selected", $"Copied data of to {destAssets.Count} other assets.", "OK");
+					});
+				}
 			}
-		}
 
 		private IEnumerable<Asset> OtherSelected(AssetResult src)
 		{
