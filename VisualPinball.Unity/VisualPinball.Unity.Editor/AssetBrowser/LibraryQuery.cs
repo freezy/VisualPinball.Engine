@@ -48,7 +48,7 @@ namespace VisualPinball.Unity.Editor
 		private List<AssetCategory> _categories;
 		private HashSet<string> _categoryIds;
 		public bool HasCategories => Categories is { Count: > 0 };
-		public bool HasCategory(AssetCategory category) => _categoryIds.Contains(category.Id);
+		public bool HasCategory(AssetCategory category) => category != null && _categoryIds.Contains(category.Id);
 
 		#endregion
 

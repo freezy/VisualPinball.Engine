@@ -152,7 +152,8 @@ namespace VisualPinball.Unity.Editor
 			var item = new VisualElement();
 			_assetTree.CloneTree(item);
 			item.styleSheets.Add(_assetStyle);
-			item.Q<LibraryAssetElement>().Result = result;
+			var assetElement = item.Q<LibraryAssetElement>();
+			assetElement.Result = result;
 
 			LoadThumb(item, result.Asset);
 			var img = item.Q<VisualElement>("thumbnail-mask");
@@ -168,8 +169,9 @@ namespace VisualPinball.Unity.Editor
 			label.style.textOverflow = TextOverflow.Ellipsis;
 			item.RegisterCallback<ClickEvent>(evt => OnAssetClicked(evt, item));
 
-			item.Q<LibraryAssetElement>().RegisterDrag(this);
-			item.AddManipulator(new ContextualMenuManipulator(AddAssetContextMenu));
+			assetElement.RegisterDrag(this);
+			img.AddManipulator(new ContextualMenuManipulator(AddAssetContextMenu));
+			label.AddManipulator(new ContextualMenuManipulator(AddAssetContextMenu));
 			return item;
 		}
 
@@ -294,7 +296,6 @@ namespace VisualPinball.Unity.Editor
 			} else {
 				return;
 			}
-			Debug.Log("Got a new drag enter! " + evt);
 		}
 
 		private void OnDragLeave(DragLeaveEvent evt)

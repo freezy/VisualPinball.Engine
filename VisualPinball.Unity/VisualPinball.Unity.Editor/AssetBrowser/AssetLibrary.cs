@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.Presets;
 using UnityEngine;
@@ -113,7 +114,38 @@ namespace VisualPinball.Unity.Editor
 			if (destLibrary == this) {
 				return;
 			}
-			_db.MoveAsset(asset, destLibrary);
+			var srcLibrary = asset.Library;
+
+			// move data asset along with thumbs
+			if (!_db.MoveAsset(asset, destLibrary)) {
+				return;
+			}
+
+			// move prefab and its refs
+			var prefabPath = AssetDatabase.GetAssetPath(asset.Object);
+			var allPaths = AssetDatabase.GetDependencies(prefabPath, true).Distinct().ToArray();
+			foreach (var path in allPaths) {
+				if (path.StartsWith(destLibrary.LibraryRoot)) {
+					Debug.LogWarning($"Not moving asset {path} because it is already in the destination library {destLibrary.LibraryRoot}.");
+					continue;
+				}
+
+				if (!path.StartsWith(srcLibrary.LibraryRoot)) {
+					Debug.LogWarning($"Not moving asset {path} because it is not in the source library {srcLibrary.LibraryRoot}.");
+					continue;
+				}
+
+				var newPath = path.Replace(srcLibrary.LibraryRoot, destLibrary.LibraryRoot);
+				var newDirectory = Path.GetDirectoryName(newPath);
+				if (newDirectory != null && !Directory.Exists(newDirectory)) {
+					Directory.CreateDirectory(newDirectory);
+				}
+				Debug.Log($"Moving asset {path} to {newPath}");
+				var error = AssetDatabase.MoveAsset(path, newPath);
+				if (!string.IsNullOrEmpty(error)) {
+					Debug.LogError($"Could not move asset {path} to {newPath}: {error}");
+				}
+			}
 		}
 
 		public bool HasAsset(string guid) => _db.HasAsset(guid);

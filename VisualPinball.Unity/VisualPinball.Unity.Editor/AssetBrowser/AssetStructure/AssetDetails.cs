@@ -147,7 +147,23 @@ namespace VisualPinball.Unity.Editor
 		{
 			_header.Q<Label>("title").text = asset.Name;
 			_header.Q<Image>("library-icon").image = Icons.AssetLibrary(IconSize.Small);
-			_header.Q<Label>("library-name").text = asset.Library != null ? asset.Library.Name : "<no library>";
+
+			var libraries = asset.Libraries;
+			switch (libraries.Length) {
+				case 0:
+					_header.Q<Label>("library-name").text = "<no library>";
+					break;
+				case > 0:
+					if (libraries.Length == 1 && asset.Library != libraries[0]) {
+						_header.Q<Label>("library-name").text = $"{libraries[0].Name} (⚠️ \u2260{asset.Library.Name})";
+					} else {
+						_header.Q<Label>("library-name").text = string.Join(", ", libraries.Select(l => l.Name));
+					}
+					break;
+				default:
+					_header.Q<Label>("library-name").text = asset.Library != null ? asset.Library.Name : "<no library>";
+					break;
+			}
 
 			_header.Q<Image>("category-icon").image = EditorGUIUtility.IconContent("d_Folder Icon").image;
 			_header.Q<Label>("category-name").text = asset.Category?.Name ?? "<no category>";
