@@ -17,6 +17,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace VisualPinball.Unity.Editor
@@ -219,6 +220,7 @@ namespace VisualPinball.Unity.Editor
 				foreach (var d in data) {
 					var category = Categories.FirstOrDefault(i => i.Item1 == d.Asset.Library).Item2 ?? d.Asset.Library.AddCategory(Name);
 					d.Asset.Library.SetCategory(d.Asset, category);
+					Debug.Log($"Moved {d.Asset.Name} to category {category?.Name} ({d.Asset.Library.Name}).");
 				}
 				_libraryCategoryView.Refresh();
 				AssetBrowser.StopDraggingAssets();

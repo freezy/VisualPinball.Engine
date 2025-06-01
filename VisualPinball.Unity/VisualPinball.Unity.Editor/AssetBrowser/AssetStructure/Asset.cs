@@ -85,6 +85,12 @@ namespace VisualPinball.Unity.Editor
 		[NonSerialized]
 		private AssetCategory _category;
 
+		public AssetLibrary[] Libraries =>
+			AssetDatabase.FindAssets("t:AssetLibrary")
+				.Select(guid => AssetDatabase.LoadAssetAtPath<AssetLibrary>(AssetDatabase.GUIDToAssetPath(guid)))
+				.Where(lib => lib != null && lib.HasAsset(GUID))
+				.ToArray();
+
 		public DateTime AddedAt {
 			get => string.IsNullOrEmpty(_addedAt) ? DateTime.Now : Convert.ToDateTime(_addedAt);
 			set => _addedAt = value.ToString("o");

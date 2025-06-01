@@ -162,7 +162,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		public void MoveAsset(Asset asset, AssetLibrary destLibrary)
+		public bool MoveAsset(Asset asset, AssetLibrary destLibrary)
 		{
 			if (Assets.Contains(asset)) {
 
@@ -171,14 +171,36 @@ namespace VisualPinball.Unity.Editor
 					materialCombination.MoveThumb(destLibrary);
 				}
 				// move the .asset file to the new library.
-				AssetDatabase.MoveAsset(AssetMetaPath(asset, asset.Library), AssetMetaPath(asset, destLibrary));
+				var assetSrc = AssetMetaPath(asset, asset.Library);
+				var assetDest = AssetMetaPath(asset, destLibrary);
+
+				Debug.Log($"Moving database asset {assetSrc} to {assetDest}");
+				var error = AssetDatabase.MoveAsset(assetSrc, assetDest);
+				if (!string.IsNullOrEmpty(error)) {
+					Debug.LogError($"Could not move asset {assetSrc} to {assetDest}: {error}");
+				}
 
 				// move the reference in the database.
 				destLibrary.AddAsset(asset);
 
 				// finally, remove the reference from the old library.
 				Assets.Remove(asset);
+				return true;
 			}
+
+			if (destLibrary.HasAsset(asset.GUID)) {
+				if (asset.Library != destLibrary) {
+					Debug.Log($"Updated asset's library reference from {asset.Library.Name} to {destLibrary.Name}.");
+					asset.Library = destLibrary;
+
+				} else {
+					Debug.LogWarning($"Asset {asset.Name} ({asset.GUID}) already exists in {destLibrary.Name}. Cannot move.");
+				}
+				return false;
+			}
+
+			Debug.LogWarning($"Database does not contain asset {asset.Name} ({asset.GUID}). Cannot move to {destLibrary.Name}.");
+			return false;
 		}
 
 		public bool HasAsset(string guid) => Assets.Contains(guid);
@@ -205,7 +227,8 @@ namespace VisualPinball.Unity.Editor
 			category.Name = newName;
 		}
 
-		public AssetCategory GetCategory(string id) => Categories[id];
+		public AssetCategory GetCategory(string id) => Categories.ContainsKey(id) ? Categories[id] : null;
+
 		public AssetCategory GetCategoryByName(string name) => Categories.Values.First(c=> c.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 
 		public IEnumerable<AssetCategory> GetCategories() => Categories.Values.OrderBy(c => c.Name).ToList();
