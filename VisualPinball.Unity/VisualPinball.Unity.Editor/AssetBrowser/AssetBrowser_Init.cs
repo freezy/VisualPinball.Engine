@@ -157,12 +157,7 @@ namespace VisualPinball.Unity.Editor
 
 			LoadThumb(item, result.Asset);
 			var img = item.Q<VisualElement>("thumbnail-mask");
-			img.style.width = _thumbnailSize;
-			img.style.height = _thumbnailSize;
-			img.style.borderBottomLeftRadius = _thumbnailSize * LibraryAssetElement.RadiusRatio;
-			img.style.borderBottomRightRadius = _thumbnailSize * LibraryAssetElement.RadiusRatio;
-			img.style.borderTopLeftRadius = _thumbnailSize * LibraryAssetElement.RadiusRatio;
-			img.style.borderTopRightRadius = _thumbnailSize * LibraryAssetElement.RadiusRatio;
+			assetElement.SetSize(_thumbnailSize);
 
 			var label = item.Q<Label>("label");
 			label.text = result.Asset.Name;
