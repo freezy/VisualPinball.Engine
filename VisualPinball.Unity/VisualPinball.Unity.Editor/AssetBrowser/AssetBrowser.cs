@@ -224,7 +224,7 @@ namespace VisualPinball.Unity.Editor
 						var numRemovedAssets = 0;
 						foreach (var assetResult in _selectedResults.Where(a => lib.HasAsset(a.Asset.GUID)).ToList()) {
 							_selectedResults.Remove(assetResult);
-							lib.RemoveAsset(assetResult.Asset);
+							lib.DeleteAsset(assetResult.Asset);
 							if (libs.Length == 1 && _thumbCache.ContainsKey(assetResult.Asset.GUID)) {
 								DestroyImmediate(_thumbCache[assetResult.Asset.GUID]);
 								_thumbCache.Remove(assetResult.Asset.GUID);
