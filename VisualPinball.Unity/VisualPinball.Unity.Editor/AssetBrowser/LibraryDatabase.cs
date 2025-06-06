@@ -200,6 +200,8 @@ namespace VisualPinball.Unity.Editor
 				if (asset.Library != destLibrary) {
 					Debug.Log($"Updated asset's library reference from {asset.Library.Name} to {destLibrary.Name}.");
 					asset.Library = destLibrary;
+					EditorUtility.SetDirty(asset);
+					AssetDatabase.SaveAssetIfDirty(asset);
 
 				} else {
 					Debug.LogWarning($"Asset {asset.Name} ({asset.GUID}) already exists in {destLibrary.Name}. Cannot move.");
