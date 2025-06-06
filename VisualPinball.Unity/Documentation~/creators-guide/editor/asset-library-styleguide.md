@@ -204,7 +204,6 @@ The smoothness map (the inverse of a roughness map) defines how regularly light 
 All texture maps must use power-of-two dimensions for width and height (e.g., 256, 512, 1024). They don't have to be square.
 
 <img src="assetlib-map-sizes.png" style="max-height:200px" /><br>
-<i>Metallicness set to 1 with smoothness going from 0 to 1.</i>
 
 We're aiming for a resolution of about 6 pixels per millimeter (approximately 150 DPI). For a playfield texture, this means roughly 4096×8192 pixels. Use this resolution when possible, but don't upscale images — the highest resolution should be from your source. This applies to both color and normal maps. For metallic/smoothness maps, half the resolution of the color map is a good balance between performance and visual fidelity.
 
@@ -224,15 +223,14 @@ We're aiming for a resolution of about 6 pixels per millimeter (approximately 15
 > 
 > So, a texture map at 296×296 would correspond to 6px / mm. Since we're at power of twos, we could go for either 512×512 or 256×256.   
 
+### Compression
 
-### File Format
-
-Export your texture maps in **PNG format**. Use 32-bit if they include an alpha channel; otherwise, 24-bit is sufficient.
+Export your texture maps in **PNG format**. Use 32-bit if they include an alpha channel; otherwise, 24-bit is sufficient. Use halved resolution for the mask map. Don't quantize / TinyPNG your maps, since together with the GPU's block compression they will result in artifacts.
 
 > [!note]
 > Many artists prefer to export their textures as TGA due to faster read/write speeds, but TGA files consume significantly more space. PNG uses lossless compression, and once imported, Unity stores textures in a GPU-friendly format anyway. Additionally, when exporting to the `.vpe` format, image textures are converted into a runtime-optimized format.
 
-In terms of *packaging*, Unity's HDRP stores metallic, ambient occlusion and smoothness in what they call a [mask map](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.2/manual/Mask-Map-and-Detail-Map.html). Substance Painter exports this out of the box, but it should be pretty easy to do with Blender as well. 
+In terms of *packaging*, Unity's HDRP stores metallic, ambient occlusion and smoothness in what they call a [mask map](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.2/manual/Mask-Map-and-Detail-Map.html). Substance Painter exports this out of the box, but it should be pretty easy to do with Blender as well.
 
 ### Wear
 
