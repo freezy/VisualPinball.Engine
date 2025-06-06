@@ -159,6 +159,7 @@ namespace VisualPinball.Unity.Editor
 				var newDirectory = Path.GetDirectoryName(newPath);
 				if (newDirectory != null && !Directory.Exists(newDirectory)) {
 					Directory.CreateDirectory(newDirectory);
+					AssetDatabase.ImportAsset(newDirectory, ImportAssetOptions.ForceSynchronousImport);
 				}
 				Debug.Log($"Moving asset {path} to {newPath}");
 				var error = AssetDatabase.MoveAsset(path, newPath);
