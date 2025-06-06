@@ -148,10 +148,18 @@ namespace VisualPinball.Unity.Editor
 			return true;
 		}
 
-		public void RemoveAsset(Asset asset)
+		public bool RemoveAsset(Asset asset)
 		{
 			if (Assets.Contains(asset)) {
 				Assets.Remove(asset);
+				return true;
+			}
+			return false;
+		}
+
+		public void DeleteAsset(Asset asset)
+		{
+			if (RemoveAsset(asset)) {
 				foreach (var materialCombination in AssetMaterialCombination.GetCombinations(asset)) { // includes the original
 					if (File.Exists(materialCombination.ThumbPath)) {
 						File.Delete(materialCombination.ThumbPath);
