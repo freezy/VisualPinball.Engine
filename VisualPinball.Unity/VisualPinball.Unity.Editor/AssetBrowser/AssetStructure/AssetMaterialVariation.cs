@@ -39,10 +39,14 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		[NonSerialized]
 		public bool IsNested;
+
+		[NonSerialized]
+		public bool IsDecal;
 		
 		public string GUID => AssetDatabase.TryGetGUIDAndLocalFileIdentifier(Object, out var guid, out long _) ? guid : null;
 		
 		public AssetMaterialVariation Nested { get { IsNested = true; return this; }}
+		public AssetMaterialVariation Decal { get { IsDecal = true; return this; }}
 
 		public GameObject Match(GameObject go)
 		{
