@@ -25,7 +25,7 @@ namespace VisualPinball.Unity.Editor
 	/// exposes which is selected.
 	/// </summary>
 	[UxmlElement]
-	public partial class AssetMaterialVariationsElement : VisualElement
+	public partial class AssetDecalVariationsElement : VisualElement
 	{
 		public AssetMaterialCombinationElement SelectedMaterialCombination { get; private set; }
 
@@ -40,7 +40,7 @@ namespace VisualPinball.Unity.Editor
 		[UxmlAttribute("tooltip")]
 		private string Tooltip { set => _foldout.tooltip = value; }
 
-		public AssetMaterialVariationsElement()
+		public AssetDecalVariationsElement()
 		{
 			_foldout = new Foldout();
 			_container = new ScrollView { mode = ScrollViewMode.Horizontal };
@@ -49,11 +49,10 @@ namespace VisualPinball.Unity.Editor
 			Add(_foldout);
 		}
 
-		public void SetValue(Asset asset)
+		public void SetValue(Asset asset, AssetMaterialCombination materialCombination)
 		{
-
-			var materialCombinations = AssetMaterialCombination.GetCombinations(asset)
-				.Where(c => !c.IsOriginal)
+			var materialCombinations = asset.DecalVariations
+				.SelectMany(decalVariation => materialCombination?.CombineAll(decalVariation) ?? decalVariation.Combinations(asset))
 				.ToArray();
 
 			// material variations
