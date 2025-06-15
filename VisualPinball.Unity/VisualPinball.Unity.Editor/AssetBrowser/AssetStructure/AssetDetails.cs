@@ -148,6 +148,10 @@ namespace VisualPinball.Unity.Editor
 			_header.Q<Label>("title").text = asset.Name;
 			_header.Q<Image>("library-icon").image = Icons.AssetLibrary(IconSize.Small);
 
+			if (asset.ThumbCameraPos == default) {
+				asset.ThumbCameraPos = new Vector3(0, asset.ThumbCameraHeight, 0);
+			}
+
 			var libraries = asset.Libraries;
 			switch (libraries.Length) {
 				case 0:

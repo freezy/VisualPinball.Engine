@@ -88,9 +88,11 @@ namespace VisualPinball.Unity.Editor
 
 		public void ApplyObjectPos(GameObject go)
 		{
-			var pos = go.transform.position;
-			pos.y = Asset.ThumbCameraHeight;
-			go.transform.position = pos;
+			if (Asset.ThumbCameraPos == default) {
+				Asset.ThumbCameraPos = new Vector3(0, Asset.ThumbCameraHeight, 0);
+			}
+			go.transform.position = Asset.ThumbCameraPos;
+			go.transform.rotation = Quaternion.Euler(Asset.ThumbCameraRot);
 		}
 
 		public void ApplyMaterial(GameObject go)
@@ -100,6 +102,10 @@ namespace VisualPinball.Unity.Editor
 				if (obj == null) {
 					Debug.LogError("Unable to determine which to object the material needs to be applied to.");
 					return;
+				}
+
+				if (!obj.activeSelf) {
+					obj.SetActive(true);
 				}
 				var materials = obj.gameObject.GetComponent<MeshRenderer>().sharedMaterials;
 				materials[materialVariation.Slot] = materialOverride.Material;
