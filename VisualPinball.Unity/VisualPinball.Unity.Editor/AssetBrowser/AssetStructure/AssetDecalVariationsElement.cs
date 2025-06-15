@@ -51,26 +51,32 @@ namespace VisualPinball.Unity.Editor
 
 		public void SetValue(Asset asset, AssetMaterialCombination materialCombination)
 		{
-			var materialCombinations = asset.DecalVariations
-				.SelectMany(decalVariation => materialCombination?.CombineAll(decalVariation) ?? decalVariation.Combinations(asset))
-				.ToArray();
-
-			// material variations
-			if (materialCombinations.Length > 0) {
-				Clear();
-
-				foreach (var combination in materialCombinations) {
-					var combinationEl = new AssetMaterialCombinationElement(combination, asset);
-					combinationEl.OnClicked += OnVariationClicked;
-					_container.Add(combinationEl);
-				}
-
-				SetVisibility(_foldout, true);
-
-			} else {
-				SelectedMaterialCombination = null;
+			if (asset.DecalVariations == null || asset.DecalVariations.Count == 0) {
 				SetVisibility(_foldout, false);
+				SelectedMaterialCombination = null;
+				return;
 			}
+
+			Clear();
+			foreach (var decalVariation in asset.DecalVariations) {
+				var container = new ScrollView { mode = ScrollViewMode.Horizontal };
+				_foldout.Add(container);
+
+				var materialCombinations =
+					(materialCombination?.CombineAll(decalVariation) ?? decalVariation.Combinations(asset)).ToArray();
+
+				// material variations
+				if (materialCombinations.Length > 0) {
+
+					foreach (var combination in materialCombinations) {
+						var combinationEl = new AssetMaterialCombinationElement(combination, asset);
+						combinationEl.OnClicked += OnVariationClicked;
+						container.Add(combinationEl);
+					}
+				}
+			}
+
+			SetVisibility(_foldout, true);
 		}
 
 		private void OnVariationClicked(object clickedVariation, bool enabled)
@@ -92,10 +98,13 @@ namespace VisualPinball.Unity.Editor
 
 		private new void Clear()
 		{
-			foreach (var child in _container.Children()) {
-				(child as AssetMaterialCombinationElement)!.OnClicked -= OnVariationClicked;
+			foreach (var container in _foldout.Children()) {
+				foreach (var child in container.Children()) {
+					(child as AssetMaterialCombinationElement)!.OnClicked -= OnVariationClicked;
+				}
+				container.Clear();
 			}
-			_container.Clear();
+			_foldout.Clear();
 		}
 
 		private static void SetVisibility(VisualElement element, bool isVisible)
