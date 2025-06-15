@@ -63,7 +63,9 @@ namespace VisualPinball.Unity.Editor
 				_foldout.Add(container);
 
 				var materialCombinations =
-					(materialCombination?.CombineAll(decalVariation) ?? decalVariation.Combinations(asset)).ToArray();
+					(materialCombination?.CombineAll(decalVariation) ?? decalVariation.Combinations(asset))
+					.Where(mc => !mc.HasDuplicateVariations)
+					.ToArray();
 
 				// material variations
 				if (materialCombinations.Length > 0) {
