@@ -57,6 +57,9 @@ namespace VisualPinball.Unity.Editor
 
 		}
 
+		public IEnumerable<AssetMaterialCombination> Combinations(Asset asset)
+			=> Overrides.Select(o => new AssetMaterialCombination(asset, this, o));
+
 		/// <summary>
 		/// We want combinations of nested prefabs to work too, so we can't solely rely on the object name,
 		/// since it might be different when nested.

@@ -74,6 +74,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly Label _emptyLabel;
 
 		private readonly AssetMaterialVariationsElement _materialVariations;
+		private readonly AssetDecalVariationsElement _decalVariations;
 		private readonly Toggle _replaceSelectedKeepName;
 		private readonly Button _addButton;
 		private readonly string _addButtonText;
@@ -108,6 +109,7 @@ namespace VisualPinball.Unity.Editor
 			_addButton = _bodyReadOnly.Q<Button>("add-selected");
 			_addButtonText = _addButton.text;
 			_materialVariations = _bodyReadOnly.Q<AssetMaterialVariationsElement>("material-variations");
+			_decalVariations = _bodyReadOnly.Q<AssetDecalVariationsElement>("decal-variations");
 			_replaceSelectedKeepName = _bodyReadOnly.Q<Toggle>("replace-selected-keep-name");
 
 			// setup events
@@ -233,6 +235,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			// material variations
 			_materialVariations.SetValue(asset);
+			_decalVariations.SetValue(asset, null);
 			_addButton.text = _addButtonText;
 
 			// tags
@@ -392,6 +395,7 @@ namespace VisualPinball.Unity.Editor
 			_addButton.text = el == null
 				? _addButtonText
 				: $"Add {el.Name}";
+			_decalVariations.SetValue(Asset, el?.Combination);
 		}
 
 		#endregion
