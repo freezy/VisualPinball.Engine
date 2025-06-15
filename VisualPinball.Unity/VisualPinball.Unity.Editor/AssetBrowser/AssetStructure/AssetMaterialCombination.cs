@@ -36,6 +36,10 @@ namespace VisualPinball.Unity.Editor
 
 		public bool HasThumbnail => File.Exists(ThumbPath);
 
+		public bool HasDuplicateVariations => _variations
+			.GroupBy(v => v.Item2.Name)
+			.Any(g => g.Count() > 1);
+
 		public readonly Asset Asset;
 		private readonly (AssetMaterialVariation, AssetMaterialOverride)[] _variations;
 
