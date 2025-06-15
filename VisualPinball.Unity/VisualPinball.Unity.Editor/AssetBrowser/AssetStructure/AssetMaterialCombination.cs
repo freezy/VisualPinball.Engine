@@ -44,6 +44,29 @@ namespace VisualPinball.Unity.Editor
 			_variations = Array.Empty<(AssetMaterialVariation, AssetMaterialOverride)>();
 		}
 
+		public AssetMaterialCombination(Asset asset, AssetMaterialVariation variation, AssetMaterialOverride @override)
+		{
+			Asset = asset;
+			_variations = new[] { (variation, @override) };
+		}
+
+		private AssetMaterialCombination(Asset asset, (AssetMaterialVariation, AssetMaterialOverride)[] variations)
+		{
+			Asset = asset;
+			_variations = variations;
+		}
+
+		public IEnumerable<AssetMaterialCombination> CombineAll(AssetMaterialVariation decalVariation) =>
+			decalVariation.Overrides.Select(@override => Combine(decalVariation, @override));
+
+		private AssetMaterialCombination Combine(AssetMaterialVariation variation, AssetMaterialOverride @override)
+		{
+			var newVariations = new (AssetMaterialVariation, AssetMaterialOverride)[_variations.Length + 1];
+			Array.Copy(_variations, newVariations, _variations.Length);
+			newVariations[^1] = (variation, @override);
+			return new AssetMaterialCombination(Asset, newVariations);
+		}
+
 		/// <summary>
 		/// So this is basically a counter where the positions are the variations, and the figures are the overrides.
 		/// When the last override of the last variation has counted up, we're done.
@@ -61,7 +84,7 @@ namespace VisualPinball.Unity.Editor
 			variations.AddRange(asset.MaterialVariations);
 
 			if (includeDecals && asset.DecalVariations.Count > 0) {
-				// we don't combine decals among them. if necessary, group by variation.Object and .Slot and add multiple times.
+				// todo support decal combinations. group by variation.Object and .Slot and add multiple times.
 				variations.Add(new AssetMaterialVariation {
 					Name = "Decal",
 					Object = asset.DecalVariations.First().Object,
@@ -197,6 +220,5 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		public override string ToString() => Name;
-
 	}
 }
