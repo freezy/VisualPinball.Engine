@@ -58,7 +58,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			Clear();
-			foreach (var decalVariation in asset.DecalVariations) {
+			foreach (var decalVariation in asset.DecalVariations.Select(dv => dv.Decal)) {
 				var container = new ScrollView { mode = ScrollViewMode.Horizontal };
 				_foldout.Add(container);
 

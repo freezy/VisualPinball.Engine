@@ -24,7 +24,10 @@ namespace VisualPinball.Unity.Editor
 {
 	public class AssetMaterialCombination
 	{
-		public string Name => string.Join(", ", _variations.Select(v => $"{v.Item2.Name} {v.Item1.Name}"));
+		public string Name => string.Join(", ", (_variations.Any(v => v.Item1.IsDecal)
+			? _variations.Where(v => v.Item1.IsDecal)
+			: _variations
+		).Select(v => $"{v.Item2.Name} {v.Item1.Name}"));
 
 		public string ThumbId => GenerateThumbID();
 		public string ThumbPath => $"{Asset.Library.ThumbnailRoot}/{ThumbId}.webp";
