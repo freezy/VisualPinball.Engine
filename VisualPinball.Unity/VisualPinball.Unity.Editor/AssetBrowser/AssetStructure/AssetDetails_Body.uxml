@@ -36,6 +36,8 @@
 			<uivpe:ObjectDropdownElement name="environment-field" label="Environment" />
 			<uivpe:PresetDropdownElement name="thumb-camera-preset" binding-path="ThumbCameraPreset" label="Camera" preset-path="Packages/org.visualpinball.engine.unity/VisualPinball.Unity/Assets/Presets/Asset Thumbcam" />
 			<uie:PropertyField binding-path="ThumbCameraHeight" label="Z-Position" />
+			<uie:PropertyField binding-path="ThumbCameraPos" label="Position" />
+			<uie:PropertyField binding-path="ThumbCameraRot" label="Rotation" />
 		</ui:VisualElement>
 	</ui:Foldout>
 

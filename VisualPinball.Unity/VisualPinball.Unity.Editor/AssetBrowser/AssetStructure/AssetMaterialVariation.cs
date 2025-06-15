@@ -49,7 +49,7 @@ namespace VisualPinball.Unity.Editor
 
 			return go.name == Object.name 
 				? go 
-				: go!.transform.Find(Object.name)?.gameObject;
+				: go!.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.gameObject.name == Object.name)?.gameObject;
 
 		}
 
