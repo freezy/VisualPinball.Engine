@@ -39,7 +39,6 @@ namespace VisualPinball.Unity
 	/// clips can be assigned for variation. Instances of this class are Unity assets and can
 	/// therefore be stored in the project files or in an asset library for reuse across tables.
 	/// </summary>
-	[CreateAssetMenu(fileName = "Sound", menuName = "Pinball/Sound", order = 102)]
 	[PackWith(typeof(SoundAssetPacker))]
 	public abstract class SoundAsset : ScriptableObject
 	{
