@@ -192,7 +192,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			var bgo = _body.Q<ObjectDropdownElement>("environment-field");
 			var bgParent = SceneManager.GetActiveScene().GetRootGameObjects()
-					.FirstOrDefault(go => go.name == "_BackgroundObjects");
+					.FirstOrDefault(go => go.name == "Environment");
 			
 			if (bgParent == null) {
 				bgo.visible = false;
