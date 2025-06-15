@@ -64,8 +64,10 @@ namespace VisualPinball.Unity.Editor
 		public List<AssetLink> Links;
 
 		[SerializeField]
-		[NonReorderable] // see https://answers.unity.com/questions/1828499/nested-class-lists-inspector-overlapping-bug.html
 		public List<AssetMaterialVariation> MaterialVariations;
+
+		[SerializeField]
+		public List<AssetMaterialVariation> DecalVariations;
 
 		[SerializeField]
 		public string EnvironmentGameObjectName;

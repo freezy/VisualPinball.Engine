@@ -49,8 +49,9 @@ namespace VisualPinball.Unity.Editor
 		/// When the last override of the last variation has counted up, we're done.
 		/// </summary>
 		/// <param name="asset"></param>
+		/// <param name="includeDecals"></param>
 		/// <returns></returns>
-		public static IEnumerable<AssetMaterialCombination> GetCombinations(Asset asset)
+		public static IEnumerable<AssetMaterialCombination> GetCombinations(Asset asset, bool includeDecals = false)
 		{
 			var variations = new List<AssetMaterialVariation>();
 			foreach (var childAsset in asset.GetNestedAssets()) {
@@ -58,6 +59,17 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			variations.AddRange(asset.MaterialVariations);
+
+			if (includeDecals && asset.DecalVariations.Count > 0) {
+				// we don't combine decals among them. if necessary, group by variation.Object and .Slot and add multiple times.
+				variations.Add(new AssetMaterialVariation {
+					Name = "Decal",
+					Object = asset.DecalVariations.First().Object,
+					Slot = asset.DecalVariations.First().Slot,
+					Overrides = asset.DecalVariations.SelectMany(dv => dv.Overrides).ToList()
+				});
+			}
+
 			var counters = new Counter[variations.Count];
 			Counter nextCounter = null;
 			for (var i = variations.Count - 1; i >= 0; i--) {
