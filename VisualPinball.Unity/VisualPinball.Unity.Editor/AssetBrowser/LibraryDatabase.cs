@@ -120,6 +120,7 @@ namespace VisualPinball.Unity.Editor
 			asset.Tags = new List<AssetTag>();
 			asset.Links = new List<AssetLink>();
 			asset.MaterialVariations = new List<AssetMaterialVariation>();
+			asset.DecalVariations = new List<AssetMaterialVariation>();
 			asset.AddedAt = DateTime.Now;
 
 			var assetMetaPath = AssetMetaPath(asset, lib);

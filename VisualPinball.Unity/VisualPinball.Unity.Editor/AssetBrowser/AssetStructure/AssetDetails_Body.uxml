@@ -11,7 +11,7 @@
 
 	<!-- Material Overrides -->
 	<ui:ListView name="variations"
-				 reorderable="false"
+				 reorderable="true"
 				 virtualization-method="DynamicHeight"
 				 binding-path="MaterialVariations"
 				 show-add-remove-footer="true"
@@ -19,6 +19,18 @@
 				 show-foldout-header="true"
 				 show-bound-collection-size="false"
 				 header-title="Material Variations"
+				 class="top-space"/>
+
+	<!-- Decals -->
+	<ui:ListView name="decals"
+				 reorderable="true"
+				 virtualization-method="DynamicHeight"
+				 binding-path="DecalVariations"
+				 show-add-remove-footer="true"
+				 show-border="true"
+				 show-foldout-header="true"
+				 show-bound-collection-size="false"
+				 header-title="Decal Variations"
 				 class="top-space"/>
 
 	<!-- Attributes -->

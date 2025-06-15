@@ -42,7 +42,7 @@ namespace VisualPinball.Unity.Editor
 				var slotField = ui.Q<MaterialSlotDropdownElement>("slot-field");
 
 				// object dropdown
-				objField.AddObjectsToDropdown<Renderer>(asset.Object);
+				objField.AddObjectsToDropdown<Renderer>(asset.Object, true);
 				objField.RegisterValueChangedCallback(obj => OnObjectChanged(slotField, obj));
 				var obj = property.FindPropertyRelative(nameof(AssetMaterialVariation.Object));
 				if (obj != null && obj.objectReferenceValue != null) {

@@ -18,6 +18,7 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -33,6 +34,9 @@ namespace VisualPinball.Unity.Editor
 		public int Slot;
 		public List<AssetMaterialOverride> Overrides;
 		
+		/// <summary>
+		/// If a variation is nested, that means it's part of another asset while looping through material combinations.
+		/// </summary>
 		[NonSerialized]
 		public bool IsNested;
 		
@@ -68,7 +72,7 @@ namespace VisualPinball.Unity.Editor
 			if (objectGuid == null) {
 				return null;
 			}
-			foreach (var child in go.GetComponentsInChildren<Transform>()) {
+			foreach (var child in go.GetComponentsInChildren<Transform>(true)) {
 				// get reference to prefab
 				var prefab = PrefabUtility.GetCorrespondingObjectFromOriginalSource(child.gameObject);
 				if (prefab == null) {
