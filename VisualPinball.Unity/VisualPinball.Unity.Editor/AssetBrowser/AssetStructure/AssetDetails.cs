@@ -78,6 +78,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly Toggle _replaceSelectedKeepName;
 		private readonly Button _addButton;
 		private readonly string _addButtonText;
+		private AssetMaterialCombination _selectedMaterialCombination;
 
 		public AssetDetails()
 		{
@@ -114,6 +115,7 @@ namespace VisualPinball.Unity.Editor
 
 			// setup events
 			_materialVariations.OnSelected += OnVariationSelected;
+			_decalVariations.OnSelected += OnDecalVariationSelected;
 			_body.Q<ListView>("variations").itemsAdded += OnNewMaterialVariation;
 			_bodyReadOnly.Q<Button>("replace-selected").clicked += OnReplaceSelected;
 			_addButton.clicked += OnAddSelected;
@@ -387,7 +389,11 @@ namespace VisualPinball.Unity.Editor
 
 		private void ApplyVariation(GameObject go)
 		{
-			_materialVariations.SelectedMaterialCombination?.Combination.ApplyMaterial(go);
+			if (_decalVariations.SelectedMaterialCombination != null) {
+				_decalVariations.SelectedMaterialCombination.Combination.ApplyMaterial(go);
+			} else {
+				_materialVariations.SelectedMaterialCombination?.Combination.ApplyMaterial(go);
+			}
 		}
 
 		private void OnVariationSelected(object sender, AssetMaterialCombinationElement el)
@@ -395,7 +401,15 @@ namespace VisualPinball.Unity.Editor
 			_addButton.text = el == null
 				? _addButtonText
 				: $"Add {el.Name}";
+			_selectedMaterialCombination = el?.Combination;
 			_decalVariations.SetValue(Asset, el?.Combination);
+		}
+
+		private void OnDecalVariationSelected(object sender, AssetMaterialCombinationElement decalEl)
+		{
+			_addButton.text = decalEl == null
+				? _selectedMaterialCombination == null ? _addButtonText : $"Add {_selectedMaterialCombination.Name}"
+				: _selectedMaterialCombination == null ? $"{_addButtonText} with {decalEl.Name}" : $"Add {_selectedMaterialCombination.Name} with {decalEl.Name}";
 		}
 
 		#endregion
