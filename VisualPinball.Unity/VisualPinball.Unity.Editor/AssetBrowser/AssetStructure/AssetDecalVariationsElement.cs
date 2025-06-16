@@ -32,7 +32,6 @@ namespace VisualPinball.Unity.Editor
 		public event EventHandler<AssetMaterialCombinationElement> OnSelected;
 
 		private readonly Foldout _foldout;
-		private readonly ScrollView _container;
 
 		[UxmlAttribute("text")]
 		private string Text { set => _foldout.text = value; }
@@ -43,9 +42,6 @@ namespace VisualPinball.Unity.Editor
 		public AssetDecalVariationsElement()
 		{
 			_foldout = new Foldout();
-			_container = new ScrollView { mode = ScrollViewMode.Horizontal };
-
-			_foldout.Add(_container);
 			Add(_foldout);
 		}
 
@@ -84,11 +80,14 @@ namespace VisualPinball.Unity.Editor
 		private void OnVariationClicked(object clickedVariation, bool enabled)
 		{
 			if (enabled) {
-				foreach (var variation in _container.Children().Select(c => c as AssetMaterialCombinationElement)) {
-					if (clickedVariation != variation) {
-						variation!.Enabled = false;
+				foreach (var container in _foldout.Children()) {
+					foreach (var variation in container.Children().Select(c => c as AssetMaterialCombinationElement)) {
+						if (clickedVariation != variation) {
+							variation!.Enabled = false;
+						}
 					}
 				}
+
 				SelectedMaterialCombination = clickedVariation as AssetMaterialCombinationElement;
 				OnSelected?.Invoke(this, SelectedMaterialCombination);
 
