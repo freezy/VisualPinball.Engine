@@ -36,9 +36,34 @@ namespace VisualPinball.Unity.Editor
 
 		public bool HasThumbnail => File.Exists(ThumbPath);
 
-		public bool HasDuplicateVariations => _variations
+		public bool HasDuplicateVariations => GetOverrideNames()
+			.GroupBy(name => name)
+			.Any(g => g.Count() > 1);
+
+		public bool HasOnlyDuplicateVariations => GetOverrideNames().Distinct().Count() == 1;
+
+		private List<string> GetOverrideNames()
+		{
+			var overrideNames = _variations
+				.Select(v => v.Item2.Name)
+				.ToList();
+
+			foreach (var materialDefault in Asset.MaterialDefaults) {
+				if (_variations.All(v => v.Item1.Slot != materialDefault.Slot && v.Item1.Object != materialDefault.Object)) {
+					overrideNames.Add(materialDefault.DefaultName);
+				}
+			}
+
+			return overrideNames;
+		}
+
+		public bool HasDuplicateVariations1 => _variations
 			.GroupBy(v => v.Item2.Name)
 			.Any(g => g.Count() > 1);
+
+		public bool HasOnlyDuplicateVariations1 => _variations
+			.GroupBy(v => v.Item2.Name)
+			.Any(g => g.Count() == _variations.Length);
 
 		public readonly Asset Asset;
 		private readonly (AssetMaterialVariation, AssetMaterialOverride)[] _variations;
@@ -91,13 +116,15 @@ namespace VisualPinball.Unity.Editor
 			variations.AddRange(asset.MaterialVariations);
 
 			if (includeDecals && asset.DecalVariations.Count > 0) {
-				// todo support decal combinations. group by variation.Object and .Slot and add multiple times.
-				variations.Add(new AssetMaterialVariation {
-					Name = "Decal",
-					Object = asset.DecalVariations.First().Object,
-					Slot = asset.DecalVariations.First().Slot,
-					Overrides = asset.DecalVariations.SelectMany(dv => dv.Overrides).ToList()
-				});
+				variations.AddRange(asset.DecalVariations
+					.GroupBy(dv => (dv.Object, dv.Slot))
+					.Select(objectSlot => new AssetMaterialVariation {
+						Name = $"{objectSlot.Key.Object.name} {objectSlot.Key.Slot.ToString()}",
+						Object = objectSlot.Key.Object,
+						Slot = objectSlot.Key.Slot,
+						Overrides = objectSlot.SelectMany(dv => dv.Overrides).ToList()
+					})
+				);
 			}
 
 			var counters = new Counter[variations.Count];
