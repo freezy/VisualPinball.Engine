@@ -104,6 +104,14 @@ ListView#variations PropertyField {
 	padding: 4px 8px 8px 20px;
 }
 
+ListView#decals PropertyField {
+	padding: 4px 8px 8px 20px;
+}
+
+ListView#defaults PropertyField {
+	padding: 4px 8px 8px 20px;
+}
+
 ListView#variations PropertyField ListView PropertyField {
 	padding: 0 !important;
 }

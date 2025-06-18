@@ -23,66 +23,37 @@ using Object = UnityEngine.Object;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomPropertyDrawer(typeof(AssetMaterialVariation))]
-	public class AssetMaterialVariationPropertyDrawer : PropertyDrawer
+	public class AssetMaterialVariationPropertyDrawer : AssetMaterialVariationBasePropertyDrawer
 	{
 		// property drawers are recycled, so don't store anything in the members!
 
 		public override VisualElement CreatePropertyGUI(SerializedProperty property)
 		{
-			var ui = new VisualElement();
-			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetMaterialVariationPropertyDrawer.uxml");
-			visualTree.CloneTree(ui);
+			var ui = base.CreatePropertyGUI(
+				property,
+				"Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetMaterialVariationPropertyDrawer.uxml",
+				"Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetMaterialVariationPropertyDrawer.uss"
+			);
 
-			var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetMaterialVariationPropertyDrawer.uss");
-			ui.styleSheets.Add(styleSheet);
-
-			if (property.serializedObject.targetObject is Asset asset) {
-
-				var objField = ui.Q<ObjectDropdownElement>("object-field");
-				var slotField = ui.Q<MaterialSlotDropdownElement>("slot-field");
-
-				// object dropdown
-				objField.AddObjectsToDropdown<Renderer>(asset.Object, true);
-				objField.RegisterValueChangedCallback(obj => OnObjectChanged(slotField, obj));
-				var obj = property.FindPropertyRelative(nameof(AssetMaterialVariation.Object));
-				if (obj != null && obj.objectReferenceValue != null) {
-					objField.SetValue(obj.objectReferenceValue);
+			// overrides - unity tries to be "smart" and copies over the values of the last element when adding
+			//             a new element, which includes our unique Id, which only gets generated when it's not
+			//             set. so we reset it manually here, which is annoying and ugly AF, but the alternative
+			//             would be to re-implement the whole fucking ListView.
+			var overridesList = ui.Q<ListView>("overrides");
+			overridesList.itemsAdded += ints => {
+				foreach (var i in ints) {
+					var guid = Guid.NewGuid().ToString();
+					var idProp = property.FindPropertyRelative($"Overrides.Array.data[{i}].{nameof(AssetMaterialOverride.Id)}");
+					idProp.stringValue = guid;
+					var nameProp = property.FindPropertyRelative($"Overrides.Array.data[{i}].{nameof(AssetMaterialOverride.Name)}");
+					nameProp.stringValue = string.Empty;
+					var matProp = property.FindPropertyRelative($"Overrides.Array.data[{i}].{nameof(AssetMaterialOverride.Material)}");
+					matProp.objectReferenceValue = null;
+					idProp.serializedObject.ApplyModifiedPropertiesWithoutUndo();
 				}
-
-				// material slot dropdown
-				if (objField.HasValue) {
-					slotField.PopulateChoices(objField.Value as GameObject);
-				}
-				var slot = property.FindPropertyRelative(nameof(AssetMaterialVariation.Slot));
-				slotField.SetValue(slot.intValue);
-
-				// overrides - unity tries to be "smart" and copies over the values of the last element when adding
-				//             a new element, which includes our unique Id, which only gets generated when it's not
-				//             set. so we reset it manually here, which is annoying and ugly AF, but the alternative
-				//             would be to re-implement the whole fucking ListView.
-				var overridesList = ui.Q<ListView>("overrides");
-				overridesList.itemsAdded += ints => {
-					foreach (var i in ints) {
-						var guid = Guid.NewGuid().ToString();
-						var idProp = property.FindPropertyRelative($"Overrides.Array.data[{i}].{nameof(AssetMaterialOverride.Id)}");
-						idProp.stringValue = guid;
-						var nameProp = property.FindPropertyRelative($"Overrides.Array.data[{i}].{nameof(AssetMaterialOverride.Name)}");
-						nameProp.stringValue = string.Empty;
-						var matProp = property.FindPropertyRelative($"Overrides.Array.data[{i}].{nameof(AssetMaterialOverride.Material)}");
-						matProp.objectReferenceValue = null;
-						idProp.serializedObject.ApplyModifiedPropertiesWithoutUndo();
-					}
-				};
-			}
+			};
 
 			return ui;
-		}
-
-		private static void OnObjectChanged(MaterialSlotDropdownElement slotField, Object obj)
-		{
-			if (slotField != null && obj is GameObject go) {
-				slotField.PopulateChoices(go);
-			}
 		}
 	}
 }

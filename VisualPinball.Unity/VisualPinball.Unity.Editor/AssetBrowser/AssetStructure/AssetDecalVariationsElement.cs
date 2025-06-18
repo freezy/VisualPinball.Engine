@@ -58,10 +58,13 @@ namespace VisualPinball.Unity.Editor
 				var container = new ScrollView { mode = ScrollViewMode.Horizontal };
 				_foldout.Add(container);
 
-				var materialCombinations =
-					(materialCombination?.CombineAll(decalVariation) ?? decalVariation.Combinations(asset))
-					.Where(mc => !mc.HasDuplicateVariations)
-					.ToArray();
+				var materialCombinations = asset.GroupVariationsByMaterial
+					? (materialCombination?.CombineAll(decalVariation) ?? decalVariation.Combinations(asset))
+						.Where(mc => mc.HasOnlyDuplicateVariations)
+						.ToArray()
+					: (materialCombination?.CombineAll(decalVariation) ?? decalVariation.Combinations(asset))
+						.Where(mc => !mc.HasDuplicateVariations)
+						.ToArray();
 
 				// material variations
 				if (materialCombinations.Length > 0) {
