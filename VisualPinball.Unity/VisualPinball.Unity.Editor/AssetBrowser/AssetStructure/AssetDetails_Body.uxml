@@ -9,6 +9,18 @@
 	<!-- Unpack Prefab -->
 	<uie:PropertyField binding-path="UnpackPrefab" label="Unpack Prefab" class="top-space" />
 
+	<!-- Material Defaults -->
+	<ui:ListView name="defaults"
+				 reorderable="true"
+				 virtualization-method="DynamicHeight"
+				 binding-path="MaterialDefaults"
+				 show-add-remove-footer="true"
+				 show-border="true"
+				 show-foldout-header="true"
+				 show-bound-collection-size="false"
+				 header-title="Material Defaults"
+				 class="top-space"/>
+
 	<!-- Material Overrides -->
 	<ui:ListView name="variations"
 				 reorderable="true"
@@ -20,6 +32,9 @@
 				 show-bound-collection-size="false"
 				 header-title="Material Variations"
 				 class="top-space"/>
+
+	<!-- Group By Material -->
+	<uie:PropertyField binding-path="GroupVariationsByMaterial" label="Group By Material" class="top-space" />
 
 	<!-- Decals -->
 	<ui:ListView name="decals"
@@ -33,13 +48,13 @@
 				 header-title="Decal Variations"
 				 class="top-space"/>
 
-	<!-- Attributes -->
+	<!-- Tags -->
 	<uie:PropertyField binding-path="Tags" label="Tags" class="top-space" />
 
 	<!-- Attributes -->
 	<uie:PropertyField binding-path="Attributes" label="Attributes" />
 
-	<!-- Tags -->
+	<!-- Links -->
 	<uie:PropertyField binding-path="Links" label="Links" class="top-space" />
 
 	<!-- Geometry -->

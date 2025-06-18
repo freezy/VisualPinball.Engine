@@ -70,6 +70,12 @@ namespace VisualPinball.Unity.Editor
 		public List<AssetMaterialVariation> DecalVariations;
 
 		[SerializeField]
+		public List<AssetMaterialDefault> MaterialDefaults;
+
+		[SerializeField]
+		public bool GroupVariationsByMaterial = false;
+
+		[SerializeField]
 		public string EnvironmentGameObjectName;
 		
 		[SerializeReference]
