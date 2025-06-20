@@ -100,14 +100,8 @@ PreviewEditorElement {
 	padding: 8px;
 }
 
-ListView#variations PropertyField {
-	padding: 4px 8px 8px 20px;
-}
-
-ListView#decals PropertyField {
-	padding: 4px 8px 8px 20px;
-}
-
+ListView#variations PropertyField,
+ListView#decals PropertyField,
 ListView#defaults PropertyField {
 	padding: 4px 8px 8px 20px;
 }

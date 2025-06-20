@@ -73,6 +73,10 @@ namespace VisualPinball.Unity.Editor
 		public List<AssetMaterialDefault> MaterialDefaults;
 
 		[SerializeField]
+		public List<AssetMaterialCombinationRule> MaterialCombinationRules;
+
+		[SerializeField]
+		[Obsolete("Use MaterialCombinationRules instead")]
 		public bool GroupVariationsByMaterial = false;
 
 		[SerializeField]
