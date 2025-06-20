@@ -26,8 +26,9 @@ using Object = UnityEngine.Object;
 namespace VisualPinball.Unity.Editor
 {
 	[Serializable]
-	public class AssetMaterialVariation : AssetMaterialVariationBase
+	public class AssetMaterialVariation : AssetMaterialTarget
 	{
+		public string Name;
 		public List<AssetMaterialOverride> Overrides;
 		
 		/// <summary>

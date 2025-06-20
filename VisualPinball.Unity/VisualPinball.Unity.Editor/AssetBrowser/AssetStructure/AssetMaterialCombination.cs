@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -64,6 +65,51 @@ namespace VisualPinball.Unity.Editor
 		public bool HasOnlyDuplicateVariations1 => _variations
 			.GroupBy(v => v.Item2.Name)
 			.Any(g => g.Count() == _variations.Length);
+
+		public bool IsValidCombination {
+			get {
+				if (Asset.MaterialCombinationRules == null || Asset.MaterialCombinationRules.Count == 0) {
+					return true;
+				}
+
+				var varsWithDefaults = VariationsWithDefaults;
+				foreach (var rule in Asset.MaterialCombinationRules) {
+					switch (rule.Type) {
+						case AssetMaterialCombinationType.MustAllBeEqual: {
+							var allEqual = varsWithDefaults
+								.Where(v => rule.Targets.Any(t => t.Object == v.Item1 && t.Slot == v.Item2))
+								.GroupBy(v => v.Item3)
+								.Count() == 1;
+							if (!allEqual) {
+								return false;
+							}
+							break;
+						}
+
+						case AssetMaterialCombinationType.MustAllBeDifferent: {
+							var allDifferent = varsWithDefaults
+								.Where(v => rule.Targets.Any(t => t.Object == v.Item1 && t.Slot == v.Item2))
+								.GroupBy(v => v.Item3)
+								.Count() == varsWithDefaults.Length;
+							if (!allDifferent) {
+								return false;
+							}
+							break;
+						}
+					}
+				}
+				return true;
+			}
+		}
+
+		private (Object, int, string)[] VariationsWithDefaults =>
+			_variations
+				.Select(v => (v.Item1.Object, v.Item1.Slot, v.Item2.Name))
+				.Concat(Asset.MaterialDefaults
+					.Where(md => !_variations
+						.Any(v => v.Item1.Slot == md.Slot && v.Item1.Object == md.Object))
+					.Select(md => (md.Object, md.Slot, md.DefaultName)))
+				.ToArray();
 
 		public readonly Asset Asset;
 		private readonly (AssetMaterialVariation, AssetMaterialOverride)[] _variations;

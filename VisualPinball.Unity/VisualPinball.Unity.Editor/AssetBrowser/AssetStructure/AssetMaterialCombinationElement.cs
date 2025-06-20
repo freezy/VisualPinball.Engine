@@ -50,7 +50,7 @@ namespace VisualPinball.Unity.Editor
 			_toggle.RegisterValueChangedCallback(val => OnClicked?.Invoke(this, val.newValue));
 
 			ui.Q<Label>("label").text = Name;
-			if (asset.HasThumbnail) {
+			if (File.Exists(Combination.ThumbPath)) {
 				var tex = asset.LoadThumbTexture(Combination.ThumbPath);
 				ui.Q<Image>("thumbnail").image = tex;
 			}

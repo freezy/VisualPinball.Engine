@@ -21,17 +21,30 @@ using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class AssetMaterialVariationBasePropertyDrawer : PropertyDrawer
+	[CustomPropertyDrawer(typeof(AssetMaterialTarget))]
+	public class AssetMaterialTargetPropertyDrawer : PropertyDrawer
 	{
-		protected VisualElement CreatePropertyGUI(SerializedProperty property, string uxmlPath, string ussPath)
+		public override VisualElement CreatePropertyGUI(SerializedProperty property)
 		{
-			var ui = new VisualElement();
-			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(uxmlPath);
-			visualTree.CloneTree(ui);
+			var root = new VisualElement();
 
-			var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(ussPath);
-			ui.styleSheets.Add(styleSheet);
+			root.Add(new ObjectDropdownElement {
+				name = "object-field",
+				Label = "Apply to",
+				BindingPath = "Object",
+				Tooltip = "The game object to which the material will be applied"
+			});
+			root.Add(new MaterialSlotDropdownElement {
+				name = "slot-field",
+				Label = "Slot",
+				BindingPath = "Slot",
+				Tooltip = "The material slot on which the material will be applied."
+			});
+			return CreatePropertyGUI(property, root);
+		}
 
+		protected static VisualElement CreatePropertyGUI(SerializedProperty property, VisualElement ui)
+		{
 			if (property.serializedObject.targetObject is Asset asset) {
 
 				var objField = ui.Q<ObjectDropdownElement>("object-field");

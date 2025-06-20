@@ -20,19 +20,19 @@ using UnityEngine.UIElements;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomPropertyDrawer(typeof(AssetMaterialDefault))]
-	public class AssetMaterialDefaultPropertyDrawer : AssetMaterialVariationBasePropertyDrawer
+	public class AssetMaterialDefaultPropertyDrawer : AssetMaterialTargetPropertyDrawer
 	{
 		// property drawers are recycled, so don't store anything in the members!
 
 		public override VisualElement CreatePropertyGUI(SerializedProperty property)
 		{
-			var ui = base.CreatePropertyGUI(
-				property,
-				"Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetMaterialDefaultPropertyDrawer.uxml",
-				"Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetMaterialVariationPropertyDrawer.uss"
-			);
+			var ui = new VisualElement();
+			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetMaterialDefaultPropertyDrawer.uxml");
+			visualTree.CloneTree(ui);
 
-			return ui;
+			var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetMaterialVariationPropertyDrawer.uss");
+			ui.styleSheets.Add(styleSheet);
+			return CreatePropertyGUI(property, ui);
 		}
 	}
 }
