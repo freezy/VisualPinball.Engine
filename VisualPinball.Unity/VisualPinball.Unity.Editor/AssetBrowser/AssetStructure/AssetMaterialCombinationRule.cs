@@ -15,15 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // ReSharper disable InconsistentNaming
-#if UNITY_EDITOR
 using System;
+using System.Collections.Generic;
 
 namespace VisualPinball.Unity.Editor
 {
 	[Serializable]
-	public class AssetMaterialDefault : AssetMaterialTarget
+	public class AssetMaterialCombinationRule
 	{
-		public string DefaultName;
+		public AssetMaterialCombinationType Type;
+
+		public List<AssetMaterialTarget> Targets;
+	}
+
+	public enum AssetMaterialCombinationType
+	{
+		MustAllBeEqual,
+		MustAllBeDifferent,
 	}
 }
-#endif

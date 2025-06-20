@@ -586,9 +586,7 @@ namespace VisualPinball.Unity.Editor
 
 		public void AttachData(AssetResult clickedResult)
 		{
-			if (!_selectedResults.Contains(clickedResult)) {
-				_selectedResults.Add(clickedResult);
-			}
+			_selectedResults.Add(clickedResult);
 			DragAndDrop.objectReferences = _selectedResults.Select(result => result.Asset.Object).ToArray();
 			StartDraggingAssets(_selectedResults);
 		}

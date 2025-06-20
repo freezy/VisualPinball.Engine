@@ -23,10 +23,8 @@ using Object = UnityEngine.Object;
 namespace VisualPinball.Unity.Editor
 {
 	[Serializable]
-	public abstract class AssetMaterialVariationBase
+	public class AssetMaterialTarget
 	{
-		public string Name;
-
 		[SerializeReference]
 		public Object Object;
 

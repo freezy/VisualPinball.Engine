@@ -21,6 +21,18 @@
 				 header-title="Material Defaults"
 				 class="top-space"/>
 
+	<!-- Material Combination Rules -->
+	<ui:ListView name="combinationRules"
+				 reorderable="true"
+				 virtualization-method="DynamicHeight"
+				 binding-path="MaterialCombinationRules"
+				 show-add-remove-footer="true"
+				 show-border="true"
+				 show-foldout-header="true"
+				 show-bound-collection-size="false"
+				 header-title="Material Combination Rules"
+				 class="top-space"/>
+
 	<!-- Material Overrides -->
 	<ui:ListView name="variations"
 				 reorderable="true"
