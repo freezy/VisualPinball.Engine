@@ -54,19 +54,19 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			Clear();
-			foreach (var decalVariation in asset.DecalVariations.Select(dv => dv.Decal)) {
+			foreach (var decalVariation in asset.DecalVariations.Select(dv => dv.AsDecal())) {
 				var container = new ScrollView { mode = ScrollViewMode.Horizontal };
 				_foldout.Add(container);
 
-				var materialCombinations = (materialCombination?.CombineAll(decalVariation) ?? decalVariation.Combinations(asset))
+				var combinations = (materialCombination?.AddOverridesFrom(decalVariation) ?? decalVariation.CombineWith(asset))
 					.Where(mc => mc.IsValidCombination)
 					.ToArray();
 
 				// material variations
-				if (materialCombinations.Length > 0) {
+				if (combinations.Length > 0) {
 
-					foreach (var combination in materialCombinations) {
-						var combinationEl = new AssetMaterialCombinationElement(combination, asset);
+					foreach (var combination in combinations) {
+						var combinationEl = new AssetMaterialCombinationElement(combination, asset, true);
 						combinationEl.OnClicked += OnVariationClicked;
 						container.Add(combinationEl);
 					}

@@ -16,28 +16,24 @@
 
 using System;
 using UnityEditor;
-using UnityEngine;
 using UnityEngine.UIElements;
-using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
 	[CustomPropertyDrawer(typeof(AssetMaterialVariation))]
-	public class AssetMaterialVariationPropertyDrawer : AssetMaterialTargetPropertyDrawer
+	public class AssetMaterialVariationPropertyDrawer : PropertyDrawer
 	{
 		// property drawers are recycled, so don't store anything in the members!
 
 		public override VisualElement CreatePropertyGUI(SerializedProperty property)
 		{
 
-			var root = new VisualElement();
+			var ui = new VisualElement();
 			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetMaterialVariationPropertyDrawer.uxml");
-			visualTree.CloneTree(root);
+			visualTree.CloneTree(ui);
 
 			var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetMaterialVariationPropertyDrawer.uss");
-			root.styleSheets.Add(styleSheet);
-
-			var ui = CreatePropertyGUI(property, root);
+			ui.styleSheets.Add(styleSheet);
 
 			// overrides - unity tries to be "smart" and copies over the values of the last element when adding
 			//             a new element, which includes our unique Id, which only gets generated when it's not
