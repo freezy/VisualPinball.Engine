@@ -130,8 +130,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			foreach (var i in ints) {
 				_asset.MaterialVariations[i].Name = string.Empty;
-				_asset.MaterialVariations[i].Object = null;
-				_asset.MaterialVariations[i].Slot = 0;
+				_asset.MaterialVariations[i].Target = new AssetMaterialTarget();
 				_asset.MaterialVariations[i].Overrides = new List<AssetMaterialOverride>();
 			}
 		}

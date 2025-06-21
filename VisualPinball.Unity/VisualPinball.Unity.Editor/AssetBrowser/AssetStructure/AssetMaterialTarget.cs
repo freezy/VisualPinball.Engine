@@ -22,13 +22,68 @@ using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
+	/// <summary>
+	/// A material target is a reference to where a material should be applied to within a prefab.
+	/// It consists of the target object and the material slot of that object.
+	/// </summary>
 	[Serializable]
-	public class AssetMaterialTarget
+	public class AssetMaterialTarget : IEquatable<AssetMaterialTarget>
 	{
+		/// <summary>
+		/// Reference to the object that is targeted by this material variation.
+		/// </summary>
 		[SerializeReference]
 		public Object Object;
 
+		/// <summary>
+		/// Material slot of the object that is targeted by this material variation.
+		/// </summary>
 		public int Slot;
+
+		#region IEquatable
+
+		public static bool operator ==(AssetMaterialTarget obj1, AssetMaterialTarget obj2)
+		{
+			if (ReferenceEquals(obj1, obj2)) {
+				return true;
+			}
+
+			if (ReferenceEquals(obj1, null)) {
+				return false;
+			}
+
+			return !ReferenceEquals(obj2, null) && obj1.Equals(obj2);
+		}
+
+		public static bool operator !=(AssetMaterialTarget obj1, AssetMaterialTarget obj2) => !(obj1 == obj2);
+
+		public bool Equals(AssetMaterialTarget other)
+		{
+			if (other == null) {
+				return false;
+			}
+			return Equals(Object, other.Object) && Slot == other.Slot;
+		}
+
+		public override bool Equals(object obj)
+		{
+			if (obj is null) {
+				return false;
+			}
+
+			if (ReferenceEquals(this, obj)) {
+				return true;
+			}
+
+			return obj.GetType() == GetType() && Equals((AssetMaterialTarget)obj);
+		}
+
+		public override int GetHashCode()
+		{
+			return HashCode.Combine(Object, Slot);
+		}
+
+		#endregion
 	}
 }
 #endif

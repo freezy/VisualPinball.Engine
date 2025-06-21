@@ -1,5 +1,4 @@
 ﻿<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
-	<uie:PropertyField binding-path="Name" label="Name" />
-	<uie:PropertyField binding-path="Material" label="Material" />
-	<!-- <uie:PropertyField binding-path="Id" label="Id" /> -->
+	<uie:PropertyField binding-path="Name" label="Name" class="material-override-field" />
+	<uie:PropertyField binding-path="Material" label="Material" class="material-override-field" />
 </ui:UXML>

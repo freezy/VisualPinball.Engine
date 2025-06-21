@@ -21,11 +21,25 @@ using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
+	/// <summary>
+	/// A material override defines a material that is used to override a material slot in asset.
+	/// </summary>
 	[Serializable]
 	public class AssetMaterialOverride : ISerializationCallbackReceiver
 	{
+		/// <summary>
+		/// The name of the override is used as an ID for the combination rules.
+		/// </summary>
 		public string Name;
+
+		/// <summary>
+		/// The material to be assigned to the material slot of the asset.
+		/// </summary>
 		public Material Material;
+
+		/// <summary>
+		/// An internal ID to identify the override, so we can rename it without breaking any references.
+		/// </summary>
 		public string Id;
 
 		public void OnBeforeSerialize()

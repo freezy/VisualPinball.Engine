@@ -26,25 +26,10 @@ namespace VisualPinball.Unity.Editor
 	{
 		public override VisualElement CreatePropertyGUI(SerializedProperty property)
 		{
-			var root = new VisualElement();
+			var ui = new VisualElement();
+			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetMaterialTargetPropertyDrawer.uxml");
+			visualTree.CloneTree(ui);
 
-			root.Add(new ObjectDropdownElement {
-				name = "object-field",
-				Label = "Apply to",
-				BindingPath = "Object",
-				Tooltip = "The game object to which the material will be applied"
-			});
-			root.Add(new MaterialSlotDropdownElement {
-				name = "slot-field",
-				Label = "Slot",
-				BindingPath = "Slot",
-				Tooltip = "The material slot on which the material will be applied."
-			});
-			return CreatePropertyGUI(property, root);
-		}
-
-		protected static VisualElement CreatePropertyGUI(SerializedProperty property, VisualElement ui)
-		{
 			if (property.serializedObject.targetObject is Asset asset) {
 
 				var objField = ui.Q<ObjectDropdownElement>("object-field");
@@ -53,7 +38,7 @@ namespace VisualPinball.Unity.Editor
 				// object dropdown
 				objField.AddObjectsToDropdown<Renderer>(asset.Object, true);
 				objField.RegisterValueChangedCallback(obj => OnObjectChanged(slotField, obj));
-				var obj = property.FindPropertyRelative(nameof(AssetMaterialVariation.Object));
+				var obj = property.FindPropertyRelative(nameof(AssetMaterialVariation.Target.Object));
 				if (obj != null && obj.objectReferenceValue != null) {
 					objField.SetValue(obj.objectReferenceValue);
 				}
@@ -62,7 +47,7 @@ namespace VisualPinball.Unity.Editor
 				if (objField.HasValue) {
 					slotField.PopulateChoices(objField.Value as GameObject);
 				}
-				var slot = property.FindPropertyRelative(nameof(AssetMaterialVariation.Slot));
+				var slot = property.FindPropertyRelative(nameof(AssetMaterialVariation.Target.Slot));
 				slotField.SetValue(slot.intValue);
 			}
 

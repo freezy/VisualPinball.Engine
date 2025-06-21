@@ -19,16 +19,33 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
+	/// <summary>
+	/// A material combination is an asset that gets one or more of its material slots overriden
+	/// by a <see cref="AssetMaterialOverride"/> (which is linked to a <see cref="AssetMaterialVariation"/>).
+	///
+	/// Among those overrides, the AssetMaterialVariations are unique, i.e. a material slot can only be
+	/// overridden once. The overrides aren't always complete, i.e. some material slots may not be overridden.
+	/// </summary>
 	public class AssetMaterialCombination
 	{
-		public string Name => string.Join(", ", (_variations.Any(v => v.Item1.IsDecal)
-			? _variations.Where(v => v.Item1.IsDecal)
-			: _variations
-		).Select(v => $"{v.Item2.Name} {v.Item1.Name}"));
+		public readonly Asset Asset;
+		private readonly VariationOverride[] _variations;
+
+		private string _thumbId;
+
+		public string Name => string.Join(", ",
+			(_variations.Any(v => v.IsDecal)
+				? _variations.Where(v => v.IsDecal)
+				: _variations
+			).Select(v => $"{v.Override.Name} {v.Variation.Name}")
+		);
+
+		public string MaterialName => string.Join(", ",
+			_variations.Where(v => !v.IsDecal).Select(v => $"{v.Override.Name} {v.Variation.Name}")
+		);
 
 		public string ThumbId => GenerateThumbID();
 		public string ThumbPath => $"{Asset.Library.ThumbnailRoot}/{ThumbId}.webp";
@@ -36,35 +53,6 @@ namespace VisualPinball.Unity.Editor
 		public bool IsOriginal => _variations.Length == 0;
 
 		public bool HasThumbnail => File.Exists(ThumbPath);
-
-		public bool HasDuplicateVariations => GetOverrideNames()
-			.GroupBy(name => name)
-			.Any(g => g.Count() > 1);
-
-		public bool HasOnlyDuplicateVariations => GetOverrideNames().Distinct().Count() == 1;
-
-		private List<string> GetOverrideNames()
-		{
-			var overrideNames = _variations
-				.Select(v => v.Item2.Name)
-				.ToList();
-
-			foreach (var materialDefault in Asset.MaterialDefaults) {
-				if (_variations.All(v => v.Item1.Slot != materialDefault.Slot && v.Item1.Object != materialDefault.Object)) {
-					overrideNames.Add(materialDefault.DefaultName);
-				}
-			}
-
-			return overrideNames;
-		}
-
-		public bool HasDuplicateVariations1 => _variations
-			.GroupBy(v => v.Item2.Name)
-			.Any(g => g.Count() > 1);
-
-		public bool HasOnlyDuplicateVariations1 => _variations
-			.GroupBy(v => v.Item2.Name)
-			.Any(g => g.Count() == _variations.Length);
 
 		public bool IsValidCombination {
 			get {
@@ -77,8 +65,8 @@ namespace VisualPinball.Unity.Editor
 					switch (rule.Type) {
 						case AssetMaterialCombinationType.MustAllBeEqual: {
 							var allEqual = varsWithDefaults
-								.Where(v => rule.Targets.Any(t => t.Object == v.Item1 && t.Slot == v.Item2))
-								.GroupBy(v => v.Item3)
+								.Where(v => rule.Targets.Any(t => t == v.Target))
+								.GroupBy(v => v.Name)
 								.Count() == 1;
 							if (!allEqual) {
 								return false;
@@ -88,8 +76,8 @@ namespace VisualPinball.Unity.Editor
 
 						case AssetMaterialCombinationType.MustAllBeDifferent: {
 							var allDifferent = varsWithDefaults
-								.Where(v => rule.Targets.Any(t => t.Object == v.Item1 && t.Slot == v.Item2))
-								.GroupBy(v => v.Item3)
+								.Where(v => rule.Targets.Any(t => t == v.Target))
+								.GroupBy(v => v.Name)
 								.Count() == varsWithDefaults.Length;
 							if (!allDifferent) {
 								return false;
@@ -102,47 +90,82 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private (Object, int, string)[] VariationsWithDefaults =>
+		public AssetMaterialCombination GetValidCombination()
+		{
+			if (IsValidCombination) {
+				return this;
+			}
+
+			return GetCombinations(Asset, true)
+				.Where(c => c.Contains(this))
+				.First(c => c.IsValidCombination);
+		}
+
+		public bool Contains(AssetMaterialVariation variation)
+		{
+			if (variation == null || variation.Overrides.Count == 0) {
+				return false;
+			}
+
+			return _variations.Any(v => v.Variation.GUID == variation.GUID);
+		}
+
+		private bool Contains(AssetMaterialCombination other)
+		{
+			if (other == null || other._variations.Length == 0) {
+				return false;
+			}
+			return other._variations.All(otherVar => _variations.Contains(otherVar));
+		}
+
+		private VariationWithDefault[] VariationsWithDefaults =>
 			_variations
-				.Select(v => (v.Item1.Object, v.Item1.Slot, v.Item2.Name))
+				.Select(v => new VariationWithDefault(v.Variation.Target, v.Override.Name))
 				.Concat(Asset.MaterialDefaults
-					.Where(md => !_variations
-						.Any(v => v.Item1.Slot == md.Slot && v.Item1.Object == md.Object))
-					.Select(md => (md.Object, md.Slot, md.DefaultName)))
+					.Where(md => _variations.All(v => v.Variation.Target != md.Target))
+					.Select(md => new VariationWithDefault(md.Target, md.Name)))
 				.ToArray();
-
-		public readonly Asset Asset;
-		private readonly (AssetMaterialVariation, AssetMaterialOverride)[] _variations;
-
-		private string _thumbId;
 
 		public AssetMaterialCombination(Asset asset)
 		{
 			Asset = asset;
-			_variations = Array.Empty<(AssetMaterialVariation, AssetMaterialOverride)>();
+			_variations = Array.Empty<VariationOverride>();
 		}
 
 		public AssetMaterialCombination(Asset asset, AssetMaterialVariation variation, AssetMaterialOverride @override)
 		{
 			Asset = asset;
-			_variations = new[] { (variation, @override) };
+			_variations = new[] { new VariationOverride(variation, @override) };
 		}
 
-		private AssetMaterialCombination(Asset asset, (AssetMaterialVariation, AssetMaterialOverride)[] variations)
+		public AssetMaterialCombination(Asset asset, VariationOverride[] variations)
 		{
 			Asset = asset;
 			_variations = variations;
 		}
 
-		public IEnumerable<AssetMaterialCombination> CombineAll(AssetMaterialVariation decalVariation) =>
-			decalVariation.Overrides.Select(@override => Combine(decalVariation, @override));
+		/// <summary>
+		/// Maps each override of the given decal variation to a new material combination that consists of the
+		/// current variations plus the override of the decal variation.
+		/// </summary>
+		/// <param name="decalVariation"></param>
+		/// <returns></returns>
+		public IEnumerable<AssetMaterialCombination> AddOverridesFrom(AssetMaterialVariation decalVariation) =>
+			decalVariation.Overrides.Select(@override => WithOverride(decalVariation, @override));
 
-		private AssetMaterialCombination Combine(AssetMaterialVariation variation, AssetMaterialOverride @override)
+		/// <summary>
+		/// Creates a new material combination that consists of the current variations plus the given overrides
+		/// </summary>
+		/// <param name="variation"></param>
+		/// <param name="override"></param>
+		/// <returns></returns>
+		private AssetMaterialCombination WithOverride(AssetMaterialVariation variation, AssetMaterialOverride @override)
 		{
-			var newVariations = new (AssetMaterialVariation, AssetMaterialOverride)[_variations.Length + 1];
-			Array.Copy(_variations, newVariations, _variations.Length);
-			newVariations[^1] = (variation, @override);
-			return new AssetMaterialCombination(Asset, newVariations);
+			return new AssetMaterialCombination(Asset, _variations
+				//.Where(v => v.Variation.Slot != variation.Slot && v.Variation.Object != variation.Object)
+				.Concat(new [] {new VariationOverride(variation, @override)})
+				.ToArray()
+			);
 		}
 
 		/// <summary>
@@ -156,20 +179,20 @@ namespace VisualPinball.Unity.Editor
 		{
 			var variations = new List<AssetMaterialVariation>();
 			foreach (var childAsset in asset.GetNestedAssets()) {
-				variations.AddRange(childAsset.MaterialVariations.Select(mv => mv.Nested));
+				variations.AddRange(childAsset.MaterialVariations.Select(mv => mv.AsNested()));
 			}
 
 			variations.AddRange(asset.MaterialVariations);
 
 			if (includeDecals && asset.DecalVariations.Count > 0) {
 				variations.AddRange(asset.DecalVariations
-					.GroupBy(dv => (dv.Object, dv.Slot))
+					.GroupBy(dv => dv.Target)
+					.Where(objectSlot => objectSlot?.Key != null)
 					.Select(objectSlot => new AssetMaterialVariation {
-						Name = $"{objectSlot.Key.Object.name} {objectSlot.Key.Slot.ToString()}",
-						Object = objectSlot.Key.Object,
-						Slot = objectSlot.Key.Slot,
+						Name = objectSlot.Key.Object?.name ?? "<object unset>",
+						Target = objectSlot.Key,
 						Overrides = objectSlot.SelectMany(dv => dv.Overrides).ToList()
-					})
+					}.AsDecal())
 				);
 			}
 
@@ -212,8 +235,8 @@ namespace VisualPinball.Unity.Editor
 
 		public void ApplyMaterial(GameObject go)
 		{
-			foreach (var (materialVariation, materialOverride) in _variations) {
-				var obj = materialVariation.Match(go);
+			foreach (var v in _variations) {
+				var obj = v.Variation.Match(go);
 				if (obj == null) {
 					Debug.LogError("Unable to determine which to object the material needs to be applied to.");
 					return;
@@ -223,7 +246,7 @@ namespace VisualPinball.Unity.Editor
 					obj.SetActive(true);
 				}
 				var materials = obj.gameObject.GetComponent<MeshRenderer>().sharedMaterials;
-				materials[materialVariation.Slot] = materialOverride.Material;
+				materials[v.Variation.Target.Slot] = v.Override.Material;
 				obj.gameObject.GetComponent<MeshRenderer>().sharedMaterials = materials;
 			}
 		}
@@ -244,8 +267,8 @@ namespace VisualPinball.Unity.Editor
 			} else {
 				const int byteCount = 16;
 				var guid1 = new Guid(Asset.GUID);
-				foreach (var (v, o) in _variations) {
-					var guid2 = new Guid(o.Id);
+				foreach (var v in _variations) {
+					var guid2 = new Guid(v.Override.Id);
 					var destByte = new byte[byteCount];
 					var guid1Byte = guid1.ToByteArray();
 					var guid2Byte = guid2.ToByteArray();
@@ -259,21 +282,21 @@ namespace VisualPinball.Unity.Editor
 			return _thumbId;
 		}
 
-		private AssetMaterialCombination(Asset asset, IReadOnlyList<Counter> counters, IReadOnlyList<AssetMaterialVariation> variations)
+		internal AssetMaterialCombination(Asset asset, IReadOnlyList<Counter> counters, IReadOnlyList<AssetMaterialVariation> variations)
 		{
 			Asset = asset;
-			_variations = new (AssetMaterialVariation, AssetMaterialOverride)[counters.Count];
+			_variations = new VariationOverride[counters.Count];
 			for (var i = 0; i < counters.Count; i++) {
 				var overrideIndex = counters[i].Value;
-				_variations[i] = (
+				_variations[i] = new VariationOverride(
 					overrideIndex == 0 ? null : variations[i],
 					overrideIndex == 0 ? null : variations[i].Overrides[overrideIndex - 1]
 				);
 			}
-			_variations = _variations.Where(mv => mv.Item1 != null).ToArray();
+			_variations = _variations.Where(mv => mv.Variation != null).ToArray();
 		}
 
-		private class Counter
+		internal class Counter
 		{
 			public int Value;
 			private readonly int _size;
@@ -299,6 +322,37 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		public override string ToString() => Name;
+		public override string ToString() => $"{string.Join(" | ", _variations.Select(v => $"{v.Override.Name} {v.Variation.Name} ({v.Override.Material.name})"))}";
+
+		public readonly struct VariationOverride : IEquatable<VariationOverride>
+		{
+			public readonly AssetMaterialVariation Variation;
+			public readonly AssetMaterialOverride Override;
+			public bool IsDecal => Variation is { IsDecal: true };
+
+			public VariationOverride(AssetMaterialVariation variation, AssetMaterialOverride @override)
+			{
+				Variation = variation;
+				Override = @override;
+			}
+
+			public bool Equals(VariationOverride other) => Variation == other.Variation && Override.Id == other.Override.Id;
+
+			public override bool Equals(object obj) => obj is VariationOverride other && Equals(other);
+
+			public override int GetHashCode() => HashCode.Combine(Variation, Override.Id);
+		}
+
+		public readonly struct VariationWithDefault
+		{
+			public readonly AssetMaterialTarget Target;
+			public readonly string Name;
+
+			public VariationWithDefault(AssetMaterialTarget target, string name)
+			{
+				Target = target;
+				Name = name;
+			}
+		}
 	}
 }

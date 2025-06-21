@@ -20,7 +20,7 @@ using UnityEngine.UIElements;
 namespace VisualPinball.Unity.Editor
 {
 	[CustomPropertyDrawer(typeof(AssetMaterialDefault))]
-	public class AssetMaterialDefaultPropertyDrawer : AssetMaterialTargetPropertyDrawer
+	public class AssetMaterialDefaultPropertyDrawer : PropertyDrawer
 	{
 		// property drawers are recycled, so don't store anything in the members!
 
@@ -32,7 +32,8 @@ namespace VisualPinball.Unity.Editor
 
 			var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetMaterialVariationPropertyDrawer.uss");
 			ui.styleSheets.Add(styleSheet);
-			return CreatePropertyGUI(property, ui);
+
+			return ui;
 		}
 	}
 }

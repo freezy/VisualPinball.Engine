@@ -1,7 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:uivpe="VisualPinball.Unity.Editor" editor-extension-mode="True">
 	<ui:TextField picking-mode="Ignore" label="Material" value="filler text" text="filler text" binding-path="Name" />
-	<uivpe:ObjectDropdownElement name="object-field" label="Apply to" binding-path="Object" tooltip="The game object to which the material will be applied" />
-	<uivpe:MaterialSlotDropdownElement name="slot-field" label="Slot" binding-path="Slot" tooltip="The material slot on which the material will be applied."/>
+	<uie:PropertyField binding-path="Target" label="Apply to" tooltip="The target to which the material will be applied" class="property-field-inner" />
 	<ui:ListView name="overrides"
 				 reorder-mode="Animated"
 				 binding-path="Overrides"
@@ -10,6 +9,6 @@
 				 show-foldout-header="true"
 				 show-bound-collection-size="false"
 				 header-title="Overrides"
-				 fixed-item-height="45"
+				 virtualization-method="DynamicHeight"
 				 tooltip="Add the different materials here."/>
 </ui:UXML>

@@ -1,3 +1,7 @@
 ﻿.unity-base-field > Label {
 	min-width: 65px;
 }
+
+ListView PropertyField {
+	padding: 0;
+}

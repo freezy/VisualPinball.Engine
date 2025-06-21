@@ -1,5 +1,4 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns:uivpe="VisualPinball.Unity.Editor" editor-extension-mode="True">
-	<uivpe:ObjectDropdownElement name="object-field" label="Apply to" binding-path="Object" tooltip="The game object to which the material will be applied" />
-	<uivpe:MaterialSlotDropdownElement name="slot-field" label="Slot" binding-path="Slot" tooltip="The material slot on which the material will be applied."/>
-	<ui:TextField picking-mode="Ignore" label="Default Name" binding-path="DefaultName" />
+	<uie:PropertyField binding-path="Target" label="Apply to" tooltip="The target to which the material will be applied" class="property-field-inner"/>
+	<ui:TextField picking-mode="Ignore" label="Name" binding-path="Name" />
 </ui:UXML>

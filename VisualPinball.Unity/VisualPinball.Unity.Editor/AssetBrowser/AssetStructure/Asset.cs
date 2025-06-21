@@ -64,9 +64,11 @@ namespace VisualPinball.Unity.Editor
 		public List<AssetLink> Links;
 
 		[SerializeField]
+		// [NonReorderable] // see https://answers.unity.com/questions/1828499/nested-class-lists-inspector-overlapping-bug.html
 		public List<AssetMaterialVariation> MaterialVariations;
 
 		[SerializeField]
+		// [NonReorderable] // see https://answers.unity.com/questions/1828499/nested-class-lists-inspector-overlapping-bug.html
 		public List<AssetMaterialVariation> DecalVariations;
 
 		[SerializeField]
@@ -74,10 +76,6 @@ namespace VisualPinball.Unity.Editor
 
 		[SerializeField]
 		public List<AssetMaterialCombinationRule> MaterialCombinationRules;
-
-		[SerializeField]
-		[Obsolete("Use MaterialCombinationRules instead")]
-		public bool GroupVariationsByMaterial = false;
 
 		[SerializeField]
 		public string EnvironmentGameObjectName;
@@ -232,6 +230,59 @@ namespace VisualPinball.Unity.Editor
 
 			Debug.Log($"Texture loaded in {sw.ElapsedMilliseconds}ms: {width}x{height}");
 			return texture;
+		}
+
+		/// <summary>
+		/// So this is basically a counter where the positions are the variations, and the figures are the overrides.
+		/// When the last override of the last variation has counted up, we're done.
+		/// </summary>
+		/// <param name="asset"></param>
+		/// <param name="materials"></param>
+		/// <param name="decals"></param>
+		/// <returns></returns>
+		public IEnumerable<AssetMaterialCombination> GetCombinations(bool materials, bool decals)
+		{
+			if (!materials && !decals) {
+				throw new ArgumentException("Either materials or decals must be true to get combinations.");
+			}
+
+			var variations = new List<AssetMaterialVariation>();
+
+			if (materials) {
+				foreach (var childAsset in GetNestedAssets()) {
+					variations.AddRange(childAsset.MaterialVariations.Select(mv => mv.AsNested()));
+				}
+				variations.AddRange(MaterialVariations);
+			}
+
+			if (decals && DecalVariations.Count > 0) {
+				variations.AddRange(DecalVariations
+					.GroupBy(dv => dv.Target)
+					.Select(objectSlot => new AssetMaterialVariation {
+						Name = objectSlot.Key.Object.name,
+						Target = objectSlot.Key,
+						Overrides = objectSlot.SelectMany(dv => dv.Overrides).ToList()
+					}.AsDecal())
+				);
+			}
+
+			var counters = new AssetMaterialCombination.Counter[variations.Count];
+			AssetMaterialCombination.Counter nextCounter = null;
+			for (var i = variations.Count - 1; i >= 0; i--) {
+				counters[i] = new AssetMaterialCombination.Counter(variations[i].Overrides.Count, nextCounter);
+				nextCounter = counters[i];
+			}
+
+			var combinations = new List<AssetMaterialCombination>();
+			if (counters.Length == 0) {
+				combinations.Add(new AssetMaterialCombination(this));
+				return combinations;
+			}
+			do {
+				combinations.Add(new AssetMaterialCombination(this, counters, variations));
+			} while (counters[0].Increase());
+
+			return combinations;
 		}
 	}
 }

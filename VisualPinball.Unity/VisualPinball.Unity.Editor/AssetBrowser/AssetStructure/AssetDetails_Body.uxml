@@ -19,7 +19,7 @@
 				 show-foldout-header="true"
 				 show-bound-collection-size="false"
 				 header-title="Material Defaults"
-				 class="top-space"/>
+				 class="top-space padded-first-property-field"/>
 
 	<!-- Material Combination Rules -->
 	<ui:ListView name="combinationRules"
@@ -43,7 +43,7 @@
 				 show-foldout-header="true"
 				 show-bound-collection-size="false"
 				 header-title="Material Variations"
-				 class="top-space"/>
+				 class="top-space padded-first-property-field"/>
 
 	<!-- Group By Material -->
 	<uie:PropertyField binding-path="GroupVariationsByMaterial" label="Group By Material" class="top-space" />
@@ -58,7 +58,7 @@
 				 show-foldout-header="true"
 				 show-bound-collection-size="false"
 				 header-title="Decal Variations"
-				 class="top-space"/>
+				 class="top-space padded-first-property-field"/>
 
 	<!-- Tags -->
 	<uie:PropertyField binding-path="Tags" label="Tags" class="top-space" />
