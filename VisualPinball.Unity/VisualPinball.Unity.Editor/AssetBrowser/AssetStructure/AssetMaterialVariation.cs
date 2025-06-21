@@ -25,12 +25,19 @@ using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
+	/// <summary>
+	/// A material variation defines a target (object and material slot of the object) and a list of materials that can
+	/// be applied to that target.
+	///
+	/// Both the variation itself and the overrides can be named.
+	/// </summary>
 	[Serializable]
-	public class AssetMaterialVariation : AssetMaterialTarget
+	public class AssetMaterialVariation
 	{
 		public string Name;
+		public AssetMaterialTarget Target;
 		public List<AssetMaterialOverride> Overrides;
-		
+
 		/// <summary>
 		/// If a variation is nested, that means it's part of another asset while looping through material combinations.
 		/// </summary>
@@ -40,10 +47,19 @@ namespace VisualPinball.Unity.Editor
 		[NonSerialized]
 		public bool IsDecal;
 		
-		public string GUID => AssetDatabase.TryGetGUIDAndLocalFileIdentifier(Object, out var guid, out long _) ? guid : null;
-		
-		public AssetMaterialVariation Nested { get { IsNested = true; return this; }}
-		public AssetMaterialVariation Decal { get { IsDecal = true; return this; }}
+		public string GUID => AssetDatabase.TryGetGUIDAndLocalFileIdentifier(Target?.Object, out var guid, out long _) ? guid : null;
+
+		public AssetMaterialVariation AsNested()
+		{
+			IsNested = true;
+			return this;
+		}
+
+		public AssetMaterialVariation AsDecal()
+		{
+			IsDecal = true;
+			return this;
+		}
 
 		public GameObject Match(GameObject go)
 		{
@@ -52,14 +68,21 @@ namespace VisualPinball.Unity.Editor
 				return matchedGo;
 			}
 
-			return go.name == Object.name 
+			return go.name == Target.Object.name
 				? go 
-				: go!.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.gameObject.name == Object.name)?.gameObject;
+				: go!.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.gameObject.name == Target.Object.name)?.gameObject;
 
 		}
 
-		public IEnumerable<AssetMaterialCombination> Combinations(Asset asset)
-			=> Overrides.Select(o => new AssetMaterialCombination(asset, this, o));
+		public IEnumerable<AssetMaterialCombination> CombineWith(Asset asset)
+		{
+			var combinations0 = asset.GetCombinations(false, true);
+			return combinations0.Where(c => c.Contains(this));
+			//
+			// var combinations1 = asset.GetAllCombinations1(asset.DecalVariations);
+			// var combinations2 = asset.GetAllCombinations2(asset.DecalVariations);
+			// return Overrides.Select(o => new AssetMaterialCombination(asset, this, o));
+		}
 
 		/// <summary>
 		/// We want combinations of nested prefabs to work too, so we can't solely rely on the object name,
@@ -91,6 +114,27 @@ namespace VisualPinball.Unity.Editor
 			}
 			return null;
 		}
+
+		public override bool Equals(object obj)
+		{
+			if (obj is AssetMaterialVariation other) {
+				return Target == other.Target && Overrides.SequenceEqual(other.Overrides);
+			}
+			return false;
+		}
+
+		protected bool Equals(AssetMaterialVariation other)
+		{
+			return Name == other.Name && Equals(Overrides, other.Overrides);
+		}
+
+		public override int GetHashCode()
+		{
+			return HashCode.Combine(Name, Overrides);
+		}
+
+		public override string ToString()
+			=> $"{Name} - {string.Join(" | ", Overrides.Select(o => o.Name))} ({Target.Object.name}@{Target.Slot})";
 	}
 }
 #endif

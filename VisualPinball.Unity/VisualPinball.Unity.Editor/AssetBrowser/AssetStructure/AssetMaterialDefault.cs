@@ -21,9 +21,10 @@ using System;
 namespace VisualPinball.Unity.Editor
 {
 	[Serializable]
-	public class AssetMaterialDefault : AssetMaterialTarget
+	public class AssetMaterialDefault
 	{
-		public string DefaultName;
+		public string Name;
+		public AssetMaterialTarget Target;
 	}
 }
 #endif
