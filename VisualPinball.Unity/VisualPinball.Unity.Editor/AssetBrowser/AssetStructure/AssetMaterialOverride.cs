@@ -42,6 +42,18 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		public string Id;
 
+		/// <summary>
+		/// For grouping
+		/// </summary>
+		[NonSerialized]
+		internal string VariationName;
+
+		internal AssetMaterialOverride WithVariationName(string name)
+		{
+			VariationName = name;
+			return this;
+		}
+
 		public void OnBeforeSerialize()
 		{
 			if (string.IsNullOrEmpty(Id)) {

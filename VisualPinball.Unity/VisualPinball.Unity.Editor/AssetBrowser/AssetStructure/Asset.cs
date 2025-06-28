@@ -242,8 +242,9 @@ namespace VisualPinball.Unity.Editor
 		/// <param name="asset"></param>
 		/// <param name="materials"></param>
 		/// <param name="decals"></param>
+		/// <param name="onlyValid"></param>
 		/// <returns></returns>
-		public IEnumerable<AssetMaterialCombination> GetCombinations(bool materials, bool decals)
+		public IEnumerable<AssetMaterialCombination> GetCombinations(bool materials, bool decals, bool onlyValid = true)
 		{
 			if (!materials && !decals) {
 				throw new ArgumentException("Either materials or decals must be true to get combinations.");
@@ -259,12 +260,13 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			if (decals && DecalVariations.Count > 0) {
+				//variations.AddRange(DecalVariations.Select(dv => dv.AsDecal()));
 				variations.AddRange(DecalVariations
 					.GroupBy(dv => dv.Target)
-					.Select(objectSlot => new AssetMaterialVariation {
-						Name = objectSlot.Key.Object.name,
-						Target = objectSlot.Key,
-						Overrides = objectSlot.SelectMany(dv => dv.Overrides).ToList()
+					.Select(target => new AssetMaterialVariation {
+						Name = string.Join("|", target.Select(t => t.Name)),
+						Target = target.Key,
+						Overrides = target.SelectMany(dv => dv.Overrides.Select(o => o.WithVariationName(dv.Name))).ToList()
 					}.AsDecal())
 				);
 			}
@@ -283,12 +285,25 @@ namespace VisualPinball.Unity.Editor
 			}
 			do {
 				var combination = new AssetMaterialCombination(this, counters, variations);
-				if (combination.IsValidCombination) {
+				if (!onlyValid || combination.IsValidCombination) {
 					combinations.Add(combination);
 				}
 			} while (counters[0].Increase());
 
 			return combinations;
 		}
+
+		public IEnumerable<AssetMaterialCombination> CombineWith(AssetMaterialCombination materialCombination)
+		{
+			if (materialCombination == null) {
+				return GetCombinations(true, true)
+					.Where(x => x.Asset.MaterialDefaults.All(x.Matches));
+			}
+
+			return GetCombinations(true, true)
+				.Where(x => x.Overrides.Length > 0 && materialCombination.Overrides.All(x.Matches));
+		}
+
+		public override string ToString() => Name;
 	}
 }

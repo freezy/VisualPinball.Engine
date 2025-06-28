@@ -71,14 +71,6 @@ namespace VisualPinball.Unity.Editor
 			return go.name == Target.Object.name
 				? go 
 				: go!.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.gameObject.name == Target.Object.name)?.gameObject;
-
-		}
-
-		public IEnumerable<AssetMaterialCombination> CombineWith(Asset asset)
-		{
-			return asset
-				.GetCombinations(false, true)
-				.Where(c => c.Contains(this));
 		}
 
 		/// <summary>

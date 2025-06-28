@@ -161,7 +161,7 @@ namespace VisualPinball.Unity.Editor
 		public void DeleteAsset(Asset asset)
 		{
 			if (RemoveAsset(asset)) {
-				foreach (var materialCombination in AssetMaterialCombination.GetCombinations(asset)) { // includes the original
+				foreach (var materialCombination in asset.GetCombinations(true, true)) { // includes the original
 					if (File.Exists(materialCombination.ThumbPath)) {
 						File.Delete(materialCombination.ThumbPath);
 					}
@@ -176,7 +176,7 @@ namespace VisualPinball.Unity.Editor
 			if (Assets.Contains(asset)) {
 
 				// first, move material combination thumbs before we switch the reference to the library.
-				foreach (var materialCombination in AssetMaterialCombination.GetCombinations(asset, true)) { // includes the original
+				foreach (var materialCombination in asset.GetCombinations(true, true)) { // includes the original
 					materialCombination.MoveThumb(destLibrary);
 				}
 				// move the .asset file to the new library.

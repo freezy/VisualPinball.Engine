@@ -15,8 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -52,28 +54,44 @@ namespace VisualPinball.Unity.Editor
 				SelectedMaterialCombination = null;
 				return;
 			}
-
 			Clear();
-			foreach (var decalVariation in asset.DecalVariations.Select(dv => dv.AsDecal())) {
+
+			switch (asset.GroupBy.GroupBy) {
+				case AssetVariationGroupBy.Decal:
+					Render(GroupByDecal(asset, materialCombination), asset);
+					break;
+				case AssetVariationGroupBy.Object:
+					Render(GroupByObject(asset, materialCombination, asset.GroupBy.Object), asset);
+					break;
+			}
+			SetVisibility(_foldout, true);
+		}
+
+		private static IEnumerable<IGrouping<string, AssetMaterialCombination>> GroupByDecal(Asset asset, AssetMaterialCombination materialCombination)
+		{
+			return asset.CombineWith(materialCombination)
+				.GroupBy(x => x.DecalVariationNames);
+		}
+
+		private static IEnumerable<IGrouping<AssetMaterialCombination.VariationOverride, AssetMaterialCombination>> GroupByObject(Asset asset, AssetMaterialCombination materialCombination, Object obj)
+		{
+			return asset.CombineWith(materialCombination)
+				.GroupBy(dv => dv.Overrides?.FirstOrDefault(o => o.Variation?.Target?.Object == obj));
+		}
+
+		private void Render<T>(IEnumerable<IGrouping<T, AssetMaterialCombination>> combinations, Asset asset)
+		{
+			foreach (var group in combinations) {
 				var container = new ScrollView { mode = ScrollViewMode.Horizontal };
 				_foldout.Add(container);
 
-				var combinations = (materialCombination?.AddOverridesFrom(decalVariation) ?? decalVariation.CombineWith(asset))
-					.Where(mc => mc.IsValidCombination)
-					.ToArray();
+				foreach (var combination in group) {
 
-				// material variations
-				if (combinations.Length > 0) {
-
-					foreach (var combination in combinations) {
-						var combinationEl = new AssetMaterialCombinationElement(combination, asset, true);
-						combinationEl.OnClicked += OnVariationClicked;
-						container.Add(combinationEl);
-					}
+					var combinationEl = new AssetMaterialCombinationElement(combination, asset, true);
+					combinationEl.OnClicked += OnVariationClicked;
+					container.Add(combinationEl);
 				}
 			}
-
-			SetVisibility(_foldout, true);
 		}
 
 		private void OnVariationClicked(object clickedVariation, bool enabled)
