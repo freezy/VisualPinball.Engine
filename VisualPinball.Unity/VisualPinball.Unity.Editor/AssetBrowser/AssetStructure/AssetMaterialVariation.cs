@@ -76,12 +76,9 @@ namespace VisualPinball.Unity.Editor
 
 		public IEnumerable<AssetMaterialCombination> CombineWith(Asset asset)
 		{
-			var combinations0 = asset.GetCombinations(false, true);
-			return combinations0.Where(c => c.Contains(this));
-			//
-			// var combinations1 = asset.GetAllCombinations1(asset.DecalVariations);
-			// var combinations2 = asset.GetAllCombinations2(asset.DecalVariations);
-			// return Overrides.Select(o => new AssetMaterialCombination(asset, this, o));
+			return asset
+				.GetCombinations(false, true)
+				.Where(c => c.Contains(this));
 		}
 
 		/// <summary>

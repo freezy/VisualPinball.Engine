@@ -107,7 +107,7 @@ namespace VisualPinball.Unity.Editor
 				return false;
 			}
 
-			return _variations.Any(v => v.Variation.GUID == variation.GUID);
+			return _variations.Any(v => v.Variation.Target == variation.Target);
 		}
 
 		private bool Contains(AssetMaterialCombination other)

@@ -9,6 +9,8 @@
 	<!-- Unpack Prefab -->
 	<uie:PropertyField binding-path="UnpackPrefab" label="Unpack Prefab" class="top-space" />
 
+	<uie:PropertyField binding-path="GroupBy" label="Group By" class="top-space" />
+
 	<!-- Material Defaults -->
 	<ui:ListView name="defaults"
 				 reorderable="true"
@@ -44,9 +46,6 @@
 				 show-bound-collection-size="false"
 				 header-title="Material Variations"
 				 class="top-space padded-first-property-field"/>
-
-	<!-- Group By Material -->
-	<uie:PropertyField binding-path="GroupVariationsByMaterial" label="Group By Material" class="top-space" />
 
 	<!-- Decals -->
 	<ui:ListView name="decals"
