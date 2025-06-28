@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -58,6 +59,12 @@ namespace VisualPinball.Unity.Editor
 
 			Add(_objectPicker);
 			Add(_dropdown);
+		}
+
+		public ObjectDropdownElement(SerializedProperty property, string label) : this()
+		{
+			Label = label;
+			BindingPath = property.propertyPath;
 		}
 
 		public void RegisterValueChangedCallback(Action<Object> onValueChanged)
