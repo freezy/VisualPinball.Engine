@@ -301,7 +301,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			return GetCombinations(true, true)
-				.Where(x => x.Overrides.Length > 0 && materialCombination.Overrides.All(x.Matches));
+				.Where(combination => combination.Overrides.Length > 0 && materialCombination.Overrides.All(combination.Matches));
 		}
 
 		public override string ToString() => Name;
