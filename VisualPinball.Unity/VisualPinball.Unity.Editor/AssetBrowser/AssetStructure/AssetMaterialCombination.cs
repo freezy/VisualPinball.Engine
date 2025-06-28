@@ -144,7 +144,7 @@ namespace VisualPinball.Unity.Editor
 			}
 			var o = Overrides.FirstOrDefault(o => o.Variation.Target == vo.Variation.Target);
 			if (o == null) {
-				return true;
+				return false;
 			}
 			return o.Override.Name == vo.Override.Name;
 		}
