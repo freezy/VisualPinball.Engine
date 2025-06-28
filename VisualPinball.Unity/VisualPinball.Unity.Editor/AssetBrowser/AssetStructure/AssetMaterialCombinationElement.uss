@@ -10,4 +10,5 @@ ToolbarToggle {
 	padding: 16px;
 	border-width: 1px;
 	align-items: center;
+	width: 120px;
 }
