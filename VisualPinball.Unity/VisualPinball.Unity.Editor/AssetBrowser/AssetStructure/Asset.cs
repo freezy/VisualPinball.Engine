@@ -64,6 +64,9 @@ namespace VisualPinball.Unity.Editor
 		public List<AssetLink> Links;
 
 		[SerializeField]
+		public AssetMaterialVariationGroupConfig GroupBy;
+
+		[SerializeField]
 		// [NonReorderable] // see https://answers.unity.com/questions/1828499/nested-class-lists-inspector-overlapping-bug.html
 		public List<AssetMaterialVariation> MaterialVariations;
 
@@ -279,7 +282,10 @@ namespace VisualPinball.Unity.Editor
 				return combinations;
 			}
 			do {
-				combinations.Add(new AssetMaterialCombination(this, counters, variations));
+				var combination = new AssetMaterialCombination(this, counters, variations);
+				if (combination.IsValidCombination) {
+					combinations.Add(combination);
+				}
 			} while (counters[0].Increase());
 
 			return combinations;
