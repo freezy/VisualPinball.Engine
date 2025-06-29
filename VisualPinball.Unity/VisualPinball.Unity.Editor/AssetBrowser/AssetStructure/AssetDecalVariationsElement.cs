@@ -70,6 +70,7 @@ namespace VisualPinball.Unity.Editor
 		private static IEnumerable<IGrouping<string, AssetMaterialCombination>> GroupByDecal(Asset asset, AssetMaterialCombination materialCombination)
 		{
 			return asset.CombineWith(materialCombination)
+				.Where(mc => !mc.EqualsOverrides(materialCombination))
 				.GroupBy(x => x.DecalVariationNames);
 		}
 
