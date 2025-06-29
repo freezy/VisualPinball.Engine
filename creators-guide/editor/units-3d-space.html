@@ -1,0 +1,212 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Units and 3D Space | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Units and 3D Space | VPE Documentation ">
+      
+      <meta name="description" content="VPE supports real-world units and free 3D transformations.">
+      <link rel="icon" href="../../favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <link rel="stylesheet" href="../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/units-3d-space.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="units_3d_space">
+<h1 id="units-and-3d-space">Units and 3D Space</h1>
+
+<p>Units describe how we measure things. For example, the units for measuring length are meters in the metric system, or feet and inches in the imperial system. There are also different systems for saving 3D data. For example, in VPX, the x-axis points to the right side of the player, the y-axis down, and the z-axis towards the player. We call this the <a href="https://en.wikipedia.org/wiki/Cartesian_coordinate_system#In_three_dimensions">orientation and handedness</a> of the coordinate system.</p>
+<p>Different software uses different units and orientations, and this section describes how VPE handles them. We'll also compare how VPX and VPE handle transformations.</p>
+<h2 id="units">Units</h2>
+<p>If you've already used VPX, you know that it uses its own units, defined by the ball size:</p>
+<blockquote>
+<p>In VPX, 50 units correspond to the ball diameter.</p>
+</blockquote>
+<p>A ball being 1¹⁄₁₆ inch, we get the following relations:</p>
+<ul>
+<li>50 VP units = 1.0625&quot;</li>
+<li>1 VP unit = 0.02125&quot; = 0.53975mm</li>
+</ul>
+<p>or</p>
+<ul>
+<li>1&quot; = 47.05882352941176 VP units</li>
+<li>1mm = 1.852709587772117 VP units</li>
+</ul>
+<p>Obviously, no other 3D software uses these units, so importing models from, let's say, Blender, has always been a pain.</p>
+<p>The problem is that if we wanted to just scale everything down to meters, it would impact physics because physics is strongly dependent on the real-world size (and thus, mass) of things. Given that VPE uses VPX's physics code, which has been fine-tuned with heuristics based on VPX units, we cannot simply scale everything to real-world units and expect the same behavior in the physics simulation.</p>
+<p>So, we've chosen the following approach:</p>
+<blockquote>
+<ul>
+<li>Everything in the scene uses real-world units (meters).</li>
+<li>During runtime, 3D data is converted to VPX units for the physics simulation.</li>
+<li>New movement data from the physics engine is converted back and applied to real-world units.</li>
+</ul>
+</blockquote>
+<div class="NOTE">
+<h5>Note</h5>
+<h3 id="vpx-units-in-the-editor">VPX Units in the Editor</h3>
+<p>Meters for elements on a pinball table which is under two meters long isn't necessarily the best unit either. The best would have been millimeters, but Unity's units aren't configurable.</p>
+<p>Because of this and the fact that many table authors are still familiar with VPX units, VPE includes VPX units in the panel of each component. Updating one will automatically update the other.</p>
+<p><img src="editor-units.png" alt="Both real world and VPX units" style="max-width:400px"><br>
+<small><em>Real world (top) and VPX (bottom) units in the editor</em></small></p>
+</div>
+<h2 id="orientation-and-handedness">Orientation and Handedness</h2>
+<p>As mentioned at the beginning, the coordinate system of VPX is oriented with the Z-axis up and the origin at the top-left corner of the table. It's a <a href="https://en.wikipedia.org/wiki/Right-hand_rule">left-handed</a> coordinate system.</p>
+<p>Blender, on the other hand (no pun intended), also has the Z-axis pointing up, but its Y-axis is pointing in the opposite direction, making it right-handed.</p>
+<p>Unity's coordinate system is left-handed like VPX, but oriented differently. Since the player is usually looking forward, that's where the XY plane lies. So, Y points upwards, X to the right, and Z away from the player.</p>
+<img src="blender-export.png" width="287" alt="Blender FBX Export" class="img-fluid float-end" style="margin-left: 15px">
+<p>The main impact for you as a table author is that you need to pay attention when exporting your meshes from other 3D software. For example, when exporting to FBX in Blender, you need to make sure that the following mapping is set (the default <em>Forward</em> being <em>-Z Forward</em>):</p>
+<blockquote>
+<ul>
+<li>Forward -&gt; Z-Forward</li>
+<li>Up -&gt; Y-Up</li>
+</ul>
+</blockquote>
+<h2 id="transformations">Transformations</h2>
+<p>We call it a <em>transformation</em> when we move, rotate, or scale an object. Let's talk about how VPX and VPE handle transformations.</p>
+<p>In VPX, the XY position within the playfield can be freely set for all items. For the Z-position, some objects allow free positioning, some can be parented to a surface (wall or ramp), and others have a fixed Z-position.</p>
+<p>Regarding rotation, some items, like spinners or gates, can be Z-rotated, some can be freely rotated, and some can't be rotated at all.</p>
+<p>Scaling support in VPX is more sparse, with most objects not being able to scale at all or only on a given axis.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>This is not to look down on VPX's transformation capabilities; they make sense in the vast majority of cases, but it's important to highlight them so we can understand how they differ from VPE.</p>
+</div>
+<p>For quite a while, VPE implemented the same restrictions as VPX, and we spent considerable time overriding Unity's transformation tools to adhere to those limitations.</p>
+<p>However, as a user, you could always work around them, often accidentally, by either disabling gizmos in the editor or by simply parenting an item to another object and freely transforming the parent (the child always inherits transformation of its parent). If that happened, the result would be a rather incoherent mess because the visuals wouldn't correspond to the physics simulation, which was still bound by those limits.</p>
+<p>So, we ended up implementing full transformation support for VPE. That means you can freely position, rotate, and scale all items. You can also parent items to other objects and transform those objects. Or the parents of those objects. In short, however the transformation hierarchy of your scene is, VPE will boil it down to one transformation during runtime, check for each item whether the physics engine supports the resulting transformation, and if not, apply the <a href="https://github.com/freezy/VisualPinball.Engine/tree/master/VisualPinball.Unity/VisualPinball.Unity/Physics#unrestricted-transformations">ball projection trick</a> during a collision.</p>
+<h2 id="runtime-transformations">Runtime Transformations</h2>
+<p>In VPX, transformations are static. That means they cannot be changed during runtime. Obviously, a flipper rotates during runtime, but the object itself is fixed in place. Some games, however, require some form of movement. In VPX, that's worked around by creating multiple invisible collider objects that are then toggled depending on the position of the object.</p>
+<p>That's, of course, very cumbersome and error-prone. In VPE, we've extended the physics engine to be able to mark objects are movable. If an object is marked as such, it can be fully transformed during gameplay, and the colliders are updated accordingly.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>Note that currently, moving objects don't have a velocity, meaning that hitting a moving object only takes into account the speed of the ball, not the object's. It's like the object is teleported frame by frame to its new position.</p>
+<p>True collision where the object's directional and angular speed is calculated based off the last frame's position and the current one is a feature that is valuable and on the roadmap.</p>
+</div>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/units-3d-space.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2025 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>
