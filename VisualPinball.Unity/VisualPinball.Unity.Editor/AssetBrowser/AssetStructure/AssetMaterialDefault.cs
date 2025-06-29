@@ -23,7 +23,8 @@ namespace VisualPinball.Unity.Editor
 	[Serializable]
 	public class AssetMaterialDefault
 	{
-		public string Name;
+		public string VariationName;
+		public string OverrideName;
 		public AssetMaterialTarget Target;
 	}
 }

@@ -64,7 +64,7 @@ namespace VisualPinball.Unity.Editor
 					if (validCombination == null) {
 						continue; // skip invalid combinations
 					}
-					var combinationEl = new AssetMaterialCombinationElement(validCombination, asset, false);
+					var combinationEl = new AssetMaterialCombinationElement(validCombination, asset, combination.Name);
 					combinationEl.OnClicked += OnVariationClicked;
 					_container.Add(combinationEl);
 				}

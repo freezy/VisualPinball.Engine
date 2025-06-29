@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NUnit.Framework;
 using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
 
@@ -58,10 +59,10 @@ namespace VisualPinball.Unity.Editor
 
 			switch (asset.GroupBy.GroupBy) {
 				case AssetVariationGroupBy.Decal:
-					Render(GroupByDecal(asset, materialCombination), asset);
+					Render(GroupByDecal(asset, materialCombination), asset, materialCombination);
 					break;
 				case AssetVariationGroupBy.Object:
-					Render(GroupByObject(asset, materialCombination, asset.GroupBy.Object), asset);
+					Render(GroupByObject(asset, materialCombination, asset.GroupBy.Object), asset, materialCombination);
 					break;
 			}
 			SetVisibility(_foldout, true);
@@ -80,19 +81,95 @@ namespace VisualPinball.Unity.Editor
 				.GroupBy(dv => dv.Overrides?.FirstOrDefault(o => o.Variation?.Target?.Object == obj));
 		}
 
-		private void Render<T>(IEnumerable<IGrouping<T, AssetMaterialCombination>> combinations, Asset asset)
+		private void Render<T>(IEnumerable<IGrouping<T, AssetMaterialCombination>> combinations, Asset asset, AssetMaterialCombination materialCombination)
 		{
 			foreach (var group in combinations) {
+				var label = new Label {
+					text = GetContainerTitle(asset, group),
+					style = { marginBottom = 5, marginTop = 10 }
+				};
 				var container = new ScrollView { mode = ScrollViewMode.Horizontal };
+				_foldout.Add(label);
 				_foldout.Add(container);
 
 				foreach (var combination in group) {
-
-					var combinationEl = new AssetMaterialCombinationElement(combination, asset, true);
+					var combinationEl = new AssetMaterialCombinationElement(combination, asset, GetElementTitle(asset, group, combination));
 					combinationEl.OnClicked += OnVariationClicked;
 					container.Add(combinationEl);
 				}
 			}
+		}
+
+		private static string GetElementTitle<T>(Asset asset, IGrouping<T, AssetMaterialCombination> group, AssetMaterialCombination combination)
+		{
+			var overrides = combination.Overrides
+				.Where(o => asset.DecalVariations
+					.Any(dv => dv.Target.Object == o.Variation.Target.Object))
+				.ToArray();
+
+			switch (asset.GroupBy.GroupBy) {
+
+				case AssetVariationGroupBy.Object: {
+					var overridesWithoutObject = overrides
+						.Where(o => o.Variation.Target.Object != asset.GroupBy.Object)
+						.ToArray();
+
+					if (overridesWithoutObject.Length > 0) {
+						return string.Join(", ", overridesWithoutObject.Select(o => o.Override.VariationName));
+					}
+
+					var variationsWithDefaults = combination.VariationsWithDefaults
+						.Where(vd => {
+							if (vd.Target.Object == asset.GroupBy.Object) {
+								return false;
+							}
+							if (asset.DecalVariations.All(dv => dv.Target.Object != vd.Target.Object)) {
+								return false;
+							}
+							return true;
+						});
+
+					if (group.Key is AssetMaterialVariationOverride variationOverride) {
+						return string.Join(", ", variationsWithDefaults
+							.Where(vd => vd.Target.Object != variationOverride.Variation.Target.Object)
+							.Select(vd => vd.VariationName)
+						);
+					}
+
+					// no overrides, read name from variations with defaults, by exclusion.
+					if (group.Key == null) {
+						return string.Join(", ", variationsWithDefaults.Select(vd => vd.VariationName));
+					}
+
+					return string.Empty;
+				}
+				case AssetVariationGroupBy.Decal:
+					return combination.DecalOverrideNames;
+			}
+			return string.Empty;
+		}
+
+		private static string GetContainerTitle<T>(Asset asset, IGrouping<T, AssetMaterialCombination> group)
+		{
+			if (group.Key is string decalName) {
+				return decalName;
+			}
+
+			if (group.Key is AssetMaterialVariationOverride variationOverride) {
+				if (asset.GroupBy.GroupBy == AssetVariationGroupBy.Object) {
+					return $"{variationOverride.Override.VariationName} {asset.GroupBy.Object.name}";
+				}
+				return variationOverride.Variation?.Name ?? "Unknown Variation";
+			}
+
+			if (asset.GroupBy.GroupBy == AssetVariationGroupBy.Object) {
+				var def = asset.MaterialDefaults.FirstOrDefault(md => md.Target.Object == asset.GroupBy.Object);
+				if (def != null) {
+					return $"{def.VariationName} {asset.GroupBy.Object.name}";
+				}
+			}
+
+			return string.Empty;
 		}
 
 		private void OnVariationClicked(object clickedVariation, bool enabled)
