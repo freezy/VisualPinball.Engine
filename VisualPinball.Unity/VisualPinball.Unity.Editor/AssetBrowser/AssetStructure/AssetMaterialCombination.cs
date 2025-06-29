@@ -34,7 +34,7 @@ namespace VisualPinball.Unity.Editor
 		#region Public Members
 
 		public readonly Asset Asset;
-		public readonly VariationOverride[] Overrides;
+		public readonly AssetMaterialVariationOverride[] Overrides;
 
 		public string DecalVariationNames =>
 			string.Join("|", Overrides.Where(o => o.Variation.IsDecal).Select(o => o.Override.VariationName).OrderBy(name => name));
@@ -115,16 +115,16 @@ namespace VisualPinball.Unity.Editor
 		public AssetMaterialCombination(Asset asset)
 		{
 			Asset = asset;
-			Overrides = Array.Empty<VariationOverride>();
+			Overrides = Array.Empty<AssetMaterialVariationOverride>();
 		}
 
 		internal AssetMaterialCombination(Asset asset, IReadOnlyList<Counter> counters, IReadOnlyList<AssetMaterialVariation> variations)
 		{
 			Asset = asset;
-			Overrides = new VariationOverride[counters.Count];
+			Overrides = new AssetMaterialVariationOverride[counters.Count];
 			for (var i = 0; i < counters.Count; i++) {
 				var overrideIndex = counters[i].Value;
-				Overrides[i] = new VariationOverride(
+				Overrides[i] = new AssetMaterialVariationOverride(
 					overrideIndex == 0 ? null : variations[i],
 					overrideIndex == 0 ? null : variations[i].Overrides[overrideIndex - 1]
 				);
@@ -134,16 +134,7 @@ namespace VisualPinball.Unity.Editor
 
 		#endregion
 
-		public AssetMaterialCombination GetValidCombination()
-		{
-			if (IsValidCombination) {
-				return this;
-			}
-
-			return Asset.GetCombinations(true, true)
-				.Where(c => c.Matches(this))
-				.FirstOrDefault(c => c.IsValidCombination);
-		}
+		#region Matching
 
 		/// <summary>
 		/// Returns whether the overrides of the given <see cref="AssetMaterialCombination"/> match the overridden targets
@@ -196,11 +187,11 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		/// <summary>
-		/// Same as <see cref="Matches(AssetMaterialDefault)"/>, but for an <see cref="VariationOverride"/>.
+		/// Same as <see cref="Matches(AssetMaterialDefault)"/>, but for an <see cref="AssetMaterialVariationOverride"/>.
 		/// </summary>
 		/// <param name="vo"></param>
 		/// <returns></returns>
-		public bool Matches(VariationOverride vo)
+		public bool Matches(AssetMaterialVariationOverride vo)
 		{
 			if (vo == null || vo.Variation.Target == null) {
 				return false;
@@ -212,38 +203,15 @@ namespace VisualPinball.Unity.Editor
 			return o.Override.Name == vo.Override.Name;
 		}
 
+		#endregion
+
+		#region Thumbnails
+
 		public void MoveThumb(AssetLibrary destLibrary)
 		{
 			if (File.Exists(ThumbPath)) {
 				var destPath = $"{destLibrary.ThumbnailRoot}/{ThumbId}.webp";
 				File.Move(ThumbPath, destPath);
-			}
-		}
-
-		public void ApplyObjectPos(GameObject go)
-		{
-			if (Asset.ThumbCameraPos == default) {
-				Asset.ThumbCameraPos = new Vector3(0, Asset.ThumbCameraHeight, 0);
-			}
-			go.transform.position = Asset.ThumbCameraPos;
-			go.transform.rotation = Quaternion.Euler(Asset.ThumbCameraRot);
-		}
-
-		public void ApplyMaterial(GameObject go)
-		{
-			foreach (var v in Overrides) {
-				var obj = v.Variation.Match(go);
-				if (obj == null) {
-					Debug.LogError("Unable to determine which to object the material needs to be applied to.");
-					return;
-				}
-
-				if (!obj.activeSelf) {
-					obj.SetActive(true);
-				}
-				var materials = obj.gameObject.GetComponent<MeshRenderer>().sharedMaterials;
-				materials[v.Variation.Target.Slot] = v.Override.Material;
-				obj.gameObject.GetComponent<MeshRenderer>().sharedMaterials = materials;
 			}
 		}
 
@@ -278,6 +246,51 @@ namespace VisualPinball.Unity.Editor
 			return _thumbId;
 		}
 
+		#endregion
+
+		#region Application
+
+		public void ApplyObjectPos(GameObject go)
+		{
+			if (Asset.ThumbCameraPos == default) {
+				Asset.ThumbCameraPos = new Vector3(0, Asset.ThumbCameraHeight, 0);
+			}
+			go.transform.position = Asset.ThumbCameraPos;
+			go.transform.rotation = Quaternion.Euler(Asset.ThumbCameraRot);
+		}
+
+		public void ApplyMaterial(GameObject go)
+		{
+			foreach (var v in Overrides) {
+				var obj = v.Variation.Match(go);
+				if (obj == null) {
+					Debug.LogError("Unable to determine which to object the material needs to be applied to.");
+					return;
+				}
+
+				if (!obj.activeSelf) {
+					obj.SetActive(true);
+				}
+				var materials = obj.gameObject.GetComponent<MeshRenderer>().sharedMaterials;
+				materials[v.Variation.Target.Slot] = v.Override.Material;
+				obj.gameObject.GetComponent<MeshRenderer>().sharedMaterials = materials;
+			}
+		}
+
+		#endregion
+
+		#region Combining
+
+		public AssetMaterialCombination GetValidCombination()
+		{
+			if (IsValidCombination) {
+				return this;
+			}
+
+			return Asset.GetCombinations(true, true)
+				.Where(c => c.Matches(this))
+				.FirstOrDefault(c => c.IsValidCombination);
+		}
 
 		internal class Counter
 		{
@@ -305,33 +318,11 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		#endregion
+
+		#region Helpers / Debug
+
 		public override string ToString() => $"{string.Join(" | ", Overrides.Select(v => $"{v.Override.Name} {v.Variation.Name} ({v.Override.Material.name})"))}";
-
-		/// <summary>
-		/// This class represents an Override with a link to its Variation.
-		///
-		/// (We used tuples for this in the past which turned out to be not very readable.)
-		/// </summary>
-		public class VariationOverride : IEquatable<VariationOverride>
-		{
-			public readonly AssetMaterialVariation Variation;
-			public readonly AssetMaterialOverride Override;
-			public bool IsDecal => Variation is { IsDecal: true };
-
-			public VariationOverride(AssetMaterialVariation variation, AssetMaterialOverride @override)
-			{
-				Variation = variation;
-				Override = @override;
-			}
-
-			public override string ToString() => $"{Variation?.Name ?? "<null>"}: {Override?.Name ?? "<null>"}";
-
-			public bool Equals(VariationOverride other) => Equals(Variation, other?.Variation) && Override?.Id == other?.Override?.Id;
-
-			public override bool Equals(object obj) => obj is VariationOverride other && Equals(other);
-
-			public override int GetHashCode() => HashCode.Combine(Variation, Override?.Id);
-		}
 
 		private readonly struct VariationWithDefault
 		{
@@ -344,5 +335,7 @@ namespace VisualPinball.Unity.Editor
 				Name = name;
 			}
 		}
+
+		#endregion
 	}
 }

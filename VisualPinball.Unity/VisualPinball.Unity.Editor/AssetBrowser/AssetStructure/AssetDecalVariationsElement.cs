@@ -74,7 +74,7 @@ namespace VisualPinball.Unity.Editor
 				.GroupBy(x => x.DecalVariationNames);
 		}
 
-		private static IEnumerable<IGrouping<AssetMaterialCombination.VariationOverride, AssetMaterialCombination>> GroupByObject(Asset asset, AssetMaterialCombination materialCombination, Object obj)
+		private static IEnumerable<IGrouping<AssetMaterialVariationOverride, AssetMaterialCombination>> GroupByObject(Asset asset, AssetMaterialCombination materialCombination, Object obj)
 		{
 			return asset.CombineWith(materialCombination)
 				.GroupBy(dv => dv.Overrides?.FirstOrDefault(o => o.Variation?.Target?.Object == obj));
