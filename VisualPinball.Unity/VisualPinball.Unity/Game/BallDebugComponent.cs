@@ -18,9 +18,9 @@ namespace VisualPinball.Unity
 
 		private void Awake()
 		{
-			_physicsEngine = GetComponentInParent<PhysicsEngine>();
-			_playfield = GetComponentInParent<PlayfieldComponent>();
-			_player = GetComponentInParent<Player>();
+			_physicsEngine = GetComponentInChildren<PhysicsEngine>();
+			_playfield = GetComponentInChildren<PlayfieldComponent>();
+			_player = GetComponentInChildren<Player>();
 
 			_ltw = Physics.VpxToWorld;
 			_wtl = Physics.WorldToVpx;
