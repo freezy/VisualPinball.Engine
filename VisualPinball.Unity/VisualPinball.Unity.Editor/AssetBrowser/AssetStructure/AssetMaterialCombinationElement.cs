@@ -16,6 +16,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
@@ -23,21 +24,20 @@ using Image = UnityEngine.UIElements.Image;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class AssetMaterialCombinationElement: VisualElement
+	public class AssetMaterialCombinationElement : VisualElement
 	{
 		public bool Enabled { set => _toggle.SetValueWithoutNotify(value); }
-		public string Name => _isDecalVariation ? Combination.Name : Combination.MaterialName;
+		public string Name => Combination.Name; //_isDecalVariation ? Combination.Name : Combination.MaterialName;
+
 		public event EventHandler<bool> OnClicked;
 
 		public readonly AssetMaterialCombination Combination;
 
 		private readonly ToolbarToggle _toggle;
-		private readonly bool _isDecalVariation;
 
-		public AssetMaterialCombinationElement(AssetMaterialCombination combination, Asset asset, bool isDecalVariation)
+		public AssetMaterialCombinationElement(AssetMaterialCombination combination, Asset asset, string name)
 		{
 			Combination = combination;
-			_isDecalVariation = isDecalVariation;
 
 			var ui = new VisualElement();
 			var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/AssetBrowser/AssetStructure/AssetMaterialCombinationElement.uxml");
@@ -49,7 +49,7 @@ namespace VisualPinball.Unity.Editor
 			_toggle = ui.Q<ToolbarToggle>("toggle");
 			_toggle.RegisterValueChangedCallback(val => OnClicked?.Invoke(this, val.newValue));
 
-			ui.Q<Label>("label").text = Name;
+			ui.Q<Label>("label").text = name;
 			if (File.Exists(Combination.ThumbPath)) {
 				var tex = asset.LoadThumbTexture(Combination.ThumbPath);
 				ui.Q<Image>("thumbnail").image = tex;

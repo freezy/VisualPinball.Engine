@@ -39,6 +39,9 @@ namespace VisualPinball.Unity.Editor
 		public string DecalVariationNames =>
 			string.Join("|", Overrides.Where(o => o.Variation.IsDecal).Select(o => o.Override.VariationName).OrderBy(name => name));
 
+		public string DecalOverrideNames =>
+			string.Join("|", Overrides.Where(o => o.Variation.IsDecal).Select(o => o.Override.Name).OrderBy(name => name));
+
 		public string ThumbId => GenerateThumbID();
 		public string ThumbPath => $"{Asset.Library.ThumbnailRoot}/{ThumbId}.webp";
 
@@ -58,7 +61,7 @@ namespace VisualPinball.Unity.Editor
 						case AssetMaterialCombinationType.MustAllBeEqual: {
 							var allEqual = varsWithDefaults
 								.Where(v => rule.Targets.Any(t => t == v.Target))
-								.GroupBy(v => v.Name)
+								.GroupBy(v => v.OverrideName)
 								.Count() == 1;
 							if (!allEqual) {
 								return false;
@@ -69,7 +72,7 @@ namespace VisualPinball.Unity.Editor
 						case AssetMaterialCombinationType.MustAllBeDifferent: {
 							var allDifferent = varsWithDefaults
 								.Where(v => rule.Targets.Any(t => t == v.Target))
-								.GroupBy(v => v.Name)
+								.GroupBy(v => v.OverrideName)
 								.Count() == varsWithDefaults.Length;
 							if (!allDifferent) {
 								return false;
@@ -95,17 +98,12 @@ namespace VisualPinball.Unity.Editor
 			).Select(v => $"{v.Override.Name} {v.Variation.Name}")
 		);
 
-		public string MaterialName => string.Join(", ",
-			Overrides.Where(v => !v.IsDecal).Select(v => $"{v.Override.Name} {v.Variation.Name}")
-		);
-
-
-		private VariationWithDefault[] VariationsWithDefaults =>
+		internal VariationWithDefault[] VariationsWithDefaults =>
 			Overrides
-				.Select(v => new VariationWithDefault(v.Variation.Target, v.Override.Name))
+				.Select(v => new VariationWithDefault(v.Variation.Target, v.Variation.Name, v.Override.Name))
 				.Concat(Asset.MaterialDefaults
 					.Where(md => Overrides.All(v => v.Variation.Target != md.Target))
-					.Select(md => new VariationWithDefault(md.Target, md.Name)))
+					.Select(md => new VariationWithDefault(md.Target, md.VariationName, md.OverrideName)))
 				.ToArray();
 
 		#endregion
@@ -183,7 +181,7 @@ namespace VisualPinball.Unity.Editor
 			if (o == null) {
 				return true;
 			}
-			return o.Override.Name == md.Name;
+			return o.Override.Name == md.OverrideName;
 		}
 
 		/// <summary>
@@ -324,15 +322,17 @@ namespace VisualPinball.Unity.Editor
 
 		public override string ToString() => $"{string.Join(" | ", Overrides.Select(v => $"{v.Override.Name} {v.Variation.Name} ({v.Override.Material.name})"))}";
 
-		private readonly struct VariationWithDefault
+		internal readonly struct VariationWithDefault
 		{
 			public readonly AssetMaterialTarget Target;
-			public readonly string Name;
+			public readonly string VariationName;
+			public readonly string OverrideName;
 
-			public VariationWithDefault(AssetMaterialTarget target, string name)
+			public VariationWithDefault(AssetMaterialTarget target, string variationName, string overrideName)
 			{
 				Target = target;
-				Name = name;
+				VariationName = variationName;
+				OverrideName = overrideName;
 			}
 		}
 
