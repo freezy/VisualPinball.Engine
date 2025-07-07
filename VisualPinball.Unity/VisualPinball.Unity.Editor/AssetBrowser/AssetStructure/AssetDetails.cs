@@ -202,7 +202,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 			bgo.visible = true;
-			bgo.Value = _asset.EnvironmentGameObjectName != null ? bgParent.transform.Find(_asset.EnvironmentGameObjectName)?.gameObject : null;
+			bgo.Value = _asset?.EnvironmentGameObjectName != null ? bgParent.transform.Find(_asset.EnvironmentGameObjectName)?.gameObject : null;
 			bgo.AddObjectsToDropdown<MeshRenderer>(bgParent, true);
 			bgo.RegisterValueChangedCallback(OnThumbEnvironmentChanged);
 		}
