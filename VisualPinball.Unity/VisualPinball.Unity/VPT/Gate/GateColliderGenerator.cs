@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 
 		private readonly float _zLow;
 		private readonly float _dist;
-		private const float ZHigh = 0;
+		private const float ZHeight = 50;
 
 		internal GateColliderGenerator(GateApi gateApi, IGateData data, IGateColliderData collData, float zLow, float dist, float4x4 matrix)
 		{
@@ -74,8 +74,8 @@ namespace VisualPinball.Unity
 			var v1 = new float2(-(halfLength + PhysicsConstants.PhysSkin), _dist);
 			var v2 = new float2(halfLength + PhysicsConstants.PhysSkin, _dist);
 
-			var lineSeg0 = new LineCollider(v1, v2, _zLow, ZHigh, _api.GetColliderInfo());
-			var lineSeg1 = new LineCollider(v2, v1, _zLow, ZHigh, _api.GetColliderInfo());
+			var lineSeg0 = new LineCollider(v1, v2, _zLow, _zLow + ZHeight, _api.GetColliderInfo());
+			var lineSeg1 = new LineCollider(v2, v1, _zLow, _zLow + ZHeight, _api.GetColliderInfo());
 
 			colliders.Add(new GateCollider(in lineSeg0, in lineSeg1, _api.GetColliderInfo()), _matrix);
 		}
@@ -96,7 +96,7 @@ namespace VisualPinball.Unity
 			var rgv1 = new float2(-(halfLength + PhysicsConstants.PhysSkin), 0f);
 
 			var info = _api.GetColliderInfo(ItemType.Invalid); // hack to not treat this line seg as gate
-			colliders.Add(new LineCollider(rgv0, rgv1, -2f * PhysicsConstants.PhysSkin, 0, info), _matrix); //!! = ball diameter
+			colliders.Add(new LineCollider(rgv0, rgv1, _zLow, _zLow + ZHeight, info), _matrix); //!! = ball diameter
 		}
 
 		/// <summary>
@@ -111,7 +111,7 @@ namespace VisualPinball.Unity
 				new float2(halfLength, 0),
 				1f,
 				_zLow,
-				0,
+				_zLow + ZHeight,
 				_api.GetColliderInfo(ItemType.Invalid) // hack to not treat this hit circle as gate
 			), _matrix);
 
@@ -119,7 +119,7 @@ namespace VisualPinball.Unity
 				new float2(-halfLength, 0),
 				1f,
 				_zLow,
-				0,
+				_zLow + ZHeight,
 				_api.GetColliderInfo(ItemType.Invalid) // hack to not treat this hit circle as gate
 			), _matrix);
 		}
