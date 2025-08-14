@@ -92,8 +92,8 @@ namespace VisualPinball.Unity
 
 			// oversize by the ball's radius to prevent the ball from clipping through
 			const float halfLength = 10f;
-			var rgv0 = new float2(halfLength + PhysicsConstants.PhysSkin, 0f);
-			var rgv1 = new float2(-(halfLength + PhysicsConstants.PhysSkin), 0f);
+			var rgv0 = new float2(halfLength + PhysicsConstants.PhysSkin, _dist);
+			var rgv1 = new float2(-(halfLength + PhysicsConstants.PhysSkin), _dist);
 
 			var info = _api.GetColliderInfo(ItemType.Invalid); // hack to not treat this line seg as gate
 			colliders.Add(new LineCollider(rgv0, rgv1, _zLow, _zLow + ZHeight, info), _matrix); //!! = ball diameter

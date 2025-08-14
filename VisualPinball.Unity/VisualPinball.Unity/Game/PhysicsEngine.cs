@@ -113,7 +113,7 @@ namespace VisualPinball.Unity
 		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, float4x4>> _nonTransformableColliderTransforms = new(() => new NativeParallelHashMap<int, float4x4>(0, Allocator.Persistent));
 		[NonSerialized] private readonly Dictionary<int, SkinnedMeshRenderer[]> _skinnedMeshRenderers = new();
 
-		[NonSerialized] private readonly Dictionary<int, IRotatableAnimationComponent> _rotatableComponent = new();
+		[NonSerialized] private readonly Dictionary<int, IRotationSource> _rotatableComponent = new();
 
 		#endregion
 
@@ -194,7 +194,7 @@ namespace VisualPinball.Unity
 			}
 
 			// animations
-			if (item is IRotatableAnimationComponent rotatableComponent) {
+			if (item is IRotationSource rotatableComponent) {
 				_rotatableComponent.TryAdd(itemId, rotatableComponent);
 			}
 		}

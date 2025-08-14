@@ -92,13 +92,13 @@ namespace VisualPinball.Unity
 		}
 
 		internal void ApplyGateMovement(ref NativeParallelHashMap<int, GateState> gateStates,
-			Dictionary<int, IRotatableAnimationComponent> rotatableComponent)
+			Dictionary<int, IRotationSource> rotatableComponent)
 		{
 			using var enumerator = gateStates.GetEnumerator();
 			while (enumerator.MoveNext()) {
 				ref var gateState = ref enumerator.Current.Value;
 				var component = rotatableComponent[enumerator.Current.Key];
-				component.OnRotationUpdated(gateState.Movement.Angle);
+				component.UpdateAngle(gateState.Movement.Angle);
 			}
 		}
 
@@ -115,13 +115,13 @@ namespace VisualPinball.Unity
 		}
 
 		internal void ApplySpinnerMovement(ref NativeParallelHashMap<int, SpinnerState> spinnerStates,
-			Dictionary<int, IRotatableAnimationComponent> rotatableComponent)
+			Dictionary<int, IRotationSource> rotatableComponent)
 		{
 			using var enumerator = spinnerStates.GetEnumerator();
 			while (enumerator.MoveNext()) {
 				ref var spinnerState = ref enumerator.Current.Value;
 				var component = rotatableComponent[enumerator.Current.Key];
-				component.OnRotationUpdated(spinnerState.Movement.Angle);
+				component.UpdateAngle(spinnerState.Movement.Angle);
 			}
 		}
 

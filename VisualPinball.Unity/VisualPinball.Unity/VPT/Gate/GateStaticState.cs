@@ -18,7 +18,14 @@ namespace VisualPinball.Unity
 {
 	internal struct GateStaticState
 	{
+		/// <summary>
+		/// Minimum angle in radian.
+		/// </summary>
 		public float AngleMin;
+
+		/// <summary>
+		/// Maximal angle in radian
+		/// </summary>
 		public float AngleMax;
 		public float Height;
 		public float GravityFactor;

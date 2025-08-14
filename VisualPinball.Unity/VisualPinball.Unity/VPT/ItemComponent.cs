@@ -16,9 +16,12 @@
 
 // ReSharper disable InconsistentNaming
 
+using System;
 using NLog;
+using Unity.Mathematics;
 using UnityEngine;
 using Logger = NLog.Logger;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity
 {
@@ -30,6 +33,8 @@ namespace VisualPinball.Unity
 		public abstract string ItemName { get; }
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+		const float kAngleEps = 0.0005f; // radians ~0.03°
 
 		protected void RegisterPhysics(PhysicsEngine physicsEngine)
 		{
@@ -81,6 +86,32 @@ namespace VisualPinball.Unity
 			}
 
 			return false;
+		}
+
+		/// <summary>
+		/// Checks whether two angles (in radian) are different enough so that the transform
+		/// of a rotating component should be updated.
+		/// </summary>
+		/// <param name="angleRad1"></param>
+		/// <param name="angleRad2"></param>
+		/// <returns></returns>
+		protected static bool HasAngleChanged(float angleRad1, float angleRad2)
+		{
+			return math.abs(DeltaAngleRad(angleRad1, angleRad2)) > kAngleEps;
+		}
+
+		/// <summary>
+		/// Smallest signed difference in radians. Used to check whether the transform
+		/// of a rotating component should be updated.
+		/// </summary>
+		/// <param name="a"></param>
+		/// <param name="b"></param>
+		/// <returns>Delta between the two angles</returns>
+		private static float DeltaAngleRad(float a, float b)
+		{
+			float d = math.fmod(a - b + math.PI, math.TAU);
+			if (d < 0f) d += math.TAU;
+			return d - math.PI;
 		}
 	}
 }

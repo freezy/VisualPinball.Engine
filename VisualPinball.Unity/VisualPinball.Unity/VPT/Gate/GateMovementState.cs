@@ -18,10 +18,26 @@ namespace VisualPinball.Unity
 {
 	internal struct GateMovementState
 	{
+
+		/// <summary>
+		/// Current angle of the gate bracket, in radians.
+		/// </summary>
 		public float Angle;
 		public float AngleSpeed;
+
+		/// <summary>
+		/// This is from VPX, there it's set when a gate is moved by script and not by the physics engine.
+		/// </summary>
 		public bool ForcedMove;
+
+		/// <summary>
+		/// If open, the gate is letting through the in both directions.
+		/// </summary>
 		public bool IsOpen;
+
+		/// <summary>
+		/// From which side the ball is hitting the gate.
+		/// </summary>
 		public bool HitDirection;
 
 		public bool IsLifting;

@@ -18,31 +18,49 @@
 
 using Unity.Mathematics;
 using UnityEngine;
-using VisualPinball.Engine.VPT.Spinner;
 
 namespace VisualPinball.Unity
 {
-	public class SpinnerLeverAnimationComponent : AnimationComponent<SpinnerData, SpinnerComponent>, IRotatableAnimationComponent
+	public class SpinnerLeverAnimationComponent : RotatingComponent
 	{
-		[Tooltip("Shifts the lever angle by the given amount of degrees.")]
-		[Range(-90f, 90f)]
+		// todo make packable
+
+		[Tooltip("Shifts the lever angle in relation to the input angle by the given amount of degrees.")]
+		[Range(0, 360f)]
 		public float Shift = 15f;
 
-		[Tooltip("Start angle of the movement")]
+		[Tooltip("Final offset of the lever angle in degrees.")]
 		[Range(-90f, 90f)]
+		public float Offset;
+
+		[Tooltip("Start angle of the movement")]
+		[Range(-180f, 180f)]
 		public float MinAngle = -1.56f;
 
 		[Tooltip("End angle of the movement")]
-		[Range(-90f, 90f)]
+		[Range(-180f, 180f)]
 		public float MaxAngle = 13.83f;
 
-		public void OnRotationUpdated(float angleRad)
+		private Quaternion _initialRotation;
+
+		private void Awake()
 		{
+			_initialRotation = transform.localRotation;
+			base.Awake();
+		}
+
+		protected override void OnAngleChanged(float angleRad)
+		{
+			// normalize input angle
 			angleRad = math.radians((math.degrees(angleRad) + Shift) % 360f);
+
 			var a = math.abs(angleRad - math.PI);
 			var pos = math.sin(math.smoothstep(0, math.PI, a));
 			var leverAngleDeg = math.lerp(MinAngle, MaxAngle, pos);
-			transform.localRotation = quaternion.RotateX(math.radians(leverAngleDeg));
+
+			var axis = RotationAngle.normalized;
+			var rotation = Quaternion.AngleAxis(math.degrees(math.radians(leverAngleDeg + Offset)), axis);
+			transform.localRotation = _initialRotation * rotation;
 		}
 	}
 }

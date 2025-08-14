@@ -15,20 +15,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using UnityEditor;
-using VisualPinball.Engine.VPT.Spinner;
+using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(SpinnerPlateAnimationComponent)), CanEditMultipleObjects]
-	public class SpinnerPlateAnimationInspector : AnimationInspector<SpinnerData, SpinnerComponent, SpinnerPlateAnimationComponent>
+	public class SpinnerPlateAnimationInspector : ItemInspector
 	{
+		protected override MonoBehaviour UndoTarget => target as MonoBehaviour;
+
 		public override void OnInspectorGUI()
 		{
-			if (HasErrors()) {
-				return;
-			}
-
-			EditorGUILayout.HelpBox("This component animates the spinner plate. It's parameterized by its parent.", MessageType.Info);
+			EditorGUILayout.HelpBox("TODO!!.", MessageType.Info);
 		}
 	}
 }
