@@ -60,7 +60,7 @@ namespace VisualPinball.Unity.Editor
 			OnPreInspectorGUI();
 
 			PropertyField(_zLowProperty, "Z-Low", updateColliders: true);
-			PropertyField(_distanceProperty, "Distance");
+			PropertyField(_distanceProperty, "Distance", updateColliders: true);
 			PropertyField(_angleMinProperty, "Close Angle");
 			PropertyField(_angleMaxProperty, "Open Angle");
 			PropertyField(_elasticityProperty);

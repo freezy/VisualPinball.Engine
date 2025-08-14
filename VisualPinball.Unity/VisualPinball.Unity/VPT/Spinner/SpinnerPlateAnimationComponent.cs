@@ -15,13 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Mathematics;
-using VisualPinball.Engine.VPT.Spinner;
 
 namespace VisualPinball.Unity
 {
-	public class SpinnerPlateAnimationComponent : AnimationComponent<SpinnerData, SpinnerComponent>, IRotatableAnimationComponent
+	public class SpinnerPlateAnimationComponent : RotatingComponent
 	{
-		public void OnRotationUpdated(float angleRad)
+		protected override void OnAngleChanged(float angleRad)
 		{
 			transform.localRotation = quaternion.RotateX(-angleRad);
 		}

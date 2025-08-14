@@ -14,14 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+
 namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// Components implementing this interface will get angle updates from the physics
 	/// engine, and can either relay them to their children or perform their own rotation.
 	/// </summary>
-	public interface IRotatableAnimationComponent
+	public interface IRotationSource
 	{
-		void OnRotationUpdated(float angleRad);
+		/// <summary>
+		/// Called by the physics engine to update the rotation of this component.
+		/// </summary>
+		/// <param name="angleRad"></param>
+		void UpdateAngle(float angleRad);
+
+		/// <summary>
+		/// Event to notify potential children about angle changes. Only triggers when
+		/// the angle actually changes, not on every update. The angle is in radians.
+		/// </summary>
+		public event Action<float> OnAngleChanged;
 	}
 }

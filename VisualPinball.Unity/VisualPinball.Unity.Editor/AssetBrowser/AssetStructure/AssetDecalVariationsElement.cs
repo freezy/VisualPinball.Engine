@@ -162,7 +162,7 @@ namespace VisualPinball.Unity.Editor
 				return variationOverride.Variation?.Name ?? "Unknown Variation";
 			}
 
-			if (asset.GroupBy.GroupBy == AssetVariationGroupBy.Object) {
+			if (asset.GroupBy.GroupBy == AssetVariationGroupBy.Object && asset.GroupBy.Object != null) {
 				var def = asset.MaterialDefaults.FirstOrDefault(md => md.Target.Object == asset.GroupBy.Object);
 				if (def != null) {
 					return $"{def.VariationName} {asset.GroupBy.Object.name}";

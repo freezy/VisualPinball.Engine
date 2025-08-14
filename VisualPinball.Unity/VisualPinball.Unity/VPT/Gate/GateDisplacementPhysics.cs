@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 
 					if (!movementState.ForcedMove) {
 						movementState.AngleSpeed = -movementState.AngleSpeed;
-						movementState.AngleSpeed *= state.Damping * 0.8f;           // just some extra damping to reduce the angleSpeed a bit faster
+							movementState.AngleSpeed *= state.Damping * 0.8f;           // just some extra damping to reduce the angleSpeed a bit faster
 					} else if (movementState.AngleSpeed > 0.0) {
 						movementState.AngleSpeed = 0.0f;
 					}
@@ -57,6 +57,8 @@ namespace VisualPinball.Unity
 					}
 				}
 			} else {
+
+				//Debug.Log($"Minimum angle: {math.degrees(state.AngleMin)}, maximum angle: {math.degrees(state.AngleMax)}, current angle: {math.degrees(movementState.Angle)}");
 				var direction = movementState.HitDirection ? -1f : 1f;
 				if (direction * movementState.Angle > state.AngleMax) {
 					movementState.Angle = direction * state.AngleMax;

@@ -14,27 +14,27 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using Unity.Mathematics;
 using UnityEngine;
-using VisualPinball.Engine.VPT.Gate;
 
 namespace VisualPinball.Unity
 {
 	[PackAs("GateWireAnimation")]
-	public class GateWireAnimationComponent : AnimationComponent<GateData, GateComponent>, IRotatableAnimationComponent, IPackable
+	public class GateWireAnimationComponent : RotatingComponent, IPackable
 	{
-		public float min = float.MaxValue;
-		public float max = float.MinValue;
+		private Quaternion _initialRotation;
 
-		public void OnRotationUpdated(float angleRad)
+		private void Awake()
 		{
-			min = math.min(angleRad, min);
-			max = math.max(angleRad, max);
+			_initialRotation = transform.localRotation;
+			base.Awake();
+		}
 
-			// Debug.Log($"Rotate: {angleRad} ({math.degrees(angleRad)}) [{math.degrees(min)} - {math.degrees(max)}]");
-
-			transform.localRotation = quaternion.RotateX(-angleRad);
+		protected override void OnAngleChanged(float angleRad)
+		{
+			var axis = RotationAngle.normalized;
+			var rotation = Quaternion.AngleAxis(math.degrees(angleRad), axis);
+			transform.localRotation = _initialRotation * rotation;
 		}
 
 		#region Packaging

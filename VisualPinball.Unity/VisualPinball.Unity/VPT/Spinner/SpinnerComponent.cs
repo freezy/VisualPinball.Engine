@@ -23,7 +23,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Common;
@@ -39,7 +38,7 @@ namespace VisualPinball.Unity
 	[PackAs("Spinner")]
 	[AddComponentMenu("Pinball/Game Item/Spinner")]
 	public class SpinnerComponent : MainRenderableComponent<SpinnerData>, ISwitchDeviceComponent,
-		IRotatableAnimationComponent, IPackable
+		IRotationSource, IPackable
 	{
 		#region Data
 
@@ -117,8 +116,6 @@ namespace VisualPinball.Unity
 
 		#region Runtime
 
-		[NonSerialized]
-		private IRotatableAnimationComponent[] _animatedComponents;
 
 		public SpinnerApi SpinnerApi { get; private set; }
 
@@ -130,11 +127,6 @@ namespace VisualPinball.Unity
 
 			Player.Register(SpinnerApi, this);
 			RegisterPhysics(physicsEngine);
-
-			_animatedComponents = GetComponentsInChildren<SpinnerPlateAnimationComponent>()
-				.Select(gwa => gwa as IRotatableAnimationComponent)
-				.Concat(GetComponentsInChildren<SpinnerLeverAnimationComponent>().Select(gwa => gwa as IRotatableAnimationComponent))
-				.ToArray();
 		}
 
 		#endregion
@@ -261,10 +253,14 @@ namespace VisualPinball.Unity
 
 		#region IRotatableAnimationComponent
 
-		public void OnRotationUpdated(float angleRad)
+		public event Action<float> OnAngleChanged;
+		private float _lastAngleRad;
+
+		public void UpdateAngle(float angleRad)
 		{
-			foreach (var animatedComponent in _animatedComponents) {
-				animatedComponent.OnRotationUpdated(angleRad);
+			if (HasAngleChanged(_lastAngleRad, angleRad)) {
+				_lastAngleRad = angleRad;
+				OnAngleChanged?.Invoke(angleRad);
 			}
 		}
 

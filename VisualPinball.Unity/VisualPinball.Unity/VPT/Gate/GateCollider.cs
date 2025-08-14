@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using Unity.Collections;
 using Unity.Mathematics;
 
@@ -138,7 +139,7 @@ namespace VisualPinball.Unity
 		{
 			#if UNITY_EDITOR
 			if (!IsTransformable(matrix)) {
-				throw new System.InvalidOperationException($"Matrix {matrix} cannot transform gate.");
+				throw new InvalidOperationException($"Matrix {matrix} cannot transform gate.");
 			}
 			#endif
 
