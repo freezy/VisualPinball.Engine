@@ -31,7 +31,7 @@ namespace VisualPinball.Unity
 
 		[Min(0)]
 		[Tooltip("Height at which the trigger closes.")]
-		public float HitHeight = 50f;
+		public float HitHeight = 58f;
 
 		[Min(0)]
 		[Tooltip("Radius of the trigger.")]
