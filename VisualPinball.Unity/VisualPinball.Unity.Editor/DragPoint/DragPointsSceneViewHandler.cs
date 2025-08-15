@@ -85,7 +85,7 @@ namespace VisualPinball.Unity.Editor
 				for (var i = 0; i < _handler.ControlPoints.Count; i++) {
 					var pos = _handler.ControlPoints[i].AbsolutePosition.ToVertex3D();
 					dragPointsVpx[i] = new DragPointData(_handler.ControlPoints[i].DragPoint) {
-						Center = new Vertex3D(pos.X, pos.Y, pos.Z + _handler.DragPointInspector.ZOffset),
+						Center = new Vertex3D(pos.X, pos.Y, pos.Z),
 						Id = _handler.ControlPoints[i].DragPoint.Id
 					};
 				}

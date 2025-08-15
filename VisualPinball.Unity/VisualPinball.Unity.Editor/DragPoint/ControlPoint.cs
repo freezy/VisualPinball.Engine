@@ -43,12 +43,10 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		public Vector3 AbsolutePosition => new(DragPoint.Center.X, DragPoint.Center.Y, DragPoint.CalcHeight);
 
-		public Vector3 EditorPositionVpx => AbsolutePosition + new Vector3(0, 0, _dragPointsInspector.ZOffset);
-
 		/// <summary>
 		/// Position in world space
 		/// </summary>
-		public Vector3 EditorPositionWorld => EditorPositionVpx.TranslateToWorld(_dragPointsInspector.Transform);
+		public Vector3 EditorPositionWorld => AbsolutePosition.TranslateToWorld(_dragPointsInspector.Transform);
 
 		public float HandleSize => HandleUtility.GetHandleSize(EditorPositionWorld) * ScreenRadius;
 
