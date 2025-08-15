@@ -388,7 +388,7 @@ namespace VisualPinball.Unity.Editor
 			if (SelectedControlPoints.Count > 0) {
 				_centerSelected = Vector3.zero;
 				foreach (var controlPoint in SelectedControlPoints) {
-					_centerSelected += controlPoint.EditorPositionVpx;
+					_centerSelected += controlPoint.AbsolutePosition;
 				}
 				_centerSelected /= SelectedControlPoints.Count;
 			}

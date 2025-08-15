@@ -60,27 +60,28 @@ namespace VisualPinball.Unity
 
 		private void GenerateCurvedHitObjects(ref ColliderReference colliders)
 		{
-			var height = _component.Position.z;
 			var vVertex = DragPoint.GetRgVertex<RenderVertex2D, CatmullCurve2DCatmullCurveFactory>(_component.DragPoints);
 
 			var count = vVertex.Length;
 			var rgv = new RenderVertex2D[count];
 			var rgv3D = new float3[count];
 
+			// top surface
 			for (var i = 0; i < count; i++) {
 				rgv[i] = vVertex[i];
-				rgv3D[i] = new float3(rgv[i].X, rgv[i].Y, height + (float)(PhysicsConstants.PhysSkin * 2.0));
+				rgv3D[i] = new float3(rgv[i].X, rgv[i].Y, _colliderComponent.HitHeight);
 			}
 			ColliderUtils.Generate3DPolyColliders(rgv3D, _api.GetColliderInfo(), ref colliders, _matrix);
 
+			// walls
 			for (var i = 0; i < count; i++) {
 				var pv2 = rgv[i < count - 1 ? i + 1 : 0];
 				var pv3 = rgv[i < count - 2 ? i + 2 : i + 2 - count];
 				colliders.Add(new LineCollider(
 					pv2.ToUnityFloat2(),
 					pv3.ToUnityFloat2(),
-					height,
-					height + math.max(_colliderComponent.HitHeight - 8.0f, 0f),
+					0,
+					_colliderComponent.HitHeight,
 					_api.GetColliderInfo()), _matrix);
 			}
 		}
