@@ -30,10 +30,10 @@ namespace VisualPinball.Unity
 			base.Awake();
 		}
 
-		protected override void OnAngleChanged(float angleRad)
+		protected override void AnimationValueChanged(AnimationValue value)
 		{
 			var axis = RotationAngle.normalized;
-			var rotation = Quaternion.AngleAxis(math.degrees(angleRad), axis);
+			var rotation = Quaternion.AngleAxis(math.degrees(value.Value), axis);
 			transform.localRotation = _initialRotation * rotation;
 		}
 
