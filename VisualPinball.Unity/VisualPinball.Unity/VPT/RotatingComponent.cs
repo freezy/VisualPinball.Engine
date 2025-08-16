@@ -23,37 +23,37 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public abstract class RotatingComponent : MonoBehaviour
 	{
-		public IRotationSource RotationSource { get => _rotationSource as IRotationSource; set => _rotationSource = value as MonoBehaviour; }
+		public IAnimationValueSource AnimationValueSource { get => _rotationSource as IAnimationValueSource; set => _rotationSource = value as MonoBehaviour; }
 
 		[SerializeField]
-		[TypeRestriction(typeof(IRotationSource), PickerLabel = "Rotation Source")]
+		[TypeRestriction(typeof(IAnimationValueSource), PickerLabel = "Rotation Source")]
 		[Tooltip("The component that emits rotation values to which this component rotates.")]
 		public MonoBehaviour _rotationSource;
 
 		public Vector3 RotationAngle = Vector3.forward;
 
-		protected abstract void OnAngleChanged(float angleRad);
+		protected abstract void AnimationValueChanged(AnimationValue value);
 
 		protected void Awake()
 		{
-			RotationSource ??= GetComponentInParent<IRotationSource>();
+			AnimationValueSource ??= GetComponentInParent<IAnimationValueSource>();
 
-			if (RotationSource == null) {
+			if (AnimationValueSource == null) {
 				Debug.LogError("RotatingComponent requires a RotationSource to function properly.");
 			}
 		}
 
 		private void OnEnable()
 		{
-			if (RotationSource != null) {
-				RotationSource.OnAngleChanged += OnAngleChanged;
+			if (AnimationValueSource != null) {
+				AnimationValueSource.OnAnimationValueChanged += AnimationValueChanged;
 			}
 		}
 
 		private void OnDisable()
 		{
-			if (RotationSource != null) {
-				RotationSource.OnAngleChanged -= OnAngleChanged;
+			if (AnimationValueSource != null) {
+				AnimationValueSource.OnAnimationValueChanged -= AnimationValueChanged;
 			}
 		}
 	}

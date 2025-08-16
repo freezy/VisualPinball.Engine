@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 	[PackAs("Spinner")]
 	[AddComponentMenu("Pinball/Game Item/Spinner")]
 	public class SpinnerComponent : MainRenderableComponent<SpinnerData>, ISwitchDeviceComponent,
-		IRotationSource, IPackable
+		IAnimationValueSource, IPackable
 	{
 		#region Data
 
@@ -251,16 +251,16 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		#region IRotatableAnimationComponent
+		#region IAnimationValueSource
 
-		public event Action<float> OnAngleChanged;
+		public event Action<AnimationValue> OnAnimationValueChanged;
 		private float _lastAngleRad;
 
-		public void UpdateAngle(float angleRad)
+		public void UpdateAnimationValue(float angleRad, AnimationValueType type)
 		{
 			if (HasAngleChanged(_lastAngleRad, angleRad)) {
 				_lastAngleRad = angleRad;
-				OnAngleChanged?.Invoke(angleRad);
+				OnAnimationValueChanged?.Invoke(new AnimationValue(angleRad, type));
 			}
 		}
 

@@ -49,10 +49,10 @@ namespace VisualPinball.Unity
 			base.Awake();
 		}
 
-		protected override void OnAngleChanged(float angleRad)
+		protected override void AnimationValueChanged(AnimationValue value)
 		{
 			// normalize input angle
-			angleRad = math.radians((math.degrees(angleRad) + Shift) % 360f);
+			var angleRad = math.radians((math.degrees(value.Value) + Shift) % 360f);
 
 			var a = math.abs(angleRad - math.PI);
 			var pos = math.sin(math.smoothstep(0, math.PI, a));

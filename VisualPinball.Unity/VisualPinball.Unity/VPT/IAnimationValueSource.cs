@@ -19,21 +19,39 @@ using System;
 namespace VisualPinball.Unity
 {
 	/// <summary>
-	/// Components implementing this interface will get angle updates from the physics
-	/// engine, and can either relay them to their children or perform their own rotation.
+	/// Components implementing this interface will get animation updates from the physics
+	/// engine, and can either relay them to their children or perform their own transformations.
 	/// </summary>
-	public interface IRotationSource
+	public interface IAnimationValueSource
 	{
 		/// <summary>
-		/// Called by the physics engine to update the rotation of this component.
+		/// Called by the physics engine to update the animatino value of this component.
 		/// </summary>
 		/// <param name="angleRad"></param>
-		void UpdateAngle(float angleRad);
+		/// <param name="type"></param>
+		void UpdateAnimationValue(float angleRad, AnimationValueType type);
 
 		/// <summary>
 		/// Event to notify potential children about angle changes. Only triggers when
 		/// the angle actually changes, not on every update. The angle is in radians.
 		/// </summary>
-		public event Action<float> OnAngleChanged;
+		public event Action<AnimationValue> OnAnimationValueChanged;
+	}
+
+	public readonly struct AnimationValue
+	{
+		public readonly float Value;
+		public readonly AnimationValueType Type;
+
+		public AnimationValue(float value, AnimationValueType type)
+		{
+			Value = value;
+			Type = type;
+		}
+	}
+
+	public enum AnimationValueType
+	{
+		Angle, YPosition
 	}
 }

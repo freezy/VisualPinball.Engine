@@ -20,9 +20,9 @@ namespace VisualPinball.Unity
 {
 	public class SpinnerPlateAnimationComponent : RotatingComponent
 	{
-		protected override void OnAngleChanged(float angleRad)
+		protected override void AnimationValueChanged(AnimationValue value)
 		{
-			transform.localRotation = quaternion.RotateX(-angleRad);
+			transform.localRotation = quaternion.RotateX(-value.Value);
 		}
 	}
 }
