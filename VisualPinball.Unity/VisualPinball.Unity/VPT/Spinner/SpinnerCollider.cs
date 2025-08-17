@@ -98,7 +98,7 @@ namespace VisualPinball.Unity
 			// h -coll.m_radius will be moving a at linear rate of
 			// 'speed'. We can calculate the angular speed from that.
 
-			movement.AngleSpeed = math.abs(dot); // use this until a better value comes along
+			movement.AngleSpeed = math.abs(dot) * movement.InverseMass; // use this until a better value comes along
 
 			if (math.abs(h) > 1.0f) {
 				// avoid divide by zero

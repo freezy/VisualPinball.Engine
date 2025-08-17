@@ -129,6 +129,11 @@ namespace VisualPinball.Unity
 			RegisterPhysics(physicsEngine);
 		}
 
+		private void Start()
+		{
+			OnAnimationValueChanged?.Invoke(new AnimationValue(0, AnimationValueType.Angle));
+		}
+
 		#endregion
 
 		#region Wiring
@@ -239,7 +244,8 @@ namespace VisualPinball.Unity
 			var movementData = animComponent
 				? new SpinnerMovementState {
 					Angle = math.radians(math.clamp(0.0f, AngleMin, AngleMax)),
-					AngleSpeed = 0f
+					AngleSpeed = 0f,
+					InverseMass = 1 / collComponent.Mass
 				} : default;
 
 			return new SpinnerState(
