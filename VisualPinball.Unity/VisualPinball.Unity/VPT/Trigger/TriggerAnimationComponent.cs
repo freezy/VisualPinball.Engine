@@ -23,13 +23,15 @@ namespace VisualPinball.Unity
 {
 	[PackAs("TriggerAnimation")]
 	[AddComponentMenu("Pinball/Animation/Trigger Animation")]
-	public class TriggerAnimationComponent : AnimationComponentLegacy<TriggerData, TriggerComponent>, IPackable
+	public class TriggerAnimationComponent : AnimationComponent<float>, IPackable
 	{
 		#region Data
 
 		[Min(0)]
 		[Tooltip("How quick the trigger moves down when the ball rolls over it.")]
 		public float AnimSpeed = 1f;
+
+		private Vector3 _initialPosition;
 
 		#endregion
 
@@ -44,5 +46,15 @@ namespace VisualPinball.Unity
 		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
 
 		#endregion
+
+		private void Start()
+		{
+			_initialPosition = transform.localPosition;
+		}
+
+		protected override void OnAnimationValueChanged(float value)
+		{
+			transform.localPosition = _initialPosition + transform.up * Physics.ScaleToWorld(value);
+		}
 	}
 }

@@ -120,18 +120,18 @@ namespace VisualPinball.Unity
 		}
 
 		internal void ApplySpinnerMovement(ref NativeParallelHashMap<int, SpinnerState> spinnerStates,
-			Dictionary<int, IAnimationValueEmitter<float>> rotatableComponent)
+			Dictionary<int, IAnimationValueEmitter<float>> floatAnimatedComponent)
 		{
 			using var enumerator = spinnerStates.GetEnumerator();
 			while (enumerator.MoveNext()) {
 				ref var spinnerState = ref enumerator.Current.Value;
-				var component = rotatableComponent[enumerator.Current.Key];
+				var component = floatAnimatedComponent[enumerator.Current.Key];
 				component.UpdateAnimationValue(spinnerState.Movement.Angle);
 			}
 		}
 
 		internal void ApplyTriggerMovement(ref NativeParallelHashMap<int, TriggerState> triggerStates,
-			Dictionary<int, Transform> transforms)
+			Dictionary<int, IAnimationValueEmitter<float>> floatAnimatedComponent)
 		{
 			using var enumerator = triggerStates.GetEnumerator();
 			while (enumerator.MoveNext()) {
@@ -139,15 +139,8 @@ namespace VisualPinball.Unity
 				if (triggerState.AnimatedItemId == 0) {
 					continue;
 				}
-				var triggerTransform = transforms[triggerState.AnimatedItemId];
-
-				var localYDirection = triggerTransform.up;
-
-				// Compute the new position by moving along the local Y-axis
-				var newPosition = (Vector3)triggerState.Static.InitialPosition + localYDirection * Physics.ScaleToWorld(triggerState.Movement.HeightOffset);
-
-				// Apply the new position
-				triggerTransform.localPosition = newPosition;
+				var component = floatAnimatedComponent[enumerator.Current.Key];
+				component.UpdateAnimationValue(triggerState.Movement.HeightOffset);
 			}
 		}
 	}

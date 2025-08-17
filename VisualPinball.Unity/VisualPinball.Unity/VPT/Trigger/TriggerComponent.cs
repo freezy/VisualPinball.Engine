@@ -39,7 +39,7 @@ namespace VisualPinball.Unity
 	[PackAs("Trigger")]
 	[AddComponentMenu("Pinball/Game Item/Trigger")]
 	public class TriggerComponent : MainRenderableComponent<TriggerData>,
-		ITriggerComponent, IPackable
+		ITriggerComponent, IAnimationValueEmitter<float>, IPackable
 	{
 		#region Data
 
@@ -285,6 +285,21 @@ namespace VisualPinball.Unity
 				new TriggerAnimationState()
 			);
 
+		}
+
+		#endregion
+
+		#region IAnimationValueEmitter
+
+		public event Action<float> OnAnimationValueChanged;
+		private float _lastPosition;
+
+		public void UpdateAnimationValue(float value)
+		{
+			if (math.abs(_lastPosition - value) > 0.0001f) {
+				_lastPosition = value;
+				OnAnimationValueChanged?.Invoke(value);
+			}
 		}
 
 		#endregion
