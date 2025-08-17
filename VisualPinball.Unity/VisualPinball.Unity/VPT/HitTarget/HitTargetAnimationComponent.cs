@@ -16,6 +16,8 @@
 
 // ReSharper disable InconsistentNaming
 
+using System;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.HitTarget;
 
@@ -24,7 +26,7 @@ namespace VisualPinball.Unity
 	[PackAs("HitTargetAnimation")]
 	[AddComponentMenu("Pinball/Animation/Hit Target Animation")]
 	[RequireComponent(typeof(HitTargetColliderComponent))]
-	public class HitTargetAnimationComponent : AnimationComponentLegacy<HitTargetData, HitTargetComponent>, IPackable
+	public class HitTargetAnimationComponent : AnimationComponent<float>, IPackable
 	{
 		#region Data
 
@@ -47,6 +49,22 @@ namespace VisualPinball.Unity
 		public void Unpack(byte[] bytes) => HitTargetAnimationPackable.Unpack(bytes, this);
 
 		public void UnpackReferences(byte[] data, Transform root, PackagedRefs lookup, PackagedFiles files) { }
+
+		#endregion
+
+		#region Runtime
+
+		private float _initialRotationDeg;
+
+		private void Start()
+		{
+			_initialRotationDeg = transform.localRotation.eulerAngles.x;
+		}
+
+		protected override void OnAnimationValueChanged(float value)
+		{
+			transform.SetLocalXRotation(math.radians(value + _initialRotationDeg));
+		}
 
 		#endregion
 	}

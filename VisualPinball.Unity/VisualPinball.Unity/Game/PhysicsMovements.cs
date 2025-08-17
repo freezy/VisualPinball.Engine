@@ -82,13 +82,18 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal void ApplyHitTargetMovement(ref NativeParallelHashMap<int, HitTargetState> hitTargetStates, Dictionary<int, Transform> transforms)
+		internal void ApplyHitTargetMovement(ref NativeParallelHashMap<int, HitTargetState> hitTargetStates,
+			Dictionary<int, IAnimationValueEmitter<float>> floatAnimatedComponent)
 		{
 			using var enumerator = hitTargetStates.GetEnumerator();
 			while (enumerator.MoveNext()) {
 				ref var hitTargetState = ref enumerator.Current.Value;
-				var transform = transforms[enumerator.Current.Key];
-				transform.SetLocalXRotation(math.radians(hitTargetState.Animation.XRotation + hitTargetState.Static.InitialXRotation));
+				if (hitTargetState.AnimatedItemId == 0) {
+					continue;
+				}
+
+				var emitter = floatAnimatedComponent[enumerator.Current.Key];
+				emitter.UpdateAnimationValue(hitTargetState.Animation.XRotation);
 			}
 		}
 
