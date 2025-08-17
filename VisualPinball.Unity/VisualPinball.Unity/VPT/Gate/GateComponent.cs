@@ -287,7 +287,7 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		#region IAnimationValueSource
+		#region IAnimationValueEmitter
 
 		public event Action<float> OnAnimationValueChanged;
 		private float _lastAngleRad;

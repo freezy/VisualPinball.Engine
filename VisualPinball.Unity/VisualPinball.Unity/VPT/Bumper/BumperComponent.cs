@@ -37,7 +37,8 @@ namespace VisualPinball.Unity
 	[SelectionBase]
 	[PackAs("Bumper")]
 	[AddComponentMenu("Pinball/Game Item/Bumper")]
-	public class BumperComponent : MainRenderableComponent<BumperData>, ISwitchDeviceComponent, ICoilDeviceComponent, IPackable
+	public class BumperComponent : MainRenderableComponent<BumperData>, ISwitchDeviceComponent, ICoilDeviceComponent, IPackable,
+		IAnimationValueEmitter<float>, IAnimationValueEmitter<float2>
 	{
 		#region Data
 
@@ -361,6 +362,43 @@ namespace VisualPinball.Unity
 				skirtAnimation,
 				isSwitchWiredToCoil
 			);
+		}
+
+		#endregion
+
+		#region IAnimationValueEmitter
+
+		private float _lastFloatValue;
+		private float2 _lastFloat2Value;
+
+		private event Action<float> OnFloatAnimationValueChanged;
+		private event Action<float2> OnFloat2AnimationValueChanged;
+
+		public void UpdateAnimationValue(float value)
+		{
+			if (HasAngleChanged(_lastFloatValue, value)) {
+				_lastFloatValue = value;
+				OnFloatAnimationValueChanged?.Invoke(value);
+			}
+		}
+
+		public void UpdateAnimationValue(float2 value)
+		{
+			if (!value.Equals(_lastFloat2Value)) {
+				_lastFloat2Value = value;
+				OnFloat2AnimationValueChanged?.Invoke(value);
+			}
+		}
+
+		event Action<float2> IAnimationValueEmitter<float2>.OnAnimationValueChanged {
+			add => OnFloat2AnimationValueChanged += value;
+			remove => OnFloat2AnimationValueChanged += value;
+		}
+
+		event Action<float> IAnimationValueEmitter<float>.OnAnimationValueChanged
+		{
+			add => OnFloatAnimationValueChanged += value;
+			remove => OnFloatAnimationValueChanged -= value;
 		}
 
 		#endregion

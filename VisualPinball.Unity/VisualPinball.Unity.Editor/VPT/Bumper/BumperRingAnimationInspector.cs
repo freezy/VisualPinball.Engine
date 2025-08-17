@@ -17,15 +17,18 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
+using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(BumperRingAnimationComponent)), CanEditMultipleObjects]
-	public class BumperRingAnimationInspector : AnimationInspector<BumperData, BumperComponent, BumperRingAnimationComponent>
+	public class BumperRingAnimationInspector : ItemInspector
 	{
 		private SerializedProperty _ringSpeedProperty;
 		private SerializedProperty _ringDropOffsetProperty;
+
+		protected override MonoBehaviour UndoTarget => target as MonoBehaviour;
 
 		protected override void OnEnable()
 		{
@@ -36,10 +39,6 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnInspectorGUI()
 		{
-			if (HasErrors()) {
-				return;
-			}
-
 			BeginEditing();
 
 			PropertyField(_ringSpeedProperty, "Ring Speed");
