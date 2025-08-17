@@ -472,8 +472,8 @@ namespace VisualPinball.Unity
 		{
 			if (HasAngleChanged(_lastRotationAngle, value)) {
 				_lastRotationAngle = value;
-				OnAnimationValueChanged?.Invoke(value);
 				transform.SetLocalYRotation(value);
+				OnAnimationValueChanged?.Invoke(value);
 			}
 		}
 

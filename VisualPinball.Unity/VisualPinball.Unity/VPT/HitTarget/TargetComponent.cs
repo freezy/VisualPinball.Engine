@@ -38,6 +38,7 @@ using UnityEditor;
 namespace VisualPinball.Unity
 {
 	public abstract class TargetComponent : MainRenderableComponent<HitTargetData>,
+		IAnimationValueEmitter<bool>, IAnimationValueEmitter<float>,
 		ISwitchDeviceComponent, IMeshGenerator
 	{
 		#region Data
@@ -59,14 +60,6 @@ namespace VisualPinball.Unity
 
 		public int _targetType = Engine.VPT.TargetType.DropTargetBeveled;
 		public string _meshName;
-
-		#endregion
-
-		#region IHitTargetData
-
-		public virtual bool IsLegacy => false;
-
-		public int TargetType => _targetType;
 
 		#endregion
 
@@ -159,8 +152,8 @@ namespace VisualPinball.Unity
 			}
 
 			// dt animation
-			var dtAnimComp = GetComponent<DropTargetAnimationComponent>();
-			var srcDtAnimComp = go.GetComponent<DropTargetAnimationComponent>();
+			var dtAnimComp = GetComponent<DropTargetAnimationComponentLegacy>();
+			var srcDtAnimComp = go.GetComponent<DropTargetAnimationComponentLegacy>();
 			if (dtAnimComp && srcDtAnimComp) {
 				dtAnimComp.IsDropped = srcDtAnimComp.IsDropped;
 				dtAnimComp.Speed = srcDtAnimComp.Speed;
@@ -208,6 +201,38 @@ namespace VisualPinball.Unity
 				dtCollComp.Friction = srcHtCollComp.Friction;
 				dtCollComp.Scatter = srcHtCollComp.Scatter;
 				dtCollComp.PhysicsMaterial = srcHtCollComp.PhysicsMaterial;
+			}
+		}
+
+		#endregion
+
+		#region IAnimationValueEmitter
+
+		private float _lastFloatValue;
+
+		event Action<bool> IAnimationValueEmitter<bool>.OnAnimationValueChanged {
+			add => _onBoolAnimationValueChanged += value;
+			remove => _onBoolAnimationValueChanged -= value;
+		}
+
+		event Action<float> IAnimationValueEmitter<float>.OnAnimationValueChanged {
+			add => _onFloatAnimationValueChanged += value;
+			remove => _onFloatAnimationValueChanged -= value;
+		}
+
+		private event Action<bool> _onBoolAnimationValueChanged;
+		private event Action<float> _onFloatAnimationValueChanged;
+
+		public void UpdateAnimationValue(bool value)
+		{
+			_onBoolAnimationValueChanged?.Invoke(value);
+		}
+
+		public void UpdateAnimationValue(float value)
+		{
+			if (_lastFloatValue != value) {
+				_lastFloatValue = value;
+				_onFloatAnimationValueChanged?.Invoke(value);
 			}
 		}
 

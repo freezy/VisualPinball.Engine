@@ -113,6 +113,7 @@ namespace VisualPinball.Unity
 		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, float4x4>> _nonTransformableColliderTransforms = new(() => new NativeParallelHashMap<int, float4x4>(0, Allocator.Persistent));
 		[NonSerialized] private readonly Dictionary<int, SkinnedMeshRenderer[]> _skinnedMeshRenderers = new();
 
+		[NonSerialized] private readonly Dictionary<int, IAnimationValueEmitter<bool>> _boolAnimatedComponents = new();
 		[NonSerialized] private readonly Dictionary<int, IAnimationValueEmitter<float>> _floatAnimatedComponents = new();
 		[NonSerialized] private readonly Dictionary<int, IAnimationValueEmitter<float2>> _float2AnimatedComponents = new();
 
@@ -195,6 +196,9 @@ namespace VisualPinball.Unity
 			}
 
 			// animations
+			if (item is IAnimationValueEmitter<bool> boolAnimatedComponent) {
+				_boolAnimatedComponents.TryAdd(itemId, boolAnimatedComponent);
+			}
 			if (item is IAnimationValueEmitter<float> floatAnimatedComponent) {
 				_floatAnimatedComponents.TryAdd(itemId, floatAnimatedComponent);
 			}
@@ -404,7 +408,7 @@ namespace VisualPinball.Unity
 			_physicsMovements.ApplyBallMovement(ref state, _transforms);
 			_physicsMovements.ApplyFlipperMovement(ref _flipperStates.Ref, _floatAnimatedComponents);
 			_physicsMovements.ApplyBumperMovement(ref _bumperStates.Ref, _floatAnimatedComponents, _float2AnimatedComponents);
-			_physicsMovements.ApplyDropTargetMovement(ref _dropTargetStates.Ref, _transforms);
+			_physicsMovements.ApplyDropTargetMovement(ref _dropTargetStates.Ref, _floatAnimatedComponents);
 			_physicsMovements.ApplyHitTargetMovement(ref _hitTargetStates.Ref, _transforms);
 			_physicsMovements.ApplyGateMovement(ref _gateStates.Ref, _floatAnimatedComponents);
 			_physicsMovements.ApplyPlungerMovement(ref _plungerStates.Ref, _skinnedMeshRenderers);

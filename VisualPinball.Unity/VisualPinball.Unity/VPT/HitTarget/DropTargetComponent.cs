@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 	{
 		protected override float ZOffset {
 			get {
-				var animationComponent = GetComponentInChildren<DropTargetAnimationComponent>();
+				var animationComponent = GetComponentInChildren<DropTargetAnimationComponentLegacy>();
 				return animationComponent && animationComponent.IsDropped ? -animationComponent.DropDistance : 0f;
 			}
 		}
@@ -72,7 +72,7 @@ namespace VisualPinball.Unity
 			}
 
 			// animation data
-			var animationComponent = GetComponent<DropTargetAnimationComponent>();
+			var animationComponent = GetComponent<DropTargetAnimationComponentLegacy>();
 			if (animationComponent) {
 				animationComponent.enabled = data.IsDropTarget;
 				animationComponent.Speed = data.DropSpeed;
@@ -122,7 +122,7 @@ namespace VisualPinball.Unity
 			}
 
 			// animation data
-			var dropTargetAnimationComponent = GetComponent<DropTargetAnimationComponent>();
+			var dropTargetAnimationComponent = GetComponent<DropTargetAnimationComponentLegacy>();
 			if (dropTargetAnimationComponent) {
 				data.DropSpeed = dropTargetAnimationComponent.Speed;
 				data.RaiseDelay = dropTargetAnimationComponent.RaiseDelay;
@@ -157,14 +157,13 @@ namespace VisualPinball.Unity
 		internal DropTargetState CreateState()
 		{
 			var colliderComponent = GetComponent<DropTargetColliderComponent>();
-			var animationComponent = GetComponentInChildren<DropTargetAnimationComponent>();
+			var animationComponent = GetComponentInChildren<DropTargetAnimationComponentLegacy>();
 
 			var staticData = colliderComponent && animationComponent
 				? new DropTargetStaticState {
 					Speed = animationComponent.Speed,
 					RaiseDelay = animationComponent.RaiseDelay,
 					UseHitEvent = colliderComponent.UseHitEvent,
-					InitialPosition = animationComponent.transform.localPosition
 				} : default;
 
 			var animationData = colliderComponent && animationComponent
