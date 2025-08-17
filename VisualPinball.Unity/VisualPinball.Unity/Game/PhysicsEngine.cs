@@ -411,7 +411,7 @@ namespace VisualPinball.Unity
 			_physicsMovements.ApplyGateMovement(ref _gateStates.Ref, _floatAnimatedComponents);
 			_physicsMovements.ApplyPlungerMovement(ref _plungerStates.Ref, _floatAnimatedComponents);
 			_physicsMovements.ApplySpinnerMovement(ref _spinnerStates.Ref, _floatAnimatedComponents);
-			_physicsMovements.ApplyTriggerMovement(ref _triggerStates.Ref, _transforms);
+			_physicsMovements.ApplyTriggerMovement(ref _triggerStates.Ref, _floatAnimatedComponents);
 
 			#endregion
 		}
