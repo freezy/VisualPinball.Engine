@@ -35,14 +35,14 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal void ApplyFlipperMovement(ref NativeParallelHashMap<int, FlipperState> flipperStates, Dictionary<int, Transform> transforms)
+		internal void ApplyFlipperMovement(ref NativeParallelHashMap<int, FlipperState> flipperStates,
+			Dictionary<int, IAnimationValueEmitter<float>> floatAnimatedComponent)
 		{
 			using var enumerator = flipperStates.GetEnumerator();
 			while (enumerator.MoveNext()) {
 				ref var flipperState = ref enumerator.Current.Value;
-				var transform = transforms[enumerator.Current.Key];
-
-				transform.SetLocalYRotation(flipperState.Movement.Angle);
+				var emitter = floatAnimatedComponent[enumerator.Current.Key];
+				emitter.UpdateAnimationValue(flipperState.Movement.Angle);
 			}
 		}
 
