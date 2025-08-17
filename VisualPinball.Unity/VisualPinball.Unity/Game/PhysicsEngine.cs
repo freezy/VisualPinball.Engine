@@ -402,7 +402,7 @@ namespace VisualPinball.Unity
 			#region Movements
 
 			_physicsMovements.ApplyBallMovement(ref state, _transforms);
-			_physicsMovements.ApplyFlipperMovement(ref _flipperStates.Ref, _transforms);
+			_physicsMovements.ApplyFlipperMovement(ref _flipperStates.Ref, _floatAnimatedComponents);
 			_physicsMovements.ApplyBumperMovement(ref _bumperStates.Ref, _floatAnimatedComponents, _float2AnimatedComponents);
 			_physicsMovements.ApplyDropTargetMovement(ref _dropTargetStates.Ref, _transforms);
 			_physicsMovements.ApplyHitTargetMovement(ref _hitTargetStates.Ref, _transforms);
