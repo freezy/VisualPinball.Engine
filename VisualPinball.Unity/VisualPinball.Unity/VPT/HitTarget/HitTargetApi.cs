@@ -85,6 +85,7 @@ namespace VisualPinball.Unity
 		{
 			Hit?.Invoke(this, new HitEventArgs(ballId));
 			Switch?.Invoke(this, new SwitchEventArgs(true, ballId));
+			MainComponent.UpdateAnimationValue(true);
 			OnSwitch(true);
 		}
 

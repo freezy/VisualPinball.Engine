@@ -149,8 +149,7 @@ namespace VisualPinball.Unity
 			var staticData = hitTargetColliderComponent && hitTargetAnimationComponent
 				? new HitTargetStaticData {
 					Speed = hitTargetAnimationComponent.Speed,
-					MaxAngle = hitTargetAnimationComponent.MaxAngle,
-					InitialXRotation = transform.localRotation.eulerAngles.x,
+					MaxAngle = hitTargetAnimationComponent.MaxAngle
 				} : default;
 
 			var animationData = hitTargetColliderComponent && hitTargetAnimationComponent

@@ -17,15 +17,17 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
-using VisualPinball.Engine.VPT.HitTarget;
+using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(HitTargetAnimationComponent)), CanEditMultipleObjects]
-	public class HitTargetAnimationInspector : AnimationInspector<HitTargetData, HitTargetComponent, HitTargetAnimationComponent>
+	public class HitTargetAnimationInspector : ItemInspector
 	{
 		private SerializedProperty _speedProperty;
 		private SerializedProperty _maxAngleProperty;
+
+		protected override MonoBehaviour UndoTarget => target as MonoBehaviour;
 
 		protected override void OnEnable()
 		{
@@ -37,10 +39,6 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnInspectorGUI()
 		{
-			if (HasErrors()) {
-				return;
-			}
-
 			BeginEditing();
 
 			OnPreInspectorGUI();

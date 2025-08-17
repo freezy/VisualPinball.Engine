@@ -409,7 +409,7 @@ namespace VisualPinball.Unity
 			_physicsMovements.ApplyFlipperMovement(ref _flipperStates.Ref, _floatAnimatedComponents);
 			_physicsMovements.ApplyBumperMovement(ref _bumperStates.Ref, _floatAnimatedComponents, _float2AnimatedComponents);
 			_physicsMovements.ApplyDropTargetMovement(ref _dropTargetStates.Ref, _floatAnimatedComponents);
-			_physicsMovements.ApplyHitTargetMovement(ref _hitTargetStates.Ref, _transforms);
+			_physicsMovements.ApplyHitTargetMovement(ref _hitTargetStates.Ref, _floatAnimatedComponents);
 			_physicsMovements.ApplyGateMovement(ref _gateStates.Ref, _floatAnimatedComponents);
 			_physicsMovements.ApplyPlungerMovement(ref _plungerStates.Ref, _skinnedMeshRenderers);
 			_physicsMovements.ApplySpinnerMovement(ref _spinnerStates.Ref, _floatAnimatedComponents);
