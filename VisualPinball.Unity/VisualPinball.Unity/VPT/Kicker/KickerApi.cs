@@ -258,7 +258,8 @@ namespace VisualPinball.Unity
 
 		void IApiHittable.OnHit(int ballId, bool isUnHit)
 		{
-			var ballTransform = PhysicsEngine.GetTransform(ballId);
+			var ballComponent = PhysicsEngine.GetBall(ballId);
+			var ballTransform = ballComponent.transform;
 			if (isUnHit) {
 				UnHit?.Invoke(this, new HitEventArgs(ballId));
 				Switch?.Invoke(this, new SwitchEventArgs(false, ballId));
