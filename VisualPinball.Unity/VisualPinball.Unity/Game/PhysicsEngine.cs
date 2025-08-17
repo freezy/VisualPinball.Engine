@@ -113,7 +113,8 @@ namespace VisualPinball.Unity
 		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, float4x4>> _nonTransformableColliderTransforms = new(() => new NativeParallelHashMap<int, float4x4>(0, Allocator.Persistent));
 		[NonSerialized] private readonly Dictionary<int, SkinnedMeshRenderer[]> _skinnedMeshRenderers = new();
 
-		[NonSerialized] private readonly Dictionary<int, IAnimationValueEmitter<float>> _rotatableComponent = new();
+		[NonSerialized] private readonly Dictionary<int, IAnimationValueEmitter<float>> _floatAnimatedComponents = new();
+		[NonSerialized] private readonly Dictionary<int, IAnimationValueEmitter<float2>> _float2AnimatedComponents = new();
 
 		#endregion
 
@@ -194,8 +195,11 @@ namespace VisualPinball.Unity
 			}
 
 			// animations
-			if (item is IAnimationValueEmitter<float> rotatableComponent) {
-				_rotatableComponent.TryAdd(itemId, rotatableComponent);
+			if (item is IAnimationValueEmitter<float> floatAnimatedComponent) {
+				_floatAnimatedComponents.TryAdd(itemId, floatAnimatedComponent);
+			}
+			if (item is IAnimationValueEmitter<float2> float2AnimatedComponent) {
+				_float2AnimatedComponents.TryAdd(itemId, float2AnimatedComponent);
 			}
 		}
 
@@ -399,12 +403,12 @@ namespace VisualPinball.Unity
 
 			_physicsMovements.ApplyBallMovement(ref state, _transforms);
 			_physicsMovements.ApplyFlipperMovement(ref _flipperStates.Ref, _transforms);
-			_physicsMovements.ApplyBumperMovement(ref _bumperStates.Ref, _transforms);
+			_physicsMovements.ApplyBumperMovement(ref _bumperStates.Ref, _floatAnimatedComponents, _float2AnimatedComponents);
 			_physicsMovements.ApplyDropTargetMovement(ref _dropTargetStates.Ref, _transforms);
 			_physicsMovements.ApplyHitTargetMovement(ref _hitTargetStates.Ref, _transforms);
-			_physicsMovements.ApplyGateMovement(ref _gateStates.Ref, _rotatableComponent);
+			_physicsMovements.ApplyGateMovement(ref _gateStates.Ref, _floatAnimatedComponents);
 			_physicsMovements.ApplyPlungerMovement(ref _plungerStates.Ref, _skinnedMeshRenderers);
-			_physicsMovements.ApplySpinnerMovement(ref _spinnerStates.Ref, _rotatableComponent);
+			_physicsMovements.ApplySpinnerMovement(ref _spinnerStates.Ref, _floatAnimatedComponents);
 			_physicsMovements.ApplyTriggerMovement(ref _triggerStates.Ref, _transforms);
 
 			#endregion

@@ -17,13 +17,12 @@
 // ReSharper disable InconsistentNaming
 
 using UnityEngine;
-using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity
 {
 	[PackAs("BumperRingAnimation")]
 	[AddComponentMenu("Pinball/Animation/Bumper Ring Animation")]
-	public class BumperRingAnimationComponent : AnimationComponentLegacy<BumperData, BumperComponent>, IPackable
+	public class BumperRingAnimationComponent : AnimationComponent<float>, IPackable
 	{
 		#region Data
 
@@ -32,6 +31,29 @@ namespace VisualPinball.Unity
 
 		[Tooltip("How low the ring drops. 0 = bottom")]
 		public float RingDropOffset;
+
+		#endregion
+
+		#region Runtime
+
+		private float _initialOffset;
+
+		private void Start()
+		{
+			_initialOffset = transform.position.y;
+		}
+
+		protected override void OnAnimationValueChanged(float value)
+		{
+			var worldPos = transform.position;
+
+			var limit = RingDropOffset + 0.5f; // dropped height scale here because this shouldn't be relevant in vpe.
+			var localLimit = _initialOffset + limit;
+			var localOffset = localLimit / limit * value;
+
+			worldPos.y = _initialOffset + Physics.ScaleToWorld(localOffset);
+			transform.position = worldPos;
+		}
 
 		#endregion
 

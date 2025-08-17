@@ -23,8 +23,6 @@ namespace VisualPinball.Unity
 {
 	internal class PhysicsMovements
 	{
-		private readonly BumperTransform _bumperTransform = new();
-
 		internal void ApplyBallMovement(ref PhysicsState state, Dictionary<int, Transform> transforms)
 		{
 			using var enumerator = state.Balls.GetEnumerator();
@@ -48,16 +46,23 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal void ApplyBumperMovement(ref NativeParallelHashMap<int, BumperState> bumperStates, Dictionary<int, Transform> transforms)
-		{
+		internal void ApplyBumperMovement(
+			ref NativeParallelHashMap<int, BumperState> bumperStates,
+			Dictionary<int, IAnimationValueEmitter<float>> floatAnimatedComponent,
+			Dictionary<int, IAnimationValueEmitter<float2>> float2AnimatedComponent
+		) {
 			using var enumerator = bumperStates.GetEnumerator();
 			while (enumerator.MoveNext()) {
 				ref var bumperState = ref enumerator.Current.Value;
-				if (bumperState.SkirtItemId != 0) {
-					_bumperTransform.UpdateSkirt(in bumperState.SkirtAnimation, transforms[bumperState.SkirtItemId]);
-				}
+
 				if (bumperState.RingItemId != 0) {
-					_bumperTransform.UpdateRing(bumperState.RingItemId, in bumperState.RingAnimation, transforms[bumperState.RingItemId]);
+					var ringEmitter = floatAnimatedComponent[enumerator.Current.Key];
+					ringEmitter.UpdateAnimationValue(bumperState.RingAnimation.Offset);
+				}
+
+				if (bumperState.SkirtItemId != 0) {
+					var skirtEmitter = float2AnimatedComponent[enumerator.Current.Key];
+					skirtEmitter.UpdateAnimationValue(bumperState.SkirtAnimation.Rotation);
 				}
 			}
 		}
@@ -92,12 +97,12 @@ namespace VisualPinball.Unity
 		}
 
 		internal void ApplyGateMovement(ref NativeParallelHashMap<int, GateState> gateStates,
-			Dictionary<int, IAnimationValueEmitter<float>> rotatableComponent)
+			Dictionary<int, IAnimationValueEmitter<float>> floatAnimatedComponent)
 		{
 			using var enumerator = gateStates.GetEnumerator();
 			while (enumerator.MoveNext()) {
 				ref var gateState = ref enumerator.Current.Value;
-				var component = rotatableComponent[enumerator.Current.Key];
+				var component = floatAnimatedComponent[enumerator.Current.Key];
 				component.UpdateAnimationValue(gateState.Movement.Angle);
 			}
 		}

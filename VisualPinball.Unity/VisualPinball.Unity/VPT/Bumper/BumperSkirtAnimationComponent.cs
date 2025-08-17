@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
 
@@ -21,7 +22,7 @@ namespace VisualPinball.Unity
 {
 	[PackAs("BumperSkirtAnimation")]
 	[AddComponentMenu("Pinball/Animation/Bumper Skirt Animation")]
-	public class BumperSkirtAnimationComponent : AnimationComponentLegacy<BumperData, BumperComponent>, IPackable
+	public class BumperSkirtAnimationComponent : AnimationComponent<float2>, IPackable
 	{
 		#region Data
 
@@ -41,5 +42,11 @@ namespace VisualPinball.Unity
 		public void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs, PackagedFiles files) { }
 
 		#endregion
+
+		protected override void OnAnimationValueChanged(float2 value)
+		{
+			var parentRotation = transform.parent.rotation;
+			transform.rotation = Quaternion.Euler(value.x, 0, -value.y) * parentRotation;
+		}
 	}
 }
