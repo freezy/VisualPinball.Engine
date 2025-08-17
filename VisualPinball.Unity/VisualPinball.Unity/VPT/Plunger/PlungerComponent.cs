@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Engine.Game.Engines;
@@ -33,7 +34,7 @@ namespace VisualPinball.Unity
 	[SelectionBase]
 	[PackAs("Plunger")]
 	[AddComponentMenu("Pinball/Game Item/Plunger")]
-	public class PlungerComponent : MainRenderableComponent<PlungerData>, ICoilDeviceComponent, IPackable
+	public class PlungerComponent : MainRenderableComponent<PlungerData>, ICoilDeviceComponent, IAnimationValueEmitter<float>, IPackable
 	{
 		#region Data
 
@@ -314,6 +315,21 @@ namespace VisualPinball.Unity
 					Position = collComponent.ParkPosition
 				}
 			);
+		}
+
+		#endregion
+
+		#region IAnimationValueEmitter
+
+		public event Action<float> OnAnimationValueChanged;
+		private float _lastPosition;
+
+		public void UpdateAnimationValue(float value)
+		{
+			if (math.abs(_lastPosition - value) > 0.0001f) {
+				_lastPosition = value;
+				OnAnimationValueChanged?.Invoke(value);
+			}
 		}
 
 		#endregion

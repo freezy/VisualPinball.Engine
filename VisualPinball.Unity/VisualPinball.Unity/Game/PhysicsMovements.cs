@@ -109,14 +109,13 @@ namespace VisualPinball.Unity
 		}
 
 		internal void ApplyPlungerMovement(ref NativeParallelHashMap<int, PlungerState> plungerStates,
-			Dictionary<int, SkinnedMeshRenderer[]> skinnedMeshRenderers)
+			Dictionary<int, IAnimationValueEmitter<float>> floatAnimatedComponent)
 		{
 			using var enumerator = plungerStates.GetEnumerator();
 			while (enumerator.MoveNext()) {
 				ref var plungerState = ref enumerator.Current.Value;
-				foreach (var skinnedMeshRenderer in skinnedMeshRenderers[enumerator.Current.Key]) {
-					skinnedMeshRenderer.SetBlendShapeWeight(0, plungerState.Animation.Position);
-				}
+				var component = floatAnimatedComponent[enumerator.Current.Key];
+				component.UpdateAnimationValue(plungerState.Animation.Position);
 			}
 		}
 
