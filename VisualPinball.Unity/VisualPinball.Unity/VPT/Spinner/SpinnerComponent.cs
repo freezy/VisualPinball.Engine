@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 	[PackAs("Spinner")]
 	[AddComponentMenu("Pinball/Game Item/Spinner")]
 	public class SpinnerComponent : MainRenderableComponent<SpinnerData>, ISwitchDeviceComponent,
-		IAnimationValueEmitter, IPackable
+		IAnimationValueEmitter<float>, IPackable
 	{
 		#region Data
 

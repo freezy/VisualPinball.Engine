@@ -18,22 +18,26 @@ using System;
 
 namespace VisualPinball.Unity
 {
+	public interface IAnimationValueEmitter
+	{
+	}
+
 	/// <summary>
 	/// Components implementing this interface will get animation updates from the physics
 	/// engine, and can either relay them to their children or perform their own transformations.
 	/// </summary>
-	public interface IAnimationValueEmitter
+	public interface IAnimationValueEmitter<T> : IAnimationValueEmitter
 	{
 		/// <summary>
 		/// Called by the physics engine to update the animation value of this component.
 		/// </summary>
 		/// <param name="value">Value passed to the component that animates.</param>
-		void UpdateAnimationValue(float value);
+		void UpdateAnimationValue(T value);
 
 		/// <summary>
 		/// Event to notify potential children about angle changes. Only triggers when
 		/// the angle actually changes, not on every update. The angle is in radians.
 		/// </summary>
-		public event Action<float> OnAnimationValueChanged;
+		public event Action<T> OnAnimationValueChanged;
 	}
 }

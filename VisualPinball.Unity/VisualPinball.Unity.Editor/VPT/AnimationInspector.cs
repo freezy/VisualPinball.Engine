@@ -23,7 +23,7 @@ using VisualPinball.Engine.VPT;
 namespace VisualPinball.Unity.Editor
 {
 	public class AnimationInspector<TData, TMainComponent, TMovementComponent> : ItemInspector
-		where TMovementComponent : AnimationComponent<TData, TMainComponent>
+		where TMovementComponent : AnimationComponentLegacy<TData, TMainComponent>
 		where TData : ItemData
 		where TMainComponent : MainRenderableComponent<TData>
 	{

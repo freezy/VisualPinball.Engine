@@ -16,48 +16,67 @@
 
 // ReSharper disable InconsistentNaming
 
+using System.Linq;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// New and (simple?) class that does the wiring for rotating components.
 	/// </summary>
-	public abstract class AnimationComponent : MonoBehaviour
+	public abstract class AnimationComponent<T> : MonoBehaviour
 	{
-		private IAnimationValueEmitter AnimationValueEmitter {
-			get => _animationEmitter as IAnimationValueEmitter;
-			set => _animationEmitter = value as MonoBehaviour;
+		private IAnimationValueEmitter<T> Emitter {
+			get => _emitter as IAnimationValueEmitter<T>;
+			set => _emitter = value as MonoBehaviour;
 		}
 
+		[FormerlySerializedAs("_animationEmitter")]
 		[SerializeField]
 		[TypeRestriction(typeof(IAnimationValueEmitter), PickerLabel = "Emitter")]
 		[Tooltip("The component that emits animation values to which this component rotates.")]
-		public MonoBehaviour _animationEmitter;
+		public MonoBehaviour _emitter;
 
-		protected abstract void OnAnimationValueChanged(float value);
+		protected abstract void OnAnimationValueChanged(T value);
 
 		protected void Awake()
 		{
-			AnimationValueEmitter ??= GetComponentInParent<IAnimationValueEmitter>();
+			if (_emitter != null && _emitter is IAnimationValueEmitter<T> e1) {
+				Emitter = e1;
+			} else {
+				// Fallback: search parents for any MonoBehaviour that implements the interface
+				var candidates = GetComponentsInParent<IAnimationValueEmitter>();
+				Emitter = candidates.OfType<IAnimationValueEmitter<T>>().FirstOrDefault();
+			}
 
-			if (AnimationValueEmitter == null) {
-				Debug.LogError("RotatingComponent requires a RotationSource to function properly.");
+			if (Emitter == null) {
+				Debug.LogError($"{GetType().Name} requires an IAnimationValueEmitter<{typeof(T).Name}>.", this);
 			}
 		}
 
 		private void OnEnable()
 		{
-			if (AnimationValueEmitter != null) {
-				AnimationValueEmitter.OnAnimationValueChanged += OnAnimationValueChanged;
+			if (Emitter != null) {
+				Emitter.OnAnimationValueChanged += OnAnimationValueChanged;
 			}
 		}
 
 		private void OnDisable()
 		{
-			if (AnimationValueEmitter != null) {
-				AnimationValueEmitter.OnAnimationValueChanged -= OnAnimationValueChanged;
+			if (Emitter != null) {
+				Emitter.OnAnimationValueChanged -= OnAnimationValueChanged;
 			}
 		}
+
+#if UNITY_EDITOR
+		// Editor-time safety: warn if someone drags the wrong thing into the field
+		protected virtual void OnValidate()
+		{
+			if (_emitter != null && !(_emitter is IAnimationValueEmitter<T>)) {
+				Debug.LogError($"{name}: Assigned emitter does not implement IAnimationValueEmitter<{typeof(T).Name}>. It will be ignored.",this);
+			}
+		}
+#endif
 	}
 }
