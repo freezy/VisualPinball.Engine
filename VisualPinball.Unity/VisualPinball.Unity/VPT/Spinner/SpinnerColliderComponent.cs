@@ -27,6 +27,10 @@ namespace VisualPinball.Unity
 	{
 		#region Data
 
+		[Min(0.01f)]
+		[Tooltip("The mass of the spinner plate. Higher means slower spinning. Doesn't affect the ball.")]
+		public float Mass = 1;
+
 		[Min(0f)]
 		[Tooltip("Bounciness (coefficient of restitution) of the spinner bracket.")]
 		public float Elasticity = 0.3f;
