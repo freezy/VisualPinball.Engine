@@ -17,34 +17,32 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
-using VisualPinball.Engine.VPT.HitTarget;
+using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(DropTargetAnimationComponent)), CanEditMultipleObjects]
-	public class DropTargetAnimationInspector : AnimationInspector<HitTargetData, DropTargetComponent, DropTargetAnimationComponent>
+	[CustomEditor(typeof(DropTargetAnimationComponentLegacy)), CanEditMultipleObjects]
+	public class DropTargetAnimationInspector : ItemInspector
 	{
 		private SerializedProperty _isDroppedProperty;
 		private SerializedProperty _speedProperty;
 		private SerializedProperty _raiseDelayProperty;
 		private SerializedProperty _dropDistanceProperty;
 
+		protected override MonoBehaviour UndoTarget => target as MonoBehaviour;
+
 		protected override void OnEnable()
 		{
 			base.OnEnable();
 
-			_isDroppedProperty = serializedObject.FindProperty(nameof(DropTargetAnimationComponent.IsDropped));
-			_speedProperty = serializedObject.FindProperty(nameof(DropTargetAnimationComponent.Speed));
-			_raiseDelayProperty = serializedObject.FindProperty(nameof(DropTargetAnimationComponent.RaiseDelay));
-			_dropDistanceProperty = serializedObject.FindProperty(nameof(DropTargetAnimationComponent.DropDistance));
+			_isDroppedProperty = serializedObject.FindProperty(nameof(DropTargetAnimationComponentLegacy.IsDropped));
+			_speedProperty = serializedObject.FindProperty(nameof(DropTargetAnimationComponentLegacy.Speed));
+			_raiseDelayProperty = serializedObject.FindProperty(nameof(DropTargetAnimationComponentLegacy.RaiseDelay));
+			_dropDistanceProperty = serializedObject.FindProperty(nameof(DropTargetAnimationComponentLegacy.DropDistance));
 		}
 
 		public override void OnInspectorGUI()
 		{
-			if (HasErrors()) {
-				return;
-			}
-
 			BeginEditing();
 
 			OnPreInspectorGUI();

@@ -344,7 +344,7 @@ namespace VisualPinball.Unity.Editor
 			Icons.DisableGizmo<DropTargetComponent>();
 			Icons.DisableGizmo<DropTargetBankComponent>();
 			Icons.DisableGizmo<DropTargetColliderComponent>();
-			Icons.DisableGizmo<DropTargetAnimationComponent>();
+			Icons.DisableGizmo<DropTargetAnimationComponentLegacy>();
 			//Icons.DisableGizmo<FlasherComponent>();
 			Icons.DisableGizmo<FlipperComponent>();
 			Icons.DisableGizmo<FlipperColliderComponent>();

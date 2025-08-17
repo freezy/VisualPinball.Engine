@@ -67,7 +67,8 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal void ApplyDropTargetMovement(ref NativeParallelHashMap<int, DropTargetState> dropTargetStates, Dictionary<int, Transform> transforms)
+		internal void ApplyDropTargetMovement(ref NativeParallelHashMap<int, DropTargetState> dropTargetStates,
+			Dictionary<int, IAnimationValueEmitter<float>> floatAnimatedComponent)
 		{
 			using var enumerator = dropTargetStates.GetEnumerator();
 			while (enumerator.MoveNext()) {
@@ -75,14 +76,9 @@ namespace VisualPinball.Unity
 				if (dropTargetState.AnimatedItemId == 0) { // 0 means no animation component
 					continue;
 				}
-				var dropTargetTransform = transforms[dropTargetState.AnimatedItemId];
-				var localYDirection = dropTargetTransform.up;
 
-				// Compute the new position by moving along the local Y-axis
-				var newPosition = (Vector3)dropTargetState.Static.InitialPosition + localYDirection * Physics.ScaleToWorld(dropTargetState.Animation.ZOffset);
-
-				// Apply the new position
-				dropTargetTransform.localPosition = newPosition;
+				var emitter = floatAnimatedComponent[enumerator.Current.Key];
+				emitter.UpdateAnimationValue(dropTargetState.Animation.ZOffset);
 			}
 		}
 

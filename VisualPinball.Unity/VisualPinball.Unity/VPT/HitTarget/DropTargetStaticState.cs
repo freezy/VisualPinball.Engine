@@ -23,6 +23,5 @@ namespace VisualPinball.Unity
 		public float Speed;
 		public float RaiseDelay;
 		public bool UseHitEvent;
-		public float3 InitialPosition;
 	}
 }

@@ -78,12 +78,11 @@ namespace VisualPinball.Unity
 		/// <exception cref="InvalidOperationException"></exception>
 		private void SetIsDropped(bool isDropped)
 		{
-			Debug.Log($"---- SetIsDropped {isDropped}!");
 			ref var state = ref PhysicsEngine.DropTargetState(ItemId);
 			if (state.Animation.IsDropped != isDropped) {
 				if (!isDropped) {
-					Debug.Log("---- reset invoked!");
 					Reset?.Invoke(this, EventArgs.Empty);
+					MainComponent.UpdateAnimationValue(false);
 				}
 				state.Animation.MoveAnimation = true;
 				if (isDropped) {
@@ -138,6 +137,7 @@ namespace VisualPinball.Unity
 		void IApiHittable.OnHit(int ballId, bool _)
 		{
 			Hit?.Invoke(this, new HitEventArgs(ballId));
+			MainComponent.UpdateAnimationValue(true);
 		}
 
 		#endregion
