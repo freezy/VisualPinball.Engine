@@ -90,19 +90,19 @@ namespace VisualPinball.Unity
 
 	public struct GateWireAnimationPackable
 	{
-		public PackableFloat3 RotationAngle;
+		public PackableFloat3 RotationVector;
 
 		public static byte[] Pack(GateWireAnimationComponent comp)
 		{
 			return PackageApi.Packer.Pack(new GateWireAnimationPackable {
-				RotationAngle = comp.RotationAngle,
+				RotationVector = comp.RotationVector,
 			});
 		}
 
 		public static void Unpack(byte[] bytes, GateWireAnimationComponent comp)
 		{
 			var data = PackageApi.Packer.Unpack<GateWireAnimationPackable>(bytes);
-			comp.RotationAngle = data.RotationAngle;
+			comp.RotationVector = data.RotationVector;
 		}
 	}
 }

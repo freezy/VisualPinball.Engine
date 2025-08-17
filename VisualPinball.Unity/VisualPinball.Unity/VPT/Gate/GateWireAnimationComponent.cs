@@ -14,26 +14,29 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using Unity.Mathematics;
 using UnityEngine;
 
 namespace VisualPinball.Unity
 {
 	[PackAs("GateWireAnimation")]
-	public class GateWireAnimationComponent : RotatingComponent, IPackable
+	public class GateWireAnimationComponent : AnimationComponent, IPackable
 	{
+		public Vector3 RotationVector = Vector3.right;
 		private Quaternion _initialRotation;
 
-		private void Awake()
+		private new void Awake()
 		{
 			_initialRotation = transform.localRotation;
 			base.Awake();
 		}
 
-		protected override void AnimationValueChanged(AnimationValue value)
+		protected override void OnAnimationValueChanged(float value)
 		{
-			var axis = RotationAngle.normalized;
-			var rotation = Quaternion.AngleAxis(math.degrees(value.Value), axis);
+			var axis = RotationVector.normalized;
+			var rotation = Quaternion.AngleAxis(math.degrees(value), axis);
 			transform.localRotation = _initialRotation * rotation;
 		}
 

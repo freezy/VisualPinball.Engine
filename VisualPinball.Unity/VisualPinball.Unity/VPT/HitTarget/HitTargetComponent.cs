@@ -66,7 +66,7 @@ namespace VisualPinball.Unity
 			}
 
 			// animation data
-			var animationComponent = GetComponent<HitTargetAnimationComponent>();
+			var animationComponent = GetComponent<HitTargetAnimationComponentLegacy>();
 			if (animationComponent) {
 				animationComponent.enabled = !data.IsDropTarget;
 				animationComponent.Speed = data.DropSpeed;
@@ -112,7 +112,7 @@ namespace VisualPinball.Unity
 			}
 
 			// animation data
-			var animationComponent = GetComponent<HitTargetAnimationComponent>();
+			var animationComponent = GetComponent<HitTargetAnimationComponentLegacy>();
 			if (animationComponent) {
 				data.DropSpeed = animationComponent.Speed;
 			}
@@ -133,7 +133,7 @@ namespace VisualPinball.Unity
 			HitTargetApi = new HitTargetApi(gameObject, player, physicsEngine);
 
 			player.Register(HitTargetApi, this);
-			if (GetComponent<HitTargetColliderComponent>() && GetComponentInChildren<HitTargetAnimationComponent>()) {
+			if (GetComponent<HitTargetColliderComponent>() && GetComponentInChildren<HitTargetAnimationComponentLegacy>()) {
 				RegisterPhysics(physicsEngine);
 			}
 		}
@@ -145,7 +145,7 @@ namespace VisualPinball.Unity
 		internal HitTargetState CreateState()
 		{
 			var hitTargetColliderComponent = GetComponent<HitTargetColliderComponent>();
-			var hitTargetAnimationComponent = GetComponentInChildren<HitTargetAnimationComponent>();
+			var hitTargetAnimationComponent = GetComponentInChildren<HitTargetAnimationComponentLegacy>();
 			var staticData = hitTargetColliderComponent && hitTargetAnimationComponent
 				? new HitTargetStaticData {
 					Speed = hitTargetAnimationComponent.Speed,

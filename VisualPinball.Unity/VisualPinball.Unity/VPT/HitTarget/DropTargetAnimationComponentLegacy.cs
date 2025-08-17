@@ -23,7 +23,7 @@ namespace VisualPinball.Unity
 {
 	[PackAs("DropTargetAnimation")]
 	[AddComponentMenu("Pinball/Animation/Drop Target Animation (Legacy)")]
-	public class DropTargetAnimationComponent : AnimationComponent<HitTargetData, DropTargetComponent>, IPackable
+	public class DropTargetAnimationComponentLegacy : AnimationComponentLegacy<HitTargetData, DropTargetComponent>, IPackable
 	{
 		#region Data
 

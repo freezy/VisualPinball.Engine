@@ -88,14 +88,14 @@ namespace VisualPinball.Unity
 	{
 		public float AnimSpeed;
 
-		public static byte[] Pack(TriggerAnimationComponent comp)
+		public static byte[] Pack(TriggerAnimationComponentLegacy comp)
 		{
 			return PackageApi.Packer.Pack(new TriggerAnimationPackable {
 				AnimSpeed = comp.AnimSpeed
 			});
 		}
 
-		public static void Unpack(byte[] bytes, TriggerAnimationComponent comp)
+		public static void Unpack(byte[] bytes, TriggerAnimationComponentLegacy comp)
 		{
 			var data = PackageApi.Packer.Unpack<TriggerAnimationPackable>(bytes);
 			comp.AnimSpeed = data.AnimSpeed;

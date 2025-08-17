@@ -31,7 +31,7 @@ namespace VisualPinball.Unity
 {
 	//[PackAs("SwitchAnimation")]
 	[AddComponentMenu("Pinball/Animation/Switch Animation")]
-	public class SwitchAnimationComponent : AnimationComponent<TriggerData, TriggerComponent>//, IPackable
+	public class SwitchAnimationComponentLegacy : AnimationComponentLegacy<TriggerData, TriggerComponent>//, IPackable
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 

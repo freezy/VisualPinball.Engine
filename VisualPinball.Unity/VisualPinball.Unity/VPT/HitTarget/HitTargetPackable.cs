@@ -87,7 +87,7 @@ namespace VisualPinball.Unity
 		public float Speed;
 		public float MaxAngle;
 
-		public static byte[] Pack(HitTargetAnimationComponent comp)
+		public static byte[] Pack(HitTargetAnimationComponentLegacy comp)
 		{
 			return PackageApi.Packer.Pack(new HitTargetAnimationPackable {
 				Speed = comp.Speed,
@@ -95,7 +95,7 @@ namespace VisualPinball.Unity
 			});
 		}
 
-		public static void Unpack(byte[] bytes, HitTargetAnimationComponent comp)
+		public static void Unpack(byte[] bytes, HitTargetAnimationComponentLegacy comp)
 		{
 			var data = PackageApi.Packer.Unpack<HitTargetAnimationPackable>(bytes);
 			comp.Speed = data.Speed;

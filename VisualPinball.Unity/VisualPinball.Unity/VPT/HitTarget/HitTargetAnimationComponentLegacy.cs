@@ -24,7 +24,7 @@ namespace VisualPinball.Unity
 	[PackAs("HitTargetAnimation")]
 	[AddComponentMenu("Pinball/Animation/Hit Target Animation")]
 	[RequireComponent(typeof(HitTargetColliderComponent))]
-	public class HitTargetAnimationComponent : AnimationComponent<HitTargetData, HitTargetComponent>, IPackable
+	public class HitTargetAnimationComponentLegacy : AnimationComponentLegacy<HitTargetData, HitTargetComponent>, IPackable
 	{
 		#region Data
 

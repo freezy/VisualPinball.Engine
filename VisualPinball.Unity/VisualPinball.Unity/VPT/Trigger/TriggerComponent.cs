@@ -170,7 +170,7 @@ namespace VisualPinball.Unity
 			}
 
 			// animation
-			var animComponent = GetComponent<TriggerAnimationComponent>();
+			var animComponent = GetComponent<TriggerAnimationComponentLegacy>();
 			if (animComponent) {
 				animComponent.AnimSpeed = data.AnimSpeed;
 				updatedComponents.Add(animComponent);
@@ -225,7 +225,7 @@ namespace VisualPinball.Unity
 			}
 
 			// animation
-			var animComponent = GetComponent<TriggerAnimationComponent>();
+			var animComponent = GetComponent<TriggerAnimationComponentLegacy>();
 			if (animComponent) {
 				animComponent.AnimSpeed = data.AnimSpeed;
 			}
@@ -249,7 +249,7 @@ namespace VisualPinball.Unity
 		internal TriggerState CreateState()
 		{
 			var collComponent = GetComponentInChildren<TriggerColliderComponent>();
-			var animComponent = GetComponentInChildren<TriggerAnimationComponent>();
+			var animComponent = GetComponentInChildren<TriggerAnimationComponentLegacy>();
 			var meshComponent = GetComponentInChildren<TriggerMeshComponent>();
 
 			if (collComponent.ForFlipper != null) {

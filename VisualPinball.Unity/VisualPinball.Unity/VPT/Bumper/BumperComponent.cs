@@ -193,7 +193,7 @@ namespace VisualPinball.Unity
 			}
 
 			// ring animation
-			var ringAnimComponent = GetComponentInChildren<BumperRingAnimationComponent>();
+			var ringAnimComponent = GetComponentInChildren<BumperRingAnimationComponentLegacy>();
 			if (ringAnimComponent) {
 				ringAnimComponent.RingSpeed = data.RingSpeed;
 				ringAnimComponent.RingDropOffset = data.RingDropOffset;
@@ -210,10 +210,10 @@ namespace VisualPinball.Unity
 			UpdateTransforms();
 
 			// children visibility
-			SetVisibilityByComponent<BumperSkirtAnimationComponent>(data.IsSocketVisible);
+			SetVisibilityByComponent<BumperSkirtAnimationComponentLegacy>(data.IsSocketVisible);
 			SetVisibilityByComponent<BumperBaseComponent>(data.IsBaseVisible);
 			SetVisibilityByComponent<BumperCapComponent>(data.IsCapVisible);
-			SetVisibilityByComponent<BumperRingAnimationComponent>(data.IsRingVisible);
+			SetVisibilityByComponent<BumperRingAnimationComponentLegacy>(data.IsRingVisible);
 
 			return Array.Empty<MonoBehaviour>();
 		}
@@ -230,8 +230,8 @@ namespace VisualPinball.Unity
 			// children visibility
 			data.IsBaseVisible = CopyMaterialName<BumperBaseComponent>(data, materialNames, textureNames);
 			data.IsCapVisible = CopyMaterialName<BumperCapComponent>(data, materialNames, textureNames);
-			data.IsRingVisible = CopyMaterialName<BumperRingAnimationComponent>(data, materialNames, textureNames);
-			data.IsSocketVisible = CopyMaterialName<BumperSkirtAnimationComponent>(data, materialNames, textureNames);
+			data.IsRingVisible = CopyMaterialName<BumperRingAnimationComponentLegacy>(data, materialNames, textureNames);
+			data.IsSocketVisible = CopyMaterialName<BumperSkirtAnimationComponentLegacy>(data, materialNames, textureNames);
 
 			// collider
 			var collComponent = GetComponentInChildren<BumperColliderComponent>();
@@ -246,7 +246,7 @@ namespace VisualPinball.Unity
 			}
 
 			// ring animation
-			var ringAnimComponent = GetComponentInChildren<BumperRingAnimationComponent>();
+			var ringAnimComponent = GetComponentInChildren<BumperRingAnimationComponentLegacy>();
 			if (ringAnimComponent) {
 				data.RingSpeed = ringAnimComponent.RingSpeed;
 				data.RingDropOffset = ringAnimComponent.RingDropOffset;
@@ -290,16 +290,16 @@ namespace VisualPinball.Unity
 			}
 
 			// ring animation
-			var ringAnimComp = GetComponentInChildren<BumperRingAnimationComponent>();
-			var srcRingAnimComp = go.GetComponentInChildren<BumperRingAnimationComponent>();
+			var ringAnimComp = GetComponentInChildren<BumperRingAnimationComponentLegacy>();
+			var srcRingAnimComp = go.GetComponentInChildren<BumperRingAnimationComponentLegacy>();
 			if (ringAnimComp && srcRingAnimComp) {
 				ringAnimComp.RingSpeed = srcRingAnimComp.RingSpeed;
 				ringAnimComp.RingDropOffset = srcRingAnimComp.RingDropOffset;
 			}
 
 			// skirt animation
-			var skirtAnimComp = GetComponentInChildren<BumperSkirtAnimationComponent>();
-			var srcSkirtAnimComp = go.GetComponentInChildren<BumperSkirtAnimationComponent>();
+			var skirtAnimComp = GetComponentInChildren<BumperSkirtAnimationComponentLegacy>();
+			var srcSkirtAnimComp = go.GetComponentInChildren<BumperSkirtAnimationComponentLegacy>();
 			if (ringAnimComp && srcSkirtAnimComp) {
 				skirtAnimComp.duration = srcSkirtAnimComp.duration;
 			}
@@ -321,7 +321,7 @@ namespace VisualPinball.Unity
 				} : default;
 
 			// skirt animation data
-			var skirtAnimComponent = GetComponentInChildren<BumperSkirtAnimationComponent>();
+			var skirtAnimComponent = GetComponentInChildren<BumperSkirtAnimationComponentLegacy>();
 			var skirtAnimation = skirtAnimComponent
 				? new BumperSkirtAnimationState {
 					BallPosition = default,
@@ -335,7 +335,7 @@ namespace VisualPinball.Unity
 				} : default;
 
 			// ring animation data
-			var ringAnimComponent = GetComponentInChildren<BumperRingAnimationComponent>();
+			var ringAnimComponent = GetComponentInChildren<BumperRingAnimationComponentLegacy>();
 			var ringAnimation = ringAnimComponent
 				? new BumperRingAnimationState {
 

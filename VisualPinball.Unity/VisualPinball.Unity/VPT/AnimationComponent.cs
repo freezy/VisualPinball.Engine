@@ -1,5 +1,5 @@
 ﻿// Visual Pinball Engine
-// Copyright (C) 2023 freezy and VPE Team
+// Copyright (C) 2025 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,21 +14,50 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using VisualPinball.Engine.VPT;
+// ReSharper disable InconsistentNaming
+
+using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	public abstract class AnimationComponent<TData, TMainComponent> : SubComponent<TData, TMainComponent>,
-		IAnimationComponent
-		where TData : ItemData
-		where TMainComponent : MainRenderableComponent<TData>
+	/// <summary>
+	/// New and (simple?) class that does the wiring for rotating components.
+	/// </summary>
+	public abstract class AnimationComponent : MonoBehaviour
 	{
-		public void UpdateTransforms() => MainComponent.UpdateTransforms();
+		private IAnimationValueEmitter AnimationValueEmitter {
+			get => _animationEmitter as IAnimationValueEmitter;
+			set => _animationEmitter = value as MonoBehaviour;
+		}
 
-		private void Awake()
+		[SerializeField]
+		[TypeRestriction(typeof(IAnimationValueEmitter), PickerLabel = "Emitter")]
+		[Tooltip("The component that emits animation values to which this component rotates.")]
+		public MonoBehaviour _animationEmitter;
+
+		protected abstract void OnAnimationValueChanged(float value);
+
+		protected void Awake()
 		{
-			// todo remove when all animation components are translated through their main component
-			RegisterPhysics();
+			AnimationValueEmitter ??= GetComponentInParent<IAnimationValueEmitter>();
+
+			if (AnimationValueEmitter == null) {
+				Debug.LogError("RotatingComponent requires a RotationSource to function properly.");
+			}
+		}
+
+		private void OnEnable()
+		{
+			if (AnimationValueEmitter != null) {
+				AnimationValueEmitter.OnAnimationValueChanged += OnAnimationValueChanged;
+			}
+		}
+
+		private void OnDisable()
+		{
+			if (AnimationValueEmitter != null) {
+				AnimationValueEmitter.OnAnimationValueChanged -= OnAnimationValueChanged;
+			}
 		}
 	}
 }
