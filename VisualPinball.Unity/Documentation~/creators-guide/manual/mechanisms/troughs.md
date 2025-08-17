@@ -6,7 +6,7 @@ description: How VPE works with troughs (ball drains).
 
 # Troughs / Ball Drains
 
-If you are unfamiliar with ball troughs, have a quick look at [MPF's documentation](https://mpf-docs.readthedocs.io/en/latest/mechs/troughs/), which does an excellent job explaining them.
+If you are unfamiliar with ball troughs, have a quick look at [MPF's documentation](https://missionpinball.org/mechs/troughs/), which does an excellent job explaining them.
 
 VPE comes with a trough mechanism that simulates the behavior of a real-world ball trough. This is especially important when emulating existing games, since the [gamelogic engine](xref:gamelogic_engine) expects the trough's switches to be in a plausible state, or else it may have errors.
 
