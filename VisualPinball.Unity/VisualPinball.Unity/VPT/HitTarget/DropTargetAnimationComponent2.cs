@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 {
 	//[PackAs("SwitchAnimation")]
 	[AddComponentMenu("Pinball/Animation/Drop Target Animation")]
-	public class DropTargetAnimationComponent2 : AnimationComponent<HitTargetData, DropTargetComponent>//, IPackable
+	public class DropTargetAnimationComponent2 : AnimationComponentLegacy<HitTargetData, DropTargetComponent>//, IPackable
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 

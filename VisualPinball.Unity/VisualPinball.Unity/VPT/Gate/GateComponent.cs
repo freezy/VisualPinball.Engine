@@ -37,7 +37,7 @@ namespace VisualPinball.Unity
 	[PackAs("Gate")]
 	[AddComponentMenu("Pinball/Game Item/Gate")]
 	public class GateComponent : MainRenderableComponent<GateData>,
-		IGateData, ISwitchDeviceComponent, IAnimationValueSource, IPackable
+		IGateData, ISwitchDeviceComponent, IAnimationValueEmitter, IPackable
 	{
 		#region Data
 
@@ -289,14 +289,14 @@ namespace VisualPinball.Unity
 
 		#region IAnimationValueSource
 
-		public event Action<AnimationValue> OnAnimationValueChanged;
+		public event Action<float> OnAnimationValueChanged;
 		private float _lastAngleRad;
 
-		public void UpdateAnimationValue(float angleRad, AnimationValueType type)
+		public void UpdateAnimationValue(float value)
 		{
-			if (HasAngleChanged(_lastAngleRad, angleRad)) {
-				_lastAngleRad = angleRad;
-				OnAnimationValueChanged?.Invoke(new AnimationValue(angleRad, type));
+			if (HasAngleChanged(_lastAngleRad, value)) {
+				_lastAngleRad = value;
+				OnAnimationValueChanged?.Invoke(value);
 			}
 		}
 

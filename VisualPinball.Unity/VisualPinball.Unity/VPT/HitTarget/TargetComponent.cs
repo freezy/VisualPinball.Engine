@@ -159,8 +159,8 @@ namespace VisualPinball.Unity
 			}
 
 			// dt animation
-			var dtAnimComp = GetComponent<DropTargetAnimationComponent>();
-			var srcDtAnimComp = go.GetComponent<DropTargetAnimationComponent>();
+			var dtAnimComp = GetComponent<DropTargetAnimationComponentLegacy>();
+			var srcDtAnimComp = go.GetComponent<DropTargetAnimationComponentLegacy>();
 			if (dtAnimComp && srcDtAnimComp) {
 				dtAnimComp.IsDropped = srcDtAnimComp.IsDropped;
 				dtAnimComp.Speed = srcDtAnimComp.Speed;
@@ -181,8 +181,8 @@ namespace VisualPinball.Unity
 			}
 
 			// ht animation
-			var htAnimComp = GetComponent<HitTargetAnimationComponent>();
-			var srcHtAnimComp = go.GetComponent<HitTargetAnimationComponent>();
+			var htAnimComp = GetComponent<HitTargetAnimationComponentLegacy>();
+			var srcHtAnimComp = go.GetComponent<HitTargetAnimationComponentLegacy>();
 			if (htAnimComp && srcHtAnimComp) {
 				htAnimComp.Speed = srcHtAnimComp.Speed;
 				htAnimComp.MaxAngle = srcHtAnimComp.MaxAngle;

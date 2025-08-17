@@ -14,26 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Unity.Mathematics;
-using UnityEngine;
+using System;
+using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity
 {
-	public class SpinnerPlateAnimationComponent : AnimationComponent
+	[Obsolete("Use new subscriber pattern through AnimationComponent.")]
+	public abstract class AnimationComponentLegacy<TData, TMainComponent> : SubComponent<TData, TMainComponent>,
+		IAnimationComponent
+		where TData : ItemData
+		where TMainComponent : MainRenderableComponent<TData>
 	{
-		public Vector3 RotationVector = Vector3.right;
-		private Quaternion _initialRotation;
+		public void UpdateTransforms() => MainComponent.UpdateTransforms();
 
-		private void Start()
+		private void Awake()
 		{
-			_initialRotation = transform.localRotation;
-		}
-
-		protected override void OnAnimationValueChanged(float value)
-		{
-			var axis = RotationVector.normalized;
-			var rotation = Quaternion.AngleAxis(math.degrees(value), axis);
-			transform.localRotation = _initialRotation * rotation;
+			// todo remove when all animation components are translated through their main component
+			RegisterPhysics();
 		}
 	}
 }

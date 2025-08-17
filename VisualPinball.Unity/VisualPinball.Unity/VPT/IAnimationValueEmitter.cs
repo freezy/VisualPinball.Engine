@@ -22,36 +22,18 @@ namespace VisualPinball.Unity
 	/// Components implementing this interface will get animation updates from the physics
 	/// engine, and can either relay them to their children or perform their own transformations.
 	/// </summary>
-	public interface IAnimationValueSource
+	public interface IAnimationValueEmitter
 	{
 		/// <summary>
-		/// Called by the physics engine to update the animatino value of this component.
+		/// Called by the physics engine to update the animation value of this component.
 		/// </summary>
-		/// <param name="angleRad"></param>
-		/// <param name="type"></param>
-		void UpdateAnimationValue(float angleRad, AnimationValueType type);
+		/// <param name="value">Value passed to the component that animates.</param>
+		void UpdateAnimationValue(float value);
 
 		/// <summary>
 		/// Event to notify potential children about angle changes. Only triggers when
 		/// the angle actually changes, not on every update. The angle is in radians.
 		/// </summary>
-		public event Action<AnimationValue> OnAnimationValueChanged;
-	}
-
-	public readonly struct AnimationValue
-	{
-		public readonly float Value;
-		public readonly AnimationValueType Type;
-
-		public AnimationValue(float value, AnimationValueType type)
-		{
-			Value = value;
-			Type = type;
-		}
-	}
-
-	public enum AnimationValueType
-	{
-		Angle, YPosition
+		public event Action<float> OnAnimationValueChanged;
 	}
 }

@@ -21,9 +21,11 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	public class SpinnerLeverAnimationComponent : RotatingComponent
+	public class SpinnerLeverAnimationComponent : AnimationComponent
 	{
 		// todo make packable
+		[Tooltip("The axis of the rotation.")]
+		public Vector3 RotationAngle = Vector3.forward;
 
 		[Tooltip("Shifts the lever angle in relation to the input angle by the given amount of degrees.")]
 		[Range(0, 360f)]
@@ -49,10 +51,10 @@ namespace VisualPinball.Unity
 			base.Awake();
 		}
 
-		protected override void AnimationValueChanged(AnimationValue value)
+		protected override void OnAnimationValueChanged(float value)
 		{
 			// normalize input angle
-			var angleRad = math.radians((math.degrees(value.Value) + Shift) % 360f);
+			var angleRad = math.radians((math.degrees(value) + Shift) % 360f);
 
 			var a = math.abs(angleRad - math.PI);
 			var pos = math.sin(math.smoothstep(0, math.PI, a));
