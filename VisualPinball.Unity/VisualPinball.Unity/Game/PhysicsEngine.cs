@@ -111,7 +111,6 @@ namespace VisualPinball.Unity
 		/// for items where the original physics engine doesn't.
 		/// </remarks>
 		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, float4x4>> _nonTransformableColliderTransforms = new(() => new NativeParallelHashMap<int, float4x4>(0, Allocator.Persistent));
-		[NonSerialized] private readonly Dictionary<int, SkinnedMeshRenderer[]> _skinnedMeshRenderers = new();
 
 		[NonSerialized] private readonly Dictionary<int, IAnimationValueEmitter<bool>> _boolAnimatedComponents = new();
 		[NonSerialized] private readonly Dictionary<int, IAnimationValueEmitter<float>> _floatAnimatedComponents = new();
@@ -188,7 +187,6 @@ namespace VisualPinball.Unity
 				case KickerComponent c: _kickerStates.Ref[itemId] = c.CreateState(); break;
 				case PlungerComponent c:
 					_plungerStates.Ref[itemId] = c.CreateState();
-					_skinnedMeshRenderers[itemId] = c.GetComponentsInChildren<SkinnedMeshRenderer>();
 					break;
 				case SpinnerComponent c: _spinnerStates.Ref[itemId] = c.CreateState(); break;
 				case SurfaceComponent c: _surfaceStates.Ref[itemId] = c.CreateState(); break;
@@ -411,7 +409,7 @@ namespace VisualPinball.Unity
 			_physicsMovements.ApplyDropTargetMovement(ref _dropTargetStates.Ref, _floatAnimatedComponents);
 			_physicsMovements.ApplyHitTargetMovement(ref _hitTargetStates.Ref, _floatAnimatedComponents);
 			_physicsMovements.ApplyGateMovement(ref _gateStates.Ref, _floatAnimatedComponents);
-			_physicsMovements.ApplyPlungerMovement(ref _plungerStates.Ref, _skinnedMeshRenderers);
+			_physicsMovements.ApplyPlungerMovement(ref _plungerStates.Ref, _floatAnimatedComponents);
 			_physicsMovements.ApplySpinnerMovement(ref _spinnerStates.Ref, _floatAnimatedComponents);
 			_physicsMovements.ApplyTriggerMovement(ref _triggerStates.Ref, _transforms);
 
