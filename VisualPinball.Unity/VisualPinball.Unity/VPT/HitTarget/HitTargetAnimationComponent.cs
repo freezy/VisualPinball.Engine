@@ -17,31 +17,36 @@
 // ReSharper disable InconsistentNaming
 
 using UnityEngine;
-using VisualPinball.Engine.VPT.Trigger;
+using VisualPinball.Engine.VPT.HitTarget;
 
 namespace VisualPinball.Unity
 {
-	[PackAs("TriggerAnimation")]
-	[AddComponentMenu("Pinball/Animation/Trigger Animation")]
-	public class TriggerAnimationComponentLegacy : AnimationComponentLegacy<TriggerData, TriggerComponent>, IPackable
+	[PackAs("HitTargetAnimation")]
+	[AddComponentMenu("Pinball/Animation/Hit Target Animation")]
+	[RequireComponent(typeof(HitTargetColliderComponent))]
+	public class HitTargetAnimationComponent : AnimationComponentLegacy<HitTargetData, HitTargetComponent>, IPackable
 	{
 		#region Data
 
 		[Min(0)]
-		[Tooltip("How quick the trigger moves down when the ball rolls over it.")]
-		public float AnimSpeed = 1f;
+		[Tooltip("How fast the hit target moves back when hit.")]
+		public float Speed =  0.5f;
+
+		[Range(-180f, 180f)]
+		[Tooltip("Angle of how much the hit target rotates back when hit.")]
+		public float MaxAngle = 13.0f;
 
 		#endregion
 
 		#region Packaging
 
-		public byte[] Pack() => TriggerAnimationPackable.Pack(this);
+		public byte[] Pack() => HitTargetAnimationPackable.Pack(this);
 
-		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+		public byte[] PackReferences(Transform root, PackagedRefs lookup, PackagedFiles files) => null;
 
-		public void Unpack(byte[] bytes) => TriggerAnimationPackable.Unpack(bytes, this);
+		public void Unpack(byte[] bytes) => HitTargetAnimationPackable.Unpack(bytes, this);
 
-		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs lookup, PackagedFiles files) { }
 
 		#endregion
 	}
