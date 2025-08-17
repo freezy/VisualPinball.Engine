@@ -14,29 +14,34 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// ReSharper disable InconsistentNaming
+
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
 
 namespace VisualPinball.Unity
 {
-	[PackAs("BumperSkirtAnimation")]
-	[AddComponentMenu("Pinball/Animation/Bumper Skirt Animation")]
-	public class BumperSkirtAnimationComponentLegacy : AnimationComponentLegacy<BumperData, BumperComponent>, IPackable
+	[PackAs("BumperRingAnimation")]
+	[AddComponentMenu("Pinball/Animation/Bumper Ring Animation")]
+	public class BumperRingAnimationComponent : AnimationComponentLegacy<BumperData, BumperComponent>, IPackable
 	{
 		#region Data
 
-		[Tooltip("How long the skirt is pushed down when hit by a ball in seconds")]
-		public float duration = 0.1f;
+		[Tooltip("How quick the ring moves down when the ball is hit.")]
+		public float RingSpeed = 1.0f;
+
+		[Tooltip("How low the ring drops. 0 = bottom")]
+		public float RingDropOffset;
 
 		#endregion
 
 		#region Packaging
 
-		public byte[] Pack() => BumperSkirtAnimationPackable.Pack(this);
+		public byte[] Pack() => BumperRingAnimationPackable.Pack(this);
 
 		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
 
-		public void Unpack(byte[] bytes) => BumperSkirtAnimationPackable.Unpack(bytes, this);
+		public void Unpack(byte[] bytes) => BumperRingAnimationPackable.Unpack(bytes, this);
 
 		public void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs, PackagedFiles files) { }
 

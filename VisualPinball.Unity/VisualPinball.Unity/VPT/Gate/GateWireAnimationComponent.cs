@@ -24,7 +24,7 @@ namespace VisualPinball.Unity
 	[PackAs("GateWireAnimation")]
 	public class GateWireAnimationComponent : AnimationComponent, IPackable
 	{
-		public Vector3 RotationVector = Vector3.right;
+		public Vector3 RotationVector = Vector3.left;
 		private Quaternion _initialRotation;
 
 		private new void Awake()

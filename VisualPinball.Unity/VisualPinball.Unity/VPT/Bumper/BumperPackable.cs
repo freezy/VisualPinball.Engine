@@ -71,7 +71,7 @@ namespace VisualPinball.Unity
 		public float RingSpeed;
 		public float RingDropOffset;
 
-		public static byte[] Pack(BumperRingAnimationComponentLegacy comp)
+		public static byte[] Pack(BumperRingAnimationComponent comp)
 		{
 			return PackageApi.Packer.Pack(new BumperRingAnimationPackable {
 				RingSpeed = comp.RingSpeed,
@@ -79,7 +79,7 @@ namespace VisualPinball.Unity
 			});
 		}
 
-		public static void Unpack(byte[] bytes, BumperRingAnimationComponentLegacy comp)
+		public static void Unpack(byte[] bytes, BumperRingAnimationComponent comp)
 		{
 			var data = PackageApi.Packer.Unpack<BumperRingAnimationPackable>(bytes);
 			comp.RingSpeed = data.RingSpeed;
@@ -91,14 +91,14 @@ namespace VisualPinball.Unity
 	{
 		public float Duration;
 
-		public static byte[] Pack(BumperSkirtAnimationComponentLegacy comp)
+		public static byte[] Pack(BumperSkirtAnimationComponent comp)
 		{
 			return PackageApi.Packer.Pack(new BumperSkirtAnimationPackable {
 				Duration = comp.duration,
 			});
 		}
 
-		public static void Unpack(byte[] bytes, BumperSkirtAnimationComponentLegacy comp)
+		public static void Unpack(byte[] bytes, BumperSkirtAnimationComponent comp)
 		{
 			var data = PackageApi.Packer.Unpack<BumperSkirtAnimationPackable>(bytes);
 			comp.duration = data.Duration;

@@ -95,7 +95,7 @@ namespace VisualPinball.Unity
 		public int RaiseDelay;
 		public bool IsDropped;
 
-		public static byte[] Pack(DropTargetAnimationComponentLegacy comp)
+		public static byte[] Pack(DropTargetAnimationComponent comp)
 		{
 			return PackageApi.Packer.Pack(new DropTargetAnimationPackable {
 				Speed = comp.Speed,
@@ -105,7 +105,7 @@ namespace VisualPinball.Unity
 			});
 		}
 
-		public static void Unpack(byte[] bytes, DropTargetAnimationComponentLegacy comp)
+		public static void Unpack(byte[] bytes, DropTargetAnimationComponent comp)
 		{
 			var data = PackageApi.Packer.Unpack<DropTargetAnimationPackable>(bytes);
 			comp.Speed = data.Speed;
