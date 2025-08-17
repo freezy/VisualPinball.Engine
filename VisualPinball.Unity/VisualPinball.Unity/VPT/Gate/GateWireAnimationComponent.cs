@@ -22,7 +22,7 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	[PackAs("GateWireAnimation")]
-	public class GateWireAnimationComponent : AnimationComponent, IPackable
+	public class GateWireAnimationComponent : AnimationComponent<float>, IPackable
 	{
 		public Vector3 RotationVector = Vector3.left;
 		private Quaternion _initialRotation;

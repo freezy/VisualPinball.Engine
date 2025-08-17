@@ -22,11 +22,31 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(SpinnerPlateAnimationComponent)), CanEditMultipleObjects]
 	public class SpinnerPlateAnimationInspector : ItemInspector
 	{
+		private SerializedProperty _animationEmitterProperty;
+		private SerializedProperty _rotationVectorProperty;
+
 		protected override MonoBehaviour UndoTarget => target as MonoBehaviour;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+
+			_animationEmitterProperty = serializedObject.FindProperty(nameof(AnimationComponent<float>._emitter));
+			_rotationVectorProperty = serializedObject.FindProperty(nameof(SpinnerPlateAnimationComponent.RotationVector));
+		}
 
 		public override void OnInspectorGUI()
 		{
-			EditorGUILayout.HelpBox("TODO!!.", MessageType.Info);
+			BeginEditing();
+
+			OnPreInspectorGUI();
+
+			PropertyField(_animationEmitterProperty, "Rotation Emitter");
+			PropertyField(_rotationVectorProperty);
+
+			base.OnInspectorGUI();
+
+			EndEditing();
 		}
 	}
 }

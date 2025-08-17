@@ -37,7 +37,7 @@ namespace VisualPinball.Unity
 	[PackAs("Gate")]
 	[AddComponentMenu("Pinball/Game Item/Gate")]
 	public class GateComponent : MainRenderableComponent<GateData>,
-		IGateData, ISwitchDeviceComponent, IAnimationValueEmitter, IPackable
+		IGateData, ISwitchDeviceComponent, IAnimationValueEmitter<float>, IPackable
 	{
 		#region Data
 

@@ -21,7 +21,7 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	public class SpinnerPlateAnimationComponent : AnimationComponent
+	public class SpinnerPlateAnimationComponent : AnimationComponent<float>
 	{
 		public Vector3 RotationVector = Vector3.right;
 		private Quaternion _initialRotation;

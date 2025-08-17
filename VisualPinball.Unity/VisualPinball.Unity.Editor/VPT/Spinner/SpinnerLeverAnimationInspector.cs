@@ -22,7 +22,7 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(SpinnerLeverAnimationComponent)), CanEditMultipleObjects]
 	public class SpinnerLeverAnimationInspector : ItemInspector
 	{
-		private SerializedProperty _rotationSourceProperty;
+		private SerializedProperty _animationEmitterProperty;
 		private SerializedProperty _rotationAngleProperty;
 		private SerializedProperty _shiftProperty;
 		private SerializedProperty _offsetProperty;
@@ -35,8 +35,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			_rotationSourceProperty = serializedObject.FindProperty(nameof(RotatingComponent._rotationSource));
-			_rotationAngleProperty = serializedObject.FindProperty(nameof(RotatingComponent.RotationAngle));
+			_animationEmitterProperty = serializedObject.FindProperty(nameof(AnimationComponent<float>._emitter));
+			_rotationAngleProperty = serializedObject.FindProperty(nameof(SpinnerLeverAnimationComponent.RotationAngle));
 			_shiftProperty = serializedObject.FindProperty(nameof(SpinnerLeverAnimationComponent.Shift));
 			_offsetProperty = serializedObject.FindProperty(nameof(SpinnerLeverAnimationComponent.Offset));
 			_minAngleProperty = serializedObject.FindProperty(nameof(SpinnerLeverAnimationComponent.MinAngle));
@@ -49,7 +49,7 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			PropertyField(_rotationSourceProperty, "Rotation Source");
+			PropertyField(_animationEmitterProperty, "Rotation Emitter");
 			PropertyField(_rotationAngleProperty);
 			PropertyField(_shiftProperty);
 			PropertyField(_offsetProperty);

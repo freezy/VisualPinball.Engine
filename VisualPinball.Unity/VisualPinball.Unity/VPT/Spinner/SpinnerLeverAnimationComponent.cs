@@ -21,7 +21,7 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	public class SpinnerLeverAnimationComponent : AnimationComponent
+	public class SpinnerLeverAnimationComponent : AnimationComponent<float>
 	{
 		// todo make packable
 		[Tooltip("The axis of the rotation.")]
