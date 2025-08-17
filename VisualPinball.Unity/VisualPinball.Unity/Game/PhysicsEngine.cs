@@ -87,7 +87,7 @@ namespace VisualPinball.Unity
 
 		#region Transforms
 
-		[NonSerialized] private readonly Dictionary<int, Transform> _transforms = new();
+		[NonSerialized] private readonly Dictionary<int, BallComponent> _ballComponents = new();
 
 		/// <summary>
 		/// Last transforms of kinematic items, so we can detect changes.
@@ -168,7 +168,6 @@ namespace VisualPinball.Unity
 		{
 			var go = item.gameObject;
 			var itemId = go.GetInstanceID();
-			_transforms.TryAdd(itemId, go.transform);
 
 			// states
 			switch (item) {
@@ -176,6 +175,7 @@ namespace VisualPinball.Unity
 					if (!_ballStates.Ref.ContainsKey(itemId)) {
 						_ballStates.Ref[itemId] = c.CreateState();
 					}
+					_ballComponents.TryAdd(itemId, c);
 					break;
 				case BumperComponent c: _bumperStates.Ref[itemId] = c.CreateState(); break;
 				case FlipperComponent c:
@@ -205,13 +205,13 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal Transform UnregisterBall(int ballId)
+		internal BallComponent UnregisterBall(int ballId)
 		{
-			var t = _transforms[ballId];
-			_transforms.Remove(ballId);
+			var b = _ballComponents[ballId];
+			_ballComponents.Remove(ballId);
 			_ballStates.Ref.Remove(ballId);
 			_insideOfs.SetOutsideOfAll(ballId);
-			return t;
+			return b;
 		}
 
 		internal bool IsColliderEnabled(int itemId) => !_disabledCollisionItems.Ref.Contains(itemId);
@@ -229,7 +229,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public Transform GetTransform(int itemId) => _transforms[itemId];
+		public BallComponent GetBall(int itemId) => _ballComponents[itemId];
 
 		#endregion
 
@@ -403,7 +403,7 @@ namespace VisualPinball.Unity
 
 			#region Movements
 
-			_physicsMovements.ApplyBallMovement(ref state, _transforms);
+			_physicsMovements.ApplyBallMovement(ref state, _ballComponents);
 			_physicsMovements.ApplyFlipperMovement(ref _flipperStates.Ref, _floatAnimatedComponents);
 			_physicsMovements.ApplyBumperMovement(ref _bumperStates.Ref, _floatAnimatedComponents, _float2AnimatedComponents);
 			_physicsMovements.ApplyDropTargetMovement(ref _dropTargetStates.Ref, _floatAnimatedComponents);

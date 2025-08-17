@@ -26,7 +26,6 @@ using UnityEngine;
 using VisualPinball.Engine.VPT.Trigger;
 using Logger = NLog.Logger;
 
-
 namespace VisualPinball.Unity
 {
 	//[PackAs("SwitchAnimation")]
@@ -107,7 +106,8 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			var ballTransform = _physicsEngine.GetTransform(_ballId);
+			var ballComponent = _physicsEngine.GetBall(_ballId);
+			var ballTransform = ballComponent.transform;
 			var ballLocalToWorld = (float4x4)ballTransform.localToWorldMatrix;
 			var transformWithinParent = ballLocalToWorld.GetLocalToPlayfieldMatrixInVpx(_triggerComp.transform.worldToLocalMatrix);
 			var localVpxPos = transformWithinParent.MultiplyPoint(ballTransform.position);

@@ -17,13 +17,12 @@
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Mathematics;
-using UnityEngine;
 
 namespace VisualPinball.Unity
 {
 	internal class PhysicsMovements
 	{
-		internal void ApplyBallMovement(ref PhysicsState state, Dictionary<int, Transform> transforms)
+		internal void ApplyBallMovement(ref PhysicsState state, Dictionary<int, BallComponent> ballComponents)
 		{
 			using var enumerator = state.Balls.GetEnumerator();
 			while (enumerator.MoveNext()) {
@@ -31,7 +30,7 @@ namespace VisualPinball.Unity
 				if (ball.IsFrozen) {
 					continue;
 				}
-				BallMovementPhysics.Move(ball, transforms[ball.Id]);
+				ballComponents[ball.Id].Move(ball);
 			}
 		}
 

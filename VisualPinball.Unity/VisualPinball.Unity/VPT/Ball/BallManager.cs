@@ -69,11 +69,11 @@ namespace VisualPinball.Unity
 
 		public void DestroyBall(int ballId)
 		{
-			var ballTransform = _physicsEngine.UnregisterBall(ballId);
-			_player.BallDestroyed(ballId, ballTransform.gameObject);
+			var ballComponent = _physicsEngine.UnregisterBall(ballId);
+			_player.BallDestroyed(ballId, ballComponent.gameObject);
 
 			// destroy game object
-			Object.DestroyImmediate(ballTransform.gameObject);
+			Object.DestroyImmediate(ballComponent.gameObject);
 		}
 
 		public bool FindBall(out BallState ball)
