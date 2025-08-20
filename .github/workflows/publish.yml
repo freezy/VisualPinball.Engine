@@ -25,6 +25,7 @@ jobs:
           echo -e "fileFormatVersion: 2\nguid: a2a4b6cb3229489f99c06f0771c522ce" > CONTRIBUTING.md.meta
           echo -e "fileFormatVersion: 2\nguid: 931f3c49f79d4032bceefe14682a7d5a" > VisualPinball.Unity.meta
           echo -e "fileFormatVersion: 2\nguid: ea4f7f8d4c2c418e9fc0fbed8ab1f5a9" > VisualPinball.Engine.meta
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20.x'
@@ -33,13 +34,13 @@ jobs:
 
       - name: Configure npm auth explicitly
         run: |
-          cat > ~/.npmrc <<'EOF'
+          cat > "$NPM_CONFIG_USERCONFIG" <<'EOF'
           registry=https://registry.visualpinball.org/
           always-auth=true
           //registry.visualpinball.org/:_authToken=${NODE_AUTH_TOKEN}
           EOF
-          echo "Wrote ~/.npmrc:"
-          cat ~/.npmrc
+          echo "Using npmrc at $NPM_CONFIG_USERCONFIG"
+          cat "$NPM_CONFIG_USERCONFIG"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -48,6 +49,9 @@ jobs:
 
       - name: Publish
         run: npm publish --registry=https://registry.visualpinball.org/
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
 
 
   dispatch:
