@@ -32,15 +32,16 @@ jobs:
           registry-url: 'https://registry.visualpinball.org'
           always-auth: true
 
-      - name: Configure npm auth explicitly
+      - name: Configure npm auth
         run: |
-          cat > "$NPM_CONFIG_USERCONFIG" <<'EOF'
+          cat > "$NPM_CONFIG_USERCONFIG" <<EOF
           registry=https://registry.visualpinball.org/
           always-auth=true
           //registry.visualpinball.org/:_authToken=${NODE_AUTH_TOKEN}
           EOF
           echo "Using npmrc at $NPM_CONFIG_USERCONFIG"
-          cat "$NPM_CONFIG_USERCONFIG"
+          # show which file npm will use
+          npm config list --location=user
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -51,8 +52,6 @@ jobs:
         run: npm publish --registry=https://registry.visualpinball.org/
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-
 
   dispatch:
     runs-on: ubuntu-latest
