@@ -352,6 +352,9 @@ namespace VisualPinball.Unity
 				(start, end) = (end, start);
 			}
 			AddPolyArc(arrow, Vector3.zero, FlipperRadiusMax - 20F, start, end, height: height);
+			if (arrow.Count == 0) {
+				return;
+			}
 			for (int i = 1, j = 0; i < arrow.Count; j = i++) {
 				Gizmos.DrawLine(transform.TransformPoint(arrow[j].TranslateToWorld()), transform.TransformPoint(arrow[i].TranslateToWorld()));
 			}
