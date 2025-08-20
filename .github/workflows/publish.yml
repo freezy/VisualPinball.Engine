@@ -29,27 +29,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-          registry-url: 'https://registry.visualpinball.org/'
+          registry-url: 'https://registry.visualpinball.org'
           always-auth: true
 
-      - name: Configure npm auth
-        run: |
-          cat > "$NPM_CONFIG_USERCONFIG" <<EOF
-          registry=https://registry.visualpinball.org/
-          always-auth=true
-          //registry.visualpinball.org/:_authToken=${NODE_AUTH_TOKEN}
-          EOF
-          echo "Using npmrc at $NPM_CONFIG_USERCONFIG"
-          # show which file npm will use
-          npm config list --location=user
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Debug
-        run: npm config get registry && npm config list --location=project    
-
-      - name: Publish (verbose)
-        run: npm --loglevel=verbose publish --registry=https://registry.visualpinball.org/
+      - name: Publish
+        run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
