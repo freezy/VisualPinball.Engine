@@ -393,6 +393,9 @@ namespace VisualPinball.Unity
 		event Action<float2> IAnimationValueEmitter<float2>.OnAnimationValueChanged {
 			add => OnFloat2AnimationValueChanged += value;
 			remove => OnFloat2AnimationValueChanged += value;
+		event Action<float2> IAnimationValueEmitter<float2>.OnAnimationValueChanged {
+			add => OnFloat2AnimationValueChanged += value;
+			remove => OnFloat2AnimationValueChanged -= value;
 		}
 
 		event Action<float> IAnimationValueEmitter<float>.OnAnimationValueChanged
