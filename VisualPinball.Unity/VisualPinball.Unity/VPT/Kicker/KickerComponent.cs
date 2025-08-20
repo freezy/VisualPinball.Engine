@@ -285,6 +285,10 @@ namespace VisualPinball.Unity
 		{
 			#if UNITY_EDITOR
 
+			if (DomainReloadGuard.IsReloading) {
+				return;
+			}
+
 			// don't generate ids for prefabs, otherwise they'll show up in the instances.
 			if (EditorUtility.IsPersistent(this) && PrefabUtility.IsPartOfPrefabAsset(this)) {
 				return;
