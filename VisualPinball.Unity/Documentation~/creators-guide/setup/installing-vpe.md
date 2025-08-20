@@ -9,29 +9,26 @@ description: How to install VPE
 In order to start creating or modifying tables with VPE, the first thing you'll need to do is install [Unity](https://unity3d.com/get-unity/download). You will need a Unity developer account, which is free.
 
 > [!NOTE]
-> As long as you don't use Unity for a game that makes $100K or more in revenue or funding a year, the free [Personal](https://store.unity.com/compare-plans) plan is sufficient for you.
+> As long as you don't use Unity for a game that makes $200K or more in revenue or funding a year, the free [Personal](https://store.unity.com/compare-plans) plan is sufficient for you.
 
 Unity uses an application called *Unity Hub* to update itself, create new projects and provide quick access to them. The install process is straight-forward and documented [here](https://docs.unity3d.com/Manual/GettingStartedInstallingHub.html) if you run into troubles.
 
-**Unity 6.0** is the recommended Unity version at the moment.
+**Unity 6.2** is the recommended Unity version at the moment.
 
 You can leave all the other options unchecked during install.
 
-Once Unity is downloaded and installed, you're ready to create a new VPE project. Click on *New Project*, be sure to have selected the 6.0 version at the top, and you'll see the following choices:
+Once Unity is downloaded and installed, you're ready to create a new VPE project. Click on *New Project*, be sure to have selected the 6.2 version at the top, and you'll see the following choices:
 
 ![New Unity Project](unity-create-new-project.png)
 
 The relevant options for VPE are:
 
-- **3D** - Unity's original built-in renderer.
-- **3D (URP)** - Unity's [Universal Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@8.2/manual/index.html) is aimed at mobile and low-end platforms.
-- **3D (HDRP)** - Unity's [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@12.0/manual/index.html) used for high-end platforms.
+- **Universal 3D** - Unity's [URP](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@8.2/manual/index.html) is aimed at mobile and low-end platforms.
+- **High Definition 3D** - Unity's [HDRP](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@12.0/manual/index.html) used for high-end platforms.
 
 We recommend using HDRP. It's what we're using when developing and should be the most stable pipeline. Alternatively if you're on a laptop don't have a beefy GPU, use the URP. The built-in renderer is legacy not recommended.
 
-Next, enter a project name and a location for your project. We recommend putting the render pipeline into the name, because in the future you might want to test out other pipelines in their own projects.
-
-Clicking *Create project* launches the Unity editor, pulls in all the dependencies for the new project, and compiles them. This will take a few minutes.
+Next, enter a project name and a location for your project. Clicking *Create project* launches the Unity editor, pulls in all the dependencies for the new project, and compiles them. This will take a few minutes.
 
 ### HDRP Setup
 
@@ -39,11 +36,11 @@ Once the editor has opened you can click away the HDRP Wizard that opens. You sh
 
 ![HDRP Empty Scene](unity-hdrp-empty-scene.png)
 
-Click on *File -> New Scene* and select the *Basic Indoors (HDRP)* template. Save it in your *Assets/Scenes* folder as `TestTable.unity`.
+Click on *File -> New Scene* and select the *Basic Indoors (HDRP)* template. Save it in your *Assets/Scenes* folder as `MyTable.unity`.
 
-In this base scene there's a *Plane* that will [Z-fight](https://en.wikipedia.org/wiki/Z-fighting) with our imported table later. Select it in the [Hierarchy](https://docs.unity3d.com/Manual/Hierarchy.html) and move it down a little by setting the *Y Position* under *Transform* in the [Inspector](https://docs.unity3d.com/Manual/UsingTheInspector.html) to `-0.1`. Your scene should now look like this:
+In this scene, there are already some objects we don't need. In the [Hierarchy](https://docs.unity3d.com/Manual/Hierarchy.html), select the *Geometry* game object and delete it by pressing `DEL`. Your scene should now look like this:
 
-![TestTable Scene](unity-hdrp-test-scene.png)
+![MyTable Scene](unity-hdrp-test-scene.png)
 
 Hit *Ctrl+S* to save your scene.
 
@@ -64,20 +61,16 @@ Also check *Enable Pre-release Packages* (and confirm), as well as *Show depende
 
 Hit *Save* and close the window. Now you'll add VPE's HDRP package, which will automatically pull in the core package and the assets package.
 
-Open the package manager by clicking on *Window -> Package Manager*. Then click on the "plus" icon on the top left corner of the window, and choose *Add package by name..*.
+Open the package manager by clicking on *Window -> Package Management -> Package Manager*. Then click on the "plus" icon on the top left corner of the window, and choose *Add package by name..*.
 
 <p><img alt="Package Manager" width="237" src="unity-package-manager.png"/></p>
 
-There, enter `org.visualpinball.engine.unity.hdrp` and click *Add*. This will take a moment as Unity downloads and compiles all of VPE's dependencies and parses all the assets that we ship in our library. If during this time, you see the following warning about the input system:
-
-<p><img alt="Unity Input System Warning" width="390" src="unity-input-system-warning.png" /></p>
-
-Click *Yes*.
+There, enter `org.visualpinball.engine.unity.hdrp` and click *Install*. This will take a moment as Unity downloads and compiles all of VPE's dependencies and parses all the assets that we ship in our library. 
 
 > [!WARNING]
 > Our patcher, which is currently part of the main package, depends on the PinMAME package. Until we move the patcher into a separate package, you will have to install the PinMAME package as well. To do that, click on the plus button again and enter `org.visualpinball.engine.pinmame`, then click on *Add*.
 
-When complete, you should now have a *Visual Pinball* menu in the editor, and you should see the following new packages in the package manager (version numbers will vary):
+When complete, you should now have a *Pinball* menu in the editor, and you should see the following new packages in the package manager (version numbers will vary):
 
 <p><img alt="Unity Input System Warning" width="907" src="unity-packages-after-installation.png" /></p>
 
