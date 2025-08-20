@@ -177,7 +177,7 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 	private void LockBall()
 	{
 		if (player.BallManager.FindBall(out var ballData)) {
-			lockTarget = _physicsEngine.GetTransform(ballData.Id);
+			lockTarget = _physicsEngine.GetBall(ballData.Id).transform;
 			if (lockTarget != null) {
 				_ballFollowOffset       =
 					_ballFollowOffsetTarget = _transformCache.position - lockTarget.position;   // ★ init both
@@ -193,7 +193,7 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 	private void LockBallTarget()
 	{
 		if (player.BallManager.FindBall(out var ballData)) {
-			lockTarget = _physicsEngine.GetTransform(ballData.Id);
+			lockTarget = _physicsEngine.GetBall(ballData.Id).transform;
 			if (lockTarget != null) {
 				_smoothedBallPos = lockTarget.position;
 				_ballPosVel = Vector3.zero;
