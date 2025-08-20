@@ -37,7 +37,7 @@ namespace VisualPinball.Unity
 		public float Elasticity;
 		public float ElasticityFalloff;
 
-		public bool UseElasticityOverVelocity => ElasticityOverVelocity.keys.Length > 0;
+		public bool UseElasticityOverVelocity => ElasticityOverVelocity?.keys.Length > 0;
 		public AnimationCurve ElasticityOverVelocity;
 
 		public float Friction;
