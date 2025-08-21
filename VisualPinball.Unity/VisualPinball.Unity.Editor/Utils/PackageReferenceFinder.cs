@@ -21,6 +21,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement; // for Scene + GetRootGameObjects
 using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
@@ -32,7 +33,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			public string depPath;                 // Package dependency path (e.g., Packages/org.visualpinball.*)
 			public Object depObject;               // Cached object for UI
-			public List<string> referencerPaths = new List<string>(); // Assets/ paths that directly reference depPath
+			public List<Object> referencerObjects = new List<Object>(); // Project assets or scene GameObjects that reference depPath
 		}
 
 		// --- Options ---
@@ -42,7 +43,7 @@ namespace VisualPinball.Unity.Editor
 		[SerializeField] private bool _includeMaterials = true;
 		[SerializeField] private bool _includeScriptableObjects = true;
 		[SerializeField] private bool _includeEverythingElse = true; // FBX, textures, animations, etc.
-		[SerializeField] private bool _onlyOpenScenes = false;       // When true, closed scenes are skipped
+		[SerializeField] private bool _onlyOpenScenes = false;       // When true, closed scenes are skipped; open scenes yield GameObjects instead of the .unity asset
 
 		private Vector2 _scroll;
 		private readonly List<DepUsage> _results = new List<DepUsage>();
@@ -58,15 +59,14 @@ namespace VisualPinball.Unity.Editor
 		{
 			GUILayout.Label("Package dependencies used by the Project (grouped by dependency)", EditorStyles.boldLabel);
 			EditorGUILayout.HelpBox(
-				"This lists every asset in the indicated package that is DIRECTLY referenced by your project. " +
-				"Under each dependency you get the full list of project assets that reference it.",
+				"When 'Only search open scenes' is enabled, scene references are shown as the specific GameObjects in the open scenes that reference the dependency (directly or via assets like Materials).",
 				MessageType.Info);
 
 			_packagePrefix = EditorGUILayout.TextField(
 				new GUIContent("Package Prefix", "Only dependencies under this path are considered."),
 				_packagePrefix);
 
-			_onlyOpenScenes = EditorGUILayout.ToggleLeft("Only search open scenes (skip closed scenes)", _onlyOpenScenes);
+			_onlyOpenScenes = EditorGUILayout.ToggleLeft("Only search open scenes (skip closed scenes; list GameObjects for open scenes)", _onlyOpenScenes);
 
 			EditorGUILayout.LabelField("Project Asset Type Filters (referencers):", EditorStyles.boldLabel);
 			EditorGUILayout.BeginHorizontal();
@@ -92,17 +92,16 @@ namespace VisualPinball.Unity.Editor
 			{
 				EditorGUILayout.BeginVertical("box");
 
-				// Dependency header row: ObjectField only (click the target icon to reveal)
+				// Dependency header row: ObjectField only
 				using (new EditorGUI.DisabledScope(true))
 					EditorGUILayout.ObjectField("Dependency", dep.depObject, typeof(Object), false);
 
-				// Referencers list (no dots, no buttons)
-				EditorGUILayout.LabelField($"Referenced by ({dep.referencerPaths.Count}):");
-				foreach (var path in dep.referencerPaths)
+				// Referencers list (object fields only; no dots, no buttons)
+				EditorGUILayout.LabelField($"Referenced by ({dep.referencerObjects.Count}):");
+				foreach (var obj in dep.referencerObjects)
 				{
-					var obj = LoadAny(path);
 					using (new EditorGUI.DisabledScope(true))
-						EditorGUILayout.ObjectField(obj, typeof(Object), false);
+						EditorGUILayout.ObjectField(obj, obj != null ? obj.GetType() : typeof(Object), false);
 				}
 
 				EditorGUILayout.EndVertical();
@@ -143,23 +142,34 @@ namespace VisualPinball.Unity.Editor
 					.Distinct()
 					.ToArray();
 
-				// Map: dependency (package) path -> set of project assets that reference it
-				var map = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+				// Map: dependency (package) path -> set of project referencers (Object)
+				var map = new Dictionary<string, HashSet<Object>>(StringComparer.OrdinalIgnoreCase);
 
 				int total = projectAssets.Length;
+
+				// Caches to avoid repeated AssetDatabase work in scene deep scans
+				var depObjCache   = new Dictionary<string, Object>(StringComparer.OrdinalIgnoreCase);
+				var depsSetCache  = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase); // assetPath -> deps(set)
+
 				for (int i = 0; i < total; i++)
 				{
-					string referencer = projectAssets[i];
+					string referencerPath = projectAssets[i];
 
-					if (EditorUtility.DisplayCancelableProgressBar("Scanning project assets (direct dependencies)",
-						    referencer, total == 0 ? 0 : (float)i / total))
+					if (EditorUtility.DisplayCancelableProgressBar("Scanning project assets (dependencies)",
+						    referencerPath, total == 0 ? 0 : (float)i / total))
 					{
 						_status = "Scan cancelled.";
 						break;
 					}
 
-					// Direct dependencies only
-					string[] deps = AssetDatabase.GetDependencies(referencer, false);
+					bool isScene = string.Equals(Path.GetExtension(referencerPath), ".unity", StringComparison.OrdinalIgnoreCase);
+					bool isOpenScene = isScene && openScenePaths.Contains(referencerPath);
+
+					// For open scenes we want to include *transitive* deps (textures via materials, etc.)
+					bool recursive = isScene && _onlyOpenScenes;
+
+					// Get dependencies of this referencer
+					string[] deps = AssetDatabase.GetDependencies(referencerPath, recursive);
 					if (deps == null || deps.Length == 0) continue;
 
 					foreach (var dep in deps)
@@ -169,10 +179,30 @@ namespace VisualPinball.Unity.Editor
 
 						if (!map.TryGetValue(dep, out var set))
 						{
-							set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+							set = new HashSet<Object>();
 							map[dep] = set;
 						}
-						set.Add(referencer);
+
+						// Open-scene mode: list *GameObjects* that cause/hold the reference
+						if (_onlyOpenScenes && isOpenScene)
+						{
+							// Get/load the dependency object
+							if (!depObjCache.TryGetValue(dep, out var depObj) || depObj == null)
+							{
+								depObj = LoadAny(dep);
+								depObjCache[dep] = depObj;
+							}
+
+							var scene = EditorSceneManager.GetSceneByPath(referencerPath);
+							foreach (var go in FindSceneGameObjectsReferencing(scene, dep, depObj, depsSetCache))
+								set.Add(go);
+						}
+						else
+						{
+							// Normal case: store the referencer asset object (prefab, material, SO, or closed scene asset)
+							var obj = LoadAny(referencerPath);
+							if (obj != null) set.Add(obj);
+						}
 					}
 				}
 
@@ -186,13 +216,15 @@ namespace VisualPinball.Unity.Editor
 					{
 						depPath = depPath,
 						depObject = LoadAny(depPath),
-						referencerPaths = kv.Value.OrderBy(p => p, StringComparer.OrdinalIgnoreCase).ToList()
+						referencerObjects = kv.Value
+							.OrderBy(o => GetObjectSortKey(o), StringComparer.OrdinalIgnoreCase)
+							.ToList()
 					};
 					_results.Add(usage);
 				}
 
 				if (_results.Count == 0)
-					_status = "No project assets directly reference dependencies in the indicated package.";
+					_status = "No project assets reference dependencies in the indicated package (with current filters).";
 				else
 					_status = $"Found {_results.Count} package dependencies referenced by project assets.";
 			}
@@ -208,7 +240,97 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		// ----- Scene deep-scan to find GameObjects that (directly or indirectly) reference a given asset -----
+
+		private static IEnumerable<GameObject> FindSceneGameObjectsReferencing(Scene scene, string targetDepPath, Object targetDepObj,
+			Dictionary<string, HashSet<string>> depsSetCache)
+		{
+			var results = new HashSet<GameObject>();
+			if (!scene.IsValid() || !scene.isLoaded) return results;
+
+			foreach (var root in scene.GetRootGameObjects())
+			{
+				foreach (var t in root.GetComponentsInChildren<Transform>(true))
+				{
+					var go = t.gameObject;
+					var comps = go.GetComponents<Component>();
+					foreach (var c in comps)
+					{
+						if (c == null) continue; // missing script
+						var so = new SerializedObject(c);
+						var it = so.GetIterator();
+						bool enterChildren = true;
+						while (it.NextVisible(enterChildren))
+						{
+							enterChildren = false;
+							if (it.propertyType != SerializedPropertyType.ObjectReference) continue;
+
+							var refObj = it.objectReferenceValue;
+							if (refObj == null) continue;
+
+							// 1) Direct reference to the dependency object?
+							if (targetDepObj != null && refObj == targetDepObj)
+							{
+								results.Add(go);
+								break;
+							}
+
+							// 2) Indirect: does this referenced *asset* depend on the dependency path?
+							var refPath = AssetDatabase.GetAssetPath(refObj);
+							if (string.IsNullOrEmpty(refPath)) continue; // scene object or non-asset
+							if (AssetDependsOn(refPath, targetDepPath, depsSetCache))
+							{
+								results.Add(go);
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			return results;
+		}
+
+		private static bool AssetDependsOn(string assetPath, string targetDepPath,
+			Dictionary<string, HashSet<string>> depsSetCache)
+		{
+			if (!depsSetCache.TryGetValue(assetPath, out var set))
+			{
+				// Recursive to include textures/shaders/etc. pulled by materials/controllers/etc.
+				var deps = AssetDatabase.GetDependencies(assetPath, true) ?? Array.Empty<string>();
+				set = new HashSet<string>(deps, StringComparer.OrdinalIgnoreCase);
+				depsSetCache[assetPath] = set;
+			}
+			return set.Contains(targetDepPath);
+		}
+
 		// ---------------- Helpers ----------------
+
+		private static string GetObjectSortKey(Object obj)
+		{
+			if (obj == null) return "~";
+			// For scene objects, include scene and hierarchy path; for assets, use asset path
+			if (obj is GameObject go)
+			{
+				var sceneName = go.scene.IsValid() ? go.scene.path : "";
+				return sceneName + "|" + GetHierarchyPath(go);
+			}
+			return AssetDatabase.GetAssetPath(obj) ?? obj.name;
+		}
+
+		private static string GetHierarchyPath(GameObject go)
+		{
+			if (go == null) return "<null>";
+			var stack = new List<string>();
+			var t = go.transform;
+			while (t != null)
+			{
+				stack.Add(t.name);
+				t = t.parent;
+			}
+			stack.Reverse();
+			return string.Join("/", stack);
+		}
 
 		private static Object LoadAny(string path)
 		{
