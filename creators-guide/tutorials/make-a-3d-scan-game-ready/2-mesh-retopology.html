@@ -1,0 +1,190 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Mesh Retopology | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Mesh Retopology | VPE Documentation ">
+      
+      <meta name="description" content="Create a new topology using Instant Meshes and RetopoFlow3">
+      <link rel="icon" href="../../../favicon.png">
+      <link rel="stylesheet" href="../../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../../public/main.css">
+      <link rel="stylesheet" href="../../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../../toc.html">
+      <meta name="docfx:tocrel" content="../../toc.html">
+      
+      <meta name="docfx:rel" content="../../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/tutorials/make-a-3d-scan-game-ready/2-mesh-retopology.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../../index.html">
+            <img id="logo" class="svg" src="../../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="tutorial_3d_scan_2">
+<h1 id="mesh-retopology">Mesh Retopology</h1>
+
+<p>For this step we'll need two additional tools:</p>
+<ul>
+<li><a href="https://github.com/wjakob/instant-meshes">Instant Meshes</a> (a standalone tool)</li>
+<li><a href="https://github.com/CGCookie/retopoflow">RetopoFlow 3</a> (a Blender plug-in)</li>
+</ul>
+<p>Both programs are free and open source.</p>
+<h2 id="retopowhat">Retopowhat?</h2>
+<p>From <a href="https://docs.blender.org/manual/en/latest/modeling/meshes/retopology.html">blender.org</a>:</p>
+<blockquote>
+<p>Retopology is the process of simplifying the topology of a mesh to make it cleaner and easier to work with. Retopology is need for mangled topology resulting from sculpting or generated topology, for example from a 3D scan.</p>
+</blockquote>
+<p>You're probably not going to rig and animate your playfield toy. However, retopology gives you the possibility to put in more geometry where it's most visible, adding more details to your mesh for the same price (=poly count).</p>
+<p>Our approach here is to let <em>Instant Meshes</em> handle most of the heavy work, and manually add more details where appropriate.</p>
+<p>If you want to dig deeper into topology, here is an extensive video on the topic:</p>
+<div class="embeddedvideo"><iframe src="https://www.youtube-nocookie.com/embed/6Kt0gW3_kio" frameborder="0" allowfullscreen="true"></iframe></div>
+<h2 id="base-topology">Base Topology</h2>
+<p>Open up <em>Instant Meshes</em> and load <code>hi-poly.obj</code>. Now you need to decide the number of vertices you're aiming for. Since we're going to add more geometry later, we can aim pretty low. In our case, we're going for a thousand vertices.</p>
+<p>Set <em>Target vertex count</em> to 1K, then click on <em>Solve</em> under <em>Orientation field</em>. This gives you hints how the geometry will be oriented.</p>
+<p><img src="im-no-adjustments.jpg" alt="Orientation Field Solved"></p>
+<p>Now, if you're doing this the first time, you probably have no idea what to look for. In general, what you're aiming for is an orientation field that is well aligned with the geometry. For example, we would like to have an orientation along each of the crawls, so we can more easily add details without having to move too much vertices around.</p>
+<p>Use the <em>comb</em> tool to draw new lines. Each time you add a new line, the program updates the orientation field to accommodate for the new orientation you're setting.</p>
+<p><img src="im-combed.jpg" alt="Orientation Field after using the Comb tool"></p>
+<p>In our example, we've added new orientations to the crawls, the wings and the face. We didn't go into too much detail for the face, since we're re-doing that one manually later anyway.</p>
+<p>Now, click on <em>Solve</em> under <em>Position field</em>. This gives you a rough idea how the polygons will be aligned. If necessary, re-comb and solve again.</p>
+<p><img src="im-positions.jpg" alt="Resolved Positions"></p>
+<p>Click on <em>Export Mesh</em> and <em>Extract Mesh</em>. This shows you the mesh we're going fine-tune in Blender.</p>
+<p><img src="im-mesh.jpg" alt="Base Mesh"></p>
+<p>Click on <em>Save</em> and export it as <code>low-poly-base.obj</code>.</p>
+<h2 id="fine-tune">Fine-Tune</h2>
+<p>Go back to Blender, and import <code>low-poly-base.obj</code>. Select it, and choose <em>Object -&gt; Shade Smooth</em>.</p>
+<p><img src="low-poly-imported.jpg" alt="Imported low-poly model"></p>
+<p>If you haven't yet, install the <a href="https://github.com/CGCookie/retopoflow">RetopoFlow 3</a> plugin. We won't go into too much detail on how to use RetopoFlow, but this tutorial should teach you the basics:</p>
+<div class="embeddedvideo"><iframe src="https://www.youtube-nocookie.com/embed/X8kQiccJetw" frameborder="0" allowfullscreen="true"></iframe></div>
+<p>In order to get your imported model into RetopoFlow, select the mesh, enter edit mode, click on the <em>RetopoFlow</em> button, and select <em>Start RetopoFlow</em>.</p>
+<p><img src="retopoflow-start.jpg" alt="RetopoFlow"></p>
+<p>Now, re-topo the parts that need more details. In our example, we've completely removed and remodeled the head, added more geometry to the feet and some to the wings. We've also aligned some vertices to better match the model.</p>
+<p><img src="retopoflow-done.jpg" alt="RetopoFlow Done"></p>
+<div class="NOTE">
+<h5>Note</h5>
+<h4 id="quads-vs-tris">Quads vs Tris</h4>
+<p>You're probably heard about the debate whether to use purely quads or triangles in your geometry. <a href="http://wedesignvirtual.com/quads-vs-tris-in-3d-modeling/">Here</a> is a pretty good overview about the pros and cons of each.</p>
+<p>In short, since we're not purists and are working on game assets, some triangles are fine.</p>
+</div>
+<p>So you got your mesh. Spend some time fine-tuning it. Rotate, and check if there are any important angles where the silhouette looks jagged. Add more geometry if needed, but also keep in mind the distance from which your toy will be typically rendered (probably no one will zoom-in fully on your model during game play).</p>
+<p>Now let's <a class="xref" href="3-bake-texture-maps.html">bring back the details of the original geometry</a>.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/tutorials/make-a-3d-scan-game-ready/2-mesh-retopology.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2025 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,203 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Visual Scripting Variables | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Visual Scripting Variables | VPE Documentation ">
+      
+      <meta name="description" content="How to deal with runtime variables">
+      <link rel="icon" href="../../favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <link rel="stylesheet" href="../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/plugins/visual-scripting/variables.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="uvs_variables">
+<h1 id="variables">Variables</h1>
+
+<p>As you create your game logic, you'll want to read and write data such as the player's score, or the number of balls per game. There are two ways of doing that:</p>
+<ol>
+<li>Using VPE's game- and player variables.</li>
+<li>Using Unity's <a href="https://docs.unity3d.com/Packages/com.unity.visualscripting@1.8/manual/vs-variables.html">visual scripting variables</a>.</li>
+</ol>
+<h2 id="vpe-variables">VPE Variables</h2>
+<p>A common pattern in pinball games is the notion of multiple players: Player one starts the game, scores some points, drains the ball, then player two starts with zero points, scores some as well, drains the ball, and when it's back to player one, player one's score should be displayed again.</p>
+<p>This means that we need something that tracks the score (and many other things) <em>per player</em>. We should then be able to easily switch from one player to another, and we want the playfield and the display to be automatically updated when that happens.</p>
+<p>VPE provides its own type of variables for that, and they come in two flavors:</p>
+<ul>
+<li><strong>Player Variables</strong> are as described above, scoped <em>per player</em>. Here, you would be storing data such as the <em>current score</em>.</li>
+<li><strong>Table Variables</strong> are <em>global</em> to the table. You would use them for things like <em>balls per game</em>.</li>
+</ul>
+<p>In the visual scripting GLE, you can define the structure of both types of variables. Then, in the graph, you'll get events for every defined variable that you can use to trigger the desired action.</p>
+<p>If you're testing gameplay in the editor, the current values of both player and table variables are shown in the inspector and get updated in real time.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>In the future, table variables could also be marked as <em>editable</em>, so the player app could allow the user to change them.</p>
+</div>
+<h3 id="setup">Setup</h3>
+<img src="variables-gle-inspector.png" width="407" alt="Variable Definitions" class="img-fluid float-end" style="margin-left: 15px">
+<p>In the hierarchy, select the GameObject where you added the visual scripting GLE (usually the root node of the table). In there, you'll find two sections, <em>Player Variables</em> and <em>Table Variables</em>.</p>
+<p>You can define as many as you want for each. You'll need a name and a variable type, for which <a href="https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/reference-types#the-string-type"><code>string</code></a>, <a href="https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/integral-numeric-types"><code>int</code></a>, <a href="https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/floating-point-numeric-types"><code>float</code></a> and <a href="https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/bool"><code>bool</code></a> are supported.</p>
+<div class="clearfix">&nbsp;</div><p>&nbsp;</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>You can use any human-readable name (with spaces and so on), since variables are referenced by an internal ID. You can also rename them later but changing the <em>type</em> later might result in issues.</p>
+</div>
+<h3 id="accessing-variables">Accessing Variables</h3>
+<p>Once you have declared your variables, you can use them in your graphs. In the graph editor, those nodes can be found under <em>Pinball/Variables</em> and <em>Events/Pinball</em> for the event node.</p>
+<p>There are two sets of nodes, one for player variables and one for table variables. They are identical apart from two additional player variable nodes described in the <em>Player State</em> section below.</p>
+<ul>
+<li><strong>Get Variable</strong> contains an output with the current value of your variable.</li>
+<li><strong>Set Variable</strong> contains an input with the new value of your variable. When executed, it applies that value to the variable.</li>
+<li><strong>Increase Variable</strong> adds a number to a variable of type float or integer.</li>
+<li><strong>On Variable Changed</strong> is an event node that triggers when a given variable changes.</li>
+</ul>
+<h4 id="player-state">Player State</h4>
+<p>We call <em>player state</em> the set of player variables assigned to a player. There are as many player states as there are players in a running game, but only one active state. You can create new states whenever you want (typically when the start button is pressed during the first ball, and there are enough credits).</p>
+<p>When creating a new state, you can either explicitly define a player ID (it's an integer), or automatically create one. You can then switch states by either indicating the player ID, or just &quot;the next&quot; player (which will cycle to the first player if the last player is active).</p>
+<p>You currently cannot explicitly destroy player states, but you can tell the player state creation node to destroy all previous states prior to creation. This is because typically, your player state persists even after the game and gets reset only when a new game begins.</p>
+<h4 id="synchronizing-state">Synchronizing State</h4>
+<p>In most of your graphs, you should be reading and writing variables only. For example, if you increase the player's score, you shouldn't have to worry about updating the display where the score is shown. You just update the <em>score</em> player variable, that's it.</p>
+<p>The idea here is to separate the pure game logic from what's going on the playfield and the display. This is where events come in. As described earlier, there is an <em>On Variable Changed</em> event that you can put in any graph. This event triggers every time you change the value of a given player- or table variable, no matter from which subgraph.</p>
+<p>So, in this example, you would have one subgraph that would handle display updates. This graph would contain event nodes for all relevant variables that have any effect on the display and update the display accordingly.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>In computer science, this is called <em>SoC</em>, or <a href="https://en.wikipedia.org/wiki/Separation_of_concerns">Separation of concerns</a>. It means that each section (in our case, a subgraph) should only care about one specific thing, and not about any of the side effects.</p>
+</div>
+<p>Besides not having to think about all the consequences every time you change a variable, this patterns also gives you a free perk: When you switch players, VPE will automatically trigger events for all player variables that changed, which will result in the display showing the correct score, without the need of any further logic from your side.</p>
+<p>Here is an example of the graph that synchronizes the light variables of Gottlieb's Volley with the lamps on the playfield:</p>
+<p><img src="variables-light-events.png" alt="Variable to Lamp mapping"></p>
+<h4 id="persisting-variables">Persisting Variables</h4>
+<p>You might want to persist state across launches, i.e., have them written to disk. Examples are high scores or game settings. This is still work in progress.</p>
+<h2 id="unity-visual-scripting-variables">Unity Visual Scripting Variables</h2>
+<p>For everything game related, we recommend using VPE variables as described above. However, there is a use case where using Unity's built-in variable system might be necessary.</p>
+<p>Imagine you have created somewhat complex in a graph, and you want to re-use that logic in different ways, by passing different arguments to that graph. Like a function that takes in parameters.</p>
+<p>In this case you should rely on the graph's <a href="https://docs.unity3d.com/Packages/com.unity.visualscripting@1.7/manual/vs-add-triggers-data-graph.html">data ports</a> that allow passing data to graphs, which you then can access through the <em>Input</em> node.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/plugins/visual-scripting/variables.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2025 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

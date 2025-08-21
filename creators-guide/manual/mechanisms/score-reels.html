@@ -1,0 +1,186 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Score Reels | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Score Reels | VPE Documentation ">
+      
+      <meta name="description" content="How to use EM-style reels to display the score.">
+      <link rel="icon" href="../../../favicon.png">
+      <link rel="stylesheet" href="../../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../../public/main.css">
+      <link rel="stylesheet" href="../../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../../toc.html">
+      <meta name="docfx:tocrel" content="../../toc.html">
+      
+      <meta name="docfx:rel" content="../../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/manual/mechanisms/score-reels.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../../index.html">
+            <img id="logo" class="svg" src="../../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="score-reels">
+<h1 id="score-reel-displays">Score Reel Displays</h1>
+
+<img src="score-reels.jpg" width="350" alt="Score Reels a of a Gottlieb Volley" class="img-fluid float-end" style="margin-left: 15px">
+<p>In electro-mechanical games, score reels are very common for displaying the player score. Typically, four to six units are mounted behind the backglass. Each reel is driven by a coil that advances the reel by one position when pulsed. The coils are driven by the playfield elements in the game, often indirectly through a score motor for multi-point scoring.</p>
+<p>VPE includes components that simulate the <a class="xref" href="score-motors.html">score motor</a> and render the score reel animation. This page is about the score reel, which presents itself to the <a class="xref" href="../gamelogic-engine.html">GLE</a> as a <a class="xref" href="../displays.html">display</a> that takes in the &quot;numerical&quot; frame format (i.e. numbers only). The score motor is an optional component that provides accurate timing when animating the reels.</p>
+<h2 id="setup">Setup</h2>
+<p>Typically you would drop the desired score reel variant from the asset library into your scene. But you can also set it up manually:</p>
+<p>A score reel display consists of two separate components.</p>
+<ol>
+<li>The <em>Score Reel Display</em> component, which represents the logical display that takes in a number and then sets the reels to display that number.</li>
+<li>The <em>Score Reel</em> component, which represents one single reel and handles the animation.</li>
+</ol>
+<h3 id="model">Model</h3>
+<p>The best geometry for a score reel is a simple, open cylinder. Make sure the local origin is in the middle, and that it rotates around the Z-axis.</p>
+<p><img src="score-reels-geometry.jpg" alt="Score reel geometry"></p>
+<p>The texture should contain the numbers 0-9, each taking up 36°. The order (and thus the direction of rotation) depends on the game, so both are valid, and can be configured later.</p>
+<h3 id="scene">Scene</h3>
+<p>In your scene, drop in your reel model and add the <em>Score Reel</em> component (not the <em>Score Reel Display</em> component) to the game object. You can find it under <em>Pinball -&gt; Display</em>. Since you'll need the same reel for each position, the best approach is to create a <a href="https://docs.unity3d.com/Manual/Prefabs.html">prefab</a> for the reel and instance it for each position. Then, parent them under a game object that acts as your display. To this object, add the <em>Score Reel</em> component (also under <em>Visual Pinball -&gt; Display</em>).</p>
+<p><img src="score-reels-scene.png" alt="Score reel scene"></p>
+<h3 id="components">Components</h3>
+<h4 id="score-reel">Score Reel</h4>
+<img src="score-reel-inspector.png" width="362" alt="Score Reel Inspector" class="img-fluid float-end" style="margin-left: 15px">
+<p>The <em>Score Reel</em> component is quick to set up. There is only one option, which is the <em>rotation direction</em>. What the score reel component gets from the display component is &quot;turn to position X&quot;, where X is between 0 and 9, and the component's job is to animate the reel to that position.</p>
+<p>Internally, it also takes in the rotation speed, and how long it rests at the final position before it can advance to the next position. However, those parameters are not exposed in the inspector but retrieved from the display component described in the next section.</p>
+<h4 id="score-reel-display">Score Reel Display</h4>
+<img src="score-reel-display-inspector.png" width="362" alt="Score Reel Display Inspector" class="img-fluid float-end" style="margin-left: 15px">
+<p>This is the component on the parent game object that receives score numbers from the game and tells the individual reels to which position they need to turn to.</p>
+<ul>
+<li><strong>ID</strong> defines the display ID. Remember that displays are <a class="xref" href="../displays.html#setup">connected at runtime</a>, so this is the identifier that the GLE uses to send data to it.</li>
+<li><strong>Speed</strong> defines how quickly the reels should rotate.</li>
+<li><strong>Wait</strong> indicates the time the reels stand still before they can go to the next position.</li>
+<li>Under <strong>Reel Objects</strong> you define your reels (they are not automatically retrieved from the children). The order is from largest to smallest, i.e. from left to right.</li>
+<li>The <strong>Score Motor</strong> is an optional reference to a <a class="xref" href="score-motors.html">score motor component</a>.</li>
+</ul>
+<h2 id="usage">Usage</h2>
+<h3 id="gamelogic-engine">Gamelogic Engine</h3>
+<img src="score-reel-uvs-display.png" width="362" alt="Score Reel Display Inspector" class="img-fluid float-end" style="margin-left: 15px">
+<p>Score reels are primarily used in EMs, so they are typically driven by <a class="xref" href="../../../plugins/visual-scripting/index.html">Visual Scripting</a>. As with every display, the first step is to define the display in the GLE component.</p>
+<p>Add a new display under <em>Displays</em> and set the same ID as you did in the display component. The <em>Width</em> and <em>Height</em> properties are ignored, since they are managed by the display component (contrarily to the other displays, where the size is given by the GLE).</p>
+<p>Next, add <em>Numeric</em> under <em>Supported Formats</em>.</p>
+<h3 id="visual-scripting">Visual Scripting</h3>
+<p>In Visual Scripting, use the <a class="xref" href="../../../plugins/visual-scripting/node-reference.html#update-display">Update Display</a> node to set a new score. It's up to you whether to use a separate <a class="xref" href="../../../plugins/visual-scripting/setup.html#events">event</a> or to subscribe to a <a class="xref" href="../../../plugins/visual-scripting/variables.html">player variable</a> directly.</p>
+<p>If you're using a score motor, read how to set it up correctly <a class="xref" href="score-motors.html#usage">here</a>.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/manual/mechanisms/score-reels.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2025 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

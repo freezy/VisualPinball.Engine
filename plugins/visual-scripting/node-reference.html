@@ -1,0 +1,311 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Visual Scripting Node Reference | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Visual Scripting Node Reference | VPE Documentation ">
+      
+      <meta name="description" content="Reference documentation for all VPE-specific nodes.">
+      <link rel="icon" href="../../favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <link rel="stylesheet" href="../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/plugins/visual-scripting/node-reference.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="uvs_node_reference">
+<h1 id="node-reference">Node Reference</h1>
+
+<p>This page details all the VPE-specific nodes that we have created for visual scripting.</p>
+<p>You can recognize VPE nodes easily by their color: they are orange. When creating new nodes, VPE event nodes can be found under <em>Events/Pinball</em>, and other nodes simply under the root's <em>Visual Pinball</em>.</p>
+<p>Besides the simple read/write/event nodes, there are a bunch of nodes that solve common patterns in pinball games. While you could implement the same logic using Unity's standard nodes, we recommend using these custom nodes, because they save you space and thus increase the readability of your graphs.</p>
+<p>However, it's hard to use them without knowing about them, so we recommend reading through this page in order to familiarize with them.</p>
+<h2 id="coils">Coils</h2>
+<h3 id="on-coil-enabled">On Coil Enabled</h3>
+<p>This event is triggered when the status of any coil in a list of coils is <em>enabled</em>.</p>
+<h3 id="on-coil-changed">On Coil Changed</h3>
+<p>This coil event triggers when the status of a coil in a list of coils changes.</p>
+<p><img src="on-coil-changed.png" alt="On Coil Changed"></p>
+<h3 id="on-all-coils-enabled">On All Coils Enabled</h3>
+<p>This coil event triggers when all coils in a list of coils are enabled.</p>
+<h3 id="set-coil">Set Coil</h3>
+<p>This node assigns a given value to one or multiple coils and keeps that value. This is useful when both the <em>enabled</em> and <em>disabled</em> status are important. Otherwise, use the <a href="#pulse-coil"><em>Pulse Coil</em></a> node, which enables a coil, and automatically disables it after a short delay.</p>
+<p>A typical use case for this node is linking the flipper coil to a switch event. Here an example of a game that has an upper flipper and a lower flipper, both linked to the same <em>left flipper</em> switch.</p>
+<p><img src="set-coil-example.png" alt="Set Coil"></p>
+<p>As seen in the screenshot, you can set the number of affected coils in the header of the node. Increasing the number will add additional ports below.</p>
+<h3 id="pulse-coil">Pulse Coil</h3>
+<p>This node enables one or multiple coils and disables them after a given delay. This is useful when you only care about the &quot;enabled&quot; event, which often the case. Here is an example of the eject coil of the trough being pulsed when the <em>running</em> state is entered.</p>
+<p><img src="pulse-coil-example.png" alt="Pulse Coil"></p>
+<h3 id="get-coil-value">Get Coil Value</h3>
+<p>This node returns the current coil status of a given coil. While usually you should rely on player and table variables for saving and retrieving status, it still has its usage. For example, you might need to see if a coil is still <em>enabled</em> after a period of time.</p>
+<h2 id="switches">Switches</h2>
+<h3 id="on-switch-enabled">On Switch Enabled</h3>
+<p>This is probably the most common switch event you will use. It triggers when any switch in a list of switches is <em>enabled</em>.</p>
+<p>Here is an example of the drain switch increasing the <em>current ball</em> variable.</p>
+<p><img src="on-switch-enabled.png" alt="On Switch Enabled"></p>
+<h3 id="on-switch-changed">On Switch Changed</h3>
+<p>The other switch event triggers in both cases, when the switch is enabled, and when it gets disabled. The classic example already mentioned above is the flipper buttons.</p>
+<h3 id="on-all-switches-enabled">On All Switches Enabled</h3>
+<p>This switch event triggers when all switches in a list of switches are enabled.</p>
+<h3 id="set-switch">Set Switch</h3>
+<p>This node enables or disables one or multiple switches.</p>
+<h3 id="pulse-switch">Pulse Switch</h3>
+<p>This node enables one or multiple switches and disables them after a given delay.</p>
+<h3 id="get-switch-value">Get Switch Value</h3>
+<p>This node returns the current switch value of a given switch. While usually you should rely on player and table variables for saving and retrieving status, it still has its usage. For example, you might want to not add the state of a kicker to the variables and rely on the kicker switch directly instead.</p>
+<p><img src="get-switch-example.png" alt="Get Switch"></p>
+<p>You can also add multiple switches, in which case the output is only true if <em>all switches</em> are enabled.</p>
+<h2 id="lamps">Lamps</h2>
+<p>Lamps are a bit more complex than coils and switches, because besides simply being <em>on</em> or <em>off</em>, they have an <em>intensity</em> and a <em>color</em>. Additionally, they can be set to a <em>blinking</em> state. This means that all our lamp nodes include a dropdown indicating how it should be driven, with the port types changing accordingly:</p>
+<ul>
+<li><strong>Status</strong> corresponds to an <code>enum</code>, one of  <em>On</em>, <em>Off</em> and <em>Blinking</em>.</li>
+<li><strong>On/Off</strong> is a <code>bool</code>, where <code>true</code> corresponds to the <em>On</em> status, and <code>false</code> to the <em>Off</em> status.</li>
+<li><strong>Intensity</strong> corresponds to a <code>float</code> and is explained in more detail below.</li>
+<li><strong>Color</strong> has its own <code>Color</code> type.</li>
+</ul>
+<p>These four modes allow you to completely control a lamp (with <em>On/Off</em> setting the status using a <code>bool</code>). However, there is a second factor that defines how the lamp will actually react, and that is its <a class="xref" href="../../creators-guide/editor/lamp-manager.html#type">mapping type</a> in the lamp manager.</p>
+<p>See, VPE supports a wide range of gamelogic engines, and they often don't have an internal API as rich as our visual scripting package. For example, when PinMAME sets a light to the value of 255, it doesn't know whether it just &quot;turned it on&quot; from 0 or whether it was &quot;faded in&quot; from a previous non 0 value. That's information we have to manually set in the lamp manager (in this example, the mapping type would be <em>Single On|Off</em> and <em>Single Fading</em> respectively).</p>
+<p>That said, the only mode that might lead to confusion is <em>Intensity</em>, mainly because it's the only value that PinMAME emits. So, if you choose <em>Intensity</em>, here is how the value is treated depending on each mapping type:</p>
+<ul>
+<li><em>Single On|Off</em> sets the <strong>status</strong> of the lamp to <em>On</em> if the value is greater than 0, and to <em>Off</em> otherwise.</li>
+<li><em>Single Fading</em> sets the <strong>intensity</strong> to the value <em>divided by <a class="xref" href="../../creators-guide/editor/lamp-manager.html#max-intensity">maximal intensity</a></em>. We recommend setting the maximum intensity to 100 in the lamp manager and use values from 0 to 100 in the visual scripting nodes.</li>
+<li><em>RGB</em> sets the <strong>intensity</strong>, where the value is between 0 and 1.</li>
+<li><em>RGB Multi</em> you probably will not use. It sets the <a class="xref" href="../../creators-guide/editor/lamp-manager.html#channel">channel</a> defined in the mapping to the value divided by 255 (yes, it's very PinMAME specific).</li>
+</ul>
+<div class="NOTE">
+<h5>Note</h5>
+<p>When creating your proper game logic, you should rely on <a href="#variables">variables</a> instead of lamp status in your logic. However, since you can also use visual scripting along with different gamelogic engine such as <a class="xref" href="../pinmame/index.html">PinMAME</a>, where you can't access the internal state, we also provide nodes for lamp events and retrieving their value.</p>
+</div>
+<p>Let's jump to the nodes.</p>
+<h3 id="set-lamp">Set Lamp</h3>
+<p>This node assigns a given value to a lamp defined by its mapped ID. This also triggers the lamp changed event.</p>
+<p>In the example, we have defined a player variable of type <code>bool</code> called <em>Yellow Bank Lit</em>. We synchronize the lamp status with the variable by setting the lamp with the ID <code>l_yellow_bank</code> to the value of the variable when it changes.</p>
+<p><img src="set-lamp-example.png" alt="Set Lamp"></p>
+<h3 id="get-lamp-value">Get Lamp Value</h3>
+<p>This node retrieves the current value of a lamp by its mapped ID. As described before, the type of the output port depends on which mode has been selected.</p>
+<p>A typical usage is to check whether a lamp has previously been set, where no variable is available. That's the case if you're expanding PinMAME with additional logic.</p>
+<p><img src="get-lamp-example.png" alt="Get Lamp"></p>
+<p>This is an example from the table <em>Rock (Premier 1985)</em>, where PinMAME doesn't emulate the starting light sequence. The graph above checks if lamp 01 is lit and turns off a bunch of lamps if that's not the case (otherwise, it's more complicated). It does this when lamp 01, 12 or 13 changes, and at the beginning of the game.</p>
+<h3 id="on-lamp-changed">On Lamp Changed</h3>
+<p>This node triggers when any of the defined lamps changes state. Its application is quite similar to the previous <em><a href="#get-lamp-value">get lamp value</a></em> node, where the example covers this node as well.</p>
+<h3 id="lamp-sequence">Lamp Sequence</h3>
+<p>This node takes in a list of lamps and loops through each lamp with a given step size, while applying a given value to the active lamp(s) and another value to the inactive lamps. The counter is internal to the node and increases each time the node is processed.</p>
+<p>The inputs are the following:</p>
+<ul>
+<li><em>Lamps</em> - The list of lamps to loop through. Note that light groups are flattened, i.e., split into single lamps.</li>
+<li><em>Step</em> - By how much the internal counter increases when the node is processed. It's also how many lamps are active.</li>
+<li><em>Value</em> - The value that is applied to the <em>active</em> lamps</li>
+<li><em>Non Step Value</em> - The value that is applied to <em>inactive</em> lamps.</li>
+</ul>
+<p>As an example, here is a loop that gets triggered when lamp 13 gets lit and repeats until lamp 13 is unlit. On each iteration, two lamps get turned on, while the others are turned off. It starts with the first two lamps, then the second two lamps, then lamp 5 and 6, and so on. All these lamps are part of the <code>l_auxiliary</code> light group, which contains 20 lamps. After lamp 19 and 20 were turned on, it goes back to lamp 1 and 2. After each iteration, the loop pauses for 60ms before continuing.</p>
+<p>Finally, when lamp 13 is turned off, the loop exits, and the entire light group is turned off as well.</p>
+<p><img src="lamp-sequence-example.png" alt="Lamp Sequence"></p>
+<h3 id="switch-lamp">Switch Lamp</h3>
+<p>This node takes in a list of lamps, matches them based on an input, and updates them based on the match.</p>
+<p>In the following example we enable the lamp on an EM backglass which indicates the current ball in play. As an input we get an integer representing the ball number, and we toggle the respective lamp based on that value.</p>
+<p><img src="switch-lamp-example.png" alt="Switch Lamp"></p>
+<p>You don't need to populate all possible input values with your lamps. Here is an example that matches only if the current ball number is 0 (no game running), in which case the GAME OVER lamp is set to <em>blinking</em>.</p>
+<p><img src="switch-lamp-example2.png" alt="Switch Lamp"></p>
+<h2 id="variables">Variables</h2>
+<p>See <a class="xref" href="variables.html">Variables</a> for an overview on how variables work. We will be using examples for player variables, but apart from <a href="#create-player-state">creation</a> and <a href="#change-player-state">changing</a>, they work the same way as table variables.</p>
+<h3 id="create-player-state">Create Player State</h3>
+<p>This node adds variables for a new player. If the game starts and you want to use player variables, you need to create a player state, even if your game has only one player.</p>
+<p>You would typically do it when the game starts. Multiplayer games would execute this node when <em>start</em> is pressed during the first ball.</p>
+<p>This node has the following options:</p>
+<ul>
+<li><strong>Auto-Increment</strong> automatically sets the player ID. It does that by increasing the largest existing player ID by one.</li>
+<li><strong>Player ID</strong> is only visible if auto-increment is not set, and lets you specify the player ID.</li>
+<li><strong>Set as Active</strong> will make the newly created player state the current state. This makes sense when a new game is started, but not when new players are added.</li>
+<li><strong>Destroy Previous</strong> deletes all player states before creating the new one. This is useful when starting a new game.</li>
+</ul>
+<p>Here an example of the player state being created right after the state machine enters the game state, i.e., when the game starts.</p>
+<p><img src="create-player-state-example.png" alt="Create Player State"></p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>This is one of two nodes that doesn't exist for table variables.</p>
+</div>
+<h3 id="change-player-state">Change Player State</h3>
+<p>This node swaps out the current player variables with the ones from another player. You do this when a player has finished playing and it's the next player's turn.</p>
+<p>The following options are available:</p>
+<ul>
+<li><strong>Next Player</strong> automatically choses the next player. If the current player is the last player, the next player is the first player. You typically enable this option when using <em>auto-increment</em> during player state creation. It means that VPE handles the player IDs.</li>
+<li><strong>Player ID</strong> lets you explicitly set the ID of the player you want to change to (only visible of <em>Next Player</em> is disabled).</li>
+</ul>
+<p>The following is an example of a multiplayer game with infinite balls (i.e., remaining balls are not checked). The flow starts with the drain switch, which then checks whether the current player has any extra balls left. If that's not the case, then the player state is changed to the next player, otherwise the number of extra balls is decreased instead, and finally the eject coil of the trough is pulsed.</p>
+<p><img src="change-player-state-example.png" alt="Change Player State"></p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>This the second node that doesn't exist for table variables.</p>
+</div>
+<h3 id="get-player-id">Get Player ID</h3>
+<p>This node gives you access to the player ID. There are three different modes:</p>
+<ul>
+<li><em>Current</em> returns the ID of the current player</li>
+<li><em>First</em> return the smallest player ID</li>
+<li><em>Last</em> returns the largest player ID</li>
+</ul>
+<p>A typical example is shown in the <a href="#get-variable">next section</a>.</p>
+<h3 id="get-variable">Get Variable</h3>
+<p>This node returns the value of a given variable. To build on the previous example, let's do a check whether we should end the game if a ball was drained.</p>
+<p>To do that, we retrieve the player variable <em>Current Ball Number</em> and check if it's the same as the global variable <em>Balls per Game</em>. If that's the case, we assume that it's the last ball. Then we compare the current player ID to the last player ID. The final <em>And</em> node checks if both conditions are true, and what comes out is whether we should end the game or not.</p>
+<p><img src="get-variable-example.png" alt="Get Variable"></p>
+<h3 id="set-variable">Set Variable</h3>
+<p>This node applies a given value to a variable. It's very straightforward. Here an example of a trigger enabling the lit status of a bumper.</p>
+<p><img src="set-variable-example.png" alt="Set Variable"></p>
+<h3 id="increase-variable">Increase Variable</h3>
+<p>More often than not, you want to increase a variable by a given value rather than setting an absolute value. This node does exactly that, for integer and float typed variables. For string types, it concatenates the value to the current one. For Boolean types, it inverts the current value, <em>if</em> the input value is <code>true</code>.</p>
+<p>A typical example for this node is scoring. This example adds 1000 points to the score when the bumper switch is enabled.</p>
+<p><img src="increase-variable-example.png" alt="Increase Variable"></p>
+<h3 id="on-variable-changed">On Variable Changed</h3>
+<p>One of the main advantages of using VPE's variable system is that you get events when they change. That makes it easy to separate how the variable is updated from what effect updating it causes. That's great, because you shouldn't care <em>why</em> a variable was updated, only <em>when</em> and <em>to which value</em> (see also <a class="xref" href="variables.html#synchronizing-state">Synchronizing State</a>).</p>
+<p>In this example, we listen to the score variable and fetch it into our <em>Update Display</em> node, which sends the data to our score reel component, which then rotates the reels accordingly. Note that you'll also get the previous value of the variable before it changed.</p>
+<p><img src="on-variable-changed-example.png" alt="On Variable Changed"></p>
+<h2 id="events">Events</h2>
+<h3 id="trigger-pinball-event">Trigger Pinball Event</h3>
+<p>This node triggers an event that was previously defined in the inspector of the visual scripting gamelogic engine. It can be fed with an any number of arguments.</p>
+<p>In this example we don't set the score directly but emit an event so we can have centralized logic dealing with scores (it's for an EM, and while the reel motor is on, no scoring is skipped):</p>
+<p><img src="trigger-event-example.png" alt="Trigger Event"></p>
+<h3 id="on-pinball-event">On Pinball Event</h3>
+<p>On the receiving end, this is the event node that is triggered when a pinball event node with the same event is executed. To continue the previous example, here the graph was triggered by a pinball event, which updates the score if the score reel motor is not running.</p>
+<p><img src="pinball-event-example.png" alt="On Pinball Event"></p>
+<h2 id="displays">Displays</h2>
+<p>Creating original <em>graphical</em> content for displays is not yet supported by VPE. We're looking into leveraging Unity's 2D engine to create content and send the result to the different output devices VPE supports. This will most likely be a system independent from visual scripting.</p>
+<p>Even if we have nothing that creates the graphical content, we've defined the APIs used to pass the data around. This allows us to already have a working system that supports number and text data.</p>
+<h3 id="clear-display">Clear Display</h3>
+<p>This node clears a <a class="xref" href="setup.html#displays">display defined in the GLE</a>.</p>
+<p><img src="clear-display-example.png" alt="Clear Display"></p>
+<h3 id="update-display">Update Display</h3>
+<p>This node takes in some data and sends it to one of the <a class="xref" href="setup.html#displays">displays defined in the GLE</a>. VPE supports segment displays and score reels, so the data can be numeric (score reels and segment displays) or alphanumeric (segment displays).</p>
+<p>This example shows how the display is updated for a simple one player EM machine.</p>
+<p><img src="update-display-example.png" alt="Update Display"></p>
+<p>The score reel animation is handled by the component driving the reel. It's also on component level where you can define the speed and delays of the score reel animation and associate a <a class="xref" href="../../creators-guide/manual/mechanisms/score-motors.html">score motor</a>.</p>
+<h3 id="on-display-changed">On Display Changed</h3>
+<p>This event is triggered when a <a class="xref" href="setup.html#displays">display defined in the GLE</a> is updated by <em>Clear Display</em> or <em>Update Display</em>. It is useful for EM machines that use a <a class="xref" href="../../creators-guide/manual/mechanisms/score-motors.html">score motor</a> and need to capture the score in a player variable.</p>
+<p><img src="display-changed-example.png" alt="On Display Changed"></p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/plugins/visual-scripting/node-reference.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2025 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

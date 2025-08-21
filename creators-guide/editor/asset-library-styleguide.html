@@ -1,0 +1,327 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Asset Library Style Guide | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Asset Library Style Guide | VPE Documentation ">
+      
+      <meta name="description" content="These guidelines describe how the game assets of the pinball asset library should be created so they are of high quality, customizable, consistent and optimized.">
+      <link rel="icon" href="../../favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <link rel="stylesheet" href="../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/asset-library-styleguide.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="asset_library_guide">
+<h1 id="asset-library-style-guide">Asset Library Style Guide</h1>
+
+<p>This document serves as a comprehensive style guide for all 3D assets in the pinball asset library. Our goal is to maintain assets that are high <strong>quality</strong>, visually <strong>consistent</strong>, <strong>optimized</strong> for performance, and <strong>customizable</strong>. These guidelines should be followed for the vast majority of assets; exceptions can be made in special cases.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>Throughout this guide, you'll see examples highlighted in red and green. They signify whether you should follow these examples.</p>
+<p><img src="assetlib-do-dont.png" style="max-height:100px"><br></p>
+<p>That said, please consider this guide as work in progress.</p>
+</div>
+<h2 id="design-language">Design Language</h2>
+<p>We're aiming for a photorealistic look, as opposed to stylized visuals. Shapes should match those in the real world and maintain accurate proportions and sizes.</p>
+<h2 id="target-hardware">Target Hardware</h2>
+<p>We're targeting desktop PC hardware. This means we should be able to make use of the latest graphics features while still being able to run on older hardware.</p>
+<h2 id="geometry-guidelines">Geometry Guidelines</h2>
+<p>This section covers modeling practices, i.e. how to create meshes consisting of vertices, edges, and faces.</p>
+<h3 id="topology">Topology</h3>
+<p>Topology describes how vertices and edges form the shapes of your model. While there are many ideas on best practices, here are the essentials for game-ready assets:</p>
+<ul>
+<li>Use quads where possible and avoid n-gons.</li>
+<li>Maintain clean topology with proper edge flow, if possible.</li>
+<li>Apply proper smoothing groups/hard edges for accurate normal calculation (shade smooth/flat in Blender).</li>
+<li>Avoid non-manifold geometry and floating vertices - make the mesh watertight.</li>
+</ul>
+<p>If you're converting CAD models which aren't polygon-based, you'll likely need to apply some <a href="https://en.wikipedia.org/wiki/Retopology">retopology</a>. The same applies to 3D scans.</p>
+<p><img src="assetlib-retopo.png" style="max-height:200px"><br>
+<i>A STEP model imported into Blender (left), versus the re-modeled version (right).</i></p>
+<h3 id="poly-count">Poly Count</h3>
+<p>In <a href="https://en.wikipedia.org/wiki/Polygonal_modeling">polygonal modeling</a>, the poly count refers to the number of polygons used in a model. In game engines, quads and n-gons are converted to triangles, so we measure by the number of triangles. Higher triangle counts allow for more detail but increase rendering time.</p>
+<p>Follow these poly count guidelines:</p>
+<ul>
+<li>Small objects (e.g., spinners, drop targets) can typically stay under 500 triangles.</li>
+<li>Standard playfield objects (e.g., flippers, bumpers) can range from about 500 to 2,000 triangles.</li>
+<li>Hero pieces (large ramps, toys): higher counts are acceptable, but remain mindful of necessary detail.</li>
+</ul>
+<p><img src="assetlib-mesh-density.png" style="max-height:200px"><br>
+<i>A gate bracket at 108 triangles (left), 420 (middle) and 906 triangles (right)</i></p>
+<h3 id="scale-and-orientation">Scale and Orientation</h3>
+<p>Unity uses a <a href="https://en.wikipedia.org/wiki/Right-hand_rule">left-handed</a> coordinate system, where X points to the right, Y up, and Z forward. Your models should be oriented accordingly.</p>
+<p><img src="assetlib-orientation.png" style="max-height:200px"><br>
+<i>The various orientations we're dealing with.</i></p>
+<p>For scale, use <strong>meters</strong> as your unit of measurement. It's crucial to model in real-world units to ensure correct proportions between assets, as improper scaling makes it difficult to accurately size components. Ensure that scaling is applied directly to the model's geometry, eliminating the need for rescaling within the game engine.</p>
+<h3 id="complexity">Complexity</h3>
+<p>While we encourage providing details that might only be visible when pivoting around the table, nobody will examine what's below the playfield or hidden inside of other meshes.</p>
+<p>Therefore, don't include geometry that won't be visible.</p>
+<p><img src="assetlib-geo-details.png" style="max-height:200px"><br>
+<i>A drop target with the entire footing which is hidden by the playfield on the right, and reduced on the left.</i></p>
+<h3 id="pivot-point">Pivot Point</h3>
+<p>The pivot point, also known as <em>object origin</em> or <em>local origin</em>, defines where your model appears for a given position in 3D space.</p>
+<ul>
+<li>Static objects should always have their vertical axis (the Y axis in Unity, or Z axis in VPX) of the pivot point at playfield height, so setting it to 0 will position the object on the playfield.</li>
+<li>Objects that rotate need their pivot point on the rotation axis. If such an object is parented to another (static) object, the parent should also have its vertical origin at playfield height.</li>
+<li>On the horizontal plane, the pivot point should be in the center unless the object's topology suggests another more logical position.</li>
+</ul>
+<p><img src="assetlib-origin.png" style="max-height:200px"><br>
+<i>A drop target with the origin placed at different locations.</i></p>
+<h3 id="uv-maps">UV Maps</h3>
+<p>All models must be <a href="https://en.wikipedia.org/wiki/UV_mapping">UV-mapped</a>.</p>
+<ul>
+<li>UVs should be unwrapped with minimal stretching.</li>
+<li>Maintain 2-4 pixel padding between UV islands to prevent texture bleeding.</li>
+<li>Keep UV shells proportional to their 3D size to maintain consistent texel density.</li>
+<li>Organize UVs within the 0-1 UV space.</li>
+</ul>
+<h3 id="decals">Decals</h3>
+<img src="assetlib-decal-setup.png" width="200" alt="Decal Setup of two drop targets" class="img-fluid float-end" style="margin-left: 15px">
+<p>If your model contains art that varies from instance to instance, use a <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.2/manual/understand-decals.html">decal mesh</a>. Decals should be used where you would find literal decals or imprints in the real world. Examples include spinners, aprons, targets, and bumpers.</p>
+<p>On the right side you see two drop target meshes with their corresponding decal meshes in orange.</p>
+<p>The decal geometry should be in a separate object parented to the main object. The UVs of the decal mesh should be laid out in a way that allows its textures to be created with non-specialized image editors.</p>
+<p><img src="assetlib-decal-uvs.png" style="max-height:200px"><br>
+<i>Be sure to keep the aspect ratio without distortion when UV-mapping decals.</i></p>
+<div class="NOTE">
+<h5>Note</h5>
+<h4 id="why-decals">Why Decals?</h4>
+<p>Decals are great because they make your workflow more flexible and are at the same time more performant:</p>
+<ul>
+<li>Flexible, because it allows us to texture our models in a generic way so that they can be used in any context. Imagine a drop target with a star on it. Without decals, the star would be baked into the texture, and if anybody else would want reuse that target with different art on it, they would need to recreate the texture. With decals, they only need to swap out the decal texture.</li>
+<li>Performance, because Unity is optimized for having thousands of decals in a scene, allowing us to use higher-resolution textures for our decals without having to waste resources on the rest of the object.</li>
+</ul>
+</div>
+<h3 id="colliders">Colliders</h3>
+<img src="assetlib-collider-mesh.png" width="113" alt="Decal Setup of two drop targets" class="img-fluid float-end" style="margin-left: 15px">
+<p>VPE uses separate meshes for collision for some items (currently drop targets and hit targets). These collider meshes should be included in the model.</p>
+<ul>
+<li>Their pivot point must align with the pivot point of the main mesh.</li>
+<li>The scale must be applied and correspond to the main mesh's scale.</li>
+<li>They shouldn't include any UVs.</li>
+</ul>
+<p>You can see a hit target mesh with its collider mesh in orange on the right side.</p>
+<h3 id="lods">LODs</h3>
+<p>Regarding <a href="https://en.wikipedia.org/wiki/Level_of_detail_(computer_graphics)">LODs</a> (Levels of Detail), we're only using one LOD. This guideline is based on the compact size of the playfield, where most elements would be rendered at the same LOD anyway. Additionally, most assets will be under 1,000 triangles, making the performance impact of LODs minimal.</p>
+<h3 id="file-format">File Format</h3>
+<p>Export your meshes in a format <a href="https://docs.unity3d.com/6000.0/Documentation/Manual/3D-formats.html">supported by Unity</a>. The preferred formats are <a href="https://en.wikipedia.org/wiki/GlTF">glTF</a> and <a href="https://en.wikipedia.org/wiki/FBX">FBX</a>. Avoid <a href="https://en.wikipedia.org/wiki/Wavefront_.obj_file"><code>.obj</code></a> due to its limitations and inefficiency.</p>
+<p><img src="assetlib-3d-formats.png" style="max-height:200px"><br></p>
+<p>Vendor-specific formats are also to avoid (even <code>.blend</code>), because they only can be imported if the corresponding 3D software is installed.</p>
+<h2 id="material-guidelines">Material Guidelines</h2>
+<p>We use physically based rendering (<a href="https://en.wikipedia.org/wiki/Physically_based_rendering">PBR</a>) for realistic visuals. In Unity HDRP, this generally means using the <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.2/manual/lit-material.html">Lit Shader</a>.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>We're still determining whether authors will be able to choose other shaders, create their own, or if usage will be restricted. We'll update this section as soon as we have more information. For now, we focus on authoring using the Lit Shader.</p>
+</div>
+<h3 id="texture-maps">Texture Maps</h3>
+<p>In the PBR workflow, these texture maps are most relevant:</p>
+<ul>
+<li>Color map (also called diffuse or albedo map)</li>
+<li>Normal map (often called bump map)</li>
+<li>Metallic map</li>
+<li>Smoothness map (which is an inverted roughness map)</li>
+<li>Ambient occlusion map</li>
+</ul>
+<p>Unity also supports emissive maps, detail maps, and others depending on the material type, but we'll focus on those mentioned above.</p>
+<h3 id="color-maps">Color Maps</h3>
+<p>The color map contains RGB values that represent surface color without lighting information.</p>
+<p>If your asset or parts of your asset exist in multiple color variations, consider using only gray tones and tinting the material with the Lit shader's base color. This approach makes it customizable without having to render out textures for each color variant (and is also more memory-efficient).</p>
+<p><img src="assetlib-color-variations.png" style="max-height:200px"><br>
+<i>A drop target with the same base material but different tints, and three different decal materials.</i></p>
+<p>As mentioned above, don't bake art that varies into the texture; use decals instead. Single-color decals that come in multiple color variations should also use a gray-tone color map and be tinted through the Decal Shader directly, making them more easily customizable without requiring multiple material instances.</p>
+<h3 id="normal-maps">Normal Maps</h3>
+<p><a href="https://en.wikipedia.org/wiki/Normal_mapping">Normal Maps</a> simulate lighting effects on surface details without adding geometry. Generally, if a detail doesn't have any silhouette-defining features and isn't deep enough to cast visible shadows, flatten it and bake it as a normal map.</p>
+<p><img src="assetlib-normal-maps.png" style="max-height:200px"><br>
+<i>A playfield toy at 185k tris (left), 2.7k tris without normal map (middle) and with normal map (right).</i></p>
+<p>Edges are particularly important for achieving realistic visuals. In the real world, light always reflects off edges because they are never perfectly sharp. To simulate this, you should always bevel your edges. For models with few prominent edges, you can add bevels in the geometry. However, baking the bevel into a normal map is typically more efficient.</p>
+<p><img src="assetlib-edges.png" style="max-height:200px"><br>
+<i>A gate with beveled geometry at 3.6k tris (left), at 420 tris without normal map (middle) and with normal map (right).</i></p>
+<p>To summarize, use normal maps for:</p>
+<ul>
+<li>Surface details (scratches, small dents, panel seams)</li>
+<li>Shallow details (&lt;5mm in real scale)</li>
+<li>Beveled edges</li>
+<li>Text or logo embossing</li>
+<li>Pattern detailing</li>
+</ul>
+<h3 id="metallic--smoothness-maps">Metallic / Smoothness Maps</h3>
+<p>With a metallic map, you can define on pixel level whether your material is metallic, or not.</p>
+<ul>
+<li>Only use this if your material covers both metallic and non-metallic parts of your model. Otherwise, use the metallicness property of the Lit Shader directly.</li>
+<li>You should only use values of 0 or 1, as partially metallic materials don't exist in the real world.</li>
+</ul>
+<p>The smoothness map (the inverse of a roughness map) defines how regularly light is reflected at the micro-surface level. A value of 1 behaves like a mirror, while a value of 0 is more like an eraser.</p>
+<p><img src="assetlib-smoothness.png" style="max-height:150px"><br>
+<i>Metallicness set to 1 with smoothness going from 0 to 1.</i></p>
+<h3 id="texture-map-resolution">Texture Map Resolution</h3>
+<p>All texture maps must use power-of-two dimensions for width and height (e.g., 256, 512, 1024). They don't have to be square.</p>
+<p><img src="assetlib-map-sizes.png" style="max-height:200px"><br></p>
+<p>We're aiming for a resolution of about 6 pixels per millimeter (approximately 150 DPI). For a playfield texture, this means roughly 4096×8192 pixels. Use this resolution when possible, but don't upscale images — the highest resolution should be from your source. This applies to both color and normal maps. For metallic/smoothness maps, half the resolution of the color map is a good balance between performance and visual fidelity.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>You can determine the resolution by looking at your UV map and the size of the asset. Let's take the gate from the previous section as an example.</p>
+<ol>
+<li>Take a large section of your mesh, and measure it. The larger, the more precise it will be. Here we're measuring the top surface, from where the bevel starts:<br>
+<img src="assetlib-dpi1.png" style="max-height:80px"></li>
+<li>Next, identify that section on your UV map, and note where in UV space they are:<br>
+<img src="assetlib-dpi2.png" style="max-height:160px"><br>
+As you can see, they go from 0.360 to 0.955 on the X axis.</li>
+<li>In terms of dimensions, we now have the following:
+<ul>
+<li>Width in UV space: 0.955 - 0.36 = 0.595</li>
+<li>Width in real world space: 29.2mm</li>
+</ul>
+</li>
+<li>At 6px / mm, that makes 6px × 29.2mm = 175.2px for the 0.595 UVs</li>
+<li>To get the resolution of the whole UV map: 175.2px / 0.592 = <strong>296px</strong></li>
+</ol>
+<p>So, a texture map at 296×296 would correspond to 6px / mm. Since we're at power of twos, we could go for either 512×512 or 256×256.</p>
+</div>
+<h3 id="compression">Compression</h3>
+<p>Export your texture maps in <strong>PNG format</strong>. Use 32-bit if they include an alpha channel; otherwise, 24-bit is sufficient. Use halved resolution for the mask map. Don't quantize / TinyPNG your maps, since together with the GPU's block compression they will result in artifacts.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>Many artists prefer to export their textures as TGA due to faster read/write speeds, but TGA files consume significantly more space. PNG uses lossless compression, and once imported, Unity stores textures in a GPU-friendly format anyway. Additionally, when exporting to the <code>.vpe</code> format, image textures are converted into a runtime-optimized format.</p>
+</div>
+<p>In terms of <em>packaging</em>, Unity's HDRP stores metallic, ambient occlusion and smoothness in what they call a <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.2/manual/Mask-Map-and-Detail-Map.html">mask map</a>. Substance Painter exports this out of the box, but it should be pretty easy to do with Blender as well.</p>
+<h3 id="wear">Wear</h3>
+<p>Generally, all items should show visible signs of wear, rather than appearing brand new from the factory. This adds realism and character to the assets.</p>
+<p><img src="assetlib-wear.png" style="max-height:200px"><br>
+<i>They certainly have each their look. But in order to keep consistency, you should follow the example in the middle.</i></p>
+<h3 id="standard-materials">Standard Materials</h3>
+<p>Many materials in the asset library will appear in multiple assets. To keep a consistent look across all assets, you should use existing materials. We're providing Substance Painter Smart Materials for metals and plastics (and hopefully Blender versions as well).</p>
+<p>ℹ️  Table coming soon</p>
+<h2 id="attribution">Attribution</h2>
+<p>When submitting assets to the library, please include your name or handle for proper attribution. If you've adapted assets from other sources, ensure you have the necessary permissions and include appropriate credits.</p>
+<h2 id="where-to-submit">Where to Submit</h2>
+<p>Don't submit yet! 😄</p>
+<p>We're still figuring out the best structure and repository for our asset library (our <a href="https://github.com/VisualPinball/VisualPinball.Unity.AssetLibrary">current repo</a> is getting too large). There will also be additional guidelines about metadata.</p>
+<p>This section will be updated when we're ready!</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/asset-library-styleguide.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2025 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

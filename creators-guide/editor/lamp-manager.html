@@ -1,0 +1,206 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Lamp Manager | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Lamp Manager | VPE Documentation ">
+      
+      <meta name="description" content="The lamp manager lets you configure the lights, flashers, and general illumination of the playfield and connect them to the gamelogic engine.">
+      <link rel="icon" href="../../favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <link rel="stylesheet" href="../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/lamp-manager.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="lamp_manager">
+<h1 id="lamp-manager">Lamp Manager</h1>
+
+<p>VPE uses the Unity game engine to accurately simulate the many types of lamps a real pinball machine might use, and connect them to the gamelogic engine. Lamps have a standard set of parameters, which can be tweaked in the editor. Lamps in a game are dynamic, so the gamelogic engine can toggle them, fade them, and even change their color.</p>
+<p>To link each of the playfield lamps to the gamelogic engine and configure how they behave during gameplay, the <em>Lamp Manager</em> is used. You can find it under <em>Pinball -&gt; Lamp Manager</em>.</p>
+<p><img src="lamp-manager.png" alt="Lamp Manager"></p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>We use the terms <em>lights</em> and <em>lamps</em> as follows:</p>
+<ul>
+<li>With <strong>light</strong> we're referring to one of the Unity rendering engine's <a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.2/manual/Light-Component.html">lights</a>. It's a simulated light source which doesn't have to be a physical element on the table, but can also refer to the sun, some directional scene light, or other types of lighting used in the rendering.</li>
+<li>With <strong>lamp</strong> we're referring to a virtual &quot;bulb&quot; that is present on the table. It's a logical component VPE uses during gameplay, decoupled from the actual visual display.</li>
+</ul>
+</div>
+<h2 id="about-lamps">About Lamps</h2>
+<p>Physical machines have many different implementations when it comes to lighting. The vast majority of solid state machines from the 1970s until the early 2010s used a <strong>lamp matrix</strong>, where lamps were addressed by row/column, and each individual lamp could only be fully on or off. Historically, incandescent light bulbs were used, which resulted in a brief warm-up period until they reached full brightness (and a cool-down period when turned off). To simulate this, VPE adopted the fade-in and fade-out properties for lights from Visual Pinball.</p>
+<p>Later machines used single colored <strong>LEDs</strong> that were each directly connected to a controller board (see also: <a href="https://missionpinball.org/mechs/lights/lights_versus_leds/">Lights vs LEDs</a>). Unlike matrix lamps, the intensity of LEDs could be finely controlled by the game software.</p>
+<p>More recently, games started using <strong>RGB-LEDs</strong> that can change color as well as brightness during gameplay. In VPE, these can be handled in two different ways:</p>
+<ul>
+<li>As three single connections from the gamelogic engine, one for each color channel (this is what PinMAME provides, for example.)</li>
+<li>With a single RGB connection, where the gamelogic engine always provides the full color (used by MPF, or custom table logic.)</li>
+</ul>
+<p>Additionally, most pinball machines come with <strong>GI strands</strong>, which are a set of bulbs used for global illumination of the playfield. All lights in a strand are addressed at once, so one gamelogic GI strand maps to multiple lamps on the playfield.</p>
+<p>Finally, some high-powered lamps such as flashers may appear under the gamelogic engine's <strong>coil outputs</strong>, since those lamps operate on higher voltage and have the same properties as coils.</p>
+<h2 id="setup">Setup</h2>
+<p>Every row in the lamp manager corresponds to a logical connection between the gamelogic engine and a lamp on the playfield. A lamp may be linked to multiple outputs, and an output can be linked to multiple lamps.</p>
+<h3 id="ids">IDs</h3>
+<p>The first column, <strong>ID</strong> shows the name that the gamelogic engine exports for each lamp.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>Since we cannot be 100% sure that the gamelogic engine has accurate data about the lamp names, you can also add lamp IDs manually, but that should be the exception.</p>
+</div>
+<h3 id="description">Description</h3>
+<p>The <strong>Description</strong> column is optional. If you're setting up a recreation, you would typically use this for the lamp name from the manual. It's purely for your own benefit, and you can leave this empty if you want.</p>
+<h3 id="source">Source</h3>
+<p>GI lights can be emitted as a different type of light from the gamelogic engine. Set the <strong>source</strong> here in order to prevent conflicts of matching IDs between normal lights and GI lights.</p>
+<h3 id="type">Type</h3>
+<p>The <strong>Type</strong> column defines how the signal is interpreted by the lamp. This is important, because the gamelogic engine typically sends integer values to the lamp. There are four types:</p>
+<ul>
+<li><em>Single On|Off</em> - Typically lamps from the lamp matrix. They can only be on or off. Receiving <code>0</code> will turn the lamp off, any other value will turn it on.</li>
+<li><em>Single Fading</em> - Individual lamps which can be dimmed by the gamelogic engine. Received values can range from <code>0</code> to <code>255</code>, where <code>0</code> turns the lamp off, and <code>255</code> sets it to full intensity.</li>
+<li><em>RGB Multi</em> - An RGB lamp that can change its color during gameplay. Lamps of this type receive three connections, one from each red, green and blue. Each color channel receives values as a fading lamp.</li>
+<li><em>RGB</em> - An RGB lamp that receives its data from a single connection. This is the only mode where the lamp doesn't receive an integer, but an entire color value.</li>
+</ul>
+<h3 id="element">Element</h3>
+<p>Under the <strong>Element</strong> column, you choose which lamp among the game items on the playfield should be controlled.</p>
+<h3 id="channel">Channel</h3>
+<p>If the type of the previous column has been set to <em>RGB Multi</em>, here is where you define which <strong>color channel</strong> this output corresponds to.</p>
+<h3 id="max-intensity">Max. Intensity</h3>
+<p>For fading lights, VPE expects values between <code>0</code> and <code>255</code>. However, GI light have usually less variations, typically eight. This column is only enabled for GI lights, and the value is the highest value for a given GI strand that the gamelogic engine will emit.</p>
+<h2 id="flashers">Flashers</h2>
+<p>When using a gamelogic engine that simulates real hardware such as PinMAME, high-powered lamps like flashers usually show up as coils connected to the driver board.</p>
+<p>To support this VPE allows routing coil outputs to lamps. For that, go to the <a href="coil-manager.html">Coil Manager</a> and select <em>Lamp</em> as <strong>Destination</strong>:</p>
+<p><img src="coil-manager-lamp.png" alt="Coil as lamp"></p>
+<p>This will make the coil show up in the lamp manager where you can configure it:</p>
+<p><img src="lamp-manager-coil.png" alt="Lamp from coil"></p>
+<p>Note that you cannot change the <em>ID</em> of the lamp, because it's still linked to the coil. Also, removing or changing the coil destination will remove the entry from the lamp manager. Changing the ID in the coil manager will also update it in the lamp manager.</p>
+<h2 id="gi-strands">GI Strands</h2>
+<p>In Visual Pinball, you can put GI lamps into a collection and address the whole collection at once via script. VPE provides <a class="xref" href="../manual/mechanisms/light-groups.html">light groups</a> as a similar feature.</p>
+<h2 id="editor-vs-runtime">Editor vs Runtime</h2>
+<p>While editing the table in the Unity editor, you may find it helpful to disable lamps you're not editing. You can quickly do that with the top-right controls, which allow you to toggle selectively GIs, inserts, flashers, lamps selected in the manager, or all lamps. You can also quickly select the light source to quickly edit multiple lights.</p>
+<p>During runtime, VPE first turns all lamps off, then turns on the constant lamps, and then transfers control of the lamps to the gamelogic engine. If you are running the game in the editor, the lamp manager shows the lamp statuses in real time:</p>
+<p><img src="lamp-manager-gameplay.gif" alt="Lamps runtime"></p>
+<p>During gameplay you can also click on the lamp icon to toggle the lamp. This can be handy for debugging.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/lamp-manager.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2025 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

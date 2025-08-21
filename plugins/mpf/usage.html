@@ -1,0 +1,205 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>MPF Usage | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="MPF Usage | VPE Documentation ">
+      
+      <meta name="description" content="How to use the Mission Pinball Framework with VPE.">
+      <link rel="icon" href="../../favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <link rel="stylesheet" href="../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/plugins/mpf/usage.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="usage">Usage</h1>
+
+<p>MPF support is implemented as a
+<a href="../../creators-guide/manual/gamelogic-engine.html">Gamelogic Engine</a>. It's a
+<a href="https://docs.unity3d.com/Manual/Components.html">Unity Component</a>, so all you
+have to do is add it to the root
+<a href="https://docs.unity3d.com/Manual/GameObjects.html">GameObject</a> of your table. To
+do this:</p>
+<ol>
+<li>Select the table in the hierarchy</li>
+<li>Click <em>Add Component</em> in the inspector</li>
+<li>Select <em>Pinball -&gt; Game Logic Engine -&gt; Mission Pinball Framework</em>.</li>
+</ol>
+<p><img alt="Add component" width="354" src="unity-add-component.png"></p>
+<p>If there is already another game logic engine component attached, remove it.
+<em>There can be only one.</em></p>
+<h2 id="the-machine-folder">The machine folder</h2>
+<p>All files that MPF needs to run your table are contained in the so-called
+<a href="https://missionpinball.org/latest/tutorial/2_creating_a_new_machine/"><em>machine folder</em></a>.
+When the package is first installed, it will create a default machine folder in
+the <code>Assets/StreamingAssets</code> directory of your Unity project. This folder is
+already set up for use with VPE and contains the necessary configuration to
+allow MPF to drive the default VPX 'blank' table. This is all you need to know
+to get started, but if you are serious about creating a table using MPF, you
+should learn how to use it. The best way to do that is to follow the
+<a href="https://missionpinball.org/latest/tutorial/">official MPF tutorial</a>.</p>
+<h2 id="retrieve-machine-description">Retrieve machine description</h2>
+<div class="NOTE">
+<h5>Note</h5>
+<p>While VPE could read the MPF machine config itself, we let MPF handle it. That
+means we run MPF with the given machine config and then query its hardware.
+While this is a bit slower, it has the advantage of coherent behavior between
+edit time and runtime, and doesn't add an additional maintenance burden.</p>
+</div>
+<p>Since the game logic engine is the part of VPE that provides switch, coil, and
+lamp definitions so VPE can link them to the table during gameplay, you'll need
+to retrieve them from MPF. You can do this by clicking <em>Get Machine Description</em>
+in the <code>MpfGamelogicEngine</code> inspector. If VPE successfully retrieved the machine
+description from MPF, you will see the coils, switches and lamps defined in your
+MPF config file show up in the <code>MpfGamelogicEngine</code> inspector. The description
+will be stored in the component. You will only need to do this again when you
+update the MPF machine config or replace the <code>MpfGamelogicEngine</code> component.
+Visual Pinball Engine compares its stored machine description with the one used
+by MPF every time you start the game. Look out for this warning in the Unity
+console:</p>
+<p><img alt="Machine description mismatch warning" src="machine-description-mismatch-warning.png"></p>
+<h2 id="wire-it-up">Wire it up</h2>
+<p>Now that VPE knows which switches, coils, and lamps MPF expects, you'll need to
+associate them with the appropriate game items on your playfield in Unity. Click
+on <em>Populate Hardware</em> in the <code>MpfGamelogicEngine</code> inspector and use the
+<a href="../../creators-guide/editor/switch-manager.html">switch</a>,
+<a href="../../creators-guide/editor/coil-manager.html">coil</a>, and
+<a href="../../creators-guide/editor/lamp-manager.html">lamp manager</a> to create the
+neccessary references.</p>
+<p>You can watch the entire process in a quick video here:</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>The MPF integration package has been updated since the recording of this
+video, so the user interface will look different for you, but the process is
+still the same.</p>
+</div>
+<div class="embeddedvideo"><iframe src="https://www.youtube-nocookie.com/embed/cdzvMUpdDgs" frameborder="0" allowfullscreen="true"></iframe></div>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/plugins/mpf/usage.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2025 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

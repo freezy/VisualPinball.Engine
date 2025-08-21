@@ -1,0 +1,170 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Camera Settings | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Camera Settings | VPE Documentation ">
+      
+      <meta name="description" content="VPE allows to quickly cycle through different camera settings while editing the table.">
+      <link rel="icon" href="../../../favicon.png">
+      <link rel="stylesheet" href="../../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../../public/main.css">
+      <link rel="stylesheet" href="../../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../../toc.html">
+      <meta name="docfx:tocrel" content="../../toc.html">
+      
+      <meta name="docfx:rel" content="../../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/advanced/camera-settings.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../../index.html">
+            <img id="logo" class="svg" src="../../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="camera-settings">Camera Settings</h1>
+
+<p>The editor camera controller is a tool designed to set different camera views during the editing and testing process. It allows the camera to be easily adjusted with a few sliders as well as allowing for the saving and loading of presets.</p>
+<p>The camera controller is setup to orbit around a focal point. While doing this it will automatically adjust the clipping planes on the camera to ensure the best quality shadows and highest precision sorting of transparent objects.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>In most 3D engines, a depth buffer us used for many rendering features such as shadows, transparency sorting and various post process effects. This buffer is a greyscale representation of the distance of a pixel from the camera.
+As such, it has a limited value range that must be spread to cover the entire scene. The larger the range, the less precision the buffer will have. By closely cropping the range, the precision can be increased. In using the camera controller this is handled automatically. If you add your own camera you will have to adjust this manually.</p>
+</div>
+<h2 id="usage">Usage</h2>
+<img src="camera-settings.png" width="364" class="img-fluid float-end" style="margin-left: 15px">
+<p>To use the camera controller, select the <code>Camera</code> scene object, which is at the very top of the hierarchy. In the inspector you will find a few sliders:</p>
+<ul>
+<li><strong>Angle</strong>: Controls the angle of the camera to the table. A value of zero places the camera parallel to the table. A value of 90 places the camera perpendicular to the table.</li>
+<li><strong>Offset XYZ</strong>: Moves the pivot point of the camera along the three world axis. X moves the camera left and right relative to where a player would stand. V moves it up and down and Z moves it forward and back. <em>Angle</em>, <em>Distance</em> and <em>Orbit</em> are always relative to this point.</li>
+<li><strong>Distance</strong>: Moves the camera closer to or further away from the pivot point. This is used in conjunction with the FOV to frame the table in view.</li>
+<li><strong>FOV</strong>: Sets the field of view of the camera. High values result in a wide field of view and more depth perspective. Low values narrow and flatten the view.
+<div class="NOTE">
+<h5>Note</h5>
+<p>Adjusting the distance and FOV together will control how much apparent depth there is to the table. A wide field of view and low distance will give the table a bit of perspective and depth, but will be more challenging to fit in the view without clipping the front, or having a lot of space to the sides in the back. Conversely, moving the camera further away and lowering the FOV will remove much of the perspective allowing the table to fit more evenly in the frame.</p>
+</div>
+</li>
+<li><strong>Orbit</strong>: Controls the camera angle in an orbit around the table. 0 and 360 are standing in front of the table, 90 is on the left, 270 to the right.</li>
+</ul>
+<h2 id="presets">Presets</h2>
+<p>Camera presets are stored camera settings that allow you to rapidly switch between different camera views. This can be useful when developing a table to view specific areas or just to take pretty screenshots.</p>
+<p>The preset slider changes between the stored camera views. There are three views included by default. Any preset can be overwritten by changing the parameters and clicking the <em>Save</em> button. If <em>Save</em> is not pressed, the values will be lost when you cycle to a new preset. New presets can be made by adjusting the values and clicking <em>Clone</em>. This preset will be added to the presets at the end. You can delete any preset by setting the slider to that preset and clicking the <em>Delete</em> button.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/advanced/camera-settings.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2025 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

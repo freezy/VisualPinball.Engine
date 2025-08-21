@@ -1,0 +1,179 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Realistic Looking Plastics - Import Into Unity | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Realistic Looking Plastics - Import Into Unity | VPE Documentation ">
+      
+      <meta name="description" content="How setup your exported mesh in Unity">
+      <link rel="icon" href="../../../favicon.png">
+      <link rel="stylesheet" href="../../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../../public/main.css">
+      <link rel="stylesheet" href="../../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../../toc.html">
+      <meta name="docfx:tocrel" content="../../toc.html">
+      
+      <meta name="docfx:rel" content="../../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/tutorials/realistic-plastics/4-import-into-unity.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../../index.html">
+            <img id="logo" class="svg" src="../../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="tutorial_plastics_4">
+<h1 id="import-into-unity">Import Into Unity</h1>
+
+<h2 id="step-1-import-the-fbx">Step 1: Import the FBX</h2>
+<p>Open your scene in Unity and use the <em>Project</em> window to navigate to where you've exported your FBX.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>We recommend storing models at <code>Assets/&lt;Table Name&gt;/Models</code>, and texture at <code>Assets/&lt;Table Name&gt;/Textures</code>. If you haven't already, copy <code>Plastics-01.png</code> as <code>Plastics.png</code> and <code>Plastics.fbx</code> into the corresponding folders.</p>
+</div>
+<p>Drag <code>Plastics.fbx</code> under the <code>Playfield</code> GameObject. Scale and rotate them until they have the approximate size.</p>
+<p><img src="unity-imported.png" alt="Imported"></p>
+<p>We recommend unpacking the prefab. Unpacking will still reference the meshes of your FBX, but not the position <em>within</em> the FBX. That way you're more flexible in positioning the plastics, and should you move them in Blender later you won't need to re-position them in Unity. In order to do that, right-click on the <code>Plastics</code> GameObject and select <em>Prefab -&gt; Unpack</em>.</p>
+<h2 id="step-2-setup-assets">Step 2: Setup Assets</h2>
+<p>First, let's configure how the texture is imported. In the <em>Project</em> window, navigate to <code>Assets/&lt;Table Name&gt;/Textures</code> where you saved <code>Plastics.png</code>, and select it. In the <em>Inspector</em> window, check the option <em>Alpha Is Transparent</em>. Depending on how large you've exported it, you might need to update <em>Max Size</em> as well, in our case we'll use 4096 × 4096. When you're done, hit <em>Apply</em> at the bottom.</p>
+<img src="unity-decal-material-preview.png" width="350" class="img-fluid float-end" style="margin-left: 15px">
+<p>Next, we'll create a material of our bottom surface. In the <em>Project</em> window, navigate to <code>Packages/Visual Pinball Engine (HDRP)/Assets/Art/Materials/Default/Plastic</code>, select <code>Plastics Decal</code>, hit <code>Ctrl</code>+<code>C</code>. Navigate to your project's <code>Assets/&lt;Table Name&gt;/Materials</code> folder, and press <code>Ctrl</code>+<code>V</code>.</p>
+<p>Select the copied <code>Plastics Decal</code>. In the inspector, under <em>Surface Inputs</em>, click on the little circle next to <em>Base Map</em>, and type &quot;Plastics&quot; in the search box. Select the imported texture you've created and close the picker dialog.</p>
+<h2 id="step-3-assign-the-materials">Step 3: Assign the Materials</h2>
+<p>Now we have our materials ready, let's assign them to our plastics.</p>
+<p>Select all plastics GameObjects. In the inspector, under <em>Mesh Renderer -&gt; Materials</em>, you should see three empty elements. These are our material slots. Drag the <code>Plastics Decal</code> material you've just updated into the last slot (Element 2).</p>
+<p>Then, in the <em>Project</em> window, navigate to where you were before, to <code>Packages/Visual Pinball Engine (HDRP)/Assets/Art/Materials/Default/Plastic</code>. Drag <code>Plastics Edges</code> to <em>Element 0</em> and <code>Plastic Top</code> to <em>Element 1</em>.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>For some reason, material slots might be different depending on the object, so you'll need to verify if all the plastics look correct, and shuffle the material slots if necessary (you can just re-order them under <em>Materials</em>).</p>
+</div>
+<p>If all went well, it should look like that!</p>
+<div class="embeddedvideo"><iframe src="https://www.youtube-nocookie.com/embed/Difnx_uBGgo?showinfo=0&loop=1&autopause=0" frameborder="0" allowfullscreen="true"></iframe></div>
+<h3 id="transparent-plastics">Transparent Plastics</h3>
+<p>If you had completely transparent plastics without any artwork, you'll notice that they are still textured:</p>
+<p><img src="unity-transparent-textured.png" alt="Textured transparent"></p>
+<p>In order to fix that, replace the <code>Plastics Decal</code> material with the <code>Plastics Top</code> material, and it will look correct:</p>
+<p><img src="unity-transparent.png" alt="Fully transparent"></p>
+<h2 id="step-4-alignment">Step 4: Alignment</h2>
+<p>Use the <em>Scene View</em> to move each plastic to the right position. You'll also need to rotate them and probably resize them as well.</p>
+<p>Tip: Once you're happy with all positions, set height of the plastic of all objects to the same value by selecting them in the Hierarchy and putting a Z-value of <em>Scale</em> in the <em>Transform</em> panel of the Inspector.</p>
+<h2 id="thats-it">That's It!</h2>
+<p>If you came across an error or have a better way of achieving this, don't hesitate to click on the <em>Improve this Doc</em> button on the top right side (<a href="https://github.com/freezy/VisualPinball.Engine/wiki/Documentation">documentation</a>).</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/tutorials/realistic-plastics/4-import-into-unity.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2025 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

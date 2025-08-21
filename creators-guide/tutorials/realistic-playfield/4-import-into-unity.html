@@ -1,0 +1,217 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Create a Realistic Looking Playfield - Unity | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Create a Realistic Looking Playfield - Unity | VPE Documentation ">
+      
+      <meta name="description" content="How to import the model and the textures into Unity.">
+      <link rel="icon" href="../../../favicon.png">
+      <link rel="stylesheet" href="../../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../../public/main.css">
+      <link rel="stylesheet" href="../../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../../toc.html">
+      <meta name="docfx:tocrel" content="../../toc.html">
+      
+      <meta name="docfx:rel" content="../../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/tutorials/realistic-playfield/4-import-into-unity.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../../index.html">
+            <img id="logo" class="svg" src="../../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="tutorial_playfield_4">
+<h1 id="import-into-unity">Import Into Unity</h1>
+
+<p>In the last part of this tutorial, we'll import and place the model into the Unity scene, create materials and assign them to the model.</p>
+<h2 id="import-files">Import Files</h2>
+<p>First, let's bring our files into the Unity project. There are four files that go into the <code>Assets</code> folder: The three maps and the FXB file. Copy the FBX file into <code>Assets/Tron/Models</code> and the textures into <code>Assets/Tron/Textures/Playfield</code>.</p>
+<p>While the import options for the FBX file are fine, we need to adjust them for the textures.</p>
+<img src="unity-maps.png" width="360" class="img-fluid float-end" style="margin-left: 15px">
+<p>Select the base texture and change the following options in the <em>Inspector</em>:</p>
+<ul>
+<li>Alpha Is Transparency: <em>enabled</em></li>
+<li>Max Size: <code>4096</code> (or <code>8192</code> if you exported at 8K in Substance)</li>
+</ul>
+<p>Hit <em>Apply</em>. The mask map:</p>
+<ul>
+<li>sRGB (Color Texture): <em>disabled</em></li>
+<li>Max Size: <code>4096</code> (or <code>8192</code> if you exported at 8K in Substance)</li>
+</ul>
+<p>Hit <em>Apply</em>. The normal map:</p>
+<ul>
+<li>Texture Type: <em>Normal map</em></li>
+<li>Max Size: <code>4096</code> (or <code>8192</code> if you exported at 8K in Substance)</li>
+<li>Compression: <em>High Quality</em></li>
+</ul>
+<p>Hit <em>Apply</em>. Now we got our files ready. Let's bring in the model.</p>
+<h2 id="import-model">Import Model</h2>
+<p>The idea here is to put the model at the same position as the original playfield, and then hide the original playfield. Since this is the probably the first tutorial for many, we'll go a bit more into details of how Unity works and its quirks.</p>
+<p>This is our starting point. The playfield is the original import from a VPX file, and all the other elements are hidden. You can hide elements by selecting them and unchecking the top-left checkbox in the <em>Inspector</em>.</p>
+<p><img src="unity-beginning.png" alt="At the beginning..."></p>
+<div class="NOTE">
+<h5>Note</h5>
+<p><strong>Crash course in <em>Scene</em> navigation</strong></p>
+<p>Move the camera like in a first-person shooter. Hold the right mouse button, then use the <code>WASD</code> keys for horizontal movement, <code>Q</code> and <code>E</code> for vertical movement. The mouse wheel changes the movement speed. Just panning the screen is done while holding the middle mouse button. Full documentation <a href="https://docs.unity3d.com/6000.0/Documentation/Manual/SceneViewNavigation.html">here</a>.</p>
+</div>
+<p>In the <em>Project</em> panel you see our FBX file. It's a tree structure because Unity imported it and found out that it contains two objects and two meshes. Drag the entire <em>Playfield</em> object from the <em>Project</em> panel into the <em>Hierarchy</em> and drop it over the <em>Playfield</em> GameObject.</p>
+<p><img src="unity-model-dropped.png" alt="Model dropped"></p>
+<p>You'll probably see... nothing. That's because the scale of the playfield model is completely off the charts. While your new <em>Playfield</em> GameObject is selected (which, by the way, I'd like to move to the top among its siblings), move your mouse over the <em>Scene</em> (the 3D viewport), and press <code>F</code> for focus. Unity now zooms in (our out?) to your imported playfield.</p>
+<p>It does it with an animation, so that gives you a hint whether the imported playfield is too large or too tiny to be seen. In our case, it zoomed in, but it's still too tiny to be visible. In this case, an approach is to click on the parent GameObject (also called <em>Playfield</em>), hit <code>F</code> to zoom out again, and start increasing the <em>Scale</em> of our imported model in the <em>Inspector</em>. Before doing that, click the little chain icon to lock the proportions.</p>
+<p><img src="unity-model-visible.png" alt="Model visible"></p>
+<p>At scale <code>1000</code> we're starting to see something. However, it's oriented incorrectly. Setting the X-rotation to <code>-90</code> and Z to <code>180</code> fixes that. Now, we need to align the model over the existing one. For that, let's switch into orthogonal camera view by clicking on the small <em>Persp</em> icon in the top right corner of the <em>Scene</em> view, followed by a click on the Y axis of the 3D gizmo to switch to <em>Top View</em>. Click the <a href="https://docs.unity3d.com/6000.0/Documentation/Manual/ViewModes.html">shading mode icon</a> and choose <em>Wireframe</em>. This allows you to align the playfield without anything being hidden.</p>
+<p><img src="unity-align-wireframe-top.png" alt="Align from top"></p>
+<p>Using the move (<code>W</code>) and scale (<code>R</code>) gizmos to align the imported playfield with the existing one.</p>
+<div class="WARNING">
+<h5>Warning</h5>
+<p>When the camera is in orthogonal mode, it can happen that nothing is rendered or that meshes start disappearing. This is due to camera clipping. To fix, move the camera back by pressing <code>S</code> while holding the right mouse button.</p>
+</div>
+<p>Once done, switch the shading mode back to <em>Shaded</em>, select the parent <em>Playfield</em> GameObject in the <em>Hierarchy</em> and uncheck the <em>Playfield Mesh</em> component in the <em>Inspector</em>.</p>
+<p><img src="unity-model-aligned.png" alt="Model aligned"></p>
+<p>Now, to the fun part.</p>
+<h2 id="create-materials">Create Materials</h2>
+<p>We'll need two materials. A solid one for the body and a translucent one for the insert overlays. Select (or create) the <em>Materials</em> folder under <em>Assets</em> in the <em>Project</em> window, right-click on the right and select <em>Create -&gt; Material</em>. Name it <em>Playfield</em>.</p>
+<p>In the <em>Inspector</em>, under <em>Surface Inputs</em>, you'll see multiple slots for maps. While the <em>Playfield</em> material is still selected, change to the <code>Textures/Playfield</code> folder where your maps are stored. Then, drag and drop each map to the corresponding slot in the <em>Inspector</em>. Your material should look like this:</p>
+<p><img src="unity-material-created.png" alt="Material created"></p>
+<p>In the <em>Project</em> view, switch back to <em>Materials</em>, select <em>Playfield</em> and hit <code>CTRL+D</code> to duplicate. Name the new material <em>Playfield Inserts</em>. While selected, change the <em>Material Type</em> in the <em>Inspector</em> from <em>Standard</em> to <em>Translucent</em>. Additionally, enable the <em>Alpha Clipping</em> checkbox.</p>
+<p>Still in the inspector, scroll down to find <em>Diffusion Profile</em> (right below the maps under <em>Surface Inputs</em>). Then, in the <em>Project</em> window, expand <em>Packages</em> and navigate to <em>Visual Pinball Engine (HDRP) -&gt; Assets -&gt; Settings -&gt; Diffusion Profiles</em>. Drag the <em>Plastics</em> profile into the material's diffusion profile slot in the <em>Inspector</em>.</p>
+<h2 id="assign-materials">Assign Materials</h2>
+<p>Select the <em>wood</em> GameObject. In the <em>Inspector</em>, inside the <em>Mesh Renderer</em> component, expand <em>Materials</em> and drag the <em>Playfield</em> material from the <em>Project</em> panel into the slot where currently <em>DefaultHDMaterial</em> is shown.</p>
+<p>Select the <em>inserts</em> GameObject and do the same with the <em>Playfield Inserts</em> material.</p>
+<p><img src="unity-material-applied.png" alt="Textured in Unity"></p>
+<p>This looks pretty good already, but when zooming in, the structure in the reflection is a bit too extreme. This is quickly fixed by decreasing the <em>Normal Map</em> parameter in both playfield materials. Here, <code>0.5</code> does its job just fine.</p>
+<p><img src="unity-material-adjusted.png" alt="Normal map adjusted"></p>
+<h2 id="future-changes">Future Changes</h2>
+<p>So, you're all happy with your playfield, when suddenly you realize that you need to change something. Here a few hints of what you'll need to do depending on what you need to change.</p>
+<ul>
+<li><p><strong>Material Updates</strong> - Updates in Substance Painter are the quickest - Make changes and re-export the textures, that's it. Unity will automatically pick up the changes.</p>
+</li>
+<li><p><strong>Mask/Texture Corrections</strong> - These are pretty painless too - re-import the new image into Painter, then click the <em>Resource Updater</em> icon in the left toolbar and hit the <em>Update</em> button where it's orange. Then, re-export.</p>
+</li>
+<li><p><strong>Missing Hole</strong> or any geometry changes - This is the annoying one. Since our workflow in Blender is destructive, you'll probably need to recreate the mesh. If you decide to <em>fix</em> the geometry of the existing mesh, make sure you update the wood mask accordingly. Before exporting to FBX, make sure you name your objects in Blender the same as before, so Substance Painter can pick them up. If you kept a material in Blender, its name must be the same too for Substance Painter to recognize it. Then, in Painter, select <em>Edit -&gt; Project Configuration -&gt; Select...</em> to update your model, and Painter will re-apply the layers on the new model. Finally, re-export the textures and copy the new FBX to Unity's asset folder.</p>
+</li>
+</ul>
+<h2 id="thats-it">That's It!</h2>
+<p>We hope you've enjoyed this tutorial. It might have been one of the first ones you went through. If you were stuck somewhere, please let us know in the <a href="https://vpuniverse.com/forums/forum/174-visual-pinball-engine-general-discussion/">forum</a> so we can fix it. If you have improvements, use the button on the top right side on each page. More info about that <a href="https://github.com/freezy/VisualPinball.Engine/wiki/Documentation">here</a>.</p>
+<div class="embeddedvideo"><iframe src="https://www.youtube-nocookie.com/embed/YX_1ThpWxZg?showinfo=0&loop=0&autopause=0" frameborder="0" allowfullscreen="true"></iframe></div>
+<p>Enjoy, and we're looking forward to what you're coming up with!</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/tutorials/realistic-playfield/4-import-into-unity.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2025 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

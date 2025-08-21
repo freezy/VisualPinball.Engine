@@ -1,0 +1,256 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Configuration | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Configuration | VPE Documentation ">
+      
+      <meta name="description" content="All the different ways to configure the MPF game logic engine">
+      <link rel="icon" href="../../favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <link rel="stylesheet" href="../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/plugins/mpf/configuration.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="configuration">Configuration</h1>
+
+<p>The <code>MpfGamelogicEngine</code> component offers many configuration options. For a
+brief description, you can refer to the tooltips that are displayed when you
+hover your cursor above an option in the Unity inspector.</p>
+<h2 id="executable-source">Executable source</h2>
+<p>Select which version of MPF VPE should launch on startup.</p>
+<ul>
+<li><strong>Included:</strong> Use the version of MPF included in VPE. It is slightly
+<a href="technical-details.html#included-mpf-binaries">different</a> from the official
+version.</li>
+<li><strong>Manually Installed:</strong> Use the locally installed version of MPF available
+through the system <code>PATH</code> environment variable.</li>
+<li><strong>Assume Running:</strong> Do not launch MPF at all. Assume it is running already.
+This option is intended for debugging MPF.</li>
+</ul>
+<h3 id="manual-installation">Manual installation</h3>
+<div class="WARNING">
+<h5>Warning</h5>
+<p>If you choose manual installation of MPF, anyone who wants to play your table
+will need to install MPF first.</p>
+</div>
+<p>If you want to use a version of MPF other than the included one, you can install
+it manually. Refer to the
+<a href="https://missionpinball.org/latest/install/">official installation instructions</a>.
+The earliest version of MPF compatible with VPE is <code>v0.55.0-dev.12</code>.</p>
+<h2 id="startup-behavior">Startup behavior</h2>
+<p>Select how VPE establishes a connection with MPF.</p>
+<ul>
+<li><strong>Ping Until Ready</strong>: Repeatedly send a <em>Ping</em> message to MPF until it
+responds. This is the preferred method, but it only works with the included
+version of MPF. If MPF does not respond within the timeframe specified by the
+<em>Connect Timeout</em> option, VPE will give up and cause an error.</li>
+<li><strong>Delay Connection</strong>: Delay the <em>Start</em> message by a number of seconds
+specified by the <em>Connect Delay</em> option assuming MPF is ready to receive it by
+then. If MPF is not ready, startup will fail and the table will not work. If
+MPF starts up faster, this delay slows startup needlessly. This method is
+compatible with all version of MPF since <code>v0.55.0-dev.12</code>.</li>
+</ul>
+<h2 id="machine-folder">Machine folder</h2>
+<p>The file path to the
+<a href="https://missionpinball.org/latest/tutorial/2_creating_a_new_machine/">machine folder</a>
+of your table. When the package is first installed, it will create a default
+machine folder in the <code>Assets/StreamingAssets</code> directory of your Unity project.
+The path to this directory is the default setting. You can store your machine
+folder elsewhere, but be aware that the
+<a href="https://docs.unity3d.com/Manual/StreamingAssets.html"><code>StreamingAssets</code></a>
+directory is special. Unlike files located in other parts of your Unity project,
+Unity will not convert its contents into a binary format when you build your
+Unity project into a standalone application. It will therefore remain readable
+for MPF. It will also not go missing if you move your Unity project or a build
+of your Unity project to another computer.</p>
+<h2 id="media-controller">Media controller</h2>
+<p>Select the media controller MPF should attempt to connect to on startup.</p>
+<ul>
+<li><strong>None:</strong> Do not connect to any media controller</li>
+<li><strong>Godot or Legacy MC:</strong> Use the officially supported media controller of
+whatever MPF version is running. MPF versions since <code>v0.80</code> will attempt to
+start and connect to the new
+<a href="https://missionpinball.org/latest/gmc/">Godot-based media controller</a>. MPF
+versions prior to <code>v0.80</code> will attempt to start and connect to the legacy
+<a href="https://missionpinball.org/latest/mc/">Kivvy-based media controller</a>. The
+version of MPF included in VPE is <code>v0.80.0</code>, so it will use Godot. If you
+choose this option, you must manually install the appropriate media
+controller.</li>
+<li><strong>Included:</strong> Use the media controller included with VPE's MPF plugin. If
+selected, you can also configure the port through which the media controller
+will communicate with MPF and whether or not to log sent and received messages
+to the Unity console. See <a href="media-controller.html">Media Controller</a> for more
+information.</li>
+<li><strong>Other:</strong> Do not start any particular media controller, but attempt to
+connect to an already running media controller. The IP and port to connect to
+can be configured in MPF. If you choose this option, you are responsible for
+starting a media controller.</li>
+</ul>
+<h2 id="output-type">Output type</h2>
+<p>Select the format and presentation of MPFs output.</p>
+<ul>
+<li><strong>None:</strong> MPF will not produce any live output. It will still produce log
+files.</li>
+<li><strong>Table in terminal:</strong> A command line table view that shows you the active
+modes and the states of your switches.</li>
+<li><strong>Log in terminal:</strong> Log events and errors to a terminal window as they
+happen.</li>
+<li><strong>Log in Unity console:</strong> Log events and errors to the Unity console as they
+happen. Errors may not always be labeled as such.</li>
+</ul>
+<h2 id="verbose-logging">Verbose logging</h2>
+<p>Enable this option to get additional information from MPF. Sometimes useful for
+debugging. Not advisable on Windows in combination with the <em>Table in terminal</em>
+<em>Output type</em> because the Windows terminal is slow.</p>
+<h2 id="cache-config-files">Cache config files</h2>
+<p>Whether or not to cache config files to speed up the next startup. MPF will
+always parse config files that have been changed.</p>
+<h2 id="force-reload-config">Force reload config</h2>
+<p>From the
+<a href="https://missionpinball.org/latest/running/commands/game/">MPF documentation</a>:</p>
+<blockquote>
+<p>Forces MPF to reload the config from the actual YAML config files, rather than
+from cache. MPF contains a caching mechanism that caches YAML config files,
+and if the original files haven't changed since the last time MPF was run, it
+loads them from cache instead. Cached files are stored in your machine's temp
+folder which varies depending on your system.</p>
+</blockquote>
+<h2 id="force-load-all-assets-on-start">Force load all assets on start</h2>
+<p>From the
+<a href="https://missionpinball.org/latest/running/commands/game/">MPF documentation</a>:</p>
+<blockquote>
+<p>Forces MPF to load all assets at start (rather than the default behavior where
+some assets can be loaded only when modes start or based on other events).
+This is useful during development to ensure that all assets are valid and
+loadable.</p>
+</blockquote>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/plugins/mpf/configuration.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2025 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

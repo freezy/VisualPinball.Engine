@@ -1,0 +1,3443 @@
+{
+  "sitemap": {
+    "baseUrl": "https://docs.visualpinball.org/",
+    "changefreq": "weekly",
+    "priority": 0.5
+  },
+  "source_base_path": "/github/workspace/VisualPinball.Unity/Documentation~",
+  "xrefmap": "xrefmap.yml",
+  "files": [
+    {
+      "type": "Resource",
+      "output": {
+        "resource": {
+          "relative_path": "index.json"
+        }
+      }
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "../../CHANGELOG.md",
+      "output": {
+        ".html": {
+          "relative_path": "CHANGELOG.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "CNAME",
+      "output": {
+        "resource": {
+          "relative_path": "CNAME"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/editor/advanced/camera-settings.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/editor/advanced/camera-settings.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/advanced/camera-settings.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/advanced/camera-settings.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/editor/asset-library-styleguide.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/editor/asset-library-styleguide.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/editor/asset-library.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/editor/asset-library.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/asset-library/asset-library-example-1-maps.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/asset-library/asset-library-example-1-maps.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/asset-library/asset-library-example-1-uvmap.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/asset-library/asset-library-example-1-uvmap.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/asset-library/asset-library-example-2-maps.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/asset-library/asset-library-example-2-maps.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/asset-library/asset-library-example-2-uvmap.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/asset-library/asset-library-example-2-uvmap.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/asset-library/asset-library-example-geo.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/asset-library/asset-library-example-geo.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/assetlib-3d-formats.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/assetlib-3d-formats.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/assetlib-collider-mesh.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/assetlib-collider-mesh.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/assetlib-color-variations.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/assetlib-color-variations.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/assetlib-decal-setup.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/assetlib-decal-setup.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/assetlib-decal-uvs.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/assetlib-decal-uvs.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/assetlib-do-dont.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/assetlib-do-dont.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/assetlib-dpi1.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/assetlib-dpi1.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/assetlib-dpi2.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/assetlib-dpi2.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/assetlib-edges.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/assetlib-edges.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/assetlib-geo-details.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/assetlib-geo-details.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/assetlib-map-sizes.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/assetlib-map-sizes.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/assetlib-mesh-density.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/assetlib-mesh-density.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/assetlib-normal-maps.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/assetlib-normal-maps.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/assetlib-orientation.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/assetlib-orientation.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/assetlib-origin.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/assetlib-origin.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/assetlib-retopo.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/assetlib-retopo.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/assetlib-smoothness.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/assetlib-smoothness.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/assetlib-wear.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/assetlib-wear.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/blender-export.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/blender-export.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/coil-manager-lamp.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/coil-manager-lamp.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/editor/coil-manager.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/editor/coil-manager.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/coil-manager.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/coil-manager.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/editor-units.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/editor-units.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/lamp-manager-coil.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/lamp-manager-coil.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/lamp-manager-gameplay.gif",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/lamp-manager-gameplay.gif"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/editor/lamp-manager.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/editor/lamp-manager.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/lamp-manager.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/lamp-manager.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/editor/materials.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/editor/materials.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/multiple-tables-lock.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/multiple-tables-lock.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/editor/multiple-tables.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/editor/multiple-tables.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/properties-vpe-vs-vp.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/properties-vpe-vs-vp.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/switch-manager-ids.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/switch-manager-ids.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/editor/switch-manager.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/editor/switch-manager.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/switch-manager.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/switch-manager.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/editor/units-3d-space.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/editor/units-3d-space.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/editor/unity-components.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/editor/unity-components.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/editor/wire-manager.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/editor/wire-manager.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/editor/wire-manager.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/editor/wire-manager.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/introduction/comparison-vpx-vpe.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/introduction/comparison-vpx-vpe.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/introduction/features.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/introduction/features.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/introduction/jp-header.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/introduction/jp-header.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/introduction/mesh-example.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/introduction/mesh-example.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/introduction/overview.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/introduction/overview.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/introduction/unity-colliders.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/introduction/unity-colliders.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/introduction/unity-drag-points.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/introduction/unity-drag-points.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/introduction/unity-editor.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/introduction/unity-editor.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/common-sound-asset-options.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/common-sound-asset-options.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/create-sound-asset.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/create-sound-asset.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/display-add-component.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/display-add-component.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/display-dmd-inspector.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/display-dmd-inspector.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/manual/displays.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/manual/displays.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/dmd-game_over.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/dmd-game_over.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/editor-coil-sound.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/editor-coil-sound.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/manual/gamelogic-engine.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/manual/gamelogic-engine.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/manual/manual.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/manual/manual.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/collision-switch-inspector.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/collision-switch-inspector.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/collision-switch-switch-manager.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/collision-switch-switch-manager.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/manual/mechanisms/collision-switches.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/manual/mechanisms/collision-switches.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/drop-target-bank-coil-manager.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/drop-target-bank-coil-manager.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/drop-target-bank-inspector-runtime.gif",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/drop-target-bank-inspector-runtime.gif"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/drop-target-bank-inspector.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/drop-target-bank-inspector.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/manual/mechanisms/drop-target-banks.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/manual/mechanisms/drop-target-banks.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/flipper-collider-inspector.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/flipper-collider-inspector.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/flipper-correction-asset.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/flipper-correction-asset.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/flipper-correction-polarities.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/flipper-correction-polarities.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/flipper-correction-velocities.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/flipper-correction-velocities.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/manual/mechanisms/flippers.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/manual/mechanisms/flippers.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/lifting-gate-inspector.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/lifting-gate-inspector.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/lifting-gate.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/lifting-gate.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/manual/mechanisms/lifting-gates.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/manual/mechanisms/lifting-gates.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/light-group-inspector.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/light-group-inspector.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/manual/mechanisms/light-groups.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/manual/mechanisms/light-groups.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/rotator-inspector.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/rotator-inspector.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/manual/mechanisms/rotators.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/manual/mechanisms/rotators.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/score-motor-gottlieb.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/score-motor-gottlieb.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/score-motor-inspector.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/score-motor-inspector.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/score-motor-schema.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/score-motor-schema.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/score-motor-score-event.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/score-motor-score-event.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/score-motor-score-variable.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/score-motor-score-variable.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/score-motor-switch-manager.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/score-motor-switch-manager.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/score-motor-uvs-reset-score.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/score-motor-uvs-reset-score.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/score-motor-uvs-score-event.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/score-motor-uvs-score-event.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/score-motor-uvs-update-display.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/score-motor-uvs-update-display.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/score-motor-uvs-update-score.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/score-motor-uvs-update-score.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/manual/mechanisms/score-motors.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/manual/mechanisms/score-motors.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/score-reel-display-inspector.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/score-reel-display-inspector.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/score-reel-inspector.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/score-reel-inspector.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/score-reel-uvs-display.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/score-reel-uvs-display.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/score-reels-geometry.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/score-reels-geometry.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/score-reels-scene.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/score-reels-scene.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/score-reels.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/score-reels.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/manual/mechanisms/score-reels.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/manual/mechanisms/score-reels.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/slingshot-curve.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/slingshot-curve.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/slingshot-inspector.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/slingshot-inspector.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/manual/mechanisms/slingshots.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/manual/mechanisms/slingshots.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/teleporter-inspector.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/teleporter-inspector.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/manual/mechanisms/teleporters.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/manual/mechanisms/teleporters.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/trough-2c1s.gif",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/trough-2c1s.gif"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/trough-2cns.gif",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/trough-2cns.gif"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/trough-coils.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/trough-coils.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/trough-inspector.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/trough-inspector.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/trough-mechanical.gif",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/trough-mechanical.gif"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/trough-opto.gif",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/trough-opto.gif"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/trough-single-ball.gif",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/trough-single-ball.gif"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/mechanisms/trough-switches.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/mechanisms/trough-switches.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/manual/mechanisms/troughs.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/manual/mechanisms/troughs.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/manual/sound-effect-asset-options.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/manual/sound-effect-asset-options.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/manual/sound.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/manual/sound.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/setup/installing-vpe.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/setup/installing-vpe.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/setup/running-vpe.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/setup/running-vpe.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/setup/unity-create-new-project.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/setup/unity-create-new-project.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/setup/unity-first-play.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/setup/unity-first-play.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/setup/unity-gizmo-size.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/setup/unity-gizmo-size.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/setup/unity-hdrp-empty-scene.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/setup/unity-hdrp-empty-scene.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/setup/unity-hdrp-test-scene.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/setup/unity-hdrp-test-scene.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/setup/unity-imported-table-aligned.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/setup/unity-imported-table-aligned.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/setup/unity-imported-table-ugly-gizmos.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/setup/unity-imported-table-ugly-gizmos.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/setup/unity-imported-table.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/setup/unity-imported-table.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/setup/unity-package-manager.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/setup/unity-package-manager.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/setup/unity-packages-after-installation.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/setup/unity-packages-after-installation.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/setup/unity-scoped-registry.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/setup/unity-scoped-registry.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "creators-guide/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/toc.html"
+        },
+        ".json": {
+          "relative_path": "creators-guide/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/tutorials/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/tutorials/index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/1-clean-up.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/1-clean-up.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/2-mesh-retopology.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/2-mesh-retopology.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/3-bake-texture-maps.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/3-bake-texture-maps.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/before-after.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/before-after.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/cleanup-steps.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/cleanup-steps.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/diffuse-map.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/diffuse-map.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/final-result.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/final-result.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/geometry-to-clean.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/geometry-to-clean.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/im-combed.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/im-combed.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/im-mesh.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/im-mesh.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/im-no-adjustments.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/im-no-adjustments.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/im-positions.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/im-positions.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/low-poly-imported.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/low-poly-imported.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/node-view-material.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/node-view-material.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/normal-map.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/normal-map.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/positioned.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/positioned.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/retopoflow-done.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/retopoflow-done.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/retopoflow-start.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/retopoflow-start.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/uv-unwrap.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/make-a-3d-scan-game-ready/uv-unwrap.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/tutorials/realistic-backglass/1-prepare-artwork.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/tutorials/realistic-backglass/1-prepare-artwork.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/tutorials/realistic-backglass/2-create-mesh.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/tutorials/realistic-backglass/2-create-mesh.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/tutorials/realistic-backglass/3-import-into-unity.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/tutorials/realistic-backglass/3-import-into-unity.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-backglass/blender-object.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-backglass/blender-object.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-backglass/blender-unwrapped.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-backglass/blender-unwrapped.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/tutorials/realistic-backglass/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/tutorials/realistic-backglass/index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-backglass/photo-backside.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-backglass/photo-backside.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-backglass/ps-albedo.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-backglass/ps-albedo.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-backglass/ps-thickness.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-backglass/ps-thickness.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-backglass/unity-backglass-light-source.webp",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-backglass/unity-backglass-light-source.webp"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-backglass/unity-bg-lit.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-backglass/unity-bg-lit.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-backglass/unity-imported.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-backglass/unity-imported.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-backglass/unity-in-scene-correct-size.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-backglass/unity-in-scene-correct-size.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-backglass/unity-in-scene-wrong-size.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-backglass/unity-in-scene-wrong-size.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-backglass/unity-material-applied.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-backglass/unity-material-applied.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-backglass/unity-material.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-backglass/unity-material.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/1-prepare-artwork.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/1-prepare-artwork.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/2-create-mesh.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/2-create-mesh.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/3-uv-map-mesh.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/3-uv-map-mesh.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/4-import-into-unity.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/4-import-into-unity.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/blender-duplicated-surface.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/blender-duplicated-surface.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/blender-edges-selected.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/blender-edges-selected.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/blender-extrude.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/blender-extrude.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/blender-extruded.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/blender-extruded.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/blender-material-geometry.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/blender-material-geometry.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/blender-material-slots.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/blender-material-slots.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/blender-no-lower-bevel.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/blender-no-lower-bevel.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/blender-normals.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/blender-normals.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/blender-poly-reduction.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/blender-poly-reduction.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/blender-select-coplanar.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/blender-select-coplanar.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/blender-shapes.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/blender-shapes.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/blender-triangle-selected-2.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/blender-triangle-selected-2.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/blender-triangle-selected.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/blender-triangle-selected.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/blender-triangulated.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/blender-triangulated.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/blender-uv-mapped.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/blender-uv-mapped.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/blender-uv-mapping.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/blender-uv-mapping.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/illustrator-export-svg.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/illustrator-export-svg.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/illustrator-export-texture.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/illustrator-export-texture.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/illustrator-joined-artwork.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/illustrator-joined-artwork.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/illustrator-joined-surfaces.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/illustrator-joined-surfaces.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/illustrator-new-document.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/illustrator-new-document.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/illustrator-separate-artwork.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/illustrator-separate-artwork.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/overview.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/overview.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/t2-example.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/t2-example.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/unity-decal-material-preview.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/unity-decal-material-preview.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/unity-imported.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/unity-imported.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/unity-textured.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/unity-textured.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/unity-transparent-textured.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/unity-transparent-textured.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-plastics/unity-transparent.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-plastics/unity-transparent.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/1-textures.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/1-textures.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/2-modeling.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/2-modeling.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/3-texturing.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/3-texturing.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/3b-more-texturing.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/3b-more-texturing.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/4-import-into-unity.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/4-import-into-unity.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/albedo-left-crop.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/albedo-left-crop.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/blender-edges-unwrapped.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/blender-edges-unwrapped.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/blender-extruded.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/blender-extruded.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/blender-imported.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/blender-imported.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/blender-mesh-created.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/blender-mesh-created.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/blender-missed-seams.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/blender-missed-seams.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/blender-seams.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/blender-seams.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/blender-smooth-edges.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/blender-smooth-edges.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/blender-uv-after-placing.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/blender-uv-after-placing.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/blender-uv-back.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/blender-uv-back.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/blender-uv-before-placing.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/blender-uv-before-placing.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/blender-uv-left-align.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/blender-uv-left-align.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/blender-uv-left-aligned.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/blender-uv-left-aligned.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/blender-uv-surface.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/blender-uv-surface.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/final-mesh.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/final-mesh.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/illustrator-fake-holes-mask-closeup.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/illustrator-fake-holes-mask-closeup.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/illustrator-ink-mask-closeup.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/illustrator-ink-mask-closeup.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/illustrator-ink-mask.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/illustrator-ink-mask.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/illustrator-insert-mask.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/illustrator-insert-mask.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/illustrator-other-masks.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/illustrator-other-masks.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/illustrator-playfield.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/illustrator-playfield.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/illustrator-svg-playfield.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/illustrator-svg-playfield.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/illustrator-wood-mask-separated.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/illustrator-wood-mask-separated.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/illustrator-wood-mask.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/illustrator-wood-mask.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/masks.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/masks.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/overview.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/overview.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/plunger-height.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/plunger-height.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/plywood-rotated.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/plywood-rotated.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/plywood.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/plywood.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/plywood2.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/plywood2.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/substance-albedo.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/substance-albedo.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/substance-edge-corrected.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/substance-edge-corrected.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/substance-edge-mapping.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/substance-edge-mapping.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/substance-edges-mask.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/substance-edges-mask.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/substance-fake-holes.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/substance-fake-holes.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/substance-final-masks.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/substance-final-masks.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/substance-final-result.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/substance-final-result.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/substance-ink-height.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/substance-ink-height.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/substance-ink-masked.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/substance-ink-masked.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/substance-inserts.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/substance-inserts.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/substance-mylar1.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/substance-mylar1.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/substance-mylar2.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/substance-mylar2.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/substance-new.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/substance-new.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/substance-noise-basic.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/substance-noise-basic.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/substance-noise-better.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/substance-noise-better.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/substance-output-template.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/substance-output-template.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/substance-pbr-invalid-but-better.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/substance-pbr-invalid-but-better.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/substance-pbr-invalid.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/substance-pbr-invalid.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/substance-plunger-height-map.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/substance-plunger-height-map.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/substance-plunger-matched.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/substance-plunger-matched.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/substance-plunger-unmatched.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/substance-plunger-unmatched.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/substance-scratches.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/substance-scratches.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/substance-silver.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/substance-silver.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/substance-surface-mask.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/substance-surface-mask.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/substance-wood-masked.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/substance-wood-masked.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/substance-wood.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/substance-wood.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/texture-layout.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/texture-layout.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/tron-example.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/tron-example.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/tron-plunger-lane-heightmap.webp",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/tron-plunger-lane-heightmap.webp"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/unity-align-wireframe-top.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/unity-align-wireframe-top.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/unity-beginning.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/unity-beginning.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/unity-maps.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/unity-maps.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/unity-material-adjusted.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/unity-material-adjusted.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/unity-material-applied.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/unity-material-applied.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/unity-material-created.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/unity-material-created.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/unity-model-aligned.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/unity-model-aligned.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/unity-model-dropped.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/unity-model-dropped.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "creators-guide/tutorials/realistic-playfield/unity-model-visible.png",
+      "output": {
+        "resource": {
+          "relative_path": "creators-guide/tutorials/realistic-playfield/unity-model-visible.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "creators-guide/vpe.md",
+      "output": {
+        ".html": {
+          "relative_path": "creators-guide/vpe.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "favicon.ico",
+      "output": {
+        "resource": {
+          "relative_path": "favicon.ico"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "favicon.png",
+      "output": {
+        "resource": {
+          "relative_path": "favicon.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "images/social-poster.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "images/social-poster.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "index.md",
+      "output": {
+        ".html": {
+          "relative_path": "index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "plugins/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "plugins/index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "plugins/mpf/configuration.md",
+      "output": {
+        ".html": {
+          "relative_path": "plugins/mpf/configuration.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/mpf/event-and-mode-sounds.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/mpf/event-and-mode-sounds.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "plugins/mpf/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "plugins/mpf/index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/mpf/machine-description-mismatch-warning.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/mpf/machine-description-mismatch-warning.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "plugins/mpf/media-controller.md",
+      "output": {
+        ".html": {
+          "relative_path": "plugins/mpf/media-controller.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/mpf/mpf-current-player-text.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/mpf/mpf-current-player-text.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/mpf/mpf-logo-full.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/mpf/mpf-logo-full.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/mpf/mpf-toggle-object-components.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/mpf/mpf-toggle-object-components.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "plugins/mpf/setup.md",
+      "output": {
+        ".html": {
+          "relative_path": "plugins/mpf/setup.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "plugins/mpf/technical-details.md",
+      "output": {
+        ".html": {
+          "relative_path": "plugins/mpf/technical-details.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/mpf/unity-add-component.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/mpf/unity-add-component.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "plugins/mpf/usage.md",
+      "output": {
+        ".html": {
+          "relative_path": "plugins/mpf/usage.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "plugins/pinmame/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "plugins/pinmame/index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/pinmame/mech-example-t2.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/pinmame/mech-example-t2.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/pinmame/mech-inspector.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/pinmame/mech-inspector.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "plugins/pinmame/mechs.md",
+      "output": {
+        ".html": {
+          "relative_path": "plugins/pinmame/mechs.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/pinmame/pinmame-logo.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/pinmame/pinmame-logo.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "plugins/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "plugins/toc.html"
+        },
+        ".json": {
+          "relative_path": "plugins/toc.json"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/banner.jpg",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/banner.jpg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/bridge-component.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/bridge-component.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/change-player-state-example.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/change-player-state-example.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/clear-display-example.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/clear-display-example.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/coils.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/coils.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "plugins/visual-scripting/complementary-usage.md",
+      "output": {
+        ".html": {
+          "relative_path": "plugins/visual-scripting/complementary-usage.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/create-player-state-example.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/create-player-state-example.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/display-changed-example.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/display-changed-example.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/displays.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/displays.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/event-setup.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/event-setup.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/get-lamp-example.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/get-lamp-example.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/get-switch-example.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/get-switch-example.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/get-variable-example.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/get-variable-example.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/increase-variable-example.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/increase-variable-example.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "plugins/visual-scripting/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "plugins/visual-scripting/index.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/lamp-sequence-example.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/lamp-sequence-example.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "plugins/visual-scripting/lamps.md",
+      "output": {
+        ".html": {
+          "relative_path": "plugins/visual-scripting/lamps.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/lamps.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/lamps.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "plugins/visual-scripting/node-reference.md",
+      "output": {
+        ".html": {
+          "relative_path": "plugins/visual-scripting/node-reference.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/on-coil-changed.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/on-coil-changed.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/on-switch-enabled.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/on-switch-enabled.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/on-variable-changed-example.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/on-variable-changed-example.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/pinball-event-example.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/pinball-event-example.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/pulse-coil-example.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/pulse-coil-example.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/set-coil-example.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/set-coil-example.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/set-lamp-example.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/set-lamp-example.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/set-variable-example.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/set-variable-example.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "plugins/visual-scripting/setup.md",
+      "output": {
+        ".html": {
+          "relative_path": "plugins/visual-scripting/setup.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/switch-lamp-example.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/switch-lamp-example.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/switch-lamp-example2.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/switch-lamp-example2.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/switches.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/switches.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/trigger-event-example.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/trigger-event-example.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/update-display-example.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/update-display-example.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/variables-gle-inspector.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/variables-gle-inspector.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "plugins/visual-scripting/variables-light-events.png",
+      "output": {
+        "resource": {
+          "relative_path": "plugins/visual-scripting/variables-light-events.png"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "plugins/visual-scripting/variables.md",
+      "output": {
+        ".html": {
+          "relative_path": "plugins/visual-scripting/variables.html"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "site.webmanifest",
+      "output": {
+        "resource": {
+          "relative_path": "site.webmanifest"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Resource",
+      "source_relative_path": "template/vpe/logo.svg",
+      "output": {
+        "resource": {
+          "relative_path": "template/vpe/logo.svg"
+        }
+      },
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "toc.html"
+        },
+        ".json": {
+          "relative_path": "toc.json"
+        }
+      },
+      "version": ""
+    }
+  ],
+  "groups": [
+    {
+      "xrefmap": "xrefmap.yml"
+    }
+  ]
+}

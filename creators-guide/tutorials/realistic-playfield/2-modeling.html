@@ -1,0 +1,207 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Create a Realistic Looking Playfield - The Mesh | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Create a Realistic Looking Playfield - The Mesh | VPE Documentation ">
+      
+      <meta name="description" content="How to create the playfield mesh.">
+      <link rel="icon" href="../../../favicon.png">
+      <link rel="stylesheet" href="../../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../../public/main.css">
+      <link rel="stylesheet" href="../../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../../toc.html">
+      <meta name="docfx:tocrel" content="../../toc.html">
+      
+      <meta name="docfx:rel" content="../../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/tutorials/realistic-playfield/2-modeling.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../../index.html">
+            <img id="logo" class="svg" src="../../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled="" placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="tutorial_playfield_2">
+<h1 id="create-the-playfield-mesh">Create the Playfield Mesh</h1>
+
+<h2 id="import-the-shapes">Import the Shapes</h2>
+<p>Open Blender and delete everything (press <code>A</code>, <code>X</code>, <code>D</code>). Click on <em>File -&gt; Import -&gt; Scalable Vector Graphics (.svg)</em> and choose <code>playfield.svg</code> which you exported in the last step. Select <em>wood</em> in the outliner, move your cursor over the viewport and hit <code>numpad .</code> (zoom in on selected), <code>numpad 7</code> (top view).</p>
+<p>If you haven't grouped your inserts, you'll have a bunch of &quot;Curve&quot; objects. Select them all and hit <code>CTRL+J</code> to join them. Rename the joined object to <em>inserts</em>. Hit <code>A</code> and choose <em>Object -&gt; Set Origin -&gt; Origin to Geometry</em>. You should see something like this:</p>
+<p><img src="blender-imported.png" alt="Imported Shapes"></p>
+<p>Make sure that all three shapes (inserts, plywood and wood) are there.</p>
+<h2 id="extrude">Extrude</h2>
+<p>Select the <em>wood</em> object. Under <em>Material Properties</em>, remove the <code>SVGMat</code> material so we better see the shape. Convert the shape to mesh by choosing <em>Object -&gt; Convert To -&gt; Mesh</em>. Hit <code>Tab</code> for edit mode, <code>A</code> to select all, then clean up the mesh by going to <em>Mesh -&gt; Cleanup -&gt; Limited Dissolve</em>, followed by <code>M</code> and <em>By Distance</em> (merge by distance).</p>
+<p>Hit <code>E</code> to extrude and eyeball it to something more or less accurate - but remember the number (you can of course always measure and type in the number). Hit <code>Tab</code> to go back to object mode.</p>
+<p><img src="blender-extruded.png" alt="Imported Shapes"></p>
+<h2 id="smooth">Smooth</h2>
+<p>Since our cuts are round, let's smooth out the mesh. Select <em>Object -&gt; Shade Smooth</em>. Don't panic, we'll fix the normals. Switch to edit mode (<code>Tab</code>) and select one of the top faces. Hit <code>Shift+G</code> and select <em>Coplanar</em>. While holding <code>Shift</code>, select one of the bottom faces. Hit <code>Shift+G</code> again and choose <em>Coplanar</em>. Press <code>CTRL+I</code> to invert the selection. Choose <em>Select -&gt; Select Loops -&gt; Select Boundary Loop</em>. You now have all edges of the inserts as well as the outer borders selected.</p>
+<p>Make these edges sharp by selecting <em>Edge -&gt; Mark Sharp</em>. Hit <code>A</code> to select all and choose <em>Mesh -&gt; Normals -&gt; Reset Vectors</em>. You should how have a mesh with a flat, uniform top and smooth inserts.</p>
+<p><img src="blender-smooth-edges.png" alt="Smooth Edges"></p>
+<p>Maybe now it's a good time to save your project. Name it <code>Playfield.blend</code>.</p>
+<h2 id="convert-other-objects">Convert Other Objects</h2>
+<p>We don't need to extrude the other objects but convert them to a mesh so we can UV-map them. Exit edit mode with <code>Tab</code> and select the <em>inserts</em> object. Remove <code>SVGMat</code>, select <em>Object -&gt; Convert -&gt; Mesh</em>, and hit <code>Tab</code> for edit mode.</p>
+<p>Press <code>A</code> to select all, select <em>Mesh -&gt; Cleanup -&gt; Limited Dissolve</em>, and hit <code>M</code>, <em>By Distance</em>. Exit edit mode by pressing <code>Tab</code>. Since we extruded to the top, we need to align the <em>inserts</em> mesh. Hit <code>G</code>, <code>Z</code>, and type the distance you remembered when extruding.</p>
+<p>Finally, select the <em>plywood</em> object, remove its material and convert it to a mesh as well. The result should look like that:</p>
+<p><img src="blender-mesh-created.png" alt="Mesh Created!"></p>
+<h2 id="uv-map">UV-Map</h2>
+<p>Now we will map our objects, so they perfectly align with the masks we've created in the previous step. There is just one add-on for Blender that we need to install first, to make this quick.</p>
+<p>The add-on is called <em>TexTools</em>. Go to the <a href="https://github.com/SavMartin/TexTools-Blender">GitHub page</a> and <a href="https://github.com/SavMartin/TexTools-Blender/archive/master.zip">download</a> the archive of the repo. In Blender, choose <em>Edit -&gt; Preferences -&gt; Add-ons</em>, click on <em>Install</em>, select the downloaded archive, and enable the checkbox after installation. Then, close preferences.</p>
+<h3 id="seams">Seams</h3>
+<p>Now we'll create seams for the plywood edges so we can easily unwrap them. We'll create them on the side facing the player, so they aren't visible when playing.</p>
+<p>Hide the <em>inserts</em> and <em>plywood</em> objects, and orbit 180° around your table in the viewport. Select <em>wood</em>, <code>Tab</code> for edit mode, <code>2</code> to select edges. Then, <code>Shift</code>-select one edge of each hole in the mesh. Additionally, select the four outer edges of the mesh. When done, click on <em>UV -&gt; Mark Seam</em>.</p>
+<p><img src="blender-seams.png" alt="Plywood edge seams"></p>
+<p>Hit <code>Tab</code> to exit edit mode, and unhide the <em>inserts</em> and <em>plywood</em> objects again. Change to the <em>UV Editing</em> workspace. On the right, be sure to be in object mode, hit <code>7</code> for top view, and <code>A</code> to select all. Then <code>Tab</code> for edit mode, and <code>3</code> for face selection (it's important to have <strong>all</strong> objects selected before switching to edit mode).</p>
+<h3 id="top-surface">Top Surface</h3>
+<p>Let's map the top surface first. Select a face of <em>wood</em>'s top surface, hit <code>Shift+G</code> and choose <em>Coplanar</em>. Make sure that besides the wood surface, also the inserts and the <em>plywood</em> mesh (but not the bottom surface or the edge faces) have been selected. Then click the <em>UV</em> menu and select <em>Project from View (Bounds)</em>.</p>
+<p><img src="blender-uv-surface.png" alt="Mapped Main Surface"></p>
+<p>The <em>Bounds</em> part is important, because it will spread the map across the entire tile, aligning it with our maps. Hit <code>Tab</code> to exit edit mode.</p>
+<h3 id="bottom-surface">Bottom Surface</h3>
+<p>Select the <em>wood</em> mesh. Hit <code>Tab</code> for edit mode and select one of the faces of the backside. Press <code>Shift+G</code> and choose <em>Coplanar</em> to select the entire surface. Then hit <code>7</code>, <code>9</code> and choose <em>UV -&gt; Project from View</em>. On the left, move the mesh outside of the UV tile by selecting the island and hitting <code>G</code>.</p>
+<p><img src="blender-uv-back.png" alt="Mapped Main Surface"></p>
+<h3 id="plywood-edges">Plywood Edges</h3>
+<p>Next are the plywood edges. With the bottom surfaces still selected, <code>Shift</code>-select one face of <em>wood</em>'s top surface, <code>Shift+G</code>, <em>Coplanar</em>, followed by <code>Ctrl+I</code> (select inverse). Now, only the edges should be selected.</p>
+<p>From the <em>UV</em> menu, choose <em>UV Unwrap</em>. On the left, you should see all edges unwrapped as rectangles.</p>
+<p><img src="blender-edges-unwrapped.png" alt="Unwrapped plywood edges"></p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>If you forgot to mark a seam, you'll get circular islands like this:</p>
+<p><img src="blender-missed-seams.png" alt="Missed Seams"></p>
+<p>In this case, simply select an edge of each of the island, select <em>UV -&gt; Mark Seam</em>, and <em>UV Unwrap</em> again.</p>
+</div>
+<p>Now, on the left, hit <code>4</code> for island selection mode, and select all horizontal islands. Hit <code>R</code>, type <code>90</code> and <code>Enter</code>. Type <code>A</code> to select all islands, open TexTools by hitting <code>N</code> and selecting <em>TexTools</em>, expand the <em>UV Layout</em> section, and <em>left align</em> all islands.</p>
+<p><img src="blender-uv-left-align.png" alt="Left-align all islands"></p>
+<p>Hit <code>G</code>, <code>X</code> and move them to the left side, out of the tile.</p>
+<p><img src="blender-uv-left-aligned.png" alt="Left align islands"></p>
+<p>Press <code>Tab</code> to exit edit mode.</p>
+<h3 id="place-the-islands">Place the Islands</h3>
+<p>Now we need to place the edge islands as well as the bottom surface back on the tile. We didn't do that before, because we need the top surface mapping visible in order to know where to place them.</p>
+<p>On the right side, hit <code>A</code> to select all, then <code>Tab</code> to enter edit mode. Move the split view a bit to the right, so you'll have more space on the left.</p>
+<p><img src="blender-uv-before-placing.png" alt="Current Mapping"></p>
+<p>First, by using <code>G</code>, <code>R</code> and <code>S</code>, place the bottom surface wherever there is a bit space left. Then, grab all the edge islands and make them fit into the <em>plywood</em> rectangle. It doesn't have to be super precise, since you can later align the texture in Substance, but it shouldn't overlap with the top surface and should stay inside of the UV tile.</p>
+<p><img src="blender-uv-after-placing.png" alt="Final Mapping"></p>
+<p>You might need to X-resize some of the edge islands. The goal is to fit them all in on top of the <em>plywood</em> object.</p>
+<h2 id="export">Export</h2>
+<p>Mesh work is nearly done :)</p>
+<p>Back in the <em>Layout</em> workspace, in object mode, select <em>wood</em> and under <em>Modifier Properties</em>, add the <em>Triangulate</em> modifier. Do the same for <em>inserts</em>.</p>
+<p>Then, select <em>inserts</em> and <em>wood</em> and click on <em>File -&gt; Export -&gt; FBX (.fbx)</em>. Check <em>Limit to Selected Objects</em>. Name it <code>Playfield.fbx</code> and hit <em>Export FBX</em>.</p>
+<p><img src="final-mesh.png" alt="Final Mesh"></p>
+<p><a class="xref" href="3-texturing.html">Let's texture this</a>!</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/tutorials/realistic-playfield/2-modeling.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2025 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>
