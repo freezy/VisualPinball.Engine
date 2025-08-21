@@ -356,7 +356,6 @@ void SegmentDisplay_float(float2 coords, UnityTexture2D data, float numChars, fl
 	ctx.separatorType = separatorType;                 // int → int, no cast needed
 	ctx.separatorEveryThreeOnly = separatorEveryThreeOnly;
 
-	SegmentGap = segmentWeight * 1.5;
 	mm = float2(.0 + horizontalMiddle, 0);   // middle
 	tm = float2(.0 + horizontalMiddle, 1);
 	bm = float2(.0 + horizontalMiddle, -1);
@@ -367,9 +366,7 @@ void SegmentDisplay_float(float2 coords, UnityTexture2D data, float numChars, fl
 	dbm = mm + float2(0.0 + horizontalMiddle, -segmentWeight);
 	dbl = bl + float2(0.0, segmentWeight);
 	dbr = br + float2(0.0, segmentWeight);
-	dp = br + float2(segmentWeight * 4.0, SegmentGap);
-
-
+	dp = br + float2(segmentWeight * 4.0, ctx.segmentGap);
 
 	float cellWidth = 1. / numChars;
 
