@@ -21,7 +21,6 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -34,7 +33,9 @@ namespace VisualPinball.Unity.Editor
 			public List<string> contexts = new List<string>(); // Optional details (where inside)
 		}
 
-		private Object _target;
+		private UnityEngine.Object _target; // Object-based search (takes precedence if both set to avoid ambiguity)
+		private string _guidInput = ""; // GUID-based search
+
 		private bool _deepInspect = true;
 		private bool _includeScenes = true;
 		private bool _includePrefabs = true;
@@ -49,7 +50,7 @@ namespace VisualPinball.Unity.Editor
 		private string _status = "";
 
 		// ---------- Compatibility helpers to avoid generic type inference issues ----------
-		private static T LoadAtPath<T>(string path) where T : Object
+		private static T LoadAtPath<T>(string path) where T : UnityEngine.Object
 		{
 #if UNITY_2019_1_OR_NEWER
 			return AssetDatabase.LoadAssetAtPath<T>(path);
@@ -58,10 +59,10 @@ namespace VisualPinball.Unity.Editor
 #endif
 		}
 
-		private static Object LoadAny(string path)
+		private static UnityEngine.Object LoadAny(string path)
 		{
 #if UNITY_2019_1_OR_NEWER
-			return AssetDatabase.LoadAssetAtPath<Object>(path);
+			return AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path);
 #else
         return AssetDatabase.LoadAssetAtPath(path, typeof(UnityEngine.Object));
 #endif
@@ -78,10 +79,16 @@ namespace VisualPinball.Unity.Editor
 			GUILayout.Label("Find where an asset is directly referenced (Assets/ + Packages/org.visualpinball.*)",
 				EditorStyles.boldLabel);
 			EditorGUILayout.HelpBox(
-				"Select the target asset (e.g., a Texture). Click 'Find References'. The tool lists assets that have a DIRECT reference to it. Enable 'Deep Inspect' to show the exact component/property path.",
+				"Search by Asset (object field) OR by GUID. If both are set, the asset search is used. Results list only DIRECT references.",
 				MessageType.Info);
 
-			_target = EditorGUILayout.ObjectField("Target Asset", _target, typeof(Object), false);
+			_target = EditorGUILayout.ObjectField("Target Asset (optional)", _target, typeof(UnityEngine.Object),
+				false);
+			_guidInput = EditorGUILayout.TextField(
+				new GUIContent("Target GUID (optional)",
+					"32 hex characters; resolves to an asset if present, otherwise falls back to YAML text scan."),
+				_guidInput);
+
 			_deepInspect =
 				EditorGUILayout.ToggleLeft("Deep Inspect (show component/property where referenced)", _deepInspect);
 
@@ -95,20 +102,11 @@ namespace VisualPinball.Unity.Editor
 			_includePackages = EditorGUILayout.ToggleLeft("Include Packages/org.visualpinball.*", _includePackages);
 
 			EditorGUILayout.Space();
-			EditorGUILayout.BeginHorizontal();
-			using (new EditorGUI.DisabledScope(_target == null))
+			using (new EditorGUI.DisabledScope(_target == null && string.IsNullOrWhiteSpace(_guidInput)))
 			{
 				if (GUILayout.Button("Find References", GUILayout.Height(28)))
 					FindReferences();
 			}
-
-			using (new EditorGUI.DisabledScope(_results.Count == 0))
-			{
-				if (GUILayout.Button("Export CSV", GUILayout.Height(28)))
-					ExportCsv();
-			}
-
-			EditorGUILayout.EndHorizontal();
 
 			EditorGUILayout.Space();
 			EditorGUILayout.LabelField("Status:", _status);
@@ -150,23 +148,47 @@ namespace VisualPinball.Unity.Editor
 			_results.Clear();
 			_status = "";
 
-			if (_target == null)
+			string guid = SanitizeGuid(_guidInput);
+			bool guidMode = !string.IsNullOrEmpty(guid);
+
+			if (_target == null && !guidMode)
 			{
-				_status = "Pick a target asset first.";
+				_status = "Pick a target asset or enter a GUID.";
 				Repaint();
 				return;
 			}
 
-			string targetPath = AssetDatabase.GetAssetPath(_target);
-			if (string.IsNullOrEmpty(targetPath))
+			// Try to resolve GUID to an asset path if provided
+			string targetPath = null;
+			UnityEngine.Object searchTarget = _target;
+			if (guidMode)
 			{
-				_status = "Target does not appear to be a project or package asset.";
-				Repaint();
-				return;
+				targetPath = AssetDatabase.GUIDToAssetPath(guid);
+				if (!string.IsNullOrEmpty(targetPath))
+				{
+					// Populate the object field with the resolved asset
+					searchTarget = LoadAny(targetPath);
+					_target = searchTarget; // reflect in the UI as requested
+				}
 			}
+			else
+			{
+				targetPath = AssetDatabase.GetAssetPath(_target);
+			}
+
+			var addedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
 			try
 			{
+				// If GUID resolved, include the asset itself in the results first
+				if (!string.IsNullOrEmpty(targetPath))
+				{
+					var rr = new RefResult { assetPath = targetPath };
+					rr.contexts.Add("[Target] Resolved from input" + (guidMode ? " GUID" : " asset"));
+					_results.Add(rr);
+					addedPaths.Add(targetPath);
+				}
+
 				// Gather candidates from Assets/ and optionally Packages/org.visualpinball.*
 				var allPaths = AssetDatabase.GetAllAssetPaths();
 				IEnumerable<string> candidates =
@@ -186,14 +208,31 @@ namespace VisualPinball.Unity.Editor
 						    (float)i / total))
 						break; // user cancelled
 
-					// Only list DIRECT references (non-recursive dependency lookup)
-					string[] deps = AssetDatabase.GetDependencies(path, false); // direct only
-					if (deps == null || deps.Length == 0) continue;
-					if (!deps.Contains(targetPath)) continue;
+					bool isHit = false;
+
+					if (!string.IsNullOrEmpty(targetPath))
+					{
+						// Only list DIRECT references (non-recursive dependency lookup)
+						string[] deps = AssetDatabase.GetDependencies(path, false); // direct only
+						if (deps != null && deps.Length > 0 && deps.Contains(targetPath))
+							isHit = true;
+					}
+					else if (guidMode)
+					{
+						// Fallback: GUID text search for direct mentions in YAML-like files
+						if (IsYamlLike(path))
+						{
+							if (FileContainsGuid(path, guid))
+								isHit = true;
+						}
+					}
+
+					if (!isHit) continue;
+					if (addedPaths.Contains(path)) continue; // avoid duplicates (e.g., target itself)
 
 					var result = new RefResult { assetPath = path };
 
-					if (_deepInspect)
+					if (_deepInspect && searchTarget != null)
 					{
 						// Narrow deep inspection to relevant types to avoid heavy work
 						string ext = Path.GetExtension(path).ToLowerInvariant();
@@ -202,19 +241,19 @@ namespace VisualPinball.Unity.Editor
 							if (_includeMaterials && ext == ".mat")
 							{
 								var mat = LoadAtPath<Material>(path);
-								FindContextsInObject(mat, result);
+								FindContextsInObject(mat, searchTarget, result);
 							}
 							else if (_includePrefabs && ext == ".prefab")
 							{
-								FindContextsInPrefab(path, result);
+								FindContextsInPrefab(path, searchTarget, result);
 							}
 							else if (_includeScenes && ext == ".unity")
 							{
-								FindContextsInScene(path, result);
+								FindContextsInScene(path, searchTarget, result);
 							}
 							else if (_includeScriptableObjects)
 							{
-								FindContextsInGenericAsset(path, result);
+								FindContextsInGenericAsset(path, searchTarget, result);
 							}
 						}
 						catch (Exception ex)
@@ -223,14 +262,29 @@ namespace VisualPinball.Unity.Editor
 							result.contexts.Add("[Deep Inspect Error] " + ex.Message);
 						}
 					}
+					else if (_deepInspect && guidMode && string.IsNullOrEmpty(targetPath))
+					{
+						// For GUID-only text search, provide line number hints
+						var lines = FindGuidLines(path, guid, maxLines: 5);
+						foreach (var ln in lines)
+							result.contexts.Add("[YAML] " + ln);
+					}
 
 					_results.Add(result);
+					addedPaths.Add(path);
 					hits++;
 				}
 
-				_status = hits > 0
-					? $"Found {hits} assets that DIRECTLY reference {Path.GetFileName(targetPath)} (Assets/ + {(_includePackages ? "Packages/org.visualpinball.*" : "no packages")})."
-					: "No direct references found.";
+				if (guidMode && string.IsNullOrEmpty(targetPath) &&
+				    EditorSettings.serializationMode != SerializationMode.ForceText)
+				{
+					_status =
+						$"Found {hits} direct references via GUID text search. Note: project serialization is {EditorSettings.serializationMode}; ForceText is recommended for reliable GUID scanning.";
+				}
+				else
+				{
+					_status = $"Found {_results.Count} item(s). Direct references listed.";
+				}
 			}
 			catch (Exception ex)
 			{
@@ -244,64 +298,32 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void ExportCsv()
-		{
-			string save =
-				EditorUtility.SaveFilePanel("Export CSV", Application.dataPath, "AssetReferenceResults", "csv");
-			if (string.IsNullOrEmpty(save)) return;
-			try
-			{
-				using (var sw = new StreamWriter(save))
-				{
-					sw.WriteLine("Referencer,Where");
-					foreach (var r in _results)
-					{
-						if (r.contexts.Count == 0)
-						{
-							sw.WriteLine($"\"{r.assetPath}\",\"\"");
-						}
-						else
-						{
-							foreach (var ctx in r.contexts)
-								sw.WriteLine($"\"{r.assetPath}\",\"{ctx.Replace("\"", "''")}\"");
-						}
-					}
-				}
-
-				EditorUtility.RevealInFinder(save);
-			}
-			catch (Exception ex)
-			{
-				Debug.LogException(ex);
-			}
-		}
-
 		// ---------------- Deep Inspect Helpers ----------------
 
-		private void FindContextsInObject(Object obj, RefResult result)
+		private void FindContextsInObject(UnityEngine.Object obj, UnityEngine.Object searchTarget, RefResult result)
 		{
-			if (obj == null) return;
+			if (obj == null || searchTarget == null) return;
 			var so = new SerializedObject(obj);
-			FindObjectReferenceProperties(so, _target,
+			FindObjectReferenceProperties(so, searchTarget,
 				(propPath) => { result.contexts.Add($"{obj.GetType().Name}.{propPath}"); });
 		}
 
-		private void FindContextsInGenericAsset(string path, RefResult result)
+		private void FindContextsInGenericAsset(string path, UnityEngine.Object searchTarget, RefResult result)
 		{
 			// Try main asset first (type-agnostic)
 			var main = LoadAny(path);
 			if (main != null)
-				FindContextsInObject(main, result);
+				FindContextsInObject(main, searchTarget, result);
 
 			// Also scan sub-assets (e.g., Materials inside FBX, nested ScriptableObjects)
 			foreach (var sub in AssetDatabase.LoadAllAssetsAtPath(path))
 			{
 				if (sub == null || ReferenceEquals(sub, main)) continue;
-				FindContextsInObject(sub, result);
+				FindContextsInObject(sub, searchTarget, result);
 			}
 		}
 
-		private void FindContextsInPrefab(string prefabPath, RefResult result)
+		private void FindContextsInPrefab(string prefabPath, UnityEngine.Object searchTarget, RefResult result)
 		{
 			var root = PrefabUtility.LoadPrefabContents(prefabPath);
 			try
@@ -314,7 +336,7 @@ namespace VisualPinball.Unity.Editor
 					{
 						if (c == null) continue; // missing script
 						var so = new SerializedObject(c);
-						FindObjectReferenceProperties(so, _target,
+						FindObjectReferenceProperties(so, searchTarget,
 							(propPath) =>
 							{
 								result.contexts.Add($"{GetHierarchyPath(go)} → {c.GetType().Name}.{propPath}");
@@ -328,7 +350,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void FindContextsInScene(string scenePath, RefResult result)
+		private void FindContextsInScene(string scenePath, UnityEngine.Object searchTarget, RefResult result)
 		{
 			var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
 			try
@@ -343,7 +365,7 @@ namespace VisualPinball.Unity.Editor
 						{
 							if (c == null) continue; // missing script
 							var so = new SerializedObject(c);
-							FindObjectReferenceProperties(so, _target,
+							FindObjectReferenceProperties(so, searchTarget,
 								(propPath) =>
 								{
 									result.contexts.Add(
@@ -359,10 +381,10 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private static void FindObjectReferenceProperties(SerializedObject so, Object target,
+		private static void FindObjectReferenceProperties(SerializedObject so, UnityEngine.Object target,
 			Action<string> onHit)
 		{
-			if (so == null) return;
+			if (so == null || target == null) return;
 			var it = so.GetIterator();
 			bool enterChildren = true;
 			while (it.NextVisible(enterChildren))
@@ -391,6 +413,91 @@ namespace VisualPinball.Unity.Editor
 
 			stack.Reverse();
 			return string.Join("/", stack);
+		}
+
+		// ---------------- GUID Search Helpers ----------------
+
+		private static string SanitizeGuid(string input)
+		{
+			if (string.IsNullOrWhiteSpace(input)) return null;
+			var hex = new System.Text.StringBuilder(32);
+			foreach (char c in input)
+			{
+				if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))
+					hex.Append(char.ToLowerInvariant(c));
+			}
+
+			if (hex.Length != 32) return null; // Unity GUIDs are 32 hex chars
+			return hex.ToString();
+		}
+
+		private static bool IsYamlLike(string assetPath)
+		{
+			string ext = Path.GetExtension(assetPath).ToLowerInvariant();
+			return ext == ".prefab" || ext == ".unity" || ext == ".asset" || ext == ".mat" ||
+			       ext == ".controller" || ext == ".overridecontroller" || ext == ".anim" ||
+			       ext == ".shadergraph" || ext == ".vfx" || ext == ".uss" || ext == ".uxml" ||
+			       ext == ".shader";
+		}
+
+		private static string ToAbsolutePath(string assetDbPath)
+		{
+			// assetDbPath is like "Assets/..." or "Packages/..."
+			var projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
+			return Path.GetFullPath(Path.Combine(projectRoot, assetDbPath));
+		}
+
+		private static bool FileContainsGuid(string assetDbPath, string guid)
+		{
+			try
+			{
+				string p = ToAbsolutePath(assetDbPath);
+				if (!File.Exists(p)) return false;
+				// Lightweight scan first
+				string text = File.ReadAllText(p);
+				if (text.IndexOf("guid:" + guid, StringComparison.OrdinalIgnoreCase) >= 0) return true;
+				if (text.IndexOf("guid: " + guid, StringComparison.OrdinalIgnoreCase) >= 0) return true;
+				return false;
+			}
+			catch
+			{
+				return false;
+			}
+		}
+
+		private static IEnumerable<string> FindGuidLines(string assetDbPath, string guid, int maxLines = 5)
+		{
+			var list = new List<string>();
+			try
+			{
+				string p = ToAbsolutePath(assetDbPath);
+				if (!File.Exists(p)) return list;
+				int n = 0;
+				int lineNo = 0;
+				foreach (var line in File.ReadLines(p))
+				{
+					lineNo++;
+					if (line.IndexOf(guid, StringComparison.OrdinalIgnoreCase) >= 0)
+					{
+						list.Add($"line {lineNo}: {TrimForContext(line)}");
+						n++;
+						if (n >= maxLines) break;
+					}
+				}
+			}
+			catch
+			{
+			}
+
+			return list;
+		}
+
+		private static string TrimForContext(string s)
+		{
+			if (string.IsNullOrEmpty(s)) return s;
+			s = s.Trim();
+			if (s.Length > 120) s = s.Substring(0, 117) + "...";
+			return s;
 		}
 	}
 }
