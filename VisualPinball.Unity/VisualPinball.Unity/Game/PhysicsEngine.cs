@@ -21,6 +21,7 @@ using System.Diagnostics;
 using System.Linq;
 using NativeTrees;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
@@ -296,12 +297,12 @@ namespace VisualPinball.Unity
 			_octree = new NativeOctree<int>(_playfieldBounds, 1024, 10, Allocator.Persistent);
 
 			sw.Restart();
-			var populateJob = new PhysicsPopulateJob {
-				Colliders = _colliders,
-				Octree = _octree,
-			};
-			populateJob.Run();
-			_octree = populateJob.Octree;
+			unsafe {
+				fixed (NativeColliders* c = &_colliders)
+				fixed (NativeOctree<int>* o = &_octree) {
+					PhysicsPopulate.PopulateUnsafe((IntPtr)c, (IntPtr)o);
+				}
+			}
 			Debug.Log($"Octree of {_colliders.Length} constructed (colliders: {elapsedMs}ms, tree: {sw.Elapsed.TotalMilliseconds}ms).");
 
 			// get balls
