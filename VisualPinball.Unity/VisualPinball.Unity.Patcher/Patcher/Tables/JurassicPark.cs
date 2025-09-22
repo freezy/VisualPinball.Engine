@@ -20,6 +20,7 @@
 
 using UnityEngine;
 using UnityEngine.Rendering;
+using VisualPinball.Unity.Editor;
 
 namespace VisualPinball.Unity.Patcher
 {
@@ -56,7 +57,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("TrexMain")]
 		public void FixBrokenNormalMap(GameObject gameObject)
 		{
-			RenderPipeline.Current.MaterialAdapter.SetNormalMapDisabled(gameObject);
+			RenderPipelineConverter.Current.MaterialAdapter.SetNormalMapDisabled(gameObject);
 		}
 
 		[NameMatch("LFLogo", Ref="Playfield/Flippers/LeftFlipper")]
@@ -74,13 +75,13 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("PRightFlipper1")]
 		public void SetAlphaCutOffEnabled(GameObject gameObject)
 		{
-			RenderPipeline.Current.MaterialAdapter.SetAlphaCutOffEnabled(gameObject);
+			RenderPipelineConverter.Current.MaterialAdapter.SetAlphaCutOffEnabled(gameObject);
 		}
 
 		[NameMatch("Primitive_Plastics")]
 		public void SetOpaque(GameObject gameObject)
 		{
-			RenderPipeline.Current.MaterialAdapter.SetOpaque(gameObject);
+			RenderPipelineConverter.Current.MaterialAdapter.SetOpaque(gameObject);
 		}
 
 		[NameMatch("leftrail")]
@@ -89,7 +90,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("sidewalls")]
 		public void SetDoubleSided(GameObject gameObject)
 		{
-			RenderPipeline.Current.MaterialAdapter.SetDoubleSided(gameObject);
+			RenderPipelineConverter.Current.MaterialAdapter.SetDoubleSided(gameObject);
 		}
 
 		[NameMatch("Primitive_SideWallReflect")]

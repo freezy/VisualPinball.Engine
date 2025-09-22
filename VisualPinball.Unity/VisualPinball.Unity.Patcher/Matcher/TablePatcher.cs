@@ -376,7 +376,7 @@ namespace VisualPinball.Unity.Patcher
 			var light = VpeLight.GetDefault(name, x, y);
 			light.Data.ShowBulbMesh = false;
 
-			var prefab = RenderPipeline.Current.PrefabProvider.CreateLight();
+			var prefab = RenderPipelineConverter.Current.PrefabProvider.CreateLight();
 			var lightGo = PrefabUtility.InstantiatePrefab(prefab, parentGo.transform) as GameObject;
 			if (!lightGo) {
 				return null;
@@ -411,7 +411,7 @@ namespace VisualPinball.Unity.Patcher
 		/// <param name="parentGo"></param>
 		private GameObject CreateInsertLight(LightData data, GameObject parentGo)
 		{
-			var prefab = RenderPipeline.Current.PrefabProvider.CreateInsertLight();
+			var prefab = RenderPipelineConverter.Current.PrefabProvider.CreateInsertLight();
 			var go = PrefabUtility.InstantiatePrefab(prefab, parentGo.transform) as GameObject;
 			go!.name = data.Name;
 			data.OffImage = TableContainer.Table.Data.Image;

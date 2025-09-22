@@ -24,8 +24,8 @@ namespace VisualPinball.Unity.Editor
 		internal static IVpxPrefab InstantiatePrefab(this HitTarget hitTarget)
 		{
 			var prefab = hitTarget.Data.IsDropTarget
-				? RenderPipeline.Current.PrefabProvider.CreateDropTarget(hitTarget.Data.TargetType)
-				: RenderPipeline.Current.PrefabProvider.CreateHitTarget(hitTarget.Data.TargetType);
+				? RenderPipelineConverter.Current.PrefabProvider.CreateDropTarget(hitTarget.Data.TargetType)
+				: RenderPipelineConverter.Current.PrefabProvider.CreateHitTarget(hitTarget.Data.TargetType);
 
 			if (!prefab) {
 				throw new Exception($"Cannot instantiate prefab for target type {hitTarget.Data.TargetType}");

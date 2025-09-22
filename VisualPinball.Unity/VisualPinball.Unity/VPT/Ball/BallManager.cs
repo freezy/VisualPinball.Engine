@@ -50,8 +50,10 @@ namespace VisualPinball.Unity
 			if (!ballPrefab) {
 				ballPrefab = RenderPipeline.Current.BallConverter.CreateDefaultBall();
 			}
+
 			var ballGo = Object.Instantiate(ballPrefab, _parent);
 			var ballComp = ballGo.GetComponent<BallComponent>();
+
 			ballGo.name = $"Ball {NumBallsCreated++}";
 			ballGo.transform.localScale = Physics.ScaleToWorld(new Vector3(radius, radius, radius) * 2f);
 			ballGo.transform.localPosition = localPos.TranslateToWorld();

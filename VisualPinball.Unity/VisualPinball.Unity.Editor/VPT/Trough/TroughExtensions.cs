@@ -22,7 +22,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		internal static IVpxPrefab InstantiatePrefab(this Trough trough)
 		{
-			var prefab = RenderPipeline.Current.PrefabProvider.CreateTrough();
+			var prefab = RenderPipelineConverter.Current.PrefabProvider.CreateTrough();
 			return new VpxPrefab<Trough, TroughData, TroughComponent>(prefab, trough);
 		}
 	}

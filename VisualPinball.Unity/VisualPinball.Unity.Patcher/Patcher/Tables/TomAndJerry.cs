@@ -19,6 +19,7 @@
 // ReSharper disable UnusedMember.Global
 
 using UnityEngine;
+using VisualPinball.Unity.Editor;
 using VisualPinball.Unity.Patcher.Matcher.Table;
 
 namespace VisualPinball.Unity.Patcher
@@ -52,7 +53,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("BumperCap3")] // Tom Bumper
 		public void SetOpaque(GameObject gameObject)
 		{
-			RenderPipeline.Current.MaterialAdapter.SetOpaque(gameObject);
+			RenderPipelineConverter.Current.MaterialAdapter.SetOpaque(gameObject);
 		}
 
 		/// <summary>
@@ -64,7 +65,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("MusclesKnife")]
 		public void SetAlphaClip(GameObject gameObject)
 		{
-			RenderPipeline.Current.MaterialAdapter.SetAlphaCutOff(gameObject, 0.05f);
+			RenderPipelineConverter.Current.MaterialAdapter.SetAlphaCutOff(gameObject, 0.05f);
 		}
 
 		/// <summary>
@@ -81,7 +82,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("Primitive66")] // jerry at plunger
 		public void SetDoubleSided(GameObject gameObject)
 		{
-			RenderPipeline.Current.MaterialAdapter.SetDoubleSided(gameObject);
+			RenderPipelineConverter.Current.MaterialAdapter.SetDoubleSided(gameObject);
 		}
 
 		[NameMatch("Ramp5")]
@@ -91,7 +92,7 @@ namespace VisualPinball.Unity.Patcher
 		[NameMatch("Ramp20")]
 		public void SetMetallic(GameObject gameObject)
 		{
-			RenderPipeline.Current.MaterialAdapter.SetMetallic(gameObject, 1.0f);
+			RenderPipelineConverter.Current.MaterialAdapter.SetMetallic(gameObject, 1.0f);
 		}
 
 		[NameMatch("Lflip", Ref = "Playfield/Flippers/LeftFlipper")]

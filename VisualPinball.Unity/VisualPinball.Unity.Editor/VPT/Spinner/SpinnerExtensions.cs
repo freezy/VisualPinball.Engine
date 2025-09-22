@@ -22,7 +22,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		internal static IVpxPrefab InstantiatePrefab(this Spinner spinner)
 		{
-			var prefab = RenderPipeline.Current.PrefabProvider.CreateSpinner();
+			var prefab = RenderPipelineConverter.Current.PrefabProvider.CreateSpinner();
 			return new VpxPrefab<Spinner, SpinnerData, SpinnerComponent>(prefab, spinner);
 		}
 	}
