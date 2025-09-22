@@ -47,9 +47,6 @@ public class FramePacingGraph : MonoBehaviour
 	public bool enableCpuGpuCollection = true;
 
 	bool initialized = false;
-	int lastFTCount;
-
-	float lastCpuBusyMs = 0f;
 
 	// Public API for custom metrics
 	public int RegisterCustomMetric(string name, Color color, Func<float> sampler, float scale = 1f,
@@ -116,6 +113,8 @@ public class FramePacingGraph : MonoBehaviour
 	FrameTiming[] ftBuf = new FrameTiming[1];
 	bool haveFT = false;
 	float lastCpuMs = 0f, lastGpuMs = 0f;
+	float lastCpuBusyMs = 0f, lastGpuBusyMs = 0f; // busy values we plot
+
 
 	static Material lineMat;
 
@@ -148,8 +147,8 @@ public class FramePacingGraph : MonoBehaviour
 		timestamps = new float[capacity];
 
 		totalMetric = new Metric("Total (ms)", totalColor, SampleTotalMs, 1f, true, capacity);
-		cpuMetric   = new Metric("CPU (ms)",   cpuColor,   () => lastCpuMs, 1f, enableCpuGpuCollection, capacity);
-		gpuMetric   = new Metric("GPU (ms)",   gpuColor,   () => lastGpuMs, 1f, enableCpuGpuCollection, capacity);
+		cpuMetric   = new Metric("CPU Busy (ms)", cpuColor, () => lastCpuBusyMs, 1f, enableCpuGpuCollection, capacity);
+		gpuMetric   = new Metric("GPU Busy (ms)", gpuColor, () => lastGpuBusyMs, 1f, enableCpuGpuCollection, capacity);
 
 		scratchValues = new float[capacity];
 		EnsureLineMaterial();
@@ -227,14 +226,26 @@ public class FramePacingGraph : MonoBehaviour
 		// Get last frame timing
 		if (enableCpuGpuCollection)
 		{
-			uint got = enableCpuGpuCollection ? FrameTimingManager.GetLatestTimings(1, ftBuf) : 0;
-			lastFTCount = (int)got;
+			uint got = FrameTimingManager.GetLatestTimings(1, ftBuf);
 			haveFT = got > 0;
 			if (haveFT)
 			{
 				var ft = ftBuf[0];
+
+				// raw (for optional Total=max(CPU,GPU))
 				lastCpuMs = Mathf.Max(0f, (float)ft.cpuFrameTime);
 				lastGpuMs = Mathf.Max(0f, (float)ft.gpuFrameTime);
+
+				// busy
+				float mainWork = Mathf.Max(0f, (float)ft.cpuMainThreadFrameTime);
+				float renderWork = Mathf.Max(0f, (float)ft.cpuRenderThreadFrameTime);
+
+				// CPU Busy = max of main vs render thread work (excludes present wait)
+				lastCpuBusyMs = Mathf.Max(mainWork, renderWork);
+
+				// GPU Busy = gpuFrameTime
+				lastGpuBusyMs = lastGpuMs;
+
 			}
 		}
 		else
@@ -409,7 +420,6 @@ public class FramePacingGraph : MonoBehaviour
 
 		// FPS
 		GUI.Label(new Rect(r.x + 8, r.y + 6, 120, fontSize + 6), fpsText, labelStyle);
-		GUI.Label(new Rect(r.x + 125, r.y + 6, 180, fontSize + 6),$"FT:{lastFTCount} {(haveFT ? "OK" : "OFF")}", labelStyle);
 
 		// Legends (cached strings)
 		float lx = r.x + 8, ly = Mathf.Max(r.y + 24, r.yMax - 18 - (fontSize + 4) * (3 + customMetrics.Count));
