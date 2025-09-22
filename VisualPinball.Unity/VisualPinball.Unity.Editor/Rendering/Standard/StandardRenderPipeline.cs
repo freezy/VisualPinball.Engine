@@ -16,9 +16,11 @@
 
 // ReSharper disable UnusedType.Global
 
+using VisualPinball.Unity.Editor;
+
 namespace VisualPinball.Unity
 {
-	public class StandardRenderPipeline : IRenderPipeline
+	public class StandardRenderPipeline : IRenderPipelineConverter
 	{
 		public string Name { get; } = "Built-in Render Pipeline";
 
@@ -26,7 +28,6 @@ namespace VisualPinball.Unity
 		public IMaterialConverter MaterialConverter { get; } = new StandardMaterialConverter();
 		public IMaterialAdapter MaterialAdapter { get; } = new StandardMaterialAdapter();
 		public ILightConverter LightConverter { get; } = new StandardLightConverter();
-		public IBallConverter BallConverter { get; } = new StandardBallConverter();
 		public IPrefabProvider PrefabProvider { get; } = new StandardPrefabProvider();
 	}
 }

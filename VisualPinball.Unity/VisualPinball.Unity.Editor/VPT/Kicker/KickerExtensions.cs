@@ -22,7 +22,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		internal static IVpxPrefab InstantiatePrefab(this Kicker kicker)
 		{
-			var prefab = RenderPipeline.Current.PrefabProvider.CreateKicker(kicker.Data.KickerType);
+			var prefab = RenderPipelineConverter.Current.PrefabProvider.CreateKicker(kicker.Data.KickerType);
 			return new VpxPrefab<Kicker, KickerData, KickerComponent>(prefab, kicker);
 		}
 	}

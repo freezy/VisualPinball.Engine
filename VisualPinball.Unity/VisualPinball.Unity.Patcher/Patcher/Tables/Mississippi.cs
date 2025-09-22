@@ -19,6 +19,7 @@
 // ReSharper disable UnusedMember.Global
 
 using UnityEngine;
+using VisualPinball.Unity.Editor;
 
 namespace VisualPinball.Unity.Patcher
 {
@@ -30,7 +31,7 @@ namespace VisualPinball.Unity.Patcher
 		public void SetDoubleSided(GameObject gameObject, ref GameObject child)
 		{
 			if (gameObject == child)
-				RenderPipeline.Current.MaterialAdapter.SetDoubleSided(gameObject);
+				RenderPipelineConverter.Current.MaterialAdapter.SetDoubleSided(gameObject);
 		}
 
 		/// <summary>
@@ -51,7 +52,7 @@ namespace VisualPinball.Unity.Patcher
 		{
 			if (gameObject == child)
 			{
-				RenderPipeline.Current.MaterialAdapter.SetTransparentDepthPrepassEnabled(gameObject);
+				RenderPipelineConverter.Current.MaterialAdapter.SetTransparentDepthPrepassEnabled(gameObject);
 			}
 		}
 	}

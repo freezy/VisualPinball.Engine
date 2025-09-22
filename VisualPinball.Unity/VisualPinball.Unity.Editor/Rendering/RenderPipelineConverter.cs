@@ -20,13 +20,13 @@ using NLog;
 using UnityEngine;
 using Logger = NLog.Logger;
 
-namespace VisualPinball.Unity
+namespace VisualPinball.Unity.Editor
 {
 	/// <summary>
 	/// A common interface for all render pipelines that covers material
 	/// creation, lighting setup and ball creation.
 	/// </summary>
-	public interface IRenderPipeline
+	public interface IRenderPipelineConverter
 	{
 		/// <summary>
 		/// Name of the render pipeline
@@ -39,37 +39,15 @@ namespace VisualPinball.Unity
 		RenderPipelineType Type { get; }
 
 		/// <summary>
-		/// Converts a material from Visual Pinball to the active renderer.
+		/// Provides a bunch of helper methods for setting common attributes
+		/// in materials.
 		/// </summary>
-		IMaterialConverter MaterialConverter { get; }
+		IMaterialAdapter MaterialAdapter { get; }
 
 		/// <summary>
-		/// Converts a light from Visual Pinball to the active renderer.
+		/// Provides access to VPE's game item prefabs.
 		/// </summary>
-		ILightConverter LightConverter { get; }
-
-		/// <summary>
-		/// Creates a new ball.
-		/// </summary>
-		IBallConverter BallConverter { get; }
-	}
-
-	public enum RenderPipelineType
-	{
-		/// <summary>
-		/// The built-in renderer.
-		/// </summary>
-		Standard,
-
-		/// <summary>
-		/// The Universal Render Pipeline.
-		/// </summary>
-		Urp,
-
-		/// <summary>
-		/// The High Definition Render Pipeline.
-		/// </summary>
-		Hdrp,
+		IPrefabProvider PrefabProvider { get; }
 	}
 
 	/// <summary>
@@ -77,25 +55,25 @@ namespace VisualPinball.Unity
 	/// are available and instantiates an SRP if available or the included
 	/// built-in instance otherwise.
 	/// </summary>
-	public static class RenderPipeline
+	public static class RenderPipelineConverter
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		private static IRenderPipeline _current;
+		private static IRenderPipelineConverter _current;
 
 		/// <summary>
 		/// Returns the currently instantiated render pipeline.
 		/// </summary>
-		public static IRenderPipeline Current {
+		public static IRenderPipelineConverter Current {
 			get {
 				if (_current == null) {
-					Debug.Log("Detecting render pipeline...");
-					var t = typeof(IRenderPipeline);
+					Debug.Log("Detecting render pipeline converter...");
+					var t = typeof(IRenderPipelineConverter);
 					var pipelines = AppDomain.CurrentDomain.GetAssemblies()
 						.Where(x => x.FullName.StartsWith("VisualPinball."))
 						.SelectMany(x => x.GetTypes())
 						.Where(x => x.IsClass && t.IsAssignableFrom(x))
-						.Select(x => (IRenderPipeline) Activator.CreateInstance(x))
+						.Select(x => (IRenderPipelineConverter) Activator.CreateInstance(x))
 						.ToArray();
 
 					Debug.Log("Found pipelines: " + string.Join(", ", pipelines.Select(p => p.Name)));
