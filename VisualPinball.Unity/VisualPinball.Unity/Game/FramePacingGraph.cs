@@ -16,10 +16,19 @@ public class FramePacingGraph : MonoBehaviour
 	[Header("Time Window & Scale")] [Range(1f, 60f)]
 	public float windowSeconds = 10f;
 
+	[Header("Stats")]
+	[Tooltip("Seconds used for Avg/P95/P99. If <= 0, uses the full graph window.")]
+	public float statsSeconds = 3f;
+
 	[Range(60, 480)] public int maxExpectedFps = 240;
 	public float yMaxMs = 40f;
 	public bool autoY = true;
 	public float autoYMargin = 1.2f;
+
+	[Header("CPU Busy (heuristic when wait=0)")]
+	[Range(0.05f, 0.4f)] public float nearFullFrameThresholdPercent = 0.20f; // 20% margin
+	public float nonZeroWaitEpsilonMs = 0.5f; // consider wait valid if > 0.5 ms
+	public bool useDx12HeuristicWhenWaitZero = true;
 
 	[Header("Appearance")] public float lineWidth = 2f;
 	public float gridLineWidth = 1f;
@@ -46,7 +55,9 @@ public class FramePacingGraph : MonoBehaviour
 	[Tooltip("Optionally disable FrameTimingManager reads if heavy on your platform.")]
 	public bool enableCpuGpuCollection = true;
 
-	bool initialized = false;
+	bool initialized;
+	bool debugTimings = true;
+	string ftDebugLine = "";
 
 	// Public API for custom metrics
 	public int RegisterCustomMetric(string name, Color color, Func<float> sampler, float scale = 1f,
@@ -112,9 +123,9 @@ public class FramePacingGraph : MonoBehaviour
 
 	FrameTiming[] ftBuf = new FrameTiming[1];
 	bool haveFT = false;
-	float lastCpuMs = 0f, lastGpuMs = 0f;
-	float lastCpuBusyMs = 0f, lastGpuBusyMs = 0f; // busy values we plot
-
+	float lastCpuMs = 0f, lastGpuMs = 0f;        // raw totals
+	float lastCpuBusyMs = 0f, lastGpuBusyMs = 0f; // busy we plot
+	float lastCpuWaitMs = 0f;                     // optional: expose as a line if you want
 
 	static Material lineMat;
 
@@ -129,6 +140,7 @@ public class FramePacingGraph : MonoBehaviour
 	float smoothedFps = 0f;
 	float fpsTextTimer = 0f;
 	string fpsText = "0.0 FPS";
+	string lastSampleLine = "";
 
 	// Column envelope caches
 	float[] colMin, colMax; // reused per metric
@@ -147,8 +159,8 @@ public class FramePacingGraph : MonoBehaviour
 		timestamps = new float[capacity];
 
 		totalMetric = new Metric("Total (ms)", totalColor, SampleTotalMs, 1f, true, capacity);
-		cpuMetric   = new Metric("CPU Busy (ms)", cpuColor, () => lastCpuBusyMs, 1f, enableCpuGpuCollection, capacity);
-		gpuMetric   = new Metric("GPU Busy (ms)", gpuColor, () => lastGpuBusyMs, 1f, enableCpuGpuCollection, capacity);
+		cpuMetric   = new Metric("CPU (ms)", cpuColor, () => lastCpuBusyMs, 1f, enableCpuGpuCollection, capacity);
+		gpuMetric   = new Metric("GPU (ms)", gpuColor, () => lastGpuBusyMs, 1f, enableCpuGpuCollection, capacity);
 
 		scratchValues = new float[capacity];
 		EnsureLineMaterial();
@@ -228,23 +240,24 @@ public class FramePacingGraph : MonoBehaviour
 		{
 			uint got = FrameTimingManager.GetLatestTimings(1, ftBuf);
 			haveFT = got > 0;
-			if (haveFT)
-			{
+			if (haveFT) {
+
+				// --- inside Update(), right after GetLatestTimings() succeeds ---
 				var ft = ftBuf[0];
 
-				// raw (for optional Total=max(CPU,GPU))
 				lastCpuMs = Mathf.Max(0f, (float)ft.cpuFrameTime);
 				lastGpuMs = Mathf.Max(0f, (float)ft.gpuFrameTime);
 
-				// busy
-				float mainWork = Mathf.Max(0f, (float)ft.cpuMainThreadFrameTime);
-				float renderWork = Mathf.Max(0f, (float)ft.cpuRenderThreadFrameTime);
-
-				// CPU Busy = max of main vs render thread work (excludes present wait)
-				lastCpuBusyMs = Mathf.Max(mainWork, renderWork);
-
-				// GPU Busy = gpuFrameTime
+				lastCpuBusyMs = EstimateCpuBusyMs(ft);
 				lastGpuBusyMs = lastGpuMs;
+				if (debugTimings)
+				{
+					float renderFrame = Mathf.Max(0f, (float)ft.cpuRenderThreadFrameTime);
+					float mainFrame   = Mathf.Max(0f, (float)ft.cpuMainThreadFrameTime);
+					float presentWait = Mathf.Max(0f, (float)ft.cpuMainThreadPresentWaitTime);
+					ftDebugLine =
+						$"cpuFrame {lastCpuMs:0.00} | gpuFrame {lastGpuMs:0.00} | main {mainFrame:0.00} | render {renderFrame:0.00} | wait {presentWait:0.00}";
+				}
 
 			}
 		}
@@ -261,6 +274,10 @@ public class FramePacingGraph : MonoBehaviour
 		float cpuMs = cpuMetric.enabled ? cpuMetric.sampler() : 0f;
 		float gpuMs = gpuMetric.enabled ? gpuMetric.sampler() : 0f;
 		WriteSample(now, totalMs, cpuMs, gpuMs);
+
+		// right after WriteSample(now, totalMs, cpuMs, gpuMs);
+		int last = (head - 1 + capacity) % capacity;
+		lastSampleLine = $"sampCPU {cpuMetric.values[last]:0.00} | sampGPU {gpuMetric.values[last]:0.00} | sampTotal {totalMetric.values[last]:0.00}";
 
 		// Custom metrics
 		int idxPrev = (head - 1 + capacity) % capacity;
@@ -312,6 +329,40 @@ public class FramePacingGraph : MonoBehaviour
 		if (enableCpuGpuCollection) FrameTimingManager.CaptureFrameTimings();
 	}
 
+	float EstimateCpuBusyMs(FrameTiming ft)
+	{
+		float cpuFrame  = Mathf.Max(0f, (float)ft.cpuFrameTime);
+		float gpuFrame  = Mathf.Max(0f, (float)ft.gpuFrameTime);
+		float mainFrame = Mathf.Max(0f, (float)ft.cpuMainThreadFrameTime);
+		float rendFrame = Mathf.Max(0f, (float)ft.cpuRenderThreadFrameTime);
+		float waitMain  = Mathf.Max(0f, (float)ft.cpuMainThreadPresentWaitTime);
+
+		// If wait is actually reported, trust it.
+		if (waitMain > nonZeroWaitEpsilonMs)
+			return Mathf.Max(0f, mainFrame - waitMain);
+
+		if (!useDx12HeuristicWhenWaitZero)
+			return mainFrame; // fall back to main (may include idle)
+
+		// --- Heuristic path (DX12 often reports wait=0 even when main is waiting) ---
+		float fullWithMargin = (1f - nearFullFrameThresholdPercent) * cpuFrame;
+		bool gpuNear    = gpuFrame   > fullWithMargin;
+		bool mainNear   = mainFrame  > fullWithMargin;
+		bool renderNear = rendFrame  > fullWithMargin;
+
+		// GPU-bound & main is near frame time => main likely waiting; use render thread work.
+		if (gpuNear && mainNear && !renderNear)
+			return rendFrame;
+
+		// CPU-bound => take the heavier CPU thread.
+		if (!gpuNear && (mainNear || renderNear))
+			return Mathf.Max(mainFrame, rendFrame);
+
+		// Balanced/indeterminate: choose the larger "work" but never exceed the frame period.
+		return Mathf.Min(cpuFrame, Mathf.Max(rendFrame, mainFrame));
+	}
+
+
 	void WriteSample(float now, float totalMs, float cpuMs, float gpuMs)
 	{
 		timestamps[head] = now;
@@ -335,7 +386,8 @@ public class FramePacingGraph : MonoBehaviour
 
 	void RecomputeStats(Metric m)
 	{
-		int visible = CollectVisibleValues(m.values, scratchValues, out float sum);
+		int visible = CollectVisibleValues(m.values, scratchValues, statsSeconds, out float sum);
+
 		if (visible <= 0)
 		{
 			m.stats = default;
@@ -352,29 +404,28 @@ public class FramePacingGraph : MonoBehaviour
 		m.stats.p95 = p95;
 		m.stats.p99 = p99;
 		m.stats.valid = true;
-		m.cachedLegend = $"{m.name}: avg {avg:0.0} ms  •  p95 {p95:0.0}  •  p99 {p99:0.0}";
+		m.cachedLegend = $"{m.name}: avg {avg:0.00} ms  •  p95 {p95:0.00}  •  p99 {p99:0.00}";
 	}
 
-	int CollectVisibleValues(float[] src, float[] dst, out float sum)
+	int CollectVisibleValues(float[] src, float[] dst, float seconds, out float sum)
 	{
 		sum = 0f;
 		if (count == 0) return 0;
-		float now = Time.unscaledTime, minTime = now - windowSeconds;
+		float now = Time.unscaledTime;
+		float minTime = now - (seconds > 0f ? seconds : windowSeconds);
 		int visible = 0, start = (head - count + capacity) % capacity;
-		for (int i = 0; i < count; i++)
-		{
+
+		for (int i = 0; i < count; i++) {
 			int idx = (start + i) % capacity;
 			float t = timestamps[idx];
-			if (t >= minTime)
-			{
-				float v = src[idx];
-				dst[visible++] = v;
-				sum += v;
-			}
+			if (t < minTime) continue;
+			float v = src[idx];
+			dst[visible++] = v;
+			sum += v;
 		}
-
 		return visible;
 	}
+
 
 	static float PercentileSorted(float[] sorted, int n, float p)
 	{
@@ -420,6 +471,10 @@ public class FramePacingGraph : MonoBehaviour
 
 		// FPS
 		GUI.Label(new Rect(r.x + 8, r.y + 6, 120, fontSize + 6), fpsText, labelStyle);
+		if (debugTimings) {
+			GUI.Label(new Rect(r.x + 120, r.y + 6, 520, fontSize + 6), ftDebugLine, labelStyle);
+		}
+		GUI.Label(new Rect(r.x + 120, r.y + 24, 520, fontSize + 6), lastSampleLine, labelStyle);
 
 		// Legends (cached strings)
 		float lx = r.x + 8, ly = Mathf.Max(r.y + 24, r.yMax - 18 - (fontSize + 4) * (3 + customMetrics.Count));
@@ -447,6 +502,15 @@ public class FramePacingGraph : MonoBehaviour
 			GUI.color = m.color;
 			GUI.Label(new Rect(lx, ly, 1400, fontSize + 6), m.cachedLegend, labelStyle);
 			ly += fontSize + 4;
+		}
+
+		if (cpuMetric.stats.valid && gpuMetric.stats.valid)
+		{
+			float delta = cpuMetric.stats.avg - gpuMetric.stats.avg; // >0 => CPU heavier
+			string bound = delta > 0.05f ? "CPU-bound" : (delta < -0.05f ? "GPU-bound" : "Balanced");
+			string deltaTxt = $"Δ (CPU-GPU): {delta:+0.00;-0.00;0.00} ms  •  {bound}";
+			GUI.color = Color.white;
+			GUI.Label(new Rect(lx, ly + 4, 420, fontSize + 6), deltaTxt, labelStyle);
 		}
 
 		GUI.color = Color.white;
