@@ -21,7 +21,6 @@ using System.Diagnostics;
 using System.Linq;
 using NativeTrees;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
@@ -129,6 +128,8 @@ namespace VisualPinball.Unity
 		[NonSerialized] private float4x4 _worldToPlayfield;
 
 		private static ulong NowUsec => (ulong)(Time.timeAsDouble * 1000000);
+
+		private float _lastFrameTimeMs;
 
 		#region API
 
@@ -254,6 +255,11 @@ namespace VisualPinball.Unity
 			var sw = Stopwatch.StartNew();
 			var playfield = GetComponentInChildren<PlayfieldComponent>();
 
+			var stats = FindFirstObjectByType<FramePacingGraph>();
+			if (stats) {
+				stats.RegisterCustomMetric("Physics", Color.magenta, () => _lastFrameTimeMs);
+			}
+
 			Debug.Log($"Found {_colliderComponents.Length} collidable items ({_kinematicColliderComponents.Length} kinematic).");
 			var colliders = new ColliderReference(ref _nonTransformableColliderTransforms.Ref, Allocator.Temp);
 			var kinematicColliders = new ColliderReference(ref _nonTransformableColliderTransforms.Ref, Allocator.Temp, true);
@@ -327,6 +333,7 @@ namespace VisualPinball.Unity
 
 		private void Update()
 		{
+			var sw = Stopwatch.StartNew();
 			// check for updated kinematic transforms
 			_updatedKinematicTransforms.Ref.Clear();
 			foreach (var coll in _kinematicColliderComponents) {
@@ -415,6 +422,8 @@ namespace VisualPinball.Unity
 			_physicsMovements.ApplyTriggerMovement(ref _triggerStates.Ref, _floatAnimatedComponents);
 
 			#endregion
+
+			_lastFrameTimeMs = (float)sw.Elapsed.TotalMilliseconds;
 		}
 		
 		private void OnDestroy()
