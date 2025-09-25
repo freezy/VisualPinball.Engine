@@ -10,11 +10,10 @@ public class FramePacingGraph : MonoBehaviour
 	public InputActionReference toggleAction;
 
 	[Header("Graph Layout (pixels)")] public Vector2 anchorOffset = new Vector2(24f, 24f);
-	public Vector2 size = new Vector2(kStatsPanelWidth, 220f);
+	public Vector2 size = new Vector2(kStatsPanelWidth, 150);
 	public GraphAnchor anchor = GraphAnchor.TopLeft;
 
-	[Header("Stats Panel (independent)")]
-	public bool statsPanelEnabled = true;
+	[Header("Stats Panel (independent)")] public bool statsPanelEnabled = true;
 
 	[Tooltip("Corner of the screen to anchor the stats panel to.")]
 	public GraphAnchor statsAnchor = GraphAnchor.TopLeft;
@@ -75,6 +74,10 @@ public class FramePacingGraph : MonoBehaviour
 	// Fixed-width font for stats
 	GUIStyle monoStyle;
 	static Font sMonoFont; // cached across instances
+
+	// FPS badge styles (cached)
+	GUIStyle fpsBigStyle;
+	int fpsBigSizeCached = -1;
 
 	// Public API for custom metrics
 	public int RegisterCustomMetric(string name, Color color, Func<float> sampler, float scale = 1f,
@@ -316,9 +319,13 @@ public class FramePacingGraph : MonoBehaviour
 			}
 
 			var v = 0f;
-			try {
+			try
+			{
 				v = m.sampler() * m.scale;
-			} catch { }
+			}
+			catch
+			{
+			}
 
 			m.values[idxPrev] = v;
 		}
@@ -328,7 +335,8 @@ public class FramePacingGraph : MonoBehaviour
 		var a = 1f - Mathf.Exp(-Time.unscaledDeltaTime / fpsSmoothTau);
 		smoothedFps = Mathf.Lerp(smoothedFps, instFps, a);
 		fpsTextTimer += Time.unscaledDeltaTime;
-		if (fpsTextTimer >= 0.15f) {
+		if (fpsTextTimer >= 0.15f)
+		{
 			fpsTextTimer = 0f;
 			fpsText = $"{smoothedFps:0.0} FPS";
 		}
@@ -480,6 +488,7 @@ public class FramePacingGraph : MonoBehaviour
 		if (graphRect.width <= 4f || graphRect.height <= 4f) return;
 
 		DrawGraphBackgroundAndGrid(graphRect);
+		DrawFpsBadge(graphRect);
 
 		var now = Time.unscaledTime;
 		var invY = ResolveYScale(out var yMax);
@@ -493,12 +502,11 @@ public class FramePacingGraph : MonoBehaviour
 				DrawMetric(graphRect, now, yMax, invY, customMetrics[i]);
 
 		// Y-axis labels on the graph
-		GUI.Label(new Rect(graphRect.x + 6, graphRect.y - (fontSize + 2), 120, fontSize + 4), $"{yMax:0.#} ms", labelStyle);
-		GUI.Label(new Rect(graphRect.x + 6, graphRect.y + graphRect.height * 0.5f - (fontSize + 2), 120, fontSize + 4), $"{(yMax * 0.5f):0.#} ms", labelStyle);
+		GUI.Label(new Rect(graphRect.x + 6, graphRect.y - (fontSize + 2), 120, fontSize + 4), $"{yMax:0.#} ms",
+			labelStyle);
+		GUI.Label(new Rect(graphRect.x + 6, graphRect.y + graphRect.height * 0.5f - (fontSize + 2), 120, fontSize + 4),
+			$"{(yMax * 0.5f):0.#} ms", labelStyle);
 		GUI.Label(new Rect(graphRect.x + 6, graphRect.yMax - (fontSize + 2), 120, fontSize + 4), $"0 ms", labelStyle);
-
-		// FPS on the graph
-		GUI.Label(new Rect(graphRect.x + 8, graphRect.y + 6, 120, fontSize + 6), fpsText, labelStyle);
 
 		// Time axis labels
 		GUI.Label(new Rect(graphRect.xMax - 100, graphRect.yMax + 2, 100, fontSize + 4), "now", labelStyle);
@@ -528,23 +536,26 @@ public class FramePacingGraph : MonoBehaviour
 				y = Screen.height - size.y - anchorOffset.y;
 				break;
 		}
+
 		return new Rect(x, y, size.x, size.y);
 	}
 
 	Rect ResolveStatsRect()
 	{
-		float w = kStatsPanelWidth;             // fixed width (your class constant)
-		float h = ComputeStatsPanelHeight();    // dynamic height based on lines + padding
+		float w = kStatsPanelWidth; // fixed width (your class constant)
+		float h = ComputeStatsPanelHeight(); // dynamic height based on lines + padding
 
 		// X respects LEFT/RIGHT anchor
 		bool rightAnchor = (statsAnchor == GraphAnchor.TopRight || statsAnchor == GraphAnchor.BottomRight);
-		float x = rightAnchor ? (Screen.width - w - statsOffset.x)  // offset from right edge
-			: statsOffset.x;                      // offset from left edge
+		float x = rightAnchor
+			? (Screen.width - w - statsOffset.x) // offset from right edge
+			: statsOffset.x; // offset from left edge
 
 		// Y respects TOP/BOTTOM anchor (unchanged)
 		bool bottomAnchor = (statsAnchor == GraphAnchor.BottomLeft || statsAnchor == GraphAnchor.BottomRight);
-		float y = bottomAnchor ? (Screen.height - h - statsOffset.y) // offset from bottom
-			: statsOffset.y;                      // offset from top
+		float y = bottomAnchor
+			? (Screen.height - h - statsOffset.y) // offset from bottom
+			: statsOffset.y; // offset from top
 
 		return new Rect(x, y, w, h);
 	}
@@ -555,7 +566,7 @@ public class FramePacingGraph : MonoBehaviour
 		// Match the same vertical spacing used when drawing.
 		float pad = statsPanelPadding;
 		float headerH = fontSize + 6f;
-		float lineH   = fontSize + 4f;
+		float lineH = fontSize + 4f;
 
 		int lines = 0;
 
@@ -564,8 +575,8 @@ public class FramePacingGraph : MonoBehaviour
 
 		// Built-ins (only if they will draw)
 		if (totalMetric != null && totalMetric.stats.valid) lines += 1;
-		if (cpuMetric   != null && cpuMetric.enabled && cpuMetric.stats.valid) lines += 1;
-		if (gpuMetric   != null && gpuMetric.enabled && gpuMetric.stats.valid) lines += 1;
+		if (cpuMetric != null && cpuMetric.enabled && cpuMetric.stats.valid) lines += 1;
+		if (gpuMetric != null && gpuMetric.enabled && gpuMetric.stats.valid) lines += 1;
 
 		// Custom metrics that are enabled AND have valid stats
 		for (int i = 0; i < customMetrics.Count; i++)
@@ -583,8 +594,6 @@ public class FramePacingGraph : MonoBehaviour
 
 		return h;
 	}
-
-
 
 
 	float ResolveYScale(out float yMaxOut)
@@ -754,6 +763,46 @@ public class FramePacingGraph : MonoBehaviour
 					borderColor, 1f);
 			}
 		}
+	}
+
+	void DrawFpsBadge(Rect graphRect)
+	{
+		// ~30% opacity so graph lines remain readable
+		var col = axisTextColor; col.a = 0.3f;
+		GUI.color = col;
+
+		// Big number (≈10x your base font size)
+		int bigSize = Mathf.Max(12, fontSize * 4);
+
+		// Build/update style only when size changes
+		if (fpsBigStyle == null || fpsBigSizeCached != bigSize)
+		{
+			fpsBigStyle = new GUIStyle
+			{
+				fontSize = bigSize,
+				fontStyle = FontStyle.Bold,
+				alignment = TextAnchor.UpperRight,
+				normal = { textColor = Color.white }
+			};
+			fpsBigSizeCached = bigSize;
+			if (sMonoFont != null) fpsBigStyle.font = sMonoFont;
+		}
+
+		// Number text
+		int fpsInt = Mathf.RoundToInt(smoothedFps);
+		string fpsNum = fpsInt.ToString();
+
+		// Measure and place at top-right of graph
+		var numSize = fpsBigStyle.CalcSize(new GUIContent(fpsNum));
+		const float pad = 8f;
+		float xRight = graphRect.xMax - pad;
+		float yTop = graphRect.y + pad;
+
+		var numRect = new Rect(xRight - numSize.x, yTop, numSize.x, numSize.y);
+		GUI.Label(numRect, fpsNum, fpsBigStyle);
+
+		// Restore GUI color
+		GUI.color = Color.white;
 	}
 
 	void DrawPanelBackground(Rect statsRect)
