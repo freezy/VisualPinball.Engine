@@ -13,11 +13,16 @@ public class FramePacingGraph : MonoBehaviour
 	public Vector2 size = new Vector2(560f, 220f);
 	public GraphAnchor anchor = GraphAnchor.TopLeft;
 
+	[Header("Stats Panel")] [Tooltip("Width of the right-side stats panel (pixels).")]
+	public float statsPanelWidth = 260f;
+
+	[Tooltip("Padding inside the right-side stats panel (pixels).")]
+	public float statsPanelPadding = 6f;
+
 	[Header("Time Window & Scale")] [Range(1f, 60f)]
 	public float windowSeconds = 10f;
 
-	[Header("Stats")]
-	[Tooltip("Seconds used for Avg/P95/P99. If <= 0, uses the full graph window.")]
+	[Header("Stats")] [Tooltip("Seconds used for Avg/P95/P99. If <= 0, uses the full graph window.")]
 	public float statsSeconds = 3f;
 
 	[Range(60, 480)] public int maxExpectedFps = 240;
@@ -25,8 +30,9 @@ public class FramePacingGraph : MonoBehaviour
 	public bool autoY = true;
 	public float autoYMargin = 1.2f;
 
-	[Header("CPU Busy (heuristic when wait=0)")]
-	[Range(0.05f, 0.4f)] public float nearFullFrameThresholdPercent = 0.20f; // 20% margin
+	[Header("CPU Busy (heuristic when wait=0)")] [Range(0.05f, 0.4f)]
+	public float nearFullFrameThresholdPercent = 0.20f; // 20% margin
+
 	public float nonZeroWaitEpsilonMs = 0.5f; // consider wait valid if > 0.5 ms
 	public bool useDx12HeuristicWhenWaitZero = true;
 
@@ -56,8 +62,11 @@ public class FramePacingGraph : MonoBehaviour
 	public bool enableCpuGpuCollection = true;
 
 	bool initialized;
-	bool debugTimings = true;
-	string ftDebugLine = "";
+
+	// Fixed-width font for stats
+	GUIStyle monoStyle;
+	static Font sMonoFont; // cached across instances
+
 
 	// Public API for custom metrics
 	public int RegisterCustomMetric(string name, Color color, Func<float> sampler, float scale = 1f,
@@ -68,13 +77,6 @@ public class FramePacingGraph : MonoBehaviour
 		customMetrics.Add(m);
 		return customMetrics.Count - 1;
 	}
-
-	public void SetCustomMetricEnabled(int index, bool enabled)
-	{
-		if (index >= 0 && index < customMetrics.Count) customMetrics[index].enabled = enabled;
-	}
-
-	public void ClearCustomMetrics() => customMetrics.Clear();
 
 	// ----- Internals -----
 	public enum GraphAnchor
@@ -87,7 +89,7 @@ public class FramePacingGraph : MonoBehaviour
 
 	struct Stats
 	{
-		public float avg, p95, p99;
+		public float avg, p95, p99, min, max;
 		public bool valid;
 	}
 
@@ -123,9 +125,9 @@ public class FramePacingGraph : MonoBehaviour
 
 	FrameTiming[] ftBuf = new FrameTiming[1];
 	bool haveFT = false;
-	float lastCpuMs = 0f, lastGpuMs = 0f;        // raw totals
+	float lastCpuMs = 0f, lastGpuMs = 0f; // raw totals
 	float lastCpuBusyMs = 0f, lastGpuBusyMs = 0f; // busy we plot
-	float lastCpuWaitMs = 0f;                     // optional: expose as a line if you want
+	float lastCpuWaitMs = 0f; // optional: expose as a line if you want
 
 	static Material lineMat;
 
@@ -140,7 +142,6 @@ public class FramePacingGraph : MonoBehaviour
 	float smoothedFps = 0f;
 	float fpsTextTimer = 0f;
 	string fpsText = "0.0 FPS";
-	string lastSampleLine = "";
 
 	// Column envelope caches
 	float[] colMin, colMax; // reused per metric
@@ -159,8 +160,8 @@ public class FramePacingGraph : MonoBehaviour
 		timestamps = new float[capacity];
 
 		totalMetric = new Metric("Total (ms)", totalColor, SampleTotalMs, 1f, true, capacity);
-		cpuMetric   = new Metric("CPU (ms)", cpuColor, () => lastCpuBusyMs, 1f, enableCpuGpuCollection, capacity);
-		gpuMetric   = new Metric("GPU (ms)", gpuColor, () => lastGpuBusyMs, 1f, enableCpuGpuCollection, capacity);
+		cpuMetric = new Metric("CPU (ms)", cpuColor, () => lastCpuBusyMs, 1f, enableCpuGpuCollection, capacity);
+		gpuMetric = new Metric("GPU (ms)", gpuColor, () => lastGpuBusyMs, 1f, enableCpuGpuCollection, capacity);
 
 		scratchValues = new float[capacity];
 		EnsureLineMaterial();
@@ -175,6 +176,30 @@ public class FramePacingGraph : MonoBehaviour
 		labelStyle = new GUIStyle();
 		labelStyle.fontSize = fontSize;
 		labelStyle.normal.textColor = axisTextColor;
+
+		// Monospace style for the right panel
+		monoStyle = new GUIStyle();
+		monoStyle.fontSize = fontSize;
+		monoStyle.normal.textColor = axisTextColor;
+		monoStyle.richText = false;
+
+		// Try common OS monospace fonts (fallback to default if none found)
+		if (sMonoFont == null)
+		{
+			try
+			{
+				sMonoFont = Font.CreateDynamicFontFromOSFont(
+					new[] { "Consolas", "Courier New", "Lucida Console", "DejaVu Sans Mono", "Menlo", "SF Mono" },
+					fontSize);
+			}
+			catch
+			{
+				/* platform may not allow OS fonts; safe to ignore */
+			}
+		}
+
+		if (sMonoFont != null) monoStyle.font = sMonoFont;
+
 
 		initialized = true; // <-- mark fully constructed
 	}
@@ -195,7 +220,14 @@ public class FramePacingGraph : MonoBehaviour
 			labelStyle.normal.textColor = axisTextColor;
 		}
 
-		int needed = Mathf.Max(8, Mathf.CeilToInt(windowSeconds * maxExpectedFps));
+		if (monoStyle != null)
+		{
+			monoStyle.fontSize = fontSize;
+			monoStyle.normal.textColor = axisTextColor;
+		}
+
+
+		var needed = Mathf.Max(8, Mathf.CeilToInt(windowSeconds * maxExpectedFps));
 		if (Application.isPlaying && initialized && needed != capacity)
 		{
 			ResizeCapacity(needed);
@@ -210,9 +242,9 @@ public class FramePacingGraph : MonoBehaviour
 
 		timestamps = new float[capacity];
 		ResizeMetric(totalMetric, capacity);
-		ResizeMetric(cpuMetric,  capacity);
-		ResizeMetric(gpuMetric,  capacity);
-		for (int i = 0; i < customMetrics.Count; i++)
+		ResizeMetric(cpuMetric, capacity);
+		ResizeMetric(gpuMetric, capacity);
+		for (var i = 0; i < customMetrics.Count; i++)
 			ResizeMetric(customMetrics[i], capacity);
 
 		scratchValues = new float[capacity];
@@ -238,10 +270,10 @@ public class FramePacingGraph : MonoBehaviour
 		// Get last frame timing
 		if (enableCpuGpuCollection)
 		{
-			uint got = FrameTimingManager.GetLatestTimings(1, ftBuf);
+			var got = FrameTimingManager.GetLatestTimings(1, ftBuf);
 			haveFT = got > 0;
-			if (haveFT) {
-
+			if (haveFT)
+			{
 				// --- inside Update(), right after GetLatestTimings() succeeds ---
 				var ft = ftBuf[0];
 
@@ -250,15 +282,6 @@ public class FramePacingGraph : MonoBehaviour
 
 				lastCpuBusyMs = EstimateCpuBusyMs(ft);
 				lastGpuBusyMs = lastGpuMs;
-				if (debugTimings)
-				{
-					float renderFrame = Mathf.Max(0f, (float)ft.cpuRenderThreadFrameTime);
-					float mainFrame   = Mathf.Max(0f, (float)ft.cpuMainThreadFrameTime);
-					float presentWait = Mathf.Max(0f, (float)ft.cpuMainThreadPresentWaitTime);
-					ftDebugLine =
-						$"cpuFrame {lastCpuMs:0.00} | gpuFrame {lastGpuMs:0.00} | main {mainFrame:0.00} | render {renderFrame:0.00} | wait {presentWait:0.00}";
-				}
-
 			}
 		}
 		else
@@ -269,19 +292,18 @@ public class FramePacingGraph : MonoBehaviour
 		}
 
 		// Sample
-		float now = Time.unscaledTime;
-		float totalMs = totalMetric.sampler();
-		float cpuMs = cpuMetric.enabled ? cpuMetric.sampler() : 0f;
-		float gpuMs = gpuMetric.enabled ? gpuMetric.sampler() : 0f;
+		var now = Time.unscaledTime;
+		var totalMs = totalMetric.sampler();
+		var cpuMs = cpuMetric.enabled ? cpuMetric.sampler() : 0f;
+		var gpuMs = gpuMetric.enabled ? gpuMetric.sampler() : 0f;
 		WriteSample(now, totalMs, cpuMs, gpuMs);
 
 		// right after WriteSample(now, totalMs, cpuMs, gpuMs);
-		int last = (head - 1 + capacity) % capacity;
-		lastSampleLine = $"sampCPU {cpuMetric.values[last]:0.00} | sampGPU {gpuMetric.values[last]:0.00} | sampTotal {totalMetric.values[last]:0.00}";
+		var last = (head - 1 + capacity) % capacity;
 
 		// Custom metrics
-		int idxPrev = (head - 1 + capacity) % capacity;
-		for (int i = 0; i < customMetrics.Count; i++)
+		var idxPrev = (head - 1 + capacity) % capacity;
+		for (var i = 0; i < customMetrics.Count; i++)
 		{
 			var m = customMetrics[i];
 			if (!m.enabled || m.sampler == null)
@@ -290,21 +312,17 @@ public class FramePacingGraph : MonoBehaviour
 				continue;
 			}
 
-			float v = 0f;
-			try
-			{
+			var v = 0f;
+			try {
 				v = m.sampler() * m.scale;
-			}
-			catch
-			{
-			}
+			} catch { }
 
 			m.values[idxPrev] = v;
 		}
 
 		// FPS smoothing & text throttling
-		float instFps = Time.unscaledDeltaTime > 0f ? 1f / Time.unscaledDeltaTime : 0f;
-		float a = 1f - Mathf.Exp(-Time.unscaledDeltaTime / fpsSmoothTau);
+		var instFps = Time.unscaledDeltaTime > 0f ? 1f / Time.unscaledDeltaTime : 0f;
+		var a = 1f - Mathf.Exp(-Time.unscaledDeltaTime / fpsSmoothTau);
 		smoothedFps = Mathf.Lerp(smoothedFps, instFps, a);
 		fpsTextTimer += Time.unscaledDeltaTime;
 		if (fpsTextTimer >= 0.15f)
@@ -320,7 +338,7 @@ public class FramePacingGraph : MonoBehaviour
 			RecomputeStats(totalMetric);
 			if (cpuMetric.enabled) RecomputeStats(cpuMetric);
 			if (gpuMetric.enabled) RecomputeStats(gpuMetric);
-			for (int i = 0; i < customMetrics.Count; i++)
+			for (var i = 0; i < customMetrics.Count; i++)
 				if (customMetrics[i].enabled)
 					RecomputeStats(customMetrics[i]);
 		}
@@ -331,11 +349,11 @@ public class FramePacingGraph : MonoBehaviour
 
 	float EstimateCpuBusyMs(FrameTiming ft)
 	{
-		float cpuFrame  = Mathf.Max(0f, (float)ft.cpuFrameTime);
-		float gpuFrame  = Mathf.Max(0f, (float)ft.gpuFrameTime);
-		float mainFrame = Mathf.Max(0f, (float)ft.cpuMainThreadFrameTime);
-		float rendFrame = Mathf.Max(0f, (float)ft.cpuRenderThreadFrameTime);
-		float waitMain  = Mathf.Max(0f, (float)ft.cpuMainThreadPresentWaitTime);
+		var cpuFrame = Mathf.Max(0f, (float)ft.cpuFrameTime);
+		var gpuFrame = Mathf.Max(0f, (float)ft.gpuFrameTime);
+		var mainFrame = Mathf.Max(0f, (float)ft.cpuMainThreadFrameTime);
+		var rendFrame = Mathf.Max(0f, (float)ft.cpuRenderThreadFrameTime);
+		var waitMain = Mathf.Max(0f, (float)ft.cpuMainThreadPresentWaitTime);
 
 		// If wait is actually reported, trust it.
 		if (waitMain > nonZeroWaitEpsilonMs)
@@ -345,10 +363,10 @@ public class FramePacingGraph : MonoBehaviour
 			return mainFrame; // fall back to main (may include idle)
 
 		// --- Heuristic path (DX12 often reports wait=0 even when main is waiting) ---
-		float fullWithMargin = (1f - nearFullFrameThresholdPercent) * cpuFrame;
-		bool gpuNear    = gpuFrame   > fullWithMargin;
-		bool mainNear   = mainFrame  > fullWithMargin;
-		bool renderNear = rendFrame  > fullWithMargin;
+		var fullWithMargin = (1f - nearFullFrameThresholdPercent) * cpuFrame;
+		var gpuNear = gpuFrame > fullWithMargin;
+		var mainNear = mainFrame > fullWithMargin;
+		var renderNear = rendFrame > fullWithMargin;
 
 		// GPU-bound & main is near frame time => main likely waiting; use render thread work.
 		if (gpuNear && mainNear && !renderNear)
@@ -377,7 +395,7 @@ public class FramePacingGraph : MonoBehaviour
 	{
 		if (totalFromFrameTimingWhenAvailable && haveFT)
 		{
-			float candidate = Mathf.Max(lastCpuMs, lastGpuMs);
+			var candidate = Mathf.Max(lastCpuMs, lastGpuMs);
 			if (candidate > 0f) return candidate;
 		}
 
@@ -386,7 +404,7 @@ public class FramePacingGraph : MonoBehaviour
 
 	void RecomputeStats(Metric m)
 	{
-		int visible = CollectVisibleValues(m.values, scratchValues, statsSeconds, out float sum);
+		var visible = CollectVisibleValues(m.values, scratchValues, statsSeconds, out var sum);
 
 		if (visible <= 0)
 		{
@@ -396,33 +414,43 @@ public class FramePacingGraph : MonoBehaviour
 		}
 
 		Array.Sort(scratchValues, 0, visible);
-		float avg = sum / visible;
-		float p95 = PercentileSorted(scratchValues, visible, 0.95f);
-		float p99 = PercentileSorted(scratchValues, visible, 0.99f);
+
+		var avg = sum / visible;
+		var p95 = PercentileSorted(scratchValues, visible, 0.95f);
+		var p99 = PercentileSorted(scratchValues, visible, 0.99f);
+		var min = scratchValues[0];
+		var max = scratchValues[visible - 1];
 
 		m.stats.avg = avg;
 		m.stats.p95 = p95;
 		m.stats.p99 = p99;
+		m.stats.min = min;
+		m.stats.max = max;
 		m.stats.valid = true;
-		m.cachedLegend = $"{m.name}: avg {avg:0.00} ms  •  p95 {p95:0.00}  •  p99 {p99:0.00}";
+
+		// (cachedLegend not used for the right panel anymore, but keep it tidy)
+		m.cachedLegend =
+			$"{m.name}: avg {avg:0.00} ms  •  p95 {p95:0.00}  •  p99 {p99:0.00}  •  min {min:0.00}  •  max {max:0.00}";
 	}
 
 	int CollectVisibleValues(float[] src, float[] dst, float seconds, out float sum)
 	{
 		sum = 0f;
 		if (count == 0) return 0;
-		float now = Time.unscaledTime;
-		float minTime = now - (seconds > 0f ? seconds : windowSeconds);
+		var now = Time.unscaledTime;
+		var minTime = now - (seconds > 0f ? seconds : windowSeconds);
 		int visible = 0, start = (head - count + capacity) % capacity;
 
-		for (int i = 0; i < count; i++) {
-			int idx = (start + i) % capacity;
-			float t = timestamps[idx];
+		for (var i = 0; i < count; i++)
+		{
+			var idx = (start + i) % capacity;
+			var t = timestamps[idx];
 			if (t < minTime) continue;
-			float v = src[idx];
+			var v = src[idx];
 			dst[visible++] = v;
 			sum += v;
 		}
+
 		return visible;
 	}
 
@@ -432,9 +460,9 @@ public class FramePacingGraph : MonoBehaviour
 		if (n == 0) return 0f;
 		if (p <= 0f) return sorted[0];
 		if (p >= 1f) return sorted[n - 1];
-		float f = (n - 1) * p;
+		var f = (n - 1) * p;
 		int i0 = Mathf.FloorToInt(f), i1 = Math.Min(n - 1, i0 + 1);
-		float t = f - i0;
+		var t = f - i0;
 		return Mathf.Lerp(sorted[i0], sorted[i1], t);
 	}
 
@@ -447,19 +475,20 @@ public class FramePacingGraph : MonoBehaviour
 		var evt = Event.current;
 		if (evt == null || evt.type != EventType.Repaint) return;
 
-		Rect r = ResolveRect();
+		var r = ResolveRect();
 		if (r.width <= 4f || r.height <= 4f) return;
 
-		DrawBackgroundAndGrid(r);
+		// Draw full background (graph + right panel) and grid
+		DrawBackgroundGridAndPanel(r);
 
-		float now = Time.unscaledTime;
-		float invY = ResolveYScale(out float yMax);
+		var now = Time.unscaledTime;
+		var invY = ResolveYScale(out var yMax);
 
 		// Draw metrics (batched, column-envelope)
 		DrawMetric(r, now, yMax, invY, totalMetric);
 		if (cpuMetric.enabled) DrawMetric(r, now, yMax, invY, cpuMetric);
 		if (gpuMetric.enabled) DrawMetric(r, now, yMax, invY, gpuMetric);
-		for (int i = 0; i < customMetrics.Count; i++)
+		for (var i = 0; i < customMetrics.Count; i++)
 			if (customMetrics[i].enabled)
 				DrawMetric(r, now, yMax, invY, customMetrics[i]);
 
@@ -471,49 +500,10 @@ public class FramePacingGraph : MonoBehaviour
 
 		// FPS
 		GUI.Label(new Rect(r.x + 8, r.y + 6, 120, fontSize + 6), fpsText, labelStyle);
-		if (debugTimings) {
-			GUI.Label(new Rect(r.x + 120, r.y + 6, 520, fontSize + 6), ftDebugLine, labelStyle);
-		}
-		GUI.Label(new Rect(r.x + 120, r.y + 24, 520, fontSize + 6), lastSampleLine, labelStyle);
 
-		// Legends (cached strings)
-		float lx = r.x + 8, ly = Mathf.Max(r.y + 24, r.yMax - 18 - (fontSize + 4) * (3 + customMetrics.Count));
-		GUI.color = totalMetric.color;
-		GUI.Label(new Rect(lx, ly, 1000, fontSize + 6), totalMetric.cachedLegend, labelStyle);
-		ly += fontSize + 4;
-		if (cpuMetric.enabled)
-		{
-			GUI.color = cpuMetric.color;
-			GUI.Label(new Rect(lx, ly, 1000, fontSize + 6), cpuMetric.cachedLegend, labelStyle);
-			ly += fontSize + 4;
-		}
-
-		if (gpuMetric.enabled)
-		{
-			GUI.color = gpuMetric.color;
-			GUI.Label(new Rect(lx, ly, 1000, fontSize + 6), gpuMetric.cachedLegend, labelStyle);
-			ly += fontSize + 4;
-		}
-
-		for (int i = 0; i < customMetrics.Count; i++)
-		{
-			var m = customMetrics[i];
-			if (!m.enabled || !m.stats.valid) continue;
-			GUI.color = m.color;
-			GUI.Label(new Rect(lx, ly, 1400, fontSize + 6), m.cachedLegend, labelStyle);
-			ly += fontSize + 4;
-		}
-
-		if (cpuMetric.stats.valid && gpuMetric.stats.valid)
-		{
-			float delta = cpuMetric.stats.avg - gpuMetric.stats.avg; // >0 => CPU heavier
-			string bound = delta > 0.05f ? "CPU-bound" : (delta < -0.05f ? "GPU-bound" : "Balanced");
-			string deltaTxt = $"Δ (CPU-GPU): {delta:+0.00;-0.00;0.00} ms  •  {bound}";
-			GUI.color = Color.white;
-			GUI.Label(new Rect(lx, ly + 4, 420, fontSize + 6), deltaTxt, labelStyle);
-		}
-
-		GUI.color = Color.white;
+		// Right-side stats panel
+		var statsRect = new Rect(r.xMax, r.y, statsPanelWidth, r.height);
+		DrawStatsPanel(statsRect);
 
 		// Time axis labels
 		GUI.Label(new Rect(r.xMax - 100, r.yMax + 2, 100, fontSize + 4), "now", labelStyle);
@@ -542,14 +532,14 @@ public class FramePacingGraph : MonoBehaviour
 
 	float ResolveYScale(out float yMaxOut)
 	{
-		float yMaxLocal = yMaxMs;
+		var yMaxLocal = yMaxMs;
 		if (autoY)
 		{
-			float maxSeen = 0f;
+			var maxSeen = 0f;
 			if (totalMetric.stats.valid) maxSeen = Mathf.Max(maxSeen, totalMetric.stats.p99);
 			if (cpuMetric.enabled && cpuMetric.stats.valid) maxSeen = Mathf.Max(maxSeen, cpuMetric.stats.p99);
 			if (gpuMetric.enabled && gpuMetric.stats.valid) maxSeen = Mathf.Max(maxSeen, gpuMetric.stats.p99);
-			for (int i = 0; i < customMetrics.Count; i++)
+			for (var i = 0; i < customMetrics.Count; i++)
 				if (customMetrics[i].enabled && customMetrics[i].stats.valid)
 					maxSeen = Mathf.Max(maxSeen, customMetrics[i].stats.p99);
 			if (maxSeen <= 0f) maxSeen = 16f;
@@ -571,49 +561,49 @@ public class FramePacingGraph : MonoBehaviour
 		else
 		{
 			// Fallback simple poly (batched)
-			BuildPolylinePoints(r, now, invY, m.values, out var pts, out int n);
+			BuildPolylinePoints(r, now, invY, m.values, out var pts, out var n);
 			DrawPolylineBatched(pts, n, m.color, lineWidth);
 		}
 	}
 
 	void DrawMetricColumnEnvelope(Rect r, float now, float yMax, float invY, Metric m)
 	{
-		int w = Mathf.Max(2, Mathf.RoundToInt(r.width));
+		var w = Mathf.Max(2, Mathf.RoundToInt(r.width));
 		EnsureColumnBuffers(w);
 
 		// reset
-		for (int i = 0; i < w; i++)
+		for (var i = 0; i < w; i++)
 		{
 			colMin[i] = float.PositiveInfinity;
 			colMax[i] = float.NegativeInfinity;
 		}
 
 		// fill per-column min/max
-		float minTime = now - windowSeconds;
-		int start = (head - count + capacity) % capacity;
-		for (int i = 0; i < count; i++)
+		var minTime = now - windowSeconds;
+		var start = (head - count + capacity) % capacity;
+		for (var i = 0; i < count; i++)
 		{
-			int idx = (start + i) % capacity;
-			float t = timestamps[idx];
+			var idx = (start + i) % capacity;
+			var t = timestamps[idx];
 			if (t < minTime) continue;
 
-			float x01 = 1f - Mathf.Clamp01((now - t) / windowSeconds);
-			int cx = Mathf.Clamp(Mathf.RoundToInt((w - 1) * x01), 0, w - 1);
+			var x01 = 1f - Mathf.Clamp01((now - t) / windowSeconds);
+			var cx = Mathf.Clamp(Mathf.RoundToInt((w - 1) * x01), 0, w - 1);
 
-			float y01 = Mathf.Clamp01(m.values[idx] * invY);
-			float y = Mathf.Lerp(r.yMax, r.y, y01);
+			var y01 = Mathf.Clamp01(m.values[idx] * invY);
+			var y = Mathf.Lerp(r.yMax, r.y, y01);
 
 			if (y < colMin[cx]) colMin[cx] = y;
 			if (y > colMax[cx]) colMax[cx] = y;
 		}
 
 		// Build poly on the fly (midpoint of envelope)
-		int nPts = 0;
-		for (int x = 0; x < w; x++)
+		var nPts = 0;
+		for (var x = 0; x < w; x++)
 		{
 			if (!float.IsFinite(colMin[x])) continue;
-			float mx = r.x + (x / (float)(w - 1)) * r.width;
-			float my = 0.5f * (colMin[x] + colMax[x]);
+			var mx = r.x + (x / (float)(w - 1)) * r.width;
+			var my = 0.5f * (colMin[x] + colMax[x]);
 			if (nPts >= polyPts.Length) Array.Resize(ref polyPts, nPts + 64);
 			polyPts[nPts++] = new Vector2(mx, my);
 		}
@@ -623,20 +613,20 @@ public class FramePacingGraph : MonoBehaviour
 
 	void BuildPolylinePoints(Rect r, float now, float invY, float[] src, out Vector2[] pts, out int n)
 	{
-		int start = (head - count + capacity) % capacity;
-		int cap = Mathf.Min(count, Mathf.RoundToInt(r.width)); // rough cap
+		var start = (head - count + capacity) % capacity;
+		var cap = Mathf.Min(count, Mathf.RoundToInt(r.width)); // rough cap
 		if (polyPts == null || polyPts.Length < cap) polyPts = new Vector2[Mathf.Max(cap, 128)];
 		n = 0;
-		float minTime = now - windowSeconds;
-		for (int i = 0; i < count; i++)
+		var minTime = now - windowSeconds;
+		for (var i = 0; i < count; i++)
 		{
-			int idx = (start + i) % capacity;
-			float t = timestamps[idx];
+			var idx = (start + i) % capacity;
+			var t = timestamps[idx];
 			if (t < minTime) continue;
-			float x01 = 1f - Mathf.Clamp01((now - t) / windowSeconds);
-			float x = Mathf.Lerp(r.x, r.xMax, x01);
-			float y01 = Mathf.Clamp01(src[idx] * invY);
-			float y = Mathf.Lerp(r.yMax, r.y, y01);
+			var x01 = 1f - Mathf.Clamp01((now - t) / windowSeconds);
+			var x = Mathf.Lerp(r.x, r.xMax, x01);
+			var y01 = Mathf.Clamp01(src[idx] * invY);
+			var y = Mathf.Lerp(r.yMax, r.y, y01);
 			polyPts[n++] = new Vector2(x, y);
 		}
 
@@ -647,7 +637,7 @@ public class FramePacingGraph : MonoBehaviour
 	static void EnsureLineMaterial()
 	{
 		if (lineMat != null) return;
-		Shader s = Shader.Find("Hidden/Internal-Colored");
+		var s = Shader.Find("Hidden/Internal-Colored");
 		lineMat = new Material(s) { hideFlags = HideFlags.HideAndDontSave };
 		lineMat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
 		lineMat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
@@ -665,13 +655,13 @@ public class FramePacingGraph : MonoBehaviour
 		GL.Begin(GL.QUADS);
 		GL.Color(c);
 
-		for (int i = 0; i < n - 1; i++)
+		for (var i = 0; i < n - 1; i++)
 		{
 			Vector2 a = pts[i], b = pts[i + 1];
-			Vector2 d = b - a;
-			float len = d.magnitude;
+			var d = b - a;
+			var len = d.magnitude;
 			if (len <= 0.001f) continue;
-			Vector2 nrm = new Vector2(-d.y, d.x) / len * (width * 0.5f);
+			var nrm = new Vector2(-d.y, d.x) / len * (width * 0.5f);
 			GL.Vertex(a - nrm);
 			GL.Vertex(a + nrm);
 			GL.Vertex(b + nrm);
@@ -682,40 +672,100 @@ public class FramePacingGraph : MonoBehaviour
 		GL.PopMatrix();
 	}
 
-	void DrawBackgroundAndGrid(Rect r)
+	void DrawBackgroundGridAndPanel(Rect graphRect)
 	{
-		// background
+		var full = new Rect(graphRect.x, graphRect.y, graphRect.width + statsPanelWidth, graphRect.height);
 		EnsureLineMaterial();
+
+		// Full background (graph + panel)
 		lineMat.SetPass(0);
 		GL.PushMatrix();
 		GL.LoadPixelMatrix(0, Screen.width, Screen.height, 0);
 		GL.Begin(GL.QUADS);
 		GL.Color(backgroundColor);
-		GL.Vertex3(r.x, r.y, 0);
-		GL.Vertex3(r.xMax, r.y, 0);
-		GL.Vertex3(r.xMax, r.yMax, 0);
-		GL.Vertex3(r.x, r.yMax, 0);
+		GL.Vertex3(full.x, full.y, 0);
+		GL.Vertex3(full.xMax, full.y, 0);
+		GL.Vertex3(full.xMax, full.yMax, 0);
+		GL.Vertex3(full.x, full.yMax, 0);
 		GL.End();
 		GL.PopMatrix();
 
-		// border
+		// Border around full
 		DrawPolylineBatched(
 			new[]
 			{
-				new Vector2(r.x, r.y), new Vector2(r.xMax, r.y), new Vector2(r.xMax, r.yMax), new Vector2(r.x, r.yMax),
-				new Vector2(r.x, r.y)
+				new Vector2(full.x, full.y), new Vector2(full.xMax, full.y),
+				new Vector2(full.xMax, full.yMax), new Vector2(full.x, full.yMax),
+				new Vector2(full.x, full.y)
 			}, 5, borderColor, gridLineWidth);
 
-		// horizontal grid
+		// Vertical separator between graph and panel
+		DrawPolylineBatched(new[]
+		{
+			new Vector2(graphRect.xMax, graphRect.y),
+			new Vector2(graphRect.xMax, graphRect.yMax)
+		}, 2, borderColor, gridLineWidth);
+
+		// Horizontal grid inside the graph only
 		if (gridLinesY > 0)
 		{
-			for (int i = 1; i < gridLinesY; i++)
+			for (var i = 1; i < gridLinesY; i++)
 			{
-				float y = Mathf.Lerp(r.y, r.yMax, i / (float)gridLinesY);
-				DrawPolylineBatched(new[] { new Vector2(r.x, y), new Vector2(r.xMax, y) }, 2, borderColor, 1f);
+				var y = Mathf.Lerp(graphRect.y, graphRect.yMax, i / (float)gridLinesY);
+				DrawPolylineBatched(new[] { new Vector2(graphRect.x, y), new Vector2(graphRect.xMax, y) }, 2,
+					borderColor, 1f);
 			}
 		}
 	}
+
+	void DrawStatsPanel(Rect statsRect)
+	{
+		var pad = statsPanelPadding;
+		var x = statsRect.x + pad;
+		var y = statsRect.y + pad;
+		var w = statsRect.width - pad * 2f;
+
+		// Header
+		GUI.color = axisTextColor;
+		var header = "Metric        avg    min    max    p95    p99";
+		GUI.Label(new Rect(x, y, w, fontSize + 6), header, monoStyle);
+		y += fontSize + 6;
+
+		// Built-ins
+		DrawStatsLine(totalMetric, ref y, x, w);
+		if (cpuMetric.enabled) DrawStatsLine(cpuMetric, ref y, x, w);
+		if (gpuMetric.enabled) DrawStatsLine(gpuMetric, ref y, x, w);
+
+		// Custom metrics
+		for (var i = 0; i < customMetrics.Count; i++)
+		{
+			var m = customMetrics[i];
+			if (m.enabled) DrawStatsLine(m, ref y, x, w);
+		}
+
+		GUI.color = Color.white;
+	}
+
+
+	static string TruncPad(string s, int max)
+	{
+		if (string.IsNullOrEmpty(s)) return new string(' ', max);
+		if (s.Length > max) return s.Substring(0, max);
+		if (s.Length < max) return s + new string(' ', max - s.Length);
+		return s;
+	}
+
+	void DrawStatsLine(Metric m, ref float y, float x, float w)
+	{
+		if (m == null || !m.stats.valid) return;
+		GUI.color = m.color;
+		var name = TruncPad(m.name, 12);
+		var line = string.Format("{0} {1,6:0.00} {2,6:0.00} {3,6:0.00} {4,6:0.00} {5,6:0.00}",
+			name, m.stats.avg, m.stats.min, m.stats.max, m.stats.p95, m.stats.p99);
+		GUI.Label(new Rect(x, y, w, fontSize + 6), line, monoStyle);
+		y += fontSize + 4;
+	}
+
 
 	Rect lastRect;
 
