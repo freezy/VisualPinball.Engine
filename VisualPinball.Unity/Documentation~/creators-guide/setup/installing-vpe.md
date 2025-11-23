@@ -61,7 +61,7 @@ Also check *Enable Pre-release Packages* (and confirm), as well as *Show depende
 
 Hit *Save* and close the window. Now you'll add VPE's HDRP package, which will automatically pull in the core package and the assets package.
 
-Open the package manager by clicking on *Window -> Package Management -> Package Manager*. Then click on the "plus" icon on the top left corner of the window, and choose *Add package by name..*.
+Open the package manager by clicking on *Window -> Package Management -> Package Manager*. Then click on the "plus" icon on the top left corner of the window, and choose *Install package by name..*.
 
 <p><img alt="Package Manager" width="237" src="unity-package-manager.png"/></p>
 
@@ -75,3 +75,4 @@ When complete, you should now have a *Pinball* menu in the editor, and you shoul
 <p><img alt="Unity Input System Warning" width="907" src="unity-packages-after-installation.png" /></p>
 
 Now that VPE is installed let's [import a table](xref:setup-running-vpe)!
+
