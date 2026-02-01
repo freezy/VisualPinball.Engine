@@ -23,6 +23,8 @@ namespace VisualPinball.Unity
 			}
 		}
 
+
+		[BurstCompile]
 		public static void Populate(ref NativeColliders colliders, ref NativeOctree<int> octree)
 		{
 			for (var i = 0; i < colliders.Length; i++) {
