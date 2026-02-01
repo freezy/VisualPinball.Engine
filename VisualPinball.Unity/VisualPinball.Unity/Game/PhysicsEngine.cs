@@ -251,15 +251,16 @@ namespace VisualPinball.Unity
 
 		private void Start()
 		{
-			// create static octree
 			var sw = Stopwatch.StartNew();
 			var playfield = GetComponentInChildren<PlayfieldComponent>();
 
+			// register frame pacing stats
 			var stats = FindFirstObjectByType<FramePacingGraph>();
 			if (stats) {
 				stats.RegisterCustomMetric("Physics", Color.magenta, () => _lastFrameTimeMs);
 			}
 
+			// create static octree
 			Debug.Log($"Found {_colliderComponents.Length} collidable items ({_kinematicColliderComponents.Length} kinematic).");
 			var colliders = new ColliderReference(ref _nonTransformableColliderTransforms.Ref, Allocator.Temp);
 			var kinematicColliders = new ColliderReference(ref _nonTransformableColliderTransforms.Ref, Allocator.Temp, true);
@@ -347,7 +348,7 @@ namespace VisualPinball.Unity
 			}
 
 			// prepare job
-			var events = _eventQueue.Ref.AsParallelWriter();
+			// var events = _eventQueue.Ref.AsParallelWriter();
 			// using var overlappingColliders = new NativeParallelHashSet<int>(0, Allocator.TempJob);
 
 			// var updatePhysics = new PhysicsUpdateJob {
