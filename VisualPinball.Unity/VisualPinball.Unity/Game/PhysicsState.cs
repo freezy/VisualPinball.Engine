@@ -16,6 +16,7 @@
 
 // ReSharper disable InconsistentNaming
 
+using System.Runtime.InteropServices;
 using NativeTrees;
 using Unity.Collections;
 using Unity.Mathematics;
@@ -128,6 +129,8 @@ namespace VisualPinball.Unity
 		internal NativeParallelHashMap<int, SurfaceState> SurfaceStates;
 		internal NativeParallelHashMap<int, TriggerState> TriggerStates;
 		internal NativeParallelHashSet<int> DisabledCollisionItems;
+
+		[MarshalAs(UnmanagedType.U1)]
 		internal bool SwapBallCollisionHandling;
 
 		public PhysicsState(ref PhysicsEnv env, ref NativeOctree<int> octree, ref NativeColliders colliders,

@@ -18,6 +18,7 @@
 
 using System.Diagnostics;
 using System;
+using System.Runtime.InteropServices;
 using Unity.Burst;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Collections;
@@ -62,6 +63,8 @@ namespace VisualPinball.Unity
 		[NativeDisableUnsafePtrRestriction] private void* m_PlaneColliderBuffer;
 
 		private readonly Allocator m_AllocatorLabel;
+
+		[MarshalAs(UnmanagedType.U1)]
 		private readonly bool m_IsKinematic;
 
 		private int m_Length; // must be here, and called like that.

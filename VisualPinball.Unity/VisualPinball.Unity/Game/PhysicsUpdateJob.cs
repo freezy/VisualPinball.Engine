@@ -13,75 +13,73 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using NativeTrees;
 using Unity.Burst;
 using Unity.Collections;
-using Unity.Jobs;
-using Unity.Mathematics;
+using Unity.Collections.LowLevel.Unsafe;
 using VisualPinball.Engine.Common;
+
 // ReSharper disable InconsistentNaming
 
 namespace VisualPinball.Unity
 {
-	[BurstCompile(CompileSynchronously = true)]
-	internal struct PhysicsUpdateJob : IJob
+	[BurstCompile(FloatPrecision.Medium, FloatMode.Fast, CompileSynchronously = true)]
+	internal static class PhysicsUpdate
 	{
-		[ReadOnly]
-		public ulong InitialTimeUsec;
+		// [ReadOnly]
+		// public ulong InitialTimeUsec;
+		//
+		// public float DeltaTimeMs;
+		//
+		// [NativeDisableParallelForRestriction]
+		// public NativeParallelHashSet<int> OverlappingColliders;
+		// public NativeArray<PhysicsEnv> PhysicsEnv;
+		// public NativeOctree<int> Octree;
+		// public NativeColliders Colliders;
+		// public NativeColliders KinematicColliders;
+		// public NativeColliders KinematicCollidersAtIdentity;
+		// public NativeParallelHashMap<int, float4x4> KinematicTransforms;
+		// public NativeParallelHashMap<int, float4x4> UpdatedKinematicTransforms;
+		// public NativeParallelHashMap<int, float4x4> NonTransformableColliderTransforms;
+		//
+		// public NativeParallelHashMap<int, NativeColliderIds> KinematicColliderLookups;
+		// public InsideOfs InsideOfs;
+		// public NativeQueue<EventData>.ParallelWriter Events;
+		// public AABB PlayfieldBounds;
+		//
+		// public NativeParallelHashMap<int, BallState> Balls;
+		// public NativeParallelHashMap<int, BumperState> BumperStates;
+		// public NativeParallelHashMap<int, DropTargetState> DropTargetStates;
+		// public NativeParallelHashMap<int, FlipperState> FlipperStates;
+		// public NativeParallelHashMap<int, GateState> GateStates;
+		// public NativeParallelHashMap<int, HitTargetState> HitTargetStates;
+		// public NativeParallelHashMap<int, KickerState> KickerStates;
+		// public NativeParallelHashMap<int, PlungerState> PlungerStates;
+		// public NativeParallelHashMap<int, SpinnerState> SpinnerStates;
+		// public NativeParallelHashMap<int, SurfaceState> SurfaceStates;
+		// public NativeParallelHashMap<int, TriggerState> TriggerStates;
+		// public NativeParallelHashSet<int> DisabledCollisionItems;
+		//
+		// public NativeParallelHashMap<int, FixedList512Bytes<float>> ElasticityOverVelocityLUTs;
+		// public NativeParallelHashMap<int, FixedList512Bytes<float>> FrictionOverVelocityLUTs;
+		//
+		// public bool SwapBallCollisionHandling;
 
-		public float DeltaTimeMs;
-
-		[NativeDisableParallelForRestriction]
-		public NativeParallelHashSet<int> OverlappingColliders;
-		public NativeArray<PhysicsEnv> PhysicsEnv;
-		public NativeOctree<int> Octree;
-		public NativeColliders Colliders;
-		public NativeColliders KinematicColliders;
-		public NativeColliders KinematicCollidersAtIdentity;
-		public NativeParallelHashMap<int, float4x4> KinematicTransforms;
-		public NativeParallelHashMap<int, float4x4> UpdatedKinematicTransforms;
-		public NativeParallelHashMap<int, float4x4> NonTransformableColliderTransforms;
-
-		public NativeParallelHashMap<int, NativeColliderIds> KinematicColliderLookups;
-		public InsideOfs InsideOfs;
-		public NativeQueue<EventData>.ParallelWriter Events;
-		public AABB PlayfieldBounds;
-
-		public NativeParallelHashMap<int, BallState> Balls;
-		public NativeParallelHashMap<int, BumperState> BumperStates;
-		public NativeParallelHashMap<int, DropTargetState> DropTargetStates;
-		public NativeParallelHashMap<int, FlipperState> FlipperStates;
-		public NativeParallelHashMap<int, GateState> GateStates;
-		public NativeParallelHashMap<int, HitTargetState> HitTargetStates;
-		public NativeParallelHashMap<int, KickerState> KickerStates;
-		public NativeParallelHashMap<int, PlungerState> PlungerStates;
-		public NativeParallelHashMap<int, SpinnerState> SpinnerStates;
-		public NativeParallelHashMap<int, SurfaceState> SurfaceStates;
-		public NativeParallelHashMap<int, TriggerState> TriggerStates;
-		public NativeParallelHashSet<int> DisabledCollisionItems;
-
-		public NativeParallelHashMap<int, FixedList512Bytes<float>> ElasticityOverVelocityLUTs;
-		public NativeParallelHashMap<int, FixedList512Bytes<float>> FrictionOverVelocityLUTs;
-
-		public bool SwapBallCollisionHandling;
-
-		public void Execute()
+		[BurstCompile]
+		public static void Execute(ref PhysicsState state, ref PhysicsEnv env, ref NativeParallelHashSet<int> overlappingColliders, in AABB playfieldBounds, ulong initialTimeUsec)
 		{
-			var env = PhysicsEnv[0];
-			var state = new PhysicsState(ref env, ref Octree, ref Colliders, ref KinematicColliders,
-				ref KinematicCollidersAtIdentity, ref KinematicTransforms, ref UpdatedKinematicTransforms,
-				ref NonTransformableColliderTransforms, ref KinematicColliderLookups, ref Events,
-				ref InsideOfs, ref Balls, ref BumperStates, ref DropTargetStates, ref FlipperStates, ref GateStates,
-				ref HitTargetStates, ref KickerStates, ref PlungerStates, ref SpinnerStates,
-				ref SurfaceStates, ref TriggerStates, ref DisabledCollisionItems, ref SwapBallCollisionHandling,
-				ref ElasticityOverVelocityLUTs, ref FrictionOverVelocityLUTs);
+			// ref var state = ref UnsafeUtility.AsRef<PhysicsState>(statePtr.ToPointer());
+			// ref var env = ref UnsafeUtility.AsRef<PhysicsEnv>(envPtr.ToPointer());
+			// ref var overlappingColliders = ref UnsafeUtility.AsRef<NativeParallelHashSet<int>>(overlappingCollidersPtr.ToPointer());
+
 			using var cycle = new PhysicsCycle(Allocator.Temp);
 
 			// create octree of kinematic-to-ball collision. should be okay here, since kinetic colliders don't transform more than once per frame.
 			PhysicsKinematics.TransformFullyTransformableColliders(ref state);
-			var kineticOctree = PhysicsKinematics.CreateOctree(ref state, in PlayfieldBounds);
+			var kineticOctree = PhysicsKinematics.CreateOctree(ref state, in playfieldBounds);
 
-			while (env.CurPhysicsFrameTime < InitialTimeUsec)  // loop here until current (real) time matches the physics (simulated) time
+			while (env.CurPhysicsFrameTime < initialTimeUsec)  // loop here until current (real) time matches the physics (simulated) time
 			{
 				env.TimeMsec = (uint)((env.CurPhysicsFrameTime - env.StartTimeUsec) / 1000);
 				var physicsDiffTime = (float)((env.NextPhysicsFrameTime - env.CurPhysicsFrameTime) * (1.0 / PhysicsConstants.DefaultStepTime));
@@ -96,27 +94,27 @@ namespace VisualPinball.Unity
 					}
 				}
 				// flippers
-				using (var enumerator = FlipperStates.GetEnumerator()) {
+				using (var enumerator = state.FlipperStates.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						FlipperVelocityPhysics.UpdateVelocities(ref enumerator.Current.Value);
 					}
 				}
 				// gates
-				using (var enumerator = GateStates.GetEnumerator()) {
+				using (var enumerator = state.GateStates.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						ref var gateState = ref enumerator.Current.Value;
 						GateVelocityPhysics.UpdateVelocities(ref gateState.Movement, in gateState.Static);
 					}
 				}
 				// plungers
-				using (var enumerator = PlungerStates.GetEnumerator()) {
+				using (var enumerator = state.PlungerStates.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						ref var plungerState = ref enumerator.Current.Value;
 						PlungerVelocityPhysics.UpdateVelocities(ref plungerState.Movement, ref plungerState.Velocity, in plungerState.Static);
 					}
 				}
 				// spinners
-				using (var enumerator = SpinnerStates.GetEnumerator()) {
+				using (var enumerator = state.SpinnerStates.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						ref var spinnerState = ref enumerator.Current.Value;
 						SpinnerVelocityPhysics.UpdateVelocities(ref spinnerState.Movement, in spinnerState.Static);
@@ -126,7 +124,7 @@ namespace VisualPinball.Unity
 				#endregion
 
 				// primary physics loop
-				cycle.Simulate(ref state, in PlayfieldBounds, ref OverlappingColliders, ref kineticOctree, physicsDiffTime);
+				cycle.Simulate(ref state, in playfieldBounds, ref overlappingColliders, ref kineticOctree, physicsDiffTime);
 
 				// ball trail, keep old pos of balls
 				using (var enumerator = state.Balls.GetEnumerator()) {
@@ -140,7 +138,7 @@ namespace VisualPinball.Unity
 				// todo it should be enough to calculate animations only once per frame
 
 				// bumper
-				using (var enumerator = BumperStates.GetEnumerator()) {
+				using (var enumerator = state.BumperStates.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						ref var bumperState = ref enumerator.Current.Value;
 						if (bumperState.RingItemId != 0) {
@@ -153,7 +151,7 @@ namespace VisualPinball.Unity
 				}
 
 				// drop target
-				using (var enumerator = DropTargetStates.GetEnumerator()) {
+				using (var enumerator = state.DropTargetStates.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						ref var dropTargetState = ref enumerator.Current.Value;
 						DropTargetAnimation.Update(enumerator.Current.Key, ref dropTargetState.Animation, in dropTargetState.Static, ref state);
@@ -161,7 +159,7 @@ namespace VisualPinball.Unity
 				}
 
 				// hit target
-				using (var enumerator = HitTargetStates.GetEnumerator()) {
+				using (var enumerator = state.HitTargetStates.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						ref var hitTargetState = ref enumerator.Current.Value;
 						HitTargetAnimation.Update(ref hitTargetState.Animation, in hitTargetState.Static, env.TimeMsec);
@@ -169,7 +167,7 @@ namespace VisualPinball.Unity
 				}
 
 				// plunger
-				using (var enumerator = PlungerStates.GetEnumerator()) {
+				using (var enumerator = state.PlungerStates.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						ref var plungerState = ref enumerator.Current.Value;
 						PlungerAnimation.Update(ref plungerState.Animation, in plungerState.Movement, in plungerState.Static);
@@ -177,7 +175,7 @@ namespace VisualPinball.Unity
 				}
 
 				// trigger
-				using (var enumerator = TriggerStates.GetEnumerator()) {
+				using (var enumerator = state.TriggerStates.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						ref var triggerState = ref enumerator.Current.Value;
 						TriggerAnimation.Update(ref triggerState.Animation, ref triggerState.Movement, in triggerState.Static, PhysicsConstants.PhysicsStepTime / 1000f);
@@ -190,7 +188,6 @@ namespace VisualPinball.Unity
 				env.NextPhysicsFrameTime += PhysicsConstants.PhysicsStepTime;
 			}
 
-			PhysicsEnv[0] = env;
 			kineticOctree.Dispose();
 		}
 	}

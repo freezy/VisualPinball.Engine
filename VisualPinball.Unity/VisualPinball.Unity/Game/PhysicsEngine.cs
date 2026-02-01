@@ -21,7 +21,6 @@ using System.Diagnostics;
 using System.Linq;
 using NativeTrees;
 using Unity.Collections;
-using Unity.Jobs;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Common;
@@ -64,7 +63,8 @@ namespace VisualPinball.Unity
 		[NonSerialized] private NativeColliders _kinematicCollidersAtIdentity;
 		[NonSerialized] private NativeParallelHashMap<int, NativeColliderIds> _kinematicColliderLookups;
 		[NonSerialized] private NativeParallelHashMap<int, NativeColliderIds> _colliderLookups; // only used for editor debug
-		[NonSerialized] private readonly LazyInit<NativeArray<PhysicsEnv>> _physicsEnv = new(() => new NativeArray<PhysicsEnv>(1, Allocator.Persistent));
+		[NonSerialized] private NativeParallelHashSet<int> _overlappingColliders = new(0, Allocator.Persistent);
+		[NonSerialized] private PhysicsEnv _physicsEnv;
 		[NonSerialized] private readonly LazyInit<NativeQueue<EventData>> _eventQueue = new(() => new NativeQueue<EventData>(Allocator.Persistent));
 		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, BallState>> _ballStates = new(() => new NativeParallelHashMap<int, BallState>(0, Allocator.Persistent));
 		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, BumperState>> _bumperStates = new(() => new NativeParallelHashMap<int, BumperState>(0, Allocator.Persistent));
@@ -137,7 +137,7 @@ namespace VisualPinball.Unity
 		public void ScheduleAction(uint timeoutMs, Action action)
 		{
 			lock (_scheduledActions) {
-				_scheduledActions.Add(new ScheduledAction(_physicsEnv.Ref[0].CurPhysicsFrameTime + (ulong)timeoutMs * 1000, action));
+				_scheduledActions.Add(new ScheduledAction(_physicsEnv.CurPhysicsFrameTime + (ulong)timeoutMs * 1000, action));
 			}
 		}
 
@@ -164,8 +164,8 @@ namespace VisualPinball.Unity
 		internal bool HasBallsInsideOf(int itemId) => _insideOfs.GetInsideCount(itemId) > 0;
 		internal List<int> GetBallsInsideOf(int itemId) => _insideOfs.GetIdsOfBallsInsideItem(itemId);
 
-		internal uint TimeMsec => _physicsEnv.Ref[0].TimeMsec;
-		internal Random Random => _physicsEnv.Ref[0].Random;
+		internal uint TimeMsec => _physicsEnv.TimeMsec;
+		internal Random Random => _physicsEnv.Random;
 		internal void Register<T>(T item) where T : MonoBehaviour
 		{
 			var go = item.gameObject;
@@ -242,7 +242,7 @@ namespace VisualPinball.Unity
 			_player = GetComponentInParent<Player>();
 			_physicsMovements = new PhysicsMovements();
 			_insideOfs = new InsideOfs(Allocator.Persistent);
-			_physicsEnv.Ref[0] = new PhysicsEnv(NowUsec, GetComponentInChildren<PlayfieldComponent>(), GravityStrength);
+			_physicsEnv = new PhysicsEnv(NowUsec, GetComponentInChildren<PlayfieldComponent>(), GravityStrength);
 			_colliderComponents = GetComponentsInChildren<ICollidableComponent>();
 			_kinematicColliderComponents = _colliderComponents.Where(c => c.IsKinematic).ToArray();
 			ElasticityOverVelocityLUTs = new NativeParallelHashMap<int, FixedList512Bytes<float>>(0, Allocator.Persistent);
@@ -321,8 +321,7 @@ namespace VisualPinball.Unity
 		internal PhysicsState CreateState()
 		{
 			var events = _eventQueue.Ref.AsParallelWriter();
-			var env = _physicsEnv.Ref[0];
-			return new PhysicsState(ref env, ref _octree, ref _colliders, ref _kinematicColliders,
+			return new PhysicsState(ref _physicsEnv, ref _octree, ref _colliders, ref _kinematicColliders,
 				ref _kinematicCollidersAtIdentity, ref _kinematicTransforms.Ref, ref _updatedKinematicTransforms.Ref,
 				ref _nonTransformableColliderTransforms.Ref, ref _kinematicColliderLookups, ref events,
 				ref _insideOfs, ref _ballStates.Ref, ref _bumperStates.Ref, ref _dropTargetStates.Ref, ref _flipperStates.Ref, ref _gateStates.Ref,
@@ -349,39 +348,39 @@ namespace VisualPinball.Unity
 
 			// prepare job
 			var events = _eventQueue.Ref.AsParallelWriter();
-			using var overlappingColliders = new NativeParallelHashSet<int>(0, Allocator.TempJob);
+			// using var overlappingColliders = new NativeParallelHashSet<int>(0, Allocator.TempJob);
 
-			var updatePhysics = new PhysicsUpdateJob {
-				InitialTimeUsec = NowUsec,
-				DeltaTimeMs = Time.deltaTime * 1000,
-				PhysicsEnv = _physicsEnv.Ref,
-				Octree = _octree,
-				Colliders = _colliders,
-				KinematicColliders = _kinematicColliders,
-				KinematicCollidersAtIdentity = _kinematicCollidersAtIdentity,
-				KinematicColliderLookups = _kinematicColliderLookups,
-				KinematicTransforms = _kinematicTransforms.Ref,
-				UpdatedKinematicTransforms = _updatedKinematicTransforms.Ref,
-				NonTransformableColliderTransforms = _nonTransformableColliderTransforms.Ref,
-				InsideOfs = _insideOfs,
-				Events = events,
-				Balls = _ballStates.Ref,
-				BumperStates = _bumperStates.Ref,
-				DropTargetStates = _dropTargetStates.Ref,
-				FlipperStates = _flipperStates.Ref,
-				GateStates = _gateStates.Ref,
-				HitTargetStates = _hitTargetStates.Ref,
-				KickerStates = _kickerStates.Ref,
-				PlungerStates = _plungerStates.Ref,
-				SpinnerStates = _spinnerStates.Ref,
-				SurfaceStates = _surfaceStates.Ref,
-				TriggerStates = _triggerStates.Ref,
-				DisabledCollisionItems = _disabledCollisionItems.Ref,
-				PlayfieldBounds = _playfieldBounds,
-				OverlappingColliders = overlappingColliders,
-				ElasticityOverVelocityLUTs = ElasticityOverVelocityLUTs,
-				FrictionOverVelocityLUTs = FrictionOverVelocityLUTs,
-			};
+			// var updatePhysics = new PhysicsUpdateJob {
+			// 	InitialTimeUsec = NowUsec,
+			// 	DeltaTimeMs = Time.deltaTime * 1000,
+			// 	PhysicsEnv = _physicsEnv.Ref,
+			// 	Octree = _octree,
+			// 	Colliders = _colliders,
+			// 	KinematicColliders = _kinematicColliders,
+			// 	KinematicCollidersAtIdentity = _kinematicCollidersAtIdentity,
+			// 	KinematicColliderLookups = _kinematicColliderLookups,
+			// 	KinematicTransforms = _kinematicTransforms.Ref,
+			// 	UpdatedKinematicTransforms = _updatedKinematicTransforms.Ref,
+			// 	NonTransformableColliderTransforms = _nonTransformableColliderTransforms.Ref,
+			// 	InsideOfs = _insideOfs,
+			// 	Events = events,
+			// 	Balls = _ballStates.Ref,
+			// 	BumperStates = _bumperStates.Ref,
+			// 	DropTargetStates = _dropTargetStates.Ref,
+			// 	FlipperStates = _flipperStates.Ref,
+			// 	GateStates = _gateStates.Ref,
+			// 	HitTargetStates = _hitTargetStates.Ref,
+			// 	KickerStates = _kickerStates.Ref,
+			// 	PlungerStates = _plungerStates.Ref,
+			// 	SpinnerStates = _spinnerStates.Ref,
+			// 	SurfaceStates = _surfaceStates.Ref,
+			// 	TriggerStates = _triggerStates.Ref,
+			// 	DisabledCollisionItems = _disabledCollisionItems.Ref,
+			// 	PlayfieldBounds = _playfieldBounds,
+			// 	OverlappingColliders = overlappingColliders,
+			// 	ElasticityOverVelocityLUTs = ElasticityOverVelocityLUTs,
+			// 	FrictionOverVelocityLUTs = FrictionOverVelocityLUTs,
+			// };
 
 			var state = CreateState();
 
@@ -392,7 +391,13 @@ namespace VisualPinball.Unity
 			}
 
 			// run physics loop
-			updatePhysics.Run();
+			PhysicsUpdate.Execute(
+				ref state,
+				ref _physicsEnv,
+				ref _overlappingColliders,
+				_playfieldBounds,
+				NowUsec
+			);
 
 			// dequeue events
 			while (_eventQueue.Ref.TryDequeue(out var eventData)) {
@@ -402,7 +407,7 @@ namespace VisualPinball.Unity
 			// process scheduled events from managed land
 			lock (_scheduledActions) {
 				for (var i = _scheduledActions.Count - 1; i >= 0; i--) {
-					if (_physicsEnv.Ref[0].CurPhysicsFrameTime > _scheduledActions[i].ScheduleAt) {
+					if (_physicsEnv.CurPhysicsFrameTime > _scheduledActions[i].ScheduleAt) {
 						_scheduledActions[i].Action();
 						_scheduledActions.RemoveAt(i);
 					}
@@ -428,7 +433,7 @@ namespace VisualPinball.Unity
 		
 		private void OnDestroy()
 		{
-			_physicsEnv.Ref.Dispose();
+			_overlappingColliders.Dispose();
 			_eventQueue.Ref.Dispose();
 			_ballStates.Ref.Dispose();
 			ElasticityOverVelocityLUTs.Dispose();
