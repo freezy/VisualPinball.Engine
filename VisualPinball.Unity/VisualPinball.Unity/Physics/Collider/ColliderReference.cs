@@ -48,6 +48,7 @@ namespace VisualPinball.Unity
 		public readonly bool IsKinematic; // if set, populate _itemIdToColliderIds
 		private NativeParallelHashMap<int, NativeList<int>> _itemIdToColliderIds;
 		private NativeParallelHashMap<int, float4x4> _nonTransformableColliderTransforms;
+		private readonly Allocator _allocator;
 
 		public ColliderReference(ref NativeParallelHashMap<int, float4x4> nonTransformableColliderTransforms, Allocator allocator, bool isKinematic = false)
 		{
@@ -67,6 +68,7 @@ namespace VisualPinball.Unity
 			Lookups = new NativeList<ColliderLookup>(allocator);
 
 			IsKinematic = isKinematic;
+			_allocator = allocator;
 			_itemIdToColliderIds = new NativeParallelHashMap<int, NativeList<int>>(0, allocator);
 			_nonTransformableColliderTransforms = nonTransformableColliderTransforms;
 		}
@@ -263,7 +265,7 @@ namespace VisualPinball.Unity
 			#endif
 
 			if (!_itemIdToColliderIds.ContainsKey(itemId)) {
-				_itemIdToColliderIds[itemId] = new NativeList<int>(Allocator.Temp);
+				_itemIdToColliderIds[itemId] = new NativeList<int>(_allocator);
 			}
 			_itemIdToColliderIds[itemId].Add(colliderId);
 		}
