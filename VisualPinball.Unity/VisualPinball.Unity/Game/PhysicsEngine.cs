@@ -139,6 +139,16 @@ namespace VisualPinball.Unity
 		/// </summary>
 		private bool _useExternalTiming = false;
 
+		/// <summary>
+		/// Lock for synchronizing physics state access between threads
+		/// </summary>
+		private readonly object _physicsLock = new object();
+
+		/// <summary>
+		/// Whether physics engine is fully initialized and ready for simulation thread
+		/// </summary>
+		private bool _isInitialized = false;
+
 		private float _lastFrameTimeMs;
 
 		#region API
@@ -339,6 +349,9 @@ namespace VisualPinball.Unity
 				ref _hitTargetStates.Ref, ref _kickerStates.Ref, ref _plungerStates.Ref, ref _spinnerStates.Ref,
 				ref _surfaceStates.Ref, ref _triggerStates.Ref, ref _disabledCollisionItems.Ref, ref _swapBallCollisionHandling,
 				ref ElasticityOverVelocityLUTs, ref FrictionOverVelocityLUTs);
+
+		// Mark as initialized for simulation thread
+		_isInitialized = true;
 		}
 
 		/// <summary>
@@ -356,29 +369,97 @@ namespace VisualPinball.Unity
 
 		/// <summary>
 		/// Execute a single physics tick with external timing (for simulation thread).
-		/// This allows precise control of physics simulation independent of Unity's Update loop.
+		/// This runs the physics simulation but does NOT apply movements to GameObjects.
+		/// Call ApplyMovements() from the main thread to update transforms.
 		/// </summary>
 		/// <param name="timeUsec">Current time in microseconds</param>
 		public void ExecuteTick(ulong timeUsec)
 		{
-			_externalTimeUsec = timeUsec;
-			ExecutePhysicsUpdate(timeUsec);
+			// Wait until physics engine is fully initialized
+			if (!_isInitialized) {
+				return;
+			}
+
+			lock (_physicsLock) {
+				_externalTimeUsec = timeUsec;
+				ExecutePhysicsSimulation(timeUsec);
+			}
+		}
+
+		/// <summary>
+		/// Apply physics state to GameObjects (must be called from main thread).
+		/// This updates transforms based on physics simulation results.
+		/// </summary>
+		public void ApplyMovements()
+		{
+			if (!_useExternalTiming || !_isInitialized) return;
+
+			// Don't acquire lock here - just read the current state
+			// Physics simulation writes to native collections which are thread-safe for concurrent readers
+			var state = CreateState();
+			ApplyAllMovements(ref state);
 		}
 
 		private void Update()
 		{
-			// Skip update if external timing is enabled (simulation thread controls physics)
 			if (_useExternalTiming) {
-				return;
+				// Simulation thread mode: Only apply movements (physics runs on simulation thread)
+				ApplyMovements();
+			} else {
+				// Normal mode: Execute full physics update
+				ExecutePhysicsUpdate(NowUsec);
 			}
-
-			ExecutePhysicsUpdate(NowUsec);
 		}
 
 		/// <summary>
-		/// Core physics update logic (can be called from Unity Update or simulation thread)
+		/// Core physics simulation (can be called from simulation thread).
+		/// Does NOT apply movements to GameObjects - only updates physics state.
 		/// </summary>
-		/// <param name="currentTimeUsec">Current time in microseconds</param>
+		private void ExecutePhysicsSimulation(ulong currentTimeUsec)
+		{
+			var sw = Stopwatch.StartNew();
+
+			// check for updated kinematic transforms (main thread only, skip for now)
+			// TODO: Find a way to update these from simulation thread
+
+			var state = CreateState();
+
+			// process input
+			while (_inputActions.Count > 0) {
+				var action = _inputActions.Dequeue();
+				action(ref state);
+			}
+
+			// run physics loop (Burst-compiled, thread-safe)
+			PhysicsUpdate.Execute(
+				ref state,
+				ref _physicsEnv,
+				ref _overlappingColliders,
+				_playfieldBounds,
+				currentTimeUsec
+			);
+
+			// dequeue events
+			while (_eventQueue.Ref.TryDequeue(out var eventData)) {
+				_player.OnEvent(in eventData);
+			}
+
+			// process scheduled events from managed land
+			lock (_scheduledActions) {
+				for (var i = _scheduledActions.Count - 1; i >= 0; i--) {
+					if (_physicsEnv.CurPhysicsFrameTime > _scheduledActions[i].ScheduleAt) {
+						_scheduledActions[i].Action();
+						_scheduledActions.RemoveAt(i);
+					}
+				}
+			}
+
+			_lastFrameTimeMs = (float)sw.Elapsed.TotalMilliseconds;
+		}
+
+		/// <summary>
+		/// Full physics update (main thread only - includes movement application)
+		/// </summary>
 		private void ExecutePhysicsUpdate(ulong currentTimeUsec)
 		{
 			var sw = Stopwatch.StartNew();
@@ -428,8 +509,17 @@ namespace VisualPinball.Unity
 				}
 			}
 
-			#region Movements
+			// Apply movements to GameObjects
+			ApplyAllMovements(ref state);
 
+			_lastFrameTimeMs = (float)sw.Elapsed.TotalMilliseconds;
+		}
+
+		/// <summary>
+		/// Apply all physics movements to GameObjects (main thread only)
+		/// </summary>
+		private void ApplyAllMovements(ref PhysicsState state)
+		{
 			_physicsMovements.ApplyBallMovement(ref state, _ballComponents);
 			_physicsMovements.ApplyFlipperMovement(ref _flipperStates.Ref, _floatAnimatedComponents);
 			_physicsMovements.ApplyBumperMovement(ref _bumperStates.Ref, _floatAnimatedComponents, _float2AnimatedComponents);
@@ -439,10 +529,6 @@ namespace VisualPinball.Unity
 			_physicsMovements.ApplyPlungerMovement(ref _plungerStates.Ref, _floatAnimatedComponents);
 			_physicsMovements.ApplySpinnerMovement(ref _spinnerStates.Ref, _floatAnimatedComponents);
 			_physicsMovements.ApplyTriggerMovement(ref _triggerStates.Ref, _floatAnimatedComponents);
-
-			#endregion
-
-			_lastFrameTimeMs = (float)sw.Elapsed.TotalMilliseconds;
 		}
 		
 		private void OnDestroy()

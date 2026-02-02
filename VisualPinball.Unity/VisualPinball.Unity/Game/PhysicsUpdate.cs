@@ -73,7 +73,7 @@ namespace VisualPinball.Unity
 			// ref var env = ref UnsafeUtility.AsRef<PhysicsEnv>(envPtr.ToPointer());
 			// ref var overlappingColliders = ref UnsafeUtility.AsRef<NativeParallelHashSet<int>>(overlappingCollidersPtr.ToPointer());
 
-			using var cycle = new PhysicsCycle(Allocator.Temp);
+			using var cycle = new PhysicsCycle(Allocator.TempJob);
 
 			// create octree of kinematic-to-ball collision. should be okay here, since kinetic colliders don't transform more than once per frame.
 			PhysicsKinematics.TransformFullyTransformableColliders(ref state);

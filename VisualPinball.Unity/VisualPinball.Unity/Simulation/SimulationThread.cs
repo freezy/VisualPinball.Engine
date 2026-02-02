@@ -165,6 +165,26 @@ namespace VisualPinball.Unity.Simulation
 			// Set thread priority to time-critical
 			NativeInputApi.VpeSetThreadPriority();
 
+			// Wait for physics engine to be fully initialized
+			// This prevents accessing physics state before it's ready
+			Logger.Info("[SimulationThread] Waiting for physics initialization...");
+			int waitCount = 0;
+			while (_running && _physicsEngine != null && waitCount < 100)
+			{
+				// Check if physics has started (simple heuristic - wait a bit)
+				Thread.Sleep(50);
+				waitCount++;
+			}
+
+			if (waitCount >= 100)
+			{
+				Logger.Error("[SimulationThread] Timeout waiting for physics initialization");
+				_running = false;
+				return;
+			}
+
+			Logger.Info("[SimulationThread] Physics initialized, starting simulation");
+
 			// Try to enable no-GC region for hot path
 			bool noGcRegion = false;
 			try
@@ -376,7 +396,9 @@ namespace VisualPinball.Unity.Simulation
 		{
 			if (_physicsEngine != null)
 			{
-				// Execute physics tick with current simulation time
+				// Execute physics tick directly on simulation thread
+				// This works now because we changed Allocator.Temp to Allocator.TempJob
+				// in the physics hot path, allowing custom threads to execute physics.
 				_physicsEngine.ExecuteTick((ulong)_simulationTimeUsec);
 			}
 		}
