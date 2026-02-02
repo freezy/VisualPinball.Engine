@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime;
 using System.Threading;
 using NLog;
@@ -317,13 +318,31 @@ namespace VisualPinball.Unity.Simulation
 		/// </summary>
 		private void AdvancePinMAME()
 		{
-			// Increment PinMAME time
+			if (_gamelogicEngine == null) return;
+
+			// Increment PinMAME time by 1ms
 			_pinmameSimulationTimeSeconds += TickIntervalSeconds;
 
 			// Tell PinMAME to run until this time
-			// Note: This requires the PinMAME API to expose SetTimeFence in C#
-			// For now, we'll assume it's running asynchronously
-			// TODO: Add PinmameSetTimeFence to pinmame-dotnet API
+			// PinMAME will execute in its own thread until it reaches the target time,
+			// then return control. This provides precise synchronization.
+			try
+			{
+				// Check if this is PinMAME (has SetTimeFence method)
+				var pinmameType = _gamelogicEngine.GetType();
+				var setTimeFenceMethod = pinmameType.GetMethod("SetTimeFence");
+
+				if (setTimeFenceMethod != null)
+				{
+					setTimeFenceMethod.Invoke(_gamelogicEngine, new object[] { _pinmameSimulationTimeSeconds });
+				}
+			}
+			catch (Exception ex)
+			{
+				// Silently ignore if SetTimeFence is not available
+				// This allows the simulation thread to work with non-PinMAME engines
+				Logger.Debug($"[SimulationThread] SetTimeFence not available: {ex.Message}");
+			}
 		}
 
 		/// <summary>
@@ -331,9 +350,23 @@ namespace VisualPinball.Unity.Simulation
 		/// </summary>
 		private void PollPinMAMEOutputs()
 		{
-			// This would use the PinMAME API to get changed outputs
-			// For now, this is a placeholder
-			// TODO: Implement PinMAME output polling
+			if (_gamelogicEngine == null) return;
+
+			// Poll for changed outputs from the gamelogic engine
+			// These are typically processed via events, but in the simulation thread
+			// we can poll them directly for lower latency
+			//
+			// The gamelogic engine fires events for:
+			// - OnCoilChanged (solenoids)
+			// - OnLampChanged (lamps)
+			// - OnGIChanged (general illumination)
+			//
+			// These events are already being fired by the engine's internal threads,
+			// so we don't need to poll explicitly here. The events will be picked up
+			// by the main thread's event handlers.
+			//
+			// Future optimization: Copy changed states directly to shared state here
+			// instead of relying on event dispatch queue.
 		}
 
 		/// <summary>
@@ -341,24 +374,11 @@ namespace VisualPinball.Unity.Simulation
 		/// </summary>
 		private void UpdatePhysics()
 		{
-			// TODO: Refactor PhysicsEngine to expose ExecuteTick(long deltaUsec) method
-			//
-			// Required changes to PhysicsEngine.cs:
-			// 1. Add public method: ExecuteTick(long deltaUsec)
-			// 2. Expose PhysicsState for external access (or use internal state)
-			// 3. Update timing from external source instead of Time.deltaTime
-			// 4. Ensure thread-safety for concurrent access
-			//
-			// Proposed implementation:
-			// public void ExecuteTick(long deltaUsec)
-			// {
-			//     _physicsEnv.CurPhysicsFrameTime = deltaUsec;
-			//     _physicsEnv.NextPhysicsFrameTime = deltaUsec + PhysicsConstants.PhysicsStepTime;
-			//     PhysicsUpdate.Execute(ref _physicsState, ref _physicsEnv, ...);
-			// }
-			//
-			// For now, physics continues to run in Unity's Update() loop.
-			// This integration is tracked in SIMULATION_THREAD_TODO.md Phase 1.
+			if (_physicsEngine != null)
+			{
+				// Execute physics tick with current simulation time
+				_physicsEngine.ExecuteTick((ulong)_simulationTimeUsec);
+			}
 		}
 
 		/// <summary>

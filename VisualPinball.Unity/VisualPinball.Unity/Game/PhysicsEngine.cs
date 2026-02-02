@@ -129,6 +129,16 @@ namespace VisualPinball.Unity
 
 		private static ulong NowUsec => (ulong)(Time.timeAsDouble * 1000000);
 
+		/// <summary>
+		/// Current physics time in microseconds (for external tick support)
+		/// </summary>
+		private ulong _externalTimeUsec = 0;
+
+		/// <summary>
+		/// Whether to use external timing (simulation thread) or Unity's Time
+		/// </summary>
+		private bool _useExternalTiming = false;
+
 		private float _lastFrameTimeMs;
 
 		#region API
@@ -331,9 +341,48 @@ namespace VisualPinball.Unity
 				ref ElasticityOverVelocityLUTs, ref FrictionOverVelocityLUTs);
 		}
 
+		/// <summary>
+		/// Enable external timing control (for simulation thread).
+		/// When enabled, Update() does nothing and ExecuteTick() must be called instead.
+		/// </summary>
+		/// <param name="enable">Whether to enable external timing</param>
+		public void SetExternalTiming(bool enable)
+		{
+			_useExternalTiming = enable;
+			if (enable) {
+				_externalTimeUsec = (ulong)(Time.timeAsDouble * 1000000);
+			}
+		}
+
+		/// <summary>
+		/// Execute a single physics tick with external timing (for simulation thread).
+		/// This allows precise control of physics simulation independent of Unity's Update loop.
+		/// </summary>
+		/// <param name="timeUsec">Current time in microseconds</param>
+		public void ExecuteTick(ulong timeUsec)
+		{
+			_externalTimeUsec = timeUsec;
+			ExecutePhysicsUpdate(timeUsec);
+		}
+
 		private void Update()
 		{
+			// Skip update if external timing is enabled (simulation thread controls physics)
+			if (_useExternalTiming) {
+				return;
+			}
+
+			ExecutePhysicsUpdate(NowUsec);
+		}
+
+		/// <summary>
+		/// Core physics update logic (can be called from Unity Update or simulation thread)
+		/// </summary>
+		/// <param name="currentTimeUsec">Current time in microseconds</param>
+		private void ExecutePhysicsUpdate(ulong currentTimeUsec)
+		{
 			var sw = Stopwatch.StartNew();
+
 			// check for updated kinematic transforms
 			_updatedKinematicTransforms.Ref.Clear();
 			foreach (var coll in _kinematicColliderComponents) {
@@ -346,42 +395,6 @@ namespace VisualPinball.Unity
 				_kinematicTransforms.Ref[coll.ItemId] = currTransformationMatrix;
 				coll.OnTransformationChanged(currTransformationMatrix);
 			}
-
-			// prepare job
-			// var events = _eventQueue.Ref.AsParallelWriter();
-			// using var overlappingColliders = new NativeParallelHashSet<int>(0, Allocator.TempJob);
-
-			// var updatePhysics = new PhysicsUpdateJob {
-			// 	InitialTimeUsec = NowUsec,
-			// 	DeltaTimeMs = Time.deltaTime * 1000,
-			// 	PhysicsEnv = _physicsEnv.Ref,
-			// 	Octree = _octree,
-			// 	Colliders = _colliders,
-			// 	KinematicColliders = _kinematicColliders,
-			// 	KinematicCollidersAtIdentity = _kinematicCollidersAtIdentity,
-			// 	KinematicColliderLookups = _kinematicColliderLookups,
-			// 	KinematicTransforms = _kinematicTransforms.Ref,
-			// 	UpdatedKinematicTransforms = _updatedKinematicTransforms.Ref,
-			// 	NonTransformableColliderTransforms = _nonTransformableColliderTransforms.Ref,
-			// 	InsideOfs = _insideOfs,
-			// 	Events = events,
-			// 	Balls = _ballStates.Ref,
-			// 	BumperStates = _bumperStates.Ref,
-			// 	DropTargetStates = _dropTargetStates.Ref,
-			// 	FlipperStates = _flipperStates.Ref,
-			// 	GateStates = _gateStates.Ref,
-			// 	HitTargetStates = _hitTargetStates.Ref,
-			// 	KickerStates = _kickerStates.Ref,
-			// 	PlungerStates = _plungerStates.Ref,
-			// 	SpinnerStates = _spinnerStates.Ref,
-			// 	SurfaceStates = _surfaceStates.Ref,
-			// 	TriggerStates = _triggerStates.Ref,
-			// 	DisabledCollisionItems = _disabledCollisionItems.Ref,
-			// 	PlayfieldBounds = _playfieldBounds,
-			// 	OverlappingColliders = overlappingColliders,
-			// 	ElasticityOverVelocityLUTs = ElasticityOverVelocityLUTs,
-			// 	FrictionOverVelocityLUTs = FrictionOverVelocityLUTs,
-			// };
 
 			var state = CreateState();
 
@@ -397,7 +410,7 @@ namespace VisualPinball.Unity
 				ref _physicsEnv,
 				ref _overlappingColliders,
 				_playfieldBounds,
-				NowUsec
+				currentTimeUsec
 			);
 
 			// dequeue events

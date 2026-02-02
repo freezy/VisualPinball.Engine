@@ -128,6 +128,10 @@ namespace VisualPinball.Unity.Simulation
 
 			try
 			{
+				// Enable external timing on PhysicsEngine
+				// This disables Unity's Update() loop and gives control to the simulation thread
+				_physicsEngine.SetExternalTiming(true);
+
 				// Create simulation thread
 				_simulationThread = new SimulationThread(_physicsEngine, _gamelogicEngine);
 
@@ -152,7 +156,7 @@ namespace VisualPinball.Unity.Simulation
 				_started = true;
 				_lastStatisticsTime = Time.time;
 
-				Logger.Info("[SimulationThreadComponent] Simulation started");
+				Logger.Info("[SimulationThreadComponent] Simulation started with external physics timing");
 			}
 			catch (Exception ex)
 			{
@@ -171,6 +175,9 @@ namespace VisualPinball.Unity.Simulation
 			_simulationThread?.Stop();
 			_simulationThread?.Dispose();
 			_simulationThread = null;
+
+			// Restore normal Unity Update() loop timing
+			_physicsEngine.SetExternalTiming(false);
 
 			_started = false;
 
