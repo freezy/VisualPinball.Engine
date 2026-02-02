@@ -44,7 +44,7 @@ namespace VisualPinball.Unity
 			PerfMarkerDynamicBroadPhase.Begin();
 			overlappingBalls.Clear();
 			octree.RangeAABBUnique(ball.Aabb, overlappingBalls);
-			using var ob = overlappingBalls.ToNativeArray(Allocator.Temp);
+			using var ob = overlappingBalls.ToNativeArray(Allocator.TempJob);
 			for (var i = 0; i < ob.Length; i ++) {
 				var overlappingBallId = ob[i];
 				ref var overlappingBall = ref balls.GetValueByRef(overlappingBallId);

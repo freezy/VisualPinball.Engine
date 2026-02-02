@@ -141,7 +141,7 @@ namespace VisualPinball.Unity
 				return _bitLookup[ballId];
 			}
 
-			var bitArrayIndices = _bitLookup.GetValueArray(Allocator.Temp); // todo don't copy but ref
+			var bitArrayIndices = _bitLookup.GetValueArray(Allocator.TempJob); // todo don't copy but ref
 			for (var i = 0; i < 64; i++) {
 				if (bitArrayIndices.Contains(i)) {
 					continue;
