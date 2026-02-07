@@ -149,6 +149,12 @@ namespace VisualPinball.Unity
 		/// </summary>
 		private bool _isInitialized = false;
 
+		/// <summary>
+		/// Check if the physics engine has completed initialization.
+		/// Used by the simulation thread to wait for physics to be ready.
+		/// </summary>
+		public bool IsInitialized => _isInitialized;
+
 		private float _lastFrameTimeMs;
 
 		#region API
@@ -337,6 +343,9 @@ namespace VisualPinball.Unity
 			foreach (var ball in balls) {
 				Register(ball);
 			}
+
+			// Mark as initialized for simulation thread
+			_isInitialized = true;
 		}
 
 		internal PhysicsState CreateState()
@@ -350,8 +359,6 @@ namespace VisualPinball.Unity
 				ref _surfaceStates.Ref, ref _triggerStates.Ref, ref _disabledCollisionItems.Ref, ref _swapBallCollisionHandling,
 				ref ElasticityOverVelocityLUTs, ref FrictionOverVelocityLUTs);
 
-		// Mark as initialized for simulation thread
-		_isInitialized = true;
 		}
 
 		/// <summary>

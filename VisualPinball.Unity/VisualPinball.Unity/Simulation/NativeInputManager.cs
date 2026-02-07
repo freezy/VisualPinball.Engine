@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using NLog;
 using Logger = NLog.Logger;
 
@@ -18,13 +19,15 @@ namespace VisualPinball.Unity.Simulation
 	public class NativeInputManager : IDisposable
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+		private const string LogPrefix = "[PinMAME-debug]";
+		private static int _loggedFirstEvent;
 
 		#region Fields
 
-		private static NativeInputManager _instance;
+		private static volatile NativeInputManager _instance;
 		private static readonly object _instanceLock = new object();
 
-		private SimulationThread _simulationThread;
+		private volatile SimulationThread _simulationThread;
 		private bool _initialized = false;
 		private bool _polling = false;
 
@@ -75,12 +78,12 @@ namespace VisualPinball.Unity.Simulation
 			int result = NativeInputApi.VpeInputInit();
 			if (result == 0)
 			{
-				Logger.Error("[NativeInputManager] Failed to initialize native input system");
+				Logger.Error($"{LogPrefix} [NativeInputManager] Failed to initialize native input system");
 				return false;
 			}
 
 			_initialized = true;
-			Logger.Info("[NativeInputManager] Initialized");
+			Logger.Info($"{LogPrefix} [NativeInputManager] Initialized");
 
 			// Setup default bindings
 			SetupDefaultBindings();
@@ -123,15 +126,23 @@ namespace VisualPinball.Unity.Simulation
 		/// <param name="pollIntervalUs">Polling interval in microseconds (default 500)</param>
 		public bool StartPolling(int pollIntervalUs = 500)
 		{
+			#if UNITY_EDITOR
+			// Avoid extremely aggressive polling in the editor; it can starve other threads
+			// (notably PinMAME's emulation thread) and lead to flaky stop/start.
+			if (pollIntervalUs < 1000) {
+				pollIntervalUs = 1000;
+			}
+			#endif
+
 			if (!_initialized)
 			{
-				Logger.Error("[NativeInputManager] Not initialized");
+				Logger.Error($"{LogPrefix} [NativeInputManager] Not initialized");
 				return false;
 			}
 
 			if (_polling)
 			{
-				Logger.Warn("[NativeInputManager] Already polling");
+				Logger.Warn($"{LogPrefix} [NativeInputManager] Already polling");
 				return true;
 			}
 
@@ -145,12 +156,12 @@ namespace VisualPinball.Unity.Simulation
 			int result = NativeInputApi.VpeInputStartPolling(_callbackDelegate, IntPtr.Zero, pollIntervalUs);
 			if (result == 0)
 			{
-				Logger.Error("[NativeInputManager] Failed to start polling");
+				Logger.Error($"{LogPrefix} [NativeInputManager] Failed to start polling");
 				return false;
 			}
 
 			_polling = true;
-			Logger.Info($"[NativeInputManager] Started polling at {pollIntervalUs}μs interval ({1000000 / pollIntervalUs} Hz)");
+			Logger.Info($"{LogPrefix} [NativeInputManager] Started polling at {pollIntervalUs}us interval ({1000000 / pollIntervalUs} Hz)");
 
 			return true;
 		}
@@ -165,7 +176,7 @@ namespace VisualPinball.Unity.Simulation
 			NativeInputApi.VpeInputStopPolling();
 			_polling = false;
 
-			Logger.Info("[NativeInputManager] Stopped polling");
+			Logger.Info($"{LogPrefix} [NativeInputManager] Stopped polling");
 		}
 
 		#endregion
@@ -182,14 +193,21 @@ namespace VisualPinball.Unity.Simulation
 			// Flippers
 			AddBinding(NativeInputApi.InputAction.LeftFlipper, NativeInputApi.KeyCode.LShift);
 			AddBinding(NativeInputApi.InputAction.RightFlipper, NativeInputApi.KeyCode.RShift);
+			// Fallback keys (useful when modifier VKs are unreliable in some contexts)
+			AddBinding(NativeInputApi.InputAction.LeftFlipper, NativeInputApi.KeyCode.A);
+			AddBinding(NativeInputApi.InputAction.RightFlipper, NativeInputApi.KeyCode.D);
 
 			// Start
-			AddBinding(NativeInputApi.InputAction.Start, NativeInputApi.KeyCode.Return);
+			AddBinding(NativeInputApi.InputAction.Start, NativeInputApi.KeyCode.D1);
 
-			// Plunger
+			// Coin
+			AddBinding(NativeInputApi.InputAction.CoinInsert1, NativeInputApi.KeyCode.D5);
+
+			// Plunger (align with Unity InputManager defaults: Enter)
+			AddBinding(NativeInputApi.InputAction.Plunge, NativeInputApi.KeyCode.Return);
 			AddBinding(NativeInputApi.InputAction.Plunge, NativeInputApi.KeyCode.Space);
 
-			Logger.Info($"[NativeInputManager] Configured {_bindings.Count} default bindings");
+			Logger.Info($"{LogPrefix} [NativeInputManager] Configured {_bindings.Count} default bindings");
 		}
 
 		/// <summary>
@@ -198,8 +216,16 @@ namespace VisualPinball.Unity.Simulation
 		[MonoPInvokeCallback(typeof(NativeInputApi.InputEventCallback))]
 		private static void OnInputEvent(ref NativeInputApi.InputEvent evt, IntPtr userData)
 		{
+			if (Interlocked.Exchange(ref _loggedFirstEvent, 1) == 0) {
+				Logger.Info($"{LogPrefix} [NativeInputManager] First event: Action={evt.Action}, Value={evt.Value}, Timestamp={evt.TimestampUsec}");
+			}
+			if (Logger.IsTraceEnabled) {
+				Logger.Trace($"{LogPrefix} [NativeInputManager] Received from native: Action={evt.Action}, Value={evt.Value}, Timestamp={evt.TimestampUsec}");
+			}
+
 			// Forward to simulation thread via ring buffer
-			_instance?._simulationThread?.EnqueueInputEvent(evt);
+			var instance = Volatile.Read(ref _instance);
+			instance?._simulationThread?.EnqueueInputEvent(evt);
 		}
 
 		#endregion
