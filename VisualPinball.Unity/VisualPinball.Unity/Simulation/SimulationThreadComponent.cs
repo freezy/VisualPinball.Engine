@@ -26,6 +26,7 @@ namespace VisualPinball.Unity.Simulation
 	public class SimulationThreadComponent : MonoBehaviour
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+		private const string LogPrefix = "[PinMAME-debug]";
 
 		#region Inspector Fields
 
@@ -67,20 +68,16 @@ namespace VisualPinball.Unity.Simulation
 		private void Awake()
 		{
 			_physicsEngine = GetComponent<PhysicsEngine>();
-
-			// Get gamelogic engine from Player if available
-			var player = GetComponent<Player>();
-			if (player != null)
-			{
-				_gamelogicEngine = player.GamelogicEngine;
-			}
+			// Note: Player.GamelogicEngine is assigned in Player.Awake().
+			// Script execution order can cause this Awake() to run first, so we resolve
+			// the engine again in StartSimulation().
 		}
 
 		private void Start()
 		{
 			if (!EnableSimulationThread)
 			{
-				Logger.Info("[SimulationThreadComponent] Simulation thread disabled");
+				Logger.Info($"{LogPrefix} [SimulationThreadComponent] Simulation thread disabled");
 				return;
 			}
 
@@ -110,6 +107,11 @@ namespace VisualPinball.Unity.Simulation
 			StopSimulation();
 		}
 
+		private void OnDisable()
+		{
+			StopSimulation();
+		}
+
 		private void OnApplicationQuit()
 		{
 			StopSimulation();
@@ -128,6 +130,19 @@ namespace VisualPinball.Unity.Simulation
 
 			try
 			{
+				// Resolve dependencies (safe even if Awake order differs)
+				_physicsEngine ??= GetComponent<PhysicsEngine>();
+				if (_gamelogicEngine == null) {
+					var player = GetComponent<Player>() ?? GetComponentInParent<Player>() ?? GetComponentInChildren<Player>();
+					_gamelogicEngine = player != null
+						? player.GamelogicEngine
+						: (GetComponent<IGamelogicEngine>() ?? GetComponentInParent<IGamelogicEngine>() ?? GetComponentInChildren<IGamelogicEngine>());
+				}
+
+				if (_gamelogicEngine == null) {
+					Logger.Warn($"{LogPrefix} [SimulationThreadComponent] No IGamelogicEngine found (input will not reach PinMAME)");
+				}
+
 				// Enable external timing on PhysicsEngine
 				// This disables Unity's Update() loop and gives control to the simulation thread
 				_physicsEngine.SetExternalTiming(true);
@@ -146,7 +161,7 @@ namespace VisualPinball.Unity.Simulation
 					}
 					else
 					{
-						Logger.Warn("[SimulationThreadComponent] Native input not available, falling back to Unity Input System");
+						Logger.Warn($"{LogPrefix} [SimulationThreadComponent] Native input not available, falling back to Unity Input System");
 					}
 				}
 
@@ -156,11 +171,11 @@ namespace VisualPinball.Unity.Simulation
 				_started = true;
 				_lastStatisticsTime = Time.time;
 
-				Logger.Info("[SimulationThreadComponent] Simulation started with external physics timing");
+				Logger.Info($"{LogPrefix} [SimulationThreadComponent] Simulation started with external physics timing");
 			}
 			catch (Exception ex)
 			{
-				Logger.Error($"[SimulationThreadComponent] Failed to start simulation: {ex}");
+				Logger.Error($"{LogPrefix} [SimulationThreadComponent] Failed to start simulation: {ex}");
 			}
 		}
 
@@ -181,7 +196,7 @@ namespace VisualPinball.Unity.Simulation
 
 			_started = false;
 
-			Logger.Info("[SimulationThreadComponent] Simulation stopped");
+			Logger.Info($"{LogPrefix} [SimulationThreadComponent] Simulation stopped");
 		}
 
 		/// <summary>
@@ -225,7 +240,7 @@ namespace VisualPinball.Unity.Simulation
 			long realTimeMs = state.RealTimeUsec / 1000;
 			double ratio = (double)simTimeMs / realTimeMs;
 
-			Logger.Info($"[SimulationThread] Stats: SimTime={simTimeMs}ms, RealTime={realTimeMs}ms, Ratio={ratio:F3}x, PhysicsVer={state.PhysicsStateVersion}");
+			Logger.Info($"{LogPrefix} [SimulationThread] Stats: SimTime={simTimeMs}ms, RealTime={realTimeMs}ms, Ratio={ratio:F3}x, PhysicsVer={state.PhysicsStateVersion}, InputProcessed={state.InputEventsProcessed}, InputDropped={state.InputEventsDropped}, LastAction={state.LastInputAction}, LastValue={state.LastInputValue:F2}");
 		}
 
 		#endregion

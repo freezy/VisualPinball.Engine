@@ -62,6 +62,11 @@ namespace VisualPinball.Unity.Simulation
 			RControl = 0xA3,
 			Space = 0x20,
 			Return = 0x0D,
+			D1 = 0x31,
+			Num1 = 0x31, // alias for top-row '1'
+			D5 = 0x35,
+			Num5 = 0x35, // alias for top-row '5'
+			Numpad1 = 0x61,
 			A = 0x41,
 			S = 0x53,
 			D = 0x44,

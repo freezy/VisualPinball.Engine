@@ -75,6 +75,13 @@ namespace VisualPinball.Unity.Simulation
 			public long SimulationTimeUsec;
 			public long RealTimeUsec;
 
+			// Input stats (for debugging / telemetry)
+			public long InputEventsProcessed;
+			public long InputEventsDropped;
+			public int LastInputAction;
+			public float LastInputValue;
+			public long LastInputTimestampUsec;
+
 			// PinMAME state
 			public NativeArray<CoilState> CoilStates;
 			public NativeArray<LampState> LampStates;

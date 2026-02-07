@@ -5,12 +5,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 using System;
-using System.Collections.Generic;
-using System.Reflection;
+using System.Diagnostics;
 using System.Runtime;
 using System.Threading;
 using NLog;
 using Logger = NLog.Logger;
+using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity.Simulation
 {
@@ -27,12 +27,12 @@ namespace VisualPinball.Unity.Simulation
 	public class SimulationThread : IDisposable
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+		private const string LogPrefix = "[PinMAME-debug]";
 
 		#region Constants
 
 		private const long TickIntervalUsec = 1000; // 1ms = 1000 microseconds
-		private const long BusyWaitThresholdUsec = 100; // Last 100μs busy-wait for precision
-		private const double TickIntervalSeconds = 0.001; // 1ms in seconds
+		private const long BusyWaitThresholdUsec = 100; // Last 100us busy-wait for precision
 
 		#endregion
 
@@ -47,17 +47,27 @@ namespace VisualPinball.Unity.Simulation
 		private volatile bool _running = false;
 		private volatile bool _paused = false;
 
-		// Timing
-		private long _lastTickUsec;
+		// Timing (Stopwatch ticks - avoids high-frequency P/Invoke)
+		private readonly long _tickIntervalTicks;
+		private readonly long _busyWaitThresholdTicks;
+		private long _lastTickTicks;
 		private long _simulationTimeUsec;
-		private double _pinmameSimulationTimeSeconds;
 
-		// Input state tracking
-		private readonly Dictionary<NativeInputApi.InputAction, bool> _inputStates = new();
+		// Input state tracking (allocation-free indexed arrays)
+		private readonly bool[] _actionStates;
+		private readonly string[] _actionToSwitchId;
+		private volatile bool _inputMappingsBuilt;
 
 		// Statistics
 		private long _tickCount = 0;
 		private long _inputEventsProcessed = 0;
+		private long _inputEventsDropped = 0;
+		private int _lastInputAction = -1;
+		private float _lastInputValue;
+		private long _lastInputTimestampUsec;
+
+		private volatile bool _gamelogicStarted;
+		private volatile bool _needsInitialSwitchSync;
 
 		#endregion
 
@@ -71,10 +81,21 @@ namespace VisualPinball.Unity.Simulation
 			_inputBuffer = new InputEventBuffer(1024);
 			_sharedState = new SimulationState();
 
-			// Initialize input states
-			foreach (NativeInputApi.InputAction action in Enum.GetValues(typeof(NativeInputApi.InputAction)))
-			{
-				_inputStates[action] = false;
+			// Precompute timing constants
+			_tickIntervalTicks = (Stopwatch.Frequency * TickIntervalUsec) / 1_000_000;
+			_busyWaitThresholdTicks = (Stopwatch.Frequency * BusyWaitThresholdUsec) / 1_000_000;
+			if (_tickIntervalTicks <= 0) {
+				_tickIntervalTicks = 1;
+			}
+
+			// Initialize input state + mapping arrays
+			var actionCount = Enum.GetValues(typeof(NativeInputApi.InputAction)).Length;
+			_actionStates = new bool[actionCount];
+			_actionToSwitchId = new string[actionCount];
+			_needsInitialSwitchSync = true;
+
+			if (_gamelogicEngine != null) {
+				_gamelogicEngine.OnStarted += OnGamelogicStarted;
 			}
 		}
 
@@ -91,20 +112,27 @@ namespace VisualPinball.Unity.Simulation
 
 			_running = true;
 			_paused = false;
-			_lastTickUsec = NativeInputApi.VpeGetTimestampUsec();
+			_gamelogicStarted = _gamelogicEngine != null;
+			_lastTickTicks = Stopwatch.GetTimestamp();
 			_simulationTimeUsec = 0;
-			_pinmameSimulationTimeSeconds = 0.0;
 			_tickCount = 0;
+			_inputEventsProcessed = 0;
+			_inputEventsDropped = 0;
+			_needsInitialSwitchSync = true;
 
 			_thread = new Thread(SimulationThreadFunc)
 			{
 				Name = "VPE Simulation Thread",
-				IsBackground = false,
+				IsBackground = true,
+				#if UNITY_EDITOR
+				Priority = ThreadPriority.AboveNormal
+				#else
 				Priority = ThreadPriority.Highest
+				#endif
 			};
 			_thread.Start();
 
-			Logger.Info("[SimulationThread] Started at 1000 Hz");
+			Logger.Info($"{LogPrefix} [SimulationThread] Started at 1000 Hz");
 		}
 
 		/// <summary>
@@ -121,7 +149,7 @@ namespace VisualPinball.Unity.Simulation
 				_thread.Join(5000); // Wait up to 5 seconds
 			}
 
-			Logger.Info($"[SimulationThread] Stopped after {_tickCount} ticks, {_inputEventsProcessed} input events");
+			Logger.Info($"{LogPrefix} [SimulationThread] Stopped after {_tickCount} ticks, {_inputEventsProcessed} input events, {_inputEventsDropped} dropped");
 		}
 
 		/// <summary>
@@ -145,7 +173,9 @@ namespace VisualPinball.Unity.Simulation
 		/// </summary>
 		public void EnqueueInputEvent(NativeInputApi.InputEvent evt)
 		{
-			_inputBuffer.TryEnqueue(evt);
+			if (!_inputBuffer.TryEnqueue(evt)) {
+				Interlocked.Increment(ref _inputEventsDropped);
+			}
 		}
 
 		/// <summary>
@@ -162,28 +192,31 @@ namespace VisualPinball.Unity.Simulation
 
 		private void SimulationThreadFunc()
 		{
-			// Set thread priority to time-critical
+			// Avoid time-critical priority in the editor.
+			// It can starve other threads (notably PinMAME's emulation thread) and lead to
+			// flaky startup/shutdown across play sessions.
+			#if !UNITY_EDITOR
 			NativeInputApi.VpeSetThreadPriority();
+			#endif
 
 			// Wait for physics engine to be fully initialized
 			// This prevents accessing physics state before it's ready
-			Logger.Info("[SimulationThread] Waiting for physics initialization...");
+			Logger.Info($"{LogPrefix} [SimulationThread] Waiting for physics initialization...");
 			int waitCount = 0;
-			while (_running && _physicsEngine != null && waitCount < 100)
+			while (_running && _physicsEngine != null && !_physicsEngine.IsInitialized && waitCount < 100)
 			{
-				// Check if physics has started (simple heuristic - wait a bit)
 				Thread.Sleep(50);
 				waitCount++;
 			}
 
 			if (waitCount >= 100)
 			{
-				Logger.Error("[SimulationThread] Timeout waiting for physics initialization");
+				Logger.Error($"{LogPrefix} [SimulationThread] Timeout waiting for physics initialization");
 				_running = false;
 				return;
 			}
 
-			Logger.Info("[SimulationThread] Physics initialized, starting simulation");
+			Logger.Info($"{LogPrefix} [SimulationThread] Physics initialized, starting simulation");
 
 			// Try to enable no-GC region for hot path
 			bool noGcRegion = false;
@@ -193,16 +226,19 @@ namespace VisualPinball.Unity.Simulation
 				if (GC.TryStartNoGCRegion(10 * 1024 * 1024, true))
 				{
 					noGcRegion = true;
-					Logger.Info("[SimulationThread] No-GC region enabled");
+						Logger.Info($"{LogPrefix} [SimulationThread] No-GC region enabled");
 				}
 			}
 			catch (Exception ex)
 			{
-				Logger.Warn($"[SimulationThread] Failed to start no-GC region: {ex.Message}");
+				Logger.Warn($"{LogPrefix} [SimulationThread] Failed to start no-GC region: {ex.Message}");
 			}
 
 			try
 			{
+				// Build input mappings once (not on hot path)
+				BuildInputMappingsIfNeeded();
+
 				// Main simulation loop
 				while (_running)
 				{
@@ -212,27 +248,39 @@ namespace VisualPinball.Unity.Simulation
 						continue;
 					}
 
-					// Timing: Sleep until next tick, then busy-wait for precision
-					long targetTimeUsec = _lastTickUsec + TickIntervalUsec;
-					long nowUsec = NativeInputApi.VpeGetTimestampUsec();
-					long sleepUsec = targetTimeUsec - nowUsec;
+					// Timing: Sleep until next tick.
+					// In the editor we avoid a busy-wait loop to prevent starving other threads
+					// (notably PinMAME's emulation thread) which can lead to flaky 2nd-run behavior.
+					long targetTicks = _lastTickTicks + _tickIntervalTicks;
+					long nowTicks = Stopwatch.GetTimestamp();
+					long sleepTicks = targetTicks - nowTicks;
 
-					if (sleepUsec > BusyWaitThresholdUsec)
+					if (sleepTicks > 0)
 					{
-						// Sleep most of the time to avoid CPU waste
-						Thread.Sleep((int)((sleepUsec - BusyWaitThresholdUsec) / 1000));
+						var sleepMs = (int)((sleepTicks * 1000) / Stopwatch.Frequency);
+						if (sleepMs > 0) {
+							Thread.Sleep(sleepMs);
+						} else {
+							Thread.Yield();
+						}
 					}
 
-					// Busy-wait for precision (last 100μs)
-					while (NativeInputApi.VpeGetTimestampUsec() < targetTimeUsec)
+					#if !UNITY_EDITOR
+					// Busy-wait for precision (last 100us)
+					if (sleepTicks <= _busyWaitThresholdTicks)
 					{
-						Thread.SpinWait(10); // ~40ns per iteration
+						var spinner = new SpinWait();
+						while (Stopwatch.GetTimestamp() < targetTicks)
+						{
+							spinner.SpinOnce();
+						}
 					}
+					#endif
 
 					// Execute simulation tick (hot path - must be allocation-free!)
 					SimulationTick();
 
-					_lastTickUsec = targetTimeUsec;
+					_lastTickTicks = targetTicks;
 					_tickCount++;
 				}
 			}
@@ -244,7 +292,7 @@ namespace VisualPinball.Unity.Simulation
 					try
 					{
 						GC.EndNoGCRegion();
-						Logger.Info("[SimulationThread] No-GC region ended");
+						Logger.Info($"{LogPrefix} [SimulationThread] No-GC region ended");
 					}
 					catch { }
 				}
@@ -259,22 +307,10 @@ namespace VisualPinball.Unity.Simulation
 			// 1. Process input events from ring buffer
 			ProcessInputEvents();
 
-			// 2. Advance PinMAME simulation using SetTimeFence
-			if (_gamelogicEngine != null)
-			{
-				AdvancePinMAME();
-			}
-
-			// 3. Poll PinMAME outputs (coils, lamps, GI)
-			if (_gamelogicEngine != null)
-			{
-				PollPinMAMEOutputs();
-			}
-
-			// 4. Update physics simulation
+			// 2. Update physics simulation
 			UpdatePhysics();
 
-			// 5. Write to shared state and swap buffers
+			// 3. Write to shared state and swap buffers
 			WriteSharedState();
 
 			// Increment simulation time
@@ -286,107 +322,196 @@ namespace VisualPinball.Unity.Simulation
 		/// </summary>
 		private void ProcessInputEvents()
 		{
+			BuildInputMappingsIfNeeded();
+
 			while (_inputBuffer.TryDequeue(out var evt))
 			{
-				var action = (NativeInputApi.InputAction)evt.Action;
+				var actionIndex = evt.Action;
+				if ((uint)actionIndex >= (uint)_actionStates.Length) {
+					continue;
+				}
+
 				bool isPressed = evt.Value > 0.5f;
+				_lastInputAction = actionIndex;
+				_lastInputValue = evt.Value;
+				_lastInputTimestampUsec = evt.TimestampUsec;
+				bool previousState = _actionStates[actionIndex];
+				_actionStates[actionIndex] = isPressed;
 
-				// Track state change
-				bool previousState = _inputStates[action];
-				_inputStates[action] = isPressed;
+				if (previousState == isPressed) {
+					continue;
+				}
 
-				// Only process if state changed
-				if (previousState != isPressed)
-				{
-					HandleInputAction(action, isPressed);
-					_inputEventsProcessed++;
+				// Only forward to GLE once it's ready (or at least has started)
+				if (_gamelogicEngine != null && _gamelogicStarted) {
+					SendMappedSwitch(actionIndex, isPressed);
+				}
+				_inputEventsProcessed++;
+			}
+
+			// If the GLE just started, ensure it sees the current input state.
+			if (_gamelogicEngine != null && _gamelogicStarted && _needsInitialSwitchSync) {
+				SyncAllMappedSwitches();
+				_needsInitialSwitchSync = false;
+			}
+		}
+
+		private void SendMappedSwitch(int actionIndex, bool isPressed)
+		{
+			if ((uint)actionIndex >= (uint)_actionToSwitchId.Length) {
+				return;
+			}
+			var switchId = _actionToSwitchId[actionIndex];
+			if (switchId == null) {
+				return;
+			}
+			if (actionIndex == (int)NativeInputApi.InputAction.Start && Logger.IsInfoEnabled) {
+				Logger.Info($"{LogPrefix} [SimulationThread] Input Start -> Switch({switchId}, {isPressed})");
+			}
+			if (Logger.IsInfoEnabled && isPressed) {
+				if (actionIndex == (int)NativeInputApi.InputAction.LeftFlipper) {
+					Logger.Info($"{LogPrefix} [SimulationThread] Input LeftFlipper -> Switch({switchId}, True)");
+				}
+				else if (actionIndex == (int)NativeInputApi.InputAction.RightFlipper) {
+					Logger.Info($"{LogPrefix} [SimulationThread] Input RightFlipper -> Switch({switchId}, True)");
 				}
 			}
+			_gamelogicEngine.Switch(switchId, isPressed);
 		}
 
-		/// <summary>
-		/// Handle a single input action (map to switch/coil)
-		/// </summary>
-		private void HandleInputAction(NativeInputApi.InputAction action, bool isPressed)
+		private void SyncAllMappedSwitches()
 		{
-			// Map input actions to switch IDs
-			// This is a simplified example - actual mapping would come from configuration
-			switch (action)
+			for (var i = 0; i < _actionToSwitchId.Length; i++)
 			{
-				case NativeInputApi.InputAction.LeftFlipper:
-					_gamelogicEngine?.Switch("s_flipper_left", isPressed);
-					break;
-
-				case NativeInputApi.InputAction.RightFlipper:
-					_gamelogicEngine?.Switch("s_flipper_right", isPressed);
-					break;
-
-				case NativeInputApi.InputAction.Start:
-					_gamelogicEngine?.Switch("s_start", isPressed);
-					break;
-
-				case NativeInputApi.InputAction.Plunge:
-					_gamelogicEngine?.Switch("s_plunger", isPressed);
-					break;
-
-				// Add more mappings as needed
-			}
-		}
-
-		/// <summary>
-		/// Advance PinMAME simulation to current time using SetTimeFence
-		/// </summary>
-		private void AdvancePinMAME()
-		{
-			if (_gamelogicEngine == null) return;
-
-			// Increment PinMAME time by 1ms
-			_pinmameSimulationTimeSeconds += TickIntervalSeconds;
-
-			// Tell PinMAME to run until this time
-			// PinMAME will execute in its own thread until it reaches the target time,
-			// then return control. This provides precise synchronization.
-			try
-			{
-				// Check if this is PinMAME (has SetTimeFence method)
-				var pinmameType = _gamelogicEngine.GetType();
-				var setTimeFenceMethod = pinmameType.GetMethod("SetTimeFence");
-
-				if (setTimeFenceMethod != null)
-				{
-					setTimeFenceMethod.Invoke(_gamelogicEngine, new object[] { _pinmameSimulationTimeSeconds });
+				var switchId = _actionToSwitchId[i];
+				if (switchId == null) {
+					continue;
 				}
-			}
-			catch (Exception ex)
-			{
-				// Silently ignore if SetTimeFence is not available
-				// This allows the simulation thread to work with non-PinMAME engines
-				Logger.Debug($"[SimulationThread] SetTimeFence not available: {ex.Message}");
+				_gamelogicEngine.Switch(switchId, _actionStates[i]);
 			}
 		}
 
-		/// <summary>
-		/// Poll PinMAME for output changes (coils, lamps, GI)
-		/// </summary>
-		private void PollPinMAMEOutputs()
+		private void BuildInputMappingsIfNeeded()
 		{
-			if (_gamelogicEngine == null) return;
+			if (_inputMappingsBuilt) {
+				return;
+			}
+			BuildInputMappings();
+			_inputMappingsBuilt = true;
+			_needsInitialSwitchSync = true;
+		}
 
-			// Poll for changed outputs from the gamelogic engine
-			// These are typically processed via events, but in the simulation thread
-			// we can poll them directly for lower latency
-			//
-			// The gamelogic engine fires events for:
-			// - OnCoilChanged (solenoids)
-			// - OnLampChanged (lamps)
-			// - OnGIChanged (general illumination)
-			//
-			// These events are already being fired by the engine's internal threads,
-			// so we don't need to poll explicitly here. The events will be picked up
-			// by the main thread's event handlers.
-			//
-			// Future optimization: Copy changed states directly to shared state here
-			// instead of relying on event dispatch queue.
+		private void BuildInputMappings()
+		{
+			Array.Clear(_actionToSwitchId, 0, _actionToSwitchId.Length);
+
+			if (_gamelogicEngine == null) {
+				return;
+			}
+
+			var requestedSwitches = _gamelogicEngine.RequestedSwitches;
+			for (var i = 0; i < requestedSwitches.Length; i++)
+			{
+				var sw = requestedSwitches[i];
+				if (sw == null || string.IsNullOrEmpty(sw.InputActionHint)) {
+					continue;
+				}
+
+				if (!TryMapInputActionHint(sw.InputActionHint, out var action)) {
+					continue;
+				}
+
+				var actionIndex = (int)action;
+				if ((uint)actionIndex >= (uint)_actionToSwitchId.Length) {
+					continue;
+				}
+
+				// Prefer the first mapping we see.
+				_actionToSwitchId[actionIndex] ??= sw.Id;
+			}
+
+			if (Logger.IsDebugEnabled)
+			{
+				Logger.Debug($"{LogPrefix} [SimulationThread] Built input action -> switch mappings");
+			}
+
+			if (Logger.IsInfoEnabled) {
+				LogMapping(NativeInputApi.InputAction.Start, "Start");
+				LogMapping(NativeInputApi.InputAction.CoinInsert1, "CoinInsert1");
+				LogMapping(NativeInputApi.InputAction.LeftFlipper, "LeftFlipper");
+				LogMapping(NativeInputApi.InputAction.RightFlipper, "RightFlipper");
+			}
+		}
+
+		private void LogMapping(NativeInputApi.InputAction action, string name)
+		{
+			var idx = (int)action;
+			var mapped = (uint)idx < (uint)_actionToSwitchId.Length ? _actionToSwitchId[idx] : null;
+			Logger.Info($"{LogPrefix} [SimulationThread] Mapping: {name}={mapped}");
+		}
+
+		private static bool TryMapInputActionHint(string inputActionHint, out NativeInputApi.InputAction action)
+		{
+			// Keep this allocation-free and fast: match against known InputConstants strings.
+			if (inputActionHint == InputConstants.ActionLeftFlipper) {
+				action = NativeInputApi.InputAction.LeftFlipper;
+				return true;
+			}
+			if (inputActionHint == InputConstants.ActionRightFlipper) {
+				action = NativeInputApi.InputAction.RightFlipper;
+				return true;
+			}
+			if (inputActionHint == InputConstants.ActionUpperLeftFlipper) {
+				action = NativeInputApi.InputAction.UpperLeftFlipper;
+				return true;
+			}
+			if (inputActionHint == InputConstants.ActionUpperRightFlipper) {
+				action = NativeInputApi.InputAction.UpperRightFlipper;
+				return true;
+			}
+			if (inputActionHint == InputConstants.ActionLeftMagnasave) {
+				action = NativeInputApi.InputAction.LeftMagnasave;
+				return true;
+			}
+			if (inputActionHint == InputConstants.ActionRightMagnasave) {
+				action = NativeInputApi.InputAction.RightMagnasave;
+				return true;
+			}
+			if (inputActionHint == InputConstants.ActionStartGame) {
+				action = NativeInputApi.InputAction.Start;
+				return true;
+			}
+			if (inputActionHint == InputConstants.ActionPlunger) {
+				action = NativeInputApi.InputAction.Plunge;
+				return true;
+			}
+			if (inputActionHint == InputConstants.ActionPlungerAnalog) {
+				action = NativeInputApi.InputAction.PlungerAnalog;
+				return true;
+			}
+			if (inputActionHint == InputConstants.ActionInsertCoin1) {
+				action = NativeInputApi.InputAction.CoinInsert1;
+				return true;
+			}
+			if (inputActionHint == InputConstants.ActionInsertCoin2) {
+				action = NativeInputApi.InputAction.CoinInsert2;
+				return true;
+			}
+			if (inputActionHint == InputConstants.ActionInsertCoin3) {
+				action = NativeInputApi.InputAction.CoinInsert3;
+				return true;
+			}
+			if (inputActionHint == InputConstants.ActionInsertCoin4) {
+				action = NativeInputApi.InputAction.CoinInsert4;
+				return true;
+			}
+			if (inputActionHint == InputConstants.ActionSlamTilt) {
+				action = NativeInputApi.InputAction.SlamTilt;
+				return true;
+			}
+
+			action = default;
+			return false;
 		}
 
 		/// <summary>
@@ -412,7 +537,13 @@ namespace VisualPinball.Unity.Simulation
 
 			// Update timing
 			backBuffer.SimulationTimeUsec = _simulationTimeUsec;
-			backBuffer.RealTimeUsec = NativeInputApi.VpeGetTimestampUsec();
+			backBuffer.RealTimeUsec = GetTimestampUsec();
+
+			backBuffer.InputEventsProcessed = Interlocked.Read(ref _inputEventsProcessed);
+			backBuffer.InputEventsDropped = Interlocked.Read(ref _inputEventsDropped);
+			backBuffer.LastInputAction = _lastInputAction;
+			backBuffer.LastInputValue = _lastInputValue;
+			backBuffer.LastInputTimestampUsec = _lastInputTimestampUsec;
 
 			// Copy PinMAME state (coils, lamps, GI)
 			// This is where we'd copy the changed outputs from PinMAME
@@ -426,13 +557,29 @@ namespace VisualPinball.Unity.Simulation
 			_sharedState.SwapBuffers();
 		}
 
+		private static long GetTimestampUsec()
+		{
+			long ticks = Stopwatch.GetTimestamp();
+			return (ticks * 1_000_000) / Stopwatch.Frequency;
+		}
+
 		#endregion
+
+		private void OnGamelogicStarted(object sender, EventArgs e)
+		{
+			_gamelogicStarted = true;
+			_inputMappingsBuilt = false; // switches can be populated after init
+			_needsInitialSwitchSync = true;
+		}
 
 		#region Dispose
 
 		public void Dispose()
 		{
 			Stop();
+			if (_gamelogicEngine != null) {
+				_gamelogicEngine.OnStarted -= OnGamelogicStarted;
+			}
 			_inputBuffer?.Dispose();
 			_sharedState?.Dispose();
 		}
