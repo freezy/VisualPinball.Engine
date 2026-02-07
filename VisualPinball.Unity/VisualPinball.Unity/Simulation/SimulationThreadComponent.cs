@@ -240,7 +240,7 @@ namespace VisualPinball.Unity.Simulation
 			long realTimeMs = state.RealTimeUsec / 1000;
 			double ratio = (double)simTimeMs / realTimeMs;
 
-			Logger.Info($"{LogPrefix} [SimulationThread] Stats: SimTime={simTimeMs}ms, RealTime={realTimeMs}ms, Ratio={ratio:F3}x, PhysicsVer={state.PhysicsStateVersion}, InputProcessed={state.InputEventsProcessed}, InputDropped={state.InputEventsDropped}, LastAction={state.LastInputAction}, LastValue={state.LastInputValue:F2}");
+			Logger.Info($"{LogPrefix} [SimulationThread] Stats: SimTime={simTimeMs}ms, RealTime={realTimeMs}ms, Ratio={ratio:F3}x, PhysicsVer={state.PhysicsStateVersion}");
 		}
 
 		#endregion
