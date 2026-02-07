@@ -62,9 +62,6 @@ namespace VisualPinball.Unity.Simulation
 		private long _tickCount = 0;
 		private long _inputEventsProcessed = 0;
 		private long _inputEventsDropped = 0;
-		private int _lastInputAction = -1;
-		private float _lastInputValue;
-		private long _lastInputTimestampUsec;
 
 		private volatile bool _gamelogicStarted;
 		private volatile bool _needsInitialSwitchSync;
@@ -192,9 +189,8 @@ namespace VisualPinball.Unity.Simulation
 
 		private void SimulationThreadFunc()
 		{
-			// Avoid time-critical priority in the editor.
-			// It can starve other threads (notably PinMAME's emulation thread) and lead to
-			// flaky startup/shutdown across play sessions.
+			// Editor playmode is a hostile environment for time-critical threads (domain/scene reload,
+			// asset imports, editor windows). Keep time-critical only for player builds.
 			#if !UNITY_EDITOR
 			NativeInputApi.VpeSetThreadPriority();
 			#endif
@@ -248,16 +244,14 @@ namespace VisualPinball.Unity.Simulation
 						continue;
 					}
 
-					// Timing: Sleep until next tick.
-					// In the editor we avoid a busy-wait loop to prevent starving other threads
-					// (notably PinMAME's emulation thread) which can lead to flaky 2nd-run behavior.
+					// Timing: Sleep until next tick, then busy-wait for precision.
 					long targetTicks = _lastTickTicks + _tickIntervalTicks;
 					long nowTicks = Stopwatch.GetTimestamp();
 					long sleepTicks = targetTicks - nowTicks;
 
-					if (sleepTicks > 0)
+					if (sleepTicks > _busyWaitThresholdTicks)
 					{
-						var sleepMs = (int)((sleepTicks * 1000) / Stopwatch.Frequency);
+						var sleepMs = (int)(((sleepTicks - _busyWaitThresholdTicks) * 1000) / Stopwatch.Frequency);
 						if (sleepMs > 0) {
 							Thread.Sleep(sleepMs);
 						} else {
@@ -267,13 +261,10 @@ namespace VisualPinball.Unity.Simulation
 
 					#if !UNITY_EDITOR
 					// Busy-wait for precision (last 100us)
-					if (sleepTicks <= _busyWaitThresholdTicks)
+					var spinner = new SpinWait();
+					while (Stopwatch.GetTimestamp() < targetTicks)
 					{
-						var spinner = new SpinWait();
-						while (Stopwatch.GetTimestamp() < targetTicks)
-						{
-							spinner.SpinOnce();
-						}
+						spinner.SpinOnce();
 					}
 					#endif
 
@@ -332,9 +323,6 @@ namespace VisualPinball.Unity.Simulation
 				}
 
 				bool isPressed = evt.Value > 0.5f;
-				_lastInputAction = actionIndex;
-				_lastInputValue = evt.Value;
-				_lastInputTimestampUsec = evt.TimestampUsec;
 				bool previousState = _actionStates[actionIndex];
 				_actionStates[actionIndex] = isPressed;
 
@@ -539,11 +527,6 @@ namespace VisualPinball.Unity.Simulation
 			backBuffer.SimulationTimeUsec = _simulationTimeUsec;
 			backBuffer.RealTimeUsec = GetTimestampUsec();
 
-			backBuffer.InputEventsProcessed = Interlocked.Read(ref _inputEventsProcessed);
-			backBuffer.InputEventsDropped = Interlocked.Read(ref _inputEventsDropped);
-			backBuffer.LastInputAction = _lastInputAction;
-			backBuffer.LastInputValue = _lastInputValue;
-			backBuffer.LastInputTimestampUsec = _lastInputTimestampUsec;
 
 			// Copy PinMAME state (coils, lamps, GI)
 			// This is where we'd copy the changed outputs from PinMAME
