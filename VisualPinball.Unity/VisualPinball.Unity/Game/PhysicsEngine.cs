@@ -119,6 +119,7 @@ namespace VisualPinball.Unity
 		#endregion
 
 		[NonSerialized] private readonly Queue<InputAction> _inputActions = new();
+		private readonly object _inputActionsLock = new object();
 		[NonSerialized] private readonly List<ScheduledAction> _scheduledActions = new();
 
 		[NonSerialized] private Player _player;
@@ -147,7 +148,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Whether physics engine is fully initialized and ready for simulation thread
 		/// </summary>
-		private bool _isInitialized = false;
+		private volatile bool _isInitialized = false;
 
 		/// <summary>
 		/// Check if the physics engine has completed initialization.
@@ -173,7 +174,12 @@ namespace VisualPinball.Unity
 		internal ref InsideOfs InsideOfs => ref _insideOfs;
 		internal NativeQueue<EventData>.ParallelWriter EventQueue => _eventQueue.Ref.AsParallelWriter();
 
-		internal void Schedule(InputAction action) => _inputActions.Enqueue(action);
+		internal void Schedule(InputAction action)
+		{
+			lock (_inputActionsLock) {
+				_inputActions.Enqueue(action);
+			}
+		}
 		internal bool BallExists(int ballId) => _ballStates.Ref.ContainsKey(ballId);
 		internal ref BallState BallState(int ballId) => ref _ballStates.Ref.GetValueByRef(ballId);
 		internal ref BumperState BumperState(int itemId) => ref _bumperStates.Ref.GetValueByRef(itemId);
@@ -401,20 +407,47 @@ namespace VisualPinball.Unity
 		{
 			if (!_useExternalTiming || !_isInitialized) return;
 
-			// Don't acquire lock here - just read the current state
-			// Physics simulation writes to native collections which are thread-safe for concurrent readers
-			var state = CreateState();
-			ApplyAllMovements(ref state);
+			lock (_physicsLock) {
+				var state = CreateState();
+				ApplyAllMovements(ref state);
+			}
 		}
 
 		private void Update()
 		{
 			if (_useExternalTiming) {
-				// Simulation thread mode: Only apply movements (physics runs on simulation thread)
+				// Simulation thread mode: physics runs on simulation thread,
+				// but managed callbacks must run on Unity main thread.
+				DrainExternalThreadCallbacks();
 				ApplyMovements();
 			} else {
 				// Normal mode: Execute full physics update
 				ExecutePhysicsUpdate(NowUsec);
+			}
+		}
+
+		/// <summary>
+		/// Drain physics-originated managed callbacks on the Unity main thread.
+		/// </summary>
+		private void DrainExternalThreadCallbacks()
+		{
+			if (!_useExternalTiming || !_isInitialized) {
+				return;
+			}
+
+			lock (_physicsLock) {
+				while (_eventQueue.Ref.TryDequeue(out var eventData)) {
+					_player.OnEvent(in eventData);
+				}
+
+				lock (_scheduledActions) {
+					for (var i = _scheduledActions.Count - 1; i >= 0; i--) {
+						if (_physicsEnv.CurPhysicsFrameTime > _scheduledActions[i].ScheduleAt) {
+							_scheduledActions[i].Action();
+							_scheduledActions.RemoveAt(i);
+						}
+					}
+				}
 			}
 		}
 
@@ -432,10 +465,7 @@ namespace VisualPinball.Unity
 			var state = CreateState();
 
 			// process input
-			while (_inputActions.Count > 0) {
-				var action = _inputActions.Dequeue();
-				action(ref state);
-			}
+			ProcessInputActions(ref state);
 
 			// run physics loop (Burst-compiled, thread-safe)
 			PhysicsUpdate.Execute(
@@ -445,21 +475,6 @@ namespace VisualPinball.Unity
 				_playfieldBounds,
 				currentTimeUsec
 			);
-
-			// dequeue events
-			while (_eventQueue.Ref.TryDequeue(out var eventData)) {
-				_player.OnEvent(in eventData);
-			}
-
-			// process scheduled events from managed land
-			lock (_scheduledActions) {
-				for (var i = _scheduledActions.Count - 1; i >= 0; i--) {
-					if (_physicsEnv.CurPhysicsFrameTime > _scheduledActions[i].ScheduleAt) {
-						_scheduledActions[i].Action();
-						_scheduledActions.RemoveAt(i);
-					}
-				}
-			}
 
 			_lastFrameTimeMs = (float)sw.Elapsed.TotalMilliseconds;
 		}
@@ -487,10 +502,7 @@ namespace VisualPinball.Unity
 			var state = CreateState();
 
 			// process input
-			while (_inputActions.Count > 0) {
-				var action = _inputActions.Dequeue();
-				action(ref state);
-			}
+			ProcessInputActions(ref state);
 
 			// run physics loop
 			PhysicsUpdate.Execute(
@@ -536,6 +548,16 @@ namespace VisualPinball.Unity
 			_physicsMovements.ApplyPlungerMovement(ref _plungerStates.Ref, _floatAnimatedComponents);
 			_physicsMovements.ApplySpinnerMovement(ref _spinnerStates.Ref, _floatAnimatedComponents);
 			_physicsMovements.ApplyTriggerMovement(ref _triggerStates.Ref, _floatAnimatedComponents);
+		}
+
+		private void ProcessInputActions(ref PhysicsState state)
+		{
+			lock (_inputActionsLock) {
+				while (_inputActions.Count > 0) {
+					var action = _inputActions.Dequeue();
+					action(ref state);
+				}
+			}
 		}
 		
 		private void OnDestroy()
