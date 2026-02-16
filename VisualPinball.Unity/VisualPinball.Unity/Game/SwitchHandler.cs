@@ -130,10 +130,11 @@ namespace VisualPinball.Unity
 			// handle switch -> gamelogic engine
 			if (Engine != null && _switches != null) {
 				foreach (var switchConfig in _switches) {
+					var isClosed = switchConfig.IsNormallyClosed ? !enabled : enabled;
 
 					// set new status now
 					_switchStatuses[switchConfig.SwitchId].IsSwitchEnabled = enabled;
-					Engine.Switch(switchConfig.SwitchId, switchConfig.IsNormallyClosed ? !enabled : enabled);
+					_player.DispatchSwitch(switchConfig.SwitchId, isClosed);
 
 					// if it's pulse, schedule to re-open
 					if (enabled && switchConfig.IsPulseSwitch) {
@@ -141,7 +142,7 @@ namespace VisualPinball.Unity
 							switchConfig.PulseDelay,
 							() => {
 								_switchStatuses[switchConfig.SwitchId].IsSwitchEnabled = false;
-								Engine.Switch(switchConfig.SwitchId, switchConfig.IsNormallyClosed);
+								_player.DispatchSwitch(switchConfig.SwitchId, switchConfig.IsNormallyClosed);
 								IsEnabled = false;
 #if UNITY_EDITOR
 								RefreshUI();
@@ -172,8 +173,9 @@ namespace VisualPinball.Unity
 			// handle switch -> gamelogic engine
 			if (Engine != null && _switches != null) {
 				foreach (var switchConfig in _switches) {
+					var isClosed = switchConfig.IsNormallyClosed ? !enabled : enabled;
 					_physicsEngine.ScheduleAction(delay,
-						() => Engine.Switch(switchConfig.SwitchId, switchConfig.IsNormallyClosed ? !enabled : enabled));
+						() => _player.DispatchSwitch(switchConfig.SwitchId, isClosed));
 				}
 			} else {
 				Logger.Warn("Cannot schedule device switch.");

@@ -26,6 +26,7 @@ using UnityEngine.Serialization;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Unity.Simulation;
 using Color = VisualPinball.Engine.Math.Color;
 using Logger = NLog.Logger;
 
@@ -111,6 +112,7 @@ namespace VisualPinball.Unity
 		private TableComponent _tableComponent;
 		private PlayfieldComponent _playfieldComponent;
 		private PhysicsEngine _physicsEngine;
+		private SimulationThreadComponent _simulationThreadComponent;
 		private CancellationTokenSource _gamelogicEngineInitCts;
 
 		private PlayfieldComponent PlayfieldComponent {
@@ -131,6 +133,15 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		private SimulationThreadComponent SimulationThreadComponent {
+			get {
+				if (_simulationThreadComponent == null) {
+					_simulationThreadComponent = GetComponent<SimulationThreadComponent>();
+				}
+				return _simulationThreadComponent;
+			}
+		}
+
 		#region Access
 
 		internal IApiSwitch Switch(ISwitchDeviceComponent component, string switchItem) => component != null ? _switchPlayer.Switch(component, switchItem) : null;
@@ -138,6 +149,14 @@ namespace VisualPinball.Unity
 		public IApiLamp Lamp(ILampDeviceComponent component) => component != null ? _lampPlayer.Lamp(component) : null;
 		public IApiWireDeviceDest WireDevice(IWireableComponent c) => _wirePlayer.WireDevice(c);
 		internal void HandleWireSwitchChange(WireDestConfig wireConfig, bool isEnabled) => _wirePlayer.HandleSwitchChange(wireConfig, isEnabled);
+
+		internal void DispatchSwitch(string switchId, bool isClosed)
+		{
+			if (SimulationThreadComponent != null && SimulationThreadComponent.EnqueueSwitchFromMainThread(switchId, isClosed)) {
+				return;
+			}
+			GamelogicEngine?.Switch(switchId, isClosed);
+		}
 
 		public Dictionary<string, IApiSwitchStatus> SwitchStatuses => _switchPlayer.SwitchStatuses;
 		public Dictionary<string, bool> CoilStatuses => _coilPlayer.CoilStatuses;
@@ -170,7 +189,7 @@ namespace VisualPinball.Unity
 				GamelogicEngine = engineComponent;
 				_lampPlayer.Awake(this, _tableComponent, GamelogicEngine);
 				_coilPlayer.Awake(this, _tableComponent, GamelogicEngine, _lampPlayer, _wirePlayer);
-				_switchPlayer.Awake(_tableComponent, GamelogicEngine, _inputManager);
+				_switchPlayer.Awake(this, _tableComponent, GamelogicEngine, _inputManager);
 				_wirePlayer.Awake(_tableComponent, _inputManager, _switchPlayer, this, PhysicsEngine);
 				_displayPlayer.Awake(GamelogicEngine);
 			}
@@ -321,8 +340,7 @@ namespace VisualPinball.Unity
 
 		public void OnEvent(in EventData eventData)
 		{
-			Debug.Log(eventData);
-			switch (eventData.EventId) {
+				switch (eventData.EventId) {
 				case EventId.HitEventsHit:
 					if (!_hittables.ContainsKey(eventData.ItemId)) {
 						Debug.LogError($"Cannot find {eventData.ItemId} in hittables.");

@@ -142,7 +142,6 @@ namespace VisualPinball.Unity
 			// trigger coil if mapped
 			if (_coilAssignments.ContainsKey(coilEvent.Id)) {
 				foreach (var destConfig in _coilAssignments[coilEvent.Id]) {
-
 					if (destConfig.HasDynamicWire) {
 						// goes back through the wire mapping, which will decide whether it has already sent the event or not
 						_wirePlayer!.HandleCoilEvent(coilEvent.Id, coilEvent.IsEnabled);
