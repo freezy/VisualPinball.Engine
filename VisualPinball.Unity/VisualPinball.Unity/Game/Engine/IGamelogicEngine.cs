@@ -155,6 +155,21 @@ namespace VisualPinball.Unity
 		// todo displays
 	}
 
+	public enum GamelogicInputDispatchMode
+	{
+		MainThread = 0,
+		SimulationThread = 1,
+	}
+
+	/// <summary>
+	/// Optional capability interface for game logic engines that can safely
+	/// receive switch updates from the simulation thread.
+	/// </summary>
+	public interface IGamelogicInputThreading
+	{
+		GamelogicInputDispatchMode SwitchDispatchMode { get; }
+	}
+
 	public class RequestedDisplays
 	{
 		public readonly DisplayConfig[] Displays;

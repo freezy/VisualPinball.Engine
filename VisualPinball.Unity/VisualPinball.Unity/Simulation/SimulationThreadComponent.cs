@@ -88,6 +88,10 @@ namespace VisualPinball.Unity.Simulation
 		{
 			if (!_started || _simulationThread == null) return;
 
+			// Engines that are not thread-safe for switch updates receive queued
+			// events here on Unity's main thread.
+			_simulationThread.FlushMainThreadInputDispatch();
+
 			// Read shared state from simulation thread
 			ref readonly var state = ref _simulationThread.GetSharedState();
 
@@ -213,6 +217,15 @@ namespace VisualPinball.Unity.Simulation
 		public void ResumeSimulation()
 		{
 			_simulationThread?.Resume();
+		}
+
+		internal bool EnqueueSwitchFromMainThread(string switchId, bool isClosed)
+		{
+			if (!_started || _simulationThread == null) {
+				return false;
+			}
+
+			return _simulationThread.EnqueueExternalSwitch(switchId, isClosed);
 		}
 
 		#endregion

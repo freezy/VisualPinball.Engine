@@ -121,6 +121,7 @@ namespace VisualPinball.Unity
 		/// <see cref="Trough"/>.
 		/// </summary>
 		private IApiSwitch _drainSwitch;
+		private KickerApi _drainKicker;
 
 		/// <summary>
 		/// A reference to the exit kicker on the playfield needed to create and kick new balls into the plunger lane.
@@ -222,7 +223,12 @@ namespace VisualPinball.Unity
 
 			// setup entry handler
 			if (_drainSwitch != null) {
-				_drainSwitch.Switch += OnEntry;
+				if (_drainSwitch is KickerApi drainKicker) {
+					_drainKicker = drainKicker;
+					_drainKicker.Hit += OnDrainKickerHit;
+				} else {
+					_drainSwitch.Switch += OnEntry;
+				}
 			}
 
 			// fill up the ball stack
@@ -278,6 +284,11 @@ namespace VisualPinball.Unity
 				default:
 					throw new ArgumentOutOfRangeException();
 			}
+		}
+
+		private void OnDrainKickerHit(object sender, HitEventArgs args)
+		{
+			OnEntry(sender, new SwitchEventArgs(true, args.BallId));
 		}
 
 		/// <summary>
@@ -659,7 +670,12 @@ namespace VisualPinball.Unity
 			Logger.Info("Destroying trough!");
 
 			if (_drainSwitch != null) {
-				_drainSwitch.Switch -= OnEntry;
+				if (_drainKicker != null) {
+					_drainKicker.Hit -= OnDrainKickerHit;
+					_drainKicker = null;
+				} else {
+					_drainSwitch.Switch -= OnEntry;
+				}
 			}
 			if (MainComponent.Type == TroughType.ModernOpto || MainComponent.Type == TroughType.ModernMech) {
 				_stackSwitches[MainComponent.SwitchCount - 1].Switch -= OnLastStackSwitch;

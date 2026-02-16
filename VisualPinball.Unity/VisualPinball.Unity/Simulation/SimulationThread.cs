@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime;
 using System.Threading;
@@ -40,6 +41,7 @@ namespace VisualPinball.Unity.Simulation
 
 		private readonly PhysicsEngine _physicsEngine;
 		private readonly IGamelogicEngine _gamelogicEngine;
+		private readonly IGamelogicInputDispatcher _inputDispatcher;
 		private readonly InputEventBuffer _inputBuffer;
 		private readonly SimulationState _sharedState;
 
@@ -66,6 +68,22 @@ namespace VisualPinball.Unity.Simulation
 		private volatile bool _gamelogicStarted;
 		private volatile bool _needsInitialSwitchSync;
 
+		private readonly object _externalSwitchQueueLock = new object();
+		private readonly Queue<PendingSwitchEvent> _externalSwitchQueue = new Queue<PendingSwitchEvent>(128);
+		private const int MaxExternalSwitchQueueSize = 8192;
+
+		private readonly struct PendingSwitchEvent
+		{
+			public readonly string SwitchId;
+			public readonly bool IsClosed;
+
+			public PendingSwitchEvent(string switchId, bool isClosed)
+			{
+				SwitchId = switchId;
+				IsClosed = isClosed;
+			}
+		}
+
 		#endregion
 
 		#region Constructor
@@ -74,6 +92,7 @@ namespace VisualPinball.Unity.Simulation
 		{
 			_physicsEngine = physicsEngine ?? throw new ArgumentNullException(nameof(physicsEngine));
 			_gamelogicEngine = gamelogicEngine;
+			_inputDispatcher = GamelogicInputDispatcherFactory.Create(gamelogicEngine);
 
 			_inputBuffer = new InputEventBuffer(1024);
 			_sharedState = new SimulationState();
@@ -181,6 +200,26 @@ namespace VisualPinball.Unity.Simulation
 		public ref readonly SimulationState.Snapshot GetSharedState()
 		{
 			return ref _sharedState.GetFrontBuffer();
+		}
+
+		public void FlushMainThreadInputDispatch()
+		{
+			_inputDispatcher.FlushMainThread();
+		}
+
+		public bool EnqueueExternalSwitch(string switchId, bool isClosed)
+		{
+			if (string.IsNullOrEmpty(switchId)) {
+				return false;
+			}
+
+			lock (_externalSwitchQueueLock) {
+				if (_externalSwitchQueue.Count >= MaxExternalSwitchQueueSize) {
+					return false;
+				}
+				_externalSwitchQueue.Enqueue(new PendingSwitchEvent(switchId, isClosed));
+				return true;
+			}
 		}
 
 		#endregion
@@ -295,6 +334,9 @@ namespace VisualPinball.Unity.Simulation
 		/// </summary>
 		private void SimulationTick()
 		{
+			// 0. Process switch events that originated on Unity/main thread.
+			ProcessExternalSwitchEvents();
+
 			// 1. Process input events from ring buffer
 			ProcessInputEvents();
 
@@ -344,6 +386,23 @@ namespace VisualPinball.Unity.Simulation
 			}
 		}
 
+		private void ProcessExternalSwitchEvents()
+		{
+			while (true) {
+				PendingSwitchEvent evt;
+				lock (_externalSwitchQueueLock) {
+					if (_externalSwitchQueue.Count == 0) {
+						break;
+					}
+					evt = _externalSwitchQueue.Dequeue();
+				}
+
+				if (_gamelogicEngine != null && _gamelogicStarted) {
+					_inputDispatcher.DispatchSwitch(evt.SwitchId, evt.IsClosed);
+				}
+			}
+		}
+
 		private void SendMappedSwitch(int actionIndex, bool isPressed)
 		{
 			if ((uint)actionIndex >= (uint)_actionToSwitchId.Length) {
@@ -364,7 +423,7 @@ namespace VisualPinball.Unity.Simulation
 					Logger.Info($"{LogPrefix} [SimulationThread] Input RightFlipper -> Switch({switchId}, True)");
 				}
 			}
-			_gamelogicEngine.Switch(switchId, isPressed);
+			_inputDispatcher.DispatchSwitch(switchId, isPressed);
 		}
 
 		private void SyncAllMappedSwitches()
@@ -375,7 +434,7 @@ namespace VisualPinball.Unity.Simulation
 				if (switchId == null) {
 					continue;
 				}
-				_gamelogicEngine.Switch(switchId, _actionStates[i]);
+				_inputDispatcher.DispatchSwitch(switchId, _actionStates[i]);
 			}
 		}
 
@@ -562,6 +621,10 @@ namespace VisualPinball.Unity.Simulation
 			Stop();
 			if (_gamelogicEngine != null) {
 				_gamelogicEngine.OnStarted -= OnGamelogicStarted;
+			}
+			_inputDispatcher?.Dispose();
+			lock (_externalSwitchQueueLock) {
+				_externalSwitchQueue.Clear();
 			}
 			_inputBuffer?.Dispose();
 			_sharedState?.Dispose();

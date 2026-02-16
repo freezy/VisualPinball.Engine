@@ -39,6 +39,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, List<KeyboardSwitch>> _keySwitchAssignments = new();
 
 		private TableComponent _tableComponent;
+		private Player _player;
 		private IGamelogicEngine _gamelogicEngine;
 		private InputManager _inputManager;
 
@@ -51,8 +52,9 @@ namespace VisualPinball.Unity
 		public bool SwitchDeviceExists(ISwitchDeviceComponent component)
 			=> _switchDevices.ContainsKey(component);
 
-		public void Awake(TableComponent tableComponent, IGamelogicEngine gamelogicEngine, InputManager inputManager)
+		public void Awake(Player player, TableComponent tableComponent, IGamelogicEngine gamelogicEngine, InputManager inputManager)
 		{
+			_player = player;
 			_tableComponent = tableComponent;
 			_gamelogicEngine = gamelogicEngine;
 			_inputManager = inputManager;
@@ -78,17 +80,21 @@ namespace VisualPinball.Unity
 
 							// check if device exists
 							if (!_switchDevices.TryGetValue(switchMapping.Device, out var device)) {
+								if (switchMapping.Device is IMechHandler) {
+									Logger.Info($"Switch \"{switchMapping.Id}\" on mech device \"{switchMapping.Device}\" is handled by mech config and does not require runtime switch registration.");
+									break;
+								}
 								Logger.Error($"Unknown switch device \"{switchMapping.Device}\".");
 								break;
 							}
 
 							var deviceSwitch = device.Switch(switchMapping.DeviceItem);
 							if (deviceSwitch != null) {
-								var existingSwitchStatus = SwitchStatuses.ContainsKey(switchMapping.Id) ? SwitchStatuses[switchMapping.Id] : null;
-								var switchStatus = deviceSwitch.AddSwitchDest(new SwitchConfig(switchMapping), existingSwitchStatus);
-								SwitchStatuses[switchMapping.Id] = switchStatus;
+							var existingSwitchStatus = SwitchStatuses.ContainsKey(switchMapping.Id) ? SwitchStatuses[switchMapping.Id] : null;
+							var switchStatus = deviceSwitch.AddSwitchDest(new SwitchConfig(switchMapping), existingSwitchStatus);
+							SwitchStatuses[switchMapping.Id] = switchStatus;
 
-							} else {
+						} else {
 								Logger.Error($"Unknown switch \"{switchMapping.DeviceItem}\" in switch device \"{switchMapping.Device}\".");
 							}
 
@@ -127,10 +133,10 @@ namespace VisualPinball.Unity
 				case InputActionChange.ActionCanceled:
 					var action = (InputAction)obj;
 					if (_keySwitchAssignments.TryGetValue(action.name, out var assignment)) {
-						if (_gamelogicEngine != null) {
+						if (_player != null) {
 							foreach (var sw in assignment) {
 								sw.IsSwitchEnabled = change == InputActionChange.ActionStarted;
-								_gamelogicEngine.Switch(sw.SwitchId, sw.IsSwitchClosed);
+								_player.DispatchSwitch(sw.SwitchId, sw.IsSwitchClosed);
 							}
 						}
 					} else {
