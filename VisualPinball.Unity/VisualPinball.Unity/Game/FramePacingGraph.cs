@@ -54,7 +54,7 @@ public class FramePacingGraph : MonoBehaviour
 	public Color gpuColor = new Color(1f, 0.5f, 0.25f, 0.9f);
 
 	[Header("Totals")]
-	[Tooltip("When true, uses max(CPU, GPU) for 'Total' when valid; otherwise uses unscaledDeltaTime.")]
+	[Tooltip("When true, uses frame timing (max(CPU, GPU)) for 'Total' when valid; otherwise uses unscaledDeltaTime.")]
 	public bool totalFromFrameTimingWhenAvailable = false;
 
 	[Header("Performance")] [Tooltip("Recompute stats (avg/p95/p99) every N frames.")] [Range(1, 60)]
@@ -171,7 +171,7 @@ public class FramePacingGraph : MonoBehaviour
 		timestamps = new float[capacity];
 
 		totalMetric = new Metric("Total (ms)", totalColor, SampleTotalMs, 1f, true, capacity);
-		cpuMetric = new Metric("CPU (ms)", cpuColor, () => lastCpuBusyMs, 1f, enableCpuGpuCollection, capacity);
+		cpuMetric = new Metric("CPU Busy", cpuColor, () => lastCpuBusyMs, 1f, enableCpuGpuCollection, capacity);
 		gpuMetric = new Metric("GPU (ms)", gpuColor, () => lastGpuBusyMs, 1f, enableCpuGpuCollection, capacity);
 
 		scratchValues = new float[capacity];
@@ -331,7 +331,7 @@ public class FramePacingGraph : MonoBehaviour
 		}
 
 		// FPS smoothing & text throttling
-		var instFps = Time.unscaledDeltaTime > 0f ? 1f / Time.unscaledDeltaTime : 0f;
+		var instFps = totalMs > 0.0001f ? 1000f / totalMs : 0f;
 		var a = 1f - Mathf.Exp(-Time.unscaledDeltaTime / fpsSmoothTau);
 		smoothedFps = Mathf.Lerp(smoothedFps, instFps, a);
 		fpsTextTimer += Time.unscaledDeltaTime;
