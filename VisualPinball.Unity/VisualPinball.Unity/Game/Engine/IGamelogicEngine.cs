@@ -170,6 +170,19 @@ namespace VisualPinball.Unity
 		GamelogicInputDispatchMode SwitchDispatchMode { get; }
 	}
 
+	/// <summary>
+	/// Optional capability interface for game logic engines that support
+	/// external emulation time fencing.
+	/// </summary>
+	public interface IGamelogicTimeFence
+	{
+		/// <summary>
+		/// Set the emulation time fence in seconds.
+		/// </summary>
+		/// <param name="timeInSeconds">Absolute simulation time in seconds.</param>
+		void SetTimeFence(double timeInSeconds);
+	}
+
 	public class RequestedDisplays
 	{
 		public readonly DisplayConfig[] Displays;

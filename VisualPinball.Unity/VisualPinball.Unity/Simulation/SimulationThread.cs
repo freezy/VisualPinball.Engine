@@ -42,6 +42,7 @@ namespace VisualPinball.Unity.Simulation
 
 		private readonly PhysicsEngine _physicsEngine;
 		private readonly IGamelogicEngine _gamelogicEngine;
+		private readonly IGamelogicTimeFence _timeFence;
 		private readonly IGamelogicInputDispatcher _inputDispatcher;
 		private readonly InputEventBuffer _inputBuffer;
 		private readonly SimulationState _sharedState;
@@ -93,6 +94,7 @@ namespace VisualPinball.Unity.Simulation
 		{
 			_physicsEngine = physicsEngine ?? throw new ArgumentNullException(nameof(physicsEngine));
 			_gamelogicEngine = gamelogicEngine;
+			_timeFence = gamelogicEngine as IGamelogicTimeFence;
 			_inputDispatcher = GamelogicInputDispatcherFactory.Create(gamelogicEngine);
 
 			_inputBuffer = new InputEventBuffer(1024);
@@ -337,6 +339,8 @@ namespace VisualPinball.Unity.Simulation
 		/// </summary>
 		private void SimulationTick()
 		{
+			_timeFence?.SetTimeFence(_simulationTimeUsec / 1_000_000.0);
+
 			// 0. Process switch events that originated on Unity/main thread.
 			ProcessExternalSwitchEvents();
 
