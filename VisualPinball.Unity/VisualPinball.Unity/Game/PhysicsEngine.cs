@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using NativeTrees;
 using Unity.Collections;
 using Unity.Mathematics;
@@ -157,6 +158,7 @@ namespace VisualPinball.Unity
 		public bool IsInitialized => _isInitialized;
 
 		private float _lastFrameTimeMs;
+		private long _physicsBusyTotalUsec;
 
 		#region API
 
@@ -289,7 +291,16 @@ namespace VisualPinball.Unity
 			// register frame pacing stats
 			var stats = FindFirstObjectByType<FramePacingGraph>();
 			if (stats) {
-				stats.RegisterCustomMetric("Physics", Color.magenta, () => _lastFrameTimeMs);
+				long lastBusyTotalUsec = Interlocked.Read(ref _physicsBusyTotalUsec);
+				stats.RegisterCustomMetric("Physics", Color.magenta, () => {
+					var totalBusyUsec = Interlocked.Read(ref _physicsBusyTotalUsec);
+					var deltaBusyUsec = totalBusyUsec - lastBusyTotalUsec;
+					if (deltaBusyUsec < 0) {
+						deltaBusyUsec = 0;
+					}
+					lastBusyTotalUsec = totalBusyUsec;
+					return deltaBusyUsec / 1000f;
+				});
 			}
 
 			// create static octree
@@ -476,7 +487,7 @@ namespace VisualPinball.Unity
 				currentTimeUsec
 			);
 
-			_lastFrameTimeMs = (float)sw.Elapsed.TotalMilliseconds;
+			RecordPhysicsBusyTime(sw.ElapsedTicks);
 		}
 
 		/// <summary>
@@ -531,7 +542,18 @@ namespace VisualPinball.Unity
 			// Apply movements to GameObjects
 			ApplyAllMovements(ref state);
 
-			_lastFrameTimeMs = (float)sw.Elapsed.TotalMilliseconds;
+			RecordPhysicsBusyTime(sw.ElapsedTicks);
+		}
+
+		private void RecordPhysicsBusyTime(long elapsedTicks)
+		{
+			var elapsedUsec = (elapsedTicks * 1_000_000L) / Stopwatch.Frequency;
+			if (elapsedUsec < 0) {
+				elapsedUsec = 0;
+			}
+
+			Interlocked.Add(ref _physicsBusyTotalUsec, elapsedUsec);
+			_lastFrameTimeMs = elapsedUsec / 1000f;
 		}
 
 		/// <summary>
