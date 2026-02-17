@@ -476,6 +476,7 @@ namespace VisualPinball.Unity
 			if (HasAngleChanged(_lastRotationAngle, value)) {
 				_lastRotationAngle = value;
 				transform.SetLocalYRotation(value);
+				InputLatencyTracker.RecordFlipperVisualMovement(IsLeft);
 				OnAnimationValueChanged?.Invoke(value);
 			}
 		}
