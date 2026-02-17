@@ -292,6 +292,7 @@ namespace VisualPinball.Unity
 			var stats = FindFirstObjectByType<FramePacingGraph>();
 			if (stats) {
 				long lastBusyTotalUsec = Interlocked.Read(ref _physicsBusyTotalUsec);
+				InputLatencyTracker.Reset();
 				stats.RegisterCustomMetric("Physics", Color.magenta, () => {
 					var totalBusyUsec = Interlocked.Read(ref _physicsBusyTotalUsec);
 					var deltaBusyUsec = totalBusyUsec - lastBusyTotalUsec;
@@ -301,6 +302,7 @@ namespace VisualPinball.Unity
 					lastBusyTotalUsec = totalBusyUsec;
 					return deltaBusyUsec / 1000f;
 				});
+				stats.RegisterCustomMetric("In Lat (ms)", new Color(0.65f, 1f, 0.3f, 0.9f), InputLatencyTracker.SampleFlipperLatencyMs);
 			}
 
 			// create static octree

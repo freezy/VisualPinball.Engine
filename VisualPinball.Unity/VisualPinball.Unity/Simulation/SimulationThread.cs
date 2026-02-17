@@ -12,6 +12,7 @@ using System.Threading;
 using NLog;
 using Logger = NLog.Logger;
 using VisualPinball.Engine.Common;
+using VisualPinball.Unity;
 
 namespace VisualPinball.Unity.Simulation
 {
@@ -213,6 +214,8 @@ namespace VisualPinball.Unity.Simulation
 				return false;
 			}
 
+			InputLatencyTracker.RecordSwitchInputDispatched(switchId, isClosed);
+
 			lock (_externalSwitchQueueLock) {
 				if (_externalSwitchQueue.Count >= MaxExternalSwitchQueueSize) {
 					return false;
@@ -371,6 +374,8 @@ namespace VisualPinball.Unity.Simulation
 				if (previousState == isPressed) {
 					continue;
 				}
+
+				InputLatencyTracker.RecordInputPolled((NativeInputApi.InputAction)actionIndex, isPressed, evt.TimestampUsec);
 
 				// Only forward to GLE once it's ready (or at least has started)
 				if (_gamelogicEngine != null && _gamelogicStarted) {

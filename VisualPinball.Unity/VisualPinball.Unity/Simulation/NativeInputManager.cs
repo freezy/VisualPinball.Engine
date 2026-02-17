@@ -127,10 +127,10 @@ namespace VisualPinball.Unity.Simulation
 		public bool StartPolling(int pollIntervalUs = 500)
 		{
 			#if UNITY_EDITOR
-			// // Avoid extremely aggressive polling in the editor; it can delay/derail PinMAME stop/start.
-			// if (pollIntervalUs < 1000) {
-			// 	pollIntervalUs = 1000;
-			// }
+			// Avoid extremely aggressive polling in the editor; it can delay/derail PinMAME stop/start.
+			if (pollIntervalUs < 1000) {
+				pollIntervalUs = 1000;
+			}
 			#endif
 
 			if (!_initialized)
