@@ -240,9 +240,9 @@ namespace VisualPinball.Unity.Simulation
 
 		/// <summary>
 		/// Get the current write buffer.
-		/// Called by simulation thread only.
 		/// </summary>
-		public ref Snapshot GetWriteBuffer()
+		/// <remarks><b>Thread:</b> Simulation thread only.</remarks>
+		internal ref Snapshot GetWriteBuffer()
 		{
 			return ref GetBufferByIndex(_writeIndex);
 		}
@@ -250,9 +250,10 @@ namespace VisualPinball.Unity.Simulation
 		/// <summary>
 		/// Publish the write buffer so the main thread can pick it up, and
 		/// reclaim the previously-ready buffer as the new write target.
-		/// Called by simulation thread only — allocation-free.
+		/// Allocation-free.
 		/// </summary>
-		public void PublishWriteBuffer()
+		/// <remarks><b>Thread:</b> Simulation thread only.</remarks>
+		internal void PublishWriteBuffer()
 		{
 			// Atomically swap _readyIndex with our _writeIndex.
 			// After this, the old ready buffer becomes our new write buffer,
@@ -266,11 +267,12 @@ namespace VisualPinball.Unity.Simulation
 
 		/// <summary>
 		/// Acquire the latest published snapshot for reading.
-		/// Called by Unity main thread only — allocation-free.
 		/// Returns a ref to the acquired buffer that is safe to read until the
 		/// next call to <see cref="AcquireReadBuffer"/>.
+		/// Allocation-free.
 		/// </summary>
-		public ref readonly Snapshot AcquireReadBuffer()
+		/// <remarks><b>Thread:</b> Main thread only.</remarks>
+		internal ref readonly Snapshot AcquireReadBuffer()
 		{
 			// Atomically swap _readyIndex with our _readIndex.
 			// After this we own what was the ready buffer (latest data), and
@@ -284,7 +286,8 @@ namespace VisualPinball.Unity.Simulation
 		/// Peek at the current read buffer without swapping.
 		/// Useful when you just need to re-read the last acquired snapshot.
 		/// </summary>
-		public ref readonly Snapshot PeekReadBuffer()
+		/// <remarks><b>Thread:</b> Main thread only.</remarks>
+		internal ref readonly Snapshot PeekReadBuffer()
 		{
 			return ref GetBufferByIndex(_readIndex);
 		}

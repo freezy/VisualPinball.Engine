@@ -19,7 +19,7 @@ namespace VisualPinball.Unity.Simulation
 	/// - Simulation thread runs at 1000 Hz (1ms per tick)
 	/// - Input polling thread runs at 500-1000 Hz
 	/// - Unity main thread runs at display refresh rate (60-144 Hz)
-	/// - Lock-free communication between threads using ring buffers and double-buffering
+	/// - Lock-free communication between threads using ring buffers and triple-buffering
 	/// </summary>
 	[AddComponentMenu("Visual Pinball/Simulation Thread")]
 	[RequireComponent(typeof(PhysicsEngine))]
