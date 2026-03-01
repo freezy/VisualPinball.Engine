@@ -158,6 +158,11 @@ namespace VisualPinball.Unity
 			GamelogicEngine?.Switch(switchId, isClosed);
 		}
 
+		internal bool DispatchCoilSimulationThread(string coilId, bool isEnabled)
+		{
+			return _coilPlayer.HandleCoilEventSimulationThread(coilId, isEnabled);
+		}
+
 		public Dictionary<string, IApiSwitchStatus> SwitchStatuses => _switchPlayer.SwitchStatuses;
 		public Dictionary<string, bool> CoilStatuses => _coilPlayer.CoilStatuses;
 		public Dictionary<string, LampState> LampStatuses => _lampPlayer.LampStates;

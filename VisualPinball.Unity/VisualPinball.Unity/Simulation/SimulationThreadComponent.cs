@@ -60,6 +60,15 @@ namespace VisualPinball.Unity.Simulation
 
 		private bool _started = false;
 		private float _lastStatisticsTime;
+		private float _simulationThreadSpeedX;
+		private float _simulationThreadHz;
+		private long _lastSampleSimulationUsec;
+		private float _lastSampleUnscaledTime;
+
+		public float SimulationThreadSpeedX => _simulationThreadSpeedX;
+		public float SimulationThreadHz => _simulationThreadHz;
+		public float InputThreadTargetHz => _inputManager?.TargetPollingHz ?? 0f;
+		public float InputThreadActualHz => _inputManager?.ActualEventRateHz ?? 0f;
 
 		#endregion
 
@@ -98,6 +107,8 @@ namespace VisualPinball.Unity.Simulation
 			// Apply state to Unity GameObjects
 			ApplySimulationState(in state);
 
+			UpdateSimulationSpeed(in state);
+
 			// Show statistics
 			if (ShowStatistics && Time.time - _lastStatisticsTime >= StatisticsInterval)
 			{
@@ -134,10 +145,11 @@ namespace VisualPinball.Unity.Simulation
 
 			try
 			{
+				var player = GetComponent<Player>() ?? GetComponentInParent<Player>() ?? GetComponentInChildren<Player>();
+
 				// Resolve dependencies (safe even if Awake order differs)
 				_physicsEngine ??= GetComponent<PhysicsEngine>();
 				if (_gamelogicEngine == null) {
-					var player = GetComponent<Player>() ?? GetComponentInParent<Player>() ?? GetComponentInChildren<Player>();
 					_gamelogicEngine = player != null
 						? player.GamelogicEngine
 						: (GetComponent<IGamelogicEngine>() ?? GetComponentInParent<IGamelogicEngine>() ?? GetComponentInChildren<IGamelogicEngine>());
@@ -152,7 +164,10 @@ namespace VisualPinball.Unity.Simulation
 				_physicsEngine.SetExternalTiming(true);
 
 				// Create simulation thread
-				_simulationThread = new SimulationThread(_physicsEngine, _gamelogicEngine);
+				_simulationThread = new SimulationThread(_physicsEngine, _gamelogicEngine,
+					player != null
+						? new Action<string, bool>((coilId, isEnabled) => player.DispatchCoilSimulationThread(coilId, isEnabled))
+						: null);
 
 				// Initialize and start native input if enabled
 				if (EnableNativeInput)
@@ -199,6 +214,10 @@ namespace VisualPinball.Unity.Simulation
 			_physicsEngine.SetExternalTiming(false);
 
 			_started = false;
+			_simulationThreadSpeedX = 0f;
+			_simulationThreadHz = 0f;
+			_lastSampleSimulationUsec = 0;
+			_lastSampleUnscaledTime = 0f;
 
 			Logger.Info($"{LogPrefix} [SimulationThreadComponent] Simulation stopped");
 		}
@@ -254,6 +273,36 @@ namespace VisualPinball.Unity.Simulation
 			double ratio = (double)simTimeMs / realTimeMs;
 
 			Logger.Info($"{LogPrefix} [SimulationThread] Stats: SimTime={simTimeMs}ms, RealTime={realTimeMs}ms, Ratio={ratio:F3}x, PhysicsVer={state.PhysicsStateVersion}");
+		}
+
+		private void UpdateSimulationSpeed(in SimulationState.Snapshot state)
+		{
+			var now = Time.unscaledTime;
+
+			if (_lastSampleUnscaledTime <= 0f) {
+				_lastSampleUnscaledTime = now;
+				_lastSampleSimulationUsec = state.SimulationTimeUsec;
+				_simulationThreadSpeedX = 0f;
+				_simulationThreadHz = 0f;
+				return;
+			}
+
+			var deltaTime = now - _lastSampleUnscaledTime;
+			if (deltaTime < 0.05f) {
+				return;
+			}
+
+			var deltaSimulationUsec = state.SimulationTimeUsec - _lastSampleSimulationUsec;
+			if (deltaSimulationUsec < 0) {
+				deltaSimulationUsec = 0;
+			}
+
+			var instantSpeedX = deltaTime > 0f ? (float)deltaSimulationUsec / (deltaTime * 1_000_000f) : 0f;
+			_simulationThreadSpeedX = Mathf.Lerp(_simulationThreadSpeedX, instantSpeedX, 0.3f);
+			_simulationThreadHz = _simulationThreadSpeedX * 1000f;
+
+			_lastSampleUnscaledTime = now;
+			_lastSampleSimulationUsec = state.SimulationTimeUsec;
 		}
 
 		#endregion

@@ -70,8 +70,8 @@ namespace VisualPinball.Unity
 
 		internal FlipperApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
-			_mainCoil = new DeviceCoil(Player, OnMainCoilEnabled, OnMainCoilDisabled);
-			_holdCoil = new DeviceCoil(Player, OnHoldCoilEnabled, OnHoldCoilDisabled);
+			_mainCoil = new DeviceCoil(Player, OnMainCoilEnabled, OnMainCoilDisabled, OnMainCoilEnabled, OnMainCoilDisabled);
+			_holdCoil = new DeviceCoil(Player, OnHoldCoilEnabled, OnHoldCoilDisabled, OnHoldCoilEnabled, OnHoldCoilDisabled);
 		}
 
 		void IApi.OnInit(BallManager ballManager)
