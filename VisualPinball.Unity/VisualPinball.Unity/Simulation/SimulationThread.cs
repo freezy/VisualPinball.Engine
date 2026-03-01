@@ -131,8 +131,9 @@ namespace VisualPinball.Unity.Simulation
 		#region Public API
 
 		/// <summary>
-		/// Start the simulation thread
+		/// Start the simulation thread.
 		/// </summary>
+		/// <remarks><b>Thread:</b> Main thread only.</remarks>
 		public void Start()
 		{
 			if (_running) return;
@@ -164,8 +165,9 @@ namespace VisualPinball.Unity.Simulation
 		}
 
 		/// <summary>
-		/// Stop the simulation thread
+		/// Stop the simulation thread.
 		/// </summary>
+		/// <remarks><b>Thread:</b> Main thread only.</remarks>
 		public void Stop()
 		{
 			if (!_running) return;
@@ -181,24 +183,27 @@ namespace VisualPinball.Unity.Simulation
 		}
 
 		/// <summary>
-		/// Pause the simulation (for debugging)
+		/// Pause the simulation (for debugging).
 		/// </summary>
+		/// <remarks><b>Thread:</b> Main thread only (sets volatile flag).</remarks>
 		public void Pause()
 		{
 			_paused = true;
 		}
 
 		/// <summary>
-		/// Resume the simulation
+		/// Resume the simulation.
 		/// </summary>
+		/// <remarks><b>Thread:</b> Main thread only (sets volatile flag).</remarks>
 		public void Resume()
 		{
 			_paused = false;
 		}
 
 		/// <summary>
-		/// Enqueue an input event from the input polling thread
+		/// Enqueue an input event from the input polling thread.
 		/// </summary>
+		/// <remarks><b>Thread:</b> Native input polling thread (thread-safe via lock-free ring buffer).</remarks>
 		public void EnqueueInputEvent(NativeInputApi.InputEvent evt)
 		{
 			if (!_inputBuffer.TryEnqueue(evt)) {
@@ -213,6 +218,7 @@ namespace VisualPinball.Unity.Simulation
 		/// <see cref="PhysicsEngine.ApplyMovements"/> to avoid
 		/// double-swapping per frame.
 		/// </summary>
+		/// <remarks><b>Thread:</b> Main thread only.</remarks>
 		public ref readonly SimulationState.Snapshot GetSharedState()
 		{
 			return ref _sharedState.PeekReadBuffer();
@@ -222,13 +228,24 @@ namespace VisualPinball.Unity.Simulation
 		/// The triple-buffered SimulationState, so the caller can pass it to
 		/// <see cref="PhysicsEngine.SetSimulationState"/>.
 		/// </summary>
+		/// <remarks><b>Thread:</b> Main thread only (used during initialization).</remarks>
 		public SimulationState SharedState => _sharedState;
 
+		/// <summary>
+		/// Flush any queued main-thread input dispatches.
+		/// </summary>
+		/// <remarks><b>Thread:</b> Main thread only.</remarks>
 		public void FlushMainThreadInputDispatch()
 		{
 			_inputDispatcher.FlushMainThread();
 		}
 
+		/// <summary>
+		/// Enqueue a switch event that originated from the main thread (or any
+		/// non-polling thread). The event is picked up by the simulation
+		/// thread on the next tick.
+		/// </summary>
+		/// <remarks><b>Thread:</b> Any thread (protected by lock).</remarks>
 		public bool EnqueueExternalSwitch(string switchId, bool isClosed)
 		{
 			if (string.IsNullOrEmpty(switchId)) {
@@ -356,6 +373,7 @@ namespace VisualPinball.Unity.Simulation
 		/// <summary>
 		/// Single simulation tick - MUST BE ALLOCATION-FREE!
 		/// </summary>
+		/// <remarks><b>Thread:</b> Simulation thread only.</remarks>
 		private void SimulationTick()
 		{
 			// 0. Process switch events that originated on Unity/main thread.
@@ -385,8 +403,9 @@ namespace VisualPinball.Unity.Simulation
 		}
 
 		/// <summary>
-		/// Process all pending input events from the ring buffer
+		/// Process all pending input events from the ring buffer.
 		/// </summary>
+		/// <remarks><b>Thread:</b> Simulation thread only.</remarks>
 		private void ProcessInputEvents()
 		{
 			BuildInputMappingsIfNeeded();
@@ -611,8 +630,9 @@ namespace VisualPinball.Unity.Simulation
 		}
 
 		/// <summary>
-		/// Update physics simulation (1ms step)
+		/// Update physics simulation (1ms step).
 		/// </summary>
+		/// <remarks><b>Thread:</b> Simulation thread only.</remarks>
 		private void UpdatePhysics()
 		{
 			if (_physicsEngine != null)
