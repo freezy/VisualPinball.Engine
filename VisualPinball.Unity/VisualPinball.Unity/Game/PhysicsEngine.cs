@@ -458,32 +458,21 @@ namespace VisualPinball.Unity
 
 		/// <summary>
 		/// Apply physics state to GameObjects (must be called from main thread).
-		/// When a <see cref="SimulationState"/> has been set via
-		/// <see cref="SetSimulationState"/>, this reads the latest published
-		/// snapshot — completely lock-free. Otherwise falls back to the legacy
-		/// lock-based path.
+		/// Reads the latest published snapshot from the triple-buffered
+		/// <see cref="SimulationState"/> — completely lock-free.
 		/// </summary>
 		public void ApplyMovements()
 		{
 			if (!_useExternalTiming || !_isInitialized) return;
 
-			if (_simulationState != null) {
-				// Lock-free path: read from triple-buffered snapshot
-				ref readonly var snapshot = ref _simulationState.AcquireReadBuffer();
-				ApplyMovementsFromSnapshot(in snapshot);
-			} else {
-				// Legacy path (no SimulationState set — shouldn't happen in
-				// normal operation but kept as safety net).
-				if (!Monitor.TryEnter(_physicsLock)) {
-					return; // sim thread is mid-tick; skip this frame
-				}
-				try {
-					var state = CreateState();
-					ApplyAllMovements(ref state);
-				} finally {
-					Monitor.Exit(_physicsLock);
-				}
+			if (_simulationState == null) {
+				throw new InvalidOperationException(
+					"ApplyMovements() requires a SimulationState. " +
+					"Call SetSimulationState() before enabling external timing.");
 			}
+
+			ref readonly var snapshot = ref _simulationState.AcquireReadBuffer();
+			ApplyMovementsFromSnapshot(in snapshot);
 		}
 
 		private void Update()
@@ -781,8 +770,8 @@ namespace VisualPinball.Unity
 
 		/// <summary>
 		/// Apply visual updates from a snapshot — called on the main thread,
-		/// completely lock-free. Replaces the legacy
-		/// <see cref="ApplyAllMovements"/> path when in external timing mode.
+		/// completely lock-free. Used in external timing mode (sim thread).
+		/// The single-threaded path uses <see cref="ApplyAllMovements"/> instead.
 		/// </summary>
 		private void ApplyMovementsFromSnapshot(in SimulationState.Snapshot snapshot)
 		{
