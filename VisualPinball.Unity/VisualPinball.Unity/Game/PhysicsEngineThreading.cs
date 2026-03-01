@@ -84,12 +84,13 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
-		/// Core physics simulation loop.
+		/// Core physics simulation loop for the simulation thread.
 		/// </summary>
 		/// <remarks>
 		/// <b>Thread:</b> Simulation thread (inside <c>PhysicsLock</c>).<br/>
-		/// Also called from main thread in single-threaded mode via
-		/// <see cref="ExecutePhysicsUpdate"/>.
+		/// The single-threaded equivalent is
+		/// <see cref="ExecutePhysicsUpdate"/>, which additionally drains
+		/// events and applies movements.
 		/// </remarks>
 		private void ExecutePhysicsSimulation(ulong currentTimeUsec)
 		{
@@ -100,6 +101,12 @@ namespace VisualPinball.Unity
 
 			var state = _ctx.CreateState();
 
+			// Rebuild kinematic octree only when transforms have changed.
+			if (_ctx.KinematicOctreeDirty) {
+				PhysicsKinematics.RebuildOctree(ref _ctx.KinematicOctree, ref state);
+				_ctx.KinematicOctreeDirty = false;
+			}
+
 			// process input
 			ProcessInputActions(ref state);
 
@@ -108,6 +115,7 @@ namespace VisualPinball.Unity
 				ref state,
 				ref _ctx.PhysicsEnv,
 				ref _ctx.OverlappingColliders,
+				ref _ctx.KinematicOctree,
 				_ctx.PlayfieldBounds,
 				currentTimeUsec
 			);
@@ -158,6 +166,7 @@ namespace VisualPinball.Unity
 					_ctx.KinematicTransforms.Ref[itemId] = matrix;
 				}
 				_ctx.PendingKinematicTransforms.Ref.Clear();
+				_ctx.KinematicOctreeDirty = true;
 			}
 		}
 
@@ -478,9 +487,16 @@ namespace VisualPinball.Unity
 				_ctx.UpdatedKinematicTransforms.Ref.Add(coll.ItemId, currTransformationMatrix);
 				_ctx.KinematicTransforms.Ref[coll.ItemId] = currTransformationMatrix;
 				coll.OnTransformationChanged(currTransformationMatrix);
+				_ctx.KinematicOctreeDirty = true;
 			}
 
 			var state = _ctx.CreateState();
+
+			// Rebuild kinematic octree only when transforms have changed.
+			if (_ctx.KinematicOctreeDirty) {
+				PhysicsKinematics.RebuildOctree(ref _ctx.KinematicOctree, ref state);
+				_ctx.KinematicOctreeDirty = false;
+			}
 
 			// process input
 			ProcessInputActions(ref state);
@@ -490,6 +506,7 @@ namespace VisualPinball.Unity
 				ref state,
 				ref _ctx.PhysicsEnv,
 				ref _ctx.OverlappingColliders,
+				ref _ctx.KinematicOctree,
 				_ctx.PlayfieldBounds,
 				currentTimeUsec
 			);

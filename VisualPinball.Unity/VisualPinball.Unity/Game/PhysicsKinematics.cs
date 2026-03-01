@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using NativeTrees;
-using Unity.Collections;
 using Unity.Profiling;
 using VisualPinball.Unity.Collections;
 
@@ -42,17 +41,26 @@ namespace VisualPinball.Unity
 			PerfMarkerTransform.End();
 		}
 
-		internal static NativeOctree<int> CreateOctree(ref PhysicsState state, in AABB playfieldBounds)
+		/// <summary>
+		/// Clear and repopulate an existing persistent kinematic octree.
+		/// </summary>
+		/// <remarks>
+		/// The kinematic octree is allocated once with
+		/// <c>Allocator.Persistent</c> and reused across frames. This
+		/// method clears and re-inserts all entries, avoiding per-tick
+		/// allocation overhead. It is only called when kinematic
+		/// transforms have actually changed.
+		/// </remarks>
+		internal static void RebuildOctree(ref NativeOctree<int> octree, ref PhysicsState state)
 		{
 			PerfMarkerBallOctree.Begin();
-			var octree = new NativeOctree<int>(playfieldBounds, 1024, 10, Allocator.TempJob);
+			octree.Clear();
 
 			for (var i = 0; i < state.KinematicCollidersAtIdentity.Length; i++) {
 				octree.Insert(i, state.KinematicCollidersAtIdentity.GetTransformedAabb(i, ref state.KinematicTransforms));
 			}
 
 			PerfMarkerBallOctree.End();
-			return octree;
 		}
 	}
 }
