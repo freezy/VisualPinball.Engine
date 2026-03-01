@@ -167,6 +167,7 @@ public class FramePacingGraph : MonoBehaviour
 	SimulationThreadComponent simulationThreadComponent;
 	NativeInputManager nativeInputManager;
 	IGamelogicPerformanceStats gamelogicPerformanceStats;
+	bool gamelogicPerformanceStatsResolved;
 	float simulationThreadSpeedX;
 	float simulationThreadHz;
 	float inputThreadHz;
@@ -444,10 +445,11 @@ public class FramePacingGraph : MonoBehaviour
 		}
 		inputThreadHz = nativeInputManager?.TargetPollingHz ?? 0f;
 
-		if (gamelogicPerformanceStats == null) {
+		if (!gamelogicPerformanceStatsResolved) {
 			var player = FindFirstObjectByType<Player>();
 			if (player != null) {
 				gamelogicPerformanceStats = player.GamelogicEngine as IGamelogicPerformanceStats;
+				gamelogicPerformanceStatsResolved = true;
 			}
 		}
 

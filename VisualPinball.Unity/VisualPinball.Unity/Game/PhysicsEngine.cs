@@ -415,14 +415,21 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Apply physics state to GameObjects (must be called from main thread).
 		/// This updates transforms based on physics simulation results.
+		/// Non-blocking: if the simulation thread currently holds the physics
+		/// lock, this frame's visual update is skipped (next frame will catch up).
 		/// </summary>
 		public void ApplyMovements()
 		{
 			if (!_useExternalTiming || !_isInitialized) return;
 
-			lock (_physicsLock) {
+			if (!Monitor.TryEnter(_physicsLock)) {
+				return; // sim thread is mid-tick; skip this frame
+			}
+			try {
 				var state = CreateState();
 				ApplyAllMovements(ref state);
+			} finally {
+				Monitor.Exit(_physicsLock);
 			}
 		}
 
@@ -441,6 +448,8 @@ namespace VisualPinball.Unity
 
 		/// <summary>
 		/// Drain physics-originated managed callbacks on the Unity main thread.
+		/// Non-blocking: if the simulation thread currently holds the physics
+		/// lock, callbacks are deferred to the next frame.
 		/// </summary>
 		private void DrainExternalThreadCallbacks()
 		{
@@ -448,7 +457,10 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			lock (_physicsLock) {
+			if (!Monitor.TryEnter(_physicsLock)) {
+				return; // sim thread is mid-tick; drain next frame
+			}
+			try {
 				while (_eventQueue.Ref.TryDequeue(out var eventData)) {
 					_player.OnEvent(in eventData);
 				}
@@ -461,6 +473,8 @@ namespace VisualPinball.Unity
 						}
 					}
 				}
+			} finally {
+				Monitor.Exit(_physicsLock);
 			}
 		}
 

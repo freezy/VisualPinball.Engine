@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using NLog;
 using Logger = NLog.Logger;
@@ -32,7 +33,7 @@ namespace VisualPinball.Unity.Simulation
 		private bool _polling = false;
 		private int _pollIntervalUs = 0;
 		private const double PerfSampleWindowSeconds = 0.25;
-		private long _inputPerfWindowStartTicks = DateTime.UtcNow.Ticks;
+		private long _inputPerfWindowStartTicks = Stopwatch.GetTimestamp();
 		private int _inputEventsInWindow;
 		private float _actualEventRateHz;
 
@@ -248,9 +249,9 @@ namespace VisualPinball.Unity.Simulation
 		{
 			Interlocked.Increment(ref _inputEventsInWindow);
 
-			var nowTicks = DateTime.UtcNow.Ticks;
+			var nowTicks = Stopwatch.GetTimestamp();
 			var startTicks = Volatile.Read(ref _inputPerfWindowStartTicks);
-			var elapsedSeconds = (nowTicks - startTicks) / (double)TimeSpan.TicksPerSecond;
+			var elapsedSeconds = (nowTicks - startTicks) / (double)Stopwatch.Frequency;
 			if (elapsedSeconds < PerfSampleWindowSeconds) {
 				return;
 			}

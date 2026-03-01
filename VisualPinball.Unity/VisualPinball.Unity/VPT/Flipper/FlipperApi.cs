@@ -70,8 +70,8 @@ namespace VisualPinball.Unity
 
 		internal FlipperApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
-			_mainCoil = new DeviceCoil(Player, OnMainCoilEnabled, OnMainCoilDisabled, OnMainCoilEnabled, OnMainCoilDisabled);
-			_holdCoil = new DeviceCoil(Player, OnHoldCoilEnabled, OnHoldCoilDisabled, OnHoldCoilEnabled, OnHoldCoilDisabled);
+			_mainCoil = new DeviceCoil(Player, OnMainCoilEnabled, OnMainCoilDisabled, OnMainCoilEnabledSimThread, OnMainCoilDisabledSimThread);
+			_holdCoil = new DeviceCoil(Player, OnHoldCoilEnabled, OnHoldCoilDisabled, OnHoldCoilEnabledSimThread, OnHoldCoilDisabledSimThread);
 		}
 
 		void IApi.OnInit(BallManager ballManager)
@@ -138,6 +138,52 @@ namespace VisualPinball.Unity
 		private void OnMainCoilDisabled() => OnCoil(false, false);
 		private void OnHoldCoilEnabled() => OnCoil(true, true);
 		private void OnHoldCoilDisabled() => OnCoil(false, true);
+
+		// Simulation-thread coil callbacks: only set the solenoid flag and
+		// enable-rotate-event, matching vpinball's SetSolenoidState pattern.
+		// The flipper correction timestamps (StartRotateToEndTime, AngleAtRotateToEnd)
+		// are NOT set here because they depend on PhysicsEngine.TimeMsec which is
+		// only meaningful inside a physics tick. The physics loop will read
+		// Solenoid.Value in UpdateVelocities and handle movement from there.
+		private void OnMainCoilEnabledSimThread() => OnCoilSimThread(true, false);
+		private void OnMainCoilDisabledSimThread() => OnCoilSimThread(false, false);
+		private void OnHoldCoilEnabledSimThread() => OnCoilSimThread(true, true);
+		private void OnHoldCoilDisabledSimThread() => OnCoilSimThread(false, true);
+
+		private void OnCoilSimThread(bool enabled, bool isHoldCoil)
+		{
+			if (MainComponent.IsDualWound) {
+				OnDualWoundCoilSimThread(enabled, isHoldCoil);
+			} else {
+				OnSingleWoundCoilSimThread(enabled);
+			}
+		}
+
+		private void OnSingleWoundCoilSimThread(bool enabled)
+		{
+			ref var state = ref PhysicsEngine.FlipperState(ItemId);
+			state.Movement.EnableRotateEvent = enabled ? (sbyte)1 : (sbyte)-1;
+			state.Solenoid.Value = enabled;
+		}
+
+		private void OnDualWoundCoilSimThread(bool enabled, bool isHoldCoil)
+		{
+			ref var state = ref PhysicsEngine.FlipperState(ItemId);
+			if (enabled) {
+				if (!isHoldCoil) {
+					state.Movement.EnableRotateEvent = 1;
+					state.Solenoid.Value = true;
+				}
+			} else {
+				if (!isHoldCoil) {
+					state.Movement.EnableRotateEvent = -1;
+					state.Solenoid.Value = false;
+				}
+				// Note: dual-wound hold coil release with EOS handling requires
+				// switch events which are main-thread only. The sim-thread path
+				// handles the common single-wound and main-coil cases.
+			}
+		}
 
 		private void OnCoil(bool enabled, bool isHoldCoil)
 		{
