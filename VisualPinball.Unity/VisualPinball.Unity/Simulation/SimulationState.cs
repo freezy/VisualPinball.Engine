@@ -8,7 +8,6 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 
 namespace VisualPinball.Unity.Simulation
