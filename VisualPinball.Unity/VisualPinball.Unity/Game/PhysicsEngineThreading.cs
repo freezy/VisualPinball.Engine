@@ -116,7 +116,8 @@ namespace VisualPinball.Unity
 				ref _ctx.PhysicsEnv,
 				ref _ctx.OverlappingColliders,
 				ref _ctx.KinematicOctree,
-				_ctx.PlayfieldBounds,
+				ref _ctx.BallOctree,
+				ref _ctx.PhysicsCycle,
 				currentTimeUsec
 			);
 
@@ -507,7 +508,8 @@ namespace VisualPinball.Unity
 				ref _ctx.PhysicsEnv,
 				ref _ctx.OverlappingColliders,
 				ref _ctx.KinematicOctree,
-				_ctx.PlayfieldBounds,
+				ref _ctx.BallOctree,
+				ref _ctx.PhysicsCycle,
 				currentTimeUsec
 			);
 

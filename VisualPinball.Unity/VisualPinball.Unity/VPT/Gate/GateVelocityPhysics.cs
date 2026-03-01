@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 					movementState.AngleSpeed = 0.0f;
 				}
 				if (math.abs(movementState.AngleSpeed) != 0.0f && movementState.Angle != state.AngleMin) {
-					movementState.AngleSpeed -= math.sin(movementState.Angle) * state.GravityFactor * (float)(PhysicsConstants.PhysFactor / 100.0); // Center of gravity towards bottom of object, makes it stop vertical
+					movementState.AngleSpeed -= math.sin(movementState.Angle) * state.GravityFactor * (PhysicsConstants.PhysFactor / 100.0f); // Center of gravity towards bottom of object, makes it stop vertical
 					movementState.AngleSpeed *= state.Damping;
 				}
 			}

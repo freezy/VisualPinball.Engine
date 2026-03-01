@@ -24,7 +24,7 @@ namespace VisualPinball.Unity
 		internal static void UpdateVelocities(ref SpinnerMovementState movement, in SpinnerStaticState state)
 		{
 			// Center of gravity towards bottom of object, makes it stop vertical
-			movement.AngleSpeed -= math.sin(movement.Angle) * (float)(0.0025 * PhysicsConstants.PhysFactor);
+			movement.AngleSpeed -= math.sin(movement.Angle) * (0.0025f * PhysicsConstants.PhysFactor);
 			movement.AngleSpeed *= state.Damping;
 		}
 	}

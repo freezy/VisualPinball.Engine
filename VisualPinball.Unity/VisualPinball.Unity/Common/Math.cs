@@ -15,8 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Runtime.CompilerServices;
-using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Mathematics;
 
 namespace VisualPinball.Unity
@@ -75,13 +73,16 @@ namespace VisualPinball.Unity
 			return (float) _random.NextDouble();
 		}
 
+		/// <summary>
+		/// Returns true if <paramref name="f"/> is negative zero (-0.0f).
+		/// </summary>
+		/// <remarks>
+		/// IEEE 754: -0.0f has bit pattern 0x80000000 (sign bit set, all other bits zero).
+		/// </remarks>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public static bool Sign(float f)
 		{
-			var floats = new NativeArray<float>(1, Allocator.TempJob) { [0] = f };
-			var b = floats.Reinterpret<byte>(UnsafeUtility.SizeOf<float>());
-			var sign = (b[3] & 0x80) == 0x80 && (b[2] & 0x00) == 0x00 && (b[1] & 0x00) == 0x00 && (b[0] & 0x00) == 0x00;
-			floats.Dispose();
-			return sign;
+			return math.asint(f) == unchecked((int)0x80000000);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Mathematics;
-using UnityEngine;
 
 namespace VisualPinball.Unity
 {
@@ -50,14 +49,14 @@ namespace VisualPinball.Unity
 			VPOrthonormalize(ref ball.BallOrientationForUnity);
 		}
 
-		private static void VPOrthonormalize(ref float3x3 orientation) 
+		private static void VPOrthonormalize(ref float3x3 orientation)
 		{
-			Vector3 vX = new Vector3(orientation.c0.x, orientation.c1.x, orientation.c2.x);
-			Vector3 vY = new Vector3(orientation.c0.y, orientation.c1.y, orientation.c2.y);
-			Vector3 vZ = Vector3.Cross(vX, vY);
-			vX = Vector3.Normalize(vX);
-			vZ = Vector3.Normalize(vZ);
-			vY = Vector3.Cross(vZ, vX);
+			var vX = new float3(orientation.c0.x, orientation.c1.x, orientation.c2.x);
+			var vY = new float3(orientation.c0.y, orientation.c1.y, orientation.c2.y);
+			var vZ = math.cross(vX, vY);
+			vX = math.normalize(vX);
+			vZ = math.normalize(vZ);
+			vY = math.cross(vZ, vX);
 
 			orientation.c0.x = vX.x;
 			orientation.c0.y = vY.x;
@@ -68,7 +67,6 @@ namespace VisualPinball.Unity
 			orientation.c2.x = vX.z;
 			orientation.c2.y = vY.z;
 			orientation.c2.z = vZ.z;
-
 		}
 
 		private static float3x3 CreateSkewSymmetric(in float3 pv3D)

@@ -26,17 +26,16 @@ namespace VisualPinball.Unity
 		private static readonly ProfilerMarker PerfMarkerBallOctree = new("CreateBallOctree");
 		private static readonly ProfilerMarker PerfMarkerDynamicBroadPhase = new("DynamicBroadPhase");
 
-		internal static NativeOctree<int> CreateOctree(ref NativeParallelHashMap<int, BallState> balls, in AABB playfieldBounds)
+		internal static void RebuildOctree(ref NativeOctree<int> octree, ref NativeParallelHashMap<int, BallState> balls)
 		{
 			PerfMarkerBallOctree.Begin();
-			var octree = new NativeOctree<int>(playfieldBounds, 16, 10, Allocator.TempJob);
+			octree.Clear();
 			using var enumerator = balls.GetEnumerator();
 			while (enumerator.MoveNext()) {
 				ref var ball = ref enumerator.Current.Value;
 				octree.Insert(ball.Id, ball.Aabb);
 			}
 			PerfMarkerBallOctree.End();
-			return octree;
 		}
 
 		internal static void FindOverlaps(in NativeOctree<int> octree, in BallState ball, ref NativeParallelHashSet<int> overlappingBalls, ref NativeParallelHashMap<int, BallState> balls)
@@ -44,13 +43,19 @@ namespace VisualPinball.Unity
 			PerfMarkerDynamicBroadPhase.Begin();
 			overlappingBalls.Clear();
 			octree.RangeAABBUnique(ball.Aabb, overlappingBalls);
-			using var ob = overlappingBalls.ToNativeArray(Allocator.TempJob);
-			for (var i = 0; i < ob.Length; i ++) {
-				var overlappingBallId = ob[i];
+
+			// Collect IDs to remove into a stack-allocated list to avoid copying the hash set to a NativeArray.
+			var toRemove = new FixedList64Bytes<int>();
+			using var enumerator = overlappingBalls.GetEnumerator();
+			while (enumerator.MoveNext()) {
+				var overlappingBallId = enumerator.Current;
 				ref var overlappingBall = ref balls.GetValueByRef(overlappingBallId);
 				if (overlappingBallId == ball.Id || overlappingBall.IsFrozen) {
-					overlappingBalls.Remove(overlappingBallId);
+					toRemove.Add(overlappingBallId);
 				}
+			}
+			for (var i = 0; i < toRemove.Length; i++) {
+				overlappingBalls.Remove(toRemove[i]);
 			}
 			PerfMarkerDynamicBroadPhase.End();
 		}
