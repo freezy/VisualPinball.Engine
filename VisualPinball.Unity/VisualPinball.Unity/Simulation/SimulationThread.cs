@@ -35,6 +35,8 @@ namespace VisualPinball.Unity.Simulation
 
 		private const long TickIntervalUsec = 1000; // 1ms = 1000 microseconds
 		private const long BusyWaitThresholdUsec = 100; // Last 100us busy-wait for precision
+		private const int MaxCoilOutputsPerTick = 128;
+		private const long TimeFenceUpdateIntervalUsec = 5_000;
 
 		#endregion
 
@@ -43,7 +45,9 @@ namespace VisualPinball.Unity.Simulation
 		private readonly PhysicsEngine _physicsEngine;
 		private readonly IGamelogicEngine _gamelogicEngine;
 		private readonly IGamelogicTimeFence _timeFence;
+		private readonly IGamelogicCoilOutputFeed _coilOutputFeed;
 		private readonly IGamelogicInputDispatcher _inputDispatcher;
+		private readonly Action<string, bool> _simulationCoilDispatcher;
 		private readonly InputEventBuffer _inputBuffer;
 		private readonly SimulationState _sharedState;
 
@@ -56,6 +60,7 @@ namespace VisualPinball.Unity.Simulation
 		private readonly long _busyWaitThresholdTicks;
 		private long _lastTickTicks;
 		private long _simulationTimeUsec;
+		private long _lastTimeFenceUsec = long.MinValue;
 
 		// Input state tracking (allocation-free indexed arrays)
 		private readonly bool[] _actionStates;
@@ -90,12 +95,15 @@ namespace VisualPinball.Unity.Simulation
 
 		#region Constructor
 
-		public SimulationThread(PhysicsEngine physicsEngine, IGamelogicEngine gamelogicEngine)
+		public SimulationThread(PhysicsEngine physicsEngine, IGamelogicEngine gamelogicEngine,
+			Action<string, bool> simulationCoilDispatcher)
 		{
 			_physicsEngine = physicsEngine ?? throw new ArgumentNullException(nameof(physicsEngine));
 			_gamelogicEngine = gamelogicEngine;
 			_timeFence = gamelogicEngine as IGamelogicTimeFence;
+			_coilOutputFeed = gamelogicEngine as IGamelogicCoilOutputFeed;
 			_inputDispatcher = GamelogicInputDispatcherFactory.Create(gamelogicEngine);
+			_simulationCoilDispatcher = simulationCoilDispatcher;
 
 			_inputBuffer = new InputEventBuffer(1024);
 			_sharedState = new SimulationState();
@@ -134,6 +142,7 @@ namespace VisualPinball.Unity.Simulation
 			_gamelogicStarted = _gamelogicEngine != null;
 			_lastTickTicks = Stopwatch.GetTimestamp();
 			_simulationTimeUsec = 0;
+			_lastTimeFenceUsec = long.MinValue;
 			_tickCount = 0;
 			_inputEventsProcessed = 0;
 			_inputEventsDropped = 0;
@@ -339,18 +348,26 @@ namespace VisualPinball.Unity.Simulation
 		/// </summary>
 		private void SimulationTick()
 		{
-			_timeFence?.SetTimeFence(_simulationTimeUsec / 1_000_000.0);
-
 			// 0. Process switch events that originated on Unity/main thread.
 			ProcessExternalSwitchEvents();
 
 			// 1. Process input events from ring buffer
 			ProcessInputEvents();
 
-			// 2. Update physics simulation
+			// 2. Apply low-latency coil outputs from gamelogic to simulation-side handlers.
+			ProcessGamelogicOutputs();
+
+			// 3. Update physics simulation
 			UpdatePhysics();
 
-			// 3. Write to shared state and swap buffers
+			// 4. Move the emulation fence after inputs+outputs+physics.
+			// Throttle updates to reduce fence wake/sleep churn in PinMAME.
+			if (_timeFence != null && (_lastTimeFenceUsec == long.MinValue || _simulationTimeUsec - _lastTimeFenceUsec >= TimeFenceUpdateIntervalUsec)) {
+				_timeFence.SetTimeFence(_simulationTimeUsec / 1_000_000.0);
+				_lastTimeFenceUsec = _simulationTimeUsec;
+			}
+
+			// 5. Write to shared state and swap buffers
 			WriteSharedState();
 
 			// Increment simulation time
@@ -392,6 +409,19 @@ namespace VisualPinball.Unity.Simulation
 			if (_gamelogicEngine != null && _gamelogicStarted && _needsInitialSwitchSync) {
 				SyncAllMappedSwitches();
 				_needsInitialSwitchSync = false;
+			}
+		}
+
+		private void ProcessGamelogicOutputs()
+		{
+			if (_coilOutputFeed == null || _simulationCoilDispatcher == null) {
+				return;
+			}
+
+			var processed = 0;
+			while (processed < MaxCoilOutputsPerTick && _coilOutputFeed.TryDequeueCoilEvent(out var coilEvent)) {
+				_simulationCoilDispatcher(coilEvent.Id, coilEvent.IsEnabled);
+				processed++;
 			}
 		}
 

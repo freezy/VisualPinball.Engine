@@ -30,6 +30,11 @@ namespace VisualPinball.Unity.Simulation
 		private volatile SimulationThread _simulationThread;
 		private bool _initialized = false;
 		private bool _polling = false;
+		private int _pollIntervalUs = 0;
+		private const double PerfSampleWindowSeconds = 0.25;
+		private long _inputPerfWindowStartTicks = DateTime.UtcNow.Ticks;
+		private int _inputEventsInWindow;
+		private float _actualEventRateHz;
 
 		// Input configuration
 		private readonly List<NativeInputApi.InputBinding> _bindings = new();
@@ -58,6 +63,14 @@ namespace VisualPinball.Unity.Simulation
 				return _instance;
 			}
 		}
+
+		public static NativeInputManager TryGetExistingInstance()
+		{
+			return Volatile.Read(ref _instance);
+		}
+
+		public float TargetPollingHz => _polling && _pollIntervalUs > 0 ? 1000000f / _pollIntervalUs : 0f;
+		public float ActualEventRateHz => _polling ? Volatile.Read(ref _actualEventRateHz) : 0f;
 
 		private NativeInputManager()
 		{
@@ -160,6 +173,7 @@ namespace VisualPinball.Unity.Simulation
 			}
 
 			_polling = true;
+			_pollIntervalUs = pollIntervalUs;
 			Logger.Info($"{LogPrefix} [NativeInputManager] Started polling at {pollIntervalUs}us interval ({1000000 / pollIntervalUs} Hz)");
 
 			return true;
@@ -174,6 +188,8 @@ namespace VisualPinball.Unity.Simulation
 
 			NativeInputApi.VpeInputStopPolling();
 			_polling = false;
+			_pollIntervalUs = 0;
+			Volatile.Write(ref _actualEventRateHz, 0f);
 
 			Logger.Info($"{LogPrefix} [NativeInputManager] Stopped polling");
 		}
@@ -224,7 +240,28 @@ namespace VisualPinball.Unity.Simulation
 
 			// Forward to simulation thread via ring buffer
 			var instance = Volatile.Read(ref _instance);
+			instance?.MarkInputEventActivity();
 			instance?._simulationThread?.EnqueueInputEvent(evt);
+		}
+
+		private void MarkInputEventActivity()
+		{
+			Interlocked.Increment(ref _inputEventsInWindow);
+
+			var nowTicks = DateTime.UtcNow.Ticks;
+			var startTicks = Volatile.Read(ref _inputPerfWindowStartTicks);
+			var elapsedSeconds = (nowTicks - startTicks) / (double)TimeSpan.TicksPerSecond;
+			if (elapsedSeconds < PerfSampleWindowSeconds) {
+				return;
+			}
+
+			if (Interlocked.CompareExchange(ref _inputPerfWindowStartTicks, nowTicks, startTicks) != startTicks) {
+				return;
+			}
+
+			var eventsInWindow = Interlocked.Exchange(ref _inputEventsInWindow, 0);
+			var rate = elapsedSeconds > 0.0 ? eventsInWindow / elapsedSeconds : 0.0;
+			Volatile.Write(ref _actualEventRateHz, (float)rate);
 		}
 
 		#endregion

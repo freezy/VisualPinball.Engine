@@ -185,6 +185,32 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		internal bool HandleCoilEventSimulationThread(string id, bool isEnabled)
+		{
+			if (!_coilAssignments.ContainsKey(id)) {
+				return false;
+			}
+
+			var dispatched = false;
+			foreach (var destConfig in _coilAssignments[id]) {
+				if (destConfig.HasDynamicWire || destConfig.IsLampCoil || destConfig.Device == null) {
+					continue;
+				}
+
+				if (!_coilDevices.ContainsKey(destConfig.Device)) {
+					continue;
+				}
+
+				var coil = _coilDevices[destConfig.Device].Coil(destConfig.DeviceItem);
+				if (coil is ISimulationThreadCoil simulationThreadCoil) {
+					simulationThreadCoil.OnCoilSimulationThread(isEnabled);
+					dispatched = true;
+				}
+			}
+
+			return dispatched;
+		}
+
 		public void OnDestroy()
 		{
 			if (_coilAssignments.Count > 0 && _gamelogicEngine != null) {

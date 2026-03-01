@@ -15,30 +15,46 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Threading;
 using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	public class DeviceCoil : IApiCoil
+	public interface ISimulationThreadCoil
 	{
-		public bool IsEnabled;
+		void OnCoilSimulationThread(bool enabled);
+	}
+
+	public class DeviceCoil : IApiCoil
+		, ISimulationThreadCoil
+	{
+		private int _isEnabled;
+		private int _simulationEnabled;
+
+		public bool IsEnabled => Volatile.Read(ref _isEnabled) != 0;
 		public event EventHandler<NoIdCoilEventArgs> CoilStatusChanged;
 
 		protected Action OnEnable;
 		protected Action OnDisable;
+		protected Action OnEnableSimulationThread;
+		protected Action OnDisableSimulationThread;
 
 		private readonly Player _player;
 
-		public DeviceCoil(Player player, Action onEnable = null, Action onDisable = null)
+		public DeviceCoil(Player player, Action onEnable = null, Action onDisable = null,
+			Action onEnableSimulationThread = null, Action onDisableSimulationThread = null)
 		{
 			_player = player;
 			OnEnable = onEnable;
 			OnDisable = onDisable;
+			OnEnableSimulationThread = onEnableSimulationThread;
+			OnDisableSimulationThread = onDisableSimulationThread;
 		}
 
 		public void OnCoil(bool enabled)
 		{
-			IsEnabled = enabled;
+			Interlocked.Exchange(ref _isEnabled, enabled ? 1 : 0);
+
 			if (enabled) {
 				OnEnable?.Invoke();
 			} else {
@@ -48,6 +64,19 @@ namespace VisualPinball.Unity
 #if UNITY_EDITOR
 			RefreshUI();
 #endif
+		}
+
+		public void OnCoilSimulationThread(bool enabled)
+		{
+			if (Interlocked.Exchange(ref _simulationEnabled, enabled ? 1 : 0) == (enabled ? 1 : 0)) {
+				return;
+			}
+
+			if (enabled) {
+				OnEnableSimulationThread?.Invoke();
+			} else {
+				OnDisableSimulationThread?.Invoke();
+			}
 		}
 
 		public void OnChange(bool enabled) => OnCoil(enabled);

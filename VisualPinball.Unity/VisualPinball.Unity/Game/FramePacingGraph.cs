@@ -1,7 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using VisualPinball.Unity;
+using VisualPinball.Unity.Simulation;
+using Math = System.Math;
 
 [DefaultExecutionOrder(10000)]
 public class FramePacingGraph : MonoBehaviour
@@ -161,6 +164,17 @@ public class FramePacingGraph : MonoBehaviour
 	// Cached GUIStyle
 	GUIStyle labelStyle;
 
+	SimulationThreadComponent simulationThreadComponent;
+	NativeInputManager nativeInputManager;
+	IGamelogicPerformanceStats gamelogicPerformanceStats;
+	float simulationThreadSpeedX;
+	float simulationThreadHz;
+	float inputThreadHz;
+	float inputThreadActualHz;
+	float pinMameCallbackHz;
+	int pinMameRunState;
+	bool pinMameStatsValid;
+
 	// 2) Awake(): build a GUIStyle without GUI.skin and set initialized = true at the end
 	void Awake()
 	{
@@ -273,6 +287,8 @@ public class FramePacingGraph : MonoBehaviour
 
 	void Update()
 	{
+		UpdateThreadSpeedStats();
+
 		// Get last frame timing
 		if (enableCpuGpuCollection)
 		{
@@ -409,6 +425,41 @@ public class FramePacingGraph : MonoBehaviour
 		}
 
 		return Time.unscaledDeltaTime * 1000f;
+	}
+
+	void UpdateThreadSpeedStats()
+	{
+		if (simulationThreadComponent == null) {
+			simulationThreadComponent = FindFirstObjectByType<SimulationThreadComponent>();
+		}
+
+		if (simulationThreadComponent != null) {
+			simulationThreadSpeedX = simulationThreadComponent.SimulationThreadSpeedX;
+			simulationThreadHz = simulationThreadComponent.SimulationThreadHz;
+			inputThreadActualHz = simulationThreadComponent.InputThreadActualHz;
+		}
+
+		if (nativeInputManager == null) {
+			nativeInputManager = NativeInputManager.TryGetExistingInstance();
+		}
+		inputThreadHz = nativeInputManager?.TargetPollingHz ?? 0f;
+
+		if (gamelogicPerformanceStats == null) {
+			var player = FindFirstObjectByType<Player>();
+			if (player != null) {
+				gamelogicPerformanceStats = player.GamelogicEngine as IGamelogicPerformanceStats;
+			}
+		}
+
+		if (gamelogicPerformanceStats != null && gamelogicPerformanceStats.TryGetPerformanceStats(out var stats)) {
+			pinMameStatsValid = true;
+			pinMameCallbackHz = stats.CallbackRateHz;
+			pinMameRunState = stats.RunState;
+		} else {
+			pinMameStatsValid = false;
+			pinMameCallbackHz = 0f;
+			pinMameRunState = 0;
+		}
 	}
 
 	void RecomputeStats(Metric m)
@@ -584,6 +635,10 @@ public class FramePacingGraph : MonoBehaviour
 			var m = customMetrics[i];
 			if (m != null && m.enabled && m.stats.valid) lines += 1;
 		}
+
+		// Thread speed lines
+		lines += 1; // section header
+		lines += 3; // sim/input/pinmame
 
 		// Height = top pad + header + N*(lineH) + bottom pad
 		float h = pad + headerH + (lines - 1) * lineH + pad;
@@ -861,6 +916,14 @@ public class FramePacingGraph : MonoBehaviour
 			if (m.enabled) DrawStatsLine(m, ref y, x, w);
 		}
 
+		GUI.color = axisTextColor;
+		GUI.Label(new Rect(x, y, w, fontSize + 6), "Thread speed", monoStyle);
+		y += fontSize + 4;
+
+		DrawThreadLine(ref y, x, w, "Simulation", $"{simulationThreadSpeedX:0.000}x ({simulationThreadHz:0.0} Hz)");
+		DrawThreadLine(ref y, x, w, "Input poll", inputThreadHz > 0f ? $"{inputThreadActualHz:0.0} Hz (target {inputThreadHz:0.0})" : "n/a");
+		DrawThreadLine(ref y, x, w, "PinMAME", pinMameStatsValid ? $"{pinMameCallbackHz:0.0} cb/s (run={pinMameRunState})" : "n/a");
+
 		GUI.color = Color.white;
 	}
 
@@ -880,6 +943,13 @@ public class FramePacingGraph : MonoBehaviour
 		var line = string.Format("{0} {1,6:0.00} {2,6:0.00} {3,6:0.00} {4,6:0.00} {5,6:0.00}",
 			name, m.stats.avg, m.stats.min, m.stats.max, m.stats.p95, m.stats.p99);
 		GUI.Label(new Rect(x, y, w, fontSize + 6), line, monoStyle);
+		y += fontSize + 4;
+	}
+
+	void DrawThreadLine(ref float y, float x, float w, string name, string value)
+	{
+		var label = string.Format("{0,-12} {1}", TruncPad(name, 12), value);
+		GUI.Label(new Rect(x, y, w, fontSize + 6), label, monoStyle);
 		y += fontSize + 4;
 	}
 

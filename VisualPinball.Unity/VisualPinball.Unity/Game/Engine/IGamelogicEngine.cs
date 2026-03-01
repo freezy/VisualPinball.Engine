@@ -183,6 +183,39 @@ namespace VisualPinball.Unity
 		void SetTimeFence(double timeInSeconds);
 	}
 
+	/// <summary>
+	/// Optional capability interface for game logic engines that expose
+	/// low-latency coil output changes for simulation-thread consumption.
+	/// </summary>
+	public interface IGamelogicCoilOutputFeed
+	{
+		/// <summary>
+		/// Try to dequeue a coil output change.
+		/// </summary>
+		/// <param name="coilEvent">The dequeued coil event.</param>
+		/// <returns>True when a coil event was dequeued.</returns>
+		bool TryDequeueCoilEvent(out CoilEventArgs coilEvent);
+	}
+
+	public readonly struct GamelogicPerformanceStats
+	{
+		public readonly bool IsRunning;
+		public readonly float CallbackRateHz;
+		public readonly int RunState;
+
+		public GamelogicPerformanceStats(bool isRunning, float callbackRateHz, int runState)
+		{
+			IsRunning = isRunning;
+			CallbackRateHz = callbackRateHz;
+			RunState = runState;
+		}
+	}
+
+	public interface IGamelogicPerformanceStats
+	{
+		bool TryGetPerformanceStats(out GamelogicPerformanceStats stats);
+	}
+
 	public class RequestedDisplays
 	{
 		public readonly DisplayConfig[] Displays;
