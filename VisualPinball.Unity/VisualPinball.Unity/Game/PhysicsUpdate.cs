@@ -67,7 +67,7 @@ namespace VisualPinball.Unity
 		// public bool SwapBallCollisionHandling;
 
 		[BurstCompile]
-		public static void Execute(ref PhysicsState state, ref PhysicsEnv env, ref NativeParallelHashSet<int> overlappingColliders, in AABB playfieldBounds, ulong initialTimeUsec)
+		public static void Execute(ref PhysicsState state, ref PhysicsEnv env, ref NativeParallelHashSet<int> overlappingColliders, ref NativeOctree<int> kineticOctree, in AABB playfieldBounds, ulong initialTimeUsec)
 		{
 			// ref var state = ref UnsafeUtility.AsRef<PhysicsState>(statePtr.ToPointer());
 			// ref var env = ref UnsafeUtility.AsRef<PhysicsEnv>(envPtr.ToPointer());
@@ -75,9 +75,9 @@ namespace VisualPinball.Unity
 
 			using var cycle = new PhysicsCycle(Allocator.TempJob);
 
-			// create octree of kinematic-to-ball collision. should be okay here, since kinetic colliders don't transform more than once per frame.
+			// Transform kinematic colliders that have changed since the last frame.
+			// This is a no-op on ticks where no transforms were staged.
 			PhysicsKinematics.TransformFullyTransformableColliders(ref state);
-			var kineticOctree = PhysicsKinematics.CreateOctree(ref state, in playfieldBounds);
 
 			while (env.CurPhysicsFrameTime < initialTimeUsec)  // loop here until current (real) time matches the physics (simulated) time
 			{
@@ -187,8 +187,6 @@ namespace VisualPinball.Unity
 				env.CurPhysicsFrameTime = env.NextPhysicsFrameTime;
 				env.NextPhysicsFrameTime += PhysicsConstants.PhysicsStepTime;
 			}
-
-			kineticOctree.Dispose();
 		}
 	}
 }

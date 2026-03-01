@@ -46,6 +46,27 @@ namespace VisualPinball.Unity
 		public AABB PlayfieldBounds;
 		public InsideOfs InsideOfs;
 		public NativeOctree<int> Octree;
+
+		/// <summary>
+		/// Persistent octree for kinematic-to-ball collision detection.
+		/// </summary>
+		/// <remarks>
+		/// Created once in <see cref="PhysicsEngine.Start"/> with
+		/// <c>Allocator.Persistent</c>. Cleared and rebuilt only when
+		/// <see cref="KinematicOctreeDirty"/> is set, rather than every
+		/// physics tick. This reduces overhead from ~1 kHz to ~60 Hz.
+		/// </remarks>
+		public NativeOctree<int> KinematicOctree;
+
+		/// <summary>
+		/// Whether the kinematic octree needs to be rebuilt before the
+		/// next physics tick. Set to <c>true</c> when kinematic transforms
+		/// change (either via pending staging in threaded mode or via
+		/// direct detection in single-threaded mode). Initialized to
+		/// <c>true</c> so the first tick builds the octree.
+		/// </summary>
+		public bool KinematicOctreeDirty = true;
+
 		public NativeColliders Colliders;
 		public NativeColliders KinematicColliders;
 		public NativeColliders KinematicCollidersAtIdentity;
@@ -235,6 +256,7 @@ namespace VisualPinball.Unity
 			KinematicCollidersAtIdentity.Dispose();
 			InsideOfs.Dispose();
 			Octree.Dispose();
+			KinematicOctree.Dispose();
 			BumperStates.Ref.Dispose();
 			DropTargetStates.Ref.Dispose();
 			FlipperStates.Ref.Dispose();

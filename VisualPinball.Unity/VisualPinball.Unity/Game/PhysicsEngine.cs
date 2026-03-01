@@ -424,6 +424,9 @@ namespace VisualPinball.Unity
 			}
 			Debug.Log($"Octree of {_ctx.Colliders.Length} constructed (colliders: {elapsedMs}ms, tree: {sw.Elapsed.TotalMilliseconds}ms).");
 
+			// create persistent kinematic octree (rebuilt only when kinematic transforms change)
+			_ctx.KinematicOctree = new NativeOctree<int>(_ctx.PlayfieldBounds, 1024, 10, Allocator.Persistent);
+
 			// get balls
 			var balls = GetComponentsInChildren<BallComponent>();
 			foreach (var ball in balls) {
