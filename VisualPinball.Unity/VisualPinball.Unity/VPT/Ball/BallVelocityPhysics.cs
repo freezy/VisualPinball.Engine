@@ -37,7 +37,7 @@ namespace VisualPinball.Unity
 					-2.0f
 				);
 			} else {
-				ball.Velocity += (float)PhysicsConstants.PhysFactor * gravity;
+				ball.Velocity += PhysicsConstants.PhysFactor * gravity;
 			}
 		}
 	}

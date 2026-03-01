@@ -67,20 +67,27 @@ namespace VisualPinball.Unity
 		// public bool SwapBallCollisionHandling;
 
 		[BurstCompile]
-		public static void Execute(ref PhysicsState state, ref PhysicsEnv env, ref NativeParallelHashSet<int> overlappingColliders, ref NativeOctree<int> kineticOctree, in AABB playfieldBounds, ulong initialTimeUsec)
+		public static void Execute(ref PhysicsState state, ref PhysicsEnv env, ref NativeParallelHashSet<int> overlappingColliders, ref NativeOctree<int> kineticOctree, ref NativeOctree<int> ballOctree, ref PhysicsCycle cycle, ulong initialTimeUsec)
 		{
 			// ref var state = ref UnsafeUtility.AsRef<PhysicsState>(statePtr.ToPointer());
 			// ref var env = ref UnsafeUtility.AsRef<PhysicsEnv>(envPtr.ToPointer());
 			// ref var overlappingColliders = ref UnsafeUtility.AsRef<NativeParallelHashSet<int>>(overlappingCollidersPtr.ToPointer());
 
-			using var cycle = new PhysicsCycle(Allocator.TempJob);
-
 			// Transform kinematic colliders that have changed since the last frame.
 			// This is a no-op on ticks where no transforms were staged.
 			PhysicsKinematics.TransformFullyTransformableColliders(ref state);
 
+			var subSteps = 0;
 			while (env.CurPhysicsFrameTime < initialTimeUsec)  // loop here until current (real) time matches the physics (simulated) time
 			{
+				// Safety cap: if we've been catching up for too many iterations (e.g. after
+				// a frame hitch), skip physics time forward to prevent cascading hitches.
+				if (++subSteps > PhysicsConstants.MaxSubSteps) {
+					env.CurPhysicsFrameTime = initialTimeUsec;
+					env.NextPhysicsFrameTime = initialTimeUsec + PhysicsConstants.PhysicsStepTime;
+					break;
+				}
+
 				env.TimeMsec = (uint)((env.CurPhysicsFrameTime - env.StartTimeUsec) / 1000);
 				var physicsDiffTime = (float)((env.NextPhysicsFrameTime - env.CurPhysicsFrameTime) * (1.0 / PhysicsConstants.DefaultStepTime));
 
@@ -124,7 +131,7 @@ namespace VisualPinball.Unity
 				#endregion
 
 				// primary physics loop
-				cycle.Simulate(ref state, in playfieldBounds, ref overlappingColliders, ref kineticOctree, physicsDiffTime);
+				cycle.Simulate(ref state, ref overlappingColliders, ref kineticOctree, ref ballOctree, physicsDiffTime);
 
 				// ball trail, keep old pos of balls
 				using (var enumerator = state.Balls.GetEnumerator()) {

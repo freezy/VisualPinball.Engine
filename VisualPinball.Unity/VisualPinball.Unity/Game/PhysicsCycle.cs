@@ -37,14 +37,14 @@ namespace VisualPinball.Unity
 			_contacts = new NativeList<ContactBufferElement>(a);
 		}
 
-		internal void Simulate(ref PhysicsState state, in AABB playfieldBounds, ref NativeParallelHashSet<int> overlappingColliders, ref NativeOctree<int> kineticOctree, float dTime)
+		internal void Simulate(ref PhysicsState state, ref NativeParallelHashSet<int> overlappingColliders, ref NativeOctree<int> kineticOctree, ref NativeOctree<int> ballOctree, float dTime)
 		{
 			PerfMarker.Begin();
 			var staticCounts = PhysicsConstants.StaticCnts;
 
-			// create octree of ball-to-ball collision
+			// rebuild octree of ball-to-ball collision (clear + re-insert, no alloc)
 			// it's okay to have this code outside of the inner loop, as the ball hitrects already include the maximum distance they can travel in that timespan
-			using var ballOctree = PhysicsDynamicBroadPhase.CreateOctree(ref state.Balls, in playfieldBounds);
+			PhysicsDynamicBroadPhase.RebuildOctree(ref ballOctree, ref state.Balls);
 
 			while (dTime > 0) {
 

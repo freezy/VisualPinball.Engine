@@ -262,7 +262,7 @@ namespace VisualPinball.Unity
 					AngleMin = math.radians(collComponent._angleMin),
 					AngleMax = math.radians(collComponent._angleMax),
 					Height = Position.z,
-					Damping = math.pow(math.clamp(collComponent.Damping, 0, 1), (float)PhysicsConstants.PhysFactor),
+					Damping = math.pow(math.clamp(collComponent.Damping, 0, 1), PhysicsConstants.PhysFactor),
 					GravityFactor = collComponent.GravityFactor,
 					TwoWay = collComponent.TwoWay,
 				} : default;

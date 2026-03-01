@@ -241,7 +241,7 @@ namespace VisualPinball.Unity
 		internal ref TriggerState TriggerState(int itemId) => ref _ctx.TriggerStates.Ref.GetValueByRef(itemId);
 		internal void SetBallInsideOf(int ballId, int itemId) => _ctx.InsideOfs.SetInsideOf(itemId, ballId);
 		internal bool HasBallsInsideOf(int itemId) => _ctx.InsideOfs.GetInsideCount(itemId) > 0;
-		internal List<int> GetBallsInsideOf(int itemId) => _ctx.InsideOfs.GetIdsOfBallsInsideItem(itemId);
+		internal FixedList64Bytes<int> GetBallsInsideOf(int itemId) => _ctx.InsideOfs.GetIdsOfBallsInsideItem(itemId);
 
 		internal uint TimeMsec => _ctx.PhysicsEnv.TimeMsec;
 		internal Random Random => _ctx.PhysicsEnv.Random;
@@ -424,8 +424,12 @@ namespace VisualPinball.Unity
 			}
 			Debug.Log($"Octree of {_ctx.Colliders.Length} constructed (colliders: {elapsedMs}ms, tree: {sw.Elapsed.TotalMilliseconds}ms).");
 
-			// create persistent kinematic octree (rebuilt only when kinematic transforms change)
+			// create persistent kinematic and ball octrees (cleared + rebuilt each use)
 			_ctx.KinematicOctree = new NativeOctree<int>(_ctx.PlayfieldBounds, 1024, 10, Allocator.Persistent);
+			_ctx.BallOctree = new NativeOctree<int>(_ctx.PlayfieldBounds, 1024, 10, Allocator.Persistent);
+
+			// create persistent physics cycle (holds contacts buffer)
+			_ctx.PhysicsCycle = new PhysicsCycle(Allocator.Persistent);
 
 			// get balls
 			var balls = GetComponentsInChildren<BallComponent>();

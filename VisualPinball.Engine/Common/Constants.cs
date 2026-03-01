@@ -66,7 +66,7 @@ namespace VisualPinball.Engine.Common
 		public const float DefaultStepTimeS = 0.01f;                           // DEFAULT_STEPTIME_S
 
 
-		public const double PhysFactor = PhysicsStepTimeS / DefaultStepTimeS;  // PHYS_FACTOR
+		public const float PhysFactor = (float)(PhysicsStepTimeS / DefaultStepTimeS);  // PHYS_FACTOR
 
 
 		public const float LowNormVel = 0.0001f;                               // C_LOWNORMVEL
@@ -117,6 +117,15 @@ namespace VisualPinball.Engine.Common
 		/// Precision level and cycles for interative calculations // acceptable contact time ... near zero time
 		/// </summary>
 		public const int Internations = 20;                                    // C_INTERATIONS
+
+		/// <summary>
+		/// Maximum number of physics sub-steps per <see cref="PhysicsStepTime"/> frame.
+		/// If the physics loop falls behind (e.g. due to a frame hitch), it
+		/// will catch up for at most this many iterations before skipping
+		/// physics time forward. Prevents hitch cascades.
+		/// <para>200 iterations = 200ms of physics at 1kHz step rate.</para>
+		/// </summary>
+		public const int MaxSubSteps = 200;                                    // PHYSICS_MAX_LOOPS
 	}
 
 	public static class InputConstants

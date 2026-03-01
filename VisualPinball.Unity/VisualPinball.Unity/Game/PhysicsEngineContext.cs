@@ -67,6 +67,27 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public bool KinematicOctreeDirty = true;
 
+		/// <summary>
+		/// Persistent octree for ball-to-ball collision detection.
+		/// </summary>
+		/// <remarks>
+		/// Created once in <see cref="PhysicsEngine.Start"/> with
+		/// <c>Allocator.Persistent</c>. Cleared and rebuilt every
+		/// physics cycle (ball positions change every tick), but avoids
+		/// per-tick allocation/deallocation overhead.
+		/// </remarks>
+		public NativeOctree<int> BallOctree;
+
+		/// <summary>
+		/// Persistent physics cycle struct, holding the contacts buffer.
+		/// </summary>
+		/// <remarks>
+		/// Created once in <see cref="PhysicsEngine.Start"/> with
+		/// <c>Allocator.Persistent</c>. Avoids per-tick allocation of
+		/// the internal <c>NativeList&lt;ContactBufferElement&gt;</c>.
+		/// </remarks>
+		public PhysicsCycle PhysicsCycle;
+
 		public NativeColliders Colliders;
 		public NativeColliders KinematicColliders;
 		public NativeColliders KinematicCollidersAtIdentity;
@@ -257,6 +278,8 @@ namespace VisualPinball.Unity
 			InsideOfs.Dispose();
 			Octree.Dispose();
 			KinematicOctree.Dispose();
+			BallOctree.Dispose();
+			PhysicsCycle.Dispose();
 			BumperStates.Ref.Dispose();
 			DropTargetStates.Ref.Dispose();
 			FlipperStates.Ref.Dispose();

@@ -234,7 +234,7 @@ namespace VisualPinball.Unity
 				? new SpinnerStaticState {
 					AngleMax = math.radians(AngleMax),
 					AngleMin = math.radians(AngleMin),
-					Damping = math.pow(Damping, (float)PhysicsConstants.PhysFactor),
+					Damping = math.pow(Damping, PhysicsConstants.PhysFactor),
 					Elasticity = collComponent.Elasticity,
 					Height = Position.z
 				} : default;
