@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using NLog;
 using UnityEngine;
 using Logger = NLog.Logger;
@@ -100,9 +101,13 @@ namespace VisualPinball.Unity
 					}
 				}
 
-				if (_coilAssignments.Count > 0) {
-					_gamelogicEngine.OnCoilChanged += HandleCoilEvent;
-				}
+			// Ensure all dictionary writes above are visible to the simulation
+			// thread before it can call HandleCoilEventSimulationThread().
+			Thread.MemoryBarrier();
+
+			if (_coilAssignments.Count > 0) {
+				_gamelogicEngine.OnCoilChanged += HandleCoilEvent;
+			}
 			}
 		}
 
@@ -215,6 +220,20 @@ namespace VisualPinball.Unity
 		{
 			if (_coilAssignments.Count > 0 && _gamelogicEngine != null) {
 				_gamelogicEngine.OnCoilChanged -= HandleCoilEvent;
+			}
+
+			// Reset simulation-thread state on all device coils so a
+			// subsequent play session starts clean.
+			foreach (var destList in _coilAssignments.Values) {
+				foreach (var destConfig in destList) {
+					if (destConfig.Device == null || !_coilDevices.ContainsKey(destConfig.Device)) {
+						continue;
+					}
+					var coil = _coilDevices[destConfig.Device].Coil(destConfig.DeviceItem);
+					if (coil is DeviceCoil deviceCoil) {
+						deviceCoil.ResetSimulationState();
+					}
+				}
 			}
 		}
 
