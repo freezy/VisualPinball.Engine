@@ -207,12 +207,22 @@ namespace VisualPinball.Unity.Simulation
 		}
 
 		/// <summary>
-		/// Get the current shared state (for main thread to read)
+		/// Get the current shared state (for main thread to read).
+		/// Returns a peek at the current read buffer without acquiring a new
+		/// one. The actual acquire happens in
+		/// <see cref="PhysicsEngine.ApplyMovements"/> to avoid
+		/// double-swapping per frame.
 		/// </summary>
 		public ref readonly SimulationState.Snapshot GetSharedState()
 		{
-			return ref _sharedState.GetFrontBuffer();
+			return ref _sharedState.PeekReadBuffer();
 		}
+
+		/// <summary>
+		/// The triple-buffered SimulationState, so the caller can pass it to
+		/// <see cref="PhysicsEngine.SetSimulationState"/>.
+		/// </summary>
+		public SimulationState SharedState => _sharedState;
 
 		public void FlushMainThreadInputDispatch()
 		{
@@ -615,16 +625,17 @@ namespace VisualPinball.Unity.Simulation
 		}
 
 		/// <summary>
-		/// Write simulation state to shared memory and swap buffers
+		/// Write simulation state to shared memory and publish the buffer.
+		/// Called on the sim thread after physics has executed, so reading
+		/// physics state maps is safe (single writer, sequential).
 		/// </summary>
 		private void WriteSharedState()
 		{
-			ref var backBuffer = ref _sharedState.GetBackBuffer();
+			ref var writeBuffer = ref _sharedState.GetWriteBuffer();
 
 			// Update timing
-			backBuffer.SimulationTimeUsec = _simulationTimeUsec;
-			backBuffer.RealTimeUsec = GetTimestampUsec();
-
+			writeBuffer.SimulationTimeUsec = _simulationTimeUsec;
+			writeBuffer.RealTimeUsec = GetTimestampUsec();
 
 			// Copy PinMAME state (coils, lamps, GI)
 			// This is where we'd copy the changed outputs from PinMAME
@@ -632,10 +643,15 @@ namespace VisualPinball.Unity.Simulation
 			// TODO: Implement state copying
 
 			// Increment physics state version (main thread will detect changes)
-			backBuffer.PhysicsStateVersion++;
+			writeBuffer.PhysicsStateVersion++;
 
-			// Atomically swap buffers (lock-free)
-			_sharedState.SwapBuffers();
+			// Snapshot animation data from physics state maps into the buffer.
+			// Safe: we are the only writer and this runs sequentially after
+			// ExecuteTick().
+			_physicsEngine.SnapshotAnimations(ref writeBuffer);
+
+			// Atomically publish this buffer (lock-free triple-buffer swap)
+			_sharedState.PublishWriteBuffer();
 		}
 
 		private static long GetTimestampUsec()

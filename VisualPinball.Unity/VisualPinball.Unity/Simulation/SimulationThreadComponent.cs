@@ -163,11 +163,15 @@ namespace VisualPinball.Unity.Simulation
 				// This disables Unity's Update() loop and gives control to the simulation thread
 				_physicsEngine.SetExternalTiming(true);
 
-				// Create simulation thread
+			// Create simulation thread
 				_simulationThread = new SimulationThread(_physicsEngine, _gamelogicEngine,
 					player != null
 						? new Action<string, bool>((coilId, isEnabled) => player.DispatchCoilSimulationThread(coilId, isEnabled))
 						: null);
+
+				// Provide the triple-buffered SimulationState to PhysicsEngine so
+				// that ApplyMovements() can read lock-free snapshots.
+				_physicsEngine.SetSimulationState(_simulationThread.SharedState);
 
 				// Initialize and start native input if enabled
 				if (EnableNativeInput)
@@ -212,6 +216,7 @@ namespace VisualPinball.Unity.Simulation
 
 			// Restore normal Unity Update() loop timing
 			_physicsEngine.SetExternalTiming(false);
+			_physicsEngine.SetSimulationState(null);
 
 			_started = false;
 			_simulationThreadSpeedX = 0f;
@@ -256,11 +261,11 @@ namespace VisualPinball.Unity.Simulation
 		/// </summary>
 		private void ApplySimulationState(in SimulationState.Snapshot state)
 		{
-			// This is where we'd update GameObjects based on the simulation state
-			// For now, the physics engine will continue to update GameObjects directly
-			// In a full implementation, we'd read the physics state here and apply it
-
-			// TODO: Apply ball positions, flipper rotations, etc. from shared state
+			// Animation data (ball positions, flipper angles, etc.) is now
+			// applied lock-free by PhysicsEngine.ApplyMovements() via the
+			// triple-buffered snapshot. This method handles any remaining
+			// state that isn't covered by the snapshot (PinMAME coils, lamps,
+			// GI) — currently a placeholder.
 		}
 
 		/// <summary>
