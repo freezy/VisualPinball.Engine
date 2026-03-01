@@ -26,6 +26,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 using VisualPinball.Unity.Collections;
+using VisualPinball.Unity.Simulation;
 using AABB = NativeTrees.AABB;
 using Debug = UnityEngine.Debug;
 using Random = Unity.Mathematics.Random;
@@ -128,6 +129,37 @@ namespace VisualPinball.Unity
 		[NonSerialized] private ICollidableComponent[] _colliderComponents;
 		[NonSerialized] private ICollidableComponent[] _kinematicColliderComponents;
 		[NonSerialized] private float4x4 _worldToPlayfield;
+
+		/// <summary>
+		/// Reference to the triple-buffered simulation state owned by the
+		/// SimulationThread. Set via <see cref="SetSimulationState"/> after
+		/// the thread is created. Null when running in single-threaded mode.
+		/// </summary>
+		[NonSerialized] private SimulationState _simulationState;
+
+		#region Kinematic Pending Buffer (Fix 2)
+
+		/// <summary>
+		/// Staging area for kinematic transform updates computed on the main
+		/// thread. Protected by <see cref="_pendingKinematicLock"/>.
+		/// </summary>
+		[NonSerialized] private readonly LazyInit<NativeParallelHashMap<int, float4x4>> _pendingKinematicTransforms = new(() => new NativeParallelHashMap<int, float4x4>(0, Allocator.Persistent));
+
+		/// <summary>
+		/// Lock protecting <see cref="_pendingKinematicTransforms"/>.
+		/// Lock ordering: sim thread may hold _physicsLock then acquire
+		/// _pendingKinematicLock. Main thread only holds _pendingKinematicLock.
+		/// </summary>
+		private readonly object _pendingKinematicLock = new object();
+
+		/// <summary>
+		/// Main-thread-only cache of last-reported kinematic transforms,
+		/// used to detect changes without reading _kinematicTransforms (which
+		/// the sim thread writes).
+		/// </summary>
+		[NonSerialized] private readonly Dictionary<int, float4x4> _mainThreadKinematicCache = new();
+
+		#endregion
 
 		private static ulong NowUsec => (ulong)(Time.timeAsDouble * 1000000);
 
@@ -332,7 +364,9 @@ namespace VisualPinball.Unity
 			// get kinetic collider matrices
 			_worldToPlayfield = playfield.transform.worldToLocalMatrix;
 			foreach (var coll in _kinematicColliderComponents) {
-				_kinematicTransforms.Ref[coll.ItemId] = coll.GetLocalToPlayfieldMatrixInVpx(_worldToPlayfield);
+				var matrix = coll.GetLocalToPlayfieldMatrixInVpx(_worldToPlayfield);
+				_kinematicTransforms.Ref[coll.ItemId] = matrix;
+				_mainThreadKinematicCache[coll.ItemId] = matrix;
 			}
 #if UNITY_EDITOR
 			_colliderLookups = colliders.CreateLookup(Allocator.Persistent);
@@ -394,6 +428,16 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
+		/// Provide the triple-buffered SimulationState so that
+		/// <see cref="SnapshotAnimations"/> can write animation data and
+		/// <see cref="ApplyMovementsFromSnapshot"/> can read it lock-free.
+		/// </summary>
+		public void SetSimulationState(SimulationState state)
+		{
+			_simulationState = state;
+		}
+
+		/// <summary>
 		/// Execute a single physics tick with external timing (for simulation thread).
 		/// This runs the physics simulation but does NOT apply movements to GameObjects.
 		/// Call ApplyMovements() from the main thread to update transforms.
@@ -414,22 +458,31 @@ namespace VisualPinball.Unity
 
 		/// <summary>
 		/// Apply physics state to GameObjects (must be called from main thread).
-		/// This updates transforms based on physics simulation results.
-		/// Non-blocking: if the simulation thread currently holds the physics
-		/// lock, this frame's visual update is skipped (next frame will catch up).
+		/// When a <see cref="SimulationState"/> has been set via
+		/// <see cref="SetSimulationState"/>, this reads the latest published
+		/// snapshot — completely lock-free. Otherwise falls back to the legacy
+		/// lock-based path.
 		/// </summary>
 		public void ApplyMovements()
 		{
 			if (!_useExternalTiming || !_isInitialized) return;
 
-			if (!Monitor.TryEnter(_physicsLock)) {
-				return; // sim thread is mid-tick; skip this frame
-			}
-			try {
-				var state = CreateState();
-				ApplyAllMovements(ref state);
-			} finally {
-				Monitor.Exit(_physicsLock);
+			if (_simulationState != null) {
+				// Lock-free path: read from triple-buffered snapshot
+				ref readonly var snapshot = ref _simulationState.AcquireReadBuffer();
+				ApplyMovementsFromSnapshot(in snapshot);
+			} else {
+				// Legacy path (no SimulationState set — shouldn't happen in
+				// normal operation but kept as safety net).
+				if (!Monitor.TryEnter(_physicsLock)) {
+					return; // sim thread is mid-tick; skip this frame
+				}
+				try {
+					var state = CreateState();
+					ApplyAllMovements(ref state);
+				} finally {
+					Monitor.Exit(_physicsLock);
+				}
 			}
 		}
 
@@ -439,6 +492,11 @@ namespace VisualPinball.Unity
 				// Simulation thread mode: physics runs on simulation thread,
 				// but managed callbacks must run on Unity main thread.
 				DrainExternalThreadCallbacks();
+
+				// Collect kinematic transform changes on main thread and
+				// stage them for the sim thread to apply (Fix 2).
+				UpdateKinematicTransformsFromMainThread();
+
 				ApplyMovements();
 			} else {
 				// Normal mode: Execute full physics update
@@ -486,8 +544,8 @@ namespace VisualPinball.Unity
 		{
 			var sw = Stopwatch.StartNew();
 
-			// check for updated kinematic transforms (main thread only, skip for now)
-			// TODO: Find a way to update these from simulation thread
+			// Apply kinematic transform updates staged by main thread (Fix 2).
+			ApplyPendingKinematicTransforms();
 
 			var state = CreateState();
 
@@ -588,6 +646,251 @@ namespace VisualPinball.Unity
 			_physicsMovements.ApplyTriggerMovement(ref _triggerStates.Ref, _floatAnimatedComponents);
 		}
 
+		#region Snapshot-Based Movement (Fix 1)
+
+		/// <summary>
+		/// Copy current animation values from physics state maps into the
+		/// given snapshot buffer. Called on the sim thread AFTER
+		/// <see cref="ExecuteTick"/> returns (sequential within the thread,
+		/// so reading physics state maps is safe without an extra lock).
+		/// MUST BE ALLOCATION-FREE.
+		/// </summary>
+		internal void SnapshotAnimations(ref SimulationState.Snapshot snapshot)
+		{
+			// --- Balls ---
+			var ballCount = 0;
+			using (var enumerator = _ballStates.Ref.GetEnumerator()) {
+				while (enumerator.MoveNext() && ballCount < SimulationState.MaxBalls) {
+					ref var ball = ref enumerator.Current.Value;
+					snapshot.BallSnapshots[ballCount] = new SimulationState.BallSnapshot {
+						Id = ball.Id,
+						Position = ball.Position,
+						Radius = ball.Radius,
+						IsFrozen = ball.IsFrozen ? (byte)1 : (byte)0,
+						Orientation = ball.BallOrientationForUnity
+					};
+					ballCount++;
+				}
+			}
+			snapshot.BallCount = ballCount;
+
+			// --- Float animations ---
+			var floatCount = 0;
+
+			// Flippers
+			using (var enumerator = _flipperStates.Ref.GetEnumerator()) {
+				while (enumerator.MoveNext() && floatCount < SimulationState.MaxFloatAnimations) {
+					ref var s = ref enumerator.Current.Value;
+					snapshot.FloatAnimations[floatCount++] = new SimulationState.FloatAnimation {
+						ItemId = enumerator.Current.Key, Value = s.Movement.Angle
+					};
+				}
+			}
+
+			// Bumper rings (float) — ring animation
+			using (var enumerator = _bumperStates.Ref.GetEnumerator()) {
+				while (enumerator.MoveNext() && floatCount < SimulationState.MaxFloatAnimations) {
+					ref var s = ref enumerator.Current.Value;
+					if (s.RingItemId != 0) {
+						snapshot.FloatAnimations[floatCount++] = new SimulationState.FloatAnimation {
+							ItemId = enumerator.Current.Key, Value = s.RingAnimation.Offset
+						};
+					}
+				}
+			}
+
+			// Drop targets
+			using (var enumerator = _dropTargetStates.Ref.GetEnumerator()) {
+				while (enumerator.MoveNext() && floatCount < SimulationState.MaxFloatAnimations) {
+					ref var s = ref enumerator.Current.Value;
+					if (s.AnimatedItemId == 0) continue;
+					snapshot.FloatAnimations[floatCount++] = new SimulationState.FloatAnimation {
+						ItemId = enumerator.Current.Key, Value = s.Animation.ZOffset
+					};
+				}
+			}
+
+			// Hit targets
+			using (var enumerator = _hitTargetStates.Ref.GetEnumerator()) {
+				while (enumerator.MoveNext() && floatCount < SimulationState.MaxFloatAnimations) {
+					ref var s = ref enumerator.Current.Value;
+					if (s.AnimatedItemId == 0) continue;
+					snapshot.FloatAnimations[floatCount++] = new SimulationState.FloatAnimation {
+						ItemId = enumerator.Current.Key, Value = s.Animation.XRotation
+					};
+				}
+			}
+
+			// Gates
+			using (var enumerator = _gateStates.Ref.GetEnumerator()) {
+				while (enumerator.MoveNext() && floatCount < SimulationState.MaxFloatAnimations) {
+					ref var s = ref enumerator.Current.Value;
+					snapshot.FloatAnimations[floatCount++] = new SimulationState.FloatAnimation {
+						ItemId = enumerator.Current.Key, Value = s.Movement.Angle
+					};
+				}
+			}
+
+			// Plungers
+			using (var enumerator = _plungerStates.Ref.GetEnumerator()) {
+				while (enumerator.MoveNext() && floatCount < SimulationState.MaxFloatAnimations) {
+					ref var s = ref enumerator.Current.Value;
+					snapshot.FloatAnimations[floatCount++] = new SimulationState.FloatAnimation {
+						ItemId = enumerator.Current.Key, Value = s.Animation.Position
+					};
+				}
+			}
+
+			// Spinners
+			using (var enumerator = _spinnerStates.Ref.GetEnumerator()) {
+				while (enumerator.MoveNext() && floatCount < SimulationState.MaxFloatAnimations) {
+					ref var s = ref enumerator.Current.Value;
+					snapshot.FloatAnimations[floatCount++] = new SimulationState.FloatAnimation {
+						ItemId = enumerator.Current.Key, Value = s.Movement.Angle
+					};
+				}
+			}
+
+			// Triggers
+			using (var enumerator = _triggerStates.Ref.GetEnumerator()) {
+				while (enumerator.MoveNext() && floatCount < SimulationState.MaxFloatAnimations) {
+					ref var s = ref enumerator.Current.Value;
+					if (s.AnimatedItemId == 0) continue;
+					snapshot.FloatAnimations[floatCount++] = new SimulationState.FloatAnimation {
+						ItemId = enumerator.Current.Key, Value = s.Movement.HeightOffset
+					};
+				}
+			}
+
+			snapshot.FloatAnimationCount = floatCount;
+
+			// --- Float2 animations (bumper skirts) ---
+			var float2Count = 0;
+			using (var enumerator = _bumperStates.Ref.GetEnumerator()) {
+				while (enumerator.MoveNext() && float2Count < SimulationState.MaxFloat2Animations) {
+					ref var s = ref enumerator.Current.Value;
+					if (s.SkirtItemId != 0) {
+						snapshot.Float2Animations[float2Count++] = new SimulationState.Float2Animation {
+							ItemId = enumerator.Current.Key, Value = s.SkirtAnimation.Rotation
+						};
+					}
+				}
+			}
+			snapshot.Float2AnimationCount = float2Count;
+		}
+
+		/// <summary>
+		/// Apply visual updates from a snapshot — called on the main thread,
+		/// completely lock-free. Replaces the legacy
+		/// <see cref="ApplyAllMovements"/> path when in external timing mode.
+		/// </summary>
+		private void ApplyMovementsFromSnapshot(in SimulationState.Snapshot snapshot)
+		{
+			// Balls
+			for (var i = 0; i < snapshot.BallCount; i++) {
+				var bs = snapshot.BallSnapshots[i];
+				if (bs.IsFrozen != 0) continue;
+				if (_ballComponents.TryGetValue(bs.Id, out var ballComponent)) {
+					// Reconstruct a lightweight BallState with the fields Move() needs.
+					var ballState = new BallState {
+						Id = bs.Id,
+						Position = bs.Position,
+						Radius = bs.Radius,
+						IsFrozen = false,
+						BallOrientationForUnity = bs.Orientation,
+					};
+					ballComponent.Move(ballState);
+				}
+			}
+
+			// Float animations
+			for (var i = 0; i < snapshot.FloatAnimationCount; i++) {
+				var anim = snapshot.FloatAnimations[i];
+				if (_floatAnimatedComponents.TryGetValue(anim.ItemId, out var emitter)) {
+					emitter.UpdateAnimationValue(anim.Value);
+				}
+			}
+
+			// Float2 animations
+			for (var i = 0; i < snapshot.Float2AnimationCount; i++) {
+				var anim = snapshot.Float2Animations[i];
+				if (_float2AnimatedComponents.TryGetValue(anim.ItemId, out var emitter)) {
+					emitter.UpdateAnimationValue(anim.Value);
+				}
+			}
+		}
+
+		#endregion
+
+		#region Kinematic Transform Staging (Fix 2)
+
+		/// <summary>
+		/// Collect kinematic transform changes on the Unity main thread and
+		/// stage them in <see cref="_pendingKinematicTransforms"/> for the sim
+		/// thread to apply. Only called when <see cref="_useExternalTiming"/>
+		/// is true. Uses <see cref="_mainThreadKinematicCache"/> for change
+		/// detection (never reads <see cref="_kinematicTransforms"/> which the
+		/// sim thread writes).
+		/// </summary>
+		internal void UpdateKinematicTransformsFromMainThread()
+		{
+			if (!_useExternalTiming || !_isInitialized || _kinematicColliderComponents == null) return;
+
+			foreach (var coll in _kinematicColliderComponents) {
+				var currMatrix = coll.GetLocalToPlayfieldMatrixInVpx(_worldToPlayfield);
+
+				// Check against main-thread cache
+				if (_mainThreadKinematicCache.TryGetValue(coll.ItemId, out var lastMatrix) && lastMatrix.Equals(currMatrix)) {
+					continue;
+				}
+
+				// Transform changed — update cache
+				_mainThreadKinematicCache[coll.ItemId] = currMatrix;
+
+				// Notify the component (e.g. KickerColliderComponent updates its
+				// center). NOTE: this writes physics state from the main thread,
+				// which is a pre-existing thread-safety issue inherited from the
+				// original code. A future improvement would schedule these as
+				// input actions.
+				coll.OnTransformationChanged(currMatrix);
+
+				// Stage for the sim thread
+				lock (_pendingKinematicLock) {
+					_pendingKinematicTransforms.Ref[coll.ItemId] = currMatrix;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Apply kinematic transforms staged by the main thread into the
+		/// physics state maps. Called on the sim thread inside
+		/// <see cref="ExecutePhysicsSimulation"/> (inside _physicsLock), so
+		/// writing to <see cref="_updatedKinematicTransforms"/> and
+		/// <see cref="_kinematicTransforms"/> is safe.
+		/// Lock ordering: _physicsLock (held) → _pendingKinematicLock (inner).
+		/// </summary>
+		internal void ApplyPendingKinematicTransforms()
+		{
+			if (!_pendingKinematicTransforms.Ref.IsCreated) return;
+
+			_updatedKinematicTransforms.Ref.Clear();
+
+			lock (_pendingKinematicLock) {
+				if (_pendingKinematicTransforms.Ref.Count() == 0) return;
+
+				using var enumerator = _pendingKinematicTransforms.Ref.GetEnumerator();
+				while (enumerator.MoveNext()) {
+					var itemId = enumerator.Current.Key;
+					var matrix = enumerator.Current.Value;
+					_updatedKinematicTransforms.Ref[itemId] = matrix;
+					_kinematicTransforms.Ref[itemId] = matrix;
+				}
+				_pendingKinematicTransforms.Ref.Clear();
+			}
+		}
+
+		#endregion
+
 		private void ProcessInputActions(ref PhysicsState state)
 		{
 			lock (_inputActionsLock) {
@@ -632,6 +935,7 @@ namespace VisualPinball.Unity
 			_disabledCollisionItems.Ref.Dispose();
 			_kinematicTransforms.Ref.Dispose();
 			_updatedKinematicTransforms.Ref.Dispose();
+			_pendingKinematicTransforms.Ref.Dispose();
 			using (var enumerator = _kinematicColliderLookups.GetEnumerator()) {
 				while (enumerator.MoveNext()) {
 					enumerator.Current.Value.Dispose();
