@@ -50,6 +50,7 @@ namespace VisualPinball.Unity
 		private readonly PhysicsMovements _physicsMovements = new();
 		private readonly List<EventData> _deferredMainThreadEvents = new();
 		private readonly List<Action> _deferredMainThreadScheduledActions = new();
+		private readonly List<PhysicsEngine.InputAction> _pendingInputActions = new();
 
 		internal PhysicsEngineThreading(PhysicsEngine physicsEngine, PhysicsEngineContext ctx, Player player,
 			ICollidableComponent[] kinematicColliderComponents, float4x4 worldToPlayfield)
@@ -146,11 +147,16 @@ namespace VisualPinball.Unity
 		/// </remarks>
 		private void ProcessInputActions(ref PhysicsState state)
 		{
+			_pendingInputActions.Clear();
+
 			lock (_ctx.InputActionsLock) {
 				while (_ctx.InputActions.Count > 0) {
-					var action = _ctx.InputActions.Dequeue();
-					action(ref state);
+					_pendingInputActions.Add(_ctx.InputActions.Dequeue());
 				}
+			}
+
+			foreach (var action in _pendingInputActions) {
+				action(ref state);
 			}
 		}
 
