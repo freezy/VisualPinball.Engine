@@ -16,6 +16,7 @@
 // ReSharper disable InconsistentNaming
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using Unity.Mathematics;
@@ -40,18 +41,27 @@ namespace VisualPinball.Unity
 	/// </summary>
 	internal class PhysicsEngineThreading
 	{
+		private readonly PhysicsEngine _physicsEngine;
 		private readonly PhysicsEngineContext _ctx;
 		private readonly Player _player;
 		private readonly ICollidableComponent[] _kinematicColliderComponents;
+		private readonly Dictionary<int, ICollidableComponent> _kinematicColliderComponentsByItemId;
 		private readonly float4x4 _worldToPlayfield;
 		private readonly PhysicsMovements _physicsMovements = new();
 
-		internal PhysicsEngineThreading(PhysicsEngineContext ctx, Player player,
+		internal PhysicsEngineThreading(PhysicsEngine physicsEngine, PhysicsEngineContext ctx, Player player,
 			ICollidableComponent[] kinematicColliderComponents, float4x4 worldToPlayfield)
 		{
+			_physicsEngine = physicsEngine ?? throw new ArgumentNullException(nameof(physicsEngine));
 			_ctx = ctx ?? throw new ArgumentNullException(nameof(ctx));
 			_player = player;
 			_kinematicColliderComponents = kinematicColliderComponents;
+			_kinematicColliderComponentsByItemId = new Dictionary<int, ICollidableComponent>(kinematicColliderComponents?.Length ?? 0);
+			if (kinematicColliderComponents != null) {
+				foreach (var coll in kinematicColliderComponents) {
+					_kinematicColliderComponentsByItemId[coll.ItemId] = coll;
+				}
+			}
 			_worldToPlayfield = worldToPlayfield;
 		}
 
@@ -77,6 +87,7 @@ namespace VisualPinball.Unity
 		internal void ExecuteTick(ulong timeUsec)
 		{
 			if (!_ctx.IsInitialized) return;
+			_physicsEngine.MarkCurrentThreadAsSimulationThread();
 
 			lock (_ctx.PhysicsLock) {
 				ExecutePhysicsSimulation(timeUsec);
@@ -176,17 +187,7 @@ namespace VisualPinball.Unity
 
 		private ICollidableComponent GetKinematicColliderComponent(int itemId)
 		{
-			if (_kinematicColliderComponents == null) {
-				return null;
-			}
-
-			foreach (var coll in _kinematicColliderComponents) {
-				if (coll.ItemId == itemId) {
-					return coll;
-				}
-			}
-
-			return null;
+			return _kinematicColliderComponentsByItemId.TryGetValue(itemId, out var coll) ? coll : null;
 		}
 
 		/// <summary>
