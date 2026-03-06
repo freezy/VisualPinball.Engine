@@ -600,7 +600,16 @@ namespace VisualPinball.Unity
 
 		private void OnDestroy()
 		{
-			_ctx?.Dispose();
+			if (_ctx == null) {
+				return;
+			}
+
+			_ctx.IsInitialized = false;
+			_ctx.UseExternalTiming = false;
+
+			lock (_ctx.PhysicsLock) {
+				_ctx.Dispose();
+			}
 		}
 
 		#endregion
