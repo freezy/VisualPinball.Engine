@@ -51,6 +51,7 @@ namespace VisualPinball.Unity
 		private readonly List<EventData> _deferredMainThreadEvents = new();
 		private readonly List<Action> _deferredMainThreadScheduledActions = new();
 		private readonly List<PhysicsEngine.InputAction> _pendingInputActions = new();
+		private readonly List<KeyValuePair<int, float4x4>> _pendingKinematicUpdates = new();
 
 		internal PhysicsEngineThreading(PhysicsEngine physicsEngine, PhysicsEngineContext ctx, Player player,
 			ICollidableComponent[] kinematicColliderComponents, float4x4 worldToPlayfield)
@@ -470,6 +471,8 @@ namespace VisualPinball.Unity
 		{
 			if (!_ctx.UseExternalTiming || !_ctx.IsInitialized || _kinematicColliderComponents == null) return;
 
+			_pendingKinematicUpdates.Clear();
+
 			foreach (var coll in _kinematicColliderComponents) {
 				var currMatrix = coll.GetLocalToPlayfieldMatrixInVpx(_worldToPlayfield);
 
@@ -480,10 +483,16 @@ namespace VisualPinball.Unity
 
 				// Transform changed — update cache
 				_ctx.MainThreadKinematicCache[coll.ItemId] = currMatrix;
+				_pendingKinematicUpdates.Add(new KeyValuePair<int, float4x4>(coll.ItemId, currMatrix));
+			}
 
-				// Stage for the sim thread
-				lock (_ctx.PendingKinematicLock) {
-					_ctx.PendingKinematicTransforms.Ref[coll.ItemId] = currMatrix;
+			if (_pendingKinematicUpdates.Count == 0) {
+				return;
+			}
+
+			lock (_ctx.PendingKinematicLock) {
+				foreach (var update in _pendingKinematicUpdates) {
+					_ctx.PendingKinematicTransforms.Ref[update.Key] = update.Value;
 				}
 			}
 		}
