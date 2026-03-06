@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Runtime;
 using System.Threading;
 using NLog;
+using Unity.Mathematics;
 using Logger = NLog.Logger;
 using VisualPinball.Engine.Common;
 using VisualPinball.Unity;
@@ -61,6 +62,9 @@ namespace VisualPinball.Unity.Simulation
 		private long _lastTickTicks;
 		private long _simulationTimeUsec;
 		private long _lastTimeFenceUsec = long.MinValue;
+		private double _simulationClockScale = 1.0;
+		private long _latestMainThreadClockUsec;
+		private volatile bool _hasMainThreadClockSync;
 
 		// Input state tracking (allocation-free indexed arrays)
 		private readonly bool[] _actionStates;
@@ -142,7 +146,7 @@ namespace VisualPinball.Unity.Simulation
 			_paused = false;
 			_gamelogicStarted = _gamelogicEngine != null;
 			_lastTickTicks = Stopwatch.GetTimestamp();
-			_simulationTimeUsec = 0;
+			_simulationTimeUsec = _hasMainThreadClockSync ? Interlocked.Read(ref _latestMainThreadClockUsec) : 0;
 			_lastTimeFenceUsec = long.MinValue;
 			_tickCount = 0;
 			_inputEventsProcessed = 0;
@@ -238,6 +242,20 @@ namespace VisualPinball.Unity.Simulation
 		public void FlushMainThreadInputDispatch()
 		{
 			_inputDispatcher.FlushMainThread();
+		}
+
+		/// <summary>
+		/// Publish the latest Unity-scaled simulation clock sample from the
+		/// main thread so the simulation thread can stay aligned with
+		/// single-threaded timing semantics, including slow-motion and
+		/// time-lapse modes.
+		/// </summary>
+		/// <remarks><b>Thread:</b> Main thread only.</remarks>
+		public void SyncClockFromMainThread(ulong currentClockUsec, float timeScale)
+		{
+			Interlocked.Exchange(ref _latestMainThreadClockUsec, (long)currentClockUsec);
+			Volatile.Write(ref _simulationClockScale, math.max(0.0, timeScale));
+			_hasMainThreadClockSync = true;
 		}
 
 		/// <summary>
@@ -376,6 +394,13 @@ namespace VisualPinball.Unity.Simulation
 		/// <remarks><b>Thread:</b> Simulation thread only.</remarks>
 		private void SimulationTick()
 		{
+			if (_hasMainThreadClockSync) {
+				var syncedClockUsec = Interlocked.Read(ref _latestMainThreadClockUsec);
+				if (syncedClockUsec > _simulationTimeUsec) {
+					_simulationTimeUsec = syncedClockUsec;
+				}
+			}
+
 			// 0. Process switch events that originated on Unity/main thread.
 			ProcessExternalSwitchEvents();
 
@@ -399,7 +424,7 @@ namespace VisualPinball.Unity.Simulation
 			WriteSharedState();
 
 			// Increment simulation time
-			_simulationTimeUsec += TickIntervalUsec;
+			_simulationTimeUsec += ScaledTickIntervalUsec();
 		}
 
 		/// <summary>
@@ -678,6 +703,12 @@ namespace VisualPinball.Unity.Simulation
 		{
 			long ticks = Stopwatch.GetTimestamp();
 			return (ticks * 1_000_000) / Stopwatch.Frequency;
+		}
+
+		private long ScaledTickIntervalUsec()
+		{
+			var scaledTickUsec = (long)math.round(TickIntervalUsec * Volatile.Read(ref _simulationClockScale));
+			return scaledTickUsec < 0 ? 0 : scaledTickUsec;
 		}
 
 		#endregion
