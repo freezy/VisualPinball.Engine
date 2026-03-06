@@ -35,7 +35,7 @@ namespace VisualPinball.Unity.Simulation
 		#region Constants
 
 		private const long TickIntervalUsec = 1000; // 1ms = 1000 microseconds
-		private const long BusyWaitThresholdUsec = 100; // Last 100us busy-wait for precision
+		private const long BusyWaitThresholdUsec = 25; // Keep active spin short to avoid starving render/main thread
 		private const int MaxCoilOutputsPerTick = 128;
 
 		#endregion
@@ -170,11 +170,7 @@ namespace VisualPinball.Unity.Simulation
 			{
 				Name = "VPE Simulation Thread",
 				IsBackground = true,
-				#if UNITY_EDITOR
 				Priority = ThreadPriority.AboveNormal
-				#else
-				Priority = ThreadPriority.Highest
-				#endif
 			};
 			_thread.Start();
 
@@ -310,10 +306,6 @@ namespace VisualPinball.Unity.Simulation
 		{
 			// Editor playmode is a hostile environment for time-critical threads (domain/scene reload,
 			// asset imports, editor windows). Keep time-critical only for player builds.
-			#if !UNITY_EDITOR
-			NativeInputApi.VpeSetThreadPriority();
-			#endif
-
 			// Wait for physics engine to be fully initialized
 			// This prevents accessing physics state before it's ready
 			Logger.Info($"{LogPrefix} [SimulationThread] Waiting for physics initialization...");

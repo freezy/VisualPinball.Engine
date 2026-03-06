@@ -179,6 +179,7 @@ namespace VisualPinball.Unity
 				ref _ctx.PhysicsCycle,
 				currentTimeUsec
 			);
+			Interlocked.Exchange(ref _ctx.PublishedPhysicsFrameTimeUsec, (long)_ctx.PhysicsEnv.CurPhysicsFrameTime);
 
 			RecordPhysicsBusyTime(sw.ElapsedTicks);
 		}
@@ -606,6 +607,7 @@ namespace VisualPinball.Unity
 				ref _ctx.PhysicsCycle,
 				currentTimeUsec
 			);
+			Interlocked.Exchange(ref _ctx.PublishedPhysicsFrameTimeUsec, (long)_ctx.PhysicsEnv.CurPhysicsFrameTime);
 
 			// dequeue events
 			while (_ctx.EventQueue.Ref.TryDequeue(out var eventData)) {

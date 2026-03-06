@@ -19,7 +19,6 @@
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
-using System.Collections;
 using NLog;
 using Unity.Mathematics;
 using UnityEngine;
@@ -55,7 +54,9 @@ namespace VisualPinball.Unity
 		private int _ballId;
 		private float _yEnter;
 		private float _yExit;
-		private Coroutine _animateBackwardsCoroutine;
+		private bool _isAnimatingBackwards;
+		private float _backwardsAnimationElapsed;
+		private float _backwardsAnimationFrom;
 
 		private TriggerComponent _triggerComp;
 		private PhysicsEngine _physicsEngine;
@@ -90,10 +91,8 @@ namespace VisualPinball.Unity
 				// ignore other balls
 				return;
 			}
-			if (_animateBackwardsCoroutine != null) {
-				StopCoroutine(_animateBackwardsCoroutine);
-				_animateBackwardsCoroutine = null;
-			}
+
+			_isAnimatingBackwards = false;
 
 			_ballInside = true;
 			_ballId = e.BallId;
@@ -102,6 +101,10 @@ namespace VisualPinball.Unity
 		private void Update()
 		{
 			if (!_ballInside) {
+				if (_isAnimatingBackwards) {
+					AnimateBackwards();
+				}
+
 				// nothing to animate
 				return;
 			}
@@ -128,32 +131,37 @@ namespace VisualPinball.Unity
 			}
 			_ballId = 0;
 			_ballInside = false;
-
-			if (_animateBackwardsCoroutine != null) {
-				StopCoroutine(_animateBackwardsCoroutine);
-			}
-			_animateBackwardsCoroutine = StartCoroutine(AnimateBackwards());
+			_backwardsAnimationElapsed = 0f;
+			_backwardsAnimationFrom = _currentAngle;
+			_isAnimatingBackwards = true;
 		}
 
-		private IEnumerator AnimateBackwards()
+		private void AnimateBackwards()
 		{
 			// rotate from _currentAngle to _startAngle
-			var from = _currentAngle;
+			var from = _backwardsAnimationFrom;
 			var to = _startAngle;
 			var d = to - from;
 
-			var t = 0f;
-			while (t < BackwardsAnimationDurationSeconds) {
-				var f = BackwardsAnimationCurve.Evaluate(t / BackwardsAnimationDurationSeconds);
+			if (BackwardsAnimationDurationSeconds <= 0f) {
+				transform.SetLocalXRotation(math.radians(to));
+				_currentAngle = to;
+				_isAnimatingBackwards = false;
+				return;
+			}
+
+			_backwardsAnimationElapsed += Time.deltaTime;
+			if (_backwardsAnimationElapsed < BackwardsAnimationDurationSeconds) {
+				var f = BackwardsAnimationCurve.Evaluate(_backwardsAnimationElapsed / BackwardsAnimationDurationSeconds);
 				_currentAngle = from + f * d;
 				transform.SetLocalXRotation(math.radians(_currentAngle));
-				t += Time.deltaTime;
-				yield return null;                               // wait one frame
+				return;
 			}
 
 			// finally, snap to the curve's final value
+			_currentAngle = to;
 			transform.SetLocalXRotation(math.radians(to));
-			_animateBackwardsCoroutine = null;
+			_isAnimatingBackwards = false;
 		}
 
 		private void OnDestroy()

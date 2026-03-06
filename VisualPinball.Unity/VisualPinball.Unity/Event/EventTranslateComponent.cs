@@ -16,7 +16,6 @@
 
 // ReSharper disable InconsistentNaming
 
-using System.Collections;
 using UnityEngine;
 
 namespace VisualPinball.Unity
@@ -37,7 +36,10 @@ namespace VisualPinball.Unity
 		private IWireableComponent _wireComponent;
 
 		private Vector3 _initialPosition;
-		private Coroutine _enterCoroutine;
+		private bool _isAnimating;
+		private float _animationElapsed;
+		private float _animationDuration;
+		private AnimationCurve _animationCurve;
 
 		#region Runtime
 
@@ -87,27 +89,46 @@ namespace VisualPinball.Unity
 
 		private void OnEnter()
 		{
-			if (_enterCoroutine != null) {
-				StopCoroutine(_enterCoroutine);
-			}
-			_enterCoroutine = StartCoroutine(Animate(EnterAnimationDurationSeconds, EnterAnimationCurve));
+			_animationElapsed = 0f;
+			_animationDuration = EnterAnimationDurationSeconds;
+			_animationCurve = EnterAnimationCurve;
+			_isAnimating = true;
 		}
 
-		private IEnumerator Animate(float duration, AnimationCurve curve)
+		private void Update()
 		{
-			var t = 0f;
-			while (t < duration) {
-				var f = curve.Evaluate(t / duration);
-
-				if (TranslateGlobally) {
-					transform.position = _initialPosition + Direction * f;
-				} else {
-					transform.localPosition = _initialPosition + Direction * f;
-				}
-				t += Time.deltaTime;
-				yield return null;                               // wait one frame
+			if (!_isAnimating) {
+				return;
 			}
 
+			if (_animationDuration <= 0f) {
+				ApplyTranslation(1f);
+				FinishAnimation();
+				return;
+			}
+
+			_animationElapsed += Time.deltaTime;
+			if (_animationElapsed < _animationDuration) {
+				var f = _animationCurve.Evaluate(_animationElapsed / _animationDuration);
+				ApplyTranslation(f);
+				return;
+			}
+
+			ApplyTranslation(1f);
+			FinishAnimation();
+		}
+
+		private void ApplyTranslation(float factor)
+		{
+			if (TranslateGlobally) {
+				transform.position = _initialPosition + Direction * factor;
+			} else {
+				transform.localPosition = _initialPosition + Direction * factor;
+			}
+		}
+
+		private void FinishAnimation()
+		{
 			if (!TwoWay) {
 				if (TranslateGlobally) {
 					transform.position = _initialPosition;
@@ -115,7 +136,8 @@ namespace VisualPinball.Unity
 					transform.localPosition = _initialPosition;
 				}
 			}
-			_enterCoroutine = null;
+
+			_isAnimating = false;
 		}
 
 		private void OnExit()

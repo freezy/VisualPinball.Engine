@@ -205,11 +205,12 @@ namespace VisualPinball.Unity
 		public void ScheduleAction(int timeoutMs, Action action) => ScheduleAction((uint)timeoutMs, action);
 		public void ScheduleAction(uint timeoutMs, Action action)
 		{
+			var scheduleAt = CurrentScheduledActionTimeUsec + (ulong)timeoutMs * 1000;
 			lock (_ctx.ScheduledActionsLock) {
-				PushScheduledAction(new PhysicsEngineContext.ScheduledAction(_ctx.PhysicsEnv.CurPhysicsFrameTime + (ulong)timeoutMs * 1000, action));
+				PushScheduledAction(new PhysicsEngineContext.ScheduledAction(scheduleAt, action));
 				if (!_scheduledActionsQueueWarningIssued && _ctx.ScheduledActions.Count >= ScheduledActionsWarningThreshold) {
 					_scheduledActionsQueueWarningIssued = true;
-					Debug.LogWarning($"[PhysicsEngine] ScheduledActions backlog reached {_ctx.ScheduledActions.Count} items. Callback production may be outpacing drain.");
+					LogQueueWarning($"[PhysicsEngine] ScheduledActions backlog reached {_ctx.ScheduledActions.Count} items. Callback production may be outpacing drain.");
 				}
 			}
 		}
@@ -249,7 +250,7 @@ namespace VisualPinball.Unity
 				_ctx.InputActions.Enqueue(action);
 				if (!_inputActionsQueueWarningIssued && _ctx.InputActions.Count >= InputActionsQueueWarningThreshold) {
 					_inputActionsQueueWarningIssued = true;
-					Debug.LogWarning($"[PhysicsEngine] InputActions backlog reached {_ctx.InputActions.Count} items. Producers may be outpacing simulation-thread drain.");
+					LogQueueWarning($"[PhysicsEngine] InputActions backlog reached {_ctx.InputActions.Count} items. Producers may be outpacing simulation-thread drain.");
 				}
 			}
 		}
@@ -272,6 +273,17 @@ namespace VisualPinball.Unity
 
 		private bool IsMainThread => _mainThreadManagedThreadId == Thread.CurrentThread.ManagedThreadId;
 		private bool IsSimulationThread => Volatile.Read(ref _simulationThreadManagedThreadId) == Thread.CurrentThread.ManagedThreadId;
+		private ulong CurrentScheduledActionTimeUsec
+		{
+			get {
+				if (!_ctx.UseExternalTiming || IsSimulationThread) {
+					return _ctx.PhysicsEnv.CurPhysicsFrameTime;
+				}
+
+				var publishedUsec = Interlocked.Read(ref _ctx.PublishedPhysicsFrameTimeUsec);
+				return publishedUsec > 0 ? (ulong)publishedUsec : CurrentSimulationClockUsec;
+			}
+		}
 
 		private void GuardLiveStateAccess(string accessorName)
 		{
@@ -284,8 +296,15 @@ namespace VisualPinball.Unity
 			}
 
 			if (_unsafeLiveStateAccessWarnings.Add(accessorName)) {
-				Debug.LogWarning($"[PhysicsEngine] Live physics state '{accessorName}' was accessed from the Unity main thread while external timing is enabled. Prefer snapshot data or schedule work onto the simulation thread.");
+				LogQueueWarning($"[PhysicsEngine] Live physics state '{accessorName}' was accessed from the Unity main thread while external timing is enabled. Prefer snapshot data or schedule work onto the simulation thread.");
 			}
+		}
+
+		[System.Diagnostics.Conditional("UNITY_EDITOR")]
+		[System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+		private static void LogQueueWarning(string message)
+		{
+			Debug.LogWarning(message);
 		}
 
 		// ── State accessors ──────────────────────────────────────────
@@ -542,6 +561,7 @@ namespace VisualPinball.Unity
 			_player = GetComponentInParent<Player>();
 			_ctx.InsideOfs = new InsideOfs(Allocator.Persistent);
 			_ctx.PhysicsEnv = new PhysicsEnv(NowUsec, GetComponentInChildren<PlayfieldComponent>(), GravityStrength);
+			Interlocked.Exchange(ref _ctx.PublishedPhysicsFrameTimeUsec, (long)_ctx.PhysicsEnv.CurPhysicsFrameTime);
 			_ctx.ElasticityOverVelocityLUTs = new NativeParallelHashMap<int, FixedList512Bytes<float>>(0, Allocator.Persistent);
 			_ctx.FrictionOverVelocityLUTs = new NativeParallelHashMap<int, FixedList512Bytes<float>>(0, Allocator.Persistent);
 
