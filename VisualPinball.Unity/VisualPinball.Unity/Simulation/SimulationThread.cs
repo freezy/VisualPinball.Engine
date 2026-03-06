@@ -78,6 +78,8 @@ namespace VisualPinball.Unity.Simulation
 
 		private volatile bool _gamelogicStarted;
 		private volatile bool _needsInitialSwitchSync;
+		private bool _externalSwitchQueueWarningIssued;
+		private bool _externalSwitchQueueDropWarningIssued;
 
 		private readonly object _externalSwitchQueueLock = new object();
 		private readonly Queue<PendingSwitchEvent> _externalSwitchQueue = new Queue<PendingSwitchEvent>(128);
@@ -274,9 +276,17 @@ namespace VisualPinball.Unity.Simulation
 
 			lock (_externalSwitchQueueLock) {
 				if (_externalSwitchQueue.Count >= MaxExternalSwitchQueueSize) {
+					if (!_externalSwitchQueueDropWarningIssued) {
+						_externalSwitchQueueDropWarningIssued = true;
+						Logger.Warn($"{LogPrefix} [SimulationThread] External switch queue is full ({MaxExternalSwitchQueueSize}). Dropping switch events.");
+					}
 					return false;
 				}
 				_externalSwitchQueue.Enqueue(new PendingSwitchEvent(switchId, isClosed));
+				if (!_externalSwitchQueueWarningIssued && _externalSwitchQueue.Count >= MaxExternalSwitchQueueSize / 2) {
+					_externalSwitchQueueWarningIssued = true;
+					Logger.Warn($"{LogPrefix} [SimulationThread] External switch queue backlog reached {_externalSwitchQueue.Count} items.");
+				}
 				return true;
 			}
 		}
