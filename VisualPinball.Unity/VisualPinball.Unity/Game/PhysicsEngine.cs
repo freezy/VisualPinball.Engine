@@ -502,6 +502,22 @@ namespace VisualPinball.Unity
 		/// </remarks>
 		internal void SnapshotAnimations(ref SimulationState.Snapshot snapshot) => _threading.SnapshotAnimations(ref snapshot);
 
+		internal bool TrySnapshotAnimations(ref SimulationState.Snapshot snapshot)
+		{
+			if (!_ctx.UseExternalTiming || !_ctx.IsInitialized) {
+				return false;
+			}
+
+			lock (_ctx.PhysicsLock) {
+				if (!_ctx.IsInitialized) {
+					return false;
+				}
+
+				_threading.SnapshotAnimations(ref snapshot);
+				return true;
+			}
+		}
+
 		#endregion
 
 		#region Event Functions
