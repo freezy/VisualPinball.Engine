@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 using System;
+using System.Diagnostics;
 using NLog;
 using UnityEngine;
 using Logger = NLog.Logger;
@@ -282,9 +283,25 @@ namespace VisualPinball.Unity.Simulation
 			long simTimeMs = state.SimulationTimeUsec / 1000;
 			long realTimeMs = state.RealTimeUsec / 1000;
 			double ratio = (double)simTimeMs / realTimeMs;
+			var snapshotAgeUsec = state.PublishRealTimeUsec > 0 ? TimestampUsec - state.PublishRealTimeUsec : 0;
+			var switchToObservationUsec = state.LastSwitchDispatchUsec > 0 && state.LastSwitchObservationUsec >= state.LastSwitchDispatchUsec
+				? state.LastSwitchObservationUsec - state.LastSwitchDispatchUsec
+				: -1;
+			var flipperToCoilOutputUsec = state.LastFlipperInputUsec > 0 && state.LastCoilOutputUsec >= state.LastFlipperInputUsec
+				? state.LastCoilOutputUsec - state.LastFlipperInputUsec
+				: -1;
+			var coilDispatchToPublishUsec = state.LastCoilDispatchUsec > 0 && state.PublishRealTimeUsec >= state.LastCoilDispatchUsec
+				? state.PublishRealTimeUsec - state.LastCoilDispatchUsec
+				: -1;
 
-			Logger.Info($"{LogPrefix} [SimulationThread] Stats: SimTime={simTimeMs}ms, RealTime={realTimeMs}ms, Ratio={ratio:F3}x, PhysicsVer={state.PhysicsStateVersion}");
+			Logger.Info($"{LogPrefix} [SimulationThread] Stats: SimTime={simTimeMs}ms, RealTime={realTimeMs}ms, Ratio={ratio:F3}x, PhysicsVer={state.PhysicsStateVersion}, Tick={state.SimulationTickDurationUsec}us, Snapshot={state.SnapshotCopyUsec}us, Kinematic={state.KinematicScanUsec}us, EventDrain={state.EventDrainUsec}us, InputQ={state.PendingInputActionCount}, ScheduledQ={state.PendingScheduledActionCount}, SwitchQ={state.ExternalSwitchQueueDepth}, GLE={state.GamelogicCallbackRateHz:F1}Hz, Fence={state.FenceUpdateIntervalUsec}us, SnapshotAge={snapshotAgeUsec}us, Switch->PinMAME={switchToObservationUsec}us, Flipper->Coil={flipperToCoilOutputUsec}us, Coil->Publish={coilDispatchToPublishUsec}us, Balls={state.BallCount}/{state.BallSourceCount}, Floats={state.FloatAnimationCount}/{state.FloatAnimationSourceCount}, Float2={state.Float2AnimationCount}/{state.Float2AnimationSourceCount}");
+
+			if (state.BallSnapshotsTruncated != 0 || state.FloatAnimationsTruncated != 0 || state.Float2AnimationsTruncated != 0) {
+				Logger.Warn($"{LogPrefix} [SimulationThread] Snapshot truncation detected: Balls={state.BallSnapshotsTruncated != 0}, Floats={state.FloatAnimationsTruncated != 0}, Float2={state.Float2AnimationsTruncated != 0}");
+			}
 		}
+
+		private static long TimestampUsec => (Stopwatch.GetTimestamp() * 1_000_000L) / Stopwatch.Frequency;
 
 		private void UpdateSimulationSpeed(in SimulationState.Snapshot state)
 		{

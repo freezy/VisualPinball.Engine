@@ -19,9 +19,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using NLog;
 using Unity.Mathematics;
 using VisualPinball.Unity.Collections;
 using VisualPinball.Unity.Simulation;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -42,6 +44,8 @@ namespace VisualPinball.Unity
 	/// </summary>
 	internal class PhysicsEngineThreading
 	{
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		private readonly PhysicsEngine _physicsEngine;
 		private readonly PhysicsEngineContext _ctx;
 		private readonly Player _player;
@@ -63,6 +67,9 @@ namespace VisualPinball.Unity
 		private readonly int[] _snapshotPlungerIds;
 		private readonly int[] _snapshotSpinnerIds;
 		private readonly int[] _snapshotTriggerIds;
+		private bool _ballSnapshotOverflowWarningIssued;
+		private bool _floatSnapshotOverflowWarningIssued;
+		private bool _float2SnapshotOverflowWarningIssued;
 
 		internal PhysicsEngineThreading(PhysicsEngine physicsEngine, PhysicsEngineContext ctx, Player player,
 			ICollidableComponent[] kinematicColliderComponents, float4x4 worldToPlayfield)
@@ -250,8 +257,14 @@ namespace VisualPinball.Unity
 		{
 			// --- Balls ---
 			var ballCount = 0;
+			var ballSourceCount = 0;
 			using (var enumerator = _ctx.BallStates.Ref.GetEnumerator()) {
-				while (enumerator.MoveNext() && ballCount < SimulationState.MaxBalls) {
+				while (enumerator.MoveNext()) {
+					ballSourceCount++;
+					if (ballCount >= SimulationState.MaxBalls) {
+						continue;
+					}
+
 					ref var ball = ref enumerator.Current.Value;
 					snapshot.BallSnapshots[ballCount] = new SimulationState.BallSnapshot {
 						Id = ball.Id,
@@ -264,9 +277,16 @@ namespace VisualPinball.Unity
 				}
 			}
 			snapshot.BallCount = ballCount;
+			snapshot.BallSourceCount = ballSourceCount;
+			snapshot.BallSnapshotsTruncated = ballSourceCount > SimulationState.MaxBalls ? (byte)1 : (byte)0;
+			if (!_ballSnapshotOverflowWarningIssued && snapshot.BallSnapshotsTruncated != 0) {
+				_ballSnapshotOverflowWarningIssued = true;
+				Logger.Warn($"[PhysicsEngine] Ball snapshot capacity exceeded: {ballSourceCount} balls for max {SimulationState.MaxBalls}. Snapshot output is truncated.");
+			}
 
 			// --- Float animations ---
 			var floatCount = 0;
+			snapshot.FloatAnimationSourceCount = _snapshotFlipperIds.Length + _snapshotBumperRingIds.Length + _snapshotDropTargetIds.Length + _snapshotHitTargetIds.Length + _snapshotGateIds.Length + _snapshotPlungerIds.Length + _snapshotSpinnerIds.Length + _snapshotTriggerIds.Length;
 
 			// Flippers
 			for (var i = 0; i < _snapshotFlipperIds.Length && floatCount < SimulationState.MaxFloatAnimations; i++) {
@@ -341,9 +361,15 @@ namespace VisualPinball.Unity
 			}
 
 			snapshot.FloatAnimationCount = floatCount;
+			snapshot.FloatAnimationsTruncated = snapshot.FloatAnimationSourceCount > SimulationState.MaxFloatAnimations ? (byte)1 : (byte)0;
+			if (!_floatSnapshotOverflowWarningIssued && snapshot.FloatAnimationsTruncated != 0) {
+				_floatSnapshotOverflowWarningIssued = true;
+				Logger.Warn($"[PhysicsEngine] Float animation snapshot capacity exceeded: {snapshot.FloatAnimationSourceCount} channels for max {SimulationState.MaxFloatAnimations}. Snapshot output is truncated.");
+			}
 
 			// --- Float2 animations (bumper skirts) ---
 			var float2Count = 0;
+			snapshot.Float2AnimationSourceCount = _snapshotBumperSkirtIds.Length;
 			for (var i = 0; i < _snapshotBumperSkirtIds.Length && float2Count < SimulationState.MaxFloat2Animations; i++) {
 				var itemId = _snapshotBumperSkirtIds[i];
 				ref var s = ref _ctx.BumperStates.Ref.GetValueByRef(itemId);
@@ -352,6 +378,11 @@ namespace VisualPinball.Unity
 				};
 			}
 			snapshot.Float2AnimationCount = float2Count;
+			snapshot.Float2AnimationsTruncated = snapshot.Float2AnimationSourceCount > SimulationState.MaxFloat2Animations ? (byte)1 : (byte)0;
+			if (!_float2SnapshotOverflowWarningIssued && snapshot.Float2AnimationsTruncated != 0) {
+				_float2SnapshotOverflowWarningIssued = true;
+				Logger.Warn($"[PhysicsEngine] Float2 animation snapshot capacity exceeded: {snapshot.Float2AnimationSourceCount} channels for max {SimulationState.MaxFloat2Animations}. Snapshot output is truncated.");
+			}
 		}
 
 		#endregion
@@ -445,6 +476,7 @@ namespace VisualPinball.Unity
 
 			_deferredMainThreadEvents.Clear();
 			_deferredMainThreadScheduledActions.Clear();
+			var drainStartTicks = Stopwatch.GetTimestamp();
 
 			if (!Monitor.TryEnter(_ctx.PhysicsLock)) {
 				return; // sim thread is mid-tick; drain next frame
@@ -468,6 +500,8 @@ namespace VisualPinball.Unity
 			foreach (var action in _deferredMainThreadScheduledActions) {
 				action();
 			}
+
+			Interlocked.Exchange(ref _ctx.LastEventDrainUsec, ElapsedUsec(drainStartTicks, Stopwatch.GetTimestamp()));
 		}
 
 		/// <summary>
@@ -486,6 +520,8 @@ namespace VisualPinball.Unity
 		internal void UpdateKinematicTransformsFromMainThread()
 		{
 			if (!_ctx.UseExternalTiming || !_ctx.IsInitialized || _kinematicColliderComponents == null) return;
+
+			var scanStartTicks = Stopwatch.GetTimestamp();
 
 			_pendingKinematicUpdates.Clear();
 
@@ -511,6 +547,8 @@ namespace VisualPinball.Unity
 					_ctx.PendingKinematicTransforms.Ref[update.Key] = update.Value;
 				}
 			}
+
+			Interlocked.Exchange(ref _ctx.LastKinematicScanUsec, ElapsedUsec(scanStartTicks, Stopwatch.GetTimestamp()));
 		}
 
 		#endregion
@@ -627,6 +665,15 @@ namespace VisualPinball.Unity
 			}
 
 			Interlocked.Add(ref _ctx.PhysicsBusyTotalUsec, elapsedUsec);
+		}
+
+		private static long ElapsedUsec(long startTicks, long endTicks)
+		{
+			var elapsedTicks = endTicks - startTicks;
+			if (elapsedTicks < 0) {
+				elapsedTicks = 0;
+			}
+			return (elapsedTicks * 1_000_000L) / Stopwatch.Frequency;
 		}
 
 		private void DrainDueScheduledActions(ulong currentTimeUsec, List<Action> destination)

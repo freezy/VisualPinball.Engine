@@ -234,6 +234,23 @@ namespace VisualPinball.Unity
 		bool TryGetPerformanceStats(out GamelogicPerformanceStats stats);
 	}
 
+	public readonly struct GamelogicLatencyStats
+	{
+		public readonly long LastSwitchObservationUsec;
+		public readonly long LastCoilOutputUsec;
+
+		public GamelogicLatencyStats(long lastSwitchObservationUsec, long lastCoilOutputUsec)
+		{
+			LastSwitchObservationUsec = lastSwitchObservationUsec;
+			LastCoilOutputUsec = lastCoilOutputUsec;
+		}
+	}
+
+	public interface IGamelogicLatencyStats
+	{
+		bool TryGetLatencyStats(out GamelogicLatencyStats stats);
+	}
+
 	public class RequestedDisplays
 	{
 		public readonly DisplayConfig[] Displays;

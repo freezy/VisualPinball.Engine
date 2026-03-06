@@ -47,6 +47,8 @@ namespace VisualPinball.Unity.Simulation
 		private readonly IGamelogicTimeFence _timeFence;
 		private readonly IGamelogicCoilOutputFeed _coilOutputFeed;
 		private readonly IGamelogicSharedStateWriter _sharedStateWriter;
+		private readonly IGamelogicPerformanceStats _gamelogicPerformanceStats;
+		private readonly IGamelogicLatencyStats _gamelogicLatencyStats;
 		private readonly IGamelogicInputDispatcher _inputDispatcher;
 		private readonly Action<string, bool> _simulationCoilDispatcher;
 		private readonly InputEventBuffer _inputBuffer;
@@ -62,6 +64,12 @@ namespace VisualPinball.Unity.Simulation
 		private long _lastTickTicks;
 		private long _simulationTimeUsec;
 		private long _lastTimeFenceUsec = long.MinValue;
+		private long _lastTimeFenceIntervalUsec;
+		private long _lastSimulationTickDurationUsec;
+		private long _lastSnapshotCopyUsec;
+		private long _lastSwitchDispatchUsec;
+		private long _lastFlipperInputUsec;
+		private long _lastCoilDispatchUsec;
 		private double _simulationClockScale = 1.0;
 		private long _latestMainThreadClockUsec;
 		private volatile bool _hasMainThreadClockSync;
@@ -109,6 +117,8 @@ namespace VisualPinball.Unity.Simulation
 			_timeFence = gamelogicEngine as IGamelogicTimeFence;
 			_coilOutputFeed = gamelogicEngine as IGamelogicCoilOutputFeed;
 			_sharedStateWriter = gamelogicEngine as IGamelogicSharedStateWriter;
+			_gamelogicPerformanceStats = gamelogicEngine as IGamelogicPerformanceStats;
+			_gamelogicLatencyStats = gamelogicEngine as IGamelogicLatencyStats;
 			_inputDispatcher = GamelogicInputDispatcherFactory.Create(gamelogicEngine);
 			_simulationCoilDispatcher = simulationCoilDispatcher;
 
@@ -405,6 +415,8 @@ namespace VisualPinball.Unity.Simulation
 		/// <remarks><b>Thread:</b> Simulation thread only.</remarks>
 		private void SimulationTick()
 		{
+			var tickStartTicks = Stopwatch.GetTimestamp();
+
 			if (_hasMainThreadClockSync) {
 				var syncedClockUsec = Interlocked.Read(ref _latestMainThreadClockUsec);
 				if (syncedClockUsec > _simulationTimeUsec) {
@@ -427,6 +439,7 @@ namespace VisualPinball.Unity.Simulation
 			// 4. Move the emulation fence after inputs+outputs+physics.
 			// Throttle updates to reduce fence wake/sleep churn in PinMAME.
 			if (_timeFence != null && _simulationTimeUsec != _lastTimeFenceUsec) {
+				_lastTimeFenceIntervalUsec = _lastTimeFenceUsec == long.MinValue ? 0 : _simulationTimeUsec - _lastTimeFenceUsec;
 				_timeFence.SetTimeFence(_simulationTimeUsec / 1_000_000.0);
 				_lastTimeFenceUsec = _simulationTimeUsec;
 			}
@@ -436,6 +449,7 @@ namespace VisualPinball.Unity.Simulation
 
 			// Increment simulation time
 			_simulationTimeUsec += ScaledTickIntervalUsec();
+			_lastSimulationTickDurationUsec = (Stopwatch.GetTimestamp() - tickStartTicks) * 1_000_000L / Stopwatch.Frequency;
 		}
 
 		/// <summary>
@@ -485,6 +499,7 @@ namespace VisualPinball.Unity.Simulation
 
 			var processed = 0;
 			while (processed < MaxCoilOutputsPerTick && _coilOutputFeed.TryDequeueCoilEvent(out var coilEvent)) {
+				_lastCoilDispatchUsec = GetTimestampUsec();
 				_simulationCoilDispatcher(coilEvent.Id, coilEvent.IsEnabled);
 				processed++;
 			}
@@ -516,6 +531,11 @@ namespace VisualPinball.Unity.Simulation
 			if (switchId == null) {
 				return;
 			}
+
+			_lastSwitchDispatchUsec = GetTimestampUsec();
+			if (isPressed && IsFlipperAction(actionIndex)) {
+				_lastFlipperInputUsec = _lastSwitchDispatchUsec;
+			}
 			if (actionIndex == (int)NativeInputApi.InputAction.Start && Logger.IsInfoEnabled) {
 				Logger.Info($"{LogPrefix} [SimulationThread] Input Start -> Switch({switchId}, {isPressed})");
 			}
@@ -528,6 +548,14 @@ namespace VisualPinball.Unity.Simulation
 				}
 			}
 			_inputDispatcher.DispatchSwitch(switchId, isPressed);
+		}
+
+		private static bool IsFlipperAction(int actionIndex)
+		{
+			return actionIndex == (int)NativeInputApi.InputAction.LeftFlipper
+				|| actionIndex == (int)NativeInputApi.InputAction.RightFlipper
+				|| actionIndex == (int)NativeInputApi.InputAction.UpperLeftFlipper
+				|| actionIndex == (int)NativeInputApi.InputAction.UpperRightFlipper;
 		}
 
 		private void SyncAllMappedSwitches()
@@ -692,6 +720,22 @@ namespace VisualPinball.Unity.Simulation
 			// Update timing
 			writeBuffer.SimulationTimeUsec = _simulationTimeUsec;
 			writeBuffer.RealTimeUsec = GetTimestampUsec();
+			writeBuffer.SimulationTickDurationUsec = _lastSimulationTickDurationUsec;
+			writeBuffer.FenceUpdateIntervalUsec = _lastTimeFenceIntervalUsec;
+			writeBuffer.LastSwitchDispatchUsec = _lastSwitchDispatchUsec;
+			writeBuffer.LastFlipperInputUsec = _lastFlipperInputUsec;
+			writeBuffer.LastCoilDispatchUsec = _lastCoilDispatchUsec;
+			lock (_externalSwitchQueueLock) {
+				writeBuffer.ExternalSwitchQueueDepth = _externalSwitchQueue.Count;
+			}
+			_physicsEngine.FillDiagnostics(ref writeBuffer);
+			if (_gamelogicPerformanceStats != null && _gamelogicPerformanceStats.TryGetPerformanceStats(out var performanceStats)) {
+				writeBuffer.GamelogicCallbackRateHz = performanceStats.CallbackRateHz;
+			}
+			if (_gamelogicLatencyStats != null && _gamelogicLatencyStats.TryGetLatencyStats(out var latencyStats)) {
+				writeBuffer.LastSwitchObservationUsec = latencyStats.LastSwitchObservationUsec;
+				writeBuffer.LastCoilOutputUsec = latencyStats.LastCoilOutputUsec;
+			}
 
 			// Copy PinMAME state (coils, lamps, GI)
 			writeBuffer.CoilCount = 0;
@@ -705,9 +749,13 @@ namespace VisualPinball.Unity.Simulation
 			// Snapshot animation data from physics state maps into the buffer.
 			// Acquire the physics lock for the snapshot copy so teardown cannot
 			// dispose the native maps between ExecuteTick() and publication.
+			var snapshotStartUsec = GetTimestampUsec();
 			if (!_physicsEngine.TrySnapshotAnimations(ref writeBuffer)) {
 				return;
 			}
+			_lastSnapshotCopyUsec = GetTimestampUsec() - snapshotStartUsec;
+			writeBuffer.SnapshotCopyUsec = _lastSnapshotCopyUsec;
+			writeBuffer.PublishRealTimeUsec = GetTimestampUsec();
 
 			// Atomically publish this buffer (lock-free triple-buffer swap)
 			_sharedState.PublishWriteBuffer();

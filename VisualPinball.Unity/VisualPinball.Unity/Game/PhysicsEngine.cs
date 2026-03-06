@@ -518,6 +518,20 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		internal void FillDiagnostics(ref SimulationState.Snapshot snapshot)
+		{
+			snapshot.KinematicScanUsec = Interlocked.Read(ref _ctx.LastKinematicScanUsec);
+			snapshot.EventDrainUsec = Interlocked.Read(ref _ctx.LastEventDrainUsec);
+
+			lock (_ctx.InputActionsLock) {
+				snapshot.PendingInputActionCount = _ctx.InputActions.Count;
+			}
+
+			lock (_ctx.ScheduledActionsLock) {
+				snapshot.PendingScheduledActionCount = _ctx.ScheduledActions.Count;
+			}
+		}
+
 		#endregion
 
 		#region Event Functions

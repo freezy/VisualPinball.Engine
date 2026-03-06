@@ -132,6 +132,21 @@ namespace VisualPinball.Unity.Simulation
 			// Timing
 			public long SimulationTimeUsec;
 			public long RealTimeUsec;
+			public long PublishRealTimeUsec;
+			public long SimulationTickDurationUsec;
+			public long SnapshotCopyUsec;
+			public long KinematicScanUsec;
+			public long EventDrainUsec;
+			public long FenceUpdateIntervalUsec;
+			public float GamelogicCallbackRateHz;
+			public int PendingInputActionCount;
+			public int PendingScheduledActionCount;
+			public int ExternalSwitchQueueDepth;
+			public long LastSwitchDispatchUsec;
+			public long LastFlipperInputUsec;
+			public long LastCoilDispatchUsec;
+			public long LastSwitchObservationUsec;
+			public long LastCoilOutputUsec;
 
 			// PinMAME state
 			public NativeArray<CoilState> CoilStates;
@@ -150,12 +165,18 @@ namespace VisualPinball.Unity.Simulation
 
 			public NativeArray<BallSnapshot> BallSnapshots;
 			public int BallCount;
+			public int BallSourceCount;
+			public byte BallSnapshotsTruncated;
 
 			public NativeArray<FloatAnimation> FloatAnimations;
 			public int FloatAnimationCount;
+			public int FloatAnimationSourceCount;
+			public byte FloatAnimationsTruncated;
 
 			public NativeArray<Float2Animation> Float2Animations;
 			public int Float2AnimationCount;
+			public int Float2AnimationSourceCount;
+			public byte Float2AnimationsTruncated;
 
 			public void Allocate()
 			{
@@ -165,12 +186,33 @@ namespace VisualPinball.Unity.Simulation
 				CoilCount = 0;
 				LampCount = 0;
 				GICount = 0;
+				PublishRealTimeUsec = 0;
+				SimulationTickDurationUsec = 0;
+				SnapshotCopyUsec = 0;
+				KinematicScanUsec = 0;
+				EventDrainUsec = 0;
+				FenceUpdateIntervalUsec = 0;
+				GamelogicCallbackRateHz = 0f;
+				PendingInputActionCount = 0;
+				PendingScheduledActionCount = 0;
+				ExternalSwitchQueueDepth = 0;
+				LastSwitchDispatchUsec = 0;
+				LastFlipperInputUsec = 0;
+				LastCoilDispatchUsec = 0;
+				LastSwitchObservationUsec = 0;
+				LastCoilOutputUsec = 0;
 				BallSnapshots = new NativeArray<BallSnapshot>(MaxBalls, Allocator.Persistent);
 				FloatAnimations = new NativeArray<FloatAnimation>(MaxFloatAnimations, Allocator.Persistent);
 				Float2Animations = new NativeArray<Float2Animation>(MaxFloat2Animations, Allocator.Persistent);
 				BallCount = 0;
+				BallSourceCount = 0;
+				BallSnapshotsTruncated = 0;
 				FloatAnimationCount = 0;
+				FloatAnimationSourceCount = 0;
+				FloatAnimationsTruncated = 0;
 				Float2AnimationCount = 0;
+				Float2AnimationSourceCount = 0;
+				Float2AnimationsTruncated = 0;
 			}
 
 			public void Dispose()
