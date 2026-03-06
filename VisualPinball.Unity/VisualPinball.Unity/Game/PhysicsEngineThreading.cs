@@ -48,6 +48,8 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<int, ICollidableComponent> _kinematicColliderComponentsByItemId;
 		private readonly float4x4 _worldToPlayfield;
 		private readonly PhysicsMovements _physicsMovements = new();
+		private readonly List<EventData> _deferredMainThreadEvents = new();
+		private readonly List<Action> _deferredMainThreadScheduledActions = new();
 
 		internal PhysicsEngineThreading(PhysicsEngine physicsEngine, PhysicsEngineContext ctx, Player player,
 			ICollidableComponent[] kinematicColliderComponents, float4x4 worldToPlayfield)
@@ -413,24 +415,35 @@ namespace VisualPinball.Unity
 				return;
 			}
 
+			_deferredMainThreadEvents.Clear();
+			_deferredMainThreadScheduledActions.Clear();
+
 			if (!Monitor.TryEnter(_ctx.PhysicsLock)) {
 				return; // sim thread is mid-tick; drain next frame
 			}
 			try {
 				while (_ctx.EventQueue.Ref.TryDequeue(out var eventData)) {
-					_player.OnEvent(in eventData);
+					_deferredMainThreadEvents.Add(eventData);
 				}
 
 				lock (_ctx.ScheduledActions) {
 					for (var i = _ctx.ScheduledActions.Count - 1; i >= 0; i--) {
 						if (_ctx.PhysicsEnv.CurPhysicsFrameTime > _ctx.ScheduledActions[i].ScheduleAt) {
-							_ctx.ScheduledActions[i].Action();
+							_deferredMainThreadScheduledActions.Add(_ctx.ScheduledActions[i].Action);
 							_ctx.ScheduledActions.RemoveAt(i);
 						}
 					}
 				}
 			} finally {
 				Monitor.Exit(_ctx.PhysicsLock);
+			}
+
+			foreach (var eventData in _deferredMainThreadEvents) {
+				_player.OnEvent(in eventData);
+			}
+
+			foreach (var action in _deferredMainThreadScheduledActions) {
+				action();
 			}
 		}
 
