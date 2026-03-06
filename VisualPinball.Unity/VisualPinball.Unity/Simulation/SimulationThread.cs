@@ -703,9 +703,11 @@ namespace VisualPinball.Unity.Simulation
 			writeBuffer.PhysicsStateVersion++;
 
 			// Snapshot animation data from physics state maps into the buffer.
-			// Safe: we are the only writer and this runs sequentially after
-			// ExecuteTick().
-			_physicsEngine.SnapshotAnimations(ref writeBuffer);
+			// Acquire the physics lock for the snapshot copy so teardown cannot
+			// dispose the native maps between ExecuteTick() and publication.
+			if (!_physicsEngine.TrySnapshotAnimations(ref writeBuffer)) {
+				return;
+			}
 
 			// Atomically publish this buffer (lock-free triple-buffer swap)
 			_sharedState.PublishWriteBuffer();
