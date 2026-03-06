@@ -135,8 +135,11 @@ namespace VisualPinball.Unity.Simulation
 
 			// PinMAME state
 			public NativeArray<CoilState> CoilStates;
+			public int CoilCount;
 			public NativeArray<LampState> LampStates;
+			public int LampCount;
 			public NativeArray<GIState> GIStates;
+			public int GICount;
 
 			// Physics state references (not copied, just references)
 			// The actual PhysicsState is too large to copy every tick
@@ -159,6 +162,9 @@ namespace VisualPinball.Unity.Simulation
 				CoilStates = new NativeArray<CoilState>(MaxCoils, Allocator.Persistent);
 				LampStates = new NativeArray<LampState>(MaxLamps, Allocator.Persistent);
 				GIStates = new NativeArray<GIState>(MaxGIStrings, Allocator.Persistent);
+				CoilCount = 0;
+				LampCount = 0;
+				GICount = 0;
 				BallSnapshots = new NativeArray<BallSnapshot>(MaxBalls, Allocator.Persistent);
 				FloatAnimations = new NativeArray<FloatAnimation>(MaxFloatAnimations, Allocator.Persistent);
 				Float2Animations = new NativeArray<Float2Animation>(MaxFloat2Animations, Allocator.Persistent);

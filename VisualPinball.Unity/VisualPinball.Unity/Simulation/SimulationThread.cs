@@ -46,6 +46,7 @@ namespace VisualPinball.Unity.Simulation
 		private readonly IGamelogicEngine _gamelogicEngine;
 		private readonly IGamelogicTimeFence _timeFence;
 		private readonly IGamelogicCoilOutputFeed _coilOutputFeed;
+		private readonly IGamelogicSharedStateWriter _sharedStateWriter;
 		private readonly IGamelogicInputDispatcher _inputDispatcher;
 		private readonly Action<string, bool> _simulationCoilDispatcher;
 		private readonly InputEventBuffer _inputBuffer;
@@ -107,6 +108,7 @@ namespace VisualPinball.Unity.Simulation
 			_gamelogicEngine = gamelogicEngine;
 			_timeFence = gamelogicEngine as IGamelogicTimeFence;
 			_coilOutputFeed = gamelogicEngine as IGamelogicCoilOutputFeed;
+			_sharedStateWriter = gamelogicEngine as IGamelogicSharedStateWriter;
 			_inputDispatcher = GamelogicInputDispatcherFactory.Create(gamelogicEngine);
 			_simulationCoilDispatcher = simulationCoilDispatcher;
 
@@ -692,9 +694,10 @@ namespace VisualPinball.Unity.Simulation
 			writeBuffer.RealTimeUsec = GetTimestampUsec();
 
 			// Copy PinMAME state (coils, lamps, GI)
-			// This is where we'd copy the changed outputs from PinMAME
-			// For now, this is a placeholder
-			// TODO: Implement state copying
+			writeBuffer.CoilCount = 0;
+			writeBuffer.LampCount = 0;
+			writeBuffer.GICount = 0;
+			_sharedStateWriter?.WriteSharedState(ref writeBuffer);
 
 			// Increment physics state version (main thread will detect changes)
 			writeBuffer.PhysicsStateVersion++;

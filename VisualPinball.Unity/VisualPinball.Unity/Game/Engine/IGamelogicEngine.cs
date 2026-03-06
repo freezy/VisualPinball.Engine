@@ -197,6 +197,15 @@ namespace VisualPinball.Unity
 		bool TryDequeueCoilEvent(out CoilEventArgs coilEvent);
 	}
 
+	/// <summary>
+	/// Optional capability interface for game logic engines that can copy
+	/// their current output state into the threaded simulation snapshot.
+	/// </summary>
+	public interface IGamelogicSharedStateWriter
+	{
+		void WriteSharedState(ref Simulation.SimulationState.Snapshot snapshot);
+	}
+
 	public readonly struct GamelogicPerformanceStats
 	{
 		public readonly bool IsRunning;
