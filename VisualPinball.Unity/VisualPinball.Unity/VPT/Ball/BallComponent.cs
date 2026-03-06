@@ -135,6 +135,10 @@ namespace VisualPinball.Unity
 
 		private void DrawPhysicsDebug(UnityEditor.SceneView sceneView)
 		{
+			if (!_physicsEngine.BallExists(Id)) {
+				return;
+			}
+
 			ref var ballState = ref _physicsEngine.BallState(Id);
 
 			// velocity
