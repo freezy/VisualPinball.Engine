@@ -94,6 +94,10 @@ namespace VisualPinball.Unity
 			_physicsEngine.MarkCurrentThreadAsSimulationThread();
 
 			lock (_ctx.PhysicsLock) {
+				if (!_ctx.IsInitialized) {
+					return;
+				}
+
 				ExecutePhysicsSimulation(timeUsec);
 			}
 		}
