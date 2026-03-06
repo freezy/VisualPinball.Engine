@@ -216,6 +216,30 @@ namespace VisualPinball.Unity
 			return dispatched;
 		}
 
+		internal bool SupportsSimulationThreadDispatch(string id)
+		{
+			if (!_coilAssignments.ContainsKey(id)) {
+				return false;
+			}
+
+			foreach (var destConfig in _coilAssignments[id]) {
+				if (destConfig.HasDynamicWire || destConfig.IsLampCoil || destConfig.Device == null) {
+					continue;
+				}
+
+				if (!_coilDevices.ContainsKey(destConfig.Device)) {
+					continue;
+				}
+
+				var coil = _coilDevices[destConfig.Device].Coil(destConfig.DeviceItem);
+				if (coil is DeviceCoil deviceCoil && deviceCoil.SupportsSimulationThreadDispatch) {
+					return true;
+				}
+			}
+
+			return false;
+		}
+
 		public void OnDestroy()
 		{
 			if (_coilAssignments.Count > 0 && _gamelogicEngine != null) {

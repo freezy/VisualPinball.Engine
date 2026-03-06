@@ -163,6 +163,11 @@ namespace VisualPinball.Unity
 			return _coilPlayer.HandleCoilEventSimulationThread(coilId, isEnabled);
 		}
 
+		public bool SupportsSimulationThreadCoilDispatch(string coilId)
+		{
+			return _coilPlayer.SupportsSimulationThreadDispatch(coilId);
+		}
+
 		public Dictionary<string, IApiSwitchStatus> SwitchStatuses => _switchPlayer.SwitchStatuses;
 		public Dictionary<string, bool> CoilStatuses => _coilPlayer.CoilStatuses;
 		public Dictionary<string, LampState> LampStatuses => _lampPlayer.LampStates;
