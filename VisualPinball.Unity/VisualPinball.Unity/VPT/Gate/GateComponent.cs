@@ -266,8 +266,6 @@ namespace VisualPinball.Unity
 					GravityFactor = collComponent.GravityFactor,
 					TwoWay = collComponent.TwoWay,
 				} : default;
-			Debug.Log($"Damping = {staticData.Damping}");
-
 			var wireComponent = GetComponentInChildren<GateWireAnimationComponent>();
 			var movementData = collComponent && wireComponent
 				? new GateMovementState {

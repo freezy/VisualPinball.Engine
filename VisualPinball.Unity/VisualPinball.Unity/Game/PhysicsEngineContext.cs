@@ -240,6 +240,7 @@ namespace VisualPinball.Unity
 		/// from any thread.
 		/// </summary>
 		public long PhysicsBusyTotalUsec;
+		public long PublishedPhysicsFrameTimeUsec;
 		public long LastKinematicScanUsec;
 		public long LastEventDrainUsec;
 

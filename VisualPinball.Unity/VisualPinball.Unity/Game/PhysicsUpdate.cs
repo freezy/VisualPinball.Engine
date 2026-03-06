@@ -82,11 +82,12 @@ namespace VisualPinball.Unity
 			{
 				// Safety cap: if we've been catching up for too many iterations (e.g. after
 				// a frame hitch), skip physics time forward to prevent cascading hitches.
-				if (++subSteps > PhysicsConstants.MaxSubSteps) {
+				if (subSteps >= PhysicsConstants.MaxSubSteps) {
 					env.CurPhysicsFrameTime = initialTimeUsec;
 					env.NextPhysicsFrameTime = initialTimeUsec + PhysicsConstants.PhysicsStepTime;
 					break;
 				}
+				subSteps++;
 
 				env.TimeMsec = (uint)((env.CurPhysicsFrameTime - env.StartTimeUsec) / 1000);
 				var physicsDiffTime = (float)((env.NextPhysicsFrameTime - env.CurPhysicsFrameTime) * (1.0 / PhysicsConstants.DefaultStepTime));
@@ -140,59 +141,60 @@ namespace VisualPinball.Unity
 					}
 				}
 
-				#region Animation
-
-				// todo it should be enough to calculate animations only once per frame
-
-				// bumper
-				using (var enumerator = state.BumperStates.GetEnumerator()) {
-					while (enumerator.MoveNext()) {
-						ref var bumperState = ref enumerator.Current.Value;
-						if (bumperState.RingItemId != 0) {
-							BumperRingAnimation.Update(ref bumperState.RingAnimation, PhysicsConstants.PhysicsStepTime / 1000f);
-						}
-						if (bumperState.SkirtItemId != 0) {
-							BumperSkirtAnimation.Update(ref bumperState.SkirtAnimation, PhysicsConstants.PhysicsStepTime / 1000f);
-						}
-					}
-				}
-
-				// drop target
-				using (var enumerator = state.DropTargetStates.GetEnumerator()) {
-					while (enumerator.MoveNext()) {
-						ref var dropTargetState = ref enumerator.Current.Value;
-						DropTargetAnimation.Update(enumerator.Current.Key, ref dropTargetState.Animation, in dropTargetState.Static, ref state);
-					}
-				}
-
-				// hit target
-				using (var enumerator = state.HitTargetStates.GetEnumerator()) {
-					while (enumerator.MoveNext()) {
-						ref var hitTargetState = ref enumerator.Current.Value;
-						HitTargetAnimation.Update(ref hitTargetState.Animation, in hitTargetState.Static, env.TimeMsec);
-					}
-				}
-
-				// plunger
-				using (var enumerator = state.PlungerStates.GetEnumerator()) {
-					while (enumerator.MoveNext()) {
-						ref var plungerState = ref enumerator.Current.Value;
-						PlungerAnimation.Update(ref plungerState.Animation, in plungerState.Movement, in plungerState.Static);
-					}
-				}
-
-				// trigger
-				using (var enumerator = state.TriggerStates.GetEnumerator()) {
-					while (enumerator.MoveNext()) {
-						ref var triggerState = ref enumerator.Current.Value;
-						TriggerAnimation.Update(ref triggerState.Animation, ref triggerState.Movement, in triggerState.Static, PhysicsConstants.PhysicsStepTime / 1000f);
-					}
-				}
-
-				#endregion
-
 				env.CurPhysicsFrameTime = env.NextPhysicsFrameTime;
 				env.NextPhysicsFrameTime += PhysicsConstants.PhysicsStepTime;
+			}
+
+			if (subSteps > 0) {
+				UpdateAnimations(ref state, env.TimeMsec, subSteps * (PhysicsConstants.PhysicsStepTime / 1000f));
+			}
+		}
+
+		private static void UpdateAnimations(ref PhysicsState state, uint animationTimeMsec, float animationDeltaTimeMs)
+		{
+			// bumper
+			using (var enumerator = state.BumperStates.GetEnumerator()) {
+				while (enumerator.MoveNext()) {
+					ref var bumperState = ref enumerator.Current.Value;
+					if (bumperState.RingItemId != 0) {
+						BumperRingAnimation.Update(ref bumperState.RingAnimation, animationDeltaTimeMs);
+					}
+					if (bumperState.SkirtItemId != 0) {
+						BumperSkirtAnimation.Update(ref bumperState.SkirtAnimation, animationDeltaTimeMs);
+					}
+				}
+			}
+
+			// drop target
+			using (var enumerator = state.DropTargetStates.GetEnumerator()) {
+				while (enumerator.MoveNext()) {
+					ref var dropTargetState = ref enumerator.Current.Value;
+					DropTargetAnimation.Update(enumerator.Current.Key, ref dropTargetState.Animation, in dropTargetState.Static, ref state);
+				}
+			}
+
+			// hit target
+			using (var enumerator = state.HitTargetStates.GetEnumerator()) {
+				while (enumerator.MoveNext()) {
+					ref var hitTargetState = ref enumerator.Current.Value;
+					HitTargetAnimation.Update(ref hitTargetState.Animation, in hitTargetState.Static, animationTimeMsec);
+				}
+			}
+
+			// plunger
+			using (var enumerator = state.PlungerStates.GetEnumerator()) {
+				while (enumerator.MoveNext()) {
+					ref var plungerState = ref enumerator.Current.Value;
+					PlungerAnimation.Update(ref plungerState.Animation, in plungerState.Movement, in plungerState.Static);
+				}
+			}
+
+			// trigger
+			using (var enumerator = state.TriggerStates.GetEnumerator()) {
+				while (enumerator.MoveNext()) {
+					ref var triggerState = ref enumerator.Current.Value;
+					TriggerAnimation.Update(ref triggerState.Animation, ref triggerState.Movement, in triggerState.Static, animationDeltaTimeMs);
+				}
 			}
 		}
 	}

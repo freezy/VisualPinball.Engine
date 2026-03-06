@@ -16,7 +16,6 @@
 
 // ReSharper disable InconsistentNaming
 
-using System.Collections;
 using NLog;
 using Unity.Mathematics;
 using UnityEngine;
@@ -68,6 +67,14 @@ namespace VisualPinball.Unity
 
 		private float _startPos;
 		private bool _isAnimating;
+		private bool _isRotating;
+		private bool _isDropping;
+		private bool _isResetting;
+		private bool _dropScheduled;
+		private float _rotationElapsed;
+		private float _dropElapsed;
+		private float _resetElapsed;
+		private float _dropDistanceWorld;
 
 		private Keyboard _keyboard;
 		private IGamelogicEngine _gle;
@@ -77,6 +84,7 @@ namespace VisualPinball.Unity
 		private void Start()
 		{
 			_startPos = transform.localPosition.y;
+			_dropDistanceWorld = Physics.ScaleToWorld(DropDistance);
 		}
 
 		protected override void OnAnimationValueChanged(bool value)
@@ -95,9 +103,11 @@ namespace VisualPinball.Unity
 			}
 
 			_isAnimating = true;
-			StartCoroutine(AnimateRotation());
+			_isRotating = true;
+			_rotationElapsed = 0f;
+			_dropScheduled = false;
 			if (DropDelay == 0f) {
-				StartCoroutine(AnimateDrop());
+				StartDropAnimation();
 			}
 		}
 
@@ -108,62 +118,112 @@ namespace VisualPinball.Unity
 			}
 
 			_isAnimating = true;
-			StartCoroutine(AnimateReset());
+			_isResetting = true;
+			_resetElapsed = 0f;
+			_isRotating = false;
+			_isDropping = false;
+			_dropScheduled = false;
 		}
 
-		private IEnumerator AnimateRotation()
+		private void Update()
 		{
-			var t = 0f;
-			while (t < RotationDuration) {
-				var f = RotationAnimationCurve.Evaluate(t / RotationDuration);
+			if (_isRotating) {
+				UpdateRotation();
+			}
+
+			if (_isDropping) {
+				UpdateDrop();
+			}
+
+			if (_isResetting) {
+				UpdateReset();
+			}
+		}
+
+		private void UpdateRotation()
+		{
+			if (RotationDuration <= 0f) {
+				transform.SetLocalXRotation(0f);
+				_isRotating = false;
+				return;
+			}
+
+			_rotationElapsed += Time.deltaTime;
+			if (!_dropScheduled && DropDelay != 0f && _rotationElapsed >= DropDelay) {
+				StartDropAnimation();
+			}
+
+			if (_rotationElapsed < RotationDuration) {
+				var f = RotationAnimationCurve.Evaluate(_rotationElapsed / RotationDuration);
 				transform.SetLocalXRotation(math.radians(f * RotationAngle));
-				t += Time.deltaTime;
-				if (DropDelay != 0 && t >= DropDelay) {
-					StartCoroutine(AnimateDrop());
-				}
-				yield return null;                               // wait one frame
+				return;
 			}
 
 			// snap back to the start
-			transform.SetLocalXRotation(0);
+			transform.SetLocalXRotation(0f);
+			_isRotating = false;
 		}
 
-		private IEnumerator AnimateDrop()
+		private void StartDropAnimation()
 		{
-			var t = 0f;
-			while (t < DropDuration) {
-				var f = DropAnimationCurve.Evaluate(t / DropDuration);
-				var pos = transform.localPosition;
-				pos.y = _startPos - f * Physics.ScaleToWorld(DropDistance);
-				transform.localPosition = pos;
-				t += Time.deltaTime;
-				yield return null;                               // wait one frame
+			if (_dropScheduled) {
+				return;
+			}
+
+			_dropScheduled = true;
+			_isDropping = true;
+			_dropElapsed = 0f;
+		}
+
+		private void UpdateDrop()
+		{
+			if (DropDuration <= 0f) {
+				SetLocalY(_startPos - _dropDistanceWorld);
+				_isDropping = false;
+				_isAnimating = false;
+				return;
+			}
+
+			_dropElapsed += Time.deltaTime;
+			if (_dropElapsed < DropDuration) {
+				var f = DropAnimationCurve.Evaluate(_dropElapsed / DropDuration);
+				SetLocalY(_startPos - f * _dropDistanceWorld);
+				return;
 			}
 
 			// finally, snap to the curve's final value
-			var finalPos = transform.localPosition;
-			finalPos.y = _startPos - Physics.ScaleToWorld(DropDistance);
-			transform.localPosition = finalPos;
+			SetLocalY(_startPos - _dropDistanceWorld);
+			_isDropping = false;
 			_isAnimating = false;
 		}
 
-		private IEnumerator AnimateReset()
+		private void UpdateReset()
 		{
-			var t = 0f;
-			while (t < PullUpDuration) {
-				var f = PullUpAnimationCurve.Evaluate(t / PullUpDuration);
-				var pos = transform.localPosition;
-				pos.y = _startPos - Physics.ScaleToWorld(DropDistance) + f * Physics.ScaleToWorld(DropDistance);
-				transform.localPosition = pos;
-				t += Time.deltaTime;
-				yield return null;                               // wait one frame
+			if (PullUpDuration <= 0f) {
+				SetLocalY(_startPos);
+				_isResetting = false;
+				_isAnimating = false;
+				return;
+			}
+
+			_resetElapsed += Time.deltaTime;
+			if (_resetElapsed < PullUpDuration) {
+				var f = PullUpAnimationCurve.Evaluate(_resetElapsed / PullUpDuration);
+				SetLocalY(_startPos - _dropDistanceWorld + f * _dropDistanceWorld);
+				return;
 			}
 
 			// finally, snap to the curve's final value
-			var finalPos = transform.localPosition;
-			finalPos.y = _startPos;
-			transform.localPosition = finalPos;
+			SetLocalY(_startPos);
+			_isResetting = false;
 			_isAnimating = false;
+		}
+
+		private void SetLocalY(float y)
+		{
+			var pos = transform.localPosition;
+			pos.y = y;
+			transform.localPosition = pos;
 		}
 
 		// #region Packaging

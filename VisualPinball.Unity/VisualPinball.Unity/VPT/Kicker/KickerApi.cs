@@ -218,8 +218,6 @@ namespace VisualPinball.Unity
 				var rotQuaternion = new quaternion(rotMatrix);
 				ballData.Velocity = math.mul(rotQuaternion, velocity);
 
-				Debug.Log($"Kick[{MainComponent.name}]: inclination {math.degrees(inclination)}, speedz = {speedZ}, velocity = {ballData.Velocity} ({velocity}) ({x}, {y}, {z}), pos = {ballData.Position}");
-
 				ballData.IsFrozen = false;
 				ballData.AngularMomentum = float3.zero;
 

@@ -197,7 +197,6 @@ namespace VisualPinball.Unity
 
 			// handle own status
 			_physicsEngine.ScheduleAction(delay, () => {
-				Debug.Log($"Setting scheduled switch {Name} to {enabled}.");
 				IsEnabled = enabled;
 
 				onSwitched.Invoke(enabled);
