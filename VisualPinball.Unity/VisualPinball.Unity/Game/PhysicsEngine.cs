@@ -398,11 +398,56 @@ namespace VisualPinball.Unity
 
 		internal BallComponent UnregisterBall(int ballId)
 		{
+			if (_ctx.UseExternalTiming) {
+				throw new InvalidOperationException("Use UnregisterRuntimeBall() when external timing is enabled.");
+			}
+
 			var b = _ctx.BallComponents[ballId];
 			_ctx.BallComponents.Remove(ballId);
 			_ctx.BallStates.Ref.Remove(ballId);
 			_ctx.InsideOfs.SetOutsideOfAll(ballId);
 			return b;
+		}
+
+		internal void RegisterRuntimeBall(BallComponent ball)
+		{
+			var ballId = ball.gameObject.GetInstanceID();
+			var ballState = ball.CreateState();
+			_ctx.BallComponents[ballId] = ball;
+
+			if (_ctx.UseExternalTiming) {
+				lock (_ctx.PhysicsLock) {
+					if (_ctx.BallStates.Ref.IsCreated && !_ctx.BallStates.Ref.ContainsKey(ballId)) {
+						_ctx.BallStates.Ref[ballId] = ballState;
+					}
+				}
+				return;
+			}
+
+			if (!_ctx.BallStates.Ref.ContainsKey(ballId)) {
+				_ctx.BallStates.Ref[ballId] = ballState;
+			}
+		}
+
+		internal BallComponent UnregisterRuntimeBall(int ballId)
+		{
+			var ball = _ctx.BallComponents[ballId];
+			_ctx.BallComponents.Remove(ballId);
+
+			if (_ctx.UseExternalTiming) {
+				lock (_ctx.PhysicsLock) {
+					if (_ctx.BallStates.Ref.IsCreated) {
+						_ctx.BallStates.Ref.Remove(ballId);
+					}
+					_ctx.InsideOfs.SetOutsideOfAll(ballId);
+				}
+				return ball;
+			}
+
+			_ctx.BallStates.Ref.Remove(ballId);
+			_ctx.InsideOfs.SetOutsideOfAll(ballId);
+
+			return ball;
 		}
 
 		internal bool IsColliderEnabled(int itemId) => !_ctx.DisabledCollisionItems.Ref.Contains(itemId);
@@ -617,12 +662,32 @@ namespace VisualPinball.Unity
 				return;
 			}
 
+			StopSimulationThreadIfRunning();
+
 			_ctx.IsInitialized = false;
 			_ctx.UseExternalTiming = false;
 
 			lock (_ctx.PhysicsLock) {
 				_ctx.Dispose();
 			}
+		}
+
+		private void OnDisable()
+		{
+			if (_ctx == null || !_ctx.UseExternalTiming) {
+				return;
+			}
+
+			StopSimulationThreadIfRunning();
+		}
+
+		private void StopSimulationThreadIfRunning()
+		{
+			var simulationThreadComponent = GetComponent<SimulationThreadComponent>()
+				?? GetComponentInParent<SimulationThreadComponent>()
+				?? GetComponentInChildren<SimulationThreadComponent>();
+
+			simulationThreadComponent?.StopSimulation();
 		}
 
 		#endregion

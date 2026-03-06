@@ -63,7 +63,7 @@ namespace VisualPinball.Unity
 			ballComp.IsFrozen = false;
 
 			// register ball
-			_physicsEngine.Register(ballComp);
+			_physicsEngine.RegisterRuntimeBall(ballComp);
 			_player.BallCreated(ballGo.GetInstanceID(), ballGo);
 
 			return ballComp.Id;
@@ -71,7 +71,7 @@ namespace VisualPinball.Unity
 
 		public void DestroyBall(int ballId)
 		{
-			var ballComponent = _physicsEngine.UnregisterBall(ballId);
+			var ballComponent = _physicsEngine.UnregisterRuntimeBall(ballId);
 			_player.BallDestroyed(ballId, ballComponent.gameObject);
 
 			// destroy game object
