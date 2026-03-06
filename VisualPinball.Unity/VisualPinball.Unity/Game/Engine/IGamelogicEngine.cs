@@ -206,6 +206,15 @@ namespace VisualPinball.Unity
 		void WriteSharedState(ref Simulation.SimulationState.Snapshot snapshot);
 	}
 
+	/// <summary>
+	/// Optional capability interface for game logic engines that can consume
+	/// the shared simulation snapshot on Unity's main thread.
+	/// </summary>
+	public interface IGamelogicSharedStateApplier
+	{
+		void ApplySharedState(in Simulation.SimulationState.Snapshot snapshot);
+	}
+
 	public readonly struct GamelogicPerformanceStats
 	{
 		public readonly bool IsRunning;
