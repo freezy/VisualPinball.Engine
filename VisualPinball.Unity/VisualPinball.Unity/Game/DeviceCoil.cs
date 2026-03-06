@@ -25,8 +25,7 @@ namespace VisualPinball.Unity
 		void OnCoilSimulationThread(bool enabled);
 	}
 
-	public class DeviceCoil : IApiCoil
-		, ISimulationThreadCoil
+	public class DeviceCoil : IApiCoil, ISimulationThreadCoil
 	{
 		private int _isEnabled;
 		private int _simulationEnabled;
@@ -40,6 +39,17 @@ namespace VisualPinball.Unity
 		/// still fire on the main thread.
 		/// </summary>
 		private volatile bool _simThreadActive;
+
+		/// <summary>
+		/// Whether this coil exposes explicit simulation-thread callbacks.
+		/// Only coils whose effect is physics-critical and thread-safe should
+		/// opt into this path. Examples are flippers or gate lifters, where
+		/// coil latency directly affects collision timing. Visual-only or
+		/// orchestration-heavy coils, such as lamp/ flasher mappings or coils
+		/// that still touch Unity objects on enable/disable, should stay on the
+		/// normal main-thread path.
+		/// </summary>
+		public bool SupportsSimulationThreadDispatch => OnEnableSimulationThread != null || OnDisableSimulationThread != null;
 
 		public bool IsEnabled => Volatile.Read(ref _isEnabled) != 0;
 		public event EventHandler<NoIdCoilEventArgs> CoilStatusChanged;
