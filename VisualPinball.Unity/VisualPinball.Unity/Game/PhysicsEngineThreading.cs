@@ -165,10 +165,28 @@ namespace VisualPinball.Unity
 					var matrix = enumerator.Current.Value;
 					_ctx.UpdatedKinematicTransforms.Ref[itemId] = matrix;
 					_ctx.KinematicTransforms.Ref[itemId] = matrix;
+
+					var coll = GetKinematicColliderComponent(itemId);
+					coll?.OnTransformationChanged(matrix);
 				}
 				_ctx.PendingKinematicTransforms.Ref.Clear();
 				_ctx.KinematicOctreeDirty = true;
 			}
+		}
+
+		private ICollidableComponent GetKinematicColliderComponent(int itemId)
+		{
+			if (_kinematicColliderComponents == null) {
+				return null;
+			}
+
+			foreach (var coll in _kinematicColliderComponents) {
+				if (coll.ItemId == itemId) {
+					return coll;
+				}
+			}
+
+			return null;
 		}
 
 		/// <summary>
@@ -442,13 +460,6 @@ namespace VisualPinball.Unity
 
 				// Transform changed — update cache
 				_ctx.MainThreadKinematicCache[coll.ItemId] = currMatrix;
-
-				// Notify the component (e.g. KickerColliderComponent updates its
-				// center). NOTE: this writes physics state from the main thread,
-				// which is a pre-existing thread-safety issue inherited from the
-				// original code. A future improvement would schedule these as
-				// input actions.
-				coll.OnTransformationChanged(currMatrix);
 
 				// Stage for the sim thread
 				lock (_ctx.PendingKinematicLock) {
