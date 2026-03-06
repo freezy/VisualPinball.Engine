@@ -268,7 +268,10 @@ namespace VisualPinball.Unity.Simulation
 			// applied lock-free by PhysicsEngine.ApplyMovements() via the
 			// triple-buffered snapshot. This method handles any remaining
 			// state that isn't covered by the snapshot (PinMAME coils, lamps,
-			// GI) — currently a placeholder.
+			// GI).
+			if (_gamelogicEngine is IGamelogicSharedStateApplier sharedStateApplier) {
+				sharedStateApplier.ApplySharedState(in state);
+			}
 		}
 
 		/// <summary>

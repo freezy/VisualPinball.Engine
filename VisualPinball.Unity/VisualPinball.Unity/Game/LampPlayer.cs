@@ -116,8 +116,13 @@ namespace VisualPinball.Unity
 
 		public void HandleLampEvent(string id, float value)
 		{
+			HandleLampEvent(id, value, LampSource.Lamp);
+		}
+
+		public void HandleLampEvent(string id, float value, LampSource source)
+		{
 			LampAction action = default;
-			if (Apply(id, LampSource.Lamp, false, ref action)) {
+			if (Apply(id, source, false, ref action)) {
 				ApplyValue(id, value, action.State, action.Lamp, action.Mapping);
 			}
 		}
