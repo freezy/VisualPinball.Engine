@@ -161,6 +161,7 @@ namespace VisualPinball.Unity
 		private static ulong NowUsec => (ulong)(Time.timeAsDouble * 1000000);
 		internal ulong CurrentSimulationClockUsec => NowUsec;
 		internal float CurrentSimulationClockScale => Time.timeScale;
+		internal bool UsesExternalTiming => _ctx.UseExternalTiming;
 
 		/// <summary>
 		/// Check if the physics engine has completed initialization.
@@ -219,6 +220,17 @@ namespace VisualPinball.Unity
 			lock (_ctx.InputActionsLock) {
 				_ctx.InputActions.Enqueue(action);
 			}
+		}
+
+		internal void MutateState(InputAction action)
+		{
+			if (_ctx.UseExternalTiming) {
+				Schedule(action);
+				return;
+			}
+
+			var state = _ctx.CreateState();
+			action(ref state);
 		}
 
 		// ── State accessors ──────────────────────────────────────────
