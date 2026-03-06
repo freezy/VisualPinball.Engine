@@ -37,7 +37,6 @@ namespace VisualPinball.Unity.Simulation
 		private const long TickIntervalUsec = 1000; // 1ms = 1000 microseconds
 		private const long BusyWaitThresholdUsec = 100; // Last 100us busy-wait for precision
 		private const int MaxCoilOutputsPerTick = 128;
-		private const long TimeFenceUpdateIntervalUsec = 5_000;
 
 		#endregion
 
@@ -425,7 +424,7 @@ namespace VisualPinball.Unity.Simulation
 
 			// 4. Move the emulation fence after inputs+outputs+physics.
 			// Throttle updates to reduce fence wake/sleep churn in PinMAME.
-			if (_timeFence != null && (_lastTimeFenceUsec == long.MinValue || _simulationTimeUsec - _lastTimeFenceUsec >= TimeFenceUpdateIntervalUsec)) {
+			if (_timeFence != null && _simulationTimeUsec != _lastTimeFenceUsec) {
 				_timeFence.SetTimeFence(_simulationTimeUsec / 1_000_000.0);
 				_lastTimeFenceUsec = _simulationTimeUsec;
 			}
