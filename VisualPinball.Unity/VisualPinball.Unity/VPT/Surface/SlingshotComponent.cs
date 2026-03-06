@@ -17,7 +17,6 @@
 // ReSharper disable InconsistentNaming
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
@@ -75,6 +74,16 @@ namespace VisualPinball.Unity
 		[SerializeField] private bool _isLocked;
 		[NonSerialized] private readonly Dictionary<int, Mesh> _meshes = new Dictionary<int, Mesh>();
 		[NonSerialized] private RubberMeshGenerator _meshGenerator;
+		[NonSerialized] private bool _isAnimating;
+		[NonSerialized] private float _animationJourney;
+		[NonSerialized] private DragPointData[] _dragPointsBuffer = Array.Empty<DragPointData>();
+		[NonSerialized] private MeshFilter _meshFilter;
+		[NonSerialized] private MeshRenderer _meshRenderer;
+		[NonSerialized] private MeshRenderer _rubberOffMeshRenderer;
+		[NonSerialized] private PlayfieldComponent _playfield;
+		[NonSerialized] private bool _loggedMissingMeshComponents;
+		[NonSerialized] private bool _loggedMissingRubberReferences;
+		[NonSerialized] private bool _loggedMismatchedDragPoints;
 		private RubberMeshGenerator MeshGenerator => _meshGenerator ??= new RubberMeshGenerator(this);
 
 		private const int MaxNumMeshCaches = 15;
@@ -99,6 +108,10 @@ namespace VisualPinball.Unity
 		{
 			var player = GetComponentInParent<Player>();
 			var physicsEngine = GetComponentInParent<PhysicsEngine>();
+			_meshFilter = GetComponent<MeshFilter>();
+			_meshRenderer = GetComponent<MeshRenderer>();
+			_playfield = GetComponentInParent<PlayfieldComponent>();
+			_rubberOffMeshRenderer = RubberOff ? RubberOff.GetComponent<MeshRenderer>() : null;
 			SlingshotApi = new SlingshotApi(gameObject, player, physicsEngine);
 
 			player.Register(SlingshotApi, this);
@@ -114,6 +127,8 @@ namespace VisualPinball.Unity
 			if (slingshotSurfaceApi != null) {
 				slingshotSurfaceApi.Slingshot += OnSlingshot;
 			}
+
+			PrewarmMeshes();
 		}
 
 		private void OnDestroy()
@@ -131,23 +146,33 @@ namespace VisualPinball.Unity
 
 		private void TriggerAnimation()
 		{
-			StopAllCoroutines();
-			StartCoroutine(nameof(Animate));
+			_animationJourney = 0f;
+			_isAnimating = true;
 		}
 
-		private IEnumerator Animate()
+		private void Update()
 		{
+			if (!_isAnimating) {
+				return;
+			}
+
 			var duration = AnimationDuration / 1000;
-			var journey = 0f;
-			while (journey <= duration) {
-
-				journey += Time.deltaTime;
-				var curvePercent = AnimationCurve.Evaluate(journey / duration);
-				Position = math.clamp(curvePercent, 0f, 1f);
-
+			if (duration <= 0f) {
+				Position = 0f;
 				RebuildMeshes();
+				_isAnimating = false;
+				return;
+			}
 
-				yield return null;
+			_animationJourney += Time.deltaTime;
+			var curvePercent = AnimationCurve.Evaluate(_animationJourney / duration);
+			Position = math.clamp(curvePercent, 0f, 1f);
+			RebuildMeshes();
+
+			if (_animationJourney > duration) {
+				Position = 0f;
+				RebuildMeshes();
+				_isAnimating = false;
 			}
 		}
 
@@ -156,8 +181,8 @@ namespace VisualPinball.Unity
 		#region IRubberData
 
 		public DragPointData[] DragPoints => DragPointsAt(Position);
-		public int Thickness => RubberOff.GetComponent<RubberComponent>()?.Thickness ?? 8;
-		public float Height => RubberOff.GetComponent<RubberComponent>()?.Height ?? 25f;
+		public int Thickness => RubberOff ? RubberOff.Thickness : 8;
+		public float Height => RubberOff ? RubberOff.Height : 25f;
 
 		#endregion
 
@@ -167,25 +192,20 @@ namespace VisualPinball.Unity
 
 		public void RebuildMeshes()
 		{
-			var mf = GetComponent<MeshFilter>();
-			var mr = GetComponent<MeshRenderer>();
-			if (!mf || !mr) {
-				Debug.LogWarning("Mesh filter or renderer not found.");
+			if (!_meshFilter || !_meshRenderer) {
+				LogConfigurationWarningOnce(ref _loggedMissingMeshComponents, "Mesh filter or renderer not found.");
 				return;
 			}
 
 			// mesh
 			var mesh = GetMesh();
 			if (mesh != null) {
-				mf.sharedMesh = mesh;
+				_meshFilter.sharedMesh = mesh;
 			}
 
 			// material
-			if (RubberOff && !mr.sharedMaterial) {
-				var rubberMr = RubberOff.GetComponent<MeshRenderer>();
-				if (rubberMr) {
-					mr.sharedMaterial = rubberMr.sharedMaterial;
-				}
+			if (_rubberOffMeshRenderer && !_meshRenderer.sharedMaterial) {
+				_meshRenderer.sharedMaterial = _rubberOffMeshRenderer.sharedMaterial;
 			}
 
 			if (CoilArm) {
@@ -207,24 +227,20 @@ namespace VisualPinball.Unity
 		private Mesh GetMesh()
 		{
 			var pos = (int)(Position * MaxNumMeshCaches);
-			if (Application.isPlaying && _meshes.ContainsKey(pos)) {
-				return _meshes[pos];
+			if (Application.isPlaying && _meshes.TryGetValue(pos, out var cachedMesh)) {
+				return cachedMesh;
 			}
 
-			if (!RubberOff || DragPoints.Length < 3) {
+			if (!TryGetSourceDragPoints(out var dp0, out var dp1) || dp0.Length < 3) {
 				return null;
 			}
 
-			var pf = GetComponentInParent<PlayfieldComponent>();
-			var r0 = RubberOff.GetComponent<RubberComponent>();
-			if (!r0 || !pf) {
+			if (!_playfield) {
 				return null;
 			}
-
-			Debug.Log($"Generating new mesh at {pos}");
 
 			var mesh = MeshGenerator
-				.GetTransformedMesh(0, pf.PlayfieldDetailLevel)
+				.GetTransformedMesh(0, _playfield.PlayfieldDetailLevel)
 				.TransformToWorld()
 				.ToUnityMesh();
 
@@ -238,31 +254,64 @@ namespace VisualPinball.Unity
 
 		private DragPointData[] DragPointsAt(float pos)
 		{
-			if (RubberOn == null || RubberOff == null) {
-				Debug.LogWarning("Rubber references not set.");
+			if (!TryGetSourceDragPoints(out var dp0, out var dp1)) {
 				return Array.Empty<DragPointData>();
 			}
-			var r0 = RubberOff.GetComponent<RubberComponent>();
-			var r1 = RubberOn.GetComponent<RubberComponent>();
-			if (r0 == null || r1 == null || r0.DragPoints == null || r1.DragPoints == null) {
-				Debug.LogWarning("Rubber references not found or drag points not set.");
-				return Array.Empty<DragPointData>();
-			}
-
-			var dp0 = r0.DragPoints;
-			var dp1 = r1.DragPoints;
 
 			if (dp0.Length != dp1.Length) {
-				Debug.LogWarning($"Drag point number varies ({dp0.Length} vs {dp1.Length}.).");
+				LogConfigurationWarningOnce(ref _loggedMismatchedDragPoints, $"Drag point number varies ({dp0.Length} vs {dp1.Length}.).");
 				return Array.Empty<DragPointData>();
 			}
 
-			var dp = new DragPointData[dp0.Length];
-			for (var i = 0; i < dp.Length; i++) {
-				dp[i] = dp0[i].Lerp(dp1[i], pos);
+			if (_dragPointsBuffer.Length != dp0.Length) {
+				_dragPointsBuffer = new DragPointData[dp0.Length];
 			}
 
-			return dp;
+			for (var i = 0; i < _dragPointsBuffer.Length; i++) {
+				_dragPointsBuffer[i] = dp0[i].Lerp(dp1[i], pos);
+			}
+
+			return _dragPointsBuffer;
+		}
+
+		private bool TryGetSourceDragPoints(out DragPointData[] dp0, out DragPointData[] dp1)
+		{
+			dp0 = null;
+			dp1 = null;
+
+			if (RubberOn == null || RubberOff == null || RubberOn.DragPoints == null || RubberOff.DragPoints == null) {
+				LogConfigurationWarningOnce(ref _loggedMissingRubberReferences, "Rubber references not found or drag points not set.");
+				return false;
+			}
+
+			dp0 = RubberOff.DragPoints;
+			dp1 = RubberOn.DragPoints;
+			return true;
+		}
+
+		private void PrewarmMeshes()
+		{
+			if (!Application.isPlaying || !TryGetSourceDragPoints(out var dp0, out _) || dp0.Length < 3 || !_playfield) {
+				return;
+			}
+
+			var previousPosition = Position;
+			for (var pos = 0; pos <= MaxNumMeshCaches; pos++) {
+				Position = (float)pos / MaxNumMeshCaches;
+				GetMesh();
+			}
+			Position = previousPosition;
+		}
+
+		private void LogConfigurationWarningOnce(ref bool flag, string message)
+		{
+			if (flag) {
+				return;
+			}
+			flag = true;
+#if UNITY_EDITOR
+			Debug.LogWarning(message);
+#endif
 		}
 
 		public void CopyFromObject(GameObject go)
