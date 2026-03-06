@@ -159,6 +159,8 @@ namespace VisualPinball.Unity
 		#endregion
 
 		private static ulong NowUsec => (ulong)(Time.timeAsDouble * 1000000);
+		internal ulong CurrentSimulationClockUsec => NowUsec;
+		internal float CurrentSimulationClockScale => Time.timeScale;
 
 		/// <summary>
 		/// Check if the physics engine has completed initialization.

@@ -97,6 +97,8 @@ namespace VisualPinball.Unity.Simulation
 		{
 			if (!_started || _simulationThread == null) return;
 
+			_simulationThread.SyncClockFromMainThread(_physicsEngine.CurrentSimulationClockUsec, _physicsEngine.CurrentSimulationClockScale);
+
 			// Engines that are not thread-safe for switch updates receive queued
 			// events here on Unity's main thread.
 			_simulationThread.FlushMainThreadInputDispatch();
@@ -163,11 +165,12 @@ namespace VisualPinball.Unity.Simulation
 				// This disables Unity's Update() loop and gives control to the simulation thread
 				_physicsEngine.SetExternalTiming(true);
 
-			// Create simulation thread
+				// Create simulation thread
 				_simulationThread = new SimulationThread(_physicsEngine, _gamelogicEngine,
 					player != null
 						? new Action<string, bool>((coilId, isEnabled) => player.DispatchCoilSimulationThread(coilId, isEnabled))
 						: null);
+				_simulationThread.SyncClockFromMainThread(_physicsEngine.CurrentSimulationClockUsec, _physicsEngine.CurrentSimulationClockScale);
 
 				// Provide the triple-buffered SimulationState to PhysicsEngine so
 				// that ApplyMovements() can read lock-free snapshots.
