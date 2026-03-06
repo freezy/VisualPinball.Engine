@@ -273,27 +273,32 @@ namespace VisualPinball.Unity
 		public readonly int Width;
 		public readonly int Height;
 		public readonly bool FlipX;
+		public readonly Color? LitColor;
+		public readonly Color? UnlitColor;
 
 		public DisplayConfig(string id, int width, int height)
+			: this(id, width, height, false)
+		{
+		}
+
+		public DisplayConfig(string id, int width, int height, bool flipX, Color? litColor = null, Color? unlitColor = null)
 		{
 			Id = id;
 			Width = width;
 			Height = height;
+			FlipX = flipX;
+			LitColor = litColor;
+			UnlitColor = unlitColor;
 		}
 
 		public DisplayConfig(string id, uint width, uint height)
+			: this(id, (int)width, (int)height)
 		{
-			Id = id;
-			Width = (int)width;
-			Height = (int)height;
 		}
 
 		public DisplayConfig(string id, uint width, uint height, bool flipX)
+			: this(id, (int)width, (int)height, flipX)
 		{
-			Id = id;
-			Width = (int)width;
-			Height = (int)height;
-			FlipX = flipX;
 		}
 	}
 

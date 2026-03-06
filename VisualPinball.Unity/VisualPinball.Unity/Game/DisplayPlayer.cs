@@ -52,8 +52,15 @@ namespace VisualPinball.Unity
 			foreach (var display in requestedDisplays.Displays) {
 				if (_displayGameObjects.ContainsKey(display.Id)) {
 					Logger.Info($"Updating display \"{display.Id}\" to {display.Width}x{display.Height}");
-					_displayGameObjects[display.Id].UpdateDimensions(display.Width, display.Height, display.FlipX);
-					_displayGameObjects[display.Id].Clear();
+					var displayGameObject = _displayGameObjects[display.Id];
+					displayGameObject.UpdateDimensions(display.Width, display.Height, display.FlipX);
+					if (display.LitColor.HasValue) {
+						displayGameObject.UpdateColor(display.LitColor.Value);
+					}
+					if (display.UnlitColor.HasValue) {
+						displayGameObject.UnlitColor = display.UnlitColor.Value;
+					}
+					displayGameObject.Clear();
 				} else {
 					Logger.Warn($"Cannot find game object for display \"{display.Id}\"");
 				}
