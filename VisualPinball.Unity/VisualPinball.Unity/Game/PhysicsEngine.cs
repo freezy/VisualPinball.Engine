@@ -205,12 +205,28 @@ namespace VisualPinball.Unity
 		public void ScheduleAction(int timeoutMs, Action action) => ScheduleAction((uint)timeoutMs, action);
 		public void ScheduleAction(uint timeoutMs, Action action)
 		{
-			lock (_ctx.ScheduledActions) {
-				_ctx.ScheduledActions.Add(new PhysicsEngineContext.ScheduledAction(_ctx.PhysicsEnv.CurPhysicsFrameTime + (ulong)timeoutMs * 1000, action));
+			lock (_ctx.ScheduledActionsLock) {
+				PushScheduledAction(new PhysicsEngineContext.ScheduledAction(_ctx.PhysicsEnv.CurPhysicsFrameTime + (ulong)timeoutMs * 1000, action));
 				if (!_scheduledActionsQueueWarningIssued && _ctx.ScheduledActions.Count >= ScheduledActionsWarningThreshold) {
 					_scheduledActionsQueueWarningIssued = true;
 					Debug.LogWarning($"[PhysicsEngine] ScheduledActions backlog reached {_ctx.ScheduledActions.Count} items. Callback production may be outpacing drain.");
 				}
+			}
+		}
+
+		private void PushScheduledAction(PhysicsEngineContext.ScheduledAction action)
+		{
+			var scheduledActions = _ctx.ScheduledActions;
+			scheduledActions.Add(action);
+			var index = scheduledActions.Count - 1;
+			while (index > 0) {
+				var parentIndex = (index - 1) / 2;
+				if (scheduledActions[parentIndex].ScheduleAt <= scheduledActions[index].ScheduleAt) {
+					break;
+				}
+
+				(scheduledActions[parentIndex], scheduledActions[index]) = (scheduledActions[index], scheduledActions[parentIndex]);
+				index = parentIndex;
 			}
 		}
 

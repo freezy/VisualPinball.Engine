@@ -180,10 +180,11 @@ namespace VisualPinball.Unity
 		public readonly object InputActionsLock = new();
 
 		/// <summary>
-		/// Scheduled managed callbacks. Protected by locking on the list
-		/// instance itself.
+		/// Scheduled managed callbacks stored in a min-heap by due time.
+		/// Protected by locking on <see cref="ScheduledActionsLock"/>.
 		/// </summary>
 		public readonly List<ScheduledAction> ScheduledActions = new();
+		public readonly object ScheduledActionsLock = new();
 
 		/// <summary>
 		/// Reference to the triple-buffered simulation state owned by the

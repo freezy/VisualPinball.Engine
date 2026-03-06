@@ -51,6 +51,7 @@ namespace VisualPinball.Unity
 		private readonly PhysicsMovements _physicsMovements = new();
 		private readonly List<EventData> _deferredMainThreadEvents = new();
 		private readonly List<Action> _deferredMainThreadScheduledActions = new();
+		private readonly List<Action> _dueSingleThreadScheduledActions = new();
 		private readonly List<PhysicsEngine.InputAction> _pendingInputActions = new();
 		private readonly List<KeyValuePair<int, float4x4>> _pendingKinematicUpdates = new();
 		private readonly int[] _snapshotFlipperIds;
@@ -453,13 +454,8 @@ namespace VisualPinball.Unity
 					_deferredMainThreadEvents.Add(eventData);
 				}
 
-				lock (_ctx.ScheduledActions) {
-					for (var i = _ctx.ScheduledActions.Count - 1; i >= 0; i--) {
-						if (_ctx.PhysicsEnv.CurPhysicsFrameTime > _ctx.ScheduledActions[i].ScheduleAt) {
-							_deferredMainThreadScheduledActions.Add(_ctx.ScheduledActions[i].Action);
-							_ctx.ScheduledActions.RemoveAt(i);
-						}
-					}
+				lock (_ctx.ScheduledActionsLock) {
+					DrainDueScheduledActions(_ctx.PhysicsEnv.CurPhysicsFrameTime, _deferredMainThreadScheduledActions);
 				}
 			} finally {
 				Monitor.Exit(_ctx.PhysicsLock);
@@ -578,14 +574,12 @@ namespace VisualPinball.Unity
 				_player.OnEvent(in eventData);
 			}
 
-			// process scheduled events from managed land
-			lock (_ctx.ScheduledActions) {
-				for (var i = _ctx.ScheduledActions.Count - 1; i >= 0; i--) {
-					if (_ctx.PhysicsEnv.CurPhysicsFrameTime > _ctx.ScheduledActions[i].ScheduleAt) {
-						_ctx.ScheduledActions[i].Action();
-						_ctx.ScheduledActions.RemoveAt(i);
-					}
-				}
+			_dueSingleThreadScheduledActions.Clear();
+			lock (_ctx.ScheduledActionsLock) {
+				DrainDueScheduledActions(_ctx.PhysicsEnv.CurPhysicsFrameTime, _dueSingleThreadScheduledActions);
+			}
+			foreach (var action in _dueSingleThreadScheduledActions) {
+				action();
 			}
 
 			// Apply movements to GameObjects
@@ -633,6 +627,49 @@ namespace VisualPinball.Unity
 			}
 
 			Interlocked.Add(ref _ctx.PhysicsBusyTotalUsec, elapsedUsec);
+		}
+
+		private void DrainDueScheduledActions(ulong currentTimeUsec, List<Action> destination)
+		{
+			while (_ctx.ScheduledActions.Count > 0 && _ctx.ScheduledActions[0].ScheduleAt < currentTimeUsec) {
+				destination.Add(PopScheduledAction().Action);
+			}
+		}
+
+		private PhysicsEngineContext.ScheduledAction PopScheduledAction()
+		{
+			var scheduledActions = _ctx.ScheduledActions;
+			var root = scheduledActions[0];
+			var lastIndex = scheduledActions.Count - 1;
+			var last = scheduledActions[lastIndex];
+			scheduledActions.RemoveAt(lastIndex);
+
+			if (lastIndex == 0) {
+				return root;
+			}
+
+			scheduledActions[0] = last;
+			var index = 0;
+			while (true) {
+				var left = index * 2 + 1;
+				if (left >= scheduledActions.Count) {
+					break;
+				}
+
+				var right = left + 1;
+				var smallest = right < scheduledActions.Count && scheduledActions[right].ScheduleAt < scheduledActions[left].ScheduleAt
+					? right
+					: left;
+
+				if (scheduledActions[index].ScheduleAt <= scheduledActions[smallest].ScheduleAt) {
+					break;
+				}
+
+				(scheduledActions[index], scheduledActions[smallest]) = (scheduledActions[smallest], scheduledActions[index]);
+				index = smallest;
+			}
+
+			return root;
 		}
 
 		#endregion
