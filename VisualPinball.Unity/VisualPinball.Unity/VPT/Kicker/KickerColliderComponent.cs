@@ -27,6 +27,8 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Pinball/Collision/Kicker Collider")]
 	public class KickerColliderComponent : ColliderComponent<KickerData, KickerComponent>, IPackable
 	{
+		private int _itemId;
+
 		#region Data
 
 		[Range(-90f, 90f)]
@@ -99,6 +101,7 @@ namespace VisualPinball.Unity
 		private void Awake()
 		{
 			PhysicsEngine = GetComponentInParent<PhysicsEngine>();
+			_itemId = MainComponent.gameObject.GetInstanceID();
 		}
 
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine) =>
@@ -107,11 +110,11 @@ namespace VisualPinball.Unity
 		public override void OnTransformationChanged(float4x4 currTransformationMatrix)
 		{
 			// update kicker center, so the internal collision shape is correct
-			ref var kickerData = ref PhysicsEngine.KickerState(ItemId);
+			ref var kickerData = ref PhysicsEngine.KickerState(_itemId);
 			kickerData.Static.Center = currTransformationMatrix.c3.xy;
 			kickerData.Static.ZLow = currTransformationMatrix.c3.z;
-			if (PhysicsEngine.HasBallsInsideOf(ItemId)) {
-				foreach (var ballId in PhysicsEngine.GetBallsInsideOf(ItemId)) {
+			if (PhysicsEngine.HasBallsInsideOf(_itemId)) {
+				foreach (var ballId in PhysicsEngine.GetBallsInsideOf(_itemId)) {
 					ref var ball = ref PhysicsEngine.BallState(ballId);
 					ball.Position = currTransformationMatrix.c3.xyz;
 				}

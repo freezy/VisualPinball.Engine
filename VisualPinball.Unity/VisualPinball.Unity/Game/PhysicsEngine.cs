@@ -155,6 +155,9 @@ namespace VisualPinball.Unity
 		[NonSerialized] private ICollidableComponent[] _colliderComponents;
 		[NonSerialized] private ICollidableComponent[] _kinematicColliderComponents;
 		[NonSerialized] private float4x4 _worldToPlayfield;
+		[NonSerialized] private int _mainThreadManagedThreadId;
+		[NonSerialized] private int _simulationThreadManagedThreadId = -1;
+		[NonSerialized] private readonly HashSet<string> _unsafeLiveStateAccessWarnings = new HashSet<string>();
 
 		#endregion
 
@@ -233,6 +236,29 @@ namespace VisualPinball.Unity
 			action(ref state);
 		}
 
+		internal void MarkCurrentThreadAsSimulationThread()
+		{
+			Interlocked.Exchange(ref _simulationThreadManagedThreadId, Thread.CurrentThread.ManagedThreadId);
+		}
+
+		private bool IsMainThread => _mainThreadManagedThreadId == Thread.CurrentThread.ManagedThreadId;
+		private bool IsSimulationThread => Volatile.Read(ref _simulationThreadManagedThreadId) == Thread.CurrentThread.ManagedThreadId;
+
+		private void GuardLiveStateAccess(string accessorName)
+		{
+			if (!_ctx.UseExternalTiming || IsSimulationThread) {
+				return;
+			}
+
+			if (!IsMainThread) {
+				throw new InvalidOperationException($"Live physics state '{accessorName}' accessed from unsupported thread {Thread.CurrentThread.ManagedThreadId}. In external-timing mode, live state is owned by the simulation thread.");
+			}
+
+			if (_unsafeLiveStateAccessWarnings.Add(accessorName)) {
+				Debug.LogWarning($"[PhysicsEngine] Live physics state '{accessorName}' was accessed from the Unity main thread while external timing is enabled. Prefer snapshot data or schedule work onto the simulation thread.");
+			}
+		}
+
 		// ── State accessors ──────────────────────────────────────────
 		// These return refs into native hash maps. In single-threaded
 		// mode they are safe. In threaded mode, callers on the sim
@@ -241,21 +267,81 @@ namespace VisualPinball.Unity
 		// the triple-buffered snapshot; direct access is a pre-existing
 		// thread-safety concern (see AGENTS.md audit notes).
 
-		internal bool BallExists(int ballId) => _ctx.BallStates.Ref.ContainsKey(ballId);
-		internal ref BallState BallState(int ballId) => ref _ctx.BallStates.Ref.GetValueByRef(ballId);
-		internal ref BumperState BumperState(int itemId) => ref _ctx.BumperStates.Ref.GetValueByRef(itemId);
-		internal ref FlipperState FlipperState(int itemId) => ref _ctx.FlipperStates.Ref.GetValueByRef(itemId);
-		internal ref GateState GateState(int itemId) => ref _ctx.GateStates.Ref.GetValueByRef(itemId);
-		internal ref DropTargetState DropTargetState(int itemId) => ref _ctx.DropTargetStates.Ref.GetValueByRef(itemId);
-		internal ref HitTargetState HitTargetState(int itemId) => ref _ctx.HitTargetStates.Ref.GetValueByRef(itemId);
-		internal ref KickerState KickerState(int itemId) => ref _ctx.KickerStates.Ref.GetValueByRef(itemId);
-		internal ref PlungerState PlungerState(int itemId) => ref _ctx.PlungerStates.Ref.GetValueByRef(itemId);
-		internal ref SpinnerState SpinnerState(int itemId) => ref _ctx.SpinnerStates.Ref.GetValueByRef(itemId);
-		internal ref SurfaceState SurfaceState(int itemId) => ref _ctx.SurfaceStates.Ref.GetValueByRef(itemId);
-		internal ref TriggerState TriggerState(int itemId) => ref _ctx.TriggerStates.Ref.GetValueByRef(itemId);
-		internal void SetBallInsideOf(int ballId, int itemId) => _ctx.InsideOfs.SetInsideOf(itemId, ballId);
-		internal bool HasBallsInsideOf(int itemId) => _ctx.InsideOfs.GetInsideCount(itemId) > 0;
-		internal FixedList64Bytes<int> GetBallsInsideOf(int itemId) => _ctx.InsideOfs.GetIdsOfBallsInsideItem(itemId);
+		internal bool BallExists(int ballId)
+		{
+			GuardLiveStateAccess(nameof(BallExists));
+			return _ctx.BallStates.Ref.ContainsKey(ballId);
+		}
+		internal ref BallState BallState(int ballId)
+		{
+			GuardLiveStateAccess(nameof(BallState));
+			return ref _ctx.BallStates.Ref.GetValueByRef(ballId);
+		}
+		internal ref BumperState BumperState(int itemId)
+		{
+			GuardLiveStateAccess(nameof(BumperState));
+			return ref _ctx.BumperStates.Ref.GetValueByRef(itemId);
+		}
+		internal ref FlipperState FlipperState(int itemId)
+		{
+			GuardLiveStateAccess(nameof(FlipperState));
+			return ref _ctx.FlipperStates.Ref.GetValueByRef(itemId);
+		}
+		internal ref GateState GateState(int itemId)
+		{
+			GuardLiveStateAccess(nameof(GateState));
+			return ref _ctx.GateStates.Ref.GetValueByRef(itemId);
+		}
+		internal ref DropTargetState DropTargetState(int itemId)
+		{
+			GuardLiveStateAccess(nameof(DropTargetState));
+			return ref _ctx.DropTargetStates.Ref.GetValueByRef(itemId);
+		}
+		internal ref HitTargetState HitTargetState(int itemId)
+		{
+			GuardLiveStateAccess(nameof(HitTargetState));
+			return ref _ctx.HitTargetStates.Ref.GetValueByRef(itemId);
+		}
+		internal ref KickerState KickerState(int itemId)
+		{
+			GuardLiveStateAccess(nameof(KickerState));
+			return ref _ctx.KickerStates.Ref.GetValueByRef(itemId);
+		}
+		internal ref PlungerState PlungerState(int itemId)
+		{
+			GuardLiveStateAccess(nameof(PlungerState));
+			return ref _ctx.PlungerStates.Ref.GetValueByRef(itemId);
+		}
+		internal ref SpinnerState SpinnerState(int itemId)
+		{
+			GuardLiveStateAccess(nameof(SpinnerState));
+			return ref _ctx.SpinnerStates.Ref.GetValueByRef(itemId);
+		}
+		internal ref SurfaceState SurfaceState(int itemId)
+		{
+			GuardLiveStateAccess(nameof(SurfaceState));
+			return ref _ctx.SurfaceStates.Ref.GetValueByRef(itemId);
+		}
+		internal ref TriggerState TriggerState(int itemId)
+		{
+			GuardLiveStateAccess(nameof(TriggerState));
+			return ref _ctx.TriggerStates.Ref.GetValueByRef(itemId);
+		}
+		internal void SetBallInsideOf(int ballId, int itemId)
+		{
+			GuardLiveStateAccess(nameof(SetBallInsideOf));
+			_ctx.InsideOfs.SetInsideOf(itemId, ballId);
+		}
+		internal bool HasBallsInsideOf(int itemId)
+		{
+			GuardLiveStateAccess(nameof(HasBallsInsideOf));
+			return _ctx.InsideOfs.GetInsideCount(itemId) > 0;
+		}
+		internal FixedList64Bytes<int> GetBallsInsideOf(int itemId)
+		{
+			GuardLiveStateAccess(nameof(GetBallsInsideOf));
+			return _ctx.InsideOfs.GetIdsOfBallsInsideItem(itemId);
+		}
 
 		internal uint TimeMsec => _ctx.PhysicsEnv.TimeMsec;
 		internal Random Random => _ctx.PhysicsEnv.Random;
@@ -348,6 +434,7 @@ namespace VisualPinball.Unity
 
 		private void Awake()
 		{
+			_mainThreadManagedThreadId = Thread.CurrentThread.ManagedThreadId;
 			_player = GetComponentInParent<Player>();
 			_ctx.InsideOfs = new InsideOfs(Allocator.Persistent);
 			_ctx.PhysicsEnv = new PhysicsEnv(NowUsec, GetComponentInChildren<PlayfieldComponent>(), GravityStrength);
@@ -448,7 +535,7 @@ namespace VisualPinball.Unity
 			}
 
 			// Create threading helper (all context fields are now populated)
-			_threading = new PhysicsEngineThreading(_ctx, _player, _kinematicColliderComponents, _worldToPlayfield);
+			_threading = new PhysicsEngineThreading(this, _ctx, _player, _kinematicColliderComponents, _worldToPlayfield);
 
 			// Mark as initialized for simulation thread
 			_ctx.IsInitialized = true;
