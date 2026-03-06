@@ -158,6 +158,11 @@ namespace VisualPinball.Unity
 		[NonSerialized] private int _mainThreadManagedThreadId;
 		[NonSerialized] private int _simulationThreadManagedThreadId = -1;
 		[NonSerialized] private readonly HashSet<string> _unsafeLiveStateAccessWarnings = new HashSet<string>();
+		[NonSerialized] private bool _inputActionsQueueWarningIssued;
+		[NonSerialized] private bool _scheduledActionsQueueWarningIssued;
+
+		private const int InputActionsQueueWarningThreshold = 256;
+		private const int ScheduledActionsWarningThreshold = 256;
 
 		#endregion
 
@@ -202,6 +207,10 @@ namespace VisualPinball.Unity
 		{
 			lock (_ctx.ScheduledActions) {
 				_ctx.ScheduledActions.Add(new PhysicsEngineContext.ScheduledAction(_ctx.PhysicsEnv.CurPhysicsFrameTime + (ulong)timeoutMs * 1000, action));
+				if (!_scheduledActionsQueueWarningIssued && _ctx.ScheduledActions.Count >= ScheduledActionsWarningThreshold) {
+					_scheduledActionsQueueWarningIssued = true;
+					Debug.LogWarning($"[PhysicsEngine] ScheduledActions backlog reached {_ctx.ScheduledActions.Count} items. Callback production may be outpacing drain.");
+				}
 			}
 		}
 
@@ -222,6 +231,10 @@ namespace VisualPinball.Unity
 		{
 			lock (_ctx.InputActionsLock) {
 				_ctx.InputActions.Enqueue(action);
+				if (!_inputActionsQueueWarningIssued && _ctx.InputActions.Count >= InputActionsQueueWarningThreshold) {
+					_inputActionsQueueWarningIssued = true;
+					Debug.LogWarning($"[PhysicsEngine] InputActions backlog reached {_ctx.InputActions.Count} items. Producers may be outpacing simulation-thread drain.");
+				}
 			}
 		}
 
