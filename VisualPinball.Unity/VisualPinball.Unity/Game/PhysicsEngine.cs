@@ -310,15 +310,11 @@ namespace VisualPinball.Unity
 
 		internal void EnableCollider(int itemId)
 		{
-			if (_ctx.DisabledCollisionItems.Ref.Contains(itemId)) {
-				_ctx.DisabledCollisionItems.Ref.Remove(itemId);
-			}
+			MutateState((ref PhysicsState state) => state.EnableColliders(itemId));
 		}
 		internal void DisableCollider(int itemId)
 		{
-			if (!_ctx.DisabledCollisionItems.Ref.Contains(itemId)) {
-				_ctx.DisabledCollisionItems.Ref.Add(itemId);
-			}
+			MutateState((ref PhysicsState state) => state.DisableColliders(itemId));
 		}
 
 		public BallComponent GetBall(int itemId) => _ctx.BallComponents[itemId];
