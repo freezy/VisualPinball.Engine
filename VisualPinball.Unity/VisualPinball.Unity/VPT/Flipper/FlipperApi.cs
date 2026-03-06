@@ -20,6 +20,7 @@ using System;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Flipper;
+using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
 {
@@ -90,11 +91,13 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public void RotateToEnd()
 		{
-			ref var state = ref PhysicsEngine.FlipperState(ItemId);
-			state.Movement.EnableRotateEvent = 1;
-			state.Movement.StartRotateToEndTime =  PhysicsEngine.TimeMsec;
-			state.Movement.AngleAtRotateToEnd = state.Movement.Angle;
-			state.Solenoid.Value = true;
+			PhysicsEngine.MutateState((ref PhysicsState state) => {
+				ref var flipperState = ref state.FlipperStates.GetValueByRef(ItemId);
+				flipperState.Movement.EnableRotateEvent = 1;
+				flipperState.Movement.StartRotateToEndTime = state.Env.TimeMsec;
+				flipperState.Movement.AngleAtRotateToEnd = flipperState.Movement.Angle;
+				flipperState.Solenoid.Value = true;
+			});
 		}
 
 		/// <summary>
@@ -103,9 +106,11 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public void RotateToStart()
 		{
-			ref var state = ref PhysicsEngine.FlipperState(ItemId);
-			state.Movement.EnableRotateEvent = -1;
-			state.Solenoid.Value = false;
+			PhysicsEngine.MutateState((ref PhysicsState state) => {
+				ref var flipperState = ref state.FlipperStates.GetValueByRef(ItemId);
+				flipperState.Movement.EnableRotateEvent = -1;
+				flipperState.Solenoid.Value = false;
+			});
 		}
 
 		internal ref FlipperState State => ref PhysicsEngine.FlipperState(ItemId);
@@ -113,8 +118,10 @@ namespace VisualPinball.Unity
 		internal float StartAngle
 		{
 			set {
-				ref var flipperState = ref PhysicsEngine.FlipperState(ItemId);
-				flipperState.Static.AngleStart = value;
+				PhysicsEngine.MutateState((ref PhysicsState state) => {
+					ref var flipperState = ref state.FlipperStates.GetValueByRef(ItemId);
+					flipperState.Static.AngleStart = value;
+				});
 			}
 		}
 

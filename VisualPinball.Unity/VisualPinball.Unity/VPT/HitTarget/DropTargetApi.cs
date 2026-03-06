@@ -20,6 +20,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.HitTarget;
+using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
 {
@@ -57,7 +58,7 @@ namespace VisualPinball.Unity
 		/// <exception cref="InvalidOperationException">Thrown if target is not a drop target (but a hit target, which can't be dropped)</exception>
 		public bool IsDropped
 		{
-			get => PhysicsEngine.DropTargetState(ItemId).Animation.IsDropped;
+			get => IsCurrentlyDropped();
 			set => SetIsDropped(value);
 		}
 
@@ -78,23 +79,31 @@ namespace VisualPinball.Unity
 		/// <exception cref="InvalidOperationException"></exception>
 		private void SetIsDropped(bool isDropped)
 		{
-			ref var state = ref PhysicsEngine.DropTargetState(ItemId);
-			if (state.Animation.IsDropped != isDropped) {
-				if (!isDropped) {
-					Reset?.Invoke(this, EventArgs.Empty);
-					MainComponent.UpdateAnimationValue(false);
-				}
-				state.Animation.MoveAnimation = true;
-				if (isDropped) {
-					state.Animation.MoveDown = true;
-				}
-				else {
-					state.Animation.MoveDown = false;
-					state.Animation.TimeStamp = PhysicsEngine.TimeMsec;
-				}
-			} else {
-				state.Animation.IsDropped = isDropped;
+			var resetTimestamp = PhysicsEngine.TimeMsec;
+			if (IsCurrentlyDropped() != isDropped && !isDropped) {
+				Reset?.Invoke(this, EventArgs.Empty);
+				MainComponent.UpdateAnimationValue(false);
 			}
+
+			PhysicsEngine.MutateState((ref PhysicsState state) => {
+				ref var dropTargetState = ref state.DropTargetStates.GetValueByRef(ItemId);
+				if (dropTargetState.Animation.IsDropped != isDropped) {
+					dropTargetState.Animation.MoveAnimation = true;
+					if (isDropped) {
+						dropTargetState.Animation.MoveDown = true;
+					} else {
+						dropTargetState.Animation.MoveDown = false;
+						dropTargetState.Animation.TimeStamp = resetTimestamp;
+					}
+				} else {
+					dropTargetState.Animation.IsDropped = isDropped;
+				}
+			});
+		}
+
+		private bool IsCurrentlyDropped()
+		{
+			return PhysicsEngine.DropTargetState(ItemId).Animation.IsDropped;
 		}
 
 		#region Wiring

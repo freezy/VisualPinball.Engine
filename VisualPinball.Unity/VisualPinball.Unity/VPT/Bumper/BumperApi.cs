@@ -19,6 +19,7 @@ using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Bumper;
+using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
 {
@@ -70,37 +71,39 @@ namespace VisualPinball.Unity
 		void IApiCoil.OnCoil(bool enabled)
 		{
 			if (enabled) {
-				ref var bumperState = ref PhysicsEngine.BumperState(ItemId);
-				bumperState.RingAnimation.IsHit = true;
+				var bumperPos = (float3)MainComponent.Position;
+				var force = ColliderComponent.Force;
+				var switchColliderId = _switchColliderId;
+				var physicsMaterialData = ColliderComponent.GetPhysicsMaterialData();
+				PhysicsEngine.MutateState((ref PhysicsState state) => {
+					ref var bumperState = ref state.BumperStates.GetValueByRef(ItemId);
+					bumperState.RingAnimation.IsHit = true;
 
-				ref var insideOfs = ref PhysicsEngine.InsideOfs;
-				var idsOfBallsInColl = insideOfs.GetIdsOfBallsInsideItem(ItemId);
-				var state = PhysicsEngine.CreateState();
-				foreach (var ballId in idsOfBallsInColl) {
-					if (!PhysicsEngine.Balls.ContainsKey(ballId)) {
-						continue;
+					var idsOfBallsInColl = state.InsideOfs.GetIdsOfBallsInsideItem(ItemId);
+					foreach (var ballId in idsOfBallsInColl) {
+						if (!state.Balls.ContainsKey(ballId)) {
+							continue;
+						}
+
+						ref var ballState = ref state.Balls.GetValueByRef(ballId);
+						var bumpDirection = ballState.Position - bumperPos;
+						bumpDirection.z = 0f;
+						bumpDirection = math.normalize(bumpDirection);
+						var collEvent = new CollisionEventData {
+							HitTime = 0f,
+							HitNormal = bumpDirection,
+							HitVelocity = new float2(bumpDirection.x, bumpDirection.y) * force,
+							HitDistance = 0f,
+							HitFlag = false,
+							HitOrgNormalVelocity = math.dot(bumpDirection, math.normalize(ballState.Velocity)),
+							IsContact = true,
+							ColliderId = switchColliderId,
+							IsKinematic = false,
+							BallId = ballId
+						};
+						BumperCollider.PushBallAway(ref ballState, in bumperState.Static, ref collEvent, in physicsMaterialData, ref state);
 					}
-					ref var ballState = ref PhysicsEngine.BallState(ballId);
-					float3 bumperPos = MainComponent.Position;
-					float3 ballPos = ballState.Position;
-					var bumpDirection = ballPos - bumperPos;
-					bumpDirection.z = 0f;
-					bumpDirection = math.normalize(bumpDirection);
-					var collEvent = new CollisionEventData {
-						HitTime = 0f,
-						HitNormal = bumpDirection,
-						HitVelocity = new float2(bumpDirection.x, bumpDirection.y) * ColliderComponent.Force,
-						HitDistance = 0f,
-						HitFlag = false,
-						HitOrgNormalVelocity = math.dot(bumpDirection, math.normalize(ballState.Velocity)),
-						IsContact = true,
-						ColliderId = _switchColliderId,
-						IsKinematic = false,
-						BallId = ballId
-					};
-					var physicsMaterialData = ColliderComponent.GetPhysicsMaterialData();
-					BumperCollider.PushBallAway(ref ballState, in bumperState.Static, ref collEvent, in physicsMaterialData, ref state);
-				}
+				});
 			}
 			
 			CoilStatusChanged?.Invoke(this, new NoIdCoilEventArgs(enabled));
@@ -124,8 +127,11 @@ namespace VisualPinball.Unity
 		{
 			string coilId = MainComponent.AvailableCoils.FirstOrDefault().Id;
 			BumperComponent bumperComponent = MainComponent;
-			ref var bumperState = ref PhysicsEngine.BumperState(ItemId);
-			bumperState.IsSwitchWiredToCoil = HasWireDest(bumperComponent, coilId);
+			var isSwitchWiredToCoil = HasWireDest(bumperComponent, coilId);
+			PhysicsEngine.MutateState((ref PhysicsState state) => {
+				ref var bumperState = ref state.BumperStates.GetValueByRef(ItemId);
+				bumperState.IsSwitchWiredToCoil = isSwitchWiredToCoil;
+			});
 		}
 
 		#endregion
@@ -170,11 +176,14 @@ namespace VisualPinball.Unity
 				}
 			} else {
 				Hit?.Invoke(this, new HitEventArgs(ballId));
-				ref var bumperState = ref PhysicsEngine.BumperState(ItemId);
-				bumperState.SkirtAnimation.HitEvent = true;
-				bumperState.RingAnimation.IsHit = true;
-				ref var ballState = ref PhysicsEngine.BallState(ballId);
-				bumperState.SkirtAnimation.BallPosition = ballState.Position;
+				PhysicsEngine.MutateState((ref PhysicsState state) => {
+					ref var bumperState = ref state.BumperStates.GetValueByRef(ItemId);
+					bumperState.SkirtAnimation.HitEvent = true;
+					bumperState.RingAnimation.IsHit = true;
+					if (state.Balls.ContainsKey(ballId)) {
+						bumperState.SkirtAnimation.BallPosition = state.Balls.GetValueByRef(ballId).Position;
+					}
+				});
 				Switch?.Invoke(this, new SwitchEventArgs(true, ballId));
 				OnSwitch(true);
 			}
