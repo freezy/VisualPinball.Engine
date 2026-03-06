@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using Unity.Mathematics;
+using VisualPinball.Unity.Collections;
 using VisualPinball.Unity.Simulation;
 
 namespace VisualPinball.Unity
@@ -52,6 +53,15 @@ namespace VisualPinball.Unity
 		private readonly List<Action> _deferredMainThreadScheduledActions = new();
 		private readonly List<PhysicsEngine.InputAction> _pendingInputActions = new();
 		private readonly List<KeyValuePair<int, float4x4>> _pendingKinematicUpdates = new();
+		private readonly int[] _snapshotFlipperIds;
+		private readonly int[] _snapshotBumperRingIds;
+		private readonly int[] _snapshotBumperSkirtIds;
+		private readonly int[] _snapshotDropTargetIds;
+		private readonly int[] _snapshotHitTargetIds;
+		private readonly int[] _snapshotGateIds;
+		private readonly int[] _snapshotPlungerIds;
+		private readonly int[] _snapshotSpinnerIds;
+		private readonly int[] _snapshotTriggerIds;
 
 		internal PhysicsEngineThreading(PhysicsEngine physicsEngine, PhysicsEngineContext ctx, Player player,
 			ICollidableComponent[] kinematicColliderComponents, float4x4 worldToPlayfield)
@@ -66,7 +76,29 @@ namespace VisualPinball.Unity
 					_kinematicColliderComponentsByItemId[coll.ItemId] = coll;
 				}
 			}
+			_snapshotFlipperIds = SnapshotIds(_ctx.FlipperStates.Ref);
+			_snapshotBumperRingIds = SnapshotIds(_ctx.BumperStates.Ref, static state => state.RingItemId != 0);
+			_snapshotBumperSkirtIds = SnapshotIds(_ctx.BumperStates.Ref, static state => state.SkirtItemId != 0);
+			_snapshotDropTargetIds = SnapshotIds(_ctx.DropTargetStates.Ref, static state => state.AnimatedItemId != 0);
+			_snapshotHitTargetIds = SnapshotIds(_ctx.HitTargetStates.Ref, static state => state.AnimatedItemId != 0);
+			_snapshotGateIds = SnapshotIds(_ctx.GateStates.Ref);
+			_snapshotPlungerIds = SnapshotIds(_ctx.PlungerStates.Ref);
+			_snapshotSpinnerIds = SnapshotIds(_ctx.SpinnerStates.Ref);
+			_snapshotTriggerIds = SnapshotIds(_ctx.TriggerStates.Ref, static state => state.AnimatedItemId != 0);
 			_worldToPlayfield = worldToPlayfield;
+		}
+
+		private static int[] SnapshotIds<TState>(global::Unity.Collections.NativeParallelHashMap<int, TState> map, Func<TState, bool> predicate = null)
+			where TState : unmanaged
+		{
+			var ids = new List<int>();
+			using var enumerator = map.GetEnumerator();
+			while (enumerator.MoveNext()) {
+				if (predicate == null || predicate(enumerator.Current.Value)) {
+					ids.Add(enumerator.Current.Key);
+				}
+			}
+			return ids.ToArray();
 		}
 
 		#region Simulation Thread
@@ -236,103 +268,87 @@ namespace VisualPinball.Unity
 			var floatCount = 0;
 
 			// Flippers
-			using (var enumerator = _ctx.FlipperStates.Ref.GetEnumerator()) {
-				while (enumerator.MoveNext() && floatCount < SimulationState.MaxFloatAnimations) {
-					ref var s = ref enumerator.Current.Value;
-					snapshot.FloatAnimations[floatCount++] = new SimulationState.FloatAnimation {
-						ItemId = enumerator.Current.Key, Value = s.Movement.Angle
-					};
-				}
+			for (var i = 0; i < _snapshotFlipperIds.Length && floatCount < SimulationState.MaxFloatAnimations; i++) {
+				var itemId = _snapshotFlipperIds[i];
+				ref var s = ref _ctx.FlipperStates.Ref.GetValueByRef(itemId);
+				snapshot.FloatAnimations[floatCount++] = new SimulationState.FloatAnimation {
+					ItemId = itemId, Value = s.Movement.Angle
+				};
 			}
 
 			// Bumper rings (float) — ring animation
-			using (var enumerator = _ctx.BumperStates.Ref.GetEnumerator()) {
-				while (enumerator.MoveNext() && floatCount < SimulationState.MaxFloatAnimations) {
-					ref var s = ref enumerator.Current.Value;
-					if (s.RingItemId != 0) {
-						snapshot.FloatAnimations[floatCount++] = new SimulationState.FloatAnimation {
-							ItemId = enumerator.Current.Key, Value = s.RingAnimation.Offset
-						};
-					}
-				}
+			for (var i = 0; i < _snapshotBumperRingIds.Length && floatCount < SimulationState.MaxFloatAnimations; i++) {
+				var itemId = _snapshotBumperRingIds[i];
+				ref var s = ref _ctx.BumperStates.Ref.GetValueByRef(itemId);
+				snapshot.FloatAnimations[floatCount++] = new SimulationState.FloatAnimation {
+					ItemId = itemId, Value = s.RingAnimation.Offset
+				};
 			}
 
 			// Drop targets
-			using (var enumerator = _ctx.DropTargetStates.Ref.GetEnumerator()) {
-				while (enumerator.MoveNext() && floatCount < SimulationState.MaxFloatAnimations) {
-					ref var s = ref enumerator.Current.Value;
-					if (s.AnimatedItemId == 0) continue;
-					snapshot.FloatAnimations[floatCount++] = new SimulationState.FloatAnimation {
-						ItemId = enumerator.Current.Key, Value = s.Animation.ZOffset
-					};
-				}
+			for (var i = 0; i < _snapshotDropTargetIds.Length && floatCount < SimulationState.MaxFloatAnimations; i++) {
+				var itemId = _snapshotDropTargetIds[i];
+				ref var s = ref _ctx.DropTargetStates.Ref.GetValueByRef(itemId);
+				snapshot.FloatAnimations[floatCount++] = new SimulationState.FloatAnimation {
+					ItemId = itemId, Value = s.Animation.ZOffset
+				};
 			}
 
 			// Hit targets
-			using (var enumerator = _ctx.HitTargetStates.Ref.GetEnumerator()) {
-				while (enumerator.MoveNext() && floatCount < SimulationState.MaxFloatAnimations) {
-					ref var s = ref enumerator.Current.Value;
-					if (s.AnimatedItemId == 0) continue;
-					snapshot.FloatAnimations[floatCount++] = new SimulationState.FloatAnimation {
-						ItemId = enumerator.Current.Key, Value = s.Animation.XRotation
-					};
-				}
+			for (var i = 0; i < _snapshotHitTargetIds.Length && floatCount < SimulationState.MaxFloatAnimations; i++) {
+				var itemId = _snapshotHitTargetIds[i];
+				ref var s = ref _ctx.HitTargetStates.Ref.GetValueByRef(itemId);
+				snapshot.FloatAnimations[floatCount++] = new SimulationState.FloatAnimation {
+					ItemId = itemId, Value = s.Animation.XRotation
+				};
 			}
 
 			// Gates
-			using (var enumerator = _ctx.GateStates.Ref.GetEnumerator()) {
-				while (enumerator.MoveNext() && floatCount < SimulationState.MaxFloatAnimations) {
-					ref var s = ref enumerator.Current.Value;
-					snapshot.FloatAnimations[floatCount++] = new SimulationState.FloatAnimation {
-						ItemId = enumerator.Current.Key, Value = s.Movement.Angle
-					};
-				}
+			for (var i = 0; i < _snapshotGateIds.Length && floatCount < SimulationState.MaxFloatAnimations; i++) {
+				var itemId = _snapshotGateIds[i];
+				ref var s = ref _ctx.GateStates.Ref.GetValueByRef(itemId);
+				snapshot.FloatAnimations[floatCount++] = new SimulationState.FloatAnimation {
+					ItemId = itemId, Value = s.Movement.Angle
+				};
 			}
 
 			// Plungers
-			using (var enumerator = _ctx.PlungerStates.Ref.GetEnumerator()) {
-				while (enumerator.MoveNext() && floatCount < SimulationState.MaxFloatAnimations) {
-					ref var s = ref enumerator.Current.Value;
-					snapshot.FloatAnimations[floatCount++] = new SimulationState.FloatAnimation {
-						ItemId = enumerator.Current.Key, Value = s.Animation.Position
-					};
-				}
+			for (var i = 0; i < _snapshotPlungerIds.Length && floatCount < SimulationState.MaxFloatAnimations; i++) {
+				var itemId = _snapshotPlungerIds[i];
+				ref var s = ref _ctx.PlungerStates.Ref.GetValueByRef(itemId);
+				snapshot.FloatAnimations[floatCount++] = new SimulationState.FloatAnimation {
+					ItemId = itemId, Value = s.Animation.Position
+				};
 			}
 
 			// Spinners
-			using (var enumerator = _ctx.SpinnerStates.Ref.GetEnumerator()) {
-				while (enumerator.MoveNext() && floatCount < SimulationState.MaxFloatAnimations) {
-					ref var s = ref enumerator.Current.Value;
-					snapshot.FloatAnimations[floatCount++] = new SimulationState.FloatAnimation {
-						ItemId = enumerator.Current.Key, Value = s.Movement.Angle
-					};
-				}
+			for (var i = 0; i < _snapshotSpinnerIds.Length && floatCount < SimulationState.MaxFloatAnimations; i++) {
+				var itemId = _snapshotSpinnerIds[i];
+				ref var s = ref _ctx.SpinnerStates.Ref.GetValueByRef(itemId);
+				snapshot.FloatAnimations[floatCount++] = new SimulationState.FloatAnimation {
+					ItemId = itemId, Value = s.Movement.Angle
+				};
 			}
 
 			// Triggers
-			using (var enumerator = _ctx.TriggerStates.Ref.GetEnumerator()) {
-				while (enumerator.MoveNext() && floatCount < SimulationState.MaxFloatAnimations) {
-					ref var s = ref enumerator.Current.Value;
-					if (s.AnimatedItemId == 0) continue;
-					snapshot.FloatAnimations[floatCount++] = new SimulationState.FloatAnimation {
-						ItemId = enumerator.Current.Key, Value = s.Movement.HeightOffset
-					};
-				}
+			for (var i = 0; i < _snapshotTriggerIds.Length && floatCount < SimulationState.MaxFloatAnimations; i++) {
+				var itemId = _snapshotTriggerIds[i];
+				ref var s = ref _ctx.TriggerStates.Ref.GetValueByRef(itemId);
+				snapshot.FloatAnimations[floatCount++] = new SimulationState.FloatAnimation {
+					ItemId = itemId, Value = s.Movement.HeightOffset
+				};
 			}
 
 			snapshot.FloatAnimationCount = floatCount;
 
 			// --- Float2 animations (bumper skirts) ---
 			var float2Count = 0;
-			using (var enumerator = _ctx.BumperStates.Ref.GetEnumerator()) {
-				while (enumerator.MoveNext() && float2Count < SimulationState.MaxFloat2Animations) {
-					ref var s = ref enumerator.Current.Value;
-					if (s.SkirtItemId != 0) {
-						snapshot.Float2Animations[float2Count++] = new SimulationState.Float2Animation {
-							ItemId = enumerator.Current.Key, Value = s.SkirtAnimation.Rotation
-						};
-					}
-				}
+			for (var i = 0; i < _snapshotBumperSkirtIds.Length && float2Count < SimulationState.MaxFloat2Animations; i++) {
+				var itemId = _snapshotBumperSkirtIds[i];
+				ref var s = ref _ctx.BumperStates.Ref.GetValueByRef(itemId);
+				snapshot.Float2Animations[float2Count++] = new SimulationState.Float2Animation {
+					ItemId = itemId, Value = s.SkirtAnimation.Rotation
+				};
 			}
 			snapshot.Float2AnimationCount = float2Count;
 		}
