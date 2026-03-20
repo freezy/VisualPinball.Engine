@@ -35,7 +35,7 @@ namespace VisualPinball.Unity.Simulation
 		[Tooltip("Enable the high-performance simulation thread (1000 Hz)")]
 		public bool EnableSimulationThread = true;
 
-		[Tooltip("Enable native input polling (Windows only, requires VpeNativeInput.dll)")]
+		[Tooltip("Enable native input polling (requires the VisualPinball.NativeInput native plugin for the current platform)")]
 		public bool EnableNativeInput = true;
 
 		[Tooltip("Input polling interval in microseconds (default 500μs = 2000 Hz)")]
