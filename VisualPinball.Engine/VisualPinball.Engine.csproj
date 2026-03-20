@@ -13,7 +13,7 @@
     <LangVersion>9.0</LangVersion>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <PackageProjectUrl>https://visualpinball.org</PackageProjectUrl>
-    <PackageIconUrl>https://user-images.githubusercontent.com/70426/101756172-0965a200-3ad6-11eb-8c71-edb751f0f5d5.png</PackageIconUrl>
+    <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
   <!-- Give an initial value based on the operating system where it's currently running on -->
@@ -48,6 +48,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\LICENSE">
+      <PackagePath></PackagePath>
+      <Pack>true</Pack>
+    </None>
+    <None Include="..\nuget\icon.png">
       <PackagePath></PackagePath>
       <Pack>true</Pack>
     </None>
