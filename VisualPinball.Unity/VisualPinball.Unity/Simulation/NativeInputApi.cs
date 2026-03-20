@@ -15,7 +15,7 @@ namespace VisualPinball.Unity.Simulation
 	/// </summary>
 	public static class NativeInputApi
 	{
-		private const string DllName = "VpeNativeInput";
+		private const string DllName = "VisualPinball.NativeInput";
 
 		#region Enums
 

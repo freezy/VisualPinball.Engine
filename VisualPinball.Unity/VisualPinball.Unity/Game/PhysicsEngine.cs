@@ -64,7 +64,7 @@ namespace VisualPinball.Unity
 	///   <item><b>Simulation thread</b> (1000 Hz) — physics ticks, input
 	///     dispatch, coil output processing, GLE time fence.</item>
 	///   <item><b>Native input polling thread</b> (500-2000 Hz) — raw
-	///     keyboard/gamepad polling via <c>VpeNativeInput.dll</c>.</item>
+	///     keyboard/gamepad polling via the <c>VisualPinball.NativeInput</c> native plugin.</item>
 	///   <item><b>PinMAME emulation thread</b> (variable, time-fenced) —
 	///     ROM emulation.</item>
 	/// </list>

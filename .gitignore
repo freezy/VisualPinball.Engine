@@ -21,10 +21,10 @@ mono_crash.*
 [Dd]ebugPublic/
 [Rr]elease/
 [Rr]eleases/
-x64/
-x86/
-[Aa][Rr][Mm]/
-[Aa][Rr][Mm]64/
+#x64/
+#x86/
+#[Aa][Rr][Mm]/
+#[Aa][Rr][Mm]64/
 bld/
 [Bb]in/
 [Oo]bj/
@@ -367,7 +367,11 @@ MigrationBackup/
 # Vi swap files
 *.swp
 
-/VisualPinball.Unity/Plugins/**
+/VisualPinball.Unity/Plugins/**/*.dll
+/VisualPinball.Unity/Plugins/**/*.so
+/VisualPinball.Unity/Plugins/**/*.dylib
+libminiz.so.2.2.0
+libvips.so.42
 
 obj.meta
 VisualPinball.Unity/VisualPinball.Unity.Test/TestProject~/*.vpx
