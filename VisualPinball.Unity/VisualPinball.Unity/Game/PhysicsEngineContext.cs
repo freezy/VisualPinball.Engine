@@ -87,6 +87,7 @@ namespace VisualPinball.Unity
 		/// the internal <c>NativeList&lt;ContactBufferElement&gt;</c>.
 		/// </remarks>
 		public PhysicsCycle PhysicsCycle;
+		public bool SimulationNativeResourcesCreated;
 
 		public NativeColliders Colliders;
 		public NativeColliders KinematicColliders;
@@ -280,10 +281,13 @@ namespace VisualPinball.Unity
 			KinematicColliders.Dispose();
 			KinematicCollidersAtIdentity.Dispose();
 			InsideOfs.Dispose();
-			Octree.Dispose();
-			KinematicOctree.Dispose();
-			BallOctree.Dispose();
-			PhysicsCycle.Dispose();
+			if (SimulationNativeResourcesCreated) {
+				Octree.Dispose();
+				KinematicOctree.Dispose();
+				BallOctree.Dispose();
+				PhysicsCycle.Dispose();
+				SimulationNativeResourcesCreated = false;
+			}
 			BumperStates.Ref.Dispose();
 			DropTargetStates.Ref.Dispose();
 			FlipperStates.Ref.Dispose();

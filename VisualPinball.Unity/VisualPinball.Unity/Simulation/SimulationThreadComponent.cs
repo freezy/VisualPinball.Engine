@@ -27,7 +27,7 @@ namespace VisualPinball.Unity.Simulation
 	public class SimulationThreadComponent : MonoBehaviour
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-		private const string LogPrefix = "[PinMAME-debug]";
+		private const string LogPrefix = "[VPE]";
 
 		#region Inspector Fields
 
@@ -214,6 +214,8 @@ namespace VisualPinball.Unity.Simulation
 			if (!_started) return;
 
 			_inputManager?.StopPolling();
+			_inputManager?.Dispose();
+			_inputManager = null;
 			_simulationThread?.Stop();
 			_simulationThread?.Dispose();
 			_simulationThread = null;
