@@ -30,7 +30,7 @@ namespace VisualPinball.Unity.Simulation
 	public class SimulationThread : IDisposable
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-		private const string LogPrefix = "[PinMAME-debug]";
+		private const string LogPrefix = "[VPE]";
 
 		#region Constants
 

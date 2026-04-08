@@ -651,6 +651,7 @@ namespace VisualPinball.Unity
 
 			// create persistent physics cycle (holds contacts buffer)
 			_ctx.PhysicsCycle = new PhysicsCycle(Allocator.Persistent);
+			_ctx.SimulationNativeResourcesCreated = true;
 
 			// get balls
 			var balls = GetComponentsInChildren<BallComponent>();

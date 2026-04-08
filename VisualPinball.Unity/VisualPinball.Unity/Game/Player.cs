@@ -187,9 +187,6 @@ namespace VisualPinball.Unity
 
 		private void Awake()
 		{
-			Debug.developerConsoleEnabled = false;
-			Debug.developerConsoleVisible = false;
-			
 			_tableComponent = GetComponent<TableComponent>();
 			var engineComponent = GetComponent<IGamelogicEngine>();
 

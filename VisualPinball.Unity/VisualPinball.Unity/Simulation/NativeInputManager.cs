@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using AOT;
 using NLog;
 using Logger = NLog.Logger;
 
@@ -20,7 +21,7 @@ namespace VisualPinball.Unity.Simulation
 	public class NativeInputManager : IDisposable
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-		private const string LogPrefix = "[PinMAME-debug]";
+		private const string LogPrefix = "[VPE]";
 		private static int _loggedFirstEvent;
 
 		#region Fields

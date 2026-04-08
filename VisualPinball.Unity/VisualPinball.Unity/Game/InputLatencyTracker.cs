@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 		}
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-		private const string LogPrefix = "[PinMAME-debug]";
+		private const string LogPrefix = "[VPE]";
 		private static readonly object LockObj = new object();
 
 		private static PendingInput _leftPending;
