@@ -6,7 +6,7 @@ description: So, you want to contribute and set this up locally? Here's how!
 
 # Development Setup
 
-VPE uses Unity's [Package Manager](https://docs.unity3d.com/Manual/upm-ui.html) to fetch its code. For users that's great because they get updates without having to deal with git, and the actual project to work with is very small because the heavy dependencies get pulled in by UPM. We use our [own scoped registry](https://registry.visualpinball.org/). Packages get published automatically when something gets merged or pushed to `master`.
+VPE uses Unity's [Package Manager](https://docs.unity3d.com/Manual/upm-ui.html) to fetch its code. For users, that's great because they get updates without having to deal with git, and the actual project to work with is very small because the heavy dependencies get pulled in by UPM. We use our [own scoped registry](https://registry.visualpinball.org/). Packages get published automatically when something gets merged or pushed to `master`.
 
 However, packages are immutable in Unity, meaning code can't be updated and thus they are not suitable for local development. For that, you need to clone each package locally and manually add them to the project.
 
@@ -22,7 +22,7 @@ git clone git@github.com:VisualPinball/VisualPinball.Unity.Urp.git
 git clone git@github.com:VisualPinball/VisualPinball.Engine.PinMAME.git
 ```
 
-If you receive authentication errors you will need to add an [ssh key to your github account](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account).
+If you receive authentication errors, you will need to add an [SSH key to your GitHub account](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account).
 
 Lastly, you'll need to compile some non-Unity dependencies:
 
@@ -38,7 +38,7 @@ dotnet build -c Release
 
 ### HDRP
 
-In your Unity project, add the repositories as package from disk in the following order:
+In your Unity project, add the repositories as packages from disk in the following order:
 
 1. [VisualPinball.Unity.Assets](https://github.com/VisualPinball/VisualPinball.Unity.Assets)
 2. [VisualPinball.Engine](https://github.com/freezy/VisualPinball.Engine)
@@ -59,7 +59,7 @@ One advantage of UPM is that it makes it easy for users to upgrade:
 
 ![Unity Package Manager](unity-package-manager.png)
 
-In order for that to work, we use GitHub actions to increase the package version on each merge to master, publish the package to our registry and update the dependents. For example, if you commit to `vpe.assets`, GitHub will:
+In order for that to work, we use GitHub Actions to increase the package version on each merge to master, publish the package to our registry, and update the dependents. For example, if you commit to `vpe.assets`, GitHub will:
 
 - Increase the version of `vpe.assets` and publish a new package to our package registry
 - Update `vpe.assets.hdrp`, `vpe.assets.urp` and `main` to use the new version
@@ -69,13 +69,13 @@ Summary: Committing to master on any repo will automatically release itself and 
 
 ## Cross-Repo Features
 
-Sometimes you'll be working on features that span over multiple repositories. We recommend branching each repository to the same branch name so it's clear which branches belong together when testing the feature.
+Sometimes you'll be working on features that span multiple repositories. We recommend branching each repository to the same branch name so it's clear which branches belong together when testing the feature.
 
 ## .meta Files
 
 Unity automatically creates a `.meta` file for every file and directory it indexes. It also does a somewhat decent job cleaning them up if the original file is missing. The `.meta` files are particularly important for native binaries, because they tell Unity to which platform they belong and thus avoid conflicts.
 
-The thing is, in the main repo there are a few native dependencies which we don't include in the repo but rather reference them through NuGet and copy them to Unity's Plugin folder when compiling for the first time. That means that in the repo, we have the `.meta` files for those dependencies, but not the actual files, resulting in Unity cleaning the `.meta` files for all platforms when compiling.
+The thing is, in the main repo there are a few native dependencies that we don't include directly. Instead, we reference them through NuGet and copy them to Unity's Plugin folder when compiling for the first time. That means that in the repo, we have the `.meta` files for those dependencies, but not the actual files, which results in Unity cleaning the `.meta` files for all platforms when compiling.
 
 Long story short, you'll end up with something like this very soon:
 
@@ -83,7 +83,10 @@ Long story short, you'll end up with something like this very soon:
 
 You don't want to commit this because it will break CI and package publishing. We also can't put them into `.gitignore` because that only applies to files that exist and you don't want to commit (here it's the other way around - you deleted files you don't want to commit).
 
-The work-around is to tell git to explicitly ignore those files. You only do that once after cloning.
+The workaround is to tell git to explicitly ignore those files. You only do that once after cloning:
+
+<details>
+<summary>Show all <code>assume-unchanged</code> commands</summary>
 
 ```bash
 git update-index --assume-unchanged VisualPinball.Unity/Plugins/linux-x64/FluentAssertions.dll.meta
@@ -161,5 +164,5 @@ git update-index --assume-unchanged VisualPinball.Unity/Plugins/ios-arm64/Visual
 git update-index --assume-unchanged VisualPinball.Unity/Plugins/ios-arm64/ICSharpCode.SharpZipLib.dll.meta
 git update-index --assume-unchanged VisualPinball.Unity/Plugins/ios-arm64/OpenMcdf.Extensions.dll.meta
 ```
-
 Yeah, we know...
+</details>
