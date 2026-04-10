@@ -129,3 +129,57 @@ code {
 img:not(#logo):hover {
 	cursor: zoom-in;
 }
+
+/* mermaid diagrams */
+.mermaid {
+	margin: 1.5rem 0;
+	overflow-x: auto;
+}
+
+.mermaid svg {
+	max-width: 100%;
+	height: auto;
+}
+
+.mermaid .edgeLabel,
+.mermaid .edgeLabel p,
+.mermaid .edgeLabel span,
+.mermaid .labelBkg,
+.mermaid .edgeLabel rect {
+	background: transparent !important;
+	background-color: transparent !important;
+	fill: transparent !important;
+	stroke: none !important;
+}
+
+/* page table of contents */
+#affix ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+#affix li {
+	margin: 0.15rem 0;
+}
+
+#affix a {
+	display: block;
+	padding: 0.25rem 0.25rem 0.25rem 0.6rem;
+	color: var(--bs-body-color);
+	transition: color 0.15s ease;
+}
+
+#affix a.link-secondary {
+	margin-left: 0.85rem;
+	padding-left: 0.85rem;
+}
+
+#affix a:hover {
+	color: rgb(var(--bs-link-color-rgb)) !important;
+}
+
+#affix a.is-current,
+#affix a[aria-current=location] {
+	font-weight: 600;
+}

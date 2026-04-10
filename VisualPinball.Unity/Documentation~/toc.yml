@@ -2,5 +2,7 @@
   href: creators-guide/
 - name: Plugins
   href: plugins/
+- name: Developer Guide
+  href: developer-guide/
 - name: Changelog
   href: /CHANGELOG.html
