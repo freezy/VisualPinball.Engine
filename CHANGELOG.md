@@ -4,10 +4,11 @@
 
 ## Unreleased
 
-Built with Unity 2022.3.x
+Built with Unity 6.3
 
 ### Added
 
+- New threading model ([#552](https://github.com/freezy/VisualPinball.Engine/pull/552))
 - Free transformation ([#500](https://github.com/freezy/VisualPinball.Engine/pull/500))
 - Kinematic collisions ([#460](https://github.com/freezy/VisualPinball.Engine/pull/460))
 - Flipper tricks by nFozzy ([#436](https://github.com/freezy/VisualPinball.Engine/pull/436))
