@@ -15,7 +15,7 @@ The Visual Pinball Engine ecosystem is split across multiple repositories. The m
 - Each package can be versioned and published independently to [registry.visualpinball.org](https://registry.visualpinball.org/).
 
 > [!WARNING]
-> VPE is still very much work in progress. Things are still changing, and we're still far away from a state where authors can start building tables.
+> VPE is still very much a work in progress. Things are still changing, and we're still far from a state where authors can start building tables.
 
 ## Repository map
 
