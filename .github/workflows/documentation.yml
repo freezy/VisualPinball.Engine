@@ -8,10 +8,16 @@ jobs:
     name: Build and publish documentation
     steps:
       - uses: actions/checkout@v4
-      - uses: nunit/docfx-action@v3.4.2
-        name: Build Documentation
+      - uses: actions/setup-dotnet@v4
+        name: Setup .NET SDK
         with:
-          args: VisualPinball.Unity/Documentation~/docfx.json
+          dotnet-version: 8.0.x
+
+      - name: Install DocFX
+        run: dotnet tool install --global docfx --version 2.78.5
+
+      - name: Build Documentation
+        run: docfx VisualPinball.Unity/Documentation~/docfx.json
 
       # Publish generated site using GitHub Pages
       - uses: maxheld83/ghpages@master

@@ -7,6 +7,8 @@
 					"creators-guide/**.md",
 					"plugins/**/toc.yml",
 					"plugins/**.md",
+					"developer-guide/**/toc.yml",
+					"developer-guide/**.md",
 					"toc.yml",
 					"*.md"
 				]
@@ -42,7 +44,7 @@
 		"postProcessors": [ "ExtractSearchIndex" ],
 		"globalMetadata": {
 			"_appTitle": "VPE Documentation",
-			"_appFooter": "<span>Copyright © 2025 VPE Team</span>",
+			"_appFooter": "<span>Copyright © 2026 VPE Team</span>",
 			"_appFaviconPath": "favicon.png",
 			"_gitContribute": {
 				"branch": "master"
