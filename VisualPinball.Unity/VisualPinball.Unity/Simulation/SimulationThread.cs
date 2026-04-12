@@ -77,6 +77,9 @@ namespace VisualPinball.Unity.Simulation
 		// Input state tracking (allocation-free indexed arrays)
 		private readonly bool[] _actionStates;
 		private readonly string[] _actionToSwitchId;
+		private readonly bool[] _actionInvertsPressed;
+		private readonly bool[] _actionToggleOnPress;
+		private readonly bool[] _actionSwitchStates;
 		private volatile bool _inputMappingsBuilt;
 
 		// Statistics
@@ -136,6 +139,9 @@ namespace VisualPinball.Unity.Simulation
 			var actionCount = Enum.GetValues(typeof(NativeInputApi.InputAction)).Length;
 			_actionStates = new bool[actionCount];
 			_actionToSwitchId = new string[actionCount];
+			_actionInvertsPressed = new bool[actionCount];
+			_actionToggleOnPress = new bool[actionCount];
+			_actionSwitchStates = new bool[actionCount];
 			_needsInitialSwitchSync = true;
 
 			if (_gamelogicEngine != null) {
@@ -524,12 +530,24 @@ namespace VisualPinball.Unity.Simulation
 				return;
 			}
 
+			bool isClosed;
+			if (_actionToggleOnPress[actionIndex]) {
+				// VP-style coin door behavior toggles only on key-down.
+				if (!isPressed) {
+					return;
+				}
+				isClosed = !_actionSwitchStates[actionIndex];
+			} else {
+				isClosed = _actionInvertsPressed[actionIndex] ? !isPressed : isPressed;
+			}
+			_actionSwitchStates[actionIndex] = isClosed;
+
 			_lastSwitchDispatchUsec = GetTimestampUsec();
 			if (isPressed && IsFlipperAction(actionIndex)) {
 				_lastFlipperInputUsec = _lastSwitchDispatchUsec;
 			}
 			if (actionIndex == (int)NativeInputApi.InputAction.Start && Logger.IsInfoEnabled) {
-				Logger.Info($"{LogPrefix} [SimulationThread] Input Start -> Switch({switchId}, {isPressed})");
+				Logger.Info($"{LogPrefix} [SimulationThread] Input Start -> Switch({switchId}, {isClosed})");
 			}
 			if (Logger.IsInfoEnabled && isPressed) {
 				if (actionIndex == (int)NativeInputApi.InputAction.LeftFlipper) {
@@ -539,13 +557,15 @@ namespace VisualPinball.Unity.Simulation
 					Logger.Info($"{LogPrefix} [SimulationThread] Input RightFlipper -> Switch({switchId}, True)");
 				}
 			}
-			_inputDispatcher.DispatchSwitch(switchId, isPressed);
+			_inputDispatcher.DispatchSwitch(switchId, isClosed);
 		}
 
 		private static bool IsFlipperAction(int actionIndex)
 		{
 			return actionIndex == (int)NativeInputApi.InputAction.LeftFlipper
 				|| actionIndex == (int)NativeInputApi.InputAction.RightFlipper
+				|| actionIndex == (int)NativeInputApi.InputAction.LeftStagedFlipper
+				|| actionIndex == (int)NativeInputApi.InputAction.RightStagedFlipper
 				|| actionIndex == (int)NativeInputApi.InputAction.UpperLeftFlipper
 				|| actionIndex == (int)NativeInputApi.InputAction.UpperRightFlipper;
 		}
@@ -558,7 +578,7 @@ namespace VisualPinball.Unity.Simulation
 				if (switchId == null) {
 					continue;
 				}
-				_inputDispatcher.DispatchSwitch(switchId, _actionStates[i]);
+				_inputDispatcher.DispatchSwitch(switchId, _actionSwitchStates[i]);
 			}
 		}
 
@@ -575,6 +595,9 @@ namespace VisualPinball.Unity.Simulation
 		private void BuildInputMappings()
 		{
 			Array.Clear(_actionToSwitchId, 0, _actionToSwitchId.Length);
+			Array.Clear(_actionInvertsPressed, 0, _actionInvertsPressed.Length);
+			Array.Clear(_actionToggleOnPress, 0, _actionToggleOnPress.Length);
+			Array.Clear(_actionSwitchStates, 0, _actionSwitchStates.Length);
 
 			if (_gamelogicEngine == null) {
 				return;
@@ -598,7 +621,16 @@ namespace VisualPinball.Unity.Simulation
 				}
 
 				// Prefer the first mapping we see.
-				_actionToSwitchId[actionIndex] ??= sw.Id;
+				if (_actionToSwitchId[actionIndex] != null) {
+					continue;
+				}
+
+				_actionToSwitchId[actionIndex] = sw.Id;
+				_actionInvertsPressed[actionIndex] = sw.NormallyClosed;
+				_actionToggleOnPress[actionIndex] = sw.InputActionHint == InputConstants.ActionCoinDoorOpenClose;
+				_actionSwitchStates[actionIndex] = _actionToggleOnPress[actionIndex]
+					? sw.NormallyClosed
+					: (sw.NormallyClosed ? !_actionStates[actionIndex] : _actionStates[actionIndex]);
 			}
 
 			if (Logger.IsDebugEnabled)
@@ -674,6 +706,38 @@ namespace VisualPinball.Unity.Simulation
 			}
 			if (inputActionHint == InputConstants.ActionInsertCoin4) {
 				action = NativeInputApi.InputAction.CoinInsert4;
+				return true;
+			}
+			if (inputActionHint == InputConstants.ActionCoinDoorOpenClose) {
+				action = NativeInputApi.InputAction.CoinDoor;
+				return true;
+			}
+			if (inputActionHint == InputConstants.ActionCoinDoorCancel || inputActionHint == InputConstants.ActionCoinDoorBack || inputActionHint == InputConstants.ActionCoinDoorUpDown) {
+				action = NativeInputApi.InputAction.Service1;
+				return true;
+			}
+			if (inputActionHint == InputConstants.ActionCoinDoorDown || inputActionHint == InputConstants.ActionCoinDoorMinus || inputActionHint == InputConstants.ActionCoinDoorAdvance) {
+				action = NativeInputApi.InputAction.Service2;
+				return true;
+			}
+			if (inputActionHint == InputConstants.ActionCoinDoorUp || inputActionHint == InputConstants.ActionCoinDoorPlus) {
+				action = NativeInputApi.InputAction.Service3;
+				return true;
+			}
+			if (inputActionHint == InputConstants.ActionCoinDoorEnter || inputActionHint == InputConstants.ActionCoinDoorSelect) {
+				action = NativeInputApi.InputAction.Service4;
+				return true;
+			}
+			if (inputActionHint == InputConstants.ActionSelfTest) {
+				action = NativeInputApi.InputAction.Service1;
+				return true;
+			}
+			if (inputActionHint == InputConstants.ActionLeftAdvance) {
+				action = NativeInputApi.InputAction.UpperLeftFlipper;
+				return true;
+			}
+			if (inputActionHint == InputConstants.ActionRightAdvance) {
+				action = NativeInputApi.InputAction.UpperRightFlipper;
 				return true;
 			}
 			if (inputActionHint == InputConstants.ActionSlamTilt) {

@@ -71,6 +71,8 @@ namespace VisualPinball.Unity.Simulation
 			return Volatile.Read(ref _instance);
 		}
 
+		public bool IsPolling => _polling;
+
 		public float TargetPollingHz => _polling && _pollIntervalUs > 0 ? 1000000f / _pollIntervalUs : 0f;
 		public float ActualEventRateHz => _polling ? Volatile.Read(ref _actualEventRateHz) : 0f;
 
@@ -210,19 +212,48 @@ namespace VisualPinball.Unity.Simulation
 			// Flippers
 			AddBinding(NativeInputApi.InputAction.LeftFlipper, NativeInputApi.KeyCode.LShift);
 			AddBinding(NativeInputApi.InputAction.RightFlipper, NativeInputApi.KeyCode.RShift);
-			// Fallback keys (useful when modifier VKs are unreliable in some contexts)
-			AddBinding(NativeInputApi.InputAction.LeftFlipper, NativeInputApi.KeyCode.A);
-			AddBinding(NativeInputApi.InputAction.RightFlipper, NativeInputApi.KeyCode.D);
+			AddBinding(NativeInputApi.InputAction.LeftStagedFlipper, NativeInputApi.KeyCode.LShift);
+			AddBinding(NativeInputApi.InputAction.RightStagedFlipper, NativeInputApi.KeyCode.RShift);
+			AddBinding(NativeInputApi.InputAction.UpperLeftFlipper, NativeInputApi.KeyCode.A);
+			AddBinding(NativeInputApi.InputAction.UpperRightFlipper, NativeInputApi.KeyCode.Quote);
+
+			// Magna saves
+			AddBinding(NativeInputApi.InputAction.LeftMagnasave, NativeInputApi.KeyCode.LControl);
+			AddBinding(NativeInputApi.InputAction.RightMagnasave, NativeInputApi.KeyCode.RControl);
 
 			// Start
 			AddBinding(NativeInputApi.InputAction.Start, NativeInputApi.KeyCode.D1);
 
-			// Coin
+			// Coin chutes
 			AddBinding(NativeInputApi.InputAction.CoinInsert1, NativeInputApi.KeyCode.D5);
+			AddBinding(NativeInputApi.InputAction.CoinInsert2, NativeInputApi.KeyCode.D4);
+			AddBinding(NativeInputApi.InputAction.CoinInsert3, NativeInputApi.KeyCode.D3);
+			AddBinding(NativeInputApi.InputAction.CoinInsert4, NativeInputApi.KeyCode.D6);
 
-			// Plunger (align with Unity InputManager defaults: Enter)
+			// Cabinet/service controls
+			AddBinding(NativeInputApi.InputAction.ExtraBall, NativeInputApi.KeyCode.B);
+			AddBinding(NativeInputApi.InputAction.Lockbar, NativeInputApi.KeyCode.LAlt);
+			AddBinding(NativeInputApi.InputAction.PauseGame, NativeInputApi.KeyCode.P);
+			AddBinding(NativeInputApi.InputAction.ExitGame, NativeInputApi.KeyCode.Escape);
+			AddBinding(NativeInputApi.InputAction.SlamTilt, NativeInputApi.KeyCode.Home);
+			AddBinding(NativeInputApi.InputAction.CoinDoor, NativeInputApi.KeyCode.End);
+			AddBinding(NativeInputApi.InputAction.Reset, NativeInputApi.KeyCode.F3);
+			AddBinding(NativeInputApi.InputAction.Service1, NativeInputApi.KeyCode.D7);
+			AddBinding(NativeInputApi.InputAction.Service2, NativeInputApi.KeyCode.D8);
+			AddBinding(NativeInputApi.InputAction.Service3, NativeInputApi.KeyCode.D9);
+			AddBinding(NativeInputApi.InputAction.Service4, NativeInputApi.KeyCode.D0);
+			AddBinding(NativeInputApi.InputAction.Service5, NativeInputApi.KeyCode.D6);
+			AddBinding(NativeInputApi.InputAction.Service6, NativeInputApi.KeyCode.PageUp);
+			AddBinding(NativeInputApi.InputAction.Service7, NativeInputApi.KeyCode.Quote);
+
+			// Nudging
+			AddBinding(NativeInputApi.InputAction.LeftNudge, NativeInputApi.KeyCode.Y);
+			AddBinding(NativeInputApi.InputAction.RightNudge, NativeInputApi.KeyCode.Minus);
+			AddBinding(NativeInputApi.InputAction.CenterNudge, NativeInputApi.KeyCode.Space);
+			AddBinding(NativeInputApi.InputAction.Tilt, NativeInputApi.KeyCode.T);
+
+			// Plunger
 			AddBinding(NativeInputApi.InputAction.Plunge, NativeInputApi.KeyCode.Return);
-			AddBinding(NativeInputApi.InputAction.Plunge, NativeInputApi.KeyCode.Space);
 
 			Logger.Info($"{LogPrefix} [NativeInputManager] Configured {_bindings.Count} default bindings");
 		}

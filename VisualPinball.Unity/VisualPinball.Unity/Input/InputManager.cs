@@ -150,9 +150,9 @@ namespace VisualPinball.Unity
 			map.AddAction(InputConstants.ActionStartGame, InputActionType.Button, "<Keyboard>/1");
 			map.AddAction(InputConstants.ActionPlunger, InputActionType.Button, "<Keyboard>/enter");
 			map.AddAction(InputConstants.ActionPlungerAnalog, InputActionType.Button, "<Gamepad>/rightStick/down");
-			map.AddAction(InputConstants.ActionInsertCoin1, InputActionType.Button, "<Keyboard>/3");
+			map.AddAction(InputConstants.ActionInsertCoin1, InputActionType.Button, "<Keyboard>/5");
 			map.AddAction(InputConstants.ActionInsertCoin2, InputActionType.Button, "<Keyboard>/4");
-			map.AddAction(InputConstants.ActionInsertCoin3, InputActionType.Button, "<Keyboard>/5");
+			map.AddAction(InputConstants.ActionInsertCoin3, InputActionType.Button, "<Keyboard>/3");
 			map.AddAction(InputConstants.ActionInsertCoin4, InputActionType.Button, "<Keyboard>/6");
 			map.AddAction(InputConstants.ActionCoinDoorOpenClose, InputActionType.Button, "<Keyboard>/end");
 			map.AddAction(InputConstants.ActionCoinDoorCancel, InputActionType.Button, "<Keyboard>/7");
@@ -166,7 +166,7 @@ namespace VisualPinball.Unity
 			map.AddAction(InputConstants.ActionCoinDoorPlus, InputActionType.Button, "<Keyboard>/9");
 			map.AddAction(InputConstants.ActionCoinDoorSelect, InputActionType.Button, "<Keyboard>/0");
 			map.AddAction(InputConstants.ActionSlamTilt, InputActionType.Button, "<Keyboard>/home");
-			map.AddAction(InputConstants.ActionSelfTest, InputActionType.Button, "<Keyboard>/8");
+			map.AddAction(InputConstants.ActionSelfTest, InputActionType.Button, "<Keyboard>/7");
 			map.AddAction(InputConstants.ActionLeftAdvance, InputActionType.Button, "<Keyboard>/a");
 			map.AddAction(InputConstants.ActionRightAdvance, InputActionType.Button, "<Keyboard>/quote");
 
