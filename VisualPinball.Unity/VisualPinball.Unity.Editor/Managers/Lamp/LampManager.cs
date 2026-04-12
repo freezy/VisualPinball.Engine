@@ -115,10 +115,10 @@ namespace VisualPinball.Unity.Editor
 
 			_toggleAction = (ToggleAction)EditorGUILayout.EnumPopup(_toggleAction);
 			if (GUILayout.Button("Turn On", GUILayout.ExpandWidth(false))) {
-				Toggle(l => l.enabled = true);
+				ToggleLampState(true);
 			}
 			if (GUILayout.Button("Turn Off", GUILayout.ExpandWidth(false))) {
-				Toggle(l => l.enabled = false);
+				ToggleLampState(false);
 			}
 			if (GUILayout.Button("Select", GUILayout.ExpandWidth(false))) {
 				var lights = new List<Light>();
@@ -133,16 +133,7 @@ namespace VisualPinball.Unity.Editor
 		private void Toggle(Action<Light> action)
 		{
 			if (TableComponent != null) {
-				IEnumerable<LampMapping> selection = _toggleAction switch {
-					ToggleAction.All => TableComponent.MappingConfig.Lamps,
-					ToggleAction.Inserts => TableComponent.MappingConfig.Lamps.Where(lm => !lm.IsCoil && lm.Source == LampSource.Lamp),
-					ToggleAction.GI => TableComponent.MappingConfig.Lamps.Where(lm => lm.Source == LampSource.GI),
-					ToggleAction.Flasher => TableComponent.MappingConfig.Lamps.Where(lm => lm.IsCoil),
-					ToggleAction.Selected => _listView.GetSelectedData().Select(lld => lld.LampMapping),
-					_ => throw new ArgumentOutOfRangeException()
-				};
-
-				foreach (var lampMapping in selection) {
+				foreach (var lampMapping in GetSelectedMappings()) {
 					if (lampMapping.Device == null) {
 						continue;
 					}
@@ -151,6 +142,68 @@ namespace VisualPinball.Unity.Editor
 						action(light);
 					}
 				}
+			}
+		}
+
+		private IEnumerable<LampMapping> GetSelectedMappings()
+		{
+			return _toggleAction switch {
+				ToggleAction.All => TableComponent.MappingConfig.Lamps,
+				ToggleAction.Inserts => TableComponent.MappingConfig.Lamps.Where(lm => !lm.IsCoil && lm.Source == LampSource.Lamp),
+				ToggleAction.GI => TableComponent.MappingConfig.Lamps.Where(lm => lm.Source == LampSource.GI),
+				ToggleAction.Flasher => TableComponent.MappingConfig.Lamps.Where(lm => lm.IsCoil),
+				ToggleAction.Selected => _listView.GetSelectedData().Select(lld => lld.LampMapping),
+				_ => throw new ArgumentOutOfRangeException()
+			};
+		}
+
+		private void ToggleLampState(bool enabled)
+		{
+			if (TableComponent == null) {
+				return;
+			}
+
+			// In play mode, drive lamp APIs so LightComponent updates both Unity lights and emissive materials.
+			// Outside play mode, fall back to directly toggling the runtime light components.
+			var player = TableComponent.GetComponentInParent<Player>() ?? TableComponent.GetComponentInChildren<Player>();
+			foreach (var lampMapping in GetSelectedMappings()) {
+				var device = lampMapping.Device;
+				if (device == null) {
+					continue;
+				}
+
+				var handledByApi = false;
+				if (Application.isPlaying && player != null) {
+					try {
+						device.GetApi(player).OnLamp(enabled ? LampStatus.On : LampStatus.Off);
+						handledByApi = true;
+					} catch (Exception ex) {
+						Logger.Warn(ex, $"Failed to toggle lamp via API for device \"{(device as Component)?.name}\".");
+					}
+				}
+
+				if (!handledByApi) {
+					SetLampDeviceEnabled(device, enabled);
+				}
+			}
+		}
+
+		private static void SetLampDeviceEnabled(ILampDeviceComponent device, bool enabled)
+		{
+			switch (device) {
+				case LightComponent lightComponent:
+					lightComponent.Enabled = enabled;
+					break;
+				case LightGroupComponent lightGroup:
+					foreach (var child in lightGroup.Lights.Where(child => child != null)) {
+						SetLampDeviceEnabled(child, enabled);
+					}
+					break;
+				default:
+					foreach (var light in device.LightSources.Where(light => light != null)) {
+						light.enabled = enabled;
+					}
+					break;
 			}
 		}
 
