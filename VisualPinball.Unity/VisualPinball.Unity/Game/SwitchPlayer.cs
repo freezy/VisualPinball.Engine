@@ -17,6 +17,7 @@
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
 using NLog;
+using VisualPinball.Unity.Simulation;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
@@ -128,6 +129,12 @@ namespace VisualPinball.Unity
 
 		private void HandleKeyInput(object obj, InputActionChange change)
 		{
+			// Native input polling feeds SimulationThread directly. Ignore the legacy
+			// InputSystem switch path while native polling is active to avoid double-dispatch.
+			if (NativeInputManager.TryGetExistingInstance()?.IsPolling == true) {
+				return;
+			}
+
 			switch (change) {
 				case InputActionChange.ActionStarted:
 				case InputActionChange.ActionCanceled:

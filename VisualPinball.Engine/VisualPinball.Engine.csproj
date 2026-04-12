@@ -15,7 +15,7 @@
     <PackageProjectUrl>https://visualpinball.org</PackageProjectUrl>
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <VisualPinballNativeInputVersion>0.0.2</VisualPinballNativeInputVersion>
+    <VisualPinballNativeInputVersion>0.0.3</VisualPinballNativeInputVersion>
   </PropertyGroup>
   <!-- Give an initial value based on the operating system where it's currently running on -->
   <PropertyGroup Condition="'$(RuntimeIdentifier)' == ''">
