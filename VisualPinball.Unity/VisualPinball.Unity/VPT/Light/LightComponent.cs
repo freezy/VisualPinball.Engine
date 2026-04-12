@@ -92,6 +92,9 @@ namespace VisualPinball.Unity
 		private const string BulbMeshName = "Light (Bulb)";
 		private const string SocketMeshName = "Light (Socket)";
 
+		private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
+		private static readonly int ColorProperty = Shader.PropertyToID("_Color");
+
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		#endregion
@@ -170,6 +173,7 @@ namespace VisualPinball.Unity
 		private bool _hasLights;
 		private readonly List<(Light, float)> _lights = new();
 		private readonly List<(Renderer, float)> _materials = new();
+		private readonly List<(Renderer renderer, Color baseColor, bool hasBaseColor, bool hasColor)> _fauxBulbs = new();
 		private MaterialPropertyBlock _propBlock;
 
 		public bool Enabled {
@@ -225,9 +229,22 @@ namespace VisualPinball.Unity
 				var emissiveIntensity = RenderPipeline.Current.MaterialConverter.GetEmissiveIntensity(mr.sharedMaterial);
 				if (emissiveIntensity > 0) {
 					_materials.Add((mr, emissiveIntensity));
+
+					// Treat any emissive renderer as a faux-bulb style visual that should
+					// dim/hide with lamp intensity, independent of object naming.
+					var hasBaseColor = mr.sharedMaterial.HasProperty(BaseColor);
+					var hasColor = mr.sharedMaterial.HasProperty(ColorProperty);
+					var baseColor = hasBaseColor
+						? mr.sharedMaterial.GetColor(BaseColor)
+						: hasColor ? mr.sharedMaterial.GetColor(ColorProperty) : Color.white;
+					_fauxBulbs.Add((mr, baseColor, hasBaseColor, hasColor));
 				}
-				// todo set to 0 initially
 			}
+			// Ensure emissive meshes start dark until the first lamp event updates them.
+			// Without this, materials with baked emissive defaults (e.g. FauxBulb) can
+			// appear lit even while the logical lamp value is off.
+			SetMaterialIntensity(0f);
+			SetFauxBulbVisibility(0f);
 
 			_hasLights = _lights.Count > 0 || _materials.Count > 0;
 		}
@@ -348,6 +365,38 @@ namespace VisualPinball.Unity
 				mr.GetPropertyBlock(_propBlock);
 				RenderPipeline.Current.MaterialConverter.SetEmissiveIntensity(mr.sharedMaterial, _propBlock, value * intensity);
 				mr.SetPropertyBlock(_propBlock);
+			}
+			SetFauxBulbVisibility(value);
+		}
+
+		private void SetFauxBulbVisibility(float value)
+		{
+			if (_fauxBulbs.Count == 0) {
+				return;
+			}
+
+			var clampedValue = Mathf.Clamp01(value);
+			foreach (var (renderer, baseColor, hasBaseColor, hasColor) in _fauxBulbs) {
+				if (!renderer) {
+					continue;
+				}
+
+				renderer.enabled = clampedValue > 0.001f;
+
+				renderer.GetPropertyBlock(_propBlock);
+				var faded = new Color(
+					baseColor.r * clampedValue,
+					baseColor.g * clampedValue,
+					baseColor.b * clampedValue,
+					baseColor.a * clampedValue
+				);
+				if (hasBaseColor) {
+					_propBlock.SetColor(BaseColor, faded);
+				}
+				if (hasColor) {
+					_propBlock.SetColor(ColorProperty, faded);
+				}
+				renderer.SetPropertyBlock(_propBlock);
 			}
 		}
 
