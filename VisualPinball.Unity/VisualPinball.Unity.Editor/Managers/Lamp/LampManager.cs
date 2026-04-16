@@ -183,20 +183,29 @@ namespace VisualPinball.Unity.Editor
 				}
 
 				if (!handledByApi) {
-					SetLampDeviceEnabled(device, enabled);
+					SetLampDeviceEnabled(device, enabled, Application.isPlaying);
 				}
 			}
 		}
 
-		private static void SetLampDeviceEnabled(ILampDeviceComponent device, bool enabled)
+		private static void SetLampDeviceEnabled(ILampDeviceComponent device, bool enabled, bool isPlaying)
 		{
+			// In edit mode LightComponent runtime caches are not initialized yet,
+			// so directly toggling Unity lights keeps the manager buttons responsive.
+			if (!isPlaying) {
+				foreach (var light in device.LightSources.Where(light => light != null)) {
+					light.enabled = enabled;
+				}
+				return;
+			}
+
 			switch (device) {
 				case LightComponent lightComponent:
 					lightComponent.Enabled = enabled;
 					break;
 				case LightGroupComponent lightGroup:
 					foreach (var child in lightGroup.Lights.Where(child => child != null)) {
-						SetLampDeviceEnabled(child, enabled);
+						SetLampDeviceEnabled(child, enabled, isPlaying);
 					}
 					break;
 				default:
