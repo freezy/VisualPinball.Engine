@@ -149,15 +149,31 @@ namespace VisualPinball.Unity.Editor
 			_tableComponent.LegacyContainer = ScriptableObject.CreateInstance<LegacyContainer>();
 
 			ExtractPhysicsMaterials();
-			ExtractTextures();
-			ExtractSounds();
+			if (_options.ImportTextures && _options.OverrideVisualMaterial == null) {
+				ExtractTextures();
+			}
+			if (_options.ImportSounds) {
+				ExtractSounds();
+			}
 			SaveData();
 
-			var prefabLookup = InstantiateGameItems();
-			var componentLookup = UpdateGameItems(prefabLookup);
+			var previousSkipSurfaceParenting = ImportContext.SkipSurfaceParenting;
+			var previousUseColliderGeometryForRampMeshes = ImportContext.UseColliderGeometryForRampMeshes;
+			ImportContext.SkipSurfaceParenting = _options.ObjectImportFilter == VpxObjectImportFilter.CollidableOnly;
+			ImportContext.UseColliderGeometryForRampMeshes = _options.ObjectImportFilter == VpxObjectImportFilter.CollidableOnly;
 
-			SaveLegacyData(); // now we freed the binary data, write the remaining game items.
-			FinalizeGameItems(componentLookup);
+			Dictionary<string, IMainComponent> componentLookup;
+			try {
+				var prefabLookup = InstantiateGameItems();
+				componentLookup = UpdateGameItems(prefabLookup);
+
+				SaveLegacyData(); // now we freed the binary data, write the remaining game items.
+				FinalizeGameItems(componentLookup);
+
+			} finally {
+				ImportContext.SkipSurfaceParenting = previousSkipSurfaceParenting;
+				ImportContext.UseColliderGeometryForRampMeshes = previousUseColliderGeometryForRampMeshes;
+			}
 
 			FreeTextures();
 
@@ -222,7 +238,7 @@ namespace VisualPinball.Unity.Editor
 		private Dictionary<string, IVpxPrefab> InstantiateGameItems()
 		{
 			var prefabLookup = new Dictionary<string, IVpxPrefab>();
-			var renderables = _sourceContainer.Renderables.ToArray();
+			var renderables = GetRenderablesForImport().ToArray();
 
 			try {
 				// pause asset database refreshing
@@ -244,6 +260,42 @@ namespace VisualPinball.Unity.Editor
 			return prefabLookup;
 		}
 
+		private IEnumerable<IRenderable> GetRenderablesForImport()
+		{
+			if (_options.ObjectImportFilter != VpxObjectImportFilter.CollidableOnly) {
+				return _sourceContainer.Renderables;
+			}
+			return _sourceContainer.Renderables.Where(ShouldImportCollidableObject);
+		}
+
+		private bool ShouldImportCollidableObject(IRenderable renderable)
+		{
+			return IsPhysicsLoopObject(renderable);
+		}
+
+		private static bool IsPhysicsLoopObject(IRenderable renderable)
+		{
+			switch (renderable) {
+				case Bumper _:
+				case Flipper _:
+				case Gate _:
+				case HitTarget _:
+				case Kicker _:
+				case Plunger _:
+				case Ramp _:
+				case Rubber _:
+				case Spinner _:
+				case Surface _:
+				case Trigger _:
+				case MetalWireGuide _:
+					return true;
+				case Primitive primitive:
+					return !primitive.Data.IsToy;
+				default:
+					return false;
+			}
+		}
+
 		/// <summary>
 		/// In a second pass, we update the referenced data. This is so states dependent on other components
 		/// is correctly applied.
@@ -261,6 +313,9 @@ namespace VisualPinball.Unity.Editor
 				// first loop: write fbx files
 				foreach (var prefab in prefabLookup.Values) {
 					prefab.SetReferencedData(_sourceTable, this, this, componentLookup);
+					if (_options.ForceAllObjectsVisible && prefab.GameObject) {
+						ForceVisible(prefab.GameObject);
+					}
 					prefab.FreeBinaryData();
 
 					if (prefab.ExtractMesh) {
@@ -322,6 +377,9 @@ namespace VisualPinball.Unity.Editor
 
 			// the playfield needs separate treatment
 			_playfieldComponent.SetReferencedData(_sourceTable.Data, _sourceTable, this, this, null);
+			if (_options.ForceAllObjectsVisible && _playfieldGo) {
+				ForceVisible(_playfieldGo);
+			}
 
 			// yes, really, persist changes..
 			EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
@@ -658,6 +716,9 @@ namespace VisualPinball.Unity.Editor
 		public Texture GetTexture(string name)
 		{
 			if (!_textures.ContainsKey(name.ToLower())) {
+				if (!_options.ImportTextures || _options.OverrideVisualMaterial != null) {
+					return null;
+				}
 				throw new ArgumentException($"Texture \"{name.ToLower()}\" not loaded!");
 			}
 			return _textures[name.ToLower()];
@@ -669,6 +730,9 @@ namespace VisualPinball.Unity.Editor
 
 		public bool HasMaterial(PbrMaterial material)
 		{
+			if (_options.OverrideVisualMaterial != null) {
+				return true;
+			}
 			if (_materials.ContainsKey(material.Id)) {
 				return true;
 			}
@@ -682,6 +746,9 @@ namespace VisualPinball.Unity.Editor
 
 		public Material GetMaterial(PbrMaterial material)
 		{
+			if (_options.OverrideVisualMaterial != null) {
+				return _options.OverrideVisualMaterial;
+			}
 			if (_materials.ContainsKey(material.Id)) {
 				return _materials[material.Id];
 			}
@@ -714,12 +781,19 @@ namespace VisualPinball.Unity.Editor
 
 		public Material MergeMaterials(string vpxMaterial, Material textureMaterial)
 		{
+			if (_options.OverrideVisualMaterial != null) {
+				return _options.OverrideVisualMaterial;
+			}
 			var pbrMaterial = new PbrMaterial(_sourceTable.GetMaterial(vpxMaterial), id: $"{vpxMaterial.ToNormalizedName()} __textured");
 			return pbrMaterial.ToUnityMaterial(this, textureMaterial);
 		}
 
 		public void SaveMaterial(PbrMaterial vpxMaterial, Material material)
 		{
+			if (_options.OverrideVisualMaterial != null) {
+				_materials[vpxMaterial.Id] = _options.OverrideVisualMaterial;
+				return;
+			}
 			_materials[vpxMaterial.Id] = material;
 			var path = vpxMaterial.GetUnityFilename(_assetsMaterials);
 			if (_options.SkipExistingMaterials && File.Exists(path)) {
@@ -729,6 +803,22 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		#endregion
+
+		private static void ForceVisible(GameObject root)
+		{
+			foreach (var transform in root.GetComponentsInChildren<Transform>(true)) {
+				transform.gameObject.SetActive(true);
+			}
+			foreach (var renderer in root.GetComponentsInChildren<Renderer>(true)) {
+				renderer.enabled = true;
+			}
+		}
+	}
+
+	public enum VpxObjectImportFilter
+	{
+		All,
+		CollidableOnly
 	}
 
 	public class ConvertOptions
@@ -737,6 +827,11 @@ namespace VisualPinball.Unity.Editor
 		public bool SkipExistingSounds = true;
 		public bool SkipExistingMaterials = true;
 		public bool SkipExistingMeshes = true;
+		public bool ImportTextures = true;
+		public bool ImportSounds = true;
+		public bool ForceAllObjectsVisible = false;
+		public VpxObjectImportFilter ObjectImportFilter = VpxObjectImportFilter.All;
+		public Material OverrideVisualMaterial;
 
 		public static readonly ConvertOptions SkipNone = new ConvertOptions
 		{

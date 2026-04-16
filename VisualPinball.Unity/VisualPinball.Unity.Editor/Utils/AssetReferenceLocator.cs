@@ -275,6 +275,10 @@ namespace VisualPinball.Unity.Editor
 					hits++;
 				}
 
+				_results = _results
+					.OrderBy(r => r.assetPath, StringComparer.OrdinalIgnoreCase)
+					.ToList();
+
 				if (guidMode && string.IsNullOrEmpty(targetPath) &&
 				    EditorSettings.serializationMode != SerializationMode.ForceText)
 				{

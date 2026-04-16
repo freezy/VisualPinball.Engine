@@ -18,11 +18,12 @@ using System;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
+using Material = UnityEngine.Material;
 
 namespace VisualPinball.Unity.Editor
 {
 	[Serializable]
-	public class VpxImportWizardSettings : MonoBehaviour
+	public static class VpxImportWizardSettings
 	{
 		public static bool ApplyPatch
 		{
@@ -42,6 +43,65 @@ namespace VisualPinball.Unity.Editor
 			set => EditorPrefs.SetString("TableName", value);
 		}
 
+		public static VpxObjectImportFilter ObjectImportFilter
+		{
+			get => (VpxObjectImportFilter)EditorPrefs.GetInt("ObjectImportFilter", (int)VpxObjectImportFilter.All);
+			set => EditorPrefs.SetInt("ObjectImportFilter", (int)value);
+		}
+
+		public static bool ImportTextures
+		{
+			get => EditorPrefs.GetBool("ImportTextures", true);
+			set => EditorPrefs.SetBool("ImportTextures", value);
+		}
+
+		public static bool ImportSounds
+		{
+			get => EditorPrefs.GetBool("ImportSounds", true);
+			set => EditorPrefs.SetBool("ImportSounds", value);
+		}
+
+		public static bool ForceAllObjectsVisible
+		{
+			get => EditorPrefs.GetBool("ForceAllObjectsVisible", false);
+			set => EditorPrefs.SetBool("ForceAllObjectsVisible", value);
+		}
+
+		public static Material OverrideVisualMaterial
+		{
+			get {
+				var materialPath = EditorPrefs.GetString("OverrideVisualMaterialPath", "");
+				return string.IsNullOrEmpty(materialPath)
+					? null
+					: AssetDatabase.LoadAssetAtPath<Material>(materialPath);
+			}
+			set {
+				var materialPath = value != null
+					? AssetDatabase.GetAssetPath(value)
+					: string.Empty;
+				EditorPrefs.SetString("OverrideVisualMaterialPath", materialPath);
+			}
+		}
+
+		public static ConvertOptions BuildConvertOptions()
+		{
+			var options = new ConvertOptions {
+				ObjectImportFilter = ObjectImportFilter,
+				ImportTextures = ImportTextures,
+				ImportSounds = ImportSounds,
+				ForceAllObjectsVisible = ForceAllObjectsVisible,
+				OverrideVisualMaterial = OverrideVisualMaterial
+			};
+
+			if (options.ObjectImportFilter == VpxObjectImportFilter.CollidableOnly) {
+				options.SkipExistingMeshes = false;
+				options.ImportTextures = false;
+				options.ImportSounds = false;
+			}
+
+			return options;
+		}
+
 		public static bool IsPathValid()
 		{
 			return !string.IsNullOrEmpty(VpxPath) && File.Exists(VpxPath);
@@ -52,6 +112,11 @@ namespace VisualPinball.Unity.Editor
 			VpxPath = "";
 			ApplyPatch = true;
 			TableName = "%TABLENAME%";
+			ObjectImportFilter = VpxObjectImportFilter.All;
+			ImportTextures = true;
+			ImportSounds = true;
+			ForceAllObjectsVisible = false;
+			OverrideVisualMaterial = null;
 		}
 	}
 }

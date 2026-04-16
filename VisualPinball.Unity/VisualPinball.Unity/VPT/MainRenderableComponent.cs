@@ -122,6 +122,9 @@ namespace VisualPinball.Unity
 
 		protected void ParentToSurface(string surfaceName, Vertex2D center, Dictionary<string, IMainComponent> components)
 		{
+			if (ImportContext.SkipSurfaceParenting) {
+				return;
+			}
 			if (!string.IsNullOrEmpty(surfaceName)) {
 				var surface = FindComponent<ISurfaceComponent>(components, surfaceName);
 				if (surface == null) {
