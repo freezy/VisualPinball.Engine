@@ -20,6 +20,7 @@ using NLog;
 using UnityEditor;
 using UnityEngine;
 using Logger = NLog.Logger;
+using Material = UnityEngine.Material;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -139,6 +140,48 @@ namespace VisualPinball.Unity.Editor
 
 				EditorGUILayout.LabelField("The name of the gameobject. Empty = default. Tags: %TABLENAME% = table name, %INFONAME% = Table's Info Name", labelInfoStyle);
 
+				GUILayout.Space(settingsMargin);
+
+				VpxImportWizardSettings.ObjectImportFilter = (VpxObjectImportFilter)EditorGUILayout.EnumPopup("Object Filter", VpxImportWizardSettings.ObjectImportFilter);
+
+				EditorGUILayout.LabelField("Choose between importing all renderables or only physics-loop object types (including items with collision currently disabled).", labelInfoStyle);
+
+				var collidableOnlyImport = VpxImportWizardSettings.ObjectImportFilter == VpxObjectImportFilter.CollidableOnly;
+
+				if (collidableOnlyImport) {
+					VpxImportWizardSettings.ImportTextures = false;
+					VpxImportWizardSettings.ImportSounds = false;
+				}
+
+				GUILayout.Space(settingsMargin);
+
+				using (new EditorGUI.DisabledScope(collidableOnlyImport)) {
+					VpxImportWizardSettings.ImportTextures = EditorGUILayout.Toggle("Import Images", VpxImportWizardSettings.ImportTextures);
+				}
+				EditorGUILayout.LabelField(collidableOnlyImport
+					? "Disabled for collidable-only import."
+					: "Imports VPX images/textures into the table asset folder.", labelInfoStyle);
+
+				GUILayout.Space(settingsMargin);
+
+				using (new EditorGUI.DisabledScope(collidableOnlyImport)) {
+					VpxImportWizardSettings.ImportSounds = EditorGUILayout.Toggle("Import Sounds", VpxImportWizardSettings.ImportSounds);
+				}
+				EditorGUILayout.LabelField(collidableOnlyImport
+					? "Disabled for collidable-only import."
+					: "Imports VPX sound assets into the table asset folder.", labelInfoStyle);
+
+				GUILayout.Space(settingsMargin);
+
+				VpxImportWizardSettings.ForceAllObjectsVisible = EditorGUILayout.Toggle("Force All Visible", VpxImportWizardSettings.ForceAllObjectsVisible);
+				EditorGUILayout.LabelField("Forces imported objects and child meshes to be visible, ignoring VPX visibility flags.", labelInfoStyle);
+
+				GUILayout.Space(settingsMargin);
+
+				VpxImportWizardSettings.OverrideVisualMaterial = (Material)EditorGUILayout.ObjectField("Override Material", VpxImportWizardSettings.OverrideVisualMaterial, typeof(Material), false);
+
+				EditorGUILayout.LabelField("If set, all imported renderers use this material and no visual materials or texture assets are created.", labelInfoStyle);
+
 
 				GUILayout.FlexibleSpace();
 			}
@@ -158,7 +201,13 @@ namespace VisualPinball.Unity.Editor
 				{
 					if (File.Exists(VpxImportWizardSettings.VpxPath))
 					{
-						VpxImportEngine.ImportIntoScene(VpxImportWizardSettings.VpxPath, null, VpxImportWizardSettings.ApplyPatch, VpxImportWizardSettings.TableName);
+						VpxImportEngine.ImportIntoScene(
+							VpxImportWizardSettings.VpxPath,
+							null,
+							VpxImportWizardSettings.ApplyPatch,
+							VpxImportWizardSettings.TableName,
+							VpxImportWizardSettings.BuildConvertOptions()
+						);
 					}
 					else
 					{

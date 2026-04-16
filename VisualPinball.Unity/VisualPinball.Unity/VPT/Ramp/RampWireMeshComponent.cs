@@ -31,7 +31,7 @@ namespace VisualPinball.Unity
 		protected override Mesh GetMesh(RampData data)
 		{
 			var playfieldComponent = GetComponentInParent<PlayfieldComponent>();
-			return new RampMeshGenerator(MainComponent, MainComponent.uvOffset.ToVertex3D())
+			return new RampMeshGenerator(MainComponent.GetMeshGenerationData(), MainComponent.uvOffset.ToVertex3D())
 				.GetMesh(playfieldComponent.Width, playfieldComponent.Height, 0, RampMeshGenerator.Wires)
 				.TransformToWorld();
 		}

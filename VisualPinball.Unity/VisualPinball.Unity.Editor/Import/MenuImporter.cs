@@ -57,6 +57,26 @@ namespace VisualPinball.Unity.Editor
 					break;
 			}
 		}
+
+		[MenuItem("Pinball/Import Wizard", false, 2)]
+		public static void ImportVpxWithFilters(MenuCommand menuCommand)
+		{
+			if (!EnsureUntitledSceneHasBeenSaved()) {
+				return;
+			}
+
+			var path = EditorUtility.OpenFilePanelWithFilters("Import Wizard", null, new[] { "Visual Pinball Table Files", "vpx" });
+			if (path.Length == 0) {
+				return;
+			}
+
+			VpxImportWizardSettings.VpxPath = path;
+			VpxImportWizardSettings.TableName = Path.GetFileNameWithoutExtension(path);
+			VpxImportWizardSettings.ObjectImportFilter = VpxObjectImportFilter.CollidableOnly;
+			VpxImportWizardSettings.ImportTextures = false;
+			VpxImportWizardSettings.ImportSounds = false;
+			VpxImportWizard.Init();
+		}
 		
 		private static bool EnsureUntitledSceneHasBeenSaved()
 		{

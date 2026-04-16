@@ -120,6 +120,15 @@ namespace VisualPinball.Unity
 
 		public bool IsWireRamp => _type != RampType.RampTypeFlat;
 
+		internal IRampData GetMeshGenerationData()
+		{
+			if (!ImportContext.UseColliderGeometryForRampMeshes) {
+				return this;
+			}
+			var colliderComponent = GetComponentInChildren<RampColliderComponent>();
+			return colliderComponent ? new CollisionGeometryRampData(this, colliderComponent) : this;
+		}
+
 		#region Overrides
 
 		public override ItemType ItemType => ItemType.Ramp;
@@ -249,6 +258,29 @@ namespace VisualPinball.Unity
 			_wireDistanceX = data.WireDistanceX;
 			_wireDistanceY = data.WireDistanceY;
 
+			// collider data
+			var collComponent = GetComponentInChildren<RampColliderComponent>();
+			if (collComponent) {
+				collComponent.enabled = data.IsCollidable;
+				collComponent.Elasticity = data.Elasticity;
+				collComponent.Friction = data.Friction;
+				collComponent.HitEvent = data.HitEvent;
+				collComponent.OverwritePhysics = data.OverwritePhysics;
+				collComponent.Scatter = data.Scatter;
+				collComponent.Threshold = data.Threshold;
+
+				collComponent.LeftWallHeight = data.LeftWallHeight;
+				collComponent.RightWallHeight = data.RightWallHeight;
+
+				updatedComponents.Add(collComponent);
+			}
+
+			if (ImportContext.UseColliderGeometryForRampMeshes && collComponent) {
+				var wallHeights = GetCollisionWallHeights(_type, collComponent.RightWallHeight, collComponent.LeftWallHeight);
+				_rightWallHeightVisible = wallHeights.rightWallHeight;
+				_leftWallHeightVisible = wallHeights.leftWallHeight;
+			}
+
 			// visibility and mesh creation
 			var wallComponent = GetComponentInChildren<RampWallMeshComponent>(true);
 			var floorComponent = GetComponentInChildren<RampFloorMeshComponent>(true);
@@ -273,23 +305,6 @@ namespace VisualPinball.Unity
 				if (wallComponent) {
 					wallComponent.gameObject.SetActive(data.IsVisible && (_leftWallHeightVisible > 0 || _rightWallHeightVisible > 0));
 				}
-			}
-
-			// collider data
-			var collComponent = GetComponentInChildren<RampColliderComponent>();
-			if (collComponent) {
-				collComponent.enabled = data.IsCollidable;
-				collComponent.Elasticity = data.Elasticity;
-				collComponent.Friction = data.Friction;
-				collComponent.HitEvent = data.HitEvent;
-				collComponent.OverwritePhysics = data.OverwritePhysics;
-				collComponent.Scatter = data.Scatter;
-				collComponent.Threshold = data.Threshold;
-
-				collComponent.LeftWallHeight = data.LeftWallHeight;
-				collComponent.RightWallHeight = data.RightWallHeight;
-
-				updatedComponents.Add(collComponent);
 			}
 
 			CenterPivot();
@@ -414,7 +429,53 @@ namespace VisualPinball.Unity
 			RebuildMeshes();
 		}
 
+		internal static (float rightWallHeight, float leftWallHeight) GetCollisionWallHeights(int type, float flatRightWallHeight, float flatLeftWallHeight)
+		{
+			switch (type) {
+				case RampType.RampTypeFlat: return (flatRightWallHeight, flatLeftWallHeight);
+				case RampType.RampType1Wire: return (31.0f, 31.0f);
+				case RampType.RampType2Wire: return (31.0f, 31.0f);
+				case RampType.RampType4Wire: return (62.0f, 62.0f);
+				case RampType.RampType3WireRight: return (62.0f, 18.5f);
+				case RampType.RampType3WireLeft: return (18.5f, 62.0f);
+				default: return (flatRightWallHeight, flatLeftWallHeight);
+			}
+		}
+
 		#endregion
 
+	}
+
+	internal class CollisionGeometryRampData : IRampData
+	{
+		public float RightWallHeightVisible { get; }
+		public float LeftWallHeightVisible { get; }
+		public int Type { get; }
+		public float WireDistanceX { get; }
+		public float WireDistanceY { get; }
+		public int ImageAlignment { get; }
+		public float WireDiameter { get; }
+		public float HeightBottom { get; }
+		public float HeightTop { get; }
+		public float WidthTop { get; }
+		public float WidthBottom { get; }
+		public DragPointData[] DragPoints { get; }
+
+		public CollisionGeometryRampData(IRampData source, RampColliderComponent colliderComponent)
+		{
+			Type = source.Type;
+			WireDistanceX = source.WireDistanceX;
+			WireDistanceY = source.WireDistanceY;
+			ImageAlignment = source.ImageAlignment;
+			WireDiameter = source.WireDiameter;
+			HeightBottom = source.HeightBottom;
+			HeightTop = source.HeightTop;
+			WidthTop = source.WidthTop;
+			WidthBottom = source.WidthBottom;
+			DragPoints = source.DragPoints;
+			var wallHeights = RampComponent.GetCollisionWallHeights(Type, colliderComponent.RightWallHeight, colliderComponent.LeftWallHeight);
+			RightWallHeightVisible = wallHeights.rightWallHeight;
+			LeftWallHeightVisible = wallHeights.leftWallHeight;
+		}
 	}
 }
