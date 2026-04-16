@@ -15,7 +15,7 @@
     <PackageProjectUrl>https://visualpinball.org</PackageProjectUrl>
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <VisualPinballNativeInputVersion>0.0.3</VisualPinballNativeInputVersion>
+    <VisualPinballNativeInputVersion>0.0.4</VisualPinballNativeInputVersion>
   </PropertyGroup>
   <!-- Give an initial value based on the operating system where it's currently running on -->
   <PropertyGroup Condition="'$(RuntimeIdentifier)' == ''">
@@ -37,6 +37,7 @@
     <PackageReference Include="NetMiniZ.Native" Version="1.4.0" />
     <PackageReference Include="NetVips" Version="2.1.0" />
     <PackageReference Include="NetVips.Native" Version="8.12.2" />
+    <!-- NativeInput is consumed exclusively through NuGet (not from a checked-out native source tree). -->
     <PackageReference Include="VisualPinball.NativeInput" Version="$(VisualPinballNativeInputVersion)" />
   </ItemGroup>
   <ItemGroup>
@@ -75,6 +76,7 @@
       <Plugins Include="$(NuGetPackageRoot)\netvips.native.$(RuntimeIdentifier)\8.12.2\runtimes\$(RuntimeIdentifier)\native\*" />
     </ItemGroup>
     <ItemGroup Condition="'$(RuntimeIdentifier)' == 'win-x64' Or '$(RuntimeIdentifier)' == 'win-x86'">
+      <!-- Pull native binaries from the restored NuGet package and deploy into Unity Plugins. -->
       <Plugins Include="$(NuGetPackageRoot)\visualpinball.nativeinput\$(VisualPinballNativeInputVersion)\runtimes\$(RuntimeIdentifier)\native\VisualPinball.NativeInput.dll" />
     </ItemGroup>
     <ItemGroup Condition="'$(RuntimeIdentifier)' == 'linux-x64'">

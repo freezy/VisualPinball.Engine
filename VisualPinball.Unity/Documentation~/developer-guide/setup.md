@@ -77,6 +77,8 @@ Unity automatically creates a `.meta` file for every file and directory it index
 
 The thing is, in the main repo there are a few native dependencies that we don't include directly. Instead, we reference them through NuGet and copy them to Unity's Plugin folder when compiling for the first time. That means that in the repo, we have the `.meta` files for those dependencies, but not the actual files, which results in Unity cleaning the `.meta` files for all platforms when compiling.
 
+`VisualPinball.NativeInput` follows the same model: build/package it in its own repository, publish to NuGet, then let `VisualPinball.Engine` restore and copy the runtime binary into `VisualPinball.Unity/Plugins/<rid>`.
+
 Long story short, you'll end up with something like this very soon:
 
 ![Delete .meta files in git](removed-meta-files.png)
