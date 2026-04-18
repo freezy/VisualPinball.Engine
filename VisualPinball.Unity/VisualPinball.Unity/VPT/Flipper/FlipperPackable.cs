@@ -75,6 +75,25 @@ namespace VisualPinball.Unity
 		public float RampUp;
 		public float TorqueDamping;
 		public float TorqueDampingAngle;
+		public bool? UseFlipperTricksPhysics;
+		public float? SOSRampUp;
+		public float? SOSEM;
+		public float? EOSReturn;
+		public float? EOSTNew;
+		public float? EOSANew;
+		public float? EOSRampup;
+		public float? Overshoot;
+		public float? BumpOnRelease;
+		public bool? UseFlipperLiveCatch;
+		public float? LiveCatchDistanceMin;
+		public float? LiveCatchDistanceMax;
+		public float? LiveCatchMinimalBallSpeed;
+		public float? LiveCatchFullTime;
+		public float? LiveCatchPerfectTime;
+		public float? LiveCatchMinmalBounceSpeedMultiplier;
+		public float? LiveCatchInaccurateBounceSpeedMultiplier;
+		public float? LiveCatchBaseDampenDistance;
+		public float? LiveCatchBaseDampen;
 
 		public static byte[] Pack(FlipperColliderComponent comp)
 		{
@@ -86,6 +105,25 @@ namespace VisualPinball.Unity
 				RampUp = comp.RampUp,
 				TorqueDamping = comp.TorqueDamping,
 				TorqueDampingAngle = comp.TorqueDampingAngle,
+				UseFlipperTricksPhysics = comp.useFlipperTricksPhysics,
+				SOSRampUp = comp.SOSRampUp,
+				SOSEM = comp.SOSEM,
+				EOSReturn = comp.EOSReturn,
+				EOSTNew = comp.EOSTNew,
+				EOSANew = comp.EOSANew,
+				EOSRampup = comp.EOSRampup,
+				Overshoot = comp.Overshoot,
+				BumpOnRelease = comp.BumpOnRelease,
+				UseFlipperLiveCatch = comp.useFlipperLiveCatch,
+				LiveCatchDistanceMin = comp.LiveCatchDistanceMin,
+				LiveCatchDistanceMax = comp.LiveCatchDistanceMax,
+				LiveCatchMinimalBallSpeed = comp.LiveCatchMinimalBallSpeed,
+				LiveCatchFullTime = comp.LiveCatchFullTime,
+				LiveCatchPerfectTime = comp.LiveCatchPerfectTime,
+				LiveCatchMinmalBounceSpeedMultiplier = comp.LiveCatchMinmalBounceSpeedMultiplier,
+				LiveCatchInaccurateBounceSpeedMultiplier = comp.LiveCatchInaccurateBounceSpeedMultiplier,
+				LiveCatchBaseDampenDistance = comp.LiveCatchBaseDampenDistance,
+				LiveCatchBaseDampen = comp.LiveCatchBaseDampen,
 			});
 		}
 
@@ -99,6 +137,25 @@ namespace VisualPinball.Unity
 			comp.RampUp = data.RampUp;
 			comp.TorqueDamping = data.TorqueDamping;
 			comp.TorqueDampingAngle = data.TorqueDampingAngle;
+			comp.useFlipperTricksPhysics = data.UseFlipperTricksPhysics ?? comp.useFlipperTricksPhysics;
+			comp.SOSRampUp = data.SOSRampUp ?? comp.SOSRampUp;
+			comp.SOSEM = data.SOSEM ?? comp.SOSEM;
+			comp.EOSReturn = data.EOSReturn ?? comp.EOSReturn;
+			comp.EOSTNew = data.EOSTNew ?? comp.EOSTNew;
+			comp.EOSANew = data.EOSANew ?? comp.EOSANew;
+			comp.EOSRampup = data.EOSRampup ?? comp.EOSRampup;
+			comp.Overshoot = data.Overshoot ?? comp.Overshoot;
+			comp.BumpOnRelease = data.BumpOnRelease ?? comp.BumpOnRelease;
+			comp.useFlipperLiveCatch = data.UseFlipperLiveCatch ?? comp.useFlipperLiveCatch;
+			comp.LiveCatchDistanceMin = data.LiveCatchDistanceMin ?? comp.LiveCatchDistanceMin;
+			comp.LiveCatchDistanceMax = data.LiveCatchDistanceMax ?? comp.LiveCatchDistanceMax;
+			comp.LiveCatchMinimalBallSpeed = data.LiveCatchMinimalBallSpeed ?? comp.LiveCatchMinimalBallSpeed;
+			comp.LiveCatchFullTime = data.LiveCatchFullTime ?? comp.LiveCatchFullTime;
+			comp.LiveCatchPerfectTime = data.LiveCatchPerfectTime ?? comp.LiveCatchPerfectTime;
+			comp.LiveCatchMinmalBounceSpeedMultiplier = data.LiveCatchMinmalBounceSpeedMultiplier ?? comp.LiveCatchMinmalBounceSpeedMultiplier;
+			comp.LiveCatchInaccurateBounceSpeedMultiplier = data.LiveCatchInaccurateBounceSpeedMultiplier ?? comp.LiveCatchInaccurateBounceSpeedMultiplier;
+			comp.LiveCatchBaseDampenDistance = data.LiveCatchBaseDampenDistance ?? comp.LiveCatchBaseDampenDistance;
+			comp.LiveCatchBaseDampen = data.LiveCatchBaseDampen ?? comp.LiveCatchBaseDampen;
 		}
 	}
 

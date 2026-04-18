@@ -45,12 +45,14 @@ namespace VisualPinball.Unity
 	public struct SpinnerColliderPackable
 	{
 		public bool IsMovable;
+		public float? Mass;
 		public float ZPosition;
 
 		public static byte[] Pack(SpinnerColliderComponent comp)
 		{
 			return PackageApi.Packer.Pack(new SpinnerColliderPackable {
 				IsMovable = comp._isKinematic,
+				Mass = comp.Mass,
 				ZPosition = comp.ZPosition,
 			});
 		}
@@ -59,6 +61,7 @@ namespace VisualPinball.Unity
 		{
 			var data = PackageApi.Packer.Unpack<SpinnerColliderPackable>(bytes);
 			comp._isKinematic = data.IsMovable;
+			comp.Mass = data.Mass ?? comp.Mass;
 			comp.ZPosition = data.ZPosition;
 		}
 	}

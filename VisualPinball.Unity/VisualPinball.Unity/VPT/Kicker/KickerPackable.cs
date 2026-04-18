@@ -23,11 +23,14 @@ namespace VisualPinball.Unity
 {
 	public struct KickerPackable
 	{
+		public float? Orientation;
 		public IEnumerable<KickerCoilPackable> Coils;
 
 		public static byte[] Pack(KickerComponent comp)
 		{
-			return PackageApi.Packer.Pack(new KickerPackable { Coils = comp.Coils.Select(c => new KickerCoilPackable {
+			return PackageApi.Packer.Pack(new KickerPackable {
+				Orientation = comp.Orientation,
+				Coils = comp.Coils.Select(c => new KickerCoilPackable {
 					Name = c.Name,
 					Id = c.Id,
 					Speed = c.Speed,
@@ -40,6 +43,7 @@ namespace VisualPinball.Unity
 		public static void Unpack(byte[] bytes, KickerComponent comp)
 		{
 			var data = PackageApi.Packer.Unpack<KickerPackable>(bytes);
+			comp.Orientation = data.Orientation ?? comp.Orientation;
 			comp.Coils = data.Coils.Select(c => new KickerCoil {
 				Name = c.Name,
 				Id = c.Id,
