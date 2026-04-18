@@ -173,6 +173,11 @@ namespace VisualPinball.Unity.Editor
 
 				GUILayout.Space(settingsMargin);
 
+				VpxImportWizardSettings.DumpTableScript = EditorGUILayout.Toggle("Dump Table Script", VpxImportWizardSettings.DumpTableScript);
+				EditorGUILayout.LabelField("Writes the VPX table script to Assets/Tables/<Table>/<Table>.vbs during import.", labelInfoStyle);
+
+				GUILayout.Space(settingsMargin);
+
 				VpxImportWizardSettings.ForceAllObjectsVisible = EditorGUILayout.Toggle("Force All Visible", VpxImportWizardSettings.ForceAllObjectsVisible);
 				EditorGUILayout.LabelField("Forces imported objects and child meshes to be visible, ignoring VPX visibility flags.", labelInfoStyle);
 
@@ -181,6 +186,15 @@ namespace VisualPinball.Unity.Editor
 				VpxImportWizardSettings.OverrideVisualMaterial = (Material)EditorGUILayout.ObjectField("Override Material", VpxImportWizardSettings.OverrideVisualMaterial, typeof(Material), false);
 
 				EditorGUILayout.LabelField("If set, all imported renderers use this material and no visual materials or texture assets are created.", labelInfoStyle);
+
+				GUILayout.Space(settingsMargin);
+
+				using (new EditorGUI.DisabledScope(VpxImportWizardSettings.OverrideVisualMaterial == null)) {
+					VpxImportWizardSettings.AlwaysImportPlayfieldMaterial = EditorGUILayout.Toggle("Always Import Playfield Material", VpxImportWizardSettings.AlwaysImportPlayfieldMaterial);
+				}
+				EditorGUILayout.LabelField(VpxImportWizardSettings.OverrideVisualMaterial == null
+					? "Requires Override Material."
+					: "If enabled, keeps VPX playfield material+image import and does not apply the override material to the playfield mesh.", labelInfoStyle);
 
 
 				GUILayout.FlexibleSpace();

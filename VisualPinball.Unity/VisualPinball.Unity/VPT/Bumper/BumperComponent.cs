@@ -31,6 +31,8 @@ using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Bumper;
 using VisualPinball.Engine.VPT.Table;
+using Material = UnityEngine.Material;
+using Mesh = UnityEngine.Mesh;
 
 namespace VisualPinball.Unity
 {
@@ -94,6 +96,8 @@ namespace VisualPinball.Unity
 		protected override Type ColliderComponentType { get; } = typeof(ColliderComponent<BumperData, BumperComponent>);
 
 		public const float DataMeshScale = 100f;
+		private const string ColliderVisualName = "__BumperColliderVisual";
+		private static Mesh _colliderCylinderMesh;
 
 		public const string SocketSwitchItem = "socket_switch";
 		public const string RingCoilItem = "ring_coil";
@@ -210,11 +214,25 @@ namespace VisualPinball.Unity
 
 			UpdateTransforms();
 
+#if UNITY_EDITOR
+			if (ImportContext.UseColliderGeometryForBumperMeshes) {
+				ApplyColliderOnlyVisual(ResolveColliderVisualMaterial(data, table, materialProvider));
+			} else {
+				RemoveColliderOnlyVisual();
+
+				// children visibility
+				SetVisibilityByComponent<BumperSkirtAnimationComponent>(data.IsSocketVisible);
+				SetVisibilityByComponent<BumperBaseComponent>(data.IsBaseVisible);
+				SetVisibilityByComponent<BumperCapComponent>(data.IsCapVisible);
+				SetVisibilityByComponent<BumperRingAnimationComponent>(data.IsRingVisible);
+			}
+#else
 			// children visibility
 			SetVisibilityByComponent<BumperSkirtAnimationComponent>(data.IsSocketVisible);
 			SetVisibilityByComponent<BumperBaseComponent>(data.IsBaseVisible);
 			SetVisibilityByComponent<BumperCapComponent>(data.IsCapVisible);
 			SetVisibilityByComponent<BumperRingAnimationComponent>(data.IsRingVisible);
+#endif
 
 			return Array.Empty<MonoBehaviour>();
 		}
@@ -305,6 +323,146 @@ namespace VisualPinball.Unity
 				skirtAnimComp.duration = srcSkirtAnimComp.duration;
 			}
 		}
+
+#if UNITY_EDITOR
+		private static Material ResolveColliderVisualMaterial(BumperData data, Table table, IMaterialProvider materialProvider)
+		{
+			if (materialProvider == null) {
+				return null;
+			}
+
+			var names = new[] { data.BaseMaterial, data.CapMaterial, data.RingMaterial, data.SocketMaterial };
+			foreach (var name in names) {
+				if (string.IsNullOrEmpty(name)) {
+					continue;
+				}
+				var vpxMaterial = table?.GetMaterial(name);
+				if (vpxMaterial == null) {
+					continue;
+				}
+				var material = materialProvider.GetMaterial(new PbrMaterial(vpxMaterial));
+				if (material) {
+					return material;
+				}
+			}
+
+			// Import override material is resolved in the provider, independent of the PBR payload.
+			return materialProvider.GetMaterial(new PbrMaterial());
+		}
+
+		private void ApplyColliderOnlyVisual(Material preferredMaterial)
+		{
+			var sourceMaterial = preferredMaterial ? preferredMaterial : GetComponentsInChildren<MeshRenderer>(true)
+				.Select(renderer => renderer.sharedMaterial)
+				.FirstOrDefault(material => material != null);
+
+			var colliderVisualGo = EnsureColliderVisual(sourceMaterial);
+
+			foreach (var meshFilter in GetComponentsInChildren<MeshFilter>(true)) {
+				if (meshFilter.gameObject != colliderVisualGo) {
+					meshFilter.sharedMesh = null;
+				}
+			}
+
+			foreach (var renderer in GetComponentsInChildren<Renderer>(true)) {
+				renderer.enabled = renderer.gameObject == colliderVisualGo;
+			}
+		}
+
+		private GameObject EnsureColliderVisual(Material material)
+		{
+			var colliderVisualTransform = transform.Find(ColliderVisualName);
+			var colliderVisualGo = colliderVisualTransform
+				? colliderVisualTransform.gameObject
+				: new GameObject(ColliderVisualName);
+
+			if (!colliderVisualTransform) {
+				colliderVisualGo.transform.SetParent(transform, false);
+			}
+
+			colliderVisualGo.transform.localPosition = Vector3.zero;
+			colliderVisualGo.transform.localRotation = Quaternion.identity;
+			colliderVisualGo.transform.localScale = Vector3.one;
+			colliderVisualGo.SetActive(true);
+
+			var meshFilter = colliderVisualGo.GetComponent<MeshFilter>();
+			if (!meshFilter) {
+				meshFilter = colliderVisualGo.AddComponent<MeshFilter>();
+			}
+			meshFilter.sharedMesh = GetColliderCylinderMesh();
+
+			var meshRenderer = colliderVisualGo.GetComponent<MeshRenderer>();
+			if (!meshRenderer) {
+				meshRenderer = colliderVisualGo.AddComponent<MeshRenderer>();
+			}
+			if (material) {
+				meshRenderer.sharedMaterial = material;
+			}
+			meshRenderer.enabled = true;
+
+			return colliderVisualGo;
+		}
+
+		private void RemoveColliderOnlyVisual()
+		{
+			var colliderVisualTransform = transform.Find(ColliderVisualName);
+			if (colliderVisualTransform) {
+				DestroyImmediate(colliderVisualTransform.gameObject);
+			}
+		}
+
+		private static Mesh GetColliderCylinderMesh()
+		{
+			if (_colliderCylinderMesh) {
+				return _colliderCylinderMesh;
+			}
+
+			const int numSides = 32;
+			const float radius = DataMeshScale * 0.5f;
+			const float zLow = 0f;
+			const float zHigh = 100f;
+
+			var vertices = new Vector3[numSides * 2];
+			var normals = new Vector3[numSides * 2];
+			var triangles = new int[numSides * 6];
+
+			for (var side = 0; side < numSides; side++) {
+				var angle = 2f * Mathf.PI * side / numSides;
+				var vpxX = Mathf.Cos(angle) * radius;
+				var vpxY = Mathf.Sin(angle) * radius;
+				var normal = new Vector3(vpxX, 0f, -vpxY).normalized;
+				var topVertexIndex = side * 2;
+				var bottomVertexIndex = topVertexIndex + 1;
+
+				vertices[topVertexIndex] = new Vector3(vpxX, vpxY, zHigh).TranslateToWorld();
+				vertices[bottomVertexIndex] = new Vector3(vpxX, vpxY, zLow).TranslateToWorld();
+				normals[topVertexIndex] = normal;
+				normals[bottomVertexIndex] = normal;
+
+				var nextSide = (side + 1) % numSides;
+				var nextTopVertexIndex = nextSide * 2;
+				var nextBottomVertexIndex = nextTopVertexIndex + 1;
+				var triangleIndex = side * 6;
+
+				triangles[triangleIndex + 0] = topVertexIndex;
+				triangles[triangleIndex + 1] = bottomVertexIndex;
+				triangles[triangleIndex + 2] = nextBottomVertexIndex;
+				triangles[triangleIndex + 3] = topVertexIndex;
+				triangles[triangleIndex + 4] = nextBottomVertexIndex;
+				triangles[triangleIndex + 5] = nextTopVertexIndex;
+			}
+
+			_colliderCylinderMesh = new Mesh {
+				name = "Bumper Collider Cylinder",
+				vertices = vertices,
+				normals = normals,
+				triangles = triangles
+			};
+			_colliderCylinderMesh.RecalculateBounds();
+
+			return _colliderCylinderMesh;
+		}
+#endif
 
 		#endregion
 
