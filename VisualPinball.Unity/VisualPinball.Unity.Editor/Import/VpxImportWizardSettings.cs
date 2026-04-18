@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using System;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -22,7 +21,6 @@ using Material = UnityEngine.Material;
 
 namespace VisualPinball.Unity.Editor
 {
-	[Serializable]
 	public static class VpxImportWizardSettings
 	{
 		public static bool ApplyPatch

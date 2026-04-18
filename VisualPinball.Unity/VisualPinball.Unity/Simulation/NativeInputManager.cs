@@ -242,9 +242,8 @@ namespace VisualPinball.Unity.Simulation
 			AddBinding(NativeInputApi.InputAction.Service2, NativeInputApi.KeyCode.D8);
 			AddBinding(NativeInputApi.InputAction.Service3, NativeInputApi.KeyCode.D9);
 			AddBinding(NativeInputApi.InputAction.Service4, NativeInputApi.KeyCode.D0);
-			AddBinding(NativeInputApi.InputAction.Service5, NativeInputApi.KeyCode.D6);
 			AddBinding(NativeInputApi.InputAction.Service6, NativeInputApi.KeyCode.PageUp);
-			AddBinding(NativeInputApi.InputAction.Service7, NativeInputApi.KeyCode.Quote);
+			AddBinding(NativeInputApi.InputAction.Service7, NativeInputApi.KeyCode.PageDown);
 
 			// Nudging
 			AddBinding(NativeInputApi.InputAction.LeftNudge, NativeInputApi.KeyCode.Y);
