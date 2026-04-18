@@ -134,10 +134,11 @@ namespace VisualPinball.Unity
 				}
 
 				case SwitchSource.InputSystem: {
-					if (!_keyWireAssignments.ContainsKey(wireMapping.SourceInputAction)) {
-						_keyWireAssignments[wireMapping.SourceInputAction] = new List<WireDestConfig>();
+					var inputAction = InputManager.GetCanonicalActionName(wireMapping.SourceInputAction);
+					if (!_keyWireAssignments.ContainsKey(inputAction)) {
+						_keyWireAssignments[inputAction] = new List<WireDestConfig>();
 					}
-					_keyWireAssignments[wireMapping.SourceInputAction].Add(SetupWireDestConfig(wireMapping, isHardwareRule));
+					_keyWireAssignments[inputAction].Add(SetupWireDestConfig(wireMapping, isHardwareRule));
 					break;
 				}
 
@@ -187,7 +188,8 @@ namespace VisualPinball.Unity
 		{
 			var sourceMapping = _tableComponent.MappingConfig.Switches.FirstOrDefault(switchMapping => {
 				return switchMapping.Source switch {
-					SwitchSource.InputSystem => switchMapping.InputActionMap == wireMapping.SourceInputActionMap && switchMapping.InputAction == wireMapping.SourceInputAction,
+					SwitchSource.InputSystem => switchMapping.InputActionMap == wireMapping.SourceInputActionMap &&
+												InputManager.GetCanonicalActionName(switchMapping.InputAction) == InputManager.GetCanonicalActionName(wireMapping.SourceInputAction),
 					SwitchSource.Playfield => switchMapping.Device == wireMapping.SourceDevice && switchMapping.DeviceItem == wireMapping.SourceDeviceItem,
 					_ => false
 				};
@@ -228,12 +230,13 @@ namespace VisualPinball.Unity
 				}
 
 				case SwitchSource.InputSystem: {
-					if (!_keyWireAssignments.ContainsKey(wireMapping.SourceInputAction)) {
-						_keyWireAssignments[wireMapping.SourceInputAction] = new List<WireDestConfig>();
+					var inputAction = InputManager.GetCanonicalActionName(wireMapping.SourceInputAction);
+					if (!_keyWireAssignments.ContainsKey(inputAction)) {
+						_keyWireAssignments[inputAction] = new List<WireDestConfig>();
 					}
-					var assignment = _keyWireAssignments[wireMapping.SourceInputAction]
+					var assignment = _keyWireAssignments[inputAction]
 						.FirstOrDefault(a => a.IsHardwareRule && a.Device == wireMapping.DestinationDevice && a.DeviceItem == wireMapping.DestinationDeviceItem);
-					_keyWireAssignments[wireMapping.SourceInputAction].Remove(assignment);
+					_keyWireAssignments[inputAction].Remove(assignment);
 					break;
 				}
 
@@ -256,8 +259,9 @@ namespace VisualPinball.Unity
 				case InputActionChange.ActionStarted:
 				case InputActionChange.ActionCanceled:
 					var action = (InputAction)obj;
-					if (_keyWireAssignments != null && _keyWireAssignments.ContainsKey(action.name)) {
-						foreach (var wireConfig in _keyWireAssignments[action.name]) {
+					var actionName = InputManager.GetCanonicalActionName(action.name);
+					if (_keyWireAssignments != null && _keyWireAssignments.ContainsKey(actionName)) {
+						foreach (var wireConfig in _keyWireAssignments[actionName]) {
 							if (wireConfig.Device == null || !_wireDevices.ContainsKey(wireConfig.Device)) {
 								continue;
 							}

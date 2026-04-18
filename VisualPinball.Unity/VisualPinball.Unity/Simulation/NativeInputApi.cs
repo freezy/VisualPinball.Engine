@@ -130,7 +130,7 @@ namespace VisualPinball.Unity.Simulation
 
 			Minus = 0xBD,  // VK_OEM_MINUS
 			Quote = 0xDE,  // VK_OEM_7
-			Caret = 0xC0,  // VK_OEM_3 (layout dependent)
+			Oem3 = 0xC0,   // VK_OEM_3 (layout dependent)
 		}
 
 		#endregion

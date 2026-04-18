@@ -129,9 +129,32 @@ namespace VisualPinball.Unity
 			if (actionMap != null)
 			{
 				action = actionMap.FindAction(actionName);
+				if (action != null && action.bindings.Count == 0) {
+					var canonicalActionName = GetCanonicalActionName(actionName);
+					if (canonicalActionName != actionName) {
+						action = actionMap.FindAction(canonicalActionName) ?? action;
+					}
+				}
 			}
 
 			return action;
+		}
+
+		public static string GetCanonicalActionName(string actionName)
+		{
+			return actionName switch {
+				InputConstants.ActionCoinDoorBack => InputConstants.ActionCoinDoorCancel,
+				InputConstants.ActionCoinDoorUpDown => InputConstants.ActionCoinDoorCancel,
+				InputConstants.ActionSelfTest => InputConstants.ActionCoinDoorCancel,
+				InputConstants.ActionCoinDoorAdvance => InputConstants.ActionCoinDoorDown,
+				InputConstants.ActionCoinDoorMinus => InputConstants.ActionCoinDoorDown,
+				InputConstants.ActionCoinDoorPlus => InputConstants.ActionCoinDoorUp,
+				InputConstants.ActionCoinDoorSelect => InputConstants.ActionCoinDoorEnter,
+				InputConstants.ActionLeftAdvance => InputConstants.ActionUpperLeftFlipper,
+				InputConstants.ActionRightAdvance => InputConstants.ActionUpperRightFlipper,
+				InputConstants.ActionFire1 => InputConstants.ActionLeftMagnasave,
+				_ => actionName
+			};
 		}
 
 		public static InputActionAsset GetDefaultInputActionAsset()
@@ -144,7 +167,7 @@ namespace VisualPinball.Unity
 			map.AddAction(InputConstants.ActionRightFlipper, InputActionType.Button, "<Keyboard>/rightShift").AddBinding("<Gamepad>/rightShoulder");
 			map.AddAction(InputConstants.ActionRightMagnasave, InputActionType.Button, "<Keyboard>/rightCtrl");
 			map.AddAction(InputConstants.ActionLeftMagnasave, InputActionType.Button, "<Keyboard>/leftCtrl");
-			map.AddAction(InputConstants.ActionFire1, InputActionType.Button, "<Keyboard>/leftCtrl");
+			map.AddAction(InputConstants.ActionFire1, InputActionType.Button);
 			map.AddAction(InputConstants.ActionFire2, InputActionType.Button, "<Keyboard>/rightAlt");
 			map.AddAction(InputConstants.ActionFrontBuyIn, InputActionType.Button, "<Keyboard>/2");
 			map.AddAction(InputConstants.ActionStartGame, InputActionType.Button, "<Keyboard>/1");
@@ -159,16 +182,16 @@ namespace VisualPinball.Unity
 			map.AddAction(InputConstants.ActionCoinDoorDown, InputActionType.Button, "<Keyboard>/8");
 			map.AddAction(InputConstants.ActionCoinDoorUp, InputActionType.Button, "<Keyboard>/9");
 			map.AddAction(InputConstants.ActionCoinDoorEnter, InputActionType.Button, "<Keyboard>/0");
-			map.AddAction(InputConstants.ActionCoinDoorAdvance, InputActionType.Button, "<Keyboard>/8");
-			map.AddAction(InputConstants.ActionCoinDoorUpDown, InputActionType.Button, "<Keyboard>/7");
-			map.AddAction(InputConstants.ActionCoinDoorBack, InputActionType.Button, "<Keyboard>/7");
-			map.AddAction(InputConstants.ActionCoinDoorMinus, InputActionType.Button, "<Keyboard>/8");
-			map.AddAction(InputConstants.ActionCoinDoorPlus, InputActionType.Button, "<Keyboard>/9");
-			map.AddAction(InputConstants.ActionCoinDoorSelect, InputActionType.Button, "<Keyboard>/0");
+			map.AddAction(InputConstants.ActionCoinDoorAdvance, InputActionType.Button);
+			map.AddAction(InputConstants.ActionCoinDoorUpDown, InputActionType.Button);
+			map.AddAction(InputConstants.ActionCoinDoorBack, InputActionType.Button);
+			map.AddAction(InputConstants.ActionCoinDoorMinus, InputActionType.Button);
+			map.AddAction(InputConstants.ActionCoinDoorPlus, InputActionType.Button);
+			map.AddAction(InputConstants.ActionCoinDoorSelect, InputActionType.Button);
 			map.AddAction(InputConstants.ActionSlamTilt, InputActionType.Button, "<Keyboard>/home");
-			map.AddAction(InputConstants.ActionSelfTest, InputActionType.Button, "<Keyboard>/7");
-			map.AddAction(InputConstants.ActionLeftAdvance, InputActionType.Button, "<Keyboard>/a");
-			map.AddAction(InputConstants.ActionRightAdvance, InputActionType.Button, "<Keyboard>/quote");
+			map.AddAction(InputConstants.ActionSelfTest, InputActionType.Button);
+			map.AddAction(InputConstants.ActionLeftAdvance, InputActionType.Button);
+			map.AddAction(InputConstants.ActionRightAdvance, InputActionType.Button);
 
 			asset.AddActionMap(map);
 

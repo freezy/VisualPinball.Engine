@@ -103,11 +103,12 @@ namespace VisualPinball.Unity
 						}
 
 						case SwitchSource.InputSystem:
-							if (!_keySwitchAssignments.ContainsKey(switchMapping.InputAction)) {
-								_keySwitchAssignments[switchMapping.InputAction] = new List<KeyboardSwitch>();
+							var inputAction = InputManager.GetCanonicalActionName(switchMapping.InputAction);
+							if (!_keySwitchAssignments.ContainsKey(inputAction)) {
+								_keySwitchAssignments[inputAction] = new List<KeyboardSwitch>();
 							}
 							var keyboardSwitch = new KeyboardSwitch(switchMapping.Id, switchMapping.IsNormallyClosed);
-							_keySwitchAssignments[switchMapping.InputAction].Add(keyboardSwitch);
+							_keySwitchAssignments[inputAction].Add(keyboardSwitch);
 							SwitchStatuses[switchMapping.Id] = keyboardSwitch;
 							break;
 
@@ -139,7 +140,8 @@ namespace VisualPinball.Unity
 				case InputActionChange.ActionStarted:
 				case InputActionChange.ActionCanceled:
 					var action = (InputAction)obj;
-					if (_keySwitchAssignments.TryGetValue(action.name, out var assignment)) {
+					var actionName = InputManager.GetCanonicalActionName(action.name);
+					if (_keySwitchAssignments.TryGetValue(actionName, out var assignment)) {
 						if (_player != null) {
 							foreach (var sw in assignment) {
 								sw.IsSwitchEnabled = change == InputActionChange.ActionStarted;
