@@ -535,6 +535,8 @@ namespace VisualPinball.Unity
 				LiveCatchFullTime = colliderComponent.LiveCatchFullTime,
 				LiveCatchInaccurateBounceSpeedMultiplier = colliderComponent.LiveCatchInaccurateBounceSpeedMultiplier,
 				LiveCatchMinimalBounceSpeedMultiplier = colliderComponent.LiveCatchMinmalBounceSpeedMultiplier,
+				LiveCatchBaseDampenDistance = colliderComponent.LiveCatchBaseDampenDistance,
+				LiveCatchBaseDampen = colliderComponent.LiveCatchBaseDampen,
 
 				//initialize
 				OriginalAngleEnd = staticData.AngleEnd,

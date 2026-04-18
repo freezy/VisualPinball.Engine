@@ -127,39 +127,39 @@ namespace VisualPinball.Unity
 		/// If set, apply Flipper Tricks Physics (nFozzy/RothBauerW)
 		/// </summary>
 
-		[Tooltip("The Rothbauerw's Flipper Tricks Physics")]
+		[Tooltip("Enables VPW/RothbauerW flipper tricks: start-of-stroke, end-of-stroke, overshoot, and release-bump behavior.")]
 		public bool useFlipperTricksPhysics = false;
 
 		[Min(0f)]
-		[Tooltip("Start of stroke RampUp")]
+		[Tooltip("Coil ramp-up while the flipper starts its stroke. Lower values make the initial flip force arrive faster.")]
 		public float SOSRampUp = 2.5f;
 
 		[Min(0f)]
-		[Tooltip("Start of Elasticity multiplier")]
+		[Tooltip("Rubber elasticity multiplier during the start-of-stroke phase. Values below 1 soften early flip impacts.")]
 		public float SOSEM = 0.85f;
 
 		[Min(0f)]
-		[Tooltip("EOSReturnTorque modifier (Torque on depress is original Torque * EOSReturn / Flipper Return Strength)")]
+		[Tooltip("Return torque multiplier used while the flipper is up and the button is released. Lower values make the flipper drop more softly from EOS.")]
 		public float EOSReturn = 0.055f;
 
 		[Min(0f)]
-		[Tooltip("End of stroke Torque")]
+		[Tooltip("Torque applied once the flipper reaches end-of-stroke. This is the hold strength at EOS.")]
 		public float EOSTNew = 0.8f;
 
 		[Min(0f)]
-		[Tooltip("End of stroke Torque Angle")]
+		[Tooltip("Angle, in degrees from the end position, where EOS hold torque starts applying.")]
 		public float EOSANew = 1.0f;
 
 		[Min(0f)]
-		[Tooltip("End of stroke RampUp")]
+		[Tooltip("Ramp-up used for the EOS hold torque. Zero applies the EOS torque immediately.")]
 		public float EOSRampup = 0.0f;
 
 		[Min(0f)]
-		[Tooltip("Degrees of Overshoot above End Angle")]
+		[Tooltip("How many degrees the flipper may overshoot past its configured end angle before settling back.")]
 		public float Overshoot = 3.0f;
 
 		[Min(0f)]
-		[Tooltip("Bump Ball vertically on release button (speed, up)")]
+		[Tooltip("Upward ball speed added when releasing the flipper button, used to emulate VPW release-bump behavior.")]
 		public float BumpOnRelease = 0.4f;
 		#endregion
 
@@ -168,38 +168,46 @@ namespace VisualPinball.Unity
 		/// If set, apply Live Catch (nFozzy/RothBauerW)
 		/// </summary>
 
-		[Tooltip("The nFozzy's LiveCatch Physics")]
+		[Tooltip("Enables modern VPW live-catch behavior for balls arriving just after the flipper reaches end-of-stroke.")]
 		public bool useFlipperLiveCatch = false;
 
 		[Min(0f)]
-		[Tooltip("Minimum distance in vp units from flipper base live catch dampening will occur")]
-		public float LiveCatchDistanceMin = 40f;
+		[Tooltip("Closest distance from the flipper base where live catch can apply, in VP units. Modern VPW scripts usually use 5.")]
+		public float LiveCatchDistanceMin = 5f;
 
 		[Min(0f)]
-		[Tooltip("Maxium distance in vp units from flipper base live catch dampening will occur")]
-		public float LiveCatchDistanceMax = 100f;
+		[Tooltip("Farthest distance from the flipper base where live catch can apply, in VP units. Modern VPW scripts usually use 114.")]
+		public float LiveCatchDistanceMax = 114f;
 
 		[Min(0f)]
-		[Tooltip("Minimal ball speed for live catch")]
-		public float LiveCatchMinimalBallSpeed = 6f;
+		[Tooltip("Minimum impact speed required for live catch processing. This maps to the modern VPW parm > 3 threshold.")]
+		public float LiveCatchMinimalBallSpeed = 3f;
 
 		[Unit("ms")]
 		[Min(0f)]
-		[Tooltip("Maximum Time in for (perfect or imperfect) live catch")]
+		[Tooltip("Maximum time, in milliseconds after the flipper reaches EOS, where live catch can still apply.")]
 		public float LiveCatchFullTime = 16;
 
 		[Unit("ms")]
 		[Min(0f)]
-		[Tooltip("Maximum Time for a perfect live catch")]
+		[Tooltip("Time window, in milliseconds after EOS, where the catch is considered perfect and no late-catch bounce is added.")]
 		public float LiveCatchPerfectTime = 8;
 
 		[Min(0f)]
-		[Tooltip("Minimum bounce speed multiplier for a live catch (0 allows perfect live catches)")]
-		public float LiveCatchMinmalBounceSpeedMultiplier = 0.1f;
+		[Tooltip("Bounce speed used for a perfect live catch. Modern VPW scripts use 0 so perfect catches can fully deaden the rebound.")]
+		public float LiveCatchMinmalBounceSpeedMultiplier = 0f;
 
 		[Min(0f)]
-		[Tooltip("Maximum bounce speed multiplier for an inaccurate live catch")]
-		public float LiveCatchInaccurateBounceSpeedMultiplier = 1.0f;
+		[Tooltip("Late-catch bounce speed scale. Modern VPW scripts use 32 and scale it by how late the catch is within the full live-catch window.")]
+		public float LiveCatchInaccurateBounceSpeedMultiplier = 32f;
+
+		[Min(0f)]
+		[Tooltip("Distance from the flipper base separating base dampening from normal live catching. Modern VPW scripts use 30 VP units.")]
+		public float LiveCatchBaseDampenDistance = 30f;
+
+		[Min(0f)]
+		[Tooltip("Velocity and spin multiplier applied in the base dampen zone. Modern VPW scripts use 0.55.")]
+		public float LiveCatchBaseDampen = 0.55f;
 
 		#endregion
 

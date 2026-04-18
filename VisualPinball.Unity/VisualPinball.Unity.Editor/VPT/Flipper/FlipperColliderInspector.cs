@@ -65,6 +65,8 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _liveCatchFullTime;
 		private SerializedProperty _liveCatchInaccurateBounceSpeedMultiplier;
 		private SerializedProperty _liveCatchMinimumBounceSpeedMultiplier;
+		private SerializedProperty _liveCatchBaseDampenDistance;
+		private SerializedProperty _liveCatchBaseDampen;
 
 		#endregion
 
@@ -105,6 +107,8 @@ namespace VisualPinball.Unity.Editor
 			_liveCatchFullTime = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchFullTime));
 			_liveCatchInaccurateBounceSpeedMultiplier = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchInaccurateBounceSpeedMultiplier));
 			_liveCatchMinimumBounceSpeedMultiplier = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchMinmalBounceSpeedMultiplier));
+			_liveCatchBaseDampenDistance = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchBaseDampenDistance));
+			_liveCatchBaseDampen = serializedObject.FindProperty(nameof(FlipperColliderComponent.LiveCatchBaseDampen));
 			#endregion
 		}
 
@@ -140,14 +144,14 @@ namespace VisualPinball.Unity.Editor
 				PropertyField(_useFlipperTricksPhysicsProperty, "Use Flipper Tricks");
 
 				EditorGUI.BeginDisabledGroup(!_useFlipperTricksPhysicsProperty.boolValue);
-				PropertyField(_sosRampUpProperty, "SOSRampUP");
-				PropertyField(_sosEmProperty, "SOSEM");
-				PropertyField(_eosReturnProperty, "EOSReturn");
-				PropertyField(_eosTNewProperty, "EOSTNew");
-				PropertyField(_eosANewProperty, "EOSANew");
-				PropertyField(_eosRampUpProperty, "EOSRampup");
-				PropertyField(_overshootProperty, "Overshoot Angle");
-				PropertyField(_bumpOnReleaseProperty, "Bump on Release");
+				PropertyField(_sosRampUpProperty, "Start Ramp");
+				PropertyField(_sosEmProperty, "Start Elasticity");
+				PropertyField(_eosReturnProperty, "Return Torque");
+				PropertyField(_eosTNewProperty, "EOS Torque");
+				PropertyField(_eosANewProperty, "EOS Angle");
+				PropertyField(_eosRampUpProperty, "EOS Ramp");
+				PropertyField(_overshootProperty, "Overshoot");
+				PropertyField(_bumpOnReleaseProperty, "Release Bump");
 				EditorGUI.EndDisabledGroup();
 
 			}
@@ -160,11 +164,13 @@ namespace VisualPinball.Unity.Editor
 				EditorGUI.BeginDisabledGroup(!_useFlipperLiveCatch.boolValue);
 				PropertyField(_liveCatchDistanceMin, "Min Distance");
 				PropertyField(_liveCatchDistanceMax, "Max Distance");
-				PropertyField(_liveCatchMinimalBallSpeed, "Min Ball Speed");
+				PropertyField(_liveCatchMinimalBallSpeed, "Min Hit Speed");
 				PropertyField(_liveCatchPerfectTime, "Perfect Time");
 				PropertyField(_liveCatchFullTime, "Full Time");
 				PropertyField(_liveCatchMinimumBounceSpeedMultiplier, "Perfect Bounce");
-				PropertyField(_liveCatchInaccurateBounceSpeedMultiplier, "Inaccurate Bounce");
+				PropertyField(_liveCatchInaccurateBounceSpeedMultiplier, "Late Bounce");
+				PropertyField(_liveCatchBaseDampenDistance, "Base Zone");
+				PropertyField(_liveCatchBaseDampen, "Base Dampen");
 				EditorGUI.EndDisabledGroup();
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
