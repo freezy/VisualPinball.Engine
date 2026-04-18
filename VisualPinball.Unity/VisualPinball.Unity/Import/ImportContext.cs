@@ -30,5 +30,10 @@ namespace VisualPinball.Unity
 		/// If true, visual ramp meshes use collision geometry parameters during import.
 		/// </summary>
 		public static bool UseColliderGeometryForRampMeshes;
+
+		/// <summary>
+		/// If true, bumper visuals are replaced by generated collider-cylinder meshes during import.
+		/// </summary>
+		public static bool UseColliderGeometryForBumperMeshes;
 	}
 }

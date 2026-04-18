@@ -88,6 +88,8 @@ namespace VisualPinball.Unity.Editor
 		private readonly IPatcher _patcher;
 		private bool _applyPatch = true;
 
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		/// <summary>
 		/// Creates a new converter for a new table
 		/// </summary>
@@ -145,12 +147,17 @@ namespace VisualPinball.Unity.Editor
 
 			CreateRootHierarchy(tableName);
 			CreateFileHierarchy();
+			DumpTableScript();
 
 			_tableComponent.LegacyContainer = ScriptableObject.CreateInstance<LegacyContainer>();
 
 			ExtractPhysicsMaterials();
-			if (_options.ImportTextures && _options.OverrideVisualMaterial == null) {
-				ExtractTextures();
+			if (_options.OverrideVisualMaterial == null) {
+				if (_options.ImportTextures) {
+					ExtractTextures();
+				}
+			} else if (_options.AlwaysImportPlayfieldMaterial) {
+				ExtractPlayfieldTexture();
 			}
 			if (_options.ImportSounds) {
 				ExtractSounds();
@@ -159,8 +166,10 @@ namespace VisualPinball.Unity.Editor
 
 			var previousSkipSurfaceParenting = ImportContext.SkipSurfaceParenting;
 			var previousUseColliderGeometryForRampMeshes = ImportContext.UseColliderGeometryForRampMeshes;
+			var previousUseColliderGeometryForBumperMeshes = ImportContext.UseColliderGeometryForBumperMeshes;
 			ImportContext.SkipSurfaceParenting = _options.ObjectImportFilter == VpxObjectImportFilter.CollidableOnly;
 			ImportContext.UseColliderGeometryForRampMeshes = _options.ObjectImportFilter == VpxObjectImportFilter.CollidableOnly;
+			ImportContext.UseColliderGeometryForBumperMeshes = _options.ObjectImportFilter == VpxObjectImportFilter.CollidableOnly;
 
 			Dictionary<string, IMainComponent> componentLookup;
 			try {
@@ -173,6 +182,7 @@ namespace VisualPinball.Unity.Editor
 			} finally {
 				ImportContext.SkipSurfaceParenting = previousSkipSurfaceParenting;
 				ImportContext.UseColliderGeometryForRampMeshes = previousUseColliderGeometryForRampMeshes;
+				ImportContext.UseColliderGeometryForBumperMeshes = previousUseColliderGeometryForBumperMeshes;
 			}
 
 			FreeTextures();
@@ -186,8 +196,38 @@ namespace VisualPinball.Unity.Editor
 				_patcher?.PostPatch(_tableGo);
 			}
 
+			ApplyPlayfieldVisualMaterial();
+
 			return _tableGo;
 		}
+
+		private void ApplyPlayfieldVisualMaterial()
+		{
+			if (!_options.AlwaysImportPlayfieldMaterial || _options.OverrideVisualMaterial == null || !_playfieldGo) {
+				return;
+			}
+
+			var meshRenderer = _playfieldGo.GetComponent<MeshRenderer>();
+			if (!meshRenderer) {
+				return;
+			}
+
+			var previousOverride = _options.OverrideVisualMaterial;
+			_options.OverrideVisualMaterial = null;
+			try {
+				var playfieldMaterial = new PbrMaterial(
+					_sourceTable.GetMaterial(_sourceTable.Data.PlayfieldMaterial),
+					_sourceTable.GetTexture(_sourceTable.Data.Image)
+				) {
+					MaterialType = MaterialType.Standard
+				};
+
+				meshRenderer.sharedMaterial = playfieldMaterial.ToUnityMaterial(this, this);
+			} finally {
+				_options.OverrideVisualMaterial = previousOverride;
+			}
+		}
+
 		private void SaveData()
 		{
 			foreach (var key in _sourceContainer.TableInfo.Keys) {
@@ -376,7 +416,15 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			// the playfield needs separate treatment
-			_playfieldComponent.SetReferencedData(_sourceTable.Data, _sourceTable, this, this, null);
+			var previousOverrideMaterial = _options.OverrideVisualMaterial;
+			if (_options.AlwaysImportPlayfieldMaterial) {
+				_options.OverrideVisualMaterial = null;
+			}
+			try {
+				_playfieldComponent.SetReferencedData(_sourceTable.Data, _sourceTable, this, this, null);
+			} finally {
+				_options.OverrideVisualMaterial = previousOverrideMaterial;
+			}
 			if (_options.ForceAllObjectsVisible && _playfieldGo) {
 				ForceVisible(_playfieldGo);
 			}
@@ -483,11 +531,38 @@ namespace VisualPinball.Unity.Editor
 
 		private void ExtractTextures()
 		{
+			ExtractTextures(_sourceContainer.Textures);
+		}
+
+		private void ExtractPlayfieldTexture()
+		{
+			var playfieldImage = _sourceTable.Data.Image;
+			if (string.IsNullOrEmpty(playfieldImage)) {
+				return;
+			}
+
+			var playfieldTexture = _sourceContainer.Textures.FirstOrDefault(texture =>
+				string.Equals(texture.Name, playfieldImage, StringComparison.CurrentCultureIgnoreCase));
+			if (playfieldTexture == null) {
+				Logger.Warn($"Could not find playfield image texture \"{playfieldImage}\" in VPX texture list.");
+				return;
+			}
+
+			ExtractTextures(new[] { playfieldTexture });
+		}
+
+		private void ExtractTextures(IEnumerable<VisualPinball.Engine.VPT.Texture> textures)
+		{
+			var textureList = textures?.ToList() ?? new List<VisualPinball.Engine.VPT.Texture>();
+			if (textureList.Count == 0) {
+				return;
+			}
+
 			try {
 				// pause asset database refreshing
 				AssetDatabase.StartAssetEditing();
 
-				foreach (var texture in _sourceContainer.Textures) {
+				foreach (var texture in textureList) {
 					texture.WriteAsAsset(_assetsTextures, _options.SkipExistingTextures);
 				}
 
@@ -498,7 +573,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			// now they are in the asset database, we can load them.
-			foreach (var texture in _sourceContainer.Textures) {
+			foreach (var texture in textureList) {
 				var path = texture.GetUnityFilename(_assetsTextures, texture.IsWebp ? ".png" : null);
 				var unityTexture = texture.IsHdr
 					? (Texture)AssetDatabase.LoadAssetAtPath<Cubemap>(path) ?? AssetDatabase.LoadAssetAtPath<Texture2D>(path)
@@ -624,6 +699,17 @@ namespace VisualPinball.Unity.Editor
 			if (!Directory.Exists(_assetsSounds)) {
 				Directory.CreateDirectory(_assetsSounds);
 			}
+		}
+
+		private void DumpTableScript()
+		{
+			if (!_options.DumpTableScript) {
+				return;
+			}
+
+			var scriptPath = $"{_assetsTableRoot}{_tableGo.name.ToFilename()}.vbs";
+			File.WriteAllText(scriptPath, _sourceTable.Data.Code ?? string.Empty);
+			AssetDatabase.ImportAsset(scriptPath, ImportAssetOptions.ForceUpdate);
 		}
 
 		private void CreateRootHierarchy(string tableName = null)
@@ -829,9 +915,11 @@ namespace VisualPinball.Unity.Editor
 		public bool SkipExistingMeshes = true;
 		public bool ImportTextures = true;
 		public bool ImportSounds = true;
+		public bool DumpTableScript = false;
 		public bool ForceAllObjectsVisible = false;
 		public VpxObjectImportFilter ObjectImportFilter = VpxObjectImportFilter.All;
 		public Material OverrideVisualMaterial;
+		public bool AlwaysImportPlayfieldMaterial = false;
 
 		public static readonly ConvertOptions SkipNone = new ConvertOptions
 		{

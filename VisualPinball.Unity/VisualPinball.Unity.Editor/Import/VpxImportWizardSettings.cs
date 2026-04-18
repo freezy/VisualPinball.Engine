@@ -61,6 +61,12 @@ namespace VisualPinball.Unity.Editor
 			set => EditorPrefs.SetBool("ImportSounds", value);
 		}
 
+		public static bool DumpTableScript
+		{
+			get => EditorPrefs.GetBool("DumpTableScript", false);
+			set => EditorPrefs.SetBool("DumpTableScript", value);
+		}
+
 		public static bool ForceAllObjectsVisible
 		{
 			get => EditorPrefs.GetBool("ForceAllObjectsVisible", false);
@@ -83,14 +89,22 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		public static bool AlwaysImportPlayfieldMaterial
+		{
+			get => EditorPrefs.GetBool("AlwaysImportPlayfieldMaterial", false);
+			set => EditorPrefs.SetBool("AlwaysImportPlayfieldMaterial", value);
+		}
+
 		public static ConvertOptions BuildConvertOptions()
 		{
 			var options = new ConvertOptions {
 				ObjectImportFilter = ObjectImportFilter,
 				ImportTextures = ImportTextures,
 				ImportSounds = ImportSounds,
+				DumpTableScript = DumpTableScript,
 				ForceAllObjectsVisible = ForceAllObjectsVisible,
-				OverrideVisualMaterial = OverrideVisualMaterial
+				OverrideVisualMaterial = OverrideVisualMaterial,
+				AlwaysImportPlayfieldMaterial = AlwaysImportPlayfieldMaterial
 			};
 
 			if (options.ObjectImportFilter == VpxObjectImportFilter.CollidableOnly) {
@@ -115,8 +129,10 @@ namespace VisualPinball.Unity.Editor
 			ObjectImportFilter = VpxObjectImportFilter.All;
 			ImportTextures = true;
 			ImportSounds = true;
+			DumpTableScript = false;
 			ForceAllObjectsVisible = false;
 			OverrideVisualMaterial = null;
+			AlwaysImportPlayfieldMaterial = false;
 		}
 	}
 }
