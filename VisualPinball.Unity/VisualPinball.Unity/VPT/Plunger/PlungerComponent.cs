@@ -75,6 +75,7 @@ namespace VisualPinball.Unity
 
 		public const string PullCoilId = "c_pull";
 		public const string FireCoilId = "c_autofire";
+		public const string FireAndPullBackCoilId = "c_fire_pullback";
 		#endregion
 
 		#region Runtime
@@ -100,6 +101,7 @@ namespace VisualPinball.Unity
 		public IEnumerable<GamelogicEngineCoil> AvailableCoils => new[] {
 			new GamelogicEngineCoil(PullCoilId) { Description = "Pull back" },
 			new GamelogicEngineCoil(FireCoilId) { Description = "Auto-fire" },
+			new GamelogicEngineCoil(FireAndPullBackCoilId) { Description = "Fire and pull back" },
 		};
 
 		IApiCoil ICoilDeviceComponent.CoilDevice(string deviceId) => ((IApiCoilDevice)PlungerApi).Coil(deviceId);

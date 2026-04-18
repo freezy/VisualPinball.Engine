@@ -56,6 +56,11 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public DeviceCoil FireCoil;
 
+		/// <summary>
+		/// Fires the plunger when enabled, and pulls it back when disabled.
+		/// </summary>
+		public DeviceCoil FireAndPullBackCoil;
+
 		// todo
 		public event EventHandler Timer;
 
@@ -65,6 +70,7 @@ namespace VisualPinball.Unity
 		{
 			PullCoil = new DeviceCoil(Player, PullBack, Fire);
 			FireCoil = new DeviceCoil(Player, Fire);
+			FireAndPullBackCoil = new DeviceCoil(Player, FireFromFullRetract, PullBack);
 		}
 
 		internal void OnAnalogPlunge(InputAction.CallbackContext ctx)
@@ -107,6 +113,16 @@ namespace VisualPinball.Unity
 
 		public void Fire()
 		{
+			Fire(null);
+		}
+
+		public void FireFromFullRetract()
+		{
+			Fire(1f);
+		}
+
+		private void Fire(float? startPositionOverride)
+		{
 			var collComponent = GameObject.GetComponent<PlungerColliderComponent>();
 			if (!collComponent) {
 				return;
@@ -117,7 +133,9 @@ namespace VisualPinball.Unity
 				ref var plungerState = ref state.PlungerStates.GetValueByRef(ItemId);
 
 				// check for an auto plunger
-				if (isAutoPlunger) {
+				if (startPositionOverride.HasValue) {
+					PlungerCommands.Fire(startPositionOverride.Value, ref plungerState.Velocity, ref plungerState.Movement, in plungerState.Static);
+				} else if (isAutoPlunger) {
 					// Auto Plunger - this models a "Launch Ball" button or a
 					// ROM-controlled launcher, rather than a player-operated
 					// spring plunger.  In a physical machine, this would be
@@ -144,7 +162,8 @@ namespace VisualPinball.Unity
 			{
 				PlungerComponent.FireCoilId => FireCoil,
 				PlungerComponent.PullCoilId => PullCoil,
-				_ => throw new ArgumentException($"Unknown plunger coil \"{deviceItem}\". Valid names are: [ \"{PlungerComponent.FireCoilId}\", \"{PlungerComponent.PullCoilId}\" ].")
+				PlungerComponent.FireAndPullBackCoilId => FireAndPullBackCoil,
+				_ => throw new ArgumentException($"Unknown plunger coil \"{deviceItem}\". Valid names are: [ \"{PlungerComponent.FireCoilId}\", \"{PlungerComponent.PullCoilId}\", \"{PlungerComponent.FireAndPullBackCoilId}\" ].")
 			};
 		}
 

@@ -123,6 +123,11 @@ namespace VisualPinball.Unity
 			if (int.TryParse(coilMapping.Id, out var id) && id.ToString() != coilMapping.Id) {
 				AssignCoilMapping(id.ToString(), coilMapping, isLampCoil);
 			}
+
+			if (!isLampCoil && coilMapping.Device != null && coilMapping.DeviceItem == PlungerComponent.FireAndPullBackCoilId) {
+				// This mode's inactive state is actively pulled back, matching VPX scripts that call PullBack at table init.
+				_coilDevices[coilMapping.Device].Coil(coilMapping.DeviceItem)?.OnCoil(false);
+			}
 		}
 
 		private void AssignCoilMapping(string id, CoilMapping coilMapping, bool isLampCoil)
