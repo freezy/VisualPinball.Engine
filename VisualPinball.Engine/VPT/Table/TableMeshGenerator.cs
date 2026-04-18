@@ -66,7 +66,8 @@ namespace VisualPinball.Engine.VPT.Table
 			var mesh = new Mesh {
 				Name = _data.Name,
 				Vertices = rgv.Select(r => new Vertex3DNoTex2()).ToArray(),
-				Indices = new [] { 0, 1, 3, 0, 3, 2 }
+				// Keep the same triangulation as VPX's implicit playfield mesh.
+				Indices = new[] { 0, 1, 2, 2, 1, 3 }
 			};
 
 			for (var i = 0; i < 4; ++i) {
