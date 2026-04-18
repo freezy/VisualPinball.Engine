@@ -173,8 +173,9 @@ namespace VisualPinball.Unity
 			var mg = new PrimitiveMeshGenerator(primitiveData);
 			var mesh = mg
 				.GetTransformedMesh(0, primitiveData.Mesh, Origin.Original, false)
-				.Transform(mg.TransformationMatrix(0)) // apply transformation to mesh, because this is the playfield
-				.TransformToWorld(); // also, transform this to world space.
+				.Transform(mg.TransformationMatrix(0)); // apply transformation to mesh, because this is the playfield
+			ApplyPlayfieldUvProjection(mesh, table?.Data);
+			mesh.TransformToWorld(); // also, transform this to world space.
 			var material = new PbrMaterial(
 				table?.GetMaterial(_playfieldMaterial),
 				table?.GetTexture(_playfieldImage)
@@ -185,6 +186,28 @@ namespace VisualPinball.Unity
 			updatedComponents.Add(playfieldMeshComponent);
 
 			return updatedComponents;
+		}
+
+		private static void ApplyPlayfieldUvProjection(Engine.VPT.Mesh mesh, TableData tableData)
+		{
+			if (mesh?.Vertices == null || tableData == null) {
+				return;
+			}
+
+			var width = tableData.Right - tableData.Left;
+			var height = tableData.Bottom - tableData.Top;
+			if (math.abs(width) < math.EPSILON || math.abs(height) < math.EPSILON) {
+				return;
+			}
+
+			var invWidth = 1f / width;
+			var invHeight = 1f / height;
+			for (var i = 0; i < mesh.Vertices.Length; i++) {
+				var vertex = mesh.Vertices[i];
+				vertex.Tu = (vertex.X - tableData.Left) * invWidth;
+				vertex.Tv = (vertex.Y - tableData.Top) * invHeight;
+				mesh.Vertices[i] = vertex;
+			}
 		}
 
 		public override TableData CopyDataTo(TableData data, string[] materialNames, string[] textureNames, bool forExport)
