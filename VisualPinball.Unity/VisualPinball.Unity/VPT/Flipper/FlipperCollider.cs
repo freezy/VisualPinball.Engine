@@ -734,54 +734,67 @@ namespace VisualPinball.Unity
 
 		#region LiveCatch
 
-		public static void LiveCatch(ref BallState ball, ref CollisionEventData collEvent, ref FlipperTricksData tricks, float3 flipperPos, in FlipperStaticData matData, uint msec) {
+		public static void LiveCatch(ref BallState ball, ref CollisionEventData collEvent, in FlipperTricksData tricks, float3 flipperPos, in FlipperStaticData matData, uint msec) {
 			if (!tricks.UseFlipperLiveCatch)
 				return;
-			var normalSpeed = math.dot(collEvent.HitNormal, ball.Velocity) * -1f;
+
 			// Vector from position of the flipper ball to ball
 			var flipperToBall = ball.Position - flipperPos;
 			var hitTangent = Math.CrossZ(1f, collEvent.HitNormal);
 			var ballPosition = math.dot(hitTangent, flipperToBall);
-			//Logger.Info("BallPosition = {0}", ballPosition);
-			if (math.abs(ballPosition) > tricks.LiveCatchDistanceMax) {
+			var liveDist = math.abs(ballPosition);
+			//Logger.Info("BallPosition = {0}", liveDist);
+			if (liveDist >= tricks.LiveCatchDistanceMax) {
 				//Logger.Info("BallPosition = {0} -> no calculation", ballPosition);
 				return;
 			}
-			if (math.abs(ballPosition) < tricks.LiveCatchDistanceMin) {
+			if (liveDist <= tricks.LiveCatchDistanceMin) {
 				//Logger.Info("BallPosition = {0} -> no calculation", ballPosition);
 				return;
 			}
-			// only test for LiveCatch if Ballspeed is greater as set Minimal Speed (default = 6)
-			// different to nFozzys implementation we calculate all speeds based on the angle of the flipper, not y direction.
-			if (normalSpeed >= tricks.LiveCatchMinimalBallSpeed) {
-				float catchTime = (float)(msec - tricks.FlipperAngleEndTime * 1000);
-				if (catchTime <= tricks.LiveCatchFullTime){
-					// we have a live catch, so stop the ball for now.
-					ball.Velocity += normalSpeed * collEvent.HitNormal;
-					// do we have some bounce
-					// as a difference to the nFozzy implementation, we don't deal with hard-coded speeds, but multiplier to current speed against the flipper.
-					var liveCatchBounceMultiplier = tricks.LiveCatchMinimalBounceSpeedMultiplier;
-					//Logger.Info("We have a live catch");
-					if (catchTime > tricks.LiveCatchPerfectTime) {
-						// but it's imperfect, so we have add some bounce
-						// example: hit after 10 msecs, fulltime is 16, perfect time is 8, should be (10-8)/(16-8)*inaccuracySpeedMultiplier
-						liveCatchBounceMultiplier = (catchTime - tricks.LiveCatchPerfectTime) / (tricks.LiveCatchFullTime - tricks.LiveCatchPerfectTime) * (tricks.LiveCatchInaccurateBounceSpeedMultiplier-tricks.LiveCatchMinimalBounceSpeedMultiplier) + tricks.LiveCatchMinimalBounceSpeedMultiplier;
 
-					}
-					//Logger.Info("Bounce Multiplicator is {0}, catchtime {1}", liveCatchBounceMultiplier, catchTime);
-					ball.Velocity -= collEvent.HitNormal * normalSpeed * liveCatchBounceMultiplier;
-					ball.AngularMomentum.x = 0;
-					ball.AngularMomentum.y = 0;
+			var impactSpeed = math.max(math.dot(collEvent.HitNormal, ball.Velocity) * -1f, -collEvent.HitOrgNormalVelocity);
+			if (impactSpeed <= tricks.LiveCatchMinimalBallSpeed) {
+				return;
+			}
 
+			var catchTime = (float)(msec - tricks.FlipperAngleEndTime * 1000);
+			if (catchTime > tricks.LiveCatchFullTime) {
+				return;
+			}
+
+			var flipperAxis = hitTangent;
+			if (ballPosition < 0f) {
+				flipperAxis = -flipperAxis;
+			}
+			var tangentSpeed = math.dot(ball.Velocity, flipperAxis);
+			var movingTowardTip = tangentSpeed > 0f;
+
+			if (liveDist <= tricks.LiveCatchBaseDampenDistance) {
+				if (movingTowardTip && liveDist < tricks.LiveCatchBaseDampenDistance) {
+					ball.Velocity *= tricks.LiveCatchBaseDampen;
+					ball.AngularMomentum *= tricks.LiveCatchBaseDampen;
 				}
-				//Logger.Info("LiveCatchTest - Ball with y-speed {0}, at CollisionTime: {1}, livecatchTime is {2}, difference is {3} msecs", ball.Velocity.y, msec, tricks.FlipperAngleEndTime * 1000, tricks.FlipperAngleEndTime * 1000 - msec);
-				//Logger.Info("LiveCatchTest - normalspeed = {0}, catchTime = {1}", normalSpeed, catchTime);
-
+				return;
 			}
+
+			// Modern VPW live catch zeroes the flipper-face rebound, but keeps VPE's orientation-independent normal.
+			ball.Velocity -= math.dot(collEvent.HitNormal, ball.Velocity) * collEvent.HitNormal;
+
+			var liveCatchBounceSpeed = tricks.LiveCatchMinimalBounceSpeedMultiplier;
+			if (catchTime > tricks.LiveCatchPerfectTime && tricks.LiveCatchFullTime > 0f) {
+				liveCatchBounceSpeed += (catchTime - tricks.LiveCatchPerfectTime) * tricks.LiveCatchInaccurateBounceSpeedMultiplier / tricks.LiveCatchFullTime;
+			}
+			if (catchTime <= tricks.LiveCatchPerfectTime && movingTowardTip) {
+				ball.Velocity -= flipperAxis * tangentSpeed;
+			}
+
+			// VPX applies this as table Y velocity; VPE applies the same speed away from the flipper face.
+			ball.Velocity += collEvent.HitNormal * liveCatchBounceSpeed;
+			ball.AngularMomentum = float3.zero;
 		}
 
 		#endregion
-
 		#region Collision
 
 		public void Collide(ref BallState ball, ref CollisionEventData collEvent, ref FlipperMovementState movementState,
@@ -916,6 +929,8 @@ namespace VisualPinball.Unity
 				);
 				movementState.ApplyImpulse(-jt * crossF, matData.Inertia);
 			}
+
+			LiveCatch(ref ball, ref collEvent, in tricks, new float3(_hitCircleBase.Center, ball.Position.z), in matData, timeMsec);
 
 			// event
 			if (bnv < -0.25f && timeMsec - movementState.LastHitTime > 250) {
