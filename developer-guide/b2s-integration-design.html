@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>B2S Integration Design | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="B2S Integration Design | VPE Documentation ">
+      
+      <meta name="description" content="Proposed long-term architecture for integrating B2S into VPE by modernizing the upstream runtime into a cross-platform core, keeping a Windows COM shim for compatibility, and exposing native second-monitor and Unity texture outputs.">
+      <link rel="icon" href="../favicon.png">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <link rel="stylesheet" href="../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/developer-guide/b2s-integration-design.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="developer-guide-b2s-integration-design">
+<h1 id="b2s-integration-design">B2S Integration Design</h1>
+
+<p>This page describes the proposed design for integrating B2S into VPE. It covers how <code>.directb2s</code> assets should be loaded and rendered, how a future player app should drive a native second-monitor backglass window, which third-party libraries should be used, how the same renderer should also output a texture for VR or cabinet-style backglass meshes inside Unity, and why modernizing the upstream B2S runtime is the stronger long-term solution than building a separate VPE-native rewrite.</p>
+<h2 id="summary">Summary</h2>
+<p>VPE should integrate B2S by helping evolve the existing <a href="https://github.com/vpinball/b2s-backglass">B2S Backglass Server</a> runtime into a host-agnostic, cross-platform managed core, then consume that core from VPE through a dedicated wrapper layer.</p>
+<p>The recommended long-term architecture is:</p>
+<ol>
+<li>extract or modernize the upstream B2S runtime into a cross-platform <code>b2s-core</code></li>
+<li>keep a thin Windows-only COM compatibility shim for <code>B2S.Server</code></li>
+<li>add a cross-platform desktop host for native second-monitor rendering</li>
+<li>add a VPE-specific wrapper that consumes the same core directly and uploads frames into Unity textures when needed</li>
+</ol>
+<p>This is a better long-term solution than a VPE-native rewrite for three reasons:</p>
+<ul>
+<li>it keeps B2S semantics anchored to the existing runtime instead of re-discovering them in a parallel implementation</li>
+<li>it gives the B2S maintainer and VPE a shared upgrade path instead of creating permanent drift between two runtimes</li>
+<li>it still gives VPE the outputs it needs: a native second-monitor backglass window and a Unity texture path for VR or in-world cabinet views</li>
+</ul>
+<p>Recommended library choices for the modernized runtime:</p>
+<ul>
+<li><code>SkiaSharp</code>
+Shared offscreen 2D compositor, image decoding, dirty-region rendering, and frame export.</li>
+<li><code>Avalonia</code>
+Cross-platform desktop host for second-monitor output, monitor enumeration, and future player app UX around B2S.</li>
+<li>built-in <code>System.Xml.Linq</code>
+<code>.directb2s</code> parsing. No extra XML library is needed.</li>
+<li>Unity <code>Texture2D</code>
+Runtime upload target for the VR and in-world backglass path. Do not use a <code>RenderTexture</code> as the primary B2S surface because that implies a camera-driven render path.</li>
+</ul>
+<h2 id="why-this-is-the-better-long-term-solution">Why this is the better long-term solution</h2>
+<p>The first instinct for VPE is to build a dedicated B2S runtime that is shaped exactly around Unity and the future player app. That sounds attractive architecturally, but it is a worse long-term maintenance tradeoff.</p>
+<p>A VPE-native rewrite would still need to solve all of the hard problems:</p>
+<ul>
+<li><code>.directb2s</code> parsing and resource decoding</li>
+<li>backglass illumination behavior</li>
+<li>score reels, LEDs, and score displays</li>
+<li>animation behavior</li>
+<li>native second-window output</li>
+<li>Unity texture output</li>
+<li>compatibility validation across real backglasses</li>
+</ul>
+<p>And after doing all of that, VPE would still own a second implementation forever. Every upstream B2S fix, behavioral quirk, or compatibility improvement would need to be reinterpreted and ported again.</p>
+<p>By contrast, modernizing the upstream runtime keeps the semantic center of gravity in one place:</p>
+<ul>
+<li>the B2S maintainer can continue to evolve the canonical runtime</li>
+<li>VPE gets a clean managed API and modern outputs without forking the behavior model</li>
+<li>Windows compatibility through COM can remain available without infecting the shared core</li>
+</ul>
+<p>That is why this page recommends a modernization and extraction effort, not a greenfield rewrite.</p>
+<h2 id="what-has-to-change-in-upstream-b2s">What has to change in upstream B2S</h2>
+<p>The current runtime is not portable as-is because it is still tightly coupled to Windows-specific technologies such as WinForms, <code>System.Drawing</code>, <code>user32.dll</code>, COM activation, and registry-based runtime coordination.</p>
+<p>The good news is that the runtime is output-oriented and relatively light on interactive UI. That makes modernization much more realistic than for a full desktop application with deep user workflow dependencies.</p>
+<p>The work should be framed as &quot;extract and re-host the runtime&quot;, not &quot;keep patching the current Windows host until it compiles elsewhere&quot;.</p>
+<p>Recommended target split:</p>
+<ul>
+<li><code>b2s-core</code>
+Cross-platform runtime containing <code>.directb2s</code> parsing, resource decoding, state model, animation logic, score and reel behavior, and a host-neutral rendering API.</li>
+<li><code>b2s-rendering</code>
+Shared <code>SkiaSharp</code> compositor that produces BGRA32 frames and owns dirty-region logic.</li>
+<li><code>b2s-host-desktop</code>
+Cross-platform desktop host using <code>Avalonia</code> for monitor enumeration and second-window output.</li>
+<li><code>b2s-com-windows</code>
+Windows-only COM wrapper that exposes <code>B2S.Server</code> for compatibility and forwards calls into the new core.</li>
+<li><code>vpe-b2s</code>
+VPE-specific wrapper or integration project that mounts B2S as a Git submodule and talks to the modern managed API directly, bypassing COM entirely.</li>
+</ul>
+<p>This split gives the B2S project a cleaner product architecture and gives VPE a stable integration boundary.</p>
+<h2 id="existing-integration-points-in-vpe">Existing integration points in VPE</h2>
+<p>VPE already has the important runtime seams:</p>
+<ul>
+<li><code>DisplayPlayer</code> connects <code>IGamelogicEngine</code> display events to texture-backed display components.</li>
+<li><code>DotMatrixDisplayComponent</code> and <code>SegmentDisplayComponent</code> already update textures from raw display frame data.</li>
+<li><code>DisplayComponent</code> already renders a texture onto a mesh in Unity.</li>
+<li><code>ScoreReelDisplayComponent</code> and <code>ScoreReelComponent</code> show that VPE already has EM-style score concepts in Unity.</li>
+<li><code>Player</code>, <code>LampPlayer</code>, <code>CoilPlayer</code>, and <code>PinMameGamelogicEngine</code> already centralize switch, lamp, GI, coil, and display state that a B2S renderer would need.</li>
+</ul>
+<p>What VPE does not yet have is:</p>
+<ul>
+<li>a B2S wrapper package or module</li>
+<li>a native second-window host wired into the future player app</li>
+<li>a Unity texture bridge for B2S frames</li>
+<li>player-owned backglass configuration UX</li>
+</ul>
+<p>That is a much smaller gap than writing a whole new B2S runtime from scratch.</p>
+<h2 id="proposed-architecture">Proposed architecture</h2>
+<h3 id="1-modernize-upstream-b2s-into-a-shared-core">1. Modernize upstream B2S into a shared core</h3>
+<p>The first phase should happen in or alongside the upstream B2S repository.</p>
+<p>Goals:</p>
+<ul>
+<li>retarget the runtime to modern .NET</li>
+<li>separate runtime logic from WinForms forms and custom controls</li>
+<li>replace <code>System.Drawing</code> and control painting with a host-neutral compositor</li>
+<li>replace registry-driven runtime coordination with in-memory state and explicit host APIs</li>
+<li>keep Windows COM as an adapter around the new runtime rather than as the core programming model</li>
+</ul>
+<p>The important principle is that the runtime logic should stop depending on forms, screens, or the registry.</p>
+<h3 id="2-add-a-managed-runtime-api">2. Add a managed runtime API</h3>
+<p>The shared core should expose a small managed host API that VPE and a desktop host can both consume.</p>
+<p>Recommended types:</p>
+<ul>
+<li><code>B2SSceneDefinition</code>
+Static background art, grill art, image snippets, bulbs, reel definitions, score areas, DMD or segment cutouts, animation metadata, and layout bounds.</li>
+<li><code>B2SSceneState</code>
+Current values for lamps, solenoids, GI, mechs, scores, player-up, tilt, ball-in-play, and named animation state.</li>
+<li><code>B2SDisplayState</code>
+Current DMD and segment frame textures or raw frame buffers mapped by display id.</li>
+<li><code>IB2SRuntime</code>
+Runtime host API for loading scenes, updating state, advancing animations, and producing frames.</li>
+<li><code>IB2SController</code>
+High-level API for hosts that want to drive B2S state directly through familiar backglass concepts.</li>
+</ul>
+<p>Recommended <code>IB2SController</code> shape:</p>
+<ul>
+<li><code>SetData(id, value)</code></li>
+<li><code>PulseData(id)</code></li>
+<li><code>SetScore(player, value)</code></li>
+<li><code>SetCredits(value)</code></li>
+<li><code>SetBallInPlay(value)</code></li>
+<li><code>StartAnimation(name)</code></li>
+<li><code>StopAnimation(name)</code></li>
+<li><code>SetDisplayFrame(id, frame)</code></li>
+</ul>
+<p>This is the API VPE should use. The COM wrapper should translate <code>B2S.Server</code> calls into this same core API on Windows.</p>
+<h3 id="3-add-a-shared-offscreen-compositor">3. Add a shared offscreen compositor</h3>
+<p>The heart of the integration should be a <code>SkiaSharp</code>-based compositor that belongs to the shared B2S runtime, not to VPE.</p>
+<p>Responsibilities:</p>
+<ul>
+<li>rasterize the static backglass art</li>
+<li>apply illuminated bulb and overlay layers</li>
+<li>render score reels, LEDs, and text regions</li>
+<li>composite DMD and segment-display inputs into cutout regions</li>
+<li>advance time-based animations</li>
+<li>track dirty rectangles so only changed regions are redrawn when possible</li>
+<li>export the final frame as BGRA32 pixel data</li>
+</ul>
+<p>Recommended output model:</p>
+<ul>
+<li>one BGRA32 pixel buffer per rendered B2S frame</li>
+<li>one logical frame size per backglass scene</li>
+<li>one shared render scheduler that can run at <code>30 Hz</code> when mostly static and up to <code>60 Hz</code> while animations or DMD changes are active</li>
+</ul>
+<p>This compositor should be the only place where B2S drawing rules live.</p>
+<h3 id="4-keep-com-but-only-as-a-compatibility-shell">4. Keep COM, but only as a compatibility shell</h3>
+<p>Backwards compatibility still matters for the existing B2S ecosystem. The modernization path should preserve that by keeping a Windows-only COM wrapper.</p>
+<p>Important constraints:</p>
+<ul>
+<li>COM should not be part of the shared runtime</li>
+<li>COM should forward into the managed runtime API</li>
+<li>COM should stay Windows-only</li>
+<li>VPE should never talk to COM directly</li>
+</ul>
+<p>This gives the B2S project a compatibility bridge without forcing VPE or cross-platform hosts to inherit old Windows host assumptions.</p>
+<h3 id="5-add-a-dedicated-vpe-integration-project">5. Add a dedicated VPE integration project</h3>
+<p>VPE should add a small integration project that mounts the modernized B2S repository as a Git module and exposes VPE-specific wrappers.</p>
+<p>Responsibilities of <code>vpe-b2s</code>:</p>
+<ul>
+<li>resolve <code>.directb2s</code> assets for the active table</li>
+<li>map PinMAME, MPF, or original-game state into <code>IB2SController</code></li>
+<li>own the Unity texture upload path</li>
+<li>coordinate with the future player app for second-monitor hosting and per-table settings</li>
+</ul>
+<p>This keeps the B2S runtime independent and reusable while still giving VPE a thin product-specific layer.</p>
+<h2 id="third-party-libraries">Third-party libraries</h2>
+<h3 id="skiasharp"><code>SkiaSharp</code></h3>
+<p>Use <code>SkiaSharp</code> as the shared offscreen B2S compositor.</p>
+<p>Why it is the best fit:</p>
+<ul>
+<li>mature cross-platform 2D raster API</li>
+<li>good image decoding support for the embedded backglass art path</li>
+<li>easy offscreen rendering into a shared pixel buffer</li>
+<li>reusable for both native windows and Unity textures</li>
+</ul>
+<p>This should replace <code>System.Drawing</code> and WinForms control painting in the runtime path.</p>
+<h3 id="avalonia"><code>Avalonia</code></h3>
+<p>Use <code>Avalonia</code> for the desktop host and future player app UI around monitor selection, B2S enablement, and backglass diagnostics.</p>
+<p>Why it is the best fit:</p>
+<ul>
+<li>cross-platform from the start</li>
+<li>first-class multi-window desktop UI</li>
+<li>good long-term fit if the future player app also wants to be cross-platform</li>
+<li>avoids building the backglass window around Windows-only UI frameworks</li>
+</ul>
+<p><code>Avalonia</code> should be the window host, not the only renderer. Composition rules should stay in the shared <code>SkiaSharp</code> renderer so the same runtime also feeds Unity.</p>
+<h3 id="built-in-xml-apis">Built-in XML APIs</h3>
+<p>Use <code>System.Xml.Linq</code> and the framework base64 APIs for <code>.directb2s</code> parsing and resource decoding.</p>
+<p>No additional XML stack is needed for v1.</p>
+<h3 id="libraries-not-recommended-for-the-core-path">Libraries not recommended for the core path</h3>
+<ul>
+<li><code>WPF</code> or <code>WinUI 3</code>
+Acceptable Windows-only UI stacks, but the wrong core abstraction if the goal is a shared cross-platform runtime.</li>
+<li><code>System.Drawing</code>
+Not suitable as the long-term renderer for a modern cross-platform runtime.</li>
+<li>a second Unity camera or multi-display-only path
+Explicitly not the right solution for B2S because it adds a camera-driven render pipeline for what is fundamentally a 2D composition problem.</li>
+</ul>
+<h2 id="second-monitor-rendering">Second-monitor rendering</h2>
+<h3 id="window-host-design">Window host design</h3>
+<p>The second-monitor path should be owned by a <code>B2SMonitorHost</code> running in the future player app, or in a sidecar desktop host if the Unity runtime remains the main process.</p>
+<p>Responsibilities:</p>
+<ul>
+<li>enumerate monitors</li>
+<li>persist the chosen backglass monitor id</li>
+<li>create a borderless window on the chosen monitor</li>
+<li>size the window to the monitor bounds or work area</li>
+<li>receive compositor frames and display them with minimal latency</li>
+<li>recover cleanly if the selected monitor disappears</li>
+</ul>
+<p>Recommended window behavior:</p>
+<ul>
+<li>borderless and non-resizable by default</li>
+<li>optional topmost mode for cabinet setups</li>
+<li>one backglass window per active table</li>
+<li>recreate or reposition the window when monitor configuration changes</li>
+</ul>
+<h3 id="rendering-path">Rendering path</h3>
+<p>The desktop host should not implement B2S drawing rules itself. It should display the latest compositor bitmap produced by the shared runtime.</p>
+<p>Recommended frame flow:</p>
+<ol>
+<li><code>IB2SRuntime</code> renders through the shared <code>SkiaSharp</code> compositor into a BGRA32 buffer.</li>
+<li><code>B2SMonitorHost</code> copies or maps that buffer into an Avalonia <code>WriteableBitmap</code>.</li>
+<li>The Avalonia window displays that bitmap through a lightweight image control.</li>
+<li>Dirty-region redraw is handled by the compositor, not by a second scene graph.</li>
+</ol>
+<p>This keeps the host simple and ensures the Unity and native-window paths always look the same.</p>
+<h3 id="data-inputs-for-second-monitor-mode">Data inputs for second-monitor mode</h3>
+<p>The compositor should combine:</p>
+<ul>
+<li>static <code>.directb2s</code> art and score regions</li>
+<li>lamp, solenoid, GI, and mech state from PinMAME or other game-logic engines</li>
+<li>DMD and segment display frames from existing VPE display sources</li>
+<li>direct <code>IB2SController</code> calls for original and EM-style tables</li>
+</ul>
+<h2 id="vr-and-in-world-backglass-texture-rendering">VR and in-world backglass texture rendering</h2>
+<h3 id="texture-output-design">Texture output design</h3>
+<p>The VR path should use the same shared B2S compositor output and upload it into a Unity <code>Texture2D</code>.</p>
+<p>Recommended types:</p>
+<ul>
+<li><code>B2SUnityTextureOutput</code>
+Receives the compositor frame buffer and uploads it into Unity.</li>
+<li><code>B2SBackglassTextureComponent</code>
+Applies the resulting texture to the backglass mesh or material in the scene.</li>
+</ul>
+<p>Recommended runtime behavior:</p>
+<ul>
+<li>allocate one <code>Texture2D</code> matching the compositor output size</li>
+<li>upload BGRA or RGBA pixel data when a new frame is ready</li>
+<li>update only on the Unity main thread</li>
+<li>bind the texture to the cabinet backglass material</li>
+<li>use an emissive or unlit material setup in HDRP so the backglass remains readable in VR</li>
+</ul>
+<h3 id="vr-priority-and-realism-note">VR priority and realism note</h3>
+<p>VR is not the primary target for B2S. The expected usage is that the native second-monitor path serves the vast majority of users, while VR only needs a compatible fallback that works reliably.</p>
+<p>For that reason, the first VR implementation should simply embed the fully composited 2D B2S frame into the 3D backglass as a texture. It does not need to recreate the more realistic &quot;light behind the translite&quot; workflow used by hand-authored VPE backglasses.</p>
+<p>This is an intentional compromise:</p>
+<ul>
+<li><code>.directb2s</code> contains enough information to render a convincing 2D backglass</li>
+<li><code>.directb2s</code> does not contain enough physical authoring data to reconstruct a truly realistic 3D backbox automatically</li>
+<li>using the raw B2S art and overlays as a texture in VR is acceptable because VR is a fallback use case, not the main product target</li>
+</ul>
+<p>If later needed, VPE can add a premium VR-specific path that maps B2S state onto authored Unity backglass assets and real light emitters, but that is explicitly out of scope for the first B2S integration.</p>
+<h3 id="why-this-should-use-texture2d-not-rendertexture">Why this should use <code>Texture2D</code>, not <code>RenderTexture</code></h3>
+<p><code>RenderTexture</code> is primarily useful when a camera or GPU pass is producing the image. B2S is not camera-driven in this architecture. It is a CPU-composited 2D surface.</p>
+<p>For that reason, the primary output should be a <code>Texture2D</code>. If a later HDRP effect or material workflow wants a <code>RenderTexture</code>, VPE can blit the <code>Texture2D</code> into one, but that should be an optional adapter, not the main rendering path.</p>
+<h2 id="state-integration-with-pinmame-mpf-and-original-games">State integration with PinMAME, MPF, and original games</h2>
+<h3 id="pinmame">PinMAME</h3>
+<p>PinMAME is the highest-value first integration path.</p>
+<p>The B2S adapter should consume:</p>
+<ul>
+<li>lamp changes</li>
+<li>GI changes</li>
+<li>coil and solenoid changes</li>
+<li>mech updates where the backglass expects them</li>
+<li>DMD and segment display frames already emitted through <code>IGamelogicEngine</code></li>
+</ul>
+<p>This should be wired through a <code>B2SStatePublisher</code> that translates existing VPE state into <code>B2SSceneState</code> and <code>B2SDisplayState</code>.</p>
+<h3 id="mpf">MPF</h3>
+<p>MPF should use the same <code>B2SStatePublisher</code> contract once it exposes equivalent lamp, segment, score, and display information.</p>
+<h3 id="original-games-and-em-style-logic">Original games and EM-style logic</h3>
+<p>Original games should drive B2S through <code>IB2SController</code>, not through COM emulation.</p>
+<p>This gives VPE a clean path for:</p>
+<ul>
+<li>player-up indicators</li>
+<li>credits and ball-in-play</li>
+<li>reels and score windows</li>
+<li>scripted illumination and animation triggers</li>
+</ul>
+<h2 id="resource-resolution">Resource resolution</h2>
+<p>VPE should resolve B2S assets in this order:</p>
+<ol>
+<li>explicit backglass asset selected by the player app</li>
+<li>packaged B2S asset embedded with the table package</li>
+<li>loose sidecar <code>.directb2s</code> file next to the loaded table source or package</li>
+</ol>
+<p>The player app should also allow per-table overrides so cabinet owners can select alternative backglasses without changing authored content.</p>
+<h2 id="scope-boundaries">Scope boundaries</h2>
+<p>V1 should include:</p>
+<ul>
+<li>a modernized shared B2S runtime core</li>
+<li><code>.directb2s</code> parsing and resource decoding</li>
+<li>static art and illuminated overlays</li>
+<li>score reels and basic score displays</li>
+<li>DMD and segment composition into backglass cutouts</li>
+<li>native second-monitor window output</li>
+<li>Unity texture output for VR and cabinet-room use</li>
+<li>a Windows COM shim for compatibility with existing B2S consumers</li>
+<li>a VPE wrapper project that uses the managed API directly</li>
+</ul>
+<p>V1 should not include:</p>
+<ul>
+<li>porting the B2S editor and tools</li>
+<li>preserving WinForms or registry-driven runtime behavior internally</li>
+<li>a Unity multi-display camera-based implementation</li>
+<li>a physically reconstructed VR backbox generated automatically from <code>.directb2s</code></li>
+<li>every legacy quirk before the shared runtime is stable</li>
+</ul>
+<p>Advanced legacy behavior can be added after the shared runtime, COM wrapper, and VPE integration layer are stable.</p>
+<h2 id="recommended-rollout">Recommended rollout</h2>
+<h3 id="milestone-1-extract-the-shared-runtime">Milestone 1: Extract the shared runtime</h3>
+<ul>
+<li>identify and isolate parser, state, animation, score, and reel logic from the current Windows host</li>
+<li>retarget the runtime to modern .NET</li>
+<li>define <code>B2SSceneDefinition</code>, <code>B2SSceneState</code>, <code>B2SDisplayState</code>, <code>IB2SRuntime</code>, and <code>IB2SController</code></li>
+<li>replace registry-driven runtime communication with explicit host APIs</li>
+</ul>
+<h3 id="milestone-2-replace-the-renderer">Milestone 2: Replace the renderer</h3>
+<ul>
+<li>add a <code>SkiaSharp</code> compositor for static art, bulbs, score regions, and display slots</li>
+<li>replace <code>System.Drawing</code> and WinForms control painting in the runtime path</li>
+<li>establish a shared BGRA32 frame contract</li>
+</ul>
+<h3 id="milestone-3-restore-desktop-hosting-and-compatibility">Milestone 3: Restore desktop hosting and compatibility</h3>
+<ul>
+<li>add <code>B2SMonitorHost</code> using Avalonia</li>
+<li>add monitor selection and persistence</li>
+<li>add a Windows COM shim that forwards <code>B2S.Server</code> calls into the new runtime</li>
+<li>validate second-monitor rendering on Windows first</li>
+</ul>
+<h3 id="milestone-4-add-vpe-integration">Milestone 4: Add VPE integration</h3>
+<ul>
+<li>add the dedicated VPE wrapper project</li>
+<li>map VPE DMD and segment display outputs into <code>B2SDisplayState</code></li>
+<li>publish PinMAME lamp, GI, coil, and mech state into <code>IB2SController</code></li>
+<li>validate ROM-driven tables in the player app</li>
+</ul>
+<h3 id="milestone-5-add-unity-texture-output">Milestone 5: Add Unity texture output</h3>
+<ul>
+<li>add <code>B2SUnityTextureOutput</code></li>
+<li>bind the compositor output to a backglass mesh material</li>
+<li>validate HDRP material setup in VR and cabinet-room scenes</li>
+<li>keep VR as a compatibility path using the 2D composed frame, not as a physically reconstructed lighting system</li>
+</ul>
+<h2 id="implementation-estimate">Implementation estimate</h2>
+<p>For the modernization path described on this page, the work is meaningful but still quite realistic, especially because the runtime is output-oriented and does not need its interactive editor or tools ported as part of v1.</p>
+<p>Estimated effort for a practical first version:</p>
+<ul>
+<li>runtime extraction and project split: <code>3-5</code> implementation days</li>
+<li>modern managed host API and state model: <code>2-4</code> implementation days</li>
+<li><code>SkiaSharp</code> compositor for static art, bulbs, score regions, and display slots: <code>4-7</code> implementation days</li>
+<li>Avalonia second-monitor host and monitor selection plumbing: <code>3-5</code> implementation days</li>
+<li>Windows COM compatibility shim over the new runtime: <code>2-4</code> implementation days</li>
+<li>VPE wrapper project, PinMAME state publication, and display-slot wiring: <code>3-5</code> implementation days</li>
+<li>Unity texture output and material hookup: <code>2-3</code> implementation days</li>
+<li>tests, failure handling, and documentation polish: <code>4-6</code> implementation days</li>
+</ul>
+<p>That puts a practical v1 at roughly:</p>
+<ul>
+<li><code>2-5 engineer-weeks</code> of work in conventional terms</li>
+<li>about <code>1-3 calendar weeks</code> for a strong AI coding agent working iteratively with human review, assuming the scope stays at the v1 boundaries defined on this page</li>
+</ul>
+<p>What would push the estimate up:</p>
+<ul>
+<li>broad compatibility with legacy B2S quirks</li>
+<li>hidden coupling between runtime logic and the current Windows host</li>
+<li>large numbers of unusual score or animation behaviors</li>
+<li>support for legacy plugins or sound behaviors in the first pass</li>
+</ul>
+<p>If the goal changes from &quot;practical first version&quot; to &quot;high confidence compatibility with a wide range of legacy backglasses,&quot; the effort rises to something closer to:</p>
+<ul>
+<li><code>4-8 engineer-weeks</code></li>
+<li>about <code>2-4 calendar weeks</code> for an AI-agent-driven implementation with review and repeated validation</li>
+</ul>
+<h2 id="why-this-should-appeal-to-the-b2s-maintainer">Why this should appeal to the B2S maintainer</h2>
+<p>This plan is not asking the B2S maintainer to accept a VPE fork or a competing runtime. It is proposing a modernization that improves the upstream project itself.</p>
+<p>Benefits to upstream B2S:</p>
+<ul>
+<li>cleaner project boundaries between runtime, host, and compatibility layers</li>
+<li>a path away from WinForms and <code>System.Drawing</code> in the runtime</li>
+<li>preserved Windows compatibility through a COM shim instead of through old host assumptions everywhere</li>
+<li>a reusable cross-platform runtime that can serve more than one host</li>
+<li>direct adoption in VPE without fragmenting the behavior model</li>
+</ul>
+<p>Benefits to VPE:</p>
+<ul>
+<li>one canonical B2S runtime to integrate against</li>
+<li>better long-term compatibility with upstream fixes and behavior improvements</li>
+<li>a native second-monitor solution and Unity texture output without inventing a second implementation</li>
+</ul>
+<p>That alignment is why this modernization path is the better long-term solution.</p>
+<h2 id="validation-checklist">Validation checklist</h2>
+<p>The implementation should be considered correct when:</p>
+<ul>
+<li>the same B2S scene renders identically in the second-monitor window and on the Unity backglass texture</li>
+<li>rendering B2S does not require a second Unity camera or a second 3D scene</li>
+<li>the native backglass window can be assigned to a chosen monitor and survives table reloads</li>
+<li>DMD and segment displays composite into the correct B2S regions</li>
+<li>VR backglass presentation stays readable without introducing frame spikes from texture uploads</li>
+<li>the Windows COM layer can still satisfy compatibility expectations for <code>B2S.Server</code></li>
+<li>missing or malformed <code>.directb2s</code> assets fail gracefully and do not break gameplay</li>
+</ul>
+<h2 id="open-questions">Open questions</h2>
+<ul>
+<li>Should the first modernization phase happen directly in the upstream repository, or in a temporary companion repository that is merged back once the architecture settles?</li>
+<li>How much of the current <code>B2S.Server</code> surface should the Windows COM shim preserve in v1?</li>
+<li>Should the desktop host live in-process with the future VPE player app, or start as a sidecar process that later gets embedded without changing the runtime API?</li>
+<li>Should the first VPE import path package <code>.directb2s</code> assets into the table, or should v1 focus on loose sidecar files and add packaging later?</li>
+</ul>
+<p>The current recommendation is:</p>
+<ul>
+<li>modernize upstream B2S into a shared runtime</li>
+<li>keep COM as a compatibility adapter</li>
+<li>let VPE consume the managed API directly</li>
+<li>treat second-monitor output as the primary product target</li>
+<li>treat VR as a functional texture-based fallback, not a premium physical backglass solution</li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/developer-guide/b2s-integration-design.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2026 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    if (window.mermaid) {
+      const getMermaidConfig = () => {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        return {
+          startOnLoad: false,
+          theme: 'base',
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: '#1f2328',
+            primaryColor: '#1f2328',
+            primaryTextColor: '#f8f9fa',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#292e33',
+            secondaryTextColor: '#f8f9fa',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#20242a',
+            tertiaryTextColor: '#f8f9fa',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#292e33',
+            clusterBorder: '#6c757d',
+            lineColor: '#b7bcc4',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#f8f9fa',
+            mainBkg: '#1f2328',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          } : {
+            darkMode: false,
+            background: '#ffffff',
+            primaryColor: '#f6f7f9',
+            primaryTextColor: '#212529',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#ffffff',
+            secondaryTextColor: '#212529',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#eceff3',
+            tertiaryTextColor: '#212529',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#f3f3f3',
+            clusterBorder: '#c7cbd1',
+            lineColor: '#8a8f98',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#212529',
+            mainBkg: '#f6f7f9',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          }
+        };
+      };
+
+      const initializeMermaidBlocks = () => {
+        const mermaidBlocks = document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid, pre code.mermaid');
+        mermaidBlocks.forEach((block) => {
+          const pre = block.parentElement;
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.dataset.mermaidSource = block.textContent;
+          container.textContent = block.textContent;
+          pre.replaceWith(container);
+        });
+      };
+
+      const renderMermaidBlocks = async () => {
+        const mermaidContainers = document.querySelectorAll('.mermaid[data-mermaid-source]');
+        if (mermaidContainers.length === 0) {
+          return;
+        }
+
+        mermaid.initialize(getMermaidConfig());
+
+        mermaidContainers.forEach((container) => {
+          container.removeAttribute('data-processed');
+          container.innerHTML = '';
+          container.textContent = container.dataset.mermaidSource;
+        });
+
+        await mermaid.run({ querySelector: '.mermaid[data-mermaid-source]' });
+      };
+
+      initializeMermaidBlocks();
+      renderMermaidBlocks();
+
+      let currentMermaidTheme = document.documentElement.getAttribute('data-bs-theme');
+      new MutationObserver(() => {
+        const nextTheme = document.documentElement.getAttribute('data-bs-theme');
+        if (nextTheme !== currentMermaidTheme) {
+          currentMermaidTheme = nextTheme;
+          renderMermaidBlocks();
+        }
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    }
+
+    const updateAffixHighlight = () => {
+      const affix = document.getElementById('affix');
+      if (!affix) {
+        return;
+      }
+
+      const links = Array.from(affix.querySelectorAll('a[href^="#"]'));
+      if (links.length === 0) {
+        return;
+      }
+
+      const sections = links.map((link) => {
+        const id = decodeURIComponent(link.getAttribute('href').slice(1));
+        const heading = document.getElementById(id);
+        return heading ? { link, heading } : null;
+      }).filter(Boolean);
+
+      if (sections.length === 0) {
+        return;
+      }
+
+      const threshold = 140;
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.heading.getBoundingClientRect().top - threshold <= 0) {
+          current = section;
+        } else {
+          break;
+        }
+      }
+
+      links.forEach((link) => {
+        link.classList.toggle('is-current', link === current.link);
+        if (link === current.link) {
+          link.setAttribute('aria-current', 'location');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+    }
+
+    const affixRoot = document.getElementById('affix');
+    if (affixRoot) {
+      let affixFrame = null;
+      const scheduleAffixHighlight = () => {
+        if (affixFrame !== null) {
+          cancelAnimationFrame(affixFrame);
+        }
+        affixFrame = requestAnimationFrame(() => {
+          affixFrame = null;
+          updateAffixHighlight();
+        });
+      }
+
+      scheduleAffixHighlight();
+      new MutationObserver(scheduleAffixHighlight).observe(affixRoot, { childList: true, subtree: true });
+      window.addEventListener('scroll', scheduleAffixHighlight, { passive: true });
+      window.addEventListener('resize', scheduleAffixHighlight, { passive: true });
+    }
+
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Threading Model | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Threading Model | VPE Documentation ">
+      
+      <meta name="description" content="How Unity, the simulation thread, PinMAME, and input polling interact at runtime.">
+      <link rel="icon" href="../favicon.png">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <link rel="stylesheet" href="../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/developer-guide/threading-model.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="developer-guide-threading-model">
+<h1 id="threading-model">Threading Model</h1>
+
+<p>VPE's low-latency runtime is intentionally split across several execution domains. The important point is that rendering and <code>GameObject</code> mutation stay on Unity's main thread, while physics simulation and time-sensitive game logic can run independently at a higher rate.</p>
+<p>The current runtime architecture is built around four domains:</p>
+<table>
+<thead>
+<tr>
+<th>Domain</th>
+<th>Main code</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Unity main thread</td>
+<td><code>PhysicsEngine.Update()</code>, <code>SimulationThreadComponent.Update()</code>, <code>PinMameGamelogicEngine.Update()</code></td>
+<td>Applies visuals, drains queued callbacks, polls some PinMAME outputs, runs Unity APIs</td>
+</tr>
+<tr>
+<td>Simulation thread</td>
+<td><code>SimulationThread</code>, <code>PhysicsEngineThreading.ExecuteTick()</code></td>
+<td>Runs the 1 kHz physics simulation loop, dispatches low-latency inputs, advances physics, publishes snapshots</td>
+</tr>
+<tr>
+<td>Native input polling thread</td>
+<td><code>NativeInputManager</code>, <code>VisualPinball.Unity.NativeInput</code></td>
+<td>Polls keyboard input outside Unity's frame loop and forwards events into a lock-free ring buffer</td>
+</tr>
+<tr>
+<td>PinMAME native callback thread(s)</td>
+<td><code>pinmame-dotnet</code> callbacks, <code>PinMameGamelogicEngine</code> handlers</td>
+<td>Raises ROM-driven outputs such as coils, displays, mechs, audio, and state changes</td>
+</tr>
+</tbody>
+</table>
+<h2 id="high-level-flow">High-level flow</h2>
+<pre><code class="lang-mermaid">flowchart TD
+	Input[&quot;Native input polling thread&lt;br/&gt;500 us poll default&lt;br/&gt;1000 us in editor&quot;] --&gt;|Lock-free ring buffer| Sim[&quot;Simulation thread&lt;br/&gt;1000 Hz / 1 ms tick&quot;]
+	UnityInput[&quot;Unity Input System&lt;br/&gt;main-thread fallback&quot;] --&gt;|Queued external switches| Sim
+	Sim --&gt;|Direct switch dispatch| PM[&quot;PinMAME emulation&lt;br/&gt;Native callback thread(s)&quot;]
+	PM --&gt;|Coil events for low-latency consumers| Sim
+	PM --&gt;|Display/mech/coil UI callbacks| Main[&quot;Unity main thread&lt;br/&gt;Update()&quot;]
+	PM --&gt;|Lamp/GI deltas polled per frame| Main
+	Sim --&gt;|Triple-buffer snapshot publish&lt;br/&gt;once per tick| Snapshot[&quot;SimulationState&quot;]
+	Snapshot --&gt;|Read once per frame| Main
+	Main --&gt;|Apply GameObject motion&lt;br/&gt;and shared PinMAME state| Visuals[&quot;Visible table state&quot;]
+
+	Latency[&quot;Best visible input path:&lt;br/&gt;poll interval + &lt;=1 ms sim tick + up to one render frame&quot;]
+	Visuals --- Latency
+</code></pre>
+<h2 id="what-each-thread-is-responsible-for">What each thread is responsible for</h2>
+<p>VPE supports two timing modes because the engine needs to serve two different runtime shapes. Internal timing is the simpler mode: Unity's main thread calls into physics directly, which keeps everything in one place and is easier to debug, integrate, and reason about when low latency is not the primary goal. External timing exists for the threaded runtime: it disables the normal <code>PhysicsEngine.Update()</code>-driven simulation step so a dedicated simulation thread can own the 1 kHz clock, feed PinMAME with tighter time fences, and react to inputs without waiting for the next frame. In short, internal timing optimizes for simplicity and compatibility, while external timing optimizes for determinism and lower end-to-end input latency.</p>
+<h3 id="unity-main-thread">Unity main thread</h3>
+<p>The main thread remains the only place where Unity objects are touched directly.</p>
+<ul>
+<li><code>PhysicsEngine.Update()</code> switches between single-threaded physics and external-timing mode.</li>
+<li>In external-timing mode it does <strong>not</strong> run physics. Instead it drains deferred callbacks, stages kinematic transform changes, and applies the latest published snapshot.</li>
+<li><code>SimulationThreadComponent.Update()</code> keeps the simulation clock aligned with Unity time scaling, flushes any input dispatchers that require main-thread delivery, reads the latest snapshot, and applies shared PinMAME state such as lamps and GI.</li>
+<li><code>PinMameGamelogicEngine.Update()</code> drains a main-thread dispatch queue for callbacks that cannot safely touch Unity from a native thread, then polls <code>GetChangedLamps()</code> and <code>GetChangedGIs()</code> once per frame.</li>
+</ul>
+<p>This means that all visible motion is still frame-bound even when the simulation itself is running faster than the render loop.</p>
+<h3 id="simulation-thread">Simulation thread</h3>
+<p><code>SimulationThread</code> creates a dedicated <code>Thread</code> named <code>VPE Simulation Thread</code> and runs it at <code>AboveNormal</code> priority. Its target cadence is 1000 Hz, or one tick every 1000 microseconds.</p>
+<p>Each tick runs in this order:</p>
+<ol>
+<li>Consume switch events that originated on the Unity main thread.</li>
+<li>Consume native input events from the lock-free <code>InputEventBuffer</code>.</li>
+<li>Dispatch low-latency coil outputs that PinMAME queued for simulation-side consumers.</li>
+<li>Execute one physics tick through <code>PhysicsEngineThreading.ExecuteTick()</code>.</li>
+<li>Advance the PinMAME time fence with <code>SetTimeFence()</code>.</li>
+<li>Copy the current animation and shared-output state into <code>SimulationState</code> and publish the next snapshot.</li>
+</ol>
+<p>Physics itself runs under <code>PhysicsLock</code>, but the published animation data crosses back to Unity through a triple-buffered <code>SimulationState</code> so the main thread can read it without taking that lock.</p>
+<h3 id="native-input-polling-thread">Native input polling thread</h3>
+<p>When <code>SimulationThreadComponent</code> enables native input, <code>NativeInputManager</code> starts a native polling thread through <code>VisualPinball.Unity.NativeInput</code>.</p>
+<ul>
+<li>On Windows, the native code uses <code>GetAsyncKeyState()</code> in a dedicated highest-priority polling thread.</li>
+<li>The default poll interval is 500 microseconds, but the editor clamps it to 1000 microseconds to avoid destabilizing stop/start behavior.</li>
+<li>The native callback calls back into <code>NativeInputManager.OnInputEvent()</code>, which forwards the event straight into <code>SimulationThread.EnqueueInputEvent()</code>.</li>
+</ul>
+<p>That path avoids waiting for Unity's next <code>Update()</code> before a flipper press becomes visible to the simulation.</p>
+<p>Native polling does not replace Unity's Input System; the two paths coexist. <code>InputManager</code> still loads the Unity <code>InputActionAsset</code>, <code>SwitchPlayer</code> still listens to <code>InputSystem.onActionChange</code>, and those events still reach <code>Player.DispatchSwitch()</code> on the main thread. Native polling is the lower-latency path used when <code>SimulationThreadComponent</code> enables it, but it works with its own native binding table rather than reading Unity's <code>.inputactions</code> asset directly. The bridge between the two systems is the logical action name: <code>NativeInputManager</code> emits <code>NativeInputApi.InputAction</code> values such as <code>LeftFlipper</code> or <code>Start</code>, and <code>SimulationThread.BuildInputMappings()</code> maps those actions to actual game switches by scanning <code>IGamelogicEngine.RequestedSwitches</code> and matching each switch's <code>InputActionHint</code> against the same <code>InputConstants</code> names used by the Unity bindings. In other words, Unity and native input share the same action vocabulary, but they are configured through separate binding layers. That is why the native defaults in <code>NativeInputManager.SetupDefaultBindings()</code> are kept roughly aligned with the Unity defaults in <code>InputManager.GetDefaultInputActionAsset()</code>, and why the first switch advertising a given <code>InputActionHint</code> becomes the switch that native polling drives.</p>
+<h3 id="pinmame-callback-threads">PinMAME callback thread(s)</h3>
+<p><code>pinmame-dotnet</code> registers managed callbacks in <code>PinMameApi.Config</code>. Those callbacks immediately invoke managed events from whichever native thread PinMAME uses for that callback.</p>
+<p>VPE therefore treats PinMAME callbacks as <strong>off-main-thread</strong> work:</p>
+<ul>
+<li>display and mech updates are queued onto <code>_dispatchQueue</code> and drained later in <code>PinMameGamelogicEngine.Update()</code>.</li>
+<li>solenoid updates also enqueue normal Unity-facing callbacks onto <code>_dispatchQueue</code>.</li>
+<li>solenoid updates additionally enqueue low-latency coil events into <code>_simulationCoilDispatchQueue</code> when a coil can be handled safely from the simulation thread.</li>
+<li>lamp and GI changes are not delivered through the callback queue. They are polled on the Unity main thread once per frame with <code>GetChangedLamps()</code> and <code>GetChangedGIs()</code>.</li>
+</ul>
+<p>This split is deliberate: coils can affect physics latency, while lamps and displays are primarily visual.</p>
+<h2 id="crossing-thread-boundaries">Crossing thread boundaries</h2>
+<p>The runtime uses different mechanisms depending on how latency-sensitive the data is.</p>
+<table>
+<thead>
+<tr>
+<th>From</th>
+<th>To</th>
+<th>Mechanism</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Native input thread</td>
+<td>Simulation thread</td>
+<td><code>InputEventBuffer</code> lock-free SPSC ring buffer</td>
+<td>Lowest-latency input path, no lock on the hot path</td>
+</tr>
+<tr>
+<td>Unity main thread</td>
+<td>Simulation thread</td>
+<td><code>SimulationThread</code> external switch queue</td>
+<td>Lets Unity-driven switches join the 1 kHz simulation loop</td>
+</tr>
+<tr>
+<td>Any thread</td>
+<td>Physics thread/domain</td>
+<td><code>PhysicsEngine.InputActions</code> queue under <code>InputActionsLock</code></td>
+<td>Safe mutation requests into the physics state</td>
+</tr>
+<tr>
+<td>Unity main thread</td>
+<td>Simulation thread</td>
+<td><code>PendingKinematicTransforms</code> under <code>PendingKinematicLock</code></td>
+<td>Main thread observes transforms; sim thread consumes them</td>
+</tr>
+<tr>
+<td>Simulation thread</td>
+<td>Unity main thread</td>
+<td>triple-buffered <code>SimulationState</code></td>
+<td>Lock-free animation/state handoff</td>
+</tr>
+<tr>
+<td>Simulation thread</td>
+<td>Unity main thread</td>
+<td>physics <code>EventQueue</code> drained with <code>Monitor.TryEnter(PhysicsLock)</code></td>
+<td>Avoids stalling the main thread if simulation is mid-tick</td>
+</tr>
+<tr>
+<td>PinMAME callback thread</td>
+<td>Unity main thread</td>
+<td><code>_dispatchQueue</code></td>
+<td>Keeps Unity API usage on the main thread</td>
+</tr>
+<tr>
+<td>PinMAME callback thread</td>
+<td>Simulation thread</td>
+<td><code>_simulationCoilDispatchQueue</code></td>
+<td>Fast coil-to-physics path for flippers and similar devices</td>
+</tr>
+<tr>
+<td>PinMAME shared output state</td>
+<td>Snapshot / main thread</td>
+<td><code>_outputStateLock</code> + snapshot copy</td>
+<td>Consistent lamp/GI/coil state across threads</td>
+</tr>
+</tbody>
+</table>
+<h2 id="why-the-latency-is-lower-than-a-frame-bound-design">Why the latency is lower than a frame-bound design</h2>
+<p>The key optimization is that the fastest input path does not wait for the next Unity frame.</p>
+<pre><code class="lang-mermaid">sequenceDiagram
+	autonumber
+	participant NI as Native input thread
+	participant ST as Simulation thread
+	participant PM as PinMAME callback thread
+	participant MT as Unity main thread
+
+	NI-&gt;&gt;ST: Input event enqueued&lt;br/&gt;after 0-500 us poll delay
+	ST-&gt;&gt;PM: Switch dispatched in same 1 ms sim tick
+	PM--&gt;&gt;ST: Coil event queued for simulation-side consumers
+	ST-&gt;&gt;ST: Physics tick updates flipper state
+	ST-&gt;&gt;MT: Publish snapshot
+	MT-&gt;&gt;MT: Next Update() applies visuals
+
+	Note over NI,MT: Best visible path is roughly poll interval + &lt;=1 ms simulation tick + up to one render frame.
+	Note over PM,MT: Lamps, GI, displays, and mech visuals stay frame-bound&lt;br&gt;because Unity-facing work drains in Update().
+</code></pre>
+<p>In practice this creates two different latency classes.</p>
+<h3 id="low-latency-path">Low-latency path</h3>
+<p>This is the path for native input and simulation-thread-safe coil effects:</p>
+<ul>
+<li>Input can be detected by the native polling thread in well under a frame.</li>
+<li>The simulation thread sees it on the next 1 ms tick.</li>
+<li>PinMAME can emit a coil callback back into the simulation-side queue.</li>
+<li>Physics changes are published immediately into the next snapshot.</li>
+</ul>
+<p>The remaining user-visible delay is usually waiting for Unity's next rendered frame to apply that snapshot.</p>
+<h3 id="frame-bound-path">Frame-bound path</h3>
+<p>This is the path for visual-only and Unity-only work:</p>
+<ul>
+<li>Unity Input System input arrives on the main thread and then has to be queued into the simulation thread.</li>
+<li>Display, mech, and normal coil callbacks are drained on the next <code>PinMameGamelogicEngine.Update()</code>.</li>
+<li>Lamp and GI changes are only observed when the main thread polls PinMAME in <code>Update()</code>.</li>
+</ul>
+<p>That work is still correct, but it is fundamentally tied to frame cadence rather than the 1 kHz simulation cadence.</p>
+<h2 id="important-consequences-and-limits">Important consequences and limits</h2>
+<ul>
+<li><strong>Physics is Burst-compiled, not Job System-driven at runtime</strong> - <code>PhysicsUpdate.Execute()</code> is Burst-compiled, but the runtime physics loop is called directly from the simulation thread or the Unity main thread. The live simulation path is not scheduled onto Unity worker threads through <code>IJob</code> or <code>IJobParallelFor</code>.
+That matters because the main concurrency boundary is <em>main thread vs dedicated simulation thread</em>, not Unity's runtime job scheduler.</li>
+<li><strong>Visible motion still waits for a frame</strong> - Even with a 1 ms simulation tick, Unity transforms are only updated when the main thread applies the latest snapshot. Faster simulation reduces the time spent waiting for physics and ROM logic, but it does not bypass the render frame.</li>
+<li><strong>Some main-thread work is intentionally non-blocking</strong> - <code>DrainExternalThreadCallbacks()</code> uses <code>Monitor.TryEnter(PhysicsLock)</code> instead of blocking. If the simulation thread is currently inside a physics tick, the main thread skips the drain and tries again next frame. That avoids hitches on the render thread, but it can delay callback delivery by one frame.</li>
+<li><strong>Catch-up is bounded</strong> - <code>PhysicsUpdate.Execute()</code> caps catch-up work through <code>PhysicsConstants.MaxSubSteps</code>. Under heavy load, VPE prefers dropping excess catch-up rather than letting a long stall cascade into even worse latency.</li>
+<li><strong>PinMAME shutdown avoids blocking Unity</strong> - PinMAME stop can block while the native emulator thread joins, so <code>PinMameGamelogicEngine</code> pushes shutdown work onto <code>Task.Run()</code> instead of doing it on Unity's main thread.</li>
+</ul>
+<h2 id="practical-guidance-for-contributors">Practical guidance for contributors</h2>
+<ul>
+<li>If code touches <code>GameObject</code>, <code>Transform</code>, or other Unity APIs, keep it on the main thread.</li>
+<li>If code changes the authoritative simulation state, decide whether it belongs in the simulation thread or should be queued into physics through <code>PhysicsEngine.Schedule()</code>.</li>
+<li>If a PinMAME callback must influence physics immediately, prefer the simulation-thread coil path instead of a main-thread callback.</li>
+<li>If a feature is visual-only, it is usually acceptable for it to stay frame-bound.</li>
+<li>If you add another game logic engine, implement <code>IGamelogicInputThreading</code>, <code>IGamelogicTimeFence</code>, <code>IGamelogicCoilOutputFeed</code>, or shared-state interfaces only when the engine is actually safe to use from those domains.</li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/developer-guide/threading-model.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2026 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    if (window.mermaid) {
+      const getMermaidConfig = () => {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        return {
+          startOnLoad: false,
+          theme: 'base',
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: '#1f2328',
+            primaryColor: '#1f2328',
+            primaryTextColor: '#f8f9fa',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#292e33',
+            secondaryTextColor: '#f8f9fa',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#20242a',
+            tertiaryTextColor: '#f8f9fa',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#292e33',
+            clusterBorder: '#6c757d',
+            lineColor: '#b7bcc4',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#f8f9fa',
+            mainBkg: '#1f2328',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          } : {
+            darkMode: false,
+            background: '#ffffff',
+            primaryColor: '#f6f7f9',
+            primaryTextColor: '#212529',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#ffffff',
+            secondaryTextColor: '#212529',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#eceff3',
+            tertiaryTextColor: '#212529',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#f3f3f3',
+            clusterBorder: '#c7cbd1',
+            lineColor: '#8a8f98',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#212529',
+            mainBkg: '#f6f7f9',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          }
+        };
+      };
+
+      const initializeMermaidBlocks = () => {
+        const mermaidBlocks = document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid, pre code.mermaid');
+        mermaidBlocks.forEach((block) => {
+          const pre = block.parentElement;
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.dataset.mermaidSource = block.textContent;
+          container.textContent = block.textContent;
+          pre.replaceWith(container);
+        });
+      };
+
+      const renderMermaidBlocks = async () => {
+        const mermaidContainers = document.querySelectorAll('.mermaid[data-mermaid-source]');
+        if (mermaidContainers.length === 0) {
+          return;
+        }
+
+        mermaid.initialize(getMermaidConfig());
+
+        mermaidContainers.forEach((container) => {
+          container.removeAttribute('data-processed');
+          container.innerHTML = '';
+          container.textContent = container.dataset.mermaidSource;
+        });
+
+        await mermaid.run({ querySelector: '.mermaid[data-mermaid-source]' });
+      };
+
+      initializeMermaidBlocks();
+      renderMermaidBlocks();
+
+      let currentMermaidTheme = document.documentElement.getAttribute('data-bs-theme');
+      new MutationObserver(() => {
+        const nextTheme = document.documentElement.getAttribute('data-bs-theme');
+        if (nextTheme !== currentMermaidTheme) {
+          currentMermaidTheme = nextTheme;
+          renderMermaidBlocks();
+        }
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    }
+
+    const updateAffixHighlight = () => {
+      const affix = document.getElementById('affix');
+      if (!affix) {
+        return;
+      }
+
+      const links = Array.from(affix.querySelectorAll('a[href^="#"]'));
+      if (links.length === 0) {
+        return;
+      }
+
+      const sections = links.map((link) => {
+        const id = decodeURIComponent(link.getAttribute('href').slice(1));
+        const heading = document.getElementById(id);
+        return heading ? { link, heading } : null;
+      }).filter(Boolean);
+
+      if (sections.length === 0) {
+        return;
+      }
+
+      const threshold = 140;
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.heading.getBoundingClientRect().top - threshold <= 0) {
+          current = section;
+        } else {
+          break;
+        }
+      }
+
+      links.forEach((link) => {
+        link.classList.toggle('is-current', link === current.link);
+        if (link === current.link) {
+          link.setAttribute('aria-current', 'location');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+    }
+
+    const affixRoot = document.getElementById('affix');
+    if (affixRoot) {
+      let affixFrame = null;
+      const scheduleAffixHighlight = () => {
+        if (affixFrame !== null) {
+          cancelAnimationFrame(affixFrame);
+        }
+        affixFrame = requestAnimationFrame(() => {
+          affixFrame = null;
+          updateAffixHighlight();
+        });
+      }
+
+      scheduleAffixHighlight();
+      new MutationObserver(scheduleAffixHighlight).observe(affixRoot, { childList: true, subtree: true });
+      window.addEventListener('scroll', scheduleAffixHighlight, { passive: true });
+      window.addEventListener('resize', scheduleAffixHighlight, { passive: true });
+    }
+
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Accelerometer Input Design | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Accelerometer Input Design | VPE Documentation ">
+      
+      <meta name="description" content="Proposed architecture for adding accelerometer-based nudging to VPE, including Open Pinball Device support and calibration.">
+      <link rel="icon" href="../favicon.png">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <link rel="stylesheet" href="../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/developer-guide/accelerometer-input-design.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="developer-guide-accelerometer-input-design">
+<h1 id="accelerometer-input-design">Accelerometer Input Design</h1>
+
+<p>This page describes the proposed design for adding accelerometer-based nudging to VPE. It covers the intended runtime architecture, where the work should land in the codebase, how Open Pinball Device support should fit into the plan, and how calibration should work for both velocity-capable and legacy-style devices.</p>
+<h2 id="summary">Summary</h2>
+<p>VPE does not yet have accelerometer or analog nudge support. The recommended design is to add it in three layers:</p>
+<ol>
+<li>Extend <code>VisualPinball.Unity.NativeInput</code> so it can poll analog HID/gamepad/Open Pinball Device inputs instead of only button edges.</li>
+<li>Add a managed sensor and calibration layer in <code>VisualPinball.Unity</code> that turns raw axis samples into calibrated cabinet motion.</li>
+<li>Feed calibrated cabinet motion into the physics simulation thread and apply it as cabinet velocity deltas before the main physics step.</li>
+</ol>
+<p>The key design choice is to make velocity-based nudge the primary internal model. Devices that already report integrated cabinet velocity should map directly into that model. Older devices that only report acceleration can be supported through a compatibility adapter.</p>
+<h2 id="why-velocity-should-be-the-primary-model">Why velocity should be the primary model</h2>
+<p>The upstream VPX accelerometer tech note argues that device-integrated velocity produces more stable and more realistic nudging than raw acceleration. The problem with raw acceleration is that the simulator only sees asynchronous USB samples, so it can over-sample, under-sample, or miss peaks entirely. A device that integrates the high-rate sensor stream locally can report the current cabinet velocity directly, which removes most of that resampling error.</p>
+<p>For VPE, this suggests a cleaner design than a straight port of the older VPX path:</p>
+<ul>
+<li>Keep cabinet motion in physics state as the current X/Y cabinet velocity.</li>
+<li>On each simulation tick, compute <code>deltaVelocity = currentCabinetVelocity - previousCabinetVelocity</code>.</li>
+<li>Apply the opposite of that delta to each moving ball so the playfield remains the coordinate frame.</li>
+</ul>
+<p>This matches the physical model described in the VPX technical note while fitting naturally into VPE's simulation-thread architecture.</p>
+<h2 id="existing-integration-points-in-vpe">Existing integration points in VPE</h2>
+<p>The work naturally splits across the existing packages:</p>
+<ul>
+<li><code>VisualPinball.Unity.NativeInput</code>
+Polling layer for native user input. It already runs a dedicated high-frequency polling thread, but today it only supports keyboard bindings and still leaves gamepad support as future work.</li>
+<li><code>VisualPinball.Unity/Simulation</code>
+Managed bridge for the native polling library. <code>NativeInputManager</code> and <code>SimulationThread</code> already carry low-latency input into the simulation thread.</li>
+<li><code>VisualPinball.Unity/Game</code>
+Simulation-thread physics loop. <code>PhysicsUpdate.Execute()</code> is the best place to apply cabinet motion to balls before collision simulation.</li>
+<li><code>VisualPinball.Unity/VPT/Ball</code>
+<code>BallState</code> already stores per-ball linear velocity, so no structural change is needed to support cabinet-velocity deltas.</li>
+</ul>
+<h2 id="existing-reference-points-in-vpx">Existing reference points in VPX</h2>
+<p>VPX already has most of the conceptual pieces, even though VPE has not ported them yet:</p>
+<ul>
+<li><code>InputManager</code> owns plunger and nudge sensors and combines multiple sensor pairs.</li>
+<li><code>PhysicsSensor</code> supports mapping a source axis as position, velocity, or acceleration and inserts compatibility filters as needed.</li>
+<li><code>OpenPinDevHandler</code> reads Open Pinball Device reports containing both acceleration and velocity fields for nudge, as well as plunger position and speed.</li>
+<li><code>PhysicsEngine::UpdateNudge()</code> applies hardware-derived nudge state into the physics step.</li>
+</ul>
+<p>VPE should reuse the ideas, but it does not need to copy VPX's exact layering.</p>
+<h2 id="proposed-architecture">Proposed architecture</h2>
+<h3 id="1-native-analog-polling">1. Native analog polling</h3>
+<p><code>VisualPinball.Unity.NativeInput</code> should be extended from button polling to analog input polling.</p>
+<p>The current API is shaped around discrete actions:</p>
+<ul>
+<li><code>VpeInputAction</code></li>
+<li><code>VpeInputBinding</code></li>
+<li><code>VpeInputEvent</code></li>
+</ul>
+<p>That works for flipper buttons, but it is too narrow for accelerometers and plungers. VPE should add a second API for analog channels with explicit device and axis identity.</p>
+<p>Recommended native additions:</p>
+<ul>
+<li>Analog binding descriptor
+Defines which device and element to watch.</li>
+<li>Analog sample callback
+Returns timestamp, device id, element id, and float value.</li>
+<li>Device enumeration/metadata API
+Lets managed code identify whether a source is a generic HID/gamepad path or an Open Pinball Device path.</li>
+<li>Open Pinball Device fast path
+If a device exposes the OPD report format, decode the named fields directly instead of forcing the user to guess which generic axis is <code>RX</code>, <code>RY</code>, and so on.</li>
+</ul>
+<p>The native layer should support two acquisition modes:</p>
+<ul>
+<li>Open Pinball Device mode
+Preferred when the device exposes named fields such as <code>vxNudge</code>, <code>vyNudge</code>, <code>axNudge</code>, <code>ayNudge</code>, <code>plungerPos</code>, and <code>plungerSpeed</code>.</li>
+<li>Generic HID/gamepad axis mode
+Fallback for older devices that still expose accelerometer or plunger data through joystick-style axes.</li>
+</ul>
+<h3 id="2-managed-sensor-abstraction">2. Managed sensor abstraction</h3>
+<p>On the managed side, VPE should introduce a small sensor abstraction rather than feeding raw analog events straight into physics.</p>
+<p>Recommended concepts:</p>
+<ul>
+<li><code>AnalogInputSample</code>
+Timestamped sample from native input, with device id, element id, and value.</li>
+<li><code>SensorInputType</code>
+<code>Acceleration</code>, <code>Velocity</code>, or <code>Position</code>.</li>
+<li><code>CalibratedAxisState</code>
+Tracks bias, filtered value, noise window, and sample history for one axis.</li>
+<li><code>NudgeInputSource</code>
+Represents one X/Y pair for cabinet motion.</li>
+<li><code>PlungerInputSource</code>
+Represents plunger position or speed.</li>
+<li><code>NudgeCalibrationProfile</code>
+Persisted settings for a mapped source.</li>
+</ul>
+<p>This is the layer where VPE should:</p>
+<ul>
+<li>subtract bias</li>
+<li>apply orientation/inversion</li>
+<li>apply a noise window or hysteresis filter</li>
+<li>apply gain and clamp</li>
+<li>optionally adapt the center slowly while the cabinet is idle</li>
+</ul>
+<h3 id="3-physics-facing-nudge-state">3. Physics-facing nudge state</h3>
+<p>VPE should keep a dedicated nudge state in the simulation-thread physics context.</p>
+<p>Recommended fields:</p>
+<ul>
+<li><code>CurrentCabinetVelocity</code></li>
+<li><code>PreviousCabinetVelocity</code></li>
+<li><code>CurrentCabinetAcceleration</code>
+Optional, useful for diagnostics, tilt modeling, or compatibility mode.</li>
+<li><code>CurrentCabinetDisplacement</code>
+Optional, only needed later for visual shake or debugging.</li>
+</ul>
+<p>Recommended tick behavior:</p>
+<ol>
+<li>Read the latest calibrated nudge sample for the current simulation tick.</li>
+<li>Convert it to the primary internal representation:
+<ul>
+<li>velocity-capable devices: use directly</li>
+<li>acceleration-only devices: integrate into a compatibility velocity estimate</li>
+</ul>
+</li>
+<li>Compute <code>deltaVelocity = current - previous</code>.</li>
+<li>Apply <code>-deltaVelocity</code> to each moving ball before the normal physics step.</li>
+<li>Store <code>previous = current</code>.</li>
+</ol>
+<p>This should happen on the simulation thread before <code>PhysicsCycle.Simulate()</code> so collision detection and response see the updated ball velocities.</p>
+<h3 id="4-compatibility-modes">4. Compatibility modes</h3>
+<p>VPE should explicitly support two modes:</p>
+<ul>
+<li><code>Velocity</code>
+Preferred mode. Uses cabinet velocity directly and should not use the old acceleration-oriented nudge filter.</li>
+<li><code>Acceleration</code>
+Compatibility mode for older joystick-style accelerometer devices. VPE can integrate these samples to a cabinet velocity estimate locally.</li>
+</ul>
+<p>If a source reports position instead of velocity, VPE can derive velocity in the managed sensor layer, just as VPX does for plunger and nudge compatibility paths.</p>
+<h2 id="open-pinball-device-handling">Open Pinball Device handling</h2>
+<p>Open Pinball Device is the best long-term target for VPE because it carries named pinball-specific inputs instead of pretending to be a generic joystick.</p>
+<p>For nudge support, OPD is especially useful because it can report:</p>
+<ul>
+<li>raw nudge acceleration</li>
+<li>integrated nudge velocity</li>
+<li>plunger position</li>
+<li>plunger speed</li>
+</ul>
+<p>That means VPE should treat OPD as a first-class native input source rather than just another generic HID device.</p>
+<p>Recommended OPD behavior in VPE:</p>
+<ul>
+<li>Automatically discover OPD devices in the native layer.</li>
+<li>Surface named channels in managed code instead of raw axis numbers.</li>
+<li>Prefer <code>vxNudge</code> and <code>vyNudge</code> over <code>axNudge</code> and <code>ayNudge</code> when both are present.</li>
+<li>Allow generic HID fallback for devices that do not implement OPD.</li>
+</ul>
+<p>VPE should still support mixed setups. For example:</p>
+<ul>
+<li>plunger from OPD</li>
+<li>nudge from a joystick-style accelerometer</li>
+<li>buttons from keyboard or another controller</li>
+</ul>
+<h2 id="calibration-design">Calibration design</h2>
+<p>Calibration should be split into separate responsibilities rather than treated as a single setting.</p>
+<p>The initial calibration step must be available outside the Unity editor. A future standalone player app will need to guide the user through at least the &quot;cabinet is at rest, sample now&quot; flow, so calibration logic should live in runtime-capable code with an editor UI layered on top, rather than being embedded only in editor inspectors.</p>
+<h3 id="1-orientation-setup">1. Orientation setup</h3>
+<p>This is the structural setup step:</p>
+<ul>
+<li>which physical axis maps to cabinet X</li>
+<li>which physical axis maps to cabinet Y</li>
+<li>invert X or Y</li>
+<li>optional rotation angle for boards mounted at 90, 180, or arbitrary angles</li>
+</ul>
+<p>This should be stored per input mapping.</p>
+<h3 id="2-manual-zero-calibration">2. Manual zero calibration</h3>
+<p>VPE should provide a calibration action equivalent to &quot;read data now, I'm not moving.&quot;</p>
+<p>Recommended behavior:</p>
+<ul>
+<li>user presses <code>Calibrate at Rest</code></li>
+<li>VPE samples for a short fixed window, such as <code>0.5-2.0</code> seconds</li>
+<li>VPE computes the mean resting value for each axis</li>
+<li>that mean becomes the bias offset to subtract from future samples</li>
+</ul>
+<p>This is required for generic HID/gamepad accelerometer sources and should also be available as a fallback for OPD devices.</p>
+<p>This flow should be designed as a reusable runtime service:</p>
+<ul>
+<li>callable from editor UI</li>
+<li>callable from a future player app or in-game settings UI</li>
+<li>able to return progress, sample counts, and success or failure state</li>
+</ul>
+<p>The editor and player-facing UIs can then share the same calibration implementation while presenting different workflows.</p>
+<h3 id="3-noise-measurement-and-dead-zone-setup">3. Noise measurement and dead-zone setup</h3>
+<p>Bias removal is not enough on its own because consumer accelerometers still jitter around zero.</p>
+<p>VPE should measure quiet-time noise during calibration and derive an initial noise window from it. Instead of a hard dead zone by default, the preferred behavior is a small hysteresis or jitter window because it avoids sudden jumps when the signal crosses the threshold.</p>
+<p>Recommended stored values:</p>
+<ul>
+<li><code>NoiseSigma</code> or another robust noise estimate</li>
+<li><code>DeadZone</code> or <code>HysteresisWindow</code></li>
+<li>optional <code>Clamp</code></li>
+</ul>
+<p>Suggested behavior:</p>
+<ul>
+<li>velocity-capable OPD sources: prefer a small hysteresis window</li>
+<li>generic acceleration sources: allow a slightly stronger dead zone or hysteresis filter</li>
+</ul>
+<h3 id="4-idle-time-drift-correction">4. Idle-time drift correction</h3>
+<p>VPE should not rely only on a one-time calibration. Sensor centers drift over time because of temperature, cabinet settling, and mounting flex.</p>
+<p>Recommended behavior:</p>
+<ul>
+<li>while the signal is inside a stillness window for some sustained interval, slowly adapt the stored zero point toward the live mean</li>
+<li>freeze that adaptation immediately when real motion starts</li>
+</ul>
+<p>This gives VPE both:</p>
+<ul>
+<li>manual baseline calibration</li>
+<li>slow automatic recentering during idle periods</li>
+</ul>
+<p>For OPD velocity sources, this should be optional and conservative because the device may already be doing its own drift correction. For generic HID acceleration sources, VPE should enable it by default.</p>
+<h3 id="5-gain-and-clamp">5. Gain and clamp</h3>
+<p>After centering and noise handling, VPE still needs:</p>
+<ul>
+<li>X gain</li>
+<li>Y gain</li>
+<li>optional maximum output clamp</li>
+</ul>
+<p>These should stay explicit user settings. They control feel rather than sensor correctness.</p>
+<h2 id="configuration-model">Configuration model</h2>
+<p>Recommended persisted settings for each nudge mapping:</p>
+<ul>
+<li>input backend
+<code>OpenPinDev</code> or <code>GenericHid</code></li>
+<li>source X id</li>
+<li>source Y id</li>
+<li>input type
+<code>Velocity</code> or <code>Acceleration</code></li>
+<li>orientation angle</li>
+<li>invert X</li>
+<li>invert Y</li>
+<li>bias X</li>
+<li>bias Y</li>
+<li>idle recenter enabled</li>
+<li>idle recenter rate</li>
+<li>dead zone or hysteresis window</li>
+<li>X gain</li>
+<li>Y gain</li>
+<li>clamp</li>
+</ul>
+<p>If multiple nudge sources are allowed, VPE should average compatible active sources only when there is a clear reason to do so. Otherwise it should prefer one configured source pair.</p>
+<h2 id="editor-and-player-ux-split">Editor and player UX split</h2>
+<p>The calibration system should be implemented in two layers:</p>
+<ul>
+<li>runtime calibration service
+Owns sample collection, bias estimation, noise estimation, stillness detection, and profile persistence</li>
+<li>host-specific UI
+Editor inspectors, setup wizards, or a future player app can call into the runtime service</li>
+</ul>
+<p>Recommended responsibility split:</p>
+<ul>
+<li>Unity editor
+Full mapping UI, orientation setup, advanced gain and filter tuning, diagnostics</li>
+<li>future player app
+Initial device discovery, initial rest calibration, simple gain adjustment, recalibration when cabinet conditions change</li>
+</ul>
+<p>This keeps setup possible for end users who never open the Unity project while still giving developers richer tooling inside the editor.</p>
+<h2 id="recommended-rollout">Recommended rollout</h2>
+<h3 id="milestone-1-velocity-path-on-windows">Milestone 1: Velocity path on Windows</h3>
+<ul>
+<li>extend <code>VisualPinball.Unity.NativeInput</code> with analog polling</li>
+<li>add managed analog sample handling in <code>VisualPinball.Unity</code></li>
+<li>support one nudge X/Y source pair</li>
+<li>add calibration profile storage</li>
+<li>apply cabinet velocity deltas in the simulation thread</li>
+</ul>
+<p>This is the highest-value slice because it proves the architecture and covers modern velocity-capable devices.</p>
+<h3 id="milestone-2-generic-acceleration-compatibility">Milestone 2: Generic acceleration compatibility</h3>
+<ul>
+<li>add acceleration-mode source type</li>
+<li>integrate acceleration into cabinet velocity in managed code</li>
+<li>add calibration UI for bias and dead zone or hysteresis</li>
+<li>document when to disable acceleration-style filtering for real velocity inputs</li>
+</ul>
+<h3 id="milestone-3-opd-first-experience-and-tilt-polish">Milestone 3: OPD-first experience and tilt polish</h3>
+<ul>
+<li>add OPD device discovery and named channel mapping</li>
+<li>add plunger position and speed through the same analog stack</li>
+<li>add diagnostics UI</li>
+<li>add optional plumb tilt and visual cabinet displacement built on the same nudge state</li>
+</ul>
+<h2 id="validation-checklist">Validation checklist</h2>
+<p>The implementation should be considered correct when the following hold true:</p>
+<ul>
+<li>repeated USB polls of the same velocity sample do not amplify a nudge</li>
+<li>missed USB polls do not weaken a velocity-based nudge beyond the actual cabinet motion represented by the latest sample</li>
+<li>the table remains stable at rest, with no gradual drift in ball motion</li>
+<li>left/right and front/back nudges move the ball in the expected directions after orientation setup</li>
+<li>idle-time recentering corrects slow drift without fighting real nudges</li>
+<li>velocity-based devices do not require the old acceleration-style nudge filter to feel stable</li>
+</ul>
+<h2 id="open-questions">Open questions</h2>
+<ul>
+<li>Should VPE expose advanced calibration controls in both the editor and a future player app, or reserve the player app for initial setup and simple recalibration?</li>
+<li>Should OPD support live entirely in <code>VisualPinball.Unity.NativeInput</code>, or should VPE also keep a managed fallback parser for environments where a raw HID path is easier to ship?</li>
+<li>Should keyboard nudges be rewritten later to use the same cabinet-motion state so that all nudge sources share one physics path?</li>
+</ul>
+<p>The current recommendation is yes for the last question: VPE should eventually have one cabinet-motion model for keyboard, script, and hardware nudging, even if hardware support is implemented first.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/developer-guide/accelerometer-input-design.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2026 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    if (window.mermaid) {
+      const getMermaidConfig = () => {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        return {
+          startOnLoad: false,
+          theme: 'base',
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: '#1f2328',
+            primaryColor: '#1f2328',
+            primaryTextColor: '#f8f9fa',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#292e33',
+            secondaryTextColor: '#f8f9fa',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#20242a',
+            tertiaryTextColor: '#f8f9fa',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#292e33',
+            clusterBorder: '#6c757d',
+            lineColor: '#b7bcc4',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#f8f9fa',
+            mainBkg: '#1f2328',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          } : {
+            darkMode: false,
+            background: '#ffffff',
+            primaryColor: '#f6f7f9',
+            primaryTextColor: '#212529',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#ffffff',
+            secondaryTextColor: '#212529',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#eceff3',
+            tertiaryTextColor: '#212529',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#f3f3f3',
+            clusterBorder: '#c7cbd1',
+            lineColor: '#8a8f98',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#212529',
+            mainBkg: '#f6f7f9',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          }
+        };
+      };
+
+      const initializeMermaidBlocks = () => {
+        const mermaidBlocks = document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid, pre code.mermaid');
+        mermaidBlocks.forEach((block) => {
+          const pre = block.parentElement;
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.dataset.mermaidSource = block.textContent;
+          container.textContent = block.textContent;
+          pre.replaceWith(container);
+        });
+      };
+
+      const renderMermaidBlocks = async () => {
+        const mermaidContainers = document.querySelectorAll('.mermaid[data-mermaid-source]');
+        if (mermaidContainers.length === 0) {
+          return;
+        }
+
+        mermaid.initialize(getMermaidConfig());
+
+        mermaidContainers.forEach((container) => {
+          container.removeAttribute('data-processed');
+          container.innerHTML = '';
+          container.textContent = container.dataset.mermaidSource;
+        });
+
+        await mermaid.run({ querySelector: '.mermaid[data-mermaid-source]' });
+      };
+
+      initializeMermaidBlocks();
+      renderMermaidBlocks();
+
+      let currentMermaidTheme = document.documentElement.getAttribute('data-bs-theme');
+      new MutationObserver(() => {
+        const nextTheme = document.documentElement.getAttribute('data-bs-theme');
+        if (nextTheme !== currentMermaidTheme) {
+          currentMermaidTheme = nextTheme;
+          renderMermaidBlocks();
+        }
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    }
+
+    const updateAffixHighlight = () => {
+      const affix = document.getElementById('affix');
+      if (!affix) {
+        return;
+      }
+
+      const links = Array.from(affix.querySelectorAll('a[href^="#"]'));
+      if (links.length === 0) {
+        return;
+      }
+
+      const sections = links.map((link) => {
+        const id = decodeURIComponent(link.getAttribute('href').slice(1));
+        const heading = document.getElementById(id);
+        return heading ? { link, heading } : null;
+      }).filter(Boolean);
+
+      if (sections.length === 0) {
+        return;
+      }
+
+      const threshold = 140;
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.heading.getBoundingClientRect().top - threshold <= 0) {
+          current = section;
+        } else {
+          break;
+        }
+      }
+
+      links.forEach((link) => {
+        link.classList.toggle('is-current', link === current.link);
+        if (link === current.link) {
+          link.setAttribute('aria-current', 'location');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+    }
+
+    const affixRoot = document.getElementById('affix');
+    if (affixRoot) {
+      let affixFrame = null;
+      const scheduleAffixHighlight = () => {
+        if (affixFrame !== null) {
+          cancelAnimationFrame(affixFrame);
+        }
+        affixFrame = requestAnimationFrame(() => {
+          affixFrame = null;
+          updateAffixHighlight();
+        });
+      }
+
+      scheduleAffixHighlight();
+      new MutationObserver(scheduleAffixHighlight).observe(affixRoot, { childList: true, subtree: true });
+      window.addEventListener('scroll', scheduleAffixHighlight, { passive: true });
+      window.addEventListener('resize', scheduleAffixHighlight, { passive: true });
+    }
+
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

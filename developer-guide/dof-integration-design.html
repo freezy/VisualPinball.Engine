@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>DOF Integration Design | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="DOF Integration Design | VPE Documentation ">
+      
+      <meta name="description" content="Proposed architecture for integrating DOF into VPE with a Windows-first path and a later hybrid cross-platform backend model.">
+      <link rel="icon" href="../favicon.png">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <link rel="stylesheet" href="../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/developer-guide/dof-integration-design.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="developer-guide-dof-integration-design">
+<h1 id="dof-integration-design">DOF Integration Design</h1>
+
+<p>This page describes the proposed design for integrating the DirectOutput Framework (DOF) into VPE. It covers the recommended runtime architecture, where the work should land in the codebase, how a future player app should own configuration, and how a later cross-platform backend should fit into the same design.</p>
+<h2 id="summary">Summary</h2>
+<p>VPE should integrate DOF in two steps:</p>
+<ol>
+<li>Add a Windows-first, compatibility-first backend that bundles upstream <code>DirectOutput</code> with the VPE player app and hosts it through a thin VPE-owned adapter.</li>
+<li>Keep the VPE-facing feedback API backend-neutral from the start, then add a second backend based on <code>libdof</code> for cross-platform support and eventual parity testing on Windows.</li>
+</ol>
+<p>The key design choice is to keep DOF itself out of the Unity gameplay core. VPE should publish switch, coil, lamp, and GI state through a neutral feedback service, while the player app owns backend selection, cabinet configuration, diagnostics, and output testing.</p>
+<h2 id="why-the-first-step-should-target-windows">Why the first step should target Windows</h2>
+<p>Compatibility with existing DOF behavior matters slightly more than immediate cross-platform reach.</p>
+<p>Classic <code>DirectOutput</code> is still the most compatibility-oriented runtime, but it is effectively Windows-only today. It is also designed around desktop .NET and Windows-era hardware assumptions, so VPE should not bake it directly into the shared runtime layer.</p>
+<p><code>libdof</code> is the right long-term portability direction, and VPX already uses it for the new plugin-based DOF integration, but it is still a port with some compatibility gaps compared with classic DOF. That makes it a better second step than a v1 default.</p>
+<p>This leads to a hybrid plan:</p>
+<ul>
+<li>Windows player builds use bundled <code>DirectOutput</code> first.</li>
+<li>The shared VPE feedback contract stays cross-platform.</li>
+<li>A later <code>libdof</code> backend can be added without changing table content or game-logic integration.</li>
+</ul>
+<h2 id="existing-integration-points-in-vpe">Existing integration points in VPE</h2>
+<p>The current VPE runtime already has the seams needed for a feedback host:</p>
+<ul>
+<li><code>IGamelogicEngine</code> publishes switches, coils, lamps, GI, and displays.</li>
+<li><code>Player</code> owns the game-logic engine, runtime lifecycle, and table mapping state.</li>
+<li><code>CoilPlayer</code> and <code>LampPlayer</code> already maintain live output state for mapped playfield devices.</li>
+<li><code>PinMameGamelogicEngine</code> already keeps shared coil, lamp, and GI state snapshots for low-latency playback.</li>
+<li><code>MappingConfig</code> already represents the machine-facing identity of switches, coils, lamps, and wires.</li>
+</ul>
+<p>What VPE does not yet have is:</p>
+<ul>
+<li>a backend-neutral feedback API</li>
+<li>a player-owned feedback coordinator</li>
+<li>a standalone cabinet configuration and diagnostics UX</li>
+<li>a portable backend boundary for <code>DirectOutput</code> and <code>libdof</code></li>
+</ul>
+<h2 id="proposed-architecture">Proposed architecture</h2>
+<h3 id="1-add-a-backend-neutral-feedback-service">1. Add a backend-neutral feedback service</h3>
+<p>VPE should add a runtime-facing feedback service in <code>VisualPinball.Unity</code> that is independent of any specific DOF implementation.</p>
+<p>Recommended concepts:</p>
+<ul>
+<li><code>IFeedbackHost</code>
+The lifecycle and capability surface exposed to the runtime.</li>
+<li><code>FeedbackSessionDescriptor</code>
+Table path, table id, ROM id, game-logic engine name, display name, and other metadata used when starting a feedback session.</li>
+<li><code>FeedbackSnapshot</code>
+The current normalized switch, coil, lamp, and GI state.</li>
+<li><code>FeedbackEvent</code>
+Optional delta form for backends that need immediate edge-triggered updates.</li>
+<li><code>FeedbackBackendKind</code>
+<code>None</code>, <code>DirectOutput</code>, or <code>LibDof</code>.</li>
+<li><code>FeedbackHostStatus</code>
+Health, initialization state, detected devices, backend version, and last error.</li>
+</ul>
+<p>Recommended <code>IFeedbackHost</code> shape:</p>
+<ul>
+<li><code>Initialize(profile)</code></li>
+<li><code>StartSession(sessionDescriptor)</code></li>
+<li><code>PublishSnapshot(snapshot)</code></li>
+<li><code>PublishEvent(feedbackEvent)</code></li>
+<li><code>StopSession()</code></li>
+<li><code>GetStatus()</code></li>
+<li><code>RunOutputTest(testDescriptor)</code></li>
+</ul>
+<p>The important rule is that VPE publishes machine outputs, not DOF-specific toy instructions. The backend remains responsible for translating those outputs into hardware behavior according to its own config.</p>
+<h3 id="2-add-a-player-owned-feedback-coordinator">2. Add a player-owned feedback coordinator</h3>
+<p>The future player app should own a <code>FeedbackCoordinator</code> that sits above the Unity table runtime and below the selected backend.</p>
+<p>Responsibilities:</p>
+<ul>
+<li>choose a backend for the current platform</li>
+<li>own backend startup and shutdown</li>
+<li>subscribe to VPE output state</li>
+<li>aggregate high-frequency output changes into a single state cache</li>
+<li>publish snapshots at a fixed host cadence</li>
+<li>expose logs, health, and device detection to the player UI</li>
+<li>reset outputs safely on table exit, reload, or backend failure</li>
+</ul>
+<p>Cadence rules:</p>
+<ul>
+<li>do not call DOF directly from the 1000 Hz simulation loop</li>
+<li>publish snapshots at a stable host rate such as <code>60-120 Hz</code></li>
+<li>allow urgent coil-edge delivery as optional immediate deltas</li>
+<li>keep backend calls off any latency-sensitive gameplay path</li>
+</ul>
+<h3 id="3-publish-output-state-from-existing-vpe-seams">3. Publish output state from existing VPE seams</h3>
+<p>VPE should use the output state it already has instead of introducing a second gameplay or cabinet model.</p>
+<p>Recommended publication sources:</p>
+<ul>
+<li>switches from <code>SwitchPlayer</code> and <code>IGamelogicEngine.OnSwitchChanged</code></li>
+<li>coils from <code>CoilPlayer</code>, <code>IGamelogicEngine.OnCoilChanged</code>, and shared PinMAME coil state</li>
+<li>lamps and GI from <code>LampPlayer</code>, <code>IGamelogicEngine.OnLampChanged</code>, <code>OnLampsChanged</code>, and shared PinMAME lamp and GI state</li>
+<li>table metadata from the loaded package plus player-selected overrides</li>
+</ul>
+<p>Recommended publication behavior:</p>
+<ol>
+<li>Maintain one in-memory <code>FeedbackSnapshot</code> cache in the coordinator.</li>
+<li>Update that cache from engine and player events.</li>
+<li>Publish full snapshots on a fixed cadence.</li>
+<li>Optionally send immediate deltas for pulse-sensitive coil edges.</li>
+<li>Send a full baseline snapshot when a session starts.</li>
+<li>Send a backend-native reset or an all-off state when a session stops.</li>
+</ol>
+<h3 id="4-keep-table-mappings-and-cabinet-config-separate">4. Keep table mappings and cabinet config separate</h3>
+<p><code>MappingConfig</code> should remain table-side mapping data. It should not grow DOF toy names, output controller assignments, or cabinet wiring.</p>
+<p>Recommended split:</p>
+<ul>
+<li><code>MappingConfig</code>
+Table-side identity and playfield device mapping only.</li>
+<li><code>FeedbackProfile</code>
+Player-owned settings such as backend choice, enabled flag, config root, logging level, and optional ROM or table overrides.</li>
+<li>backend-native config
+The actual <code>DirectOutput</code> or <code>libdof</code> configuration files and generated artifacts.</li>
+</ul>
+<p>This keeps authored table content portable and prevents one cabinet's hardware layout from leaking into reusable packages.</p>
+<h2 id="windows-first-implementation">Windows-first implementation</h2>
+<h3 id="runtime-model">Runtime model</h3>
+<p>The Windows-first backend should bundle upstream <code>DirectOutput</code> with the VPE player app and host it through a thin <code>WindowsDirectOutputHost</code>.</p>
+<p>Recommended boundaries:</p>
+<ul>
+<li>upstream <code>DirectOutput</code> stays as close to unmodified as possible</li>
+<li>VPE integrates it as a pinned git submodule</li>
+<li>the player app owns config editing, output testing, and diagnostics</li>
+<li>the Unity runtime talks only to <code>IFeedbackHost</code></li>
+</ul>
+<p>This allows VPE to reuse the most compatible DOF implementation without requiring users to install DOF separately.</p>
+<h3 id="configuration-model">Configuration model</h3>
+<p>The player app should fully own DOF setup.</p>
+<p>Required player features:</p>
+<ul>
+<li>enable or disable DOF</li>
+<li>choose the active backend</li>
+<li>choose, create, import, or reset the config root</li>
+<li>edit global config and per-table or per-ROM overrides</li>
+<li>detect available controllers and surface backend health</li>
+<li>run output tests without launching a table</li>
+<li>expose backend logs and validation errors</li>
+</ul>
+<p>Compatibility-first rule:</p>
+<ul>
+<li>use the real DOF config files as the canonical storage</li>
+<li>do not invent a separate VPE-only DOF format</li>
+<li>store only a small VPE-owned profile around backend selection and install paths</li>
+</ul>
+<h3 id="upstream-changes">Upstream changes</h3>
+<p>No upstream DOF changes are strictly required for the first working Windows integration if VPE bundles the runtime and calls the lower-level setup APIs directly.</p>
+<p>Additive upstream changes that would still be useful later:</p>
+<ul>
+<li>explicit host and config-path options</li>
+<li>structured logging callbacks</li>
+<li>a cleaner headless packaging split between runtime and tools</li>
+</ul>
+<p>These should remain optional and must not change current DOF behavior for existing users.</p>
+<h3 id="acceptance-criteria">Acceptance criteria</h3>
+<p>The Windows-first path is complete when:</p>
+<ul>
+<li>the VPE player can start DOF without any separate installation</li>
+<li>a bundled config root can be created from scratch or imported from an existing setup</li>
+<li>PinMAME tables can drive coils, lamps, and GI through DOF</li>
+<li>outputs reset safely on table exit, reload, or crash</li>
+<li>the player app can run output tests and expose actionable diagnostics</li>
+</ul>
+<h2 id="hybrid-second-step-with-libdof">Hybrid second step with libdof</h2>
+<p>The second step is to add a <code>LibDofFeedbackHost</code> that implements the same <code>IFeedbackHost</code> interface.</p>
+<p>Recommended selection policy:</p>
+<ul>
+<li>Windows defaults to <code>DirectOutput</code> until parity is proven</li>
+<li>Linux and macOS use <code>libdof</code> when available</li>
+<li>unsupported platforms use <code>NullFeedbackHost</code></li>
+<li>Windows can later expose <code>libdof</code> as an advanced backend option for comparison and validation</li>
+</ul>
+<p>Cross-platform rules:</p>
+<ul>
+<li>the shared feedback API must stay free of Windows-only types</li>
+<li>the player-owned settings stay backend-neutral except for backend-specific option bags</li>
+<li>health, logs, and device detection flow through <code>FeedbackHostStatus</code></li>
+<li>table content and <code>MappingConfig</code> remain unchanged regardless of backend</li>
+</ul>
+<p>The <code>libdof</code> step should be treated as an explicit parity project, not as a drop-in assumption. It needs platform-by-platform controller validation and side-by-side comparison with the Windows <code>DirectOutput</code> path on real tables.</p>
+<h2 id="recommended-rollout">Recommended rollout</h2>
+<h3 id="milestone-1-shared-feedback-contract">Milestone 1: Shared feedback contract</h3>
+<ul>
+<li>add <code>IFeedbackHost</code>, <code>FeedbackSnapshot</code>, <code>FeedbackSessionDescriptor</code>, and <code>FeedbackHostStatus</code></li>
+<li>add a runtime-owned state cache and publication path</li>
+<li>add <code>NullFeedbackHost</code></li>
+</ul>
+<h3 id="milestone-2-windows-first-directoutput-backend">Milestone 2: Windows-first DirectOutput backend</h3>
+<ul>
+<li>bundle <code>DirectOutput</code> with the player app</li>
+<li>add <code>WindowsDirectOutputHost</code></li>
+<li>wire player-owned configuration, logs, and output testing</li>
+<li>validate PinMAME-driven coils, lamps, and GI</li>
+</ul>
+<h3 id="milestone-3-hybrid-backend-support">Milestone 3: Hybrid backend support</h3>
+<ul>
+<li>add <code>LibDofFeedbackHost</code></li>
+<li>keep Windows on <code>DirectOutput</code> by default</li>
+<li>validate Linux and macOS controller support</li>
+<li>add parity testing and optional Windows backend selection</li>
+</ul>
+<h2 id="validation-checklist">Validation checklist</h2>
+<p>The implementation should be considered correct when:</p>
+<ul>
+<li>feedback publication never blocks the simulation thread</li>
+<li>switching tables repeatedly does not leave outputs active</li>
+<li>missing or malformed config files produce actionable diagnostics</li>
+<li>the player app can test outputs without entering gameplay</li>
+<li>Windows <code>DirectOutput</code> remains the compatibility reference backend</li>
+<li><code>libdof</code> can be added later without changing the shared runtime contract</li>
+</ul>
+<h2 id="open-questions">Open questions</h2>
+<ul>
+<li>Should the future player app expose all backend-specific advanced settings directly, or keep the UI focused on the most common cabinet workflows and leave advanced file edits to external tools?</li>
+<li>Should VPE publish only snapshots to the backend, or preserve a mixed model with snapshots plus immediate coil-edge deltas for pulse-sensitive toys?</li>
+<li>Once <code>libdof</code> is integrated, should Windows keep <code>DirectOutput</code> as the long-term default, or only until parity is measured across the most common hardware configurations?</li>
+</ul>
+<p>The current recommendation is to answer yes to the second question. VPE should keep snapshots as the primary synchronization model, but it should preserve an immediate path for short-lived coil pulses that would be easy to miss at a pure fixed publish cadence.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/developer-guide/dof-integration-design.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2026 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    if (window.mermaid) {
+      const getMermaidConfig = () => {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        return {
+          startOnLoad: false,
+          theme: 'base',
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: '#1f2328',
+            primaryColor: '#1f2328',
+            primaryTextColor: '#f8f9fa',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#292e33',
+            secondaryTextColor: '#f8f9fa',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#20242a',
+            tertiaryTextColor: '#f8f9fa',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#292e33',
+            clusterBorder: '#6c757d',
+            lineColor: '#b7bcc4',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#f8f9fa',
+            mainBkg: '#1f2328',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          } : {
+            darkMode: false,
+            background: '#ffffff',
+            primaryColor: '#f6f7f9',
+            primaryTextColor: '#212529',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#ffffff',
+            secondaryTextColor: '#212529',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#eceff3',
+            tertiaryTextColor: '#212529',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#f3f3f3',
+            clusterBorder: '#c7cbd1',
+            lineColor: '#8a8f98',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#212529',
+            mainBkg: '#f6f7f9',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          }
+        };
+      };
+
+      const initializeMermaidBlocks = () => {
+        const mermaidBlocks = document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid, pre code.mermaid');
+        mermaidBlocks.forEach((block) => {
+          const pre = block.parentElement;
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.dataset.mermaidSource = block.textContent;
+          container.textContent = block.textContent;
+          pre.replaceWith(container);
+        });
+      };
+
+      const renderMermaidBlocks = async () => {
+        const mermaidContainers = document.querySelectorAll('.mermaid[data-mermaid-source]');
+        if (mermaidContainers.length === 0) {
+          return;
+        }
+
+        mermaid.initialize(getMermaidConfig());
+
+        mermaidContainers.forEach((container) => {
+          container.removeAttribute('data-processed');
+          container.innerHTML = '';
+          container.textContent = container.dataset.mermaidSource;
+        });
+
+        await mermaid.run({ querySelector: '.mermaid[data-mermaid-source]' });
+      };
+
+      initializeMermaidBlocks();
+      renderMermaidBlocks();
+
+      let currentMermaidTheme = document.documentElement.getAttribute('data-bs-theme');
+      new MutationObserver(() => {
+        const nextTheme = document.documentElement.getAttribute('data-bs-theme');
+        if (nextTheme !== currentMermaidTheme) {
+          currentMermaidTheme = nextTheme;
+          renderMermaidBlocks();
+        }
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    }
+
+    const updateAffixHighlight = () => {
+      const affix = document.getElementById('affix');
+      if (!affix) {
+        return;
+      }
+
+      const links = Array.from(affix.querySelectorAll('a[href^="#"]'));
+      if (links.length === 0) {
+        return;
+      }
+
+      const sections = links.map((link) => {
+        const id = decodeURIComponent(link.getAttribute('href').slice(1));
+        const heading = document.getElementById(id);
+        return heading ? { link, heading } : null;
+      }).filter(Boolean);
+
+      if (sections.length === 0) {
+        return;
+      }
+
+      const threshold = 140;
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.heading.getBoundingClientRect().top - threshold <= 0) {
+          current = section;
+        } else {
+          break;
+        }
+      }
+
+      links.forEach((link) => {
+        link.classList.toggle('is-current', link === current.link);
+        if (link === current.link) {
+          link.setAttribute('aria-current', 'location');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+    }
+
+    const affixRoot = document.getElementById('affix');
+    if (affixRoot) {
+      let affixFrame = null;
+      const scheduleAffixHighlight = () => {
+        if (affixFrame !== null) {
+          cancelAnimationFrame(affixFrame);
+        }
+        affixFrame = requestAnimationFrame(() => {
+          affixFrame = null;
+          updateAffixHighlight();
+        });
+      }
+
+      scheduleAffixHighlight();
+      new MutationObserver(scheduleAffixHighlight).observe(affixRoot, { childList: true, subtree: true });
+      window.addEventListener('scroll', scheduleAffixHighlight, { passive: true });
+      window.addEventListener('resize', scheduleAffixHighlight, { passive: true });
+    }
+
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

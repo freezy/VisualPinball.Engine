@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Overview | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Overview | VPE Documentation ">
+      
+      <meta name="description" content="How the Visual Pinball Engine repositories fit together.">
+      <link rel="icon" href="../favicon.png">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <link rel="stylesheet" href="../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/developer-guide/index.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="developer-guide-overview">
+<h1 id="overview">Overview</h1>
+
+<p>The Visual Pinball Engine ecosystem is split across multiple repositories. The main reasons for this are:</p>
+<ul>
+<li>The base engine can stay focused on simulation, file I/O, and Unity integration.</li>
+<li>Render-pipeline support can move at the pace of Unity graphics updates.</li>
+<li>Game-logic integrations can ship native binaries and external runtime dependencies without bloating the core package.</li>
+<li>Large asset libraries can live separately from code-heavy repositories.</li>
+<li>Each package can be versioned and published independently to <a href="https://registry.visualpinball.org/">registry.visualpinball.org</a>.</li>
+</ul>
+<div class="WARNING">
+<h5>Warning</h5>
+<p>VPE is still very much a work in progress. Things are still changing, and we're still far from a state where authors can start building tables.</p>
+</div>
+<h2 id="repository-map">Repository map</h2>
+<p>With that out of the way, here's a quick overview:</p>
+<p><img src="dependencies.svg" alt="VPE Dependencies"></p>
+<p>The center of gravity is <code>VisualPinball.Engine</code>. It contains the simulation core, the main Unity integration package, editor tooling, tests, and this documentation site. The other repositories extend that base package for rendering, game logic, scripting, or content.</p>
+<h3 id="visualpinballengine">VisualPinball.Engine</h3>
+<p>This is the main repository and the one most contributors touch first. It contains the platform-independent engine (<code>VisualPinball.Engine</code>), the Unity runtime bridge (<code>VisualPinball.Unity</code>), the editor package (<code>VisualPinball.Unity.Editor</code>), test projects, and the DocFX project under <code>VisualPinball.Unity/Documentation~</code>.</p>
+<p>If you are changing physics, VPX parsing, table import, common component behavior, or the authoring experience inside Unity, this is usually the right place.</p>
+<h3 id="visualpinballunityhdrp">VisualPinball.Unity.Hdrp</h3>
+<p>This repository adds the render-pipeline-specific layer on top of the base Unity package. It depends on <code>VisualPinball.Engine</code> for the runtime/editor integration and on <code>VisualPinball.Unity.Assets</code> for common art content.</p>
+<p>Use it for changes that are specific to HDRP rendering, materials, shaders, or package-level graphics setup.</p>
+<h3 id="visualpinballunityvisualscripting">VisualPinball.Unity.VisualScripting</h3>
+<p>This package extends Unity's Visual Scripting so tables can drive VPE behavior through graphs instead of handwritten C# code. It is especially relevant for original games, EM-style logic, and hybrid projects where scripting needs to stay accessible to non-programmers.</p>
+<p>Use it for node definitions, graph-facing wrappers, or workflow improvements around Unity Visual Scripting.</p>
+<h3 id="visualpinballenginempf">VisualPinball.Engine.Mpf</h3>
+<p>This repository integrates VPE with the Mission Pinball Framework, which runs as a separate Python process and communicates with VPE over gRPC. It is the configuration-heavy option for teams who want to reuse MPF's machine-control model inside a simulator.</p>
+<p>Use it when the work involves MPF connectivity, Unity-side MPF components, bridge protocols, or setup around the external Python runtime.</p>
+<h3 id="visualpinballenginepinmame">VisualPinball.Engine.PinMAME</h3>
+<p>This repository covers ROM-based game logic. It wraps <code>pinmame-dotnet</code>, packages native binaries for supported platforms, and exposes the Unity-side integration used by VPE tables that emulate existing solid-state machines.</p>
+<p>Use it for PinMAME-specific metadata, plugin deployment, native wrapper work, or Unity integration around ROM-driven tables.</p>
+<h3 id="visualpinballunityassets">VisualPinball.Unity.Assets</h3>
+<p>This is the shared asset library. It keeps reusable content out of the engine repositories and provides meshes, materials, and prefabs that render packages and table projects can consume without duplicating large binary files.</p>
+<p>Use it for reusable art content rather than engine or gameplay code.</p>
+<h2 id="future-integrations">Future integrations</h2>
+<p>The developer guide also tracks design work for integrations that are not yet fully implemented in VPE. These pages are intended to capture architectural direction early, so implementation work across native input, runtime systems, and tooling can converge on the same design.</p>
+<ul>
+<li><a class="xref" href="accelerometer-input-design.html">Accelerometer Input Design</a> covers analog nudge input, Open Pinball Device support, calibration, and how a future player app should participate in initial setup.</li>
+<li><a class="xref" href="b2s-integration-design.html">B2S Integration Design</a> proposes modernizing the upstream B2S runtime into a shared cross-platform core with a Windows COM shim, a native second-monitor host, and a Unity texture output for VR backglasses.</li>
+<li><a class="xref" href="dof-integration-design.html">DOF Integration Design</a> covers a Windows-first <code>DirectOutput</code> integration for the future player app and the later hybrid path toward a <code>libdof</code> backend.</li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/developer-guide/index.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2026 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    if (window.mermaid) {
+      const getMermaidConfig = () => {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        return {
+          startOnLoad: false,
+          theme: 'base',
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: '#1f2328',
+            primaryColor: '#1f2328',
+            primaryTextColor: '#f8f9fa',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#292e33',
+            secondaryTextColor: '#f8f9fa',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#20242a',
+            tertiaryTextColor: '#f8f9fa',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#292e33',
+            clusterBorder: '#6c757d',
+            lineColor: '#b7bcc4',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#f8f9fa',
+            mainBkg: '#1f2328',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          } : {
+            darkMode: false,
+            background: '#ffffff',
+            primaryColor: '#f6f7f9',
+            primaryTextColor: '#212529',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#ffffff',
+            secondaryTextColor: '#212529',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#eceff3',
+            tertiaryTextColor: '#212529',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#f3f3f3',
+            clusterBorder: '#c7cbd1',
+            lineColor: '#8a8f98',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#212529',
+            mainBkg: '#f6f7f9',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          }
+        };
+      };
+
+      const initializeMermaidBlocks = () => {
+        const mermaidBlocks = document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid, pre code.mermaid');
+        mermaidBlocks.forEach((block) => {
+          const pre = block.parentElement;
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.dataset.mermaidSource = block.textContent;
+          container.textContent = block.textContent;
+          pre.replaceWith(container);
+        });
+      };
+
+      const renderMermaidBlocks = async () => {
+        const mermaidContainers = document.querySelectorAll('.mermaid[data-mermaid-source]');
+        if (mermaidContainers.length === 0) {
+          return;
+        }
+
+        mermaid.initialize(getMermaidConfig());
+
+        mermaidContainers.forEach((container) => {
+          container.removeAttribute('data-processed');
+          container.innerHTML = '';
+          container.textContent = container.dataset.mermaidSource;
+        });
+
+        await mermaid.run({ querySelector: '.mermaid[data-mermaid-source]' });
+      };
+
+      initializeMermaidBlocks();
+      renderMermaidBlocks();
+
+      let currentMermaidTheme = document.documentElement.getAttribute('data-bs-theme');
+      new MutationObserver(() => {
+        const nextTheme = document.documentElement.getAttribute('data-bs-theme');
+        if (nextTheme !== currentMermaidTheme) {
+          currentMermaidTheme = nextTheme;
+          renderMermaidBlocks();
+        }
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    }
+
+    const updateAffixHighlight = () => {
+      const affix = document.getElementById('affix');
+      if (!affix) {
+        return;
+      }
+
+      const links = Array.from(affix.querySelectorAll('a[href^="#"]'));
+      if (links.length === 0) {
+        return;
+      }
+
+      const sections = links.map((link) => {
+        const id = decodeURIComponent(link.getAttribute('href').slice(1));
+        const heading = document.getElementById(id);
+        return heading ? { link, heading } : null;
+      }).filter(Boolean);
+
+      if (sections.length === 0) {
+        return;
+      }
+
+      const threshold = 140;
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.heading.getBoundingClientRect().top - threshold <= 0) {
+          current = section;
+        } else {
+          break;
+        }
+      }
+
+      links.forEach((link) => {
+        link.classList.toggle('is-current', link === current.link);
+        if (link === current.link) {
+          link.setAttribute('aria-current', 'location');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+    }
+
+    const affixRoot = document.getElementById('affix');
+    if (affixRoot) {
+      let affixFrame = null;
+      const scheduleAffixHighlight = () => {
+        if (affixFrame !== null) {
+          cancelAnimationFrame(affixFrame);
+        }
+        affixFrame = requestAnimationFrame(() => {
+          affixFrame = null;
+          updateAffixHighlight();
+        });
+      }
+
+      scheduleAffixHighlight();
+      new MutationObserver(scheduleAffixHighlight).observe(affixRoot, { childList: true, subtree: true });
+      window.addEventListener('scroll', scheduleAffixHighlight, { passive: true });
+      window.addEventListener('resize', scheduleAffixHighlight, { passive: true });
+    }
+
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>
