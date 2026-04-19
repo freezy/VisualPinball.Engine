@@ -26,6 +26,7 @@ namespace VisualPinball.Unity
 	public static class PackageApi
 	{
 		public const string TableFolder = "table";
+		public const string TableMetadataFile = "table";
 		public const string ItemFolder = "items";
 		public const string ItemFile = "item";
 		public const string ItemReferencesFolder = "refs";
