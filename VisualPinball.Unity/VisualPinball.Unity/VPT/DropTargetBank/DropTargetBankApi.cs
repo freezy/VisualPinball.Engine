@@ -68,11 +68,24 @@ namespace VisualPinball.Unity
 
 		void IApi.OnInit(BallManager ballManager)
 		{
-			for (var index = 0; index < _dropTargetBankComponent.BankSize; index++) {
-				var dropTargetApi = _player.TableApi.DropTarget(_dropTargetBankComponent.DropTargets[index]);
+			var configuredBankSize = _dropTargetBankComponent.BankSize;
+			var dropTargets = _dropTargetBankComponent.DropTargets ?? Array.Empty<DropTargetComponent>();
+			var initCount = configuredBankSize < dropTargets.Length ? configuredBankSize : dropTargets.Length;
+			if (dropTargets.Length < configuredBankSize) {
+				Logger.Warn($"Bank \"{_dropTargetBankComponent.name}\" has BankSize={configuredBankSize} but only {dropTargets.Length} drop target reference(s).");
+			}
+
+			for (var index = 0; index < initCount; index++) {
+				var dropTarget = dropTargets[index];
+				if (!dropTarget) {
+					Logger.Warn($"Cannot init empty drop target reference at index {index} in bank \"{_dropTargetBankComponent.name}\".");
+					continue;
+				}
+
+				var dropTargetApi = _player.TableApi.DropTarget(dropTarget);
 				if (dropTargetApi == null) {
-					Debug.LogWarning($"Cannot init reference to non-existing drop target \"{_dropTargetBankComponent.DropTargets[index]}\" in bank \"{_dropTargetBankComponent.name}\".");
-					return;
+					Debug.LogWarning($"Cannot init reference to non-existing drop target \"{dropTarget.name}\" in bank \"{_dropTargetBankComponent.name}\".");
+					continue;
 				}
 				dropTargetApi.Switch += OnSwitch;
 				_dropTargetApis.Add(dropTargetApi);

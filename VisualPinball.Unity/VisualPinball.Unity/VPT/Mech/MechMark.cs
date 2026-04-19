@@ -17,6 +17,7 @@
 // ReSharper disable InconsistentNaming
 
 using System;
+using Newtonsoft.Json;
 using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity
@@ -34,6 +35,7 @@ namespace VisualPinball.Unity
 		[Unit("ms")]
 		public int PulseDuration = 50;
 
+		[JsonIgnore]
 		public GamelogicEngineSwitch Switch => new(SwitchId) { Description = Name };
 
 		public MechMark(MechMarkSwitchType type, string name, string switchId, int stepBeginning, int stepEnd)

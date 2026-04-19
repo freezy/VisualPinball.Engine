@@ -17,9 +17,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
+using GLTFast;
+using GLTFast.Logging;
 using NLog;
 using UnityEngine;
+using UnityEngine.Networking;
 using Logger = NLog.Logger;
 
 #if UNITY_EDITOR
@@ -146,6 +150,51 @@ namespace VisualPinball.Unity
 		}
 #endif
 
+		public async Task UnpackMeshesRuntime(CancellationToken cancellationToken = default)
+		{
+			if (!_tableFolder.TryGetFile(PackageApi.ColliderMeshesFile, out var colliderMeshes)) {
+				return;
+			}
+
+			var colliderMeshData = colliderMeshes.GetData();
+			if (colliderMeshData == null || colliderMeshData.Length == 0) {
+				return;
+			}
+
+			var importRoot = new GameObject("__vpe_runtime_colliders");
+			importRoot.hideFlags = HideFlags.HideAndDontSave;
+			try {
+				var gltf = new GltfImport(logger: new ConsoleLogger());
+				var loaded = await gltf.Load(colliderMeshData, cancellationToken: cancellationToken);
+				cancellationToken.ThrowIfCancellationRequested();
+				if (!loaded) {
+					throw new Exception("Unable to load colliders.glb from .vpe package.");
+				}
+
+				var instantiated = await gltf.InstantiateMainSceneAsync(importRoot.transform, cancellationToken);
+				cancellationToken.ThrowIfCancellationRequested();
+				if (!instantiated) {
+					throw new Exception("Unable to instantiate colliders.glb scene.");
+				}
+
+				_colliderMeshes.Clear();
+				foreach (var meshFilter in importRoot.GetComponentsInChildren<MeshFilter>(true)) {
+					if (!meshFilter || !meshFilter.sharedMesh || meshFilter.transform == importRoot.transform) {
+						continue;
+					}
+
+					_colliderMeshes[meshFilter.gameObject.name] = meshFilter.sharedMesh;
+				}
+
+			} finally {
+				if (Application.isPlaying) {
+					UnityEngine.Object.Destroy(importRoot);
+				} else {
+					UnityEngine.Object.DestroyImmediate(importRoot);
+				}
+			}
+		}
+
 		public Mesh GetColliderMesh(string guid, int index)
 		{
 			return _colliderMeshes[$"{guid}-{index}"];
@@ -257,6 +306,43 @@ namespace VisualPinball.Unity
 			});
 		}
 #endif
+
+		public void UnpackAssetsRuntime()
+		{
+			if (!_tableFolder.TryGetFolder(PackageApi.AssetFolder, out var assetFolder)) {
+				return;
+			}
+
+			assetFolder.VisitFolders(assetTypeFolder => {
+				assetTypeFolder.VisitFiles(assetFile => {
+					if (assetFile.Name.Contains(".meta")) {
+						return;
+					}
+
+					var metaFilename = $"{Path.GetFileNameWithoutExtension(assetFile.Name)}.meta{Path.GetExtension(assetFile.Name)}";
+					if (!assetTypeFolder.TryGetFile(metaFilename, out var metaFile)) {
+						throw new Exception($"Cannot find meta file {metaFilename} for {assetFile.Name}");
+					}
+
+					var type = _typeLookup.GetType(assetTypeFolder.Name);
+					if (type == null) {
+						throw new Exception($"Unknown asset type {assetTypeFolder.Name}");
+					}
+
+					var asset = PackageApi.Packer.Unpack(type, assetFile.GetData()) as ScriptableObject;
+					if (asset == null) {
+						throw new Exception($"Failed to unpack asset {assetFile.Name}");
+					}
+
+					var packer = PackerFactory.GetPacker(type);
+					var meta = packer == null
+						? MetaPackable.UnpackMeta(metaFile.GetData())
+						: packer.Unpack(metaFile.GetData(), asset, this);
+
+					_deserializedAssets[meta.InstanceId] = asset;
+				});
+			});
+		}
 
 		#endregion
 
@@ -371,6 +457,107 @@ namespace VisualPinball.Unity
 			}
 		}
 #endif
+
+		public async Task UnpackSoundsRuntime(CancellationToken cancellationToken = default)
+		{
+			if (!_tableFolder.TryGetFolder(PackageApi.SoundFolder, out var soundFolder)) {
+				return;
+			}
+			if (!_tableFolder.TryGetFolder(PackageApi.MetaFolder, out var metaFolder)) {
+				return;
+			}
+			if (!metaFolder.TryGetFile(PackageApi.SoundFolder, out var soundMeta, PackageApi.Packer.FileExtension)) {
+				return;
+			}
+
+			var soundMetas = PackageApi.Packer.Unpack<Dictionary<string, SoundMetaPackable>>(soundMeta.GetData());
+			if (soundMetas == null || soundMetas.Count == 0) {
+				return;
+			}
+
+			_audioClips.Clear();
+			var pendingSounds = new List<(string Guid, string Name, byte[] Data)>();
+			soundFolder.VisitFiles(soundFile => {
+				if (!soundMetas.TryGetValue(soundFile.Name, out var meta)) {
+					Logger.Warn($"Missing meta data for sound file {soundFile.Name}.");
+					return;
+				}
+
+				pendingSounds.Add((meta.Guid, soundFile.Name, soundFile.GetData()));
+			});
+
+			foreach (var sound in pendingSounds) {
+				cancellationToken.ThrowIfCancellationRequested();
+				var clip = await LoadAudioClipRuntime(sound.Name, sound.Data, cancellationToken);
+				if (clip) {
+					_audioClips[sound.Guid] = clip;
+				}
+			}
+		}
+
+		private static AudioType GetAudioType(string fileName)
+		{
+			switch (Path.GetExtension(fileName).ToLowerInvariant()) {
+				case ".wav":
+					return AudioType.WAV;
+				case ".ogg":
+					return AudioType.OGGVORBIS;
+				case ".mp3":
+					return AudioType.MPEG;
+				case ".aif":
+				case ".aiff":
+					return AudioType.AIFF;
+				default:
+					return AudioType.UNKNOWN;
+			}
+		}
+
+		private static async Task<AudioClip> LoadAudioClipRuntime(string fileName, byte[] bytes, CancellationToken cancellationToken)
+		{
+			if (bytes == null || bytes.Length == 0) {
+				return null;
+			}
+
+			var audioType = GetAudioType(fileName);
+			if (audioType == AudioType.UNKNOWN) {
+				Logger.Warn($"Unsupported sound format for runtime loading: {fileName}");
+				return null;
+			}
+
+			Directory.CreateDirectory(Application.temporaryCachePath);
+			var extension = Path.GetExtension(fileName);
+			var tempPath = Path.Combine(Application.temporaryCachePath, $"vpe-audio-{Guid.NewGuid():N}{extension}");
+			try {
+				File.WriteAllBytes(tempPath, bytes);
+				var uri = new Uri(tempPath).AbsoluteUri;
+				using var request = UnityWebRequestMultimedia.GetAudioClip(uri, audioType);
+				var op = request.SendWebRequest();
+				while (!op.isDone) {
+					cancellationToken.ThrowIfCancellationRequested();
+					await Task.Yield();
+				}
+
+				if (request.result != UnityWebRequest.Result.Success) {
+					Logger.Warn($"Failed to load audio file {fileName}: {request.error}");
+					return null;
+				}
+
+				var clip = DownloadHandlerAudioClip.GetContent(request);
+				if (clip) {
+					clip.name = Path.GetFileNameWithoutExtension(fileName);
+				}
+				return clip;
+
+			} finally {
+				try {
+					if (File.Exists(tempPath)) {
+						File.Delete(tempPath);
+					}
+				} catch (Exception) {
+					// best effort cleanup
+				}
+			}
+		}
 
 		#endregion
 

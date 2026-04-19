@@ -269,7 +269,7 @@ namespace VisualPinball.Unity.Editor
 			foreach (var t in _table.transform.GetComponentsInChildren<Transform>(!ExportActivesOnly)) {
 
 				// for each game object, loop through all components
-				var key = t.GetPath(_table.transform);
+				var key = GetPackagePath(t, _table.transform, ExportActivesOnly);
 				var counters = new Dictionary<string, int>();
 				var itemData = getItemData?.Invoke(t.gameObject);
 
@@ -348,6 +348,51 @@ namespace VisualPinball.Unity.Editor
 
 			Debug.LogWarning($"Unknown component {comp.GetType()} ({comp.name})");
 			return null;
+		}
+
+		private static string GetPackagePath(Transform transform, Transform root, bool activeOnly)
+		{
+			if (!transform) {
+				return "0";
+			}
+
+			if (transform == root) {
+				return "0";
+			}
+
+			var path = string.Empty;
+			var current = transform;
+			while (current != null && current != root) {
+				var siblingIndex = GetPackageSiblingIndex(current, activeOnly);
+				path = string.IsNullOrEmpty(path) ? $"{siblingIndex}" : $"{siblingIndex}.{path}";
+				current = current.parent;
+			}
+
+			return string.IsNullOrEmpty(path) ? "0" : $"0.{path}";
+		}
+
+		private static int GetPackageSiblingIndex(Transform transform, bool activeOnly)
+		{
+			if (!activeOnly || transform.parent == null) {
+				return transform.GetSiblingIndex();
+			}
+
+			var parent = transform.parent;
+			var activeSiblingIndex = 0;
+			for (var childIndex = 0; childIndex < parent.childCount; childIndex++) {
+				var sibling = parent.GetChild(childIndex);
+				if (!sibling.gameObject.activeInHierarchy) {
+					continue;
+				}
+
+				if (sibling == transform) {
+					return activeSiblingIndex;
+				}
+
+				activeSiblingIndex++;
+			}
+
+			return transform.GetSiblingIndex();
 		}
 
 

@@ -90,7 +90,7 @@ namespace VisualPinball.Unity
 
 		public ReferencePackable PackReference<T>(T comp) where T : Component
 			=> comp != null
-				? new ReferencePackable(comp.transform.GetPath(_tableRoot), GetName(comp.GetType()))
+				? new ReferencePackable(comp.transform.GetPath(_tableRoot, activeOnly: true), GetName(comp.GetType()))
 				: new ReferencePackable(null, null);
 
 		public T Resolve<T>(ReferencePackable packedRef) where T: class

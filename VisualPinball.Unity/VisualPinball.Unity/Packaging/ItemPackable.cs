@@ -31,6 +31,25 @@ namespace VisualPinball.Unity
 
 		private bool IsEmpty => string.IsNullOrEmpty(PrefabGuid) && IsActive && !IsStatic;
 
+		public void ApplyRuntime(GameObject go)
+		{
+			go.SetActive(IsActive);
+			go.isStatic = IsStatic;
+		}
+
+		public static ItemPackable Unpack(byte[] data)
+		{
+			if (data == null || data.Length == 0) {
+				return new ItemPackable {
+					IsActive = true,
+					IsStatic = false,
+					PrefabGuid = null
+				};
+			}
+
+			return PackageApi.Packer.Unpack<ItemPackable>(data);
+		}
+
 #if UNITY_EDITOR
 		public static ItemPackable Instantiate(GameObject go)
 		{
@@ -69,7 +88,6 @@ namespace VisualPinball.Unity
 			UnityEditor.GameObjectUtility.SetStaticEditorFlags(go, IsStatic ? (UnityEditor.StaticEditorFlags)127 : 0);
 		}
 
-		public static ItemPackable Unpack(byte[] data) => PackageApi.Packer.Unpack<ItemPackable>(data);
 		public byte[] Pack() => IsEmpty ? Array.Empty<byte>() : PackageApi.Packer.Pack(this);
 #endif
 	}

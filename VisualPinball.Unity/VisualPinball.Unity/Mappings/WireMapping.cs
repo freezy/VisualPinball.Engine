@@ -74,8 +74,8 @@ namespace VisualPinball.Unity
 
 		public void SaveReferences(Transform tableRoot)
 		{
-			_sourceDevicePath = _sourceDevice ? _sourceDevice.gameObject.transform.GetPath(tableRoot) : null;
-			_destinationDevicePath = _destinationDevice ? _destinationDevice.gameObject.transform.GetPath(tableRoot) : null;
+			_sourceDevicePath = _sourceDevice ? _sourceDevice.gameObject.transform.GetPath(tableRoot, activeOnly: true) : null;
+			_destinationDevicePath = _destinationDevice ? _destinationDevice.gameObject.transform.GetPath(tableRoot, activeOnly: true) : null;
 		}
 
 		public void RestoreReferences(Transform tableRoot)
