@@ -27,6 +27,7 @@ using Newtonsoft.Json;
 using NLog;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 using Debug = UnityEngine.Debug;
 using Logger = NLog.Logger;
 using Object = UnityEngine.Object;
@@ -73,15 +74,15 @@ namespace VisualPinball.Unity.Editor
 			_metaFolder = _tableFolder.AddFolder(PackageApi.MetaFolder);
 			_files = new PackagedFiles(_tableFolder, _refs);
 
-			// write scene data
+			// prepare scene data
 			var sw1 = Stopwatch.StartNew();
-			await WriteScene();
-			Logger.Info($"Scene written in {sw1.ElapsedMilliseconds}ms.");
+			var saveScene = PrepareScene();
+			Logger.Info($"Scene prepared in {sw1.ElapsedMilliseconds}ms.");
 
-			// write non-scene meshes
+			// prepare non-scene meshes
 			sw1 = Stopwatch.StartNew();
-			await WriteColliderMeshes();
-			Logger.Info($"Collider meshes written in {sw1.ElapsedMilliseconds}ms.");
+			var saveColliderMeshes = PrepareColliderMeshes();
+			Logger.Info($"Collider meshes prepared in {sw1.ElapsedMilliseconds}ms.");
 
 			// write component data
 			sw1 = Stopwatch.StartNew();
@@ -108,19 +109,36 @@ namespace VisualPinball.Unity.Editor
 			_files.PackSoundMetas();
 			Logger.Info($"Assets and files written in {sw1.ElapsedMilliseconds}ms.");
 
+			// glTFast still reads Unity mesh data at the start of SaveToStreamAndDispose. Start both saves while
+			// we're still on the main thread, but write into memory first because the package zip stream only
+			// supports one active file entry at a time.
+			sw1 = Stopwatch.StartNew();
+			var saveSceneTask = saveScene();
+			var saveColliderMeshesTask = saveColliderMeshes?.Invoke();
+
+			var sceneData = await saveSceneTask;
+			WritePackageFile(_tableFolder, PackageApi.SceneFile, sceneData);
+			Logger.Info($"Scene written in {sw1.ElapsedMilliseconds}ms ({sceneData.Length} bytes).");
+
+			if (saveColliderMeshesTask != null) {
+				sw1 = Stopwatch.StartNew();
+				var colliderMeshesData = await saveColliderMeshesTask;
+				WritePackageFile(_tableFolder, PackageApi.ColliderMeshesFile, colliderMeshesData);
+				Logger.Info($"Collider meshes written in {sw1.ElapsedMilliseconds}ms ({colliderMeshesData.Length} bytes).");
+			}
+
 			storage.Close();
 			sw.Stop();
 			Debug.Log($"Done! File saved to {path} in {sw.ElapsedMilliseconds}ms.");
 		}
 
-		private async Task WriteScene()
+		private Func<Task<byte[]>> PrepareScene()
 		{
 			// make table meshes readable
 			var meshFilters = _table.GetComponentsInChildren<MeshFilter>(!ExportActivesOnly);
 			var skinnedMeshRenderers = _table.GetComponentsInChildren<SkinnedMeshRenderer>(!ExportActivesOnly);
 			SetMeshesReadable(meshFilters, skinnedMeshRenderers);
 
-			var glbFile = _tableFolder.AddFile(PackageApi.SceneFile);
 			var logger = new ConsoleLogger();
 
 			#region glTF Settings
@@ -170,20 +188,33 @@ namespace VisualPinball.Unity.Editor
 			#endregion
 
 			var export = new GameObjectExport(exportSettings, gameObjectExportSettings, logger: logger);
-			export.AddScene(new [] { _table }, _table.transform.worldToLocalMatrix, "VPE Table");
+			var disabledRenderers = DisableInvalidMeshRenderers(meshFilters, skinnedMeshRenderers, _table.transform);
+			try {
+				export.AddScene(new [] { _table }, _table.transform.worldToLocalMatrix, "VPE Table");
 
-			await export.SaveToStreamAndDispose(glbFile.AsStream());
+			} finally {
+				RestoreDisabledRenderers(disabledRenderers);
+			}
+
+			return () => SaveGltfToBytes(export);
 		}
 
-		private async Task WriteColliderMeshes()
+		private Func<Task<byte[]>> PrepareColliderMeshes()
 		{
 			var meshGos = new List<GameObject>();
 			var colliderMeshesMeta = new Dictionary<string, ColliderMeshMetaPackable>();
+			GameObjectExport export = null;
 			try {
 				foreach (var colMesh in _table.GetComponentsInChildren<IColliderMesh>(!ExportActivesOnly)) {
 					for (var index = 0; index < colMesh.NumColliderMeshes; index++) {
 						var mesh = colMesh.GetColliderMesh(index);
 						if (!mesh) {
+							continue;
+						}
+						if (IsInvalidMeshForGltfExport(mesh, out var reason)) {
+							var path = ((Component)colMesh).transform.GetPath(_table.transform);
+							Logger.Warn($"Skipping collider mesh '{mesh.name}' for '{path}' during package export because {reason}.");
+							Debug.LogWarning($"Skipping collider mesh '{mesh.name}' for '{path}' during package export because {reason}.", (Object)colMesh);
 							continue;
 						}
 						var guid = Guid.NewGuid().ToString();
@@ -199,14 +230,12 @@ namespace VisualPinball.Unity.Editor
 
 				if (meshGos.Count > 0) {
 					Logger.Info($"Found {meshGos.Count} collider meshes.");
-					var glbFile = _tableFolder.AddFile(PackageApi.ColliderMeshesFile);
 					var logger = new ConsoleLogger();
 					var exportSettings = new ExportSettings {
 						Format = GltfFormat.Binary,
 					};
-					var export = new GameObjectExport(exportSettings, logger: logger);
+					export = new GameObjectExport(exportSettings, logger: logger);
 					export.AddScene(meshGos.ToArray(), _table.transform.worldToLocalMatrix, "Colliders");
-					await export.SaveToStreamAndDispose(glbFile.AsStream());
 
 					var glbMeta = _metaFolder.AddFile(PackageApi.ColliderMeshesMeta, PackageApi.Packer.FileExtension);
 					glbMeta.SetData(PackageApi.Packer.Pack(colliderMeshesMeta));
@@ -219,6 +248,8 @@ namespace VisualPinball.Unity.Editor
 					Object.DestroyImmediate(meshGo);
 				}
 			}
+
+			return export == null ? null : () => SaveGltfToBytes(export);
 		}
 
 		/// <summary>
@@ -252,6 +283,10 @@ namespace VisualPinball.Unity.Editor
 
 				foreach (var component in t.gameObject.GetComponents<Component>()) {
 					switch (component) {
+						case null:
+							Debug.LogWarning($"Skipping missing component on {key} during package export.", t.gameObject);
+							break;
+
 						case IPackable packageable: {
 
 							var packName = _refs.GetName(packageable.GetType());
@@ -293,6 +328,10 @@ namespace VisualPinball.Unity.Editor
 
 		private byte[] PackNativeComponent(Component comp)
 		{
+			if (!comp) {
+				return null;
+			}
+
 			if (_refs.HasType(comp.GetType())) {
 
 				try {
@@ -337,6 +376,22 @@ namespace VisualPinball.Unity.Editor
 			_globalFolder.AddFile(PackageApi.LampsFile, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Lamps));
 		}
 
+		private static async Task<byte[]> SaveGltfToBytes(GameObjectExport export)
+		{
+			using var stream = new MemoryStream();
+			await export.SaveToStreamAndDispose(stream);
+			return stream.ToArray();
+		}
+
+		private static void WritePackageFile(IPackageFolder folder, string fileName, byte[] data)
+		{
+			if (data == null || data.Length == 0) {
+				throw new InvalidOperationException($"Cannot write empty package file '{fileName}'.");
+			}
+
+			folder.AddFile(fileName).SetData(data);
+		}
+
 		private static void SetMeshesReadable(MeshFilter[] meshFilters, SkinnedMeshRenderer[] skinnedMeshRenderers)
 		{
 			// Keep track of which assets we've changed to avoid re-importing multiple times
@@ -376,6 +431,77 @@ namespace VisualPinball.Unity.Editor
 				modelImporter.SaveAndReimport(); // Force re-import
 				changedAssets.Add(assetPath);
 			}
+		}
+
+		private static List<Renderer> DisableInvalidMeshRenderers(MeshFilter[] meshFilters, SkinnedMeshRenderer[] skinnedMeshRenderers, Transform root)
+		{
+			var disabledRenderers = new List<Renderer>();
+
+			foreach (var mf in meshFilters) {
+				var renderer = mf.GetComponent<Renderer>();
+				if (renderer && renderer.enabled && IsInvalidMeshForGltfExport(mf.sharedMesh, out var reason)) {
+					DisableRendererForExport(renderer, mf.sharedMesh, root, reason, disabledRenderers);
+				}
+			}
+
+			foreach (var smr in skinnedMeshRenderers) {
+				if (smr.enabled && IsInvalidMeshForGltfExport(smr.sharedMesh, out var reason)) {
+					DisableRendererForExport(smr, smr.sharedMesh, root, reason, disabledRenderers);
+				}
+			}
+
+			return disabledRenderers;
+		}
+
+		private static void DisableRendererForExport(Renderer renderer, Mesh mesh, Transform root, string reason, List<Renderer> disabledRenderers)
+		{
+			if (disabledRenderers.Contains(renderer)) {
+				return;
+			}
+
+			renderer.enabled = false;
+			disabledRenderers.Add(renderer);
+
+			var path = renderer.transform.GetPath(root);
+			var meshName = mesh ? mesh.name : "<none>";
+			Logger.Warn($"Skipping mesh '{meshName}' on '{path}' during package export because {reason}.");
+			Debug.LogWarning($"Skipping mesh '{meshName}' on '{path}' during package export because {reason}.", renderer);
+		}
+
+		private static void RestoreDisabledRenderers(List<Renderer> disabledRenderers)
+		{
+			foreach (var renderer in disabledRenderers) {
+				if (renderer) {
+					renderer.enabled = true;
+				}
+			}
+		}
+
+		private static bool IsInvalidMeshForGltfExport(Mesh mesh, out string reason)
+		{
+			if (!mesh) {
+				reason = "no mesh is assigned";
+				return true;
+			}
+			if (mesh.vertexCount == 0) {
+				reason = "it has no vertices";
+				return true;
+			}
+			if (mesh.subMeshCount == 0) {
+				reason = "it has no submeshes";
+				return true;
+			}
+			if (mesh.GetVertexAttributes().Length == 0) {
+				reason = "it has no vertex attributes";
+				return true;
+			}
+			if (!mesh.HasVertexAttribute(VertexAttribute.Position)) {
+				reason = "it has no position vertex attribute";
+				return true;
+			}
+
+			reason = null;
+			return false;
 		}
 	}
 }
