@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -23,6 +24,7 @@ namespace VisualPinball.Unity
 	public static class TransformExtensions
 	{
 		private const string NodeSeparator = ".";
+		public static IReadOnlyDictionary<string, int[]> SparsePathIndexMap { get; set; }
 
 		public static void SetFromMatrix(this Transform tf, Matrix4x4 trs)
 		{
@@ -82,19 +84,104 @@ namespace VisualPinball.Unity
 			transform.rotation = Quaternion.LookRotation(newForward, newUp);
 		}
 
-		public static string GetPath(this Transform transform, Transform root = null, string path = "")
+		public static string GetPath(this Transform transform, Transform root = null, string path = "", bool activeOnly = false)
 		{
-			var name = $"{transform.GetSiblingIndex()}";
+			var name = $"{GetPathSiblingIndex(transform, activeOnly)}";
 			if (transform == root || transform.parent == null) {
 				var suffix = string.IsNullOrEmpty(path) ? "" : NodeSeparator;
 				return $"0{suffix}{path}";
 			}
-			return $"{transform.parent.GetPath(root, path)}{NodeSeparator}{name}";
+			return $"{transform.parent.GetPath(root, path, activeOnly)}{NodeSeparator}{name}";
 		}
 
 		public static Transform FindByPath(this Transform transform, string path)
 		{
-			return path == "0" ? transform : transform.FindChildrenByPath(path[2..]);
+			if (!transform || string.IsNullOrWhiteSpace(path)) {
+				return null;
+			}
+
+			if (path == "0") {
+				return transform;
+			}
+
+			if (path.Length <= 2 || path[0] != '0' || path[1] != NodeSeparator[0]) {
+				return null;
+			}
+
+			if (transform.TryFindChildrenByPath(path[2..], out var found)) {
+				return found;
+			}
+
+			return SparsePathIndexMap != null && transform.TryFindByPathMapped(path, SparsePathIndexMap, out found)
+				? found
+				: null;
+		}
+
+		public static bool TryFindByPath(this Transform transform, string path, out Transform found)
+		{
+			found = null;
+			if (!transform || string.IsNullOrWhiteSpace(path)) {
+				return false;
+			}
+
+			if (path == "0") {
+				found = transform;
+				return true;
+			}
+
+			if (path.Length <= 2 || path[0] != '0' || path[1] != NodeSeparator[0]) {
+				return false;
+			}
+
+			return transform.TryFindChildrenByPath(path[2..], out found);
+		}
+
+		public static bool TryFindByPathMapped(this Transform transform, string path, IReadOnlyDictionary<string, int[]> sparseIndexMap, out Transform found)
+		{
+			found = null;
+			if (!transform || string.IsNullOrWhiteSpace(path)) {
+				return false;
+			}
+
+			if (path == "0") {
+				found = transform;
+				return true;
+			}
+
+			if (path.Length <= 2 || path[0] != '0' || path[1] != NodeSeparator[0]) {
+				return false;
+			}
+
+			var segments = path.Split(NodeSeparator[0]);
+			if (segments.Length < 2 || segments[0] != "0") {
+				return false;
+			}
+
+			var current = transform;
+			var parentPath = "0";
+			for (var segmentIndex = 1; segmentIndex < segments.Length; segmentIndex++) {
+				if (!int.TryParse(segments[segmentIndex], out var requestedIndex)) {
+					return false;
+				}
+
+				var denseIndex = requestedIndex;
+				if (sparseIndexMap != null && sparseIndexMap.TryGetValue(parentPath, out var sparseChildren) && sparseChildren != null && sparseChildren.Length > 0) {
+					var sparsePosition = Array.BinarySearch(sparseChildren, requestedIndex);
+					if (sparsePosition >= 0) {
+						denseIndex = sparsePosition;
+					}
+				}
+
+				if (denseIndex < 0 || denseIndex >= current.childCount) {
+					return false;
+				}
+
+				current = current.GetChild(denseIndex);
+				parentPath = $"{parentPath}.{requestedIndex}";
+			}
+
+			found = current;
+			return true;
 		}
 
 		private static Transform FindChildrenByPath(this Transform transform, string path)
@@ -107,6 +194,52 @@ namespace VisualPinball.Unity
 					: transform.GetChild(index).FindChildrenByPath(path[(indexOfSeparator + 1)..]);
 			}
 			throw new InvalidOperationException($"Cannot parse index {firstIndex}.");
+		}
+
+		private static bool TryFindChildrenByPath(this Transform transform, string path, out Transform found)
+		{
+			found = null;
+			if (!transform) {
+				return false;
+			}
+
+			var indexOfSeparator = path.IndexOf(NodeSeparator[0]);
+			var firstIndex = indexOfSeparator == -1 ? path : path[..indexOfSeparator];
+			if (!int.TryParse(firstIndex, out var index) || index < 0 || index >= transform.childCount) {
+				return false;
+			}
+
+			var child = transform.GetChild(index);
+			if (indexOfSeparator == -1) {
+				found = child;
+				return true;
+			}
+
+			return child.TryFindChildrenByPath(path[(indexOfSeparator + 1)..], out found);
+		}
+
+		private static int GetPathSiblingIndex(Transform transform, bool activeOnly)
+		{
+			if (!activeOnly || transform.parent == null) {
+				return transform.GetSiblingIndex();
+			}
+
+			var parent = transform.parent;
+			var activeSiblingIndex = 0;
+			for (var childIndex = 0; childIndex < parent.childCount; childIndex++) {
+				var sibling = parent.GetChild(childIndex);
+				if (!sibling.gameObject.activeInHierarchy) {
+					continue;
+				}
+
+				if (sibling == transform) {
+					return activeSiblingIndex;
+				}
+
+				activeSiblingIndex++;
+			}
+
+			return transform.GetSiblingIndex();
 		}
 	}
 }
