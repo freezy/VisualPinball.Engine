@@ -84,6 +84,7 @@ namespace VisualPinball.Unity.Editor
 				});
 
 				ReadGlobals();
+				ReadTableMetadata();
 
 			} finally {
 				storage.Close();
@@ -203,6 +204,18 @@ namespace VisualPinball.Unity.Editor
 			}
 			foreach (var wire in tableComponent.MappingConfig.Wires) {
 				wire.RestoreReferences(_table.transform);
+			}
+		}
+
+		private void ReadTableMetadata()
+		{
+			var tableComponent = _table.GetComponent<TableComponent>();
+			if (!tableComponent) {
+				throw new Exception("Cannot find table component on table object.");
+			}
+
+			if (_tableFolder.TryGetFile(PackageApi.TableMetadataFile, out var tableMetadataFile, PackageApi.Packer.FileExtension)) {
+				tableComponent.Metadata = PackageApi.Packer.Unpack<TableMetadata>(tableMetadataFile.GetData()) ?? new TableMetadata();
 			}
 		}
 	}

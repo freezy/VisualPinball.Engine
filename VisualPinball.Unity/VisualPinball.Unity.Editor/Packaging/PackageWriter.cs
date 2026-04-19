@@ -100,6 +100,7 @@ namespace VisualPinball.Unity.Editor
 
 			// write globals
 			sw1 = Stopwatch.StartNew();
+			WriteTableMetadata();
 			WriteGlobals();
 			Logger.Info($"Globals written in {sw1.ElapsedMilliseconds}ms.");
 
@@ -374,6 +375,17 @@ namespace VisualPinball.Unity.Editor
 			_globalFolder.AddFile(PackageApi.CoilsFile, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Coils));
 			_globalFolder.AddFile(PackageApi.WiresFile, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Wires));
 			_globalFolder.AddFile(PackageApi.LampsFile, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Lamps));
+		}
+
+		private void WriteTableMetadata()
+		{
+			var tableComponent = _table.GetComponent<TableComponent>();
+			if (!tableComponent) {
+				throw new Exception("Cannot find table component on table object.");
+			}
+
+			tableComponent.Metadata ??= new TableMetadata();
+			_tableFolder.AddFile(PackageApi.TableMetadataFile, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.Metadata));
 		}
 
 		private static async Task<byte[]> SaveGltfToBytes(GameObjectExport export)

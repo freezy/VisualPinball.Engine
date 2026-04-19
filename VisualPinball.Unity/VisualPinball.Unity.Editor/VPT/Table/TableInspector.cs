@@ -30,12 +30,15 @@ namespace VisualPinball.Unity.Editor
 		protected override MonoBehaviour UndoTarget => target as MonoBehaviour;
 
 		private SerializedProperty _globalDifficultyProperty;
+		private SerializedProperty _metadataProperty;
+		private bool _packageFoldout;
 
 		protected override void OnEnable()
 		{
 			base.OnEnable();
 
 			_globalDifficultyProperty = serializedObject.FindProperty(nameof(TableComponent.GlobalDifficulty));
+			_metadataProperty = serializedObject.FindProperty(nameof(TableComponent.Metadata));
 		}
 
 		public override void OnInspectorGUI()
@@ -46,9 +49,17 @@ namespace VisualPinball.Unity.Editor
 
 			PropertyField(_globalDifficultyProperty);
 
+			EditorGUILayout.Space();
+			_packageFoldout = EditorGUILayout.Foldout(_packageFoldout, "Package", true);
+			if (_packageFoldout) {
+				EditorGUI.indentLevel++;
+				EditorGUILayout.PropertyField(_metadataProperty, true);
+				EditorGUI.indentLevel--;
+			}
+
 			EndEditing();
 
-			if (!EditorApplication.isPlaying) {
+			if (_packageFoldout && !EditorApplication.isPlaying) {
 				//DrawDefaultInspector();
 				const string ext = "vpe";
 				if (GUILayout.Button($"Save as .{ext}")) {
