@@ -102,6 +102,7 @@ namespace VisualPinball.Unity.Editor
 			sw1 = Stopwatch.StartNew();
 			WriteTableMetadata();
 			WriteGlobals();
+			WriteMaterialProfiles();
 			Logger.Info($"Globals written in {sw1.ElapsedMilliseconds}ms.");
 
 			// write assets & co
@@ -179,7 +180,11 @@ namespace VisualPinball.Unity.Editor
 				// Include inactive GameObjects in export
 				OnlyActiveInHierarchy = ExportActivesOnly,
 
-				// Also export disabled components
+				// Keep disabled components out of the export. Insert/lamp Light components are
+				// typically disabled at author time (LightComponent.Awake flips them on when a
+				// lamp fires); we temporarily re-enable them below so they flow into the glb,
+				// then restore. Flipping DisabledComponents=true wholesale would also drag in
+				// disabled MeshRenderers with degenerate meshes that crash gltFast.
 				DisabledComponents = false
 
 				// Only export GameObjects on certain layers
@@ -190,14 +195,41 @@ namespace VisualPinball.Unity.Editor
 
 			var export = new GameObjectExport(exportSettings, gameObjectExportSettings, logger: logger);
 			var disabledRenderers = DisableInvalidMeshRenderers(meshFilters, skinnedMeshRenderers, _table.transform);
+			var reenabledLights = EnableDisabledLights();
 			try {
 				export.AddScene(new [] { _table }, _table.transform.worldToLocalMatrix, "VPE Table");
 
 			} finally {
+				RestoreDisabledLights(reenabledLights);
 				RestoreDisabledRenderers(disabledRenderers);
 			}
 
 			return () => SaveGltfToBytes(export);
+		}
+
+		// Temporarily re-enables Light components that are disabled at author time so gltFast
+		// emits them into the KHR_lights_punctual extension. Inserts and flasher bulbs are the
+		// main targets: VPE's LightComponent disables the Unity Light by default and only
+		// enables it while a lamp is actively firing at runtime.
+		private List<Light> EnableDisabledLights()
+		{
+			var toRestore = new List<Light>();
+			foreach (var light in _table.GetComponentsInChildren<Light>(!ExportActivesOnly)) {
+				if (!light.enabled) {
+					light.enabled = true;
+					toRestore.Add(light);
+				}
+			}
+			return toRestore;
+		}
+
+		private static void RestoreDisabledLights(List<Light> reenabledLights)
+		{
+			foreach (var light in reenabledLights) {
+				if (light) {
+					light.enabled = false;
+				}
+			}
 		}
 
 		private Func<Task<byte[]>> PrepareColliderMeshes()
@@ -294,7 +326,8 @@ namespace VisualPinball.Unity.Editor
 							counters.TryAdd(packName, 0);
 
 							var packableData = getPackableData(packageable);
-							if (packableData?.Length > 0) {
+							var shouldWriteEmptyMarker = folderName == PackageApi.ItemFolder && (packableData == null || packableData.Length == 0);
+							if (packableData?.Length > 0 || shouldWriteEmptyMarker) {
 
 								// rootName / -> 0.0.0 <- / CompType / 0
 								itemPathFolder ??= folder.AddFolder(key);
@@ -306,7 +339,7 @@ namespace VisualPinball.Unity.Editor
 
 								// rootName / 0.0.0 / CompType / -> 0 <-
 								var itemComponentFile = itemComponentFolder.AddFile($"{counters[packName]++}", PackageApi.Packer.FileExtension);
-								itemComponentFile.SetData(packableData);
+								itemComponentFile.SetData(packableData?.Length > 0 ? packableData : PackageApi.Packer.Empty);
 							}
 							break;
 						}
@@ -431,6 +464,40 @@ namespace VisualPinball.Unity.Editor
 
 			tableComponent.Metadata ??= new TableMetadata();
 			_tableFolder.AddFile(PackageApi.TableMetadataFile, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.Metadata));
+		}
+
+		private void WriteMaterialProfiles()
+		{
+			var renderers = _table.GetComponentsInChildren<Renderer>(!ExportActivesOnly);
+
+			var capture = VpeMaterialV1Translator.Capture(renderers);
+			var payload = capture.Payload;
+			if (payload.Profiles == null || payload.Profiles.Length == 0) {
+				return;
+			}
+
+			var textureCount = 0;
+			var textureBytes = 0L;
+			if (capture.TextureBlobs.Count > 0) {
+				var texturesFolder = _metaFolder.AddFolder(PackageApi.TexturesV1Folder);
+				foreach (var entry in capture.TextureBlobs) {
+					if (entry.Value == null || entry.Value.Length == 0) {
+						continue;
+					}
+					texturesFolder.AddFile(entry.Key).SetData(entry.Value);
+					textureCount++;
+					textureBytes += entry.Value.Length;
+				}
+			}
+
+			_metaFolder
+				.AddFile(PackageApi.MaterialsV1File, PackageApi.Packer.FileExtension)
+				.SetData(PackageApi.Packer.Pack(payload));
+
+			Logger.Info(
+				$"Wrote vpe.material v1 payload: {payload.Profiles.Length} profile(s), " +
+				$"{textureCount} texture(s) ({textureBytes / 1024f / 1024f:F2} MB) at " +
+				$"{PackageApi.MetaFolder}/{PackageApi.TexturesV1Folder}.");
 		}
 
 		private static async Task<byte[]> SaveGltfToBytes(GameObjectExport export)

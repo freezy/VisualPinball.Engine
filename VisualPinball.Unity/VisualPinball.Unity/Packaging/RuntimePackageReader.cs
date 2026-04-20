@@ -88,17 +88,36 @@ namespace VisualPinball.Unity
 							}
 						});
 
-						ReadPackables(PackageApi.ItemReferencesFolder, null, (item, type, file, _) => {
-							var comp = item.gameObject.GetComponent(type) as IPackable;
+						ReadPackables(PackageApi.ItemReferencesFolder, null, (item, type, file, index) => {
+							var comps = item.gameObject.GetComponents(type);
+							var comp = comps.Length > index
+								? comps[index]
+								: item.gameObject.AddComponent(type);
 							if (comp == null) {
-								Logger.Warn($"Cannot unpack references for type {type.FullName} on {item.name}.");
+								Logger.Warn($"Cannot create component of type {type.FullName} on {item.name}.");
 								return;
 							}
-							comp.UnpackReferences(file.GetData(), _table.transform, _refs, _files);
+							if (comp is not IPackable packable) {
+								Logger.Warn($"Cannot unpack references for type {type.FullName} on {item.name} because the component does not implement {nameof(IPackable)}.");
+								return;
+							}
+
+							// Some components are intentionally refs-only and return null from Pack().
+							// Ensure they still get created so UnpackReferences can restore wiring.
+							if (comps.Length <= index) {
+								Logger.Info($"Created refs-only component {type.FullName} on {item.name} (index {index}).");
+							}
+
+							try {
+								packable.UnpackReferences(file.GetData(), _table.transform, _refs, _files);
+							} catch (Exception ex) {
+								Logger.Warn(ex, $"Failed unpacking references for type {type.FullName} on {item.name} (index {index}).");
+							}
 						});
 
 						ReadGlobals();
 						ReadTableMetadata();
+						RestoreMaterialProfiles();
 						loadSucceeded = true;
 
 					} finally {
@@ -404,6 +423,15 @@ namespace VisualPinball.Unity
 			if (_tableFolder.TryGetFile(PackageApi.TableMetadataFile, out var tableMetadataFile, PackageApi.Packer.FileExtension)) {
 				tableComponent.Metadata = PackageApi.Packer.Unpack<TableMetadata>(tableMetadataFile.GetData()) ?? new TableMetadata();
 			}
+		}
+
+		private void RestoreMaterialProfiles()
+		{
+			if (!_tableFolder.TryGetFolder(PackageApi.MetaFolder, out var metaFolder)) {
+				return;
+			}
+
+			VpeMaterialV1Reader.TryApply(metaFolder, _table.transform);
 		}
 
 		private void DestroyLoadedTable()
