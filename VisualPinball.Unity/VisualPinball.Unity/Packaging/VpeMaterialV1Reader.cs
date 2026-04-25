@@ -16,6 +16,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
 using NLog;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -48,10 +50,15 @@ namespace VisualPinball.Unity
 				return false;
 			}
 
-			return TryApply(payload, metaFolder, tableRoot, PackageApi.MaterialsV1File);
+			return TryApply(payload, embeddedTextureBlobsById: null, metaFolder, tableRoot, PackageApi.MaterialsV1File);
 		}
 
-		public static bool TryApply(VpeMaterialsPayloadV1 payload, IPackageFolder metaFolder, Transform tableRoot, string sourceLabel)
+		public static bool TryApply(
+			VpeMaterialsPayloadV1 payload,
+			IReadOnlyDictionary<string, byte[]> embeddedTextureBlobsById,
+			IPackageFolder metaFolder,
+			Transform tableRoot,
+			string sourceLabel)
 		{
 			if (payload == null || !tableRoot || payload.Profiles == null || payload.Profiles.Length == 0) {
 				return false;
@@ -73,11 +80,18 @@ namespace VisualPinball.Unity
 			}
 
 			var profilesByName = BuildProfileLookup(payload.Profiles);
+			var resolvedMaterialsByImportedId = new Dictionary<int, Material>();
+			var resolvedMaterialsBySignature = new Dictionary<string, Material>(StringComparer.Ordinal);
 			IPackageFolder texturesFolder = null;
 			metaFolder?.TryGetFolder(PackageApi.TexturesV1Folder, out texturesFolder);
-			using var textures = new TextureProvider(payload.Textures, texturesFolder);
+			byte[] packedTextureData = null;
+			if (metaFolder != null && metaFolder.TryGetFile(PackageApi.TexturesV1PackFile, out var packedTexturesFile)) {
+				packedTextureData = packedTexturesFile.GetData();
+			}
+			using var textures = new TextureProvider(payload.Textures, texturesFolder, packedTextureData, embeddedTextureBlobsById);
 
 			var stats = new Stats();
+			var materialTraversalStopwatch = Stopwatch.StartNew();
 			foreach (var renderer in tableRoot.GetComponentsInChildren<Renderer>(true)) {
 				if (!renderer) {
 					continue;
@@ -104,24 +118,56 @@ namespace VisualPinball.Unity
 						continue;
 					}
 
+					var importedMaterialId = imported.GetInstanceID();
+					if (resolvedMaterialsByImportedId.TryGetValue(importedMaterialId, out var cachedReplacement)) {
+						materials[i] = cachedReplacement;
+						modified = true;
+						stats.AppliedSlots++;
+						stats.ReusedResolvedMaterials++;
+						continue;
+					}
+
+					var semanticCacheKey = BuildResolvedMaterialCacheKey(profile, imported);
+					if (semanticCacheKey != null
+						&& resolvedMaterialsBySignature.TryGetValue(semanticCacheKey, out var signatureCachedReplacement)) {
+						resolvedMaterialsByImportedId[importedMaterialId] = signatureCachedReplacement;
+						materials[i] = signatureCachedReplacement;
+						modified = true;
+						stats.AppliedSlots++;
+						stats.ReusedResolvedMaterials++;
+						stats.ReusedResolvedMaterialSignatures++;
+						continue;
+					}
+
+					var resolverStopwatch = Stopwatch.StartNew();
 					var replacement = resolver.CreateMaterial(profile, textures, imported);
+					resolverStopwatch.Stop();
+					stats.ResolverCreateMaterialMilliseconds += resolverStopwatch.ElapsedMilliseconds;
 					if (!replacement) {
 						stats.ResolverReturnedNull++;
 						continue;
 					}
+					resolvedMaterialsByImportedId[importedMaterialId] = replacement;
+					if (semanticCacheKey != null) {
+						resolvedMaterialsBySignature[semanticCacheKey] = replacement;
+					}
 					materials[i] = replacement;
 					modified = true;
 					stats.AppliedSlots++;
+					stats.CreatedResolvedMaterials++;
 				}
 
 				if (modified) {
 					renderer.sharedMaterials = materials;
 				}
 			}
+			materialTraversalStopwatch.Stop();
+			stats.MaterialTraversalMilliseconds = materialTraversalStopwatch.ElapsedMilliseconds;
 
 			// Apply per-renderer state (shadowCastingMode, receiveShadows, renderingLayerMask) that
 			// glTF doesn't carry. Paths are resolved through FindByPath so the existing
 			// SparsePathIndexMap handles any sibling-index shift introduced by the glTF round-trip.
+			var rendererStateStopwatch = Stopwatch.StartNew();
 			if (payload.RendererStates != null) {
 				foreach (var state in payload.RendererStates) {
 					if (state == null || string.IsNullOrEmpty(state.Path)) {
@@ -140,6 +186,8 @@ namespace VisualPinball.Unity
 					stats.RendererStatesApplied++;
 				}
 			}
+			rendererStateStopwatch.Stop();
+			stats.RendererStateMilliseconds = rendererStateStopwatch.ElapsedMilliseconds;
 
 			if (stats.UnmatchedNames.Count > 0) {
 				var sample = string.Join(", ", TakeFirst(stats.UnmatchedNames, 12));
@@ -153,8 +201,16 @@ namespace VisualPinball.Unity
 				$"textures={payload.Textures?.Length ?? 0}, " +
 				$"slots={stats.TotalSlots}, matched={stats.MatchedSlots}, applied={stats.AppliedSlots}, " +
 				$"rendererStates={stats.RendererStatesApplied}/{payload.RendererStates?.Length ?? 0} (missing at import={stats.RendererStatesMissing}), " +
+				$"materialTraversalMs={stats.MaterialTraversalMilliseconds}, resolverCreateMaterialMs={stats.ResolverCreateMaterialMilliseconds}, " +
+				$"rendererStateMs={stats.RendererStateMilliseconds}, " +
 				$"resolverNull={stats.ResolverReturnedNull}, unsupportedTypes={stats.UnsupportedTypes.Count}, " +
-				$"unmatched={stats.UnmatchedNames.Count}.");
+				$"unmatched={stats.UnmatchedNames.Count}, " +
+				$"resolvedMaterialsCreated={stats.CreatedResolvedMaterials}, resolvedMaterialsReused={stats.ReusedResolvedMaterials}, " +
+				$"resolvedMaterialsSignatureReused={stats.ReusedResolvedMaterialSignatures}, " +
+				$"textureCacheHits={textures.CacheHits}, textureLoads={textures.LoadCount}, " +
+				$"textureLoadMs={textures.LoadMilliseconds}, textureBytes={textures.LoadedBytes}, " +
+				$"embeddedTextureLoads={textures.EmbeddedLoadCount}, packedTextureLoads={textures.PackedLoadCount}, " +
+				$"looseTextureLoads={textures.LooseFileLoadCount}.");
 
 			return true;
 		}
@@ -183,6 +239,69 @@ namespace VisualPinball.Unity
 			return lookup;
 		}
 
+		private static string BuildResolvedMaterialCacheKey(VpeMaterialProfileV1 profile, Material imported)
+		{
+			if (profile == null || !imported) {
+				return null;
+			}
+
+			var texturePropertyNames = imported.GetTexturePropertyNames();
+			Array.Sort(texturePropertyNames, StringComparer.Ordinal);
+
+			var builder = new StringBuilder(256);
+			builder.Append(profile.Type ?? string.Empty)
+				.Append('|')
+				.Append(imported.shader ? imported.shader.name : string.Empty);
+			AppendProfileSemanticKey(builder, profile);
+
+			foreach (var propertyName in texturePropertyNames) {
+				if (string.IsNullOrWhiteSpace(propertyName)) {
+					continue;
+				}
+
+				var texture = imported.GetTexture(propertyName);
+				builder.Append('|')
+					.Append(propertyName)
+					.Append('=')
+					.Append(texture ? texture.GetInstanceID() : 0);
+			}
+
+			return builder.ToString();
+		}
+
+		private static void AppendProfileSemanticKey(StringBuilder builder, VpeMaterialProfileV1 profile)
+		{
+			if (builder == null || profile == null) {
+				return;
+			}
+
+			byte[] payload = null;
+			switch (profile.Type) {
+				case VpeMaterialTypes.Lit:
+					if (profile.Lit != null) {
+						payload = PackageApi.Packer.Pack(profile.Lit);
+					}
+					break;
+				case VpeMaterialTypes.Decal:
+					if (profile.Decal != null) {
+						payload = PackageApi.Packer.Pack(profile.Decal);
+					}
+					break;
+				case VpeMaterialTypes.Unlit:
+					if (profile.Unlit != null) {
+						payload = PackageApi.Packer.Pack(profile.Unlit);
+					}
+					break;
+			}
+
+			if (payload == null || payload.Length == 0) {
+				return;
+			}
+
+			builder.Append("|profile=")
+				.Append(Encoding.UTF8.GetString(payload));
+		}
+
 		private static void ApplyRendererState(Renderer renderer, VpeRendererStateV1 state)
 		{
 			renderer.shadowCastingMode = (ShadowCastingMode)state.ShadowCastingMode;
@@ -200,6 +319,12 @@ namespace VisualPinball.Unity
 			public int ResolverReturnedNull;
 			public int RendererStatesApplied;
 			public int RendererStatesMissing;
+			public int CreatedResolvedMaterials;
+			public int ReusedResolvedMaterials;
+			public int ReusedResolvedMaterialSignatures;
+			public long MaterialTraversalMilliseconds;
+			public long ResolverCreateMaterialMilliseconds;
+			public long RendererStateMilliseconds;
 			public readonly HashSet<string> UnmatchedNames = new(StringComparer.Ordinal);
 			public readonly HashSet<string> UnsupportedTypes = new(StringComparer.Ordinal);
 		}
@@ -207,13 +332,28 @@ namespace VisualPinball.Unity
 		private sealed class TextureProvider : IVpeTextureProvider, IDisposable
 		{
 			private readonly Dictionary<string, VpeTextureAssetV1> _assetsById;
+			private readonly IReadOnlyDictionary<string, byte[]> _embeddedTextureBlobsById;
+			private readonly byte[] _packedTextureData;
 			private readonly IPackageFolder _folder;
 			private readonly Dictionary<string, Texture2D> _loaded = new(StringComparer.Ordinal);
 			private readonly HashSet<string> _missingTextureIdsLogged = new(StringComparer.Ordinal);
+			private long _loadedBytes;
+			private long _loadMilliseconds;
+			private int _loadCount;
+			private int _cacheHits;
+			private int _embeddedLoadCount;
+			private int _packedLoadCount;
+			private int _looseFileLoadCount;
 
-			public TextureProvider(VpeTextureAssetV1[] assets, IPackageFolder folder)
+			public TextureProvider(
+				VpeTextureAssetV1[] assets,
+				IPackageFolder folder,
+				byte[] packedTextureData,
+				IReadOnlyDictionary<string, byte[]> embeddedTextureBlobsById)
 			{
 				_folder = folder;
+				_packedTextureData = packedTextureData;
+				_embeddedTextureBlobsById = embeddedTextureBlobsById;
 				_assetsById = new Dictionary<string, VpeTextureAssetV1>(StringComparer.Ordinal);
 				if (assets == null) {
 					return;
@@ -232,42 +372,86 @@ namespace VisualPinball.Unity
 					return null;
 				}
 				if (_loaded.TryGetValue(textureId, out var cached)) {
+					_cacheHits++;
 					return cached;
 				}
-				if (!_assetsById.TryGetValue(textureId, out var asset) || _folder == null) {
-					LogMissingTexture(textureId, reason: "id-not-in-payload-or-texture-folder-missing");
-					_loaded[textureId] = null;
-					return null;
-				}
-				if (!_folder.TryGetFile(asset.FileName, out var file)) {
-					LogMissingTexture(textureId, reason: $"file-not-found:{asset.FileName}");
+				if (!_assetsById.TryGetValue(textureId, out var asset)) {
+					LogMissingTexture(textureId, reason: "id-not-in-payload");
 					_loaded[textureId] = null;
 					return null;
 				}
 
-				var bytes = file.GetData();
+				byte[] bytes = null;
+				var loadedFromEmbedded = false;
+				var loadedFromPacked = false;
+				if (_embeddedTextureBlobsById != null) {
+					_embeddedTextureBlobsById.TryGetValue(textureId, out bytes);
+					loadedFromEmbedded = bytes != null && bytes.Length > 0;
+				}
+				if ((bytes == null || bytes.Length == 0) && TryReadPackedTextureBytes(asset, out var packedBytes)) {
+					bytes = packedBytes;
+					loadedFromPacked = true;
+				}
+				if ((bytes == null || bytes.Length == 0)
+					&& _folder != null
+					&& !string.IsNullOrWhiteSpace(asset.FileName)
+					&& _folder.TryGetFile(asset.FileName, out var file)) {
+					bytes = file.GetData();
+					loadedFromEmbedded = false;
+					loadedFromPacked = false;
+				}
+
 				if (bytes == null || bytes.Length == 0) {
-					LogMissingTexture(textureId, reason: $"file-empty:{asset.FileName}");
+					string reason;
+					if (asset.GlbBufferView >= 0) {
+						reason = $"glb-bufferView-missing:{asset.GlbBufferView}";
+					} else if (asset.ByteOffset >= 0 && asset.ByteLength > 0) {
+						reason = $"packed-texture-range-missing:{asset.ByteOffset}+{asset.ByteLength}";
+					} else {
+						reason = $"file-not-found-or-empty:{asset.FileName}";
+					}
+					LogMissingTexture(textureId, reason: reason);
 					_loaded[textureId] = null;
 					return null;
 				}
 
 				var linear = string.Equals(asset.ColorSpace, VpeColorSpaces.Linear, StringComparison.OrdinalIgnoreCase);
+				var loadStopwatch = Stopwatch.StartNew();
 				var texture = new Texture2D(2, 2, TextureFormat.RGBA32, asset.GenerateMipMaps, linear) {
 					name = string.IsNullOrWhiteSpace(asset.SourceName) ? asset.Id : asset.SourceName,
 				};
 				if (!ImageConversion.LoadImage(texture, bytes, markNonReadable: true)) {
+					loadStopwatch.Stop();
 					UnityEngine.Object.Destroy(texture);
 					LogMissingTexture(textureId, reason: $"load-image-failed:{asset.FileName}");
 					_loaded[textureId] = null;
 					return null;
 				}
+				loadStopwatch.Stop();
 				texture.wrapMode = (TextureWrapMode)asset.WrapMode;
 				texture.filterMode = (FilterMode)asset.FilterMode;
 				texture.anisoLevel = Mathf.Max(1, asset.AnisoLevel);
+				_loadCount++;
+				_loadMilliseconds += loadStopwatch.ElapsedMilliseconds;
+				_loadedBytes += bytes.LongLength;
+				if (loadedFromEmbedded) {
+					_embeddedLoadCount++;
+				} else if (loadedFromPacked) {
+					_packedLoadCount++;
+				} else {
+					_looseFileLoadCount++;
+				}
 				_loaded[textureId] = texture;
 				return texture;
 			}
+
+			public int LoadCount => _loadCount;
+			public int CacheHits => _cacheHits;
+			public long LoadMilliseconds => _loadMilliseconds;
+			public long LoadedBytes => _loadedBytes;
+			public int EmbeddedLoadCount => _embeddedLoadCount;
+			public int PackedLoadCount => _packedLoadCount;
+			public int LooseFileLoadCount => _looseFileLoadCount;
 
 			public void Dispose()
 			{
@@ -282,6 +466,26 @@ namespace VisualPinball.Unity
 					return;
 				}
 				Logger.Warn($"vpe.material v1 texture lookup failed for TextureId='{textureId}' ({reason}).");
+			}
+
+			private bool TryReadPackedTextureBytes(VpeTextureAssetV1 asset, out byte[] bytes)
+			{
+				bytes = null;
+				if (asset == null
+					|| _packedTextureData == null
+					|| asset.ByteOffset < 0
+					|| asset.ByteLength <= 0) {
+					return false;
+				}
+
+				var endOffset = asset.ByteOffset + asset.ByteLength;
+				if (endOffset > _packedTextureData.Length || endOffset < asset.ByteOffset) {
+					return false;
+				}
+
+				bytes = new byte[asset.ByteLength];
+				Buffer.BlockCopy(_packedTextureData, asset.ByteOffset, bytes, 0, asset.ByteLength);
+				return true;
 			}
 		}
 	}

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -24,6 +25,14 @@ namespace VisualPinball.Unity.Editor
 	public interface IVpeMaterialV1Translator
 	{
 		VpeMaterialCaptureResult Capture(Transform tableRoot, IEnumerable<Renderer> renderers);
+	}
+
+	// Optional editor-side hook that lets a pipeline package strip VPE-managed textures from the
+	// temporary glTF export materials. This removes duplicate bytes from table.glb while keeping the
+	// authored scene materials untouched.
+	public interface IVpeMaterialGltfExportPreprocessor
+	{
+		IDisposable PrepareGltfExport(IEnumerable<Renderer> renderers);
 	}
 
 	public readonly struct VpeMaterialCaptureResult
@@ -56,6 +65,13 @@ namespace VisualPinball.Unity.Editor
 			return _active == null
 				? default
 				: _active.Capture(tableRoot, renderers);
+		}
+
+		public static IDisposable PrepareGltfExport(IEnumerable<Renderer> renderers)
+		{
+			return _active is IVpeMaterialGltfExportPreprocessor preprocessor
+				? preprocessor.PrepareGltfExport(renderers)
+				: null;
 		}
 	}
 }

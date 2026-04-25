@@ -47,6 +47,7 @@ namespace VisualPinball.Unity
 		// (renders intent with shaders it owns at its own build time).
 		public const string MaterialsV1File = "materials.v1";
 		public const string TexturesV1Folder = "textures";
+		public const string TexturesV1PackFile = "textures.bin";
 
 		public static readonly IStorageManager StorageManager = new SharpZipStorageManager();
 		// public static IStorageManager StorageManager => new OpenMcdfStorageManager();
