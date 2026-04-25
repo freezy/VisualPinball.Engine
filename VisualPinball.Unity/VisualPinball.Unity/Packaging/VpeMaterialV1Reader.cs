@@ -347,7 +347,6 @@ namespace VisualPinball.Unity
 			private int _embeddedLoadCount;
 			private int _packedLoadCount;
 			private int _looseFileLoadCount;
-
 			public TextureProvider(
 				VpeTextureAssetV1[] assets,
 				IPackageFolder folder,
@@ -419,8 +418,9 @@ namespace VisualPinball.Unity
 				}
 
 				var linear = string.Equals(asset.ColorSpace, VpeColorSpaces.Linear, StringComparison.OrdinalIgnoreCase);
+				var generateMipMaps = asset.GenerateMipMaps && !linear;
 				var loadStopwatch = Stopwatch.StartNew();
-				var texture = new Texture2D(2, 2, TextureFormat.RGBA32, asset.GenerateMipMaps, linear) {
+				var texture = new Texture2D(2, 2, TextureFormat.RGBA32, generateMipMaps, linear) {
 					name = string.IsNullOrWhiteSpace(asset.SourceName) ? asset.Id : asset.SourceName,
 				};
 				if (!ImageConversion.LoadImage(texture, bytes, markNonReadable: true)) {
