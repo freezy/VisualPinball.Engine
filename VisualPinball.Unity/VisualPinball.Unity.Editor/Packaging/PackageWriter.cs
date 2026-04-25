@@ -470,7 +470,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			var renderers = _table.GetComponentsInChildren<Renderer>(!ExportActivesOnly);
 
-			var capture = VpeMaterialV1Translator.Capture(renderers);
+			var capture = VpeMaterialV1Translator.Capture(_table.transform, renderers);
 			var payload = capture.Payload;
 			if (payload.Profiles == null || payload.Profiles.Length == 0) {
 				return;
