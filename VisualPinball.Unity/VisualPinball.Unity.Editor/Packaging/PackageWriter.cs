@@ -42,6 +42,7 @@ namespace VisualPinball.Unity.Editor
 		private PackagedFiles _files;
 		private IPackageFolder _globalFolder;
 		private IPackageFolder _metaFolder;
+		private VpeMaterialsPayloadV1 _capturedMaterialPayload;
 
 		private const bool ExportActivesOnly = true;
 
@@ -204,7 +205,7 @@ namespace VisualPinball.Unity.Editor
 				RestoreDisabledRenderers(disabledRenderers);
 			}
 
-			return () => SaveGltfToBytes(export);
+			return () => SaveGltfToBytes(export, embedMaterialPayload: true);
 		}
 
 		// Temporarily re-enables Light components that are disabled at author time so gltFast
@@ -472,12 +473,14 @@ namespace VisualPinball.Unity.Editor
 
 			var capture = VpeMaterialV1Translator.Capture(_table.transform, renderers);
 			var payload = capture.Payload;
+			_capturedMaterialPayload = null;
 			if (payload?.Profiles == null || payload.Profiles.Length == 0) {
 				if (VpeMaterialV1Translator.Active == null) {
 					Logger.Info("Skipping materials.v1 export: no IVpeMaterialV1Translator is registered.");
 				}
 				return;
 			}
+			_capturedMaterialPayload = payload;
 
 			var textureCount = 0;
 			var textureBytes = 0L;
@@ -503,11 +506,25 @@ namespace VisualPinball.Unity.Editor
 				$"{PackageApi.MetaFolder}/{PackageApi.TexturesV1Folder}.");
 		}
 
-		private static async Task<byte[]> SaveGltfToBytes(GameObjectExport export)
+		private async Task<byte[]> SaveGltfToBytes(GameObjectExport export, bool embedMaterialPayload = false)
 		{
 			using var stream = new MemoryStream();
 			await export.SaveToStreamAndDispose(stream);
-			return stream.ToArray();
+			var glbData = stream.ToArray();
+			if (!embedMaterialPayload || _capturedMaterialPayload == null) {
+				return glbData;
+			}
+
+			var payload = _capturedMaterialPayload;
+			try {
+				glbData = VpeMaterialsGltfExtension.WritePayload(glbData, payload);
+				Logger.Info(
+					$"Embedded {VpeMaterialsGltfExtension.ExtensionName} in {PackageApi.SceneFile}: " +
+					$"{payload.Profiles?.Length ?? 0} profile(s), {payload.Textures?.Length ?? 0} texture reference(s).");
+			} catch (Exception ex) {
+				Logger.Warn(ex, $"Failed embedding {VpeMaterialsGltfExtension.ExtensionName} in {PackageApi.SceneFile}. Writing plain GLB and keeping sidecar material payload.");
+			}
+			return glbData;
 		}
 
 		private static void WritePackageFile(IPackageFolder folder, string fileName, byte[] data)
