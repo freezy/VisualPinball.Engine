@@ -48,6 +48,12 @@ namespace VisualPinball.Unity
 		Texture2D Get(string textureId);
 	}
 
+	public interface IVpeMaterialResolverDiagnostics
+	{
+		void ResetDiagnostics();
+		string GetDiagnosticsSummary();
+	}
+
 	public static class VpeMaterialResolver
 	{
 		private static IVpeMaterialResolver _active;
