@@ -78,6 +78,8 @@ namespace VisualPinball.Unity
 					"will not match authoring).");
 				return false;
 			}
+			var resolverDiagnostics = resolver as IVpeMaterialResolverDiagnostics;
+			resolverDiagnostics?.ResetDiagnostics();
 
 			var profilesByName = BuildProfileLookup(payload.Profiles);
 			var resolvedMaterialsByImportedId = new Dictionary<int, Material>();
@@ -210,7 +212,8 @@ namespace VisualPinball.Unity
 				$"textureCacheHits={textures.CacheHits}, textureLoads={textures.LoadCount}, " +
 				$"textureLoadMs={textures.LoadMilliseconds}, textureBytes={textures.LoadedBytes}, " +
 				$"embeddedTextureLoads={textures.EmbeddedLoadCount}, packedTextureLoads={textures.PackedLoadCount}, " +
-				$"looseTextureLoads={textures.LooseFileLoadCount}.");
+				$"looseTextureLoads={textures.LooseFileLoadCount}, " +
+				$"resolverStats=[{resolverDiagnostics?.GetDiagnosticsSummary() ?? "n/a"}].");
 
 			return true;
 		}
