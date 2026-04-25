@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using GLTFast;
@@ -43,8 +44,11 @@ namespace VisualPinball.Unity.Editor
 		private IPackageFolder _globalFolder;
 		private IPackageFolder _metaFolder;
 		private VpeMaterialsPayloadV1 _capturedMaterialPayload;
+		private IReadOnlyDictionary<string, byte[]> _capturedMaterialTextureBlobs;
+		private bool _embeddedMaterialPayloadSuccessfully;
 
 		private const bool ExportActivesOnly = true;
+		private const bool EmbedVpeMaterialsIntoGlb = false;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -122,6 +126,7 @@ namespace VisualPinball.Unity.Editor
 			var sceneData = await saveSceneTask;
 			WritePackageFile(_tableFolder, PackageApi.SceneFile, sceneData);
 			Logger.Info($"Scene written in {sw1.ElapsedMilliseconds}ms ({sceneData.Length} bytes).");
+			WriteMaterialPayloadFallbackIfNeeded();
 
 			if (saveColliderMeshesTask != null) {
 				sw1 = Stopwatch.StartNew();
@@ -197,15 +202,18 @@ namespace VisualPinball.Unity.Editor
 			var export = new GameObjectExport(exportSettings, gameObjectExportSettings, logger: logger);
 			var disabledRenderers = DisableInvalidMeshRenderers(meshFilters, skinnedMeshRenderers, _table.transform);
 			var reenabledLights = EnableDisabledLights();
+			var renderers = _table.GetComponentsInChildren<Renderer>(!ExportActivesOnly);
+			var gltfExportScope = VpeMaterialV1Translator.PrepareGltfExport(renderers);
 			try {
 				export.AddScene(new [] { _table }, _table.transform.worldToLocalMatrix, "VPE Table");
 
 			} finally {
+				gltfExportScope?.Dispose();
 				RestoreDisabledLights(reenabledLights);
 				RestoreDisabledRenderers(disabledRenderers);
 			}
 
-			return () => SaveGltfToBytes(export, embedMaterialPayload: true);
+			return () => SaveGltfToBytes(export, embedMaterialPayload: EmbedVpeMaterialsIntoGlb);
 		}
 
 		// Temporarily re-enables Light components that are disabled at author time so gltFast
@@ -474,6 +482,8 @@ namespace VisualPinball.Unity.Editor
 			var capture = VpeMaterialV1Translator.Capture(_table.transform, renderers);
 			var payload = capture.Payload;
 			_capturedMaterialPayload = null;
+			_capturedMaterialTextureBlobs = null;
+			_embeddedMaterialPayloadSuccessfully = false;
 			if (payload?.Profiles == null || payload.Profiles.Length == 0) {
 				if (VpeMaterialV1Translator.Active == null) {
 					Logger.Info("Skipping materials.v1 export: no IVpeMaterialV1Translator is registered.");
@@ -481,50 +491,136 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 			_capturedMaterialPayload = payload;
+			_capturedMaterialTextureBlobs = capture.TextureBlobs;
 
 			var textureCount = 0;
 			var textureBytes = 0L;
 			if (capture.TextureBlobs != null && capture.TextureBlobs.Count > 0) {
-				var texturesFolder = _metaFolder.AddFolder(PackageApi.TexturesV1Folder);
 				foreach (var entry in capture.TextureBlobs) {
 					if (entry.Value == null || entry.Value.Length == 0) {
 						continue;
 					}
-					texturesFolder.AddFile(entry.Key).SetData(entry.Value);
 					textureCount++;
 					textureBytes += entry.Value.Length;
 				}
 			}
-
-			_metaFolder
-				.AddFile(PackageApi.MaterialsV1File, PackageApi.Packer.FileExtension)
-				.SetData(PackageApi.Packer.Pack(payload));
-
 			Logger.Info(
-				$"Wrote vpe.material v1 payload: {payload.Profiles.Length} profile(s), " +
-				$"{textureCount} texture(s) ({textureBytes / 1024f / 1024f:F2} MB) at " +
-				$"{PackageApi.MetaFolder}/{PackageApi.TexturesV1Folder}.");
+				$"Captured vpe.material v1 payload: {payload.Profiles.Length} profile(s), " +
+				$"{textureCount} VPE-only texture(s) ({textureBytes / 1024f / 1024f:F2} MB).");
 		}
 
 		private async Task<byte[]> SaveGltfToBytes(GameObjectExport export, bool embedMaterialPayload = false)
 		{
 			using var stream = new MemoryStream();
 			await export.SaveToStreamAndDispose(stream);
-			var glbData = stream.ToArray();
+			var originalGlbData = stream.ToArray();
+			var glbData = originalGlbData;
 			if (!embedMaterialPayload || _capturedMaterialPayload == null) {
 				return glbData;
 			}
 
 			var payload = _capturedMaterialPayload;
 			try {
-				glbData = VpeMaterialsGltfExtension.WritePayload(glbData, payload);
+				var candidateGlbData = VpeMaterialsGltfExtension.WritePayload(glbData, payload, _capturedMaterialTextureBlobs);
+				if (!VpeMaterialsGltfExtension.TryReadPayload(candidateGlbData, out var roundTrippedPayload)
+					|| roundTrippedPayload?.Profiles == null
+					|| roundTrippedPayload.Profiles.Length != (payload.Profiles?.Length ?? 0)) {
+					throw new InvalidOperationException(
+						$"Failed validating embedded {VpeMaterialsGltfExtension.ExtensionName} payload after GLB rewrite.");
+				}
+
+				var expectedEmbeddedTextureCount = payload.Textures?.Count(asset => asset != null && asset.GlbBufferView >= 0) ?? 0;
+				if (expectedEmbeddedTextureCount > 0
+					&& !VpeMaterialsGltfExtension.TryReadEmbeddedTextureBlobs(
+						candidateGlbData,
+						roundTrippedPayload,
+						out var roundTrippedTextureBlobsById)) {
+					throw new InvalidOperationException(
+						$"Failed validating embedded {VpeMaterialsGltfExtension.ExtensionName} texture blobs after GLB rewrite.");
+				}
+
+				glbData = candidateGlbData;
+				_embeddedMaterialPayloadSuccessfully = true;
 				Logger.Info(
 					$"Embedded {VpeMaterialsGltfExtension.ExtensionName} in {PackageApi.SceneFile}: " +
 					$"{payload.Profiles?.Length ?? 0} profile(s), {payload.Textures?.Length ?? 0} texture reference(s).");
 			} catch (Exception ex) {
-				Logger.Warn(ex, $"Failed embedding {VpeMaterialsGltfExtension.ExtensionName} in {PackageApi.SceneFile}. Writing plain GLB and keeping sidecar material payload.");
+				_embeddedMaterialPayloadSuccessfully = false;
+				glbData = originalGlbData;
+				Logger.Warn(
+					$"Failed embedding {VpeMaterialsGltfExtension.ExtensionName} in {PackageApi.SceneFile} " +
+					$"({ex.Message}). Writing plain GLB and keeping sidecar material payload.");
 			}
 			return glbData;
+		}
+
+		private void WriteMaterialPayloadFallbackIfNeeded()
+		{
+			if (_capturedMaterialPayload == null || _embeddedMaterialPayloadSuccessfully) {
+				return;
+			}
+
+			var packedTextureData = BuildPackedMaterialTextureData(
+				_capturedMaterialPayload,
+				_capturedMaterialTextureBlobs,
+				out var textureCount,
+				out var textureBytes);
+			if (packedTextureData != null && packedTextureData.Length > 0) {
+				_metaFolder.AddFile(PackageApi.TexturesV1PackFile).SetData(packedTextureData);
+			}
+
+			_metaFolder
+				.AddFile(PackageApi.MaterialsV1File, PackageApi.Packer.FileExtension)
+				.SetData(PackageApi.Packer.Pack(_capturedMaterialPayload));
+
+			Logger.Warn(
+				$"Fell back to sidecar vpe.material export: profiles={_capturedMaterialPayload.Profiles?.Length ?? 0}, " +
+				$"textures={textureCount} ({textureBytes / 1024f / 1024f:F2} MB) at " +
+				$"{PackageApi.MetaFolder}/{PackageApi.TexturesV1PackFile}.");
+		}
+
+		private static byte[] BuildPackedMaterialTextureData(
+			VpeMaterialsPayloadV1 payload,
+			IReadOnlyDictionary<string, byte[]> textureBlobsByFileName,
+			out int textureCount,
+			out long textureBytes)
+		{
+			textureCount = 0;
+			textureBytes = 0L;
+			if (payload?.Textures == null || payload.Textures.Length == 0) {
+				return null;
+			}
+
+			foreach (var asset in payload.Textures) {
+				if (asset == null) {
+					continue;
+				}
+				asset.ByteOffset = -1;
+				asset.ByteLength = 0;
+			}
+
+			if (textureBlobsByFileName == null || textureBlobsByFileName.Count == 0) {
+				return null;
+			}
+
+			using var stream = new MemoryStream();
+			foreach (var asset in payload.Textures) {
+				if (asset == null
+					|| string.IsNullOrWhiteSpace(asset.FileName)
+					|| !textureBlobsByFileName.TryGetValue(asset.FileName, out var blobData)
+					|| blobData == null
+					|| blobData.Length == 0) {
+					continue;
+				}
+
+				asset.ByteOffset = checked((int)stream.Position);
+				asset.ByteLength = blobData.Length;
+				stream.Write(blobData, 0, blobData.Length);
+				textureCount++;
+				textureBytes += blobData.LongLength;
+			}
+
+			return stream.Length > 0 ? stream.ToArray() : null;
 		}
 
 		private static void WritePackageFile(IPackageFolder folder, string fileName, byte[] data)

@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -37,6 +38,7 @@ namespace VisualPinball.Unity
 		private PackagedFiles _files;
 		private Dictionary<string, int[]> _sparsePathIndexMap;
 		private VpeMaterialsPayloadV1 _embeddedMaterialPayload;
+		private IReadOnlyDictionary<string, byte[]> _embeddedMaterialTextureBlobs;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -54,6 +56,7 @@ namespace VisualPinball.Unity
 				throw new FileNotFoundException($"Cannot find .vpe package at {_vpePath}");
 			}
 
+			var importStopwatch = Stopwatch.StartNew();
 			using var storage = PackageApi.StorageManager.OpenStorage(_vpePath);
 			_tableFolder = storage.GetFolder(PackageApi.TableFolder);
 			_sparsePathIndexMap = BuildSparsePathIndexMap(PackageApi.ItemFolder, PackageApi.ItemReferencesFolder);
@@ -63,7 +66,12 @@ namespace VisualPinball.Unity
 
 			try {
 				try {
+					var importModelsStopwatch = Stopwatch.StartNew();
 					_table = await ImportModels(parent, cancellationToken);
+					importModelsStopwatch.Stop();
+					Logger.Info(
+						$"RuntimePackageReader: Imported {PackageApi.SceneFile} in {importModelsStopwatch.ElapsedMilliseconds}ms " +
+						$"from '{Path.GetFileName(_vpePath)}'.");
 					cancellationToken.ThrowIfCancellationRequested();
 					var restoreActive = _table.activeSelf;
 					var loadSucceeded = false;
@@ -73,10 +81,22 @@ namespace VisualPinball.Unity
 						_refs = new PackagedRefs(_table.transform);
 						_files = new PackagedFiles(_tableFolder, _refs);
 
+						var unpackSoundsStopwatch = Stopwatch.StartNew();
 						await _files.UnpackSoundsRuntime(cancellationToken);
-						_files.UnpackAssetsRuntime();
-						await _files.UnpackMeshesRuntime(cancellationToken);
+						unpackSoundsStopwatch.Stop();
+						Logger.Info($"RuntimePackageReader: Unpacked sounds in {unpackSoundsStopwatch.ElapsedMilliseconds}ms.");
 
+						var unpackAssetsStopwatch = Stopwatch.StartNew();
+						_files.UnpackAssetsRuntime();
+						unpackAssetsStopwatch.Stop();
+						Logger.Info($"RuntimePackageReader: Unpacked assets in {unpackAssetsStopwatch.ElapsedMilliseconds}ms.");
+
+						var unpackMeshesStopwatch = Stopwatch.StartNew();
+						await _files.UnpackMeshesRuntime(cancellationToken);
+						unpackMeshesStopwatch.Stop();
+						Logger.Info($"RuntimePackageReader: Unpacked meshes in {unpackMeshesStopwatch.ElapsedMilliseconds}ms.");
+
+						var readItemsStopwatch = Stopwatch.StartNew();
 						ReadPackables(PackageApi.ItemFolder, ApplyItemData, (item, type, file, index) => {
 							var comps = item.gameObject.GetComponents(type);
 							var comp = comps.Length > index
@@ -88,7 +108,10 @@ namespace VisualPinball.Unity
 								PackageApi.Packer.Unpack(file.GetData(), comp);
 							}
 						});
+						readItemsStopwatch.Stop();
+						Logger.Info($"RuntimePackageReader: Restored packables in {readItemsStopwatch.ElapsedMilliseconds}ms.");
 
+						var readRefsStopwatch = Stopwatch.StartNew();
 						ReadPackables(PackageApi.ItemReferencesFolder, null, (item, type, file, index) => {
 							var comps = item.gameObject.GetComponents(type);
 							var comp = comps.Length > index
@@ -115,10 +138,23 @@ namespace VisualPinball.Unity
 								Logger.Warn(ex, $"Failed unpacking references for type {type.FullName} on {item.name} (index {index}).");
 							}
 						});
+						readRefsStopwatch.Stop();
+						Logger.Info($"RuntimePackageReader: Restored references in {readRefsStopwatch.ElapsedMilliseconds}ms.");
 
+						var globalsStopwatch = Stopwatch.StartNew();
 						ReadGlobals();
+						globalsStopwatch.Stop();
+						Logger.Info($"RuntimePackageReader: Read globals in {globalsStopwatch.ElapsedMilliseconds}ms.");
+
+						var tableMetadataStopwatch = Stopwatch.StartNew();
 						ReadTableMetadata();
+						tableMetadataStopwatch.Stop();
+						Logger.Info($"RuntimePackageReader: Read table metadata in {tableMetadataStopwatch.ElapsedMilliseconds}ms.");
+
+						var materialsStopwatch = Stopwatch.StartNew();
 						RestoreMaterialProfiles();
+						materialsStopwatch.Stop();
+						Logger.Info($"RuntimePackageReader: Restored material profiles in {materialsStopwatch.ElapsedMilliseconds}ms.");
 						loadSucceeded = true;
 
 					} finally {
@@ -127,9 +163,13 @@ namespace VisualPinball.Unity
 						}
 					}
 
+					importStopwatch.Stop();
+					Logger.Info(
+						$"RuntimePackageReader: Imported '{Path.GetFileName(_vpePath)}' in {importStopwatch.ElapsedMilliseconds}ms total.");
 					return _table;
 
 				} catch {
+					importStopwatch.Stop();
 					DestroyLoadedTable();
 					throw;
 				}
@@ -148,8 +188,13 @@ namespace VisualPinball.Unity
 			}
 
 			_embeddedMaterialPayload = null;
+			_embeddedMaterialTextureBlobs = null;
 			if (VpeMaterialsGltfExtension.TryReadPayload(sceneData, out var embeddedMaterialPayload)) {
 				_embeddedMaterialPayload = embeddedMaterialPayload;
+				VpeMaterialsGltfExtension.TryReadEmbeddedTextureBlobs(
+					sceneData,
+					embeddedMaterialPayload,
+					out _embeddedMaterialTextureBlobs);
 			}
 
 			var importRoot = new GameObject("__vpe_runtime_import");
@@ -436,7 +481,7 @@ namespace VisualPinball.Unity
 			_tableFolder.TryGetFolder(PackageApi.MetaFolder, out var metaFolder);
 
 			if (_embeddedMaterialPayload != null &&
-				VpeMaterialV1Reader.TryApply(_embeddedMaterialPayload, metaFolder, _table.transform,
+				VpeMaterialV1Reader.TryApply(_embeddedMaterialPayload, _embeddedMaterialTextureBlobs, metaFolder, _table.transform,
 					$"{PackageApi.SceneFile}/{VpeMaterialsGltfExtension.ExtensionName}")) {
 				return;
 			}
