@@ -472,13 +472,16 @@ namespace VisualPinball.Unity.Editor
 
 			var capture = VpeMaterialV1Translator.Capture(_table.transform, renderers);
 			var payload = capture.Payload;
-			if (payload.Profiles == null || payload.Profiles.Length == 0) {
+			if (payload?.Profiles == null || payload.Profiles.Length == 0) {
+				if (VpeMaterialV1Translator.Active == null) {
+					Logger.Info("Skipping materials.v1 export: no IVpeMaterialV1Translator is registered.");
+				}
 				return;
 			}
 
 			var textureCount = 0;
 			var textureBytes = 0L;
-			if (capture.TextureBlobs.Count > 0) {
+			if (capture.TextureBlobs != null && capture.TextureBlobs.Count > 0) {
 				var texturesFolder = _metaFolder.AddFolder(PackageApi.TexturesV1Folder);
 				foreach (var entry in capture.TextureBlobs) {
 					if (entry.Value == null || entry.Value.Length == 0) {
