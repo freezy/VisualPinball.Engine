@@ -50,15 +50,20 @@ namespace VisualPinball.Unity.Editor
 			public IReadOnlyDictionary<string, byte[]> TextureBlobs { get; }
 		}
 
-		public static CaptureResult Capture(IEnumerable<Renderer> renderers)
+		public static CaptureResult Capture(Transform tableRoot, IEnumerable<Renderer> renderers)
 		{
 			var profiles = new Dictionary<string, VpeMaterialProfileV1>(StringComparer.Ordinal);
+			var rendererStates = new List<VpeRendererStateV1>();
 			var ctx = new CaptureContext();
 
 			if (renderers != null) {
 				foreach (var renderer in renderers) {
 					if (!renderer) {
 						continue;
+					}
+
+					if (tableRoot) {
+						rendererStates.Add(CaptureRendererState(renderer, tableRoot));
 					}
 
 					foreach (var material in renderer.sharedMaterials) {
@@ -84,8 +89,19 @@ namespace VisualPinball.Unity.Editor
 				WrittenBy = "VpeMaterialV1Translator",
 				Profiles = profiles.Values.ToArray(),
 				Textures = ctx.BuildTextureAssets(),
+				RendererStates = rendererStates.ToArray(),
 			};
 			return new CaptureResult(payload, ctx.TextureBlobs);
+		}
+
+		private static VpeRendererStateV1 CaptureRendererState(Renderer renderer, Transform tableRoot)
+		{
+			return new VpeRendererStateV1 {
+				Path = renderer.transform.GetPath(tableRoot),
+				ShadowCastingMode = (int)renderer.shadowCastingMode,
+				ReceiveShadows = renderer.receiveShadows,
+				RenderingLayerMask = renderer.renderingLayerMask,
+			};
 		}
 
 		private static VpeMaterialProfileV1 TranslateMaterial(Material material, CaptureContext ctx)
@@ -169,10 +185,13 @@ namespace VisualPinball.Unity.Editor
 					|| material.IsKeywordEnabled("_ENABLE_FOG_ON_TRANSPARENT"),
 				TransparentDepthPrepass = SafeGetFloat(material, "_TransparentDepthPrepassEnable", 0f) > 0.5f,
 				TransparentDepthPostpass = SafeGetFloat(material, "_TransparentDepthPostpassEnable", 0f) > 0.5f,
-				TransparentWritesMotionVectors = SafeGetFloat(material, "_TransparentWritingMotionVec", 0f) > 0.5f
-					|| material.IsKeywordEnabled("_TRANSPARENT_WRITES_MOTION_VEC"),
+				TransparentWritesMotionVectors = (SafeGetFloat(material, "_TransparentWritingMotionVec", 0f) > 0.5f
+						|| material.IsKeywordEnabled("_TRANSPARENT_WRITES_MOTION_VEC"))
+					&& (material.GetShaderPassEnabled("MOTIONVECTORS") || material.GetShaderPassEnabled("MotionVectors")),
 				DisableSsrTransparent = material.IsKeywordEnabled("_DISABLE_SSR_TRANSPARENT")
 					|| SafeGetFloat(material, "_ReceivesSSRTransparent", 0f) < 0.5f,
+				DisableSsr = material.IsKeywordEnabled("_DISABLE_SSR")
+					|| SafeGetFloat(material, "_ReceivesSSR", 1f) < 0.5f,
 				RenderQueueOverride = -1,
 
 				RefractionModel = HdrpRefractionModelToString(

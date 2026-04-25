@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using NLog;
 using UnityEngine;
+using UnityEngine.Rendering;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
@@ -112,15 +113,41 @@ namespace VisualPinball.Unity
 				}
 			}
 
-			Logger.Info(
-				$"vpe.material v1 applied: profiles={payload.Profiles.Length}, textures={payload.Textures?.Length ?? 0}, " +
-				$"slots={stats.TotalSlots}, matched={stats.MatchedSlots}, applied={stats.AppliedSlots}, " +
-				$"resolverNull={stats.ResolverReturnedNull}, unsupportedTypes={stats.UnsupportedTypes.Count}, " +
-				$"unmatched={stats.UnmatchedNames.Count}.");
+			// Apply per-renderer state (shadowCastingMode, receiveShadows, renderingLayerMask) that
+			// glTF doesn't carry. Paths are resolved through FindByPath so the existing
+			// SparsePathIndexMap handles any sibling-index shift introduced by the glTF round-trip.
+			if (payload.RendererStates != null) {
+				foreach (var state in payload.RendererStates) {
+					if (state == null || string.IsNullOrEmpty(state.Path)) {
+						continue;
+					}
+					var target = tableRoot.FindByPath(state.Path);
+					if (!target) {
+						stats.RendererStatesMissing++;
+						continue;
+					}
+					if (!target.TryGetComponent<Renderer>(out var renderer)) {
+						stats.RendererStatesMissing++;
+						continue;
+					}
+					ApplyRendererState(renderer, state);
+					stats.RendererStatesApplied++;
+				}
+			}
+
 			if (stats.UnmatchedNames.Count > 0) {
 				var sample = string.Join(", ", TakeFirst(stats.UnmatchedNames, 12));
 				Logger.Warn($"vpe.material v1 unmatched material-name sample: {sample}");
 			}
+			// Logged at Warn level during development so the summary survives Unity's console ring
+			// buffer alongside the resolver's per-material warnings. Drop to Info once the v1
+			// interchange is stable.
+			Logger.Warn(
+				$"vpe.material v1 applied: profiles={payload.Profiles.Length}, textures={payload.Textures?.Length ?? 0}, " +
+				$"slots={stats.TotalSlots}, matched={stats.MatchedSlots}, applied={stats.AppliedSlots}, " +
+				$"rendererStates={stats.RendererStatesApplied}/{payload.RendererStates?.Length ?? 0} (missing at import={stats.RendererStatesMissing}), " +
+				$"resolverNull={stats.ResolverReturnedNull}, unsupportedTypes={stats.UnsupportedTypes.Count}, " +
+				$"unmatched={stats.UnmatchedNames.Count}.");
 
 			return true;
 		}
@@ -149,6 +176,13 @@ namespace VisualPinball.Unity
 			return lookup;
 		}
 
+		private static void ApplyRendererState(Renderer renderer, VpeRendererStateV1 state)
+		{
+			renderer.shadowCastingMode = (ShadowCastingMode)state.ShadowCastingMode;
+			renderer.receiveShadows = state.ReceiveShadows;
+			renderer.renderingLayerMask = state.RenderingLayerMask;
+		}
+
 		private static string NormalizeMaterialName(string name) => VpeMaterialNameUtil.NormalizeMaterialName(name);
 
 		private sealed class Stats
@@ -157,6 +191,8 @@ namespace VisualPinball.Unity
 			public int MatchedSlots;
 			public int AppliedSlots;
 			public int ResolverReturnedNull;
+			public int RendererStatesApplied;
+			public int RendererStatesMissing;
 			public readonly HashSet<string> UnmatchedNames = new(StringComparer.Ordinal);
 			public readonly HashSet<string> UnsupportedTypes = new(StringComparer.Ordinal);
 		}

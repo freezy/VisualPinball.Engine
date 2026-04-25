@@ -98,6 +98,24 @@ namespace VisualPinball.Unity
 		public string WrittenBy;
 		public VpeMaterialProfileV1[] Profiles = Array.Empty<VpeMaterialProfileV1>();
 		public VpeTextureAssetV1[] Textures = Array.Empty<VpeTextureAssetV1>();
+		// Per-renderer state that Unity authors but glTF does not carry. Restored after glTF import
+		// so the Player sees the same shadow/lighting topology the author set up.
+		public VpeRendererStateV1[] RendererStates = Array.Empty<VpeRendererStateV1>();
+	}
+
+	[Serializable]
+	public class VpeRendererStateV1
+	{
+		// Path to the renderer's transform, relative to the table root, encoded via
+		// TransformExtensions.GetPath so it round-trips through the same sibling-index scheme
+		// the rest of the package uses.
+		public string Path;
+		// UnityEngine.Rendering.ShadowCastingMode: 0=Off, 1=On, 2=TwoSided, 3=ShadowsOnly.
+		public int ShadowCastingMode = 1;
+		public bool ReceiveShadows = true;
+		// Unity renderingLayerMask. Bit 0 is the Default layer. Authoring tables commonly set
+		// bit 8 (light-layer 8) on table geometry in addition to Default.
+		public uint RenderingLayerMask = 1;
 	}
 
 	[Serializable]
@@ -152,6 +170,7 @@ namespace VisualPinball.Unity
 
 		// Hints for SRPs that support them. Safe to ignore.
 		public bool DisableSsrTransparent;
+		public bool DisableSsr;
 
 		// Explicit render queue override (-1 = inherit from shader). Avoid using unless the author
 		// really meant to deviate from the surface-type default.
