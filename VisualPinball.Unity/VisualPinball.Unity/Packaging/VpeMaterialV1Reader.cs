@@ -48,27 +48,33 @@ namespace VisualPinball.Unity
 				return false;
 			}
 
-			if (payload == null || payload.Profiles == null || payload.Profiles.Length == 0) {
+			return TryApply(payload, metaFolder, tableRoot, PackageApi.MaterialsV1File);
+		}
+
+		public static bool TryApply(VpeMaterialsPayloadV1 payload, IPackageFolder metaFolder, Transform tableRoot, string sourceLabel)
+		{
+			if (payload == null || !tableRoot || payload.Profiles == null || payload.Profiles.Length == 0) {
 				return false;
 			}
 			if (payload.FormatVersion != 1) {
 				Logger.Warn(
-					$"materials.v1 declares FormatVersion={payload.FormatVersion} which this reader does not " +
-					"understand. Falling back to legacy path.");
+					$"{sourceLabel} declares FormatVersion={payload.FormatVersion} which this reader does not " +
+					"understand. Falling back to glTF-imported materials.");
 				return false;
 			}
 
 			var resolver = VpeMaterialResolver.Active;
 			if (resolver == null) {
 				Logger.Warn(
-					"v1 material payload present but no IVpeMaterialResolver is registered. The Player app " +
+					$"v1 material payload present in {sourceLabel} but no IVpeMaterialResolver is registered. The Player app " +
 					"must register a resolver at startup. Falling back to glTF-imported materials (visuals " +
 					"will not match authoring).");
 				return false;
 			}
 
 			var profilesByName = BuildProfileLookup(payload.Profiles);
-			metaFolder.TryGetFolder(PackageApi.TexturesV1Folder, out var texturesFolder);
+			IPackageFolder texturesFolder = null;
+			metaFolder?.TryGetFolder(PackageApi.TexturesV1Folder, out texturesFolder);
 			using var textures = new TextureProvider(payload.Textures, texturesFolder);
 
 			var stats = new Stats();
@@ -143,7 +149,8 @@ namespace VisualPinball.Unity
 			// buffer alongside the resolver's per-material warnings. Drop to Info once the v1
 			// interchange is stable.
 			Logger.Warn(
-				$"vpe.material v1 applied: profiles={payload.Profiles.Length}, textures={payload.Textures?.Length ?? 0}, " +
+				$"vpe.material v1 applied from {sourceLabel}: profiles={payload.Profiles.Length}, " +
+				$"textures={payload.Textures?.Length ?? 0}, " +
 				$"slots={stats.TotalSlots}, matched={stats.MatchedSlots}, applied={stats.AppliedSlots}, " +
 				$"rendererStates={stats.RendererStatesApplied}/{payload.RendererStates?.Length ?? 0} (missing at import={stats.RendererStatesMissing}), " +
 				$"resolverNull={stats.ResolverReturnedNull}, unsupportedTypes={stats.UnsupportedTypes.Count}, " +

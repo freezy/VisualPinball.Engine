@@ -36,6 +36,7 @@ namespace VisualPinball.Unity
 		private PackagedRefs _refs;
 		private PackagedFiles _files;
 		private Dictionary<string, int[]> _sparsePathIndexMap;
+		private VpeMaterialsPayloadV1 _embeddedMaterialPayload;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -144,6 +145,11 @@ namespace VisualPinball.Unity
 			var sceneData = sceneFile.GetData();
 			if (sceneData == null || sceneData.Length == 0) {
 				throw new Exception($"Scene data file '{PackageApi.SceneFile}' is missing or empty.");
+			}
+
+			_embeddedMaterialPayload = null;
+			if (VpeMaterialsGltfExtension.TryReadPayload(sceneData, out var embeddedMaterialPayload)) {
+				_embeddedMaterialPayload = embeddedMaterialPayload;
 			}
 
 			var importRoot = new GameObject("__vpe_runtime_import");
@@ -427,10 +433,17 @@ namespace VisualPinball.Unity
 
 		private void RestoreMaterialProfiles()
 		{
-			if (!_tableFolder.TryGetFolder(PackageApi.MetaFolder, out var metaFolder)) {
+			_tableFolder.TryGetFolder(PackageApi.MetaFolder, out var metaFolder);
+
+			if (_embeddedMaterialPayload != null &&
+				VpeMaterialV1Reader.TryApply(_embeddedMaterialPayload, metaFolder, _table.transform,
+					$"{PackageApi.SceneFile}/{VpeMaterialsGltfExtension.ExtensionName}")) {
 				return;
 			}
 
+			if (metaFolder == null) {
+				return;
+			}
 			VpeMaterialV1Reader.TryApply(metaFolder, _table.transform);
 		}
 
