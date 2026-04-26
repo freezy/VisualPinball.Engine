@@ -152,6 +152,14 @@ img:not(#logo):hover {
 	stroke: none !important;
 }
 
+[data-bs-theme=dark] .mermaid .treeView-node-label {
+	fill: #f8f9fa !important;
+}
+
+[data-bs-theme=dark] .mermaid .treeView-node-line {
+	stroke: #b7bcc4 !important;
+}
+
 /* page table of contents */
 #affix ul {
 	margin: 0;

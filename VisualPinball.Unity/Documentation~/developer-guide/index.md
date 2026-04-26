@@ -67,6 +67,7 @@ Use it for reusable art content rather than engine or gameplay code.
 
 The developer guide also tracks design work for integrations that are not yet fully implemented in VPE. These pages are intended to capture architectural direction early, so implementation work across native input, runtime systems, and tooling can converge on the same design.
 
+- [Packaging](xref:developer-guide-packaging-overview) documents the `.vpe` format, the export/import split, the renderer-agnostic material vocabulary, and the benchmarked optimization work around package loading.
 - [Accelerometer Input Design](xref:developer-guide-accelerometer-input-design) covers analog nudge input, Open Pinball Device support, calibration, and how a future player app should participate in initial setup.
 - [B2S Integration Design](xref:developer-guide-b2s-integration-design) proposes modernizing the upstream B2S runtime into a shared cross-platform core with a Windows COM shim, a native second-monitor host, and a Unity texture output for VR backglasses.
 - [DOF Integration Design](xref:developer-guide-dof-integration-design) covers a Windows-first `DirectOutput` integration for the future player app and the later hybrid path toward a `libdof` backend.

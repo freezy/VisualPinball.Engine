@@ -40,7 +40,7 @@
       <meta name="loc:downloadPdf" content="{{__global.downloadPdf}}">
 
       <script type="module" src="./{{_rel}}public/docfx.min.js"></script>
-      <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+      <script src="./{{_rel}}public/mermaid-11.14.0.min.js"></script>
 
       <script>
         const theme = localStorage.getItem('theme') || 'auto'
@@ -180,6 +180,13 @@
         return {
           startOnLoad: false,
           theme: 'base',
+          treeView: isDark ? {
+            labelColor: '#f8f9fa',
+            lineColor: '#b7bcc4'
+          } : {
+            labelColor: '#212529',
+            lineColor: '#8a8f98'
+          },
           themeVariables: isDark ? {
             darkMode: true,
             background: '#1f2328',
