@@ -154,59 +154,60 @@ A renderer must support both texture-source modes:
 
 ### `vpe.lit`
 
-An implementation of `vpe.lit` should support the following fields.
+`vpe.lit` is a reduced HDRP Lit material. The table below is written as a translation guide: if you are implementing another renderer, read the VPE field as "this should behave like the corresponding HDRP concept", not "this must be wired to Unity property X forever".
 
-| Field | Meaning | What the renderer should do |
+| VPE field | HDRP counterpart | HDRP documentation |
 | --- | --- | --- |
-| `BaseColor.Color` | Base albedo tint | Apply as the base color multiplier. |
-| `BaseColor.Texture` | Base albedo texture | Use imported or side-channel source depending on `TextureId`. |
-| `Metallic` | Scalar metallic fallback/remap anchor | Apply directly or use as part of mask remap behavior. |
-| `Smoothness` | Scalar smoothness fallback/remap anchor | Apply directly or use as part of mask remap behavior. |
-| `OcclusionStrength` | Occlusion contribution | Apply if the renderer supports AO strength. |
-| `MaskMap` | Packed surface-property texture | Interpret according to `MaskPacking`. |
-| `MaskPacking` | Declares channel meaning | Respect the declared packing; do not guess. |
-| `MetallicRemap`, `SmoothnessRemap`, `AoRemap`, `AlphaRemap` | Channel remap ranges | Apply when unpacking the mask map. |
-| `NormalMap.TextureId` / transform / `Strength` / `Packing` | Normal map intent | Support the declared normal packing and apply strength. |
-| `Emissive.Color`, `Emissive.Texture`, `Intensity`, `IntensityUnit`, `ExposureWeight` | Emissive behavior | Map into the renderer's emissive model as closely as possible. |
-| `SurfaceType` | Opaque, alpha test, or transparent | Choose the right material family and pass state. |
-| `AlphaCutoff` | Alpha-test threshold | Apply when `SurfaceType` is alpha test. |
-| `DoubleSided`, `DoubleSidedGi` | Double-sided behavior | Enable the renderer's double-sided handling. |
-| `TransparentBlendMode` | Transparent blend intent | Map to the renderer's blend mode if supported. |
-| `EnableFogOnTransparent`, `TransparentDepthPrepass`, `TransparentDepthPostpass`, `TransparentWritesMotionVectors` | Transparent rendering hints | Apply where the pipeline exposes equivalent behavior. |
-| `DisableSsrTransparent`, `DisableSsr` | SSR hints | Respect if the pipeline exposes equivalent toggles. |
-| `RenderQueueOverride` | Explicit queue override | Apply only when non-negative. |
-| `RefractionModel`, `Ior` | Refraction behavior | Map to the pipeline's refraction model if available. |
-| `HasTransmission`, `Thickness`, `ThicknessMap` | Transmission and thickness | Support if the pipeline can represent it; otherwise degrade predictably. |
+| `BaseColor.Color`, `BaseColor.Texture`, `BaseColor.Texture.Scale`, `BaseColor.Texture.Offset` | HDRP Lit `Base Map`, including base tint, texture, tiling, and offset. The base-map alpha is also the source for transparency on transparent Lit materials. | [Lit Material Inspector reference: Base Map](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/lit-material-inspector-reference.html), [Surface Type](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Surface-Type.html) |
+| `Metallic`, `Smoothness` | HDRP Lit scalar `Metallic` and `Smoothness` fallback values when no packed mask texture is driving those channels. | [Lit Material Inspector reference: Metallic / Smoothness](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/lit-material-inspector-reference.html) |
+| `OcclusionStrength` | Closest to HDRP ambient occlusion contribution from the mask map. This is not a clean one-to-one HDRP inspector property in the current subset, so other renderers should treat it as the scalar AO contribution knob. | [Lit Material Inspector reference: Mask Map / Ambient Occlusion Remapping](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/lit-material-inspector-reference.html), [Mask and detail maps](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Mask-Map-and-Detail-Map.html) |
+| `MaskMap`, `MaskPacking` | HDRP Lit `Mask Map`. In HDRP the packed layout is `R=Metallic`, `G=Ambient Occlusion`, `B=Detail Mask`, `A=Smoothness`. VPE keeps the packing explicit because other pipelines may not share HDRP's assumptions. | [Lit Material Inspector reference: Mask Map](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/lit-material-inspector-reference.html), [Mask and detail maps](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Mask-Map-and-Detail-Map.html) |
+| `MetallicRemap`, `SmoothnessRemap`, `AoRemap`, `AlphaRemap` | HDRP Lit remap sliders for packed texture channels. | [Lit Material Inspector reference: Metallic / Smoothness / Ambient Occlusion / Alpha Remapping](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/lit-material-inspector-reference.html) |
+| `NormalMap.Texture`, `NormalMap.Texture.Scale`, `NormalMap.Texture.Offset`, `NormalMap.Strength`, `NormalMap.Packing` | HDRP Lit `Normal Map`, `Normal Map Space`, and normal intensity. VPE's packing enum preserves source intent so runtime can convert or reinterpret it as needed. | [Lit Material Inspector reference: Normal Map](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/lit-material-inspector-reference.html), [HDRP Glossary: tangent space normal map / object space normal map](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Glossary.html) |
+| `Emissive.Color`, `Emissive.Texture`, `Emissive.Texture.Scale`, `Emissive.Texture.Offset`, `Emissive.Intensity`, `Emissive.IntensityUnit`, `Emissive.ExposureWeight` | HDRP Lit `Emission Map`, emission color, emission intensity, physical light units, and exposure weight. | [Lit Material Inspector reference: Emission inputs](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/lit-material-inspector-reference.html), [Physical light units](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Physical-Light-Units.html) |
+| `SurfaceType` | HDRP `Surface Type` and the extra transparent workflow it unlocks. | [Surface Type](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Surface-Type.html) |
+| `AlphaCutoff` | HDRP `Alpha Clipping > Threshold`. | [Alpha Clipping](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Alpha-Clipping.html) |
+| `DoubleSided`, `DoubleSidedGi` | HDRP `Double Sided` and `Double-Sided GI`. | [Double sided](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Double-Sided.html), [Lit Material Inspector reference: Double-Sided GI](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/lit-material-inspector-reference.html) |
+| `TransparentBlendMode` | HDRP transparent `Blending Mode`. | [Surface Type](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Surface-Type.html) |
+| `EnableFogOnTransparent`, `TransparentDepthPrepass`, `TransparentDepthPostpass`, `TransparentWritesMotionVectors` | HDRP transparent-surface options for fog participation, depth pre/post passes, and transparent motion vectors. | [Surface Type](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Surface-Type.html), [Lit Material Inspector reference: Surface Options](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/lit-material-inspector-reference.html) |
+| `DisableSsr`, `DisableSsrTransparent` | HDRP `Receive SSR` and `Receive SSR Transparent`. VPE names the field from the opt-out direction, HDRP names the inspector property from the opt-in direction. | [Lit Material Inspector reference: Receive SSR / Receive SSR Transparent](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/lit-material-inspector-reference.html) |
+| `RenderQueueOverride` | Closest to HDRP sorting / render-pass override behavior. This is one of the places where VPE carries an explicit renderer-facing escape hatch rather than a pure material meaning. | [Surface Type](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Surface-Type.html) |
+| `RefractionModel`, `Ior` | HDRP transparent refraction settings: `Refraction Model` and `Index of Refraction`. | [Surface Type](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Surface-Type.html) |
+| `HasTransmission`, `Thickness`, `ThicknessMap` | HDRP transmission / translucent workflow. In HDRP this spans `Transmission`, `Thickness Map`, `Thickness`, and the `Diffusion Profile` asset. | [Material Type](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Material-Type.html), [Diffusion Profile reference](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/diffusion-profile-reference.html) |
 
 ### `vpe.decal`
 
-| Field | Meaning | What the renderer should do |
+`vpe.decal` is the decal-projector/material subset that VPE currently uses. HDRP exposes most of this through the Decal Material inspector.
+
+| VPE field | HDRP counterpart | HDRP documentation |
 | --- | --- | --- |
-| `BaseColor.Color` and `BaseColor.Texture` | Decal color and alpha coverage | Apply as the projected decal albedo. |
-| `NormalMap` | Decal normal contribution | Support if the renderer exposes decal normals. |
-| `MaskMap` and `MaskPacking` | Packed decal surface properties | Interpret according to the declared packing. |
-| `AffectAlbedo`, `AffectNormal`, `AffectMask` | Feature toggles | Respect which surface contributions are enabled. |
-| `DecalBlend`, `NormalBlendSrc`, `MaskBlendSrc` | Blend controls | Map to the renderer's decal blending model. |
-| `Smoothness`, `Metallic`, `AmbientOcclusion` | Scalar decal properties | Apply if the renderer supports them. |
+| `BaseColor.Color`, `BaseColor.Texture`, `BaseColor.Texture.Scale`, `BaseColor.Texture.Offset` | HDRP Decal `Base Map / Opacity`. In HDRP, the base-map alpha is part of the decal effect and also feeds other opacity-related controls. | [Decal Material Inspector reference: Base Map / Opacity](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/decal-material-inspector-reference.html) |
+| `NormalMap.Texture`, `NormalMap.Texture.Scale`, `NormalMap.Texture.Offset`, `NormalMap.Strength`, `NormalMap.Packing` | HDRP Decal `Normal Map` plus its opacity-source behavior. VPE preserves the normal payload and strength; HDRP's extra opacity-source choices are currently hidden behind the resolver. | [Decal Material Inspector reference: Normal Map / Normal Opacity channel](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/decal-material-inspector-reference.html) |
+| `MaskMap`, `MaskPacking` | HDRP Decal `Mask Map`. In HDRP decal materials the packed layout is `R=Metallic`, `G=Ambient Occlusion`, `B=Opacity Mask`, `A=Smoothness`. | [Decal Material Inspector reference: Mask Map](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/decal-material-inspector-reference.html), [Mask and detail maps](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Mask-Map-and-Detail-Map.html) |
+| `AffectAlbedo`, `AffectNormal`, `AffectMask` | HDRP Decal `Affect BaseColor`, `Affect Normal`, and the mask-derived surface toggles (`Affect Metal`, `Affect Ambient Occlusion`, `Affect Smoothness`). VPE collapses those mask-derived toggles into one semantic switch today. | [Decal Material Inspector reference: Affect BaseColor / Affect Normal / Affect Metal / Affect Ambient Occlusion / Affect Smoothness](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/decal-material-inspector-reference.html) |
+| `DecalBlend`, `NormalBlendSrc`, `MaskBlendSrc` | HDRP decal blending behavior. There is no tidy single inspector property with these exact names in the docs, so these should be read as VPE's explicit representation of HDRP decal blend-source behavior. | [Decals](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/decals.html), [Decal Material Inspector reference](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/decal-material-inspector-reference.html) |
+| `Smoothness`, `Metallic`, `AmbientOcclusion` | HDRP Decal scalar controls for the corresponding channels. | [Decal Material Inspector reference: Metallic / Ambient Occlusion / Smoothness](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/decal-material-inspector-reference.html) |
 
 ### `vpe.unlit`
 
-| Field | Meaning | What the renderer should do |
+`vpe.unlit` stays deliberately small. It only covers the part of HDRP Unlit that VPE tables actually need today.
+
+| VPE field | HDRP counterpart | HDRP documentation |
 | --- | --- | --- |
-| `BaseColor.Color` and `BaseColor.Texture` | Unlit color and texture | Use as the final color source. |
-| `SurfaceType` | Opaque, alpha test, or transparent | Choose the right material family or pass state. |
-| `AlphaCutoff` | Alpha-test threshold | Apply when relevant. |
-| `DoubleSided` | Double-sided rendering | Enable if supported. |
+| `BaseColor.Color`, `BaseColor.Texture`, `BaseColor.Texture.Scale`, `BaseColor.Texture.Offset` | HDRP Unlit `Color`, including the base texture, color multiplier, tiling, and offset. | [Unlit Material Inspector reference: Color](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/unlit-material-inspector-reference.html) |
+| `SurfaceType` | HDRP Unlit `Surface type` and transparent workflow. | [Unlit Material Inspector reference: Surface type](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/unlit-material-inspector-reference.html), [Surface Type](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Surface-Type.html) |
+| `AlphaCutoff` | HDRP Unlit `Alpha Clipping`. | [Unlit Material Inspector reference: Alpha Clipping](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/unlit-material-inspector-reference.html), [Alpha Clipping](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Alpha-Clipping.html) |
+| `DoubleSided` | HDRP Unlit `Double-Sided`. | [Unlit Material Inspector reference: Double-Sided](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/unlit-material-inspector-reference.html), [Double sided](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Double-Sided.html) |
 
 ### Renderer state
 
-In addition to material properties, a renderer should restore `VpeRendererStateV1`:
+In addition to material properties, a renderer should restore `VpeRendererStateV1`. Only part of this has a dedicated HDRP manual page, because some of it is ordinary Unity renderer state rather than HDRP-specific shader behavior.
 
-| Field | Meaning |
-| --- | --- |
-| `ShadowCastingMode` | Whether the renderer casts no shadows, normal shadows, two-sided shadows, or shadows only. |
-| `ReceiveShadows` | Whether the renderer receives shadows. |
-| `RenderingLayerMask` | Unity rendering-layer mask used for light-layer-style filtering. |
+| VPE field | HDRP / Unity counterpart | HDRP documentation |
+| --- | --- | --- |
+| `ShadowCastingMode` | Unity `Renderer.shadowCastingMode`. This is renderer state, not an HDRP material feature. | No dedicated HDRP material page. |
+| `ReceiveShadows` | Unity `Renderer.receiveShadows`. This is renderer state, not an HDRP material feature. | No dedicated HDRP material page. |
+| `RenderingLayerMask` | HDRP rendering layers for light / decal filtering. | [Use light rendering layers](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Rendering-Layers.html) |
 
 ### Failure behavior
 
