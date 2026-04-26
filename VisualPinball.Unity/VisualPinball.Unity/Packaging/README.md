@@ -1,133 +1,678 @@
-﻿# Packaging
+# Packaging
 
-By packaging we mean serializing a table file. Table files in VPE come with the `.vpe` file extension and are based on three common technologies:
+By packaging we mean serializing a table into a `.vpe` file. A `.vpe` is a ZIP container with:
 
-- The container format is a ZIP file.
-- The mesh and texture data is stored as a [glTF binary](https://www.khronos.org/gltf/).
-- The non-binary metadata is stored in JSON files.
+- one glTF binary scene (`table.glb`)
+- one optional glTF binary for physics-only meshes (`colliders.glb`)
+- JSON metadata for items, refs, globals, assets, and material interchange
+- optional VPE-only texture payloads that do not round-trip cleanly through glTF
 
-> [!NOTE]  
-> Originally, there were thoughts about using the same container format as VPX (the [Compound Binary File](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-cfb/53989ce4-7b05-4f8d-829b-d08d6148375b)), but ultimately, given the inner structure would be quite different anyway, there was no real benefit.
+This document describes:
+
+- the on-disk format
+- the export/import pipeline
+- the material/texture split between `table.glb` and VPE sidecar data
+- measured texture-compression experiments and their outcomes
+- glTFast limitations that shape the implementation
+
+> [!NOTE]
+> Originally, there were thoughts about using the same container format as VPX (the Compound Binary File), but ultimately, given the inner structure would be quite different anyway, there was no real benefit.
 >
-> We've also tested [a more efficient packing structure](https://github.com/Cysharp/MemoryPack) than JSON, but since the metadata to which it would apply is minuscule compared to the rest, the performance advantage was quickly outweighed by its unreadability and the hassle to set up.
+> We've also tested a more efficient packing structure than JSON, but since the metadata to which it would apply is minuscule compared to the rest, the performance advantage was quickly outweighed by its unreadability and the hassle to set up.
+
+## Design Summary
+
+The package format is optimized around two competing goals:
+
+- keep `table.glb` as the canonical scene graph, mesh, and standard-material payload
+- keep VPE/HDRP-specific data out of glTF unless it survives import/export without visual regressions
+
+In practice this means:
+
+- geometry, lights, most standard textures, and the instantiated hierarchy live in `table.glb`
+- VPE-only material semantics live in `meta/materials.v1.json`
+- VPE-only texture bytes live in `meta/textures.bin`
+- runtime imports the GLB first, then replaces or augments imported materials using the `materials.v1` payload
 
 ## File Structure
 
-If you extract a `.vpe` file, you'll see the following structure:
+If you extract a `.vpe`, the relevant structure looks like this:
 
 ```plain
-📁 table
- ├─ 📁 assets
- │   └─ 📁 PhysicsMaterial
- │       ├─ 📄 WallMaterial.json
- │       └─ 📄 WallMaterial.meta.json
- ├─ 📁 global
- │   ├─ 📄 coils.json
- │   ├─ 📄 lamps.json
- │   ├─ 📄 switches.json
- │   └─ 📄 wires.json
- ├─ 📁 items
- │   ├─ 📁 0
- │   ├─ 📁 0.0
- │   │     ...
- │   └─ 📁 0.0.5.0
- │       ├─ 📁 Bumper
- │       │   └─ 📄 0.json  
- │       └─ 📁 BumperCollider
- │           └─ 📄 0.json  
- ├─ 📁 meta
- │   ├─ 📄 colliders.json
- │   └─ 📄 sounds.json
- ├─ 📁 refs
- │   ├─ 📁 0
- │   ├─ 📁 0.1
- │   │     ...
- │   └─ 📁 0.1.2.3
- │       ├─ 📁 BumperCollider
- │       └─ 📁 BumperSound
- │           └─ 📄 0.json
- ├─ 📁 sounds 
- │   └─ 📄 Flipper 1.wav
- ├─ 📄 table.glb
- └─ 📄 colliders.glb
+table/
+|-- assets/
+|   `-- ...
+|-- global/
+|   |-- coils.json
+|   |-- lamps.json
+|   |-- switches.json
+|   `-- wires.json
+|-- items/
+|   `-- ...
+|-- meta/
+|   |-- colliders.json
+|   |-- materials.v1.json
+|   |-- sounds.json
+|   `-- textures.bin
+|-- refs/
+|   `-- ...
+|-- sounds/
+|   `-- ...
+|-- colliders.glb
+`-- table.glb
 ```
+
+Important details:
+
+- `meta/materials.v1.json` is optional. It is only written when a `IVpeMaterialV1Translator` is registered and captures at least one profile.
+- `meta/textures.bin` is the sidecar texture payload. It is a raw concatenation of VPE-only texture blobs. Offsets and lengths are stored per texture in `VpeTextureAssetV1`.
+- there is no loose `meta/textures/` runtime path anymore. New development should assume side-channel textures come from `textures.bin`, or optionally from embedded GLB buffer views.
+- `table.glb` may also carry a `VPE_materials` custom extension via `VpeMaterialsGltfExtension`, but export keeps that path disabled (`EmbedVpeMaterialsIntoGlb = false`) because the sidecar path is the supported one.
 
 ## Export
 
-Let's go through those items by looking at how they are written. Afterwards, we'll go through the reading process as well, to see the differences between editor and runtime loading.
+The main export entry point is `PackageWriter`.
 
-You can open up `PackageWriter` to see the implementation.
+### 1. Scene Preparation
 
-### glTF Export
+For glTF export, the writer prepares the scene:
 
-We start by exporting the entire GameObject hierarchy starting at the table node as glTF. We're using [Unity's fork](https://docs.unity3d.com/Packages/com.unity.cloud.gltfast@6.10/manual/index.html) of [`atteneder/glTFast`](https://github.com/atteneder/glTFast) for this. The binary data is [streamed](https://docs.unity3d.com/Packages/com.unity.cloud.gltfast@6.10/api/GLTFast.Export.GameObjectExport.html#GLTFast_Export_GameObjectExport_SaveToStreamAndDispose_System_IO_Stream_System_Threading_CancellationToken_) directly into the ZIP archive's input stream to keep the memory footprint low.
+- ensures meshes are readable so glTFast can access vertex data
+- temporarily enables author-time disabled `Light` components so `KHR_lights_punctual` contains the same light topology the runtime needs
+- disables invalid renderers/meshes that would crash glTF export
+- creates a temporary material-sanitizing scope via `VpeMaterialV1Translator.PrepareGltfExport(...)`
 
-The glTF export includes the hierarchy, meshes, and materials, but does not include any component data, external assets, or other metadata needed for the table to run.
+The sanitizing scope is important. It prevents exporting the same texture data twice when the VPE material system already owns a texture. Today it mainly strips textures that are intentionally side-channeled, while preserving the imported GLB fallback for everything else.
 
-> [!NOTE]
-> We are not 100% sure yet how materials work. They seem to be restored correctly in HDRP, but they might use special shaders after import. We might need to side-load them as well.
->
-> The resulting binary ends up at the root of the archive as `📄 table.glb`.
+### 2. `table.glb`
 
-### Collider Meshes
+The scene hierarchy rooted at the table is exported through Unity's fork of glTFast:
 
-Some of our components use a mesh for physics collision. In Unity, these are references to regular meshes, but they aren't part of the hierarchy recognized by the glTF exporter, so we export them separately.
+- format: binary glTF (`.glb`)
+- images: standard glTFast export path, which means PNG/JPG only
+- output: written to memory first, then stored as `table/table.glb`
 
-We do this by fetching all `IMeshCollider` components, generating a GUID for each, and exporting them (named by the GUID) in another `.glb` file, `📄 colliders.glb`. We keep a reference between the meshes’ instance IDs and these GUIDs for when we export the components.
+The GLB contains:
 
-Additionally, we save whether the component using the collider mesh is part of a prefab. This is important so we can identify the prefab when the package is re-imported into the editor, and re-link it, if so. This data is saved as `📄 colliders.json` in the `📁 meta` folder and looks like this:
+- hierarchy
+- transforms
+- meshes
+- lights
+- imported fallback materials
+- textures that stay on the glTF path
 
-```json
-{
-  "9c42922e-a8b8-416a-b859-b22f24fa205e": {
-    "IsPrefabMeshOverriden": false,
-    "PrefabGuid": "1d547d87da8b11c44a083695469ff8b8",
-    "PathWithinPrefab": ""
-  }
-}
-```
+The GLB does not contain:
 
-Here, we store a map keyed by the GUID for quick lookup, along with the prefab’s GUID if there is one, and whether the mesh was actually overridden. The `PathWithinPrefab` property points to the object within the prefab, because there might be multiple objects.
+- component packables
+- refs wiring
+- globals
+- assets
+- VPE material profiles
+- packed sidecar texture bytes
 
-### Components
+### 3. `colliders.glb` and `meta/colliders.json`
 
-Next, we serialize the GameObject and component data into `📁 items` and `📁 refs`. The structure inside these folders is the same. On the first level, folders are named after each GameObject’s indices in the hierarchy. The second level defines the type of the component (for example, `📁 Bumper` maps to `BumperComponent` through the class's `[PackAs]` attribute). Finally, at the third level, the actual data is stored as JSON.
+Physics-only meshes are not always part of the visible hierarchy that glTF export sees, so collider meshes are exported separately:
 
-Each component determines for itself which data is written to `📁 items` and which to `📁 refs`. The purpose of these two folders is that data is read in two passes during import: the first pass creates the components, and the second pass updates cross-references between them.
+- mesh bytes go to `table/colliders.glb`
+- authoring metadata goes to `table/meta/colliders.json`
 
-Components might add include other files. For example, sound components add the actual sound files, which are written to `📁 sounds`.
+`colliders.json` stores prefab linkage and override data so editor re-import can reconnect collider meshes correctly.
 
-### Globals
+### 4. Items, Refs, Globals, Assets, Sounds
 
-Global data is then written to `📁 global`. Currently, this folder contains mappings for switches, coils, lamps, and wires.
+The rest of the package is exported in this shape:
 
-### Assets
+- `items/` contains component/item data
+- `refs/` contains cross-reference data restored in a second pass
+- `global/` contains switches, coils, lamps, wires
+- `assets/` contains serialized `ScriptableObject` assets plus their metadata
+- `sounds/` contains wave data
+- `meta/sounds.json` contains sound metadata
 
-In this context, assets are instances of `ScriptableObject`, usually serialized in the editor as `.asset` files. We save them to the `📁 assets` folder in our package.
+### 5. `materials.v1` Capture
 
-Assets are grouped into folders based on their type (again determined by the `[PackAs]` attribute). Because they are deserialized as-is, we need an easy way to reference them, which is the purpose of their `*.meta.json` counterparts. The goal of these meta files is to link each asset to an identifier, which is then used by the component data.
+HDRP material capture is performed by `HdrpMaterialV1Translator`.
 
-This step also writes other metadata such as `📄 sounds.json` in the `📁 meta` folder, which maps the GUID of the sound assets to their name.
+The translator converts supported HDRP materials into a portable `VpeMaterialsPayloadV1`:
 
-### More to come
+- supported authoring shaders:
+  - `HDRP/Lit`
+  - `HDRP/Decal`
+  - `HDRP/Unlit`
+- unsupported shaders are not fatal
+  - they fall back to the imported GLB material at runtime
+  - the translator aggregates them into a summary instead of spamming one warning per material
 
-Future additions will include shaders, external dependencies such as PinMAME, MPF, and Visual Scripting, and more.
+The payload contains:
 
+- `Profiles`
+  - one logical material profile per normalized material name
+- `Textures`
+  - one `VpeTextureAssetV1` per side-channeled texture blob
+- `RendererStates`
+  - shadow casting mode, receive shadows, rendering layer mask
 
-## Import
+### 6. Texture Ownership Rules
 
-We'll quickly go through the editor import process to explain a few details that were only implied in the export section above.
+This is the most important part of the format.
 
-One important point is that loading a `.vpe` file during runtime is fundamentally different from loading it into the editor. While the runtime goal is simply to play the table, the editor goal is to import it so it can be easily modified. It's also supposed to save all the data in a folder structure that is easily accessible to the user.
+The translator intentionally splits texture ownership between glTF and the VPE sidecar.
 
-- The glTF import uses different APIs in the editor versus runtime. In the editor, we write the .glb binary to the asset folder of the Unity project, load it as a prefab, and instantiate a GameObject from it. At runtime, we instantiate a GameObject directly from the binary in memory.
-- The order in which data is imported is important for both runtime and edit time, because some steps depend on others:
-	1. Load `📄 table.glb`, which gives us the scene hierarchy.
-	2. Unpack `📁 assets` and `📄 colliders.glb`
-	3. Unpack sounds to `📁 sounds`. Since the GUIDs used for referencing the sound files are the original asset GUIDs, we only write sound files that aren't already in the asset database.
-	4. Loop through `📁 items` and do, in this order:
-		1. Instantiate and apply components
-		2. Link them to their prefab (if the prefab exists in the editor).
-		3. Apply component data.
-	5. Loop through `📁 refs` and restore cross-references between components.
-	6. Import data from `📁 global`.
+#### Textures that stay on the imported GLB path
+
+These are captured as "imported texture refs", meaning the profile stores tiling/semantic intent, but runtime reads pixels from the material that glTFast already imported:
+
+- opaque lit base color maps
+- emissive maps
+- most unlit color maps
+- all supported normal maps
+
+Normals stay on the GLB path. Several benchmarked alternatives were faster or smaller, but caused visual regressions such as insert/plastic ghosting.
+
+#### Textures that are side-channeled into `textures.bin`
+
+These are captured as explicit `TextureId` references backed by `VpeTextureAssetV1` entries:
+
+- HDRP `MaskMap`
+- HDRP `ThicknessMap`
+- alpha-bearing lit base color maps
+  - transparent
+  - alpha-tested
+- decal base color maps
+- decal mask maps
+
+Why these are side-channeled:
+
+- glTF cannot represent HDRP `MaskMap` semantics losslessly
+- albedo alpha is load-bearing for inserts, plastics, and decals
+- glTF/JPG conversion can silently drop or alter alpha when relying on fallback material export
+
+### 7. `textures.bin`
+
+The exporter does not write one file per side texture. It writes one packed blob:
+
+- `meta/textures.bin`
+
+`BuildPackedMaterialTextureData(...)` simply concatenates each side texture byte array and records:
+
+- `ByteOffset`
+- `ByteLength`
+- `FileName` (export-side blob key only)
+- `MimeType`
+- `ColorSpace`
+- filter/wrap/aniso/mipmap hints
+- width/height
+
+Writer behavior:
+
+- side-channel textures are PNG-encoded
+- `MimeType` defaults to `image/png`
+- `ByteOffset` / `ByteLength` are filled in
+- `GlbBufferView` remains unused in the shipping path
+
+### 8. Optional GLB Embedding Path
+
+`VpeMaterialsGltfExtension` exists as a post-process helper that can:
+
+- inject a `VPE_materials` custom extension into `table.glb`
+- append side texture blobs into GLB buffer views
+- read the payload back at runtime
+
+Export keeps that path disabled:
+
+- `PackageWriter.EmbedVpeMaterialsIntoGlb = false`
+
+Reason:
+
+- the sidecar path is stable
+- the GLB-embedding path is useful as infrastructure and for future work
+- but it is not the format used by exported packages
+
+## Runtime Import
+
+The runtime import entry point is `RuntimePackageReader`.
+
+### Import Order
+
+Runtime import is intentionally ordered:
+
+1. Load `table.glb`
+2. Unpack sounds
+3. Unpack assets
+4. Unpack collider meshes
+5. Restore packables from `items/`
+6. Restore refs from `refs/`
+7. Restore globals
+8. Read table metadata
+9. Restore material profiles from `materials.v1`
+
+`table.glb` must be first because every later step depends on the imported hierarchy already existing.
+
+### Runtime GLB Import
+
+At runtime, the GLB is imported directly from bytes in memory:
+
+- `sceneFile.GetData()`
+- `new GltfImport(...)`
+- `gltf.Load(sceneData, uri, cancellationToken: ...)`
+- `InstantiateMainSceneAsync(...)`
+
+The reader also checks the optional `VPE_materials` extension before import:
+
+- `VpeMaterialsGltfExtension.TryReadPayload(...)`
+- `VpeMaterialsGltfExtension.TryReadEmbeddedTextureBlobs(...)`
+
+That code path is dormant for normal exports, because the writer keeps extension embedding disabled. It exists so GLB-only experiments do not need a separate schema.
+
+### Runtime Material Restore
+
+`VpeMaterialV1Reader` owns the runtime restore pass.
+
+Important behavior:
+
+- it reads `meta/materials.v1.json`
+- it prefers embedded GLB texture blobs if present
+- otherwise it reads `textures.bin`
+
+`TextureProvider.Get(...)` currently:
+
+- slices bytes from `textures.bin` using `ByteOffset` / `ByteLength`
+- creates `Texture2D`
+- uses `ImageConversion.LoadImage(...)`
+- applies wrap/filter/aniso
+- caches the resulting `Texture2D` per import
+
+Mip behavior:
+
+- sRGB side textures respect `GenerateMipMaps`
+- linear side textures force runtime mip generation off
+
+That last change was intentional and measurable. The heavy linear payload is dominated by mask/thickness data, where runtime mip generation was expensive and offered limited visual benefit.
+
+### Runtime Resolver
+
+`VpeMaterialV1Reader` itself is SRP-agnostic. It delegates actual material creation to `IVpeMaterialResolver`.
+
+For HDRP, `HdrpMaterialResolver`:
+
+- clones pre-authored template materials
+- restores base color, mask map, emissive, transmission, and so on
+- restores renderer states after the material pass
+- caches resolved materials aggressively
+- reuses one resolved material for repeated imported-material instances
+
+It also contains the most important merged runtime optimization so far:
+
+- RGB normal maps are repacked for HDRP on the GPU with `VpePackNormalForHdrp.shader`
+- fallback remains CPU-based if the shader path fails
+
+This optimization reduced the normal repack cost from multiple seconds to effectively negligible on the benchmark table.
+
+## Editor Import
+
+Editor import differs from runtime import in one important way:
+
+- runtime loads GLB directly from memory
+- editor writes GLB back into the Unity project and re-imports it through the asset pipeline
+
+The rest of the logical order is similar:
+
+1. import GLB
+2. unpack assets and colliders
+3. restore items
+4. restore refs
+5. restore globals
+6. restore authoring metadata
+
+## Texture Compression
+
+This section documents the shipping texture path and the benchmarked alternatives.
+
+### Shipping Texture Path
+
+Mainline behavior is:
+
+- `table.glb` images are whatever glTFast exports
+  - PNG or JPG
+- side-channel VPE-only textures are PNG
+- side-channel texture bytes are stored in `meta/textures.bin`
+- runtime loads side-channel textures via `ImageConversion.LoadImage(...)`
+
+This path is stable and visually correct, but not the fastest possible one.
+
+### Why Texture Compression Matters
+
+The benchmarks showed that once:
+
+- duplicate textures were removed
+- material reuse caching was added
+- GPU normal repack was added
+
+the next dominant cost was texture decode, not ZIP IO itself.
+
+The biggest speedups came from removing `LoadImage(...)` and moving side textures onto direct GPU-uploadable formats.
+
+### Formats and Outcomes
+
+The measurements below were taken on the Terminator 2 table during the optimization pass. Treat them as benchmark data, not guarantees for every table.
+
+#### 1. PNG Sidecar in `textures.bin`
+
+Status:
+
+- shipping baseline
+
+Behavior:
+
+- side textures are exported as PNG
+- runtime decodes them with `LoadImage(...)`
+
+Representative result after other merged optimizations:
+
+- package around `186 MB`
+- total import around `7.3s` to `7.7s`
+
+Notes:
+
+- stable
+- visually correct
+- pays a large PNG decode cost
+
+#### 2. Raw `RGBA32` Sidecar
+
+Status:
+
+- benchmark only
+- rejected
+
+Intent:
+
+- eliminate PNG decode cost entirely
+- store raw pixels and upload via `LoadRawTextureData(...)`
+
+Observed result:
+
+- package around `178 MB`
+- export time ballooned to roughly `3 minutes`
+- visual regressions were observed during the experiment
+
+Conclusion:
+
+- useful as a proof that decode avoidance matters
+- not viable as-is
+- export cost and regression risk were too high
+
+#### 3. `DXT5` for Linear Side Textures
+
+Status:
+
+- benchmark only
+- successful for speed and size
+
+Applied to:
+
+- linear VPE side textures
+- primarily mask/thickness-style data
+
+Observed result:
+
+- package around `158 MB`
+- total import around `6.57s`
+- side-texture load time dropped substantially
+- visuals looked acceptable on the benchmark table
+
+Conclusion:
+
+- strong improvement
+- lossy, but tolerable for those linear texture classes
+
+#### 4. `DXT5` for Linear + `BC7` for sRGB Side Textures
+
+Status:
+
+- benchmark only
+- best sidecar result
+
+Applied to:
+
+- `DXT5` for linear side textures
+- `BC7` for remaining sRGB side textures
+
+Observed result:
+
+- package around `142.5 MB`
+- total import around `6.23s`
+- side-texture load time dropped to roughly `80 ms`
+- `compressedTextureLoads=97`
+- `encodedTextureLoads=0`
+- visuals looked fine on the benchmark table
+
+Conclusion:
+
+- this was the strongest sidecar compression result
+- the main win was format/direct-upload, not just file size
+- this is the most promising future reimplementation path for side textures
+
+#### 5. Move GLB Normals to Sidecar
+
+Status:
+
+- benchmark only
+- rejected
+
+Observed result:
+
+- package could shrink dramatically, down near `119 MB`
+- but visual regressions returned
+- the main symptom was ghosting on inserts/plastics
+
+Conclusion:
+
+- the path was faster and smaller
+- but semantically wrong
+- do not reimplement blindly without first understanding what imported glTF normals preserve that the sidecar path currently does not
+
+#### 6. DDS / BC7 Embedded Directly in GLB
+
+Status:
+
+- benchmark only
+- rejected
+
+Observed result:
+
+- package shrank to about `116.8 MB`
+- but `table.glb` import time exploded
+- representative timings:
+  - `table.glb`: about `7.9s`
+  - total import: about `11.3s`
+
+Why it failed:
+
+- DDS/BC blocks are poor ZIP citizens in this setup
+- compressed-on-disk GLB got smaller, but the uncompressed GLB payload got much larger
+- runtime paid that inflated payload cost during GLB import
+
+Conclusion:
+
+- good for disk footprint
+- bad for uncached load time in this `.vpe` container
+
+#### 7. KTX2 / `KHR_texture_basisu` for GLB Normals
+
+Status:
+
+- benchmark only
+- not kept
+
+Implementation notes:
+
+- required patching local glTFast
+- normals were exported through `toktx`
+- textures were serialized through `KHR_texture_basisu`
+
+Observed result:
+
+- package around `130.6 MB`
+- GLB really contained `87` `image/ktx2` images
+- but runtime was slower than the PNG/JPG GLB baseline
+- representative timings:
+  - total import: about `6.17s`
+  - `table.glb`: about `2.81s`
+- this was slower than the best PNG/JPG GLB + compressed-sidecar baseline
+
+Why it failed:
+
+- KTX2 reduced on-disk size
+- but the runtime transcode path added enough overhead to lose on startup time
+
+Conclusion:
+
+- useful for footprint
+- not a load-time win for this table in the tested setup
+
+### Re-Implementation Notes for the Best Unmerged Sidecar Path
+
+If a future agent wants to re-implement the successful sidecar compression branch, the important points are:
+
+- keep the logical split between imported GLB textures and side-channel textures
+- only change the side-channel encoding and runtime upload path
+- do not change normal ownership yet
+
+Recommended shape:
+
+1. Keep `meta/textures.bin` as the carrier.
+2. Extend `VpeTextureAssetV1` with an explicit texture-data-format discriminator.
+3. On export:
+   - make a readable copy of the texture
+   - compress linear side textures to `DXT5`
+   - compress sRGB side textures to `BC7`
+   - store raw compressed bytes in `textures.bin`
+4. On runtime import:
+   - create `Texture2D(width, height, format, mipChain, linear)`
+   - call `LoadRawTextureData(...)`
+   - `Apply(...)`
+
+Critical constraint:
+
+- keep a fallback path for platforms that do not support the chosen GPU format
+- keep a fallback path for editor re-import if those packages need to round-trip on unsupported hardware
+
+## glTFast Issues and Constraints
+
+These findings shape the implementation.
+
+### 1. Export Is PNG/JPG-Oriented
+
+glTFast export currently assumes standard encoded images:
+
+- PNG
+- JPG
+
+There is no clean public export hook for "use this custom image payload/extension format instead".
+
+Practical consequence:
+
+- standard GLB texture experiments required patching or forking glTFast
+- sidecar experiments were much cheaper to iterate on than GLB texture experiments
+
+### 2. KTX2 Import Exists, Export Does Not
+
+glTFast can import `KHR_texture_basisu`, but export is not wired for it.
+
+Practical consequence:
+
+- KTX2 GLB experiments required local fork work
+- they were not one-line package upgrades
+
+### 3. Custom Extension Support Is Incomplete for This Use Case
+
+`VpeMaterialsGltfExtension` exists and works as a local post-process helper, but glTFast does not provide a clean end-to-end public API for exporting arbitrary VPE material extensions.
+
+Practical consequence:
+
+- a `VPE_materials`-inside-GLB format is technically possible
+- but today it is more practical as a local GLB rewrite step than as a stock glTFast export feature
+
+Related import-side issue:
+
+- the fast runtime parser path is optimized for known schema
+- arbitrary custom extension payloads are not something the stock runtime path exposes conveniently
+- this is one reason `VpeMaterialsGltfExtension` reads and writes raw GLB JSON/chunks itself instead of relying on glTFast to surface custom payload data
+
+### 4. Runtime Performance Depends on Payload Shape, Not Just File Size
+
+The DDS and KTX2 experiments were the clearest proof:
+
+- smaller `.vpe` files do not automatically load faster
+- transcoding cost, ZIP behavior, and uncompressed in-memory payload size matter just as much
+
+This is why the sidecar compression experiments outperformed the GLB compression experiments.
+
+## Performance Summary
+
+### Merged Improvements
+
+The following changes are in the format/runtime path:
+
+- duplicate texture storage between GLB and sidecar was reduced substantially
+- VPE-only textures are packed into `meta/textures.bin`
+  - no more one-file-per-texture export on the normal path
+- unsupported HDRP shaders do not flood export with warnings
+- runtime material replacement caches resolved materials aggressively
+- runtime normal repack uses a GPU path via `VpePackNormalForHdrp.shader`
+- linear side textures skip runtime mip generation
+- import timings and resolver diagnostics are logged in detail
+
+### Measured Effect of the Merged Work
+
+On the benchmark table, the merged work took import from roughly the original `~10-11s` range down to roughly `~7.3-7.7s`, depending on the exact branch state and rerun.
+
+The biggest merged win was the GPU normal repack:
+
+- it reduced the normal repack cost from multiple seconds to effectively negligible
+
+### Best Additional Gains Found During Experiments
+
+The best unmerged result came from compressing side-channel textures into GPU-native formats while leaving GLB textures alone:
+
+- `DXT5` for linear side textures
+- `BC7` for sRGB side textures
+
+Representative result:
+
+- package around `142.5 MB`
+- total import around `6.23s`
+
+### Future Gains Worth Pursuing
+
+Most promising:
+
+- re-implement compressed sidecar textures with a platform-aware fallback story
+- add persistent caching only after the raw format is stable
+- overlap IO/decode/setup work more aggressively once the payload format is fixed
+
+Possible but lower-confidence:
+
+- GLB-side compressed texture work
+  - DDS and KTX2 experiments did not beat the sidecar approach on load time
+- deeper glTFast fork work
+  - likely only worth it if the project decides that GLB must become the canonical home for more textures again
+
+Not recommended without new evidence:
+
+- moving GLB normals into the sidecar again without first solving the ghosting issue
+- raw `RGBA32` sidecar export as a shipping format
+
+## Recommended Next Steps
+
+If a future agent picks this up, the most practical order is:
+
+1. Keep the sidecar/material split.
+2. Re-implement compressed `textures.bin` first.
+3. Add a format discriminator plus platform fallback handling.
+4. Re-measure cold-load import.
+5. Only then decide whether GLB texture work is worth the complexity.
+
+That sequence gave the best empirical results during this optimization pass.

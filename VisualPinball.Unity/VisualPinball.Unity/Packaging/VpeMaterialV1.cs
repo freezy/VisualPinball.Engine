@@ -261,14 +261,15 @@ namespace VisualPinball.Unity
 	{
 		// Stable id referenced by VpeTextureRefV1.TextureId.
 		public string Id;
-		// Legacy loose file under table/meta/textures/ inside the package.
+		// Export-side blob key. The current writer uses this to match texture metadata with the
+		// captured byte payload before packing everything into textures.bin.
 		public string FileName;
-		// Byte range inside table/meta/textures.bin for non-GLB packages. When set, runtime should
-		// prefer this over FileName to avoid per-texture package lookups.
+		// Byte range inside table/meta/textures.bin. This is the normal runtime path for VPE-only
+		// textures when they are not embedded into the GLB.
 		public int ByteOffset = -1;
 		public int ByteLength;
 		// Optional GLB bufferView index for packages that embed VPE-only texture bytes directly in
-		// table.glb. When set, runtime should prefer this over FileName.
+		// table.glb. When set, runtime should prefer this over textures.bin.
 		public int GlbBufferView = -1;
 		// MIME type for the embedded bytes. Current writer emits PNG side-channel textures.
 		public string MimeType = "image/png";

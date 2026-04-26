@@ -84,13 +84,11 @@ namespace VisualPinball.Unity
 			var profilesByName = BuildProfileLookup(payload.Profiles);
 			var resolvedMaterialsByImportedId = new Dictionary<int, Material>();
 			var resolvedMaterialsBySignature = new Dictionary<string, Material>(StringComparer.Ordinal);
-			IPackageFolder texturesFolder = null;
-			metaFolder?.TryGetFolder(PackageApi.TexturesV1Folder, out texturesFolder);
 			byte[] packedTextureData = null;
 			if (metaFolder != null && metaFolder.TryGetFile(PackageApi.TexturesV1PackFile, out var packedTexturesFile)) {
 				packedTextureData = packedTexturesFile.GetData();
 			}
-			using var textures = new TextureProvider(payload.Textures, texturesFolder, packedTextureData, embeddedTextureBlobsById);
+			using var textures = new TextureProvider(payload.Textures, packedTextureData, embeddedTextureBlobsById);
 
 			var stats = new Stats();
 			var materialTraversalStopwatch = Stopwatch.StartNew();
@@ -212,7 +210,6 @@ namespace VisualPinball.Unity
 				$"textureCacheHits={textures.CacheHits}, textureLoads={textures.LoadCount}, " +
 				$"textureLoadMs={textures.LoadMilliseconds}, textureBytes={textures.LoadedBytes}, " +
 				$"embeddedTextureLoads={textures.EmbeddedLoadCount}, packedTextureLoads={textures.PackedLoadCount}, " +
-				$"looseTextureLoads={textures.LooseFileLoadCount}, " +
 				$"resolverStats=[{resolverDiagnostics?.GetDiagnosticsSummary() ?? "n/a"}].");
 
 			return true;
@@ -337,7 +334,6 @@ namespace VisualPinball.Unity
 			private readonly Dictionary<string, VpeTextureAssetV1> _assetsById;
 			private readonly IReadOnlyDictionary<string, byte[]> _embeddedTextureBlobsById;
 			private readonly byte[] _packedTextureData;
-			private readonly IPackageFolder _folder;
 			private readonly Dictionary<string, Texture2D> _loaded = new(StringComparer.Ordinal);
 			private readonly HashSet<string> _missingTextureIdsLogged = new(StringComparer.Ordinal);
 			private long _loadedBytes;
@@ -346,14 +342,11 @@ namespace VisualPinball.Unity
 			private int _cacheHits;
 			private int _embeddedLoadCount;
 			private int _packedLoadCount;
-			private int _looseFileLoadCount;
 			public TextureProvider(
 				VpeTextureAssetV1[] assets,
-				IPackageFolder folder,
 				byte[] packedTextureData,
 				IReadOnlyDictionary<string, byte[]> embeddedTextureBlobsById)
 			{
-				_folder = folder;
 				_packedTextureData = packedTextureData;
 				_embeddedTextureBlobsById = embeddedTextureBlobsById;
 				_assetsById = new Dictionary<string, VpeTextureAssetV1>(StringComparer.Ordinal);
@@ -394,15 +387,6 @@ namespace VisualPinball.Unity
 					bytes = packedBytes;
 					loadedFromPacked = true;
 				}
-				if ((bytes == null || bytes.Length == 0)
-					&& _folder != null
-					&& !string.IsNullOrWhiteSpace(asset.FileName)
-					&& _folder.TryGetFile(asset.FileName, out var file)) {
-					bytes = file.GetData();
-					loadedFromEmbedded = false;
-					loadedFromPacked = false;
-				}
-
 				if (bytes == null || bytes.Length == 0) {
 					string reason;
 					if (asset.GlbBufferView >= 0) {
@@ -410,7 +394,7 @@ namespace VisualPinball.Unity
 					} else if (asset.ByteOffset >= 0 && asset.ByteLength > 0) {
 						reason = $"packed-texture-range-missing:{asset.ByteOffset}+{asset.ByteLength}";
 					} else {
-						reason = $"file-not-found-or-empty:{asset.FileName}";
+						reason = $"no-embedded-or-packed-bytes:{asset.Id}";
 					}
 					LogMissingTexture(textureId, reason: reason);
 					_loaded[textureId] = null;
@@ -441,8 +425,6 @@ namespace VisualPinball.Unity
 					_embeddedLoadCount++;
 				} else if (loadedFromPacked) {
 					_packedLoadCount++;
-				} else {
-					_looseFileLoadCount++;
 				}
 				_loaded[textureId] = texture;
 				return texture;
@@ -454,7 +436,6 @@ namespace VisualPinball.Unity
 			public long LoadedBytes => _loadedBytes;
 			public int EmbeddedLoadCount => _embeddedLoadCount;
 			public int PackedLoadCount => _packedLoadCount;
-			public int LooseFileLoadCount => _looseFileLoadCount;
 
 			public void Dispose()
 			{
