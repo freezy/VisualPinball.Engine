@@ -4,6 +4,18 @@
   href: setup.md
 - name: Threading Model
   href: threading-model.md
+- name: Packaging
+  items:
+  - name: Overview
+    href: packaging/index.md
+  - name: Export
+    href: packaging/export.md
+  - name: Import
+    href: packaging/import.md
+  - name: Materials
+    href: packaging/materials.md
+  - name: Benchmarks
+    href: packaging/benchmarks.md
 - name: Future Integrations
   items:
   - name: Accelerometer Input Design
