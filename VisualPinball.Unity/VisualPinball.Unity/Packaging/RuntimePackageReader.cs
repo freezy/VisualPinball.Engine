@@ -31,6 +31,8 @@ namespace VisualPinball.Unity
 {
 	public class RuntimePackageReader
 	{
+		private const int RuntimeYieldInterval = 16;
+
 		private readonly string _vpePath;
 		private GameObject _table;
 		private IPackageFolder _tableFolder;
@@ -49,6 +51,14 @@ namespace VisualPinball.Unity
 
 		public async Task<GameObject> ImportIntoScene(Transform parent = null, CancellationToken cancellationToken = default)
 		{
+			return await ImportIntoScene(parent, null, cancellationToken);
+		}
+
+		public async Task<GameObject> ImportIntoScene(
+			Transform parent,
+			IProgress<RuntimePackageLoadProgress> progress,
+			CancellationToken cancellationToken = default)
+		{
 			if (string.IsNullOrWhiteSpace(_vpePath)) {
 				throw new ArgumentException("No .vpe path was provided.");
 			}
@@ -57,9 +67,11 @@ namespace VisualPinball.Unity
 			}
 
 			var importStopwatch = Stopwatch.StartNew();
+			ReportProgress(progress, RuntimePackageLoadStage.OpeningPackage, 0f, $"Opening {Path.GetFileName(_vpePath)}...");
 			using var storage = PackageApi.StorageManager.OpenStorage(_vpePath);
 			_tableFolder = storage.GetFolder(PackageApi.TableFolder);
 			_sparsePathIndexMap = BuildSparsePathIndexMap(PackageApi.ItemFolder, PackageApi.ItemReferencesFolder);
+			ReportProgress(progress, RuntimePackageLoadStage.OpeningPackage, 1f, "Package opened.");
 
 			var previousSparsePathIndexMap = TransformExtensions.SparsePathIndexMap;
 			TransformExtensions.SparsePathIndexMap = _sparsePathIndexMap;
@@ -67,7 +79,7 @@ namespace VisualPinball.Unity
 			try {
 				try {
 					var importModelsStopwatch = Stopwatch.StartNew();
-					_table = await ImportModels(parent, cancellationToken);
+					_table = await ImportModels(parent, progress, cancellationToken);
 					importModelsStopwatch.Stop();
 					Logger.Info(
 						$"RuntimePackageReader: Imported {PackageApi.SceneFile} in {importModelsStopwatch.ElapsedMilliseconds}ms " +
@@ -82,77 +94,107 @@ namespace VisualPinball.Unity
 						_files = new PackagedFiles(_tableFolder, _refs);
 
 						var unpackSoundsStopwatch = Stopwatch.StartNew();
-						await _files.UnpackSoundsRuntime(cancellationToken);
+						ReportProgress(progress, RuntimePackageLoadStage.LoadingSounds, 0f, "Loading table audio...");
+						await _files.UnpackSoundsRuntime(cancellationToken, (processed, total) => {
+							ReportProgress(progress, RuntimePackageLoadStage.LoadingSounds, GetProgress01(processed, total),
+								FormatStageMessage("Loading table audio", processed, total));
+						});
+						ReportProgress(progress, RuntimePackageLoadStage.LoadingSounds, 1f, "Audio ready.");
 						unpackSoundsStopwatch.Stop();
 						Logger.Info($"RuntimePackageReader: Unpacked sounds in {unpackSoundsStopwatch.ElapsedMilliseconds}ms.");
 
 						var unpackAssetsStopwatch = Stopwatch.StartNew();
-						_files.UnpackAssetsRuntime();
+						ReportProgress(progress, RuntimePackageLoadStage.LoadingAssets, 0f, "Loading runtime assets...");
+						await _files.UnpackAssetsRuntime(cancellationToken, (processed, total) => {
+							ReportProgress(progress, RuntimePackageLoadStage.LoadingAssets, GetProgress01(processed, total),
+								FormatStageMessage("Loading runtime assets", processed, total));
+						});
+						ReportProgress(progress, RuntimePackageLoadStage.LoadingAssets, 1f, "Runtime assets ready.");
 						unpackAssetsStopwatch.Stop();
 						Logger.Info($"RuntimePackageReader: Unpacked assets in {unpackAssetsStopwatch.ElapsedMilliseconds}ms.");
 
 						var unpackMeshesStopwatch = Stopwatch.StartNew();
+						ReportProgress(progress, RuntimePackageLoadStage.LoadingColliderMeshes, 0f, "Loading collider meshes...");
 						await _files.UnpackMeshesRuntime(cancellationToken);
+						ReportProgress(progress, RuntimePackageLoadStage.LoadingColliderMeshes, 1f, "Collider meshes ready.");
 						unpackMeshesStopwatch.Stop();
 						Logger.Info($"RuntimePackageReader: Unpacked meshes in {unpackMeshesStopwatch.ElapsedMilliseconds}ms.");
 
 						var readItemsStopwatch = Stopwatch.StartNew();
-						ReadPackables(PackageApi.ItemFolder, ApplyItemData, (item, type, file, index) => {
-							var comps = item.gameObject.GetComponents(type);
-							var comp = comps.Length > index
-								? comps[index]
-								: item.gameObject.AddComponent(type);
-							if (comp is IPackable packable) {
-								packable.Unpack(file.GetData());
-							} else {
-								PackageApi.Packer.Unpack(file.GetData(), comp);
-							}
-						});
+						await ReadPackablesAsync(
+							PackageApi.ItemFolder,
+							RuntimePackageLoadStage.RestoringPackables,
+							"Restoring table objects",
+							ApplyItemData,
+							(item, type, file, index) => {
+								var comps = item.gameObject.GetComponents(type);
+								var comp = comps.Length > index
+									? comps[index]
+									: item.gameObject.AddComponent(type);
+								if (comp is IPackable packable) {
+									packable.Unpack(file.GetData());
+								} else {
+									PackageApi.Packer.Unpack(file.GetData(), comp);
+								}
+							},
+							progress,
+							cancellationToken);
 						readItemsStopwatch.Stop();
 						Logger.Info($"RuntimePackageReader: Restored packables in {readItemsStopwatch.ElapsedMilliseconds}ms.");
 
 						var readRefsStopwatch = Stopwatch.StartNew();
-						ReadPackables(PackageApi.ItemReferencesFolder, null, (item, type, file, index) => {
-							var comps = item.gameObject.GetComponents(type);
-							var comp = comps.Length > index
-								? comps[index]
-								: item.gameObject.AddComponent(type);
-							if (comp == null) {
-								Logger.Warn($"Cannot create component of type {type.FullName} on {item.name}.");
-								return;
-							}
-							if (comp is not IPackable packable) {
-								Logger.Warn($"Cannot unpack references for type {type.FullName} on {item.name} because the component does not implement {nameof(IPackable)}.");
-								return;
-							}
+						await ReadPackablesAsync(
+							PackageApi.ItemReferencesFolder,
+							RuntimePackageLoadStage.RestoringReferences,
+							"Restoring gameplay references",
+							null,
+							(item, type, file, index) => {
+								var comps = item.gameObject.GetComponents(type);
+								var comp = comps.Length > index
+									? comps[index]
+									: item.gameObject.AddComponent(type);
+								if (comp == null) {
+									Logger.Warn($"Cannot create component of type {type.FullName} on {item.name}.");
+									return;
+								}
+								if (comp is not IPackable packable) {
+									Logger.Warn($"Cannot unpack references for type {type.FullName} on {item.name} because the component does not implement {nameof(IPackable)}.");
+									return;
+								}
 
-							// Some components are intentionally refs-only and return null from Pack().
-							// Ensure they still get created so UnpackReferences can restore wiring.
-							if (comps.Length <= index) {
-								Logger.Info($"Created refs-only component {type.FullName} on {item.name} (index {index}).");
-							}
+								// Some components are intentionally refs-only and return null from Pack().
+								// Ensure they still get created so UnpackReferences can restore wiring.
+								if (comps.Length <= index) {
+									Logger.Info($"Created refs-only component {type.FullName} on {item.name} (index {index}).");
+								}
 
-							try {
-								packable.UnpackReferences(file.GetData(), _table.transform, _refs, _files);
-							} catch (Exception ex) {
-								Logger.Warn(ex, $"Failed unpacking references for type {type.FullName} on {item.name} (index {index}).");
-							}
-						});
+								try {
+									packable.UnpackReferences(file.GetData(), _table.transform, _refs, _files);
+								} catch (Exception ex) {
+									Logger.Warn(ex, $"Failed unpacking references for type {type.FullName} on {item.name} (index {index}).");
+								}
+							},
+							progress,
+							cancellationToken);
 						readRefsStopwatch.Stop();
 						Logger.Info($"RuntimePackageReader: Restored references in {readRefsStopwatch.ElapsedMilliseconds}ms.");
 
 						var globalsStopwatch = Stopwatch.StartNew();
-						ReadGlobals();
+						await ReadGlobalsAsync(progress, cancellationToken);
 						globalsStopwatch.Stop();
 						Logger.Info($"RuntimePackageReader: Read globals in {globalsStopwatch.ElapsedMilliseconds}ms.");
 
 						var tableMetadataStopwatch = Stopwatch.StartNew();
+						ReportProgress(progress, RuntimePackageLoadStage.RestoringTableMetadata, 0f, "Reading table metadata...");
 						ReadTableMetadata();
+						ReportProgress(progress, RuntimePackageLoadStage.RestoringTableMetadata, 1f, "Table metadata ready.");
 						tableMetadataStopwatch.Stop();
 						Logger.Info($"RuntimePackageReader: Read table metadata in {tableMetadataStopwatch.ElapsedMilliseconds}ms.");
 
 						var materialsStopwatch = Stopwatch.StartNew();
+						ReportProgress(progress, RuntimePackageLoadStage.RestoringMaterials, 0f, "Applying material profiles...");
 						RestoreMaterialProfiles();
+						ReportProgress(progress, RuntimePackageLoadStage.RestoringMaterials, 1f, "Material profiles applied.");
 						materialsStopwatch.Stop();
 						Logger.Info($"RuntimePackageReader: Restored material profiles in {materialsStopwatch.ElapsedMilliseconds}ms.");
 						loadSucceeded = true;
@@ -164,6 +206,7 @@ namespace VisualPinball.Unity
 					}
 
 					importStopwatch.Stop();
+					ReportProgress(progress, RuntimePackageLoadStage.Finalizing, 1f, "Table ready.");
 					Logger.Info(
 						$"RuntimePackageReader: Imported '{Path.GetFileName(_vpePath)}' in {importStopwatch.ElapsedMilliseconds}ms total.");
 					return _table;
@@ -179,7 +222,10 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private async Task<GameObject> ImportModels(Transform parent, CancellationToken cancellationToken)
+		private async Task<GameObject> ImportModels(
+			Transform parent,
+			IProgress<RuntimePackageLoadProgress> progress,
+			CancellationToken cancellationToken)
 		{
 			var sceneFile = _tableFolder.GetFile(PackageApi.SceneFile);
 			var sceneData = sceneFile.GetData();
@@ -206,13 +252,17 @@ namespace VisualPinball.Unity
 			try {
 				var gltf = new GltfImport(logger: new ConsoleLogger());
 				var uri = new Uri(Path.GetFullPath(_vpePath));
+				ReportProgress(progress, RuntimePackageLoadStage.ImportingScene, 0f, "Reading table scene...");
 				var loaded = await gltf.Load(sceneData, uri, cancellationToken: cancellationToken);
+				ReportProgress(progress, RuntimePackageLoadStage.ImportingScene, 1f, "Scene data imported.");
 				cancellationToken.ThrowIfCancellationRequested();
 				if (!loaded) {
 					throw new Exception("Failed loading table.glb from package.");
 				}
 
+				ReportProgress(progress, RuntimePackageLoadStage.InstantiatingScene, 0f, "Building scene hierarchy...");
 				var instantiated = await gltf.InstantiateMainSceneAsync(importRoot.transform, cancellationToken);
+				ReportProgress(progress, RuntimePackageLoadStage.InstantiatingScene, 1f, "Scene hierarchy ready.");
 				cancellationToken.ThrowIfCancellationRequested();
 				if (!instantiated) {
 					throw new Exception("Failed instantiating table.glb scene.");
@@ -341,15 +391,39 @@ namespace VisualPinball.Unity
 		/// Loops through all items and components in the package, and applies the given action.
 		/// The item action is executed before the component action.
 		/// </summary>
-		private void ReadPackables(string rootFolder, Action<GameObject, IPackageFile> itemAction, Action<Transform, Type, IPackageFile, int> componentAction)
+		private async Task ReadPackablesAsync(
+			string rootFolder,
+			RuntimePackageLoadStage stage,
+			string statusPrefix,
+			Action<GameObject, IPackageFile> itemAction,
+			Action<Transform, Type, IPackageFile, int> componentAction,
+			IProgress<RuntimePackageLoadProgress> progress,
+			CancellationToken cancellationToken)
 		{
 			if (!_tableFolder.TryGetFolder(rootFolder, out var itemsFolder)) {
+				ReportProgress(progress, stage, 1f, $"{statusPrefix} complete.");
 				return;
 			}
 
-			// -> rootFolder <- / 0.0.0 / CompType / 0
-			itemsFolder.VisitFolders(itemFolder => {
-				// rootFolder / -> 0.0.0 <- / CompType / 0
+			var itemFolders = GetFolders(itemsFolder);
+			var totalOperations = itemAction != null ? itemFolders.Count : 0;
+			foreach (var itemFolder in itemFolders) {
+				foreach (var typeFolder in GetFolders(itemFolder)) {
+					totalOperations += GetFiles(typeFolder).Count;
+				}
+			}
+
+			if (totalOperations == 0) {
+				ReportProgress(progress, stage, 1f, $"{statusPrefix} complete.");
+				return;
+			}
+
+			ReportProgress(progress, stage, 0f, statusPrefix + "...");
+			var processedOperations = 0;
+
+			foreach (var itemFolder in itemFolders) {
+				cancellationToken.ThrowIfCancellationRequested();
+
 				var item = _table.transform.FindByPath(itemFolder.Name);
 				if (item == null) {
 					throw new Exception($"Cannot find item at path {itemFolder.Name} on node {_table.name}. Imported hierarchy does not match packaged item paths.");
@@ -357,22 +431,26 @@ namespace VisualPinball.Unity
 
 				if (itemAction != null && itemFolder.TryGetFile(PackageApi.ItemFile, out var itemFile, PackageApi.Packer.FileExtension)) {
 					itemAction(item.gameObject, itemFile);
+					processedOperations++;
+					await ReportProgressAndYieldAsync(progress, stage, statusPrefix, processedOperations, totalOperations, cancellationToken);
 				}
 
-				itemFolder.VisitFolders(typeFolder => {
-					// rootFolder / 0.0.0 / -> CompType <- / 0
+				foreach (var typeFolder in GetFolders(itemFolder)) {
 					var type = _refs.GetType(typeFolder.Name);
 					if (type == null) {
 						throw new Exception($"Unknown component type '{typeFolder.Name}' while reading package.");
 					}
 
 					var index = 0;
-					typeFolder.VisitFiles(compFile => {
-						// rootFolder / 0.0.0 / CompType / -> 0 <-
+					foreach (var compFile in GetFiles(typeFolder)) {
 						componentAction(item, type, compFile, index++);
-					});
-				});
-			});
+						processedOperations++;
+						await ReportProgressAndYieldAsync(progress, stage, statusPrefix, processedOperations, totalOperations, cancellationToken);
+					}
+				}
+			}
+
+			ReportProgress(progress, stage, 1f, $"{statusPrefix} complete.");
 		}
 
 		private Dictionary<string, int[]> BuildSparsePathIndexMap(params string[] rootFolders)
@@ -424,13 +502,14 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void ReadGlobals()
+		private async Task ReadGlobalsAsync(IProgress<RuntimePackageLoadProgress> progress, CancellationToken cancellationToken)
 		{
 			var tableComponent = _table.GetComponent<TableComponent>();
 			if (!tableComponent) {
 				throw new Exception("Cannot find table component on table object.");
 			}
 			if (!_tableFolder.TryGetFolder(PackageApi.GlobalFolder, out var globalStorage)) {
+				ReportProgress(progress, RuntimePackageLoadStage.RestoringGlobals, 1f, "Table wiring ready.");
 				return;
 			}
 
@@ -441,18 +520,45 @@ namespace VisualPinball.Unity
 				Wires = ReadGlobalList<WireMapping>(globalStorage, PackageApi.WiresFile),
 			};
 
+			var totalMappings = tableComponent.MappingConfig.Switches.Count +
+				tableComponent.MappingConfig.Coils.Count +
+				tableComponent.MappingConfig.Lamps.Count +
+				tableComponent.MappingConfig.Wires.Count;
+
+			if (totalMappings == 0) {
+				ReportProgress(progress, RuntimePackageLoadStage.RestoringGlobals, 1f, "Table wiring ready.");
+				return;
+			}
+
+			ReportProgress(progress, RuntimePackageLoadStage.RestoringGlobals, 0f, "Restoring table wiring...");
+			var processedMappings = 0;
+
 			foreach (var sw in tableComponent.MappingConfig.Switches) {
 				sw.RestoreReference(_table.transform);
+				processedMappings++;
+				await ReportProgressAndYieldAsync(progress, RuntimePackageLoadStage.RestoringGlobals, "Restoring table wiring",
+					processedMappings, totalMappings, cancellationToken);
 			}
 			foreach (var coil in tableComponent.MappingConfig.Coils) {
 				coil.RestoreReference(_table.transform);
+				processedMappings++;
+				await ReportProgressAndYieldAsync(progress, RuntimePackageLoadStage.RestoringGlobals, "Restoring table wiring",
+					processedMappings, totalMappings, cancellationToken);
 			}
 			foreach (var lamp in tableComponent.MappingConfig.Lamps) {
 				lamp.RestoreReference(_table.transform);
+				processedMappings++;
+				await ReportProgressAndYieldAsync(progress, RuntimePackageLoadStage.RestoringGlobals, "Restoring table wiring",
+					processedMappings, totalMappings, cancellationToken);
 			}
 			foreach (var wire in tableComponent.MappingConfig.Wires) {
 				wire.RestoreReferences(_table.transform);
+				processedMappings++;
+				await ReportProgressAndYieldAsync(progress, RuntimePackageLoadStage.RestoringGlobals, "Restoring table wiring",
+					processedMappings, totalMappings, cancellationToken);
 			}
+
+			ReportProgress(progress, RuntimePackageLoadStage.RestoringGlobals, 1f, "Table wiring ready.");
 		}
 
 		private static List<T> ReadGlobalList<T>(IPackageFolder folder, string fileName)
@@ -504,6 +610,86 @@ namespace VisualPinball.Unity
 				UnityEngine.Object.DestroyImmediate(_table);
 			}
 			_table = null;
+		}
+
+		private static async Task ReportProgressAndYieldAsync(
+			IProgress<RuntimePackageLoadProgress> progress,
+			RuntimePackageLoadStage stage,
+			string statusPrefix,
+			int processed,
+			int total,
+			CancellationToken cancellationToken)
+		{
+			ReportProgress(progress, stage, GetProgress01(processed, total), FormatStageMessage(statusPrefix, processed, total));
+
+			if (processed % RuntimeYieldInterval != 0) {
+				return;
+			}
+
+			cancellationToken.ThrowIfCancellationRequested();
+			await Task.Yield();
+		}
+
+		private static void ReportProgress(IProgress<RuntimePackageLoadProgress> progress, RuntimePackageLoadStage stage, float stageProgress01, string message)
+		{
+			if (progress == null) {
+				return;
+			}
+
+			var (stageStart, stageEnd) = GetStageRange(stage);
+			var value01 = Mathf.Lerp(stageStart, stageEnd, Mathf.Clamp01(stageProgress01));
+			progress.Report(new RuntimePackageLoadProgress(stage, value01, message));
+		}
+
+		private static float GetProgress01(int processed, int total)
+		{
+			if (total <= 0) {
+				return 1f;
+			}
+
+			return Mathf.Clamp01(processed / (float)total);
+		}
+
+		private static string FormatStageMessage(string statusPrefix, int processed, int total)
+		{
+			if (total <= 0) {
+				return $"{statusPrefix} complete.";
+			}
+
+			return $"{statusPrefix} ({processed}/{total})";
+		}
+
+		private static (float Start, float End) GetStageRange(RuntimePackageLoadStage stage)
+		{
+			return stage switch {
+				RuntimePackageLoadStage.OpeningPackage => (0f, 0.02f),
+				RuntimePackageLoadStage.ImportingScene => (0.02f, 0.22f),
+				RuntimePackageLoadStage.InstantiatingScene => (0.22f, 0.42f),
+				RuntimePackageLoadStage.LoadingSounds => (0.42f, 0.54f),
+				RuntimePackageLoadStage.LoadingAssets => (0.54f, 0.62f),
+				RuntimePackageLoadStage.LoadingColliderMeshes => (0.62f, 0.72f),
+				RuntimePackageLoadStage.RestoringPackables => (0.72f, 0.88f),
+				RuntimePackageLoadStage.RestoringReferences => (0.88f, 0.96f),
+				RuntimePackageLoadStage.RestoringGlobals => (0.96f, 0.985f),
+				RuntimePackageLoadStage.RestoringTableMetadata => (0.985f, 0.992f),
+				RuntimePackageLoadStage.RestoringMaterials => (0.992f, 0.998f),
+				RuntimePackageLoadStage.Finalizing => (0.998f, 1f),
+				_ => (0f, 1f),
+			};
+		}
+
+		private static List<IPackageFolder> GetFolders(IPackageFolder folder)
+		{
+			var folders = new List<IPackageFolder>();
+			folder.VisitFolders(folders.Add);
+			return folders;
+		}
+
+		private static List<IPackageFile> GetFiles(IPackageFolder folder)
+		{
+			var files = new List<IPackageFile>();
+			folder.VisitFiles(files.Add);
+			return files;
 		}
 	}
 }

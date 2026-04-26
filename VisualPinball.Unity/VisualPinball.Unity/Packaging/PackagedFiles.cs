@@ -34,6 +34,8 @@ namespace VisualPinball.Unity
 {
 	public class PackagedFiles
 	{
+		private const int RuntimeYieldInterval = 8;
+
 		private readonly IPackageFolder _tableFolder;
 		private readonly PackagedRefs _typeLookup;
 
@@ -307,13 +309,19 @@ namespace VisualPinball.Unity
 		}
 #endif
 
-		public void UnpackAssetsRuntime()
+		public async Task UnpackAssetsRuntime(CancellationToken cancellationToken = default, Action<int, int> progress = null)
 		{
 			if (!_tableFolder.TryGetFolder(PackageApi.AssetFolder, out var assetFolder)) {
 				return;
 			}
 
+			var pendingAssets = new List<(IPackageFile AssetFile, IPackageFile MetaFile, Type Type)>();
 			assetFolder.VisitFolders(assetTypeFolder => {
+				var type = _typeLookup.GetType(assetTypeFolder.Name);
+				if (type == null) {
+					throw new Exception($"Unknown asset type {assetTypeFolder.Name}");
+				}
+
 				assetTypeFolder.VisitFiles(assetFile => {
 					if (assetFile.Name.Contains(".meta")) {
 						return;
@@ -324,24 +332,31 @@ namespace VisualPinball.Unity
 						throw new Exception($"Cannot find meta file {metaFilename} for {assetFile.Name}");
 					}
 
-					var type = _typeLookup.GetType(assetTypeFolder.Name);
-					if (type == null) {
-						throw new Exception($"Unknown asset type {assetTypeFolder.Name}");
-					}
-
-					var asset = PackageApi.Packer.Unpack(type, assetFile.GetData()) as ScriptableObject;
-					if (asset == null) {
-						throw new Exception($"Failed to unpack asset {assetFile.Name}");
-					}
-
-					var packer = PackerFactory.GetPacker(type);
-					var meta = packer == null
-						? MetaPackable.UnpackMeta(metaFile.GetData())
-						: packer.Unpack(metaFile.GetData(), asset, this);
-
-					_deserializedAssets[meta.InstanceId] = asset;
+					pendingAssets.Add((assetFile, metaFile, type));
 				});
 			});
+
+			for (var index = 0; index < pendingAssets.Count; index++) {
+				cancellationToken.ThrowIfCancellationRequested();
+
+				var pendingAsset = pendingAssets[index];
+				var asset = PackageApi.Packer.Unpack(pendingAsset.Type, pendingAsset.AssetFile.GetData()) as ScriptableObject;
+				if (asset == null) {
+					throw new Exception($"Failed to unpack asset {pendingAsset.AssetFile.Name}");
+				}
+
+				var packer = PackerFactory.GetPacker(pendingAsset.Type);
+				var meta = packer == null
+					? MetaPackable.UnpackMeta(pendingAsset.MetaFile.GetData())
+					: packer.Unpack(pendingAsset.MetaFile.GetData(), asset, this);
+
+				_deserializedAssets[meta.InstanceId] = asset;
+				progress?.Invoke(index + 1, pendingAssets.Count);
+
+				if ((index + 1) % RuntimeYieldInterval == 0) {
+					await Task.Yield();
+				}
+			}
 		}
 
 		#endregion
@@ -458,7 +473,7 @@ namespace VisualPinball.Unity
 		}
 #endif
 
-		public async Task UnpackSoundsRuntime(CancellationToken cancellationToken = default)
+		public async Task UnpackSoundsRuntime(CancellationToken cancellationToken = default, Action<int, int> progress = null)
 		{
 			if (!_tableFolder.TryGetFolder(PackageApi.SoundFolder, out var soundFolder)) {
 				return;
@@ -486,12 +501,15 @@ namespace VisualPinball.Unity
 				pendingSounds.Add((meta.Guid, soundFile.Name, soundFile.GetData()));
 			});
 
-			foreach (var sound in pendingSounds) {
+			for (var index = 0; index < pendingSounds.Count; index++) {
 				cancellationToken.ThrowIfCancellationRequested();
+				var sound = pendingSounds[index];
 				var clip = await LoadAudioClipRuntime(sound.Name, sound.Data, cancellationToken);
 				if (clip) {
 					_audioClips[sound.Guid] = clip;
 				}
+
+				progress?.Invoke(index + 1, pendingSounds.Count);
 			}
 		}
 
