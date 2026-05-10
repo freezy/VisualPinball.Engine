@@ -20,6 +20,7 @@ using System.Diagnostics;
 using System.Text;
 using NLog;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using Logger = NLog.Logger;
 
@@ -307,6 +308,9 @@ namespace VisualPinball.Unity
 			renderer.shadowCastingMode = (ShadowCastingMode)state.ShadowCastingMode;
 			renderer.receiveShadows = state.ReceiveShadows;
 			renderer.renderingLayerMask = state.RenderingLayerMask;
+			if (state.RayTracingMode >= 0) {
+				renderer.rayTracingMode = (RayTracingMode)state.RayTracingMode;
+			}
 		}
 
 		private static string NormalizeMaterialName(string name) => VpeMaterialNameUtil.NormalizeMaterialName(name);

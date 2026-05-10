@@ -108,6 +108,7 @@ namespace VisualPinball.Unity.Editor
 			WriteTableMetadata();
 			WriteGlobals();
 			WriteMaterialProfiles();
+			WriteLightProfiles();
 			Logger.Info($"Globals written in {sw1.ElapsedMilliseconds}ms.");
 
 			// write assets & co
@@ -162,7 +163,7 @@ namespace VisualPinball.Unity.Editor
 				ComponentMask = ~(ComponentType.Camera | ComponentType.Animation),
 
 				// Boost light intensities
-				LightIntensityFactor = 100f,
+				LightIntensityFactor = PackageApi.LightIntensityFactor,
 
 				// Ensure mesh vertex attributes colors and texture coordinate (channels 1 through 8) are always
 				// exported, even if they are not used/referenced.
@@ -507,6 +508,26 @@ namespace VisualPinball.Unity.Editor
 			Logger.Info(
 				$"Captured vpe.material v1 payload: {payload.Profiles.Length} profile(s), " +
 				$"{textureCount} VPE-only texture(s) ({textureBytes / 1024f / 1024f:F2} MB).");
+		}
+
+		private void WriteLightProfiles()
+		{
+			var payload = new VpeLightsPayloadV1 {
+				Version = 1,
+				Lights = _table.GetComponentsInChildren<Light>(!ExportActivesOnly)
+					.Select(light => LightSourcePackable.From(_table.transform, light))
+					.ToList(),
+			};
+
+			if (payload.Lights.Count == 0) {
+				return;
+			}
+
+			_metaFolder
+				.AddFile(PackageApi.LightsV1File, PackageApi.Packer.FileExtension)
+				.SetData(PackageApi.Packer.Pack(payload));
+
+			Logger.Info($"Captured vpe.lights v1 payload: {payload.Lights.Count} light profile(s).");
 		}
 
 		private async Task<byte[]> SaveGltfToBytes(GameObjectExport export, bool embedMaterialPayload = false)

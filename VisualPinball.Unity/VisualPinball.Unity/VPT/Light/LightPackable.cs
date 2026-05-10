@@ -16,7 +16,11 @@
 
 // ReSharper disable MemberCanBePrivate.Global
 
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity
 {
@@ -28,6 +32,7 @@ namespace VisualPinball.Unity
 		public int BlinkInterval;
 		public float FadeSpeedUp;
 		public float FadeSpeedDown;
+		public List<LightSourcePackable> LightSources;
 
 		public static byte[] Pack(LightComponent comp)
 		{
@@ -38,6 +43,7 @@ namespace VisualPinball.Unity
 				BlinkInterval = comp.BlinkInterval,
 				FadeSpeedUp = comp.FadeSpeedUp,
 				FadeSpeedDown = comp.FadeSpeedDown,
+				LightSources = PackLightSources(comp),
 			});
 		}
 
@@ -50,6 +56,180 @@ namespace VisualPinball.Unity
 			comp.BlinkInterval = data.BlinkInterval;
 			comp.FadeSpeedUp = data.FadeSpeedUp;
 			comp.FadeSpeedDown = data.FadeSpeedDown;
+			UnpackLightSources(data.LightSources, comp);
+		}
+
+		private static List<LightSourcePackable> PackLightSources(LightComponent comp)
+		{
+			return comp.GetComponentsInChildren<Light>(true)
+				.Select(light => LightSourcePackable.From(comp.transform, light))
+				.ToList();
+		}
+
+		private static void UnpackLightSources(IReadOnlyList<LightSourcePackable> lightSources, LightComponent comp)
+		{
+			if (lightSources == null || lightSources.Count == 0) {
+				return;
+			}
+
+			var lights = comp.GetComponentsInChildren<Light>(true);
+			for (var i = 0; i < lightSources.Count; i++) {
+				var lightSource = lightSources[i];
+				var target = comp.transform.FindByPath(lightSource.Path)?.GetComponent<Light>();
+				if (!target && i < lights.Length) {
+					target = lights[i];
+				}
+				if (target) {
+					lightSource.Apply(target);
+				}
+			}
+		}
+	}
+
+	public struct LightSourcePackable
+	{
+		public string Path;
+		public bool Enabled;
+		public int Type;
+		public int Shape;
+		public PackableColor Color;
+		public float Intensity;
+		public float Range;
+		public float SpotAngle;
+		public float InnerSpotAngle;
+		public float CookieSize;
+		public PackableFloat2 AreaSize;
+		public float BounceIntensity;
+		public float ColorTemperature;
+		public bool UseColorTemperature;
+		public float ShadowRadius;
+		public float ShadowAngle;
+		public int LightUnit;
+		public HdrpLightSourcePackable Hdrp;
+
+		public static LightSourcePackable From(Transform root, Light light)
+		{
+			return new LightSourcePackable {
+				Path = light.transform.GetPath(root),
+				Enabled = light.enabled,
+				Type = (int)light.type,
+				Shape = (int)light.shape,
+				Color = light.color,
+				Intensity = light.intensity,
+				Range = light.range,
+				SpotAngle = light.spotAngle,
+				InnerSpotAngle = light.innerSpotAngle,
+				CookieSize = light.cookieSize,
+				AreaSize = new PackableFloat2(light.areaSize.x, light.areaSize.y),
+				BounceIntensity = light.bounceIntensity,
+				ColorTemperature = light.colorTemperature,
+				UseColorTemperature = light.useColorTemperature,
+				ShadowRadius = light.shadowRadius,
+				ShadowAngle = light.shadowAngle,
+				LightUnit = (int)light.lightUnit,
+				Hdrp = HdrpLightSourcePackable.From(light),
+			};
+		}
+
+		public void Apply(Light light)
+		{
+			light.type = (LightType)Type;
+			light.shape = (LightShape)Shape;
+			light.color = Color;
+			light.range = Range;
+			light.spotAngle = SpotAngle;
+			light.innerSpotAngle = InnerSpotAngle;
+			light.cookieSize = CookieSize;
+			light.areaSize = new Vector2(AreaSize.X, AreaSize.Y);
+			light.bounceIntensity = BounceIntensity;
+			light.colorTemperature = ColorTemperature;
+			light.useColorTemperature = UseColorTemperature;
+			light.shadowRadius = ShadowRadius;
+			light.shadowAngle = ShadowAngle;
+			light.lightUnit = (UnityEngine.Rendering.LightUnit)LightUnit;
+			light.intensity = Intensity;
+			light.enabled = Enabled;
+			Hdrp.Apply(light);
+		}
+	}
+
+	public struct HdrpLightSourcePackable
+	{
+		public bool HasData;
+		public float VolumetricDimmer;
+		public float ShapeRadius;
+		public float LightDimmer;
+		public bool AffectDiffuse;
+		public bool AffectSpecular;
+		public bool IncludeForRayTracing;
+
+		public static HdrpLightSourcePackable From(Light light)
+		{
+			var hdrp = GetHdrpLight(light);
+			return hdrp
+				? new HdrpLightSourcePackable {
+					HasData = true,
+					VolumetricDimmer = GetFloat(hdrp, "volumetricDimmer", 1f),
+					ShapeRadius = GetFloat(hdrp, "shapeRadius", light.shadowRadius),
+					LightDimmer = GetFloat(hdrp, "lightDimmer", 1f),
+					AffectDiffuse = GetBool(hdrp, "affectDiffuse", true),
+					AffectSpecular = GetBool(hdrp, "affectSpecular", true),
+					IncludeForRayTracing = GetBool(hdrp, "includeForRayTracing", true),
+				}
+				: new HdrpLightSourcePackable();
+		}
+
+		public void Apply(Light light)
+		{
+			if (!HasData) {
+				return;
+			}
+
+			var hdrp = GetHdrpLight(light);
+			if (!hdrp) {
+				return;
+			}
+
+			SetFloat(hdrp, "volumetricDimmer", VolumetricDimmer);
+			SetFloat(hdrp, "shapeRadius", ShapeRadius);
+			SetFloat(hdrp, "lightDimmer", LightDimmer);
+			SetBool(hdrp, "affectDiffuse", AffectDiffuse);
+			SetBool(hdrp, "affectSpecular", AffectSpecular);
+			SetBool(hdrp, "includeForRayTracing", IncludeForRayTracing);
+		}
+
+		private static Component GetHdrpLight(Light light)
+		{
+			return light.GetComponents<Component>()
+				.FirstOrDefault(component => component && component.GetType().FullName == "UnityEngine.Rendering.HighDefinition.HDAdditionalLightData");
+		}
+
+		private static float GetFloat(Object target, string propertyName, float fallback)
+		{
+			var property = target.GetType().GetProperty(propertyName);
+			return property?.CanRead == true && property.GetValue(target) is float value ? value : fallback;
+		}
+
+		private static bool GetBool(Object target, string propertyName, bool fallback)
+		{
+			var property = target.GetType().GetProperty(propertyName);
+			return property?.CanRead == true && property.GetValue(target) is bool value ? value : fallback;
+		}
+
+		private static void SetFloat(Object target, string propertyName, float value)
+		{
+			var property = target.GetType().GetProperty(propertyName);
+			if (property?.CanWrite == true) {
+				property.SetValue(target, value);
+			}
+		}
+
+		private static void SetBool(Object target, string propertyName, bool value)
+		{
+			var property = target.GetType().GetProperty(propertyName);
+			if (property?.CanWrite == true) {
+				property.SetValue(target, value);
+			}
 		}
 	}
 }

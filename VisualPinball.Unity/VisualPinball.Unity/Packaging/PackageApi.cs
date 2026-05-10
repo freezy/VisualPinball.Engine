@@ -46,7 +46,9 @@ namespace VisualPinball.Unity
 		// (translates authoring shaders into intent) and the Player-side IVpeMaterialResolver
 		// (renders intent with shaders it owns at its own build time).
 		public const string MaterialsV1File = "materials.v1";
+		public const string LightsV1File = "lights.v1";
 		public const string TexturesV1PackFile = "textures.bin";
+		public const float LightIntensityFactor = 100f;
 
 		public static readonly IStorageManager StorageManager = new SharpZipStorageManager();
 		// public static IStorageManager StorageManager => new OpenMcdfStorageManager();

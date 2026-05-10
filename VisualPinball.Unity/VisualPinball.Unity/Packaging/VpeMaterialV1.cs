@@ -116,6 +116,8 @@ namespace VisualPinball.Unity
 		// Unity renderingLayerMask. Bit 0 is the Default layer. Authoring tables commonly set
 		// bit 8 (light-layer 8) on table geometry in addition to Default.
 		public uint RenderingLayerMask = 1;
+		// UnityEngine.Experimental.Rendering.RayTracingMode. -1 means older payload/no override.
+		public int RayTracingMode = -1;
 	}
 
 	[Serializable]
@@ -150,6 +152,9 @@ namespace VisualPinball.Unity
 		public Vector2 SmoothnessRemap = new(0f, 1f);
 		public Vector2 AoRemap = new(0f, 1f);
 		public Vector2 AlphaRemap = new(0f, 1f);
+		public int UvBase;
+		public float TexWorldScale = 1f;
+		public float InvTilingScale = 1f;
 
 		public VpeNormalMapRefV1 NormalMap;
 
@@ -159,18 +164,26 @@ namespace VisualPinball.Unity
 		public float AlphaCutoff = 0.5f;
 		public bool DoubleSided;
 		public bool DoubleSidedGi;
+		public int CullMode = -1;
+		public int CullModeForward = -1;
+		public int OpaqueCullMode = -1;
+		public int TransparentCullMode = -1;
 
 		// Transparent-surface hints. These map to per-pipeline blend/depth behavior and are
 		// harmless for readers that ignore them.
 		public int TransparentBlendMode;
+		public int TransparentSortPriority;
 		public bool EnableFogOnTransparent = true;
 		public bool TransparentDepthPrepass;
 		public bool TransparentDepthPostpass;
 		public bool TransparentWritesMotionVectors;
+		public bool TransparentBackface;
 
 		// Hints for SRPs that support them. Safe to ignore.
 		public bool DisableSsrTransparent;
 		public bool DisableSsr;
+		public int RayTracing = -1;
+		public int MaterialId = -1;
 
 		// Explicit render queue override (-1 = inherit from shader). Avoid using unless the author
 		// really meant to deviate from the surface-type default.
@@ -184,7 +197,14 @@ namespace VisualPinball.Unity
 		// Lets light energy pass through the material surface (HDRP's Translucent material ID).
 		// Needed for pinball inserts and plastics to pick up light from the playfield behind them.
 		public bool HasTransmission;
+		public float TransmissionEnable = -1f;
+		public float TransmissionMask = -1f;
+		public float DiffusionProfileHash;
+		public Vector4 DiffusionProfileAsset;
 		public float Thickness = 1f;
+		public Vector2 ThicknessRemap = new(0f, 1f);
+		public float AbsorptionDistance = 1f;
+		public PackableColor TransmittanceColor = new(1f, 1f, 1f, 1f);
 		public VpeTextureRefV1 ThicknessMap;
 	}
 
@@ -228,7 +248,10 @@ namespace VisualPinball.Unity
 	public class VpeEmissiveV1
 	{
 		public PackableColor Color = new(0f, 0f, 0f, 1f);
+		public bool HasLdrColor;
+		public PackableColor LdrColor = new(0f, 0f, 0f, 1f);
 		public VpeTextureRefV1 Texture;
+		public bool UseIntensity;
 		public float Intensity;
 		// See VpeEmissiveIntensityUnits.
 		public string IntensityUnit = VpeEmissiveIntensityUnits.Nits;
