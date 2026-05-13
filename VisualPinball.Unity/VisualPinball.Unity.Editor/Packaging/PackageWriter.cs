@@ -46,15 +46,26 @@ namespace VisualPinball.Unity.Editor
 		private VpeMaterialsPayloadV1 _capturedMaterialPayload;
 		private IReadOnlyDictionary<string, byte[]> _capturedMaterialTextureBlobs;
 		private bool _embeddedMaterialPayloadSuccessfully;
+		private readonly bool _runtimeCompressSideChannelTextures;
+		private readonly bool _compressGltfTextures;
+		private readonly bool _runtimeCompressNormalMaps;
+		private IReadOnlyDictionary<string, VpeMaterialsGltfExtension.ImageReplacement> _originalGltfImageReplacements;
 
 		private const bool ExportActivesOnly = true;
 		private const bool EmbedVpeMaterialsIntoGlb = false;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public PackageWriter(GameObject table)
+		public PackageWriter(
+			GameObject table,
+			bool runtimeCompressSideChannelTextures = true,
+			bool compressGltfTextures = true,
+			bool runtimeCompressNormalMaps = true)
 		{
 			_table = table;
+			_runtimeCompressSideChannelTextures = runtimeCompressSideChannelTextures;
+			_compressGltfTextures = compressGltfTextures;
+			_runtimeCompressNormalMaps = runtimeCompressNormalMaps;
 			_refs = new PackagedRefs(table.transform);
 		}
 
@@ -204,6 +215,9 @@ namespace VisualPinball.Unity.Editor
 			var disabledRenderers = DisableInvalidMeshRenderers(meshFilters, skinnedMeshRenderers, _table.transform);
 			var reenabledLights = EnableDisabledLights();
 			var renderers = _table.GetComponentsInChildren<Renderer>(!ExportActivesOnly);
+			_originalGltfImageReplacements = _compressGltfTextures
+				? null
+				: BuildOriginalGltfImageReplacements(renderers);
 			var gltfExportScope = VpeMaterialV1Translator.PrepareGltfExport(renderers);
 			try {
 				export.AddScene(new [] { _table }, _table.transform.worldToLocalMatrix, "VPE Table");
@@ -491,6 +505,8 @@ namespace VisualPinball.Unity.Editor
 				}
 				return;
 			}
+			ApplyMaterialTextureCompressionMode(payload, _runtimeCompressSideChannelTextures);
+			ApplyMaterialNormalCompressionMode(payload, _runtimeCompressNormalMaps);
 			_capturedMaterialPayload = payload;
 			_capturedMaterialTextureBlobs = capture.TextureBlobs;
 
@@ -535,6 +551,9 @@ namespace VisualPinball.Unity.Editor
 			using var stream = new MemoryStream();
 			await export.SaveToStreamAndDispose(stream);
 			var originalGlbData = stream.ToArray();
+			if (!_compressGltfTextures) {
+				originalGlbData = ReplaceCompressedGltfImagesWithOriginals(originalGlbData);
+			}
 			var glbData = originalGlbData;
 			if (!embedMaterialPayload || _capturedMaterialPayload == null) {
 				return glbData;
@@ -575,11 +594,110 @@ namespace VisualPinball.Unity.Editor
 			return glbData;
 		}
 
+		private byte[] ReplaceCompressedGltfImagesWithOriginals(byte[] glbData)
+		{
+			if (_originalGltfImageReplacements == null || _originalGltfImageReplacements.Count == 0) {
+				return glbData;
+			}
+
+			try {
+				var rewritten = VpeMaterialsGltfExtension.ReplaceImages(
+					glbData,
+					_originalGltfImageReplacements,
+					out var replacementCount,
+					out var originalBytes,
+					out var replacementBytes);
+				if (replacementCount > 0) {
+					Logger.Info(
+						$"Replaced {replacementCount} compressed GLB image(s) with original asset bytes " +
+						$"({originalBytes / 1024f / 1024f:F2} MB -> {replacementBytes / 1024f / 1024f:F2} MB).");
+				}
+				return rewritten;
+			} catch (Exception ex) {
+				Logger.Warn(ex, "Failed replacing compressed GLB images with original asset bytes. Keeping glTFast image payloads.");
+				return glbData;
+			}
+		}
+
+		private static IReadOnlyDictionary<string, VpeMaterialsGltfExtension.ImageReplacement> BuildOriginalGltfImageReplacements(
+			IEnumerable<Renderer> renderers)
+		{
+			var replacements = new Dictionary<string, VpeMaterialsGltfExtension.ImageReplacement>(StringComparer.Ordinal);
+			if (renderers == null) {
+				return replacements;
+			}
+
+			foreach (var renderer in renderers) {
+				if (!renderer) {
+					continue;
+				}
+				var materials = renderer.sharedMaterials;
+				if (materials == null) {
+					continue;
+				}
+				foreach (var material in materials) {
+					CollectOriginalGltfImageReplacements(material, replacements);
+				}
+			}
+			return replacements;
+		}
+
+		private static void CollectOriginalGltfImageReplacements(
+			Material material,
+			IDictionary<string, VpeMaterialsGltfExtension.ImageReplacement> replacements)
+		{
+			if (!material || replacements == null) {
+				return;
+			}
+
+			var propertyNames = material.GetTexturePropertyNames();
+			foreach (var propertyName in propertyNames) {
+				if (string.IsNullOrWhiteSpace(propertyName) || material.GetTexture(propertyName) is not Texture2D texture) {
+					continue;
+				}
+
+				var assetPath = AssetDatabase.GetAssetPath(texture);
+				if (string.IsNullOrWhiteSpace(assetPath) || !File.Exists(assetPath)) {
+					continue;
+				}
+
+				var extension = Path.GetExtension(assetPath);
+				var mimeType = GetImageMimeType(extension);
+				if (mimeType == null) {
+					continue;
+				}
+
+				var replacement = new VpeMaterialsGltfExtension.ImageReplacement {
+					Name = Path.GetFileName(assetPath),
+					MimeType = mimeType,
+					Data = File.ReadAllBytes(assetPath)
+				};
+				var stem = Path.GetFileNameWithoutExtension(assetPath);
+				replacements[$"{stem}.jpg"] = replacement;
+				replacements[$"{stem}.jpeg"] = replacement;
+				replacements[$"{stem}.png"] = replacement;
+			}
+		}
+
+		private static string GetImageMimeType(string extension)
+		{
+			if (string.Equals(extension, ".png", StringComparison.OrdinalIgnoreCase)) {
+				return "image/png";
+			}
+			if (string.Equals(extension, ".jpg", StringComparison.OrdinalIgnoreCase)
+				|| string.Equals(extension, ".jpeg", StringComparison.OrdinalIgnoreCase)) {
+				return "image/jpeg";
+			}
+			return null;
+		}
+
 		private void WriteMaterialPayloadFallbackIfNeeded()
 		{
 			if (_capturedMaterialPayload == null || _embeddedMaterialPayloadSuccessfully) {
 				return;
 			}
+
+			ApplyMaterialTextureCompressionMode(_capturedMaterialPayload, _runtimeCompressSideChannelTextures);
 
 			var packedTextureData = BuildPackedMaterialTextureData(
 				_capturedMaterialPayload,
@@ -598,6 +716,39 @@ namespace VisualPinball.Unity.Editor
 				$"Fell back to sidecar vpe.material export: profiles={_capturedMaterialPayload.Profiles?.Length ?? 0}, " +
 				$"textures={textureCount} ({textureBytes / 1024f / 1024f:F2} MB) at " +
 				$"{PackageApi.MetaFolder}/{PackageApi.TexturesV1PackFile}.");
+		}
+
+		private static void ApplyMaterialTextureCompressionMode(VpeMaterialsPayloadV1 payload, bool runtimeCompress)
+		{
+			if (payload?.Textures == null) {
+				return;
+			}
+			foreach (var asset in payload.Textures) {
+				if (asset != null) {
+					asset.RuntimeCompress = runtimeCompress;
+				}
+			}
+		}
+
+		private static void ApplyMaterialNormalCompressionMode(VpeMaterialsPayloadV1 payload, bool runtimeCompress)
+		{
+			if (payload?.Profiles == null) {
+				return;
+			}
+			foreach (var profile in payload.Profiles) {
+				if (profile == null) {
+					continue;
+				}
+				ApplyNormalCompressionMode(profile.Lit?.NormalMap, runtimeCompress);
+				ApplyNormalCompressionMode(profile.Decal?.NormalMap, runtimeCompress);
+			}
+		}
+
+		private static void ApplyNormalCompressionMode(VpeNormalMapRefV1 normalMap, bool runtimeCompress)
+		{
+			if (normalMap != null) {
+				normalMap.RuntimeCompress = runtimeCompress;
+			}
 		}
 
 		private static byte[] BuildPackedMaterialTextureData(

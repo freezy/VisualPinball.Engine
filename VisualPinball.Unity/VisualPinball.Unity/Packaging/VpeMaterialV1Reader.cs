@@ -433,7 +433,7 @@ namespace VisualPinball.Unity
 					_loaded[textureId] = null;
 					return null;
 				}
-				if (linear) {
+				if (linear && asset.RuntimeCompress) {
 					try {
 						texture.Compress(highQuality: true);
 					} catch (Exception ex) {

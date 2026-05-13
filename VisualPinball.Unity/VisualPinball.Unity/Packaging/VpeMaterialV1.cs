@@ -296,6 +296,9 @@ namespace VisualPinball.Unity
 		public float Strength = 1f;
 		// See VpeNormalPackings. Defaults to rgb since that's what PNG round-tripping produces.
 		public string Packing = VpeNormalPackings.Rgb;
+		// Whether runtime should call Texture2D.Compress after repacking the normal for HDRP.
+		// Defaults to true so older packages keep their original behavior.
+		public bool RuntimeCompress = true;
 	}
 
 	[Serializable]
@@ -321,6 +324,10 @@ namespace VisualPinball.Unity
 		public int FilterMode = 2; // Trilinear
 		public int AnisoLevel = 1;
 		public bool GenerateMipMaps = true;
+		// Whether runtime should call Texture2D.Compress after decoding the side-channel bytes.
+		// Existing payloads do not have this field, so the default preserves the original reader
+		// behavior for backwards compatibility.
+		public bool RuntimeCompress = true;
 		// Optional source hint for debugging.
 		public string SourceName;
 		public int Width;
