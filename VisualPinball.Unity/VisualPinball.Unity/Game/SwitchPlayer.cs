@@ -149,7 +149,7 @@ namespace VisualPinball.Unity
 							}
 						}
 					} else {
-						Logger.Info($"Unmapped input command \"{action.name}\".");
+						//Logger.Info($"Unmapped input command \"{action.name}\".");
 					}
 					break;
 			}

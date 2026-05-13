@@ -32,6 +32,16 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _globalDifficultyProperty;
 		private SerializedProperty _metadataProperty;
 		private bool _packageFoldout;
+		private bool _runtimeCompressSideChannelTextures = true;
+		private bool _compressGltfTextures = true;
+		private bool _runtimeCompressNormalMaps = true;
+
+		private const string RuntimeCompressSideChannelTexturesKey =
+			"VisualPinball.Unity.Editor.TableInspector.RuntimeCompressSideChannelTextures";
+		private const string CompressGltfTexturesKey =
+			"VisualPinball.Unity.Editor.TableInspector.CompressGltfTextures";
+		private const string RuntimeCompressNormalMapsKey =
+			"VisualPinball.Unity.Editor.TableInspector.RuntimeCompressNormalMaps";
 
 		protected override void OnEnable()
 		{
@@ -39,6 +49,9 @@ namespace VisualPinball.Unity.Editor
 
 			_globalDifficultyProperty = serializedObject.FindProperty(nameof(TableComponent.GlobalDifficulty));
 			_metadataProperty = serializedObject.FindProperty(nameof(TableComponent.Metadata));
+			_runtimeCompressSideChannelTextures = EditorPrefs.GetBool(RuntimeCompressSideChannelTexturesKey, true);
+			_compressGltfTextures = EditorPrefs.GetBool(CompressGltfTexturesKey, true);
+			_runtimeCompressNormalMaps = EditorPrefs.GetBool(RuntimeCompressNormalMapsKey, true);
 		}
 
 		public override void OnInspectorGUI()
@@ -62,6 +75,27 @@ namespace VisualPinball.Unity.Editor
 			if (_packageFoldout && !EditorApplication.isPlaying) {
 				//DrawDefaultInspector();
 				const string ext = "vpe";
+				EditorGUI.BeginChangeCheck();
+				_runtimeCompressSideChannelTextures = EditorGUILayout.ToggleLeft(
+					"Compress sidecar textures (Unity runtime compression)",
+					_runtimeCompressSideChannelTextures);
+				if (EditorGUI.EndChangeCheck()) {
+					EditorPrefs.SetBool(RuntimeCompressSideChannelTexturesKey, _runtimeCompressSideChannelTextures);
+				}
+				EditorGUI.BeginChangeCheck();
+				_compressGltfTextures = EditorGUILayout.ToggleLeft(
+					"Compress glTF textures",
+					_compressGltfTextures);
+				if (EditorGUI.EndChangeCheck()) {
+					EditorPrefs.SetBool(CompressGltfTexturesKey, _compressGltfTextures);
+				}
+				EditorGUI.BeginChangeCheck();
+				_runtimeCompressNormalMaps = EditorGUILayout.ToggleLeft(
+					"Compress runtime normal maps (Unity runtime compression)",
+					_runtimeCompressNormalMaps);
+				if (EditorGUI.EndChangeCheck()) {
+					EditorPrefs.SetBool(RuntimeCompressNormalMapsKey, _runtimeCompressNormalMaps);
+				}
 				if (GUILayout.Button($"Save as .{ext}")) {
 					var tableContainer = tableComponent.TableContainer;
 					var path = EditorUtility.SaveFilePanel(
@@ -71,7 +105,11 @@ namespace VisualPinball.Unity.Editor
 						ext);
 
 					if (!string.IsNullOrEmpty(path)) {
-						var writer = new PackageWriter(tableComponent.gameObject);
+						var writer = new PackageWriter(
+							tableComponent.gameObject,
+							_runtimeCompressSideChannelTextures,
+							_compressGltfTextures,
+							_runtimeCompressNormalMaps);
 						writer.WritePackageSync(path);
 					}
 				}
