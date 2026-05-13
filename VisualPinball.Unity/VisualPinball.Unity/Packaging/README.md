@@ -140,6 +140,8 @@ The translator converts supported HDRP materials into a portable `VpeMaterialsPa
   - `HDRP/Lit`
   - `HDRP/Decal`
   - `HDRP/Unlit`
+  - VPE HDRP metal shader graph
+  - VPE HDRP rubber shader graph
 - unsupported shaders are not fatal
   - they fall back to the imported GLB material at runtime
   - the translator aggregates them into a summary instead of spamming one warning per material
@@ -181,11 +183,14 @@ These are captured as explicit `TextureId` references backed by `VpeTextureAsset
   - alpha-tested
 - decal base color maps
 - decal mask maps
+- VPE metal shader graph mask maps
+- VPE rubber shader graph base color and mask maps
 
 Why these are side-channeled:
 
 - glTF cannot represent HDRP `MaskMap` semantics losslessly
 - albedo alpha is load-bearing for inserts, plastics, and decals
+- shader graph materials can use VPE-specific texture slots that plain glTF does not understand
 - glTF/JPG conversion can silently drop or alter alpha when relying on fallback material export
 
 ### 7. `textures.bin`
@@ -202,6 +207,7 @@ The exporter does not write one file per side texture. It writes one packed blob
 - `MimeType`
 - `ColorSpace`
 - filter/wrap/aniso/mipmap hints
+- runtime compression hint
 - width/height
 
 Writer behavior:
@@ -285,10 +291,17 @@ Important behavior:
 
 Mip behavior:
 
-- sRGB side textures respect `GenerateMipMaps`
-- linear side textures force runtime mip generation off
+- side textures currently respect `GenerateMipMaps` for both `sRGB` and `Linear` payloads
+- linear side textures are decoded as linear textures
+- when `RuntimeCompress` is true, linear side textures are runtime-compressed with `Texture2D.Compress(highQuality: true)` before they are made non-readable
 
-That last change was intentional and measurable. The heavy linear payload is dominated by mask/thickness data, where runtime mip generation was expensive and offered limited visual benefit.
+The table export inspector exposes a `Compress sidecar textures (Unity runtime compression)` toggle. It sets `VpeTextureAssetV1.RuntimeCompress` for every side-channel texture in the package. Existing packages that do not carry the field default to `true`, preserving the original reader behavior.
+
+The inspector also exposes a `Compress glTF textures` toggle. When enabled, glTFast keeps its normal image export behavior, including JPEG for opaque base color textures. When disabled, the writer post-processes `table.glb` and replaces matching embedded glTF image payloads with the original PNG/JPEG asset bytes.
+
+The `Compress runtime normal maps (Unity runtime compression)` toggle controls the HDRP resolver's normal-map repack output. Imported GLB/runtime-loaded RGB normals still need to be repacked for HDRP; this flag decides whether that repacked texture is then compressed with Unity's runtime texture compressor.
+
+Earlier benchmark work showed that skipping runtime mip generation for heavy linear side textures can save load time, because the linear payload is dominated by mask and thickness data. That optimization is documented as a target, but the current reader still follows the serialized `GenerateMipMaps` flag for linear textures.
 
 ### Runtime Resolver
 
@@ -338,6 +351,9 @@ Mainline behavior is:
 - side-channel VPE-only textures are PNG
 - side-channel texture bytes are stored in `meta/textures.bin`
 - runtime loads side-channel textures via `ImageConversion.LoadImage(...)`
+- `RuntimeCompress` controls whether the reader calls `Texture2D.Compress(...)` after decoding linear side textures
+- glTF texture compression is controlled separately by the export-time `Compress glTF textures` toggle
+- normal-map repack compression is controlled by `VpeNormalMapRefV1.RuntimeCompress`
 
 This path is stable and visually correct, but not the fastest possible one.
 
