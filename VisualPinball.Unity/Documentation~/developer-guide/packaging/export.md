@@ -88,10 +88,17 @@ The exporter also records:
 - color space
 - wrap/filter/aniso settings
 - mip intent
+- runtime compression intent
 - dimensions
 - MIME type
 
 The important detail here is that texture metadata and texture bytes are separate. `materials.v1.json` tells runtime what a texture means and where it belongs; `textures.bin` carries the bytes.
+
+The table inspector includes two texture compression toggles:
+
+- `Compress sidecar textures (Unity runtime compression)` writes `RuntimeCompress` into each side-channel texture asset, allowing developers to compare packages where the reader compresses decoded linear side textures against packages where it keeps those decoded textures uncompressed.
+- `Compress glTF textures` controls images that remain inside `table.glb`. When disabled, the writer post-processes the GLB and replaces matching glTF image payloads with the original PNG/JPEG asset bytes.
+- `Compress runtime normal maps (Unity runtime compression)` writes `RuntimeCompress` onto normal-map references, allowing developers to compare HDRP's repacked normal maps with and without Unity runtime texture compression.
 
 ### Texture Ownership
 
@@ -111,5 +118,18 @@ Textures that are side-channeled:
 - alpha-bearing lit base color maps
 - decal base color maps
 - decal mask maps
+- VPE metal shader graph mask maps
+- VPE rubber shader graph base color and mask maps
 
-The reason is not convenience but correctness. Those maps either do not fit cleanly into glTF or rely on semantics that the fallback GLB path cannot preserve reliably.
+The reason is not convenience but correctness. Those maps either do not fit cleanly into glTF, rely on semantics that the fallback GLB path cannot preserve reliably, or come from VPE-specific shader graph slots that plain glTF does not understand.
+
+### VPE Shader Graph Materials
+
+The HDRP translator has special handling for VPE's measured metal and rubber shader graphs:
+
+- metal shader graph materials export as `vpe.metal`
+- rubber shader graph materials export as `vpe.rubber`
+- each profile stores a `TemplateName` so the player can clone the matching measured-material template
+- each profile also carries a `vpe.lit` fallback payload derived from exposed shader graph properties
+
+At runtime, an HDRP player should prefer the template path when it has the same measured-material library available. If the template is missing, the carried Lit fallback keeps the package renderable.

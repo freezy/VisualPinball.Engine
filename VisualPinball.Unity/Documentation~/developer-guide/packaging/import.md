@@ -82,10 +82,17 @@ The reason this is called out explicitly is performance: texture decode and uplo
 
 Side-channel mip behavior is intentionally asymmetric:
 
-- sRGB side textures honor the `GenerateMipMaps` flag
-- linear side textures skip runtime mip generation
+- side textures currently honor the `GenerateMipMaps` flag for both `sRGB` and `Linear` payloads
+- linear side textures are decoded as linear textures
+- when `RuntimeCompress` is true, linear side textures are runtime-compressed with `Texture2D.Compress(highQuality: true)` before they are made non-readable
 
-That tradeoff was made because the heaviest linear payloads are mostly mask and thickness data, where runtime mip generation was measurable overhead.
+The table export inspector exposes a `Compress sidecar textures (Unity runtime compression)` toggle. It sets `VpeTextureAssetV1.RuntimeCompress` for every side-channel texture in the package, so developers can export compressed and uncompressed sidecar packages from the same table and compare visual/runtime behavior. Packages written before this field existed default to `true`.
+
+The `Compress glTF textures` toggle is separate. It affects textures that stay on the `table.glb` path, such as opaque base color maps and normal maps. When disabled, export rewrites matching GLB image payloads back to the original PNG/JPEG asset bytes after glTFast has produced the GLB.
+
+The `Compress runtime normal maps (Unity runtime compression)` toggle controls the HDRP resolver's normal-map repack output. The resolver must repack GLB/runtime-loaded RGB normal textures into the layout HDRP expects; this flag decides whether the repacked texture is then compressed with Unity's runtime texture compressor.
+
+Benchmark work showed that skipping runtime mip generation for heavy linear side textures can save load time, because the heaviest linear payloads are mostly mask and thickness data. The current reader still follows the serialized flag, so package authors and renderer implementers should treat `GenerateMipMaps` as the runtime contract.
 
 ## HDRP Resolver Details
 
@@ -95,6 +102,7 @@ The HDRP implementation of `IVpeMaterialResolver` is `HdrpMaterialResolver`. It:
 - applies VPE material intent onto those templates
 - restores transmission, mask packing, decals, and renderer-specific state
 - repacks RGB normal maps into the layout HDRP expects
+- resolves `vpe.metal` and `vpe.rubber` by cloning player-shipped measured-material templates, falling back to their carried `vpe.lit` payload when a template is unavailable
 
 The important performance optimization here is that normal repack uses a GPU path via `VpePackNormalForHdrp.shader`, with a CPU fallback only if that path fails.
 

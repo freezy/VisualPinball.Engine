@@ -75,7 +75,8 @@ Each asset records:
 | `MimeType` | Declared encoding of the stored bytes. |
 | `ColorSpace` | `sRGB` or `Linear`. |
 | `WrapMode`, `FilterMode`, `AnisoLevel` | Texture sampling intent. |
-| `GenerateMipMaps` | Whether runtime should generate mips for the side texture. |
+| `GenerateMipMaps` | Whether the current runtime should generate mips for the side texture. This is honored for both `sRGB` and `Linear` side textures. |
+| `RuntimeCompress` | Whether the reader should call `Texture2D.Compress(...)` after decoding the side texture. Older packages default to `true`. |
 | `Width`, `Height` | Source dimensions. |
 
 ## Ownership Model
@@ -93,13 +94,15 @@ This is the heart of the design. It lets VPE say, for example, "this is the base
 
 ## Supported Material Types
 
-The schema currently defines three material types:
+The schema currently defines five material types:
 
 | VPE type | Purpose |
 | --- | --- |
 | `vpe.lit` | Main physically based table materials, including transparency, transmission, and mask-based surface properties. |
 | `vpe.decal` | Projected decal materials. |
 | `vpe.unlit` | Unlit color-based materials. |
+| `vpe.metal` | VPE metal shader graph materials. The profile stores a player template key and a `vpe.lit` fallback payload. |
+| `vpe.rubber` | VPE rubber shader graph materials. The profile stores a player template key and a `vpe.lit` fallback payload. |
 
 The HDRP translator maps these authoring shaders into those types:
 
@@ -108,6 +111,8 @@ The HDRP translator maps these authoring shaders into those types:
 | `HDRP/Lit` | `vpe.lit` |
 | `HDRP/Decal` | `vpe.decal` |
 | `HDRP/Unlit` | `vpe.unlit` |
+| VPE metal shader graph | `vpe.metal` |
+| VPE rubber shader graph | `vpe.rubber` |
 
 Unsupported shaders are not fatal. They simply do not produce a VPE profile, and runtime falls back to the imported GLB material for them.
 
@@ -164,6 +169,7 @@ A renderer must support both texture-source modes:
 | `MaskMap`, `MaskPacking` | HDRP Lit `Mask Map`. In HDRP the packed layout is `R=Metallic`, `G=Ambient Occlusion`, `B=Detail Mask`, `A=Smoothness`. VPE keeps the packing explicit because other pipelines may not share HDRP's assumptions. | [Lit Material Inspector reference: Mask Map](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/lit-material-inspector-reference.html), [Mask and detail maps](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Mask-Map-and-Detail-Map.html) |
 | `MetallicRemap`, `SmoothnessRemap`, `AoRemap`, `AlphaRemap` | HDRP Lit remap sliders for packed texture channels. | [Lit Material Inspector reference: Metallic / Smoothness / Ambient Occlusion / Alpha Remapping](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/lit-material-inspector-reference.html) |
 | `NormalMap.Texture`, `NormalMap.Texture.Scale`, `NormalMap.Texture.Offset`, `NormalMap.Strength`, `NormalMap.Packing` | HDRP Lit `Normal Map`, `Normal Map Space`, and normal intensity. VPE's packing enum preserves source intent so runtime can convert or reinterpret it as needed. | [Lit Material Inspector reference: Normal Map](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/lit-material-inspector-reference.html), [HDRP Glossary: tangent space normal map / object space normal map](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Glossary.html) |
+| `NormalMap.RuntimeCompress` | Whether HDRP should call `Texture2D.Compress(...)` after repacking an imported/runtime-loaded normal map into HDRP's expected layout. Older packages default to `true`. | No dedicated HDRP material page. |
 | `Emissive.Color`, `Emissive.Texture`, `Emissive.Texture.Scale`, `Emissive.Texture.Offset`, `Emissive.Intensity`, `Emissive.IntensityUnit`, `Emissive.ExposureWeight` | HDRP Lit `Emission Map`, emission color, emission intensity, physical light units, and exposure weight. | [Lit Material Inspector reference: Emission inputs](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/lit-material-inspector-reference.html), [Physical light units](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Physical-Light-Units.html) |
 | `SurfaceType` | HDRP `Surface Type` and the extra transparent workflow it unlocks. | [Surface Type](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Surface-Type.html) |
 | `AlphaCutoff` | HDRP `Alpha Clipping > Threshold`. | [Alpha Clipping](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Alpha-Clipping.html) |
@@ -198,6 +204,32 @@ A renderer must support both texture-source modes:
 | `SurfaceType` | HDRP Unlit `Surface type` and transparent workflow. | [Unlit Material Inspector reference: Surface type](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/unlit-material-inspector-reference.html), [Surface Type](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Surface-Type.html) |
 | `AlphaCutoff` | HDRP Unlit `Alpha Clipping`. | [Unlit Material Inspector reference: Alpha Clipping](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/unlit-material-inspector-reference.html), [Alpha Clipping](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Alpha-Clipping.html) |
 | `DoubleSided` | HDRP Unlit `Double-Sided`. | [Unlit Material Inspector reference: Double-Sided](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/unlit-material-inspector-reference.html), [Double sided](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Double-Sided.html) |
+
+### `vpe.metal`
+
+`vpe.metal` is used for VPE's measured metal shader graph materials. It exists because those materials are authored as VPE-owned shader graphs rather than plain HDRP Lit materials, while the package still needs a portable fallback for players that do not ship the same templates.
+
+The profile contains:
+
+| VPE field | Meaning |
+| --- | --- |
+| `Metal.TemplateName` | Stable template key owned by the player. HDRP resolves this through its measured-material override table and clones that template when available. |
+| `Lit` | Fallback material intent built from the shader graph's exposed properties. The fallback includes color, mask map, metallic/smoothness/AO remaps, surface options, emissive settings, and renderer hints. |
+
+For HDRP, `HdrpMaterialResolver` first tries to create the material from `Metal.TemplateName`. If no matching player template exists, it falls back to the `Lit` payload and builds a normal HDRP Lit material.
+
+### `vpe.rubber`
+
+`vpe.rubber` follows the same template-plus-fallback pattern as `vpe.metal`, but targets VPE's measured rubber shader graph materials.
+
+The profile contains:
+
+| VPE field | Meaning |
+| --- | --- |
+| `Rubber.TemplateName` | Stable template key owned by the player. HDRP resolves this through its measured-material override table and clones that template when available. |
+| `Lit` | Fallback material intent built from the shader graph's exposed properties. The fallback includes base color, optional base color texture, normal map, mask map, smoothness/AO remaps, surface options, emissive settings, and renderer hints. |
+
+For HDRP, `HdrpMaterialResolver` first tries to create the material from `Rubber.TemplateName`. If no matching player template exists, it falls back to the `Lit` payload and builds a normal HDRP Lit material.
 
 ### Renderer state
 
