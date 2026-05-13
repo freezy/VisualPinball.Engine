@@ -15,14 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using GLTFast;
 using GLTFast.Logging;
+using Newtonsoft.Json.Linq;
 using NLog;
 using UnityEngine;
 using Logger = NLog.Logger;
@@ -248,6 +251,7 @@ namespace VisualPinball.Unity
 			if (parent != null) {
 				importRoot.transform.SetParent(parent, false);
 			}
+			var meshesWithoutTangents = CollectMeshesWithoutGltfTangents(sceneData);
 
 			try {
 				var gltf = new GltfImport(logger: new ConsoleLogger());
@@ -279,6 +283,7 @@ namespace VisualPinball.Unity
 
 				var table = tableRoot.gameObject;
 				table.transform.SetParent(parent, false);
+				ClearGeneratedTangents(table, meshesWithoutTangents);
 				NormalizeImportedLightIntensities(table);
 				RestoreLightProfiles(table);
 
@@ -296,6 +301,94 @@ namespace VisualPinball.Unity
 					UnityEngine.Object.DestroyImmediate(importRoot);
 				}
 				throw;
+			}
+		}
+
+		private static HashSet<string> CollectMeshesWithoutGltfTangents(byte[] glbData)
+		{
+			var result = new HashSet<string>(StringComparer.Ordinal);
+			try {
+				if (glbData == null || glbData.Length < 20) {
+					return result;
+				}
+
+				if (BinaryPrimitives.ReadUInt32LittleEndian(glbData.AsSpan(0, 4)) != 0x46546C67 /* glTF */) {
+					return result;
+				}
+
+				var offset = 12;
+				while (offset + 8 <= glbData.Length) {
+					var length = BinaryPrimitives.ReadInt32LittleEndian(glbData.AsSpan(offset, 4));
+					var type = BinaryPrimitives.ReadUInt32LittleEndian(glbData.AsSpan(offset + 4, 4));
+					offset += 8;
+					if (length < 0 || offset + length > glbData.Length) {
+						return result;
+					}
+
+					if (type == 0x4E4F534A /* JSON */) {
+						var json = Encoding.UTF8.GetString(glbData, offset, length).TrimEnd('\0', ' ');
+						var root = JObject.Parse(json);
+						foreach (var mesh in root["meshes"] as JArray ?? new JArray()) {
+							var name = mesh.Value<string>("name");
+							if (string.IsNullOrWhiteSpace(name)) {
+								continue;
+							}
+
+							var primitives = mesh["primitives"] as JArray;
+							if (primitives == null || primitives.Count == 0) {
+								continue;
+							}
+
+							var hasTangents = false;
+							foreach (var primitive in primitives) {
+								if (primitive["attributes"]?["TANGENT"] != null) {
+									hasTangents = true;
+									break;
+								}
+							}
+
+							if (!hasTangents) {
+								result.Add(name);
+							}
+						}
+						break;
+					}
+
+					offset += length;
+				}
+			} catch (Exception ex) {
+				Logger.Warn(ex, "RuntimePackageReader: failed to inspect GLB mesh tangent metadata.");
+			}
+
+			return result;
+		}
+
+		private static void ClearGeneratedTangents(GameObject table, HashSet<string> meshesWithoutTangents)
+		{
+			if (!table || meshesWithoutTangents == null || meshesWithoutTangents.Count == 0) {
+				return;
+			}
+
+			var cleared = 0;
+			var visited = new HashSet<int>();
+			foreach (var meshFilter in table.GetComponentsInChildren<MeshFilter>(true)) {
+				var mesh = meshFilter.sharedMesh;
+				if (!mesh || string.IsNullOrWhiteSpace(mesh.name) || !meshesWithoutTangents.Contains(mesh.name)) {
+					continue;
+				}
+				if (!visited.Add(mesh.GetInstanceID())) {
+					continue;
+				}
+				if (mesh.tangents == null || mesh.tangents.Length == 0) {
+					continue;
+				}
+
+				mesh.tangents = Array.Empty<Vector4>();
+				cleared++;
+			}
+
+			if (cleared > 0) {
+				Logger.Info($"RuntimePackageReader: cleared generated tangents on {cleared} imported meshes that had no GLB TANGENT attribute.");
 			}
 		}
 
