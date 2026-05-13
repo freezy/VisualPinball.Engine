@@ -38,6 +38,9 @@ namespace VisualPinball.Unity
 		public const string Lit = "vpe.lit";
 		public const string Decal = "vpe.decal";
 		public const string Unlit = "vpe.unlit";
+		public const string Metal = "vpe.metal";
+		public const string Rubber = "vpe.rubber";
+		public const string Dmd = "vpe.dmd";
 	}
 
 	public static class VpeColorSpaces
@@ -132,6 +135,16 @@ namespace VisualPinball.Unity
 		public VpeLitProfileV1 Lit;
 		public VpeDecalProfileV1 Decal;
 		public VpeUnlitProfileV1 Unlit;
+		public VpeShaderGraphProfileV1 Metal;
+		public VpeShaderGraphProfileV1 Rubber;
+		public VpeShaderGraphProfileV1 Dmd;
+	}
+
+	[Serializable]
+	public class VpeShaderGraphProfileV1
+	{
+		// Stable template key owned by the Player. Usually the source material asset name.
+		public string TemplateName;
 	}
 
 	[Serializable]
@@ -142,6 +155,8 @@ namespace VisualPinball.Unity
 		public float Metallic;
 		public float Smoothness = 0.5f;
 		public float OcclusionStrength = 1f;
+		public float IridescenceMask = 1f;
+		public float IridescenceThickness = 1f;
 
 		// Optional packed mask. When provided, Metallic/Smoothness/OcclusionStrength are still used
 		// as remap anchors against the mask channels (see *Remap fields).
@@ -155,6 +170,10 @@ namespace VisualPinball.Unity
 		public int UvBase;
 		public float TexWorldScale = 1f;
 		public float InvTilingScale = 1f;
+		public bool GeometricSpecularAa;
+		public float SpecularAaScreenSpaceVariance;
+		public float SpecularAaThreshold;
+		public bool SupportDecals = true;
 
 		public VpeNormalMapRefV1 NormalMap;
 

@@ -105,6 +105,7 @@ namespace VisualPinball.Unity
 		public float ShadowRadius;
 		public float ShadowAngle;
 		public int LightUnit;
+		public int LightShadowCasterMode;
 		public HdrpLightSourcePackable Hdrp;
 
 		public static LightSourcePackable From(Transform root, Light light)
@@ -127,6 +128,7 @@ namespace VisualPinball.Unity
 				ShadowRadius = light.shadowRadius,
 				ShadowAngle = light.shadowAngle,
 				LightUnit = (int)light.lightUnit,
+				LightShadowCasterMode = (int)light.lightShadowCasterMode,
 				Hdrp = HdrpLightSourcePackable.From(light),
 			};
 		}
@@ -147,6 +149,7 @@ namespace VisualPinball.Unity
 			light.shadowRadius = ShadowRadius;
 			light.shadowAngle = ShadowAngle;
 			light.lightUnit = (UnityEngine.Rendering.LightUnit)LightUnit;
+			light.lightShadowCasterMode = (LightShadowCasterMode)LightShadowCasterMode;
 			light.intensity = Intensity;
 			light.enabled = Enabled;
 			Hdrp.Apply(light);
@@ -161,7 +164,13 @@ namespace VisualPinball.Unity
 		public float LightDimmer;
 		public bool AffectDiffuse;
 		public bool AffectSpecular;
+		public bool AffectsVolumetric;
 		public bool IncludeForRayTracing;
+		public bool UseRayTracedShadows;
+		public bool SemiTransparentShadow;
+		public float ShadowNearPlane;
+		public bool UseCustomSpotLightShadowCone;
+		public float CustomSpotLightShadowCone;
 
 		public static HdrpLightSourcePackable From(Light light)
 		{
@@ -174,7 +183,13 @@ namespace VisualPinball.Unity
 					LightDimmer = GetFloat(hdrp, "lightDimmer", 1f),
 					AffectDiffuse = GetBool(hdrp, "affectDiffuse", true),
 					AffectSpecular = GetBool(hdrp, "affectSpecular", true),
+					AffectsVolumetric = GetBool(hdrp, "affectsVolumetric", true),
 					IncludeForRayTracing = GetBool(hdrp, "includeForRayTracing", true),
+					UseRayTracedShadows = GetBool(hdrp, "useRayTracedShadows", false),
+					SemiTransparentShadow = GetBool(hdrp, "semiTransparentShadow", false),
+					ShadowNearPlane = GetFloat(hdrp, "shadowNearPlane", 0.1f),
+					UseCustomSpotLightShadowCone = GetBool(hdrp, "useCustomSpotLightShadowCone", false),
+					CustomSpotLightShadowCone = GetFloat(hdrp, "customSpotLightShadowCone", light.innerSpotAngle),
 				}
 				: new HdrpLightSourcePackable();
 		}
@@ -195,7 +210,13 @@ namespace VisualPinball.Unity
 			SetFloat(hdrp, "lightDimmer", LightDimmer);
 			SetBool(hdrp, "affectDiffuse", AffectDiffuse);
 			SetBool(hdrp, "affectSpecular", AffectSpecular);
+			SetBool(hdrp, "affectsVolumetric", AffectsVolumetric);
 			SetBool(hdrp, "includeForRayTracing", IncludeForRayTracing);
+			SetBool(hdrp, "useRayTracedShadows", UseRayTracedShadows);
+			SetBool(hdrp, "semiTransparentShadow", SemiTransparentShadow);
+			SetFloat(hdrp, "shadowNearPlane", ShadowNearPlane);
+			SetBool(hdrp, "useCustomSpotLightShadowCone", UseCustomSpotLightShadowCone);
+			SetFloat(hdrp, "customSpotLightShadowCone", CustomSpotLightShadowCone);
 		}
 
 		private static Component GetHdrpLight(Light light)

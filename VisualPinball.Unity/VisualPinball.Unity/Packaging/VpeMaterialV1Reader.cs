@@ -293,6 +293,21 @@ namespace VisualPinball.Unity
 						payload = PackageApi.Packer.Pack(profile.Unlit);
 					}
 					break;
+				case VpeMaterialTypes.Metal:
+					if (profile.Metal != null) {
+						payload = PackageApi.Packer.Pack(profile.Metal);
+					}
+					break;
+				case VpeMaterialTypes.Rubber:
+					if (profile.Rubber != null) {
+						payload = PackageApi.Packer.Pack(profile.Rubber);
+					}
+					break;
+				case VpeMaterialTypes.Dmd:
+					if (profile.Dmd != null) {
+						payload = PackageApi.Packer.Pack(profile.Dmd);
+					}
+					break;
 			}
 
 			if (payload == null || payload.Length == 0) {
@@ -406,18 +421,26 @@ namespace VisualPinball.Unity
 				}
 
 				var linear = string.Equals(asset.ColorSpace, VpeColorSpaces.Linear, StringComparison.OrdinalIgnoreCase);
-				var generateMipMaps = asset.GenerateMipMaps && !linear;
+				var generateMipMaps = asset.GenerateMipMaps;
 				var loadStopwatch = Stopwatch.StartNew();
 				var texture = new Texture2D(2, 2, TextureFormat.RGBA32, generateMipMaps, linear) {
 					name = string.IsNullOrWhiteSpace(asset.SourceName) ? asset.Id : asset.SourceName,
 				};
-				if (!ImageConversion.LoadImage(texture, bytes, markNonReadable: true)) {
+				if (!ImageConversion.LoadImage(texture, bytes, markNonReadable: false)) {
 					loadStopwatch.Stop();
 					UnityEngine.Object.Destroy(texture);
 					LogMissingTexture(textureId, reason: $"load-image-failed:{asset.FileName}");
 					_loaded[textureId] = null;
 					return null;
 				}
+				if (linear) {
+					try {
+						texture.Compress(highQuality: true);
+					} catch (Exception ex) {
+						Logger.Warn(ex, $"vpe.material v1 failed compressing linear texture '{texture.name}'. Keeping uncompressed texture.");
+					}
+				}
+				texture.Apply(updateMipmaps: generateMipMaps, makeNoLongerReadable: true);
 				loadStopwatch.Stop();
 				texture.wrapMode = (TextureWrapMode)asset.WrapMode;
 				texture.filterMode = (FilterMode)asset.FilterMode;
