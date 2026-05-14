@@ -24,7 +24,8 @@ namespace VisualPinball.Unity.Simulation
 	/// </summary>
 	[AddComponentMenu("Visual Pinball/Simulation Thread")]
 	[RequireComponent(typeof(PhysicsEngine))]
-	public class SimulationThreadComponent : MonoBehaviour
+	[PackAs("SimulationThread")]
+	public class SimulationThreadComponent : MonoBehaviour, IPackable
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 		private const string LogPrefix = "[VPE]";
@@ -70,6 +71,18 @@ namespace VisualPinball.Unity.Simulation
 		public float SimulationThreadHz => _simulationThreadHz;
 		public float InputThreadTargetHz => _inputManager?.TargetPollingHz ?? 0f;
 		public float InputThreadActualHz => _inputManager?.ActualEventRateHz ?? 0f;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => SimulationThreadComponentPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) => SimulationThreadComponentPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs, PackagedFiles files) { }
 
 		#endregion
 

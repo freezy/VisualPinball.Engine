@@ -26,8 +26,9 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("StepRotatorMech")]
 	[AddComponentMenu("Pinball/Mechs/Step Rotator Mech")]
-	public class StepRotatorMechComponent : MonoBehaviour, ISwitchDeviceComponent, ICoilDeviceComponent, IMechHandler, ISerializationCallbackReceiver
+	public class StepRotatorMechComponent : MonoBehaviour, ISwitchDeviceComponent, ICoilDeviceComponent, IMechHandler, ISerializationCallbackReceiver, IPackable
 	{
 		#region Data
 
