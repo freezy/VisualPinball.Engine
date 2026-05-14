@@ -24,9 +24,10 @@ using NLog;
 
 namespace VisualPinball.Unity
 {
+	[PackAs("Teleporter")]
 	[AddComponentMenu("Pinball/Game Item/Teleporter")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/teleporters.html")]
-	public class TeleporterComponent : MonoBehaviour, ICoilDeviceComponent
+	public class TeleporterComponent : MonoBehaviour, ICoilDeviceComponent, IPackable
 	{
 		#region Data
 
@@ -44,6 +45,19 @@ namespace VisualPinball.Unity
 		[TypeRestriction(typeof(KickerComponent), PickerLabel = "Kickers", DeviceItem = nameof(ToKickerItem), DeviceType = typeof(ICoilDeviceComponent))]
 		public KickerComponent ToKicker;
 		public string ToKickerItem = string.Empty;
+
+		#endregion
+
+		#region Packaging
+
+		public byte[] Pack() => TeleporterPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => TeleporterReferencesPackable.Pack(this, refs);
+
+		public void Unpack(byte[] bytes) => TeleporterPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files)
+			=> TeleporterReferencesPackable.Unpack(data, this, refs);
 
 		#endregion
 

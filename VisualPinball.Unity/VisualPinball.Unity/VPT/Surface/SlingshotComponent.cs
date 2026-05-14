@@ -32,8 +32,9 @@ namespace VisualPinball.Unity
 		X, Y, Z
 	}
 
+	[PackAs("Slingshot")]
 	[AddComponentMenu("Pinball/Game Item/Slingshot")]
-	public class SlingshotComponent : MonoBehaviour, IMeshComponent, IMainRenderableComponent, IRubberData, ISwitchDeviceComponent
+	public class SlingshotComponent : MonoBehaviour, IMeshComponent, IMainRenderableComponent, IRubberData, ISwitchDeviceComponent, IPackable
 	{
 		[Tooltip("Reference to the wall that acts as slingshot.")]
 		public SurfaceColliderComponent SlingshotSurface;
@@ -99,6 +100,19 @@ namespace VisualPinball.Unity
 		public SwitchDefault SwitchDefault => SwitchDefault.NormallyOpen;
 
 		IEnumerable<GamelogicEngineSwitch> IDeviceComponent<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
+
+		#region Packaging
+
+		public byte[] Pack() => SlingshotPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => SlingshotReferencesPackable.Pack(this, root, refs);
+
+		public void Unpack(byte[] bytes) => SlingshotPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files)
+			=> SlingshotReferencesPackable.Unpack(data, this, root, refs);
+
+		#endregion
 
 		#region Runtime
 
