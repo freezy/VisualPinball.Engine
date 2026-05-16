@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
@@ -24,7 +25,7 @@ namespace VisualPinball.Unity.Editor
 {
 	public interface IPackageScreenshotEnvironmentProvider
 	{
-		IDisposable CreateEnvironmentScope(Transform tableRoot, Cubemap hdriCubemap);
+		IDisposable CreateEnvironmentScope(Transform tableRoot, Cubemap hdriCubemap, float hdriExposure);
 	}
 
 	public static class PackageScreenshotEnvironmentProvider
@@ -36,9 +37,9 @@ namespace VisualPinball.Unity.Editor
 			_active = provider;
 		}
 
-		public static IDisposable CreateScope(Transform tableRoot, Cubemap hdriCubemap)
+		public static IDisposable CreateScope(Transform tableRoot, Cubemap hdriCubemap, float hdriExposure)
 		{
-			return _active?.CreateEnvironmentScope(tableRoot, hdriCubemap);
+			return _active?.CreateEnvironmentScope(tableRoot, hdriCubemap, hdriExposure);
 		}
 	}
 
@@ -49,14 +50,19 @@ namespace VisualPinball.Unity.Editor
 		internal const float FieldOfView = 3f;
 		internal const string DefaultHdriAssetPath = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/Assets/studio_small_08_1k.exr";
 
-		private const byte BackgroundTolerance = 12;
+		private static readonly Quaternion TopDownRotation = Quaternion.Euler(90f, 0f, 0f);
+
+		private const float MarginFactor = 1.05f;
+		private const float MinNearPadding = 0.25f;
+		private const float MinFarPadding = 0.5f;
+		private const byte BackgroundTolerance = 4;
 
 		private static readonly Color Transparent = new(0f, 0f, 0f, 0f);
 
 		internal static string GetSuggestedFileName(TableComponent tableComponent)
 			=> $"{tableComponent.name}-package-preview";
 
-		internal static PackageScreenshotResult Generate(TableComponent tableComponent, string assetPath, Cubemap hdriCubemap)
+		internal static PackageScreenshotResult Generate(TableComponent tableComponent, string assetPath, Cubemap hdriCubemap, float hdriExposure)
 		{
 			if (!tableComponent) {
 				throw new ArgumentNullException(nameof(tableComponent));
@@ -76,83 +82,106 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			var playfieldBounds = GetPlayfieldBounds(playfield);
+			var tableBounds = tableComponent.GetTableBounds();
 			var absolutePath = GetAbsolutePath(assetPath);
 			var referenceCamera = FindReferenceCamera(tableComponent);
 
 			Directory.CreateDirectory(Path.GetDirectoryName(absolutePath)!);
 
-			GameObject cameraGo = null;
-			RenderTexture renderTexture = null;
-			Texture2D texture = null;
+			RenderTexture beautyRenderTexture = null;
+			RenderTexture alphaRenderTexture = null;
+			Texture2D beautyTexture = null;
+			Texture2D alphaTexture = null;
 			var previousActive = RenderTexture.active;
+			var backgroundKeyColor = GetBackgroundKeyColor(referenceCamera);
 
 			try {
-				cameraGo = new GameObject("Package Screenshot Camera") {
-					hideFlags = HideFlags.HideAndDontSave,
-				};
+				var playfieldCenter = playfieldBounds.center;
+				var playfieldWidth = playfieldBounds.size.x;
+				var playfieldHeight = playfieldBounds.size.z;
+				var referenceDistance = Mathf.Abs(referenceCamera.transform.position.y - playfieldCenter.y);
+				beautyRenderTexture = CreateRenderTexture("Package Screenshot Beauty");
+				alphaRenderTexture = CreateRenderTexture("Package Screenshot Alpha");
+				beautyTexture = new Texture2D(PortraitWidth, PortraitHeight, TextureFormat.RGBA32, false);
+				alphaTexture = new Texture2D(PortraitWidth, PortraitHeight, TextureFormat.RGBA32, false);
 
-				var camera = cameraGo.AddComponent<Camera>();
-				CopyCameraSettings(referenceCamera, cameraGo, camera);
-				camera.enabled = false;
-				camera.transform.SetPositionAndRotation(referenceCamera.transform.position, referenceCamera.transform.rotation);
-				camera.forceIntoRenderTexture = true;
-				camera.clearFlags = CameraClearFlags.SolidColor;
-				camera.backgroundColor = Transparent;
-				TryConfigureHdrpCamera(cameraGo, forceTransparentBackground: true);
-				using var environmentScope = PackageScreenshotEnvironmentProvider.CreateScope(tableComponent.transform, hdriCubemap);
+				var cameraState = new CameraCaptureState(referenceCamera);
+				try {
+					var cameraDistance = CalculateTopDownDistance(referenceCamera, playfieldWidth, playfieldHeight);
+					var cameraPosition = new Vector3(playfieldCenter.x, playfieldCenter.y + cameraDistance, playfieldCenter.z);
+					referenceCamera.transform.SetPositionAndRotation(cameraPosition, TopDownRotation);
+					var clipPlanes = CalculateClipPlanes(tableBounds, referenceCamera.transform);
+					referenceCamera.nearClipPlane = clipPlanes.x;
+					referenceCamera.farClipPlane = clipPlanes.y;
 
-				var cameraPosition = camera.transform.position;
-				var cameraDistance = Vector3.Distance(cameraPosition, playfieldBounds.center);
+					using var environmentScope = PackageScreenshotEnvironmentProvider.CreateScope(tableComponent.transform, hdriCubemap, hdriExposure);
+					cameraState.ApplyForBeautyCapture(beautyRenderTexture);
+					referenceCamera.Render();
+					ReadRenderTexture(beautyRenderTexture, beautyTexture);
 
-				renderTexture = new RenderTexture(PortraitWidth, PortraitHeight, 24, RenderTextureFormat.ARGB32) {
-					antiAliasing = 1,
-					name = "Package Screenshot RenderTexture",
-				};
-				renderTexture.Create();
+					cameraState.ApplyForAlphaCapture(alphaRenderTexture, backgroundKeyColor);
+					TryConfigureHdrpCamera(referenceCamera.gameObject, backgroundKeyColor);
+					referenceCamera.Render();
+					ReadRenderTexture(alphaRenderTexture, alphaTexture);
 
-				texture = new Texture2D(PortraitWidth, PortraitHeight, TextureFormat.RGBA32, false);
+					ApplyTransparentBackground(beautyTexture, alphaTexture, backgroundKeyColor);
+					File.WriteAllBytes(absolutePath, beautyTexture.EncodeToPNG());
+					AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
 
-				camera.targetTexture = renderTexture;
-				camera.Render();
-
-				RenderTexture.active = renderTexture;
-				texture.ReadPixels(new Rect(0f, 0f, PortraitWidth, PortraitHeight), 0, 0, false);
-				texture.Apply(false, false);
-				ApplyTransparentBackground(texture);
-
-				File.WriteAllBytes(absolutePath, texture.EncodeToPNG());
-				AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
-
-				return new PackageScreenshotResult(
-					assetPath,
-					absolutePath,
-					cameraPosition,
-					cameraDistance,
-					playfieldBounds
-				);
+					return new PackageScreenshotResult(
+						assetPath,
+						absolutePath,
+						cameraPosition,
+						cameraDistance,
+						playfieldBounds,
+						cameraState.OriginalPosition,
+						referenceDistance
+					);
+				} finally {
+					cameraState.Restore();
+				}
 			} finally {
 				RenderTexture.active = previousActive;
-				if (renderTexture) {
-					renderTexture.Release();
+				if (beautyRenderTexture) {
+					beautyRenderTexture.Release();
 				}
-				if (texture) {
-					UnityEngine.Object.DestroyImmediate(texture);
+				if (alphaRenderTexture) {
+					alphaRenderTexture.Release();
 				}
-				if (renderTexture) {
-					UnityEngine.Object.DestroyImmediate(renderTexture);
+				if (beautyTexture) {
+					UnityEngine.Object.DestroyImmediate(beautyTexture);
 				}
-				if (cameraGo) {
-					UnityEngine.Object.DestroyImmediate(cameraGo);
+				if (alphaTexture) {
+					UnityEngine.Object.DestroyImmediate(alphaTexture);
+				}
+				if (beautyRenderTexture) {
+					UnityEngine.Object.DestroyImmediate(beautyRenderTexture);
+				}
+				if (alphaRenderTexture) {
+					UnityEngine.Object.DestroyImmediate(alphaRenderTexture);
 				}
 			}
 		}
 
+		private static RenderTexture CreateRenderTexture(string name)
+		{
+			var renderTexture = new RenderTexture(PortraitWidth, PortraitHeight, 24, RenderTextureFormat.ARGB32) {
+				antiAliasing = 1,
+				name = name,
+			};
+			renderTexture.Create();
+			return renderTexture;
+		}
+
+		private static void ReadRenderTexture(RenderTexture renderTexture, Texture2D texture)
+		{
+			RenderTexture.active = renderTexture;
+			texture.ReadPixels(new Rect(0f, 0f, PortraitWidth, PortraitHeight), 0, 0, false);
+			texture.Apply(false, false);
+		}
+
 		private static Bounds GetPlayfieldBounds(PlayfieldComponent playfield)
 		{
-			if (playfield.TryGetComponent<Renderer>(out var renderer)) {
-				return renderer.bounds;
-			}
-
 			var width = Mathf.Abs(Physics.ScaleToWorld(playfield.Right - playfield.Left));
 			var height = Mathf.Abs(Physics.ScaleToWorld(playfield.Bottom - playfield.Top));
 			var centerLocal = new Vector3(
@@ -163,6 +192,73 @@ namespace VisualPinball.Unity.Editor
 			var centerWorld = playfield.transform.TransformPoint(centerLocal);
 			var size = Vector3.Scale(new Vector3(width, 0.01f, height), Abs(playfield.transform.lossyScale));
 			return new Bounds(centerWorld, size);
+		}
+
+		private static float CalculateTopDownDistance(Camera camera, float playfieldWidth, float playfieldHeight)
+		{
+			if (!camera || camera.aspect <= 0f) {
+				throw new InvalidOperationException("Unable to calculate the screenshot camera distance from the configured FOV.");
+			}
+
+			var verticalFieldOfView = GetEffectiveVerticalFieldOfView(camera);
+			var verticalHalfAngleTangent = Mathf.Tan(verticalFieldOfView * 0.5f * Mathf.Deg2Rad);
+			var horizontalFieldOfView = Camera.VerticalToHorizontalFieldOfView(verticalFieldOfView, camera.aspect);
+			var horizontalHalfAngleTangent = Mathf.Tan(horizontalFieldOfView * 0.5f * Mathf.Deg2Rad);
+			if (verticalHalfAngleTangent <= 0f || horizontalHalfAngleTangent <= 0f) {
+				throw new InvalidOperationException("Unable to calculate the screenshot camera distance from the configured FOV.");
+			}
+
+			var widthWithMargin = playfieldWidth * MarginFactor;
+			var heightWithMargin = playfieldHeight * MarginFactor;
+			var distanceForHeight = (heightWithMargin * 0.5f) / verticalHalfAngleTangent;
+			var distanceForWidth = (widthWithMargin * 0.5f) / horizontalHalfAngleTangent;
+			return Mathf.Max(distanceForHeight, distanceForWidth);
+		}
+
+		private static float GetEffectiveVerticalFieldOfView(Camera camera)
+		{
+			return camera.usePhysicalProperties ? camera.GetGateFittedFieldOfView() : camera.fieldOfView;
+		}
+
+		private static Vector3[] GetBoundsCorners(Bounds bounds)
+		{
+			var min = bounds.min;
+			var max = bounds.max;
+
+			return new[] {
+				new Vector3(min.x, min.y, min.z),
+				new Vector3(min.x, min.y, max.z),
+				new Vector3(min.x, max.y, min.z),
+				new Vector3(min.x, max.y, max.z),
+				new Vector3(max.x, min.y, min.z),
+				new Vector3(max.x, min.y, max.z),
+				new Vector3(max.x, max.y, min.z),
+				new Vector3(max.x, max.y, max.z),
+			};
+		}
+
+		private static Vector2 CalculateClipPlanes(Bounds bounds, Transform cameraTransform)
+		{
+			var corners = GetBoundsCorners(bounds);
+			var minCameraZ = float.PositiveInfinity;
+			var maxCameraZ = float.NegativeInfinity;
+
+			foreach (var corner in corners) {
+				var cameraSpacePoint = cameraTransform.InverseTransformPoint(corner);
+				minCameraZ = Mathf.Min(minCameraZ, cameraSpacePoint.z);
+				maxCameraZ = Mathf.Max(maxCameraZ, cameraSpacePoint.z);
+			}
+
+			if (!float.IsFinite(minCameraZ) || !float.IsFinite(maxCameraZ)) {
+				return new Vector2(0.01f, 100f);
+			}
+
+			var depthSpan = Mathf.Max(0.01f, maxCameraZ - minCameraZ);
+			var nearPadding = Mathf.Max(MinNearPadding, depthSpan * 0.1f);
+			var farPadding = Mathf.Max(MinFarPadding, depthSpan * 0.15f);
+			var nearClip = Mathf.Max(0.01f, minCameraZ - nearPadding);
+			var farClip = Mathf.Max(nearClip + 1f, maxCameraZ + farPadding);
+			return new Vector2(nearClip, farClip);
 		}
 
 		private static string GetAbsolutePath(string assetPath)
@@ -209,6 +305,84 @@ namespace VisualPinball.Unity.Editor
 			throw new InvalidOperationException($"No scene camera was found to copy render settings from for table '{tableComponent.name}'.");
 		}
 
+		private sealed class CameraCaptureState
+		{
+			private readonly Camera _camera;
+			private readonly Transform _transform;
+			private readonly RenderTexture _originalTargetTexture;
+			private readonly CameraClearFlags _originalClearFlags;
+			private readonly Color _originalBackgroundColor;
+			private readonly float _originalAspect;
+			private readonly bool _originalForceIntoRenderTexture;
+			private readonly float _originalNearClipPlane;
+			private readonly float _originalFarClipPlane;
+			private readonly object _hdCamera;
+			private readonly PropertyInfo _backgroundColorProperty;
+			private readonly object _originalHdrpBackgroundColor;
+			private readonly PropertyInfo _clearColorModeProperty;
+			private readonly object _originalHdrpClearColorMode;
+
+			public Vector3 OriginalPosition { get; }
+			private readonly Quaternion _originalRotation;
+
+			public CameraCaptureState(Camera camera)
+			{
+				_camera = camera ?? throw new ArgumentNullException(nameof(camera));
+				_transform = camera.transform;
+				OriginalPosition = _transform.position;
+				_originalRotation = _transform.rotation;
+				_originalTargetTexture = camera.targetTexture;
+				_originalClearFlags = camera.clearFlags;
+				_originalBackgroundColor = camera.backgroundColor;
+				_originalAspect = camera.aspect;
+				_originalForceIntoRenderTexture = camera.forceIntoRenderTexture;
+				_originalNearClipPlane = camera.nearClipPlane;
+				_originalFarClipPlane = camera.farClipPlane;
+
+				_hdCamera = GetHdAdditionalCameraData(camera.gameObject);
+				if (_hdCamera != null) {
+					var hdCameraType = _hdCamera.GetType();
+					_backgroundColorProperty = hdCameraType.GetProperty("backgroundColorHDR");
+					_originalHdrpBackgroundColor = _backgroundColorProperty?.GetValue(_hdCamera);
+					_clearColorModeProperty = hdCameraType.GetProperty("clearColorMode");
+					_originalHdrpClearColorMode = _clearColorModeProperty?.GetValue(_hdCamera);
+				}
+			}
+
+			public void ApplyForBeautyCapture(RenderTexture renderTexture)
+			{
+				_camera.targetTexture = renderTexture;
+				_camera.aspect = PortraitWidth / (float)PortraitHeight;
+				_camera.forceIntoRenderTexture = true;
+			}
+
+			public void ApplyForAlphaCapture(RenderTexture renderTexture, Color backgroundColor)
+			{
+				ApplyForBeautyCapture(renderTexture);
+				_camera.clearFlags = CameraClearFlags.SolidColor;
+				_camera.backgroundColor = backgroundColor;
+			}
+
+			public void Restore()
+			{
+				_transform.SetPositionAndRotation(OriginalPosition, _originalRotation);
+				_camera.targetTexture = _originalTargetTexture;
+				_camera.clearFlags = _originalClearFlags;
+				_camera.backgroundColor = _originalBackgroundColor;
+				_camera.aspect = _originalAspect;
+				_camera.forceIntoRenderTexture = _originalForceIntoRenderTexture;
+				_camera.nearClipPlane = _originalNearClipPlane;
+				_camera.farClipPlane = _originalFarClipPlane;
+
+				if (_hdCamera == null) {
+					return;
+				}
+
+				_backgroundColorProperty?.SetValue(_hdCamera, _originalHdrpBackgroundColor);
+				_clearColorModeProperty?.SetValue(_hdCamera, _originalHdrpClearColorMode);
+			}
+		}
+
 		private static void CopyCameraSettings(Camera sourceCamera, GameObject destinationCameraGo, Camera destinationCamera)
 		{
 			if (!sourceCamera) {
@@ -231,7 +405,18 @@ namespace VisualPinball.Unity.Editor
 			copyToMethod?.Invoke(sourceHdCamera, new[] { destinationHdCamera });
 		}
 
-		private static void TryConfigureHdrpCamera(GameObject cameraGo, bool forceTransparentBackground)
+		private static Color GetBackgroundKeyColor(Camera referenceCamera)
+		{
+			if (referenceCamera) {
+				var color = referenceCamera.backgroundColor;
+				color.a = 1f;
+				return color;
+			}
+
+			return new Color(0.025f, 0.07f, 0.19f, 1f);
+		}
+
+		private static void TryConfigureHdrpCamera(GameObject cameraGo, Color backgroundColor)
 		{
 			var hdCameraType = Type.GetType("UnityEngine.Rendering.HighDefinition.HDAdditionalCameraData, Unity.RenderPipelines.HighDefinition.Runtime");
 			if (hdCameraType == null) {
@@ -239,14 +424,10 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			var hdCamera = cameraGo.GetComponent(hdCameraType) ?? cameraGo.AddComponent(hdCameraType);
-			if (forceTransparentBackground) {
-				SetEnumProperty(hdCameraType, hdCamera, "clearColorMode", "Color");
-			}
+			SetEnumProperty(hdCameraType, hdCamera, "clearColorMode", "Color");
 
 			var backgroundProperty = hdCameraType.GetProperty("backgroundColorHDR");
-			if (forceTransparentBackground) {
-				backgroundProperty?.SetValue(hdCamera, Transparent);
-			}
+			backgroundProperty?.SetValue(hdCamera, backgroundColor);
 		}
 
 		private static void SetEnumProperty(Type ownerType, object target, string propertyName, string valueName)
@@ -273,73 +454,34 @@ namespace VisualPinball.Unity.Editor
 			return hdCameraType == null ? null : gameObject.GetComponent(hdCameraType);
 		}
 
-		private static void ApplyTransparentBackground(Texture2D texture)
+		private static void ApplyTransparentBackground(Texture2D beautyTexture, Texture2D alphaTexture, Color backgroundKeyColor)
 		{
-			if (!texture) {
+			if (!beautyTexture || !alphaTexture) {
 				return;
 			}
 
-			var width = texture.width;
-			var height = texture.height;
-			if (width <= 0 || height <= 0) {
+			var width = beautyTexture.width;
+			var height = beautyTexture.height;
+			if (width <= 0 || height <= 0 || alphaTexture.width != width || alphaTexture.height != height) {
 				return;
 			}
 
-			var pixels = texture.GetPixels32();
-			var backgroundColor = SampleBackgroundColor(pixels, width, height);
-			var backgroundMask = FloodFillBackground(pixels, width, height, backgroundColor);
+			var pixels = beautyTexture.GetPixels32();
+			var alphaPixels = alphaTexture.GetPixels32();
+			var backgroundColor = (Color32)backgroundKeyColor;
+			var backgroundMask = FloodFillBackground(alphaPixels, width, height, backgroundColor);
 			var foregroundMask = KeepLargestForegroundIsland(backgroundMask, width, height);
 
 			for (var i = 0; i < pixels.Length; i++) {
-				if (!backgroundMask[i] && foregroundMask[i]) {
-					continue;
+				if (backgroundMask[i] || !foregroundMask[i]) {
+					pixels[i] = new Color32(0, 0, 0, 0);
+				} else {
+					pixels[i].a = byte.MaxValue;
 				}
-
-				pixels[i] = new Color32(0, 0, 0, 0);
 			}
 
-			texture.SetPixels32(pixels);
-			texture.Apply(false, false);
-		}
-
-		private static Color32 SampleBackgroundColor(IReadOnlyList<Color32> pixels, int width, int height)
-		{
-			var red = 0L;
-			var green = 0L;
-			var blue = 0L;
-			var alpha = 0L;
-			var samples = 0L;
-
-			void Accumulate(int x, int y)
-			{
-				var pixel = pixels[(y * width) + x];
-				red += pixel.r;
-				green += pixel.g;
-				blue += pixel.b;
-				alpha += pixel.a;
-				samples++;
-			}
-
-			for (var x = 0; x < width; x++) {
-				Accumulate(x, 0);
-				Accumulate(x, height - 1);
-			}
-
-			for (var y = 1; y < height - 1; y++) {
-				Accumulate(0, y);
-				Accumulate(width - 1, y);
-			}
-
-			if (samples == 0) {
-				return new Color32(0, 0, 0, 0);
-			}
-
-			return new Color32(
-				(byte)(red / samples),
-				(byte)(green / samples),
-				(byte)(blue / samples),
-				(byte)(alpha / samples)
-			);
+			beautyTexture.SetPixels32(pixels);
+			beautyTexture.Apply(false, false);
 		}
 
 		private static bool[] FloodFillBackground(IReadOnlyList<Color32> pixels, int width, int height, Color32 backgroundColor)
@@ -463,14 +605,21 @@ namespace VisualPinball.Unity.Editor
 		public readonly Vector3 CameraPosition;
 		public readonly float CameraDistance;
 		public readonly Bounds PlayfieldBounds;
+		public readonly Vector3 ReferenceCameraPosition;
+		public readonly float ReferenceCameraDistance;
 
-		public PackageScreenshotResult(string assetPath, string absolutePath, Vector3 cameraPosition, float cameraDistance, Bounds playfieldBounds)
+		public float PositionDelta => Vector3.Distance(CameraPosition, ReferenceCameraPosition);
+		public float DistanceDelta => Mathf.Abs(CameraDistance - ReferenceCameraDistance);
+
+		public PackageScreenshotResult(string assetPath, string absolutePath, Vector3 cameraPosition, float cameraDistance, Bounds playfieldBounds, Vector3 referenceCameraPosition, float referenceCameraDistance)
 		{
 			AssetPath = assetPath;
 			AbsolutePath = absolutePath;
 			CameraPosition = cameraPosition;
 			CameraDistance = cameraDistance;
 			PlayfieldBounds = playfieldBounds;
+			ReferenceCameraPosition = referenceCameraPosition;
+			ReferenceCameraDistance = referenceCameraDistance;
 		}
 	}
 }

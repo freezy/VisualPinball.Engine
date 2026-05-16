@@ -38,6 +38,7 @@ namespace VisualPinball.Unity.Editor
 		private bool _runtimeCompressNormalMaps = true;
 		private string _screenshotHdriPath;
 		private Cubemap _screenshotHdri;
+		private float _screenshotHdriExposure;
 
 		private const string RuntimeCompressSideChannelTexturesKey =
 			"VisualPinball.Unity.Editor.TableInspector.RuntimeCompressSideChannelTextures";
@@ -47,6 +48,8 @@ namespace VisualPinball.Unity.Editor
 			"VisualPinball.Unity.Editor.TableInspector.RuntimeCompressNormalMaps";
 		private const string ScreenshotHdriPathKey =
 			"VisualPinball.Unity.Editor.TableInspector.ScreenshotHdriPath";
+		private const string ScreenshotHdriExposureKey =
+			"VisualPinball.Unity.Editor.TableInspector.ScreenshotHdriExposure";
 
 		protected override void OnEnable()
 		{
@@ -59,6 +62,7 @@ namespace VisualPinball.Unity.Editor
 			_runtimeCompressNormalMaps = EditorPrefs.GetBool(RuntimeCompressNormalMapsKey, true);
 			_screenshotHdriPath = EditorPrefs.GetString(ScreenshotHdriPathKey, PackageScreenshotGenerator.DefaultHdriAssetPath);
 			_screenshotHdri = AssetDatabase.LoadAssetAtPath<Cubemap>(_screenshotHdriPath);
+			_screenshotHdriExposure = EditorPrefs.GetFloat(ScreenshotHdriExposureKey, 4f);
 			if (!_screenshotHdri && _screenshotHdriPath != PackageScreenshotGenerator.DefaultHdriAssetPath) {
 				_screenshotHdriPath = PackageScreenshotGenerator.DefaultHdriAssetPath;
 				_screenshotHdri = AssetDatabase.LoadAssetAtPath<Cubemap>(_screenshotHdriPath);
@@ -87,13 +91,18 @@ namespace VisualPinball.Unity.Editor
 				//DrawDefaultInspector();
 				const string ext = "vpe";
 				EditorGUILayout.HelpBox(
-					$"Screenshot preset: {PackageScreenshotGenerator.PortraitWidth}x{PackageScreenshotGenerator.PortraitHeight} PNG using the current scene camera shot (T2 is currently set to {PackageScreenshotGenerator.FieldOfView:F1} deg FOV).",
+					$"Screenshot preset: {PackageScreenshotGenerator.PortraitWidth}x{PackageScreenshotGenerator.PortraitHeight} PNG using a computed top-down shot at {PackageScreenshotGenerator.FieldOfView:F1} deg FOV.",
 					MessageType.None);
 				EditorGUI.BeginChangeCheck();
 				_screenshotHdri = (Cubemap)EditorGUILayout.ObjectField("Screenshot HDRI", _screenshotHdri, typeof(Cubemap), false);
 				if (EditorGUI.EndChangeCheck()) {
 					_screenshotHdriPath = _screenshotHdri ? AssetDatabase.GetAssetPath(_screenshotHdri) : string.Empty;
 					EditorPrefs.SetString(ScreenshotHdriPathKey, _screenshotHdriPath);
+				}
+				EditorGUI.BeginChangeCheck();
+				_screenshotHdriExposure = EditorGUILayout.FloatField("Screenshot HDRI Exposure", _screenshotHdriExposure);
+				if (EditorGUI.EndChangeCheck()) {
+					EditorPrefs.SetFloat(ScreenshotHdriExposureKey, _screenshotHdriExposure);
 				}
 				EditorGUI.BeginChangeCheck();
 				_runtimeCompressSideChannelTextures = EditorGUILayout.ToggleLeft(
@@ -129,10 +138,11 @@ namespace VisualPinball.Unity.Editor
 								throw new InvalidOperationException("Please assign a screenshot HDRI cubemap before generating a screenshot.");
 							}
 
-							var result = PackageScreenshotGenerator.Generate(tableComponent, outputPath, _screenshotHdri);
+							var result = PackageScreenshotGenerator.Generate(tableComponent, outputPath, _screenshotHdri, _screenshotHdriExposure);
 							Debug.Log(
 								$"Generated package screenshot at {result.AssetPath} " +
-								$"(camera Y: {result.CameraPosition.y:F3}m, distance: {result.CameraDistance:F3}m).",
+								$"(camera Y: {result.CameraPosition.y:F3}m, distance: {result.CameraDistance:F3}m, " +
+								$"scene delta: {result.PositionDelta:F3}m / {result.DistanceDelta:F3}m).",
 								tableComponent);
 
 							var screenshot = AssetDatabase.LoadAssetAtPath<Texture2D>(result.AssetPath);
