@@ -107,6 +107,7 @@ namespace VisualPinball.Unity.Editor
 
 				var cameraState = new CameraCaptureState(referenceCamera);
 				try {
+					cameraState.ApplyForBeautyCapture(beautyRenderTexture);
 					var cameraDistance = CalculateTopDownDistance(referenceCamera, playfieldWidth, playfieldHeight);
 					var cameraPosition = new Vector3(playfieldCenter.x, playfieldCenter.y + cameraDistance, playfieldCenter.z);
 					referenceCamera.transform.SetPositionAndRotation(cameraPosition, TopDownRotation);
@@ -115,16 +116,8 @@ namespace VisualPinball.Unity.Editor
 					referenceCamera.farClipPlane = clipPlanes.y;
 
 					using var environmentScope = PackageScreenshotEnvironmentProvider.CreateScope(tableComponent.transform, hdriCubemap, hdriExposure);
-					cameraState.ApplyForBeautyCapture(beautyRenderTexture);
 					referenceCamera.Render();
 					ReadRenderTexture(beautyRenderTexture, beautyTexture);
-
-					cameraState.ApplyForAlphaCapture(alphaRenderTexture, backgroundKeyColor);
-					TryConfigureHdrpCamera(referenceCamera.gameObject, backgroundKeyColor);
-					referenceCamera.Render();
-					ReadRenderTexture(alphaRenderTexture, alphaTexture);
-
-					ApplyTransparentBackground(beautyTexture, alphaTexture, backgroundKeyColor);
 					File.WriteAllBytes(absolutePath, beautyTexture.EncodeToPNG());
 					AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
 
