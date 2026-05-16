@@ -18,6 +18,7 @@
 // ReSharper disable UnusedMember.Local
 // ReSharper disable UnusedType.Global
 
+using System;
 using UnityEditor;
 using UnityEngine;
 
@@ -35,6 +36,8 @@ namespace VisualPinball.Unity.Editor
 		private bool _runtimeCompressSideChannelTextures = true;
 		private bool _compressGltfTextures = true;
 		private bool _runtimeCompressNormalMaps = true;
+		private string _screenshotHdriPath;
+		private Cubemap _screenshotHdri;
 
 		private const string RuntimeCompressSideChannelTexturesKey =
 			"VisualPinball.Unity.Editor.TableInspector.RuntimeCompressSideChannelTextures";
@@ -42,6 +45,8 @@ namespace VisualPinball.Unity.Editor
 			"VisualPinball.Unity.Editor.TableInspector.CompressGltfTextures";
 		private const string RuntimeCompressNormalMapsKey =
 			"VisualPinball.Unity.Editor.TableInspector.RuntimeCompressNormalMaps";
+		private const string ScreenshotHdriPathKey =
+			"VisualPinball.Unity.Editor.TableInspector.ScreenshotHdriPath";
 
 		protected override void OnEnable()
 		{
@@ -52,6 +57,12 @@ namespace VisualPinball.Unity.Editor
 			_runtimeCompressSideChannelTextures = EditorPrefs.GetBool(RuntimeCompressSideChannelTexturesKey, true);
 			_compressGltfTextures = EditorPrefs.GetBool(CompressGltfTexturesKey, true);
 			_runtimeCompressNormalMaps = EditorPrefs.GetBool(RuntimeCompressNormalMapsKey, true);
+			_screenshotHdriPath = EditorPrefs.GetString(ScreenshotHdriPathKey, PackageScreenshotGenerator.DefaultHdriAssetPath);
+			_screenshotHdri = AssetDatabase.LoadAssetAtPath<Cubemap>(_screenshotHdriPath);
+			if (!_screenshotHdri && _screenshotHdriPath != PackageScreenshotGenerator.DefaultHdriAssetPath) {
+				_screenshotHdriPath = PackageScreenshotGenerator.DefaultHdriAssetPath;
+				_screenshotHdri = AssetDatabase.LoadAssetAtPath<Cubemap>(_screenshotHdriPath);
+			}
 		}
 
 		public override void OnInspectorGUI()
@@ -75,6 +86,15 @@ namespace VisualPinball.Unity.Editor
 			if (_packageFoldout && !EditorApplication.isPlaying) {
 				//DrawDefaultInspector();
 				const string ext = "vpe";
+				EditorGUILayout.HelpBox(
+					$"Screenshot preset: {PackageScreenshotGenerator.PortraitWidth}x{PackageScreenshotGenerator.PortraitHeight} PNG using the current scene camera shot (T2 is currently set to {PackageScreenshotGenerator.FieldOfView:F1} deg FOV).",
+					MessageType.None);
+				EditorGUI.BeginChangeCheck();
+				_screenshotHdri = (Cubemap)EditorGUILayout.ObjectField("Screenshot HDRI", _screenshotHdri, typeof(Cubemap), false);
+				if (EditorGUI.EndChangeCheck()) {
+					_screenshotHdriPath = _screenshotHdri ? AssetDatabase.GetAssetPath(_screenshotHdri) : string.Empty;
+					EditorPrefs.SetString(ScreenshotHdriPathKey, _screenshotHdriPath);
+				}
 				EditorGUI.BeginChangeCheck();
 				_runtimeCompressSideChannelTextures = EditorGUILayout.ToggleLeft(
 					"Compress sidecar textures (Unity runtime compression)",
@@ -95,6 +115,36 @@ namespace VisualPinball.Unity.Editor
 					_runtimeCompressNormalMaps);
 				if (EditorGUI.EndChangeCheck()) {
 					EditorPrefs.SetBool(RuntimeCompressNormalMapsKey, _runtimeCompressNormalMaps);
+				}
+				if (GUILayout.Button("Generate Screenshot")) {
+					var outputPath = EditorUtility.SaveFilePanelInProject(
+						"Generate package screenshot",
+						PackageScreenshotGenerator.GetSuggestedFileName(tableComponent),
+						"png",
+						"Select where to save the generated package screenshot.");
+
+					if (!string.IsNullOrEmpty(outputPath)) {
+						try {
+							if (!_screenshotHdri) {
+								throw new InvalidOperationException("Please assign a screenshot HDRI cubemap before generating a screenshot.");
+							}
+
+							var result = PackageScreenshotGenerator.Generate(tableComponent, outputPath, _screenshotHdri);
+							Debug.Log(
+								$"Generated package screenshot at {result.AssetPath} " +
+								$"(camera Y: {result.CameraPosition.y:F3}m, distance: {result.CameraDistance:F3}m).",
+								tableComponent);
+
+							var screenshot = AssetDatabase.LoadAssetAtPath<Texture2D>(result.AssetPath);
+							if (screenshot) {
+								Selection.activeObject = screenshot;
+								EditorGUIUtility.PingObject(screenshot);
+							}
+						} catch (Exception exception) {
+							Debug.LogException(exception, tableComponent);
+							EditorUtility.DisplayDialog("Generate Screenshot Failed", exception.Message, "OK");
+						}
+					}
 				}
 				if (GUILayout.Button($"Save as .{ext}")) {
 					var tableContainer = tableComponent.TableContainer;
