@@ -67,6 +67,11 @@ namespace VisualPinball.Unity.Editor
 		// Shot 3: HDRI only, no directional, playfield lamps on (flashers off).
 		private const string FilenameHdriOnly = "table-hdri.png";
 
+		// Warm-up render frames so HDRP temporal screen-space effects (SSGI/SSR/
+		// SSAO) converge before the screenshot is read. Overridable via EditorPrefs.
+		private const string WarmupFramesPrefKey = "VisualPinball.Unity.Editor.PackageScreenshotGenerator.WarmupFrames";
+		private const int DefaultWarmupFrames = 16;
+
 		internal static PackageScreenshotResult Generate(TableComponent tableComponent, string outputFolderPath, Cubemap hdriCubemap, float hdriExposure)
 		{
 			if (!tableComponent) {
@@ -148,7 +153,15 @@ namespace VisualPinball.Unity.Editor
 							// legacy immediate Camera.Render() into an offscreen target
 							// (the image blows out). Use the SRP render request path.
 							var renderRequest = new UnityEngine.Rendering.RenderPipeline.StandardRequest { destination = renderTexture };
-							camera.SubmitRenderRequest(renderRequest);
+							// HDRP SSGI/SSR/SSAO are temporally accumulated; a single
+							// offscreen frame is unconverged (darker indirect/recesses)
+							// vs the continuously-rendered game view. Submit several
+							// warm-up frames so temporal accumulation converges, then
+							// read the last one. Tunable via EditorPrefs without a recompile.
+							var warmupFrames = Mathf.Max(1, EditorPrefs.GetInt(WarmupFramesPrefKey, DefaultWarmupFrames));
+							for (var w = 0; w < warmupFrames; w++) {
+								camera.SubmitRenderRequest(renderRequest);
+							}
 							ReadRenderTexture(renderTexture, readbackTexture);
 						}
 					} finally {
@@ -156,8 +169,9 @@ namespace VisualPinball.Unity.Editor
 					}
 
 					var filePath = Path.Combine(absolutePath, shot.FileName);
-					WriteScreenshotFile(filePath, readbackTexture.EncodeToPNG());
-					AssetDatabase.ImportAsset($"{outputFolderPath}/{shot.FileName}", ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+					var assetPath = $"{outputFolderPath}/{shot.FileName}";
+					WriteScreenshotFile(assetPath, filePath, readbackTexture.EncodeToPNG());
+					AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
 					primaryFilePath ??= filePath;
 				}
 
@@ -215,40 +229,66 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		private sealed class PlayfieldLightSnapshot
 		{
+			private static readonly string[] BulbMeshNames = { "Light (Bulb)", "Light (Socket)" };
+
 			private readonly struct Entry
 			{
 				public readonly bool IsFlasher;
 				public readonly GameObject[] Sources;
 				public readonly bool[] SourceActive;
+				public readonly Renderer[] Bulbs;
+				public readonly bool[] BulbForceOff;
+				public readonly Renderer[] Emissive;
 
-				public Entry(bool isFlasher, GameObject[] sources, bool[] sourceActive)
+				public Entry(bool isFlasher, GameObject[] sources, bool[] sourceActive, Renderer[] bulbs, bool[] bulbForceOff, Renderer[] emissive)
 				{
 					IsFlasher = isFlasher;
 					Sources = sources;
 					SourceActive = sourceActive;
+					Bulbs = bulbs;
+					BulbForceOff = bulbForceOff;
+					Emissive = emissive;
 				}
 			}
 
 			private readonly List<Entry> _entries = new();
+			private MaterialPropertyBlock _propBlock;
 
 			public PlayfieldLightSnapshot(TableComponent tableComponent)
 			{
 				var flashers = CollectFlashers(tableComponent);
 				foreach (var lamp in tableComponent.GetComponentsInChildren<LightComponent>(true)) {
-					// The light "Source" GameObject holds the Unity Light and usually
-					// the FauxBulb as its child, so toggling it covers both. A few
-					// lamps parent the FauxBulb elsewhere ("Lamp"), so also collect
-					// every FauxBulb GameObject directly as a belt-and-suspenders.
+					// The light "Source" GameObject holds the Unity Light; toggling
+					// its active state turns the light off (lights respond to that
+					// immediately). The visible bulb is a Renderer, but a synchronous
+					// SubmitRenderRequest does NOT reflect a just-made SetActive on a
+					// renderer (HDRP culling is computed before the deactivation
+					// propagates), so the bulb keeps drawing. Renderer.forceRenderingOff
+					// IS evaluated at draw submission and bypasses culling - that is
+					// what reliably hides the bulb in the screenshot.
 					var sourceList = new List<GameObject>();
 					foreach (var light in lamp.GetComponentsInChildren<Light>(true)) {
 						if (light && !sourceList.Contains(light.gameObject)) {
 							sourceList.Add(light.gameObject);
 						}
 					}
+					var bulbList = new List<Renderer>();
+					var emissiveList = new List<Renderer>();
+					var converter = RenderPipeline.Current?.MaterialConverter;
 					foreach (var mr in lamp.GetComponentsInChildren<MeshRenderer>(true)) {
-						if (mr && mr.name.IndexOf("FauxBulb", StringComparison.OrdinalIgnoreCase) >= 0
-							&& !sourceList.Contains(mr.gameObject)) {
-							sourceList.Add(mr.gameObject);
+						if (!mr) {
+							continue;
+						}
+						if (IsBulbRenderer(mr)) {
+							bulbList.Add(mr);
+						} else if (converter != null && mr.sharedMaterial &&
+							converter.GetEmissiveIntensity(mr.sharedMaterial) > 0f) {
+							// Insert plastic (hat/reflector) that is emissive: at edit
+							// time it keeps glowing even with the lamp logically off,
+							// because nothing drives its emission down (runtime's
+							// LightComponent.SetMaterialIntensity(0) never ran). This
+							// is the visible "dot" inside the insert when off.
+							emissiveList.Add(mr);
 						}
 					}
 
@@ -257,27 +297,63 @@ namespace VisualPinball.Unity.Editor
 					for (var i = 0; i < sources.Length; i++) {
 						sourceActive[i] = sources[i].activeSelf;
 					}
+					var bulbs = bulbList.ToArray();
+					var bulbForceOff = new bool[bulbs.Length];
+					for (var i = 0; i < bulbs.Length; i++) {
+						bulbForceOff[i] = bulbs[i].forceRenderingOff;
+					}
+					var emissive = emissiveList.ToArray();
 
 					// MappingConfig resolves most flashers, but some coil mappings have
 					// no wired device. VPX-imported flashers follow the "F_" naming
 					// convention (regular lamps are "L*"), so use that as a fallback.
 					var isFlasher = flashers.Contains(lamp) || lamp.name.StartsWith("F_", StringComparison.Ordinal);
-					_entries.Add(new Entry(isFlasher, sources, sourceActive));
+					_entries.Add(new Entry(isFlasher, sources, sourceActive, bulbs, bulbForceOff, emissive));
 				}
 			}
 
 			public void Apply(PlayfieldLightMode mode)
 			{
 				foreach (var entry in _entries) {
-					// Flashers are always off; "On" activates every other lamp's
-					// Source (light + bulb), "Off" deactivates them all.
-					var active = mode == PlayfieldLightMode.On && !entry.IsFlasher;
+					// Flashers are always off; "On" lights every other lamp.
+					var on = mode == PlayfieldLightMode.On && !entry.IsFlasher;
 					foreach (var source in entry.Sources) {
 						if (source) {
-							source.SetActive(active);
+							source.SetActive(on);
+						}
+					}
+					foreach (var bulb in entry.Bulbs) {
+						if (bulb) {
+							bulb.forceRenderingOff = !on;
+						}
+					}
+					foreach (var renderer in entry.Emissive) {
+						if (renderer) {
+							SetEmissiveLit(renderer, on);
 						}
 					}
 				}
+			}
+
+			// At edit time an emissive insert keeps its baked emissive even with the
+			// lamp off (runtime drives it via LightComponent.SetMaterialIntensity).
+			// For an "off" shot push a property block that zeroes the emissive so the
+			// insert is visible but unlit; "on"/Restore clears the block so the baked
+			// value shows again.
+			private void SetEmissiveLit(Renderer renderer, bool lit)
+			{
+				if (lit) {
+					renderer.SetPropertyBlock(null);
+					return;
+				}
+				var converter = RenderPipeline.Current?.MaterialConverter;
+				if (converter == null) {
+					return;
+				}
+				_propBlock ??= new MaterialPropertyBlock();
+				renderer.GetPropertyBlock(_propBlock);
+				converter.SetEmissiveColor(_propBlock, Color.black);
+				renderer.SetPropertyBlock(_propBlock);
 			}
 
 			public void Restore()
@@ -288,7 +364,37 @@ namespace VisualPinball.Unity.Editor
 							entry.Sources[i].SetActive(entry.SourceActive[i]);
 						}
 					}
+					for (var i = 0; i < entry.Bulbs.Length; i++) {
+						if (entry.Bulbs[i]) {
+							entry.Bulbs[i].forceRenderingOff = entry.BulbForceOff[i];
+						}
+					}
+					foreach (var renderer in entry.Emissive) {
+						if (renderer) {
+							renderer.SetPropertyBlock(null);
+						}
+					}
 				}
+			}
+
+			// A lamp's visible bulb is the "FauxBulb" child or a "Light (Bulb)" /
+			// "Light (Socket)" mesh. Insert hat/reflector are deliberately excluded
+			// so the playfield artwork stays visible with the lamp off.
+			private static bool IsBulbRenderer(Renderer renderer)
+			{
+				if (renderer.name.IndexOf("FauxBulb", StringComparison.OrdinalIgnoreCase) >= 0) {
+					return true;
+				}
+				var meshFilter = renderer.GetComponent<MeshFilter>();
+				if (!meshFilter || !meshFilter.sharedMesh) {
+					return false;
+				}
+				foreach (var bulbMeshName in BulbMeshNames) {
+					if (meshFilter.sharedMesh.name == bulbMeshName) {
+						return true;
+					}
+				}
+				return false;
 			}
 
 			private static HashSet<LightComponent> CollectFlashers(TableComponent tableComponent)
@@ -339,13 +445,20 @@ namespace VisualPinball.Unity.Editor
 			EditorUtility.UnloadUnusedAssetsImmediate();
 		}
 
-		private static void WriteScreenshotFile(string filePath, byte[] data)
+		private static void WriteScreenshotFile(string assetPath, string filePath, byte[] data)
 		{
+			// Deleting the existing asset makes Unity drop every handle to it -
+			// memory-map, Inspector preview, selection - which UnloadUnusedAssets
+			// alone cannot do. This is what makes a re-generate reliable: without
+			// it, a still-previewed previous screenshot keeps the file locked, the
+			// write throws Win32 1224, and the run aborts leaving the other shots
+			// stale (the recurring "bulbs are back" symptom).
+			if (AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetPath)) {
+				AssetDatabase.DeleteAsset(assetPath);
+			}
 			try {
 				File.WriteAllBytes(filePath, data);
 			} catch (IOException) {
-				// The destination may still be memory-mapped by Unity; free it and
-				// retry once before giving up.
 				EditorUtility.UnloadUnusedAssetsImmediate();
 				GC.Collect();
 				GC.WaitForPendingFinalizers();
