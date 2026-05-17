@@ -26,7 +26,7 @@ namespace VisualPinball.Unity.Editor
 {
 	public interface IPackageScreenshotEnvironmentProvider
 	{
-		IDisposable CreateEnvironmentScope(Transform tableRoot, Cubemap hdriCubemap, float hdriExposure);
+		IDisposable CreateEnvironmentScope(Transform tableRoot, Cubemap hdriCubemap, float hdriExposure, bool includeDirectionalLight);
 	}
 
 	public static class PackageScreenshotEnvironmentProvider
@@ -38,9 +38,9 @@ namespace VisualPinball.Unity.Editor
 			_active = provider;
 		}
 
-		public static IDisposable CreateScope(Transform tableRoot, Cubemap hdriCubemap, float hdriExposure)
+		public static IDisposable CreateScope(Transform tableRoot, Cubemap hdriCubemap, float hdriExposure, bool includeDirectionalLight)
 		{
-			return _active?.CreateEnvironmentScope(tableRoot, hdriCubemap, hdriExposure);
+			return _active?.CreateEnvironmentScope(tableRoot, hdriCubemap, hdriExposure, includeDirectionalLight);
 		}
 	}
 
@@ -60,8 +60,12 @@ namespace VisualPinball.Unity.Editor
 		private const float MinFarPadding = 0.5f;
 		private const byte BackgroundTolerance = 4;
 
-		private const string FilenameLightOn = "table-on.png";
-		private const string FilenameLightOff = "table-off.png";
+		// Shot 1: env (directional) + HDRI, playfield lamps on (flashers off).
+		private const string FilenameLightsOn = "table-lights-on.png";
+		// Shot 2: env (directional) + HDRI, all playfield lamps off (incl. faux bulb).
+		private const string FilenameLightsOff = "table-lights-off.png";
+		// Shot 3: HDRI only, no directional, playfield lamps on (flashers off).
+		private const string FilenameHdriOnly = "table-hdri.png";
 
 		internal static PackageScreenshotResult Generate(TableComponent tableComponent, string outputFolderPath, Cubemap hdriCubemap, float hdriExposure)
 		{
@@ -85,78 +89,267 @@ namespace VisualPinball.Unity.Editor
 			var playfieldBounds = GetPlayfieldBounds(playfield);
 			var tableBounds = tableComponent.GetTableBounds();
 			var absolutePath = GetAbsolutePath(outputFolderPath);
-			var camera = InstantiateCamera();
 
 			Directory.CreateDirectory(absolutePath);
 
-			RenderTexture renderTextureLightsOn = null;
-			RenderTexture renderTextureLightsOff = null;
-			Texture2D lightsOnTexture = null;
-			Texture2D lightsOffTexture = null;
+			// A previously generated screenshot that is still selected/pinged is
+			// memory-mapped by Unity; overwriting it then throws Win32 1224 and
+			// aborts the whole run (leaving the other shots stale). Release it.
+			ReleaseOutputFileLocks(outputFolderPath);
+
+			RenderTexture renderTexture = null;
+			Texture2D readbackTexture = null;
 			var previousActive = RenderTexture.active;
+			var playfieldLights = new PlayfieldLightSnapshot(tableComponent);
 
 			try {
 				var playfieldCenter = playfieldBounds.center;
 				var playfieldWidth = playfieldBounds.size.x;
 				var playfieldHeight = playfieldBounds.size.z;
-				// var referenceDistance = math.abs(referenceCamera.transform.position.y - playfieldCenter.y);
-				renderTextureLightsOn = CreateRenderTexture("Package Screenshot Lights On");
-				renderTextureLightsOff = CreateRenderTexture("Package Screenshot Lights Off");
-				lightsOnTexture = new Texture2D(PortraitWidth, PortraitHeight, ScreenshotTextureFormat, false);
-				lightsOffTexture = new Texture2D(PortraitWidth, PortraitHeight, ScreenshotTextureFormat, false);
+				renderTexture = CreateRenderTexture("Package Screenshot");
+				readbackTexture = new Texture2D(PortraitWidth, PortraitHeight, ScreenshotTextureFormat, false);
 
-				var cameraDistance = CalculateTopDownDistance(playfieldWidth, playfieldHeight, PortraitWidth / (float)PortraitHeight, camera);
-				var cameraPosition = new Vector3(playfieldCenter.x, playfieldCenter.y + cameraDistance, playfieldCenter.z);
-				camera.transform.SetPositionAndRotation(cameraPosition, TopDownRotation);
-				var clipPlanes = CalculateClipPlanes(tableBounds, camera.transform);
-				camera.nearClipPlane = clipPlanes.x;
-				camera.farClipPlane = clipPlanes.y;
+				// HDRI is applied for all three shots; only the directional light is
+				// toggled. Both "off" shots turn all lamps off and hide their bulbs;
+				// they differ only in the directional light. Each shot uses a fresh
+				// camera: HDRP caches culling/exposure per camera across synchronous
+				// SubmitRenderRequest calls, so reusing one camera would render the
+				// later shots with the first shot's lighting and geometry.
+				var shots = new[] {
+					new ShotConfig(FilenameLightsOn, true, PlayfieldLightMode.On),
+					new ShotConfig(FilenameLightsOff, true, PlayfieldLightMode.Off),
+					new ShotConfig(FilenameHdriOnly, false, PlayfieldLightMode.Off),
+				};
 
-				using var environmentScope = PackageScreenshotEnvironmentProvider.CreateScope(tableComponent.transform, hdriCubemap, hdriExposure);
-				// HDRP does not correctly drive exposure/tonemapping for the legacy
-				// immediate Camera.Render() into an offscreen target (the image blows
-				// out). Use the SRP-supported render request path instead.
-				var renderRequest = new UnityEngine.Rendering.RenderPipeline.StandardRequest { destination = renderTextureLightsOn };
-				camera.SubmitRenderRequest(renderRequest);
-				ReadRenderTexture(renderTextureLightsOn, lightsOnTexture);
+				string primaryFilePath = null;
+				var resultCameraPosition = Vector3.zero;
+				var resultCameraDistance = 0f;
 
-				var lightsOnFilePath = Path.Combine(absolutePath, FilenameLightOn);
-				var lightsOnAssetPath = $"{outputFolderPath}/{FilenameLightOn}";
-				File.WriteAllBytes(lightsOnFilePath, lightsOnTexture.EncodeToPNG());
-				AssetDatabase.ImportAsset(lightsOnAssetPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+				for (var shotIndex = 0; shotIndex < shots.Length; shotIndex++) {
+					var shot = shots[shotIndex];
+					playfieldLights.Apply(shot.Lights);
+
+					var camera = InstantiateCamera();
+					try {
+						var cameraDistance = CalculateTopDownDistance(playfieldWidth, playfieldHeight, PortraitWidth / (float)PortraitHeight, camera);
+						var cameraPosition = new Vector3(playfieldCenter.x, playfieldCenter.y + cameraDistance, playfieldCenter.z);
+						camera.transform.SetPositionAndRotation(cameraPosition, TopDownRotation);
+						var clipPlanes = CalculateClipPlanes(tableBounds, camera.transform);
+						camera.nearClipPlane = clipPlanes.x;
+						camera.farClipPlane = clipPlanes.y;
+
+						if (shotIndex == 0) {
+							resultCameraPosition = cameraPosition;
+							resultCameraDistance = cameraDistance;
+						}
+
+						using (PackageScreenshotEnvironmentProvider.CreateScope(tableComponent.transform, hdriCubemap, hdriExposure, shot.IncludeDirectionalLight)) {
+							// HDRP does not correctly drive exposure/tonemapping for the
+							// legacy immediate Camera.Render() into an offscreen target
+							// (the image blows out). Use the SRP render request path.
+							var renderRequest = new UnityEngine.Rendering.RenderPipeline.StandardRequest { destination = renderTexture };
+							camera.SubmitRenderRequest(renderRequest);
+							ReadRenderTexture(renderTexture, readbackTexture);
+						}
+					} finally {
+						UnityEngine.Object.DestroyImmediate(camera.gameObject);
+					}
+
+					var filePath = Path.Combine(absolutePath, shot.FileName);
+					WriteScreenshotFile(filePath, readbackTexture.EncodeToPNG());
+					AssetDatabase.ImportAsset($"{outputFolderPath}/{shot.FileName}", ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+					primaryFilePath ??= filePath;
+				}
 
 				return new PackageScreenshotResult(
 					outputFolderPath,
-					lightsOnFilePath,
-					cameraPosition,
-					cameraDistance,
+					primaryFilePath,
+					resultCameraPosition,
+					resultCameraDistance,
 					playfieldBounds
 				);
 
 			} finally {
+				playfieldLights.Restore();
 				RenderTexture.active = previousActive;
-				if (renderTextureLightsOn) {
-					renderTextureLightsOn.Release();
+				if (readbackTexture) {
+					UnityEngine.Object.DestroyImmediate(readbackTexture);
 				}
-				if (renderTextureLightsOff) {
-					renderTextureLightsOff.Release();
+				if (renderTexture) {
+					renderTexture.Release();
+					UnityEngine.Object.DestroyImmediate(renderTexture);
 				}
-				if (lightsOnTexture) {
-					UnityEngine.Object.DestroyImmediate(lightsOnTexture);
-				}
-				if (lightsOffTexture) {
-					UnityEngine.Object.DestroyImmediate(lightsOffTexture);
-				}
-				if (renderTextureLightsOn) {
-					UnityEngine.Object.DestroyImmediate(renderTextureLightsOn);
-				}
-				if (renderTextureLightsOff) {
-					UnityEngine.Object.DestroyImmediate(renderTextureLightsOff);
-				}
+			}
+		}
 
-				// if (camera) {
-				// 	UnityEngine.Object.DestroyImmediate(camera.gameObject);
-				// }
+		private enum PlayfieldLightMode
+		{
+			// Non-flasher lamps (inserts + GI) on, flashers off.
+			On,
+			// All lamps off and their bulbs hidden.
+			Off,
+		}
+
+		private readonly struct ShotConfig
+		{
+			public readonly string FileName;
+			public readonly bool IncludeDirectionalLight;
+			public readonly PlayfieldLightMode Lights;
+
+			public ShotConfig(string fileName, bool includeDirectionalLight, PlayfieldLightMode lights)
+			{
+				FileName = fileName;
+				IncludeDirectionalLight = includeDirectionalLight;
+				Lights = lights;
+			}
+		}
+
+		/// <summary>
+		/// Captures the edit-time active state of every playfield lamp's light
+		/// "Source" GameObject (the child that holds the Unity Light and, as its
+		/// own child, the FauxBulb) so screenshots can be rendered with lamps on
+		/// or fully off, then restored. Deactivating the Source removes the light
+		/// AND the bulb in one go while leaving the insert artwork (its siblings)
+		/// visible. Flashers are always off. "On" force-activates every non-flasher
+		/// lamp (inserts and GI) regardless of its edit-time default.
+		/// </summary>
+		private sealed class PlayfieldLightSnapshot
+		{
+			private readonly struct Entry
+			{
+				public readonly bool IsFlasher;
+				public readonly GameObject[] Sources;
+				public readonly bool[] SourceActive;
+
+				public Entry(bool isFlasher, GameObject[] sources, bool[] sourceActive)
+				{
+					IsFlasher = isFlasher;
+					Sources = sources;
+					SourceActive = sourceActive;
+				}
+			}
+
+			private readonly List<Entry> _entries = new();
+
+			public PlayfieldLightSnapshot(TableComponent tableComponent)
+			{
+				var flashers = CollectFlashers(tableComponent);
+				foreach (var lamp in tableComponent.GetComponentsInChildren<LightComponent>(true)) {
+					// The light "Source" GameObject holds the Unity Light and usually
+					// the FauxBulb as its child, so toggling it covers both. A few
+					// lamps parent the FauxBulb elsewhere ("Lamp"), so also collect
+					// every FauxBulb GameObject directly as a belt-and-suspenders.
+					var sourceList = new List<GameObject>();
+					foreach (var light in lamp.GetComponentsInChildren<Light>(true)) {
+						if (light && !sourceList.Contains(light.gameObject)) {
+							sourceList.Add(light.gameObject);
+						}
+					}
+					foreach (var mr in lamp.GetComponentsInChildren<MeshRenderer>(true)) {
+						if (mr && mr.name.IndexOf("FauxBulb", StringComparison.OrdinalIgnoreCase) >= 0
+							&& !sourceList.Contains(mr.gameObject)) {
+							sourceList.Add(mr.gameObject);
+						}
+					}
+
+					var sources = sourceList.ToArray();
+					var sourceActive = new bool[sources.Length];
+					for (var i = 0; i < sources.Length; i++) {
+						sourceActive[i] = sources[i].activeSelf;
+					}
+
+					// MappingConfig resolves most flashers, but some coil mappings have
+					// no wired device. VPX-imported flashers follow the "F_" naming
+					// convention (regular lamps are "L*"), so use that as a fallback.
+					var isFlasher = flashers.Contains(lamp) || lamp.name.StartsWith("F_", StringComparison.Ordinal);
+					_entries.Add(new Entry(isFlasher, sources, sourceActive));
+				}
+			}
+
+			public void Apply(PlayfieldLightMode mode)
+			{
+				foreach (var entry in _entries) {
+					// Flashers are always off; "On" activates every other lamp's
+					// Source (light + bulb), "Off" deactivates them all.
+					var active = mode == PlayfieldLightMode.On && !entry.IsFlasher;
+					foreach (var source in entry.Sources) {
+						if (source) {
+							source.SetActive(active);
+						}
+					}
+				}
+			}
+
+			public void Restore()
+			{
+				foreach (var entry in _entries) {
+					for (var i = 0; i < entry.Sources.Length; i++) {
+						if (entry.Sources[i]) {
+							entry.Sources[i].SetActive(entry.SourceActive[i]);
+						}
+					}
+				}
+			}
+
+			private static HashSet<LightComponent> CollectFlashers(TableComponent tableComponent)
+			{
+				var flashers = new HashSet<LightComponent>();
+				var lamps = tableComponent.MappingConfig?.Lamps;
+				if (lamps == null) {
+					return flashers;
+				}
+				foreach (var lamp in lamps) {
+					if (lamp != null && lamp.IsCoil) {
+						AddLampDevice(lamp.Device, flashers);
+					}
+				}
+				return flashers;
+			}
+
+			private static void AddLampDevice(ILampDeviceComponent device, HashSet<LightComponent> flashers)
+			{
+				switch (device) {
+					case LightComponent lightComponent:
+						flashers.Add(lightComponent);
+						break;
+					case LightGroupComponent group:
+						foreach (var child in group.Lights) {
+							if (child != null) {
+								AddLampDevice(child, flashers);
+							}
+						}
+						break;
+				}
+			}
+		}
+
+		// Unity memory-maps a texture asset while it is selected/previewed, which
+		// makes File.WriteAllBytes fail with Win32 1224. Clearing a selection that
+		// points into the output folder and unloading unused assets releases it.
+		private static void ReleaseOutputFileLocks(string outputFolderPath)
+		{
+			var selected = Selection.activeObject;
+			if (selected) {
+				var selectedPath = AssetDatabase.GetAssetPath(selected);
+				if (!string.IsNullOrEmpty(selectedPath) &&
+					selectedPath.Replace('\\', '/').StartsWith(outputFolderPath.Replace('\\', '/') + "/", StringComparison.OrdinalIgnoreCase)) {
+					Selection.activeObject = null;
+				}
+			}
+			EditorUtility.UnloadUnusedAssetsImmediate();
+		}
+
+		private static void WriteScreenshotFile(string filePath, byte[] data)
+		{
+			try {
+				File.WriteAllBytes(filePath, data);
+			} catch (IOException) {
+				// The destination may still be memory-mapped by Unity; free it and
+				// retry once before giving up.
+				EditorUtility.UnloadUnusedAssetsImmediate();
+				GC.Collect();
+				GC.WaitForPendingFinalizers();
+				File.WriteAllBytes(filePath, data);
 			}
 		}
 
