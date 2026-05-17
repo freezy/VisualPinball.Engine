@@ -219,13 +219,16 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		/// <summary>
-		/// Captures the edit-time active state of every playfield lamp's light
-		/// "Source" GameObject (the child that holds the Unity Light and, as its
-		/// own child, the FauxBulb) so screenshots can be rendered with lamps on
-		/// or fully off, then restored. Deactivating the Source removes the light
-		/// AND the bulb in one go while leaving the insert artwork (its siblings)
-		/// visible. Flashers are always off. "On" force-activates every non-flasher
-		/// lamp (inserts and GI) regardless of its edit-time default.
+		/// Captures/restores lamp state for the screenshots. Lamps are enumerated
+		/// like the LampManager - via TableComponent.MappingConfig.Lamps, IsCoil =
+		/// flasher, LightGroupComponent references resolved into member lamps. Only
+		/// Light.enabled is toggled (same mechanism as the LampManager, never
+		/// SetActive - deactivating the Source empties LightComponent.LightSources
+		/// and breaks the manager). The faux bulb (Renderer.forceRenderingOff) and
+		/// emissive insert plastic (MaterialPropertyBlock) are additionally
+		/// suppressed for the off shots, since at edit time their baked emissive is
+		/// not driven down. "On" enables every non-flasher lamp regardless of its
+		/// edit-time default; flashers stay off.
 		/// </summary>
 		private sealed class PlayfieldLightSnapshot
 		{
@@ -234,17 +237,17 @@ namespace VisualPinball.Unity.Editor
 			private readonly struct Entry
 			{
 				public readonly bool IsFlasher;
-				public readonly GameObject[] Sources;
-				public readonly bool[] SourceActive;
+				public readonly Light[] Lights;
+				public readonly bool[] LightEnabled;
 				public readonly Renderer[] Bulbs;
 				public readonly bool[] BulbForceOff;
 				public readonly Renderer[] Emissive;
 
-				public Entry(bool isFlasher, GameObject[] sources, bool[] sourceActive, Renderer[] bulbs, bool[] bulbForceOff, Renderer[] emissive)
+				public Entry(bool isFlasher, Light[] lights, bool[] lightEnabled, Renderer[] bulbs, bool[] bulbForceOff, Renderer[] emissive)
 				{
 					IsFlasher = isFlasher;
-					Sources = sources;
-					SourceActive = sourceActive;
+					Lights = lights;
+					LightEnabled = lightEnabled;
 					Bulbs = bulbs;
 					BulbForceOff = bulbForceOff;
 					Emissive = emissive;
@@ -256,70 +259,95 @@ namespace VisualPinball.Unity.Editor
 
 			public PlayfieldLightSnapshot(TableComponent tableComponent)
 			{
-				var flashers = CollectFlashers(tableComponent);
-				foreach (var lamp in tableComponent.GetComponentsInChildren<LightComponent>(true)) {
-					// The light "Source" GameObject holds the Unity Light; toggling
-					// its active state turns the light off (lights respond to that
-					// immediately). The visible bulb is a Renderer, but a synchronous
-					// SubmitRenderRequest does NOT reflect a just-made SetActive on a
-					// renderer (HDRP culling is computed before the deactivation
-					// propagates), so the bulb keeps drawing. Renderer.forceRenderingOff
-					// IS evaluated at draw submission and bypasses culling - that is
-					// what reliably hides the bulb in the screenshot.
-					var sourceList = new List<GameObject>();
-					foreach (var light in lamp.GetComponentsInChildren<Light>(true)) {
-						if (light && !sourceList.Contains(light.gameObject)) {
-							sourceList.Add(light.gameObject);
-						}
-					}
-					var bulbList = new List<Renderer>();
-					var emissiveList = new List<Renderer>();
-					var converter = RenderPipeline.Current?.MaterialConverter;
-					foreach (var mr in lamp.GetComponentsInChildren<MeshRenderer>(true)) {
-						if (!mr) {
-							continue;
-						}
-						if (IsBulbRenderer(mr)) {
-							bulbList.Add(mr);
-						} else if (converter != null && mr.sharedMaterial &&
-							converter.GetEmissiveIntensity(mr.sharedMaterial) > 0f) {
-							// Insert plastic (hat/reflector) that is emissive: at edit
-							// time it keeps glowing even with the lamp logically off,
-							// because nothing drives its emission down (runtime's
-							// LightComponent.SetMaterialIntensity(0) never ran). This
-							// is the visible "dot" inside the insert when off.
-							emissiveList.Add(mr);
-						}
-					}
+				// Enumerate lamps exactly like the LampManager: via the lamp mapping,
+				// categorised by IsCoil (flasher), with LightGroupComponent references
+				// resolved into their member lamps. This is why GI (which is wired as
+				// groups) was being missed before.
+				var lamps = tableComponent.MappingConfig?.Lamps;
+				if (lamps == null) {
+					return;
+				}
 
-					var sources = sourceList.ToArray();
-					var sourceActive = new bool[sources.Length];
-					for (var i = 0; i < sources.Length; i++) {
-						sourceActive[i] = sources[i].activeSelf;
+				var seen = new HashSet<LightComponent>();
+				var resolved = new List<LightComponent>();
+				foreach (var lampMapping in lamps) {
+					if (lampMapping?.Device == null) {
+						continue;
 					}
-					var bulbs = bulbList.ToArray();
-					var bulbForceOff = new bool[bulbs.Length];
-					for (var i = 0; i < bulbs.Length; i++) {
-						bulbForceOff[i] = bulbs[i].forceRenderingOff;
+					resolved.Clear();
+					ResolveLightComponents(lampMapping.Device, resolved);
+					foreach (var lamp in resolved) {
+						if (lamp && seen.Add(lamp)) {
+							AddEntry(lamp, lampMapping.IsCoil);
+						}
 					}
-					var emissive = emissiveList.ToArray();
+				}
+			}
 
-					// MappingConfig resolves most flashers, but some coil mappings have
-					// no wired device. VPX-imported flashers follow the "F_" naming
-					// convention (regular lamps are "L*"), so use that as a fallback.
-					var isFlasher = flashers.Contains(lamp) || lamp.name.StartsWith("F_", StringComparison.Ordinal);
-					_entries.Add(new Entry(isFlasher, sources, sourceActive, bulbs, bulbForceOff, emissive));
+			private void AddEntry(LightComponent lamp, bool isFlasher)
+			{
+				var lights = lamp.GetComponentsInChildren<Light>(true);
+				var lightEnabled = new bool[lights.Length];
+				for (var i = 0; i < lights.Length; i++) {
+					lightEnabled[i] = lights[i].enabled;
+				}
+
+				var bulbList = new List<Renderer>();
+				var emissiveList = new List<Renderer>();
+				var converter = RenderPipeline.Current?.MaterialConverter;
+				foreach (var mr in lamp.GetComponentsInChildren<MeshRenderer>(true)) {
+					if (!mr) {
+						continue;
+					}
+					if (IsBulbRenderer(mr)) {
+						bulbList.Add(mr);
+					} else if (converter != null && mr.sharedMaterial &&
+						converter.GetEmissiveIntensity(mr.sharedMaterial) > 0f) {
+						// Emissive insert plastic: at edit time it keeps glowing even
+						// with the lamp logically off because runtime's
+						// LightComponent.SetMaterialIntensity(0) never ran.
+						emissiveList.Add(mr);
+					}
+				}
+				var bulbs = bulbList.ToArray();
+				var bulbForceOff = new bool[bulbs.Length];
+				for (var i = 0; i < bulbs.Length; i++) {
+					bulbForceOff[i] = bulbs[i].forceRenderingOff;
+				}
+
+				_entries.Add(new Entry(isFlasher, lights, lightEnabled, bulbs, bulbForceOff, emissiveList.ToArray()));
+			}
+
+			// Resolve a mapped lamp device to the concrete LightComponents it drives,
+			// expanding LightGroupComponent references recursively.
+			private static void ResolveLightComponents(ILampDeviceComponent device, List<LightComponent> result)
+			{
+				switch (device) {
+					case LightComponent lightComponent:
+						result.Add(lightComponent);
+						break;
+					case LightGroupComponent group:
+						foreach (var child in group.Lights) {
+							if (child != null) {
+								ResolveLightComponents(child, result);
+							}
+						}
+						break;
 				}
 			}
 
 			public void Apply(PlayfieldLightMode mode)
 			{
 				foreach (var entry in _entries) {
-					// Flashers are always off; "On" lights every other lamp.
+					// Flashers are always off; "On" lights every other lamp (inserts
+					// AND GI) regardless of its edit-time default. Toggling
+					// Light.enabled is the same mechanism the LampManager uses, so it
+					// stays togglable afterwards (we never deactivate the Source
+					// GameObject, which would empty LightComponent.LightSources).
 					var on = mode == PlayfieldLightMode.On && !entry.IsFlasher;
-					foreach (var source in entry.Sources) {
-						if (source) {
-							source.SetActive(on);
+					foreach (var light in entry.Lights) {
+						if (light) {
+							light.enabled = on;
 						}
 					}
 					foreach (var bulb in entry.Bulbs) {
@@ -359,9 +387,9 @@ namespace VisualPinball.Unity.Editor
 			public void Restore()
 			{
 				foreach (var entry in _entries) {
-					for (var i = 0; i < entry.Sources.Length; i++) {
-						if (entry.Sources[i]) {
-							entry.Sources[i].SetActive(entry.SourceActive[i]);
+					for (var i = 0; i < entry.Lights.Length; i++) {
+						if (entry.Lights[i]) {
+							entry.Lights[i].enabled = entry.LightEnabled[i];
 						}
 					}
 					for (var i = 0; i < entry.Bulbs.Length; i++) {
@@ -397,36 +425,6 @@ namespace VisualPinball.Unity.Editor
 				return false;
 			}
 
-			private static HashSet<LightComponent> CollectFlashers(TableComponent tableComponent)
-			{
-				var flashers = new HashSet<LightComponent>();
-				var lamps = tableComponent.MappingConfig?.Lamps;
-				if (lamps == null) {
-					return flashers;
-				}
-				foreach (var lamp in lamps) {
-					if (lamp != null && lamp.IsCoil) {
-						AddLampDevice(lamp.Device, flashers);
-					}
-				}
-				return flashers;
-			}
-
-			private static void AddLampDevice(ILampDeviceComponent device, HashSet<LightComponent> flashers)
-			{
-				switch (device) {
-					case LightComponent lightComponent:
-						flashers.Add(lightComponent);
-						break;
-					case LightGroupComponent group:
-						foreach (var child in group.Lights) {
-							if (child != null) {
-								AddLampDevice(child, flashers);
-							}
-						}
-						break;
-				}
-			}
 		}
 
 		// Unity memory-maps a texture asset while it is selected/previewed, which
