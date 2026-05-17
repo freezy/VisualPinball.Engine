@@ -126,34 +126,25 @@ namespace VisualPinball.Unity.Editor
 					EditorPrefs.SetBool(RuntimeCompressNormalMapsKey, _runtimeCompressNormalMaps);
 				}
 				if (GUILayout.Button("Generate Screenshot")) {
-					var outputPath = EditorUtility.SaveFilePanelInProject(
-						"Generate package screenshot",
-						PackageScreenshotGenerator.GetSuggestedFileName(tableComponent),
-						"png",
-						"Select where to save the generated package screenshot.");
-
-					if (!string.IsNullOrEmpty(outputPath)) {
-						try {
-							if (!_screenshotHdri) {
-								throw new InvalidOperationException("Please assign a screenshot HDRI cubemap before generating a screenshot.");
-							}
-
-							var result = PackageScreenshotGenerator.Generate(tableComponent, outputPath, _screenshotHdri, _screenshotHdriExposure);
-							Debug.Log(
-								$"Generated package screenshot at {result.AssetPath} " +
-								$"(camera Y: {result.CameraPosition.y:F3}m, distance: {result.CameraDistance:F3}m, " +
-								$"scene delta: {result.PositionDelta:F3}m / {result.DistanceDelta:F3}m).",
-								tableComponent);
-
-							var screenshot = AssetDatabase.LoadAssetAtPath<Texture2D>(result.AssetPath);
-							if (screenshot) {
-								Selection.activeObject = screenshot;
-								EditorGUIUtility.PingObject(screenshot);
-							}
-						} catch (Exception exception) {
-							Debug.LogException(exception, tableComponent);
-							EditorUtility.DisplayDialog("Generate Screenshot Failed", exception.Message, "OK");
+					try {
+						if (!_screenshotHdri) {
+							throw new InvalidOperationException("Please assign a screenshot HDRI cubemap before generating a screenshot.");
 						}
+
+						var result = PackageScreenshotGenerator.Generate(tableComponent, @"Assets/Screenshots", _screenshotHdri, _screenshotHdriExposure);
+						Debug.Log(
+							$"Generated package screenshot at {result.AssetPath} " +
+							$"(camera Y: {result.CameraPosition.y:F3}m, distance: {result.CameraDistance:F3}m, " +
+							tableComponent);
+
+						var screenshot = AssetDatabase.LoadAssetAtPath<Texture2D>(result.AssetPath);
+						if (screenshot) {
+							Selection.activeObject = screenshot;
+							EditorGUIUtility.PingObject(screenshot);
+						}
+					} catch (Exception exception) {
+						Debug.LogException(exception, tableComponent);
+						EditorUtility.DisplayDialog("Generate Screenshot Failed", exception.Message, "OK");
 					}
 				}
 				if (GUILayout.Button($"Save as .{ext}")) {
