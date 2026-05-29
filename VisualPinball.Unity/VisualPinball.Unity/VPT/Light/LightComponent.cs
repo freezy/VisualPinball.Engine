@@ -224,8 +224,21 @@ namespace VisualPinball.Unity
 			}
 
 			// remember material emissions
+			CollectFauxBulbs();
+
+			// Ensure emissive meshes start dark until the first lamp event updates them.
+			// Without this, materials with baked emissive defaults (e.g. FauxBulb) can
+			// appear lit even while the logical lamp value is off.
+			SetMaterialIntensity(0f);
+			SetFauxBulbVisibility(0f);
+
+			_hasLights = _lights.Count > 0 || _materials.Count > 0;
+		}
+
+		private void CollectFauxBulbs()
+		{
 			_propBlock = new MaterialPropertyBlock(); // this is just something we can recycle
-			foreach (var mr in GetComponentsInChildren<MeshRenderer>()) {
+			foreach (var mr in GetComponentsInChildren<MeshRenderer>(true)) {
 				var emissiveIntensity = RenderPipeline.Current.MaterialConverter.GetEmissiveIntensity(mr.sharedMaterial);
 				if (emissiveIntensity > 0) {
 					_materials.Add((mr, emissiveIntensity));
@@ -240,13 +253,6 @@ namespace VisualPinball.Unity
 					_fauxBulbs.Add((mr, baseColor, hasBaseColor, hasColor));
 				}
 			}
-			// Ensure emissive meshes start dark until the first lamp event updates them.
-			// Without this, materials with baked emissive defaults (e.g. FauxBulb) can
-			// appear lit even while the logical lamp value is off.
-			SetMaterialIntensity(0f);
-			SetFauxBulbVisibility(0f);
-
-			_hasLights = _lights.Count > 0 || _materials.Count > 0;
 		}
 
 		private void Update()
@@ -371,6 +377,10 @@ namespace VisualPinball.Unity
 
 		private void SetFauxBulbVisibility(float value)
 		{
+			if (_fauxBulbs.Count == 0 && !Application.isPlaying) {
+				CollectFauxBulbs();
+			}
+
 			if (_fauxBulbs.Count == 0) {
 				return;
 			}
@@ -378,6 +388,12 @@ namespace VisualPinball.Unity
 			var clampedValue = Mathf.Clamp01(value);
 			foreach (var (renderer, baseColor, hasBaseColor, hasColor) in _fauxBulbs) {
 				if (!renderer) {
+					continue;
+				}
+
+				// outside of play mode, just toggle
+				if (!Application.isPlaying) {
+					renderer.gameObject.SetActive(clampedValue > 0.001f);
 					continue;
 				}
 

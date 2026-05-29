@@ -17,10 +17,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -134,6 +134,21 @@ namespace VisualPinball.Unity.Editor
 					var shot = shots[shotIndex];
 					playfieldLights.Apply(shot.Lights);
 
+					// TEMP DIAGNOSTIC: after Apply, are the faux bulbs actually
+					// deactivated for the off shots? Catches a polluted-scene baseline
+					// or a render that ignores the deactivation, in the real path.
+					var dbgFb = 0;
+					var dbgFbActive = 0;
+					foreach (var dbgMr in tableComponent.GetComponentsInChildren<MeshRenderer>(true)) {
+						if (dbgMr && dbgMr.name.IndexOf("FauxBulb", StringComparison.OrdinalIgnoreCase) >= 0) {
+							dbgFb++;
+							if (dbgMr.gameObject.activeInHierarchy) {
+								dbgFbActive++;
+							}
+						}
+					}
+					Debug.Log($"[ScreenshotDiag] {shot.FileName} mode={shot.Lights} fauxBulb total={dbgFb} activeInHierarchy={dbgFbActive}");
+
 					var camera = InstantiateCamera();
 					try {
 						var cameraDistance = CalculateTopDownDistance(playfieldWidth, playfieldHeight, PortraitWidth / (float)PortraitHeight, camera);
@@ -165,7 +180,7 @@ namespace VisualPinball.Unity.Editor
 							ReadRenderTexture(renderTexture, readbackTexture);
 						}
 					} finally {
-						UnityEngine.Object.DestroyImmediate(camera.gameObject);
+						Object.DestroyImmediate(camera.gameObject);
 					}
 
 					var filePath = Path.Combine(absolutePath, shot.FileName);
@@ -187,11 +202,11 @@ namespace VisualPinball.Unity.Editor
 				playfieldLights.Restore();
 				RenderTexture.active = previousActive;
 				if (readbackTexture) {
-					UnityEngine.Object.DestroyImmediate(readbackTexture);
+					Object.DestroyImmediate(readbackTexture);
 				}
 				if (renderTexture) {
 					renderTexture.Release();
-					UnityEngine.Object.DestroyImmediate(renderTexture);
+					Object.DestroyImmediate(renderTexture);
 				}
 			}
 		}
@@ -232,8 +247,6 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		private sealed class PlayfieldLightSnapshot
 		{
-			private static readonly string[] BulbMeshNames = { "Light (Bulb)", "Light (Socket)" };
-
 			private readonly struct Entry
 			{
 				public readonly bool IsFlasher;
@@ -241,16 +254,18 @@ namespace VisualPinball.Unity.Editor
 				public readonly bool[] LightEnabled;
 				public readonly Renderer[] Bulbs;
 				public readonly bool[] BulbForceOff;
-				public readonly Renderer[] Emissive;
+				public readonly GameObject[] BulbGos;
+				public readonly bool[] BulbActive;
 
-				public Entry(bool isFlasher, Light[] lights, bool[] lightEnabled, Renderer[] bulbs, bool[] bulbForceOff, Renderer[] emissive)
+				public Entry(bool isFlasher, Light[] lights, bool[] lightEnabled, Renderer[] bulbs, bool[] bulbForceOff, GameObject[] bulbGos, bool[] bulbActive)
 				{
 					IsFlasher = isFlasher;
 					Lights = lights;
 					LightEnabled = lightEnabled;
 					Bulbs = bulbs;
 					BulbForceOff = bulbForceOff;
-					Emissive = emissive;
+					BulbGos = bulbGos;
+					BulbActive = bulbActive;
 				}
 			}
 
@@ -259,28 +274,39 @@ namespace VisualPinball.Unity.Editor
 
 			public PlayfieldLightSnapshot(TableComponent tableComponent)
 			{
-				// Enumerate lamps exactly like the LampManager: via the lamp mapping,
-				// categorised by IsCoil (flasher), with LightGroupComponent references
-				// resolved into their member lamps. This is why GI (which is wired as
-				// groups) was being missed before.
+				// Flashers are identified via the lamp mapping (IsCoil), resolving
+				// LightGroupComponent references into member lamps. But the mapping
+				// does NOT cover every LightComponent (groups, null-device coil
+				// mappings, unmapped lamps - here 82 mappings vs 110 lamps), so we
+				// must enumerate ALL LightComponents for coverage; otherwise the
+				// uncovered lamps keep their bulb lit in the off shots ("bulbs back",
+				// non-deterministic since the uncovered set shifts with table state).
+				var flashers = new HashSet<LightComponent>();
 				var lamps = tableComponent.MappingConfig?.Lamps;
-				if (lamps == null) {
-					return;
-				}
-
-				var seen = new HashSet<LightComponent>();
-				var resolved = new List<LightComponent>();
-				foreach (var lampMapping in lamps) {
-					if (lampMapping?.Device == null) {
-						continue;
-					}
-					resolved.Clear();
-					ResolveLightComponents(lampMapping.Device, resolved);
-					foreach (var lamp in resolved) {
-						if (lamp && seen.Add(lamp)) {
-							AddEntry(lamp, lampMapping.IsCoil);
+				if (lamps != null) {
+					var resolved = new List<LightComponent>();
+					foreach (var lampMapping in lamps) {
+						if (lampMapping == null || !lampMapping.IsCoil || lampMapping.Device == null) {
+							continue;
+						}
+						resolved.Clear();
+						ResolveLightComponents(lampMapping.Device, resolved);
+						foreach (var lc in resolved) {
+							if (lc) {
+								flashers.Add(lc);
+							}
 						}
 					}
+				}
+
+				foreach (var lamp in tableComponent.GetComponentsInChildren<LightComponent>(true)) {
+					if (!lamp) {
+						continue;
+					}
+					// Mapping-resolved flasher, or the VPX "F_" naming fallback for
+					// coil mappings that have no wired device.
+					var isFlasher = flashers.Contains(lamp) || lamp.name.StartsWith("F_", StringComparison.Ordinal);
+					AddEntry(lamp, isFlasher);
 				}
 			}
 
@@ -292,30 +318,35 @@ namespace VisualPinball.Unity.Editor
 					lightEnabled[i] = lights[i].enabled;
 				}
 
+				// The bulb is whatever sits under the light "Source" transform (the
+				// GameObject the Unity Light is on). The insert artwork (hat /
+				// reflector) are siblings of Source, NOT under it, so they are left
+				// alone. This is structural - no fragile name/mesh matching.
 				var bulbList = new List<Renderer>();
-				var emissiveList = new List<Renderer>();
-				var converter = RenderPipeline.Current?.MaterialConverter;
-				foreach (var mr in lamp.GetComponentsInChildren<MeshRenderer>(true)) {
-					if (!mr) {
+				foreach (var light in lights) {
+					if (!light) {
 						continue;
 					}
-					if (IsBulbRenderer(mr)) {
-						bulbList.Add(mr);
-					} else if (converter != null && mr.sharedMaterial &&
-						converter.GetEmissiveIntensity(mr.sharedMaterial) > 0f) {
-						// Emissive insert plastic: at edit time it keeps glowing even
-						// with the lamp logically off because runtime's
-						// LightComponent.SetMaterialIntensity(0) never ran.
-						emissiveList.Add(mr);
+					foreach (var r in light.GetComponentsInChildren<Renderer>(true)) {
+						if (r && !bulbList.Contains(r)) {
+							bulbList.Add(r);
+						}
 					}
 				}
 				var bulbs = bulbList.ToArray();
 				var bulbForceOff = new bool[bulbs.Length];
+				var bulbGos = new GameObject[bulbs.Length];
+				var bulbActive = new bool[bulbs.Length];
 				for (var i = 0; i < bulbs.Length; i++) {
 					bulbForceOff[i] = bulbs[i].forceRenderingOff;
+					// Only deactivate the bulb GameObject if it does NOT carry the
+					// Unity Light itself - deactivating the Light's GameObject would
+					// empty LightComponent.LightSources and break the LampManager.
+					bulbGos[i] = bulbs[i].GetComponent<Light>() ? null : bulbs[i].gameObject;
+					bulbActive[i] = bulbGos[i] && bulbGos[i].activeSelf;
 				}
 
-				_entries.Add(new Entry(isFlasher, lights, lightEnabled, bulbs, bulbForceOff, emissiveList.ToArray()));
+				_entries.Add(new Entry(isFlasher, lights, lightEnabled, bulbs, bulbForceOff, bulbGos, bulbActive));
 			}
 
 			// Resolve a mapped lamp device to the concrete LightComponents it drives,
@@ -353,11 +384,18 @@ namespace VisualPinball.Unity.Editor
 					foreach (var bulb in entry.Bulbs) {
 						if (bulb) {
 							bulb.forceRenderingOff = !on;
+							SetEmissiveLit(bulb, on);
 						}
 					}
-					foreach (var renderer in entry.Emissive) {
-						if (renderer) {
-							SetEmissiveLit(renderer, on);
+					// Deactivating the bulb GameObject is the only suppression that
+					// survives HDRP's render-graph state pollution after the first
+					// offscreen render session (forceRenderingOff/property blocks get
+					// cached and ignored on subsequent runs). The Light is on the
+					// parent "Source", never on these GameObjects, so the LampManager
+					// is unaffected.
+					foreach (var go in entry.BulbGos) {
+						if (go) {
+							go.SetActive(on);
 						}
 					}
 				}
@@ -395,34 +433,15 @@ namespace VisualPinball.Unity.Editor
 					for (var i = 0; i < entry.Bulbs.Length; i++) {
 						if (entry.Bulbs[i]) {
 							entry.Bulbs[i].forceRenderingOff = entry.BulbForceOff[i];
+							entry.Bulbs[i].SetPropertyBlock(null);
 						}
 					}
-					foreach (var renderer in entry.Emissive) {
-						if (renderer) {
-							renderer.SetPropertyBlock(null);
+					for (var i = 0; i < entry.BulbGos.Length; i++) {
+						if (entry.BulbGos[i]) {
+							entry.BulbGos[i].SetActive(entry.BulbActive[i]);
 						}
 					}
 				}
-			}
-
-			// A lamp's visible bulb is the "FauxBulb" child or a "Light (Bulb)" /
-			// "Light (Socket)" mesh. Insert hat/reflector are deliberately excluded
-			// so the playfield artwork stays visible with the lamp off.
-			private static bool IsBulbRenderer(Renderer renderer)
-			{
-				if (renderer.name.IndexOf("FauxBulb", StringComparison.OrdinalIgnoreCase) >= 0) {
-					return true;
-				}
-				var meshFilter = renderer.GetComponent<MeshFilter>();
-				if (!meshFilter || !meshFilter.sharedMesh) {
-					return false;
-				}
-				foreach (var bulbMeshName in BulbMeshNames) {
-					if (meshFilter.sharedMesh.name == bulbMeshName) {
-						return true;
-					}
-				}
-				return false;
 			}
 
 		}
@@ -451,7 +470,7 @@ namespace VisualPinball.Unity.Editor
 			// it, a still-previewed previous screenshot keeps the file locked, the
 			// write throws Win32 1224, and the run aborts leaving the other shots
 			// stale (the recurring "bulbs are back" symptom).
-			if (AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetPath)) {
+			if (AssetDatabase.LoadAssetAtPath<Object>(assetPath)) {
 				AssetDatabase.DeleteAsset(assetPath);
 			}
 			try {
