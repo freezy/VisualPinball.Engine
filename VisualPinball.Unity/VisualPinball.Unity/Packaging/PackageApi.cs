@@ -41,6 +41,7 @@ namespace VisualPinball.Unity
 		public const string LampsFile = "lamps";
 		public const string AssetFolder = "assets";
 		public const string SoundFolder = "sounds";
+		public const string ScreenshotsFolder = "screenshots";
 		// vpe.material v1 — portable, SRP-agnostic material interchange.
 		// See VpeMaterialV1.cs for the schema and the separation of concerns between the exporter
 		// (translates authoring shaders into intent) and the Player-side IVpeMaterialResolver

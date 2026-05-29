@@ -178,7 +178,8 @@ namespace VisualPinball.Unity.Editor
 							tableComponent.gameObject,
 							_runtimeCompressSideChannelTextures,
 							_compressGltfTextures,
-							_runtimeCompressNormalMaps);
+							_runtimeCompressNormalMaps,
+							@"Assets/Screenshots");
 						writer.WritePackageSync(path);
 					}
 				}
