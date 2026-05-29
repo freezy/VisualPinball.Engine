@@ -134,21 +134,6 @@ namespace VisualPinball.Unity.Editor
 					var shot = shots[shotIndex];
 					playfieldLights.Apply(shot.Lights);
 
-					// TEMP DIAGNOSTIC: after Apply, are the faux bulbs actually
-					// deactivated for the off shots? Catches a polluted-scene baseline
-					// or a render that ignores the deactivation, in the real path.
-					var dbgFb = 0;
-					var dbgFbActive = 0;
-					foreach (var dbgMr in tableComponent.GetComponentsInChildren<MeshRenderer>(true)) {
-						if (dbgMr && dbgMr.name.IndexOf("FauxBulb", StringComparison.OrdinalIgnoreCase) >= 0) {
-							dbgFb++;
-							if (dbgMr.gameObject.activeInHierarchy) {
-								dbgFbActive++;
-							}
-						}
-					}
-					Debug.Log($"[ScreenshotDiag] {shot.FileName} mode={shot.Lights} fauxBulb total={dbgFb} activeInHierarchy={dbgFbActive}");
-
 					var camera = InstantiateCamera();
 					try {
 						var cameraDistance = CalculateTopDownDistance(playfieldWidth, playfieldHeight, PortraitWidth / (float)PortraitHeight, camera);
@@ -236,41 +221,48 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>
 		/// Captures/restores lamp state for the screenshots. Lamps are enumerated
 		/// like the LampManager - via TableComponent.MappingConfig.Lamps, IsCoil =
-		/// flasher, LightGroupComponent references resolved into member lamps. Only
-		/// Light.enabled is toggled (same mechanism as the LampManager, never
-		/// SetActive - deactivating the Source empties LightComponent.LightSources
-		/// and breaks the manager). The faux bulb (Renderer.forceRenderingOff) and
-		/// emissive insert plastic (MaterialPropertyBlock) are additionally
-		/// suppressed for the off shots, since at edit time their baked emissive is
-		/// not driven down. "On" enables every non-flasher lamp regardless of its
-		/// edit-time default; flashers stay off.
+		/// flasher, LightGroupComponent references resolved into member lamps, plus
+		/// every remaining LightComponent for coverage.
 		/// </summary>
+		/// <remarks>
+		/// Each lamp is toggled with the exact same mechanism as
+		/// <c>LampManager.SetLampDeviceEnabled</c>: flip the Unity <c>Light.enabled</c>
+		/// directly (edit-time runtime caches aren't initialized), then set
+		/// <see cref="LightComponent.Enabled"/>. The latter hides/shows the lamp's
+		/// emissive faux-bulb meshes (via SetActive in edit mode), which is what keeps
+		/// the bulbs from showing in the "off" shots. It only toggles the emissive mesh
+		/// children, never the Light "Source" GameObject, so
+		/// <c>LightComponent.LightSources</c> stays intact and the manager keeps working.
+		/// "On" enables every non-flasher lamp regardless of its edit-time default;
+		/// flashers stay off. Group lamps (LightGroupComponent) whose sub-lamps are raw
+		/// Lights + faux bulbs without their own LightComponent (e.g. L51's skull eyes)
+		/// are handled separately, since LightComponent.Enabled cannot reach them.
+		/// </remarks>
 		private sealed class PlayfieldLightSnapshot
 		{
 			private readonly struct Entry
 			{
+				public readonly LightComponent Lamp;
 				public readonly bool IsFlasher;
 				public readonly Light[] Lights;
 				public readonly bool[] LightEnabled;
-				public readonly Renderer[] Bulbs;
-				public readonly bool[] BulbForceOff;
-				public readonly GameObject[] BulbGos;
-				public readonly bool[] BulbActive;
+				// Emissive meshes that LightComponent.Enabled drives (the faux bulbs),
+				// captured so their visibility/emissive can be restored afterwards.
+				public readonly Renderer[] EmissiveRenderers;
+				public readonly bool[] RendererActive;
 
-				public Entry(bool isFlasher, Light[] lights, bool[] lightEnabled, Renderer[] bulbs, bool[] bulbForceOff, GameObject[] bulbGos, bool[] bulbActive)
+				public Entry(LightComponent lamp, bool isFlasher, Light[] lights, bool[] lightEnabled, Renderer[] emissiveRenderers, bool[] rendererActive)
 				{
+					Lamp = lamp;
 					IsFlasher = isFlasher;
 					Lights = lights;
 					LightEnabled = lightEnabled;
-					Bulbs = bulbs;
-					BulbForceOff = bulbForceOff;
-					BulbGos = bulbGos;
-					BulbActive = bulbActive;
+					EmissiveRenderers = emissiveRenderers;
+					RendererActive = rendererActive;
 				}
 			}
 
 			private readonly List<Entry> _entries = new();
-			private MaterialPropertyBlock _propBlock;
 
 			public PlayfieldLightSnapshot(TableComponent tableComponent)
 			{
@@ -282,12 +274,16 @@ namespace VisualPinball.Unity.Editor
 				// uncovered lamps keep their bulb lit in the off shots ("bulbs back",
 				// non-deterministic since the uncovered set shifts with table state).
 				var flashers = new HashSet<LightComponent>();
+				var flasherDevices = new HashSet<Component>();
 				var lamps = tableComponent.MappingConfig?.Lamps;
 				if (lamps != null) {
 					var resolved = new List<LightComponent>();
 					foreach (var lampMapping in lamps) {
 						if (lampMapping == null || !lampMapping.IsCoil || lampMapping.Device == null) {
 							continue;
+						}
+						if (lampMapping.Device is Component devComp && devComp) {
+							flasherDevices.Add(devComp);
 						}
 						resolved.Clear();
 						ResolveLightComponents(lampMapping.Device, resolved);
@@ -308,6 +304,18 @@ namespace VisualPinball.Unity.Editor
 					var isFlasher = flashers.Contains(lamp) || lamp.name.StartsWith("F_", StringComparison.Ordinal);
 					AddEntry(lamp, isFlasher);
 				}
+
+				// Group lamps (LightGroupComponent) can drive raw Lights + faux-bulb meshes
+				// that are NOT wrapped in their own LightComponent (e.g. L51's two skull-eye
+				// sub-lamps). The LightComponent pass above misses those, leaving their bulbs
+				// lit in the off shots, so collect each group's orphan lights/bulbs here.
+				foreach (var group in tableComponent.GetComponentsInChildren<LightGroupComponent>(true)) {
+					if (!group) {
+						continue;
+					}
+					var isFlasher = flasherDevices.Contains(group) || group.name.StartsWith("F_", StringComparison.Ordinal);
+					AddOrphanGroupEntry(group, isFlasher);
+				}
 			}
 
 			private void AddEntry(LightComponent lamp, bool isFlasher)
@@ -318,35 +326,67 @@ namespace VisualPinball.Unity.Editor
 					lightEnabled[i] = lights[i].enabled;
 				}
 
-				// The bulb is whatever sits under the light "Source" transform (the
-				// GameObject the Unity Light is on). The insert artwork (hat /
-				// reflector) are siblings of Source, NOT under it, so they are left
-				// alone. This is structural - no fragile name/mesh matching.
-				var bulbList = new List<Renderer>();
-				foreach (var light in lights) {
-					if (!light) {
-						continue;
-					}
-					foreach (var r in light.GetComponentsInChildren<Renderer>(true)) {
-						if (r && !bulbList.Contains(r)) {
-							bulbList.Add(r);
+				// Capture the same emissive meshes LightComponent.Enabled drives in edit
+				// mode (emissive MeshRenderers under the lamp - the faux bulbs), so we can
+				// restore their visibility and clear the emissive block it pushes.
+				var converter = RenderPipeline.Current?.MaterialConverter;
+				var rendererList = new List<Renderer>();
+				if (converter != null) {
+					foreach (var mr in lamp.GetComponentsInChildren<MeshRenderer>(true)) {
+						if (mr && converter.GetEmissiveIntensity(mr.sharedMaterial) > 0f) {
+							rendererList.Add(mr);
 						}
 					}
 				}
-				var bulbs = bulbList.ToArray();
-				var bulbForceOff = new bool[bulbs.Length];
-				var bulbGos = new GameObject[bulbs.Length];
-				var bulbActive = new bool[bulbs.Length];
-				for (var i = 0; i < bulbs.Length; i++) {
-					bulbForceOff[i] = bulbs[i].forceRenderingOff;
-					// Only deactivate the bulb GameObject if it does NOT carry the
-					// Unity Light itself - deactivating the Light's GameObject would
-					// empty LightComponent.LightSources and break the LampManager.
-					bulbGos[i] = bulbs[i].GetComponent<Light>() ? null : bulbs[i].gameObject;
-					bulbActive[i] = bulbGos[i] && bulbGos[i].activeSelf;
+				var emissiveRenderers = rendererList.ToArray();
+				var rendererActive = new bool[emissiveRenderers.Length];
+				for (var i = 0; i < emissiveRenderers.Length; i++) {
+					rendererActive[i] = emissiveRenderers[i].gameObject.activeSelf;
 				}
 
-				_entries.Add(new Entry(isFlasher, lights, lightEnabled, bulbs, bulbForceOff, bulbGos, bulbActive));
+				_entries.Add(new Entry(lamp, isFlasher, lights, lightEnabled, emissiveRenderers, rendererActive));
+			}
+
+			// A LightGroupComponent whose member sub-lamps have no LightComponent of their
+			// own (raw Light + faux bulb, e.g. L51's skull eyes) - capture those orphan
+			// lights and emissive faux-bulb meshes so the off shots turn them off / hide
+			// them too. Entries created here have a null Lamp (no LightComponent to drive).
+			private void AddOrphanGroupEntry(LightGroupComponent group, bool isFlasher)
+			{
+				var converter = RenderPipeline.Current?.MaterialConverter;
+
+				var lightList = new List<Light>();
+				foreach (var l in group.GetComponentsInChildren<Light>(true)) {
+					if (l && l.GetComponentInParent<LightComponent>(true) == null) {
+						lightList.Add(l);
+					}
+				}
+
+				var rendererList = new List<Renderer>();
+				if (converter != null) {
+					foreach (var mr in group.GetComponentsInChildren<MeshRenderer>(true)) {
+						if (mr && converter.GetEmissiveIntensity(mr.sharedMaterial) > 0f && mr.GetComponentInParent<LightComponent>(true) == null) {
+							rendererList.Add(mr);
+						}
+					}
+				}
+
+				if (lightList.Count == 0 && rendererList.Count == 0) {
+					return;
+				}
+
+				var lights = lightList.ToArray();
+				var lightEnabled = new bool[lights.Length];
+				for (var i = 0; i < lights.Length; i++) {
+					lightEnabled[i] = lights[i].enabled;
+				}
+				var emissiveRenderers = rendererList.ToArray();
+				var rendererActive = new bool[emissiveRenderers.Length];
+				for (var i = 0; i < emissiveRenderers.Length; i++) {
+					rendererActive[i] = emissiveRenderers[i].gameObject.activeSelf;
+				}
+
+				_entries.Add(new Entry(null, isFlasher, lights, lightEnabled, emissiveRenderers, rendererActive));
 			}
 
 			// Resolve a mapped lamp device to the concrete LightComponents it drives,
@@ -371,55 +411,43 @@ namespace VisualPinball.Unity.Editor
 			{
 				foreach (var entry in _entries) {
 					// Flashers are always off; "On" lights every other lamp (inserts
-					// AND GI) regardless of its edit-time default. Toggling
-					// Light.enabled is the same mechanism the LampManager uses, so it
-					// stays togglable afterwards (we never deactivate the Source
-					// GameObject, which would empty LightComponent.LightSources).
+					// AND GI) regardless of its edit-time default.
 					var on = mode == PlayfieldLightMode.On && !entry.IsFlasher;
+
+					// Same mechanism as LampManager.SetLampDeviceEnabled: flip the Unity
+					// lights directly (edit-time runtime caches aren't initialized), then
+					// drive LightComponent.Enabled, which hides the faux-bulb meshes
+					// (SetActive in edit mode) - so the off shots no longer leave bulbs
+					// visible. The Light lives on the "Source" GameObject, which this
+					// never deactivates, so LightComponent.LightSources stays intact.
 					foreach (var light in entry.Lights) {
 						if (light) {
 							light.enabled = on;
 						}
 					}
-					foreach (var bulb in entry.Bulbs) {
-						if (bulb) {
-							bulb.forceRenderingOff = !on;
-							SetEmissiveLit(bulb, on);
+					if (entry.Lamp) {
+						entry.Lamp.Enabled = on;
+					} else {
+						// Orphan group-lamp meshes have no LightComponent to drive them; hide/
+						// show them directly - the same SetActive mechanism Enabled uses in edit mode.
+						foreach (var r in entry.EmissiveRenderers) {
+							if (r) {
+								r.gameObject.SetActive(on);
+							}
 						}
 					}
-					// Deactivating the bulb GameObject is the only suppression that
-					// survives HDRP's render-graph state pollution after the first
-					// offscreen render session (forceRenderingOff/property blocks get
-					// cached and ignored on subsequent runs). The Light is on the
-					// parent "Source", never on these GameObjects, so the LampManager
-					// is unaffected.
-					foreach (var go in entry.BulbGos) {
-						if (go) {
-							go.SetActive(on);
-						}
-					}
-				}
-			}
 
-			// At edit time an emissive insert keeps its baked emissive even with the
-			// lamp off (runtime drives it via LightComponent.SetMaterialIntensity).
-			// For an "off" shot push a property block that zeroes the emissive so the
-			// insert is visible but unlit; "on"/Restore clears the block so the baked
-			// value shows again.
-			private void SetEmissiveLit(Renderer renderer, bool lit)
-			{
-				if (lit) {
-					renderer.SetPropertyBlock(null);
-					return;
+					// For "on", clear any emissive property block so the bulb shows its
+					// (warmer) baked emissive, matching the un-toggled look. For "off" the
+					// mesh is deactivated, so the block is moot.
+					if (on) {
+						foreach (var r in entry.EmissiveRenderers) {
+							if (r) {
+								r.SetPropertyBlock(null);
+							}
+						}
+					}
 				}
-				var converter = RenderPipeline.Current?.MaterialConverter;
-				if (converter == null) {
-					return;
-				}
-				_propBlock ??= new MaterialPropertyBlock();
-				renderer.GetPropertyBlock(_propBlock);
-				converter.SetEmissiveColor(_propBlock, Color.black);
-				renderer.SetPropertyBlock(_propBlock);
 			}
 
 			public void Restore()
@@ -430,16 +458,15 @@ namespace VisualPinball.Unity.Editor
 							entry.Lights[i].enabled = entry.LightEnabled[i];
 						}
 					}
-					for (var i = 0; i < entry.Bulbs.Length; i++) {
-						if (entry.Bulbs[i]) {
-							entry.Bulbs[i].forceRenderingOff = entry.BulbForceOff[i];
-							entry.Bulbs[i].SetPropertyBlock(null);
+					// Drop the emissive override LightComponent.Enabled pushed (so the
+					// baked value shows again) and restore each mesh's original visibility.
+					for (var i = 0; i < entry.EmissiveRenderers.Length; i++) {
+						var r = entry.EmissiveRenderers[i];
+						if (!r) {
+							continue;
 						}
-					}
-					for (var i = 0; i < entry.BulbGos.Length; i++) {
-						if (entry.BulbGos[i]) {
-							entry.BulbGos[i].SetActive(entry.BulbActive[i]);
-						}
+						r.SetPropertyBlock(null);
+						r.gameObject.SetActive(entry.RendererActive[i]);
 					}
 				}
 			}
