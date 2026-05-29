@@ -159,7 +159,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void ToggleLampState(bool enabled)
 		{
-			if (TableComponent == null) {
+			if (!TableComponent) {
 				return;
 			}
 
@@ -173,7 +173,7 @@ namespace VisualPinball.Unity.Editor
 				}
 
 				var handledByApi = false;
-				if (Application.isPlaying && player != null) {
+				if (Application.isPlaying && player) {
 					try {
 						device.GetApi(player).OnLamp(enabled ? LampStatus.On : LampStatus.Off);
 						handledByApi = true;
@@ -183,20 +183,17 @@ namespace VisualPinball.Unity.Editor
 				}
 
 				if (!handledByApi) {
-					SetLampDeviceEnabled(device, enabled, Application.isPlaying);
+					SetLampDeviceEnabled(device, enabled);
 				}
 			}
 		}
 
-		private static void SetLampDeviceEnabled(ILampDeviceComponent device, bool enabled, bool isPlaying)
+		private static void SetLampDeviceEnabled(ILampDeviceComponent device, bool enabled)
 		{
 			// In edit mode LightComponent runtime caches are not initialized yet,
 			// so directly toggling Unity lights keeps the manager buttons responsive.
-			if (!isPlaying) {
-				foreach (var light in device.LightSources.Where(light => light != null)) {
-					light.enabled = enabled;
-				}
-				return;
+			foreach (var light in device.LightSources.Where(light => light)) {
+				light.enabled = enabled;
 			}
 
 			switch (device) {
@@ -205,11 +202,11 @@ namespace VisualPinball.Unity.Editor
 					break;
 				case LightGroupComponent lightGroup:
 					foreach (var child in lightGroup.Lights.Where(child => child != null)) {
-						SetLampDeviceEnabled(child, enabled, isPlaying);
+						SetLampDeviceEnabled(child, enabled);
 					}
 					break;
 				default:
-					foreach (var light in device.LightSources.Where(light => light != null)) {
+					foreach (var light in device.LightSources.Where(light => light)) {
 						light.enabled = enabled;
 					}
 					break;
