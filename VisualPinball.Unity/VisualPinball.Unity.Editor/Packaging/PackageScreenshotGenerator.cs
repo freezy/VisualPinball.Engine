@@ -71,6 +71,10 @@ namespace VisualPinball.Unity.Editor
 		// The generated screenshot files the packager pulls into the .vpe (in shot order).
 		internal static readonly string[] ScreenshotFileNames = { FilenameLightsOn, FilenameLightsOff, FilenameHdriOnly };
 
+		// Sidecar describing the table's pixel rect within the screenshots (shared by all shots),
+		// so the player can crop them to the table and drop the surrounding background.
+		internal const string FilenameBounds = "table-bounds.json";
+
 		// Warm-up render frames so HDRP temporal screen-space effects (SSGI/SSR/
 		// SSAO) converge before the screenshot is read. Overridable via EditorPrefs.
 		private const string WarmupFramesPrefKey = "VisualPinball.Unity.Editor.PackageScreenshotGenerator.WarmupFrames";
@@ -171,6 +175,7 @@ namespace VisualPinball.Unity.Editor
 				string primaryFilePath = null;
 				var resultCameraPosition = Vector3.zero;
 				var resultCameraDistance = 0f;
+				string boundsJson = null;
 
 				// Hide the cabinet/backbox (marker components) for every shot. The per-shot
 				// settle frames below let HDRP reconcile the deactivation before the render.
@@ -199,6 +204,7 @@ namespace VisualPinball.Unity.Editor
 						if (shotIndex == 0) {
 							resultCameraPosition = cameraPosition;
 							resultCameraDistance = cameraDistance;
+							boundsJson = BuildBoundsJson(camera, playfieldWidth, playfieldHeight, cameraDistance);
 						}
 
 						using (PackageScreenshotEnvironmentProvider.CreateScope(tableComponent.transform, hdriCubemap, hdriExposure, shot.IncludeDirectionalLight)) {
@@ -226,6 +232,12 @@ namespace VisualPinball.Unity.Editor
 					WriteScreenshotFile(assetPath, filePath, readbackTexture.EncodeToPNG());
 					AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
 					primaryFilePath ??= filePath;
+				}
+
+				// Write the table crop-bounds sidecar for the player to crop the screenshots.
+				if (boundsJson != null) {
+					File.WriteAllText(Path.Combine(absolutePath, FilenameBounds), boundsJson);
+					AssetDatabase.ImportAsset($"{outputFolderPath}/{FilenameBounds}", ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
 				}
 
 				result = new PackageScreenshotResult(
@@ -686,6 +698,47 @@ namespace VisualPinball.Unity.Editor
 		private static float GetEffectiveVerticalFieldOfView(Camera camera)
 		{
 			return camera.usePhysicalProperties ? camera.GetGateFittedFieldOfView() : camera.fieldOfView;
+		}
+
+		[Serializable]
+		private struct ScreenshotBounds
+		{
+			public int imageWidth;
+			public int imageHeight;
+			public int cropX;
+			public int cropY;
+			public int cropWidth;
+			public int cropHeight;
+		}
+
+		// The table fills a centered rect of the screenshot; derive it from the same framing
+		// math the camera distance uses (CalculateTopDownDistance) so it exactly matches the
+		// render. Origin is top-left, matching the encoded PNG/WebP. All shots share one camera
+		// framing, so a single rect applies to every screenshot.
+		private static string BuildBoundsJson(Camera camera, float playfieldWidth, float playfieldHeight, float cameraDistance)
+		{
+			var verticalFieldOfView = GetEffectiveVerticalFieldOfView(camera);
+			var verticalHalfTan = Mathf.Tan(verticalFieldOfView * 0.5f * Mathf.Deg2Rad);
+			var aspect = PortraitWidth / (float)PortraitHeight;
+			var horizontalFieldOfView = Camera.VerticalToHorizontalFieldOfView(verticalFieldOfView, aspect);
+			var horizontalHalfTan = Mathf.Tan(horizontalFieldOfView * 0.5f * Mathf.Deg2Rad);
+
+			var frameHeight = 2f * cameraDistance * verticalHalfTan;
+			var frameWidth = 2f * cameraDistance * horizontalHalfTan;
+			var fractionVertical = frameHeight > 0f ? Mathf.Clamp01(playfieldHeight / frameHeight) : 1f;
+			var fractionHorizontal = frameWidth > 0f ? Mathf.Clamp01(playfieldWidth / frameWidth) : 1f;
+
+			var cropWidth = Mathf.RoundToInt(fractionHorizontal * PortraitWidth);
+			var cropHeight = Mathf.RoundToInt(fractionVertical * PortraitHeight);
+			var bounds = new ScreenshotBounds {
+				imageWidth = PortraitWidth,
+				imageHeight = PortraitHeight,
+				cropX = Mathf.RoundToInt((PortraitWidth - cropWidth) * 0.5f),
+				cropY = Mathf.RoundToInt((PortraitHeight - cropHeight) * 0.5f),
+				cropWidth = cropWidth,
+				cropHeight = cropHeight,
+			};
+			return JsonUtility.ToJson(bounds, true);
 		}
 
 		private static Vector3[] GetBoundsCorners(Bounds bounds)

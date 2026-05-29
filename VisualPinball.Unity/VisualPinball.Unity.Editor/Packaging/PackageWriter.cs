@@ -237,6 +237,15 @@ namespace VisualPinball.Unity.Editor
 				screenshotsFolder.AddFile(name, ".webp").SetData(webpData);
 				Logger.Info($"Packaged screenshot '{name}.webp' ({webpData.Length / 1024f:F1} KB).");
 			}
+
+			// The table crop-bounds sidecar (json), packaged next to the webp screenshots.
+			var boundsPath = Path.GetFullPath(Path.Combine(_screenshotFolder, PackageScreenshotGenerator.FilenameBounds));
+			if (File.Exists(boundsPath)) {
+				screenshotsFolder ??= storage.AddFolder(PackageApi.ScreenshotsFolder);
+				var boundsName = Path.GetFileNameWithoutExtension(PackageScreenshotGenerator.FilenameBounds);
+				screenshotsFolder.AddFile(boundsName, ".json").SetData(File.ReadAllBytes(boundsPath));
+				Logger.Info($"Packaged screenshot bounds '{boundsName}.json'.");
+			}
 		}
 
 		private Func<Task<byte[]>> PrepareScene()
