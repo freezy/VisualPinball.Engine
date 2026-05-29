@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using Unity.Mathematics;
@@ -72,7 +73,17 @@ namespace VisualPinball.Unity.Editor
 		private const string WarmupFramesPrefKey = "VisualPinball.Unity.Editor.PackageScreenshotGenerator.WarmupFrames";
 		private const int DefaultWarmupFrames = 16;
 
-		internal static PackageScreenshotResult Generate(TableComponent tableComponent, string outputFolderPath, Cubemap hdriCubemap, float hdriExposure)
+		// Capture spans several editor frames on purpose: each shot toggles lamp/bulb
+		// state, but HDRP only reconciles culling and GPU-resident-drawer instance data on
+		// a PlayerLoop tick, not within a synchronous SubmitRenderRequest loop. Rendering a
+		// shot in the same frame its state was applied captures the previously settled
+		// state (e.g. bulbs that were on before the run leak into the "off" shots). So we
+		// apply a shot's state, let a few frames elapse, then render it - which makes
+		// Generate asynchronous: the result arrives via onComplete.
+		private const int SettleFrames = 3;
+
+		internal static void Generate(TableComponent tableComponent, string outputFolderPath, Cubemap hdriCubemap, float hdriExposure,
+			Action<PackageScreenshotResult> onComplete, Action<Exception> onError = null)
 		{
 			if (!tableComponent) {
 				throw new ArgumentNullException(nameof(tableComponent));
@@ -91,6 +102,31 @@ namespace VisualPinball.Unity.Editor
 				throw new ArgumentNullException(nameof(hdriCubemap), "A HDRI cubemap is required.");
 			}
 
+			var routine = GenerateRoutine(tableComponent, outputFolderPath, hdriCubemap, hdriExposure, playfield, onComplete);
+			EditorApplication.CallbackFunction driver = null;
+			driver = () => {
+				bool moveNext;
+				try {
+					moveNext = routine.MoveNext();
+				} catch (Exception ex) {
+					EditorApplication.update -= driver;
+					if (onError != null) {
+						onError(ex);
+					} else {
+						Debug.LogException(ex);
+					}
+					return;
+				}
+				if (!moveNext) {
+					EditorApplication.update -= driver;
+				}
+			};
+			EditorApplication.update += driver;
+		}
+
+		private static IEnumerator GenerateRoutine(TableComponent tableComponent, string outputFolderPath, Cubemap hdriCubemap, float hdriExposure,
+			PlayfieldComponent playfield, Action<PackageScreenshotResult> onComplete)
+		{
 			var playfieldBounds = GetPlayfieldBounds(playfield);
 			var tableBounds = tableComponent.GetTableBounds();
 			var absolutePath = GetAbsolutePath(outputFolderPath);
@@ -107,6 +143,8 @@ namespace VisualPinball.Unity.Editor
 			var previousActive = RenderTexture.active;
 			var playfieldLights = new PlayfieldLightSnapshot(tableComponent);
 
+			PackageScreenshotResult result = default;
+			var succeeded = false;
 			try {
 				var playfieldCenter = playfieldBounds.center;
 				var playfieldWidth = playfieldBounds.size.x;
@@ -133,6 +171,13 @@ namespace VisualPinball.Unity.Editor
 				for (var shotIndex = 0; shotIndex < shots.Length; shotIndex++) {
 					var shot = shots[shotIndex];
 					playfieldLights.Apply(shot.Lights);
+
+					// Let HDRP reconcile culling / GPU-resident-drawer instance data for the
+					// just-applied state before rendering; otherwise the render captures the
+					// previously settled state and bulbs leak between shots.
+					for (var f = 0; f < SettleFrames; f++) {
+						yield return null;
+					}
 
 					var camera = InstantiateCamera();
 					try {
@@ -175,13 +220,14 @@ namespace VisualPinball.Unity.Editor
 					primaryFilePath ??= filePath;
 				}
 
-				return new PackageScreenshotResult(
+				result = new PackageScreenshotResult(
 					outputFolderPath,
 					primaryFilePath,
 					resultCameraPosition,
 					resultCameraDistance,
 					playfieldBounds
 				);
+				succeeded = true;
 
 			} finally {
 				playfieldLights.Restore();
@@ -193,6 +239,10 @@ namespace VisualPinball.Unity.Editor
 					renderTexture.Release();
 					Object.DestroyImmediate(renderTexture);
 				}
+			}
+
+			if (succeeded) {
+				onComplete?.Invoke(result);
 			}
 		}
 

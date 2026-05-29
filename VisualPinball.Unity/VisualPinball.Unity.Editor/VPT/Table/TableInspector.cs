@@ -139,17 +139,25 @@ namespace VisualPinball.Unity.Editor
 						var exposure = _screenshotHdriExposure;
 						EditorApplication.delayCall += () => {
 							try {
-								var result = PackageScreenshotGenerator.Generate(table, @"Assets/Screenshots", hdri, exposure);
-								Debug.Log(
-									$"Generated package screenshot at {result.AssetPath} " +
-									$"(camera Y: {result.CameraPosition.y:F3}m, distance: {result.CameraDistance:F3}m, " +
-									table);
+								// Generate runs across several editor frames (it lets HDRP settle
+								// lamp state between shots), so the result arrives via callback.
+								PackageScreenshotGenerator.Generate(table, @"Assets/Screenshots", hdri, exposure,
+									result => {
+										Debug.Log(
+											$"Generated package screenshot at {result.AssetPath} " +
+											$"(camera Y: {result.CameraPosition.y:F3}m, distance: {result.CameraDistance:F3}m, " +
+											table);
 
-								var screenshot = AssetDatabase.LoadAssetAtPath<Texture2D>(result.AssetPath);
-								if (screenshot) {
-									Selection.activeObject = screenshot;
-									EditorGUIUtility.PingObject(screenshot);
-								}
+										var screenshot = AssetDatabase.LoadAssetAtPath<Texture2D>(result.AssetPath);
+										if (screenshot) {
+											Selection.activeObject = screenshot;
+											EditorGUIUtility.PingObject(screenshot);
+										}
+									},
+									exception => {
+										Debug.LogException(exception, table);
+										EditorUtility.DisplayDialog("Generate Screenshot Failed", exception.Message, "OK");
+									});
 							} catch (Exception exception) {
 								Debug.LogException(exception, table);
 								EditorUtility.DisplayDialog("Generate Screenshot Failed", exception.Message, "OK");
