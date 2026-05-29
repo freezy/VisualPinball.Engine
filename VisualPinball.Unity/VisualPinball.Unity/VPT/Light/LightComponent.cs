@@ -176,10 +176,20 @@ namespace VisualPinball.Unity
 		private readonly List<(Renderer renderer, Color baseColor, bool hasBaseColor, bool hasColor)> _fauxBulbs = new();
 		private MaterialPropertyBlock _propBlock;
 
+		/// <summary>
+		/// Boolean on/off toggle used by the editor lamp preview (see <c>LampManager</c>).
+		/// Runtime fading goes through <see cref="FadeTo"/> instead.
+		/// </summary>
+		/// <remarks>
+		/// This must NOT use the runtime fade value <c>_value</c>: it is only initialized in
+		/// <c>Awake()</c>, which never runs in edit mode, so there it is always 0. Using it
+		/// made "on" a no-op &mdash; the faux bulb stayed hidden and its emissive got zeroed
+		/// (and left that way) via a leftover MaterialPropertyBlock. "On" means full intensity.
+		/// </remarks>
 		public bool Enabled {
 			set {
-				SetLightIntensity(value ? _value : 0);
-				SetMaterialIntensity(value ? _value : 0);
+				SetLightIntensity(value ? 1f : 0f);
+				SetMaterialIntensity(value ? 1f : 0f);
 			}
 		}
 
@@ -367,6 +377,12 @@ namespace VisualPinball.Unity
 
 		private void SetMaterialIntensity(float value)
 		{
+			// In edit mode the runtime caches aren't initialized (Awake doesn't run), so collect
+			// them on first use here too — mirrors SetFauxBulbVisibility. This lets a single
+			// editor "on" restore a bulb's emissive instead of needing an off→on cycle.
+			if (_materials.Count == 0 && !Application.isPlaying) {
+				CollectFauxBulbs();
+			}
 			foreach (var (mr, intensity) in _materials) {
 				mr.GetPropertyBlock(_propBlock);
 				RenderPipeline.Current.MaterialConverter.SetEmissiveIntensity(mr.sharedMaterial, _propBlock, value * intensity);
