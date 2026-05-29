@@ -49,6 +49,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly bool _runtimeCompressSideChannelTextures;
 		private readonly bool _compressGltfTextures;
 		private readonly bool _runtimeCompressNormalMaps;
+		private readonly string _screenshotFolder;
 		private IReadOnlyDictionary<string, VpeMaterialsGltfExtension.ImageReplacement> _originalGltfImageReplacements;
 
 		private const bool ExportActivesOnly = true;
@@ -60,12 +61,14 @@ namespace VisualPinball.Unity.Editor
 			GameObject table,
 			bool runtimeCompressSideChannelTextures = true,
 			bool compressGltfTextures = true,
-			bool runtimeCompressNormalMaps = true)
+			bool runtimeCompressNormalMaps = true,
+			string screenshotFolder = null)
 		{
 			_table = table;
 			_runtimeCompressSideChannelTextures = runtimeCompressSideChannelTextures;
 			_compressGltfTextures = compressGltfTextures;
 			_runtimeCompressNormalMaps = runtimeCompressNormalMaps;
+			_screenshotFolder = screenshotFolder;
 			_refs = new PackagedRefs(table.transform);
 		}
 
@@ -89,6 +92,10 @@ namespace VisualPinball.Unity.Editor
 			_globalFolder = _tableFolder.AddFolder(PackageApi.GlobalFolder);
 			_metaFolder = _tableFolder.AddFolder(PackageApi.MetaFolder);
 			_files = new PackagedFiles(_tableFolder, _refs);
+
+			// Cabinet and backbox are authored inactive; activate them (located via their
+			// marker components) so they flow into the active-only export. Restored at the end.
+			var reactivatedObjects = ActivateMarkedObjects();
 
 			// prepare scene data
 			var sw1 = Stopwatch.StartNew();
@@ -147,9 +154,89 @@ namespace VisualPinball.Unity.Editor
 				Logger.Info($"Collider meshes written in {sw1.ElapsedMilliseconds}ms ({colliderMeshesData.Length} bytes).");
 			}
 
+			// screenshots (encoded to webp, stored under a top-level screenshots/ folder)
+			sw1 = Stopwatch.StartNew();
+			WriteScreenshots(storage);
+			Logger.Info($"Screenshots written in {sw1.ElapsedMilliseconds}ms.");
+
 			storage.Close();
+
+			RestoreMarkedObjects(reactivatedObjects);
+
 			sw.Stop();
 			Debug.Log($"Done! File saved to {path} in {sw.ElapsedMilliseconds}ms.");
+		}
+
+		// Cabinet/backbox are authored inactive but must be exported; activate the GameObjects
+		// carrying the marker components (CabinetComponent/BackboxComponent) and return the ones
+		// we flipped so they can be restored afterwards.
+		private List<GameObject> ActivateMarkedObjects()
+		{
+			var reactivated = new List<GameObject>();
+			foreach (var go in CollectMarkedObjects()) {
+				if (go && !go.activeSelf) {
+					go.SetActive(true);
+					reactivated.Add(go);
+				}
+			}
+			return reactivated;
+		}
+
+		private static void RestoreMarkedObjects(List<GameObject> reactivated)
+		{
+			foreach (var go in reactivated) {
+				if (go) {
+					go.SetActive(false);
+				}
+			}
+		}
+
+		private List<GameObject> CollectMarkedObjects()
+		{
+			var objects = new List<GameObject>();
+			foreach (var cabinet in _table.GetComponentsInChildren<CabinetComponent>(true)) {
+				if (cabinet && !objects.Contains(cabinet.gameObject)) {
+					objects.Add(cabinet.gameObject);
+				}
+			}
+			foreach (var backbox in _table.GetComponentsInChildren<BackboxComponent>(true)) {
+				if (backbox && !objects.Contains(backbox.gameObject)) {
+					objects.Add(backbox.gameObject);
+				}
+			}
+			return objects;
+		}
+
+		// Encodes the generated screenshots to webp (libvips via NetVips) and stores them under
+		// a top-level "screenshots/" folder in the package. Missing screenshots are skipped.
+		private void WriteScreenshots(IPackageStorage storage)
+		{
+			if (string.IsNullOrEmpty(_screenshotFolder)) {
+				return;
+			}
+
+			IPackageFolder screenshotsFolder = null;
+			foreach (var fileName in PackageScreenshotGenerator.ScreenshotFileNames) {
+				var pngPath = Path.GetFullPath(Path.Combine(_screenshotFolder, fileName));
+				if (!File.Exists(pngPath)) {
+					Logger.Warn($"Screenshot '{pngPath}' not found; skipping.");
+					continue;
+				}
+
+				byte[] webpData;
+				try {
+					using var image = NetVips.Image.NewFromFile(pngPath);
+					webpData = image.WebpsaveBuffer(q: 85);
+				} catch (Exception ex) {
+					Logger.Warn(ex, $"Failed to encode screenshot '{pngPath}' to webp; skipping.");
+					continue;
+				}
+
+				screenshotsFolder ??= storage.AddFolder(PackageApi.ScreenshotsFolder);
+				var name = Path.GetFileNameWithoutExtension(fileName);
+				screenshotsFolder.AddFile(name, ".webp").SetData(webpData);
+				Logger.Info($"Packaged screenshot '{name}.webp' ({webpData.Length / 1024f:F1} KB).");
+			}
 		}
 
 		private Func<Task<byte[]>> PrepareScene()
@@ -387,6 +474,11 @@ namespace VisualPinball.Unity.Editor
 		private byte[] PackNativeComponent(Component comp)
 		{
 			if (!comp) {
+				return null;
+			}
+
+			// Cabinet/backbox markers are authoring-only and intentionally not packaged.
+			if (comp is CabinetComponent or BackboxComponent) {
 				return null;
 			}
 

@@ -62,11 +62,14 @@ namespace VisualPinball.Unity.Editor
 		private const byte BackgroundTolerance = 4;
 
 		// Shot 1: env (directional) + HDRI, playfield lamps on (flashers off).
-		private const string FilenameLightsOn = "table-lights-on.png";
+		internal const string FilenameLightsOn = "table-lights-on.png";
 		// Shot 2: env (directional) + HDRI, all playfield lamps off (incl. faux bulb).
-		private const string FilenameLightsOff = "table-lights-off.png";
+		internal const string FilenameLightsOff = "table-lights-off.png";
 		// Shot 3: HDRI only, no directional, playfield lamps on (flashers off).
-		private const string FilenameHdriOnly = "table-hdri.png";
+		internal const string FilenameHdriOnly = "table-hdri.png";
+
+		// The generated screenshot files the packager pulls into the .vpe (in shot order).
+		internal static readonly string[] ScreenshotFileNames = { FilenameLightsOn, FilenameLightsOff, FilenameHdriOnly };
 
 		// Warm-up render frames so HDRP temporal screen-space effects (SSGI/SSR/
 		// SSAO) converge before the screenshot is read. Overridable via EditorPrefs.
@@ -142,6 +145,7 @@ namespace VisualPinball.Unity.Editor
 			Texture2D readbackTexture = null;
 			var previousActive = RenderTexture.active;
 			var playfieldLights = new PlayfieldLightSnapshot(tableComponent);
+			var hiddenObjects = new HiddenObjectSnapshot(tableComponent);
 
 			PackageScreenshotResult result = default;
 			var succeeded = false;
@@ -167,6 +171,10 @@ namespace VisualPinball.Unity.Editor
 				string primaryFilePath = null;
 				var resultCameraPosition = Vector3.zero;
 				var resultCameraDistance = 0f;
+
+				// Hide the cabinet/backbox (marker components) for every shot. The per-shot
+				// settle frames below let HDRP reconcile the deactivation before the render.
+				hiddenObjects.Hide();
 
 				for (var shotIndex = 0; shotIndex < shots.Length; shotIndex++) {
 					var shot = shots[shotIndex];
@@ -231,6 +239,7 @@ namespace VisualPinball.Unity.Editor
 
 			} finally {
 				playfieldLights.Restore();
+				hiddenObjects.Restore();
 				RenderTexture.active = previousActive;
 				if (readbackTexture) {
 					Object.DestroyImmediate(readbackTexture);
@@ -521,6 +530,52 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 
+		}
+
+		// Remembers and restores the active state of the cabinet/backbox marker objects, so
+		// the screenshot generator can hide them for the capture and put them back after.
+		private sealed class HiddenObjectSnapshot
+		{
+			private readonly GameObject[] _objects;
+			private readonly bool[] _active;
+
+			public HiddenObjectSnapshot(TableComponent tableComponent)
+			{
+				var objects = new List<GameObject>();
+				foreach (var cabinet in tableComponent.GetComponentsInChildren<CabinetComponent>(true)) {
+					if (cabinet && !objects.Contains(cabinet.gameObject)) {
+						objects.Add(cabinet.gameObject);
+					}
+				}
+				foreach (var backbox in tableComponent.GetComponentsInChildren<BackboxComponent>(true)) {
+					if (backbox && !objects.Contains(backbox.gameObject)) {
+						objects.Add(backbox.gameObject);
+					}
+				}
+				_objects = objects.ToArray();
+				_active = new bool[_objects.Length];
+				for (var i = 0; i < _objects.Length; i++) {
+					_active[i] = _objects[i].activeSelf;
+				}
+			}
+
+			public void Hide()
+			{
+				foreach (var go in _objects) {
+					if (go) {
+						go.SetActive(false);
+					}
+				}
+			}
+
+			public void Restore()
+			{
+				for (var i = 0; i < _objects.Length; i++) {
+					if (_objects[i]) {
+						_objects[i].SetActive(_active[i]);
+					}
+				}
+			}
 		}
 
 		// Unity memory-maps a texture asset while it is selected/previewed, which
