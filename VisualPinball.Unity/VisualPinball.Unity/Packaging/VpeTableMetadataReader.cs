@@ -31,6 +31,7 @@ namespace VisualPinball.Unity
 	public sealed class VpeTableMetadataSummary
 	{
 		public string Title { get; set; }
+		public string Abbreviation { get; set; }
 		public string Manufacturer { get; set; }
 		public int? OriginalReleaseYear { get; set; }
 		public IReadOnlyList<string> PrimaryAuthors { get; set; } = Array.Empty<string>();
@@ -93,6 +94,7 @@ namespace VisualPinball.Unity
 
 				metadata = new VpeTableMetadataSummary {
 					Title = tableMetadata.TableName?.Trim(),
+					Abbreviation = tableMetadata.Abbreviation?.Trim(),
 					Manufacturer = tableMetadata.Manufacturer?.Trim(),
 					OriginalReleaseYear = tableMetadata.OriginalReleaseYear > 0 ? tableMetadata.OriginalReleaseYear : null,
 					PrimaryAuthors = primaryAuthors

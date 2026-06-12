@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace VisualPinball.Unity
 {
@@ -25,6 +26,9 @@ namespace VisualPinball.Unity
 	{
 		[JsonProperty("tableName")]
 		public string TableName;
+
+		[JsonProperty("abbreviation")]
+		public string Abbreviation;
 
 		[JsonProperty("primaryAuthors")]
 		public List<TableAuthor> PrimaryAuthors = new();
@@ -40,6 +44,13 @@ namespace VisualPinball.Unity
 
 		[JsonProperty("manufacturer")]
 		public string Manufacturer;
+
+		/// <summary>
+		/// User-supplied backglass image. Not written to JSON; the PackageWriter encodes it to
+		/// screenshots/backglass.jpg when packing the table.
+		/// </summary>
+		[JsonIgnore]
+		public Texture2D BackglassImage;
 	}
 
 	[Serializable]
