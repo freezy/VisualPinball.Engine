@@ -207,45 +207,82 @@ namespace VisualPinball.Unity.Editor
 			return objects;
 		}
 
-		// Encodes the generated screenshots to webp (libvips via NetVips) and stores them under
-		// a top-level "screenshots/" folder in the package. Missing screenshots are skipped.
+		// Encodes the generated screenshots to jpg (libvips via NetVips) and stores them under a
+		// top-level "screenshots/" folder in the package, alongside the user-supplied backglass
+		// image. Missing screenshots are skipped.
 		private void WriteScreenshots(IPackageStorage storage)
 		{
-			if (string.IsNullOrEmpty(_screenshotFolder)) {
+			IPackageFolder screenshotsFolder = null;
+
+			if (!string.IsNullOrEmpty(_screenshotFolder)) {
+				foreach (var fileName in PackageScreenshotGenerator.ScreenshotFileNames) {
+					var pngPath = Path.GetFullPath(Path.Combine(_screenshotFolder, fileName));
+					if (!File.Exists(pngPath)) {
+						Logger.Warn($"Screenshot '{pngPath}' not found; skipping.");
+						continue;
+					}
+
+					byte[] jpegData;
+					try {
+						using var image = NetVips.Image.NewFromFile(pngPath);
+						jpegData = image.JpegsaveBuffer(q: 90);
+					} catch (Exception ex) {
+						Logger.Warn(ex, $"Failed to encode screenshot '{pngPath}' to jpg; skipping.");
+						continue;
+					}
+
+					screenshotsFolder ??= storage.AddFolder(PackageApi.ScreenshotsFolder);
+					var name = Path.GetFileNameWithoutExtension(fileName);
+					screenshotsFolder.AddFile(name, ".jpg").SetData(jpegData);
+					Logger.Info($"Packaged screenshot '{name}.jpg' ({jpegData.Length / 1024f:F1} KB).");
+				}
+
+				// The table crop-bounds sidecar (json), packaged next to the screenshots.
+				var boundsPath = Path.GetFullPath(Path.Combine(_screenshotFolder, PackageScreenshotGenerator.FilenameBounds));
+				if (File.Exists(boundsPath)) {
+					screenshotsFolder ??= storage.AddFolder(PackageApi.ScreenshotsFolder);
+					var boundsName = Path.GetFileNameWithoutExtension(PackageScreenshotGenerator.FilenameBounds);
+					screenshotsFolder.AddFile(boundsName, ".json").SetData(File.ReadAllBytes(boundsPath));
+					Logger.Info($"Packaged screenshot bounds '{boundsName}.json'.");
+				}
+			}
+
+			WriteBackglass(storage, ref screenshotsFolder);
+		}
+
+		// Encodes the user-supplied backglass image (linked in the table metadata) to jpg and
+		// stores it as screenshots/backglass.jpg. No-op when no backglass image is linked.
+		private void WriteBackglass(IPackageStorage storage, ref IPackageFolder screenshotsFolder)
+		{
+			var tableComponent = _table.GetComponent<TableComponent>();
+			if (!tableComponent || tableComponent.Metadata == null || !tableComponent.Metadata.BackglassImage) {
 				return;
 			}
 
-			IPackageFolder screenshotsFolder = null;
-			foreach (var fileName in PackageScreenshotGenerator.ScreenshotFileNames) {
-				var pngPath = Path.GetFullPath(Path.Combine(_screenshotFolder, fileName));
-				if (!File.Exists(pngPath)) {
-					Logger.Warn($"Screenshot '{pngPath}' not found; skipping.");
-					continue;
-				}
-
-				byte[] webpData;
-				try {
-					using var image = NetVips.Image.NewFromFile(pngPath);
-					webpData = image.WebpsaveBuffer(q: 85);
-				} catch (Exception ex) {
-					Logger.Warn(ex, $"Failed to encode screenshot '{pngPath}' to webp; skipping.");
-					continue;
-				}
-
-				screenshotsFolder ??= storage.AddFolder(PackageApi.ScreenshotsFolder);
-				var name = Path.GetFileNameWithoutExtension(fileName);
-				screenshotsFolder.AddFile(name, ".webp").SetData(webpData);
-				Logger.Info($"Packaged screenshot '{name}.webp' ({webpData.Length / 1024f:F1} KB).");
+			var assetPath = UnityEditor.AssetDatabase.GetAssetPath(tableComponent.Metadata.BackglassImage);
+			if (string.IsNullOrEmpty(assetPath)) {
+				Logger.Warn("Backglass image is not a saved asset; skipping.");
+				return;
 			}
 
-			// The table crop-bounds sidecar (json), packaged next to the webp screenshots.
-			var boundsPath = Path.GetFullPath(Path.Combine(_screenshotFolder, PackageScreenshotGenerator.FilenameBounds));
-			if (File.Exists(boundsPath)) {
-				screenshotsFolder ??= storage.AddFolder(PackageApi.ScreenshotsFolder);
-				var boundsName = Path.GetFileNameWithoutExtension(PackageScreenshotGenerator.FilenameBounds);
-				screenshotsFolder.AddFile(boundsName, ".json").SetData(File.ReadAllBytes(boundsPath));
-				Logger.Info($"Packaged screenshot bounds '{boundsName}.json'.");
+			var fullPath = Path.GetFullPath(assetPath);
+			if (!File.Exists(fullPath)) {
+				Logger.Warn($"Backglass image '{fullPath}' not found; skipping.");
+				return;
 			}
+
+			byte[] jpegData;
+			try {
+				using var image = NetVips.Image.NewFromFile(fullPath);
+				jpegData = image.JpegsaveBuffer(q: 90);
+			} catch (Exception ex) {
+				Logger.Warn(ex, $"Failed to encode backglass '{fullPath}' to jpg; skipping.");
+				return;
+			}
+
+			screenshotsFolder ??= storage.AddFolder(PackageApi.ScreenshotsFolder);
+			screenshotsFolder.AddFile("backglass", ".jpg").SetData(jpegData);
+			Logger.Info($"Packaged backglass 'backglass.jpg' ({jpegData.Length / 1024f:F1} KB).");
 		}
 
 		private Func<Task<byte[]>> PrepareScene()
