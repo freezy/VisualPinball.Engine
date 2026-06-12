@@ -38,9 +38,16 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public static int ResolutionDivisor = 1;
 
+		/// <summary>
+		/// Whether cooked textures are GPU block-compressed (BC7). Compressed textures use a
+		/// quarter of the video memory and are visually near-identical; turning this off stores
+		/// raw RGBA32 — maximum fidelity, but four times the memory and a much slower first load.
+		/// </summary>
+		public static bool CompressTextures = true;
+
 		public static long ComputeHash()
 		{
-			return FormatVersion * 397L + ResolutionDivisor;
+			return (FormatVersion * 397L + ResolutionDivisor) * 397L + (CompressTextures ? 1 : 0);
 		}
 	}
 

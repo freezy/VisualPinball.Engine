@@ -1078,21 +1078,24 @@ namespace VisualPinball.Unity
 			return $"{statusPrefix} ({processed}/{total})";
 		}
 
+		// Tuned to the post-cook load profile: the scene import and the material/texture stage
+		// dominate, and on a first load the texture cook reports fine-grained progress within the
+		// RestoringMaterials range.
 		private static (float Start, float End) GetStageRange(RuntimePackageLoadStage stage)
 		{
 			return stage switch {
-				RuntimePackageLoadStage.OpeningPackage => (0f, 0.02f),
-				RuntimePackageLoadStage.ImportingScene => (0.02f, 0.22f),
-				RuntimePackageLoadStage.InstantiatingScene => (0.22f, 0.42f),
-				RuntimePackageLoadStage.LoadingSounds => (0.42f, 0.54f),
-				RuntimePackageLoadStage.LoadingAssets => (0.54f, 0.62f),
-				RuntimePackageLoadStage.LoadingColliderMeshes => (0.62f, 0.72f),
-				RuntimePackageLoadStage.RestoringPackables => (0.72f, 0.88f),
-				RuntimePackageLoadStage.RestoringReferences => (0.88f, 0.96f),
-				RuntimePackageLoadStage.RestoringGlobals => (0.96f, 0.985f),
-				RuntimePackageLoadStage.RestoringTableMetadata => (0.985f, 0.992f),
-				RuntimePackageLoadStage.RestoringMaterials => (0.992f, 0.998f),
-				RuntimePackageLoadStage.Finalizing => (0.998f, 1f),
+				RuntimePackageLoadStage.OpeningPackage => (0f, 0.04f),
+				RuntimePackageLoadStage.ImportingScene => (0.04f, 0.22f),
+				RuntimePackageLoadStage.InstantiatingScene => (0.22f, 0.30f),
+				RuntimePackageLoadStage.LoadingSounds => (0.30f, 0.33f),
+				RuntimePackageLoadStage.LoadingAssets => (0.33f, 0.36f),
+				RuntimePackageLoadStage.LoadingColliderMeshes => (0.36f, 0.40f),
+				RuntimePackageLoadStage.RestoringPackables => (0.40f, 0.58f),
+				RuntimePackageLoadStage.RestoringReferences => (0.58f, 0.63f),
+				RuntimePackageLoadStage.RestoringGlobals => (0.63f, 0.66f),
+				RuntimePackageLoadStage.RestoringTableMetadata => (0.66f, 0.67f),
+				RuntimePackageLoadStage.RestoringMaterials => (0.67f, 0.97f),
+				RuntimePackageLoadStage.Finalizing => (0.97f, 1f),
 				_ => (0f, 1f),
 			};
 		}
