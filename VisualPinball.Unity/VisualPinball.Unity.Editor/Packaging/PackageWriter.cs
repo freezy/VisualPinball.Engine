@@ -1,4 +1,4 @@
-﻿// Visual Pinball Engine
+// Visual Pinball Engine
 // Copyright (C) 2023 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -43,30 +43,27 @@ namespace VisualPinball.Unity.Editor
 		private PackagedFiles _files;
 		private IPackageFolder _globalFolder;
 		private IPackageFolder _metaFolder;
-		private VpeMaterialsPayloadV1 _capturedMaterialPayload;
+		private VpeMaterialsPayload _capturedMaterialPayload;
 		private IReadOnlyDictionary<string, byte[]> _capturedMaterialTextureBlobs;
-		private bool _embeddedMaterialPayloadSuccessfully;
 		private readonly bool _runtimeCompressSideChannelTextures;
-		private readonly bool _compressGltfTextures;
 		private readonly bool _runtimeCompressNormalMaps;
 		private readonly string _screenshotFolder;
-		private IReadOnlyDictionary<string, VpeMaterialsGltfExtension.ImageReplacement> _originalGltfImageReplacements;
+		private IReadOnlyDictionary<string, GlbImageSwap.ImageReplacement> _originalGltfImageReplacements;
+		private Dictionary<Transform, string> _nodeIdByTransform;
+		private readonly SortedSet<string> _usedTypeNames = new(StringComparer.Ordinal);
 
 		private const bool ExportActivesOnly = true;
-		private const bool EmbedVpeMaterialsIntoGlb = false;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		public PackageWriter(
 			GameObject table,
 			bool runtimeCompressSideChannelTextures = true,
-			bool compressGltfTextures = true,
 			bool runtimeCompressNormalMaps = true,
 			string screenshotFolder = null)
 		{
 			_table = table;
 			_runtimeCompressSideChannelTextures = runtimeCompressSideChannelTextures;
-			_compressGltfTextures = compressGltfTextures;
 			_runtimeCompressNormalMaps = runtimeCompressNormalMaps;
 			_screenshotFolder = screenshotFolder;
 			_refs = new PackagedRefs(table.transform);
@@ -96,6 +93,12 @@ namespace VisualPinball.Unity.Editor
 			// Cabinet and backbox are authored inactive; activate them (located via their
 			// marker components) so they flow into the active-only export. Restored at the end.
 			var reactivatedObjects = ActivateMarkedObjects();
+
+			// Every exported node gets a stable id; items, refs, mappings, renderer states and
+			// light profiles all reference nodes by these ids. The ids are written into the glTF
+			// node extras after the scene export (see SaveGltfToBytes).
+			_nodeIdByTransform = VpeNodeIds.AssignIds(_table.transform);
+			_refs.SetNodeIdsForWrite(_nodeIdByTransform);
 
 			// prepare scene data
 			var sw1 = Stopwatch.StartNew();
@@ -147,7 +150,7 @@ namespace VisualPinball.Unity.Editor
 			// barely shrinks it but costs real time on both export and load.
 			WritePackageFile(_tableFolder, PackageApi.SceneFile, sceneData, PackageCompression.Stored);
 			Logger.Info($"Scene written in {sw1.ElapsedMilliseconds}ms ({sceneData.Length} bytes).");
-			WriteMaterialPayloadFallbackIfNeeded();
+			WriteMaterialPayload();
 
 			if (saveColliderMeshesTask != null) {
 				sw1 = Stopwatch.StartNew();
@@ -156,10 +159,13 @@ namespace VisualPinball.Unity.Editor
 				Logger.Info($"Collider meshes written in {sw1.ElapsedMilliseconds}ms ({colliderMeshesData.Length} bytes).");
 			}
 
-			// screenshots (encoded to webp, stored under a top-level screenshots/ folder)
+			// screenshots (encoded to jpg, stored under a top-level screenshots/ folder)
 			sw1 = Stopwatch.StartNew();
 			WriteScreenshots(storage);
 			Logger.Info($"Screenshots written in {sw1.ElapsedMilliseconds}ms.");
+
+			// the manifest is written last so it can list everything the package contains
+			WriteManifest(storage);
 
 			storage.Close();
 
@@ -167,6 +173,43 @@ namespace VisualPinball.Unity.Editor
 
 			sw.Stop();
 			Debug.Log($"Done! File saved to {path} in {sw.ElapsedMilliseconds}ms.");
+		}
+
+		private void WriteManifest(IPackageStorage storage)
+		{
+			foreach (var assetTypeName in _files.UsedAssetTypeNames) {
+				_usedTypeNames.Add(assetTypeName);
+			}
+			var manifest = new VpePackageManifest {
+				FormatVersion = PackageApi.FormatVersion,
+				WrittenBy = GetWriterId(),
+				RootNodeId = _nodeIdByTransform[_table.transform],
+				Schemas = new Dictionary<string, int> {
+					[VpePackageSchemas.Items] = 1,
+				},
+				ComponentTypes = _usedTypeNames.ToList(),
+			};
+			if (_capturedMaterialPayload != null) {
+				manifest.Schemas[VpePackageSchemas.Materials] = VpeMaterialSchema.Version;
+			}
+			if (_wroteLightProfiles) {
+				manifest.Schemas[VpePackageSchemas.Lights] = 1;
+			}
+			if (_files.HasSounds) {
+				manifest.Schemas[VpePackageSchemas.Sounds] = 1;
+			}
+			VpePackageManifestIo.Write(storage, manifest);
+		}
+
+		private static string GetWriterId()
+		{
+			try {
+				var packageInfo = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(PackageWriter).Assembly);
+				var version = packageInfo?.version ?? "unknown";
+				return $"VPE {version} (Unity {Application.unityVersion})";
+			} catch (Exception) {
+				return "VPE";
+			}
 		}
 
 		// Cabinet/backbox are authored inactive but must be exported; activate the GameObjects
@@ -350,10 +393,12 @@ namespace VisualPinball.Unity.Editor
 			var disabledRenderers = DisableInvalidMeshRenderers(meshFilters, skinnedMeshRenderers, _table.transform);
 			var reenabledLights = EnableDisabledLights();
 			var renderers = _table.GetComponentsInChildren<Renderer>(!ExportActivesOnly);
-			_originalGltfImageReplacements = _compressGltfTextures
-				? null
-				: BuildOriginalGltfImageReplacements(renderers);
-			var gltfExportScope = VpeMaterialV1Translator.PrepareGltfExport(renderers);
+			// glTFast re-encodes images (JPEG for opaque base color). The package format is
+			// lossless, so the original asset bytes are swapped back in after export — for
+			// captured materials the textures are stripped anyway, this covers the
+			// unsupported-shader materials that keep their textures in the GLB.
+			_originalGltfImageReplacements = BuildOriginalGltfImageReplacements(renderers);
+			var gltfExportScope = VpeMaterialTranslator.PrepareGltfExport(renderers);
 			try {
 				export.AddScene(new [] { _table }, _table.transform.worldToLocalMatrix, "VPE Table");
 
@@ -363,7 +408,7 @@ namespace VisualPinball.Unity.Editor
 				RestoreDisabledRenderers(disabledRenderers);
 			}
 
-			return () => SaveGltfToBytes(export, embedMaterialPayload: EmbedVpeMaterialsIntoGlb);
+			return () => SaveGltfToBytes(export, isScene: true);
 		}
 
 		// Temporarily re-enables Light components that are disabled at author time so gltFast
@@ -441,30 +486,34 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 
-			return export == null ? null : () => SaveGltfToBytes(export);
+			return export == null ? null : () => SaveGltfToBytes(export, isScene: false);
 		}
 
 		/// <summary>
 		/// Walks through the entire game object tree and creates the same structure for
-		/// a given storage name, for each IPackageable component.
+		/// a given storage name, for each IPackageable component. Folders are keyed by the
+		/// node's stable id.
 		/// </summary>
 		/// <param name="folderName">Name of the storage within table storage</param>
 		/// <param name="getPackableData">Retrieves component-specific data.</param>
 		/// <param name="getItemData">Retrieves item-specific data.</param>
 		private void WritePackables(string folderName, Func<IPackable, byte[]> getPackableData, Func<GameObject, byte[]> getItemData = null, Func<Component, byte[]> getNativeData = null)
 		{
-			// -> rootName <- / 0.0.0 / CompType / 0
+			// -> rootName <- / nodeId / CompType / 0
 			var folder = _tableFolder.AddFolder(folderName);
 
 			// walk the entire tree
 			foreach (var t in _table.transform.GetComponentsInChildren<Transform>(!ExportActivesOnly)) {
 
 				// for each game object, loop through all components
-				var key = GetPackagePath(t, _table.transform, ExportActivesOnly);
+				if (!_nodeIdByTransform.TryGetValue(t, out var key)) {
+					throw new InvalidOperationException(
+						$"No node id assigned for '{t.name}' — the hierarchy changed during export.");
+				}
 				var counters = new Dictionary<string, int>();
 				var itemData = getItemData?.Invoke(t.gameObject);
 
-				// rootName / -> 0.0.0 <- / CompType / 0
+				// rootName / -> nodeId <- / CompType / 0
 				IPackageFolder itemPathFolder = null;
 				if (itemData?.Length > 0) {
 					itemPathFolder = folder.AddFolder(key);
@@ -476,7 +525,7 @@ namespace VisualPinball.Unity.Editor
 				foreach (var component in t.gameObject.GetComponents<Component>()) {
 					switch (component) {
 						case null:
-							Debug.LogWarning($"Skipping missing component on {key} during package export.", t.gameObject);
+							Debug.LogWarning($"Skipping missing component on {t.name} during package export.", t.gameObject);
 							break;
 
 						case IPackable packageable: {
@@ -488,17 +537,18 @@ namespace VisualPinball.Unity.Editor
 							var shouldWriteEmptyMarker = folderName == PackageApi.ItemFolder && (packableData == null || packableData.Length == 0);
 							if (packableData?.Length > 0 || shouldWriteEmptyMarker) {
 
-								// rootName / -> 0.0.0 <- / CompType / 0
+								// rootName / -> nodeId <- / CompType / 0
 								itemPathFolder ??= folder.AddFolder(key);
 
-								// rootName / 0.0.0 / -> CompType <- / 0
+								// rootName / nodeId / -> CompType <- / 0
 								if (!itemPathFolder.TryGetFolder(packName, out var itemComponentFolder)) {
 									itemComponentFolder = itemPathFolder.AddFolder(packName);
 								}
 
-								// rootName / 0.0.0 / CompType / -> 0 <-
+								// rootName / nodeId / CompType / -> 0 <-
 								var itemComponentFile = itemComponentFolder.AddFile($"{counters[packName]++}", PackageApi.Packer.FileExtension);
 								itemComponentFile.SetData(packableData?.Length > 0 ? packableData : PackageApi.Packer.Empty);
+								_usedTypeNames.Add(packName);
 							}
 							break;
 						}
@@ -547,52 +597,6 @@ namespace VisualPinball.Unity.Editor
 			return null;
 		}
 
-		private static string GetPackagePath(Transform transform, Transform root, bool activeOnly)
-		{
-			if (!transform) {
-				return "0";
-			}
-
-			if (transform == root) {
-				return "0";
-			}
-
-			var path = string.Empty;
-			var current = transform;
-			while (current != null && current != root) {
-				var siblingIndex = GetPackageSiblingIndex(current, activeOnly);
-				path = string.IsNullOrEmpty(path) ? $"{siblingIndex}" : $"{siblingIndex}.{path}";
-				current = current.parent;
-			}
-
-			return string.IsNullOrEmpty(path) ? "0" : $"0.{path}";
-		}
-
-		private static int GetPackageSiblingIndex(Transform transform, bool activeOnly)
-		{
-			if (!activeOnly || transform.parent == null) {
-				return transform.GetSiblingIndex();
-			}
-
-			var parent = transform.parent;
-			var activeSiblingIndex = 0;
-			for (var childIndex = 0; childIndex < parent.childCount; childIndex++) {
-				var sibling = parent.GetChild(childIndex);
-				if (!sibling.gameObject.activeInHierarchy) {
-					continue;
-				}
-
-				if (sibling == transform) {
-					return activeSiblingIndex;
-				}
-
-				activeSiblingIndex++;
-			}
-
-			return transform.GetSiblingIndex();
-		}
-
-
 		private void WriteGlobals()
 		{
 			var tableComponent = _table.GetComponent<TableComponent>();
@@ -601,16 +605,16 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			foreach (var sw in tableComponent.MappingConfig.Switches) {
-				sw.SaveReference(_table.transform);
+				sw.SaveReference(_refs);
 			}
 			foreach (var coil in tableComponent.MappingConfig.Coils) {
-				coil.SaveReference(_table.transform);
+				coil.SaveReference(_refs);
 			}
 			foreach (var wire in tableComponent.MappingConfig.Wires) {
-				wire.SaveReferences(_table.transform);
+				wire.SaveReferences(_refs);
 			}
 			foreach (var lp in tableComponent.MappingConfig.Lamps) {
-				lp.SaveReference(_table.transform);
+				lp.SaveReference(_refs);
 			}
 
 			_globalFolder.AddFile(PackageApi.SwitchesFile, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.MappingConfig.Switches));
@@ -634,14 +638,13 @@ namespace VisualPinball.Unity.Editor
 		{
 			var renderers = _table.GetComponentsInChildren<Renderer>(!ExportActivesOnly);
 
-			var capture = VpeMaterialV1Translator.Capture(_table.transform, renderers);
+			var capture = VpeMaterialTranslator.Capture(_table.transform, renderers, t => _nodeIdByTransform.GetValueOrDefault(t));
 			var payload = capture.Payload;
 			_capturedMaterialPayload = null;
 			_capturedMaterialTextureBlobs = null;
-			_embeddedMaterialPayloadSuccessfully = false;
 			if (payload?.Profiles == null || payload.Profiles.Length == 0) {
-				if (VpeMaterialV1Translator.Active == null) {
-					Logger.Info("Skipping materials.v1 export: no IVpeMaterialV1Translator is registered.");
+				if (VpeMaterialTranslator.Active == null) {
+					Logger.Info("Skipping materials export: no IVpeMaterialTranslator is registered.");
 				}
 				return;
 			}
@@ -662,75 +665,125 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 			Logger.Info(
-				$"Captured vpe.material v1 payload: {payload.Profiles.Length} profile(s), " +
-				$"{textureCount} VPE-only texture(s) ({textureBytes / 1024f / 1024f:F2} MB).");
+				$"Captured material payload: {payload.Profiles.Length} profile(s), " +
+				$"{textureCount} source texture(s) ({textureBytes / 1024f / 1024f:F2} MB).");
 		}
+
+		private bool _wroteLightProfiles;
 
 		private void WriteLightProfiles()
 		{
-			var payload = new VpeLightsPayloadV1 {
+			var payload = new VpeLightsPayload {
 				Version = 1,
 				Lights = _table.GetComponentsInChildren<Light>(!ExportActivesOnly)
-					.Select(light => LightSourcePackable.From(_table.transform, light))
+					.Select(light => LightSourcePackable.From(
+						_table.transform, light, _nodeIdByTransform.GetValueOrDefault(light.transform)))
 					.ToList(),
 			};
 
-			if (payload.Lights.Count == 0) {
+			_wroteLightProfiles = payload.Lights.Count > 0;
+			if (!_wroteLightProfiles) {
 				return;
 			}
 
 			_metaFolder
-				.AddFile(PackageApi.LightsV1File, PackageApi.Packer.FileExtension)
+				.AddFile(PackageApi.LightsFile, PackageApi.Packer.FileExtension)
 				.SetData(PackageApi.Packer.Pack(payload));
 
-			Logger.Info($"Captured vpe.lights v1 payload: {payload.Lights.Count} light profile(s).");
+			Logger.Info($"Captured lights payload: {payload.Lights.Count} light profile(s).");
 		}
 
-		private async Task<byte[]> SaveGltfToBytes(GameObjectExport export, bool embedMaterialPayload = false)
+		// Writes the materials payload plus the lossless source texture layer: one plain image
+		// file per texture under table/textures/. Stored, not deflated — PNG/JPEG bytes don't
+		// deflate meaningfully and the inflate cost is pure waste at load time.
+		private void WriteMaterialPayload()
+		{
+			if (_capturedMaterialPayload == null) {
+				return;
+			}
+
+			var textureCount = 0;
+			var textureBytes = 0L;
+			if (_capturedMaterialPayload.Textures != null
+				&& _capturedMaterialPayload.Textures.Length > 0
+				&& _capturedMaterialTextureBlobs != null) {
+				IPackageFolder texturesFolder = null;
+				foreach (var texture in _capturedMaterialPayload.Textures) {
+					if (texture == null
+						|| string.IsNullOrWhiteSpace(texture.FileName)
+						|| !_capturedMaterialTextureBlobs.TryGetValue(texture.FileName, out var data)
+						|| data == null
+						|| data.Length == 0) {
+						continue;
+					}
+					texturesFolder ??= _tableFolder.AddFolder(PackageApi.TexturesFolder);
+					texturesFolder.AddFile(texture.FileName).SetData(data, PackageCompression.Stored);
+					textureCount++;
+					textureBytes += data.LongLength;
+				}
+			}
+
+			_metaFolder
+				.AddFile(PackageApi.MaterialsFile, PackageApi.Packer.FileExtension)
+				.SetData(PackageApi.Packer.Pack(_capturedMaterialPayload));
+
+			Logger.Info(
+				$"Packaged materials: profiles={_capturedMaterialPayload.Profiles?.Length ?? 0}, " +
+				$"textures={textureCount} ({textureBytes / 1024f / 1024f:F2} MB) at " +
+				$"{PackageApi.TableFolder}/{PackageApi.TexturesFolder}/.");
+		}
+
+		private static void ApplyMaterialTextureCompressionMode(VpeMaterialsPayload payload, bool runtimeCompress)
+		{
+			if (payload?.Textures == null) {
+				return;
+			}
+			foreach (var asset in payload.Textures) {
+				if (asset != null) {
+					asset.RuntimeCompress = runtimeCompress;
+				}
+			}
+		}
+
+		private static void ApplyMaterialNormalCompressionMode(VpeMaterialsPayload payload, bool runtimeCompress)
+		{
+			if (payload?.Profiles == null) {
+				return;
+			}
+			foreach (var profile in payload.Profiles) {
+				if (profile == null) {
+					continue;
+				}
+				ApplyNormalCompressionMode(profile.Lit?.NormalMap, runtimeCompress);
+				ApplyNormalCompressionMode(profile.Decal?.NormalMap, runtimeCompress);
+			}
+		}
+
+		private static void ApplyNormalCompressionMode(VpeNormalMapRef normalMap, bool runtimeCompress)
+		{
+			// Cooked normals (non-RGB packing) skip the runtime repack entirely, so the
+			// runtime-compression toggle has no business overriding them.
+			if (normalMap != null && normalMap.Packing == VpeNormalPackings.Rgb) {
+				normalMap.RuntimeCompress = runtimeCompress;
+			}
+		}
+
+		private async Task<byte[]> SaveGltfToBytes(GameObjectExport export, bool isScene)
 		{
 			using var stream = new MemoryStream();
 			await export.SaveToStreamAndDispose(stream);
-			var originalGlbData = stream.ToArray();
-			if (!_compressGltfTextures) {
-				originalGlbData = ReplaceCompressedGltfImagesWithOriginals(originalGlbData);
-			}
-			var glbData = originalGlbData;
-			if (!embedMaterialPayload || _capturedMaterialPayload == null) {
+			var glbData = stream.ToArray();
+			if (!isScene) {
 				return glbData;
 			}
 
-			var payload = _capturedMaterialPayload;
-			try {
-				var candidateGlbData = VpeMaterialsGltfExtension.WritePayload(glbData, payload, _capturedMaterialTextureBlobs);
-				if (!VpeMaterialsGltfExtension.TryReadPayload(candidateGlbData, out var roundTrippedPayload)
-					|| roundTrippedPayload?.Profiles == null
-					|| roundTrippedPayload.Profiles.Length != (payload.Profiles?.Length ?? 0)) {
-					throw new InvalidOperationException(
-						$"Failed validating embedded {VpeMaterialsGltfExtension.ExtensionName} payload after GLB rewrite.");
-				}
+			// Lossless source guarantee: swap glTFast's re-encoded images back to the original
+			// asset bytes.
+			glbData = ReplaceCompressedGltfImagesWithOriginals(glbData);
 
-				var expectedEmbeddedTextureCount = payload.Textures?.Count(asset => asset != null && asset.GlbBufferView >= 0) ?? 0;
-				if (expectedEmbeddedTextureCount > 0
-					&& !VpeMaterialsGltfExtension.TryReadEmbeddedTextureBlobs(
-						candidateGlbData,
-						roundTrippedPayload,
-						out var roundTrippedTextureBlobsById)) {
-					throw new InvalidOperationException(
-						$"Failed validating embedded {VpeMaterialsGltfExtension.ExtensionName} texture blobs after GLB rewrite.");
-				}
-
-				glbData = candidateGlbData;
-				_embeddedMaterialPayloadSuccessfully = true;
-				Logger.Info(
-					$"Embedded {VpeMaterialsGltfExtension.ExtensionName} in {PackageApi.SceneFile}: " +
-					$"{payload.Profiles?.Length ?? 0} profile(s), {payload.Textures?.Length ?? 0} texture reference(s).");
-			} catch (Exception ex) {
-				_embeddedMaterialPayloadSuccessfully = false;
-				glbData = originalGlbData;
-				Logger.Warn(
-					$"Failed embedding {VpeMaterialsGltfExtension.ExtensionName} in {PackageApi.SceneFile} " +
-					$"({ex.Message}). Writing plain GLB and keeping sidecar material payload.");
-			}
+			// Stamp the stable node ids into the glTF node extras. This must succeed — a package
+			// whose ids don't bind would mis-wire components on import.
+			glbData = VpeNodeIds.InjectIds(glbData, _table.transform, _nodeIdByTransform);
 			return glbData;
 		}
 
@@ -741,7 +794,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			try {
-				var rewritten = VpeMaterialsGltfExtension.ReplaceImages(
+				var rewritten = GlbImageSwap.ReplaceImages(
 					glbData,
 					_originalGltfImageReplacements,
 					out var replacementCount,
@@ -759,13 +812,19 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private static IReadOnlyDictionary<string, VpeMaterialsGltfExtension.ImageReplacement> BuildOriginalGltfImageReplacements(
+		private static IReadOnlyDictionary<string, GlbImageSwap.ImageReplacement> BuildOriginalGltfImageReplacements(
 			IEnumerable<Renderer> renderers)
 		{
-			var replacements = new Dictionary<string, VpeMaterialsGltfExtension.ImageReplacement>(StringComparer.Ordinal);
+			var replacements = new Dictionary<string, GlbImageSwap.ImageReplacement>(StringComparer.Ordinal);
 			if (renderers == null) {
 				return replacements;
 			}
+
+			// Image names in the GLB are derived from the source file stem. Two different source
+			// files with the same stem would make the name-based replacement ambiguous — those
+			// stems are excluded (their GLB images keep glTFast's encoding) and reported.
+			var sourcesByStem = new Dictionary<string, string>(StringComparer.Ordinal);
+			var ambiguousStems = new HashSet<string>(StringComparer.Ordinal);
 
 			foreach (var renderer in renderers) {
 				if (!renderer) {
@@ -776,15 +835,26 @@ namespace VisualPinball.Unity.Editor
 					continue;
 				}
 				foreach (var material in materials) {
-					CollectOriginalGltfImageReplacements(material, replacements);
+					CollectOriginalGltfImageReplacements(material, replacements, sourcesByStem, ambiguousStems);
 				}
+			}
+
+			foreach (var stem in ambiguousStems) {
+				replacements.Remove($"{stem}.jpg");
+				replacements.Remove($"{stem}.jpeg");
+				replacements.Remove($"{stem}.png");
+				Logger.Warn(
+					$"Multiple source textures share the file stem '{stem}'; their GLB images keep " +
+					"glTFast's encoding to avoid swapping in the wrong bytes. Rename the source files for a lossless GLB.");
 			}
 			return replacements;
 		}
 
 		private static void CollectOriginalGltfImageReplacements(
 			Material material,
-			IDictionary<string, VpeMaterialsGltfExtension.ImageReplacement> replacements)
+			IDictionary<string, GlbImageSwap.ImageReplacement> replacements,
+			IDictionary<string, string> sourcesByStem,
+			ISet<string> ambiguousStems)
 		{
 			if (!material || replacements == null) {
 				return;
@@ -807,12 +877,20 @@ namespace VisualPinball.Unity.Editor
 					continue;
 				}
 
-				var replacement = new VpeMaterialsGltfExtension.ImageReplacement {
+				var stem = Path.GetFileNameWithoutExtension(assetPath);
+				if (sourcesByStem.TryGetValue(stem, out var existingPath)) {
+					if (!string.Equals(existingPath, assetPath, StringComparison.OrdinalIgnoreCase)) {
+						ambiguousStems.Add(stem);
+					}
+					continue;
+				}
+				sourcesByStem[stem] = assetPath;
+
+				var replacement = new GlbImageSwap.ImageReplacement {
 					Name = Path.GetFileName(assetPath),
 					MimeType = mimeType,
 					Data = File.ReadAllBytes(assetPath)
 				};
-				var stem = Path.GetFileNameWithoutExtension(assetPath);
 				replacements[$"{stem}.jpg"] = replacement;
 				replacements[$"{stem}.jpeg"] = replacement;
 				replacements[$"{stem}.png"] = replacement;
@@ -829,116 +907,6 @@ namespace VisualPinball.Unity.Editor
 				return "image/jpeg";
 			}
 			return null;
-		}
-
-		private void WriteMaterialPayloadFallbackIfNeeded()
-		{
-			if (_capturedMaterialPayload == null || _embeddedMaterialPayloadSuccessfully) {
-				return;
-			}
-
-			ApplyMaterialTextureCompressionMode(_capturedMaterialPayload, _runtimeCompressSideChannelTextures);
-
-			var packedTextureData = BuildPackedMaterialTextureData(
-				_capturedMaterialPayload,
-				_capturedMaterialTextureBlobs,
-				out var textureCount,
-				out var textureBytes);
-			if (packedTextureData != null && packedTextureData.Length > 0) {
-				// Raw GPU texture payloads (and PNG fallbacks) don't deflate meaningfully; store them
-				// so runtime load is a straight disk read.
-				_metaFolder.AddFile(PackageApi.TexturesV1PackFile).SetData(packedTextureData, PackageCompression.Stored);
-			}
-
-			_metaFolder
-				.AddFile(PackageApi.MaterialsV1File, PackageApi.Packer.FileExtension)
-				.SetData(PackageApi.Packer.Pack(_capturedMaterialPayload));
-
-			Logger.Warn(
-				$"Fell back to sidecar vpe.material export: profiles={_capturedMaterialPayload.Profiles?.Length ?? 0}, " +
-				$"textures={textureCount} ({textureBytes / 1024f / 1024f:F2} MB) at " +
-				$"{PackageApi.MetaFolder}/{PackageApi.TexturesV1PackFile}.");
-		}
-
-		private static void ApplyMaterialTextureCompressionMode(VpeMaterialsPayloadV1 payload, bool runtimeCompress)
-		{
-			if (payload?.Textures == null) {
-				return;
-			}
-			foreach (var asset in payload.Textures) {
-				// Cooked raw payloads are already in their final GPU format; the runtime-compression
-				// toggle only applies to the PNG side-channel path.
-				if (asset != null && string.IsNullOrEmpty(asset.PixelFormat)) {
-					asset.RuntimeCompress = runtimeCompress;
-				}
-			}
-		}
-
-		private static void ApplyMaterialNormalCompressionMode(VpeMaterialsPayloadV1 payload, bool runtimeCompress)
-		{
-			if (payload?.Profiles == null) {
-				return;
-			}
-			foreach (var profile in payload.Profiles) {
-				if (profile == null) {
-					continue;
-				}
-				ApplyNormalCompressionMode(profile.Lit?.NormalMap, runtimeCompress);
-				ApplyNormalCompressionMode(profile.Decal?.NormalMap, runtimeCompress);
-			}
-		}
-
-		private static void ApplyNormalCompressionMode(VpeNormalMapRefV1 normalMap, bool runtimeCompress)
-		{
-			// Cooked normals (non-RGB packing) skip the runtime repack entirely, so the
-			// runtime-compression toggle has no business overriding them.
-			if (normalMap != null && normalMap.Packing == VpeNormalPackings.Rgb) {
-				normalMap.RuntimeCompress = runtimeCompress;
-			}
-		}
-
-		private static byte[] BuildPackedMaterialTextureData(
-			VpeMaterialsPayloadV1 payload,
-			IReadOnlyDictionary<string, byte[]> textureBlobsByFileName,
-			out int textureCount,
-			out long textureBytes)
-		{
-			textureCount = 0;
-			textureBytes = 0L;
-			if (payload?.Textures == null || payload.Textures.Length == 0) {
-				return null;
-			}
-
-			foreach (var asset in payload.Textures) {
-				if (asset == null) {
-					continue;
-				}
-				asset.ByteOffset = -1;
-				asset.ByteLength = 0;
-			}
-
-			if (textureBlobsByFileName == null || textureBlobsByFileName.Count == 0) {
-				return null;
-			}
-
-			using var stream = new MemoryStream();
-			foreach (var asset in payload.Textures) {
-				if (asset == null
-					|| string.IsNullOrWhiteSpace(asset.FileName)
-					|| !textureBlobsByFileName.TryGetValue(asset.FileName, out var blobData)
-					|| blobData == null
-					|| blobData.Length == 0) {
-					continue;
-				}
-
-				asset.ByteOffset = checked((int)stream.Position);
-				asset.ByteLength = blobData.Length;
-				stream.Write(blobData, 0, blobData.Length);
-				textureCount++;
-				textureBytes += blobData.LongLength;
-			}
-
-			return stream.Length > 0 ? stream.ToArray() : null;
 		}
 
 		private static void WritePackageFile(IPackageFolder folder, string fileName, byte[] data, PackageCompression compression = PackageCompression.Default)

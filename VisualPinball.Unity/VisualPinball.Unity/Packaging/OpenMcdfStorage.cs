@@ -21,6 +21,12 @@ using OpenMcdf.Extensions;
 
 namespace VisualPinball.Unity.Editor.Packaging
 {
+	/// <summary>
+	/// Historical alternative container (OLE compound file, the VPX container format). Kept for
+	/// reference only — the shipping .vpe container is zip (see <see cref="SharpZipStorageManager"/>)
+	/// and there is no plan to switch back. Do not use for new code.
+	/// </summary>
+	[Obsolete("The .vpe container is zip (SharpZipStorageManager). This implementation is kept for historical reference only.")]
 	public class OpenMcdfStorageManager : IStorageManager
 	{
 		public IPackageStorage CreateStorage(string path)
@@ -37,6 +43,7 @@ namespace VisualPinball.Unity.Editor.Packaging
 	}
 
 
+	[Obsolete("The .vpe container is zip (SharpZipStorageManager). This implementation is kept for historical reference only.")]
 	public class OpenMcdfStorage : IPackageStorage
 	{
 		private readonly CompoundFile _cf;
@@ -55,6 +62,18 @@ namespace VisualPinball.Unity.Editor.Packaging
 		public IPackageFolder AddFolder(string name) => new OpenMcdfFolder(_cf.RootStorage.AddStorage(name));
 
 		public IPackageFolder GetFolder(string name) => new OpenMcdfFolder(_cf.RootStorage.GetStorage(name));
+
+		public IPackageFile AddFile(string name, string ext = null) => new OpenMcdfFile(_cf.RootStorage.AddStream(name + (ext ?? string.Empty)));
+
+		public bool TryGetFile(string name, out IPackageFile file, string ext = null)
+		{
+			if (_cf.RootStorage.TryGetStream(name + (ext ?? string.Empty), out var cfStream)) {
+				file = new OpenMcdfFile(cfStream);
+				return true;
+			}
+			file = null;
+			return false;
+		}
 
 		public void Close()
 		{

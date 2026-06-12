@@ -20,11 +20,16 @@ using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
-	// Editor-side extension point for translating authoring materials into vpe.material v1 payload.
-	// Pipeline packages (HDRP/URP/custom) register an implementation at editor load time.
-	public interface IVpeMaterialV1Translator
+	// Editor-side extension point for translating authoring materials into the portable material
+	// payload (schema v2). Pipeline packages (HDRP/URP/custom) register an implementation at
+	// editor load time.
+	public interface IVpeMaterialTranslator
 	{
-		VpeMaterialCaptureResult Capture(Transform tableRoot, IEnumerable<Renderer> renderers);
+		/// <param name="tableRoot">Root of the exported table.</param>
+		/// <param name="renderers">All renderers under the root.</param>
+		/// <param name="nodeId">Resolves a transform to its stable package node id (null when the
+		/// transform is not part of the export).</param>
+		VpeMaterialCaptureResult Capture(Transform tableRoot, IEnumerable<Renderer> renderers, Func<Transform, string> nodeId);
 	}
 
 	// Optional editor-side hook that lets a pipeline package strip VPE-managed textures from the
@@ -37,34 +42,34 @@ namespace VisualPinball.Unity.Editor
 
 	public readonly struct VpeMaterialCaptureResult
 	{
-		public VpeMaterialCaptureResult(VpeMaterialsPayloadV1 payload, IReadOnlyDictionary<string, byte[]> textureBlobs)
+		public VpeMaterialCaptureResult(VpeMaterialsPayload payload, IReadOnlyDictionary<string, byte[]> textureBlobs)
 		{
 			Payload = payload;
 			TextureBlobs = textureBlobs;
 		}
 
-		public VpeMaterialsPayloadV1 Payload { get; }
+		public VpeMaterialsPayload Payload { get; }
 
-		// Maps texture file name (matches VpeTextureAssetV1.FileName) to its PNG bytes.
+		// Maps texture file name (matches VpeTexture.FileName) to its source image bytes.
 		public IReadOnlyDictionary<string, byte[]> TextureBlobs { get; }
 	}
 
-	public static class VpeMaterialV1Translator
+	public static class VpeMaterialTranslator
 	{
-		private static IVpeMaterialV1Translator _active;
+		private static IVpeMaterialTranslator _active;
 
-		public static void Register(IVpeMaterialV1Translator translator)
+		public static void Register(IVpeMaterialTranslator translator)
 		{
 			_active = translator;
 		}
 
-		public static IVpeMaterialV1Translator Active => _active;
+		public static IVpeMaterialTranslator Active => _active;
 
-		public static VpeMaterialCaptureResult Capture(Transform tableRoot, IEnumerable<Renderer> renderers)
+		public static VpeMaterialCaptureResult Capture(Transform tableRoot, IEnumerable<Renderer> renderers, Func<Transform, string> nodeId)
 		{
 			return _active == null
 				? default
-				: _active.Capture(tableRoot, renderers);
+				: _active.Capture(tableRoot, renderers, nodeId);
 		}
 
 		public static IDisposable PrepareGltfExport(IEnumerable<Renderer> renderers)

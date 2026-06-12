@@ -10,7 +10,12 @@ using System.Collections.Generic;
 
 namespace VisualPinball.Unity
 {
-	public struct VpeLightsPayloadV1
+	/// <summary>
+	/// Light-source payload (table/meta/lights.json), the authored source of truth for the
+	/// table's lights. Lights are referenced by stable node id. Readers must check
+	/// <see cref="Version"/> before interpreting the payload.
+	/// </summary>
+	public struct VpeLightsPayload
 	{
 		public int Version;
 		public List<LightSourcePackable> Lights;

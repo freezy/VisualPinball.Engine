@@ -39,20 +39,19 @@ namespace VisualPinball.Unity
 		public ICoilDeviceComponent Device { get => _device as ICoilDeviceComponent; set => _device = value as MonoBehaviour; }
 
 		[JsonProperty]
-		private string _devicePath { get; set; }
+		private string _deviceId { get; set; }
 
 		public string DeviceItem = string.Empty;
 
-		public void SaveReference(Transform tableRoot)
+		public void SaveReference(PackagedRefs refs)
 		{
-			_devicePath = _device ? _device.gameObject.transform.GetPath(tableRoot, activeOnly: true) : null;
+			_deviceId = refs.GetNodeId(_device ? _device.transform : null);
 		}
 
-		public void RestoreReference(Transform tableRoot)
+		public void RestoreReference(PackagedRefs refs)
 		{
-			_device = string.IsNullOrEmpty(_devicePath)
-				? null
-				: tableRoot.FindByPath(_devicePath)?.GetComponent<ICoilDeviceComponent>() as MonoBehaviour;
+			var node = refs.GetNode(_deviceId);
+			_device = node ? node.GetComponent<ICoilDeviceComponent>() as MonoBehaviour : null;
 		}
 
 		public override string ToString()

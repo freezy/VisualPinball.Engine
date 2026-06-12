@@ -25,6 +25,15 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public static class PackageApi
 	{
+		/// <summary>
+		/// Container format version written into the root manifest. Nodes are addressed by stable
+		/// ids carried in glTF node extras (see <see cref="VpeNodeIds"/>).
+		/// </summary>
+		public const int FormatVersion = 1;
+
+		/// <summary>Root-level manifest, see <see cref="VpePackageManifest"/>.</summary>
+		public const string ManifestFile = "manifest";
+
 		public const string TableFolder = "table";
 		public const string TableMetadataFile = "table";
 		public const string ItemFolder = "items";
@@ -42,13 +51,17 @@ namespace VisualPinball.Unity
 		public const string AssetFolder = "assets";
 		public const string SoundFolder = "sounds";
 		public const string ScreenshotsFolder = "screenshots";
-		// vpe.material v1 — portable, SRP-agnostic material interchange.
-		// See VpeMaterialV1.cs for the schema and the separation of concerns between the exporter
-		// (translates authoring shaders into intent) and the Player-side IVpeMaterialResolver
-		// (renders intent with shaders it owns at its own build time).
-		public const string MaterialsV1File = "materials.v1";
-		public const string LightsV1File = "lights.v1";
-		public const string TexturesV1PackFile = "textures.bin";
+
+		// Source textures are plain image files under table/textures/, one zip entry per
+		// texture, referenced by file name from the materials payload. The zip central directory
+		// is the offset table — no custom blob indexing.
+		public const string TexturesFolder = "textures";
+		// The portable, SRP-agnostic material interchange. The portable intent lives at the top
+		// of each profile; pipeline-specific hints live in a nested "hdrp" (etc.) block that
+		// other engines are free to ignore. See VpeMaterial.cs.
+		public const string MaterialsFile = "materials";
+		public const string LightsFile = "lights";
+
 		public const float LightIntensityFactor = 100f;
 
 		public static readonly IStorageManager StorageManager = new SharpZipStorageManager();
@@ -96,6 +109,23 @@ namespace VisualPinball.Unity
 		/// <param name="name">Name of the folder.</param>
 		/// <returns>Reference to the existing folder.</returns>
 		IPackageFolder GetFolder(string name);
+
+		/// <summary>
+		/// Create or reference a new file in the root of the storage (e.g. the manifest).
+		/// </summary>
+		/// <param name="name">Name of the file.</param>
+		/// <param name="ext">Extension of the file, dot included.</param>
+		/// <returns>Reference to the new file.</returns>
+		IPackageFile AddFile(string name, string ext = null);
+
+		/// <summary>
+		/// Try to retrieve an existing file in the root of the storage.
+		/// </summary>
+		/// <param name="name">Name of the file.</param>
+		/// <param name="file">Reference to the existing file, or null otherwise.</param>
+		/// <param name="ext">Extension of the file, dot included.</param>
+		/// <returns>True if the file exists, false otherwise.</returns>
+		bool TryGetFile(string name, out IPackageFile file, string ext = null);
 
 		/// <summary>
 		/// Close the file.

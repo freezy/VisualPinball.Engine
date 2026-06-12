@@ -58,8 +58,8 @@ namespace VisualPinball.Unity
 
 		private sealed class CookPlanItem
 		{
-			public VpeTextureAssetV1 Source;
-			public VpeTextureAssetV1 Cooked;
+			public VpeTexturePayload Source;
+			public VpeTexturePayload Cooked;
 			public bool Passthrough;
 			public bool IsNormal;
 			public bool UseBc7;
@@ -84,17 +84,18 @@ namespace VisualPinball.Unity
 		public static bool IsSupported => VpeBc7GpuEncoder.IsSupported;
 
 		/// <summary>
-		/// Cooks all source textures referenced by the payload. Returns null when cooking is not
-		/// possible (no compute support, decode failures); callers then fall back to the slow
-		/// decode-at-load path. Must be awaited on the main thread.
+		/// Cooks the given source textures. Returns null when cooking is not possible (no compute
+		/// support, decode failures); callers then fall back to the slow decode-at-load path.
+		/// Must be awaited on the main thread.
 		/// </summary>
 		public static async Task<Result> CookAsync(
-			VpeMaterialsPayloadV1 payload,
+			VpeTexturePayload[] textures,
+			HashSet<string> normalIds,
 			byte[] sourceTextureData,
 			Action<int, int> reportProgress,
 			CancellationToken cancellationToken)
 		{
-			if (payload?.Textures == null || payload.Textures.Length == 0 || sourceTextureData == null) {
+			if (textures == null || textures.Length == 0 || sourceTextureData == null) {
 				return null;
 			}
 
@@ -109,11 +110,11 @@ namespace VisualPinball.Unity
 			long decodeCpuMs = 0;
 			long uploadMs = 0;
 			long firstGpuItemMs = 0;
-			var normalIds = CollectNormalTextureIds(payload);
+			normalIds ??= new HashSet<string>(StringComparer.Ordinal);
 
 			// Plan pass: image headers only. Determines final dimensions, formats, mip counts and
 			// blob offsets up front so workers can write into disjoint ranges without coordination.
-			var plan = BuildPlan(payload.Textures, sourceTextureData, normalIds, out var cookedSize);
+			var plan = BuildPlan(textures, sourceTextureData, normalIds, out var cookedSize);
 			if (plan.Count == 0) {
 				return null;
 			}
@@ -382,7 +383,7 @@ namespace VisualPinball.Unity
 
 			cookStopwatch.Stop();
 			var manifest = new VpeTextureCache.Manifest {
-				Textures = BuildManifestTextures(payload.Textures, plan),
+				Textures = BuildManifestTextures(textures, plan),
 				AgPackedNormalIds = CollectCookedNormalIds(plan),
 			};
 			Logger.Info(
@@ -394,31 +395,40 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
-		/// Swaps the payload's texture entries for their cooked counterparts and flips normal-map
-		/// refs whose payload is AG-packed to dxt5nm packing, so the resolver uses them as-is.
+		/// Swaps the internal texture entries for their cooked counterparts (GPU-ready payloads
+		/// pointing into the cooked blob).
 		/// </summary>
-		public static void ApplyCookedTextures(VpeMaterialsPayloadV1 payload, VpeTextureCache.Manifest manifest)
+		public static VpeTexturePayload[] ReplaceEntries(VpeTexturePayload[] entries, VpeTextureCache.Manifest manifest)
 		{
-			if (payload?.Textures == null || manifest?.Textures == null) {
-				return;
+			if (entries == null || manifest?.Textures == null) {
+				return entries;
 			}
 
-			var cookedById = new Dictionary<string, VpeTextureAssetV1>(StringComparer.Ordinal);
+			var cookedById = new Dictionary<string, VpeTexturePayload>(StringComparer.Ordinal);
 			foreach (var cooked in manifest.Textures) {
 				if (cooked != null && !string.IsNullOrEmpty(cooked.Id)) {
 					cookedById[cooked.Id] = cooked;
 				}
 			}
 
-			for (var i = 0; i < payload.Textures.Length; i++) {
-				var asset = payload.Textures[i];
+			var result = (VpeTexturePayload[])entries.Clone();
+			for (var i = 0; i < result.Length; i++) {
+				var asset = result[i];
 				if (asset != null && !string.IsNullOrEmpty(asset.Id) && cookedById.TryGetValue(asset.Id, out var cooked)) {
-					payload.Textures[i] = cooked;
+					result[i] = cooked;
 				}
 			}
+			return result;
+		}
 
-			var agPacked = new HashSet<string>(manifest.AgPackedNormalIds ?? Array.Empty<string>(), StringComparer.Ordinal);
-			if (agPacked.Count == 0 || payload.Profiles == null) {
+		/// <summary>
+		/// Flips normal-map refs whose cooked payload is AG-packed to dxt5nm packing, so the
+		/// resolver uses them as-is instead of re-packing.
+		/// </summary>
+		public static void RewriteNormalRefs(VpeMaterialsPayload payload, VpeTextureCache.Manifest manifest)
+		{
+			var agPacked = new HashSet<string>(manifest?.AgPackedNormalIds ?? Array.Empty<string>(), StringComparer.Ordinal);
+			if (agPacked.Count == 0 || payload?.Profiles == null) {
 				return;
 			}
 			foreach (var profile in payload.Profiles) {
@@ -427,7 +437,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private static void RewriteNormalRef(VpeNormalMapRefV1 normalMap, HashSet<string> agPackedIds)
+		private static void RewriteNormalRef(VpeNormalMapRef normalMap, HashSet<string> agPackedIds)
 		{
 			if (normalMap != null && !string.IsNullOrEmpty(normalMap.TextureId) && agPackedIds.Contains(normalMap.TextureId)) {
 				normalMap.Packing = VpeNormalPackings.Dxt5nm;
@@ -439,10 +449,10 @@ namespace VisualPinball.Unity
 		/// Ids of all textures referenced as normal maps by the payload's profiles. Used by the
 		/// cook (AG repack) and by the editor importer (normal-map import settings).
 		/// </summary>
-		public static HashSet<string> CollectNormalTextureIds(VpeMaterialsPayloadV1 payload)
+		public static HashSet<string> CollectNormalTextureIds(VpeMaterialsPayload payload)
 		{
 			var ids = new HashSet<string>(StringComparer.Ordinal);
-			if (payload.Profiles == null) {
+			if (payload?.Profiles == null) {
 				return ids;
 			}
 			foreach (var profile in payload.Profiles) {
@@ -459,7 +469,7 @@ namespace VisualPinball.Unity
 		}
 
 		private static List<CookPlanItem> BuildPlan(
-			VpeTextureAssetV1[] assets,
+			VpeTexturePayload[] assets,
 			byte[] sourceData,
 			HashSet<string> normalIds,
 			out long cookedSize)
@@ -492,7 +502,7 @@ namespace VisualPinball.Unity
 				}
 
 				if (alreadyRaw || header == null || header.Value.Width <= 0 || header.Value.Height <= 0) {
-					// Raw legacy payloads and undecodable entries travel into the cache verbatim;
+					// Undecodable entries travel into the cache verbatim;
 					// the reader handles them exactly as it would from the package.
 					item.Passthrough = true;
 					cooked.ByteOffset = checked((int)cookedSize);
@@ -678,19 +688,19 @@ namespace VisualPinball.Unity
 			return count;
 		}
 
-		private static VpeTextureAssetV1 CloneAsset(VpeTextureAssetV1 asset)
+		private static VpeTexturePayload CloneAsset(VpeTexturePayload asset)
 		{
-			return PackageApi.Packer.Unpack<VpeTextureAssetV1>(PackageApi.Packer.Pack(asset));
+			return PackageApi.Packer.Unpack<VpeTexturePayload>(PackageApi.Packer.Pack(asset));
 		}
 
-		private static VpeTextureAssetV1[] BuildManifestTextures(VpeTextureAssetV1[] assets, List<CookPlanItem> plan)
+		private static VpeTexturePayload[] BuildManifestTextures(VpeTexturePayload[] assets, List<CookPlanItem> plan)
 		{
-			var byId = new Dictionary<string, VpeTextureAssetV1>(StringComparer.Ordinal);
+			var byId = new Dictionary<string, VpeTexturePayload>(StringComparer.Ordinal);
 			foreach (var item in plan) {
 				byId[item.Source.Id] = item.Cooked;
 			}
 
-			var result = new List<VpeTextureAssetV1>(plan.Count);
+			var result = new List<VpeTexturePayload>(plan.Count);
 			foreach (var asset in assets) {
 				if (asset != null && !string.IsNullOrEmpty(asset.Id) && byId.TryGetValue(asset.Id, out var cooked)) {
 					result.Add(cooked);

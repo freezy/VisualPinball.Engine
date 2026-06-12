@@ -20,9 +20,10 @@ namespace VisualPinball.Unity
 {
 	// The contract between a .vpe reader (portable) and the Player app (pipeline-specific).
 	//
-	// A resolver turns a VpeMaterialProfileV1 + its textures into a live Unity Material rendered by
+	// A resolver turns a VpeMaterialProfile + its textures into a live Unity Material rendered by
 	// whatever shader the Player owns at its own build time. This is the only place HDRP/URP/custom
-	// SRP specifics are allowed to appear on the reader side.
+	// SRP specifics are allowed to appear on the reader side. Resolvers always see schema v2;
+	// legacy v1 payloads are upgraded before they reach the resolver.
 	//
 	// Registration is static because RuntimePackageReader is a plain class instantiated by gameplay
 	// code; the Player registers its resolver once at bootstrap (a MonoBehaviour on the player scene
@@ -37,7 +38,7 @@ namespace VisualPinball.Unity
 		// that the glTF import produced on the renderer slot; resolvers may sample it for fallback
 		// values but should not return it directly (the whole point is to replace it).
 		// Return null if the resolver cannot produce a material for this profile.
-		Material CreateMaterial(VpeMaterialProfileV1 profile, IVpeTextureProvider textures, Material importedMaterial);
+		Material CreateMaterial(VpeMaterialProfile profile, IVpeTextureProvider textures, Material importedMaterial);
 	}
 
 	public interface IVpeTextureProvider

@@ -14,39 +14,42 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
-	// Editor-side extension point for rebuilding authoring materials from the vpe.material v1
-	// payload during .vpe import. Pipeline packages (HDRP/URP) register an implementation at
-	// editor load time; the package reader feeds it the imported texture assets.
-	public interface IVpeMaterialV1EditorImporter
+	// Editor-side extension point for rebuilding authoring materials from the packaged material
+	// payload (schema v2) during .vpe import. Pipeline packages (HDRP/URP) register an
+	// implementation at editor load time; the package reader feeds it the imported texture assets.
+	public interface IVpeMaterialEditorImporter
 	{
 		/// <summary>
 		/// Builds materials from the payload's profiles, saves them as assets under
 		/// <paramref name="materialAssetFolder"/> (project-relative, e.g.
 		/// "Assets/Resources/Table/Materials") and assigns them to matching renderers under
-		/// <paramref name="tableRoot"/>. Also applies the payload's renderer states.
+		/// <paramref name="tableRoot"/>. Also applies the payload's renderer states, resolving
+		/// node ids through <paramref name="resolveNode"/> (null for legacy packages).
 		/// </summary>
 		/// <returns>Number of material slots that received a rebuilt material.</returns>
 		int Apply(
 			Transform tableRoot,
-			VpeMaterialsPayloadV1 payload,
+			VpeMaterialsPayload payload,
 			IReadOnlyDictionary<string, Texture2D> texturesById,
-			string materialAssetFolder);
+			string materialAssetFolder,
+			Func<string, Transform> resolveNode);
 	}
 
-	public static class VpeMaterialV1EditorImport
+	public static class VpeMaterialEditorImport
 	{
-		private static IVpeMaterialV1EditorImporter _active;
+		private static IVpeMaterialEditorImporter _active;
 
-		public static void Register(IVpeMaterialV1EditorImporter importer)
+		public static void Register(IVpeMaterialEditorImporter importer)
 		{
 			_active = importer;
 		}
 
-		public static IVpeMaterialV1EditorImporter Active => _active;
+		public static IVpeMaterialEditorImporter Active => _active;
 	}
 }

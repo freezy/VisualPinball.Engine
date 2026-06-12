@@ -34,7 +34,6 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _metadataProperty;
 		private bool _packageFoldout;
 		private bool _runtimeCompressSideChannelTextures = true;
-		private bool _compressGltfTextures = true;
 		private bool _runtimeCompressNormalMaps = true;
 		private string _screenshotHdriPath;
 		private Cubemap _screenshotHdri;
@@ -42,8 +41,6 @@ namespace VisualPinball.Unity.Editor
 
 		private const string RuntimeCompressSideChannelTexturesKey =
 			"VisualPinball.Unity.Editor.TableInspector.RuntimeCompressSideChannelTextures";
-		private const string CompressGltfTexturesKey =
-			"VisualPinball.Unity.Editor.TableInspector.CompressGltfTextures";
 		private const string RuntimeCompressNormalMapsKey =
 			"VisualPinball.Unity.Editor.TableInspector.RuntimeCompressNormalMaps";
 		private const string ScreenshotHdriPathKey =
@@ -58,7 +55,6 @@ namespace VisualPinball.Unity.Editor
 			_globalDifficultyProperty = serializedObject.FindProperty(nameof(TableComponent.GlobalDifficulty));
 			_metadataProperty = serializedObject.FindProperty(nameof(TableComponent.Metadata));
 			_runtimeCompressSideChannelTextures = EditorPrefs.GetBool(RuntimeCompressSideChannelTexturesKey, true);
-			_compressGltfTextures = EditorPrefs.GetBool(CompressGltfTexturesKey, true);
 			_runtimeCompressNormalMaps = EditorPrefs.GetBool(RuntimeCompressNormalMapsKey, true);
 			_screenshotHdriPath = EditorPrefs.GetString(ScreenshotHdriPathKey, PackageScreenshotGenerator.DefaultHdriAssetPath);
 			_screenshotHdri = AssetDatabase.LoadAssetAtPath<Cubemap>(_screenshotHdriPath);
@@ -110,13 +106,6 @@ namespace VisualPinball.Unity.Editor
 					_runtimeCompressSideChannelTextures);
 				if (EditorGUI.EndChangeCheck()) {
 					EditorPrefs.SetBool(RuntimeCompressSideChannelTexturesKey, _runtimeCompressSideChannelTextures);
-				}
-				EditorGUI.BeginChangeCheck();
-				_compressGltfTextures = EditorGUILayout.ToggleLeft(
-					"Compress glTF textures",
-					_compressGltfTextures);
-				if (EditorGUI.EndChangeCheck()) {
-					EditorPrefs.SetBool(CompressGltfTexturesKey, _compressGltfTextures);
 				}
 				EditorGUI.BeginChangeCheck();
 				_runtimeCompressNormalMaps = EditorGUILayout.ToggleLeft(
@@ -177,7 +166,6 @@ namespace VisualPinball.Unity.Editor
 						var writer = new PackageWriter(
 							tableComponent.gameObject,
 							_runtimeCompressSideChannelTextures,
-							_compressGltfTextures,
 							_runtimeCompressNormalMaps,
 							@"Assets/Screenshots");
 						writer.WritePackageSync(path);

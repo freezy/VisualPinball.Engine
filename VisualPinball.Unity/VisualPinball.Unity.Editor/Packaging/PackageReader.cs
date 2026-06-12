@@ -1,4 +1,4 @@
-﻿// Visual Pinball Engine
+// Visual Pinball Engine
 // Copyright (C) 2023 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using NLog;
 using UnityEditor;
@@ -36,8 +37,12 @@ namespace VisualPinball.Unity.Editor
 		private string _assetPath;
 		private string _tableName;
 		private GameObject _table;
+		private Transform _tableRoot;
+		private VpePackageManifest _manifest;
+		private Dictionary<string, Transform> _transformByNodeId;
 		private PackagedRefs _refs;
 		private PackagedFiles _files;
+		private readonly HashSet<string> _unknownTypeNames = new(StringComparer.Ordinal);
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		public PackageReader(string vpePath)
@@ -56,8 +61,10 @@ namespace VisualPinball.Unity.Editor
 				Setup(storage);
 				await ImportModels();
 
-				_refs = new PackagedRefs(_table.transform);
+				_refs = new PackagedRefs(_tableRoot);
+				_refs.SetNodeIdsForRead(_transformByNodeId);
 				_files = new PackagedFiles(_tableFolder, _refs);
+				WarnMissingComponentTypes();
 
 				await ReadAssets();
 
@@ -80,11 +87,12 @@ namespace VisualPinball.Unity.Editor
 				ReadPackables(PackageApi.ItemReferencesFolder, null, (item, type, stream, _) => {
 					// add the component and unpack it.
 					var comp = item.gameObject.GetComponent(type) as IPackable;
-					comp?.UnpackReferences(stream.GetData(), _table.transform, _refs, _files);
+					comp?.UnpackReferences(stream.GetData(), _tableRoot, _refs, _files);
 				});
 
 				ReadGlobals();
 				ReadTableMetadata();
+				RestoreLights();
 				ImportMaterials();
 
 			} finally {
@@ -94,9 +102,10 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		/// <summary>
-		/// Imports only the GLB and rebuilds materials from the v1 payload, skipping the item,
-		/// reference, global and collider-mesh restore. Useful for exercising the material/texture
-		/// reconstruction path on packages whose full item restore is slow or problematic.
+		/// Imports only the GLB and rebuilds materials from the packaged payload, skipping the
+		/// item, reference, global and collider-mesh restore. Useful for exercising the
+		/// material/texture reconstruction path on packages whose full item restore is slow or
+		/// problematic.
 		/// </summary>
 		public async Task ImportMaterialsOnly(string tableName)
 		{
@@ -107,6 +116,7 @@ namespace VisualPinball.Unity.Editor
 			try {
 				Setup(storage);
 				await ImportModels();
+				RestoreLights();
 				ImportMaterials();
 			} finally {
 				storage.Close();
@@ -114,56 +124,63 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		// Rebuilds authoring materials from the v1 payload: writes the package's lossless source
-		// texture bytes as real texture assets (with importer settings restored from the payload)
-		// and hands material construction to the registered pipeline importer.
+		private void WarnMissingComponentTypes()
+		{
+			if (_manifest?.ComponentTypes == null || _manifest.ComponentTypes.Count == 0) {
+				return;
+			}
+			var missing = _manifest.ComponentTypes
+				.Where(name => !string.IsNullOrEmpty(name) && !_refs.TryGetType(name, out _))
+				.ToList();
+			if (missing.Count > 0) {
+				Logger.Warn(
+					$"This package uses component types that are not registered in this project: {string.Join(", ", missing)}. " +
+					"Their data will be skipped — a plugin may be missing.");
+			}
+		}
+
+		// Restores the authored light state. The glTF export boosts intensities by
+		// LightIntensityFactor; without normalization plus the lights payload, an exported and
+		// re-imported table would come back with blown-out lights.
+		private void RestoreLights()
+		{
+			VpeLightRestore.NormalizeImportedLightIntensities(_tableRoot.gameObject);
+			VpeLightRestore.RestoreLightProfiles(_tableRoot.gameObject, _tableFolder,
+				id => _transformByNodeId.GetValueOrDefault(id));
+		}
+
+		// Rebuilds authoring materials from the packaged payload: writes the package's lossless
+		// source texture bytes as real texture assets (with importer settings restored from the
+		// payload) and hands material construction to the registered pipeline importer.
 		private void ImportMaterials()
 		{
-			if (!_tableFolder.TryGetFolder(PackageApi.MetaFolder, out var metaFolder)) {
-				return;
-			}
-			if (!metaFolder.TryGetFile(PackageApi.MaterialsV1File, out var payloadFile, PackageApi.Packer.FileExtension)) {
+			if (!VpeMaterialReader.TryLoad(_tableFolder, loadSourceBytes: true, out var payload, out var sources)) {
 				return;
 			}
 
-			var importer = VpeMaterialV1EditorImport.Active;
+			var importer = VpeMaterialEditorImport.Active;
 			if (importer == null) {
-				Logger.Warn("No IVpeMaterialV1EditorImporter registered; imported table keeps glTF materials without textures.");
+				Logger.Warn("No IVpeMaterialEditorImporter registered; imported table keeps glTF materials without textures.");
 				return;
 			}
 
-			VpeMaterialsPayloadV1 payload;
-			try {
-				payload = PackageApi.Packer.Unpack<VpeMaterialsPayloadV1>(payloadFile.GetData());
-			} catch (Exception e) {
-				Logger.Warn(e, "Failed parsing materials.v1 payload during editor import.");
-				return;
-			}
-			if (payload?.Textures == null || payload.Profiles == null) {
-				return;
-			}
-
-			byte[] packedTextureData = null;
-			if (metaFolder.TryGetFile(PackageApi.TexturesV1PackFile, out var packedTexturesFile)) {
-				packedTextureData = packedTexturesFile.GetData();
-			}
-
-			Logger.Info($"Editor import: writing {payload.Textures.Length} source texture(s) as assets...");
-			var texturesById = ImportTextureAssets(payload, packedTextureData);
+			Logger.Info($"Editor import: writing {sources.Entries.Length} source texture(s) as assets...");
+			var texturesById = ImportTextureAssets(payload, sources);
 
 			var materialFolder = Path.Combine(_assetPath, "Materials");
 			Directory.CreateDirectory(materialFolder);
 			var materialAssetFolder = Path.GetRelativePath(Path.Combine(Application.dataPath, ".."), materialFolder).Replace('\\', '/');
 
 			Logger.Info($"Editor import: rebuilding materials for {payload.Profiles.Length} profile(s)...");
-			var applied = importer.Apply(_table.transform, payload, texturesById, materialAssetFolder);
-			Logger.Info($"Editor import rebuilt materials for {applied} slot(s) from materials.v1.");
+			var applied = importer.Apply(_tableRoot, payload, texturesById, materialAssetFolder,
+				id => _transformByNodeId.GetValueOrDefault(id));
+			Logger.Info($"Editor import rebuilt materials for {applied} slot(s) from the materials payload.");
 		}
 
-		private Dictionary<string, Texture2D> ImportTextureAssets(VpeMaterialsPayloadV1 payload, byte[] packedTextureData)
+		private Dictionary<string, Texture2D> ImportTextureAssets(VpeMaterialsPayload payload, VpeTextureSources.Result sources)
 		{
 			var texturesById = new Dictionary<string, Texture2D>(StringComparer.Ordinal);
-			if (packedTextureData == null) {
+			if (sources.Blob == null || sources.Entries.Length == 0) {
 				return texturesById;
 			}
 
@@ -177,16 +194,10 @@ namespace VisualPinball.Unity.Editor
 			var assetPathsById = new Dictionary<string, string>(StringComparer.Ordinal);
 			try {
 				AssetDatabase.StartAssetEditing();
-				foreach (var asset in payload.Textures) {
+				foreach (var asset in sources.Entries) {
 					if (asset == null || string.IsNullOrEmpty(asset.Id)
 						|| asset.ByteOffset < 0 || asset.ByteLength <= 0
-						|| asset.ByteOffset + (long)asset.ByteLength > packedTextureData.Length) {
-						continue;
-					}
-					if (!string.IsNullOrEmpty(asset.PixelFormat)) {
-						// Raw GPU payloads (legacy cooked packages) have no lossless source to
-						// reconstruct an asset from.
-						Logger.Warn($"Texture '{asset.Id}' is a raw GPU payload; skipping asset reconstruction.");
+						|| asset.ByteOffset + (long)asset.ByteLength > sources.Blob.Length) {
 						continue;
 					}
 
@@ -194,7 +205,7 @@ namespace VisualPinball.Unity.Editor
 					var fileName = SanitizeFileName(asset.Id) + extension;
 					var fullPath = Path.Combine(textureFolder, fileName);
 					using (var file = new FileStream(fullPath, FileMode.Create, FileAccess.Write)) {
-						file.Write(packedTextureData, asset.ByteOffset, asset.ByteLength);
+						file.Write(sources.Blob, asset.ByteOffset, asset.ByteLength);
 					}
 					var assetPath = Path.GetRelativePath(projectRoot, fullPath).Replace('\\', '/');
 					assetPathsById[asset.Id] = assetPath;
@@ -230,6 +241,18 @@ namespace VisualPinball.Unity.Editor
 
 		private void Setup(IPackageStorage storage)
 		{
+			_manifest = VpePackageManifestIo.TryRead(storage);
+			if (_manifest == null) {
+				throw new Exception(
+					"This file has no package manifest — it is not a .vpe table package (or was written by an " +
+					"incompatible pre-release version of VPE).");
+			}
+			if (_manifest.FormatVersion > PackageApi.FormatVersion) {
+				throw new Exception(
+					$"This package uses format version {_manifest.FormatVersion}, but this VPE version only supports " +
+					$"up to version {PackageApi.FormatVersion}. Update VPE to import it.");
+			}
+
 			// open storages
 			_tableFolder = storage.GetFolder(PackageApi.TableFolder);
 			_assetPath = Path.Combine(Application.dataPath, "Resources", _tableName);
@@ -242,14 +265,19 @@ namespace VisualPinball.Unity.Editor
 
 		private async Task ImportModels()
 		{
+			var sceneFile = _tableFolder.GetFile(PackageApi.SceneFile);
+			var sceneData = sceneFile.GetData();
+			if (sceneData == null || sceneData.Length == 0) {
+				throw new Exception($"Scene data file '{PackageApi.SceneFile}' is missing or empty.");
+			}
+
 			var glbPath = Path.Combine(_assetPath, $"{_tableName}.glb");
 			try {
 				AssetDatabase.StartAssetEditing();
 
 				// dump glb
-				var sceneFile = _tableFolder.GetFile(PackageApi.SceneFile);
 				await using var glbFileFile = new FileStream(glbPath, FileMode.Create, FileAccess.Write);
-				await sceneFile.AsStream().CopyToAsync(glbFileFile);
+				await glbFileFile.WriteAsync(sceneData, 0, sceneData.Length);
 
 			} finally {
 				// resume asset database refreshing
@@ -270,6 +298,27 @@ namespace VisualPinball.Unity.Editor
 			_table.transform.SetParent(null);
 			PrefabUtility.UnpackPrefabInstance(_table, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
 			EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene()); // mark the active scene as dirty so that the changes are saved.
+
+			BindNodeIds(sceneData);
+		}
+
+		// Binds the package's stable node ids (glTF extras) to the instantiated prefab hierarchy.
+		// The asset pipeline gives no node-index hook, so the binding walks both trees by
+		// structure and (de-duplicated) name — see VpeNodeIds.BindInstantiated.
+		private void BindNodeIds(byte[] sceneData)
+		{
+			var nodeTree = VpeNodeIds.TryParse(sceneData);
+			if (nodeTree?.Root == null || nodeTree.Nodes.All(node => string.IsNullOrEmpty(node.VpeId))) {
+				throw new Exception("This package carries no node ids in its scene GLB; cannot import.");
+			}
+
+			_transformByNodeId = VpeNodeIds.BindInstantiated(nodeTree, _table.transform);
+			if (string.IsNullOrEmpty(_manifest.RootNodeId)
+				|| !_transformByNodeId.TryGetValue(_manifest.RootNodeId, out _tableRoot)
+				|| !_tableRoot) {
+				throw new Exception("Could not resolve the manifest's root node id in the imported scene.");
+			}
+			Logger.Info($"Bound {_transformByNodeId.Count} node id(s) to the imported hierarchy.");
 		}
 
 		private async Task ReadAssets()
@@ -279,6 +328,11 @@ namespace VisualPinball.Unity.Editor
 			_files.UnpackSounds(_assetPath);
 		}
 
+		private Transform ResolveItemNode(string itemFolderName)
+		{
+			return _refs.GetNode(itemFolderName);
+		}
+
 		/// <summary>
 		/// Loops through all items and components in the package, and applies the given action.
 		/// The item action is executed before the component action.
@@ -286,30 +340,39 @@ namespace VisualPinball.Unity.Editor
 		/// <param name="rootFolder">Which root folder of the package to start with</param>
 		/// <param name="itemAction">Action to execute on the item</param>
 		/// <param name="componentAction">Action to execute on the component</param>
-		/// <exception cref="Exception">When there are folder paths in the package that don't correspond to the instantiated scene.</exception>
+		/// <exception cref="Exception">When there are item nodes in the package that don't correspond to the instantiated scene.</exception>
 		private void ReadPackables(string rootFolder, Action<GameObject, IPackageFile> itemAction, Action<Transform, Type, IPackageFile, int> componentAction) {
 
-			var itemsFolder = _tableFolder.GetFolder(rootFolder);
+			if (!_tableFolder.TryGetFolder(rootFolder, out var itemsFolder)) {
+				return;
+			}
 
-			// -> rootFolder <- / 0.0.0 / CompType / 0
+			// -> rootFolder <- / nodeId / CompType / 0
 			itemsFolder.VisitFolders(itemFolder => {
 
-				// rootFolder / -> 0.0.0 <- / CompType / 0
-				var item = _table.transform.FindByPath(itemFolder.Name);
+				// rootFolder / -> nodeId <- / CompType / 0
+				var item = ResolveItemNode(itemFolder.Name);
 				if (item == null) {
-					throw new Exception($"Cannot find item at path {itemFolder.Name} on node {_table.name}");
+					throw new Exception($"Cannot find item '{itemFolder.Name}' on node {_table.name}.");
 				}
 				if (itemAction != null && itemFolder.TryGetFile(PackageApi.ItemFile, out var itemFile, PackageApi.Packer.FileExtension)) {
 					itemAction(item.gameObject, itemFile);
 				}
 				itemFolder.VisitFolders(typeFolder => {
 
-					// rootFolder / 0.0.0 / -> CompType <- / 0
-					var t = _refs.GetType(typeFolder.Name);
+					// rootFolder / nodeId / -> CompType <- / 0
+					if (!_refs.TryGetType(typeFolder.Name, out var t)) {
+						// Forward compatibility: data of unknown component types (newer VPE,
+						// missing plugin) is skipped instead of failing the whole import.
+						if (_unknownTypeNames.Add(typeFolder.Name)) {
+							Logger.Error($"Skipping unknown component type '{typeFolder.Name}' while reading the package. A plugin may be missing.");
+						}
+						return;
+					}
 					var index = 0;
 					typeFolder.VisitFiles(compFile => {
 
-						// rootFolder / 0.0.0 / CompType / -> 0 <- (there might be multiple components of the same type)
+						// rootFolder / nodeId / CompType / -> 0 <- (there might be multiple components of the same type)
 						componentAction(item, t, compFile, index++);
 					});
 				});
@@ -318,7 +381,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void ReadGlobals()
 		{
-			var tableComponent = _table.GetComponent<TableComponent>();
+			var tableComponent = _tableRoot.GetComponent<TableComponent>();
 			if (!tableComponent) {
 				throw new Exception("Cannot find table component on table object.");
 			}
@@ -330,22 +393,22 @@ namespace VisualPinball.Unity.Editor
 				Wires = PackageApi.Packer.Unpack<List<WireMapping>>(globalStorage.GetFile(PackageApi.WiresFile, PackageApi.Packer.FileExtension).GetData()),
 			};
 			foreach (var sw in tableComponent.MappingConfig.Switches) {
-				sw.RestoreReference(_table.transform);
+				sw.RestoreReference(_refs);
 			}
 			foreach (var coil in tableComponent.MappingConfig.Coils) {
-				coil.RestoreReference(_table.transform);
+				coil.RestoreReference(_refs);
 			}
 			foreach (var lamp in tableComponent.MappingConfig.Lamps) {
-				lamp.RestoreReference(_table.transform);
+				lamp.RestoreReference(_refs);
 			}
 			foreach (var wire in tableComponent.MappingConfig.Wires) {
-				wire.RestoreReferences(_table.transform);
+				wire.RestoreReferences(_refs);
 			}
 		}
 
 		private void ReadTableMetadata()
 		{
-			var tableComponent = _table.GetComponent<TableComponent>();
+			var tableComponent = _tableRoot.GetComponent<TableComponent>();
 			if (!tableComponent) {
 				throw new Exception("Cannot find table component on table object.");
 			}

@@ -241,6 +241,10 @@ namespace VisualPinball.Unity
 			return null;
 		}
 
+		/// <summary>PackAs names of all asset types written by PackAssets, for the manifest.</summary>
+		public IReadOnlyCollection<string> UsedAssetTypeNames => _usedAssetTypeNames;
+		private readonly HashSet<string> _usedAssetTypeNames = new();
+
 		public void PackAssets()
 		{
 			if (_scriptableObjects.Count == 0) {
@@ -249,6 +253,7 @@ namespace VisualPinball.Unity
 			var assetFolder = _tableFolder.AddFolder(PackageApi.AssetFolder);
 			foreach (var so in _scriptableObjects) {
 				var subFolder = _typeLookup.GetName(so.GetType());
+				_usedAssetTypeNames.Add(subFolder);
 				if (!assetFolder.TryGetFolder(subFolder, out var assetTypeFolder)) {
 					assetTypeFolder = assetFolder.AddFolder(subFolder);
 				}
@@ -382,9 +387,21 @@ namespace VisualPinball.Unity
 			using var readStream = File.OpenRead(path);
 			readStream.CopyTo(writeStream);
 
-			_soundMeta.Add(filename, new SoundMetaPackable {
+			var meta = new SoundMetaPackable {
 				Guid = guid
-			});
+			};
+			// Capture the clip's import intent so editor re-import restores it instead of
+			// falling back to Unity's defaults.
+			if (AssetImporter.GetAtPath(path) is AudioImporter audioImporter) {
+				var sampleSettings = audioImporter.defaultSampleSettings;
+				meta.ForceToMono = audioImporter.forceToMono;
+				meta.Ambisonic = audioImporter.ambisonic;
+				meta.LoadInBackground = audioImporter.loadInBackground;
+				meta.LoadType = sampleSettings.loadType.ToString();
+				meta.CompressionFormat = sampleSettings.compressionFormat.ToString();
+				meta.Quality = sampleSettings.quality;
+			}
+			_soundMeta.Add(filename, meta);
 
 			return guid;
 		}
@@ -403,6 +420,9 @@ namespace VisualPinball.Unity
 			Logger.Error($"Could not find loaded AudioClip with GUID {guid}");
 			return null;
 		}
+
+		/// <summary>Whether any sounds were packed, for the manifest.</summary>
+		public bool HasSounds => _soundMeta.Count > 0;
 
 		public void PackSoundMetas()
 		{
@@ -450,11 +470,14 @@ namespace VisualPinball.Unity
 						if (!Directory.Exists(folder)) {
 							Directory.CreateDirectory(folder);
 						}
-						path = Path.Combine(folder, soundFile.Name);
+						// GetFileName guards against hostile entry names escaping the import folder.
+						path = Path.Combine(folder, Path.GetFileName(soundFile.Name));
 						using var readStream = soundFile.AsStream();
 						using var writeStream = new FileStream(path, FileMode.Create, FileAccess.Write);
 						readStream.CopyTo(writeStream);
-						dumpedSounds.Add(meta.Guid, Path.GetRelativePath(Path.Combine(Application.dataPath, ".."), path));
+						var relativePath = Path.GetRelativePath(Path.Combine(Application.dataPath, ".."), path);
+						VpeSoundImportPreprocessor.Register(relativePath.Replace('\\', '/'), meta);
+						dumpedSounds.Add(meta.Guid, relativePath);
 					} else {
 						Logger.Error($"Cannot find meta data for sound file {soundFile.Name}");
 					}
@@ -464,6 +487,7 @@ namespace VisualPinball.Unity
 				// resume asset database refreshing
 				AssetDatabase.StopAssetEditing();
 				AssetDatabase.Refresh();
+				VpeSoundImportPreprocessor.Clear();
 			}
 
 			// load dumped sounds
