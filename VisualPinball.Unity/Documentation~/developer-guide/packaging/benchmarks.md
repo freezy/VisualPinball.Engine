@@ -14,7 +14,8 @@ The table below is the short version.
 
 | Experiment | Status | Recommendation | Main result |
 | --- | --- | --- | --- |
-| Cooked GPU textures (BC7/DXT5, mips baked, no GLB images) | Validated and merged (June 2026) | Shipping format | Terminator 2 import: ~23.3s → ~1.7-2.2s in-editor |
+| Source textures + player-side GPU cook & cache | Validated and merged (June 2026) | Shipping architecture | T2: first load ~9.5s, cached ~1.1s; package lossless at 477 MB |
+| Cooked GPU textures embedded in the package | Superseded | Replaced by the player-side cook | Proved the BC7/no-decode path (~1.7-2.2s) but broke losslessness and grew packages to 689 MB |
 | Packed `textures.bin` sidecar | Validated and merged | Keep | Better package shape for runtime loading |
 | GPU HDRP normal repack | Validated and merged | Keep | Removed a major normal-repack hotspot |
 | Skip mip generation for heavy linear side textures | Validated and merged | Keep | Small but measurable runtime win |
@@ -26,31 +27,42 @@ The table below is the short version.
 | KTX2 / `KHR_texture_basisu` for GLB normals | Tested and invalidated for startup speed | Do not prioritize for load time | Smaller package, slower load |
 | Persistent raw runtime texture cache | Tested and invalidated | Do not revive in the same form | Speedups came with corruption/crash risk |
 
-## Cooked GPU textures (shipping since June 2026)
+## Source textures + player-side GPU cook (shipping since June 2026)
 
-This implemented the "highest-value next step" below and went further: instead of compressing
-only the side-channel textures, **every** texture captured by the material translator is cooked
-at export into its final GPU format (BC7 for color/masks, DXT5 in HDRP AG packing for normals,
-mips baked) and the GLB ships without image payloads for captured materials. Runtime upload is
-`LoadRawTextureData` from the packed blob through a pinned pointer.
+The final architecture honors two hard format constraints — no Unity dependency, lossless
+editor re-import — while keeping the no-decode load path:
 
-Measured on Terminator 2 (editor play mode, full keyboard flow from the table carousel):
+- the `.vpe` carries **original asset file bytes** (PNG/JPEG, no re-encoding) for every
+  captured texture; `table.glb` carries no images for captured materials (9.8 MB vs 345.8 MB
+  on T2)
+- the **player cooks** the sources on first load: parallel decode (StbImageSharp on workers,
+  native `LoadImage` on the main thread for the few huge files), GPU mip generation, GPU BC7
+  encoding (DirectXTex compute shaders, MIT), AG normal repack — then persists a per-table
+  cache keyed by package size/mtime and cook settings
+- cached loads upload raw BC7 straight from the cache blob
 
-- baseline (PNG everywhere, 486 MB package): **23.3 s** total import
-  - `table.glb` (345.8 MB, 336 MB of PNGs): 10.5 s
-  - material restore: 10.9 s (3.0 s sidecar PNG decode, 4.7 s CPU normal repack + compress)
-- cooked format (689 MB package, `table.glb` 9.8 MB, `textures.bin` 640 MB raw BC): **1.7-2.2 s**
-  - `table.glb`: 0.4-0.7 s, material restore: 0.6-0.8 s (325 raw uploads ≈ 0.2 s)
+Measured on Terminator 2 (editor play mode):
 
-Supporting runtime work that landed with it: uninterrupted glTFast defer agent, worker-thread
-prefetch of `textures.bin`/`materials.v1.json` and of all item/ref entries, worker-thread GLB
-extension/tangent scans, a cached `PackagedRefs` type scan (was 450 ms per load), time-budget
-yields, and a ~160 MB-per-frame upload budget (without it, queueing all uploads in one frame
-crashed the editor with `DXGI_ERROR_DEVICE_HUNG`).
+- baseline (PNG everywhere, 486 MB package): **23.3 s** every load
+- source + cook (477 MB package): first load **9.5 s** (7.7 s cook), cached loads **1.1 s**
 
-The package grows (BC + mips beat PNG at load time, not on disk); stored — not deflated — zip
-entries for the texture blob and GLBs keep reads straight. Caveats and details live in the
-Packaging README ("Cooked Texture Format").
+An intermediate iteration embedded the cooked BC7 payload in the package itself (no cook at
+load, ~1.7-2.2 s every load) — it proved the decode-free path but was dropped: BC7-only
+packages are lossy one-way data (editor re-import degrades per generation) and 42% larger than
+the sources. The player-side cook keeps the speed while the package stays lossless, and lets
+users choose cook quality/resolution locally (see `VpeTextureCookSettings.ResolutionDivisor`).
+
+Supporting runtime work that landed with this: uninterrupted glTFast defer agent,
+worker-thread prefetch of the texture cache (or source blob) and `materials.v1.json`,
+worker-thread bulk-read of all item/ref entries, worker-thread GLB extension/tangent scans, a
+cached `PackagedRefs` type scan (was 450 ms per load), time-budget yields, and GPU work/upload
+budgets per frame (without them, queueing hundreds of MB of GPU work in one frame crashed the
+editor with `DXGI_ERROR_DEVICE_HUNG`).
+
+Editor re-import reconstructs texture *assets* from the source layer (normal-map type, sRGB,
+sampling and max-size restored) and rebuilds materials through the same `HdrpMaterialResolver`
+the player uses — restoring masks, thickness, transmission and refraction state the old
+GLB-based import silently dropped.
 
 ## Baseline context
 

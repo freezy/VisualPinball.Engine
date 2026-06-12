@@ -37,6 +37,8 @@
     <PackageReference Include="NetMiniZ.Native" Version="1.4.0" />
     <PackageReference Include="NetVips" Version="2.1.0" />
     <PackageReference Include="NetVips.Native" Version="8.12.2" />
+    <!-- Off-main-thread image decoding for the runtime texture cook. -->
+    <PackageReference Include="StbImageSharp" Version="2.30.15" />
     <!-- NativeInput is consumed exclusively through NuGet (not from a checked-out native source tree). -->
     <PackageReference Include="VisualPinball.NativeInput" Version="$(VisualPinballNativeInputVersion)" />
   </ItemGroup>
@@ -67,6 +69,7 @@
       <Plugins Include="$(OutDir)NetMiniZ.dll" />
       <Plugins Include="$(OutDir)NetVips.dll" />
       <Plugins Include="$(OutDir)ICSharpCode.SharpZipLib.dll" />
+      <Plugins Include="$(OutDir)StbImageSharp.dll" />
       <Plugins Include="$(OutDir)System.Buffers.dll" />
     </ItemGroup>
     <ItemGroup Condition="'$(RuntimeIdentifier)' == 'win-x64' Or '$(RuntimeIdentifier)' == 'win-x86' Or '$(RuntimeIdentifier)' == 'osx' Or '$(RuntimeIdentifier)' == 'linux-x64'">
