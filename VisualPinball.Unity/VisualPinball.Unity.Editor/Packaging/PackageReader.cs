@@ -85,11 +85,124 @@ namespace VisualPinball.Unity.Editor
 
 				ReadGlobals();
 				ReadTableMetadata();
+				ImportMaterials();
 
 			} finally {
 				storage.Close();
 				Logger.Info($"Scene import took {sw.ElapsedMilliseconds}ms.");
 			}
+		}
+
+		// Rebuilds authoring materials from the v1 payload: writes the package's lossless source
+		// texture bytes as real texture assets (with importer settings restored from the payload)
+		// and hands material construction to the registered pipeline importer.
+		private void ImportMaterials()
+		{
+			if (!_tableFolder.TryGetFolder(PackageApi.MetaFolder, out var metaFolder)) {
+				return;
+			}
+			if (!metaFolder.TryGetFile(PackageApi.MaterialsV1File, out var payloadFile, PackageApi.Packer.FileExtension)) {
+				return;
+			}
+
+			var importer = VpeMaterialV1EditorImport.Active;
+			if (importer == null) {
+				Logger.Warn("No IVpeMaterialV1EditorImporter registered; imported table keeps glTF materials without textures.");
+				return;
+			}
+
+			VpeMaterialsPayloadV1 payload;
+			try {
+				payload = PackageApi.Packer.Unpack<VpeMaterialsPayloadV1>(payloadFile.GetData());
+			} catch (Exception e) {
+				Logger.Warn(e, "Failed parsing materials.v1 payload during editor import.");
+				return;
+			}
+			if (payload?.Textures == null || payload.Profiles == null) {
+				return;
+			}
+
+			byte[] packedTextureData = null;
+			if (metaFolder.TryGetFile(PackageApi.TexturesV1PackFile, out var packedTexturesFile)) {
+				packedTextureData = packedTexturesFile.GetData();
+			}
+
+			var texturesById = ImportTextureAssets(payload, packedTextureData);
+
+			var materialFolder = Path.Combine(_assetPath, "Materials");
+			Directory.CreateDirectory(materialFolder);
+			var materialAssetFolder = Path.GetRelativePath(Path.Combine(Application.dataPath, ".."), materialFolder).Replace('\\', '/');
+
+			var applied = importer.Apply(_table.transform, payload, texturesById, materialAssetFolder);
+			Logger.Info($"Editor import rebuilt materials for {applied} slot(s) from materials.v1.");
+		}
+
+		private Dictionary<string, Texture2D> ImportTextureAssets(VpeMaterialsPayloadV1 payload, byte[] packedTextureData)
+		{
+			var texturesById = new Dictionary<string, Texture2D>(StringComparer.Ordinal);
+			if (packedTextureData == null) {
+				return texturesById;
+			}
+
+			var normalIds = VpeTextureCook.CollectNormalTextureIds(payload);
+			var textureFolder = Path.Combine(_assetPath, "Textures");
+			Directory.CreateDirectory(textureFolder);
+			var projectRoot = Path.Combine(Application.dataPath, "..");
+
+			// The preprocessor applies the payload's importer settings during the initial import,
+			// so each texture only runs through the (expensive) asset pipeline once.
+			var assetPathsById = new Dictionary<string, string>(StringComparer.Ordinal);
+			try {
+				AssetDatabase.StartAssetEditing();
+				foreach (var asset in payload.Textures) {
+					if (asset == null || string.IsNullOrEmpty(asset.Id)
+						|| asset.ByteOffset < 0 || asset.ByteLength <= 0
+						|| asset.ByteOffset + (long)asset.ByteLength > packedTextureData.Length) {
+						continue;
+					}
+					if (!string.IsNullOrEmpty(asset.PixelFormat)) {
+						// Raw GPU payloads (legacy cooked packages) have no lossless source to
+						// reconstruct an asset from.
+						Logger.Warn($"Texture '{asset.Id}' is a raw GPU payload; skipping asset reconstruction.");
+						continue;
+					}
+
+					var extension = string.Equals(asset.MimeType, "image/jpeg", StringComparison.OrdinalIgnoreCase) ? ".jpg" : ".png";
+					var fileName = SanitizeFileName(asset.Id) + extension;
+					var fullPath = Path.Combine(textureFolder, fileName);
+					using (var file = new FileStream(fullPath, FileMode.Create, FileAccess.Write)) {
+						file.Write(packedTextureData, asset.ByteOffset, asset.ByteLength);
+					}
+					var assetPath = Path.GetRelativePath(projectRoot, fullPath).Replace('\\', '/');
+					assetPathsById[asset.Id] = assetPath;
+					VpeTextureImportPreprocessor.Register(assetPath, asset, normalIds.Contains(asset.Id));
+				}
+			} finally {
+				AssetDatabase.StopAssetEditing();
+				AssetDatabase.Refresh();
+				VpeTextureImportPreprocessor.Clear();
+			}
+
+			foreach (var entry in assetPathsById) {
+				var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(entry.Value);
+				if (texture) {
+					texturesById[entry.Key] = texture;
+				}
+			}
+			Logger.Info($"Imported {texturesById.Count} texture asset(s) from the package's source layer.");
+			return texturesById;
+		}
+
+		private static string SanitizeFileName(string name)
+		{
+			var invalid = Path.GetInvalidFileNameChars();
+			var chars = name.ToCharArray();
+			for (var i = 0; i < chars.Length; i++) {
+				if (Array.IndexOf(invalid, chars[i]) >= 0) {
+					chars[i] = '_';
+				}
+			}
+			return new string(chars);
 		}
 
 		private void Setup(IPackageStorage storage)
