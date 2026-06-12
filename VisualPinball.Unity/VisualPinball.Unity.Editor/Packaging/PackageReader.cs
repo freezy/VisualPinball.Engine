@@ -93,6 +93,27 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		/// <summary>
+		/// Imports only the GLB and rebuilds materials from the v1 payload, skipping the item,
+		/// reference, global and collider-mesh restore. Useful for exercising the material/texture
+		/// reconstruction path on packages whose full item restore is slow or problematic.
+		/// </summary>
+		public async Task ImportMaterialsOnly(string tableName)
+		{
+			var sw = Stopwatch.StartNew();
+			_tableName = tableName;
+
+			using var storage = PackageApi.StorageManager.OpenStorage(_vpePath);
+			try {
+				Setup(storage);
+				await ImportModels();
+				ImportMaterials();
+			} finally {
+				storage.Close();
+				Logger.Info($"Materials-only import took {sw.ElapsedMilliseconds}ms.");
+			}
+		}
+
 		// Rebuilds authoring materials from the v1 payload: writes the package's lossless source
 		// texture bytes as real texture assets (with importer settings restored from the payload)
 		// and hands material construction to the registered pipeline importer.
@@ -127,12 +148,14 @@ namespace VisualPinball.Unity.Editor
 				packedTextureData = packedTexturesFile.GetData();
 			}
 
+			Logger.Info($"Editor import: writing {payload.Textures.Length} source texture(s) as assets...");
 			var texturesById = ImportTextureAssets(payload, packedTextureData);
 
 			var materialFolder = Path.Combine(_assetPath, "Materials");
 			Directory.CreateDirectory(materialFolder);
 			var materialAssetFolder = Path.GetRelativePath(Path.Combine(Application.dataPath, ".."), materialFolder).Replace('\\', '/');
 
+			Logger.Info($"Editor import: rebuilding materials for {payload.Profiles.Length} profile(s)...");
 			var applied = importer.Apply(_table.transform, payload, texturesById, materialAssetFolder);
 			Logger.Info($"Editor import rebuilt materials for {applied} slot(s) from materials.v1.");
 		}

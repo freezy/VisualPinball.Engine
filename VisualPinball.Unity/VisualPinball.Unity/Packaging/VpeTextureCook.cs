@@ -519,7 +519,8 @@ namespace VisualPinball.Unity
 
 				var mipCount = asset.GenerateMipMaps ? MipCountFor(width, height) : 1;
 				item.IsNormal = normalIds.Contains(asset.Id);
-				item.UseBc7 = width % 4 == 0 && height % 4 == 0 && width >= 4 && height >= 4;
+				item.UseBc7 = VpeTextureCookSettings.CompressTextures
+					&& width % 4 == 0 && height % 4 == 0 && width >= 4 && height >= 4;
 				item.MainThreadDecode = item.UseBc7 && asset.ByteLength >= MainThreadDecodeThresholdBytes;
 				item.MipWidths = new int[mipCount];
 				item.MipHeights = new int[mipCount];
