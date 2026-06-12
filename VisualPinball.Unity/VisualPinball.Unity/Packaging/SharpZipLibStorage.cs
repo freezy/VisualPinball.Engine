@@ -377,8 +377,30 @@ namespace VisualPinball.Unity.Editor
 			return zf.GetInputStream(_existingEntry);
 		}
 
-		public void SetData(byte[] data)
+		public void SetData(byte[] data, PackageCompression compression = PackageCompression.Default)
 		{
+			if (compression == PackageCompression.Stored) {
+				if (_existingEntry != null) {
+					throw new InvalidOperationException("Cannot write data to a file in read-only storage.");
+				}
+
+				// Stored entries skip deflate entirely; SharpZipLib requires size and crc up front.
+				var zos = _storage.GetZipOutputStream();
+				var fullPath = _parentFolder.GetFullPathForFile(Name);
+				var crc = new ICSharpCode.SharpZipLib.Checksum.Crc32();
+				crc.Update(data);
+				var entry = new ZipEntry(fullPath) {
+					DateTime = DateTime.Now,
+					CompressionMethod = CompressionMethod.Stored,
+					Size = data.Length,
+					Crc = crc.Value,
+				};
+				zos.PutNextEntry(entry);
+				zos.Write(data, 0, data.Length);
+				zos.CloseEntry();
+				return;
+			}
+
 			// A convenience: write the data to the Zip stream immediately
 			// then close the entry.
 			using var s = AsStream();

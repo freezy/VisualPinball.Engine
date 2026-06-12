@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using System.Threading.Tasks;
 using NLog;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -33,33 +34,47 @@ namespace VisualPinball.Unity
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static bool TryApply(IPackageFolder metaFolder, Transform tableRoot)
+		// Yield to the player loop after roughly this many texture bytes were uploaded within one
+		// frame. Hundreds of megabytes of GPU uploads queued in a single frame can starve the D3D12
+		// queue badly enough to trip the Windows GPU watchdog (device removed), so the budget keeps
+		// each frame's upload burst bounded while costing only a handful of frames in total.
+		private const long UploadYieldBudgetBytes = 160L * 1024 * 1024;
+
+		public static async Task<bool> TryApplyAsync(
+			IPackageFolder metaFolder,
+			Transform tableRoot,
+			VpeMaterialsPayloadV1 preloadedPayload = null,
+			byte[] preloadedPackedTextureData = null)
 		{
 			if (metaFolder == null || !tableRoot) {
 				return false;
 			}
 
-			if (!metaFolder.TryGetFile(PackageApi.MaterialsV1File, out var payloadFile, PackageApi.Packer.FileExtension)) {
-				return false;
+			var payload = preloadedPayload;
+			if (payload == null) {
+				if (!metaFolder.TryGetFile(PackageApi.MaterialsV1File, out var payloadFile, PackageApi.Packer.FileExtension)) {
+					return false;
+				}
+
+				try {
+					payload = PackageApi.Packer.Unpack<VpeMaterialsPayloadV1>(payloadFile.GetData());
+				} catch (Exception e) {
+					Logger.Warn(e, "Failed to parse materials.v1 payload. Falling back to legacy path.");
+					return false;
+				}
 			}
 
-			VpeMaterialsPayloadV1 payload;
-			try {
-				payload = PackageApi.Packer.Unpack<VpeMaterialsPayloadV1>(payloadFile.GetData());
-			} catch (Exception e) {
-				Logger.Warn(e, "Failed to parse materials.v1 payload. Falling back to legacy path.");
-				return false;
-			}
-
-			return TryApply(payload, embeddedTextureBlobsById: null, metaFolder, tableRoot, PackageApi.MaterialsV1File);
+			return await TryApplyAsync(payload, embeddedTextureBlobsById: null, metaFolder, tableRoot, PackageApi.MaterialsV1File,
+				preloadedPackedTextureData);
 		}
 
-		public static bool TryApply(
+		public static async Task<bool> TryApplyAsync(
 			VpeMaterialsPayloadV1 payload,
 			IReadOnlyDictionary<string, byte[]> embeddedTextureBlobsById,
 			IPackageFolder metaFolder,
 			Transform tableRoot,
-			string sourceLabel)
+			string sourceLabel,
+			byte[] preloadedPackedTextureData = null)
 		{
 			if (payload == null || !tableRoot || payload.Profiles == null || payload.Profiles.Length == 0) {
 				return false;
@@ -85,17 +100,26 @@ namespace VisualPinball.Unity
 			var profilesByName = BuildProfileLookup(payload.Profiles);
 			var resolvedMaterialsByImportedId = new Dictionary<int, Material>();
 			var resolvedMaterialsBySignature = new Dictionary<string, Material>(StringComparer.Ordinal);
-			byte[] packedTextureData = null;
-			if (metaFolder != null && metaFolder.TryGetFile(PackageApi.TexturesV1PackFile, out var packedTexturesFile)) {
+			// The semantic part of the cache key serializes the whole profile; doing that once per
+			// profile instead of once per material slot keeps the traversal cheap on big tables.
+			var semanticKeysByProfile = new Dictionary<VpeMaterialProfileV1, string>();
+			var packedTextureData = preloadedPackedTextureData;
+			if (packedTextureData == null && metaFolder != null && metaFolder.TryGetFile(PackageApi.TexturesV1PackFile, out var packedTexturesFile)) {
 				packedTextureData = packedTexturesFile.GetData();
 			}
 			using var textures = new TextureProvider(payload.Textures, packedTextureData, embeddedTextureBlobsById);
 
 			var stats = new Stats();
 			var materialTraversalStopwatch = Stopwatch.StartNew();
+			var uploadedBytesAtLastYield = 0L;
 			foreach (var renderer in tableRoot.GetComponentsInChildren<Renderer>(true)) {
 				if (!renderer) {
 					continue;
+				}
+
+				if (textures.LoadedBytes - uploadedBytesAtLastYield > UploadYieldBudgetBytes) {
+					await Task.Yield();
+					uploadedBytesAtLastYield = textures.LoadedBytes;
 				}
 
 				var materials = renderer.sharedMaterials;
@@ -128,7 +152,11 @@ namespace VisualPinball.Unity
 						continue;
 					}
 
-					var semanticCacheKey = BuildResolvedMaterialCacheKey(profile, imported);
+					if (!semanticKeysByProfile.TryGetValue(profile, out var profileSemanticKey)) {
+						profileSemanticKey = BuildProfileSemanticKey(profile);
+						semanticKeysByProfile[profile] = profileSemanticKey;
+					}
+					var semanticCacheKey = BuildResolvedMaterialCacheKey(profile, imported, profileSemanticKey);
 					if (semanticCacheKey != null
 						&& resolvedMaterialsBySignature.TryGetValue(semanticCacheKey, out var signatureCachedReplacement)) {
 						resolvedMaterialsByImportedId[importedMaterialId] = signatureCachedReplacement;
@@ -240,7 +268,7 @@ namespace VisualPinball.Unity
 			return lookup;
 		}
 
-		private static string BuildResolvedMaterialCacheKey(VpeMaterialProfileV1 profile, Material imported)
+		private static string BuildResolvedMaterialCacheKey(VpeMaterialProfileV1 profile, Material imported, string profileSemanticKey)
 		{
 			if (profile == null || !imported) {
 				return null;
@@ -252,8 +280,8 @@ namespace VisualPinball.Unity
 			var builder = new StringBuilder(256);
 			builder.Append(profile.Type ?? string.Empty)
 				.Append('|')
-				.Append(imported.shader ? imported.shader.name : string.Empty);
-			AppendProfileSemanticKey(builder, profile);
+				.Append(imported.shader ? imported.shader.name : string.Empty)
+				.Append(profileSemanticKey);
 
 			foreach (var propertyName in texturePropertyNames) {
 				if (string.IsNullOrWhiteSpace(propertyName)) {
@@ -267,6 +295,13 @@ namespace VisualPinball.Unity
 					.Append(texture ? texture.GetInstanceID() : 0);
 			}
 
+			return builder.ToString();
+		}
+
+		private static string BuildProfileSemanticKey(VpeMaterialProfileV1 profile)
+		{
+			var builder = new StringBuilder(256);
+			AppendProfileSemanticKey(builder, profile);
 			return builder.ToString();
 		}
 
@@ -398,15 +433,22 @@ namespace VisualPinball.Unity
 				byte[] bytes = null;
 				var loadedFromEmbedded = false;
 				var loadedFromPacked = false;
+				var hasPackedRange = HasPackedTextureRange(asset);
 				if (_embeddedTextureBlobsById != null) {
 					_embeddedTextureBlobsById.TryGetValue(textureId, out bytes);
 					loadedFromEmbedded = bytes != null && bytes.Length > 0;
 				}
-				if ((bytes == null || bytes.Length == 0) && TryReadPackedTextureBytes(asset, out var packedBytes)) {
+				var isRawPayload = !string.IsNullOrEmpty(asset.PixelFormat);
+				// Raw payloads upload straight out of the packed blob (pinned, no per-texture copy);
+				// only the encoded-image path still needs its own byte array.
+				if (!loadedFromEmbedded && !(isRawPayload && hasPackedRange) && TryReadPackedTextureBytes(asset, out var packedBytes)) {
 					bytes = packedBytes;
 					loadedFromPacked = true;
 				}
-				if (bytes == null || bytes.Length == 0) {
+				var payloadLength = loadedFromEmbedded || loadedFromPacked
+					? bytes.Length
+					: isRawPayload && hasPackedRange ? asset.ByteLength : 0;
+				if (payloadLength == 0) {
 					string reason;
 					if (asset.GlbBufferView >= 0) {
 						reason = $"glb-bufferView-missing:{asset.GlbBufferView}";
@@ -423,31 +465,47 @@ namespace VisualPinball.Unity
 				var linear = string.Equals(asset.ColorSpace, VpeColorSpaces.Linear, StringComparison.OrdinalIgnoreCase);
 				var generateMipMaps = asset.GenerateMipMaps;
 				var loadStopwatch = Stopwatch.StartNew();
-				var texture = new Texture2D(2, 2, TextureFormat.RGBA32, generateMipMaps, linear) {
-					name = string.IsNullOrWhiteSpace(asset.SourceName) ? asset.Id : asset.SourceName,
-				};
-				if (!ImageConversion.LoadImage(texture, bytes, markNonReadable: false)) {
-					loadStopwatch.Stop();
-					UnityEngine.Object.Destroy(texture);
-					LogMissingTexture(textureId, reason: $"load-image-failed:{asset.FileName}");
-					_loaded[textureId] = null;
-					return null;
-				}
-				if (linear && asset.RuntimeCompress) {
-					try {
-						texture.Compress(highQuality: true);
-					} catch (Exception ex) {
-						Logger.Warn(ex, $"vpe.material v1 failed compressing linear texture '{texture.name}'. Keeping uncompressed texture.");
+				Texture2D texture;
+				if (isRawPayload) {
+					// Pre-cooked GPU payload: raw bytes in final pixel format with baked mips. Upload
+					// directly, no decode, no runtime compression, no mip generation.
+					texture = loadedFromEmbedded
+						? CreateTextureFromRawPayload(asset, bytes, linear)
+						: CreateTextureFromPackedRawPayload(asset, linear);
+					loadedFromPacked = !loadedFromEmbedded && texture;
+					if (!texture) {
+						loadStopwatch.Stop();
+						LogMissingTexture(textureId, reason: $"raw-payload-failed:{asset.PixelFormat}:{asset.Width}x{asset.Height}");
+						_loaded[textureId] = null;
+						return null;
 					}
+				} else {
+					texture = new Texture2D(2, 2, TextureFormat.RGBA32, generateMipMaps, linear) {
+						name = string.IsNullOrWhiteSpace(asset.SourceName) ? asset.Id : asset.SourceName,
+					};
+					if (!ImageConversion.LoadImage(texture, bytes, markNonReadable: false)) {
+						loadStopwatch.Stop();
+						UnityEngine.Object.Destroy(texture);
+						LogMissingTexture(textureId, reason: $"load-image-failed:{asset.FileName}");
+						_loaded[textureId] = null;
+						return null;
+					}
+					if (linear && asset.RuntimeCompress) {
+						try {
+							texture.Compress(highQuality: true);
+						} catch (Exception ex) {
+							Logger.Warn(ex, $"vpe.material v1 failed compressing linear texture '{texture.name}'. Keeping uncompressed texture.");
+						}
+					}
+					texture.Apply(updateMipmaps: generateMipMaps, makeNoLongerReadable: true);
 				}
-				texture.Apply(updateMipmaps: generateMipMaps, makeNoLongerReadable: true);
 				loadStopwatch.Stop();
 				texture.wrapMode = (TextureWrapMode)asset.WrapMode;
 				texture.filterMode = (FilterMode)asset.FilterMode;
 				texture.anisoLevel = Mathf.Max(1, asset.AnisoLevel);
 				_loadCount++;
 				_loadMilliseconds += loadStopwatch.ElapsedMilliseconds;
-				_loadedBytes += bytes.LongLength;
+				_loadedBytes += payloadLength;
 				if (loadedFromEmbedded) {
 					_embeddedLoadCount++;
 				} else if (loadedFromPacked) {
@@ -477,6 +535,108 @@ namespace VisualPinball.Unity
 					return;
 				}
 				Logger.Warn($"vpe.material v1 texture lookup failed for TextureId='{textureId}' ({reason}).");
+			}
+
+			private static Texture2D CreateTextureFromRawPayload(VpeTextureAssetV1 asset, byte[] bytes, bool linear)
+			{
+				var texture = CreateRawPayloadTexture(asset, linear);
+				if (!texture) {
+					return null;
+				}
+
+				try {
+					texture.LoadRawTextureData(bytes);
+					texture.Apply(updateMipmaps: false, makeNoLongerReadable: true);
+					return texture;
+
+				} catch (Exception ex) {
+					Logger.Warn(ex, $"vpe.material v1 failed uploading raw texture payload for '{asset.Id}' " +
+						$"({asset.PixelFormat}, {asset.Width}x{asset.Height}, mips={asset.MipCount}, bytes={bytes?.Length ?? 0}).");
+					UnityEngine.Object.Destroy(texture);
+					return null;
+				}
+			}
+
+			// Uploads straight out of the packed blob through a pinned pointer, skipping the
+			// per-texture byte[] copy (which costs real time across hundreds of megabytes).
+			private Texture2D CreateTextureFromPackedRawPayload(VpeTextureAssetV1 asset, bool linear)
+			{
+				if (!HasPackedTextureRange(asset)) {
+					return null;
+				}
+
+				var texture = CreateRawPayloadTexture(asset, linear);
+				if (!texture) {
+					return null;
+				}
+
+				var handle = default(System.Runtime.InteropServices.GCHandle);
+				try {
+					handle = System.Runtime.InteropServices.GCHandle.Alloc(
+						_packedTextureData, System.Runtime.InteropServices.GCHandleType.Pinned);
+					texture.LoadRawTextureData(
+						IntPtr.Add(handle.AddrOfPinnedObject(), asset.ByteOffset), asset.ByteLength);
+					texture.Apply(updateMipmaps: false, makeNoLongerReadable: true);
+					return texture;
+
+				} catch (Exception ex) {
+					Logger.Warn(ex, $"vpe.material v1 failed uploading raw texture payload for '{asset.Id}' " +
+						$"({asset.PixelFormat}, {asset.Width}x{asset.Height}, mips={asset.MipCount}, bytes={asset.ByteLength}).");
+					UnityEngine.Object.Destroy(texture);
+					return null;
+
+				} finally {
+					if (handle.IsAllocated) {
+						handle.Free();
+					}
+				}
+			}
+
+			private static Texture2D CreateRawPayloadTexture(VpeTextureAssetV1 asset, bool linear)
+			{
+				TextureFormat format;
+				switch (asset.PixelFormat) {
+					case VpePixelFormats.Bc7:
+						format = TextureFormat.BC7;
+						break;
+					case VpePixelFormats.Dxt5:
+						format = TextureFormat.DXT5;
+						break;
+					case VpePixelFormats.Rgba32:
+						format = TextureFormat.RGBA32;
+						break;
+					default:
+						Logger.Warn($"vpe.material v1 unknown raw pixel format '{asset.PixelFormat}' for texture '{asset.Id}'.");
+						return null;
+				}
+
+				if (asset.Width <= 0 || asset.Height <= 0) {
+					return null;
+				}
+				if (!SystemInfo.SupportsTextureFormat(format)) {
+					Logger.Warn($"vpe.material v1 raw pixel format '{asset.PixelFormat}' is not supported on this platform (texture '{asset.Id}').");
+					return null;
+				}
+
+				var mipCount = Mathf.Max(1, asset.MipCount);
+				try {
+					return new Texture2D(asset.Width, asset.Height, format, mipCount, linear) {
+						name = string.IsNullOrWhiteSpace(asset.SourceName) ? asset.Id : asset.SourceName,
+					};
+				} catch (Exception ex) {
+					Logger.Warn(ex, $"vpe.material v1 failed creating texture for '{asset.Id}' " +
+						$"({asset.PixelFormat}, {asset.Width}x{asset.Height}, mips={mipCount}).");
+					return null;
+				}
+			}
+
+			private bool HasPackedTextureRange(VpeTextureAssetV1 asset)
+			{
+				return asset != null
+					&& _packedTextureData != null
+					&& asset.ByteOffset >= 0
+					&& asset.ByteLength > 0
+					&& asset.ByteOffset + (long)asset.ByteLength <= _packedTextureData.Length;
 			}
 
 			private bool TryReadPackedTextureBytes(VpeTextureAssetV1 asset, out byte[] bytes)

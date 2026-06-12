@@ -5,7 +5,18 @@ By packaging we mean serializing a table into a `.vpe` file. A `.vpe` is a ZIP c
 - one glTF binary scene (`table.glb`)
 - one optional glTF binary for physics-only meshes (`colliders.glb`)
 - JSON metadata for items, refs, globals, assets, and material interchange
-- optional VPE-only texture payloads that do not round-trip cleanly through glTF
+- VPE-owned texture payloads, pre-cooked into GPU-ready block-compressed formats
+
+> [!IMPORTANT]
+> As of the cooked-texture format (June 2026), `table.glb` carries **no image data** for
+> materials captured by the material translator. Every captured texture is encoded at export
+> time into its final GPU format (BC7 for color/mask data, DXT5 in HDRP's AG packing for
+> normals, RGBA32 for non-block-compressible sizes), with the full mip chain baked, and stored
+> raw in `meta/textures.bin`. Runtime upload is a straight `LoadRawTextureData` — no PNG
+> decode, no runtime `Texture2D.Compress`, no normal repacking. On the Terminator 2 benchmark
+> table this took the in-editor import from ~23s down to ~1.7-2.2s. See "Cooked Texture
+> Format" below; several sections that follow describe the legacy PNG path, which remains the
+> reader fallback for old packages and for uncaptured (unsupported-shader) materials.
 
 This document describes:
 
@@ -19,6 +30,87 @@ This document describes:
 > Originally, there were thoughts about using the same container format as VPX (the Compound Binary File), but ultimately, given the inner structure would be quite different anyway, there was no real benefit.
 >
 > We've also tested a more efficient packing structure than JSON, but since the metadata to which it would apply is minuscule compared to the rest, the performance advantage was quickly outweighed by its unreadability and the hassle to set up.
+
+## Cooked Texture Format
+
+This is the shipping texture path since June 2026. It supersedes the PNG sidecar baseline and
+implements (and extends) what the benchmarks below recommended as the "best unmerged result".
+
+### Export
+
+`HdrpMaterialV1Translator` captures **every** texture of supported materials (base color,
+emissive, normal, mask, thickness — including textures that previously stayed on the glTF
+path), and `HdrpMaterialV1TextureEncoder` cooks each into a GPU-ready payload:
+
+- sRGB color and linear mask/thickness data → `BC7` (quality: Normal), mips baked on the same
+  RGBA32 data the legacy path produced
+- normal maps → decoded via `x = r * a` (covers plain RGB, DXT5nm and BC5 sources), re-packed
+  into HDRP's AG layout `(1, y, 1, x)` — exactly what the runtime CPU repack used to emit —
+  then `DXT5` (quality: Best)
+- non-multiple-of-4 dimensions → raw `RGBA32` (still uploads without decode)
+- on cook failure, the legacy PNG encode is the fallback
+
+`VpeTextureAssetV1` gained `PixelFormat` (see `VpePixelFormats`) and `MipCount`; raw payloads
+are the exact `GetRawTextureData` layout (all mips concatenated). Cooked normal refs carry
+`Packing = dxt5nm`, which the resolver already treats as "use as-is".
+
+The glTF export scope (`CreateSanitizedGltfExportMaterial`) strips **all** textures from
+captured materials (Lit, Decal, and the VPE metal/rubber/DMD shader graphs), so glTFast writes
+no images for them. Materials with unsupported shaders keep their textures in the GLB and fall
+back to the imported material at runtime, exactly as before.
+
+`meta/textures.bin` and the two GLBs are written as **stored** zip entries
+(`PackageCompression.Stored`); block-compressed data doesn't deflate meaningfully and the
+inflate cost used to be pure waste at load time.
+
+### Runtime
+
+`VpeMaterialV1Reader`'s texture provider creates `Texture2D(width, height, format, mipCount,
+linear)` and uploads via `LoadRawTextureData` — straight out of the packed blob through a
+pinned pointer, no per-texture byte copy. To keep the D3D12 queue healthy (a single frame
+that queues hundreds of megabytes of uploads can trip the Windows GPU watchdog — observed as
+`DXGI_ERROR_DEVICE_HUNG` crashes), the material pass yields to the player loop after every
+~160 MB of uploads.
+
+`RuntimePackageReader` additionally:
+
+- imports the GLB with an `UninterruptedDeferAgent` (the player shows a loading screen, so
+  per-frame time slicing only added wall time)
+- prefetches `materials.v1.json` (parsed off-thread; Newtonsoft is thread-safe) and
+  `textures.bin` on a worker with its own storage instance
+- bulk-reads all item/ref entries on a second worker, so the restore loops get bytes from
+  memory instead of paying per-entry zip cost
+- scans the GLB for the embedded-materials extension and missing-tangent meshes on a worker,
+  overlapped with `gltf.Load`
+- warms the `PackagedRefs` PackAs-attribute type scan on a worker (it reflects over every
+  loaded assembly and is cached per domain)
+- yields by time budget instead of item count while restoring packables
+
+### Measured result (Terminator 2, editor play mode)
+
+| | PNG baseline | Cooked format |
+| --- | --- | --- |
+| package size | 486 MB | 689 MB |
+| `table.glb` | 345.8 MB (336 MB PNGs) | 9.8 MB (no images) |
+| `meta/textures.bin` | 140 MB PNG | 640 MB raw BC |
+| `table.glb` import | ~10.5 s | ~0.4-0.7 s |
+| material restore | ~10.9 s | ~0.6-0.8 s |
+| sidecar texture loads | 3.0 s (PNG decode) | ~0.2 s (325 raw uploads) |
+| **total import** | **~23.3 s** | **~1.7-2.2 s** |
+
+The size increase is the price of mip chains plus the fact that BC7 doesn't compress as well
+on disk as PNG. If package size becomes a concern, an LZ4-style supercompression layer over
+`textures.bin` is the obvious follow-up — it decompresses an order of magnitude faster than
+deflate.
+
+### Caveats
+
+- BC formats are desktop-oriented; `SystemInfo.SupportsTextureFormat` is checked at load and
+  unsupported formats log and skip. A transcode fallback story is still open for platforms
+  without BC7.
+- Editor re-import of cooked packages has no path to reconstruct texture *assets* from raw BC
+  payloads yet; authoring round-trips should keep using projects with original sources.
+- Older PNG-sidecar packages still load through the legacy reader path unchanged.
 
 ## Design Summary
 

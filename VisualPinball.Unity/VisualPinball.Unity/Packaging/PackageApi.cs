@@ -176,6 +176,21 @@ namespace VisualPinball.Unity
 	}
 
 	/// <summary>
+	/// How a package file's bytes should be stored in the container.
+	/// </summary>
+	public enum PackageCompression
+	{
+		/// <summary>Let the storage pick (deflate for zip).</summary>
+		Default,
+
+		/// <summary>
+		/// Store the bytes verbatim. Use for payloads that are already compressed (GPU block
+		/// textures, image data) where deflate wastes both export and load time.
+		/// </summary>
+		Stored,
+	}
+
+	/// <summary>
 	/// A file that lives within the storage.
 	/// </summary>
 	public interface IPackageFile
@@ -195,7 +210,8 @@ namespace VisualPinball.Unity
 		/// Write data to the file.
 		/// </summary>
 		/// <param name="data">Data to write.</param>
-		void SetData(byte[] data);
+		/// <param name="compression">Storage hint; implementations may ignore it.</param>
+		void SetData(byte[] data, PackageCompression compression = PackageCompression.Default);
 
 		/// <summary>
 		/// Retrieve data from the file.

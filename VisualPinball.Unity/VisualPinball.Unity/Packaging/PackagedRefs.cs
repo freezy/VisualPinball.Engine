@@ -35,23 +35,52 @@ namespace VisualPinball.Unity
 
 		private readonly Transform _tableRoot;
 
+		// Scanning every loaded assembly for PackAsAttribute takes hundreds of milliseconds and its
+		// result only changes on domain reload, so it is computed once and shared. WarmUpTypeScan is
+		// safe to call from a worker thread to overlap the scan with other import work.
+		private static readonly object TypeScanLock = new();
+		private static List<(Type Type, string Name)> _packAsTypes;
+		private static List<Type> _referencedDependencyTypes;
+
+		public static void WarmUpTypeScan()
+		{
+			lock (TypeScanLock) {
+				if (_packAsTypes != null) {
+					return;
+				}
+
+				var packAsTypes = new List<(Type, string)>();
+				var dependencyTypes = new List<Type>();
+				var referencedDependencyType = typeof(IReferencedDependency);
+				var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+				foreach (var assembly in assemblies) {
+					foreach (var type in assembly.GetTypes()) {
+						// Look for the PackAsAttribute on the class
+						var attribute = type.GetCustomAttribute<PackAsAttribute>(inherit: false);
+						if (attribute != null) {
+							packAsTypes.Add((type, attribute.Name));
+						}
+
+						if (referencedDependencyType.IsAssignableFrom(type) && !type.IsInterface && !type.IsAbstract) {
+							dependencyTypes.Add(type);
+						}
+					}
+				}
+
+				_referencedDependencyTypes = dependencyTypes;
+				_packAsTypes = packAsTypes;
+			}
+		}
+
 		public PackagedRefs(Transform tableRoot)
 		{
 			_tableRoot = tableRoot;
-			var referencedDependencyType = typeof(IReferencedDependency);
-			var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-			foreach (var assembly in assemblies) {
-				foreach (var type in assembly.GetTypes()) {
-					// Look for the PackAsAttribute on the class
-					var attribute = type.GetCustomAttribute<PackAsAttribute>(inherit: false);
-					if (attribute != null) {
-						Add(type, attribute.Name);
-					}
-
-					if (referencedDependencyType.IsAssignableFrom(type) && !type.IsInterface && !type.IsAbstract) {
-						(Activator.CreateInstance(type) as IReferencedDependency)!.RegisterTypes(this);
-					}
-				}
+			WarmUpTypeScan();
+			foreach (var (type, name) in _packAsTypes) {
+				Add(type, name);
+			}
+			foreach (var dependencyType in _referencedDependencyTypes) {
+				(Activator.CreateInstance(dependencyType) as IReferencedDependency)!.RegisterTypes(this);
 			}
 			// add third parties
 		}

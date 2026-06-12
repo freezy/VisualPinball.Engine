@@ -135,7 +135,8 @@ namespace VisualPinball.Unity.Editor.Packaging
 
 		public string Name => _stream.Name;
 		public Stream AsStream() => _stream.AsIOStream();
-		public void SetData(byte[] data) => _stream.Append(data);
+		// Compound files have no per-stream compression; the hint is ignored.
+		public void SetData(byte[] data, PackageCompression compression = PackageCompression.Default) => _stream.Append(data);
 		public byte[] GetData() => _stream.GetData();
 	}
 }

@@ -67,6 +67,20 @@ namespace VisualPinball.Unity
 		public const string GltfMetallicRoughness = "gltfMetallicRoughness";
 	}
 
+	// Raw GPU pixel formats for pre-cooked texture payloads in textures.bin. When
+	// VpeTextureAssetV1.PixelFormat carries one of these, the payload is the exact byte layout of
+	// Texture2D.GetRawTextureData() for that format (all mip levels concatenated), and runtime
+	// uploads it via LoadRawTextureData without any decode step.
+	public static class VpePixelFormats
+	{
+		// BC7 RGBA, used for sRGB color textures and linear mask/thickness data.
+		public const string Bc7 = "bc7";
+		// DXT5/BC3. Used for normal maps in DXT5nm-style AG packing (X in alpha, Y in green).
+		public const string Dxt5 = "dxt5";
+		// Uncompressed RGBA32 fallback for textures whose dimensions block compression can't handle.
+		public const string Rgba32 = "rgba32";
+	}
+
 	public static class VpeSurfaceTypes
 	{
 		public const string Opaque = "opaque";
@@ -318,6 +332,13 @@ namespace VisualPinball.Unity
 		public int GlbBufferView = -1;
 		// MIME type for the embedded bytes. Current writer emits PNG side-channel textures.
 		public string MimeType = "image/png";
+		// When set (see VpePixelFormats), the payload is raw GPU-ready pixel data (all mips
+		// concatenated, GetRawTextureData layout) instead of an encoded image. Runtime then
+		// creates the texture with this format and uploads via LoadRawTextureData; MimeType,
+		// GenerateMipMaps and RuntimeCompress are ignored on that path.
+		public string PixelFormat;
+		// Number of mip levels contained in the raw payload. Only used when PixelFormat is set.
+		public int MipCount = 1;
 		// "sRGB" or "Linear". See VpeColorSpaces.
 		public string ColorSpace = VpeColorSpaces.SRgb;
 		public int WrapMode;      // UnityEngine.TextureWrapMode
