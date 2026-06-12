@@ -143,14 +143,16 @@ namespace VisualPinball.Unity.Editor
 			var saveColliderMeshesTask = saveColliderMeshes?.Invoke();
 
 			var sceneData = await saveSceneTask;
-			WritePackageFile(_tableFolder, PackageApi.SceneFile, sceneData);
+			// The GLB payload is mostly already-compressed image data and packed buffers; deflate
+			// barely shrinks it but costs real time on both export and load.
+			WritePackageFile(_tableFolder, PackageApi.SceneFile, sceneData, PackageCompression.Stored);
 			Logger.Info($"Scene written in {sw1.ElapsedMilliseconds}ms ({sceneData.Length} bytes).");
 			WriteMaterialPayloadFallbackIfNeeded();
 
 			if (saveColliderMeshesTask != null) {
 				sw1 = Stopwatch.StartNew();
 				var colliderMeshesData = await saveColliderMeshesTask;
-				WritePackageFile(_tableFolder, PackageApi.ColliderMeshesFile, colliderMeshesData);
+				WritePackageFile(_tableFolder, PackageApi.ColliderMeshesFile, colliderMeshesData, PackageCompression.Stored);
 				Logger.Info($"Collider meshes written in {sw1.ElapsedMilliseconds}ms ({colliderMeshesData.Length} bytes).");
 			}
 
@@ -843,7 +845,9 @@ namespace VisualPinball.Unity.Editor
 				out var textureCount,
 				out var textureBytes);
 			if (packedTextureData != null && packedTextureData.Length > 0) {
-				_metaFolder.AddFile(PackageApi.TexturesV1PackFile).SetData(packedTextureData);
+				// Raw GPU texture payloads (and PNG fallbacks) don't deflate meaningfully; store them
+				// so runtime load is a straight disk read.
+				_metaFolder.AddFile(PackageApi.TexturesV1PackFile).SetData(packedTextureData, PackageCompression.Stored);
 			}
 
 			_metaFolder
@@ -862,7 +866,9 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 			foreach (var asset in payload.Textures) {
-				if (asset != null) {
+				// Cooked raw payloads are already in their final GPU format; the runtime-compression
+				// toggle only applies to the PNG side-channel path.
+				if (asset != null && string.IsNullOrEmpty(asset.PixelFormat)) {
 					asset.RuntimeCompress = runtimeCompress;
 				}
 			}
@@ -884,7 +890,9 @@ namespace VisualPinball.Unity.Editor
 
 		private static void ApplyNormalCompressionMode(VpeNormalMapRefV1 normalMap, bool runtimeCompress)
 		{
-			if (normalMap != null) {
+			// Cooked normals (non-RGB packing) skip the runtime repack entirely, so the
+			// runtime-compression toggle has no business overriding them.
+			if (normalMap != null && normalMap.Packing == VpeNormalPackings.Rgb) {
 				normalMap.RuntimeCompress = runtimeCompress;
 			}
 		}
@@ -933,13 +941,13 @@ namespace VisualPinball.Unity.Editor
 			return stream.Length > 0 ? stream.ToArray() : null;
 		}
 
-		private static void WritePackageFile(IPackageFolder folder, string fileName, byte[] data)
+		private static void WritePackageFile(IPackageFolder folder, string fileName, byte[] data, PackageCompression compression = PackageCompression.Default)
 		{
 			if (data == null || data.Length == 0) {
 				throw new InvalidOperationException($"Cannot write empty package file '{fileName}'.");
 			}
 
-			folder.AddFile(fileName).SetData(data);
+			folder.AddFile(fileName).SetData(data, compression);
 		}
 
 		private static void SetMeshesReadable(MeshFilter[] meshFilters, SkinnedMeshRenderer[] skinnedMeshRenderers)

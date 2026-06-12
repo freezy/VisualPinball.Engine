@@ -34,9 +34,13 @@ namespace VisualPinball.Unity
 {
 	public class RuntimePackageReader
 	{
-		private const int RuntimeYieldInterval = 16;
+		// While restoring many small items we stay on the main thread and only yield once the
+		// frame budget is used up, so the loading UI keeps animating without paying a yield's
+		// frame latency every few items.
+		private const long RuntimeYieldBudgetMilliseconds = 25;
 
 		private readonly string _vpePath;
+		private readonly Stopwatch _yieldStopwatch = new();
 		private GameObject _table;
 		private IPackageFolder _tableFolder;
 		private PackagedRefs _refs;
@@ -70,10 +74,27 @@ namespace VisualPinball.Unity
 			}
 
 			var importStopwatch = Stopwatch.StartNew();
+			_yieldStopwatch.Restart();
 			ReportProgress(progress, RuntimePackageLoadStage.OpeningPackage, 0f, $"Opening {Path.GetFileName(_vpePath)}...");
+
+			// The material payload and the packed texture blob are the biggest reads besides the
+			// scene itself; pull them off disk (and parse the JSON payload) on a worker thread while
+			// the main thread imports the scene and restores items. A second worker bulk-reads the
+			// thousands of tiny item/ref entries so the restore loops don't pay per-entry zip cost
+			// on the main thread. Each worker opens its own storage; SharpZipLib readers are not
+			// safe to share across threads.
+			var materialPrefetchTask = Task.Run(() => PrefetchMaterialData(_vpePath), cancellationToken);
+			var packablePrefetchTask = Task.Run(() => PrefetchPackableData(_vpePath), cancellationToken);
+			// The PackAsAttribute type scan reflects over every loaded assembly; warm it on a worker
+			// so building PackagedRefs after the scene import is effectively free.
+			var typeScanTask = Task.Run(PackagedRefs.WarmUpTypeScan, cancellationToken);
+
+			var openStopwatch = Stopwatch.StartNew();
 			using var storage = PackageApi.StorageManager.OpenStorage(_vpePath);
 			_tableFolder = storage.GetFolder(PackageApi.TableFolder);
 			_sparsePathIndexMap = BuildSparsePathIndexMap(PackageApi.ItemFolder, PackageApi.ItemReferencesFolder);
+			openStopwatch.Stop();
+			Logger.Info($"RuntimePackageReader: Opened package in {openStopwatch.ElapsedMilliseconds}ms.");
 			ReportProgress(progress, RuntimePackageLoadStage.OpeningPackage, 1f, "Package opened.");
 
 			var previousSparsePathIndexMap = TransformExtensions.SparsePathIndexMap;
@@ -93,8 +114,16 @@ namespace VisualPinball.Unity
 					_table.SetActive(false);
 
 					try {
+						var refsStopwatch = Stopwatch.StartNew();
+						try {
+							await typeScanTask;
+						} catch (Exception ex) {
+							Logger.Warn(ex, "RuntimePackageReader: background type scan failed; scanning on the main thread.");
+						}
 						_refs = new PackagedRefs(_table.transform);
 						_files = new PackagedFiles(_tableFolder, _refs);
+						refsStopwatch.Stop();
+						Logger.Info($"RuntimePackageReader: Built refs/files in {refsStopwatch.ElapsedMilliseconds}ms.");
 
 						var unpackSoundsStopwatch = Stopwatch.StartNew();
 						ReportProgress(progress, RuntimePackageLoadStage.LoadingSounds, 0f, "Loading table audio...");
@@ -123,6 +152,13 @@ namespace VisualPinball.Unity
 						unpackMeshesStopwatch.Stop();
 						Logger.Info($"RuntimePackageReader: Unpacked meshes in {unpackMeshesStopwatch.ElapsedMilliseconds}ms.");
 
+						Dictionary<string, byte[]> packableBytes = null;
+						try {
+							packableBytes = await packablePrefetchTask;
+						} catch (Exception ex) {
+							Logger.Warn(ex, "RuntimePackageReader: packable data prefetch failed; reading from package directly.");
+						}
+
 						var readItemsStopwatch = Stopwatch.StartNew();
 						await ReadPackablesAsync(
 							PackageApi.ItemFolder,
@@ -140,6 +176,7 @@ namespace VisualPinball.Unity
 									PackageApi.Packer.Unpack(file.GetData(), comp);
 								}
 							},
+							packableBytes,
 							progress,
 							cancellationToken);
 						readItemsStopwatch.Stop();
@@ -177,6 +214,7 @@ namespace VisualPinball.Unity
 									Logger.Warn(ex, $"Failed unpacking references for type {type.FullName} on {item.name} (index {index}).");
 								}
 							},
+							packableBytes,
 							progress,
 							cancellationToken);
 						readRefsStopwatch.Stop();
@@ -196,7 +234,13 @@ namespace VisualPinball.Unity
 
 						var materialsStopwatch = Stopwatch.StartNew();
 						ReportProgress(progress, RuntimePackageLoadStage.RestoringMaterials, 0f, "Applying material profiles...");
-						RestoreMaterialProfiles();
+						MaterialPrefetchResult materialPrefetch = null;
+						try {
+							materialPrefetch = await materialPrefetchTask;
+						} catch (Exception ex) {
+							Logger.Warn(ex, "RuntimePackageReader: material data prefetch failed; reading synchronously.");
+						}
+						await RestoreMaterialProfilesAsync(materialPrefetch);
 						ReportProgress(progress, RuntimePackageLoadStage.RestoringMaterials, 1f, "Material profiles applied.");
 						materialsStopwatch.Stop();
 						Logger.Info($"RuntimePackageReader: Restored material profiles in {materialsStopwatch.ElapsedMilliseconds}ms.");
@@ -204,7 +248,10 @@ namespace VisualPinball.Unity
 
 					} finally {
 						if (loadSucceeded && _table) {
+							var activateStopwatch = Stopwatch.StartNew();
 							_table.SetActive(restoreActive);
+							activateStopwatch.Stop();
+							Logger.Info($"RuntimePackageReader: Activated table in {activateStopwatch.ElapsedMilliseconds}ms.");
 						}
 					}
 
@@ -238,26 +285,36 @@ namespace VisualPinball.Unity
 
 			_embeddedMaterialPayload = null;
 			_embeddedMaterialTextureBlobs = null;
-			if (VpeMaterialsGltfExtension.TryReadPayload(sceneData, out var embeddedMaterialPayload)) {
-				_embeddedMaterialPayload = embeddedMaterialPayload;
-				VpeMaterialsGltfExtension.TryReadEmbeddedTextureBlobs(
-					sceneData,
-					embeddedMaterialPayload,
-					out _embeddedMaterialTextureBlobs);
-			}
+			// Both scans only touch the raw GLB bytes (chunk walking + JSON), so they can run on a
+			// worker thread while glTFast parses the same buffer on the main path.
+			var sceneScanTask = Task.Run(() => {
+				VpeMaterialsPayloadV1 embeddedMaterialPayload = null;
+				IReadOnlyDictionary<string, byte[]> embeddedTextureBlobs = null;
+				if (VpeMaterialsGltfExtension.TryReadPayload(sceneData, out embeddedMaterialPayload)) {
+					VpeMaterialsGltfExtension.TryReadEmbeddedTextureBlobs(
+						sceneData,
+						embeddedMaterialPayload,
+						out embeddedTextureBlobs);
+				}
+				var noTangents = CollectMeshesWithoutGltfTangents(sceneData);
+				return (embeddedMaterialPayload, embeddedTextureBlobs, noTangents);
+			}, cancellationToken);
 
 			var importRoot = new GameObject("__vpe_runtime_import");
 			importRoot.hideFlags = HideFlags.HideAndDontSave;
 			if (parent != null) {
 				importRoot.transform.SetParent(parent, false);
 			}
-			var meshesWithoutTangents = CollectMeshesWithoutGltfTangents(sceneData);
 
 			try {
-				var gltf = new GltfImport(logger: new ConsoleLogger());
+				// The player shows a loading screen during import, so trade per-frame smoothness for
+				// total wall time: without time-slicing, glTFast finishes mesh/scene setup in one go.
+				var gltf = new GltfImport(deferAgent: new UninterruptedDeferAgent(), logger: new ConsoleLogger());
 				var uri = new Uri(Path.GetFullPath(_vpePath));
 				ReportProgress(progress, RuntimePackageLoadStage.ImportingScene, 0f, "Reading table scene...");
+				var loadStopwatch = Stopwatch.StartNew();
 				var loaded = await gltf.Load(sceneData, uri, cancellationToken: cancellationToken);
+				loadStopwatch.Stop();
 				ReportProgress(progress, RuntimePackageLoadStage.ImportingScene, 1f, "Scene data imported.");
 				cancellationToken.ThrowIfCancellationRequested();
 				if (!loaded) {
@@ -265,7 +322,9 @@ namespace VisualPinball.Unity
 				}
 
 				ReportProgress(progress, RuntimePackageLoadStage.InstantiatingScene, 0f, "Building scene hierarchy...");
+				var instantiateStopwatch = Stopwatch.StartNew();
 				var instantiated = await gltf.InstantiateMainSceneAsync(importRoot.transform, cancellationToken);
+				instantiateStopwatch.Stop();
 				ReportProgress(progress, RuntimePackageLoadStage.InstantiatingScene, 1f, "Scene hierarchy ready.");
 				cancellationToken.ThrowIfCancellationRequested();
 				if (!instantiated) {
@@ -276,16 +335,28 @@ namespace VisualPinball.Unity
 					throw new Exception("The .vpe scene did not instantiate any root object.");
 				}
 
+				var (embeddedMaterialPayload, embeddedTextureBlobs, meshesWithoutTangents) = await sceneScanTask;
+				_embeddedMaterialPayload = embeddedMaterialPayload;
+				_embeddedMaterialTextureBlobs = embeddedTextureBlobs;
+
+				var rootSelectStopwatch = Stopwatch.StartNew();
 				var tableRoot = SelectTableRoot(importRoot.transform);
+				rootSelectStopwatch.Stop();
 				if (!tableRoot) {
 					throw new Exception("Could not determine table root from imported .vpe scene.");
 				}
 
 				var table = tableRoot.gameObject;
 				table.transform.SetParent(parent, false);
+				var fixupStopwatch = Stopwatch.StartNew();
 				ClearGeneratedTangents(table, meshesWithoutTangents);
 				NormalizeImportedLightIntensities(table);
 				RestoreLightProfiles(table);
+				fixupStopwatch.Stop();
+				Logger.Info(
+					$"RuntimePackageReader: glb stages: load={loadStopwatch.ElapsedMilliseconds}ms, " +
+					$"instantiate={instantiateStopwatch.ElapsedMilliseconds}ms, rootSelect={rootSelectStopwatch.ElapsedMilliseconds}ms, " +
+					$"fixups={fixupStopwatch.ElapsedMilliseconds}ms.");
 
 				if (Application.isPlaying) {
 					UnityEngine.Object.Destroy(importRoot);
@@ -584,6 +655,7 @@ namespace VisualPinball.Unity
 			string statusPrefix,
 			Action<GameObject, IPackageFile> itemAction,
 			Action<Transform, Type, IPackageFile, int> componentAction,
+			IReadOnlyDictionary<string, byte[]> prefetchedBytes,
 			IProgress<RuntimePackageLoadProgress> progress,
 			CancellationToken cancellationToken)
 		{
@@ -617,7 +689,7 @@ namespace VisualPinball.Unity
 				}
 
 				if (itemAction != null && itemFolder.TryGetFile(PackageApi.ItemFile, out var itemFile, PackageApi.Packer.FileExtension)) {
-					itemAction(item.gameObject, itemFile);
+					itemAction(item.gameObject, ResolvePackableFile(prefetchedBytes, rootFolder, itemFolder.Name, null, itemFile));
 					processedOperations++;
 					await ReportProgressAndYieldAsync(progress, stage, statusPrefix, processedOperations, totalOperations, cancellationToken);
 				}
@@ -630,7 +702,7 @@ namespace VisualPinball.Unity
 
 					var index = 0;
 					foreach (var compFile in GetFiles(typeFolder)) {
-						componentAction(item, type, compFile, index++);
+						componentAction(item, type, ResolvePackableFile(prefetchedBytes, rootFolder, itemFolder.Name, typeFolder.Name, compFile), index++);
 						processedOperations++;
 						await ReportProgressAndYieldAsync(progress, stage, statusPrefix, processedOperations, totalOperations, cancellationToken);
 					}
@@ -638,6 +710,76 @@ namespace VisualPinball.Unity
 			}
 
 			ReportProgress(progress, stage, 1f, $"{statusPrefix} complete.");
+		}
+
+		private static IPackageFile ResolvePackableFile(
+			IReadOnlyDictionary<string, byte[]> prefetchedBytes,
+			string rootFolder,
+			string itemName,
+			string typeName,
+			IPackageFile file)
+		{
+			if (prefetchedBytes != null
+				&& prefetchedBytes.TryGetValue(PackableKey(rootFolder, itemName, typeName, file.Name), out var bytes)
+				&& bytes != null) {
+				return new PrefetchedPackageFile(file.Name, bytes);
+			}
+			return file;
+		}
+
+		private static string PackableKey(string rootFolder, string itemName, string typeName, string fileName)
+		{
+			return typeName == null
+				? $"{rootFolder}|{itemName}|{fileName}"
+				: $"{rootFolder}|{itemName}|{typeName}|{fileName}";
+		}
+
+		// Runs on a worker thread with its own storage instance; bulk-reads every item/ref entry so
+		// the main-thread restore loops get their bytes from memory.
+		private static Dictionary<string, byte[]> PrefetchPackableData(string vpePath)
+		{
+			try {
+				using var storage = PackageApi.StorageManager.OpenStorage(vpePath);
+				var tableFolder = storage.GetFolder(PackageApi.TableFolder);
+				var result = new Dictionary<string, byte[]>(4096, StringComparer.Ordinal);
+				foreach (var rootName in new[] { PackageApi.ItemFolder, PackageApi.ItemReferencesFolder }) {
+					if (!tableFolder.TryGetFolder(rootName, out var rootFolder)) {
+						continue;
+					}
+					rootFolder.VisitFolders(itemFolder => {
+						if (itemFolder.TryGetFile(PackageApi.ItemFile, out var itemFile, PackageApi.Packer.FileExtension)) {
+							result[PackableKey(rootName, itemFolder.Name, null, itemFile.Name)] = itemFile.GetData();
+						}
+						itemFolder.VisitFolders(typeFolder => {
+							typeFolder.VisitFiles(file => {
+								result[PackableKey(rootName, itemFolder.Name, typeFolder.Name, file.Name)] = file.GetData();
+							});
+						});
+					});
+				}
+				return result;
+
+			} catch (Exception ex) {
+				Logger.Warn(ex, "RuntimePackageReader: failed prefetching packable data; falling back to direct package reads.");
+				return null;
+			}
+		}
+
+		private sealed class PrefetchedPackageFile : IPackageFile
+		{
+			private readonly byte[] _data;
+
+			public PrefetchedPackageFile(string name, byte[] data)
+			{
+				Name = name;
+				_data = data;
+			}
+
+			public string Name { get; }
+			public Stream AsStream() => new MemoryStream(_data, false);
+			public byte[] GetData() => _data;
+			public void SetData(byte[] data, PackageCompression compression = PackageCompression.Default)
+				=> throw new InvalidOperationException("Prefetched package files are read-only.");
 		}
 
 		private Dictionary<string, int[]> BuildSparsePathIndexMap(params string[] rootFolders)
@@ -769,20 +911,52 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void RestoreMaterialProfiles()
+		private async Task RestoreMaterialProfilesAsync(MaterialPrefetchResult prefetch)
 		{
 			_tableFolder.TryGetFolder(PackageApi.MetaFolder, out var metaFolder);
 
 			if (_embeddedMaterialPayload != null &&
-				VpeMaterialV1Reader.TryApply(_embeddedMaterialPayload, _embeddedMaterialTextureBlobs, metaFolder, _table.transform,
-					$"{PackageApi.SceneFile}/{VpeMaterialsGltfExtension.ExtensionName}")) {
+				await VpeMaterialV1Reader.TryApplyAsync(_embeddedMaterialPayload, _embeddedMaterialTextureBlobs, metaFolder, _table.transform,
+					$"{PackageApi.SceneFile}/{VpeMaterialsGltfExtension.ExtensionName}", prefetch?.PackedTextureData)) {
 				return;
 			}
 
 			if (metaFolder == null) {
 				return;
 			}
-			VpeMaterialV1Reader.TryApply(metaFolder, _table.transform);
+			await VpeMaterialV1Reader.TryApplyAsync(metaFolder, _table.transform, prefetch?.Payload, prefetch?.PackedTextureData);
+		}
+
+		// Runs on a worker thread. Opens its own read-only view on the package so it doesn't race
+		// the main import's storage, and pre-parses the material payload (Newtonsoft is thread-safe).
+		private static MaterialPrefetchResult PrefetchMaterialData(string vpePath)
+		{
+			try {
+				using var storage = PackageApi.StorageManager.OpenStorage(vpePath);
+				var tableFolder = storage.GetFolder(PackageApi.TableFolder);
+				if (!tableFolder.TryGetFolder(PackageApi.MetaFolder, out var metaFolder)) {
+					return null;
+				}
+
+				var result = new MaterialPrefetchResult();
+				if (metaFolder.TryGetFile(PackageApi.MaterialsV1File, out var payloadFile, PackageApi.Packer.FileExtension)) {
+					result.Payload = PackageApi.Packer.Unpack<VpeMaterialsPayloadV1>(payloadFile.GetData());
+				}
+				if (metaFolder.TryGetFile(PackageApi.TexturesV1PackFile, out var packedTexturesFile)) {
+					result.PackedTextureData = packedTexturesFile.GetData();
+				}
+				return result;
+
+			} catch (Exception ex) {
+				Logger.Warn(ex, "RuntimePackageReader: failed prefetching material data; falling back to synchronous read.");
+				return null;
+			}
+		}
+
+		private sealed class MaterialPrefetchResult
+		{
+			public VpeMaterialsPayloadV1 Payload;
+			public byte[] PackedTextureData;
 		}
 
 		private void DestroyLoadedTable()
@@ -799,7 +973,7 @@ namespace VisualPinball.Unity
 			_table = null;
 		}
 
-		private static async Task ReportProgressAndYieldAsync(
+		private async Task ReportProgressAndYieldAsync(
 			IProgress<RuntimePackageLoadProgress> progress,
 			RuntimePackageLoadStage stage,
 			string statusPrefix,
@@ -809,12 +983,13 @@ namespace VisualPinball.Unity
 		{
 			ReportProgress(progress, stage, GetProgress01(processed, total), FormatStageMessage(statusPrefix, processed, total));
 
-			if (processed % RuntimeYieldInterval != 0) {
+			if (_yieldStopwatch.ElapsedMilliseconds < RuntimeYieldBudgetMilliseconds) {
 				return;
 			}
 
 			cancellationToken.ThrowIfCancellationRequested();
 			await Task.Yield();
+			_yieldStopwatch.Restart();
 		}
 
 		private static void ReportProgress(IProgress<RuntimePackageLoadProgress> progress, RuntimePackageLoadStage stage, float stageProgress01, string message)

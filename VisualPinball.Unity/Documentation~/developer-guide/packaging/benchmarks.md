@@ -14,6 +14,7 @@ The table below is the short version.
 
 | Experiment | Status | Recommendation | Main result |
 | --- | --- | --- | --- |
+| Cooked GPU textures (BC7/DXT5, mips baked, no GLB images) | Validated and merged (June 2026) | Shipping format | Terminator 2 import: ~23.3s → ~1.7-2.2s in-editor |
 | Packed `textures.bin` sidecar | Validated and merged | Keep | Better package shape for runtime loading |
 | GPU HDRP normal repack | Validated and merged | Keep | Removed a major normal-repack hotspot |
 | Skip mip generation for heavy linear side textures | Validated and merged | Keep | Small but measurable runtime win |
@@ -24,6 +25,32 @@ The table below is the short version.
 | DDS/BC7 embedded directly in GLB | Tested and invalidated | Do not use | Smaller package, much slower load |
 | KTX2 / `KHR_texture_basisu` for GLB normals | Tested and invalidated for startup speed | Do not prioritize for load time | Smaller package, slower load |
 | Persistent raw runtime texture cache | Tested and invalidated | Do not revive in the same form | Speedups came with corruption/crash risk |
+
+## Cooked GPU textures (shipping since June 2026)
+
+This implemented the "highest-value next step" below and went further: instead of compressing
+only the side-channel textures, **every** texture captured by the material translator is cooked
+at export into its final GPU format (BC7 for color/masks, DXT5 in HDRP AG packing for normals,
+mips baked) and the GLB ships without image payloads for captured materials. Runtime upload is
+`LoadRawTextureData` from the packed blob through a pinned pointer.
+
+Measured on Terminator 2 (editor play mode, full keyboard flow from the table carousel):
+
+- baseline (PNG everywhere, 486 MB package): **23.3 s** total import
+  - `table.glb` (345.8 MB, 336 MB of PNGs): 10.5 s
+  - material restore: 10.9 s (3.0 s sidecar PNG decode, 4.7 s CPU normal repack + compress)
+- cooked format (689 MB package, `table.glb` 9.8 MB, `textures.bin` 640 MB raw BC): **1.7-2.2 s**
+  - `table.glb`: 0.4-0.7 s, material restore: 0.6-0.8 s (325 raw uploads ≈ 0.2 s)
+
+Supporting runtime work that landed with it: uninterrupted glTFast defer agent, worker-thread
+prefetch of `textures.bin`/`materials.v1.json` and of all item/ref entries, worker-thread GLB
+extension/tangent scans, a cached `PackagedRefs` type scan (was 450 ms per load), time-budget
+yields, and a ~160 MB-per-frame upload budget (without it, queueing all uploads in one frame
+crashed the editor with `DXGI_ERROR_DEVICE_HUNG`).
+
+The package grows (BC + mips beat PNG at load time, not on disk); stored — not deflated — zip
+entries for the texture blob and GLBs keep reads straight. Caveats and details live in the
+Packaging README ("Cooked Texture Format").
 
 ## Baseline context
 
