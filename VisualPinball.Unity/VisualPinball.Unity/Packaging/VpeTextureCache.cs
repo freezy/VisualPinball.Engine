@@ -70,7 +70,7 @@ namespace VisualPinball.Unity
 		{
 			// Cooked texture entries; same schema as the package payload, with PixelFormat,
 			// MipCount and byte ranges pointing into the cooked payload.
-			public VpeTextureAssetV1[] Textures = Array.Empty<VpeTextureAssetV1>();
+			public VpeTexturePayload[] Textures = Array.Empty<VpeTexturePayload>();
 			// Ids of normal maps whose payload is AG-packed for HDRP; the loader flips the
 			// corresponding refs to dxt5nm packing so the resolver skips the runtime repack.
 			public string[] AgPackedNormalIds = Array.Empty<string>();

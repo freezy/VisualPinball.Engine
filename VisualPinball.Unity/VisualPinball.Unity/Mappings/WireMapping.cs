@@ -47,7 +47,7 @@ namespace VisualPinball.Unity
 		public ISwitchDeviceComponent SourceDevice { get => _sourceDevice as ISwitchDeviceComponent; set => _sourceDevice = value as MonoBehaviour; }
 
 		[JsonProperty]
-		private string _sourceDevicePath { get; set; }
+		private string _sourceDeviceId { get; set; }
 
 		public string SourceDeviceItem = string.Empty;
 
@@ -60,7 +60,7 @@ namespace VisualPinball.Unity
 		public IWireableComponent DestinationDevice { get => _destinationDevice as IWireableComponent; set => _destinationDevice = value as MonoBehaviour; }
 
 		[JsonProperty]
-		private string _destinationDevicePath { get; set; }
+		private string _destinationDeviceId { get; set; }
 
 		public string DestinationDeviceItem = string.Empty;
 
@@ -72,20 +72,19 @@ namespace VisualPinball.Unity
 		{
 		}
 
-		public void SaveReferences(Transform tableRoot)
+		public void SaveReferences(PackagedRefs refs)
 		{
-			_sourceDevicePath = _sourceDevice ? _sourceDevice.gameObject.transform.GetPath(tableRoot, activeOnly: true) : null;
-			_destinationDevicePath = _destinationDevice ? _destinationDevice.gameObject.transform.GetPath(tableRoot, activeOnly: true) : null;
+			_sourceDeviceId = refs.GetNodeId(_sourceDevice ? _sourceDevice.transform : null);
+			_destinationDeviceId = refs.GetNodeId(_destinationDevice ? _destinationDevice.transform : null);
 		}
 
-		public void RestoreReferences(Transform tableRoot)
+		public void RestoreReferences(PackagedRefs refs)
 		{
-			_sourceDevice = string.IsNullOrEmpty(_sourceDevicePath)
-				? null
-				: tableRoot.FindByPath(_sourceDevicePath)?.GetComponent<ICoilDeviceComponent>() as MonoBehaviour;
-			_destinationDevice = string.IsNullOrEmpty(_destinationDevicePath)
-				? null
-				: tableRoot.FindByPath(_destinationDevicePath)?.GetComponent<ICoilDeviceComponent>() as MonoBehaviour;
+			var sourceNode = refs.GetNode(_sourceDeviceId);
+			_sourceDevice = sourceNode ? sourceNode.GetComponent<ICoilDeviceComponent>() as MonoBehaviour : null;
+
+			var destinationNode = refs.GetNode(_destinationDeviceId);
+			_destinationDevice = destinationNode ? destinationNode.GetComponent<ICoilDeviceComponent>() as MonoBehaviour : null;
 		}
 
 		[ExcludeFromCodeCoverage]

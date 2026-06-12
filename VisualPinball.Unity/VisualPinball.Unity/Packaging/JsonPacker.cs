@@ -31,7 +31,7 @@ namespace VisualPinball.Unity.Editor
 				}));
 			} catch (Exception e) {
 				Debug.LogError(e);
-				throw e;
+				throw;
 			}
 		}
 
@@ -43,7 +43,7 @@ namespace VisualPinball.Unity.Editor
 				return JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(data));
 			} catch (Exception e) {
 				Debug.LogError(e);
-				throw e;
+				throw;
 			}
 		}
 
@@ -53,7 +53,7 @@ namespace VisualPinball.Unity.Editor
 				JsonConvert.PopulateObject(Encoding.UTF8.GetString(data), instance);
 			} catch (Exception e) {
 				Debug.LogError(e);
-				throw e;
+				throw;
 			}
 		}
 
@@ -68,7 +68,7 @@ namespace VisualPinball.Unity.Editor
 				return JsonConvert.DeserializeObject(Encoding.UTF8.GetString(data), t);
 			} catch (Exception e) {
 				Debug.LogError(e);
-				throw e;
+				throw;
 			}
 		}
 

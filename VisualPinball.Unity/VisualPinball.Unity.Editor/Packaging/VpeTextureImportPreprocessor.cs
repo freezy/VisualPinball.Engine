@@ -31,13 +31,13 @@ namespace VisualPinball.Unity.Editor
 	{
 		private sealed class PendingSettings
 		{
-			public VpeTextureAssetV1 Asset;
+			public VpeTexturePayload Asset;
 			public bool IsNormalMap;
 		}
 
 		private static readonly Dictionary<string, PendingSettings> PendingByAssetPath = new(StringComparer.OrdinalIgnoreCase);
 
-		public static void Register(string assetPath, VpeTextureAssetV1 asset, bool isNormalMap)
+		public static void Register(string assetPath, VpeTexturePayload asset, bool isNormalMap)
 		{
 			PendingByAssetPath[assetPath] = new PendingSettings { Asset = asset, IsNormalMap = isNormalMap };
 		}

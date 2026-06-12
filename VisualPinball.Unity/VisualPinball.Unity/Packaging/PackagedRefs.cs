@@ -33,7 +33,10 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, Type> _nameToType = new();
 		private readonly List<Type> _nativeTypes = new();
 
-		private readonly Transform _tableRoot;
+		// Node identity: references are written and resolved by stable node id (the glTF
+		// extras.vpeId of table.glb). See VpeNodeIds.
+		private IReadOnlyDictionary<Transform, string> _nodeIdByTransform;
+		private IReadOnlyDictionary<string, Transform> _transformByNodeId;
 
 		// Scanning every loaded assembly for PackAsAttribute takes hundreds of milliseconds and its
 		// result only changes on domain reload, so it is computed once and shared. WarmUpTypeScan is
@@ -74,7 +77,6 @@ namespace VisualPinball.Unity
 
 		public PackagedRefs(Transform tableRoot)
 		{
-			_tableRoot = tableRoot;
 			WarmUpTypeScan();
 			foreach (var (type, name) in _packAsTypes) {
 				Add(type, name);
@@ -103,6 +105,9 @@ namespace VisualPinball.Unity
 			return type;
 		}
 
+		/// <summary>Non-logging type lookup, for callers that handle unknown types themselves.</summary>
+		public bool TryGetType(string name, out Type type) => _nameToType.TryGetValue(name, out type);
+
 		public string GetName(Type type)
 		{
 			if (!_typeToName.TryGetValue(type, out var name)) {
@@ -114,19 +119,67 @@ namespace VisualPinball.Unity
 
 		public bool HasType(Type t) => _typeToName.ContainsKey(t);
 
+		/// <summary>
+		/// Switches reference writing to stable node ids (format v2). The map must cover every
+		/// exported transform.
+		/// </summary>
+		public void SetNodeIdsForWrite(IReadOnlyDictionary<Transform, string> nodeIdByTransform)
+		{
+			_nodeIdByTransform = nodeIdByTransform;
+		}
+
+		/// <summary>
+		/// Switches reference resolution to stable node ids (format v2), as bound from the
+		/// imported scene.
+		/// </summary>
+		public void SetNodeIdsForRead(IReadOnlyDictionary<string, Transform> transformByNodeId)
+		{
+			_transformByNodeId = transformByNodeId;
+		}
+
+		/// <summary>Node id of a transform when writing a v2 package, null otherwise.</summary>
+		public string GetNodeId(Transform transform)
+		{
+			return transform != null && _nodeIdByTransform != null && _nodeIdByTransform.TryGetValue(transform, out var id)
+				? id
+				: null;
+		}
+
+		/// <summary>Transform for a node id when reading a v2 package, null otherwise.</summary>
+		public Transform GetNode(string nodeId)
+		{
+			return !string.IsNullOrEmpty(nodeId) && _transformByNodeId != null && _transformByNodeId.TryGetValue(nodeId, out var t)
+				? t
+				: null;
+		}
+
 		public IEnumerable<ReferencePackable> PackReferences<T>(IEnumerable<T> comps) where T : Component
 			=> comps.Select(PackReference);
 
 		public ReferencePackable PackReference<T>(T comp) where T : Component
-			=> comp != null
-				? new ReferencePackable(comp.transform.GetPath(_tableRoot, activeOnly: true), GetName(comp.GetType()))
-				: new ReferencePackable(null, null);
+		{
+			if (comp == null) {
+				return new ReferencePackable(null, null);
+			}
+			var typeName = GetName(comp.GetType());
+			var id = GetNodeId(comp.transform);
+			if (id == null) {
+				// Only exported (active) nodes carry ids; a reference to anything else cannot be
+				// restored and is written as a null reference.
+				Debug.LogWarning($"Reference to {typeName} on '{comp.name}' points to a non-exported object; writing null reference.");
+				return new ReferencePackable(null, typeName);
+			}
+			return new ReferencePackable(id, typeName);
+		}
 
 		public T Resolve<T>(ReferencePackable packedRef) where T: class
 		{
-			var transform = _tableRoot.FindByPath(packedRef.Path);
+			if (string.IsNullOrEmpty(packedRef.Id)) {
+				return null;
+			}
+			var transform = GetNode(packedRef.Id);
 			if (transform == null) {
-				Debug.LogError($"Error resolving reference {packedRef.Type}@{packedRef.Path}: No object found at path.");
+				Debug.LogError($"Error resolving reference {packedRef.Type}@{packedRef.Id}: No node with this id.");
 				return null;
 			}
 			var type = GetType(packedRef.Type);
@@ -137,14 +190,14 @@ namespace VisualPinball.Unity
 			var component = transform.gameObject.GetComponent(type);
 
 			if (component == null) {
-				Debug.LogError($"Error resolving reference {packedRef.Type}@{packedRef.Path}: No component of type {type.FullName} on game object {transform.name}");
+				Debug.LogError($"Error resolving reference {packedRef.Type}@{packedRef.Id}: No component of type {type.FullName} on game object {transform.name}");
 			}
 
 			if (component is T compT) {
 				return compT;
 			}
 
-			Debug.LogError($"Error resolving reference {packedRef.Type}@{packedRef.Path}: Component on {transform.name} required to be of type {typeof(T).FullName}, but is {component.GetType().FullName}.");
+			Debug.LogError($"Error resolving reference {packedRef.Type}@{packedRef.Id}: Component on {transform.name} required to be of type {typeof(T).FullName}, but is {component.GetType().FullName}.");
 			return null;
 		}
 
@@ -157,10 +210,13 @@ namespace VisualPinball.Unity
 		public T Resolve<T, TI>(ReferencePackable packedRef) where T : class
 		{
 			var component = Resolve<T>(packedRef);
+			if (component == null) {
+				return null;
+			}
 			if (component is TI) {
 				return component;
 			}
-			Debug.LogError($"Error resolving reference {packedRef.Type}@{packedRef.Path}: Component does not inherit {typeof(TI).FullName}.");
+			Debug.LogError($"Error resolving reference {packedRef.Type}@{packedRef.Id}: Component does not inherit {typeof(TI).FullName}.");
 			return null;
 		}
 	}

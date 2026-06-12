@@ -47,9 +47,9 @@ namespace VisualPinball.Unity
 		private IPackageFolder _tableFolder;
 		private PackagedRefs _refs;
 		private PackagedFiles _files;
-		private Dictionary<string, int[]> _sparsePathIndexMap;
-		private VpeMaterialsPayloadV1 _embeddedMaterialPayload;
-		private IReadOnlyDictionary<string, byte[]> _embeddedMaterialTextureBlobs;
+		private VpePackageManifest _manifest;
+		private Dictionary<string, Transform> _transformByNodeId;
+		private readonly HashSet<string> _unknownTypeNames = new(StringComparer.Ordinal);
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -79,7 +79,7 @@ namespace VisualPinball.Unity
 			_yieldStopwatch.Restart();
 			ReportProgress(progress, RuntimePackageLoadStage.OpeningPackage, 0f, $"Opening {Path.GetFileName(_vpePath)}...");
 
-			// The material payload and the packed texture blob are the biggest reads besides the
+			// The material payload and the source textures are the biggest reads besides the
 			// scene itself; pull them off disk (and parse the JSON payload) on a worker thread while
 			// the main thread imports the scene and restores items. When a valid cooked-texture
 			// cache exists for this package, the worker loads it instead of the source textures. A
@@ -96,184 +96,203 @@ namespace VisualPinball.Unity
 
 			var openStopwatch = Stopwatch.StartNew();
 			using var storage = PackageApi.StorageManager.OpenStorage(_vpePath);
+			_manifest = VpePackageManifestIo.TryRead(storage);
+			if (_manifest == null) {
+				throw new Exception(
+					"This file has no package manifest — it is not a .vpe table package (or was written by an " +
+					"incompatible pre-release version of VPE).");
+			}
+			if (_manifest.FormatVersion > PackageApi.FormatVersion) {
+				throw new Exception(
+					$"This package uses format version {_manifest.FormatVersion}, but this build only supports up " +
+					$"to version {PackageApi.FormatVersion}. Update VPE to load it.");
+			}
 			_tableFolder = storage.GetFolder(PackageApi.TableFolder);
-			_sparsePathIndexMap = BuildSparsePathIndexMap(PackageApi.ItemFolder, PackageApi.ItemReferencesFolder);
 			openStopwatch.Stop();
-			Logger.Info($"RuntimePackageReader: Opened package in {openStopwatch.ElapsedMilliseconds}ms.");
+			Logger.Info($"RuntimePackageReader: Opened package (format v{_manifest.FormatVersion}) in {openStopwatch.ElapsedMilliseconds}ms.");
 			ReportProgress(progress, RuntimePackageLoadStage.OpeningPackage, 1f, "Package opened.");
 
-			var previousSparsePathIndexMap = TransformExtensions.SparsePathIndexMap;
-			TransformExtensions.SparsePathIndexMap = _sparsePathIndexMap;
-
 			try {
+				var importModelsStopwatch = Stopwatch.StartNew();
+				_table = await ImportModels(parent, progress, cancellationToken);
+				importModelsStopwatch.Stop();
+				Logger.Info(
+					$"RuntimePackageReader: Imported {PackageApi.SceneFile} in {importModelsStopwatch.ElapsedMilliseconds}ms " +
+					$"from '{Path.GetFileName(_vpePath)}'.");
+				cancellationToken.ThrowIfCancellationRequested();
+				var restoreActive = _table.activeSelf;
+				var loadSucceeded = false;
+				_table.SetActive(false);
+
 				try {
-					var importModelsStopwatch = Stopwatch.StartNew();
-					_table = await ImportModels(parent, progress, cancellationToken);
-					importModelsStopwatch.Stop();
-					Logger.Info(
-						$"RuntimePackageReader: Imported {PackageApi.SceneFile} in {importModelsStopwatch.ElapsedMilliseconds}ms " +
-						$"from '{Path.GetFileName(_vpePath)}'.");
-					cancellationToken.ThrowIfCancellationRequested();
-					var restoreActive = _table.activeSelf;
-					var loadSucceeded = false;
-					_table.SetActive(false);
-
+					var refsStopwatch = Stopwatch.StartNew();
 					try {
-						var refsStopwatch = Stopwatch.StartNew();
-						try {
-							await typeScanTask;
-						} catch (Exception ex) {
-							Logger.Warn(ex, "RuntimePackageReader: background type scan failed; scanning on the main thread.");
-						}
-						_refs = new PackagedRefs(_table.transform);
-						_files = new PackagedFiles(_tableFolder, _refs);
-						refsStopwatch.Stop();
-						Logger.Info($"RuntimePackageReader: Built refs/files in {refsStopwatch.ElapsedMilliseconds}ms.");
+						await typeScanTask;
+					} catch (Exception ex) {
+						Logger.Warn(ex, "RuntimePackageReader: background type scan failed; scanning on the main thread.");
+					}
+					_refs = new PackagedRefs(_table.transform);
+					_refs.SetNodeIdsForRead(_transformByNodeId);
+					_files = new PackagedFiles(_tableFolder, _refs);
+					WarnMissingComponentTypes();
+					refsStopwatch.Stop();
+					Logger.Info($"RuntimePackageReader: Built refs/files in {refsStopwatch.ElapsedMilliseconds}ms.");
 
-						var unpackSoundsStopwatch = Stopwatch.StartNew();
-						ReportProgress(progress, RuntimePackageLoadStage.LoadingSounds, 0f, "Loading table audio...");
-						await _files.UnpackSoundsRuntime(cancellationToken, (processed, total) => {
-							ReportProgress(progress, RuntimePackageLoadStage.LoadingSounds, GetProgress01(processed, total),
-								FormatStageMessage("Loading table audio", processed, total));
-						});
-						ReportProgress(progress, RuntimePackageLoadStage.LoadingSounds, 1f, "Audio ready.");
-						unpackSoundsStopwatch.Stop();
-						Logger.Info($"RuntimePackageReader: Unpacked sounds in {unpackSoundsStopwatch.ElapsedMilliseconds}ms.");
+					var unpackSoundsStopwatch = Stopwatch.StartNew();
+					ReportProgress(progress, RuntimePackageLoadStage.LoadingSounds, 0f, "Loading table audio...");
+					await _files.UnpackSoundsRuntime(cancellationToken, (processed, total) => {
+						ReportProgress(progress, RuntimePackageLoadStage.LoadingSounds, GetProgress01(processed, total),
+							FormatStageMessage("Loading table audio", processed, total));
+					});
+					ReportProgress(progress, RuntimePackageLoadStage.LoadingSounds, 1f, "Audio ready.");
+					unpackSoundsStopwatch.Stop();
+					Logger.Info($"RuntimePackageReader: Unpacked sounds in {unpackSoundsStopwatch.ElapsedMilliseconds}ms.");
 
-						var unpackAssetsStopwatch = Stopwatch.StartNew();
-						ReportProgress(progress, RuntimePackageLoadStage.LoadingAssets, 0f, "Loading runtime assets...");
-						await _files.UnpackAssetsRuntime(cancellationToken, (processed, total) => {
-							ReportProgress(progress, RuntimePackageLoadStage.LoadingAssets, GetProgress01(processed, total),
-								FormatStageMessage("Loading runtime assets", processed, total));
-						});
-						ReportProgress(progress, RuntimePackageLoadStage.LoadingAssets, 1f, "Runtime assets ready.");
-						unpackAssetsStopwatch.Stop();
-						Logger.Info($"RuntimePackageReader: Unpacked assets in {unpackAssetsStopwatch.ElapsedMilliseconds}ms.");
+					var unpackAssetsStopwatch = Stopwatch.StartNew();
+					ReportProgress(progress, RuntimePackageLoadStage.LoadingAssets, 0f, "Loading runtime assets...");
+					await _files.UnpackAssetsRuntime(cancellationToken, (processed, total) => {
+						ReportProgress(progress, RuntimePackageLoadStage.LoadingAssets, GetProgress01(processed, total),
+							FormatStageMessage("Loading runtime assets", processed, total));
+					});
+					ReportProgress(progress, RuntimePackageLoadStage.LoadingAssets, 1f, "Runtime assets ready.");
+					unpackAssetsStopwatch.Stop();
+					Logger.Info($"RuntimePackageReader: Unpacked assets in {unpackAssetsStopwatch.ElapsedMilliseconds}ms.");
 
-						var unpackMeshesStopwatch = Stopwatch.StartNew();
-						ReportProgress(progress, RuntimePackageLoadStage.LoadingColliderMeshes, 0f, "Loading collider meshes...");
-						await _files.UnpackMeshesRuntime(cancellationToken);
-						ReportProgress(progress, RuntimePackageLoadStage.LoadingColliderMeshes, 1f, "Collider meshes ready.");
-						unpackMeshesStopwatch.Stop();
-						Logger.Info($"RuntimePackageReader: Unpacked meshes in {unpackMeshesStopwatch.ElapsedMilliseconds}ms.");
+					var unpackMeshesStopwatch = Stopwatch.StartNew();
+					ReportProgress(progress, RuntimePackageLoadStage.LoadingColliderMeshes, 0f, "Loading collider meshes...");
+					await _files.UnpackMeshesRuntime(cancellationToken);
+					ReportProgress(progress, RuntimePackageLoadStage.LoadingColliderMeshes, 1f, "Collider meshes ready.");
+					unpackMeshesStopwatch.Stop();
+					Logger.Info($"RuntimePackageReader: Unpacked meshes in {unpackMeshesStopwatch.ElapsedMilliseconds}ms.");
 
-						Dictionary<string, byte[]> packableBytes = null;
-						try {
-							packableBytes = await packablePrefetchTask;
-						} catch (Exception ex) {
-							Logger.Warn(ex, "RuntimePackageReader: packable data prefetch failed; reading from package directly.");
-						}
-
-						var readItemsStopwatch = Stopwatch.StartNew();
-						await ReadPackablesAsync(
-							PackageApi.ItemFolder,
-							RuntimePackageLoadStage.RestoringPackables,
-							"Restoring table objects",
-							ApplyItemData,
-							(item, type, file, index) => {
-								var comps = item.gameObject.GetComponents(type);
-								var comp = comps.Length > index
-									? comps[index]
-									: item.gameObject.AddComponent(type);
-								if (comp is IPackable packable) {
-									packable.Unpack(file.GetData());
-								} else {
-									PackageApi.Packer.Unpack(file.GetData(), comp);
-								}
-							},
-							packableBytes,
-							progress,
-							cancellationToken);
-						readItemsStopwatch.Stop();
-						Logger.Info($"RuntimePackageReader: Restored packables in {readItemsStopwatch.ElapsedMilliseconds}ms.");
-
-						var readRefsStopwatch = Stopwatch.StartNew();
-						await ReadPackablesAsync(
-							PackageApi.ItemReferencesFolder,
-							RuntimePackageLoadStage.RestoringReferences,
-							"Restoring gameplay references",
-							null,
-							(item, type, file, index) => {
-								var comps = item.gameObject.GetComponents(type);
-								var comp = comps.Length > index
-									? comps[index]
-									: item.gameObject.AddComponent(type);
-								if (comp == null) {
-									Logger.Warn($"Cannot create component of type {type.FullName} on {item.name}.");
-									return;
-								}
-								if (comp is not IPackable packable) {
-									Logger.Warn($"Cannot unpack references for type {type.FullName} on {item.name} because the component does not implement {nameof(IPackable)}.");
-									return;
-								}
-
-								// Some components are intentionally refs-only and return null from Pack().
-								// Ensure they still get created so UnpackReferences can restore wiring.
-								if (comps.Length <= index) {
-									Logger.Info($"Created refs-only component {type.FullName} on {item.name} (index {index}).");
-								}
-
-								try {
-									packable.UnpackReferences(file.GetData(), _table.transform, _refs, _files);
-								} catch (Exception ex) {
-									Logger.Warn(ex, $"Failed unpacking references for type {type.FullName} on {item.name} (index {index}).");
-								}
-							},
-							packableBytes,
-							progress,
-							cancellationToken);
-						readRefsStopwatch.Stop();
-						Logger.Info($"RuntimePackageReader: Restored references in {readRefsStopwatch.ElapsedMilliseconds}ms.");
-
-						var globalsStopwatch = Stopwatch.StartNew();
-						await ReadGlobalsAsync(progress, cancellationToken);
-						globalsStopwatch.Stop();
-						Logger.Info($"RuntimePackageReader: Read globals in {globalsStopwatch.ElapsedMilliseconds}ms.");
-
-						var tableMetadataStopwatch = Stopwatch.StartNew();
-						ReportProgress(progress, RuntimePackageLoadStage.RestoringTableMetadata, 0f, "Reading table metadata...");
-						ReadTableMetadata();
-						ReportProgress(progress, RuntimePackageLoadStage.RestoringTableMetadata, 1f, "Table metadata ready.");
-						tableMetadataStopwatch.Stop();
-						Logger.Info($"RuntimePackageReader: Read table metadata in {tableMetadataStopwatch.ElapsedMilliseconds}ms.");
-
-						var materialsStopwatch = Stopwatch.StartNew();
-						ReportProgress(progress, RuntimePackageLoadStage.RestoringMaterials, 0f, "Applying material profiles...");
-						MaterialPrefetchResult materialPrefetch = null;
-						try {
-							materialPrefetch = await materialPrefetchTask;
-						} catch (Exception ex) {
-							Logger.Warn(ex, "RuntimePackageReader: material data prefetch failed; reading synchronously.");
-						}
-						await RestoreMaterialProfilesAsync(materialPrefetch, progress, cancellationToken);
-						ReportProgress(progress, RuntimePackageLoadStage.RestoringMaterials, 1f, "Material profiles applied.");
-						materialsStopwatch.Stop();
-						Logger.Info($"RuntimePackageReader: Restored material profiles in {materialsStopwatch.ElapsedMilliseconds}ms.");
-						loadSucceeded = true;
-
-					} finally {
-						if (loadSucceeded && _table) {
-							var activateStopwatch = Stopwatch.StartNew();
-							_table.SetActive(restoreActive);
-							activateStopwatch.Stop();
-							Logger.Info($"RuntimePackageReader: Activated table in {activateStopwatch.ElapsedMilliseconds}ms.");
-						}
+					Dictionary<string, byte[]> packableBytes = null;
+					try {
+						packableBytes = await packablePrefetchTask;
+					} catch (Exception ex) {
+						Logger.Warn(ex, "RuntimePackageReader: packable data prefetch failed; reading from package directly.");
 					}
 
-					importStopwatch.Stop();
-					ReportProgress(progress, RuntimePackageLoadStage.Finalizing, 1f, "Table ready.");
-					Logger.Info(
-						$"RuntimePackageReader: Imported '{Path.GetFileName(_vpePath)}' in {importStopwatch.ElapsedMilliseconds}ms total.");
-					return _table;
+					var readItemsStopwatch = Stopwatch.StartNew();
+					await ReadPackablesAsync(
+						PackageApi.ItemFolder,
+						RuntimePackageLoadStage.RestoringPackables,
+						"Restoring table objects",
+						ApplyItemData,
+						(item, type, file, index) => {
+							var comps = item.gameObject.GetComponents(type);
+							var comp = comps.Length > index
+								? comps[index]
+								: item.gameObject.AddComponent(type);
+							if (comp is IPackable packable) {
+								packable.Unpack(file.GetData());
+							} else {
+								PackageApi.Packer.Unpack(file.GetData(), comp);
+							}
+						},
+						packableBytes,
+						progress,
+						cancellationToken);
+					readItemsStopwatch.Stop();
+					Logger.Info($"RuntimePackageReader: Restored packables in {readItemsStopwatch.ElapsedMilliseconds}ms.");
 
-				} catch {
-					importStopwatch.Stop();
-					DestroyLoadedTable();
-					throw;
+					var readRefsStopwatch = Stopwatch.StartNew();
+					await ReadPackablesAsync(
+						PackageApi.ItemReferencesFolder,
+						RuntimePackageLoadStage.RestoringReferences,
+						"Restoring gameplay references",
+						null,
+						(item, type, file, index) => {
+							var comps = item.gameObject.GetComponents(type);
+							var comp = comps.Length > index
+								? comps[index]
+								: item.gameObject.AddComponent(type);
+							if (comp == null) {
+								Logger.Warn($"Cannot create component of type {type.FullName} on {item.name}.");
+								return;
+							}
+							if (comp is not IPackable packable) {
+								Logger.Warn($"Cannot unpack references for type {type.FullName} on {item.name} because the component does not implement {nameof(IPackable)}.");
+								return;
+							}
+
+							// Some components are intentionally refs-only and return null from Pack().
+							// Ensure they still get created so UnpackReferences can restore wiring.
+							if (comps.Length <= index) {
+								Logger.Info($"Created refs-only component {type.FullName} on {item.name} (index {index}).");
+							}
+
+							try {
+								packable.UnpackReferences(file.GetData(), _table.transform, _refs, _files);
+							} catch (Exception ex) {
+								Logger.Warn(ex, $"Failed unpacking references for type {type.FullName} on {item.name} (index {index}).");
+							}
+						},
+						packableBytes,
+						progress,
+						cancellationToken);
+					readRefsStopwatch.Stop();
+					Logger.Info($"RuntimePackageReader: Restored references in {readRefsStopwatch.ElapsedMilliseconds}ms.");
+
+					var globalsStopwatch = Stopwatch.StartNew();
+					await ReadGlobalsAsync(progress, cancellationToken);
+					globalsStopwatch.Stop();
+					Logger.Info($"RuntimePackageReader: Read globals in {globalsStopwatch.ElapsedMilliseconds}ms.");
+
+					var tableMetadataStopwatch = Stopwatch.StartNew();
+					ReportProgress(progress, RuntimePackageLoadStage.RestoringTableMetadata, 0f, "Reading table metadata...");
+					ReadTableMetadata();
+					ReportProgress(progress, RuntimePackageLoadStage.RestoringTableMetadata, 1f, "Table metadata ready.");
+					tableMetadataStopwatch.Stop();
+					Logger.Info($"RuntimePackageReader: Read table metadata in {tableMetadataStopwatch.ElapsedMilliseconds}ms.");
+
+					var materialsStopwatch = Stopwatch.StartNew();
+					ReportProgress(progress, RuntimePackageLoadStage.RestoringMaterials, 0f, "Applying material profiles...");
+					MaterialPrefetchResult materialPrefetch = null;
+					try {
+						materialPrefetch = await materialPrefetchTask;
+					} catch (Exception ex) {
+						Logger.Warn(ex, "RuntimePackageReader: material data prefetch failed; reading synchronously.");
+					}
+					await RestoreMaterialProfilesAsync(materialPrefetch, progress, cancellationToken);
+					ReportProgress(progress, RuntimePackageLoadStage.RestoringMaterials, 1f, "Material profiles applied.");
+					materialsStopwatch.Stop();
+					Logger.Info($"RuntimePackageReader: Restored material profiles in {materialsStopwatch.ElapsedMilliseconds}ms.");
+					loadSucceeded = true;
+
+				} finally {
+					if (loadSucceeded && _table) {
+						var activateStopwatch = Stopwatch.StartNew();
+						_table.SetActive(restoreActive);
+						activateStopwatch.Stop();
+						Logger.Info($"RuntimePackageReader: Activated table in {activateStopwatch.ElapsedMilliseconds}ms.");
+					}
 				}
 
-			} finally {
-				TransformExtensions.SparsePathIndexMap = previousSparsePathIndexMap;
+				importStopwatch.Stop();
+				ReportProgress(progress, RuntimePackageLoadStage.Finalizing, 1f, "Table ready.");
+				Logger.Info(
+					$"RuntimePackageReader: Imported '{Path.GetFileName(_vpePath)}' in {importStopwatch.ElapsedMilliseconds}ms total.");
+				return _table;
+
+			} catch {
+				importStopwatch.Stop();
+				DestroyLoadedTable();
+				throw;
+			}
+		}
+
+		private void WarnMissingComponentTypes()
+		{
+			if (_manifest?.ComponentTypes == null || _manifest.ComponentTypes.Count == 0) {
+				return;
+			}
+			var missing = _manifest.ComponentTypes
+				.Where(name => !string.IsNullOrEmpty(name) && !_refs.TryGetType(name, out _))
+				.ToList();
+			if (missing.Count > 0) {
+				Logger.Warn(
+					$"This package uses component types that are not registered in this build: {string.Join(", ", missing)}. " +
+					"Their data will be skipped — a plugin may be missing.");
 			}
 		}
 
@@ -288,21 +307,13 @@ namespace VisualPinball.Unity
 				throw new Exception($"Scene data file '{PackageApi.SceneFile}' is missing or empty.");
 			}
 
-			_embeddedMaterialPayload = null;
-			_embeddedMaterialTextureBlobs = null;
-			// Both scans only touch the raw GLB bytes (chunk walking + JSON), so they can run on a
+			_transformByNodeId = null;
+			// These scans only touch the raw GLB bytes (chunk walking + JSON), so they can run on a
 			// worker thread while glTFast parses the same buffer on the main path.
 			var sceneScanTask = Task.Run(() => {
-				VpeMaterialsPayloadV1 embeddedMaterialPayload = null;
-				IReadOnlyDictionary<string, byte[]> embeddedTextureBlobs = null;
-				if (VpeMaterialsGltfExtension.TryReadPayload(sceneData, out embeddedMaterialPayload)) {
-					VpeMaterialsGltfExtension.TryReadEmbeddedTextureBlobs(
-						sceneData,
-						embeddedMaterialPayload,
-						out embeddedTextureBlobs);
-				}
+				var nodeTree = VpeNodeIds.TryParse(sceneData);
 				var noTangents = CollectMeshesWithoutGltfTangents(sceneData);
-				return (embeddedMaterialPayload, embeddedTextureBlobs, noTangents);
+				return (nodeTree, noTangents);
 			}, cancellationToken);
 
 			var importRoot = new GameObject("__vpe_runtime_import");
@@ -328,7 +339,13 @@ namespace VisualPinball.Unity
 
 				ReportProgress(progress, RuntimePackageLoadStage.InstantiatingScene, 0f, "Building scene hierarchy...");
 				var instantiateStopwatch = Stopwatch.StartNew();
-				var instantiated = await gltf.InstantiateMainSceneAsync(importRoot.transform, cancellationToken);
+				// The instantiator's NodeCreated hook gives the exact glTF-node-index → GameObject
+				// mapping, which (combined with the node ids in the glTF extras) binds the package's
+				// stable node ids to the instantiated transforms without any structural guessing.
+				var gameObjectsByNodeIndex = new Dictionary<uint, GameObject>();
+				var instantiator = new GameObjectInstantiator(gltf, importRoot.transform);
+				instantiator.NodeCreated += (nodeIndex, go) => gameObjectsByNodeIndex[nodeIndex] = go;
+				var instantiated = await gltf.InstantiateMainSceneAsync(instantiator, cancellationToken);
 				instantiateStopwatch.Stop();
 				ReportProgress(progress, RuntimePackageLoadStage.InstantiatingScene, 1f, "Scene hierarchy ready.");
 				cancellationToken.ThrowIfCancellationRequested();
@@ -340,28 +357,31 @@ namespace VisualPinball.Unity
 					throw new Exception("The .vpe scene did not instantiate any root object.");
 				}
 
-				var (embeddedMaterialPayload, embeddedTextureBlobs, meshesWithoutTangents) = await sceneScanTask;
-				_embeddedMaterialPayload = embeddedMaterialPayload;
-				_embeddedMaterialTextureBlobs = embeddedTextureBlobs;
+				var (nodeTree, meshesWithoutTangents) = await sceneScanTask;
+				if (nodeTree == null) {
+					throw new Exception("table.glb carries no node tree.");
+				}
+				_transformByNodeId = VpeNodeIds.MapInstantiatedNodes(nodeTree, gameObjectsByNodeIndex);
 
 				var rootSelectStopwatch = Stopwatch.StartNew();
-				var tableRoot = SelectTableRoot(importRoot.transform);
-				rootSelectStopwatch.Stop();
-				if (!tableRoot) {
-					throw new Exception("Could not determine table root from imported .vpe scene.");
+				if (string.IsNullOrEmpty(_manifest.RootNodeId)
+					|| !_transformByNodeId.TryGetValue(_manifest.RootNodeId, out var tableRoot)
+					|| !tableRoot) {
+					throw new Exception("Could not resolve the manifest's root node id in the imported scene.");
 				}
+				rootSelectStopwatch.Stop();
 
 				var table = tableRoot.gameObject;
 				table.transform.SetParent(parent, false);
 				var fixupStopwatch = Stopwatch.StartNew();
 				ClearGeneratedTangents(table, meshesWithoutTangents);
-				NormalizeImportedLightIntensities(table);
-				RestoreLightProfiles(table);
+				VpeLightRestore.NormalizeImportedLightIntensities(table);
+				VpeLightRestore.RestoreLightProfiles(table, _tableFolder, id => _transformByNodeId.GetValueOrDefault(id));
 				fixupStopwatch.Stop();
 				Logger.Info(
 					$"RuntimePackageReader: glb stages: load={loadStopwatch.ElapsedMilliseconds}ms, " +
 					$"instantiate={instantiateStopwatch.ElapsedMilliseconds}ms, rootSelect={rootSelectStopwatch.ElapsedMilliseconds}ms, " +
-					$"fixups={fixupStopwatch.ElapsedMilliseconds}ms.");
+					$"fixups={fixupStopwatch.ElapsedMilliseconds}ms, nodeIds={_transformByNodeId.Count}.");
 
 				if (Application.isPlaying) {
 					UnityEngine.Object.Destroy(importRoot);
@@ -427,6 +447,7 @@ namespace VisualPinball.Unity
 								result.Add(name);
 							}
 						}
+
 						break;
 					}
 
@@ -466,179 +487,6 @@ namespace VisualPinball.Unity
 			if (cleared > 0) {
 				Logger.Info($"RuntimePackageReader: cleared generated tangents on {cleared} imported meshes that had no GLB TANGENT attribute.");
 			}
-		}
-
-		private void RestoreLightProfiles(GameObject table)
-		{
-			if (!table || !_tableFolder.TryGetFolder(PackageApi.MetaFolder, out var metaFolder)) {
-				return;
-			}
-			if (!metaFolder.TryGetFile(PackageApi.LightsV1File, out var payloadFile, PackageApi.Packer.FileExtension)) {
-				return;
-			}
-
-			var payload = PackageApi.Packer.Unpack<VpeLightsPayloadV1>(payloadFile.GetData());
-			if (payload.Lights == null || payload.Lights.Count == 0) {
-				return;
-			}
-
-			var matchedLights = new HashSet<int>();
-			var lights = table.GetComponentsInChildren<Light>(true);
-			for (var i = 0; i < payload.Lights.Count; i++) {
-				var profile = payload.Lights[i];
-				var target = ResolveLightProfileTarget(table.transform, profile.Path, lights, i, matchedLights);
-				if (!target) {
-					continue;
-				}
-
-				profile.Apply(target);
-				matchedLights.Add(target.GetInstanceID());
-			}
-		}
-
-		private static Light ResolveLightProfileTarget(
-			Transform tableRoot,
-			string path,
-			IReadOnlyList<Light> lights,
-			int profileIndex,
-			ISet<int> matchedLights)
-		{
-			var transform = tableRoot.FindByPath(path);
-			if (transform) {
-				var exact = transform.GetComponent<Light>();
-				if (exact) {
-					return exact;
-				}
-
-				var descendant = transform.GetComponentsInChildren<Light>(true)
-					.FirstOrDefault(light => !matchedLights.Contains(light.GetInstanceID()));
-				if (descendant) {
-					return descendant;
-				}
-			}
-
-			return profileIndex >= 0 && profileIndex < lights.Count ? lights[profileIndex] : null;
-		}
-
-		private static void NormalizeImportedLightIntensities(GameObject table)
-		{
-			if (!table || PackageApi.LightIntensityFactor <= 0f || Mathf.Approximately(PackageApi.LightIntensityFactor, 1f)) {
-				return;
-			}
-
-			foreach (var light in table.GetComponentsInChildren<Light>(true)) {
-				var originalIntensity = light.intensity;
-				light.lightUnit = UnityEngine.Rendering.LightUnit.Lumen;
-				light.intensity = originalIntensity / PackageApi.LightIntensityFactor;
-				NormalizeHdrpLightIntensity(light, originalIntensity);
-			}
-		}
-
-		private static void NormalizeHdrpLightIntensity(Light light, float originalUnityIntensity)
-		{
-			foreach (var component in light.GetComponents<Component>()) {
-				if (component == null || component.GetType().FullName != "UnityEngine.Rendering.HighDefinition.HDAdditionalLightData") {
-					continue;
-				}
-
-				var intensityProperty = component.GetType().GetProperty("intensity");
-				if (intensityProperty == null || !intensityProperty.CanRead || !intensityProperty.CanWrite) {
-					continue;
-				}
-
-				var value = intensityProperty.GetValue(component);
-				if (value is not float hdIntensity) {
-					continue;
-				}
-
-				// HDRP usually mirrors Light.intensity. Only compensate separately if it still contains the
-				// boosted glTF import value, otherwise setting Light.intensity above already normalized it.
-				var tolerance = Mathf.Max(0.001f, Mathf.Abs(originalUnityIntensity) * 0.001f);
-				if (Mathf.Abs(hdIntensity - originalUnityIntensity) <= tolerance) {
-					intensityProperty.SetValue(component, hdIntensity / PackageApi.LightIntensityFactor);
-				}
-			}
-		}
-
-		private Transform SelectTableRoot(Transform importRoot)
-		{
-			var candidates = CollectRootCandidates(importRoot);
-			if (candidates.Count == 0) {
-				return null;
-			}
-
-			if (!_tableFolder.TryGetFolder(PackageApi.ItemFolder, out var itemsFolder)) {
-				return candidates[0];
-			}
-
-			var paths = new List<string>();
-			itemsFolder.VisitFolders(itemFolder => paths.Add(itemFolder.Name));
-			if (paths.Count == 0) {
-				return candidates[0];
-			}
-
-			Transform bestCandidate = candidates[0];
-			var bestScore = ScoreCandidate(candidates[0], paths);
-			foreach (var candidate in candidates.Skip(1)) {
-				var score = ScoreCandidate(candidate, paths);
-				if (score <= bestScore) {
-					continue;
-				}
-
-				bestCandidate = candidate;
-				bestScore = score;
-				if (bestScore == paths.Count) {
-					break;
-				}
-			}
-
-			if (bestScore == 0) {
-				Logger.Warn("Runtime loader could not match any packaged paths on imported scene roots. Falling back to first root candidate.");
-				return candidates[0];
-			}
-
-			return bestCandidate;
-		}
-
-		private static List<Transform> CollectRootCandidates(Transform importRoot)
-		{
-			var candidates = new List<Transform>();
-			var visited = new HashSet<int>();
-
-			void Add(Transform transform)
-			{
-				if (!transform) {
-					return;
-				}
-
-				var instanceId = transform.GetInstanceID();
-				if (visited.Add(instanceId)) {
-					candidates.Add(transform);
-				}
-			}
-
-			for (var i = 0; i < importRoot.childCount; i++) {
-				var child = importRoot.GetChild(i);
-				Add(child);
-				for (var j = 0; j < child.childCount; j++) {
-					var grandChild = child.GetChild(j);
-					Add(grandChild);
-				}
-			}
-
-			return candidates;
-		}
-
-		private static int ScoreCandidate(Transform candidate, IReadOnlyList<string> paths)
-		{
-			var score = 0;
-			foreach (var path in paths) {
-				if (candidate.FindByPath(path) != null) {
-					score++;
-				}
-			}
-
-			return score;
 		}
 
 		private void ApplyItemData(GameObject gameObject, IPackageFile itemFile)
@@ -688,9 +536,9 @@ namespace VisualPinball.Unity
 			foreach (var itemFolder in itemFolders) {
 				cancellationToken.ThrowIfCancellationRequested();
 
-				var item = _table.transform.FindByPath(itemFolder.Name);
+				var item = _refs.GetNode(itemFolder.Name);
 				if (item == null) {
-					throw new Exception($"Cannot find item at path {itemFolder.Name} on node {_table.name}. Imported hierarchy does not match packaged item paths.");
+					throw new Exception($"Cannot find node '{itemFolder.Name}' in the imported scene. The package does not match its scene GLB.");
 				}
 
 				if (itemAction != null && itemFolder.TryGetFile(PackageApi.ItemFile, out var itemFile, PackageApi.Packer.FileExtension)) {
@@ -700,9 +548,14 @@ namespace VisualPinball.Unity
 				}
 
 				foreach (var typeFolder in GetFolders(itemFolder)) {
-					var type = _refs.GetType(typeFolder.Name);
-					if (type == null) {
-						throw new Exception($"Unknown component type '{typeFolder.Name}' while reading package.");
+					if (!_refs.TryGetType(typeFolder.Name, out var type)) {
+						// Forward compatibility: data of unknown component types (newer VPE,
+						// missing plugin) is skipped instead of failing the whole import.
+						if (_unknownTypeNames.Add(typeFolder.Name)) {
+							Logger.Error($"Skipping unknown component type '{typeFolder.Name}' while reading the package. A plugin may be missing.");
+						}
+						processedOperations += GetFiles(typeFolder).Count;
+						continue;
 					}
 
 					var index = 0;
@@ -787,55 +640,6 @@ namespace VisualPinball.Unity
 				=> throw new InvalidOperationException("Prefetched package files are read-only.");
 		}
 
-		private Dictionary<string, int[]> BuildSparsePathIndexMap(params string[] rootFolders)
-		{
-			var sparseChildrenByParent = new Dictionary<string, SortedSet<int>>(StringComparer.Ordinal);
-			foreach (var rootFolder in rootFolders) {
-				if (!_tableFolder.TryGetFolder(rootFolder, out var pathFolder)) {
-					continue;
-				}
-
-				pathFolder.VisitFolders(itemFolder => RegisterPath(itemFolder.Name, sparseChildrenByParent));
-			}
-
-			var sparsePathIndexMap = new Dictionary<string, int[]>(sparseChildrenByParent.Count, StringComparer.Ordinal);
-			foreach (var entry in sparseChildrenByParent) {
-				var parentPath = entry.Key;
-				var sparseChildren = entry.Value;
-				var indices = new int[sparseChildren.Count];
-				sparseChildren.CopyTo(indices);
-				sparsePathIndexMap[parentPath] = indices;
-			}
-
-			return sparsePathIndexMap;
-		}
-
-		private static void RegisterPath(string path, IDictionary<string, SortedSet<int>> sparseChildrenByParent)
-		{
-			if (string.IsNullOrWhiteSpace(path)) {
-				return;
-			}
-
-			var segments = path.Split('.');
-			if (segments.Length == 0 || segments[0] != "0") {
-				return;
-			}
-
-			var parentPath = "0";
-			for (var segmentIndex = 1; segmentIndex < segments.Length; segmentIndex++) {
-				if (!int.TryParse(segments[segmentIndex], out var sparseChildIndex)) {
-					return;
-				}
-
-				if (!sparseChildrenByParent.TryGetValue(parentPath, out var sparseChildren)) {
-					sparseChildren = new SortedSet<int>();
-					sparseChildrenByParent[parentPath] = sparseChildren;
-				}
-				sparseChildren.Add(sparseChildIndex);
-				parentPath = $"{parentPath}.{segments[segmentIndex]}";
-			}
-		}
-
 		private async Task ReadGlobalsAsync(IProgress<RuntimePackageLoadProgress> progress, CancellationToken cancellationToken)
 		{
 			var tableComponent = _table.GetComponent<TableComponent>();
@@ -868,25 +672,25 @@ namespace VisualPinball.Unity
 			var processedMappings = 0;
 
 			foreach (var sw in tableComponent.MappingConfig.Switches) {
-				sw.RestoreReference(_table.transform);
+				sw.RestoreReference(_refs);
 				processedMappings++;
 				await ReportProgressAndYieldAsync(progress, RuntimePackageLoadStage.RestoringGlobals, "Restoring table wiring",
 					processedMappings, totalMappings, cancellationToken);
 			}
 			foreach (var coil in tableComponent.MappingConfig.Coils) {
-				coil.RestoreReference(_table.transform);
+				coil.RestoreReference(_refs);
 				processedMappings++;
 				await ReportProgressAndYieldAsync(progress, RuntimePackageLoadStage.RestoringGlobals, "Restoring table wiring",
 					processedMappings, totalMappings, cancellationToken);
 			}
 			foreach (var lamp in tableComponent.MappingConfig.Lamps) {
-				lamp.RestoreReference(_table.transform);
+				lamp.RestoreReference(_refs);
 				processedMappings++;
 				await ReportProgressAndYieldAsync(progress, RuntimePackageLoadStage.RestoringGlobals, "Restoring table wiring",
 					processedMappings, totalMappings, cancellationToken);
 			}
 			foreach (var wire in tableComponent.MappingConfig.Wires) {
-				wire.RestoreReferences(_table.transform);
+				wire.RestoreReferences(_refs);
 				processedMappings++;
 				await ReportProgressAndYieldAsync(progress, RuntimePackageLoadStage.RestoringGlobals, "Restoring table wiring",
 					processedMappings, totalMappings, cancellationToken);
@@ -921,24 +725,39 @@ namespace VisualPinball.Unity
 			IProgress<RuntimePackageLoadProgress> progress,
 			CancellationToken cancellationToken)
 		{
-			_tableFolder.TryGetFolder(PackageApi.MetaFolder, out var metaFolder);
-
 			var payload = prefetch?.Payload;
-			var packedTextureData = prefetch?.PackedTextureData;
+			var entries = prefetch?.Sources?.Entries;
+			var blob = prefetch?.Sources?.Blob;
 
-			if (payload != null && prefetch.CachedTextures != null) {
+			if (payload == null) {
+				// Prefetch failed or carried no payload; read synchronously.
+				if (VpeMaterialReader.TryLoad(_tableFolder, loadSourceBytes: true, out payload, out var sources)) {
+					entries = sources.Entries;
+					blob = sources.Blob;
+				}
+			}
+
+			if (payload == null) {
+				return;
+			}
+
+			if (prefetch?.CachedTextures != null) {
 				// Cached cook: swap in the GPU-ready entries; the source textures were never read.
-				VpeTextureCook.ApplyCookedTextures(payload, prefetch.CachedTextures.Manifest);
-				packedTextureData = prefetch.CachedTextures.CookedData;
+				entries = VpeTextureCook.ReplaceEntries(entries, prefetch.CachedTextures.Manifest);
+				VpeTextureCook.RewriteNormalRefs(payload, prefetch.CachedTextures.Manifest);
+				blob = prefetch.CachedTextures.CookedData;
 				Logger.Info("RuntimePackageReader: using cooked texture cache.");
 
-			} else if (payload != null && packedTextureData != null && VpeTextureCook.IsSupported) {
+			} else if (blob != null && VpeTextureCook.IsSupported) {
 				// First load on this machine (or settings changed): cook the source textures into
 				// GPU-ready payloads now and persist them for the next load.
 				ReportProgress(progress, RuntimePackageLoadStage.RestoringMaterials, 0f, "Optimizing textures (first load)...");
 				VpeTextureCook.Result cookResult = null;
 				try {
-					cookResult = await VpeTextureCook.CookAsync(payload, packedTextureData,
+					cookResult = await VpeTextureCook.CookAsync(
+						entries,
+						VpeTextureCook.CollectNormalTextureIds(payload),
+						blob,
 						(done, total) => ReportProgress(progress, RuntimePackageLoadStage.RestoringMaterials,
 							total > 0 ? done * 0.9f / total : 0f, $"Optimizing textures (first load, {done}/{total})"),
 						cancellationToken);
@@ -949,8 +768,9 @@ namespace VisualPinball.Unity
 				}
 
 				if (cookResult != null) {
-					VpeTextureCook.ApplyCookedTextures(payload, cookResult.Manifest);
-					packedTextureData = cookResult.CookedData;
+					entries = VpeTextureCook.ReplaceEntries(entries, cookResult.Manifest);
+					VpeTextureCook.RewriteNormalRefs(payload, cookResult.Manifest);
+					blob = cookResult.CookedData;
 
 					// Persisting ~hundreds of MB takes a moment; do it off-thread, the in-memory
 					// result is used for this load either way.
@@ -963,16 +783,9 @@ namespace VisualPinball.Unity
 				}
 			}
 
-			if (_embeddedMaterialPayload != null &&
-				await VpeMaterialV1Reader.TryApplyAsync(_embeddedMaterialPayload, _embeddedMaterialTextureBlobs, metaFolder, _table.transform,
-					$"{PackageApi.SceneFile}/{VpeMaterialsGltfExtension.ExtensionName}", packedTextureData)) {
-				return;
-			}
-
-			if (metaFolder == null) {
-				return;
-			}
-			await VpeMaterialV1Reader.TryApplyAsync(metaFolder, _table.transform, payload, packedTextureData);
+			await VpeMaterialReader.TryApplyAsync(
+				payload, entries, blob, _table.transform,
+				id => _transformByNodeId.GetValueOrDefault(id), "materials");
 		}
 
 		// Runs on a worker thread. Opens its own read-only view on the package so it doesn't race
@@ -984,22 +797,22 @@ namespace VisualPinball.Unity
 			try {
 				using var storage = PackageApi.StorageManager.OpenStorage(vpePath);
 				var tableFolder = storage.GetFolder(PackageApi.TableFolder);
-				if (!tableFolder.TryGetFolder(PackageApi.MetaFolder, out var metaFolder)) {
+
+				if (!VpeMaterialReader.TryLoad(tableFolder, loadSourceBytes: false, out var payload, out var entriesOnly)) {
 					return null;
 				}
 
-				var result = new MaterialPrefetchResult();
-				if (metaFolder.TryGetFile(PackageApi.MaterialsV1File, out var payloadFile, PackageApi.Packer.FileExtension)) {
-					result.Payload = PackageApi.Packer.Unpack<VpeMaterialsPayloadV1>(payloadFile.GetData());
-				}
-
-				if (result.Payload != null && VpeTextureCache.TryLoad(cacheRoot, vpePath, cookSettingsHash, out var cached)) {
+				var result = new MaterialPrefetchResult { Payload = payload, Sources = entriesOnly };
+				if (VpeTextureCache.TryLoad(cacheRoot, vpePath, cookSettingsHash, out var cached)) {
 					result.CachedTextures = cached;
 					return result;
 				}
 
-				if (metaFolder.TryGetFile(PackageApi.TexturesV1PackFile, out var packedTexturesFile)) {
-					result.PackedTextureData = packedTexturesFile.GetData();
+				// No cache: load the source bytes for the cook (re-parses the payload; only the
+				// first load pays this, and the cook dwarfs it).
+				if (VpeMaterialReader.TryLoad(tableFolder, loadSourceBytes: true, out payload, out var sources)) {
+					result.Payload = payload;
+					result.Sources = sources;
 				}
 				return result;
 
@@ -1011,8 +824,8 @@ namespace VisualPinball.Unity
 
 		private sealed class MaterialPrefetchResult
 		{
-			public VpeMaterialsPayloadV1 Payload;
-			public byte[] PackedTextureData;
+			public VpeMaterialsPayload Payload;
+			public VpeTextureSources.Result Sources;
 			public VpeTextureCache.CacheData CachedTextures;
 		}
 

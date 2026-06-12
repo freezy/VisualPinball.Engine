@@ -88,6 +88,15 @@ namespace VisualPinball.Unity
 
 	public struct LightSourcePackable
 	{
+		/// <summary>
+		/// Stable node id. Set in the table-level lights payload (meta/lights.json); takes
+		/// precedence over <see cref="Path"/>.
+		/// </summary>
+		public string NodeId;
+		/// <summary>
+		/// Component-relative sibling-index path. Used by <see cref="LightPackable"/> for the
+		/// light sources within one component (with an index fallback); null in meta/lights.json.
+		/// </summary>
 		public string Path;
 		public bool Enabled;
 		public int Type;
@@ -108,10 +117,11 @@ namespace VisualPinball.Unity
 		public int LightShadowCasterMode;
 		public HdrpLightSourcePackable Hdrp;
 
-		public static LightSourcePackable From(Transform root, Light light)
+		public static LightSourcePackable From(Transform root, Light light, string nodeId = null)
 		{
 			return new LightSourcePackable {
-				Path = light.transform.GetPath(root),
+				NodeId = nodeId,
+				Path = nodeId == null ? light.transform.GetPath(root) : null,
 				Enabled = light.enabled,
 				Type = (int)light.type,
 				Shape = (int)light.shape,

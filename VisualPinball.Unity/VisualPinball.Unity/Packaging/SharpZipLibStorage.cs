@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using ICSharpCode.SharpZipLib.Zip;
+using NLog;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -38,6 +39,12 @@ namespace VisualPinball.Unity.Editor
 
 	internal class ZipPackageStorage : IPackageStorage
 	{
+		// Fixed entry timestamp (DOS epoch) so identical content produces byte-identical
+		// packages — useful for hashing and de-duplication on sharing sites.
+		internal static readonly DateTime EntryTimestamp = new(1980, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		private readonly bool _isWriteMode;
 
 		private ZipOutputStream _zipOutputStream;
@@ -56,7 +63,9 @@ namespace VisualPinball.Unity.Editor
 				var fs = File.Create(path);
 				_zipOutputStream = new ZipOutputStream(fs);
 				_zipOutputStream.SetComment("Pinball Engine");
-				_zipOutputStream.SetLevel(9);
+				// Level 6 is deflate's sweet spot; 9 costs measurably more export time for
+				// fractions of a percent on the JSON payloads (the big entries are stored anyway).
+				_zipOutputStream.SetLevel(6);
 
 				// Create a root folder with write context
 				_rootFolder = new ZipPackageFolder("", null, this, true);
@@ -80,6 +89,16 @@ namespace VisualPinball.Unity.Editor
 		public IPackageFolder GetFolder(string name)
 		{
 			return _rootFolder.GetFolder(name);
+		}
+
+		public IPackageFile AddFile(string name, string ext = null)
+		{
+			return _rootFolder.AddFile(name, ext);
+		}
+
+		public bool TryGetFile(string name, out IPackageFile file, string ext = null)
+		{
+			return _rootFolder.TryGetFile(name, out file, ext);
 		}
 
 		public void Close()
@@ -134,6 +153,14 @@ namespace VisualPinball.Unity.Editor
 				// Split path by forward slash
 				var parts = entryName.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
 
+				// Packages come from the internet. Entry names containing parent references,
+				// backslashes or drive separators could escape the import folder when written to
+				// disk (zip-slip); such entries are never produced by the writer, so drop them.
+				if (!AreEntryNamePartsSafe(parts)) {
+					Logger.Warn($"Ignoring zip entry with unsafe name '{entryName}'.");
+					continue;
+				}
+
 				// Insert into our folder tree
 				var currentFolder = _rootFolder;
 				for (var i = 0; i < parts.Length; i++) {
@@ -147,6 +174,16 @@ namespace VisualPinball.Unity.Editor
 					}
 				}
 			}
+		}
+
+		private static bool AreEntryNamePartsSafe(string[] parts)
+		{
+			foreach (var part in parts) {
+				if (part == "." || part == ".." || part.IndexOf('\\') >= 0 || part.IndexOf(':') >= 0) {
+					return false;
+				}
+			}
+			return true;
 		}
 	}
 
@@ -198,7 +235,7 @@ namespace VisualPinball.Unity.Editor
 					var zos = _storage.GetZipOutputStream();
 					var folderEntry = new ZipEntry(entryName)
 					{
-						DateTime = DateTime.Now
+						DateTime = ZipPackageStorage.EntryTimestamp
 					};
 
 					zos.PutNextEntry(folderEntry);
@@ -363,7 +400,7 @@ namespace VisualPinball.Unity.Editor
 
 				var entry = new ZipEntry(fullPath)
 				{
-					DateTime = DateTime.Now
+					DateTime = ZipPackageStorage.EntryTimestamp
 				};
 				zos.PutNextEntry(entry);
 
@@ -390,7 +427,7 @@ namespace VisualPinball.Unity.Editor
 				var crc = new ICSharpCode.SharpZipLib.Checksum.Crc32();
 				crc.Update(data);
 				var entry = new ZipEntry(fullPath) {
-					DateTime = DateTime.Now,
+					DateTime = ZipPackageStorage.EntryTimestamp,
 					CompressionMethod = CompressionMethod.Stored,
 					Size = data.Length,
 					Crc = crc.Value,

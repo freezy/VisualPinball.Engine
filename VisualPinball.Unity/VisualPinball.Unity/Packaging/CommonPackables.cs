@@ -26,12 +26,15 @@ namespace VisualPinball.Unity
 {
 	public struct ReferencePackable
 	{
-		public string Path;
+		/// <summary>Stable node id of the referenced component's node. Null means "no reference".</summary>
+		public string Id;
+
+		/// <summary>Pack name of the referenced component's type.</summary>
 		public string Type;
 
-		public ReferencePackable(string path, string type)
+		public ReferencePackable(string id, string type)
 		{
-			Path = path;
+			Id = id;
 			Type = type;
 		}
 	}

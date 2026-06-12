@@ -24,7 +24,6 @@ namespace VisualPinball.Unity
 	public static class TransformExtensions
 	{
 		private const string NodeSeparator = ".";
-		public static IReadOnlyDictionary<string, int[]> SparsePathIndexMap { get; set; }
 
 		public static void SetFromMatrix(this Transform tf, Matrix4x4 trs)
 		{
@@ -108,13 +107,7 @@ namespace VisualPinball.Unity
 				return null;
 			}
 
-			if (transform.TryFindChildrenByPath(path[2..], out var found)) {
-				return found;
-			}
-
-			return SparsePathIndexMap != null && transform.TryFindByPathMapped(path, SparsePathIndexMap, out found)
-				? found
-				: null;
+			return transform.TryFindChildrenByPath(path[2..], out var found) ? found : null;
 		}
 
 		public static bool TryFindByPath(this Transform transform, string path, out Transform found)
@@ -134,54 +127,6 @@ namespace VisualPinball.Unity
 			}
 
 			return transform.TryFindChildrenByPath(path[2..], out found);
-		}
-
-		public static bool TryFindByPathMapped(this Transform transform, string path, IReadOnlyDictionary<string, int[]> sparseIndexMap, out Transform found)
-		{
-			found = null;
-			if (!transform || string.IsNullOrWhiteSpace(path)) {
-				return false;
-			}
-
-			if (path == "0") {
-				found = transform;
-				return true;
-			}
-
-			if (path.Length <= 2 || path[0] != '0' || path[1] != NodeSeparator[0]) {
-				return false;
-			}
-
-			var segments = path.Split(NodeSeparator[0]);
-			if (segments.Length < 2 || segments[0] != "0") {
-				return false;
-			}
-
-			var current = transform;
-			var parentPath = "0";
-			for (var segmentIndex = 1; segmentIndex < segments.Length; segmentIndex++) {
-				if (!int.TryParse(segments[segmentIndex], out var requestedIndex)) {
-					return false;
-				}
-
-				var denseIndex = requestedIndex;
-				if (sparseIndexMap != null && sparseIndexMap.TryGetValue(parentPath, out var sparseChildren) && sparseChildren != null && sparseChildren.Length > 0) {
-					var sparsePosition = Array.BinarySearch(sparseChildren, requestedIndex);
-					if (sparsePosition >= 0) {
-						denseIndex = sparsePosition;
-					}
-				}
-
-				if (denseIndex < 0 || denseIndex >= current.childCount) {
-					return false;
-				}
-
-				current = current.GetChild(denseIndex);
-				parentPath = $"{parentPath}.{requestedIndex}";
-			}
-
-			found = current;
-			return true;
 		}
 
 		private static Transform FindChildrenByPath(this Transform transform, string path)

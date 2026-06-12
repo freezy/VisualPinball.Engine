@@ -47,22 +47,21 @@ namespace VisualPinball.Unity
 		public ISwitchDeviceComponent Device { get => _device as ISwitchDeviceComponent; set => _device = value as MonoBehaviour; }
 
 		[JsonProperty]
-		private string _devicePath { get; set; }
+		private string _deviceId { get; set; }
 
 		public string DeviceItem = string.Empty;
 
 		public int PulseDelay = 250;
 
-		public void SaveReference(Transform tableRoot)
+		public void SaveReference(PackagedRefs refs)
 		{
-			_devicePath = _device ? _device.gameObject.transform.GetPath(tableRoot, activeOnly: true) : null;
+			_deviceId = refs.GetNodeId(_device ? _device.transform : null);
 		}
 
-		public void RestoreReference(Transform tableRoot)
+		public void RestoreReference(PackagedRefs refs)
 		{
-			_device = string.IsNullOrEmpty(_devicePath)
-				? null
-				: tableRoot.FindByPath(_devicePath)?.GetComponent<ISwitchDeviceComponent>() as MonoBehaviour;
+			var node = refs.GetNode(_deviceId);
+			_device = node ? node.GetComponent<ISwitchDeviceComponent>() as MonoBehaviour : null;
 		}
 	}
 }
