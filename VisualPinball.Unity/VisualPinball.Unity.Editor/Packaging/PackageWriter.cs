@@ -267,8 +267,8 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			// Pre-warm libvips on the main thread BEFORE fanning out, so the worker threads never race
-			// its lazy native init (which hard-crashes Unity — see VpeTextureBlobLoader.EnsureVipsInitialized).
+			// Initialize libvips on the main thread BEFORE fanning out, so the worker threads don't race
+			// its lazy native init (which hard-crashes Unity — see EnsureVipsInitialized).
 			VpeTextureBlobLoader.EnsureVipsInitialized();
 
 			var total = _capturedBlobSources.Count;
