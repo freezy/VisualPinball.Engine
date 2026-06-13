@@ -41,6 +41,8 @@
     <PackageReference Include="StbImageSharp" Version="2.30.15" />
     <!-- NativeInput is consumed exclusively through NuGet (not from a checked-out native source tree). -->
     <PackageReference Include="VisualPinball.NativeInput" Version="$(VisualPinballNativeInputVersion)" />
+    <!-- Managed zstd (pure C#, no native dep) for optional texture-cache compression. -->
+    <PackageReference Include="ZstdSharp.Port" Version="0.8.8" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VisualPinball.Resources\VisualPinball.Resources.csproj" />
@@ -70,6 +72,7 @@
       <Plugins Include="$(OutDir)NetVips.dll" />
       <Plugins Include="$(OutDir)ICSharpCode.SharpZipLib.dll" />
       <Plugins Include="$(OutDir)StbImageSharp.dll" />
+      <Plugins Include="$(OutDir)ZstdSharp.dll" />
       <Plugins Include="$(OutDir)System.Buffers.dll" />
     </ItemGroup>
     <ItemGroup Condition="'$(RuntimeIdentifier)' == 'win-x64' Or '$(RuntimeIdentifier)' == 'win-x86' Or '$(RuntimeIdentifier)' == 'osx' Or '$(RuntimeIdentifier)' == 'linux-x64'">
