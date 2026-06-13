@@ -105,6 +105,10 @@ namespace VisualPinball.Unity
 				return null;
 			}
 
+			// Normals AG-repack on the GPU (compute) when available, else on the CPU during decode.
+			var normalRepack = new VpeNormalRepackCompute();
+			var repackOnGpu = normalRepack.Initialize();
+
 			var cookStopwatch = Stopwatch.StartNew();
 			long decodeWallMs = 0;
 			long decodeCpuMs = 0;
@@ -158,7 +162,7 @@ namespace VisualPinball.Unity
 							}
 
 							var decodeStopwatch = Stopwatch.StartNew();
-							var work = DecodeAndPrepare(item, sourceTextureData);
+							var work = DecodeAndPrepare(item, sourceTextureData, repackNormalOnCpu: !repackOnGpu);
 							Interlocked.Add(ref decodeCpuMs, decodeStopwatch.ElapsedMilliseconds);
 							if (work == null) {
 								Interlocked.Increment(ref decodeFailures);
@@ -197,21 +201,27 @@ namespace VisualPinball.Unity
 				if (firstGpuItemMs == 0) {
 					firstGpuItemMs = cookStopwatch.ElapsedMilliseconds;
 				}
+				var repackThisOnGpu = item.IsNormal && repackOnGpu;
 				RenderTexture mipped = null;
 				try {
 					mipped = new RenderTexture(item.Cooked.Width, item.Cooked.Height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear) {
 						name = $"{item.Source.Id} (CookMips)",
 						useMipMap = item.Cooked.MipCount > 1,
 						autoGenerateMips = false,
+						// UAV needed for the compute repack to write mip 0 directly.
+						enableRandomWrite = repackThisOnGpu,
 						hideFlags = HideFlags.HideAndDontSave,
 					};
 					mipped.Create();
-					// Both worker- and main-thread-decoded normals arrive already AG-packed on the CPU
-					// (see DecodeAndPrepare / DecodeOnMainThread), so this is always a plain copy blit. A
-					// custom-material repack blit can't be used here: Graphics.Blit with a custom shader
-					// reads _MainTex through an sRGB-decoding SRV on this path (gamma-distorts the normal),
-					// and its compiled variant is unreliable to refresh from a package Resources shader.
-					Graphics.Blit(upload, mipped);
+					if (repackThisOnGpu) {
+						// GPU AG-repack: the compute kernel reads the raw normal via a plain SRV (.Load,
+						// no sRGB decode — unlike a custom-material blit, which gamma-distorts it) and
+						// writes the (1, y, 1, x) layout into mip 0. Detail is preserved exactly.
+						normalRepack.Repack(upload, mipped, item.Cooked.Width, item.Cooked.Height);
+					} else {
+						// Plain copy. Non-normals, and normals already AG-packed on the CPU (fallback).
+						Graphics.Blit(upload, mipped);
+					}
 					if (item.Cooked.MipCount > 1) {
 						mipped.GenerateMips();
 					}
@@ -290,13 +300,12 @@ namespace VisualPinball.Unity
 						return null;
 					}
 
-					if (item.IsNormal) {
-						// AG-repack on the CPU (conversion-free, matching the worker path): per pixel
-						// (r,g,b,a) -> (255, g, 255, r*a). GetPixels32 returns the raw stored bytes (no
-						// sRGB conversion) and SetPixels32 writes them faithfully, so detail is preserved
-						// exactly. A GPU custom-material repack blit was tried and abandoned: it reads
-						// _MainTex through an sRGB-decoding SRV (gamma-distorts the normal) and its
-						// compiled variant from a package Resources shader is unreliable to refresh.
+					if (item.IsNormal && !repackOnGpu) {
+						// CPU fallback when the GPU compute repack is unavailable (conversion-free,
+						// matching the worker path): per pixel (r,g,b,a) -> (255, g, 255, r*a).
+						// GetPixels32 returns the raw stored bytes (no sRGB conversion) and SetPixels32
+						// writes them faithfully, so detail is preserved exactly. When the GPU repack is
+						// active the raw RGB normal is returned as-is and SubmitToGpu repacks it on GPU.
 						var pixels = decoded.GetPixels32();
 						for (var i = 0; i < pixels.Length; i++) {
 							var p = pixels[i];
@@ -387,8 +396,8 @@ namespace VisualPinball.Unity
 			};
 			Logger.Info(
 				$"VpeTextureCook: cooked {plan.Count} texture(s), {cookedSize / 1024f / 1024f:F1} MB " +
-				$"in {cookStopwatch.ElapsedMilliseconds}ms " +
-				$"(decodeWall={Interlocked.Read(ref decodeWallMs)}ms, decodeCpuSum={Interlocked.Read(ref decodeCpuMs)}ms, " +
+				$"in {cookStopwatch.ElapsedMilliseconds}ms (normalRepack={(repackOnGpu ? "gpu" : "cpu")}, " +
+				$"decodeWall={Interlocked.Read(ref decodeWallMs)}ms, decodeCpuSum={Interlocked.Read(ref decodeCpuMs)}ms, " +
 				$"firstGpuItem={firstGpuItemMs}ms, mainThreadUploads={uploadMs}ms).");
 			return new Result { Manifest = manifest, CookedData = cookedData };
 		}
@@ -572,7 +581,7 @@ namespace VisualPinball.Unity
 		// Decodes the source image, flips it into Unity's bottom-up row order, AG-packs normals and
 		// resizes to the planned base dimensions. Mip generation happens later on the GPU. Runs on
 		// worker threads — no Unity API access here.
-		private static GpuWork DecodeAndPrepare(CookPlanItem item, byte[] sourceData)
+		private static GpuWork DecodeAndPrepare(CookPlanItem item, byte[] sourceData, bool repackNormalOnCpu)
 		{
 			ImageResult image;
 			using (var stream = new MemoryStream(sourceData, item.Source.ByteOffset, item.Source.ByteLength, false)) {
@@ -587,9 +596,11 @@ namespace VisualPinball.Unity
 			var height = image.Height;
 			FlipVertical(pixels, width, height);
 
-			if (item.IsNormal) {
-				// x = r * a covers plain RGB sources (a=1 → x=r) and pre-swizzled data alike;
-				// output layout (1, y, 1, x) is what HDRP's RGorAG unpack expects.
+			if (item.IsNormal && repackNormalOnCpu) {
+				// CPU fallback when the GPU compute repack is unavailable. x = r * a covers plain RGB
+				// sources (a=1 → x=r) and pre-swizzled data alike; output layout (1, y, 1, x) is what
+				// HDRP's RGorAG unpack expects. When the GPU repack is active the raw RGB normal is
+				// uploaded as-is and SubmitToGpu repacks it on the GPU.
 				for (var i = 0; i < pixels.Length; i += 4) {
 					var x = (byte)((pixels[i] * pixels[i + 3] + 127) / 255);
 					pixels[i] = 255;

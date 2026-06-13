@@ -1,0 +1,25 @@
+// Repacks a plain-RGB tangent-space normal map into HDRP's AG layout (1, y, 1, x) on the GPU during
+// the texture cook, before mip generation + BC7 encoding.
+//
+// Why compute and not a Graphics.Blit shader: a custom-material blit in a linear color space project
+// binds _MainTex as an sRGB SRV, so the sampled read is sRGB->linear decoded and gamma-distorts the
+// normal (green 127 -> 55). A compute shader reads the source through a plain Texture2D SRV with
+// .Load (raw UNorm texels, no decode) and writes a UAV, so the bytes pass through untouched.
+//
+// Sources are always plain RGB (alpha = 1), so the AG layout's x is the raw red channel (r * a == r).
+#pragma kernel RepackNormal
+
+Texture2D<float4> _Source;
+RWTexture2D<float4> _Dest;
+uint _Width;
+uint _Height;
+
+[numthreads(8, 8, 1)]
+void RepackNormal(uint3 id : SV_DispatchThreadID)
+{
+	if (id.x >= _Width || id.y >= _Height) {
+		return;
+	}
+	float4 s = _Source.Load(int3(id.xy, 0));
+	_Dest[id.xy] = float4(1.0, s.g, 1.0, s.r * s.a);
+}
