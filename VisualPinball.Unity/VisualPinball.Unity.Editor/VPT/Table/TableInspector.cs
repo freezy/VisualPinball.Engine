@@ -19,6 +19,7 @@
 // ReSharper disable UnusedType.Global
 
 using System;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 
@@ -163,12 +164,15 @@ namespace VisualPinball.Unity.Editor
 						ext);
 
 					if (!string.IsNullOrEmpty(path)) {
-						var writer = new PackageWriter(
-							tableComponent.gameObject,
-							_runtimeCompressSideChannelTextures,
-							_runtimeCompressNormalMaps,
-							@"Assets/Screenshots");
-						writer.WritePackageSync(path);
+						// Run outside OnInspectorGUI: the export yields between stages and offloads the
+						// texture byte-load to worker threads, driven by a cancelable progress bar.
+						var tableGo = tableComponent.gameObject;
+						var compSide = _runtimeCompressSideChannelTextures;
+						var compNormal = _runtimeCompressNormalMaps;
+						EditorApplication.delayCall += async () => {
+							var writer = new PackageWriter(tableGo, compSide, compNormal, @"Assets/Screenshots");
+							await VpeExportRunner.RunAsync(writer, path, $"Saving {Path.GetFileName(path)}");
+						};
 					}
 				}
 			}

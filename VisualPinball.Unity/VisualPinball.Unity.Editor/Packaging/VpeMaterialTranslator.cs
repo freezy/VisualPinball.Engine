@@ -42,16 +42,18 @@ namespace VisualPinball.Unity.Editor
 
 	public readonly struct VpeMaterialCaptureResult
 	{
-		public VpeMaterialCaptureResult(VpeMaterialsPayload payload, IReadOnlyDictionary<string, byte[]> textureBlobs)
+		public VpeMaterialCaptureResult(VpeMaterialsPayload payload, IReadOnlyList<VpeTextureBlobSource> textureBlobSources)
 		{
 			Payload = payload;
-			TextureBlobs = textureBlobs;
+			TextureBlobSources = textureBlobSources;
 		}
 
 		public VpeMaterialsPayload Payload { get; }
 
-		// Maps texture file name (matches VpeTexture.FileName) to its source image bytes.
-		public IReadOnlyDictionary<string, byte[]> TextureBlobs { get; }
+		// Deferred sources for each texture's bytes (file path or inline bytes). The caller loads
+		// them — typically in parallel on worker threads — into the final byte blobs; see
+		// VpeTextureBlobLoader. Kept deferred so the heavy disk + PNG16→8 work stays off the main thread.
+		public IReadOnlyList<VpeTextureBlobSource> TextureBlobSources { get; }
 	}
 
 	public static class VpeMaterialTranslator
