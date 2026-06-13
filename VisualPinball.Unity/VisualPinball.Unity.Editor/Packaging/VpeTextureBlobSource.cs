@@ -56,16 +56,11 @@ namespace VisualPinball.Unity.Editor
 		public static VpeTextureBlobSource FromBytes(string fileName, byte[] bytes)
 			=> new(fileName, null, bytes, false);
 
-		// Serializes every libvips/NetVips entry-point call. libvips' own image pipeline is internally
-		// multi-threaded, but calling its *managed API* concurrently from many .NET threads races its
-		// lazy GObject type registration (vips_foreign_find_load_buffer) and HARD-CRASHES Unity:
-		// "invalid class cast from (NULL) pointer to 'VipsObject'". Allowing only one thread into libvips
-		// at a time avoids that; the file reads above the lock still overlap across threads.
-		// See VpeTextureBlobLoader.EnsureVipsInitialized for the matching main-thread pre-warm.
-		private static readonly object VipsLock = new();
-
-		// Loads (and, for 16-bit PNGs, downconverts to 8-bit) the bytes. Safe to call off the main
-		// thread — only the file read runs concurrently; the libvips conversion is serialized.
+		// Loads (and, for 16-bit PNGs, downconverts to 8-bit) the bytes. Safe to call concurrently —
+		// but ONLY because libvips is fully initialized once on the main thread first (see
+		// VpeTextureBlobLoader.EnsureVipsInitialized). libvips' operations are thread-safe after init;
+		// it's the lazy cold init that isn't, and racing it across workers hard-crashes Unity
+		// ("invalid class cast from (NULL) pointer to 'VipsObject'").
 		public byte[] Load()
 		{
 			if (InlineBytes != null) {
@@ -75,7 +70,6 @@ namespace VisualPinball.Unity.Editor
 				return null;
 			}
 
-			// File read + the 8-bit fast path touch no libvips, so they run fully in parallel.
 			var bytes = File.ReadAllBytes(AssetPath);
 			if (!IsPng || !IsPng16Bit(bytes)) {
 				return bytes;
@@ -83,15 +77,13 @@ namespace VisualPinball.Unity.Editor
 
 			try {
 				// 16-bit PNG → 8-bit: load, shift the 16-bit channels down to their high byte (preserving
-				// channel count, so alpha is kept), re-save as 8-bit PNG. libvips is native and far faster
-				// than Unity's LoadImage+EncodeToPNG. Serialized via VipsLock (see above).
-				lock (VipsLock) {
-					using var image = NetVips.Image.NewFromBuffer(bytes);
-					using var reduced = image.Cast(NetVips.Enums.BandFormat.Uchar, shift: true);
-					var png = reduced.PngsaveBuffer();
-					if (png != null && png.Length > 0) {
-						return png;
-					}
+				// channel count, so alpha is kept), re-save as 8-bit PNG. libvips is native (libpng/zlib),
+				// far faster than Unity's LoadImage+EncodeToPNG or any managed encoder.
+				using var image = NetVips.Image.NewFromBuffer(bytes);
+				using var reduced = image.Cast(NetVips.Enums.BandFormat.Uchar, shift: true);
+				var png = reduced.PngsaveBuffer();
+				if (png != null && png.Length > 0) {
+					return png;
 				}
 			} catch (Exception ex) {
 				VpeTextureBlobLoader.Log.Warn(ex, $"VpeTextureBlobSource: failed downconverting 16-bit PNG '{AssetPath}' via libvips; packing original.");
@@ -119,25 +111,6 @@ namespace VisualPinball.Unity.Editor
 		internal static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
 		/// <summary>
-		/// Forces libvips' lazy native + GObject initialization — including registering the PNG
-		/// load/save foreign types — on the calling thread, via a tiny 1×1 PNG round-trip. MUST be
-		/// called once from the main thread before <see cref="LoadAll"/> fans out: otherwise the first
-		/// concurrent <c>NewFromBuffer</c> calls race that cold registration and hard-crash Unity
-		/// ("invalid class cast from (NULL) pointer to 'VipsObject'"). Cheap and safe to call repeatedly.
-		/// </summary>
-		public static void EnsureVipsInitialized()
-		{
-			try {
-				using var probe = NetVips.Image.Black(1, 1);
-				var png = probe.PngsaveBuffer();
-				using var reloaded = NetVips.Image.NewFromBuffer(png);
-				_ = reloaded.Width;
-			} catch (Exception ex) {
-				Log.Warn(ex, "VpeTextureBlobLoader: libvips pre-warm failed; 16-bit PNG downconvert may fall back to packing originals.");
-			}
-		}
-
-		/// <summary>
 		/// Loads all sources in parallel. <paramref name="onItemDone"/> is invoked (from worker
 		/// threads) with the running completed count after each blob, for progress reporting.
 		/// </summary>
@@ -151,6 +124,8 @@ namespace VisualPinball.Unity.Editor
 				return new Dictionary<string, byte[]>(StringComparer.Ordinal);
 			}
 
+			// Precondition: EnsureVipsInitialized() must already have run on the main thread (the caller
+			// does this before fanning out), so the parallel libvips calls below don't race its cold init.
 			var done = 0;
 			var options = new ParallelOptions {
 				CancellationToken = cancellationToken,
@@ -165,6 +140,25 @@ namespace VisualPinball.Unity.Editor
 			});
 
 			return new Dictionary<string, byte[]>(result, StringComparer.Ordinal);
+		}
+
+		/// <summary>
+		/// Forces libvips' native + GObject initialization (vips_init, which registers all foreign
+		/// load/save types) on the calling thread, via a tiny 1×1 PNG round-trip. MUST run once on the
+		/// main thread before <see cref="LoadAll"/> fans out: libvips operations are thread-safe only
+		/// after init, and racing that lazy cold init across worker threads hard-crashes Unity
+		/// ("invalid class cast from (NULL) pointer to 'VipsObject'"). Cheap; safe to call repeatedly.
+		/// </summary>
+		public static void EnsureVipsInitialized()
+		{
+			try {
+				using var probe = NetVips.Image.Black(1, 1);
+				var png = probe.PngsaveBuffer();
+				using var reloaded = NetVips.Image.NewFromBuffer(png);
+				_ = reloaded.Width;
+			} catch (Exception ex) {
+				Log.Warn(ex, "VpeTextureBlobLoader: libvips pre-warm failed; 16-bit PNG downconvert may fall back to packing originals.");
+			}
 		}
 	}
 }
