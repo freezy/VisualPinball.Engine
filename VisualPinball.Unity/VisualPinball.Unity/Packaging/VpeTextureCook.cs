@@ -191,12 +191,8 @@ namespace VisualPinball.Unity
 			// budget to keep frames sane.
 			var outstandingTextures = 0;
 			long pixelsSinceYield = 0;
-			var normalRepackShader = Resources.Load<Shader>("VpeCookNormalRepack");
-			var normalRepackMaterial = normalRepackShader
-				? new Material(normalRepackShader) { hideFlags = HideFlags.HideAndDontSave }
-				: null;
 
-			void SubmitToGpu(CookPlanItem item, Texture2D upload, bool repackNormalOnGpu)
+			void SubmitToGpu(CookPlanItem item, Texture2D upload)
 			{
 				if (firstGpuItemMs == 0) {
 					firstGpuItemMs = cookStopwatch.ElapsedMilliseconds;
@@ -210,11 +206,12 @@ namespace VisualPinball.Unity
 						hideFlags = HideFlags.HideAndDontSave,
 					};
 					mipped.Create();
-					if (repackNormalOnGpu && normalRepackMaterial) {
-						Graphics.Blit(upload, mipped, normalRepackMaterial);
-					} else {
-						Graphics.Blit(upload, mipped);
-					}
+					// Both worker- and main-thread-decoded normals arrive already AG-packed on the CPU
+					// (see DecodeAndPrepare / DecodeOnMainThread), so this is always a plain copy blit. A
+					// custom-material repack blit can't be used here: Graphics.Blit with a custom shader
+					// reads _MainTex through an sRGB-decoding SRV on this path (gamma-distorts the normal),
+					// and its compiled variant is unreliable to refresh from a package Resources shader.
+					Graphics.Blit(upload, mipped);
 					if (item.Cooked.MipCount > 1) {
 						mipped.GenerateMips();
 					}
@@ -293,14 +290,17 @@ namespace VisualPinball.Unity
 						return null;
 					}
 
-					if (item.IsNormal && !normalRepackMaterial) {
-						// CPU fallback when the repack shader is unavailable; normally the AG
-						// repack happens on the GPU during the cook blit.
+					if (item.IsNormal) {
+						// AG-repack on the CPU (conversion-free, matching the worker path): per pixel
+						// (r,g,b,a) -> (255, g, 255, r*a). GetPixels32 returns the raw stored bytes (no
+						// sRGB conversion) and SetPixels32 writes them faithfully, so detail is preserved
+						// exactly. A GPU custom-material repack blit was tried and abandoned: it reads
+						// _MainTex through an sRGB-decoding SRV (gamma-distorts the normal) and its
+						// compiled variant from a package Resources shader is unreliable to refresh.
 						var pixels = decoded.GetPixels32();
 						for (var i = 0; i < pixels.Length; i++) {
 							var p = pixels[i];
-							var x = (byte)((p.r * p.a + 127) / 255);
-							pixels[i] = new Color32(255, p.g, 255, x);
+							pixels[i] = new Color32(255, p.g, 255, (byte)((p.r * p.a + 127) / 255));
 						}
 						var repacked = new Texture2D(decoded.width, decoded.height, TextureFormat.RGBA32, false, linear: true) {
 							name = decoded.name,
@@ -333,7 +333,7 @@ namespace VisualPinball.Unity
 					var item = mainThreadItems.Dequeue();
 					var upload = DecodeOnMainThread(item);
 					if (upload) {
-						SubmitToGpu(item, upload, repackNormalOnGpu: item.IsNormal);
+						SubmitToGpu(item, upload);
 					}
 					// One big decode blocks long enough; give the player loop a frame either way.
 					await Task.Yield();
@@ -356,7 +356,7 @@ namespace VisualPinball.Unity
 				var workerUpload = PrepareWorkerUpload(work);
 				if (workerUpload) {
 					// Worker-decoded normals arrive already AG-packed.
-					SubmitToGpu(work.Item, workerUpload, repackNormalOnGpu: false);
+					SubmitToGpu(work.Item, workerUpload);
 				}
 
 				if (pixelsSinceYield > EncodePixelYieldBudget) {
@@ -374,7 +374,6 @@ namespace VisualPinball.Unity
 				await Task.Yield();
 				AsyncGPUReadback.WaitAllRequests();
 			}
-			DestroyObject(normalRepackMaterial);
 
 			if (decodeFailures > 0 || gpuFailures > 0 || Volatile.Read(ref outstandingTextures) > 0) {
 				Logger.Warn($"VpeTextureCook: cook aborted (decodeFailures={decodeFailures}, gpuFailures={gpuFailures}).");
