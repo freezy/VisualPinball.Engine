@@ -20,6 +20,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using GLTFast;
 using GLTFast.Export;
@@ -44,6 +45,7 @@ namespace VisualPinball.Unity.Editor
 		private IPackageFolder _globalFolder;
 		private IPackageFolder _metaFolder;
 		private VpeMaterialsPayload _capturedMaterialPayload;
+		private IReadOnlyList<VpeTextureBlobSource> _capturedBlobSources;
 		private IReadOnlyDictionary<string, byte[]> _capturedMaterialTextureBlobs;
 		private readonly bool _runtimeCompressSideChannelTextures;
 		private readonly bool _runtimeCompressNormalMaps;
@@ -69,12 +71,26 @@ namespace VisualPinball.Unity.Editor
 			_refs = new PackagedRefs(table.transform);
 		}
 
+		/// <summary>
+		/// Synchronous export (blocks the calling thread). Prefer <see cref="WritePackageAsync"/> from
+		/// the editor so the UI stays responsive.
+		/// </summary>
 		public void WritePackageSync(string path)
 		{
-			AsyncHelper.RunSync(() => WritePackage(path));
+			AsyncHelper.RunSync(() => WritePackage(path, null, CancellationToken.None));
 		}
 
-		private async Task WritePackage(string path)
+		/// <summary>
+		/// Exports the package without freezing Unity: the editor keeps repainting at the yield points
+		/// between stages, the heavy texture byte-load runs on worker threads, and the whole run is
+		/// cancelable. <paramref name="progress"/> receives a stage-weighted fraction plus a label.
+		/// </summary>
+		public Task WritePackageAsync(string path, IProgress<ExportProgress> progress = null, CancellationToken cancellationToken = default)
+		{
+			return WritePackage(path, progress, cancellationToken);
+		}
+
+		private async Task WritePackage(string path, IProgress<ExportProgress> progress, CancellationToken ct)
 		{
 			var sw = new Stopwatch();
 			sw.Start();
@@ -83,96 +99,185 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			Logger.Info($"Writing table to {path}...");
-			using var storage = PackageApi.StorageManager.CreateStorage(path);
+			IPackageStorage storage = null;
+			List<GameObject> reactivatedObjects = null;
+			try {
+				Report(progress, 0f, "Starting export…");
+				storage = PackageApi.StorageManager.CreateStorage(path);
 
-			_tableFolder = storage.AddFolder(PackageApi.TableFolder);
-			_globalFolder = _tableFolder.AddFolder(PackageApi.GlobalFolder);
-			_metaFolder = _tableFolder.AddFolder(PackageApi.MetaFolder);
-			_files = new PackagedFiles(_tableFolder, _refs);
+				_tableFolder = storage.AddFolder(PackageApi.TableFolder);
+				_globalFolder = _tableFolder.AddFolder(PackageApi.GlobalFolder);
+				_metaFolder = _tableFolder.AddFolder(PackageApi.MetaFolder);
+				_files = new PackagedFiles(_tableFolder, _refs);
 
-			// Cabinet and backbox are authored inactive; activate them (located via their
-			// marker components) so they flow into the active-only export. Restored at the end.
-			var reactivatedObjects = ActivateMarkedObjects();
+				// Cabinet and backbox are authored inactive; activate them (located via their
+				// marker components) so they flow into the active-only export. Restored in finally.
+				reactivatedObjects = ActivateMarkedObjects();
 
-			// Every exported node gets a stable id; items, refs, mappings, renderer states and
-			// light profiles all reference nodes by these ids. The ids are written into the glTF
-			// node extras after the scene export (see SaveGltfToBytes).
-			_nodeIdByTransform = VpeNodeIds.AssignIds(_table.transform);
-			_refs.SetNodeIdsForWrite(_nodeIdByTransform);
+				// Every exported node gets a stable id; items, refs, mappings, renderer states and
+				// light profiles all reference nodes by these ids. The ids are written into the glTF
+				// node extras after the scene export (see SaveGltfToBytes).
+				_nodeIdByTransform = VpeNodeIds.AssignIds(_table.transform);
+				_refs.SetNodeIdsForWrite(_nodeIdByTransform);
 
-			// prepare scene data
-			var sw1 = Stopwatch.StartNew();
-			var saveScene = PrepareScene();
-			Logger.Info($"Scene prepared in {sw1.ElapsedMilliseconds}ms.");
+				// prepare scene data
+				ct.ThrowIfCancellationRequested();
+				Report(progress, 0.03f, "Preparing scene…");
+				await Yield();
+				var sw1 = Stopwatch.StartNew();
+				var saveScene = PrepareScene();
+				Logger.Info($"Scene prepared in {sw1.ElapsedMilliseconds}ms.");
 
-			// prepare non-scene meshes
-			sw1 = Stopwatch.StartNew();
-			var saveColliderMeshes = PrepareColliderMeshes();
-			Logger.Info($"Collider meshes prepared in {sw1.ElapsedMilliseconds}ms.");
-
-			// write component data
-			sw1 = Stopwatch.StartNew();
-			WritePackables(
-				PackageApi.ItemFolder,
-				packageable => packageable.Pack(),
-				go => ItemPackable.Instantiate(go).Pack(),
-				PackNativeComponent);
-			Logger.Info($"Component data written in {sw1.ElapsedMilliseconds}ms.");
-
-			// write reference data
-			sw1 = Stopwatch.StartNew();
-			WritePackables(PackageApi.ItemReferencesFolder, packageable => packageable.PackReferences(_table.transform, _refs, _files));
-			Logger.Info($"References written in {sw1.ElapsedMilliseconds}ms.");
-
-			// write globals
-			sw1 = Stopwatch.StartNew();
-			WriteTableMetadata();
-			WriteGlobals();
-			WriteMaterialProfiles();
-			WriteLightProfiles();
-			Logger.Info($"Globals written in {sw1.ElapsedMilliseconds}ms.");
-
-			// write assets & co
-			sw1 = Stopwatch.StartNew();
-			_files.PackAssets();
-			_files.PackSoundMetas();
-			Logger.Info($"Assets and files written in {sw1.ElapsedMilliseconds}ms.");
-
-			// glTFast still reads Unity mesh data at the start of SaveToStreamAndDispose. Start both saves while
-			// we're still on the main thread, but write into memory first because the package zip stream only
-			// supports one active file entry at a time.
-			sw1 = Stopwatch.StartNew();
-			var saveSceneTask = saveScene();
-			var saveColliderMeshesTask = saveColliderMeshes?.Invoke();
-
-			var sceneData = await saveSceneTask;
-			// The GLB payload is mostly already-compressed image data and packed buffers; deflate
-			// barely shrinks it but costs real time on both export and load.
-			WritePackageFile(_tableFolder, PackageApi.SceneFile, sceneData, PackageCompression.Stored);
-			Logger.Info($"Scene written in {sw1.ElapsedMilliseconds}ms ({sceneData.Length} bytes).");
-			WriteMaterialPayload();
-
-			if (saveColliderMeshesTask != null) {
+				// prepare non-scene meshes
 				sw1 = Stopwatch.StartNew();
-				var colliderMeshesData = await saveColliderMeshesTask;
-				WritePackageFile(_tableFolder, PackageApi.ColliderMeshesFile, colliderMeshesData, PackageCompression.Stored);
-				Logger.Info($"Collider meshes written in {sw1.ElapsedMilliseconds}ms ({colliderMeshesData.Length} bytes).");
+				var saveColliderMeshes = PrepareColliderMeshes();
+				Logger.Info($"Collider meshes prepared in {sw1.ElapsedMilliseconds}ms.");
+
+				// write component data
+				ct.ThrowIfCancellationRequested();
+				Report(progress, 0.06f, "Writing components…");
+				await Yield();
+				sw1 = Stopwatch.StartNew();
+				WritePackables(
+					PackageApi.ItemFolder,
+					packageable => packageable.Pack(),
+					go => ItemPackable.Instantiate(go).Pack(),
+					PackNativeComponent);
+				Logger.Info($"Component data written in {sw1.ElapsedMilliseconds}ms.");
+
+				// write reference data
+				sw1 = Stopwatch.StartNew();
+				WritePackables(PackageApi.ItemReferencesFolder, packageable => packageable.PackReferences(_table.transform, _refs, _files));
+				Logger.Info($"References written in {sw1.ElapsedMilliseconds}ms.");
+
+				// write globals (this captures the material metadata + the deferred texture sources)
+				ct.ThrowIfCancellationRequested();
+				Report(progress, 0.14f, "Translating materials…");
+				await Yield();
+				sw1 = Stopwatch.StartNew();
+				WriteTableMetadata();
+				WriteGlobals();
+				WriteMaterialProfiles();
+				WriteLightProfiles();
+				Logger.Info($"Globals written in {sw1.ElapsedMilliseconds}ms.");
+
+				// Load the texture bytes (disk read + PNG16→8) on worker threads — the heaviest part of
+				// the export, kept off the main thread so the editor stays responsive.
+				ct.ThrowIfCancellationRequested();
+				sw1 = Stopwatch.StartNew();
+				await MaterializeTextureBlobsAsync(progress, 0.25f, 0.70f, ct);
+				Logger.Info($"Textures loaded in {sw1.ElapsedMilliseconds}ms.");
+
+				// write assets & co
+				ct.ThrowIfCancellationRequested();
+				Report(progress, 0.71f, "Writing assets…");
+				sw1 = Stopwatch.StartNew();
+				_files.PackAssets();
+				_files.PackSoundMetas();
+				Logger.Info($"Assets and files written in {sw1.ElapsedMilliseconds}ms.");
+
+				// glTFast still reads Unity mesh data at the start of SaveToStreamAndDispose. Start both saves while
+				// we're still on the main thread, but write into memory first because the package zip stream only
+				// supports one active file entry at a time.
+				Report(progress, 0.74f, "Building meshes…");
+				await Yield();
+				sw1 = Stopwatch.StartNew();
+				var saveSceneTask = saveScene();
+				var saveColliderMeshesTask = saveColliderMeshes?.Invoke();
+
+				var sceneData = await saveSceneTask;
+				ct.ThrowIfCancellationRequested();
+				Report(progress, 0.85f, "Writing package…");
+				// The GLB payload is mostly already-compressed image data and packed buffers; deflate
+				// barely shrinks it but costs real time on both export and load.
+				WritePackageFile(_tableFolder, PackageApi.SceneFile, sceneData, PackageCompression.Stored);
+				Logger.Info($"Scene written in {sw1.ElapsedMilliseconds}ms ({sceneData.Length} bytes).");
+				WriteMaterialPayload();
+
+				if (saveColliderMeshesTask != null) {
+					sw1 = Stopwatch.StartNew();
+					var colliderMeshesData = await saveColliderMeshesTask;
+					WritePackageFile(_tableFolder, PackageApi.ColliderMeshesFile, colliderMeshesData, PackageCompression.Stored);
+					Logger.Info($"Collider meshes written in {sw1.ElapsedMilliseconds}ms ({colliderMeshesData.Length} bytes).");
+				}
+
+				// screenshots (encoded to jpg, stored under a top-level screenshots/ folder)
+				ct.ThrowIfCancellationRequested();
+				Report(progress, 0.95f, "Writing screenshots…");
+				await Yield();
+				sw1 = Stopwatch.StartNew();
+				WriteScreenshots(storage);
+				Logger.Info($"Screenshots written in {sw1.ElapsedMilliseconds}ms.");
+
+				// the manifest is written last so it can list everything the package contains
+				WriteManifest(storage);
+
+				storage.Close();
+				storage = null;
+				Report(progress, 1f, "Done.");
+
+				sw.Stop();
+				Debug.Log($"Done! File saved to {path} in {sw.ElapsedMilliseconds}ms.");
+
+			} catch (OperationCanceledException) {
+				storage?.Close();
+				storage = null;
+				TryDeletePartial(path);
+				Logger.Info("Export canceled.");
+				throw;
+			} catch (Exception) {
+				storage?.Close();
+				storage = null;
+				TryDeletePartial(path);
+				throw;
+			} finally {
+				storage?.Close();
+				RestoreMarkedObjects(reactivatedObjects);
+			}
+		}
+
+		private static void Report(IProgress<ExportProgress> progress, float fraction, string message)
+		{
+			progress?.Report(new ExportProgress(fraction, message));
+		}
+
+		// Yields control back to Unity so the editor repaints and pending progress callbacks run.
+		private static async Task Yield()
+		{
+			await Task.Yield();
+		}
+
+		private static void TryDeletePartial(string path)
+		{
+			try {
+				if (File.Exists(path)) {
+					File.Delete(path);
+				}
+			} catch (Exception ex) {
+				Logger.Warn(ex, $"Failed deleting partial export '{path}'.");
+			}
+		}
+
+		// Loads the deferred texture byte sources captured by WriteMaterialProfiles into final blobs,
+		// in parallel on worker threads, reporting per-texture progress within [startFraction, endFraction].
+		private async Task MaterializeTextureBlobsAsync(IProgress<ExportProgress> progress, float startFraction, float endFraction, CancellationToken ct)
+		{
+			if (_capturedBlobSources == null || _capturedBlobSources.Count == 0) {
+				_capturedMaterialTextureBlobs = new Dictionary<string, byte[]>(StringComparer.Ordinal);
+				return;
 			}
 
-			// screenshots (encoded to jpg, stored under a top-level screenshots/ folder)
-			sw1 = Stopwatch.StartNew();
-			WriteScreenshots(storage);
-			Logger.Info($"Screenshots written in {sw1.ElapsedMilliseconds}ms.");
+			// Pre-warm libvips on the main thread BEFORE fanning out, so the worker threads never race
+			// its lazy native init (which hard-crashes Unity — see VpeTextureBlobLoader.EnsureVipsInitialized).
+			VpeTextureBlobLoader.EnsureVipsInitialized();
 
-			// the manifest is written last so it can list everything the package contains
-			WriteManifest(storage);
-
-			storage.Close();
-
-			RestoreMarkedObjects(reactivatedObjects);
-
-			sw.Stop();
-			Debug.Log($"Done! File saved to {path} in {sw.ElapsedMilliseconds}ms.");
+			var total = _capturedBlobSources.Count;
+			Report(progress, startFraction, $"Loading textures (0/{total})…");
+			var sources = _capturedBlobSources;
+			_capturedMaterialTextureBlobs = await Task.Run(() => VpeTextureBlobLoader.LoadAll(
+				sources,
+				done => Report(progress, Mathf.Lerp(startFraction, endFraction, (float)done / total), $"Loading textures ({done}/{total})…"),
+				ct), ct);
 		}
 
 		private void WriteManifest(IPackageStorage storage)
@@ -229,6 +334,9 @@ namespace VisualPinball.Unity.Editor
 
 		private static void RestoreMarkedObjects(List<GameObject> reactivated)
 		{
+			if (reactivated == null) {
+				return;
+			}
 			foreach (var go in reactivated) {
 				if (go) {
 					go.SetActive(false);
@@ -641,6 +749,7 @@ namespace VisualPinball.Unity.Editor
 			var capture = VpeMaterialTranslator.Capture(_table.transform, renderers, t => _nodeIdByTransform.GetValueOrDefault(t));
 			var payload = capture.Payload;
 			_capturedMaterialPayload = null;
+			_capturedBlobSources = null;
 			_capturedMaterialTextureBlobs = null;
 			if (payload?.Profiles == null || payload.Profiles.Length == 0) {
 				if (VpeMaterialTranslator.Active == null) {
@@ -651,22 +760,14 @@ namespace VisualPinball.Unity.Editor
 			ApplyMaterialTextureCompressionMode(payload, _runtimeCompressSideChannelTextures);
 			ApplyMaterialNormalCompressionMode(payload, _runtimeCompressNormalMaps);
 			_capturedMaterialPayload = payload;
-			_capturedMaterialTextureBlobs = capture.TextureBlobs;
+			// Deferred: the actual texture bytes are loaded later off the main thread by
+			// MaterializeTextureBlobsAsync. Here we only record the sources (file paths / inline bytes).
+			_capturedBlobSources = capture.TextureBlobSources;
 
-			var textureCount = 0;
-			var textureBytes = 0L;
-			if (capture.TextureBlobs != null && capture.TextureBlobs.Count > 0) {
-				foreach (var entry in capture.TextureBlobs) {
-					if (entry.Value == null || entry.Value.Length == 0) {
-						continue;
-					}
-					textureCount++;
-					textureBytes += entry.Value.Length;
-				}
-			}
+			var sourceCount = capture.TextureBlobSources?.Count ?? 0;
 			Logger.Info(
 				$"Captured material payload: {payload.Profiles.Length} profile(s), " +
-				$"{textureCount} source texture(s) ({textureBytes / 1024f / 1024f:F2} MB).");
+				$"{sourceCount} source texture(s) (bytes loaded later off-thread).");
 		}
 
 		private bool _wroteLightProfiles;
