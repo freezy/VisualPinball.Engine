@@ -41,6 +41,11 @@ namespace VisualPinball.Unity.Simulation
 		// Input configuration
 		private readonly List<NativeInputApi.InputBinding> _bindings = new();
 
+		// Optional override supplied by the host app (e.g. the player's custom key bindings). When set,
+		// StartPolling sends these to the native layer instead of the built-in defaults. Static so it
+		// survives the per-table singleton churn (Dispose nulls _instance).
+		private static volatile List<NativeInputApi.InputBinding> _configuredBindings;
+
 		// Callback delegate (must be kept alive to prevent GC)
 		private NativeInputApi.InputEventCallback _callbackDelegate;
 
@@ -138,6 +143,18 @@ namespace VisualPinball.Unity.Simulation
 		}
 
 		/// <summary>
+		/// Custom bindings supplied by the host application. When non-null and non-empty, these are sent
+		/// to the native layer on the next <see cref="StartPolling"/> instead of the built-in defaults.
+		/// Set this from your config before launching a table (and again whenever the user edits bindings).
+		/// Static so it outlives the per-table singleton lifecycle.
+		/// </summary>
+		public static List<NativeInputApi.InputBinding> ConfiguredBindings
+		{
+			get => _configuredBindings;
+			set => _configuredBindings = value;
+		}
+
+		/// <summary>
 		/// Start input polling
 		/// </summary>
 		/// <param name="pollIntervalUs">Polling interval in microseconds (default 500)</param>
@@ -162,8 +179,11 @@ namespace VisualPinball.Unity.Simulation
 				return true;
 			}
 
-			// Send bindings to native layer
-			NativeInputApi.VpeInputSetBindings(_bindings.ToArray(), _bindings.Count);
+			// Send bindings to native layer: host-supplied custom bindings if present, else the defaults
+			var configured = _configuredBindings;
+			var toSend = configured != null && configured.Count > 0 ? configured.ToArray() : _bindings.ToArray();
+			NativeInputApi.VpeInputSetBindings(toSend, toSend.Length);
+			Logger.Info($"{LogPrefix} [NativeInputManager] Sent {toSend.Length} bindings ({(configured != null && configured.Count > 0 ? "custom" : "default")})");
 
 			// Create callback delegate (keep reference to prevent GC)
 			_callbackDelegate = OnInputEvent;
@@ -208,53 +228,72 @@ namespace VisualPinball.Unity.Simulation
 		private void SetupDefaultBindings()
 		{
 			ClearBindings();
+			_bindings.AddRange(BuildDefaultBindings());
+			Logger.Info($"{LogPrefix} [NativeInputManager] Configured {_bindings.Count} default bindings");
+		}
+
+		/// <summary>
+		/// Builds the built-in default keyboard bindings. Public and static so a host app (e.g. a
+		/// key-rebinding UI) can read the defaults to seed its own configuration and merge overrides.
+		/// </summary>
+		public static List<NativeInputApi.InputBinding> BuildDefaultBindings()
+		{
+			var list = new List<NativeInputApi.InputBinding>();
+			void Add(NativeInputApi.InputAction action, NativeInputApi.KeyCode keyCode)
+			{
+				list.Add(new NativeInputApi.InputBinding {
+					Action = (int)action,
+					BindingType = (int)NativeInputApi.BindingType.Keyboard,
+					KeyCode = (int)keyCode
+				});
+			}
 
 			// Flippers
-			AddBinding(NativeInputApi.InputAction.LeftFlipper, NativeInputApi.KeyCode.LShift);
-			AddBinding(NativeInputApi.InputAction.RightFlipper, NativeInputApi.KeyCode.RShift);
-			AddBinding(NativeInputApi.InputAction.LeftStagedFlipper, NativeInputApi.KeyCode.LShift);
-			AddBinding(NativeInputApi.InputAction.RightStagedFlipper, NativeInputApi.KeyCode.RShift);
-			AddBinding(NativeInputApi.InputAction.UpperLeftFlipper, NativeInputApi.KeyCode.A);
-			AddBinding(NativeInputApi.InputAction.UpperRightFlipper, NativeInputApi.KeyCode.Quote);
+			Add(NativeInputApi.InputAction.LeftFlipper, NativeInputApi.KeyCode.LShift);
+			Add(NativeInputApi.InputAction.RightFlipper, NativeInputApi.KeyCode.RShift);
+			Add(NativeInputApi.InputAction.LeftStagedFlipper, NativeInputApi.KeyCode.LShift);
+			Add(NativeInputApi.InputAction.RightStagedFlipper, NativeInputApi.KeyCode.RShift);
+			Add(NativeInputApi.InputAction.UpperLeftFlipper, NativeInputApi.KeyCode.A);
+			Add(NativeInputApi.InputAction.UpperRightFlipper, NativeInputApi.KeyCode.Quote);
 
 			// Magna saves
-			AddBinding(NativeInputApi.InputAction.LeftMagnasave, NativeInputApi.KeyCode.LControl);
-			AddBinding(NativeInputApi.InputAction.RightMagnasave, NativeInputApi.KeyCode.RControl);
+			Add(NativeInputApi.InputAction.LeftMagnasave, NativeInputApi.KeyCode.LControl);
+			Add(NativeInputApi.InputAction.RightMagnasave, NativeInputApi.KeyCode.RControl);
 
 			// Start
-			AddBinding(NativeInputApi.InputAction.Start, NativeInputApi.KeyCode.D1);
+			Add(NativeInputApi.InputAction.Start, NativeInputApi.KeyCode.D1);
 
 			// Coin chutes
-			AddBinding(NativeInputApi.InputAction.CoinInsert1, NativeInputApi.KeyCode.D5);
-			AddBinding(NativeInputApi.InputAction.CoinInsert2, NativeInputApi.KeyCode.D4);
-			AddBinding(NativeInputApi.InputAction.CoinInsert3, NativeInputApi.KeyCode.D3);
-			AddBinding(NativeInputApi.InputAction.CoinInsert4, NativeInputApi.KeyCode.D6);
+			Add(NativeInputApi.InputAction.CoinInsert1, NativeInputApi.KeyCode.D5);
+			Add(NativeInputApi.InputAction.CoinInsert2, NativeInputApi.KeyCode.D4);
+			Add(NativeInputApi.InputAction.CoinInsert3, NativeInputApi.KeyCode.D3);
+			Add(NativeInputApi.InputAction.CoinInsert4, NativeInputApi.KeyCode.D6);
 
 			// Cabinet/service controls
-			AddBinding(NativeInputApi.InputAction.ExtraBall, NativeInputApi.KeyCode.B);
-			AddBinding(NativeInputApi.InputAction.Lockbar, NativeInputApi.KeyCode.LAlt);
-			AddBinding(NativeInputApi.InputAction.PauseGame, NativeInputApi.KeyCode.P);
-			AddBinding(NativeInputApi.InputAction.ExitGame, NativeInputApi.KeyCode.Escape);
-			AddBinding(NativeInputApi.InputAction.SlamTilt, NativeInputApi.KeyCode.Home);
-			AddBinding(NativeInputApi.InputAction.CoinDoor, NativeInputApi.KeyCode.End);
-			AddBinding(NativeInputApi.InputAction.Reset, NativeInputApi.KeyCode.F3);
-			AddBinding(NativeInputApi.InputAction.Service1, NativeInputApi.KeyCode.D7);
-			AddBinding(NativeInputApi.InputAction.Service2, NativeInputApi.KeyCode.D8);
-			AddBinding(NativeInputApi.InputAction.Service3, NativeInputApi.KeyCode.D9);
-			AddBinding(NativeInputApi.InputAction.Service4, NativeInputApi.KeyCode.D0);
-			AddBinding(NativeInputApi.InputAction.Service6, NativeInputApi.KeyCode.PageUp);
-			AddBinding(NativeInputApi.InputAction.Service7, NativeInputApi.KeyCode.PageDown);
+			Add(NativeInputApi.InputAction.ExtraBall, NativeInputApi.KeyCode.B);
+			Add(NativeInputApi.InputAction.Lockbar, NativeInputApi.KeyCode.LAlt);
+			Add(NativeInputApi.InputAction.PauseGame, NativeInputApi.KeyCode.P);
+			Add(NativeInputApi.InputAction.ExitGame, NativeInputApi.KeyCode.Escape);
+			Add(NativeInputApi.InputAction.SlamTilt, NativeInputApi.KeyCode.Home);
+			Add(NativeInputApi.InputAction.CoinDoor, NativeInputApi.KeyCode.End);
+			Add(NativeInputApi.InputAction.Reset, NativeInputApi.KeyCode.F3);
+			Add(NativeInputApi.InputAction.Service1, NativeInputApi.KeyCode.D7);
+			Add(NativeInputApi.InputAction.Service2, NativeInputApi.KeyCode.D8);
+			Add(NativeInputApi.InputAction.Service3, NativeInputApi.KeyCode.D9);
+			Add(NativeInputApi.InputAction.Service4, NativeInputApi.KeyCode.D0);
+			Add(NativeInputApi.InputAction.Service6, NativeInputApi.KeyCode.PageUp);
+			Add(NativeInputApi.InputAction.Service7, NativeInputApi.KeyCode.PageDown);
 
 			// Nudging
-			AddBinding(NativeInputApi.InputAction.LeftNudge, NativeInputApi.KeyCode.Y);
-			AddBinding(NativeInputApi.InputAction.RightNudge, NativeInputApi.KeyCode.Minus);
-			AddBinding(NativeInputApi.InputAction.CenterNudge, NativeInputApi.KeyCode.Space);
-			AddBinding(NativeInputApi.InputAction.Tilt, NativeInputApi.KeyCode.T);
+			Add(NativeInputApi.InputAction.LeftNudge, NativeInputApi.KeyCode.Y);
+			Add(NativeInputApi.InputAction.RightNudge, NativeInputApi.KeyCode.Minus);
+			Add(NativeInputApi.InputAction.CenterNudge, NativeInputApi.KeyCode.Space);
+			Add(NativeInputApi.InputAction.Tilt, NativeInputApi.KeyCode.T);
 
 			// Plunger
-			AddBinding(NativeInputApi.InputAction.Plunge, NativeInputApi.KeyCode.Return);
+			Add(NativeInputApi.InputAction.Plunge, NativeInputApi.KeyCode.Return);
 
-			Logger.Info($"{LogPrefix} [NativeInputManager] Configured {_bindings.Count} default bindings");
+			return list;
 		}
 
 		/// <summary>
