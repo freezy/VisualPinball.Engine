@@ -35,6 +35,11 @@ namespace VisualPinball.Unity
 		public string Manufacturer { get; set; }
 		public int? OriginalReleaseYear { get; set; }
 		public IReadOnlyList<string> PrimaryAuthors { get; set; } = Array.Empty<string>();
+
+		// Aspect ratio (width / height) of the packaged table screenshot, derived from the crop bounds
+		// in screenshots/table-bounds.json. Null when the package has no screenshot bounds. Lets the
+		// player lay out its table carousel without decoding any screenshot image.
+		public float? ScreenshotAspectRatio { get; set; }
 	}
 
 	/// <summary>
@@ -43,6 +48,7 @@ namespace VisualPinball.Unity
 	public static class VpeTableMetadataReader
 	{
 		private const string TableMetadataEntryPath = "table/table.json";
+		private const string ScreenshotBoundsEntryPath = "screenshots/table-bounds.json";
 		private const int DefaultMaxDegreeOfParallelism = 6;
 		private static readonly ConcurrentDictionary<string, CacheEntry> Cache = new(StringComparer.OrdinalIgnoreCase);
 
@@ -97,7 +103,10 @@ namespace VisualPinball.Unity
 					Abbreviation = tableMetadata.Abbreviation?.Trim(),
 					Manufacturer = tableMetadata.Manufacturer?.Trim(),
 					OriginalReleaseYear = tableMetadata.OriginalReleaseYear > 0 ? tableMetadata.OriginalReleaseYear : null,
-					PrimaryAuthors = primaryAuthors
+					PrimaryAuthors = primaryAuthors,
+					// Same open: pull the screenshot aspect so the player never has to decode an image
+					// just to lay out its carousel.
+					ScreenshotAspectRatio = TryReadScreenshotAspect(zip)
 				};
 				UpdateCache(fileInfo, true, metadata);
 
@@ -172,6 +181,37 @@ namespace VisualPinball.Unity
 				HasMetadata = hasMetadata,
 				Metadata = metadata
 			};
+		}
+
+		// Reads screenshots/table-bounds.json from the already-open zip and returns the crop aspect
+		// (cropWidth / cropHeight). Null when the entry is missing or unparseable. Cheap — the bounds
+		// file is a handful of bytes, so this adds almost nothing to the metadata read.
+		private static float? TryReadScreenshotAspect(ZipFile zip)
+		{
+			var entry = zip.GetEntry(ScreenshotBoundsEntryPath);
+			if (entry == null) {
+				return null;
+			}
+			try {
+				using var stream = zip.GetInputStream(entry);
+				using var reader = new StreamReader(stream);
+				using var jsonReader = new JsonTextReader(reader);
+				var bounds = JsonSerializer.CreateDefault().Deserialize<ScreenshotBoundsData>(jsonReader);
+				if (bounds != null && bounds.cropWidth > 0 && bounds.cropHeight > 0) {
+					return (float)bounds.cropWidth / bounds.cropHeight;
+				}
+			} catch {
+				// ignore — aspect stays null, the player falls back to a default
+			}
+			return null;
+		}
+
+		// Mirrors the cropWidth/cropHeight fields of the bounds sidecar written by
+		// PackageScreenshotGenerator.ScreenshotBounds (only the fields we need here).
+		private sealed class ScreenshotBoundsData
+		{
+			public int cropWidth;
+			public int cropHeight;
 		}
 
 		private static ZipEntry FindMetadataEntry(ZipFile zip)
