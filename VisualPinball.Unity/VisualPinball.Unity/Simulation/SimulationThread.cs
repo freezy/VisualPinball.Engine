@@ -225,6 +225,11 @@ namespace VisualPinball.Unity.Simulation
 		/// <remarks><b>Thread:</b> Native input polling thread (thread-safe via lock-free ring buffer).</remarks>
 		public void EnqueueInputEvent(NativeInputApi.InputEvent evt)
 		{
+			// While paused (e.g. the in-game menu is open) input is menu-exclusive: drop it so held/pressed
+			// keys don't accumulate in the ring buffer and flush into the game on resume.
+			if (_paused) {
+				return;
+			}
 			if (!_inputBuffer.TryEnqueue(evt)) {
 				Interlocked.Increment(ref _inputEventsDropped);
 			}
