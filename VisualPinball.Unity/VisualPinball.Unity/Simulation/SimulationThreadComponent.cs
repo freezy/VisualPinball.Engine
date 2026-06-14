@@ -262,6 +262,16 @@ namespace VisualPinball.Unity.Simulation
 			_simulationThread?.Resume();
 		}
 
+		/// <summary>
+		/// Returns a copy of the latest simulation-state snapshot (timing/latency/diagnostics) for a
+		/// performance overlay. Empty <c>default</c> when not running.
+		/// </summary>
+		/// <remarks><b>Thread:</b> Main thread only.</remarks>
+		public SimulationState.Snapshot GetCurrentSnapshot()
+		{
+			return _started && _simulationThread != null ? _simulationThread.GetSharedState() : default;
+		}
+
 		internal bool EnqueueSwitchFromMainThread(string switchId, bool isClosed)
 		{
 			if (!_started || _simulationThread == null) {
