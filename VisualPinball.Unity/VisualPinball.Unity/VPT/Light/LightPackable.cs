@@ -135,8 +135,8 @@ namespace VisualPinball.Unity
 				BounceIntensity = light.bounceIntensity,
 				ColorTemperature = light.colorTemperature,
 				UseColorTemperature = light.useColorTemperature,
-				ShadowRadius = light.shadowRadius,
-				ShadowAngle = light.shadowAngle,
+				ShadowRadius = LightPropertyHelper.GetFloat(light, "shadowRadius", 0f),
+				ShadowAngle = LightPropertyHelper.GetFloat(light, "shadowAngle", 0f),
 				LightUnit = (int)light.lightUnit,
 				LightShadowCasterMode = (int)light.lightShadowCasterMode,
 				Hdrp = HdrpLightSourcePackable.From(light),
@@ -156,8 +156,8 @@ namespace VisualPinball.Unity
 			light.bounceIntensity = BounceIntensity;
 			light.colorTemperature = ColorTemperature;
 			light.useColorTemperature = UseColorTemperature;
-			light.shadowRadius = ShadowRadius;
-			light.shadowAngle = ShadowAngle;
+			LightPropertyHelper.SetFloat(light, "shadowRadius", ShadowRadius);
+			LightPropertyHelper.SetFloat(light, "shadowAngle", ShadowAngle);
 			light.lightUnit = (UnityEngine.Rendering.LightUnit)LightUnit;
 			light.lightShadowCasterMode = (LightShadowCasterMode)LightShadowCasterMode;
 			light.intensity = Intensity;
@@ -189,7 +189,7 @@ namespace VisualPinball.Unity
 				? new HdrpLightSourcePackable {
 					HasData = true,
 					VolumetricDimmer = GetFloat(hdrp, "volumetricDimmer", 1f),
-					ShapeRadius = GetFloat(hdrp, "shapeRadius", light.shadowRadius),
+					ShapeRadius = GetFloat(hdrp, "shapeRadius", LightPropertyHelper.GetFloat(light, "shadowRadius", 0f)),
 					LightDimmer = GetFloat(hdrp, "lightDimmer", 1f),
 					AffectDiffuse = GetBool(hdrp, "affectDiffuse", true),
 					AffectSpecular = GetBool(hdrp, "affectSpecular", true),
@@ -256,6 +256,23 @@ namespace VisualPinball.Unity
 		}
 
 		private static void SetBool(Object target, string propertyName, bool value)
+		{
+			var property = target.GetType().GetProperty(propertyName);
+			if (property?.CanWrite == true) {
+				property.SetValue(target, value);
+			}
+		}
+	}
+
+	public static class LightPropertyHelper
+	{
+		public static float GetFloat(Object target, string propertyName, float fallback)
+		{
+			var property = target.GetType().GetProperty(propertyName);
+			return property?.CanRead == true && property.GetValue(target) is float value ? value : fallback;
+		}
+
+		public static void SetFloat(Object target, string propertyName, float value)
 		{
 			var property = target.GetType().GetProperty(propertyName);
 			if (property?.CanWrite == true) {
