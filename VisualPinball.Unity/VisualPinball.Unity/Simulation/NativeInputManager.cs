@@ -46,6 +46,10 @@ namespace VisualPinball.Unity.Simulation
 		// survives the per-table singleton churn (Dispose nulls _instance).
 		private static volatile List<NativeInputApi.InputBinding> _configuredBindings;
 
+		// Set from the main thread (Application.isFocused). When the app window isn't focused, native input
+		// is dropped so background key presses (e.g. typing in another app) don't reach the game.
+		private static volatile bool _appFocused = true;
+
 		// Callback delegate (must be kept alive to prevent GC)
 		private NativeInputApi.InputEventCallback _callbackDelegate;
 
@@ -152,6 +156,16 @@ namespace VisualPinball.Unity.Simulation
 		{
 			get => _configuredBindings;
 			set => _configuredBindings = value;
+		}
+
+		/// <summary>
+		/// Whether the app window currently has focus. The host sets this each frame from
+		/// <c>Application.isFocused</c>; native input events are dropped while it is false.
+		/// </summary>
+		public static bool AppFocused
+		{
+			get => _appFocused;
+			set => _appFocused = value;
 		}
 
 		/// <summary>
@@ -307,6 +321,11 @@ namespace VisualPinball.Unity.Simulation
 			}
 			if (Logger.IsTraceEnabled) {
 				Logger.Trace($"{LogPrefix} [NativeInputManager] Received from native: Action={evt.Action}, Value={evt.Value}, Timestamp={evt.TimestampUsec}");
+			}
+
+			// Drop input while the app window isn't focused, so background key presses don't reach the game.
+			if (!_appFocused) {
+				return;
 			}
 
 			// Forward to simulation thread via ring buffer
