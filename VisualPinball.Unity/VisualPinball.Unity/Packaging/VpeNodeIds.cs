@@ -32,6 +32,13 @@ namespace VisualPinball.Unity
 	///
 	/// The glTF node tree in table.glb is the single source of truth for the scene hierarchy;
 	/// <c>extras</c> is glTF's standard extension point for application-specific per-node data.
+	///
+	/// Future: glTF 2.1 introduces a native per-object <c>uid</c> (Unique ID) field — a stable,
+	/// per-file-unique handle designed for exactly this kind of cross-reference, which would be the
+	/// natural replacement for this <c>extras.vpeId</c> scheme. Not adoptable yet (as of 2026-06): the
+	/// 2.1 spec is still provisional, and glTFast (our exporter/importer, 6.19.0) is glTF 2.0-only with
+	/// no 2.1 support or tracked plans. Revisit once glTFast ships 2.1.
+	/// See https://www.khronos.org/blog/introducing-gltf-2.1-with-complex-scenes.
 	/// </summary>
 	public static class VpeNodeIds
 	{
