@@ -6,78 +6,76 @@ description: How VPE represents material intent beyond glTF and how a renderer c
 
 # Packaging Materials
 
-This page explains the material side of the `.vpe` format. It is written for two audiences:
+This page covers the material side of the `.vpe` format, for two readers:
 
-- people trying to understand why materials are split between glTF and VPE metadata
-- developers who want to implement a renderer for a different pipeline
+- anyone trying to understand why materials are split between glTF and VPE metadata
+- developers implementing a renderer for a different pipeline
 
 ## glTF versus Custom Materials
 
-glTF already gives VPE a lot for free. It knows how to carry a scene graph, meshes, transforms, lights, images, and a useful subset of physically based material data. If we only cared about "show me a mesh with a base color and a normal map", plain glTF would be enough.
+glTF carries the scene graph, meshes, transforms, lights, images, and a subset of physically based material data. For a mesh with a base color and a normal map, it is enough on its own.
 
-Pinball tables are messier than that. They rely on alpha-bearing inserts and plastics, HDRP-specific mask packing, decals whose albedo alpha is part of the effect, and a handful of renderer-state details that glTF does not describe. At the same time, a `.vpe` file must remain table content, not a hard dependency on HDRP. The package should describe what the material is supposed to do, not which Unity shader property happened to be used by the authoring project.
+Pinball tables need more than that: alpha-bearing inserts and plastics, HDRP mask packing, decals whose albedo alpha drives where they apply, and renderer state glTF has no way to describe. A `.vpe` file also has to stay table content rather than a dependency on HDRP — it describes what a material should do, not which Unity shader property the authoring project happened to set.
 
-That is why VPE has its own material vocabulary:
+VPE therefore defines its own material vocabulary:
 
 - export translates authoring materials into VPE's schema
 - runtime reads that schema and asks the active renderer to realize it
-- the renderer stays free to use HDRP, URP, or something else entirely
+- the renderer realizes it with HDRP, URP, or anything else
 
 In code, that vocabulary lives in:
 
-- `VpeMaterialsPayloadV1`
-- `VpeMaterialProfileV1`
-- `VpeTextureAssetV1`
-- `VpeRendererStateV1`
+- `VpeMaterialsPayload`
+- `VpeMaterialProfile`
+- `VpeTexture`
+- `VpeRendererState`
+
+The schema is versioned by a `FormatVersion` field on the payload rather than by a type-name suffix; readers check it and skip versions they don't understand.
 
 ## glTF Data
 
-The GLB is not just a fallback, it's a real part of the material system. We deliberately keep any data on the glTF path that round-trips well enough to be worth it.
+The GLB carries the scene itself, plus a material fallback for shaders VPE does not translate.
 
-| Concern | Where it lives | Why glTF is sufficient here |
+| Concern | Where it lives | Why |
 | --- | --- | --- |
 | Scene hierarchy | `table.glb` | Native glTF responsibility. |
 | Meshes and transforms | `table.glb` | Native glTF responsibility. |
 | Lights | `table.glb` | Exported through glTF/glTFast light support. |
-| Opaque lit base color | Imported GLB material | Usually survives the standard glTF path without semantic loss. |
-| Emissive textures | Imported GLB material | Standard enough to keep on the glTF path. |
-| Most unlit color maps | Imported GLB material | Standard enough to keep on the glTF path. |
-| Supported normal maps | Imported GLB material | Visually correct in the current shipping path, even though HDRP needs a runtime repack step. |
+| Materials for **unsupported** shaders | Imported GLB material (+ its textures) | VPE has no profile for them, so the imported glTF material is the fallback. These are the only materials whose textures stay in the GLB. |
 
-When a texture stays on the GLB path, the VPE profile still owns the semantic meaning of that slot. What it does not own is the pixel payload. In those cases, the profile stores tiling or strength information, and runtime reads the actual texture from the imported material.
+Earlier the GLB also carried the pixel data for "well-behaved" maps (opaque base color, emissive, normals) while only special maps were side-channeled. That split is gone: for every material VPE captures, **all** of its textures move to the source layer (`table/textures/`) and the GLB holds no image bytes for them. A profile that reads a texture from the imported GLB material (an *imported* texture reference) now only happens for those unsupported-shader fallbacks.
 
 ## VPE Data
 
-VPE takes ownership where glTF is either lossy, underspecified for the feature, or too fragile in practice.
+VPE owns the data where glTF is lossy, underspecified for the feature, or too fragile in practice.
 
 ### Texture and State
 
 | Authoring concern | VPE field(s) | Why it is not left to glTF |
 | --- | --- | --- |
-| HDRP `MaskMap` | `VpeLitProfileV1.MaskMap`, `MaskPacking` | HDRP mask packing is renderer-specific and not lossless in plain glTF. |
-| HDRP `ThicknessMap` | `VpeLitProfileV1.ThicknessMap` | Thickness/transmission intent is outside plain glTF's core model. |
-| Transparent / alpha-tested lit base color | `VpeLitProfileV1.BaseColor.Texture` with `TextureId` | The alpha channel is load-bearing for inserts and plastics and cannot be treated as an optional detail. |
-| Decal base color | `VpeDecalProfileV1.BaseColor.Texture` with `TextureId` | The decal albedo alpha controls where the decal applies. |
-| Decal mask map | `VpeDecalProfileV1.MaskMap` | Same problem as HDRP mask packing: the meaning is renderer-specific. |
-| Per-renderer shadow and lighting state | `VpeRendererStateV1` | glTF does not carry Unity's shadow casting mode, receive-shadows flag, or rendering layer mask. |
+| HDRP `MaskMap` | `VpeLitProfile.MaskMap`, `MaskPacking` | HDRP mask packing is renderer-specific and not lossless in plain glTF. |
+| HDRP `ThicknessMap` | `VpeLitProfile.ThicknessMap` | Thickness/transmission intent is outside plain glTF's core model. |
+| Lit base color (incl. transparent / alpha-tested) | `VpeLitProfile.BaseColor.Texture` with `TextureId` | The alpha channel is load-bearing for inserts and plastics; the bytes ship in the source layer, not the GLB. |
+| Decal base color | `VpeDecalProfile.BaseColor.Texture` with `TextureId` | The decal albedo alpha controls where the decal applies. |
+| Decal mask map | `VpeDecalProfile.MaskMap` | Same problem as HDRP mask packing: the meaning is renderer-specific. |
+| Per-renderer shadow and lighting state | `VpeRendererState` | glTF does not carry Unity's shadow casting mode, receive-shadows flag, or rendering layer mask. |
 
 ### Storage
 
-Those VPE-owned textures are serialized as `VpeTextureAssetV1` entries and their bytes are packed into `meta/textures.bin`.
+Those VPE-owned textures are serialized as `VpeTexture` entries, and their bytes ship as plain PNG/JPEG files under `table/textures/` — one zip entry per texture, stored uncompressed. There is no packed blob and no byte-range index: the entry points at its file by name and the zip central directory does the rest.
 
-Each asset records:
+Each entry records:
 
 | Field | Meaning |
 | --- | --- |
 | `Id` | Stable logical identifier used by `TextureId`. |
-| `ByteOffset` / `ByteLength` | Where the texture bytes live inside `textures.bin`. |
-| `GlbBufferView` | Optional alternative storage location if the payload is embedded into GLB buffer views. |
-| `MimeType` | Declared encoding of the stored bytes. |
+| `FileName` | The texture's file name inside `table/textures/`. |
+| `MimeType` | Declared encoding of the stored bytes (`image/png` or `image/jpeg`). |
 | `ColorSpace` | `sRGB` or `Linear`. |
 | `WrapMode`, `FilterMode`, `AnisoLevel` | Texture sampling intent. |
-| `GenerateMipMaps` | Whether the current runtime should generate mips for the side texture. This is honored for both `sRGB` and `Linear` side textures. |
-| `RuntimeCompress` | Whether the reader should call `Texture2D.Compress(...)` after decoding the side texture. Older packages default to `true`. |
-| `Width`, `Height` | Source dimensions. |
+| `GenerateMipMaps` | Whether the runtime should generate/keep mips for this texture. Honored for both `sRGB` and `Linear`. |
+| `RuntimeCompress` | Whether a reader *without* a cook path should call `Texture2D.Compress(...)` after decoding. Defaults to `true`. |
+| `Width`, `Height` | Source dimensions (after any importer max-size clamp). |
 
 ## Ownership Model
 
@@ -87,14 +85,14 @@ There are two texture-reference modes in the schema:
 
 | Reference style | Shape | Runtime behavior |
 | --- | --- | --- |
-| Imported texture ref | `TextureId = null` | Read the texture from the imported GLB material. |
-| Side-channel texture ref | `TextureId != null` | Resolve the texture through `VpeTextureAssetV1` and load bytes from `textures.bin` or embedded GLB data. |
+| Imported texture ref | `TextureId = null` | Read the texture from the imported GLB material. Only used for unsupported-shader fallback materials. |
+| Source texture ref | `TextureId != null` | Resolve the texture through its `VpeTexture` entry and load the file from `table/textures/` (cooked through the local cache). This is the path captured materials use. |
 
-This is the heart of the design. It lets VPE say, for example, "this is the base color texture for a transparent insert" without also saying "therefore you must use this HDRP shader property bag forever".
+This split is what keeps the schema portable. A profile can record "base color texture for a transparent insert" without binding that data to a particular HDRP shader property.
 
 ## Supported Material Types
 
-The schema currently defines five material types:
+The schema currently defines seven material types:
 
 | VPE type | Purpose |
 | --- | --- |
@@ -103,6 +101,8 @@ The schema currently defines five material types:
 | `vpe.unlit` | Unlit color-based materials. |
 | `vpe.metal` | VPE metal shader graph materials. The profile stores a player template key and a `vpe.lit` fallback payload. |
 | `vpe.rubber` | VPE rubber shader graph materials. The profile stores a player template key and a `vpe.lit` fallback payload. |
+| `vpe.dmd` | Dot-matrix display materials. The profile stores a player template key, with no `vpe.lit` fallback. |
+| `vpe.fabric.silk` | HDRP fabric/silk materials. The profile carries a `vpe.lit` fallback plus HDRP thread/fuzz hints. |
 
 The HDRP translator maps these authoring shaders into those types:
 
@@ -111,29 +111,31 @@ The HDRP translator maps these authoring shaders into those types:
 | `HDRP/Lit` | `vpe.lit` |
 | `HDRP/Decal` | `vpe.decal` |
 | `HDRP/Unlit` | `vpe.unlit` |
+| HDRP fabric/silk shader | `vpe.fabric.silk` |
 | VPE metal shader graph | `vpe.metal` |
 | VPE rubber shader graph | `vpe.rubber` |
+| VPE DMD shader graph | `vpe.dmd` |
 
-Unsupported shaders are not fatal. They simply do not produce a VPE profile, and runtime falls back to the imported GLB material for them.
+Unsupported shaders are not fatal: they produce no VPE profile, and runtime falls back to the imported GLB material for them.
 
 ## Runtime Resolution
 
 The package never instantiates pipeline-specific materials directly. Instead, runtime performs a translation step:
 
-1. `VpeMaterialV1Reader` parses `materials.v1.json`.
-2. It resolves side-channel textures from `textures.bin`.
+1. `VpeMaterialReader` parses `materials.json`.
+2. It resolves source textures from `table/textures/`, cooking them through the local cache.
 3. It matches imported materials by normalized name.
 4. It calls the active `IVpeMaterialResolver`.
 
-That last step is where the render pipeline comes back into the picture. For HDRP, `HdrpMaterialResolver` clones authored template materials, applies VPE intent onto them, and lets HDRP reconcile the resulting state.
+The last step is the pipeline-specific one. For HDRP, `HdrpMaterialResolver` clones authored template materials, applies VPE intent onto them, and lets HDRP reconcile the resulting state.
 
-That separation keeps the package portable while letting the player own the final rendering behavior.
+The package stays portable; the player owns the final rendering behavior.
 
 Because a resolver builds these materials at runtime, the shader variants it produces are not present on any build-time material. A player that ships standalone builds must therefore preload those variants, or runtime-resolved materials render with the wrong variant in the build even though resolution succeeds. See [Shader Variants](shader-variants.md).
 
 ## Specs
 
-This section is the renderer-facing contract. If you are implementing a new pipeline, this is the part to read carefully. Note that this is a subset of HDRP. We'll most likely add new attributes once we use them in a table build. In the tables below you'll see links to the HDRP documentation.
+This section is the renderer-facing contract — the part to read if you are implementing a new pipeline. It is a subset of HDRP and will grow as table builds start using more attributes. The tables link to the relevant HDRP documentation.
 
 ### Inputs a renderer must consume
 
@@ -141,10 +143,10 @@ A resolver implementation must be able to work with:
 
 | Input | Purpose |
 | --- | --- |
-| `VpeMaterialsPayloadV1` | Top-level material payload. |
-| `VpeMaterialProfileV1` | Per-material semantic intent. |
-| `VpeTextureAssetV1` | Metadata for side-channel texture bytes. |
-| Imported fallback `Material` | Access point for textures that stay on the GLB path. |
+| `VpeMaterialsPayload` | Top-level material payload. |
+| `VpeMaterialProfile` | Per-material semantic intent. |
+| `VpeTexture` | Metadata for a source texture file. |
+| Imported fallback `Material` | Access point for textures on unsupported-shader fallback materials. |
 
 ### Matching
 
@@ -157,11 +159,11 @@ A renderer must support both texture-source modes:
 | Mode | How to detect it | What to do |
 | --- | --- | --- |
 | Imported | `TextureId == null` | Read the texture from the imported material using aliases appropriate for the pipeline. |
-| Side-channel | `TextureId != null` | Resolve the `VpeTextureAssetV1`, load the bytes, create a texture, and apply the stored sampling/color-space settings. |
+| Source | `TextureId != null` | Resolve the `VpeTexture`, load its file from `table/textures/`, create a texture, and apply the stored sampling/color-space settings. |
 
 ### `vpe.lit`
 
-`vpe.lit` is a reduced HDRP Lit material. The table below is written as a translation guide: if you are implementing another renderer, read the VPE field as "this should behave like the corresponding HDRP concept", not "this must be wired to Unity property X forever".
+`vpe.lit` is a reduced HDRP Lit material. Read the table as a translation guide: each VPE field names a behavior to reproduce, not a Unity property another renderer is required to bind to.
 
 | VPE field | HDRP counterpart | HDRP documentation |
 | --- | --- | --- |
@@ -198,7 +200,7 @@ A renderer must support both texture-source modes:
 
 ### `vpe.unlit`
 
-`vpe.unlit` stays deliberately small. It only covers the part of HDRP Unlit that VPE tables actually need today.
+`vpe.unlit` is small: it covers only the part of HDRP Unlit that VPE tables use.
 
 | VPE field | HDRP counterpart | HDRP documentation |
 | --- | --- | --- |
@@ -209,7 +211,7 @@ A renderer must support both texture-source modes:
 
 ### `vpe.metal`
 
-`vpe.metal` is used for VPE's measured metal shader graph materials. It exists because those materials are authored as VPE-owned shader graphs rather than plain HDRP Lit materials, while the package still needs a portable fallback for players that do not ship the same templates.
+`vpe.metal` covers VPE's measured metal shader-graph materials. They are authored as VPE-owned shader graphs rather than plain HDRP Lit materials, so the profile carries both a template key and a portable `vpe.lit` fallback for players that do not ship the same templates.
 
 The profile contains:
 
@@ -233,23 +235,45 @@ The profile contains:
 
 For HDRP, `HdrpMaterialResolver` first tries to create the material from `Rubber.TemplateName`. If no matching player template exists, it falls back to the `Lit` payload and builds a normal HDRP Lit material.
 
+### `vpe.dmd`
+
+`vpe.dmd` covers dot-matrix display materials, which are VPE-owned shader graphs.
+
+| VPE field | Meaning |
+| --- | --- |
+| `Dmd.TemplateName` | Stable template key owned by the player. HDRP clones the matching template when available. |
+
+Unlike `vpe.metal`/`vpe.rubber`, `vpe.dmd` carries **no** `vpe.lit` fallback: a DMD has no meaningful Lit approximation, so if the player ships no matching template the material is skipped rather than substituted.
+
+### `vpe.fabric.silk`
+
+`vpe.fabric.silk` covers HDRP fabric/silk materials. The profile follows the fallback pattern but adds fabric-specific HDRP hints.
+
+| VPE field | Meaning |
+| --- | --- |
+| `Fabric.Lit` | Portable `vpe.lit` fallback for readers without an HDRP fabric implementation. |
+| `Fabric.Hdrp` | HDRP fabric/silk hints: optional thread map (with AO/normal/smoothness strengths and UV channel) and fuzz map (with strength and UV scale). |
+
+For HDRP, `HdrpMaterialResolver` clones the fabric/silk template and applies the hints; if no fabric template is configured it returns no material (the imported fallback then stays in place). Other pipelines can render the carried `vpe.lit` fallback.
+
 ### Renderer state
 
-In addition to material properties, a renderer should restore `VpeRendererStateV1`. Only part of this has a dedicated HDRP manual page, because some of it is ordinary Unity renderer state rather than HDRP-specific shader behavior.
+In addition to material properties, a renderer should restore `VpeRendererState`. Only part of this has a dedicated HDRP manual page, because some of it is ordinary Unity renderer state rather than HDRP-specific shader behavior.
 
 | VPE field | HDRP / Unity counterpart | HDRP documentation |
 | --- | --- | --- |
-| `ShadowCastingMode` | Unity `Renderer.shadowCastingMode`. This is renderer state, not an HDRP material feature. | No dedicated HDRP material page. |
+| `CastShadows` | Unity `Renderer.shadowCastingMode`. This is renderer state, not an HDRP material feature. | No dedicated HDRP material page. |
 | `ReceiveShadows` | Unity `Renderer.receiveShadows`. This is renderer state, not an HDRP material feature. | No dedicated HDRP material page. |
 | `RenderingLayerMask` | HDRP rendering layers for light / decal filtering. | [Use light rendering layers](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@17.6/manual/Rendering-Layers.html) |
+| `Hdrp.RayTracingMode` | HDRP per-renderer ray-tracing mode override (`-1` = no override). | No dedicated HDRP material page. |
 
 ### Failure behavior
 
-A package should remain loadable even if a renderer only implements part of the vocabulary. A good resolver therefore behaves conservatively:
+A package should stay loadable even if a renderer implements only part of the vocabulary, so a resolver should behave conservatively:
 
 - unknown material types should be skipped with a warning
 - missing texture IDs should be skipped with a warning
 - unsupported semantics should degrade gracefully rather than abort package loading
 - if no resolver is registered, runtime should leave the imported GLB materials in place
 
-That fallback behavior is not ideal visually, but it keeps the content usable while a renderer is still being brought up.
+That degrades the visuals, but keeps the content loadable while a renderer is still being brought up.

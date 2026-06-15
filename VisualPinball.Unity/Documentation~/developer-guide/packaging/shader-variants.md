@@ -12,7 +12,7 @@ It is specifically about HDRP. Other renderers that resolve materials at runtime
 
 ## Why a build needs help
 
-The HDRP resolver builds its materials at runtime: it clones a small set of template materials and flips HDRP/Lit keywords (surface type, refraction model, transmission, SSR-transparent, thickness, double-sided, and so on) to match each `materials.v1.json` profile. See [import](import.md) for the resolver flow.
+The HDRP resolver builds its materials at runtime: it clones a small set of template materials and flips HDRP/Lit keywords (surface type, refraction model, transmission, SSR-transparent, thickness, double-sided, and so on) to match each `materials.json` profile. See [import](import.md) for the resolver flow.
 
 Those keywords are HDRP `shader_feature` keywords, and `shader_feature` behaves differently in the editor than in a build:
 
