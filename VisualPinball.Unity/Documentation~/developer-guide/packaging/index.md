@@ -63,3 +63,7 @@ VPE therefore uses a layered approach:
 That design keeps the package from depending on HDRP, while still letting an HDRP-based player reconstruct the authored look closely.
 
 For more details about how VPE's material abstraction, what glTF covers, what VPE adds, and what a renderer must implement, see [this page](materials.md).
+
+## Shader Variants
+
+The renderer-agnostic package describes material *intent*; the player turns that intent into real materials at runtime. Under HDRP this means runtime-built materials whose shader variants the editor compiles on demand but a standalone build strips — so a player must ship a captured shader variant collection. For why that is and how to keep it current as you add tables, see [Shader Variants](shader-variants.md).

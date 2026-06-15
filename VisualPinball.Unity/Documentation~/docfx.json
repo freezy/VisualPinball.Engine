@@ -30,6 +30,12 @@
 					"**/*.webmanifest",
 					"../VisualPinball.Unity.Editor/Resources/Icons/*.png",
 					"CNAME"
+				],
+				"exclude": [
+					"_site/**",
+					"_exported_templates/**",
+					"obj/**",
+					"bin/**"
 				]
 			}
 		],

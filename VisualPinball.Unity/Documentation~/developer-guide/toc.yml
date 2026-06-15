@@ -14,6 +14,8 @@
     href: packaging/import.md
   - name: Materials
     href: packaging/materials.md
+  - name: Shader Variants
+    href: packaging/shader-variants.md
   - name: Benchmarks
     href: packaging/benchmarks.md
 - name: Future Integrations
