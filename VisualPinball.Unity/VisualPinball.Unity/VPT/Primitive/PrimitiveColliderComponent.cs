@@ -24,7 +24,7 @@ namespace VisualPinball.Unity
 {
 	[PackAs("PrimitiveCollider")]
 	[AddComponentMenu("Pinball/Collision/Primitive Collider")]
-	public class PrimitiveColliderComponent : ColliderComponent<PrimitiveData, PrimitiveComponent>, IPackable
+	public class PrimitiveColliderComponent : ColliderComponent<PrimitiveData, PrimitiveComponent>, IPackable, IColliderMesh
 	{
 		#region Data
 
@@ -64,11 +64,35 @@ namespace VisualPinball.Unity
 
 		public byte[] Pack() => PrimitiveColliderPackable.Pack(this);
 
-		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => PhysicalMaterialPackable.Pack(this, files);
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => PrimitiveColliderReferencesPackable.PackReferences(this, files);
 
 		public void Unpack(byte[] bytes) => PrimitiveColliderPackable.Unpack(bytes, this);
 
-		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) => PhysicalMaterialPackable.Unpack(data, this, files);
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) => PrimitiveColliderReferencesPackable.Unpack(data, this, files);
+
+		#endregion
+
+		#region Collider Mesh
+
+		// A primitive's collider is built from its render mesh (GetUnityMesh). When the primitive is
+		// visible its mesh is already in table.glb and the collider reuses it. When it's invisible
+		// (renderer disabled — the zCol_/uCol_/*.Collider convention), the mesh is NOT in table.glb, so
+		// it must travel in colliders.glb instead; expose it through IColliderMesh in that case only,
+		// so visible meshes are never duplicated.
+		private bool StoresColliderMesh
+		{
+			get {
+				if (!MainComponent || !MainComponent.GetUnityMesh()) {
+					return false;
+				}
+				var mr = MainComponent.GetComponent<MeshRenderer>();
+				return !(mr && mr.enabled); // store separately only when not part of the visible export
+			}
+		}
+
+		public int NumColliderMeshes => StoresColliderMesh ? 1 : 0;
+
+		public Mesh GetColliderMesh(int index) => MainComponent ? MainComponent.GetUnityMesh() : null;
 
 		#endregion
 
