@@ -27,8 +27,8 @@ This produces:
 
 - the scene hierarchy
 - renderer components
-- imported fallback materials
-- imported textures that remain on the glTF path
+- imported fallback materials (for unsupported shaders)
+- imported textures for those fallback materials only — captured materials carry no images in the GLB
 
 If present, the importer also probes the optional `VPE_materials` GLB extension before scene instantiation. That code exists for experiments and future work, but normal exported packages use the sidecar path instead.
 
@@ -43,16 +43,16 @@ After the hierarchy exists, runtime import restores:
 - references from `refs/`
 - globals
 - table metadata from `table.json`
-- material profiles from `materials.v1.json`
+- material profiles from `materials.json` (restored last, against the fully built hierarchy)
 
 ## Material Restore
 
-`VpeMaterialV1Reader` owns the material-restore pass.
+`VpeMaterialReader` owns the material-restore pass.
 
 It reads:
 
-- `meta/materials.v1.json`
-- `meta/textures.bin`
+- `meta/materials.json`
+- the source textures under `table/textures/`, cooked through the local cache (see [Texture Loading](#texture-loading))
 
 It then:
 
@@ -65,34 +65,31 @@ After this step, the table is supposed to look like authored in the editor.
 
 ## Texture Loading
 
-For side-channel textures, `VpeMaterialV1Reader.TextureProvider`:
+Textures are the heaviest part of the load, so this is where most of the runtime work goes.
 
-1. locates the `VpeTextureAssetV1`
-2. slices the corresponding byte range from `textures.bin`
-3. creates a `Texture2D`
-4. decodes the bytes with `ImageConversion.LoadImage(...)`
-5. applies wrap/filter/aniso settings
-6. caches the texture for the remainder of the import
+The package ships **lossless source files** (`table/textures/`), not GPU-ready data. On first load the player *cooks* the sources and writes the result to a per-table on-disk cache; later loads read straight from that cache.
 
-If the package uses embedded GLB texture blobs instead, runtime prefers those over `textures.bin`.
+**First (uncached) load** — `VpeTextureSources` reads the PNG/JPEG entries from `table/textures/` into a transient in-memory blob, then `VpeTextureCook` turns them into GPU-ready payloads:
 
-The reason this is called out explicitly is performance: texture decode and upload became one of the main bottlenecks once the more obvious duplication issues were removed.
+1. decode on worker threads with StbImageSharp (very large files decode on the main thread via `ImageConversion.LoadImage`)
+2. generate mips on the GPU
+3. encode to BC7 on the GPU (DirectXTex compute shaders)
+4. repack normal maps into the dxt5nm layout HDRP expects
+5. persist the cooked payloads to the cache
+
+**Cached load** — the cache is validated, then the cooked BC7 payloads are uploaded directly, with no decode, mip generation, or encode.
+
+The cache lives under `Application.persistentDataPath/TextureCache/`, one file per package, keyed on the package path. Its header records the package file size and last-write time plus a hash of the cook settings (`VpeTextureCookSettings`: `ResolutionDivisor`, `CompressTextures`, format version), so it invalidates automatically when the package or the cook parameters change. Payloads are zstd-compressed in independent chunks for parallel decompression, and the format discriminator is `VpeTexturePayload.PixelFormat` (BC7 / DXT5 / RGBA32) — a payload already holding GPU-ready blocks is uploaded raw (`isRawPayload`).
+
+To keep a heavy table from stalling or crashing the GPU, the cook and upload run under per-frame budgets (a pixel budget for BC7 encode, a byte budget for uploads) and yield between batches.
+
+If a platform cannot cook (no GPU BC7 support), the reader falls back to decoding the source itself: it builds a `Texture2D` via `ImageConversion.LoadImage`, honoring `GenerateMipMaps`, and — for linear textures whose `RuntimeCompress` flag is set — block-compresses with `Texture2D.Compress(highQuality: true)` before making the texture non-readable. This fallback path is what the export compression toggles target.
 
 ## Mipmapping Behavior
 
-Side-channel mip behavior is intentionally asymmetric:
+`GenerateMipMaps` is part of the package contract: it says whether a given texture should have mips at runtime. The cook bakes mips into the cached payload accordingly, and the non-cooking fallback path honors the same flag when it calls `Apply`. Export can disable mips for the classes that don't need them — typically the heavy linear mask/thickness payloads — so the decision lives with the package rather than the reader.
 
-- side textures currently honor the `GenerateMipMaps` flag for both `sRGB` and `Linear` payloads
-- linear side textures are decoded as linear textures
-- when `RuntimeCompress` is true, linear side textures are runtime-compressed with `Texture2D.Compress(highQuality: true)` before they are made non-readable
-
-The table export inspector exposes a `Compress sidecar textures (Unity runtime compression)` toggle. It sets `VpeTextureAssetV1.RuntimeCompress` for every side-channel texture in the package, so developers can export compressed and uncompressed sidecar packages from the same table and compare visual/runtime behavior. Packages written before this field existed default to `true`.
-
-The `Compress glTF textures` toggle is separate. It affects textures that stay on the `table.glb` path, such as opaque base color maps and normal maps. When disabled, export rewrites matching GLB image payloads back to the original PNG/JPEG asset bytes after glTFast has produced the GLB.
-
-The `Compress runtime normal maps (Unity runtime compression)` toggle controls the HDRP resolver's normal-map repack output. The resolver must repack GLB/runtime-loaded RGB normal textures into the layout HDRP expects; this flag decides whether the repacked texture is then compressed with Unity's runtime texture compressor.
-
-Benchmark work showed that skipping runtime mip generation for heavy linear side textures can save load time, because the heaviest linear payloads are mostly mask and thickness data. The current reader still follows the serialized flag, so package authors and renderer implementers should treat `GenerateMipMaps` as the runtime contract.
+`RuntimeCompress` only matters on the fallback path: the cook already produces block-compressed (BC7) payloads when `CompressTextures` is on. Treat `GenerateMipMaps` as the runtime contract regardless of which path a reader takes.
 
 ## HDRP Resolver Details
 
@@ -101,10 +98,11 @@ The HDRP implementation of `IVpeMaterialResolver` is `HdrpMaterialResolver`. It:
 - clones pre-authored HDRP template materials
 - applies VPE material intent onto those templates
 - restores transmission, mask packing, decals, and renderer-specific state
-- repacks RGB normal maps into the layout HDRP expects
-- resolves `vpe.metal` and `vpe.rubber` by cloning player-shipped measured-material templates, falling back to their carried `vpe.lit` payload when a template is unavailable
+- repacks RGB normal maps (the source packing) into the dxt5nm layout HDRP expects, optionally block-compressing the result when the normal's `RuntimeCompress` flag is set
+- resolves `vpe.metal`, `vpe.rubber` and `vpe.dmd` by cloning player-shipped measured-material templates; `vpe.metal`/`vpe.rubber` fall back to their carried `vpe.lit` payload when a template is unavailable, and `vpe.fabric.silk` resolves a fabric template with a `vpe.lit` fallback
+- consumes already-cooked textures from the reader — it does not decode or cook anything itself
 
-The important performance optimization here is that normal repack uses a GPU path via `VpePackNormalForHdrp.shader`, with a CPU fallback only if that path fails.
+The resolver's own normal repack currently runs on the **CPU**. An earlier GPU repack shader (`VpePackNormalForHdrp`) was removed; the heavy normal work now happens once during the texture cook (which has its own GPU repack path) and is cached, so the resolver only repacks normals that arrive through the non-cooked or imported-GLB path.
 
 ## Shader Variants in Player Builds
 
@@ -115,8 +113,8 @@ Because the resolver flips HDRP/Lit `shader_feature` keywords at runtime, the va
 Runtime import assumes:
 
 - `table.glb` is valid and self-consistent
-- `materials.v1.json` matches material names emitted into the GLB
-- `textures.bin` byte ranges are valid
+- `materials.json` matches material names emitted into the GLB
+- every `VpeTexture.FileName` resolves to an entry under `table/textures/`
 - a compatible `IVpeMaterialResolver` is registered by the player
 
 If a resolver is not registered, runtime falls back to the glTF-imported materials and the table will not match authoring visuals.

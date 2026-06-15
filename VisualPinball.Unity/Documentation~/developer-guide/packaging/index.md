@@ -8,12 +8,12 @@ description: Overview of the .vpe table format and how its parts fit together.
 
 *This section explains the `.vpe` table format.*
 
-A `.vpe` file is a ZIP container, split into a few layers with different jobs. We've tried using open and documented formats for most of it, but some data such as sidecar textures are stored in a way that allows more efficient loading. Basically, VPE is trying to solve two problems at once:
+A `.vpe` file is a ZIP container, split into a few layers with different jobs. We've tried to use open and documented formats throughout: the scene is glTF, every metadata file is JSON, and textures are stored as their original PNG/JPEG source files. Basically, VPE is trying to solve two problems at once:
 
-- package a table in a way that is compact and fast to load
-- keep the package independent from any specific render pipeline
+- package a table losslessly, in a way that stays editable and re-exportable
+- keep the package independent from any specific render pipeline, while still loading fast
 
-So, the scene itself lives in glTF. Gameplay and authoring metadata live in JSON. Material behavior that glTF cannot express cleanly is described in VPE's own vocabulary, with texture bytes stored separately when needed.
+So, the scene itself lives in glTF. Gameplay and authoring metadata live in JSON. Material behavior that glTF cannot express cleanly is described in VPE's own vocabulary, with texture bytes stored as separate source image files. The package ships lossless sources only; the GPU-ready (cooked, block-compressed) form is derived on the player's machine on first load and cached locally — it is never shipped. See [Benchmarks](benchmarks.md) for why.
 
 ## Container Structure
 
@@ -21,38 +21,47 @@ The package looks like this at a high level:
 
 ```mermaid
 treeView-beta
-    "table/"
-        "table.glb"
-        "colliders.glb"
-        "table.json"
-        "assets/"
-        "global/"
-        "items/"
-        "meta/"
-            "colliders.json"
-            "sounds.json"
-            "materials.v1.json"
-            "textures.bin"
-        "refs/"
-        "sounds/"
+    "(package root)"
+        "manifest.json"
+        "table/"
+            "table.glb"
+            "colliders.glb"
+            "table.json"
+            "textures/"
+            "items/"
+            "refs/"
+            "global/"
+            "assets/"
+            "sounds/"
+            "meta/"
+                "materials.json"
+                "colliders.json"
+                "sounds.json"
+                "lights.json"
+        "screenshots/"
 ```
+
+The exact file and folder names are centralized in `PackageApi`, and every JSON file is written through `PackageApi.Packer` (currently `JsonPacker`, so the extension is `.json`).
 
 | Part | Why it exists |
 | --- | --- |
-| `table.glb` | Carries the visible scene graph: hierarchy, transforms, meshes, lights, imported fallback materials, and textures that survive the glTF path cleanly. |
-| `colliders.glb` | Carries meshes that exist for physics but are not naturally part of the visible glTF export. |
-| `table.json` | Carries table-level metadata from `TableComponent.Metadata`. |
-| `items/` | Carries component and item data needed to rebuild gameplay objects after the hierarchy exists. |
-| `refs/` | Carries cross-references that can only be restored after all items and components are in place. |
-| `global/` | Carries table-wide mapping data such as switches, coils, lamps, and wires. |
-| `assets/` | Carries serialized `ScriptableObject` assets used by the table. |
-| `sounds/` and `meta/sounds.json` | Carry sound bytes and the metadata needed to resolve them. |
-| `meta/materials.v1.json` | Carries renderer-agnostic material intent for data that glTF does not express well enough for VPE. |
-| `meta/textures.bin` | Carries packed texture bytes for VPE-owned textures referenced by `materials.v1.json`. |
+| `manifest.json` | Root manifest with the container format version. Nodes are addressed by stable ids carried in glTF node extras (`vpeId`). |
+| `table/table.glb` | Carries the visible scene graph: hierarchy, transforms, meshes, lights, and imported fallback materials. For materials VPE captures, the GLB carries **no** image bytes — those move to `table/textures/`. Only unsupported-shader materials keep their textures in the GLB. |
+| `table/colliders.glb` | Carries meshes that exist for physics but are not naturally part of the visible glTF export. |
+| `table/table.json` | Carries table-level metadata from `TableComponent.Metadata` (`TableMetadata`). |
+| `table/textures/` | Carries VPE-owned textures as plain PNG/JPEG source files, one zip entry per texture, referenced by file name from `materials.json`. Stored (not deflated). This is the lossless source layer. |
+| `table/items/` | Carries component and item data needed to rebuild gameplay objects after the hierarchy exists. |
+| `table/refs/` | Carries cross-references that can only be restored after all items and components are in place. |
+| `table/global/` | Carries table-wide mapping data: `switches.json`, `coils.json`, `lamps.json`, `wires.json`. |
+| `table/assets/` | Carries serialized `ScriptableObject` assets used by the table. |
+| `table/sounds/` and `table/meta/sounds.json` | Carry sound bytes and the metadata needed to resolve them. |
+| `table/meta/materials.json` | Carries renderer-agnostic material intent for data that glTF does not express well enough for VPE. |
+| `table/meta/lights.json` | Optional per-light profile data that glTF/`KHR_lights_punctual` does not carry. |
+| `screenshots/` | Captured table screenshots (lights on/off, HDRI) plus a `table-bounds.json` crop sidecar. |
 
 ## Materials
 
-If glTF covered everything VPE needed, there would be no `materials.v1.json` and no `textures.bin`. In practice, glTF gets us a long way, but not all the way. Some authored material features are either renderer-specific, packed in ways glTF does not understand, or too fragile to trust to the fallback export/import path.
+If glTF covered everything VPE needed, there would be no `materials.json` and no separate `table/textures/` layer. In practice, glTF gets us a long way, but not all the way. Some authored material features are either renderer-specific, packed in ways glTF does not understand, or too fragile to trust to the fallback export/import path.
 
 VPE therefore uses a layered approach:
 
