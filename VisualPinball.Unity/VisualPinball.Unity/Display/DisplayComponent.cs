@@ -59,10 +59,16 @@ namespace VisualPinball.Unity
 			var mr = gameObject.GetComponent<MeshRenderer>();
 			if (mr == null) {
 				mr = gameObject.AddComponent<MeshRenderer>();
-				mr.sharedMaterial = CreateMaterial();
 			}
-			mr.sharedMaterial.mainTexture = _texture;
-			mr.sharedMaterial.SetTexture(DataProp, _texture);
+
+			var material = mr.sharedMaterial;
+			if (!material || !material.HasProperty(DataProp)) {
+				material = CreateDisplayMaterial();
+				mr.sharedMaterial = material;
+			}
+
+			material.mainTexture = _texture;
+			material.SetTexture(DataProp, _texture);
 
 			var mf = gameObject.GetComponent<MeshFilter>();
 			if (mf == null) {
@@ -157,6 +163,30 @@ namespace VisualPinball.Unity
 			mf.sharedMesh = mesh;
 
 			#endregion
+		}
+
+		private Material CreateDisplayMaterial()
+		{
+			try {
+				var material = CreateMaterial();
+				if (material) {
+					return material;
+				}
+			} catch (Exception exception) {
+				throw new InvalidOperationException($"Could not create display material for {GetType().Name} on {GetPath(transform)}.", exception);
+			}
+
+			throw new InvalidOperationException($"Could not create display material for {GetType().Name} on {GetPath(transform)}.");
+		}
+
+		private static string GetPath(Transform transform)
+		{
+			var path = transform.name;
+			while (transform.parent) {
+				transform = transform.parent;
+				path = $"{transform.name}/{path}";
+			}
+			return path;
 		}
 	}
 }

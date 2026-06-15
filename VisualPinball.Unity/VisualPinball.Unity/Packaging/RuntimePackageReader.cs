@@ -325,7 +325,10 @@ namespace VisualPinball.Unity
 			try {
 				// The player shows a loading screen during import, so trade per-frame smoothness for
 				// total wall time: without time-slicing, glTFast finishes mesh/scene setup in one go.
-				var gltf = new GltfImport(deferAgent: new UninterruptedDeferAgent(), logger: new ConsoleLogger());
+				var gltf = new GltfImport(
+					deferAgent: new UninterruptedDeferAgent(),
+					materialGenerator: RuntimeGltfMaterialGenerator.Create(),
+					logger: new ConsoleLogger());
 				var uri = new Uri(Path.GetFullPath(_vpePath));
 				ReportProgress(progress, RuntimePackageLoadStage.ImportingScene, 0f, "Reading table scene...");
 				var loadStopwatch = Stopwatch.StartNew();
