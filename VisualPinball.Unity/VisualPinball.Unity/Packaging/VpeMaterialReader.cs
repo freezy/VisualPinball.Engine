@@ -350,6 +350,11 @@ namespace VisualPinball.Unity
 						payload = PackageApi.Packer.Pack(profile.Dmd);
 					}
 					break;
+				case VpeMaterialTypes.FabricSilk:
+					if (profile.Fabric != null) {
+						payload = PackageApi.Packer.Pack(profile.Fabric);
+					}
+					break;
 			}
 
 			if (payload == null || payload.Length == 0) {

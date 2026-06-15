@@ -49,6 +49,7 @@ namespace VisualPinball.Unity
 		public const string Metal = "vpe.metal";
 		public const string Rubber = "vpe.rubber";
 		public const string Dmd = "vpe.dmd";
+		public const string FabricSilk = "vpe.fabric.silk";
 	}
 
 	public static class VpeColorSpaces
@@ -186,6 +187,7 @@ namespace VisualPinball.Unity
 		public VpeShaderGraphProfile Metal;
 		public VpeShaderGraphProfile Rubber;
 		public VpeShaderGraphProfile Dmd;
+		public VpeFabricSilkProfile Fabric;
 	}
 
 	[Serializable]
@@ -193,6 +195,29 @@ namespace VisualPinball.Unity
 	{
 		// Stable template key owned by the Player. Usually the source material asset name.
 		public string TemplateName;
+	}
+
+	[Serializable]
+	public class VpeFabricSilkProfile
+	{
+		// Portable fallback for readers without an HDRP fabric implementation.
+		public VpeLitProfile Lit = new();
+		public VpeHdrpFabricSilkHints Hdrp = new();
+	}
+
+	[Serializable]
+	public class VpeHdrpFabricSilkHints
+	{
+		public bool UseThreadMap;
+		public VpeTextureRef ThreadMap;
+		public float ThreadAOStrength01 = -1f;
+		public float ThreadNormalStrength = -1f;
+		public float ThreadSmoothnessScale = -1f;
+		public float ThreadUvChannel = -1f;
+
+		public VpeTextureRef FuzzMap;
+		public float FuzzStrength = -1f;
+		public float FuzzMapUvScale = -1f;
 	}
 
 	[Serializable]
@@ -264,6 +289,12 @@ namespace VisualPinball.Unity
 		public bool GeometricSpecularAa;
 		public float SpecularAaScreenSpaceVariance;
 		public float SpecularAaThreshold;
+		public int SpecularOcclusionMode = -1;
+		public bool EnergyConservingSpecularColor = true;
+		public PackableColor SpecularColor = new(1f, 1f, 1f, 1f);
+		public VpeTextureRef SpecularColorMap;
+		public float CoatMask = -1f;
+		public VpeTextureRef CoatMaskMap;
 		public bool SupportDecals = true;
 
 		// HDRP cull-mode property set (UnityEngine.Rendering.CullMode values; -1 = template default).
@@ -277,6 +308,10 @@ namespace VisualPinball.Unity
 		public bool TransparentDepthPostpass;
 		public bool TransparentWritesMotionVectors;
 		public bool TransparentBackface;
+		public bool BlendModePreserveSpecularLighting = true;
+		public int ZTestTransparent = -1;
+		public int ZTestDepthEqualForOpaque = -1;
+		public int ZTestGBuffer = -1;
 
 		public bool DisableSsrTransparent;
 		public bool DisableSsr;

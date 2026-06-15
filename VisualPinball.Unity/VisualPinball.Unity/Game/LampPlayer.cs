@@ -46,8 +46,14 @@ namespace VisualPinball.Unity
 		private Player? _player;
 		private TableComponent? _tableComponent;
 		private IGamelogicEngine? _gamelogicEngine;
+		private int _loggedLampEvents;
+		private int _loggedUnmappedLampEvents;
+		private bool _logLampEvents;
+		private readonly HashSet<string> _loggedUnmappedLampIds = new();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+		private const int MaxLoggedLampEvents = 24;
+		private const int MaxLoggedUnmappedLampEvents = 24;
 
 		internal IApiLamp? Lamp(ILampDeviceComponent component) => _lamps.ContainsKey(component) ? _lamps[component] : null;
 
@@ -67,14 +73,19 @@ namespace VisualPinball.Unity
 				var config = _tableComponent!.MappingConfig;
 				_lampAssignments.Clear();
 				_lampMappings.Clear();
+				var configuredMappings = 0;
+				var assignedMappings = 0;
+				var unassignedMappings = 0;
 				foreach (var lampMapping in config.Lamps) {
+					configuredMappings++;
 
 					if (lampMapping.Device == null) {
-						Logger.Warn($"Ignoring unassigned lamp \"{lampMapping.Id}\".");
+						unassignedMappings++;
 						continue;
 					}
 
 					AssignLampMapping(lampMapping);
+					assignedMappings++;
 
 					if (_lamps.ContainsKey(lampMapping.Device)) {
 						// turn off non-rgb lamps, turn on rgb lamps, but set to channel to 0
@@ -88,6 +99,10 @@ namespace VisualPinball.Unity
 						}
 					}
 				}
+				Logger.Info(
+					$"LampPlayer mapped lamps: configured={configuredMappings}, assigned={assignedMappings}, " +
+					$"unassigned={unassignedMappings}, assignmentKeys={_lampAssignments.Count}, registeredApis={_lamps.Count}.");
+				_logLampEvents = true;
 
 				if (_lampAssignments.Count > 0) {
 					_gamelogicEngine.OnLampChanged += HandleLampEvent;
@@ -169,6 +184,7 @@ namespace VisualPinball.Unity
 						hasChanged = true;
 					}
 				}
+				LogLampEvent(id, lampSource, isCoil, hasChanged, mapped: true);
 
 #if UNITY_EDITOR
 				RefreshUI();
@@ -177,9 +193,31 @@ namespace VisualPinball.Unity
 				LampStates.TryAdd(id, LampState.Default);
 				action = new LampAction(LampStates[id]);
 				hasChanged = true;
+				LogLampEvent(id, lampSource, isCoil, true, mapped: false);
 			}
 
 			return hasChanged;
+		}
+
+		private void LogLampEvent(string id, LampSource source, bool isCoil, bool applied, bool mapped)
+		{
+			if (!_logLampEvents) {
+				return;
+			}
+
+			if (_loggedLampEvents < MaxLoggedLampEvents) {
+				_loggedLampEvents++;
+				Logger.Info(
+					$"LampPlayer event sample #{_loggedLampEvents}: id={id}, source={source}, " +
+					$"isCoil={isCoil}, mapped={mapped}, applied={applied}.");
+			}
+
+			if (mapped || _loggedUnmappedLampEvents >= MaxLoggedUnmappedLampEvents || !_loggedUnmappedLampIds.Add($"{source}:{isCoil}:{id}")) {
+				return;
+			}
+
+			_loggedUnmappedLampEvents++;
+			Logger.Warn($"LampPlayer unmapped incoming lamp event: id={id}, source={source}, isCoil={isCoil}.");
 		}
 
 		private void ApplyStatus(string id, LampStatus status, LampState state, IApiLamp? lamp)

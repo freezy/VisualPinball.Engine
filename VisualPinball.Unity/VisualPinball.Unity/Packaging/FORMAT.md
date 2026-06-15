@@ -165,6 +165,7 @@ added later) that readers are free to ignore.
 | `vpe.decal` | `Decal` | Projected decal. |
 | `vpe.unlit` | `Unlit` | Unlit color/texture. |
 | `vpe.metal`, `vpe.rubber` | `Metal`/`Rubber` + `Lit` | Player-owned template (by `TemplateName`); the `Lit` profile is the portable fallback. |
+| `vpe.fabric.silk` | `Fabric` | HDRP fabric/silk surface; contains a `Lit` portable fallback plus fabric-specific HDRP controls. |
 | `vpe.dmd` | `Dmd` | Player-owned DMD template. |
 
 **`Lit` portable core** — semantics map onto glTF PBR and its KHR extensions where they exist:
@@ -186,9 +187,15 @@ added later) that readers are free to ignore.
   `TransmittanceColor`.
 
 **`Lit.Hdrp` hints** (ignored by non-HDRP readers, visuals degrade gracefully): planar-mapping
-scales, specular AA, decal support, cull-mode overrides, transparent depth pre/post-pass, motion
-vectors, fog, SSR flags, ray tracing, HDRP material id, render-queue override, transmission
+scales, specular AA/occlusion/color, clear-coat mask, decal support, cull-mode overrides,
+transparent depth pre/post-pass, motion vectors, transparent preserve-specular blending, Z-test
+overrides, fog, SSR flags, ray tracing, HDRP material id, render-queue override, transmission
 scalars, diffusion-profile binding, emissive exposure weight.
+
+**`Fabric`** stores `{ "Lit": { ... }, "Hdrp": { ... } }`. `Lit` is the portable fallback above.
+`Fabric.Hdrp` carries HDRP/Fabric silk controls: `UseThreadMap`, `ThreadMap`,
+`ThreadAOStrength01`, `ThreadNormalStrength`, `ThreadSmoothnessScale`, `ThreadUvChannel`,
+`FuzzMap`, `FuzzStrength`, and `FuzzMapUvScale`.
 
 **Texture refs** are `{ "TextureId", "Offset": [u,v], "Scale": [u,v] }`. A null/empty `TextureId`
 on a captured profile means "no texture"; on glTF-path refs it means "read pixels from the
