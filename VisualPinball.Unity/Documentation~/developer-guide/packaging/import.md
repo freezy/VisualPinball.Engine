@@ -106,6 +106,10 @@ The HDRP implementation of `IVpeMaterialResolver` is `HdrpMaterialResolver`. It:
 
 The important performance optimization here is that normal repack uses a GPU path via `VpePackNormalForHdrp.shader`, with a CPU fallback only if that path fails.
 
+## Shader Variants in Player Builds
+
+Because the resolver flips HDRP/Lit `shader_feature` keywords at runtime, the variants it produces exist on no build-time material. The editor compiles them on demand, but a standalone build ships only the `shader_feature` combinations referenced by a build-time material or by a preloaded `ShaderVariantCollection`. A player therefore has to ship a captured collection, or runtime-resolved materials render with the wrong variant (broken transparency, refraction, and reflections) even though import succeeds. See [Shader Variants](shader-variants.md) for why this happens and how to keep the collection current as tables are added.
+
 ## Dependencies
 
 Runtime import assumes:

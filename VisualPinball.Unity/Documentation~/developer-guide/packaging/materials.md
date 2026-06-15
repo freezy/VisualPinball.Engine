@@ -129,6 +129,8 @@ That last step is where the render pipeline comes back into the picture. For HDR
 
 That separation keeps the package portable while letting the player own the final rendering behavior.
 
+Because a resolver builds these materials at runtime, the shader variants it produces are not present on any build-time material. A player that ships standalone builds must therefore preload those variants, or runtime-resolved materials render with the wrong variant in the build even though resolution succeeds. See [Shader Variants](shader-variants.md).
+
 ## Specs
 
 This section is the renderer-facing contract. If you are implementing a new pipeline, this is the part to read carefully. Note that this is a subset of HDRP. We'll most likely add new attributes once we use them in a table build. In the tables below you'll see links to the HDRP documentation.
