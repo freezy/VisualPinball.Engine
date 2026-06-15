@@ -90,6 +90,23 @@ namespace VisualPinball.Unity
 			return null;
 		}
 
+		// Counterpart to GetUnityMesh: assigns the mesh used for collision (and rendering when visible).
+		// Used on import to re-attach a collider mesh stored in colliders.glb because the item is
+		// invisible and therefore absent from the visible table.glb export — the imported node has no
+		// MeshFilter, so add one. Without this, invisible collider primitives have no mesh at runtime
+		// and generate no colliders.
+		public void SetUnityMesh(UnityEngine.Mesh mesh)
+		{
+			if (!mesh) {
+				return;
+			}
+			var mf = GetComponent<MeshFilter>();
+			if (!mf) {
+				mf = gameObject.AddComponent<MeshFilter>();
+			}
+			mf.sharedMesh = mesh;
+		}
+
 		protected void SetVisibilityByComponent<TComponent>(bool isVisible) where TComponent : MonoBehaviour
 		{
 			foreach (var component in GetComponentsInChildren<TComponent>()) {

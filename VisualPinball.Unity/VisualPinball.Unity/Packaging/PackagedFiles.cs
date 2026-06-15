@@ -199,7 +199,7 @@ namespace VisualPinball.Unity
 
 		public Mesh GetColliderMesh(string guid, int index)
 		{
-			return _colliderMeshes[$"{guid}-{index}"];
+			return _colliderMeshes.GetValueOrDefault($"{guid}-{index}");
 		}
 
 		#endregion

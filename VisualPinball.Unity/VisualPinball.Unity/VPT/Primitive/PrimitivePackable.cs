@@ -55,6 +55,48 @@ namespace VisualPinball.Unity
 		}
 	}
 
+	public struct PrimitiveColliderReferencesPackable
+	{
+		public PhysicalMaterialPackable PhysicalMaterial;
+		// GUID of the collider mesh stored in colliders.glb — set only for invisible collider
+		// primitives (the visible ones keep their mesh in table.glb and report none, leaving this empty).
+		public string ColliderMeshGuid;
+
+		public static byte[] PackReferences(PrimitiveColliderComponent comp, PackagedFiles files)
+		{
+			return PackageApi.Packer.Pack(new PrimitiveColliderReferencesPackable {
+				PhysicalMaterial = new PhysicalMaterialPackable {
+					Elasticity = comp.PhysicsElasticity,
+					ElasticityFalloff = comp.PhysicsElasticityFalloff,
+					Friction = comp.PhysicsFriction,
+					Scatter = comp.PhysicsScatter,
+					Overwrite = comp.PhysicsOverwrite,
+					AssetRef = files.AddAsset(comp.PhysicsMaterialReference),
+				},
+				ColliderMeshGuid = files.GetColliderMeshGuid(comp, 0),
+			});
+		}
+
+		public static void Unpack(byte[] bytes, PrimitiveColliderComponent comp, PackagedFiles files)
+		{
+			var data = PackageApi.Packer.Unpack<PrimitiveColliderReferencesPackable>(bytes);
+			var pm = data.PhysicalMaterial;
+			comp.PhysicsElasticity = pm.Elasticity;
+			comp.PhysicsElasticityFalloff = pm.ElasticityFalloff;
+			comp.PhysicsFriction = pm.Friction;
+			comp.PhysicsScatter = pm.Scatter;
+			comp.PhysicsOverwrite = pm.Overwrite;
+			comp.PhysicsMaterialReference = files.GetAsset<PhysicsMaterialAsset>(pm.AssetRef);
+
+			// Re-attach the collider mesh that travelled in colliders.glb (invisible primitives only),
+			// so the runtime collider generator — which reads MeshFilter.sharedMesh via GetUnityMesh —
+			// finds it. Visible primitives leave the GUID empty and reuse the table.glb mesh.
+			if (!string.IsNullOrEmpty(data.ColliderMeshGuid) && comp.MainComponent) {
+				comp.MainComponent.SetUnityMesh(files.GetColliderMesh(data.ColliderMeshGuid, 0));
+			}
+		}
+	}
+
 	public struct PrimitiveMeshPackable
 	{
 		public bool UseLegacyMesh;
