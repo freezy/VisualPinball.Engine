@@ -328,7 +328,9 @@ namespace VisualPinball.Unity
 				var gltf = new GltfImport(
 					deferAgent: new UninterruptedDeferAgent(),
 					materialGenerator: RuntimeGltfMaterialGenerator.Create(),
-					logger: new ConsoleLogger());
+					// Filter the expected "shader missing" warnings for the glTF shadergraphs we
+					// intentionally strip; the resolver replaces every glTF material anyway.
+					logger: new GltfShaderMissingFilterLogger(new ConsoleLogger()));
 				var uri = new Uri(Path.GetFullPath(_vpePath));
 				ReportProgress(progress, RuntimePackageLoadStage.ImportingScene, 0f, "Reading table scene...");
 				var loadStopwatch = Stopwatch.StartNew();
