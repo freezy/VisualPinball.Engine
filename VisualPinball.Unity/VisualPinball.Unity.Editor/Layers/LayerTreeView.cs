@@ -20,6 +20,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
+using UnityTreeView = UnityEditor.IMGUI.Controls.TreeView<int>;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -45,7 +46,7 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		public event Action<LayerTreeElement[], LayerTreeElement> ItemsDropped;
 
-		public LayerTreeView(LayerTreeElement root) : base(new TreeViewState(), root)
+		public LayerTreeView(LayerTreeElement root) : base(new TreeViewState<int>(), root)
 		{
 			showBorder = true;
 			showAlternatingRowBackgrounds = true;
@@ -134,7 +135,7 @@ namespace VisualPinball.Unity.Editor
 		};
 
 		// Custom GUI
-		protected override void RowGUI(RowGUIArgs args)
+		protected override void RowGUI(UnityTreeView.RowGUIArgs args)
 		{
 			Event evt = Event.current;
 			extraSpaceBeforeIconAndLabel = 18f;
@@ -179,7 +180,7 @@ namespace VisualPinball.Unity.Editor
 		/// <returns></returns>
 		protected override bool ValidateRename(TreeViewItem<LayerTreeElement> item) => item.Data?.Type == LayerTreeViewElementType.Layer;
 
-		protected override void RenameEnded(RenameEndedArgs args)
+		protected override void RenameEnded(UnityTreeView.RenameEndedArgs args)
 		{
 			// Set the backend name and reload the tree to reflect the new model
 			if (args.acceptedRename) {
@@ -206,7 +207,7 @@ namespace VisualPinball.Unity.Editor
 			return true;
 		}
 
-		protected override DragAndDropVisualMode HandleElementsDragAndDrop(DragAndDropArgs args, LayerTreeElement[] elements)
+		protected override DragAndDropVisualMode HandleElementsDragAndDrop(UnityTreeView.DragAndDropArgs args, LayerTreeElement[] elements)
 		{
 			if (args.performDrop) {
 				if (args.dragAndDropPosition == DragAndDropPosition.UponItem) {

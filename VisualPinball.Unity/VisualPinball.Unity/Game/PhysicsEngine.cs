@@ -396,7 +396,7 @@ namespace VisualPinball.Unity
 		internal void Register<T>(T item) where T : MonoBehaviour
 		{
 			var go = item.gameObject;
-			var itemId = go.GetInstanceID();
+			var itemId = UnityObjectId.Get(go);
 
 			// states
 			switch (item) {
@@ -446,7 +446,7 @@ namespace VisualPinball.Unity
 
 		internal void RegisterRuntimeBall(BallComponent ball)
 		{
-			var ballId = ball.gameObject.GetInstanceID();
+			var ballId = UnityObjectId.Get(ball.gameObject);
 			var ballState = ball.CreateState();
 			_ctx.BallComponents[ballId] = ball;
 

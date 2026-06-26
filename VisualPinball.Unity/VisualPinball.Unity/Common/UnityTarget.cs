@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using NLog;
-using NLog.Layouts;
 using NLog.Targets;
 using UnityEngine;
 using ILogger = UnityEngine.ILogger;
@@ -23,19 +22,14 @@ using ILogger = UnityEngine.ILogger;
 namespace VisualPinball.Unity
 {
 	[Target("Unity")]
-	internal class UnityTarget : TargetWithLayout
+	internal class UnityTarget : Target
 	{
 		private static readonly ILogger Logger = Debug.unityLogger;
 		private const string Tag = "VisualPinball";
 
-		public UnityTarget()
-		{
-			Layout = (Layout) "${logger}|${message}";
-		}
-
 		protected override void Write(LogEventInfo logEvent)
 		{
-			var msg = Layout.Render(logEvent);
+			var msg = $"{logEvent.LoggerName}|{logEvent.FormattedMessage}";
 			if (logEvent.Level.Ordinal >= 4) {
 				Logger.LogError(Tag, msg);
 

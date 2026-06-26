@@ -20,6 +20,9 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+using UnityTreeView = UnityEditor.IMGUI.Controls.TreeView<int>;
+using UnityTreeViewItem = UnityEditor.IMGUI.Controls.TreeViewItem<int>;
+using UnityTreeViewState = UnityEditor.IMGUI.Controls.TreeViewState<int>;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -28,7 +31,7 @@ namespace VisualPinball.Unity.Editor
 	/// for use by the manager windows
 	/// </summary>
 	/// <typeparam name="T">class of type IManagerListData that represents the data being edited</typeparam>
-	public class ManagerListView<T> : TreeView where T: class, IManagerListData
+	public class ManagerListView<T> : UnityTreeView where T: class, IManagerListData
 	{
 		public event Action<List<T>> ItemSelected;
 
@@ -38,7 +41,7 @@ namespace VisualPinball.Unity.Editor
 		private List<ColumnData> _columns = new List<ColumnData>();
 		private Action<T, Rect, int> _itemRenderer;
 
-		public ManagerListView(TreeViewState treeViewState, IEnumerable<T> data, Action<T, Rect, int> itemRenderer, Action<List<T>> itemSelected) : base(treeViewState)
+		public ManagerListView(UnityTreeViewState treeViewState, IEnumerable<T> data, Action<T, Rect, int> itemRenderer, Action<List<T>> itemSelected) : base(treeViewState)
 		{
 			_itemRenderer = itemRenderer;
 
@@ -106,14 +109,14 @@ namespace VisualPinball.Unity.Editor
 			SetSelection(new List<int>(), TreeViewSelectionOptions.FireSelectionChanged);
 		}
 
-		protected override TreeViewItem BuildRoot()
+		protected override UnityTreeViewItem BuildRoot()
 		{
-			return new TreeViewItem { id = -1, depth = -1, displayName = "Root" };
+			return new UnityTreeViewItem(-1, -1, "Root");
 		}
 
-		protected override IList<TreeViewItem> BuildRows(TreeViewItem root)
+		protected override IList<UnityTreeViewItem> BuildRows(UnityTreeViewItem root)
 		{
-			var items = new List<TreeViewItem>();
+			var items = new List<UnityTreeViewItem>();
 
 			for (int i = 0; i < _data.Count; i++) {
 				items.Add(new RowData(i, _data[i]));
@@ -166,7 +169,7 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		// not supporting multi select for now
-		protected override bool CanMultiSelect(TreeViewItem item) => true;
+		protected override bool CanMultiSelect(UnityTreeViewItem item) => true;
 
 		protected override void SelectionChanged(IList<int> selectedIds)
 		{
@@ -206,7 +209,7 @@ namespace VisualPinball.Unity.Editor
 			return selectedData;
 		}
 
-		protected override void RowGUI(RowGUIArgs args)
+		protected override void RowGUI(UnityTreeView.RowGUIArgs args)
 		{
 			for (int i = 0; i < args.GetNumVisibleColumns(); ++i) {
 				var data = (args.item as RowData).Data;
@@ -226,7 +229,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void CellGUI(Rect cellRect, TreeViewItem item, int column)
+		private void CellGUI(Rect cellRect, UnityTreeViewItem item, int column)
 		{
 			var val = GetColumnValue(item, column);
 			if (val != null) {
@@ -239,7 +242,7 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		// use cached reflection info to get T's instance data for a given column
-		private object GetColumnValue(TreeViewItem item, int column)
+		private object GetColumnValue(UnityTreeViewItem item, int column)
 		{
 			if (column < 0 && column >= _columns.Count) {
 				return null;
@@ -266,7 +269,7 @@ namespace VisualPinball.Unity.Editor
 			public MemberInfo MemberInfo;
 		}
 
-		private class RowData : TreeViewItem
+		private class RowData : UnityTreeViewItem
 		{
 			public T Data;
 			public RowData(int id, T data) : base(id, 0) { Data = data; }

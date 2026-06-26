@@ -263,7 +263,7 @@ namespace VisualPinball.Unity
 					},
 					new FlipperCorrectionState(
 						true,
-						collComponent.ForFlipper.gameObject.GetInstanceID(),
+						UnityObjectId.Get(collComponent.ForFlipper.gameObject),
 						collComponent.TimeThresholdMs,
 						collComponent.FlipperPolarities,
 						collComponent.FlipperVelocities,
@@ -273,7 +273,7 @@ namespace VisualPinball.Unity
 			}
 
 			return new TriggerState(
-				animComponent ? animComponent.gameObject.GetInstanceID() : 0,
+				animComponent ? UnityObjectId.Get(animComponent.gameObject) : 0,
 				new TriggerStaticState {
 					AnimSpeed = animComponent ? animComponent.AnimSpeed : 0,
 					Radius = collComponent.HitCircleRadius,

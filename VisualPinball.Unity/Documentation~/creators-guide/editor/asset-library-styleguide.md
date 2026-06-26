@@ -1,4 +1,4 @@
-﻿---
+---
 uid: asset_library_guide
 title: Asset Library Style Guide
 description: These guidelines describe how the game assets of the pinball asset library should be created so they are of high quality, customizable, consistent and optimized.
@@ -11,9 +11,9 @@ This document serves as a comprehensive style guide for all 3D assets in the pin
 
 > [!note]
 > Throughout this guide, you'll see examples highlighted in red and green. They signify whether you should follow these examples.
-> 
+>
 > <img src="assetlib-do-dont.png" style="max-height:100px" /><br>
-> 
+>
 > That said, please consider this guide as work in progress.
 
 ## Design Language
@@ -77,7 +77,7 @@ Therefore, don't include geometry that won't be visible.
 ### Pivot Point
 
 The pivot point, also known as *object origin* or *local origin*, defines where your model appears for a given position in 3D space.
- 
+
 - Static objects should always have their vertical axis (the Y axis in Unity, or Z axis in VPX) of the pivot point at playfield height, so setting it to 0 will position the object on the playfield.
 - Objects that rotate need their pivot point on the rotation axis. If such an object is parented to another (static) object, the parent should also have its vertical origin at playfield height.
 - On the horizontal plane, the pivot point should be in the center unless the object's topology suggests another more logical position.
@@ -131,7 +131,7 @@ Regarding [LODs](https://en.wikipedia.org/wiki/Level_of_detail_(computer_graphic
 
 ### File Format
 
-Export your meshes in a format [supported by Unity](https://docs.unity3d.com/6000.0/Documentation/Manual/3D-formats.html). The preferred formats are [glTF](https://en.wikipedia.org/wiki/GlTF) and [FBX](https://en.wikipedia.org/wiki/FBX). Avoid [`.obj`](https://en.wikipedia.org/wiki/Wavefront_.obj_file) due to its limitations and inefficiency.
+Export your meshes in a format [supported by Unity](https://docs.unity3d.com/6000.5/Documentation/Manual/3D-formats.html). The preferred formats are [glTF](https://en.wikipedia.org/wiki/GlTF) and [FBX](https://en.wikipedia.org/wiki/FBX). Avoid [`.obj`](https://en.wikipedia.org/wiki/Wavefront_.obj_file) due to its limitations and inefficiency.
 
 <img src="assetlib-3d-formats.png" style="max-height:200px" /><br>
 
@@ -190,7 +190,7 @@ To summarize, use normal maps for:
 
 ### Metallic / Smoothness Maps
 
-With a metallic map, you can define on pixel level whether your material is metallic, or not. 
+With a metallic map, you can define on pixel level whether your material is metallic, or not.
 - Only use this if your material covers both metallic and non-metallic parts of your model. Otherwise, use the metallicness property of the Lit Shader directly.
 - You should only use values of 0 or 1, as partially metallic materials don't exist in the real world.
 
@@ -216,12 +216,12 @@ We're aiming for a resolution of about 6 pixels per millimeter (approximately 15
 >    <img src="assetlib-dpi2.png" style="max-height:160px" /><br/>
 >    As you can see, they go from 0.360 to 0.955 on the X axis.
 > 3. In terms of dimensions, we now have the following:
->    - Width in UV space: 0.955 - 0.36 = 0.595 
+>    - Width in UV space: 0.955 - 0.36 = 0.595
 >    - Width in real world space: 29.2mm
 > 4. At 6px / mm, that makes 6px × 29.2mm = 175.2px for the 0.595 UVs
 > 5. To get the resolution of the whole UV map: 175.2px / 0.592 = **296px**
-> 
-> So, a texture map at 296×296 would correspond to 6px / mm. Since we're at power of twos, we could go for either 512×512 or 256×256.   
+>
+> So, a texture map at 296×296 would correspond to 6px / mm. Since we're at power of twos, we could go for either 512×512 or 256×256.
 
 ### Compression
 

@@ -95,12 +95,12 @@ namespace VisualPinball.Unity
 
 		private void OnEnable()
 		{
-			GetComponentInParent<PhysicsEngine>()?.EnableCollider(MainComponent.gameObject.GetInstanceID());
+			GetComponentInParent<PhysicsEngine>()?.EnableCollider(UnityObjectId.Get(MainComponent.gameObject));
 		}
 
 		private void OnDisable()
 		{
-			GetComponentInParent<PhysicsEngine>()?.DisableCollider(MainComponent.gameObject.GetInstanceID());
+			GetComponentInParent<PhysicsEngine>()?.DisableCollider(UnityObjectId.Get(MainComponent.gameObject));
 		}
 
 		internal PhysicsMaterialData GetPhysicsMaterialData()
@@ -130,14 +130,14 @@ namespace VisualPinball.Unity
 			var materialData = GetPhysicsMaterialData();
 			if (!PhysicsOverwrite && PhysicsMaterial != null) {
 				if (PhysicsMaterial.UseElasticityOverVelocity) {
-					if (!elasticityOverVelocityLUTs.ContainsKey(gameObject.GetInstanceID())) {
-						elasticityOverVelocityLUTs.Add(gameObject.GetInstanceID(), PhysicsMaterial.GetElasticityOverVelocityLUT());
+					if (!elasticityOverVelocityLUTs.ContainsKey(UnityObjectId.Get(gameObject))) {
+						elasticityOverVelocityLUTs.Add(UnityObjectId.Get(gameObject), PhysicsMaterial.GetElasticityOverVelocityLUT());
 					}
 					materialData.UseElasticityOverVelocity = true;
 				}
 				if (PhysicsMaterial.UseFrictionOverVelocity) {
-					if (!frictionOverVelocityLUTs.ContainsKey(gameObject.GetInstanceID())) {
-						frictionOverVelocityLUTs.Add(gameObject.GetInstanceID(), PhysicsMaterial.GetFrictionOverVelocityLUT());
+					if (!frictionOverVelocityLUTs.ContainsKey(UnityObjectId.Get(gameObject))) {
+						frictionOverVelocityLUTs.Add(UnityObjectId.Get(gameObject), PhysicsMaterial.GetFrictionOverVelocityLUT());
 					}
 					materialData.UseFrictionOverVelocity = true;
 				}
@@ -156,7 +156,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// A unique identifier for this item, used in the physics engine to identify items.
 		/// </summary>
-		public int ItemId => MainComponent.gameObject.GetInstanceID();
+		public int ItemId => UnityObjectId.Get(MainComponent.gameObject);
 
 		public virtual void OnTransformationChanged(float4x4 currTransformationMatrix)
 		{
@@ -224,7 +224,7 @@ namespace VisualPinball.Unity
 				var white = Color.white;
 				white.a = 0.01f;
 
-				var colliderEnabled = !Application.isPlaying || PhysicsEngine.IsColliderEnabled(MainComponent.gameObject.GetInstanceID());
+				var colliderEnabled = !Application.isPlaying || PhysicsEngine.IsColliderEnabled(UnityObjectId.Get(MainComponent.gameObject));
 
 				if (_untransformedColliderMesh) {
 					Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld * (Matrix4x4)unmodifiedLocalToPlayfieldMatrixInVpx;
@@ -297,8 +297,8 @@ namespace VisualPinball.Unity
 
 			if (showColliders || ShowAabbs || ShowColliderOctree) {
 				var colliders = IsKinematic
-					? PhysicsEngine.GetKinematicColliders(MainComponent.gameObject.GetInstanceID())
-					: PhysicsEngine.GetColliders(MainComponent.gameObject.GetInstanceID());
+					? PhysicsEngine.GetKinematicColliders(UnityObjectId.Get(MainComponent.gameObject))
+					: PhysicsEngine.GetColliders(UnityObjectId.Get(MainComponent.gameObject));
 
 				if (showColliders) {
 					GenerateColliderMesh(colliders, out _transformedColliderMesh, out _untransformedColliderMesh);
@@ -770,7 +770,7 @@ namespace VisualPinball.Unity
 		void ICollidableComponent.GetColliders(Player player, PhysicsEngine physicsEngine, ref ColliderReference colliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 			=> InstantiateColliderApi(player, physicsEngine).CreateColliders(ref colliders, translateWithinPlayfieldMatrix, margin);
 
-		int ICollidableComponent.ItemId => MainComponent.gameObject.GetInstanceID();
+		int ICollidableComponent.ItemId => UnityObjectId.Get(MainComponent.gameObject);
 		bool ICollidableComponent.IsCollidable => isActiveAndEnabled;
 	}
 

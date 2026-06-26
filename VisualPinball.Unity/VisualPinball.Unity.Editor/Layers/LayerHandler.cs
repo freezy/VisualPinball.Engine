@@ -170,7 +170,7 @@ namespace VisualPinball.Unity.Editor
 
 					foreach (var item in pair.Value.OrderBy(behaviour => behaviour.name)) {
 						if (item is ILayerableItemComponent layeredItem) {
-							layerItem.AddChild(new LayerTreeElement(layeredItem) { Id = item.gameObject.GetInstanceID() });
+							layerItem.AddChild(new LayerTreeElement(layeredItem) { Id = UnityObjectId.Get(item.gameObject) });
 						}
 					}
 				}
@@ -372,7 +372,7 @@ namespace VisualPinball.Unity.Editor
 			var layerable = obj.GetComponent<ILayerableItemComponent>();
 			if (layerable != null) {
 				var layer = TreeRoot.Find(e => e.Type == LayerTreeViewElementType.Layer && e.LayerName == layerName);
-				AssignToLayer(new LayerTreeElement[] { new LayerTreeElement(layerable) { Id = obj.GetInstanceID() } }, layer);
+				AssignToLayer(new LayerTreeElement[] { new LayerTreeElement(layerable) { Id = UnityObjectId.Get(obj) } }, layer);
 			}
 		}
 
@@ -392,12 +392,15 @@ namespace VisualPinball.Unity.Editor
 					case LayerTreeViewElementType.Table:
 					case LayerTreeViewElementType.Layer: {
 						LayerTreeElement[] items = element.GetChildren(child => child.Type == LayerTreeViewElementType.Item);
-						selectedObjs.AddRange(items.Select(item => EditorUtility.InstanceIDToObject(item.Id)).ToArray());
+						selectedObjs.AddRange(items.Select(GetGameObject).Where(obj => obj != null).ToArray());
 						break;
 					}
 
 					case LayerTreeViewElementType.Item: {
-						selectedObjs.Add(EditorUtility.InstanceIDToObject(element.Id));
+						var obj = GetGameObject(element);
+						if (obj != null) {
+							selectedObjs.Add(obj);
+						}
 						break;
 					}
 				}
@@ -406,6 +409,9 @@ namespace VisualPinball.Unity.Editor
 			Selection.objects = selectedObjs.ToArray();
 			SceneViewFramer.FrameObjects(Selection.objects);
 		}
+
+		private static GameObject GetGameObject(LayerTreeElement element)
+			=> element.Item is MonoBehaviour behaviour ? behaviour.gameObject : null;
 
 		#endregion
 	}

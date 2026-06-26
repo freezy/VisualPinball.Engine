@@ -19,6 +19,9 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
+using UnityTreeView = UnityEditor.IMGUI.Controls.TreeView<int>;
+using UnityTreeViewItem = UnityEditor.IMGUI.Controls.TreeViewItem<int>;
+using UnityTreeViewState = UnityEditor.IMGUI.Controls.TreeViewState<int>;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -29,7 +32,7 @@ namespace VisualPinball.Unity.Editor
 	/// It'll also fire events for several base TreeView events (Tree rebuild & update, item double click...)
 	/// </summary>
 	/// <typeparam name="T">a TreeElement generic class</typeparam>
-	internal class TreeView<T> : TreeView where T : TreeElement
+	internal class TreeView<T> : UnityTreeView where T : TreeElement
 	{
 		/// <summary>
 		/// Name of the DragAndDrop GenericData which will be set for transfering item ids
@@ -43,9 +46,9 @@ namespace VisualPinball.Unity.Editor
 		#endregion
 
 		public T Root { get; private set; }
-		protected readonly List<TreeViewItem> _rows = new List<TreeViewItem>();
+		protected readonly List<UnityTreeViewItem> _rows = new List<UnityTreeViewItem>();
 
-		protected TreeView(TreeViewState state, T root) : base(state)
+		protected TreeView(UnityTreeViewState state, T root) : base(state)
 		{
 			Init(root);
 		}
@@ -69,10 +72,10 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		#region TreeViewItem management
-		protected override TreeViewItem BuildRoot()
+		protected override UnityTreeViewItem BuildRoot()
 			=> new TreeViewItem<T>(Root.Id, -1, Root);
 
-		protected override IList<TreeViewItem> BuildRows(TreeViewItem root)
+		protected override IList<UnityTreeViewItem> BuildRows(UnityTreeViewItem root)
 		{
 			if (Root == null) {
 				throw new InvalidOperationException("Tree root is null. Did you call SetData()?");
@@ -94,7 +97,7 @@ namespace VisualPinball.Unity.Editor
 			return _rows;
 		}
 
-		private void AddChildrenRecursive(T parent, int depth, ICollection<TreeViewItem> newRows)
+		private void AddChildrenRecursive(T parent, int depth, ICollection<UnityTreeViewItem> newRows)
 		{
 			foreach (T child in parent.Children) {
 				var item = new TreeViewItem<T>(child.Id, depth, child);
@@ -120,7 +123,7 @@ namespace VisualPinball.Unity.Editor
 		/// <returns>true is the TreeViewElement matches the search, false otherwise</returns>
 		protected virtual bool ValidateSearch(string search, T element) => element.Name.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0;
 
-		void Search(T searchFromThis, string search, List<TreeViewItem> result)
+		void Search(T searchFromThis, string search, List<UnityTreeViewItem> result)
 		{
 			if (string.IsNullOrEmpty(search)) {
 				throw new ArgumentException("Invalid search: cannot be null or empty", "search");
@@ -147,7 +150,7 @@ namespace VisualPinball.Unity.Editor
 			SortSearchResult(result);
 		}
 
-		protected void SortSearchResult(List<TreeViewItem> rows)
+		protected void SortSearchResult(List<UnityTreeViewItem> rows)
 		{
 			rows.Sort((x, y) => EditorUtility.NaturalCompare(x.displayName, y.displayName)); // sort by displayName by default, can be overriden for multicolumn solutions
 		}
@@ -160,7 +163,7 @@ namespace VisualPinball.Unity.Editor
 		/// <param name="item">The evaluated TreeViewItem, already using the derived TreeElement generic</param>
 		/// <returns>true if this item can be renamed, false otherwise</returns>
 		protected virtual bool ValidateRename(TreeViewItem<T> item) => true;
-		protected override bool CanRename(TreeViewItem item)
+		protected override bool CanRename(UnityTreeViewItem item)
 		{
 			if (item is TreeViewItem<T> treeViewItem) {
 				if (ValidateRename(treeViewItem)) {
@@ -172,7 +175,7 @@ namespace VisualPinball.Unity.Editor
 			return false;
 		}
 
-		protected override void RenameEnded(RenameEndedArgs args)
+		protected override void RenameEnded(UnityTreeView.RenameEndedArgs args)
 		{
 			base.RenameEnded(args);
 		}
@@ -214,7 +217,7 @@ namespace VisualPinball.Unity.Editor
 
 		#region Drag & Drop
 		protected virtual bool ValidateStartDrag(T[] elements) => false;
-		protected override bool CanStartDrag(CanStartDragArgs args)
+		protected override bool CanStartDrag(UnityTreeView.CanStartDragArgs args)
 		{
 			List<T> elements = new List<T>();
 			elements.AddRange(Root.GetChildren<T>(element => element.Id == args.draggedItem?.id).ToList<T>());
@@ -222,15 +225,15 @@ namespace VisualPinball.Unity.Editor
 			return ValidateStartDrag(elements.ToArray());
 		}
 
-		protected override void SetupDragAndDrop(SetupDragAndDropArgs args)
+		protected override void SetupDragAndDrop(UnityTreeView.SetupDragAndDropArgs args)
 		{
 			DragAndDrop.PrepareStartDrag();
 			DragAndDrop.SetGenericData(DragAndDropItemsTask, args.draggedItemIDs);
 			DragAndDrop.StartDrag($"{args.draggedItemIDs.Count} tree item(s)");
 		}
 
-		protected virtual DragAndDropVisualMode HandleElementsDragAndDrop(DragAndDropArgs args, T[] elements) => DragAndDropVisualMode.Generic;
-		protected override DragAndDropVisualMode HandleDragAndDrop(DragAndDropArgs args)
+		protected virtual DragAndDropVisualMode HandleElementsDragAndDrop(UnityTreeView.DragAndDropArgs args, T[] elements) => DragAndDropVisualMode.Generic;
+		protected override DragAndDropVisualMode HandleDragAndDrop(UnityTreeView.DragAndDropArgs args)
 		{
 			//Get Id list from GenericData if the DragAndDrop was initiated by the TreeView
 			var idList = DragAndDrop.GetGenericData(DragAndDropItemsTask) as IList<int>;
@@ -241,7 +244,7 @@ namespace VisualPinball.Unity.Editor
 
 			if (idList == null) {
 				//Check for gameObjects inside the DragAndDrop task (could come from the SceneHierarchy)
-				idList = DragAndDrop.objectReferences.Select(obj => obj.GetInstanceID()).ToList();
+				idList = DragAndDrop.objectReferences.Select(obj => UnityObjectId.Get(obj)).ToList();
 			}
 
 			if (idList != null) {
@@ -255,10 +258,10 @@ namespace VisualPinball.Unity.Editor
 	}
 
 	/// <summary>
-	/// TreeViewItem class which will be used by your <see cref="TreeView{T}"/> using the same TreeElement generic 
+	/// TreeViewItem class which will be used by your <see cref="TreeView{T}"/> using the same TreeElement generic
 	/// </summary>
 	/// <typeparam name="T">a TreeElement generic class</typeparam>
-	internal class TreeViewItem<T> : TreeViewItem where T : TreeElement
+	internal class TreeViewItem<T> : UnityTreeViewItem where T : TreeElement
 	{
 		public T Data { get; }
 

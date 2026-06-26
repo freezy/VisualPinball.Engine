@@ -23,7 +23,7 @@ namespace VisualPinball.Unity
 {
 	public class BallComponent : MonoBehaviour
 	{
-		public int Id => gameObject.GetInstanceID();
+		public int Id => UnityObjectId.Get(gameObject);
 		public float Radius = 25;
 		public float Mass = 1;
 		public float3 Velocity;

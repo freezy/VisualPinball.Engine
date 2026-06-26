@@ -23,6 +23,7 @@ using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using Color = VisualPinball.Engine.Math.Color;
 using Object = UnityEngine.Object;
+using UnityTreeViewState = UnityEditor.IMGUI.Controls.TreeViewState<int>;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -68,7 +69,7 @@ namespace VisualPinball.Unity.Editor
 
 		private List<T> _data = new List<T>();
 		protected ManagerListView<T> _listView;
-		private TreeViewState _treeViewState;
+		private UnityTreeViewState _treeViewState;
 		private bool _renaming;
 		private string _renameBuffer = string.Empty;
 		[SerializeField] private string _forceSelectItemWithName;
@@ -102,7 +103,7 @@ namespace VisualPinball.Unity.Editor
 			Undo.undoRedoPerformed += UndoPerformed;
 
 			if (_treeViewState == null) {
-				_treeViewState = new TreeViewState();
+				_treeViewState = new UnityTreeViewState();
 			}
 
 			SetTable(TableSelector.Instance.SelectedTable);

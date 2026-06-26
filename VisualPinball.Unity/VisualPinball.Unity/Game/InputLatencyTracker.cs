@@ -170,12 +170,20 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public static float SampleFlipperLatencyMs()
+		public static float SampleFlipperLatencyMs() => SampleFlipperLatencyMs(true);
+
+		/// <summary>
+		/// Returns the average input→visual flipper latency since the last sample, then resets the window.
+		/// Pass <paramref name="log"/>=false for a HUD that polls several times per second (avoids log spam).
+		/// </summary>
+		public static float SampleFlipperLatencyMs(bool log)
 		{
 			lock (LockObj) {
 				if (_flipperLatencyCount > 0) {
 					_lastFlipperLatencyMs = (float)(_flipperLatencySumMs / _flipperLatencyCount);
-					Logger.Info($"{LogPrefix} [InputLatency] Sample window avg={_lastFlipperLatencyMs:0.000}ms from {_flipperLatencyCount} sample(s)");
+					if (log) {
+						Logger.Info($"{LogPrefix} [InputLatency] Sample window avg={_lastFlipperLatencyMs:0.000}ms from {_flipperLatencyCount} sample(s)");
+					}
 					_flipperLatencySumMs = 0;
 					_flipperLatencyCount = 0;
 				}

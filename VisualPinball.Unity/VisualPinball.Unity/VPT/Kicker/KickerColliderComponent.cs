@@ -101,7 +101,7 @@ namespace VisualPinball.Unity
 		private void Awake()
 		{
 			PhysicsEngine = GetComponentInParent<PhysicsEngine>();
-			_itemId = MainComponent.gameObject.GetInstanceID();
+			_itemId = UnityObjectId.Get(MainComponent.gameObject);
 		}
 
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine) =>

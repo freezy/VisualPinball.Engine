@@ -68,13 +68,13 @@ namespace VisualPinball.Unity
 
 		public string GetColliderMeshGuid(IColliderMesh cm, ushort index)
 		{
-			var instanceId = (cm as Component)!.GetInstanceID();
+			var instanceId = UnityObjectId.Get((cm as Component)!);
 			return _colliderMeshInstanceIdToGuid.GetValueOrDefault($"{instanceId}-{index}");
 		}
 
 		public void AddColliderMeshGuid(IColliderMesh cm, string guid, int index)
 		{
-			var key = $"{(cm as Component)!.GetInstanceID()}-{index}";
+			var key = $"{UnityObjectId.Get((cm as Component)!)}-{index}";
 			_colliderMeshInstanceIdToGuid.Add(key, guid);
 		}
 
@@ -216,7 +216,7 @@ namespace VisualPinball.Unity
 				return 0;
 			}
 
-			var instanceId = scriptableObject.GetInstanceID();
+			var instanceId = UnityObjectId.Get(scriptableObject);
 			if (!_typeLookup.HasType(scriptableObject.GetType())) {
 				throw new Exception($"Unsupported asset type {scriptableObject.GetType().FullName}");
 			}
@@ -226,7 +226,7 @@ namespace VisualPinball.Unity
 				var packer = PackerFactory.GetPacker<T>();
 				_assetMetas.Add(instanceId, packer != null
 					? packer.Pack(instanceId, scriptableObject, this)
-					: new MetaPackable { InstanceId = scriptableObject.GetInstanceID() }
+					: new MetaPackable { InstanceId = UnityObjectId.Get(scriptableObject) }
 				);
 			}
 
@@ -265,7 +265,7 @@ namespace VisualPinball.Unity
 
 				// pack meta
 				var fileMeta = assetTypeFolder.AddFile($"{name}.meta", PackageApi.Packer.FileExtension);
-				fileMeta.SetData(MetaPackable.PackMeta(_assetMetas[so.GetInstanceID()]));
+				fileMeta.SetData(MetaPackable.PackMeta(_assetMetas[UnityObjectId.Get(so)]));
 			}
 		}
 

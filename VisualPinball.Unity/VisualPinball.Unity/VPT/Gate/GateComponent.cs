@@ -277,7 +277,7 @@ namespace VisualPinball.Unity
 				} : default;
 
 			return new GateState(
-				wireComponent ? wireComponent.gameObject.GetInstanceID() : 0,
+				wireComponent ? UnityObjectId.Get(wireComponent.gameObject) : 0,
 				staticData,
 				movementData
 			);
