@@ -57,7 +57,7 @@ parses; **a file without a manifest is not a valid .vpe package** and must be re
 ```json
 {
   "FormatVersion": 1,
-  "WrittenBy": "VPE 0.16.0 (Unity 6000.3.6f1)",
+  "WrittenBy": "VPE 0.16.0 (Unity 6000.5.0f1)",
   "RootNodeId": "9f2c6c1e6a414b1f8d3a2b7c5e4f0a91",
   "Schemas": { "items": 1, "materials": 1, "lights": 1, "sounds": 1 },
   "ComponentTypes": [ "Flipper", "KickerCoil", "Surface", "…" ]

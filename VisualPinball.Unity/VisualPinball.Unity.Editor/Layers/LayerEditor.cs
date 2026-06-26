@@ -165,7 +165,7 @@ namespace VisualPinball.Unity.Editor
 				objs.AddRange(Selection.objects.OfType<GameObject>());
 				var objIds = objs
 					.Where(o => o != null)
-					.Select(o => o.GetInstanceID())
+					.Select(o => UnityObjectId.Get(o))
 					.Distinct()
 					.ToList();
 

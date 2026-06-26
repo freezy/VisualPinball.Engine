@@ -13,11 +13,11 @@ In order to start creating or modifying tables with VPE, the first thing you'll 
 
 Unity uses an application called *Unity Hub* to update itself, create new projects and provide quick access to them. The install process is straight-forward and documented [here](https://docs.unity3d.com/Manual/GettingStartedInstallingHub.html) if you run into troubles.
 
-**Unity 6.2** is the recommended Unity version at the moment.
+**Unity 6.5** is the recommended Unity version at the moment.
 
 You can leave all the other options unchecked during install.
 
-Once Unity is downloaded and installed, you're ready to create a new VPE project. Click on *New Project*, be sure to have selected the 6.2 version at the top, and you'll see the following choices:
+Once Unity is downloaded and installed, you're ready to create a new VPE project. Click on *New Project*, be sure to have selected the 6.5 version at the top, and you'll see the following choices:
 
 ![New Unity Project](unity-create-new-project.png)
 
@@ -65,7 +65,7 @@ Open the package manager by clicking on *Window -> Package Management -> Package
 
 <p><img alt="Package Manager" width="237" src="unity-package-manager.png"/></p>
 
-There, enter `org.visualpinball.engine.unity.hdrp` and click *Install*. This will take a moment as Unity downloads and compiles all of VPE's dependencies and parses all the assets that we ship in our library. 
+There, enter `org.visualpinball.engine.unity.hdrp` and click *Install*. This will take a moment as Unity downloads and compiles all of VPE's dependencies and parses all the assets that we ship in our library.
 
 > [!WARNING]
 > Our patcher, which is currently part of the main package, depends on the PinMAME package. Until we move the patcher into a separate package, you will have to install the PinMAME package as well. To do that, click on the plus button again and enter `org.visualpinball.engine.pinmame`, then click on *Add*.

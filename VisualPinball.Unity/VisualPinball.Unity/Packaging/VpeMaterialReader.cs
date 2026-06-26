@@ -148,7 +148,7 @@ namespace VisualPinball.Unity
 						continue;
 					}
 
-					var importedMaterialId = imported.GetInstanceID();
+					var importedMaterialId = UnityObjectId.Get(imported);
 					if (resolvedMaterialsByImportedId.TryGetValue(importedMaterialId, out var cachedReplacement)) {
 						materials[i] = cachedReplacement;
 						modified = true;
@@ -299,7 +299,7 @@ namespace VisualPinball.Unity
 				builder.Append('|')
 					.Append(propertyName)
 					.Append('=')
-					.Append(texture ? texture.GetInstanceID() : 0);
+					.Append(texture ? UnityObjectId.Get(texture) : 0);
 			}
 
 			return builder.ToString();

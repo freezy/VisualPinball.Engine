@@ -278,7 +278,7 @@ namespace VisualPinball.Unity
 		{
 			TableApi.Register(component, api);
 			_apis.Add(api);
-			var itemId = component.gameObject.GetInstanceID();
+			var itemId = UnityObjectId.Get(component.gameObject);
 			Debug.Log($"Registering {component.GetType()} {component.name} with ID {itemId}.");
 			if (api is IApiRotatable rotatable) {
 				_rotatables[itemId] = rotatable;

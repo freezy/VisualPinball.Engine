@@ -102,7 +102,7 @@ namespace VisualPinball.Unity
 				}
 
 				profile.Apply(target);
-				matchedLights.Add(target.GetInstanceID());
+				matchedLights.Add(UnityObjectId.Get(target));
 			}
 		}
 
@@ -124,7 +124,7 @@ namespace VisualPinball.Unity
 				}
 
 				var descendant = transform.GetComponentsInChildren<Light>(true)
-					.FirstOrDefault(light => !matchedLights.Contains(light.GetInstanceID()));
+					.FirstOrDefault(light => !matchedLights.Contains(UnityObjectId.Get(light)));
 				if (descendant) {
 					return descendant;
 				}

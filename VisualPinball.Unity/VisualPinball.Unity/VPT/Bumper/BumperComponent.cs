@@ -513,8 +513,8 @@ namespace VisualPinball.Unity
 			bool isSwitchWiredToCoil = BumperApi.HasWireDest(this, AvailableCoils.FirstOrDefault().Id);
 
 			return new BumperState(
-				skirtAnimComponent ? skirtAnimComponent.gameObject.GetInstanceID() : 0,
-				ringAnimComponent ? ringAnimComponent.gameObject.GetInstanceID() : 0,
+				skirtAnimComponent ? UnityObjectId.Get(skirtAnimComponent.gameObject) : 0,
+				ringAnimComponent ? UnityObjectId.Get(ringAnimComponent.gameObject) : 0,
 				staticData,
 				ringAnimation,
 				skirtAnimation,

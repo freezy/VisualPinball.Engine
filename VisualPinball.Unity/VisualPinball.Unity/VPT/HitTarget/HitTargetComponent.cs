@@ -158,7 +158,7 @@ namespace VisualPinball.Unity
 				} : default;
 
 			return new HitTargetState(
-				hitTargetAnimationComponent ? hitTargetAnimationComponent.gameObject.GetInstanceID() : 0,
+				hitTargetAnimationComponent ? UnityObjectId.Get(hitTargetAnimationComponent.gameObject) : 0,
 				staticData,
 				animationData
 			);

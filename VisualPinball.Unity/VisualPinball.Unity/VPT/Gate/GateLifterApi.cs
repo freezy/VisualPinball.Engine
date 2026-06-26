@@ -44,7 +44,7 @@ namespace VisualPinball.Unity
 			_gateLifterComponent = go.GetComponent<GateLifterComponent>();
 			_player = player;
 			_physicsEngine = physicsEngine;
-			_gateColliderItemId = _gateComponent.gameObject.GetInstanceID();
+			_gateColliderItemId = UnityObjectId.Get(_gateComponent.gameObject);
 			LifterCoil = new DeviceCoil(_player, OnLifterCoilEnabled, OnLifterCoilDisabled, OnLifterCoilEnabledSimulationThread, OnLifterCoilDisabledSimulationThread);
 		}
 

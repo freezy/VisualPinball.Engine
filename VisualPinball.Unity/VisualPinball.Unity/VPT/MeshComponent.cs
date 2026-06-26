@@ -170,7 +170,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			if (_instanceID != GetInstanceID()) {
+			if (_instanceID != UnityObjectId.Get(this)) {
 				SetInstanceID();
 
 				var mf = GetComponent<MeshFilter>();
@@ -188,7 +188,7 @@ namespace VisualPinball.Unity
 
 		private void SetInstanceID()
 		{
-			_instanceID = GetInstanceID();
+			_instanceID = UnityObjectId.Get(this);
 			var obj = new UnityEditor.SerializedObject(this);
 			obj.FindProperty(nameof(_instanceID)).intValue = _instanceID;
 			obj.ApplyModifiedPropertiesWithoutUndo();

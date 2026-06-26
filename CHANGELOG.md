@@ -4,10 +4,11 @@
 
 ## Unreleased
 
-Built with Unity 6.3
+Built with Unity 6.5
 
 ### Added
 
+- Make packaging functional ([#557](https://github.com/freezy/VisualPinball.Engine/pull/557))
 - New threading model ([#552](https://github.com/freezy/VisualPinball.Engine/pull/552))
 - Free transformation ([#500](https://github.com/freezy/VisualPinball.Engine/pull/500))
 - Kinematic collisions ([#460](https://github.com/freezy/VisualPinball.Engine/pull/460))
@@ -63,7 +64,7 @@ Built with Unity 6.3
 - Ground truth of data is now the scene, not the imported data anymore ([#302](https://github.com/freezy/VisualPinball.Engine/pull/302)).
 - Plunger is now a coil device, meaning it can both be pulled back and fired through different inputs.
 - Move render pipelines into separate repos ([#259](https://github.com/freezy/VisualPinball.Engine/pull/259)).
-- Put game-, mesh-, collision- animation data into separate components ([#227](https://github.com/freezy/VisualPinball.Engine/pull/227), [Documentation](https://docs.visualpinball.org/creators-guide/editor/unity-components.html)). 
+- Put game-, mesh-, collision- animation data into separate components ([#227](https://github.com/freezy/VisualPinball.Engine/pull/227), [Documentation](https://docs.visualpinball.org/creators-guide/editor/unity-components.html)).
 
 ### Fixed
 - Disappearing objects due to wrong bounding box ([#441](https://github.com/freezy/VisualPinball.Engine/pull/441)).

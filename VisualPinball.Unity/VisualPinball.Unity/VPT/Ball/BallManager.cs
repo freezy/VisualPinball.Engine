@@ -64,7 +64,7 @@ namespace VisualPinball.Unity
 
 			// register ball
 			_physicsEngine.RegisterRuntimeBall(ballComp);
-			_player.BallCreated(ballGo.GetInstanceID(), ballGo);
+			_player.BallCreated(UnityObjectId.Get(ballGo), ballGo);
 
 			return ballComp.Id;
 		}

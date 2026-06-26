@@ -478,7 +478,7 @@ namespace VisualPinball.Unity
 				if (!mesh || string.IsNullOrWhiteSpace(mesh.name) || !meshesWithoutTangents.Contains(mesh.name)) {
 					continue;
 				}
-				if (!visited.Add(mesh.GetInstanceID())) {
+				if (!visited.Add(UnityObjectId.Get(mesh))) {
 					continue;
 				}
 				if (mesh.tangents == null || mesh.tangents.Length == 0) {

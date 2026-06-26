@@ -249,7 +249,7 @@ namespace VisualPinball.Unity
 				} : default;
 
 			return new SpinnerState(
-				animComponent ? animComponent.gameObject.GetInstanceID() : 0,
+				animComponent ? UnityObjectId.Get(animComponent.gameObject) : 0,
 				staticData,
 				movementData
 			);

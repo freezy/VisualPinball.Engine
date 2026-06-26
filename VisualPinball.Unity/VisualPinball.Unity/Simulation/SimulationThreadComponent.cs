@@ -272,6 +272,14 @@ namespace VisualPinball.Unity.Simulation
 			return _started && _simulationThread != null ? _simulationThread.GetSharedState() : default;
 		}
 
+		/// <summary>
+		/// The measured input→on-screen latency in milliseconds (input poll → flipper visual movement),
+		/// averaged over the calls since the last sample. Returns 0 until the first flipper press is observed.
+		/// Works for any table with flippers (independent of the gamelogic engine's coil-latency stats).
+		/// Main-thread only.
+		/// </summary>
+		public float SampleInputLatencyMs() => InputLatencyTracker.SampleFlipperLatencyMs(false);
+
 		internal bool EnqueueSwitchFromMainThread(string switchId, bool isClosed)
 		{
 			if (!_started || _simulationThread == null) {

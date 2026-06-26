@@ -12,7 +12,7 @@ Unity, the game engine VPE is built on top of, provides many useful audio
 features out of the box. It can import and play several common audio file
 formats, it supports directional audio and surround sound and provides mixing
 and mastering functionality. For a comprehensive overview, refer to the
-[Unity documentation](https://docs.unity3d.com/6000.0/Documentation/Manual/Audio.html).
+[Unity documentation](https://docs.unity3d.com/6000.5/Documentation/Manual/Audio.html).
 On top of this built-in functionality, VPE provides some features specific to
 pinball.
 
@@ -67,9 +67,9 @@ does:
 ## Sound Assets
 
 After importing your a sound file into Unity, you get an
-[Audio Clip](https://docs.unity3d.com/6000.0/Documentation/Manual/class-AudioClip.html).
+[Audio Clip](https://docs.unity3d.com/6000.5/Documentation/Manual/class-AudioClip.html).
 You could create an
-[Audio Source](https://docs.unity3d.com/6000.0/Documentation/Manual/class-AudioSource.html)
+[Audio Source](https://docs.unity3d.com/6000.5/Documentation/Manual/class-AudioSource.html)
 in your scene and play this clip directly, but VPE allows you to construct
 different types of sound assets out of one or multiple of these audio clips to
 produce variation and customize how the sound is played with pinball in mind.
