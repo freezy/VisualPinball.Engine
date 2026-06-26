@@ -7,7 +7,7 @@ jobs:
   publish-registry:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/download-artifact@v4
         with:
           merge-multiple: true
@@ -26,22 +26,38 @@ jobs:
           echo -e "fileFormatVersion: 2\nguid: 931f3c49f79d4032bceefe14682a7d5a" > VisualPinball.Unity.meta
           echo -e "fileFormatVersion: 2\nguid: ea4f7f8d4c2c418e9fc0fbed8ab1f5a9" > VisualPinball.Engine.meta
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20.x'
-          registry-url: 'https://registry.visualpinball.org'
-          always-auth: true
+      - name: Install Unity Package Manager CLI
+        run: |
+          curl -fsSL https://cdn.packages.unity.com/upm-cli/install.sh | bash
+          echo "$HOME/.upm/bin" >> "$GITHUB_PATH"
+          "$HOME/.upm/bin/upm" --version
 
-      - name: Publish
-        run: npm publish
+      - name: Pack and sign
+        run: |
+          test -n "${UNITY_ORGANIZATION_ID}"
+          mkdir -p "$RUNNER_TEMP/signed-package"
+          upm pack . \
+            --organization-id "${UNITY_ORGANIZATION_ID}" \
+            --destination "$RUNNER_TEMP/signed-package"
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          UPM_SERVICE_ACCOUNT_KEY_ID: ${{ secrets.UPM_SERVICE_ACCOUNT_KEY_ID }}
+          UPM_SERVICE_ACCOUNT_KEY_SECRET: ${{ secrets.UPM_SERVICE_ACCOUNT_KEY_SECRET }}
+          UNITY_ORGANIZATION_ID: ${{ secrets.UNITY_ORGANIZATION_ID }}
+
+      - name: Publish signed package
+        run: |
+          echo "//registry.visualpinball.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+          package_tgz="$(find "$RUNNER_TEMP/signed-package" -maxdepth 1 -name '*.tgz' -print -quit)"
+          test -n "$package_tgz"
+          npm publish "$package_tgz" --registry=https://registry.visualpinball.org/
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   dispatch:
     runs-on: ubuntu-latest
     needs: [ publish-registry ]
     steps:
-      - uses: peter-evans/repository-dispatch@v3
+      - uses: peter-evans/repository-dispatch@v4
         with:
           token: ${{ secrets.GH_PAT }}
           event-type: publish-complete
