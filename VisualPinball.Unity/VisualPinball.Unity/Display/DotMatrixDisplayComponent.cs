@@ -203,11 +203,7 @@ namespace VisualPinball.Unity
 
 				case DisplayFrameFormat.Dmd24:
 					if (frame.Length == _width * _height * 3) {
-
-						// the texture has RGB24 format, so we can just copy all into the texture directly.
-						CopyData(frame, 0, frame.Length, _texture.GetRawTextureData<byte>());
-
-						// still need to apply it.
+						CopyRgb24FrameToTexture(frame, _texture.GetRawTextureData<byte>());
 						_texture.Apply();
 
 					} else {
@@ -224,11 +220,19 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private static unsafe void CopyData<T>(T[] array, int offset, int count, NativeArray<T> dst) where T : unmanaged
+		private void CopyRgb24FrameToTexture(byte[] frame, NativeArray<byte> textureData)
+		{
+			var rowLength = _width * 3;
+			for (var y = 0; y < _height; y++) {
+				CopyData(frame, (_height - y - 1) * rowLength, rowLength, textureData, y * rowLength);
+			}
+		}
+
+		private static unsafe void CopyData<T>(T[] array, int offset, int count, NativeArray<T> dst, int dstOffset = 0) where T : unmanaged
 		{
 			fixed (T * srcPtr = array) {
-				var dstPtr = dst.GetUnsafePtr();
-				UnsafeUtility.MemCpy(dstPtr,srcPtr + offset, sizeof(T) * count);
+				var dstPtr = (T*)dst.GetUnsafePtr();
+				UnsafeUtility.MemCpy(dstPtr + dstOffset, srcPtr + offset, sizeof(T) * count);
 			}
 		}
 

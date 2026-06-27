@@ -69,15 +69,15 @@ namespace VisualPinball.Unity
 
 		private void HandleDisplayClear(object sender, string id)
 		{
-			if (_displayGameObjects.ContainsKey(id)) {
-				_displayGameObjects[id].Clear();
+			if (_displayGameObjects.TryGetValue(id, out var display) && display.ReceiveGamelogicFrames) {
+				display.Clear();
 			}
 		}
 
 		private void HandleDisplayUpdateFrame(object sender, DisplayFrameData e)
 		{
-			if (_displayGameObjects.ContainsKey(e.Id)) {
-				_displayGameObjects[e.Id].UpdateFrame(e.Format, e.Data);
+			if (_displayGameObjects.TryGetValue(e.Id, out var display) && display.ReceiveGamelogicFrames) {
+				display.UpdateFrame(e.Format, e.Data);
 			}
 		}
 
