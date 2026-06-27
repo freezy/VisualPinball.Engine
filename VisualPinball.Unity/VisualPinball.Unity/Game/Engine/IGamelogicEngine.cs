@@ -58,6 +58,18 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Emitted by the display player when a display frame update is requested.
 		/// </summary>
+		///
+		/// <remarks>
+		/// CONTRACT for implementers and subscribers:
+		/// <list type="bullet">
+		/// <item>This event MUST be raised on the Unity main thread. Subscribers touch Unity objects
+		/// (textures) and/or marshal to their own worker threads assuming a single, known origin thread.</item>
+		/// <item>The <see cref="DisplayFrameData.Data"/> buffer is only guaranteed valid for the duration
+		/// of the synchronous invocation. A subscriber that retains the frame beyond the call (e.g. hands
+		/// it to a worker thread) MUST copy the bytes; the producer may reuse or overwrite the buffer
+		/// afterwards. Producers that cannot guarantee this should hand out a fresh array per frame.</item>
+		/// </list>
+		/// </remarks>
 		event EventHandler<DisplayFrameData> OnDisplayUpdateFrame;
 
 		/// <summary>
