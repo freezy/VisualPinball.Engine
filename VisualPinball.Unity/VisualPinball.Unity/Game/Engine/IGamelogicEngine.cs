@@ -155,6 +155,11 @@ namespace VisualPinball.Unity
 		// todo displays
 	}
 
+	public interface IDisplayFrameFormatPreference
+	{
+		void RequestDisplayFrameFormat(string displayId, DisplayFrameFormat format);
+	}
+
 	public enum GamelogicInputDispatchMode
 	{
 		MainThread = 0,

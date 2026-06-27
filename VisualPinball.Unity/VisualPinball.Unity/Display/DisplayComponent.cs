@@ -30,6 +30,8 @@ namespace VisualPinball.Unity
 		public abstract Color LitColor { get; set; }
 		public abstract Color UnlitColor { get; set; }
 
+		public bool ReceiveGamelogicFrames { get; set; } = true;
+
 		public EventHandler<DisplayFrameData> OnDisplayChanged;
 
 		private static readonly int DataProp = Shader.PropertyToID("__Data");
