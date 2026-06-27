@@ -190,7 +190,7 @@ namespace VisualPinball.Unity
 						for (var y = 0; y < _height; y++) {
 							for (var x = 0; x < _width; x++) {
 								var pixel = frame[(_height - y - 1) * _width + x];
-								_colorBuffer[y * _width + x] = map.ContainsKey(pixel) ? map[pixel] : (Color32)Color.magenta;
+								_colorBuffer[y * _width + x] = map.TryGetValue(pixel, out var mapped) ? mapped : (Color32)Color.magenta;
 							}
 						}
 						_texture.SetPixels32(_colorBuffer);
