@@ -124,7 +124,6 @@ namespace VisualPinball.Unity
 
 			Vector2[] uvs;
 			if (flipX) {
-				Logger.Error("FLIPX");
 				uvs = new [] {
 					uv00, uv00, uv00, uv00, // Bottom
 					uv00, uv00, uv00, uv00, // Left

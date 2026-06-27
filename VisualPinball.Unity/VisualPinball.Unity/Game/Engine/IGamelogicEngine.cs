@@ -160,6 +160,16 @@ namespace VisualPinball.Unity
 		void RequestDisplayFrameFormat(string displayId, DisplayFrameFormat format);
 	}
 
+	/// <summary>
+	/// Optional capability interface for gamelogic engines that know the ROM they are running.
+	/// Consumers (e.g. the DMD bridge resolving colorization) use this instead of reflecting
+	/// over the concrete engine type.
+	/// </summary>
+	public interface IRomNameProvider
+	{
+		string RomName { get; }
+	}
+
 	public enum GamelogicInputDispatchMode
 	{
 		MainThread = 0,
