@@ -253,8 +253,14 @@ namespace VisualPinball.Unity
 				if (emissiveIntensity > 0) {
 					_materials.Add((mr, emissiveIntensity));
 
-					// Treat any emissive renderer as a faux-bulb style visual that should
-					// dim/hide with lamp intensity, independent of object naming.
+					// Transparent emissive renderers are lamp-lit *surfaces* (e.g. insert lens
+					// materials on pipelines that fake transmission with emission): they get the
+					// emissive drive above, but must stay visible when the lamp is off. Only
+					// opaque emissive renderers are faux-bulb visuals that dim/hide with lamp
+					// intensity, independent of object naming.
+					if (mr.sharedMaterial.renderQueue > (int)UnityEngine.Rendering.RenderQueue.GeometryLast) {
+						continue;
+					}
 					var hasBaseColor = mr.sharedMaterial.HasProperty(BaseColor);
 					var hasColor = mr.sharedMaterial.HasProperty(ColorProperty);
 					var baseColor = hasBaseColor

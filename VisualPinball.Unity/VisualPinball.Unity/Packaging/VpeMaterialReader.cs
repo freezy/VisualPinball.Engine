@@ -355,6 +355,11 @@ namespace VisualPinball.Unity
 						payload = PackageApi.Packer.Pack(profile.Fabric);
 					}
 					break;
+				case VpeMaterialTypes.Insert:
+					if (profile.Insert != null) {
+						payload = PackageApi.Packer.Pack(profile.Insert);
+					}
+					break;
 			}
 
 			if (payload == null || payload.Length == 0) {

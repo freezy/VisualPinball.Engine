@@ -50,6 +50,15 @@ namespace VisualPinball.Unity
 		public const string Rubber = "vpe.rubber";
 		public const string Dmd = "vpe.dmd";
 		public const string FabricSilk = "vpe.fabric.silk";
+		public const string Insert = "vpe.insert";
+	}
+
+	// The two physical parts of a playfield insert. The lens is the piece flush with the
+	// playfield surface; the reflector is the faceted body below it that shapes the lamp light.
+	public static class VpeInsertParts
+	{
+		public const string Lens = "lens";
+		public const string Reflector = "reflector";
 	}
 
 	public static class VpeColorSpaces
@@ -188,6 +197,22 @@ namespace VisualPinball.Unity
 		public VpeShaderGraphProfile Rubber;
 		public VpeShaderGraphProfile Dmd;
 		public VpeFabricSilkProfile Fabric;
+		public VpeInsertProfile Insert;
+	}
+
+	// A playfield-insert material: translucent plastic lit from below by a lamp. The nested Lit
+	// payload carries the full portable material intent (transmittance color, thickness, IOR,
+	// refraction, normal map, HDRP hints), so HDRP renders it exactly like a vpe.lit profile.
+	// The semantic type exists for pipelines without translucency/refraction (URP): knowing
+	// "this is an insert lens/reflector" lets them substitute a purpose-built approximation
+	// (lamp-driven emissive tinted by the transmittance color) instead of a generic translation.
+	[Serializable]
+	public class VpeInsertProfile
+	{
+		// See VpeInsertParts.
+		public string Part = VpeInsertParts.Lens;
+		// Portable material intent, identical in shape to a vpe.lit payload.
+		public VpeLitProfile Lit = new();
 	}
 
 	[Serializable]

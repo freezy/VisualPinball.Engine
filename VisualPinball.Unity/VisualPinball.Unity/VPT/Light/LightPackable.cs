@@ -163,6 +163,8 @@ namespace VisualPinball.Unity
 			light.intensity = Intensity;
 			light.enabled = Enabled;
 			Hdrp.Apply(light);
+			// Values applied above are HDRP-physical; a non-HDRP pipeline converts them here.
+			VpeLightUnitAdjuster.Active?.Invoke(light);
 		}
 	}
 

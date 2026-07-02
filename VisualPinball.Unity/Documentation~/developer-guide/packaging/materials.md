@@ -92,7 +92,7 @@ This split is what keeps the schema portable. A profile can record "base color t
 
 ## Supported Material Types
 
-The schema currently defines seven material types:
+The schema currently defines eight material types:
 
 | VPE type | Purpose |
 | --- | --- |
@@ -103,6 +103,7 @@ The schema currently defines seven material types:
 | `vpe.rubber` | VPE rubber shader graph materials. The profile stores a player template key and a `vpe.lit` fallback payload. |
 | `vpe.dmd` | Dot-matrix display materials. The profile stores a player template key, with no `vpe.lit` fallback. |
 | `vpe.fabric.silk` | HDRP fabric/silk materials. The profile carries a `vpe.lit` fallback plus HDRP thread/fuzz hints. |
+| `vpe.insert` | Playfield-insert parts (lens and reflector). The profile carries a part role plus a full `vpe.lit` payload. |
 
 The HDRP translator maps these authoring shaders into those types:
 
@@ -115,6 +116,8 @@ The HDRP translator maps these authoring shaders into those types:
 | VPE metal shader graph | `vpe.metal` |
 | VPE rubber shader graph | `vpe.rubber` |
 | VPE DMD shader graph | `vpe.dmd` |
+
+`vpe.insert` is not selected by shader name. It is a *promotion* of `vpe.lit`: an `HDRP/Lit` material is re-typed as an insert when the translator's scene heuristic identifies it as one (see the `vpe.insert` spec below). The captured data is the same lit payload either way.
 
 Unsupported shaders are not fatal: they produce no VPE profile, and runtime falls back to the imported GLB material for them.
 
@@ -255,6 +258,25 @@ Unlike `vpe.metal`/`vpe.rubber`, `vpe.dmd` carries **no** `vpe.lit` fallback: a 
 | `Fabric.Hdrp` | HDRP fabric/silk hints: optional thread map (with AO/normal/smoothness strengths and UV channel) and fuzz map (with strength and UV scale). |
 
 For HDRP, `HdrpMaterialResolver` clones the fabric/silk template and applies the hints; if no fabric template is configured it returns no material (the imported fallback then stays in place). Other pipelines can render the carried `vpe.lit` fallback.
+
+### `vpe.insert`
+
+`vpe.insert` marks the two physical parts of a playfield insert: the *lens* flush with the playfield surface, and the faceted *reflector* body below it that shapes the lamp light. In HDRP both parts are ordinary translucent Lit materials, so the profile carries no data beyond a plain `vpe.lit` payload — the semantic type exists for pipelines **without** HDRP's translucency, diffusion profiles, and refraction. Knowing "this is an insert lens" lets such a pipeline substitute a purpose-built approximation instead of a generic (and hopeless) translation of a 10%-alpha transmissive surface.
+
+| VPE field | Meaning |
+| --- | --- |
+| `Insert.Part` | `lens` or `reflector`. |
+| `Insert.Lit` | Full portable material intent, identical in shape to a `vpe.lit` payload (transmittance color, thickness map, IOR, refraction model, normal map, surface state, HDRP hints). |
+
+**Classification** happens at export time, by heuristic rather than by shader: a transparent, transmissive `HDRP/Lit` material used by a renderer that sits under a `LightComponent` is an insert part. The part with a refraction model is the reflector; the one without is the lens. Opaque emissive materials under the same light (faux bulbs) are unaffected and stay `vpe.lit`.
+
+**Color identity caveat for readers:** in authored tables, a *reflector's* saturated color is its transmittance tint, while a *lens* usually carries its color in the base color — lens transmittance is often a generic value shared across all insert colors. A renderer approximating inserts should pick its tint source per part accordingly.
+
+**Realization:**
+
+- HDRP resolves `Insert.Lit` through exactly the same path as `vpe.lit` (translucent template plus hints); output is identical to the pre-`vpe.insert` behavior.
+- URP builds both parts as alpha-blended URP/Lit materials: the tint becomes the visible body color (with a per-part opacity floor), and the lamp glow becomes emission whose baseline the runtime lamp system (`LightComponent`) reads at startup, zeroes, and then drives with the live lamp value. Because the parts stay in the transparent render queue, the lamp system treats them as lamp-lit *surfaces* (emission drive only) rather than faux bulbs (which are hidden when the lamp is off).
+- A resolver that does not implement `vpe.insert` should skip it; runtime then keeps the imported GLB material, like any unsupported type.
 
 ### Renderer state
 
