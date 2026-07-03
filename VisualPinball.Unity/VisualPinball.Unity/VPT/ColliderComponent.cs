@@ -230,13 +230,13 @@ namespace VisualPinball.Unity
 					Gizmos.matrix = playfieldToWorld * (Matrix4x4)Physics.VpxToWorld * (Matrix4x4)unmodifiedLocalToPlayfieldMatrixInVpx;
 					if (_untransformedColliderMesh) {
 						if (IsKinematic) {
-							Gizmos.color = colliderEnabled ? ColliderColor.UntransformedKineticColliderSelected : ColliderColor.DisabledColliderSelected;
+							Gizmos.color = colliderEnabled ? ColliderColor.UntransformedKinematicColliderSelected : ColliderColor.DisabledColliderSelected;
 						} else {
 							Gizmos.color = colliderEnabled ? ColliderColor.UntransformedColliderSelected : ColliderColor.DisabledColliderSelected;
 						}
 						Gizmos.DrawMesh(_untransformedColliderMesh);
 						if (IsKinematic) {
-							Gizmos.color = Application.isPlaying ? ColliderColor.UntransformedKineticCollider : white;
+							Gizmos.color = Application.isPlaying ? ColliderColor.UntransformedKinematicCollider : white;
 						} else {
 							Gizmos.color = Application.isPlaying ? ColliderColor.UntransformedCollider : white;
 						}
@@ -251,13 +251,13 @@ namespace VisualPinball.Unity
 					//Gizmos.matrix = MainComponent.transform.localToWorldMatrix * playfieldToWorld * (Matrix4x4)Physics.VpxToWorld;
 					if (_transformedColliderMesh) {
 						if (IsKinematic) {
-							Gizmos.color = colliderEnabled ? ColliderColor.TransformedKineticColliderSelected : ColliderColor.DisabledColliderSelected;
+							Gizmos.color = colliderEnabled ? ColliderColor.TransformedKinematicColliderSelected : ColliderColor.DisabledColliderSelected;
 						} else {
 							Gizmos.color = colliderEnabled ? ColliderColor.TransformedColliderSelected : ColliderColor.DisabledColliderSelected;
 						}
 						Gizmos.DrawMesh(_transformedColliderMesh);
 						if (IsKinematic) {
-							Gizmos.color = Application.isPlaying ? ColliderColor.TransformedKineticCollider : white;
+							Gizmos.color = Application.isPlaying ? ColliderColor.TransformedKinematicCollider : white;
 						} else {
 							Gizmos.color = Application.isPlaying ? ColliderColor.TransformedCollider : white;
 						}
@@ -780,12 +780,12 @@ namespace VisualPinball.Unity
 		internal static readonly Color SelectedAabb = new Color32(255, 255, 255, 128);
 		internal static readonly Color TransformedCollider = new Color32(0, 255, 75, 50);
 		internal static readonly Color TransformedColliderSelected = new Color32(0, 255, 75, 128);
-		internal static readonly Color TransformedKineticCollider = new Color32(255, 255, 0, 50);
-		internal static readonly Color TransformedKineticColliderSelected = new Color32(255, 255, 0, 128);
+		internal static readonly Color TransformedKinematicCollider = new Color32(255, 255, 0, 50);
+		internal static readonly Color TransformedKinematicColliderSelected = new Color32(255, 255, 0, 128);
 		internal static readonly Color UntransformedCollider = new Color32(0, 255, 255, 50);
 		internal static readonly Color UntransformedColliderSelected = new Color32(0, 255, 255, 128);
-		internal static readonly Color UntransformedKineticCollider = new Color32(255, 50, 50, 50);
-		internal static readonly Color UntransformedKineticColliderSelected = new Color32(255, 50, 50, 128);
+		internal static readonly Color UntransformedKinematicCollider = new Color32(255, 50, 50, 50);
+		internal static readonly Color UntransformedKinematicColliderSelected = new Color32(255, 50, 50, 128);
 		internal static readonly Color DisabledColliderSelected = new Color32(255, 0, 255, 128);
 	}
 }

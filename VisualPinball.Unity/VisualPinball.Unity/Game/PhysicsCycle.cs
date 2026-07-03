@@ -37,7 +37,7 @@ namespace VisualPinball.Unity
 			_contacts = new NativeList<ContactBufferElement>(a);
 		}
 
-		internal void Simulate(ref PhysicsState state, ref NativeParallelHashSet<int> overlappingColliders, ref NativeOctree<int> kineticOctree, ref NativeOctree<int> ballOctree, float dTime)
+		internal void Simulate(ref PhysicsState state, ref NativeParallelHashSet<int> overlappingColliders, ref NativeOctree<int> kinematicOctree, ref NativeOctree<int> ballOctree, float dTime)
 		{
 			PerfMarker.Begin();
 			var staticCounts = PhysicsConstants.StaticCnts;
@@ -70,7 +70,7 @@ namespace VisualPinball.Unity
 						PhysicsStaticBroadPhase.FindOverlaps(in state.Octree, in ball, ref overlappingColliders);
 						PhysicsStaticNarrowPhase.FindNextCollision(ref state.Colliders, ref ball, ref overlappingColliders, ref _contacts, ref state);
 
-						PhysicsStaticBroadPhase.FindOverlaps(in kineticOctree, in ball, ref overlappingColliders);
+						PhysicsStaticBroadPhase.FindOverlaps(in kinematicOctree, in ball, ref overlappingColliders);
 						PhysicsStaticNarrowPhase.FindNextCollision(ref state.KinematicColliders, ref ball, ref overlappingColliders, ref _contacts, ref state);
 
 						// no negative time allowed

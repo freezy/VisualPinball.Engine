@@ -40,7 +40,9 @@ namespace VisualPinball.Unity
 					ref var flipperState = ref state.GetFlipperState(collEvent.ColliderId, ref colliders);
 					flipperCollider.Contact(ref ball, ref flipperState.Movement, in collEvent, in flipperState.Static, in flipperState.Velocity, hitTime, in gravity);
 				} else {
-					Collider.Contact(in collHeader, ref ball, in collEvent, hitTime, in gravity);
+					// surface velocity of the collider at the contact point (zero unless kinematic and moving)
+					var colliderVelocity = state.GetKinematicSurfaceVelocity(in collEvent, ball.Position - ball.Radius * collEvent.HitNormal);
+					Collider.Contact(in collHeader, ref ball, in collEvent, hitTime, in gravity, in colliderVelocity);
 				}
 
 				if (!colliders.IsTransformed(collEvent.ColliderId)) {
@@ -53,7 +55,7 @@ namespace VisualPinball.Unity
 				var collHeader = collEvent.IsKinematic
 					? ref state.GetColliderHeader(ref state.KinematicColliders, contact.CollEvent.ColliderId)
 					: ref state.GetColliderHeader(ref state.Colliders, contact.CollEvent.ColliderId);
-				BallCollider.HandleStaticContact(ref ball, in collEvent, collHeader.Material.Friction, hitTime, state.Env.Gravity);
+				BallCollider.HandleStaticContact(ref ball, in collEvent, collHeader.Material.Friction, hitTime, state.Env.Gravity, float3.zero);
 			}
 		}
 	}
