@@ -26,8 +26,11 @@ namespace VisualPinball.Unity
 
 		public static void Collide3DWall(ref BallState ball, in PhysicsMaterialData material, in CollisionEventData collEvent, in float3 hitNormal, ref PhysicsState state)
 		{
-			// speed normal to wall
-			var dot = math.dot(ball.Velocity, hitNormal);
+			// surface velocity of the collider at the contact point (zero unless kinematic and moving)
+			var colliderVelocity = state.GetKinematicSurfaceVelocity(in collEvent, ball.Position - ball.Radius * hitNormal);
+
+			// speed normal to wall, relative to the (possibly moving) surface
+			var dot = math.dot(ball.Velocity - colliderVelocity, hitNormal);
 
 			if (dot >= -PhysicsConstants.LowNormVel) {
 				// nearly receding ... make sure of conditions
@@ -78,7 +81,7 @@ namespace VisualPinball.Unity
 
 			// compute friction impulse
 			var surfP = -ball.Radius * hitNormal;                        // surface contact point relative to center of mass
-			var surfVel = BallState.SurfaceVelocity(in ball, in surfP);                              // velocity at impact point
+			var surfVel = BallState.SurfaceVelocity(in ball, in surfP) - colliderVelocity;           // velocity at impact point, relative to the surface
 			var tangent = surfVel - hitNormal * math.dot(surfVel, hitNormal);  // calc the tangential velocity
 
 			var tangentSpSq = math.lengthsq(tangent);
@@ -94,7 +97,7 @@ namespace VisualPinball.Unity
 				// get friction based on normal Velocity  
 				float friction;
 				if (material.UseFrictionOverVelocity) {
-					var normalVelocity = math.dot(ball.Velocity, hitNormal);
+					var normalVelocity = math.dot(ball.Velocity - colliderVelocity, hitNormal);
 					var colliders = collEvent.IsKinematic ? state.KinematicColliders : state.Colliders;
 					var itemId = colliders.GetItemId(collEvent.ColliderId);
 					var lut = state.FrictionOverVelocityLUTs[itemId];
@@ -137,10 +140,11 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public static void HandleStaticContact(ref BallState ball, in CollisionEventData collEvent, float friction, float dTime, in float3 gravity)
+		public static void HandleStaticContact(ref BallState ball, in CollisionEventData collEvent, float friction, float dTime, in float3 gravity, in float3 colliderVelocity)
 		{
 			// this should be zero, but only up to +/- PhysicsConstants.ContactVel
-			var normVel = math.dot(ball.Velocity, collEvent.HitNormal);
+			// (relative to the surface, which may be moving if the collider is kinematic)
+			var normVel = math.dot(ball.Velocity - colliderVelocity, collEvent.HitNormal);
 
 			// If some collision has changed the ball's velocity, we may not have to do anything.
 			if (normVel <= PhysicsConstants.ContactVel) {
@@ -149,21 +153,29 @@ namespace VisualPinball.Unity
 				var fe = gravity * ball.Mass;
 				var dot = math.dot(fe, collEvent.HitNormal);
 
+				// HitOrgNormalVelocity was captured against a static surface in the hit test,
+				// so correct it by the surface's own normal velocity
+				var orgNormVel = collEvent.HitOrgNormalVelocity - math.dot(colliderVelocity, collEvent.HitNormal);
+
 				// normal force is always nonnegative
-				var normalForce = math.max(0.0f, -(dot * dTime + collEvent.HitOrgNormalVelocity));
+				var normalForce = math.max(0.0f, -(dot * dTime + orgNormVel));
 
 				// Add just enough to kill original normal velocity and counteract the external forces.
 				ball.Velocity += collEvent.HitNormal * normalForce;
 
-				ApplyFriction(ref ball, collEvent.HitNormal, dTime, friction, gravity);
+				ApplyFriction(ref ball, collEvent.HitNormal, dTime, friction, gravity, colliderVelocity);
 			}
 		}
 
-		private static void ApplyFriction(ref BallState ball, in float3 hitNormal, float dTime, float frictionCoeff, in float3 gravity)
+		private static void ApplyFriction(ref BallState ball, in float3 hitNormal, float dTime, float frictionCoeff, in float3 gravity, in float3 colliderVelocity)
 		{
 			// surface contact point relative to center of mass
 			var surfP = -ball.Radius * hitNormal;
-			var surfVel = BallState.SurfaceVelocity(in ball, in surfP);
+
+			// velocity of the ball's surface relative to the (possibly moving) collider surface:
+			// once the ball rides along with a moving surface, slip goes to zero and static
+			// friction keeps it locked to the surface
+			var surfVel = BallState.SurfaceVelocity(in ball, in surfP) - colliderVelocity;
 
 			// calc the tangential slip velocity
 			var slip = surfVel - hitNormal * math.dot(surfVel, hitNormal);
@@ -174,7 +186,7 @@ namespace VisualPinball.Unity
 			float3 slipDir;
 			float numer;
 
-			var normVel = math.dot(ball.Velocity, hitNormal);
+			var normVel = math.dot(ball.Velocity - colliderVelocity, hitNormal);
 			if (normVel <= 0.025 || slipSpeed < PhysicsConstants.Precision) {
 				// check for <=0.025 originated from ball<->rubber collisions pushing the ball upwards, but this is still not enough, some could even use <=0.2
 				// slip speed zero - static friction case

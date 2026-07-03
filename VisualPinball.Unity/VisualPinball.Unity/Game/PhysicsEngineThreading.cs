@@ -58,6 +58,17 @@ namespace VisualPinball.Unity
 		private readonly List<Action> _dueSingleThreadScheduledActions = new();
 		private readonly List<PhysicsEngine.InputAction> _pendingInputActions = new();
 		private readonly List<KeyValuePair<int, float4x4>> _pendingKinematicUpdates = new();
+		private readonly List<int> _pendingKinematicStopUpdates = new();
+
+		/// <summary>
+		/// Kinematic items that moved on the last change-detection scan, so a
+		/// scan without change can zero their velocity ("stop detection").
+		/// Owned by whichever thread runs change detection: the main thread in
+		/// threaded mode (<see cref="UpdateKinematicTransformsFromMainThread"/>),
+		/// the main thread in single-threaded mode (<see cref="ExecutePhysicsUpdate"/>).
+		/// The two modes are mutually exclusive.
+		/// </summary>
+		private readonly HashSet<int> _movedKinematicItems = new();
 		private readonly int[] _snapshotFlipperIds;
 		private readonly int[] _snapshotBumperRingIds;
 		private readonly int[] _snapshotBumperSkirtIds;
@@ -208,12 +219,17 @@ namespace VisualPinball.Unity
 
 		/// <summary>
 		/// Apply kinematic transforms staged by the main thread into the
-		/// physics state maps.
+		/// physics state maps, deriving each item's velocity from the
+		/// transform delta. Also drains staged stop events, zeroing the
+		/// velocity of items that ceased moving.
 		/// </summary>
 		/// <remarks>
 		/// <b>Thread:</b> Simulation thread (inside <c>PhysicsLock</c>).<br/>
 		/// Lock ordering: <c>PhysicsLock</c> (held) then
-		/// <c>PendingKinematicLock</c> (inner).
+		/// <c>PendingKinematicLock</c> (inner).<br/>
+		/// Stops are processed after transforms: when a final move and its
+		/// subsequent stop are drained together, the item must end up with
+		/// zero velocity.
 		/// </remarks>
 		private void ApplyPendingKinematicTransforms()
 		{
@@ -222,20 +238,69 @@ namespace VisualPinball.Unity
 			_ctx.UpdatedKinematicTransforms.Ref.Clear();
 
 			lock (_ctx.PendingKinematicLock) {
-				if (_ctx.PendingKinematicTransforms.Ref.Count() == 0) return;
+				var nowUsec = _ctx.PhysicsEnv.CurPhysicsFrameTime;
 
-				using var enumerator = _ctx.PendingKinematicTransforms.Ref.GetEnumerator();
-				while (enumerator.MoveNext()) {
-					var itemId = enumerator.Current.Key;
-					var matrix = enumerator.Current.Value;
-					_ctx.UpdatedKinematicTransforms.Ref[itemId] = matrix;
-					_ctx.KinematicTransforms.Ref[itemId] = matrix;
+				if (_ctx.PendingKinematicTransforms.Ref.Count() > 0) {
+					using var enumerator = _ctx.PendingKinematicTransforms.Ref.GetEnumerator();
+					while (enumerator.MoveNext()) {
+						var itemId = enumerator.Current.Key;
+						var matrix = enumerator.Current.Value;
 
-					var coll = GetKinematicColliderComponent(itemId);
-					coll?.OnTransformationChanged(matrix);
+						DeriveKinematicVelocity(itemId, in matrix, nowUsec);
+
+						_ctx.UpdatedKinematicTransforms.Ref[itemId] = matrix;
+						_ctx.KinematicTransforms.Ref[itemId] = matrix;
+
+						var coll = GetKinematicColliderComponent(itemId);
+						coll?.OnTransformationChanged(matrix);
+					}
+					_ctx.PendingKinematicTransforms.Ref.Clear();
+					_ctx.KinematicOctreeDirty = true;
 				}
-				_ctx.PendingKinematicTransforms.Ref.Clear();
-				_ctx.KinematicOctreeDirty = true;
+
+				if (_ctx.PendingKinematicStops.Count > 0) {
+					foreach (var itemId in _ctx.PendingKinematicStops) {
+						StopKinematicVelocity(itemId, nowUsec);
+					}
+					_ctx.PendingKinematicStops.Clear();
+				}
+			}
+		}
+
+		/// <summary>
+		/// Derive an item's velocity from its previous and new transform, so
+		/// collision resolution can account for the motion of its colliders.
+		/// </summary>
+		/// <remarks>
+		/// <b>Thread:</b> Simulation thread (inside <c>PhysicsLock</c>), or
+		/// main thread in single-threaded mode.
+		/// </remarks>
+		private void DeriveKinematicVelocity(int itemId, in float4x4 currMatrix, ulong nowUsec)
+		{
+			var prevMatrix = _ctx.KinematicTransforms.Ref[itemId];
+			if (_ctx.KinematicVelocities.Ref.TryGetValue(itemId, out var prevVelocity)) {
+				_ctx.KinematicVelocities.Ref[itemId] = PhysicsKinematics.DeriveVelocity(in prevVelocity, in prevMatrix, in currMatrix, nowUsec);
+
+			} else {
+				// first update: establish a zero-velocity baseline, velocity kicks in with the next update
+				_ctx.KinematicVelocities.Ref[itemId] = new KinematicVelocityState {
+					Pivot = currMatrix.c3.xyz,
+					LastUpdateUsec = nowUsec,
+				};
+			}
+		}
+
+		/// <summary>
+		/// Zero the velocity of a kinematic item that stopped moving, keeping
+		/// its pivot so a later update derives from a valid baseline.
+		/// </summary>
+		private void StopKinematicVelocity(int itemId, ulong nowUsec)
+		{
+			if (_ctx.KinematicVelocities.Ref.TryGetValue(itemId, out var velocity)) {
+				velocity.LinearVelocity = float3.zero;
+				velocity.AngularVelocity = float3.zero;
+				velocity.LastUpdateUsec = nowUsec;
+				_ctx.KinematicVelocities.Ref[itemId] = velocity;
 			}
 		}
 
@@ -525,27 +590,36 @@ namespace VisualPinball.Unity
 			var scanStartTicks = Stopwatch.GetTimestamp();
 
 			_pendingKinematicUpdates.Clear();
+			_pendingKinematicStopUpdates.Clear();
 
 			foreach (var coll in _kinematicColliderComponents) {
 				var currMatrix = coll.GetLocalToPlayfieldMatrixInVpx(_worldToPlayfield);
 
 				// Check against main-thread cache
 				if (_ctx.MainThreadKinematicCache.TryGetValue(coll.ItemId, out var lastMatrix) && lastMatrix.Equals(currMatrix)) {
+					// unchanged — if it moved last frame, it just stopped, so stage a velocity reset
+					if (_movedKinematicItems.Remove(coll.ItemId)) {
+						_pendingKinematicStopUpdates.Add(coll.ItemId);
+					}
 					continue;
 				}
 
 				// Transform changed — update cache
 				_ctx.MainThreadKinematicCache[coll.ItemId] = currMatrix;
+				_movedKinematicItems.Add(coll.ItemId);
 				_pendingKinematicUpdates.Add(new KeyValuePair<int, float4x4>(coll.ItemId, currMatrix));
 			}
 
-			if (_pendingKinematicUpdates.Count == 0) {
+			if (_pendingKinematicUpdates.Count == 0 && _pendingKinematicStopUpdates.Count == 0) {
 				return;
 			}
 
 			lock (_ctx.PendingKinematicLock) {
 				foreach (var update in _pendingKinematicUpdates) {
 					_ctx.PendingKinematicTransforms.Ref[update.Key] = update.Value;
+				}
+				foreach (var itemId in _pendingKinematicStopUpdates) {
+					_ctx.PendingKinematicStops.Add(itemId);
 				}
 			}
 
@@ -578,8 +652,14 @@ namespace VisualPinball.Unity
 				var lastTransformationMatrix = _ctx.KinematicTransforms.Ref[coll.ItemId];
 				var currTransformationMatrix = coll.GetLocalToPlayfieldMatrixInVpx(_worldToPlayfield);
 				if (lastTransformationMatrix.Equals(currTransformationMatrix)) {
+					// unchanged — if it moved last frame, it just stopped, so zero its velocity
+					if (_movedKinematicItems.Remove(coll.ItemId)) {
+						StopKinematicVelocity(coll.ItemId, _ctx.PhysicsEnv.CurPhysicsFrameTime);
+					}
 					continue;
 				}
+				DeriveKinematicVelocity(coll.ItemId, in currTransformationMatrix, _ctx.PhysicsEnv.CurPhysicsFrameTime);
+				_movedKinematicItems.Add(coll.ItemId);
 				_ctx.UpdatedKinematicTransforms.Ref.Add(coll.ItemId, currTransformationMatrix);
 				_ctx.KinematicTransforms.Ref[coll.ItemId] = currTransformationMatrix;
 				coll.OnTransformationChanged(currTransformationMatrix);

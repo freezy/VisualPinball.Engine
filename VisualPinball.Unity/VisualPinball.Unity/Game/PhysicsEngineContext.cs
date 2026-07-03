@@ -148,6 +148,17 @@ namespace VisualPinball.Unity
 		public readonly LazyInit<NativeParallelHashMap<int, float4x4>> UpdatedKinematicTransforms = new(() => new NativeParallelHashMap<int, float4x4>(0, Allocator.Persistent));
 
 		/// <summary>
+		/// The current velocities of kinematic items, derived from their
+		/// transform updates.
+		/// </summary>
+		/// <remarks>
+		/// Written by: sim thread (via <c>ApplyPendingKinematicTransforms</c>)
+		/// or main thread (single-threaded mode). Read by: physics loop
+		/// (collision and contact resolution).
+		/// </remarks>
+		public readonly LazyInit<NativeParallelHashMap<int, KinematicVelocityState>> KinematicVelocities = new(() => new NativeParallelHashMap<int, KinematicVelocityState>(0, Allocator.Persistent));
+
+		/// <summary>
 		/// The current matrix to which the ball will be transformed to, if
 		/// it collides with a non-transformable collider. This changes as
 		/// the non-transformable collider transforms (it's called
@@ -202,7 +213,16 @@ namespace VisualPinball.Unity
 		public readonly LazyInit<NativeParallelHashMap<int, float4x4>> PendingKinematicTransforms = new(() => new NativeParallelHashMap<int, float4x4>(0, Allocator.Persistent));
 
 		/// <summary>
-		/// Lock protecting <see cref="PendingKinematicTransforms"/>.
+		/// Item IDs of kinematic items that stopped moving, staged by the main
+		/// thread. The sim thread zeroes their velocities when draining. Unlike
+		/// transform updates, a stop neither re-transforms colliders nor dirties
+		/// the octree. Protected by <see cref="PendingKinematicLock"/>.
+		/// </summary>
+		public readonly List<int> PendingKinematicStops = new();
+
+		/// <summary>
+		/// Lock protecting <see cref="PendingKinematicTransforms"/> and
+		/// <see cref="PendingKinematicStops"/>.
 		/// Lock ordering: sim thread may hold <c>PhysicsLock</c> then
 		/// acquire <c>PendingKinematicLock</c>.
 		/// </summary>
@@ -263,7 +283,7 @@ namespace VisualPinball.Unity
 				ref InsideOfs, ref BallStates.Ref, ref BumperStates.Ref, ref DropTargetStates.Ref, ref FlipperStates.Ref, ref GateStates.Ref,
 				ref HitTargetStates.Ref, ref KickerStates.Ref, ref PlungerStates.Ref, ref SpinnerStates.Ref,
 				ref SurfaceStates.Ref, ref TriggerStates.Ref, ref DisabledCollisionItems.Ref, ref SwapBallCollisionHandling,
-				ref ElasticityOverVelocityLUTs, ref FrictionOverVelocityLUTs);
+				ref ElasticityOverVelocityLUTs, ref FrictionOverVelocityLUTs, ref KinematicVelocities.Ref);
 		}
 
 		/// <summary>
@@ -315,6 +335,7 @@ namespace VisualPinball.Unity
 			DisabledCollisionItems.Ref.Dispose();
 			KinematicTransforms.Ref.Dispose();
 			UpdatedKinematicTransforms.Ref.Dispose();
+			KinematicVelocities.Ref.Dispose();
 			PendingKinematicTransforms.Ref.Dispose();
 			NonTransformableColliderTransforms.Ref.Dispose();
 

@@ -498,6 +498,32 @@ namespace VisualPinball.Unity
 
 		public BallComponent GetBall(int itemId) => _ctx.BallComponents[itemId];
 
+		/// <summary>
+		/// Returns the current velocity of a kinematic item, derived from its
+		/// transform updates. Values are in VPX playfield space: linear velocity
+		/// of the transform origin in units per second, angular velocity in
+		/// radians per second, and the pivot the angular velocity refers to.
+		/// </summary>
+		/// <remarks>
+		/// Intended for debugging and visualization (e.g. editor gizmos).
+		/// Returns <c>false</c> if the item hasn't moved since the game started.
+		/// </remarks>
+		public bool TryGetKinematicVelocity(int itemId, out float3 linearVelocity, out float3 angularVelocity, out float3 pivot)
+		{
+			lock (_ctx.PhysicsLock) {
+				if (_ctx.KinematicVelocities.Ref.IsCreated && _ctx.KinematicVelocities.Ref.TryGetValue(itemId, out var velocity)) {
+					linearVelocity = velocity.LinearVelocity;
+					angularVelocity = velocity.AngularVelocity;
+					pivot = velocity.Pivot;
+					return true;
+				}
+			}
+			linearVelocity = float3.zero;
+			angularVelocity = float3.zero;
+			pivot = float3.zero;
+			return false;
+		}
+
 		#endregion
 
 		#region Forwarding — Simulation Thread
@@ -615,7 +641,7 @@ namespace VisualPinball.Unity
 			_ctx.Colliders = new NativeColliders(ref colliders, Allocator.Persistent);
 			_ctx.KinematicColliders = new NativeColliders(ref kinematicColliders, Allocator.Persistent);
 
-			// get kinetic collider matrices
+			// get kinematic collider matrices
 			_worldToPlayfield = playfield.transform.worldToLocalMatrix;
 			foreach (var coll in _kinematicColliderComponents) {
 				var matrix = coll.GetLocalToPlayfieldMatrixInVpx(_worldToPlayfield);

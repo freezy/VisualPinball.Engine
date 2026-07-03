@@ -67,7 +67,7 @@ namespace VisualPinball.Unity
 		// public bool SwapBallCollisionHandling;
 
 		[BurstCompile]
-		public static void Execute(ref PhysicsState state, ref PhysicsEnv env, ref NativeParallelHashSet<int> overlappingColliders, ref NativeOctree<int> kineticOctree, ref NativeOctree<int> ballOctree, ref PhysicsCycle cycle, ulong initialTimeUsec)
+		public static void Execute(ref PhysicsState state, ref PhysicsEnv env, ref NativeParallelHashSet<int> overlappingColliders, ref NativeOctree<int> kinematicOctree, ref NativeOctree<int> ballOctree, ref PhysicsCycle cycle, ulong initialTimeUsec)
 		{
 			// ref var state = ref UnsafeUtility.AsRef<PhysicsState>(statePtr.ToPointer());
 			// ref var env = ref UnsafeUtility.AsRef<PhysicsEnv>(envPtr.ToPointer());
@@ -132,7 +132,7 @@ namespace VisualPinball.Unity
 				#endregion
 
 				// primary physics loop
-				cycle.Simulate(ref state, ref overlappingColliders, ref kineticOctree, ref ballOctree, physicsDiffTime);
+				cycle.Simulate(ref state, ref overlappingColliders, ref kinematicOctree, ref ballOctree, physicsDiffTime);
 
 				// ball trail, keep old pos of balls
 				using (var enumerator = state.Balls.GetEnumerator()) {

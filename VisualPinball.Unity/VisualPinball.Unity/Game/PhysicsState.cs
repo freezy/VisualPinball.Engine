@@ -85,6 +85,15 @@ namespace VisualPinball.Unity
 		internal NativeParallelHashMap<int, float4x4> KinematicTransforms;
 
 		/// <summary>
+		/// The current velocities of all kinematic items that have moved, derived from their transform updates.
+		/// </summary>
+		/// <remarks>
+		/// <para><c>int</c> is the <see cref="ColliderComponent{TData,TMainComponent}.ItemId"/> of the collider.</para>
+		/// <para>Read during collision and contact resolution via <see cref="GetKinematicSurfaceVelocity"/>.</para>
+		/// </remarks>
+		internal NativeParallelHashMap<int, KinematicVelocityState> KinematicVelocities;
+
+		/// <summary>
 		/// The LUT of elasticity over velocity for all colliders where activated. Goes from 0 to 64 velocity units.
 		/// </summary>
 		internal NativeParallelHashMap<int, FixedList512Bytes<float>> ElasticityOverVelocityLUTs;
@@ -147,7 +156,8 @@ namespace VisualPinball.Unity
 			ref NativeParallelHashMap<int, SurfaceState> surfaceStates, ref NativeParallelHashMap<int, TriggerState> triggerStates,
 			ref NativeParallelHashSet<int> disabledCollisionItems, ref bool swapBallCollisionHandling,
 			ref NativeParallelHashMap<int, FixedList512Bytes<float>> elasticityOverVelocityLUTs,
-			ref NativeParallelHashMap<int, FixedList512Bytes<float>> frictionOverVelocityLUTs)
+			ref NativeParallelHashMap<int, FixedList512Bytes<float>> frictionOverVelocityLUTs,
+			ref NativeParallelHashMap<int, KinematicVelocityState> kinematicVelocities)
 		{
 			Env = env;
 			Octree = octree;
@@ -176,6 +186,7 @@ namespace VisualPinball.Unity
 
 			ElasticityOverVelocityLUTs = elasticityOverVelocityLUTs;
 			FrictionOverVelocityLUTs = frictionOverVelocityLUTs;
+			KinematicVelocities = kinematicVelocities;
 		}
 
 		internal ref ColliderHeader GetColliderHeader(ref NativeColliders colliders, int colliderId) => ref colliders.GetHeader(colliderId);
@@ -248,6 +259,42 @@ namespace VisualPinball.Unity
 				return ref KinematicTransforms.GetValueByRef(itemId);
 			}
 			return ref _nonTransformableColliderTransforms.GetValueByRef(itemId);
+		}
+
+		/// <summary>
+		/// Returns the surface velocity of a kinematic collider at a given contact point,
+		/// in the space the ball currently lives in. Returns zero for static colliders and
+		/// for kinematic colliders that aren't currently moving.
+		/// </summary>
+		/// <remarks>
+		/// This is what makes a moving kinematic collider impart momentum and friction to
+		/// the ball: collision and contact resolution compute the ball's velocity relative
+		/// to this velocity instead of treating the surface as static.
+		///
+		/// For non-transformed colliders, the ball (and thus the contact point) has been
+		/// projected into the collider's local space, so the contact point is converted to
+		/// playfield space to evaluate the velocity, and the result is rotated back into
+		/// local space — consistent with <see cref="BallState.Transform"/>, which rotates
+		/// the ball's velocity as well.
+		/// </remarks>
+		/// <param name="collEvent">The collision event, identifying the collider</param>
+		/// <param name="contactPoint">The contact point, in the ball's current space</param>
+		/// <returns>Surface velocity at the contact point, in the ball's current space</returns>
+		internal float3 GetKinematicSurfaceVelocity(in CollisionEventData collEvent, in float3 contactPoint)
+		{
+			if (!collEvent.IsKinematic) {
+				return float3.zero;
+			}
+			var itemId = KinematicColliders.GetItemId(collEvent.ColliderId);
+			if (!KinematicVelocities.TryGetValue(itemId, out var velocity) || !velocity.IsMoving) {
+				return float3.zero;
+			}
+			if (KinematicColliders.IsTransformed(collEvent.ColliderId)) {
+				return velocity.GetVelocityAt(contactPoint);
+			}
+			ref var matrix = ref KinematicTransforms.GetValueByRef(itemId);
+			var velocityAtContact = velocity.GetVelocityAt(matrix.MultiplyPoint(contactPoint));
+			return math.inverse(matrix).MultiplyVector(velocityAtContact);
 		}
 
 		/// <summary>
