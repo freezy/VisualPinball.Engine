@@ -285,16 +285,28 @@ namespace VisualPinball.Unity
 			if (!collEvent.IsKinematic) {
 				return float3.zero;
 			}
-			var itemId = KinematicColliders.GetItemId(collEvent.ColliderId);
+			return GetKinematicSurfaceVelocity(ref KinematicColliders, collEvent.ColliderId, in contactPoint);
+		}
+
+		/// <summary>
+		/// Same as <see cref="GetKinematicSurfaceVelocity(in CollisionEventData,in float3)"/>,
+		/// but by collider id. Returns zero for non-kinematic collider sets.
+		/// </summary>
+		internal float3 GetKinematicSurfaceVelocity(ref NativeColliders colliders, int colliderId, in float3 position)
+		{
+			if (!colliders.IsKinematic) {
+				return float3.zero;
+			}
+			var itemId = colliders.GetItemId(colliderId);
 			if (!KinematicVelocities.TryGetValue(itemId, out var velocity) || !velocity.IsMoving) {
 				return float3.zero;
 			}
-			if (KinematicColliders.IsTransformed(collEvent.ColliderId)) {
-				return velocity.GetVelocityAt(contactPoint);
+			if (colliders.IsTransformed(colliderId)) {
+				return velocity.GetVelocityAt(position);
 			}
 			ref var matrix = ref KinematicTransforms.GetValueByRef(itemId);
-			var velocityAtContact = velocity.GetVelocityAt(matrix.MultiplyPoint(contactPoint));
-			return math.inverse(matrix).MultiplyVector(velocityAtContact);
+			var velocityAtPosition = velocity.GetVelocityAt(matrix.MultiplyPoint(position));
+			return math.inverse(matrix).MultiplyVector(velocityAtPosition);
 		}
 
 		/// <summary>

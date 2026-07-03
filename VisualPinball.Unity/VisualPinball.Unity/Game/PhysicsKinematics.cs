@@ -17,6 +17,7 @@
 using NativeTrees;
 using Unity.Mathematics;
 using Unity.Profiling;
+using VisualPinball.Engine.Common;
 using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
@@ -27,11 +28,14 @@ namespace VisualPinball.Unity
 		private static readonly ProfilerMarker PerfMarkerBallOctree = new("CreateKinematicOctree");
 
 		/// <summary>
-		/// Maximal time window used for velocity derivation. When an item starts moving
-		/// after being idle, the elapsed time since its last update can be arbitrarily
-		/// large, which would dilute one frame of motion into a near-zero velocity.
+		/// Maximal gap between two transform updates for them to count as continuous
+		/// motion. The first update after a longer pause imparts no velocity — it's a
+		/// discrete re-position (editor nudge, scripted placement), not motion; velocity
+		/// kicks in from the second update of a motion sequence. The window is generous
+		/// enough that low-cadence updates (e.g. 10 Hz mech events) stay continuous,
+		/// with the actual gap as dt, so the derived velocity is the true average.
 		/// </summary>
-		private const float MaxVelocityDtSec = 0.1f;
+		private const float ContinuityWindowSec = 0.25f;
 
 		/// <summary>
 		/// Per-update displacement above which the update is treated as a teleport,
@@ -92,7 +96,18 @@ namespace VisualPinball.Unity
 				};
 			}
 
-			var dt = math.min((nowUsec - prev.LastUpdateUsec) * 1e-6f, MaxVelocityDtSec);
+			var dtSec = (nowUsec - prev.LastUpdateUsec) * 1e-6f;
+
+			// isolated update after idle: re-baseline without imparting velocity
+			if (dtSec > ContinuityWindowSec) {
+				return new KinematicVelocityState { Pivot = pivot, LastUpdateUsec = nowUsec };
+			}
+
+			// IMPORTANT: physics velocities are VPX units per DefaultStepTime (10 ms) —
+			// the VP convention, same time base as BallState.Velocity. Deriving per
+			// second yields values 100× too large and catapults balls on contact.
+			var dt = (float)((nowUsec - prev.LastUpdateUsec) / PhysicsConstants.DefaultStepTime);
+
 			var deltaPos = pivot - prevMatrix.c3.xyz;
 
 			var q0 = RotationOf(in prevMatrix);

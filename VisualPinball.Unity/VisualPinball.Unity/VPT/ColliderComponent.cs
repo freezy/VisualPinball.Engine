@@ -160,7 +160,8 @@ namespace VisualPinball.Unity
 
 		public virtual void OnTransformationChanged(float4x4 currTransformationMatrix)
 		{
-			// do nothing per default.
+			// invalidate cached collider gizmo meshes, so they're redrawn at the new pose
+			_collidersDirty = true;
 		}
 
 		#endregion
@@ -171,6 +172,66 @@ namespace VisualPinball.Unity
 
 		private Player _player;
 		private NativeOctree<int> _octree;
+
+		/// <summary>
+		/// Arrow length per VPX unit/sec of linear velocity, in VPX units.
+		/// </summary>
+		private const float LinearVelocityGizmoScale = 1f;
+
+		/// <summary>
+		/// Axis-arrow length per rad/sec of angular velocity, in VPX units.
+		/// </summary>
+		private const float AngularVelocityGizmoScale = 50f;
+
+		/// <summary>
+		/// Draws the current kinematic velocity while playing: a yellow arrow for
+		/// linear velocity, a cyan arrow along the rotation axis for angular
+		/// velocity, plus a numeric label. Only visible while the item is moving.
+		/// </summary>
+		private void OnDrawGizmos()
+		{
+			if (!Application.isPlaying || !_isKinematic) {
+				return;
+			}
+			if (!PhysicsEngine) {
+				PhysicsEngine = GetComponentInParent<PhysicsEngine>();
+				if (!PhysicsEngine) {
+					return;
+				}
+			}
+			if (!PhysicsEngine.TryGetKinematicVelocity(ItemId, out var linearVelocity, out var angularVelocity, out var pivot)) {
+				return;
+			}
+			var linSq = math.lengthsq(linearVelocity);
+			var angSq = math.lengthsq(angularVelocity);
+			if (linSq < 1e-6f && angSq < 1e-6f) {
+				return;
+			}
+			var playfieldComponent = GetComponentInParent<PlayfieldComponent>();
+			if (!playfieldComponent) {
+				return;
+			}
+			var vpxToWorld = playfieldComponent.transform.localToWorldMatrix * (Matrix4x4)Physics.VpxToWorld;
+			var origin = vpxToWorld.MultiplyPoint3x4(pivot);
+
+			if (linSq >= 1e-6f) {
+				var tip = vpxToWorld.MultiplyPoint3x4(pivot + linearVelocity * LinearVelocityGizmoScale);
+				DrawVelocityArrow(origin, tip, Color.yellow);
+			}
+			if (angSq >= 1e-6f) {
+				var tip = vpxToWorld.MultiplyPoint3x4(pivot + angularVelocity * AngularVelocityGizmoScale);
+				DrawVelocityArrow(origin, tip, Color.cyan);
+			}
+			Handles.Label(origin, $"v = {math.sqrt(linSq):F1} u/s   ω = {math.degrees(math.sqrt(angSq)):F1} °/s");
+		}
+
+		private static void DrawVelocityArrow(Vector3 from, Vector3 to, Color color)
+		{
+			Gizmos.color = color;
+			Gizmos.matrix = Matrix4x4.identity;
+			Gizmos.DrawLine(from, to);
+			Gizmos.DrawSphere(to, (to - from).magnitude * 0.05f);
+		}
 
 		private void OnDrawGizmosSelected()
 		{

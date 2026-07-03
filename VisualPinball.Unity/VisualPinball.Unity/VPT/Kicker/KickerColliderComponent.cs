@@ -109,6 +109,8 @@ namespace VisualPinball.Unity
 
 		public override void OnTransformationChanged(float4x4 currTransformationMatrix)
 		{
+			base.OnTransformationChanged(currTransformationMatrix);
+
 			// update kicker center, so the internal collision shape is correct
 			ref var kickerData = ref PhysicsEngine.KickerState(_itemId);
 			kickerData.Static.Center = currTransformationMatrix.c3.xy;

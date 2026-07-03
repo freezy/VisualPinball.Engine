@@ -31,12 +31,17 @@ namespace VisualPinball.Unity
 	internal struct KinematicVelocityState
 	{
 		/// <summary>
-		/// Linear velocity of the transform origin, in VPX units per second, playfield space.
+		/// Linear velocity of the transform origin, in VPX units per
+		/// <see cref="VisualPinball.Engine.Common.PhysicsConstants.DefaultStepTime"/>
+		/// (10 ms — the VP convention, same time base as <see cref="BallState.Velocity"/>),
+		/// playfield space.
 		/// </summary>
 		internal float3 LinearVelocity;
 
 		/// <summary>
-		/// Angular velocity in radians per second, playfield space.
+		/// Angular velocity in radians per
+		/// <see cref="VisualPinball.Engine.Common.PhysicsConstants.DefaultStepTime"/>
+		/// (10 ms), playfield space.
 		/// </summary>
 		internal float3 AngularVelocity;
 

@@ -153,12 +153,11 @@ namespace VisualPinball.Unity
 				var fe = gravity * ball.Mass;
 				var dot = math.dot(fe, collEvent.HitNormal);
 
-				// HitOrgNormalVelocity was captured against a static surface in the hit test,
-				// so correct it by the surface's own normal velocity
-				var orgNormVel = collEvent.HitOrgNormalVelocity - math.dot(colliderVelocity, collEvent.HitNormal);
+				// note: for kinematic colliders, HitOrgNormalVelocity is already relative to the
+				// surface — the narrow phase hit-tests in the collider's reference frame
 
 				// normal force is always nonnegative
-				var normalForce = math.max(0.0f, -(dot * dTime + orgNormVel));
+				var normalForce = math.max(0.0f, -(dot * dTime + collEvent.HitOrgNormalVelocity));
 
 				// Add just enough to kill original normal velocity and counteract the external forces.
 				ball.Velocity += collEvent.HitNormal * normalForce;
