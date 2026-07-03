@@ -500,9 +500,11 @@ namespace VisualPinball.Unity
 
 		/// <summary>
 		/// Returns the current velocity of a kinematic item, derived from its
-		/// transform updates. Values are in VPX playfield space: linear velocity
-		/// of the transform origin in units per second, angular velocity in
-		/// radians per second, and the pivot the angular velocity refers to.
+		/// transform updates. Values are in VPX playfield space and per second
+		/// (converted from the engine's internal per-10ms time base): linear
+		/// velocity of the transform origin in units per second, angular
+		/// velocity in radians per second, and the pivot the angular velocity
+		/// refers to.
 		/// </summary>
 		/// <remarks>
 		/// Intended for debugging and visualization (e.g. editor gizmos).
@@ -510,10 +512,12 @@ namespace VisualPinball.Unity
 		/// </remarks>
 		public bool TryGetKinematicVelocity(int itemId, out float3 linearVelocity, out float3 angularVelocity, out float3 pivot)
 		{
+			// engine time unit (DefaultStepTime, 10 ms) → seconds
+			const float perSecond = (float)(1e6 / PhysicsConstants.DefaultStepTime);
 			lock (_ctx.PhysicsLock) {
 				if (_ctx.KinematicVelocities.Ref.IsCreated && _ctx.KinematicVelocities.Ref.TryGetValue(itemId, out var velocity)) {
-					linearVelocity = velocity.LinearVelocity;
-					angularVelocity = velocity.AngularVelocity;
+					linearVelocity = velocity.LinearVelocity * perSecond;
+					angularVelocity = velocity.AngularVelocity * perSecond;
 					pivot = velocity.Pivot;
 					return true;
 				}

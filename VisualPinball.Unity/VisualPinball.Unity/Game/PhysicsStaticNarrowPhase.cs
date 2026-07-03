@@ -52,12 +52,23 @@ namespace VisualPinball.Unity
 						var ballTransformed = ball;
 						ballTransformed.Transform(math.inverse(matrix));
 
+						// test in the collider's reference frame: a moving kinematic collider must
+						// see the ball's relative velocity, otherwise a surface gaining on a slower
+						// ball reads as "receding" and generates no events (the ball gets swallowed)
+						ballTransformed.Velocity -= state.GetKinematicSurfaceVelocity(ref colliders, overlappingColliderId, ballTransformed.Position);
+
 						newTime = state.HitTest(ref colliders, overlappingColliderId, ref ballTransformed, ref newCollEvent, ref contacts);
 
 						if (IsValidHit(ref ball, newTime)) {
 							// transform hit normal back to world space
 							newCollEvent.Transform(matrix);
 						}
+
+					} else if (colliders.IsKinematic) {
+						// same as above, for baked (fully transformed) kinematic colliders
+						var ballRelative = ball;
+						ballRelative.Velocity -= state.GetKinematicSurfaceVelocity(ref colliders, overlappingColliderId, ball.Position);
+						newTime = state.HitTest(ref colliders, overlappingColliderId, ref ballRelative, ref newCollEvent, ref contacts);
 
 					} else {
 						newTime = state.HitTest(ref colliders, overlappingColliderId, ref ball, ref newCollEvent, ref contacts);
