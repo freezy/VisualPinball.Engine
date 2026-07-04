@@ -116,6 +116,13 @@ namespace VisualPinball.Unity
 		[Tooltip("Gravity constant, in VPX units.")]
 		public float GravityStrength = PhysicsConstants.GravityConst * PhysicsConstants.DefaultTableGravity;
 
+		[Tooltip("Keyboard nudge model.")]
+		public KeyboardNudgeMode KeyboardNudgeMode = KeyboardNudgeMode.CabModel;
+
+		[Tooltip("Keyboard nudge strength scale.")]
+		[Range(0f, 2f)]
+		public float KeyboardNudgeStrength = 1f;
+
 		#endregion
 
 		#region Packaging
@@ -157,6 +164,7 @@ namespace VisualPinball.Unity
 		[NonSerialized] private float4x4 _worldToPlayfield;
 		[NonSerialized] private int _mainThreadManagedThreadId;
 		[NonSerialized] private int _simulationThreadManagedThreadId = -1;
+		[NonSerialized] private int _keyboardNudgeIndex;
 		[NonSerialized] private readonly HashSet<string> _unsafeLiveStateAccessWarnings = new HashSet<string>();
 		[NonSerialized] private bool _inputActionsQueueWarningIssued;
 		[NonSerialized] private bool _scheduledActionsQueueWarningIssued;
@@ -264,6 +272,45 @@ namespace VisualPinball.Unity
 
 			var state = _ctx.CreateState();
 			action(ref state);
+		}
+
+		public int KeyboardNudgeIndex => Volatile.Read(ref _keyboardNudgeIndex);
+
+		public void Nudge(float angleDeg, float force)
+		{
+			Interlocked.Increment(ref _keyboardNudgeIndex);
+			lock (_ctx.PendingKeyboardNudgesLock) {
+				_ctx.PendingKeyboardNudges.Enqueue(new KeyboardNudgeCommand(angleDeg, force));
+			}
+		}
+
+		public void ConfigureKeyboardNudge(KeyboardNudgeMode mode, float strength)
+		{
+			KeyboardNudgeMode = mode;
+			KeyboardNudgeStrength = math.clamp(strength, 0f, 2f);
+
+			if (_ctx == null || !_ctx.IsInitialized) {
+				return;
+			}
+
+			var table = GetComponentInParent<TableComponent>();
+			var nudgeTime = table != null ? table.NudgeTime : 5f;
+			lock (_ctx.PhysicsLock) {
+				var nudge = _ctx.PhysicsEnv.Nudge;
+				nudge.Keyboard.Configure(KeyboardNudgeMode, KeyboardNudgeStrength, nudgeTime);
+				_ctx.PhysicsEnv.Nudge = nudge;
+			}
+		}
+
+		public void NudgeSensorStatus(out float x, out float y)
+		{
+			lock (_ctx.PhysicsLock) {
+				var nudge = _ctx.PhysicsEnv.Nudge;
+				var acceleration = nudge.ReadAndResetMaxCabinetAcceleration();
+				_ctx.PhysicsEnv.Nudge = nudge;
+				x = acceleration.x;
+				y = acceleration.y;
+			}
 		}
 
 		internal void MarkCurrentThreadAsSimulationThread()
@@ -590,7 +637,9 @@ namespace VisualPinball.Unity
 			_mainThreadManagedThreadId = Thread.CurrentThread.ManagedThreadId;
 			_player = GetComponentInParent<Player>();
 			_ctx.InsideOfs = new InsideOfs(Allocator.Persistent);
-			_ctx.PhysicsEnv = new PhysicsEnv(NowUsec, GetComponentInChildren<PlayfieldComponent>(), GravityStrength);
+			var table = GetComponentInParent<TableComponent>();
+			_ctx.PhysicsEnv = new PhysicsEnv(NowUsec, GetComponentInChildren<PlayfieldComponent>(), GravityStrength,
+				KeyboardNudgeMode, KeyboardNudgeStrength, table != null ? table.NudgeTime : 5f);
 			Interlocked.Exchange(ref _ctx.PublishedPhysicsFrameTimeUsec, (long)_ctx.PhysicsEnv.CurPhysicsFrameTime);
 			_ctx.ElasticityOverVelocityLUTs = new NativeParallelHashMap<int, FixedList512Bytes<float>>(0, Allocator.Persistent);
 			_ctx.FrictionOverVelocityLUTs = new NativeParallelHashMap<int, FixedList512Bytes<float>>(0, Allocator.Persistent);

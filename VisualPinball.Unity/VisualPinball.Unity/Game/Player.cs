@@ -97,6 +97,8 @@ namespace VisualPinball.Unity
 		// input related
 		[NonSerialized] private InputManager _inputManager;
 		[NonSerialized] private readonly List<(InputAction, Action<InputAction.CallbackContext>)> _actions = new();
+		[NonSerialized] private readonly System.Random _nudgeRandom = new System.Random();
+		[NonSerialized] private int _lastObservedKeyboardNudgeIndex;
 
 		// players
 		[NonSerialized] private readonly LampPlayer _lampPlayer = new();
@@ -194,7 +196,6 @@ namespace VisualPinball.Unity
 
 			BallManager = new BallManager(GetComponentInChildren<PhysicsEngine>(), this, Playfield.transform);
 			_inputManager = new InputManager();
-			_inputManager.Enable(HandleInput);
 
 			if (engineComponent != null) {
 				GamelogicEngine = engineComponent;
@@ -221,6 +222,7 @@ namespace VisualPinball.Unity
 			_switchPlayer.OnStart();
 			_lampPlayer.OnStart();
 			_wirePlayer.OnStart();
+			_inputManager.Enable(HandleInput);
 
 			_gamelogicEngineInitCts = new CancellationTokenSource();
 			try {
@@ -348,6 +350,14 @@ namespace VisualPinball.Unity
 
 		public void ScheduleAction(int timeMs, Action action) => PhysicsEngine.ScheduleAction(timeMs, action);
 		public void ScheduleAction(uint timeMs, Action action) => PhysicsEngine.ScheduleAction(timeMs, action);
+		public void Nudge(float angleDeg, float force) => PhysicsEngine.Nudge(angleDeg, force);
+		public void NudgeSensorStatus(out float x, out float y) => PhysicsEngine.NudgeSensorStatus(out x, out y);
+		public void NudgeGetCalibration(out float x, out float y)
+		{
+			x = 0f;
+			y = 0f;
+		}
+		public void NudgeSetCalibration(float x, float y) { }
 
 		public void OnEvent(in EventData eventData)
 		{
@@ -456,9 +466,17 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		private static void HandleInput(object obj, InputActionChange change)
+		private void HandleInput(object obj, InputActionChange change)
 		{
-			if (obj is InputAction action && action.actionMap != null && action.actionMap.name == InputConstants.MapDebug) {
+			if (obj is not InputAction action || action.actionMap == null) {
+				return;
+			}
+
+			if (action.actionMap.name == InputConstants.MapCabinetSwitches) {
+				HandleNudgeInput(action, change);
+			}
+
+			if (action.actionMap.name == InputConstants.MapDebug) {
 				var value = action.ReadValue<float>();
 				switch (action.name) {
 					case InputConstants.ActionSlowMotion: {
@@ -491,6 +509,44 @@ namespace VisualPinball.Unity
 						break;
 					}
 				}
+			}
+		}
+
+		private void HandleNudgeInput(InputAction action, InputActionChange change)
+		{
+			if (NativeInputManager.TryGetExistingInstance()?.IsPolling == true || change != InputActionChange.ActionStarted) {
+				return;
+			}
+
+			var actionName = InputManager.GetCanonicalActionName(action.name);
+			if (actionName != InputConstants.ActionLeftNudge
+			    && actionName != InputConstants.ActionRightNudge
+			    && actionName != InputConstants.ActionCenterNudge) {
+				return;
+			}
+
+			var currentNudgeIndex = PhysicsEngine.KeyboardNudgeIndex;
+			if (currentNudgeIndex == _lastObservedKeyboardNudgeIndex) {
+				ApplyDefaultKeyboardNudge(actionName);
+			}
+			_lastObservedKeyboardNudgeIndex = PhysicsEngine.KeyboardNudgeIndex;
+		}
+
+		private void ApplyDefaultKeyboardNudge(string actionName)
+		{
+			const float baseForce = 2f;
+			var angle = ((float)_nudgeRandom.NextDouble() - 0.5f) * 15f * baseForce;
+			var force = (0.6f + (float)_nudgeRandom.NextDouble() * 0.8f) * baseForce;
+			switch (actionName) {
+				case InputConstants.ActionLeftNudge:
+					Nudge(75f + angle, force);
+					break;
+				case InputConstants.ActionRightNudge:
+					Nudge(285f + angle, force);
+					break;
+				case InputConstants.ActionCenterNudge:
+					Nudge(angle, force);
+					break;
 			}
 		}
 	}

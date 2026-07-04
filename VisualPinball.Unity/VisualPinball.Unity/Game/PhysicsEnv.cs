@@ -30,14 +30,18 @@ namespace VisualPinball.Unity
 		public uint TimeMsec;
 
 		public Random Random;
+		public NudgeState Nudge;
 
-		public PhysicsEnv(ulong startTimeUsec, PlayfieldComponent playfield, float gravityStrength) : this()
+		public PhysicsEnv(ulong startTimeUsec, PlayfieldComponent playfield, float gravityStrength,
+			KeyboardNudgeMode keyboardNudgeMode = KeyboardNudgeMode.CabModel, float keyboardNudgeStrength = 1f,
+			float nudgeTime = 5f) : this()
 		{
 			StartTimeUsec = startTimeUsec;
 			CurPhysicsFrameTime = StartTimeUsec;
 			NextPhysicsFrameTime = StartTimeUsec + PhysicsConstants.PhysicsStepTime;
 			Random = new Random((uint)UnityEngine.Random.Range(1, 100000));
 			Gravity = playfield.PlayfieldGravity(gravityStrength);
+			Nudge = new NudgeState(keyboardNudgeMode, keyboardNudgeStrength, nudgeTime);
 		}
 	}
 }

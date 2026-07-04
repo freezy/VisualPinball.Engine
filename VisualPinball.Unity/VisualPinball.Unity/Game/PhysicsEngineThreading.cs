@@ -57,6 +57,7 @@ namespace VisualPinball.Unity
 		private readonly List<Action> _deferredMainThreadScheduledActions = new();
 		private readonly List<Action> _dueSingleThreadScheduledActions = new();
 		private readonly List<PhysicsEngine.InputAction> _pendingInputActions = new();
+		private readonly List<KeyboardNudgeCommand> _pendingKeyboardNudges = new();
 		private readonly List<KeyValuePair<int, float4x4>> _pendingKinematicUpdates = new();
 		private readonly List<int> _pendingKinematicStopUpdates = new();
 
@@ -195,6 +196,7 @@ namespace VisualPinball.Unity
 
 			// process input
 			ProcessInputActions(ref state);
+			ProcessPendingKeyboardNudges();
 
 			// run physics loop (Burst-compiled, thread-safe)
 			PhysicsUpdate.Execute(
@@ -230,6 +232,23 @@ namespace VisualPinball.Unity
 
 			foreach (var action in _pendingInputActions) {
 				action(ref state);
+			}
+		}
+
+		private void ProcessPendingKeyboardNudges()
+		{
+			_pendingKeyboardNudges.Clear();
+
+			lock (_ctx.PendingKeyboardNudgesLock) {
+				while (_ctx.PendingKeyboardNudges.Count > 0) {
+					_pendingKeyboardNudges.Add(_ctx.PendingKeyboardNudges.Dequeue());
+				}
+			}
+
+			foreach (var nudge in _pendingKeyboardNudges) {
+				var nudgeState = _ctx.PhysicsEnv.Nudge;
+				nudgeState.ApplyKeyboardImpulse(nudge.AngleDeg, nudge.Force);
+				_ctx.PhysicsEnv.Nudge = nudgeState;
 			}
 		}
 
@@ -783,6 +802,7 @@ namespace VisualPinball.Unity
 
 			// process input
 			ProcessInputActions(ref state);
+			ProcessPendingKeyboardNudges();
 
 			// run physics loop
 			PhysicsUpdate.Execute(

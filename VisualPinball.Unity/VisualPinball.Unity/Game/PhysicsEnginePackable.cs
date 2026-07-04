@@ -19,11 +19,17 @@ namespace VisualPinball.Unity
 	public struct PhysicsEnginePackable
 	{
 		public float GravityStrength;
+		public bool HasKeyboardNudgeSettings;
+		public KeyboardNudgeMode KeyboardNudgeMode;
+		public float KeyboardNudgeStrength;
 
 		public static byte[] Pack(PhysicsEngine comp)
 		{
 			return PackageApi.Packer.Pack(new PhysicsEnginePackable {
 				GravityStrength = comp.GravityStrength,
+				HasKeyboardNudgeSettings = true,
+				KeyboardNudgeMode = comp.KeyboardNudgeMode,
+				KeyboardNudgeStrength = comp.KeyboardNudgeStrength,
 			});
 		}
 
@@ -31,6 +37,10 @@ namespace VisualPinball.Unity
 		{
 			var data = PackageApi.Packer.Unpack<PhysicsEnginePackable>(bytes);
 			comp.GravityStrength = data.GravityStrength;
+			comp.ConfigureKeyboardNudge(
+				data.HasKeyboardNudgeSettings ? data.KeyboardNudgeMode : KeyboardNudgeMode.CabModel,
+				data.HasKeyboardNudgeSettings ? data.KeyboardNudgeStrength : 1f
+			);
 		}
 	}
 }

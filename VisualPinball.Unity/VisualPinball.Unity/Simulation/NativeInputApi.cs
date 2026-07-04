@@ -120,6 +120,7 @@ namespace VisualPinball.Unity.Simulation
 			P = 0x50,
 			T = 0x54,
 			Y = 0x59,
+			Z = 0x5A,
 			Numpad1 = 0x61,
 
 			A = 0x41,
@@ -129,6 +130,7 @@ namespace VisualPinball.Unity.Simulation
 			W = 0x57,
 
 			Minus = 0xBD,  // VK_OEM_MINUS
+			Slash = 0xBF,  // VK_OEM_2
 			Quote = 0xDE,  // VK_OEM_7
 			Oem3 = 0xC0,   // VK_OEM_3 (layout dependent)
 		}

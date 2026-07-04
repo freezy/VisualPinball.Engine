@@ -23,7 +23,7 @@ namespace VisualPinball.Unity
 {
 	internal static class BallVelocityPhysics
 	{
-		public static void UpdateVelocities(ref BallState ball, float3 gravity)
+		public static void UpdateVelocities(ref BallState ball, float3 gravity, float2 cabinetAcceleration)
 		{
 			if (ball.IsFrozen) {
 				return;
@@ -56,6 +56,9 @@ namespace VisualPinball.Unity
 				);
 			} else {
 				ball.Velocity += PhysicsConstants.PhysFactor * gravity;
+				var nudgeVelocity = PhysicsConstants.PhysFactor * PhysicsConstants.Ms2ToVpuVpt2 * cabinetAcceleration;
+				ball.Velocity.x -= nudgeVelocity.x;
+				ball.Velocity.y -= nudgeVelocity.y;
 			}
 		}
 	}
