@@ -260,41 +260,46 @@ namespace VisualPinball.Unity
 				case InputActionChange.ActionCanceled:
 					var action = (InputAction)obj;
 					var actionName = InputManager.GetCanonicalActionName(action.name);
-					if (_keyWireAssignments != null && _keyWireAssignments.ContainsKey(actionName)) {
-						foreach (var wireConfig in _keyWireAssignments[actionName]) {
-							if (wireConfig.Device == null || !_wireDevices.ContainsKey(wireConfig.Device)) {
-								continue;
-							}
+					DispatchInputAction(actionName, change == InputActionChange.ActionStarted);
+					break;
+			}
+		}
 
-							var device = _wireDevices[wireConfig.Device];
-							var wire = device.Wire(wireConfig.DeviceItem);
-							if (wire != null) {
-								var isEnabled = change == InputActionChange.ActionStarted;
-								if (!wireConfig.IsDynamic) {
-									wire.OnChange(isEnabled);
-									WireStatuses[wireConfig.Id] = (isEnabled, 0);
+		internal void DispatchInputAction(string actionName, bool isEnabled)
+		{
+			if (_keyWireAssignments == null || !_keyWireAssignments.ContainsKey(actionName)) {
+				return;
+			}
+			foreach (var wireConfig in _keyWireAssignments[actionName]) {
+				if (wireConfig.Device == null || !_wireDevices.ContainsKey(wireConfig.Device)) {
+					continue;
+				}
 
-								} else {
-									_gleSignals[wireConfig][isEnabled].Enqueue(Time.realtimeSinceStartup);
-									if (wireConfig.IsActive) {
-										// the dynamic wire is active, so trigger directly.
-										wire.OnChange(isEnabled);
-										WireStatuses[wireConfig.Id] = (isEnabled, -2);
+				var device = _wireDevices[wireConfig.Device];
+				var wire = device.Wire(wireConfig.DeviceItem);
+				if (wire != null) {
+					if (!wireConfig.IsDynamic) {
+						wire.OnChange(isEnabled);
+						WireStatuses[wireConfig.Id] = (isEnabled, 0);
 
-									} else {
-										WireStatuses[wireConfig.Id] = (WireStatuses[wireConfig.Id].Item1, -1);
-									}
-								}
-#if UNITY_EDITOR
-								RefreshUI();
-#endif
-							}
-							else {
-								Logger.Warn($"Unknown wire \"{wireConfig.DeviceItem}\" in wire device \"{wireConfig.Device}\".");
-							}
+					} else {
+						_gleSignals[wireConfig][isEnabled].Enqueue(Time.realtimeSinceStartup);
+						if (wireConfig.IsActive) {
+							// the dynamic wire is active, so trigger directly.
+							wire.OnChange(isEnabled);
+							WireStatuses[wireConfig.Id] = (isEnabled, -2);
+
+						} else {
+							WireStatuses[wireConfig.Id] = (WireStatuses[wireConfig.Id].Item1, -1);
 						}
 					}
-					break;
+#if UNITY_EDITOR
+					RefreshUI();
+#endif
+				}
+				else {
+					Logger.Warn($"Unknown wire \"{wireConfig.DeviceItem}\" in wire device \"{wireConfig.Device}\".");
+				}
 			}
 		}
 

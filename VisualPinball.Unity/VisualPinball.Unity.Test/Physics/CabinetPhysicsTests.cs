@@ -53,6 +53,33 @@ namespace VisualPinball.Unity.Test
 			Assert.That(cabinet.CabinetOffset.y, Is.LessThan(0f));
 		}
 
+		[Test]
+		public void PlumbTiltLatchesAndQueuesTiltEvent()
+		{
+			var plumb = new PlumbState(true, 1f, 2f);
+
+			for (var i = 0; i < 1000 && !plumb.TiltHigh; i++) {
+				plumb.StepOneMillisecond(new float2(80f, 0f));
+			}
+
+			Assert.That(plumb.TiltHigh, Is.True);
+			Assert.That(plumb.TiltIndex, Is.EqualTo(1));
+			Assert.That(plumb.PendingTiltStates.Length, Is.EqualTo(1));
+			Assert.That(plumb.PendingTiltStates[0], Is.EqualTo(1));
+
+			var status = plumb.ReadAndResetTiltStatus();
+			Assert.That(math.abs(status.x), Is.GreaterThan(0f));
+			Assert.That(status.z, Is.GreaterThan(100f));
+
+			var resetStatus = plumb.ReadAndResetTiltStatus();
+			Assert.That(resetStatus.x, Is.EqualTo(0f));
+			Assert.That(resetStatus.y, Is.EqualTo(0f));
+			Assert.That(resetStatus.z, Is.EqualTo(0f));
+
+			plumb.ClearPendingTiltEvents();
+			Assert.That(plumb.PendingTiltStates.Length, Is.EqualTo(0));
+		}
+
 		private static (float Displacement, float Velocity, float Acceleration) AnalyticStepResponse(float mass, float frequencyHz, float dampingRatio, float force, float time)
 		{
 			var omega0 = 2f * math.PI * frequencyHz;

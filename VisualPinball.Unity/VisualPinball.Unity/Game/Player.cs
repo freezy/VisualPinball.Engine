@@ -160,6 +160,12 @@ namespace VisualPinball.Unity
 			GamelogicEngine?.Switch(switchId, isClosed);
 		}
 
+		internal void DispatchInputAction(string actionName, bool isPressed)
+		{
+			_switchPlayer.DispatchInputAction(actionName, isPressed);
+			_wirePlayer.DispatchInputAction(actionName, isPressed);
+		}
+
 		internal bool DispatchCoilSimulationThread(string coilId, bool isEnabled)
 		{
 			return _coilPlayer.HandleCoilEventSimulationThread(coilId, isEnabled);
@@ -352,6 +358,7 @@ namespace VisualPinball.Unity
 		public void ScheduleAction(uint timeMs, Action action) => PhysicsEngine.ScheduleAction(timeMs, action);
 		public void Nudge(float angleDeg, float force) => PhysicsEngine.Nudge(angleDeg, force);
 		public void NudgeSensorStatus(out float x, out float y) => PhysicsEngine.NudgeSensorStatus(out x, out y);
+		public void NudgeTiltStatus(out float plumbX, out float plumbY, out float tiltPercent) => PhysicsEngine.NudgeTiltStatus(out plumbX, out plumbY, out tiltPercent);
 		public void NudgeGetCalibration(out float x, out float y)
 		{
 			x = 0f;

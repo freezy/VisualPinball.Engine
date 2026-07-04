@@ -54,6 +54,7 @@ namespace VisualPinball.Unity.Simulation
 		private readonly InputEventBuffer _inputBuffer;
 		private readonly SimulationState _sharedState;
 		private readonly System.Random _nudgeRandom = new System.Random();
+		private readonly List<bool> _pendingPlumbTiltEvents = new List<bool>(8);
 
 		private Thread _thread;
 		private volatile bool _running = false;
@@ -809,6 +810,25 @@ namespace VisualPinball.Unity.Simulation
 				// This works now because we changed Allocator.Temp to Allocator.TempJob
 				// in the physics hot path, allowing custom threads to execute physics.
 				_physicsEngine.ExecuteTick((ulong)_simulationTimeUsec);
+				ProcessPlumbTiltEvents();
+			}
+		}
+
+		private void ProcessPlumbTiltEvents()
+		{
+			_pendingPlumbTiltEvents.Clear();
+			_physicsEngine.DrainPlumbTiltEvents(_pendingPlumbTiltEvents);
+			if (_pendingPlumbTiltEvents.Count == 0) {
+				return;
+			}
+
+			var tiltActionIndex = (int)NativeInputApi.InputAction.Tilt;
+			for (var i = 0; i < _pendingPlumbTiltEvents.Count; i++) {
+				var isPressed = _pendingPlumbTiltEvents[i];
+				_actionStates[tiltActionIndex] = isPressed;
+				if (_gamelogicEngine != null && _gamelogicStarted) {
+					SendMappedSwitch(tiltActionIndex, isPressed);
+				}
 			}
 		}
 

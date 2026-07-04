@@ -178,6 +178,13 @@ namespace VisualPinball.Unity.Simulation
 			public int Float2AnimationSourceCount;
 			public byte Float2AnimationsTruncated;
 
+			public float2 NudgeCabinetAcceleration;
+			public float2 NudgeCabinetOffset;
+			public float3 PlumbPosition;
+			public float PlumbTiltPercent;
+			public int PlumbTiltIndex;
+			public byte PlumbTiltHigh;
+
 			public void Allocate()
 			{
 				CoilStates = new NativeArray<CoilState>(MaxCoils, Allocator.Persistent);
@@ -213,6 +220,12 @@ namespace VisualPinball.Unity.Simulation
 				Float2AnimationCount = 0;
 				Float2AnimationSourceCount = 0;
 				Float2AnimationsTruncated = 0;
+				NudgeCabinetAcceleration = float2.zero;
+				NudgeCabinetOffset = float2.zero;
+				PlumbPosition = float3.zero;
+				PlumbTiltPercent = 0f;
+				PlumbTiltIndex = 0;
+				PlumbTiltHigh = 0;
 			}
 
 			public void Dispose()
