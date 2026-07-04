@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Unity.Simulation;
@@ -24,8 +25,23 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(SimulationThreadComponent)), CanEditMultipleObjects]
 	public sealed class SimulationThreadComponentInspector : UnityEditor.Editor
 	{
+		private const int GraphSampleCount = 120;
+		private const int GraphMaxAxes = 6;
+
+		private static readonly Color[] GraphColors = {
+			new Color(0.95f, 0.32f, 0.28f),
+			new Color(0.24f, 0.62f, 1f),
+			new Color(0.34f, 0.82f, 0.42f),
+			new Color(1f, 0.72f, 0.2f),
+			new Color(0.74f, 0.46f, 1f),
+			new Color(0.25f, 0.86f, 0.8f)
+		};
+
+		private readonly Dictionary<string, AxisGraphState> _axisGraphs = new Dictionary<string, AxisGraphState>();
 		private string _statusMessage;
 		private MessageType _statusType = MessageType.Info;
+		private GUIStyle _graphLegendStyle;
+		private double _lastGraphSampleTime;
 
 		public override void OnInspectorGUI()
 		{
@@ -41,6 +57,11 @@ namespace VisualPinball.Unity.Editor
 				}
 				DrawNudgeCalibration(component);
 			}
+		}
+
+		public override bool RequiresConstantRepaint()
+		{
+			return Application.isPlaying && targets.Length == 1;
 		}
 
 		private void DrawNudgeCalibration(SimulationThreadComponent component)
@@ -61,6 +82,7 @@ namespace VisualPinball.Unity.Editor
 				EditorGUILayout.HelpBox("No native input devices are visible. Check that native input is enabled and that the device was connected before polling started.", MessageType.Warning);
 			} else {
 				DrawDevices(devices);
+				DrawInputGraph(devices);
 			}
 
 			EditorGUILayout.Space();
@@ -105,7 +127,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void DrawDevices(System.Collections.Generic.IReadOnlyList<NativeInputDeviceInfo> devices)
+		private void DrawDevices(IReadOnlyList<NativeInputDeviceInfo> devices)
 		{
 			EditorGUILayout.Space();
 			EditorGUILayout.LabelField("Native Devices", EditorStyles.boldLabel);
@@ -127,23 +149,202 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		private void DrawInputGraph(IReadOnlyList<NativeInputDeviceInfo> devices)
+		{
+			if (!TryFindGraphDevice(devices, out var device)) {
+				return;
+			}
+
+			SampleGraphDevice(device);
+
+			EditorGUILayout.Space();
+			EditorGUILayout.LabelField($"Input Graph: {DeviceName(device)}", EditorStyles.boldLabel);
+
+			var rect = GUILayoutUtility.GetRect(1f, 72f, GUILayout.ExpandWidth(true));
+			DrawGraphFrame(rect);
+
+			var axisCount = System.Math.Min(device.Axes.Count, GraphMaxAxes);
+			for (var i = 0; i < axisCount; i++) {
+				var axis = device.Axes[i];
+				if (_axisGraphs.TryGetValue(GraphKey(device, axis), out var graph)) {
+					DrawGraphLine(rect, graph, GraphColors[i % GraphColors.Length]);
+				}
+			}
+
+			DrawGraphLegend(device, axisCount);
+		}
+
+		private void SampleGraphDevice(NativeInputDeviceInfo device)
+		{
+			var now = EditorApplication.timeSinceStartup;
+			if (now - _lastGraphSampleTime < 1.0 / 60.0) {
+				return;
+			}
+			_lastGraphSampleTime = now;
+
+			var axisCount = System.Math.Min(device.Axes.Count, GraphMaxAxes);
+			for (var i = 0; i < axisCount; i++) {
+				var axis = device.Axes[i];
+				var key = GraphKey(device, axis);
+				if (!_axisGraphs.TryGetValue(key, out var graph)) {
+					graph = new AxisGraphState();
+					_axisGraphs[key] = graph;
+				}
+				graph.Add(axis.RawValue);
+			}
+		}
+
+		private void DrawGraphFrame(Rect rect)
+		{
+			EditorGUI.DrawRect(rect, new Color(0.1f, 0.1f, 0.1f));
+
+			Handles.BeginGUI();
+			var previousColor = Handles.color;
+			Handles.color = new Color(1f, 1f, 1f, 0.18f);
+			Handles.DrawLine(new Vector3(rect.xMin, rect.center.y), new Vector3(rect.xMax, rect.center.y));
+			Handles.color = new Color(1f, 1f, 1f, 0.08f);
+			Handles.DrawLine(new Vector3(rect.xMin, rect.yMin + rect.height * 0.25f), new Vector3(rect.xMax, rect.yMin + rect.height * 0.25f));
+			Handles.DrawLine(new Vector3(rect.xMin, rect.yMin + rect.height * 0.75f), new Vector3(rect.xMax, rect.yMin + rect.height * 0.75f));
+			Handles.color = previousColor;
+			Handles.EndGUI();
+		}
+
+		private static void DrawGraphLine(Rect rect, AxisGraphState graph, Color color)
+		{
+			if (graph.Count < 2) {
+				return;
+			}
+
+			Handles.BeginGUI();
+			var previousColor = Handles.color;
+			Handles.color = color;
+			var previous = GraphPoint(rect, graph, 0);
+			for (var i = 1; i < graph.Count; i++) {
+				var next = GraphPoint(rect, graph, i);
+				Handles.DrawLine(previous, next);
+				previous = next;
+			}
+			Handles.color = previousColor;
+			Handles.EndGUI();
+		}
+
+		private static Vector3 GraphPoint(Rect rect, AxisGraphState graph, int index)
+		{
+			var x = graph.Count <= 1 ? rect.xMin : Mathf.Lerp(rect.xMin, rect.xMax, index / (float)(graph.Count - 1));
+			var value = Mathf.Clamp(graph.Get(index), -1f, 1f);
+			var y = rect.center.y - value * rect.height * 0.45f;
+			return new Vector3(x, y);
+		}
+
+		private void DrawGraphLegend(NativeInputDeviceInfo device, int axisCount)
+		{
+			if (_graphLegendStyle == null) {
+				_graphLegendStyle = new GUIStyle(EditorStyles.miniLabel) {
+					richText = true,
+					wordWrap = false
+				};
+			}
+
+			EditorGUILayout.BeginHorizontal();
+			for (var i = 0; i < axisCount; i++) {
+				var axis = device.Axes[i];
+				var color = GraphColors[i % GraphColors.Length];
+				var colorHex = ColorUtility.ToHtmlStringRGB(color);
+				GUILayout.Label($"<color=#{colorHex}>{AxisName(axis)} {axis.RawValue:+0.00;-0.00;0.00}</color>", _graphLegendStyle);
+			}
+			EditorGUILayout.EndHorizontal();
+		}
+
+		private static bool TryFindGraphDevice(IReadOnlyList<NativeInputDeviceInfo> devices, out NativeInputDeviceInfo device)
+		{
+			for (var i = 0; i < devices.Count; i++) {
+				if (IsGraphableDevice(devices[i]) && IsKl25zDevice(devices[i])) {
+					device = devices[i];
+					return true;
+				}
+			}
+			for (var i = 0; i < devices.Count; i++) {
+				if (IsGraphableDevice(devices[i])) {
+					device = devices[i];
+					return true;
+				}
+			}
+
+			device = default;
+			return false;
+		}
+
+		private static bool IsGraphableDevice(NativeInputDeviceInfo device)
+		{
+			return device.IsConnected && device.Axes != null && device.Axes.Count > 0;
+		}
+
+		private static bool IsKl25zDevice(NativeInputDeviceInfo device)
+		{
+			return ContainsIgnoreCase(device.Name, "KL25Z")
+			       || ContainsIgnoreCase(device.Id, "KL25Z")
+			       || ContainsIgnoreCase(device.Name, "Pinscape")
+			       || ContainsIgnoreCase(device.Id, "Pinscape");
+		}
+
+		private static bool ContainsIgnoreCase(string value, string match)
+		{
+			return !string.IsNullOrEmpty(value) && value.IndexOf(match, StringComparison.OrdinalIgnoreCase) >= 0;
+		}
+
+		private static string GraphKey(NativeInputDeviceInfo device, NativeInputAxisInfo axis)
+		{
+			return $"{device.Id}:{axis.AxisId}";
+		}
+
 		private static string DeviceLabel(NativeInputDeviceInfo device)
 		{
-			var name = string.IsNullOrEmpty(device.Name) ? device.Id : device.Name;
 			var state = device.IsConnected ? "connected" : "disconnected";
-			return $"{name} ({state})";
+			return $"{DeviceName(device)} ({state})";
+		}
+
+		private static string DeviceName(NativeInputDeviceInfo device)
+		{
+			return string.IsNullOrEmpty(device.Name) ? device.Id : device.Name;
 		}
 
 		private static string AxisLabel(NativeInputAxisInfo axis)
 		{
-			var name = string.IsNullOrEmpty(axis.Name) ? $"Axis {axis.AxisId}" : axis.Name;
-			return $"{name}: {axis.RawValue:+0.000;-0.000;0.000} [{axis.Kind}]";
+			return $"{AxisName(axis)}: {axis.RawValue:+0.000;-0.000;0.000} [{axis.Kind}]";
+		}
+
+		private static string AxisName(NativeInputAxisInfo axis)
+		{
+			return string.IsNullOrEmpty(axis.Name) ? $"Axis {axis.AxisId}" : axis.Name;
 		}
 
 		private void SetStatus(string message, MessageType type)
 		{
 			_statusMessage = message;
 			_statusType = type;
+		}
+
+		private sealed class AxisGraphState
+		{
+			private readonly float[] _samples = new float[GraphSampleCount];
+			private int _next;
+
+			public int Count { get; private set; }
+
+			public void Add(float value)
+			{
+				_samples[_next] = value;
+				_next = (_next + 1) % _samples.Length;
+				if (Count < _samples.Length) {
+					Count++;
+				}
+			}
+
+			public float Get(int index)
+			{
+				var start = (_next - Count + _samples.Length) % _samples.Length;
+				return _samples[(start + index) % _samples.Length];
+			}
 		}
 	}
 }
