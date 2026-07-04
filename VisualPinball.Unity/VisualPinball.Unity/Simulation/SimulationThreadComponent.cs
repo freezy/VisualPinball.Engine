@@ -530,7 +530,7 @@ namespace VisualPinball.Unity.Simulation
 					}
 					ApplyNudgeSensorSettings();
 					var deviceName = string.IsNullOrEmpty(device.Name) ? device.Id : device.Name;
-					message = $"Mapped {deviceName} axes {xAxis.AxisId}/{yAxis.AxisId}.";
+					message = $"Mapped {deviceName} axes {AxisName(xAxis)}/{AxisName(yAxis)}.";
 					return true;
 				}
 			}
@@ -600,25 +600,26 @@ namespace VisualPinball.Unity.Simulation
 		{
 			xAxis = default;
 			yAxis = default;
-			var xSet = false;
-			var ySet = false;
-			for (var i = 0; i < device.Axes.Count; i++) {
-				var axis = device.Axes[i];
-				if (axis.Kind != NativeInputApi.AxisKind.Acceleration) {
-					continue;
-				}
-				if (!xSet) {
-					xAxis = axis;
-					xSet = true;
-				} else {
-					yAxis = axis;
-					ySet = true;
-					return true;
-				}
+			if (TryFindAxis(device, "X", 0x30, NativeInputApi.AxisKind.Acceleration, out xAxis) &&
+			    TryFindAxis(device, "Y", 0x31, NativeInputApi.AxisKind.Acceleration, out yAxis) &&
+			    xAxis.AxisId != yAxis.AxisId) {
+				return true;
+			}
+
+			var xSet = TryFindAxis(device, "X", 0x30, null, out xAxis);
+			var ySet = TryFindAxis(device, "Y", 0x31, null, out yAxis);
+			if (xSet && ySet && xAxis.AxisId != yAxis.AxisId) {
+				return true;
 			}
 
 			for (var i = 0; i < device.Axes.Count; i++) {
 				var axis = device.Axes[i];
+				if (axis.Kind != NativeInputApi.AxisKind.Acceleration || IsNamedAxis(axis, "Z", 0x32)) {
+					continue;
+				}
+				if ((xSet && axis.AxisId == xAxis.AxisId) || (ySet && axis.AxisId == yAxis.AxisId)) {
+					continue;
+				}
 				if (!xSet) {
 					xAxis = axis;
 					xSet = true;
@@ -629,7 +630,49 @@ namespace VisualPinball.Unity.Simulation
 				}
 			}
 
-			return xSet && ySet;
+			return xSet && ySet && xAxis.AxisId != yAxis.AxisId;
+		}
+
+		private static bool TryFindAxis(NativeInputDeviceInfo device, string axisName, int usage,
+			NativeInputApi.AxisKind? kind, out NativeInputAxisInfo axis)
+		{
+			if (device.Axes != null) {
+				for (var i = 0; i < device.Axes.Count; i++) {
+					var candidate = device.Axes[i];
+					if (kind.HasValue && candidate.Kind != kind.Value) {
+						continue;
+					}
+					if (IsNamedAxis(candidate, axisName, usage)) {
+						axis = candidate;
+						return true;
+					}
+				}
+			}
+			axis = default;
+			return false;
+		}
+
+		private static bool IsNamedAxis(NativeInputAxisInfo axis, string axisName, int usage)
+		{
+			if (axis.Usage == usage) {
+				return true;
+			}
+
+			var name = axis.Name;
+			if (string.IsNullOrEmpty(name)) {
+				return false;
+			}
+			if (string.Equals(name, axisName, StringComparison.OrdinalIgnoreCase)) {
+				return true;
+			}
+			return name.EndsWith(" " + axisName, StringComparison.OrdinalIgnoreCase)
+			       || name.EndsWith("-" + axisName, StringComparison.OrdinalIgnoreCase)
+			       || name.EndsWith("_" + axisName, StringComparison.OrdinalIgnoreCase);
+		}
+
+		private static string AxisName(NativeInputAxisInfo axis)
+		{
+			return string.IsNullOrEmpty(axis.Name) ? $"Axis {axis.AxisId}" : axis.Name;
 		}
 
 		private void UpdateSimulationSpeed(in SimulationState.Snapshot state)
