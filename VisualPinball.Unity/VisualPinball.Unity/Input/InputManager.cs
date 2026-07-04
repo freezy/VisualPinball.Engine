@@ -189,6 +189,10 @@ namespace VisualPinball.Unity
 			map.AddAction(InputConstants.ActionCoinDoorPlus, InputActionType.Button);
 			map.AddAction(InputConstants.ActionCoinDoorSelect, InputActionType.Button);
 			map.AddAction(InputConstants.ActionSlamTilt, InputActionType.Button, "<Keyboard>/home");
+			map.AddAction(InputConstants.ActionLeftNudge, InputActionType.Button, "<Keyboard>/z");
+			map.AddAction(InputConstants.ActionRightNudge, InputActionType.Button, "<Keyboard>/slash");
+			map.AddAction(InputConstants.ActionCenterNudge, InputActionType.Button, "<Keyboard>/space");
+			map.AddAction(InputConstants.ActionTilt, InputActionType.Button, "<Keyboard>/t");
 			map.AddAction(InputConstants.ActionSelfTest, InputActionType.Button);
 			map.AddAction(InputConstants.ActionLeftAdvance, InputActionType.Button);
 			map.AddAction(InputConstants.ActionRightAdvance, InputActionType.Button);

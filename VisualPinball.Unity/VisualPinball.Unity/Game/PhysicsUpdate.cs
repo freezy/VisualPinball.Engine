@@ -95,10 +95,13 @@ namespace VisualPinball.Unity
 				// update velocities - always on integral physics frame boundary (spinner, gate, flipper, plunger, ball)
 				#region Update Velocities
 
+				env.Nudge.StepOneMillisecond();
+				var cabinetAcceleration = env.Nudge.CabinetAcceleration;
+
 				// balls
 				using (var enumerator = state.Balls.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
-						BallVelocityPhysics.UpdateVelocities(ref enumerator.Current.Value, env.Gravity);
+						BallVelocityPhysics.UpdateVelocities(ref enumerator.Current.Value, env.Gravity, cabinetAcceleration);
 					}
 				}
 				// flippers

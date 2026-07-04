@@ -53,6 +53,7 @@ namespace VisualPinball.Unity.Simulation
 		private readonly Action<string, bool> _simulationCoilDispatcher;
 		private readonly InputEventBuffer _inputBuffer;
 		private readonly SimulationState _sharedState;
+		private readonly System.Random _nudgeRandom = new System.Random();
 
 		private Thread _thread;
 		private volatile bool _running = false;
@@ -480,9 +481,14 @@ namespace VisualPinball.Unity.Simulation
 
 				InputLatencyTracker.RecordInputPolled((NativeInputApi.InputAction)actionIndex, isPressed, evt.TimestampUsec);
 
+				var nudgeIndexBeforeSwitchDispatch = _physicsEngine.KeyboardNudgeIndex;
+
 				// Only forward to GLE once it's ready (or at least has started)
 				if (_gamelogicEngine != null && _gamelogicStarted) {
 					SendMappedSwitch(actionIndex, isPressed);
+				}
+				if (isPressed && IsNudgeAction(actionIndex) && nudgeIndexBeforeSwitchDispatch == _physicsEngine.KeyboardNudgeIndex) {
+					ApplyDefaultKeyboardNudge(actionIndex);
 				}
 				_inputEventsProcessed++;
 			}
@@ -573,6 +579,27 @@ namespace VisualPinball.Unity.Simulation
 				|| actionIndex == (int)NativeInputApi.InputAction.RightStagedFlipper
 				|| actionIndex == (int)NativeInputApi.InputAction.UpperLeftFlipper
 				|| actionIndex == (int)NativeInputApi.InputAction.UpperRightFlipper;
+		}
+
+		private static bool IsNudgeAction(int actionIndex)
+		{
+			return actionIndex == (int)NativeInputApi.InputAction.LeftNudge
+				|| actionIndex == (int)NativeInputApi.InputAction.RightNudge
+				|| actionIndex == (int)NativeInputApi.InputAction.CenterNudge;
+		}
+
+		private void ApplyDefaultKeyboardNudge(int actionIndex)
+		{
+			const float baseForce = 2f;
+			var angle = ((float)_nudgeRandom.NextDouble() - 0.5f) * 15f * baseForce;
+			var force = (0.6f + (float)_nudgeRandom.NextDouble() * 0.8f) * baseForce;
+			if (actionIndex == (int)NativeInputApi.InputAction.LeftNudge) {
+				_physicsEngine.Nudge(75f + angle, force);
+			} else if (actionIndex == (int)NativeInputApi.InputAction.RightNudge) {
+				_physicsEngine.Nudge(285f + angle, force);
+			} else if (actionIndex == (int)NativeInputApi.InputAction.CenterNudge) {
+				_physicsEngine.Nudge(angle, force);
+			}
 		}
 
 		private void SyncAllMappedSwitches()
@@ -747,6 +774,22 @@ namespace VisualPinball.Unity.Simulation
 			}
 			if (inputActionHint == InputConstants.ActionSlamTilt) {
 				action = NativeInputApi.InputAction.SlamTilt;
+				return true;
+			}
+			if (inputActionHint == InputConstants.ActionLeftNudge) {
+				action = NativeInputApi.InputAction.LeftNudge;
+				return true;
+			}
+			if (inputActionHint == InputConstants.ActionRightNudge) {
+				action = NativeInputApi.InputAction.RightNudge;
+				return true;
+			}
+			if (inputActionHint == InputConstants.ActionCenterNudge) {
+				action = NativeInputApi.InputAction.CenterNudge;
+				return true;
+			}
+			if (inputActionHint == InputConstants.ActionTilt) {
+				action = NativeInputApi.InputAction.Tilt;
 				return true;
 			}
 

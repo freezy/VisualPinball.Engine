@@ -46,6 +46,7 @@ namespace VisualPinball.Unity
 
 		public float GlobalDifficulty = 0.2f;
 		public int OverridePhysics;
+		public float NudgeTime = 5f;
 
 		#endregion
 
@@ -111,6 +112,7 @@ namespace VisualPinball.Unity
 		{
 			GlobalDifficulty = data.GlobalDifficulty;
 			OverridePhysics = data.OverridePhysics;
+			NudgeTime = data.NudgeTime;
 			return new List<MonoBehaviour> { this };
 		}
 
@@ -124,6 +126,7 @@ namespace VisualPinball.Unity
 			data.TableHeight = 0;
 			data.GlobalDifficulty = GlobalDifficulty;
 			data.OverridePhysics = OverridePhysics;
+			data.NudgeTime = NudgeTime;
 
 			return data;
 		}

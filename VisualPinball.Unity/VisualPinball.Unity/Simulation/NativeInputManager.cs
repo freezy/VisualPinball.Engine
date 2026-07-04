@@ -299,8 +299,8 @@ namespace VisualPinball.Unity.Simulation
 			Add(NativeInputApi.InputAction.Service7, NativeInputApi.KeyCode.PageDown);
 
 			// Nudging
-			Add(NativeInputApi.InputAction.LeftNudge, NativeInputApi.KeyCode.Y);
-			Add(NativeInputApi.InputAction.RightNudge, NativeInputApi.KeyCode.Minus);
+			Add(NativeInputApi.InputAction.LeftNudge, NativeInputApi.KeyCode.Z);
+			Add(NativeInputApi.InputAction.RightNudge, NativeInputApi.KeyCode.Slash);
 			Add(NativeInputApi.InputAction.CenterNudge, NativeInputApi.KeyCode.Space);
 			Add(NativeInputApi.InputAction.Tilt, NativeInputApi.KeyCode.T);
 

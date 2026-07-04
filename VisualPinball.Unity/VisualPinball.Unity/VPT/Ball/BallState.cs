@@ -145,7 +145,7 @@ namespace VisualPinball.Unity
 			*/
 		}
 
-		public void UpdateVelocities(float3 gravity) => BallVelocityPhysics.UpdateVelocities(ref this, gravity);
+		public void UpdateVelocities(float3 gravity) => BallVelocityPhysics.UpdateVelocities(ref this, gravity, float2.zero);
 
 		public override string ToString()
 		{
