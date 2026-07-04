@@ -396,6 +396,33 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		public NudgeTelemetry GetNudgeTelemetry()
+		{
+			if (_ctx == null || !_ctx.IsInitialized) {
+				return default;
+			}
+
+			lock (_ctx.PhysicsLock) {
+				var nudge = _ctx.PhysicsEnv.Nudge;
+				var plumb = _ctx.PhysicsEnv.Plumb;
+				var threshold = plumb.TiltThresholdRad;
+				var tiltPercent = 0f;
+				if (threshold > 0f && plumb.PoleLength > 0f) {
+					var psi = math.atan2(math.sqrt(plumb.Position.x * plumb.Position.x + plumb.Position.y * plumb.Position.y), -plumb.Position.z);
+					tiltPercent = 100f * psi / threshold;
+				}
+				return new NudgeTelemetry(
+					nudge.CabinetAcceleration,
+					nudge.CabinetOffset,
+					nudge.ActiveSourceIndex,
+					plumb.Position,
+					tiltPercent,
+					plumb.TiltIndex,
+					plumb.TiltHigh
+				);
+			}
+		}
+
 		internal void DrainPlumbTiltEvents(List<bool> destination)
 		{
 			lock (_ctx.PhysicsLock) {
