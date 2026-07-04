@@ -88,6 +88,10 @@ namespace VisualPinball.Engine.Common
 
 		public const float GravityConst = 1.81751f;                            // GRAVITYCONST
 
+		public const float MToVpu = 50f / (0.0254f * 1.0625f);                 // MTOVPU
+		public const float VpuToM = 1f / MToVpu;                               // VPUTOM
+		public const float Ms2ToVpuVpt2 = MToVpu * 1e-4f;                      // MS2TOVPUVPT2
+
 		/// <summary>
 		/// trigger/kicker boundary crossing hysterisis
 		/// </summary>
