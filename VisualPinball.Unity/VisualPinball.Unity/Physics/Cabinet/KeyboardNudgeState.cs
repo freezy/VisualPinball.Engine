@@ -27,6 +27,7 @@ namespace VisualPinball.Unity
 
 		public KeyboardNudgeMode Mode;
 		public float Strength;
+		public float CabinetDamping;
 		public float2 CabinetAcceleration;
 		public float2 CabinetOffset;
 
@@ -72,10 +73,14 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public KeyboardNudgeState(KeyboardNudgeMode mode, float strength, float nudgeTime)
+		public KeyboardNudgeState(KeyboardNudgeMode mode, float strength, float nudgeTime,
+			float cabinetDamping = CabinetPhysicsState.DefaultKeyboardDampingRatio)
 		{
 			Mode = mode;
 			Strength = strength;
+			CabinetDamping = math.clamp(cabinetDamping,
+				CabinetPhysicsState.MinKeyboardDampingRatio,
+				CabinetPhysicsState.MaxKeyboardDampingRatio);
 			CabinetAcceleration = float2.zero;
 			CabinetOffset = float2.zero;
 			_pushImpulse = float2.zero;
@@ -87,7 +92,7 @@ namespace VisualPinball.Unity
 			_boxSpring = 0f;
 			_boxDamping = 0f;
 			_boxDeactivationDelay = 0;
-			_cabinet = CabinetPhysicsState.Default;
+			_cabinet = CabinetPhysicsState.Keyboard(CabinetDamping);
 			_cabImpulses = default;
 			_cabDeactivationDelay = 0;
 
@@ -100,9 +105,9 @@ namespace VisualPinball.Unity
 			_ => _cabDeactivationDelay > 0,
 		};
 
-		public void Configure(KeyboardNudgeMode mode, float strength, float nudgeTime)
+		public void Configure(KeyboardNudgeMode mode, float strength, float nudgeTime, float cabinetDamping)
 		{
-			this = new KeyboardNudgeState(mode, strength, nudgeTime);
+			this = new KeyboardNudgeState(mode, strength, nudgeTime, cabinetDamping);
 		}
 
 		public void SetStrength(float strength)

@@ -62,9 +62,10 @@ namespace VisualPinball.Unity
 		public float2 MaxCabinetAcceleration;
 		public int KeyboardNudgeIndex;
 
-		public NudgeState(KeyboardNudgeMode keyboardMode, float keyboardStrength, float nudgeTime)
+		public NudgeState(KeyboardNudgeMode keyboardMode, float keyboardStrength, float nudgeTime,
+			float keyboardCabinetDamping = CabinetPhysicsState.DefaultKeyboardDampingRatio)
 		{
-			Keyboard = new KeyboardNudgeState(keyboardMode, keyboardStrength, nudgeTime);
+			Keyboard = new KeyboardNudgeState(keyboardMode, keyboardStrength, nudgeTime, keyboardCabinetDamping);
 			CabinetAcceleration = float2.zero;
 			CabinetOffset = float2.zero;
 			MaxCabinetAcceleration = float2.zero;

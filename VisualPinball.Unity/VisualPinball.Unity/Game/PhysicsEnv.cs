@@ -35,14 +35,15 @@ namespace VisualPinball.Unity
 
 		public PhysicsEnv(ulong startTimeUsec, PlayfieldComponent playfield, float gravityStrength,
 			KeyboardNudgeMode keyboardNudgeMode = KeyboardNudgeMode.CabModel, float keyboardNudgeStrength = 1f,
-			float nudgeTime = 5f, bool simulatedPlumb = true, float plumbDamping = 1f, float plumbThresholdAngle = 2f) : this()
+			float nudgeTime = 5f, bool simulatedPlumb = true, float plumbDamping = 1f, float plumbThresholdAngle = 2f,
+			float keyboardCabinetDamping = CabinetPhysicsState.DefaultKeyboardDampingRatio) : this()
 		{
 			StartTimeUsec = startTimeUsec;
 			CurPhysicsFrameTime = StartTimeUsec;
 			NextPhysicsFrameTime = StartTimeUsec + PhysicsConstants.PhysicsStepTime;
 			Random = new Random((uint)UnityEngine.Random.Range(1, 100000));
 			Gravity = playfield.PlayfieldGravity(gravityStrength);
-			Nudge = new NudgeState(keyboardNudgeMode, keyboardNudgeStrength, nudgeTime);
+			Nudge = new NudgeState(keyboardNudgeMode, keyboardNudgeStrength, nudgeTime, keyboardCabinetDamping);
 			Plumb = new PlumbState(simulatedPlumb, plumbDamping, plumbThresholdAngle);
 		}
 	}
