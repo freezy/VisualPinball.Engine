@@ -197,6 +197,7 @@ namespace VisualPinball.Unity.Simulation
 					if (_inputManager.Initialize())
 					{
 						_inputManager.SetSimulationThread(_simulationThread);
+						_physicsEngine.AttachNativeInputManager(_inputManager);
 						_inputManager.StartPolling(InputPollingIntervalUs);
 					}
 					else
@@ -226,6 +227,7 @@ namespace VisualPinball.Unity.Simulation
 		{
 			if (!_started) return;
 
+			_physicsEngine?.DetachNativeInputManager(_inputManager);
 			_inputManager?.StopPolling();
 			_inputManager?.Dispose();
 			_inputManager = null;

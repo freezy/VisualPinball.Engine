@@ -170,6 +170,7 @@ namespace VisualPinball.Unity
 		// Lifecycle-local references (used during Awake/Start, then passed
 		// to _threading constructor).
 		[NonSerialized] private Player _player;
+		[NonSerialized] private NudgeSystem _nudgeSystem;
 		[NonSerialized] private ICollidableComponent[] _colliderComponents;
 		[NonSerialized] private ICollidableComponent[] _kinematicColliderComponents;
 		[NonSerialized] private float4x4 _worldToPlayfield;
@@ -196,6 +197,7 @@ namespace VisualPinball.Unity
 		/// Used by the simulation thread to wait for physics to be ready.
 		/// </summary>
 		public bool IsInitialized => _ctx != null && _ctx.IsInitialized;
+		public NudgeSystem NudgeSystem => _nudgeSystem;
 
 		#region Ref-Return Properties
 
@@ -329,6 +331,46 @@ namespace VisualPinball.Unity
 				plumb.Configure(SimulatedPlumb, PlumbDamping, PlumbThresholdAngle);
 				_ctx.PhysicsEnv.Plumb = plumb;
 			}
+		}
+
+		public void ConfigureNudgeSensors(IReadOnlyList<NudgeSensorConfig> sensors)
+		{
+			_nudgeSystem?.ConfigureSensors(sensors);
+		}
+
+		internal void ConfigureNudgeSensorCount(int count)
+		{
+			lock (_ctx.PhysicsLock) {
+				var nudge = _ctx.PhysicsEnv.Nudge;
+				nudge.ConfigureSensors(count);
+				_ctx.PhysicsEnv.Nudge = nudge;
+			}
+		}
+
+		internal void ConfigureNudgeSensor(int index, NudgeSensorRuntimeConfig config)
+		{
+			lock (_ctx.PhysicsLock) {
+				var nudge = _ctx.PhysicsEnv.Nudge;
+				nudge.ConfigureSensor(index, config);
+				_ctx.PhysicsEnv.Nudge = nudge;
+			}
+		}
+
+		internal void EnqueueNudgeSensorSample(int sensorIndex, NudgeSensorChannel channel, float value, ulong timestampUsec)
+		{
+			lock (_ctx.PendingNudgeSensorSamplesLock) {
+				_ctx.PendingNudgeSensorSamples.Enqueue(new NudgeSensorSampleCommand(sensorIndex, channel, value, timestampUsec));
+			}
+		}
+
+		internal void AttachNativeInputManager(NativeInputManager inputManager)
+		{
+			_nudgeSystem?.AttachNativeInputManager(inputManager);
+		}
+
+		internal void DetachNativeInputManager(NativeInputManager inputManager)
+		{
+			_nudgeSystem?.DetachNativeInputManager();
 		}
 
 		public void NudgeSensorStatus(out float x, out float y)
@@ -698,6 +740,7 @@ namespace VisualPinball.Unity
 		{
 			_mainThreadManagedThreadId = Thread.CurrentThread.ManagedThreadId;
 			_player = GetComponentInParent<Player>();
+			_nudgeSystem = new NudgeSystem(this);
 			_ctx.InsideOfs = new InsideOfs(Allocator.Persistent);
 			var table = GetComponentInParent<TableComponent>();
 			_ctx.PhysicsEnv = new PhysicsEnv(NowUsec, GetComponentInChildren<PlayfieldComponent>(), GravityStrength,
@@ -876,6 +919,8 @@ namespace VisualPinball.Unity
 
 			_ctx.IsInitialized = false;
 			_ctx.UseExternalTiming = false;
+			_nudgeSystem?.Dispose();
+			_nudgeSystem = null;
 
 			lock (_ctx.PhysicsLock) {
 				_ctx.Dispose();

@@ -58,6 +58,7 @@ namespace VisualPinball.Unity
 		private readonly List<Action> _dueSingleThreadScheduledActions = new();
 		private readonly List<PhysicsEngine.InputAction> _pendingInputActions = new();
 		private readonly List<KeyboardNudgeCommand> _pendingKeyboardNudges = new();
+		private readonly List<NudgeSensorSampleCommand> _pendingNudgeSensorSamples = new();
 		private readonly List<KeyValuePair<int, float4x4>> _pendingKinematicUpdates = new();
 		private readonly List<int> _pendingKinematicStopUpdates = new();
 
@@ -197,6 +198,7 @@ namespace VisualPinball.Unity
 			// process input
 			ProcessInputActions(ref state);
 			ProcessPendingKeyboardNudges();
+			ProcessPendingNudgeSensorSamples();
 
 			// run physics loop (Burst-compiled, thread-safe)
 			PhysicsUpdate.Execute(
@@ -248,6 +250,23 @@ namespace VisualPinball.Unity
 			foreach (var nudge in _pendingKeyboardNudges) {
 				var nudgeState = _ctx.PhysicsEnv.Nudge;
 				nudgeState.ApplyKeyboardImpulse(nudge.AngleDeg, nudge.Force);
+				_ctx.PhysicsEnv.Nudge = nudgeState;
+			}
+		}
+
+		private void ProcessPendingNudgeSensorSamples()
+		{
+			_pendingNudgeSensorSamples.Clear();
+
+			lock (_ctx.PendingNudgeSensorSamplesLock) {
+				while (_ctx.PendingNudgeSensorSamples.Count > 0) {
+					_pendingNudgeSensorSamples.Add(_ctx.PendingNudgeSensorSamples.Dequeue());
+				}
+			}
+
+			foreach (var sample in _pendingNudgeSensorSamples) {
+				var nudgeState = _ctx.PhysicsEnv.Nudge;
+				nudgeState.ApplySensorSample(sample.SensorIndex, sample.Channel, sample.Value, sample.TimestampUsec);
 				_ctx.PhysicsEnv.Nudge = nudgeState;
 			}
 		}
@@ -810,6 +829,7 @@ namespace VisualPinball.Unity
 			// process input
 			ProcessInputActions(ref state);
 			ProcessPendingKeyboardNudges();
+			ProcessPendingNudgeSensorSamples();
 
 			// run physics loop
 			PhysicsUpdate.Execute(

@@ -201,6 +201,13 @@ namespace VisualPinball.Unity
 		public readonly object PendingKeyboardNudgesLock = new();
 
 		/// <summary>
+		/// Analog nudge sensor samples waiting to be applied to the persistent
+		/// cabinet state. Drained inside <c>PhysicsLock</c> before the physics loop.
+		/// </summary>
+		public readonly Queue<NudgeSensorSampleCommand> PendingNudgeSensorSamples = new();
+		public readonly object PendingNudgeSensorSamplesLock = new();
+
+		/// <summary>
 		/// Scheduled managed callbacks stored in a min-heap by due time.
 		/// Protected by locking on <see cref="ScheduledActionsLock"/>.
 		/// </summary>
