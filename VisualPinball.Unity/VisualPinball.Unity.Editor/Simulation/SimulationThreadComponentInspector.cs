@@ -82,7 +82,7 @@ namespace VisualPinball.Unity.Editor
 				EditorGUILayout.HelpBox("No native input devices are visible. Check that native input is enabled and that the device was connected before polling started.", MessageType.Warning);
 			} else {
 				DrawDevices(devices);
-				DrawInputGraph(devices);
+				DrawInputGraph(component, devices);
 			}
 
 			EditorGUILayout.Space();
@@ -149,32 +149,40 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void DrawInputGraph(IReadOnlyList<NativeInputDeviceInfo> devices)
+		private void DrawInputGraph(SimulationThreadComponent component, IReadOnlyList<NativeInputDeviceInfo> devices)
 		{
-			if (!TryFindGraphDevice(devices, out var device)) {
+			var channels = new List<InputGraphChannel>();
+			var title = "Nudge Graph: Calibrated Mappings";
+			CollectMappedGraphChannels(component, devices, channels);
+			if (channels.Count == 0) {
+				if (!TryFindGraphDevice(devices, out var device)) {
+					return;
+				}
+				title = $"Raw Input Graph: {DeviceName(device)}";
+				CollectRawGraphChannels(device, channels);
+			}
+			if (channels.Count == 0) {
 				return;
 			}
 
-			SampleGraphDevice(device);
+			SampleGraphChannels(channels);
 
 			EditorGUILayout.Space();
-			EditorGUILayout.LabelField($"Input Graph: {DeviceName(device)}", EditorStyles.boldLabel);
+			EditorGUILayout.LabelField(title, EditorStyles.boldLabel);
 
 			var rect = GUILayoutUtility.GetRect(1f, 72f, GUILayout.ExpandWidth(true));
 			DrawGraphFrame(rect);
 
-			var axisCount = System.Math.Min(device.Axes.Count, GraphMaxAxes);
-			for (var i = 0; i < axisCount; i++) {
-				var axis = device.Axes[i];
-				if (_axisGraphs.TryGetValue(GraphKey(device, axis), out var graph)) {
+			for (var i = 0; i < channels.Count; i++) {
+				if (_axisGraphs.TryGetValue(channels[i].Key, out var graph)) {
 					DrawGraphLine(rect, graph, GraphColors[i % GraphColors.Length]);
 				}
 			}
 
-			DrawGraphLegend(device, axisCount);
+			DrawGraphLegend(channels);
 		}
 
-		private void SampleGraphDevice(NativeInputDeviceInfo device)
+		private void SampleGraphChannels(IReadOnlyList<InputGraphChannel> channels)
 		{
 			var now = EditorApplication.timeSinceStartup;
 			if (now - _lastGraphSampleTime < 1.0 / 60.0) {
@@ -182,15 +190,13 @@ namespace VisualPinball.Unity.Editor
 			}
 			_lastGraphSampleTime = now;
 
-			var axisCount = System.Math.Min(device.Axes.Count, GraphMaxAxes);
-			for (var i = 0; i < axisCount; i++) {
-				var axis = device.Axes[i];
-				var key = GraphKey(device, axis);
-				if (!_axisGraphs.TryGetValue(key, out var graph)) {
+			for (var i = 0; i < channels.Count; i++) {
+				var channel = channels[i];
+				if (!_axisGraphs.TryGetValue(channel.Key, out var graph)) {
 					graph = new AxisGraphState();
-					_axisGraphs[key] = graph;
+					_axisGraphs[channel.Key] = graph;
 				}
-				graph.Add(axis.RawValue);
+				graph.Add(channel.Value);
 			}
 		}
 
@@ -236,7 +242,7 @@ namespace VisualPinball.Unity.Editor
 			return new Vector3(x, y);
 		}
 
-		private void DrawGraphLegend(NativeInputDeviceInfo device, int axisCount)
+		private void DrawGraphLegend(IReadOnlyList<InputGraphChannel> channels)
 		{
 			if (_graphLegendStyle == null) {
 				_graphLegendStyle = new GUIStyle(EditorStyles.miniLabel) {
@@ -246,13 +252,94 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			EditorGUILayout.BeginHorizontal();
-			for (var i = 0; i < axisCount; i++) {
-				var axis = device.Axes[i];
+			for (var i = 0; i < channels.Count; i++) {
 				var color = GraphColors[i % GraphColors.Length];
 				var colorHex = ColorUtility.ToHtmlStringRGB(color);
-				GUILayout.Label($"<color=#{colorHex}>{AxisName(axis)} {axis.RawValue:+0.00;-0.00;0.00}</color>", _graphLegendStyle);
+				GUILayout.Label($"<color=#{colorHex}>{channels[i].Label} {channels[i].Value:+0.00;-0.00;0.00}</color>", _graphLegendStyle);
 			}
 			EditorGUILayout.EndHorizontal();
+		}
+
+		private static void CollectMappedGraphChannels(SimulationThreadComponent component,
+			IReadOnlyList<NativeInputDeviceInfo> devices, List<InputGraphChannel> channels)
+		{
+			if (component.NudgeSensors == null) {
+				return;
+			}
+
+			for (var sensorIndex = 0; sensorIndex < component.NudgeSensors.Count && channels.Count < GraphMaxAxes; sensorIndex++) {
+				var sensor = component.NudgeSensors[sensorIndex];
+				if (sensor == null) {
+					continue;
+				}
+				AddMappedGraphChannel(sensorIndex, "X", sensor.X, devices, channels);
+				AddMappedGraphChannel(sensorIndex, "Y", sensor.Y, devices, channels);
+				AddMappedGraphChannel(sensorIndex, "Velocity X", sensor.VelocityX, devices, channels);
+				AddMappedGraphChannel(sensorIndex, "Velocity Y", sensor.VelocityY, devices, channels);
+				AddMappedGraphChannel(sensorIndex, "Accel X", sensor.AccelerationX, devices, channels);
+				AddMappedGraphChannel(sensorIndex, "Accel Y", sensor.AccelerationY, devices, channels);
+			}
+		}
+
+		private static void AddMappedGraphChannel(int sensorIndex, string channelName, string mappingValue,
+			IReadOnlyList<NativeInputDeviceInfo> devices, List<InputGraphChannel> channels)
+		{
+			if (channels.Count >= GraphMaxAxes || !SensorMapping.TryParse(mappingValue, out var mapping)) {
+				return;
+			}
+			if (!TryFindAxis(devices, mapping.DeviceId, mapping.AxisId, out var axis)) {
+				return;
+			}
+
+			channels.Add(new InputGraphChannel(
+				$"mapped:{sensorIndex}:{channelName}:{mapping.DeviceId}:{mapping.AxisId}",
+				$"{channelName} ({AxisName(axis)})",
+				CalculateMappedGraphValue(mapping, axis.RawValue)));
+		}
+
+		private static void CollectRawGraphChannels(NativeInputDeviceInfo device, List<InputGraphChannel> channels)
+		{
+			var axisCount = System.Math.Min(device.Axes.Count, GraphMaxAxes);
+			for (var i = 0; i < axisCount; i++) {
+				var axis = device.Axes[i];
+				channels.Add(new InputGraphChannel(
+					GraphKey(device, axis),
+					AxisName(axis),
+					axis.RawValue));
+			}
+		}
+
+		private static float CalculateMappedGraphValue(SensorMapping mapping, float rawValue)
+		{
+			var value = Mathf.Clamp(Mathf.Clamp(rawValue, -1f, 1f) - mapping.RawCenter, -1f, 1f);
+			var deadZone = Mathf.Clamp(mapping.DeadZone, 0f, 0.999f);
+			var absValue = Mathf.Abs(value);
+			if (absValue <= deadZone) {
+				return 0f;
+			}
+			value = Mathf.Sign(value) * ((absValue - deadZone) / (1f - deadZone));
+			var limit = Mathf.Max(0f, mapping.Limit);
+			return Mathf.Clamp(value, -limit, limit);
+		}
+
+		private static bool TryFindAxis(IReadOnlyList<NativeInputDeviceInfo> devices, string deviceId, int axisId,
+			out NativeInputAxisInfo axis)
+		{
+			for (var i = 0; i < devices.Count; i++) {
+				var device = devices[i];
+				if (device.Id != deviceId || device.Axes == null) {
+					continue;
+				}
+				for (var j = 0; j < device.Axes.Count; j++) {
+					if (device.Axes[j].AxisId == axisId) {
+						axis = device.Axes[j];
+						return true;
+					}
+				}
+			}
+
+			axis = default;
+			return false;
 		}
 
 		private static bool TryFindGraphDevice(IReadOnlyList<NativeInputDeviceInfo> devices, out NativeInputDeviceInfo device)
@@ -322,6 +409,20 @@ namespace VisualPinball.Unity.Editor
 		{
 			_statusMessage = message;
 			_statusType = type;
+		}
+
+		private sealed class InputGraphChannel
+		{
+			public readonly string Key;
+			public readonly string Label;
+			public readonly float Value;
+
+			public InputGraphChannel(string key, string label, float value)
+			{
+				Key = key;
+				Label = label;
+				Value = value;
+			}
 		}
 
 		private sealed class AxisGraphState
