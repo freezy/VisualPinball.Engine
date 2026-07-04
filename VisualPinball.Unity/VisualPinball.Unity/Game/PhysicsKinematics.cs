@@ -411,7 +411,16 @@ namespace VisualPinball.Unity
 					// boxes mid-sweep (e.g. a long thin collider rotating 45° bulges
 					// out at 22.5°); inflate by the maximal arc protrusion,
 					// reach × (1 - cos(angle/2)), so intermediate stepped poses stay
-					// inside the broad-phase bounds
+					// inside the broad-phase bounds.
+					//
+					// This bound is conservative for any shape, including long thin
+					// colliders rotating about one end: every material point's two
+					// endpoint positions lie inside this single (hence convex) box,
+					// which therefore contains the straight chord between them; the
+					// stepped path (lerped translation + slerped rotation) deviates
+					// from that chord only by the rotational arc's sagitta,
+					// r × (1 - cos(angle/2)) with r ≤ reach — exactly the inflation.
+					// The rotate-about-one-end case attains this bound with equality.
 					if (itemId != memoItemId) {
 						memoItemId = itemId;
 						ref var currMatrix = ref state.KinematicTransforms.GetValueByRef(itemId);
