@@ -16,6 +16,13 @@
 
 namespace VisualPinball.Unity.Simulation
 {
+	/// <summary>
+	/// Packaged representation of one serialized nudge sensor.
+	/// </summary>
+	/// <remarks>
+	/// Mapping strings are persisted as-is because they already encode device id,
+	/// axis id, channel kind, center, dead-zone, scale, and limit.
+	/// </remarks>
 	public struct SimulationThreadNudgeSensorPackable
 	{
 		public NudgeSensorType Type;
@@ -30,6 +37,9 @@ namespace VisualPinball.Unity.Simulation
 		public string VelocityX;
 		public string VelocityY;
 
+		/// <summary>
+		/// Copies a component sensor config into package data.
+		/// </summary>
 		public static SimulationThreadNudgeSensorPackable Pack(SimulationThreadNudgeSensorConfig sensor)
 		{
 			sensor ??= new SimulationThreadNudgeSensorConfig();
@@ -49,6 +59,9 @@ namespace VisualPinball.Unity.Simulation
 			};
 		}
 
+		/// <summary>
+		/// Rehydrates package data into a component sensor config.
+		/// </summary>
 		public SimulationThreadNudgeSensorConfig Unpack()
 		{
 			return new SimulationThreadNudgeSensorConfig {
@@ -67,6 +80,9 @@ namespace VisualPinball.Unity.Simulation
 		}
 	}
 
+	/// <summary>
+	/// Packaged representation of <see cref="SimulationThreadComponent"/>.
+	/// </summary>
 	public struct SimulationThreadComponentPackable
 	{
 		public bool EnableSimulationThread;
@@ -77,6 +93,9 @@ namespace VisualPinball.Unity.Simulation
 		public bool ShowStatistics;
 		public float StatisticsInterval;
 
+		/// <summary>
+		/// Serializes simulation-thread component settings for table packages.
+		/// </summary>
 		public static byte[] Pack(SimulationThreadComponent comp)
 		{
 			return PackageApi.Packer.Pack(new SimulationThreadComponentPackable {
@@ -90,6 +109,9 @@ namespace VisualPinball.Unity.Simulation
 			});
 		}
 
+		/// <summary>
+		/// Restores simulation-thread component settings from table package data.
+		/// </summary>
 		public static void Unpack(byte[] bytes, SimulationThreadComponent comp)
 		{
 			var data = PackageApi.Packer.Unpack<SimulationThreadComponentPackable>(bytes);
@@ -109,6 +131,9 @@ namespace VisualPinball.Unity.Simulation
 			comp.StatisticsInterval = data.StatisticsInterval;
 		}
 
+		/// <summary>
+		/// Packs up to the maximum supported number of nudge sensors.
+		/// </summary>
 		private static SimulationThreadNudgeSensorPackable[] PackNudgeSensors(SimulationThreadComponent comp)
 		{
 			if (comp.NudgeSensors == null || comp.NudgeSensors.Count == 0) {

@@ -22,6 +22,15 @@ using VisualPinball.Unity.Simulation;
 
 namespace VisualPinball.Unity.Editor
 {
+	/// <summary>
+	/// Custom inspector for simulation-thread settings and native nudge sensor
+	/// calibration.
+	/// </summary>
+	/// <remarks>
+	/// The inspector reads live native input device snapshots in Play Mode so a
+	/// cabinet owner can auto-map, center-calibrate, and visually verify KL25Z or
+	/// Pinscape axes without leaving Unity.
+	/// </remarks>
 	[CustomEditor(typeof(SimulationThreadComponent)), CanEditMultipleObjects]
 	public sealed class SimulationThreadComponentInspector : UnityEditor.Editor
 	{
@@ -43,6 +52,10 @@ namespace VisualPinball.Unity.Editor
 		private GUIStyle _graphLegendStyle;
 		private double _lastGraphSampleTime;
 
+		/// <summary>
+		/// Draws default simulation fields plus live nudge calibration controls for
+		/// single-object selection.
+		/// </summary>
 		public override void OnInspectorGUI()
 		{
 			serializedObject.Update();
@@ -59,11 +72,18 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		/// <summary>
+		/// Requests repaint while Play Mode graphs can receive fresh input samples.
+		/// </summary>
 		public override bool RequiresConstantRepaint()
 		{
 			return Application.isPlaying && targets.Length == 1;
 		}
 
+		/// <summary>
+		/// Draws Play Mode controls for device listing, auto-mapping, and center
+		/// calibration.
+		/// </summary>
 		private void DrawNudgeCalibration(SimulationThreadComponent component)
 		{
 			EditorGUILayout.Space();
@@ -127,6 +147,9 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		/// <summary>
+		/// Lists visible native input devices and their first few axes.
+		/// </summary>
 		private void DrawDevices(IReadOnlyList<NativeInputDeviceInfo> devices)
 		{
 			EditorGUILayout.Space();
@@ -149,6 +172,10 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		/// <summary>
+		/// Draws a rolling graph of mapped nudge channels, or raw axes when no
+		/// mappings exist yet.
+		/// </summary>
 		private void DrawInputGraph(SimulationThreadComponent component, IReadOnlyList<NativeInputDeviceInfo> devices)
 		{
 			var channels = new List<InputGraphChannel>();
@@ -182,6 +209,9 @@ namespace VisualPinball.Unity.Editor
 			DrawGraphLegend(channels);
 		}
 
+		/// <summary>
+		/// Samples graph channels at editor repaint cadence with a 60 Hz cap.
+		/// </summary>
 		private void SampleGraphChannels(IReadOnlyList<InputGraphChannel> channels)
 		{
 			var now = EditorApplication.timeSinceStartup;
@@ -200,6 +230,9 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		/// <summary>
+		/// Draws the graph background and reference lines.
+		/// </summary>
 		private void DrawGraphFrame(Rect rect)
 		{
 			EditorGUI.DrawRect(rect, new Color(0.1f, 0.1f, 0.1f));
@@ -215,6 +248,9 @@ namespace VisualPinball.Unity.Editor
 			Handles.EndGUI();
 		}
 
+		/// <summary>
+		/// Draws one channel as a polyline in the graph rectangle.
+		/// </summary>
 		private static void DrawGraphLine(Rect rect, AxisGraphState graph, Color color)
 		{
 			if (graph.Count < 2) {
@@ -234,6 +270,9 @@ namespace VisualPinball.Unity.Editor
 			Handles.EndGUI();
 		}
 
+		/// <summary>
+		/// Converts a sample index/value into graph GUI coordinates.
+		/// </summary>
 		private static Vector3 GraphPoint(Rect rect, AxisGraphState graph, int index)
 		{
 			var x = graph.Count <= 1 ? rect.xMin : Mathf.Lerp(rect.xMin, rect.xMax, index / (float)(graph.Count - 1));
@@ -242,6 +281,9 @@ namespace VisualPinball.Unity.Editor
 			return new Vector3(x, y);
 		}
 
+		/// <summary>
+		/// Draws the current value legend below the graph.
+		/// </summary>
 		private void DrawGraphLegend(IReadOnlyList<InputGraphChannel> channels)
 		{
 			if (_graphLegendStyle == null) {
@@ -260,6 +302,9 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.EndHorizontal();
 		}
 
+		/// <summary>
+		/// Collects live graph channels from configured nudge mappings.
+		/// </summary>
 		private static void CollectMappedGraphChannels(SimulationThreadComponent component,
 			IReadOnlyList<NativeInputDeviceInfo> devices, List<InputGraphChannel> channels)
 		{
@@ -281,6 +326,10 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		/// <summary>
+		/// Adds one mapped channel after applying the same mount transform used by
+		/// physics.
+		/// </summary>
 		private static void AddMappedGraphChannel(int sensorIndex, SimulationThreadNudgeSensorConfig sensor,
 			NudgeSensorChannel sourceChannel, string mappingValue,
 			IReadOnlyList<NativeInputDeviceInfo> devices, List<InputGraphChannel> channels)
@@ -302,6 +351,10 @@ namespace VisualPinball.Unity.Editor
 				value));
 		}
 
+		/// <summary>
+		/// Adds the first few raw axes from a device for graphing before mappings
+		/// exist.
+		/// </summary>
 		private static void CollectRawGraphChannels(NativeInputDeviceInfo device, List<InputGraphChannel> channels)
 		{
 			var axisCount = System.Math.Min(device.Axes.Count, GraphMaxAxes);
@@ -314,6 +367,13 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		/// <summary>
+		/// Applies mapping center/dead-zone/limit to a raw value for graph display.
+		/// </summary>
+		/// <remarks>
+		/// Scale is intentionally omitted so the graph shows centered normalized
+		/// input direction and noise, not the physics strength applied later.
+		/// </remarks>
 		private static float CalculateMappedGraphValue(SensorMapping mapping, float rawValue)
 		{
 			var value = Mathf.Clamp(Mathf.Clamp(rawValue, -1f, 1f) - mapping.RawCenter, -1f, 1f);
@@ -327,6 +387,9 @@ namespace VisualPinball.Unity.Editor
 			return Mathf.Clamp(value, -limit, limit);
 		}
 
+		/// <summary>
+		/// Finds the live axis snapshot for a serialized mapping.
+		/// </summary>
 		private static bool TryFindAxis(IReadOnlyList<NativeInputDeviceInfo> devices, string deviceId, int axisId,
 			out NativeInputAxisInfo axis)
 		{
@@ -347,6 +410,9 @@ namespace VisualPinball.Unity.Editor
 			return false;
 		}
 
+		/// <summary>
+		/// Chooses the device to graph when no channels are mapped yet.
+		/// </summary>
 		private static bool TryFindGraphDevice(IReadOnlyList<NativeInputDeviceInfo> devices, out NativeInputDeviceInfo device)
 		{
 			for (var i = 0; i < devices.Count; i++) {
@@ -366,11 +432,17 @@ namespace VisualPinball.Unity.Editor
 			return false;
 		}
 
+		/// <summary>
+		/// Returns whether a device has connected axes suitable for graphing.
+		/// </summary>
 		private static bool IsGraphableDevice(NativeInputDeviceInfo device)
 		{
 			return device.IsConnected && device.Axes != null && device.Axes.Count > 0;
 		}
 
+		/// <summary>
+		/// Prefers likely KL25Z/Pinscape devices for the raw graph.
+		/// </summary>
 		private static bool IsKl25zDevice(NativeInputDeviceInfo device)
 		{
 			return ContainsIgnoreCase(device.Name, "KL25Z")
@@ -384,6 +456,9 @@ namespace VisualPinball.Unity.Editor
 			return !string.IsNullOrEmpty(value) && value.IndexOf(match, StringComparison.OrdinalIgnoreCase) >= 0;
 		}
 
+		/// <summary>
+		/// Builds a stable key for one raw graph channel.
+		/// </summary>
 		private static string GraphKey(NativeInputDeviceInfo device, NativeInputAxisInfo axis)
 		{
 			return $"{device.Id}:{axis.AxisId}";
@@ -428,12 +503,18 @@ namespace VisualPinball.Unity.Editor
 			_statusType = type;
 		}
 
+		/// <summary>
+		/// Stores one graph channel sample and label.
+		/// </summary>
 		private sealed class InputGraphChannel
 		{
 			public readonly string Key;
 			public readonly string Label;
 			public readonly float Value;
 
+			/// <summary>
+			/// Creates a graph channel snapshot for the current repaint.
+			/// </summary>
 			public InputGraphChannel(string key, string label, float value)
 			{
 				Key = key;
@@ -442,6 +523,9 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		/// <summary>
+		/// Fixed-size rolling sample buffer for one graph line.
+		/// </summary>
 		private sealed class AxisGraphState
 		{
 			private readonly float[] _samples = new float[GraphSampleCount];
@@ -449,6 +533,9 @@ namespace VisualPinball.Unity.Editor
 
 			public int Count { get; private set; }
 
+			/// <summary>
+			/// Appends one sample, overwriting the oldest sample when full.
+			/// </summary>
 			public void Add(float value)
 			{
 				_samples[_next] = value;
@@ -458,6 +545,9 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 
+			/// <summary>
+			/// Reads a sample by age, where zero is the oldest retained sample.
+			/// </summary>
 			public float Get(int index)
 			{
 				var start = (_next - Count + _samples.Length) % _samples.Length;

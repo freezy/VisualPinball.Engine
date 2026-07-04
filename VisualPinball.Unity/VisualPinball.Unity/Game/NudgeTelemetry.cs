@@ -18,6 +18,15 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Immutable snapshot of nudge and plumb-bob diagnostics from the physics
+	/// thread.
+	/// </summary>
+	/// <remarks>
+	/// The player/editor UI reads this instead of peeking into simulation state,
+	/// which keeps telemetry consumption decoupled from the data layout used by
+	/// Burst-friendly physics structs.
+	/// </remarks>
 	public readonly struct NudgeTelemetry
 	{
 		public readonly float2 CabinetAcceleration;
@@ -28,6 +37,9 @@ namespace VisualPinball.Unity
 		public readonly int PlumbTiltIndex;
 		public readonly bool PlumbTiltHigh;
 
+		/// <summary>
+		/// Creates a complete telemetry snapshot for one read.
+		/// </summary>
 		public NudgeTelemetry(float2 cabinetAcceleration, float2 cabinetOffset, int activeSourceIndex,
 			float3 plumbPosition, float plumbTiltPercent, int plumbTiltIndex, bool plumbTiltHigh)
 		{

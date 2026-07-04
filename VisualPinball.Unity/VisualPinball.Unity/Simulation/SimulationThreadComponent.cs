@@ -14,6 +14,15 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.Simulation
 {
+	/// <summary>
+	/// Serialized nudge sensor settings stored on <see cref="SimulationThreadComponent"/>.
+	/// </summary>
+	/// <remarks>
+	/// The component stores mappings as strings so they can be packed with the
+	/// table and survive native device ids that contain punctuation. At runtime
+	/// <see cref="ToEngineConfig"/> converts these strings into managed
+	/// <see cref="NudgeSensorConfig"/> objects used by the physics engine.
+	/// </remarks>
 	[Serializable]
 	public sealed class SimulationThreadNudgeSensorConfig
 	{
@@ -38,6 +47,9 @@ namespace VisualPinball.Unity.Simulation
 		public string VelocityX = string.Empty;
 		public string VelocityY = string.Empty;
 
+		/// <summary>
+		/// Clamps numeric values and normalizes null mapping strings.
+		/// </summary>
 		public void Normalize()
 		{
 			Strength = Mathf.Clamp(Strength, 0f, 2f);
@@ -51,6 +63,9 @@ namespace VisualPinball.Unity.Simulation
 			VelocityY ??= string.Empty;
 		}
 
+		/// <summary>
+		/// Converts serialized component settings to the runtime nudge config.
+		/// </summary>
 		public NudgeSensorConfig ToEngineConfig()
 		{
 			Normalize();
@@ -69,6 +84,11 @@ namespace VisualPinball.Unity.Simulation
 			};
 		}
 
+		/// <summary>
+		/// Captures the current raw value of every mapped axis as its neutral
+		/// center.
+		/// </summary>
+		/// <returns>The number of mappings whose raw center was updated.</returns>
 		public int CalibrateRawCenters(IReadOnlyList<NativeInputDeviceInfo> devices)
 		{
 			var count = 0;
@@ -81,6 +101,9 @@ namespace VisualPinball.Unity.Simulation
 			return count;
 		}
 
+		/// <summary>
+		/// Clears saved neutral centers from every mapping.
+		/// </summary>
 		public void ResetRawCenters()
 		{
 			ResetRawCenter(ref X);
@@ -91,6 +114,9 @@ namespace VisualPinball.Unity.Simulation
 			ResetRawCenter(ref VelocityY);
 		}
 
+		/// <summary>
+		/// Builds a serialized mapping from a native device/axis pair.
+		/// </summary>
 		internal static string BuildMapping(NativeInputDeviceInfo device, NativeInputAxisInfo axis,
 			SensorMappingKind kind, float scale, float rawCenter)
 		{
@@ -105,11 +131,17 @@ namespace VisualPinball.Unity.Simulation
 			}.ToString();
 		}
 
+		/// <summary>
+		/// Parses a mapping string, returning an unmapped object when parsing fails.
+		/// </summary>
 		private static SensorMapping ParseMapping(string value)
 		{
 			return SensorMapping.TryParse(value, out var mapping) ? mapping : new SensorMapping();
 		}
 
+		/// <summary>
+		/// Updates one serialized mapping with the current raw axis center.
+		/// </summary>
 		private static int CalibrateRawCenter(ref string value, IReadOnlyList<NativeInputDeviceInfo> devices)
 		{
 			if (!SensorMapping.TryParse(value, out var mapping)) {
@@ -123,6 +155,10 @@ namespace VisualPinball.Unity.Simulation
 			return 1;
 		}
 
+		/// <summary>
+		/// Clears one serialized mapping's raw center without changing device/axis
+		/// identity.
+		/// </summary>
 		private static void ResetRawCenter(ref string value)
 		{
 			if (!SensorMapping.TryParse(value, out var mapping)) {
@@ -132,6 +168,9 @@ namespace VisualPinball.Unity.Simulation
 			value = mapping.ToString();
 		}
 
+		/// <summary>
+		/// Finds the current axis snapshot for a serialized mapping.
+		/// </summary>
 		private static bool TryFindAxis(IReadOnlyList<NativeInputDeviceInfo> devices, string deviceId, int axisId,
 			out NativeInputAxisInfo axis)
 		{
@@ -200,7 +239,7 @@ namespace VisualPinball.Unity.Simulation
 		[Tooltip("Enable native input polling (requires the VisualPinball.NativeInput native plugin for the current platform)")]
 		public bool EnableNativeInput = true;
 
-		[Tooltip("Input polling interval in microseconds (default 500μs = 2000 Hz)")]
+		[Tooltip("Input polling interval in microseconds (default 500 us = 2000 Hz)")]
 		[Range(100, 2000)]
 		public int InputPollingIntervalUs = 500;
 
@@ -319,7 +358,8 @@ namespace VisualPinball.Unity.Simulation
 		#region Public API
 
 		/// <summary>
-		/// Start the simulation thread
+		/// Starts the simulation thread, native input polling, and external physics
+		/// timing.
 		/// </summary>
 		public void StartSimulation()
 		{
@@ -391,7 +431,8 @@ namespace VisualPinball.Unity.Simulation
 		}
 
 		/// <summary>
-		/// Stop the simulation thread
+		/// Stops the simulation and input threads and returns the physics engine to
+		/// Unity-driven timing.
 		/// </summary>
 		public void StopSimulation()
 		{
@@ -445,19 +486,25 @@ namespace VisualPinball.Unity.Simulation
 		}
 
 		/// <summary>
-		/// The measured input→on-screen latency in milliseconds (input poll → flipper visual movement),
+		/// The measured input-to-on-screen latency in milliseconds (input poll to flipper visual movement),
 		/// averaged over the calls since the last sample. Returns 0 until the first flipper press is observed.
 		/// Works for any table with flippers (independent of the gamelogic engine's coil-latency stats).
 		/// Main-thread only.
 		/// </summary>
 		public float SampleInputLatencyMs() => InputLatencyTracker.SampleFlipperLatencyMs(false);
 
+		/// <summary>
+		/// Lists native input devices that can be mapped to nudge sensors.
+		/// </summary>
 		public IReadOnlyList<NativeInputDeviceInfo> ListNudgeInputDevices()
 		{
 			var inputManager = _inputManager ?? NativeInputManager.TryGetExistingInstance();
 			return inputManager == null ? Array.Empty<NativeInputDeviceInfo>() : inputManager.ListDevices();
 		}
 
+		/// <summary>
+		/// Pushes serialized nudge sensor settings into the physics engine.
+		/// </summary>
 		public void ApplyNudgeSensorSettings()
 		{
 			if (_physicsEngine == null) {
@@ -480,6 +527,16 @@ namespace VisualPinball.Unity.Simulation
 			_physicsEngine.ConfigureNudgeSensors(configs);
 		}
 
+		/// <summary>
+		/// Calibrates all mapped nudge channels around their current raw input
+		/// values.
+		/// </summary>
+		/// <remarks>
+		/// This is intentionally a center capture, not a gain calibration pass. It
+		/// solves the common KL25Z/Pinscape case where a resting accelerometer does
+		/// not report exactly zero, while the physics-side gain calibrator continues
+		/// to learn velocity/acceleration scale from motion.
+		/// </remarks>
 		public int CalibrateNudgeSensorCenters()
 		{
 			var devices = ListNudgeInputDevices();
@@ -495,6 +552,9 @@ namespace VisualPinball.Unity.Simulation
 			return calibrated;
 		}
 
+		/// <summary>
+		/// Clears saved raw centers for all nudge mappings.
+		/// </summary>
 		public int ResetNudgeSensorCenters()
 		{
 			var reset = 0;
@@ -513,6 +573,16 @@ namespace VisualPinball.Unity.Simulation
 			return reset;
 		}
 
+		/// <summary>
+		/// Attempts to map the first connected cabinet-style device to acceleration
+		/// X/Y channels.
+		/// </summary>
+		/// <remarks>
+		/// The heuristic prefers HID X/Y accelerometer usages, then falls back to
+		/// named X/Y axes, and finally any two non-Z acceleration axes. This keeps
+		/// one-click setup useful for KL25Z/Pinscape boards without hard-coding a
+		/// vendor-specific device name.
+		/// </remarks>
 		public bool TryAutoConfigureFirstCabinetSensor(out string message)
 		{
 			var devices = ListNudgeInputDevices();
@@ -607,6 +677,9 @@ namespace VisualPinball.Unity.Simulation
 
 		private static long TimestampUsec => (Stopwatch.GetTimestamp() * 1_000_000L) / Stopwatch.Frequency;
 
+		/// <summary>
+		/// Picks a likely X/Y axis pair from one native device.
+		/// </summary>
 		private static bool TryPickAxisPair(NativeInputDeviceInfo device, out NativeInputAxisInfo xAxis,
 			out NativeInputAxisInfo yAxis)
 		{
@@ -645,6 +718,10 @@ namespace VisualPinball.Unity.Simulation
 			return xSet && ySet && xAxis.AxisId != yAxis.AxisId;
 		}
 
+		/// <summary>
+		/// Finds an axis by HID usage or display name, optionally constrained by
+		/// reported axis kind.
+		/// </summary>
 		private static bool TryFindAxis(NativeInputDeviceInfo device, string axisName, int usage,
 			NativeInputApi.AxisKind? kind, out NativeInputAxisInfo axis)
 		{
@@ -664,6 +741,9 @@ namespace VisualPinball.Unity.Simulation
 			return false;
 		}
 
+		/// <summary>
+		/// Checks whether a native axis looks like the requested X/Y/Z axis.
+		/// </summary>
 		private static bool IsNamedAxis(NativeInputAxisInfo axis, string axisName, int usage)
 		{
 			if (axis.Usage == usage) {
@@ -682,11 +762,17 @@ namespace VisualPinball.Unity.Simulation
 			       || name.EndsWith("_" + axisName, StringComparison.OrdinalIgnoreCase);
 		}
 
+		/// <summary>
+		/// Returns a human-readable axis label for inspector messages.
+		/// </summary>
 		private static string AxisName(NativeInputAxisInfo axis)
 		{
 			return string.IsNullOrEmpty(axis.Name) ? $"Axis {axis.AxisId}" : axis.Name;
 		}
 
+		/// <summary>
+		/// Updates smoothed simulation speed diagnostics for the inspector.
+		/// </summary>
 		private void UpdateSimulationSpeed(in SimulationState.Snapshot state)
 		{
 			var now = Time.unscaledTime;

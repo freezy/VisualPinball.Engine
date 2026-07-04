@@ -16,6 +16,15 @@
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Packaged representation of <see cref="PhysicsEngine"/> settings.
+	/// </summary>
+	/// <remarks>
+	/// The boolean "Has..." flags preserve backward compatibility with packages
+	/// created before keyboard nudge, plumb, damping, or visual nudge settings were
+	/// serialized. Missing fields are restored with the same defaults used by new
+	/// components.
+	/// </remarks>
 	public struct PhysicsEnginePackable
 	{
 		public float GravityStrength;
@@ -31,6 +40,9 @@ namespace VisualPinball.Unity
 		public bool HasVisualNudgeSettings;
 		public float VisualNudgeStrength;
 
+		/// <summary>
+		/// Serializes physics engine configuration for a table package.
+		/// </summary>
 		public static byte[] Pack(PhysicsEngine comp)
 		{
 			return PackageApi.Packer.Pack(new PhysicsEnginePackable {
@@ -49,6 +61,9 @@ namespace VisualPinball.Unity
 			});
 		}
 
+		/// <summary>
+		/// Restores physics engine configuration from package data.
+		/// </summary>
 		public static void Unpack(byte[] bytes, PhysicsEngine comp)
 		{
 			var data = PackageApi.Packer.Unpack<PhysicsEnginePackable>(bytes);

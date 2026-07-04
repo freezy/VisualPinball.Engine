@@ -19,6 +19,16 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Simulates the mechanical tilt plumb bob and queues tilt switch edges.
+	/// </summary>
+	/// <remarks>
+	/// This is a C# port/adaptation of
+	/// <c>vpinball/src/physics/cabinet/PlumbHandler.*</c>. VP moved this out of
+	/// VBS nudging plugins so it can run at the stable one millisecond physics
+	/// cadence; VPE follows that model and feeds the result back to gamelogic as
+	/// switch transitions.
+	/// </remarks>
 	public struct PlumbState
 	{
 		private const float Gravity = 9.80665f;
@@ -53,6 +63,9 @@ namespace VisualPinball.Unity
 			private set => _tiltHigh = value ? (byte)1 : (byte)0;
 		}
 
+		/// <summary>
+		/// Creates a plumb bob at rest below the pivot.
+		/// </summary>
 		public PlumbState(bool enabled, float damping, float tiltThresholdDeg)
 		{
 			PoleLength = DefaultPoleLength;
@@ -70,6 +83,9 @@ namespace VisualPinball.Unity
 			_cabinetAccelerationScale = 1f;
 		}
 
+		/// <summary>
+		/// Updates runtime plumb settings without resetting bob position.
+		/// </summary>
 		public void Configure(bool enabled, float damping, float tiltThresholdDeg)
 		{
 			// Runtime reconfiguration must not teleport the pendulum or lose the
@@ -90,6 +106,10 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Integrates the plumb bob one millisecond in the accelerating cabinet
+		/// reference frame.
+		/// </summary>
 		public void StepOneMillisecond(float2 cabinetAcceleration)
 		{
 			if (!Enabled || TiltThresholdRad <= 0f) {
@@ -152,6 +172,10 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Returns the maximum plumb displacement and tilt percentage since the
+		/// last read, then clears those maxima.
+		/// </summary>
 		public float3 ReadAndResetTiltStatus()
 		{
 			var value = new float3(MaxPlumbPosition.x, MaxPlumbPosition.y, MaxTiltPercent);
@@ -160,11 +184,23 @@ namespace VisualPinball.Unity
 			return value;
 		}
 
+		/// <summary>
+		/// Drops pending tilt switch edges after the simulation thread has consumed
+		/// them.
+		/// </summary>
 		public void ClearPendingTiltEvents()
 		{
 			PendingTiltStates.Length = 0;
 		}
 
+		/// <summary>
+		/// Keeps the bob on the tilt ring and reflects its velocity after hitting
+		/// the ring.
+		/// </summary>
+		/// <remarks>
+		/// The small angular margin prevents the next integration step from starting
+		/// beyond the threshold and immediately re-colliding.
+		/// </remarks>
 		private void ClampToTiltRingAndBounce(float tiltAngle)
 		{
 			var limitAngle = tiltAngle - 1e-3f;

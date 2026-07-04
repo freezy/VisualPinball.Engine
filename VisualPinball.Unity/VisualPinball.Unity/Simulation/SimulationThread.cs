@@ -260,7 +260,7 @@ namespace VisualPinball.Unity.Simulation
 		/// <summary>
 		/// Dispatches a plumb tilt state change on the main thread, driving switch
 		/// status, key wires and (via the external switch queue) the gamelogic
-		/// engine — the same route the single-threaded mode takes. Set by
+		/// engine; the same route the single-threaded mode takes. Set by
 		/// <see cref="SimulationThreadComponent"/>; when null, tilt falls back to a
 		/// direct GLE switch dispatch on the simulation thread.
 		/// </summary>
@@ -515,7 +515,7 @@ namespace VisualPinball.Unity.Simulation
 						// The default nudge is suppressed when the gamelogic reacted to the
 						// key by nudging itself. For main-thread-dispatched GLEs the switch
 						// is only queued here, so the decision must run after the main
-						// thread actually delivered it — hence the after-dispatch callback.
+						// thread actually delivered it; hence the after-dispatch callback.
 						var nudgeIndexBeforeSwitchDispatch = _physicsEngine.KeyboardNudgeIndex;
 						var nudgeActionIndex = actionIndex;
 						SendMappedSwitch(actionIndex, isPressed, () => {
@@ -636,6 +636,16 @@ namespace VisualPinball.Unity.Simulation
 				|| actionIndex == (int)NativeInputApi.InputAction.CenterNudge;
 		}
 
+		/// <summary>
+		/// Applies the built-in keyboard nudge for tables whose gamelogic did not
+		/// handle the nudge key itself.
+		/// </summary>
+		/// <remarks>
+		/// VP tables can script their own nudge response. The simulation thread
+		/// therefore applies this fallback only after switch dispatch has had a
+		/// chance to call into gamelogic and increment the physics engine's keyboard
+		/// nudge counter.
+		/// </remarks>
 		private void ApplyDefaultKeyboardNudge(int actionIndex)
 		{
 			const float baseForce = 2f;
@@ -861,6 +871,15 @@ namespace VisualPinball.Unity.Simulation
 			}
 		}
 
+		/// <summary>
+		/// Converts plumb-bob tilt edges produced by physics into input switch
+		/// events.
+		/// </summary>
+		/// <remarks>
+		/// Main-thread gamelogic engines receive these through the same external
+		/// switch queue as regular main-thread input so switch state, wires, and ROM
+		/// input stay in sync.
+		/// </remarks>
 		private void ProcessPlumbTiltEvents()
 		{
 			_pendingPlumbTiltEvents.Clear();

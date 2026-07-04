@@ -21,6 +21,14 @@ using VisualPinball.Unity.Simulation;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Main-thread configuration for one logical nudge input source.
+	/// </summary>
+	/// <remarks>
+	/// This class keeps editor/player settings in a convenient managed shape.
+	/// <see cref="ToRuntimeConfig"/> converts it to the compact struct consumed by
+	/// the simulation thread.
+	/// </remarks>
 	public sealed class NudgeSensorConfig
 	{
 		public NudgeSensorType Type = NudgeSensorType.GamepadIntent;
@@ -35,6 +43,9 @@ namespace VisualPinball.Unity
 		public SensorMapping VelocityX = new();
 		public SensorMapping VelocityY = new();
 
+		/// <summary>
+		/// Clamps numeric settings and guarantees mapping objects are non-null.
+		/// </summary>
 		public void Normalize()
 		{
 			Strength = math.clamp(Strength, 0f, 2f);
@@ -48,6 +59,9 @@ namespace VisualPinball.Unity
 			VelocityY ??= new SensorMapping();
 		}
 
+		/// <summary>
+		/// Converts this managed config to simulation-thread state.
+		/// </summary>
 		internal NudgeSensorRuntimeConfig ToRuntimeConfig()
 		{
 			Normalize();
@@ -67,6 +81,15 @@ namespace VisualPinball.Unity
 		}
 	}
 
+	/// <summary>
+	/// Bridges native analog input events to the physics engine's nudge state.
+	/// </summary>
+	/// <remarks>
+	/// Native input is polled off the simulation thread. This system keeps a small
+	/// locked snapshot of sensor mappings, maps matching axis events, and queues
+	/// normalized samples into the physics engine so the actual cabinet model still
+	/// runs at the deterministic physics cadence.
+	/// </remarks>
 	public sealed class NudgeSystem : IDisposable
 	{
 		private readonly PhysicsEngine _physicsEngine;
@@ -74,11 +97,17 @@ namespace VisualPinball.Unity
 		private readonly List<NudgeSensorConfig> _sensors = new(NudgeState.MaxSensors);
 		private volatile NativeInputManager _inputManager;
 
+		/// <summary>
+		/// Creates a nudge system attached to a physics engine.
+		/// </summary>
 		internal NudgeSystem(PhysicsEngine physicsEngine)
 		{
 			_physicsEngine = physicsEngine;
 		}
 
+		/// <summary>
+		/// Number of configured sensor slots.
+		/// </summary>
 		public int SensorCount
 		{
 			get {
@@ -88,12 +117,19 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Returns the current native input device snapshot.
+		/// </summary>
 		public IReadOnlyList<NativeInputDeviceInfo> ListDevices()
 		{
 			var inputManager = _inputManager;
 			return inputManager == null ? Array.Empty<NativeInputDeviceInfo>() : inputManager.ListDevices();
 		}
 
+		/// <summary>
+		/// Replaces all configured nudge sensors and pushes their runtime shape to
+		/// the physics engine.
+		/// </summary>
 		public void ConfigureSensors(IReadOnlyList<NudgeSensorConfig> sensors)
 		{
 			lock (_configLock) {
@@ -113,6 +149,9 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Subscribes to native axis events from an input manager.
+		/// </summary>
 		internal void AttachNativeInputManager(NativeInputManager inputManager)
 		{
 			if (_inputManager == inputManager) {
@@ -125,6 +164,9 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Detaches the currently subscribed input manager if it matches.
+		/// </summary>
 		internal void DetachNativeInputManager(NativeInputManager inputManager)
 		{
 			var attachedInputManager = _inputManager;
@@ -135,6 +177,9 @@ namespace VisualPinball.Unity
 			DetachNativeInputManager();
 		}
 
+		/// <summary>
+		/// Unsubscribes from native axis events.
+		/// </summary>
 		private void DetachNativeInputManager()
 		{
 			if (_inputManager != null) {
@@ -143,6 +188,9 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Releases native input event subscriptions.
+		/// </summary>
 		public void Dispose()
 		{
 			DetachNativeInputManager();
@@ -176,6 +224,10 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Matches one native axis event against one mapping and enqueues the
+		/// normalized sample when it belongs to that channel.
+		/// </summary>
 		private void TryQueueSample(int sensorIndex, SensorMapping mapping, NudgeSensorChannel channel, string deviceId,
 			NativeInputApi.InputEvent evt)
 		{

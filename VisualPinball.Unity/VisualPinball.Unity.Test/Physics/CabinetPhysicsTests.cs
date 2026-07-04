@@ -19,6 +19,9 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity.Test
 {
+	/// <summary>
+	/// Covers cabinet spring, keyboard nudge, and plumb-bob physics primitives.
+	/// </summary>
 	public class CabinetPhysicsTests
 	{
 		[Test]
@@ -97,6 +100,10 @@ namespace VisualPinball.Unity.Test
 			Assert.That(plumb.PendingTiltStates.Length, Is.EqualTo(0));
 		}
 
+		/// <summary>
+		/// Computes the closed-form underdamped oscillator response used to verify
+		/// the one-millisecond integrator.
+		/// </summary>
 		private static (float Displacement, float Velocity, float Acceleration) AnalyticStepResponse(float mass, float frequencyHz, float dampingRatio, float force, float time)
 		{
 			var omega0 = 2f * math.PI * frequencyHz;
@@ -111,6 +118,9 @@ namespace VisualPinball.Unity.Test
 			return (displacement, velocity, acceleration);
 		}
 
+		/// <summary>
+		/// Counts visible rebound peaks after ignoring small tail oscillations.
+		/// </summary>
 		private static int CountVisibleExtrema(float[] values, float threshold)
 		{
 			var count = 0;

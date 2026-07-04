@@ -21,6 +21,16 @@ using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Per-table physics environment values that are independent of individual
+	/// component state.
+	/// </summary>
+	/// <remarks>
+	/// This struct travels with the physics state through both main-thread and
+	/// simulation-thread execution. Nudge and plumb state live here because they
+	/// affect every ball and must advance once per one-millisecond physics tick,
+	/// not once per Unity frame.
+	/// </remarks>
 	public struct PhysicsEnv
 	{
 		public readonly float3 Gravity;
@@ -33,6 +43,10 @@ namespace VisualPinball.Unity
 		public NudgeState Nudge;
 		public PlumbState Plumb;
 
+		/// <summary>
+		/// Creates the physics environment for a table, including gravity, cabinet
+		/// nudge state, and plumb-bob state.
+		/// </summary>
 		public PhysicsEnv(ulong startTimeUsec, PlayfieldComponent playfield, float gravityStrength,
 			KeyboardNudgeMode keyboardNudgeMode = KeyboardNudgeMode.CabModel, float keyboardNudgeStrength = 1f,
 			float nudgeTime = 5f, bool simulatedPlumb = true, float plumbDamping = 1f, float plumbThresholdAngle = 2f,

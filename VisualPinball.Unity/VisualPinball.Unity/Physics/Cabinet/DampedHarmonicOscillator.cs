@@ -18,6 +18,14 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// One-dimensional mass/spring/damper integrator used for cabinet motion.
+	/// </summary>
+	/// <remarks>
+	/// It stores physical units directly: force in Newtons, displacement in
+	/// meters, velocity in meters per second, and acceleration in meters per
+	/// second squared. The physics thread calls it at the fixed VP/VPE 1 ms step.
+	/// </remarks>
 	public struct DampedHarmonicOscillator
 	{
 		public float Mass;
@@ -28,6 +36,9 @@ namespace VisualPinball.Unity
 		public float Velocity;
 		public float Acceleration;
 
+		/// <summary>
+		/// Creates an oscillator from mass, natural frequency, and damping ratio.
+		/// </summary>
 		public DampedHarmonicOscillator(float mass, float frequencyHz, float dampingRatio)
 		{
 			Mass = mass;
@@ -39,11 +50,21 @@ namespace VisualPinball.Unity
 			Acceleration = 0f;
 		}
 
+		/// <summary>
+		/// Advances the oscillator by VPE's fixed one millisecond physics step.
+		/// </summary>
 		public void StepOneMillisecond(float force)
 		{
 			Step(force, 0.001f);
 		}
 
+		/// <summary>
+		/// Applies one explicit Euler integration step.
+		/// </summary>
+		/// <remarks>
+		/// The cabinet nudge model is intentionally simple and cheap; it runs in the
+		/// same tight loop as ball physics and does not need a general solver.
+		/// </remarks>
 		public void Step(float force, float deltaTime)
 		{
 			Acceleration = (force - DampingCoefficient * Velocity - SpringConstant * Displacement) / Mass;
@@ -51,6 +72,9 @@ namespace VisualPinball.Unity
 			Displacement += Velocity * deltaTime;
 		}
 
+		/// <summary>
+		/// Returns the oscillator to rest while preserving its mass and coefficients.
+		/// </summary>
 		public void Reset()
 		{
 			Displacement = 0f;

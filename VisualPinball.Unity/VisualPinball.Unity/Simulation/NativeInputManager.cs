@@ -18,6 +18,12 @@ namespace VisualPinball.Unity.Simulation
 	/// Manages native input polling and forwards events to the simulation thread.
 	/// Runs input polling on a separate thread at high frequency (500-1000 Hz).
 	/// </summary>
+	/// <remarks>
+	/// Axis events are also exposed to <see cref="NudgeSystem"/> for analog
+	/// cabinet sensors. Device enumeration is intentionally cached by native index
+	/// so the polling callback can resolve stable device ids without doing
+	/// allocation-heavy enumeration work on the hot path.
+	/// </remarks>
 	public class NativeInputManager : IDisposable
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
@@ -86,10 +92,24 @@ namespace VisualPinball.Unity.Simulation
 			return Volatile.Read(ref _instance);
 		}
 
+		/// <summary>
+		/// Whether the native polling thread is currently running.
+		/// </summary>
 		public bool IsPolling => _polling;
 
+		/// <summary>
+		/// Requested native polling rate in hertz.
+		/// </summary>
 		public float TargetPollingHz => _polling && _pollIntervalUs > 0 ? 1000000f / _pollIntervalUs : 0f;
+
+		/// <summary>
+		/// Measured incoming event rate over a short rolling window.
+		/// </summary>
 		public float ActualEventRateHz => _polling ? Volatile.Read(ref _actualEventRateHz) : 0f;
+
+		/// <summary>
+		/// Raised on the input polling thread for raw analog axis events.
+		/// </summary>
 		public event Action<NativeInputApi.InputEvent> AxisInputReceived;
 
 		/// <summary>
@@ -108,7 +128,8 @@ namespace VisualPinball.Unity.Simulation
 		#region Public API
 
 		/// <summary>
-		/// Initialize native input system
+		/// Initializes the native input system and verifies managed/native protocol
+		/// compatibility.
 		/// </summary>
 		public bool Initialize()
 		{
@@ -144,7 +165,7 @@ namespace VisualPinball.Unity.Simulation
 		}
 
 		/// <summary>
-		/// Set the simulation thread to forward input events to
+		/// Sets the simulation thread that receives action input events.
 		/// </summary>
 		public void SetSimulationThread(SimulationThread simulationThread)
 		{
@@ -152,7 +173,7 @@ namespace VisualPinball.Unity.Simulation
 		}
 
 		/// <summary>
-		/// Add an input binding
+		/// Adds a keyboard action binding to the built-in binding list.
 		/// </summary>
 		public void AddBinding(NativeInputApi.InputAction action, NativeInputApi.KeyCode keyCode)
 		{
@@ -165,7 +186,7 @@ namespace VisualPinball.Unity.Simulation
 		}
 
 		/// <summary>
-		/// Clear all bindings
+		/// Clears the built-in binding list.
 		/// </summary>
 		public void ClearBindings()
 		{
@@ -194,6 +215,13 @@ namespace VisualPinball.Unity.Simulation
 			set => _appFocused = value;
 		}
 
+		/// <summary>
+		/// Enumerates native input devices and refreshes the device-index cache.
+		/// </summary>
+		/// <remarks>
+		/// Calling this has the side effect of swapping the immutable
+		/// index-to-stable-id snapshot used by the polling thread.
+		/// </remarks>
 		public IReadOnlyList<NativeInputDeviceInfo> ListDevices()
 		{
 			var result = new List<NativeInputDeviceInfo>();
@@ -232,6 +260,10 @@ namespace VisualPinball.Unity.Simulation
 			return _deviceIdsByIndex.TryGetValue(deviceIndex, out deviceId);
 		}
 
+		/// <summary>
+		/// Replaces the polling-thread device-id snapshot with data from the latest
+		/// enumeration.
+		/// </summary>
 		private void RebuildDeviceIdCache(IReadOnlyList<NativeInputDeviceInfo> devices)
 		{
 			var cache = new Dictionary<int, string>(devices.Count);
@@ -241,6 +273,9 @@ namespace VisualPinball.Unity.Simulation
 			_deviceIdsByIndex = cache;
 		}
 
+		/// <summary>
+		/// Enumerates native axes for one device.
+		/// </summary>
 		public IReadOnlyList<NativeInputAxisInfo> ListDeviceAxes(int deviceIndex)
 		{
 			if (!_initialized) {
@@ -270,7 +305,8 @@ namespace VisualPinball.Unity.Simulation
 		}
 
 		/// <summary>
-		/// Start input polling
+		/// Starts native input polling and sends the current action bindings to the
+		/// native layer.
 		/// </summary>
 		/// <param name="pollIntervalUs">Polling interval in microseconds (default 500)</param>
 		public bool StartPolling(int pollIntervalUs = 500)
@@ -316,14 +352,14 @@ namespace VisualPinball.Unity.Simulation
 			Logger.Info($"{LogPrefix} [NativeInputManager] Started polling at {pollIntervalUs}us interval ({1000000 / pollIntervalUs} Hz)");
 
 			// The native side switched to its polling device enumeration; refresh the
-			// index → device-id cache so axis events resolve against the right snapshot.
+			// index-to-device-id cache so axis events resolve against the right snapshot.
 			ListDevices();
 
 			return true;
 		}
 
 		/// <summary>
-		/// Stop input polling
+		/// Stops native input polling.
 		/// </summary>
 		public void StopPolling()
 		{
@@ -342,7 +378,7 @@ namespace VisualPinball.Unity.Simulation
 		#region Private Methods
 
 		/// <summary>
-		/// Setup default input bindings
+		/// Configures the built-in default keyboard bindings.
 		/// </summary>
 		private void SetupDefaultBindings()
 		{
@@ -416,7 +452,7 @@ namespace VisualPinball.Unity.Simulation
 		}
 
 		/// <summary>
-		/// Input event callback from native layer (called on input polling thread)
+		/// Receives native input events on the input polling thread.
 		/// </summary>
 		[MonoPInvokeCallback(typeof(NativeInputApi.InputEventCallback))]
 		private static void OnInputEvent(ref NativeInputApi.InputEvent evt, IntPtr userData)
@@ -451,9 +487,14 @@ namespace VisualPinball.Unity.Simulation
 			instance?._simulationThread?.EnqueueInputEvent(evt);
 		}
 
-		// Called on the input polling thread when the native side detected a
-		// device arrival/removal. Rebuilding via ListDevices is safe here: the
-		// native listing takes its own lock and the id cache is swapped atomically.
+		/// <summary>
+		/// Refreshes native device metadata after a hotplug notification.
+		/// </summary>
+		/// <remarks>
+		/// Called on the input polling thread. Rebuilding via <see cref="ListDevices"/>
+		/// is safe here because the native listing takes its own lock and the id
+		/// cache is swapped atomically.
+		/// </remarks>
 		private void OnNativeDevicesChanged()
 		{
 			try {
@@ -464,6 +505,9 @@ namespace VisualPinball.Unity.Simulation
 			}
 		}
 
+		/// <summary>
+		/// Updates the rolling input event-rate measurement.
+		/// </summary>
 		private void MarkInputEventActivity()
 		{
 			Interlocked.Increment(ref _inputEventsInWindow);
@@ -488,6 +532,10 @@ namespace VisualPinball.Unity.Simulation
 
 		#region Dispose
 
+		/// <summary>
+		/// Stops polling, shuts down native input, and releases the singleton
+		/// instance.
+		/// </summary>
 		public void Dispose()
 		{
 			StopPolling();
@@ -504,8 +552,14 @@ namespace VisualPinball.Unity.Simulation
 		#endregion
 	}
 
+	/// <summary>
+	/// Managed snapshot of one native input device and its axes.
+	/// </summary>
 	public sealed class NativeInputDeviceInfo
 	{
+		/// <summary>
+		/// Creates a native input device snapshot.
+		/// </summary>
 		public NativeInputDeviceInfo(int deviceIndex, string id, string name, bool isConnected, IReadOnlyList<NativeInputAxisInfo> axes)
 		{
 			DeviceIndex = deviceIndex;
@@ -522,8 +576,14 @@ namespace VisualPinball.Unity.Simulation
 		public IReadOnlyList<NativeInputAxisInfo> Axes { get; }
 	}
 
+	/// <summary>
+	/// Managed snapshot of one native input axis and its latest raw value.
+	/// </summary>
 	public readonly struct NativeInputAxisInfo
 	{
+		/// <summary>
+		/// Creates a native input axis snapshot.
+		/// </summary>
 		public NativeInputAxisInfo(int axisId, string name, int usagePage, int usage, NativeInputApi.AxisKind kind, float rawValue, long timestampUsec)
 		{
 			AxisId = axisId;

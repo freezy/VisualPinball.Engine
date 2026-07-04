@@ -16,10 +16,24 @@
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Defines how a configured analog nudge sensor should be interpreted.
+	/// </summary>
 	public enum NudgeSensorType
 	{
+		/// <summary>
+		/// Treats X/Y values as player intent, useful for sticks or controllers.
+		/// </summary>
 		GamepadIntent = 0,
+
+		/// <summary>
+		/// Treats cabinet acceleration as intent and synthesizes a cabinet impulse.
+		/// </summary>
 		CabinetIntent = 1,
+
+		/// <summary>
+		/// Treats cabinet velocity/acceleration as measured physical cabinet motion.
+		/// </summary>
 		CabinetDirect = 2
 	}
 }
