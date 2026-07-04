@@ -147,10 +147,15 @@ namespace VisualPinball.Unity
 		private SimulationThreadComponent SimulationThreadComponent {
 			get {
 				if (_simulationThreadComponent == null) {
-					_simulationThreadComponent = GetComponent<SimulationThreadComponent>();
+					_simulationThreadComponent = GetComponentInChildren<SimulationThreadComponent>(true);
 				}
 				return _simulationThreadComponent;
 			}
+		}
+
+		private void EnsureSimulationThreadComponent()
+		{
+			_simulationThreadComponent = Simulation.SimulationThreadComponent.EnsureFor(PhysicsEngine);
 		}
 
 		#region Access
@@ -211,6 +216,7 @@ namespace VisualPinball.Unity
 
 			BallManager = new BallManager(GetComponentInChildren<PhysicsEngine>(), this, Playfield.transform);
 			_inputManager = new InputManager();
+			EnsureSimulationThreadComponent();
 
 			if (engineComponent != null) {
 				GamelogicEngine = engineComponent;
