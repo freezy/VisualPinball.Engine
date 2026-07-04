@@ -25,6 +25,12 @@ namespace VisualPinball.Unity.Simulation
 		[Range(0f, 200f)]
 		public float CabinetMassKg = 113f;
 
+		[Tooltip("Rotates the sensor board X/Y axes into cabinet coordinates.")]
+		public NudgeSensorMountRotation MountRotation = NudgeSensorMountRotation.Rotation0;
+
+		[Tooltip("Mirrors the sensor board X axis before applying mount rotation.")]
+		public bool MountMirror;
+
 		public string X = string.Empty;
 		public string Y = string.Empty;
 		public string AccelerationX = string.Empty;
@@ -36,6 +42,7 @@ namespace VisualPinball.Unity.Simulation
 		{
 			Strength = Mathf.Clamp(Strength, 0f, 2f);
 			CabinetMassKg = Mathf.Clamp(CabinetMassKg <= 0f ? 113f : CabinetMassKg, 0f, 200f);
+			MountRotation = NudgeSensorMountTransform.NormalizeRotation(MountRotation);
 			X ??= string.Empty;
 			Y ??= string.Empty;
 			AccelerationX ??= string.Empty;
@@ -51,6 +58,8 @@ namespace VisualPinball.Unity.Simulation
 				Type = Type,
 				Strength = Strength,
 				CabinetMassKg = CabinetMassKg,
+				MountRotation = MountRotation,
+				MountMirror = MountMirror,
 				X = ParseMapping(X),
 				Y = ParseMapping(Y),
 				AccelerationX = ParseMapping(AccelerationX),
@@ -514,10 +523,13 @@ namespace VisualPinball.Unity.Simulation
 				}
 				if (TryPickAxisPair(device, out var xAxis, out var yAxis)) {
 					NudgeSensors ??= new List<SimulationThreadNudgeSensorConfig>();
+					var existingSensor = NudgeSensors.Count == 0 ? null : NudgeSensors[0];
 					var sensor = new SimulationThreadNudgeSensorConfig {
 						Type = NudgeSensorType.CabinetDirect,
 						Strength = 1f,
 						CabinetMassKg = 113f,
+						MountRotation = existingSensor?.MountRotation ?? NudgeSensorMountRotation.Rotation0,
+						MountMirror = existingSensor?.MountMirror ?? false,
 						AccelerationX = SimulationThreadNudgeSensorConfig.BuildMapping(device, xAxis,
 							SensorMappingKind.Acceleration, 9.81f, xAxis.RawValue),
 						AccelerationY = SimulationThreadNudgeSensorConfig.BuildMapping(device, yAxis,

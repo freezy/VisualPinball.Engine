@@ -23,6 +23,8 @@ namespace VisualPinball.Unity
 		public NudgeSensorType Type;
 		public float Strength;
 		public float CabinetMassKg;
+		public NudgeSensorMountRotation MountRotation;
+		public byte MountMirror;
 		public byte XMapped;
 		public byte YMapped;
 		public byte VelocityXMapped;
@@ -373,6 +375,8 @@ namespace VisualPinball.Unity
 	{
 		public NudgeSensorType Type;
 		public byte Enabled;
+		public NudgeSensorMountRotation MountRotation;
+		public byte MountMirror;
 		public GamepadNudgeState Gamepad;
 		public CabinetSensorState Cabinet;
 		public float2 CabinetAcceleration;
@@ -385,10 +389,21 @@ namespace VisualPinball.Unity
 		{
 			Type = config.Type;
 			Enabled = 1;
-			Gamepad = new GamepadNudgeState(config.Strength, config.XMapped != 0, config.YMapped != 0);
+			MountRotation = NudgeSensorMountTransform.NormalizeRotation(config.MountRotation);
+			MountMirror = config.MountMirror;
+			var xMapped = config.XMapped != 0;
+			var yMapped = config.YMapped != 0;
+			var velXMapped = config.VelocityXMapped != 0;
+			var velYMapped = config.VelocityYMapped != 0;
+			var accXMapped = config.AccelerationXMapped != 0;
+			var accYMapped = config.AccelerationYMapped != 0;
+			NudgeSensorMountTransform.TransformMappedAxes(ref xMapped, ref yMapped, MountRotation);
+			NudgeSensorMountTransform.TransformMappedAxes(ref velXMapped, ref velYMapped, MountRotation);
+			NudgeSensorMountTransform.TransformMappedAxes(ref accXMapped, ref accYMapped, MountRotation);
+			Gamepad = new GamepadNudgeState(config.Strength, xMapped, yMapped);
 			Cabinet = new CabinetSensorState(config.Type, config.Strength, config.CabinetMassKg,
-				config.VelocityXMapped != 0, config.VelocityYMapped != 0,
-				config.AccelerationXMapped != 0, config.AccelerationYMapped != 0);
+				velXMapped, velYMapped,
+				accXMapped, accYMapped);
 			CabinetAcceleration = float2.zero;
 			CabinetOffset = float2.zero;
 		}
@@ -405,6 +420,7 @@ namespace VisualPinball.Unity
 			if (!IsEnabled) {
 				return;
 			}
+			NudgeSensorMountTransform.TransformChannel(ref channel, ref value, MountRotation, MountMirror != 0);
 			if (Type == NudgeSensorType.GamepadIntent) {
 				Gamepad.ApplySample(channel, value, timestampUsec);
 			} else {

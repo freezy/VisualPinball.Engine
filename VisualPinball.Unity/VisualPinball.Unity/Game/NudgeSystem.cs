@@ -26,6 +26,8 @@ namespace VisualPinball.Unity
 		public NudgeSensorType Type = NudgeSensorType.GamepadIntent;
 		public float Strength = 1f;
 		public float CabinetMassKg = 113f;
+		public NudgeSensorMountRotation MountRotation = NudgeSensorMountRotation.Rotation0;
+		public bool MountMirror;
 		public SensorMapping X = new();
 		public SensorMapping Y = new();
 		public SensorMapping AccelerationX = new();
@@ -37,6 +39,7 @@ namespace VisualPinball.Unity
 		{
 			Strength = math.clamp(Strength, 0f, 2f);
 			CabinetMassKg = math.clamp(CabinetMassKg <= 0f ? 113f : CabinetMassKg, 0f, 200f);
+			MountRotation = NudgeSensorMountTransform.NormalizeRotation(MountRotation);
 			X ??= new SensorMapping();
 			Y ??= new SensorMapping();
 			AccelerationX ??= new SensorMapping();
@@ -52,6 +55,8 @@ namespace VisualPinball.Unity
 				Type = Type,
 				Strength = Strength,
 				CabinetMassKg = CabinetMassKg,
+				MountRotation = MountRotation,
+				MountMirror = MountMirror ? (byte)1 : (byte)0,
 				XMapped = X.IsMapped ? (byte)1 : (byte)0,
 				YMapped = Y.IsMapped ? (byte)1 : (byte)0,
 				AccelerationXMapped = AccelerationX.IsMapped ? (byte)1 : (byte)0,

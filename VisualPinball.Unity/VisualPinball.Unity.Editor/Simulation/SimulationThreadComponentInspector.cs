@@ -152,7 +152,7 @@ namespace VisualPinball.Unity.Editor
 		private void DrawInputGraph(SimulationThreadComponent component, IReadOnlyList<NativeInputDeviceInfo> devices)
 		{
 			var channels = new List<InputGraphChannel>();
-			var title = "Nudge Graph: Calibrated Mappings";
+			var title = "Nudge Graph: Mounted Mappings";
 			CollectMappedGraphChannels(component, devices, channels);
 			if (channels.Count == 0) {
 				if (!TryFindGraphDevice(devices, out var device)) {
@@ -272,16 +272,17 @@ namespace VisualPinball.Unity.Editor
 				if (sensor == null) {
 					continue;
 				}
-				AddMappedGraphChannel(sensorIndex, "X", sensor.X, devices, channels);
-				AddMappedGraphChannel(sensorIndex, "Y", sensor.Y, devices, channels);
-				AddMappedGraphChannel(sensorIndex, "Velocity X", sensor.VelocityX, devices, channels);
-				AddMappedGraphChannel(sensorIndex, "Velocity Y", sensor.VelocityY, devices, channels);
-				AddMappedGraphChannel(sensorIndex, "Accel X", sensor.AccelerationX, devices, channels);
-				AddMappedGraphChannel(sensorIndex, "Accel Y", sensor.AccelerationY, devices, channels);
+				AddMappedGraphChannel(sensorIndex, sensor, NudgeSensorChannel.X, sensor.X, devices, channels);
+				AddMappedGraphChannel(sensorIndex, sensor, NudgeSensorChannel.Y, sensor.Y, devices, channels);
+				AddMappedGraphChannel(sensorIndex, sensor, NudgeSensorChannel.VelocityX, sensor.VelocityX, devices, channels);
+				AddMappedGraphChannel(sensorIndex, sensor, NudgeSensorChannel.VelocityY, sensor.VelocityY, devices, channels);
+				AddMappedGraphChannel(sensorIndex, sensor, NudgeSensorChannel.AccelerationX, sensor.AccelerationX, devices, channels);
+				AddMappedGraphChannel(sensorIndex, sensor, NudgeSensorChannel.AccelerationY, sensor.AccelerationY, devices, channels);
 			}
 		}
 
-		private static void AddMappedGraphChannel(int sensorIndex, string channelName, string mappingValue,
+		private static void AddMappedGraphChannel(int sensorIndex, SimulationThreadNudgeSensorConfig sensor,
+			NudgeSensorChannel sourceChannel, string mappingValue,
 			IReadOnlyList<NativeInputDeviceInfo> devices, List<InputGraphChannel> channels)
 		{
 			if (channels.Count >= GraphMaxAxes || !SensorMapping.TryParse(mappingValue, out var mapping)) {
@@ -291,10 +292,14 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
+			var channel = sourceChannel;
+			var value = CalculateMappedGraphValue(mapping, axis.RawValue);
+			NudgeSensorMountTransform.TransformChannel(ref channel, ref value, sensor.MountRotation, sensor.MountMirror);
+
 			channels.Add(new InputGraphChannel(
-				$"mapped:{sensorIndex}:{channelName}:{mapping.DeviceId}:{mapping.AxisId}",
-				$"{channelName} ({AxisName(axis)})",
-				CalculateMappedGraphValue(mapping, axis.RawValue)));
+				$"mapped:{sensorIndex}:{sourceChannel}:{channel}:{mapping.DeviceId}:{mapping.AxisId}:{sensor.MountRotation}:{sensor.MountMirror}",
+				$"{ChannelName(channel)} ({AxisName(axis)})",
+				value));
 		}
 
 		private static void CollectRawGraphChannels(NativeInputDeviceInfo device, List<InputGraphChannel> channels)
@@ -398,6 +403,18 @@ namespace VisualPinball.Unity.Editor
 		private static string AxisLabel(NativeInputAxisInfo axis)
 		{
 			return $"{AxisName(axis)}: {axis.RawValue:+0.000;-0.000;0.000} [{axis.Kind}]";
+		}
+
+		private static string ChannelName(NudgeSensorChannel channel)
+		{
+			return channel switch {
+				NudgeSensorChannel.VelocityX => "Velocity X",
+				NudgeSensorChannel.VelocityY => "Velocity Y",
+				NudgeSensorChannel.AccelerationX => "Accel X",
+				NudgeSensorChannel.AccelerationY => "Accel Y",
+				NudgeSensorChannel.Y => "Y",
+				_ => "X"
+			};
 		}
 
 		private static string AxisName(NativeInputAxisInfo axis)
