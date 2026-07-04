@@ -51,6 +51,15 @@ namespace VisualPinball.Unity
 		public float Radius;
 		public float Mass;
 		public bool IsFrozen;
+
+		/// <summary>
+		/// Whether the ball is macroscopically at rest: in contact, no positional
+		/// drift over the last ~100 ms and no linear velocity. Detected at the end
+		/// of each cycle (see <see cref="BallSpinHackPhysics"/>); while set, the
+		/// angular momentum is nulled before integration, so the per-tick contact
+		/// impulses holding the ball in place can't keep it visibly spinning.
+		/// </summary>
+		public bool IsAtRest;
 		public int RingCounterOldPos;
 
 		public bool ManualControl;
