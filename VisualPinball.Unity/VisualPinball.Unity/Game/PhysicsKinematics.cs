@@ -137,8 +137,17 @@ namespace VisualPinball.Unity
 					}
 				}
 
+				// active step motion also counts as continuous: after a stop event, the
+				// derived velocity is already zeroed while the pose may still be
+				// catching up — the remaining gap must keep streaming (paced by
+				// StepVelocity), not get mistaken for an isolated warp and snapped
+				// through balls by the teleport branch of StepTowards
+				var continuous = hasVelocity && (velocity.IsMoving
+					|| math.lengthsq(velocity.StepVelocity) > 0f
+					|| math.lengthsq(velocity.StepAngularVelocity) > 0f);
+
 				var before = current;
-				current = StepTowards(in current, in target, hasVelocity && velocity.IsMoving, maxLinearStep, maxAngularStep, out var jumped);
+				current = StepTowards(in current, in target, continuous, maxLinearStep, maxAngularStep, out var jumped);
 
 				if (hasVelocity) {
 					if (jumped) {
@@ -378,6 +387,12 @@ namespace VisualPinball.Unity
 			PerfMarkerBallOctree.Begin();
 			octree.Clear();
 
+			// the sweep inflation is per item; colliders of the same item are usually
+			// contiguous, so a one-entry memo avoids recomputing it per collider
+			var memoItemId = -1;
+			var memoAngle = 0f;
+			var memoPivot = float3.zero;
+
 			for (var i = 0; i < state.KinematicCollidersAtIdentity.Length; i++) {
 				// while an item steps toward its target pose, cover the whole swept
 				// range: union of the AABBs at the current and at the target pose,
@@ -391,6 +406,32 @@ namespace VisualPinball.Unity
 						math.min(aabb.Top, targetAabb.Top), math.max(aabb.Bottom, targetAabb.Bottom),
 						math.min(aabb.ZLow, targetAabb.ZLow), math.max(aabb.ZHigh, targetAabb.ZHigh)
 					);
+
+					// a rotating collider can swing outside the union of its endpoint
+					// boxes mid-sweep (e.g. a long thin collider rotating 45° bulges
+					// out at 22.5°); inflate by the maximal arc protrusion,
+					// reach × (1 - cos(angle/2)), so intermediate stepped poses stay
+					// inside the broad-phase bounds
+					if (itemId != memoItemId) {
+						memoItemId = itemId;
+						ref var currMatrix = ref state.KinematicTransforms.GetValueByRef(itemId);
+						var targetMatrix = state.KinematicTargetTransforms[itemId];
+						var qDot = math.abs(math.dot(RotationOf(in currMatrix).value, RotationOf(in targetMatrix).value));
+						memoAngle = 2f * math.acos(math.clamp(qDot, -1f, 1f));
+						memoPivot = currMatrix.c3.xyz;
+					}
+					if (memoAngle > 1e-4f) {
+						var dx = math.max(math.abs(aabb.Left - memoPivot.x), math.abs(aabb.Right - memoPivot.x));
+						var dy = math.max(math.abs(aabb.Top - memoPivot.y), math.abs(aabb.Bottom - memoPivot.y));
+						var dz = math.max(math.abs(aabb.ZLow - memoPivot.z), math.abs(aabb.ZHigh - memoPivot.z));
+						var reach = math.length(new float3(dx, dy, dz));
+						var inflate = reach * (1f - math.cos(memoAngle * 0.5f));
+						aabb = new Aabb(
+							aabb.Left - inflate, aabb.Right + inflate,
+							aabb.Top - inflate, aabb.Bottom + inflate,
+							aabb.ZLow - inflate, aabb.ZHigh + inflate
+						);
+					}
 				}
 				octree.Insert(i, aabb);
 			}
