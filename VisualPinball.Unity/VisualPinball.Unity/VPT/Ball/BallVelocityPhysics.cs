@@ -29,6 +29,24 @@ namespace VisualPinball.Unity
 				return;
 			}
 
+			// A resting ball must stop rotating. The point-contact model has no
+			// drilling friction, and the per-contact friction impulses that hold the
+			// ball in place re-inject a little angular momentum every tick (their
+			// torques don't cancel across sequentially solved contacts) — without
+			// this, a ball cradled on a raised flipper keeps spinning forever.
+			// Applied here, before displacement integrates it: a firm spin-down for
+			// visible spin, and a hard stop below ~30°/s (the per-tick injection is
+			// far below that band, so the flutter dies instantly). Any real impulse
+			// breaks the rest state (see BallSpinHackPhysics), so gameplay spin is
+			// unaffected.
+			if (ball.IsAtRest) {
+				ball.AngularMomentum *= 0.988f; // half-life ~60 ms
+				var restSpinEps = 0.005f * ball.Inertia; // ~30°/s
+				if (math.lengthsq(ball.AngularMomentum) < restSpinEps * restSpinEps) {
+					ball.AngularMomentum = float3.zero;
+				}
+			}
+
 			if (ball.ManualControl) {
 				ball.Velocity *= 0.5f; // Null out most of the X/Y velocity, want a little bit so the ball can sort of find its way out of obstacles.
 				ball.Velocity += new float3(

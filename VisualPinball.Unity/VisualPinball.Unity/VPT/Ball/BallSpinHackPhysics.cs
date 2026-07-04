@@ -23,6 +23,21 @@ namespace VisualPinball.Unity
 {
 	internal static class BallSpinHackPhysics
 	{
+		/// <summary>
+		/// Squared positional drift (x/y, VPX units) over the ~100 ms position ring
+		/// buffer window below which the ball counts as being at rest.
+		/// </summary>
+		private const float RestPositionEpsSq = 0.01f; // 0.1 units per 100 ms
+
+		/// <summary>
+		/// Squared linear velocity below which the ball counts as being at rest.
+		/// Generous on purpose: the contact solver's per-tick gravity-cancel cycle
+		/// makes a resting ball's instantaneous velocity oscillate by more than the
+		/// true drift. The positional gate above is what discriminates actual
+		/// motion — a ball moving this fast for real fails it immediately.
+		/// </summary>
+		private const float RestVelocityEpsSq = 0.04f; // 0.2 units per 10 ms = 20 u/s
+
 		internal static void Update(ref BallState ball)
 		{
 			var p0 = (ball.RingCounterOldPos / (10000 / PhysicsConstants.PhysicsStepTime) + 1) % BallPositions.Count;
@@ -40,6 +55,18 @@ namespace VisualPinball.Unity
 					var damp = math.clamp(1.0f - (threshold - 666) / 10000, 0.23f, 1); // do not kill spin completely, otherwise stuck balls will happen during regular gameplay
 					ball.AngularMomentum *= damp;
 				}
+
+				// Rest detection: in contact, no positional drift over the ring-buffer
+				// window (~100 ms) and no linear velocity. While at rest, the angular
+				// momentum is nulled before integration (see BallVelocityPhysics) —
+				// the point-contact model has no drilling friction and the per-contact
+				// friction impulses holding the ball re-inject a bit of spin every
+				// tick, so without this a cradled ball keeps rotating forever.
+				ball.IsAtRest = mag < RestPositionEpsSq && mag2 < RestPositionEpsSq
+					&& math.lengthsq(ball.Velocity) < RestVelocityEpsSq;
+
+			} else {
+				ball.IsAtRest = false;
 			}
 		}
 	}
