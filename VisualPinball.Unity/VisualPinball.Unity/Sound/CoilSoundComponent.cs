@@ -17,6 +17,7 @@
 // ReSharper disable InconsistentNaming
 
 using System;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -43,7 +44,15 @@ namespace VisualPinball.Unity
 			}
 
 			foreach (var component in GetComponents<ICoilDeviceComponent>()) {
-				coil = player.Coil(component, CoilName);
+				var coilName = CoilName;
+				if (string.IsNullOrEmpty(coilName)) {
+					var availableCoils = component.AvailableCoils.ToArray();
+					if (availableCoils.Length != 1) {
+						continue;
+					}
+					coilName = availableCoils[0].Id;
+				}
+				coil = player.Coil(component, coilName);
 				if (coil != null) {
 					return true;
 				}
