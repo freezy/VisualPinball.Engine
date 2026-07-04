@@ -37,6 +37,7 @@ namespace VisualPinball.Unity.Simulation
 		private long _inputPerfWindowStartTicks = Stopwatch.GetTimestamp();
 		private int _inputEventsInWindow;
 		private float _actualEventRateHz;
+		private readonly List<NativeInputDeviceInfo> _deviceScratch = new();
 
 		// Input configuration
 		private readonly List<NativeInputApi.InputBinding> _bindings = new();
@@ -84,6 +85,7 @@ namespace VisualPinball.Unity.Simulation
 
 		public float TargetPollingHz => _polling && _pollIntervalUs > 0 ? 1000000f / _pollIntervalUs : 0f;
 		public float ActualEventRateHz => _polling ? Volatile.Read(ref _actualEventRateHz) : 0f;
+		public event Action<NativeInputApi.InputEvent> AxisInputReceived;
 
 		private NativeInputManager()
 		{
@@ -105,6 +107,19 @@ namespace VisualPinball.Unity.Simulation
 			if (result == 0)
 			{
 				Logger.Error($"{LogPrefix} [NativeInputManager] Failed to initialize native input system");
+				return false;
+			}
+
+			try {
+				var protocolVersion = NativeInputApi.VpeInputGetProtocolVersion();
+				if (protocolVersion != NativeInputApi.ProtocolVersion) {
+					Logger.Error($"{LogPrefix} [NativeInputManager] Native input protocol mismatch: managed={NativeInputApi.ProtocolVersion}, native={protocolVersion}");
+					NativeInputApi.VpeInputShutdown();
+					return false;
+				}
+			} catch (EntryPointNotFoundException) {
+				Logger.Error($"{LogPrefix} [NativeInputManager] Native input plugin is too old for protocol {NativeInputApi.ProtocolVersion}");
+				NativeInputApi.VpeInputShutdown();
 				return false;
 			}
 
@@ -166,6 +181,61 @@ namespace VisualPinball.Unity.Simulation
 		{
 			get => _appFocused;
 			set => _appFocused = value;
+		}
+
+		public IReadOnlyList<NativeInputDeviceInfo> ListDevices()
+		{
+			_deviceScratch.Clear();
+			if (!_initialized) {
+				return _deviceScratch;
+			}
+
+			var count = NativeInputApi.VpeInputListDevices(null, 0);
+			if (count <= 0) {
+				return _deviceScratch;
+			}
+
+			var devices = new NativeInputApi.InputDeviceInfo[count];
+			var copied = NativeInputApi.VpeInputListDevices(devices, devices.Length);
+			for (var i = 0; i < global::System.Math.Min(count, copied); i++) {
+				var axes = ListDeviceAxes(devices[i].DeviceIndex);
+				_deviceScratch.Add(new NativeInputDeviceInfo(
+					devices[i].DeviceIndex,
+					devices[i].StableId ?? string.Empty,
+					devices[i].DisplayName ?? string.Empty,
+					devices[i].IsConnected != 0,
+					axes
+				));
+			}
+			return _deviceScratch;
+		}
+
+		public IReadOnlyList<NativeInputAxisInfo> ListDeviceAxes(int deviceIndex)
+		{
+			if (!_initialized) {
+				return Array.Empty<NativeInputAxisInfo>();
+			}
+
+			var count = NativeInputApi.VpeInputListDeviceAxes(deviceIndex, null, 0);
+			if (count <= 0) {
+				return Array.Empty<NativeInputAxisInfo>();
+			}
+
+			var axes = new NativeInputApi.InputAxisInfo[count];
+			var copied = NativeInputApi.VpeInputListDeviceAxes(deviceIndex, axes, axes.Length);
+			var result = new NativeInputAxisInfo[global::System.Math.Min(count, copied)];
+			for (var i = 0; i < result.Length; i++) {
+				result[i] = new NativeInputAxisInfo(
+					axes[i].AxisId,
+					axes[i].Name ?? string.Empty,
+					axes[i].UsagePage,
+					axes[i].Usage,
+					(NativeInputApi.AxisKind)axes[i].Kind,
+					axes[i].RawValue,
+					axes[i].TimestampUsec
+				);
+			}
+			return result;
 		}
 
 		/// <summary>
@@ -317,10 +387,10 @@ namespace VisualPinball.Unity.Simulation
 		private static void OnInputEvent(ref NativeInputApi.InputEvent evt, IntPtr userData)
 		{
 			if (Interlocked.Exchange(ref _loggedFirstEvent, 1) == 0) {
-				Logger.Info($"{LogPrefix} [NativeInputManager] First event: Action={evt.Action}, Value={evt.Value}, Timestamp={evt.TimestampUsec}");
+				Logger.Info($"{LogPrefix} [NativeInputManager] First event: Type={evt.EventType}, Action={evt.Action}, Device={evt.DeviceIndex}, Axis={evt.AxisId}, Value={evt.Value}, Timestamp={evt.TimestampUsec}");
 			}
 			if (Logger.IsTraceEnabled) {
-				Logger.Trace($"{LogPrefix} [NativeInputManager] Received from native: Action={evt.Action}, Value={evt.Value}, Timestamp={evt.TimestampUsec}");
+				Logger.Trace($"{LogPrefix} [NativeInputManager] Received from native: Type={evt.EventType}, Action={evt.Action}, Device={evt.DeviceIndex}, Axis={evt.AxisId}, Value={evt.Value}, Timestamp={evt.TimestampUsec}");
 			}
 
 			// Drop input while the app window isn't focused, so background key presses don't reach the game.
@@ -328,9 +398,14 @@ namespace VisualPinball.Unity.Simulation
 				return;
 			}
 
-			// Forward to simulation thread via ring buffer
 			var instance = Volatile.Read(ref _instance);
 			instance?.MarkInputEventActivity();
+			if (evt.EventType == (int)NativeInputApi.InputEventType.Axis) {
+				instance?.AxisInputReceived?.Invoke(evt);
+				return;
+			}
+
+			// Forward action events to simulation thread via ring buffer.
 			instance?._simulationThread?.EnqueueInputEvent(evt);
 		}
 
@@ -372,5 +447,45 @@ namespace VisualPinball.Unity.Simulation
 		}
 
 		#endregion
+	}
+
+	public sealed class NativeInputDeviceInfo
+	{
+		public NativeInputDeviceInfo(int deviceIndex, string id, string name, bool isConnected, IReadOnlyList<NativeInputAxisInfo> axes)
+		{
+			DeviceIndex = deviceIndex;
+			Id = id;
+			Name = name;
+			IsConnected = isConnected;
+			Axes = axes;
+		}
+
+		public int DeviceIndex { get; }
+		public string Id { get; }
+		public string Name { get; }
+		public bool IsConnected { get; }
+		public IReadOnlyList<NativeInputAxisInfo> Axes { get; }
+	}
+
+	public readonly struct NativeInputAxisInfo
+	{
+		public NativeInputAxisInfo(int axisId, string name, int usagePage, int usage, NativeInputApi.AxisKind kind, float rawValue, long timestampUsec)
+		{
+			AxisId = axisId;
+			Name = name;
+			UsagePage = usagePage;
+			Usage = usage;
+			Kind = kind;
+			RawValue = rawValue;
+			TimestampUsec = timestampUsec;
+		}
+
+		public int AxisId { get; }
+		public string Name { get; }
+		public int UsagePage { get; }
+		public int Usage { get; }
+		public NativeInputApi.AxisKind Kind { get; }
+		public float RawValue { get; }
+		public long TimestampUsec { get; }
 	}
 }

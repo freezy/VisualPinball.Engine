@@ -467,6 +467,10 @@ namespace VisualPinball.Unity.Simulation
 
 			while (_inputBuffer.TryDequeue(out var evt))
 			{
+				if (evt.EventType != (int)NativeInputApi.InputEventType.Action) {
+					continue;
+				}
+
 				var actionIndex = evt.Action;
 				if ((uint)actionIndex >= (uint)_actionStates.Length) {
 					continue;
