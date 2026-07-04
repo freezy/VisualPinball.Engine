@@ -42,6 +42,23 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void MappingRoundTripsOptionalRawCenter()
+		{
+			var mapping = new SensorMapping {
+				DeviceId = "HID\\VID_1209&PID_EAEA",
+				AxisId = 1,
+				Kind = SensorMappingKind.Acceleration,
+				DeadZone = 0.02f,
+				Scale = 9.81f,
+				Limit = 1f,
+				RawCenter = -0.125f
+			};
+
+			Assert.That(SensorMapping.TryParse(mapping.ToString(), out var parsed), Is.True);
+			Assert.That(parsed.RawCenter, Is.EqualTo(mapping.RawCenter).Within(0.0001f));
+		}
+
+		[Test]
 		public void MappingRoundTripsWithSemicolonInDeviceId()
 		{
 			var mapping = new SensorMapping {
@@ -73,6 +90,23 @@ namespace VisualPinball.Unity.Test
 			Assert.That(mapping.ProcessRawValue(0.05f, 100), Is.EqualTo(0f));
 			Assert.That(mapping.ProcessRawValue(1f, 200), Is.EqualTo(5f));
 			Assert.That(mapping.RawTimestampUsec, Is.EqualTo(200));
+		}
+
+		[Test]
+		public void ProcessingSubtractsRawCenterBeforeDeadZone()
+		{
+			var mapping = new SensorMapping {
+				DeviceId = "device",
+				AxisId = 1,
+				Kind = SensorMappingKind.Acceleration,
+				DeadZone = 0.05f,
+				Scale = 10f,
+				Limit = 1f,
+				RawCenter = 0.2f
+			};
+
+			Assert.That(mapping.ProcessRawValue(0.22f, 100), Is.EqualTo(0f));
+			Assert.That(mapping.ProcessRawValue(0.65f, 200), Is.GreaterThan(0f));
 		}
 	}
 }

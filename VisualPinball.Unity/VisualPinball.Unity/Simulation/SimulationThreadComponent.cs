@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using NLog;
 using UnityEngine;
@@ -13,6 +14,137 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.Simulation
 {
+	[Serializable]
+	public sealed class SimulationThreadNudgeSensorConfig
+	{
+		public NudgeSensorType Type = NudgeSensorType.CabinetDirect;
+
+		[Range(0f, 2f)]
+		public float Strength = 1f;
+
+		[Range(0f, 200f)]
+		public float CabinetMassKg = 113f;
+
+		public string X = string.Empty;
+		public string Y = string.Empty;
+		public string AccelerationX = string.Empty;
+		public string AccelerationY = string.Empty;
+		public string VelocityX = string.Empty;
+		public string VelocityY = string.Empty;
+
+		public void Normalize()
+		{
+			Strength = Mathf.Clamp(Strength, 0f, 2f);
+			CabinetMassKg = Mathf.Clamp(CabinetMassKg <= 0f ? 113f : CabinetMassKg, 0f, 200f);
+			X ??= string.Empty;
+			Y ??= string.Empty;
+			AccelerationX ??= string.Empty;
+			AccelerationY ??= string.Empty;
+			VelocityX ??= string.Empty;
+			VelocityY ??= string.Empty;
+		}
+
+		public NudgeSensorConfig ToEngineConfig()
+		{
+			Normalize();
+			return new NudgeSensorConfig {
+				Type = Type,
+				Strength = Strength,
+				CabinetMassKg = CabinetMassKg,
+				X = ParseMapping(X),
+				Y = ParseMapping(Y),
+				AccelerationX = ParseMapping(AccelerationX),
+				AccelerationY = ParseMapping(AccelerationY),
+				VelocityX = ParseMapping(VelocityX),
+				VelocityY = ParseMapping(VelocityY)
+			};
+		}
+
+		public int CalibrateRawCenters(IReadOnlyList<NativeInputDeviceInfo> devices)
+		{
+			var count = 0;
+			count += CalibrateRawCenter(ref X, devices);
+			count += CalibrateRawCenter(ref Y, devices);
+			count += CalibrateRawCenter(ref AccelerationX, devices);
+			count += CalibrateRawCenter(ref AccelerationY, devices);
+			count += CalibrateRawCenter(ref VelocityX, devices);
+			count += CalibrateRawCenter(ref VelocityY, devices);
+			return count;
+		}
+
+		public void ResetRawCenters()
+		{
+			ResetRawCenter(ref X);
+			ResetRawCenter(ref Y);
+			ResetRawCenter(ref AccelerationX);
+			ResetRawCenter(ref AccelerationY);
+			ResetRawCenter(ref VelocityX);
+			ResetRawCenter(ref VelocityY);
+		}
+
+		internal static string BuildMapping(NativeInputDeviceInfo device, NativeInputAxisInfo axis,
+			SensorMappingKind kind, float scale, float rawCenter)
+		{
+			return new SensorMapping {
+				DeviceId = device.Id,
+				AxisId = axis.AxisId,
+				Kind = kind,
+				DeadZone = 0.02f,
+				Scale = scale,
+				Limit = 1f,
+				RawCenter = rawCenter
+			}.ToString();
+		}
+
+		private static SensorMapping ParseMapping(string value)
+		{
+			return SensorMapping.TryParse(value, out var mapping) ? mapping : new SensorMapping();
+		}
+
+		private static int CalibrateRawCenter(ref string value, IReadOnlyList<NativeInputDeviceInfo> devices)
+		{
+			if (!SensorMapping.TryParse(value, out var mapping)) {
+				return 0;
+			}
+			if (!TryFindAxis(devices, mapping.DeviceId, mapping.AxisId, out var axis)) {
+				return 0;
+			}
+			mapping.RawCenter = axis.RawValue;
+			value = mapping.ToString();
+			return 1;
+		}
+
+		private static void ResetRawCenter(ref string value)
+		{
+			if (!SensorMapping.TryParse(value, out var mapping)) {
+				return;
+			}
+			mapping.RawCenter = 0f;
+			value = mapping.ToString();
+		}
+
+		private static bool TryFindAxis(IReadOnlyList<NativeInputDeviceInfo> devices, string deviceId, int axisId,
+			out NativeInputAxisInfo axis)
+		{
+			if (devices != null) {
+				for (var i = 0; i < devices.Count; i++) {
+					var device = devices[i];
+					if (device.Id != deviceId || device.Axes == null) {
+						continue;
+					}
+					for (var j = 0; j < device.Axes.Count; j++) {
+						if (device.Axes[j].AxisId == axisId) {
+							axis = device.Axes[j];
+							return true;
+						}
+					}
+				}
+			}
+			axis = default;
+			return false;
+		}
+	}
+
 	/// <summary>
 	/// Unity component that manages the high-performance simulation thread.
 	/// Add this to your table GameObject to enable sub-millisecond input latency.
@@ -63,6 +195,10 @@ namespace VisualPinball.Unity.Simulation
 		[Range(100, 2000)]
 		public int InputPollingIntervalUs = 500;
 
+		[Header("Nudge Sensors")]
+		[Tooltip("Default analog nudge sensor mappings used by editor/direct play mode. The player app can still override these from its user config.")]
+		public List<SimulationThreadNudgeSensorConfig> NudgeSensors = new();
+
 		[Header("Debug")]
 		[Tooltip("Show simulation statistics in console")]
 		public bool ShowStatistics = false;
@@ -91,6 +227,7 @@ namespace VisualPinball.Unity.Simulation
 		public float SimulationThreadHz => _simulationThreadHz;
 		public float InputThreadTargetHz => _inputManager?.TargetPollingHz ?? 0f;
 		public float InputThreadActualHz => _inputManager?.ActualEventRateHz ?? 0f;
+		public bool IsRunning => _started;
 
 		#endregion
 
@@ -198,6 +335,7 @@ namespace VisualPinball.Unity.Simulation
 				// Enable external timing on PhysicsEngine
 				// This disables Unity's Update() loop and gives control to the simulation thread
 				_physicsEngine.SetExternalTiming(true);
+				ApplyNudgeSensorSettings();
 
 				// Create simulation thread
 				_simulationThread = new SimulationThread(_physicsEngine, _gamelogicEngine,
@@ -305,6 +443,102 @@ namespace VisualPinball.Unity.Simulation
 		/// </summary>
 		public float SampleInputLatencyMs() => InputLatencyTracker.SampleFlipperLatencyMs(false);
 
+		public IReadOnlyList<NativeInputDeviceInfo> ListNudgeInputDevices()
+		{
+			var inputManager = _inputManager ?? NativeInputManager.TryGetExistingInstance();
+			return inputManager == null ? Array.Empty<NativeInputDeviceInfo>() : inputManager.ListDevices();
+		}
+
+		public void ApplyNudgeSensorSettings()
+		{
+			if (_physicsEngine == null) {
+				_physicsEngine = GetComponent<PhysicsEngine>();
+			}
+			if (_physicsEngine == null) {
+				return;
+			}
+
+			NudgeSensors ??= new List<SimulationThreadNudgeSensorConfig>();
+			if (NudgeSensors.Count > NudgeState.MaxSensors) {
+				NudgeSensors.RemoveRange(NudgeState.MaxSensors, NudgeSensors.Count - NudgeState.MaxSensors);
+			}
+
+			var configs = new List<NudgeSensorConfig>(NudgeSensors.Count);
+			for (var i = 0; i < NudgeSensors.Count; i++) {
+				NudgeSensors[i] ??= new SimulationThreadNudgeSensorConfig();
+				configs.Add(NudgeSensors[i].ToEngineConfig());
+			}
+			_physicsEngine.ConfigureNudgeSensors(configs);
+		}
+
+		public int CalibrateNudgeSensorCenters()
+		{
+			var devices = ListNudgeInputDevices();
+			var calibrated = 0;
+			if (NudgeSensors != null) {
+				foreach (var sensor in NudgeSensors) {
+					calibrated += sensor?.CalibrateRawCenters(devices) ?? 0;
+				}
+			}
+			if (calibrated > 0) {
+				ApplyNudgeSensorSettings();
+			}
+			return calibrated;
+		}
+
+		public int ResetNudgeSensorCenters()
+		{
+			var reset = 0;
+			if (NudgeSensors != null) {
+				foreach (var sensor in NudgeSensors) {
+					if (sensor == null) {
+						continue;
+					}
+					sensor.ResetRawCenters();
+					reset++;
+				}
+			}
+			if (reset > 0) {
+				ApplyNudgeSensorSettings();
+			}
+			return reset;
+		}
+
+		public bool TryAutoConfigureFirstCabinetSensor(out string message)
+		{
+			var devices = ListNudgeInputDevices();
+			for (var i = 0; i < devices.Count; i++) {
+				var device = devices[i];
+				if (!device.IsConnected || device.Axes == null) {
+					continue;
+				}
+				if (TryPickAxisPair(device, out var xAxis, out var yAxis)) {
+					NudgeSensors ??= new List<SimulationThreadNudgeSensorConfig>();
+					var sensor = new SimulationThreadNudgeSensorConfig {
+						Type = NudgeSensorType.CabinetDirect,
+						Strength = 1f,
+						CabinetMassKg = 113f,
+						AccelerationX = SimulationThreadNudgeSensorConfig.BuildMapping(device, xAxis,
+							SensorMappingKind.Acceleration, 9.81f, xAxis.RawValue),
+						AccelerationY = SimulationThreadNudgeSensorConfig.BuildMapping(device, yAxis,
+							SensorMappingKind.Acceleration, 9.81f, yAxis.RawValue)
+					};
+					if (NudgeSensors.Count == 0) {
+						NudgeSensors.Add(sensor);
+					} else {
+						NudgeSensors[0] = sensor;
+					}
+					ApplyNudgeSensorSettings();
+					var deviceName = string.IsNullOrEmpty(device.Name) ? device.Id : device.Name;
+					message = $"Mapped {deviceName} axes {xAxis.AxisId}/{yAxis.AxisId}.";
+					return true;
+				}
+			}
+
+			message = "No connected input device with two usable axes was found.";
+			return false;
+		}
+
 		internal bool EnqueueSwitchFromMainThread(string switchId, bool isClosed)
 		{
 			if (!_started || _simulationThread == null) {
@@ -360,6 +594,43 @@ namespace VisualPinball.Unity.Simulation
 		}
 
 		private static long TimestampUsec => (Stopwatch.GetTimestamp() * 1_000_000L) / Stopwatch.Frequency;
+
+		private static bool TryPickAxisPair(NativeInputDeviceInfo device, out NativeInputAxisInfo xAxis,
+			out NativeInputAxisInfo yAxis)
+		{
+			xAxis = default;
+			yAxis = default;
+			var xSet = false;
+			var ySet = false;
+			for (var i = 0; i < device.Axes.Count; i++) {
+				var axis = device.Axes[i];
+				if (axis.Kind != NativeInputApi.AxisKind.Acceleration) {
+					continue;
+				}
+				if (!xSet) {
+					xAxis = axis;
+					xSet = true;
+				} else {
+					yAxis = axis;
+					ySet = true;
+					return true;
+				}
+			}
+
+			for (var i = 0; i < device.Axes.Count; i++) {
+				var axis = device.Axes[i];
+				if (!xSet) {
+					xAxis = axis;
+					xSet = true;
+				} else {
+					yAxis = axis;
+					ySet = true;
+					break;
+				}
+			}
+
+			return xSet && ySet;
+		}
 
 		private void UpdateSimulationSpeed(in SimulationState.Snapshot state)
 		{

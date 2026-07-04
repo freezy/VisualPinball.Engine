@@ -35,6 +35,7 @@ namespace VisualPinball.Unity
 		public float DeadZone { get; set; }
 		public float Scale { get; set; } = 1f;
 		public float Limit { get; set; } = 1f;
+		public float RawCenter { get; set; }
 		public float RawValue { get; private set; }
 		public float MappedValue { get; private set; }
 		public long RawTimestampUsec { get; private set; }
@@ -47,7 +48,7 @@ namespace VisualPinball.Unity
 			RawTimestampUsec = timestampUsec;
 
 			var deadZone = math.clamp(DeadZone, 0f, 0.999f);
-			var value = RawValue;
+			var value = math.clamp(RawValue - RawCenter, -1f, 1f);
 			var absValue = math.abs(value);
 			if (absValue <= deadZone) {
 				value = 0f;
@@ -69,7 +70,7 @@ namespace VisualPinball.Unity
 				return string.Empty;
 			}
 
-			return string.Join(";",
+			var value = string.Join(";",
 				DeviceId,
 				AxisId.ToString(CultureInfo.InvariantCulture),
 				KindToCode(Kind),
@@ -77,6 +78,10 @@ namespace VisualPinball.Unity
 				Scale.ToString(CultureInfo.InvariantCulture),
 				Limit.ToString(CultureInfo.InvariantCulture)
 			);
+			if (math.abs(RawCenter) > 1.0e-6f) {
+				value += ";" + RawCenter.ToString(CultureInfo.InvariantCulture);
+			}
+			return value;
 		}
 
 		public static bool TryParse(string value, out SensorMapping mapping)
@@ -91,11 +96,27 @@ namespace VisualPinball.Unity
 				return false;
 			}
 
+			if (TryParseParts(parts, 6, out mapping)) {
+				return mapping.IsMapped;
+			}
+			if (TryParseParts(parts, 5, out mapping)) {
+				return mapping.IsMapped;
+			}
+			mapping = new SensorMapping();
+			return false;
+		}
+
+		private static bool TryParseParts(string[] parts, int trailingValueCount, out SensorMapping mapping)
+		{
+			mapping = new SensorMapping();
+
 			// The device id is a free-form native path that may itself contain ';';
-			// the five trailing fields never do, so parse from the end and re-join
-			// whatever precedes them.
-			var p = parts.Length - 5;
-			var deviceId = parts.Length == 6 ? parts[0] : string.Join(";", parts, 0, p);
+			// the trailing fields never do, so parse from the end and re-join whatever precedes them.
+			var p = parts.Length - trailingValueCount;
+			if (p <= 0) {
+				return false;
+			}
+			var deviceId = p == 1 ? parts[0] : string.Join(";", parts, 0, p);
 
 			if (!int.TryParse(parts[p], NumberStyles.Integer, CultureInfo.InvariantCulture, out var axisId)) {
 				return false;
@@ -112,6 +133,11 @@ namespace VisualPinball.Unity
 			if (!float.TryParse(parts[p + 4], NumberStyles.Float, CultureInfo.InvariantCulture, out var limit)) {
 				return false;
 			}
+			var rawCenter = 0f;
+			if (trailingValueCount > 5 &&
+			    !float.TryParse(parts[p + 5], NumberStyles.Float, CultureInfo.InvariantCulture, out rawCenter)) {
+				return false;
+			}
 
 			mapping.DeviceId = deviceId;
 			mapping.AxisId = axisId;
@@ -119,7 +145,8 @@ namespace VisualPinball.Unity
 			mapping.DeadZone = math.clamp(deadZone, 0f, 0.999f);
 			mapping.Scale = scale;
 			mapping.Limit = math.max(0f, limit);
-			return mapping.IsMapped;
+			mapping.RawCenter = math.clamp(rawCenter, -1f, 1f);
+			return true;
 		}
 
 		private static string KindToCode(SensorMappingKind kind)
