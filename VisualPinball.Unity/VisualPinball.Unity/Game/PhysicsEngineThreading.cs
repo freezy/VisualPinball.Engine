@@ -382,6 +382,14 @@ namespace VisualPinball.Unity
 		/// Zero the velocity of a kinematic item that stopped moving, keeping
 		/// its pivot so a later update derives from a valid baseline.
 		/// </summary>
+		/// <remarks>
+		/// The step velocities are deliberately left untouched: the pose may
+		/// still be catching up to its target, and while it does, the collider
+		/// really is still moving — <see cref="PhysicsKinematics.StepKinematics"/>
+		/// re-derives them from the actual step each tick (they carry the
+		/// catch-up pace and keep hit tests honest) and zeroes them the tick
+		/// the pose settles, before any hit test runs.
+		/// </remarks>
 		private void StopKinematicVelocity(int itemId, ulong nowUsec)
 		{
 			if (_ctx.KinematicVelocities.Ref.TryGetValue(itemId, out var velocity)) {
