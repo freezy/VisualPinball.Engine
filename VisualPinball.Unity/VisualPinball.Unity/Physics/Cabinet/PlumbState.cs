@@ -72,7 +72,22 @@ namespace VisualPinball.Unity
 
 		public void Configure(bool enabled, float damping, float tiltThresholdDeg)
 		{
-			this = new PlumbState(enabled, damping, tiltThresholdDeg);
+			// Runtime reconfiguration must not teleport the pendulum or lose the
+			// script-visible state (the reference setters preserve it too).
+			_enabled = enabled ? (byte)1 : (byte)0;
+			TiltThresholdRad = math.radians(math.clamp(tiltThresholdDeg, 0.5f, 4f));
+			_angularDamping0 = DampingCoef0 * math.clamp(damping, 0f, 2f);
+			_angularDamping1 = DampingCoef1 * math.clamp(damping, 0f, 2f);
+
+			// If the tilt switch is currently closed and the plumb no longer steps
+			// (disabled) or the threshold moved past the bob, emit a release edge so
+			// the consumer side doesn't stay stuck on "tilted".
+			if (TiltHigh && !enabled) {
+				TiltHigh = false;
+				if (PendingTiltStates.Length < PendingTiltStates.Capacity) {
+					PendingTiltStates.Add(0);
+				}
+			}
 		}
 
 		public void StepOneMillisecond(float2 cabinetAcceleration)

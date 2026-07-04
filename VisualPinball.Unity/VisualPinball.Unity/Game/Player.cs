@@ -98,7 +98,16 @@ namespace VisualPinball.Unity
 		[NonSerialized] private InputManager _inputManager;
 		[NonSerialized] private readonly List<(InputAction, Action<InputAction.CallbackContext>)> _actions = new();
 		[NonSerialized] private readonly System.Random _nudgeRandom = new System.Random();
-		[NonSerialized] private int _lastObservedKeyboardNudgeIndex;
+
+		// Default-keyboard-nudge suppression (Unity input path only): the nudge counter is
+		// snapshotted before each input-system update, i.e. before any action callback (and
+		// therefore any synchronous gamelogic reaction) of that update ran. Nudge key presses
+		// are recorded with that snapshot and evaluated in Update(), after all callbacks ran:
+		// if gamelogic called Nudge() in reaction to the key, the counter moved and the
+		// default nudge is suppressed — mirroring the tight bracket of the reference and of
+		// the simulation-thread path.
+		[NonSerialized] private int _nudgeIndexAtInputUpdateStart;
+		[NonSerialized] private readonly List<(string ActionName, int IndexBefore)> _pendingDefaultNudges = new();
 
 		// players
 		[NonSerialized] private readonly LampPlayer _lampPlayer = new();
@@ -229,6 +238,7 @@ namespace VisualPinball.Unity
 			_lampPlayer.OnStart();
 			_wirePlayer.OnStart();
 			_inputManager.Enable(HandleInput);
+			InputSystem.onBeforeUpdate += OnBeforeInputUpdate;
 
 			_gamelogicEngineInitCts = new CancellationTokenSource();
 			try {
@@ -239,6 +249,15 @@ namespace VisualPinball.Unity
 
 		private void Update()
 		{
+			if (_pendingDefaultNudges.Count > 0) {
+				foreach (var (actionName, indexBefore) in _pendingDefaultNudges) {
+					if (PhysicsEngine.KeyboardNudgeIndex == indexBefore) {
+						ApplyDefaultKeyboardNudge(actionName);
+					}
+				}
+				_pendingDefaultNudges.Clear();
+			}
+
 			OnUpdate?.Invoke(this, EventArgs.Empty);
 		}
 
@@ -251,6 +270,7 @@ namespace VisualPinball.Unity
 				i.OnDestroy();
 			}
 
+			InputSystem.onBeforeUpdate -= OnBeforeInputUpdate;
 			_inputManager.Disable(HandleInput);
 			_coilPlayer.OnDestroy();
 			_switchPlayer.OnDestroy();
@@ -532,11 +552,14 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			var currentNudgeIndex = PhysicsEngine.KeyboardNudgeIndex;
-			if (currentNudgeIndex == _lastObservedKeyboardNudgeIndex) {
-				ApplyDefaultKeyboardNudge(actionName);
+			_pendingDefaultNudges.Add((actionName, _nudgeIndexAtInputUpdateStart));
+		}
+
+		private void OnBeforeInputUpdate()
+		{
+			if (PhysicsEngine != null) {
+				_nudgeIndexAtInputUpdateStart = PhysicsEngine.KeyboardNudgeIndex;
 			}
-			_lastObservedKeyboardNudgeIndex = PhysicsEngine.KeyboardNudgeIndex;
 		}
 
 		private void ApplyDefaultKeyboardNudge(string actionName)

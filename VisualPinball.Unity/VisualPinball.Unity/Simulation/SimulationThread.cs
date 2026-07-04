@@ -258,12 +258,35 @@ namespace VisualPinball.Unity.Simulation
 		public SimulationState SharedState => _sharedState;
 
 		/// <summary>
+		/// Dispatches a plumb tilt state change on the main thread, driving switch
+		/// status, key wires and (via the external switch queue) the gamelogic
+		/// engine — the same route the single-threaded mode takes. Set by
+		/// <see cref="SimulationThreadComponent"/>; when null, tilt falls back to a
+		/// direct GLE switch dispatch on the simulation thread.
+		/// </summary>
+		public Action<bool> MainThreadTiltDispatcher { get; set; }
+
+		private readonly Queue<bool> _mainThreadTiltStates = new();
+		private readonly object _mainThreadTiltLock = new();
+
+		/// <summary>
 		/// Flush any queued main-thread input dispatches.
 		/// </summary>
 		/// <remarks><b>Thread:</b> Main thread only.</remarks>
 		public void FlushMainThreadInputDispatch()
 		{
 			_inputDispatcher.FlushMainThread();
+
+			while (true) {
+				bool tiltState;
+				lock (_mainThreadTiltLock) {
+					if (_mainThreadTiltStates.Count == 0) {
+						break;
+					}
+					tiltState = _mainThreadTiltStates.Dequeue();
+				}
+				MainThreadTiltDispatcher?.Invoke(tiltState);
+			}
 		}
 
 		/// <summary>
@@ -486,13 +509,24 @@ namespace VisualPinball.Unity.Simulation
 
 				InputLatencyTracker.RecordInputPolled((NativeInputApi.InputAction)actionIndex, isPressed, evt.TimestampUsec);
 
-				var nudgeIndexBeforeSwitchDispatch = _physicsEngine.KeyboardNudgeIndex;
-
 				// Only forward to GLE once it's ready (or at least has started)
 				if (_gamelogicEngine != null && _gamelogicStarted) {
-					SendMappedSwitch(actionIndex, isPressed);
-				}
-				if (isPressed && IsNudgeAction(actionIndex) && nudgeIndexBeforeSwitchDispatch == _physicsEngine.KeyboardNudgeIndex) {
+					if (isPressed && IsNudgeAction(actionIndex)) {
+						// The default nudge is suppressed when the gamelogic reacted to the
+						// key by nudging itself. For main-thread-dispatched GLEs the switch
+						// is only queued here, so the decision must run after the main
+						// thread actually delivered it — hence the after-dispatch callback.
+						var nudgeIndexBeforeSwitchDispatch = _physicsEngine.KeyboardNudgeIndex;
+						var nudgeActionIndex = actionIndex;
+						SendMappedSwitch(actionIndex, isPressed, () => {
+							if (nudgeIndexBeforeSwitchDispatch == _physicsEngine.KeyboardNudgeIndex) {
+								ApplyDefaultKeyboardNudge(nudgeActionIndex);
+							}
+						});
+					} else {
+						SendMappedSwitch(actionIndex, isPressed);
+					}
+				} else if (isPressed && IsNudgeAction(actionIndex)) {
 					ApplyDefaultKeyboardNudge(actionIndex);
 				}
 				_inputEventsProcessed++;
@@ -536,13 +570,16 @@ namespace VisualPinball.Unity.Simulation
 			}
 		}
 
-		private void SendMappedSwitch(int actionIndex, bool isPressed)
+		private void SendMappedSwitch(int actionIndex, bool isPressed, Action afterDispatch = null)
 		{
 			if ((uint)actionIndex >= (uint)_actionToSwitchId.Length) {
+				afterDispatch?.Invoke();
 				return;
 			}
 			var switchId = _actionToSwitchId[actionIndex];
 			if (switchId == null) {
+				// No switch mapped: the GLE never sees the action, run the follow-up now.
+				afterDispatch?.Invoke();
 				return;
 			}
 
@@ -550,6 +587,7 @@ namespace VisualPinball.Unity.Simulation
 			if (_actionToggleOnPress[actionIndex]) {
 				// VP-style coin door behavior toggles only on key-down.
 				if (!isPressed) {
+					afterDispatch?.Invoke();
 					return;
 				}
 				isClosed = !_actionSwitchStates[actionIndex];
@@ -573,7 +611,12 @@ namespace VisualPinball.Unity.Simulation
 					Logger.Info($"{LogPrefix} [SimulationThread] Input RightFlipper -> Switch({switchId}, True)");
 				}
 			}
-			_inputDispatcher.DispatchSwitch(switchId, isClosed);
+			if (afterDispatch != null && _inputDispatcher is MainThreadQueuedInputDispatcher queuedDispatcher) {
+				queuedDispatcher.DispatchSwitch(switchId, isClosed, afterDispatch);
+			} else {
+				_inputDispatcher.DispatchSwitch(switchId, isClosed);
+				afterDispatch?.Invoke();
+			}
 		}
 
 		private static bool IsFlipperAction(int actionIndex)
@@ -830,7 +873,14 @@ namespace VisualPinball.Unity.Simulation
 			for (var i = 0; i < _pendingPlumbTiltEvents.Count; i++) {
 				var isPressed = _pendingPlumbTiltEvents[i];
 				_actionStates[tiltActionIndex] = isPressed;
-				if (_gamelogicEngine != null && _gamelogicStarted) {
+				if (MainThreadTiltDispatcher != null) {
+					// Route through the main thread so switch status and key wires
+					// update too; the GLE still receives the switch via the external
+					// switch queue, like in single-threaded mode.
+					lock (_mainThreadTiltLock) {
+						_mainThreadTiltStates.Enqueue(isPressed);
+					}
+				} else if (_gamelogicEngine != null && _gamelogicStarted) {
 					SendMappedSwitch(tiltActionIndex, isPressed);
 				}
 			}

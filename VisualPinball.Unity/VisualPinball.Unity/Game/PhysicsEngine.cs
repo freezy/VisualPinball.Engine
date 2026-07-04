@@ -186,8 +186,12 @@ namespace VisualPinball.Unity
 		[NonSerialized] private readonly HashSet<string> _unsafeLiveStateAccessWarnings = new HashSet<string>();
 		[NonSerialized] private bool _inputActionsQueueWarningIssued;
 		[NonSerialized] private bool _scheduledActionsQueueWarningIssued;
+		[NonSerialized] private bool _pendingNudgeQueueWarningIssued;
+		[NonSerialized] private bool _pendingSensorSampleQueueWarningIssued;
 
 		private const int InputActionsQueueWarningThreshold = 256;
+		private const int PendingNudgeQueueCap = 64;
+		private const int PendingSensorSampleQueueCap = 8192; // ~5s of a 4-channel sensor at full USB rate
 		private const int ScheduledActionsWarningThreshold = 256;
 
 		#endregion
@@ -299,6 +303,13 @@ namespace VisualPinball.Unity
 		{
 			Interlocked.Increment(ref _keyboardNudgeIndex);
 			lock (_ctx.PendingKeyboardNudgesLock) {
+				if (_ctx.PendingKeyboardNudges.Count >= PendingNudgeQueueCap) {
+					if (!_pendingNudgeQueueWarningIssued) {
+						_pendingNudgeQueueWarningIssued = true;
+						LogQueueWarning($"[PhysicsEngine] PendingKeyboardNudges backlog reached {_ctx.PendingKeyboardNudges.Count} items, dropping. Is the drain stalled?");
+					}
+					return;
+				}
 				_ctx.PendingKeyboardNudges.Enqueue(new KeyboardNudgeCommand(angleDeg, force));
 			}
 		}
@@ -385,6 +396,15 @@ namespace VisualPinball.Unity
 		internal void EnqueueNudgeSensorSample(int sensorIndex, NudgeSensorChannel channel, float value, ulong timestampUsec)
 		{
 			lock (_ctx.PendingNudgeSensorSamplesLock) {
+				if (_ctx.PendingNudgeSensorSamples.Count >= PendingSensorSampleQueueCap) {
+					// A stalled drain (pause, breakpoint) must not let a streaming
+					// accelerometer grow the queue without bound; new samples win.
+					_ctx.PendingNudgeSensorSamples.Dequeue();
+					if (!_pendingSensorSampleQueueWarningIssued) {
+						_pendingSensorSampleQueueWarningIssued = true;
+						LogQueueWarning($"[PhysicsEngine] PendingNudgeSensorSamples backlog reached {PendingSensorSampleQueueCap} items, dropping oldest. Is the drain stalled?");
+					}
+				}
 				_ctx.PendingNudgeSensorSamples.Enqueue(new NudgeSensorSampleCommand(sensorIndex, channel, value, timestampUsec));
 			}
 		}
@@ -911,6 +931,13 @@ namespace VisualPinball.Unity
 
 			// Mark as initialized for simulation thread
 			_ctx.IsInitialized = true;
+
+			// Awake built PhysicsEnv from the serialized defaults; settings applied
+			// between Awake and Start (the player app pushes persisted config right
+			// after table activation) only reached the component fields because the
+			// Configure methods bail out while uninitialized. Push them now.
+			ConfigureKeyboardNudge(KeyboardNudgeMode, KeyboardNudgeStrength);
+			ConfigurePlumb(SimulatedPlumb, PlumbDamping, PlumbThresholdAngle);
 		}
 
 		internal PhysicsState CreateState() => _ctx.CreateState();
