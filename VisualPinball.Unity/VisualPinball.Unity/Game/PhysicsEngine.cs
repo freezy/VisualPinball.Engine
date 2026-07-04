@@ -696,8 +696,9 @@ namespace VisualPinball.Unity
 
 			if (_ctx.UseExternalTiming) {
 				lock (_ctx.PhysicsLock) {
-					if (_ctx.BallStates.Ref.IsCreated && !_ctx.BallStates.Ref.ContainsKey(ballId)) {
-						_ctx.BallStates.Ref[ballId] = ballState;
+					ref var ballStates = ref _ctx.BallStates.Ref;
+					if (!ballStates.ContainsKey(ballId)) {
+						ballStates[ballId] = ballState;
 					}
 				}
 				return;
