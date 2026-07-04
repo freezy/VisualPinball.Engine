@@ -197,6 +197,36 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void StrongerActiveSensorTakesOverFromStaleSensor()
+		{
+			var nudge = new NudgeState(KeyboardNudgeMode.CabModel, 1f, 5f);
+			nudge.ConfigureSensor(0, new NudgeSensorRuntimeConfig {
+				Type = NudgeSensorType.CabinetDirect,
+				Strength = 1f,
+				CabinetMassKg = 113f,
+				AccelerationYMapped = 1
+			});
+			nudge.ConfigureSensor(1, new NudgeSensorRuntimeConfig {
+				Type = NudgeSensorType.CabinetDirect,
+				Strength = 1f,
+				CabinetMassKg = 113f,
+				AccelerationYMapped = 1
+			});
+
+			nudge.ApplySensorSample(0, NudgeSensorChannel.AccelerationY, -1f, 1000);
+			for (var i = 0; i < 5; i++) {
+				nudge.StepOneMillisecond();
+			}
+
+			nudge.ApplySensorSample(1, NudgeSensorChannel.AccelerationY, -12f, 2000);
+			for (var i = 0; i < 5; i++) {
+				nudge.StepOneMillisecond();
+			}
+
+			Assert.That(nudge.ActiveSourceIndex, Is.EqualTo(1));
+		}
+
+		[Test]
 		public void DirectCabinetSensorStrengthScalesLinearly()
 		{
 			// The reference applies the strength scale twice (upstream bug); VPE

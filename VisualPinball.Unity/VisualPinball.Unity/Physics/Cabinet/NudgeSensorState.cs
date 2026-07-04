@@ -381,6 +381,7 @@ namespace VisualPinball.Unity
 		public CabinetSensorState Cabinet;
 		public float2 CabinetAcceleration;
 		public float2 CabinetOffset;
+		public ulong LastActivityTimestampUsec;
 
 		public bool IsEnabled => Enabled != 0;
 		public bool IsActive => IsEnabled && (Type == NudgeSensorType.GamepadIntent ? Gamepad.IsActive : Cabinet.IsActive);
@@ -406,6 +407,7 @@ namespace VisualPinball.Unity
 				accXMapped, accYMapped);
 			CabinetAcceleration = float2.zero;
 			CabinetOffset = float2.zero;
+			LastActivityTimestampUsec = 0;
 		}
 
 		public void Disable()
@@ -413,6 +415,7 @@ namespace VisualPinball.Unity
 			Enabled = 0;
 			CabinetAcceleration = float2.zero;
 			CabinetOffset = float2.zero;
+			LastActivityTimestampUsec = 0;
 		}
 
 		public void ApplySample(NudgeSensorChannel channel, float value, ulong timestampUsec)
@@ -421,6 +424,9 @@ namespace VisualPinball.Unity
 				return;
 			}
 			NudgeSensorMountTransform.TransformChannel(ref channel, ref value, MountRotation, MountMirror != 0);
+			if (math.abs(value) > 1.0e-6f && timestampUsec > LastActivityTimestampUsec) {
+				LastActivityTimestampUsec = timestampUsec;
+			}
 			if (Type == NudgeSensorType.GamepadIntent) {
 				Gamepad.ApplySample(channel, value, timestampUsec);
 			} else {

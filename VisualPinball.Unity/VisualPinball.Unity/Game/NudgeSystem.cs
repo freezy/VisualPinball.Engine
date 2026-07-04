@@ -125,7 +125,17 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal void DetachNativeInputManager()
+		internal void DetachNativeInputManager(NativeInputManager inputManager)
+		{
+			var attachedInputManager = _inputManager;
+			if (attachedInputManager == null || attachedInputManager != inputManager) {
+				return;
+			}
+
+			DetachNativeInputManager();
+		}
+
+		private void DetachNativeInputManager()
 		{
 			if (_inputManager != null) {
 				_inputManager.AxisInputReceived -= OnAxisInputReceived;

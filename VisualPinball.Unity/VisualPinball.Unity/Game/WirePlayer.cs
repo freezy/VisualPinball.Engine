@@ -20,6 +20,7 @@ using System.Linq;
 using NLog;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using VisualPinball.Unity.Simulation;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
@@ -255,6 +256,10 @@ namespace VisualPinball.Unity
 
 		private void HandleKeyInput(object obj, InputActionChange change)
 		{
+			if (NativeInputManager.TryGetExistingInstance()?.IsPolling == true) {
+				return;
+			}
+
 			switch (change) {
 				case InputActionChange.ActionStarted:
 				case InputActionChange.ActionCanceled:
