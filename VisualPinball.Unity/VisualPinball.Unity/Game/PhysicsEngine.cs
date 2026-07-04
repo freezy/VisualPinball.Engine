@@ -428,7 +428,7 @@ namespace VisualPinball.Unity
 
 		internal void DetachNativeInputManager(NativeInputManager inputManager)
 		{
-			_nudgeSystem?.DetachNativeInputManager();
+			_nudgeSystem?.DetachNativeInputManager(inputManager);
 		}
 
 		public void NudgeSensorStatus(out float x, out float y)

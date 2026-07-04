@@ -44,11 +44,11 @@ namespace VisualPinball.Unity
 
 		public float ProcessRawValue(float rawValue, long timestampUsec)
 		{
-			RawValue = math.clamp(rawValue, -1f, 1f);
+			RawValue = rawValue;
 			RawTimestampUsec = timestampUsec;
 
 			var deadZone = math.clamp(DeadZone, 0f, 0.999f);
-			var value = math.clamp(RawValue - RawCenter, -1f, 1f);
+			var value = RawValue - RawCenter;
 			var absValue = math.abs(value);
 			if (absValue <= deadZone) {
 				value = 0f;
@@ -145,7 +145,7 @@ namespace VisualPinball.Unity
 			mapping.DeadZone = math.clamp(deadZone, 0f, 0.999f);
 			mapping.Scale = scale;
 			mapping.Limit = math.max(0f, limit);
-			mapping.RawCenter = math.clamp(rawCenter, -1f, 1f);
+			mapping.RawCenter = rawCenter;
 			return true;
 		}
 

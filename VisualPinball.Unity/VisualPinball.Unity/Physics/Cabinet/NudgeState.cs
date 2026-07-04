@@ -165,18 +165,37 @@ namespace VisualPinball.Unity
 
 		private bool TryGetActiveSensor(out int index, out NudgeSensorState sensor)
 		{
+			var bestScore = -1f;
+			var bestActivityTimestampUsec = 0UL;
+			index = -2;
+			sensor = default;
+
 			for (var i = 0; i < SensorCount; i++) {
 				var candidate = GetSensor(i);
 				if (!candidate.IsActive) {
 					continue;
 				}
+				var score = SensorActivityScore(candidate);
+				if (index >= 0) {
+					if (candidate.LastActivityTimestampUsec < bestActivityTimestampUsec) {
+						continue;
+					}
+					if (candidate.LastActivityTimestampUsec == bestActivityTimestampUsec && score <= bestScore) {
+						continue;
+					}
+				}
+				bestScore = score;
+				bestActivityTimestampUsec = candidate.LastActivityTimestampUsec;
 				index = i;
 				sensor = candidate;
-				return true;
 			}
-			index = -2;
-			sensor = default;
-			return false;
+			return index >= 0;
+		}
+
+		private static float SensorActivityScore(NudgeSensorState sensor)
+		{
+			var accelerationScore = math.lengthsq(sensor.CabinetAcceleration);
+			return accelerationScore > 1.0e-9f ? accelerationScore : math.lengthsq(sensor.CabinetOffset);
 		}
 
 		private void DisableSensor(int index)
