@@ -57,6 +57,24 @@ namespace VisualPinball.Unity
 		/// </summary>
 		internal ulong LastUpdateUsec;
 
+		/// <summary>
+		/// Instantaneous velocity of the actual pose step this tick (same unit
+		/// as <see cref="LinearVelocity"/>), written by
+		/// <see cref="PhysicsKinematics.StepKinematics"/> — nonzero only while
+		/// the pose catch-up is rate-limited (clamped stepping). During
+		/// catch-up, the true surface velocity is the step rate, which can
+		/// exceed the update-derived velocity; hit tests and contact response
+		/// must see it, or the stepping face outruns the balls it hammers and
+		/// swallows them.
+		/// </summary>
+		internal float3 StepVelocity;
+
+		/// <summary>
+		/// Instantaneous angular velocity of the actual pose step this tick
+		/// (same unit as <see cref="AngularVelocity"/>).
+		/// </summary>
+		internal float3 StepAngularVelocity;
+
 		internal bool IsMoving => math.lengthsq(LinearVelocity) > 1e-8f || math.lengthsq(AngularVelocity) > 1e-8f;
 
 		/// <summary>

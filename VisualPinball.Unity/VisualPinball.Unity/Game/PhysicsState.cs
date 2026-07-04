@@ -63,20 +63,25 @@ namespace VisualPinball.Unity
 		/// It's set in PhysicsEngine.Start() through ColliderReference.TransformToIdentity()
 		///
 		/// This is used for:
-		///   - Transform fully-transformable colliders in PhysicsUpdateJob.Execute() with PhysicsKinematics.TransformFullyTransformableColliders()
+		///   - Transform fully-transformable colliders in PhysicsUpdate.Execute() with PhysicsKinematics.StepKinematics()
 		///   - Computing the AABBs for the octree in PhysicsUpdateJob.Execute()
 		/// </summary>
 		internal NativeColliders KinematicCollidersAtIdentity;
 
 		/// <summary>
-		/// Maps an item ID to the updated transformation matrix since the last frame of all kinematic items.
+		/// Maps an item ID to the target transformation matrix of kinematic items that have moved.
+		/// The current pose (<see cref="KinematicTransforms"/>) is stepped toward this target
+		/// inside the tick loop (<see cref="PhysicsKinematics.StepKinematics"/>), capped per tick,
+		/// so a fast-moving collider can't skip past a ball within one frame.
 		/// <para><c>int</c> is the <see cref="ColliderComponent{TData,TMainComponent}.ItemId"/> of the collider.</para>
-		/// <para><c>float4x4</c> Updated LocalToPlayfieldMatrixInVpx of the item.</para>
+		/// <para><c>float4x4</c> Target LocalToPlayfieldMatrixInVpx of the item.</para>
 		/// </summary>
-		internal NativeParallelHashMap<int, float4x4> UpdatedKinematicTransforms;
+		internal NativeParallelHashMap<int, float4x4> KinematicTargetTransforms;
 
 		/// <summary>
-		/// The LocalToPlayfieldMatrixInVpx of all kinematic colliders, fully transformable or not.
+		/// The current LocalToPlayfieldMatrixInVpx of all kinematic colliders, fully transformable
+		/// or not. While an item moves, this is stepped toward <see cref="KinematicTargetTransforms"/>
+		/// per tick and matches the pose the colliders are actually baked at.
 		/// </summary>
 		/// <remarks>
 		/// <para><c>int</c> is the <see cref="ColliderComponent{TData,TMainComponent}.ItemId"/> of the collider.</para>
@@ -145,7 +150,7 @@ namespace VisualPinball.Unity
 		public PhysicsState(ref PhysicsEnv env, ref NativeOctree<int> octree, ref NativeColliders colliders,
 			ref NativeColliders kinematicColliders, ref NativeColliders kinematicCollidersAtIdentity,
 			ref NativeParallelHashMap<int, float4x4> kinematicTransforms,
-			ref NativeParallelHashMap<int, float4x4> updatedKinematicTransforms,
+			ref NativeParallelHashMap<int, float4x4> kinematicTargetTransforms,
 			ref NativeParallelHashMap<int, float4x4> nonTransformableColliderTransforms,
 			ref NativeParallelHashMap<int, NativeColliderIds> kinematicColliderLookups, ref NativeQueue<EventData>.ParallelWriter eventQueue,
 			ref InsideOfs insideOfs, ref NativeParallelHashMap<int, BallState> balls,
@@ -165,7 +170,7 @@ namespace VisualPinball.Unity
 			KinematicColliders = kinematicColliders;
 			KinematicCollidersAtIdentity = kinematicCollidersAtIdentity;
 			KinematicTransforms = kinematicTransforms;
-			UpdatedKinematicTransforms = updatedKinematicTransforms;
+			KinematicTargetTransforms = kinematicTargetTransforms;
 			_nonTransformableColliderTransforms = nonTransformableColliderTransforms;
 			KinematicColliderLookups = kinematicColliderLookups;
 			EventQueue = eventQueue;
@@ -298,14 +303,28 @@ namespace VisualPinball.Unity
 				return float3.zero;
 			}
 			var itemId = colliders.GetItemId(colliderId);
-			if (!KinematicVelocities.TryGetValue(itemId, out var velocity) || !velocity.IsMoving) {
+			if (!KinematicVelocities.TryGetValue(itemId, out var velocity)) {
 				return float3.zero;
 			}
+
+			// while the pose catch-up is rate-limited (clamped stepping), the actual
+			// step rate is the honest surface velocity and can exceed the derived one
+			var linear = velocity.LinearVelocity;
+			var angular = velocity.AngularVelocity;
+			if (math.lengthsq(velocity.StepVelocity) > math.lengthsq(linear)
+			    || math.lengthsq(velocity.StepAngularVelocity) > math.lengthsq(angular)) {
+				linear = velocity.StepVelocity;
+				angular = velocity.StepAngularVelocity;
+			}
+			if (math.lengthsq(linear) < 1e-8f && math.lengthsq(angular) < 1e-8f) {
+				return float3.zero;
+			}
+
 			if (colliders.IsTransformed(colliderId)) {
-				return velocity.GetVelocityAt(position);
+				return linear + math.cross(angular, position - velocity.Pivot);
 			}
 			ref var matrix = ref KinematicTransforms.GetValueByRef(itemId);
-			var velocityAtPosition = velocity.GetVelocityAt(matrix.MultiplyPoint(position));
+			var velocityAtPosition = linear + math.cross(angular, matrix.MultiplyPoint(position) - velocity.Pivot);
 			return math.inverse(matrix).MultiplyVector(velocityAtPosition);
 		}
 

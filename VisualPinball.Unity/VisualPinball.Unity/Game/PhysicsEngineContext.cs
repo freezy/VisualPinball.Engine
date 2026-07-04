@@ -139,13 +139,15 @@ namespace VisualPinball.Unity
 		public readonly LazyInit<NativeParallelHashMap<int, float4x4>> KinematicTransforms = new(() => new NativeParallelHashMap<int, float4x4>(0, Allocator.Persistent));
 
 		/// <summary>
-		/// The transforms of kinematic items that have changed since the last frame.
+		/// The target transforms of kinematic items that have moved. The physics loop
+		/// steps <see cref="KinematicTransforms"/> toward these per tick (capped, to
+		/// prevent tunneling); entries persist while the item keeps moving.
 		/// </summary>
 		/// <remarks>
 		/// Written by: sim thread (inside <c>PhysicsLock</c>) or main thread
 		/// (single-threaded mode). Read by: physics loop.
 		/// </remarks>
-		public readonly LazyInit<NativeParallelHashMap<int, float4x4>> UpdatedKinematicTransforms = new(() => new NativeParallelHashMap<int, float4x4>(0, Allocator.Persistent));
+		public readonly LazyInit<NativeParallelHashMap<int, float4x4>> KinematicTargetTransforms = new(() => new NativeParallelHashMap<int, float4x4>(0, Allocator.Persistent));
 
 		/// <summary>
 		/// The current velocities of kinematic items, derived from their
@@ -278,7 +280,7 @@ namespace VisualPinball.Unity
 		{
 			var events = EventQueue.Ref.AsParallelWriter();
 			return new PhysicsState(ref PhysicsEnv, ref Octree, ref Colliders, ref KinematicColliders,
-				ref KinematicCollidersAtIdentity, ref KinematicTransforms.Ref, ref UpdatedKinematicTransforms.Ref,
+				ref KinematicCollidersAtIdentity, ref KinematicTransforms.Ref, ref KinematicTargetTransforms.Ref,
 				ref NonTransformableColliderTransforms.Ref, ref KinematicColliderLookups, ref events,
 				ref InsideOfs, ref BallStates.Ref, ref BumperStates.Ref, ref DropTargetStates.Ref, ref FlipperStates.Ref, ref GateStates.Ref,
 				ref HitTargetStates.Ref, ref KickerStates.Ref, ref PlungerStates.Ref, ref SpinnerStates.Ref,
@@ -334,7 +336,7 @@ namespace VisualPinball.Unity
 
 			DisabledCollisionItems.Ref.Dispose();
 			KinematicTransforms.Ref.Dispose();
-			UpdatedKinematicTransforms.Ref.Dispose();
+			KinematicTargetTransforms.Ref.Dispose();
 			KinematicVelocities.Ref.Dispose();
 			PendingKinematicTransforms.Ref.Dispose();
 			NonTransformableColliderTransforms.Ref.Dispose();
