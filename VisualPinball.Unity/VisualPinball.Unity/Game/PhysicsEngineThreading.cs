@@ -69,6 +69,22 @@ namespace VisualPinball.Unity
 		/// The two modes are mutually exclusive.
 		/// </summary>
 		private readonly HashSet<int> _movedKinematicItems = new();
+
+		/// <summary>
+		/// Large isolated transform jumps held for one-frame disambiguation: a
+		/// follow-up update means it was the first frame of continuous motion
+		/// (stream it, with derived velocity); a timeout means it was a genuine
+		/// teleport (snap silently, no impulse). Owned by the thread that stages
+		/// kinematic targets (sim thread, or main thread in single-threaded mode).
+		/// </summary>
+		private readonly Dictionary<int, HeldKinematicPose> _heldIsolatedPoses = new();
+		private readonly List<int> _heldPosesToApply = new();
+
+		private struct HeldKinematicPose
+		{
+			public float4x4 Pose;
+			public ulong HeldAtUsec;
+		}
 		private readonly int[] _snapshotFlipperIds;
 		private readonly int[] _snapshotBumperRingIds;
 		private readonly int[] _snapshotBumperSkirtIds;
@@ -235,27 +251,15 @@ namespace VisualPinball.Unity
 		{
 			if (!_ctx.PendingKinematicTransforms.Ref.IsCreated) return;
 
-			_ctx.UpdatedKinematicTransforms.Ref.Clear();
-
 			lock (_ctx.PendingKinematicLock) {
 				var nowUsec = _ctx.PhysicsEnv.CurPhysicsFrameTime;
 
 				if (_ctx.PendingKinematicTransforms.Ref.Count() > 0) {
 					using var enumerator = _ctx.PendingKinematicTransforms.Ref.GetEnumerator();
 					while (enumerator.MoveNext()) {
-						var itemId = enumerator.Current.Key;
-						var matrix = enumerator.Current.Value;
-
-						DeriveKinematicVelocity(itemId, in matrix, nowUsec);
-
-						_ctx.UpdatedKinematicTransforms.Ref[itemId] = matrix;
-						_ctx.KinematicTransforms.Ref[itemId] = matrix;
-
-						var coll = GetKinematicColliderComponent(itemId);
-						coll?.OnTransformationChanged(matrix);
+						StageKinematicTarget(enumerator.Current.Key, enumerator.Current.Value, nowUsec);
 					}
 					_ctx.PendingKinematicTransforms.Ref.Clear();
-					_ctx.KinematicOctreeDirty = true;
 				}
 
 				if (_ctx.PendingKinematicStops.Count > 0) {
@@ -264,30 +268,114 @@ namespace VisualPinball.Unity
 					}
 					_ctx.PendingKinematicStops.Clear();
 				}
+
+				ProcessHeldKinematicPoses(nowUsec);
+			}
+		}
+
+		/// <summary>
+		/// Stage a kinematic transform update: derive the velocity, then either set
+		/// the streaming target (continuous motion), snap directly (small isolated
+		/// nudge or warp), or hold for one-frame disambiguation (large isolated jump
+		/// — could be a teleport or the first frame of a fast drag; see
+		/// <see cref="PhysicsKinematics.IsolatedHoldDistance"/>).
+		/// </summary>
+		/// <remarks>
+		/// <b>Thread:</b> Simulation thread (inside <c>PhysicsLock</c>), or
+		/// main thread in single-threaded mode.
+		/// </remarks>
+		private void StageKinematicTarget(int itemId, in float4x4 matrix, ulong nowUsec)
+		{
+			var isIsolated = DeriveKinematicVelocity(itemId, in matrix, nowUsec, out var prevMatrix);
+			var wasHeld = _heldIsolatedPoses.Remove(itemId); // a follow-up resolves any hold
+
+			if (isIsolated && !wasHeld) {
+				if (PhysicsKinematics.IsSmallIsolatedDelta(in prevMatrix, in matrix)) {
+					// small isolated nudge / warp: apply as teleport, no impulse
+					SnapKinematicPose(itemId, in matrix);
+				} else {
+					// large isolated jump: hold for disambiguation
+					_heldIsolatedPoses[itemId] = new HeldKinematicPose { Pose = matrix, HeldAtUsec = nowUsec };
+				}
+			} else {
+				// continuous motion (incl. resolving a hold): stream toward the target,
+				// capped per tick, so a fast collider can't skip past a ball
+				_ctx.KinematicTargetTransforms.Ref[itemId] = matrix;
+				_ctx.KinematicOctreeDirty = true;
+			}
+
+			var coll = GetKinematicColliderComponent(itemId);
+			coll?.OnTransformationChanged(matrix);
+		}
+
+		/// <summary>
+		/// Apply a pose directly with teleport semantics: no stepping, no velocity,
+		/// no impulse — the item is just somewhere else now.
+		/// </summary>
+		private void SnapKinematicPose(int itemId, in float4x4 matrix)
+		{
+			_ctx.KinematicTransforms.Ref[itemId] = matrix;
+			_ctx.KinematicTargetTransforms.Ref[itemId] = matrix; // keep in sync, stepping skips equal poses
+
+			var state = _ctx.CreateState();
+			ref var colliderLookups = ref _ctx.KinematicColliderLookups.GetValueByRef(itemId);
+			for (var i = 0; i < colliderLookups.Length; i++) {
+				state.TransformKinematicColliders(colliderLookups[i], matrix);
+			}
+			_ctx.KinematicOctreeDirty = true;
+		}
+
+		/// <summary>
+		/// Apply held isolated poses whose disambiguation window expired without a
+		/// follow-up update: they were genuine teleports.
+		/// </summary>
+		private void ProcessHeldKinematicPoses(ulong nowUsec)
+		{
+			if (_heldIsolatedPoses.Count == 0) {
+				return;
+			}
+			_heldPosesToApply.Clear();
+			foreach (var kvp in _heldIsolatedPoses) {
+				if (nowUsec - kvp.Value.HeldAtUsec >= PhysicsKinematics.IsolatedHoldTimeoutUsec) {
+					_heldPosesToApply.Add(kvp.Key);
+				}
+			}
+			foreach (var itemId in _heldPosesToApply) {
+				SnapKinematicPose(itemId, _heldIsolatedPoses[itemId].Pose);
+				_heldIsolatedPoses.Remove(itemId);
 			}
 		}
 
 		/// <summary>
 		/// Derive an item's velocity from its previous and new transform, so
 		/// collision resolution can account for the motion of its colliders.
+		/// Returns whether the update was isolated (no velocity derived).
 		/// </summary>
 		/// <remarks>
 		/// <b>Thread:</b> Simulation thread (inside <c>PhysicsLock</c>), or
-		/// main thread in single-threaded mode.
+		/// main thread in single-threaded mode.<br/>
+		/// The previous matrix is the held pose if one exists, else the previous
+		/// <i>target</i> (the true motion timeline as staged), not the
+		/// possibly-lagging stepped pose.
 		/// </remarks>
-		private void DeriveKinematicVelocity(int itemId, in float4x4 currMatrix, ulong nowUsec)
+		private bool DeriveKinematicVelocity(int itemId, in float4x4 currMatrix, ulong nowUsec, out float4x4 prevMatrix)
 		{
-			var prevMatrix = _ctx.KinematicTransforms.Ref[itemId];
-			if (_ctx.KinematicVelocities.Ref.TryGetValue(itemId, out var prevVelocity)) {
-				_ctx.KinematicVelocities.Ref[itemId] = PhysicsKinematics.DeriveVelocity(in prevVelocity, in prevMatrix, in currMatrix, nowUsec);
-
-			} else {
-				// first update: establish a zero-velocity baseline, velocity kicks in with the next update
-				_ctx.KinematicVelocities.Ref[itemId] = new KinematicVelocityState {
-					Pivot = currMatrix.c3.xyz,
-					LastUpdateUsec = nowUsec,
-				};
+			if (_heldIsolatedPoses.TryGetValue(itemId, out var held)) {
+				prevMatrix = held.Pose;
+			} else if (!_ctx.KinematicTargetTransforms.Ref.TryGetValue(itemId, out prevMatrix)) {
+				prevMatrix = _ctx.KinematicTransforms.Ref[itemId];
 			}
+			if (_ctx.KinematicVelocities.Ref.TryGetValue(itemId, out var prevVelocity)) {
+				_ctx.KinematicVelocities.Ref[itemId] = PhysicsKinematics.DeriveVelocity(in prevVelocity, in prevMatrix, in currMatrix, nowUsec, out var isIsolated);
+				return isIsolated;
+			}
+
+			// first update: establish a zero-velocity baseline, velocity kicks in with the next update
+			_ctx.KinematicVelocities.Ref[itemId] = new KinematicVelocityState {
+				Pivot = currMatrix.c3.xyz,
+				LastUpdateUsec = nowUsec,
+			};
+			return true;
 		}
 
 		/// <summary>
@@ -646,10 +734,16 @@ namespace VisualPinball.Unity
 		{
 			var sw = Stopwatch.StartNew();
 
-			// check for updated kinematic transforms
-			_ctx.UpdatedKinematicTransforms.Ref.Clear();
+			// check for updated kinematic transforms; compare against the last staged
+			// pose — held or target — not the stepped current pose, which may lag
+			// behind while catching up
 			foreach (var coll in _kinematicColliderComponents) {
-				var lastTransformationMatrix = _ctx.KinematicTransforms.Ref[coll.ItemId];
+				float4x4 lastTransformationMatrix;
+				if (_heldIsolatedPoses.TryGetValue(coll.ItemId, out var held)) {
+					lastTransformationMatrix = held.Pose;
+				} else if (!_ctx.KinematicTargetTransforms.Ref.TryGetValue(coll.ItemId, out lastTransformationMatrix)) {
+					lastTransformationMatrix = _ctx.KinematicTransforms.Ref[coll.ItemId];
+				}
 				var currTransformationMatrix = coll.GetLocalToPlayfieldMatrixInVpx(_worldToPlayfield);
 				if (lastTransformationMatrix.Equals(currTransformationMatrix)) {
 					// unchanged — if it moved last frame, it just stopped, so zero its velocity
@@ -658,13 +752,10 @@ namespace VisualPinball.Unity
 					}
 					continue;
 				}
-				DeriveKinematicVelocity(coll.ItemId, in currTransformationMatrix, _ctx.PhysicsEnv.CurPhysicsFrameTime);
 				_movedKinematicItems.Add(coll.ItemId);
-				_ctx.UpdatedKinematicTransforms.Ref.Add(coll.ItemId, currTransformationMatrix);
-				_ctx.KinematicTransforms.Ref[coll.ItemId] = currTransformationMatrix;
-				coll.OnTransformationChanged(currTransformationMatrix);
-				_ctx.KinematicOctreeDirty = true;
+				StageKinematicTarget(coll.ItemId, in currTransformationMatrix, _ctx.PhysicsEnv.CurPhysicsFrameTime);
 			}
+			ProcessHeldKinematicPoses(_ctx.PhysicsEnv.CurPhysicsFrameTime);
 
 			var state = _ctx.CreateState();
 

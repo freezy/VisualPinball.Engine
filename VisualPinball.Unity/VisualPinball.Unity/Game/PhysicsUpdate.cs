@@ -40,7 +40,7 @@ namespace VisualPinball.Unity
 		// public NativeColliders KinematicColliders;
 		// public NativeColliders KinematicCollidersAtIdentity;
 		// public NativeParallelHashMap<int, float4x4> KinematicTransforms;
-		// public NativeParallelHashMap<int, float4x4> UpdatedKinematicTransforms;
+		// public NativeParallelHashMap<int, float4x4> KinematicTargetTransforms;
 		// public NativeParallelHashMap<int, float4x4> NonTransformableColliderTransforms;
 		//
 		// public NativeParallelHashMap<int, NativeColliderIds> KinematicColliderLookups;
@@ -73,10 +73,6 @@ namespace VisualPinball.Unity
 			// ref var env = ref UnsafeUtility.AsRef<PhysicsEnv>(envPtr.ToPointer());
 			// ref var overlappingColliders = ref UnsafeUtility.AsRef<NativeParallelHashSet<int>>(overlappingCollidersPtr.ToPointer());
 
-			// Transform kinematic colliders that have changed since the last frame.
-			// This is a no-op on ticks where no transforms were staged.
-			PhysicsKinematics.TransformFullyTransformableColliders(ref state);
-
 			var subSteps = 0;
 			while (env.CurPhysicsFrameTime < initialTimeUsec)  // loop here until current (real) time matches the physics (simulated) time
 			{
@@ -88,6 +84,10 @@ namespace VisualPinball.Unity
 					break;
 				}
 				subSteps++;
+
+				// Step kinematic collider poses toward their target transforms, capped
+				// per tick so fast movers can't skip past a ball. No-op when idle.
+				PhysicsKinematics.StepKinematics(ref state);
 
 				env.TimeMsec = (uint)((env.CurPhysicsFrameTime - env.StartTimeUsec) / 1000);
 				var physicsDiffTime = (float)((env.NextPhysicsFrameTime - env.CurPhysicsFrameTime) * (1.0 / PhysicsConstants.DefaultStepTime));
