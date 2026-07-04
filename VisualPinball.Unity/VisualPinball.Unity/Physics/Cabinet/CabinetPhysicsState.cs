@@ -20,22 +20,41 @@ namespace VisualPinball.Unity
 {
 	public struct CabinetPhysicsState
 	{
+		public const float DefaultKeyboardDampingRatio = 0.5f;
+		public const float MinKeyboardDampingRatio = 0.05f;
+		public const float MaxKeyboardDampingRatio = 1f;
+
+		private const float XFrequencyHz = 9.3f;
+		private const float YFrequencyHz = 5.8f;
+		private const float XCalibratedDampingRatio = 0.052f;
+		private const float YCalibratedDampingRatio = 0.055f;
+
 		public float Mass;
 		public DampedHarmonicOscillator X;
 		public DampedHarmonicOscillator Y;
 		public float2 CabinetAcceleration;
 		public float2 CabinetOffset;
 
-		public CabinetPhysicsState(float mass)
+		public CabinetPhysicsState(float mass) : this(mass, XCalibratedDampingRatio, YCalibratedDampingRatio)
+		{
+		}
+
+		private CabinetPhysicsState(float mass, float xDampingRatio, float yDampingRatio)
 		{
 			Mass = mass;
-			X = new DampedHarmonicOscillator(mass, 9.3f, 0.052f);
-			Y = new DampedHarmonicOscillator(mass, 5.8f, 0.055f);
+			X = new DampedHarmonicOscillator(mass, XFrequencyHz, xDampingRatio);
+			Y = new DampedHarmonicOscillator(mass, YFrequencyHz, yDampingRatio);
 			CabinetAcceleration = float2.zero;
 			CabinetOffset = float2.zero;
 		}
 
 		public static CabinetPhysicsState Default => new(113f);
+
+		public static CabinetPhysicsState Keyboard(float dampingRatio)
+		{
+			dampingRatio = math.clamp(dampingRatio, MinKeyboardDampingRatio, MaxKeyboardDampingRatio);
+			return new CabinetPhysicsState(113f, dampingRatio, dampingRatio);
+		}
 
 		public void StepOneMillisecond(float2 force)
 		{

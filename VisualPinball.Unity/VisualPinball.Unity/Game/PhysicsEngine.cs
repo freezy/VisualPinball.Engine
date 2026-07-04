@@ -123,6 +123,10 @@ namespace VisualPinball.Unity
 		[Range(0f, 2f)]
 		public float KeyboardNudgeStrength = 1f;
 
+		[Tooltip("Keyboard cabinet nudge damping ratio. Higher values make keyboard nudges settle faster.")]
+		[Range(CabinetPhysicsState.MinKeyboardDampingRatio, CabinetPhysicsState.MaxKeyboardDampingRatio)]
+		public float KeyboardCabinetDamping = CabinetPhysicsState.DefaultKeyboardDampingRatio;
+
 		[Tooltip("Simulate a mechanical plumb-bob tilt switch from cabinet nudge.")]
 		public bool SimulatedPlumb = true;
 
@@ -316,8 +320,16 @@ namespace VisualPinball.Unity
 
 		public void ConfigureKeyboardNudge(KeyboardNudgeMode mode, float strength)
 		{
+			ConfigureKeyboardNudge(mode, strength, KeyboardCabinetDamping);
+		}
+
+		public void ConfigureKeyboardNudge(KeyboardNudgeMode mode, float strength, float cabinetDamping)
+		{
 			KeyboardNudgeMode = mode;
 			KeyboardNudgeStrength = math.clamp(strength, 0f, 2f);
+			KeyboardCabinetDamping = math.clamp(cabinetDamping,
+				CabinetPhysicsState.MinKeyboardDampingRatio,
+				CabinetPhysicsState.MaxKeyboardDampingRatio);
 
 			if (_ctx == null || !_ctx.IsInitialized) {
 				return;
@@ -327,7 +339,7 @@ namespace VisualPinball.Unity
 			var nudgeTime = table != null ? table.NudgeTime : 5f;
 			lock (_ctx.PhysicsLock) {
 				var nudge = _ctx.PhysicsEnv.Nudge;
-				nudge.Keyboard.Configure(KeyboardNudgeMode, KeyboardNudgeStrength, nudgeTime);
+				nudge.Keyboard.Configure(KeyboardNudgeMode, KeyboardNudgeStrength, nudgeTime, KeyboardCabinetDamping);
 				_ctx.PhysicsEnv.Nudge = nudge;
 			}
 		}
@@ -827,7 +839,7 @@ namespace VisualPinball.Unity
 			var table = GetComponentInParent<TableComponent>();
 			_ctx.PhysicsEnv = new PhysicsEnv(NowUsec, GetComponentInChildren<PlayfieldComponent>(), GravityStrength,
 				KeyboardNudgeMode, KeyboardNudgeStrength, table != null ? table.NudgeTime : 5f,
-				SimulatedPlumb, PlumbDamping, PlumbThresholdAngle);
+				SimulatedPlumb, PlumbDamping, PlumbThresholdAngle, KeyboardCabinetDamping);
 			Interlocked.Exchange(ref _ctx.PublishedPhysicsFrameTimeUsec, (long)_ctx.PhysicsEnv.CurPhysicsFrameTime);
 			_ctx.ElasticityOverVelocityLUTs = new NativeParallelHashMap<int, FixedList512Bytes<float>>(0, Allocator.Persistent);
 			_ctx.FrictionOverVelocityLUTs = new NativeParallelHashMap<int, FixedList512Bytes<float>>(0, Allocator.Persistent);
@@ -936,7 +948,7 @@ namespace VisualPinball.Unity
 			// between Awake and Start (the player app pushes persisted config right
 			// after table activation) only reached the component fields because the
 			// Configure methods bail out while uninitialized. Push them now.
-			ConfigureKeyboardNudge(KeyboardNudgeMode, KeyboardNudgeStrength);
+			ConfigureKeyboardNudge(KeyboardNudgeMode, KeyboardNudgeStrength, KeyboardCabinetDamping);
 			ConfigurePlumb(SimulatedPlumb, PlumbDamping, PlumbThresholdAngle);
 		}
 

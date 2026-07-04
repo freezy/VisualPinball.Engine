@@ -54,6 +54,23 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void KeyboardCabinetModelLimitsVisibleRebounds()
+		{
+			var nudge = new KeyboardNudgeState(KeyboardNudgeMode.CabModel, 1f, 5f);
+			nudge.Nudge(0f, 2f);
+
+			var offsets = new float[1000];
+			var peak = 0f;
+			for (var i = 0; i < offsets.Length; i++) {
+				nudge.StepOneMillisecond();
+				offsets[i] = nudge.CabinetOffset.y;
+				peak = math.max(peak, math.abs(offsets[i]));
+			}
+
+			Assert.That(CountVisibleExtrema(offsets, peak * 0.1f), Is.LessThanOrEqualTo(3));
+		}
+
+		[Test]
 		public void PlumbTiltLatchesAndQueuesTiltEvent()
 		{
 			var plumb = new PlumbState(true, 1f, 2f);
@@ -92,6 +109,22 @@ namespace VisualPinball.Unity.Test
 			var acceleration = (force - 2f * dampingRatio * mass * omega0 * velocity - mass * omega0 * omega0 * displacement) / mass;
 
 			return (displacement, velocity, acceleration);
+		}
+
+		private static int CountVisibleExtrema(float[] values, float threshold)
+		{
+			var count = 0;
+			for (var i = 2; i < values.Length; i++) {
+				var previousSlope = values[i - 1] - values[i - 2];
+				var slope = values[i] - values[i - 1];
+				if (math.abs(values[i - 1]) <= threshold || previousSlope == 0f || slope == 0f) {
+					continue;
+				}
+				if (math.sign(previousSlope) != math.sign(slope)) {
+					count++;
+				}
+			}
+			return count;
 		}
 	}
 }

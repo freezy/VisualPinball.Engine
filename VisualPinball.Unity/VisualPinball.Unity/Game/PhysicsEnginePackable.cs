@@ -22,6 +22,8 @@ namespace VisualPinball.Unity
 		public bool HasKeyboardNudgeSettings;
 		public KeyboardNudgeMode KeyboardNudgeMode;
 		public float KeyboardNudgeStrength;
+		public bool HasKeyboardCabinetDamping;
+		public float KeyboardCabinetDamping;
 		public bool HasPlumbSettings;
 		public bool SimulatedPlumb;
 		public float PlumbDamping;
@@ -36,6 +38,8 @@ namespace VisualPinball.Unity
 				HasKeyboardNudgeSettings = true,
 				KeyboardNudgeMode = comp.KeyboardNudgeMode,
 				KeyboardNudgeStrength = comp.KeyboardNudgeStrength,
+				HasKeyboardCabinetDamping = true,
+				KeyboardCabinetDamping = comp.KeyboardCabinetDamping,
 				HasPlumbSettings = true,
 				SimulatedPlumb = comp.SimulatedPlumb,
 				PlumbDamping = comp.PlumbDamping,
@@ -51,7 +55,8 @@ namespace VisualPinball.Unity
 			comp.GravityStrength = data.GravityStrength;
 			comp.ConfigureKeyboardNudge(
 				data.HasKeyboardNudgeSettings ? data.KeyboardNudgeMode : KeyboardNudgeMode.CabModel,
-				data.HasKeyboardNudgeSettings ? data.KeyboardNudgeStrength : 1f
+				data.HasKeyboardNudgeSettings ? data.KeyboardNudgeStrength : 1f,
+				data.HasKeyboardCabinetDamping ? data.KeyboardCabinetDamping : CabinetPhysicsState.DefaultKeyboardDampingRatio
 			);
 			comp.ConfigurePlumb(
 				data.HasPlumbSettings ? data.SimulatedPlumb : true,
