@@ -16,6 +16,10 @@ namespace VisualPinball.Unity.Simulation
 	public static class NativeInputApi
 	{
 		private const string DllName = "VisualPinball.NativeInput";
+		public const int ProtocolVersion = 2;
+		public const int DeviceIdSize = 260;
+		public const int DeviceNameSize = 128;
+		public const int AxisNameSize = 32;
 
 		#region Enums
 
@@ -68,6 +72,19 @@ namespace VisualPinball.Unity.Simulation
 			Keyboard = 0,
 			Gamepad = 1,
 			Mouse = 2,
+		}
+
+		public enum InputEventType
+		{
+			Action = 0,
+			Axis = 1,
+		}
+
+		public enum AxisKind
+		{
+			Position = 0,
+			Velocity = 1,
+			Acceleration = 2,
 		}
 
 		/// <summary>
@@ -146,7 +163,10 @@ namespace VisualPinball.Unity.Simulation
 		public struct InputEvent
 		{
 			public long TimestampUsec;
+			public int EventType; // InputEventType
 			public int Action;  // InputAction
+			public int DeviceIndex;
+			public int AxisId;
 			public float Value;
 			private int _padding;
 		}
@@ -161,6 +181,36 @@ namespace VisualPinball.Unity.Simulation
 			public int BindingType; // BindingType
 			public int KeyCode;     // KeyCode or button index
 			private int _padding;
+		}
+
+		[StructLayout(LayoutKind.Sequential, Pack = 4, CharSet = CharSet.Ansi)]
+		public struct InputDeviceInfo
+		{
+			public int DeviceIndex;
+			public int AxisCount;
+			public int IsConnected;
+			private int _padding;
+
+			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = DeviceIdSize)]
+			public string StableId;
+
+			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = DeviceNameSize)]
+			public string DisplayName;
+		}
+
+		[StructLayout(LayoutKind.Sequential, Pack = 4, CharSet = CharSet.Ansi)]
+		public struct InputAxisInfo
+		{
+			public int AxisId;
+			public int UsagePage;
+			public int Usage;
+			public int Kind;
+			public float RawValue;
+			private int _padding;
+			public long TimestampUsec;
+
+			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = AxisNameSize)]
+			public string Name;
 		}
 
 		#endregion
@@ -181,6 +231,9 @@ namespace VisualPinball.Unity.Simulation
 		public static extern int VpeInputInit();
 
 		[DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int VpeInputGetProtocolVersion();
+
+		[DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void VpeInputShutdown();
 
 		[DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
@@ -191,6 +244,12 @@ namespace VisualPinball.Unity.Simulation
 
 		[DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
 		public static extern void VpeInputStopPolling();
+
+		[DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int VpeInputListDevices([Out] InputDeviceInfo[] devices, int maxDevices);
+
+		[DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
+		public static extern int VpeInputListDeviceAxes(int deviceIndex, [Out] InputAxisInfo[] axes, int maxAxes);
 
 		[DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
 		public static extern long VpeGetTimestampUsec();
