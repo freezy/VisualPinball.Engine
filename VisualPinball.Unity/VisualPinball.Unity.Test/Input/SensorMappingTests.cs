@@ -18,6 +18,9 @@ using NUnit.Framework;
 
 namespace VisualPinball.Unity.Test
 {
+	/// <summary>
+	/// Covers serialized analog-axis mappings used by nudge sensor configuration.
+	/// </summary>
 	public class SensorMappingTests
 	{
 		[Test]

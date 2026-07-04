@@ -18,6 +18,17 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Detects a player nudge intent from an analog acceleration signal and emits
+	/// a short cabinet impulse.
+	/// </summary>
+	/// <remarks>
+	/// Ported from VP's <c>vpinball/src/physics/cabinet/NudgeIntentHandler.*</c>.
+	/// The handler watches for rising peaks rather than treating every sensor
+	/// sample as cabinet force. That distinction matters for gamepad sticks and
+	/// accelerometers configured in "intent" mode, where the player is expressing
+	/// a shove and VP/VPE should synthesize the physical impulse.
+	/// </remarks>
 	public struct NudgeIntentState
 	{
 		private const int ImpulseLengthMs = 25;
@@ -35,6 +46,10 @@ namespace VisualPinball.Unity
 		private float _lastImpulseStrength;
 		private ulong _lastImpulseTime;
 
+		/// <summary>
+		/// Creates a peak detector for either gamepad-style or cabinet-style analog
+		/// input.
+		/// </summary>
 		public NudgeIntentState(bool isGamepad)
 		{
 			_isGamepad = isGamepad ? (byte)1 : (byte)0;
@@ -51,6 +66,11 @@ namespace VisualPinball.Unity
 		}
 
 		public bool IsImpulseInProgress => _impulseElapsed <= ImpulseLengthMs;
+
+		/// <summary>
+		/// Current raised-cosine impulse acceleration, or zero when no impulse is
+		/// active.
+		/// </summary>
 		public float2 ImpulseAcceleration
 		{
 			get {
@@ -62,6 +82,15 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Advances peak tracking by one millisecond and starts/updates an impulse
+		/// when a valid nudge peak is detected.
+		/// </summary>
+		/// <remarks>
+		/// Forward nudges are clamped to the "push" half of the Y axis, matching the
+		/// VP source: players can shove the cabinet away from themselves, but not
+		/// physically pull it toward themselves with the same motion.
+		/// </remarks>
 		public void StepOneMillisecond(float2 nudgeAcceleration)
 		{
 			_impulseElapsed++;
@@ -110,6 +139,13 @@ namespace VisualPinball.Unity
 			return 1f;
 		}
 
+		/// <summary>
+		/// Decides whether the current peak should become an impulse.
+		/// </summary>
+		/// <remarks>
+		/// Non-gamepad sensors suppress repeated smaller peaks for 300 ms so a noisy
+		/// accelerometer tail does not trigger multiple cabinet shoves from one hit.
+		/// </remarks>
 		private void EvaluateImpulse(float2 impulse)
 		{
 			var strengthFactor = GetImpulseStrengthFactor();

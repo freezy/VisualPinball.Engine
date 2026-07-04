@@ -24,6 +24,15 @@ using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Burst-compiled one-millisecond physics update loop.
+	/// </summary>
+	/// <remarks>
+	/// Cabinet nudge is advanced here before velocity integration so balls and the
+	/// simulated plumb bob see the same cabinet acceleration for the tick. That
+	/// mirrors VP's cabinet physics flow, where nudge is an inertial acceleration
+	/// applied to the entire playfield rather than a per-ball impulse.
+	/// </remarks>
 	[BurstCompile(FloatPrecision.Medium, FloatMode.Fast, CompileSynchronously = true)]
 	internal static class PhysicsUpdate
 	{
@@ -66,6 +75,9 @@ namespace VisualPinball.Unity
 		//
 		// public bool SwapBallCollisionHandling;
 
+		/// <summary>
+		/// Advances physics until simulated time catches up to the requested time.
+		/// </summary>
 		[BurstCompile]
 		public static void Execute(ref PhysicsState state, ref PhysicsEnv env, ref NativeParallelHashSet<int> overlappingColliders, ref NativeOctree<int> kinematicOctree, ref NativeOctree<int> ballOctree, ref PhysicsCycle cycle, ulong initialTimeUsec)
 		{
@@ -95,6 +107,9 @@ namespace VisualPinball.Unity
 				// update velocities - always on integral physics frame boundary (spinner, gate, flipper, plunger, ball)
 				#region Update Velocities
 
+				// Nudge is evaluated once per millisecond before ball velocity updates
+				// so every ball receives the same cabinet inertial acceleration for
+				// this tick, and the plumb bob records the same motion.
 				env.Nudge.StepOneMillisecond();
 				var cabinetAcceleration = env.Nudge.CabinetAcceleration;
 				env.Plumb.StepOneMillisecond(cabinetAcceleration);
@@ -154,6 +169,9 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Advances mechanical animations after physics substeps have completed.
+		/// </summary>
 		private static void UpdateAnimations(ref PhysicsState state, uint animationTimeMsec, float animationDeltaTimeMs)
 		{
 			// bumper

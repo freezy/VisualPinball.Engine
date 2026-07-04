@@ -19,8 +19,23 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Learns the scale that converts a raw cabinet accelerometer channel into
+	/// the same units as a raw cabinet velocity channel.
+	/// </summary>
+	/// <remarks>
+	/// Adapted from VP's
+	/// <c>vpinball/src/physics/cabinet/MotionGainCalibratorAxis.h</c>. The
+	/// calibrator only accepts motion segments that leave and return to rest,
+	/// because those segments let us compare measured velocity against integrated
+	/// acceleration without depending on an external ground-truth position.
+	/// </remarks>
 	public struct MotionGainCalibratorAxis
 	{
+		/// <summary>
+		/// Tunables used to decide whether a motion segment is useful and how much
+		/// accepted segments influence the running gain estimate.
+		/// </summary>
 		public struct Config
 		{
 			public float InitialGain;
@@ -54,6 +69,9 @@ namespace VisualPinball.Unity
 			};
 		}
 
+		/// <summary>
+		/// Diagnostics for the last completed calibration segment.
+		/// </summary>
 		public struct SegmentResult
 		{
 			public byte Accepted;
@@ -89,6 +107,10 @@ namespace VisualPinball.Unity
 		private SegmentResult _lastResult;
 		private float _globalConfidence;
 
+		/// <summary>
+		/// Creates a calibrator with the supplied acceptance thresholds and initial
+		/// gain.
+		/// </summary>
 		public MotionGainCalibratorAxis(Config config)
 		{
 			_config = config;
@@ -106,6 +128,9 @@ namespace VisualPinball.Unity
 			_globalConfidence = 0f;
 		}
 
+		/// <summary>
+		/// Calibrator configured with defaults tuned for cabinet nudge sensors.
+		/// </summary>
 		public static MotionGainCalibratorAxis Default => new(Config.Default);
 		public bool IsSegmentActive => _segmentActive != 0;
 		public float Gain => _gain;
@@ -116,12 +141,20 @@ namespace VisualPinball.Unity
 		public float GlobalConfidence => _globalConfidence;
 		public SegmentResult LastResult => _lastResult;
 
+		/// <summary>
+		/// Applies new acceptance thresholds while preserving the already learned
+		/// gain.
+		/// </summary>
 		public void Configure(Config config)
 		{
 			_config = config;
 			_gain = math.clamp(_gain, _config.MinGain, _config.MaxGain);
 		}
 
+		/// <summary>
+		/// Clears learned gain, confidence, segment counters, and any in-progress
+		/// segment.
+		/// </summary>
 		public void Reset()
 		{
 			_segmentActive = 0;
@@ -137,13 +170,23 @@ namespace VisualPinball.Unity
 			_globalConfidence = 0f;
 		}
 
+		/// <summary>
+		/// Converts a raw acceleration sample using the current learned gain.
+		/// </summary>
 		public float ScaleAcceleration(float rawAcceleration) => _gain * rawAcceleration;
 
+		/// <summary>
+		/// Converts a raw velocity sample into acceleration-equivalent units for
+		/// Kalman updates.
+		/// </summary>
 		public float ScaleVelocityToAccelerationUnits(float rawVelocity)
 		{
 			return math.abs(_gain) <= _config.Epsilon ? 0f : rawVelocity / _gain;
 		}
 
+		/// <summary>
+		/// Starts collecting samples for one candidate motion segment.
+		/// </summary>
 		public void StartSegment(ulong timeUs)
 		{
 			_segmentActive = 1;
@@ -152,6 +195,10 @@ namespace VisualPinball.Unity
 			_segmentStartUs = timeUs;
 		}
 
+		/// <summary>
+		/// Adds a raw velocity/acceleration sample to the active segment.
+		/// </summary>
+		/// <returns><c>true</c> when the sample was accepted into the segment.</returns>
 		public bool AddSample(ulong timeUs, float rawVelocity, float rawAcceleration)
 		{
 			if (!IsSegmentActive) {
@@ -177,6 +224,9 @@ namespace VisualPinball.Unity
 			return true;
 		}
 
+		/// <summary>
+		/// Reduces sample density when the fixed-size buffer fills.
+		/// </summary>
 		private void CompactSamples()
 		{
 			var compacted = 0;
@@ -196,6 +246,11 @@ namespace VisualPinball.Unity
 			_samples.Length = compacted;
 		}
 
+		/// <summary>
+		/// Evaluates the active segment and folds accepted data into the running
+		/// gain estimate.
+		/// </summary>
+		/// <returns><c>true</c> when the segment passed the quality gates.</returns>
 		public bool EndSegment()
 		{
 			if (!IsSegmentActive) {
@@ -228,6 +283,10 @@ namespace VisualPinball.Unity
 			return true;
 		}
 
+		/// <summary>
+		/// Estimates how trustworthy the accumulated gain is from accepted segment
+		/// count, observed duration, and regression strength.
+		/// </summary>
 		private float ComputeGlobalConfidence()
 		{
 			if (_acceptedSegmentCount == 0) {
@@ -241,6 +300,16 @@ namespace VisualPinball.Unity
 			return math.clamp(0.40f * segFactor + 0.35f * durationFactor + 0.25f * denomFactor, 0f, 1f);
 		}
 
+		/// <summary>
+		/// Fits integrated acceleration to velocity for the current rest-to-rest
+		/// segment.
+		/// </summary>
+		/// <remarks>
+		/// Both traces are detrended between their endpoints so small DC offsets
+		/// and residual drift do not dominate the gain estimate. This mirrors the VP
+		/// implementation and is the reason segments must not be split when the
+		/// sample buffer fills.
+		/// </remarks>
 		private SegmentResult EvaluateCurrentSegment()
 		{
 			var result = new SegmentResult {
@@ -364,6 +433,15 @@ namespace VisualPinball.Unity
 			return result;
 		}
 
+		/// <summary>
+		/// Returns the optional triangular regression weight for a normalized sample
+		/// time.
+		/// </summary>
+		/// <remarks>
+		/// Center weighting favors the part of the nudge where the signal is
+		/// strongest and deemphasizes endpoints that are most affected by rest
+		/// detection timing.
+		/// </remarks>
 		private float ComputeSampleWeight(float tNorm)
 		{
 			if (_config.UseTriangularWeights == 0) {

@@ -59,13 +59,13 @@ namespace VisualPinball.Unity
 	/// <para><b>Threading Contract</b></para>
 	/// <para>Four threads participate at runtime:</para>
 	/// <list type="number">
-	///   <item><b>Unity main thread</b> (~60-144 Hz) — rendering, UI, event
+	///   <item><b>Unity main thread</b> (~60-144 Hz) - rendering, UI, event
 	///     drain, visual state application.</item>
-	///   <item><b>Simulation thread</b> (1000 Hz) — physics ticks, input
+	///   <item><b>Simulation thread</b> (1000 Hz) - physics ticks, input
 	///     dispatch, coil output processing, GLE time fence.</item>
-	///   <item><b>Native input polling thread</b> (500-2000 Hz) — raw
+	///   <item><b>Native input polling thread</b> (500-2000 Hz) - raw
 	///     keyboard/gamepad polling via the <c>VisualPinball.NativeInput</c> native plugin.</item>
-	///   <item><b>PinMAME emulation thread</b> (variable, time-fenced) —
+	///   <item><b>PinMAME emulation thread</b> (variable, time-fenced) -
 	///     ROM emulation.</item>
 	/// </list>
 	///
@@ -301,8 +301,24 @@ namespace VisualPinball.Unity
 			action(ref state);
 		}
 
+		/// <summary>
+		/// Monotonic counter incremented whenever a keyboard nudge is queued.
+		/// </summary>
+		/// <remarks>
+		/// Gamelogic callbacks can consume a key press and call <see cref="Nudge"/>
+		/// themselves. The player checks this counter to avoid applying the built-in
+		/// default nudge twice for the same key press.
+		/// </remarks>
 		public int KeyboardNudgeIndex => Volatile.Read(ref _keyboardNudgeIndex);
 
+		/// <summary>
+		/// Queues a keyboard/manual nudge impulse for the next physics tick.
+		/// </summary>
+		/// <remarks>
+		/// The request is queued instead of applied immediately so main-thread,
+		/// gamelogic, and native input callers all mutate nudge state on the physics
+		/// owner thread.
+		/// </remarks>
 		public void Nudge(float angleDeg, float force)
 		{
 			Interlocked.Increment(ref _keyboardNudgeIndex);
@@ -318,11 +334,19 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Configures keyboard nudge mode and strength, keeping the current cabinet
+		/// damping setting.
+		/// </summary>
 		public void ConfigureKeyboardNudge(KeyboardNudgeMode mode, float strength)
 		{
 			ConfigureKeyboardNudge(mode, strength, KeyboardCabinetDamping);
 		}
 
+		/// <summary>
+		/// Configures keyboard nudge response and updates live physics state when
+		/// the engine is already running.
+		/// </summary>
 		public void ConfigureKeyboardNudge(KeyboardNudgeMode mode, float strength, float cabinetDamping)
 		{
 			KeyboardNudgeMode = mode;
@@ -344,6 +368,9 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Configures the simulated mechanical plumb-bob tilt switch.
+		/// </summary>
 		public void ConfigurePlumb(bool simulatedPlumb, float damping, float thresholdAngle)
 		{
 			SimulatedPlumb = simulatedPlumb;
@@ -361,6 +388,10 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Configures render-only visual nudge strength and ensures the runtime
+		/// camera offset component exists in Play Mode.
+		/// </summary>
 		public void ConfigureVisualNudge(float strength)
 		{
 			VisualNudgeStrength = math.clamp(strength, 0f, 2f);
@@ -371,6 +402,9 @@ namespace VisualPinball.Unity
 			_visualNudge?.Configure(this, VisualNudgeStrength);
 		}
 
+		/// <summary>
+		/// Finds or adds the component that applies visual nudge to game cameras.
+		/// </summary>
 		private void EnsureVisualNudge()
 		{
 			if (_visualNudge != null) {
@@ -382,11 +416,17 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Replaces the analog nudge sensor configuration.
+		/// </summary>
 		public void ConfigureNudgeSensors(IReadOnlyList<NudgeSensorConfig> sensors)
 		{
 			_nudgeSystem?.ConfigureSensors(sensors);
 		}
 
+		/// <summary>
+		/// Updates the number of active analog sensor slots inside physics state.
+		/// </summary>
 		internal void ConfigureNudgeSensorCount(int count)
 		{
 			lock (_ctx.PhysicsLock) {
@@ -396,6 +436,9 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Updates one analog nudge sensor slot inside physics state.
+		/// </summary>
 		internal void ConfigureNudgeSensor(int index, NudgeSensorRuntimeConfig config)
 		{
 			lock (_ctx.PhysicsLock) {
@@ -405,6 +448,15 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Queues one mapped analog sensor sample for physics-thread processing.
+		/// </summary>
+		/// <remarks>
+		/// A streaming accelerometer can generate thousands of samples per second,
+		/// so the queue is bounded and drops the oldest sample if the drain stalls.
+		/// Fresh samples are more useful than stale motion history after a pause or
+		/// debugger break.
+		/// </remarks>
 		internal void EnqueueNudgeSensorSample(int sensorIndex, NudgeSensorChannel channel, float value, ulong timestampUsec)
 		{
 			lock (_ctx.PendingNudgeSensorSamplesLock) {
@@ -421,16 +473,29 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Subscribes the nudge system to native input axis events.
+		/// </summary>
 		internal void AttachNativeInputManager(NativeInputManager inputManager)
 		{
 			_nudgeSystem?.AttachNativeInputManager(inputManager);
 		}
 
+		/// <summary>
+		/// Unsubscribes the nudge system from a native input manager.
+		/// </summary>
 		internal void DetachNativeInputManager(NativeInputManager inputManager)
 		{
 			_nudgeSystem?.DetachNativeInputManager(inputManager);
 		}
 
+		/// <summary>
+		/// VP-script-compatible nudge status readout.
+		/// </summary>
+		/// <remarks>
+		/// Returns the largest signed cabinet acceleration since the last read and
+		/// then clears the accumulator, matching VP's polling-oriented script API.
+		/// </remarks>
 		public void NudgeSensorStatus(out float x, out float y)
 		{
 			lock (_ctx.PhysicsLock) {
@@ -442,6 +507,9 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// VP-script-compatible plumb tilt readout.
+		/// </summary>
 		public void NudgeTiltStatus(out float plumbX, out float plumbY, out float tiltPercent)
 		{
 			lock (_ctx.PhysicsLock) {
@@ -454,6 +522,10 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Returns a read-only nudge/plumb telemetry snapshot for UI and editor
+		/// diagnostics.
+		/// </summary>
 		public NudgeTelemetry GetNudgeTelemetry()
 		{
 			if (_ctx == null || !_ctx.IsInitialized) {
@@ -481,6 +553,9 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Applies the latest physics-produced cabinet offset to visual nudge.
+		/// </summary>
 		internal void ApplyVisualNudge(float2 cabinetOffset)
 		{
 			if (_visualNudge == null) {
@@ -489,6 +564,9 @@ namespace VisualPinball.Unity
 			_visualNudge.SetCabinetOffset(cabinetOffset);
 		}
 
+		/// <summary>
+		/// Moves queued plumb-bob tilt switch edges into the caller's list.
+		/// </summary>
 		internal void DrainPlumbTiltEvents(List<bool> destination)
 		{
 			lock (_ctx.PhysicsLock) {
@@ -501,6 +579,9 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Dispatches pending plumb tilt edges through the main-thread player path.
+		/// </summary>
 		private void DispatchPendingPlumbTiltEvents()
 		{
 			_pendingPlumbTiltEvents.Clear();
@@ -551,7 +632,7 @@ namespace VisualPinball.Unity
 			Debug.LogWarning(message);
 		}
 
-		// ── State accessors ──────────────────────────────────────────
+		// State accessors
 		// These return refs into native hash maps. In single-threaded
 		// mode they are safe. In threaded mode, callers on the sim
 		// thread (e.g. FlipperApi coil callbacks) access them inside
@@ -757,7 +838,7 @@ namespace VisualPinball.Unity
 		/// </remarks>
 		public bool TryGetKinematicVelocity(int itemId, out float3 linearVelocity, out float3 angularVelocity, out float3 pivot)
 		{
-			// engine time unit (DefaultStepTime, 10 ms) → seconds
+			// engine time unit (DefaultStepTime, 10 ms) to seconds
 			const float perSecond = (float)(1e6 / PhysicsConstants.DefaultStepTime);
 			lock (_ctx.PhysicsLock) {
 				if (_ctx.KinematicVelocities.Ref.IsCreated && _ctx.KinematicVelocities.Ref.TryGetValue(itemId, out var velocity)) {
@@ -775,7 +856,7 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		#region Forwarding — Simulation Thread
+		#region Forwarding - Simulation Thread
 
 		/// <summary>
 		/// Execute a single physics tick with external timing.

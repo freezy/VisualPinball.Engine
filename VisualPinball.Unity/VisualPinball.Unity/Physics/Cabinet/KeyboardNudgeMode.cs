@@ -16,10 +16,25 @@
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Selects how a digital keyboard/button nudge is converted into cabinet
+	/// acceleration.
+	/// </summary>
 	public enum KeyboardNudgeMode
 	{
+		/// <summary>
+		/// Legacy VP-style instant shove/retract pulse.
+		/// </summary>
 		PushRetract = 0,
+
+		/// <summary>
+		/// Legacy VP box model where a table-space offset springs back to rest.
+		/// </summary>
 		BoxModel = 1,
+
+		/// <summary>
+		/// Cabinet oscillator model introduced for this nudge stack.
+		/// </summary>
 		CabModel = 2
 	}
 }

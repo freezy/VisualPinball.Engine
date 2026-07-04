@@ -16,7 +16,7 @@ namespace VisualPinball.Unity.Simulation
 	/// Shared simulation state between simulation thread and Unity main thread.
 	/// Uses triple-buffering for truly lock-free reads: the sim thread always
 	/// writes to its own buffer, publishes via atomic exchange, and the main
-	/// thread acquires the latest published buffer — neither thread ever
+	/// thread acquires the latest published buffer; neither thread ever
 	/// touches the other's active buffer.
 	/// </summary>
 	public class SimulationState : IDisposable
@@ -178,13 +178,39 @@ namespace VisualPinball.Unity.Simulation
 			public int Float2AnimationSourceCount;
 			public byte Float2AnimationsTruncated;
 
+			/// <summary>
+			/// Latest cabinet acceleration from keyboard or analog nudge sources.
+			/// </summary>
 			public float2 NudgeCabinetAcceleration;
+
+			/// <summary>
+			/// Latest cabinet spring displacement used by visual nudge.
+			/// </summary>
 			public float2 NudgeCabinetOffset;
+
+			/// <summary>
+			/// Simulated plumb-bob position for diagnostics.
+			/// </summary>
 			public float3 PlumbPosition;
+
+			/// <summary>
+			/// Maximum plumb displacement as a percentage of the tilt ring.
+			/// </summary>
 			public float PlumbTiltPercent;
+
+			/// <summary>
+			/// Number of tilt switch transitions produced by the plumb simulation.
+			/// </summary>
 			public int PlumbTiltIndex;
+
+			/// <summary>
+			/// Whether the simulated tilt switch is currently high.
+			/// </summary>
 			public byte PlumbTiltHigh;
 
+			/// <summary>
+			/// Allocates persistent native buffers used by this snapshot.
+			/// </summary>
 			public void Allocate()
 			{
 				CoilStates = new NativeArray<CoilState>(MaxCoils, Allocator.Persistent);
@@ -228,6 +254,9 @@ namespace VisualPinball.Unity.Simulation
 				PlumbTiltHigh = 0;
 			}
 
+			/// <summary>
+			/// Disposes persistent native buffers owned by this snapshot.
+			/// </summary>
 			public void Dispose()
 			{
 				if (CoilStates.IsCreated) CoilStates.Dispose();
@@ -256,7 +285,7 @@ namespace VisualPinball.Unity.Simulation
 
 		/// <summary>
 		/// Index of the most recently published buffer.
-		/// Shared between threads — accessed only via Interlocked.Exchange.
+		/// Shared between threads; accessed only via Interlocked.Exchange.
 		/// </summary>
 		private int _readyIndex;
 

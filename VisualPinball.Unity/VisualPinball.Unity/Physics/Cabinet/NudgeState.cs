@@ -18,11 +18,18 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Command queued by the main thread to apply one keyboard-driven cabinet
+	/// impulse on the simulation thread.
+	/// </summary>
 	internal readonly struct KeyboardNudgeCommand
 	{
 		public readonly float AngleDeg;
 		public readonly float Force;
 
+		/// <summary>
+		/// Creates a keyboard nudge command in playfield degrees.
+		/// </summary>
 		public KeyboardNudgeCommand(float angleDeg, float force)
 		{
 			AngleDeg = angleDeg;
@@ -30,6 +37,10 @@ namespace VisualPinball.Unity
 		}
 	}
 
+	/// <summary>
+	/// Command queued by the input thread to deliver one mapped analog nudge
+	/// sample to the simulation thread.
+	/// </summary>
 	internal readonly struct NudgeSensorSampleCommand
 	{
 		public readonly int SensorIndex;
@@ -37,6 +48,9 @@ namespace VisualPinball.Unity
 		public readonly float Value;
 		public readonly ulong TimestampUsec;
 
+		/// <summary>
+		/// Creates a timestamped sensor sample for the configured sensor slot.
+		/// </summary>
 		public NudgeSensorSampleCommand(int sensorIndex, NudgeSensorChannel channel, float value, ulong timestampUsec)
 		{
 			SensorIndex = sensorIndex;
@@ -46,6 +60,19 @@ namespace VisualPinball.Unity
 		}
 	}
 
+	/// <summary>
+	/// Owns all cabinet nudge sources and exposes the single cabinet motion value
+	/// consumed by the physics step.
+	/// </summary>
+	/// <remarks>
+	/// This is the VPE-side coordinator for the VP cabinet nudge model, tying
+	/// together ports/adaptations from
+	/// <c>vpinball/src/physics/cabinet/NudgeHandler.*</c>,
+	/// <c>KeyboardNudge.*</c>, <c>GamepadNudge.*</c>, and
+	/// <c>CabinetNudgeSensor.*</c>. Keyboard input intentionally wins while its
+	/// spring response is active; otherwise the most recently active analog sensor
+	/// supplies the cabinet acceleration and visual offset.
+	/// </remarks>
 	public struct NudgeState
 	{
 		public const int MaxSensors = 4;
@@ -62,6 +89,10 @@ namespace VisualPinball.Unity
 		public float2 MaxCabinetAcceleration;
 		public int KeyboardNudgeIndex;
 
+		/// <summary>
+		/// Creates a nudge coordinator with keyboard nudging enabled and no analog
+		/// sensors configured.
+		/// </summary>
 		public NudgeState(KeyboardNudgeMode keyboardMode, float keyboardStrength, float nudgeTime,
 			float keyboardCabinetDamping = CabinetPhysicsState.DefaultKeyboardDampingRatio)
 		{
@@ -78,12 +109,19 @@ namespace VisualPinball.Unity
 			ActiveSourceIndex = -2;
 		}
 
+		/// <summary>
+		/// Applies a manual nudge impulse and increments the keyboard nudge counter
+		/// used by telemetry/UI.
+		/// </summary>
 		public void ApplyKeyboardImpulse(float angleDeg, float force)
 		{
 			KeyboardNudgeIndex++;
 			Keyboard.Nudge(angleDeg, force);
 		}
 
+		/// <summary>
+		/// Sets the number of analog sensor slots that should be considered active.
+		/// </summary>
 		public void ConfigureSensors(int count)
 		{
 			SensorCount = math.clamp(count, 0, MaxSensors);
@@ -92,6 +130,9 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Rebuilds one analog sensor slot from serialized/player configuration.
+		/// </summary>
 		public void ConfigureSensor(int index, NudgeSensorRuntimeConfig config)
 		{
 			if ((uint)index >= MaxSensors) {
@@ -106,6 +147,9 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Delivers one mapped native-input value to the selected sensor slot.
+		/// </summary>
 		public void ApplySensorSample(int sensorIndex, NudgeSensorChannel channel, float value, ulong timestampUsec)
 		{
 			if ((uint)sensorIndex >= SensorCount) {
@@ -116,6 +160,10 @@ namespace VisualPinball.Unity
 			SetSensor(sensorIndex, sensor);
 		}
 
+		/// <summary>
+		/// Advances keyboard and sensor models one millisecond and selects the
+		/// cabinet motion source for this physics tick.
+		/// </summary>
 		public void StepOneMillisecond()
 		{
 			Keyboard.StepOneMillisecond();
@@ -146,6 +194,10 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Returns the largest signed acceleration seen since the last read and
+		/// clears the telemetry accumulator.
+		/// </summary>
 		public float2 ReadAndResetMaxCabinetAcceleration()
 		{
 			var value = MaxCabinetAcceleration;
@@ -153,6 +205,10 @@ namespace VisualPinball.Unity
 			return value;
 		}
 
+		/// <summary>
+		/// Advances a configured sensor slot and writes the value back into the
+		/// fixed field storage.
+		/// </summary>
 		private void StepSensor(int index)
 		{
 			if (index >= SensorCount) {
@@ -163,6 +219,14 @@ namespace VisualPinball.Unity
 			SetSensor(index, sensor);
 		}
 
+		/// <summary>
+		/// Finds the analog sensor that should drive cabinet motion this tick.
+		/// </summary>
+		/// <remarks>
+		/// Later timestamps win so that a device the user is actively touching
+		/// supersedes an older device that is still ringing down. Equal timestamps
+		/// fall back to the stronger cabinet motion.
+		/// </remarks>
 		private bool TryGetActiveSensor(out int index, out NudgeSensorState sensor)
 		{
 			var bestScore = -1f;
@@ -192,6 +256,10 @@ namespace VisualPinball.Unity
 			return index >= 0;
 		}
 
+		/// <summary>
+		/// Scores active sensors by physical output rather than raw input, so intent
+		/// and direct sensors can be compared fairly.
+		/// </summary>
 		private static float SensorActivityScore(NudgeSensorState sensor)
 		{
 			var accelerationScore = math.lengthsq(sensor.CabinetAcceleration);

@@ -20,6 +20,19 @@ using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Converts script or keyboard nudge commands into cabinet acceleration and
+	/// displacement samples.
+	/// </summary>
+	/// <remarks>
+	/// The <see cref="KeyboardNudgeMode.PushRetract"/> and
+	/// <see cref="KeyboardNudgeMode.BoxModel"/> paths are direct ports/adaptations
+	/// of VP keyboard nudge behavior from
+	/// <c>vpinball/src/physics/cabinet/KeyboardNudge.*</c>. The cabinet model path
+	/// keeps the same public Nudge(angle, force) shape but feeds the oscillator in
+	/// <see cref="CabinetPhysicsState"/> so keyboard nudges feel more like a
+	/// sturdy cabinet impulse.
+	/// </remarks>
 	public struct KeyboardNudgeState
 	{
 		private const int DeactivationDelayMs = 10000;
@@ -46,6 +59,13 @@ namespace VisualPinball.Unity
 		private FixedList512Bytes<CabinetImpulse> _cabImpulses;
 		private int _cabDeactivationDelay;
 
+		/// <summary>
+		/// A short raised-cosine cabinet acceleration pulse.
+		/// </summary>
+		/// <remarks>
+		/// The cosine window avoids a square acceleration step, which would make the
+		/// visual camera offset and plumb bob react with a hard discontinuity.
+		/// </remarks>
 		private struct CabinetImpulse
 		{
 			public int Length;
@@ -73,6 +93,13 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Creates keyboard nudge state for a table.
+		/// </summary>
+		/// <param name="mode">Conversion model used for keyboard/button nudges.</param>
+		/// <param name="strength">Author/user strength multiplier.</param>
+		/// <param name="nudgeTime">Table nudge time used by the legacy box model.</param>
+		/// <param name="cabinetDamping">Damping ratio used by the cabinet oscillator model.</param>
 		public KeyboardNudgeState(KeyboardNudgeMode mode, float strength, float nudgeTime,
 			float cabinetDamping = CabinetPhysicsState.DefaultKeyboardDampingRatio)
 		{
@@ -105,16 +132,26 @@ namespace VisualPinball.Unity
 			_ => _cabDeactivationDelay > 0,
 		};
 
+		/// <summary>
+		/// Rebuilds the mode-specific state after runtime configuration changes.
+		/// </summary>
 		public void Configure(KeyboardNudgeMode mode, float strength, float nudgeTime, float cabinetDamping)
 		{
 			this = new KeyboardNudgeState(mode, strength, nudgeTime, cabinetDamping);
 		}
 
+		/// <summary>
+		/// Updates only the strength scalar while preserving in-flight state.
+		/// </summary>
 		public void SetStrength(float strength)
 		{
 			Strength = strength;
 		}
 
+		/// <summary>
+		/// Starts a new keyboard/button nudge from the VP script-facing angle/force
+		/// convention.
+		/// </summary>
 		public void Nudge(float angleDeg, float force)
 		{
 			switch (Mode) {
@@ -130,6 +167,9 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Advances whichever keyboard nudge model is active by one physics tick.
+		/// </summary>
 		public void StepOneMillisecond()
 		{
 			switch (Mode) {

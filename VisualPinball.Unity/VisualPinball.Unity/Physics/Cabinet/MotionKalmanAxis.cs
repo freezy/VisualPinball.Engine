@@ -19,6 +19,17 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// One-dimensional Kalman filter for cabinet position, velocity, acceleration,
+	/// and slow sensor bias.
+	/// </summary>
+	/// <remarks>
+	/// Adapted from VP's
+	/// <c>vpinball/src/physics/cabinet/MotionKalmanAxis.h</c>. Cabinet devices can
+	/// provide velocity, acceleration, or both, often with independent drift. The
+	/// five-state filter lets VPE fuse those measurements while keeping estimated
+	/// sensor bias separate from physical cabinet motion.
+	/// </remarks>
 	public struct MotionKalmanAxis
 	{
 		private const int StatePosition = 0;
@@ -28,6 +39,9 @@ namespace VisualPinball.Unity
 		private const int StateAccelerationBias = 4;
 		private const int StateCount = 5;
 
+		/// <summary>
+		/// Filter covariance and timing parameters.
+		/// </summary>
 		public struct Config
 		{
 			public float ProcessJerkVariance;
@@ -73,6 +87,9 @@ namespace VisualPinball.Unity
 		private Vector5f _state;
 		private Matrix5f _covariance;
 
+		/// <summary>
+		/// Creates an uninitialized filter using the supplied covariance settings.
+		/// </summary>
 		public MotionKalmanAxis(Config config)
 		{
 			_config = config;
@@ -84,6 +101,9 @@ namespace VisualPinball.Unity
 			_covariance.SetZero();
 		}
 
+		/// <summary>
+		/// Filter configured with defaults tuned for nudge sensor fusion.
+		/// </summary>
 		public static MotionKalmanAxis Default => new(Config.Default);
 
 		public bool IsInitialized => _initialized != 0;
@@ -96,11 +116,17 @@ namespace VisualPinball.Unity
 		public float BiasedVelocity => Velocity + VelocityBias;
 		public float BiasedAcceleration => Acceleration + AccelerationBias;
 
+		/// <summary>
+		/// Applies new covariance settings without altering the current state.
+		/// </summary>
 		public void Configure(Config config)
 		{
 			_config = config;
 		}
 
+		/// <summary>
+		/// Initializes or reinitializes the filter at a known state and timestamp.
+		/// </summary>
 		public void Reset(ulong timeUs, float position = 0f, float velocity = 0f, float acceleration = 0f,
 			float velocityBias = 0f, float accelerationBias = 0f)
 		{
@@ -115,11 +141,21 @@ namespace VisualPinball.Unity
 			_covariance[StateAccelerationBias, StateAccelerationBias] = _config.InitialAccelerationBiasVariance;
 		}
 
+		/// <summary>
+		/// Replaces the state vector while preserving timestamp and covariance.
+		/// </summary>
 		public void SetState(float position, float velocity, float acceleration, float velocityBias, float accelerationBias)
 		{
 			_state.Set(position, velocity, acceleration, velocityBias, accelerationBias);
 		}
 
+		/// <summary>
+		/// Advances the prediction model to the requested timestamp.
+		/// </summary>
+		/// <remarks>
+		/// Prediction is split into small steps so unusually sparse or delayed input
+		/// samples do not create a single large covariance jump.
+		/// </remarks>
 		public void PredictTo(ulong timeUs)
 		{
 			if (!IsInitialized || timeUs <= _timeUs) {
@@ -135,6 +171,14 @@ namespace VisualPinball.Unity
 			_timeUs = timeUs;
 		}
 
+		/// <summary>
+		/// Fuses a measured velocity sample.
+		/// </summary>
+		/// <remarks>
+		/// The measurement model observes velocity plus velocity bias; keeping the
+		/// bias term explicit lets the filter learn slow sensor drift instead of
+		/// feeding it into cabinet displacement.
+		/// </remarks>
 		public void UpdateVelocity(ulong timeUs, float velocity)
 		{
 			if (!IsInitialized) {
@@ -150,6 +194,14 @@ namespace VisualPinball.Unity
 			UpdateScalarMeasurement(h, velocity, _config.VelocityMeasurementVariance);
 		}
 
+		/// <summary>
+		/// Fuses a measured acceleration sample.
+		/// </summary>
+		/// <remarks>
+		/// The measurement observes acceleration plus acceleration bias for the same
+		/// reason as velocity: real cabinet accelerometers tend to have small DC
+		/// offsets that should not become permanent cabinet force.
+		/// </remarks>
 		public void UpdateAcceleration(ulong timeUs, float acceleration)
 		{
 			if (!IsInitialized) {
@@ -165,6 +217,14 @@ namespace VisualPinball.Unity
 			UpdateScalarMeasurement(h, acceleration, _config.AccelerationMeasurementVariance);
 		}
 
+		/// <summary>
+		/// Pulls the filter back toward rest when the synchronized sensor channels
+		/// indicate the cabinet has settled.
+		/// </summary>
+		/// <remarks>
+		/// These pseudo-measurements are what keep long-running tables from slowly
+		/// drifting across the playfield after many tiny integrated errors.
+		/// </remarks>
 		public void UpdateRestConstraints(ulong timeUs, bool applyPositionConstraint = true,
 			bool applyVelocityConstraint = true, bool applyAccelerationConstraint = true)
 		{
@@ -191,6 +251,9 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Runs one bounded prediction step.
+		/// </summary>
 		private void PredictStep(float dt)
 		{
 			dt = math.max(dt, _config.MinDt);
@@ -202,6 +265,13 @@ namespace VisualPinball.Unity
 			Symmetrize(ref _covariance);
 		}
 
+		/// <summary>
+		/// Builds the constant-acceleration state transition matrix.
+		/// </summary>
+		/// <remarks>
+		/// Bias terms decay toward zero with a configurable mean-reversion time so
+		/// stale bias estimates fade if the sensor behavior changes.
+		/// </remarks>
 		private Matrix5f BuildTransitionMatrix(float dt)
 		{
 			var dt2 = dt * dt;
@@ -217,6 +287,9 @@ namespace VisualPinball.Unity
 			return f;
 		}
 
+		/// <summary>
+		/// Builds process noise for jerk-driven motion plus independent bias drift.
+		/// </summary>
 		private Matrix5f BuildProcessNoiseMatrix(float dt)
 		{
 			var qj = _config.ProcessJerkVariance;
@@ -242,6 +315,14 @@ namespace VisualPinball.Unity
 			return q;
 		}
 
+		/// <summary>
+		/// Applies one scalar Kalman measurement update.
+		/// </summary>
+		/// <remarks>
+		/// Uses the Joseph covariance form, which costs a little more math but keeps
+		/// the covariance matrix better behaved after many updates in single
+		/// precision.
+		/// </remarks>
 		private void UpdateScalarMeasurement(Vector5f h, float measurement, float measurementVariance)
 		{
 			var predictedMeasurement = Dot(h, _state);

@@ -19,6 +19,10 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity.Test
 {
+	/// <summary>
+	/// Covers analog nudge sensor filtering, calibration, mounting transforms,
+	/// and source selection.
+	/// </summary>
 	public class NudgeSensorStateTests
 	{
 		[Test]
@@ -95,7 +99,7 @@ namespace VisualPinball.Unity.Test
 			const float expectedGain = 2.0f;
 			ulong baseTime = 0;
 
-			// 1.5s segments at 1kHz — way past the sample buffer capacity, forcing
+			// 1.5s segments at 1kHz: way past the sample buffer capacity, forcing
 			// resolution compaction. The segment must stay whole (rest-to-rest), so
 			// the gain still converges and no segment splitting inflates confidence.
 			for (var segment = 0; segment < 10; segment++) {

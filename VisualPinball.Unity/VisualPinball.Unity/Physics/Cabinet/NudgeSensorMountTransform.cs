@@ -19,6 +19,10 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Quarter-turn mounting options for accelerometer boards installed in a
+	/// cabinet.
+	/// </summary>
 	public enum NudgeSensorMountRotation
 	{
 		[InspectorName("0 deg")]
@@ -34,8 +38,20 @@ namespace VisualPinball.Unity
 		Rotation270 = 3
 	}
 
+	/// <summary>
+	/// Converts sensor-space axes to VPE cabinet-space axes.
+	/// </summary>
+	/// <remarks>
+	/// KL25Z/Pinscape-style boards are often mounted in whichever orientation is
+	/// convenient inside the cabinet. Keeping this as a pure transform lets
+	/// calibration, graphing, and physics all consume the same canonical X/Y
+	/// convention.
+	/// </remarks>
 	public static class NudgeSensorMountTransform
 	{
+		/// <summary>
+		/// Normalizes invalid serialized enum values back to no rotation.
+		/// </summary>
 		public static NudgeSensorMountRotation NormalizeRotation(NudgeSensorMountRotation rotation)
 		{
 			return (uint)rotation <= (uint)NudgeSensorMountRotation.Rotation270
@@ -43,6 +59,9 @@ namespace VisualPinball.Unity
 				: NudgeSensorMountRotation.Rotation0;
 		}
 
+		/// <summary>
+		/// Applies mirror and rotation to a two-axis sensor vector.
+		/// </summary>
 		public static float2 Transform(float2 value, NudgeSensorMountRotation rotation, bool mirrorX)
 		{
 			if (mirrorX) {
@@ -61,6 +80,14 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Applies the mount transform to a single channel and value.
+		/// </summary>
+		/// <remarks>
+		/// Samples arrive one native axis at a time, so this method rotates both the
+		/// channel identity and its sign instead of requiring callers to assemble a
+		/// full vector first.
+		/// </remarks>
 		public static void TransformChannel(ref NudgeSensorChannel channel, ref float value,
 			NudgeSensorMountRotation rotation, bool mirrorX)
 		{
@@ -75,6 +102,9 @@ namespace VisualPinball.Unity
 			channel = ChannelFor(group, targetX);
 		}
 
+		/// <summary>
+		/// Swaps mapped-axis flags when the mount rotation swaps X and Y.
+		/// </summary>
 		public static void TransformMappedAxes(ref bool xMapped, ref bool yMapped,
 			NudgeSensorMountRotation rotation)
 		{

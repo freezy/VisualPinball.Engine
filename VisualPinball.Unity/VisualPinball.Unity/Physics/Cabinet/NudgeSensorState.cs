@@ -18,6 +18,14 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Simulation-thread configuration for one analog nudge sensor.
+	/// </summary>
+	/// <remarks>
+	/// This is a blittable runtime form of the Unity component/editor settings.
+	/// Mapping flags are stored as bytes so the struct stays job-friendly and can
+	/// be copied into simulation state without managed references.
+	/// </remarks>
 	public struct NudgeSensorRuntimeConfig
 	{
 		public NudgeSensorType Type;
@@ -33,6 +41,10 @@ namespace VisualPinball.Unity
 		public byte AccelerationYMapped;
 	}
 
+	/// <summary>
+	/// Stores the latest value for one logical nudge channel and records how that
+	/// channel should be interpreted.
+	/// </summary>
 	public struct NudgePhysicsSensorState
 	{
 		public byte Mapped;
@@ -42,6 +54,9 @@ namespace VisualPinball.Unity
 
 		public bool IsMapped => Mapped != 0;
 
+		/// <summary>
+		/// Enables or disables the channel and clears its last sample.
+		/// </summary>
 		public void Configure(bool mapped, SensorMappingKind kind)
 		{
 			Mapped = mapped ? (byte)1 : (byte)0;
@@ -50,6 +65,9 @@ namespace VisualPinball.Unity
 			TimestampUsec = 0;
 		}
 
+		/// <summary>
+		/// Stores a mapped native-input value and its native timestamp.
+		/// </summary>
 		public void SetValue(float value, ulong timestampUsec)
 		{
 			Value = value;
@@ -57,6 +75,15 @@ namespace VisualPinball.Unity
 		}
 	}
 
+	/// <summary>
+	/// Converts gamepad-style position axes into VP-style nudge impulses.
+	/// </summary>
+	/// <remarks>
+	/// Adapted from VP's <c>vpinball/src/physics/cabinet/GamepadNudge.*</c>.
+	/// Sticks and controller axes do not measure actual cabinet movement; they
+	/// express player intent, so this path detects an intent peak and then drives
+	/// the shared cabinet spring.
+	/// </remarks>
 	public struct GamepadNudgeState
 	{
 		private const int DeactivationDelayMs = 10000;
@@ -71,6 +98,9 @@ namespace VisualPinball.Unity
 
 		private int _deactivationDelay;
 
+		/// <summary>
+		/// Creates a gamepad intent sensor with optional X/Y mappings.
+		/// </summary>
 		public GamepadNudgeState(float strength, bool xMapped, bool yMapped)
 		{
 			XSensor = default;
@@ -87,6 +117,9 @@ namespace VisualPinball.Unity
 
 		public bool IsActive => _deactivationDelay > 0;
 
+		/// <summary>
+		/// Applies the latest mapped gamepad position sample.
+		/// </summary>
 		public void ApplySample(NudgeSensorChannel channel, float value, ulong timestampUsec)
 		{
 			switch (channel) {
@@ -99,6 +132,9 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Advances intent detection and cabinet spring response by one millisecond.
+		/// </summary>
 		public void StepOneMillisecond()
 		{
 			var x = XSensor.Value * Strength * 16f;
@@ -120,6 +156,18 @@ namespace VisualPinball.Unity
 		}
 	}
 
+	/// <summary>
+	/// Interprets real cabinet motion sensors and produces cabinet acceleration
+	/// for physics.
+	/// </summary>
+	/// <remarks>
+	/// Adapted from VP's
+	/// <c>vpinball/src/physics/cabinet/CabinetNudgeSensor.*</c> with supporting
+	/// filter/calibration ports from <c>MotionKalmanAxis.h</c> and
+	/// <c>MotionGainCalibratorAxis.h</c>. Direct mode uses measured motion;
+	/// cabinet-intent mode runs the same measured signal through the VP intent
+	/// detector and applies a synthesized cabinet impulse.
+	/// </remarks>
 	public struct CabinetSensorState
 	{
 		private const int DeactivationDelayMs = 10000;
@@ -127,6 +175,10 @@ namespace VisualPinball.Unity
 		private const int CrossRestCountThreshold = 75;
 		private const int ForceRestCountThreshold = CrossRestCountThreshold + 200;
 
+		/// <summary>
+		/// Per-channel state used to align native timestamps to the simulation
+		/// clock and detect rest.
+		/// </summary>
 		private struct SyncedSensor
 		{
 			public NudgePhysicsSensorState Sensor;
@@ -136,6 +188,9 @@ namespace VisualPinball.Unity
 			public byte ForceRest;
 			public float LastValue;
 
+			/// <summary>
+			/// Enables or disables the channel and clears synchronization state.
+			/// </summary>
 			public void Configure(bool mapped, SensorMappingKind kind)
 			{
 				Sensor.Configure(mapped, kind);
@@ -174,6 +229,9 @@ namespace VisualPinball.Unity
 		private byte _intentEnabled;
 		private int _deactivationDelay;
 
+		/// <summary>
+		/// Creates a cabinet sensor from mapped velocity/acceleration channels.
+		/// </summary>
 		public CabinetSensorState(NudgeSensorType type, float strength, float cabinetMassKg,
 			bool velXMapped, bool velYMapped, bool accXMapped, bool accYMapped)
 		{
@@ -202,6 +260,10 @@ namespace VisualPinball.Unity
 			_deactivationDelay = 0;
 		}
 
+		/// <summary>
+		/// Stores the latest mapped velocity or acceleration sample for the selected
+		/// channel.
+		/// </summary>
 		public void ApplySample(NudgeSensorChannel channel, float value, ulong timestampUsec)
 		{
 			switch (channel) {
@@ -220,6 +282,10 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Advances sensor fusion, rest handling, and cabinet output by one
+		/// millisecond.
+		/// </summary>
 		public void StepOneMillisecond()
 		{
 			if (_deactivationDelay > 0) {
@@ -241,7 +307,7 @@ namespace VisualPinball.Unity
 				CabinetAcceleration = Cabinet.CabinetAcceleration;
 			} else {
 				// Note: the reference (CabinetNudgeSensor.cpp:280-285) multiplies by the
-				// strength scale twice, making direct-mode output scale with strength².
+				// strength scale twice, making direct-mode output scale with strength squared.
 				// That's an upstream bug we deliberately don't reproduce: strength is
 				// applied once, linearly.
 				CabinetAcceleration.x = _emaX.Update(KalmanX.Acceleration, 0.001f);
@@ -252,6 +318,16 @@ namespace VisualPinball.Unity
 			CabinetOffset = Cabinet.CabinetOffset;
 		}
 
+		/// <summary>
+		/// Updates one physical axis from its velocity and/or acceleration channels.
+		/// </summary>
+		/// <remarks>
+		/// When both channels are mapped, acceleration is trusted until the gain
+		/// calibrator has enough confidence to scale velocity into acceleration
+		/// units. Rest constraints reset accumulated filter drift once both channels
+		/// have either crossed zero after a quiet period or remained quiet long
+		/// enough to be considered settled.
+		/// </remarks>
 		private void UpdateAxis(ref SyncedSensor velSensor, ref SyncedSensor accSensor, ref MotionKalmanAxis kalmanFilter,
 			ref MotionGainCalibratorAxis gainCalibrator)
 		{
@@ -302,6 +378,15 @@ namespace VisualPinball.Unity
 			kalmanFilter.PredictTo(_timeUs);
 		}
 
+		/// <summary>
+		/// Applies one mapped channel to the Kalman filter after aligning its native
+		/// timestamp to simulation time.
+		/// </summary>
+		/// <remarks>
+		/// Native input timestamps can be ahead of simulation time because sampling
+		/// happens on a different thread. The clock delta is adjusted instead of
+		/// feeding future samples into the filter.
+		/// </remarks>
 		private void UpdateAxisSensor(ref SyncedSensor sensor, ref MotionKalmanAxis axis, float axisGain)
 		{
 			if (!sensor.Sensor.IsMapped) {
@@ -343,12 +428,19 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Small one-pole smoother used to remove the last bit of direct-mode sensor
+		/// chatter before feeding cabinet acceleration to physics.
+		/// </summary>
 		private struct EmaState
 		{
 			private float _tau;
 			private float _value;
 			private byte _initialized;
 
+			/// <summary>
+			/// Creates an exponential moving average with the supplied time constant.
+			/// </summary>
 			public EmaState(float tau)
 			{
 				_tau = math.max(1.0e-6f, tau);
@@ -356,6 +448,9 @@ namespace VisualPinball.Unity
 				_initialized = 0;
 			}
 
+			/// <summary>
+			/// Filters one sample and returns the smoothed value.
+			/// </summary>
 			public float Update(float sample, float dt)
 			{
 				if (_initialized == 0) {
@@ -371,6 +466,15 @@ namespace VisualPinball.Unity
 		}
 	}
 
+	/// <summary>
+	/// Runtime wrapper for one configured nudge sensor slot.
+	/// </summary>
+	/// <remarks>
+	/// Applies the sensor mount transform before dispatching samples to either the
+	/// gamepad-intent or cabinet-sensor implementation. Keeping this transform at
+	/// the slot boundary ensures the graph, calibration, and physics paths all see
+	/// cabinet-space axes.
+	/// </remarks>
 	public struct NudgeSensorState
 	{
 		public NudgeSensorType Type;
@@ -386,6 +490,9 @@ namespace VisualPinball.Unity
 		public bool IsEnabled => Enabled != 0;
 		public bool IsActive => IsEnabled && (Type == NudgeSensorType.GamepadIntent ? Gamepad.IsActive : Cabinet.IsActive);
 
+		/// <summary>
+		/// Creates an enabled sensor slot from runtime configuration.
+		/// </summary>
 		public NudgeSensorState(NudgeSensorRuntimeConfig config)
 		{
 			Type = config.Type;
@@ -410,6 +517,9 @@ namespace VisualPinball.Unity
 			LastActivityTimestampUsec = 0;
 		}
 
+		/// <summary>
+		/// Disables this sensor and clears any last produced cabinet motion.
+		/// </summary>
 		public void Disable()
 		{
 			Enabled = 0;
@@ -418,6 +528,10 @@ namespace VisualPinball.Unity
 			LastActivityTimestampUsec = 0;
 		}
 
+		/// <summary>
+		/// Applies mount orientation and forwards a mapped sample to the active
+		/// sensor implementation.
+		/// </summary>
 		public void ApplySample(NudgeSensorChannel channel, float value, ulong timestampUsec)
 		{
 			if (!IsEnabled) {
@@ -434,6 +548,10 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Advances the active sensor model and publishes cabinet acceleration and
+		/// visual offset for the current physics tick.
+		/// </summary>
 		public void StepOneMillisecond()
 		{
 			if (!IsEnabled) {

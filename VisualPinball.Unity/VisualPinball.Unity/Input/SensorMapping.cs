@@ -20,13 +20,28 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Physical meaning of a native analog axis after it has been mapped.
+	/// </summary>
 	public enum SensorMappingKind
 	{
+		/// <summary>Position or intent input, such as a gamepad stick axis.</summary>
 		Position,
+		/// <summary>Measured cabinet velocity.</summary>
 		Velocity,
+		/// <summary>Measured cabinet acceleration.</summary>
 		Acceleration
 	}
 
+	/// <summary>
+	/// Describes how one native input axis maps into a nudge sensor channel.
+	/// </summary>
+	/// <remarks>
+	/// The mapping stores raw device identity and calibration values rather than a
+	/// normalized Unity input binding. Native devices such as KL25Z/Pinscape can
+	/// expose motion axes with device-specific centers, so the raw center must be
+	/// captured and applied before dead-zone, limit, and scale.
+	/// </remarks>
 	public sealed class SensorMapping
 	{
 		public string DeviceId { get; set; } = string.Empty;
@@ -42,6 +57,10 @@ namespace VisualPinball.Unity
 
 		public bool IsMapped => !string.IsNullOrEmpty(DeviceId) && AxisId >= 0;
 
+		/// <summary>
+		/// Applies center, dead-zone, limit, and scale to a raw native input value.
+		/// </summary>
+		/// <returns>The value to feed into the configured nudge channel.</returns>
 		public float ProcessRawValue(float rawValue, long timestampUsec)
 		{
 			RawValue = rawValue;
@@ -64,6 +83,9 @@ namespace VisualPinball.Unity
 			return MappedValue;
 		}
 
+		/// <summary>
+		/// Serializes this mapping into the compact package/component format.
+		/// </summary>
 		public override string ToString()
 		{
 			if (!IsMapped) {
@@ -84,6 +106,13 @@ namespace VisualPinball.Unity
 			return value;
 		}
 
+		/// <summary>
+		/// Parses a mapping written by <see cref="ToString"/>.
+		/// </summary>
+		/// <remarks>
+		/// The parser accepts both the current six-value payload and the older
+		/// five-value form without a raw center so existing tables keep loading.
+		/// </remarks>
 		public static bool TryParse(string value, out SensorMapping mapping)
 		{
 			mapping = new SensorMapping();
@@ -106,6 +135,10 @@ namespace VisualPinball.Unity
 			return false;
 		}
 
+		/// <summary>
+		/// Parses from the end of the semicolon-delimited payload so semicolons in
+		/// native device ids are preserved.
+		/// </summary>
 		private static bool TryParseParts(string[] parts, int trailingValueCount, out SensorMapping mapping)
 		{
 			mapping = new SensorMapping();

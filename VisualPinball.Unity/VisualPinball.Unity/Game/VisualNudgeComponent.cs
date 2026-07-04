@@ -21,6 +21,16 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Applies a camera-space visual response to simulated cabinet motion.
+	/// </summary>
+	/// <remarks>
+	/// This mirrors VP's visual nudge behavior in
+	/// <c>vpinball/src/renderer/Renderer.cpp</c>, where cabinet displacement is
+	/// represented by shifting the rendered view rather than moving every table
+	/// object. VPE applies the offset to game cameras so authoring/editor cameras
+	/// are not disturbed.
+	/// </remarks>
 	[DefaultExecutionOrder(10000)]
 	public sealed class VisualNudgeComponent : MonoBehaviour
 	{
@@ -31,6 +41,9 @@ namespace VisualPinball.Unity
 		[NonSerialized] private float2 _cabinetOffset;
 		[NonSerialized] private float _strength = 1f;
 
+		/// <summary>
+		/// Connects this component to physics telemetry and sets the visual strength.
+		/// </summary>
 		internal void Configure(PhysicsEngine physicsEngine, float strength)
 		{
 			_physicsEngine = physicsEngine;
@@ -40,6 +53,9 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Updates the latest cabinet-space offset produced by the physics thread.
+		/// </summary>
 		internal void SetCabinetOffset(float2 cabinetOffset)
 		{
 			_cabinetOffset = cabinetOffset;
@@ -61,6 +77,10 @@ namespace VisualPinball.Unity
 			return _playfield != null ? _playfield.transform.TransformVector(localOffset) : localOffset;
 		}
 
+		/// <summary>
+		/// Applies the desired offset to all game cameras and restores cameras that
+		/// disappeared from the active list.
+		/// </summary>
 		private void ApplyToGameCameras(Vector3 desiredOffset)
 		{
 			_staleCameras.Clear();
@@ -89,6 +109,14 @@ namespace VisualPinball.Unity
 			       && camera.cameraType == CameraType.Game;
 		}
 
+		/// <summary>
+		/// Replaces this frame's previous offset with the new one.
+		/// </summary>
+		/// <remarks>
+		/// The previous offset is subtracted first so animated camera rigs, head
+		/// tracking, or other camera scripts can still move the camera normally
+		/// between VPE visual nudge updates.
+		/// </remarks>
 		private void ApplyToCamera(Camera camera, Vector3 desiredOffset)
 		{
 			if (_appliedOffsets.TryGetValue(camera, out var previousOffset)) {

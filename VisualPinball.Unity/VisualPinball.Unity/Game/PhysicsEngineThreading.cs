@@ -237,6 +237,14 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Drains queued keyboard/manual nudge commands into physics-owned state.
+		/// </summary>
+		/// <remarks>
+		/// Nudge requests can be produced by main-thread input, gamelogic, or native
+		/// input callbacks, but the cabinet model is mutated only while the physics
+		/// thread owns <see cref="PhysicsEngineContext.PhysicsEnv"/>.
+		/// </remarks>
 		private void ProcessPendingKeyboardNudges()
 		{
 			_pendingKeyboardNudges.Clear();
@@ -254,6 +262,14 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Drains queued analog nudge sensor samples into physics-owned state.
+		/// </summary>
+		/// <remarks>
+		/// The input thread may deliver several samples between physics ticks. They
+		/// are replayed in queue order so the sensor filters retain native timing
+		/// information while still mutating state on the physics thread.
+		/// </remarks>
 		private void ProcessPendingNudgeSensorSamples()
 		{
 			_pendingNudgeSensorSamples.Clear();

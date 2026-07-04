@@ -16,13 +16,23 @@
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Logical axis slot used when routing native analog samples into a configured
+	/// nudge sensor.
+	/// </summary>
 	public enum NudgeSensorChannel
 	{
+		/// <summary>Gamepad/intent position X.</summary>
 		X = 0,
+		/// <summary>Gamepad/intent position Y.</summary>
 		Y = 1,
+		/// <summary>Cabinet velocity X.</summary>
 		VelocityX = 2,
+		/// <summary>Cabinet velocity Y.</summary>
 		VelocityY = 3,
+		/// <summary>Cabinet acceleration X.</summary>
 		AccelerationX = 4,
+		/// <summary>Cabinet acceleration Y.</summary>
 		AccelerationY = 5
 	}
 }
