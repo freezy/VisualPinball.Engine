@@ -31,6 +31,25 @@ namespace VisualPinball.Unity.Simulation
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 		private const string LogPrefix = "[VPE]";
 
+		public static SimulationThreadComponent EnsureFor(PhysicsEngine physicsEngine)
+		{
+			if (!physicsEngine) {
+				return null;
+			}
+
+			return physicsEngine.GetComponent<SimulationThreadComponent>()
+				?? physicsEngine.gameObject.AddComponent<SimulationThreadComponent>();
+		}
+
+		public static SimulationThreadComponent EnsureForTable(GameObject tableRoot)
+		{
+			if (!tableRoot) {
+				return null;
+			}
+
+			return EnsureFor(tableRoot.GetComponentInChildren<PhysicsEngine>(true));
+		}
+
 		#region Inspector Fields
 
 		[Header("Simulation Settings")]

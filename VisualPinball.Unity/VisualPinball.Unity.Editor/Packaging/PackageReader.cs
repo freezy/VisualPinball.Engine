@@ -25,6 +25,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using VisualPinball.Unity.Simulation;
 using Logger = NLog.Logger;
 using Object = UnityEngine.Object;
 
@@ -92,6 +93,7 @@ namespace VisualPinball.Unity.Editor
 
 				ReadGlobals();
 				ReadTableMetadata();
+				SimulationThreadComponent.EnsureForTable(_tableRoot.gameObject);
 				RestoreLights();
 				ImportMaterials();
 

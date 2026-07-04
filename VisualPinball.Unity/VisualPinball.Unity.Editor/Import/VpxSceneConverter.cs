@@ -51,6 +51,7 @@ using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Engine.VPT.Trough;
 using VisualPinball.Engine.VPT.MetalWireGuide;
 using VisualPinball.Unity.Playfield;
+using VisualPinball.Unity.Simulation;
 using Light = VisualPinball.Engine.VPT.Light.Light;
 using Logger = NLog.Logger;
 using Material = UnityEngine.Material;
@@ -738,7 +739,8 @@ namespace VisualPinball.Unity.Editor
 			cabinetGo.transform.SetParent(_tableGo.transform, false);
 
 			// 2. add components
-			_playfieldGo.AddComponent<PhysicsEngine>();
+			var physicsEngine = _playfieldGo.AddComponent<PhysicsEngine>();
+			SimulationThreadComponent.EnsureFor(physicsEngine);
 			_playfieldComponent = _playfieldGo.AddComponent<PlayfieldComponent>();
 			_playfieldGo.AddComponent<PlayfieldColliderComponent>();
 			_playfieldGo.AddComponent<PlayfieldMeshComponent>();

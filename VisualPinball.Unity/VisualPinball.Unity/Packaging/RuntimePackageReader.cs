@@ -28,6 +28,7 @@ using GLTFast.Logging;
 using Newtonsoft.Json.Linq;
 using NLog;
 using UnityEngine;
+using VisualPinball.Unity.Simulation;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
@@ -241,6 +242,7 @@ namespace VisualPinball.Unity
 					var tableMetadataStopwatch = Stopwatch.StartNew();
 					ReportProgress(progress, RuntimePackageLoadStage.RestoringTableMetadata, 0f, "Reading table metadata...");
 					ReadTableMetadata();
+					SimulationThreadComponent.EnsureForTable(_table);
 					ReportProgress(progress, RuntimePackageLoadStage.RestoringTableMetadata, 1f, "Table metadata ready.");
 					tableMetadataStopwatch.Stop();
 					Logger.Info($"RuntimePackageReader: Read table metadata in {tableMetadataStopwatch.ElapsedMilliseconds}ms.");
