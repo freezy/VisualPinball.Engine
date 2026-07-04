@@ -383,16 +383,24 @@ namespace VisualPinball.Unity
 		/// its pivot so a later update derives from a valid baseline.
 		/// </summary>
 		/// <remarks>
-		/// The step velocities are deliberately left untouched: the pose may
-		/// still be catching up to its target, and while it does, the collider
-		/// really is still moving — <see cref="PhysicsKinematics.StepKinematics"/>
-		/// re-derives them from the actual step each tick (they carry the
-		/// catch-up pace and keep hit tests honest) and zeroes them the tick
-		/// the pose settles, before any hit test runs.
+		/// The derived velocity is handed over to the step velocities instead of
+		/// just being cleared: the pose may still be catching up to its target,
+		/// and while it does, the collider really is still moving — the step
+		/// velocities keep the catch-up classified as continuous (no teleport
+		/// snap of the remaining gap) and carry its pace. This also covers the
+		/// case where the final transform update and the stop are drained
+		/// together, before <see cref="PhysicsKinematics.StepKinematics"/> ever
+		/// ran for that target — the step velocities would otherwise still be
+		/// zero. From here on, StepKinematics re-derives them from the actual
+		/// step each tick and zeroes them the tick the pose settles, before any
+		/// hit test runs; if the pose is already settled, the seeded values are
+		/// cleared the same way on the next tick.
 		/// </remarks>
 		private void StopKinematicVelocity(int itemId, ulong nowUsec)
 		{
 			if (_ctx.KinematicVelocities.Ref.TryGetValue(itemId, out var velocity)) {
+				velocity.StepVelocity = velocity.LinearVelocity;
+				velocity.StepAngularVelocity = velocity.AngularVelocity;
 				velocity.LinearVelocity = float3.zero;
 				velocity.AngularVelocity = float3.zero;
 				velocity.LastUpdateUsec = nowUsec;
