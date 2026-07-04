@@ -21,6 +21,8 @@ namespace VisualPinball.Unity.Simulation
 		public NudgeSensorType Type;
 		public float Strength;
 		public float CabinetMassKg;
+		public NudgeSensorMountRotation MountRotation;
+		public bool MountMirror;
 		public string X;
 		public string Y;
 		public string AccelerationX;
@@ -36,6 +38,8 @@ namespace VisualPinball.Unity.Simulation
 				Type = sensor.Type,
 				Strength = sensor.Strength,
 				CabinetMassKg = sensor.CabinetMassKg,
+				MountRotation = sensor.MountRotation,
+				MountMirror = sensor.MountMirror,
 				X = sensor.X,
 				Y = sensor.Y,
 				AccelerationX = sensor.AccelerationX,
@@ -51,6 +55,8 @@ namespace VisualPinball.Unity.Simulation
 				Type = Type,
 				Strength = Strength,
 				CabinetMassKg = CabinetMassKg,
+				MountRotation = MountRotation,
+				MountMirror = MountMirror,
 				X = X,
 				Y = Y,
 				AccelerationX = AccelerationX,

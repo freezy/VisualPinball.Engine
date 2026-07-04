@@ -119,6 +119,36 @@ namespace VisualPinball.Unity.Test
 			Assert.That(calibrator.Gain, Is.EqualTo(expectedGain).Within(0.15f));
 		}
 
+		[TestCase(NudgeSensorMountRotation.Rotation0, false, NudgeSensorChannel.AccelerationX, 2f, NudgeSensorChannel.AccelerationX, 2f)]
+		[TestCase(NudgeSensorMountRotation.Rotation90, false, NudgeSensorChannel.AccelerationX, 2f, NudgeSensorChannel.AccelerationY, 2f)]
+		[TestCase(NudgeSensorMountRotation.Rotation90, false, NudgeSensorChannel.AccelerationY, 2f, NudgeSensorChannel.AccelerationX, -2f)]
+		[TestCase(NudgeSensorMountRotation.Rotation180, false, NudgeSensorChannel.VelocityX, 2f, NudgeSensorChannel.VelocityX, -2f)]
+		[TestCase(NudgeSensorMountRotation.Rotation270, false, NudgeSensorChannel.X, 2f, NudgeSensorChannel.Y, -2f)]
+		[TestCase(NudgeSensorMountRotation.Rotation90, true, NudgeSensorChannel.AccelerationX, 2f, NudgeSensorChannel.AccelerationY, -2f)]
+		public void MountTransformRotatesAndMirrorsChannels(NudgeSensorMountRotation rotation, bool mirror,
+			NudgeSensorChannel sourceChannel, float sourceValue, NudgeSensorChannel expectedChannel, float expectedValue)
+		{
+			var channel = sourceChannel;
+			var value = sourceValue;
+
+			NudgeSensorMountTransform.TransformChannel(ref channel, ref value, rotation, mirror);
+
+			Assert.That(channel, Is.EqualTo(expectedChannel));
+			Assert.That(value, Is.EqualTo(expectedValue).Within(1e-6f));
+		}
+
+		[Test]
+		public void MountTransformRotatesMappedFlags()
+		{
+			var xMapped = true;
+			var yMapped = false;
+
+			NudgeSensorMountTransform.TransformMappedAxes(ref xMapped, ref yMapped, NudgeSensorMountRotation.Rotation90);
+
+			Assert.That(xMapped, Is.False);
+			Assert.That(yMapped, Is.True);
+		}
+
 		[Test]
 		public void DirectCabinetSensorCanDriveNudgeState()
 		{
@@ -140,6 +170,30 @@ namespace VisualPinball.Unity.Test
 			Assert.That(nudge.ActiveSourceIndex, Is.EqualTo(0));
 			Assert.That(nudge.CabinetAcceleration.y, Is.LessThan(0f));
 			Assert.That(math.abs(nudge.CabinetOffset.y), Is.GreaterThan(0f));
+		}
+
+		[Test]
+		public void DirectCabinetSensorAppliesMountTransform()
+		{
+			var nudge = new NudgeState(KeyboardNudgeMode.CabModel, 1f, 5f);
+			nudge.ConfigureSensor(0, new NudgeSensorRuntimeConfig {
+				Type = NudgeSensorType.CabinetDirect,
+				Strength = 1f,
+				CabinetMassKg = 113f,
+				MountRotation = NudgeSensorMountRotation.Rotation90,
+				MountMirror = 1,
+				AccelerationXMapped = 1
+			});
+
+			nudge.ApplySensorSample(0, NudgeSensorChannel.AccelerationX, 0f, 1000);
+			nudge.StepOneMillisecond();
+			nudge.ApplySensorSample(0, NudgeSensorChannel.AccelerationX, 12f, 2000);
+			for (var i = 0; i < 10; i++) {
+				nudge.StepOneMillisecond();
+			}
+
+			Assert.That(nudge.ActiveSourceIndex, Is.EqualTo(0));
+			Assert.That(nudge.CabinetAcceleration.y, Is.LessThan(0f));
 		}
 
 		[Test]
