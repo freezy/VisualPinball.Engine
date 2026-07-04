@@ -78,6 +78,7 @@ namespace VisualPinball.Unity.Simulation
 		{
 			Action = 0,
 			Axis = 1,
+			DevicesChanged = 2,
 		}
 
 		public enum AxisKind

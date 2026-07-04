@@ -92,6 +92,12 @@ namespace VisualPinball.Unity.Simulation
 		public float ActualEventRateHz => _polling ? Volatile.Read(ref _actualEventRateHz) : 0f;
 		public event Action<NativeInputApi.InputEvent> AxisInputReceived;
 
+		/// <summary>
+		/// Raised after a device arrival/removal was detected and the device-id
+		/// cache has been refreshed. Invoked on the input polling thread.
+		/// </summary>
+		public event Action DevicesChanged;
+
 		private NativeInputManager()
 		{
 			// Private constructor for singleton
@@ -422,6 +428,13 @@ namespace VisualPinball.Unity.Simulation
 				Logger.Trace($"{LogPrefix} [NativeInputManager] Received from native: Type={evt.EventType}, Action={evt.Action}, Device={evt.DeviceIndex}, Axis={evt.AxisId}, Value={evt.Value}, Timestamp={evt.TimestampUsec}");
 			}
 
+			// Device hotplug notifications must be handled regardless of window
+			// focus, or the device-id cache goes stale while unfocused.
+			if (evt.EventType == (int)NativeInputApi.InputEventType.DevicesChanged) {
+				Volatile.Read(ref _instance)?.OnNativeDevicesChanged();
+				return;
+			}
+
 			// Drop input while the app window isn't focused, so background key presses don't reach the game.
 			if (!_appFocused) {
 				return;
@@ -436,6 +449,19 @@ namespace VisualPinball.Unity.Simulation
 
 			// Forward action events to simulation thread via ring buffer.
 			instance?._simulationThread?.EnqueueInputEvent(evt);
+		}
+
+		// Called on the input polling thread when the native side detected a
+		// device arrival/removal. Rebuilding via ListDevices is safe here: the
+		// native listing takes its own lock and the id cache is swapped atomically.
+		private void OnNativeDevicesChanged()
+		{
+			try {
+				ListDevices();
+				DevicesChanged?.Invoke();
+			} catch (Exception e) {
+				Logger.Error(e, $"{LogPrefix} [NativeInputManager] Failed to refresh devices after hotplug");
+			}
 		}
 
 		private void MarkInputEventActivity()
