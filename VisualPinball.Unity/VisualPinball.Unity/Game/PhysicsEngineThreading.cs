@@ -673,6 +673,8 @@ namespace VisualPinball.Unity
 					emitter.UpdateAnimationValue(anim.Value);
 				}
 			}
+
+			_physicsEngine.ApplyVisualNudge(snapshot.NudgeCabinetOffset);
 		}
 
 		/// <summary>
@@ -881,6 +883,7 @@ namespace VisualPinball.Unity
 			_physicsMovements.ApplyPlungerMovement(ref _ctx.PlungerStates.Ref, _ctx.FloatAnimatedComponents);
 			_physicsMovements.ApplySpinnerMovement(ref _ctx.SpinnerStates.Ref, _ctx.FloatAnimatedComponents);
 			_physicsMovements.ApplyTriggerMovement(ref _ctx.TriggerStates.Ref, _ctx.FloatAnimatedComponents);
+			_physicsEngine.ApplyVisualNudge(_ctx.PhysicsEnv.Nudge.CabinetOffset);
 		}
 
 		#endregion

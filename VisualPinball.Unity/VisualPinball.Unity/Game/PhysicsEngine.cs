@@ -134,6 +134,10 @@ namespace VisualPinball.Unity
 		[Range(0.5f, 4f)]
 		public float PlumbThresholdAngle = 2f;
 
+		[Tooltip("Render-only visual nudge strength scale.")]
+		[Range(0f, 2f)]
+		public float VisualNudgeStrength = 1f;
+
 		#endregion
 
 		#region Packaging
@@ -171,6 +175,7 @@ namespace VisualPinball.Unity
 		// to _threading constructor).
 		[NonSerialized] private Player _player;
 		[NonSerialized] private NudgeSystem _nudgeSystem;
+		[NonSerialized] private VisualNudgeComponent _visualNudge;
 		[NonSerialized] private ICollidableComponent[] _colliderComponents;
 		[NonSerialized] private ICollidableComponent[] _kinematicColliderComponents;
 		[NonSerialized] private float4x4 _worldToPlayfield;
@@ -333,6 +338,27 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		public void ConfigureVisualNudge(float strength)
+		{
+			VisualNudgeStrength = math.clamp(strength, 0f, 2f);
+			if (!Application.isPlaying) {
+				return;
+			}
+			EnsureVisualNudge();
+			_visualNudge?.Configure(this, VisualNudgeStrength);
+		}
+
+		private void EnsureVisualNudge()
+		{
+			if (_visualNudge != null) {
+				return;
+			}
+			_visualNudge = GetComponent<VisualNudgeComponent>();
+			if (_visualNudge == null) {
+				_visualNudge = gameObject.AddComponent<VisualNudgeComponent>();
+			}
+		}
+
 		public void ConfigureNudgeSensors(IReadOnlyList<NudgeSensorConfig> sensors)
 		{
 			_nudgeSystem?.ConfigureSensors(sensors);
@@ -421,6 +447,14 @@ namespace VisualPinball.Unity
 					plumb.TiltHigh
 				);
 			}
+		}
+
+		internal void ApplyVisualNudge(float2 cabinetOffset)
+		{
+			if (_visualNudge == null) {
+				return;
+			}
+			_visualNudge.SetCabinetOffset(cabinetOffset);
 		}
 
 		internal void DrainPlumbTiltEvents(List<bool> destination)
@@ -768,6 +802,7 @@ namespace VisualPinball.Unity
 			_mainThreadManagedThreadId = Thread.CurrentThread.ManagedThreadId;
 			_player = GetComponentInParent<Player>();
 			_nudgeSystem = new NudgeSystem(this);
+			ConfigureVisualNudge(VisualNudgeStrength);
 			_ctx.InsideOfs = new InsideOfs(Allocator.Persistent);
 			var table = GetComponentInParent<TableComponent>();
 			_ctx.PhysicsEnv = new PhysicsEnv(NowUsec, GetComponentInChildren<PlayfieldComponent>(), GravityStrength,
