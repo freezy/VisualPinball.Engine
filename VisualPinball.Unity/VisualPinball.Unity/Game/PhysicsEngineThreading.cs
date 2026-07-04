@@ -572,6 +572,13 @@ namespace VisualPinball.Unity
 				_float2SnapshotOverflowWarningIssued = true;
 				Logger.Warn($"[PhysicsEngine] Float2 animation snapshot capacity exceeded: {snapshot.Float2AnimationSourceCount} channels for max {SimulationState.MaxFloat2Animations}. Snapshot output is truncated.");
 			}
+
+			snapshot.NudgeCabinetAcceleration = _ctx.PhysicsEnv.Nudge.CabinetAcceleration;
+			snapshot.NudgeCabinetOffset = _ctx.PhysicsEnv.Nudge.CabinetOffset;
+			snapshot.PlumbPosition = _ctx.PhysicsEnv.Plumb.Position;
+			snapshot.PlumbTiltPercent = _ctx.PhysicsEnv.Plumb.MaxTiltPercent;
+			snapshot.PlumbTiltIndex = _ctx.PhysicsEnv.Plumb.TiltIndex;
+			snapshot.PlumbTiltHigh = _ctx.PhysicsEnv.Plumb.TiltHigh ? (byte)1 : (byte)0;
 		}
 
 		#endregion

@@ -141,18 +141,25 @@ namespace VisualPinball.Unity
 				case InputActionChange.ActionCanceled:
 					var action = (InputAction)obj;
 					var actionName = InputManager.GetCanonicalActionName(action.name);
-					if (_keySwitchAssignments.TryGetValue(actionName, out var assignment)) {
-						if (_player != null) {
-							foreach (var sw in assignment) {
-								sw.IsSwitchEnabled = change == InputActionChange.ActionStarted;
-								_player.DispatchSwitch(sw.SwitchId, sw.IsSwitchClosed);
-							}
-						}
-					} else {
+					if (!DispatchInputAction(actionName, change == InputActionChange.ActionStarted)) {
 						//Logger.Info($"Unmapped input command \"{action.name}\".");
 					}
 					break;
 			}
+		}
+
+		internal bool DispatchInputAction(string actionName, bool isPressed)
+		{
+			if (!_keySwitchAssignments.TryGetValue(actionName, out var assignment)) {
+				return false;
+			}
+			if (_player != null) {
+				foreach (var sw in assignment) {
+					sw.IsSwitchEnabled = isPressed;
+					_player.DispatchSwitch(sw.SwitchId, sw.IsSwitchClosed);
+				}
+			}
+			return true;
 		}
 
 		public void OnDestroy()

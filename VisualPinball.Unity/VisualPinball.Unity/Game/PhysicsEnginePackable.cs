@@ -22,6 +22,10 @@ namespace VisualPinball.Unity
 		public bool HasKeyboardNudgeSettings;
 		public KeyboardNudgeMode KeyboardNudgeMode;
 		public float KeyboardNudgeStrength;
+		public bool HasPlumbSettings;
+		public bool SimulatedPlumb;
+		public float PlumbDamping;
+		public float PlumbThresholdAngle;
 
 		public static byte[] Pack(PhysicsEngine comp)
 		{
@@ -30,6 +34,10 @@ namespace VisualPinball.Unity
 				HasKeyboardNudgeSettings = true,
 				KeyboardNudgeMode = comp.KeyboardNudgeMode,
 				KeyboardNudgeStrength = comp.KeyboardNudgeStrength,
+				HasPlumbSettings = true,
+				SimulatedPlumb = comp.SimulatedPlumb,
+				PlumbDamping = comp.PlumbDamping,
+				PlumbThresholdAngle = comp.PlumbThresholdAngle,
 			});
 		}
 
@@ -40,6 +48,11 @@ namespace VisualPinball.Unity
 			comp.ConfigureKeyboardNudge(
 				data.HasKeyboardNudgeSettings ? data.KeyboardNudgeMode : KeyboardNudgeMode.CabModel,
 				data.HasKeyboardNudgeSettings ? data.KeyboardNudgeStrength : 1f
+			);
+			comp.ConfigurePlumb(
+				data.HasPlumbSettings ? data.SimulatedPlumb : true,
+				data.HasPlumbSettings ? data.PlumbDamping : 1f,
+				data.HasPlumbSettings ? data.PlumbThresholdAngle : 2f
 			);
 		}
 	}

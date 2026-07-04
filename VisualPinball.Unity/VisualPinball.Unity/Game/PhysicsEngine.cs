@@ -123,6 +123,17 @@ namespace VisualPinball.Unity
 		[Range(0f, 2f)]
 		public float KeyboardNudgeStrength = 1f;
 
+		[Tooltip("Simulate a mechanical plumb-bob tilt switch from cabinet nudge.")]
+		public bool SimulatedPlumb = true;
+
+		[Tooltip("Mechanical plumb-bob damping scale.")]
+		[Range(0f, 2f)]
+		public float PlumbDamping = 1f;
+
+		[Tooltip("Mechanical plumb-bob tilt threshold angle in degrees.")]
+		[Range(0.5f, 4f)]
+		public float PlumbThresholdAngle = 2f;
+
 		#endregion
 
 		#region Packaging
@@ -165,6 +176,7 @@ namespace VisualPinball.Unity
 		[NonSerialized] private int _mainThreadManagedThreadId;
 		[NonSerialized] private int _simulationThreadManagedThreadId = -1;
 		[NonSerialized] private int _keyboardNudgeIndex;
+		[NonSerialized] private readonly List<bool> _pendingPlumbTiltEvents = new(8);
 		[NonSerialized] private readonly HashSet<string> _unsafeLiveStateAccessWarnings = new HashSet<string>();
 		[NonSerialized] private bool _inputActionsQueueWarningIssued;
 		[NonSerialized] private bool _scheduledActionsQueueWarningIssued;
@@ -302,6 +314,23 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		public void ConfigurePlumb(bool simulatedPlumb, float damping, float thresholdAngle)
+		{
+			SimulatedPlumb = simulatedPlumb;
+			PlumbDamping = math.clamp(damping, 0f, 2f);
+			PlumbThresholdAngle = math.clamp(thresholdAngle, 0.5f, 4f);
+
+			if (_ctx == null || !_ctx.IsInitialized) {
+				return;
+			}
+
+			lock (_ctx.PhysicsLock) {
+				var plumb = _ctx.PhysicsEnv.Plumb;
+				plumb.Configure(SimulatedPlumb, PlumbDamping, PlumbThresholdAngle);
+				_ctx.PhysicsEnv.Plumb = plumb;
+			}
+		}
+
 		public void NudgeSensorStatus(out float x, out float y)
 		{
 			lock (_ctx.PhysicsLock) {
@@ -310,6 +339,39 @@ namespace VisualPinball.Unity
 				_ctx.PhysicsEnv.Nudge = nudge;
 				x = acceleration.x;
 				y = acceleration.y;
+			}
+		}
+
+		public void NudgeTiltStatus(out float plumbX, out float plumbY, out float tiltPercent)
+		{
+			lock (_ctx.PhysicsLock) {
+				var plumb = _ctx.PhysicsEnv.Plumb;
+				var status = plumb.ReadAndResetTiltStatus();
+				_ctx.PhysicsEnv.Plumb = plumb;
+				plumbX = status.x;
+				plumbY = status.y;
+				tiltPercent = status.z;
+			}
+		}
+
+		internal void DrainPlumbTiltEvents(List<bool> destination)
+		{
+			lock (_ctx.PhysicsLock) {
+				var plumb = _ctx.PhysicsEnv.Plumb;
+				for (var i = 0; i < plumb.PendingTiltStates.Length; i++) {
+					destination.Add(plumb.PendingTiltStates[i] != 0);
+				}
+				plumb.ClearPendingTiltEvents();
+				_ctx.PhysicsEnv.Plumb = plumb;
+			}
+		}
+
+		private void DispatchPendingPlumbTiltEvents()
+		{
+			_pendingPlumbTiltEvents.Clear();
+			DrainPlumbTiltEvents(_pendingPlumbTiltEvents);
+			foreach (var high in _pendingPlumbTiltEvents) {
+				_player?.DispatchInputAction(InputConstants.ActionTilt, high);
 			}
 		}
 
@@ -639,7 +701,8 @@ namespace VisualPinball.Unity
 			_ctx.InsideOfs = new InsideOfs(Allocator.Persistent);
 			var table = GetComponentInParent<TableComponent>();
 			_ctx.PhysicsEnv = new PhysicsEnv(NowUsec, GetComponentInChildren<PlayfieldComponent>(), GravityStrength,
-				KeyboardNudgeMode, KeyboardNudgeStrength, table != null ? table.NudgeTime : 5f);
+				KeyboardNudgeMode, KeyboardNudgeStrength, table != null ? table.NudgeTime : 5f,
+				SimulatedPlumb, PlumbDamping, PlumbThresholdAngle);
 			Interlocked.Exchange(ref _ctx.PublishedPhysicsFrameTimeUsec, (long)_ctx.PhysicsEnv.CurPhysicsFrameTime);
 			_ctx.ElasticityOverVelocityLUTs = new NativeParallelHashMap<int, FixedList512Bytes<float>>(0, Allocator.Persistent);
 			_ctx.FrictionOverVelocityLUTs = new NativeParallelHashMap<int, FixedList512Bytes<float>>(0, Allocator.Persistent);
@@ -799,6 +862,7 @@ namespace VisualPinball.Unity
 			} else {
 				// Normal mode: Execute full physics update
 				_threading.ExecutePhysicsUpdate(NowUsec);
+				DispatchPendingPlumbTiltEvents();
 			}
 		}
 

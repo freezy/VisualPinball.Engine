@@ -97,6 +97,7 @@ namespace VisualPinball.Unity
 
 				env.Nudge.StepOneMillisecond();
 				var cabinetAcceleration = env.Nudge.CabinetAcceleration;
+				env.Plumb.StepOneMillisecond(cabinetAcceleration);
 
 				// balls
 				using (var enumerator = state.Balls.GetEnumerator()) {

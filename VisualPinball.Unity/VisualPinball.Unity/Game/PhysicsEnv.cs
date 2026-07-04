@@ -31,10 +31,11 @@ namespace VisualPinball.Unity
 
 		public Random Random;
 		public NudgeState Nudge;
+		public PlumbState Plumb;
 
 		public PhysicsEnv(ulong startTimeUsec, PlayfieldComponent playfield, float gravityStrength,
 			KeyboardNudgeMode keyboardNudgeMode = KeyboardNudgeMode.CabModel, float keyboardNudgeStrength = 1f,
-			float nudgeTime = 5f) : this()
+			float nudgeTime = 5f, bool simulatedPlumb = true, float plumbDamping = 1f, float plumbThresholdAngle = 2f) : this()
 		{
 			StartTimeUsec = startTimeUsec;
 			CurPhysicsFrameTime = StartTimeUsec;
@@ -42,6 +43,7 @@ namespace VisualPinball.Unity
 			Random = new Random((uint)UnityEngine.Random.Range(1, 100000));
 			Gravity = playfield.PlayfieldGravity(gravityStrength);
 			Nudge = new NudgeState(keyboardNudgeMode, keyboardNudgeStrength, nudgeTime);
+			Plumb = new PlumbState(simulatedPlumb, plumbDamping, plumbThresholdAngle);
 		}
 	}
 }
