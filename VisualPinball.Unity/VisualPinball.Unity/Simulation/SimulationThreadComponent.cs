@@ -8,6 +8,7 @@ using System;
 using System.Diagnostics;
 using NLog;
 using UnityEngine;
+using VisualPinball.Engine.Common;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity.Simulation
@@ -184,6 +185,9 @@ namespace VisualPinball.Unity.Simulation
 					player != null
 						? new Action<string, bool>((coilId, isEnabled) => player.DispatchCoilSimulationThread(coilId, isEnabled))
 						: null);
+				if (player != null) {
+					_simulationThread.MainThreadTiltDispatcher = isTilted => player.DispatchInputAction(InputConstants.ActionTilt, isTilted);
+				}
 				_simulationThread.SyncClockFromMainThread(_physicsEngine.CurrentSimulationClockUsec, _physicsEngine.CurrentSimulationClockScale);
 
 				// Provide the triple-buffered SimulationState to PhysicsEngine so

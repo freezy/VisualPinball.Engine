@@ -42,6 +42,23 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void MappingRoundTripsWithSemicolonInDeviceId()
+		{
+			var mapping = new SensorMapping {
+				DeviceId = @"\\?\hid#vid_1209&pid_eaea;col02#8&2f&0&1",
+				AxisId = 0,
+				Kind = SensorMappingKind.Acceleration,
+				DeadZone = 0f,
+				Scale = 9.81f,
+				Limit = 1f
+			};
+
+			Assert.That(SensorMapping.TryParse(mapping.ToString(), out var parsed), Is.True);
+			Assert.That(parsed.DeviceId, Is.EqualTo(mapping.DeviceId));
+			Assert.That(parsed.AxisId, Is.EqualTo(mapping.AxisId));
+		}
+
+		[Test]
 		public void ProcessingAppliesDeadZoneLimitAndScale()
 		{
 			var mapping = new SensorMapping {

@@ -238,8 +238,12 @@ namespace VisualPinball.Unity
 				}
 				CabinetAcceleration = Cabinet.CabinetAcceleration;
 			} else {
-				CabinetAcceleration.x = _emaX.Update(KalmanX.Acceleration, 0.001f) * Strength;
-				CabinetAcceleration.y = _emaY.Update(KalmanY.Acceleration, 0.001f) * Strength;
+				// Note: the reference (CabinetNudgeSensor.cpp:280-285) multiplies by the
+				// strength scale twice, making direct-mode output scale with strength².
+				// That's an upstream bug we deliberately don't reproduce: strength is
+				// applied once, linearly.
+				CabinetAcceleration.x = _emaX.Update(KalmanX.Acceleration, 0.001f);
+				CabinetAcceleration.y = _emaY.Update(KalmanY.Acceleration, 0.001f);
 				CabinetAcceleration *= Strength * CabinetMassKg / Cabinet.Mass;
 				Cabinet.StepOneMillisecond(Cabinet.Mass * CabinetAcceleration);
 			}

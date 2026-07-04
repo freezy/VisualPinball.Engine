@@ -67,8 +67,7 @@ namespace VisualPinball.Unity
 		private readonly PhysicsEngine _physicsEngine;
 		private readonly object _configLock = new();
 		private readonly List<NudgeSensorConfig> _sensors = new(NudgeState.MaxSensors);
-		private readonly Dictionary<int, string> _deviceIdsByIndex = new();
-		private NativeInputManager _inputManager;
+		private volatile NativeInputManager _inputManager;
 
 		internal NudgeSystem(PhysicsEngine physicsEngine)
 		{
@@ -86,12 +85,8 @@ namespace VisualPinball.Unity
 
 		public IReadOnlyList<NativeInputDeviceInfo> ListDevices()
 		{
-			if (_inputManager == null) {
-				return Array.Empty<NativeInputDeviceInfo>();
-			}
-			var devices = _inputManager.ListDevices();
-			CacheDeviceIds(devices);
-			return devices;
+			var inputManager = _inputManager;
+			return inputManager == null ? Array.Empty<NativeInputDeviceInfo>() : inputManager.ListDevices();
 		}
 
 		public void ConfigureSensors(IReadOnlyList<NudgeSensorConfig> sensors)
@@ -111,7 +106,6 @@ namespace VisualPinball.Unity
 					_physicsEngine.ConfigureNudgeSensor(i, _sensors[i].ToRuntimeConfig());
 				}
 			}
-			RefreshDevices();
 		}
 
 		internal void AttachNativeInputManager(NativeInputManager inputManager)
@@ -123,7 +117,6 @@ namespace VisualPinball.Unity
 			_inputManager = inputManager;
 			if (_inputManager != null) {
 				_inputManager.AxisInputReceived += OnAxisInputReceived;
-				RefreshDevices();
 			}
 		}
 
@@ -133,7 +126,6 @@ namespace VisualPinball.Unity
 				_inputManager.AxisInputReceived -= OnAxisInputReceived;
 				_inputManager = null;
 			}
-			_deviceIdsByIndex.Clear();
 		}
 
 		public void Dispose()
@@ -141,35 +133,16 @@ namespace VisualPinball.Unity
 			DetachNativeInputManager();
 		}
 
-		private void RefreshDevices()
-		{
-			if (_inputManager == null) {
-				return;
-			}
-			CacheDeviceIds(_inputManager.ListDevices());
-		}
-
-		private void CacheDeviceIds(IReadOnlyList<NativeInputDeviceInfo> devices)
-		{
-			_deviceIdsByIndex.Clear();
-			if (devices == null) {
-				return;
-			}
-			for (var i = 0; i < devices.Count; i++) {
-				_deviceIdsByIndex[devices[i].DeviceIndex] = devices[i].Id;
-			}
-		}
-
+		// Called on the native input polling thread: only lock-free reads of the
+		// device-id snapshot here, never device (re-)enumeration.
 		private void OnAxisInputReceived(NativeInputApi.InputEvent evt)
 		{
 			if (evt.EventType != (int)NativeInputApi.InputEventType.Axis) {
 				return;
 			}
-			if (!_deviceIdsByIndex.TryGetValue(evt.DeviceIndex, out var deviceId)) {
-				RefreshDevices();
-				if (!_deviceIdsByIndex.TryGetValue(evt.DeviceIndex, out deviceId)) {
-					return;
-				}
+			var inputManager = _inputManager;
+			if (inputManager == null || !inputManager.TryGetDeviceId(evt.DeviceIndex, out var deviceId)) {
+				return;
 			}
 
 			lock (_configLock) {

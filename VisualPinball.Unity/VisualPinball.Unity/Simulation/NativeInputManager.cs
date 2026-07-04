@@ -37,7 +37,12 @@ namespace VisualPinball.Unity.Simulation
 		private long _inputPerfWindowStartTicks = Stopwatch.GetTimestamp();
 		private int _inputEventsInWindow;
 		private float _actualEventRateHz;
-		private readonly List<NativeInputDeviceInfo> _deviceScratch = new();
+
+		// Immutable snapshot mapping native device indices to stable device ids, swapped as a whole
+		// on the main thread so the input polling thread can read it lock-free. Rebuilt after
+		// StartPolling, because that's when the native side switches to its polling enumeration,
+		// which is the only index space consistent with axis events.
+		private volatile Dictionary<int, string> _deviceIdsByIndex = new();
 
 		// Input configuration
 		private readonly List<NativeInputApi.InputBinding> _bindings = new();
@@ -185,21 +190,22 @@ namespace VisualPinball.Unity.Simulation
 
 		public IReadOnlyList<NativeInputDeviceInfo> ListDevices()
 		{
-			_deviceScratch.Clear();
+			var result = new List<NativeInputDeviceInfo>();
 			if (!_initialized) {
-				return _deviceScratch;
+				return result;
 			}
 
 			var count = NativeInputApi.VpeInputListDevices(null, 0);
 			if (count <= 0) {
-				return _deviceScratch;
+				RebuildDeviceIdCache(result);
+				return result;
 			}
 
 			var devices = new NativeInputApi.InputDeviceInfo[count];
 			var copied = NativeInputApi.VpeInputListDevices(devices, devices.Length);
 			for (var i = 0; i < global::System.Math.Min(count, copied); i++) {
 				var axes = ListDeviceAxes(devices[i].DeviceIndex);
-				_deviceScratch.Add(new NativeInputDeviceInfo(
+				result.Add(new NativeInputDeviceInfo(
 					devices[i].DeviceIndex,
 					devices[i].StableId ?? string.Empty,
 					devices[i].DisplayName ?? string.Empty,
@@ -207,7 +213,26 @@ namespace VisualPinball.Unity.Simulation
 					axes
 				));
 			}
-			return _deviceScratch;
+			RebuildDeviceIdCache(result);
+			return result;
+		}
+
+		/// <summary>
+		/// Resolves a native device index (as carried by axis events) to the device's stable id.
+		/// Safe to call from the input polling thread.
+		/// </summary>
+		public bool TryGetDeviceId(int deviceIndex, out string deviceId)
+		{
+			return _deviceIdsByIndex.TryGetValue(deviceIndex, out deviceId);
+		}
+
+		private void RebuildDeviceIdCache(IReadOnlyList<NativeInputDeviceInfo> devices)
+		{
+			var cache = new Dictionary<int, string>(devices.Count);
+			for (var i = 0; i < devices.Count; i++) {
+				cache[devices[i].DeviceIndex] = devices[i].Id;
+			}
+			_deviceIdsByIndex = cache;
 		}
 
 		public IReadOnlyList<NativeInputAxisInfo> ListDeviceAxes(int deviceIndex)
@@ -283,6 +308,10 @@ namespace VisualPinball.Unity.Simulation
 			_polling = true;
 			_pollIntervalUs = pollIntervalUs;
 			Logger.Info($"{LogPrefix} [NativeInputManager] Started polling at {pollIntervalUs}us interval ({1000000 / pollIntervalUs} Hz)");
+
+			// The native side switched to its polling device enumeration; refresh the
+			// index → device-id cache so axis events resolve against the right snapshot.
+			ListDevices();
 
 			return true;
 		}

@@ -161,8 +161,12 @@ namespace VisualPinball.Unity
 				return false;
 			}
 			if (_samples.Length >= _samples.Capacity) {
-				EndSegment();
-				StartSegment(timeUs);
+				// The regression assumes segments that begin and end at rest (the endpoint
+				// detrend removes the baseline between them), so the segment must not be
+				// split here. Halve the sample resolution instead: the buffer covers the
+				// full 2s max segment duration at progressively coarser (but timestamped,
+				// hence still correctly integrated) steps.
+				CompactSamples();
 			}
 
 			_samples.Add(new Sample {
@@ -171,6 +175,25 @@ namespace VisualPinball.Unity
 				Acceleration = rawAcceleration
 			});
 			return true;
+		}
+
+		private void CompactSamples()
+		{
+			var compacted = 0;
+			var i = 0;
+			for (; i + 1 < _samples.Length; i += 2) {
+				var a = _samples[i];
+				var b = _samples[i + 1];
+				_samples[compacted++] = new Sample {
+					TimeUs = a.TimeUs + (b.TimeUs - a.TimeUs) / 2,
+					Velocity = 0.5f * (a.Velocity + b.Velocity),
+					Acceleration = 0.5f * (a.Acceleration + b.Acceleration)
+				};
+			}
+			if (i < _samples.Length) {
+				_samples[compacted++] = _samples[i];
+			}
+			_samples.Length = compacted;
 		}
 
 		public bool EndSegment()

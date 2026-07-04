@@ -55,10 +55,10 @@ namespace VisualPinball.Unity
 				value = math.sign(value) * ((absValue - deadZone) / (1f - deadZone));
 			}
 
+			// Always clamp, like the reference: a limit of 0 zeroes the output rather
+			// than meaning "unlimited".
 			var limit = math.max(0f, Limit);
-			if (limit > 0f) {
-				value = math.clamp(value, -limit, limit);
-			}
+			value = math.clamp(value, -limit, limit);
 			MappedValue = value * Scale;
 			return MappedValue;
 		}
@@ -87,27 +87,33 @@ namespace VisualPinball.Unity
 			}
 
 			var parts = value.Split(';');
-			if (parts.Length != 6) {
+			if (parts.Length < 6) {
 				return false;
 			}
 
-			if (!int.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out var axisId)) {
+			// The device id is a free-form native path that may itself contain ';';
+			// the five trailing fields never do, so parse from the end and re-join
+			// whatever precedes them.
+			var p = parts.Length - 5;
+			var deviceId = parts.Length == 6 ? parts[0] : string.Join(";", parts, 0, p);
+
+			if (!int.TryParse(parts[p], NumberStyles.Integer, CultureInfo.InvariantCulture, out var axisId)) {
 				return false;
 			}
-			if (!TryCodeToKind(parts[2], out var kind)) {
+			if (!TryCodeToKind(parts[p + 1], out var kind)) {
 				return false;
 			}
-			if (!float.TryParse(parts[3], NumberStyles.Float, CultureInfo.InvariantCulture, out var deadZone)) {
+			if (!float.TryParse(parts[p + 2], NumberStyles.Float, CultureInfo.InvariantCulture, out var deadZone)) {
 				return false;
 			}
-			if (!float.TryParse(parts[4], NumberStyles.Float, CultureInfo.InvariantCulture, out var scale)) {
+			if (!float.TryParse(parts[p + 3], NumberStyles.Float, CultureInfo.InvariantCulture, out var scale)) {
 				return false;
 			}
-			if (!float.TryParse(parts[5], NumberStyles.Float, CultureInfo.InvariantCulture, out var limit)) {
+			if (!float.TryParse(parts[p + 4], NumberStyles.Float, CultureInfo.InvariantCulture, out var limit)) {
 				return false;
 			}
 
-			mapping.DeviceId = parts[0];
+			mapping.DeviceId = deviceId;
 			mapping.AxisId = axisId;
 			mapping.Kind = kind;
 			mapping.DeadZone = math.clamp(deadZone, 0f, 0.999f);

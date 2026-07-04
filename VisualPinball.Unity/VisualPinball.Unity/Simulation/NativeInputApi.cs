@@ -183,7 +183,10 @@ namespace VisualPinball.Unity.Simulation
 			private int _padding;
 		}
 
-		[StructLayout(LayoutKind.Sequential, Pack = 4, CharSet = CharSet.Ansi)]
+		// The native side fills the string fields with UTF-8; decode them manually,
+		// since ByValTStr would decode with the system ANSI codepage and garble
+		// non-ASCII device names.
+		[StructLayout(LayoutKind.Sequential, Pack = 4)]
 		public struct InputDeviceInfo
 		{
 			public int DeviceIndex;
@@ -191,14 +194,17 @@ namespace VisualPinball.Unity.Simulation
 			public int IsConnected;
 			private int _padding;
 
-			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = DeviceIdSize)]
-			public string StableId;
+			[MarshalAs(UnmanagedType.ByValArray, SizeConst = DeviceIdSize)]
+			private byte[] _stableId;
 
-			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = DeviceNameSize)]
-			public string DisplayName;
+			[MarshalAs(UnmanagedType.ByValArray, SizeConst = DeviceNameSize)]
+			private byte[] _displayName;
+
+			public string StableId => DecodeUtf8(_stableId);
+			public string DisplayName => DecodeUtf8(_displayName);
 		}
 
-		[StructLayout(LayoutKind.Sequential, Pack = 4, CharSet = CharSet.Ansi)]
+		[StructLayout(LayoutKind.Sequential, Pack = 4)]
 		public struct InputAxisInfo
 		{
 			public int AxisId;
@@ -209,8 +215,22 @@ namespace VisualPinball.Unity.Simulation
 			private int _padding;
 			public long TimestampUsec;
 
-			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = AxisNameSize)]
-			public string Name;
+			[MarshalAs(UnmanagedType.ByValArray, SizeConst = AxisNameSize)]
+			private byte[] _name;
+
+			public string Name => DecodeUtf8(_name);
+		}
+
+		private static string DecodeUtf8(byte[] bytes)
+		{
+			if (bytes == null) {
+				return string.Empty;
+			}
+			var length = Array.IndexOf(bytes, (byte)0);
+			if (length < 0) {
+				length = bytes.Length;
+			}
+			return length == 0 ? string.Empty : System.Text.Encoding.UTF8.GetString(bytes, 0, length);
 		}
 
 		#endregion
