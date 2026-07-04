@@ -26,6 +26,8 @@ namespace VisualPinball.Unity
 		public bool SimulatedPlumb;
 		public float PlumbDamping;
 		public float PlumbThresholdAngle;
+		public bool HasVisualNudgeSettings;
+		public float VisualNudgeStrength;
 
 		public static byte[] Pack(PhysicsEngine comp)
 		{
@@ -38,6 +40,8 @@ namespace VisualPinball.Unity
 				SimulatedPlumb = comp.SimulatedPlumb,
 				PlumbDamping = comp.PlumbDamping,
 				PlumbThresholdAngle = comp.PlumbThresholdAngle,
+				HasVisualNudgeSettings = true,
+				VisualNudgeStrength = comp.VisualNudgeStrength,
 			});
 		}
 
@@ -54,6 +58,7 @@ namespace VisualPinball.Unity
 				data.HasPlumbSettings ? data.PlumbDamping : 1f,
 				data.HasPlumbSettings ? data.PlumbThresholdAngle : 2f
 			);
+			comp.ConfigureVisualNudge(data.HasVisualNudgeSettings ? data.VisualNudgeStrength : 1f);
 		}
 	}
 }
