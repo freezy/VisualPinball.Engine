@@ -569,37 +569,36 @@ namespace VisualPinball.Unity
 			Directory.CreateDirectory(Application.temporaryCachePath);
 			var extension = Path.GetExtension(fileName);
 			var tempPath = Path.Combine(Application.temporaryCachePath, $"vpe-audio-{Guid.NewGuid():N}{extension}");
-			// try {
-			// 	File.WriteAllBytes(tempPath, bytes);
-			// 	var uri = new Uri(tempPath).AbsoluteUri;
-			// 	using var request = UnityWebRequestMultimedia.GetAudioClip(uri, audioType);
-			// 	var op = request.SendWebRequest();
-			// 	while (!op.isDone) {
-			// 		cancellationToken.ThrowIfCancellationRequested();
-			// 		await Task.Yield();
-			// 	}
-			//
-			// 	if (request.result != UnityWebRequest.Result.Success) {
-			// 		Logger.Warn($"Failed to load audio file {fileName}: {request.error}");
-			// 		return null;
-			// 	}
-			//
-			// 	var clip = DownloadHandlerAudioClip.GetContent(request);
-			// 	if (clip) {
-			// 		clip.name = Path.GetFileNameWithoutExtension(fileName);
-			// 	}
-			// 	return clip;
-			//
-			// } finally {
-			// 	try {
-			// 		if (File.Exists(tempPath)) {
-			// 			File.Delete(tempPath);
-			// 		}
-			// 	} catch (Exception) {
-			// 		// best effort cleanup
-			// 	}
-			// }
-			return null;
+			try {
+				File.WriteAllBytes(tempPath, bytes);
+				var uri = new Uri(tempPath).AbsoluteUri;
+				using var request = UnityWebRequestMultimedia.GetAudioClip(uri, audioType);
+				var op = request.SendWebRequest();
+				while (!op.isDone) {
+					cancellationToken.ThrowIfCancellationRequested();
+					await Task.Yield();
+				}
+
+				if (request.result != UnityWebRequest.Result.Success) {
+					Logger.Warn($"Failed to load audio file {fileName}: {request.error}");
+					return null;
+				}
+
+				var clip = DownloadHandlerAudioClip.GetContent(request);
+				if (clip) {
+					clip.name = Path.GetFileNameWithoutExtension(fileName);
+				}
+				return clip;
+
+			} finally {
+				try {
+					if (File.Exists(tempPath)) {
+						File.Delete(tempPath);
+					}
+				} catch (Exception) {
+					// best effort cleanup
+				}
+			}
 		}
 
 		#endregion
