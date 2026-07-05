@@ -25,6 +25,7 @@ namespace VisualPinball.Unity
 		public float SpinDown;
 		public bool MotorOnStart;
 		public bool SpinClockwise;
+		public float VisualSpeedFactor;
 
 		public static byte[] Pack(TurntableComponent comp)
 		{
@@ -35,7 +36,8 @@ namespace VisualPinball.Unity
 				SpinUp = comp.SpinUp,
 				SpinDown = comp.SpinDown,
 				MotorOnStart = comp.MotorOnStart,
-				SpinClockwise = comp.SpinClockwise
+				SpinClockwise = comp.SpinClockwise,
+				VisualSpeedFactor = comp.VisualSpeedFactor
 			});
 		}
 
@@ -49,6 +51,7 @@ namespace VisualPinball.Unity
 			comp.SpinDown = data.SpinDown;
 			comp.MotorOnStart = data.MotorOnStart;
 			comp.SpinClockwise = data.SpinClockwise;
+			comp.VisualSpeedFactor = data.VisualSpeedFactor;
 		}
 	}
 }

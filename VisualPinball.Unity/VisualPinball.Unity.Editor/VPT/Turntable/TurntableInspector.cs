@@ -30,6 +30,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _motorOnStartProperty;
 		private SerializedProperty _spinClockwiseProperty;
 		private SerializedProperty _rotationTargetProperty;
+		private SerializedProperty _visualSpeedFactorProperty;
 
 		protected override MonoBehaviour UndoTarget => target as MonoBehaviour;
 
@@ -45,6 +46,7 @@ namespace VisualPinball.Unity.Editor
 			_motorOnStartProperty = serializedObject.FindProperty(nameof(TurntableComponent.MotorOnStart));
 			_spinClockwiseProperty = serializedObject.FindProperty(nameof(TurntableComponent.SpinClockwise));
 			_rotationTargetProperty = serializedObject.FindProperty(nameof(TurntableComponent.RotationTarget));
+			_visualSpeedFactorProperty = serializedObject.FindProperty(nameof(TurntableComponent.VisualSpeedFactor));
 		}
 
 		public override void OnInspectorGUI()
@@ -62,6 +64,7 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_motorOnStartProperty);
 			PropertyField(_spinClockwiseProperty);
 			PropertyField(_rotationTargetProperty);
+			PropertyField(_visualSpeedFactorProperty);
 
 			base.OnInspectorGUI();
 			EndEditing();

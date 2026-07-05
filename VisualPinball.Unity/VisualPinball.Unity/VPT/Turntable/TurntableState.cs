@@ -32,5 +32,6 @@ namespace VisualPinball.Unity
 		internal bool MotorOn;
 		internal bool SpinClockwise;
 		internal float RotationAngle;
+		internal float VisualSpeedFactor;
 	}
 }
