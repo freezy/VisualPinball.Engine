@@ -29,7 +29,9 @@ namespace VisualPinball.Unity
 		internal static void Update(ref TurntableState turntable, ref PhysicsState state, float physicsDiffTime)
 		{
 			UpdateSpeed(ref turntable, physicsDiffTime);
-			turntable.RotationAngle = math.fmod(turntable.RotationAngle + turntable.Speed * physicsDiffTime * SecondsPerVpxUpdate * 360f, 360f);
+			// Speed is a VPX-arbitrary force scale, not a rotation rate; VisualSpeedFactor
+			// maps it to degrees per second for the visual disc.
+			turntable.RotationAngle = math.fmod(turntable.RotationAngle + turntable.Speed * turntable.VisualSpeedFactor * physicsDiffTime * SecondsPerVpxUpdate, 360f);
 
 			if (turntable.Radius <= 0f || math.abs(turntable.Speed) <= 0.0001f) {
 				return;

@@ -63,6 +63,10 @@ namespace VisualPinball.Unity
 		[Tooltip("Optional visual disc to rotate with the simulated speed.")]
 		public Transform RotationTarget;
 
+		[Min(0f)]
+		[Tooltip("Degrees per second the visual disc rotates per speed unit. At the VPX-typical speed of 90, the default of 4 spins the disc at 60 RPM.")]
+		public float VisualSpeedFactor = 4f;
+
 		public TurntableApi TurntableApi { get; private set; }
 
 		public IEnumerable<GamelogicEngineCoil> AvailableCoils => new[] {
@@ -128,7 +132,8 @@ namespace VisualPinball.Unity
 				SpinDown = SpinDown,
 				MotorOn = MotorOnStart,
 				SpinClockwise = SpinClockwise,
-				RotationAngle = 0f
+				RotationAngle = 0f,
+				VisualSpeedFactor = VisualSpeedFactor
 			};
 			TurntablePhysics.RefreshTargetSpeed(ref state);
 			return state;
