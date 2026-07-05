@@ -20,7 +20,7 @@ using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
 {
-	public class TurntableApi : IApi, IApiCoilDevice
+	public class TurntableApi : IApi, IApiCoilDevice, IApiWireDeviceDest
 	{
 		private readonly TurntableComponent _component;
 		private readonly Player _player;
@@ -116,6 +116,7 @@ namespace VisualPinball.Unity
 		}
 
 		IApiCoil IApiCoilDevice.Coil(string deviceItem) => Coil(deviceItem);
+		IApiWireDest IApiWireDeviceDest.Wire(string deviceItem) => Coil(deviceItem);
 
 		private IApiCoil Coil(string deviceItem)
 		{
