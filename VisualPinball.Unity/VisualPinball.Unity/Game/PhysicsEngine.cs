@@ -800,8 +800,32 @@ namespace VisualPinball.Unity
 			var b = _ctx.BallComponents[ballId];
 			_ctx.BallComponents.Remove(ballId);
 			_ctx.BallStates.Ref.Remove(ballId);
+			ReleaseDestroyedBallFromMagnets(ballId);
 			_ctx.InsideOfs.SetOutsideOfAll(ballId);
 			return b;
+		}
+
+		/// <summary>
+		/// Clears a destroyed ball from all magnet grab states and emits the release
+		/// events. Magnet grab bitfields are keyed by InsideOfs bit indices, which get
+		/// recycled once <see cref="InsideOfs.SetOutsideOfAll"/> frees them — so this
+		/// must run before the ball is removed from <see cref="InsideOfs"/>.
+		/// </summary>
+		private void ReleaseDestroyedBallFromMagnets(int ballId)
+		{
+			if (!_ctx.InsideOfs.TryGetBitIndex(ballId, out var bitIndex)) {
+				return;
+			}
+			using (var enumerator = _ctx.MagnetStates.Ref.GetEnumerator()) {
+				while (enumerator.MoveNext()) {
+					ref var magnet = ref enumerator.Current.Value;
+					if (magnet.GrabbedBalls.IsSet(bitIndex)) {
+						magnet.GrabbedBalls.SetBits(bitIndex, false);
+						_ctx.EventQueue.Ref.Enqueue(new EventData(EventId.MagnetEventsBallReleased, enumerator.Current.Key, ballId, true));
+					}
+					magnet.ReleasedBalls.SetBits(bitIndex, false);
+				}
+			}
 		}
 
 		internal void RegisterRuntimeBall(BallComponent ball)
@@ -835,12 +859,14 @@ namespace VisualPinball.Unity
 					if (_ctx.BallStates.Ref.IsCreated) {
 						_ctx.BallStates.Ref.Remove(ballId);
 					}
+					ReleaseDestroyedBallFromMagnets(ballId);
 					_ctx.InsideOfs.SetOutsideOfAll(ballId);
 				}
 				return ball;
 			}
 
 			_ctx.BallStates.Ref.Remove(ballId);
+			ReleaseDestroyedBallFromMagnets(ballId);
 			_ctx.InsideOfs.SetOutsideOfAll(ballId);
 
 			return ball;
