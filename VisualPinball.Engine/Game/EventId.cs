@@ -36,5 +36,11 @@ namespace VisualPinball.Engine.Game
 		HitEventsUnhit = 1401, // DISPID_HitEvents_Unhit
 		LimitEventsEos = 1402, // DISPID_LimitEvents_EOS
 		LimitEventsBos = 1403, // DISPID_LimitEvents_BOS
+
+		// Magnet
+		MagnetEventsBallEntered = 1500,
+		MagnetEventsBallExited = 1501,
+		MagnetEventsBallGrabbed = 1502,
+		MagnetEventsBallReleased = 1503,
 	}
 }
