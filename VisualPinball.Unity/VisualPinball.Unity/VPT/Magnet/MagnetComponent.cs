@@ -116,7 +116,7 @@ namespace VisualPinball.Unity
 
 		internal MagnetState CreateState()
 		{
-			var pos = (float3)transform.localPosition.TranslateToVpx();
+			var pos = GetPlayfieldPositionVpx(transform);
 			return new MagnetState {
 				Position = pos.xy,
 				Height = pos.z,
@@ -133,6 +133,19 @@ namespace VisualPinball.Unity
 		}
 
 		internal static float MillimetersToVpx(float value) => Physics.ScaleToVpx(value * MillimetersToWorld);
+
+		/// <summary>
+		/// Playfield position in VPX space, valid for any nesting depth. The local
+		/// position is only equivalent when every ancestor up to the playfield sits
+		/// at identity, which re-parenting in the editor silently breaks.
+		/// </summary>
+		internal static float3 GetPlayfieldPositionVpx(Transform transform)
+		{
+			var playfield = transform.GetComponentInParent<PlayfieldComponent>();
+			return playfield
+				? (float3)transform.position.TranslateToVpx(playfield.transform)
+				: (float3)transform.localPosition.TranslateToVpx();
+		}
 
 		private void OnDrawGizmosSelected()
 		{
