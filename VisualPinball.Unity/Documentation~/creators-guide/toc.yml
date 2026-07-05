@@ -95,6 +95,8 @@
       href: manual/displays.md
     - name: Sound
       href: manual/sound.md
+    - name: Nudging
+      href: manual/nudging.md
     - name: Pinball Mechanisms
       items:
       - name: Troughs / Ball Drains
@@ -119,5 +121,7 @@
         href: manual/mechanisms/score-motors.md
       - name: Collision Switches
         href: manual/mechanisms/collision-switches.md
+      - name: Tilt Bobs
+        href: manual/mechanisms/tilt-bobs.md
       - name: Lifting Gates
         href: manual/mechanisms/lifting-gates.md

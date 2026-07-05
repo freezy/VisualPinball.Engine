@@ -4,6 +4,8 @@
   href: setup.md
 - name: Threading Model
   href: threading-model.md
+- name: Nudge System
+  href: nudge-system.md
 - name: Packaging
   items:
   - name: Overview

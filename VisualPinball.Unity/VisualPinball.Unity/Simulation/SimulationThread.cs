@@ -269,7 +269,7 @@ namespace VisualPinball.Unity.Simulation
 		/// <see cref="MainThreadTiltDispatcher"/> instead of directly to any
 		/// input-action switch mapping. This is used for real cabinet plumb bobs.
 		/// </summary>
-		public bool DispatchMappedTiltInputToMainThread { get; set; }
+		public bool DispatchPhysicalTiltInputToMainThread { get; set; }
 
 		private readonly Queue<bool> _mainThreadTiltStates = new();
 		private readonly object _mainThreadTiltLock = new();
@@ -522,7 +522,7 @@ namespace VisualPinball.Unity.Simulation
 				InputLatencyTracker.RecordInputPolled((NativeInputApi.InputAction)actionIndex, isPressed, evt.TimestampUsec);
 
 				if (actionIndex == (int)NativeInputApi.InputAction.Tilt
-				    && DispatchMappedTiltInputToMainThread
+				    && DispatchPhysicalTiltInputToMainThread
 				    && MainThreadTiltDispatcher != null) {
 					QueueMainThreadTiltState(isPressed);
 					_inputEventsProcessed++;
@@ -902,7 +902,7 @@ namespace VisualPinball.Unity.Simulation
 		/// </remarks>
 		private void ProcessPlumbTiltEvents()
 		{
-			if (MainThreadTiltDispatcher == null || DispatchMappedTiltInputToMainThread) {
+			if (MainThreadTiltDispatcher == null || DispatchPhysicalTiltInputToMainThread) {
 				return;
 			}
 
