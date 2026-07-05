@@ -23,6 +23,7 @@ namespace VisualPinball.Unity.Editor
 	public class TurntableInspector : ItemInspector
 	{
 		private SerializedProperty _radiusProperty;
+		private SerializedProperty _heightRangeProperty;
 		private SerializedProperty _maxSpeedProperty;
 		private SerializedProperty _spinUpProperty;
 		private SerializedProperty _spinDownProperty;
@@ -37,6 +38,7 @@ namespace VisualPinball.Unity.Editor
 			base.OnEnable();
 
 			_radiusProperty = serializedObject.FindProperty(nameof(TurntableComponent.Radius));
+			_heightRangeProperty = serializedObject.FindProperty(nameof(TurntableComponent.HeightRange));
 			_maxSpeedProperty = serializedObject.FindProperty(nameof(TurntableComponent.MaxSpeed));
 			_spinUpProperty = serializedObject.FindProperty(nameof(TurntableComponent.SpinUp));
 			_spinDownProperty = serializedObject.FindProperty(nameof(TurntableComponent.SpinDown));
@@ -51,6 +53,7 @@ namespace VisualPinball.Unity.Editor
 			OnPreInspectorGUI();
 
 			PropertyField(_radiusProperty);
+			PropertyField(_heightRangeProperty);
 			PropertyField(_maxSpeedProperty);
 			PropertyField(_spinUpProperty);
 			PropertyField(_spinDownProperty);

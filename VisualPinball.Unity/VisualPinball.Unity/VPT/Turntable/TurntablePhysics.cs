@@ -61,7 +61,14 @@ namespace VisualPinball.Unity
 		}
 
 		internal static bool IsBallInRange(in BallState ball, in TurntableState turntable)
-			=> math.lengthsq(ball.Position.xy - turntable.Position) <= turntable.Radius * turntable.Radius;
+		{
+			// balls on ramps or upper playfields above the disc are not affected; VPX got
+			// this implicitly from the z-bounded trigger that tracked the balls
+			if (turntable.HeightRange > 0f && (ball.Position.z < turntable.Height || ball.Position.z > turntable.Height + turntable.HeightRange)) {
+				return false;
+			}
+			return math.lengthsq(ball.Position.xy - turntable.Position) <= turntable.Radius * turntable.Radius;
+		}
 
 		internal static void RefreshTargetSpeed(ref TurntableState turntable)
 		{

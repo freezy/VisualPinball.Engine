@@ -21,7 +21,9 @@ namespace VisualPinball.Unity
 	internal struct TurntableState
 	{
 		internal float2 Position;
+		internal float Height;
 		internal float Radius;
+		internal float HeightRange;
 		internal float Speed;
 		internal float TargetSpeed;
 		internal float MaxSpeed;

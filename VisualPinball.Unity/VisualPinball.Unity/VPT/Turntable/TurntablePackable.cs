@@ -19,6 +19,7 @@ namespace VisualPinball.Unity
 	public class TurntablePackable
 	{
 		public float Radius;
+		public float HeightRange;
 		public float MaxSpeed;
 		public float SpinUp;
 		public float SpinDown;
@@ -29,6 +30,7 @@ namespace VisualPinball.Unity
 		{
 			return PackageApi.Packer.Pack(new TurntablePackable {
 				Radius = comp.Radius,
+				HeightRange = comp.HeightRange,
 				MaxSpeed = comp.MaxSpeed,
 				SpinUp = comp.SpinUp,
 				SpinDown = comp.SpinDown,
@@ -41,6 +43,7 @@ namespace VisualPinball.Unity
 		{
 			var data = PackageApi.Packer.Unpack<TurntablePackable>(bytes);
 			comp.Radius = data.Radius;
+			comp.HeightRange = data.HeightRange;
 			comp.MaxSpeed = data.MaxSpeed;
 			comp.SpinUp = data.SpinUp;
 			comp.SpinDown = data.SpinDown;
