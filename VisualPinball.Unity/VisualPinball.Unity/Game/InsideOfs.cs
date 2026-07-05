@@ -73,6 +73,10 @@ namespace VisualPinball.Unity
 
 		internal bool IsOutsideOf(int itemId, int ballId) => !IsInsideOf(itemId, ballId);
 
+		internal int GetOrCreateBitIndex(int ballId) => GetBitIndex(ballId);
+
+		internal bool TryGetBitIndex(int ballId, out int bitIndex) => _bitLookup.TryGetValue(ballId, out bitIndex);
+
 		internal int GetInsideCount(int itemId)
 		{
 			if (!_insideOfs.TryGetValue(itemId, out var bits)) {
@@ -155,6 +159,8 @@ namespace VisualPinball.Unity
 			_bitLookup[ballId] = newIndex;
 			return newIndex;
 		}
+
+		internal bool TryGetBallIdAtBitIndex(int bitIndex, out int ballId) => TryGetBallId(bitIndex, out ballId);
 
 		private bool TryGetBallId(int bitIndex, out int ballId)
 		{

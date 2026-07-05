@@ -30,6 +30,7 @@ namespace VisualPinball.Unity
 		internal static void Update(int itemId, ref MagnetState magnet, ref PhysicsState state, float physicsDiffTime)
 		{
 			if (!magnet.IsEnabled) {
+				ReleaseGrabbedBalls(itemId, ref magnet, ref state, false);
 				ReleaseMembership(itemId, ref state);
 				return;
 			}
@@ -38,13 +39,21 @@ namespace VisualPinball.Unity
 				while (enumerator.MoveNext()) {
 					ref var ball = ref enumerator.Current.Value;
 					if (ball.IsFrozen) {
+						ReleaseGrabbedBall(itemId, ref magnet, ref state, ball.Id);
 						UpdateMembership(itemId, ball.Id, false, ref state);
 						continue;
 					}
 
 					var affectsBall = IsBallInRange(in ball, in magnet);
-					UpdateMembership(itemId, ball.Id, affectsBall, ref state);
 					if (!affectsBall) {
+						ReleaseGrabbedBall(itemId, ref magnet, ref state, ball.Id);
+						ClearReleasedBall(ref magnet, ref state, ball.Id);
+						UpdateMembership(itemId, ball.Id, false, ref state);
+						continue;
+					}
+
+					UpdateMembership(itemId, ball.Id, true, ref state);
+					if (UpdateGrab(itemId, ref magnet, ref state, ref ball)) {
 						continue;
 					}
 
@@ -55,6 +64,26 @@ namespace VisualPinball.Unity
 							break;
 					}
 				}
+			}
+		}
+
+		internal static void ReleaseGrabbedBalls(int itemId, ref MagnetState magnet, ref PhysicsState state, bool suppressRegrab)
+		{
+			for (var bitIndex = 0; bitIndex < 64; bitIndex++) {
+				if (!magnet.GrabbedBalls.IsSet(bitIndex)) {
+					continue;
+				}
+				magnet.GrabbedBalls.SetBits(bitIndex, false);
+				if (suppressRegrab) {
+					magnet.ReleasedBalls.SetBits(bitIndex, true);
+				}
+				if (state.InsideOfs.TryGetBallIdAtBitIndex(bitIndex, out var ballId)) {
+					state.EventQueue.Enqueue(new EventData(EventId.MagnetEventsBallReleased, itemId, ballId, true));
+				}
+			}
+
+			if (!suppressRegrab) {
+				magnet.ReleasedBalls = default;
 			}
 		}
 
@@ -75,6 +104,15 @@ namespace VisualPinball.Unity
 			ball.Velocity = new float3(velocity.x, velocity.y, ball.Velocity.z);
 		}
 
+		internal static void ApplyVpxCompatibleGrab(ref BallState ball, in MagnetState magnet)
+		{
+			ball.Position = new float3(magnet.Position.x, magnet.Position.y, ball.Position.z);
+			ball.EventPosition = new float3(magnet.Position.x, magnet.Position.y, ball.EventPosition.z);
+			ball.Velocity = new float3(0f, 0f, ball.Velocity.z);
+			ball.OldVelocity = new float3(0f, 0f, ball.OldVelocity.z);
+			ball.AngularMomentum = float3.zero;
+		}
+
 		internal static bool IsBallInRange(in BallState ball, in MagnetState magnet)
 		{
 			if (magnet.Radius <= 0f) {
@@ -84,6 +122,61 @@ namespace VisualPinball.Unity
 				return false;
 			}
 			return math.lengthsq(ball.Position.xy - magnet.Position) <= magnet.Radius * magnet.Radius;
+		}
+
+		private static bool UpdateGrab(int itemId, ref MagnetState magnet, ref PhysicsState state, ref BallState ball)
+		{
+			var bitIndex = state.InsideOfs.GetOrCreateBitIndex(ball.Id);
+			var isGrabbed = magnet.GrabbedBalls.IsSet(bitIndex);
+			var isInGrabRange = magnet.GrabRadius > 0f &&
+			                    magnet.Strength > 0f &&
+			                    math.lengthsq(ball.Position.xy - magnet.Position) <= magnet.GrabRadius * magnet.GrabRadius;
+
+			if (!isInGrabRange) {
+				magnet.ReleasedBalls.SetBits(bitIndex, false);
+				if (isGrabbed) {
+					ReleaseGrabbedBall(itemId, ref magnet, bitIndex, ball.Id, ref state, false);
+				}
+				return false;
+			}
+
+			if (magnet.ReleasedBalls.IsSet(bitIndex)) {
+				return false;
+			}
+
+			if (!isGrabbed) {
+				magnet.GrabbedBalls.SetBits(bitIndex, true);
+				state.EventQueue.Enqueue(new EventData(EventId.MagnetEventsBallGrabbed, itemId, ball.Id, true));
+			}
+			ApplyVpxCompatibleGrab(ref ball, in magnet);
+			return true;
+		}
+
+		private static void ReleaseGrabbedBall(int itemId, ref MagnetState magnet, ref PhysicsState state, int ballId)
+		{
+			if (!state.InsideOfs.TryGetBitIndex(ballId, out var bitIndex)) {
+				return;
+			}
+			ReleaseGrabbedBall(itemId, ref magnet, bitIndex, ballId, ref state, false);
+		}
+
+		private static void ReleaseGrabbedBall(int itemId, ref MagnetState magnet, int bitIndex, int ballId, ref PhysicsState state, bool suppressRegrab)
+		{
+			if (!magnet.GrabbedBalls.IsSet(bitIndex)) {
+				return;
+			}
+			magnet.GrabbedBalls.SetBits(bitIndex, false);
+			if (suppressRegrab) {
+				magnet.ReleasedBalls.SetBits(bitIndex, true);
+			}
+			state.EventQueue.Enqueue(new EventData(EventId.MagnetEventsBallReleased, itemId, ballId, true));
+		}
+
+		private static void ClearReleasedBall(ref MagnetState magnet, ref PhysicsState state, int ballId)
+		{
+			if (state.InsideOfs.TryGetBitIndex(ballId, out var bitIndex)) {
+				magnet.ReleasedBalls.SetBits(bitIndex, false);
+			}
 		}
 
 		private static void ReleaseMembership(int itemId, ref PhysicsState state)

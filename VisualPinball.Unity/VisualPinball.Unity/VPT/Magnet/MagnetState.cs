@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Collections;
 using Unity.Mathematics;
-using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
 {
@@ -31,5 +31,6 @@ namespace VisualPinball.Unity
 		internal MagnetForceProfile Profile;
 		internal float HeightRange;
 		internal BitField64 GrabbedBalls;
+		internal BitField64 ReleasedBalls;
 	}
 }

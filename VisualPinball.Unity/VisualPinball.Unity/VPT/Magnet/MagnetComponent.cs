@@ -116,7 +116,7 @@ namespace VisualPinball.Unity
 
 		internal MagnetState CreateState()
 		{
-			var pos = transform.localPosition.TranslateToVpx();
+			var pos = (float3)transform.localPosition.TranslateToVpx();
 			return new MagnetState {
 				Position = pos.xy,
 				Height = pos.z,
@@ -127,7 +127,8 @@ namespace VisualPinball.Unity
 				IsEnabled = IsEnabledOnStart,
 				Profile = ForceProfile,
 				HeightRange = MillimetersToVpx(HeightRange),
-				GrabbedBalls = default
+				GrabbedBalls = default,
+				ReleasedBalls = default
 			};
 		}
 

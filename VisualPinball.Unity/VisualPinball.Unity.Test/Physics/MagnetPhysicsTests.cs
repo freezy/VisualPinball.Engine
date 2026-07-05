@@ -63,6 +63,28 @@ namespace VisualPinball.Unity.Test
 			Assert.That(ball.Velocity.z, Is.EqualTo(5f).Within(1e-5f));
 		}
 
+		[Test]
+		public void VpxCompatibleGrabClampsBallToMagnetCenter()
+		{
+			var ball = CreateBall();
+			ball.EventPosition = new float3(49f, -2f, 10f);
+			ball.Velocity = new float3(3f, -4f, 5f);
+			ball.OldVelocity = new float3(2f, 1f, -1f);
+			ball.AngularMomentum = new float3(1f, 2f, 3f);
+			var magnet = new MagnetState {
+				Position = new float2(12f, -8f)
+			};
+
+			MagnetPhysics.ApplyVpxCompatibleGrab(ref ball, in magnet);
+
+			Assert.That(ball.Position.xy, Is.EqualTo(magnet.Position));
+			Assert.That(ball.Position.z, Is.EqualTo(10f));
+			Assert.That(ball.EventPosition.xy, Is.EqualTo(magnet.Position));
+			Assert.That(ball.Velocity, Is.EqualTo(new float3(0f, 0f, 5f)));
+			Assert.That(ball.OldVelocity, Is.EqualTo(new float3(0f, 0f, -1f)));
+			Assert.That(ball.AngularMomentum, Is.EqualTo(float3.zero));
+		}
+
 		private static BallState CreateBall()
 		{
 			return new BallState {

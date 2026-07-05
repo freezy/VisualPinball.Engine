@@ -15,16 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
-using NLog;
+using System.Collections.Generic;
 using UnityEngine;
-using Logger = NLog.Logger;
+using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
 {
 	public class MagnetApi : IApi, IApiCoilDevice, IApiSwitchDevice, IApiMagnetEvents
 	{
-		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
 		private readonly MagnetComponent _component;
 		private readonly Player _player;
 		private readonly PhysicsEngine _physicsEngine;
@@ -33,6 +31,7 @@ namespace VisualPinball.Unity
 		private DeviceCoil _magnetCoil;
 		private DeviceSwitch _ballHeldSwitch;
 		private bool _isEnabled;
+		private readonly HashSet<int> _heldBalls = new();
 
 		public event EventHandler Init;
 		public event EventHandler<BallEventArgs> BallEntered;
@@ -69,7 +68,16 @@ namespace VisualPinball.Unity
 
 		public void ReleaseBall()
 		{
-			Logger.Debug($"ReleaseBall called on magnet {_component.name}; grab support is enabled in the grab/hold milestone.");
+			if (!_physicsEngine) {
+				return;
+			}
+			_physicsEngine.MutateState((ref PhysicsState state) => {
+				if (!state.MagnetStates.ContainsKey(_itemId)) {
+					return;
+				}
+				ref var magnet = ref state.MagnetStates.GetValueByRef(_itemId);
+				MagnetPhysics.ReleaseGrabbedBalls(_itemId, ref magnet, ref state, true);
+			});
 		}
 
 		void IApi.OnInit(BallManager ballManager)
@@ -132,8 +140,22 @@ namespace VisualPinball.Unity
 
 		void IApiMagnetEvents.OnMagnetBallEntered(int ballId) => BallEntered?.Invoke(this, new BallEventArgs(ballId));
 		void IApiMagnetEvents.OnMagnetBallExited(int ballId) => BallExited?.Invoke(this, new BallEventArgs(ballId));
-		void IApiMagnetEvents.OnMagnetBallGrabbed(int ballId) => BallGrabbed?.Invoke(this, new BallEventArgs(ballId));
-		void IApiMagnetEvents.OnMagnetBallReleased(int ballId) => BallReleased?.Invoke(this, new BallEventArgs(ballId));
+
+		void IApiMagnetEvents.OnMagnetBallGrabbed(int ballId)
+		{
+			_heldBalls.Add(ballId);
+			_ballHeldSwitch.SetSwitch(true);
+			BallGrabbed?.Invoke(this, new BallEventArgs(ballId));
+		}
+
+		void IApiMagnetEvents.OnMagnetBallReleased(int ballId)
+		{
+			_heldBalls.Remove(ballId);
+			if (_heldBalls.Count == 0) {
+				_ballHeldSwitch.SetSwitch(false);
+			}
+			BallReleased?.Invoke(this, new BallEventArgs(ballId));
+		}
 	}
 
 	internal interface IApiMagnetEvents
