@@ -127,13 +127,16 @@ namespace VisualPinball.Unity
 		[Range(CabinetPhysicsState.MinKeyboardDampingRatio, CabinetPhysicsState.MaxKeyboardDampingRatio)]
 		public float KeyboardCabinetDamping = CabinetPhysicsState.DefaultKeyboardDampingRatio;
 
+		[HideInInspector]
 		[Tooltip("Simulate a mechanical plumb-bob tilt switch from cabinet nudge.")]
-		public bool SimulatedPlumb = true;
+		public bool SimulatedPlumb = false;
 
+		[HideInInspector]
 		[Tooltip("Mechanical plumb-bob damping scale.")]
 		[Range(0f, 2f)]
 		public float PlumbDamping = 1f;
 
+		[HideInInspector]
 		[Tooltip("Mechanical plumb-bob tilt threshold angle in degrees.")]
 		[Range(0.5f, 4f)]
 		public float PlumbThresholdAngle = 2f;
@@ -186,7 +189,6 @@ namespace VisualPinball.Unity
 		[NonSerialized] private int _mainThreadManagedThreadId;
 		[NonSerialized] private int _simulationThreadManagedThreadId = -1;
 		[NonSerialized] private int _keyboardNudgeIndex;
-		[NonSerialized] private readonly List<bool> _pendingPlumbTiltEvents = new(8);
 		[NonSerialized] private readonly HashSet<string> _unsafeLiveStateAccessWarnings = new HashSet<string>();
 		[NonSerialized] private bool _inputActionsQueueWarningIssued;
 		[NonSerialized] private bool _scheduledActionsQueueWarningIssued;
@@ -325,7 +327,6 @@ namespace VisualPinball.Unity
 			settings.Normalize();
 			ConfigureKeyboardNudge((KeyboardNudgeMode)settings.keyboardMode,
 				settings.keyboardStrength, settings.keyboardCabinetDamping);
-			ConfigurePlumb(settings.plumb.enabled, settings.plumb.damping, settings.plumb.thresholdDeg);
 			ConfigureVisualNudge(settings.visualStrength);
 			ConfigureNudgeSensors(settings.ToEngineSensorConfigs());
 		}
@@ -342,7 +343,7 @@ namespace VisualPinball.Unity
 		{
 			settings ??= new CabinetInputSettings();
 			settings.Normalize();
-			ConfigureNudge(settings.nudge);
+			settings.nudge.ApplyTo(this);
 		}
 
 		/// <summary>
@@ -610,18 +611,6 @@ namespace VisualPinball.Unity
 				}
 				plumb.ClearPendingTiltEvents();
 				_ctx.PhysicsEnv.Plumb = plumb;
-			}
-		}
-
-		/// <summary>
-		/// Dispatches pending plumb tilt edges through the main-thread player path.
-		/// </summary>
-		private void DispatchPendingPlumbTiltEvents()
-		{
-			_pendingPlumbTiltEvents.Clear();
-			DrainPlumbTiltEvents(_pendingPlumbTiltEvents);
-			foreach (var high in _pendingPlumbTiltEvents) {
-				_player?.DispatchInputAction(InputConstants.ActionTilt, high);
 			}
 		}
 
@@ -951,6 +940,9 @@ namespace VisualPinball.Unity
 			_player = GetComponentInParent<Player>();
 			_nudgeSystem = new NudgeSystem(this);
 			ConfigureVisualNudge(VisualNudgeStrength);
+			if (TiltBobComponent.FindFor(this) == null) {
+				SimulatedPlumb = false;
+			}
 			_ctx.InsideOfs = new InsideOfs(Allocator.Persistent);
 			var table = GetComponentInParent<TableComponent>();
 			_ctx.PhysicsEnv = new PhysicsEnv(NowUsec, GetComponentInChildren<PlayfieldComponent>(), GravityStrength,
@@ -1122,7 +1114,6 @@ namespace VisualPinball.Unity
 			} else {
 				// Normal mode: Execute full physics update
 				_threading.ExecutePhysicsUpdate(NowUsec);
-				DispatchPendingPlumbTiltEvents();
 			}
 		}
 

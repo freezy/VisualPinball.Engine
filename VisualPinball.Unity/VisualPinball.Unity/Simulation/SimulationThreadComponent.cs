@@ -379,9 +379,7 @@ namespace VisualPinball.Unity.Simulation
 					player != null
 						? new Action<string, bool>((coilId, isEnabled) => player.DispatchCoilSimulationThread(coilId, isEnabled))
 						: null);
-				if (player != null) {
-					_simulationThread.MainThreadTiltDispatcher = isTilted => player.DispatchInputAction(InputConstants.ActionTilt, isTilted);
-				}
+				ConfigureTiltBobRouting();
 				_simulationThread.SyncClockFromMainThread(_physicsEngine.CurrentSimulationClockUsec, _physicsEngine.CurrentSimulationClockScale);
 
 				// Provide the triple-buffered SimulationState to PhysicsEngine so
@@ -536,8 +534,42 @@ namespace VisualPinball.Unity.Simulation
 
 			if (applyNudgeToPhysics) {
 				_physicsEngine ??= GetComponent<PhysicsEngine>();
-				_physicsEngine?.ConfigureNudge(settings);
+				settings.ApplyTo(_physicsEngine);
+			} else {
+				ConfigureTiltBobRouting();
 			}
+		}
+
+		/// <summary>
+		/// Routes plumb tilt edges between the simulation thread and the table's tilt-bob
+		/// component that owns the authored switch mapping.
+		/// </summary>
+		internal void ConfigureTiltBobRouting(TiltBobComponent tiltBob = null)
+		{
+			if (_simulationThread == null) {
+				return;
+			}
+
+			tiltBob ??= FindTiltBobComponent();
+			if (tiltBob != null && (tiltBob.UsesSimulatedPlumb || tiltBob.UsesMappedInput)) {
+				_simulationThread.MainThreadTiltDispatcher = tiltBob.QueueTiltStateFromSimulationThread;
+				_simulationThread.DispatchMappedTiltInputToMainThread = tiltBob.UsesMappedInput;
+				return;
+			}
+
+			_simulationThread.MainThreadTiltDispatcher = null;
+			_simulationThread.DispatchMappedTiltInputToMainThread = false;
+		}
+
+		private TiltBobComponent FindTiltBobComponent()
+		{
+			_physicsEngine ??= GetComponent<PhysicsEngine>();
+			if (_physicsEngine != null) {
+				return TiltBobComponent.FindFor(_physicsEngine);
+			}
+
+			return GetComponentInParent<TiltBobComponent>(true)
+			       ?? GetComponentInChildren<TiltBobComponent>(true);
 		}
 
 		/// <summary>
