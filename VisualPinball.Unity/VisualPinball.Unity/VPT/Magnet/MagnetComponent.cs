@@ -19,6 +19,7 @@ using NLog;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Unity.Collections;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
@@ -95,6 +96,8 @@ namespace VisualPinball.Unity
 
 		public MagnetApi MagnetApi { get; private set; }
 
+		private PhysicsEngine _physicsEngine;
+
 		private void Awake()
 		{
 			var player = GetComponentInParent<Player>();
@@ -103,15 +106,23 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			var physicsEngine = GetComponentInParent<PhysicsEngine>();
-			MagnetApi = new MagnetApi(gameObject, player, physicsEngine);
+			_physicsEngine = GetComponentInParent<PhysicsEngine>();
+			MagnetApi = new MagnetApi(gameObject, player, _physicsEngine);
 
 			player.Register(MagnetApi, this);
-			if (physicsEngine) {
-				physicsEngine.Register(this);
+			if (_physicsEngine) {
+				_physicsEngine.Register(this);
 			} else {
 				Logger.Error($"Cannot find physics engine for magnet {name}.");
 			}
+		}
+
+		private void OnValidate()
+		{
+			Radius = math.max(0f, Radius);
+			GrabRadius = math.max(0f, GrabRadius);
+			HeightRange = math.max(0f, HeightRange);
+			SyncPhysicsState();
 		}
 
 		internal MagnetState CreateState()
@@ -130,6 +141,38 @@ namespace VisualPinball.Unity
 				GrabbedBalls = default,
 				ReleasedBalls = default
 			};
+		}
+
+		private void SyncPhysicsState()
+		{
+			if (!Application.isPlaying || !_physicsEngine) {
+				return;
+			}
+
+			var itemId = UnityObjectId.Get(gameObject);
+			var pos = GetPlayfieldPositionVpx(transform);
+			var radius = MillimetersToVpx(Radius);
+			var strength = Strength;
+			var grabRadius = GrabBall ? MillimetersToVpx(GrabRadius) : 0f;
+			var profile = ForceProfile;
+			var heightRange = MillimetersToVpx(HeightRange);
+			var planarDamping = math.clamp(DefaultPlanarDamping, 0f, 1f);
+
+			_physicsEngine.MutateState((ref PhysicsState state) => {
+				if (!state.MagnetStates.ContainsKey(itemId)) {
+					return;
+				}
+
+				ref var magnet = ref state.MagnetStates.GetValueByRef(itemId);
+				magnet.Position = pos.xy;
+				magnet.Height = pos.z;
+				magnet.Radius = radius;
+				magnet.Strength = strength;
+				magnet.GrabRadius = grabRadius;
+				magnet.PlanarDamping = planarDamping;
+				magnet.Profile = profile;
+				magnet.HeightRange = heightRange;
+			});
 		}
 
 		internal static float MillimetersToVpx(float value) => Physics.ScaleToVpx(value * MillimetersToWorld);
@@ -163,7 +206,7 @@ namespace VisualPinball.Unity
 
 			if (heightRangeWorld > 0f) {
 				Gizmos.color = new Color(0.1f, 0.55f, 1f, 0.35f);
-				Gizmos.DrawLine(transform.position, transform.position + transform.up * heightRangeWorld);
+				DrawLocalCylinder(radiusWorld, heightRangeWorld);
 			}
 
 			if (!Application.isPlaying || !DrawDebugForces) {
@@ -182,19 +225,37 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void DrawLocalDisc(float radius)
+		private void DrawLocalDisc(float radius, float localHeight = 0f)
 		{
 			if (radius <= 0f) {
 				return;
 			}
 
 			const int segments = 64;
-			var previous = transform.TransformPoint(new Vector3(radius, 0f, 0f));
+			var previous = transform.TransformPoint(new Vector3(radius, localHeight, 0f));
 			for (var i = 1; i <= segments; i++) {
 				var angle = (math.TAU * i) / segments;
-				var next = transform.TransformPoint(new Vector3(math.cos(angle) * radius, 0f, math.sin(angle) * radius));
+				var next = transform.TransformPoint(new Vector3(math.cos(angle) * radius, localHeight, math.sin(angle) * radius));
 				Gizmos.DrawLine(previous, next);
 				previous = next;
+			}
+		}
+
+		private void DrawLocalCylinder(float radius, float height)
+		{
+			if (radius <= 0f || height <= 0f) {
+				return;
+			}
+
+			DrawLocalDisc(radius);
+			DrawLocalDisc(radius, height);
+
+			const int segments = 8;
+			for (var i = 0; i < segments; i++) {
+				var angle = (math.TAU * i) / segments;
+				var localBase = new Vector3(math.cos(angle) * radius, 0f, math.sin(angle) * radius);
+				var localTop = new Vector3(localBase.x, height, localBase.z);
+				Gizmos.DrawLine(transform.TransformPoint(localBase), transform.TransformPoint(localTop));
 			}
 		}
 	}
