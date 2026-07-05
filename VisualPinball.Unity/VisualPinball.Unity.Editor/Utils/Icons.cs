@@ -82,6 +82,7 @@ namespace VisualPinball.Unity.Editor
 		private const string LightGroupName = "light_group";
 		private const string LightName = "light";
 		private const string LoopButtonName = "player";
+		private const string MagnetName = "magnet";
 		private const string MechName = "mech";
 		private const string MechPinMameName = "mech_pinmame";
 		private const string PlayfieldName = "playfield";
@@ -123,7 +124,7 @@ namespace VisualPinball.Unity.Editor
 
 		private static readonly string[] Names = {
 			AssetLibraryName, BallRollerName, BallName, BoltName, BumperName, CalendarName, CannonName, CoilName, DropTargetBankName, DropTargetName, FlasherName,
-			FlipperName, GateName, GateLifterName, HitTargetName, KeyName, KickerName, LightGroupName, LightName, LoopButtonName, MechName, MechPinMameName, PlayfieldName, PlayButtonName, PlugName,
+			FlipperName, GateName, GateLifterName, HitTargetName, KeyName, KickerName, LightGroupName, LightName, LoopButtonName, MagnetName, MechName, MechPinMameName, PlayfieldName, PlayButtonName, PlugName,
 			PhysicsName, PlungerName, PrimitiveName, RampName, RotatorName, RubberName, ScoreReelName, ScoreReelSingleName, SlingshotName, SpinnerName, StopButtonName, SurfaceName,
 			SwitchNcName, SwitchNoName, TableName, TeleporterName, TriggerName, TroughName,
 			CoilEventName, SwitchEventName, LampEventName, LampSeqName, MetalWireGuideName,
@@ -193,6 +194,7 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D LoopButton(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(LoopButtonName, size, color);
 		public static Texture2D LightGroup(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(LightGroupName, size, color);
 		public static Texture2D Locked(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(LockedName, size, color);
+		public static Texture2D Magnet(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(MagnetName, size, color);
 		public static Texture2D Mech(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(MechName, size, color);
 		public static Texture2D MechPinMame(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(MechPinMameName, size, color);
 		public static Texture2D MetalWireGuide(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(MetalWireGuideName, size, color);
