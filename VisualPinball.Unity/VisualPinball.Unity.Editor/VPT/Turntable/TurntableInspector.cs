@@ -1,0 +1,67 @@
+// Visual Pinball Engine
+// Copyright (C) 2026 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using UnityEditor;
+using UnityEngine;
+
+namespace VisualPinball.Unity.Editor
+{
+	[CustomEditor(typeof(TurntableComponent))]
+	public class TurntableInspector : ItemInspector
+	{
+		private SerializedProperty _radiusProperty;
+		private SerializedProperty _maxSpeedProperty;
+		private SerializedProperty _spinUpProperty;
+		private SerializedProperty _spinDownProperty;
+		private SerializedProperty _motorOnStartProperty;
+		private SerializedProperty _spinClockwiseProperty;
+		private SerializedProperty _rotationTargetProperty;
+
+		protected override MonoBehaviour UndoTarget => target as MonoBehaviour;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+
+			_radiusProperty = serializedObject.FindProperty(nameof(TurntableComponent.Radius));
+			_maxSpeedProperty = serializedObject.FindProperty(nameof(TurntableComponent.MaxSpeed));
+			_spinUpProperty = serializedObject.FindProperty(nameof(TurntableComponent.SpinUp));
+			_spinDownProperty = serializedObject.FindProperty(nameof(TurntableComponent.SpinDown));
+			_motorOnStartProperty = serializedObject.FindProperty(nameof(TurntableComponent.MotorOnStart));
+			_spinClockwiseProperty = serializedObject.FindProperty(nameof(TurntableComponent.SpinClockwise));
+			_rotationTargetProperty = serializedObject.FindProperty(nameof(TurntableComponent.RotationTarget));
+		}
+
+		public override void OnInspectorGUI()
+		{
+			BeginEditing();
+			OnPreInspectorGUI();
+
+			PropertyField(_radiusProperty);
+			PropertyField(_maxSpeedProperty);
+			PropertyField(_spinUpProperty);
+			PropertyField(_spinDownProperty);
+
+			EditorGUILayout.Space(8f);
+			PropertyField(_motorOnStartProperty);
+			PropertyField(_spinClockwiseProperty);
+			PropertyField(_rotationTargetProperty);
+
+			base.OnInspectorGUI();
+			EndEditing();
+		}
+	}
+}

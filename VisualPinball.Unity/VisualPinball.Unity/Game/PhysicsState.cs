@@ -142,6 +142,7 @@ namespace VisualPinball.Unity
 		internal NativeParallelHashMap<int, PlungerState> PlungerStates;
 		internal NativeParallelHashMap<int, SpinnerState> SpinnerStates;
 		internal NativeParallelHashMap<int, SurfaceState> SurfaceStates;
+		internal NativeParallelHashMap<int, TurntableState> TurntableStates;
 		internal NativeParallelHashMap<int, TriggerState> TriggerStates;
 		internal NativeParallelHashSet<int> DisabledCollisionItems;
 
@@ -160,7 +161,8 @@ namespace VisualPinball.Unity
 			ref NativeParallelHashMap<int, HitTargetState> hitTargetStates, ref NativeParallelHashMap<int, KickerState> kickerStates,
 			ref NativeParallelHashMap<int, MagnetState> magnetStates,
 			ref NativeParallelHashMap<int, PlungerState> plungerStates, ref NativeParallelHashMap<int, SpinnerState> spinnerStates,
-			ref NativeParallelHashMap<int, SurfaceState> surfaceStates, ref NativeParallelHashMap<int, TriggerState> triggerStates,
+			ref NativeParallelHashMap<int, SurfaceState> surfaceStates, ref NativeParallelHashMap<int, TurntableState> turntableStates,
+			ref NativeParallelHashMap<int, TriggerState> triggerStates,
 			ref NativeParallelHashSet<int> disabledCollisionItems, ref bool swapBallCollisionHandling,
 			ref NativeParallelHashMap<int, FixedList512Bytes<float>> elasticityOverVelocityLUTs,
 			ref NativeParallelHashMap<int, FixedList512Bytes<float>> frictionOverVelocityLUTs,
@@ -188,6 +190,7 @@ namespace VisualPinball.Unity
 			PlungerStates = plungerStates;
 			SpinnerStates = spinnerStates;
 			SurfaceStates = surfaceStates;
+			TurntableStates = turntableStates;
 			TriggerStates = triggerStates;
 			DisabledCollisionItems = disabledCollisionItems;
 			SwapBallCollisionHandling = swapBallCollisionHandling;

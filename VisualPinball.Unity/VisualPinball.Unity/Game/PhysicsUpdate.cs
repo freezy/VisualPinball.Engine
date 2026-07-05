@@ -154,6 +154,13 @@ namespace VisualPinball.Unity
 						MagnetPhysics.Update(enumerator.Current.Key, ref magnetState, ref state, physicsDiffTime);
 					}
 				}
+				// turntables
+				using (var enumerator = state.TurntableStates.GetEnumerator()) {
+					while (enumerator.MoveNext()) {
+						ref var turntableState = ref enumerator.Current.Value;
+						TurntablePhysics.Update(ref turntableState, ref state, physicsDiffTime);
+					}
+				}
 
 				#endregion
 
