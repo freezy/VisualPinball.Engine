@@ -64,6 +64,32 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void VpxCompatibleForceMatchesCoreVbsAttractBall()
+		{
+			// One cvpmMagnet.AttractBall update (core.vbs), ball at (50, 0), magnet at
+			// origin, Size = 100, Strength = 12, resting ball:
+			//   ratio = 50 / (1.5 * 100) = 1/3
+			//   force = 12 * exp(-0.6) / ((1/9) * 56) * 1.5 = 1.587634
+			//   VelX  = (0 - 50 * force / 50) * 0.985 = -1.563819
+			// Ten 1ms ticks must integrate to the same velocity within ~1% (the damping
+			// is applied fractionally per tick, which compounds slightly differently).
+			var ball = CreateBall();
+			var magnet = new MagnetState {
+				Position = float2.zero,
+				Radius = 100f,
+				Strength = 12f,
+				PlanarDamping = 0.985f
+			};
+
+			for (var i = 0; i < 10; i++) {
+				MagnetPhysics.ApplyVpxCompatibleForce(ref ball, in magnet, 0.1f);
+			}
+
+			Assert.That(ball.Velocity.x, Is.EqualTo(-1.563819f).Within(0.02f));
+			Assert.That(ball.Velocity.y, Is.EqualTo(0f).Within(1e-5f));
+		}
+
+		[Test]
 		public void VpxCompatibleForceRepelsWithNegativeStrength()
 		{
 			var ball = CreateBall();
