@@ -38,6 +38,11 @@ namespace VisualPinball.Unity
 		[Tooltip("Planar radius in which the turntable influences balls.")]
 		public float Radius = 60f;
 
+		[Min(0f)]
+		[Unit("mm")]
+		[Tooltip("Vertical range above the disc surface where balls are affected.")]
+		public float HeightRange = 50f;
+
 		[Tooltip("VPX-compatible maximum turntable speed.")]
 		public float MaxSpeed = 100f;
 
@@ -114,7 +119,9 @@ namespace VisualPinball.Unity
 			var pos = (float3)transform.localPosition.TranslateToVpx();
 			var state = new TurntableState {
 				Position = pos.xy,
+				Height = pos.z,
 				Radius = MagnetComponent.MillimetersToVpx(Radius),
+				HeightRange = MagnetComponent.MillimetersToVpx(HeightRange),
 				Speed = 0f,
 				MaxSpeed = MaxSpeed,
 				SpinUp = SpinUp,
