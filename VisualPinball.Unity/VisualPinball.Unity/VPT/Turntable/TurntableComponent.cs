@@ -121,7 +121,7 @@ namespace VisualPinball.Unity
 
 		internal TurntableState CreateState()
 		{
-			var pos = (float3)transform.localPosition.TranslateToVpx();
+			var pos = MagnetComponent.GetPlayfieldPositionVpx(transform);
 			var state = new TurntableState {
 				Position = pos.xy,
 				Height = pos.z,
