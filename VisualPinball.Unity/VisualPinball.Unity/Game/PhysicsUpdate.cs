@@ -147,6 +147,13 @@ namespace VisualPinball.Unity
 						SpinnerVelocityPhysics.UpdateVelocities(ref spinnerState.Movement, in spinnerState.Static);
 					}
 				}
+				// magnets
+				using (var enumerator = state.MagnetStates.GetEnumerator()) {
+					while (enumerator.MoveNext()) {
+						ref var magnetState = ref enumerator.Current.Value;
+						MagnetPhysics.Update(enumerator.Current.Key, ref magnetState, ref state, physicsDiffTime);
+					}
+				}
 
 				#endregion
 

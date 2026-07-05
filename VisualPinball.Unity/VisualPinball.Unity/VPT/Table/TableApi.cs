@@ -35,6 +35,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, KickerApi> _kickersByName = new Dictionary<string, KickerApi>();
 		private readonly Dictionary<string, LightApi> _lightsByName = new Dictionary<string, LightApi>();
 		private readonly Dictionary<string, LightGroupApi> _lightGroupsByName = new Dictionary<string, LightGroupApi>();
+		private readonly Dictionary<string, MagnetApi> _magnetsByName = new Dictionary<string, MagnetApi>();
 		private readonly Dictionary<string, PlungerApi> _plungersByName = new Dictionary<string, PlungerApi>();
 		private readonly Dictionary<string, PrimitiveApi> _primitivesByName = new Dictionary<string, PrimitiveApi>();
 		private readonly Dictionary<string, RampApi> _rampsByName = new Dictionary<string, RampApi>();
@@ -58,6 +59,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<MonoBehaviour, KickerApi> _kickersByComponent = new Dictionary<MonoBehaviour, KickerApi>();
 		private readonly Dictionary<MonoBehaviour, LightApi> _lightsByComponent = new Dictionary<MonoBehaviour, LightApi>();
 		private readonly Dictionary<MonoBehaviour, LightGroupApi> _lightGroupsByComponent = new Dictionary<MonoBehaviour, LightGroupApi>();
+		private readonly Dictionary<MonoBehaviour, MagnetApi> _magnetsByComponent = new Dictionary<MonoBehaviour, MagnetApi>();
 		private readonly Dictionary<MonoBehaviour, PlungerApi> _plungersByComponent = new Dictionary<MonoBehaviour, PlungerApi>();
 		private readonly Dictionary<MonoBehaviour, PrimitiveApi> _primitivesByComponent = new Dictionary<MonoBehaviour, PrimitiveApi>();
 		private readonly Dictionary<MonoBehaviour, RampApi> _rampsByComponent = new Dictionary<MonoBehaviour, RampApi>();
@@ -128,6 +130,14 @@ namespace VisualPinball.Unity
 		/// <returns>Kicker or `null` if no kicker with that name exists.</returns>
 		public KickerApi Kicker(string name) => Get<KickerApi>(name);
 		public KickerApi Kicker(MonoBehaviour component) => Get<KickerApi>(component);
+
+		/// <summary>
+		/// Returns a magnet by name.
+		/// </summary>
+		/// <param name="name">Name of the magnet</param>
+		/// <returns>Magnet or `null` if no magnet with that name exists.</returns>
+		public MagnetApi Magnet(string name) => Get<MagnetApi>(name);
+		public MagnetApi Magnet(MonoBehaviour component) => Get<MagnetApi>(component);
 
 		/// <summary>
 		/// Returns a light by name.
@@ -294,6 +304,7 @@ namespace VisualPinball.Unity
 			if (t == typeof(KickerApi)) return _kickersByName as Dictionary<string, T>;
 			if (t == typeof(LightApi)) return _lightsByName as Dictionary<string, T>;
 			if (t == typeof(LightGroupApi)) return _lightGroupsByName as Dictionary<string, T>;
+			if (t == typeof(MagnetApi)) return _magnetsByName as Dictionary<string, T>;
 			if (t == typeof(PlungerApi)) return _plungersByName as Dictionary<string, T>;
 			if (t == typeof(PrimitiveApi)) return _primitivesByName as Dictionary<string, T>;
 			if (t == typeof(PrimitiveApi)) return _primitivesByName as Dictionary<string, T>;
@@ -322,6 +333,7 @@ namespace VisualPinball.Unity
 			if (t == typeof(KickerApi)) return _kickersByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(LightApi)) return _lightsByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(LightGroupApi)) return _lightGroupsByComponent as Dictionary<MonoBehaviour, T>;
+			if (t == typeof(MagnetApi)) return _magnetsByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(PlungerApi)) return _plungersByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(PrimitiveApi)) return _primitivesByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(PrimitiveApi)) return _primitivesByComponent as Dictionary<MonoBehaviour, T>;

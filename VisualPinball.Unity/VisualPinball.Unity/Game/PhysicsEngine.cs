@@ -703,6 +703,11 @@ namespace VisualPinball.Unity
 			GuardLiveStateAccess(nameof(KickerState));
 			return ref _ctx.KickerStates.Ref.GetValueByRef(itemId);
 		}
+		internal ref MagnetState MagnetState(int itemId)
+		{
+			GuardLiveStateAccess(nameof(MagnetState));
+			return ref _ctx.MagnetStates.Ref.GetValueByRef(itemId);
+		}
 		internal ref PlungerState PlungerState(int itemId)
 		{
 			GuardLiveStateAccess(nameof(PlungerState));
@@ -762,6 +767,7 @@ namespace VisualPinball.Unity
 				case DropTargetComponent c: _ctx.DropTargetStates.Ref[itemId] = c.CreateState(); break;
 				case HitTargetComponent c: _ctx.HitTargetStates.Ref[itemId] = c.CreateState(); break;
 				case KickerComponent c: _ctx.KickerStates.Ref[itemId] = c.CreateState(); break;
+				case MagnetComponent c: _ctx.MagnetStates.Ref[itemId] = c.CreateState(); break;
 				case PlungerComponent c:
 					_ctx.PlungerStates.Ref[itemId] = c.CreateState();
 					break;

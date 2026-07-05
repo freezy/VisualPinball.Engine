@@ -92,6 +92,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<int, IApiSpinnable> _spinnables = new();
 		private readonly Dictionary<int, IApiSlingshot> _slingshots = new();
 		private readonly Dictionary<int, IApiDroppable> _droppables = new();
+		private readonly Dictionary<int, IApiMagnetEvents> _magnets = new();
 
 		internal IEnumerable<IApiColliderGenerator> ColliderGenerators => _colliderGenerators;
 
@@ -327,6 +328,9 @@ namespace VisualPinball.Unity
 			if (api is IApiDroppable droppable) {
 				_droppables[itemId] = droppable;
 			}
+			if (api is IApiMagnetEvents magnetEvents) {
+				_magnets[itemId] = magnetEvents;
+			}
 			if (api is IApiSpinnable spinnable) {
 				_spinnables[itemId] = spinnable;
 			}
@@ -436,6 +440,22 @@ namespace VisualPinball.Unity
 
 				case EventId.TargetEventsRaised:
 					_droppables[eventData.ItemId].OnDropStatusChanged(false, eventData.BallId);
+					break;
+
+				case EventId.MagnetEventsBallEntered:
+					_magnets[eventData.ItemId].OnMagnetBallEntered(eventData.BallId);
+					break;
+
+				case EventId.MagnetEventsBallExited:
+					_magnets[eventData.ItemId].OnMagnetBallExited(eventData.BallId);
+					break;
+
+				case EventId.MagnetEventsBallGrabbed:
+					_magnets[eventData.ItemId].OnMagnetBallGrabbed(eventData.BallId);
+					break;
+
+				case EventId.MagnetEventsBallReleased:
+					_magnets[eventData.ItemId].OnMagnetBallReleased(eventData.BallId);
 					break;
 
 				default:

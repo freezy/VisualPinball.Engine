@@ -40,6 +40,15 @@ namespace VisualPinball.Unity
 		}
 	}
 
+	public readonly struct BallEventArgs
+	{
+		public readonly int BallId;
+
+		public BallEventArgs(int ballId)
+		{
+			BallId = ballId;
+		}
+	}
 
 	public readonly struct SwitchEventArgs
 	{
