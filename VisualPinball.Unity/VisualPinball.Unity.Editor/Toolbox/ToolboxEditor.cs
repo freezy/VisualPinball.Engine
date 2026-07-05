@@ -182,7 +182,7 @@ namespace VisualPinball.Unity.Editor
 				CreatePrefab<SlingshotComponent>("Slingshots", "Prefabs/Slingshot");
 			}
 
-			if (CreateButton("Magnet", Icons.Coil(color: iconColor), iconSize, buttonStyle)) {
+			if (CreateButton("Magnet", Icons.Magnet(color: iconColor), iconSize, buttonStyle)) {
 				CreatePrefab<MagnetComponent>("Magnets", "Prefabs/Magnet");
 			}
 

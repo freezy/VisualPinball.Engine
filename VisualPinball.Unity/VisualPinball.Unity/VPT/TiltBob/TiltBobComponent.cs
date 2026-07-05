@@ -36,6 +36,7 @@ namespace VisualPinball.Unity
 	[DisallowMultipleComponent]
 	[PackAs("TiltBob")]
 	[AddComponentMenu("Pinball/Mechs/Tilt Bob")]
+	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/tilt-bobs.html")]
 	public sealed class TiltBobComponent : MonoBehaviour, ISwitchDeviceComponent, IPackable
 	{
 		public const string SwitchItem = "tilt_bob_switch";
