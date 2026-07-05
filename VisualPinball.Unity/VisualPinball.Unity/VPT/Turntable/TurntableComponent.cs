@@ -85,11 +85,12 @@ namespace VisualPinball.Unity
 
 		public byte[] Pack() => TurntablePackable.Pack(this);
 
-		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => System.Array.Empty<byte>();
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => TurntableReferencesPackable.Pack(this, refs);
 
 		public void Unpack(byte[] bytes) => TurntablePackable.Unpack(bytes, this);
 
-		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files)
+			=> TurntableReferencesPackable.Unpack(data, this, refs);
 
 		private void Awake()
 		{

@@ -14,8 +14,28 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using UnityEngine;
+
 namespace VisualPinball.Unity
 {
+	public struct TurntableReferencesPackable
+	{
+		public ReferencePackable RotationTargetRef;
+
+		public static byte[] Pack(TurntableComponent comp, PackagedRefs refs)
+		{
+			return PackageApi.Packer.Pack(new TurntableReferencesPackable {
+				RotationTargetRef = refs.PackReference(comp.RotationTarget)
+			});
+		}
+
+		public static void Unpack(byte[] bytes, TurntableComponent comp, PackagedRefs refs)
+		{
+			var data = PackageApi.Packer.Unpack<TurntableReferencesPackable>(bytes);
+			comp.RotationTarget = refs.Resolve<Transform>(data.RotationTargetRef);
+		}
+	}
+
 	public class TurntablePackable
 	{
 		public float Radius;
