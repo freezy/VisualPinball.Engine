@@ -821,7 +821,7 @@ namespace VisualPinball.Unity
 					ref var magnet = ref enumerator.Current.Value;
 					if (magnet.GrabbedBalls.IsSet(bitIndex)) {
 						magnet.GrabbedBalls.SetBits(bitIndex, false);
-						_ctx.EventQueue.Ref.Enqueue(new EventData(EventId.MagnetEventsBallReleased, enumerator.Current.Key, ballId, true));
+						_ctx.EventQueue.Ref.Enqueue(new EventData(Engine.Game.EventId.MagnetEventsBallReleased, enumerator.Current.Key, ballId, true));
 					}
 					magnet.ReleasedBalls.SetBits(bitIndex, false);
 				}
