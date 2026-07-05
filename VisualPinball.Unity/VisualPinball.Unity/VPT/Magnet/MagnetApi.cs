@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Unity.Collections;
 
@@ -34,10 +35,10 @@ namespace VisualPinball.Unity
 		private readonly HashSet<int> _heldBalls = new();
 
 		public event EventHandler Init;
-		public event EventHandler<BallEventArgs> BallEntered;
-		public event EventHandler<BallEventArgs> BallExited;
-		public event EventHandler<BallEventArgs> BallGrabbed;
-		public event EventHandler<BallEventArgs> BallReleased;
+		public event EventHandler<HitEventArgs> BallEntered;
+		public event EventHandler<HitEventArgs> BallExited;
+		public event EventHandler<HitEventArgs> BallGrabbed;
+		public event EventHandler<HitEventArgs> BallReleased;
 
 		internal MagnetApi(GameObject go, Player player, PhysicsEngine physicsEngine)
 		{
@@ -75,7 +76,7 @@ namespace VisualPinball.Unity
 		public float Radius {
 			get => _component.Radius;
 			set {
-				var radius = Mathf.Max(0f, value);
+				var radius = math.max(0f, value);
 				_component.Radius = radius;
 				if (!_physicsEngine) {
 					return;
@@ -177,14 +178,14 @@ namespace VisualPinball.Unity
 			magnet.IsEnabled = enabled;
 		}
 
-		void IApiMagnetEvents.OnMagnetBallEntered(int ballId) => BallEntered?.Invoke(this, new BallEventArgs(ballId));
-		void IApiMagnetEvents.OnMagnetBallExited(int ballId) => BallExited?.Invoke(this, new BallEventArgs(ballId));
+		void IApiMagnetEvents.OnMagnetBallEntered(int ballId) => BallEntered?.Invoke(this, new HitEventArgs(ballId));
+		void IApiMagnetEvents.OnMagnetBallExited(int ballId) => BallExited?.Invoke(this, new HitEventArgs(ballId));
 
 		void IApiMagnetEvents.OnMagnetBallGrabbed(int ballId)
 		{
 			_heldBalls.Add(ballId);
 			_ballHeldSwitch.SetSwitch(true);
-			BallGrabbed?.Invoke(this, new BallEventArgs(ballId));
+			BallGrabbed?.Invoke(this, new HitEventArgs(ballId));
 		}
 
 		void IApiMagnetEvents.OnMagnetBallReleased(int ballId)
@@ -193,7 +194,7 @@ namespace VisualPinball.Unity
 			if (_heldBalls.Count == 0) {
 				_ballHeldSwitch.SetSwitch(false);
 			}
-			BallReleased?.Invoke(this, new BallEventArgs(ballId));
+			BallReleased?.Invoke(this, new HitEventArgs(ballId));
 		}
 	}
 

@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Unity.Collections;
 
@@ -89,7 +90,7 @@ namespace VisualPinball.Unity
 		public float SpinUp {
 			get => _component.SpinUp;
 			set {
-				var spinUp = Mathf.Max(0f, value);
+				var spinUp = math.max(0f, value);
 				_component.SpinUp = spinUp;
 				MutateState((ref TurntableState turntable) => turntable.SpinUp = spinUp);
 			}
@@ -98,7 +99,7 @@ namespace VisualPinball.Unity
 		public float SpinDown {
 			get => _component.SpinDown;
 			set {
-				var spinDown = Mathf.Max(0f, value);
+				var spinDown = math.max(0f, value);
 				_component.SpinDown = spinDown;
 				MutateState((ref TurntableState turntable) => turntable.SpinDown = spinDown);
 			}

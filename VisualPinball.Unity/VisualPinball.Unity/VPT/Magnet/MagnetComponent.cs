@@ -177,7 +177,7 @@ namespace VisualPinball.Unity
 				var offset = ball.transform.position - transform.position;
 				var planarOffset = Vector3.ProjectOnPlane(offset, transform.up);
 				if (planarOffset.sqrMagnitude <= radiusWorld * radiusWorld) {
-					Gizmos.DrawLine(ball.transform.position, ball.transform.position - planarOffset.normalized * Mathf.Min(radiusWorld * 0.25f, planarOffset.magnitude));
+					Gizmos.DrawLine(ball.transform.position, ball.transform.position - planarOffset.normalized * math.min(radiusWorld * 0.25f, planarOffset.magnitude));
 				}
 			}
 		}
