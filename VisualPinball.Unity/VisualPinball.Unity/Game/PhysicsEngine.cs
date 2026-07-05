@@ -312,6 +312,40 @@ namespace VisualPinball.Unity
 		public int KeyboardNudgeIndex => Volatile.Read(ref _keyboardNudgeIndex);
 
 		/// <summary>
+		/// Captures the current nudge settings stored on this component.
+		/// </summary>
+		public CabinetNudgeSettings GetNudgeSettings() => CabinetNudgeSettings.From(this);
+
+		/// <summary>
+		/// Applies the shared nudge settings object to this physics engine.
+		/// </summary>
+		public void ConfigureNudge(CabinetNudgeSettings settings)
+		{
+			settings ??= new CabinetNudgeSettings();
+			settings.Normalize();
+			ConfigureKeyboardNudge((KeyboardNudgeMode)settings.keyboardMode,
+				settings.keyboardStrength, settings.keyboardCabinetDamping);
+			ConfigurePlumb(settings.plumb.enabled, settings.plumb.damping, settings.plumb.thresholdDeg);
+			ConfigureVisualNudge(settings.visualStrength);
+			ConfigureNudgeSensors(settings.ToEngineSensorConfigs());
+		}
+
+		/// <summary>
+		/// Applies the cabinet input settings that are relevant to physics.
+		/// </summary>
+		/// <remarks>
+		/// Native input polling belongs to
+		/// <see cref="VisualPinball.Unity.Simulation.SimulationThreadComponent"/>,
+		/// so this method intentionally applies only the nested nudge settings.
+		/// </remarks>
+		public void ConfigureCabinetInput(CabinetInputSettings settings)
+		{
+			settings ??= new CabinetInputSettings();
+			settings.Normalize();
+			ConfigureNudge(settings.nudge);
+		}
+
+		/// <summary>
 		/// Queues a keyboard/manual nudge impulse for the next physics tick.
 		/// </summary>
 		/// <remarks>
