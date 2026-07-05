@@ -23,20 +23,63 @@ namespace VisualPinball.Unity.Editor
 	public class PhysicsEngineInspector : UnityEditor.Editor
 	{
 		private SerializedProperty _gravityProperty;
+		private SerializedProperty _keyboardNudgeModeProperty;
+		private SerializedProperty _keyboardNudgeStrengthProperty;
+		private SerializedProperty _keyboardCabinetDampingProperty;
+		private SerializedProperty _simulatedPlumbProperty;
+		private SerializedProperty _plumbDampingProperty;
+		private SerializedProperty _plumbThresholdAngleProperty;
+		private SerializedProperty _visualNudgeStrengthProperty;
 
 		private void OnEnable()
 		{
 			_gravityProperty = serializedObject.FindProperty(nameof(PhysicsEngine.GravityStrength));
+			_keyboardNudgeModeProperty = serializedObject.FindProperty(nameof(PhysicsEngine.KeyboardNudgeMode));
+			_keyboardNudgeStrengthProperty = serializedObject.FindProperty(nameof(PhysicsEngine.KeyboardNudgeStrength));
+			_keyboardCabinetDampingProperty = serializedObject.FindProperty(nameof(PhysicsEngine.KeyboardCabinetDamping));
+			_simulatedPlumbProperty = serializedObject.FindProperty(nameof(PhysicsEngine.SimulatedPlumb));
+			_plumbDampingProperty = serializedObject.FindProperty(nameof(PhysicsEngine.PlumbDamping));
+			_plumbThresholdAngleProperty = serializedObject.FindProperty(nameof(PhysicsEngine.PlumbThresholdAngle));
+			_visualNudgeStrengthProperty = serializedObject.FindProperty(nameof(PhysicsEngine.VisualNudgeStrength));
 		}
 
 		public override void OnInspectorGUI()
 		{
+			serializedObject.Update();
+
 			EditorGUI.BeginChangeCheck();
 
 			EditorGUILayout.PropertyField(_gravityProperty, new GUIContent("Gravity Constant"));
+			EditorGUILayout.Space();
+
+			EditorGUILayout.LabelField("Keyboard Nudge", EditorStyles.boldLabel);
+			EditorGUILayout.PropertyField(_keyboardNudgeModeProperty, new GUIContent("Mode"));
+			EditorGUILayout.PropertyField(_keyboardNudgeStrengthProperty, new GUIContent("Strength"));
+			EditorGUILayout.PropertyField(_keyboardCabinetDampingProperty, new GUIContent("Cabinet Damping"));
+			EditorGUILayout.Space();
+
+			EditorGUILayout.LabelField("Plumb Tilt", EditorStyles.boldLabel);
+			EditorGUILayout.PropertyField(_simulatedPlumbProperty, new GUIContent("Simulated Plumb"));
+			using (new EditorGUI.DisabledScope(!_simulatedPlumbProperty.boolValue)) {
+				EditorGUILayout.PropertyField(_plumbDampingProperty, new GUIContent("Damping"));
+				EditorGUILayout.PropertyField(_plumbThresholdAngleProperty, new GUIContent("Threshold Angle"));
+			}
+			EditorGUILayout.Space();
+
+			EditorGUILayout.LabelField("Visual Nudge", EditorStyles.boldLabel);
+			EditorGUILayout.PropertyField(_visualNudgeStrengthProperty, new GUIContent("Strength"));
 
 			if (EditorGUI.EndChangeCheck()) {
 				serializedObject.ApplyModifiedProperties();
+				foreach (var obj in targets) {
+					if (obj is PhysicsEngine physicsEngine) {
+						physicsEngine.ConfigureKeyboardNudge(physicsEngine.KeyboardNudgeMode,
+							physicsEngine.KeyboardNudgeStrength, physicsEngine.KeyboardCabinetDamping);
+						physicsEngine.ConfigurePlumb(physicsEngine.SimulatedPlumb,
+							physicsEngine.PlumbDamping, physicsEngine.PlumbThresholdAngle);
+						physicsEngine.ConfigureVisualNudge(physicsEngine.VisualNudgeStrength);
+					}
+				}
 			}
 		}
 	}
