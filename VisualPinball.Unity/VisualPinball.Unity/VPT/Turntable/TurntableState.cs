@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Runtime.InteropServices;
 using Unity.Mathematics;
 
 namespace VisualPinball.Unity
@@ -29,7 +30,9 @@ namespace VisualPinball.Unity
 		internal float MaxSpeed;
 		internal float SpinUp;
 		internal float SpinDown;
+		[MarshalAs(UnmanagedType.U1)]
 		internal bool MotorOn;
+		[MarshalAs(UnmanagedType.U1)]
 		internal bool SpinClockwise;
 		internal float RotationAngle;
 		internal float VisualSpeedFactor;
