@@ -26,8 +26,9 @@ namespace VisualPinball.Unity
 		private const float SecondsPerVpxUpdate = MagnetPhysics.VpxMagnetUpdateMs * 0.001f;
 
 		[BurstCompile]
-		internal static void Update(ref TurntableState turntable, ref PhysicsState state, float physicsDiffTime)
+		internal static void Update(int itemId, ref TurntableState turntable, ref PhysicsState state, float physicsDiffTime)
 		{
+			RefreshKinematicState(itemId, ref turntable, ref state);
 			UpdateSpeed(ref turntable, physicsDiffTime);
 			// Speed is a VPX-arbitrary force scale, not a rotation rate; VisualSpeedFactor
 			// maps it to degrees per second for the visual disc.
@@ -46,6 +47,19 @@ namespace VisualPinball.Unity
 					ApplyVpxCompatibleForce(ref ball, in turntable, physicsDiffTime);
 				}
 			}
+		}
+
+		internal static void RefreshKinematicState(int itemId, ref TurntableState turntable, ref PhysicsState state)
+		{
+			if (turntable.IsKinematic && state.KinematicTransforms.TryGetValue(itemId, out var matrix)) {
+				ApplyKinematicTransform(ref turntable, in matrix);
+			}
+		}
+
+		internal static void ApplyKinematicTransform(ref TurntableState turntable, in float4x4 matrix)
+		{
+			turntable.Position = matrix.c3.xy;
+			turntable.Height = matrix.c3.z;
 		}
 
 		internal static void UpdateSpeed(ref TurntableState turntable, float physicsDiffTime)

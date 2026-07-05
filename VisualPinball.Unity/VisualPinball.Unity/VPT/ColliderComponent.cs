@@ -831,7 +831,6 @@ namespace VisualPinball.Unity
 		void ICollidableComponent.GetColliders(Player player, PhysicsEngine physicsEngine, ref ColliderReference colliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 			=> InstantiateColliderApi(player, physicsEngine).CreateColliders(ref colliders, translateWithinPlayfieldMatrix, margin);
 
-		int ICollidableComponent.ItemId => UnityObjectId.Get(MainComponent.gameObject);
 		bool ICollidableComponent.IsCollidable => isActiveAndEnabled;
 	}
 

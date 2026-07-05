@@ -177,9 +177,10 @@ namespace VisualPinball.Unity
 					state.KinematicVelocities[itemId] = velocity;
 				}
 
-				ref var colliderLookups = ref state.KinematicColliderLookups.GetValueByRef(itemId);
-				for (var i = 0; i < colliderLookups.Length; i++) {
-					state.TransformKinematicColliders(colliderLookups[i], current);
+				if (state.KinematicColliderLookups.TryGetValue(itemId, out var colliderLookups)) {
+					for (var i = 0; i < colliderLookups.Length; i++) {
+						state.TransformKinematicColliders(colliderLookups[i], current);
+					}
 				}
 			}
 			PerfMarkerTransform.End();

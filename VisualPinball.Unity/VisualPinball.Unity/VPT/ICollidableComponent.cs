@@ -18,7 +18,33 @@ using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
-	public interface ICollidableComponent
+	public interface IKinematicTransformComponent
+	{
+		/// <summary>
+		/// The unique identifier of the main item.
+		/// </summary>
+		public int ItemId { get; }
+
+		/// <summary>
+		/// If set, this item can be transformed during gameplay.
+		/// </summary>
+		public bool IsKinematic { get; }
+
+		/// <summary>
+		/// The item's local-to-playfield matrix in VPX coordinates.
+		/// </summary>
+		/// <param name="worldToPlayfield">The playfield's worldToLocal matrix.</param>
+		/// <returns></returns>
+		public float4x4 GetLocalToPlayfieldMatrixInVpx(float4x4 worldToPlayfield);
+
+		/// <summary>
+		/// Executed on kinematic items when the transformation has changed.
+		/// </summary>
+		/// <param name="currTransformationMatrix"></param>
+		public void OnTransformationChanged(float4x4 currTransformationMatrix);
+	}
+
+	public interface ICollidableComponent : IKinematicTransformComponent
 	{
 		/// <summary>
 		/// Generates the colliders.
@@ -32,35 +58,10 @@ namespace VisualPinball.Unity
 			float4x4 translateWithinPlayfieldMatrix, float margin);
 
 		/// <summary>
-		/// The unique identifier of the main item.
-		/// </summary>
-		public int ItemId { get; }
-
-		/// <summary>
 		/// Returns whether this specific item is set to collidable, i.e. whether can it ever be
 		/// collided with during gameplay.
 		/// </summary>
 		internal bool IsCollidable { get; }
-
-		/// <summary>
-		/// If set, this collider can be transformed during gameplay.
-		/// </summary>
-		public bool IsKinematic { get; }
-
-		/// <summary>
-		/// The translation matrix, that will be applied in reverse to the ball
-		/// for hit testing and collision.
-		/// </summary>
-		/// <param name="worldToPlayfield">The playfield's worldToLocal matrix.</param>
-		/// <returns></returns>
-		public float4x4 GetLocalToPlayfieldMatrixInVpx(float4x4 worldToPlayfield);
-
-		/// <summary>
-		/// Executed on kinematic colliders, when the transformation has changed. This allows updating data if necessary,
-		/// for example the kicker center, which is relevant when spawning balls.
-		/// </summary>
-		/// <param name="currTransformationMatrix"></param>
-		public void OnTransformationChanged(float4x4 currTransformationMatrix);
 
 		public bool CollidersDirty { set; }
 

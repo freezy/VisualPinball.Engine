@@ -35,6 +35,8 @@ namespace VisualPinball.Unity
 		[BurstCompile]
 		internal static void Update(int itemId, ref MagnetState magnet, ref PhysicsState state, float physicsDiffTime)
 		{
+			var magnetVelocity = RefreshKinematicState(itemId, ref magnet, ref state);
+
 			if (!magnet.IsEnabled) {
 				ReleaseGrabbedBalls(itemId, ref magnet, ref state, false);
 				if (!state.InsideOfs.IsEmpty(itemId)) {
@@ -64,7 +66,7 @@ namespace VisualPinball.Unity
 					}
 
 					UpdateMembership(itemId, ball.Id, true, ref state);
-					if (UpdateGrab(itemId, ref magnet, ref state, ref ball, physicsDiffTime)) {
+					if (UpdateGrab(itemId, ref magnet, ref state, ref ball, physicsDiffTime, magnetVelocity)) {
 						continue;
 					}
 
@@ -73,11 +75,27 @@ namespace VisualPinball.Unity
 							ApplyVpxCompatibleForce(ref ball, in magnet, physicsDiffTime, vpxDamping);
 							break;
 						case MagnetForceProfile.Physical:
-							ApplyPhysicalForce(ref ball, in magnet, physicsDiffTime);
+							ApplyPhysicalForce(ref ball, in magnet, physicsDiffTime, magnetVelocity);
 							break;
 					}
 				}
 			}
+		}
+
+		internal static float2 RefreshKinematicState(int itemId, ref MagnetState magnet, ref PhysicsState state)
+		{
+			if (!magnet.IsKinematic || !state.KinematicTransforms.TryGetValue(itemId, out var matrix)) {
+				return float2.zero;
+			}
+
+			ApplyKinematicTransform(ref magnet, in matrix);
+			return GetKinematicVelocity(itemId, in magnet, ref state);
+		}
+
+		internal static void ApplyKinematicTransform(ref MagnetState magnet, in float4x4 matrix)
+		{
+			magnet.Position = matrix.c3.xy;
+			magnet.Height = matrix.c3.z;
 		}
 
 		internal static void ReleaseGrabbedBalls(int itemId, ref MagnetState magnet, ref PhysicsState state, bool suppressRegrab)
@@ -142,6 +160,9 @@ namespace VisualPinball.Unity
 		}
 
 		internal static void ApplyPhysicalForce(ref BallState ball, in MagnetState magnet, float physicsDiffTime)
+			=> ApplyPhysicalForce(ref ball, in magnet, physicsDiffTime, float2.zero);
+
+		internal static void ApplyPhysicalForce(ref BallState ball, in MagnetState magnet, float physicsDiffTime, float2 magnetVelocity)
 		{
 			var delta = ball.Position.xy - magnet.Position;
 			var distanceSq = math.lengthsq(delta);
@@ -156,29 +177,36 @@ namespace VisualPinball.Unity
 			var velocity = ball.Velocity.xy - direction * force * physicsDiffTime;
 
 			var damping = math.saturate(math.abs(force) * PhysicalVelocityDamping * physicsDiffTime);
-			velocity *= 1f - damping;
+			velocity = magnetVelocity + (velocity - magnetVelocity) * (1f - damping);
 
 			ball.Velocity = new float3(velocity.x, velocity.y, ball.Velocity.z);
 		}
 
 		internal static void ApplyVpxCompatibleGrab(ref BallState ball, in MagnetState magnet)
+			=> ApplyVpxCompatibleGrab(ref ball, in magnet, float2.zero);
+
+		internal static void ApplyVpxCompatibleGrab(ref BallState ball, in MagnetState magnet, float2 magnetVelocity)
 		{
 			ball.Position = new float3(magnet.Position.x, magnet.Position.y, ball.Position.z);
 			ball.EventPosition = new float3(magnet.Position.x, magnet.Position.y, ball.EventPosition.z);
-			ball.Velocity = new float3(0f, 0f, ball.Velocity.z);
-			ball.OldVelocity = new float3(0f, 0f, ball.OldVelocity.z);
+			ball.Velocity = new float3(magnetVelocity.x, magnetVelocity.y, ball.Velocity.z);
+			ball.OldVelocity = new float3(magnetVelocity.x, magnetVelocity.y, ball.OldVelocity.z);
 			ball.AngularMomentum = float3.zero;
 		}
 
 		internal static void ApplyPhysicalHold(ref BallState ball, in MagnetState magnet, float physicsDiffTime)
+			=> ApplyPhysicalHold(ref ball, in magnet, physicsDiffTime, float2.zero);
+
+		internal static void ApplyPhysicalHold(ref BallState ball, in MagnetState magnet, float physicsDiffTime, float2 magnetVelocity)
 		{
 			var offset = ball.Position.xy - magnet.Position;
 			var velocity = ball.Velocity.xy;
+			var relativeVelocity = velocity - magnetVelocity;
 			var holdStrength = math.max(math.abs(magnet.Strength), PhysicalMinimumHoldStrength);
 			var holdRadius = math.max(magnet.GrabRadius, PhysicalMinimumCoreRadius);
 			var stiffness = holdStrength / holdRadius;
 			var damping = 2f * math.sqrt(stiffness);
-			var impulse = (-offset * stiffness - velocity * damping) * physicsDiffTime;
+			var impulse = (-offset * stiffness - relativeVelocity * damping) * physicsDiffTime;
 			var maxImpulse = holdStrength * physicsDiffTime;
 			var impulseLenSq = math.lengthsq(impulse);
 			var maxImpulseSq = maxImpulse * maxImpulse;
@@ -215,7 +243,7 @@ namespace VisualPinball.Unity
 			return math.lengthsq(ball.Position.xy - magnet.Position) <= magnet.Radius * magnet.Radius;
 		}
 
-		private static bool UpdateGrab(int itemId, ref MagnetState magnet, ref PhysicsState state, ref BallState ball, float physicsDiffTime)
+		private static bool UpdateGrab(int itemId, ref MagnetState magnet, ref PhysicsState state, ref BallState ball, float physicsDiffTime, float2 magnetVelocity)
 		{
 			// plain attraction magnets never grab; skip the bookkeeping entirely
 			if (magnet.GrabRadius <= 0f && magnet.GrabbedBalls.Value == 0UL && magnet.ReleasedBalls.Value == 0UL) {
@@ -246,10 +274,10 @@ namespace VisualPinball.Unity
 			}
 			switch (magnet.Profile) {
 				case MagnetForceProfile.Physical:
-					ApplyPhysicalHold(ref ball, in magnet, physicsDiffTime);
+					ApplyPhysicalHold(ref ball, in magnet, physicsDiffTime, magnetVelocity);
 					break;
 				default:
-					ApplyVpxCompatibleGrab(ref ball, in magnet);
+					ApplyVpxCompatibleGrab(ref ball, in magnet, magnetVelocity);
 					break;
 			}
 			return true;
@@ -258,6 +286,27 @@ namespace VisualPinball.Unity
 		private static float PhysicalCoreRadius(in MagnetState magnet)
 		{
 			return math.max(PhysicalMinimumCoreRadius, magnet.Radius * PhysicalCoreRadiusRatio);
+		}
+
+		private static float2 GetKinematicVelocity(int itemId, in MagnetState magnet, ref PhysicsState state)
+		{
+			if (!state.KinematicVelocities.TryGetValue(itemId, out var velocity)) {
+				return float2.zero;
+			}
+
+			var linear = velocity.LinearVelocity;
+			var angular = velocity.AngularVelocity;
+			if (math.lengthsq(velocity.StepVelocity) > math.lengthsq(linear)
+			    || math.lengthsq(velocity.StepAngularVelocity) > math.lengthsq(angular)) {
+				linear = velocity.StepVelocity;
+				angular = velocity.StepAngularVelocity;
+			}
+			if (math.lengthsq(linear) < 1e-8f && math.lengthsq(angular) < 1e-8f) {
+				return float2.zero;
+			}
+
+			var position = new float3(magnet.Position.x, magnet.Position.y, magnet.Height);
+			return (linear + math.cross(angular, position - velocity.Pivot)).xy;
 		}
 
 		private static void ReleaseGrabbedBall(int itemId, ref MagnetState magnet, ref PhysicsState state, int ballId)

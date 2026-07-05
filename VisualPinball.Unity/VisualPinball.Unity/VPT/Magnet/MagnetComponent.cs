@@ -27,7 +27,7 @@ namespace VisualPinball.Unity
 	[PackAs("Magnet")]
 	[AddComponentMenu("Pinball/Mechs/Magnet")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/magnets.html")]
-	public class MagnetComponent : MonoBehaviour, ICoilDeviceComponent, ISwitchDeviceComponent, IPackable
+	public class MagnetComponent : MonoBehaviour, ICoilDeviceComponent, ISwitchDeviceComponent, IPackable, IKinematicTransformComponent
 	{
 		public const string MagnetCoilItem = "magnet_coil";
 		public const string BallHeldSwitchItem = "ball_held";
@@ -62,6 +62,9 @@ namespace VisualPinball.Unity
 
 		[Tooltip("Whether the magnet starts enabled before coil or script control changes it.")]
 		public bool IsEnabledOnStart;
+
+		[Tooltip("If set, transforming this object during gameplay moves the magnetic field with it.")]
+		public bool IsKinematic;
 
 		[Tooltip("Draw play-mode force vectors for balls inside the radius.")]
 		public bool DrawDebugForces;
@@ -136,6 +139,7 @@ namespace VisualPinball.Unity
 				GrabRadius = GrabBall ? MillimetersToVpx(GrabRadius) : 0f,
 				PlanarDamping = math.clamp(DefaultPlanarDamping, 0f, 1f),
 				IsEnabled = IsEnabledOnStart,
+				IsKinematic = IsKinematic,
 				Profile = ForceProfile,
 				HeightRange = MillimetersToVpx(HeightRange),
 				GrabbedBalls = default,
@@ -157,6 +161,7 @@ namespace VisualPinball.Unity
 			var profile = ForceProfile;
 			var heightRange = MillimetersToVpx(HeightRange);
 			var planarDamping = math.clamp(DefaultPlanarDamping, 0f, 1f);
+			var isKinematic = IsKinematic;
 
 			_physicsEngine.MutateState((ref PhysicsState state) => {
 				if (!state.MagnetStates.ContainsKey(itemId)) {
@@ -170,9 +175,21 @@ namespace VisualPinball.Unity
 				magnet.Strength = strength;
 				magnet.GrabRadius = grabRadius;
 				magnet.PlanarDamping = planarDamping;
+				magnet.IsKinematic = isKinematic;
 				magnet.Profile = profile;
 				magnet.HeightRange = heightRange;
 			});
+		}
+
+		public int ItemId => UnityObjectId.Get(gameObject);
+
+		bool IKinematicTransformComponent.IsKinematic => IsKinematic;
+
+		public float4x4 GetLocalToPlayfieldMatrixInVpx(float4x4 worldToPlayfield)
+			=> Physics.GetLocalToPlayfieldMatrixInVpx(transform.localToWorldMatrix, worldToPlayfield);
+
+		public void OnTransformationChanged(float4x4 currTransformationMatrix)
+		{
 		}
 
 		internal static float MillimetersToVpx(float value) => Physics.ScaleToVpx(value * MillimetersToWorld);

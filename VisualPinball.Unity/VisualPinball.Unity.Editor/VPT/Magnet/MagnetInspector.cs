@@ -29,6 +29,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _grabRadiusProperty;
 		private SerializedProperty _heightRangeProperty;
 		private SerializedProperty _isEnabledOnStartProperty;
+		private SerializedProperty _isKinematicProperty;
 		private SerializedProperty _drawDebugForcesProperty;
 
 		protected override MonoBehaviour UndoTarget => target as MonoBehaviour;
@@ -44,6 +45,7 @@ namespace VisualPinball.Unity.Editor
 			_grabRadiusProperty = serializedObject.FindProperty(nameof(MagnetComponent.GrabRadius));
 			_heightRangeProperty = serializedObject.FindProperty(nameof(MagnetComponent.HeightRange));
 			_isEnabledOnStartProperty = serializedObject.FindProperty(nameof(MagnetComponent.IsEnabledOnStart));
+			_isKinematicProperty = serializedObject.FindProperty(nameof(MagnetComponent.IsKinematic));
 			_drawDebugForcesProperty = serializedObject.FindProperty(nameof(MagnetComponent.DrawDebugForces));
 		}
 
@@ -65,6 +67,7 @@ namespace VisualPinball.Unity.Editor
 
 			EditorGUILayout.Space(8f);
 			PropertyField(_isEnabledOnStartProperty);
+			PropertyField(_isKinematicProperty);
 			PropertyField(_drawDebugForcesProperty);
 
 			base.OnInspectorGUI();

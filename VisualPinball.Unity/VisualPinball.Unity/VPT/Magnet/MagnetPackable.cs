@@ -25,6 +25,7 @@ namespace VisualPinball.Unity
 		public float GrabRadius;
 		public float HeightRange;
 		public bool IsEnabledOnStart;
+		public bool IsKinematic;
 		public bool DrawDebugForces;
 
 		public static byte[] Pack(MagnetComponent comp)
@@ -37,6 +38,7 @@ namespace VisualPinball.Unity
 				GrabRadius = comp.GrabRadius,
 				HeightRange = comp.HeightRange,
 				IsEnabledOnStart = comp.IsEnabledOnStart,
+				IsKinematic = comp.IsKinematic,
 				DrawDebugForces = comp.DrawDebugForces,
 			});
 		}
@@ -51,6 +53,7 @@ namespace VisualPinball.Unity
 			comp.GrabRadius = data.GrabRadius;
 			comp.HeightRange = data.HeightRange;
 			comp.IsEnabledOnStart = data.IsEnabledOnStart;
+			comp.IsKinematic = data.IsKinematic;
 			comp.DrawDebugForces = data.DrawDebugForces;
 		}
 	}

@@ -184,7 +184,7 @@ namespace VisualPinball.Unity
 		[NonSerialized] private NudgeSystem _nudgeSystem;
 		[NonSerialized] private VisualNudgeComponent _visualNudge;
 		[NonSerialized] private ICollidableComponent[] _colliderComponents;
-		[NonSerialized] private ICollidableComponent[] _kinematicColliderComponents;
+		[NonSerialized] private IKinematicTransformComponent[] _kinematicTransformComponents;
 		[NonSerialized] private float4x4 _worldToPlayfield;
 		[NonSerialized] private int _mainThreadManagedThreadId;
 		[NonSerialized] private int _simulationThreadManagedThreadId = -1;
@@ -991,7 +991,7 @@ namespace VisualPinball.Unity
 			_ctx.FrictionOverVelocityLUTs = new NativeParallelHashMap<int, FixedList512Bytes<float>>(0, Allocator.Persistent);
 
 			_colliderComponents = GetComponentsInChildren<ICollidableComponent>();
-			_kinematicColliderComponents = _colliderComponents.Where(c => c.IsKinematic).ToArray();
+			_kinematicTransformComponents = GetComponentsInChildren<IKinematicTransformComponent>().Where(c => c.IsKinematic).ToArray();
 		}
 
 		private void Start()
@@ -1017,7 +1017,7 @@ namespace VisualPinball.Unity
 			}
 
 			// create static octree
-			Debug.Log($"Found {_colliderComponents.Length} collidable items ({_kinematicColliderComponents.Length} kinematic).");
+			Debug.Log($"Found {_colliderComponents.Length} collidable items ({_kinematicTransformComponents.Length} kinematic).");
 			var colliders = new ColliderReference(ref _ctx.NonTransformableColliderTransforms.Ref, Allocator.Temp);
 			var kinematicColliders = new ColliderReference(ref _ctx.NonTransformableColliderTransforms.Ref, Allocator.Temp, true);
 			foreach (var colliderItem in _colliderComponents) {
@@ -1042,10 +1042,10 @@ namespace VisualPinball.Unity
 
 			// get kinematic collider matrices
 			_worldToPlayfield = playfield.transform.worldToLocalMatrix;
-			foreach (var coll in _kinematicColliderComponents) {
-				var matrix = coll.GetLocalToPlayfieldMatrixInVpx(_worldToPlayfield);
-				_ctx.KinematicTransforms.Ref[coll.ItemId] = matrix;
-				_ctx.MainThreadKinematicCache[coll.ItemId] = matrix;
+			foreach (var item in _kinematicTransformComponents) {
+				var matrix = item.GetLocalToPlayfieldMatrixInVpx(_worldToPlayfield);
+				_ctx.KinematicTransforms.Ref[item.ItemId] = matrix;
+				_ctx.MainThreadKinematicCache[item.ItemId] = matrix;
 			}
 #if UNITY_EDITOR
 			_ctx.ColliderLookups = colliders.CreateLookup(Allocator.Persistent);
@@ -1085,7 +1085,7 @@ namespace VisualPinball.Unity
 			}
 
 			// Create threading helper (all context fields are now populated)
-			_threading = new PhysicsEngineThreading(this, _ctx, _player, _kinematicColliderComponents, _worldToPlayfield);
+			_threading = new PhysicsEngineThreading(this, _ctx, _player, _kinematicTransformComponents, _worldToPlayfield);
 
 			// Mark as initialized for simulation thread
 			_ctx.IsInitialized = true;

@@ -49,8 +49,8 @@ namespace VisualPinball.Unity
 		private readonly PhysicsEngine _physicsEngine;
 		private readonly PhysicsEngineContext _ctx;
 		private readonly Player _player;
-		private readonly ICollidableComponent[] _kinematicColliderComponents;
-		private readonly Dictionary<int, ICollidableComponent> _kinematicColliderComponentsByItemId;
+		private readonly IKinematicTransformComponent[] _kinematicTransformComponents;
+		private readonly Dictionary<int, IKinematicTransformComponent> _kinematicTransformComponentsByItemId;
 		private readonly float4x4 _worldToPlayfield;
 		private readonly PhysicsMovements _physicsMovements = new();
 		private readonly List<EventData> _deferredMainThreadEvents = new();
@@ -101,16 +101,16 @@ namespace VisualPinball.Unity
 		private bool _float2SnapshotOverflowWarningIssued;
 
 		internal PhysicsEngineThreading(PhysicsEngine physicsEngine, PhysicsEngineContext ctx, Player player,
-			ICollidableComponent[] kinematicColliderComponents, float4x4 worldToPlayfield)
+			IKinematicTransformComponent[] kinematicTransformComponents, float4x4 worldToPlayfield)
 		{
 			_physicsEngine = physicsEngine ?? throw new ArgumentNullException(nameof(physicsEngine));
 			_ctx = ctx ?? throw new ArgumentNullException(nameof(ctx));
 			_player = player;
-			_kinematicColliderComponents = kinematicColliderComponents;
-			_kinematicColliderComponentsByItemId = new Dictionary<int, ICollidableComponent>(kinematicColliderComponents?.Length ?? 0);
-			if (kinematicColliderComponents != null) {
-				foreach (var coll in kinematicColliderComponents) {
-					_kinematicColliderComponentsByItemId[coll.ItemId] = coll;
+			_kinematicTransformComponents = kinematicTransformComponents;
+			_kinematicTransformComponentsByItemId = new Dictionary<int, IKinematicTransformComponent>(kinematicTransformComponents?.Length ?? 0);
+			if (kinematicTransformComponents != null) {
+				foreach (var item in kinematicTransformComponents) {
+					_kinematicTransformComponentsByItemId[item.ItemId] = item;
 				}
 			}
 			_snapshotFlipperIds = SnapshotIds(_ctx.FlipperStates.Ref);
@@ -358,8 +358,8 @@ namespace VisualPinball.Unity
 				_ctx.KinematicOctreeDirty = true;
 			}
 
-			var coll = GetKinematicColliderComponent(itemId);
-			coll?.OnTransformationChanged(matrix);
+			var item = GetKinematicTransformComponent(itemId);
+			item?.OnTransformationChanged(matrix);
 		}
 
 		/// <summary>
@@ -372,9 +372,10 @@ namespace VisualPinball.Unity
 			_ctx.KinematicTargetTransforms.Ref[itemId] = matrix; // keep in sync, stepping skips equal poses
 
 			var state = _ctx.CreateState();
-			ref var colliderLookups = ref _ctx.KinematicColliderLookups.GetValueByRef(itemId);
-			for (var i = 0; i < colliderLookups.Length; i++) {
-				state.TransformKinematicColliders(colliderLookups[i], matrix);
+			if (_ctx.KinematicColliderLookups.TryGetValue(itemId, out var colliderLookups)) {
+				for (var i = 0; i < colliderLookups.Length; i++) {
+					state.TransformKinematicColliders(colliderLookups[i], matrix);
+				}
 			}
 			_ctx.KinematicOctreeDirty = true;
 		}
@@ -462,9 +463,9 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private ICollidableComponent GetKinematicColliderComponent(int itemId)
+		private IKinematicTransformComponent GetKinematicTransformComponent(int itemId)
 		{
-			return _kinematicColliderComponentsByItemId.TryGetValue(itemId, out var coll) ? coll : null;
+			return _kinematicTransformComponentsByItemId.TryGetValue(itemId, out var item) ? item : null;
 		}
 
 		/// <summary>
@@ -752,29 +753,29 @@ namespace VisualPinball.Unity
 		/// </remarks>
 		internal void UpdateKinematicTransformsFromMainThread()
 		{
-			if (!_ctx.UseExternalTiming || !_ctx.IsInitialized || _kinematicColliderComponents == null) return;
+			if (!_ctx.UseExternalTiming || !_ctx.IsInitialized || _kinematicTransformComponents == null) return;
 
 			var scanStartTicks = Stopwatch.GetTimestamp();
 
 			_pendingKinematicUpdates.Clear();
 			_pendingKinematicStopUpdates.Clear();
 
-			foreach (var coll in _kinematicColliderComponents) {
-				var currMatrix = coll.GetLocalToPlayfieldMatrixInVpx(_worldToPlayfield);
+			foreach (var item in _kinematicTransformComponents) {
+				var currMatrix = item.GetLocalToPlayfieldMatrixInVpx(_worldToPlayfield);
 
 				// Check against main-thread cache
-				if (_ctx.MainThreadKinematicCache.TryGetValue(coll.ItemId, out var lastMatrix) && lastMatrix.Equals(currMatrix)) {
+				if (_ctx.MainThreadKinematicCache.TryGetValue(item.ItemId, out var lastMatrix) && lastMatrix.Equals(currMatrix)) {
 					// unchanged — if it moved last frame, it just stopped, so stage a velocity reset
-					if (_movedKinematicItems.Remove(coll.ItemId)) {
-						_pendingKinematicStopUpdates.Add(coll.ItemId);
+					if (_movedKinematicItems.Remove(item.ItemId)) {
+						_pendingKinematicStopUpdates.Add(item.ItemId);
 					}
 					continue;
 				}
 
 				// Transform changed — update cache
-				_ctx.MainThreadKinematicCache[coll.ItemId] = currMatrix;
-				_movedKinematicItems.Add(coll.ItemId);
-				_pendingKinematicUpdates.Add(new KeyValuePair<int, float4x4>(coll.ItemId, currMatrix));
+				_ctx.MainThreadKinematicCache[item.ItemId] = currMatrix;
+				_movedKinematicItems.Add(item.ItemId);
+				_pendingKinematicUpdates.Add(new KeyValuePair<int, float4x4>(item.ItemId, currMatrix));
 			}
 
 			if (_pendingKinematicUpdates.Count == 0 && _pendingKinematicStopUpdates.Count == 0) {
@@ -816,23 +817,23 @@ namespace VisualPinball.Unity
 			// check for updated kinematic transforms; compare against the last staged
 			// pose — held or target — not the stepped current pose, which may lag
 			// behind while catching up
-			foreach (var coll in _kinematicColliderComponents) {
+			foreach (var item in _kinematicTransformComponents) {
 				float4x4 lastTransformationMatrix;
-				if (_heldIsolatedPoses.TryGetValue(coll.ItemId, out var held)) {
+				if (_heldIsolatedPoses.TryGetValue(item.ItemId, out var held)) {
 					lastTransformationMatrix = held.Pose;
-				} else if (!_ctx.KinematicTargetTransforms.Ref.TryGetValue(coll.ItemId, out lastTransformationMatrix)) {
-					lastTransformationMatrix = _ctx.KinematicTransforms.Ref[coll.ItemId];
+				} else if (!_ctx.KinematicTargetTransforms.Ref.TryGetValue(item.ItemId, out lastTransformationMatrix)) {
+					lastTransformationMatrix = _ctx.KinematicTransforms.Ref[item.ItemId];
 				}
-				var currTransformationMatrix = coll.GetLocalToPlayfieldMatrixInVpx(_worldToPlayfield);
+				var currTransformationMatrix = item.GetLocalToPlayfieldMatrixInVpx(_worldToPlayfield);
 				if (lastTransformationMatrix.Equals(currTransformationMatrix)) {
 					// unchanged — if it moved last frame, it just stopped, so zero its velocity
-					if (_movedKinematicItems.Remove(coll.ItemId)) {
-						StopKinematicVelocity(coll.ItemId, _ctx.PhysicsEnv.CurPhysicsFrameTime);
+					if (_movedKinematicItems.Remove(item.ItemId)) {
+						StopKinematicVelocity(item.ItemId, _ctx.PhysicsEnv.CurPhysicsFrameTime);
 					}
 					continue;
 				}
-				_movedKinematicItems.Add(coll.ItemId);
-				StageKinematicTarget(coll.ItemId, in currTransformationMatrix, _ctx.PhysicsEnv.CurPhysicsFrameTime);
+				_movedKinematicItems.Add(item.ItemId);
+				StageKinematicTarget(item.ItemId, in currTransformationMatrix, _ctx.PhysicsEnv.CurPhysicsFrameTime);
 			}
 			ProcessHeldKinematicPoses(_ctx.PhysicsEnv.CurPhysicsFrameTime);
 

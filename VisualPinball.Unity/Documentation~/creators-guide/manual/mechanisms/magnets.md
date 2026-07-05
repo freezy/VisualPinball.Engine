@@ -25,6 +25,7 @@ The selected object shows a flat radius gizmo in the scene view. If grab is enab
 | **Grab Ball** | Enables center hold behavior inside the grab radius. |
 | **Grab Radius** | Radius where the magnet starts holding the ball. VPX Compatible mode clamps to center; Physical mode uses a spring-damper hold. |
 | **Is Enabled On Start** | Starts the magnet on before a coil or script changes it. |
+| **Is Kinematic** | Moves the magnetic field with the GameObject transform during gameplay. Use this when the magnet is mounted on a moving mech. |
 | **Draw Debug Forces** | Draws play-mode force vectors for balls inside the radius. |
 
 ## Coils and Switches
@@ -69,6 +70,12 @@ Turntables expose two coils:
 | `direction_coil` | Selects clockwise while active and counter-clockwise while inactive. |
 
 The turntable ramps toward **Max Speed** using **Spin Up**, then ramps back toward zero using **Spin Down** when the motor turns off. Assign **Rotation Target** to the visible disc mesh if you want it to rotate with the simulated speed.
+
+## Kinematic Magnets
+
+Enable **Is Kinematic** when a magnet or turntable is parented under a moving transform. The physics engine tracks the transform during gameplay, so the force field follows the moving center. Grabbed balls are carried with the magnet's planar velocity and keep that velocity when released.
+
+Kinematic tracking follows the transform position and height. The magnetic field remains playfield-aligned; tilted field axes are not modeled.
 
 ## Importing VPX Magnets
 

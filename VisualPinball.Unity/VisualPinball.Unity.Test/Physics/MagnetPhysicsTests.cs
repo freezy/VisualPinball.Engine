@@ -166,6 +166,26 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void VpxCompatibleGrabCarriesKinematicMagnetVelocity()
+		{
+			var ball = CreateBall();
+			ball.EventPosition = new float3(49f, -2f, 10f);
+			ball.Velocity = new float3(3f, -4f, 5f);
+			ball.OldVelocity = new float3(2f, 1f, -1f);
+			var magnet = new MagnetState {
+				Position = new float2(12f, -8f)
+			};
+			var magnetVelocity = new float2(6f, -3f);
+
+			MagnetPhysics.ApplyVpxCompatibleGrab(ref ball, in magnet, magnetVelocity);
+
+			Assert.That(ball.Position.xy, Is.EqualTo(magnet.Position));
+			Assert.That(ball.EventPosition.xy, Is.EqualTo(magnet.Position));
+			Assert.That(ball.Velocity, Is.EqualTo(new float3(6f, -3f, 5f)));
+			Assert.That(ball.OldVelocity, Is.EqualTo(new float3(6f, -3f, -1f)));
+		}
+
+		[Test]
 		public void PhysicalHoldPullsBallWithoutTeleporting()
 		{
 			var ball = CreateBall();
@@ -185,6 +205,41 @@ namespace VisualPinball.Unity.Test
 			Assert.That(ball.Velocity.x, Is.LessThan(0f));
 			Assert.That(ball.Velocity.y, Is.EqualTo(0f).Within(1e-5f));
 			Assert.That(ball.AngularMomentum.y, Is.LessThan(1f));
+		}
+
+		[Test]
+		public void PhysicalHoldDampsRelativeToKinematicMagnetVelocity()
+		{
+			var ball = CreateBall();
+			ball.Position = new float3(0f, 0f, 10f);
+			ball.Velocity = new float3(7f, -2f, 5f);
+			var magnet = new MagnetState {
+				Position = float2.zero,
+				Strength = 20f,
+				GrabRadius = 20f
+			};
+			var magnetVelocity = new float2(7f, -2f);
+
+			MagnetPhysics.ApplyPhysicalHold(ref ball, in magnet, 0.1f, magnetVelocity);
+
+			Assert.That(ball.Velocity.x, Is.EqualTo(7f).Within(1e-5f));
+			Assert.That(ball.Velocity.y, Is.EqualTo(-2f).Within(1e-5f));
+			Assert.That(ball.Velocity.z, Is.EqualTo(5f).Within(1e-5f));
+		}
+
+		[Test]
+		public void KinematicTransformUpdatesMagnetCenterAndHeight()
+		{
+			var magnet = new MagnetState {
+				Position = float2.zero,
+				Height = 1f
+			};
+			var matrix = float4x4.Translate(new float3(12f, -8f, 3f));
+
+			MagnetPhysics.ApplyKinematicTransform(ref magnet, in matrix);
+
+			Assert.That(magnet.Position, Is.EqualTo(new float2(12f, -8f)));
+			Assert.That(magnet.Height, Is.EqualTo(3f).Within(1e-5f));
 		}
 
 		[Test]

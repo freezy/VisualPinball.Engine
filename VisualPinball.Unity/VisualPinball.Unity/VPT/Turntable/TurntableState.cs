@@ -34,6 +34,8 @@ namespace VisualPinball.Unity
 		internal bool MotorOn;
 		[MarshalAs(UnmanagedType.U1)]
 		internal bool SpinClockwise;
+		[MarshalAs(UnmanagedType.U1)]
+		internal bool IsKinematic;
 		internal float RotationAngle;
 		internal float VisualSpeedFactor;
 	}

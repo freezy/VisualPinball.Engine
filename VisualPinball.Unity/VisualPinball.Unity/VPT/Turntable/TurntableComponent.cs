@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 	[PackAs("Turntable")]
 	[AddComponentMenu("Pinball/Mechs/Turntable")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/magnets.html")]
-	public class TurntableComponent : MonoBehaviour, ICoilDeviceComponent, IPackable
+	public class TurntableComponent : MonoBehaviour, ICoilDeviceComponent, IPackable, IKinematicTransformComponent
 	{
 		public const string MotorCoilItem = "motor_coil";
 		public const string DirectionCoilItem = "direction_coil";
@@ -59,6 +59,9 @@ namespace VisualPinball.Unity
 
 		[Tooltip("Initial spin direction.")]
 		public bool SpinClockwise = true;
+
+		[Tooltip("If set, transforming this object during gameplay moves the turntable force field with it.")]
+		public bool IsKinematic;
 
 		[Tooltip("Optional visual disc to rotate with the simulated speed.")]
 		public Transform RotationTarget;
@@ -140,11 +143,23 @@ namespace VisualPinball.Unity
 				SpinDown = SpinDown,
 				MotorOn = MotorOnStart,
 				SpinClockwise = SpinClockwise,
+				IsKinematic = IsKinematic,
 				RotationAngle = 0f,
 				VisualSpeedFactor = VisualSpeedFactor
 			};
 			TurntablePhysics.RefreshTargetSpeed(ref state);
 			return state;
+		}
+
+		public int ItemId => UnityObjectId.Get(gameObject);
+
+		bool IKinematicTransformComponent.IsKinematic => IsKinematic;
+
+		public float4x4 GetLocalToPlayfieldMatrixInVpx(float4x4 worldToPlayfield)
+			=> Physics.GetLocalToPlayfieldMatrixInVpx(transform.localToWorldMatrix, worldToPlayfield);
+
+		public void OnTransformationChanged(float4x4 currTransformationMatrix)
+		{
 		}
 
 		private void OnDrawGizmosSelected()
