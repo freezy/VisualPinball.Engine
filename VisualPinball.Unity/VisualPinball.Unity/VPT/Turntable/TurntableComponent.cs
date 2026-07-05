@@ -69,6 +69,9 @@ namespace VisualPinball.Unity
 
 		public TurntableApi TurntableApi { get; private set; }
 
+		private Transform _rotationTarget;
+		private Quaternion _rotationTargetInitialRotation;
+
 		public IEnumerable<GamelogicEngineCoil> AvailableCoils => new[] {
 			new GamelogicEngineCoil(MotorCoilItem) {
 				Description = "Motor"
@@ -116,7 +119,11 @@ namespace VisualPinball.Unity
 			if (!RotationTarget || TurntableApi == null) {
 				return;
 			}
-			RotationTarget.localRotation = Quaternion.AngleAxis(TurntableApi.RotationAngle, Vector3.up);
+			if (_rotationTarget != RotationTarget) {
+				_rotationTarget = RotationTarget;
+				_rotationTargetInitialRotation = RotationTarget.localRotation;
+			}
+			RotationTarget.localRotation = _rotationTargetInitialRotation * Quaternion.AngleAxis(TurntableApi.RotationAngle, Vector3.up);
 		}
 
 		internal TurntableState CreateState()
