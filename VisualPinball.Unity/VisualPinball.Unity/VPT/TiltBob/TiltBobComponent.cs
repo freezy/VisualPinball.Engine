@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Unity.Simulation;
@@ -38,10 +39,26 @@ namespace VisualPinball.Unity
 	public sealed class TiltBobComponent : MonoBehaviour, ISwitchDeviceComponent, IPackable
 	{
 		public const string SwitchItem = "tilt_bob_switch";
+		public const float DefaultDamping = 1f;
+		public const float MinDamping = 0f;
+		public const float MaxDamping = 2f;
+		public const float DefaultThresholdAngle = 2f;
+		public const float MinThresholdAngle = 0.5f;
+		public const float MaxThresholdAngle = 4f;
 
 		private readonly Queue<bool> _queuedTiltStates = new();
 		private readonly List<bool> _pendingSimulatedTiltStates = new(8);
 		private readonly object _queuedTiltLock = new();
+
+		[Tooltip("Mechanical plumb-bob damping scale. Higher values calm the bob faster after a nudge.")]
+		[Range(MinDamping, MaxDamping)]
+		[FormerlySerializedAs("Damping")]
+		public float PlumbDamping = DefaultDamping;
+
+		[Tooltip("Mechanical plumb-bob tilt threshold angle in degrees. Lower values make the table easier to tilt.")]
+		[Range(MinThresholdAngle, MaxThresholdAngle)]
+		[FormerlySerializedAs("ThresholdAngle")]
+		public float PlumbThresholdAngle = DefaultThresholdAngle;
 
 		[NonSerialized] private Player _player;
 		[NonSerialized] private PhysicsEngine _physicsEngine;
@@ -90,14 +107,14 @@ namespace VisualPinball.Unity
 
 			// Without a table tilt-bob component there is no switch route, so keep
 			// the physics plumb disabled even if the player prefers simulation.
-			physicsEngine?.ConfigurePlumb(false, settings.damping, settings.thresholdDeg);
+			physicsEngine?.ConfigurePlumb(false, DefaultDamping, DefaultThresholdAngle);
 		}
 
-		public byte[] Pack() => PackageApi.Packer.Empty;
+		public byte[] Pack() => TiltBobPackable.Pack(this);
 
 		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
 
-		public void Unpack(byte[] bytes) { }
+		public void Unpack(byte[] bytes) => TiltBobPackable.Unpack(bytes, this);
 
 		public void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs, PackagedFiles files) { }
 
@@ -110,8 +127,7 @@ namespace VisualPinball.Unity
 			_mode = settings.mode;
 			_settingsApplied = true;
 
-			_physicsEngine ??= GetComponentInParent<PhysicsEngine>();
-			_physicsEngine?.ConfigurePlumb(UsesSimulatedPlumb, settings.damping, settings.thresholdDeg);
+			ConfigurePhysicsPlumb();
 			ConfigureSimulationThreadRouting();
 		}
 
@@ -161,8 +177,22 @@ namespace VisualPinball.Unity
 			if (_player != null) {
 				_player.CabinetInputActionChanged -= OnCabinetInputActionChanged;
 			}
-			_physicsEngine?.ConfigurePlumb(false, 1f, 2f);
+			_physicsEngine?.ConfigurePlumb(false, DefaultDamping, DefaultThresholdAngle);
 			ConfigureSimulationThreadRouting();
+		}
+
+		private void OnValidate()
+		{
+			NormalizeSettings();
+			if (Application.isPlaying && _settingsApplied) {
+				ConfigurePhysicsPlumb();
+			}
+		}
+
+		internal void NormalizeSettings()
+		{
+			PlumbDamping = Mathf.Clamp(PlumbDamping, MinDamping, MaxDamping);
+			PlumbThresholdAngle = Mathf.Clamp(PlumbThresholdAngle, MinThresholdAngle, MaxThresholdAngle);
 		}
 
 		private void OnCabinetInputActionChanged(string actionName, bool isPressed)
@@ -192,6 +222,13 @@ namespace VisualPinball.Unity
 				return;
 			}
 			_api?.SetSwitch(enabled);
+		}
+
+		private void ConfigurePhysicsPlumb()
+		{
+			NormalizeSettings();
+			_physicsEngine ??= GetComponentInParent<PhysicsEngine>();
+			_physicsEngine?.ConfigurePlumb(UsesSimulatedPlumb, PlumbDamping, PlumbThresholdAngle);
 		}
 
 		private void ConfigureSimulationThreadRouting()

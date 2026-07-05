@@ -123,7 +123,7 @@ namespace VisualPinball.Unity
 
 	/// <summary>
 	/// Shared nudge behavior settings for keyboard nudges, visual cabinet motion,
-	/// player plumb tilt source, and analog sensors.
+	/// player tilt-bob source selection, and analog sensors.
 	/// </summary>
 	/// <remarks>
 	/// Field names match the original player JSON config so existing
@@ -220,9 +220,7 @@ namespace VisualPinball.Unity
 			settings.visualStrength = physicsEngine.VisualNudgeStrength;
 			settings.plumb = new CabinetPlumbSettings {
 				enabled = true,
-				mode = TiltBobComponent.FindFor(physicsEngine)?.Mode ?? TiltBobMode.Simulated,
-				damping = physicsEngine.PlumbDamping,
-				thresholdDeg = physicsEngine.PlumbThresholdAngle
+				mode = TiltBobComponent.FindFor(physicsEngine)?.Mode ?? TiltBobMode.Simulated
 			};
 			settings.Normalize();
 			return settings;
@@ -243,11 +241,19 @@ namespace VisualPinball.Unity
 		[HideInInspector]
 		public bool enabled = true;
 		public TiltBobMode mode = TiltBobMode.Simulated;
+
+		/// <summary>
+		/// Legacy player-config fields retained for JSON compatibility. Current
+		/// tilt-bob tuning is authored on <see cref="TiltBobComponent"/>.
+		/// </summary>
+		[HideInInspector]
 		public float damping = 1f;
+
+		[HideInInspector]
 		public float thresholdDeg = 2f;
 
 		/// <summary>
-		/// Clamps the plumb-bob mode, damping, and tilt threshold to useful ranges.
+		/// Clamps the tilt-bob source mode and legacy tuning fields to useful ranges.
 		/// </summary>
 		public void Normalize()
 		{
