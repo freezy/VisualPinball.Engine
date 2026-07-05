@@ -376,7 +376,7 @@ namespace VisualPinball.Unity.Editor
 		/// </remarks>
 		private static float CalculateMappedGraphValue(SensorMapping mapping, float rawValue)
 		{
-			var value = Mathf.Clamp(Mathf.Clamp(rawValue, -1f, 1f) - mapping.RawCenter, -1f, 1f);
+			var value = rawValue - mapping.RawCenter;
 			var deadZone = Mathf.Clamp(mapping.DeadZone, 0f, 0.999f);
 			var absValue = Mathf.Abs(value);
 			if (absValue <= deadZone) {
