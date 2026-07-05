@@ -17,6 +17,7 @@
 using Unity.Burst;
 using Unity.Mathematics;
 using VisualPinball.Engine.Game;
+using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
 {
@@ -87,6 +88,24 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		internal static void EjectGrabbedBalls(int itemId, ref MagnetState magnet, ref PhysicsState state, float speed, float angleDeg)
+		{
+			for (var bitIndex = 0; bitIndex < 64; bitIndex++) {
+				if (!magnet.GrabbedBalls.IsSet(bitIndex)) {
+					continue;
+				}
+				if (state.InsideOfs.TryGetBallIdAtBitIndex(bitIndex, out var ballId)) {
+					if (state.Balls.ContainsKey(ballId)) {
+						ref var ball = ref state.Balls.GetValueByRef(ballId);
+						ApplyPlanarEject(ref ball, speed, angleDeg);
+					}
+					state.EventQueue.Enqueue(new EventData(EventId.MagnetEventsBallReleased, itemId, ballId, true));
+				}
+				magnet.GrabbedBalls.SetBits(bitIndex, false);
+				magnet.ReleasedBalls.SetBits(bitIndex, true);
+			}
+		}
+
 		internal static void ApplyVpxCompatibleForce(ref BallState ball, in MagnetState magnet, float physicsDiffTime)
 		{
 			var delta = ball.Position.xy - magnet.Position;
@@ -110,6 +129,18 @@ namespace VisualPinball.Unity
 			ball.EventPosition = new float3(magnet.Position.x, magnet.Position.y, ball.EventPosition.z);
 			ball.Velocity = new float3(0f, 0f, ball.Velocity.z);
 			ball.OldVelocity = new float3(0f, 0f, ball.OldVelocity.z);
+			ball.AngularMomentum = float3.zero;
+		}
+
+		internal static void ApplyPlanarEject(ref BallState ball, float speed, float angleDeg)
+		{
+			var angleRad = math.radians(angleDeg);
+			var velocity = new float2(
+				math.sin(angleRad) * speed,
+				-math.cos(angleRad) * speed
+			);
+			ball.Velocity = new float3(velocity.x, velocity.y, ball.Velocity.z);
+			ball.OldVelocity = new float3(velocity.x, velocity.y, ball.OldVelocity.z);
 			ball.AngularMomentum = float3.zero;
 		}
 

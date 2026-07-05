@@ -64,6 +64,23 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void VpxCompatibleForceRepelsWithNegativeStrength()
+		{
+			var ball = CreateBall();
+			var magnet = new MagnetState {
+				Position = float2.zero,
+				Radius = 100f,
+				Strength = -10f,
+				PlanarDamping = 1f
+			};
+
+			MagnetPhysics.ApplyVpxCompatibleForce(ref ball, in magnet, 1f);
+
+			Assert.That(ball.Velocity.x, Is.GreaterThan(0f));
+			Assert.That(ball.Velocity.y, Is.EqualTo(0f).Within(1e-5f));
+		}
+
+		[Test]
 		public void VpxCompatibleGrabClampsBallToMagnetCenter()
 		{
 			var ball = CreateBall();
@@ -82,6 +99,25 @@ namespace VisualPinball.Unity.Test
 			Assert.That(ball.EventPosition.xy, Is.EqualTo(magnet.Position));
 			Assert.That(ball.Velocity, Is.EqualTo(new float3(0f, 0f, 5f)));
 			Assert.That(ball.OldVelocity, Is.EqualTo(new float3(0f, 0f, -1f)));
+			Assert.That(ball.AngularMomentum, Is.EqualTo(float3.zero));
+		}
+
+		[Test]
+		public void PlanarEjectUsesKickerAngleConvention()
+		{
+			var ball = CreateBall();
+			ball.Velocity = new float3(0f, 0f, 5f);
+			ball.OldVelocity = new float3(0f, 0f, -1f);
+			ball.AngularMomentum = new float3(1f, 2f, 3f);
+
+			MagnetPhysics.ApplyPlanarEject(ref ball, 20f, 90f);
+
+			Assert.That(ball.Velocity.x, Is.EqualTo(20f).Within(1e-5f));
+			Assert.That(ball.Velocity.y, Is.EqualTo(0f).Within(1e-5f));
+			Assert.That(ball.Velocity.z, Is.EqualTo(5f).Within(1e-5f));
+			Assert.That(ball.OldVelocity.x, Is.EqualTo(20f).Within(1e-5f));
+			Assert.That(ball.OldVelocity.y, Is.EqualTo(0f).Within(1e-5f));
+			Assert.That(ball.OldVelocity.z, Is.EqualTo(-1f).Within(1e-5f));
 			Assert.That(ball.AngularMomentum, Is.EqualTo(float3.zero));
 		}
 
