@@ -121,12 +121,14 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			var ratio = distance / magnet.Radius;
+			// cvpmMagnet.AttractBall: ratio = dist / (1.5*Size), then the damping wraps
+			// both the old velocity and the impulse: (vel - dir*force) * 0.985
+			var ratio = distance / (1.5f * magnet.Radius);
 			var force = magnet.Strength * math.exp(-0.2f / ratio) / (ratio * ratio * 56f) * 1.5f;
 			var damping = math.pow(magnet.PlanarDamping, physicsDiffTime);
 			var direction = delta / distance;
 
-			var velocity = ball.Velocity.xy * damping - direction * force * physicsDiffTime;
+			var velocity = (ball.Velocity.xy - direction * force * physicsDiffTime) * damping;
 			ball.Velocity = new float3(velocity.x, velocity.y, ball.Velocity.z);
 		}
 
