@@ -84,6 +84,8 @@ namespace VisualPinball.Unity
 			foreach (var dependencyType in _referencedDependencyTypes) {
 				(Activator.CreateInstance(dependencyType) as IReferencedDependency)!.RegisterTypes(this);
 			}
+			// native Unity types that components reference directly
+			Add(typeof(Transform), "Transform");
 			// add third parties
 		}
 
