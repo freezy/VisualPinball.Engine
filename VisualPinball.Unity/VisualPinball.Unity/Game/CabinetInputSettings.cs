@@ -258,7 +258,7 @@ namespace VisualPinball.Unity
 		public void Normalize()
 		{
 			enabled = true;
-			mode = (TiltBobMode)Mathf.Clamp((int)mode, (int)TiltBobMode.Simulated, (int)TiltBobMode.Mapped);
+			mode = (TiltBobMode)Mathf.Clamp((int)mode, (int)TiltBobMode.Simulated, (int)TiltBobMode.Physical);
 			damping = Mathf.Clamp(damping, 0f, 2f);
 			thresholdDeg = Mathf.Clamp(thresholdDeg, 0.5f, 4f);
 		}

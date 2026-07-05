@@ -31,7 +31,7 @@ namespace VisualPinball.Unity
 	/// The component is the table author's routing point: map the game logic's
 	/// tilt switch to this device if the table should have a tilt bob. The
 	/// player's cabinet settings decide whether the signal comes from the physics
-	/// plumb-bob simulation or from a real mapped cabinet switch.
+	/// plumb-bob simulation or from a real physical cabinet switch.
 	/// </remarks>
 	[DisallowMultipleComponent]
 	[PackAs("TiltBob")]
@@ -77,7 +77,7 @@ namespace VisualPinball.Unity
 
 		public TiltBobMode Mode => _mode;
 		public bool UsesSimulatedPlumb => _enabled && _mode == TiltBobMode.Simulated;
-		public bool UsesMappedInput => _enabled && _mode == TiltBobMode.Mapped;
+		public bool UsesPhysicalTiltInput => _enabled && _mode == TiltBobMode.Physical;
 
 		public static TiltBobComponent FindFor(PhysicsEngine physicsEngine)
 		{
@@ -197,7 +197,7 @@ namespace VisualPinball.Unity
 
 		private void OnCabinetInputActionChanged(string actionName, bool isPressed)
 		{
-			if (UsesMappedInput && actionName == InputConstants.ActionTilt) {
+			if (UsesPhysicalTiltInput && actionName == InputConstants.ActionTilt) {
 				SetSwitch(isPressed);
 			}
 		}

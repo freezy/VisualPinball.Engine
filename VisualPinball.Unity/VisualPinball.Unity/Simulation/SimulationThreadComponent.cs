@@ -551,14 +551,14 @@ namespace VisualPinball.Unity.Simulation
 			}
 
 			tiltBob ??= FindTiltBobComponent();
-			if (tiltBob != null && (tiltBob.UsesSimulatedPlumb || tiltBob.UsesMappedInput)) {
+			if (tiltBob != null && (tiltBob.UsesSimulatedPlumb || tiltBob.UsesPhysicalTiltInput)) {
 				_simulationThread.MainThreadTiltDispatcher = tiltBob.QueueTiltStateFromSimulationThread;
-				_simulationThread.DispatchMappedTiltInputToMainThread = tiltBob.UsesMappedInput;
+				_simulationThread.DispatchPhysicalTiltInputToMainThread = tiltBob.UsesPhysicalTiltInput;
 				return;
 			}
 
 			_simulationThread.MainThreadTiltDispatcher = null;
-			_simulationThread.DispatchMappedTiltInputToMainThread = false;
+			_simulationThread.DispatchPhysicalTiltInputToMainThread = false;
 		}
 
 		private TiltBobComponent FindTiltBobComponent()

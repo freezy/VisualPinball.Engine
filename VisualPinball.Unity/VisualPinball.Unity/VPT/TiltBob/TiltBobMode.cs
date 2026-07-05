@@ -28,9 +28,9 @@ namespace VisualPinball.Unity
 		Simulated = 0,
 
 		/// <summary>
-		/// Use the player's mapped cabinet tilt input, typically a real plumb bob
+		/// Use the player's physical cabinet tilt input, typically a real plumb bob
 		/// wired into the cabinet controller.
 		/// </summary>
-		Mapped = 1
+		Physical = 1
 	}
 }
