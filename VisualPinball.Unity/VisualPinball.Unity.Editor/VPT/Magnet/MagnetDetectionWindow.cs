@@ -124,7 +124,12 @@ namespace VisualPinball.Unity.Editor
 				EditorGUILayout.LabelField("Trigger", candidate.TriggerName);
 				EditorGUILayout.LabelField("Strength", candidate.Strength.ToString(CultureInfo.InvariantCulture));
 				EditorGUILayout.LabelField("Grab", candidate.GrabBall ? "Yes" : "No");
-				EditorGUILayout.LabelField("Coil", string.IsNullOrEmpty(candidate.CoilId) ? "None" : candidate.CoilId);
+				if (candidate.Kind == DetectionKind.Magnet) {
+					EditorGUILayout.LabelField("Coil", string.IsNullOrEmpty(candidate.CoilId) ? "None" : candidate.CoilId);
+				} else {
+					EditorGUILayout.LabelField("Motor Coil", string.IsNullOrEmpty(candidate.MotorCoilId) ? "None" : candidate.MotorCoilId);
+					EditorGUILayout.LabelField("Direction Coil", string.IsNullOrEmpty(candidate.DirectionCoilId) ? "None" : candidate.DirectionCoilId);
+				}
 
 				foreach (var note in candidate.Notes) {
 					EditorGUILayout.HelpBox(note, MessageType.Warning);
@@ -162,8 +167,11 @@ namespace VisualPinball.Unity.Editor
 		private void ResolveCandidate(DetectionCandidate candidate)
 		{
 			if (candidate.Kind == DetectionKind.Turntable) {
-				candidate.Selected = false;
-				candidate.BlockReason = "Turntable candidates are listed for review and can be created after TurntableComponent is available.";
+				candidate.Trigger = FindTrigger(candidate.TriggerName);
+				if (!candidate.Trigger) {
+					candidate.Selected = false;
+					candidate.BlockReason = $"Trigger \"{candidate.TriggerName}\" was not found in the selected table.";
+				}
 				return;
 			}
 
@@ -183,9 +191,11 @@ namespace VisualPinball.Unity.Editor
 			Undo.RecordObject(_tableComponent, "Create detected magnets");
 
 			foreach (var candidate in _candidates.Where(c => c.Selected && c.CanCreate)) {
-				var magnet = CreateMagnet(candidate);
-				if (magnet) {
-					created.Add(magnet.gameObject);
+				var createdObject = candidate.Kind == DetectionKind.Turntable
+					? CreateTurntable(candidate)?.gameObject
+					: CreateMagnet(candidate)?.gameObject;
+				if (createdObject) {
+					created.Add(createdObject);
 				}
 			}
 
@@ -237,6 +247,50 @@ namespace VisualPinball.Unity.Editor
 			return magnet;
 		}
 
+		private TurntableComponent CreateTurntable(DetectionCandidate candidate)
+		{
+			var trigger = candidate.Trigger;
+			if (!trigger) {
+				return null;
+			}
+
+			var parent = trigger.transform.parent;
+			var name = GameObjectUtility.GetUniqueNameForSibling(parent, candidate.Name);
+			var go = new GameObject(name);
+			Undo.RegisterCreatedObjectUndo(go, "Create detected turntable");
+			go.transform.SetParent(parent, false);
+			go.transform.localPosition = trigger.transform.localPosition;
+			go.transform.localRotation = trigger.transform.localRotation;
+			go.transform.localScale = Vector3.one;
+
+			var turntable = Undo.AddComponent<TurntableComponent>(go);
+			Undo.RecordObject(turntable, "Configure detected turntable");
+			turntable.Radius = VpxRadiusToMillimeters(GetTriggerRadius(trigger));
+			turntable.MaxSpeed = candidate.Strength;
+			turntable.MotorOnStart = false;
+			turntable.SpinClockwise = true;
+
+			AddTurntableCoilMapping(candidate.MotorCoilId, turntable, TurntableComponent.MotorCoilItem, $"{candidate.Name} motor");
+			AddTurntableCoilMapping(candidate.DirectionCoilId, turntable, TurntableComponent.DirectionCoilItem, $"{candidate.Name} direction");
+
+			EditorUtility.SetDirty(turntable);
+			return turntable;
+		}
+
+		private void AddTurntableCoilMapping(string coilId, TurntableComponent turntable, string deviceItem, string description)
+		{
+			if (string.IsNullOrEmpty(coilId) || HasCoilMapping(coilId, turntable, deviceItem)) {
+				return;
+			}
+			_tableComponent.MappingConfig.AddCoil(new CoilMapping {
+				Id = coilId,
+				Description = description,
+				Destination = CoilDestination.Playfield,
+				Device = turntable,
+				DeviceItem = deviceItem
+			});
+		}
+
 		private bool HasCoilMapping(string coilId, MagnetComponent magnet)
 		{
 			return _tableComponent.MappingConfig.Coils.Any(mapping =>
@@ -244,6 +298,15 @@ namespace VisualPinball.Unity.Editor
 				mapping.Device is MagnetComponent mappedMagnet &&
 				mappedMagnet == magnet &&
 				mapping.DeviceItem == MagnetComponent.MagnetCoilItem);
+		}
+
+		private bool HasCoilMapping(string coilId, TurntableComponent turntable, string deviceItem)
+		{
+			return _tableComponent.MappingConfig.Coils.Any(mapping =>
+				string.Equals(mapping.Id, coilId, StringComparison.OrdinalIgnoreCase) &&
+				mapping.Device is TurntableComponent mappedTurntable &&
+				mappedTurntable == turntable &&
+				mapping.DeviceItem == deviceItem);
 		}
 
 		private TriggerComponent FindTrigger(string triggerName)
@@ -410,7 +473,7 @@ namespace VisualPinball.Unity.Editor
 			var callbackDevice = GetDevice(devices, callback.Groups["name"].Value);
 			var coil = callback.Groups["coil"].Value.Trim();
 			if (int.TryParse(coil, NumberStyles.Integer, CultureInfo.InvariantCulture, out var coilId)) {
-				callbackDevice.CoilId = coilId.ToString(CultureInfo.InvariantCulture);
+				callbackDevice.AssignCallbackCoil(callback.Groups["member"].Value, coilId.ToString(CultureInfo.InvariantCulture));
 			} else {
 				callbackDevice.Notes.Add($"Line {lineNumber}: solenoid callback uses expression \"{coil}\"; map the coil manually.");
 			}
@@ -489,9 +552,22 @@ namespace VisualPinball.Unity.Editor
 			public bool HasExplicitGrab;
 			public bool GrabCenter;
 			public string CoilId = string.Empty;
+			public string MotorCoilId = string.Empty;
+			public string DirectionCoilId = string.Empty;
 			public readonly List<int> ManualBallLines = new();
 			public readonly List<int> StrengthMutationLines = new();
 			public readonly List<string> Notes = new();
+
+			public void AssignCallbackCoil(string member, string coilId)
+			{
+				if (member.Equals("MotorOn", StringComparison.OrdinalIgnoreCase)) {
+					MotorCoilId = coilId;
+				} else if (member.Equals("SpinCW", StringComparison.OrdinalIgnoreCase)) {
+					DirectionCoilId = coilId;
+				} else {
+					CoilId = coilId;
+				}
+			}
 
 			public DetectionCandidate ToCandidate()
 			{
@@ -502,7 +578,9 @@ namespace VisualPinball.Unity.Editor
 					Strength = Strength,
 					Line = Line,
 					GrabBall = Kind == DetectionKind.Magnet && (HasExplicitGrab ? GrabCenter : Strength > 14f),
-					CoilId = CoilId
+					CoilId = CoilId,
+					MotorCoilId = MotorCoilId,
+					DirectionCoilId = DirectionCoilId
 				};
 				candidate.Notes.AddRange(Notes);
 				if (ManualBallLines.Count > 0 && !HasCreateEvents) {
@@ -511,8 +589,15 @@ namespace VisualPinball.Unity.Editor
 				if (StrengthMutationLines.Count > 0) {
 					candidate.Notes.Add($"Runtime Strength assignment at line(s) {string.Join(", ", StrengthMutationLines)}; port the script-side modulation.");
 				}
-				if (string.IsNullOrEmpty(CoilId)) {
+				if (Kind == DetectionKind.Magnet && string.IsNullOrEmpty(CoilId)) {
 					candidate.Notes.Add("No solenoid mapping found.");
+				} else if (Kind == DetectionKind.Turntable) {
+					if (string.IsNullOrEmpty(MotorCoilId)) {
+						candidate.Notes.Add("No motor solenoid mapping found.");
+					}
+					if (string.IsNullOrEmpty(DirectionCoilId)) {
+						candidate.Notes.Add("No direction solenoid mapping found.");
+					}
 				}
 				return candidate;
 			}
@@ -527,12 +612,14 @@ namespace VisualPinball.Unity.Editor
 			public float Strength;
 			public bool GrabBall;
 			public string CoilId;
+			public string MotorCoilId;
+			public string DirectionCoilId;
 			public int Line;
 			public TriggerComponent Trigger;
 			public string BlockReason = string.Empty;
 			public readonly List<string> Notes = new();
 
-			public bool CanCreate => Kind == DetectionKind.Magnet && Trigger;
+			public bool CanCreate => Trigger && (Kind == DetectionKind.Magnet || Kind == DetectionKind.Turntable);
 			public string TypeLabel => Kind == DetectionKind.Magnet ? "Magnet" : "Turntable";
 		}
 	}

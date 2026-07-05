@@ -708,6 +708,11 @@ namespace VisualPinball.Unity
 			GuardLiveStateAccess(nameof(MagnetState));
 			return ref _ctx.MagnetStates.Ref.GetValueByRef(itemId);
 		}
+		internal ref TurntableState TurntableState(int itemId)
+		{
+			GuardLiveStateAccess(nameof(TurntableState));
+			return ref _ctx.TurntableStates.Ref.GetValueByRef(itemId);
+		}
 		internal ref PlungerState PlungerState(int itemId)
 		{
 			GuardLiveStateAccess(nameof(PlungerState));
@@ -773,6 +778,7 @@ namespace VisualPinball.Unity
 					break;
 				case SpinnerComponent c: _ctx.SpinnerStates.Ref[itemId] = c.CreateState(); break;
 				case SurfaceComponent c: _ctx.SurfaceStates.Ref[itemId] = c.CreateState(); break;
+				case TurntableComponent c: _ctx.TurntableStates.Ref[itemId] = c.CreateState(); break;
 				case TriggerComponent c: _ctx.TriggerStates.Ref[itemId] = c.CreateState(); break;
 			}
 
