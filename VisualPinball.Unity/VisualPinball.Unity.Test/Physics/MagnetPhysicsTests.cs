@@ -81,6 +81,43 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void PhysicalForceSaturatesInsideCoreRadius()
+		{
+			var nearBall = CreateBall();
+			var coreBall = CreateBall();
+			nearBall.Position = new float3(1f, 0f, 10f);
+			coreBall.Position = new float3(20f, 0f, 10f);
+			var magnet = new MagnetState {
+				Position = float2.zero,
+				Radius = 100f,
+				Strength = 400f
+			};
+
+			MagnetPhysics.ApplyPhysicalForce(ref nearBall, in magnet, 1f);
+			MagnetPhysics.ApplyPhysicalForce(ref coreBall, in magnet, 1f);
+
+			Assert.That(nearBall.Velocity.x, Is.EqualTo(coreBall.Velocity.x).Within(1e-5f));
+			Assert.That(nearBall.Velocity.y, Is.EqualTo(0f).Within(1e-5f));
+			Assert.That(coreBall.Velocity.y, Is.EqualTo(0f).Within(1e-5f));
+		}
+
+		[Test]
+		public void PhysicalForceRepelsWithNegativeStrength()
+		{
+			var ball = CreateBall();
+			var magnet = new MagnetState {
+				Position = float2.zero,
+				Radius = 100f,
+				Strength = -400f
+			};
+
+			MagnetPhysics.ApplyPhysicalForce(ref ball, in magnet, 1f);
+
+			Assert.That(ball.Velocity.x, Is.GreaterThan(0f));
+			Assert.That(ball.Velocity.y, Is.EqualTo(0f).Within(1e-5f));
+		}
+
+		[Test]
 		public void VpxCompatibleGrabClampsBallToMagnetCenter()
 		{
 			var ball = CreateBall();
@@ -100,6 +137,28 @@ namespace VisualPinball.Unity.Test
 			Assert.That(ball.Velocity, Is.EqualTo(new float3(0f, 0f, 5f)));
 			Assert.That(ball.OldVelocity, Is.EqualTo(new float3(0f, 0f, -1f)));
 			Assert.That(ball.AngularMomentum, Is.EqualTo(float3.zero));
+		}
+
+		[Test]
+		public void PhysicalHoldPullsBallWithoutTeleporting()
+		{
+			var ball = CreateBall();
+			ball.Position = new float3(10f, 0f, 10f);
+			ball.EventPosition = new float3(10f, 0f, 10f);
+			ball.AngularMomentum = new float3(0f, 1f, 0f);
+			var magnet = new MagnetState {
+				Position = float2.zero,
+				Strength = 20f,
+				GrabRadius = 20f
+			};
+
+			MagnetPhysics.ApplyPhysicalHold(ref ball, in magnet, 0.1f);
+
+			Assert.That(ball.Position.x, Is.EqualTo(10f).Within(1e-5f));
+			Assert.That(ball.EventPosition.x, Is.EqualTo(10f).Within(1e-5f));
+			Assert.That(ball.Velocity.x, Is.LessThan(0f));
+			Assert.That(ball.Velocity.y, Is.EqualTo(0f).Within(1e-5f));
+			Assert.That(ball.AngularMomentum.y, Is.LessThan(1f));
 		}
 
 		[Test]
