@@ -21,7 +21,7 @@ using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
 {
-	public class MagnetApi : IApi, IApiCoilDevice, IApiSwitchDevice, IApiMagnetEvents
+	public class MagnetApi : IApi, IApiCoilDevice, IApiSwitchDevice, IApiWireDeviceDest, IApiMagnetEvents
 	{
 		private readonly MagnetComponent _component;
 		private readonly Player _player;
@@ -129,6 +129,7 @@ namespace VisualPinball.Unity
 		}
 
 		IApiCoil IApiCoilDevice.Coil(string deviceItem) => Coil(deviceItem);
+		IApiWireDest IApiWireDeviceDest.Wire(string deviceItem) => Coil(deviceItem);
 		IApiSwitch IApiSwitchDevice.Switch(string deviceItem) => Switch(deviceItem);
 
 		private IApiCoil Coil(string deviceItem)
