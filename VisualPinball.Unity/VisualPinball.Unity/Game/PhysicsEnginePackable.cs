@@ -68,17 +68,19 @@ namespace VisualPinball.Unity
 		{
 			var data = PackageApi.Packer.Unpack<PhysicsEnginePackable>(bytes);
 			comp.GravityStrength = data.GravityStrength;
-			comp.ConfigureKeyboardNudge(
-				data.HasKeyboardNudgeSettings ? data.KeyboardNudgeMode : KeyboardNudgeMode.CabModel,
-				data.HasKeyboardNudgeSettings ? data.KeyboardNudgeStrength : 1f,
-				data.HasKeyboardCabinetDamping ? data.KeyboardCabinetDamping : CabinetPhysicsState.DefaultKeyboardDampingRatio
-			);
-			comp.ConfigurePlumb(
-				data.HasPlumbSettings ? data.SimulatedPlumb : true,
-				data.HasPlumbSettings ? data.PlumbDamping : 1f,
-				data.HasPlumbSettings ? data.PlumbThresholdAngle : 2f
-			);
-			comp.ConfigureVisualNudge(data.HasVisualNudgeSettings ? data.VisualNudgeStrength : 1f);
+			comp.ConfigureNudge(new CabinetNudgeSettings {
+				keyboardMode = (int)(data.HasKeyboardNudgeSettings ? data.KeyboardNudgeMode : KeyboardNudgeMode.CabModel),
+				keyboardStrength = data.HasKeyboardNudgeSettings ? data.KeyboardNudgeStrength : 1f,
+				keyboardCabinetDamping = data.HasKeyboardCabinetDamping
+					? data.KeyboardCabinetDamping
+					: CabinetPhysicsState.DefaultKeyboardDampingRatio,
+				visualStrength = data.HasVisualNudgeSettings ? data.VisualNudgeStrength : 1f,
+				plumb = new CabinetPlumbSettings {
+					enabled = data.HasPlumbSettings ? data.SimulatedPlumb : true,
+					damping = data.HasPlumbSettings ? data.PlumbDamping : 1f,
+					thresholdDeg = data.HasPlumbSettings ? data.PlumbThresholdAngle : 2f
+				}
+			});
 		}
 	}
 }

@@ -68,20 +68,16 @@ namespace VisualPinball.Unity.Simulation
 		/// </summary>
 		public NudgeSensorConfig ToEngineConfig()
 		{
-			Normalize();
-			return new NudgeSensorConfig {
-				Type = Type,
-				Strength = Strength,
-				CabinetMassKg = CabinetMassKg,
-				MountRotation = MountRotation,
-				MountMirror = MountMirror,
-				X = ParseMapping(X),
-				Y = ParseMapping(Y),
-				AccelerationX = ParseMapping(AccelerationX),
-				AccelerationY = ParseMapping(AccelerationY),
-				VelocityX = ParseMapping(VelocityX),
-				VelocityY = ParseMapping(VelocityY)
-			};
+			return ToCabinetSettings().ToEngineConfig();
+		}
+
+		/// <summary>
+		/// Converts this component-specific sensor shape into the shared cabinet
+		/// input settings object.
+		/// </summary>
+		public CabinetNudgeSensorSettings ToCabinetSettings()
+		{
+			return CabinetNudgeSensorSettings.From(this);
 		}
 
 		/// <summary>
@@ -129,14 +125,6 @@ namespace VisualPinball.Unity.Simulation
 				Limit = 1f,
 				RawCenter = rawCenter
 			}.ToString();
-		}
-
-		/// <summary>
-		/// Parses a mapping string, returning an unmapped object when parsing fails.
-		/// </summary>
-		private static SensorMapping ParseMapping(string value)
-		{
-			return SensorMapping.TryParse(value, out var mapping) ? mapping : new SensorMapping();
 		}
 
 		/// <summary>
@@ -500,6 +488,96 @@ namespace VisualPinball.Unity.Simulation
 		{
 			var inputManager = _inputManager ?? NativeInputManager.TryGetExistingInstance();
 			return inputManager == null ? Array.Empty<NativeInputDeviceInfo>() : inputManager.ListDevices();
+		}
+
+		/// <summary>
+		/// Captures the current native-input settings from this component and the
+		/// current nudge settings from the sibling physics engine.
+		/// </summary>
+		public CabinetInputSettings GetCabinetInputSettings()
+		{
+			_physicsEngine ??= GetComponent<PhysicsEngine>();
+			var settings = new CabinetInputSettings {
+				enableNativeInput = EnableNativeInput,
+				inputPollingIntervalUs = InputPollingIntervalUs,
+				nudge = _physicsEngine != null ? _physicsEngine.GetNudgeSettings() : new CabinetNudgeSettings()
+			};
+			settings.nudge.sensors = CabinetNudgeSensorSettings.FromSimulationThreadSensors(NudgeSensors);
+			settings.Normalize();
+			return settings;
+		}
+
+		/// <summary>
+		/// Applies shared cabinet-input settings to this component and, optionally,
+		/// to the sibling physics engine.
+		/// </summary>
+		public void ApplyCabinetInputSettings(CabinetInputSettings settings, bool applyNudgeToPhysics = true)
+		{
+			settings ??= new CabinetInputSettings();
+			settings.Normalize();
+
+			EnableNativeInput = settings.enableNativeInput;
+			InputPollingIntervalUs = settings.inputPollingIntervalUs;
+			ApplyNudgeSettings(settings.nudge, applyNudgeToPhysics);
+			ApplyNativeInputSettingsIfRunning();
+		}
+
+		/// <summary>
+		/// Applies only the shared nudge settings, keeping native input polling
+		/// options unchanged.
+		/// </summary>
+		public void ApplyNudgeSettings(CabinetNudgeSettings settings, bool applyNudgeToPhysics = true)
+		{
+			settings ??= new CabinetNudgeSettings();
+			settings.Normalize();
+
+			NudgeSensors = settings.ToSimulationThreadSensorConfigs();
+			ApplyNudgeSensorSettings();
+
+			if (applyNudgeToPhysics) {
+				_physicsEngine ??= GetComponent<PhysicsEngine>();
+				_physicsEngine?.ConfigureNudge(settings);
+			}
+		}
+
+		/// <summary>
+		/// Reconciles native input polling with the current component fields when
+		/// settings are changed while Play Mode is already running.
+		/// </summary>
+		private void ApplyNativeInputSettingsIfRunning()
+		{
+			if (!_started || _simulationThread == null) {
+				return;
+			}
+
+			if (!EnableNativeInput) {
+				_physicsEngine?.DetachNativeInputManager(_inputManager);
+				_inputManager?.StopPolling();
+				return;
+			}
+
+			_inputManager ??= NativeInputManager.Instance;
+			if (!_inputManager.Initialize()) {
+				Logger.Warn($"{LogPrefix} [SimulationThreadComponent] Native input not available, falling back to Unity Input System");
+				return;
+			}
+
+			_inputManager.SetSimulationThread(_simulationThread);
+			_physicsEngine?.AttachNativeInputManager(_inputManager);
+			var pollingIntervalUs = InputPollingIntervalUs;
+#if UNITY_EDITOR
+			if (pollingIntervalUs < 1000) {
+				pollingIntervalUs = 1000;
+			}
+#endif
+			if (_inputManager.IsPolling) {
+				var targetPollingHz = pollingIntervalUs > 0 ? 1000000f / pollingIntervalUs : 0f;
+				if (Mathf.Abs(_inputManager.TargetPollingHz - targetPollingHz) < 0.1f) {
+					return;
+				}
+				_inputManager.StopPolling();
+			}
+			_inputManager.StartPolling(InputPollingIntervalUs);
 		}
 
 		/// <summary>
