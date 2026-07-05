@@ -22,8 +22,9 @@ namespace VisualPinball.Unity
 	/// <remarks>
 	/// The boolean "Has..." flags preserve backward compatibility with packages
 	/// created before keyboard nudge, plumb, damping, or visual nudge settings were
-	/// serialized. Missing fields are restored with the same defaults used by new
-	/// components.
+	/// serialized. Plumb fields are retained only so older packages can be read;
+	/// new packages route tilt through <see cref="TiltBobComponent"/> plus player
+	/// cabinet settings instead of table-owned physics settings.
 	/// </remarks>
 	public struct PhysicsEnginePackable
 	{
@@ -52,10 +53,10 @@ namespace VisualPinball.Unity
 				KeyboardNudgeStrength = comp.KeyboardNudgeStrength,
 				HasKeyboardCabinetDamping = true,
 				KeyboardCabinetDamping = comp.KeyboardCabinetDamping,
-				HasPlumbSettings = true,
-				SimulatedPlumb = comp.SimulatedPlumb,
-				PlumbDamping = comp.PlumbDamping,
-				PlumbThresholdAngle = comp.PlumbThresholdAngle,
+				HasPlumbSettings = false,
+				SimulatedPlumb = false,
+				PlumbDamping = 1f,
+				PlumbThresholdAngle = 2f,
 				HasVisualNudgeSettings = true,
 				VisualNudgeStrength = comp.VisualNudgeStrength,
 			});
@@ -74,12 +75,7 @@ namespace VisualPinball.Unity
 				keyboardCabinetDamping = data.HasKeyboardCabinetDamping
 					? data.KeyboardCabinetDamping
 					: CabinetPhysicsState.DefaultKeyboardDampingRatio,
-				visualStrength = data.HasVisualNudgeSettings ? data.VisualNudgeStrength : 1f,
-				plumb = new CabinetPlumbSettings {
-					enabled = data.HasPlumbSettings ? data.SimulatedPlumb : true,
-					damping = data.HasPlumbSettings ? data.PlumbDamping : 1f,
-					thresholdDeg = data.HasPlumbSettings ? data.PlumbThresholdAngle : 2f
-				}
+				visualStrength = data.HasVisualNudgeSettings ? data.VisualNudgeStrength : 1f
 			});
 		}
 	}

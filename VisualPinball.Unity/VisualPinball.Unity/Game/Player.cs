@@ -74,6 +74,7 @@ namespace VisualPinball.Unity
 		public List<LampMapping> LampMapping => _tableComponent.MappingConfig.Lamps;
 
 		public event EventHandler OnUpdate;
+		internal event Action<string, bool> CabinetInputActionChanged;
 
 		public event EventHandler<BallEvent> OnBallCreated;
 		public event EventHandler<BallEvent> OnBallDestroyed;
@@ -178,6 +179,7 @@ namespace VisualPinball.Unity
 		{
 			_switchPlayer.DispatchInputAction(actionName, isPressed);
 			_wirePlayer.DispatchInputAction(actionName, isPressed);
+			CabinetInputActionChanged?.Invoke(actionName, isPressed);
 		}
 
 		internal bool DispatchCoilSimulationThread(string coilId, bool isEnabled)
@@ -506,6 +508,7 @@ namespace VisualPinball.Unity
 			}
 
 			if (action.actionMap.name == InputConstants.MapCabinetSwitches) {
+				HandleCabinetInputAction(action, change);
 				HandleNudgeInput(action, change);
 			}
 
@@ -543,6 +546,20 @@ namespace VisualPinball.Unity
 					}
 				}
 			}
+		}
+
+		private void HandleCabinetInputAction(InputAction action, InputActionChange change)
+		{
+			if (NativeInputManager.TryGetExistingInstance()?.IsPolling == true) {
+				return;
+			}
+
+			if (change != InputActionChange.ActionStarted && change != InputActionChange.ActionCanceled) {
+				return;
+			}
+
+			CabinetInputActionChanged?.Invoke(InputManager.GetCanonicalActionName(action.name),
+				change == InputActionChange.ActionStarted);
 		}
 
 		private void HandleNudgeInput(InputAction action, InputActionChange change)

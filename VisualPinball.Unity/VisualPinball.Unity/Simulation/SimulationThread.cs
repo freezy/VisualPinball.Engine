@@ -258,13 +258,18 @@ namespace VisualPinball.Unity.Simulation
 		public SimulationState SharedState => _sharedState;
 
 		/// <summary>
-		/// Dispatches a plumb tilt state change on the main thread, driving switch
-		/// status, key wires and (via the external switch queue) the gamelogic
-		/// engine; the same route the single-threaded mode takes. Set by
-		/// <see cref="SimulationThreadComponent"/>; when null, tilt falls back to a
-		/// direct GLE switch dispatch on the simulation thread.
+		/// Dispatches plumb tilt state changes on the main thread through the
+		/// table's plumb tilt component. Set by <see cref="SimulationThreadComponent"/>
+		/// only when that component exists and is enabled by player settings.
 		/// </summary>
 		public Action<bool> MainThreadTiltDispatcher { get; set; }
+
+		/// <summary>
+		/// When true, native cabinet Tilt input is routed to
+		/// <see cref="MainThreadTiltDispatcher"/> instead of directly to any
+		/// input-action switch mapping. This is used for real cabinet plumb bobs.
+		/// </summary>
+		public bool DispatchMappedTiltInputToMainThread { get; set; }
 
 		private readonly Queue<bool> _mainThreadTiltStates = new();
 		private readonly object _mainThreadTiltLock = new();
@@ -286,6 +291,13 @@ namespace VisualPinball.Unity.Simulation
 					tiltState = _mainThreadTiltStates.Dequeue();
 				}
 				MainThreadTiltDispatcher?.Invoke(tiltState);
+			}
+		}
+
+		private void QueueMainThreadTiltState(bool tiltState)
+		{
+			lock (_mainThreadTiltLock) {
+				_mainThreadTiltStates.Enqueue(tiltState);
 			}
 		}
 
@@ -508,6 +520,14 @@ namespace VisualPinball.Unity.Simulation
 				}
 
 				InputLatencyTracker.RecordInputPolled((NativeInputApi.InputAction)actionIndex, isPressed, evt.TimestampUsec);
+
+				if (actionIndex == (int)NativeInputApi.InputAction.Tilt
+				    && DispatchMappedTiltInputToMainThread
+				    && MainThreadTiltDispatcher != null) {
+					QueueMainThreadTiltState(isPressed);
+					_inputEventsProcessed++;
+					continue;
+				}
 
 				// Only forward to GLE once it's ready (or at least has started)
 				if (_gamelogicEngine != null && _gamelogicStarted) {
@@ -872,8 +892,8 @@ namespace VisualPinball.Unity.Simulation
 		}
 
 		/// <summary>
-		/// Converts plumb-bob tilt edges produced by physics into input switch
-		/// events.
+		/// Queues physics-produced plumb-bob tilt edges for the authored table
+		/// component that owns switch dispatch.
 		/// </summary>
 		/// <remarks>
 		/// Main-thread gamelogic engines receive these through the same external
@@ -882,26 +902,18 @@ namespace VisualPinball.Unity.Simulation
 		/// </remarks>
 		private void ProcessPlumbTiltEvents()
 		{
+			if (MainThreadTiltDispatcher == null || DispatchMappedTiltInputToMainThread) {
+				return;
+			}
+
 			_pendingPlumbTiltEvents.Clear();
 			_physicsEngine.DrainPlumbTiltEvents(_pendingPlumbTiltEvents);
 			if (_pendingPlumbTiltEvents.Count == 0) {
 				return;
 			}
 
-			var tiltActionIndex = (int)NativeInputApi.InputAction.Tilt;
 			for (var i = 0; i < _pendingPlumbTiltEvents.Count; i++) {
-				var isPressed = _pendingPlumbTiltEvents[i];
-				_actionStates[tiltActionIndex] = isPressed;
-				if (MainThreadTiltDispatcher != null) {
-					// Route through the main thread so switch status and key wires
-					// update too; the GLE still receives the switch via the external
-					// switch queue, like in single-threaded mode.
-					lock (_mainThreadTiltLock) {
-						_mainThreadTiltStates.Enqueue(isPressed);
-					}
-				} else if (_gamelogicEngine != null && _gamelogicStarted) {
-					SendMappedSwitch(tiltActionIndex, isPressed);
-				}
+				QueueMainThreadTiltState(_pendingPlumbTiltEvents[i]);
 			}
 		}
 

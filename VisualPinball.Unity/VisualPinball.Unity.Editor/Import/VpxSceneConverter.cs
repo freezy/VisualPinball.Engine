@@ -739,6 +739,7 @@ namespace VisualPinball.Unity.Editor
 			cabinetGo.transform.SetParent(_tableGo.transform, false);
 
 			// 2. add components
+			_tableGo.AddComponent<TiltBobComponent>();
 			var physicsEngine = _playfieldGo.AddComponent<PhysicsEngine>();
 			SimulationThreadComponent.EnsureFor(physicsEngine);
 			_playfieldComponent = _playfieldGo.AddComponent<PlayfieldComponent>();

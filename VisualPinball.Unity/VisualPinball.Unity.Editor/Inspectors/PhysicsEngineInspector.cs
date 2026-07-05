@@ -26,9 +26,6 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _keyboardNudgeModeProperty;
 		private SerializedProperty _keyboardNudgeStrengthProperty;
 		private SerializedProperty _keyboardCabinetDampingProperty;
-		private SerializedProperty _simulatedPlumbProperty;
-		private SerializedProperty _plumbDampingProperty;
-		private SerializedProperty _plumbThresholdAngleProperty;
 		private SerializedProperty _visualNudgeStrengthProperty;
 
 		private void OnEnable()
@@ -37,9 +34,6 @@ namespace VisualPinball.Unity.Editor
 			_keyboardNudgeModeProperty = serializedObject.FindProperty(nameof(PhysicsEngine.KeyboardNudgeMode));
 			_keyboardNudgeStrengthProperty = serializedObject.FindProperty(nameof(PhysicsEngine.KeyboardNudgeStrength));
 			_keyboardCabinetDampingProperty = serializedObject.FindProperty(nameof(PhysicsEngine.KeyboardCabinetDamping));
-			_simulatedPlumbProperty = serializedObject.FindProperty(nameof(PhysicsEngine.SimulatedPlumb));
-			_plumbDampingProperty = serializedObject.FindProperty(nameof(PhysicsEngine.PlumbDamping));
-			_plumbThresholdAngleProperty = serializedObject.FindProperty(nameof(PhysicsEngine.PlumbThresholdAngle));
 			_visualNudgeStrengthProperty = serializedObject.FindProperty(nameof(PhysicsEngine.VisualNudgeStrength));
 		}
 
@@ -58,14 +52,6 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.PropertyField(_keyboardCabinetDampingProperty, new GUIContent("Cabinet Damping"));
 			EditorGUILayout.Space();
 
-			EditorGUILayout.LabelField("Plumb Tilt", EditorStyles.boldLabel);
-			EditorGUILayout.PropertyField(_simulatedPlumbProperty, new GUIContent("Simulated Plumb"));
-			using (new EditorGUI.DisabledScope(!_simulatedPlumbProperty.boolValue)) {
-				EditorGUILayout.PropertyField(_plumbDampingProperty, new GUIContent("Damping"));
-				EditorGUILayout.PropertyField(_plumbThresholdAngleProperty, new GUIContent("Threshold Angle"));
-			}
-			EditorGUILayout.Space();
-
 			EditorGUILayout.LabelField("Visual Nudge", EditorStyles.boldLabel);
 			EditorGUILayout.PropertyField(_visualNudgeStrengthProperty, new GUIContent("Strength"));
 
@@ -75,8 +61,6 @@ namespace VisualPinball.Unity.Editor
 					if (obj is PhysicsEngine physicsEngine) {
 						physicsEngine.ConfigureKeyboardNudge(physicsEngine.KeyboardNudgeMode,
 							physicsEngine.KeyboardNudgeStrength, physicsEngine.KeyboardCabinetDamping);
-						physicsEngine.ConfigurePlumb(physicsEngine.SimulatedPlumb,
-							physicsEngine.PlumbDamping, physicsEngine.PlumbThresholdAngle);
 						physicsEngine.ConfigureVisualNudge(physicsEngine.VisualNudgeStrength);
 					}
 				}
