@@ -32,6 +32,7 @@ namespace VisualPinball.Unity.Editor
 		protected override MonoBehaviour UndoTarget => target as MonoBehaviour;
 
 		private SerializedProperty _globalDifficultyProperty;
+		private SerializedProperty _nudgeTimeProperty;
 		private SerializedProperty _metadataProperty;
 		private bool _packageFoldout;
 		private bool _runtimeCompressSideChannelTextures = true;
@@ -54,6 +55,7 @@ namespace VisualPinball.Unity.Editor
 			base.OnEnable();
 
 			_globalDifficultyProperty = serializedObject.FindProperty(nameof(TableComponent.GlobalDifficulty));
+			_nudgeTimeProperty = serializedObject.FindProperty(nameof(TableComponent.NudgeTime));
 			_metadataProperty = serializedObject.FindProperty(nameof(TableComponent.Metadata));
 			_runtimeCompressSideChannelTextures = EditorPrefs.GetBool(RuntimeCompressSideChannelTexturesKey, true);
 			_runtimeCompressNormalMaps = EditorPrefs.GetBool(RuntimeCompressNormalMapsKey, true);
@@ -73,6 +75,7 @@ namespace VisualPinball.Unity.Editor
 			BeginEditing();
 
 			PropertyField(_globalDifficultyProperty);
+			PropertyField(_nudgeTimeProperty);
 
 			EditorGUILayout.Space();
 			_packageFoldout = EditorGUILayout.Foldout(_packageFoldout, "Package", true);
