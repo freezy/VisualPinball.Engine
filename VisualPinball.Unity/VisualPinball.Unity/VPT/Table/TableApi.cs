@@ -46,6 +46,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, TeleporterApi> _teleportersByName = new Dictionary<string, TeleporterApi>();
 		private readonly Dictionary<string, TriggerApi> _triggersByName = new Dictionary<string, TriggerApi>();
 		private readonly Dictionary<string, TroughApi> _troughsByName = new Dictionary<string, TroughApi>();
+		private readonly Dictionary<string, TurntableApi> _turntablesByName = new Dictionary<string, TurntableApi>();
 		private readonly Dictionary<string, MetalWireGuideApi> _metalWireGuidesByName = new Dictionary<string, MetalWireGuideApi>();
 		private readonly Dictionary<string, IApiSwitch> _switchablesByName = new Dictionary<string, IApiSwitch>();
 		private readonly Dictionary<string, IApiHittable> _hittablesByName = new Dictionary<string, IApiHittable>();
@@ -70,6 +71,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<MonoBehaviour, TeleporterApi> _teleportersByComponent = new Dictionary<MonoBehaviour, TeleporterApi>();
 		private readonly Dictionary<MonoBehaviour, TriggerApi> _triggersByComponent = new Dictionary<MonoBehaviour, TriggerApi>();
 		private readonly Dictionary<MonoBehaviour, TroughApi> _troughsByComponent = new Dictionary<MonoBehaviour, TroughApi>();
+		private readonly Dictionary<MonoBehaviour, TurntableApi> _turntablesByComponent = new Dictionary<MonoBehaviour, TurntableApi>();
 		private readonly Dictionary<MonoBehaviour, MetalWireGuideApi> _metalWireGuidesByComponent = new Dictionary<MonoBehaviour, MetalWireGuideApi>();
 		private readonly Dictionary<MonoBehaviour, IApiSwitch> _switchablesByComponent = new Dictionary<MonoBehaviour, IApiSwitch>();
 		private readonly Dictionary<MonoBehaviour, IApiHittable> _hittablesByComponent = new Dictionary<MonoBehaviour, IApiHittable>();
@@ -138,6 +140,14 @@ namespace VisualPinball.Unity
 		/// <returns>Magnet or `null` if no magnet with that name exists.</returns>
 		public MagnetApi Magnet(string name) => Get<MagnetApi>(name);
 		public MagnetApi Magnet(MonoBehaviour component) => Get<MagnetApi>(component);
+
+		/// <summary>
+		/// Returns a turntable by name.
+		/// </summary>
+		/// <param name="name">Name of the turntable</param>
+		/// <returns>Turntable or `null` if no turntable with that name exists.</returns>
+		public TurntableApi Turntable(string name) => Get<TurntableApi>(name);
+		public TurntableApi Turntable(MonoBehaviour component) => Get<TurntableApi>(component);
 
 		/// <summary>
 		/// Returns a light by name.
@@ -316,6 +326,7 @@ namespace VisualPinball.Unity
 			if (t == typeof(TeleporterApi)) return _teleportersByName as Dictionary<string, T>;
 			if (t == typeof(TriggerApi)) return _triggersByName as Dictionary<string, T>;
 			if (t == typeof(TroughApi)) return _troughsByName as Dictionary<string, T>;
+			if (t == typeof(TurntableApi)) return _turntablesByName as Dictionary<string, T>;
 			if (t == typeof(MetalWireGuideApi)) return _metalWireGuidesByName as Dictionary<string, T>;
 
 			// can be null, because we don't track all elements, namely hittable switches
@@ -345,6 +356,7 @@ namespace VisualPinball.Unity
 			if (t == typeof(TeleporterApi)) return _teleportersByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(TriggerApi)) return _triggersByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(TroughApi)) return _troughsByComponent as Dictionary<MonoBehaviour, T>;
+			if (t == typeof(TurntableApi)) return _turntablesByComponent as Dictionary<MonoBehaviour, T>;
 			if (t == typeof(MetalWireGuideApi)) return _metalWireGuidesByComponent as Dictionary<MonoBehaviour, T>;
 
 			// can be null, because we don't track all elements, namely hittable switches
