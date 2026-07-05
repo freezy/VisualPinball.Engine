@@ -58,12 +58,36 @@ namespace VisualPinball.Unity
 
 		public float Strength {
 			get => _component.Strength;
-			set => _component.Strength = value;
+			set {
+				_component.Strength = value;
+				if (!_physicsEngine) {
+					return;
+				}
+				_physicsEngine.MutateState((ref PhysicsState state) => {
+					if (state.MagnetStates.ContainsKey(_itemId)) {
+						ref var magnet = ref state.MagnetStates.GetValueByRef(_itemId);
+						magnet.Strength = value;
+					}
+				});
+			}
 		}
 
 		public float Radius {
 			get => _component.Radius;
-			set => _component.Radius = value;
+			set {
+				var radius = Mathf.Max(0f, value);
+				_component.Radius = radius;
+				if (!_physicsEngine) {
+					return;
+				}
+				var radiusVpx = MagnetComponent.MillimetersToVpx(radius);
+				_physicsEngine.MutateState((ref PhysicsState state) => {
+					if (state.MagnetStates.ContainsKey(_itemId)) {
+						ref var magnet = ref state.MagnetStates.GetValueByRef(_itemId);
+						magnet.Radius = radiusVpx;
+					}
+				});
+			}
 		}
 
 		public void ReleaseBall()
@@ -77,6 +101,20 @@ namespace VisualPinball.Unity
 				}
 				ref var magnet = ref state.MagnetStates.GetValueByRef(_itemId);
 				MagnetPhysics.ReleaseGrabbedBalls(_itemId, ref magnet, ref state, true);
+			});
+		}
+
+		public void Eject(float speed, float angleDeg)
+		{
+			if (!_physicsEngine) {
+				return;
+			}
+			_physicsEngine.MutateState((ref PhysicsState state) => {
+				if (!state.MagnetStates.ContainsKey(_itemId)) {
+					return;
+				}
+				ref var magnet = ref state.MagnetStates.GetValueByRef(_itemId);
+				MagnetPhysics.EjectGrabbedBalls(_itemId, ref magnet, ref state, speed, angleDeg);
 			});
 		}
 
