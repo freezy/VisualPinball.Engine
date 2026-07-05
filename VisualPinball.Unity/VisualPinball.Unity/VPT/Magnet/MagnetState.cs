@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Mathematics;
 
@@ -27,6 +28,7 @@ namespace VisualPinball.Unity
 		internal float Strength;
 		internal float GrabRadius;
 		internal float PlanarDamping;
+		[MarshalAs(UnmanagedType.U1)]
 		internal bool IsEnabled;
 		internal MagnetForceProfile Profile;
 		internal float HeightRange;
