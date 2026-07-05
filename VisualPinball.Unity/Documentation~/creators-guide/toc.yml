@@ -107,6 +107,8 @@
         href: manual/mechanisms/plungers.md
       - name: Slingshots
         href: manual/mechanisms/slingshots.md
+      - name: Magnets and Turntables
+        href: manual/mechanisms/magnets.md
       - name: Light Groups
         href: manual/mechanisms/light-groups.md
       - name: Teleporters
