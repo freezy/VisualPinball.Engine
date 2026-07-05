@@ -35,8 +35,8 @@ namespace VisualPinball.Unity.Editor
 		private static readonly Regex NewDeviceRegex = new(@"^\s*Set\s+(?<name>[A-Za-z_]\w*)\s*=\s*New\s+(?<type>cvpmMagnet|cvpmTurntable)\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 		private static readonly Regex WithRegex = new(@"^\s*With\s+(?<name>[A-Za-z_]\w*)\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 		private static readonly Regex EndWithRegex = new(@"^\s*End\s+With\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-		private static readonly Regex InitMagnetRegex = new(@"(?<name>[A-Za-z_]\w*)\.InitMagnet\s+(?<trigger>[A-Za-z_]\w*)\s*,\s*(?<strength>[-+]?\d+(?:\.\d+)?)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-		private static readonly Regex InitTurntableRegex = new(@"(?<name>[A-Za-z_]\w*)\.InitTurnTable\s+(?<trigger>[A-Za-z_]\w*)\s*,\s*(?<strength>[-+]?\d+(?:\.\d+)?)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+		private static readonly Regex InitMagnetRegex = new(@"(?<name>[A-Za-z_]\w*)\.InitMagnet\s+(?<trigger>[A-Za-z_]\w*)\s*,\s*(?<strength>[-+]?\d+(?:\.\d+)?|[A-Za-z_]\w*)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+		private static readonly Regex InitTurntableRegex = new(@"(?<name>[A-Za-z_]\w*)\.InitTurnTable\s+(?<trigger>[A-Za-z_]\w*)\s*,\s*(?<strength>[-+]?\d+(?:\.\d+)?|[A-Za-z_]\w*)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 		private static readonly Regex GrabCenterRegex = new(@"(?<name>[A-Za-z_]\w*)\.GrabCenter\s*=\s*(?<value>True|False|0|1)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 		private static readonly Regex SolenoidRegex = new(@"(?<name>[A-Za-z_]\w*)\.Solenoid\s*=\s*(?<coil>\d+)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 		private static readonly Regex SolCallbackRegex = new(@"SolCallback\s*\(\s*(?<coil>[^)]+)\s*\)\s*=\s*""(?<name>[A-Za-z_]\w*)\.(?<member>MagnetOn|MotorOn|SpinCW)\s*=", RegexOptions.IgnoreCase | RegexOptions.Compiled);
@@ -429,7 +429,7 @@ namespace VisualPinball.Unity.Editor
 				var device = GetDevice(devices, magnet.Groups["name"].Value);
 				device.Kind = DetectionKind.Magnet;
 				device.TriggerName = magnet.Groups["trigger"].Value;
-				device.Strength = ParseFloat(magnet.Groups["strength"].Value);
+				device.Strength = ParseStrength(device, magnet.Groups["strength"].Value, 10f, lineNumber);
 				device.Line = device.Line == 0 ? lineNumber : device.Line;
 				device.HasInit = true;
 				return;
@@ -440,7 +440,7 @@ namespace VisualPinball.Unity.Editor
 				var device = GetDevice(devices, turntable.Groups["name"].Value);
 				device.Kind = DetectionKind.Turntable;
 				device.TriggerName = turntable.Groups["trigger"].Value;
-				device.Strength = ParseFloat(turntable.Groups["strength"].Value);
+				device.Strength = ParseStrength(device, turntable.Groups["strength"].Value, 100f, lineNumber);
 				device.Line = device.Line == 0 ? lineNumber : device.Line;
 				device.HasInit = true;
 			}
@@ -515,8 +515,19 @@ namespace VisualPinball.Unity.Editor
 		private static DetectionKind ParseKind(string type)
 			=> type.Equals("cvpmTurntable", StringComparison.OrdinalIgnoreCase) ? DetectionKind.Turntable : DetectionKind.Magnet;
 
-		private static float ParseFloat(string value)
-			=> float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var result) ? result : 0f;
+		/// <summary>
+		/// Parses a numeric init value; scripts often pass a named constant instead
+		/// (e.g. `.InitMagnet MagnaSave, kOrbMagnetPower`), which cannot be resolved
+		/// here — those get the fallback plus a manual-review note.
+		/// </summary>
+		private static float ParseStrength(ParsedDevice device, string value, float fallback, int lineNumber)
+		{
+			if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var result)) {
+				return result;
+			}
+			device.Notes.Add($"Line {lineNumber}: init value is the script expression \"{value}\"; created with default {fallback.ToString(CultureInfo.InvariantCulture)}, adjust manually.");
+			return fallback;
+		}
 
 		private static bool IsTruthy(string value)
 			=> value.Equals("True", StringComparison.OrdinalIgnoreCase) || value == "1";

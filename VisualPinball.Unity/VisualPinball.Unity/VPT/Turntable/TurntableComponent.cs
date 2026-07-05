@@ -47,12 +47,12 @@ namespace VisualPinball.Unity
 		public float MaxSpeed = 100f;
 
 		[Min(0f)]
-		[Tooltip("Acceleration toward MaxSpeed in speed units per second.")]
-		public float SpinUp = 600f;
+		[Tooltip("Acceleration toward MaxSpeed in speed units per second. cvpmTurntable defaults to 10.")]
+		public float SpinUp = 10f;
 
 		[Min(0f)]
-		[Tooltip("Deceleration toward zero in speed units per second.")]
-		public float SpinDown = 600f;
+		[Tooltip("Deceleration toward zero in speed units per second. cvpmTurntable defaults to 4.")]
+		public float SpinDown = 4f;
 
 		[Tooltip("Whether the turntable motor starts enabled before coil or script control changes it.")]
 		public bool MotorOnStart;
