@@ -158,7 +158,7 @@ namespace VisualPinball.Unity
 				using (var enumerator = state.TurntableStates.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						ref var turntableState = ref enumerator.Current.Value;
-						TurntablePhysics.Update(ref turntableState, ref state, physicsDiffTime);
+						TurntablePhysics.Update(enumerator.Current.Key, ref turntableState, ref state, physicsDiffTime);
 					}
 				}
 

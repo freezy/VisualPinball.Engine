@@ -74,6 +74,21 @@ namespace VisualPinball.Unity.Test
 			Assert.That(turntable.Speed, Is.EqualTo(1f).Within(1e-5f));
 		}
 
+		[Test]
+		public void KinematicTransformUpdatesTurntableCenterAndHeight()
+		{
+			var turntable = new TurntableState {
+				Position = float2.zero,
+				Height = 1f
+			};
+			var matrix = float4x4.Translate(new float3(12f, -8f, 3f));
+
+			TurntablePhysics.ApplyKinematicTransform(ref turntable, in matrix);
+
+			Assert.That(turntable.Position, Is.EqualTo(new float2(12f, -8f)));
+			Assert.That(turntable.Height, Is.EqualTo(3f).Within(1e-5f));
+		}
+
 		private static BallState CreateBall()
 		{
 			return new BallState {

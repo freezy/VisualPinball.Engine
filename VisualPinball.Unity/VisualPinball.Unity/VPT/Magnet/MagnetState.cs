@@ -30,6 +30,8 @@ namespace VisualPinball.Unity
 		internal float PlanarDamping;
 		[MarshalAs(UnmanagedType.U1)]
 		internal bool IsEnabled;
+		[MarshalAs(UnmanagedType.U1)]
+		internal bool IsKinematic;
 		internal MagnetForceProfile Profile;
 		internal float HeightRange;
 		internal BitField64 GrabbedBalls;

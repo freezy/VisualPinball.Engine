@@ -29,6 +29,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _spinDownProperty;
 		private SerializedProperty _motorOnStartProperty;
 		private SerializedProperty _spinClockwiseProperty;
+		private SerializedProperty _isKinematicProperty;
 		private SerializedProperty _rotationTargetProperty;
 		private SerializedProperty _visualSpeedFactorProperty;
 
@@ -45,6 +46,7 @@ namespace VisualPinball.Unity.Editor
 			_spinDownProperty = serializedObject.FindProperty(nameof(TurntableComponent.SpinDown));
 			_motorOnStartProperty = serializedObject.FindProperty(nameof(TurntableComponent.MotorOnStart));
 			_spinClockwiseProperty = serializedObject.FindProperty(nameof(TurntableComponent.SpinClockwise));
+			_isKinematicProperty = serializedObject.FindProperty(nameof(TurntableComponent.IsKinematic));
 			_rotationTargetProperty = serializedObject.FindProperty(nameof(TurntableComponent.RotationTarget));
 			_visualSpeedFactorProperty = serializedObject.FindProperty(nameof(TurntableComponent.VisualSpeedFactor));
 		}
@@ -63,6 +65,7 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.Space(8f);
 			PropertyField(_motorOnStartProperty);
 			PropertyField(_spinClockwiseProperty);
+			PropertyField(_isKinematicProperty);
 			PropertyField(_rotationTargetProperty);
 			PropertyField(_visualSpeedFactorProperty);
 
