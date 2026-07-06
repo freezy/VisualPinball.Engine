@@ -35,8 +35,6 @@ namespace VisualPinball.Unity
 		[BurstCompile]
 		internal static void Update(int itemId, ref MagnetState magnet, ref PhysicsState state, float physicsDiffTime)
 		{
-			var magnetVelocity = RefreshKinematicState(itemId, ref magnet, ref state);
-
 			if (!magnet.IsEnabled) {
 				ReleaseGrabbedBalls(itemId, ref magnet, ref state, false);
 				if (!state.InsideOfs.IsEmpty(itemId)) {
@@ -44,6 +42,9 @@ namespace VisualPinball.Unity
 				}
 				return;
 			}
+
+			// disabled magnets don't need the pose; the first enabled tick refreshes it
+			var magnetVelocity = RefreshKinematicState(itemId, ref magnet, ref state);
 
 			// constant within the tick; hoisted so the transcendental isn't paid per ball
 			var vpxDamping = math.pow(magnet.PlanarDamping, physicsDiffTime);
@@ -167,10 +168,7 @@ namespace VisualPinball.Unity
 			ball.Velocity = new float3(velocity.x, velocity.y, ball.Velocity.z);
 		}
 
-		internal static void ApplyPhysicalForce(ref BallState ball, in MagnetState magnet, float physicsDiffTime)
-			=> ApplyPhysicalForce(ref ball, in magnet, physicsDiffTime, float2.zero);
-
-		internal static void ApplyPhysicalForce(ref BallState ball, in MagnetState magnet, float physicsDiffTime, float2 magnetVelocity)
+		internal static void ApplyPhysicalForce(ref BallState ball, in MagnetState magnet, float physicsDiffTime, float2 magnetVelocity = default)
 		{
 			var delta = ball.Position.xy - magnet.Position;
 			var distanceSq = math.lengthsq(delta);
@@ -190,10 +188,7 @@ namespace VisualPinball.Unity
 			ball.Velocity = new float3(velocity.x, velocity.y, ball.Velocity.z);
 		}
 
-		internal static void ApplyVpxCompatibleGrab(ref BallState ball, in MagnetState magnet)
-			=> ApplyVpxCompatibleGrab(ref ball, in magnet, float2.zero);
-
-		internal static void ApplyVpxCompatibleGrab(ref BallState ball, in MagnetState magnet, float2 magnetVelocity)
+		internal static void ApplyVpxCompatibleGrab(ref BallState ball, in MagnetState magnet, float2 magnetVelocity = default)
 		{
 			ball.Position = new float3(magnet.Position.x, magnet.Position.y, ball.Position.z);
 			ball.EventPosition = new float3(magnet.Position.x, magnet.Position.y, ball.EventPosition.z);
@@ -202,10 +197,7 @@ namespace VisualPinball.Unity
 			ball.AngularMomentum = float3.zero;
 		}
 
-		internal static void ApplyPhysicalHold(ref BallState ball, in MagnetState magnet, float physicsDiffTime)
-			=> ApplyPhysicalHold(ref ball, in magnet, physicsDiffTime, float2.zero);
-
-		internal static void ApplyPhysicalHold(ref BallState ball, in MagnetState magnet, float physicsDiffTime, float2 magnetVelocity)
+		internal static void ApplyPhysicalHold(ref BallState ball, in MagnetState magnet, float physicsDiffTime, float2 magnetVelocity = default)
 		{
 			var offset = ball.Position.xy - magnet.Position;
 			var velocity = ball.Velocity.xy;

@@ -990,8 +990,10 @@ namespace VisualPinball.Unity
 			_ctx.ElasticityOverVelocityLUTs = new NativeParallelHashMap<int, FixedList512Bytes<float>>(0, Allocator.Persistent);
 			_ctx.FrictionOverVelocityLUTs = new NativeParallelHashMap<int, FixedList512Bytes<float>>(0, Allocator.Persistent);
 
-			_colliderComponents = GetComponentsInChildren<ICollidableComponent>();
-			_kinematicTransformComponents = GetComponentsInChildren<IKinematicTransformComponent>().Where(c => c.IsKinematic).ToArray();
+			// one hierarchy walk: every collidable is also a kinematic transform component
+			var kinematicTransformComponents = GetComponentsInChildren<IKinematicTransformComponent>();
+			_colliderComponents = kinematicTransformComponents.OfType<ICollidableComponent>().ToArray();
+			_kinematicTransformComponents = kinematicTransformComponents.Where(c => c.IsKinematic).ToArray();
 		}
 
 		private void Start()
