@@ -44,6 +44,9 @@ namespace VisualPinball.Unity
 		[Tooltip("Magnet strength. In VPX-compatible mode this uses cvpmMagnet strength values.")]
 		public float Strength = 10f;
 
+		[Tooltip("Playfield magnets act through a vertical cylinder; spatial magnets grab and carry balls in 3-D.")]
+		public MagnetType MagnetType = VisualPinball.Unity.MagnetType.Playfield;
+
 		[Tooltip("How the authored strength value is interpreted.")]
 		public MagnetForceProfile ForceProfile = MagnetForceProfile.VpxCompatible;
 
@@ -140,8 +143,9 @@ namespace VisualPinball.Unity
 				PlanarDamping = math.clamp(DefaultPlanarDamping, 0f, 1f),
 				IsEnabled = IsEnabledOnStart,
 				IsKinematic = IsKinematic,
-				Profile = ForceProfile,
+				Profile = MagnetType == VisualPinball.Unity.MagnetType.Spatial ? MagnetForceProfile.Physical : ForceProfile,
 				HeightRange = MillimetersToVpx(HeightRange),
+				MagnetType = MagnetType,
 				GrabbedBalls = default,
 				ReleasedBalls = default
 			};
@@ -205,14 +209,22 @@ namespace VisualPinball.Unity
 			var heightRangeWorld = HeightRange * MillimetersToWorld;
 
 			Gizmos.color = new Color(0.1f, 0.55f, 1f, 0.9f);
-			DrawLocalDisc(radiusWorld);
+			if (MagnetType == VisualPinball.Unity.MagnetType.Spatial) {
+				Gizmos.DrawWireSphere(transform.position, radiusWorld);
+			} else {
+				DrawLocalDisc(radiusWorld);
+			}
 
 			if (GrabBall && grabRadiusWorld > 0f) {
 				Gizmos.color = new Color(1f, 0.55f, 0.1f, 0.5f);
-				DrawLocalDisc(grabRadiusWorld);
+				if (MagnetType == VisualPinball.Unity.MagnetType.Spatial) {
+					Gizmos.DrawWireSphere(transform.position, grabRadiusWorld);
+				} else {
+					DrawLocalDisc(grabRadiusWorld);
+				}
 			}
 
-			if (heightRangeWorld > 0f) {
+			if (MagnetType == VisualPinball.Unity.MagnetType.Playfield && heightRangeWorld > 0f) {
 				Gizmos.color = new Color(0.1f, 0.55f, 1f, 0.35f);
 				DrawLocalCylinder(radiusWorld, heightRangeWorld);
 			}
@@ -226,9 +238,15 @@ namespace VisualPinball.Unity
 			}
 			foreach (var ball in player.GetComponentsInChildren<BallComponent>()) {
 				var offset = ball.transform.position - transform.position;
-				var planarOffset = Vector3.ProjectOnPlane(offset, transform.up);
-				if (planarOffset.sqrMagnitude <= radiusWorld * radiusWorld) {
-					Gizmos.DrawLine(ball.transform.position, ball.transform.position - planarOffset.normalized * math.min(radiusWorld * 0.25f, planarOffset.magnitude));
+				if (MagnetType == VisualPinball.Unity.MagnetType.Spatial) {
+					if (offset.sqrMagnitude <= radiusWorld * radiusWorld) {
+						Gizmos.DrawLine(ball.transform.position, ball.transform.position - offset.normalized * math.min(radiusWorld * 0.25f, offset.magnitude));
+					}
+				} else {
+					var planarOffset = Vector3.ProjectOnPlane(offset, transform.up);
+					if (planarOffset.sqrMagnitude <= radiusWorld * radiusWorld) {
+						Gizmos.DrawLine(ball.transform.position, ball.transform.position - planarOffset.normalized * math.min(radiusWorld * 0.25f, planarOffset.magnitude));
+					}
 				}
 			}
 		}

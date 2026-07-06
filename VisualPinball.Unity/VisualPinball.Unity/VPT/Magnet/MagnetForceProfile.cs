@@ -21,4 +21,10 @@ namespace VisualPinball.Unity
 		VpxCompatible = 0,
 		Physical = 1
 	}
+
+	public enum MagnetType
+	{
+		Playfield = 0,
+		Spatial = 1
+	}
 }

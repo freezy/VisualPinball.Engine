@@ -24,6 +24,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		private SerializedProperty _radiusProperty;
 		private SerializedProperty _strengthProperty;
+		private SerializedProperty _magnetTypeProperty;
 		private SerializedProperty _forceProfileProperty;
 		private SerializedProperty _grabBallProperty;
 		private SerializedProperty _grabRadiusProperty;
@@ -40,6 +41,7 @@ namespace VisualPinball.Unity.Editor
 
 			_radiusProperty = serializedObject.FindProperty(nameof(MagnetComponent.Radius));
 			_strengthProperty = serializedObject.FindProperty(nameof(MagnetComponent.Strength));
+			_magnetTypeProperty = serializedObject.FindProperty(nameof(MagnetComponent.MagnetType));
 			_forceProfileProperty = serializedObject.FindProperty(nameof(MagnetComponent.ForceProfile));
 			_grabBallProperty = serializedObject.FindProperty(nameof(MagnetComponent.GrabBall));
 			_grabRadiusProperty = serializedObject.FindProperty(nameof(MagnetComponent.GrabRadius));
@@ -54,10 +56,19 @@ namespace VisualPinball.Unity.Editor
 			BeginEditing();
 			OnPreInspectorGUI();
 
+			using (new EditorGUI.DisabledScope(Application.isPlaying)) {
+				PropertyField(_magnetTypeProperty);
+			}
+			var isSpatial = _magnetTypeProperty.enumValueIndex == (int)MagnetType.Spatial;
+
 			PropertyField(_radiusProperty);
-			PropertyField(_heightRangeProperty);
+			if (!isSpatial) {
+				PropertyField(_heightRangeProperty);
+			}
 			PropertyField(_strengthProperty);
-			PropertyField(_forceProfileProperty);
+			if (!isSpatial) {
+				PropertyField(_forceProfileProperty);
+			}
 
 			EditorGUILayout.Space(8f);
 			PropertyField(_grabBallProperty);

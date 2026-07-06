@@ -105,7 +105,7 @@ namespace VisualPinball.Unity
 			});
 		}
 
-		public void Eject(float speed, float angleDeg)
+		public void Eject(float speed, float angleDeg, float verticalAngleDeg = 0f)
 		{
 			if (!_physicsEngine) {
 				return;
@@ -115,7 +115,7 @@ namespace VisualPinball.Unity
 					return;
 				}
 				ref var magnet = ref state.MagnetStates.GetValueByRef(_itemId);
-				MagnetPhysics.EjectGrabbedBalls(_itemId, ref magnet, ref state, speed, angleDeg);
+				MagnetPhysics.EjectGrabbedBalls(_itemId, ref magnet, ref state, speed, angleDeg, verticalAngleDeg);
 			});
 		}
 

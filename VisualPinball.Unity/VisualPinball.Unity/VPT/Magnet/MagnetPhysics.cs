@@ -43,7 +43,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			// disabled magnets don't need the pose; the first enabled tick refreshes it
+			// keep the field pose fresh for enabled magnets before forces are applied
 			var magnetVelocity = RefreshKinematicState(itemId, ref magnet, ref state);
 
 			// constant within the tick; hoisted so the transcendental isn't paid per ball
@@ -52,13 +52,14 @@ namespace VisualPinball.Unity
 			using (var enumerator = state.Balls.GetEnumerator()) {
 				while (enumerator.MoveNext()) {
 					ref var ball = ref enumerator.Current.Value;
-					if (ball.IsFrozen) {
+					var isGrabbed = IsGrabbedBall(in magnet, ref state, ball.Id);
+					if (ball.IsFrozen && !(magnet.MagnetType == MagnetType.Spatial && isGrabbed)) {
 						ReleaseGrabbedBall(itemId, ref magnet, ref state, ball.Id);
 						UpdateMembership(itemId, ball.Id, false, ref state);
 						continue;
 					}
 
-					var affectsBall = IsBallInRange(in ball, in magnet) || IsGrabbedBall(in magnet, ref state, ball.Id);
+					var affectsBall = IsBallInRange(in ball, in magnet) || isGrabbed;
 					if (!affectsBall) {
 						ReleaseGrabbedBall(itemId, ref magnet, ref state, ball.Id);
 						ClearReleasedBall(ref magnet, ref state, ball.Id);
@@ -71,22 +72,27 @@ namespace VisualPinball.Unity
 						continue;
 					}
 
+					if (magnet.MagnetType == MagnetType.Spatial) {
+						ApplySpatialPhysicalForce(ref ball, in magnet, physicsDiffTime, magnetVelocity);
+						continue;
+					}
+
 					switch (magnet.Profile) {
 						case MagnetForceProfile.VpxCompatible:
 							ApplyVpxCompatibleForce(ref ball, in magnet, physicsDiffTime, vpxDamping);
 							break;
 						case MagnetForceProfile.Physical:
-							ApplyPhysicalForce(ref ball, in magnet, physicsDiffTime, magnetVelocity);
+							ApplyPhysicalForce(ref ball, in magnet, physicsDiffTime, magnetVelocity.xy);
 							break;
 					}
 				}
 			}
 		}
 
-		internal static float2 RefreshKinematicState(int itemId, ref MagnetState magnet, ref PhysicsState state)
+		internal static float3 RefreshKinematicState(int itemId, ref MagnetState magnet, ref PhysicsState state)
 		{
 			if (!magnet.IsKinematic || !state.KinematicTransforms.TryGetValue(itemId, out var matrix)) {
-				return float2.zero;
+				return float3.zero;
 			}
 
 			ApplyKinematicTransform(ref magnet, in matrix);
@@ -99,8 +105,12 @@ namespace VisualPinball.Unity
 			magnet.Height = matrix.c3.z;
 		}
 
-		internal static void ReleaseGrabbedBalls(int itemId, ref MagnetState magnet, ref PhysicsState state, bool suppressRegrab)
+		internal static void ReleaseGrabbedBalls(int itemId, ref MagnetState magnet, ref PhysicsState state, bool suppressRegrab, float3 carrierVelocity = default)
 		{
+			if (magnet.MagnetType == MagnetType.Spatial) {
+				carrierVelocity = RefreshKinematicState(itemId, ref magnet, ref state);
+			}
+
 			if (magnet.GrabbedBalls.Value != 0UL) {
 				for (var bitIndex = 0; bitIndex < 64; bitIndex++) {
 					if (!magnet.GrabbedBalls.IsSet(bitIndex)) {
@@ -111,6 +121,7 @@ namespace VisualPinball.Unity
 						magnet.ReleasedBalls.SetBits(bitIndex, true);
 					}
 					if (state.InsideOfs.TryGetBallIdAtBitIndex(bitIndex, out var ballId)) {
+						ReleaseSpatialBallIfNeeded(ref magnet, ref state, ballId, carrierVelocity);
 						state.EventQueue.Enqueue(new EventData(EventId.MagnetEventsBallReleased, itemId, ballId, true));
 					}
 				}
@@ -121,7 +132,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal static void EjectGrabbedBalls(int itemId, ref MagnetState magnet, ref PhysicsState state, float speed, float angleDeg)
+		internal static void EjectGrabbedBalls(int itemId, ref MagnetState magnet, ref PhysicsState state, float speed, float angleDeg, float verticalAngleDeg = 0f)
 		{
 			if (magnet.GrabbedBalls.Value == 0UL) {
 				return;
@@ -138,7 +149,11 @@ namespace VisualPinball.Unity
 				if (state.InsideOfs.TryGetBallIdAtBitIndex(bitIndex, out var ballId)) {
 					if (state.Balls.ContainsKey(ballId)) {
 						ref var ball = ref state.Balls.GetValueByRef(ballId);
-						ApplyPlanarEject(ref ball, speed, angleDeg, carrierVelocity);
+						if (magnet.MagnetType == MagnetType.Spatial) {
+							ApplySpatialEject(ref ball, speed, angleDeg, verticalAngleDeg, carrierVelocity);
+						} else {
+							ApplyPlanarEject(ref ball, speed, angleDeg, carrierVelocity.xy);
+						}
 					}
 					state.EventQueue.Enqueue(new EventData(EventId.MagnetEventsBallReleased, itemId, ballId, true));
 				}
@@ -188,6 +203,26 @@ namespace VisualPinball.Unity
 			ball.Velocity = new float3(velocity.x, velocity.y, ball.Velocity.z);
 		}
 
+		internal static void ApplySpatialPhysicalForce(ref BallState ball, in MagnetState magnet, float physicsDiffTime, float3 magnetVelocity = default)
+		{
+			var delta = ball.Position - Center3D(in magnet);
+			var distanceSq = math.lengthsq(delta);
+			if (distanceSq <= MinDistanceSq) {
+				return;
+			}
+
+			var distance = math.sqrt(distanceSq);
+			var effectiveDistance = math.max(distance, PhysicalCoreRadius(in magnet));
+			var force = magnet.Strength / (effectiveDistance * effectiveDistance);
+			var direction = delta / distance;
+			var velocity = ball.Velocity - direction * force * physicsDiffTime;
+
+			var damping = math.saturate(math.abs(force) * PhysicalVelocityDamping * physicsDiffTime);
+			velocity = magnetVelocity + (velocity - magnetVelocity) * (1f - damping);
+
+			ball.Velocity = velocity;
+		}
+
 		internal static void ApplyVpxCompatibleGrab(ref BallState ball, in MagnetState magnet, float2 magnetVelocity = default)
 		{
 			ball.Position = new float3(magnet.Position.x, magnet.Position.y, ball.Position.z);
@@ -195,6 +230,17 @@ namespace VisualPinball.Unity
 			ball.Velocity = new float3(magnetVelocity.x, magnetVelocity.y, ball.Velocity.z);
 			ball.OldVelocity = new float3(magnetVelocity.x, magnetVelocity.y, ball.OldVelocity.z);
 			ball.AngularMomentum = float3.zero;
+		}
+
+		internal static void ApplySpatialGrab(ref BallState ball, in MagnetState magnet, float3 magnetVelocity = default)
+		{
+			var center = Center3D(in magnet);
+			ball.Position = center;
+			ball.EventPosition = center;
+			ball.Velocity = magnetVelocity;
+			ball.OldVelocity = magnetVelocity;
+			ball.AngularMomentum = float3.zero;
+			ball.IsFrozen = true;
 		}
 
 		internal static void ApplyPhysicalHold(ref BallState ball, in MagnetState magnet, float physicsDiffTime, float2 magnetVelocity = default)
@@ -232,6 +278,28 @@ namespace VisualPinball.Unity
 			ball.AngularMomentum = float3.zero;
 		}
 
+		internal static void ApplySpatialEject(ref BallState ball, float speed, float angleDeg, float verticalAngleDeg, float3 carrierVelocity = default)
+		{
+			var angleRad = math.radians(angleDeg);
+			var verticalRad = math.radians(verticalAngleDeg);
+			var horizontalSpeed = speed * math.cos(verticalRad);
+			var velocity = carrierVelocity + new float3(
+				math.sin(angleRad) * horizontalSpeed,
+				-math.cos(angleRad) * horizontalSpeed,
+				math.sin(verticalRad) * speed
+			);
+
+			ball.IsFrozen = false;
+			ball.Velocity = velocity;
+			ball.OldVelocity = velocity;
+			ball.AngularMomentum = float3.zero;
+		}
+
+		internal static float3 Center3D(in MagnetState magnet)
+		{
+			return new float3(magnet.Position.x, magnet.Position.y, magnet.Height);
+		}
+
 		/// <summary>
 		/// A grabbed ball stays held even when the range check no longer covers
 		/// it — e.g. a kinematic magnet whose height window moves past the ball
@@ -247,13 +315,23 @@ namespace VisualPinball.Unity
 			if (magnet.Radius <= 0f) {
 				return false;
 			}
+			if (magnet.MagnetType == MagnetType.Spatial) {
+				return math.lengthsq(ball.Position - Center3D(in magnet)) <= magnet.Radius * magnet.Radius;
+			}
 			if (magnet.HeightRange > 0f && (ball.Position.z < magnet.Height || ball.Position.z > magnet.Height + magnet.HeightRange)) {
 				return false;
 			}
 			return math.lengthsq(ball.Position.xy - magnet.Position) <= magnet.Radius * magnet.Radius;
 		}
 
-		private static bool UpdateGrab(int itemId, ref MagnetState magnet, ref PhysicsState state, ref BallState ball, float physicsDiffTime, float2 magnetVelocity)
+		private static bool UpdateGrab(int itemId, ref MagnetState magnet, ref PhysicsState state, ref BallState ball, float physicsDiffTime, float3 magnetVelocity)
+		{
+			return magnet.MagnetType == MagnetType.Spatial
+				? UpdateSpatialGrab(itemId, ref magnet, ref state, ref ball, magnetVelocity)
+				: UpdatePlayfieldGrab(itemId, ref magnet, ref state, ref ball, physicsDiffTime, magnetVelocity.xy);
+		}
+
+		private static bool UpdatePlayfieldGrab(int itemId, ref MagnetState magnet, ref PhysicsState state, ref BallState ball, float physicsDiffTime, float2 magnetVelocity)
 		{
 			// plain attraction magnets never grab; skip the bookkeeping entirely
 			if (magnet.GrabRadius <= 0f && magnet.GrabbedBalls.Value == 0UL && magnet.ReleasedBalls.Value == 0UL) {
@@ -293,15 +371,49 @@ namespace VisualPinball.Unity
 			return true;
 		}
 
+		private static bool UpdateSpatialGrab(int itemId, ref MagnetState magnet, ref PhysicsState state, ref BallState ball, float3 magnetVelocity)
+		{
+			if (magnet.GrabRadius <= 0f && magnet.GrabbedBalls.Value == 0UL && magnet.ReleasedBalls.Value == 0UL) {
+				return false;
+			}
+
+			var bitIndex = state.InsideOfs.GetOrCreateBitIndex(ball.Id);
+			var isGrabbed = magnet.GrabbedBalls.IsSet(bitIndex);
+			if (magnet.GrabRadius <= 0f || magnet.Strength <= 0f) {
+				magnet.ReleasedBalls.SetBits(bitIndex, false);
+				if (isGrabbed) {
+					ReleaseGrabbedBall(itemId, ref magnet, bitIndex, ball.Id, ref state, false, magnetVelocity);
+				}
+				return false;
+			}
+
+			var center = Center3D(in magnet);
+			var isInGrabRange = isGrabbed || math.lengthsq(ball.Position - center) <= magnet.GrabRadius * magnet.GrabRadius;
+			if (!isInGrabRange) {
+				magnet.ReleasedBalls.SetBits(bitIndex, false);
+				return false;
+			}
+
+			if (magnet.ReleasedBalls.IsSet(bitIndex)) {
+				return false;
+			}
+
+			if (!isGrabbed) {
+				magnet.GrabbedBalls.SetBits(bitIndex, true);
+				state.EventQueue.Enqueue(new EventData(EventId.MagnetEventsBallGrabbed, itemId, ball.Id, true));
+			}
+			ApplySpatialGrab(ref ball, in magnet, magnetVelocity);
+			return true;
+		}
+
 		private static float PhysicalCoreRadius(in MagnetState magnet)
 		{
 			return math.max(PhysicalMinimumCoreRadius, magnet.Radius * PhysicalCoreRadiusRatio);
 		}
 
-		private static float2 GetKinematicVelocity(int itemId, in MagnetState magnet, ref PhysicsState state)
+		private static float3 GetKinematicVelocity(int itemId, in MagnetState magnet, ref PhysicsState state)
 		{
-			var position = new float3(magnet.Position.x, magnet.Position.y, magnet.Height);
-			return state.GetKinematicVelocityAt(itemId, position).xy;
+			return state.GetKinematicVelocityAt(itemId, Center3D(in magnet));
 		}
 
 		private static void ReleaseGrabbedBall(int itemId, ref MagnetState magnet, ref PhysicsState state, int ballId)
@@ -312,7 +424,7 @@ namespace VisualPinball.Unity
 			ReleaseGrabbedBall(itemId, ref magnet, bitIndex, ballId, ref state, false);
 		}
 
-		private static void ReleaseGrabbedBall(int itemId, ref MagnetState magnet, int bitIndex, int ballId, ref PhysicsState state, bool suppressRegrab)
+		private static void ReleaseGrabbedBall(int itemId, ref MagnetState magnet, int bitIndex, int ballId, ref PhysicsState state, bool suppressRegrab, float3 carrierVelocity = default)
 		{
 			if (!magnet.GrabbedBalls.IsSet(bitIndex)) {
 				return;
@@ -321,7 +433,20 @@ namespace VisualPinball.Unity
 			if (suppressRegrab) {
 				magnet.ReleasedBalls.SetBits(bitIndex, true);
 			}
+			ReleaseSpatialBallIfNeeded(ref magnet, ref state, ballId, carrierVelocity);
 			state.EventQueue.Enqueue(new EventData(EventId.MagnetEventsBallReleased, itemId, ballId, true));
+		}
+
+		private static void ReleaseSpatialBallIfNeeded(ref MagnetState magnet, ref PhysicsState state, int ballId, float3 carrierVelocity)
+		{
+			if (magnet.MagnetType != MagnetType.Spatial || !state.Balls.ContainsKey(ballId)) {
+				return;
+			}
+			ref var ball = ref state.Balls.GetValueByRef(ballId);
+			ball.IsFrozen = false;
+			ball.Velocity = carrierVelocity;
+			ball.OldVelocity = carrierVelocity;
+			ball.AngularMomentum = float3.zero;
 		}
 
 		private static void ClearReleasedBall(ref MagnetState magnet, ref PhysicsState state, int ballId)

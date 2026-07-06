@@ -12,18 +12,19 @@ Use **Magnet** for radial attraction, grab/hold behavior, repulsion, and eject-s
 
 ## Magnet Setup
 
-Add the **Magnet** component to a GameObject with *Add Component -> Pinball -> Mechs -> Magnet*. Place the GameObject at the magnet core position on the playfield. The component uses the transform position as the center of the force field.
+Add the **Magnet** component to a GameObject with *Add Component -> Pinball -> Mechs -> Magnet*. Place the GameObject at the magnet core or hold position. The component uses the transform position as the center of the force field.
 
-The selected object shows a flat radius gizmo in the scene view. If grab is enabled, a smaller grab radius is drawn as well.
+The selected object shows a radius gizmo in the scene view. Playfield magnets draw a cylinder; spatial magnets draw a sphere. If grab is enabled, a smaller grab radius is drawn as well.
 
 | Field | Description |
 |---|---|
-| **Radius** | Planar influence radius in millimeters. Balls outside this radius are ignored. |
-| **Height Range** | Vertical window above the magnet surface. Use this to avoid affecting balls on ramps above the playfield. |
+| **Magnet Type** | **Playfield** for under-playfield magnets with a cylindrical range, **Spatial** for mech-mounted magnets that grab and carry balls in 3-D. |
+| **Radius** | Influence radius in millimeters. Playfield magnets use a planar radius; spatial magnets use a spherical radius. |
+| **Height Range** | Vertical window above a playfield magnet. Use this to avoid affecting balls on ramps above the playfield. Spatial magnets ignore this field. |
 | **Strength** | Magnet force. In VPX Compatible mode, this uses familiar `cvpmMagnet` strength values. Negative values repel. |
-| **Force Profile** | **VPX Compatible** for imported VPX behavior, **Physical** for new VPE tables that want a smoother inverse-square force. |
+| **Force Profile** | **VPX Compatible** for imported VPX behavior, **Physical** for new VPE tables that want a smoother inverse-square force. Spatial magnets always use physical 3-D force semantics. |
 | **Grab Ball** | Enables center hold behavior inside the grab radius. |
-| **Grab Radius** | Radius where the magnet starts holding the ball. VPX Compatible mode clamps to center; Physical mode uses a spring-damper hold. |
+| **Grab Radius** | Radius where the magnet starts holding the ball. VPX Compatible playfield mode clamps to center; Physical playfield mode uses a spring-damper hold; Spatial mode freezes the ball at the 3-D hold point. |
 | **Is Enabled On Start** | Starts the magnet on before a coil or script changes it. |
 | **Is Kinematic** | Moves the magnetic field with the GameObject transform during gameplay. Use this when the magnet is mounted on a moving mech. |
 | **Draw Debug Forces** | Draws play-mode force vectors for balls inside the radius. |
@@ -58,6 +59,14 @@ Use **Physical** for new VPE-authored tables. It uses a saturated inverse-square
 
 Physical strength values are not VPX strength values. Start with a larger value than you would use in VPX Compatible mode and tune by watching ball speed and catch behavior in play mode.
 
+## Spatial Magnets
+
+Use **Magnet Type: Spatial** for mechanisms that physically carry the ball away from the playfield, such as a mouth, hand, or wand mounted on a moving mech. Spatial magnets use a spherical radius around the transform and treat the transform as the ball center hold point.
+
+When **Grab Ball** is enabled, a ball inside **Grab Radius** snaps to that 3-D hold point and is frozen while held. If **Is Kinematic** is enabled and the GameObject moves during gameplay, the held ball follows in x, y, and z. Turning the coil off or calling `ReleaseBall()` unfreezes the ball with the mech's current 3-D carrier velocity. `Eject(speed, angleDeg, verticalAngleDeg)` can add a directional throw; the first angle uses the same convention as kickers, and the optional vertical angle lifts or drops the shot.
+
+Spatial magnets are not a levitation model. Use the radius and strength to catch a nearby ball, then rely on grab-and-carry for the stable mechanical hold.
+
 ## Turntable Setup
 
 Add the **Turntable** component with *Add Component -> Pinball -> Mechs -> Turntable*. Place it at the disc center and set **Radius** to cover the area where the spinning disc should affect the ball.
@@ -73,9 +82,9 @@ The turntable ramps toward **Max Speed** using **Spin Up**, then ramps back towa
 
 ## Kinematic Magnets
 
-Enable **Is Kinematic** when a magnet or turntable is parented under a moving transform. The physics engine tracks the transform during gameplay, so the force field follows the moving center. Grabbed balls are carried with the magnet's planar velocity and keep that velocity when released.
+Enable **Is Kinematic** when a magnet or turntable is parented under a moving transform. The physics engine tracks the transform during gameplay, so the force field follows the moving center. Playfield magnets carry grabbed balls with the magnet's planar velocity; spatial magnets carry grabbed balls with the full 3-D velocity.
 
-Kinematic tracking follows the transform position and height. The magnetic field remains playfield-aligned; tilted field axes are not modeled. A grabbed ball stays held even when the height window moves past it, but the carry itself is planar — a vertically moving magnet does not lift the ball.
+Kinematic tracking follows the transform position and height. The magnetic field remains playfield-aligned for playfield magnets; tilted field axes are not modeled. Spatial magnets are the supported path for lifting a held ball away from the playfield.
 
 ## Importing VPX Magnets
 
