@@ -147,37 +147,28 @@ namespace VisualPinball.Unity
 			};
 		}
 
+		/// <summary>
+		/// Pushes inspector edits to the live physics state during play mode.
+		/// Builds a fresh state from the authored fields and preserves the
+		/// runtime-owned ones (coil state and grab bookkeeping).
+		/// </summary>
 		private void SyncPhysicsState()
 		{
 			if (!Application.isPlaying || !_physicsEngine) {
 				return;
 			}
 
-			var itemId = UnityObjectId.Get(gameObject);
-			var pos = GetPlayfieldPositionVpx(transform);
-			var radius = MillimetersToVpx(Radius);
-			var strength = Strength;
-			var grabRadius = GrabBall ? MillimetersToVpx(GrabRadius) : 0f;
-			var profile = ForceProfile;
-			var heightRange = MillimetersToVpx(HeightRange);
-			var planarDamping = math.clamp(DefaultPlanarDamping, 0f, 1f);
-			var isKinematic = IsKinematic;
-
+			var itemId = ItemId;
+			var synced = CreateState();
 			_physicsEngine.MutateState((ref PhysicsState state) => {
 				if (!state.MagnetStates.ContainsKey(itemId)) {
 					return;
 				}
-
 				ref var magnet = ref state.MagnetStates.GetValueByRef(itemId);
-				magnet.Position = pos.xy;
-				magnet.Height = pos.z;
-				magnet.Radius = radius;
-				magnet.Strength = strength;
-				magnet.GrabRadius = grabRadius;
-				magnet.PlanarDamping = planarDamping;
-				magnet.IsKinematic = isKinematic;
-				magnet.Profile = profile;
-				magnet.HeightRange = heightRange;
+				synced.IsEnabled = magnet.IsEnabled;
+				synced.GrabbedBalls = magnet.GrabbedBalls;
+				synced.ReleasedBalls = magnet.ReleasedBalls;
+				magnet = synced;
 			});
 		}
 
