@@ -72,6 +72,7 @@ namespace VisualPinball.Unity
 
 		public TurntableApi TurntableApi { get; private set; }
 
+		private PhysicsEngine _physicsEngine;
 		private Transform _rotationTarget;
 		private Quaternion _rotationTargetInitialRotation;
 
@@ -106,15 +107,52 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			var physicsEngine = GetComponentInParent<PhysicsEngine>();
-			TurntableApi = new TurntableApi(gameObject, player, physicsEngine);
+			_physicsEngine = GetComponentInParent<PhysicsEngine>();
+			TurntableApi = new TurntableApi(gameObject, player, _physicsEngine);
 
 			player.Register(TurntableApi, this);
-			if (physicsEngine) {
-				physicsEngine.Register(this);
+			if (_physicsEngine) {
+				_physicsEngine.Register(this);
 			} else {
 				Logger.Error($"Cannot find physics engine for turntable {name}.");
 			}
+		}
+
+		private void OnValidate()
+		{
+			Radius = math.max(0f, Radius);
+			HeightRange = math.max(0f, HeightRange);
+			SpinUp = math.max(0f, SpinUp);
+			SpinDown = math.max(0f, SpinDown);
+			VisualSpeedFactor = math.max(0f, VisualSpeedFactor);
+			SyncPhysicsState();
+		}
+
+		/// <summary>
+		/// Pushes inspector edits to the live physics state during play mode.
+		/// Builds a fresh state from the authored fields and preserves the
+		/// runtime-owned ones (motor, direction, current speed and angle).
+		/// </summary>
+		private void SyncPhysicsState()
+		{
+			if (!Application.isPlaying || !_physicsEngine) {
+				return;
+			}
+
+			var itemId = ItemId;
+			var synced = CreateState();
+			_physicsEngine.MutateState((ref PhysicsState state) => {
+				if (!state.TurntableStates.ContainsKey(itemId)) {
+					return;
+				}
+				ref var turntable = ref state.TurntableStates.GetValueByRef(itemId);
+				synced.Speed = turntable.Speed;
+				synced.MotorOn = turntable.MotorOn;
+				synced.SpinClockwise = turntable.SpinClockwise;
+				synced.RotationAngle = turntable.RotationAngle;
+				TurntablePhysics.RefreshTargetSpeed(ref synced);
+				turntable = synced;
+			});
 		}
 
 		private void Update()
