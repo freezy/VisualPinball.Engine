@@ -46,21 +46,24 @@ namespace VisualPinball.Unity
 			// keep the field pose fresh for enabled magnets before forces are applied
 			var magnetVelocity = RefreshKinematicState(itemId, ref magnet, ref state);
 
-			// constant within the tick; hoisted so the transcendental isn't paid per ball
-			var vpxDamping = math.pow(magnet.PlanarDamping, physicsDiffTime);
+			// only the VPX-compatible playfield path damps planar velocity; skip the
+			// transcendental for spatial and physical magnets that never read it
+			var vpxDamping = magnet.MagnetType == MagnetType.Playfield && magnet.Profile == MagnetForceProfile.VpxCompatible
+				? math.pow(magnet.PlanarDamping, physicsDiffTime)
+				: 0f;
 
 			using (var enumerator = state.Balls.GetEnumerator()) {
 				while (enumerator.MoveNext()) {
 					ref var ball = ref enumerator.Current.Value;
-					var isGrabbed = IsGrabbedBall(in magnet, ref state, ball.Id);
-					if (ball.IsFrozen && !(magnet.MagnetType == MagnetType.Spatial && isGrabbed)) {
+					// a ball frozen by something else (e.g. a kicker capture) is off-limits;
+					// spatial magnets hold with a force, not a freeze, so they never freeze a ball
+					if (ball.IsFrozen) {
 						ReleaseGrabbedBall(itemId, ref magnet, ref state, ball.Id);
 						UpdateMembership(itemId, ball.Id, false, ref state);
 						continue;
 					}
 
-					var affectsBall = IsBallInRange(in ball, in magnet) || isGrabbed;
-					if (!affectsBall) {
+					if (!IsBallInRange(in ball, in magnet)) {
 						ReleaseGrabbedBall(itemId, ref magnet, ref state, ball.Id);
 						ClearReleasedBall(ref magnet, ref state, ball.Id);
 						UpdateMembership(itemId, ball.Id, false, ref state);
@@ -72,17 +75,19 @@ namespace VisualPinball.Unity
 						continue;
 					}
 
-					if (magnet.MagnetType == MagnetType.Spatial) {
-						ApplySpatialPhysicalForce(ref ball, in magnet, physicsDiffTime, magnetVelocity);
-						continue;
-					}
-
-					switch (magnet.Profile) {
-						case MagnetForceProfile.VpxCompatible:
-							ApplyVpxCompatibleForce(ref ball, in magnet, physicsDiffTime, vpxDamping);
+					switch (magnet.MagnetType) {
+						case MagnetType.Spatial:
+							ApplySpatialPhysicalForce(ref ball, in magnet, physicsDiffTime, magnetVelocity);
 							break;
-						case MagnetForceProfile.Physical:
-							ApplyPhysicalForce(ref ball, in magnet, physicsDiffTime, magnetVelocity.xy);
+						default:
+							switch (magnet.Profile) {
+								case MagnetForceProfile.VpxCompatible:
+									ApplyVpxCompatibleForce(ref ball, in magnet, physicsDiffTime, vpxDamping);
+									break;
+								case MagnetForceProfile.Physical:
+									ApplyPhysicalForce(ref ball, in magnet, physicsDiffTime, magnetVelocity.xy);
+									break;
+							}
 							break;
 					}
 				}
@@ -105,12 +110,10 @@ namespace VisualPinball.Unity
 			magnet.Height = matrix.c3.z;
 		}
 
-		internal static void ReleaseGrabbedBalls(int itemId, ref MagnetState magnet, ref PhysicsState state, bool suppressRegrab, float3 carrierVelocity = default)
+		internal static void ReleaseGrabbedBalls(int itemId, ref MagnetState magnet, ref PhysicsState state, bool suppressRegrab)
 		{
-			if (magnet.MagnetType == MagnetType.Spatial) {
-				carrierVelocity = RefreshKinematicState(itemId, ref magnet, ref state);
-			}
-
+			// the ball is a live physics object throughout the hold, so releasing it is
+			// just dropping the hold force — it keeps whatever velocity it currently has
 			if (magnet.GrabbedBalls.Value != 0UL) {
 				for (var bitIndex = 0; bitIndex < 64; bitIndex++) {
 					if (!magnet.GrabbedBalls.IsSet(bitIndex)) {
@@ -121,7 +124,6 @@ namespace VisualPinball.Unity
 						magnet.ReleasedBalls.SetBits(bitIndex, true);
 					}
 					if (state.InsideOfs.TryGetBallIdAtBitIndex(bitIndex, out var ballId)) {
-						ReleaseSpatialBallIfNeeded(ref magnet, ref state, ballId, carrierVelocity);
 						state.EventQueue.Enqueue(new EventData(EventId.MagnetEventsBallReleased, itemId, ballId, true));
 					}
 				}
@@ -138,9 +140,10 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			// a ball thrown from a moving magnet keeps the carrier velocity, same
-			// as releasing the coil mid-move does
-			var carrierVelocity = GetKinematicVelocity(itemId, in magnet, ref state);
+			// a ball thrown from a moving magnet keeps the carrier velocity, same as
+			// releasing the coil mid-move does; refresh the pose first so a kinematic
+			// magnet ejected between ticks uses its current hold point, not last tick's
+			var carrierVelocity = RefreshKinematicState(itemId, ref magnet, ref state);
 
 			for (var bitIndex = 0; bitIndex < 64; bitIndex++) {
 				if (!magnet.GrabbedBalls.IsSet(bitIndex)) {
@@ -232,15 +235,32 @@ namespace VisualPinball.Unity
 			ball.AngularMomentum = float3.zero;
 		}
 
-		internal static void ApplySpatialGrab(ref BallState ball, in MagnetState magnet, float3 magnetVelocity = default)
+		/// <summary>
+		/// 3-D critically-damped spring pulling the ball toward the moving hold point.
+		/// The ball stays a live physics object — it renders and collides normally, and
+		/// the capped impulse means a hard enough hit from another ball overcomes the
+		/// hold and knocks it loose (the next tick it leaves the grab radius and is
+		/// released). This is the spatial analog of <see cref="ApplyPhysicalHold"/>.
+		/// </summary>
+		internal static void ApplySpatialPhysicalHold(ref BallState ball, in MagnetState magnet, float physicsDiffTime, float3 magnetVelocity = default)
 		{
-			var center = Center3D(in magnet);
-			ball.Position = center;
-			ball.EventPosition = center;
-			ball.Velocity = magnetVelocity;
-			ball.OldVelocity = magnetVelocity;
-			ball.AngularMomentum = float3.zero;
-			ball.IsFrozen = true;
+			var offset = ball.Position - Center3D(in magnet);
+			var relativeVelocity = ball.Velocity - magnetVelocity;
+			var holdStrength = math.max(math.abs(magnet.Strength), PhysicalMinimumHoldStrength);
+			var holdRadius = math.max(magnet.GrabRadius, PhysicalMinimumCoreRadius);
+			var stiffness = holdStrength / holdRadius;
+			var damping = 2f * math.sqrt(stiffness);
+			var impulse = (-offset * stiffness - relativeVelocity * damping) * physicsDiffTime;
+			var maxImpulse = holdStrength * physicsDiffTime;
+			var impulseLenSq = math.lengthsq(impulse);
+			var maxImpulseSq = maxImpulse * maxImpulse;
+
+			if (impulseLenSq > maxImpulseSq && impulseLenSq > MinDistanceSq) {
+				impulse *= maxImpulse / math.sqrt(impulseLenSq);
+			}
+
+			ball.Velocity += impulse;
+			ball.AngularMomentum *= 1f - math.saturate(physicsDiffTime * 0.5f);
 		}
 
 		internal static void ApplyPhysicalHold(ref BallState ball, in MagnetState magnet, float physicsDiffTime, float2 magnetVelocity = default)
@@ -289,7 +309,6 @@ namespace VisualPinball.Unity
 				math.sin(verticalRad) * speed
 			);
 
-			ball.IsFrozen = false;
 			ball.Velocity = velocity;
 			ball.OldVelocity = velocity;
 			ball.AngularMomentum = float3.zero;
@@ -299,16 +318,6 @@ namespace VisualPinball.Unity
 		{
 			return new float3(magnet.Position.x, magnet.Position.y, magnet.Height);
 		}
-
-		/// <summary>
-		/// A grabbed ball stays held even when the range check no longer covers
-		/// it — e.g. a kinematic magnet whose height window moves past the ball
-		/// it is carrying. Only the grab logic itself may release it.
-		/// </summary>
-		private static bool IsGrabbedBall(in MagnetState magnet, ref PhysicsState state, int ballId)
-			=> magnet.GrabbedBalls.Value != 0UL
-			   && state.InsideOfs.TryGetBitIndex(ballId, out var bitIndex)
-			   && magnet.GrabbedBalls.IsSet(bitIndex);
 
 		internal static bool IsBallInRange(in BallState ball, in MagnetState magnet)
 		{
@@ -324,14 +333,13 @@ namespace VisualPinball.Unity
 			return math.lengthsq(ball.Position.xy - magnet.Position) <= magnet.Radius * magnet.Radius;
 		}
 
+		/// <summary>
+		/// Shared grab bookkeeping for both magnet kinds. The only differences are the
+		/// distance metric (spherical for spatial, planar for playfield) and which hold
+		/// is applied. Because the hold is a force, a ball knocked out of the grab
+		/// radius simply fails the range check next tick and is released.
+		/// </summary>
 		private static bool UpdateGrab(int itemId, ref MagnetState magnet, ref PhysicsState state, ref BallState ball, float physicsDiffTime, float3 magnetVelocity)
-		{
-			return magnet.MagnetType == MagnetType.Spatial
-				? UpdateSpatialGrab(itemId, ref magnet, ref state, ref ball, magnetVelocity)
-				: UpdatePlayfieldGrab(itemId, ref magnet, ref state, ref ball, physicsDiffTime, magnetVelocity.xy);
-		}
-
-		private static bool UpdatePlayfieldGrab(int itemId, ref MagnetState magnet, ref PhysicsState state, ref BallState ball, float physicsDiffTime, float2 magnetVelocity)
 		{
 			// plain attraction magnets never grab; skip the bookkeeping entirely
 			if (magnet.GrabRadius <= 0f && magnet.GrabbedBalls.Value == 0UL && magnet.ReleasedBalls.Value == 0UL) {
@@ -340,9 +348,12 @@ namespace VisualPinball.Unity
 
 			var bitIndex = state.InsideOfs.GetOrCreateBitIndex(ball.Id);
 			var isGrabbed = magnet.GrabbedBalls.IsSet(bitIndex);
+			var distanceSq = magnet.MagnetType == MagnetType.Spatial
+				? math.lengthsq(ball.Position - Center3D(in magnet))
+				: math.lengthsq(ball.Position.xy - magnet.Position);
 			var isInGrabRange = magnet.GrabRadius > 0f &&
 			                    magnet.Strength > 0f &&
-			                    math.lengthsq(ball.Position.xy - magnet.Position) <= magnet.GrabRadius * magnet.GrabRadius;
+			                    distanceSq <= magnet.GrabRadius * magnet.GrabRadius;
 
 			if (!isInGrabRange) {
 				magnet.ReleasedBalls.SetBits(bitIndex, false);
@@ -360,49 +371,21 @@ namespace VisualPinball.Unity
 				magnet.GrabbedBalls.SetBits(bitIndex, true);
 				state.EventQueue.Enqueue(new EventData(EventId.MagnetEventsBallGrabbed, itemId, ball.Id, true));
 			}
-			switch (magnet.Profile) {
-				case MagnetForceProfile.Physical:
-					ApplyPhysicalHold(ref ball, in magnet, physicsDiffTime, magnetVelocity);
+			switch (magnet.MagnetType) {
+				case MagnetType.Spatial:
+					ApplySpatialPhysicalHold(ref ball, in magnet, physicsDiffTime, magnetVelocity);
 					break;
 				default:
-					ApplyVpxCompatibleGrab(ref ball, in magnet, magnetVelocity);
+					switch (magnet.Profile) {
+						case MagnetForceProfile.Physical:
+							ApplyPhysicalHold(ref ball, in magnet, physicsDiffTime, magnetVelocity.xy);
+							break;
+						default:
+							ApplyVpxCompatibleGrab(ref ball, in magnet, magnetVelocity.xy);
+							break;
+					}
 					break;
 			}
-			return true;
-		}
-
-		private static bool UpdateSpatialGrab(int itemId, ref MagnetState magnet, ref PhysicsState state, ref BallState ball, float3 magnetVelocity)
-		{
-			if (magnet.GrabRadius <= 0f && magnet.GrabbedBalls.Value == 0UL && magnet.ReleasedBalls.Value == 0UL) {
-				return false;
-			}
-
-			var bitIndex = state.InsideOfs.GetOrCreateBitIndex(ball.Id);
-			var isGrabbed = magnet.GrabbedBalls.IsSet(bitIndex);
-			if (magnet.GrabRadius <= 0f || magnet.Strength <= 0f) {
-				magnet.ReleasedBalls.SetBits(bitIndex, false);
-				if (isGrabbed) {
-					ReleaseGrabbedBall(itemId, ref magnet, bitIndex, ball.Id, ref state, false, magnetVelocity);
-				}
-				return false;
-			}
-
-			var center = Center3D(in magnet);
-			var isInGrabRange = isGrabbed || math.lengthsq(ball.Position - center) <= magnet.GrabRadius * magnet.GrabRadius;
-			if (!isInGrabRange) {
-				magnet.ReleasedBalls.SetBits(bitIndex, false);
-				return false;
-			}
-
-			if (magnet.ReleasedBalls.IsSet(bitIndex)) {
-				return false;
-			}
-
-			if (!isGrabbed) {
-				magnet.GrabbedBalls.SetBits(bitIndex, true);
-				state.EventQueue.Enqueue(new EventData(EventId.MagnetEventsBallGrabbed, itemId, ball.Id, true));
-			}
-			ApplySpatialGrab(ref ball, in magnet, magnetVelocity);
 			return true;
 		}
 
@@ -424,7 +407,7 @@ namespace VisualPinball.Unity
 			ReleaseGrabbedBall(itemId, ref magnet, bitIndex, ballId, ref state, false);
 		}
 
-		private static void ReleaseGrabbedBall(int itemId, ref MagnetState magnet, int bitIndex, int ballId, ref PhysicsState state, bool suppressRegrab, float3 carrierVelocity = default)
+		private static void ReleaseGrabbedBall(int itemId, ref MagnetState magnet, int bitIndex, int ballId, ref PhysicsState state, bool suppressRegrab)
 		{
 			if (!magnet.GrabbedBalls.IsSet(bitIndex)) {
 				return;
@@ -433,20 +416,7 @@ namespace VisualPinball.Unity
 			if (suppressRegrab) {
 				magnet.ReleasedBalls.SetBits(bitIndex, true);
 			}
-			ReleaseSpatialBallIfNeeded(ref magnet, ref state, ballId, carrierVelocity);
 			state.EventQueue.Enqueue(new EventData(EventId.MagnetEventsBallReleased, itemId, ballId, true));
-		}
-
-		private static void ReleaseSpatialBallIfNeeded(ref MagnetState magnet, ref PhysicsState state, int ballId, float3 carrierVelocity)
-		{
-			if (magnet.MagnetType != MagnetType.Spatial || !state.Balls.ContainsKey(ballId)) {
-				return;
-			}
-			ref var ball = ref state.Balls.GetValueByRef(ballId);
-			ball.IsFrozen = false;
-			ball.Velocity = carrierVelocity;
-			ball.OldVelocity = carrierVelocity;
-			ball.AngularMomentum = float3.zero;
 		}
 
 		private static void ClearReleasedBall(ref MagnetState magnet, ref PhysicsState state, int ballId)

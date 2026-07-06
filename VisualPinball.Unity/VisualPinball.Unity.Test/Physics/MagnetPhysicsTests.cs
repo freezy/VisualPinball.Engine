@@ -279,17 +279,14 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void SpatialGrabFreezesAndClampsBallToHoldPoint()
+		public void SpatialGrabHoldsBallWithForceNotFreeze()
 		{
 			using var harness = new PhysicsStateHarness();
 			var state = harness.CreateState();
 			harness.Balls.Add(1, new BallState {
 				Id = 1,
 				Position = new float3(5f, -2f, 14f),
-				EventPosition = new float3(5f, -2f, 14f),
-				Velocity = new float3(1f, 2f, 3f),
-				OldVelocity = new float3(4f, 5f, 6f),
-				AngularMomentum = new float3(1f, 0f, 0f)
+				Velocity = float3.zero
 			});
 			var magnet = new MagnetState {
 				Position = new float2(4f, -3f),
@@ -297,7 +294,6 @@ namespace VisualPinball.Unity.Test
 				Radius = 100f,
 				Strength = 20f,
 				GrabRadius = 20f,
-				PlanarDamping = 0.985f,
 				IsEnabled = true,
 				MagnetType = MagnetType.Spatial
 			};
@@ -305,24 +301,24 @@ namespace VisualPinball.Unity.Test
 			MagnetPhysics.Update(17, ref magnet, ref state, 0.1f);
 
 			var ball = harness.Balls[1];
-			var center = MagnetPhysics.Center3D(in magnet);
-			Assert.That(ball.IsFrozen, Is.True);
-			Assert.That(ball.Position, Is.EqualTo(center));
-			Assert.That(ball.EventPosition, Is.EqualTo(center));
-			Assert.That(ball.Velocity, Is.EqualTo(float3.zero));
-			Assert.That(ball.OldVelocity, Is.EqualTo(float3.zero));
-			Assert.That(ball.AngularMomentum, Is.EqualTo(float3.zero));
-			Assert.That(magnet.GrabbedBalls.Value, Is.Not.EqualTo(0UL));
+			var offset = new float3(5f, -2f, 14f) - MagnetPhysics.Center3D(in magnet);
+			// the ball stays a live physics object; the hold is a force, not a freeze
+			Assert.That(ball.IsFrozen, Is.False, "a spatial magnet holds with a force, it must not freeze the ball");
+			Assert.That(magnet.GrabbedBalls.Value, Is.Not.EqualTo(0UL), "ball should be grabbed");
+			// the ball started at rest, so its velocity is the hold impulse, which pulls
+			// toward the hold point (opposes the offset)
+			Assert.That(math.dot(ball.Velocity, offset), Is.LessThan(0f), "the hold must pull the ball toward the hold point");
 		}
 
 		[Test]
-		public void SpatialGrabbedBallFollowsMovingHoldPoint()
+		public void SpatialHoldTracksMovingHoldPoint()
 		{
 			using var harness = new PhysicsStateHarness();
 			var state = harness.CreateState();
 			harness.Balls.Add(1, new BallState {
 				Id = 1,
-				Position = new float3(0f, 0f, 10f)
+				Position = new float3(0f, 0f, 10f),
+				Velocity = float3.zero
 			});
 			var magnet = new MagnetState {
 				Position = float2.zero,
@@ -330,20 +326,56 @@ namespace VisualPinball.Unity.Test
 				Radius = 100f,
 				Strength = 20f,
 				GrabRadius = 20f,
-				PlanarDamping = 0.985f,
 				IsEnabled = true,
 				MagnetType = MagnetType.Spatial
 			};
 
 			MagnetPhysics.Update(17, ref magnet, ref state, 0.1f);
-			magnet.Position = new float2(40f, -25f);
-			magnet.Height = 70f;
+			Assert.That(magnet.GrabbedBalls.Value, Is.Not.EqualTo(0UL));
+
+			// move the hold point; the held ball (still near the origin in the harness,
+			// which does not integrate displacement) is pulled toward the new point
+			magnet.Position = new float2(8f, -5f);
+			magnet.Height = 16f;
 			MagnetPhysics.Update(17, ref magnet, ref state, 0.1f);
 
 			var ball = harness.Balls[1];
-			Assert.That(ball.IsFrozen, Is.True);
-			Assert.That(ball.Position, Is.EqualTo(new float3(40f, -25f, 70f)));
-			Assert.That(magnet.GrabbedBalls.Value, Is.Not.EqualTo(0UL));
+			var offset = ball.Position - MagnetPhysics.Center3D(in magnet);
+			Assert.That(ball.IsFrozen, Is.False);
+			Assert.That(magnet.GrabbedBalls.Value, Is.Not.EqualTo(0UL), "ball stays held as the point moves");
+			Assert.That(math.dot(ball.Velocity, offset), Is.LessThan(0f), "the hold pulls toward the moved hold point");
+		}
+
+		[Test]
+		public void SpatialGrabReleasesBallKnockedOutsideGrabRadius()
+		{
+			using var harness = new PhysicsStateHarness();
+			var state = harness.CreateState();
+			// the ball sits inside the outer radius but well outside the grab radius, as
+			// if a hard hit pushed it out of the hold — it must be released, because the
+			// hold is a force that can be overcome, not a rigid lock
+			harness.Balls.Add(1, new BallState {
+				Id = 1,
+				Position = new float3(50f, 0f, 10f),
+				Velocity = new float3(60f, 0f, 0f)
+			});
+			var magnet = new MagnetState {
+				Position = float2.zero,
+				Height = 10f,
+				Radius = 100f,
+				Strength = 20f,
+				GrabRadius = 20f,
+				IsEnabled = true,
+				MagnetType = MagnetType.Spatial
+			};
+			var bitIndex = harness.InsideOfs.GetOrCreateBitIndex(1);
+			magnet.GrabbedBalls.SetBits(bitIndex, true);
+
+			MagnetPhysics.Update(17, ref magnet, ref state, 0.1f);
+
+			var ball = harness.Balls[1];
+			Assert.That(magnet.GrabbedBalls.Value, Is.EqualTo(0UL), "a ball knocked outside the grab radius is released");
+			Assert.That(ball.IsFrozen, Is.False);
 		}
 
 		[Test]
@@ -401,14 +433,13 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void SpatialEjectAddsVerticalAngleAndUnfreezes()
+		public void SpatialEjectAddsVerticalAngle()
 		{
 			using var harness = new PhysicsStateHarness();
 			var state = harness.CreateState();
 			harness.Balls.Add(1, new BallState {
 				Id = 1,
-				Position = new float3(0f, 0f, 10f),
-				IsFrozen = true
+				Position = new float3(0f, 0f, 10f)
 			});
 			var magnet = new MagnetState {
 				Position = float2.zero,
@@ -424,7 +455,6 @@ namespace VisualPinball.Unity.Test
 			MagnetPhysics.EjectGrabbedBalls(17, ref magnet, ref state, 20f, 90f, 30f);
 
 			var ball = harness.Balls[1];
-			Assert.That(ball.IsFrozen, Is.False);
 			Assert.That(ball.Velocity.x, Is.EqualTo(20f * math.cos(math.radians(30f))).Within(1e-5f));
 			Assert.That(ball.Velocity.y, Is.EqualTo(0f).Within(1e-5f));
 			Assert.That(ball.Velocity.z, Is.EqualTo(10f).Within(1e-5f));
@@ -501,19 +531,14 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void SpatialReleaseUnfreezesWithCarrierVelocity()
+		public void SpatialCoilOffReleasesHeldBall()
 		{
 			using var harness = new PhysicsStateHarness();
 			var state = harness.CreateState();
 			harness.Balls.Add(1, new BallState {
 				Id = 1,
 				Position = new float3(0f, 0f, 10f),
-				IsFrozen = true
-			});
-			harness.KinematicTransforms.Add(17, float4x4.Translate(new float3(30f, -10f, 60f)));
-			harness.KinematicVelocities.Add(17, new KinematicVelocityState {
-				LinearVelocity = new float3(3f, -2f, 5f),
-				Pivot = new float3(30f, -10f, 60f)
+				Velocity = new float3(3f, -2f, 5f)
 			});
 			var magnet = new MagnetState {
 				Position = float2.zero,
@@ -521,19 +546,19 @@ namespace VisualPinball.Unity.Test
 				Radius = 100f,
 				Strength = 20f,
 				GrabRadius = 20f,
-				IsKinematic = true,
-				MagnetType = MagnetType.Spatial
+				MagnetType = MagnetType.Spatial,
+				IsEnabled = false
 			};
 			var bitIndex = harness.InsideOfs.GetOrCreateBitIndex(1);
 			magnet.GrabbedBalls.SetBits(bitIndex, true);
 
+			// coil off -> the disabled magnet releases its ball, which keeps its velocity
 			MagnetPhysics.Update(17, ref magnet, ref state, 0.1f);
 
 			var ball = harness.Balls[1];
-			Assert.That(ball.IsFrozen, Is.False);
-			Assert.That(ball.Velocity, Is.EqualTo(new float3(3f, -2f, 5f)));
-			Assert.That(ball.OldVelocity, Is.EqualTo(new float3(3f, -2f, 5f)));
 			Assert.That(magnet.GrabbedBalls.Value, Is.EqualTo(0UL));
+			Assert.That(ball.IsFrozen, Is.False);
+			Assert.That(ball.Velocity, Is.EqualTo(new float3(3f, -2f, 5f)), "a released ball keeps its live velocity");
 		}
 
 		private static BallState CreateBall()

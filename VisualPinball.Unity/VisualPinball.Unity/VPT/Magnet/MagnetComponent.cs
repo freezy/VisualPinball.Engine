@@ -143,7 +143,8 @@ namespace VisualPinball.Unity
 				PlanarDamping = math.clamp(DefaultPlanarDamping, 0f, 1f),
 				IsEnabled = IsEnabledOnStart,
 				IsKinematic = IsKinematic,
-				Profile = MagnetType == VisualPinball.Unity.MagnetType.Spatial ? MagnetForceProfile.Physical : ForceProfile,
+				// spatial magnets dispatch on MagnetType and never read Profile
+				Profile = ForceProfile,
 				HeightRange = MillimetersToVpx(HeightRange),
 				MagnetType = MagnetType,
 				GrabbedBalls = default,
