@@ -309,29 +309,52 @@ namespace VisualPinball.Unity
 				return float3.zero;
 			}
 			var itemId = colliders.GetItemId(colliderId);
-			if (!KinematicVelocities.TryGetValue(itemId, out var velocity)) {
+			if (!TryGetKinematicVelocity(itemId, out var linear, out var angular, out var pivot)) {
 				return float3.zero;
+			}
+
+			if (colliders.IsTransformed(colliderId)) {
+				return linear + math.cross(angular, position - pivot);
+			}
+			ref var matrix = ref KinematicTransforms.GetValueByRef(itemId);
+			var velocityAtPosition = linear + math.cross(angular, matrix.MultiplyPoint(position) - pivot);
+			return math.inverse(matrix).MultiplyVector(velocityAtPosition);
+		}
+
+		/// <summary>
+		/// Velocity of a kinematic item at a given playfield-space point,
+		/// including the step-rate substitution while the pose catch-up is
+		/// rate-limited. Zero for unknown or resting items. Used by force
+		/// fields (magnets) whose held balls move with the item.
+		/// </summary>
+		internal float3 GetKinematicVelocityAt(int itemId, in float3 position)
+		{
+			if (!TryGetKinematicVelocity(itemId, out var linear, out var angular, out var pivot)) {
+				return float3.zero;
+			}
+			return linear + math.cross(angular, position - pivot);
+		}
+
+		private bool TryGetKinematicVelocity(int itemId, out float3 linear, out float3 angular, out float3 pivot)
+		{
+			if (!KinematicVelocities.TryGetValue(itemId, out var velocity)) {
+				linear = float3.zero;
+				angular = float3.zero;
+				pivot = float3.zero;
+				return false;
 			}
 
 			// while the pose catch-up is rate-limited (clamped stepping), the actual
 			// step rate is the honest surface velocity and can exceed the derived one
-			var linear = velocity.LinearVelocity;
-			var angular = velocity.AngularVelocity;
+			linear = velocity.LinearVelocity;
+			angular = velocity.AngularVelocity;
+			pivot = velocity.Pivot;
 			if (math.lengthsq(velocity.StepVelocity) > math.lengthsq(linear)
 			    || math.lengthsq(velocity.StepAngularVelocity) > math.lengthsq(angular)) {
 				linear = velocity.StepVelocity;
 				angular = velocity.StepAngularVelocity;
 			}
-			if (math.lengthsq(linear) < 1e-8f && math.lengthsq(angular) < 1e-8f) {
-				return float3.zero;
-			}
-
-			if (colliders.IsTransformed(colliderId)) {
-				return linear + math.cross(angular, position - velocity.Pivot);
-			}
-			ref var matrix = ref KinematicTransforms.GetValueByRef(itemId);
-			var velocityAtPosition = linear + math.cross(angular, matrix.MultiplyPoint(position) - velocity.Pivot);
-			return math.inverse(matrix).MultiplyVector(velocityAtPosition);
+			return math.lengthsq(linear) >= 1e-8f || math.lengthsq(angular) >= 1e-8f;
 		}
 
 		/// <summary>
