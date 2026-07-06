@@ -20,6 +20,7 @@ namespace VisualPinball.Unity
 	{
 		public float Radius;
 		public float Strength;
+		public MagnetType MagnetType;
 		public MagnetForceProfile ForceProfile;
 		public bool GrabBall;
 		public float GrabRadius;
@@ -33,6 +34,7 @@ namespace VisualPinball.Unity
 			return PackageApi.Packer.Pack(new MagnetPackable {
 				Radius = comp.Radius,
 				Strength = comp.Strength,
+				MagnetType = comp.MagnetType,
 				ForceProfile = comp.ForceProfile,
 				GrabBall = comp.GrabBall,
 				GrabRadius = comp.GrabRadius,
@@ -48,6 +50,7 @@ namespace VisualPinball.Unity
 			var data = PackageApi.Packer.Unpack<MagnetPackable>(bytes);
 			comp.Radius = data.Radius;
 			comp.Strength = data.Strength;
+			comp.MagnetType = data.MagnetType;
 			comp.ForceProfile = data.ForceProfile;
 			comp.GrabBall = data.GrabBall;
 			comp.GrabRadius = data.GrabRadius;

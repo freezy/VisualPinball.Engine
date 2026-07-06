@@ -34,6 +34,7 @@ namespace VisualPinball.Unity
 		internal bool IsKinematic;
 		internal MagnetForceProfile Profile;
 		internal float HeightRange;
+		internal MagnetType MagnetType;
 		internal BitField64 GrabbedBalls;
 		internal BitField64 ReleasedBalls;
 	}
