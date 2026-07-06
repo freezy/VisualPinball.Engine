@@ -75,7 +75,7 @@ The turntable ramps toward **Max Speed** using **Spin Up**, then ramps back towa
 
 Enable **Is Kinematic** when a magnet or turntable is parented under a moving transform. The physics engine tracks the transform during gameplay, so the force field follows the moving center. Grabbed balls are carried with the magnet's planar velocity and keep that velocity when released.
 
-Kinematic tracking follows the transform position and height. The magnetic field remains playfield-aligned; tilted field axes are not modeled.
+Kinematic tracking follows the transform position and height. The magnetic field remains playfield-aligned; tilted field axes are not modeled. A grabbed ball stays held even when the height window moves past it, but the carry itself is planar — a vertically moving magnet does not lift the ball.
 
 ## Importing VPX Magnets
 

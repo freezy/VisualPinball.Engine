@@ -57,7 +57,7 @@ namespace VisualPinball.Unity
 						continue;
 					}
 
-					var affectsBall = IsBallInRange(in ball, in magnet);
+					var affectsBall = IsBallInRange(in ball, in magnet) || IsGrabbedBall(in magnet, ref state, ball.Id);
 					if (!affectsBall) {
 						ReleaseGrabbedBall(itemId, ref magnet, ref state, ball.Id);
 						ClearReleasedBall(ref magnet, ref state, ball.Id);
@@ -231,6 +231,16 @@ namespace VisualPinball.Unity
 			ball.OldVelocity = new float3(velocity.x, velocity.y, ball.OldVelocity.z);
 			ball.AngularMomentum = float3.zero;
 		}
+
+		/// <summary>
+		/// A grabbed ball stays held even when the range check no longer covers
+		/// it — e.g. a kinematic magnet whose height window moves past the ball
+		/// it is carrying. Only the grab logic itself may release it.
+		/// </summary>
+		private static bool IsGrabbedBall(in MagnetState magnet, ref PhysicsState state, int ballId)
+			=> magnet.GrabbedBalls.Value != 0UL
+			   && state.InsideOfs.TryGetBitIndex(ballId, out var bitIndex)
+			   && magnet.GrabbedBalls.IsSet(bitIndex);
 
 		internal static bool IsBallInRange(in BallState ball, in MagnetState magnet)
 		{
