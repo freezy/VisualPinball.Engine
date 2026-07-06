@@ -294,6 +294,17 @@ namespace VisualPinball.Unity.Test
 			Assert.That(ball.AngularMomentum, Is.EqualTo(float3.zero));
 		}
 
+		[Test]
+		public void PlanarEjectAddsCarrierVelocity()
+		{
+			var ball = CreateBall();
+
+			MagnetPhysics.ApplyPlanarEject(ref ball, 20f, 90f, new float2(5f, -3f));
+
+			Assert.That(ball.Velocity.x, Is.EqualTo(25f).Within(1e-5f));
+			Assert.That(ball.Velocity.y, Is.EqualTo(-3f).Within(1e-5f));
+		}
+
 		private static BallState CreateBall()
 		{
 			return new BallState {

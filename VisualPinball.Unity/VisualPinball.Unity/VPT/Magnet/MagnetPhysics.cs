@@ -122,6 +122,14 @@ namespace VisualPinball.Unity
 
 		internal static void EjectGrabbedBalls(int itemId, ref MagnetState magnet, ref PhysicsState state, float speed, float angleDeg)
 		{
+			if (magnet.GrabbedBalls.Value == 0UL) {
+				return;
+			}
+
+			// a ball thrown from a moving magnet keeps the carrier velocity, same
+			// as releasing the coil mid-move does
+			var carrierVelocity = GetKinematicVelocity(itemId, in magnet, ref state);
+
 			for (var bitIndex = 0; bitIndex < 64; bitIndex++) {
 				if (!magnet.GrabbedBalls.IsSet(bitIndex)) {
 					continue;
@@ -129,7 +137,7 @@ namespace VisualPinball.Unity
 				if (state.InsideOfs.TryGetBallIdAtBitIndex(bitIndex, out var ballId)) {
 					if (state.Balls.ContainsKey(ballId)) {
 						ref var ball = ref state.Balls.GetValueByRef(ballId);
-						ApplyPlanarEject(ref ball, speed, angleDeg);
+						ApplyPlanarEject(ref ball, speed, angleDeg, carrierVelocity);
 					}
 					state.EventQueue.Enqueue(new EventData(EventId.MagnetEventsBallReleased, itemId, ballId, true));
 				}
@@ -220,10 +228,10 @@ namespace VisualPinball.Unity
 			ball.AngularMomentum *= 1f - math.saturate(physicsDiffTime * 0.5f);
 		}
 
-		internal static void ApplyPlanarEject(ref BallState ball, float speed, float angleDeg)
+		internal static void ApplyPlanarEject(ref BallState ball, float speed, float angleDeg, float2 carrierVelocity = default)
 		{
 			var angleRad = math.radians(angleDeg);
-			var velocity = new float2(
+			var velocity = carrierVelocity + new float2(
 				math.sin(angleRad) * speed,
 				-math.cos(angleRad) * speed
 			);
