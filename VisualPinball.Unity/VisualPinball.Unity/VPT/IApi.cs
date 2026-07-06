@@ -222,6 +222,15 @@ namespace VisualPinball.Unity
 		/// </summary>
 		/// <param name="enabled">Whether the coil was enabled (power) or disabled (no power).</param>
 		void OnCoil(bool enabled);
+
+		/// <summary>
+		/// The coil strength changed. <paramref name="value"/> is normalized to [0..1]:
+		/// 0 or 1 for plain on/off coils, or the duty-cycle strength for PWM-integrated
+		/// (modulated) coils. Consumers that only care about on/off can forward this to
+		/// <see cref="OnCoil(bool)"/> as <c>value &gt; 0</c>.
+		/// </summary>
+		void OnCoil(float value);
+
 		event EventHandler<NoIdCoilEventArgs> CoilStatusChanged;
 	}
 

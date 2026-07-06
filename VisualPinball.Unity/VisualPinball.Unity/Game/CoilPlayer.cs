@@ -179,7 +179,9 @@ namespace VisualPinball.Unity
 							continue;
 						}
 
-						coil.OnCoil(coilEvent.IsEnabled);
+						// pass the normalized strength; on/off coils get 0/1, PWM-integrated
+						// coils (e.g. magnets) get the duty-cycle value
+						coil.OnCoil(coilEvent.Value);
 
 					} else {
 						Logger.Error($"Cannot trigger unknown coil item \"{destConfig}\" for {coilEvent.Id}.");

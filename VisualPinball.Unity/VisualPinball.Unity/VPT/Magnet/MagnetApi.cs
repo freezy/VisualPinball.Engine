@@ -48,7 +48,7 @@ namespace VisualPinball.Unity
 			_itemId = UnityObjectId.Get(_component.gameObject);
 			_isEnabled = _component.IsEnabledOnStart;
 
-			_magnetCoil = new DeviceCoil(_player, OnCoilEnabled, OnCoilDisabled, OnCoilEnabledSimThread, OnCoilDisabledSimThread);
+			_magnetCoil = new DeviceCoil(_player, OnCoilEnabled, OnCoilDisabled, OnCoilEnabledSimThread, OnCoilDisabledSimThread, OnCoilValue);
 			_ballHeldSwitch = new DeviceSwitch(MagnetComponent.BallHeldSwitchItem, false, SwitchDefault.NormallyOpen, _player, _physicsEngine);
 		}
 
@@ -153,6 +153,26 @@ namespace VisualPinball.Unity
 		private void OnCoilDisabled() => SetEnabled(false);
 		private void OnCoilEnabledSimThread() => SetEnabledSimThread(true);
 		private void OnCoilDisabledSimThread() => SetEnabledSimThread(false);
+
+		/// <summary>
+		/// Scales the magnet strength by a PWM-integrated coil duty cycle in [0..1]
+		/// (e.g. Iron Man's ROM pulses the magnet coils). On/off is handled by the
+		/// enable/disable callbacks; this only modulates the strength from the authored
+		/// value. A plain on/off coil sends 1, leaving the authored strength unchanged.
+		/// </summary>
+		private void OnCoilValue(float value)
+		{
+			if (!_physicsEngine) {
+				return;
+			}
+			var strength = _component.Strength * math.saturate(value);
+			_physicsEngine.MutateState((ref PhysicsState state) => {
+				if (state.MagnetStates.ContainsKey(_itemId)) {
+					ref var magnet = ref state.MagnetStates.GetValueByRef(_itemId);
+					magnet.Strength = strength;
+				}
+			});
+		}
 
 		private void SetEnabled(bool enabled)
 		{

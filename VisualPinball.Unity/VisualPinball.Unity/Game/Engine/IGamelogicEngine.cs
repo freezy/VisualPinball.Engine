@@ -367,10 +367,26 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public readonly bool IsEnabled;
 
+		/// <summary>
+		/// Normalized coil strength in [0..1]. For plain on/off coils this is 0 or 1.
+		/// For PWM-integrated (modulated) coils — e.g. the magnet coils of WPC/SAM
+		/// ROMs — it is the duty-cycle strength. <see cref="IsEnabled"/> is
+		/// <c>Value &gt; 0</c>.
+		/// </summary>
+		public readonly float Value;
+
 		public CoilEventArgs(string id, bool isEnabled)
 		{
 			Id = id;
 			IsEnabled = isEnabled;
+			Value = isEnabled ? 1f : 0f;
+		}
+
+		public CoilEventArgs(string id, float value)
+		{
+			Id = id;
+			Value = value;
+			IsEnabled = value > 0f;
 		}
 	}
 

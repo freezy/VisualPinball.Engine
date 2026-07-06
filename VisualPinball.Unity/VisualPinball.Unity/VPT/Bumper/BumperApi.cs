@@ -109,6 +109,9 @@ namespace VisualPinball.Unity
 			CoilStatusChanged?.Invoke(this, new NoIdCoilEventArgs(enabled));
 		}
 
+		// a bumper fires on energize; the PWM magnitude is not meaningful for it
+		void IApiCoil.OnCoil(float value) => (this as IApiCoil).OnCoil(value > 0f);
+
 		void IApiWireDest.OnChange(bool enabled) => (this as IApiCoil).OnCoil(enabled);
 
 		internal override void AddWireDest(WireDestConfig wireConfig)
