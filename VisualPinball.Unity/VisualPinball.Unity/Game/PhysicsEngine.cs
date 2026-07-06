@@ -1017,7 +1017,7 @@ namespace VisualPinball.Unity
 			}
 
 			// create static octree
-			Debug.Log($"Found {_colliderComponents.Length} collidable items ({_kinematicTransformComponents.Length} kinematic).");
+			Debug.Log($"Found {_colliderComponents.Length} collidable items ({_colliderComponents.Count(c => c.IsKinematic)} kinematic) and {_kinematicTransformComponents.Length} kinematic transforms.");
 			var colliders = new ColliderReference(ref _ctx.NonTransformableColliderTransforms.Ref, Allocator.Temp);
 			var kinematicColliders = new ColliderReference(ref _ctx.NonTransformableColliderTransforms.Ref, Allocator.Temp, true);
 			foreach (var colliderItem in _colliderComponents) {
