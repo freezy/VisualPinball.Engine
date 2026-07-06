@@ -157,14 +157,24 @@ namespace VisualPinball.Unity
 
 		private void Update()
 		{
-			if (!RotationTarget || TurntableApi == null) {
+			if (TurntableApi == null) {
 				return;
 			}
 			if (_rotationTarget != RotationTarget) {
+				// restore the previous disc to its authored pose, so a re-captured
+				// baseline never contains accumulated simulated spin
+				if (_rotationTarget) {
+					_rotationTarget.localRotation = _rotationTargetInitialRotation;
+				}
 				_rotationTarget = RotationTarget;
-				_rotationTargetInitialRotation = RotationTarget.localRotation;
+				if (_rotationTarget) {
+					_rotationTargetInitialRotation = _rotationTarget.localRotation;
+				}
 			}
-			RotationTarget.localRotation = _rotationTargetInitialRotation * Quaternion.AngleAxis(TurntableApi.RotationAngle, Vector3.up);
+			if (!_rotationTarget) {
+				return;
+			}
+			_rotationTarget.localRotation = _rotationTargetInitialRotation * Quaternion.AngleAxis(TurntableApi.RotationAngle, Vector3.up);
 		}
 
 		internal TurntableState CreateState()
