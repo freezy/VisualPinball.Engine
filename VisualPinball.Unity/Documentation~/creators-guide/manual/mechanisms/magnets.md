@@ -24,7 +24,7 @@ The selected object shows a radius gizmo in the scene view. Playfield magnets dr
 | **Strength** | Magnet force. In VPX Compatible mode, this uses familiar `cvpmMagnet` strength values. Negative values repel. |
 | **Force Profile** | **VPX Compatible** for imported VPX behavior, **Physical** for new VPE tables that want a smoother inverse-square force. Spatial magnets always use physical 3-D force semantics. |
 | **Grab Ball** | Enables center hold behavior inside the grab radius. |
-| **Grab Radius** | Radius where the magnet starts holding the ball. VPX Compatible playfield mode clamps to center; Physical playfield mode uses a spring-damper hold; Spatial mode freezes the ball at the 3-D hold point. |
+| **Grab Radius** | Radius where the magnet starts holding the ball. VPX Compatible playfield mode clamps to center; Physical playfield mode uses a spring-damper hold; Spatial mode uses a 3-D spring-damper hold that a hard hit can overcome. |
 | **Is Enabled On Start** | Starts the magnet on before a coil or script changes it. |
 | **Is Kinematic** | Moves the magnetic field with the GameObject transform during gameplay. Use this when the magnet is mounted on a moving mech. |
 | **Draw Debug Forces** | Draws play-mode force vectors for balls inside the radius. |
@@ -63,9 +63,9 @@ Physical strength values are not VPX strength values. Start with a larger value 
 
 Use **Magnet Type: Spatial** for mechanisms that physically carry the ball away from the playfield, such as a mouth, hand, or wand mounted on a moving mech. Spatial magnets use a spherical radius around the transform and treat the transform as the ball center hold point.
 
-When **Grab Ball** is enabled, a ball inside **Grab Radius** snaps to that 3-D hold point and is frozen while held. If **Is Kinematic** is enabled and the GameObject moves during gameplay, the held ball follows in x, y, and z. Turning the coil off or calling `ReleaseBall()` unfreezes the ball with the mech's current 3-D carrier velocity. `Eject(speed, angleDeg, verticalAngleDeg)` can add a directional throw; the first angle uses the same convention as kickers, and the optional vertical angle lifts or drops the shot.
+When **Grab Ball** is enabled, a ball inside **Grab Radius** is pulled to that 3-D hold point by a strong magnetic force and held there. The ball stays a live physics object throughout — it is not frozen — so it renders at its real position and other balls collide with it normally. If **Is Kinematic** is enabled and the GameObject moves during gameplay, the hold force drags the ball along in x, y, and z. Turning the coil off or calling `ReleaseBall()` simply drops the hold, and the ball continues with whatever velocity it has. `Eject(speed, angleDeg, verticalAngleDeg)` throws it directionally; the first angle uses the same convention as kickers, and the optional vertical angle lifts or drops the shot.
 
-Spatial magnets are not a levitation model. Use the radius and strength to catch a nearby ball, then rely on grab-and-carry for the stable mechanical hold.
+Because the hold is a force rather than a rigid lock, a hard enough hit from another ball can overcome it and knock the ball loose (and that ball can in turn be grabbed). **Strength** sets how hard the magnet holds — a stronger magnet needs a harder hit to dislodge its ball. This is not a levitation model: use **Radius** and **Strength** to catch a nearby ball, not to pull one across the table or balance it far below the hold point.
 
 ## Turntable Setup
 
@@ -82,9 +82,9 @@ The turntable ramps toward **Max Speed** using **Spin Up**, then ramps back towa
 
 ## Kinematic Magnets
 
-Enable **Is Kinematic** when a magnet or turntable is parented under a moving transform. The physics engine tracks the transform during gameplay, so the force field follows the moving center. Playfield magnets carry grabbed balls with the magnet's planar velocity; spatial magnets carry grabbed balls with the full 3-D velocity.
+Enable **Is Kinematic** when a magnet or turntable is parented under a moving transform. The physics engine tracks the transform during gameplay, so the force field follows the moving center. A held ball is dragged along by the hold force — planar for playfield magnets, full 3-D for spatial magnets.
 
-Kinematic tracking follows the transform position and height. The magnetic field remains playfield-aligned for playfield magnets; tilted field axes are not modeled. Spatial magnets are the supported path for lifting a held ball away from the playfield.
+Kinematic tracking follows the transform position and height. The magnetic field remains playfield-aligned for playfield magnets; tilted field axes are not modeled. Spatial magnets are the supported path for carrying a held ball away from the playfield.
 
 ## Importing VPX Magnets
 
