@@ -59,20 +59,32 @@ namespace VisualPinball.Unity
 		protected Action OnEnableSimulationThread;
 		protected Action OnDisableSimulationThread;
 
+		/// <summary>
+		/// Optional handler for the normalized coil strength in [0..1]. Set by coils
+		/// whose effect scales with the PWM duty cycle (e.g. magnets). Fired on every
+		/// <see cref="OnCoil(float)"/> call, after the enable/disable transition.
+		/// </summary>
+		protected Action<float> OnValue;
+
 		private readonly Player _player;
 
 		public DeviceCoil(Player player, Action onEnable = null, Action onDisable = null,
-			Action onEnableSimulationThread = null, Action onDisableSimulationThread = null)
+			Action onEnableSimulationThread = null, Action onDisableSimulationThread = null,
+			Action<float> onValue = null)
 		{
 			_player = player;
 			OnEnable = onEnable;
 			OnDisable = onDisable;
 			OnEnableSimulationThread = onEnableSimulationThread;
 			OnDisableSimulationThread = onDisableSimulationThread;
+			OnValue = onValue;
 		}
 
-		public void OnCoil(bool enabled)
+		public void OnCoil(bool enabled) => OnCoil(enabled ? 1f : 0f);
+
+		public void OnCoil(float value)
 		{
+			var enabled = value > 0f;
 			Interlocked.Exchange(ref _isEnabled, enabled ? 1 : 0);
 
 			// When the simulation thread is actively handling this coil,
@@ -87,6 +99,8 @@ namespace VisualPinball.Unity
 					OnDisable?.Invoke();
 				}
 			}
+			// magnitude for consumers that scale with the duty cycle (e.g. magnets)
+			OnValue?.Invoke(value);
 			CoilStatusChanged?.Invoke(this, new NoIdCoilEventArgs(enabled));
 #if UNITY_EDITOR
 			RefreshUI();
