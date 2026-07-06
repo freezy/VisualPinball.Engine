@@ -45,6 +45,8 @@ Magnets also expose one switch:
 
 Map ROM solenoids to `magnet_coil` in the [Coil Manager](../../editor/coil-manager.md). The `ball_held` switch can be used by game logic when a table needs explicit confirmation that a ball is held.
 
+Some ROMs pulse-width-modulate (PWM) their magnet coils to vary grip — Iron Man, for example, drives its magnets at partial strength. When the gamelogic engine reports a modulated coil (PinMAME does this for WPC/SAM ROMs), the magnet scales its authored **Strength** by the duty cycle, so a coil held at 50% produces half the pull rather than full-or-nothing. Plain on/off coils leave the authored strength unchanged. The scaling multiplies the authored value, so set **Strength** to the full-power grip you want at 100% duty.
+
 ## Force Profiles
 
 ### VPX Compatible
