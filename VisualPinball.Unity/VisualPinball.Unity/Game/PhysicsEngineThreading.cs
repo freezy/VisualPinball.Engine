@@ -358,7 +358,10 @@ namespace VisualPinball.Unity
 				// continuous motion (incl. resolving a hold): stream toward the target,
 				// capped per tick, so a fast collider can't skip past a ball
 				_ctx.KinematicTargetTransforms.Ref[itemId] = matrix;
-				_ctx.KinematicOctreeDirty = true;
+				// colliderless kinematic items (magnets, turntables) don't affect the octree
+				if (_ctx.KinematicColliderLookups.ContainsKey(itemId)) {
+					_ctx.KinematicOctreeDirty = true;
+				}
 			}
 
 			var item = GetKinematicTransformComponent(itemId);
@@ -379,8 +382,8 @@ namespace VisualPinball.Unity
 				for (var i = 0; i < colliderLookups.Length; i++) {
 					state.TransformKinematicColliders(colliderLookups[i], matrix);
 				}
+				_ctx.KinematicOctreeDirty = true;
 			}
-			_ctx.KinematicOctreeDirty = true;
 		}
 
 		/// <summary>
