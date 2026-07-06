@@ -14,13 +14,46 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+using NativeTrees;
 using NUnit.Framework;
+using Unity.Collections;
 using Unity.Mathematics;
 
 namespace VisualPinball.Unity.Test
 {
 	public class MagnetPhysicsTests
 	{
+		[Test]
+		public void GrabbedBallSurvivesMovingHeightWindow()
+		{
+			using var harness = new PhysicsStateHarness();
+			var state = harness.CreateState();
+			harness.Balls.Add(1, new BallState {
+				Id = 1,
+				Position = new float3(0f, 0f, 10f)
+			});
+			var magnet = new MagnetState {
+				Position = float2.zero,
+				Height = 0f,
+				Radius = 100f,
+				Strength = 20f,
+				GrabRadius = 20f,
+				PlanarDamping = 0.985f,
+				HeightRange = 25f,
+				IsEnabled = true
+			};
+
+			MagnetPhysics.Update(17, ref magnet, ref state, 0.1f);
+			Assert.That(magnet.GrabbedBalls.Value, Is.Not.EqualTo(0UL), "ball should be grabbed");
+
+			// the (kinematic) magnet moves up; the held ball must not be dropped
+			// when the height window leaves it behind
+			magnet.Height = 100f;
+			MagnetPhysics.Update(17, ref magnet, ref state, 0.1f);
+			Assert.That(magnet.GrabbedBalls.Value, Is.Not.EqualTo(0UL), "ball should stay held");
+		}
+
 		[Test]
 		public void VpxCompatibleForceScalesToOneMillisecondTicks()
 		{
@@ -268,6 +301,76 @@ namespace VisualPinball.Unity.Test
 				Position = new float3(50f, 0f, 10f),
 				Velocity = new float3(0f, 0f, 0f)
 			};
+		}
+	}
+
+	/// <summary>
+	/// A minimal <see cref="PhysicsState"/> over hand-created containers, so
+	/// tests can drive the real update/state wiring instead of only the pure
+	/// force helpers. Containers a magnet/turntable update never touches stay
+	/// default.
+	/// </summary>
+	internal sealed class PhysicsStateHarness : IDisposable
+	{
+		internal NativeParallelHashMap<int, BallState> Balls;
+		internal NativeParallelHashMap<int, float4x4> KinematicTransforms;
+		internal NativeParallelHashMap<int, KinematicVelocityState> KinematicVelocities;
+		internal InsideOfs InsideOfs;
+		internal NativeQueue<EventData> EventQueue;
+
+		private PhysicsEnv _env;
+		private NativeOctree<int> _octree;
+		private NativeColliders _colliders;
+		private NativeColliders _kinematicColliders;
+		private NativeColliders _kinematicCollidersAtIdentity;
+		private NativeParallelHashMap<int, float4x4> _kinematicTargetTransforms;
+		private NativeParallelHashMap<int, float4x4> _nonTransformableColliderTransforms;
+		private NativeParallelHashMap<int, NativeColliderIds> _kinematicColliderLookups;
+		private NativeParallelHashMap<int, BumperState> _bumperStates;
+		private NativeParallelHashMap<int, DropTargetState> _dropTargetStates;
+		private NativeParallelHashMap<int, FlipperState> _flipperStates;
+		private NativeParallelHashMap<int, GateState> _gateStates;
+		private NativeParallelHashMap<int, HitTargetState> _hitTargetStates;
+		private NativeParallelHashMap<int, KickerState> _kickerStates;
+		private NativeParallelHashMap<int, MagnetState> _magnetStates;
+		private NativeParallelHashMap<int, PlungerState> _plungerStates;
+		private NativeParallelHashMap<int, SpinnerState> _spinnerStates;
+		private NativeParallelHashMap<int, SurfaceState> _surfaceStates;
+		private NativeParallelHashMap<int, TurntableState> _turntableStates;
+		private NativeParallelHashMap<int, TriggerState> _triggerStates;
+		private NativeParallelHashSet<int> _disabledCollisionItems;
+		private bool _swapBallCollisionHandling;
+		private NativeParallelHashMap<int, FixedList512Bytes<float>> _elasticityLuts;
+		private NativeParallelHashMap<int, FixedList512Bytes<float>> _frictionLuts;
+
+		internal PhysicsStateHarness()
+		{
+			Balls = new NativeParallelHashMap<int, BallState>(4, Allocator.Persistent);
+			KinematicTransforms = new NativeParallelHashMap<int, float4x4>(4, Allocator.Persistent);
+			KinematicVelocities = new NativeParallelHashMap<int, KinematicVelocityState>(4, Allocator.Persistent);
+			InsideOfs = new InsideOfs(Allocator.Persistent);
+			EventQueue = new NativeQueue<EventData>(Allocator.Persistent);
+		}
+
+		internal PhysicsState CreateState()
+		{
+			var events = EventQueue.AsParallelWriter();
+			return new PhysicsState(ref _env, ref _octree, ref _colliders, ref _kinematicColliders,
+				ref _kinematicCollidersAtIdentity, ref KinematicTransforms, ref _kinematicTargetTransforms,
+				ref _nonTransformableColliderTransforms, ref _kinematicColliderLookups, ref events,
+				ref InsideOfs, ref Balls, ref _bumperStates, ref _dropTargetStates, ref _flipperStates, ref _gateStates,
+				ref _hitTargetStates, ref _kickerStates, ref _magnetStates, ref _plungerStates, ref _spinnerStates,
+				ref _surfaceStates, ref _turntableStates, ref _triggerStates, ref _disabledCollisionItems, ref _swapBallCollisionHandling,
+				ref _elasticityLuts, ref _frictionLuts, ref KinematicVelocities);
+		}
+
+		public void Dispose()
+		{
+			Balls.Dispose();
+			KinematicTransforms.Dispose();
+			KinematicVelocities.Dispose();
+			InsideOfs.Dispose();
+			EventQueue.Dispose();
 		}
 	}
 }
