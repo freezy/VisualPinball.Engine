@@ -110,6 +110,9 @@ namespace VisualPinball.Unity
 			_kinematicTransformComponentsByItemId = new Dictionary<int, IKinematicTransformComponent>(kinematicTransformComponents?.Length ?? 0);
 			if (kinematicTransformComponents != null) {
 				foreach (var item in kinematicTransformComponents) {
+					if (_kinematicTransformComponentsByItemId.TryGetValue(item.ItemId, out var existing)) {
+						Logger.Warn($"[PhysicsEngine] Kinematic components {Describe(existing)} and {Describe(item)} resolve to the same item id {item.ItemId} (shared GameObject). Only one of them receives transform updates and their kinematic motion will conflict — move one to its own child GameObject.");
+					}
 					_kinematicTransformComponentsByItemId[item.ItemId] = item;
 				}
 			}
@@ -467,6 +470,9 @@ namespace VisualPinball.Unity
 		{
 			return _kinematicTransformComponentsByItemId.TryGetValue(itemId, out var item) ? item : null;
 		}
+
+		private static string Describe(IKinematicTransformComponent item)
+			=> item is UnityEngine.MonoBehaviour mb ? $"\"{mb.name}\" ({item.GetType().Name})" : item.GetType().Name;
 
 		/// <summary>
 		/// Copy current animation values from physics state maps into the
