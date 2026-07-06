@@ -295,6 +295,63 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void KinematicRefreshFollowsTransformOnlyWhenKinematicAndSeeded()
+		{
+			using var harness = new PhysicsStateHarness();
+			var state = harness.CreateState();
+			harness.KinematicTransforms.Add(1, float4x4.Translate(new float3(120f, 80f, 30f)));
+
+			var kinematic = new MagnetState { IsKinematic = true };
+			MagnetPhysics.RefreshKinematicState(1, ref kinematic, ref state);
+			Assert.That(kinematic.Position, Is.EqualTo(new float2(120f, 80f)));
+			Assert.That(kinematic.Height, Is.EqualTo(30f).Within(1e-5f));
+
+			var nonKinematic = new MagnetState { Position = new float2(5f, 5f) };
+			MagnetPhysics.RefreshKinematicState(1, ref nonKinematic, ref state);
+			Assert.That(nonKinematic.Position, Is.EqualTo(new float2(5f, 5f)), "non-kinematic magnets must not follow the transform");
+
+			var unseeded = new MagnetState { IsKinematic = true, Position = new float2(5f, 5f) };
+			MagnetPhysics.RefreshKinematicState(99, ref unseeded, ref state);
+			Assert.That(unseeded.Position, Is.EqualTo(new float2(5f, 5f)), "unseeded items must keep their baked position");
+		}
+
+		[Test]
+		public void KinematicRefreshDerivesVelocityFromStateMaps()
+		{
+			using var harness = new PhysicsStateHarness();
+			var state = harness.CreateState();
+			harness.KinematicTransforms.Add(1, float4x4.Translate(new float3(120f, 80f, 30f)));
+			harness.KinematicVelocities.Add(1, new KinematicVelocityState {
+				LinearVelocity = new float3(2f, -1f, 0f),
+				Pivot = new float3(120f, 80f, 30f)
+			});
+
+			var magnet = new MagnetState { IsKinematic = true };
+			var velocity = MagnetPhysics.RefreshKinematicState(1, ref magnet, ref state);
+
+			Assert.That(velocity.x, Is.EqualTo(2f).Within(1e-5f));
+			Assert.That(velocity.y, Is.EqualTo(-1f).Within(1e-5f));
+		}
+
+		[Test]
+		public void KinematicRefreshSubstitutesStepVelocityDuringCatchUp()
+		{
+			using var harness = new PhysicsStateHarness();
+			var state = harness.CreateState();
+			harness.KinematicTransforms.Add(1, float4x4.Translate(new float3(120f, 80f, 30f)));
+			harness.KinematicVelocities.Add(1, new KinematicVelocityState {
+				LinearVelocity = new float3(1f, 0f, 0f),
+				StepVelocity = new float3(3f, 0f, 0f),
+				Pivot = new float3(120f, 80f, 30f)
+			});
+
+			var magnet = new MagnetState { IsKinematic = true };
+			var velocity = MagnetPhysics.RefreshKinematicState(1, ref magnet, ref state);
+
+			Assert.That(velocity.x, Is.EqualTo(3f).Within(1e-5f), "rate-limited catch-up must expose the step rate");
+		}
+
+		[Test]
 		public void PlanarEjectAddsCarrierVelocity()
 		{
 			var ball = CreateBall();
