@@ -67,7 +67,10 @@ namespace VisualPinball.Unity.Editor
 
 			EditorGUILayout.Space(8f);
 			PropertyField(_isEnabledOnStartProperty);
-			PropertyField(_isKinematicProperty);
+			// kinematic registration is fixed at startup; toggling during play would silently do nothing
+			using (new EditorGUI.DisabledScope(Application.isPlaying)) {
+				PropertyField(_isKinematicProperty);
+			}
 			PropertyField(_drawDebugForcesProperty);
 
 			base.OnInspectorGUI();
