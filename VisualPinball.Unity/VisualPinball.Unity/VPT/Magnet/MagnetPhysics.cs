@@ -308,23 +308,8 @@ namespace VisualPinball.Unity
 
 		private static float2 GetKinematicVelocity(int itemId, in MagnetState magnet, ref PhysicsState state)
 		{
-			if (!state.KinematicVelocities.TryGetValue(itemId, out var velocity)) {
-				return float2.zero;
-			}
-
-			var linear = velocity.LinearVelocity;
-			var angular = velocity.AngularVelocity;
-			if (math.lengthsq(velocity.StepVelocity) > math.lengthsq(linear)
-			    || math.lengthsq(velocity.StepAngularVelocity) > math.lengthsq(angular)) {
-				linear = velocity.StepVelocity;
-				angular = velocity.StepAngularVelocity;
-			}
-			if (math.lengthsq(linear) < 1e-8f && math.lengthsq(angular) < 1e-8f) {
-				return float2.zero;
-			}
-
 			var position = new float3(magnet.Position.x, magnet.Position.y, magnet.Height);
-			return (linear + math.cross(angular, position - velocity.Pivot)).xy;
+			return state.GetKinematicVelocityAt(itemId, position).xy;
 		}
 
 		private static void ReleaseGrabbedBall(int itemId, ref MagnetState magnet, ref PhysicsState state, int ballId)
