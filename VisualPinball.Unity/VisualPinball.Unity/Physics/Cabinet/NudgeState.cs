@@ -141,7 +141,7 @@ namespace VisualPinball.Unity
 			config.Strength = math.clamp(config.Strength, 0f, 2f);
 			config.CabinetMassKg = math.clamp(config.CabinetMassKg <= 0f ? 113f : config.CabinetMassKg, 0f, 200f);
 			config.MountRotation = NudgeSensorMountTransform.NormalizeRotation(config.MountRotation);
-			SetSensor(index, new NudgeSensorState(config));
+			ConfigureSensorState(index, config);
 			if (index >= SensorCount) {
 				SensorCount = index + 1;
 			}
@@ -155,9 +155,7 @@ namespace VisualPinball.Unity
 			if ((uint)sensorIndex >= SensorCount) {
 				return;
 			}
-			var sensor = GetSensor(sensorIndex);
-			sensor.ApplySample(channel, value, timestampUsec);
-			SetSensor(sensorIndex, sensor);
+			ApplySensorSampleTo(sensorIndex, channel, value, timestampUsec);
 		}
 
 		/// <summary>
@@ -176,9 +174,9 @@ namespace VisualPinball.Unity
 				CabinetAcceleration = Keyboard.CabinetAcceleration;
 				CabinetOffset = Keyboard.CabinetOffset;
 				ActiveSourceIndex = -1;
-			} else if (TryGetActiveSensor(out var activeSensorIndex, out var activeSensor)) {
-				CabinetAcceleration = activeSensor.CabinetAcceleration;
-				CabinetOffset = activeSensor.CabinetOffset;
+			} else if (TryGetActiveSensor(out var activeSensorIndex, out var sensorAcceleration, out var sensorOffset)) {
+				CabinetAcceleration = sensorAcceleration;
+				CabinetOffset = sensorOffset;
 				ActiveSourceIndex = activeSensorIndex;
 			} else {
 				CabinetAcceleration = float2.zero;
@@ -214,9 +212,7 @@ namespace VisualPinball.Unity
 			if (index >= SensorCount) {
 				return;
 			}
-			var sensor = GetSensor(index);
-			sensor.StepOneMillisecond();
-			SetSensor(index, sensor);
+			StepSensorState(index);
 		}
 
 		/// <summary>
@@ -227,40 +223,62 @@ namespace VisualPinball.Unity
 		/// supersedes an older device that is still ringing down. Equal timestamps
 		/// fall back to the stronger cabinet motion.
 		/// </remarks>
-		private bool TryGetActiveSensor(out int index, out NudgeSensorState sensor)
+		private bool TryGetActiveSensor(out int index, out float2 cabinetAcceleration, out float2 cabinetOffset)
 		{
 			var bestScore = -1f;
 			var bestActivityTimestampUsec = 0UL;
 			index = -2;
-			sensor = default;
+			cabinetAcceleration = float2.zero;
+			cabinetOffset = float2.zero;
 
-			for (var i = 0; i < SensorCount; i++) {
-				var candidate = GetSensor(i);
-				if (!candidate.IsActive) {
-					continue;
-				}
-				var score = SensorActivityScore(candidate);
-				if (index >= 0) {
-					if (candidate.LastActivityTimestampUsec < bestActivityTimestampUsec) {
-						continue;
-					}
-					if (candidate.LastActivityTimestampUsec == bestActivityTimestampUsec && score <= bestScore) {
-						continue;
-					}
-				}
-				bestScore = score;
-				bestActivityTimestampUsec = candidate.LastActivityTimestampUsec;
-				index = i;
-				sensor = candidate;
+			if (SensorCount > 0) {
+				ConsiderActiveSensor(0, ref Sensor0, ref index, ref bestScore, ref bestActivityTimestampUsec,
+					ref cabinetAcceleration, ref cabinetOffset);
+			}
+			if (SensorCount > 1) {
+				ConsiderActiveSensor(1, ref Sensor1, ref index, ref bestScore, ref bestActivityTimestampUsec,
+					ref cabinetAcceleration, ref cabinetOffset);
+			}
+			if (SensorCount > 2) {
+				ConsiderActiveSensor(2, ref Sensor2, ref index, ref bestScore, ref bestActivityTimestampUsec,
+					ref cabinetAcceleration, ref cabinetOffset);
+			}
+			if (SensorCount > 3) {
+				ConsiderActiveSensor(3, ref Sensor3, ref index, ref bestScore, ref bestActivityTimestampUsec,
+					ref cabinetAcceleration, ref cabinetOffset);
 			}
 			return index >= 0;
+		}
+
+		private static void ConsiderActiveSensor(int candidateIndex, ref NudgeSensorState candidate, ref int bestIndex,
+			ref float bestScore, ref ulong bestActivityTimestampUsec, ref float2 cabinetAcceleration, ref float2 cabinetOffset)
+		{
+			if (!candidate.IsActive) {
+				return;
+			}
+
+			var score = SensorActivityScore(ref candidate);
+			if (bestIndex >= 0) {
+				if (candidate.LastActivityTimestampUsec < bestActivityTimestampUsec) {
+					return;
+				}
+				if (candidate.LastActivityTimestampUsec == bestActivityTimestampUsec && score <= bestScore) {
+					return;
+				}
+			}
+
+			bestScore = score;
+			bestActivityTimestampUsec = candidate.LastActivityTimestampUsec;
+			bestIndex = candidateIndex;
+			cabinetAcceleration = candidate.CabinetAcceleration;
+			cabinetOffset = candidate.CabinetOffset;
 		}
 
 		/// <summary>
 		/// Scores active sensors by physical output rather than raw input, so intent
 		/// and direct sensors can be compared fairly.
 		/// </summary>
-		private static float SensorActivityScore(NudgeSensorState sensor)
+		private static float SensorActivityScore(ref NudgeSensorState sensor)
 		{
 			var accelerationScore = math.lengthsq(sensor.CabinetAcceleration);
 			return accelerationScore > 1.0e-9f ? accelerationScore : math.lengthsq(sensor.CabinetOffset);
@@ -268,36 +286,72 @@ namespace VisualPinball.Unity
 
 		private void DisableSensor(int index)
 		{
-			var sensor = GetSensor(index);
-			sensor.Disable();
-			SetSensor(index, sensor);
+			switch (index) {
+				case 0:
+					Sensor0.Disable();
+					break;
+				case 1:
+					Sensor1.Disable();
+					break;
+				case 2:
+					Sensor2.Disable();
+					break;
+				case 3:
+					Sensor3.Disable();
+					break;
+			}
 		}
 
-		private NudgeSensorState GetSensor(int index)
-		{
-			return index switch {
-				0 => Sensor0,
-				1 => Sensor1,
-				2 => Sensor2,
-				3 => Sensor3,
-				_ => default
-			};
-		}
-
-		private void SetSensor(int index, NudgeSensorState sensor)
+		private void ConfigureSensorState(int index, NudgeSensorRuntimeConfig config)
 		{
 			switch (index) {
 				case 0:
-					Sensor0 = sensor;
+					Sensor0 = new NudgeSensorState(config);
 					break;
 				case 1:
-					Sensor1 = sensor;
+					Sensor1 = new NudgeSensorState(config);
 					break;
 				case 2:
-					Sensor2 = sensor;
+					Sensor2 = new NudgeSensorState(config);
 					break;
 				case 3:
-					Sensor3 = sensor;
+					Sensor3 = new NudgeSensorState(config);
+					break;
+			}
+		}
+
+		private void ApplySensorSampleTo(int index, NudgeSensorChannel channel, float value, ulong timestampUsec)
+		{
+			switch (index) {
+				case 0:
+					Sensor0.ApplySample(channel, value, timestampUsec);
+					break;
+				case 1:
+					Sensor1.ApplySample(channel, value, timestampUsec);
+					break;
+				case 2:
+					Sensor2.ApplySample(channel, value, timestampUsec);
+					break;
+				case 3:
+					Sensor3.ApplySample(channel, value, timestampUsec);
+					break;
+			}
+		}
+
+		private void StepSensorState(int index)
+		{
+			switch (index) {
+				case 0:
+					Sensor0.StepOneMillisecond();
+					break;
+				case 1:
+					Sensor1.StepOneMillisecond();
+					break;
+				case 2:
+					Sensor2.StepOneMillisecond();
+					break;
+				case 3:
+					Sensor3.StepOneMillisecond();
 					break;
 			}
 		}

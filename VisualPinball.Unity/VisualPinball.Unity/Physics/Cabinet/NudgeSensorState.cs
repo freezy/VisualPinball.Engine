@@ -394,7 +394,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			var restThreshold = sensor.Sensor.Kind == SensorMappingKind.Acceleration ? 0.020f : 0.002f;
+			var restThreshold = sensor.Sensor.Kind == SensorMappingKind.Acceleration ? 0.1000f : 0.0010f;
 			if (math.abs(sensor.Sensor.Value) < restThreshold) {
 				sensor.RestCount++;
 				if (sensor.ForceRest != 0) {

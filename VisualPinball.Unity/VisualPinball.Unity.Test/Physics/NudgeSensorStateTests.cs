@@ -39,6 +39,27 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void KalmanRewindsForOutOfOrderMeasurements()
+		{
+			var chronological = MotionKalmanAxis.Default;
+			chronological.UpdateAcceleration(1000, 0.5f);
+			chronological.UpdateVelocity(2000, 0.04f);
+			chronological.PredictTo(5000);
+
+			var delayed = MotionKalmanAxis.Default;
+			delayed.UpdateAcceleration(1000, 0.5f);
+			delayed.PredictTo(5000);
+			delayed.UpdateVelocity(2000, 0.04f);
+
+			Assert.That(delayed.TimeUs, Is.EqualTo(chronological.TimeUs));
+			Assert.That(delayed.Position, Is.EqualTo(chronological.Position).Within(1.0e-6f));
+			Assert.That(delayed.Velocity, Is.EqualTo(chronological.Velocity).Within(1.0e-6f));
+			Assert.That(delayed.Acceleration, Is.EqualTo(chronological.Acceleration).Within(1.0e-6f));
+			Assert.That(delayed.VelocityBias, Is.EqualTo(chronological.VelocityBias).Within(1.0e-6f));
+			Assert.That(delayed.AccelerationBias, Is.EqualTo(chronological.AccelerationBias).Within(1.0e-6f));
+		}
+
+		[Test]
 		public void GainCalibratorConvergesAcrossMotionSegments()
 		{
 			var calibrator = MotionGainCalibratorAxis.Default;

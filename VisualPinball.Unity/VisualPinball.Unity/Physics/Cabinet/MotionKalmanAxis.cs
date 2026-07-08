@@ -30,7 +30,7 @@ namespace VisualPinball.Unity
 	/// five-state filter lets VPE fuse those measurements while keeping estimated
 	/// sensor bias separate from physical cabinet motion.
 	/// </remarks>
-	public struct MotionKalmanAxis
+	public unsafe struct MotionKalmanAxis
 	{
 		private const int StatePosition = 0;
 		private const int StateVelocity = 1;
@@ -38,6 +38,11 @@ namespace VisualPinball.Unity
 		private const int StateVelocityBias = 3;
 		private const int StateAccelerationBias = 4;
 		private const int StateCount = 5;
+		// Keep the C# port's rewind history modest: nudge state lives inside
+		// value-type simulation structs, so a C++-sized buffer makes routine state
+		// copies too large for some managed call sites.
+		private const int MaxHistoryCapacity = 16;
+		private const int HistoryCovarianceStride = StateCount * StateCount;
 
 		/// <summary>
 		/// Filter covariance and timing parameters.
@@ -60,6 +65,7 @@ namespace VisualPinball.Unity
 			public float BiasMeanReversionTimeS;
 			public float MinDt;
 			public float MaxDt;
+			public int HistoryCapacity;
 
 			public static Config Default => new() {
 				ProcessJerkVariance = 800.0f,
@@ -77,7 +83,8 @@ namespace VisualPinball.Unity
 				InitialAccelerationBiasVariance = 0.01f,
 				BiasMeanReversionTimeS = 5.0f,
 				MinDt = 1.0e-6f,
-				MaxDt = 0.001f
+				MaxDt = 0.001f,
+				HistoryCapacity = MaxHistoryCapacity
 			};
 		}
 
@@ -86,17 +93,19 @@ namespace VisualPinball.Unity
 		private ulong _timeUs;
 		private Vector5f _state;
 		private Matrix5f _covariance;
+		private fixed ulong _historyTimeUs[MaxHistoryCapacity];
+		private fixed float _historyState[MaxHistoryCapacity * StateCount];
+		private fixed float _historyCovariance[MaxHistoryCapacity * HistoryCovarianceStride];
+		private int _historyHead;
+		private int _historyCount;
 
 		/// <summary>
 		/// Creates an uninitialized filter using the supplied covariance settings.
 		/// </summary>
 		public MotionKalmanAxis(Config config)
 		{
+			this = default;
 			_config = config;
-			_initialized = 0;
-			_timeUs = 0;
-			_state = default;
-			_covariance = default;
 			_state.SetZero();
 			_covariance.SetZero();
 		}
@@ -139,6 +148,9 @@ namespace VisualPinball.Unity
 			_covariance[StateAcceleration, StateAcceleration] = _config.InitialAccelerationVariance;
 			_covariance[StateVelocityBias, StateVelocityBias] = _config.InitialVelocityBiasVariance;
 			_covariance[StateAccelerationBias, StateAccelerationBias] = _config.InitialAccelerationBiasVariance;
+			_historyHead = 0;
+			_historyCount = 0;
+			SaveSnapshot();
 		}
 
 		/// <summary>
@@ -159,6 +171,19 @@ namespace VisualPinball.Unity
 		public void PredictTo(ulong timeUs)
 		{
 			if (!IsInitialized || timeUs <= _timeUs) {
+				return;
+			}
+
+			SaveSnapshot();
+			PredictInternal(timeUs);
+		}
+
+		/// <summary>
+		/// Advances the prediction model without recording a rewind snapshot.
+		/// </summary>
+		private void PredictInternal(ulong timeUs)
+		{
+			if (timeUs <= _timeUs) {
 				return;
 			}
 
@@ -184,14 +209,14 @@ namespace VisualPinball.Unity
 			if (!IsInitialized) {
 				Reset(timeUs, 0f, 0f, 0f, velocity, 0f);
 				_covariance[StateVelocityBias, StateVelocityBias] = _config.VelocityMeasurementVariance;
+				UpdateLatestSnapshot();
 				return;
 			}
 
-			PredictTo(timeUs);
 			var h = Vector5f.Zero;
 			h[StateVelocity] = 1f;
 			h[StateVelocityBias] = 1f;
-			UpdateScalarMeasurement(h, velocity, _config.VelocityMeasurementVariance);
+			UpdateScalarMeasurementAt(timeUs, h, velocity, _config.VelocityMeasurementVariance);
 		}
 
 		/// <summary>
@@ -207,14 +232,14 @@ namespace VisualPinball.Unity
 			if (!IsInitialized) {
 				Reset(timeUs, 0f, 0f, 0f, 0f, acceleration);
 				_covariance[StateAccelerationBias, StateAccelerationBias] = _config.AccelerationMeasurementVariance;
+				UpdateLatestSnapshot();
 				return;
 			}
 
-			PredictTo(timeUs);
 			var h = Vector5f.Zero;
 			h[StateAcceleration] = 1f;
 			h[StateAccelerationBias] = 1f;
-			UpdateScalarMeasurement(h, acceleration, _config.AccelerationMeasurementVariance);
+			UpdateScalarMeasurementAt(timeUs, h, acceleration, _config.AccelerationMeasurementVariance);
 		}
 
 		/// <summary>
@@ -232,22 +257,56 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			PredictTo(timeUs);
-
 			if (applyVelocityConstraint) {
 				var h = Vector5f.Zero;
 				h[StateVelocity] = 1f;
-				UpdateScalarMeasurement(h, 0f, _config.ZeroVelocityMeasurementVariance);
+				UpdateScalarMeasurementAt(timeUs, h, 0f, _config.ZeroVelocityMeasurementVariance);
 			}
 			if (applyAccelerationConstraint) {
 				var h = Vector5f.Zero;
 				h[StateAcceleration] = 1f;
-				UpdateScalarMeasurement(h, 0f, _config.ZeroAccelerationMeasurementVariance);
+				UpdateScalarMeasurementAt(timeUs, h, 0f, _config.ZeroAccelerationMeasurementVariance);
 			}
 			if (applyPositionConstraint) {
 				var h = Vector5f.Zero;
 				h[StatePosition] = 1f;
-				UpdateScalarMeasurement(h, 0f, _config.ZeroPositionMeasurementVariance);
+				UpdateScalarMeasurementAt(timeUs, h, 0f, _config.ZeroPositionMeasurementVariance);
+			}
+		}
+
+		/// <summary>
+		/// Applies a measurement at its acquisition timestamp, rewinding when a
+		/// delayed sample arrives after the filter has already predicted forward.
+		/// </summary>
+		/// <remarks>
+		/// Ported from VP's rewind support in <c>MotionKalmanAxis.h</c>. Native
+		/// input is sampled on a different thread than physics, so samples can reach
+		/// the simulation thread slightly out of order. Replaying from the nearest
+		/// saved snapshot keeps late samples from being applied to the wrong state.
+		/// </remarks>
+		private void UpdateScalarMeasurementAt(ulong timeUs, Vector5f h, float measurement, float measurementVariance)
+		{
+			if (timeUs >= _timeUs) {
+				if (timeUs > _timeUs) {
+					PredictTo(timeUs);
+				}
+				UpdateScalarMeasurement(h, measurement, measurementVariance);
+				return;
+			}
+
+			var presentUs = _timeUs;
+			if (!RestoreSnapshot(timeUs)) {
+				UpdateScalarMeasurement(h, measurement, measurementVariance);
+			} else {
+				if (_timeUs < timeUs) {
+					PredictInternal(timeUs);
+				}
+				UpdateScalarMeasurement(h, measurement, measurementVariance);
+			}
+
+			if (_timeUs < presentUs) {
+				SaveSnapshot();
+				PredictInternal(presentUs);
 			}
 		}
 
@@ -361,6 +420,152 @@ namespace VisualPinball.Unity
 			var krKt = OuterProduct(k, k, measurementVariance);
 			_covariance = Add(apAt, krKt);
 			Symmetrize(ref _covariance);
+		}
+
+		private int EffectiveHistoryCapacity()
+		{
+			if (_config.HistoryCapacity <= 0) {
+				return MaxHistoryCapacity;
+			}
+			return _config.HistoryCapacity > MaxHistoryCapacity ? MaxHistoryCapacity : _config.HistoryCapacity;
+		}
+
+		/// <summary>
+		/// Saves the current state before predicting forward, giving late samples a
+		/// point from which the filter can replay.
+		/// </summary>
+		private void SaveSnapshot()
+		{
+			var cap = EffectiveHistoryCapacity();
+			if (_historyHead >= cap || _historyCount > cap) {
+				_historyHead = 0;
+				_historyCount = 0;
+			}
+
+			var slot = _historyHead;
+			fixed (ulong* historyTimeUs = _historyTimeUs)
+			fixed (float* historyState = _historyState)
+			fixed (float* historyCovariance = _historyCovariance) {
+				historyTimeUs[slot] = _timeUs;
+				var stateOffset = slot * StateCount;
+				for (var i = 0; i < StateCount; i++) {
+					historyState[stateOffset + i] = _state[i];
+				}
+
+				var covarianceOffset = slot * HistoryCovarianceStride;
+				for (var row = 0; row < StateCount; row++) {
+					for (var column = 0; column < StateCount; column++) {
+						historyCovariance[covarianceOffset + row * StateCount + column] = _covariance[row, column];
+					}
+				}
+			}
+
+			_historyHead = (_historyHead + 1) % cap;
+			if (_historyCount < cap) {
+				_historyCount++;
+			}
+		}
+
+		/// <summary>
+		/// Updates the snapshot created by <see cref="Reset"/> after initialization
+		/// has tightened a bias covariance from the first measured sample.
+		/// </summary>
+		private void UpdateLatestSnapshot()
+		{
+			if (_historyCount == 0) {
+				return;
+			}
+
+			var cap = EffectiveHistoryCapacity();
+			if (_historyHead >= cap) {
+				return;
+			}
+
+			var slot = PositiveMod(_historyHead - 1, cap);
+			fixed (float* historyState = _historyState)
+			fixed (float* historyCovariance = _historyCovariance) {
+				var stateOffset = slot * StateCount;
+				for (var i = 0; i < StateCount; i++) {
+					historyState[stateOffset + i] = _state[i];
+				}
+
+				var covarianceOffset = slot * HistoryCovarianceStride;
+				for (var row = 0; row < StateCount; row++) {
+					for (var column = 0; column < StateCount; column++) {
+						historyCovariance[covarianceOffset + row * StateCount + column] = _covariance[row, column];
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// Restores the latest saved state at or before the requested timestamp.
+		/// </summary>
+		private bool RestoreSnapshot(ulong targetUs)
+		{
+			var cap = EffectiveHistoryCapacity();
+			if (_historyCount <= 0 || _historyHead >= cap) {
+				return false;
+			}
+
+			var count = _historyCount > cap ? cap : _historyCount;
+			var bestSlot = -1;
+			var bestTimeUs = 0UL;
+
+			fixed (ulong* historyTimeUs = _historyTimeUs)
+			fixed (float* historyState = _historyState)
+			fixed (float* historyCovariance = _historyCovariance) {
+				for (var i = 0; i < count; i++) {
+					var slot = PositiveMod(_historyHead - 1 - i, cap);
+					var snapshotTimeUs = historyTimeUs[slot];
+					if (snapshotTimeUs <= targetUs) {
+						bestSlot = slot;
+						bestTimeUs = snapshotTimeUs;
+						break;
+					}
+				}
+
+				if (bestSlot == -1) {
+					bestSlot = PositiveMod(_historyHead - count, cap);
+					bestTimeUs = historyTimeUs[bestSlot];
+				}
+
+				var stateOffset = bestSlot * StateCount;
+				_state.Set(
+					historyState[stateOffset + StatePosition],
+					historyState[stateOffset + StateVelocity],
+					historyState[stateOffset + StateAcceleration],
+					historyState[stateOffset + StateVelocityBias],
+					historyState[stateOffset + StateAccelerationBias]);
+
+				var covarianceOffset = bestSlot * HistoryCovarianceStride;
+				for (var row = 0; row < StateCount; row++) {
+					for (var column = 0; column < StateCount; column++) {
+						_covariance[row, column] = historyCovariance[covarianceOffset + row * StateCount + column];
+					}
+				}
+			}
+
+			_timeUs = bestTimeUs;
+
+			var keepCount = 0;
+			for (var i = 0; i < count; i++) {
+				var slot = PositiveMod(_historyHead - count + i, cap);
+				keepCount = i + 1;
+				if (slot == bestSlot) {
+					break;
+				}
+			}
+
+			_historyCount = keepCount;
+			_historyHead = (bestSlot + 1) % cap;
+			return true;
+		}
+
+		private static int PositiveMod(int value, int modulo)
+		{
+			var result = value % modulo;
+			return result < 0 ? result + modulo : result;
 		}
 
 		private struct Vector5f
