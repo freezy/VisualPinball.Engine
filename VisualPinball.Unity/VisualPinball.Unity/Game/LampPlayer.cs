@@ -91,11 +91,11 @@ namespace VisualPinball.Unity
 						// turn off non-rgb lamps, turn on rgb lamps, but set to channel to 0
 
 						if (lampMapping.Type != LampType.RgbMulti) {
-							HandleLampEvent(lampMapping.Id, LampStatus.Off);
+							HandleLampEvent(lampMapping.Id, LampStatus.Off, lampMapping.Source);
 						}
 						else {
-							HandleLampEvent(lampMapping.Id, LampStatus.On);
-							HandleLampEvent(lampMapping.Id, 0f);
+							HandleLampEvent(lampMapping.Id, LampStatus.On, lampMapping.Source);
+							HandleLampEvent(lampMapping.Id, 0f, lampMapping.Source);
 						}
 					}
 				}
@@ -144,16 +144,26 @@ namespace VisualPinball.Unity
 
 		public void HandleLampEvent(string id, LampStatus status)
 		{
+			HandleLampEvent(id, status, LampSource.Lamp);
+		}
+
+		public void HandleLampEvent(string id, LampStatus status, LampSource source)
+		{
 			LampAction action = default;
-			if (Apply(id, LampSource.Lamp, false, ref action)) {
+			if (Apply(id, source, false, ref action)) {
 				ApplyStatus(id, status, action.State, action.Lamp);
 			}
 		}
 
 		public void HandleLampEvent(string id, Color color)
 		{
+			HandleLampEvent(id, color, LampSource.Lamp);
+		}
+
+		public void HandleLampEvent(string id, Color color, LampSource source)
+		{
 			LampAction action = default;
-			if (Apply(id, LampSource.Lamp, false, ref action)) {
+			if (Apply(id, source, false, ref action)) {
 				ApplyColor(id, color, action.State, action.Lamp);
 			}
 		}

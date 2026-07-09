@@ -203,7 +203,9 @@ namespace VisualPinball.Unity
 		public void SetLamp(string lampId, float value) => _lampPlayer.HandleLampEvent(lampId, value);
 		public void SetLamp(string lampId, float value, LampSource source) => _lampPlayer.HandleLampEvent(lampId, value, source);
 		public void SetLamp(string lampId, LampStatus status) => _lampPlayer.HandleLampEvent(lampId, status);
+		public void SetLamp(string lampId, LampStatus status, LampSource source) => _lampPlayer.HandleLampEvent(lampId, status, source);
 		public void SetLamp(string lampId, Color color) => _lampPlayer.HandleLampEvent(lampId, color);
+		public void SetLamp(string lampId, Color color, LampSource source) => _lampPlayer.HandleLampEvent(lampId, color, source);
 
 		#endregion
 

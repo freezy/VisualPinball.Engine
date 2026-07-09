@@ -20,7 +20,6 @@ using System.Linq;
 using NLog;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using VisualPinball.Unity.Simulation;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
@@ -256,10 +255,8 @@ namespace VisualPinball.Unity
 
 		private void HandleKeyInput(object obj, InputActionChange change)
 		{
-			if (NativeInputManager.TryGetExistingInstance()?.IsPolling == true) {
-				return;
-			}
-
+			// Native polling dispatches cabinet switches on the simulation thread, but it does not
+			// dispatch direct Wire Manager connections. Keep those on the Unity Input System path.
 			switch (change) {
 				case InputActionChange.ActionStarted:
 				case InputActionChange.ActionCanceled:
