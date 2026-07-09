@@ -30,7 +30,6 @@ namespace VisualPinball.Unity
 		private const float PhysicalMinimumPoleRadius = 1f;
 		private const float AnnularPoleKernelNormalization = 3.864f;
 		private const float PhysicalVelocityDamping = 0.02f;
-		private const float PhysicalMinimumHoldStrength = 1f;
 		private const float MinEffectiveCurrent = 0.0001f;
 
 		[BurstCompile]
@@ -282,8 +281,11 @@ namespace VisualPinball.Unity
 		{
 			var offset = ball.Position - Center3D(in magnet);
 			var relativeVelocity = ball.Velocity - magnetVelocity;
-			var holdStrength = math.max(math.abs(magnet.EffectiveStrength), PhysicalMinimumHoldStrength);
-			var holdRadius = math.max(magnet.GrabRadius, PhysicalMinimumPoleRadius);
+			var holdStrength = math.abs(magnet.EffectiveStrength);
+			if (holdStrength <= MinDistance) {
+				return;
+			}
+			var holdRadius = math.max(magnet.GrabRadius, math.max(magnet.PoleRadius, PhysicalMinimumPoleRadius));
 			var stiffness = holdStrength / holdRadius;
 			var damping = 2f * math.sqrt(stiffness);
 			var impulse = (-offset * stiffness - relativeVelocity * damping) * physicsDiffTime;
@@ -304,8 +306,11 @@ namespace VisualPinball.Unity
 			var offset = ball.Position.xy - magnet.Position;
 			var velocity = ball.Velocity.xy;
 			var relativeVelocity = velocity - magnetVelocity;
-			var holdStrength = math.max(math.abs(magnet.EffectiveStrength), PhysicalMinimumHoldStrength);
-			var holdRadius = math.max(magnet.GrabRadius, PhysicalMinimumPoleRadius);
+			var holdStrength = math.abs(magnet.EffectiveStrength);
+			if (holdStrength <= MinDistance) {
+				return;
+			}
+			var holdRadius = math.max(magnet.GrabRadius, math.max(magnet.PoleRadius, PhysicalMinimumPoleRadius));
 			var stiffness = holdStrength / holdRadius;
 			var damping = 2f * math.sqrt(stiffness);
 			var impulse = (-offset * stiffness - relativeVelocity * damping) * physicsDiffTime;
@@ -394,12 +399,16 @@ namespace VisualPinball.Unity
 
 			var bitIndex = state.InsideOfs.GetOrCreateBitIndex(ball.Id);
 			var isGrabbed = magnet.GrabbedBalls.IsSet(bitIndex);
+			var usesPhysicalCapture = UsesPhysicalResponse(in magnet);
 			var distanceSq = magnet.MagnetType == MagnetType.Spatial
 				? math.lengthsq(ball.Position - Center3D(in magnet))
 				: math.lengthsq(ball.Position.xy - magnet.Position);
+			var hasGrabForce = usesPhysicalCapture
+				? math.abs(magnet.EffectiveStrength) > MinDistance
+				: magnet.EffectiveStrength > 0f;
 			var isInGrabRange = magnet.GrabRadius > 0f &&
-				                    math.abs(magnet.EffectiveStrength) > MinDistance &&
-			                    distanceSq <= magnet.GrabRadius * magnet.GrabRadius;
+				                    hasGrabForce &&
+				                    distanceSq <= magnet.GrabRadius * magnet.GrabRadius;
 
 			if (!isInGrabRange) {
 				magnet.ReleasedBalls.SetBits(bitIndex, false);
@@ -414,6 +423,9 @@ namespace VisualPinball.Unity
 			}
 
 			if (!isGrabbed) {
+				if (usesPhysicalCapture && !CanCapturePhysical(in ball, in magnet, distanceSq, magnetVelocity)) {
+					return false;
+				}
 				magnet.GrabbedBalls.SetBits(bitIndex, true);
 				state.EventQueue.Enqueue(new EventData(EventId.MagnetEventsBallGrabbed, itemId, ball.Id, true));
 			}
@@ -433,6 +445,21 @@ namespace VisualPinball.Unity
 					break;
 			}
 			return true;
+		}
+
+		/// <summary>
+		/// A physical grab starts only when the available hold acceleration can arrest
+		/// relative motion before the ball crosses the remaining grab volume.
+		/// </summary>
+		internal static bool CanCapturePhysical(in BallState ball, in MagnetState magnet, float distanceSq, float3 magnetVelocity)
+		{
+			var distance = math.sqrt(math.max(0f, distanceSq));
+			var remainingDistance = math.max(0f, magnet.GrabRadius - distance);
+			var relativeSpeedSq = magnet.MagnetType == MagnetType.Spatial
+				? math.lengthsq(ball.Velocity - magnetVelocity)
+				: math.lengthsq(ball.Velocity.xy - magnetVelocity.xy);
+			var availableAcceleration = math.abs(magnet.EffectiveStrength);
+			return relativeSpeedSq <= 2f * availableAcceleration * remainingDistance;
 		}
 
 		/// <summary>

@@ -27,7 +27,7 @@ The selected object shows a radius gizmo in the scene view. Playfield magnets dr
 | **Coil Rise Time** | Electrical rise time constant in milliseconds for Physical and Spatial magnets. Current reaches about 63% after one time constant. |
 | **Coil Fall Time** | Electrical decay time constant in milliseconds for Physical and Spatial magnets. Tune this to the coil driver and flyback circuit. |
 | **Grab Ball** | Enables center hold behavior inside the grab radius. |
-| **Grab Radius** | Radius where the magnet starts holding the ball. VPX Compatible playfield mode clamps to center; Physical playfield mode uses a spring-damper hold; Spatial mode uses a 3-D spring-damper hold that a hard hit can overcome. |
+| **Grab Radius** | Capture volume for grab mode. VPX Compatible snaps on entry. Physical and Spatial magnets capture only when the current field can arrest the ball before it leaves this volume, then use a spring-damper hold that a hard hit can overcome. |
 | **Is Enabled On Start** | Starts the magnet on before a coil or script changes it. |
 | **Is Kinematic** | Moves the magnetic field with the GameObject transform during gameplay. Use this when the magnet is mounted on a moving mech. |
 | **Draw Debug Forces** | Draws play-mode force vectors for balls inside the radius. |
@@ -64,7 +64,7 @@ Use **Physical** for new VPE-authored tables. Its electrical response ramps towa
 
 Physical magnets always attract an ordinary steel pinball. Reversing coil polarity changes magnetic flux direction but not the direction of attraction. Use VPX Compatible when a legacy script intentionally uses negative strength as a fictional repelling force.
 
-Physical grab uses a capped spring-damper hold, so the ball visibly decelerates instead of snapping to the center.
+Physical grab uses a capped spring-damper hold, so the ball visibly decelerates instead of snapping to the center. Capture is based on relative speed, remaining grab distance, and effective field strength; a fast fly-by or weak PWM command does not become an artificial full-strength hold.
 
 Physical strength values are not VPX strength values. Start with a larger value than you would use in VPX Compatible mode and tune by watching ball speed and catch behavior in play mode.
 
@@ -74,7 +74,7 @@ Use **Magnet Type: Spatial** for mechanisms that physically carry the ball away 
 
 When **Grab Ball** is enabled, a ball inside **Grab Radius** is pulled to that 3-D hold point by a strong magnetic force and held there. The ball stays a live physics object throughout — it is not frozen — so it renders at its real position and other balls collide with it normally. If **Is Kinematic** is enabled and the GameObject moves during gameplay, the hold force drags the ball along in x, y, and z. Turning the coil off or calling `ReleaseBall()` simply drops the hold, and the ball continues with whatever velocity it has. `Eject(speed, angleDeg, verticalAngleDeg)` throws it directionally; the first angle uses the same convention as kickers, and the optional vertical angle lifts or drops the shot.
 
-Because the hold is a force rather than a rigid lock, a hard enough hit from another ball can overcome it and knock the ball loose (and that ball can in turn be grabbed). **Strength** sets how hard the magnet holds — a stronger magnet needs a harder hit to dislodge its ball. This is not a levitation model: use **Radius** and **Strength** to catch a nearby ball, not to pull one across the table or balance it far below the hold point.
+Because the hold is a force rather than a rigid lock, a hard enough hit from another ball can overcome it and knock the ball loose (and that ball can in turn be grabbed). A new ball is marked held only after the current field can arrest its relative motion inside **Grab Radius**. **Strength** sets how hard the magnet holds — a stronger magnet needs a harder hit to dislodge its ball. This is not a levitation model: use **Radius** and **Strength** to catch a nearby ball, not to pull one across the table or balance it far below the hold point.
 
 ## Turntable Setup
 
