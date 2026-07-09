@@ -144,42 +144,88 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void PhysicalForceSaturatesInsideCoreRadius()
+		public void PhysicalForcePeaksAroundFinitePoleAndDecays()
 		{
-			var nearBall = CreateBall();
-			var coreBall = CreateBall();
-			nearBall.Position = new float3(1f, 0f, 10f);
-			coreBall.Position = new float3(20f, 0f, 10f);
+			var axisBall = CreateBall();
+			var poleBall = CreateBall();
+			var farBall = CreateBall();
+			axisBall.Position = new float3(0f, 0f, 0f);
+			poleBall.Position = new float3(9f, 0f, 0f);
+			farBall.Position = new float3(60f, 0f, 0f);
 			var magnet = new MagnetState {
 				Position = float2.zero,
 				Radius = 100f,
 				Strength = 400f,
-				EffectiveStrength = 400f
+				EffectiveStrength = 400f,
+				PoleRadius = 20f
 			};
 
-			MagnetPhysics.ApplyPhysicalForce(ref nearBall, in magnet, 1f);
-			MagnetPhysics.ApplyPhysicalForce(ref coreBall, in magnet, 1f);
+			MagnetPhysics.ApplyPhysicalForce(ref axisBall, in magnet, 1f);
+			MagnetPhysics.ApplyPhysicalForce(ref poleBall, in magnet, 1f);
+			MagnetPhysics.ApplyPhysicalForce(ref farBall, in magnet, 1f);
 
-			Assert.That(nearBall.Velocity.x, Is.EqualTo(coreBall.Velocity.x).Within(1e-5f));
-			Assert.That(nearBall.Velocity.y, Is.EqualTo(0f).Within(1e-5f));
-			Assert.That(coreBall.Velocity.y, Is.EqualTo(0f).Within(1e-5f));
+			Assert.That(axisBall.Velocity.x, Is.EqualTo(0f), "lateral force is zero on the symmetry axis");
+			Assert.That(poleBall.Velocity.x, Is.LessThan(0f));
+			Assert.That(math.abs(poleBall.Velocity.x), Is.GreaterThan(math.abs(farBall.Velocity.x)));
 		}
 
 		[Test]
-		public void PhysicalForceRepelsWithNegativeStrength()
+		public void PhysicalForceWeakensWithAirGap()
+		{
+			var nearBall = CreateBall();
+			var highBall = CreateBall();
+			nearBall.Position = new float3(10f, 0f, 5f);
+			highBall.Position = new float3(10f, 0f, 40f);
+			var magnet = new MagnetState {
+				Position = float2.zero,
+				Height = 0f,
+				HeightRange = 100f,
+				Radius = 100f,
+				Strength = 400f,
+				EffectiveStrength = 400f,
+				PoleRadius = 20f
+			};
+
+			MagnetPhysics.ApplyPhysicalForce(ref nearBall, in magnet, 1f);
+			MagnetPhysics.ApplyPhysicalForce(ref highBall, in magnet, 1f);
+
+			Assert.That(math.abs(nearBall.Velocity.x), Is.GreaterThan(math.abs(highBall.Velocity.x)));
+		}
+
+		[Test]
+		public void PhysicalForceAttractsWithNegativeAuthoredStrength()
 		{
 			var ball = CreateBall();
 			var magnet = new MagnetState {
 				Position = float2.zero,
 				Radius = 100f,
 				Strength = -400f,
-				EffectiveStrength = -400f
+				EffectiveStrength = -400f,
+				PoleRadius = 20f
 			};
 
 			MagnetPhysics.ApplyPhysicalForce(ref ball, in magnet, 1f);
 
-			Assert.That(ball.Velocity.x, Is.GreaterThan(0f));
+			Assert.That(ball.Velocity.x, Is.LessThan(0f));
 			Assert.That(ball.Velocity.y, Is.EqualTo(0f).Within(1e-5f));
+		}
+
+		[Test]
+		public void PhysicalForceHasCompactRadiusCutoff()
+		{
+			var ball = CreateBall();
+			ball.Position = new float3(100f, 0f, 0f);
+			var magnet = new MagnetState {
+				Position = float2.zero,
+				Radius = 100f,
+				Strength = 400f,
+				EffectiveStrength = 400f,
+				PoleRadius = 20f
+			};
+
+			MagnetPhysics.ApplyPhysicalForce(ref ball, in magnet, 1f);
+
+			Assert.That(ball.Velocity, Is.EqualTo(float3.zero));
 		}
 
 		[Test]
@@ -211,6 +257,7 @@ namespace VisualPinball.Unity.Test
 				Radius = 100f,
 				Strength = 400f,
 				EffectiveStrength = 400f,
+				PoleRadius = 20f,
 				MagnetType = MagnetType.Spatial
 			};
 

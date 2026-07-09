@@ -35,6 +35,7 @@ namespace VisualPinball.Unity
 		public const float DefaultPlanarDamping = 0.985f;
 		public const float DefaultCoilRiseTimeMs = 20f;
 		public const float DefaultCoilFallTimeMs = 20f;
+		public const float DefaultPoleRadiusMm = 10f;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -61,6 +62,11 @@ namespace VisualPinball.Unity
 		[Unit("ms")]
 		[Tooltip("Electrical decay time constant for Physical and Spatial magnets. Set this to match the driver flyback circuit.")]
 		public float CoilFallTime = DefaultCoilFallTimeMs;
+
+		[Min(0f)]
+		[Unit("mm")]
+		[Tooltip("Effective radius of the circular or annular pole face used by Physical and Spatial field profiles.")]
+		public float PoleRadius = DefaultPoleRadiusMm;
 
 		[Tooltip("Whether the magnet can hold a ball at its center.")]
 		public bool GrabBall;
@@ -142,6 +148,7 @@ namespace VisualPinball.Unity
 			HeightRange = math.max(0f, HeightRange);
 			CoilRiseTime = math.max(0f, CoilRiseTime);
 			CoilFallTime = math.max(0f, CoilFallTime);
+			PoleRadius = math.max(0f, PoleRadius);
 			SyncPhysicsState();
 		}
 
@@ -160,6 +167,7 @@ namespace VisualPinball.Unity
 				EffectiveStrength = usesPhysicalResponse ? 0f : Strength * commandedPower,
 				RiseTime = CoilRiseTime / MagnetPhysics.VpxMagnetUpdateMs,
 				FallTime = CoilFallTime / MagnetPhysics.VpxMagnetUpdateMs,
+				PoleRadius = MillimetersToVpx(PoleRadius),
 				GrabRadius = GrabBall ? MillimetersToVpx(GrabRadius) : 0f,
 				PlanarDamping = math.clamp(DefaultPlanarDamping, 0f, 1f),
 				IsEnabled = IsEnabledOnStart,
@@ -230,6 +238,7 @@ namespace VisualPinball.Unity
 		private void OnDrawGizmosSelected()
 		{
 			var radiusWorld = Radius * MillimetersToWorld;
+			var poleRadiusWorld = PoleRadius * MillimetersToWorld;
 			var grabRadiusWorld = GrabBall ? GrabRadius * MillimetersToWorld : 0f;
 			var heightRangeWorld = HeightRange * MillimetersToWorld;
 
@@ -247,6 +256,11 @@ namespace VisualPinball.Unity
 				} else {
 					DrawLocalDisc(grabRadiusWorld);
 				}
+			}
+
+			if ((MagnetType == VisualPinball.Unity.MagnetType.Spatial || ForceProfile == MagnetForceProfile.Physical) && poleRadiusWorld > 0f) {
+				Gizmos.color = new Color(0.75f, 0.2f, 1f, 0.55f);
+				DrawLocalDisc(poleRadiusWorld);
 			}
 
 			if (MagnetType == VisualPinball.Unity.MagnetType.Playfield && heightRangeWorld > 0f) {
