@@ -94,9 +94,3 @@ The turntable ramps toward **Max Speed** using **Spin Up**, then ramps back towa
 Enable **Is Kinematic** when a magnet or turntable is parented under a moving transform. The physics engine tracks the transform during gameplay, so the force field follows the moving center. A held ball is dragged along by the hold force — planar for playfield magnets, full 3-D for spatial magnets.
 
 Kinematic tracking follows the transform position and height. The magnetic field remains playfield-aligned for playfield magnets; tilted field axes are not modeled. Spatial magnets are the supported path for carrying a held ball away from the playfield.
-
-## Importing VPX Magnets
-
-Use *Pinball -> Tools -> Detect Magnets* to scan a VPX script after import. The tool looks for `cvpmMagnet` and `cvpmTurnTable` declarations, matches their trigger references, creates VPE components, and adds coil mappings when the script uses direct numeric solenoid callbacks.
-
-Review every detected item before creating components. Script expressions, custom helper classes, or nonstandard callback indirection may need manual coil mapping after detection.
