@@ -22,6 +22,8 @@ namespace VisualPinball.Unity
 		public float Strength;
 		public MagnetType MagnetType;
 		public MagnetForceProfile ForceProfile;
+		public float CoilRiseTime;
+		public float CoilFallTime;
 		public bool GrabBall;
 		public float GrabRadius;
 		public float HeightRange;
@@ -36,6 +38,8 @@ namespace VisualPinball.Unity
 				Strength = comp.Strength,
 				MagnetType = comp.MagnetType,
 				ForceProfile = comp.ForceProfile,
+				CoilRiseTime = comp.CoilRiseTime,
+				CoilFallTime = comp.CoilFallTime,
 				GrabBall = comp.GrabBall,
 				GrabRadius = comp.GrabRadius,
 				HeightRange = comp.HeightRange,
@@ -52,6 +56,8 @@ namespace VisualPinball.Unity
 			comp.Strength = data.Strength;
 			comp.MagnetType = data.MagnetType;
 			comp.ForceProfile = data.ForceProfile;
+			comp.CoilRiseTime = data.CoilRiseTime;
+			comp.CoilFallTime = data.CoilFallTime;
 			comp.GrabBall = data.GrabBall;
 			comp.GrabRadius = data.GrabRadius;
 			comp.HeightRange = data.HeightRange;

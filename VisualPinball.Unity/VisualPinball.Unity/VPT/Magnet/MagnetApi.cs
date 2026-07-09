@@ -150,10 +150,9 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
-		/// Scales the magnet strength by a PWM-integrated coil duty cycle in [0..1]
-		/// (e.g. Iron Man's ROM pulses the magnet coils). On/off is handled by the
-		/// enable/disable callbacks; this only modulates the strength from the authored
-		/// value. A plain on/off coil sends 1, leaving the authored strength unchanged.
+		/// Sets the normalized electrical command in [0..1] (e.g. Iron Man's ROM
+		/// pulses the magnet coils). Physical profiles integrate this command into
+		/// effective current; VPX Compatible applies it immediately.
 		/// </summary>
 		private void OnCoilValue(float value)
 		{
@@ -162,13 +161,12 @@ namespace VisualPinball.Unity
 			}
 			var normalizedValue = math.saturate(value);
 			var enabled = normalizedValue > 0f;
-			var strength = _component.Strength * normalizedValue;
 			_isEnabled = enabled;
 			_physicsEngine.MutateState((ref PhysicsState state) => {
 				if (state.MagnetStates.ContainsKey(_itemId)) {
 					ref var magnet = ref state.MagnetStates.GetValueByRef(_itemId);
 					magnet.IsEnabled = enabled;
-					magnet.Strength = strength;
+					magnet.CommandedPower = normalizedValue;
 				}
 			});
 		}
@@ -183,7 +181,7 @@ namespace VisualPinball.Unity
 			}
 			ref var magnet = ref _physicsEngine.MagnetState(_itemId);
 			magnet.IsEnabled = enabled;
-			magnet.Strength = _component.Strength * normalizedValue;
+			magnet.CommandedPower = normalizedValue;
 		}
 
 		private void SetEnabled(bool enabled)
@@ -196,6 +194,7 @@ namespace VisualPinball.Unity
 				if (state.MagnetStates.ContainsKey(_itemId)) {
 					ref var magnet = ref state.MagnetStates.GetValueByRef(_itemId);
 					magnet.IsEnabled = enabled;
+					magnet.CommandedPower = enabled ? 1f : 0f;
 				}
 			});
 		}

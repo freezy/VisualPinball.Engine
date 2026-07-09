@@ -33,6 +33,8 @@ namespace VisualPinball.Unity
 		public const string BallHeldSwitchItem = "ball_held";
 		public const float MillimetersToWorld = 0.001f;
 		public const float DefaultPlanarDamping = 0.985f;
+		public const float DefaultCoilRiseTimeMs = 20f;
+		public const float DefaultCoilFallTimeMs = 20f;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -49,6 +51,16 @@ namespace VisualPinball.Unity
 
 		[Tooltip("How the authored strength value is interpreted.")]
 		public MagnetForceProfile ForceProfile = MagnetForceProfile.VpxCompatible;
+
+		[Min(0f)]
+		[Unit("ms")]
+		[Tooltip("Electrical rise time constant for Physical and Spatial magnets. The current reaches about 63% after one time constant.")]
+		public float CoilRiseTime = DefaultCoilRiseTimeMs;
+
+		[Min(0f)]
+		[Unit("ms")]
+		[Tooltip("Electrical decay time constant for Physical and Spatial magnets. Set this to match the driver flyback circuit.")]
+		public float CoilFallTime = DefaultCoilFallTimeMs;
 
 		[Tooltip("Whether the magnet can hold a ball at its center.")]
 		public bool GrabBall;
@@ -128,17 +140,26 @@ namespace VisualPinball.Unity
 			Radius = math.max(0f, Radius);
 			GrabRadius = math.max(0f, GrabRadius);
 			HeightRange = math.max(0f, HeightRange);
+			CoilRiseTime = math.max(0f, CoilRiseTime);
+			CoilFallTime = math.max(0f, CoilFallTime);
 			SyncPhysicsState();
 		}
 
 		internal MagnetState CreateState()
 		{
 			var pos = GetPlayfieldPositionVpx(transform);
+			var commandedPower = IsEnabledOnStart ? 1f : 0f;
+			var usesPhysicalResponse = MagnetType == MagnetType.Spatial || ForceProfile == MagnetForceProfile.Physical;
 			return new MagnetState {
 				Position = pos.xy,
 				Height = pos.z,
 				Radius = MillimetersToVpx(Radius),
 				Strength = Strength,
+				CommandedPower = commandedPower,
+				EffectiveCurrent = usesPhysicalResponse ? 0f : commandedPower,
+				EffectiveStrength = usesPhysicalResponse ? 0f : Strength * commandedPower,
+				RiseTime = CoilRiseTime / MagnetPhysics.VpxMagnetUpdateMs,
+				FallTime = CoilFallTime / MagnetPhysics.VpxMagnetUpdateMs,
 				GrabRadius = GrabBall ? MillimetersToVpx(GrabRadius) : 0f,
 				PlanarDamping = math.clamp(DefaultPlanarDamping, 0f, 1f),
 				IsEnabled = IsEnabledOnStart,
@@ -171,6 +192,9 @@ namespace VisualPinball.Unity
 				}
 				ref var magnet = ref state.MagnetStates.GetValueByRef(itemId);
 				synced.IsEnabled = magnet.IsEnabled;
+				synced.CommandedPower = magnet.CommandedPower;
+				synced.EffectiveCurrent = magnet.EffectiveCurrent;
+				synced.EffectiveStrength = magnet.EffectiveStrength;
 				synced.GrabbedBalls = magnet.GrabbedBalls;
 				synced.ReleasedBalls = magnet.ReleasedBalls;
 				magnet = synced;

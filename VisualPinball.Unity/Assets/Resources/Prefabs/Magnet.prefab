@@ -46,9 +46,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: VisualPinball.Unity::VisualPinball.Unity.MagnetComponent
   Radius: 50
   Strength: 10
+  MagnetType: 0
   ForceProfile: 0
+  CoilRiseTime: 20
+  CoilFallTime: 20
   GrabBall: 0
   GrabRadius: 10.8
   HeightRange: 50
   IsEnabledOnStart: 0
+  IsKinematic: 0
   DrawDebugForces: 0

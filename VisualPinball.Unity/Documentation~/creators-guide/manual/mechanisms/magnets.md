@@ -21,8 +21,10 @@ The selected object shows a radius gizmo in the scene view. Playfield magnets dr
 | **Magnet Type** | **Playfield** for under-playfield magnets with a cylindrical range, **Spatial** for mech-mounted magnets that grab and carry balls in 3-D. |
 | **Radius** | Influence radius in millimeters. Playfield magnets use a planar radius; spatial magnets use a spherical radius. |
 | **Height Range** | Vertical window above a playfield magnet. Use this to avoid affecting balls on ramps above the playfield. Spatial magnets ignore this field. |
-| **Strength** | Magnet force. In VPX Compatible mode, this uses familiar `cvpmMagnet` strength values. Negative values repel. |
+| **Strength** | Full-power magnet force. In VPX Compatible mode, this uses familiar `cvpmMagnet` strength values and negative values repel. |
 | **Force Profile** | **VPX Compatible** for imported VPX behavior, **Physical** for new VPE tables that want a smoother inverse-square force. Spatial magnets always use physical 3-D force semantics. |
+| **Coil Rise Time** | Electrical rise time constant in milliseconds for Physical and Spatial magnets. Current reaches about 63% after one time constant. |
+| **Coil Fall Time** | Electrical decay time constant in milliseconds for Physical and Spatial magnets. Tune this to the coil driver and flyback circuit. |
 | **Grab Ball** | Enables center hold behavior inside the grab radius. |
 | **Grab Radius** | Radius where the magnet starts holding the ball. VPX Compatible playfield mode clamps to center; Physical playfield mode uses a spring-damper hold; Spatial mode uses a 3-D spring-damper hold that a hard hit can overcome. |
 | **Is Enabled On Start** | Starts the magnet on before a coil or script changes it. |
@@ -45,7 +47,7 @@ Magnets also expose one switch:
 
 Map ROM solenoids to `magnet_coil` in the [Coil Manager](../../editor/coil-manager.md). The `ball_held` switch can be used by game logic when a table needs explicit confirmation that a ball is held.
 
-Some ROMs pulse-width-modulate (PWM) their magnet coils to vary grip — Iron Man, for example, drives its magnets at partial strength. When the gamelogic engine reports a modulated coil (PinMAME does this for WPC/SAM ROMs), the magnet scales its authored **Strength** by the duty cycle, so a coil held at 50% produces half the pull rather than full-or-nothing. Plain on/off coils leave the authored strength unchanged. The scaling multiplies the authored value, so set **Strength** to the full-power grip you want at 100% duty.
+Some ROMs pulse-width-modulate (PWM) their magnet coils to vary grip — Iron Man, for example, drives its magnets at partial strength. The normalized coil command travels through the simulation-thread path without being reduced to a boolean. VPX Compatible scales its authored **Strength** directly by that command. Physical and Spatial magnets instead integrate effective coil current using **Coil Rise Time** and **Coil Fall Time**, then derive force from current squared. Set **Strength** to the full-power grip at 100% current.
 
 ## Force Profiles
 
@@ -57,7 +59,7 @@ This mode is the default. It is the right choice for ROM-controlled magnets and 
 
 ### Physical
 
-Use **Physical** for new VPE-authored tables. It uses a saturated inverse-square force so the field gets stronger near the core without exploding at zero distance. Physical grab uses a capped spring-damper hold, so the ball visibly decelerates instead of snapping to the center.
+Use **Physical** for new VPE-authored tables. Its electrical response ramps toward the commanded current instead of switching the field instantaneously, and the field decays after power is removed. Physical grab uses a capped spring-damper hold, so the ball visibly decelerates instead of snapping to the center.
 
 Physical strength values are not VPX strength values. Start with a larger value than you would use in VPX Compatible mode and tune by watching ball speed and catch behavior in play mode.
 

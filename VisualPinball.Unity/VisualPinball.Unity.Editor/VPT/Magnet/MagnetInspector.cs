@@ -26,6 +26,8 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _strengthProperty;
 		private SerializedProperty _magnetTypeProperty;
 		private SerializedProperty _forceProfileProperty;
+		private SerializedProperty _coilRiseTimeProperty;
+		private SerializedProperty _coilFallTimeProperty;
 		private SerializedProperty _grabBallProperty;
 		private SerializedProperty _grabRadiusProperty;
 		private SerializedProperty _heightRangeProperty;
@@ -43,6 +45,8 @@ namespace VisualPinball.Unity.Editor
 			_strengthProperty = serializedObject.FindProperty(nameof(MagnetComponent.Strength));
 			_magnetTypeProperty = serializedObject.FindProperty(nameof(MagnetComponent.MagnetType));
 			_forceProfileProperty = serializedObject.FindProperty(nameof(MagnetComponent.ForceProfile));
+			_coilRiseTimeProperty = serializedObject.FindProperty(nameof(MagnetComponent.CoilRiseTime));
+			_coilFallTimeProperty = serializedObject.FindProperty(nameof(MagnetComponent.CoilFallTime));
 			_grabBallProperty = serializedObject.FindProperty(nameof(MagnetComponent.GrabBall));
 			_grabRadiusProperty = serializedObject.FindProperty(nameof(MagnetComponent.GrabRadius));
 			_heightRangeProperty = serializedObject.FindProperty(nameof(MagnetComponent.HeightRange));
@@ -68,6 +72,11 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_strengthProperty);
 			if (!isSpatial) {
 				PropertyField(_forceProfileProperty);
+			}
+			var usesPhysicalResponse = isSpatial || _forceProfileProperty.enumValueIndex == (int)MagnetForceProfile.Physical;
+			if (usesPhysicalResponse) {
+				PropertyField(_coilRiseTimeProperty);
+				PropertyField(_coilFallTimeProperty);
 			}
 
 			EditorGUILayout.Space(8f);
