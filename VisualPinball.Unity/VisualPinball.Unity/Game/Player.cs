@@ -183,9 +183,9 @@ namespace VisualPinball.Unity
 			CabinetInputActionChanged?.Invoke(actionName, isPressed);
 		}
 
-		internal bool DispatchCoilSimulationThread(string coilId, bool isEnabled)
+		internal bool DispatchCoilSimulationThread(string coilId, float value)
 		{
-			return _coilPlayer.HandleCoilEventSimulationThread(coilId, isEnabled);
+			return _coilPlayer.HandleCoilEventSimulationThread(coilId, value);
 		}
 
 		public bool SupportsSimulationThreadCoilDispatch(string coilId)

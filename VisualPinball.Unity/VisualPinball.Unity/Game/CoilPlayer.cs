@@ -197,7 +197,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal bool HandleCoilEventSimulationThread(string id, bool isEnabled)
+		internal bool HandleCoilEventSimulationThread(string id, float value)
 		{
 			if (!_coilAssignments.ContainsKey(id)) {
 				return false;
@@ -215,7 +215,7 @@ namespace VisualPinball.Unity
 
 				var coil = _coilDevices[destConfig.Device].Coil(destConfig.DeviceItem);
 				if (coil is ISimulationThreadCoil simulationThreadCoil) {
-					simulationThreadCoil.OnCoilSimulationThread(isEnabled);
+					simulationThreadCoil.OnCoilSimulationThread(value);
 					dispatched = true;
 				}
 			}

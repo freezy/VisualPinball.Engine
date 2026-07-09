@@ -22,7 +22,7 @@ namespace VisualPinball.Unity
 {
 	public interface ISimulationThreadCoil
 	{
-		void OnCoilSimulationThread(bool enabled);
+		void OnCoilSimulationThread(float value);
 	}
 
 	public class DeviceCoil : IApiCoil, ISimulationThreadCoil
@@ -49,7 +49,9 @@ namespace VisualPinball.Unity
 		/// that still touch Unity objects on enable/disable, should stay on the
 		/// normal main-thread path.
 		/// </summary>
-		public bool SupportsSimulationThreadDispatch => OnEnableSimulationThread != null || OnDisableSimulationThread != null;
+		public bool SupportsSimulationThreadDispatch => OnEnableSimulationThread != null
+		                                                     || OnDisableSimulationThread != null
+		                                                     || OnValueSimulationThread != null;
 
 		public bool IsEnabled => Volatile.Read(ref _isEnabled) != 0;
 		public event EventHandler<NoIdCoilEventArgs> CoilStatusChanged;
@@ -58,6 +60,7 @@ namespace VisualPinball.Unity
 		protected Action OnDisable;
 		protected Action OnEnableSimulationThread;
 		protected Action OnDisableSimulationThread;
+		protected Action<float> OnValueSimulationThread;
 
 		/// <summary>
 		/// Optional handler for the normalized coil strength in [0..1]. Set by coils
@@ -70,7 +73,7 @@ namespace VisualPinball.Unity
 
 		public DeviceCoil(Player player, Action onEnable = null, Action onDisable = null,
 			Action onEnableSimulationThread = null, Action onDisableSimulationThread = null,
-			Action<float> onValue = null)
+			Action<float> onValue = null, Action<float> onValueSimulationThread = null)
 		{
 			_player = player;
 			OnEnable = onEnable;
@@ -78,6 +81,7 @@ namespace VisualPinball.Unity
 			OnEnableSimulationThread = onEnableSimulationThread;
 			OnDisableSimulationThread = onDisableSimulationThread;
 			OnValue = onValue;
+			OnValueSimulationThread = onValueSimulationThread;
 		}
 
 		public void OnCoil(bool enabled) => OnCoil(enabled ? 1f : 0f);
@@ -90,40 +94,43 @@ namespace VisualPinball.Unity
 			// When the simulation thread is actively handling this coil,
 			// skip the main-thread enable/disable callbacks. The sim thread
 			// already set the solenoid flag directly via OnCoilSimulationThread.
-			// We still update _isEnabled above and fire CoilStatusChanged/UI
-			// below, since those are main-thread-only concerns.
+			// We still update _isEnabled above and fire CoilStatusChanged/UI below,
+			// since those are main-thread-only concerns. The value callback is also
+			// suppressed because the simulation thread already consumed it.
 			if (!_simThreadActive) {
 				if (enabled) {
 					OnEnable?.Invoke();
 				} else {
 					OnDisable?.Invoke();
 				}
+				OnValue?.Invoke(value);
 			}
-			// magnitude for consumers that scale with the duty cycle (e.g. magnets)
-			OnValue?.Invoke(value);
 			CoilStatusChanged?.Invoke(this, new NoIdCoilEventArgs(enabled));
 #if UNITY_EDITOR
 			RefreshUI();
 #endif
 		}
 
-		public void OnCoilSimulationThread(bool enabled)
+		public void OnCoilSimulationThread(float value)
 		{
+			var enabled = value > 0f;
 			// Mark this coil as sim-thread-active on first dispatch.
 			// This suppresses the main-thread OnEnable/OnDisable callbacks.
 			if (!_simThreadActive) {
 				_simThreadActive = true;
 			}
 
-			if (Interlocked.Exchange(ref _simulationEnabled, enabled ? 1 : 0) == (enabled ? 1 : 0)) {
-				return;
+			if (Interlocked.Exchange(ref _simulationEnabled, enabled ? 1 : 0) != (enabled ? 1 : 0)) {
+				if (enabled) {
+					OnEnableSimulationThread?.Invoke();
+				} else {
+					OnDisableSimulationThread?.Invoke();
+				}
 			}
 
-			if (enabled) {
-				OnEnableSimulationThread?.Invoke();
-			} else {
-				OnDisableSimulationThread?.Invoke();
-			}
+			// Unlike enable/disable callbacks, analog/PWM values must be delivered
+			// even when the boolean state did not change.
+			OnValueSimulationThread?.Invoke(value);
 		}
 
 		public void OnChange(bool enabled) => OnCoil(enabled);

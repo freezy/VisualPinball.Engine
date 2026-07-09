@@ -561,6 +561,27 @@ namespace VisualPinball.Unity.Test
 			Assert.That(ball.Velocity, Is.EqualTo(new float3(3f, -2f, 5f)), "a released ball keeps its live velocity");
 		}
 
+		[Test]
+		public void SimulationThreadCoilDeliversEveryPwmValue()
+		{
+			var enableCount = 0;
+			var valueCount = 0;
+			var lastValue = 0f;
+			var coil = new DeviceCoil(null,
+				onEnableSimulationThread: () => enableCount++,
+				onValueSimulationThread: value => {
+					valueCount++;
+					lastValue = value;
+				});
+
+			coil.OnCoilSimulationThread(0.25f);
+			coil.OnCoilSimulationThread(0.75f);
+
+			Assert.That(enableCount, Is.EqualTo(1), "both values keep the coil enabled");
+			Assert.That(valueCount, Is.EqualTo(2), "PWM changes must not be collapsed into a bool");
+			Assert.That(lastValue, Is.EqualTo(0.75f));
+		}
+
 		private static BallState CreateBall()
 		{
 			return new BallState {
