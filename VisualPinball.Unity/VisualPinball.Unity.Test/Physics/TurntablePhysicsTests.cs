@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
+using System.Collections.Generic;
 using NUnit.Framework;
+using Unity.Collections;
 using Unity.Mathematics;
 
 namespace VisualPinball.Unity.Test
@@ -89,6 +92,29 @@ namespace VisualPinball.Unity.Test
 			Assert.That(turntable.Height, Is.EqualTo(3f).Within(1e-5f));
 		}
 
+		[Test]
+		public void MovementPublishesSpeedAndAngleTogether()
+		{
+			var states = new NativeParallelHashMap<int, TurntableState>(1, Allocator.Temp);
+			try {
+				states.Add(17, new TurntableState {
+					Speed = 42f,
+					RotationAngle = 123f
+				});
+				var emitter = new Float2Emitter();
+				var emitters = new Dictionary<int, IAnimationValueEmitter<float2>> {
+					{ 17, emitter }
+				};
+				var movements = new PhysicsMovements();
+
+				movements.ApplyTurntableMovement(ref states, emitters);
+
+				Assert.That(emitter.Value, Is.EqualTo(new float2(42f, 123f)));
+			} finally {
+				states.Dispose();
+			}
+		}
+
 		private static BallState CreateBall()
 		{
 			return new BallState {
@@ -96,6 +122,18 @@ namespace VisualPinball.Unity.Test
 				Position = new float3(50f, 0f, 10f),
 				Velocity = new float3(0f, 0f, 5f)
 			};
+		}
+
+		private sealed class Float2Emitter : IAnimationValueEmitter<float2>
+		{
+			public float2 Value;
+			public event Action<float2> OnAnimationValueChanged;
+
+			public void UpdateAnimationValue(float2 value)
+			{
+				Value = value;
+				OnAnimationValueChanged?.Invoke(value);
+			}
 		}
 	}
 }

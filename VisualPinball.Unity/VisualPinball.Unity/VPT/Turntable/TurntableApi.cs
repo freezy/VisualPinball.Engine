@@ -59,21 +59,11 @@ namespace VisualPinball.Unity
 		}
 
 		public float Speed {
-			get {
-				if (!_physicsEngine) {
-					return 0f;
-				}
-				return _physicsEngine.TurntableState(_itemId).Speed;
-			}
+			get => _component.PublishedSpeed;
 		}
 
 		public float RotationAngle {
-			get {
-				if (!_physicsEngine) {
-					return 0f;
-				}
-				return _physicsEngine.TurntableState(_itemId).RotationAngle;
-			}
+			get => _component.PublishedRotationAngle;
 		}
 
 		public float MaxSpeed {

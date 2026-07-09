@@ -48,9 +48,9 @@ namespace VisualPinball.Unity.Simulation
 		internal const int MaxFloatAnimations = 128;
 
 		/// <summary>
-		/// Maximum number of float2-animated items (bumper skirts)
+		/// Maximum number of float2-animated items (bumper skirts and turntables)
 		/// </summary>
-		internal const int MaxFloat2Animations = 16;
+		internal const int MaxFloat2Animations = 32;
 
 		#region Animation Snapshot Structures
 

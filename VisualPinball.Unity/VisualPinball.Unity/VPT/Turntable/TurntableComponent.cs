@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
 using NLog;
 using Unity.Mathematics;
@@ -27,7 +28,7 @@ namespace VisualPinball.Unity
 	[PackAs("Turntable")]
 	[AddComponentMenu("Pinball/Mechs/Turntable")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/magnets.html")]
-	public class TurntableComponent : MonoBehaviour, ICoilDeviceComponent, IPackable, IKinematicTransformComponent
+	public class TurntableComponent : MonoBehaviour, ICoilDeviceComponent, IPackable, IKinematicTransformComponent, IAnimationValueEmitter<float2>
 	{
 		public const string MotorCoilItem = "motor_coil";
 		public const string DirectionCoilItem = "direction_coil";
@@ -76,6 +77,11 @@ namespace VisualPinball.Unity
 		private PhysicsEngine _physicsEngine;
 		private Transform _rotationTarget;
 		private Quaternion _rotationTargetInitialRotation;
+		private float2 _animationValue;
+
+		internal float PublishedSpeed => _animationValue.x;
+		internal float PublishedRotationAngle => _animationValue.y;
+		public event Action<float2> OnAnimationValueChanged;
 
 		public IEnumerable<GamelogicEngineCoil> AvailableCoils => new[] {
 			new GamelogicEngineCoil(MotorCoilItem) {
@@ -175,7 +181,16 @@ namespace VisualPinball.Unity
 			if (!_rotationTarget) {
 				return;
 			}
-			_rotationTarget.localRotation = _rotationTargetInitialRotation * Quaternion.AngleAxis(TurntableApi.RotationAngle, Vector3.up);
+			_rotationTarget.localRotation = _rotationTargetInitialRotation * Quaternion.AngleAxis(PublishedRotationAngle, Vector3.up);
+		}
+
+		public void UpdateAnimationValue(float2 value)
+		{
+			if (_animationValue.Equals(value)) {
+				return;
+			}
+			_animationValue = value;
+			OnAnimationValueChanged?.Invoke(value);
 		}
 
 		internal TurntableState CreateState()

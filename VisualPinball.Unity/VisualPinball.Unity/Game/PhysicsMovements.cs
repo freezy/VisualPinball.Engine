@@ -142,5 +142,16 @@ namespace VisualPinball.Unity
 				component.UpdateAnimationValue(triggerState.Movement.HeightOffset);
 			}
 		}
+
+		internal void ApplyTurntableMovement(ref NativeParallelHashMap<int, TurntableState> turntableStates,
+			Dictionary<int, IAnimationValueEmitter<float2>> float2AnimatedComponent)
+		{
+			using var enumerator = turntableStates.GetEnumerator();
+			while (enumerator.MoveNext()) {
+				ref var turntableState = ref enumerator.Current.Value;
+				var component = float2AnimatedComponent[enumerator.Current.Key];
+				component.UpdateAnimationValue(new float2(turntableState.Speed, turntableState.RotationAngle));
+			}
+		}
 	}
 }
