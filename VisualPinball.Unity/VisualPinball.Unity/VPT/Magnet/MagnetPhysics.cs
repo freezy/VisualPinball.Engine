@@ -63,7 +63,8 @@ namespace VisualPinball.Unity
 						continue;
 					}
 
-					if (!IsBallInRange(in ball, in magnet)) {
+					var affectsBall = IsBallInRange(in ball, in magnet) || IsGrabbedBall(in magnet, ref state, ball.Id);
+					if (!affectsBall) {
 						ReleaseGrabbedBall(itemId, ref magnet, ref state, ball.Id);
 						ClearReleasedBall(ref magnet, ref state, ball.Id);
 						UpdateMembership(itemId, ball.Id, false, ref state);
@@ -332,6 +333,16 @@ namespace VisualPinball.Unity
 			}
 			return math.lengthsq(ball.Position.xy - magnet.Position) <= magnet.Radius * magnet.Radius;
 		}
+
+		/// <summary>
+		/// A held ball stays owned by the magnet even when a moving field carries its
+		/// center outside the coarse influence volume. The profile-specific hold logic
+		/// is responsible for deciding whether the ball has actually broken free.
+		/// </summary>
+		private static bool IsGrabbedBall(in MagnetState magnet, ref PhysicsState state, int ballId)
+			=> magnet.GrabbedBalls.Value != 0UL
+			   && state.InsideOfs.TryGetBitIndex(ballId, out var bitIndex)
+			   && magnet.GrabbedBalls.IsSet(bitIndex);
 
 		/// <summary>
 		/// Shared grab bookkeeping for both magnet kinds. The only differences are the
