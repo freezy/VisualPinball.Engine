@@ -334,6 +334,58 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void PhysicalHoldDoesNotAmplifyWeakCurrent()
+		{
+			var ball = CreateBall();
+			ball.Position = new float3(10f, 0f, 10f);
+			ball.Velocity = float3.zero;
+			var magnet = new MagnetState {
+				Position = float2.zero,
+				EffectiveStrength = 0.1f,
+				PoleRadius = 20f,
+				GrabRadius = 20f
+			};
+
+			MagnetPhysics.ApplyPhysicalHold(ref ball, in magnet, 0.1f);
+
+			Assert.That(math.abs(ball.Velocity.x), Is.LessThanOrEqualTo(0.01f), "the hold cap must not exceed the effective field");
+		}
+
+		[Test]
+		public void PhysicalGrabRejectsFastFlyby()
+		{
+			using var harness = new PhysicsStateHarness();
+			var state = harness.CreateState();
+			harness.Balls.Add(1, new BallState {
+				Id = 1,
+				Position = new float3(10f, 0f, 10f),
+				Velocity = new float3(100f, 0f, 0f)
+			});
+			var magnet = CreatePhysicalGrabMagnet();
+
+			MagnetPhysics.Update(17, ref magnet, ref state, 0.1f);
+
+			Assert.That(magnet.GrabbedBalls.Value, Is.EqualTo(0UL));
+		}
+
+		[Test]
+		public void PhysicalGrabCapturesRetainableBall()
+		{
+			using var harness = new PhysicsStateHarness();
+			var state = harness.CreateState();
+			harness.Balls.Add(1, new BallState {
+				Id = 1,
+				Position = new float3(10f, 0f, 10f),
+				Velocity = new float3(1f, 0f, 0f)
+			});
+			var magnet = CreatePhysicalGrabMagnet();
+
+			MagnetPhysics.Update(17, ref magnet, ref state, 0.1f);
+
+			Assert.That(magnet.GrabbedBalls.Value, Is.Not.EqualTo(0UL));
+		}
+
+		[Test]
 		public void SpatialGrabHoldsBallWithForceNotFreeze()
 		{
 			using var harness = new PhysicsStateHarness();
@@ -692,6 +744,22 @@ namespace VisualPinball.Unity.Test
 				Id = 1,
 				Position = new float3(50f, 0f, 10f),
 				Velocity = new float3(0f, 0f, 0f)
+			};
+		}
+
+		private static MagnetState CreatePhysicalGrabMagnet()
+		{
+			return new MagnetState {
+				Position = float2.zero,
+				Height = 0f,
+				Radius = 100f,
+				HeightRange = 50f,
+				Strength = 20f,
+				CommandedPower = 1f,
+				PoleRadius = 20f,
+				GrabRadius = 20f,
+				IsEnabled = true,
+				Profile = MagnetForceProfile.Physical
 			};
 		}
 	}
