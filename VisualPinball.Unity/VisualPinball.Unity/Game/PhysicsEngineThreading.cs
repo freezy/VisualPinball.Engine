@@ -90,6 +90,7 @@ namespace VisualPinball.Unity
 		private readonly int[] _snapshotFlipperIds;
 		private readonly int[] _snapshotBumperRingIds;
 		private readonly int[] _snapshotBumperSkirtIds;
+		private readonly int[] _snapshotTurntableIds;
 		private readonly int[] _snapshotDropTargetIds;
 		private readonly int[] _snapshotHitTargetIds;
 		private readonly int[] _snapshotGateIds;
@@ -119,6 +120,7 @@ namespace VisualPinball.Unity
 			_snapshotFlipperIds = SnapshotIds(_ctx.FlipperStates.Ref);
 			_snapshotBumperRingIds = SnapshotIds(_ctx.BumperStates.Ref, static state => state.RingItemId != 0);
 			_snapshotBumperSkirtIds = SnapshotIds(_ctx.BumperStates.Ref, static state => state.SkirtItemId != 0);
+			_snapshotTurntableIds = SnapshotIds(_ctx.TurntableStates.Ref);
 			_snapshotDropTargetIds = SnapshotIds(_ctx.DropTargetStates.Ref, static state => state.AnimatedItemId != 0);
 			_snapshotHitTargetIds = SnapshotIds(_ctx.HitTargetStates.Ref, static state => state.AnimatedItemId != 0);
 			_snapshotGateIds = SnapshotIds(_ctx.GateStates.Ref);
@@ -601,14 +603,21 @@ namespace VisualPinball.Unity
 				Logger.Warn($"[PhysicsEngine] Float animation snapshot capacity exceeded: {snapshot.FloatAnimationSourceCount} channels for max {SimulationState.MaxFloatAnimations}. Snapshot output is truncated.");
 			}
 
-			// --- Float2 animations (bumper skirts) ---
+			// --- Float2 animations (bumper skirts and turntable speed/angle pairs) ---
 			var float2Count = 0;
-			snapshot.Float2AnimationSourceCount = _snapshotBumperSkirtIds.Length;
+			snapshot.Float2AnimationSourceCount = _snapshotBumperSkirtIds.Length + _snapshotTurntableIds.Length;
 			for (var i = 0; i < _snapshotBumperSkirtIds.Length && float2Count < SimulationState.MaxFloat2Animations; i++) {
 				var itemId = _snapshotBumperSkirtIds[i];
 				ref var s = ref _ctx.BumperStates.Ref.GetValueByRef(itemId);
 				snapshot.Float2Animations[float2Count++] = new SimulationState.Float2Animation {
 					ItemId = itemId, Value = s.SkirtAnimation.Rotation
+				};
+			}
+			for (var i = 0; i < _snapshotTurntableIds.Length && float2Count < SimulationState.MaxFloat2Animations; i++) {
+				var itemId = _snapshotTurntableIds[i];
+				ref var s = ref _ctx.TurntableStates.Ref.GetValueByRef(itemId);
+				snapshot.Float2Animations[float2Count++] = new SimulationState.Float2Animation {
+					ItemId = itemId, Value = new float2(s.Speed, s.RotationAngle)
 				};
 			}
 			snapshot.Float2AnimationCount = float2Count;
@@ -909,6 +918,7 @@ namespace VisualPinball.Unity
 			_physicsMovements.ApplyPlungerMovement(ref _ctx.PlungerStates.Ref, _ctx.FloatAnimatedComponents);
 			_physicsMovements.ApplySpinnerMovement(ref _ctx.SpinnerStates.Ref, _ctx.FloatAnimatedComponents);
 			_physicsMovements.ApplyTriggerMovement(ref _ctx.TriggerStates.Ref, _ctx.FloatAnimatedComponents);
+			_physicsMovements.ApplyTurntableMovement(ref _ctx.TurntableStates.Ref, _ctx.Float2AnimatedComponents);
 			_physicsEngine.ApplyVisualNudge(_ctx.PhysicsEnv.Nudge.CabinetOffset);
 		}
 
