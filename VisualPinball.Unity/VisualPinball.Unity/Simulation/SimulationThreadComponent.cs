@@ -377,7 +377,7 @@ namespace VisualPinball.Unity.Simulation
 				// Create simulation thread
 				_simulationThread = new SimulationThread(_physicsEngine, _gamelogicEngine,
 					player != null
-						? new Action<string, bool>((coilId, isEnabled) => player.DispatchCoilSimulationThread(coilId, isEnabled))
+						? new Action<string, float>((coilId, value) => player.DispatchCoilSimulationThread(coilId, value))
 						: null);
 				ConfigureTiltBobRouting();
 				_simulationThread.SyncClockFromMainThread(_physicsEngine.CurrentSimulationClockUsec, _physicsEngine.CurrentSimulationClockScale);

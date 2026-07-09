@@ -48,7 +48,7 @@ namespace VisualPinball.Unity
 			_itemId = UnityObjectId.Get(_component.gameObject);
 			_isEnabled = _component.IsEnabledOnStart;
 
-			_magnetCoil = new DeviceCoil(_player, OnCoilEnabled, OnCoilDisabled, OnCoilEnabledSimThread, OnCoilDisabledSimThread, OnCoilValue);
+			_magnetCoil = new DeviceCoil(_player, onValue: OnCoilValue, onValueSimulationThread: OnCoilValueSimulationThread);
 			_ballHeldSwitch = new DeviceSwitch(MagnetComponent.BallHeldSwitchItem, false, SwitchDefault.NormallyOpen, _player, _physicsEngine);
 		}
 
@@ -149,11 +149,6 @@ namespace VisualPinball.Unity
 			};
 		}
 
-		private void OnCoilEnabled() => SetEnabled(true);
-		private void OnCoilDisabled() => SetEnabled(false);
-		private void OnCoilEnabledSimThread() => SetEnabledSimThread(true);
-		private void OnCoilDisabledSimThread() => SetEnabledSimThread(false);
-
 		/// <summary>
 		/// Scales the magnet strength by a PWM-integrated coil duty cycle in [0..1]
 		/// (e.g. Iron Man's ROM pulses the magnet coils). On/off is handled by the
@@ -165,13 +160,30 @@ namespace VisualPinball.Unity
 			if (!_physicsEngine) {
 				return;
 			}
-			var strength = _component.Strength * math.saturate(value);
+			var normalizedValue = math.saturate(value);
+			var enabled = normalizedValue > 0f;
+			var strength = _component.Strength * normalizedValue;
+			_isEnabled = enabled;
 			_physicsEngine.MutateState((ref PhysicsState state) => {
 				if (state.MagnetStates.ContainsKey(_itemId)) {
 					ref var magnet = ref state.MagnetStates.GetValueByRef(_itemId);
+					magnet.IsEnabled = enabled;
 					magnet.Strength = strength;
 				}
 			});
+		}
+
+		private void OnCoilValueSimulationThread(float value)
+		{
+			var normalizedValue = math.saturate(value);
+			var enabled = normalizedValue > 0f;
+			_isEnabled = enabled;
+			if (!_physicsEngine) {
+				return;
+			}
+			ref var magnet = ref _physicsEngine.MagnetState(_itemId);
+			magnet.IsEnabled = enabled;
+			magnet.Strength = _component.Strength * normalizedValue;
 		}
 
 		private void SetEnabled(bool enabled)
@@ -186,16 +198,6 @@ namespace VisualPinball.Unity
 					magnet.IsEnabled = enabled;
 				}
 			});
-		}
-
-		private void SetEnabledSimThread(bool enabled)
-		{
-			_isEnabled = enabled;
-			if (!_physicsEngine) {
-				return;
-			}
-			ref var magnet = ref _physicsEngine.MagnetState(_itemId);
-			magnet.IsEnabled = enabled;
 		}
 
 		void IApiMagnetEvents.OnMagnetBallEntered(int ballId) => BallEntered?.Invoke(this, new HitEventArgs(ballId));

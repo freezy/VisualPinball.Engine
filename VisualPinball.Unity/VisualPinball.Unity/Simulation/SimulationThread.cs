@@ -50,7 +50,7 @@ namespace VisualPinball.Unity.Simulation
 		private readonly IGamelogicPerformanceStats _gamelogicPerformanceStats;
 		private readonly IGamelogicLatencyStats _gamelogicLatencyStats;
 		private readonly IGamelogicInputDispatcher _inputDispatcher;
-		private readonly Action<string, bool> _simulationCoilDispatcher;
+		private readonly Action<string, float> _simulationCoilDispatcher;
 		private readonly InputEventBuffer _inputBuffer;
 		private readonly SimulationState _sharedState;
 		private readonly System.Random _nudgeRandom = new System.Random();
@@ -115,7 +115,7 @@ namespace VisualPinball.Unity.Simulation
 		#region Constructor
 
 		public SimulationThread(PhysicsEngine physicsEngine, IGamelogicEngine gamelogicEngine,
-			Action<string, bool> simulationCoilDispatcher)
+			Action<string, float> simulationCoilDispatcher)
 		{
 			_physicsEngine = physicsEngine ?? throw new ArgumentNullException(nameof(physicsEngine));
 			_gamelogicEngine = gamelogicEngine;
@@ -568,7 +568,7 @@ namespace VisualPinball.Unity.Simulation
 			var processed = 0;
 			while (processed < MaxCoilOutputsPerTick && _coilOutputFeed.TryDequeueCoilEvent(out var coilEvent)) {
 				_lastCoilDispatchUsec = GetTimestampUsec();
-				_simulationCoilDispatcher(coilEvent.Id, coilEvent.IsEnabled);
+				_simulationCoilDispatcher(coilEvent.Id, coilEvent.Value);
 				processed++;
 			}
 		}
