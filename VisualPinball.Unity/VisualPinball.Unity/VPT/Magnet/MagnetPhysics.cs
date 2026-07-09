@@ -31,11 +31,13 @@ namespace VisualPinball.Unity
 		private const float PhysicalMinimumCoreRadius = 5f;
 		private const float PhysicalVelocityDamping = 0.02f;
 		private const float PhysicalMinimumHoldStrength = 1f;
+		private const float MinEffectiveCurrent = 0.0001f;
 
 		[BurstCompile]
 		internal static void Update(int itemId, ref MagnetState magnet, ref PhysicsState state, float physicsDiffTime)
 		{
-			if (!magnet.IsEnabled) {
+			AdvanceCoil(ref magnet, physicsDiffTime);
+			if (!HasActiveField(in magnet)) {
 				ReleaseGrabbedBalls(itemId, ref magnet, ref state, false);
 				if (!state.InsideOfs.IsEmpty(itemId)) {
 					ReleaseMembership(itemId, ref state);
@@ -93,6 +95,35 @@ namespace VisualPinball.Unity
 					}
 				}
 			}
+		}
+
+		/// <summary>
+		/// Advances the normalized coil current toward its command. Physical force is
+		/// proportional to current squared; VPX Compatible remains instantaneous.
+		/// Time is expressed in the engine's normalized 10 ms units.
+		/// </summary>
+		internal static void AdvanceCoil(ref MagnetState magnet, float physicsDiffTime)
+		{
+			var command = magnet.IsEnabled ? math.saturate(magnet.CommandedPower) : 0f;
+			if (!UsesPhysicalResponse(in magnet)) {
+				magnet.EffectiveCurrent = command;
+				magnet.EffectiveStrength = magnet.Strength * command;
+				return;
+			}
+
+			var timeConstant = command > magnet.EffectiveCurrent ? magnet.RiseTime : magnet.FallTime;
+			if (timeConstant <= MinDistance || physicsDiffTime <= 0f) {
+				magnet.EffectiveCurrent = command;
+			} else {
+				// Implicit Euler is stable for long frames and approximates the RL
+				// exponential without a transcendental in the 1 kHz loop.
+				var alpha = math.saturate(physicsDiffTime / (timeConstant + physicsDiffTime));
+				magnet.EffectiveCurrent = math.lerp(magnet.EffectiveCurrent, command, alpha);
+				if (math.abs(magnet.EffectiveCurrent - command) <= MinEffectiveCurrent) {
+					magnet.EffectiveCurrent = command;
+				}
+			}
+			magnet.EffectiveStrength = magnet.Strength * magnet.EffectiveCurrent * magnet.EffectiveCurrent;
 		}
 
 		internal static float3 RefreshKinematicState(int itemId, ref MagnetState magnet, ref PhysicsState state)
@@ -180,7 +211,7 @@ namespace VisualPinball.Unity
 			// cvpmMagnet.AttractBall: ratio = dist / (1.5*Size), then the damping wraps
 			// both the old velocity and the impulse: (vel - dir*force) * 0.985
 			var ratio = distance / (1.5f * magnet.Radius);
-			var force = magnet.Strength * math.exp(-0.2f / ratio) / (ratio * ratio * 56f) * 1.5f;
+			var force = magnet.EffectiveStrength * math.exp(-0.2f / ratio) / (ratio * ratio * 56f) * 1.5f;
 			var direction = delta / distance;
 
 			var velocity = (ball.Velocity.xy - direction * force * physicsDiffTime) * damping;
@@ -197,7 +228,7 @@ namespace VisualPinball.Unity
 
 			var distance = math.sqrt(distanceSq);
 			var effectiveDistance = math.max(distance, PhysicalCoreRadius(in magnet));
-			var force = magnet.Strength / (effectiveDistance * effectiveDistance);
+			var force = magnet.EffectiveStrength / (effectiveDistance * effectiveDistance);
 			var direction = delta / distance;
 			var velocity = ball.Velocity.xy - direction * force * physicsDiffTime;
 
@@ -217,7 +248,7 @@ namespace VisualPinball.Unity
 
 			var distance = math.sqrt(distanceSq);
 			var effectiveDistance = math.max(distance, PhysicalCoreRadius(in magnet));
-			var force = magnet.Strength / (effectiveDistance * effectiveDistance);
+			var force = magnet.EffectiveStrength / (effectiveDistance * effectiveDistance);
 			var direction = delta / distance;
 			var velocity = ball.Velocity - direction * force * physicsDiffTime;
 
@@ -247,7 +278,7 @@ namespace VisualPinball.Unity
 		{
 			var offset = ball.Position - Center3D(in magnet);
 			var relativeVelocity = ball.Velocity - magnetVelocity;
-			var holdStrength = math.max(math.abs(magnet.Strength), PhysicalMinimumHoldStrength);
+			var holdStrength = math.max(math.abs(magnet.EffectiveStrength), PhysicalMinimumHoldStrength);
 			var holdRadius = math.max(magnet.GrabRadius, PhysicalMinimumCoreRadius);
 			var stiffness = holdStrength / holdRadius;
 			var damping = 2f * math.sqrt(stiffness);
@@ -269,7 +300,7 @@ namespace VisualPinball.Unity
 			var offset = ball.Position.xy - magnet.Position;
 			var velocity = ball.Velocity.xy;
 			var relativeVelocity = velocity - magnetVelocity;
-			var holdStrength = math.max(math.abs(magnet.Strength), PhysicalMinimumHoldStrength);
+			var holdStrength = math.max(math.abs(magnet.EffectiveStrength), PhysicalMinimumHoldStrength);
 			var holdRadius = math.max(magnet.GrabRadius, PhysicalMinimumCoreRadius);
 			var stiffness = holdStrength / holdRadius;
 			var damping = 2f * math.sqrt(stiffness);
@@ -363,7 +394,7 @@ namespace VisualPinball.Unity
 				? math.lengthsq(ball.Position - Center3D(in magnet))
 				: math.lengthsq(ball.Position.xy - magnet.Position);
 			var isInGrabRange = magnet.GrabRadius > 0f &&
-			                    magnet.Strength > 0f &&
+				                    magnet.EffectiveStrength > 0f &&
 			                    distanceSq <= magnet.GrabRadius * magnet.GrabRadius;
 
 			if (!isInGrabRange) {
@@ -404,6 +435,14 @@ namespace VisualPinball.Unity
 		{
 			return math.max(PhysicalMinimumCoreRadius, magnet.Radius * PhysicalCoreRadiusRatio);
 		}
+
+		private static bool UsesPhysicalResponse(in MagnetState magnet)
+			=> magnet.MagnetType == MagnetType.Spatial || magnet.Profile == MagnetForceProfile.Physical;
+
+		private static bool HasActiveField(in MagnetState magnet)
+			=> UsesPhysicalResponse(in magnet)
+				? magnet.EffectiveCurrent > MinEffectiveCurrent && math.abs(magnet.Strength) > MinDistance
+				: magnet.IsEnabled && magnet.CommandedPower > 0f;
 
 		private static float3 GetKinematicVelocity(int itemId, in MagnetState magnet, ref PhysicsState state)
 		{

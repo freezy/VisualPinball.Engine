@@ -26,6 +26,11 @@ namespace VisualPinball.Unity
 		internal float Height;
 		internal float Radius;
 		internal float Strength;
+		internal float CommandedPower;
+		internal float EffectiveCurrent;
+		internal float EffectiveStrength;
+		internal float RiseTime;
+		internal float FallTime;
 		internal float GrabRadius;
 		internal float PlanarDamping;
 		[MarshalAs(UnmanagedType.U1)]

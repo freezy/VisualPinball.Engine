@@ -38,6 +38,7 @@ namespace VisualPinball.Unity.Test
 				Height = 0f,
 				Radius = 100f,
 				Strength = 20f,
+				CommandedPower = 1f,
 				GrabRadius = 20f,
 				PlanarDamping = 0.985f,
 				HeightRange = 25f,
@@ -63,6 +64,7 @@ namespace VisualPinball.Unity.Test
 				Position = float2.zero,
 				Radius = 100f,
 				Strength = 10f,
+				EffectiveStrength = 10f,
 				PlanarDamping = 1f
 			};
 
@@ -111,6 +113,7 @@ namespace VisualPinball.Unity.Test
 				Position = float2.zero,
 				Radius = 100f,
 				Strength = 12f,
+				EffectiveStrength = 12f,
 				PlanarDamping = 0.985f
 			};
 
@@ -130,6 +133,7 @@ namespace VisualPinball.Unity.Test
 				Position = float2.zero,
 				Radius = 100f,
 				Strength = -10f,
+				EffectiveStrength = -10f,
 				PlanarDamping = 1f
 			};
 
@@ -149,7 +153,8 @@ namespace VisualPinball.Unity.Test
 			var magnet = new MagnetState {
 				Position = float2.zero,
 				Radius = 100f,
-				Strength = 400f
+				Strength = 400f,
+				EffectiveStrength = 400f
 			};
 
 			MagnetPhysics.ApplyPhysicalForce(ref nearBall, in magnet, 1f);
@@ -167,7 +172,8 @@ namespace VisualPinball.Unity.Test
 			var magnet = new MagnetState {
 				Position = float2.zero,
 				Radius = 100f,
-				Strength = -400f
+				Strength = -400f,
+				EffectiveStrength = -400f
 			};
 
 			MagnetPhysics.ApplyPhysicalForce(ref ball, in magnet, 1f);
@@ -204,6 +210,7 @@ namespace VisualPinball.Unity.Test
 				Height = 0f,
 				Radius = 100f,
 				Strength = 400f,
+				EffectiveStrength = 400f,
 				MagnetType = MagnetType.Spatial
 			};
 
@@ -266,6 +273,7 @@ namespace VisualPinball.Unity.Test
 			var magnet = new MagnetState {
 				Position = float2.zero,
 				Strength = 20f,
+				EffectiveStrength = 20f,
 				GrabRadius = 20f
 			};
 
@@ -293,6 +301,7 @@ namespace VisualPinball.Unity.Test
 				Height = 12f,
 				Radius = 100f,
 				Strength = 20f,
+				CommandedPower = 1f,
 				GrabRadius = 20f,
 				IsEnabled = true,
 				MagnetType = MagnetType.Spatial
@@ -325,6 +334,7 @@ namespace VisualPinball.Unity.Test
 				Height = 10f,
 				Radius = 100f,
 				Strength = 20f,
+				CommandedPower = 1f,
 				GrabRadius = 20f,
 				IsEnabled = true,
 				MagnetType = MagnetType.Spatial
@@ -364,6 +374,7 @@ namespace VisualPinball.Unity.Test
 				Height = 10f,
 				Radius = 100f,
 				Strength = 20f,
+				CommandedPower = 1f,
 				GrabRadius = 20f,
 				IsEnabled = true,
 				MagnetType = MagnetType.Spatial
@@ -387,6 +398,7 @@ namespace VisualPinball.Unity.Test
 			var magnet = new MagnetState {
 				Position = float2.zero,
 				Strength = 20f,
+				EffectiveStrength = 20f,
 				GrabRadius = 20f
 			};
 			var magnetVelocity = new float2(7f, -2f);
@@ -559,6 +571,51 @@ namespace VisualPinball.Unity.Test
 			Assert.That(magnet.GrabbedBalls.Value, Is.EqualTo(0UL));
 			Assert.That(ball.IsFrozen, Is.False);
 			Assert.That(ball.Velocity, Is.EqualTo(new float3(3f, -2f, 5f)), "a released ball keeps its live velocity");
+		}
+
+		[Test]
+		public void PhysicalCoilRampsAndDecaysWithTimeConstants()
+		{
+			var magnet = new MagnetState {
+				Strength = 100f,
+				CommandedPower = 1f,
+				RiseTime = 2f,
+				FallTime = 1f,
+				IsEnabled = true,
+				Profile = MagnetForceProfile.Physical
+			};
+
+			for (var i = 0; i < 20; i++) {
+				MagnetPhysics.AdvanceCoil(ref magnet, 0.1f);
+			}
+			var currentAfterOneRiseConstant = magnet.EffectiveCurrent;
+			Assert.That(currentAfterOneRiseConstant, Is.EqualTo(0.623f).Within(0.01f));
+			Assert.That(magnet.EffectiveStrength, Is.EqualTo(100f * currentAfterOneRiseConstant * currentAfterOneRiseConstant).Within(1e-4f));
+
+			magnet.IsEnabled = false;
+			for (var i = 0; i < 10; i++) {
+				MagnetPhysics.AdvanceCoil(ref magnet, 0.1f);
+			}
+			Assert.That(magnet.EffectiveCurrent, Is.EqualTo(currentAfterOneRiseConstant * 0.386f).Within(0.01f));
+			Assert.That(magnet.EffectiveStrength, Is.GreaterThan(0f), "the field decays instead of disappearing instantly");
+		}
+
+		[Test]
+		public void VpxCompatibleCoilResponseRemainsInstantaneous()
+		{
+			var magnet = new MagnetState {
+				Strength = 20f,
+				CommandedPower = 0.5f,
+				RiseTime = 10f,
+				FallTime = 10f,
+				IsEnabled = true,
+				Profile = MagnetForceProfile.VpxCompatible
+			};
+
+			MagnetPhysics.AdvanceCoil(ref magnet, 0.1f);
+
+			Assert.That(magnet.EffectiveCurrent, Is.EqualTo(0.5f));
+			Assert.That(magnet.EffectiveStrength, Is.EqualTo(10f));
 		}
 
 		[Test]
