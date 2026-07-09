@@ -28,6 +28,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _forceProfileProperty;
 		private SerializedProperty _coilRiseTimeProperty;
 		private SerializedProperty _coilFallTimeProperty;
+		private SerializedProperty _poleRadiusProperty;
 		private SerializedProperty _grabBallProperty;
 		private SerializedProperty _grabRadiusProperty;
 		private SerializedProperty _heightRangeProperty;
@@ -47,6 +48,7 @@ namespace VisualPinball.Unity.Editor
 			_forceProfileProperty = serializedObject.FindProperty(nameof(MagnetComponent.ForceProfile));
 			_coilRiseTimeProperty = serializedObject.FindProperty(nameof(MagnetComponent.CoilRiseTime));
 			_coilFallTimeProperty = serializedObject.FindProperty(nameof(MagnetComponent.CoilFallTime));
+			_poleRadiusProperty = serializedObject.FindProperty(nameof(MagnetComponent.PoleRadius));
 			_grabBallProperty = serializedObject.FindProperty(nameof(MagnetComponent.GrabBall));
 			_grabRadiusProperty = serializedObject.FindProperty(nameof(MagnetComponent.GrabRadius));
 			_heightRangeProperty = serializedObject.FindProperty(nameof(MagnetComponent.HeightRange));
@@ -75,6 +77,7 @@ namespace VisualPinball.Unity.Editor
 			}
 			var usesPhysicalResponse = isSpatial || _forceProfileProperty.enumValueIndex == (int)MagnetForceProfile.Physical;
 			if (usesPhysicalResponse) {
+				PropertyField(_poleRadiusProperty);
 				PropertyField(_coilRiseTimeProperty);
 				PropertyField(_coilFallTimeProperty);
 			}

@@ -50,6 +50,7 @@ MonoBehaviour:
   ForceProfile: 0
   CoilRiseTime: 20
   CoilFallTime: 20
+  PoleRadius: 10
   GrabBall: 0
   GrabRadius: 10.8
   HeightRange: 50

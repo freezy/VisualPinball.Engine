@@ -1,14 +1,14 @@
 ---
 uid: magnets
 title: Magnets and Turntables
-description: Native playfield magnets, ball holds, repel/eject behavior, and spinning disc turntables.
+description: Native playfield magnets, ball holds, VPX repel/eject behavior, and spinning disc turntables.
 ---
 
 # Magnets and Turntables
 
 VPE provides native mechanisms for playfield magnets and spinning magnetic discs. They run inside the physics loop, so they can react every physics tick instead of waiting for a script timer.
 
-Use **Magnet** for radial attraction, grab/hold behavior, repulsion, and eject-style mechanisms. Use **Turntable** for a spinning disc that pushes the ball tangentially, such as VPX `cvpmTurnTable` mechanisms.
+Use **Magnet** for radial attraction, grab/hold behavior, VPX-compatible repulsion, and eject-style mechanisms. Use **Turntable** for a spinning disc that pushes the ball tangentially, such as VPX `cvpmTurnTable` mechanisms.
 
 ## Magnet Setup
 
@@ -22,7 +22,8 @@ The selected object shows a radius gizmo in the scene view. Playfield magnets dr
 | **Radius** | Influence radius in millimeters. Playfield magnets use a planar radius; spatial magnets use a spherical radius. |
 | **Height Range** | Vertical window above a playfield magnet. Use this to avoid affecting balls on ramps above the playfield. Spatial magnets ignore this field. |
 | **Strength** | Full-power magnet force. In VPX Compatible mode, this uses familiar `cvpmMagnet` strength values and negative values repel. |
-| **Force Profile** | **VPX Compatible** for imported VPX behavior, **Physical** for new VPE tables that want a smoother inverse-square force. Spatial magnets always use physical 3-D force semantics. |
+| **Force Profile** | **VPX Compatible** for imported VPX behavior, **Physical** for new VPE tables that use the finite-pole field model. Spatial magnets always use physical 3-D force semantics. |
+| **Pole Radius** | Effective radius of the circular or annular pole face. The Physical force is strongest in a ring near this pole and is zero laterally at the exact center. |
 | **Coil Rise Time** | Electrical rise time constant in milliseconds for Physical and Spatial magnets. Current reaches about 63% after one time constant. |
 | **Coil Fall Time** | Electrical decay time constant in milliseconds for Physical and Spatial magnets. Tune this to the coil driver and flyback circuit. |
 | **Grab Ball** | Enables center hold behavior inside the grab radius. |
@@ -59,7 +60,11 @@ This mode is the default. It is the right choice for ROM-controlled magnets and 
 
 ### Physical
 
-Use **Physical** for new VPE-authored tables. Its electrical response ramps toward the commanded current instead of switching the field instantaneously, and the field decays after power is removed. Physical grab uses a capped spring-damper hold, so the ball visibly decelerates instead of snapping to the center.
+Use **Physical** for new VPE-authored tables. Its electrical response ramps toward the commanded current instead of switching the field instantaneously, and the field decays after power is removed. The force uses a finite axisymmetric pole approximation: lateral force is zero on the center axis, strongest in an annulus near **Pole Radius**, weakens with vertical air gap, and falls rapidly outside the pole. **Radius** is a hard performance boundary with a smooth force taper, so the magnet never evaluates an infinite tail.
+
+Physical magnets always attract an ordinary steel pinball. Reversing coil polarity changes magnetic flux direction but not the direction of attraction. Use VPX Compatible when a legacy script intentionally uses negative strength as a fictional repelling force.
+
+Physical grab uses a capped spring-damper hold, so the ball visibly decelerates instead of snapping to the center.
 
 Physical strength values are not VPX strength values. Start with a larger value than you would use in VPX Compatible mode and tune by watching ball speed and catch behavior in play mode.
 

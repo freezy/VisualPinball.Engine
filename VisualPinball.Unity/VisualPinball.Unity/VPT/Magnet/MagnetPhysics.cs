@@ -27,8 +27,8 @@ namespace VisualPinball.Unity
 		internal const float VpxMagnetUpdateMs = 10f;
 		private const float MinDistance = 0.0001f;
 		private const float MinDistanceSq = MinDistance * MinDistance;
-		private const float PhysicalCoreRadiusRatio = 0.2f;
-		private const float PhysicalMinimumCoreRadius = 5f;
+		private const float PhysicalMinimumPoleRadius = 1f;
+		private const float AnnularPoleKernelNormalization = 3.864f;
 		private const float PhysicalVelocityDamping = 0.02f;
 		private const float PhysicalMinimumHoldStrength = 1f;
 		private const float MinEffectiveCurrent = 0.0001f;
@@ -227,8 +227,12 @@ namespace VisualPinball.Unity
 			}
 
 			var distance = math.sqrt(distanceSq);
-			var effectiveDistance = math.max(distance, PhysicalCoreRadius(in magnet));
-			var force = magnet.EffectiveStrength / (effectiveDistance * effectiveDistance);
+			var height = math.max(0f, ball.Position.z - magnet.Height);
+			var cutoff = CompactSupport(distanceSq, magnet.Radius * magnet.Radius);
+			if (magnet.HeightRange > 0f) {
+				cutoff *= CompactSupport(height * height, magnet.HeightRange * magnet.HeightRange);
+			}
+			var force = PhysicalForceMagnitude(distance, height, cutoff, in magnet);
 			var direction = delta / distance;
 			var velocity = ball.Velocity.xy - direction * force * physicsDiffTime;
 
@@ -247,8 +251,8 @@ namespace VisualPinball.Unity
 			}
 
 			var distance = math.sqrt(distanceSq);
-			var effectiveDistance = math.max(distance, PhysicalCoreRadius(in magnet));
-			var force = magnet.EffectiveStrength / (effectiveDistance * effectiveDistance);
+			var cutoff = CompactSupport(distanceSq, magnet.Radius * magnet.Radius);
+			var force = PhysicalForceMagnitude(distance, 0f, cutoff, in magnet);
 			var direction = delta / distance;
 			var velocity = ball.Velocity - direction * force * physicsDiffTime;
 
@@ -279,7 +283,7 @@ namespace VisualPinball.Unity
 			var offset = ball.Position - Center3D(in magnet);
 			var relativeVelocity = ball.Velocity - magnetVelocity;
 			var holdStrength = math.max(math.abs(magnet.EffectiveStrength), PhysicalMinimumHoldStrength);
-			var holdRadius = math.max(magnet.GrabRadius, PhysicalMinimumCoreRadius);
+			var holdRadius = math.max(magnet.GrabRadius, PhysicalMinimumPoleRadius);
 			var stiffness = holdStrength / holdRadius;
 			var damping = 2f * math.sqrt(stiffness);
 			var impulse = (-offset * stiffness - relativeVelocity * damping) * physicsDiffTime;
@@ -301,7 +305,7 @@ namespace VisualPinball.Unity
 			var velocity = ball.Velocity.xy;
 			var relativeVelocity = velocity - magnetVelocity;
 			var holdStrength = math.max(math.abs(magnet.EffectiveStrength), PhysicalMinimumHoldStrength);
-			var holdRadius = math.max(magnet.GrabRadius, PhysicalMinimumCoreRadius);
+			var holdRadius = math.max(magnet.GrabRadius, PhysicalMinimumPoleRadius);
 			var stiffness = holdStrength / holdRadius;
 			var damping = 2f * math.sqrt(stiffness);
 			var impulse = (-offset * stiffness - relativeVelocity * damping) * physicsDiffTime;
@@ -394,7 +398,7 @@ namespace VisualPinball.Unity
 				? math.lengthsq(ball.Position - Center3D(in magnet))
 				: math.lengthsq(ball.Position.xy - magnet.Position);
 			var isInGrabRange = magnet.GrabRadius > 0f &&
-				                    magnet.EffectiveStrength > 0f &&
+				                    math.abs(magnet.EffectiveStrength) > MinDistance &&
 			                    distanceSq <= magnet.GrabRadius * magnet.GrabRadius;
 
 			if (!isInGrabRange) {
@@ -431,9 +435,31 @@ namespace VisualPinball.Unity
 			return true;
 		}
 
-		private static float PhysicalCoreRadius(in MagnetState magnet)
+		/// <summary>
+		/// Compact approximation to the lateral gradient of B squared above a finite,
+		/// axisymmetric pole face. The radial force is zero on-axis, strongest in an
+		/// annulus around the pole, and falls with the fifth power in the far field.
+		/// </summary>
+		internal static float PhysicalForceMagnitude(float radialDistance, float axialDistance, float cutoff, in MagnetState magnet)
 		{
-			return math.max(PhysicalMinimumCoreRadius, magnet.Radius * PhysicalCoreRadiusRatio);
+			if (cutoff <= 0f) {
+				return 0f;
+			}
+			var poleRadius = math.max(PhysicalMinimumPoleRadius, magnet.PoleRadius);
+			var radialRatio = radialDistance / poleRadius;
+			var axialRatio = axialDistance / poleRadius;
+			var denominator = 1f + radialRatio * radialRatio + axialRatio * axialRatio;
+			var kernel = AnnularPoleKernelNormalization * radialRatio / (denominator * denominator * denominator);
+			return math.abs(magnet.EffectiveStrength) * kernel * cutoff / (poleRadius * poleRadius);
+		}
+
+		private static float CompactSupport(float distanceSq, float radiusSq)
+		{
+			if (radiusSq <= MinDistanceSq || distanceSq >= radiusSq) {
+				return 0f;
+			}
+			var remaining = 1f - distanceSq / radiusSq;
+			return remaining * remaining;
 		}
 
 		private static bool UsesPhysicalResponse(in MagnetState magnet)
