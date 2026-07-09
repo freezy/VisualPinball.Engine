@@ -16,6 +16,7 @@
 
 using Unity.Burst;
 using Unity.Mathematics;
+using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity
 {
@@ -23,7 +24,7 @@ namespace VisualPinball.Unity
 	internal static class TurntablePhysics
 	{
 		private const float VpxTurntableForceDivisor = 8000f;
-		private const float SecondsPerVpxUpdate = MagnetPhysics.VpxMagnetUpdateMs * 0.001f;
+		private const float SecondsPerVpxUpdate = PhysicsConstants.DefaultStepTimeS;
 
 		[BurstCompile]
 		internal static void Update(int itemId, ref TurntableState turntable, ref PhysicsState state, float physicsDiffTime)
