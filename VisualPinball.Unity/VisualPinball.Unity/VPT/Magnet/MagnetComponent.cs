@@ -78,7 +78,7 @@ namespace VisualPinball.Unity
 
 		[Min(0f)]
 		[Unit("mm")]
-		[Tooltip("Vertical range above the magnet surface where balls are affected.")]
+		[Tooltip("Vertical range above the magnet surface where balls are affected. Zero means unlimited.")]
 		public float HeightRange = 50f;
 
 		[Tooltip("Whether the magnet starts enabled before coil or script control changes it.")]
@@ -169,7 +169,7 @@ namespace VisualPinball.Unity
 				FallTime = CoilFallTime / MagnetPhysics.VpxMagnetUpdateMs,
 				PoleRadius = MillimetersToVpx(PoleRadius),
 				GrabRadius = GrabBall ? MillimetersToVpx(GrabRadius) : 0f,
-				PlanarDamping = math.clamp(DefaultPlanarDamping, 0f, 1f),
+				PlanarDamping = DefaultPlanarDamping,
 				IsEnabled = IsEnabledOnStart,
 				IsKinematic = IsKinematic,
 				// spatial magnets dispatch on MagnetType and never read Profile

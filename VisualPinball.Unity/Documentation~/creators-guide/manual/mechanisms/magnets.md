@@ -20,7 +20,7 @@ The selected object shows a radius gizmo in the scene view. Playfield magnets dr
 |---|---|
 | **Magnet Type** | **Playfield** for under-playfield magnets with a cylindrical range, **Spatial** for mech-mounted magnets that grab and carry balls in 3-D. |
 | **Radius** | Influence radius in millimeters. Playfield magnets use a planar radius; spatial magnets use a spherical radius. |
-| **Height Range** | Vertical window above a playfield magnet. Use this to avoid affecting balls on ramps above the playfield. Spatial magnets ignore this field. |
+| **Height Range** | Vertical window above a playfield magnet. Use this to avoid affecting balls on ramps above the playfield. A value of zero disables the vertical limit. Spatial magnets ignore this field. |
 | **Strength** | Full-power magnet force. In VPX Compatible mode, this uses familiar `cvpmMagnet` strength values and negative values repel. |
 | **Force Profile** | **VPX Compatible** for imported VPX behavior, **Physical** for new VPE tables that use the finite-pole field model. Spatial magnets always use physical 3-D force semantics. |
 | **Pole Radius** | Effective radius of the circular or annular pole face. The Physical force is strongest in a ring near this pole and is zero laterally at the exact center. |
@@ -78,7 +78,7 @@ Because the hold is a force rather than a rigid lock, a hard enough hit from ano
 
 ## Turntable Setup
 
-Add the **Turntable** component with *Add Component -> Pinball -> Mechs -> Turntable*. Place it at the disc center and set **Radius** to cover the area where the spinning disc should affect the ball.
+Add the **Turntable** component with *Add Component -> Pinball -> Mechs -> Turntable*. Place it at the disc center and set **Radius** to cover the area where the spinning disc should affect the ball. **Height Range** bounds the effect vertically so balls on ramps above the disc are unaffected; a value of zero disables the vertical limit.
 
 Turntables expose two coils:
 

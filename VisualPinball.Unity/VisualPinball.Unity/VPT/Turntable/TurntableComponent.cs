@@ -42,7 +42,7 @@ namespace VisualPinball.Unity
 
 		[Min(0f)]
 		[Unit("mm")]
-		[Tooltip("Vertical range above the disc surface where balls are affected.")]
+		[Tooltip("Vertical range above the disc surface where balls are affected. Zero means unlimited.")]
 		public float HeightRange = 50f;
 
 		[Tooltip("VPX-compatible maximum turntable speed.")]
