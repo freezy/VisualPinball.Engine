@@ -16,20 +16,15 @@
 
 // ReSharper disable AssignmentInConditionalExpression
 
-using System.Collections.Generic;
 using UnityEditor;
-using UnityEngine;
-using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Ramp;
 
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(RampComponent)), CanEditMultipleObjects]
-	public class RampInspector : MainInspector<RampData, RampComponent>, IDragPointsInspector
+	public class RampInspector : MainInspector<RampData, RampComponent>
 	{
-		public Transform Transform => MainComponent.transform;
-
 		private bool _foldoutGeometry = true;
 
 		private static readonly string[] RampTypeLabels = {
@@ -74,9 +69,6 @@ namespace VisualPinball.Unity.Editor
 		{
 			base.OnEnable();
 
-			DragPointsHelper = new DragPointsInspectorHelper(MainComponent, this);
-			DragPointsHelper.OnEnable();
-
 			_heightBottomProperty = serializedObject.FindProperty(nameof(RampComponent._heightBottom));
 			_heightTopProperty = serializedObject.FindProperty(nameof(RampComponent._heightTop));
 			_imageAlignmentProperty = serializedObject.FindProperty(nameof(RampComponent._imageAlignment));
@@ -88,12 +80,6 @@ namespace VisualPinball.Unity.Editor
 			_wireDiameterProperty = serializedObject.FindProperty(nameof(RampComponent._wireDiameter));
 			_wireDistanceXProperty = serializedObject.FindProperty(nameof(RampComponent._wireDistanceX));
 			_wireDistanceYProperty = serializedObject.FindProperty(nameof(RampComponent._wireDistanceY));
-		}
-
-		protected override void OnDisable()
-		{
-			base.OnDisable();
-			DragPointsHelper.OnDisable();
 		}
 
 		public override void OnInspectorGUI()
@@ -137,50 +123,12 @@ namespace VisualPinball.Unity.Editor
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
-			DragPointsHelper.OnInspectorGUI(this);
+			DragPointSplineInspectorGUI.OnInspectorGUI(MainComponent.DragPointSpline);
 
 			base.OnInspectorGUI();
 
 			EndEditing();
 		}
 
-		private void OnSceneGUI()
-		{
-			DragPointsHelper.OnSceneGUI(this);
-		}
-
-		#region Dragpoint Tooling
-
-		public bool DragPointsActive => true;
-		public DragPointData[] DragPoints { get => MainComponent.DragPoints; set => MainComponent.DragPoints = value; }
-		public bool PointsAreLooping => false;
-		public IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth, DragPointExposure.SlingShot };
-		public DragPointTransformType HandleType => DragPointTransformType.ThreeD;
-		public DragPointsInspectorHelper DragPointsHelper { get; private set; }
-		public float ZOffset => 0f;
-		public float[] TopBottomZ => new[] { MainComponent._heightBottom, MainComponent._heightTop };
-
-		public void SetDragPointPosition(DragPointData dragPoint, Vertex3D value, int numSelectedDragPoints, float[] topBottomZ)
-		{
-			var isFirst = MainComponent.DragPoints[0].Id == dragPoint.Id;
-			var isLast = MainComponent.DragPoints[^1].Id == dragPoint.Id;
-			var zDiff = value.Z - dragPoint.Center.Z;
-			
-			if (isFirst && numSelectedDragPoints == 1) {
-				MainComponent._heightBottom = topBottomZ[0] + zDiff;
-				dragPoint.Center.X = value.X;
-				dragPoint.Center.Y = value.Y;
-
-			} else if (isLast && numSelectedDragPoints == 1) {
-				MainComponent._heightTop = topBottomZ[1] + zDiff;
-				dragPoint.Center.X = value.X;
-				dragPoint.Center.Y = value.Y;
-				
-			} else {
-				dragPoint.Center = value;
-			}
-		}
-
-		#endregion
 	}
 }
