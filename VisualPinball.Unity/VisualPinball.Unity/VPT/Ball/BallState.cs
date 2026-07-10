@@ -154,6 +154,13 @@ namespace VisualPinball.Unity
 
 		public void Transform(float4x4 matrix)
 		{
+			var scale = matrix.GetScale();
+			var hasUniformScale = math.abs(scale.x - scale.y) < Collider.Tolerance
+			                      && math.abs(scale.x - scale.z) < Collider.Tolerance;
+			if (hasUniformScale) {
+				Radius *= scale.x;
+			}
+
 			Position = matrix.MultiplyPoint(Position);
 			EventPosition = matrix.MultiplyPoint(EventPosition);
 			Velocity = matrix.MultiplyVector(Velocity);
