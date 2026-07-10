@@ -62,6 +62,7 @@ namespace VisualPinball.Unity.Editor
 
 		public void RebuildMeshes()
 		{
+			_dragPointsInspector.DragPoints = _dragPointsInspector.DragPoints;
 			_mainComponent.RebuildMeshes();
 		}
 
@@ -195,7 +196,12 @@ namespace VisualPinball.Unity.Editor
 		/// <param name="message">Message to appear in the UNDO menu</param>
 		public void PrepareUndo(string message)
 		{
-			Undo.RecordObject(_mb, message);
+			if (_mb is IDragPointSplineOwner owner) {
+				var spline = owner.SplineComponent;
+				Undo.RecordObjects(new Object[] { _mb, spline, spline.Container }, message);
+			} else {
+				Undo.RecordObject(_mb, message);
+			}
 		}
 
 		public void OnInspectorGUI(ItemInspector inspector)

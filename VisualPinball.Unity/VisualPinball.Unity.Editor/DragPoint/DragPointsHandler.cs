@@ -237,6 +237,7 @@ namespace VisualPinball.Unity.Editor
 			foreach (var dragPoint in DragPointInspector.DragPoints) {
 				dragPoint.Center -= centerVpx.ToVertex3D();
 			}
+			DragPointInspector.DragPoints = DragPointInspector.DragPoints;
 
 			MainComponent.RebuildMeshes();
 		}

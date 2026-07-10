@@ -24,7 +24,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Splines;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.MetalWireGuide;
@@ -36,7 +38,7 @@ namespace VisualPinball.Unity
 	[PackAs("MetalWireGuide")]
 	[AddComponentMenu("Pinball/Game Item/Metal Wire Guide")]
 	public class MetalWireGuideComponent : MainRenderableComponent<MetalWireGuideData>,
-		IMetalWireGuideData, IPackable
+		IMetalWireGuideData, IPackable, IDragPointSplineOwner
 	{
 		#region Data
 
@@ -57,8 +59,11 @@ namespace VisualPinball.Unity
 		[Tooltip("Radius of the bend")]
 		public float _bendradius = 8f;
 
-		[SerializeField]
+		[SerializeField, HideInInspector]
 		private DragPointData[] _dragPoints;
+
+		[SerializeField]
+		private DragPointSplineComponent _dragPointSpline;
 
 		#endregion
 
@@ -76,7 +81,18 @@ namespace VisualPinball.Unity
 
 		#region IMetalWireGuideData
 
-		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
+		public DragPointData[] DragPoints {
+			get => GetOrCreateDragPointSpline().DragPoints;
+			set {
+				if (!_dragPointSpline) {
+					_dragPoints = value;
+					GetOrCreateDragPointSpline();
+				} else {
+					_dragPointSpline.SetDragPoints(value);
+				}
+			}
+		}
+		public DragPointSplineComponent DragPointSpline => GetOrCreateDragPointSpline();
 		public float Thickness => _thickness;
 		public float Standheight => _standheight;
 		public float Height => _height;
@@ -217,9 +233,30 @@ namespace VisualPinball.Unity
 				_standheight = srcMainComp._standheight;
 				Rotation = srcMainComp.Rotation;
 				_bendradius = srcMainComp._bendradius;
-				_dragPoints = srcMainComp._dragPoints.Select(dp => dp.Clone()).ToArray();
+				DragPoints = srcMainComp.DragPoints.Select(dp => dp.Clone()).ToArray();
 			}
 		}
+
+		private DragPointSplineComponent GetOrCreateDragPointSpline()
+		{
+			if (!_dragPointSpline) {
+				_dragPointSpline = DragPointSplineComponent.Create(this,
+					_dragPoints ?? Array.Empty<DragPointData>());
+				_dragPoints = null;
+			} else {
+				_dragPointSpline.Bind(this);
+			}
+			return _dragPointSpline;
+		}
+
+		MonoBehaviour IDragPointSplineOwner.SplineOwner => this;
+		Transform IDragPointSplineOwner.SplineTransform => transform;
+		DragPointSplineComponent IDragPointSplineOwner.SplineComponent => DragPointSpline;
+		bool IDragPointSplineOwner.SplineClosed => false;
+		bool IDragPointSplineOwner.SplinePlanar => true;
+		void IDragPointSplineOwner.ApplySplineConstraints(Spline spline, int knotIndex,
+			SplineModification modification, IReadOnlyList<float3> previousPositions) { }
+		void IDragPointSplineOwner.RebuildSplineMeshes() => RebuildMeshes();
 
 		#endregion
 	}

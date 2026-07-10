@@ -52,6 +52,21 @@ namespace VisualPinball.Unity
 			CopyFrom(dragPoint);
 		}
 
+		public static DragPointMetadata CreateInserted(DragPointMetadata previous,
+			DragPointMetadata next)
+		{
+			return new DragPointMetadata {
+				_isSmooth = next._isSmooth,
+				_isSlingshot = next._isSlingshot,
+				_hasAutoTexture = next._hasAutoTexture,
+				_textureCoord = next._textureCoord,
+				_editorLayer = next._editorLayer,
+				_editorLayerName = next._editorLayerName,
+				_editorLayerVisibility = previous._editorLayerVisibility,
+				_id = Guid.NewGuid().ToString()[..8],
+			};
+		}
+
 		public void CopyFrom(DragPointData dragPoint)
 		{
 			_isSmooth = dragPoint.IsSmooth;

@@ -24,7 +24,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Splines;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Ramp;
@@ -37,7 +39,8 @@ namespace VisualPinball.Unity
 	[SelectionBase]
 	[PackAs("Ramp")]
 	[AddComponentMenu("Pinball/Game Item/Ramp")]
-	public class RampComponent : MainRenderableComponent<RampData>, IRampData, ISurfaceComponent, IPackable
+	public class RampComponent : MainRenderableComponent<RampData>, IRampData, ISurfaceComponent, IPackable,
+		IDragPointSplineOwner
 	{
 		#region Data
 
@@ -81,8 +84,11 @@ namespace VisualPinball.Unity
 		[Tooltip("Vertical distance between the wires.")]
 		public float _wireDistanceY = 88f;
 
-		[SerializeField]
+		[SerializeField, HideInInspector]
 		private DragPointData[] _dragPoints;
+
+		[SerializeField]
+		private DragPointSplineComponent _dragPointSpline;
 
 		[SerializeField]
 		public Vector3 uvOffset = Vector3.zero;
@@ -102,7 +108,18 @@ namespace VisualPinball.Unity
 		public float WireDiameter => _wireDiameter;
 		public float WidthTop => _widthTop;
 		public float WidthBottom => _widthBottom;
-		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
+		public DragPointData[] DragPoints {
+			get => GetOrCreateDragPointSpline().DragPoints;
+			set {
+				if (!_dragPointSpline) {
+					_dragPoints = value;
+					GetOrCreateDragPointSpline();
+				} else {
+					_dragPointSpline.SetDragPoints(value);
+				}
+			}
+		}
+		public DragPointSplineComponent DragPointSpline => GetOrCreateDragPointSpline();
 
 		#endregion
 
@@ -408,26 +425,66 @@ namespace VisualPinball.Unity
 				_wireDiameter = srcMainComp._wireDiameter;
 				_wireDistanceX = srcMainComp._wireDistanceX;
 				_wireDistanceY = srcMainComp._wireDistanceY;
-				_dragPoints = srcMainComp._dragPoints.Select(dp => dp.Clone()).ToArray();
+				DragPoints = srcMainComp.DragPoints.Select(dp => dp.Clone()).ToArray();
 			}
 			RebuildMeshes();
 		}
 
 		private void CenterPivot()
 		{
-			var centerVpx = DragPoints.Aggregate(Vector3.zero, (current, dragPoint) => current + dragPoint.Center.ToUnityVector3());
-			centerVpx /= DragPoints.Length;
+			var dragPoints = DragPoints;
+			var centerVpx = dragPoints.Aggregate(Vector3.zero, (current, dragPoint) => current + dragPoint.Center.ToUnityVector3());
+			centerVpx /= dragPoints.Length;
 
 			if (uvOffset == Vector3.zero) {
 				uvOffset = centerVpx;
 			}
 
 			transform.Translate(centerVpx.TranslateToWorld(transform) - transform.position);
-			foreach (var dragPoint in DragPoints) {
+			foreach (var dragPoint in dragPoints) {
 				dragPoint.Center -= centerVpx.ToVertex3D();
 			}
+			DragPoints = dragPoints;
 			RebuildMeshes();
 		}
+
+		private DragPointSplineComponent GetOrCreateDragPointSpline()
+		{
+			if (!_dragPointSpline) {
+				_dragPointSpline = DragPointSplineComponent.Create(this,
+					_dragPoints ?? Array.Empty<DragPointData>());
+				_dragPoints = null;
+			} else {
+				_dragPointSpline.Bind(this);
+			}
+			return _dragPointSpline;
+		}
+
+		MonoBehaviour IDragPointSplineOwner.SplineOwner => this;
+		Transform IDragPointSplineOwner.SplineTransform => transform;
+		DragPointSplineComponent IDragPointSplineOwner.SplineComponent => DragPointSpline;
+		bool IDragPointSplineOwner.SplineClosed => false;
+		bool IDragPointSplineOwner.SplinePlanar => false;
+		void IDragPointSplineOwner.ApplySplineConstraints(Spline spline, int knotIndex,
+			SplineModification modification, IReadOnlyList<float3> previousPositions)
+		{
+			if (modification != SplineModification.KnotModified || knotIndex < 0
+				|| previousPositions.Count != spline.Count
+				|| knotIndex != 0 && knotIndex != spline.Count - 1) {
+				return;
+			}
+
+			var knot = spline[knotIndex];
+			var delta = knot.Position.z - previousPositions[knotIndex].z;
+			if (knotIndex == 0) {
+				_heightBottom += delta;
+			} else {
+				_heightTop += delta;
+			}
+			knot.Position.z = previousPositions[knotIndex].z;
+			spline.SetKnotNoNotify(knotIndex, knot);
+		}
+		void IDragPointSplineOwner.RebuildSplineMeshes() => RebuildMeshes();
 
 		internal static (float rightWallHeight, float leftWallHeight) GetCollisionWallHeights(int type, float flatRightWallHeight, float flatLeftWallHeight)
 		{

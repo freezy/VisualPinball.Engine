@@ -651,7 +651,7 @@ namespace VisualPinball.Unity
 			triggerComponent.Position = new Vector2(localPos.x, localPos.y);
 
 			var poly = GetEnclosingPolygon(23, 12);
-			triggerComponent.DragPoints = new DragPointData[poly.Count];
+			var dragPoints = new DragPointData[poly.Count];
 			triggerCollider.HitHeight = 150F; // nFozzy's recommendation, but I think 50 should be ok
 
 			// this was taken from the 2021 code when we had the playfield transformed to vpx world:
@@ -674,8 +674,9 @@ namespace VisualPinball.Unity
 			for (var i = 0; i < poly.Count; i++) {
 				// Poly points are expressed in flipper's frame: rotate to get it to the correct position.
 				var p = flipperToPlayfield.MultiplyPoint3x4(poly[i]);
-				triggerComponent.DragPoints[poly.Count - i - 1] = new DragPointData(p.x, p.y);
+				dragPoints[poly.Count - i - 1] = new DragPointData(p.x, p.y);
 			}
+			triggerComponent.DragPoints = dragPoints;
 
 			// create polarities and velocities curves
 			var polarities = new float2[fc.PolaritiesCurveSlicingCount + 1];

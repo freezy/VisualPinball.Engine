@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Splines;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Rubber;
@@ -36,7 +37,8 @@ namespace VisualPinball.Unity
 	[SelectionBase]
 	[PackAs("Rubber")]
 	[AddComponentMenu("Pinball/Game Item/Rubber")]
-	public class RubberComponent : MainRenderableComponent<RubberData>, IRubberData, IPackable
+	public class RubberComponent : MainRenderableComponent<RubberData>, IRubberData, IPackable,
+		IDragPointSplineOwner
 	{
 		#region Data
 
@@ -50,8 +52,11 @@ namespace VisualPinball.Unity
 		[Tooltip("How thick the rubber band is rendered.")]
 		public int _thickness = 8;
 
-		[SerializeField]
+		[SerializeField, HideInInspector]
 		private DragPointData[] _dragPoints;
+
+		[SerializeField]
+		private DragPointSplineComponent _dragPointSpline;
 
 		[NonSerialized]
 		private Vertex3D[] _scalingDragPoints;
@@ -60,7 +65,18 @@ namespace VisualPinball.Unity
 
 		#region IRubberData
 
-		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
+		public DragPointData[] DragPoints {
+			get => GetOrCreateDragPointSpline().DragPoints;
+			set {
+				if (!_dragPointSpline) {
+					_dragPoints = value;
+					GetOrCreateDragPointSpline();
+				} else {
+					_dragPointSpline.SetDragPoints(value);
+				}
+			}
+		}
+		public DragPointSplineComponent DragPointSpline => GetOrCreateDragPointSpline();
 		public int Thickness => math.max(1, _thickness); // don't allow zero thickness
 
 		#endregion
@@ -215,10 +231,31 @@ namespace VisualPinball.Unity
 			var srcMainComp = go.GetComponent<RubberComponent>();
 			if (srcMainComp) {
 				_thickness = srcMainComp._thickness;
-				_dragPoints = srcMainComp._dragPoints.Select(dp => dp.Clone()).ToArray();
+				DragPoints = srcMainComp.DragPoints.Select(dp => dp.Clone()).ToArray();
 			}
 			RebuildMeshes();
 		}
+
+		private DragPointSplineComponent GetOrCreateDragPointSpline()
+		{
+			if (!_dragPointSpline) {
+				_dragPointSpline = DragPointSplineComponent.Create(this,
+					_dragPoints ?? Array.Empty<DragPointData>());
+				_dragPoints = null;
+			} else {
+				_dragPointSpline.Bind(this);
+			}
+			return _dragPointSpline;
+		}
+
+		MonoBehaviour IDragPointSplineOwner.SplineOwner => this;
+		Transform IDragPointSplineOwner.SplineTransform => transform;
+		DragPointSplineComponent IDragPointSplineOwner.SplineComponent => DragPointSpline;
+		bool IDragPointSplineOwner.SplineClosed => true;
+		bool IDragPointSplineOwner.SplinePlanar => true;
+		void IDragPointSplineOwner.ApplySplineConstraints(Spline spline, int knotIndex,
+			SplineModification modification, IReadOnlyList<float3> previousPositions) { }
+		void IDragPointSplineOwner.RebuildSplineMeshes() => RebuildMeshes();
 
 		#endregion
 	}
