@@ -62,9 +62,9 @@ namespace VisualPinball.Unity
 		public static float3 GetScale(this float4x4 m)
 		{
 			return new float3(
-				math.length(new float3(m.c0.x, m.c1.x, m.c2.x)),
-				math.length(new float3(m.c0.y, m.c1.y, m.c2.y)),
-				math.length(new float3(m.c0.z, m.c1.z, m.c2.z))
+				math.length(m.c0.xyz),
+				math.length(m.c1.xyz),
+				math.length(m.c2.xyz)
 			);
 		}
 
