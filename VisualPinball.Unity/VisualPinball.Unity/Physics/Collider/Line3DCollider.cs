@@ -137,11 +137,11 @@ namespace VisualPinball.Unity
 		public void Collide(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
 			in CollisionEventData collEvent, ref PhysicsState state)
 		{
-			var dot = math.dot(collEvent.HitNormal, ball.Velocity);
+			var impactSpeed = -math.dot(collEvent.HitNormal, ball.Velocity);
 			BallCollider.Collide3DWall(ref ball, in Header.Material, in collEvent, in collEvent.HitNormal, ref state);
 
-			if (Header.FireEvents && dot >= Header.Threshold && Header.IsPrimitive) {
-				// todo m_obj->m_currentHitThreshold = dot;
+			if (Header.FireEvents && impactSpeed >= Header.Threshold && Header.IsPrimitive) {
+				// todo m_obj->m_currentHitThreshold = impactSpeed;
 				Collider.FireHitEvent(ref ball, ref hitEvents, in Header);
 			}
 		}
