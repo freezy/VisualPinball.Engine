@@ -9,6 +9,8 @@
         "Unity.Collections",
         "Unity.Formats.Fbx.Editor",
         "Unity.Mathematics",
+        "Unity.Splines",
+        "Unity.Splines.Editor",
         "Unity.InputSystem",
         "VisualPinball.Engine",
         "VisualPinball.Unity"

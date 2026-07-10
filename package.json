@@ -15,6 +15,7 @@
     "com.unity.modules.unitywebrequest": "1.0.0",
     "com.unity.modules.unitywebrequestaudio": "1.0.0",
     "com.unity.nuget.newtonsoft-json": "3.2.1",
+    "com.unity.splines": "2.8.2",
     "com.unity.ugui": "2.5.0",
     "com.unity.test-framework": "1.7.0"
   },

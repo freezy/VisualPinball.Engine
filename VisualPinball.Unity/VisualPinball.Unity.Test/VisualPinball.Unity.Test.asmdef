@@ -6,6 +6,7 @@
 		"Unity.Entities",
 		"Unity.Entities.Hybrid",
 		"Unity.Mathematics",
+		"Unity.Splines",
 		"Unity.Transforms",
 		"com.bartofzo.nativetrees",
 		"VisualPinball.Engine",
