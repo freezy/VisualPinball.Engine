@@ -98,8 +98,9 @@ namespace VisualPinball.Unity
 
 		public override readonly bool Equals(object obj)
 		{
-			if (obj is ColliderHeader)
-				return Equals(obj);
+			if (obj is ColliderHeader other) {
+				return Equals(other);
+			}
 			return false;
 		}
 

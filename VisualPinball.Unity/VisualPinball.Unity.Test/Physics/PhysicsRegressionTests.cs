@@ -25,8 +25,7 @@ using VisualPinball.Engine.VPT;
 namespace VisualPinball.Unity.Test
 {
 	/// <summary>
-	/// Regression coverage for known transform and collision bugs. These tests intentionally
-	/// remain red until the corresponding production fixes are implemented.
+	/// Regression coverage for physics transform and collision bugs.
 	/// </summary>
 	public class PhysicsRegressionTests
 	{
