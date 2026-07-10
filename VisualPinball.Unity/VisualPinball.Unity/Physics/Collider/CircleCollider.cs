@@ -248,7 +248,7 @@ namespace VisualPinball.Unity
 			var rotation = matrix.GetRotationVector();
 
 			// if xy-scale is not uniform or x/y rotation is not zero, we can't transform the collider
-			var uniformScale = math.abs(scale.x - scale.y) < Collider.Tolerance;
+			var uniformScale = Collider.HasEqualScale(scale.x, scale.y);
 			var xyRotated = math.abs(rotation.x) > Collider.Tolerance || math.abs(rotation.y) > Collider.Tolerance;
 
 			return uniformScale && !xyRotated;
