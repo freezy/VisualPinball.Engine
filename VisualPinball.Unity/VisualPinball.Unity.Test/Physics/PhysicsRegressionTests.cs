@@ -108,6 +108,23 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void BallTransformRoundTripPreservesRadiusForLargeRotatedUniformScale()
+		{
+			var ball = new BallState { Radius = 25f };
+			var matrix = float4x4.TRS(
+				float3.zero,
+				quaternion.EulerXYZ(math.radians(new float3(10f, 62f, 17f))),
+				new float3(10f)
+			);
+
+			ball.Transform(math.inverse(matrix));
+			Assert.That(ball.Radius, Is.EqualTo(2.5f).Within(Tolerance));
+
+			ball.Transform(matrix);
+			Assert.That(ball.Radius, Is.EqualTo(25f).Within(Tolerance));
+		}
+
+		[Test]
 		public void CollisionEventTransformRoundTripPreservesHitVelocity()
 		{
 			var collEvent = new CollisionEventData { HitVelocity = new float2(0f, 1f) };

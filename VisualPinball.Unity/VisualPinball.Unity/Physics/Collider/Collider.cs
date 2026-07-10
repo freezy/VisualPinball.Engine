@@ -30,6 +30,13 @@ namespace VisualPinball.Unity
 	{
 		public const float Tolerance = 1e-6f; // 1e-9f;
 
+		internal static bool HasEqualScale(float first, float second)
+		{
+			// GetScale error grows with the matrix scale, so compare relatively.
+			var largestMagnitude = math.max(math.abs(first), math.abs(second));
+			return math.abs(first - second) <= Tolerance * largestMagnitude;
+		}
+
 		public ColliderHeader Header;
 
 		public int Id => Header.Id;

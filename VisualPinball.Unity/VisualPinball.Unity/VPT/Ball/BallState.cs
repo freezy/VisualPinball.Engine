@@ -155,8 +155,8 @@ namespace VisualPinball.Unity
 		public void Transform(float4x4 matrix)
 		{
 			var scale = matrix.GetScale();
-			var hasUniformScale = math.abs(scale.x - scale.y) < Collider.Tolerance
-			                      && math.abs(scale.x - scale.z) < Collider.Tolerance;
+			var hasUniformScale = Collider.HasEqualScale(scale.x, scale.y)
+			                      && Collider.HasEqualScale(scale.x, scale.z);
 			if (hasUniformScale) {
 				Radius *= scale.x;
 			}
