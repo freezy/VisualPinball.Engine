@@ -65,8 +65,11 @@ namespace VisualPinball.Unity
 
 		internal static void UpdateSpeed(ref TurntableState turntable, float physicsDiffTime)
 		{
+			// cvpmTurnTable semantics: the motor ramp applies whenever the motor drives
+			// the disc — including through a direction reversal — and the friction ramp
+			// applies when it coasts down
 			var targetSpeed = turntable.MotorOn ? turntable.TargetSpeed : 0f;
-			var acceleration = math.abs(targetSpeed) > math.abs(turntable.Speed) ? turntable.SpinUp : turntable.SpinDown;
+			var acceleration = turntable.MotorOn ? turntable.SpinUp : turntable.SpinDown;
 			turntable.Speed = MoveTowards(turntable.Speed, targetSpeed, math.max(0f, acceleration) * physicsDiffTime * SecondsPerVpxUpdate);
 		}
 
