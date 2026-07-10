@@ -16,20 +16,14 @@
 
 // ReSharper disable AssignmentInConditionalExpression
 
-using System.Collections.Generic;
 using UnityEditor;
-using UnityEngine;
-using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.MetalWireGuide;
 
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(MetalWireGuideComponent)), CanEditMultipleObjects]
-	public class MetalWireGuideInspector : MainInspector<MetalWireGuideData, MetalWireGuideComponent>, IDragPointsInspector
+	public class MetalWireGuideInspector : MainInspector<MetalWireGuideData, MetalWireGuideComponent>
 	{
-
-		public Transform Transform => MainComponent.transform;
-
 		private SerializedProperty _heightProperty;
 		private SerializedProperty _thicknessProperty;
 		private SerializedProperty _rotationProperty;
@@ -41,20 +35,11 @@ namespace VisualPinball.Unity.Editor
 			base.OnEnable();
 
 
-			DragPointsHelper = new DragPointsInspectorHelper(MainComponent, this);
-			DragPointsHelper.OnEnable();
-
 			_heightProperty = serializedObject.FindProperty(nameof(MetalWireGuideComponent._height));
 			_thicknessProperty = serializedObject.FindProperty(nameof(MetalWireGuideComponent._thickness));
 			_rotationProperty = serializedObject.FindProperty(nameof(MetalWireGuideComponent.Rotation));
 			_bendradiusProperty = serializedObject.FindProperty(nameof(MetalWireGuideComponent._bendradius));
 			_standheightProperty = serializedObject.FindProperty(nameof(MetalWireGuideComponent._standheight));
-		}
-
-		protected override void OnDisable()
-		{
-			base.OnDisable();
-			DragPointsHelper.OnDisable();
 		}
 
 		public override void OnInspectorGUI()
@@ -73,31 +58,12 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_thicknessProperty, rebuildMesh: true);
 			PropertyField(_bendradiusProperty, rebuildMesh: true);
 
-			DragPointsHelper.OnInspectorGUI(this);
+			DragPointSplineInspectorGUI.OnInspectorGUI(MainComponent.DragPointSpline);
 
 			base.OnInspectorGUI();
 
 			EndEditing();
 		}
 
-		private void OnSceneGUI()
-		{
-			DragPointsHelper.OnSceneGUI(this);
-		}
-
-		#region Dragpoint Tooling
-
-		public bool DragPointsActive => true;
-		public DragPointData[] DragPoints { get => MainComponent.DragPoints; set => MainComponent.DragPoints = value; }
-		public bool PointsAreLooping => false;
-		public IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth };
-		public DragPointTransformType HandleType => DragPointTransformType.TwoD;
-		public DragPointsInspectorHelper DragPointsHelper { get; private set; }
-		public float ZOffset => 0f;
-		public float[] TopBottomZ => null;
-		public void SetDragPointPosition(DragPointData dragPoint, Vertex3D value, int numSelectedDragPoints,
-			float[] topBottomZ) => dragPoint.Center = value;
-		
-		#endregion
 	}
 }

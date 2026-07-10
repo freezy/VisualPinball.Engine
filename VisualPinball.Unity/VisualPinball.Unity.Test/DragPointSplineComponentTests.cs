@@ -19,6 +19,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Splines;
 using VisualPinball.Engine.Math;
+using VisualPinball.Unity.Editor;
 
 namespace VisualPinball.Unity.Test
 {
@@ -155,6 +156,62 @@ namespace VisualPinball.Unity.Test
 			finally {
 				Object.DestroyImmediate(go);
 			}
+		}
+
+		[Test]
+		public void ShouldReverseAroundTheFirstKnotAndRotateSlingshots()
+		{
+			var go = new GameObject("Surface");
+			try {
+				var surface = go.AddComponent<SurfaceComponent>();
+				surface.DragPoints = CreateDragPoints();
+
+				DragPointSplineInspectorGUI.Reverse(surface.DragPointSpline);
+
+				var dragPoints = surface.DragPoints;
+				Assert.That(dragPoints, Has.Length.EqualTo(4));
+				Assert.That(dragPoints[0].Id, Is.EqualTo("a"));
+				Assert.That(dragPoints[1].Id, Is.EqualTo("d"));
+				Assert.That(dragPoints[2].Id, Is.EqualTo("c"));
+				Assert.That(dragPoints[3].Id, Is.EqualTo("b"));
+				Assert.That(dragPoints[0].IsSlingshot, Is.True);
+				Assert.That(dragPoints[1].IsSlingshot, Is.False);
+				Assert.That(dragPoints[2].IsSlingshot, Is.True);
+				Assert.That(dragPoints[3].IsSlingshot, Is.False);
+			}
+			finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldCenterTheOriginWithoutMovingTheWorldCurve()
+		{
+			var go = new GameObject("Rubber");
+			try {
+				var rubber = go.AddComponent<RubberComponent>();
+				rubber.DragPoints = CreateDragPoints();
+				var before = GetWorldPositions(rubber.DragPointSpline.Container);
+
+				DragPointSplineInspectorGUI.CenterOrigin(rubber.DragPointSpline);
+
+				var after = GetWorldPositions(rubber.DragPointSpline.Container);
+				for (var i = 0; i < before.Length; i++) {
+					Assert.That(Vector3.Distance(after[i], before[i]), Is.LessThan(1e-5f));
+				}
+			}
+			finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		private static Vector3[] GetWorldPositions(SplineContainer container)
+		{
+			var positions = new Vector3[container.Spline.Count];
+			for (var i = 0; i < positions.Length; i++) {
+				positions[i] = container.transform.TransformPoint(container.Spline[i].Position);
+			}
+			return positions;
 		}
 
 		private static DragPointData[] CreateDragPoints()

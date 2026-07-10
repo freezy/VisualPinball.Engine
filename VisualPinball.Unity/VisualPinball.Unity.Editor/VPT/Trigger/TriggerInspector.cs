@@ -16,33 +16,15 @@
 
 // ReSharper disable AssignmentInConditionalExpression
 
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Trigger;
 
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(TriggerComponent)), CanEditMultipleObjects]
-	public class TriggerInspector : MainInspector<TriggerData, TriggerComponent>, IDragPointsInspector
+	public class TriggerInspector : MainInspector<TriggerData, TriggerComponent>
 	{
-		public Transform Transform => MainComponent.transform;
-
-		protected override void OnEnable()
-		{
-			base.OnEnable();
-
-			DragPointsHelper = new DragPointsInspectorHelper(MainComponent, this);
-			DragPointsHelper.OnEnable();
-		}
-
-		protected override void OnDisable()
-		{
-			base.OnDisable();
-			DragPointsHelper.OnDisable();
-		}
-
 		public override void OnInspectorGUI()
 		{
 			if (HasErrors()) {
@@ -77,37 +59,12 @@ namespace VisualPinball.Unity.Editor
 				MainComponent.Rotation = newRotation;
 			}
 
-			DragPointsHelper.OnInspectorGUI(this);
+			DragPointSplineInspectorGUI.OnInspectorGUI(MainComponent.DragPointSpline);
 
 			base.OnInspectorGUI();
 
 			EndEditing();
 		}
 
-		private void OnSceneGUI()
-		{
-			DragPointsHelper.OnSceneGUI(this);
-		}
-
-		#region Dragpoint Tooling
-
-		public bool DragPointsActive {
-			get {
-				var meshComp = MainComponent.GetComponent<TriggerMeshComponent>();
-				return !meshComp || !meshComp.IsCircle;
-			}
-		}
-
-		public DragPointData[] DragPoints { get => MainComponent.DragPoints; set => MainComponent.DragPoints = value; }
-		public bool PointsAreLooping => true;
-		public IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth, DragPointExposure.SlingShot };
-		public DragPointTransformType HandleType => DragPointTransformType.TwoD;
-		public DragPointsInspectorHelper DragPointsHelper { get; private set; }
-		public float ZOffset => MainComponent.Position.z;
-		public float[] TopBottomZ => null;
-		public void SetDragPointPosition(DragPointData dragPoint, Vertex3D value, int numSelectedDragPoints,
-			float[] topBottomZ) => dragPoint.Center = value;
-
-		#endregion
 	}
 }
