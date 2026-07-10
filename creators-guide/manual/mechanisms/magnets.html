@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Magnets and Turntables | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Magnets and Turntables | VPE Documentation ">
+      
+      <meta name="description" content="Native playfield magnets, ball holds, VPX repel/eject behavior, and spinning disc turntables.">
+      <link rel="icon" href="../../../favicon.png">
+      <link rel="stylesheet" href="../../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../../public/main.css">
+      <link rel="stylesheet" href="../../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../../toc.html">
+      <meta name="docfx:tocrel" content="../../toc.html">
+      
+      <meta name="docfx:rel" content="../../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/manual/mechanisms/magnets.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../../public/docfx.min.js"></script>
+      <script src="./../../../public/mermaid-11.14.0.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../../index.html">
+            <img id="logo" class="svg" src="../../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="magnets">
+<h1 id="magnets-and-turntables">Magnets and Turntables</h1>
+
+<p>VPE provides native mechanisms for playfield magnets and spinning magnetic discs. They run inside the physics loop, so they can react every physics tick instead of waiting for a script timer.</p>
+<p>Use <strong>Magnet</strong> for radial attraction, grab/hold behavior, VPX-compatible repulsion, and eject-style mechanisms. Use <strong>Turntable</strong> for a spinning disc that pushes the ball tangentially, such as VPX <code>cvpmTurnTable</code> mechanisms.</p>
+<h2 id="magnet-setup">Magnet Setup</h2>
+<p>Add the <strong>Magnet</strong> component to a GameObject with <em>Add Component -&gt; Pinball -&gt; Mechs -&gt; Magnet</em>. Place the GameObject at the magnet core or hold position. The component uses the transform position as the center of the force field.</p>
+<p>The selected object shows a radius gizmo in the scene view. Playfield magnets draw a cylinder; spatial magnets draw a sphere. If grab is enabled, a smaller grab radius is drawn as well.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Magnet Type</strong></td>
+<td><strong>Playfield</strong> for under-playfield magnets with a cylindrical range, <strong>Spatial</strong> for mech-mounted magnets that grab and carry balls in 3-D.</td>
+</tr>
+<tr>
+<td><strong>Radius</strong></td>
+<td>Influence radius in millimeters. Playfield magnets use a planar radius; spatial magnets use a spherical radius.</td>
+</tr>
+<tr>
+<td><strong>Height Range</strong></td>
+<td>Vertical window above a playfield magnet. Use this to avoid affecting balls on ramps above the playfield. A value of zero disables the vertical limit. Spatial magnets ignore this field.</td>
+</tr>
+<tr>
+<td><strong>Strength</strong></td>
+<td>Full-power magnet force. In VPX Compatible mode, this uses familiar <code>cvpmMagnet</code> strength values and negative values repel.</td>
+</tr>
+<tr>
+<td><strong>Force Profile</strong></td>
+<td><strong>VPX Compatible</strong> for imported VPX behavior, <strong>Physical</strong> for new VPE tables that use the finite-pole field model. Spatial magnets always use physical 3-D force semantics.</td>
+</tr>
+<tr>
+<td><strong>Pole Radius</strong></td>
+<td>Effective radius of the circular or annular pole face. The Physical force is strongest in a ring near this pole and is zero laterally at the exact center.</td>
+</tr>
+<tr>
+<td><strong>Coil Rise Time</strong></td>
+<td>Electrical rise time constant in milliseconds for Physical and Spatial magnets. Current reaches about 63% after one time constant.</td>
+</tr>
+<tr>
+<td><strong>Coil Fall Time</strong></td>
+<td>Electrical decay time constant in milliseconds for Physical and Spatial magnets. Tune this to the coil driver and flyback circuit.</td>
+</tr>
+<tr>
+<td><strong>Grab Ball</strong></td>
+<td>Enables center hold behavior inside the grab radius.</td>
+</tr>
+<tr>
+<td><strong>Grab Radius</strong></td>
+<td>Capture volume for grab mode. VPX Compatible snaps on entry. Physical and Spatial magnets capture only when the current field can arrest the ball before it leaves this volume, then use a spring-damper hold that a hard hit can overcome.</td>
+</tr>
+<tr>
+<td><strong>Is Enabled On Start</strong></td>
+<td>Starts the magnet on before a coil or script changes it.</td>
+</tr>
+<tr>
+<td><strong>Is Kinematic</strong></td>
+<td>Moves the magnetic field with the GameObject transform during gameplay. Use this when the magnet is mounted on a moving mech.</td>
+</tr>
+<tr>
+<td><strong>Draw Debug Forces</strong></td>
+<td>Draws play-mode force vectors for balls inside the radius.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="coils-and-switches">Coils and Switches</h2>
+<p>Magnets expose one coil:</p>
+<table>
+<thead>
+<tr>
+<th>Device item</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>magnet_coil</code></td>
+<td>Enables the magnet while the coil is active.</td>
+</tr>
+</tbody>
+</table>
+<p>Magnets also expose one switch:</p>
+<table>
+<thead>
+<tr>
+<th>Device item</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ball_held</code></td>
+<td>Closes while one or more balls are grabbed by the magnet.</td>
+</tr>
+</tbody>
+</table>
+<p>Map ROM solenoids to <code>magnet_coil</code> in the <a href="../../editor/coil-manager.html">Coil Manager</a>. The <code>ball_held</code> switch can be used by game logic when a table needs explicit confirmation that a ball is held.</p>
+<p>Some ROMs pulse-width-modulate (PWM) their magnet coils to vary grip — Iron Man, for example, drives its magnets at partial strength. The normalized coil command travels through the simulation-thread path without being reduced to a boolean. VPX Compatible scales its authored <strong>Strength</strong> directly by that command. Physical and Spatial magnets instead integrate effective coil current using <strong>Coil Rise Time</strong> and <strong>Coil Fall Time</strong>, then derive force from current squared. Set <strong>Strength</strong> to the full-power grip at 100% current.</p>
+<h2 id="force-profiles">Force Profiles</h2>
+<h3 id="vpx-compatible">VPX Compatible</h3>
+<p>Use <strong>VPX Compatible</strong> for imported tables or ports that already have tuned <code>cvpmMagnet</code> values. This profile follows the VPX magnet force curve and normalizes it to VPE's 1 kHz physics loop.</p>
+<p>This mode is the default. It is the right choice for ROM-controlled magnets and Magna-Save style fields.</p>
+<h3 id="physical">Physical</h3>
+<p>Use <strong>Physical</strong> for new VPE-authored tables. Its electrical response ramps toward the commanded current instead of switching the field instantaneously, and the field decays after power is removed. The force uses a finite axisymmetric pole approximation: lateral force is zero on the center axis, strongest in an annulus near <strong>Pole Radius</strong>, weakens with vertical air gap, and falls rapidly outside the pole. <strong>Radius</strong> is a hard performance boundary with a smooth force taper, so the magnet never evaluates an infinite tail.</p>
+<p>Physical magnets always attract an ordinary steel pinball. Reversing coil polarity changes magnetic flux direction but not the direction of attraction. Use VPX Compatible when a legacy script intentionally uses negative strength as a fictional repelling force.</p>
+<p>Physical grab uses a capped spring-damper hold, so the ball visibly decelerates instead of snapping to the center. Capture is based on relative speed, remaining grab distance, and effective field strength; a fast fly-by or weak PWM command does not become an artificial full-strength hold.</p>
+<p>Physical strength values are not VPX strength values. Start with a larger value than you would use in VPX Compatible mode and tune by watching ball speed and catch behavior in play mode.</p>
+<h2 id="spatial-magnets">Spatial Magnets</h2>
+<p>Use <strong>Magnet Type: Spatial</strong> for mechanisms that physically carry the ball away from the playfield, such as a mouth, hand, or wand mounted on a moving mech. Spatial magnets use a spherical radius around the transform and treat the transform as the ball center hold point.</p>
+<p>When <strong>Grab Ball</strong> is enabled, a ball inside <strong>Grab Radius</strong> is pulled to that 3-D hold point by a strong magnetic force and held there. The ball stays a live physics object throughout — it is not frozen — so it renders at its real position and other balls collide with it normally. If <strong>Is Kinematic</strong> is enabled and the GameObject moves during gameplay, the hold force drags the ball along in x, y, and z. Turning the coil off or calling <code>ReleaseBall()</code> simply drops the hold, and the ball continues with whatever velocity it has. <code>Eject(speed, angleDeg, verticalAngleDeg)</code> throws it directionally; the first angle uses the same convention as kickers, and the optional vertical angle lifts or drops the shot.</p>
+<p>Because the hold is a force rather than a rigid lock, a hard enough hit from another ball can overcome it and knock the ball loose (and that ball can in turn be grabbed). A new ball is marked held only after the current field can arrest its relative motion inside <strong>Grab Radius</strong>. <strong>Strength</strong> sets how hard the magnet holds — a stronger magnet needs a harder hit to dislodge its ball. This is not a levitation model: use <strong>Radius</strong> and <strong>Strength</strong> to catch a nearby ball, not to pull one across the table or balance it far below the hold point.</p>
+<h2 id="turntable-setup">Turntable Setup</h2>
+<p>Add the <strong>Turntable</strong> component with <em>Add Component -&gt; Pinball -&gt; Mechs -&gt; Turntable</em>. Place it at the disc center and set <strong>Radius</strong> to cover the area where the spinning disc should affect the ball. <strong>Height Range</strong> bounds the effect vertically so balls on ramps above the disc are unaffected; a value of zero disables the vertical limit.</p>
+<p>Turntables expose two coils:</p>
+<table>
+<thead>
+<tr>
+<th>Device item</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>motor_coil</code></td>
+<td>Turns the motor on while active.</td>
+</tr>
+<tr>
+<td><code>direction_coil</code></td>
+<td>Selects clockwise while active and counter-clockwise while inactive.</td>
+</tr>
+</tbody>
+</table>
+<p>The turntable ramps toward <strong>Max Speed</strong> using <strong>Spin Up</strong>, then ramps back toward zero using <strong>Spin Down</strong> when the motor turns off. Assign <strong>Rotation Target</strong> to the visible disc mesh if you want it to rotate with the simulated speed.</p>
+<h2 id="kinematic-magnets">Kinematic Magnets</h2>
+<p>Enable <strong>Is Kinematic</strong> when a magnet or turntable is parented under a moving transform. The physics engine tracks the transform during gameplay, so the force field follows the moving center. A held ball is dragged along by the hold force — planar for playfield magnets, full 3-D for spatial magnets.</p>
+<p>Kinematic tracking follows the transform position and height. The magnetic field remains playfield-aligned for playfield magnets; tilted field axes are not modeled. Spatial magnets are the supported path for carrying a held ball away from the playfield.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/manual/mechanisms/magnets.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2026 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    if (window.mermaid) {
+      const getMermaidConfig = () => {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        return {
+          startOnLoad: false,
+          theme: 'base',
+          treeView: isDark ? {
+            labelColor: '#f8f9fa',
+            lineColor: '#b7bcc4'
+          } : {
+            labelColor: '#212529',
+            lineColor: '#8a8f98'
+          },
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: '#1f2328',
+            primaryColor: '#1f2328',
+            primaryTextColor: '#f8f9fa',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#292e33',
+            secondaryTextColor: '#f8f9fa',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#20242a',
+            tertiaryTextColor: '#f8f9fa',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#292e33',
+            clusterBorder: '#6c757d',
+            lineColor: '#b7bcc4',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#f8f9fa',
+            mainBkg: '#1f2328',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          } : {
+            darkMode: false,
+            background: '#ffffff',
+            primaryColor: '#f6f7f9',
+            primaryTextColor: '#212529',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#ffffff',
+            secondaryTextColor: '#212529',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#eceff3',
+            tertiaryTextColor: '#212529',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#f3f3f3',
+            clusterBorder: '#c7cbd1',
+            lineColor: '#8a8f98',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#212529',
+            mainBkg: '#f6f7f9',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          }
+        };
+      };
+
+      const initializeMermaidBlocks = () => {
+        const mermaidBlocks = document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid, pre code.mermaid');
+        mermaidBlocks.forEach((block) => {
+          const pre = block.parentElement;
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.dataset.mermaidSource = block.textContent;
+          container.textContent = block.textContent;
+          pre.replaceWith(container);
+        });
+      };
+
+      const renderMermaidBlocks = async () => {
+        const mermaidContainers = document.querySelectorAll('.mermaid[data-mermaid-source]');
+        if (mermaidContainers.length === 0) {
+          return;
+        }
+
+        mermaid.initialize(getMermaidConfig());
+
+        mermaidContainers.forEach((container) => {
+          container.removeAttribute('data-processed');
+          container.innerHTML = '';
+          container.textContent = container.dataset.mermaidSource;
+        });
+
+        await mermaid.run({ querySelector: '.mermaid[data-mermaid-source]' });
+      };
+
+      initializeMermaidBlocks();
+      renderMermaidBlocks();
+
+      let currentMermaidTheme = document.documentElement.getAttribute('data-bs-theme');
+      new MutationObserver(() => {
+        const nextTheme = document.documentElement.getAttribute('data-bs-theme');
+        if (nextTheme !== currentMermaidTheme) {
+          currentMermaidTheme = nextTheme;
+          renderMermaidBlocks();
+        }
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    }
+
+    const updateAffixHighlight = () => {
+      const affix = document.getElementById('affix');
+      if (!affix) {
+        return;
+      }
+
+      const links = Array.from(affix.querySelectorAll('a[href^="#"]'));
+      if (links.length === 0) {
+        return;
+      }
+
+      const sections = links.map((link) => {
+        const id = decodeURIComponent(link.getAttribute('href').slice(1));
+        const heading = document.getElementById(id);
+        return heading ? { link, heading } : null;
+      }).filter(Boolean);
+
+      if (sections.length === 0) {
+        return;
+      }
+
+      const threshold = 140;
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.heading.getBoundingClientRect().top - threshold <= 0) {
+          current = section;
+        } else {
+          break;
+        }
+      }
+
+      links.forEach((link) => {
+        link.classList.toggle('is-current', link === current.link);
+        if (link === current.link) {
+          link.setAttribute('aria-current', 'location');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+    }
+
+    const affixRoot = document.getElementById('affix');
+    if (affixRoot) {
+      let affixFrame = null;
+      const scheduleAffixHighlight = () => {
+        if (affixFrame !== null) {
+          cancelAnimationFrame(affixFrame);
+        }
+        affixFrame = requestAnimationFrame(() => {
+          affixFrame = null;
+          updateAffixHighlight();
+        });
+      }
+
+      scheduleAffixHighlight();
+      new MutationObserver(scheduleAffixHighlight).observe(affixRoot, { childList: true, subtree: true });
+      window.addEventListener('scroll', scheduleAffixHighlight, { passive: true });
+      window.addEventListener('resize', scheduleAffixHighlight, { passive: true });
+    }
+
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

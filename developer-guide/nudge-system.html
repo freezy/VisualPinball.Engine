@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Nudge System | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Nudge System | VPE Documentation ">
+      
+      <meta name="description" content="How VPE combines keyboard nudges, cabinet sensors, visual motion, and tilt-bob routing.">
+      <link rel="icon" href="../favicon.png">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <link rel="stylesheet" href="../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/developer-guide/nudge-system.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+      <script src="./../public/mermaid-11.14.0.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="developer-guide-nudge-system">
+<h1 id="nudge-system">Nudge System</h1>
+
+<p>VPE models nudging as cabinet motion. A nudge is not a special force applied
+directly to the ball. Instead, the cabinet/playfield reference frame moves and
+accelerates, and the ball reacts to that movement through the normal physics
+step. This keeps keyboard nudges, analog cabinet devices, visual cabinet motion,
+and plumb-bob tilt on the same physical vocabulary.</p>
+<p>The runtime coordinator is <code>NudgeState</code>. It owns keyboard nudging, up to four
+analog sensor slots, the selected cabinet acceleration for the current physics
+tick, the visual cabinet offset, and nudge telemetry. The physics step consumes
+<code>NudgeState.CabinetAcceleration</code>; rendering consumes <code>NudgeState.CabinetOffset</code>
+through <code>VisualNudgeComponent</code>; simulated tilt uses the same acceleration through
+<code>PlumbState</code> and routes the resulting switch edges through <code>TiltBobComponent</code>.</p>
+<p>Much of the model is a C# port or adaptation of the current VP cabinet nudge
+code:</p>
+<ul>
+<li><code>NudgeState</code> follows the coordinator shape from
+<code>vpinball/src/physics/cabinet/NudgeHandler.*</code>.</li>
+<li><code>KeyboardNudgeState</code> ports/adapts
+<code>vpinball/src/physics/cabinet/KeyboardNudge.*</code>.</li>
+<li><code>GamepadNudgeState</code> adapts
+<code>vpinball/src/physics/cabinet/GamepadNudge.*</code>.</li>
+<li><code>CabinetSensorState</code> adapts
+<code>vpinball/src/physics/cabinet/CabinetNudgeSensor.*</code>, with support code from
+<code>MotionKalmanAxis.h</code> and <code>MotionGainCalibratorAxis.h</code>.</li>
+<li><code>PlumbState</code> ports/adapts
+<code>vpinball/src/physics/cabinet/PlumbHandler.*</code>.</li>
+</ul>
+<h2 id="data-flow">Data Flow</h2>
+<pre><code class="lang-mermaid">flowchart TD
+	Keys[&quot;Keyboard/button nudge&lt;br/&gt;PhysicsEngine.Nudge(angle, force)&quot;] --&gt; Pending[&quot;Pending keyboard queue&quot;]
+	Native[&quot;Native analog input&lt;br/&gt;NativeInputManager&quot;] --&gt; Mapper[&quot;NudgeSystem&lt;br/&gt;device/axis mapping&quot;]
+	Mapper --&gt; Samples[&quot;Pending sensor sample queue&quot;]
+	Pending --&gt; Tick[&quot;Physics tick&lt;br/&gt;PhysicsEngineThreading&quot;]
+	Samples --&gt; Tick
+	Tick --&gt; State[&quot;NudgeState&lt;br/&gt;selects one cabinet source&quot;]
+	State --&gt; Ball[&quot;Ball physics&lt;br/&gt;cabinet acceleration&quot;]
+	State --&gt; Visual[&quot;VisualNudgeComponent&lt;br/&gt;cabinet offset&quot;]
+	State --&gt; Plumb[&quot;PlumbState&lt;br/&gt;tilt switch edges&quot;]
+	Plumb --&gt; TiltBob[&quot;TiltBobComponent&lt;br/&gt;authored switch route&quot;]
+	PhysicalTilt[&quot;Physical cabinet Tilt input&lt;br/&gt;real tilt bob&quot;] --&gt; TiltBob
+	TiltBob --&gt; Switch[&quot;Game logic tilt switch&quot;]
+</code></pre>
+<p><code>PhysicsEngine.Nudge(angleDeg, force)</code> queues a keyboard-style command. In
+threaded mode, native axis input is received on the native input polling thread,
+matched by <code>NudgeSystem</code>, normalized through <code>SensorMapping</code>, and queued into the
+simulation thread. Both queues are drained at the deterministic physics cadence,
+so all nudge sources advance in one millisecond steps.</p>
+<p>Keyboard input intentionally wins while its synthetic cabinet movement is active.
+After that, <code>NudgeState</code> chooses the most recently active analog sensor. If two
+sensors have the same activity timestamp, the stronger cabinet motion wins. This
+keeps a deliberate keyboard/button nudge from being diluted by resting sensor
+noise, while still allowing multiple cabinet devices to be configured.</p>
+<h2 id="intent">Intent</h2>
+<p>In this system, &quot;intent&quot; means an input expresses what the player wanted to do,
+not what the cabinet physically did.</p>
+<p>Keyboard keys, cabinet buttons, and gamepad sticks are intent sources. They say
+&quot;nudge left now&quot; or &quot;nudge forward now&quot;; they do not measure a real cabinet
+trajectory. VPE converts that request into a synthetic cabinet impulse and then
+lets the cabinet spring model ring down.</p>
+<p>Some real accelerometer devices can also be used as intent sources. A
+<code>CabinetIntent</code> sensor reads cabinet acceleration, detects the nudge attempt,
+and feeds a synthesized cabinet impulse. This is useful when a physical sensor is
+too noisy, too device-specific, or too hard to scale as direct measured motion,
+but still clearly identifies that the player hit the cabinet.</p>
+<p>Direct cabinet sensors are different. A <code>CabinetDirect</code> sensor is treated as
+measured physical motion. Its velocity and/or acceleration channels are filtered,
+scaled, and fed into the cabinet model as the cabinet's actual movement.</p>
+<h2 id="source-types">Source Types</h2>
+<p><code>KeyboardNudgeMode</code> controls how digital nudges become cabinet motion:</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PushRetract</code></td>
+<td>Legacy VP-style instant shove/retract pulse.</td>
+</tr>
+<tr>
+<td><code>BoxModel</code></td>
+<td>Legacy VP box model where a table-space offset springs back to rest.</td>
+</tr>
+<tr>
+<td><code>CabModel</code></td>
+<td>Cabinet oscillator model used by the new nudge stack.</td>
+</tr>
+</tbody>
+</table>
+<p><code>NudgeSensorType</code> controls how an analog slot is interpreted:</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Channels</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GamepadIntent</code></td>
+<td><code>X</code>, <code>Y</code></td>
+<td>Stick/controller axes as player intent.</td>
+</tr>
+<tr>
+<td><code>CabinetIntent</code></td>
+<td><code>AccelerationX</code>, <code>AccelerationY</code>, optional velocity channels</td>
+<td>Measured cabinet acceleration interpreted as a nudge attempt.</td>
+</tr>
+<tr>
+<td><code>CabinetDirect</code></td>
+<td><code>AccelerationX</code>, <code>AccelerationY</code>, optional velocity channels</td>
+<td>Measured cabinet motion used directly.</td>
+</tr>
+</tbody>
+</table>
+<p>Gamepad intent intentionally does not imply that the controller has an
+accelerometer. For example, a typical Xbox controller can be mapped through stick
+axes, but it should be treated as <code>GamepadIntent</code>, not as a cabinet sensor.</p>
+<h2 id="sensor-mapping">Sensor Mapping</h2>
+<p>Analog mappings are stored as compact strings and parsed into <code>SensorMapping</code>
+objects at runtime. The string format is used because native device IDs can
+contain punctuation and because the same values need to survive player JSON,
+table packaging, and editor presets.</p>
+<p>A mapping identifies:</p>
+<ul>
+<li>Native device ID.</li>
+<li>Native axis ID.</li>
+<li>Axis kind: <code>Position</code>, <code>Velocity</code>, or <code>Acceleration</code>.</li>
+<li>Dead zone.</li>
+<li>Scale.</li>
+<li>Limit.</li>
+<li>Raw neutral center.</li>
+</ul>
+<p>The native input thread emits raw axis values. <code>SensorMapping.ProcessRawValue()</code>
+subtracts the saved raw center, applies dead zone/scale/limit, and returns the
+normalized value queued into physics.</p>
+<h2 id="mount-orientation">Mount Orientation</h2>
+<p>Cabinet devices are often installed in different physical orientations. Each
+sensor slot therefore has a mount transform:</p>
+<ul>
+<li><code>NudgeSensorMountRotation</code>: 0, 90, 180, or 270 degrees.</li>
+<li><code>MountMirror</code>: mirror the board X axis before rotation.</li>
+</ul>
+<p><code>NudgeSensorState</code> applies this transform at the slot boundary before dispatching
+samples to the gamepad or cabinet implementation. This keeps the rest of the
+physics code in cabinet-space X/Y coordinates regardless of how the board is
+mounted.</p>
+<h2 id="tilt-bob-routing">Tilt Bob Routing</h2>
+<p><code>PlumbState</code> is deliberately only the physics-side bob simulation. It produces
+tilt switch edges when cabinet acceleration swings the bob past the configured
+threshold, but it does not know which ROM/table switch should receive that
+signal.</p>
+<p><code>TiltBobComponent</code> is the table-authored route and owns the simulated bob's
+damping and threshold angle. If the table contains this component, the switch
+manager can map the game logic tilt switch to the component's <code>tilt_bob_switch</code>
+item. If the component is absent, VPE disables the physics plumb route for that
+table and does not listen to the player's cabinet Tilt input for plumb tilt.</p>
+<p>The source is player/cabinet configuration, not table configuration:</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Simulated</code></td>
+<td><code>PhysicsEngine</code> drains <code>PlumbState</code> edges and the component forwards them to its mapped switch.</td>
+</tr>
+<tr>
+<td><code>Physical</code></td>
+<td>Native input or Unity Input System <code>Tilt</code> action changes are queued to the component, which forwards the real cabinet bob state to its mapped switch.</td>
+</tr>
+</tbody>
+</table>
+<p>This separation is important because the table knows where its tilt switch is
+routed, while the cabinet owner knows whether tilt should come from simulation
+or from a real physical bob.</p>
+<h2 id="calibration">Calibration</h2>
+<p><code>SimulationThreadComponent.CalibrateNudgeSensorCenters()</code> captures the current
+raw value of every mapped axis and stores it as that mapping's neutral center.
+<code>ResetNudgeSensorCenters()</code> clears those saved centers.</p>
+<p>This is intentionally center calibration, not gain calibration and not noise
+removal. It solves the common case where a resting KL25Z/Pinscape board does not
+report exactly zero. It does not choose better axes, remove spikes, or determine
+the correct scale. For direct cabinet sensors, <code>CabinetSensorState</code> still runs
+its physics-side filtering and gain calibration from live motion data.</p>
+<p>Calibration should be performed while the cabinet is at rest and the sensor is
+already mapped to the intended axes.</p>
+<h2 id="settings">Settings</h2>
+<p>Cabinet input settings are shared between editor defaults, runtime components,
+and the player app:</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CabinetInputSettings</code></td>
+<td>Native input enablement, polling interval, and nested nudge settings.</td>
+</tr>
+<tr>
+<td><code>CabinetNudgeSettings</code></td>
+<td>Keyboard mode/strength/damping, visual strength, player tilt-bob source mode, and sensor list.</td>
+</tr>
+<tr>
+<td><code>CabinetNudgeSensorSettings</code></td>
+<td>Serializable shape for one sensor slot.</td>
+</tr>
+<tr>
+<td><code>CabinetInputSettingsAsset</code></td>
+<td>Optional editor preset/default wrapper.</td>
+</tr>
+<tr>
+<td><code>TiltBobComponent</code></td>
+<td>Table-authored switch route plus simulated tilt-bob damping and threshold.</td>
+</tr>
+</tbody>
+</table>
+<p><code>CabinetInputSettings.ApplyTo(tableRoot)</code> finds the table's <code>PhysicsEngine</code> and
+<code>SimulationThreadComponent</code> and applies the correct subset to each. The player
+configuration uses the same <code>CabinetNudgeSettings</code> shape, so runtime UI and
+editor/direct-play configuration do not need to maintain parallel models.</p>
+<p>Hardware mappings are still considered user/cabinet configuration. A table can
+carry defaults for direct editor play or a known cabinet setup, but the built
+player should normally write user-specific settings to player configuration
+rather than modifying project assets during play.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/developer-guide/nudge-system.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2026 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    if (window.mermaid) {
+      const getMermaidConfig = () => {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        return {
+          startOnLoad: false,
+          theme: 'base',
+          treeView: isDark ? {
+            labelColor: '#f8f9fa',
+            lineColor: '#b7bcc4'
+          } : {
+            labelColor: '#212529',
+            lineColor: '#8a8f98'
+          },
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: '#1f2328',
+            primaryColor: '#1f2328',
+            primaryTextColor: '#f8f9fa',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#292e33',
+            secondaryTextColor: '#f8f9fa',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#20242a',
+            tertiaryTextColor: '#f8f9fa',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#292e33',
+            clusterBorder: '#6c757d',
+            lineColor: '#b7bcc4',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#f8f9fa',
+            mainBkg: '#1f2328',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          } : {
+            darkMode: false,
+            background: '#ffffff',
+            primaryColor: '#f6f7f9',
+            primaryTextColor: '#212529',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#ffffff',
+            secondaryTextColor: '#212529',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#eceff3',
+            tertiaryTextColor: '#212529',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#f3f3f3',
+            clusterBorder: '#c7cbd1',
+            lineColor: '#8a8f98',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#212529',
+            mainBkg: '#f6f7f9',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          }
+        };
+      };
+
+      const initializeMermaidBlocks = () => {
+        const mermaidBlocks = document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid, pre code.mermaid');
+        mermaidBlocks.forEach((block) => {
+          const pre = block.parentElement;
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.dataset.mermaidSource = block.textContent;
+          container.textContent = block.textContent;
+          pre.replaceWith(container);
+        });
+      };
+
+      const renderMermaidBlocks = async () => {
+        const mermaidContainers = document.querySelectorAll('.mermaid[data-mermaid-source]');
+        if (mermaidContainers.length === 0) {
+          return;
+        }
+
+        mermaid.initialize(getMermaidConfig());
+
+        mermaidContainers.forEach((container) => {
+          container.removeAttribute('data-processed');
+          container.innerHTML = '';
+          container.textContent = container.dataset.mermaidSource;
+        });
+
+        await mermaid.run({ querySelector: '.mermaid[data-mermaid-source]' });
+      };
+
+      initializeMermaidBlocks();
+      renderMermaidBlocks();
+
+      let currentMermaidTheme = document.documentElement.getAttribute('data-bs-theme');
+      new MutationObserver(() => {
+        const nextTheme = document.documentElement.getAttribute('data-bs-theme');
+        if (nextTheme !== currentMermaidTheme) {
+          currentMermaidTheme = nextTheme;
+          renderMermaidBlocks();
+        }
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    }
+
+    const updateAffixHighlight = () => {
+      const affix = document.getElementById('affix');
+      if (!affix) {
+        return;
+      }
+
+      const links = Array.from(affix.querySelectorAll('a[href^="#"]'));
+      if (links.length === 0) {
+        return;
+      }
+
+      const sections = links.map((link) => {
+        const id = decodeURIComponent(link.getAttribute('href').slice(1));
+        const heading = document.getElementById(id);
+        return heading ? { link, heading } : null;
+      }).filter(Boolean);
+
+      if (sections.length === 0) {
+        return;
+      }
+
+      const threshold = 140;
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.heading.getBoundingClientRect().top - threshold <= 0) {
+          current = section;
+        } else {
+          break;
+        }
+      }
+
+      links.forEach((link) => {
+        link.classList.toggle('is-current', link === current.link);
+        if (link === current.link) {
+          link.setAttribute('aria-current', 'location');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+    }
+
+    const affixRoot = document.getElementById('affix');
+    if (affixRoot) {
+      let affixFrame = null;
+      const scheduleAffixHighlight = () => {
+        if (affixFrame !== null) {
+          cancelAnimationFrame(affixFrame);
+        }
+        affixFrame = requestAnimationFrame(() => {
+          affixFrame = null;
+          updateAffixHighlight();
+        });
+      }
+
+      scheduleAffixHighlight();
+      new MutationObserver(scheduleAffixHighlight).observe(affixRoot, { childList: true, subtree: true });
+      window.addEventListener('scroll', scheduleAffixHighlight, { passive: true });
+      window.addEventListener('resize', scheduleAffixHighlight, { passive: true });
+    }
+
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>
