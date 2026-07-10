@@ -36,6 +36,13 @@ namespace VisualPinball.Unity.Editor
 		Texture = 1 << 2,
 	}
 
+	internal enum DragPointSplineAxis
+	{
+		X,
+		Y,
+		Z,
+	}
+
 	public static class DragPointSplineInspectorGUI
 	{
 		public static void OnInspectorGUI(DragPointSplineComponent component,
@@ -62,14 +69,14 @@ namespace VisualPinball.Unity.Editor
 
 			EditorGUILayout.BeginHorizontal();
 			if (GUILayout.Button("Flip X")) {
-				Flip(component, FlipAxis.X);
+				Flip(component, DragPointSplineAxis.X);
 			}
 			if (GUILayout.Button("Flip Y")) {
-				Flip(component, FlipAxis.Y);
+				Flip(component, DragPointSplineAxis.Y);
 			}
 			using (new EditorGUI.DisabledScope(component.Owner?.SplinePlanar ?? true)) {
 				if (GUILayout.Button("Flip Z")) {
-					Flip(component, FlipAxis.Z);
+					Flip(component, DragPointSplineAxis.Z);
 				}
 			}
 			EditorGUILayout.EndHorizontal();
@@ -83,7 +90,8 @@ namespace VisualPinball.Unity.Editor
 			SceneView.RepaintAll();
 		}
 
-		public static void Flip(DragPointSplineComponent component, FlipAxis axis)
+		private static void Flip(DragPointSplineComponent component,
+			DragPointSplineAxis axis)
 		{
 			var dragPoints = component.DragPoints;
 			if (dragPoints.Length == 0) {
@@ -95,13 +103,13 @@ namespace VisualPinball.Unity.Editor
 				(current, dragPoint) => current + dragPoint.Center) / dragPoints.Length;
 			foreach (var dragPoint in dragPoints) {
 				switch (axis) {
-					case FlipAxis.X:
+					case DragPointSplineAxis.X:
 						dragPoint.Center.X = center.X + center.X - dragPoint.Center.X;
 						break;
-					case FlipAxis.Y:
+					case DragPointSplineAxis.Y:
 						dragPoint.Center.Y = center.Y + center.Y - dragPoint.Center.Y;
 						break;
-					case FlipAxis.Z:
+					case DragPointSplineAxis.Z:
 						dragPoint.Center.Z *= -1f;
 						break;
 					default:
