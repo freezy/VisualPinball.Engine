@@ -23,6 +23,7 @@ namespace VisualPinball.Unity
 		public float HitTime;
 		public float3 HitNormal;
 		public float2 HitVelocity;
+		private float _hitVelocityZ;
 		public float HitDistance;
 		public bool HitFlag;
 		public float HitOrgNormalVelocity;
@@ -68,7 +69,9 @@ namespace VisualPinball.Unity
 		public void Transform(float4x4 matrix)
 		{
 			HitNormal = matrix.MultiplyVector(HitNormal);
-			HitVelocity = matrix.MultiplyVector(new float3(HitVelocity, 0)).xy;
+			var transformedHitVelocity = matrix.MultiplyVector(new float3(HitVelocity, _hitVelocityZ));
+			HitVelocity = transformedHitVelocity.xy;
+			_hitVelocityZ = transformedHitVelocity.z;
 		}
 	}
 }
