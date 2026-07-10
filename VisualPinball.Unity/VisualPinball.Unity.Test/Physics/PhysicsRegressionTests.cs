@@ -124,6 +124,27 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void CollisionEventClearResetsTransformedHitVelocity()
+		{
+			var collEvent = new CollisionEventData { HitVelocity = new float2(0f, 1f) };
+			var matrix = float4x4.TRS(
+				float3.zero,
+				quaternion.RotateX(math.radians(45f)),
+				new float3(1f)
+			);
+
+			collEvent.Transform(matrix);
+			collEvent.ClearCollider();
+
+			AssertFloat2(collEvent.HitVelocity, float2.zero);
+
+			collEvent.HitVelocity = new float2(0f, 1f);
+			collEvent.Transform(matrix);
+
+			AssertFloat2(collEvent.HitVelocity, new float2(0f, math.sqrt(0.5f)));
+		}
+
+		[Test]
 		public void Line3DColliderFiresHitEventForApproachingBallAboveThreshold()
 		{
 			var collider = new Line3DCollider(
