@@ -226,7 +226,7 @@ namespace VisualPinball.Unity
 				collEvent.HitDistance = 0.0f;
 				collEvent.HitTime = -1.0f;
 				collEvent.HitNormal = float3.zero;
-				collEvent.HitVelocity = float2.zero;
+				collEvent.ClearHitVelocity();
 				collEvent.HitFlag = false;
 				collEvent.IsContact = false;
 

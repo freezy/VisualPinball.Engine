@@ -59,6 +59,13 @@ namespace VisualPinball.Unity
 		{
 			ColliderId = -1;
 			BallId = 0;
+			ClearHitVelocity();
+		}
+
+		public void ClearHitVelocity()
+		{
+			HitVelocity = float2.zero;
+			_hitVelocityZ = 0f;
 		}
 
 		public bool HasCollider()
