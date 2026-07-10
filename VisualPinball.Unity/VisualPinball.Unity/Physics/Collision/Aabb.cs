@@ -169,8 +169,9 @@ namespace VisualPinball.Unity
 
 		public readonly override bool Equals(object obj)
 		{
-			if (obj is Aabb)
-				return Equals(obj);
+			if (obj is Aabb other) {
+				return Equals(other);
+			}
 			return false;
 		}
 
