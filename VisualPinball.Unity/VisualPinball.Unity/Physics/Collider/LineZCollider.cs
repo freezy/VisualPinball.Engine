@@ -196,19 +196,12 @@ namespace VisualPinball.Unity
 			}
 			#endif
 
-			var t = matrix.GetTranslation();
-			var s = matrix.GetScale();
+			var p1 = matrix.MultiplyPoint(new float3(lineCollider.XY, lineCollider.ZLow));
+			var p2 = matrix.MultiplyPoint(new float3(lineCollider.XY, lineCollider.ZHigh));
 
-			XY = lineCollider.XY + t.xy;
-			ZLow = lineCollider.ZLow + t.z;
-			ZHigh = lineCollider.ZHigh + t.z;
-			if (s.z > Collider.Tolerance) {
-				var height = ZHigh - ZLow;
-				var zMid = ZLow + height * 0.5f;
-				var halfHeightScaled = height * s.z * 0.5f;
-				ZLow = zMid - halfHeightScaled;
-				ZHigh = zMid + halfHeightScaled;
-			}
+			XY = p1.xy;
+			ZLow = math.min(p1.z, p2.z);
+			ZHigh = math.max(p1.z, p2.z);
 			CalculateBounds();
 		}
 
