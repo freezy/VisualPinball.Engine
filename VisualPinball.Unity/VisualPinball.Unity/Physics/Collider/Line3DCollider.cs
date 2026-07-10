@@ -126,7 +126,7 @@ namespace VisualPinball.Unity
 
 			// transform hit normal back to world coordinate system
 			if (hitTime >= 0) {
-				collEvent.HitNormal = math.mul(coll._matrix, collEvent.HitNormal);
+				collEvent.HitNormal = math.mul(math.transpose(coll._matrix), collEvent.HitNormal);
 			}
 
 			return hitTime;
