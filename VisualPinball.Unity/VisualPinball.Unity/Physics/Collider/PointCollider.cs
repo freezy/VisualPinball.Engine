@@ -152,7 +152,7 @@ namespace VisualPinball.Unity
 		public void Transform(PointCollider point, float4x4 matrix)
 		{
 			P = matrix.MultiplyPoint(point.P);
-			TransformAabb(matrix);
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(P, P));
 		}
 
 		public Aabb GetTransformedAabb(float4x4 matrix)
