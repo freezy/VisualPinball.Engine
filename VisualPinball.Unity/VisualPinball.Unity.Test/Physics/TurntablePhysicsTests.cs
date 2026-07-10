@@ -78,6 +78,42 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void MotorOffCoastsDownWithSpinDown()
+		{
+			var turntable = new TurntableState {
+				Speed = 50f,
+				MaxSpeed = 100f,
+				TargetSpeed = 100f,
+				SpinUp = 100f,
+				SpinDown = 4f,
+				MotorOn = false
+			};
+
+			TurntablePhysics.UpdateSpeed(ref turntable, 1f);
+
+			Assert.That(turntable.Speed, Is.EqualTo(50f - 4f * 0.01f).Within(1e-5f));
+		}
+
+		[Test]
+		public void DirectionReversalRampsWithSpinUp()
+		{
+			// the motor drives the reversal all the way through, so the motor ramp
+			// applies while decelerating toward zero as well
+			var turntable = new TurntableState {
+				Speed = 100f,
+				MaxSpeed = 100f,
+				TargetSpeed = -100f,
+				SpinUp = 10f,
+				SpinDown = 4f,
+				MotorOn = true
+			};
+
+			TurntablePhysics.UpdateSpeed(ref turntable, 1f);
+
+			Assert.That(turntable.Speed, Is.EqualTo(100f - 10f * 0.01f).Within(1e-5f));
+		}
+
+		[Test]
 		public void KinematicTransformUpdatesTurntableCenterAndHeight()
 		{
 			var turntable = new TurntableState {
