@@ -31,7 +31,8 @@ namespace VisualPinball.Unity
 
 		private DeviceCoil _magnetCoil;
 		private DeviceSwitch _ballHeldSwitch;
-		private bool _isEnabled;
+		// written by the simulation thread's coil dispatch, read by the main thread
+		private volatile bool _isEnabled;
 		private readonly HashSet<int> _heldBalls = new();
 
 		public event EventHandler Init;
