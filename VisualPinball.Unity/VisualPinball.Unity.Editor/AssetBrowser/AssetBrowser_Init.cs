@@ -31,7 +31,7 @@ namespace VisualPinball.Unity.Editor
 		private VisualElement _libraryList;
 		private Label _noLibrariesLabel;
 
-		private VisualElement _gridContent;
+		private ListView _gridContent;
 		private Label _dragErrorLabelLeft;
 		private VisualElement _dragErrorContainerLeft;
 		private Label _dragErrorLabel;
@@ -101,8 +101,15 @@ namespace VisualPinball.Unity.Editor
 			_noLibrariesLabel = ui.Q<Label>("noLibraries");
 
 			_categoryView = ui.Q<LibraryCategoryView>();
-			_gridContent = ui.Q<VisualElement>("gridContent");
+			_gridContent = ui.Q<ListView>("gridContent");
 			_gridContent.styleSheets.Add(_assetStyle);
+			_gridContent.makeItem = MakeGridRow;
+			_gridContent.bindItem = BindGridRow;
+			_gridContent.unbindItem = UnbindGridRow;
+			_gridContent.itemsSource = _gridRowStarts;
+			_gridContent.selectionType = SelectionType.None;
+			_gridContent.virtualizationMethod = CollectionVirtualizationMethod.FixedHeight;
+			UpdateGridMetrics();
 			_detailsElement = ui.Q<AssetDetails>();
 
 			_statusLabel = ui.Q<Label>("bottomLabel");
@@ -127,6 +134,8 @@ namespace VisualPinball.Unity.Editor
 			_gridContent.RegisterCallback<DragEnterEvent>(OnDragEnterEvent);
 			_gridContent.RegisterCallback<DragLeaveEvent>(OnDragLeaveEvent);
 			_gridContent.RegisterCallback<PointerUpEvent>(OnEmptyClicked);
+			_gridContent.RegisterCallback<KeyDownEvent>(OnGridKeyDown);
+			_gridContent.RegisterCallback<GeometryChangedEvent>(OnGridGeometryChanged);
 
 			ui.panel.visualTree.userData = this; // children need access to this. if there's another way of getting the panel's owner object, let me know!
 
@@ -140,6 +149,8 @@ namespace VisualPinball.Unity.Editor
 			_queryInput?.UnregisterValueChangedCallback(OnSearchQueryChanged);
 
 			_gridContent?.UnregisterCallback<PointerUpEvent>(OnEmptyClicked);
+			_gridContent?.UnregisterCallback<KeyDownEvent>(OnGridKeyDown);
+			_gridContent?.UnregisterCallback<GeometryChangedEvent>(OnGridGeometryChanged);
 			_gridContent?.UnregisterCallback<DragLeaveEvent>(OnDragLeaveEvent);
 			_gridContent?.UnregisterCallback<DragEnterEvent>(OnDragEnterEvent);
 			_gridContent?.UnregisterCallback<DragPerformEvent>(OnDragPerformEvent);
@@ -162,26 +173,157 @@ namespace VisualPinball.Unity.Editor
 			_thumbCache.Clear();
 		}
 
-		private VisualElement NewItem(AssetResult result)
+		private VisualElement MakeGridRow()
 		{
-			var item = new VisualElement();
-			_assetTree.CloneTree(item);
-			var assetElement = item.Q<LibraryAssetElement>();
-			assetElement.Result = result;
+			var row = new VisualElement();
+			row.AddToClassList("asset-grid-row");
+			return row;
+		}
 
-			LoadThumb(item, result.Asset);
-			var img = item.Q<VisualElement>("thumbnail-mask");
-			assetElement.SetSize(_thumbnailSize);
+		private void BindGridRow(VisualElement row, int rowIndex)
+		{
+			EnsureGridCells(row);
+			var rowStart = _gridRowStarts[rowIndex];
+			for (var column = 0; column < _gridColumnCount; column++) {
+				var cell = row[column];
+				var resultIndex = rowStart + column;
+				if (resultIndex < _assetResults.Count) {
+					BindGridCell(cell, _assetResults[resultIndex]);
+				} else {
+					UnbindGridCell(cell);
+				}
+			}
+		}
 
-			var label = item.Q<Label>("label");
-			label.text = result.Asset.Name;
+		private void UnbindGridRow(VisualElement row, int rowIndex)
+		{
+			foreach (var cell in row.Children()) {
+				UnbindGridCell(cell);
+			}
+		}
+
+		private void EnsureGridCells(VisualElement row)
+		{
+			while (row.childCount > _gridColumnCount) {
+				var lastCell = row[row.childCount - 1];
+				UnbindGridCell(lastCell);
+				lastCell.RemoveFromHierarchy();
+			}
+			while (row.childCount < _gridColumnCount) {
+				row.Add(CreateGridCell());
+			}
+		}
+
+		private VisualElement CreateGridCell()
+		{
+			var cell = new VisualElement();
+			_assetTree.CloneTree(cell);
+			var assetElement = cell.Q<LibraryAssetElement>();
+			var img = cell.Q<VisualElement>("thumbnail-mask");
+			var label = cell.Q<Label>("label");
 			label.style.textOverflow = TextOverflow.Ellipsis;
-			item.RegisterCallback<ClickEvent>(evt => OnAssetClicked(evt, item));
-
+			cell.RegisterCallback<ClickEvent>(evt => OnAssetClicked(evt, cell));
 			assetElement.RegisterDrag(this);
-			img.AddManipulator(new ContextualMenuManipulator(evt => AddAssetContextMenu(evt, result)));
-			label.AddManipulator(new ContextualMenuManipulator(evt => AddAssetContextMenu(evt, result)));
-			return item;
+			img.AddManipulator(new ContextualMenuManipulator(evt => AddAssetContextMenu(evt, cell.userData as AssetResult)));
+			label.AddManipulator(new ContextualMenuManipulator(evt => AddAssetContextMenu(evt, cell.userData as AssetResult)));
+			return cell;
+		}
+
+		private void BindGridCell(VisualElement cell, AssetResult result)
+		{
+			UnbindGridCell(cell);
+			cell.userData = result;
+			cell.style.display = DisplayStyle.Flex;
+			var assetElement = cell.Q<LibraryAssetElement>();
+			assetElement.Result = result;
+			assetElement.SetSize(_thumbnailSize);
+			cell.Q<Label>("label").text = result.Asset.Name;
+			_visibleElements[result] = cell;
+			cell.EnableInClassList("selected", _selectedResults.Contains(result));
+			LoadThumb(cell, result.Asset);
+		}
+
+		private void UnbindGridCell(VisualElement cell)
+		{
+			if (cell.userData is AssetResult previousResult) {
+				_visibleElements.Remove(previousResult);
+			}
+			cell.userData = null;
+			cell.RemoveFromClassList("selected");
+			cell.style.display = DisplayStyle.None;
+			var assetElement = cell.Q<LibraryAssetElement>();
+			if (assetElement != null) {
+				assetElement.Result = null;
+			}
+			var image = cell.Q<Image>("thumbnail");
+			if (image != null) {
+				image.image = null;
+			}
+		}
+
+		private void OnGridGeometryChanged(GeometryChangedEvent evt)
+		{
+			var columnCount = CalculateGridColumnCount(evt.newRect.width);
+			if (columnCount == _gridColumnCount) {
+				return;
+			}
+			_gridColumnCount = columnCount;
+			RebuildGridRows();
+		}
+
+		private void OnGridKeyDown(KeyDownEvent evt)
+		{
+			if (_assetResults == null || _assetResults.Count == 0) {
+				return;
+			}
+			var currentIndex = _firstSelectedResult == null ? 0 : _assetResults.IndexOf(_firstSelectedResult);
+			var targetIndex = evt.keyCode switch {
+				KeyCode.LeftArrow => currentIndex - 1,
+				KeyCode.RightArrow => currentIndex + 1,
+				KeyCode.UpArrow => currentIndex - _gridColumnCount,
+				KeyCode.DownArrow => currentIndex + _gridColumnCount,
+				KeyCode.Home => 0,
+				KeyCode.End => _assetResults.Count - 1,
+				_ => currentIndex
+			};
+			if (targetIndex == currentIndex && evt.keyCode is not KeyCode.Home and not KeyCode.End) {
+				return;
+			}
+			targetIndex = Mathf.Clamp(targetIndex, 0, _assetResults.Count - 1);
+			var target = _assetResults[targetIndex];
+			if (evt.shiftKey && _firstSelectedResult != null) {
+				SelectRange(_assetResults.IndexOf(_firstSelectedResult), targetIndex);
+				LastSelectedResult = target;
+			} else {
+				SelectOnly(target);
+			}
+			_gridContent.ScrollToItem(targetIndex / _gridColumnCount);
+			evt.StopPropagation();
+		}
+
+		private int CalculateGridColumnCount(float width) => Mathf.Max(1, Mathf.FloorToInt((width - 20f) / (_thumbnailSize + 20f)));
+
+		private void UpdateGridMetrics()
+		{
+			_gridContent.fixedItemHeight = _thumbnailSize + 36f;
+			_gridColumnCount = CalculateGridColumnCount(_gridContent.contentRect.width);
+		}
+
+		private void RebuildGridRows(bool resetScroll = false)
+		{
+			if (_gridContent == null || _assetResults == null) {
+				return;
+			}
+			UpdateGridMetrics();
+			_gridRowStarts.Clear();
+			for (var i = 0; i < _assetResults.Count; i += _gridColumnCount) {
+				_gridRowStarts.Add(i);
+			}
+			_visibleElements.Clear();
+			_gridContent.Rebuild();
+			if (resetScroll && _gridRowStarts.Count > 0) {
+				_gridContent.ScrollToItem(0);
+			}
 		}
 
 		private void LoadThumb(VisualElement el, Asset asset)
