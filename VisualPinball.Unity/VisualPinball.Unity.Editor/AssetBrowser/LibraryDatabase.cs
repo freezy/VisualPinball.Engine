@@ -1,4 +1,4 @@
-﻿// Visual Pinball Engine
+// Visual Pinball Engine
 // Copyright (C) 2023 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -56,7 +56,7 @@ namespace VisualPinball.Unity.Editor
 			if (query.HasKeywords) {
 				results = results
 					.Select(result => {
-						FuzzySearch.FuzzyMatch(query.Keywords, result.Asset.Object.name, ref result.Score);
+						FuzzySearch.FuzzyMatch(query.Keywords, result.Asset.Name, ref result.Score);
 						foreach (var tag in result.Asset.Tags.Select(t => t.TagName)) {
 							var score = 0L;
 							FuzzySearch.FuzzyMatch(query.Keywords, tag, ref score);
@@ -82,7 +82,7 @@ namespace VisualPinball.Unity.Editor
 					foreach (var attrValue in attrValues) {
 						results = results.Where(result => result.Asset.Attributes != null && result.Asset.Attributes.Any(at => {
 							var keyMatches = string.Equals(at.Key, attrKey, StringComparison.CurrentCultureIgnoreCase);
-							var valueMatches = attrValue != null && at.Value != null && at.Value.ToLower().Contains(attrValue.ToLower());
+							var valueMatches = attrValue != null && at.Value != null && at.Value.IndexOf(attrValue, StringComparison.OrdinalIgnoreCase) >= 0;
 							return attrValue != null ? keyMatches && valueMatches : keyMatches;
 						}));
 					}
@@ -92,7 +92,7 @@ namespace VisualPinball.Unity.Editor
 			// tag filter
 			if (query.HasTags) {
 				foreach (var tag in query.Tags) {
-					results = results.Where(result => result.Asset.Tags != null && result.Asset.Tags.Any(t => t.TagName == tag));
+					results = results.Where(result => result.Asset.Tags != null && result.Asset.Tags.Any(t => string.Equals(t.TagName, tag, StringComparison.OrdinalIgnoreCase)));
 				}
 			}
 
@@ -115,6 +115,10 @@ namespace VisualPinball.Unity.Editor
 			asset.name = obj.name;
 			asset.Library = lib;
 			asset.Object = obj;
+			if (!AssetDatabase.TryGetGUIDAndLocalFileIdentifier(obj, out var guid, out long _)) {
+				throw new InvalidOperationException($"Cannot add {obj.name} because its GUID could not be resolved.");
+			}
+			asset.SetGuid(guid);
 			asset.Category = category;
 			asset.Attributes = new List<AssetAttribute>();
 			asset.Tags = new List<AssetTag>();
@@ -342,8 +346,12 @@ namespace VisualPinball.Unity.Editor
 				Debug.LogWarning($"Asset with ID {k} is null.");
 				return false;
 			}
+			if (this[k].Object == null) {
+				Debug.LogWarning($"Asset with ID {k} has a missing object reference and will be skipped.");
+				return false;
+			}
 			return true;
-		}).Select(k => this[k].SetCategory(lib));
+		}).Select(k => this[k].SetGuid(k).SetCategory(lib));
 		public void Add(Asset asset) => this[asset.GUID] = asset;
 		public bool Contains(Asset asset) => ContainsKey(asset.GUID);
 		public bool Contains(string guid) => ContainsKey(guid);

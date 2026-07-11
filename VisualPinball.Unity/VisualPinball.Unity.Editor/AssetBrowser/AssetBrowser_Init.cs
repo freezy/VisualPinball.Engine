@@ -1,4 +1,4 @@
-﻿// Visual Pinball Engine
+// Visual Pinball Engine
 // Copyright (C) 2023 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -44,6 +44,8 @@ namespace VisualPinball.Unity.Editor
 		private StyleSheet _assetStyle;
 
 		private readonly Dictionary<string, Texture2D> _thumbCache = new();
+		private IVisualElementScheduledItem _searchScheduledItem;
+		private string _pendingSearch;
 
 		private const string ClassDrag = "library-element--dragover";
 
@@ -100,6 +102,7 @@ namespace VisualPinball.Unity.Editor
 
 			_categoryView = ui.Q<LibraryCategoryView>();
 			_gridContent = ui.Q<VisualElement>("gridContent");
+			_gridContent.styleSheets.Add(_assetStyle);
 			_detailsElement = ui.Q<AssetDetails>();
 
 			_statusLabel = ui.Q<Label>("bottomLabel");
@@ -132,26 +135,37 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnDestroy()
 		{
-			_sizeSlider.UnregisterValueChangedCallback(OnThumbSizeChanged);
-			_queryInput.UnregisterValueChangedCallback(OnSearchQueryChanged);
+			_searchScheduledItem?.Pause();
+			_sizeSlider?.UnregisterValueChangedCallback(OnThumbSizeChanged);
+			_queryInput?.UnregisterValueChangedCallback(OnSearchQueryChanged);
 
-			_gridContent.UnregisterCallback<PointerUpEvent>(OnEmptyClicked);
-			_gridContent.UnregisterCallback<DragLeaveEvent>(OnDragLeaveEvent);
-			_gridContent.UnregisterCallback<DragEnterEvent>(OnDragEnterEvent);
-			_gridContent.UnregisterCallback<DragPerformEvent>(OnDragPerformEvent);
-			_gridContent.UnregisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
-			_refreshButton.clicked -= Refresh;
-
-			foreach (var assetLibrary in Libraries) {
-				assetLibrary.OnChange -= OnLibraryChanged;
+			_gridContent?.UnregisterCallback<PointerUpEvent>(OnEmptyClicked);
+			_gridContent?.UnregisterCallback<DragLeaveEvent>(OnDragLeaveEvent);
+			_gridContent?.UnregisterCallback<DragEnterEvent>(OnDragEnterEvent);
+			_gridContent?.UnregisterCallback<DragPerformEvent>(OnDragPerformEvent);
+			_gridContent?.UnregisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
+			if (_refreshButton != null) {
+				_refreshButton.clicked -= Refresh;
 			}
+
+			if (Libraries != null) {
+				foreach (var assetLibrary in Libraries) {
+					assetLibrary.OnChange -= OnLibraryChanged;
+				}
+			}
+			if (Query != null) {
+				Query.OnQueryUpdated -= OnQueryUpdated;
+			}
+			foreach (var texture in _thumbCache.Values) {
+				DestroyImmediate(texture);
+			}
+			_thumbCache.Clear();
 		}
 
 		private VisualElement NewItem(AssetResult result)
 		{
 			var item = new VisualElement();
 			_assetTree.CloneTree(item);
-			item.styleSheets.Add(_assetStyle);
 			var assetElement = item.Q<LibraryAssetElement>();
 			assetElement.Result = result;
 
@@ -165,8 +179,8 @@ namespace VisualPinball.Unity.Editor
 			item.RegisterCallback<ClickEvent>(evt => OnAssetClicked(evt, item));
 
 			assetElement.RegisterDrag(this);
-			img.AddManipulator(new ContextualMenuManipulator(AddAssetContextMenu));
-			label.AddManipulator(new ContextualMenuManipulator(AddAssetContextMenu));
+			img.AddManipulator(new ContextualMenuManipulator(evt => AddAssetContextMenu(evt, result)));
+			label.AddManipulator(new ContextualMenuManipulator(evt => AddAssetContextMenu(evt, result)));
 			return item;
 		}
 

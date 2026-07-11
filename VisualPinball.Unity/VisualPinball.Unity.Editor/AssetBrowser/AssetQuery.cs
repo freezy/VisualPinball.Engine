@@ -1,4 +1,4 @@
-﻿// Visual Pinball Engine
+// Visual Pinball Engine
 // Copyright (C) 2023 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using NLog;
 using Unity.Mathematics;
@@ -46,9 +47,27 @@ namespace VisualPinball.Unity.Editor
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 		private readonly Stopwatch _queryTime = new();
 
-		public static string ValueToQuery(string value) => value.Contains(" ") ? value.Replace("\"", "in") : value;
+		private const string QuotedValuePattern = "(?:\\\\.|[^\"\\\\])*";
+		private static readonly Regex AttributeRegex = new(
+			$"(?:\"(?<key>{QuotedValuePattern})\"|(?<key>[\\w\\d_/-]+)):(?:\"(?<value>{QuotedValuePattern})\"|(?<value>[\\w\\d_/-]+))"
+		);
 
-		public static string QueryToValue(string query) => query.Contains(" ") ? query.Replace("in", "\"") : query;
+		public static string ValueToQuery(string value) => value
+			.Replace("\\", "\\\\")
+			.Replace("\"", "\\\"");
+
+		public static string QueryToValue(string query)
+		{
+			var value = new StringBuilder(query.Length);
+			for (var i = 0; i < query.Length; i++) {
+				if (query[i] == '\\' && i + 1 < query.Length && (query[i + 1] == '\\' || query[i + 1] == '"')) {
+					value.Append(query[++i]);
+				} else {
+					value.Append(query[i]);
+				}
+			}
+			return value.ToString();
+		}
 
 		public AssetQuery(List<AssetLibrary> libraries)
 		{
@@ -61,39 +80,31 @@ namespace VisualPinball.Unity.Editor
 
 			// parse attributes
 			_attributes.Clear();
-			const string quoted = "\"([\\w\\d\\s_/-]+)\"";
-			const string nonQuoted = "([\\w\\d_/\"-]+)";
-			var regexes = new[] {
-				new Regex($"{quoted}:{quoted}"),
-				new Regex($"{quoted}:{nonQuoted}"),
-				new Regex($"{nonQuoted}:{quoted}"),
-				new Regex($"{nonQuoted}:{nonQuoted}"),
-			};
-			foreach (var regex in regexes) {
-				foreach (Match match in regex.Matches(q)) {
-					var key = match.Groups[1].Value;
-					if (!_attributes.ContainsKey(key)) {
-						_attributes[key] = new HashSet<string>();
-					}
-					_attributes[key].Add(QueryToValue(match.Groups[2].Value));
-					q = q.Replace(match.Value, "");
+			q = AttributeRegex.Replace(q, match => {
+				var key = QueryToValue(match.Groups["key"].Value);
+				if (!_attributes.ContainsKey(key)) {
+					_attributes[key] = new HashSet<string>();
 				}
-			}
+				_attributes[key].Add(QueryToValue(match.Groups["value"].Value));
+				return " ";
+			});
 
 			_tags.Clear();
 			var tagRegex = new Regex(@"\[([^\]]+)\]");
-			foreach (Match match in tagRegex.Matches(q)) {
+			q = tagRegex.Replace(q, match => {
 				_tags.Add(match.Groups[1].Value);
-				q = q.Replace(match.Value, "");
-			}
+				return " ";
+			});
 
 			_quality = null;
-			var qualityRegex = new Regex(@"\(([^\]]+)\)");
-			foreach (Match match in qualityRegex.Matches(q)) {
+			var qualityRegex = new Regex(@"\(([^\)]+)\)");
+			q = qualityRegex.Replace(q, match => {
+				if (_quality != null) {
+					return match.Value;
+				}
 				_quality = match.Groups[1].Value;
-				q = q.Replace(match.Value, "");
-				break;
-			}
+				return " ";
+			});
 
 			// clean white spaces
 			_keywords = Regex.Replace(q, @"\s+", " ").Trim();

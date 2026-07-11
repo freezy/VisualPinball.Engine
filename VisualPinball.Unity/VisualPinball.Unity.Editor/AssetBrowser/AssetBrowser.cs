@@ -106,6 +106,9 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			// setup query
+			if (Query != null) {
+				Query.OnQueryUpdated -= OnQueryUpdated;
+			}
 			Query = new AssetQuery(Libraries.Where(lib => lib.IsActive).ToList());
 			Query.OnQueryUpdated += OnQueryUpdated;
 
@@ -196,19 +199,8 @@ namespace VisualPinball.Unity.Editor
 			_statusLabel.text = $"Found {results.Count} asset" + (results.Count == 1 ? "" : "s") + $" in {duration}ms.";
 		}
 
-			private void AddAssetContextMenu(ContextualMenuPopulateEvent evt)
+			private void AddAssetContextMenu(ContextualMenuPopulateEvent evt, AssetResult clickedAsset)
 			{
-				if (evt.target is not VisualElement target) {
-					Debug.Log("Early out in AddAssetContextMenu, target is no VisualElement.");
-					return;
-				}
-
-				if (!_resultByElement.ContainsKey(target.parent.parent)) {
-					Debug.Log($"Early out in AddAssetContextMenu, {target.parent.parent} not in resultByElement.");
-					return;
-				}
-
-				var clickedAsset = _resultByElement[target.parent.parent];
 				var libs = clickedAsset.Asset.Libraries;
 				if (libs.All(l => l.IsLocked)) {
 					Debug.Log("Early out in AddAssetContextMenu, all libraries are locked.");
@@ -300,7 +292,7 @@ namespace VisualPinball.Unity.Editor
 							foreach (var attr in srcAsset.Attributes) {
 								destAsset.AddAttribute(attr.Key, attr.Value);
 							}
-							foreach (var link in srcAsset.Links.Where(link => destAsset.Links.FirstOrDefault(l => l.Name == link.Name) != null)) {
+							foreach (var link in srcAsset.Links.Where(link => destAsset.Links.All(l => l.Name != link.Name))) {
 								destAsset.Links.Add(new AssetLink(link.Name, link.Url));
 							}
 
@@ -370,7 +362,12 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		public void OnCategoriesUpdated(Dictionary<AssetLibrary, List<AssetCategory>> categories) => Query.Filter(categories);
-		private void OnSearchQueryChanged(ChangeEvent<string> evt) => Query.Search(evt.newValue);
+		private void OnSearchQueryChanged(ChangeEvent<string> evt)
+		{
+			_pendingSearch = evt.newValue;
+			_searchScheduledItem?.Pause();
+			_searchScheduledItem = _queryInput.schedule.Execute(() => Query?.Search(_pendingSearch)).StartingIn(200);
+		}
 		private void OnLibraryToggled(AssetLibrary lib, bool enabled)
 		{
 			lib.IsActive = enabled;
@@ -381,11 +378,14 @@ namespace VisualPinball.Unity.Editor
 
 		public AssetLibrary GetLibraryByPath(string pathToCheck)
 		{
-			pathToCheck = pathToCheck.Replace('\\', '/');
-			return Libraries.FirstOrDefault(assetLibrary => {
-				var libraryPath = assetLibrary.LibraryRoot.Replace('\\', '/');
-				return pathToCheck.StartsWith(libraryPath);
-			});
+			pathToCheck = pathToCheck.Replace('\\', '/').TrimEnd('/');
+			return Libraries
+				.OrderByDescending(assetLibrary => assetLibrary.LibraryRoot.Length)
+				.FirstOrDefault(assetLibrary => {
+					var libraryPath = assetLibrary.LibraryRoot.Replace('\\', '/').TrimEnd('/');
+					return string.Equals(pathToCheck, libraryPath, StringComparison.Ordinal)
+					       || pathToCheck.StartsWith(libraryPath + "/", StringComparison.Ordinal);
+				});
 		}
 
 		public void AddAssets(IEnumerable<string> paths, Func<AssetLibrary, AssetCategory> getCategory)

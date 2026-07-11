@@ -1,4 +1,4 @@
-﻿// Visual Pinball Engine
+// Visual Pinball Engine
 // Copyright (C) 2023 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -43,6 +43,7 @@ namespace VisualPinball.Unity.Editor
 						break;
 				}
 				_isSelected = value;
+				UpdateIcon();
 			}
 		}
 

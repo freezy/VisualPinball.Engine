@@ -1,4 +1,4 @@
-﻿// Visual Pinball Engine
+// Visual Pinball Engine
 // Copyright (C) 2023 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -18,14 +18,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using NetVips;
 using UnityEditor;
 using UnityEditor.Presets;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
@@ -39,11 +38,14 @@ namespace VisualPinball.Unity.Editor
 	{
 		public string Name => Object != null ? Object.name : "<invalid ref>";
 
-		[SerializeReference]
+		[SerializeField]
 		public AssetLibrary Library;
 
-		[SerializeReference]
+		[SerializeField]
 		public Object Object;
+
+		[SerializeField]
+		private string _guid;
 
 		[SerializeField]
 		private string _categoryId;
@@ -83,7 +85,7 @@ namespace VisualPinball.Unity.Editor
 		[SerializeField]
 		public string EnvironmentGameObjectName;
 		
-		[SerializeReference]
+		[SerializeField]
 		public Preset ThumbCameraPreset;
 
 		[SerializeField]
@@ -94,7 +96,7 @@ namespace VisualPinball.Unity.Editor
 		[SerializeField]
 		public bool UnpackPrefab;
 
-		[SerializeReference]
+		[SerializeField]
 		public AssetQuality Quality = AssetQuality.Measured;
 
 		[NonSerialized]
@@ -107,17 +109,33 @@ namespace VisualPinball.Unity.Editor
 				.ToArray();
 
 		public DateTime AddedAt {
-			get => string.IsNullOrEmpty(_addedAt) ? DateTime.Now : Convert.ToDateTime(_addedAt);
-			set => _addedAt = value.ToString("o");
+			get => string.IsNullOrEmpty(_addedAt)
+				? DateTime.Now
+				: DateTime.Parse(_addedAt, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+			set => _addedAt = value.ToString("o", CultureInfo.InvariantCulture);
 		}
 
 		public string GUID {
 			get {
-				if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(Object, out var guid, out _)) {
-					return guid;
+				if (!string.IsNullOrEmpty(_guid)) {
+					return _guid;
 				}
-				throw new Exception($"Could not get GUID from {Object.name}");
+				if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(Object, out var guid, out _)) {
+					_guid = guid;
+					EditorUtility.SetDirty(this);
+				}
+				return _guid ?? string.Empty;
 			}
+		}
+
+		internal Asset SetGuid(string guid)
+		{
+			if (string.IsNullOrEmpty(_guid) && !string.IsNullOrEmpty(guid)) {
+				// Existing metadata is migrated from the library's serialized dictionary key on first read.
+				_guid = guid;
+				EditorUtility.SetDirty(this);
+			}
+			return this;
 		}
 
 		public string ThumbnailPath => Path.GetFullPath($"{Library.ThumbnailRoot}/{GUID}.webp");
@@ -202,8 +220,6 @@ namespace VisualPinball.Unity.Editor
 
 		public Texture2D LoadThumbTexture(string thumbnailPath)
 		{
-			var sw = Stopwatch.StartNew();
-
 			// Load the image using NetVips
 			var image = Image.NewFromBuffer(File.ReadAllBytes(thumbnailPath), access: Enums.Access.Sequential);
 
@@ -231,7 +247,6 @@ namespace VisualPinball.Unity.Editor
 			texture.LoadRawTextureData(raw);
 			texture.Apply();
 
-			Debug.Log($"Texture loaded in {sw.ElapsedMilliseconds}ms: {width}x{height}");
 			return texture;
 		}
 
