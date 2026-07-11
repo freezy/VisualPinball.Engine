@@ -14,7 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -43,11 +47,17 @@ namespace VisualPinball.Unity.Editor
 		private VisualTreeAsset _assetTree;
 		private StyleSheet _assetStyle;
 
-		private readonly Dictionary<string, Texture2D> _thumbCache = new();
+		private readonly Dictionary<ThumbnailKey, CachedThumbnail> _thumbCache = new();
+		private readonly LinkedList<ThumbnailKey> _thumbLru = new();
+		private readonly Dictionary<VisualElement, CancellationTokenSource> _thumbnailLoads = new();
+		private readonly SemaphoreSlim _thumbnailDecodeSlots = new(4);
+		private long _thumbCacheBytes;
+		private bool _isDestroyed;
 		private IVisualElementScheduledItem _searchScheduledItem;
 		private string _pendingSearch;
 
 		private const string ClassDrag = "library-element--dragover";
+		private const long ThumbCacheBudget = 256L * 1024L * 1024L;
 
 		public string DragErrorLeft {
 			get => _dragErrorContainerLeft.ClassListContains("hidden") ? null : _dragErrorLabelLeft.text;
@@ -144,6 +154,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnDestroy()
 		{
+			_isDestroyed = true;
 			_searchScheduledItem?.Pause();
 			_sizeSlider?.UnregisterValueChangedCallback(OnThumbSizeChanged);
 			_queryInput?.UnregisterValueChangedCallback(OnSearchQueryChanged);
@@ -167,10 +178,16 @@ namespace VisualPinball.Unity.Editor
 			if (Query != null) {
 				Query.OnQueryUpdated -= OnQueryUpdated;
 			}
-			foreach (var texture in _thumbCache.Values) {
-				DestroyImmediate(texture);
+			foreach (var load in _thumbnailLoads.Values) {
+				load.Cancel();
+			}
+			_thumbnailLoads.Clear();
+			foreach (var thumbnail in _thumbCache.Values) {
+				DestroyImmediate(thumbnail.Texture);
 			}
 			_thumbCache.Clear();
+			_thumbLru.Clear();
+			_thumbCacheBytes = 0;
 		}
 
 		private VisualElement MakeGridRow()
@@ -245,6 +262,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void UnbindGridCell(VisualElement cell)
 		{
+			CancelThumbnailLoad(cell);
 			if (cell.userData is AssetResult previousResult) {
 				_visibleElements.Remove(previousResult);
 			}
@@ -326,19 +344,160 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void LoadThumb(VisualElement el, Asset asset)
+		private async void LoadThumb(VisualElement element, Asset asset)
 		{
-			if (!_thumbCache.ContainsKey(asset.GUID)) {
-				if (asset.HasThumbnail) {
-					var tex = asset.LoadThumbTexture(asset.ThumbnailPath);
-					_thumbCache[asset.GUID] = tex;
-				}
+			CancelThumbnailLoad(element);
+			var imageElement = element.Q<Image>("thumbnail");
+			imageElement.image = null;
+			if (!asset.HasThumbnail) {
+				return;
 			}
-			if (_thumbCache.ContainsKey(asset.GUID)) {
-				var img = el.Q<Image>("thumbnail");
-				img.image = _thumbCache[asset.GUID];
-				img.style.width = new StyleLength(new Length(100, LengthUnit.Percent));
-				img.style.height = new StyleLength(new Length(100, LengthUnit.Percent));
+
+			var key = new ThumbnailKey(asset.GUID, _thumbnailSize);
+			if (TryGetCachedThumbnail(key, out var cachedTexture)) {
+				SetThumbnail(imageElement, cachedTexture);
+				return;
+			}
+
+			var thumbnailPath = asset.ThumbnailPath;
+			var result = element.userData as AssetResult;
+			var cancellation = new CancellationTokenSource();
+			var cancellationToken = cancellation.Token;
+			_thumbnailLoads[element] = cancellation;
+			try {
+				await _thumbnailDecodeSlots.WaitAsync(cancellationToken);
+				ThumbnailData data;
+				try {
+					data = await Task.Run(() => {
+						cancellationToken.ThrowIfCancellationRequested();
+						var decoded = Asset.DecodeThumbnail(thumbnailPath, key.Size);
+						cancellationToken.ThrowIfCancellationRequested();
+						return decoded;
+					}, cancellationToken);
+				} finally {
+					_thumbnailDecodeSlots.Release();
+				}
+				await Awaitable.MainThreadAsync();
+				cancellationToken.ThrowIfCancellationRequested();
+				if (_isDestroyed || element.userData as AssetResult != result) {
+					return;
+				}
+				if (TryGetCachedThumbnail(key, out cachedTexture)) {
+					SetThumbnail(imageElement, cachedTexture);
+					return;
+				}
+
+				var texture = new Texture2D(data.Width, data.Height, TextureFormat.RGB24, false) {
+					hideFlags = HideFlags.HideAndDontSave
+				};
+				texture.LoadRawTextureData(data.Pixels);
+				texture.Apply(false, true);
+				CacheThumbnail(key, texture, data.Pixels.LongLength);
+				SetThumbnail(imageElement, texture);
+			} catch (OperationCanceledException) {
+				// A recycled cell no longer needs this thumbnail.
+			} catch (Exception exception) {
+				await Awaitable.MainThreadAsync();
+				if (!_isDestroyed) {
+					Debug.LogWarning($"Could not load thumbnail {thumbnailPath}: {exception.Message}");
+				}
+			} finally {
+				await Awaitable.MainThreadAsync();
+				if (_thumbnailLoads.TryGetValue(element, out var activeLoad) && activeLoad == cancellation) {
+					_thumbnailLoads.Remove(element);
+				}
+				cancellation.Dispose();
+			}
+		}
+
+		private static void SetThumbnail(Image image, Texture2D texture)
+		{
+			image.image = texture;
+			image.style.width = new StyleLength(new Length(100, LengthUnit.Percent));
+			image.style.height = new StyleLength(new Length(100, LengthUnit.Percent));
+		}
+
+		private void CancelThumbnailLoad(VisualElement element)
+		{
+			if (!_thumbnailLoads.TryGetValue(element, out var load)) {
+				return;
+			}
+			_thumbnailLoads.Remove(element);
+			load.Cancel();
+		}
+
+		private bool TryGetCachedThumbnail(ThumbnailKey key, out Texture2D texture)
+		{
+			if (!_thumbCache.TryGetValue(key, out var cached)) {
+				texture = null;
+				return false;
+			}
+			_thumbLru.Remove(cached.LruNode);
+			_thumbLru.AddFirst(cached.LruNode);
+			texture = cached.Texture;
+			return true;
+		}
+
+		private void CacheThumbnail(ThumbnailKey key, Texture2D texture, long sizeBytes)
+		{
+			if (_thumbCache.TryGetValue(key, out var existing)) {
+				_thumbCacheBytes -= existing.SizeBytes;
+				_thumbLru.Remove(existing.LruNode);
+				DestroyImmediate(existing.Texture);
+			}
+			var node = _thumbLru.AddFirst(key);
+			_thumbCache[key] = new CachedThumbnail(texture, sizeBytes, node);
+			_thumbCacheBytes += sizeBytes;
+			while (_thumbCacheBytes > ThumbCacheBudget && _thumbLru.Last != null) {
+				RemoveCachedThumbnail(_thumbLru.Last.Value);
+			}
+		}
+
+		private void RemoveCachedThumbnail(ThumbnailKey key)
+		{
+			if (!_thumbCache.TryGetValue(key, out var cached)) {
+				return;
+			}
+			_thumbCache.Remove(key);
+			_thumbLru.Remove(cached.LruNode);
+			_thumbCacheBytes -= cached.SizeBytes;
+			DestroyImmediate(cached.Texture);
+		}
+
+		private void RemoveCachedThumbnails(string guid)
+		{
+			foreach (var key in _thumbCache.Keys.Where(key => key.Guid == guid).ToArray()) {
+				RemoveCachedThumbnail(key);
+			}
+		}
+
+		private readonly struct ThumbnailKey : System.IEquatable<ThumbnailKey>
+		{
+			public readonly string Guid;
+			public readonly int Size;
+
+			public ThumbnailKey(string guid, int size)
+			{
+				Guid = guid;
+				Size = size;
+			}
+
+			public bool Equals(ThumbnailKey other) => Guid == other.Guid && Size == other.Size;
+			public override bool Equals(object obj) => obj is ThumbnailKey other && Equals(other);
+			public override int GetHashCode() => System.HashCode.Combine(Guid, Size);
+		}
+
+		private sealed class CachedThumbnail
+		{
+			public readonly Texture2D Texture;
+			public readonly long SizeBytes;
+			public readonly LinkedListNode<ThumbnailKey> LruNode;
+
+			public CachedThumbnail(Texture2D texture, long sizeBytes, LinkedListNode<ThumbnailKey> lruNode)
+			{
+				Texture = texture;
+				SizeBytes = sizeBytes;
+				LruNode = lruNode;
 			}
 		}
 

@@ -250,6 +250,16 @@ namespace VisualPinball.Unity.Editor
 			return texture;
 		}
 
+		internal static ThumbnailData DecodeThumbnail(string thumbnailPath, int size)
+		{
+			using var thumbnail = Image.Thumbnail(thumbnailPath, size, height: size, size: Enums.Size.Down);
+			using var srgb = thumbnail.Colourspace(Enums.Interpretation.Srgb);
+			using var rgb = srgb.ExtractBand(0, 3);
+			using var uchar = rgb.Cast(Enums.BandFormat.Uchar);
+			using var flipped = uchar.Flip(Enums.Direction.Vertical);
+			return new ThumbnailData(flipped.WriteToMemory(), flipped.Width, flipped.Height);
+		}
+
 		/// <summary>
 		/// So this is basically a counter where the positions are the variations, and the figures are the overrides.
 		/// When the last override of the last variation has counted up, we're done.
@@ -320,5 +330,19 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		public override string ToString() => Name;
+	}
+
+	internal readonly struct ThumbnailData
+	{
+		public readonly byte[] Pixels;
+		public readonly int Width;
+		public readonly int Height;
+
+		public ThumbnailData(byte[] pixels, int width, int height)
+		{
+			Pixels = pixels;
+			Width = width;
+			Height = height;
+		}
 	}
 }

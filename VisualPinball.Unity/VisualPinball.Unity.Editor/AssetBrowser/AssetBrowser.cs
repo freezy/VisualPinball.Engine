@@ -211,9 +211,8 @@ namespace VisualPinball.Unity.Editor
 						foreach (var assetResult in _selectedResults.Where(a => lib.HasAsset(a.Asset.GUID)).ToList()) {
 							_selectedResults.Remove(assetResult);
 							lib.DeleteAsset(assetResult.Asset);
-							if (libs.Length == 1 && _thumbCache.ContainsKey(assetResult.Asset.GUID)) {
-								DestroyImmediate(_thumbCache[assetResult.Asset.GUID]);
-								_thumbCache.Remove(assetResult.Asset.GUID);
+							if (libs.Length == 1) {
+								RemoveCachedThumbnails(assetResult.Asset.GUID);
 							}
 							numRemovedAssets++;
 						}
@@ -568,10 +567,7 @@ namespace VisualPinball.Unity.Editor
 
 		public void RefreshThumb(Asset asset)
 		{
-			if (_thumbCache.ContainsKey(asset.GUID)) {
-				DestroyImmediate(_thumbCache[asset.GUID]);
-				_thumbCache.Remove(asset.GUID);
-			}
+			RemoveCachedThumbnails(asset.GUID);
 			var visibleResult = _visibleElements.Keys.FirstOrDefault(result => result.Asset == asset);
 			if (visibleResult != null) {
 				LoadThumb(_visibleElements[visibleResult], asset);
