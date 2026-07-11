@@ -103,6 +103,8 @@ namespace VisualPinball.Unity.Editor
 			return results;
 		}
 
+		public IEnumerable<Asset> GetAllAssets() => Assets.All(this);
+
 		public bool AddAsset(Object obj, AssetCategory category, AssetLibrary lib)
 		{
 			if (Assets.Contains(obj)) {
@@ -256,6 +258,10 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		public int NumAssetsWithCategory(AssetCategory category) => Assets.Values.Count(a => a.IsOfCategory(category));
+		public IReadOnlyDictionary<AssetCategory, int> GetCategoryCounts() => Assets.All(this)
+			.Where(asset => asset.Category != null)
+			.GroupBy(asset => asset.Category)
+			.ToDictionary(group => group.Key, group => group.Count());
 
 		public void DeleteCategory(AssetCategory category)
 		{

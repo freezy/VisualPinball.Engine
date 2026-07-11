@@ -54,6 +54,7 @@ namespace VisualPinball.Unity.Editor
 		private long _thumbCacheBytes;
 		private bool _isDestroyed;
 		private IVisualElementScheduledItem _searchScheduledItem;
+		private IVisualElementScheduledItem _libraryRefreshScheduledItem;
 		private string _pendingSearch;
 
 		private const string ClassDrag = "library-element--dragover";
@@ -146,6 +147,7 @@ namespace VisualPinball.Unity.Editor
 			_gridContent.RegisterCallback<PointerUpEvent>(OnEmptyClicked);
 			_gridContent.RegisterCallback<KeyDownEvent>(OnGridKeyDown);
 			_gridContent.RegisterCallback<GeometryChangedEvent>(OnGridGeometryChanged);
+			AssetBrowserPostprocessor.AssetFilesChanged += OnAssetFilesChanged;
 
 			ui.panel.visualTree.userData = this; // children need access to this. if there's another way of getting the panel's owner object, let me know!
 
@@ -156,6 +158,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			_isDestroyed = true;
 			_searchScheduledItem?.Pause();
+			_libraryRefreshScheduledItem?.Pause();
+			AssetBrowserPostprocessor.AssetFilesChanged -= OnAssetFilesChanged;
 			_sizeSlider?.UnregisterValueChangedCallback(OnThumbSizeChanged);
 			_queryInput?.UnregisterValueChangedCallback(OnSearchQueryChanged);
 

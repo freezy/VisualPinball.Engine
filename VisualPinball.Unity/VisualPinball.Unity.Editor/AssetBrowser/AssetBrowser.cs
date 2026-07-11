@@ -43,6 +43,9 @@ namespace VisualPinball.Unity.Editor
 
 		[SerializeField]
 		private List<string> _selectedLibraries;
+		private readonly Dictionary<AssetLibrary, string> _libraryAssetPaths = new();
+		private readonly HashSet<AssetLibrary> _pendingLibraryReindexes = new();
+		private bool _fullLibraryRefreshPending;
 
 		[NonSerialized]
 		private List<AssetResult> _assetResults;
@@ -98,6 +101,11 @@ namespace VisualPinball.Unity.Editor
 				.Select(AssetDatabase.GUIDToAssetPath)
 				.Select(AssetDatabase.LoadAssetAtPath<AssetLibrary>)
 				.Where(lib => lib != null).ToList();
+			_libraryAssetPaths.Clear();
+			foreach (var lib in Libraries) {
+				lib.IsActive = selectedLibraries?.Contains(lib.Id) ?? true;
+				_libraryAssetPaths[lib] = NormalizeAssetPath(AssetDatabase.GetAssetPath(lib));
+			}
 
 			// toggle label
 			if (Libraries.Count == 0) {
@@ -116,7 +124,6 @@ namespace VisualPinball.Unity.Editor
 			// update left column and subscribe
 			_libraryList.Clear();
 			foreach (var lib in Libraries) {
-				lib.IsActive = selectedLibraries?.Contains(lib.Id) ?? true;
 				_libraryList.Add(NewAssetLibrary(lib));
 				lib.OnChange += OnLibraryChanged;
 			}
@@ -124,9 +131,75 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnLibraryChanged(object sender, EventArgs e)
 		{
-			RefreshLibraries();
+			if (sender is AssetLibrary library) {
+				ScheduleLibraryReindex(library);
+			} else {
+				ScheduleFullLibraryRefresh();
+			}
+		}
+
+		private void OnAssetFilesChanged(string[] paths)
+		{
+			var normalizedPaths = paths.Select(NormalizeAssetPath).ToArray();
+			var libraries = (Libraries ?? Enumerable.Empty<AssetLibrary>()).ToArray();
+			var databaseRoots = libraries.ToDictionary(library => library, library => NormalizeAssetPath(library.DatabaseRoot));
+			if (normalizedPaths.Any(path => _libraryAssetPaths.Values.Contains(path))) {
+				ScheduleFullLibraryRefresh();
+				return;
+			}
+			var pathsOutsideDatabases = normalizedPaths
+				.Where(path => databaseRoots.Values.All(root => !IsPathWithin(path, root)));
+			if (pathsOutsideDatabases.Any(path => AssetDatabase.GetMainAssetTypeAtPath(path) == typeof(AssetLibrary))) {
+				ScheduleFullLibraryRefresh();
+				return;
+			}
+			foreach (var library in libraries) {
+				if (normalizedPaths.Any(path => IsPathWithin(path, databaseRoots[library]))) {
+					ScheduleLibraryReindex(library);
+				}
+			}
+		}
+
+		private void ScheduleLibraryReindex(AssetLibrary library)
+		{
+			if (library != null) {
+				_pendingLibraryReindexes.Add(library);
+			}
+			ScheduleLibraryRefresh();
+		}
+
+		private void ScheduleFullLibraryRefresh()
+		{
+			_fullLibraryRefreshPending = true;
+			ScheduleLibraryRefresh();
+		}
+
+		private void ScheduleLibraryRefresh()
+		{
+			_libraryRefreshScheduledItem?.Pause();
+			_libraryRefreshScheduledItem = rootVisualElement.schedule.Execute(ApplyPendingLibraryChanges).StartingIn(50);
+		}
+
+		private void ApplyPendingLibraryChanges()
+		{
+			if (_fullLibraryRefreshPending) {
+				_fullLibraryRefreshPending = false;
+				_pendingLibraryReindexes.Clear();
+				Refresh();
+				return;
+			}
+			var libraries = _pendingLibraryReindexes.ToArray();
+			_pendingLibraryReindexes.Clear();
+			foreach (var library in libraries.Where(library => Libraries.Contains(library))) {
+				Query.Reindex(library);
+			}
 			RefreshCategories();
 		}
+
+		private static string NormalizeAssetPath(string path) => (path ?? string.Empty).Replace('\\', '/').TrimEnd('/');
+
+		private static bool IsPathWithin(string path, string root) => root.Length > 0
+			&& (string.Equals(path, root, StringComparison.Ordinal) || path.StartsWith(root + "/", StringComparison.Ordinal));
 
 		public void FilterByAttribute(string attributeKey, string value, bool remove = false)
 		{

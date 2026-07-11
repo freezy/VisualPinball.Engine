@@ -68,11 +68,62 @@ namespace VisualPinball.Unity.Test.AssetBrowser
 		}
 
 		[Test]
+		public void ParsesQuotedAttributeKeysAndValues()
+		{
+			var query = CreateQuery();
+
+			query.Search("\"manufacturer name\":\"Williams in Chicago\"");
+
+			query.HasAttribute("manufacturer name", "Williams in Chicago").Should().BeTrue();
+		}
+
+		[Test]
+		public void PreservesColonsInUnquotedAttributeValues()
+		{
+			var query = CreateQuery();
+
+			query.Search("source:https://example.com/asset");
+
+			query.HasAttribute("source", "https://example.com/asset").Should().BeTrue();
+		}
+
+		[Test]
+		public void QueryFacetsAreCaseInsensitive()
+		{
+			var query = CreateQuery();
+
+			query.Search("Color:RED [Vintage]");
+
+			query.HasAttribute("color", "red").Should().BeTrue();
+			query.HasTag("vintage").Should().BeTrue();
+		}
+
+		[Test]
 		public void QualityStopsAtClosingParenthesis()
 		{
 			var query = CreateQuery();
 
 			query.Search("(Measured) foo (bar)");
+
+			query.HasQuality(AssetQuality.Measured).Should().BeTrue();
+		}
+
+		[Test]
+		public void QualityIsCaseInsensitive()
+		{
+			var query = CreateQuery();
+
+			query.Search("(measured)");
+
+			query.HasQuality(AssetQuality.Measured).Should().BeTrue();
+		}
+
+		[Test]
+		public void EmptyQualityDoesNotSuppressFollowingQuality()
+		{
+			var query = CreateQuery();
+
+			query.Search("() (measured)");
 
 			query.HasQuality(AssetQuality.Measured).Should().BeTrue();
 		}
