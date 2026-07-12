@@ -114,7 +114,7 @@ namespace VisualPinball.Unity.Editor
 				var proceduralRoot = Child(playfield, "Procedural Geometry");
 				var modelRoot = Child(playfield, "Model Instances");
 				var placeholderRoot = Child(playfield, "Preserved Placeholders");
-				var handled = new HashSet<int>();
+				var handled = new HashSet<FuturePinballSourceStream>();
 				CreateProceduralElements(proceduralRoot, handled);
 				CreateModelInstances(modelRoot, handled);
 				CreatePlaceholders(placeholderRoot, handled);
@@ -140,7 +140,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void CreateProceduralElements(GameObject parent, ISet<int> handled)
+		private void CreateProceduralElements(GameObject parent, ISet<FuturePinballSourceStream> handled)
 		{
 			var sources = _table.Elements.Where(item => item.SourceIndex.HasValue)
 				.GroupBy(item => item.SourceIndex.Value)
@@ -156,12 +156,12 @@ namespace VisualPinball.Unity.Editor
 					var worldMesh = element.Meshes[i].Clone().TransformToWorld();
 					CreateRenderer(go, source, worldMesh, element.Material, i, true, element.IsCollidable);
 				}
-				handled.Add(element.SourceIndex);
+				handled.Add(source);
 				_report.ProceduralElements++;
 			}
 		}
 
-		private void CreateModelInstances(GameObject parent, ISet<int> handled)
+		private void CreateModelInstances(GameObject parent, ISet<FuturePinballSourceStream> handled)
 		{
 			if (!_options.ImportPrimaryModels) return;
 			var referenced = new HashSet<string>(_table.Elements.Select(element => FuturePinballElementGeometry.Text(element, ModelTag))
@@ -170,10 +170,15 @@ namespace VisualPinball.Unity.Editor
 			foreach (var element in _table.Elements) {
 				var modelName = FuturePinballElementGeometry.Text(element, ModelTag);
 				if (string.IsNullOrWhiteSpace(modelName) || !models.TryGetValue(modelName, out var model)) continue;
+				if (!TryGetPlacement(element, out var position, out var rotation)) {
+					handled.Add(element);
+					continue;
+				}
 				var name = ElementName(element);
 				var go = Child(parent, name);
 				AddSource(go, element, "static-model");
-				Place(go.transform, element);
+				go.transform.localPosition = position;
+				go.transform.localRotation = rotation;
 				var elementMaterial = FuturePinballMaterialConverter.FromElement(element, TextureTag, ColorTag);
 				var groups = model.Primary.CreateMeshes();
 				for (var i = 0; i < groups.Count; i++) {
@@ -184,17 +189,19 @@ namespace VisualPinball.Unity.Editor
 					CreateRenderer(go, element, worldMesh, material, i, false, false, $"model-{model.Primary.SourceSha256}-{i}");
 				}
 				if (_options.GenerateColliders) CreateModelColliders(go, element, model);
-				handled.Add(element.SourceIndex ?? -1);
+				handled.Add(element);
 				_report.ModelInstances++;
 			}
 		}
 
-		private void CreatePlaceholders(GameObject parent, ISet<int> handled)
+		private void CreatePlaceholders(GameObject parent, ISet<FuturePinballSourceStream> handled)
 		{
-			foreach (var element in _table.Elements.Where(element => !handled.Contains(element.SourceIndex ?? -1))) {
+			foreach (var element in _table.Elements.Where(element => !handled.Contains(element))) {
+				if (!TryGetPlacement(element, out var position, out var rotation)) continue;
 				var go = Child(parent, ElementName(element));
 				AddSource(go, element, "preserved-placeholder");
-				Place(go.transform, element);
+				go.transform.localPosition = position;
+				go.transform.localRotation = rotation;
 				_report.Placeholders++;
 				_report.Backlog.Add(new FptRecreationBacklogItem {
 					SourceIndex = element.SourceIndex ?? -1,
@@ -471,59 +478,76 @@ namespace VisualPinball.Unity.Editor
 			return _textureAliases.TryGetValue(name, out texture);
 		}
 
-		private float ResolveSurfaceHeight(FuturePinballSourceStream element, FuturePinballVector2 position)
+		private bool TryResolveSurfaceHeight(FuturePinballSourceStream element, FuturePinballVector2 position, out float height)
 		{
 			var surfaceName = FuturePinballElementGeometry.Text(element, SurfaceTag);
-			if (string.IsNullOrWhiteSpace(surfaceName)) return 0f;
-			return ResolveSurfaceHeight(surfaceName, position, element, new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+			if (string.IsNullOrWhiteSpace(surfaceName)) {
+				height = 0f;
+				return true;
+			}
+			return TryResolveSurfaceHeight(surfaceName, position, element,
+				new HashSet<string>(StringComparer.OrdinalIgnoreCase), out height);
 		}
 
-		private float ResolveSurfaceHeight(
+		private bool TryResolveSurfaceHeight(
 			string surfaceName,
 			FuturePinballVector2 position,
 			FuturePinballSourceStream placedElement,
-			ISet<string> resolving)
+			ISet<string> resolving,
+			out float height)
 		{
+			height = 0f;
 			if (!resolving.Add(surfaceName)) {
 				AddSurfacePlacementBacklog(placedElement, surfaceName, "surface reference cycle");
-				return 0f;
+				return false;
 			}
 			try {
 				var candidates = SurfacesByName().TryGetValue(surfaceName, out var named) ? named : Array.Empty<FuturePinballSourceStream>();
 				if (candidates.Length == 0) {
 					AddSurfacePlacementBacklog(placedElement, surfaceName, "referenced surface was not found");
-					return 0f;
+					return false;
 				}
-				var heights = candidates.Select(candidate => CandidateSurfaceHeight(candidate, position, placedElement, resolving)).ToArray();
-				if (heights.All(height => System.Math.Abs(height - heights[0]) < 0.0001f)) return heights[0];
-				var containing = candidates.Select((candidate, index) => new { Candidate = candidate, Height = heights[index] })
-					.Where(item => FuturePinballElementGeometry.ContainsPoint(item.Candidate, position)).ToArray();
-				if (containing.Length == 1) return containing[0].Height;
-				if (containing.Length > 1 && containing.All(item => System.Math.Abs(item.Height - containing[0].Height) < 0.0001f)) {
-					return containing[0].Height;
+				if (candidates.Length == 1) {
+					return TryCandidateSurfaceHeight(candidates[0], position, placedElement, resolving, out height);
+				}
+				var containing = candidates.Where(candidate => FuturePinballElementGeometry.ContainsPoint(candidate, position)).ToArray();
+				var selected = containing.Length > 0 ? containing : candidates;
+				var heights = new float[selected.Length];
+				for (var i = 0; i < selected.Length; i++) {
+					if (!TryCandidateSurfaceHeight(selected[i], position, placedElement, resolving, out heights[i])) return false;
+				}
+				if (containing.Length == 1 || heights.All(candidateHeight => System.Math.Abs(candidateHeight - heights[0]) < 0.0001f)) {
+					height = heights[0];
+					return true;
 				}
 				AddSurfacePlacementBacklog(placedElement, surfaceName,
 					containing.Length == 0 ? "duplicate surfaces could not be disambiguated by element position" : "element position lies on multiple surfaces with different heights");
-				return 0f;
+				return false;
 			} finally {
 				resolving.Remove(surfaceName);
 			}
 		}
 
-		private float CandidateSurfaceHeight(
+		private bool TryCandidateSurfaceHeight(
 			FuturePinballSourceStream candidate,
 			FuturePinballVector2 position,
 			FuturePinballSourceStream placedElement,
-			ISet<string> resolving)
+			ISet<string> resolving,
+			out float height)
 		{
 			if (candidate.ElementType == FuturePinballElementType.Surface) {
-				return FuturePinballElementGeometry.Float(candidate, SurfaceTopHeightTag);
+				height = FuturePinballElementGeometry.Float(candidate, SurfaceTopHeightTag);
+				return true;
 			}
-			var height = FuturePinballElementGeometry.Float(candidate, HeightTag);
+			height = FuturePinballElementGeometry.Float(candidate, HeightTag);
 			var parentSurface = FuturePinballElementGeometry.Text(candidate, SurfaceTag);
-			return string.IsNullOrWhiteSpace(parentSurface)
-				? height
-				: height + ResolveSurfaceHeight(parentSurface, position, placedElement, resolving);
+			if (string.IsNullOrWhiteSpace(parentSurface)) return true;
+			if (!TryResolveSurfaceHeight(parentSurface, position, placedElement, resolving, out var parentHeight)) {
+				height = 0f;
+				return false;
+			}
+			height += parentHeight;
+			return true;
 		}
 
 		private Dictionary<string, FuturePinballSourceStream[]> SurfacesByName()
@@ -539,25 +563,30 @@ namespace VisualPinball.Unity.Editor
 		{
 			var issueKey = $"{element.SourceIndex}:{element.Name}:{surfaceName}:{reason}";
 			if (!_reportedSurfacePlacementIssues.Add(issueKey)) return;
-			_report.Warnings.Add($"{ElementName(element)} surface '{surfaceName}': {reason}; the unresolved height contribution was treated as zero.");
+			_report.Warnings.Add($"{ElementName(element)} surface '{surfaceName}': {reason}; scene placement was skipped.");
 			_report.Backlog.Add(new FptRecreationBacklogItem {
 				SourceIndex = element.SourceIndex ?? -1,
 				Name = ElementName(element),
 				ElementType = element.ElementType?.ToString() ?? $"Unknown({element.ElementTypeId})",
-				CurrentOutcome = $"An unresolved surface-height contribution was treated as zero: {reason}",
+				CurrentOutcome = $"Scene placement was skipped because the surface height is unresolved: {reason}",
 				SuggestedCapability = "resolve the preserved surface reference manually",
 				SourceStream = element.Name
 			});
 		}
 
-		private void Place(Transform transform, FuturePinballSourceStream element)
+		private bool TryGetPlacement(FuturePinballSourceStream element, out Vector3 worldPosition, out Quaternion worldRotation)
 		{
 			var position = FuturePinballElementGeometry.Position(element);
-			var height = ResolveSurfaceHeight(element, position);
+			if (!TryResolveSurfaceHeight(element, position, out var height)) {
+				worldPosition = default;
+				worldRotation = default;
+				return false;
+			}
 			height += FuturePinballElementGeometry.Integer(element, HeightTag);
 			var world = FuturePinballCoordinateConverter.ToWorld(position.X, position.Y, height);
-			transform.localPosition = new Vector3(world.X, world.Y, world.Z);
-			transform.localRotation = Quaternion.Euler(0f, -90f - FuturePinballElementGeometry.Integer(element, RotationTag), 0f);
+			worldPosition = new Vector3(world.X, world.Y, world.Z);
+			worldRotation = Quaternion.Euler(0f, -90f - FuturePinballElementGeometry.Integer(element, RotationTag), 0f);
+			return true;
 		}
 
 		private void AddSource(GameObject go, FuturePinballSourceStream source, string outcome)
