@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text.Json;
 
 using NUnit.Framework;
 using OpenMcdf;
@@ -230,6 +231,99 @@ namespace VisualPinball.Engine.Test.IO.FuturePinball
 			}
 		}
 
+		[Test]
+		public void ExtractsEveryLockedStreamAndReimportsDeterministically()
+		{
+			var fixture = FuturePinballFixtureCatalog.All[0];
+			var output = TemporaryDirectory();
+			try {
+				var manifest = FuturePinballExtractor.Extract(FixturePath(fixture), output);
+				Assert.That(manifest.Streams.Count, Is.EqualTo(fixture.CompoundEntryCount - 1));
+				Assert.That(manifest.Streams.All(stream => File.Exists(BundlePath(output, stream.RawFile))), Is.True);
+				Assert.That(manifest.Counts.Elements, Is.EqualTo(fixture.ElementCount));
+				Assert.That(manifest.Counts.Images, Is.EqualTo(fixture.ImageCount));
+				Assert.That(manifest.Counts.Sounds, Is.EqualTo(fixture.SoundCount));
+				Assert.That(manifest.Counts.Music, Is.EqualTo(fixture.MusicCount));
+				Assert.That(manifest.Counts.PinModels, Is.EqualTo(fixture.PinModelCount));
+				Assert.That(manifest.Counts.OpaqueRecords, Is.GreaterThan(0));
+				Assert.That(File.Exists(BundlePath(output, manifest.OriginalFile)), Is.True);
+				Assert.That(File.Exists(BundlePath(output, "table/table-data.json")), Is.True);
+				Assert.That(File.Exists(BundlePath(output, "table/elements.json")), Is.True);
+				Assert.That(Sha256(File.ReadAllBytes(BundlePath(output, "scripts/table.vbs"))), Is.EqualTo(fixture.ScriptDecodedSha256));
+				Assert.That(Sha256(File.ReadAllBytes(BundlePath(output, "scripts/table.zlzo")).Skip(8).ToArray()), Is.EqualTo(fixture.ScriptCompressedSha256));
+
+				var manifestPath = BundlePath(output, "manifest.json");
+				var before = File.ReadAllBytes(manifestPath);
+				using (var json = JsonDocument.Parse(before)) {
+					Assert.That(json.RootElement.GetProperty("streams").GetArrayLength(), Is.EqualTo(fixture.CompoundEntryCount - 1));
+					Assert.That(json.RootElement.GetProperty("resources").GetArrayLength(), Is.EqualTo(
+						fixture.ImageCount + fixture.SoundCount + fixture.MusicCount + fixture.PinModelCount
+						+ fixture.DmdFontCount + fixture.ImageListCount + fixture.LightListCount + 1
+					));
+				}
+
+				FuturePinballExtractor.Extract(FixturePath(fixture), output);
+				Assert.That(File.ReadAllBytes(manifestPath), Is.EqualTo(before));
+			} finally {
+				if (Directory.Exists(output)) Directory.Delete(output, true);
+			}
+		}
+
+		[Test]
+		public void ResolvesLinkedLibraryMediaWithoutUsingSourcePathForOutput()
+		{
+			var root = TemporaryDirectory();
+			var tablePath = Path.Combine(root, "linked.fpt");
+			var libraryPath = Path.Combine(root, "media.fpl");
+			var output = Path.Combine(root, "bundle");
+			try {
+				Directory.CreateDirectory(root);
+				using (var table = RootStorage.Create(tablePath, OpenMcdf.Version.V3, StorageModeFlags.None)) {
+					var storage = table.CreateStorage("Future Pinball");
+					Write(storage.CreateStream("File Version"), UInt32(1));
+					Write(storage.CreateStream("Table Data"), Join(
+						IntegerRecord(0x95FDCDD2, 0), IntegerRecord(0xA2F4C9D2, 1),
+						IntegerRecord(0xA5F3BFD2, 0), IntegerRecord(0x96ECC5D2, 0),
+						IntegerRecord(0xA5F2C5D2, 0), IntegerRecord(0x95F5C9D2, 0),
+						IntegerRecord(0x95F5C6D2, 0), IntegerRecord(0x9BFBCED2, 0),
+						Record(0xA7FDC4E0, Array.Empty<byte>())
+					));
+					Write(storage.CreateStream("Table MAC"), new byte[16]);
+					Write(storage.CreateStream("Image 1"), Join(
+						IntegerRecord(0xA4F1B9D1, 1),
+						StringRecord(0xA4F4D1D7, "Linked Image"),
+						StringRecord(0xA1EDD1D5, "C:\\Future Pinball\\Libraries\\unsafe.bmp"),
+						IntegerRecord(0x9EF3C6D9, 1),
+						Record(0xA7FDC4E0, Array.Empty<byte>())
+					));
+					table.Flush(true);
+				}
+
+				var bitmap = new byte[] { (byte)'B', (byte)'M', 1, 2, 3, 4 };
+				using (var library = RootStorage.Create(libraryPath, OpenMcdf.Version.V3, StorageModeFlags.None)) {
+					var item = library.CreateStorage("Linked Image");
+					Write(item.CreateStream("FTYP"), UInt32((uint)FuturePinballResourceKind.Image));
+					Write(item.CreateStream("FPAT"), System.Text.Encoding.ASCII.GetBytes("C:\\unsafe\\unsafe.bmp\0"));
+					Write(item.CreateStream("FDAT"), bitmap);
+					library.Flush(true);
+				}
+
+				var manifest = FuturePinballExtractor.Extract(tablePath, output);
+				var resource = manifest.Resources.Single(item => item.Category == "images");
+				Assert.That(resource.ResolutionStatus, Is.EqualTo("resolved"));
+				Assert.That(resource.ResolvedLibrary, Is.EqualTo("media.fpl"));
+				Assert.That(resource.ResolvedLibraryEntry, Is.EqualTo("Linked Image"));
+				Assert.That(resource.DetectedFormat, Is.EqualTo("bmp"));
+				var original = resource.Files.Single(file => file.Role == "original");
+				Assert.That(original.Path, Does.Not.Contain("unsafe"));
+				Assert.That(File.ReadAllBytes(BundlePath(output, original.Path)), Is.EqualTo(bitmap));
+				Assert.That(resource.Files.Any(file => file.Role == "library-FDAT"), Is.True);
+				Assert.That(Path.GetFullPath(BundlePath(output, original.Path)), Does.StartWith(Path.GetFullPath(output)));
+			} finally {
+				if (Directory.Exists(root)) Directory.Delete(root, true);
+			}
+		}
+
 		private static string FixturePath(FuturePinballFixtureExpectation fixture)
 		{
 			var fixtureRoot = Environment.GetEnvironmentVariable(FuturePinballFixtureCatalog.FixtureRootEnvironmentVariable);
@@ -257,6 +351,16 @@ namespace VisualPinball.Engine.Test.IO.FuturePinball
 		private static string TemporaryPath(string extension)
 		{
 			return Path.Combine(Path.GetTempPath(), $"vpe-fp-{Guid.NewGuid():N}.{extension}");
+		}
+
+		private static string TemporaryDirectory()
+		{
+			return Path.Combine(Path.GetTempPath(), $"vpe-fp-{Guid.NewGuid():N}");
+		}
+
+		private static string BundlePath(string root, string relativePath)
+		{
+			return Path.Combine(root, relativePath.Replace('/', Path.DirectorySeparatorChar));
 		}
 
 		private static void Write(CfbStream stream, byte[] data)
