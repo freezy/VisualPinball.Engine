@@ -734,7 +734,8 @@ namespace VisualPinball.Unity
 
 		#region LiveCatch
 
-		public static void LiveCatch(ref BallState ball, ref CollisionEventData collEvent, in FlipperTricksData tricks, float3 flipperPos, in FlipperStaticData matData, uint msec) {
+		public static void LiveCatch(ref BallState ball, in CollisionEventData collEvent, in FlipperTricksData tricks,
+			float3 flipperPos, float impactSpeed, uint msec) {
 			if (!tricks.UseFlipperLiveCatch)
 				return;
 
@@ -753,12 +754,15 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			var impactSpeed = math.max(math.dot(collEvent.HitNormal, ball.Velocity) * -1f, -collEvent.HitOrgNormalVelocity);
 			if (impactSpeed <= tricks.LiveCatchMinimalBallSpeed) {
 				return;
 			}
 
-			var catchTime = (float)(msec - tricks.FlipperAngleEndTime * 1000);
+			if (!tricks.HasLiveCatchEosTime) {
+				return;
+			}
+
+			var catchTime = unchecked(msec - tricks.LiveCatchEosTimeMsec);
 			if (catchTime > tricks.LiveCatchFullTime) {
 				return;
 			}
@@ -805,6 +809,7 @@ namespace VisualPinball.Unity
 			GetRelativeVelocity(normal, ball, movementState, out var vRel, out var rB, out var rF);
 
 			var bnv = math.dot(normal, vRel); // relative normal velocity
+			var impactSpeed = math.max(0f, -bnv);
 
 			if (bnv >= -PhysicsConstants.LowNormVel) {
 				// nearly receding ... make sure of conditions
@@ -930,7 +935,7 @@ namespace VisualPinball.Unity
 				movementState.ApplyImpulse(-jt * crossF, matData.Inertia);
 			}
 
-			LiveCatch(ref ball, ref collEvent, in tricks, new float3(_hitCircleBase.Center, ball.Position.z), in matData, timeMsec);
+			LiveCatch(ref ball, in collEvent, in tricks, new float3(_hitCircleBase.Center, ball.Position.z), impactSpeed, timeMsec);
 
 			// event
 			if (bnv < -0.25f && timeMsec - movementState.LastHitTime > 250) {

@@ -34,6 +34,10 @@ namespace VisualPinball.Unity
 			var angleMin = math.min(data.AngleStart, tricks.AngleEnd);
 			var angleMax = math.max(data.AngleStart, tricks.AngleEnd);
 			var minIsStart = angleMin == data.AngleStart; // Usually true for the right Flipper
+			var solenoidChanged = solenoid.Value != tricks.lastSolState;
+			if (solenoidChanged) {
+				tricks.HasLiveCatchEosTime = false;
+			}
 
 			var desiredTorque = data.Strength;
 			if (!solenoid.Value)
@@ -44,7 +48,7 @@ namespace VisualPinball.Unity
 
 			if (tricks.UseFlipperTricksPhysics) {
 				// check if solenoid was just activated or deactivated
-				if (solenoid.Value != tricks.lastSolState)
+				if (solenoidChanged)
 				{
 					// check if solenoid was just activated or deactivated for Flippertricks
 					// Flippertricks case 1 and 2 are always before case 3, 4 and 5.
@@ -171,9 +175,10 @@ namespace VisualPinball.Unity
 
 				tricks.WasInContact = vState.IsInContact;
 
-				// check if solenoid was just activated or deactivated
-				tricks.lastSolState = solenoid.Value;
 			}
+
+			// Live catch also needs reliable edge tracking when Flipper Tricks is disabled.
+			tricks.lastSolState = solenoid.Value;
 		}
 	}
 }

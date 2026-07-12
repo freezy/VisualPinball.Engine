@@ -23,11 +23,9 @@ namespace VisualPinball.Unity
 	internal static class FlipperDisplacementPhysics
 	{
 		internal static void UpdateDisplacement(int itemId, ref FlipperMovementState movementState, ref FlipperTricksData tricks, in FlipperStaticData staticState,
-			float dTime, ref NativeQueue<EventData>.ParallelWriter events)
+			bool solenoidEnabled, uint currentTimeMsec, float dTime, ref NativeQueue<EventData>.ParallelWriter events)
 		{
-			//var dTime = _simulateCycleSystemGroup.HitTime;
-			var currentTime = 0;// todo SystemAPI.Time.ElapsedTime;
-
+			var previousAngle = movementState.Angle;
 			movementState.Angle += movementState.AngleSpeed * dTime; // move flipper angle
 
 			var angleMin = math.min(staticState.AngleStart, tricks.AngleEnd);
@@ -41,17 +39,26 @@ namespace VisualPinball.Unity
 				movementState.Angle = angleMin;
 			}
 
+			if (tricks.UseFlipperLiveCatch && solenoidEnabled && !tricks.HasLiveCatchEosTime) {
+				const float angleTolerance = 1e-4f;
+				var endAngle = tricks.AngleEnd;
+				var rotatesPositive = endAngle >= staticState.AngleStart;
+				var crossedEnd = rotatesPositive
+					? previousAngle < endAngle - angleTolerance && movementState.Angle >= endAngle - angleTolerance
+					: previousAngle > endAngle + angleTolerance && movementState.Angle <= endAngle + angleTolerance;
+				var isAtEnd = math.abs(movementState.Angle - endAngle) <= angleTolerance;
+				if (crossedEnd || isAtEnd) {
+					tricks.LiveCatchEosTimeMsec = currentTimeMsec;
+					tricks.HasLiveCatchEosTime = true;
+				}
+			}
+
 			if (math.abs(movementState.AngleSpeed) < 0.0005f) {
 				// avoids "jumping balls" when two or more balls held on flipper (and more other balls are in play) //!! make dependent on physics update rate
 				return;
 			}
 
 			var handleEvent = false;
-
-			// ReSharper disable once CompareOfFloatsByEqualityOperator
-			if (movementState.Angle == tricks.AngleEnd) {
-				tricks.FlipperAngleEndTime = currentTime;
-			}
 
 			if (movementState.Angle >= angleMax) {
 				// hit stop?
