@@ -64,6 +64,14 @@ Note that increasing this setting will decrease the speed of the flipper a bit a
 
 The "end of stroke" torque is the force that holds the flipper up once it reached the end position. The angle defines how many degrees from the end position that force is applied.
 
+#### Live Catch and EOS Rubber Dampening
+
+Enabling *VPW Catch Physics* adds the modern VPW live-catch response. A ball arriving shortly after the flipper reaches its end position can be caught completely or receive a small timing-dependent bounce. Impacts near the flipper base use the configured *Base Dampen* value instead.
+
+When an impact does not qualify for the live-catch window, a held flipper also applies VPW's low-speed EOS rubber correction. This correction targets the total incoming-to-outgoing speed ratio of slow, nearly vertical rebounds and is only active while the flipper button remains pressed at end of stroke. It does not replace the flipper's normal elasticity, friction, or collision response.
+
+The live-catch distance, timing, bounce, and base-zone values can be adjusted in the flipper collider inspector. The EOS rubber profile uses the standard VPW curve.
+
 #### Flipper Correction
 
 This is where you can set a profile for nFozzy's flipper physics. Profiles are files in your asset folder that you can create and modify. VPE ships with three profiles based on nFozzy's measurements that cover the solid state era of pinball machines. EM machines usually don't need flipper correction.
