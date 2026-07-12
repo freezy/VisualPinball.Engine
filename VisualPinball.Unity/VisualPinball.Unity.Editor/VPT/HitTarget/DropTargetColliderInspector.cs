@@ -21,5 +21,39 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(DropTargetColliderComponent)), CanEditMultipleObjects]
 	public class DropTargetColliderInspector : TargetColliderInspector<DropTargetColliderComponent>
 	{
+		private SerializedProperty _collisionColliderMeshProperty;
+		private SerializedProperty _physicsModeProperty;
+		private SerializedProperty _mechanicalProfileProperty;
+		private SerializedProperty _overrideMechanicalProfileProperty;
+		private SerializedProperty _mechanicalOverridesProperty;
+		private SerializedProperty _rothConfigProperty;
+
+		protected override void OnEnable()
+		{
+			base.OnEnable();
+			_collisionColliderMeshProperty = serializedObject.FindProperty(nameof(DropTargetColliderComponent.CollisionColliderMesh));
+			_physicsModeProperty = serializedObject.FindProperty(nameof(DropTargetColliderComponent.PhysicsMode));
+			_mechanicalProfileProperty = serializedObject.FindProperty(nameof(DropTargetColliderComponent.MechanicalProfile));
+			_overrideMechanicalProfileProperty = serializedObject.FindProperty(nameof(DropTargetColliderComponent.OverrideMechanicalProfile));
+			_mechanicalOverridesProperty = serializedObject.FindProperty(nameof(DropTargetColliderComponent.MechanicalOverrides));
+			_rothConfigProperty = serializedObject.FindProperty(nameof(DropTargetColliderComponent.RothConfig));
+		}
+
+		protected override void OnTargetInspectorGUI()
+		{
+			PropertyField(_physicsModeProperty, updateColliders: true);
+			PropertyField(_collisionColliderMeshProperty, "Collision Collider", updateColliders: true);
+
+			var mode = (DropTargetPhysicsMode)_physicsModeProperty.intValue;
+			if (mode == DropTargetPhysicsMode.RothCompatible) {
+				EditorGUILayout.PropertyField(_rothConfigProperty, true);
+			} else if (mode == DropTargetPhysicsMode.Mechanical) {
+				PropertyField(_mechanicalProfileProperty);
+				PropertyField(_overrideMechanicalProfileProperty);
+				if (_mechanicalProfileProperty.objectReferenceValue == null || _overrideMechanicalProfileProperty.boolValue) {
+					EditorGUILayout.PropertyField(_mechanicalOverridesProperty, true);
+				}
+			}
+		}
 	}
 }

@@ -33,7 +33,8 @@ namespace VisualPinball.Unity
 			_matrix = matrix;
 		}
 
-		internal void GenerateColliders(ref ColliderReference colliders, Mesh colliderMesh, ItemType itemType, MonoBehaviour mainComp)
+		internal void GenerateColliders(ref ColliderReference colliders, Mesh colliderMesh, ItemType itemType,
+			MonoBehaviour mainComp, ColliderRole role = ColliderRole.None)
 		{
 			if (colliderMesh == null) {
 				Debug.LogWarning($"Collider mesh of target \"{mainComp.name}\" is not set. Target will not fully work.");
@@ -47,7 +48,9 @@ namespace VisualPinball.Unity
 			meshData.GetVertices(unityVertices);
 			meshData.GetIndices(unityIndices, 0);
 
-			ColliderUtils.GenerateCollidersFromMesh(in unityVertices, in unityIndices, math.mul(_matrix, Physics.WorldToVpx), _api.GetColliderInfo(itemType), ref colliders);
+			var info = _api.GetColliderInfo(itemType);
+			info.Role = role;
+			ColliderUtils.GenerateCollidersFromMesh(in unityVertices, in unityIndices, math.mul(_matrix, Physics.WorldToVpx), info, ref colliders);
 
 			unityVertices.Dispose();
 			unityIndices.Dispose();

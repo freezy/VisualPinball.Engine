@@ -28,6 +28,7 @@ namespace VisualPinball.Unity
 	{
 		public ColliderType Type;
 		public ItemType ItemType;
+		public ColliderRole Role;
 		public int Id;
 		public int ItemId;
 		/**
@@ -67,6 +68,7 @@ namespace VisualPinball.Unity
 			}
 			Type = colliderType;
 			ItemType = info.ItemType;
+			Role = info.Role;
 			IsTransformed = true; // per default, we assume that we don't have to transform the ball during runtime.
 			Id = info.Id;
 			ItemId = info.ItemId;
@@ -79,6 +81,7 @@ namespace VisualPinball.Unity
 			Id = Id,
 			ItemId = ItemId,
 			ItemType = ItemType,
+			Role = Role,
 			Material = Material,
 			HitThreshold = Threshold,
 			FireEvents = FireEvents
@@ -90,6 +93,7 @@ namespace VisualPinball.Unity
 		public readonly bool Equals(ColliderHeader other)
 			=> Type == other.Type
 			&& ItemType == other.ItemType
+			&& Role == other.Role
 			&& Id == other.Id
 			&& ItemId == other.ItemId
 			&& Material == other.Material
@@ -105,6 +109,6 @@ namespace VisualPinball.Unity
 		}
 
 		public override readonly int GetHashCode() => HashCode.Combine(
-			Type, ItemType, Id, ItemId, Material, Threshold, FireEvents);
+			Type, ItemType, Role, Id, ItemId, Material, Threshold, FireEvents);
 	}
 }
