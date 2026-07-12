@@ -87,7 +87,7 @@ namespace VisualPinball.Unity.Editor
 			text.AppendLine($"- Manifest schema: `{manifest.SchemaVersion}`");
 			text.AppendLine($"- Elements: {Elements} ({ProceduralElements} procedural, {ModelInstances} model instances, {Placeholders} placeholders)");
 			text.AppendLine($"- Assets: {MeshAssets} meshes, {MaterialAssets} materials, {ReusedAssets} reused");
-			text.AppendLine($"- Colliders: {Colliders}");
+			text.AppendLine($"- VPE colliders: {Colliders}");
 			text.AppendLine($"- Unresolved resources: {UnresolvedResources}");
 			text.AppendLine($"- Elapsed: {ElapsedMilliseconds} ms");
 			text.AppendLine().AppendLine("## Extracted media").AppendLine();

@@ -46,7 +46,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			_scroll = EditorGUILayout.BeginScrollView(_scroll);
 			EditorGUILayout.LabelField("Lossless Future Pinball Import", EditorStyles.boldLabel);
-			EditorGUILayout.HelpBox("The original FPT and every media/model/script payload are preserved. Scene conversion currently creates static meshes, materials, colliders, and placeholders; it does not execute Future Pinball scripts.", MessageType.Info);
+			EditorGUILayout.HelpBox("The original FPT and every media/model/script payload are preserved. Scene conversion creates static meshes, materials, VPE-native primitive colliders, and placeholders; it does not execute Future Pinball scripts.", MessageType.Info);
 
 			EditorGUILayout.BeginHorizontal();
 			_path = EditorGUILayout.TextField("FPT File", _path);
@@ -73,7 +73,7 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.Space();
 			EditorGUILayout.LabelField("Recreation", EditorStyles.boldLabel);
 			_options.ImportPrimaryModels = EditorGUILayout.Toggle("Import Primary Models", _options.ImportPrimaryModels);
-			_options.GenerateColliders = EditorGUILayout.Toggle("Generate Colliders", _options.GenerateColliders);
+			_options.GenerateColliders = EditorGUILayout.Toggle("Generate VPE Colliders", _options.GenerateColliders);
 			using (new EditorGUI.DisabledScope(!_options.GenerateColliders)) {
 				_options.EnablePerPolygonCollision = EditorGUILayout.Toggle("Per-Polygon Collision", _options.EnablePerPolygonCollision);
 				_options.GenerateRenderMeshFallbackColliders = EditorGUILayout.Toggle("Render-Mesh Fallback", _options.GenerateRenderMeshFallbackColliders);

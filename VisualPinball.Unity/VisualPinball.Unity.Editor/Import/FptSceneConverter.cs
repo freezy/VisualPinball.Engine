@@ -27,6 +27,8 @@ using UnityEngine;
 
 using VisualPinball.Engine.IO.FuturePinball;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Unity.Simulation;
 
 using EngineMesh = VisualPinball.Engine.VPT.Mesh;
 using UnityMaterial = UnityEngine.Material;
@@ -44,6 +46,11 @@ namespace VisualPinball.Unity.Editor
 		private const uint RotationTag = 0xA8EDC3D3;
 		private const uint HeightTag = 0xA2F8CDDD;
 		private const uint SurfaceTopHeightTag = 0x99F2BEDD;
+		private const uint TableWidthTag = 0xA5F8BBD1;
+		private const uint TableLengthTag = 0x9BFCC6D1;
+		private const uint FrontGlassHeightTag = 0xA1FACCD1;
+		private const uint RearGlassHeightTag = 0xA1FAC0D1;
+		private const uint SlopeTag = 0x9AF5BFD1;
 
 		private readonly string _sourcePath;
 		private readonly string _tableName;
@@ -51,6 +58,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly Dictionary<string, Texture2D> _textures = new Dictionary<string, Texture2D>(StringComparer.OrdinalIgnoreCase);
 		private readonly Dictionary<string, UnityMesh> _meshes = new Dictionary<string, UnityMesh>(StringComparer.Ordinal);
 		private readonly Dictionary<string, UnityMaterial> _materials = new Dictionary<string, UnityMaterial>();
+		private readonly HashSet<FuturePinballColliderKind> _reportedTessellatedColliderKinds = new HashSet<FuturePinballColliderKind>();
 		private readonly FptImportReport _report = new FptImportReport();
 		private string _tableAssetRoot;
 		private string _bundleAssetRoot;
@@ -92,14 +100,15 @@ namespace VisualPinball.Unity.Editor
 			var existing = _options.ReplaceExistingSceneRoot ? GameObject.Find(rootName) : null;
 			try {
 				root = new GameObject(rootName);
+				var playfield = CreateVpeHierarchy(root);
 				var rootSource = root.AddComponent<FuturePinballSourceComponent>();
 				rootSource.SourceFile = Path.GetFileName(_sourcePath);
 				rootSource.SourceHash = _manifest.SourceSha256;
-				rootSource.ImportOutcome = "lossless-source-bundle-and-static-scene";
+				rootSource.ImportOutcome = "lossless-source-bundle-and-vpe-static-scene";
 
-				var proceduralRoot = Child(root, "Procedural Geometry");
-				var modelRoot = Child(root, "Model Instances");
-				var placeholderRoot = Child(root, "Preserved Placeholders");
+				var proceduralRoot = Child(playfield, "Procedural Geometry");
+				var modelRoot = Child(playfield, "Model Instances");
+				var placeholderRoot = Child(playfield, "Preserved Placeholders");
 				var handled = new HashSet<int>();
 				CreateProceduralElements(proceduralRoot, handled);
 				CreateModelInstances(modelRoot, handled);
@@ -112,7 +121,7 @@ namespace VisualPinball.Unity.Editor
 				_report.UnresolvedResources = _manifest.Counts.UnresolvedLinkedResources;
 				_report.Warnings.AddRange(_manifest.Issues);
 				if (_options.GenerateColliders) {
-					_report.Warnings.Add("Generated colliders are static Unity authoring colliders; native VPE physics behavior remains to be recreated.");
+					_report.Warnings.Add("Generated collision uses VPE PlayfieldColliderComponent and PrimitiveColliderComponent; no Unity/PhysX colliders are created.");
 				}
 				_report.ElapsedMilliseconds = timer.ElapsedMilliseconds;
 				AssetDatabase.SaveAssets();
@@ -234,38 +243,26 @@ namespace VisualPinball.Unity.Editor
 			var index = 0;
 			foreach (var description in descriptions) {
 				if (description.Status != FuturePinballColliderStatus.Generated) {
-					_report.Warnings.Add($"{ElementName(element)} collider: {description.Reason}");
+					AddColliderBacklog(element, description.Reason ?? $"{description.Kind} collider was not generated");
 					continue;
 				}
-				var go = Child(parent, $"Collider {index++} ({description.Kind})");
+				var colliderIndex = index++;
+				var colliderMesh = FuturePinballColliderMeshBuilder.Build(description);
+				if (colliderMesh?.IsSet != true || colliderMesh.Indices.Length == 0) {
+					AddColliderBacklog(element, $"{description.Kind} has no VPE-compatible triangle mesh");
+					continue;
+				}
+				var go = Child(parent, $"VPE Collider {colliderIndex} ({description.Kind})");
 				go.transform.localPosition = new Vector3(description.Center.X, description.Center.Y, description.Center.Z);
-				switch (description.Kind) {
-					case FuturePinballColliderKind.Sphere: {
-						var collider = go.AddComponent<SphereCollider>();
-						collider.radius = description.Radius;
-						break;
-					}
-					case FuturePinballColliderKind.Box: {
-						var collider = go.AddComponent<BoxCollider>();
-						collider.size = new Vector3(description.Size.X, description.Size.Y, description.Size.Z);
-						break;
-					}
-					case FuturePinballColliderKind.Mesh: {
-						var collider = go.AddComponent<MeshCollider>();
-						collider.sharedMesh = GetOrCreateMesh(description.Mesh, $"collider-{model.Primary.SourceSha256}-{index}");
-						break;
-					}
-					default: {
-						var collider = go.AddComponent<CapsuleCollider>();
-						collider.direction = description.Kind == FuturePinballColliderKind.VerticalCylinder ? 1 : 2;
-						collider.radius = Mathf.Max(description.Radius, description.SecondaryRadius);
-						var sourceLength = description.HalfLength * 2f;
-						collider.height = description.Kind == FuturePinballColliderKind.TaperedCapsule
-							? sourceLength + collider.radius * 2f
-							: Mathf.Max(collider.radius * 2f, sourceLength);
-						_report.Warnings.Add($"{ElementName(element)} {description.Kind} uses a capsule approximation in Unity.");
-						break;
-					}
+				var unityMesh = GetOrCreateMesh(colliderMesh,
+					$"vpe-collider-{model.Primary.SourceSha256}-{colliderIndex}-{description.Kind}");
+				AddVpePrimitiveCollider(go, unityMesh, description.GenerateHitEvent, false);
+				if (FuturePinballColliderMeshBuilder.IsTessellatedApproximation(description.Kind)
+					&& _reportedTessellatedColliderKinds.Add(description.Kind)) {
+					_report.Warnings.Add($"{description.Kind} collision is tessellated into a VPE primitive mesh; curved-source geometry is approximate.");
+				}
+				if (description.GenerateHitEvent && description.EventId != 0) {
+					_report.Warnings.Add($"{ElementName(element)} collider event {description.EventId} maps to a generic VPE primitive hit event; Future Pinball script dispatch remains unimplemented.");
 				}
 				_report.Colliders++;
 			}
@@ -287,9 +284,22 @@ namespace VisualPinball.Unity.Editor
 			go.AddComponent<MeshFilter>().sharedMesh = unityMesh;
 			go.AddComponent<MeshRenderer>().sharedMaterial = GetOrCreateMaterial(material);
 			if (_options.GenerateColliders && procedural && collidable) {
-				go.AddComponent<MeshCollider>().sharedMesh = unityMesh;
+				AddVpePrimitiveCollider(go, unityMesh, false, true);
 				_report.Colliders++;
 			}
+		}
+
+		private static void AddVpePrimitiveCollider(GameObject go, UnityMesh mesh, bool hitEvent, bool visible)
+		{
+			var meshFilter = go.GetComponent<MeshFilter>() ?? go.AddComponent<MeshFilter>();
+			meshFilter.sharedMesh = mesh;
+			go.AddComponent<PrimitiveComponent>();
+			var meshComponent = go.AddComponent<PrimitiveMeshComponent>();
+			meshComponent.UseLegacyMesh = false;
+			meshComponent.enabled = visible;
+			var collider = go.AddComponent<PrimitiveColliderComponent>();
+			collider.HitEvent = hitEvent;
+			collider.enabled = true;
 		}
 
 		private UnityMesh GetOrCreateMesh(EngineMesh source, string assetName)
@@ -349,6 +359,69 @@ namespace VisualPinball.Unity.Editor
 			AssetDatabase.CreateAsset(material, path);
 			_report.MaterialAssets++;
 			return _materials[hash] = material;
+		}
+
+		private GameObject CreateVpeHierarchy(GameObject root)
+		{
+			var tableData = CreateTableData();
+			var tableComponent = root.AddComponent<TableComponent>();
+			tableComponent.SetData(tableData);
+			root.AddComponent<DefaultGamelogicEngine>();
+			root.AddComponent<Player>();
+
+			var playfield = Child(root, "Playfield");
+			var physicsEngine = playfield.AddComponent<PhysicsEngine>();
+			SimulationThreadComponent.EnsureFor(physicsEngine);
+			var playfieldComponent = playfield.AddComponent<PlayfieldComponent>();
+			if (_options.GenerateColliders) {
+				playfield.AddComponent<PlayfieldColliderComponent>();
+				_report.Colliders++;
+			}
+			playfieldComponent.SetData(tableData);
+			playfieldComponent.RenderSlope = tableData.AngleTiltMin;
+			return playfield;
+		}
+
+		private TableData CreateTableData()
+		{
+			const int defaultWidthMillimeters = 514;
+			const int defaultLengthMillimeters = 1168;
+			const int defaultGlassHeightMillimeters = 216;
+			var width = FuturePinballElementGeometry.Integer(_table.TableData, TableWidthTag, defaultWidthMillimeters);
+			var length = FuturePinballElementGeometry.Integer(_table.TableData, TableLengthTag, defaultLengthMillimeters);
+			var frontGlass = FuturePinballElementGeometry.Integer(_table.TableData, FrontGlassHeightTag, defaultGlassHeightMillimeters);
+			var rearGlass = FuturePinballElementGeometry.Integer(_table.TableData, RearGlassHeightTag, defaultGlassHeightMillimeters);
+			var slope = FuturePinballElementGeometry.Float(_table.TableData, SlopeTag, 6f);
+			if (width <= 0) width = defaultWidthMillimeters;
+			if (length <= 0) length = defaultLengthMillimeters;
+			if (frontGlass <= 0) frontGlass = defaultGlassHeightMillimeters;
+			if (rearGlass <= 0) rearGlass = defaultGlassHeightMillimeters;
+			if (float.IsNaN(slope) || float.IsInfinity(slope) || slope < 0f || slope > 20f) slope = 6f;
+			return new TableData {
+				Name = _tableName,
+				Left = 0f,
+				Right = FuturePinballCoordinateConverter.ToVpx(width),
+				Top = 0f,
+				Bottom = FuturePinballCoordinateConverter.ToVpx(length),
+				GlassHeight = FuturePinballCoordinateConverter.ToVpx(System.Math.Max(frontGlass, rearGlass)),
+				AngleTiltMin = slope,
+				AngleTiltMax = slope
+			};
+		}
+
+		private void AddColliderBacklog(FuturePinballSourceStream element, string reason)
+		{
+			if (reason == "The source shape does not affect the ball") return;
+			var message = $"{ElementName(element)} collider: {reason}";
+			_report.Warnings.Add(message);
+			_report.Backlog.Add(new FptRecreationBacklogItem {
+				SourceIndex = element.SourceIndex ?? -1,
+				Name = ElementName(element),
+				ElementType = element.ElementType?.ToString() ?? $"Unknown({element.ElementTypeId})",
+				CurrentOutcome = $"Collision source preserved but not converted: {reason}",
+				SuggestedCapability = "map the preserved collision record to a supported VPE collider",
+				SourceStream = element.Name
+			});
 		}
 
 		private void LoadTextures()

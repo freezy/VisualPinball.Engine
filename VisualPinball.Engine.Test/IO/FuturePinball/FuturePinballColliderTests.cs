@@ -90,5 +90,81 @@ namespace VisualPinball.Engine.Test.IO.FuturePinball
 			Assert.That(collider.Mesh.Indices, Is.EqualTo(new[] { 0, 2, 1 }));
 			Assert.That(collider.Mesh.Vertices[2].Z, Is.EqualTo(-0.1f));
 		}
+
+		[Test]
+		public void TessellatesGeneratedShapesForVpePrimitiveColliders()
+		{
+			var descriptions = FuturePinballColliderBuilder.FromShapes(new[] {
+				new FuturePinballCollisionShape(1, true, 0f, 0f, 0f, 5f, 12f),
+				new FuturePinballCollisionShape(2, true, 0f, 0f, 0f, 8f),
+				new FuturePinballCollisionShape(3, true, 0f, 0f, 40f, 6f, 3f, 40f, 2f),
+				new FuturePinballCollisionShape(5, true, 0f, 0f, 0f, 2f, 3f, 4f),
+				new FuturePinballCollisionShape(7, true, 0f, 0f, 0f, 5f, 12f, 6f)
+			});
+
+			var meshes = descriptions.Select(description => FuturePinballColliderMeshBuilder.Build(description)).ToArray();
+
+			Assert.That(meshes.All(mesh => mesh?.IsSet == true && mesh.Indices.Length >= 12), Is.True);
+			Assert.That(meshes.All(mesh => mesh.Indices.Length % 3 == 0), Is.True);
+			foreach (var mesh in meshes) AssertClosedMeshFacesOutward(mesh);
+			AssertBounds(meshes[0], -0.005f, 0.005f, -0.012f, 0.012f, -0.005f, 0.005f);
+			AssertBounds(meshes[1], -0.008f, 0.008f, -0.008f, 0.008f, -0.008f, 0.008f);
+			AssertBounds(meshes[2], -0.006f, 0.006f, -0.002f, 0.002f, -0.026f, 0.023f);
+			AssertBounds(meshes[3], -0.002f, 0.002f, -0.003f, 0.003f, -0.004f, 0.004f);
+			AssertBounds(meshes[4], -0.005f, 0.005f, -0.006f, 0.006f, -0.012f, 0.012f);
+		}
+
+		[Test]
+		public void DoesNotCreateVpeMeshForSkippedOrUnsupportedShapes()
+		{
+			var descriptions = FuturePinballColliderBuilder.FromShapes(new[] {
+				new FuturePinballCollisionShape(1, false, 0f, 0f, 0f, 1f, 1f),
+				new FuturePinballCollisionShape(6, true, 0f, 0f, 0f, 1f)
+			});
+
+			Assert.That(FuturePinballColliderMeshBuilder.Build(descriptions[0]), Is.Null);
+			Assert.That(FuturePinballColliderMeshBuilder.Build(descriptions[1]), Is.Null);
+		}
+
+		private static void AssertBounds(Mesh mesh, float minX, float maxX, float minY, float maxY, float minZ, float maxZ)
+		{
+			Assert.That(mesh.Vertices.Min(vertex => vertex.X), Is.EqualTo(minX).Within(0.000001f));
+			Assert.That(mesh.Vertices.Max(vertex => vertex.X), Is.EqualTo(maxX).Within(0.000001f));
+			Assert.That(mesh.Vertices.Min(vertex => vertex.Y), Is.EqualTo(minY).Within(0.000001f));
+			Assert.That(mesh.Vertices.Max(vertex => vertex.Y), Is.EqualTo(maxY).Within(0.000001f));
+			Assert.That(mesh.Vertices.Min(vertex => vertex.Z), Is.EqualTo(minZ).Within(0.000001f));
+			Assert.That(mesh.Vertices.Max(vertex => vertex.Z), Is.EqualTo(maxZ).Within(0.000001f));
+		}
+
+		private static void AssertClosedMeshFacesOutward(Mesh mesh)
+		{
+			var centerX = mesh.Vertices.Average(vertex => vertex.X);
+			var centerY = mesh.Vertices.Average(vertex => vertex.Y);
+			var centerZ = mesh.Vertices.Average(vertex => vertex.Z);
+			for (var i = 0; i < mesh.Indices.Length; i += 3) {
+				Assert.That(mesh.Indices[i], Is.InRange(0, mesh.Vertices.Length - 1));
+				Assert.That(mesh.Indices[i + 1], Is.InRange(0, mesh.Vertices.Length - 1));
+				Assert.That(mesh.Indices[i + 2], Is.InRange(0, mesh.Vertices.Length - 1));
+				var a = mesh.Vertices[mesh.Indices[i]];
+				var b = mesh.Vertices[mesh.Indices[i + 1]];
+				var c = mesh.Vertices[mesh.Indices[i + 2]];
+				var abX = b.X - a.X;
+				var abY = b.Y - a.Y;
+				var abZ = b.Z - a.Z;
+				var acX = c.X - a.X;
+				var acY = c.Y - a.Y;
+				var acZ = c.Z - a.Z;
+				var normalX = abY * acZ - abZ * acY;
+				var normalY = abZ * acX - abX * acZ;
+				var normalZ = abX * acY - abY * acX;
+				var areaSquared = normalX * normalX + normalY * normalY + normalZ * normalZ;
+				Assert.That(areaSquared, Is.GreaterThan(1e-20f));
+				var faceX = (a.X + b.X + c.X) / 3f - centerX;
+				var faceY = (a.Y + b.Y + c.Y) / 3f - centerY;
+				var faceZ = (a.Z + b.Z + c.Z) / 3f - centerZ;
+				Assert.That(normalX * faceX + normalY * faceY + normalZ * faceZ, Is.GreaterThan(0f),
+					$"{mesh.Name} triangle {i / 3} faces inward");
+			}
+		}
 	}
 }
