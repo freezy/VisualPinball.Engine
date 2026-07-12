@@ -76,6 +76,23 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void KinematicTransformUsesColliderToPlayfieldMatrixForVelocityGate()
+		{
+			var matrix = float4x4.TRS(
+				new float3(25f, -10f, 5f),
+				quaternion.RotateZ(math.radians(90f)),
+				new float3(1f)
+			);
+			var baseline = RunPlayfieldGateCollision(matrix, false);
+			var rubberized = RunPlayfieldGateCollision(matrix, true);
+			var incomingSpeed = math.length(new float3(0f, -1f, -5f));
+			var expectedScale = FlipperCollider.EosRubberDesiredCor(incomingSpeed) * incomingSpeed
+			                    / math.length(baseline.Velocity);
+
+			AssertFloat3(rubberized.Velocity, baseline.Velocity * expectedScale);
+		}
+
+		[Test]
 		public void LiveCatchBaseDampeningSuppressesEosRubberFallback()
 		{
 			var baseline = RunCollision(float4x4.identity, false, false, false, 20f, 0.15f);
@@ -124,6 +141,32 @@ namespace VisualPinball.Unity.Test
 					IsKinematic = isKinematic,
 					HitTime = 0f,
 					HitNormal = matrix.MultiplyVector(localNormal),
+					HitDistance = 0f,
+				}
+			};
+			var state = harness.CreateState();
+
+			PhysicsStaticCollision.Collide(0f, ref ball, ref state);
+
+			return new CollisionResult(ball.Velocity, ball.AngularMomentum);
+		}
+
+		private static CollisionResult RunPlayfieldGateCollision(float4x4 matrix, bool useCatchPhysics)
+		{
+			using var harness = new FlipperCollisionHarness(matrix, true, useCatchPhysics, false, 0f);
+			var localPosition = new float3(0f, -50f, 10f);
+			var ball = new BallState {
+				Id = 7,
+				Position = matrix.MultiplyPoint(localPosition),
+				EventPosition = matrix.MultiplyPoint(localPosition),
+				Velocity = new float3(0f, -1f, -5f),
+				Radius = 1f,
+				Mass = 1f,
+				CollisionEvent = new CollisionEventData {
+					ColliderId = 0,
+					IsKinematic = true,
+					HitTime = 0f,
+					HitNormal = new float3(0f, 0f, 1f),
 					HitDistance = 0f,
 				}
 			};

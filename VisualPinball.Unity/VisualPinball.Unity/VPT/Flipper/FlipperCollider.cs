@@ -742,7 +742,7 @@ namespace VisualPinball.Unity
 
 		#region LiveCatch
 
-		public static LiveCatchOutcome LiveCatch(ref BallState ball, in CollisionEventData collEvent, in FlipperTricksData tricks,
+		internal static LiveCatchOutcome LiveCatch(ref BallState ball, in CollisionEventData collEvent, in FlipperTricksData tricks,
 			float3 flipperPos, float impactSpeed, uint msec) {
 			if (!tricks.UseFlipperLiveCatch) {
 				return LiveCatchOutcome.NotEligible;
