@@ -159,19 +159,43 @@ namespace VisualPinball.Unity
 			var colliderComponent = GetComponent<DropTargetColliderComponent>();
 			var animationComponent = GetComponentInChildren<DropTargetAnimationComponentLegacy>();
 
-			var staticData = colliderComponent && animationComponent
-				? new DropTargetStaticState {
-					Speed = animationComponent.Speed,
-					RaiseDelay = animationComponent.RaiseDelay,
+			var staticData = default(DropTargetStaticState);
+			if (colliderComponent) {
+				var angle = math.radians(Rotation - 90f);
+				var roth = colliderComponent.RothConfig;
+				var rothDropTravel = roth.DropTravel > 0f ? roth.DropTravel : 52f;
+				staticData = new DropTargetStaticState {
+					PhysicsMode = colliderComponent.PhysicsMode,
+					Roth = roth,
+					Center = Position,
+					FaceNormal = new float3(math.cos(angle), math.sin(angle), 0f),
+					HasRothSensor = colliderComponent.PhysicsMode == DropTargetPhysicsMode.RothCompatible
+						&& colliderComponent.CollisionColliderMesh,
+					DropSpeed = animationComponent ? animationComponent.Speed : 0f,
+					RaiseSpeed = animationComponent ? animationComponent.Speed : 0f,
+					RaiseDelay = animationComponent ? animationComponent.RaiseDelay : 0f,
 					UseHitEvent = colliderComponent.UseHitEvent,
-				} : default;
+				};
+				if (colliderComponent.PhysicsMode == DropTargetPhysicsMode.RothCompatible) {
+					staticData.DropSpeed = rothDropTravel / math.max(roth.DropDurationMs, 1f);
+					staticData.RaiseSpeed = rothDropTravel / math.max(roth.RaiseDurationMs, 1f);
+					staticData.DropDelay = math.max(roth.DropDelayMs, 0f);
+					staticData.RaiseDelay = math.max(roth.RaiseDelayMs, 0f);
+				}
+			}
 
 			var animationData = colliderComponent && animationComponent
 				? new DropTargetAnimationState {
 					IsDropped = animationComponent.IsDropped,
 					MoveDown = !animationComponent.IsDropped,
-					DropDistance = animationComponent.DropDistance,
-					ZOffset = animationComponent.IsDropped ? -animationComponent.DropDistance : 0f
+					DropDistance = colliderComponent.PhysicsMode == DropTargetPhysicsMode.RothCompatible
+						? math.max(colliderComponent.RothConfig.DropTravel, 1f)
+						: animationComponent.DropDistance,
+					ZOffset = animationComponent.IsDropped
+						? -(colliderComponent.PhysicsMode == DropTargetPhysicsMode.RothCompatible
+							? math.max(colliderComponent.RothConfig.DropTravel, 1f)
+							: animationComponent.DropDistance)
+						: 0f
 				} : default;
 
 			return new DropTargetState(

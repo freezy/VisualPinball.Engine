@@ -125,6 +125,21 @@ namespace VisualPinball.Unity
 		protected override void CreateColliders(ref ColliderReference colliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
 			var colliderGenerator = new TargetColliderGenerator(this, translateWithinPlayfieldMatrix);
+			if (ColliderComponent.PhysicsMode == DropTargetPhysicsMode.RothCompatible) {
+				if (ColliderComponent.CollisionColliderMesh) {
+					colliderGenerator.GenerateColliders(ref colliders, ColliderComponent.FrontColliderMesh, ItemType.Trigger,
+						MainComponent, ColliderRole.DropTargetFrontSensor, true);
+					colliderGenerator.GenerateColliders(ref colliders, ColliderComponent.CollisionColliderMesh, ItemType.HitTarget,
+						MainComponent, ColliderRole.DropTargetPhysicalFace);
+				} else {
+					colliderGenerator.GenerateColliders(ref colliders, ColliderComponent.FrontColliderMesh, ItemType.HitTarget,
+						MainComponent, ColliderRole.DropTargetPhysicalFace);
+				}
+				colliderGenerator.GenerateColliders(ref colliders, ColliderComponent.BackColliderMesh, ItemType.HitTarget,
+					MainComponent, ColliderRole.DropTargetBackFace);
+				return;
+			}
+
 			colliderGenerator.GenerateColliders(ref colliders, ColliderComponent.FrontColliderMesh, ItemType.HitTarget,
 				MainComponent, ColliderRole.DropTargetPhysicalFace);
 			colliderGenerator.GenerateColliders(ref colliders, ColliderComponent.BackColliderMesh, ItemType.Primitive,

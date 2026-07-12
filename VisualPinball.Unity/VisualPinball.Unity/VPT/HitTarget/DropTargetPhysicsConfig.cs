@@ -108,6 +108,13 @@ namespace VisualPinball.Unity
 		public bool EnableVerticalBouncer;
 		public float VerticalBouncerFactor;
 		public float VerticalBouncerDeflection;
+		public int DeterministicSeed;
+		public float DropDelayMs;
+		public float DropDurationMs;
+		public float RaiseDelayMs;
+		public float RaiseDurationMs;
+		public float DropTravel;
+		public float ResetOvershootTravel;
 
 		public static DropTargetRothConfig Default => new DropTargetRothConfig {
 			TargetMass = 0.2f,
@@ -116,6 +123,13 @@ namespace VisualPinball.Unity
 			BacksideVelocity = 15f,
 			VerticalBouncerFactor = 0.9f,
 			VerticalBouncerDeflection = 1f,
+			DeterministicSeed = 1,
+			DropDelayMs = 20f,
+			DropDurationMs = 90f,
+			RaiseDelayMs = 40f,
+			RaiseDurationMs = 40f,
+			DropTravel = 52f,
+			ResetOvershootTravel = 10f,
 		};
 	}
 

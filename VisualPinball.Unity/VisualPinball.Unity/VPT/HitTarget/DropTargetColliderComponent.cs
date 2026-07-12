@@ -137,7 +137,7 @@ namespace VisualPinball.Unity
 			if (MechanicalOverrides.EffectiveFaceMass <= 0f || MechanicalOverrides.DropTravel <= 0f) {
 				MechanicalOverrides = DropTargetMechanicalConfig.Default;
 			}
-			if (RothConfig.TargetMass <= 0f) {
+			if (RothConfig.TargetMass <= 0f || RothConfig.DropTravel <= 0f) {
 				RothConfig = DropTargetRothConfig.Default;
 			}
 		}

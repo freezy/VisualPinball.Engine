@@ -21,6 +21,7 @@ namespace VisualPinball.Unity
 		internal readonly int AnimatedItemId;
 		internal DropTargetStaticState Static;
 		internal DropTargetAnimationState Animation;
+		internal uint RothHitCounter;
 
 		public DropTargetState(int animatedItemId, DropTargetStaticState @static, DropTargetAnimationState animation)
 		{

@@ -459,7 +459,10 @@ namespace VisualPinball.Unity
 
 		private bool IsInactiveDropTarget(ref NativeColliders colliders, int colliderId)
 		{
-			if (colliders.GetItemType(colliderId) == ItemType.HitTarget && HasDropTargetState(colliderId, ref colliders)) {
+			ref var header = ref colliders.GetHeader(colliderId);
+			var isDropTargetCollider = header.ItemType == ItemType.HitTarget
+				|| header.Role == ColliderRole.DropTargetFrontSensor;
+			if (isDropTargetCollider && HasDropTargetState(colliderId, ref colliders)) {
 				ref var dropTargetState = ref GetDropTargetState(colliderId, ref colliders);
 				if (dropTargetState.Animation.IsDropped || dropTargetState.Animation.MoveAnimation) {  // QUICKFIX so that DT is not triggered twice
 					return true;

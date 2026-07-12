@@ -35,7 +35,9 @@ namespace VisualPinball.Unity
 				}
 
 				ref var collHeader = ref state.GetColliderHeader(ref colliders, collEvent.ColliderId);
-				if (collHeader.Type == ColliderType.Flipper) {
+				if (collHeader.Role == ColliderRole.DropTargetFrontSensor) {
+					// Semantic sensors report crossings but never generate a support impulse.
+				} else if (collHeader.Type == ColliderType.Flipper) {
 					ref var flipperCollider = ref colliders.Flipper(collEvent.ColliderId);
 					ref var flipperState = ref state.GetFlipperState(collEvent.ColliderId, ref colliders);
 					flipperCollider.Contact(ref ball, ref flipperState.Movement, in collEvent, in flipperState.Static, in flipperState.Velocity, hitTime, in gravity);
