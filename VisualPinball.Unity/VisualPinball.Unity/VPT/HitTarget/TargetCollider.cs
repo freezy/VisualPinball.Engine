@@ -47,12 +47,14 @@ namespace VisualPinball.Unity
 			}
 			var preImpactVelocity = ball.Velocity;
 			var hitNormal = math.normalizesafe(collEvent.HitNormal);
+			var contactPoint = ball.Position - ball.Radius * hitNormal;
 			var faceAlignment = math.abs(math.dot(hitNormal, math.normalizesafe(target.Static.FaceNormal)));
 			var isResetContact = target.Mechanical.State == DropTargetMechanismState.Resetting
 				|| target.Mechanical.State == DropTargetMechanismState.Settling;
 			if (isResetContact) {
 				var resetApproachSpeed = -math.dot(preImpactVelocity
-					- MechanicalDropTargetPhysics.SurfaceVelocity(in target.Static, in target.Mechanical), hitNormal);
+					- MechanicalDropTargetPhysics.SurfaceVelocityAtPoint(in target.Static,
+						in target.Mechanical, in contactPoint), hitNormal);
 				var resetRestitution = ResolveElasticity(in collHeader.Material, in collEvent,
 					resetApproachSpeed, ref state);
 				var resetFriction = ResolveFriction(in collHeader.Material, in collEvent,
@@ -83,7 +85,8 @@ namespace VisualPinball.Unity
 			}
 
 			var approachSpeed = -math.dot(preImpactVelocity
-				- MechanicalDropTargetPhysics.SurfaceVelocity(in target.Static, in target.Mechanical), hitNormal);
+				- MechanicalDropTargetPhysics.SurfaceVelocityAtPoint(in target.Static,
+					in target.Mechanical, in contactPoint), hitNormal);
 			var restitution = ResolveElasticity(in collHeader.Material, in collEvent, approachSpeed, ref state);
 			var friction = ResolveFriction(in collHeader.Material, in collEvent, approachSpeed, ref state);
 			var result = MechanicalDropTargetPhysics.ResolveImpact(ref ball, ref target.Mechanical,

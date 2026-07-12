@@ -100,7 +100,8 @@ namespace VisualPinball.Unity
 				// Step kinematic collider poses toward their target transforms, capped
 				// per tick so fast movers can't skip past a ball. No-op when idle.
 				PhysicsKinematics.StepKinematics(ref state);
-				if (MechanicalDropTargetPhysics.UpdateAll(ref state, PhysicsConstants.PhysFactor)) {
+				if (state.HasMechanicalDropTargets
+					&& MechanicalDropTargetPhysics.UpdateAll(ref state, PhysicsConstants.PhysFactor)) {
 					PhysicsKinematics.RebuildOctree(ref kinematicOctree, ref state);
 				}
 

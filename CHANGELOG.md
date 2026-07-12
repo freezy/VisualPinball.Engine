@@ -8,6 +8,7 @@ Built with Unity 6.5
 
 ### Added
 
+- Drop targets can opt into Roth-compatible or finite-mass mechanical physics, including bricks, multi-target bank shots, moving reset contact, backside behavior, and reusable calibration profiles ([#536](https://github.com/freezy/VisualPinball.Engine/issues/536)).
 - Make packaging functional ([#557](https://github.com/freezy/VisualPinball.Engine/pull/557))
 - New threading model ([#552](https://github.com/freezy/VisualPinball.Engine/pull/552))
 - Free transformation ([#500](https://github.com/freezy/VisualPinball.Engine/pull/500))

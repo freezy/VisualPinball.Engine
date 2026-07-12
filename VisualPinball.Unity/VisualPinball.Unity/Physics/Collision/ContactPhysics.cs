@@ -44,6 +44,7 @@ namespace VisualPinball.Unity
 				} else if (state.HasDropTargetState(collEvent.ColliderId, ref colliders)) {
 					ref var target = ref state.GetDropTargetState(collEvent.ColliderId, ref colliders);
 					if (target.Static.PhysicsMode == DropTargetPhysicsMode.Mechanical
+						&& colliders.IsTransformed(collEvent.ColliderId)
 						&& (target.Mechanical.State == DropTargetMechanismState.Resetting
 							|| target.Mechanical.State == DropTargetMechanismState.Settling)) {
 						MechanicalDropTargetPhysics.ResolveContact(ref ball, ref target.Mechanical,

@@ -32,6 +32,12 @@ namespace VisualPinball.Unity
 		HingedBlade,
 	}
 
+	public enum DropTargetProfileCalibration : byte
+	{
+		Provisional,
+		Measured,
+	}
+
 	[Serializable]
 	public struct DropTargetMechanicalConfig
 	{
@@ -133,10 +139,4 @@ namespace VisualPinball.Unity
 		};
 	}
 
-	[PackAs("DropTargetPhysicsProfile")]
-	[CreateAssetMenu(fileName = "DropTargetPhysicsProfile", menuName = "Pinball/Drop Target Physics Profile", order = 101)]
-	public class DropTargetPhysicsProfile : ScriptableObject
-	{
-		public DropTargetMechanicalConfig Config = DropTargetMechanicalConfig.Default;
-	}
 }

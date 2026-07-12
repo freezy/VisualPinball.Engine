@@ -182,6 +182,13 @@ namespace VisualPinball.Unity
 
 				if (state.HasDropTargetState(colliderId, ref colliders)) {
 					ref var dropTargetState = ref state.GetDropTargetState(colliderId, ref colliders);
+					if (dropTargetState.Static.PhysicsMode == DropTargetPhysicsMode.Mechanical
+						&& !colliders.IsTransformed(colliderId)) {
+						// Mechanical target state and motion screws live in playfield space. A future
+						// non-transformable representation must use the generic local-space wall
+						// response until it provides an explicit coordinate conversion.
+						return false;
+					}
 					TargetCollider.DropTargetCollide(ref ball, ref state.EventQueue, ref dropTargetState, in normal, in ball.CollisionEvent, in collHeader, ref state);
 					return true;
 				}

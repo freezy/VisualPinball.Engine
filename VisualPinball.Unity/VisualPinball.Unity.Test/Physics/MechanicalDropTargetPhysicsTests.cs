@@ -284,6 +284,51 @@ namespace VisualPinball.Unity.Test
 			}
 		}
 
+		[Test]
+		public void MechanicalTargetPresenceGateIgnoresLegacyTargets()
+		{
+			var targets = new NativeParallelHashMap<int, DropTargetState>(2, Allocator.Temp);
+			try {
+				Assert.That(MechanicalDropTargetPhysics.ContainsMechanicalTargets(ref targets), Is.False);
+
+				var legacy = CreateTargetState();
+				legacy.Static.PhysicsMode = DropTargetPhysicsMode.Legacy;
+				targets.Add(1, legacy);
+				Assert.That(MechanicalDropTargetPhysics.ContainsMechanicalTargets(ref targets), Is.False);
+
+				targets.Add(2, CreateTargetState());
+				Assert.That(MechanicalDropTargetPhysics.ContainsMechanicalTargets(ref targets), Is.True);
+			} finally {
+				targets.Dispose();
+			}
+		}
+
+		[Test]
+		public void MechanicalContactCandidatesHaveStableTotalOrder()
+		{
+			var candidates = new NativeList<PhysicsCycle.MechanicalDropTargetContactCandidate>(
+				Allocator.Temp);
+			try {
+				candidates.Add(new PhysicsCycle.MechanicalDropTargetContactCandidate(
+					0.002f, 8, 3, 5, ColliderRole.DropTargetPhysicalFace, true, 2));
+				candidates.Add(new PhysicsCycle.MechanicalDropTargetContactCandidate(
+					0.001f, 8, 3, 5, ColliderRole.DropTargetPhysicalFace, true, 1));
+				candidates.Add(new PhysicsCycle.MechanicalDropTargetContactCandidate(
+					0.001f, 8, 3, 5, ColliderRole.DropTargetPhysicalFace, true, 0));
+				candidates.Add(new PhysicsCycle.MechanicalDropTargetContactCandidate(
+					0.001f, 7, 4, 9, ColliderRole.DropTargetPhysicalFace, false));
+
+				candidates.AsArray().Sort();
+
+				Assert.That(candidates[0].TargetItemId, Is.EqualTo(7));
+				Assert.That(candidates[1].ContactIndex, Is.EqualTo(0));
+				Assert.That(candidates[2].ContactIndex, Is.EqualTo(1));
+				Assert.That(candidates[3].HitTimeKey, Is.GreaterThan(candidates[2].HitTimeKey));
+			} finally {
+				candidates.Dispose();
+			}
+		}
+
 		private static DropTargetState CreateTargetState()
 		{
 			return new DropTargetState(0, new DropTargetStaticState {

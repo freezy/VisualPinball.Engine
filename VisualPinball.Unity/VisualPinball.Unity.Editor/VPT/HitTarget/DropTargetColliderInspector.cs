@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using UnityEditor;
+using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -27,6 +28,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _overrideMechanicalProfileProperty;
 		private SerializedProperty _mechanicalOverridesProperty;
 		private SerializedProperty _rothConfigProperty;
+		private bool _runtimeDiagnosticsFoldout = true;
 
 		protected override void OnEnable()
 		{
@@ -54,6 +56,135 @@ namespace VisualPinball.Unity.Editor
 					EditorGUILayout.PropertyField(_mechanicalOverridesProperty, true);
 				}
 			}
+
+			if (targets.Length == 1) {
+				DrawValidation((DropTargetColliderComponent)target, mode);
+				DrawRuntimeDiagnostics((DropTargetColliderComponent)target, mode);
+			}
+		}
+
+		private void DrawRuntimeDiagnostics(DropTargetColliderComponent component,
+			DropTargetPhysicsMode mode)
+		{
+			if (!Application.isPlaying || mode != DropTargetPhysicsMode.Mechanical || !TableComponent) {
+				return;
+			}
+			var player = TableComponent.GetComponent<Player>();
+			var mainComponent = component.GetComponent<DropTargetComponent>();
+			var api = player && mainComponent ? player.TableApi.DropTarget(mainComponent) : null;
+			if (api == null || !api.TryGetMechanicalDiagnostics(out var diagnostics)) {
+				return;
+			}
+
+			_runtimeDiagnosticsFoldout = EditorGUILayout.BeginFoldoutHeaderGroup(
+				_runtimeDiagnosticsFoldout, "Mechanical Runtime Diagnostics");
+			if (_runtimeDiagnosticsFoldout) {
+				using (new EditorGUI.DisabledScope(true)) {
+					EditorGUILayout.TextField("State", diagnostics.State);
+					EditorGUILayout.TextField("Last Outcome", diagnostics.LastImpactOutcome);
+					EditorGUILayout.FloatField("Rear Travel", diagnostics.RearTravel);
+					EditorGUILayout.FloatField("Rear Velocity", diagnostics.RearVelocity);
+					EditorGUILayout.FloatField("Drop Travel", diagnostics.DropTravel);
+					EditorGUILayout.FloatField("Drop Velocity", diagnostics.DropVelocity);
+					EditorGUILayout.Toggle("Dropped Switch", diagnostics.DroppedSwitchClosed);
+					EditorGUILayout.IntField("Event Guard Trips", diagnostics.EventLimitTrips);
+				}
+			}
+			EditorGUILayout.EndFoldoutHeaderGroup();
+			Repaint();
+		}
+
+		private static void DrawValidation(DropTargetColliderComponent component, DropTargetPhysicsMode mode)
+		{
+			if (mode == DropTargetPhysicsMode.Legacy) {
+				return;
+			}
+			if (!component.FrontColliderMesh) {
+				EditorGUILayout.HelpBox("Advanced drop-target physics requires a front collider mesh.", MessageType.Error);
+			}
+			if (mode == DropTargetPhysicsMode.RothCompatible && !component.CollisionColliderMesh) {
+				EditorGUILayout.HelpBox(
+					"Without a dedicated Collision Collider, Roth mode uses the front mesh as a solid fallback and cannot reproduce the sensor-plus-offset-wall arrangement exactly.",
+					MessageType.Warning);
+				return;
+			}
+			if (mode != DropTargetPhysicsMode.Mechanical) {
+				return;
+			}
+
+			var config = component.ResolvedMechanicalConfig;
+			if (component.MechanicalProfile && !component.OverrideMechanicalProfile) {
+				var profile = component.MechanicalProfile;
+				var calibration = profile.Calibration == DropTargetProfileCalibration.Measured
+					? $"Measured profile: {profile.MechanismName}"
+					: $"Provisional profile: {profile.MechanismName}";
+				EditorGUILayout.HelpBox(calibration, profile.Calibration == DropTargetProfileCalibration.Measured
+					? MessageType.Info : MessageType.Warning);
+				if (profile.Calibration == DropTargetProfileCalibration.Measured
+					&& string.IsNullOrWhiteSpace(profile.CalibrationSource)) {
+					EditorGUILayout.HelpBox("Measured profiles must identify their source data and validation.", MessageType.Error);
+				}
+			} else {
+				EditorGUILayout.HelpBox(
+					"Local mechanical values are provisional until they are fitted and validated against a real mechanism.",
+					MessageType.Warning);
+			}
+
+			if (config.EffectiveFaceMass <= 0f || config.DropMass <= 0f || config.ResetEffectiveMass <= 0f) {
+				EditorGUILayout.HelpBox("Face, drop, and reset effective masses must be greater than zero.", MessageType.Error);
+			}
+			if (config.DropTravel <= 0f || config.RearStopTravel < config.LatchReleaseTravel) {
+				EditorGUILayout.HelpBox(
+					"Drop travel must be positive and rear-stop travel must not precede latch release.",
+					MessageType.Error);
+			}
+			if (config.LatchRelatchTravel > config.LatchReleaseTravel
+				|| config.LatchEscapeDrop > config.DropTravel) {
+				EditorGUILayout.HelpBox(
+					"Relatch travel must not exceed release travel, and latch escape must occur before the down stop.",
+					MessageType.Error);
+			}
+			if (config.DroppedSwitchTravel > config.DropTravel
+				|| config.RaisedSwitchTravel > config.DropTravel) {
+				EditorGUILayout.HelpBox("Switch travel thresholds must lie within the drop stroke.", MessageType.Error);
+			}
+			if (config.DeflectionKind == DropTargetDeflectionKind.HingedBlade) {
+				var axis = config.DeflectionAxis;
+				var lever = Vector3.Cross(axis.normalized,
+					config.ReferenceContactPoint - config.DeflectionPivot);
+				if (axis.sqrMagnitude < 1e-6f || lever.sqrMagnitude < 1e-6f) {
+					EditorGUILayout.HelpBox(
+						"A hinged blade requires a non-zero local hinge axis and a reference contact point away from that axis.",
+						MessageType.Error);
+				}
+			}
+		}
+
+		[DrawGizmo(GizmoType.Selected | GizmoType.Active)]
+		private static void DrawMechanicalTravelGizmo(DropTargetColliderComponent component, GizmoType _)
+		{
+			if (component.PhysicsMode != DropTargetPhysicsMode.Mechanical) {
+				return;
+			}
+			var config = component.ResolvedMechanicalConfig;
+			var origin = component.transform.position;
+			var up = component.transform.up;
+			var rear = -component.transform.forward;
+			var dropEnd = origin - up * VisualPinball.Unity.Physics.ScaleToWorld(config.DropTravel);
+			var resetEnd = origin + up * VisualPinball.Unity.Physics.ScaleToWorld(config.ResetOvershootTravel);
+			var release = origin + rear * VisualPinball.Unity.Physics.ScaleToWorld(config.LatchReleaseTravel);
+			var rearStop = origin + rear * VisualPinball.Unity.Physics.ScaleToWorld(config.RearStopTravel);
+
+			Handles.color = new Color(0.2f, 0.8f, 1f, 1f);
+			Handles.DrawLine(origin, dropEnd, 2f);
+			Handles.DrawLine(origin, resetEnd, 2f);
+			Handles.Label(dropEnd, "Down stop");
+			Handles.Label(resetEnd, "Reset overshoot");
+			Handles.color = new Color(1f, 0.65f, 0.15f, 1f);
+			Handles.DrawLine(origin, rearStop, 2f);
+			Handles.DrawWireDisc(release, up, VisualPinball.Unity.Physics.ScaleToWorld(1f));
+			Handles.Label(release, "Latch release");
+			Handles.Label(rearStop, "Rear stop");
 		}
 	}
 }

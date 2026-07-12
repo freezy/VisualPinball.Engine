@@ -16,6 +16,7 @@
 
 using Unity.Collections;
 using Unity.Mathematics;
+using Unity.Profiling;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Unity.Collections;
@@ -27,11 +28,32 @@ namespace VisualPinball.Unity
 		private const int StopRootIterations = 8;
 		private const int ContactSolverIterations = 24;
 		private const float MillisecondsPerInternalTime = PhysicsConstants.DefaultStepTimeS * 1000f;
+		private static readonly ProfilerMarker PerfMarkerUpdate = new("DropTarget.MechanicalUpdate");
+		private static readonly ProfilerMarker PerfMarkerImpactGroup = new("DropTarget.ImpactGroup");
+
+		internal static bool ContainsMechanicalTargets(
+			ref NativeParallelHashMap<int, DropTargetState> targets)
+		{
+			using var enumerator = targets.GetEnumerator();
+			while (enumerator.MoveNext()) {
+				if (enumerator.Current.Value.Static.PhysicsMode == DropTargetPhysicsMode.Mechanical) {
+					return true;
+				}
+			}
+			return false;
+		}
 
 		internal static float3 SurfaceVelocity(in DropTargetStaticState staticState,
 			in DropTargetMechanicalState mechanical)
 		{
-			return -staticState.FaceNormal * mechanical.QDot + new float3(0f, 0f, -1f) * mechanical.DDot;
+			var point = mechanical.PoseInitialized ? mechanical.BaseTransform.c3.xyz : staticState.Center;
+			return DropTargetDeflectionPhysics.SurfaceVelocityAtPoint(in staticState, in mechanical, in point);
+		}
+
+		internal static float3 SurfaceVelocityAtPoint(in DropTargetStaticState staticState,
+			in DropTargetMechanicalState mechanical, in float3 point)
+		{
+			return DropTargetDeflectionPhysics.SurfaceVelocityAtPoint(in staticState, in mechanical, in point);
 		}
 
 		internal static DropTargetImpactResult ResolveImpact(ref BallState ball,
@@ -41,9 +63,11 @@ namespace VisualPinball.Unity
 			var config = staticState.Mechanical;
 			var normal = math.normalizesafe(contactNormal);
 			var contactOffset = -ball.Radius * normal;
-			var deflectionAxis = -math.normalizesafe(staticState.FaceNormal);
+			var contactPoint = ball.Position + contactOffset;
+			var deflection = DropTargetDeflectionPhysics.AtPoint(in staticState, in mechanical,
+				in contactPoint);
 			var downAxis = new float3(0f, 0f, -1f);
-			var targetVelocity = SurfaceVelocity(in staticState, in mechanical);
+			var targetVelocity = SurfaceVelocityAtPoint(in staticState, in mechanical, in contactPoint);
 			var relativeVelocity = BallState.SurfaceVelocity(in ball, in contactOffset) - targetVelocity;
 			var normalVelocity = math.dot(relativeVelocity, normal);
 			if (normalVelocity >= -PhysicsConstants.LowNormVel || ball.Mass <= 0f
@@ -51,7 +75,7 @@ namespace VisualPinball.Unity
 				return default;
 			}
 
-			var jq = math.dot(deflectionAxis, normal);
+			var jq = math.dot(deflection.VelocityJacobian, normal);
 			var isResetStroke = mechanical.State == DropTargetMechanismState.Resetting
 				|| mechanical.State == DropTargetMechanismState.Settling;
 			var dIsFree = mechanical.State == DropTargetMechanismState.Released
@@ -59,7 +83,7 @@ namespace VisualPinball.Unity
 				|| mechanical.State == DropTargetMechanismState.ForcedDrop
 				|| isResetStroke;
 			var jd = dIsFree ? math.dot(downAxis, normal) : 0f;
-			var invQMass = 1f / config.EffectiveFaceMass;
+			var invQMass = deflection.InverseGeneralizedMass;
 			var dMass = isResetStroke ? config.ResetEffectiveMass : config.DropMass;
 			var invDMass = dIsFree && dMass > 0f ? 1f / dMass : 0f;
 			var ballAngularTerm = math.dot(normal,
@@ -76,13 +100,13 @@ namespace VisualPinball.Unity
 			mechanical.DDot -= jd * normalImpulse * invDMass;
 
 			var postRelativeVelocity = BallState.SurfaceVelocity(in ball, in contactOffset)
-				- SurfaceVelocity(in staticState, in mechanical);
+				- SurfaceVelocityAtPoint(in staticState, in mechanical, in contactPoint);
 			var tangentVelocity = postRelativeVelocity - normal * math.dot(postRelativeVelocity, normal);
 			var tangentSpeed = math.length(tangentVelocity);
 			var tangentImpulse = 0f;
 			if (tangentSpeed > 1e-5f && friction > 0f) {
 				var tangent = tangentVelocity / tangentSpeed;
-				var jtq = math.dot(deflectionAxis, tangent);
+				var jtq = math.dot(deflection.VelocityJacobian, tangent);
 				var jtd = dIsFree ? math.dot(downAxis, tangent) : 0f;
 				var ballTangentTerm = math.dot(tangent,
 					math.cross(math.cross(contactOffset, tangent) / ball.Inertia, contactOffset));
@@ -112,7 +136,7 @@ namespace VisualPinball.Unity
 			if (config.EffectiveFaceMass <= 0f) {
 				return;
 			}
-			var deflectionAxis = -math.normalizesafe(staticState.FaceNormal);
+			PerfMarkerImpactGroup.Begin();
 			var downAxis = new float3(0f, 0f, -1f);
 			var isResetStroke = mechanical.State == DropTargetMechanismState.Resetting
 				|| mechanical.State == DropTargetMechanismState.Settling;
@@ -121,15 +145,15 @@ namespace VisualPinball.Unity
 				|| mechanical.State == DropTargetMechanismState.ForcedDrop
 				|| isResetStroke;
 			var dMass = isResetStroke ? config.ResetEffectiveMass : config.DropMass;
-			var invQMass = 1f / config.EffectiveFaceMass;
 			var invDMass = dIsFree && dMass > 0f ? 1f / dMass : 0f;
 
 			for (var i = 0; i < contacts.Length; i++) {
 				ref var contact = ref contacts.GetElementAsRef(i);
 				contact.Normal = math.normalizesafe(contact.Normal);
 				var contactOffset = -contact.Ball.Radius * contact.Normal;
+				var contactPoint = contact.Ball.Position + contactOffset;
 				var relativeVelocity = BallState.SurfaceVelocity(in contact.Ball, in contactOffset)
-					- SurfaceVelocity(in staticState, in mechanical);
+					- SurfaceVelocityAtPoint(in staticState, in mechanical, in contactPoint);
 				var normalVelocity = math.dot(relativeVelocity, contact.Normal);
 				var tangentVelocity = relativeVelocity - contact.Normal * normalVelocity;
 				var tangentSpeed = math.length(tangentVelocity);
@@ -150,26 +174,30 @@ namespace VisualPinball.Unity
 					}
 					var normal = contact.Normal;
 					var contactOffset = -contact.Ball.Radius * normal;
-					var jq = math.dot(deflectionAxis, normal);
+					var contactPoint = contact.Ball.Position + contactOffset;
+					var deflection = DropTargetDeflectionPhysics.AtPoint(in staticState,
+						in mechanical, in contactPoint);
+					var jq = math.dot(deflection.VelocityJacobian, normal);
 					var jd = dIsFree ? math.dot(downAxis, normal) : 0f;
 					var ballAngularTerm = math.dot(normal,
 						math.cross(math.cross(contactOffset, normal) / contact.Ball.Inertia, contactOffset));
 					var effectiveInvMass = contact.Ball.InvMass + ballAngularTerm
-						+ jq * jq * invQMass + jd * jd * invDMass;
+						+ jq * jq * deflection.InverseGeneralizedMass + jd * jd * invDMass;
 					if (effectiveInvMass <= 0f) {
 						continue;
 					}
 
 					var relativeVelocity = BallState.SurfaceVelocity(in contact.Ball, in contactOffset)
-						- SurfaceVelocity(in staticState, in mechanical);
+						- SurfaceVelocityAtPoint(in staticState, in mechanical, in contactPoint);
 					var desiredVelocity = math.clamp(contact.Restitution, 0f, 1f) * contact.ApproachSpeed;
 					var impulseDelta = (desiredVelocity - math.dot(relativeVelocity, normal))
 						/ effectiveInvMass;
 					var accumulatedImpulse = math.max(contact.NormalImpulse + impulseDelta, 0f);
 					impulseDelta = accumulatedImpulse - contact.NormalImpulse;
 					contact.NormalImpulse = accumulatedImpulse;
-					ApplyGroupImpulse(ref contact.Ball, ref mechanical, in deflectionAxis, in downAxis,
-						in normal, in contactOffset, impulseDelta, dIsFree, invQMass, invDMass);
+					ApplyGroupImpulse(ref contact.Ball, ref mechanical,
+						in deflection.VelocityJacobian, in downAxis, in normal, in contactOffset,
+						impulseDelta, dIsFree, deflection.InverseGeneralizedMass, invDMass);
 				}
 			}
 
@@ -182,15 +210,18 @@ namespace VisualPinball.Unity
 					}
 					var normal = contact.Normal;
 					var contactOffset = -contact.Ball.Radius * normal;
+					var contactPoint = contact.Ball.Position + contactOffset;
+					var deflection = DropTargetDeflectionPhysics.AtPoint(in staticState,
+						in mechanical, in contactPoint);
 					var relativeVelocity = BallState.SurfaceVelocity(in contact.Ball, in contactOffset)
-						- SurfaceVelocity(in staticState, in mechanical);
+						- SurfaceVelocityAtPoint(in staticState, in mechanical, in contactPoint);
 					var tangent = contact.Tangent;
-					var jq = math.dot(deflectionAxis, tangent);
+					var jq = math.dot(deflection.VelocityJacobian, tangent);
 					var jd = dIsFree ? math.dot(downAxis, tangent) : 0f;
 					var ballAngularTerm = math.dot(tangent,
 						math.cross(math.cross(contactOffset, tangent) / contact.Ball.Inertia, contactOffset));
 					var effectiveInvMass = contact.Ball.InvMass + ballAngularTerm
-						+ jq * jq * invQMass + jd * jd * invDMass;
+						+ jq * jq * deflection.InverseGeneralizedMass + jd * jd * invDMass;
 					if (effectiveInvMass <= 0f) {
 						continue;
 					}
@@ -200,10 +231,12 @@ namespace VisualPinball.Unity
 					var accumulatedImpulse = math.clamp(contact.TangentImpulse + impulseDelta, -limit, limit);
 					impulseDelta = accumulatedImpulse - contact.TangentImpulse;
 					contact.TangentImpulse = accumulatedImpulse;
-					ApplyGroupImpulse(ref contact.Ball, ref mechanical, in deflectionAxis, in downAxis,
-						in tangent, in contactOffset, impulseDelta, dIsFree, invQMass, invDMass);
+					ApplyGroupImpulse(ref contact.Ball, ref mechanical,
+						in deflection.VelocityJacobian, in downAxis, in tangent, in contactOffset,
+						impulseDelta, dIsFree, deflection.InverseGeneralizedMass, invDMass);
 				}
 			}
+			PerfMarkerImpactGroup.End();
 		}
 
 		internal static DropTargetImpactResult ResolveContact(ref BallState ball,
@@ -213,16 +246,18 @@ namespace VisualPinball.Unity
 			var config = staticState.Mechanical;
 			var normal = math.normalizesafe(contactNormal);
 			var contactOffset = -ball.Radius * normal;
-			var deflectionAxis = -math.normalizesafe(staticState.FaceNormal);
+			var contactPoint = ball.Position + contactOffset;
+			var deflection = DropTargetDeflectionPhysics.AtPoint(in staticState, in mechanical,
+				in contactPoint);
 			var downAxis = new float3(0f, 0f, -1f);
 			var dMass = config.ResetEffectiveMass;
 			if (ball.Mass <= 0f || config.EffectiveFaceMass <= 0f || dMass <= 0f) {
 				return default;
 			}
 
-			var jq = math.dot(deflectionAxis, normal);
+			var jq = math.dot(deflection.VelocityJacobian, normal);
 			var jd = math.dot(downAxis, normal);
-			var invQMass = 1f / config.EffectiveFaceMass;
+			var invQMass = deflection.InverseGeneralizedMass;
 			var invDMass = 1f / dMass;
 			var ballAngularTerm = math.dot(normal,
 				math.cross(math.cross(contactOffset, normal) / ball.Inertia, contactOffset));
@@ -233,24 +268,24 @@ namespace VisualPinball.Unity
 			}
 
 			var relativeVelocity = BallState.SurfaceVelocity(in ball, in contactOffset)
-				- SurfaceVelocity(in staticState, in mechanical);
+				- SurfaceVelocityAtPoint(in staticState, in mechanical, in contactPoint);
 			var closingVelocity = math.dot(relativeVelocity, normal)
 				+ math.dot(gravity, normal) * math.max(dt, 0f);
 			var normalImpulse = math.max(-closingVelocity / effectiveInvMass, 0f);
 			if (normalImpulse <= 0f) {
 				return default;
 			}
-			ApplyGroupImpulse(ref ball, ref mechanical, in deflectionAxis, in downAxis,
+			ApplyGroupImpulse(ref ball, ref mechanical, in deflection.VelocityJacobian, in downAxis,
 				in normal, in contactOffset, normalImpulse, true, invQMass, invDMass);
 
 			var postRelativeVelocity = BallState.SurfaceVelocity(in ball, in contactOffset)
-				- SurfaceVelocity(in staticState, in mechanical);
+				- SurfaceVelocityAtPoint(in staticState, in mechanical, in contactPoint);
 			var tangentVelocity = postRelativeVelocity - normal * math.dot(postRelativeVelocity, normal);
 			var tangentSpeed = math.length(tangentVelocity);
 			var tangentImpulse = 0f;
 			if (tangentSpeed > 1e-5f && friction > 0f) {
 				var tangent = tangentVelocity / tangentSpeed;
-				var jtq = math.dot(deflectionAxis, tangent);
+				var jtq = math.dot(deflection.VelocityJacobian, tangent);
 				var jtd = math.dot(downAxis, tangent);
 				var tangentAngularTerm = math.dot(tangent,
 					math.cross(math.cross(contactOffset, tangent) / ball.Inertia, contactOffset));
@@ -259,7 +294,7 @@ namespace VisualPinball.Unity
 				if (tangentInvMass > 0f) {
 					tangentImpulse = math.clamp(-tangentSpeed / tangentInvMass,
 						-friction * normalImpulse, friction * normalImpulse);
-					ApplyGroupImpulse(ref ball, ref mechanical, in deflectionAxis, in downAxis,
+					ApplyGroupImpulse(ref ball, ref mechanical, in deflection.VelocityJacobian, in downAxis,
 						in tangent, in contactOffset, tangentImpulse, true, invQMass, invDMass);
 				}
 			}
@@ -268,7 +303,7 @@ namespace VisualPinball.Unity
 		}
 
 		private static void ApplyGroupImpulse(ref BallState ball,
-			ref DropTargetMechanicalState mechanical, in float3 deflectionAxis, in float3 downAxis,
+			ref DropTargetMechanicalState mechanical, in float3 deflectionVelocityJacobian, in float3 downAxis,
 			in float3 direction, in float3 contactOffset, float impulseMagnitude, bool dIsFree,
 			float invQMass, float invDMass)
 		{
@@ -277,7 +312,7 @@ namespace VisualPinball.Unity
 			}
 			var impulse = direction * impulseMagnitude;
 			ball.ApplySurfaceImpulse(math.cross(contactOffset, impulse), impulse);
-			mechanical.QDot -= math.dot(deflectionAxis, direction) * impulseMagnitude * invQMass;
+			mechanical.QDot -= math.dot(deflectionVelocityJacobian, direction) * impulseMagnitude * invQMass;
 			if (dIsFree) {
 				mechanical.DDot -= math.dot(downAxis, direction) * impulseMagnitude * invDMass;
 			}
@@ -285,6 +320,7 @@ namespace VisualPinball.Unity
 
 		internal static bool UpdateAll(ref PhysicsState state, float dt)
 		{
+			PerfMarkerUpdate.Begin();
 			var changed = false;
 			using var enumerator = state.DropTargetStates.GetEnumerator();
 			while (enumerator.MoveNext()) {
@@ -319,6 +355,7 @@ namespace VisualPinball.Unity
 				PublishPose(itemId, ref target, ref state);
 				changed = true;
 			}
+			PerfMarkerUpdate.End();
 			return changed;
 		}
 
@@ -525,6 +562,9 @@ namespace VisualPinball.Unity
 		private static void IntegrateReset(int itemId, ref DropTargetState target, float dt,
 			ref PhysicsState state)
 		{
+			// The reset bar is a prescribed, powered actuator. Contact sees its finite effective
+			// mass during the current solve, but the next step resumes trajectory tracking; the
+			// actuator supplies the momentum needed to stay on that measured motion.
 			ref var mechanical = ref target.Mechanical;
 			var config = target.Static.Mechanical;
 			var previousD = mechanical.D;
@@ -548,6 +588,7 @@ namespace VisualPinball.Unity
 		private static void IntegrateSettle(int itemId, ref DropTargetState target, float dt,
 			ref PhysicsState state)
 		{
+			// Settling remains position-driven for the same powered-actuator reason as reset.
 			ref var mechanical = ref target.Mechanical;
 			var config = target.Static.Mechanical;
 			var previousD = mechanical.D;
@@ -600,10 +641,24 @@ namespace VisualPinball.Unity
 		private static void PublishPose(int itemId, ref DropTargetState target, ref PhysicsState state)
 		{
 			ref var mechanical = ref target.Mechanical;
-			var linearVelocity = SurfaceVelocity(in target.Static, in mechanical);
 			var pose = mechanical.BaseTransform;
-			pose.c3.xyz += -target.Static.FaceNormal * mechanical.Q
-				+ new float3(0f, 0f, -1f) * mechanical.D;
+			if (target.Static.Mechanical.DeflectionKind == DropTargetDeflectionKind.HingedBlade) {
+				var basePosition = pose.c3.xyz;
+				var deflection = DropTargetDeflectionPhysics.AtPoint(in target.Static,
+					in mechanical, in basePosition);
+				if (deflection.InverseGeneralizedMass > 0f) {
+					var rotateAroundPivot = math.mul(
+						float4x4.TRS(deflection.Pivot, quaternion.AxisAngle(deflection.Axis, mechanical.Q),
+							new float3(1f)),
+						float4x4.Translate(-deflection.Pivot));
+					pose = math.mul(rotateAroundPivot, pose);
+				}
+			} else {
+				pose.c3.xyz += -target.Static.FaceNormal * mechanical.Q;
+			}
+			pose.c3.xyz += new float3(0f, 0f, -1f) * mechanical.D;
+			var posePosition = pose.c3.xyz;
+			var linearVelocity = SurfaceVelocityAtPoint(in target.Static, in mechanical, in posePosition);
 			state.KinematicTransforms[itemId] = pose;
 			var velocityState = new KinematicVelocityState {
 				LinearVelocity = linearVelocity,

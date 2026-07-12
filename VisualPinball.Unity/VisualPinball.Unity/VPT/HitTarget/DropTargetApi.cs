@@ -24,6 +24,30 @@ using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
 {
+	public readonly struct DropTargetMechanicalDiagnostics
+	{
+		public readonly string State;
+		public readonly string LastImpactOutcome;
+		public readonly float RearTravel;
+		public readonly float RearVelocity;
+		public readonly float DropTravel;
+		public readonly float DropVelocity;
+		public readonly bool DroppedSwitchClosed;
+		public readonly int EventLimitTrips;
+
+		internal DropTargetMechanicalDiagnostics(in DropTargetMechanicalState state)
+		{
+			State = state.State.ToString();
+			LastImpactOutcome = state.LastImpactOutcome.ToString();
+			RearTravel = state.Q;
+			RearVelocity = state.QDot;
+			DropTravel = state.D;
+			DropVelocity = state.DDot;
+			DroppedSwitchClosed = state.DroppedSwitchClosed;
+			EventLimitTrips = state.EventLimitTrips;
+		}
+	}
+
 	public class DropTargetApi : CollidableApi<TargetComponent, DropTargetColliderComponent, HitTargetData>,
 		IApi, IApiHittable, IApiSwitch, IApiSwitchDevice, IApiDroppable
 	{
@@ -116,8 +140,20 @@ namespace VisualPinball.Unity
 				return state.Animation.IsDropped;
 			}
 			return state.Mechanical.State == DropTargetMechanismState.Down
+				|| state.Mechanical.State == DropTargetMechanismState.ForcedDrop
 				|| state.Mechanical.State == DropTargetMechanismState.Resetting
 				|| state.Mechanical.State == DropTargetMechanismState.Settling;
+		}
+
+		public bool TryGetMechanicalDiagnostics(out DropTargetMechanicalDiagnostics diagnostics)
+		{
+			ref var state = ref PhysicsEngine.DropTargetState(ItemId);
+			if (state.Static.PhysicsMode != DropTargetPhysicsMode.Mechanical) {
+				diagnostics = default;
+				return false;
+			}
+			diagnostics = new DropTargetMechanicalDiagnostics(in state.Mechanical);
+			return true;
 		}
 
 		#region Wiring

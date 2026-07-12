@@ -106,6 +106,11 @@ namespace VisualPinball.Unity
 			// collision data
 			var colliderComponent = GetComponentInChildren<DropTargetColliderComponent>();
 			if (colliderComponent) {
+				if (forExport && colliderComponent.PhysicsMode != DropTargetPhysicsMode.Legacy) {
+					Debug.LogWarning($"Drop target '{name}' uses {colliderComponent.PhysicsMode} physics. "
+						+ "VPX has no fields for VPE advanced drop-target mechanics; only vanilla target data will be exported.",
+						this);
+				}
 				data.IsCollidable = colliderComponent.enabled;
 				data.Threshold = colliderComponent.Threshold;
 				data.UseHitEvent = colliderComponent.UseHitEvent;

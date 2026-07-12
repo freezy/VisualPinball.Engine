@@ -147,6 +147,9 @@ namespace VisualPinball.Unity
 		internal NativeParallelHashSet<int> DisabledCollisionItems;
 
 		[MarshalAs(UnmanagedType.U1)]
+		internal bool HasMechanicalDropTargets;
+
+		[MarshalAs(UnmanagedType.U1)]
 		internal bool SwapBallCollisionHandling;
 
 		public PhysicsState(ref PhysicsEnv env, ref NativeOctree<int> octree, ref NativeColliders colliders,
@@ -182,6 +185,8 @@ namespace VisualPinball.Unity
 			Balls = balls;
 			BumperStates = bumperStates;
 			DropTargetStates = dropTargetStates;
+			HasMechanicalDropTargets = MechanicalDropTargetPhysics.ContainsMechanicalTargets(
+				ref dropTargetStates);
 			FlipperStates = flipperStates;
 			GateStates = gateStates;
 			HitTargetStates = hitTargetStates;
@@ -311,12 +316,14 @@ namespace VisualPinball.Unity
 			var itemId = colliders.GetItemId(colliderId);
 			if (DropTargetStates.TryGetValue(itemId, out var dropTarget)
 				&& dropTarget.Static.PhysicsMode == DropTargetPhysicsMode.Mechanical) {
-				var mechanicalVelocity = MechanicalDropTargetPhysics.SurfaceVelocity(
-					in dropTarget.Static, in dropTarget.Mechanical);
 				if (colliders.IsTransformed(colliderId)) {
-					return mechanicalVelocity;
+					return MechanicalDropTargetPhysics.SurfaceVelocityAtPoint(
+						in dropTarget.Static, in dropTarget.Mechanical, in position);
 				}
 				ref var mechanicalMatrix = ref KinematicTransforms.GetValueByRef(itemId);
+				var worldPosition = mechanicalMatrix.MultiplyPoint(position);
+				var mechanicalVelocity = MechanicalDropTargetPhysics.SurfaceVelocityAtPoint(
+					in dropTarget.Static, in dropTarget.Mechanical, in worldPosition);
 				return math.inverse(mechanicalMatrix).MultiplyVector(mechanicalVelocity);
 			}
 			if (!TryGetKinematicVelocity(itemId, out var linear, out var angular, out var pivot)) {

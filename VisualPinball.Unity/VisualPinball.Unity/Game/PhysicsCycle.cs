@@ -34,6 +34,7 @@ namespace VisualPinball.Unity
 		private static readonly ProfilerMarker PerfMarkerDisplacement = new("Displacement");
 		private static readonly ProfilerMarker PerfMarkerCollision = new("Collision");
 		private static readonly ProfilerMarker PerfMarkerContacts = new("Contacts");
+		private static readonly ProfilerMarker PerfMarkerMechanicalTargetContacts = new("DropTarget.ContactReduction");
 
 		public PhysicsCycle(Allocator a)
 		{
@@ -148,7 +149,9 @@ namespace VisualPinball.Unity
 					}
 				}
 
-				ResolveMechanicalDropTargetContacts(hitTime, ref state);
+				if (state.HasMechanicalDropTargets) {
+					ResolveMechanicalDropTargetContacts(hitTime, ref state);
+				}
 				using (var enumerator = state.Balls.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						ref var ball = ref enumerator.Current.Value;
@@ -161,7 +164,9 @@ namespace VisualPinball.Unity
 
 				// handle contacts
 				PerfMarkerContacts.Begin();
-				ResolveMechanicalDropTargetSupportContacts(hitTime, ref state);
+				if (state.HasMechanicalDropTargets) {
+					ResolveMechanicalDropTargetSupportContacts(hitTime, ref state);
+				}
 				for (var i = 0; i < _contacts.Length; i++) {
 					ref var contact = ref _contacts.GetElementAsRef(i);
 					if (contact.Handled != 0) {
@@ -234,6 +239,7 @@ namespace VisualPinball.Unity
 
 		private void ResolveMechanicalDropTargetContacts(float hitTime, ref PhysicsState state)
 		{
+			PerfMarkerMechanicalTargetContacts.Begin();
 			_mechanicalDropTargetContacts.Clear();
 			using (var enumerator = state.Balls.GetEnumerator()) {
 				while (enumerator.MoveNext()) {
@@ -248,6 +254,15 @@ namespace VisualPinball.Unity
 						: state.Colliders.GetHeader(collEvent.ColliderId);
 					if (!state.DropTargetStates.TryGetValue(header.ItemId, out var target)
 						|| target.Static.PhysicsMode != DropTargetPhysicsMode.Mechanical) {
+						continue;
+					}
+					var isTransformed = collEvent.IsKinematic
+						? state.KinematicColliders.IsTransformed(collEvent.ColliderId)
+						: state.Colliders.IsTransformed(collEvent.ColliderId);
+					if (!isTransformed) {
+						// Mechanical contact math is evaluated in playfield space. Advanced target
+						// mesh colliders are transformable; retain the generic local-space path for
+						// any future non-transformable representation.
 						continue;
 					}
 
@@ -289,7 +304,8 @@ namespace VisualPinball.Unity
 					}
 
 					var approachSpeed = -math.dot(ball.Velocity
-						- MechanicalDropTargetPhysics.SurfaceVelocity(in target.Static, in target.Mechanical),
+						- MechanicalDropTargetPhysics.SurfaceVelocityAtPoint(in target.Static,
+							in target.Mechanical, ball.Position - ball.Radius * hitNormal),
 						hitNormal);
 					_mechanicalImpactContacts.Add(new MechanicalDropTargetContact {
 						BallId = candidate.BallId,
@@ -330,10 +346,12 @@ namespace VisualPinball.Unity
 
 				groupStart = groupEnd;
 			}
+			PerfMarkerMechanicalTargetContacts.End();
 		}
 
 		private void ResolveMechanicalDropTargetSupportContacts(float hitTime, ref PhysicsState state)
 		{
+			PerfMarkerMechanicalTargetContacts.Begin();
 			_mechanicalDropTargetContacts.Clear();
 			for (var i = 0; i < _contacts.Length; i++) {
 				ref var contact = ref _contacts.GetElementAsRef(i);
@@ -348,6 +366,12 @@ namespace VisualPinball.Unity
 					|| target.Static.PhysicsMode != DropTargetPhysicsMode.Mechanical
 					|| (target.Mechanical.State != DropTargetMechanismState.Resetting
 						&& target.Mechanical.State != DropTargetMechanismState.Settling)) {
+					continue;
+				}
+				var isTransformed = collEvent.IsKinematic
+					? state.KinematicColliders.IsTransformed(collEvent.ColliderId)
+					: state.Colliders.IsTransformed(collEvent.ColliderId);
+				if (!isTransformed) {
 					continue;
 				}
 				_mechanicalDropTargetContacts.Add(new MechanicalDropTargetContactCandidate(
@@ -367,9 +391,10 @@ namespace VisualPinball.Unity
 				}
 				contact.Handled = 1;
 			}
+			PerfMarkerMechanicalTargetContacts.End();
 		}
 
-		private readonly struct MechanicalDropTargetContactCandidate : IComparable<MechanicalDropTargetContactCandidate>
+		internal readonly struct MechanicalDropTargetContactCandidate : IComparable<MechanicalDropTargetContactCandidate>
 		{
 			private const float HitTimeQuantization = 1000000f;
 
@@ -408,7 +433,15 @@ namespace VisualPinball.Unity
 					return result;
 				}
 				result = ((byte)Role).CompareTo((byte)other.Role);
-				return result != 0 ? result : ColliderId.CompareTo(other.ColliderId);
+				if (result != 0) {
+					return result;
+				}
+				result = ColliderId.CompareTo(other.ColliderId);
+				if (result != 0) {
+					return result;
+				}
+				result = IsKinematic.CompareTo(other.IsKinematic);
+				return result != 0 ? result : ContactIndex.CompareTo(other.ContactIndex);
 			}
 		}
 	}

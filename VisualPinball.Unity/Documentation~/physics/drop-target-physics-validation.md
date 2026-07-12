@@ -25,3 +25,24 @@ Mechanical mode depends on moving mesh contact. Before enabling it for authored 
 ## Physical calibration
 
 No bundled profile may be called realistic until it has been fitted and validated against a measured target mechanism. Until those measurements are checked in, all Mechanical profiles are provisional. The minimum dataset records ball and target trajectories, contact location, drop/brick outcome, target parts and spring configuration, and reset motion. Fit and validation shots must be separate.
+
+## Performance gate
+
+Profile a deterministic scene with the same ball trajectories in Legacy and Mechanical modes. Capture at least 10,000 physics ticks after warm-up on the reference machine and report median, p95, and maximum tick time. The profiler markers `DropTarget.MechanicalUpdate`, `DropTarget.ContactReduction`, and `DropTarget.ImpactGroup` isolate mechanism integration, stable contact collection/reduction, and the fixed-iteration contact solve.
+
+Record separate runs for 20 idle latched targets, 20 simultaneously moving targets, and the five-target/two-ball contact fixture. Mechanical mode passes the provisional rollout gate only when the complete physics tick adds less than 5% to the Legacy reference. Do not infer that result from the isolated markers or from editor-frame timing. If the gate fails, retain full collision coverage and optimize collider complexity or localized broad-phase updates rather than reducing contact correctness.
+
+## Collision-dispatch integration check
+
+Before promoting a Mechanical profile beyond provisional, run the deterministic five-target scene in Unity with the physics trajectory logger enabled. Use two balls arranged to reach the same target at the same global collision time, then repeat with their creation order reversed. Record the complete 1 ms ball/target state stream and event stream for both runs and require byte-identical results.
+
+The fixture must exercise all of these dispatch handshakes:
+
+- two physical-face candidates are collected, sorted, and solved as one target/time group;
+- each grouped ball state is written back exactly once and its collision event is cleared;
+- a side or back collider at the same tick follows the generic collision path exactly once;
+- a sustained reset contact is marked handled and is not processed again by the generic contact loop;
+- triangle-face, generated-edge, and generated-point contacts remain distinct and deterministic;
+- reversing ball creation order does not change state transitions or `Hit`, dropped, or raised events.
+
+The analytical tests cover the finite-mass group solve and total candidate ordering. They do not replace this scene-level dispatch check; attach the two trajectory logs and profiler capture to calibration evidence.
