@@ -56,6 +56,9 @@ namespace VisualPinball.Unity.Editor
 		private readonly string _tableName;
 		private readonly FptImportOptions _options;
 		private readonly Dictionary<string, Texture2D> _textures = new Dictionary<string, Texture2D>(StringComparer.OrdinalIgnoreCase);
+		private readonly Dictionary<string, Texture2D> _textureAliases = new Dictionary<string, Texture2D>(StringComparer.OrdinalIgnoreCase);
+		private readonly Dictionary<string, string> _textureAliasSources = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+		private readonly HashSet<string> _ambiguousTextureAliases = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 		private readonly Dictionary<string, UnityMesh> _meshes = new Dictionary<string, UnityMesh>(StringComparer.Ordinal);
 		private readonly Dictionary<string, UnityMaterial> _materials = new Dictionary<string, UnityMaterial>();
 		private readonly HashSet<FuturePinballColliderKind> _reportedTessellatedColliderKinds = new HashSet<FuturePinballColliderKind>();
@@ -66,6 +69,7 @@ namespace VisualPinball.Unity.Editor
 		private string _materialAssetRoot;
 		private FuturePinballTable _table;
 		private FuturePinballExtractionManifest _manifest;
+		private Dictionary<string, float> _surfaceHeights;
 
 		public FptSceneConverter(string sourcePath, string tableName, FptImportOptions options)
 		{
@@ -342,7 +346,7 @@ namespace VisualPinball.Unity.Editor
 			var material = RenderPipeline.Current?.MaterialConverter?.CreateMaterial(pbr, null)
 				?? new UnityMaterial(Shader.Find("Standard"));
 			material.name = source.Name;
-			if (!string.IsNullOrWhiteSpace(source.Texture) && _textures.TryGetValue(source.Texture, out var texture)) {
+			if (!string.IsNullOrWhiteSpace(source.Texture) && TryGetTexture(source.Texture, out var texture)) {
 				SetTexture(material, texture);
 			}
 			if (source.IsTwoSided) {
@@ -431,22 +435,58 @@ namespace VisualPinball.Unity.Editor
 				if (file == null) continue;
 				var texture = AssetDatabase.LoadAssetAtPath<Texture2D>($"{_bundleAssetRoot}/{file.Path}");
 				if (texture == null) continue;
-				AddTextureAlias(resource.LogicalName, texture);
-				AddTextureAlias(Path.GetFileName(resource.LogicalName), texture);
-				AddTextureAlias(Path.GetFileNameWithoutExtension(resource.LogicalName), texture);
+				var logicalName = resource.LogicalName;
+				if (string.IsNullOrWhiteSpace(logicalName)) continue;
+				if (_textures.ContainsKey(logicalName)) {
+					_report.Warnings.Add($"Duplicate image name '{logicalName}'; the later source stream is used for exact-name references.");
+				}
+				_textures[logicalName] = texture;
+				AddTextureAlias(Path.GetFileName(logicalName), logicalName, texture);
+				AddTextureAlias(Path.GetFileNameWithoutExtension(logicalName), logicalName, texture);
 			}
 		}
 
-		private void AddTextureAlias(string name, Texture2D texture)
+		private void AddTextureAlias(string alias, string logicalName, Texture2D texture)
 		{
-			if (!string.IsNullOrWhiteSpace(name)) _textures[name] = texture;
+			if (string.IsNullOrWhiteSpace(alias) || alias.Equals(logicalName, StringComparison.OrdinalIgnoreCase)
+				|| _ambiguousTextureAliases.Contains(alias)) return;
+			if (_textureAliasSources.TryGetValue(alias, out var existingSource)
+				&& !existingSource.Equals(logicalName, StringComparison.OrdinalIgnoreCase)) {
+				_textureAliases.Remove(alias);
+				_textureAliasSources.Remove(alias);
+				_ambiguousTextureAliases.Add(alias);
+				_report.Warnings.Add($"Image alias '{alias}' is ambiguous between '{existingSource}' and '{logicalName}' and will not be used.");
+				return;
+			}
+			_textureAliases[alias] = texture;
+			_textureAliasSources[alias] = logicalName;
+		}
+
+		private bool TryGetTexture(string name, out Texture2D texture)
+		{
+			if (_textures.TryGetValue(name, out texture)) return true;
+			if (_ambiguousTextureAliases.Contains(name)) {
+				texture = null;
+				return false;
+			}
+			return _textureAliases.TryGetValue(name, out texture);
 		}
 
 		private Dictionary<string, float> SurfaceHeights()
 		{
-			return _table.Elements.Where(element => element.ElementType == FuturePinballElementType.Surface)
-				.GroupBy(ElementName, StringComparer.OrdinalIgnoreCase)
-				.ToDictionary(group => group.Key, group => FuturePinballElementGeometry.Float(group.First(), SurfaceTopHeightTag), StringComparer.OrdinalIgnoreCase);
+			if (_surfaceHeights != null) return _surfaceHeights;
+			_surfaceHeights = new Dictionary<string, float>(StringComparer.OrdinalIgnoreCase);
+			var groups = _table.Elements.Where(element => element.ElementType == FuturePinballElementType.Surface)
+				.GroupBy(ElementName, StringComparer.OrdinalIgnoreCase);
+			foreach (var group in groups) {
+				var surfaces = group.ToArray();
+				var heights = surfaces.Select(surface => FuturePinballElementGeometry.Float(surface, SurfaceTopHeightTag)).ToArray();
+				if (heights.Distinct().Skip(1).Any()) {
+					_report.Warnings.Add($"Duplicate surface name '{group.Key}' has different top heights; the later source stream is used for name-based placement.");
+				}
+				_surfaceHeights[group.Key] = heights[heights.Length - 1];
+			}
+			return _surfaceHeights;
 		}
 
 		private static void Place(Transform transform, FuturePinballSourceStream element, IReadOnlyDictionary<string, float> surfaceHeights)
