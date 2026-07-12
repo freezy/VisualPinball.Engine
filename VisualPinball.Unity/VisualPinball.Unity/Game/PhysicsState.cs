@@ -309,6 +309,16 @@ namespace VisualPinball.Unity
 				return float3.zero;
 			}
 			var itemId = colliders.GetItemId(colliderId);
+			if (DropTargetStates.TryGetValue(itemId, out var dropTarget)
+				&& dropTarget.Static.PhysicsMode == DropTargetPhysicsMode.Mechanical) {
+				var mechanicalVelocity = MechanicalDropTargetPhysics.SurfaceVelocity(
+					in dropTarget.Static, in dropTarget.Mechanical);
+				if (colliders.IsTransformed(colliderId)) {
+					return mechanicalVelocity;
+				}
+				ref var mechanicalMatrix = ref KinematicTransforms.GetValueByRef(itemId);
+				return math.inverse(mechanicalMatrix).MultiplyVector(mechanicalVelocity);
+			}
 			if (!TryGetKinematicVelocity(itemId, out var linear, out var angular, out var pivot)) {
 				return float3.zero;
 			}

@@ -131,6 +131,9 @@ namespace VisualPinball.Unity
 
 		private void OnValidate()
 		{
+			if (PhysicsMode == DropTargetPhysicsMode.Mechanical) {
+				_isKinematic = true;
+			}
 			// Newly added serialized struct fields can be all-zero on existing scene
 			// components. Zero mass/travel is not a valid authored profile, so use it
 			// as the migration sentinel before an author opts into an advanced mode.

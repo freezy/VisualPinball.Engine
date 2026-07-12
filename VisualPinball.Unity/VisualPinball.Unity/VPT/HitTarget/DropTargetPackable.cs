@@ -66,6 +66,9 @@ namespace VisualPinball.Unity
 			comp.OverrideMechanicalProfile = data.OverrideMechanicalProfile;
 			comp.MechanicalOverrides = data.MechanicalOverrides;
 			comp.RothConfig = data.RothConfig;
+			if (comp.PhysicsMode == DropTargetPhysicsMode.Mechanical) {
+				comp._isKinematic = true;
+			}
 		}
 
 		internal static void ApplySchemaDefaults(ref DropTargetColliderPackable data)

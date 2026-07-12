@@ -167,6 +167,7 @@ namespace VisualPinball.Unity
 				staticData = new DropTargetStaticState {
 					PhysicsMode = colliderComponent.PhysicsMode,
 					Roth = roth,
+					Mechanical = colliderComponent.ResolvedMechanicalConfig,
 					Center = Position,
 					FaceNormal = new float3(math.cos(angle), math.sin(angle), 0f),
 					HasRothSensor = colliderComponent.PhysicsMode == DropTargetPhysicsMode.RothCompatible
@@ -202,7 +203,13 @@ namespace VisualPinball.Unity
 				animationComponent ? UnityObjectId.Get(animationComponent.gameObject) : 0,
 				staticData,
 				animationData
-			);
+			) {
+				Mechanical = new DropTargetMechanicalState {
+					State = animationData.IsDropped ? DropTargetMechanismState.Down : DropTargetMechanismState.Latched,
+					D = animationData.IsDropped ? staticData.Mechanical.DropTravel : 0f,
+					DroppedSwitchClosed = animationData.IsDropped,
+				}
+			};
 		}
 
 		#endregion

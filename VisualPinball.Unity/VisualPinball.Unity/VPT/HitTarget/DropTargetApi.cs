@@ -139,6 +139,16 @@ namespace VisualPinball.Unity
 					MainComponent, ColliderRole.DropTargetBackFace);
 				return;
 			}
+			if (ColliderComponent.PhysicsMode == DropTargetPhysicsMode.Mechanical) {
+				var physicalMesh = ColliderComponent.CollisionColliderMesh
+					? ColliderComponent.CollisionColliderMesh
+					: ColliderComponent.FrontColliderMesh;
+				colliderGenerator.GenerateColliders(ref colliders, physicalMesh, ItemType.HitTarget,
+					MainComponent, ColliderRole.DropTargetPhysicalFace);
+				colliderGenerator.GenerateColliders(ref colliders, ColliderComponent.BackColliderMesh, ItemType.HitTarget,
+					MainComponent, ColliderRole.DropTargetBackFace);
+				return;
+			}
 
 			colliderGenerator.GenerateColliders(ref colliders, ColliderComponent.FrontColliderMesh, ItemType.HitTarget,
 				MainComponent, ColliderRole.DropTargetPhysicalFace);

@@ -82,7 +82,7 @@ namespace VisualPinball.Unity
 			RearStopRestitution = 0.65f,
 			DropMass = 0.2f,
 			DropTravel = 52f,
-			DropSpringForce = 40f,
+			DropSpringForce = 0.25f,
 			GuideDamping = 0.2f,
 			GuideFriction = 0.1f,
 			GuideVelocityDeadband = 0.001f,

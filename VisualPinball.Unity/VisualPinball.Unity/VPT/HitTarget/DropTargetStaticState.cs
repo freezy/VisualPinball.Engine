@@ -22,6 +22,7 @@ namespace VisualPinball.Unity
 	{
 		public DropTargetPhysicsMode PhysicsMode;
 		public DropTargetRothConfig Roth;
+		public DropTargetMechanicalConfig Mechanical;
 		public float3 Center;
 		public float3 FaceNormal;
 		public bool HasRothSensor;

@@ -27,11 +27,89 @@ namespace VisualPinball.Unity
 			ref DropTargetState target, in float3 normal, in CollisionEventData collEvent,
 			in ColliderHeader collHeader, ref PhysicsState state)
 		{
+			if (target.Static.PhysicsMode == DropTargetPhysicsMode.Mechanical) {
+				MechanicalCollide(ref ball, ref hitEvents, ref target, in normal, in collEvent, in collHeader, ref state);
+				return;
+			}
 			if (target.Static.PhysicsMode == DropTargetPhysicsMode.RothCompatible) {
 				RothCompatibleCollide(ref ball, ref hitEvents, ref target, in normal, in collEvent, in collHeader, ref state);
 				return;
 			}
 			LegacyDropTargetCollide(ref ball, ref hitEvents, ref target.Animation, in normal, in collEvent, in collHeader, ref state);
+		}
+
+		private static void MechanicalCollide(ref BallState ball,
+			ref NativeQueue<EventData>.ParallelWriter hitEvents, ref DropTargetState target, in float3 normal,
+			in CollisionEventData collEvent, in ColliderHeader collHeader, ref PhysicsState state)
+		{
+			if (target.Mechanical.State == DropTargetMechanismState.Down) {
+				return;
+			}
+			var preImpactVelocity = ball.Velocity;
+			var hitNormal = math.normalizesafe(collEvent.HitNormal);
+			var faceAlignment = math.abs(math.dot(hitNormal, math.normalizesafe(target.Static.FaceNormal)));
+			if (collHeader.Role != ColliderRole.DropTargetPhysicalFace || faceAlignment < 0.5f) {
+				BallCollider.Collide3DWall(ref ball, in collHeader.Material, in collEvent, in normal, ref state);
+				if (collHeader.Role == ColliderRole.DropTargetBackFace) {
+					var impulse = ball.Mass * math.max(-math.dot(preImpactVelocity, hitNormal), 0f);
+					if (target.Static.Mechanical.EnableBacksideRelease
+						&& impulse >= target.Static.Mechanical.BacksideReleaseImpulse) {
+						target.Mechanical.State = DropTargetMechanismState.Released;
+						target.Mechanical.LastImpactOutcome = DropTargetImpactOutcome.BacksideDrop;
+						FireDropTargetHit(ref ball, ref hitEvents, in collHeader);
+					} else {
+						target.Mechanical.LastImpactOutcome = DropTargetImpactOutcome.BacksideBounce;
+					}
+				} else {
+					target.Mechanical.LastImpactOutcome = DropTargetImpactOutcome.SideDeflection;
+				}
+				return;
+			}
+
+			var approachSpeed = -math.dot(preImpactVelocity
+				- MechanicalDropTargetPhysics.SurfaceVelocity(in target.Static, in target.Mechanical), hitNormal);
+			var restitution = ResolveElasticity(in collHeader.Material, in collEvent, approachSpeed, ref state);
+			var friction = ResolveFriction(in collHeader.Material, in collEvent, approachSpeed, ref state);
+			var result = MechanicalDropTargetPhysics.ResolveImpact(ref ball, ref target.Mechanical,
+				in target.Static, in hitNormal, restitution, friction);
+			if (!result.Applied) {
+				return;
+			}
+
+			var hDist = math.clamp(-PhysicsConstants.DispGain * collEvent.HitDistance,
+				0f, PhysicsConstants.DispLimit);
+			ball.Position += hitNormal * hDist;
+			if (!target.Mechanical.HitEventFired
+				&& approachSpeed >= collHeader.Threshold
+				&& result.NormalImpulse >= target.Static.Mechanical.MinimumFaceImpulse) {
+				target.Mechanical.HitEventFired = true;
+				FireDropTargetHit(ref ball, ref hitEvents, in collHeader);
+			}
+		}
+
+		private static float ResolveElasticity(in PhysicsMaterialData material,
+			in CollisionEventData collEvent, float speed, ref PhysicsState state)
+		{
+			if (!material.UseElasticityOverVelocity) {
+				return Math.ElasticityWithFalloff(material.Elasticity, material.ElasticityFalloff, speed);
+			}
+			// Mechanical contacts deliberately sample loss by approach-speed
+			// magnitude; the legacy wall path's signed lookup clamps to its first bin.
+			var colliders = collEvent.IsKinematic ? state.KinematicColliders : state.Colliders;
+			var itemId = colliders.GetItemId(collEvent.ColliderId);
+			return state.ElasticityOverVelocityLUTs[itemId].InterpolateLUT(0f, 63f, math.abs(speed));
+		}
+
+		private static float ResolveFriction(in PhysicsMaterialData material,
+			in CollisionEventData collEvent, float speed, ref PhysicsState state)
+		{
+			if (!material.UseFrictionOverVelocity) {
+				return material.Friction;
+			}
+			// As above, velocity-dependent Mechanical friction is indexed by speed.
+			var colliders = collEvent.IsKinematic ? state.KinematicColliders : state.Colliders;
+			var itemId = colliders.GetItemId(collEvent.ColliderId);
+			return state.FrictionOverVelocityLUTs[itemId].InterpolateLUT(0f, 127f, math.abs(speed));
 		}
 
 		private static void LegacyDropTargetCollide(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
