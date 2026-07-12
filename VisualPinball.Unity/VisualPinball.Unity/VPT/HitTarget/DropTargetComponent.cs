@@ -203,7 +203,6 @@ namespace VisualPinball.Unity
 							: animationComponent.DropDistance)
 						: 0f
 				} : default;
-
 			return new DropTargetState(
 				animationComponent ? UnityObjectId.Get(animationComponent.gameObject) : 0,
 				staticData,
