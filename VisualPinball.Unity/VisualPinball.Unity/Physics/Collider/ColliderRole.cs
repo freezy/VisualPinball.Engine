@@ -1,5 +1,5 @@
-﻿// Visual Pinball Engine
-// Copyright (C) 2023 freezy and VPE Team
+// Visual Pinball Engine
+// Copyright (C) 2026 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,21 +16,13 @@
 
 namespace VisualPinball.Unity
 {
-	internal struct DropTargetState
+	public enum ColliderRole : byte
 	{
-		internal readonly int AnimatedItemId;
-		internal DropTargetStaticState Static;
-		internal DropTargetAnimationState Animation;
-		internal DropTargetMechanicalState Mechanical;
-		internal uint RothHitCounter;
-
-		public DropTargetState(int animatedItemId, DropTargetStaticState @static, DropTargetAnimationState animation)
-		{
-			AnimatedItemId = animatedItemId;
-			Static = @static;
-			Animation = animation;
-			Mechanical = default;
-			RothHitCounter = 0;
-		}
+		None,
+		DropTargetFrontSensor,
+		DropTargetPhysicalFace,
+		DropTargetSide,
+		DropTargetBackFace,
+		DropTargetBody,
 	}
 }

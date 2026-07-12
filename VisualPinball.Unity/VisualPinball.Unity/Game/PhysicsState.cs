@@ -147,6 +147,9 @@ namespace VisualPinball.Unity
 		internal NativeParallelHashSet<int> DisabledCollisionItems;
 
 		[MarshalAs(UnmanagedType.U1)]
+		internal bool HasMechanicalDropTargets;
+
+		[MarshalAs(UnmanagedType.U1)]
 		internal bool SwapBallCollisionHandling;
 
 		public PhysicsState(ref PhysicsEnv env, ref NativeOctree<int> octree, ref NativeColliders colliders,
@@ -182,6 +185,8 @@ namespace VisualPinball.Unity
 			Balls = balls;
 			BumperStates = bumperStates;
 			DropTargetStates = dropTargetStates;
+			HasMechanicalDropTargets = MechanicalDropTargetPhysics.ContainsMechanicalTargets(
+				ref dropTargetStates);
 			FlipperStates = flipperStates;
 			GateStates = gateStates;
 			HitTargetStates = hitTargetStates;
@@ -309,6 +314,18 @@ namespace VisualPinball.Unity
 				return float3.zero;
 			}
 			var itemId = colliders.GetItemId(colliderId);
+			if (DropTargetStates.TryGetValue(itemId, out var dropTarget)
+				&& dropTarget.Static.PhysicsMode == DropTargetPhysicsMode.Mechanical) {
+				if (colliders.IsTransformed(colliderId)) {
+					return MechanicalDropTargetPhysics.SurfaceVelocityAtPoint(
+						in dropTarget.Static, in dropTarget.Mechanical, in position);
+				}
+				ref var mechanicalMatrix = ref KinematicTransforms.GetValueByRef(itemId);
+				var worldPosition = mechanicalMatrix.MultiplyPoint(position);
+				var mechanicalVelocity = MechanicalDropTargetPhysics.SurfaceVelocityAtPoint(
+					in dropTarget.Static, in dropTarget.Mechanical, in worldPosition);
+				return math.inverse(mechanicalMatrix).MultiplyVector(mechanicalVelocity);
+			}
 			if (!TryGetKinematicVelocity(itemId, out var linear, out var angular, out var pivot)) {
 				return float3.zero;
 			}
@@ -459,7 +476,10 @@ namespace VisualPinball.Unity
 
 		private bool IsInactiveDropTarget(ref NativeColliders colliders, int colliderId)
 		{
-			if (colliders.GetItemType(colliderId) == ItemType.HitTarget && HasDropTargetState(colliderId, ref colliders)) {
+			ref var header = ref colliders.GetHeader(colliderId);
+			var isDropTargetCollider = header.ItemType == ItemType.HitTarget
+				|| header.Role == ColliderRole.DropTargetFrontSensor;
+			if (isDropTargetCollider && HasDropTargetState(colliderId, ref colliders)) {
 				ref var dropTargetState = ref GetDropTargetState(colliderId, ref colliders);
 				if (dropTargetState.Animation.IsDropped || dropTargetState.Animation.MoveAnimation) {  // QUICKFIX so that DT is not triggered twice
 					return true;

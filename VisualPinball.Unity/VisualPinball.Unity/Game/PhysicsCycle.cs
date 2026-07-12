@@ -17,6 +17,7 @@
 using System;
 using NativeTrees;
 using Unity.Collections;
+using Unity.Mathematics;
 using Unity.Profiling;
 using VisualPinball.Engine.Common;
 using VisualPinball.Unity.Collections;
@@ -26,15 +27,20 @@ namespace VisualPinball.Unity
 	public struct PhysicsCycle : IDisposable
 	{
 		private NativeList<ContactBufferElement> _contacts;
+		private NativeList<MechanicalDropTargetContactCandidate> _mechanicalDropTargetContacts;
+		private NativeList<MechanicalDropTargetContact> _mechanicalImpactContacts;
 
 		private static readonly ProfilerMarker PerfMarker = new("PhysicsCycle");
 		private static readonly ProfilerMarker PerfMarkerDisplacement = new("Displacement");
 		private static readonly ProfilerMarker PerfMarkerCollision = new("Collision");
 		private static readonly ProfilerMarker PerfMarkerContacts = new("Contacts");
+		private static readonly ProfilerMarker PerfMarkerMechanicalTargetContacts = new("DropTarget.ContactReduction");
 
 		public PhysicsCycle(Allocator a)
 		{
 			_contacts = new NativeList<ContactBufferElement>(a);
+			_mechanicalDropTargetContacts = new NativeList<MechanicalDropTargetContactCandidate>(a);
+			_mechanicalImpactContacts = new NativeList<MechanicalDropTargetContact>(a);
 		}
 
 		internal void Simulate(ref PhysicsState state, ref NativeParallelHashSet<int> overlappingColliders, ref NativeOctree<int> kinematicOctree, ref NativeOctree<int> ballOctree, float dTime)
@@ -134,23 +140,43 @@ namespace VisualPinball.Unity
 
 				// collision
 				PerfMarkerCollision.Begin();
-				using (var enumerator = state.Balls.GetEnumerator()) {
-					while (enumerator.MoveNext()) {
-						ref var ball = ref enumerator.Current.Value;
-
-						// dynamic collision (ball/ball)
-						PhysicsDynamicCollision.Collide(hitTime, ref ball, ref state);
-
-						// static & kinematic collision
-						PhysicsStaticCollision.Collide(hitTime, ref ball, ref state);
+				if (state.HasMechanicalDropTargets) {
+					using (var enumerator = state.Balls.GetEnumerator()) {
+						while (enumerator.MoveNext()) {
+							ref var ball = ref enumerator.Current.Value;
+							PhysicsDynamicCollision.Collide(hitTime, ref ball, ref state);
+						}
+					}
+					ResolveMechanicalDropTargetContacts(hitTime, ref state);
+					using (var enumerator = state.Balls.GetEnumerator()) {
+						while (enumerator.MoveNext()) {
+							ref var ball = ref enumerator.Current.Value;
+							PhysicsStaticCollision.Collide(hitTime, ref ball, ref state);
+						}
+					}
+				} else {
+					// Preserve the original per-ball dynamic/static ordering for every table
+					// that has not opted into Mechanical drop-target physics.
+					using (var enumerator = state.Balls.GetEnumerator()) {
+						while (enumerator.MoveNext()) {
+							ref var ball = ref enumerator.Current.Value;
+							PhysicsDynamicCollision.Collide(hitTime, ref ball, ref state);
+							PhysicsStaticCollision.Collide(hitTime, ref ball, ref state);
+						}
 					}
 				}
 				PerfMarkerCollision.End();
 
 				// handle contacts
 				PerfMarkerContacts.Begin();
+				if (state.HasMechanicalDropTargets) {
+					ResolveMechanicalDropTargetSupportContacts(hitTime, ref state);
+				}
 				for (var i = 0; i < _contacts.Length; i++) {
 					ref var contact = ref _contacts.GetElementAsRef(i);
+					if (contact.Handled != 0) {
+						continue;
+					}
 					ref var ball = ref state.Balls.GetValueByRef(contact.BallId);
 					if (contact.CollEvent.IsKinematic) {
 						ContactPhysics.Update(ref contact, ref ball, ref state, ref state.KinematicColliders, hitTime);
@@ -212,6 +238,216 @@ namespace VisualPinball.Unity
 		public void Dispose()
 		{
 			_contacts.Dispose();
+			_mechanicalDropTargetContacts.Dispose();
+			_mechanicalImpactContacts.Dispose();
+		}
+
+		private void ResolveMechanicalDropTargetContacts(float hitTime, ref PhysicsState state)
+		{
+			PerfMarkerMechanicalTargetContacts.Begin();
+			_mechanicalDropTargetContacts.Clear();
+			using (var enumerator = state.Balls.GetEnumerator()) {
+				while (enumerator.MoveNext()) {
+					ref var ball = ref enumerator.Current.Value;
+					var collEvent = ball.CollisionEvent;
+					if (collEvent.ColliderId < 0 || collEvent.HitTime > hitTime) {
+						continue;
+					}
+
+					var header = collEvent.IsKinematic
+						? state.KinematicColliders.GetHeader(collEvent.ColliderId)
+						: state.Colliders.GetHeader(collEvent.ColliderId);
+					if (!state.DropTargetStates.TryGetValue(header.ItemId, out var target)
+						|| target.Static.PhysicsMode != DropTargetPhysicsMode.Mechanical) {
+						continue;
+					}
+					var isTransformed = collEvent.IsKinematic
+						? state.KinematicColliders.IsTransformed(collEvent.ColliderId)
+						: state.Colliders.IsTransformed(collEvent.ColliderId);
+					if (!isTransformed) {
+						// Mechanical contact math is evaluated in playfield space. Advanced target
+						// mesh colliders are transformable; retain the generic local-space path for
+						// any future non-transformable representation.
+						continue;
+					}
+
+					_mechanicalDropTargetContacts.Add(new MechanicalDropTargetContactCandidate(
+						collEvent.HitTime, header.ItemId, enumerator.Current.Key, collEvent.ColliderId,
+						header.Role, collEvent.IsKinematic));
+				}
+			}
+
+			_mechanicalDropTargetContacts.AsArray().Sort();
+			for (var groupStart = 0; groupStart < _mechanicalDropTargetContacts.Length;) {
+				var hitTimeKey = _mechanicalDropTargetContacts[groupStart].HitTimeKey;
+				var targetItemId = _mechanicalDropTargetContacts[groupStart].TargetItemId;
+				var groupEnd = groupStart + 1;
+				while (groupEnd < _mechanicalDropTargetContacts.Length
+					&& _mechanicalDropTargetContacts[groupEnd].HitTimeKey == hitTimeKey
+					&& _mechanicalDropTargetContacts[groupEnd].TargetItemId == targetItemId) {
+					groupEnd++;
+				}
+
+				ref var target = ref state.DropTargetStates.GetValueByRef(targetItemId);
+				var isResetStroke = target.Mechanical.State == DropTargetMechanismState.Resetting
+					|| target.Mechanical.State == DropTargetMechanismState.Settling;
+				_mechanicalImpactContacts.Clear();
+				for (var i = groupStart; i < groupEnd; i++) {
+					var candidate = _mechanicalDropTargetContacts[i];
+					ref var ball = ref state.Balls.GetValueByRef(candidate.BallId);
+					var collEvent = ball.CollisionEvent;
+					var header = collEvent.IsKinematic
+						? state.KinematicColliders.GetHeader(collEvent.ColliderId)
+						: state.Colliders.GetHeader(collEvent.ColliderId);
+					var hitNormal = math.normalizesafe(collEvent.HitNormal);
+					var faceAlignment = math.abs(math.dot(hitNormal,
+						math.normalizesafe(target.Static.FaceNormal)));
+					if (header.Role != ColliderRole.DropTargetPhysicalFace
+						|| target.Mechanical.State == DropTargetMechanismState.Down
+						|| (!isResetStroke && faceAlignment < 0.5f)) {
+						continue;
+					}
+
+					var approachSpeed = -math.dot(ball.Velocity
+						- MechanicalDropTargetPhysics.SurfaceVelocityAtPoint(in target.Static,
+							in target.Mechanical, ball.Position - ball.Radius * hitNormal),
+						hitNormal);
+					_mechanicalImpactContacts.Add(new MechanicalDropTargetContact {
+						BallId = candidate.BallId,
+						Ball = ball,
+						Normal = hitNormal,
+						Restitution = TargetCollider.ResolveElasticity(in header.Material, in collEvent,
+							approachSpeed, ref state),
+						Friction = TargetCollider.ResolveFriction(in header.Material, in collEvent,
+							approachSpeed, ref state),
+					});
+				}
+
+				MechanicalDropTargetPhysics.ResolveImpactGroup(ref _mechanicalImpactContacts,
+					ref target.Mechanical, in target.Static);
+				for (var i = 0; i < _mechanicalImpactContacts.Length; i++) {
+					ref var contact = ref _mechanicalImpactContacts.GetElementAsRef(i);
+					ref var ball = ref state.Balls.GetValueByRef(contact.BallId);
+					var collEvent = ball.CollisionEvent;
+					var header = collEvent.IsKinematic
+						? state.KinematicColliders.GetHeader(collEvent.ColliderId)
+						: state.Colliders.GetHeader(collEvent.ColliderId);
+					ball = contact.Ball;
+					TargetCollider.CompleteMechanicalImpact(ref ball, ref target, in collEvent, in header,
+						contact.ApproachSpeed, contact.NormalImpulse, ref state.EventQueue);
+					ball.CollisionEvent.ClearCollider();
+				}
+
+				for (var i = groupStart; i < groupEnd; i++) {
+					var candidate = _mechanicalDropTargetContacts[i];
+					ref var ball = ref state.Balls.GetValueByRef(candidate.BallId);
+					if (ball.CollisionEvent.ColliderId != candidate.ColliderId
+						|| ball.CollisionEvent.IsKinematic != (candidate.IsKinematic != 0)) {
+						continue;
+					}
+					PhysicsStaticCollision.Collide(hitTime, ref ball, ref state);
+					ball.CollisionEvent.ClearCollider();
+				}
+
+				groupStart = groupEnd;
+			}
+			PerfMarkerMechanicalTargetContacts.End();
+		}
+
+		private void ResolveMechanicalDropTargetSupportContacts(float hitTime, ref PhysicsState state)
+		{
+			PerfMarkerMechanicalTargetContacts.Begin();
+			_mechanicalDropTargetContacts.Clear();
+			for (var i = 0; i < _contacts.Length; i++) {
+				ref var contact = ref _contacts.GetElementAsRef(i);
+				var collEvent = contact.CollEvent;
+				if (collEvent.ColliderId < 0) {
+					continue;
+				}
+				var header = collEvent.IsKinematic
+					? state.KinematicColliders.GetHeader(collEvent.ColliderId)
+					: state.Colliders.GetHeader(collEvent.ColliderId);
+				if (!state.DropTargetStates.TryGetValue(header.ItemId, out var target)
+					|| target.Static.PhysicsMode != DropTargetPhysicsMode.Mechanical
+					|| (target.Mechanical.State != DropTargetMechanismState.Resetting
+						&& target.Mechanical.State != DropTargetMechanismState.Settling)) {
+					continue;
+				}
+				var isTransformed = collEvent.IsKinematic
+					? state.KinematicColliders.IsTransformed(collEvent.ColliderId)
+					: state.Colliders.IsTransformed(collEvent.ColliderId);
+				if (!isTransformed) {
+					continue;
+				}
+				_mechanicalDropTargetContacts.Add(new MechanicalDropTargetContactCandidate(
+					collEvent.HitTime, header.ItemId, contact.BallId, collEvent.ColliderId,
+					header.Role, collEvent.IsKinematic, i));
+			}
+
+			_mechanicalDropTargetContacts.AsArray().Sort();
+			for (var i = 0; i < _mechanicalDropTargetContacts.Length; i++) {
+				var candidate = _mechanicalDropTargetContacts[i];
+				ref var contact = ref _contacts.GetElementAsRef(candidate.ContactIndex);
+				ref var ball = ref state.Balls.GetValueByRef(contact.BallId);
+				if (contact.CollEvent.IsKinematic) {
+					ContactPhysics.Update(ref contact, ref ball, ref state, ref state.KinematicColliders, hitTime);
+				} else {
+					ContactPhysics.Update(ref contact, ref ball, ref state, ref state.Colliders, hitTime);
+				}
+				contact.Handled = 1;
+			}
+			PerfMarkerMechanicalTargetContacts.End();
+		}
+
+		internal readonly struct MechanicalDropTargetContactCandidate : IComparable<MechanicalDropTargetContactCandidate>
+		{
+			private const float HitTimeQuantization = 1000000f;
+
+			internal readonly int HitTimeKey;
+			internal readonly int TargetItemId;
+			internal readonly int BallId;
+			internal readonly int ColliderId;
+			internal readonly ColliderRole Role;
+			internal readonly byte IsKinematic;
+			internal readonly int ContactIndex;
+
+			internal MechanicalDropTargetContactCandidate(float hitTime, int targetItemId, int ballId,
+				int colliderId, ColliderRole role, bool isKinematic, int contactIndex = -1)
+			{
+				HitTimeKey = (int)math.round(hitTime * HitTimeQuantization);
+				TargetItemId = targetItemId;
+				BallId = ballId;
+				ColliderId = colliderId;
+				Role = role;
+				IsKinematic = isKinematic ? (byte)1 : (byte)0;
+				ContactIndex = contactIndex;
+			}
+
+			public int CompareTo(MechanicalDropTargetContactCandidate other)
+			{
+				var result = HitTimeKey.CompareTo(other.HitTimeKey);
+				if (result != 0) {
+					return result;
+				}
+				result = TargetItemId.CompareTo(other.TargetItemId);
+				if (result != 0) {
+					return result;
+				}
+				result = BallId.CompareTo(other.BallId);
+				if (result != 0) {
+					return result;
+				}
+				result = ((byte)Role).CompareTo((byte)other.Role);
+				if (result != 0) {
+					return result;
+				}
+				result = ColliderId.CompareTo(other.ColliderId);
+				if (result != 0) {
+					return result;
+				}
+				result = IsKinematic.CompareTo(other.IsKinematic);
+				return result != 0 ? result : ContactIndex.CompareTo(other.ContactIndex);
+			}
 		}
 	}
 }

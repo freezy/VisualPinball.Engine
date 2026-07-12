@@ -30,6 +30,7 @@ namespace VisualPinball.Unity
 		public int Id;
 		public int ItemId;
 		public ItemType ItemType;
+		public ColliderRole Role;
 		public PhysicsMaterialData Material;
 		public float HitThreshold;
 		public bool FireEvents;

@@ -35,10 +35,27 @@ namespace VisualPinball.Unity
 				}
 
 				ref var collHeader = ref state.GetColliderHeader(ref colliders, collEvent.ColliderId);
-				if (collHeader.Type == ColliderType.Flipper) {
+				if (collHeader.Role == ColliderRole.DropTargetFrontSensor) {
+					// Semantic sensors report crossings but never generate a support impulse.
+				} else if (collHeader.Type == ColliderType.Flipper) {
 					ref var flipperCollider = ref colliders.Flipper(collEvent.ColliderId);
 					ref var flipperState = ref state.GetFlipperState(collEvent.ColliderId, ref colliders);
 					flipperCollider.Contact(ref ball, ref flipperState.Movement, in collEvent, in flipperState.Static, in flipperState.Velocity, hitTime, in gravity);
+				} else if (state.HasDropTargetState(collEvent.ColliderId, ref colliders)) {
+					ref var target = ref state.GetDropTargetState(collEvent.ColliderId, ref colliders);
+					if (target.Static.PhysicsMode == DropTargetPhysicsMode.Mechanical
+						&& colliders.IsTransformed(collEvent.ColliderId)
+						&& (target.Mechanical.State == DropTargetMechanismState.Resetting
+							|| target.Mechanical.State == DropTargetMechanismState.Settling)) {
+						MechanicalDropTargetPhysics.ResolveContact(ref ball, ref target.Mechanical,
+							in target.Static, in collEvent.HitNormal, in gravity, hitTime,
+							collHeader.Material.Friction);
+					} else {
+						var colliderVelocity = state.GetKinematicSurfaceVelocity(in collEvent,
+							ball.Position - ball.Radius * collEvent.HitNormal);
+						Collider.Contact(in collHeader, ref ball, in collEvent, hitTime, in gravity,
+							in colliderVelocity);
+					}
 				} else {
 					// surface velocity of the collider at the contact point (zero unless kinematic and moving)
 					var colliderVelocity = state.GetKinematicSurfaceVelocity(in collEvent, ball.Position - ball.Radius * collEvent.HitNormal);

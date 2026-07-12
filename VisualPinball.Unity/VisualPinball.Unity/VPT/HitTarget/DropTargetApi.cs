@@ -24,6 +24,28 @@ using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
 {
+	public readonly struct DropTargetMechanicalDiagnostics
+	{
+		public readonly string State;
+		public readonly string LastImpactOutcome;
+		public readonly float RearTravel;
+		public readonly float RearVelocity;
+		public readonly float DropTravel;
+		public readonly float DropVelocity;
+		public readonly bool DroppedSwitchClosed;
+
+		internal DropTargetMechanicalDiagnostics(in DropTargetMechanicalState state)
+		{
+			State = state.State.ToString();
+			LastImpactOutcome = state.LastImpactOutcome.ToString();
+			RearTravel = state.Q;
+			RearVelocity = state.QDot;
+			DropTravel = state.D;
+			DropVelocity = state.DDot;
+			DroppedSwitchClosed = state.DroppedSwitchClosed;
+		}
+	}
+
 	public class DropTargetApi : CollidableApi<TargetComponent, DropTargetColliderComponent, HitTargetData>,
 		IApi, IApiHittable, IApiSwitch, IApiSwitchDevice, IApiDroppable
 	{
@@ -87,6 +109,14 @@ namespace VisualPinball.Unity
 
 			PhysicsEngine.MutateState((ref PhysicsState state) => {
 				ref var dropTargetState = ref state.DropTargetStates.GetValueByRef(ItemId);
+				if (dropTargetState.Static.PhysicsMode == DropTargetPhysicsMode.Mechanical) {
+					if (isDropped) {
+						MechanicalDropTargetPhysics.ForceDrop(ItemId, ref dropTargetState, ref state);
+					} else {
+						MechanicalDropTargetPhysics.BeginReset(ItemId, ref dropTargetState, ref state);
+					}
+					return;
+				}
 				if (dropTargetState.Animation.IsDropped != isDropped) {
 					dropTargetState.Animation.MoveAnimation = true;
 					if (isDropped) {
@@ -103,7 +133,25 @@ namespace VisualPinball.Unity
 
 		private bool IsCurrentlyDropped()
 		{
-			return PhysicsEngine.DropTargetState(ItemId).Animation.IsDropped;
+			ref var state = ref PhysicsEngine.DropTargetState(ItemId);
+			if (state.Static.PhysicsMode != DropTargetPhysicsMode.Mechanical) {
+				return state.Animation.IsDropped;
+			}
+			return IsMechanicalDropped(in state.Mechanical);
+		}
+
+		internal static bool IsMechanicalDropped(in DropTargetMechanicalState state)
+			=> state.DroppedSwitchClosed;
+
+		public bool TryGetMechanicalDiagnostics(out DropTargetMechanicalDiagnostics diagnostics)
+		{
+			ref var state = ref PhysicsEngine.DropTargetState(ItemId);
+			if (state.Static.PhysicsMode != DropTargetPhysicsMode.Mechanical) {
+				diagnostics = default;
+				return false;
+			}
+			diagnostics = new DropTargetMechanicalDiagnostics(in state.Mechanical);
+			return true;
 		}
 
 		#region Wiring
@@ -125,8 +173,35 @@ namespace VisualPinball.Unity
 		protected override void CreateColliders(ref ColliderReference colliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
 			var colliderGenerator = new TargetColliderGenerator(this, translateWithinPlayfieldMatrix);
-			colliderGenerator.GenerateColliders(ref colliders, ColliderComponent.FrontColliderMesh, ItemType.HitTarget, MainComponent);
-			colliderGenerator.GenerateColliders(ref colliders, ColliderComponent.BackColliderMesh, ItemType.Primitive, MainComponent);
+			if (ColliderComponent.PhysicsMode == DropTargetPhysicsMode.RothCompatible) {
+				if (ColliderComponent.CollisionColliderMesh) {
+					colliderGenerator.GenerateColliders(ref colliders, ColliderComponent.FrontColliderMesh, ItemType.Trigger,
+						MainComponent, ColliderRole.DropTargetFrontSensor, true);
+					colliderGenerator.GenerateColliders(ref colliders, ColliderComponent.CollisionColliderMesh, ItemType.HitTarget,
+						MainComponent, ColliderRole.DropTargetPhysicalFace);
+				} else {
+					colliderGenerator.GenerateColliders(ref colliders, ColliderComponent.FrontColliderMesh, ItemType.HitTarget,
+						MainComponent, ColliderRole.DropTargetPhysicalFace);
+				}
+				colliderGenerator.GenerateColliders(ref colliders, ColliderComponent.BackColliderMesh, ItemType.HitTarget,
+					MainComponent, ColliderRole.DropTargetBackFace);
+				return;
+			}
+			if (ColliderComponent.PhysicsMode == DropTargetPhysicsMode.Mechanical) {
+				var physicalMesh = ColliderComponent.CollisionColliderMesh
+					? ColliderComponent.CollisionColliderMesh
+					: ColliderComponent.FrontColliderMesh;
+				colliderGenerator.GenerateColliders(ref colliders, physicalMesh, ItemType.HitTarget,
+					MainComponent, ColliderRole.DropTargetPhysicalFace);
+				colliderGenerator.GenerateColliders(ref colliders, ColliderComponent.BackColliderMesh, ItemType.HitTarget,
+					MainComponent, ColliderRole.DropTargetBackFace);
+				return;
+			}
+
+			colliderGenerator.GenerateColliders(ref colliders, ColliderComponent.FrontColliderMesh, ItemType.HitTarget,
+				MainComponent, ColliderRole.DropTargetPhysicalFace);
+			colliderGenerator.GenerateColliders(ref colliders, ColliderComponent.BackColliderMesh, ItemType.Primitive,
+				MainComponent, ColliderRole.DropTargetBackFace);
 		}
 
 		#endregion

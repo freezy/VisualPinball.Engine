@@ -29,6 +29,7 @@ namespace VisualPinball.Unity
 			if (animation.HitEvent) {
 				if (!animation.IsDropped) {
 					animation.MoveDown = true;
+					animation.TimeStamp = animation.TimeMsec;
 				}
 
 				animation.MoveAnimation = true;
@@ -36,10 +37,12 @@ namespace VisualPinball.Unity
 			}
 
 			if (animation.MoveAnimation) {
-				var step = staticState.Speed;
+				var step = staticState.RaiseSpeed;
 
 				if (animation.MoveDown) {
-					step = -step;
+					step = animation.TimeMsec - animation.TimeStamp < (uint)staticState.DropDelay
+						? 0f
+						: -staticState.DropSpeed;
 
 				} else if (animation.TimeMsec - animation.TimeStamp < (uint) staticState.RaiseDelay) {
 					step = 0.0f;

@@ -66,6 +66,23 @@ namespace VisualPinball.Unity
 			ClearItems(itemId);
 		}
 
+		internal void SetOutsideOfItem(int itemId)
+		{
+			if (!_insideOfs.TryGetValue(itemId, out var bits)) {
+				return;
+			}
+			var ballIds = new FixedList512Bytes<int>();
+			for (var bitIndex = 0; bitIndex < 64; bitIndex++) {
+				if (bits.IsSet(bitIndex) && TryGetBallId(bitIndex, out var ballId)) {
+					ballIds.Add(ballId);
+				}
+			}
+			_insideOfs.Remove(itemId);
+			for (var i = 0; i < ballIds.Length; i++) {
+				ClearBitIndex(ballIds[i]);
+			}
+		}
+
 		internal bool IsInsideOf(int itemId, int ballId)
 		{
 			return _insideOfs.TryGetValue(itemId, out var bits) && bits.IsSet(GetBitIndex(ballId));

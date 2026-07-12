@@ -20,11 +20,13 @@ namespace VisualPinball.Unity
 	{
 		public CollisionEventData CollEvent;
 		public int BallId;
+		public byte Handled;
 
 		public ContactBufferElement(int ballId, CollisionEventData collEvent)
 		{
 			BallId = ballId;
 			CollEvent = collEvent;
+			Handled = 0;
 		}
 	}
 }

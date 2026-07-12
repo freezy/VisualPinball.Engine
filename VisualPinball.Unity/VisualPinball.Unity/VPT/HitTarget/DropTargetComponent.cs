@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.HitTarget;
 using VisualPinball.Engine.VPT.Table;
@@ -105,6 +106,11 @@ namespace VisualPinball.Unity
 			// collision data
 			var colliderComponent = GetComponentInChildren<DropTargetColliderComponent>();
 			if (colliderComponent) {
+				if (forExport && colliderComponent.PhysicsMode != DropTargetPhysicsMode.Legacy) {
+					Debug.LogWarning($"Drop target '{name}' uses {colliderComponent.PhysicsMode} physics. "
+						+ "VPX has no fields for VPE advanced drop-target mechanics; only vanilla target data will be exported.",
+						this);
+				}
 				data.IsCollidable = colliderComponent.enabled;
 				data.Threshold = colliderComponent.Threshold;
 				data.UseHitEvent = colliderComponent.UseHitEvent;
@@ -159,26 +165,61 @@ namespace VisualPinball.Unity
 			var colliderComponent = GetComponent<DropTargetColliderComponent>();
 			var animationComponent = GetComponentInChildren<DropTargetAnimationComponentLegacy>();
 
-			var staticData = colliderComponent && animationComponent
-				? new DropTargetStaticState {
-					Speed = animationComponent.Speed,
-					RaiseDelay = animationComponent.RaiseDelay,
+			var staticData = default(DropTargetStaticState);
+			if (colliderComponent) {
+				var roth = colliderComponent.RothConfig;
+				var rothDropTravel = roth.DropTravel > 0f ? roth.DropTravel : 52f;
+				staticData = new DropTargetStaticState {
+					PhysicsMode = colliderComponent.PhysicsMode,
+					Roth = roth,
+					Mechanical = colliderComponent.ResolvedMechanicalConfig,
+					Center = Position,
+					FaceNormal = FaceNormalFromRotation(Rotation),
+					HasRothSensor = colliderComponent.PhysicsMode == DropTargetPhysicsMode.RothCompatible
+						&& colliderComponent.CollisionColliderMesh,
+					DropSpeed = animationComponent ? animationComponent.Speed : 0f,
+					RaiseSpeed = animationComponent ? animationComponent.Speed : 0f,
+					RaiseDelay = animationComponent ? animationComponent.RaiseDelay : 0f,
 					UseHitEvent = colliderComponent.UseHitEvent,
-				} : default;
+				};
+				if (colliderComponent.PhysicsMode == DropTargetPhysicsMode.RothCompatible) {
+					staticData.DropSpeed = rothDropTravel / math.max(roth.DropDurationMs, 1f);
+					staticData.RaiseSpeed = rothDropTravel / math.max(roth.RaiseDurationMs, 1f);
+					staticData.DropDelay = math.max(roth.DropDelayMs, 0f);
+					staticData.RaiseDelay = math.max(roth.RaiseDelayMs, 0f);
+				}
+			}
 
 			var animationData = colliderComponent && animationComponent
 				? new DropTargetAnimationState {
 					IsDropped = animationComponent.IsDropped,
 					MoveDown = !animationComponent.IsDropped,
-					DropDistance = animationComponent.DropDistance,
-					ZOffset = animationComponent.IsDropped ? -animationComponent.DropDistance : 0f
+					DropDistance = colliderComponent.PhysicsMode == DropTargetPhysicsMode.RothCompatible
+						? math.max(colliderComponent.RothConfig.DropTravel, 1f)
+						: animationComponent.DropDistance,
+					ZOffset = animationComponent.IsDropped
+						? -(colliderComponent.PhysicsMode == DropTargetPhysicsMode.RothCompatible
+							? math.max(colliderComponent.RothConfig.DropTravel, 1f)
+							: animationComponent.DropDistance)
+						: 0f
 				} : default;
-
 			return new DropTargetState(
 				animationComponent ? UnityObjectId.Get(animationComponent.gameObject) : 0,
 				staticData,
 				animationData
-			);
+			) {
+				Mechanical = new DropTargetMechanicalState {
+					State = animationData.IsDropped ? DropTargetMechanismState.Down : DropTargetMechanismState.Latched,
+					D = animationData.IsDropped ? staticData.Mechanical.DropTravel : 0f,
+					DroppedSwitchClosed = animationData.IsDropped,
+				}
+			};
+		}
+
+		internal static float3 FaceNormalFromRotation(float rotation)
+		{
+			var angle = math.radians(rotation + 90f);
+			return new float3(math.cos(angle), math.sin(angle), 0f);
 		}
 
 		#endregion

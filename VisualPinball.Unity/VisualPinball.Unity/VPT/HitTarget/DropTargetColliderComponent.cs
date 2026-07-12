@@ -35,6 +35,21 @@ namespace VisualPinball.Unity
 		[Tooltip("The collider mesh that will be used for the back side of the collider and doesn't trigger anything.")]
 		public Mesh BackColliderMesh;
 
+		[Tooltip("An optional dedicated collision mesh used by advanced drop-target physics.")]
+		public Mesh CollisionColliderMesh;
+
+		[Tooltip("Selects legacy, Roth-compatible, or mechanical drop-target physics. Existing content defaults to Legacy.")]
+		public DropTargetPhysicsMode PhysicsMode = DropTargetPhysicsMode.Legacy;
+
+		[Tooltip("Reusable mechanical parameters. The local overrides are used when this is empty or overrides are enabled.")]
+		public DropTargetPhysicsProfile MechanicalProfile;
+
+		[Tooltip("Use the local mechanical configuration instead of the assigned profile.")]
+		public bool OverrideMechanicalProfile;
+
+		public DropTargetMechanicalConfig MechanicalOverrides = DropTargetMechanicalConfig.Default;
+		public DropTargetRothConfig RothConfig = DropTargetRothConfig.Default;
+
 		[Min(0f)]
 		[Tooltip("Bounciness, also known as coefficient of restitution. Higher is more bouncy.")]
 		public float Elasticity = 0.35f;
@@ -109,12 +124,34 @@ namespace VisualPinball.Unity
 		protected override IApiColliderGenerator InstantiateColliderApi(Player player, PhysicsEngine physicsEngine)
 			=> (MainComponent as DropTargetComponent)?.DropTargetApi ?? new DropTargetApi(gameObject, player, physicsEngine);
 
-		public int NumColliderMeshes => 2;
+		public DropTargetMechanicalConfig ResolvedMechanicalConfig
+			=> MechanicalProfile != null && !OverrideMechanicalProfile
+				? MechanicalProfile.Config
+				: MechanicalOverrides;
+
+		private void OnValidate()
+		{
+			if (PhysicsMode == DropTargetPhysicsMode.Mechanical) {
+				_isKinematic = true;
+			}
+			// Newly added serialized struct fields can be all-zero on existing scene
+			// components. Zero mass/travel is not a valid authored profile, so use it
+			// as the migration sentinel before an author opts into an advanced mode.
+			if (MechanicalOverrides.EffectiveFaceMass <= 0f || MechanicalOverrides.DropTravel <= 0f) {
+				MechanicalOverrides = DropTargetMechanicalConfig.Default;
+			}
+			if (RothConfig.TargetMass <= 0f || RothConfig.DropTravel <= 0f) {
+				RothConfig = DropTargetRothConfig.Default;
+			}
+		}
+
+		public int NumColliderMeshes => 3;
 		public Mesh GetColliderMesh(int index)
 		{
 			return index switch {
 				0 => FrontColliderMesh,
 				1 => BackColliderMesh,
+				2 => CollisionColliderMesh,
 				_ => throw new ArgumentException($"Must be smaller than {NumColliderMeshes}")
 			};
 		}

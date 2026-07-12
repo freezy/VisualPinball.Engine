@@ -30,9 +30,16 @@ namespace VisualPinball.Unity
 
 	public struct DropTargetColliderPackable
 	{
+		public const int CurrentPhysicsSchemaVersion = 1;
+
 		public bool IsMovable;
 		public float Threshold;
 		public bool UseHitEvent;
+		public int PhysicsSchemaVersion;
+		public DropTargetPhysicsMode PhysicsMode;
+		public bool OverrideMechanicalProfile;
+		public DropTargetMechanicalConfig MechanicalOverrides;
+		public DropTargetRothConfig RothConfig;
 
 		public static byte[] Pack(DropTargetColliderComponent comp)
 		{
@@ -40,15 +47,39 @@ namespace VisualPinball.Unity
 				IsMovable = comp._isKinematic,
 				Threshold = comp.Threshold,
 				UseHitEvent = comp.UseHitEvent,
+				PhysicsSchemaVersion = CurrentPhysicsSchemaVersion,
+				PhysicsMode = comp.PhysicsMode,
+				OverrideMechanicalProfile = comp.OverrideMechanicalProfile,
+				MechanicalOverrides = comp.MechanicalOverrides,
+				RothConfig = comp.RothConfig,
 			});
 		}
 
 		public static void Unpack(byte[] bytes, DropTargetColliderComponent comp)
 		{
 			var data = PackageApi.Packer.Unpack<DropTargetColliderPackable>(bytes);
+			ApplySchemaDefaults(ref data);
 			comp._isKinematic = data.IsMovable;
 			comp.Threshold = data.Threshold;
 			comp.UseHitEvent = data.UseHitEvent;
+			comp.PhysicsMode = data.PhysicsMode;
+			comp.OverrideMechanicalProfile = data.OverrideMechanicalProfile;
+			comp.MechanicalOverrides = data.MechanicalOverrides;
+			comp.RothConfig = data.RothConfig;
+			if (comp.PhysicsMode == DropTargetPhysicsMode.Mechanical) {
+				comp._isKinematic = true;
+			}
+		}
+
+		internal static void ApplySchemaDefaults(ref DropTargetColliderPackable data)
+		{
+			if (data.PhysicsSchemaVersion > 0) {
+				return;
+			}
+			data.PhysicsMode = DropTargetPhysicsMode.Legacy;
+			data.OverrideMechanicalProfile = false;
+			data.MechanicalOverrides = DropTargetMechanicalConfig.Default;
+			data.RothConfig = DropTargetRothConfig.Default;
 		}
 	}
 
@@ -57,6 +88,8 @@ namespace VisualPinball.Unity
 		public PhysicalMaterialPackable PhysicalMaterial;
 		public string FrontColliderMeshGuid;
 		public string BackColliderMeshGuid;
+		public string CollisionColliderMeshGuid;
+		public int MechanicalProfileAssetRef;
 
 		public static byte[] PackReferences(DropTargetColliderComponent comp, PackagedFiles files)
 		{
@@ -70,7 +103,9 @@ namespace VisualPinball.Unity
 					AssetRef = files.AddAsset(comp.PhysicsMaterial),
 				},
 				FrontColliderMeshGuid = files.GetColliderMeshGuid(comp, 0),
-				BackColliderMeshGuid = files.GetColliderMeshGuid(comp, 1)
+				BackColliderMeshGuid = files.GetColliderMeshGuid(comp, 1),
+				CollisionColliderMeshGuid = files.GetColliderMeshGuid(comp, 2),
+				MechanicalProfileAssetRef = files.AddAsset(comp.MechanicalProfile),
 			});
 		}
 
@@ -85,6 +120,8 @@ namespace VisualPinball.Unity
 			comp.PhysicsMaterial = files.GetAsset<PhysicsMaterialAsset>(data.PhysicalMaterial.AssetRef);
 			comp.FrontColliderMesh = files.GetColliderMesh(data.FrontColliderMeshGuid, 0);
 			comp.BackColliderMesh = files.GetColliderMesh(data.BackColliderMeshGuid, 1);
+			comp.CollisionColliderMesh = files.GetColliderMesh(data.CollisionColliderMeshGuid, 2);
+			comp.MechanicalProfile = files.GetAsset<DropTargetPhysicsProfile>(data.MechanicalProfileAssetRef);
 		}
 	}
 

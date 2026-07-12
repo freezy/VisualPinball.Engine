@@ -20,7 +20,16 @@ namespace VisualPinball.Unity
 {
 	internal struct DropTargetStaticState
 	{
-		public float Speed;
+		public DropTargetPhysicsMode PhysicsMode;
+		public DropTargetRothConfig Roth;
+		public DropTargetMechanicalConfig Mechanical;
+		public float3 Center;
+		public float3 FaceNormal;
+		public bool HasRothSensor;
+
+		public float DropSpeed;
+		public float RaiseSpeed;
+		public float DropDelay;
 		public float RaiseDelay;
 		public bool UseHitEvent;
 	}
