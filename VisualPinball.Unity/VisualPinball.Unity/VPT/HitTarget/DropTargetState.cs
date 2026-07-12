@@ -29,6 +29,8 @@ namespace VisualPinball.Unity
 			AnimatedItemId = animatedItemId;
 			Static = @static;
 			Animation = animation;
+			Mechanical = default;
+			RothHitCounter = 0;
 		}
 	}
 }

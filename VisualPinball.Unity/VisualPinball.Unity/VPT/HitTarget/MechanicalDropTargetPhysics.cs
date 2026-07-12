@@ -14,15 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Collections;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
+using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
 {
 	internal static class MechanicalDropTargetPhysics
 	{
 		private const int StopRootIterations = 8;
+		private const int ContactSolverIterations = 24;
+		private const float MillisecondsPerInternalTime = PhysicsConstants.DefaultStepTimeS * 1000f;
 
 		internal static float3 SurfaceVelocity(in DropTargetStaticState staticState,
 			in DropTargetMechanicalState mechanical)
@@ -48,12 +52,16 @@ namespace VisualPinball.Unity
 			}
 
 			var jq = math.dot(deflectionAxis, normal);
+			var isResetStroke = mechanical.State == DropTargetMechanismState.Resetting
+				|| mechanical.State == DropTargetMechanismState.Settling;
 			var dIsFree = mechanical.State == DropTargetMechanismState.Released
 				|| mechanical.State == DropTargetMechanismState.Dropping
-				|| mechanical.State == DropTargetMechanismState.ForcedDrop;
+				|| mechanical.State == DropTargetMechanismState.ForcedDrop
+				|| isResetStroke;
 			var jd = dIsFree ? math.dot(downAxis, normal) : 0f;
 			var invQMass = 1f / config.EffectiveFaceMass;
-			var invDMass = dIsFree && config.DropMass > 0f ? 1f / config.DropMass : 0f;
+			var dMass = isResetStroke ? config.ResetEffectiveMass : config.DropMass;
+			var invDMass = dIsFree && dMass > 0f ? 1f / dMass : 0f;
 			var ballAngularTerm = math.dot(normal,
 				math.cross(math.cross(contactOffset, normal) / ball.Inertia, contactOffset));
 			var normalMass = ball.InvMass + ballAngularTerm + jq * jq * invQMass + jd * jd * invDMass;
@@ -91,6 +99,188 @@ namespace VisualPinball.Unity
 			}
 
 			return new DropTargetImpactResult(true, normalImpulse, tangentImpulse);
+		}
+
+		internal static void ResolveImpactGroup(ref NativeList<MechanicalDropTargetContact> contacts,
+			ref DropTargetMechanicalState mechanical, in DropTargetStaticState staticState)
+		{
+			if (contacts.Length == 0) {
+				return;
+			}
+
+			var config = staticState.Mechanical;
+			if (config.EffectiveFaceMass <= 0f) {
+				return;
+			}
+			var deflectionAxis = -math.normalizesafe(staticState.FaceNormal);
+			var downAxis = new float3(0f, 0f, -1f);
+			var isResetStroke = mechanical.State == DropTargetMechanismState.Resetting
+				|| mechanical.State == DropTargetMechanismState.Settling;
+			var dIsFree = mechanical.State == DropTargetMechanismState.Released
+				|| mechanical.State == DropTargetMechanismState.Dropping
+				|| mechanical.State == DropTargetMechanismState.ForcedDrop
+				|| isResetStroke;
+			var dMass = isResetStroke ? config.ResetEffectiveMass : config.DropMass;
+			var invQMass = 1f / config.EffectiveFaceMass;
+			var invDMass = dIsFree && dMass > 0f ? 1f / dMass : 0f;
+
+			for (var i = 0; i < contacts.Length; i++) {
+				ref var contact = ref contacts.GetElementAsRef(i);
+				contact.Normal = math.normalizesafe(contact.Normal);
+				var contactOffset = -contact.Ball.Radius * contact.Normal;
+				var relativeVelocity = BallState.SurfaceVelocity(in contact.Ball, in contactOffset)
+					- SurfaceVelocity(in staticState, in mechanical);
+				var normalVelocity = math.dot(relativeVelocity, contact.Normal);
+				var tangentVelocity = relativeVelocity - contact.Normal * normalVelocity;
+				var tangentSpeed = math.length(tangentVelocity);
+				contact.ApproachSpeed = -normalVelocity;
+				contact.Applied = normalVelocity < -PhysicsConstants.LowNormVel
+					&& contact.Ball.Mass > 0f ? (byte)1 : (byte)0;
+				contact.HasTangent = tangentSpeed > 1e-5f ? (byte)1 : (byte)0;
+				contact.Tangent = contact.HasTangent != 0 ? tangentVelocity / tangentSpeed : float3.zero;
+				contact.NormalImpulse = 0f;
+				contact.TangentImpulse = 0f;
+			}
+
+			for (var iteration = 0; iteration < ContactSolverIterations; iteration++) {
+				for (var i = 0; i < contacts.Length; i++) {
+					ref var contact = ref contacts.GetElementAsRef(i);
+					if (contact.Applied == 0) {
+						continue;
+					}
+					var normal = contact.Normal;
+					var contactOffset = -contact.Ball.Radius * normal;
+					var jq = math.dot(deflectionAxis, normal);
+					var jd = dIsFree ? math.dot(downAxis, normal) : 0f;
+					var ballAngularTerm = math.dot(normal,
+						math.cross(math.cross(contactOffset, normal) / contact.Ball.Inertia, contactOffset));
+					var effectiveInvMass = contact.Ball.InvMass + ballAngularTerm
+						+ jq * jq * invQMass + jd * jd * invDMass;
+					if (effectiveInvMass <= 0f) {
+						continue;
+					}
+
+					var relativeVelocity = BallState.SurfaceVelocity(in contact.Ball, in contactOffset)
+						- SurfaceVelocity(in staticState, in mechanical);
+					var desiredVelocity = math.clamp(contact.Restitution, 0f, 1f) * contact.ApproachSpeed;
+					var impulseDelta = (desiredVelocity - math.dot(relativeVelocity, normal))
+						/ effectiveInvMass;
+					var accumulatedImpulse = math.max(contact.NormalImpulse + impulseDelta, 0f);
+					impulseDelta = accumulatedImpulse - contact.NormalImpulse;
+					contact.NormalImpulse = accumulatedImpulse;
+					ApplyGroupImpulse(ref contact.Ball, ref mechanical, in deflectionAxis, in downAxis,
+						in normal, in contactOffset, impulseDelta, dIsFree, invQMass, invDMass);
+				}
+			}
+
+			for (var iteration = 0; iteration < ContactSolverIterations; iteration++) {
+				for (var i = 0; i < contacts.Length; i++) {
+					ref var contact = ref contacts.GetElementAsRef(i);
+					if (contact.Applied == 0 || contact.HasTangent == 0
+						|| contact.Friction <= 0f || contact.NormalImpulse <= 0f) {
+						continue;
+					}
+					var normal = contact.Normal;
+					var contactOffset = -contact.Ball.Radius * normal;
+					var relativeVelocity = BallState.SurfaceVelocity(in contact.Ball, in contactOffset)
+						- SurfaceVelocity(in staticState, in mechanical);
+					var tangent = contact.Tangent;
+					var jq = math.dot(deflectionAxis, tangent);
+					var jd = dIsFree ? math.dot(downAxis, tangent) : 0f;
+					var ballAngularTerm = math.dot(tangent,
+						math.cross(math.cross(contactOffset, tangent) / contact.Ball.Inertia, contactOffset));
+					var effectiveInvMass = contact.Ball.InvMass + ballAngularTerm
+						+ jq * jq * invQMass + jd * jd * invDMass;
+					if (effectiveInvMass <= 0f) {
+						continue;
+					}
+
+					var impulseDelta = -math.dot(relativeVelocity, tangent) / effectiveInvMass;
+					var limit = contact.Friction * contact.NormalImpulse;
+					var accumulatedImpulse = math.clamp(contact.TangentImpulse + impulseDelta, -limit, limit);
+					impulseDelta = accumulatedImpulse - contact.TangentImpulse;
+					contact.TangentImpulse = accumulatedImpulse;
+					ApplyGroupImpulse(ref contact.Ball, ref mechanical, in deflectionAxis, in downAxis,
+						in tangent, in contactOffset, impulseDelta, dIsFree, invQMass, invDMass);
+				}
+			}
+		}
+
+		internal static DropTargetImpactResult ResolveContact(ref BallState ball,
+			ref DropTargetMechanicalState mechanical, in DropTargetStaticState staticState,
+			in float3 contactNormal, in float3 gravity, float dt, float friction)
+		{
+			var config = staticState.Mechanical;
+			var normal = math.normalizesafe(contactNormal);
+			var contactOffset = -ball.Radius * normal;
+			var deflectionAxis = -math.normalizesafe(staticState.FaceNormal);
+			var downAxis = new float3(0f, 0f, -1f);
+			var dMass = config.ResetEffectiveMass;
+			if (ball.Mass <= 0f || config.EffectiveFaceMass <= 0f || dMass <= 0f) {
+				return default;
+			}
+
+			var jq = math.dot(deflectionAxis, normal);
+			var jd = math.dot(downAxis, normal);
+			var invQMass = 1f / config.EffectiveFaceMass;
+			var invDMass = 1f / dMass;
+			var ballAngularTerm = math.dot(normal,
+				math.cross(math.cross(contactOffset, normal) / ball.Inertia, contactOffset));
+			var effectiveInvMass = ball.InvMass + ballAngularTerm
+				+ jq * jq * invQMass + jd * jd * invDMass;
+			if (effectiveInvMass <= 0f) {
+				return default;
+			}
+
+			var relativeVelocity = BallState.SurfaceVelocity(in ball, in contactOffset)
+				- SurfaceVelocity(in staticState, in mechanical);
+			var closingVelocity = math.dot(relativeVelocity, normal)
+				+ math.dot(gravity, normal) * math.max(dt, 0f);
+			var normalImpulse = math.max(-closingVelocity / effectiveInvMass, 0f);
+			if (normalImpulse <= 0f) {
+				return default;
+			}
+			ApplyGroupImpulse(ref ball, ref mechanical, in deflectionAxis, in downAxis,
+				in normal, in contactOffset, normalImpulse, true, invQMass, invDMass);
+
+			var postRelativeVelocity = BallState.SurfaceVelocity(in ball, in contactOffset)
+				- SurfaceVelocity(in staticState, in mechanical);
+			var tangentVelocity = postRelativeVelocity - normal * math.dot(postRelativeVelocity, normal);
+			var tangentSpeed = math.length(tangentVelocity);
+			var tangentImpulse = 0f;
+			if (tangentSpeed > 1e-5f && friction > 0f) {
+				var tangent = tangentVelocity / tangentSpeed;
+				var jtq = math.dot(deflectionAxis, tangent);
+				var jtd = math.dot(downAxis, tangent);
+				var tangentAngularTerm = math.dot(tangent,
+					math.cross(math.cross(contactOffset, tangent) / ball.Inertia, contactOffset));
+				var tangentInvMass = ball.InvMass + tangentAngularTerm
+					+ jtq * jtq * invQMass + jtd * jtd * invDMass;
+				if (tangentInvMass > 0f) {
+					tangentImpulse = math.clamp(-tangentSpeed / tangentInvMass,
+						-friction * normalImpulse, friction * normalImpulse);
+					ApplyGroupImpulse(ref ball, ref mechanical, in deflectionAxis, in downAxis,
+						in tangent, in contactOffset, tangentImpulse, true, invQMass, invDMass);
+				}
+			}
+
+			return new DropTargetImpactResult(true, normalImpulse, tangentImpulse);
+		}
+
+		private static void ApplyGroupImpulse(ref BallState ball,
+			ref DropTargetMechanicalState mechanical, in float3 deflectionAxis, in float3 downAxis,
+			in float3 direction, in float3 contactOffset, float impulseMagnitude, bool dIsFree,
+			float invQMass, float invDMass)
+		{
+			if (impulseMagnitude == 0f) {
+				return;
+			}
+			var impulse = direction * impulseMagnitude;
+			ball.ApplySurfaceImpulse(math.cross(contactOffset, impulse), impulse);
+			mechanical.QDot -= math.dot(deflectionAxis, direction) * impulseMagnitude * invQMass;
+			if (dIsFree) {
+				mechanical.DDot -= math.dot(downAxis, direction) * impulseMagnitude * invDMass;
+			}
 		}
 
 		internal static bool UpdateAll(ref PhysicsState state, float dt)
@@ -137,9 +327,16 @@ namespace VisualPinball.Unity
 		{
 			ref var mechanical = ref target.Mechanical;
 			var config = target.Static.Mechanical;
-			if (mechanical.State == DropTargetMechanismState.Down
-				|| mechanical.State == DropTargetMechanismState.Resetting) {
+			if (mechanical.State == DropTargetMechanismState.Down) {
 				target.Animation.ZOffset = -mechanical.D;
+				return;
+			}
+			if (mechanical.State == DropTargetMechanismState.Resetting) {
+				IntegrateReset(itemId, ref target, dt, ref state);
+				return;
+			}
+			if (mechanical.State == DropTargetMechanismState.Settling) {
+				IntegrateSettle(itemId, ref target, dt, ref state);
 				return;
 			}
 
@@ -186,6 +383,45 @@ namespace VisualPinball.Unity
 				mechanical.HitEventFired = false;
 			}
 			target.Animation.ZOffset = -mechanical.D;
+		}
+
+		internal static void BeginReset(int itemId, ref DropTargetState target, ref PhysicsState state)
+		{
+			ref var mechanical = ref target.Mechanical;
+			if (mechanical.State == DropTargetMechanismState.Latched) {
+				return;
+			}
+
+			mechanical.State = DropTargetMechanismState.Resetting;
+			mechanical.ResetStartD = mechanical.D;
+			mechanical.ResetElapsedMs = 0f;
+			mechanical.SettleElapsedMs = 0f;
+			mechanical.Q = 0f;
+			mechanical.QDot = 0f;
+			mechanical.DDot = 0f;
+			target.Animation.IsDropped = false;
+			target.Animation.MoveAnimation = false;
+			target.Animation.HitEvent = false;
+			state.EnableColliders(itemId);
+		}
+
+		internal static void ForceDrop(int itemId, ref DropTargetState target, ref PhysicsState state)
+		{
+			ref var mechanical = ref target.Mechanical;
+			if (mechanical.State == DropTargetMechanismState.Down) {
+				return;
+			}
+
+			mechanical.State = DropTargetMechanismState.ForcedDrop;
+			mechanical.LastImpactOutcome = DropTargetImpactOutcome.ForcedDrop;
+			mechanical.ResetElapsedMs = 0f;
+			mechanical.SettleElapsedMs = 0f;
+			mechanical.D = math.max(mechanical.D, 0f);
+			mechanical.DDot = math.max(mechanical.DDot, 0f);
+			target.Animation.IsDropped = false;
+			target.Animation.MoveAnimation = false;
+			target.Animation.HitEvent = false;
+			state.EnableColliders(itemId);
 		}
 
 		internal static void IntegrateRearWithStop(ref DropTargetMechanicalState state,
@@ -284,6 +520,81 @@ namespace VisualPinball.Unity
 			var acceleration = math.dot(gravity, downAxis) + drive / config.DropMass;
 			state.DDot += acceleration * dt;
 			state.D = math.max(0f, state.D + state.DDot * dt);
+		}
+
+		private static void IntegrateReset(int itemId, ref DropTargetState target, float dt,
+			ref PhysicsState state)
+		{
+			ref var mechanical = ref target.Mechanical;
+			var config = target.Static.Mechanical;
+			var previousD = mechanical.D;
+			mechanical.ResetElapsedMs += math.max(dt, 0f) * MillisecondsPerInternalTime;
+			var progress = config.ResetDurationMs <= 0f
+				? 1f
+				: math.saturate(mechanical.ResetElapsedMs / config.ResetDurationMs);
+			var smoothProgress = MinimumJerk(progress);
+			mechanical.D = math.lerp(mechanical.ResetStartD, -math.max(config.ResetOvershootTravel, 0f),
+				smoothProgress);
+			mechanical.DDot = dt > 0f ? (mechanical.D - previousD) / dt : 0f;
+			FireRaisedCrossing(itemId, ref target, ref state);
+
+			if (progress >= 1f) {
+				mechanical.State = DropTargetMechanismState.Settling;
+				mechanical.SettleElapsedMs = 0f;
+			}
+			target.Animation.ZOffset = -mechanical.D;
+		}
+
+		private static void IntegrateSettle(int itemId, ref DropTargetState target, float dt,
+			ref PhysicsState state)
+		{
+			ref var mechanical = ref target.Mechanical;
+			var config = target.Static.Mechanical;
+			var previousD = mechanical.D;
+			mechanical.SettleElapsedMs += math.max(dt, 0f) * MillisecondsPerInternalTime;
+			var progress = config.ResetSettleDelayMs <= 0f
+				? 1f
+				: math.saturate(mechanical.SettleElapsedMs / config.ResetSettleDelayMs);
+			mechanical.D = math.lerp(-math.max(config.ResetOvershootTravel, 0f), 0f,
+				MinimumJerk(progress));
+			mechanical.DDot = dt > 0f ? (mechanical.D - previousD) / dt : 0f;
+			FireRaisedCrossing(itemId, ref target, ref state);
+
+			if (progress >= 1f) {
+				mechanical.State = DropTargetMechanismState.Latched;
+				mechanical.Q = 0f;
+				mechanical.QDot = 0f;
+				mechanical.D = 0f;
+				mechanical.DDot = 0f;
+				mechanical.ResetStartD = 0f;
+				mechanical.ResetElapsedMs = 0f;
+				mechanical.SettleElapsedMs = 0f;
+				mechanical.DroppedSwitchClosed = false;
+				mechanical.HitEventFired = false;
+				target.Animation.IsDropped = false;
+				target.Animation.MoveAnimation = false;
+			}
+			target.Animation.ZOffset = -mechanical.D;
+		}
+
+		private static void FireRaisedCrossing(int itemId, ref DropTargetState target,
+			ref PhysicsState state)
+		{
+			ref var mechanical = ref target.Mechanical;
+			if (!mechanical.DroppedSwitchClosed
+				|| mechanical.D > target.Static.Mechanical.RaisedSwitchTravel) {
+				return;
+			}
+
+			mechanical.DroppedSwitchClosed = false;
+			if (target.Static.UseHitEvent) {
+				state.EventQueue.Enqueue(new EventData(EventId.TargetEventsRaised, itemId));
+			}
+		}
+
+		private static float MinimumJerk(float t)
+		{
+			return t * t * t * (10f + t * (-15f + 6f * t));
 		}
 
 		private static void PublishPose(int itemId, ref DropTargetState target, ref PhysicsState state)

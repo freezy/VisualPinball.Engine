@@ -48,6 +48,22 @@ namespace VisualPinball.Unity
 			var preImpactVelocity = ball.Velocity;
 			var hitNormal = math.normalizesafe(collEvent.HitNormal);
 			var faceAlignment = math.abs(math.dot(hitNormal, math.normalizesafe(target.Static.FaceNormal)));
+			var isResetContact = target.Mechanical.State == DropTargetMechanismState.Resetting
+				|| target.Mechanical.State == DropTargetMechanismState.Settling;
+			if (isResetContact) {
+				var resetApproachSpeed = -math.dot(preImpactVelocity
+					- MechanicalDropTargetPhysics.SurfaceVelocity(in target.Static, in target.Mechanical), hitNormal);
+				var resetRestitution = ResolveElasticity(in collHeader.Material, in collEvent,
+					resetApproachSpeed, ref state);
+				var resetFriction = ResolveFriction(in collHeader.Material, in collEvent,
+					resetApproachSpeed, ref state);
+				var resetResult = MechanicalDropTargetPhysics.ResolveImpact(ref ball, ref target.Mechanical,
+					in target.Static, in hitNormal, resetRestitution, resetFriction);
+				if (resetResult.Applied) {
+					DisplaceBallFromTarget(ref ball, in collEvent, in hitNormal);
+				}
+				return;
+			}
 			if (collHeader.Role != ColliderRole.DropTargetPhysicalFace || faceAlignment < 0.5f) {
 				BallCollider.Collide3DWall(ref ball, in collHeader.Material, in collEvent, in normal, ref state);
 				if (collHeader.Role == ColliderRole.DropTargetBackFace) {
@@ -76,9 +92,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			var hDist = math.clamp(-PhysicsConstants.DispGain * collEvent.HitDistance,
-				0f, PhysicsConstants.DispLimit);
-			ball.Position += hitNormal * hDist;
+			DisplaceBallFromTarget(ref ball, in collEvent, in hitNormal);
 			if (!target.Mechanical.HitEventFired
 				&& approachSpeed >= collHeader.Threshold
 				&& result.NormalImpulse >= target.Static.Mechanical.MinimumFaceImpulse) {
@@ -87,7 +101,36 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private static float ResolveElasticity(in PhysicsMaterialData material,
+		private static void DisplaceBallFromTarget(ref BallState ball,
+			in CollisionEventData collEvent, in float3 hitNormal)
+		{
+			var hDist = math.clamp(-PhysicsConstants.DispGain * collEvent.HitDistance,
+				0f, PhysicsConstants.DispLimit);
+			ball.Position += hitNormal * hDist;
+		}
+
+		internal static void CompleteMechanicalImpact(ref BallState ball, ref DropTargetState target,
+			in CollisionEventData collEvent, in ColliderHeader collHeader, float approachSpeed,
+			float normalImpulse, ref NativeQueue<EventData>.ParallelWriter hitEvents)
+		{
+			if (normalImpulse <= 0f) {
+				return;
+			}
+			var hitNormal = math.normalizesafe(collEvent.HitNormal);
+			DisplaceBallFromTarget(ref ball, in collEvent, in hitNormal);
+			if (target.Mechanical.State == DropTargetMechanismState.Resetting
+				|| target.Mechanical.State == DropTargetMechanismState.Settling) {
+				return;
+			}
+			if (!target.Mechanical.HitEventFired
+				&& approachSpeed >= collHeader.Threshold
+				&& normalImpulse >= target.Static.Mechanical.MinimumFaceImpulse) {
+				target.Mechanical.HitEventFired = true;
+				FireDropTargetHit(ref ball, ref hitEvents, in collHeader);
+			}
+		}
+
+		internal static float ResolveElasticity(in PhysicsMaterialData material,
 			in CollisionEventData collEvent, float speed, ref PhysicsState state)
 		{
 			if (!material.UseElasticityOverVelocity) {
@@ -100,7 +143,7 @@ namespace VisualPinball.Unity
 			return state.ElasticityOverVelocityLUTs[itemId].InterpolateLUT(0f, 63f, math.abs(speed));
 		}
 
-		private static float ResolveFriction(in PhysicsMaterialData material,
+		internal static float ResolveFriction(in PhysicsMaterialData material,
 			in CollisionEventData collEvent, float speed, ref PhysicsState state)
 		{
 			if (!material.UseFrictionOverVelocity) {

@@ -48,8 +48,11 @@ namespace VisualPinball.Unity
 		internal float QDot;
 		internal float D;
 		internal float DDot;
-		internal bool DroppedSwitchClosed; // reset path must re-arm this after the raised crossing
-		internal bool HitEventFired; // reset path must re-arm this before returning to Latched
+		internal float ResetStartD;
+		internal float ResetElapsedMs;
+		internal float SettleElapsedMs;
+		internal bool DroppedSwitchClosed;
+		internal bool HitEventFired;
 		internal bool PoseInitialized;
 		internal float4x4 BaseTransform;
 		internal int EventLimitTrips;
@@ -67,5 +70,20 @@ namespace VisualPinball.Unity
 			NormalImpulse = normalImpulse;
 			TangentImpulse = tangentImpulse;
 		}
+	}
+
+	internal struct MechanicalDropTargetContact
+	{
+		internal int BallId;
+		internal BallState Ball;
+		internal float3 Normal;
+		internal float3 Tangent;
+		internal float Restitution;
+		internal float Friction;
+		internal float ApproachSpeed;
+		internal float NormalImpulse;
+		internal float TangentImpulse;
+		internal byte Applied;
+		internal byte HasTangent;
 	}
 }

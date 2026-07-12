@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using NUnit.Framework;
+using Unity.Collections;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 
@@ -158,6 +159,129 @@ namespace VisualPinball.Unity.Test
 			Assert.That(target.Mechanical.State, Is.EqualTo(DropTargetMechanismState.Latched));
 			Assert.That(target.Mechanical.LastImpactOutcome, Is.EqualTo(DropTargetImpactOutcome.BrickRelatch));
 			Assert.That(target.Mechanical.D, Is.EqualTo(0f));
+		}
+
+		[Test]
+		public void ResetStrokePublishesUpwardSurfaceVelocity()
+		{
+			var target = CreateTargetState();
+			target.Mechanical.State = DropTargetMechanismState.Resetting;
+			target.Mechanical.D = target.Static.Mechanical.DropTravel;
+			target.Mechanical.ResetStartD = target.Mechanical.D;
+			target.Mechanical.DroppedSwitchClosed = true;
+			var state = new PhysicsState();
+
+			MechanicalDropTargetPhysics.Step(1, ref target, float3.zero,
+				PhysicsConstants.PhysFactor, ref state);
+
+			Assert.That(target.Mechanical.D, Is.LessThan(target.Static.Mechanical.DropTravel));
+			Assert.That(target.Mechanical.DDot, Is.LessThan(0f));
+			Assert.That(MechanicalDropTargetPhysics.SurfaceVelocity(in target.Static,
+				in target.Mechanical).z, Is.GreaterThan(0f));
+		}
+
+		[Test]
+		public void ResetContactUsesFiniteResetMass()
+		{
+			var target = CreateTargetState();
+			target.Mechanical.State = DropTargetMechanismState.Resetting;
+			target.Mechanical.DDot = -10f;
+			var ball = new BallState {
+				Mass = 1f,
+				Radius = 25f,
+			};
+
+			var result = MechanicalDropTargetPhysics.ResolveImpact(ref ball, ref target.Mechanical,
+				in target.Static, new float3(0f, 0f, 1f), 0f, 0f);
+
+			Assert.That(result.Applied, Is.True);
+			Assert.That(ball.Velocity.z, Is.EqualTo(5f).Within(Tolerance));
+			Assert.That(target.Mechanical.DDot, Is.EqualTo(-5f).Within(Tolerance));
+		}
+
+		[Test]
+		public void SustainedResetContactSharesGravitySupportWithResetMass()
+		{
+			var target = CreateTargetState();
+			target.Mechanical.State = DropTargetMechanismState.Resetting;
+			var ball = new BallState {
+				Mass = 1f,
+				Radius = 25f,
+			};
+
+			var result = MechanicalDropTargetPhysics.ResolveContact(ref ball,
+				ref target.Mechanical, in target.Static, new float3(0f, 0f, 1f),
+				new float3(0f, 0f, -1f), PhysicsConstants.PhysFactor, 0f);
+
+			Assert.That(result.Applied, Is.True);
+			Assert.That(ball.Velocity.z, Is.EqualTo(0.05f).Within(Tolerance));
+			Assert.That(target.Mechanical.DDot, Is.EqualTo(0.05f).Within(Tolerance));
+		}
+
+		[Test]
+		public void CompletedResetRelatchesAndRearmsEvents()
+		{
+			var target = CreateTargetState();
+			target.Mechanical.State = DropTargetMechanismState.Resetting;
+			target.Mechanical.D = target.Static.Mechanical.DropTravel;
+			target.Mechanical.ResetStartD = target.Mechanical.D;
+			target.Mechanical.DroppedSwitchClosed = true;
+			target.Mechanical.HitEventFired = true;
+			var state = new PhysicsState();
+
+			for (var i = 0; i < 60; i++) {
+				MechanicalDropTargetPhysics.Step(1, ref target, float3.zero,
+					PhysicsConstants.PhysFactor, ref state);
+			}
+
+			Assert.That(target.Mechanical.State, Is.EqualTo(DropTargetMechanismState.Latched));
+			Assert.That(target.Mechanical.Q, Is.EqualTo(0f));
+			Assert.That(target.Mechanical.QDot, Is.EqualTo(0f));
+			Assert.That(target.Mechanical.D, Is.EqualTo(0f));
+			Assert.That(target.Mechanical.DDot, Is.EqualTo(0f));
+			Assert.That(target.Mechanical.DroppedSwitchClosed, Is.False);
+			Assert.That(target.Mechanical.HitEventFired, Is.False);
+		}
+
+		[Test]
+		public void SimultaneousTwoBallGroupSharesTargetMomentumSymmetrically()
+		{
+			var target = CreateTargetState();
+			var ball = new BallState {
+				Mass = 1f,
+				Radius = 25f,
+				Velocity = new float3(-30f, 0f, 0f),
+			};
+			var contacts = new NativeList<MechanicalDropTargetContact>(Allocator.Temp);
+			try {
+				contacts.Add(new MechanicalDropTargetContact {
+					BallId = 1,
+					Ball = ball,
+					Normal = new float3(1f, 0f, 0f),
+					Restitution = 0.35f,
+				});
+				contacts.Add(new MechanicalDropTargetContact {
+					BallId = 2,
+					Ball = ball,
+					Normal = new float3(1f, 0f, 0f),
+					Restitution = 0.35f,
+				});
+
+				MechanicalDropTargetPhysics.ResolveImpactGroup(ref contacts,
+					ref target.Mechanical, in target.Static);
+
+				Assert.That(contacts[0].Applied, Is.EqualTo(1));
+				Assert.That(contacts[1].Applied, Is.EqualTo(1));
+				Assert.That(contacts[0].NormalImpulse, Is.GreaterThan(0f));
+				Assert.That(contacts[1].NormalImpulse, Is.GreaterThan(0f));
+				Assert.That(contacts[0].NormalImpulse,
+					Is.EqualTo(contacts[1].NormalImpulse).Within(0.01f));
+				Assert.That(contacts[0].Ball.Velocity.x,
+					Is.EqualTo(contacts[1].Ball.Velocity.x).Within(0.01f));
+				Assert.That(math.isfinite(target.Mechanical.QDot), Is.True);
+			} finally {
+				contacts.Dispose();
+			}
 		}
 
 		private static DropTargetState CreateTargetState()

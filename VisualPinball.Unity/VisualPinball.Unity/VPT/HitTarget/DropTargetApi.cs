@@ -87,6 +87,14 @@ namespace VisualPinball.Unity
 
 			PhysicsEngine.MutateState((ref PhysicsState state) => {
 				ref var dropTargetState = ref state.DropTargetStates.GetValueByRef(ItemId);
+				if (dropTargetState.Static.PhysicsMode == DropTargetPhysicsMode.Mechanical) {
+					if (isDropped) {
+						MechanicalDropTargetPhysics.ForceDrop(ItemId, ref dropTargetState, ref state);
+					} else {
+						MechanicalDropTargetPhysics.BeginReset(ItemId, ref dropTargetState, ref state);
+					}
+					return;
+				}
 				if (dropTargetState.Animation.IsDropped != isDropped) {
 					dropTargetState.Animation.MoveAnimation = true;
 					if (isDropped) {
@@ -103,7 +111,13 @@ namespace VisualPinball.Unity
 
 		private bool IsCurrentlyDropped()
 		{
-			return PhysicsEngine.DropTargetState(ItemId).Animation.IsDropped;
+			ref var state = ref PhysicsEngine.DropTargetState(ItemId);
+			if (state.Static.PhysicsMode != DropTargetPhysicsMode.Mechanical) {
+				return state.Animation.IsDropped;
+			}
+			return state.Mechanical.State == DropTargetMechanismState.Down
+				|| state.Mechanical.State == DropTargetMechanismState.Resetting
+				|| state.Mechanical.State == DropTargetMechanismState.Settling;
 		}
 
 		#region Wiring
