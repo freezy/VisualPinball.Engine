@@ -167,6 +167,21 @@ namespace VisualPinball.Engine.IO.FuturePinball
 			return record == null ? new FuturePinballVector2() : Vector2(record);
 		}
 
+		public static bool ContainsPoint(FuturePinballSourceStream element, FuturePinballVector2 point, float edgeTolerance = 0.001f)
+		{
+			var polygon = Points(element).Select(item => item.Position).ToArray();
+			if (polygon.Length < 3) return false;
+			var inside = false;
+			for (var i = 0; i < polygon.Length; i++) {
+				var j = i == 0 ? polygon.Length - 1 : i - 1;
+				if (PointOnSegment(point, polygon[j], polygon[i], edgeTolerance)) return true;
+				if ((polygon[i].Y > point.Y) != (polygon[j].Y > point.Y)
+					&& point.X < (polygon[j].X - polygon[i].X) * (point.Y - polygon[i].Y)
+					/ (polygon[j].Y - polygon[i].Y) + polygon[i].X) inside = !inside;
+			}
+			return inside;
+		}
+
 		public static string Text(FuturePinballSourceStream stream, uint tag, string fallback = "")
 		{
 			var record = Find(stream, tag);
@@ -211,6 +226,23 @@ namespace VisualPinball.Engine.IO.FuturePinball
 			return record.Payload.Length >= 8
 				? new FuturePinballVector2(ReadSingle(record.Payload.Span), ReadSingle(record.Payload.Span.Slice(4)))
 				: new FuturePinballVector2();
+		}
+
+		private static bool PointOnSegment(FuturePinballVector2 point, FuturePinballVector2 a, FuturePinballVector2 b, float tolerance)
+		{
+			var segmentX = b.X - a.X;
+			var segmentY = b.Y - a.Y;
+			var lengthSquared = segmentX * segmentX + segmentY * segmentY;
+			if (lengthSquared <= tolerance * tolerance) {
+				var pointX = point.X - a.X;
+				var pointY = point.Y - a.Y;
+				return pointX * pointX + pointY * pointY <= tolerance * tolerance;
+			}
+			var cross = (point.Y - a.Y) * segmentX - (point.X - a.X) * segmentY;
+			if (System.Math.Abs(cross) > tolerance * System.Math.Sqrt(lengthSquared)) return false;
+			var dot = (point.X - a.X) * segmentX + (point.Y - a.Y) * segmentY;
+			if (dot < 0f) return false;
+			return dot <= lengthSquared;
 		}
 
 		private static bool Matches(FuturePinballRecord record, uint tag)

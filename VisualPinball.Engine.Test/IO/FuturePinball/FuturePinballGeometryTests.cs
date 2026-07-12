@@ -80,6 +80,9 @@ namespace VisualPinball.Engine.Test.IO.FuturePinball
 				Assert.That(points, Has.Count.EqualTo(4));
 				Assert.That(points[1].Position.X, Is.EqualTo(100f));
 				Assert.That(points[1].Smooth, Is.True);
+				Assert.That(FuturePinballElementGeometry.ContainsPoint(table.Elements.Single(), new FuturePinballVector2(50f, 25f)), Is.True);
+				Assert.That(FuturePinballElementGeometry.ContainsPoint(table.Elements.Single(), new FuturePinballVector2(100f, 25f)), Is.True);
+				Assert.That(FuturePinballElementGeometry.ContainsPoint(table.Elements.Single(), new FuturePinballVector2(101f, 25f)), Is.False);
 				Assert.That(generated.Name, Is.EqualTo("Playfield Wall"));
 				Assert.That(generated.IsCollidable, Is.True);
 				Assert.That(generated.Texture, Is.EqualTo("wood"));
