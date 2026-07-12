@@ -196,13 +196,15 @@ namespace VisualPinball.Unity
 					return;
 				}
 				state.InsideOfs.SetInsideOf(collHeader.ItemId, ball.Id);
-				ProcessRothHit(ref ball, ref hitEvents, ref target, in preImpactVelocity, in collEvent, in collHeader, false);
+				ProcessRothHit(ref ball, ref hitEvents, ref target, in preImpactVelocity, in collEvent,
+					in collHeader, false, ref state);
 				return;
 			}
 
 			BallCollider.Collide3DWall(ref ball, in collHeader.Material, in collEvent, in normal, ref state);
 			if (collHeader.Role == ColliderRole.DropTargetPhysicalFace && !target.Static.HasRothSensor) {
-				ProcessRothHit(ref ball, ref hitEvents, ref target, in preImpactVelocity, in collEvent, in collHeader, true);
+				ProcessRothHit(ref ball, ref hitEvents, ref target, in preImpactVelocity, in collEvent,
+					in collHeader, true, ref state);
 				return;
 			}
 			if (collHeader.Role == ColliderRole.DropTargetBackFace) {
@@ -210,14 +212,14 @@ namespace VisualPinball.Unity
 				var outcome = RothDropTargetPhysics.Classify(in target.Static.Roth, collHeader.Role,
 					approachSpeed, 1f, 0f);
 				if (outcome == RothDropTargetOutcome.BacksideDrop && approachSpeed >= collHeader.Threshold) {
-					ActivateDrop(ref ball, ref hitEvents, ref target, in collHeader);
+					ActivateDrop(ref ball, ref hitEvents, ref target, in collHeader, ref state);
 				}
 			}
 		}
 
 		private static void ProcessRothHit(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
 			ref DropTargetState target, in float3 preImpactVelocity, in CollisionEventData collEvent,
-			in ColliderHeader collHeader, bool solidFallback)
+			in ColliderHeader collHeader, bool solidFallback, ref PhysicsState state)
 		{
 			var faceNormal = math.normalizesafe(target.Static.FaceNormal);
 			if (math.dot(faceNormal, collEvent.HitNormal) < 0f) {
@@ -242,7 +244,7 @@ namespace VisualPinball.Unity
 						target.Static.Roth.TargetMass);
 					RothDropTargetPhysics.ApplyVerticalBouncer(ref ball, in target.Static.Roth,
 						collHeader.ItemId, target.RothHitCounter++);
-					ActivateDrop(ref ball, ref hitEvents, ref target, in collHeader);
+					ActivateDrop(ref ball, ref hitEvents, ref target, in collHeader, ref state);
 				} else if (outcome == RothDropTargetOutcome.Brick && qualifies) {
 					FireDropTargetHit(ref ball, ref hitEvents, in collHeader);
 				}
@@ -263,15 +265,16 @@ namespace VisualPinball.Unity
 				return;
 			}
 			if (outcome == RothDropTargetOutcome.FaceDrop) {
-				ActivateDrop(ref ball, ref hitEvents, ref target, in collHeader);
+				ActivateDrop(ref ball, ref hitEvents, ref target, in collHeader, ref state);
 			} else if (outcome == RothDropTargetOutcome.Brick) {
 				FireDropTargetHit(ref ball, ref hitEvents, in collHeader);
 			}
 		}
 
 		private static void ActivateDrop(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
-			ref DropTargetState target, in ColliderHeader collHeader)
+			ref DropTargetState target, in ColliderHeader collHeader, ref PhysicsState state)
 		{
+			state.InsideOfs.SetOutsideOfItem(collHeader.ItemId);
 			target.Animation.HitEvent = true;
 			target.Animation.MoveAnimation = true;
 			FireDropTargetHit(ref ball, ref hitEvents, in collHeader);

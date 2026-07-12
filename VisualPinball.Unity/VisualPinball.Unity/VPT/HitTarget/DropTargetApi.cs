@@ -33,7 +33,6 @@ namespace VisualPinball.Unity
 		public readonly float DropTravel;
 		public readonly float DropVelocity;
 		public readonly bool DroppedSwitchClosed;
-		public readonly int EventLimitTrips;
 
 		internal DropTargetMechanicalDiagnostics(in DropTargetMechanicalState state)
 		{
@@ -44,7 +43,6 @@ namespace VisualPinball.Unity
 			DropTravel = state.D;
 			DropVelocity = state.DDot;
 			DroppedSwitchClosed = state.DroppedSwitchClosed;
-			EventLimitTrips = state.EventLimitTrips;
 		}
 	}
 
@@ -139,11 +137,11 @@ namespace VisualPinball.Unity
 			if (state.Static.PhysicsMode != DropTargetPhysicsMode.Mechanical) {
 				return state.Animation.IsDropped;
 			}
-			return state.Mechanical.State == DropTargetMechanismState.Down
-				|| state.Mechanical.State == DropTargetMechanismState.ForcedDrop
-				|| state.Mechanical.State == DropTargetMechanismState.Resetting
-				|| state.Mechanical.State == DropTargetMechanismState.Settling;
+			return IsMechanicalDropped(in state.Mechanical);
 		}
+
+		internal static bool IsMechanicalDropped(in DropTargetMechanicalState state)
+			=> state.DroppedSwitchClosed;
 
 		public bool TryGetMechanicalDiagnostics(out DropTargetMechanicalDiagnostics diagnostics)
 		{

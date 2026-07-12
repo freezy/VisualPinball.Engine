@@ -329,6 +329,78 @@ namespace VisualPinball.Unity.Test
 			}
 		}
 
+		[Test]
+		public void ComponentRotationZeroFacesPlayerSide()
+		{
+			var normal = DropTargetComponent.FaceNormalFromRotation(0f);
+
+			Assert.That(normal.x, Is.EqualTo(0f).Within(Tolerance));
+			Assert.That(normal.y, Is.EqualTo(1f).Within(Tolerance));
+			Assert.That(normal.z, Is.EqualTo(0f).Within(Tolerance));
+		}
+
+		[Test]
+		public void FrontImpactUsingComponentNormalDrivesReleaseRearward()
+		{
+			var target = CreateTargetState();
+			target.Static.FaceNormal = DropTargetComponent.FaceNormalFromRotation(0f);
+			var ball = new BallState {
+				Mass = 1f,
+				Radius = 25f,
+				Position = new float3(0f, 25f, 0f),
+				Velocity = new float3(0f, -30f, 0f),
+			};
+
+			var result = MechanicalDropTargetPhysics.ResolveImpact(ref ball, ref target.Mechanical,
+				in target.Static, in target.Static.FaceNormal, 0.35f, 0f);
+
+			Assert.That(result.Applied, Is.True);
+			Assert.That(target.Mechanical.QDot, Is.GreaterThan(0f));
+			var state = new PhysicsState();
+			MechanicalDropTargetPhysics.Step(1, ref target, float3.zero,
+				PhysicsConstants.PhysFactor, ref state);
+			Assert.That(target.Mechanical.State, Is.Not.EqualTo(DropTargetMechanismState.Latched));
+			Assert.That(target.Mechanical.D, Is.GreaterThan(0f));
+		}
+
+		[Test]
+		public void DownStopRestitutionReflectsClosingDropVelocity()
+		{
+			var target = CreateTargetState();
+			var config = target.Static.Mechanical;
+			config.DropTravel = 1f;
+			config.DownStopRestitution = 0.5f;
+			target.Static.Mechanical = config;
+			target.Mechanical.State = DropTargetMechanismState.Dropping;
+			target.Mechanical.D = 0.9f;
+			target.Mechanical.DDot = 2f;
+			target.Mechanical.DroppedSwitchClosed = true;
+			var state = new PhysicsState();
+
+			MechanicalDropTargetPhysics.Step(1, ref target, float3.zero, 0.1f, ref state);
+
+			Assert.That(target.Mechanical.D, Is.EqualTo(config.DropTravel));
+			Assert.That(target.Mechanical.DDot, Is.LessThan(0f));
+			Assert.That(target.Mechanical.State, Is.EqualTo(DropTargetMechanismState.Dropping));
+		}
+
+		[Test]
+		public void MechanicalIsDroppedTracksThePhysicalSwitch()
+		{
+			var mechanical = new DropTargetMechanicalState {
+				State = DropTargetMechanismState.ForcedDrop,
+				DroppedSwitchClosed = false,
+			};
+			Assert.That(DropTargetApi.IsMechanicalDropped(in mechanical), Is.False);
+
+			mechanical.State = DropTargetMechanismState.Resetting;
+			mechanical.DroppedSwitchClosed = true;
+			Assert.That(DropTargetApi.IsMechanicalDropped(in mechanical), Is.True);
+
+			mechanical.DroppedSwitchClosed = false;
+			Assert.That(DropTargetApi.IsMechanicalDropped(in mechanical), Is.False);
+		}
+
 		private static DropTargetState CreateTargetState()
 		{
 			return new DropTargetState(0, new DropTargetStaticState {

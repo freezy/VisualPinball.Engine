@@ -87,7 +87,6 @@ namespace VisualPinball.Unity.Editor
 					EditorGUILayout.FloatField("Drop Travel", diagnostics.DropTravel);
 					EditorGUILayout.FloatField("Drop Velocity", diagnostics.DropVelocity);
 					EditorGUILayout.Toggle("Dropped Switch", diagnostics.DroppedSwitchClosed);
-					EditorGUILayout.IntField("Event Guard Trips", diagnostics.EventLimitTrips);
 				}
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
@@ -157,6 +156,11 @@ namespace VisualPinball.Unity.Editor
 						"A hinged blade requires a non-zero local hinge axis and a reference contact point away from that axis.",
 						MessageType.Error);
 				}
+				if (Mathf.Max(config.LatchReleaseTravel, config.RearStopTravel) > Mathf.PI * 0.5f) {
+					EditorGUILayout.HelpBox(
+						"Hinged travel thresholds are radians; release or rear-stop travel exceeds 90 degrees.",
+						MessageType.Warning);
+				}
 			}
 		}
 
@@ -169,7 +173,7 @@ namespace VisualPinball.Unity.Editor
 			var config = component.ResolvedMechanicalConfig;
 			var origin = component.transform.position;
 			var up = component.transform.up;
-			var rear = -component.transform.forward;
+			var rear = component.transform.forward;
 			var dropEnd = origin - up * VisualPinball.Unity.Physics.ScaleToWorld(config.DropTravel);
 			var resetEnd = origin + up * VisualPinball.Unity.Physics.ScaleToWorld(config.ResetOvershootTravel);
 			var release = origin + rear * VisualPinball.Unity.Physics.ScaleToWorld(config.LatchReleaseTravel);
@@ -181,6 +185,26 @@ namespace VisualPinball.Unity.Editor
 			Handles.Label(dropEnd, "Down stop");
 			Handles.Label(resetEnd, "Reset overshoot");
 			Handles.color = new Color(1f, 0.65f, 0.15f, 1f);
+			if (config.DeflectionKind == DropTargetDeflectionKind.HingedBlade) {
+				var localPivot = VisualPinball.Unity.Physics.VpxToWorld.MultiplyPoint(config.DeflectionPivot);
+				var localAxis = VisualPinball.Unity.Physics.VpxToWorld.MultiplyVector(config.DeflectionAxis);
+				var localReference = VisualPinball.Unity.Physics.VpxToWorld.MultiplyPoint(
+					config.ReferenceContactPoint);
+				var pivot = component.transform.TransformPoint(localPivot);
+				var axis = component.transform.TransformDirection(localAxis).normalized;
+				var reference = component.transform.TransformPoint(localReference);
+				var referenceArm = reference - pivot;
+				if (axis.sqrMagnitude > 1e-6f && referenceArm.sqrMagnitude > 1e-8f) {
+					Handles.DrawWireArc(pivot, axis, referenceArm,
+						config.RearStopTravel * Mathf.Rad2Deg, referenceArm.magnitude, 2f);
+					var releaseArm = Quaternion.AngleAxis(config.LatchReleaseTravel * Mathf.Rad2Deg, axis)
+						* referenceArm;
+					Handles.DrawLine(pivot, pivot + releaseArm, 2f);
+					Handles.Label(pivot + releaseArm, "Latch release");
+					Handles.Label(pivot, "Hinge pivot");
+				}
+				return;
+			}
 			Handles.DrawLine(origin, rearStop, 2f);
 			Handles.DrawWireDisc(release, up, VisualPinball.Unity.Physics.ScaleToWorld(1f));
 			Handles.Label(release, "Latch release");

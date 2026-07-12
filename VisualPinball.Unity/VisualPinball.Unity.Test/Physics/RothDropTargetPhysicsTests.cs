@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using NUnit.Framework;
+using Unity.Collections;
 using Unity.Mathematics;
 
 namespace VisualPinball.Unity.Test
@@ -108,6 +109,25 @@ namespace VisualPinball.Unity.Test
 
 			Assert.That(math.length(ball.Velocity), Is.EqualTo(5f).Within(Tolerance));
 			Assert.That(ball.Velocity.z, Is.GreaterThan(0f).And.LessThan(5f));
+		}
+
+		[Test]
+		public void ClearingDroppedSensorRemovesEveryTrackedBall()
+		{
+			var insideOfs = new InsideOfs(Allocator.Temp);
+			try {
+				insideOfs.SetInsideOf(42, 1);
+				insideOfs.SetInsideOf(42, 2);
+				insideOfs.SetInsideOf(7, 2);
+
+				insideOfs.SetOutsideOfItem(42);
+
+				Assert.That(insideOfs.IsOutsideOf(42, 1), Is.True);
+				Assert.That(insideOfs.IsOutsideOf(42, 2), Is.True);
+				Assert.That(insideOfs.IsInsideOf(7, 2), Is.True);
+			} finally {
+				insideOfs.Dispose();
+			}
 		}
 	}
 }

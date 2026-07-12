@@ -408,10 +408,16 @@ namespace VisualPinball.Unity
 			}
 			if (mechanical.D >= config.DropTravel) {
 				mechanical.D = config.DropTravel;
-				mechanical.DDot = 0f;
-				mechanical.State = DropTargetMechanismState.Down;
-				target.Animation.IsDropped = true;
-				state.DisableColliders(itemId);
+				var reboundSpeed = math.max(mechanical.DDot, 0f)
+					* math.clamp(config.DownStopRestitution, 0f, 1f);
+				if (reboundSpeed > math.max(config.GuideVelocityDeadband, 0f)) {
+					mechanical.DDot = -reboundSpeed;
+				} else {
+					mechanical.DDot = 0f;
+					mechanical.State = DropTargetMechanismState.Down;
+					target.Animation.IsDropped = true;
+					state.DisableColliders(itemId);
+				}
 			}
 			if (mechanical.State == DropTargetMechanismState.Latched
 				&& math.abs(mechanical.Q) < 1e-4f && math.abs(mechanical.QDot) < 1e-4f) {

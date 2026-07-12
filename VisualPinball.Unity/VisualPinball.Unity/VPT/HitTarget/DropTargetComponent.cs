@@ -167,7 +167,6 @@ namespace VisualPinball.Unity
 
 			var staticData = default(DropTargetStaticState);
 			if (colliderComponent) {
-				var angle = math.radians(Rotation - 90f);
 				var roth = colliderComponent.RothConfig;
 				var rothDropTravel = roth.DropTravel > 0f ? roth.DropTravel : 52f;
 				staticData = new DropTargetStaticState {
@@ -175,7 +174,7 @@ namespace VisualPinball.Unity
 					Roth = roth,
 					Mechanical = colliderComponent.ResolvedMechanicalConfig,
 					Center = Position,
-					FaceNormal = new float3(math.cos(angle), math.sin(angle), 0f),
+					FaceNormal = FaceNormalFromRotation(Rotation),
 					HasRothSensor = colliderComponent.PhysicsMode == DropTargetPhysicsMode.RothCompatible
 						&& colliderComponent.CollisionColliderMesh,
 					DropSpeed = animationComponent ? animationComponent.Speed : 0f,
@@ -216,6 +215,12 @@ namespace VisualPinball.Unity
 					DroppedSwitchClosed = animationData.IsDropped,
 				}
 			};
+		}
+
+		internal static float3 FaceNormalFromRotation(float rotation)
+		{
+			var angle = math.radians(rotation + 90f);
+			return new float3(math.cos(angle), math.sin(angle), 0f);
 		}
 
 		#endregion

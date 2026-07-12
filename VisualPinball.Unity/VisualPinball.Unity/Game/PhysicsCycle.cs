@@ -140,24 +140,29 @@ namespace VisualPinball.Unity
 
 				// collision
 				PerfMarkerCollision.Begin();
-				using (var enumerator = state.Balls.GetEnumerator()) {
-					while (enumerator.MoveNext()) {
-						ref var ball = ref enumerator.Current.Value;
-
-						// dynamic collision (ball/ball)
-						PhysicsDynamicCollision.Collide(hitTime, ref ball, ref state);
-					}
-				}
-
 				if (state.HasMechanicalDropTargets) {
+					using (var enumerator = state.Balls.GetEnumerator()) {
+						while (enumerator.MoveNext()) {
+							ref var ball = ref enumerator.Current.Value;
+							PhysicsDynamicCollision.Collide(hitTime, ref ball, ref state);
+						}
+					}
 					ResolveMechanicalDropTargetContacts(hitTime, ref state);
-				}
-				using (var enumerator = state.Balls.GetEnumerator()) {
-					while (enumerator.MoveNext()) {
-						ref var ball = ref enumerator.Current.Value;
-
-						// static & kinematic collision
-						PhysicsStaticCollision.Collide(hitTime, ref ball, ref state);
+					using (var enumerator = state.Balls.GetEnumerator()) {
+						while (enumerator.MoveNext()) {
+							ref var ball = ref enumerator.Current.Value;
+							PhysicsStaticCollision.Collide(hitTime, ref ball, ref state);
+						}
+					}
+				} else {
+					// Preserve the original per-ball dynamic/static ordering for every table
+					// that has not opted into Mechanical drop-target physics.
+					using (var enumerator = state.Balls.GetEnumerator()) {
+						while (enumerator.MoveNext()) {
+							ref var ball = ref enumerator.Current.Value;
+							PhysicsDynamicCollision.Collide(hitTime, ref ball, ref state);
+							PhysicsStaticCollision.Collide(hitTime, ref ball, ref state);
+						}
 					}
 				}
 				PerfMarkerCollision.End();

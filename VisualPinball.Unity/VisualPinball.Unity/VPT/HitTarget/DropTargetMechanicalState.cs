@@ -55,7 +55,6 @@ namespace VisualPinball.Unity
 		internal bool HitEventFired;
 		internal bool PoseInitialized;
 		internal float4x4 BaseTransform;
-		internal int EventLimitTrips;
 	}
 
 	internal readonly struct DropTargetImpactResult

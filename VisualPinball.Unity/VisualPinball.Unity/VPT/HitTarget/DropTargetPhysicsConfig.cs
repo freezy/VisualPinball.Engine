@@ -73,7 +73,6 @@ namespace VisualPinball.Unity
 
 		public bool EnableBacksideRelease;
 		public float BacksideReleaseImpulse;
-		public float MechanicalVariation;
 
 		public static DropTargetMechanicalConfig Default => new DropTargetMechanicalConfig {
 			EffectiveFaceMass = 0.2f,
