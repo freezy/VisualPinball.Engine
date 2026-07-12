@@ -194,6 +194,7 @@ namespace VisualPinball.Unity.Editor
 				Query.Reindex(library);
 			}
 			RefreshCategories();
+			RefreshAssets();
 		}
 
 		private static string NormalizeAssetPath(string path) => (path ?? string.Empty).Replace('\\', '/').TrimEnd('/');
