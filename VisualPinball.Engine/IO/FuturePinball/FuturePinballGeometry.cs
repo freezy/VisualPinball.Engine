@@ -60,6 +60,7 @@ namespace VisualPinball.Engine.IO.FuturePinball
 		public bool IsCollidable { get; internal set; }
 		public string Texture { get; internal set; }
 		public uint Color { get; internal set; }
+		public FuturePinballMaterialDescription Material { get; internal set; }
 		public IReadOnlyList<Mesh> Meshes { get; internal set; } = Array.Empty<Mesh>();
 	}
 
@@ -313,6 +314,7 @@ namespace VisualPinball.Engine.IO.FuturePinball
 			uint textureTag,
 			uint colorTag)
 		{
+			var material = FuturePinballMaterialConverter.FromElement(element, textureTag, colorTag);
 			return new FuturePinballGeneratedElement {
 				SourceIndex = element.SourceIndex ?? -1,
 				Name = Name(element),
@@ -320,6 +322,7 @@ namespace VisualPinball.Engine.IO.FuturePinball
 				IsCollidable = FuturePinballElementGeometry.Integer(element, CollidableTag, 1) != 0,
 				Texture = FuturePinballElementGeometry.Text(element, textureTag),
 				Color = FuturePinballElementGeometry.Color(element, colorTag),
+				Material = material,
 				Meshes = FuturePinballElementGeometry.Integer(element, RenderObjectTag, 1) == 0 ? Array.Empty<Mesh>() : meshes
 			};
 		}
