@@ -161,6 +161,12 @@ namespace VisualPinball.Engine.IO.FuturePinball
 			return points;
 		}
 
+		public static FuturePinballVector2 Position(FuturePinballSourceStream element, uint tag = PositionTag)
+		{
+			var record = Find(element, tag);
+			return record == null ? new FuturePinballVector2() : Vector2(record);
+		}
+
 		public static string Text(FuturePinballSourceStream stream, uint tag, string fallback = "")
 		{
 			var record = Find(stream, tag);
