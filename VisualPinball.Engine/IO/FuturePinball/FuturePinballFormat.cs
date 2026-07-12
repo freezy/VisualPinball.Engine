@@ -185,6 +185,36 @@ namespace VisualPinball.Engine.IO.FuturePinball
 		public float Value2 { get; internal set; }
 		public float Value3 { get; internal set; }
 		public float Value4 { get; internal set; }
+
+		internal FuturePinballCollisionShape()
+		{
+		}
+
+		public FuturePinballCollisionShape(
+			uint type,
+			bool affectsBall,
+			float x,
+			float y,
+			float z,
+			float value1,
+			float value2 = 0f,
+			float value3 = 0f,
+			float value4 = 0f,
+			bool generateHitEvent = false,
+			uint eventId = 0)
+		{
+			Type = type;
+			AffectsBall = affectsBall;
+			X = x;
+			Y = y;
+			Z = z;
+			Value1 = value1;
+			Value2 = value2;
+			Value3 = value3;
+			Value4 = value4;
+			GenerateHitEvent = generateHitEvent;
+			EventId = eventId;
+		}
 	}
 
 	public sealed class FuturePinballCompressedData

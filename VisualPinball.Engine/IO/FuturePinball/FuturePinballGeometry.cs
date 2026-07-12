@@ -86,14 +86,23 @@ namespace VisualPinball.Engine.IO.FuturePinball
 			);
 		}
 
+		public static FuturePinballWorldPoint ModelToWorld(float x, float y, float z)
+		{
+			return new FuturePinballWorldPoint(
+				x * WorldUnitsPerMillimeter,
+				y * WorldUnitsPerMillimeter,
+				-z * WorldUnitsPerMillimeter
+			);
+		}
+
 		public static Mesh ModelMeshToWorld(Mesh source, bool flipTextureV = true)
 		{
 			if (source == null) throw new ArgumentNullException(nameof(source));
 			var result = source.Clone();
 			for (var i = 0; i < (result.Vertices?.Length ?? 0); i++) {
 				var vertex = result.Vertices[i];
-				var position = ToWorld(vertex.X, vertex.Y, vertex.Z);
-				var normal = ToWorld(vertex.Nx, vertex.Ny, vertex.Nz);
+				var position = ModelToWorld(vertex.X, vertex.Y, vertex.Z);
+				var normal = ModelToWorld(vertex.Nx, vertex.Ny, vertex.Nz);
 				vertex.X = position.X;
 				vertex.Y = position.Y;
 				vertex.Z = position.Z;
@@ -102,6 +111,11 @@ namespace VisualPinball.Engine.IO.FuturePinball
 				vertex.Nz = normal.Z / WorldUnitsPerMillimeter;
 				if (flipTextureV) vertex.Tv = 1f - vertex.Tv;
 				result.Vertices[i] = vertex;
+			}
+			for (var i = 0; i + 2 < (result.Indices?.Length ?? 0); i += 3) {
+				var index = result.Indices[i + 1];
+				result.Indices[i + 1] = result.Indices[i + 2];
+				result.Indices[i + 2] = index;
 			}
 			return result;
 		}

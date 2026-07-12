@@ -47,20 +47,24 @@ namespace VisualPinball.Engine.Test.IO.FuturePinball
 		public void ConvertsModelAxesScaleNormalsAndTextureV()
 		{
 			var source = new Mesh(new[] {
-				new Vertex3DNoTex2(100f, 200f, 300f, 0f, 1f, 0f, 0.25f, 0.2f)
-			}, new[] { 0 });
+				new Vertex3DNoTex2(100f, 200f, 300f, 0f, 1f, 0f, 0.25f, 0.2f),
+				new Vertex3DNoTex2(0f, 0f, 0f),
+				new Vertex3DNoTex2(1f, 0f, 0f)
+			}, new[] { 0, 1, 2 });
 
 			var converted = FuturePinballCoordinateConverter.ModelMeshToWorld(source);
 
 			Assert.That(converted.Vertices[0].X, Is.EqualTo(0.1f));
-			Assert.That(converted.Vertices[0].Y, Is.EqualTo(0.3f));
-			Assert.That(converted.Vertices[0].Z, Is.EqualTo(-0.2f));
+			Assert.That(converted.Vertices[0].Y, Is.EqualTo(0.2f));
+			Assert.That(converted.Vertices[0].Z, Is.EqualTo(-0.3f));
 			Assert.That(converted.Vertices[0].Nx, Is.Zero);
-			Assert.That(converted.Vertices[0].Ny, Is.Zero);
-			Assert.That(converted.Vertices[0].Nz, Is.EqualTo(-1f));
+			Assert.That(converted.Vertices[0].Ny, Is.EqualTo(1f));
+			Assert.That(converted.Vertices[0].Nz, Is.Zero);
 			Assert.That(converted.Vertices[0].Tu, Is.EqualTo(0.25f));
 			Assert.That(converted.Vertices[0].Tv, Is.EqualTo(0.8f));
+			Assert.That(converted.Indices, Is.EqualTo(new[] { 0, 2, 1 }));
 			Assert.That(source.Vertices[0].X, Is.EqualTo(100f));
+			Assert.That(source.Indices, Is.EqualTo(new[] { 0, 1, 2 }));
 		}
 
 		[Test]
