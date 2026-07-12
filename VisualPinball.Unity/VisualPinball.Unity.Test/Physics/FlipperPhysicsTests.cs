@@ -76,8 +76,9 @@ namespace VisualPinball.Unity.Test
 			Assert.That(tricks.LiveCatchEosTimeMsec, Is.EqualTo(4321));
 		}
 
-		[Test]
-		public void SolenoidEdgeInvalidatesEosTimestampWithoutFlipperTricks()
+		[TestCase(true, false)]
+		[TestCase(false, true)]
+		public void SolenoidEdgeInvalidatesEosTimestampWithoutFlipperTricks(bool solenoidValue, bool previousSolenoidValue)
 		{
 			var state = new FlipperState(
 				new FlipperStaticData {
@@ -92,14 +93,103 @@ namespace VisualPinball.Unity.Test
 				new FlipperTricksData {
 					AngleEnd = 1f,
 					HasLiveCatchEosTime = true,
+					lastSolState = previousSolenoidValue,
 				},
-				new SolenoidState { Value = true }
+				new SolenoidState { Value = solenoidValue }
 			);
 
 			FlipperVelocityPhysics.UpdateVelocities(ref state);
 
 			Assert.That(state.Tricks.HasLiveCatchEosTime, Is.False);
-			Assert.That(state.Tricks.lastSolState, Is.True);
+			Assert.That(state.Tricks.lastSolState, Is.EqualTo(solenoidValue));
+		}
+
+		[Test]
+		public void EosTimestampIsLatchedOnlyOncePerUpstroke()
+		{
+			var movement = new FlipperMovementState {
+				Angle = 0f,
+				AngleSpeed = 1f,
+				AngularMomentum = 1f,
+			};
+			var tricks = new FlipperTricksData {
+				UseFlipperLiveCatch = true,
+				AngleEnd = 0.5f,
+			};
+			var staticData = new FlipperStaticData {
+				AngleStart = 0f,
+				AngleEnd = 0.5f,
+				Inertia = 1f,
+			};
+			using var events = new NativeQueue<EventData>(Allocator.Temp);
+			var writer = events.AsParallelWriter();
+
+			FlipperDisplacementPhysics.UpdateDisplacement(1, ref movement, ref tricks, in staticData,
+				true, 1234, 0.5f, ref writer);
+			movement.Angle = tricks.AngleEnd;
+			movement.AngleSpeed = 0f;
+			FlipperDisplacementPhysics.UpdateDisplacement(1, ref movement, ref tricks, in staticData,
+				true, 4321, 0.5f, ref writer);
+
+			Assert.That(tricks.HasLiveCatchEosTime, Is.True);
+			Assert.That(tricks.LiveCatchEosTimeMsec, Is.EqualTo(1234));
+		}
+
+		[Test]
+		public void RepressAtEosDoesNotRearmLiveCatchWindow()
+		{
+			var movement = new FlipperMovementState {
+				Angle = 0.5f,
+				AngleSpeed = 0f,
+			};
+			var tricks = new FlipperTricksData {
+				UseFlipperLiveCatch = true,
+				AngleEnd = 0.5f,
+				LiveCatchEosTimeMsec = 1234,
+				HasLiveCatchEosTime = false,
+			};
+			var staticData = new FlipperStaticData {
+				AngleStart = 0f,
+				AngleEnd = 0.5f,
+				Inertia = 1f,
+			};
+			using var events = new NativeQueue<EventData>(Allocator.Temp);
+			var writer = events.AsParallelWriter();
+
+			FlipperDisplacementPhysics.UpdateDisplacement(1, ref movement, ref tricks, in staticData,
+				true, 4321, 0.5f, ref writer);
+
+			Assert.That(tricks.HasLiveCatchEosTime, Is.False);
+			Assert.That(tricks.LiveCatchEosTimeMsec, Is.EqualTo(1234));
+		}
+
+		[Test]
+		public void EosTimestampUsesActiveOvershootAngle()
+		{
+			var movement = new FlipperMovementState {
+				Angle = 0.5f,
+				AngleSpeed = 0.5f,
+				AngularMomentum = 0.5f,
+			};
+			var tricks = new FlipperTricksData {
+				UseFlipperLiveCatch = true,
+				OriginalAngleEnd = 0.5f,
+				AngleEnd = 0.6f,
+			};
+			var staticData = new FlipperStaticData {
+				AngleStart = 0f,
+				AngleEnd = 0.5f,
+				Inertia = 1f,
+			};
+			using var events = new NativeQueue<EventData>(Allocator.Temp);
+			var writer = events.AsParallelWriter();
+
+			FlipperDisplacementPhysics.UpdateDisplacement(1, ref movement, ref tricks, in staticData,
+				true, 2468, 0.2f, ref writer);
+
+			Assert.That(movement.Angle, Is.EqualTo(0.6f).Within(1e-5f));
+			Assert.That(tricks.HasLiveCatchEosTime, Is.True);
+			Assert.That(tricks.LiveCatchEosTimeMsec, Is.EqualTo(2468));
 		}
 
 		[Test]

@@ -46,8 +46,9 @@ namespace VisualPinball.Unity
 				var crossedEnd = rotatesPositive
 					? previousAngle < endAngle - angleTolerance && movementState.Angle >= endAngle - angleTolerance
 					: previousAngle > endAngle + angleTolerance && movementState.Angle <= endAngle + angleTolerance;
-				var isAtEnd = math.abs(movementState.Angle - endAngle) <= angleTolerance;
-				if (crossedEnd || isAtEnd) {
+				// A solenoid edge invalidates the previous window. Only a fresh upstroke may re-arm it;
+				// otherwise a quick release/re-press while still at EOS would create a new catch window.
+				if (crossedEnd) {
 					tricks.LiveCatchEosTimeMsec = currentTimeMsec;
 					tricks.HasLiveCatchEosTime = true;
 				}
