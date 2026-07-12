@@ -189,8 +189,12 @@ namespace VisualPinball.Unity.Test
 			var outcome = FlipperCollider.LiveCatch(ref ball, in collEvent, in tricks, float3.zero, 5f, 105);
 
 			Assert.That(outcome, Is.EqualTo(LiveCatchOutcome.BaseDampened));
-			Assert.That(ball.Velocity, Is.EqualTo(new float3(-1.1f, 2.2f, 0f)));
-			Assert.That(ball.AngularMomentum, Is.EqualTo(new float3(0.55f, 1.1f, 1.65f)));
+			Assert.That(ball.Velocity.x, Is.EqualTo(-1.1f).Within(1e-5f));
+			Assert.That(ball.Velocity.y, Is.EqualTo(2.2f).Within(1e-5f));
+			Assert.That(ball.Velocity.z, Is.EqualTo(0f).Within(1e-5f));
+			Assert.That(ball.AngularMomentum.x, Is.EqualTo(0.55f).Within(1e-5f));
+			Assert.That(ball.AngularMomentum.y, Is.EqualTo(1.1f).Within(1e-5f));
+			Assert.That(ball.AngularMomentum.z, Is.EqualTo(1.65f).Within(1e-5f));
 		}
 
 		[TestCase(0f, 1.1f)]
