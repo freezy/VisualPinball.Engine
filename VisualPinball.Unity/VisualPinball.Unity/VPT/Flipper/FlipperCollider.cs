@@ -25,6 +25,14 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
+	internal enum LiveCatchOutcome
+	{
+		NotEligible,
+		EligibleNoChange,
+		BaseDampened,
+		Caught,
+	}
+
 	/// <summary>
 	/// Our custom flipper collider.
 	/// </summary>
@@ -734,10 +742,11 @@ namespace VisualPinball.Unity
 
 		#region LiveCatch
 
-		public static void LiveCatch(ref BallState ball, in CollisionEventData collEvent, in FlipperTricksData tricks,
+		public static LiveCatchOutcome LiveCatch(ref BallState ball, in CollisionEventData collEvent, in FlipperTricksData tricks,
 			float3 flipperPos, float impactSpeed, uint msec) {
-			if (!tricks.UseFlipperLiveCatch)
-				return;
+			if (!tricks.UseFlipperLiveCatch) {
+				return LiveCatchOutcome.NotEligible;
+			}
 
 			// Vector from position of the flipper ball to ball
 			var flipperToBall = ball.Position - flipperPos;
@@ -747,24 +756,24 @@ namespace VisualPinball.Unity
 			//Logger.Info("BallPosition = {0}", liveDist);
 			if (liveDist >= tricks.LiveCatchDistanceMax) {
 				//Logger.Info("BallPosition = {0} -> no calculation", ballPosition);
-				return;
+				return LiveCatchOutcome.NotEligible;
 			}
 			if (liveDist <= tricks.LiveCatchDistanceMin) {
 				//Logger.Info("BallPosition = {0} -> no calculation", ballPosition);
-				return;
+				return LiveCatchOutcome.NotEligible;
 			}
 
 			if (impactSpeed <= tricks.LiveCatchMinimalBallSpeed) {
-				return;
+				return LiveCatchOutcome.NotEligible;
 			}
 
 			if (!tricks.HasLiveCatchEosTime) {
-				return;
+				return LiveCatchOutcome.NotEligible;
 			}
 
 			var catchTime = unchecked(msec - tricks.LiveCatchEosTimeMsec);
 			if (catchTime > tricks.LiveCatchFullTime) {
-				return;
+				return LiveCatchOutcome.NotEligible;
 			}
 
 			var flipperAxis = hitTangent;
@@ -778,8 +787,9 @@ namespace VisualPinball.Unity
 				if (movingTowardTip && liveDist < tricks.LiveCatchBaseDampenDistance) {
 					ball.Velocity *= tricks.LiveCatchBaseDampen;
 					ball.AngularMomentum *= tricks.LiveCatchBaseDampen;
+					return LiveCatchOutcome.BaseDampened;
 				}
-				return;
+				return LiveCatchOutcome.EligibleNoChange;
 			}
 
 			// Modern VPW live catch zeroes the flipper-face rebound, but keeps VPE's orientation-independent normal.
@@ -796,6 +806,57 @@ namespace VisualPinball.Unity
 			// VPX applies this as table Y velocity; VPE applies the same speed away from the flipper face.
 			ball.Velocity += collEvent.HitNormal * liveCatchBounceSpeed;
 			ball.AngularMomentum = float3.zero;
+			return LiveCatchOutcome.Caught;
+		}
+
+		internal static bool TryApplyEosRubberDampener(ref BallState ball, in float3 postPlayfieldVelocity,
+			float incomingPlayfieldSpeed, bool solenoidEnabled, in FlipperMovementState movementState,
+			in FlipperTricksData tricks)
+		{
+			const float maxLateralSpeed = 2f;
+			const float maxNegativeYSpeed = -3.75f;
+			var endAngleTolerance = math.radians(1f);
+
+			if (!tricks.UseFlipperLiveCatch || !solenoidEnabled
+			    || math.abs(movementState.Angle - tricks.OriginalAngleEnd) > endAngleTolerance) {
+				return false;
+			}
+
+			if (math.abs(postPlayfieldVelocity.x) >= maxLateralSpeed
+			    || postPlayfieldVelocity.y >= 0f
+			    || postPlayfieldVelocity.y <= maxNegativeYSpeed) {
+				return false;
+			}
+
+			var postPlayfieldSpeed = math.length(postPlayfieldVelocity);
+			if (incomingPlayfieldSpeed <= PhysicsConstants.Precision
+			    || postPlayfieldSpeed <= PhysicsConstants.Precision) {
+				return false;
+			}
+
+			var desiredCor = EosRubberDesiredCor(incomingPlayfieldSpeed);
+			var coefficient = desiredCor * incomingPlayfieldSpeed / postPlayfieldSpeed;
+			if (float.IsNaN(coefficient) || float.IsInfinity(coefficient)) {
+				return false;
+			}
+
+			ball.Velocity *= coefficient;
+			return true;
+		}
+
+		internal static float EosRubberDesiredCor(float incomingPlayfieldSpeed)
+		{
+			const float lowSpeedCor = 1.1f;
+			const float plateauSpeed = 3.77f;
+			const float plateauCor = 0.99f;
+
+			if (incomingPlayfieldSpeed <= 0f) {
+				return lowSpeedCor;
+			}
+			if (incomingPlayfieldSpeed >= plateauSpeed) {
+				return plateauCor;
+			}
+			return math.lerp(lowSpeedCor, plateauCor, incomingPlayfieldSpeed / plateauSpeed);
 		}
 
 		#endregion
@@ -803,7 +864,8 @@ namespace VisualPinball.Unity
 
 		public void Collide(ref BallState ball, ref CollisionEventData collEvent, ref FlipperMovementState movementState,
 			ref NativeQueue<EventData>.ParallelWriter events, in int ballId, in FlipperTricksData tricks, in FlipperStaticData matData,
-			in FlipperVelocityData velData, in FlipperHitData hitData, uint timeMsec)
+			in FlipperVelocityData velData, in FlipperHitData hitData, bool solenoidEnabled,
+			in float3 incomingPlayfieldVelocity, in float4x4 colliderToPlayfield, uint timeMsec)
 		{
 			var normal = collEvent.HitNormal;
 			GetRelativeVelocity(normal, ball, movementState, out var vRel, out var rB, out var rF);
@@ -935,7 +997,13 @@ namespace VisualPinball.Unity
 				movementState.ApplyImpulse(-jt * crossF, matData.Inertia);
 			}
 
-			LiveCatch(ref ball, in collEvent, in tricks, new float3(_hitCircleBase.Center, ball.Position.z), impactSpeed, timeMsec);
+			var liveCatchOutcome = LiveCatch(ref ball, in collEvent, in tricks,
+				new float3(_hitCircleBase.Center, ball.Position.z), impactSpeed, timeMsec);
+			if (liveCatchOutcome == LiveCatchOutcome.NotEligible) {
+				var postPlayfieldVelocity = colliderToPlayfield.MultiplyVector(ball.Velocity);
+				TryApplyEosRubberDampener(ref ball, in postPlayfieldVelocity, math.length(incomingPlayfieldVelocity),
+					solenoidEnabled, in movementState, in tricks);
+			}
 
 			// event
 			if (bnv < -0.25f && timeMsec - movementState.LastHitTime > 250) {

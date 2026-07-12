@@ -128,8 +128,9 @@ namespace VisualPinball.Unity.Test
 				HasLiveCatchEosTime = true,
 			};
 
-			FlipperCollider.LiveCatch(ref ball, in collEvent, in tricks, float3.zero, 5f, 105);
+			var outcome = FlipperCollider.LiveCatch(ref ball, in collEvent, in tricks, float3.zero, 5f, 105);
 
+			Assert.That(outcome, Is.EqualTo(LiveCatchOutcome.Caught));
 			Assert.That(ball.Velocity, Is.EqualTo(float3.zero));
 		}
 
@@ -141,8 +142,9 @@ namespace VisualPinball.Unity.Test
 			var tricks = CreateLiveCatchData();
 			tricks.HasLiveCatchEosTime = false;
 
-			FlipperCollider.LiveCatch(ref ball, in collEvent, in tricks, float3.zero, 5f, 105);
+			var outcome = FlipperCollider.LiveCatch(ref ball, in collEvent, in tricks, float3.zero, 5f, 105);
 
+			Assert.That(outcome, Is.EqualTo(LiveCatchOutcome.NotEligible));
 			Assert.That(ball.Velocity, Is.EqualTo(new float3(0f, 4f, 0f)));
 		}
 
@@ -154,9 +156,166 @@ namespace VisualPinball.Unity.Test
 			var tricks = CreateLiveCatchData();
 			tricks.LiveCatchEosTimeMsec = uint.MaxValue - 4;
 
-			FlipperCollider.LiveCatch(ref ball, in collEvent, in tricks, float3.zero, 5f, 3);
+			var outcome = FlipperCollider.LiveCatch(ref ball, in collEvent, in tricks, float3.zero, 5f, 3);
 
+			Assert.That(outcome, Is.EqualTo(LiveCatchOutcome.Caught));
 			Assert.That(ball.Velocity, Is.EqualTo(float3.zero));
+		}
+
+		[Test]
+		public void EligibleBaseZoneDoesNotFallThroughWhenNoVelocityChanges()
+		{
+			var ball = CreateCatchBall();
+			ball.Position = new float3(-20f, 0f, 0f);
+			var collEvent = CreateCatchEvent();
+			var tricks = CreateLiveCatchData();
+
+			var outcome = FlipperCollider.LiveCatch(ref ball, in collEvent, in tricks, float3.zero, 5f, 105);
+
+			Assert.That(outcome, Is.EqualTo(LiveCatchOutcome.EligibleNoChange));
+			Assert.That(ball.Velocity, Is.EqualTo(new float3(0f, 4f, 0f)));
+		}
+
+		[Test]
+		public void EligibleBaseZoneDampensBallMovingTowardTip()
+		{
+			var ball = CreateCatchBall();
+			ball.Position = new float3(-20f, 0f, 0f);
+			ball.Velocity = new float3(-2f, 4f, 0f);
+			ball.AngularMomentum = new float3(1f, 2f, 3f);
+			var collEvent = CreateCatchEvent();
+			var tricks = CreateLiveCatchData();
+
+			var outcome = FlipperCollider.LiveCatch(ref ball, in collEvent, in tricks, float3.zero, 5f, 105);
+
+			Assert.That(outcome, Is.EqualTo(LiveCatchOutcome.BaseDampened));
+			Assert.That(ball.Velocity, Is.EqualTo(new float3(-1.1f, 2.2f, 0f)));
+			Assert.That(ball.AngularMomentum, Is.EqualTo(new float3(0.55f, 1.1f, 1.65f)));
+		}
+
+		[TestCase(0f, 1.1f)]
+		[TestCase(3.77f, 0.99f)]
+		[TestCase(6f, 0.99f)]
+		public void EosRubberCurveMatchesVpwProfile(float incomingSpeed, float expectedCor)
+		{
+			Assert.That(FlipperCollider.EosRubberDesiredCor(incomingSpeed), Is.EqualTo(expectedCor).Within(1e-5f));
+		}
+
+		[Test]
+		public void EosRubberCurveInterpolatesAtLowSpeed()
+		{
+			var expected = math.lerp(1.1f, 0.99f, 2f / 3.77f);
+
+			Assert.That(FlipperCollider.EosRubberDesiredCor(2f), Is.EqualTo(expected).Within(1e-5f));
+		}
+
+		[Test]
+		public void HeldEosRubberDampenerScalesLinearVelocityOnly()
+		{
+			var ball = new BallState {
+				Velocity = new float3(1f, -1f, 2f),
+				AngularMomentum = new float3(3f, 4f, 5f),
+			};
+			var movement = new FlipperMovementState { Angle = 0.5f };
+			var tricks = new FlipperTricksData {
+				UseFlipperLiveCatch = true,
+				OriginalAngleEnd = 0.5f,
+			};
+			var postPlayfieldVelocity = ball.Velocity;
+			var incomingSpeed = 3.77f;
+			var expectedCoefficient = 0.99f * incomingSpeed / math.length(postPlayfieldVelocity);
+
+			var applied = FlipperCollider.TryApplyEosRubberDampener(ref ball, in postPlayfieldVelocity,
+				incomingSpeed, true, in movement, in tricks);
+
+			Assert.That(applied, Is.True);
+			Assert.That(ball.Velocity, Is.EqualTo(postPlayfieldVelocity * expectedCoefficient));
+			Assert.That(ball.AngularMomentum, Is.EqualTo(new float3(3f, 4f, 5f)));
+		}
+
+		[TestCase(2f, -1f)]
+		[TestCase(0f, 0f)]
+		[TestCase(0f, -3.75f)]
+		[TestCase(0f, -4f)]
+		public void EosRubberDampenerUsesStrictVelocityWindow(float x, float y)
+		{
+			var ball = new BallState { Velocity = new float3(x, y, 1f) };
+			var movement = new FlipperMovementState { Angle = 0.5f };
+			var tricks = new FlipperTricksData {
+				UseFlipperLiveCatch = true,
+				OriginalAngleEnd = 0.5f,
+			};
+			var postPlayfieldVelocity = ball.Velocity;
+
+			var applied = FlipperCollider.TryApplyEosRubberDampener(ref ball, in postPlayfieldVelocity,
+				3f, true, in movement, in tricks);
+
+			Assert.That(applied, Is.False);
+		}
+
+		[Test]
+		public void EosRubberDampenerRequiresEnabledHeldFlipperAtEos()
+		{
+			var velocity = new float3(0f, -1f, 1f);
+			var movement = new FlipperMovementState { Angle = 0.5f };
+			var tricks = new FlipperTricksData {
+				UseFlipperLiveCatch = true,
+				OriginalAngleEnd = 0.5f,
+			};
+
+			var disabledBall = new BallState { Velocity = velocity };
+			var disabledTricks = tricks;
+			disabledTricks.UseFlipperLiveCatch = false;
+			Assert.That(FlipperCollider.TryApplyEosRubberDampener(ref disabledBall, in velocity,
+				3f, true, in movement, in disabledTricks), Is.False);
+
+			var releasedBall = new BallState { Velocity = velocity };
+			Assert.That(FlipperCollider.TryApplyEosRubberDampener(ref releasedBall, in velocity,
+				3f, false, in movement, in tricks), Is.False);
+
+			var movingBall = new BallState { Velocity = velocity };
+			var awayFromEos = new FlipperMovementState { Angle = math.radians(2f) + tricks.OriginalAngleEnd };
+			Assert.That(FlipperCollider.TryApplyEosRubberDampener(ref movingBall, in velocity,
+				3f, true, in awayFromEos, in tricks), Is.False);
+		}
+
+		[Test]
+		public void EosRubberDampenerRejectsZeroSpeedWithoutNonFiniteValues()
+		{
+			var ball = new BallState { Velocity = float3.zero };
+			var movement = new FlipperMovementState { Angle = 0.5f };
+			var tricks = new FlipperTricksData {
+				UseFlipperLiveCatch = true,
+				OriginalAngleEnd = 0.5f,
+			};
+			var postPlayfieldVelocity = float3.zero;
+
+			var applied = FlipperCollider.TryApplyEosRubberDampener(ref ball, in postPlayfieldVelocity,
+				0f, true, in movement, in tricks);
+
+			Assert.That(applied, Is.False);
+			Assert.That(ball.Velocity, Is.EqualTo(float3.zero));
+		}
+
+		[Test]
+		public void EosRubberDampenerUsesPlayfieldVelocityForGateAndCurrentFrameForScaling()
+		{
+			var currentFrameVelocity = new float3(5f, 5f, 1f);
+			var ball = new BallState { Velocity = currentFrameVelocity };
+			var movement = new FlipperMovementState { Angle = 0.5f };
+			var tricks = new FlipperTricksData {
+				UseFlipperLiveCatch = true,
+				OriginalAngleEnd = 0.5f,
+			};
+			var postPlayfieldVelocity = new float3(0f, -1f, 0f);
+			var incomingSpeed = 3f;
+			var expectedCoefficient = FlipperCollider.EosRubberDesiredCor(incomingSpeed) * incomingSpeed;
+
+			var applied = FlipperCollider.TryApplyEosRubberDampener(ref ball, in postPlayfieldVelocity,
+				incomingSpeed, true, in movement, in tricks);
+
+			Assert.That(applied, Is.True);
+			Assert.That(ball.Velocity, Is.EqualTo(currentFrameVelocity * expectedCoefficient));
 		}
 
 		private static BallState CreateCatchBall()
