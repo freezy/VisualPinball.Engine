@@ -12,7 +12,7 @@ fp-2012-ultra-source/Three Angels.fpt
 fp-2013-enhanced/Three Angels_ehanc_Slam.fpt
 ```
 
-`FuturePinballFixtureCatalog` locks the source size and SHA-256, compound-stream and resource counts, element-type distribution, Table Data size, and compressed/decoded script boundaries and hashes. Tests skip this external corpus when the environment variable is absent; unit tests that synthesize malformed streams remain self-contained.
+`FuturePinballFixtureCatalog` locks the source size and SHA-256, compound-directory entry and resource counts, element-type distribution, Table Data size, and compressed/decoded script boundaries and hashes. Tests skip this external corpus when the environment variable is absent; unit tests that synthesize malformed streams remain self-contained.
 
 For the workspace research corpus:
 

@@ -75,10 +75,10 @@ namespace VisualPinball.Engine.IO
 
 		public abstract void Write(BinaryWriter writer, HashWriter hashWriter);
 
-		public void WriteData(CFStorage gameStorage, HashWriter hashWriter = null)
+		public void WriteData(Storage gameStorage, HashWriter hashWriter = null)
 		{
-			var itemData = gameStorage.AddStream(StorageName);
-			itemData.SetData(GetBytes(hashWriter));
+			var itemData = gameStorage.CreateStream(StorageName);
+			itemData.WriteAll(GetBytes(hashWriter));
 		}
 
 		private byte[] GetBytes(HashWriter hashWriter)

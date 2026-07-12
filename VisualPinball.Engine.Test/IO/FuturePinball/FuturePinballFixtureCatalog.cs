@@ -29,7 +29,7 @@ namespace VisualPinball.Engine.Test.IO.FuturePinball
 		public string RelativePath { get; }
 		public long SourceBytes { get; }
 		public string SourceSha256 { get; }
-		public int StreamCount { get; }
+		public int CompoundEntryCount { get; }
 		public int TableDataBytes { get; }
 		public int ElementCount { get; }
 		public int ImageCount { get; }
@@ -54,7 +54,7 @@ namespace VisualPinball.Engine.Test.IO.FuturePinball
 			string relativePath,
 			long sourceBytes,
 			string sourceSha256,
-			int streamCount,
+			int compoundEntryCount,
 			int tableDataBytes,
 			int elementCount,
 			int imageCount,
@@ -76,7 +76,7 @@ namespace VisualPinball.Engine.Test.IO.FuturePinball
 			RelativePath = relativePath;
 			SourceBytes = sourceBytes;
 			SourceSha256 = sourceSha256;
-			StreamCount = streamCount;
+			CompoundEntryCount = compoundEntryCount;
 			TableDataBytes = tableDataBytes;
 			ElementCount = elementCount;
 			ImageCount = imageCount;
