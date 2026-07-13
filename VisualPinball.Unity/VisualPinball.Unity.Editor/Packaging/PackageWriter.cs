@@ -101,6 +101,7 @@ namespace VisualPinball.Unity.Editor
 			Logger.Info($"Writing table to {path}...");
 			IPackageStorage storage = null;
 			List<GameObject> reactivatedObjects = null;
+			List<GameObject> excludedObjects = null;
 			try {
 				Report(progress, 0f, "Starting export…");
 				storage = PackageApi.StorageManager.CreateStorage(path);
@@ -113,6 +114,7 @@ namespace VisualPinball.Unity.Editor
 				// Cabinet and backbox are authored inactive; activate them (located via their
 				// marker components) so they flow into the active-only export. Restored in finally.
 				reactivatedObjects = ActivateMarkedObjects();
+				excludedObjects = DeactivateExcludedObjects();
 
 				// Every exported node gets a stable id; items, refs, mappings, renderer states and
 				// light profiles all reference nodes by these ids. The ids are written into the glTF
@@ -232,6 +234,7 @@ namespace VisualPinball.Unity.Editor
 				throw;
 			} finally {
 				storage?.Close();
+				RestoreExcludedObjects(excludedObjects);
 				RestoreMarkedObjects(reactivatedObjects);
 			}
 		}
@@ -340,6 +343,43 @@ namespace VisualPinball.Unity.Editor
 			foreach (var go in reactivated) {
 				if (go) {
 					go.SetActive(false);
+				}
+			}
+		}
+
+		private List<GameObject> DeactivateExcludedObjects()
+		{
+			var excluded = new HashSet<GameObject>();
+			foreach (var spline in _table.GetComponentsInChildren<DragPointSplineComponent>(true)) {
+				excluded.Add(spline.gameObject);
+			}
+			foreach (var marker in _table.GetComponentsInChildren<GeneratedDragPointSplineComponent>(true)) {
+				excluded.Add(marker.gameObject);
+			}
+
+			var deactivated = new List<GameObject>();
+			try {
+				foreach (var go in excluded) {
+					if (go && go.activeSelf) {
+						go.SetActive(false);
+						deactivated.Add(go);
+					}
+				}
+			} catch {
+				RestoreExcludedObjects(deactivated);
+				throw;
+			}
+			return deactivated;
+		}
+
+		private static void RestoreExcludedObjects(List<GameObject> deactivated)
+		{
+			if (deactivated == null) {
+				return;
+			}
+			foreach (var go in deactivated) {
+				if (go) {
+					go.SetActive(true);
 				}
 			}
 		}

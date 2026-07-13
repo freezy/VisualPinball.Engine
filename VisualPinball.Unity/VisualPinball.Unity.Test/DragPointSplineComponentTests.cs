@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using NUnit.Framework;
+using System.Reflection;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Splines;
+using UnityEngine.TestTools;
 using VisualPinball.Engine.Math;
 using VisualPinball.Unity.Editor;
 
@@ -159,6 +161,74 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldRebindTheGeneratedSplineWhenTheSerializedReferenceIsMissing()
+		{
+			var go = new GameObject("Rubber");
+			try {
+				var rubber = go.AddComponent<RubberComponent>();
+				rubber.DragPoints = CreateDragPoints();
+				var original = rubber.DragPointSpline;
+
+				ClearSplineReference(rubber);
+
+				Assert.That(rubber.DragPointSpline, Is.SameAs(original));
+				Assert.That(go.GetComponentsInChildren<DragPointSplineComponent>(true),
+					Has.Length.EqualTo(1));
+				Assert.That(original.GetComponent<GeneratedDragPointSplineComponent>(), Is.Not.Null);
+			}
+			finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldRemoveDuplicateGeneratedSplinesDeterministically()
+		{
+			var go = new GameObject("Rubber");
+			try {
+				var rubber = go.AddComponent<RubberComponent>();
+				rubber.DragPoints = CreateDragPoints();
+				var original = rubber.DragPointSpline;
+				DragPointSplineComponent.Create(rubber, CreateDragPoints());
+				ClearSplineReference(rubber);
+				LogAssert.Expect(LogType.Warning,
+					"Removing generated spline child 'Spline' from 'Rubber' because it duplicates another drag-point spline.");
+
+				Assert.That(rubber.DragPointSpline, Is.SameAs(original));
+				Assert.That(go.GetComponentsInChildren<DragPointSplineComponent>(true),
+					Has.Length.EqualTo(1));
+			}
+			finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldRemoveInvalidGeneratedChildrenWithoutSkippingTheSpline()
+		{
+			var go = new GameObject("Rubber");
+			try {
+				var rubber = go.AddComponent<RubberComponent>();
+				rubber.DragPoints = CreateDragPoints();
+				var original = rubber.DragPointSpline;
+				var invalid = new GameObject("Invalid Spline");
+				invalid.transform.SetParent(go.transform, false);
+				invalid.transform.SetSiblingIndex(0);
+				invalid.AddComponent<GeneratedDragPointSplineComponent>();
+				ClearSplineReference(rubber);
+				LogAssert.Expect(LogType.Warning,
+					"Removing generated spline child 'Invalid Spline' from 'Rubber' because it has no functional drag-point spline.");
+
+				Assert.That(rubber.DragPointSpline, Is.SameAs(original));
+				Assert.That(go.GetComponentsInChildren<DragPointSplineComponent>(true),
+					Has.Length.EqualTo(1));
+			}
+			finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
 		public void ShouldReverseAroundTheFirstKnotAndRotateSlingshots()
 		{
 			var go = new GameObject("Surface");
@@ -212,6 +282,13 @@ namespace VisualPinball.Unity.Test
 				positions[i] = container.transform.TransformPoint(container.Spline[i].Position);
 			}
 			return positions;
+		}
+
+		private static void ClearSplineReference(RubberComponent rubber)
+		{
+			typeof(RubberComponent)
+				.GetField("_dragPointSpline", BindingFlags.Instance | BindingFlags.NonPublic)!
+				.SetValue(rubber, null);
 		}
 
 		private static DragPointData[] CreateDragPoints()

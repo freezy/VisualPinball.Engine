@@ -73,6 +73,7 @@ namespace VisualPinball.Unity
 			splineObject.transform.localRotation = ((Matrix4x4)Physics.VpxToWorld).rotation;
 			splineObject.transform.localScale = Physics.ScaleInvVector;
 
+			splineObject.AddComponent<GeneratedDragPointSplineComponent>();
 			var container = splineObject.AddComponent<SplineContainer>();
 			var component = splineObject.AddComponent<DragPointSplineComponent>();
 			component._container = container;
@@ -84,6 +85,138 @@ namespace VisualPinball.Unity
 			EditorUtility.SetDirty(component);
 #endif
 			return component;
+		}
+
+		public static DragPointSplineComponent GetOrCreate(IDragPointSplineOwner owner,
+			DragPointSplineComponent current, IReadOnlyList<DragPointData> dragPoints)
+		{
+			if (owner == null) {
+				throw new ArgumentNullException(nameof(owner));
+			}
+
+			if (IsFunctionalChild(owner, current)) {
+				current.Bind(owner);
+				if (dragPoints != null) {
+					current.SetDragPoints(dragPoints);
+				}
+				return current;
+			}
+
+			var component = ResolveExisting(owner, current);
+			if (!component) {
+				return Create(owner, dragPoints ?? Array.Empty<DragPointData>());
+			}
+
+			component.Bind(owner);
+			if (dragPoints != null) {
+				component.SetDragPoints(dragPoints);
+			}
+			return component;
+		}
+
+		private static bool IsFunctionalChild(IDragPointSplineOwner owner,
+			DragPointSplineComponent component)
+		{
+			return component && component.transform.parent == owner.SplineTransform
+				&& component.GetComponent<SplineContainer>();
+		}
+
+		private static DragPointSplineComponent ResolveExisting(IDragPointSplineOwner owner,
+			DragPointSplineComponent current)
+		{
+			var candidates = new List<DragPointSplineComponent>();
+			var ownerTransform = owner.SplineTransform;
+			var generatedChildren = new List<Transform>();
+			for (var i = 0; i < ownerTransform.childCount; i++) {
+				var child = ownerTransform.GetChild(i);
+				var marker = child.GetComponent<GeneratedDragPointSplineComponent>();
+				var component = child.GetComponent<DragPointSplineComponent>();
+				if (marker || component) {
+					generatedChildren.Add(child);
+				}
+			}
+
+			foreach (var child in generatedChildren) {
+				var marker = child.GetComponent<GeneratedDragPointSplineComponent>();
+				var component = child.GetComponent<DragPointSplineComponent>();
+				if (component && component.GetComponent<SplineContainer>()) {
+					EnsureExportMarker(component.gameObject);
+					candidates.Add(component);
+				} else if (marker) {
+					RemoveGeneratedChild(owner, child.gameObject,
+						"it has no functional drag-point spline");
+				}
+			}
+
+			DragPointSplineComponent selected = null;
+			if (current && current.transform.parent == ownerTransform
+				&& current.GetComponent<SplineContainer>()) {
+				EnsureExportMarker(current.gameObject);
+				selected = current;
+				if (!candidates.Contains(current)) {
+					candidates.Insert(0, current);
+				}
+			} else if (candidates.Count > 0) {
+				selected = candidates[0];
+			}
+
+			foreach (var candidate in candidates) {
+				if (candidate != selected) {
+					RemoveGeneratedChild(owner, candidate.gameObject,
+						"it duplicates another drag-point spline");
+				}
+			}
+			return selected;
+		}
+
+		private static void EnsureExportMarker(GameObject splineObject)
+		{
+			if (!splineObject.TryGetComponent<GeneratedDragPointSplineComponent>(out _)) {
+#if UNITY_EDITOR
+				if (!Application.isPlaying) {
+					Undo.AddComponent<GeneratedDragPointSplineComponent>(splineObject);
+					EditorUtility.SetDirty(splineObject);
+					return;
+				}
+#endif
+				splineObject.AddComponent<GeneratedDragPointSplineComponent>();
+			}
+		}
+
+		private static void RemoveGeneratedChild(IDragPointSplineOwner owner,
+			GameObject generatedChild, string reason)
+		{
+			var canDestroy = CanDestroyGeneratedChild(generatedChild);
+			var action = canDestroy ? "Removing" : "Disabling";
+			var suffix = canDestroy
+				? string.Empty
+				: " It belongs to a prefab instance and cannot be removed without unpacking it.";
+			Debug.LogWarning(
+				$"{action} generated spline child '{generatedChild.name}' from '{owner.SplineOwner.name}' because {reason}.{suffix}",
+				owner.SplineOwner);
+			generatedChild.SetActive(false);
+			if (!canDestroy) {
+				return;
+			}
+			if (Application.isPlaying) {
+				UnityEngine.Object.Destroy(generatedChild);
+			} else {
+#if UNITY_EDITOR
+				Undo.DestroyObjectImmediate(generatedChild);
+#else
+				UnityEngine.Object.DestroyImmediate(generatedChild);
+#endif
+			}
+		}
+
+		private static bool CanDestroyGeneratedChild(GameObject generatedChild)
+		{
+#if UNITY_EDITOR
+			return Application.isPlaying || !PrefabUtility.IsPartOfPrefabInstance(generatedChild)
+				|| PrefabUtility.IsAddedGameObjectOverride(generatedChild);
+#else
+			return true;
+#endif
 		}
 
 		public void Bind(IDragPointSplineOwner owner)

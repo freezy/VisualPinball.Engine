@@ -271,13 +271,9 @@ namespace VisualPinball.Unity
 
 		private DragPointSplineComponent GetOrCreateDragPointSpline()
 		{
-			if (!_dragPointSpline) {
-				_dragPointSpline = DragPointSplineComponent.Create(this,
-					_dragPoints ?? Array.Empty<DragPointData>());
-				_dragPoints = null;
-			} else {
-				_dragPointSpline.Bind(this);
-			}
+			_dragPointSpline = DragPointSplineComponent.GetOrCreate(this,
+				_dragPointSpline, _dragPoints);
+			_dragPoints = null;
 			return _dragPointSpline;
 		}
 
