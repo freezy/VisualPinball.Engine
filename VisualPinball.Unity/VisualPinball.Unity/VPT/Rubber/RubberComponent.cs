@@ -58,6 +58,14 @@ namespace VisualPinball.Unity
 		[SerializeField]
 		private DragPointSplineComponent _dragPointSpline;
 
+		[SerializeField] private RubberPathSource _pathSource = RubberPathSource.Spline;
+		[SerializeField] private RubberGuideBinding[] _guideBindings = Array.Empty<RubberGuideBinding>();
+		[SerializeField, HideInInspector] private RubberPathElement[] _bakedPath = Array.Empty<RubberPathElement>();
+		[SerializeField, HideInInspector] private uint _bakeVersion;
+		[SerializeField, HideInInspector] private Hash128 _bakeInputHash;
+		[SerializeField, HideInInspector] private Matrix4x4 _bakeFrameToLocal = Matrix4x4.identity;
+		[SerializeField, Min(0f)] private float _restLength;
+
 		[NonSerialized]
 		private Vertex3D[] _scalingDragPoints;
 
@@ -78,6 +86,31 @@ namespace VisualPinball.Unity
 		}
 		public DragPointSplineComponent DragPointSpline => GetOrCreateDragPointSpline();
 		public int Thickness => math.max(1, _thickness); // don't allow zero thickness
+		public RubberPathSource PathSource => _pathSource;
+		public IReadOnlyList<RubberGuideBinding> GuideBindings => _guideBindings ?? Array.Empty<RubberGuideBinding>();
+		public IReadOnlyList<RubberPathElement> BakedPath => _bakedPath ?? Array.Empty<RubberPathElement>();
+		public uint BakeVersion => _bakeVersion;
+		public Hash128 BakeInputHash => _bakeInputHash;
+		public Matrix4x4 BakeFrameToLocal => _bakeFrameToLocal;
+		public float RestLength {
+			get => _restLength;
+			set => _restLength = math.max(0f, value);
+		}
+
+		public bool HasValidGuidedPath {
+			get {
+				if (_pathSource != RubberPathSource.Guides || _bakedPath == null || _bakedPath.Length == 0
+					|| _guideBindings == null || _guideBindings.Length == 0) {
+					return false;
+				}
+				foreach (var binding in _guideBindings) {
+					if (!binding.Guide || !binding.Guide.TryGetSlot(binding.SlotId, out _)) {
+						return false;
+					}
+				}
+				return true;
+			}
+		}
 
 		#endregion
 
@@ -85,11 +118,13 @@ namespace VisualPinball.Unity
 
 		public byte[] Pack() => RubberPackable.Pack(this);
 
-		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => Array.Empty<byte>();
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files)
+			=> RubberReferencesPackable.Pack(this, refs);
 
 		public void Unpack(byte[] bytes) => RubberPackable.Unpack(bytes, this);
 
-		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files)
+			=> RubberReferencesPackable.Unpack(data, this, refs);
 
 		#endregion
 
@@ -128,6 +163,7 @@ namespace VisualPinball.Unity
 		public override IEnumerable<MonoBehaviour> SetData(RubberData data)
 		{
 			var updatedComponents = new List<MonoBehaviour> { this };
+			ResetToSplineSource();
 
 			// reset origin to bounding box center and move points accordingly
 			var min = new float3(float.MaxValue, float.MaxValue, float.MaxValue);
@@ -157,6 +193,8 @@ namespace VisualPinball.Unity
 			// collider data
 			var collComponent = GetComponent<RubberColliderComponent>();
 			if (collComponent) {
+				collComponent.Mode = RubberColliderMode.Legacy;
+				collComponent.RubberPhysicsMaterial = null;
 				collComponent.enabled = data.IsCollidable;
 
 				collComponent.HitEvent = data.HitEvent;
@@ -232,8 +270,79 @@ namespace VisualPinball.Unity
 			if (srcMainComp) {
 				_thickness = srcMainComp._thickness;
 				DragPoints = srcMainComp.DragPoints.Select(dp => dp.Clone()).ToArray();
+				_pathSource = srcMainComp._pathSource;
+				_guideBindings = srcMainComp.GuideBindings.ToArray();
+				_bakedPath = srcMainComp.BakedPath.ToArray();
+				_bakeVersion = srcMainComp._bakeVersion;
+				_bakeInputHash = srcMainComp._bakeInputHash;
+				_bakeFrameToLocal = srcMainComp._bakeFrameToLocal;
+				_restLength = srcMainComp._restLength;
 			}
 			RebuildMeshes();
+		}
+
+		public void SetGuideBindings(IEnumerable<RubberGuideBinding> bindings)
+		{
+			_guideBindings = bindings?.ToArray() ?? Array.Empty<RubberGuideBinding>();
+			_pathSource = RubberPathSource.Guides;
+		}
+
+		public void ApplyGuidedBake(RubberPathElement[] path, DragPointData[] sampledDragPoints,
+			Matrix4x4 bakeFrameToLocal, Hash128 inputHash, uint bakeVersion)
+		{
+			if (_pathSource != RubberPathSource.Guides) {
+				throw new InvalidOperationException("A guided bake requires guide bindings to be authoritative.");
+			}
+			_bakedPath = path?.ToArray() ?? Array.Empty<RubberPathElement>();
+			_bakeFrameToLocal = bakeFrameToLocal;
+			_bakeInputHash = inputHash;
+			_bakeVersion = bakeVersion;
+			if (sampledDragPoints != null) {
+				DragPoints = sampledDragPoints;
+			}
+		}
+
+		public void DetachFromGuides()
+		{
+			ResetToSplineSource();
+			var collider = GetComponent<RubberColliderComponent>();
+			if (collider) {
+				collider.Mode = RubberColliderMode.Legacy;
+			}
+		}
+
+		private void ResetToSplineSource()
+		{
+			_pathSource = RubberPathSource.Spline;
+			_guideBindings = Array.Empty<RubberGuideBinding>();
+			_bakedPath = Array.Empty<RubberPathElement>();
+			_bakeVersion = 0;
+			_bakeInputHash = default;
+			_bakeFrameToLocal = Matrix4x4.identity;
+			_restLength = 0f;
+		}
+
+		internal void RestorePackedState(RubberPathSource pathSource, RubberGuideBinding[] guideBindings,
+			RubberPathElement[] bakedPath, uint bakeVersion, Hash128 bakeInputHash,
+			Matrix4x4 bakeFrameToLocal, float restLength)
+		{
+			_pathSource = pathSource;
+			_guideBindings = guideBindings ?? Array.Empty<RubberGuideBinding>();
+			_bakedPath = bakedPath ?? Array.Empty<RubberPathElement>();
+			_bakeVersion = bakeVersion;
+			_bakeInputHash = bakeInputHash;
+			_bakeFrameToLocal = bakeFrameToLocal;
+			_restLength = math.max(0f, restLength);
+		}
+
+		internal void RestoreGuideReferences(RubberGuideComponent[] guides)
+		{
+			if (guides == null || guides.Length != GuideBindings.Count) {
+				throw new ArgumentException("Guide reference count must match binding count.", nameof(guides));
+			}
+			for (var i = 0; i < guides.Length; i++) {
+				_guideBindings[i].Guide = guides[i];
+			}
 		}
 
 		private DragPointSplineComponent GetOrCreateDragPointSpline()
