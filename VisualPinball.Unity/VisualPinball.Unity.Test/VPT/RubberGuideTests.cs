@@ -214,19 +214,8 @@ namespace VisualPinball.Unity.Test
 				var rubber = rubberObject.AddComponent<RubberComponent>();
 				rubber.DragPoints = SquareDragPoints();
 				rubber.SetGuideBindings(new[] { new RubberGuideBinding(guide, slot.Id) });
-				rubber.ApplyGuidedBake(new[] {
-					new RubberPathElement {
-						Type = RubberPathElementType.SupportedArc,
-						Start = new float2(10f, 0f),
-						End = new float2(10f, 0f),
-						Center = float2.zero,
-						Radius = 10f,
-						SweepAngleRad = 2f * math.PI,
-						StartBindingIndex = 0,
-						EndBindingIndex = 0,
-						Length = 20f * math.PI,
-					},
-				}, null, Matrix4x4.identity, new Hash128(9, 8, 7, 6), 1);
+				Assert.That(RubberAutofit.TryBake(rubber, out _, out var bakeError),
+					Is.True, bakeError);
 
 				var collider = rubberObject.AddComponent<RubberColliderComponent>();
 				collider.Mode = RubberColliderMode.Physical;
