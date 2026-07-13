@@ -53,17 +53,34 @@ namespace VisualPinball.Unity
 		[Tooltip("When hit, add a random angle between 0 and this value to the trajectory.")]
 		public float Scatter;
 
+		[SerializeField] private RubberColliderMode _mode = RubberColliderMode.Legacy;
+		[SerializeField] private RubberPhysicsMaterialAsset _rubberPhysicsMaterial;
+
+		public RubberColliderMode Mode {
+			get => _mode;
+			set => _mode = value;
+		}
+
+		public RubberPhysicsMaterialAsset RubberPhysicsMaterial {
+			get => _rubberPhysicsMaterial;
+			set => _rubberPhysicsMaterial = value;
+		}
+
+		public bool CanUsePhysical => MainComponent && MainComponent.HasValidGuidedPath;
+
 		#endregion
 
 		#region Packaging
 
 		public byte[] Pack() => RubberColliderPackable.Pack(this);
 
-		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => PhysicalMaterialPackable.Pack(this, files);
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files)
+			=> RubberColliderReferencesPackable.Pack(this, files);
 
 		public void Unpack(byte[] bytes) => RubberColliderPackable.Unpack(bytes, this);
 
-		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) => PhysicalMaterialPackable.Unpack(data, this, files);
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files)
+			=> RubberColliderReferencesPackable.Unpack(data, this, files);
 
 		#endregion
 
