@@ -155,11 +155,11 @@ namespace VisualPinball.Unity
 						case ColliderType.SweptCircle:
 							ref var sweptCircleCollider = ref SweptCircleColliders.GetElementAsRef(lookup.Index);
 							#if UNITY_EDITOR
-							if (!sweptCircleCollider.Header.IsTransformed) {
-								throw new InvalidOperationException("Swept-circle colliders must be transformed before kinematic registration.");
+							if (sweptCircleCollider.Header.IsTransformed) {
+								throw new InvalidOperationException("A transformed swept-circle collider shouldn't have been added as a kinematic collider.");
 							}
 							#endif
-							sweptCircleCollider.Transform(SweptCircleColliders[lookup.Index], math.inverse(matrix));
+							sweptCircleCollider.TransformAabb(math.inverse(matrix));
 							break;
 
 						case ColliderType.Triangle:
@@ -364,13 +364,24 @@ namespace VisualPinball.Unity
 
 		internal void Add(SweptCircleCollider collider, float4x4 matrix)
 		{
-#if UNITY_EDITOR
-			if (!SweptCircleCollider.IsTransformable(matrix)) {
+			// A static round cord is baked into playfield space, so non-uniform scale would
+			// change its circular cross-section into geometry this collider cannot represent.
+			if (!IsKinematic && !SweptCircleCollider.IsTransformable(matrix)) {
 				throw new InvalidOperationException("A swept-circle collider requires a uniformly scaled transform.");
 			}
-#endif
-			collider.Header.IsTransformed = true;
-			collider.Transform(matrix);
+			if (IsKinematic) {
+				// Kinematic colliders use the engine's local-space ball transform path. As with
+				// other non-transformable colliders, non-uniform scale keeps the ball radius
+				// unchanged and is therefore an approximation, but remains safe at runtime.
+				if (!_nonTransformableColliderTransforms.ContainsKey(collider.Header.ItemId)) {
+					_nonTransformableColliderTransforms.Add(collider.Header.ItemId, matrix);
+				}
+				collider.Header.IsTransformed = false;
+				collider.TransformAabb(matrix);
+			} else {
+				collider.Header.IsTransformed = true;
+				collider.Transform(matrix);
+			}
 			collider.Id = Lookups.Length;
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookups.Add(new ColliderLookup(ColliderType.SweptCircle, SweptCircleColliders.Length));

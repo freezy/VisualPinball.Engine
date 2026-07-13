@@ -50,11 +50,14 @@ namespace VisualPinball.Unity
 			var radius = ball.Radius + CordRadius;
 			var axis = V2 - V1;
 			var axisLengthSquared = math.lengthsq(axis);
-			if (axisLengthSquared <= 1e-10f || radius <= 0f) {
+			if (radius <= 0f) {
 				return -1f;
 			}
 
-			var closest = ClosestPoint(ball.Position, V1, axis, axisLengthSquared);
+			var isDegenerate = axisLengthSquared <= 1e-10f;
+			var closest = isDegenerate
+				? V1
+				: ClosestPoint(ball.Position, V1, axis, axisLengthSquared);
 			var separation = ball.Position - closest;
 			var distance = math.length(separation);
 			var normal = SafeNormal(separation, ball.Velocity, axis);
@@ -69,22 +72,24 @@ namespace VisualPinball.Unity
 			float hitTime;
 			var isContact = false;
 			if (hitDistance < PhysicsConstants.PhysTouch) {
-				if (hitDistance <= 0f) {
-					hitTime = 0f;
-				} else if (math.abs(normalVelocity) <= PhysicsConstants.ContactVel) {
+				if (math.abs(normalVelocity) <= PhysicsConstants.ContactVel) {
 					isContact = true;
 					hitTime = 0f;
 				} else {
-					hitTime = -hitDistance / normalVelocity;
+					hitTime = math.max(0f, -hitDistance / normalVelocity);
 				}
 			} else {
-				hitTime = FirstRayCapsuleHit(ball.Position, ball.Velocity, V1, V2,
-					radius, dTime);
-				if (hitTime < 0f) {
+				hitTime = isDegenerate
+					? FirstRaySphereHit(ball.Position, ball.Velocity, V1, radius, dTime)
+					: FirstRayCapsuleHit(ball.Position, ball.Velocity, V1, V2,
+						radius, dTime);
+				if (!float.IsFinite(hitTime) || hitTime < 0f) {
 					return -1f;
 				}
 				var hitPosition = ball.Position + ball.Velocity * hitTime;
-				closest = ClosestPoint(hitPosition, V1, axis, axisLengthSquared);
+				closest = isDegenerate
+					? V1
+					: ClosestPoint(hitPosition, V1, axis, axisLengthSquared);
 				normal = SafeNormal(hitPosition - closest, ball.Velocity, axis);
 				normalVelocity = math.dot(normal, ball.Velocity);
 				if (normalVelocity > PhysicsConstants.ContactVel) {

@@ -377,11 +377,6 @@ namespace VisualPinball.Unity
 					line3DCollider.Transform(KinematicCollidersAtIdentity.Line3D(colliderId), matrix);
 					break;
 
-				case ColliderType.SweptCircle:
-					ref var sweptCircleCollider = ref KinematicColliders.SweptCircle(colliderId);
-					sweptCircleCollider.Transform(KinematicCollidersAtIdentity.SweptCircle(colliderId), matrix);
-					break;
-
 				case ColliderType.Triangle:
 					ref var triangleCollider = ref KinematicColliders.Triangle(colliderId);
 					triangleCollider.Transform(KinematicCollidersAtIdentity.Triangle(colliderId), matrix);
