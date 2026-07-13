@@ -24,7 +24,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Splines;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Surface;
@@ -35,7 +37,8 @@ namespace VisualPinball.Unity
 	[SelectionBase]
 	[PackAs("Surface")]
 	[AddComponentMenu("Pinball/Game Item/Surface")]
-	public class SurfaceComponent : MainRenderableComponent<SurfaceData>, ISurfaceComponent, IPackable
+	public class SurfaceComponent : MainRenderableComponent<SurfaceData>, ISurfaceComponent, IPackable,
+		IDragPointSplineOwner
 	{
 		#region Data
 
@@ -45,9 +48,24 @@ namespace VisualPinball.Unity
 		[Tooltip("Bottom height of the wall, i.e. at which height the wall starts.")]
 		public float HeightBottom;
 
-		[SerializeField]
+		[SerializeField, HideInInspector]
 		private DragPointData[] _dragPoints;
-		public DragPointData[] DragPoints { get => _dragPoints; set => _dragPoints = value; }
+
+		[SerializeField]
+		private DragPointSplineComponent _dragPointSpline;
+
+		public DragPointData[] DragPoints {
+			get => GetOrCreateDragPointSpline().DragPoints;
+			set {
+				if (!_dragPointSpline) {
+					_dragPoints = value;
+					GetOrCreateDragPointSpline();
+				} else {
+					_dragPointSpline.SetDragPoints(value);
+				}
+			}
+		}
+		public DragPointSplineComponent DragPointSpline => GetOrCreateDragPointSpline();
 
 		[SerializeField]
 		public Vector3 uvOffset = Vector3.zero;
@@ -220,7 +238,7 @@ namespace VisualPinball.Unity
 			if (surfaceComponent) {
 				HeightTop = surfaceComponent.HeightTop;
 				HeightBottom = surfaceComponent.HeightBottom;
-				_dragPoints = surfaceComponent._dragPoints.Select(dp => dp.Clone()).ToArray();
+				DragPoints = surfaceComponent.DragPoints.Select(dp => dp.Clone()).ToArray();
 
 			}
 			RebuildMeshes();
@@ -235,19 +253,38 @@ namespace VisualPinball.Unity
 			// - changing bottom height will just change the height
 			// - change mesh and collider creation to create top-down instead of bottom-up.
 
-			var centerVpx = DragPoints.Aggregate(Vector3.zero, (current, dragPoint) => current + dragPoint.Center.ToUnityVector3());
-			centerVpx /= DragPoints.Length;
+			var dragPoints = DragPoints;
+			var centerVpx = dragPoints.Aggregate(Vector3.zero, (current, dragPoint) => current + dragPoint.Center.ToUnityVector3());
+			centerVpx /= dragPoints.Length;
 
 			if (uvOffset == Vector3.zero) {
 				uvOffset = centerVpx;
 			}
 
 			transform.Translate(centerVpx.TranslateToWorld(transform) - transform.position);
-			foreach (var dragPoint in DragPoints) {
+			foreach (var dragPoint in dragPoints) {
 				dragPoint.Center -= centerVpx.ToVertex3D();
 			}
+			DragPoints = dragPoints;
 			RebuildMeshes();
 		}
+
+		private DragPointSplineComponent GetOrCreateDragPointSpline()
+		{
+			_dragPointSpline = DragPointSplineComponent.GetOrCreate(this,
+				_dragPointSpline, _dragPoints);
+			_dragPoints = null;
+			return _dragPointSpline;
+		}
+
+		MonoBehaviour IDragPointSplineOwner.SplineOwner => this;
+		Transform IDragPointSplineOwner.SplineTransform => transform;
+		DragPointSplineComponent IDragPointSplineOwner.SplineComponent => DragPointSpline;
+		bool IDragPointSplineOwner.SplineClosed => true;
+		bool IDragPointSplineOwner.SplinePlanar => true;
+		void IDragPointSplineOwner.ApplySplineConstraints(Spline spline, int knotIndex,
+			SplineModification modification, IReadOnlyList<float3> previousPositions) { }
+		void IDragPointSplineOwner.RebuildSplineMeshes() => RebuildMeshes();
 
 		#endregion
 

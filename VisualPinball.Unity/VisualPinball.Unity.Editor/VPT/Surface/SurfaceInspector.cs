@@ -16,40 +16,23 @@
 
 // ReSharper disable AssignmentInConditionalExpression
 
-using System.Collections.Generic;
 using UnityEditor;
-using UnityEngine;
-using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT.Surface;
 
 namespace VisualPinball.Unity.Editor
 {
 	[CustomEditor(typeof(SurfaceComponent)), CanEditMultipleObjects]
-	public class SurfaceInspector : MainInspector<SurfaceData, SurfaceComponent>, IDragPointsInspector
+	public class SurfaceInspector : MainInspector<SurfaceData, SurfaceComponent>
 	{
-
-		public Transform Transform => MainComponent.transform;
-
 		private SerializedProperty _heightTopProperty;
 		private SerializedProperty _heightBottomProperty;
-
-		public bool DragPointsActive => true;
 
 		protected override void OnEnable()
 		{
 			base.OnEnable();
 
-			DragPointsHelper = new DragPointsInspectorHelper(MainComponent, this);
-			DragPointsHelper.OnEnable();
-
 			_heightTopProperty = serializedObject.FindProperty(nameof(SurfaceComponent.HeightTop));
 			_heightBottomProperty = serializedObject.FindProperty(nameof(SurfaceComponent.HeightBottom));
-		}
-
-		protected override void OnDisable()
-		{
-			base.OnDisable();
-			DragPointsHelper.OnDisable();
 		}
 
 		public override void OnInspectorGUI()
@@ -65,30 +48,12 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_heightTopProperty, "Top Height", true);
 			PropertyField(_heightBottomProperty, "Bottom Height", true);
 
-			DragPointsHelper.OnInspectorGUI(this);
+			DragPointSplineInspectorGUI.OnInspectorGUI(MainComponent.DragPointSpline);
 
 			base.OnInspectorGUI();
 
 			EndEditing();
 		}
 
-		private void OnSceneGUI()
-		{
-			DragPointsHelper.OnSceneGUI(this);
-		}
-
-		#region Dragpoint Tooling
-
-		public DragPointData[] DragPoints { get => MainComponent.DragPoints; set => MainComponent.DragPoints = value; }
-		public bool PointsAreLooping => true;
-		public IEnumerable<DragPointExposure> DragPointExposition => new[] { DragPointExposure.Smooth, DragPointExposure.SlingShot, DragPointExposure.Texture };
-		public DragPointTransformType HandleType => DragPointTransformType.TwoD;
-		public DragPointsInspectorHelper DragPointsHelper { get; private set; }
-		public float ZOffset => MainComponent.HeightTop;
-		public float[] TopBottomZ => null;
-		public void SetDragPointPosition(DragPointData dragPoint, Vertex3D value, int numSelectedDragPoints,
-			float[] topBottomZ) => dragPoint.Center = value;
-
-		#endregion
 	}
 }

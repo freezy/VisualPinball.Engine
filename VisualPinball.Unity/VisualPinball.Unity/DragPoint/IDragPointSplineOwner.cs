@@ -1,5 +1,5 @@
-﻿// Visual Pinball Engine
-// Copyright (C) 2023 freezy and VPE Team
+// Visual Pinball Engine
+// Copyright (C) 2026 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -14,12 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-namespace VisualPinball.Unity.Editor
+using System.Collections.Generic;
+using Unity.Mathematics;
+using UnityEngine;
+using UnityEngine.Splines;
+
+namespace VisualPinball.Unity
 {
-	public enum FlipAxis
+	public interface IDragPointSplineOwner
 	{
-		X,
-		Y,
-		Z,
+		MonoBehaviour SplineOwner { get; }
+		Transform SplineTransform { get; }
+		DragPointSplineComponent SplineComponent { get; }
+		bool SplineClosed { get; }
+		bool SplinePlanar { get; }
+
+		void ApplySplineConstraints(Spline spline, int knotIndex,
+			SplineModification modification, IReadOnlyList<float3> previousPositions);
+		void RebuildSplineMeshes();
 	}
 }
