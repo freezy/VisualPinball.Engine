@@ -98,18 +98,7 @@ namespace VisualPinball.Unity
 		}
 
 		public bool HasValidGuidedPath {
-			get {
-				if (_pathSource != RubberPathSource.Guides || _bakedPath == null || _bakedPath.Length == 0
-					|| _guideBindings == null || _guideBindings.Length == 0) {
-					return false;
-				}
-				foreach (var binding in _guideBindings) {
-					if (!binding.Guide || !binding.Guide.TryGetSlot(binding.SlotId, out _)) {
-						return false;
-					}
-				}
-				return true;
-			}
+			get => RubberAutofit.GetStatus(this).IsValid;
 		}
 
 		#endregion
@@ -285,6 +274,8 @@ namespace VisualPinball.Unity
 		{
 			_guideBindings = bindings?.ToArray() ?? Array.Empty<RubberGuideBinding>();
 			_pathSource = RubberPathSource.Guides;
+			_bakeVersion = 0;
+			_bakeInputHash = default;
 		}
 
 		public void ApplyGuidedBake(RubberPathElement[] path, DragPointData[] sampledDragPoints,
