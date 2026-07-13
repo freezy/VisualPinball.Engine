@@ -100,6 +100,11 @@ namespace VisualPinball.Unity
 					line3DCollider.Collide(ref ball, ref state.EventQueue, in ball.CollisionEvent, ref state);
 					break;
 
+				case ColliderType.SweptCircle:
+					ref var sweptCircleCollider = ref colliders.SweptCircle(colliderId);
+					sweptCircleCollider.Collide(ref ball, ref state.EventQueue, in ball.CollisionEvent, ref state);
+					break;
+
 				case ColliderType.Point:
 					ref var pointCollider = ref colliders.Point(colliderId);
 					pointCollider.Collide(ref ball, ref state.EventQueue, in ball.CollisionEvent, ref state);
