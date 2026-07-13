@@ -113,10 +113,7 @@ namespace VisualPinball.Unity
 
 				// distance to hit from V1
 				var btd = (hitPoint.x - V1.x) * hitNormal.y - (hitPoint.y - V1.y) * hitNormal.x;
-				var force = math.abs(len) > 1.0e-6f ? (btd + btd) / len - 1.0f : -1.0f; // -1..+1
-
-				//!! maximum value 0.5 ...I think this should have been 1.0...oh well
-				force = 0.5f * (1.0f - force * force);
+				var force = LegacyForceFactor(btd, len);
 
 				// will match the previous physics
 				force *= _force; //-80;
@@ -141,6 +138,15 @@ namespace VisualPinball.Unity
 					// m_slingshotanim.m_TimeReset = g_pplayer->m_time_msec + 100;
 				}
 			}
+		}
+
+		internal static float LegacyForceFactor(float distanceFromV1, float length)
+		{
+			var normalized = math.abs(length) > 1.0e-6f
+				? (distanceFromV1 + distanceFromV1) / length - 1.0f
+				: -1.0f; // -1..+1
+			// Historical VP behavior peaks at 0.5. Keep this exact in Legacy mode.
+			return 0.5f * (1.0f - normalized * normalized);
 		}
 
 		#endregion
