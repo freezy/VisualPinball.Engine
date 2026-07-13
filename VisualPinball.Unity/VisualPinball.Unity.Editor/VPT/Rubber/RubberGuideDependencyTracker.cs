@@ -195,12 +195,20 @@ namespace VisualPinball.Unity.Editor
 						continue;
 					}
 					AddDependency(binding.Guide.GetEntityId(), rubber);
-					AddDependency(binding.Guide.gameObject.GetEntityId(), rubber);
-					AddDependency(binding.Guide.transform.GetEntityId(), rubber);
+					AddTransformHierarchyDependencies(binding.Guide.transform, rubber);
 				}
-				AddDependency(rubber.transform.GetEntityId(), rubber);
+				AddTransformHierarchyDependencies(rubber.transform, rubber);
 			}
 			_indexDirty = false;
+		}
+
+		private static void AddTransformHierarchyDependencies(Transform transform,
+			RubberComponent rubber)
+		{
+			for (var current = transform; current; current = current.parent) {
+				AddDependency(current.GetEntityId(), rubber);
+				AddDependency(current.gameObject.GetEntityId(), rubber);
+			}
 		}
 
 		private static void AddDependency(EntityId entityId, RubberComponent rubber)
