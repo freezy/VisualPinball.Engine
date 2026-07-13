@@ -871,7 +871,7 @@ namespace VisualPinball.Unity
 			GetRelativeVelocity(normal, ball, movementState, out var vRel, out var rB, out var rF);
 
 			var bnv = math.dot(normal, vRel); // relative normal velocity
-			var impactSpeed = math.max(0f, -bnv);
+			var ballImpactSpeed = math.max(0f, -math.dot(normal, ball.Velocity));
 
 			if (bnv >= -PhysicsConstants.LowNormVel) {
 				// nearly receding ... make sure of conditions
@@ -998,7 +998,7 @@ namespace VisualPinball.Unity
 			}
 
 			var liveCatchOutcome = LiveCatch(ref ball, in collEvent, in tricks,
-				new float3(_hitCircleBase.Center, ball.Position.z), impactSpeed, timeMsec);
+				new float3(_hitCircleBase.Center, ball.Position.z), ballImpactSpeed, timeMsec);
 			if (liveCatchOutcome == LiveCatchOutcome.NotEligible) {
 				var postPlayfieldVelocity = colliderToPlayfield.MultiplyVector(ball.Velocity);
 				TryApplyEosRubberDampener(ref ball, in postPlayfieldVelocity, math.length(incomingPlayfieldVelocity),

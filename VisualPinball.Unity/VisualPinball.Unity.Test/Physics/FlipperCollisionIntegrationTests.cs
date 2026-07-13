@@ -41,6 +41,19 @@ namespace VisualPinball.Unity.Test
 			AssertFloat3(rubberized.AngularMomentum, baseline.AngularMomentum);
 		}
 
+		[Test]
+		public void FlipperMotionDoesNotQualifySlowBallForLiveCatch()
+		{
+			var slowBallVelocity = new float3(-1f, -1f, 0f);
+			var withoutWindow = RunCollision(float4x4.identity, false, true, false, 50f, 0.15f,
+				slowBallVelocity, 0.1f);
+			var withWindow = RunCollision(float4x4.identity, false, true, true, 50f, 0.15f,
+				slowBallVelocity, 0.1f);
+
+			AssertFloat3(withWindow.Velocity, withoutWindow.Velocity);
+			AssertFloat3(withWindow.AngularMomentum, withoutWindow.AngularMomentum);
+		}
+
 		[TestCase(-10f, false)]
 		[TestCase(10f, false)]
 		[TestCase(-10f, true)]
@@ -124,10 +137,17 @@ namespace VisualPinball.Unity.Test
 		private static CollisionResult RunCollision(float4x4 matrix, bool isKinematic,
 			bool useCatchPhysics, bool hasLiveCatchWindow, float distanceFromBase, float friction)
 		{
+			return RunCollision(matrix, isKinematic, useCatchPhysics, hasLiveCatchWindow, distanceFromBase,
+				friction, new float3(-5f, -1f, 0f), 0f);
+		}
+
+		private static CollisionResult RunCollision(float4x4 matrix, bool isKinematic,
+			bool useCatchPhysics, bool hasLiveCatchWindow, float distanceFromBase, float friction,
+			float3 localVelocity, float flipperAngleSpeed)
+		{
 			using var harness = new FlipperCollisionHarness(matrix, isKinematic, useCatchPhysics,
-				hasLiveCatchWindow, friction);
+				hasLiveCatchWindow, friction, flipperAngleSpeed);
 			var localPosition = new float3(0f, -distanceFromBase, 10f);
-			var localVelocity = new float3(-5f, -1f, 0f);
 			var localNormal = new float3(1f, 0f, 0f);
 			var ball = new BallState {
 				Id = 7,
@@ -233,7 +253,7 @@ namespace VisualPinball.Unity.Test
 			private readonly bool _isKinematic;
 
 			internal FlipperCollisionHarness(float4x4 matrix, bool isKinematic, bool useCatchPhysics,
-				bool hasLiveCatchWindow, float friction)
+				bool hasLiveCatchWindow, float friction, float flipperAngleSpeed = 0f)
 			{
 				_isKinematic = isKinematic;
 				_env = new PhysicsEnv { TimeMsec = 105 };
@@ -276,7 +296,11 @@ namespace VisualPinball.Unity.Test
 						AngleEnd = 0f,
 						Inertia = 1000f,
 					},
-					new FlipperMovementState { Angle = 0f },
+					new FlipperMovementState {
+						Angle = 0f,
+						AngleSpeed = flipperAngleSpeed,
+						AngularMomentum = flipperAngleSpeed * 1000f,
+					},
 					new FlipperVelocityData {
 						IsInContact = true,
 						ContactTorque = -1f,
