@@ -168,7 +168,7 @@ namespace VisualPinball.Unity
 		/// If set, apply Live Catch (nFozzy/RothBauerW)
 		/// </summary>
 
-		[Tooltip("Enables modern VPW live-catch behavior for balls arriving just after the flipper reaches end-of-stroke.")]
+		[Tooltip("Enables modern VPW live catches, base-zone dampening, and held-EOS rubber correction.")]
 		public bool useFlipperLiveCatch = false;
 
 		[Min(0f)]

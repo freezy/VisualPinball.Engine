@@ -100,7 +100,8 @@ namespace VisualPinball.Unity
 					while (enumerator.MoveNext()) {
 						ref var flipperState = ref enumerator.Current.Value;
 						FlipperDisplacementPhysics.UpdateDisplacement(enumerator.Current.Key, ref flipperState.Movement,
-							ref flipperState.Tricks, in flipperState.Static, hitTime, ref state.EventQueue);
+							ref flipperState.Tricks, in flipperState.Static, flipperState.Solenoid.Value,
+							state.Env.TimeMsec, hitTime, ref state.EventQueue);
 					}
 				}
 				// gates
