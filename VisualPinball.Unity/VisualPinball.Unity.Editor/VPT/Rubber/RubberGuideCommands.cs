@@ -171,15 +171,29 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 			Undo.RegisterFullObjectHierarchyUndo(rubber.gameObject, undoName);
-			rubber.SetGuideBindings(bindings);
-			if (!RubberAutofit.TryBake(rubber, out _, out var error)) {
+			var convertingSpline = rubber.PathSource == RubberPathSource.Spline;
+			string error;
+			var succeeded = convertingSpline
+				? RubberAutofit.TryConvertToGuides(rubber, bindings, out _, out error)
+				: TryReplaceGuideBindings(rubber, bindings, out error);
+			if (!succeeded) {
+				var retainedState = convertingSpline
+					? "The manual spline remains authoritative."
+					: "The bindings were preserved and the previous sampled path was retained.";
 				EditorUtility.DisplayDialog("Rubber Autofit Failed",
-					$"The bindings were preserved and the previous sampled path was retained.\n\n{error}", "OK");
+					$"{retainedState}\n\n{error}", "OK");
 			} else {
 				PrefabUtility.RecordPrefabInstancePropertyModifications(rubber);
 			}
 			EditorUtility.SetDirty(rubber);
 			RubberGuideDependencyTracker.RebuildSoon();
+		}
+
+		private static bool TryReplaceGuideBindings(RubberComponent rubber,
+			RubberGuideBinding[] bindings, out string error)
+		{
+			rubber.SetGuideBindings(bindings);
+			return RubberAutofit.TryBake(rubber, out _, out error);
 		}
 
 		private static RubberComponent SelectedRubber()
