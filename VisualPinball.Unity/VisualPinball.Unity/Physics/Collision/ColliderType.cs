@@ -34,5 +34,6 @@ namespace VisualPinball.Unity
 		Spinner,
 		Triangle,
 		TriggerCircle,
+		SweptCircle,
 	}
 }

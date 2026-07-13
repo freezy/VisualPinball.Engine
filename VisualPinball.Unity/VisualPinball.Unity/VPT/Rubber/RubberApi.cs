@@ -46,6 +46,18 @@ namespace VisualPinball.Unity
 
 		protected override void CreateColliders(ref ColliderReference colliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
+			if (ColliderComponent.Mode == RubberColliderMode.Physical) {
+				if (!ColliderComponent.CanUsePhysical) {
+					Debug.LogError($"Physical rubber '{MainComponent.name}' has no current valid guided bake; no colliders were registered.",
+						MainComponent);
+					return;
+				}
+				var physicalGenerator = new RubberPhysicalColliderGenerator(this, MainComponent,
+					translateWithinPlayfieldMatrix);
+				physicalGenerator.GenerateColliders(ColliderComponent.ZOffset, ref colliders, margin);
+				return;
+			}
+
 			var colliderGenerator = new RubberColliderGenerator(
 				this,
 				new RubberMeshGenerator(MainComponent),
