@@ -15,6 +15,7 @@ namespace VisualPinball.Unity
 	internal sealed class RubberPhysicalColliderGenerator
 	{
 		internal const float ArcChordToleranceVpx = 0.05f;
+		internal const float ArcChordRadiusFraction = 0.05f;
 		private static readonly ProfilerMarker PerfMarker = new("RubberPhysicalColliderGenerator");
 
 		private readonly RubberApi _api;
@@ -33,14 +34,16 @@ namespace VisualPinball.Unity
 			float margin)
 		{
 			using var _ = PerfMarker.Auto();
-			var cordRadius = _rubber.Thickness * 0.5f + margin;
+			var rubberRadius = _rubber.Thickness * 0.5f;
+			var cordRadius = rubberRadius + margin;
 			foreach (var element in _rubber.BakedPath) {
 				if (element.Type == RubberPathElementType.FreeSpan) {
 					Add(element.Start, element.End, zOffset, cordRadius, ref colliders);
 					continue;
 				}
 
-				var maximumAngle = MaximumChordAngle(element.Radius, ArcChordToleranceVpx);
+				var maximumAngle = MaximumChordAngle(element.Radius,
+					ChordTolerance(rubberRadius));
 				var segmentCount = math.max(3,
 					(int)math.ceil(element.SweepAngleRad / maximumAngle));
 				var start = element.Start;
@@ -62,6 +65,9 @@ namespace VisualPinball.Unity
 			}
 			return math.max(1e-4f, 2f * math.acos(math.clamp(1f - tolerance / radius, -1f, 1f)));
 		}
+
+		internal static float ChordTolerance(float cordRadius)
+			=> math.min(ArcChordToleranceVpx, ArcChordRadiusFraction * cordRadius);
 
 		private void Add(float2 bakeStart, float2 bakeEnd, float zOffset,
 			float cordRadius, ref ColliderReference colliders)

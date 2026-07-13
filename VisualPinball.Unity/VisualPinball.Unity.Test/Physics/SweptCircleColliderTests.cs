@@ -100,14 +100,38 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldIgnoreDegenerateCordSegment()
+		public void ShouldReportSlightPenetrationAsRestingContact()
+		{
+			var collider = CreateCollider();
+			var ball = new BallState {
+				Position = new float3(0f, 2.99f, 0f),
+				Velocity = float3.zero,
+				Radius = 1f,
+			};
+			var collision = new CollisionEventData();
+
+			var hitTime = collider.HitTest(ref collision, in ball, 0.01f);
+
+			Assert.That(hitTime, Is.Zero);
+			Assert.That(collision.IsContact, Is.True);
+			Assert.That(collision.HitDistance, Is.EqualTo(-0.01f).Within(1e-5f));
+		}
+
+		[Test]
+		public void ShouldTreatDegenerateCordSegmentAsSphere()
 		{
 			var collider = new SweptCircleCollider(float3.zero, float3.zero, 2f,
 				new ColliderInfo { ItemId = 1 });
-			var ball = new BallState { Position = new float3(0f, 3f, 0f), Radius = 1f };
+			var ball = new BallState {
+				Position = new float3(0f, 10f, 0f),
+				Velocity = new float3(0f, -10f, 0f),
+				Radius = 1f,
+			};
 			var collision = new CollisionEventData();
 
-			Assert.That(collider.HitTest(ref collision, in ball, 1f), Is.EqualTo(-1f));
+			Assert.That(collider.HitTest(ref collision, in ball, 1f),
+				Is.EqualTo(0.7f).Within(1e-5f));
+			Assert.That(collision.HitNormal.y, Is.EqualTo(1f).Within(1e-5f));
 		}
 
 		[Test]
@@ -160,6 +184,57 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void KinematicRegistrationShouldKeepCordInLocalSpace()
+		{
+			var transforms = new NativeParallelHashMap<int, float4x4>(1, Allocator.Temp);
+			var kinematicTransforms = new NativeParallelHashMap<int, float4x4>(1, Allocator.Temp);
+			var references = new ColliderReference(ref transforms, Allocator.Temp, true);
+			var matrix = float4x4.TRS(new float3(3f, 4f, 5f), quaternion.RotateZ(0.25f),
+				new float3(2f, 3f, 4f));
+			try {
+				references.Add(CreateCollider(), matrix);
+
+				Assert.That(references.SweptCircleColliders[0].Header.IsTransformed, Is.False);
+				Assert.That(math.distance(references.SweptCircleColliders[0].V1,
+					new float3(-10f, 0f, 0f)), Is.LessThan(1e-5f));
+				Assert.That(transforms.TryGetValue(1, out var storedMatrix), Is.True);
+				Assert.That(storedMatrix.Equals(matrix), Is.True);
+				var ball = new BallState {
+					Position = matrix.MultiplyPoint(new float3(0f, 4f, 0f)),
+					Velocity = matrix.MultiplyVector(new float3(0f, -10f, 0f)),
+					Radius = 1f,
+				};
+				ball.Transform(math.inverse(storedMatrix));
+				var collision = new CollisionEventData();
+				Assert.That(references.SweptCircleColliders[0].HitTest(
+					ref collision, in ball, 0.2f), Is.EqualTo(0.1f).Within(1e-5f));
+
+				kinematicTransforms.Add(1, matrix);
+				references.TransformToIdentity(ref kinematicTransforms);
+				Assert.That(references.SweptCircleColliders[0].Header.IsTransformed, Is.False);
+			} finally {
+				references.Dispose();
+				kinematicTransforms.Dispose();
+				transforms.Dispose();
+			}
+		}
+
+		[Test]
+		public void StaticRegistrationShouldRejectNonuniformScale()
+		{
+			var transforms = new NativeParallelHashMap<int, float4x4>(1, Allocator.Temp);
+			var references = new ColliderReference(ref transforms, Allocator.Temp);
+			var matrix = float4x4.Scale(new float3(1f, 2f, 1f));
+			try {
+				Assert.Throws<InvalidOperationException>(() => references.Add(
+					CreateCollider(), matrix));
+			} finally {
+				references.Dispose();
+				transforms.Dispose();
+			}
+		}
+
+		[Test]
 		public void ArcChordSubdivisionShouldRespectSagittaTolerance()
 		{
 			const float radius = 30f;
@@ -168,6 +243,17 @@ namespace VisualPinball.Unity.Test
 
 			var sagitta = radius * (1f - math.cos(angle * 0.5f));
 			Assert.That(sagitta, Is.LessThanOrEqualTo(tolerance + 1e-5f));
+		}
+
+		[Test]
+		public void ThinCordShouldUseRadiusRelativeChordTolerance()
+		{
+			Assert.That(RubberPhysicalColliderGenerator.ChordTolerance(0.5f),
+				Is.EqualTo(RubberPhysicalColliderGenerator.ArcChordRadiusFraction * 0.5f)
+					.Within(1e-6f));
+			Assert.That(RubberPhysicalColliderGenerator.ChordTolerance(4f),
+				Is.EqualTo(RubberPhysicalColliderGenerator.ArcChordToleranceVpx)
+					.Within(1e-6f));
 		}
 
 		[Test]
