@@ -182,6 +182,39 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldEmitOneSplineChangePerKnotEdit()
+		{
+			var go = new GameObject("Rubber");
+			try {
+				var rubber = go.AddComponent<RubberComponent>();
+				rubber.DragPoints = CreateDragPoints();
+				var spline = rubber.DragPointSpline.Container.Spline;
+				var changes = 0;
+				void CountChanges(Spline changedSpline, int _, SplineModification __)
+				{
+					if (ReferenceEquals(changedSpline, spline)) {
+						changes++;
+					}
+				}
+
+				Spline.Changed += CountChanges;
+				try {
+					var knot = spline[1];
+					knot.Position.x += 10f;
+					spline.SetKnot(1, knot);
+				}
+				finally {
+					Spline.Changed -= CountChanges;
+				}
+
+				Assert.That(changes, Is.EqualTo(1));
+			}
+			finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
 		public void ShouldRemoveDuplicateGeneratedSplinesDeterministically()
 		{
 			var go = new GameObject("Rubber");

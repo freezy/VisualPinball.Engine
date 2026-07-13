@@ -95,7 +95,7 @@ namespace VisualPinball.Unity
 				knot.TangentOut = tangentOut[i];
 				knot.Rotation = quaternion.identity;
 				spline.SetTangentModeNoNotify(i, TangentMode.Broken);
-				spline.SetKnot(i, knot);
+				spline.SetKnotNoNotify(i, knot);
 			}
 		}
 
