@@ -35,5 +35,6 @@ namespace VisualPinball.Unity
 		Triangle,
 		TriggerCircle,
 		SpringHinge,
+		SweptCircle,
 	}
 }

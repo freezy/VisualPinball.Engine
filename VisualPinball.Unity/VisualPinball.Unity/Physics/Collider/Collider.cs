@@ -81,6 +81,8 @@ namespace VisualPinball.Unity
 						return ((SpinnerCollider*) collider)->Bounds;
 					case ColliderType.SpringHinge:
 						return ((SpringHingeCollider*) collider)->Bounds;
+					case ColliderType.SweptCircle:
+						return ((SweptCircleCollider*) collider)->Bounds;
 					case ColliderType.Triangle:
 						return ((TriangleCollider*) collider)->Bounds;
 					default:
