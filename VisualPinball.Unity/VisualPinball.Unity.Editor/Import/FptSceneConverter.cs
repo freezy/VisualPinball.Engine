@@ -84,6 +84,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly HashSet<string> _reportedSurfacePlacementIssues = new HashSet<string>(StringComparer.Ordinal);
 		private readonly Dictionary<FuturePinballSourceStream, GameObject> _nativeObjects = new Dictionary<FuturePinballSourceStream, GameObject>();
 		private readonly Dictionary<FuturePinballSourceStream, IVpxPrefab> _nativePrefabs = new Dictionary<FuturePinballSourceStream, IVpxPrefab>();
+		private readonly Dictionary<FuturePinballSourceStream, TurntableComponent> _spinningDisks = new Dictionary<FuturePinballSourceStream, TurntableComponent>();
 		private readonly FptImportReport _report = new FptImportReport();
 		private string _tableAssetRoot;
 		private string _bundleAssetRoot;
@@ -168,7 +169,10 @@ namespace VisualPinball.Unity.Editor
 		private void CreateNativeElements(GameObject parent, ISet<FuturePinballSourceStream> handled)
 		{
 			foreach (var element in _table.Elements) {
-				if (!FuturePinballNativeItemConverter.TryConvert(element, out var converted)) continue;
+				if (!FuturePinballNativeItemConverter.TryConvert(element, out var converted)) {
+					if (element.ElementType == FuturePinballElementType.SpinningDisk) CreateSpinningDisk(parent, element, handled);
+					continue;
+				}
 				var sourcePosition = FuturePinballElementGeometry.SurfaceProbePosition(element);
 				if (!TryResolveSurfaceHeight(element, sourcePosition, out var supportHeight)) {
 					continue;
@@ -195,6 +199,22 @@ namespace VisualPinball.Unity.Editor
 					&& _reportedNativeDefaults.Add(element.ElementType.Value)) {
 					_report.Warnings.Add($"{element.ElementType.Value} maps to its native VPE counterpart; {string.Join(", ", converted.DefaultedParameters)} retain VPE defaults or remain unrecreated because FP units or behavior are not equivalent.");
 				}
+			}
+		}
+
+		private void CreateSpinningDisk(GameObject parent, FuturePinballSourceStream element, ISet<FuturePinballSourceStream> handled)
+		{
+			if (!TryGetPlacement(element, out var position, out var rotation)) return;
+			var go = Child(parent, ElementName(element));
+			go.transform.localPosition = position;
+			go.transform.localRotation = rotation;
+			var component = go.AddComponent<TurntableComponent>();
+			AddSource(go, element, "native-vpe-counterpart");
+			_spinningDisks[element] = component;
+			handled.Add(element);
+			_report.NativeElements++;
+			if (_reportedNativeDefaults.Add(FuturePinballElementType.SpinningDisk)) {
+				_report.Warnings.Add("SpinningDisk maps to VPE's turntable; motor power and damping retain VPE defaults because the Future Pinball scales are not equivalent.");
 			}
 		}
 
@@ -280,37 +300,79 @@ namespace VisualPinball.Unity.Editor
 
 		private void CreateModelInstances(GameObject parent, ISet<FuturePinballSourceStream> handled)
 		{
-			if (!_options.ImportPrimaryModels) return;
-			var referenced = new HashSet<string>(_table.Elements.Select(element => FuturePinballElementGeometry.Text(element, ModelTag))
-				.Where(name => !string.IsNullOrWhiteSpace(name)), StringComparer.OrdinalIgnoreCase);
-			var models = LoadModels(referenced);
-			foreach (var element in _table.Elements) {
-				var modelName = FuturePinballElementGeometry.Text(element, ModelTag);
-				if (string.IsNullOrWhiteSpace(modelName) || !models.TryGetValue(modelName, out var model)) continue;
-				if (!TryGetPlacement(element, out var position, out var rotation)) {
+			var configuredSpinningDisks = new HashSet<FuturePinballSourceStream>();
+			if (_options.ImportPrimaryModels) {
+				var referenced = new HashSet<string>(_table.Elements.Select(element => FuturePinballElementGeometry.Text(element, ModelTag))
+					.Where(name => !string.IsNullOrWhiteSpace(name)), StringComparer.OrdinalIgnoreCase);
+				var models = LoadModels(referenced);
+				foreach (var element in _table.Elements) {
+					var modelName = FuturePinballElementGeometry.Text(element, ModelTag);
+					if (string.IsNullOrWhiteSpace(modelName) || !models.TryGetValue(modelName, out var model)) continue;
+					if (!TryGetPlacement(element, out var position, out var rotation)) {
+						handled.Add(element);
+						continue;
+					}
+					var name = ElementName(element);
+					var hasNativeCounterpart = _nativeObjects.ContainsKey(element);
+					var isSpinningDisk = _spinningDisks.TryGetValue(element, out var turntable);
+					var go = Child(parent, hasNativeCounterpart || isSpinningDisk ? name + " (Source Model)" : name);
+					AddSource(go, element, isSpinningDisk
+						? "source-model-drives-native-turntable-visual"
+						: hasNativeCounterpart ? "source-model-preserved-for-native-counterpart" : "static-model");
+					GameObject visualRoot;
+					if (isSpinningDisk) {
+						visualRoot = CreateSpinningDiskVisualRoot(turntable, go);
+					} else {
+						go.transform.localPosition = position;
+						go.transform.localRotation = rotation;
+						visualRoot = go;
+					}
+					var elementMaterial = FuturePinballMaterialConverter.FromElement(element, TextureTag, ColorTag);
+					var groups = model.Primary.CreateMeshes();
+					for (var i = 0; i < groups.Count; i++) {
+						var worldMesh = FuturePinballCoordinateConverter.ModelMeshToWorld(groups[i].Mesh);
+						var material = groups[i].MaterialIndex >= 0 && groups[i].MaterialIndex < model.Primary.Materials.Count
+							? FuturePinballMaterialConverter.FromMilkShape(model.Primary.Materials[groups[i].MaterialIndex])
+							: elementMaterial;
+						CreateRenderer(visualRoot, element, worldMesh, material, i, false, false, $"model-{model.Primary.SourceSha256}-{i}");
+					}
+					if (isSpinningDisk && ConfigureSpinningDiskVisual(turntable, visualRoot)) configuredSpinningDisks.Add(element);
+					if (_options.GenerateColliders && !hasNativeCounterpart) CreateModelColliders(go, element, model);
+					if (hasNativeCounterpart) go.SetActive(false);
 					handled.Add(element);
-					continue;
+					_report.ModelInstances++;
 				}
-				var name = ElementName(element);
-				var hasNativeCounterpart = _nativeObjects.ContainsKey(element);
-				var go = Child(parent, hasNativeCounterpart ? name + " (Source Model)" : name);
-				AddSource(go, element, hasNativeCounterpart ? "source-model-preserved-for-native-counterpart" : "static-model");
-				go.transform.localPosition = position;
-				go.transform.localRotation = rotation;
-				var elementMaterial = FuturePinballMaterialConverter.FromElement(element, TextureTag, ColorTag);
-				var groups = model.Primary.CreateMeshes();
-				for (var i = 0; i < groups.Count; i++) {
-					var worldMesh = FuturePinballCoordinateConverter.ModelMeshToWorld(groups[i].Mesh);
-					var material = groups[i].MaterialIndex >= 0 && groups[i].MaterialIndex < model.Primary.Materials.Count
-						? FuturePinballMaterialConverter.FromMilkShape(model.Primary.Materials[groups[i].MaterialIndex])
-						: elementMaterial;
-					CreateRenderer(go, element, worldMesh, material, i, false, false, $"model-{model.Primary.SourceSha256}-{i}");
-				}
-				if (_options.GenerateColliders && !hasNativeCounterpart) CreateModelColliders(go, element, model);
-				if (hasNativeCounterpart) go.SetActive(false);
-				handled.Add(element);
-				_report.ModelInstances++;
 			}
+			foreach (var element in _spinningDisks.Keys.Where(element => !configuredSpinningDisks.Contains(element))) {
+				AddSpinningDiskBacklog(element);
+			}
+		}
+
+		internal static GameObject CreateSpinningDiskVisualRoot(TurntableComponent component, GameObject modelRoot)
+		{
+			modelRoot.transform.SetParent(component.transform, false);
+			modelRoot.transform.localPosition = Vector3.zero;
+			modelRoot.transform.localRotation = Quaternion.identity;
+			return Child(modelRoot, "Rotating Visual");
+		}
+
+		internal static bool ConfigureSpinningDiskVisual(TurntableComponent component, GameObject visual)
+		{
+			component.RotationTarget = visual.transform;
+			var radiusSquared = 0f;
+			// FP spinning-disk primary models are treated as the playable disc; auxiliary geometry can overestimate this radius.
+			foreach (var filter in visual.GetComponentsInChildren<MeshFilter>(true)) {
+				if (filter.sharedMesh == null) continue;
+				foreach (var vertex in filter.sharedMesh.vertices) {
+					var local = visual.transform.InverseTransformPoint(filter.transform.TransformPoint(vertex));
+					radiusSquared = Mathf.Max(radiusSquared, local.x * local.x + local.z * local.z);
+				}
+			}
+			var radius = Mathf.Sqrt(radiusSquared) * 1000f;
+			var validRadius = !float.IsNaN(radius) && !float.IsInfinity(radius) && radius > 0f;
+			if (validRadius) component.Radius = radius;
+			EditorUtility.SetDirty(component);
+			return validRadius;
 		}
 
 		private void CreatePlaceholders(GameObject parent, ISet<FuturePinballSourceStream> handled)
@@ -551,6 +613,20 @@ namespace VisualPinball.Unity.Editor
 				ElementType = element.ElementType?.ToString() ?? $"Unknown({element.ElementTypeId})",
 				CurrentOutcome = $"Collision source preserved but not converted: {reason}",
 				SuggestedCapability = "map the preserved collision record to a supported VPE collider",
+				SourceStream = element.Name
+			});
+		}
+
+		private void AddSpinningDiskBacklog(FuturePinballSourceStream element)
+		{
+			var message = $"{ElementName(element)} turntable radius could not be derived because its source model was not imported or had no usable mesh; the VPE default radius is retained.";
+			_report.Warnings.Add(message);
+			_report.Backlog.Add(new FptRecreationBacklogItem {
+				SourceIndex = element.SourceIndex ?? -1,
+				Name = ElementName(element),
+				ElementType = FuturePinballElementType.SpinningDisk.ToString(),
+				CurrentOutcome = "Native VPE turntable created, but its influence radius retains the VPE default and its source visual may be unavailable",
+				SuggestedCapability = "import or map a usable spinning-disk source model to recover the visual and influence radius",
 				SourceStream = element.Name
 			});
 		}
