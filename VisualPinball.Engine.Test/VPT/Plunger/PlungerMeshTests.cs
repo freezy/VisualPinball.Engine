@@ -26,7 +26,6 @@ namespace VisualPinball.Engine.Test.VPT.Plunger
 	public class PlungerMeshTests
 	{
 		[Test]
-		[Explicit("Known failing characterization for Phase 5: the rod tip is currently open.")]
 		public void ShouldCloseModernRodTip()
 		{
 			var mesh = new PlungerMeshGenerator(new PlungerData()).GetMesh(0.0f, PlungerMeshGenerator.Rod);
@@ -38,12 +37,40 @@ namespace VisualPinball.Engine.Test.VPT.Plunger
 		}
 
 		[Test]
-		[Explicit("Known failing characterization for Phase 5: zero-loop springs currently overflow while building indices.")]
+		public void ShouldKeepCustomRodTipCapCoplanarWithOffsetFirstTipPoint()
+		{
+			var data = new PlungerData {
+				Type = PlungerType.PlungerTypeCustom,
+				TipShape = "5 .34; 10 .5"
+			};
+
+			var mesh = new PlungerMeshGenerator(data).GetMesh(0.0f, PlungerMeshGenerator.Rod);
+			var maxZ = mesh.Vertices.Max(v => v.Z);
+
+			mesh.Vertices.Count(v => System.Math.Abs(v.Z - maxZ) < 0.0001f).Should().BeGreaterThan(1);
+		}
+
+		[Test]
 		public void ShouldBuildEmptySpringForZeroLoops()
 		{
 			var data = new PlungerData {
 				Type = PlungerType.PlungerTypeCustom,
 				SpringLoops = 0.0f,
+				SpringEndLoops = 0.0f
+			};
+
+			var mesh = new PlungerMeshGenerator(data).GetMesh(0.0f, PlungerMeshGenerator.Spring);
+
+			mesh.Vertices.Should().BeEmpty();
+			mesh.Indices.Should().BeEmpty();
+		}
+
+		[Test]
+		public void ShouldBuildEmptySpringForNegativeLoops()
+		{
+			var data = new PlungerData {
+				Type = PlungerType.PlungerTypeCustom,
+				SpringLoops = -1.0f,
 				SpringEndLoops = 0.0f
 			};
 

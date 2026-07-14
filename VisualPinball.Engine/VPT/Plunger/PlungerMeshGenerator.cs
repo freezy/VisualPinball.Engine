@@ -186,7 +186,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 			// spirals, where each spiral has 'springLoops' loops
 			// times 'circlePoints' vertices.
 			_latheVts = _lathePoints * _circlePoints;
-			_springVts = (int)((_springLoops + _springEndLoops) * _circlePoints) * 3;
+			_springVts = System.Math.Max(0, (int)((_springLoops + _springEndLoops) * _circlePoints) * 3);
 
 			// For the lathed section, we need two triangles == 6
 			// indices for every point on every lathe circle past
@@ -207,7 +207,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 			_springIndices = 0;
 			if (_data.Type == PlungerType.PlungerTypeCustom) {
 				_springIndices = 4 * _springVts - 12;
-				if (_springVts < 0) {
+				if (_springVts <= 3) {
 					_springIndices = 0;
 				}
 			}
@@ -312,7 +312,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 		{
 			var mesh = new Mesh("rod") {
 				Vertices = BuildRodVertices(0),
-				Indices = new int[_latheIndices]
+				Indices = new int[_latheIndices + 3 * _circlePoints]
 			};
 
 			// set up the vertex list for the lathe circles
@@ -329,6 +329,18 @@ namespace VisualPinball.Engine.VPT.Plunger
 				}
 			}
 
+			// Close the front tip. The side faces connect the lathe rings but leave
+			// the first ring open, so add a center vertex and fan triangles.
+			var tipCenter = _latheVts;
+			for (var l = 0; l < _circlePoints; l++) {
+				var current = l * _lathePoints;
+				var next = ((l + 1) % _circlePoints) * _lathePoints;
+
+				mesh.Indices[k++] = tipCenter;
+				mesh.Indices[k++] = next;
+				mesh.Indices[k++] = current;
+			}
+
 			mesh.AnimationFrames = new List<Mesh.VertData[]>(1);
 			mesh.AnimationDefaultPosition = DefaultPosition;
 			var vertices = BuildRodVertices(NumFrames);
@@ -342,7 +354,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 			if (_lathePoints == 0) {
 				CalculateArraySizes();
 			}
-			var vertices = new Vertex3DNoTex2[_latheVts];
+			var vertices = new Vertex3DNoTex2[_latheVts + 1];
 			var yTip = _beginY + _dyPerFrame * frame;
 
 			var tu = 0.51f;
@@ -398,6 +410,17 @@ namespace VisualPinball.Engine.VPT.Plunger
 					};
 				}
 			}
+
+			vertices[i] = new Vertex3DNoTex2 {
+				X = 0.0f,
+				Y = ((_data.Width + _zHeight) * _zScale) * ScaleInv,
+				Z = -(_desc.c[0].y + yTip) * ScaleInv,
+				Nx = 0.0f,
+				Ny = 0.0f,
+				Nz = 1.0f,
+				Tu = 0.5f,
+				Tv = _desc.c[0].tv
+			};
 
 			return vertices;
 		}
@@ -491,6 +514,9 @@ namespace VisualPinball.Engine.VPT.Plunger
 				CalculateArraySizes();
 			}
 			var vertices = new Vertex3DNoTex2[_springVts];
+			if (_springVts == 0) {
+				return vertices;
+			}
 
 			var springGaugeRel = _springGauge / _data.Width;
 
