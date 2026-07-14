@@ -63,7 +63,7 @@ namespace VisualPinball.Unity
 		{
 			Header.Init(info, ColliderType.Plunger);
 
-			var zHeight = comp.Position.z;
+			const float zHeight = 0.0f;
 			var x = -comp.Width;
 			var x2 = comp.Width;
 			var y = comp.Height;
@@ -92,8 +92,8 @@ namespace VisualPinball.Unity
 				x2 + 0.1f,
 				frameTop - 0.1f,
 				y + 0.1f,
-				0,
-				50
+				zHeight,
+				zHeight + Plunger.PlungerHeight
 			));
 		}
 
@@ -311,10 +311,10 @@ namespace VisualPinball.Unity
 		#region Collision
 
 		public static void Collide(ref BallState ball, ref CollisionEventData collEvent,
-			ref PlungerMovementState movement, in PlungerStaticState staticState, ref Random random)
+			ref PlungerMovementState movement, in PlungerStaticState staticState, in float3 surfaceVelocity, ref Random random)
 		{
-			var dot = (ball.Velocity.x - collEvent.HitVelocity.x) * collEvent.HitNormal.x
-			          + (ball.Velocity.y - collEvent.HitVelocity.y) * collEvent.HitNormal.y;
+			var hitVelocity = new float3(collEvent.HitVelocity, 0.0f) + surfaceVelocity;
+			var dot = math.dot(ball.Velocity - hitVelocity, collEvent.HitNormal);
 
 			// HACK to stop the ball from spinning.
 			ball.AngularMomentum.z *= 0.6f;
