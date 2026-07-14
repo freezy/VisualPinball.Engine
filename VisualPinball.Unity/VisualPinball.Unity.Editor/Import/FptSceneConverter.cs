@@ -82,6 +82,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly HashSet<FuturePinballColliderKind> _reportedTessellatedColliderKinds = new HashSet<FuturePinballColliderKind>();
 		private readonly HashSet<FuturePinballElementType> _reportedNativeDefaults = new HashSet<FuturePinballElementType>();
 		private readonly HashSet<string> _reportedSurfacePlacementIssues = new HashSet<string>(StringComparer.Ordinal);
+		private readonly HashSet<FuturePinballSourceStream> _skippedUnresolvedSupportElements = new HashSet<FuturePinballSourceStream>();
 		private readonly Dictionary<FuturePinballSourceStream, GameObject> _nativeObjects = new Dictionary<FuturePinballSourceStream, GameObject>();
 		private readonly Dictionary<FuturePinballSourceStream, IVpxPrefab> _nativePrefabs = new Dictionary<FuturePinballSourceStream, IVpxPrefab>();
 		private readonly Dictionary<FuturePinballSourceStream, TurntableComponent> _spinningDisks = new Dictionary<FuturePinballSourceStream, TurntableComponent>();
@@ -279,8 +280,7 @@ namespace VisualPinball.Unity.Editor
 				}
 				var sourcePosition = FuturePinballElementGeometry.SurfaceProbePosition(source);
 				if (!TryResolveSurfaceHeight(source, sourcePosition, out var supportHeight)) {
-					supportHeight = 0f;
-					_report.Warnings.Add($"{ElementName(source)} procedural geometry uses base height because its named support height is unresolved.");
+					continue;
 				}
 				var go = Child(parent, element.Name);
 				if (supportHeight != 0f) {
@@ -758,6 +758,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void AddSurfacePlacementBacklog(FuturePinballSourceStream element, string surfaceName, string reason)
 		{
+			if (_skippedUnresolvedSupportElements.Add(element)) _report.SkippedUnresolvedSupport++;
 			var issueKey = $"{element.SourceIndex}:{element.Name}:{surfaceName}:{reason}";
 			if (!_reportedSurfacePlacementIssues.Add(issueKey)) return;
 			_report.Warnings.Add($"{ElementName(element)} surface '{surfaceName}': {reason}; its named support offset is unresolved.");
@@ -765,7 +766,7 @@ namespace VisualPinball.Unity.Editor
 				SourceIndex = element.SourceIndex ?? -1,
 				Name = ElementName(element),
 				ElementType = element.ElementType?.ToString() ?? $"Unknown({element.ElementTypeId})",
-				CurrentOutcome = $"Named support offset is unresolved: {reason}",
+				CurrentOutcome = $"Scene placement skipped; named support offset is unresolved: {reason}",
 				SuggestedCapability = "resolve the preserved surface reference manually",
 				SourceStream = element.Name
 			});

@@ -35,6 +35,7 @@ namespace VisualPinball.Unity.Editor
 		public int NativeElements { get; internal set; }
 		public int ModelInstances { get; internal set; }
 		public int Placeholders { get; internal set; }
+		public int SkippedUnresolvedSupport { get; internal set; }
 		public int MeshAssets { get; internal set; }
 		public int MaterialAssets { get; internal set; }
 		public int Colliders { get; internal set; }
@@ -66,6 +67,7 @@ namespace VisualPinball.Unity.Editor
 			Property(json, "nativeElements", NativeElements.ToString(CultureInfo.InvariantCulture), true, false);
 			Property(json, "modelInstances", ModelInstances.ToString(CultureInfo.InvariantCulture), true, false);
 			Property(json, "placeholders", Placeholders.ToString(CultureInfo.InvariantCulture), true, false);
+			Property(json, "skippedUnresolvedSupport", SkippedUnresolvedSupport.ToString(CultureInfo.InvariantCulture), true, false);
 			Property(json, "meshAssets", MeshAssets.ToString(CultureInfo.InvariantCulture), true, false);
 			Property(json, "materialAssets", MaterialAssets.ToString(CultureInfo.InvariantCulture), true, false);
 			Property(json, "colliders", Colliders.ToString(CultureInfo.InvariantCulture), true, false);
@@ -89,6 +91,7 @@ namespace VisualPinball.Unity.Editor
 			text.AppendLine($"- Manifest schema: `{manifest.SchemaVersion}`");
 			text.AppendLine($"- Elements: {Elements}");
 			text.AppendLine($"- Recreation passes (overlapping): {NativeElements} native VPE counterparts, {ProceduralElements} procedural visuals, {ModelInstances} model instances, {Placeholders} placeholders");
+			text.AppendLine($"- Skipped unresolved-support elements: {SkippedUnresolvedSupport}");
 			text.AppendLine($"- Assets: {MeshAssets} meshes, {MaterialAssets} materials, {ReusedAssets} reused");
 			text.AppendLine($"- VPE colliders: {Colliders}");
 			text.AppendLine($"- Unresolved resources: {UnresolvedResources}");
