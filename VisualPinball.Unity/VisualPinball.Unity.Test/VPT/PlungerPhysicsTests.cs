@@ -136,6 +136,40 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldTreatRotatedAndScaledPlungersAsNonTransformable()
+		{
+			PlungerCollider.IsTransformable(float4x4.Translate(new float3(10.0f, 20.0f, 30.0f))).Should().BeTrue();
+			PlungerCollider.IsTransformable(float4x4.RotateZ(math.radians(15.0f))).Should().BeFalse();
+			PlungerCollider.IsTransformable(float4x4.RotateX(math.radians(15.0f))).Should().BeFalse();
+			PlungerCollider.IsTransformable(float4x4.Scale(2.0f)).Should().BeFalse();
+		}
+
+		[Test]
+		public void ShouldRoundTripPlungerTipVelocityThroughRotatedCollisionSpace()
+		{
+			var ball = new BallState {
+				Position = new float3(0.0f, 0.0f, 1.0f),
+				Velocity = new float3(0.0f, -1.0f, 0.0f),
+				Radius = 1.0f,
+				Mass = 1.0f,
+				CollisionEvent = new CollisionEventData {
+					HitNormal = new float3(0.0f, 1.0f, 0.0f),
+					HitVelocity = new float2(0.0f, -12.0f)
+				}
+			};
+			var rotation = float4x4.RotateX(math.radians(45.0f));
+
+			ball.Transform(rotation);
+			ball.Transform(math.inverse(rotation));
+
+			ball.CollisionEvent.HitNormal.x.Should().BeApproximately(0.0f, 0.0001f);
+			ball.CollisionEvent.HitNormal.y.Should().BeApproximately(1.0f, 0.0001f);
+			ball.CollisionEvent.HitNormal.z.Should().BeApproximately(0.0f, 0.0001f);
+			ball.CollisionEvent.HitVelocity.x.Should().BeApproximately(0.0f, 0.0001f);
+			ball.CollisionEvent.HitVelocity.y.Should().BeApproximately(-12.0f, 0.0001f);
+		}
+
+		[Test]
 		public void ShouldNotImpactWhenKinematicSurfaceRecedesFasterThanBall()
 		{
 			var staticState = CreateStaticState();
