@@ -26,17 +26,20 @@ namespace VisualPinball.Unity
 
 			// deactivate the retract code
 			velocity.AddRetractMotion = false;
+			movement.RetractMotion = false;
+			velocity.InitialSpeed = 0.0f;
+			velocity.RetractWaitLoop = 0;
 		}
 
-		public static void PullBackAndRetract(float speedPull, ref PlungerVelocityState velocity, ref PlungerMovementState movement)
+		public static void PullBackAndRetract(float speedPull, bool isAutoPlunger, ref PlungerVelocityState velocity, ref PlungerMovementState movement)
 		{
 			movement.Speed = 0.0f;
 			velocity.PullForce = speedPull;
 
-			// deactivate the retract code
-			velocity.AddRetractMotion = false;
+			velocity.AddRetractMotion = !isAutoPlunger;
 			movement.RetractMotion = false;
 			velocity.InitialSpeed = speedPull;
+			velocity.RetractWaitLoop = 0;
 		}
 
 		public static void Fire(float startPos, ref PlungerVelocityState velocity, ref PlungerMovementState movement, in PlungerStaticState staticState)

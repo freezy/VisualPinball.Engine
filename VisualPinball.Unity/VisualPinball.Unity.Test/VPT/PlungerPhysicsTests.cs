@@ -40,7 +40,6 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		[Explicit("Known failing characterization for Phase 1: non-mechanical plungers currently still apply MechStrength while idle.")]
 		public void ShouldNotApplyMechStrengthToNonMechanicalPlunger()
 		{
 			var staticState = CreateStaticState();
@@ -61,13 +60,12 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		[Explicit("Known failing characterization for Phase 1: PullBackAndRetract currently disables the retract branch.")]
 		public void ShouldEnableRetractMotionForNormalPlungerPullBackAndRetract()
 		{
 			var movement = new PlungerMovementState { RetractMotion = true };
 			var velocity = new PlungerVelocityState();
 
-			PlungerCommands.PullBackAndRetract(3.0f, ref velocity, ref movement);
+			PlungerCommands.PullBackAndRetract(3.0f, false, ref velocity, ref movement);
 
 			velocity.AddRetractMotion.Should().BeTrue();
 			velocity.InitialSpeed.Should().Be(3.0f);
@@ -75,7 +73,19 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		[Explicit("Known failing characterization for Phase 1: non-mechanical plungers currently follow idle MechStrength toward rest.")]
+		public void ShouldDisableRetractMotionForAutoPlungerPullBackAndRetract()
+		{
+			var movement = new PlungerMovementState { RetractMotion = true };
+			var velocity = new PlungerVelocityState();
+
+			PlungerCommands.PullBackAndRetract(3.0f, true, ref velocity, ref movement);
+
+			velocity.AddRetractMotion.Should().BeFalse();
+			velocity.InitialSpeed.Should().Be(3.0f);
+			movement.RetractMotion.Should().BeFalse();
+		}
+
+		[Test]
 		public void ShouldGateAnalogPositionToMechanicalPlungers()
 		{
 			var staticState = CreateStaticState();

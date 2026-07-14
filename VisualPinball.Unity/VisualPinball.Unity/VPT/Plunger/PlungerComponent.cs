@@ -303,9 +303,9 @@ namespace VisualPinball.Unity
 					FireTimer = 0
 				},
 				new PlungerVelocityState {
-					Mech0 = 0f,
-					Mech1 = 0f,
-					Mech2 = 0f,
+					Mech0 = restPos,
+					Mech1 = restPos,
+					Mech2 = restPos,
 					PullForce = 0f,
 					InitialSpeed = 0f,
 					AutoFireTimer = 0,
