@@ -73,6 +73,17 @@ namespace VisualPinball.Engine.VPT.Plunger
 		public Mesh GetMesh(float height, string id)
 		{
 			Init(height);
+			return BuildMesh(id);
+		}
+
+		public Mesh GetLocalMesh(string id)
+		{
+			Init(0.0f, false);
+			return BuildMesh(id);
+		}
+
+		private Mesh BuildMesh(string id)
+		{
 			switch (id) {
 				case Flat:
 					return BuildFlatMesh();
@@ -116,7 +127,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 		}
 
 
-		private void Init(float height)
+		private void Init(float height, bool includeZAdjust = true)
 		{
 			var stroke = _data.Stroke;
 			_beginY = 0;
@@ -141,7 +152,7 @@ namespace VisualPinball.Engine.VPT.Plunger
 			// figure the width in relative units (0..1) of each cell
 			_cellWid = 1.0f / _srcCells;
 
-			_zHeight = height + _data.ZAdjust;
+			_zHeight = height + (includeZAdjust ? _data.ZAdjust : 0.0f);
 			_zScale = 1f;
 			_desc = GetPlungerDesc();
 		}

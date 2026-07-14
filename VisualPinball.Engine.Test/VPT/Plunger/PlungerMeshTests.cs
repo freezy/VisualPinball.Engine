@@ -53,6 +53,22 @@ namespace VisualPinball.Engine.Test.VPT.Plunger
 			mesh.Indices.Should().BeEmpty();
 		}
 
+		[TestCase(PlungerMeshGenerator.Rod)]
+		[TestCase(PlungerMeshGenerator.Spring)]
+		[TestCase(PlungerMeshGenerator.Flat)]
+		public void ShouldBuildLocalMeshIndependentOfZAdjust(string meshId)
+		{
+			var baseMesh = new PlungerMeshGenerator(CreateData(meshId, 0.0f)).GetLocalMesh(meshId);
+			var elevatedMesh = new PlungerMeshGenerator(CreateData(meshId, 17.0f)).GetLocalMesh(meshId);
+
+			elevatedMesh.Vertices.Should().HaveCount(baseMesh.Vertices.Length);
+			for (var i = 0; i < baseMesh.Vertices.Length; i++) {
+				elevatedMesh.Vertices[i].X.Should().BeApproximately(baseMesh.Vertices[i].X, 0.0001f);
+				elevatedMesh.Vertices[i].Y.Should().BeApproximately(baseMesh.Vertices[i].Y, 0.0001f);
+				elevatedMesh.Vertices[i].Z.Should().BeApproximately(baseMesh.Vertices[i].Z, 0.0001f);
+			}
+		}
+
 		private static IEnumerable<(int a, int b)> FindBoundaryEdges(Mesh mesh)
 		{
 			var edgeCounts = new Dictionary<(int a, int b), int>();
@@ -69,6 +85,18 @@ namespace VisualPinball.Engine.Test.VPT.Plunger
 			var edge = a < b ? (a, b) : (b, a);
 			edgeCounts.TryGetValue(edge, out var count);
 			edgeCounts[edge] = count + 1;
+		}
+
+		private static PlungerData CreateData(string meshId, float zAdjust)
+		{
+			return new PlungerData {
+				Type = meshId switch {
+					PlungerMeshGenerator.Flat => PlungerType.PlungerTypeFlat,
+					PlungerMeshGenerator.Spring => PlungerType.PlungerTypeCustom,
+					_ => PlungerType.PlungerTypeModern
+				},
+				ZAdjust = zAdjust
+			};
 		}
 	}
 }

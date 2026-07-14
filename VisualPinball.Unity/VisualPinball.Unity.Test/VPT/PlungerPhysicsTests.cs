@@ -16,6 +16,9 @@
 
 using FluentAssertions;
 using NUnit.Framework;
+using UnityEngine;
+using VisualPinball.Engine.VPT;
+using EnginePlunger = VisualPinball.Engine.VPT.Plunger.Plunger;
 
 namespace VisualPinball.Unity.Test
 {
@@ -105,6 +108,29 @@ namespace VisualPinball.Unity.Test
 
 			mechanicalMovement.Speed.Should().NotBeApproximately(nonMechanicalMovement.Speed, 0.0001f);
 			nonMechanicalMovement.Speed.Should().BeApproximately(0.0f, 0.0001f);
+		}
+
+		[Test]
+		public void ShouldBuildColliderInPlungerLocalZ()
+		{
+			var go = new GameObject("plunger");
+			try {
+				var comp = go.AddComponent<PlungerComponent>();
+				comp.Position = new Vector3(100.0f, 200.0f, 17.0f);
+				var collComp = go.AddComponent<PlungerColliderComponent>();
+
+				var collider = new PlungerCollider(comp, collComp, new ColliderInfo {
+					ItemId = 1,
+					ItemType = ItemType.Plunger
+				});
+
+				collider.LineSegBase.ZLow.Should().Be(0.0f);
+				collider.LineSegBase.ZHigh.Should().Be(EnginePlunger.PlungerHeight);
+				collider.Bounds.Aabb.ZLow.Should().Be(0.0f);
+				collider.Bounds.Aabb.ZHigh.Should().Be(EnginePlunger.PlungerHeight);
+			} finally {
+				Object.DestroyImmediate(go);
+			}
 		}
 
 		private static PlungerMovementState FireFrom(float startPos, PlungerStaticState staticState)
