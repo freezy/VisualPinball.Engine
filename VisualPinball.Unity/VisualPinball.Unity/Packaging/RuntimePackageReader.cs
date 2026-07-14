@@ -231,6 +231,10 @@ namespace VisualPinball.Unity
 						packableBytes,
 						progress,
 						cancellationToken);
+					var slingshots = _table.GetComponentsInChildren<RubberSlingshotComponent>(true);
+					foreach (var slingshot in slingshots) {
+						slingshot.ValidateAfterUnpack();
+					}
 					readRefsStopwatch.Stop();
 					Logger.Info($"RuntimePackageReader: Restored references in {readRefsStopwatch.ElapsedMilliseconds}ms.");
 

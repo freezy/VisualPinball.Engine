@@ -18,7 +18,7 @@ namespace VisualPinball.Unity.Editor
 		private RubberComponent _rubber;
 		private SlingshotActuatorAsset _actuator;
 		private int _spanIndex;
-		private readonly List<RubberPathElement> _spans = new();
+		private readonly List<RubberSpanBinding> _spans = new();
 		private string[] _spanLabels = System.Array.Empty<string>();
 
 		[MenuItem("GameObject/Pinball/Create Physical Slingshot On Rubber", false, 21)]
@@ -98,17 +98,19 @@ namespace VisualPinball.Unity.Editor
 					|| (other.element.StartBindingIndex == span.EndBindingIndex
 						&& other.element.EndBindingIndex == span.StartBindingIndex));
 				if (duplicateCount == 1 && !boundSpanIndices.Contains(pathIndex)) {
-					_spans.Add(span);
+					_spans.Add(new RubberSpanBinding(
+						_rubber.GuideBindings[span.StartBindingIndex],
+						_rubber.GuideBindings[span.EndBindingIndex]));
 				}
 			}
 			_spanLabels = _spans.Select(SpanLabel).ToArray();
 		}
 
-		private string SpanLabel(RubberPathElement span)
+		private static string SpanLabel(RubberSpanBinding span)
 		{
-			var start = _rubber.GuideBindings[span.StartBindingIndex];
-			var end = _rubber.GuideBindings[span.EndBindingIndex];
-			return $"{BindingLabel(start)} -> {BindingLabel(end)}";
+			var start = BindingLabel(span.StartSupport);
+			var end = BindingLabel(span.EndSupport);
+			return $"{start} -> {end}";
 		}
 
 		private static string BindingLabel(RubberGuideBinding binding)
@@ -121,19 +123,38 @@ namespace VisualPinball.Unity.Editor
 
 		private void CreateSlingshot()
 		{
-			var span = _spans[_spanIndex];
+			var selected = _spans[_spanIndex];
+			RefreshSpans();
+			var refreshedIndex = _spans.FindIndex(candidate =>
+				SameBinding(candidate, selected));
+			if (refreshedIndex < 0) {
+				EditorUtility.DisplayDialog("Cannot create physical slingshot",
+					"The selected free span changed or is no longer available. Select it again.",
+					"OK");
+				return;
+			}
+			_spanIndex = refreshedIndex;
 			var gameObject = new GameObject($"{_rubber.name} Slingshot");
 			Undo.RegisterCreatedObjectUndo(gameObject, "Create Physical Slingshot");
 			gameObject.transform.SetParent(_rubber.transform.parent, false);
 			var component = Undo.AddComponent<RubberSlingshotComponent>(gameObject);
 			component.Rubber = _rubber;
-			component.Span = new RubberSpanBinding(
-				_rubber.GuideBindings[span.StartBindingIndex],
-				_rubber.GuideBindings[span.EndBindingIndex]);
+			component.Span = selected;
 			component.Actuator = _actuator;
 			EditorUtility.SetDirty(component);
 			Selection.activeGameObject = gameObject;
 			Close();
 		}
+
+		private static bool SameBinding(RubberSpanBinding left, RubberSpanBinding right)
+		{
+			return (SameSupport(left.StartSupport, right.StartSupport)
+					&& SameSupport(left.EndSupport, right.EndSupport))
+				|| (SameSupport(left.StartSupport, right.EndSupport)
+					&& SameSupport(left.EndSupport, right.StartSupport));
+		}
+
+		private static bool SameSupport(RubberGuideBinding left, RubberGuideBinding right)
+			=> left.Guide == right.Guide && left.SlotId == right.SlotId;
 	}
 }

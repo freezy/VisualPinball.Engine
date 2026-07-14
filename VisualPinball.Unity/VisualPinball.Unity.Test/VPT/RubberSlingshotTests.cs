@@ -9,8 +9,11 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 using VisualPinball.Unity.Editor;
 
 namespace VisualPinball.Unity.Test
@@ -131,6 +134,41 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldInvertFluxPlateausAndReportSaturation()
+		{
+			var actuator = ScriptableObject.CreateInstance<SlingshotActuatorAsset>();
+			try {
+				actuator.CurrentSampleCount = 4;
+				actuator.StrokeSampleCount = 2;
+				actuator.MaximumCurrentAmps = 12f;
+				actuator.ForceNewtonLut = new float[8];
+				actuator.FluxLinkageWeberTurnLut = new[] {
+					0f, 0f,
+					0.01f, 0.008f,
+					0.01f, 0.008f,
+					0.02f, 0.016f,
+				};
+
+				Assert.That(actuator.ValidateData(), Is.Empty);
+				Assert.That(actuator.TryGetCurrent(0.01f, 0f, out var plateauCurrent,
+					out var plateauSaturated), Is.True);
+				Assert.That(plateauCurrent, Is.EqualTo(4f).Within(1e-5f));
+				Assert.That(plateauSaturated, Is.False);
+				Assert.That(actuator.TryGetCurrent(-1f, 0f, out var minimumCurrent,
+					out var minimumSaturated), Is.True);
+				Assert.That(minimumCurrent, Is.Zero);
+				Assert.That(minimumSaturated, Is.True);
+				Assert.That(actuator.TryGetCurrent(1f, 0f, out var maximumCurrent,
+					out var maximumSaturated), Is.True);
+				Assert.That(maximumCurrent, Is.EqualTo(12f).Within(1e-5f));
+				Assert.That(maximumSaturated, Is.True);
+				Assert.That(actuator.TryGetCurrent(0.01f, float.NaN, out _, out _), Is.False);
+			} finally {
+				UnityEngine.Object.DestroyImmediate(actuator);
+			}
+		}
+
+		[Test]
 		public void ShouldRoundTripEveryActuatorFieldAndRejectInvalidPayload()
 		{
 			var source = ScriptableObject.CreateInstance<SlingshotActuatorAsset>();
@@ -198,6 +236,88 @@ namespace VisualPinball.Unity.Test
 			Assert.That(data.ForceNewton, Is.EqualTo(new[] { 1f, 2f, 3f, 4f }));
 			Assert.That(data.FluxLinkageWeberTurn,
 				Is.EqualTo(new[] { 0f, 0f, 0.05f, 0.04f }));
+		}
+
+		[Test]
+		public void ShouldRejectMalformedActuatorCsvGrids()
+		{
+			var invalidCsv = new[] {
+				"wrong,header,columns,here\n0,0,0,0\n0,1,0,0\n1,0,0,0\n1,1,0,0\n",
+				"current_amps,stroke_meters,force_newton,flux_weber_turn\n0,0,0,0\n0,1,0,0\n1,0,0,0\n",
+				"current_amps,stroke_meters,force_newton,flux_weber_turn\n0,0,0,0\n0,1,0,0\n1,0,0,0.1\n1,0,0,0.1\n",
+				"current_amps,stroke_meters,force_newton,flux_weber_turn\n0,0,0,0\n0,1,0,0\n1,0,0,0.1\n1,1,0,0.1\n3,0,0,0.2\n3,1,0,0.2\n",
+				"current_amps,stroke_meters,force_newton,flux_weber_turn\n0,0,0,0\n0,1,0,0\n1,0,0,NaN\n1,1,0,0.1\n",
+			};
+
+			foreach (var csv in invalidCsv) {
+				Assert.That(SlingshotActuatorCsv.TryParse(csv, out _, out var error),
+					Is.False, csv);
+				Assert.That(error, Is.Not.Empty);
+			}
+		}
+
+		[Test]
+		public void InvalidUnpackedSlingshotShouldBeDisabledWithDiagnostic()
+		{
+			var gameObject = new GameObject("Invalid Slingshot");
+			try {
+				var component = gameObject.AddComponent<RubberSlingshotComponent>();
+				LogAssert.Expect(LogType.Warning,
+					new Regex("Rubber slingshot 'Invalid Slingshot' was unpacked with an invalid configuration"));
+
+				component.ValidateAfterUnpack();
+
+				Assert.That(component.enabled, Is.False);
+			} finally {
+				UnityEngine.Object.DestroyImmediate(gameObject);
+			}
+		}
+
+		[Test]
+		public void EmptySlingshotReferencesPayloadShouldPreserveExistingReferences()
+		{
+			var rubberObject = new GameObject("Rubber");
+			var slingshotObject = new GameObject("Slingshot");
+			try {
+				var rubber = rubberObject.AddComponent<RubberComponent>();
+				var component = slingshotObject.AddComponent<RubberSlingshotComponent>();
+				component.Rubber = rubber;
+
+				RubberSlingshotReferencesPackable.Unpack(Array.Empty<byte>(), component,
+					null, null, null);
+
+				Assert.That(component.Rubber, Is.SameAs(rubber));
+			} finally {
+				UnityEngine.Object.DestroyImmediate(rubberObject);
+				UnityEngine.Object.DestroyImmediate(slingshotObject);
+			}
+		}
+
+		[Test]
+		public void UnavailableCoilShouldBeIgnoredByEventTranslator()
+		{
+			var slingshotObject = new GameObject("Slingshot");
+			var visualObject = new GameObject("Visual");
+			try {
+				slingshotObject.AddComponent<RubberSlingshotComponent>();
+				visualObject.transform.SetParent(slingshotObject.transform, false);
+				var translator = visualObject.AddComponent<EventTransformComponent>();
+				var flags = BindingFlags.Instance | BindingFlags.NonPublic;
+				var type = typeof(EventTransformComponent);
+				var awake = type.GetMethod("Awake", flags);
+				var start = type.GetMethod("Start", flags);
+				var onDestroy = type.GetMethod("OnDestroy", flags);
+
+				Assert.That(awake, Is.Not.Null);
+				Assert.That(start, Is.Not.Null);
+				Assert.That(onDestroy, Is.Not.Null);
+				Assert.DoesNotThrow(() => awake.Invoke(translator, null));
+				Assert.DoesNotThrow(() => start.Invoke(translator, null));
+				Assert.DoesNotThrow(() => onDestroy.Invoke(translator, null));
+			} finally {
+				UnityEngine.Object.DestroyImmediate(visualObject);
+				UnityEngine.Object.DestroyImmediate(slingshotObject);
+			}
 		}
 
 		[Test]

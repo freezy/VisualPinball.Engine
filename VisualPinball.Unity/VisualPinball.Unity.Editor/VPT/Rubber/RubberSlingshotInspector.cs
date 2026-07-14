@@ -113,9 +113,9 @@ namespace VisualPinball.Unity.Editor
 			var armPosition = math.lerp(start, end, component.ArmContactPosition01);
 			var arm = ToWorld(rubber, armPosition);
 			var armRest = ToWorld(rubber,
-				armPosition - inward * component.ArmRestClearance);
+				armPosition + inward * component.ArmRestClearance);
 			var armFired = ToWorld(rubber,
-				armPosition + inward * (component.ArmTipTravel - component.ArmRestClearance));
+				armPosition - inward * (component.ArmTipTravel - component.ArmRestClearance));
 			var armSize = HandleUtility.GetHandleSize(arm) * 0.06f;
 			Handles.DrawWireDisc(arm, rubber.transform.up, armSize);
 			Handles.DrawDottedLine(arm, armRest, 3f);

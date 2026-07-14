@@ -58,6 +58,9 @@ namespace VisualPinball.Unity
 			foreach (var deviceItem in _wireComponent.AvailableWireDestinations) {
 				if (_wireComponent is ICoilDeviceComponent coilDevice) {
 					var coil = coilDevice.CoilDevice(deviceItem.Id);
+					if (coil == null) {
+						continue;
+					}
 					coil.CoilStatusChanged += OnCoilChanged;
 				}
 			}
@@ -71,6 +74,9 @@ namespace VisualPinball.Unity
 			foreach (var deviceItem in _wireComponent.AvailableWireDestinations) {
 				if (_wireComponent is ICoilDeviceComponent coilDevice) {
 					var coil = coilDevice.CoilDevice(deviceItem.Id);
+					if (coil == null) {
+						continue;
+					}
 					coil.CoilStatusChanged -= OnCoilChanged;
 				}
 			}
