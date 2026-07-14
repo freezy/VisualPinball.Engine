@@ -43,7 +43,7 @@ namespace VisualPinball.Unity.Test
 		[TestCase(DmdTransitionType.Cover, new byte[] { 1, 2, 5, 6 })]
 		[TestCase(DmdTransitionType.Uncover, new byte[] { 3, 4, 7, 8 })]
 		[TestCase(DmdTransitionType.WipeOn, new byte[] { 1, 2, 7, 8 })]
-		[TestCase(DmdTransitionType.ScrollOff, new byte[] { 3, 4, 7, 8 })]
+		[TestCase(DmdTransitionType.ScrollOff, new byte[] { 3, 4, 0, 0 })]
 		public void HorizontalMotionUsesRoundedIntegerOffsets(DmdTransitionType type, byte[] expected)
 		{
 			var from = Surface(4, 1, 1, 2, 3, 4);
@@ -96,7 +96,7 @@ namespace VisualPinball.Unity.Test
 		[TestCase(DmdTransitionType.SplitOut, 1911098821u)]
 		[TestCase(DmdTransitionType.Dissolve, 661240773u)]
 		[TestCase(DmdTransitionType.FadeThroughBlack, 1924397413u)]
-		[TestCase(DmdTransitionType.ScrollOff, 872900293u)]
+		[TestCase(DmdTransitionType.ScrollOff, 1717662533u)]
 		public void FullSizeTransitionHasStableGoldenHash(DmdTransitionType type, uint expected)
 		{
 			var from = Pattern(128, 32, 17, 3);

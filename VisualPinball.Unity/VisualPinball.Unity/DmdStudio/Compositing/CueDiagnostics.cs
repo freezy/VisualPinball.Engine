@@ -86,6 +86,15 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		internal void AuthoredContent(string code, string detail)
+		{
+			code = string.IsNullOrEmpty(code) ? "content.invalid" : code;
+			detail = detail ?? "Authored DMD content is invalid.";
+			if (_keys.Add(new DiagnosticKey(DiagnosticKind.AuthoredContent, code, detail))) {
+				_diagnostics.Add(new CueDiagnostic(code, detail));
+			}
+		}
+
 		private enum DiagnosticKind
 		{
 			MissingParameter,
@@ -94,6 +103,7 @@ namespace VisualPinball.Unity
 			MissingGlyph,
 			MalformedFont,
 			MalformedGlyph,
+			AuthoredContent,
 		}
 
 		private readonly struct DiagnosticKey : IEquatable<DiagnosticKey>

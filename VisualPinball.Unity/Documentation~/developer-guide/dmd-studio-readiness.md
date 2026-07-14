@@ -83,3 +83,11 @@ All public `DmdCuePlayer` calls are main-thread-only. Editor and development bui
 - Stale handles and unmatched string targets return `false`. Stop/update never throw merely because an instance ended. Existing `OnCueFinished` timing remains as specified in section 6.4 of the plan.
 
 Utility APIs validate null inputs, dimensions, formats, and destination buffer sizes at their public boundary with standard argument exceptions. Authored asset-shape failures continue through `DmdValidation` diagnostics so malformed content cannot escape from the renderer as an indexing exception.
+
+## Phase 2 compositor clarifications
+
+The Phase 1 review exposed three edge cases that must be deterministic before cue-layer wiring:
+
+- `ScrollOff` moves the outgoing surface over black and reveals the incoming surface only at completion. `Uncover` continues to move the outgoing surface while revealing the live incoming surface beneath it; the two transitions are intentionally distinct.
+- `Opaque` ignores source per-pixel alpha, but the layer's global opacity still fades the complete overwrite. Full layer opacity remains an exact `dst = src` copy, including black or transparent source texels.
+- A mask covers the canvas with transparent black outside its bitmap rectangle. Applying an offset or undersized mask therefore clears pixels outside the mask bounds instead of leaving them unchanged.

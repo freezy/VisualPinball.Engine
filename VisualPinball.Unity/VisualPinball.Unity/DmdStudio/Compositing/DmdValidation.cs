@@ -258,6 +258,9 @@ namespace VisualPinball.Unity
 
 			var result = new DmdValidationResult();
 			ValidateDimensions(project.Width, project.Height, result, "project");
+			if (!Enum.IsDefined(typeof(DmdColorMode), project.ColorMode)) {
+				result.Error("project.colorMode", "ColorMode is invalid.");
+			}
 			if (string.IsNullOrWhiteSpace(project.DisplayId)) {
 				result.Error("project.displayId", "DisplayId cannot be empty.");
 			}
@@ -475,6 +478,15 @@ namespace VisualPinball.Unity
 			if (string.IsNullOrWhiteSpace(cue.EffectiveId)) {
 				result.Error("cue.id", "CueId is empty and the asset has no name.");
 			}
+			if (!Enum.IsDefined(typeof(CuePriority), cue.Priority)) {
+				result.Error("cue.priority", "Cue priority is invalid.");
+			}
+			if (!Enum.IsDefined(typeof(CueInterruptPolicy), cue.Interrupt)) {
+				result.Error("cue.interrupt", "Cue interrupt policy is invalid.");
+			}
+			if (!Enum.IsDefined(typeof(CueReturnPolicy), cue.Return)) {
+				result.Error("cue.return", "Cue return policy is invalid.");
+			}
 			if (cue.DurationFrames < 0) {
 				result.Error("cue.duration", "DurationFrames cannot be negative.");
 			}
@@ -541,8 +553,12 @@ namespace VisualPinball.Unity
 			HashSet<DmdSpriteAsset> validatedSprites, HashSet<DmdFontAsset> validatedFonts)
 		{
 			var path = $"Layer {index}";
-			if (layer.Opacity < 0f || layer.Opacity > 1f) {
+			if (float.IsNaN(layer.Opacity) || float.IsInfinity(layer.Opacity) ||
+			    layer.Opacity < 0f || layer.Opacity > 1f) {
 				result.Error("layer.opacity", $"{path} opacity must be between zero and one.");
+			}
+			if (!Enum.IsDefined(typeof(DmdBlendMode), layer.Blend)) {
+				result.Error("layer.blend", $"{path} blend mode is invalid.");
 			}
 			if (layer.StartFrame < 0 || layer.EndFrame < 0 || layer.EndFrame != 0 && layer.EndFrame < layer.StartFrame) {
 				result.Error("layer.span", $"{path} has an invalid frame span.");
@@ -554,7 +570,8 @@ namespace VisualPinball.Unity
 					if (!IsValidParameterName(number.ParamName)) {
 						result.Error("layer.number.parameter", $"{path} has an invalid parameter name.");
 					}
-					if (number.CountUpSeconds < 0f) {
+					if (float.IsNaN(number.CountUpSeconds) || float.IsInfinity(number.CountUpSeconds) ||
+					    number.CountUpSeconds < 0f) {
 						result.Error("layer.number.countUp", $"{path} count-up time cannot be negative.");
 					}
 					ValidateTextLayer(number, path, result, validatedFonts);
@@ -563,6 +580,9 @@ namespace VisualPinball.Unity
 					ValidateTextLayer(text, path, result, validatedFonts);
 					break;
 				case BitmapLayer bitmap:
+					if (!Enum.IsDefined(typeof(DmdLoopMode), bitmap.Loop)) {
+						result.Error("layer.bitmap.loop", $"{path} has an invalid loop mode.");
+					}
 					if (bitmap.Sprite == null) {
 						result.Error("layer.bitmap.sprite", $"{path} has no sprite.");
 					} else if (validatedSprites.Add(bitmap.Sprite)) {
@@ -573,6 +593,9 @@ namespace VisualPinball.Unity
 					}
 					break;
 				case MaskLayer mask:
+					if (!Enum.IsDefined(typeof(DmdLoopMode), mask.Loop)) {
+						result.Error("layer.mask.loop", $"{path} has an invalid loop mode.");
+					}
 					if (mask.Mask == null) {
 						result.Error("layer.mask.sprite", $"{path} has no mask sprite.");
 					} else if (validatedSprites.Add(mask.Mask)) {
@@ -583,6 +606,9 @@ namespace VisualPinball.Unity
 					}
 					break;
 				case ShapeLayer shape:
+					if (!Enum.IsDefined(typeof(DmdShapeType), shape.Shape)) {
+						result.Error("layer.shape.type", $"{path} has an invalid shape type.");
+					}
 					if (shape.Shape != DmdShapeType.Dot && (shape.Width < 1 || shape.Height < 1)) {
 						result.Error("layer.shape.size", $"{path} shape dimensions must be positive.");
 					}
@@ -596,6 +622,15 @@ namespace VisualPinball.Unity
 		private static void ValidateTextLayer(TextLayer text, string path, DmdValidationResult result,
 			HashSet<DmdFontAsset> validatedFonts)
 		{
+			if (!Enum.IsDefined(typeof(DmdAnchor), text.Anchor)) {
+				result.Error("layer.text.anchor", $"{path} has an invalid anchor.");
+			}
+			if (!Enum.IsDefined(typeof(DmdTextEffect), text.Effect)) {
+				result.Error("layer.text.effect", $"{path} has an invalid text effect.");
+			}
+			if (!Enum.IsDefined(typeof(DmdOverflow), text.Overflow)) {
+				result.Error("layer.text.overflow", $"{path} has an invalid overflow mode.");
+			}
 			if (text.Font == null) {
 				result.Error("layer.text.font", $"{path} has no font.");
 			} else if (validatedFonts.Add(text.Font)) {
@@ -619,12 +654,22 @@ namespace VisualPinball.Unity
 					result.Error("layer.track.empty", $"{path} track {trackIndex} has no keys.");
 					continue;
 				}
+				if (!Enum.IsDefined(typeof(DmdAnimatableProperty), track.Property)) {
+					result.Error("layer.track.property", $"{path} track {trackIndex} has an invalid property.");
+				}
 				if (!properties.Add(track.Property)) {
 					result.Warning("layer.track.duplicate", $"{path} contains duplicate {track.Property} tracks; the last wins.");
 				}
 				var previousFrame = -1;
 				for (var keyIndex = 0; keyIndex < track.Keys.Count; keyIndex++) {
 					var key = track.Keys[keyIndex];
+					if (float.IsNaN(key.Value) || float.IsInfinity(key.Value)) {
+						result.Error("layer.track.value", $"{path} track {trackIndex} has a non-finite value.");
+					}
+					if (!Enum.IsDefined(typeof(DmdInterpolation), key.Interp)) {
+						result.Error("layer.track.interpolation",
+							$"{path} track {trackIndex} key {keyIndex} has an invalid interpolation mode.");
+					}
 					if (key.Frame < 0 || key.Frame < previousFrame) {
 						result.Error("layer.track.order", $"{path} track {trackIndex} keys must be ordered at non-negative frames.");
 					}

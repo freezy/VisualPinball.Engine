@@ -20,10 +20,14 @@ namespace VisualPinball.Unity
 			if (font == null) {
 				throw new ArgumentNullException(nameof(font));
 			}
-			if (string.IsNullOrEmpty(text)) {
+			return Measure(font, text.AsSpan());
+		}
+
+		private static int Measure(DmdFontAsset font, ReadOnlySpan<char> text)
+		{
+			if (text.Length == 0) {
 				return 0;
 			}
-
 			var width = 0;
 			var previous = -1;
 			var index = 0;
@@ -47,6 +51,37 @@ namespace VisualPinball.Unity
 			int x, int y, DmdAnchor anchor, DmdTextEffect effect,
 			in DmdShade shade, in DmdShade outlineShade, DmdBlendMode mode, CueDiagnostics diagnostics)
 		{
+			Draw(dst, font, text, x, y, anchor, effect, shade, outlineShade, mode, byte.MaxValue, diagnostics);
+		}
+
+		internal static void Draw(DmdSurface dst, DmdFontAsset font, string text,
+			int x, int y, DmdAnchor anchor, DmdTextEffect effect,
+			in DmdShade shade, in DmdShade outlineShade, DmdBlendMode mode, byte opacity,
+			CueDiagnostics diagnostics)
+		{
+			Draw(dst, font, text.AsSpan(), x, y, anchor, effect, shade, outlineShade, mode, opacity, diagnostics);
+		}
+
+		internal static void Draw(DmdSurface dst, DmdFontAsset font, char[] text, int textLength,
+			int x, int y, DmdAnchor anchor, DmdTextEffect effect,
+			in DmdShade shade, in DmdShade outlineShade, DmdBlendMode mode, byte opacity,
+			CueDiagnostics diagnostics)
+		{
+			if (text == null) {
+				throw new ArgumentNullException(nameof(text));
+			}
+			if (textLength < 0 || textLength > text.Length) {
+				throw new ArgumentOutOfRangeException(nameof(textLength));
+			}
+			Draw(dst, font, new ReadOnlySpan<char>(text, 0, textLength), x, y, anchor, effect, shade,
+				outlineShade, mode, opacity, diagnostics);
+		}
+
+		private static void Draw(DmdSurface dst, DmdFontAsset font, ReadOnlySpan<char> text,
+			int x, int y, DmdAnchor anchor, DmdTextEffect effect,
+			in DmdShade shade, in DmdShade outlineShade, DmdBlendMode mode, byte opacity,
+			CueDiagnostics diagnostics)
+		{
 			if (dst == null) {
 				throw new ArgumentNullException(nameof(dst));
 			}
@@ -54,7 +89,7 @@ namespace VisualPinball.Unity
 				diagnostics?.MalformedFont("Font asset is missing.");
 				return;
 			}
-			if (string.IsNullOrEmpty(text)) {
+			if (text.Length == 0) {
 				return;
 			}
 			if (!HasReadableAtlas(font, diagnostics)) {
@@ -62,7 +97,7 @@ namespace VisualPinball.Unity
 			}
 
 			var lineHeight = math.max(1, font.LineHeight);
-			var originX = ResolveHorizontalOrigin(x, Measure(font, text), anchor);
+			var originX = IsLeftAnchor(anchor) ? x : ResolveHorizontalOrigin(x, Measure(font, text), anchor);
 			var originY = ResolveVerticalOrigin(y, lineHeight, math.clamp(font.Baseline, 0, lineHeight), anchor);
 			var pen = 0;
 			var previous = -1;
@@ -77,7 +112,7 @@ namespace VisualPinball.Unity
 					diagnostics?.MissingGlyph(codepoint);
 					if (!TryResolveGlyph(font, codepoint, out glyph)) {
 						DrawMissingBox(dst, originX + pen, originY, MissingGlyphWidth(font), lineHeight,
-							shade, outlineShade, effect, mode);
+							shade, outlineShade, effect, mode, opacity);
 						pen += MissingGlyphWidth(font);
 						previous = codepoint;
 						glyphCount++;
@@ -98,7 +133,7 @@ namespace VisualPinball.Unity
 					: 0;
 				var glyphX = originX + pen + digitOffset + glyph.OffsetX;
 				var glyphY = originY + glyph.OffsetY;
-				DrawGlyphWithEffect(dst, font.Atlas, glyph, glyphX, glyphY, effect, shade, outlineShade, mode);
+				DrawGlyphWithEffect(dst, font.Atlas, glyph, glyphX, glyphY, effect, shade, outlineShade, mode, opacity);
 				pen += Advance(font, codepoint, glyph);
 				previous = codepoint;
 				glyphCount++;
@@ -106,22 +141,23 @@ namespace VisualPinball.Unity
 		}
 
 		private static void DrawGlyphWithEffect(DmdSurface dst, DmdBitmapData atlas, DmdGlyph glyph,
-			int x, int y, DmdTextEffect effect, in DmdShade shade, in DmdShade outlineShade, DmdBlendMode mode)
+			int x, int y, DmdTextEffect effect, in DmdShade shade, in DmdShade outlineShade, DmdBlendMode mode,
+			byte opacity)
 		{
 			switch (effect) {
 				case DmdTextEffect.None:
-					DrawGlyph(dst, atlas, glyph, x, y, shade, mode);
+					DrawGlyph(dst, atlas, glyph, x, y, shade, mode, opacity);
 					break;
 				case DmdTextEffect.Outline:
-					DrawOutline(dst, atlas, glyph, x, y, outlineShade, mode);
-					DrawGlyph(dst, atlas, glyph, x, y, shade, mode);
+					DrawOutline(dst, atlas, glyph, x, y, outlineShade, mode, opacity);
+					DrawGlyph(dst, atlas, glyph, x, y, shade, mode, opacity);
 					break;
 				case DmdTextEffect.Shadow:
-					DrawGlyph(dst, atlas, glyph, x + 1, y + 1, outlineShade, mode);
-					DrawGlyph(dst, atlas, glyph, x, y, shade, mode);
+					DrawGlyph(dst, atlas, glyph, x + 1, y + 1, outlineShade, mode, opacity);
+					DrawGlyph(dst, atlas, glyph, x, y, shade, mode, opacity);
 					break;
 				case DmdTextEffect.Inverse:
-					DrawInverseGlyph(dst, atlas, glyph, x, y, shade, outlineShade, mode);
+					DrawInverseGlyph(dst, atlas, glyph, x, y, shade, outlineShade, mode, opacity);
 					break;
 				default:
 					throw new ArgumentOutOfRangeException(nameof(effect));
@@ -129,7 +165,7 @@ namespace VisualPinball.Unity
 		}
 
 		private static void DrawGlyph(DmdSurface dst, DmdBitmapData atlas, DmdGlyph glyph,
-			int x, int y, in DmdShade shade, DmdBlendMode mode)
+			int x, int y, in DmdShade shade, DmdBlendMode mode, byte opacity)
 		{
 			for (var glyphY = 0; glyphY < glyph.H; glyphY++) {
 				var destinationY = y + glyphY;
@@ -142,13 +178,13 @@ namespace VisualPinball.Unity
 						continue;
 					}
 					var mask = GlyphMask(atlas, glyph, glyphX, glyphY);
-					DrawShadedPixel(dst, destinationX, destinationY, shade, mask, mode);
+					DrawShadedPixel(dst, destinationX, destinationY, shade, mask, mode, opacity);
 				}
 			}
 		}
 
 		private static void DrawOutline(DmdSurface dst, DmdBitmapData atlas, DmdGlyph glyph,
-			int x, int y, in DmdShade shade, DmdBlendMode mode)
+			int x, int y, in DmdShade shade, DmdBlendMode mode, byte opacity)
 		{
 			for (var glyphY = -1; glyphY <= glyph.H; glyphY++) {
 				for (var glyphX = -1; glyphX <= glyph.W; glyphX++) {
@@ -168,38 +204,39 @@ namespace VisualPinball.Unity
 						}
 					}
 					if (mask != 0) {
-						DrawShadedPixel(dst, x + glyphX, y + glyphY, shade, mask, mode);
+						DrawShadedPixel(dst, x + glyphX, y + glyphY, shade, mask, mode, opacity);
 					}
 				}
 			}
 		}
 
 		private static void DrawInverseGlyph(DmdSurface dst, DmdBitmapData atlas, DmdGlyph glyph,
-			int x, int y, in DmdShade background, in DmdShade foreground, DmdBlendMode mode)
+			int x, int y, in DmdShade background, in DmdShade foreground, DmdBlendMode mode, byte opacity)
 		{
 			for (var glyphY = 0; glyphY < glyph.H; glyphY++) {
 				for (var glyphX = 0; glyphX < glyph.W; glyphX++) {
 					var mask = GlyphMask(atlas, glyph, glyphX, glyphY);
 					var inverseShade = Interpolate(background, foreground, mask);
-					DrawShadedPixel(dst, x + glyphX, y + glyphY, inverseShade, byte.MaxValue, mode);
+					DrawShadedPixel(dst, x + glyphX, y + glyphY, inverseShade, byte.MaxValue, mode, opacity);
 				}
 			}
 		}
 
 		private static void DrawMissingBox(DmdSurface dst, int x, int y, int width, int height,
-			in DmdShade shade, in DmdShade outlineShade, DmdTextEffect effect, DmdBlendMode mode)
+			in DmdShade shade, in DmdShade outlineShade, DmdTextEffect effect, DmdBlendMode mode, byte opacity)
 		{
 			var boxShade = effect == DmdTextEffect.Inverse ? outlineShade : shade;
 			for (var boxY = 0; boxY < height; boxY++) {
 				for (var boxX = 0; boxX < width; boxX++) {
 					var border = boxX == 0 || boxX == width - 1 || boxY == 0 || boxY == height - 1;
-					DrawShadedPixel(dst, x + boxX, y + boxY, boxShade, border ? byte.MaxValue : (byte)0, mode);
+					DrawShadedPixel(dst, x + boxX, y + boxY, boxShade, border ? byte.MaxValue : (byte)0, mode,
+						opacity);
 				}
 			}
 		}
 
 		private static void DrawShadedPixel(DmdSurface dst, int x, int y, in DmdShade shade,
-			byte mask, DmdBlendMode mode)
+			byte mask, DmdBlendMode mode, byte opacity)
 		{
 			if (x < 0 || x >= dst.Width || y < 0 || y >= dst.Height) {
 				return;
@@ -207,16 +244,16 @@ namespace VisualPinball.Unity
 			var pixel = y * dst.Width + x;
 			if (dst.Format == DmdPixelFormat.I8) {
 				var source = mode == DmdBlendMode.Opaque ? DmdBlitter.Multiply(shade.Intensity, mask) : shade.Intensity;
-				dst.Data[pixel] = DmdBlitter.Blend(dst.Data[pixel], source, mask, byte.MaxValue, mode);
+				dst.Data[pixel] = DmdBlitter.Blend(dst.Data[pixel], source, mask, opacity, mode);
 			} else {
 				var alpha = DmdBlitter.Multiply(mask, shade.Color.a);
 				var offset = pixel * 3;
 				var red = mode == DmdBlendMode.Opaque ? DmdBlitter.Multiply(shade.Color.r, mask) : shade.Color.r;
 				var green = mode == DmdBlendMode.Opaque ? DmdBlitter.Multiply(shade.Color.g, mask) : shade.Color.g;
 				var blue = mode == DmdBlendMode.Opaque ? DmdBlitter.Multiply(shade.Color.b, mask) : shade.Color.b;
-				dst.Data[offset] = DmdBlitter.Blend(dst.Data[offset], red, alpha, byte.MaxValue, mode);
-				dst.Data[offset + 1] = DmdBlitter.Blend(dst.Data[offset + 1], green, alpha, byte.MaxValue, mode);
-				dst.Data[offset + 2] = DmdBlitter.Blend(dst.Data[offset + 2], blue, alpha, byte.MaxValue, mode);
+				dst.Data[offset] = DmdBlitter.Blend(dst.Data[offset], red, alpha, opacity, mode);
+				dst.Data[offset + 1] = DmdBlitter.Blend(dst.Data[offset + 1], green, alpha, opacity, mode);
+				dst.Data[offset + 2] = DmdBlitter.Blend(dst.Data[offset + 2], blue, alpha, opacity, mode);
 			}
 		}
 
@@ -319,6 +356,12 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		private static bool IsLeftAnchor(DmdAnchor anchor)
+		{
+			return anchor == DmdAnchor.TopLeft || anchor == DmdAnchor.MiddleLeft ||
+			       anchor == DmdAnchor.BottomLeft || anchor == DmdAnchor.BaselineLeft;
+		}
+
 		private static int ResolveVerticalOrigin(int y, int lineHeight, int baseline, DmdAnchor anchor)
 		{
 			switch (anchor) {
@@ -339,7 +382,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private static bool TryReadCodepoint(string text, ref int index, out int codepoint)
+		private static bool TryReadCodepoint(ReadOnlySpan<char> text, ref int index, out int codepoint)
 		{
 			if (index >= text.Length) {
 				codepoint = 0;

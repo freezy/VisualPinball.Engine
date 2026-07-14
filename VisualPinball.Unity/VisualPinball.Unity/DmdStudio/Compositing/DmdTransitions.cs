@@ -51,8 +51,10 @@ namespace VisualPinball.Unity
 					ComposeCover(dst, from, to, direction, progress);
 					break;
 				case DmdTransitionType.Uncover:
-				case DmdTransitionType.ScrollOff:
 					ComposeUncover(dst, from, to, direction, progress);
+					break;
+				case DmdTransitionType.ScrollOff:
+					ComposeScrollOff(dst, from, direction, progress);
 					break;
 				case DmdTransitionType.WipeOn:
 					ComposeWipe(dst, from, to, direction, progress);
@@ -110,6 +112,18 @@ namespace VisualPinball.Unity
 		{
 			Motion(direction, progress, dst.Width, dst.Height, out var fromX, out var fromY);
 			dst.CopyFrom(to);
+			for (var y = 0; y < dst.Height; y++) {
+				for (var x = 0; x < dst.Width; x++) {
+					TryCopyTranslatedPixel(dst, from, x, y, fromX, fromY);
+				}
+			}
+		}
+
+		private static void ComposeScrollOff(DmdSurface dst, DmdSurface from,
+			DmdDirection direction, float progress)
+		{
+			Motion(direction, progress, dst.Width, dst.Height, out var fromX, out var fromY);
+			dst.Clear();
 			for (var y = 0; y < dst.Height; y++) {
 				for (var x = 0; x < dst.Width; x++) {
 					TryCopyTranslatedPixel(dst, from, x, y, fromX, fromY);

@@ -18,7 +18,8 @@ namespace VisualPinball.Unity.Test
 		{
 			var source = Bitmap(1, 1, 200, 128);
 
-			Assert.That(Blend(100, source, DmdBlendMode.Opaque, 0), Is.EqualTo(200));
+			Assert.That(Blend(100, source, DmdBlendMode.Opaque, 255), Is.EqualTo(200));
+			Assert.That(Blend(100, source, DmdBlendMode.Opaque, 128), Is.EqualTo(150));
 			Assert.That(Blend(100, source, DmdBlendMode.Alpha, 255), Is.EqualTo(150));
 			Assert.That(Blend(100, source, DmdBlendMode.Add, 255), Is.EqualTo(200));
 			Assert.That(Blend(100, Bitmap(1, 1, 0, 255), DmdBlendMode.Invert, 128), Is.EqualTo(155));
@@ -35,7 +36,7 @@ namespace VisualPinball.Unity.Test
 				Pixels = new byte[] { 255, 128 }
 			};
 
-			DmdBlitter.Blit(surface, source, -1, 0, DmdBlendMode.Opaque, 0,
+			DmdBlitter.Blit(surface, source, -1, 0, DmdBlendMode.Opaque, byte.MaxValue,
 				new Color32(255, 128, 0, 255));
 
 			Assert.That(surface.Data, Is.EqualTo(new byte[] { 128, 64, 0, 0, 0, 0, 0, 0, 0 }));

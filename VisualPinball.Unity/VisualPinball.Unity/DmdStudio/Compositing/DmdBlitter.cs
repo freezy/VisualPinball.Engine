@@ -98,6 +98,12 @@ namespace VisualPinball.Unity
 		public static void ApplyAlphaMask(DmdSurface dst, DmdBitmapData mask,
 			int maskFrameOffsetX, int maskFrameOffsetY)
 		{
+			ApplyAlphaMask(dst, mask, maskFrameOffsetX, maskFrameOffsetY, byte.MaxValue);
+		}
+
+		internal static void ApplyAlphaMask(DmdSurface dst, DmdBitmapData mask,
+			int maskFrameOffsetX, int maskFrameOffsetY, byte opacity)
+		{
 			if (dst == null) {
 				throw new ArgumentNullException(nameof(dst));
 			}
@@ -123,6 +129,8 @@ namespace VisualPinball.Unity
 						}
 					}
 
+					// Opacity blends between an identity mask (0) and the authored mask (255).
+					alpha = (byte)(255 - Multiply((byte)(255 - alpha), opacity));
 					var destinationOffset = (y * dst.Width + x) * (dst.Format == DmdPixelFormat.I8 ? 1 : 3);
 					var channelCount = dst.Format == DmdPixelFormat.I8 ? 1 : 3;
 					for (var channel = 0; channel < channelCount; channel++) {
@@ -136,7 +144,9 @@ namespace VisualPinball.Unity
 			DmdBlendMode mode)
 		{
 			if (mode == DmdBlendMode.Opaque) {
-				return source;
+				// Opaque ignores the source bitmap's per-pixel alpha, but layer opacity still
+				// fades the overwrite as a whole. At full opacity this remains an exact copy.
+				return (byte)((source * opacity + destination * (255 - opacity) + 127) / 255);
 			}
 			var alpha = Multiply(sourceAlpha, opacity);
 			switch (mode) {
