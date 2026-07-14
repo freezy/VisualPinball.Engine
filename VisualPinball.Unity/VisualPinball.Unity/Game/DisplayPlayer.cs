@@ -27,6 +27,7 @@ namespace VisualPinball.Unity
 	{
 		private IGamelogicEngine _gamelogicEngine;
 		private readonly Dictionary<string, DisplayComponent> _displayGameObjects = new Dictionary<string, DisplayComponent>();
+		private readonly Dictionary<string, DisplayConfig> _displayConfigs = new Dictionary<string, DisplayConfig>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -57,6 +58,10 @@ namespace VisualPinball.Unity
 					if (!displayGameObject.ReceiveGamelogicFrames) {
 						continue;
 					}
+					if (_displayConfigs.TryGetValue(display.Id, out var previous) && SameConfig(previous, display)) {
+						Logger.Debug($"Ignoring unchanged configuration for display \"{display.Id}\".");
+						continue;
+					}
 					Logger.Info($"Updating display \"{display.Id}\" to {display.Width}x{display.Height}");
 					displayGameObject.UpdateDimensions(display.Width, display.Height, display.FlipX);
 					if (display.LitColor.HasValue) {
@@ -66,10 +71,18 @@ namespace VisualPinball.Unity
 						displayGameObject.UnlitColor = display.UnlitColor.Value;
 					}
 					displayGameObject.Clear();
+					_displayConfigs[display.Id] = display;
 				} else {
 					Logger.Warn($"Cannot find game object for display \"{display.Id}\"");
 				}
 			}
+		}
+
+		internal static bool SameConfig(DisplayConfig first, DisplayConfig second)
+		{
+			return first.Id == second.Id && first.Width == second.Width && first.Height == second.Height &&
+			       first.FlipX == second.FlipX && first.LitColor.Equals(second.LitColor) &&
+			       first.UnlitColor.Equals(second.UnlitColor);
 		}
 
 		private void HandleDisplayClear(object sender, string id)
@@ -100,6 +113,7 @@ namespace VisualPinball.Unity
 			foreach (var id in _displayGameObjects.Keys) {
 				_displayGameObjects[id].OnDisplayChanged -= HandleDisplayChanged;
 			}
+			_displayConfigs.Clear();
 		}
 	}
 }

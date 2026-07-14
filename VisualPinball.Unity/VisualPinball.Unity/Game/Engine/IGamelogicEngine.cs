@@ -331,7 +331,7 @@ namespace VisualPinball.Unity
 
 	public enum DisplayFrameFormat
 	{
-		Dmd2, // 2-bit (0-4)
+		Dmd2, // 2-bit (0-3)
 		Dmd4, // 4-bit (0-15)
 		Dmd8, // 8-bit (0-255)
 		Dmd24, // rgb (3x 0-255)

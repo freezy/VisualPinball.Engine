@@ -52,6 +52,9 @@ namespace VisualPinball.Unity
 
 		[NonSerialized] private DisplayFrameFormat _frameFormat = DisplayFrameFormat.Dmd4;
 		[NonSerialized] private Color32[] _colorBuffer;
+		[NonSerialized] private bool _flipX;
+		// Runtime-only ownership tracking avoids ever destroying a serialized mesh asset.
+		[NonSerialized] private Mesh _generatedMesh;
 
 		private readonly Dictionary<DisplayFrameFormat, Dictionary<byte, Color32>> _map = new Dictionary<DisplayFrameFormat, Dictionary<byte, Color32>>();
 
@@ -145,18 +148,30 @@ namespace VisualPinball.Unity
 
 		public override void UpdateDimensions(int width, int height, bool flipX = false)
 		{
+			if (_texture != null && _width == width && _height == height && _flipX == flipX) {
+				return;
+			}
+
 			Logger.Info($"Updating dimensions for DMD \"{_id}\" to {width}x{height}.");
+			var previousTexture = _texture;
+			var previousMesh = _generatedMesh;
+
 			_width = width;
 			_height = height;
+			_flipX = flipX;
 			_colorBuffer = new Color32[width * height];
 			_texture = new Texture2D(width, height, TextureFormat.RGB24, false);
 			_texture.SetPixels32(_colorBuffer);
 			_texture.Apply();
 
 			RegenerateMesh(flipX);
+			_generatedMesh = gameObject.GetComponent<MeshFilter>().sharedMesh;
 
 			var mr = gameObject.GetComponent<MeshRenderer>();
 			mr.sharedMaterial.SetVector(DimensionsProp, new Vector4(_width, _height));
+
+			DestroyDisplayResource(previousTexture);
+			DestroyDisplayResource(previousMesh);
 		}
 
 		public override void UpdateColor(Color color)
@@ -183,8 +198,8 @@ namespace VisualPinball.Unity
 				case DisplayFrameFormat.Dmd8:
 					if (!_map.ContainsKey(format)) {
 						UpdatePalette(format);
-						_frameFormat = format;
 					}
+					_frameFormat = format;
 					var map = _map[format];
 					if (frame.Length == _width * _height) {
 						for (var y = 0; y < _height; y++) {
@@ -202,6 +217,7 @@ namespace VisualPinball.Unity
 					break;
 
 				case DisplayFrameFormat.Dmd24:
+					_frameFormat = format;
 					if (frame.Length == _width * _height * 3) {
 						CopyRgb24FrameToTexture(frame, _texture.GetRawTextureData<byte>());
 						_texture.Apply();
@@ -217,6 +233,18 @@ namespace VisualPinball.Unity
 
 				default:
 					throw new ArgumentOutOfRangeException();
+			}
+		}
+
+		private static void DestroyDisplayResource(UnityEngine.Object resource)
+		{
+			if (resource == null) {
+				return;
+			}
+			if (Application.isPlaying) {
+				Destroy(resource);
+			} else {
+				DestroyImmediate(resource);
 			}
 		}
 
