@@ -91,6 +91,27 @@ namespace VisualPinball.Unity.Test
 			}
 		}
 
+		[Test]
+		public void ShouldConvertEveryVpxRubberAsManualSplineAndLegacyCollider()
+		{
+			var table = FileTableContainer.Load(VpxPath.Rubber);
+			foreach (var name in new[] { "Rubber1", "Rubber2" }) {
+				var gameObject = new GameObject(name);
+				try {
+					var rubber = gameObject.AddComponent<RubberComponent>();
+					var collider = gameObject.AddComponent<RubberColliderComponent>();
+					rubber.SetData(table.Rubber(name).Data).ToArray();
+
+					Assert.That(rubber.PathSource, Is.EqualTo(RubberPathSource.Spline), rubber.name);
+					Assert.That(rubber.GuideBindings, Is.Empty, rubber.name);
+					Assert.That(rubber.BakedPath, Is.Empty, rubber.name);
+					Assert.That(collider.Mode, Is.EqualTo(RubberColliderMode.Legacy), rubber.name);
+				} finally {
+					Object.DestroyImmediate(gameObject);
+				}
+			}
+		}
+
 		private static void AssertPackageHasNoSplineNodes(string path)
 		{
 			using var storage = PackageApi.StorageManager.OpenStorage(path);

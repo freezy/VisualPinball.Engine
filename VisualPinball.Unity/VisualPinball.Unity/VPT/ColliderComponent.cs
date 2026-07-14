@@ -482,6 +482,9 @@ namespace VisualPinball.Unity
 					AddCollider(col.LineSeg1, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
 				}
 			}
+			foreach (var col in colliders.SweptCircleColliders) {
+				_nonMeshColliders.Add(col);
+			}
 			foreach (var col in colliders.TriangleColliders) {
 				if (col.Header.IsTransformed) {
 					AddCollider(col, vertices, normals, indices);
@@ -602,6 +605,10 @@ namespace VisualPinball.Unity
 						AddCollider(spinnerCollider.LineSeg1, verticesNonTransformable, normalsNonTransformable, indicesNonTransformable);
 						break;
 
+					case SweptCircleCollider sweptCircleCollider:
+						_nonMeshColliders.Add(sweptCircleCollider);
+						break;
+
 					// triangle collider
 					case TriangleCollider { Header: { IsTransformed: true } } triangleCollider:
 						AddCollider(triangleCollider, vertices, normals, indices);
@@ -652,8 +659,30 @@ namespace VisualPinball.Unity
 						DrawLine(lineZCol.XY.ToFloat3(lineZCol.ZLow), lineZCol.XY.ToFloat3(lineZCol.ZHigh));
 							break;
 						}
+					case SweptCircleCollider sweptCircle: {
+						DrawSweptCircle(sweptCircle);
+						break;
+					}
 				}
 			}
+		}
+
+		private static void DrawSweptCircle(SweptCircleCollider collider)
+		{
+			var axis = math.normalizesafe(collider.V2 - collider.V1, new float3(0f, 0f, 1f));
+			var side = math.normalizesafe(math.cross(axis, new float3(0f, 0f, 1f)),
+				new float3(1f, 0f, 0f));
+			var up = math.normalizesafe(math.cross(axis, side), new float3(0f, 1f, 0f));
+			Handles.DrawWireDisc(collider.V1, axis, collider.CordRadius);
+			Handles.DrawWireDisc(collider.V2, axis, collider.CordRadius);
+			Handles.DrawLine(collider.V1 + side * collider.CordRadius,
+				collider.V2 + side * collider.CordRadius);
+			Handles.DrawLine(collider.V1 - side * collider.CordRadius,
+				collider.V2 - side * collider.CordRadius);
+			Handles.DrawLine(collider.V1 + up * collider.CordRadius,
+				collider.V2 + up * collider.CordRadius);
+			Handles.DrawLine(collider.V1 - up * collider.CordRadius,
+				collider.V2 - up * collider.CordRadius);
 		}
 
 		private static void AddCollider(CircleCollider circleCol, IList<Vector3> vertices, IList<Vector3> normals, ICollection<int> indices)

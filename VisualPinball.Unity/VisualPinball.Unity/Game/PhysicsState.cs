@@ -434,6 +434,10 @@ namespace VisualPinball.Unity
 					return colliders.Spinner(colliderId).HitTest(ref newCollEvent, ref InsideOfs, in ball,
 						ball.CollisionEvent.HitTime);
 
+				case ColliderType.SweptCircle:
+					return colliders.SweptCircle(colliderId).HitTest(ref newCollEvent, in ball,
+						ball.CollisionEvent.HitTime);
+
 				case ColliderType.Triangle:
 					return colliders.Triangle(colliderId).HitTest(ref newCollEvent, in InsideOfs, in ball,
 						ball.CollisionEvent.HitTime);
