@@ -17,6 +17,50 @@ namespace VisualPinball.Unity.Test
 	public class DmdDisplayPlayerTests
 	{
 		[Test]
+		public void CuePlayerEventsReachSceneDisplayAndTeardownUnsubscribes()
+		{
+			var displayObject = new GameObject("Display");
+			var gleObject = new GameObject("GLE");
+			var project = ScriptableObject.CreateInstance<DmdProjectAsset>();
+			var displayPlayer = new DisplayPlayer();
+			try {
+				var display = displayObject.AddComponent<CountingDisplayComponent>();
+				display.Id = "studio";
+				var gle = gleObject.AddComponent<DefaultGamelogicEngine>();
+				displayPlayer.Awake(gle);
+				project.DisplayId = display.Id;
+				project.Width = 4;
+				project.Height = 2;
+				project.FrameRate = 10;
+				project.ColorMode = DmdColorMode.Mono16;
+				var emitter = new GleDisplayEmitter(
+					displays => Raise(gle, "OnDisplaysRequested", displays),
+					frame => Raise(gle, "OnDisplayUpdateFrame", frame),
+					id => Raise(gle, "OnDisplayClear", id));
+
+				using (var cuePlayer = new DmdCuePlayer(project, emitter)) {
+					cuePlayer.Start();
+					cuePlayer.Tick(0d);
+					cuePlayer.Tick(DmdCuePlayer.ReannounceDelaySeconds);
+
+					Assert.That(display.ResizeCount, Is.EqualTo(1));
+					Assert.That(display.ClearCount, Is.EqualTo(1));
+					Assert.That(display.FrameCount, Is.EqualTo(2));
+				}
+
+				Assert.That(display.ClearCount, Is.EqualTo(2));
+				displayPlayer.OnDestroy();
+				Raise(gle, "OnDisplayUpdateFrame",
+					new DisplayFrameData(display.Id, DisplayFrameFormat.Dmd8, new byte[8]));
+				Assert.That(display.FrameCount, Is.EqualTo(2));
+			} finally {
+				Object.DestroyImmediate(project);
+				Object.DestroyImmediate(gleObject);
+				Object.DestroyImmediate(displayObject);
+			}
+		}
+
+		[Test]
 		public void ReannouncingAnIdenticalConfigDoesNotResizeOrClear()
 		{
 			var gameObject = new GameObject("Display");
@@ -44,12 +88,21 @@ namespace VisualPinball.Unity.Test
 				Object.DestroyImmediate(gameObject);
 			}
 		}
+
+		private static void Raise<T>(DefaultGamelogicEngine gle, string eventName, T args)
+		{
+			var field = typeof(DefaultGamelogicEngine).GetField(eventName,
+				BindingFlags.Instance | BindingFlags.NonPublic);
+			Assert.That(field, Is.Not.Null, $"Could not find backing field for {eventName}.");
+			((System.EventHandler<T>)field.GetValue(gle))?.Invoke(gle, args);
+		}
 	}
 
 	public class CountingDisplayComponent : DisplayComponent
 	{
 		public int ResizeCount { get; private set; }
 		public int ClearCount { get; private set; }
+		public int FrameCount { get; private set; }
 
 		public override string Id { get; set; }
 		public override Color LitColor { get; set; }
@@ -71,6 +124,7 @@ namespace VisualPinball.Unity.Test
 
 		public override void UpdateFrame(DisplayFrameFormat format, byte[] data)
 		{
+			FrameCount++;
 		}
 
 		protected override Material CreateMaterial() => null;

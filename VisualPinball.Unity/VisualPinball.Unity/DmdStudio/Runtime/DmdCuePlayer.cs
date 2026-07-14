@@ -220,6 +220,9 @@ namespace VisualPinball.Unity
 			if (!_reannounced && timeSeconds - _firstTickTime >= ReannounceDelaySeconds) {
 				_sink.RequestDisplays(_requestedDisplays);
 				_reannounced = true;
+				// A late subscriber also missed the initial frame. Re-emit the current surface once
+				// so a newly created display pipeline does not remain blank for static content.
+				_dirty = true;
 			}
 			if (!_hasLastTime) {
 				_hasLastTime = true;

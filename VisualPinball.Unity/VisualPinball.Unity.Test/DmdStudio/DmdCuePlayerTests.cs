@@ -333,6 +333,7 @@ namespace VisualPinball.Unity.Test
 				player.Tick(20d);
 
 				Assert.That(_sink.Requests, Has.Count.EqualTo(2));
+				Assert.That(_sink.Frames, Has.Count.EqualTo(2));
 			}
 		}
 
