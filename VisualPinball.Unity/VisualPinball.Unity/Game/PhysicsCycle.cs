@@ -115,9 +115,15 @@ namespace VisualPinball.Unity
 				using (var enumerator = state.PlungerStates.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
 						ref var plungerState = ref enumerator.Current.Value;
-						ref var plungerCollider = ref state.Colliders.Plunger(plungerState.Static.ColliderId);
-						PlungerDisplacementPhysics.UpdateDisplacement(enumerator.Current.Key, ref plungerState.Movement, ref plungerCollider,
-							in plungerState.Static, hitTime, ref state.EventQueue);
+						if (plungerState.Static.IsKinematic) {
+							ref var plungerCollider = ref state.KinematicColliders.Plunger(plungerState.Static.ColliderId);
+							PlungerDisplacementPhysics.UpdateDisplacement(enumerator.Current.Key, ref plungerState.Movement, ref plungerCollider,
+								in plungerState.Static, hitTime, ref state.EventQueue);
+						} else {
+							ref var plungerCollider = ref state.Colliders.Plunger(plungerState.Static.ColliderId);
+							PlungerDisplacementPhysics.UpdateDisplacement(enumerator.Current.Key, ref plungerState.Movement, ref plungerCollider,
+								in plungerState.Static, hitTime, ref state.EventQueue);
+						}
 					}
 				}
 				// spinners

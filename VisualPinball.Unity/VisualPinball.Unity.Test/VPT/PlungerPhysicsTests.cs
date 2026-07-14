@@ -16,9 +16,11 @@
 
 using FluentAssertions;
 using NUnit.Framework;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
 using EnginePlunger = VisualPinball.Engine.VPT.Plunger.Plunger;
+using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity.Test
 {
@@ -131,6 +133,29 @@ namespace VisualPinball.Unity.Test
 			} finally {
 				Object.DestroyImmediate(go);
 			}
+		}
+
+		[Test]
+		public void ShouldNotImpactWhenKinematicSurfaceRecedesFasterThanBall()
+		{
+			var staticState = CreateStaticState();
+			var movement = CreateMovement(staticState);
+			var ball = new BallState {
+				Position = new float3(0.0f, 0.0f, 0.0f),
+				Velocity = new float3(0.0f, -1.0f, 0.0f),
+				Radius = 1.0f,
+				Mass = 1.0f
+			};
+			var collision = new CollisionEventData {
+				HitNormal = new float3(0.0f, 1.0f, 0.0f),
+				HitDistance = 0.0f
+			};
+			var random = new Random(1);
+
+			PlungerCollider.Collide(ref ball, ref collision, ref movement, in staticState,
+				new float3(0.0f, -10.0f, 0.0f), ref random);
+
+			ball.Velocity.y.Should().BeApproximately(-1.0f, 0.0001f);
 		}
 
 		private static PlungerMovementState FireFrom(float startPos, PlungerStaticState staticState)

@@ -281,6 +281,7 @@ namespace VisualPinball.Unity
 
 			return new PlungerState(
 				new PlungerStaticState {
+					IsKinematic = collComponent.IsKinematic,
 					MomentumXfer = collComponent.MomentumXfer,
 					ScatterVelocity = collComponent.ScatterVelocity,
 					FrameStart = frameBottom,

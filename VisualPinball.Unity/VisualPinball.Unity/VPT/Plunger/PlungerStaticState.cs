@@ -19,6 +19,7 @@ namespace VisualPinball.Unity
 	internal struct PlungerStaticState
 	{
 		public int ColliderId;
+		public bool IsKinematic;
 
 		// collision
 		public float MomentumXfer;
