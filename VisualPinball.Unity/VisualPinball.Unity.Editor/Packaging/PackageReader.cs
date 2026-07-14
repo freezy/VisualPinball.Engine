@@ -90,6 +90,10 @@ namespace VisualPinball.Unity.Editor
 					var comp = item.gameObject.GetComponent(type) as IPackable;
 					comp?.UnpackReferences(stream.GetData(), _tableRoot, _refs, _files);
 				});
+				var slingshots = _tableRoot.GetComponentsInChildren<RubberSlingshotComponent>(true);
+				foreach (var slingshot in slingshots) {
+					slingshot.ValidateAfterUnpack();
+				}
 
 				ReadGlobals();
 				ReadTableMetadata();

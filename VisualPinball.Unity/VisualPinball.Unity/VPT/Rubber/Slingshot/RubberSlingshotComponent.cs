@@ -166,6 +166,18 @@ namespace VisualPinball.Unity
 			_coilArmVisual = coilArmVisual;
 		}
 
+		public void ValidateAfterUnpack()
+		{
+			var errors = ValidateConfiguration();
+			if (errors.Count == 0) {
+				return;
+			}
+			enabled = false;
+			Debug.LogWarning(
+				$"Rubber slingshot '{name}' was unpacked with an invalid configuration: {string.Join(" ", errors)}",
+				this);
+		}
+
 		private void Awake()
 		{
 			if (Application.isPlaying) {

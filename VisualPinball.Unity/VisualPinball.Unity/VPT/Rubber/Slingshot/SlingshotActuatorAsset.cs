@@ -78,31 +78,43 @@ namespace VisualPinball.Unity
 			=> Sample(FluxLinkageWeberTurnLut, current01, stroke01);
 
 		public bool TryGetCurrent(float fluxLinkage, float stroke01, out float currentAmps)
+			=> TryGetCurrent(fluxLinkage, stroke01, out currentAmps, out _);
+
+		public bool TryGetCurrent(float fluxLinkage, float stroke01, out float currentAmps,
+			out bool saturated)
 		{
 			currentAmps = 0f;
-			if (ValidateData().Count != 0 || !float.IsFinite(fluxLinkage)) {
+			saturated = false;
+			if (ValidateData().Count != 0 || !float.IsFinite(fluxLinkage)
+				|| !float.IsFinite(stroke01)) {
 				return false;
 			}
 			stroke01 = math.saturate(stroke01);
 			var minimum = SampleFluxAtCurrentIndex(0, stroke01);
 			var maximum = SampleFluxAtCurrentIndex(CurrentSampleCount - 1, stroke01);
+			saturated = fluxLinkage < minimum || fluxLinkage > maximum;
 			var target = math.clamp(fluxLinkage, minimum, maximum);
 			var low = 0;
 			var high = CurrentSampleCount - 1;
-			while (high - low > 1) {
+			while (low < high) {
 				var middle = low + (high - low) / 2;
-				if (SampleFluxAtCurrentIndex(middle, stroke01) <= target) {
-					low = middle;
+				if (SampleFluxAtCurrentIndex(middle, stroke01) < target) {
+					low = middle + 1;
 				} else {
 					high = middle;
 				}
 			}
-			var lowerFlux = SampleFluxAtCurrentIndex(low, stroke01);
-			var upperFlux = SampleFluxAtCurrentIndex(high, stroke01);
-			var fraction = upperFlux > lowerFlux
-				? (target - lowerFlux) / (upperFlux - lowerFlux)
-				: 0f;
-			currentAmps = (low + fraction) / (CurrentSampleCount - 1f) * MaximumCurrentAmps;
+			var upperIndex = low;
+			var upperFlux = SampleFluxAtCurrentIndex(upperIndex, stroke01);
+			if (upperIndex == 0 || upperFlux <= target) {
+				currentAmps = upperIndex / (CurrentSampleCount - 1f) * MaximumCurrentAmps;
+				return true;
+			}
+			var lowerIndex = upperIndex - 1;
+			var lowerFlux = SampleFluxAtCurrentIndex(lowerIndex, stroke01);
+			var fraction = (target - lowerFlux) / (upperFlux - lowerFlux);
+			currentAmps = (lowerIndex + fraction) / (CurrentSampleCount - 1f)
+				* MaximumCurrentAmps;
 			return true;
 		}
 
