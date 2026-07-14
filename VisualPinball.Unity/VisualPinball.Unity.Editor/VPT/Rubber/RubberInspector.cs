@@ -30,6 +30,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		private SerializedProperty _thicknessProperty;
 		private SerializedProperty _restLengthProperty;
+		private bool _bindingChangeScheduled;
 
 		protected override void OnEnable()
 		{
@@ -86,13 +87,14 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.LabelField("Path", EditorStyles.boldLabel);
 			var source = (RubberPathSource)EditorGUILayout.EnumPopup("Source", MainComponent.PathSource);
 			if (source != MainComponent.PathSource) {
-				Undo.RegisterFullObjectHierarchyUndo(MainComponent.gameObject, "Change Rubber Path Source");
 				if (source == RubberPathSource.Guides) {
-					MainComponent.SetGuideBindings(MainComponent.GuideBindings);
+					EditorUtility.DisplayDialog("Guide Bindings Required",
+						"Select the rubber and its guides, then use GameObject > Pinball > Rubber > Bind Selected Guides.",
+						"OK");
 				} else {
-					MainComponent.DetachFromGuides();
+					ScheduleBindingsChange(MainComponent.GuideBindings.ToArray(),
+						Array.Empty<RubberGuideBinding>(), "Detach Rubber From Guides");
 				}
-				EditorUtility.SetDirty(MainComponent);
 			}
 
 			if (MainComponent.PathSource != RubberPathSource.Guides) {
@@ -101,15 +103,22 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			var bindings = MainComponent.GuideBindings.ToArray();
+			var expectedBindings = MainComponent.GuideBindings.ToArray();
+			var bindings = expectedBindings.ToArray();
 			for (var i = 0; i < bindings.Length; i++) {
 				EditorGUILayout.BeginVertical(EditorStyles.helpBox);
 				var guide = (RubberGuideComponent)EditorGUILayout.ObjectField($"Guide {i + 1}",
 					bindings[i].Guide, typeof(RubberGuideComponent), true);
 				if (guide != bindings[i].Guide) {
-					bindings[i].Guide = guide;
-					bindings[i].SlotId = default;
-					ApplyBindings(bindings, "Change Rubber Guide Binding");
+					if (!guide) {
+						ScheduleBindingsChange(expectedBindings,
+							bindings.Where((_, index) => index != i).ToArray(),
+							bindings.Length == 1 ? "Detach Rubber From Guides"
+								: "Remove Rubber Guide Binding");
+					} else {
+						ScheduleGuideReplacement(i, expectedBindings, guide);
+					}
+					guide = bindings[i].Guide;
 				}
 				if (guide && guide.Slots.Length > 0) {
 					var selectedSlot = Array.FindIndex(guide.Slots, slot => slot.Id == bindings[i].SlotId);
@@ -122,24 +131,24 @@ namespace VisualPinball.Unity.Editor
 						var nextSlot = EditorGUILayout.Popup("Slot", 0, labels);
 						if (nextSlot > 0) {
 							bindings[i].SlotId = guide.Slots[nextSlot - 1].Id;
-							ApplyBindings(bindings, "Repair Rubber Guide Slot");
+							ScheduleBindingsChange(expectedBindings, bindings, "Repair Rubber Guide Slot");
 						}
 					} else {
 						var nextSlot = EditorGUILayout.Popup("Slot", selectedSlot, slotLabels);
 						if (nextSlot != selectedSlot && nextSlot >= 0
 							&& nextSlot < guide.Slots.Length) {
 							bindings[i].SlotId = guide.Slots[nextSlot].Id;
-							ApplyBindings(bindings, "Change Rubber Guide Slot");
+							ScheduleBindingsChange(expectedBindings, bindings, "Change Rubber Guide Slot");
 						}
 					}
 				} else if (guide) {
 					EditorGUILayout.HelpBox("This guide has no slots.", MessageType.Error);
 				}
-				if (GUILayout.Button("Remove Binding")) {
-					ApplyBindings(bindings.Where((_, index) => index != i).ToArray(),
-						"Remove Rubber Guide Binding");
-					EditorGUILayout.EndVertical();
-					break;
+				if (GUILayout.Button(bindings.Length == 1 ? "Detach From Guides" : "Remove Binding")) {
+					ScheduleBindingsChange(expectedBindings,
+						bindings.Where((_, index) => index != i).ToArray(),
+						bindings.Length == 1 ? "Detach Rubber From Guides"
+							: "Remove Rubber Guide Binding");
 				}
 				EditorGUILayout.EndVertical();
 			}
@@ -159,19 +168,109 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 			if (GUILayout.Button("Detach From Guides")) {
-				Undo.RegisterFullObjectHierarchyUndo(MainComponent.gameObject, "Detach Rubber From Guides");
-				MainComponent.DetachFromGuides();
-				MainComponent.RebuildMeshes();
-				EditorUtility.SetDirty(MainComponent);
+				ScheduleBindingsChange(expectedBindings, Array.Empty<RubberGuideBinding>(),
+					"Detach Rubber From Guides");
 			}
 			EditorGUILayout.EndHorizontal();
 		}
 
-		private void ApplyBindings(RubberGuideBinding[] bindings, string undoName)
+		private void ScheduleBindingsChange(RubberGuideBinding[] expectedBindings,
+			RubberGuideBinding[] bindings, string undoName)
 		{
-			Undo.RegisterFullObjectHierarchyUndo(MainComponent.gameObject, undoName);
-			MainComponent.SetGuideBindings(bindings);
-			EditorUtility.SetDirty(MainComponent);
+			if (_bindingChangeScheduled) {
+				return;
+			}
+			expectedBindings = expectedBindings.ToArray();
+			bindings = bindings.ToArray();
+			_bindingChangeScheduled = true;
+			var rubber = MainComponent;
+			EditorApplication.delayCall += () => {
+				if (!this) {
+					return;
+				}
+				_bindingChangeScheduled = false;
+				if (rubber && BindingsMatch(rubber, expectedBindings)) {
+					ApplyBindings(rubber, bindings, undoName);
+				}
+				Repaint();
+			};
+		}
+
+		private void ScheduleGuideReplacement(int bindingIndex, RubberGuideBinding[] expectedBindings,
+			RubberGuideComponent guide)
+		{
+			if (_bindingChangeScheduled) {
+				return;
+			}
+			expectedBindings = expectedBindings.ToArray();
+			_bindingChangeScheduled = true;
+			var rubber = MainComponent;
+			EditorApplication.delayCall += () => {
+				if (!this) {
+					return;
+				}
+				_bindingChangeScheduled = false;
+				if (!rubber || !guide || bindingIndex < 0
+					|| bindingIndex >= rubber.GuideBindings.Count) {
+					Repaint();
+					return;
+				}
+				if (!BindingsMatch(rubber, expectedBindings)) {
+					Repaint();
+					return;
+				}
+				if (RubberGuideSlotPickerWindow.TryPick(new[] { guide }, out var selectedBindings)
+					&& BindingsMatch(rubber, expectedBindings)) {
+					var bindings = rubber.GuideBindings.ToArray();
+					bindings[bindingIndex] = selectedBindings[0];
+					ApplyBindings(rubber, bindings, "Change Rubber Guide Binding");
+				}
+				Repaint();
+			};
+		}
+
+		private static bool BindingsMatch(RubberComponent rubber, RubberGuideBinding[] expectedBindings)
+		{
+			if (rubber.PathSource != RubberPathSource.Guides
+				|| rubber.GuideBindings.Count != expectedBindings.Length) {
+				return false;
+			}
+			for (var i = 0; i < expectedBindings.Length; i++) {
+				var current = rubber.GuideBindings[i];
+				var expected = expectedBindings[i];
+				if (current.Guide != expected.Guide || current.SlotId != expected.SlotId) {
+					return false;
+				}
+			}
+			return true;
+		}
+
+		private static void ApplyBindings(RubberComponent rubber, RubberGuideBinding[] bindings, string undoName)
+		{
+			Undo.IncrementCurrentGroup();
+			Undo.RegisterFullObjectHierarchyUndo(rubber.gameObject, undoName);
+			var detaching = bindings.Length == 0;
+			if (detaching) {
+				rubber.DetachFromGuides();
+				rubber.RebuildMeshes();
+			} else if (!RubberAutofit.TryReplaceGuideBindings(rubber, bindings,
+				out _, out var error)) {
+				Undo.RevertAllInCurrentGroup();
+				EditorUtility.DisplayDialog("Rubber Binding Change Failed",
+					$"The previous bindings and sampled path were preserved.\n\n{error}", "OK");
+				return;
+			}
+			EditorUtility.SetDirty(rubber);
+			PrefabUtility.RecordPrefabInstancePropertyModifications(rubber);
+			if (detaching) {
+				var collider = rubber.GetComponent<RubberColliderComponent>();
+				if (collider) {
+					EditorUtility.SetDirty(collider);
+					PrefabUtility.RecordPrefabInstancePropertyModifications(collider);
+				}
+			}
+			RubberGuideDependencyTracker.RebuildSoon();
+			SceneView.RepaintAll();
 		}
 
 		private void OnSceneGUI()

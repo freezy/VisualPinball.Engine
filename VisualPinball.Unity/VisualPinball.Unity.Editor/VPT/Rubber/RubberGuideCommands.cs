@@ -170,13 +170,15 @@ namespace VisualPinball.Unity.Editor
 			if (!rubber || !RubberGuideSlotPickerWindow.TryPick(SelectedGuides(), out var bindings)) {
 				return;
 			}
+			Undo.IncrementCurrentGroup();
 			Undo.RegisterFullObjectHierarchyUndo(rubber.gameObject, undoName);
 			var convertingSpline = rubber.PathSource == RubberPathSource.Spline;
 			string error;
 			var succeeded = convertingSpline
 				? RubberAutofit.TryConvertToGuides(rubber, bindings, out _, out error)
-				: TryReplaceGuideBindings(rubber, bindings, out error);
+				: RubberAutofit.TryReplaceGuideBindings(rubber, bindings, out _, out error);
 			if (!succeeded) {
+				Undo.RevertAllInCurrentGroup();
 				var retainedState = convertingSpline
 					? "The manual spline remains authoritative."
 					: "The bindings were preserved and the previous sampled path was retained.";
@@ -187,13 +189,6 @@ namespace VisualPinball.Unity.Editor
 			}
 			EditorUtility.SetDirty(rubber);
 			RubberGuideDependencyTracker.RebuildSoon();
-		}
-
-		private static bool TryReplaceGuideBindings(RubberComponent rubber,
-			RubberGuideBinding[] bindings, out string error)
-		{
-			rubber.SetGuideBindings(bindings);
-			return RubberAutofit.TryBake(rubber, out _, out error);
 		}
 
 		private static RubberComponent SelectedRubber()

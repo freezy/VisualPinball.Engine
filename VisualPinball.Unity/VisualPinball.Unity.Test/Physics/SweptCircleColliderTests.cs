@@ -11,6 +11,8 @@ using NUnit.Framework;
 using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.TestTools;
+using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Unity.Test
 {
@@ -257,6 +259,38 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void InvalidPhysicalRubberShouldGenerateLegacyFallbackColliders()
+		{
+			var go = new GameObject("Rubber");
+			go.SetActive(false);
+			var transforms = new NativeParallelHashMap<int, float4x4>(1, Allocator.Temp);
+			var references = new ColliderReference(ref transforms, Allocator.Temp);
+			try {
+				var rubber = go.AddComponent<RubberComponent>();
+				rubber.DragPoints = new[] {
+					new DragPointData(-10f, -10f),
+					new DragPointData(-10f, 10f),
+					new DragPointData(10f, 10f),
+					new DragPointData(10f, -10f),
+				};
+				var collider = go.AddComponent<RubberColliderComponent>();
+				collider.Mode = RubberColliderMode.Physical;
+				var api = new TestRubberApi(go);
+				LogAssert.Expect(LogType.Warning,
+					"Physical rubber 'Rubber' has no current valid guided bake; falling back to Legacy collision.");
+
+				api.GenerateColliders(ref references);
+
+				Assert.That(references.Count, Is.GreaterThan(0));
+				Assert.That(references.SweptCircleColliders.Length, Is.Zero);
+			} finally {
+				references.Dispose();
+				transforms.Dispose();
+				UnityEngine.Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
 		public void PhysicalRubberGeneratorShouldCreateContinuousRoundCordSegments()
 		{
 			var go = new GameObject("Rubber");
@@ -342,6 +376,16 @@ namespace VisualPinball.Unity.Test
 				transforms.Dispose();
 				UnityEngine.Object.DestroyImmediate(go);
 			}
+		}
+
+		private sealed class TestRubberApi : RubberApi
+		{
+			internal TestRubberApi(GameObject go) : base(go, null, null)
+			{
+			}
+
+			internal void GenerateColliders(ref ColliderReference references)
+				=> CreateColliders(ref references, float4x4.identity, 0f);
 		}
 
 		private static SweptCircleCollider CreateCollider()
