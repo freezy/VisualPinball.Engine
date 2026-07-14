@@ -106,6 +106,10 @@ namespace VisualPinball.Unity.Editor
 					comp?.UnpackReferences(stream.GetData(), _tableRoot, _refs, _files);
 				});
 				insertGenerationScope.Dispose();
+				var slingshots = _tableRoot.GetComponentsInChildren<RubberSlingshotComponent>(true);
+				foreach (var slingshot in slingshots) {
+					slingshot.ValidateAfterUnpack();
+				}
 
 				foreach (var consumer in _table.GetComponentsInChildren<MonoBehaviour>(true).OfType<IPackagedContentConsumer>()) {
 					consumer.SetPackagedContentResolver(ContentResolver);
