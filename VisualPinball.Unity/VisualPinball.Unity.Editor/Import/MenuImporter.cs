@@ -36,7 +36,7 @@ namespace VisualPinball.Unity.Editor
 			}
 			
 			// open file dialog
-			var path = EditorUtility.OpenFilePanelWithFilters("Import", null, new[] { "Pinball Tables", "vpe,vpx" });
+			var path = EditorUtility.OpenFilePanelWithFilters("Import", null, new[] { "Pinball Tables", "vpe,vpx,fpt" });
 			if (path.Length == 0) {
 				return;
 			}
@@ -52,8 +52,12 @@ namespace VisualPinball.Unity.Editor
 					await importer.ImportIntoScene(Path.GetFileNameWithoutExtension(path));
 					break;
 				}
+				case ".fpt": {
+					FptImportWizard.Open(path);
+					break;
+				}
 				default:
-					EditorUtility.DisplayDialog("Import", "Unsupported file format. Only .vpe and .vpx files are currently supported.", "OK");
+					EditorUtility.DisplayDialog("Import", "Unsupported file format. Supported formats are .vpe, .vpx, and .fpt.", "OK");
 					break;
 			}
 		}
@@ -76,6 +80,14 @@ namespace VisualPinball.Unity.Editor
 			VpxImportWizardSettings.ImportTextures = false;
 			VpxImportWizardSettings.ImportSounds = false;
 			VpxImportWizard.Init();
+		}
+
+		[MenuItem("Pinball/Import Future Pinball Table", false, 3)]
+		public static void ImportFuturePinballTable()
+		{
+			if (!EnsureUntitledSceneHasBeenSaved()) return;
+			var path = EditorUtility.OpenFilePanel("Import Future Pinball Table", null, "fpt");
+			if (!string.IsNullOrEmpty(path)) FptImportWizard.Open(path);
 		}
 		
 		private static bool EnsureUntitledSceneHasBeenSaved()

@@ -65,7 +65,6 @@ namespace VisualPinball.Unity
 		public const float LightIntensityFactor = 100f;
 
 		public static readonly IStorageManager StorageManager = new SharpZipStorageManager();
-		// public static IStorageManager StorageManager => new OpenMcdfStorageManager();
 
 		public static readonly IDataPacker Packer = new JsonPacker();
 	}

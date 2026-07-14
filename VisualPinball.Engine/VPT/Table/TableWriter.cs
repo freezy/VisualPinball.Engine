@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using OpenMcdf;
@@ -29,8 +30,8 @@ namespace VisualPinball.Engine.VPT.Table
 
 		private readonly TableContainer _tableContainer;
 
-		private CompoundFile _cf;
-		private CFStorage _gameStorage;
+		private RootStorage _cf;
+		private Storage _gameStorage;
 
 		public TableWriter(TableContainer tableContainer)
 		{
@@ -39,10 +40,10 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public void WriteTable(string fileName)
 		{
-			using (var hashWriter = new HashWriter()) {
-
-				_cf = new CompoundFile();
-				_gameStorage = _cf.RootStorage.AddStorage("GameStg");
+			using (var output = new MemoryStream())
+			using (var hashWriter = new HashWriter())
+			using (_cf = RootStorage.Create(output, OpenMcdf.Version.V3, StorageModeFlags.LeaveOpen)) {
+				_gameStorage = _cf.CreateStorage("GameStg");
 
 				// 1. version
 				WriteStream(_gameStorage, "Version", BitConverter.GetBytes(VpFileFormatVersion), hashWriter);
@@ -60,14 +61,14 @@ namespace VisualPinball.Engine.VPT.Table
 				// finally write hash
 				WriteStream(_gameStorage, "MAC", hashWriter.Hash());
 
-				_cf.SaveAs(fileName);
-				_cf.Close();
+				_cf.Flush(true);
+				File.WriteAllBytes(fileName, output.ToArray());
 			}
 		}
 
 		private void WriteTableInfo(HashWriter hashWriter)
 		{
-			var tableInfo = _cf.RootStorage.AddStorage("TableInfo");
+			var tableInfo = _cf.CreateStorage("TableInfo");
 
 			// order for the hashing is important here.
 			var knownTags = new[] {
@@ -89,7 +90,7 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 		}
 
-		private void WriteInfoTag(CFStorage tableInfo, string tag, HashWriter hashWriter)
+		private void WriteInfoTag(Storage tableInfo, string tag, HashWriter hashWriter)
 		{
 			if (!_tableContainer.TableInfo.ContainsKey(tag)) {
 				return;
@@ -139,9 +140,9 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 		}
 
-		private static void WriteStream(CFStorage storage, string streamName, byte[] data, HashWriter hashWriter = null)
+		private static void WriteStream(Storage storage, string streamName, byte[] data, HashWriter hashWriter = null)
 		{
-			storage.AddStream(streamName).SetData(data);
+			storage.CreateStream(streamName).WriteAll(data);
 			hashWriter?.Write(data);
 		}
 
