@@ -216,6 +216,99 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void FailedGuidedReplacementShouldRestoreCurrentBake()
+		{
+			var rubberObject = new GameObject("Rubber");
+			var guideObject = new GameObject("Guide");
+			try {
+				var rubber = rubberObject.AddComponent<RubberComponent>();
+				var guide = AddGuide(guideObject, 0.01f);
+				var binding = new RubberGuideBinding(guide, guide.Slots[0].Id);
+				rubber.SetGuideBindings(new[] { binding });
+				Assert.That(RubberAutofit.TryBake(rubber, out _, out var bakeError),
+					Is.True, bakeError);
+				var previousPath = rubber.BakedPath.ToArray();
+				var previousVersion = rubber.BakeVersion;
+				var previousHash = rubber.BakeInputHash;
+				var previousFrame = rubber.BakeFrameToLocal;
+
+				var replaced = RubberAutofit.TryReplaceGuideBindings(rubber, new[] {
+					new RubberGuideBinding(guide, SerializedGuid.New()),
+				}, out _, out var error);
+
+				Assert.That(replaced, Is.False);
+				Assert.That(error, Does.Contain("missing slot"));
+				Assert.That(rubber.PathSource, Is.EqualTo(RubberPathSource.Guides));
+				Assert.That(rubber.GuideBindings.Count, Is.EqualTo(1));
+				Assert.That(rubber.GuideBindings[0].Guide, Is.SameAs(binding.Guide));
+				Assert.That(rubber.GuideBindings[0].SlotId, Is.EqualTo(binding.SlotId));
+				Assert.That(rubber.BakedPath, Is.EqualTo(previousPath));
+				Assert.That(rubber.BakeVersion, Is.EqualTo(previousVersion));
+				Assert.That(rubber.BakeInputHash, Is.EqualTo(previousHash));
+				Assert.That(rubber.BakeFrameToLocal, Is.EqualTo(previousFrame));
+				Assert.That(RubberAutofit.GetStatus(rubber).IsValid, Is.True);
+			} finally {
+				UnityEngine.Object.DestroyImmediate(rubberObject);
+				UnityEngine.Object.DestroyImmediate(guideObject);
+			}
+		}
+
+		[Test]
+		public void GuidedReplacementShouldRejectSplineRubberWithoutMutation()
+		{
+			var rubberObject = new GameObject("Rubber");
+			var guideObject = new GameObject("Guide");
+			try {
+				var rubber = rubberObject.AddComponent<RubberComponent>();
+				var guide = AddGuide(guideObject, 0.01f);
+
+				var replaced = RubberAutofit.TryReplaceGuideBindings(rubber, new[] {
+					new RubberGuideBinding(guide, guide.Slots[0].Id),
+				}, out _, out var error);
+
+				Assert.That(replaced, Is.False);
+				Assert.That(error, Does.Contain("guided rubber"));
+				Assert.That(rubber.PathSource, Is.EqualTo(RubberPathSource.Spline));
+				Assert.That(rubber.GuideBindings, Is.Empty);
+				Assert.That(rubber.BakedPath, Is.Empty);
+			} finally {
+				UnityEngine.Object.DestroyImmediate(rubberObject);
+				UnityEngine.Object.DestroyImmediate(guideObject);
+			}
+		}
+
+		[Test]
+		public void DetachingGuidedRubberShouldKeepSampledSpline()
+		{
+			var rubberObject = new GameObject("Rubber");
+			var guideObject = new GameObject("Guide");
+			try {
+				var rubber = rubberObject.AddComponent<RubberComponent>();
+				var collider = rubberObject.AddComponent<RubberColliderComponent>();
+				collider.Mode = RubberColliderMode.Physical;
+				var guide = AddGuide(guideObject, 0.01f);
+				rubber.SetGuideBindings(new[] {
+					new RubberGuideBinding(guide, guide.Slots[0].Id),
+				});
+				Assert.That(RubberAutofit.TryBake(rubber, out _, out var bakeError),
+					Is.True, bakeError);
+				var sampledPoints = rubber.DragPoints.Select(point => point.Center).ToArray();
+
+				rubber.DetachFromGuides();
+				rubber.RebuildMeshes();
+
+				Assert.That(rubber.PathSource, Is.EqualTo(RubberPathSource.Spline));
+				Assert.That(rubber.GuideBindings, Is.Empty);
+				Assert.That(rubber.BakedPath, Is.Empty);
+				Assert.That(rubber.DragPoints.Select(point => point.Center), Is.EqualTo(sampledPoints));
+				Assert.That(collider.Mode, Is.EqualTo(RubberColliderMode.Legacy));
+			} finally {
+				UnityEngine.Object.DestroyImmediate(rubberObject);
+				UnityEngine.Object.DestroyImmediate(guideObject);
+			}
+		}
+
+		[Test]
 		public void FailedSplineConversionShouldRestoreManualAuthority()
 		{
 			var rubberObject = new GameObject("Rubber");
