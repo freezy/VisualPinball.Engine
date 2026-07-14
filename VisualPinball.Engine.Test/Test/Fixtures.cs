@@ -105,7 +105,21 @@ namespace VisualPinball.Engine.Test.Test
 	{
 		public static string GetFixturePath(string filename)
 		{
-			return Path.GetFullPath(Path.Combine(GetTestPath(), "Fixtures~", filename));
+			var expectedPath = Path.GetFullPath(Path.Combine(GetTestPath(), "Fixtures~", filename));
+			if (File.Exists(expectedPath)) {
+				return expectedPath;
+			}
+
+			var searchDir = new DirectoryInfo(Path.GetDirectoryName(new System.Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath));
+			while (searchDir != null) {
+				var fixturePath = Path.Combine(searchDir.FullName, "VisualPinball.Engine.Test", "Fixtures~", filename);
+				if (File.Exists(fixturePath)) {
+					return fixturePath;
+				}
+				searchDir = searchDir.Parent;
+			}
+
+			return expectedPath;
 		}
 
 		private static string GetTestPath()
