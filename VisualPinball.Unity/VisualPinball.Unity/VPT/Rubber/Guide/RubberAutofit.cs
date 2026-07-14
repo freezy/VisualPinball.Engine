@@ -74,7 +74,30 @@ namespace VisualPinball.Unity
 				error = "Only a manual spline rubber can use the transactional conversion workflow.";
 				return false;
 			}
+			return TryApplyGuideBindings(rubber, bindings, out fit, out error);
+		}
 
+		public static bool TryReplaceGuideBindings(RubberComponent rubber,
+			IEnumerable<RubberGuideBinding> bindings, out RubberAutofitResult fit,
+			out string error)
+		{
+			fit = null;
+			if (!rubber) {
+				error = "A rubber component is required.";
+				return false;
+			}
+			if (rubber.PathSource != RubberPathSource.Guides) {
+				error = "Only a guided rubber can replace its guide bindings.";
+				return false;
+			}
+			return TryApplyGuideBindings(rubber, bindings, out fit, out error);
+		}
+
+		private static bool TryApplyGuideBindings(RubberComponent rubber,
+			IEnumerable<RubberGuideBinding> bindings, out RubberAutofitResult fit,
+			out string error)
+		{
+			var previousSource = rubber.PathSource;
 			var previousBindings = rubber.GuideBindings.ToArray();
 			var previousPath = rubber.BakedPath.ToArray();
 			var previousVersion = rubber.BakeVersion;
@@ -86,7 +109,7 @@ namespace VisualPinball.Unity
 				return true;
 			}
 
-			rubber.RestorePackedState(RubberPathSource.Spline, previousBindings,
+			rubber.RestorePackedState(previousSource, previousBindings,
 				previousPath, previousVersion, previousHash, previousFrame,
 				previousRestLength);
 			return false;

@@ -48,14 +48,14 @@ namespace VisualPinball.Unity
 		{
 			if (ColliderComponent.Mode == RubberColliderMode.Physical) {
 				if (!ColliderComponent.CanUsePhysical) {
-					Debug.LogError($"Physical rubber '{MainComponent.name}' has no current valid guided bake; no colliders were registered.",
+					Debug.LogWarning($"Physical rubber '{MainComponent.name}' has no current valid guided bake; falling back to Legacy collision.",
 						MainComponent);
+				} else {
+					var physicalGenerator = new RubberPhysicalColliderGenerator(this, MainComponent,
+						translateWithinPlayfieldMatrix);
+					physicalGenerator.GenerateColliders(ColliderComponent.ZOffset, ref colliders, margin);
 					return;
 				}
-				var physicalGenerator = new RubberPhysicalColliderGenerator(this, MainComponent,
-					translateWithinPlayfieldMatrix);
-				physicalGenerator.GenerateColliders(ColliderComponent.ZOffset, ref colliders, margin);
-				return;
 			}
 
 			var colliderGenerator = new RubberColliderGenerator(
