@@ -502,6 +502,12 @@ namespace VisualPinball.Unity
 
 		private static void ValidateTransition(DmdTransitionSpec transition, string label, DmdValidationResult result)
 		{
+			if (!Enum.IsDefined(typeof(DmdTransitionType), transition.Type)) {
+				result.Error($"cue.transition.{label}.type", $"The {label} transition type is invalid.");
+			}
+			if (!Enum.IsDefined(typeof(DmdDirection), transition.Direction)) {
+				result.Error($"cue.transition.{label}.direction", $"The {label} transition direction is invalid.");
+			}
 			if (transition.DurationFrames < 0 || transition.DurationFrames > MaxTransitionFrames) {
 				result.Error($"cue.transition.{label}",
 					$"The {label} transition duration must be between 0 and {MaxTransitionFrames}.");

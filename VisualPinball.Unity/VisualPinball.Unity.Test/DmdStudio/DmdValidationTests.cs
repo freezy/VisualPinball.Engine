@@ -223,6 +223,14 @@ namespace VisualPinball.Unity.Test
 
 				cue.ExitTransition = new DmdTransitionSpec { DurationFrames = DmdValidation.MaxTransitionFrames + 1 };
 				Assert.That(cue.Validate().Diagnostics.Any(diagnostic => diagnostic.Code == "cue.transition.exit"), Is.True);
+
+				cue.ExitTransition = new DmdTransitionSpec {
+					Type = (DmdTransitionType)999,
+					Direction = (DmdDirection)999,
+				};
+				var codes = cue.Validate().Diagnostics.Select(diagnostic => diagnostic.Code).ToArray();
+				Assert.That(codes, Does.Contain("cue.transition.exit.type"));
+				Assert.That(codes, Does.Contain("cue.transition.exit.direction"));
 			} finally {
 				Object.DestroyImmediate(cue);
 			}
