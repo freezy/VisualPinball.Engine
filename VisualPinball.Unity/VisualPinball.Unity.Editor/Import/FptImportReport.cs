@@ -32,6 +32,7 @@ namespace VisualPinball.Unity.Editor
 		public uint? FileVersion { get; internal set; }
 		public int Elements { get; internal set; }
 		public int ProceduralElements { get; internal set; }
+		public int NativeElements { get; internal set; }
 		public int ModelInstances { get; internal set; }
 		public int Placeholders { get; internal set; }
 		public int MeshAssets { get; internal set; }
@@ -62,6 +63,7 @@ namespace VisualPinball.Unity.Editor
 			Property(json, "manifestSchemaVersion", manifest.SchemaVersion.ToString(CultureInfo.InvariantCulture), true, false);
 			Property(json, "elements", Elements.ToString(CultureInfo.InvariantCulture), true, false);
 			Property(json, "proceduralElements", ProceduralElements.ToString(CultureInfo.InvariantCulture), true, false);
+			Property(json, "nativeElements", NativeElements.ToString(CultureInfo.InvariantCulture), true, false);
 			Property(json, "modelInstances", ModelInstances.ToString(CultureInfo.InvariantCulture), true, false);
 			Property(json, "placeholders", Placeholders.ToString(CultureInfo.InvariantCulture), true, false);
 			Property(json, "meshAssets", MeshAssets.ToString(CultureInfo.InvariantCulture), true, false);
@@ -85,7 +87,8 @@ namespace VisualPinball.Unity.Editor
 			text.AppendLine($"- SHA-256: `{SourceSha256}`");
 			text.AppendLine($"- FPT version: `{FileVersion?.ToString() ?? "unknown"}`");
 			text.AppendLine($"- Manifest schema: `{manifest.SchemaVersion}`");
-			text.AppendLine($"- Elements: {Elements} ({ProceduralElements} procedural, {ModelInstances} model instances, {Placeholders} placeholders)");
+			text.AppendLine($"- Elements: {Elements}");
+			text.AppendLine($"- Recreation passes (overlapping): {NativeElements} native VPE counterparts, {ProceduralElements} procedural visuals, {ModelInstances} model instances, {Placeholders} placeholders");
 			text.AppendLine($"- Assets: {MeshAssets} meshes, {MaterialAssets} materials, {ReusedAssets} reused");
 			text.AppendLine($"- VPE colliders: {Colliders}");
 			text.AppendLine($"- Unresolved resources: {UnresolvedResources}");

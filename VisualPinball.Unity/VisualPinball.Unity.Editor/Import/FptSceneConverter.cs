@@ -27,16 +27,33 @@ using UnityEngine;
 
 using VisualPinball.Engine.IO.FuturePinball;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Bumper;
+using VisualPinball.Engine.VPT.Collection;
+using VisualPinball.Engine.VPT.Flipper;
+using VisualPinball.Engine.VPT.Gate;
+using VisualPinball.Engine.VPT.HitTarget;
+using VisualPinball.Engine.VPT.Kicker;
+using VisualPinball.Engine.VPT.MetalWireGuide;
+using VisualPinball.Engine.VPT.Plunger;
+using VisualPinball.Engine.VPT.Ramp;
+using VisualPinball.Engine.VPT.Rubber;
+using VisualPinball.Engine.VPT.Spinner;
+using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
+using VisualPinball.Engine.VPT.Trigger;
 using VisualPinball.Unity.Simulation;
 
 using EngineMesh = VisualPinball.Engine.VPT.Mesh;
+using EngineMaterial = VisualPinball.Engine.VPT.Material;
+using EngineSound = VisualPinball.Engine.VPT.Sound.Sound;
+using EngineTexture = VisualPinball.Engine.VPT.Texture;
+using EngineLight = VisualPinball.Engine.VPT.Light.Light;
 using UnityMaterial = UnityEngine.Material;
 using UnityMesh = UnityEngine.Mesh;
 
 namespace VisualPinball.Unity.Editor
 {
-	internal sealed class FptSceneConverter
+	internal sealed class FptSceneConverter : IMaterialProvider, ITextureProvider
 	{
 		private const uint NameTag = 0xA4F4D1D7;
 		private const uint ModelTag = 0x9DFDC3D8;
@@ -61,8 +78,12 @@ namespace VisualPinball.Unity.Editor
 		private readonly HashSet<string> _ambiguousTextureAliases = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 		private readonly Dictionary<string, UnityMesh> _meshes = new Dictionary<string, UnityMesh>(StringComparer.Ordinal);
 		private readonly Dictionary<string, UnityMaterial> _materials = new Dictionary<string, UnityMaterial>();
+		private readonly Dictionary<string, UnityMaterial> _nativeMaterials = new Dictionary<string, UnityMaterial>(StringComparer.Ordinal);
 		private readonly HashSet<FuturePinballColliderKind> _reportedTessellatedColliderKinds = new HashSet<FuturePinballColliderKind>();
+		private readonly HashSet<FuturePinballElementType> _reportedNativeDefaults = new HashSet<FuturePinballElementType>();
 		private readonly HashSet<string> _reportedSurfacePlacementIssues = new HashSet<string>(StringComparer.Ordinal);
+		private readonly Dictionary<FuturePinballSourceStream, GameObject> _nativeObjects = new Dictionary<FuturePinballSourceStream, GameObject>();
+		private readonly Dictionary<FuturePinballSourceStream, IVpxPrefab> _nativePrefabs = new Dictionary<FuturePinballSourceStream, IVpxPrefab>();
 		private readonly FptImportReport _report = new FptImportReport();
 		private string _tableAssetRoot;
 		private string _bundleAssetRoot;
@@ -70,6 +91,7 @@ namespace VisualPinball.Unity.Editor
 		private string _materialAssetRoot;
 		private FuturePinballTable _table;
 		private FuturePinballExtractionManifest _manifest;
+		private Table _nativeTable;
 		private Dictionary<string, FuturePinballSourceStream[]> _surfacesByName;
 
 		public FptSceneConverter(string sourcePath, string tableName, FptImportOptions options)
@@ -109,15 +131,18 @@ namespace VisualPinball.Unity.Editor
 				var rootSource = root.AddComponent<FuturePinballSourceComponent>();
 				rootSource.SourceFile = Path.GetFileName(_sourcePath);
 				rootSource.SourceHash = _manifest.SourceSha256;
-				rootSource.ImportOutcome = "lossless-source-bundle-and-vpe-static-scene";
+				rootSource.ImportOutcome = "lossless-source-bundle-and-vpe-native-scene";
 
 				var proceduralRoot = Child(playfield, "Procedural Geometry");
+				var nativeRoot = Child(playfield, "Native Elements");
 				var modelRoot = Child(playfield, "Model Instances");
 				var placeholderRoot = Child(playfield, "Preserved Placeholders");
 				var handled = new HashSet<FuturePinballSourceStream>();
+				CreateNativeElements(nativeRoot, handled);
 				CreateProceduralElements(proceduralRoot, handled);
 				CreateModelInstances(modelRoot, handled);
 				CreatePlaceholders(placeholderRoot, handled);
+				PersistNativeElements();
 
 				_report.SourceFile = Path.GetFileName(_sourcePath);
 				_report.SourceSha256 = _manifest.SourceSha256;
@@ -126,7 +151,7 @@ namespace VisualPinball.Unity.Editor
 				_report.UnresolvedResources = _manifest.Counts.UnresolvedLinkedResources;
 				_report.Warnings.AddRange(_manifest.Issues);
 				if (_options.GenerateColliders) {
-					_report.Warnings.Add("Generated collision uses VPE PlayfieldColliderComponent and PrimitiveColliderComponent; no Unity/PhysX colliders are created.");
+					_report.Warnings.Add("Generated collision uses native VPE collider components; no Unity/PhysX colliders are created.");
 				}
 				_report.ElapsedMilliseconds = timer.ElapsedMilliseconds;
 				AssetDatabase.SaveAssets();
@@ -140,6 +165,88 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		private void CreateNativeElements(GameObject parent, ISet<FuturePinballSourceStream> handled)
+		{
+			foreach (var element in _table.Elements) {
+				if (!FuturePinballNativeItemConverter.TryConvert(element, out var converted)) continue;
+				var sourcePosition = FuturePinballElementGeometry.SurfaceProbePosition(element);
+				if (!TryResolveSurfaceHeight(element, sourcePosition, out var supportHeight)) {
+					continue;
+				}
+				var prefab = InstantiateNativePrefab(converted.Item);
+				prefab.GameObject.transform.SetParent(parent.transform, false);
+				prefab.SetData();
+				SetReferencedData(prefab);
+				if (supportHeight != 0f) {
+					prefab.GameObject.transform.localPosition += Vector3.up * FuturePinballCoordinateConverter.ToWorld(0f, 0f, supportHeight).Y;
+				}
+				var nativeColliders = prefab.GameObject.GetComponentsInChildren<MonoBehaviour>(true)
+					.Where(component => component is ICollidableComponent).ToArray();
+				foreach (var nativeCollider in nativeColliders) {
+					if (!_options.GenerateColliders) nativeCollider.enabled = false;
+					else if (nativeCollider.enabled) _report.Colliders++;
+				}
+				AddSource(prefab.GameObject, element, "native-vpe-counterpart");
+				_nativeObjects[element] = prefab.GameObject;
+				_nativePrefabs[element] = prefab;
+				handled.Add(element);
+				_report.NativeElements++;
+				if (converted.DefaultedParameters.Count > 0 && element.ElementType.HasValue
+					&& _reportedNativeDefaults.Add(element.ElementType.Value)) {
+					_report.Warnings.Add($"{element.ElementType.Value} maps to its native VPE counterpart; {string.Join(", ", converted.DefaultedParameters)} retain VPE defaults or remain unrecreated because FP units or behavior are not equivalent.");
+				}
+			}
+		}
+
+		private void SetReferencedData(IVpxPrefab prefab)
+		{
+			var previousSkipSurfaceParenting = ImportContext.SkipSurfaceParenting;
+			try {
+				// FP support heights are resolved explicitly, including duplicate names and nested guide walls.
+				ImportContext.SkipSurfaceParenting = true;
+				prefab.SetReferencedData(_nativeTable, this, this, null);
+			} finally {
+				ImportContext.SkipSurfaceParenting = previousSkipSurfaceParenting;
+			}
+		}
+
+		private void PersistNativeElements()
+		{
+			foreach (var prefab in _nativePrefabs.Values) {
+				prefab.PersistData();
+				foreach (var transform in prefab.GameObject.GetComponentsInChildren<Transform>(true)) {
+					EditorUtility.SetDirty(transform.gameObject);
+					PrefabUtility.RecordPrefabInstancePropertyModifications(transform.gameObject);
+					foreach (var component in transform.GetComponents<Component>()) {
+						if (!component) continue;
+						EditorUtility.SetDirty(component);
+						PrefabUtility.RecordPrefabInstancePropertyModifications(component);
+					}
+				}
+				prefab.FreeBinaryData();
+			}
+		}
+
+		private IVpxPrefab InstantiateNativePrefab(IItem item)
+		{
+			switch (item) {
+				case Bumper bumper: return bumper.InstantiatePrefab();
+				case Flipper flipper: return flipper.InstantiatePrefab();
+				case Gate gate: return gate.InstantiatePrefab();
+				case HitTarget target: return target.InstantiatePrefab();
+				case Kicker kicker: return kicker.InstantiatePrefab();
+				case EngineLight light: return light.InstantiatePrefab(_nativeTable);
+				case MetalWireGuide wireGuide: return wireGuide.InstantiatePrefab();
+				case Plunger plunger: return plunger.InstantiatePrefab();
+				case Ramp ramp: return ramp.InstantiatePrefab();
+				case Rubber rubber: return rubber.InstantiatePrefab();
+				case Spinner spinner: return spinner.InstantiatePrefab();
+				case Surface surface: return surface.InstantiatePrefab();
+				case Trigger trigger: return trigger.InstantiatePrefab();
+				default: throw new InvalidOperationException($"No VPE prefab is registered for {item.GetType().Name}.");
+			}
+		}
+
 		private void CreateProceduralElements(GameObject parent, ISet<FuturePinballSourceStream> handled)
 		{
 			var sources = _table.Elements.Where(item => item.SourceIndex.HasValue)
@@ -150,11 +257,21 @@ namespace VisualPinball.Unity.Editor
 					_report.Warnings.Add($"Procedural element '{element.Name}' has no matching source stream and was skipped.");
 					continue;
 				}
+				var sourcePosition = FuturePinballElementGeometry.SurfaceProbePosition(source);
+				if (!TryResolveSurfaceHeight(source, sourcePosition, out var supportHeight)) {
+					supportHeight = 0f;
+					_report.Warnings.Add($"{ElementName(source)} procedural geometry uses base height because its named support height is unresolved.");
+				}
 				var go = Child(parent, element.Name);
-				AddSource(go, source, "native-procedural-static");
+				if (supportHeight != 0f) {
+					go.transform.localPosition += Vector3.up * FuturePinballCoordinateConverter.ToWorld(0f, 0f, supportHeight).Y;
+				}
+				var hasNativeCounterpart = _nativeObjects.TryGetValue(source, out var nativeObject);
+				AddSource(go, source, hasNativeCounterpart ? "native-procedural-visual" : "native-procedural-static");
+				if (hasNativeCounterpart) DisableRenderers(nativeObject);
 				for (var i = 0; i < element.Meshes.Count; i++) {
 					var worldMesh = element.Meshes[i].Clone().TransformToWorld();
-					CreateRenderer(go, source, worldMesh, element.Material, i, true, element.IsCollidable);
+					CreateRenderer(go, source, worldMesh, element.Material, i, true, !hasNativeCounterpart && element.IsCollidable);
 				}
 				handled.Add(source);
 				_report.ProceduralElements++;
@@ -175,8 +292,9 @@ namespace VisualPinball.Unity.Editor
 					continue;
 				}
 				var name = ElementName(element);
-				var go = Child(parent, name);
-				AddSource(go, element, "static-model");
+				var hasNativeCounterpart = _nativeObjects.ContainsKey(element);
+				var go = Child(parent, hasNativeCounterpart ? name + " (Source Model)" : name);
+				AddSource(go, element, hasNativeCounterpart ? "source-model-preserved-for-native-counterpart" : "static-model");
 				go.transform.localPosition = position;
 				go.transform.localRotation = rotation;
 				var elementMaterial = FuturePinballMaterialConverter.FromElement(element, TextureTag, ColorTag);
@@ -188,7 +306,8 @@ namespace VisualPinball.Unity.Editor
 						: elementMaterial;
 					CreateRenderer(go, element, worldMesh, material, i, false, false, $"model-{model.Primary.SourceSha256}-{i}");
 				}
-				if (_options.GenerateColliders) CreateModelColliders(go, element, model);
+				if (_options.GenerateColliders && !hasNativeCounterpart) CreateModelColliders(go, element, model);
+				if (hasNativeCounterpart) go.SetActive(false);
 				handled.Add(element);
 				_report.ModelInstances++;
 			}
@@ -374,6 +493,7 @@ namespace VisualPinball.Unity.Editor
 		private GameObject CreateVpeHierarchy(GameObject root)
 		{
 			var tableData = CreateTableData();
+			_nativeTable = new NativeTableContainer(tableData).Table;
 			var tableComponent = root.AddComponent<TableComponent>();
 			tableComponent.SetData(tableData);
 			root.AddComponent<DefaultGamelogicEngine>();
@@ -409,6 +529,7 @@ namespace VisualPinball.Unity.Editor
 			if (float.IsNaN(slope) || float.IsInfinity(slope) || slope < 0f || slope > 20f) slope = 6f;
 			return new TableData {
 				Name = _tableName,
+				Image = FuturePinballNativeItemConverter.PlayfieldImage,
 				Left = 0f,
 				Right = FuturePinballCoordinateConverter.ToVpx(width),
 				Top = 0f,
@@ -563,12 +684,12 @@ namespace VisualPinball.Unity.Editor
 		{
 			var issueKey = $"{element.SourceIndex}:{element.Name}:{surfaceName}:{reason}";
 			if (!_reportedSurfacePlacementIssues.Add(issueKey)) return;
-			_report.Warnings.Add($"{ElementName(element)} surface '{surfaceName}': {reason}; scene placement was skipped.");
+			_report.Warnings.Add($"{ElementName(element)} surface '{surfaceName}': {reason}; its named support offset is unresolved.");
 			_report.Backlog.Add(new FptRecreationBacklogItem {
 				SourceIndex = element.SourceIndex ?? -1,
 				Name = ElementName(element),
 				ElementType = element.ElementType?.ToString() ?? $"Unknown({element.ElementTypeId})",
-				CurrentOutcome = $"Scene placement was skipped because the surface height is unresolved: {reason}",
+				CurrentOutcome = $"Named support offset is unresolved: {reason}",
 				SuggestedCapability = "resolve the preserved surface reference manually",
 				SourceStream = element.Name
 			});
@@ -585,6 +706,8 @@ namespace VisualPinball.Unity.Editor
 			height += FuturePinballElementGeometry.Integer(element, HeightTag);
 			var world = FuturePinballCoordinateConverter.ToWorld(position.X, position.Y, height);
 			worldPosition = new Vector3(world.X, world.Y, world.Z);
+			// FPM meshes use model Y as up, unlike table records where Z is height. This basis correction is
+			// model-only; native VPE item data intentionally keeps the FP table yaw unchanged.
 			worldRotation = Quaternion.Euler(0f, -90f - FuturePinballElementGeometry.Integer(element, RotationTag), 0f);
 			return true;
 		}
@@ -643,6 +766,76 @@ namespace VisualPinball.Unity.Editor
 			child.transform.SetParent(parent.transform, false);
 			return child;
 		}
+
+		private static void DisableRenderers(GameObject root)
+		{
+			foreach (var renderer in root.GetComponentsInChildren<Renderer>(true)) renderer.enabled = false;
+		}
+
+		public UnityEngine.Texture GetTexture(string name)
+		{
+			return !string.IsNullOrWhiteSpace(name) && TryGetTexture(name, out var texture) ? texture : null;
+		}
+
+		public bool HasMaterial(PbrMaterial material)
+		{
+			var key = NativeMaterialKey(material);
+			if (_nativeMaterials.ContainsKey(key)) return true;
+			if (!_options.ReuseGeneratedAssets) return false;
+			var existing = AssetDatabase.LoadAssetAtPath<UnityMaterial>(NativeMaterialPath(key));
+			if (existing == null) return false;
+			_nativeMaterials[key] = existing;
+			_report.ReusedAssets++;
+			return true;
+		}
+
+		public void SaveMaterial(PbrMaterial source, UnityMaterial material)
+		{
+			var key = NativeMaterialKey(source);
+			var path = NativeMaterialPath(key);
+			var existing = AssetDatabase.LoadAssetAtPath<UnityMaterial>(path);
+			if (existing != null && _options.ReuseGeneratedAssets) {
+				_nativeMaterials[key] = existing;
+				if (material != null && !AssetDatabase.Contains(material)) UnityEngine.Object.DestroyImmediate(material);
+				_report.ReusedAssets++;
+				return;
+			}
+			if (existing != null) AssetDatabase.DeleteAsset(path);
+			material ??= new UnityMaterial(Shader.Find("Standard"));
+			material.name = $"Future Pinball Native {key.Substring(0, 8)}";
+			AssetDatabase.CreateAsset(material, path);
+			_nativeMaterials[key] = material;
+			_report.MaterialAssets++;
+		}
+
+		public UnityMaterial GetMaterial(PbrMaterial material)
+		{
+			if (HasMaterial(material)) return _nativeMaterials[NativeMaterialKey(material)];
+			var unityMaterial = RenderPipeline.Current?.MaterialConverter?.CreateMaterial(material ?? new PbrMaterial(), this)
+				?? new UnityMaterial(Shader.Find("Standard"));
+			SaveMaterial(material, unityMaterial);
+			return _nativeMaterials[NativeMaterialKey(material)];
+		}
+
+		public PhysicsMaterialAsset GetPhysicsMaterial(string name) => null;
+
+		public UnityMaterial MergeMaterials(string vpxMaterial, UnityMaterial textureMaterial)
+		{
+			if (textureMaterial == null) return GetMaterial(new PbrMaterial(id: vpxMaterial));
+			var source = new PbrMaterial(id: string.IsNullOrWhiteSpace(vpxMaterial) ? PbrMaterial.NameNoMaterial : vpxMaterial);
+			if (HasMaterial(source)) return _nativeMaterials[NativeMaterialKey(source)];
+			var merged = RenderPipeline.Current?.MaterialConverter?.MergeMaterials(source, textureMaterial)
+				?? new UnityMaterial(textureMaterial);
+			SaveMaterial(source, merged);
+			return _nativeMaterials[NativeMaterialKey(source)];
+		}
+
+		private static string NativeMaterialKey(PbrMaterial material)
+		{
+			return Sha256(material?.Id ?? PbrMaterial.NameNoMaterial);
+		}
+
+		private string NativeMaterialPath(string key) => $"{_materialAssetRoot}/native-{key.Substring(0, 16)}.mat";
 
 		private static void SetTexture(UnityMaterial material, UnityEngine.Texture texture)
 		{
@@ -713,6 +906,24 @@ namespace VisualPinball.Unity.Editor
 				Primary = primary;
 				Source = source;
 			}
+		}
+
+		private sealed class NativeTableContainer : TableContainer
+		{
+			public override Table Table { get; }
+			public override Dictionary<string, string> TableInfo { get; } = new Dictionary<string, string>();
+			public override List<CollectionData> Collections { get; } = new List<CollectionData>();
+			public override CustomInfoTags CustomInfoTags { get; } = new CustomInfoTags();
+			public override IEnumerable<EngineTexture> Textures => Array.Empty<EngineTexture>();
+			public override IEnumerable<EngineSound> Sounds => Array.Empty<EngineSound>();
+
+			public NativeTableContainer(TableData data)
+			{
+				Table = new Table(this, data);
+			}
+
+			public override EngineMaterial GetMaterial(string name) => null;
+			public override EngineTexture GetTexture(string name) => null;
 		}
 	}
 

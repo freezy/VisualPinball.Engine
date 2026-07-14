@@ -407,6 +407,26 @@ namespace VisualPinball.Engine.IO.FuturePinball
 			Add(result, 0xA300C5DC, "texture", FuturePinballValueKind.String);
 			Add(result, 0x97F5C3E2, "color", FuturePinballValueKind.Color);
 			Add(result, 0xA8EDC3D3, "rotation", FuturePinballValueKind.Integer);
+			Add(result, 0xA900BED2, "start_angle", FuturePinballValueKind.Integer);
+			Add(result, 0xA2EABFE4, "swing", FuturePinballValueKind.Integer);
+			Add(result, 0xA1FABED2, "strength", FuturePinballValueKind.Integer);
+			Add(result, 0x9700C6E0, "elasticity", FuturePinballValueKind.Integer);
+			Add(result, 0x9DFBCDD3, "reflects_off_playfield", FuturePinballValueKind.Integer);
+			Add(result, 0xA0EED1D5, "passive", FuturePinballValueKind.Integer);
+			Add(result, 0x9EEED1DD, "trigger_skirt", FuturePinballValueKind.Integer);
+			Add(result, 0x9100BBD6, "one_way", FuturePinballValueKind.Integer);
+			Add(result, 0x99F4D1E1, "damping", FuturePinballValueKind.Integer);
+			Add(result, 0x96FBCCD6, "offset", FuturePinballValueKind.Integer);
+			Add(result, 0xA5F2C5D3, "render_model", FuturePinballValueKind.Integer);
+			Add(result, 0x99E8BEDA, "kicker_type", FuturePinballValueKind.Integer);
+			Add(result, 0x9600BED2, "state", FuturePinballValueKind.Integer);
+			Add(result, 0x95F3C9E3, "blink_interval", FuturePinballValueKind.Integer);
+			Add(result, 0x9600C2E3, "blink_pattern", FuturePinballValueKind.String);
+			Add(result, 0x9DF2CFD9, "lit_color", FuturePinballValueKind.Color);
+			Add(result, 0x9DF2CFD0, "unlit_color", FuturePinballValueKind.Color);
+			Add(result, 0x9D00C9E1, "diameter", FuturePinballValueKind.Integer);
+			Add(result, 0x96FDD1D3, "glow_radius", FuturePinballValueKind.Integer);
+			Add(result, 0x95EBCDDD, "generate_hit_event", FuturePinballValueKind.Integer);
 			// Element-dependent: GuideWall stores a float while several display and guide types store an integer.
 			Add(result, 0xA2F8CDDD, "height", FuturePinballValueKind.Opaque);
 			Add(result, 0x95FDC9CE, "width", FuturePinballValueKind.Integer);

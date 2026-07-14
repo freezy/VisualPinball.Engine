@@ -17,10 +17,14 @@
 using System.IO;
 using NUnit.Framework;
 using UnityEngine;
+using VisualPinball.Engine.IO.FuturePinball;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.Test.VPT.Light;
+using VisualPinball.Engine.VPT.Light;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Editor;
+
+using VpeLight = VisualPinball.Engine.VPT.Light.Light;
 
 namespace VisualPinball.Unity.Test
 {
@@ -40,6 +44,24 @@ namespace VisualPinball.Unity.Test
 
 			File.Delete(tmpFileName);
 			Object.DestroyImmediate(go);
+		}
+
+		[Test]
+		public void ShouldInstantiateFuturePinballInsertLightPrefab()
+		{
+			var table = new FileTableContainer();
+			table.Table.Data.Image = FuturePinballNativeItemConverter.PlayfieldImage;
+			var light = new VpeLight(new LightData("Future Pinball Insert", 100f, 100f) {
+				OffImage = FuturePinballNativeItemConverter.PlayfieldImage,
+				ShowBulbMesh = false
+			});
+
+			var prefab = light.InstantiatePrefab(table.Table);
+			try {
+				Assert.That(prefab.GameObject.GetComponentInChildren<LightInsertMeshComponent>(true), Is.Not.Null);
+			} finally {
+				Object.DestroyImmediate(prefab.GameObject);
+			}
 		}
 	}
 }

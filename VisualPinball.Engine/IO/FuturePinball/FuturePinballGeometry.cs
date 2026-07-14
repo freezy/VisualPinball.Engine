@@ -167,6 +167,18 @@ namespace VisualPinball.Engine.IO.FuturePinball
 			return record == null ? new FuturePinballVector2() : Vector2(record);
 		}
 
+		/// <summary>
+		/// Returns a representative table position for resolving a shape against its named support surface.
+		/// Shape-based FP elements generally have no top-level position, so their first control point is the
+		/// only stable point guaranteed to lie on the element itself.
+		/// </summary>
+		public static FuturePinballVector2 SurfaceProbePosition(FuturePinballSourceStream element)
+		{
+			if (element == null) throw new ArgumentNullException(nameof(element));
+			var points = Points(element);
+			return points.Count > 0 ? points[0].Position : Position(element);
+		}
+
 		public static bool ContainsPoint(FuturePinballSourceStream element, FuturePinballVector2 point, float edgeTolerance = 0.001f)
 		{
 			var polygon = Points(element).Select(item => item.Position).ToArray();
@@ -207,6 +219,11 @@ namespace VisualPinball.Engine.IO.FuturePinball
 			var record = Find(stream, tag);
 			if (record?.Value is uint value) return value;
 			return record?.Payload.Length >= 4 ? ReadUInt32(record.Payload.Span) : fallback;
+		}
+
+		public static bool HasTag(FuturePinballSourceStream stream, uint tag)
+		{
+			return Find(stream, tag) != null;
 		}
 
 		private static FuturePinballRecord Find(FuturePinballSourceStream stream, uint tag)
@@ -266,21 +283,12 @@ namespace VisualPinball.Engine.IO.FuturePinball
 	public static class FuturePinballProceduralMeshBuilder
 	{
 		private const uint NameTag = 0xA4F4D1D7;
-		private const uint TopHeightTag = 0x99F2BEDD;
-		private const uint BottomHeightTag = 0x95F2D0DD;
-		private const uint HeightTag = 0xA2F8CDDD;
 		private const uint CollidableTag = 0x9DF5C3E2;
 		private const uint RenderObjectTag = 0x97FDC4D3;
 		private const uint TopTextureTag = 0xA2F4C9D1;
 		private const uint TextureTag = 0xA4FAC5DC;
 		private const uint TopColorTag = 0x9DF2CFD1;
 		private const uint ColorTag = 0x97F5C3E2;
-		private const uint StartHeightTag = 0xA2F8CAD2;
-		private const uint EndHeightTag = 0xA2F8CAE0;
-		private const uint StartWidthTag = 0xA5F8BBD2;
-		private const uint EndWidthTag = 0xA5F8BBE0;
-		private const uint LeftSideHeightTag = 0xA2F8CAD9;
-		private const uint RightSideHeightTag = 0xA2F8CAD3;
 
 		public static IReadOnlyList<FuturePinballGeneratedElement> Build(FuturePinballTable table)
 		{
@@ -307,17 +315,9 @@ namespace VisualPinball.Engine.IO.FuturePinball
 
 		private static FuturePinballGeneratedElement Surface(FuturePinballSourceStream element, float tableWidth, float tableLength)
 		{
-			var points = DragPoints(element);
-			if (points.Length < 3) return null;
-			var isGuideWall = element.ElementType == FuturePinballElementType.GuideWall;
-			var data = new SurfaceData(Name(element), points) {
-				HeightTop = FuturePinballCoordinateConverter.ToVpx(FuturePinballElementGeometry.Float(
-					element, isGuideWall ? HeightTag : TopHeightTag
-				)),
-				HeightBottom = isGuideWall
-					? 0f
-					: FuturePinballCoordinateConverter.ToVpx(FuturePinballElementGeometry.Float(element, BottomHeightTag))
-			};
+			if (!FuturePinballNativeItemConverter.TryConvert(element, out var converted)
+				|| !(converted.Item is Surface surface)) return null;
+			var data = surface.Data;
 			var generator = new SurfaceMeshGenerator(data, new Vertex3D(0f, 0f, 0f));
 			var meshes = new[] {
 				generator.GetMesh(SurfaceMeshGenerator.Top, tableWidth, tableLength, 0f, false),
@@ -328,22 +328,10 @@ namespace VisualPinball.Engine.IO.FuturePinball
 
 		private static FuturePinballGeneratedElement Ramp(FuturePinballSourceStream element, float tableWidth, float tableLength)
 		{
-			var points = DragPoints(element);
-			if (points.Length < 2) return null;
 			var isWire = element.ElementType == FuturePinballElementType.WireRamp;
-			var data = new RampData(Name(element), points) {
-				HeightBottom = FuturePinballCoordinateConverter.ToVpx(FuturePinballElementGeometry.Integer(element, StartHeightTag)),
-				HeightTop = FuturePinballCoordinateConverter.ToVpx(FuturePinballElementGeometry.Integer(element, EndHeightTag)),
-				WidthBottom = FuturePinballCoordinateConverter.ToVpx(FuturePinballElementGeometry.Integer(element, StartWidthTag, 40)),
-				WidthTop = FuturePinballCoordinateConverter.ToVpx(FuturePinballElementGeometry.Integer(element, EndWidthTag, 40)),
-				LeftWallHeight = FuturePinballCoordinateConverter.ToVpx(FuturePinballElementGeometry.Integer(element, LeftSideHeightTag)),
-				RightWallHeight = FuturePinballCoordinateConverter.ToVpx(FuturePinballElementGeometry.Integer(element, RightSideHeightTag)),
-				LeftWallHeightVisible = FuturePinballCoordinateConverter.ToVpx(FuturePinballElementGeometry.Integer(element, LeftSideHeightTag)),
-				RightWallHeightVisible = FuturePinballCoordinateConverter.ToVpx(FuturePinballElementGeometry.Integer(element, RightSideHeightTag)),
-				RampType = isWire ? RampType.RampType2Wire : RampType.RampTypeFlat,
-				WireDiameter = FuturePinballCoordinateConverter.ToVpx(6f),
-				WireDistanceX = FuturePinballCoordinateConverter.ToVpx(30f)
-			};
+			if (!FuturePinballNativeItemConverter.TryConvert(element, out var converted)
+				|| !(converted.Item is Ramp ramp)) return null;
+			var data = ramp.Data;
 			var generator = new RampMeshGenerator(data, new Vertex3D(0f, 0f, 0f));
 			var ids = isWire
 				? new[] { RampMeshGenerator.Wires }
@@ -351,13 +339,6 @@ namespace VisualPinball.Engine.IO.FuturePinball
 			var meshes = ids.Select(id => generator.GetMesh(tableWidth, tableLength, 0f, id))
 				.Where(mesh => mesh?.IsSet == true && mesh.Vertices.Length > 0).ToArray();
 			return Generated(element, meshes, TextureTag, ColorTag);
-		}
-
-		private static DragPointData[] DragPoints(FuturePinballSourceStream element)
-		{
-			return FuturePinballElementGeometry.Points(element).Select(point => new DragPointData(
-				FuturePinballCoordinateConverter.ToVpx(point.Position.X, point.Position.Y, 0f)
-			) { IsSmooth = point.Smooth }).ToArray();
 		}
 
 		private static FuturePinballGeneratedElement Generated(
