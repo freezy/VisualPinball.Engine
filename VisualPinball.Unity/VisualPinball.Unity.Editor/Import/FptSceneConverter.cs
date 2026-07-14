@@ -214,7 +214,7 @@ namespace VisualPinball.Unity.Editor
 			handled.Add(element);
 			_report.NativeElements++;
 			if (_reportedNativeDefaults.Add(FuturePinballElementType.SpinningDisk)) {
-				_report.Warnings.Add("SpinningDisk maps to VPE's turntable; motor power and damping retain VPE defaults because the Future Pinball scales are not equivalent.");
+				_report.Warnings.Add("SpinningDisk maps to VPE's turntable; motor power has no equivalent VPE scale, and the Loose/Normal/Tight damping presets need calibration, so both retain VPE defaults.");
 			}
 		}
 
