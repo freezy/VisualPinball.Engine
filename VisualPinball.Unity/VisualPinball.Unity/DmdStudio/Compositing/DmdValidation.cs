@@ -246,7 +246,23 @@ namespace VisualPinball.Unity
 			}
 
 			var result = new DmdValidationResult();
-			ValidateCue(cue, result, new HashSet<DmdSpriteAsset>(), new HashSet<DmdFontAsset>());
+			ValidateCue(cue, result, new HashSet<DmdSpriteAsset>(), new HashSet<DmdFontAsset>(), true);
+			return result;
+		}
+
+		/// <summary>
+		/// Validates whether a cue definition can safely enter the runtime index. Referenced bitmap and
+		/// font assets are deliberately left to <see cref="CueRenderer"/>, which skips malformed assets
+		/// per layer so the remainder of the cue can still render.
+		/// </summary>
+		internal static DmdValidationResult ValidateCueForPlayback(DmdCueAsset cue)
+		{
+			if (cue == null) {
+				throw new ArgumentNullException(nameof(cue));
+			}
+
+			var result = new DmdValidationResult();
+			ValidateCue(cue, result, new HashSet<DmdSpriteAsset>(), new HashSet<DmdFontAsset>(), false);
 			return result;
 		}
 
@@ -288,7 +304,7 @@ namespace VisualPinball.Unity
 				}
 				if (validatedCues.Add(cue)) {
 					var cueResult = new DmdValidationResult();
-					ValidateCue(cue, cueResult, validatedSprites, validatedFonts);
+					ValidateCue(cue, cueResult, validatedSprites, validatedFonts, true);
 					result.Include(cueResult, $"Cue {cue.name}");
 				}
 				if (!string.IsNullOrWhiteSpace(cue.EffectiveId) && !cueIds.Add(cue.EffectiveId)) {
@@ -394,16 +410,19 @@ namespace VisualPinball.Unity
 				return false;
 			}
 			var segmentStart = true;
+			var firstSegment = true;
 			foreach (var character in name) {
 				if (character == '.') {
 					if (segmentStart) {
 						return false;
 					}
 					segmentStart = true;
+					firstSegment = false;
 					continue;
 				}
 				if (segmentStart) {
-					if (character != '_' && !char.IsLetter(character)) {
+					if (character != '_' && !char.IsLetter(character) &&
+					    (firstSegment || !char.IsDigit(character))) {
 						return false;
 					}
 					segmentStart = false;
@@ -473,7 +492,8 @@ namespace VisualPinball.Unity
 		}
 
 		private static void ValidateCue(DmdCueAsset cue, DmdValidationResult result,
-			HashSet<DmdSpriteAsset> validatedSprites, HashSet<DmdFontAsset> validatedFonts)
+			HashSet<DmdSpriteAsset> validatedSprites, HashSet<DmdFontAsset> validatedFonts,
+			bool validateReferencedAssets)
 		{
 			if (string.IsNullOrWhiteSpace(cue.EffectiveId)) {
 				result.Error("cue.id", "CueId is empty and the asset has no name.");
@@ -508,7 +528,7 @@ namespace VisualPinball.Unity
 					result.Error("cue.layer.null", $"Layer {index} is null.");
 					continue;
 				}
-				ValidateLayer(layer, index, result, validatedSprites, validatedFonts);
+				ValidateLayer(layer, index, result, validatedSprites, validatedFonts, validateReferencedAssets);
 			}
 		}
 
@@ -550,7 +570,8 @@ namespace VisualPinball.Unity
 		}
 
 		private static void ValidateLayer(DmdLayer layer, int index, DmdValidationResult result,
-			HashSet<DmdSpriteAsset> validatedSprites, HashSet<DmdFontAsset> validatedFonts)
+			HashSet<DmdSpriteAsset> validatedSprites, HashSet<DmdFontAsset> validatedFonts,
+			bool validateReferencedAssets)
 		{
 			var path = $"Layer {index}";
 			if (float.IsNaN(layer.Opacity) || float.IsInfinity(layer.Opacity) ||
@@ -574,18 +595,18 @@ namespace VisualPinball.Unity
 					    number.CountUpSeconds < 0f) {
 						result.Error("layer.number.countUp", $"{path} count-up time cannot be negative.");
 					}
-					ValidateTextLayer(number, path, result, validatedFonts);
+					ValidateTextLayer(number, path, result, validatedFonts, validateReferencedAssets);
 					break;
 				case TextLayer text:
-					ValidateTextLayer(text, path, result, validatedFonts);
+					ValidateTextLayer(text, path, result, validatedFonts, validateReferencedAssets);
 					break;
 				case BitmapLayer bitmap:
 					if (!Enum.IsDefined(typeof(DmdLoopMode), bitmap.Loop)) {
 						result.Error("layer.bitmap.loop", $"{path} has an invalid loop mode.");
 					}
-					if (bitmap.Sprite == null) {
+					if (validateReferencedAssets && bitmap.Sprite == null) {
 						result.Error("layer.bitmap.sprite", $"{path} has no sprite.");
-					} else if (validatedSprites.Add(bitmap.Sprite)) {
+					} else if (validateReferencedAssets && validatedSprites.Add(bitmap.Sprite)) {
 						result.Include(Validate(bitmap.Sprite), $"{path} sprite");
 					}
 					if (bitmap.SpriteStartFrame < 0) {
@@ -596,9 +617,9 @@ namespace VisualPinball.Unity
 					if (!Enum.IsDefined(typeof(DmdLoopMode), mask.Loop)) {
 						result.Error("layer.mask.loop", $"{path} has an invalid loop mode.");
 					}
-					if (mask.Mask == null) {
+					if (validateReferencedAssets && mask.Mask == null) {
 						result.Error("layer.mask.sprite", $"{path} has no mask sprite.");
-					} else if (validatedSprites.Add(mask.Mask)) {
+					} else if (validateReferencedAssets && validatedSprites.Add(mask.Mask)) {
 						result.Include(Validate(mask.Mask), $"{path} mask");
 					}
 					if (mask.SpriteStartFrame < 0) {
@@ -620,7 +641,7 @@ namespace VisualPinball.Unity
 		}
 
 		private static void ValidateTextLayer(TextLayer text, string path, DmdValidationResult result,
-			HashSet<DmdFontAsset> validatedFonts)
+			HashSet<DmdFontAsset> validatedFonts, bool validateReferencedAssets)
 		{
 			if (!Enum.IsDefined(typeof(DmdAnchor), text.Anchor)) {
 				result.Error("layer.text.anchor", $"{path} has an invalid anchor.");
@@ -631,9 +652,9 @@ namespace VisualPinball.Unity
 			if (!Enum.IsDefined(typeof(DmdOverflow), text.Overflow)) {
 				result.Error("layer.text.overflow", $"{path} has an invalid overflow mode.");
 			}
-			if (text.Font == null) {
+			if (validateReferencedAssets && text.Font == null) {
 				result.Error("layer.text.font", $"{path} has no font.");
-			} else if (validatedFonts.Add(text.Font)) {
+			} else if (validateReferencedAssets && validatedFonts.Add(text.Font)) {
 				result.Include(Validate(text.Font), $"{path} font");
 			}
 			if (text.MarqueeSpeed < 0) {

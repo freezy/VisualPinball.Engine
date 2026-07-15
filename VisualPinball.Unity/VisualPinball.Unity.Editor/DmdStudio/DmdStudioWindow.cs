@@ -57,8 +57,12 @@ namespace VisualPinball.Unity.Editor
 		private FloatField _keyValue;
 		private SerializedObject _inspectedObject;
 		private CueRenderer _renderer;
+		private DmdSurface _previewRenderSurface;
+		private readonly DmdStudioPreviewFrame _previewFrame = new DmdStudioPreviewFrame();
+		private DotMatrixDisplayComponent _mirrorDisplay;
 		private CueInstanceState _previewState = new CueInstanceState();
 		private CueDiagnostics _diagnostics = new CueDiagnostics();
+		private DmdParams _previewParameters;
 		private bool _playing;
 		private double _lastUpdateTime;
 		private double _frameAccumulator;
@@ -191,6 +195,8 @@ namespace VisualPinball.Unity.Editor
 				_selectedLayerIndex = -1;
 			}
 			_renderer = _project == null ? null : new CueRenderer(_project);
+			_previewRenderSurface = null;
+			_mirrorDisplay = null;
 			_simulator?.SetProject(_project);
 			ResetPreviewState();
 			RefreshTree();
@@ -497,17 +503,22 @@ namespace VisualPinball.Unity.Editor
 					_previewState = new CueInstanceState();
 				}
 				var format = _project.ColorMode == DmdColorMode.Rgb24 ? DmdPixelFormat.Rgb24 : DmdPixelFormat.I8;
-				var surface = new DmdSurface(_project.Width, _project.Height, format);
+				if (_previewRenderSurface == null || _previewRenderSurface.Width != _project.Width ||
+				    _previewRenderSurface.Height != _project.Height || _previewRenderSurface.Format != format) {
+					_previewRenderSurface = new DmdSurface(_project.Width, _project.Height, format);
+				}
 				_diagnostics.Clear();
 				_renderer ??= new CueRenderer(_project);
-				_renderer.Render(surface, _selectedCue, _frame, CurrentParameters(), _previewState, _diagnostics);
-				_canvas.SetFrame(surface, _project, _canvasMode, _tint);
+				_renderer.Render(_previewRenderSurface, _selectedCue, _frame, CurrentParameters(), _previewState,
+					_diagnostics);
+				_previewFrame.Prepare(_previewRenderSurface, _project.ColorMode);
+				_canvas.SetFrame(_previewFrame.CanvasSurface, _project, _canvasMode, _tint);
 				_lastRenderedFrame = _frame;
 				_status.text = _diagnostics.Count == 0
 					? $"{_project.Width}×{_project.Height} · {_project.ColorMode} · {_project.FrameRate} fps"
 					: string.Join(" · ", _diagnostics.Diagnostics.Select(diagnostic => diagnostic.Message));
 				if (_mirrorToScene) {
-					Mirror(surface);
+					Mirror(_previewFrame.Format, _previewFrame.DisplayData);
 				}
 			} catch (Exception exception) {
 				_status.text = exception.Message;
@@ -517,27 +528,31 @@ namespace VisualPinball.Unity.Editor
 
 		private DmdParams CurrentParameters()
 		{
+			if (_previewParameters != null) {
+				return _previewParameters;
+			}
 			if (_project?.SampleStates == null || _sampleStateIndex < 0 ||
 			    _sampleStateIndex >= _project.SampleStates.Count) {
-				return new DmdParams();
+				return _previewParameters = new DmdParams();
 			}
-			return DmdStudioDefaults.ToParams(_project.SampleStates[_sampleStateIndex]);
+			return _previewParameters = DmdStudioDefaults.ToParams(_project.SampleStates[_sampleStateIndex]);
 		}
 
-		private void Mirror(DmdSurface surface)
+		private void Mirror(DisplayFrameFormat format, byte[] data)
 		{
-			var display = Resources.FindObjectsOfTypeAll<DotMatrixDisplayComponent>()
-				.FirstOrDefault(candidate => candidate != null && !EditorUtility.IsPersistent(candidate) &&
+			if (_mirrorDisplay == null || !string.Equals(_mirrorDisplay.Id, _project.DisplayId,
+				    StringComparison.OrdinalIgnoreCase)) {
+				_mirrorDisplay = Resources.FindObjectsOfTypeAll<DotMatrixDisplayComponent>()
+					.FirstOrDefault(candidate => candidate != null && !EditorUtility.IsPersistent(candidate) &&
 					candidate.gameObject.scene.IsValid() &&
 					string.Equals(candidate.Id, _project.DisplayId, StringComparison.OrdinalIgnoreCase));
-			if (display == null) {
+			}
+			if (_mirrorDisplay == null) {
 				_status.text += $" · no scene DMD named {_project.DisplayId}";
 				return;
 			}
-			display.UpdateDimensions(_project.Width, _project.Height, false);
-			display.UpdateFrame(surface.Format == DmdPixelFormat.Rgb24
-				? DisplayFrameFormat.Dmd24
-				: DisplayFrameFormat.Dmd8, surface.Data);
+			_mirrorDisplay.UpdateDimensions(_project.Width, _project.Height, false);
+			_mirrorDisplay.UpdateFrame(format, data);
 		}
 
 		private void SetFrame(int frame)
@@ -695,7 +710,8 @@ namespace VisualPinball.Unity.Editor
 			if (string.IsNullOrEmpty(folder)) {
 				return;
 			}
-			var files = Directory.GetFiles(folder, "*.png").OrderBy(path => path, StringComparer.Ordinal).ToArray();
+			var files = Directory.GetFiles(folder, "*.png");
+			Array.Sort(files, EditorUtility.NaturalCompare);
 			if (files.Length == 0) {
 				_status.text = "The selected folder contains no PNG files.";
 				return;
@@ -786,6 +802,8 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnAuthoredPropertyChanged()
 		{
+			_renderer = _project == null ? null : new CueRenderer(_project);
+			_timeline?.RefreshContent();
 			ResetPreviewState();
 			RefreshTree();
 			RefreshBitmapEditor();
@@ -842,6 +860,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			_previewState = new CueInstanceState();
 			_diagnostics = new CueDiagnostics();
+			_previewParameters = null;
 			_lastRenderedFrame = -1;
 		}
 

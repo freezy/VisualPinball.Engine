@@ -7,6 +7,7 @@
 // (at your option) any later version.
 
 using System;
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -130,6 +131,73 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void NumberTimingUsesTheRuntimeClampedProjectFrameRate()
+		{
+			_project.FrameRate = 500;
+			_cue.Layers.Add(new NumberLayer {
+				Font = _font, ParamName = "value", Format = "0", CountUpSeconds = 1f
+			});
+			var state = new CueInstanceState();
+			var parameters = new DmdParams().Set("value", 120d);
+			var renderer = new CueRenderer(_project);
+
+			renderer.Render(Surface(), _cue, 0, parameters, state, new CueDiagnostics());
+			renderer.Render(Surface(), _cue, 60, parameters, state, new CueDiagnostics());
+			parameters.Set("value", 240d);
+			renderer.Render(Surface(), _cue, 60, parameters, state, new CueDiagnostics());
+
+			Assert.That(state.NumberTweens[0].StartValue, Is.EqualTo(60d).Within(0.001d));
+		}
+
+		[Test]
+		public void InvalidNumberFormatIsLatchedAfterFirstFailureWithoutSteadyStateAllocations()
+		{
+			_cue.Layers.Add(new NumberLayer { Font = _font, ParamName = "value", Format = "Q9" });
+			var state = new CueInstanceState();
+			var diagnostics = new CueDiagnostics();
+			var parameters = new DmdParams().Set("value", 42);
+			var renderer = new CueRenderer(_project);
+			var surface = Surface();
+			renderer.Render(surface, _cue, 0, parameters, state, diagnostics);
+
+			var before = GC.GetAllocatedBytesForCurrentThread();
+			for (var frame = 1; frame <= 100; frame++) {
+				renderer.Render(surface, _cue, frame, parameters, state, diagnostics);
+			}
+			var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+
+			Assert.That(allocated, Is.Zero);
+			Assert.That(diagnostics.Diagnostics.Count(item => item.Code == "binding.format"), Is.EqualTo(1));
+		}
+
+		[Test]
+		public void RenderingTheSameTimelineTwiceProducesIdenticalFrameHashes()
+		{
+			_cue.DurationFrames = 8;
+			_cue.Layers.Add(new ShapeLayer {
+				Shape = DmdShapeType.Rect, Width = 2, Height = 2, Filled = true,
+				Shade = new DmdShade { Intensity = 160 },
+				Tracks = { new DmdPropertyTrack {
+					Property = DmdAnimatableProperty.X,
+					Keys = {
+						new DmdKeyframe { Frame = 0, Value = 0, Interp = DmdInterpolation.Linear },
+						new DmdKeyframe { Frame = 7, Value = 4 }
+					}
+				} }
+			});
+			_cue.Layers.Add(new NumberLayer {
+				Font = _font, ParamName = "value", Format = "0", CountUpSeconds = 0.5f, Y = 2
+			});
+			var parameters = new DmdParams().Set("value", 70);
+			var renderer = new CueRenderer(_project);
+			var first = RenderHashes(renderer, parameters);
+
+			var second = RenderHashes(renderer, parameters);
+
+			Assert.That(second, Is.EqualTo(first));
+		}
+
+		[Test]
 		public void MalformedAuthoredAssetsNeverEscapeRenderAndReportOnce()
 		{
 			var sprite = Sprite(new byte[] { 1 }, 2, 1);
@@ -213,6 +281,19 @@ namespace VisualPinball.Unity.Test
 		}
 
 		private DmdSurface Surface() => new DmdSurface(_project.Width, _project.Height, DmdPixelFormat.I8);
+
+		private uint[] RenderHashes(CueRenderer renderer, DmdParams parameters)
+		{
+			var hashes = new uint[_cue.DurationFrames];
+			var surface = Surface();
+			var state = new CueInstanceState();
+			var diagnostics = new CueDiagnostics();
+			for (var frame = 0; frame < hashes.Length; frame++) {
+				renderer.Render(surface, _cue, frame, parameters, state, diagnostics);
+				hashes[frame] = DmdSurfaceAssert.Hash(surface.Data);
+			}
+			return hashes;
+		}
 
 		private static DmdSpriteAsset Sprite(byte[] pixels, int width, int height)
 		{

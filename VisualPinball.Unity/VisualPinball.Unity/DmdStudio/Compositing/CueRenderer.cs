@@ -16,10 +16,12 @@ namespace VisualPinball.Unity
 	public sealed class CueRenderer
 	{
 		private readonly DmdProjectAsset _project;
+		private readonly int _frameRate;
 
 		public CueRenderer(DmdProjectAsset project)
 		{
 			_project = project ?? throw new ArgumentNullException(nameof(project));
+			_frameRate = math.clamp(project.FrameRate, DmdValidation.MinFrameRate, DmdValidation.MaxFrameRate);
 		}
 
 		public void Render(DmdSurface destination, DmdCueAsset cue, int frame, DmdParams parameters,
@@ -214,7 +216,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 			var target = parameter.Type == DmdParamType.Integer ? parameter.IntValue : parameter.FloatValue;
-			var tweenTicks = math.max(0, (int)math.round(layer.CountUpSeconds * _project.FrameRate));
+			var tweenTicks = math.max(0, (int)math.round(layer.CountUpSeconds * _frameRate));
 			ref var tween = ref state.NumberTweens[layerIndex];
 			if (!tween.Initialized) {
 				tween.StartValue = tweenTicks == 0 ? target : 0d;
@@ -230,15 +232,24 @@ namespace VisualPinball.Unity
 			var buffer = state.NumberBuffers[layerIndex] ??
 			             (state.NumberBuffers[layerIndex] = new char[DmdValidation.MaxResolvedTextLength]);
 			int length;
-			try {
-				if (!value.TryFormat(buffer.AsSpan(), out length, layer.Format, CultureInfo.InvariantCulture)) {
+			var format = layer.Format ?? string.Empty;
+			if (!string.Equals(state.NumberFormats[layerIndex], format, StringComparison.Ordinal)) {
+				state.NumberFormats[layerIndex] = format;
+				state.NumberFormatStates[layerIndex] = 0;
+			}
+			if (state.NumberFormatStates[layerIndex] == 2) {
+				value.TryFormat(buffer.AsSpan(), out length, default, CultureInfo.InvariantCulture);
+			} else try {
+				if (!value.TryFormat(buffer.AsSpan(), out length, format, CultureInfo.InvariantCulture)) {
 					diagnostics?.TextTruncated();
 					if (!value.TryFormat(buffer.AsSpan(), out length, default, CultureInfo.InvariantCulture)) {
 						length = 0;
 					}
 				}
+				state.NumberFormatStates[layerIndex] = 1;
 			} catch (FormatException) {
-				diagnostics?.InvalidFormat(layer.ParamName, layer.Format);
+				state.NumberFormatStates[layerIndex] = 2;
+				diagnostics?.InvalidFormat(layer.ParamName, format);
 				value.TryFormat(buffer.AsSpan(), out length, default, CultureInfo.InvariantCulture);
 			}
 			DmdTextRenderer.Draw(destination, layer.Font, buffer, length, x, y, layer.Anchor, layer.Effect,
@@ -256,7 +267,7 @@ namespace VisualPinball.Unity
 			}
 			var textWidth = DmdTextRenderer.Measure(layer.Font, text);
 			var period = math.max(1, textWidth + destination.Width / 4);
-			var offset = (int)((long)frame * layer.MarqueeSpeed / math.max(1, _project.FrameRate) % period);
+			var offset = (int)((long)frame * layer.MarqueeSpeed / _frameRate % period);
 			var originX = ResolveTextLeft(x, textWidth, layer.Anchor);
 			var leftAnchor = ToLeftAnchor(layer.Anchor);
 			DmdTextRenderer.Draw(destination, layer.Font, text, originX - offset, y, leftAnchor, layer.Effect,
@@ -347,7 +358,7 @@ namespace VisualPinball.Unity
 
 		private bool NumberIsAnimating(NumberLayer layer, int layerIndex, int frame, CueInstanceState state)
 		{
-			var ticks = math.max(0, (int)math.round(layer.CountUpSeconds * _project.FrameRate));
+			var ticks = math.max(0, (int)math.round(layer.CountUpSeconds * _frameRate));
 			if (ticks <= 0 || state == null || layerIndex >= state.NumberTweens.Length) {
 				return false;
 			}

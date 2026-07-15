@@ -153,6 +153,46 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void StringResolutionUsesActiveThenStackTopDownThenQueueOrderWithinEachMatchKind()
+		{
+			var heldBottom = Create(Cue("held-bottom", CuePriority.Status));
+			_scheduler.Admit(heldBottom);
+			var heldTop = Create(Cue("held-top", CuePriority.Award));
+			_scheduler.Admit(heldTop);
+			var active = Create(Cue("active", CuePriority.Mode));
+			_scheduler.Admit(active);
+			heldBottom.Cue.CoalesceKey = "lane";
+			heldTop.Cue.CoalesceKey = "lane";
+			active.Cue.CoalesceKey = "lane";
+			var queuedFirst = Create(Cue("same-id", CuePriority.Status, CueInterruptPolicy.Queue));
+			var queuedSecond = Create(Cue("same-id", CuePriority.Status, CueInterruptPolicy.Queue));
+			_scheduler.Admit(queuedFirst);
+			_scheduler.Admit(queuedSecond);
+
+			Assert.That(_scheduler.Resolve("lane"), Is.SameAs(active));
+			active.Cue.CoalesceKey = null;
+			Assert.That(_scheduler.Resolve("lane"), Is.SameAs(heldTop));
+			heldTop.Cue.CoalesceKey = null;
+			Assert.That(_scheduler.Resolve("lane"), Is.SameAs(heldBottom));
+			heldBottom.Cue.CoalesceKey = null;
+			Assert.That(_scheduler.Resolve("same-id"), Is.SameAs(queuedFirst));
+		}
+
+		[Test]
+		public void QueuePreservesFifoOrderWithinTheSamePriority()
+		{
+			_scheduler.Admit(Create(Cue("active", CuePriority.Mode)));
+			var first = Create(Cue("first", CuePriority.Status, CueInterruptPolicy.Queue));
+			var second = Create(Cue("second", CuePriority.Status, CueInterruptPolicy.Queue));
+			var third = Create(Cue("third", CuePriority.Status, CueInterruptPolicy.Queue));
+			_scheduler.Admit(first);
+			_scheduler.Admit(second);
+			_scheduler.Admit(third);
+
+			Assert.That(_scheduler.Queue, Is.EqualTo(new[] { first, second, third }));
+		}
+
+		[Test]
 		public void DrainChoosesHigherPriorityBetweenHoldTopAndQueueHeadThenHoldOnTie()
 		{
 			var held = Create(Cue("held", CuePriority.Status));

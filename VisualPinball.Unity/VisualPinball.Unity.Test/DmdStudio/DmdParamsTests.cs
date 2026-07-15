@@ -38,6 +38,15 @@ namespace VisualPinball.Unity.Test
 			Assert.That(values.TryGet("Score", out _), Is.False);
 		}
 
+		[Test]
+		public void NumericDottedSegmentsRemainPlainKeys()
+		{
+			var values = new DmdParams().Set("player.0.score", 123);
+
+			Assert.That(values.TryGet("player.0.score", out var score), Is.True);
+			Assert.That(score.IntValue, Is.EqualTo(123));
+		}
+
 		[TestCase("")]
 		[TestCase("player..score")]
 		[TestCase("9score")]

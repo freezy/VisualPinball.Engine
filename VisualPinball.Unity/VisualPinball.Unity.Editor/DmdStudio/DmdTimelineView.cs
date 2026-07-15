@@ -73,11 +73,21 @@ namespace VisualPinball.Unity.Editor
 
 		public void SetCue(DmdCueAsset cue, int frameRate, int selectedLayerIndex = -1)
 		{
+			var contentChanged = !ReferenceEquals(_cue, cue) || _frameRate != System.Math.Max(1, frameRate) ||
+			                     _selectedLayerIndex != selectedLayerIndex;
 			_cue = cue;
 			_frameRate = System.Math.Max(1, frameRate);
 			_selectedLayerIndex = selectedLayerIndex;
 			Frame = _frame;
-			style.height = HeaderHeight + System.Math.Max(1, cue?.Layers?.Count ?? 0) * RowHeight;
+			if (contentChanged) {
+				RefreshContent();
+			}
+			MarkDirtyRepaint();
+		}
+
+		public void RefreshContent()
+		{
+			style.height = HeaderHeight + System.Math.Max(1, _cue?.Layers?.Count ?? 0) * RowHeight;
 			RefreshLabels();
 			MarkDirtyRepaint();
 		}

@@ -20,6 +20,8 @@ namespace VisualPinball.Unity
 		internal int[] TextVersions = Array.Empty<int>();
 		internal bool[] TextInitialized = Array.Empty<bool>();
 		internal char[][] NumberBuffers = Array.Empty<char[]>();
+		internal string[] NumberFormats = Array.Empty<string>();
+		internal byte[] NumberFormatStates = Array.Empty<byte>();
 
 		internal void EnsureLayerCount(int count)
 		{
@@ -33,6 +35,8 @@ namespace VisualPinball.Unity
 			TextVersions = new int[count];
 			TextInitialized = new bool[count];
 			NumberBuffers = new char[count][];
+			NumberFormats = new string[count];
+			NumberFormatStates = new byte[count];
 		}
 
 		public struct NumberTweenState

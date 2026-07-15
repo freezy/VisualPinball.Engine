@@ -38,6 +38,7 @@ namespace VisualPinball.Unity.Editor
 		private bool _panning;
 		private Vector2 _panStart;
 		private Vector2 _panOrigin;
+		private Color32[] _colors = Array.Empty<Color32>();
 
 		public Texture2D PreviewTexture => _texture;
 		public event Action LayerPositionChanged;
@@ -90,10 +91,13 @@ namespace VisualPinball.Unity.Editor
 			var width = checked(surface.Width * scale);
 			var height = checked(surface.Height * scale);
 			EnsureTexture(width, height);
-			var colors = new Color32[checked(width * height)];
+			var colorCount = checked(width * height);
+			if (_colors.Length != colorCount) {
+				_colors = new Color32[colorCount];
+			}
 			if (mode == DmdCanvasMode.Dots) {
-				for (var index = 0; index < colors.Length; index++) {
-					colors[index] = new Color32(0, 0, 0, 255);
+				for (var index = 0; index < _colors.Length; index++) {
+					_colors[index] = new Color32(0, 0, 0, 255);
 				}
 			}
 			for (var sourceY = 0; sourceY < surface.Height; sourceY++) {
@@ -106,12 +110,12 @@ namespace VisualPinball.Unity.Editor
 							}
 							var topY = sourceY * scale + localY;
 							var textureY = height - 1 - topY;
-							colors[textureY * width + sourceX * scale + localX] = color;
+							_colors[textureY * width + sourceX * scale + localX] = color;
 						}
 					}
 				}
 			}
-			_texture.SetPixels32(colors);
+			_texture.SetPixels32(_colors);
 			_texture.Apply(false, false);
 			_image.image = _texture;
 			UpdateImageLayout();
@@ -244,6 +248,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			var width = 1;
 			var height = 1;
+			var x = layer.X;
+			var y = layer.Y;
 			if (layer is BitmapLayer bitmap && bitmap.Sprite?.Frames?.Count > 0 && bitmap.Sprite.Frames[0] != null) {
 				width = bitmap.Sprite.Frames[0].Width;
 				height = bitmap.Sprite.Frames[0].Height;
@@ -253,8 +259,23 @@ namespace VisualPinball.Unity.Editor
 			} else if (layer is TextLayer text && text.Font != null) {
 				width = System.Math.Max(1, DmdTextRenderer.Measure(text.Font, text.Text ?? string.Empty));
 				height = System.Math.Max(1, text.Font.LineHeight);
+				var center = text.Anchor == DmdAnchor.TopCenter || text.Anchor == DmdAnchor.MiddleCenter ||
+				             text.Anchor == DmdAnchor.BottomCenter || text.Anchor == DmdAnchor.BaselineCenter;
+				var right = text.Anchor == DmdAnchor.TopRight || text.Anchor == DmdAnchor.MiddleRight ||
+				            text.Anchor == DmdAnchor.BottomRight || text.Anchor == DmdAnchor.BaselineRight;
+				if (center) x -= width / 2;
+				else if (right) x -= width;
+				var middle = text.Anchor == DmdAnchor.MiddleLeft || text.Anchor == DmdAnchor.MiddleCenter ||
+				             text.Anchor == DmdAnchor.MiddleRight;
+				var bottom = text.Anchor == DmdAnchor.BottomLeft || text.Anchor == DmdAnchor.BottomCenter ||
+				             text.Anchor == DmdAnchor.BottomRight;
+				var baseline = text.Anchor == DmdAnchor.BaselineLeft || text.Anchor == DmdAnchor.BaselineCenter ||
+				               text.Anchor == DmdAnchor.BaselineRight;
+				if (middle) y -= height / 2;
+				else if (bottom) y -= height;
+				else if (baseline) y -= Mathf.Clamp(text.Font.Baseline, 0, height);
 			}
-			return new RectInt(layer.X, layer.Y, width, height);
+			return new RectInt(x, y, width, height);
 		}
 
 		private void OnPointerDown(PointerDownEvent evt)

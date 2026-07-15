@@ -117,6 +117,9 @@ namespace VisualPinball.Unity
 				_scheduler.SetBase(_scheduler.Create(cue, CreateParameters(cue, parameters)));
 			}
 			_dirty = true;
+			if (_started && _scheduler.Active == null) {
+				RenderAndEmit();
+			}
 		}
 
 		public CueHandle Play(string cueId, DmdParams parameters = null)
@@ -132,9 +135,10 @@ namespace VisualPinball.Unity
 				_dirty = true;
 				return admission.Instance.Handle;
 			}
-			if (_started && (admission.Kind == CueAdmissionKind.Activated ||
+			var becameVisible = _started && (admission.Kind == CueAdmissionKind.Activated ||
 			                 admission.Kind == CueAdmissionKind.Preempted ||
-			                 admission.Kind == CueAdmissionKind.Replaced)) {
+			                 admission.Kind == CueAdmissionKind.Replaced);
+			if (becameVisible) {
 				AbandonTransition(transitioningInstance);
 				BeginEnter(admission.Instance);
 				if (!_transition.Active) {
@@ -142,6 +146,11 @@ namespace VisualPinball.Unity
 				}
 			}
 			_dirty = true;
+			if (becameVisible) {
+				// An admission can happen between logical ticks. Emit frame zero now so finite cues
+				// receive their complete on-screen lifetime and enter transitions start at progress zero.
+				RenderAndEmit();
+			}
 			DrainFinishedEvents();
 			return admission.Instance.Handle;
 		}
@@ -632,7 +641,7 @@ namespace VisualPinball.Unity
 					duplicates.Add(cue.EffectiveId);
 					continue;
 				}
-				if (cue.Validate().IsValid) {
+				if (DmdValidation.ValidateCueForPlayback(cue).IsValid) {
 					_cues.Add(cue.EffectiveId, cue);
 				}
 			}

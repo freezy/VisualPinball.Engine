@@ -97,7 +97,7 @@ namespace VisualPinball.Unity
 
 		private static int Duration(DmdSpriteAsset sprite, int index)
 		{
-			return sprite.FrameDurations != null && sprite.FrameDurations.Count == sprite.Frames.Count
+			return sprite.FrameDurations != null && index < sprite.FrameDurations.Count
 				? math.max(1, sprite.FrameDurations[index])
 				: 1;
 		}

@@ -98,6 +98,7 @@ namespace VisualPinball.Unity.Editor
 					throw new InvalidDataException("BMFont atlas must decode to one image.");
 				}
 				font.Atlas = decoded[0].Bitmap;
+				UseLuminanceMaskWhenAtlasIsOpaque(font.Atlas);
 				if (font.Atlas.Width != declaredWidth || font.Atlas.Height != declaredHeight) {
 					throw new InvalidDataException(
 						$"BMFont atlas is {font.Atlas.Width}x{font.Atlas.Height}, descriptor declares {declaredWidth}x{declaredHeight}.");
@@ -127,6 +128,21 @@ namespace VisualPinball.Unity.Editor
 				}
 				throw;
 			}
+		}
+
+		private static void UseLuminanceMaskWhenAtlasIsOpaque(DmdBitmapData atlas)
+		{
+			if (atlas?.Alpha == null || atlas.Alpha.Length == 0) {
+				return;
+			}
+			for (var index = 0; index < atlas.Alpha.Length; index++) {
+				if (atlas.Alpha[index] != byte.MaxValue) {
+					return;
+				}
+			}
+			// Classic BMFont pages are commonly opaque white glyphs on black. In that case alpha
+			// contains no mask information, so DmdTextRenderer must use atlas luminance instead.
+			atlas.Alpha = Array.Empty<byte>();
 		}
 
 		private static Dictionary<string, string> ParseAttributes(string line)

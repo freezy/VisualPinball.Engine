@@ -60,6 +60,18 @@ namespace VisualPinball.Unity.Test
 			}
 		}
 
+		[Test]
+		public void MismatchedDurationsUseAuthoredEntriesThenOneFrameDefaults()
+		{
+			_sprite.FrameDurations = new System.Collections.Generic.List<int> { 2 };
+
+			AssertFrame(DmdLoopMode.Once, 0, 0);
+			AssertFrame(DmdLoopMode.Once, 1, 0);
+			AssertFrame(DmdLoopMode.Once, 2, 1);
+			AssertFrame(DmdLoopMode.Once, 3, 2);
+			Assert.That(SpriteFrameClock.TryGetFrame(_sprite, 4, DmdLoopMode.Once, 0, out _), Is.False);
+		}
+
 		private void AssertFrame(DmdLoopMode mode, int tick, int expected)
 		{
 			Assert.That(SpriteFrameClock.TryGetFrame(_sprite, tick, mode, 0, out var actual), Is.True);

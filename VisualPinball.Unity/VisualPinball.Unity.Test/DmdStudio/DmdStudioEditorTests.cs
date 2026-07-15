@@ -148,7 +148,32 @@ namespace VisualPinball.Unity.Test
 			Assert.That(font.Glyphs[0].OffsetX, Is.EqualTo(-1));
 			Assert.That(font.Kerning.Single().Adjustment, Is.EqualTo(-1));
 			Assert.That(font.Atlas.Pixels, Is.EqualTo(new byte[] { 76, 150, 29, 255 }));
+			Assert.That(font.Atlas.Alpha, Is.Empty);
 			Assert.That(project.Fonts, Does.Contain(font));
+		}
+
+		[Test]
+		public void OpaqueBmFontAtlasUsesLuminanceAsTheGlyphMask()
+		{
+			var project = CreateProject(2, 1, DmdColorMode.Mono16);
+			var atlas = WritePng(2, 1, new[] {
+				new Color32(0, 0, 0, 255), new Color32(255, 255, 255, 255)
+			}, "opaque-atlas.png");
+			var descriptor = Path.Combine(Path.GetDirectoryName(atlas), "opaque.fnt");
+			File.WriteAllText(descriptor,
+				"common lineHeight=1 base=1 scaleW=2 scaleH=1 pages=1 packed=0\n" +
+				$"page id=0 file=\"{Path.GetFileName(atlas)}\"\n" +
+				"chars count=1\n" +
+				"char id=65 x=0 y=0 width=2 height=1 xoffset=0 yoffset=0 xadvance=2 page=0 chnl=15\n");
+			_temporaryFiles.Add(descriptor);
+			var font = DmdBmFontImporter.Import(project, descriptor, $"{TestFolder}/OpaqueFont.asset");
+			var surface = new DmdSurface(2, 1, DmdPixelFormat.I8);
+
+			DmdTextRenderer.Draw(surface, font, "A", 0, 0, DmdAnchor.TopLeft, DmdTextEffect.None,
+				DmdShade.White, DmdShade.Black, DmdBlendMode.Alpha, byte.MaxValue, new CueDiagnostics());
+
+			Assert.That(font.Atlas.Alpha, Is.Empty);
+			Assert.That(surface.Data, Is.EqualTo(new byte[] { 0, 255 }));
 		}
 
 		[Test]
@@ -208,6 +233,23 @@ namespace VisualPinball.Unity.Test
 				canvas.Dispose();
 				UnityEngine.Object.DestroyImmediate(project);
 			}
+		}
+
+		[Test]
+		public void PreviewQuantizesMonoProjectsBeforeTintingAndMirroring()
+		{
+			var rendered = new DmdSurface(4, 1, DmdPixelFormat.I8);
+			rendered.Data[0] = 0;
+			rendered.Data[1] = 63;
+			rendered.Data[2] = 64;
+			rendered.Data[3] = 255;
+			var preview = new DmdStudioPreviewFrame();
+
+			preview.Prepare(rendered, DmdColorMode.Mono4);
+
+			Assert.That(preview.Format, Is.EqualTo(DisplayFrameFormat.Dmd2));
+			Assert.That(preview.DisplayData, Is.EqualTo(new byte[] { 0, 0, 1, 3 }));
+			Assert.That(preview.CanvasSurface.Data, Is.EqualTo(new byte[] { 0, 0, 85, 255 }));
 		}
 
 		[Test]
