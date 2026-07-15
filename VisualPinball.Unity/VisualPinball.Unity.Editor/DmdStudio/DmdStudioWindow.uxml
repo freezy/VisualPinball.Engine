@@ -11,6 +11,7 @@
 			<ui:IntegerField name="cell-width" label="Cell W"/>
 			<ui:IntegerField name="cell-height" label="H"/>
 			<uie:ToolbarButton name="import-font" text="Import BMFont"/>
+			<uie:ToolbarButton name="starter-fonts" text="Add Starter Fonts"/>
 		</uie:Toolbar>
 
 		<ui:TwoPaneSplitView name="outer-split" fixed-pane-index="0" fixed-pane-initial-dimension="220">
@@ -31,6 +32,10 @@
 						<uie:ToolbarButton name="play" text="▶"/>
 						<uie:ToolbarButton name="next-frame" text="▶|"/>
 						<ui:Label name="frame-label" text="Frame 0 / 0"/>
+						<uie:ToolbarSpacer/>
+						<ui:DropdownField name="key-property"/>
+						<ui:FloatField name="key-value" value="0"/>
+						<uie:ToolbarButton name="add-key" text="Add Key"/>
 					</uie:Toolbar>
 					<ui:ScrollView name="timeline-scroll" mode="Vertical" class="timeline-scroll">
 						<ui:VisualElement name="timeline-host"/>
@@ -44,6 +49,16 @@
 					<ui:VisualElement name="sample-state-picker"/>
 					<ui:Button name="add-default-states" text="Add Default Presets"/>
 					<ui:VisualElement name="sample-state-host"/>
+					<ui:Foldout name="pixel-editor-foldout" text="Pixel / Glyph Editor">
+						<ui:VisualElement name="pixel-target-host"/>
+						<ui:VisualElement name="pixel-editor-host"/>
+					</ui:Foldout>
+					<ui:Foldout name="validation-foldout" text="Validation" value="true">
+						<ui:VisualElement name="validation-list"/>
+					</ui:Foldout>
+					<ui:Foldout name="simulator-foldout" text="Cue Simulator">
+						<ui:VisualElement name="simulator-host"/>
+					</ui:Foldout>
 				</ui:ScrollView>
 			</ui:TwoPaneSplitView>
 		</ui:TwoPaneSplitView>

@@ -31,6 +31,7 @@ namespace VisualPinball.Unity.Editor
 		[SerializeField] private DmdCanvasMode _canvasMode;
 		[SerializeField] private bool _tint = true;
 		[SerializeField] private bool _mirrorToScene;
+		[SerializeField] private int _bitmapTargetIndex;
 
 		private ObjectField _projectField;
 		private DmdProjectTreeView _projectTree;
@@ -48,6 +49,12 @@ namespace VisualPinball.Unity.Editor
 		private ToolbarButton _playButton;
 		private DmdCanvasView _canvas;
 		private DmdTimelineView _timeline;
+		private DmdPixelEditorView _pixelEditor;
+		private DmdCueSimulatorView _simulator;
+		private VisualElement _pixelTargetHost;
+		private VisualElement _validationList;
+		private DropdownField _keyProperty;
+		private FloatField _keyValue;
 		private SerializedObject _inspectedObject;
 		private CueRenderer _renderer;
 		private CueInstanceState _previewState = new CueInstanceState();
@@ -112,7 +119,16 @@ namespace VisualPinball.Unity.Editor
 			rootVisualElement.Q<VisualElement>("canvas-host").Add(_canvas);
 			_timeline = new DmdTimelineView();
 			_timeline.FrameChanged += SetFrame;
+			_timeline.LayerSelected += OnTimelineLayerSelected;
+			_timeline.AssetChanged += OnTimelineAssetChanged;
 			rootVisualElement.Q<VisualElement>("timeline-host").Add(_timeline);
+			_pixelTargetHost = rootVisualElement.Q<VisualElement>("pixel-target-host");
+			_pixelEditor = new DmdPixelEditorView();
+			_pixelEditor.Changed += OnPixelEditorChanged;
+			rootVisualElement.Q<VisualElement>("pixel-editor-host").Add(_pixelEditor);
+			_validationList = rootVisualElement.Q<VisualElement>("validation-list");
+			_simulator = new DmdCueSimulatorView();
+			rootVisualElement.Q<VisualElement>("simulator-host").Add(_simulator);
 
 			_canvasModeField = rootVisualElement.Q<DropdownField>("canvas-mode");
 			_canvasModeField.choices = new List<string> { "Raw", "Dots" };
@@ -133,6 +149,12 @@ namespace VisualPinball.Unity.Editor
 				_mirrorToScene = evt.newValue;
 				RefreshPreview();
 			});
+			_keyProperty = rootVisualElement.Q<DropdownField>("key-property");
+			_keyProperty.choices = Enum.GetNames(typeof(DmdAnimatableProperty)).ToList();
+			_keyProperty.index = 0;
+			_keyProperty.RegisterValueChangedCallback(_ => UpdateKeyValueDefault());
+			_keyValue = rootVisualElement.Q<FloatField>("key-value");
+			rootVisualElement.Q<ToolbarButton>("add-key").clicked += AddSelectedKeyframe;
 
 			rootVisualElement.Q<ToolbarButton>("new-project").clicked += CreateProject;
 			rootVisualElement.Q<ToolbarButton>("new-cue").clicked += CreateCue;
@@ -140,6 +162,7 @@ namespace VisualPinball.Unity.Editor
 			rootVisualElement.Q<ToolbarButton>("import-sprite").clicked += ImportSprite;
 			rootVisualElement.Q<ToolbarButton>("import-sequence").clicked += ImportSequence;
 			rootVisualElement.Q<ToolbarButton>("import-font").clicked += ImportFont;
+			rootVisualElement.Q<ToolbarButton>("starter-fonts").clicked += AddStarterFonts;
 			rootVisualElement.Q<Button>("add-default-states").clicked += AddDefaultStates;
 			rootVisualElement.Q<ToolbarButton>("previous-frame").clicked += () => SetFrame(_frame - 1);
 			rootVisualElement.Q<ToolbarButton>("next-frame").clicked += () => SetFrame(_frame + 1);
@@ -168,10 +191,12 @@ namespace VisualPinball.Unity.Editor
 				_selectedLayerIndex = -1;
 			}
 			_renderer = _project == null ? null : new CueRenderer(_project);
+			_simulator?.SetProject(_project);
 			ResetPreviewState();
 			RefreshTree();
 			RefreshSelection();
 			RefreshSampleStates();
+			RefreshValidation();
 			RefreshPreview();
 		}
 
@@ -198,6 +223,7 @@ namespace VisualPinball.Unity.Editor
 			if (entry == null) {
 				return;
 			}
+			_bitmapTargetIndex = 0;
 			if (entry.Kind == DmdProjectTreeSelectionKind.Layer) {
 				_selectedCue = entry.Asset as DmdCueAsset;
 				_selectedAsset = _selectedCue;
@@ -227,7 +253,7 @@ namespace VisualPinball.Unity.Editor
 			_inspectedObject = null;
 			var layer = SelectedLayer;
 			_canvas?.SetSelection(_selectedCue, layer);
-			_timeline?.SetCue(_selectedCue, _project?.FrameRate ?? 30);
+			_timeline?.SetCue(_selectedCue, _project?.FrameRate ?? 30, _selectedLayerIndex);
 			if (layer != null && _selectedCue != null) {
 				_inspectorTitle.text = layer.Name ?? layer.GetType().Name;
 				_inspectedObject = new SerializedObject(_selectedCue);
@@ -238,6 +264,8 @@ namespace VisualPinball.Unity.Editor
 					field.Bind(_inspectedObject);
 					_inspectorHost.Add(field);
 				}
+				RefreshBitmapEditor();
+				UpdateKeyValueDefault();
 				return;
 			}
 			var target = _selectedAsset != null ? _selectedAsset : _project;
@@ -246,6 +274,8 @@ namespace VisualPinball.Unity.Editor
 				_inspectedObject = new SerializedObject(target);
 				_inspectorHost.Add(new InspectorElement(_inspectedObject));
 			}
+			RefreshBitmapEditor();
+			UpdateKeyValueDefault();
 		}
 
 		private void BuildSampleStatePicker()
@@ -293,12 +323,167 @@ namespace VisualPinball.Unity.Editor
 			_sampleStateHost.Add(field);
 		}
 
+		private void RefreshBitmapEditor()
+		{
+			if (_pixelTargetHost == null || _pixelEditor == null) {
+				return;
+			}
+			_pixelTargetHost.Clear();
+			var asset = ResolveEditableBitmapAsset();
+			switch (asset) {
+				case DmdSpriteAsset sprite:
+					BuildSpriteTarget(sprite);
+					break;
+				case DmdFontAsset font:
+					BuildFontTarget(font);
+					break;
+				default:
+					_pixelEditor.ClearTarget();
+					break;
+			}
+		}
+
+		private UnityEngine.Object ResolveEditableBitmapAsset()
+		{
+			if (SelectedLayer is BitmapLayer bitmap && bitmap.Sprite != null) return bitmap.Sprite;
+			if (SelectedLayer is MaskLayer mask && mask.Mask != null) return mask.Mask;
+			if (SelectedLayer is TextLayer text && text.Font != null) return text.Font;
+			return _selectedAsset is DmdSpriteAsset || _selectedAsset is DmdFontAsset ? _selectedAsset : null;
+		}
+
+		private void BuildSpriteTarget(DmdSpriteAsset sprite)
+		{
+			if (sprite.Frames == null || sprite.Frames.Count == 0) {
+				_pixelEditor.ClearTarget();
+				return;
+			}
+			_bitmapTargetIndex = Mathf.Clamp(_bitmapTargetIndex, 0, sprite.Frames.Count - 1);
+			var choices = Enumerable.Range(1, sprite.Frames.Count).Select(index => $"Frame {index}").ToList();
+			var popup = new PopupField<string>("Bitmap", choices, _bitmapTargetIndex);
+			popup.RegisterValueChangedCallback(_ => {
+				_bitmapTargetIndex = popup.index;
+				RefreshBitmapEditor();
+			});
+			_pixelTargetHost.Add(popup);
+			var duration = new IntegerField("Duration") {
+				value = sprite.FrameDurations != null && _bitmapTargetIndex < sprite.FrameDurations.Count
+					? System.Math.Max(1, sprite.FrameDurations[_bitmapTargetIndex])
+					: 1
+			};
+			duration.RegisterValueChangedCallback(evt => {
+				_timeline.SetSpriteFrameDuration(sprite, _bitmapTargetIndex, evt.newValue);
+				duration.SetValueWithoutNotify(System.Math.Max(1, evt.newValue));
+				RefreshValidation();
+				RefreshPreview();
+			});
+			_pixelTargetHost.Add(duration);
+			var frame = sprite.Frames[_bitmapTargetIndex];
+			_pixelEditor.SetTarget(sprite, frame,
+				frame == null ? default : new RectInt(0, 0, frame.Width, frame.Height), _project,
+				$"{sprite.name} · frame {_bitmapTargetIndex + 1}");
+		}
+
+		private void BuildFontTarget(DmdFontAsset font)
+		{
+			if (font.Atlas == null || font.Glyphs == null || font.Glyphs.Count == 0) {
+				_pixelEditor.ClearTarget();
+				return;
+			}
+			_bitmapTargetIndex = Mathf.Clamp(_bitmapTargetIndex, 0, font.Glyphs.Count - 1);
+			var choices = font.Glyphs.Select(GlyphLabel).ToList();
+			var popup = new PopupField<string>("Glyph", choices, _bitmapTargetIndex);
+			popup.RegisterValueChangedCallback(_ => {
+				_bitmapTargetIndex = popup.index;
+				RefreshBitmapEditor();
+			});
+			_pixelTargetHost.Add(popup);
+			var glyph = font.Glyphs[_bitmapTargetIndex];
+			AddGlyphMetric(font, "Offset X", glyph.OffsetX, (value, current) => { current.OffsetX = value; return current; });
+			AddGlyphMetric(font, "Offset Y", glyph.OffsetY, (value, current) => { current.OffsetY = value; return current; });
+			AddGlyphMetric(font, "Advance", glyph.Advance, (value, current) => { current.Advance = value; return current; });
+			if (glyph.W <= 0 || glyph.H <= 0) {
+				_pixelEditor.ClearTarget();
+				return;
+			}
+			_pixelEditor.SetTarget(font, font.Atlas, new RectInt(glyph.X, glyph.Y, glyph.W, glyph.H), _project,
+				$"{font.name} · {GlyphLabel(glyph)}");
+		}
+
+		private void AddGlyphMetric(DmdFontAsset font, string label, int value,
+			Func<int, DmdGlyph, DmdGlyph> mutate)
+		{
+			var field = new IntegerField(label) { value = value };
+			field.RegisterValueChangedCallback(evt => {
+				if (_bitmapTargetIndex < 0 || _bitmapTargetIndex >= font.Glyphs.Count) return;
+				Undo.RecordObject(font, "Edit DMD glyph metrics");
+				font.Glyphs[_bitmapTargetIndex] = mutate(evt.newValue, font.Glyphs[_bitmapTargetIndex]);
+				EditorUtility.SetDirty(font);
+				RefreshValidation();
+				RefreshPreview();
+			});
+			_pixelTargetHost.Add(field);
+		}
+
+		private static string GlyphLabel(DmdGlyph glyph)
+		{
+			var display = glyph.Codepoint >= 0x20 && glyph.Codepoint <= 0x7e
+				? $" '{(char)glyph.Codepoint}'"
+				: string.Empty;
+			return $"U+{glyph.Codepoint:X4}{display}";
+		}
+
+		private void RefreshValidation()
+		{
+			if (_validationList == null) return;
+			_validationList.Clear();
+			var diagnostics = DmdStudioValidation.Validate(_project);
+			if (diagnostics.Count == 0) {
+				_validationList.Add(new Label(_project == null ? "Select a project." : "No validation issues."));
+				return;
+			}
+			foreach (var diagnostic in diagnostics) {
+				var label = new Label($"{diagnostic.Severity}: {diagnostic.Message}") {
+					tooltip = diagnostic.Code
+				};
+				label.AddToClassList(diagnostic.Severity == DmdValidationSeverity.Error
+					? "validation-error"
+					: "validation-warning");
+				_validationList.Add(label);
+			}
+		}
+
+		private void AddSelectedKeyframe()
+		{
+			if (SelectedLayer == null || _keyProperty == null ||
+			    !Enum.TryParse(_keyProperty.value, out DmdAnimatableProperty property)) {
+				_status.text = "Select a layer before adding a keyframe.";
+				return;
+			}
+			if (_timeline.AddKeyframe(_selectedLayerIndex, property, _frame, _keyValue.value)) {
+				_status.text = $"Added {property} key at frame {_frame}.";
+			}
+		}
+
+		private void UpdateKeyValueDefault()
+		{
+			if (_keyValue == null || SelectedLayer == null || _keyProperty == null ||
+			    !Enum.TryParse(_keyProperty.value, out DmdAnimatableProperty property)) return;
+			var value = property switch {
+				DmdAnimatableProperty.X => SelectedLayer.X,
+				DmdAnimatableProperty.Y => SelectedLayer.Y,
+				DmdAnimatableProperty.Opacity => SelectedLayer.Opacity,
+				DmdAnimatableProperty.SpriteFrame => SelectedLayer is BitmapLayer bitmap ? bitmap.SpriteStartFrame : 0,
+				_ => 0f
+			};
+			_keyValue.SetValueWithoutNotify(value);
+		}
+
 		private void RefreshPreview()
 		{
 			if (_canvas == null || _timeline == null || _frameLabel == null) {
 				return;
 			}
-			_timeline.SetCue(_selectedCue, _project?.FrameRate ?? 30);
+			_timeline.SetCue(_selectedCue, _project?.FrameRate ?? 30, _selectedLayerIndex);
 			_frame = Mathf.Clamp(_frame, 0, _timeline.MaxFrame);
 			_timeline.Frame = _frame;
 			_frameLabel.text = $"Frame {_frame} / {_timeline.MaxFrame}";
@@ -427,6 +612,7 @@ namespace VisualPinball.Unity.Editor
 			_selectedLayerIndex = -1;
 			RefreshTree();
 			RefreshSelection();
+			RefreshValidation();
 			RefreshPreview();
 			Selection.activeObject = cue;
 		}
@@ -457,9 +643,15 @@ namespace VisualPinball.Unity.Editor
 				Name = "Score", Font = _project.Fonts?.FirstOrDefault(font => font != null), Text = "{score:N0}",
 				X = _project.Width / 2, Y = _project.Height / 2, Anchor = DmdAnchor.MiddleCenter
 			}));
+			menu.AddItem(new GUIContent("Marquee Text"), false, () => AddLayer(new TextLayer {
+				Name = "Marquee", Font = _project.Fonts?.FirstOrDefault(font => font != null), Text = "{message}",
+				Y = _project.Height / 2, Anchor = DmdAnchor.MiddleLeft, Overflow = DmdOverflow.Marquee,
+				MarqueeSpeed = 1
+			}));
 			menu.AddItem(new GUIContent("Number"), false, () => AddLayer(new NumberLayer {
 				Name = "Number", Font = _project.Fonts?.FirstOrDefault(font => font != null), ParamName = "score",
-				X = _project.Width / 2, Y = _project.Height / 2, Anchor = DmdAnchor.MiddleCenter
+				X = _project.Width / 2, Y = _project.Height / 2, Anchor = DmdAnchor.MiddleCenter,
+				CountUpSeconds = 1f, Effect = DmdTextEffect.Outline
 			}));
 			menu.AddItem(new GUIContent("Shape"), false, () => AddLayer(new ShapeLayer {
 				Name = "Shape", Width = 8, Height = 8, Filled = true
@@ -479,6 +671,7 @@ namespace VisualPinball.Unity.Editor
 			ResetPreviewState();
 			RefreshTree();
 			RefreshSelection();
+			RefreshValidation();
 			RefreshPreview();
 		}
 
@@ -523,6 +716,7 @@ namespace VisualPinball.Unity.Editor
 				_selectedAsset = result.Sprite;
 				RefreshTree();
 				RefreshSelection();
+				RefreshValidation();
 				_status.text = result.Warnings.Count == 0
 					? $"Imported {result.Sprite.Frames.Count} sprite frame(s)."
 					: string.Join(" · ", result.Warnings);
@@ -546,6 +740,7 @@ namespace VisualPinball.Unity.Editor
 				_selectedAsset = font;
 				RefreshTree();
 				RefreshSelection();
+				RefreshValidation();
 				_status.text = $"Imported {font.Glyphs.Count} glyphs and {font.Kerning.Count} kerning pairs.";
 			} catch (Exception exception) {
 				EditorUtility.DisplayDialog("DMD BMFont Import", exception.Message, "OK");
@@ -561,8 +756,23 @@ namespace VisualPinball.Unity.Editor
 			var changed = DmdStudioDefaults.EnsureSampleStates(_project);
 			RefreshTree();
 			RefreshSampleStates();
+			RefreshValidation();
 			RefreshPreview();
 			_status.text = changed ? "Added default sample-state presets." : "Default sample states already exist.";
+		}
+
+		private void AddStarterFonts()
+		{
+			if (!RequireProject()) return;
+			try {
+				var added = DmdStarterFontLibrary.AddToProject(_project);
+				RefreshTree();
+				RefreshValidation();
+				_status.text = added == 0 ? "Starter fonts are already in this project." :
+					$"Added {added} starter DMD fonts.";
+			} catch (Exception exception) {
+				EditorUtility.DisplayDialog("DMD Starter Fonts", exception.Message, "OK");
+			}
 		}
 
 		private bool RequireProject()
@@ -578,6 +788,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			ResetPreviewState();
 			RefreshTree();
+			RefreshBitmapEditor();
+			RefreshValidation();
 			RefreshPreview();
 		}
 
@@ -587,12 +799,42 @@ namespace VisualPinball.Unity.Editor
 			RefreshPreview();
 		}
 
+		private void OnTimelineLayerSelected(int layerIndex)
+		{
+			if (_selectedCue?.Layers == null || layerIndex < 0 || layerIndex >= _selectedCue.Layers.Count ||
+			    _selectedLayerIndex == layerIndex) {
+				return;
+			}
+			_selectedLayerIndex = layerIndex;
+			_selectedAsset = _selectedCue;
+			_bitmapTargetIndex = 0;
+			RefreshTree();
+			RefreshSelection();
+			RefreshPreview();
+		}
+
+		private void OnTimelineAssetChanged()
+		{
+			ResetPreviewState();
+			RefreshBitmapEditor();
+			RefreshValidation();
+			RefreshPreview();
+		}
+
+		private void OnPixelEditorChanged()
+		{
+			ResetPreviewState();
+			RefreshValidation();
+			RefreshPreview();
+		}
+
 		private void OnUndoRedo()
 		{
 			ResetPreviewState();
 			RefreshTree();
 			RefreshSelection();
 			RefreshSampleStates();
+			RefreshValidation();
 			RefreshPreview();
 		}
 

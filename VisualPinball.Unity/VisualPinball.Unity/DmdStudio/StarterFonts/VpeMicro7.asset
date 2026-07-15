@@ -1,0 +1,838 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 264a07a49902a9145a284bc941dfea6e, type: 3}
+  m_Name: VpeMicro7
+  m_EditorClassIdentifier: VisualPinball.Unity::VisualPinball.Unity.DmdFontAsset
+  Notes: 'VPE starter DMD font (7px), rasterized from Tiny5. Copyright 2022-2024
+    The Tiny5 Project Authors (https://github.com/Gissio/font_tiny5). Source font:
+    SIL Open Font License 1.1; the adjacent Tiny5-OFL.txt contains the source
+    license and attribution. Generated DmdFontAsset data ships with VPE under GPLv3.'
+  Atlas:
+    Width: 256
+    Height: 16
+    Format: 0
+    Pixels: ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+    Alpha: 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ff0000ff00ff000000ff00ff000000ff000000ff0000ff0000ff000000ff000000ff0000ff00000000ff00000000ff00000000ff0000ffffff0000ff000000ff000000ff00000000ff000000ffff000000ffff0000000000ff0000ffffff000000ffff0000ffffff000000ff00000000ff000000ff000000ff00000000ff0000ffffff0000ff00000000ffff00000000ffff000000ffff0000ffffff000000ffff0000ffffff0000ffffffff00ffffffff0000ffffff00ff0000ff00ff00000000ff0000ff0000ff00ff00000000ff0000ff0000ff0000ff0000ffff0000ffffff000000ffff0000ffffff000000ffffff00ffffff0000ff0000ff0000000000ff0000ff00ff0000ffffffff000000ffff00000000ff0000ff00ff0000ff0000ff00000000ff0000ffffff0000ffffff0000ff000000000000000000000000ff0000ff00ff0000ffff0000000000ff00000000ff000000ffff0000ff00000000ff000000000000ff0000ff00ff0000ff00ff00000000000000000000ff000000000000000000ff0000000000ff0000ff0000ff00ff0000ff00ff0000ff00ff0000ff00ff0000ff00ff00000000ff00000000ff00000000ff0000ff00ff00000000ff0000ff00ff0000ff00000000ffff00ff0000ffff00ff00ff0000ff00ff0000ff00ff0000ff00ff0000ff00ff0000000000ff000000ff0000ff0000000000ff0000000000000000ff00ff0000ffff00000000ff00000000ff000000000000ff00000000ff000000ff00000000ff000000000000000000000000000000ff000000ff00ff000000ff00000000ff00000000ff000000ff00ff0000ffff000000ffff00000000ff00000000ff00000000ffff000000000000000000ff00000000ffffff00000000ff000000ff000000ff00ffff00ffffffff00ffffff0000ff00000000ff0000ff00ffffff0000ffffff0000ff00ffff00ffffffff00ff00000000ff0000ffff000000ff00000000ff00ffff0000ff00ffff00ff0000ff00ffffff0000ff00000000ffffff000000ffff000000ff000000ff0000ff00000000000000000000000000ffffffff00000000ff0000ff0000ff00ff00ff0000000000ff00000000ff0000ff00ff00000000000000000000000000000000000000ff000000ff00ff000000ff000000ff000000000000ff0000ffffff00000000ff0000ff00ff000000ff000000ff00ff00000000ff0000ff000000ff000000ff000000000000000000ff0000000000000000ff00000000ff0000ff00ff0000ff00ff0000ff00ff00000000ff00000000ff00000000ff0000ff00ff0000ff00ff0000ff00ff0000ff00ff0000ff00000000ff0000ff0000ff0000ff00ff00000000ff00000000ff00ff0000ff0000ff00000000ff0000ff000000ff0000ff0000000000ff0000000000000000ff00ff0000ffff000000000000000000ff00ff0000000000ff0000ff00000000000000000000000000000000000000000000000000ff00000000ff00000000ff000000ffffff0000ffff0000000000ff0000ffff00000000ff00000000ff00000000ff000000ffff000000000000ff0000000000ff00000000000000ff0000000000ff00000000ffff0000ff0000ff00ffffff000000ffff0000ffffff0000ffffffff00ff0000000000ffffff00ff0000ff00ff000000ff000000ff0000ff00ffffff0000ff0000ff0000ff0000ff0000ffff0000ff0000000000ff00ff00ff0000ff00ffffff000000ff00000000ffff000000000000000000000000000000000000000000ff00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ff00ff0000ff00ffff0000ff00ff0000ff00ff0000ffffff0000ffff0000ff000000ffff000000ff000000ffffff0000ff00000000ffff0000ff0000000000ffff00000000ff000000ff00000000ff000000ffff0000ff00000000ff0000ff0000ff00000000ff0000ffffffff0000ffff00000000ff000000ffff00000000ffff0000ffff000000ffff0000ff000000ff00ff0000ff00ff0000ff00ffff0000ff00ff0000ff00ff0000ffffff000000ffff0000ff0000ffff000000ffff000000ffff0000ffff000000ffffffffff0000ffff0000ff00ff0000ffffffff00000000000000000000000000000000000000000000000000000000000000000000ff00ff0000ff00ffff0000ff00ff0000ff00ff00000000ff0000ff000000ff00000000ff0000ff00ff0000000000000000ff0000ff00ff0000ffff000000ff0000000000ffff0000ffffff0000ff000000ff00ff0000ffff000000000000000000ff00ff0000ff0000ff00ff000000ff00ff0000ff00ff0000ff00ff0000ff00ff0000ff000000ffff000000ffff0000ff00ff0000ff00ff0000ff00ffff000000ff000000ff00ff000000ff00000000ff000000ff000000ff00000000000000ff00000000ff00ff000000ff00ffff0000ffff000000ff000000ff00ffff00000000000000000000000000000000000000000000000000000000000000000000ff00ff0000ff00ff00000000ff00000000ff00000000ff000000ff00000000ff000000ff00000000000000000000000000000000ff00ff0000ff00ff0000ff00000000ff00ff0000ff00000000ffff0000ff00ff0000ff00ff0000ff0000ff0000ffff000000ff0000ff00ffff0000ff00ff0000ff00ff0000ff00ff0000ff00ff0000ff0000000000ff0000ff000000ff00ff000000ff00000000ff00ff000000ff000000ff00ff0000ff00000000ff00000000ff00000000ff000000000000ff00000000ffff0000000000000000000000000000ff00ff0000ffff00ff0000000000000000000000000000000000000000000000000000000000000000000000ff00000000ff00ff0000ff00ff000000ff000000ff00000000ff00000000ff000000ff0000000000000000000000000000000000ffff0000ff00ff000000ffff0000ff00ff000000ffff0000ff00000000ffff0000ff00ff0000ff0000ff0000ff00ff0000ff0000ff00ffff0000ff00ff000000ff000000ffff00000000ffff0000ff000000ffff000000ff00000000ffff000000ff00000000ff00ff0000ff00ff000000ff000000ffffff000000ff000000ff000000ff0000000000000000ffff0000ff00ff000000000000000000000000000000000000ff00ffff0000000000000000000000000000000000000000000000000000000000000000000000ff00000000ff00ff0000ff00ff000000ff000000ffffff0000ffff000000ff0000ffff000000000000000000000000000000000000000000ffff000000000000000000ffff00000000000000ff000000ffff000000ff00ff0000ff0000ff0000ff00ff0000ff000000000000000000000000000000000000ff000000000000ff000000000000000000000000ff0000000000000000000000000000000000000000000000ff00000000000000000000ffff0000ff0000ffff000000000000000000000000000000000000000000000000000000000000000000ffffffff0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ff0000ff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000ff0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  Glyphs:
+  - Codepoint: 32
+    X: 1
+    Y: 1
+    W: 2
+    H: 0
+    OffsetX: 0
+    OffsetY: 7
+    Advance: 2
+  - Codepoint: 33
+    X: 4
+    Y: 1
+    W: 2
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 2
+  - Codepoint: 34
+    X: 7
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 35
+    X: 12
+    Y: 1
+    W: 5
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 5
+  - Codepoint: 36
+    X: 18
+    Y: 1
+    W: 4
+    H: 6
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 37
+    X: 23
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 38
+    X: 28
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 39
+    X: 33
+    Y: 1
+    W: 2
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 2
+  - Codepoint: 40
+    X: 36
+    Y: 1
+    W: 3
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 3
+  - Codepoint: 41
+    X: 40
+    Y: 1
+    W: 3
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 3
+  - Codepoint: 42
+    X: 44
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 43
+    X: 49
+    Y: 1
+    W: 4
+    H: 4
+    OffsetX: 0
+    OffsetY: 3
+    Advance: 4
+  - Codepoint: 44
+    X: 54
+    Y: 1
+    W: 3
+    H: 2
+    OffsetX: 0
+    OffsetY: 6
+    Advance: 3
+  - Codepoint: 45
+    X: 58
+    Y: 1
+    W: 4
+    H: 3
+    OffsetX: 0
+    OffsetY: 4
+    Advance: 4
+  - Codepoint: 46
+    X: 63
+    Y: 1
+    W: 2
+    H: 1
+    OffsetX: 0
+    OffsetY: 6
+    Advance: 2
+  - Codepoint: 47
+    X: 66
+    Y: 1
+    W: 3
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 3
+  - Codepoint: 48
+    X: 70
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 49
+    X: 75
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 50
+    X: 80
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 51
+    X: 85
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 52
+    X: 90
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 53
+    X: 95
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 54
+    X: 100
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 55
+    X: 105
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 56
+    X: 110
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 57
+    X: 115
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 58
+    X: 120
+    Y: 1
+    W: 2
+    H: 4
+    OffsetX: 0
+    OffsetY: 3
+    Advance: 2
+  - Codepoint: 59
+    X: 123
+    Y: 1
+    W: 3
+    H: 5
+    OffsetX: 0
+    OffsetY: 3
+    Advance: 3
+  - Codepoint: 60
+    X: 127
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 61
+    X: 132
+    Y: 1
+    W: 4
+    H: 4
+    OffsetX: 0
+    OffsetY: 3
+    Advance: 4
+  - Codepoint: 62
+    X: 137
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 63
+    X: 142
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 64
+    X: 147
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 65
+    X: 152
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 66
+    X: 157
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 67
+    X: 162
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 68
+    X: 167
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 69
+    X: 172
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 70
+    X: 177
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 71
+    X: 182
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 72
+    X: 187
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 73
+    X: 192
+    Y: 1
+    W: 2
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 2
+  - Codepoint: 74
+    X: 195
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 75
+    X: 200
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 76
+    X: 205
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 77
+    X: 210
+    Y: 1
+    W: 5
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 5
+  - Codepoint: 78
+    X: 216
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 79
+    X: 221
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 80
+    X: 226
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 81
+    X: 231
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 82
+    X: 236
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 83
+    X: 241
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 84
+    X: 246
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 85
+    X: 251
+    Y: 1
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 86
+    X: 1
+    Y: 8
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 87
+    X: 6
+    Y: 8
+    W: 5
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 5
+  - Codepoint: 88
+    X: 12
+    Y: 8
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 89
+    X: 17
+    Y: 8
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 90
+    X: 22
+    Y: 8
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 91
+    X: 27
+    Y: 8
+    W: 3
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 3
+  - Codepoint: 92
+    X: 31
+    Y: 8
+    W: 3
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 3
+  - Codepoint: 93
+    X: 35
+    Y: 8
+    W: 3
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 3
+  - Codepoint: 94
+    X: 39
+    Y: 8
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 95
+    X: 44
+    Y: 8
+    W: 4
+    H: 1
+    OffsetX: 0
+    OffsetY: 6
+    Advance: 4
+  - Codepoint: 96
+    X: 49
+    Y: 8
+    W: 3
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 3
+  - Codepoint: 97
+    X: 53
+    Y: 8
+    W: 4
+    H: 4
+    OffsetX: 0
+    OffsetY: 3
+    Advance: 4
+  - Codepoint: 98
+    X: 58
+    Y: 8
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 99
+    X: 63
+    Y: 8
+    W: 4
+    H: 4
+    OffsetX: 0
+    OffsetY: 3
+    Advance: 4
+  - Codepoint: 100
+    X: 68
+    Y: 8
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 101
+    X: 73
+    Y: 8
+    W: 4
+    H: 4
+    OffsetX: 0
+    OffsetY: 3
+    Advance: 4
+  - Codepoint: 102
+    X: 78
+    Y: 8
+    W: 3
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 3
+  - Codepoint: 103
+    X: 82
+    Y: 8
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 3
+    Advance: 4
+  - Codepoint: 104
+    X: 87
+    Y: 8
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 105
+    X: 92
+    Y: 8
+    W: 2
+    H: 6
+    OffsetX: 0
+    OffsetY: 1
+    Advance: 2
+  - Codepoint: 106
+    X: 95
+    Y: 8
+    W: 2
+    H: 7
+    OffsetX: 0
+    OffsetY: 1
+    Advance: 2
+  - Codepoint: 107
+    X: 98
+    Y: 8
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 108
+    X: 103
+    Y: 8
+    W: 2
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 2
+  - Codepoint: 109
+    X: 106
+    Y: 8
+    W: 5
+    H: 4
+    OffsetX: 0
+    OffsetY: 3
+    Advance: 5
+  - Codepoint: 110
+    X: 112
+    Y: 8
+    W: 4
+    H: 4
+    OffsetX: 0
+    OffsetY: 3
+    Advance: 4
+  - Codepoint: 111
+    X: 117
+    Y: 8
+    W: 4
+    H: 4
+    OffsetX: 0
+    OffsetY: 3
+    Advance: 4
+  - Codepoint: 112
+    X: 122
+    Y: 8
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 3
+    Advance: 4
+  - Codepoint: 113
+    X: 127
+    Y: 8
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 3
+    Advance: 4
+  - Codepoint: 114
+    X: 132
+    Y: 8
+    W: 3
+    H: 4
+    OffsetX: 0
+    OffsetY: 3
+    Advance: 3
+  - Codepoint: 115
+    X: 136
+    Y: 8
+    W: 4
+    H: 4
+    OffsetX: 0
+    OffsetY: 3
+    Advance: 4
+  - Codepoint: 116
+    X: 141
+    Y: 8
+    W: 3
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 3
+  - Codepoint: 117
+    X: 145
+    Y: 8
+    W: 4
+    H: 4
+    OffsetX: 0
+    OffsetY: 3
+    Advance: 4
+  - Codepoint: 118
+    X: 150
+    Y: 8
+    W: 4
+    H: 4
+    OffsetX: 0
+    OffsetY: 3
+    Advance: 4
+  - Codepoint: 119
+    X: 155
+    Y: 8
+    W: 5
+    H: 4
+    OffsetX: 0
+    OffsetY: 3
+    Advance: 5
+  - Codepoint: 120
+    X: 161
+    Y: 8
+    W: 4
+    H: 4
+    OffsetX: 0
+    OffsetY: 3
+    Advance: 4
+  - Codepoint: 121
+    X: 166
+    Y: 8
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 3
+    Advance: 4
+  - Codepoint: 122
+    X: 171
+    Y: 8
+    W: 4
+    H: 4
+    OffsetX: 0
+    OffsetY: 3
+    Advance: 4
+  - Codepoint: 123
+    X: 176
+    Y: 8
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 124
+    X: 181
+    Y: 8
+    W: 2
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 2
+  - Codepoint: 125
+    X: 184
+    Y: 8
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 126
+    X: 189
+    Y: 8
+    W: 3
+    H: 3
+    OffsetX: 0
+    OffsetY: 4
+    Advance: 3
+  - Codepoint: 169
+    X: 193
+    Y: 8
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 174
+    X: 198
+    Y: 8
+    W: 4
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 4
+  - Codepoint: 8482
+    X: 203
+    Y: 8
+    W: 6
+    H: 4
+    OffsetX: 0
+    OffsetY: 3
+    Advance: 6
+  - Codepoint: 8226
+    X: 210
+    Y: 8
+    W: 3
+    H: 4
+    OffsetX: 0
+    OffsetY: 3
+    Advance: 3
+  - Codepoint: 215
+    X: 214
+    Y: 8
+    W: 4
+    H: 4
+    OffsetX: 0
+    OffsetY: 3
+    Advance: 4
+  - Codepoint: 65533
+    X: 219
+    Y: 8
+    W: 5
+    H: 5
+    OffsetX: 0
+    OffsetY: 2
+    Advance: 5
+  LineHeight: 9
+  Baseline: 7
+  Tracking: 0
+  Kerning: []
+  DigitWidth: 4

@@ -189,6 +189,24 @@ namespace VisualPinball.Unity
 			return stopped;
 		}
 
+		/// <summary>
+		/// Captures the current scheduler lanes without exposing mutable runtime instances.
+		/// </summary>
+		public DmdCuePlayerSnapshot GetSnapshot()
+		{
+			EnsureUsable();
+			var hold = new string[_scheduler.HoldStack.Count];
+			for (var index = 0; index < hold.Length; index++) {
+				hold[index] = _scheduler.HoldStack[index].Cue.EffectiveId;
+			}
+			var queue = new string[_scheduler.Queue.Count];
+			for (var index = 0; index < queue.Length; index++) {
+				queue[index] = _scheduler.Queue[index].Cue.EffectiveId;
+			}
+			return new DmdCuePlayerSnapshot(_scheduler.Base?.Cue.EffectiveId, _scheduler.Active?.Cue.EffectiveId,
+				hold, queue);
+		}
+
 		public void StopAll()
 		{
 			EnsureUsable();

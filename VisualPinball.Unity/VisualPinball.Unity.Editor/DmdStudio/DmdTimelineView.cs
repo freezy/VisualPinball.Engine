@@ -7,6 +7,8 @@
 // (at your option) any later version.
 
 using System;
+using System.Linq;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -21,7 +23,14 @@ namespace VisualPinball.Unity.Editor
 		private DmdCueAsset _cue;
 		private int _frameRate = 30;
 		private int _frame;
-		private bool _scrubbing;
+		private DragKind _dragKind;
+		private int _dragLayerIndex = -1;
+		private int _dragTrackIndex = -1;
+		private int _dragKeyIndex = -1;
+		private int _dragOriginFrame;
+		private int _dragOriginStart;
+		private int _dragOriginEnd;
+		private int _selectedLayerIndex = -1;
 		private readonly VisualElement _labels;
 
 		public int Frame {
@@ -38,6 +47,8 @@ namespace VisualPinball.Unity.Editor
 
 		public int MaxFrame => ResolveMaxFrame();
 		public event Action<int> FrameChanged;
+		public event Action<int> LayerSelected;
+		public event Action AssetChanged;
 
 		public DmdTimelineView()
 		{
@@ -60,14 +71,89 @@ namespace VisualPinball.Unity.Editor
 			RegisterCallback<PointerUpEvent>(OnPointerUp);
 		}
 
-		public void SetCue(DmdCueAsset cue, int frameRate)
+		public void SetCue(DmdCueAsset cue, int frameRate, int selectedLayerIndex = -1)
 		{
 			_cue = cue;
 			_frameRate = System.Math.Max(1, frameRate);
+			_selectedLayerIndex = selectedLayerIndex;
 			Frame = _frame;
 			style.height = HeaderHeight + System.Math.Max(1, cue?.Layers?.Count ?? 0) * RowHeight;
 			RefreshLabels();
 			MarkDirtyRepaint();
+		}
+
+		public bool AddKeyframe(int layerIndex, DmdAnimatableProperty property, int frame, float value)
+		{
+			if (!TryLayer(layerIndex, out var layer)) {
+				return false;
+			}
+			Undo.RecordObject(_cue, "Add DMD keyframe");
+			layer.Tracks ??= new System.Collections.Generic.List<DmdPropertyTrack>();
+			var track = layer.Tracks.LastOrDefault(candidate => candidate != null && candidate.Property == property);
+			if (track == null) {
+				track = new DmdPropertyTrack { Property = property };
+				layer.Tracks.Add(track);
+			}
+			track.Keys ??= new System.Collections.Generic.List<DmdKeyframe>();
+			frame = Mathf.Clamp(frame, 0, MaxFrame);
+			var index = track.Keys.FindIndex(key => key.Frame == frame);
+			var keyframe = new DmdKeyframe { Frame = frame, Value = value, Interp = DmdInterpolation.Linear };
+			if (index >= 0) {
+				track.Keys[index] = keyframe;
+			} else {
+				track.Keys.Add(keyframe);
+				track.Keys.Sort((left, right) => left.Frame.CompareTo(right.Frame));
+			}
+			CommitEdit();
+			return true;
+		}
+
+		public bool SetLayerSpan(int layerIndex, int startFrame, int endFrame)
+		{
+			if (!TryLayer(layerIndex, out var layer)) return false;
+			Undo.RecordObject(_cue, "Set DMD layer span");
+			layer.StartFrame = Mathf.Clamp(startFrame, 0, MaxFrame);
+			layer.EndFrame = Mathf.Clamp(endFrame, layer.StartFrame, MaxFrame);
+			CommitEdit();
+			return true;
+		}
+
+		public bool SetTransitionDuration(bool enter, int duration)
+		{
+			if (_cue == null) return false;
+			Undo.RecordObject(_cue, "Set DMD transition duration");
+			if (enter) {
+				var transition = _cue.EnterTransition;
+				transition.DurationFrames = ClampTransition(duration, _cue.ExitTransition.DurationFrames);
+				_cue.EnterTransition = transition;
+			} else {
+				var transition = _cue.ExitTransition;
+				transition.DurationFrames = ClampTransition(duration, _cue.EnterTransition.DurationFrames);
+				_cue.ExitTransition = transition;
+			}
+			CommitEdit();
+			return true;
+		}
+
+		public bool SetSpriteFrameDuration(DmdSpriteAsset sprite, int frameIndex, int duration)
+		{
+			if (sprite?.Frames == null || frameIndex < 0 || frameIndex >= sprite.Frames.Count) {
+				return false;
+			}
+			Undo.RecordObject(sprite, "Set DMD sprite frame duration");
+			sprite.FrameDurations ??= new System.Collections.Generic.List<int>();
+			while (sprite.FrameDurations.Count < sprite.Frames.Count) {
+				sprite.FrameDurations.Add(1);
+			}
+			if (sprite.FrameDurations.Count > sprite.Frames.Count) {
+				sprite.FrameDurations.RemoveRange(sprite.Frames.Count,
+					sprite.FrameDurations.Count - sprite.Frames.Count);
+			}
+			sprite.FrameDurations[frameIndex] = System.Math.Max(1, duration);
+			EditorUtility.SetDirty(sprite);
+			AssetChanged?.Invoke();
+			MarkDirtyRepaint();
+			return true;
 		}
 
 		private void Draw(MeshGenerationContext context)
@@ -108,7 +194,10 @@ namespace VisualPinball.Unity.Editor
 					var right = rulerLeft + trackWidth * end / maxFrame;
 					FillRect(painter,
 						new Rect(left, top + 3f, System.Math.Max(2f, right - left), RowHeight - 6f),
-						new Color(0.15f, 0.55f, 0.8f, layer.Visible ? 0.72f : 0.25f));
+						index == _selectedLayerIndex
+							? new Color(0.2f, 0.68f, 0.95f, layer.Visible ? 0.88f : 0.35f)
+							: new Color(0.15f, 0.55f, 0.8f, layer.Visible ? 0.72f : 0.25f));
+					DrawSpanHandles(painter, left, right, top);
 					DrawSpriteBoundaries(painter, layer, top, start, end, rulerLeft, trackWidth, maxFrame);
 					DrawKeyframes(painter, layer, top, rulerLeft, trackWidth, maxFrame);
 				}
@@ -121,6 +210,14 @@ namespace VisualPinball.Unity.Editor
 			painter.MoveTo(new Vector2(playheadX, 0f));
 			painter.LineTo(new Vector2(playheadX, contentRect.height));
 			painter.Stroke();
+		}
+
+		private static void DrawSpanHandles(Painter2D painter, float left, float right, float top)
+		{
+			FillRect(painter, new Rect(left - 2f, top + 3f, 4f, RowHeight - 6f),
+				new Color(0.8f, 0.92f, 1f, 0.9f));
+			FillRect(painter, new Rect(right - 2f, top + 3f, 4f, RowHeight - 6f),
+				new Color(0.8f, 0.92f, 1f, 0.9f));
 		}
 
 		private void DrawTransitionRegions(Painter2D painter, float rulerLeft, float trackWidth, int maxFrame)
@@ -233,35 +330,198 @@ namespace VisualPinball.Unity.Editor
 			if (evt.button != 0 || evt.localPosition.x < LabelWidth) {
 				return;
 			}
-			_scrubbing = true;
+			var hitFrame = FrameAt(evt.localPosition.x);
+			_dragKind = HitTest(evt.localPosition, hitFrame);
+			_dragOriginFrame = hitFrame;
+			if (_dragKind != DragKind.Scrub && _cue != null) {
+				Undo.RecordObject(_cue, DragUndoName(_dragKind));
+			}
 			this.CapturePointer(evt.pointerId);
-			Scrub(evt.localPosition.x);
+			ApplyDrag(hitFrame);
 		}
 
 		private void OnPointerMove(PointerMoveEvent evt)
 		{
-			if (_scrubbing && this.HasPointerCapture(evt.pointerId)) {
-				Scrub(evt.localPosition.x);
+			if (_dragKind != DragKind.None && this.HasPointerCapture(evt.pointerId)) {
+				ApplyDrag(FrameAt(evt.localPosition.x));
 			}
 		}
 
 		private void OnPointerUp(PointerUpEvent evt)
 		{
-			if (!_scrubbing || evt.button != 0) {
+			if (_dragKind == DragKind.None || evt.button != 0) {
 				return;
 			}
-			_scrubbing = false;
+			var edited = _dragKind != DragKind.Scrub;
+			_dragKind = DragKind.None;
 			if (this.HasPointerCapture(evt.pointerId)) {
 				this.ReleasePointer(evt.pointerId);
 			}
+			if (edited) {
+				CommitEdit();
+			}
 		}
 
-		private void Scrub(float x)
+		private int FrameAt(float x)
 		{
 			var width = System.Math.Max(1f, contentRect.width - LabelWidth - 8f);
-			var frame = Mathf.RoundToInt(Mathf.Clamp01((x - LabelWidth) / width) * MaxFrame);
-			Frame = frame;
-			FrameChanged?.Invoke(Frame);
+			return Mathf.RoundToInt(Mathf.Clamp01((x - LabelWidth) / width) * MaxFrame);
+		}
+
+		private DragKind HitTest(Vector2 position, int hitFrame)
+		{
+			_dragLayerIndex = -1;
+			_dragTrackIndex = -1;
+			_dragKeyIndex = -1;
+			if (_cue == null) {
+				return DragKind.Scrub;
+			}
+			var threshold = System.Math.Max(1, Mathf.CeilToInt(MaxFrame * 6f /
+				System.Math.Max(1f, contentRect.width - LabelWidth - 8f)));
+			if (position.y < HeaderHeight) {
+				if (System.Math.Abs(hitFrame - _cue.EnterTransition.DurationFrames) <= threshold) {
+					return DragKind.EnterTransition;
+				}
+				var exitStart = MaxFrame - _cue.ExitTransition.DurationFrames;
+				if (System.Math.Abs(hitFrame - exitStart) <= threshold) {
+					return DragKind.ExitTransition;
+				}
+				return DragKind.Scrub;
+			}
+			var layerIndex = Mathf.FloorToInt((position.y - HeaderHeight) / RowHeight);
+			if (!TryLayer(layerIndex, out var layer)) {
+				return DragKind.Scrub;
+			}
+			_dragLayerIndex = layerIndex;
+			_selectedLayerIndex = layerIndex;
+			LayerSelected?.Invoke(layerIndex);
+			if (TryHitKeyframe(layer, hitFrame, threshold, out _dragTrackIndex, out _dragKeyIndex)) {
+				return DragKind.Keyframe;
+			}
+			var start = Mathf.Clamp(layer.StartFrame, 0, MaxFrame);
+			var end = layer.EndFrame <= 0 ? MaxFrame : Mathf.Clamp(layer.EndFrame, start, MaxFrame);
+			_dragOriginStart = start;
+			_dragOriginEnd = end;
+			if (System.Math.Abs(hitFrame - start) <= threshold) return DragKind.SpanStart;
+			if (System.Math.Abs(hitFrame - end) <= threshold) return DragKind.SpanEnd;
+			return hitFrame >= start && hitFrame <= end ? DragKind.SpanMove : DragKind.Scrub;
+		}
+
+		private void ApplyDrag(int hitFrame)
+		{
+			switch (_dragKind) {
+				case DragKind.Scrub:
+					Frame = hitFrame;
+					FrameChanged?.Invoke(Frame);
+					break;
+				case DragKind.SpanStart:
+					if (TryLayer(_dragLayerIndex, out var startLayer)) {
+						startLayer.StartFrame = Mathf.Clamp(hitFrame, 0,
+							startLayer.EndFrame > 0 ? startLayer.EndFrame : MaxFrame);
+					}
+					break;
+				case DragKind.SpanEnd:
+					if (TryLayer(_dragLayerIndex, out var endLayer)) {
+						endLayer.EndFrame = Mathf.Clamp(hitFrame, endLayer.StartFrame, MaxFrame);
+					}
+					break;
+				case DragKind.SpanMove:
+					if (TryLayer(_dragLayerIndex, out var moveLayer)) {
+						var length = _dragOriginEnd - _dragOriginStart;
+						var start = Mathf.Clamp(_dragOriginStart + hitFrame - _dragOriginFrame, 0,
+							System.Math.Max(0, MaxFrame - length));
+						moveLayer.StartFrame = start;
+						moveLayer.EndFrame = start + length;
+					}
+					break;
+				case DragKind.EnterTransition:
+					var enter = _cue.EnterTransition;
+					enter.DurationFrames = ClampTransition(hitFrame, _cue.ExitTransition.DurationFrames);
+					_cue.EnterTransition = enter;
+					break;
+				case DragKind.ExitTransition:
+					var exit = _cue.ExitTransition;
+					exit.DurationFrames = ClampTransition(MaxFrame - hitFrame,
+						_cue.EnterTransition.DurationFrames);
+					_cue.ExitTransition = exit;
+					break;
+				case DragKind.Keyframe:
+					MoveKeyframe(hitFrame);
+					break;
+			}
+			if (_dragKind != DragKind.Scrub) {
+				EditorUtility.SetDirty(_cue);
+				RefreshLabels();
+				MarkDirtyRepaint();
+			}
+		}
+
+		private int ClampTransition(int duration, int otherDuration)
+		{
+			var max = DmdValidation.MaxTransitionFrames;
+			if (_cue.DurationFrames > 0 && !_cue.Loop) {
+				max = System.Math.Min(max, System.Math.Max(0, _cue.DurationFrames - otherDuration));
+			}
+			return Mathf.Clamp(duration, 0, max);
+		}
+
+		private void MoveKeyframe(int frame)
+		{
+			if (!TryLayer(_dragLayerIndex, out var layer) || layer.Tracks == null ||
+			    _dragTrackIndex < 0 || _dragTrackIndex >= layer.Tracks.Count) {
+				return;
+			}
+			var track = layer.Tracks[_dragTrackIndex];
+			if (track?.Keys == null || _dragKeyIndex < 0 || _dragKeyIndex >= track.Keys.Count) {
+				return;
+			}
+			var key = track.Keys[_dragKeyIndex];
+			key.Frame = Mathf.Clamp(frame, 0, MaxFrame);
+			track.Keys[_dragKeyIndex] = key;
+			track.Keys.Sort((left, right) => left.Frame.CompareTo(right.Frame));
+			_dragKeyIndex = track.Keys.FindIndex(candidate => candidate.Frame == key.Frame &&
+				Mathf.Approximately(candidate.Value, key.Value));
+		}
+
+		private static bool TryHitKeyframe(DmdLayer layer, int frame, int threshold, out int trackIndex,
+			out int keyIndex)
+		{
+			if (layer.Tracks != null) {
+				for (trackIndex = layer.Tracks.Count - 1; trackIndex >= 0; trackIndex--) {
+					var keys = layer.Tracks[trackIndex]?.Keys;
+					if (keys == null) continue;
+					for (keyIndex = keys.Count - 1; keyIndex >= 0; keyIndex--) {
+						if (System.Math.Abs(keys[keyIndex].Frame - frame) <= threshold) return true;
+					}
+				}
+			}
+			trackIndex = keyIndex = -1;
+			return false;
+		}
+
+		private bool TryLayer(int index, out DmdLayer layer)
+		{
+			layer = null;
+			if (_cue?.Layers == null || index < 0 || index >= _cue.Layers.Count) return false;
+			layer = _cue.Layers[index];
+			return layer != null;
+		}
+
+		private void CommitEdit()
+		{
+			EditorUtility.SetDirty(_cue);
+			RefreshLabels();
+			MarkDirtyRepaint();
+			AssetChanged?.Invoke();
+		}
+
+		private static string DragUndoName(DragKind kind)
+		{
+			return kind switch {
+				DragKind.Keyframe => "Move DMD keyframe",
+				DragKind.EnterTransition or DragKind.ExitTransition => "Set DMD transition duration",
+				_ => "Set DMD layer span"
+			};
 		}
 
 		private static void FillRect(Painter2D painter, Rect rect, Color color)
@@ -274,6 +534,18 @@ namespace VisualPinball.Unity.Editor
 			painter.LineTo(new Vector2(rect.xMin, rect.yMax));
 			painter.ClosePath();
 			painter.Fill();
+		}
+
+		private enum DragKind
+		{
+			None,
+			Scrub,
+			SpanStart,
+			SpanEnd,
+			SpanMove,
+			EnterTransition,
+			ExitTransition,
+			Keyframe,
 		}
 	}
 }

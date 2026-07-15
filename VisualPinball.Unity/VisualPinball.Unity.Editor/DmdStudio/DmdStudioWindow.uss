@@ -42,6 +42,28 @@
 	min-width: 220px;
 }
 
+#key-property {
+	width: 92px;
+}
+
+#key-value {
+	width: 64px;
+}
+
+#validation-list {
+	max-height: 180px;
+}
+
+.validation-error {
+	color: rgb(255, 125, 105);
+	white-space: normal;
+}
+
+.validation-warning {
+	color: rgb(245, 196, 85);
+	white-space: normal;
+}
+
 .status {
 	height: 22px;
 	padding-left: 8px;
