@@ -6,6 +6,8 @@
   href: threading-model.md
 - name: Nudge System
   href: nudge-system.md
+- name: DMD Studio Readiness Decisions
+  href: dmd-studio-readiness.md
 - name: Packaging
   items:
   - name: Overview

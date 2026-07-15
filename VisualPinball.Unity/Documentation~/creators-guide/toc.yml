@@ -30,6 +30,8 @@
       href: editor/lamp-manager.md
     - name: Wire Manager
       href: editor/wire-manager.md
+    - name: DMD Studio
+      href: editor/dmd-studio.md
     - name: Multiple Tables
       href: editor/multiple-tables.md
     - name: Advanced Topics

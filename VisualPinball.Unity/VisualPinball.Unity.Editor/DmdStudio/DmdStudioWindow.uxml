@@ -1,0 +1,67 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+	<ui:VisualElement class="studio-root">
+		<uie:Toolbar>
+			<uie:ObjectField name="project-field" label="Project"/>
+			<uie:ToolbarButton name="new-project" text="New"/>
+			<uie:ToolbarButton name="new-cue" text="New Cue"/>
+			<uie:ToolbarButton name="add-layer" text="Add Layer"/>
+			<uie:ToolbarSpacer/>
+			<uie:ToolbarButton name="import-sprite" text="Import Sprite"/>
+			<uie:ToolbarButton name="import-sequence" text="Import Sequence"/>
+			<ui:IntegerField name="cell-width" label="Cell W"/>
+			<ui:IntegerField name="cell-height" label="H"/>
+			<uie:ToolbarButton name="import-font" text="Import BMFont"/>
+			<uie:ToolbarButton name="starter-fonts" text="Add Starter Fonts"/>
+		</uie:Toolbar>
+
+		<ui:TwoPaneSplitView name="outer-split" fixed-pane-index="0" fixed-pane-initial-dimension="220">
+			<ui:VisualElement name="project-pane" class="pane">
+				<ui:Label text="Project" class="pane-title"/>
+				<ui:VisualElement name="project-tree-host" class="project-tree"/>
+			</ui:VisualElement>
+
+			<ui:TwoPaneSplitView name="inner-split" fixed-pane-index="1" fixed-pane-initial-dimension="300">
+				<ui:VisualElement name="preview-pane" class="preview-pane">
+					<ui:VisualElement name="canvas-host" class="canvas-host"/>
+					<uie:Toolbar name="view-toolbar">
+						<ui:DropdownField name="canvas-mode" label="View"/>
+						<ui:Toggle name="tint-toggle" label="Tint" value="true"/>
+						<ui:Toggle name="mirror-toggle" label="Mirror to scene"/>
+						<uie:ToolbarSpacer/>
+						<uie:ToolbarButton name="previous-frame" text="|◀"/>
+						<uie:ToolbarButton name="play" text="▶"/>
+						<uie:ToolbarButton name="next-frame" text="▶|"/>
+						<ui:Label name="frame-label" text="Frame 0 / 0"/>
+						<uie:ToolbarSpacer/>
+						<ui:DropdownField name="key-property"/>
+						<ui:FloatField name="key-value" value="0"/>
+						<uie:ToolbarButton name="add-key" text="Add Key"/>
+					</uie:Toolbar>
+					<ui:ScrollView name="timeline-scroll" mode="Vertical" class="timeline-scroll">
+						<ui:VisualElement name="timeline-host"/>
+					</ui:ScrollView>
+				</ui:VisualElement>
+
+				<ui:ScrollView name="inspector-scroll" class="pane inspector-pane">
+					<ui:Label name="inspector-title" text="Inspector" class="pane-title"/>
+					<ui:VisualElement name="inspector-host"/>
+					<ui:Label text="Sample State" class="section-title"/>
+					<ui:VisualElement name="sample-state-picker"/>
+					<ui:Button name="add-default-states" text="Add Default Presets"/>
+					<ui:VisualElement name="sample-state-host"/>
+					<ui:Foldout name="pixel-editor-foldout" text="Pixel / Glyph Editor">
+						<ui:VisualElement name="pixel-target-host"/>
+						<ui:VisualElement name="pixel-editor-host"/>
+					</ui:Foldout>
+					<ui:Foldout name="validation-foldout" text="Validation" value="true">
+						<ui:VisualElement name="validation-list"/>
+					</ui:Foldout>
+					<ui:Foldout name="simulator-foldout" text="Cue Simulator">
+						<ui:VisualElement name="simulator-host"/>
+					</ui:Foldout>
+				</ui:ScrollView>
+			</ui:TwoPaneSplitView>
+		</ui:TwoPaneSplitView>
+		<ui:Label name="status" text="Select or create a DMD project." class="status"/>
+	</ui:VisualElement>
+</ui:UXML>

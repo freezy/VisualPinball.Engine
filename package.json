@@ -18,6 +18,13 @@
     "com.unity.ugui": "2.5.0",
     "com.unity.test-framework": "1.7.0"
   },
+  "samples": [
+    {
+      "displayName": "DMD Studio Gamelogic Engine",
+      "description": "A custom gamelogic engine that drives DMD Studio projects through the VPE display bus.",
+      "path": "Samples~/DmdStudioGamelogicEngine"
+    }
+  ],
   "keywords": [
     "Pinball",
     "Unity"

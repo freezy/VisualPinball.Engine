@@ -1,0 +1,84 @@
+.studio-root {
+	flex-grow: 1;
+}
+
+.pane {
+	padding-left: 6px;
+	padding-right: 6px;
+	padding-top: 4px;
+	padding-bottom: 4px;
+}
+
+.pane-title {
+	-unity-font-style: bold;
+	font-size: 13px;
+	margin-bottom: 4px;
+}
+
+.section-title {
+	-unity-font-style: bold;
+	margin-top: 10px;
+	margin-bottom: 4px;
+}
+
+.project-tree {
+	flex-grow: 1;
+}
+
+.preview-pane {
+	flex-grow: 1;
+}
+
+.canvas-host {
+	flex-grow: 1;
+	min-height: 160px;
+}
+
+.timeline-scroll {
+	height: 180px;
+}
+
+.inspector-pane {
+	min-width: 220px;
+}
+
+#key-property {
+	width: 92px;
+}
+
+#key-value {
+	width: 64px;
+}
+
+#validation-list {
+	max-height: 180px;
+}
+
+.validation-error {
+	color: rgb(255, 125, 105);
+	white-space: normal;
+}
+
+.validation-warning {
+	color: rgb(245, 196, 85);
+	white-space: normal;
+}
+
+.status {
+	height: 22px;
+	padding-left: 8px;
+	padding-top: 3px;
+	border-top-width: 1px;
+	border-top-color: rgba(255, 255, 255, 0.12);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+#cell-width, #cell-height {
+	width: 92px;
+}
+
+#canvas-mode {
+	width: 150px;
+}
