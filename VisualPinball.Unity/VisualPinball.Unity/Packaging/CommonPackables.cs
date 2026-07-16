@@ -106,6 +106,7 @@ namespace VisualPinball.Unity
 		public float Elasticity;
 		public float ElasticityFalloff;
 		public float Friction;
+		public float RollingResistance;
 		public float Scatter;
 		public bool Overwrite;
 		public int AssetRef;
@@ -116,6 +117,7 @@ namespace VisualPinball.Unity
 				Elasticity = comp.PhysicsElasticity,
 				ElasticityFalloff = comp.PhysicsElasticityFalloff,
 				Friction = comp.PhysicsFriction,
+				RollingResistance = comp.PhysicsRollingResistance,
 				Scatter = comp.PhysicsScatter,
 				Overwrite = comp.PhysicsOverwrite,
 				AssetRef = files.AddAsset(comp.PhysicsMaterialReference),
@@ -128,6 +130,7 @@ namespace VisualPinball.Unity
 			comp.PhysicsElasticity = data.Elasticity;
 			comp.PhysicsElasticityFalloff = data.ElasticityFalloff;
 			comp.PhysicsFriction = data.Friction;
+			comp.PhysicsRollingResistance = data.RollingResistance;
 			comp.PhysicsScatter = data.Scatter;
 			comp.PhysicsOverwrite = data.Overwrite;
 			comp.PhysicsMaterialReference = files.GetAsset<PhysicsMaterialAsset>(data.AssetRef);

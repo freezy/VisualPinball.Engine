@@ -47,6 +47,10 @@ namespace VisualPinball.Unity
 		[Tooltip("Friction of the material.")]
 		public float Friction = 0.3f;
 
+		[Min(0f)]
+		[Tooltip("Dimensionless rolling-resistance coefficient (Crr). Affects sustained rolling, not impacts.")]
+		public float RollingResistance;
+
 		[Range(-90f, 90f)]
 		[Tooltip("When hit, add a random angle between 0 and this value to the trajectory.")]
 		public float Scatter;
@@ -111,6 +115,11 @@ namespace VisualPinball.Unity
 		public override float PhysicsFriction {
 			get => Friction;
 			set => Friction = value;
+		}
+
+		public override float PhysicsRollingResistance {
+			get => PhysicsMaterialData.SanitizeRollingResistance(RollingResistance);
+			set => RollingResistance = PhysicsMaterialData.SanitizeRollingResistance(value);
 		}
 
 		public override float PhysicsScatter {

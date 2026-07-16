@@ -68,6 +68,7 @@ namespace VisualPinball.Unity
 		float PhysicsElasticity { get; set; }
 		float PhysicsElasticityFalloff { get; set; }
 		float PhysicsFriction { get; set; }
+		float PhysicsRollingResistance { get; set; }
 		float PhysicsScatter { get; set; }
 		bool PhysicsOverwrite { get; set; }
 		PhysicsMaterialAsset PhysicsMaterialReference { get; set; }
