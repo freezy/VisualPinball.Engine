@@ -8,6 +8,7 @@ Built with Unity 6.5
 
 ### Added
 
+- Rolling resistance as a separate physics-material property for sustained ball contacts, including authoring, packaging, deterministic verification, and calibration guidance ([#363](https://github.com/freezy/VisualPinball.Engine/issues/363)).
 - Make packaging functional ([#557](https://github.com/freezy/VisualPinball.Engine/pull/557))
 - New threading model ([#552](https://github.com/freezy/VisualPinball.Engine/pull/552))
 - Free transformation ([#500](https://github.com/freezy/VisualPinball.Engine/pull/500))
@@ -67,6 +68,7 @@ Built with Unity 6.5
 - Put game-, mesh-, collision- animation data into separate components ([#227](https://github.com/freezy/VisualPinball.Engine/pull/227), [Documentation](https://docs.visualpinball.org/creators-guide/editor/unity-components.html)).
 
 ### Fixed
+- Sustained ball contact friction now uses mass- and substep-consistent Coulomb impulses while preserving impact friction behavior ([#363](https://github.com/freezy/VisualPinball.Engine/issues/363)).
 - Disappearing objects due to wrong bounding box ([#441](https://github.com/freezy/VisualPinball.Engine/pull/441)).
 - Default table import ([#434](https://github.com/freezy/VisualPinball.Engine/pull/434))
 - Remaining ball spinning issue should now be solved ([#397](https://github.com/freezy/VisualPinball.Engine/pull/397)).

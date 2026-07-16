@@ -25,10 +25,16 @@ We refer to how the material interacts with the ball during the physics simulati
 
 - **Elasticity** - The bounciness, how much the ball is thrown back when it collides.
 - **Elasticity Falloff** - Pinball tables have a lot of rubber parts, and rubber has a special attribute: it gets less bouncy when hit at higher velocity. The falloff parameter controls how much.
-- **Friction** - How much friction is applied when the ball rolls along this material.
+- **Friction** - The Coulomb coefficient that controls sliding, grip, and tangential collision and contact impulses.
+- **Rolling Resistance** - A dimensionless coefficient (`Crr`) that removes energy from sustained near-no-slip rolling without changing impact response.
 - **Scatter** - Adds a random factor to the collision angle.
 
-Physics materials are a way to group common behavior among certain objects, but contrarily to rendered materials, you can also *not* assign a physics material to an object and set each of those four parameters individually.
+Physics materials are a way to group common behavior among certain objects, but contrarily to rendered materials, you can also *not* assign a physics material to an object and set each parameter individually.
+
+Friction and rolling resistance are separate controls. Increasing friction gives the ball more grip and changes oblique contact behavior. Increasing rolling resistance slows a ball that is already rolling without slip. Rolling resistance is applied only to sustained generic surface contacts; it does not affect impacts, ball-to-ball contacts, or the specialized flipper contact solver.
+
+> [!IMPORTANT]
+> Rolling resistance defaults to zero. VPE does not recommend a nonzero preset until measurements on a physical playfield have been completed. See [Calibrating Rolling Resistance](xref:rolling-resistance-calibration) before choosing a value.
 
 > [!note]
 > In Visual Pinball, the physical parameters are part of the rendered material, so there is only one notion of material.
@@ -42,4 +48,4 @@ As mentioned above, there are two differences between Visual Pinball and VPE how
 
 When importing a `.vpx` file, VPE converts the "visual part" of Visual Pinball materials into materials for the current render pipeline. It does that by creating a new material for every material/texture combination in Visual Pinball. The materials are then written to the `Materials` asset folder of the imported table where they can be easily edited and referenced. Since Visual Pinball uses different shaders than Unity, the results of the conversion are approximations and should be heavily tweaked. 
 
-Since VPE uses the same physics engine as Visual Pinball, the physical values of the materials don't need to be converted, they are copied 1:1 into a new physics material and saved in the asset folder.
+Since VPE uses the same physics engine as Visual Pinball, the physical values that exist in Visual Pinball are copied 1:1 into a new physics material and saved in the asset folder. VPX does not contain a rolling-resistance value, so imported physics materials start with `Rolling Resistance = 0` unless the table author opts in afterward.
