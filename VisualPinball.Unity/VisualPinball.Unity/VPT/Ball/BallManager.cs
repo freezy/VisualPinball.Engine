@@ -44,6 +44,7 @@ namespace VisualPinball.Unity
 
 		public int CreateBall(IBallCreationPosition ballCreator, float radius = 25f, float mass = 1f, GameObject ballPrefab = null)
 		{
+			BallComponent.ValidatePhysicsProperties(radius, mass);
 			var localPos = ballCreator.GetBallCreationPosition().ToUnityFloat3();
 			localPos.z += radius;
 

@@ -144,29 +144,42 @@ namespace VisualPinball.Unity
 		{
 			// this should be zero, but only up to +/- PhysicsConstants.ContactVel
 			// (relative to the surface, which may be moving if the collider is kinematic)
-			var normVel = math.dot(ball.Velocity - colliderVelocity, collEvent.HitNormal);
+			var relativeNormalVelocity = math.dot(ball.Velocity - colliderVelocity, collEvent.HitNormal);
 
-			// If some collision has changed the ball's velocity, we may not have to do anything.
-			if (normVel <= PhysicsConstants.ContactVel) {
-
-				// external forces (only gravity for now)
-				var fe = gravity * ball.Mass;
-				var dot = math.dot(fe, collEvent.HitNormal);
-
-				// note: for kinematic colliders, HitOrgNormalVelocity is already relative to the
-				// surface — the narrow phase hit-tests in the collider's reference frame
-
-				// normal force is always nonnegative
-				var normalForce = math.max(0.0f, -(dot * dTime + collEvent.HitOrgNormalVelocity));
-
-				// Add just enough to kill original normal velocity and counteract the external forces.
-				ball.Velocity += collEvent.HitNormal * normalForce;
-
-				ApplyFriction(ref ball, collEvent.HitNormal, dTime, friction, gravity, colliderVelocity);
+			// Another collision can make a previously detected contact separate before it is
+			// solved. In that case neither penetration correction nor friction is needed.
+			var isClearlySeparating = relativeNormalVelocity > PhysicsConstants.ContactVel;
+			if (isClearlySeparating) {
+				return;
 			}
+
+			var supportImpulse = SolveNormalContact(ref ball, in collEvent, dTime, in gravity,
+				in colliderVelocity, relativeNormalVelocity);
+			ApplyCoulombContactImpulse(ref ball, collEvent.HitNormal, dTime, friction, supportImpulse,
+				gravity, colliderVelocity);
 		}
 
-		private static void ApplyFriction(ref BallState ball, in float3 hitNormal, float dTime, float frictionCoeff, in float3 gravity, in float3 colliderVelocity)
+		private static float SolveNormalContact(ref BallState ball, in CollisionEventData collEvent,
+			float dTime, in float3 gravity, in float3 colliderVelocity, float relativeNormalVelocity)
+		{
+			// Gravity is integrated once at the start of the physics frame, before contact
+			// detection. The stored velocity therefore already contains that acceleration;
+			// adding gravity again to the correction would apply the support impulse twice.
+			// Use the most approaching of the stored and current relative velocities so a
+			// later collision cannot leave the ball moving into the surface.
+			var approachVelocity = math.min(collEvent.HitOrgNormalVelocity, relativeNormalVelocity);
+			var correctionImpulse = ball.Mass * math.max(0f, -approachVelocity);
+			ball.Velocity += correctionImpulse * ball.InvMass * collEvent.HitNormal;
+
+			// The steady support load is independent of the transient penetration
+			// correction. Constant-velocity kinematic surfaces have the same support load
+			// as static surfaces because no surface acceleration is currently available.
+			var relativeNormalAcceleration = math.dot(gravity, collEvent.HitNormal);
+			return ball.Mass * math.max(0f, -relativeNormalAcceleration) * math.max(0f, dTime);
+		}
+
+		private static void ApplyCoulombContactImpulse(ref BallState ball, in float3 hitNormal,
+			float dTime, float frictionCoeff, float supportImpulse, in float3 gravity, in float3 colliderVelocity)
 		{
 			// surface contact point relative to center of mass
 			var surfP = -ball.Radius * hitNormal;
@@ -179,16 +192,24 @@ namespace VisualPinball.Unity
 			// calc the tangential slip velocity
 			var slip = surfVel - hitNormal * math.dot(surfVel, hitNormal);
 
-			var maxFriction = frictionCoeff * ball.Mass * -math.dot(gravity, hitNormal);
+			var maxFrictionImpulse = math.max(0f, frictionCoeff) * supportImpulse;
+			if (maxFrictionImpulse <= 0f) {
+				return;
+			}
 
 			var slipSpeed = math.length(slip);
 			float3 slipDir;
 			float numer;
 
-			var normVel = math.dot(ball.Velocity - colliderVelocity, hitNormal);
-			if (normVel <= 0.025 || slipSpeed < PhysicsConstants.Precision) {
-				// check for <=0.025 originated from ball<->rubber collisions pushing the ball upwards, but this is still not enough, some could even use <=0.2
-				// slip speed zero - static friction case
+			if (slipSpeed < PhysicsConstants.Precision) {
+				// External acceleration is integrated before contact detection. Exact no-slip
+				// therefore means an earlier contact substep already supplied the needed
+				// impulse; applying the acceleration correction again would make the result
+				// depend on how the frame was partitioned.
+				if (slipSpeed < 1e-6f) {
+					return;
+				}
+				// near-zero slip - static friction case
 
 				var surfAcc = BallState.SurfaceAcceleration(in ball, in surfP, in gravity);
 				// calc the tangential slip acceleration
@@ -200,7 +221,9 @@ namespace VisualPinball.Unity
 				}
 
 				slipDir = math.normalize(slipAcc);
-				numer = -math.dot(slipDir, surfAcc);
+				// Convert the force needed to cancel tangential acceleration into an
+				// impulse over this contact substep.
+				numer = -math.dot(slipDir, surfAcc) * dTime;
 
 			} else {
 				// nonzero slip speed - dynamic friction case
@@ -209,11 +232,14 @@ namespace VisualPinball.Unity
 			}
 
 			var cp = math.cross(surfP, slipDir);
-			var denom = 1.0f / ball.Mass + math.dot(slipDir, math.cross(cp / ball.Inertia, surfP));
-			var friction = math.clamp(numer / denom, -maxFriction, maxFriction);
+			var denom = ball.InvMass + math.dot(slipDir, math.cross(cp / ball.Inertia, surfP));
+			if (denom <= 0f || float.IsNaN(denom) || float.IsInfinity(denom)) {
+				return;
+			}
+			var frictionImpulse = math.clamp(numer / denom, -maxFrictionImpulse, maxFrictionImpulse);
 
-			if (!float.IsNaN(friction) && !float.IsInfinity(friction)) {
-				ball.ApplySurfaceImpulse(dTime * friction * cp, dTime * friction * slipDir);
+			if (!float.IsNaN(frictionImpulse) && !float.IsInfinity(frictionImpulse)) {
+				ball.ApplySurfaceImpulse(frictionImpulse * cp, frictionImpulse * slipDir);
 			}
 		}
 
