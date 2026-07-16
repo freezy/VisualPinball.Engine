@@ -32,6 +32,7 @@ namespace VisualPinball.Unity.Editor
 		SerializedProperty ElasticityOverVelocity;
 		SerializedProperty Friction;
 		SerializedProperty FrictionOverVelocity;
+		SerializedProperty RollingResistance;
 		//SerializedProperty FrictionOverAngularMomentum;
 
 		SerializedProperty ScatterAngle;
@@ -53,6 +54,7 @@ namespace VisualPinball.Unity.Editor
 			Friction = serializedObject.FindProperty(nameof(PhysicsMaterialAsset.Friction));
 			ScatterAngle = serializedObject.FindProperty(nameof(PhysicsMaterialAsset.ScatterAngle));
 			FrictionOverVelocity = serializedObject.FindProperty(nameof(PhysicsMaterialAsset.FrictionOverVelocity));
+			RollingResistance = serializedObject.FindProperty(nameof(PhysicsMaterialAsset.RollingResistance));
 			//FrictionOverAngularMomentum = serializedObject.FindProperty("FrictionOverAngularMomentum");
 		}
 
@@ -189,6 +191,10 @@ namespace VisualPinball.Unity.Editor
 			GUILayout.EndHorizontal();
 			*/
 
+			EditorGUI.indentLevel--;
+			GUILayout.Label("Rolling Resistance");
+			EditorGUI.indentLevel++;
+			EditorGUILayout.PropertyField(RollingResistance, true);
 			EditorGUI.indentLevel--;
 			EditorGUILayout.PropertyField(ScatterAngle, true);
 

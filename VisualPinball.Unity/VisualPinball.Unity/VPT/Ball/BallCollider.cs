@@ -140,33 +140,56 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public static void HandleStaticContact(ref BallState ball, in CollisionEventData collEvent, float friction, float dTime, in float3 gravity, in float3 colliderVelocity)
+		/// <returns>
+		/// The steady support impulse for this contact. Rolling resistance is
+		/// applied after all of the ball's contacts have been solved and aggregated.
+		/// </returns>
+		public static float HandleStaticContact(ref BallState ball, in CollisionEventData collEvent,
+			in PhysicsMaterialData material, float dTime, in float3 gravity, in float3 colliderVelocity)
 		{
+			if (!collEvent.IsContact) {
+				return 0f;
+			}
+
 			// this should be zero, but only up to +/- PhysicsConstants.ContactVel
 			// (relative to the surface, which may be moving if the collider is kinematic)
-			var normVel = math.dot(ball.Velocity - colliderVelocity, collEvent.HitNormal);
+			var relativeNormalVelocity = math.dot(ball.Velocity - colliderVelocity, collEvent.HitNormal);
 
-			// If some collision has changed the ball's velocity, we may not have to do anything.
-			if (normVel <= PhysicsConstants.ContactVel) {
-
-				// external forces (only gravity for now)
-				var fe = gravity * ball.Mass;
-				var dot = math.dot(fe, collEvent.HitNormal);
-
-				// note: for kinematic colliders, HitOrgNormalVelocity is already relative to the
-				// surface — the narrow phase hit-tests in the collider's reference frame
-
-				// normal force is always nonnegative
-				var normalForce = math.max(0.0f, -(dot * dTime + collEvent.HitOrgNormalVelocity));
-
-				// Add just enough to kill original normal velocity and counteract the external forces.
-				ball.Velocity += collEvent.HitNormal * normalForce;
-
-				ApplyFriction(ref ball, collEvent.HitNormal, dTime, friction, gravity, colliderVelocity);
+			// Another collision can make a previously detected contact separate before it is
+			// solved. In that case neither penetration correction nor friction is needed.
+			var isClearlySeparating = relativeNormalVelocity > PhysicsConstants.ContactVel;
+			if (isClearlySeparating) {
+				return 0f;
 			}
+
+			var supportImpulse = SolveNormalContact(ref ball, in collEvent, dTime, in gravity,
+				in colliderVelocity, relativeNormalVelocity);
+			ApplyCoulombContactImpulse(ref ball, collEvent.HitNormal, dTime, material.Friction, supportImpulse,
+				gravity, colliderVelocity);
+			return supportImpulse;
 		}
 
-		private static void ApplyFriction(ref BallState ball, in float3 hitNormal, float dTime, float frictionCoeff, in float3 gravity, in float3 colliderVelocity)
+		private static float SolveNormalContact(ref BallState ball, in CollisionEventData collEvent,
+			float dTime, in float3 gravity, in float3 colliderVelocity, float relativeNormalVelocity)
+		{
+			// Gravity is integrated once at the start of the physics frame, before contact
+			// detection. The stored velocity therefore already contains that acceleration;
+			// adding gravity again to the correction would apply the support impulse twice.
+			// Use the most approaching of the stored and current relative velocities so a
+			// later collision cannot leave the ball moving into the surface.
+			var approachVelocity = math.min(collEvent.HitOrgNormalVelocity, relativeNormalVelocity);
+			var correctionImpulse = ball.Mass * math.max(0f, -approachVelocity);
+			ball.Velocity += correctionImpulse * ball.InvMass * collEvent.HitNormal;
+
+			// The steady support load is independent of the transient penetration
+			// correction. Constant-velocity kinematic surfaces have the same support load
+			// as static surfaces because no surface acceleration is currently available.
+			var relativeNormalAcceleration = math.dot(gravity, collEvent.HitNormal);
+			return ball.Mass * math.max(0f, -relativeNormalAcceleration) * math.max(0f, dTime);
+		}
+
+		private static void ApplyCoulombContactImpulse(ref BallState ball, in float3 hitNormal,
+			float dTime, float frictionCoeff, float supportImpulse, in float3 gravity, in float3 colliderVelocity)
 		{
 			// surface contact point relative to center of mass
 			var surfP = -ball.Radius * hitNormal;
@@ -179,16 +202,24 @@ namespace VisualPinball.Unity
 			// calc the tangential slip velocity
 			var slip = surfVel - hitNormal * math.dot(surfVel, hitNormal);
 
-			var maxFriction = frictionCoeff * ball.Mass * -math.dot(gravity, hitNormal);
+			var maxFrictionImpulse = math.max(0f, frictionCoeff) * supportImpulse;
+			if (maxFrictionImpulse <= 0f) {
+				return;
+			}
 
 			var slipSpeed = math.length(slip);
 			float3 slipDir;
 			float numer;
 
-			var normVel = math.dot(ball.Velocity - colliderVelocity, hitNormal);
-			if (normVel <= 0.025 || slipSpeed < PhysicsConstants.Precision) {
-				// check for <=0.025 originated from ball<->rubber collisions pushing the ball upwards, but this is still not enough, some could even use <=0.2
-				// slip speed zero - static friction case
+			if (slipSpeed < PhysicsConstants.Precision) {
+				// External acceleration is integrated before contact detection. Exact no-slip
+				// therefore means an earlier contact substep already supplied the needed
+				// impulse; applying the acceleration correction again would make the result
+				// depend on how the frame was partitioned.
+				if (slipSpeed < 1e-6f) {
+					return;
+				}
+				// near-zero slip - static friction case
 
 				var surfAcc = BallState.SurfaceAcceleration(in ball, in surfP, in gravity);
 				// calc the tangential slip acceleration
@@ -200,7 +231,9 @@ namespace VisualPinball.Unity
 				}
 
 				slipDir = math.normalize(slipAcc);
-				numer = -math.dot(slipDir, surfAcc);
+				// Convert the force needed to cancel tangential acceleration into an
+				// impulse over this contact substep.
+				numer = -math.dot(slipDir, surfAcc) * dTime;
 
 			} else {
 				// nonzero slip speed - dynamic friction case
@@ -209,12 +242,98 @@ namespace VisualPinball.Unity
 			}
 
 			var cp = math.cross(surfP, slipDir);
-			var denom = 1.0f / ball.Mass + math.dot(slipDir, math.cross(cp / ball.Inertia, surfP));
-			var friction = math.clamp(numer / denom, -maxFriction, maxFriction);
-
-			if (!float.IsNaN(friction) && !float.IsInfinity(friction)) {
-				ball.ApplySurfaceImpulse(dTime * friction * cp, dTime * friction * slipDir);
+			var denom = ball.InvMass + math.dot(slipDir, math.cross(cp / ball.Inertia, surfP));
+			if (denom <= 0f || float.IsNaN(denom) || float.IsInfinity(denom)) {
+				return;
 			}
+			var frictionImpulse = math.clamp(numer / denom, -maxFrictionImpulse, maxFrictionImpulse);
+
+			if (!float.IsNaN(frictionImpulse) && !float.IsInfinity(frictionImpulse)) {
+				ball.ApplySurfaceImpulse(frictionImpulse * cp, frictionImpulse * slipDir);
+			}
+		}
+
+		internal static void ApplyRollingResistance(ref BallState ball, in RollingContactData contact)
+		{
+			if (!TryGetRollingState(in ball, in contact, out var tangentDirection,
+				    out var rollingAxis, out var centerSpeed, out var angularRollingSpeed,
+				    out var effectiveMass)) {
+				return;
+			}
+
+			var deltaSpeed = contact.RollingImpulseLimit / effectiveMass;
+			if (!math.isfinite(deltaSpeed) || deltaSpeed <= 0f) {
+				return;
+			}
+			deltaSpeed = math.min(deltaSpeed, math.min(centerSpeed, angularRollingSpeed));
+
+			// Rolling resistance is a coupled linear/angular impulse pair. It is
+			// not a single impulse applied at the surface contact point.
+			var deltaMomentum = -ball.Mass * deltaSpeed * tangentDirection;
+			var deltaAngularMomentum = -(ball.Inertia / ball.Radius) * deltaSpeed * rollingAxis;
+			ball.Velocity += deltaMomentum * ball.InvMass;
+			ball.AngularMomentum += deltaAngularMomentum;
+		}
+
+		internal static bool IsRollingContact(in BallState ball, in RollingContactData contact)
+		{
+			return TryGetRollingState(in ball, in contact, out _, out _, out _, out _, out _);
+		}
+
+		private static bool TryGetRollingState(in BallState ball, in RollingContactData contact,
+			out float3 tangentDirection, out float3 rollingAxis, out float centerSpeed,
+			out float angularRollingSpeed, out float effectiveMass)
+		{
+			tangentDirection = default;
+			rollingAxis = default;
+			centerSpeed = 0f;
+			angularRollingSpeed = 0f;
+			effectiveMass = 0f;
+
+			if (!contact.IsValid || !math.isfinite(ball.Mass) || !math.isfinite(ball.Radius)
+			    || !math.isfinite(ball.Inertia) || ball.Mass <= 0f || ball.Radius <= 0f || ball.Inertia <= 0f) {
+				return false;
+			}
+
+			var normalLengthSq = math.lengthsq(contact.ContactNormal);
+			if (!math.isfinite(normalLengthSq) || normalLengthSq <= 0f) {
+				return false;
+			}
+			var contactNormal = contact.ContactNormal * math.rsqrt(normalLengthSq);
+			var contactPoint = -ball.Radius * contactNormal;
+			var surfaceVelocity = BallState.SurfaceVelocity(in ball, in contactPoint) - contact.ColliderVelocity;
+			var tangentialSurfaceVelocity = surfaceVelocity
+				- contactNormal * math.dot(surfaceVelocity, contactNormal);
+			var slipSpeedSq = math.lengthsq(tangentialSurfaceVelocity);
+			if (!math.isfinite(slipSpeedSq)
+			    || slipSpeedSq > PhysicsConstants.Precision * PhysicsConstants.Precision) {
+				return false;
+			}
+
+			var centerVelocity = ball.Velocity - contact.ColliderVelocity;
+			var tangentialCenterVelocity = centerVelocity
+				- contactNormal * math.dot(centerVelocity, contactNormal);
+			centerSpeed = math.length(tangentialCenterVelocity);
+			if (!math.isfinite(centerSpeed) || centerSpeed <= 1e-6f) {
+				return false;
+			}
+			tangentDirection = tangentialCenterVelocity / centerSpeed;
+			rollingAxis = math.normalize(math.cross(contactNormal, tangentDirection));
+
+			var angularVelocity = ball.AngularMomentum / ball.Inertia;
+			var tangentialAngularVelocity = angularVelocity
+				- contactNormal * math.dot(angularVelocity, contactNormal);
+			angularRollingSpeed = math.dot(tangentialAngularVelocity, rollingAxis) * ball.Radius;
+			if (!math.isfinite(angularRollingSpeed) || angularRollingSpeed <= 0f
+			    || math.abs(angularRollingSpeed - centerSpeed) > PhysicsConstants.Precision) {
+				return false;
+			}
+
+			effectiveMass = ball.Mass + ball.Inertia / (ball.Radius * ball.Radius);
+			if (!math.isfinite(effectiveMass) || effectiveMass <= 0f) {
+				return false;
+			}
+			return true;
 		}
 
 		public static float HitTest(ref CollisionEventData collEvent, ref BallState otherBall, in BallState ball, float dTime)

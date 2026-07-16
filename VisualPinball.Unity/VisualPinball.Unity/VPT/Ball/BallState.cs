@@ -129,11 +129,11 @@ namespace VisualPinball.Unity
 			var currentAngularVelocity = ball.AngularMomentum / ball.Inertia;
 
 			// if we had any external torque, we would have to add "(deriv. of ang.Vel.) x surfP" here
-			return gravity / ball.Mass // linear acceleration
+			return gravity // linear acceleration
 				+ math.cross(currentAngularVelocity, math.cross(currentAngularVelocity, surfP)); // centripetal acceleration
 
 			/* This was  (from freezy's first implementation):
-				return gravity / ball.Mass // linear acceleration
+				return gravity // linear acceleration
 					+ math.cross(ball.angularVelocity, math.cross(ball.angularVelocity, surfP)); // centripetal acceleration
 			 * Original Code:
 				const Vertex3Ds angularvelocity = m_angularmomentum / Inertia();

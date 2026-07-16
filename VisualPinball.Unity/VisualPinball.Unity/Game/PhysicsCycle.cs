@@ -158,6 +158,7 @@ namespace VisualPinball.Unity
 						ContactPhysics.Update(ref contact, ref ball, ref state, ref state.Colliders, hitTime);
 					}
 				}
+				ContactPhysics.ApplyRollingResistance(ref _contacts, ref state);
 				PerfMarkerContacts.End();
 
 				// clear contacts

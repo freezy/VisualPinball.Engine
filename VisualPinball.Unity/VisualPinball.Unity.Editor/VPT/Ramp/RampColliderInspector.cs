@@ -35,6 +35,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _overwritePhysicsProperty;
 		private SerializedProperty _elasticityProperty;
 		private SerializedProperty _frictionProperty;
+		private SerializedProperty _rollingResistanceProperty;
 		private SerializedProperty _scatterProperty;
 
 		protected override void OnEnable()
@@ -50,6 +51,8 @@ namespace VisualPinball.Unity.Editor
 			_overwritePhysicsProperty = serializedObject.FindProperty(nameof(RampColliderComponent.OverwritePhysics));
 			_elasticityProperty = serializedObject.FindProperty(nameof(RampColliderComponent.Elasticity));
 			_frictionProperty = serializedObject.FindProperty(nameof(RampColliderComponent.Friction));
+			_rollingResistanceProperty = serializedObject.FindProperty(
+				nameof(RampColliderComponent.RollingResistance));
 			_scatterProperty = serializedObject.FindProperty(nameof(RampColliderComponent.Scatter));
 		}
 
@@ -79,6 +82,7 @@ namespace VisualPinball.Unity.Editor
 				EditorGUI.BeginDisabledGroup(!_overwritePhysicsProperty.boolValue);
 				PropertyField(_elasticityProperty);
 				PropertyField(_frictionProperty);
+				PropertyField(_rollingResistanceProperty);
 				PropertyField(_scatterProperty, "Scatter Angle");
 				EditorGUI.EndDisabledGroup();
 			}

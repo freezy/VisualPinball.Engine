@@ -27,6 +27,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _elasticityProperty;
 		private SerializedProperty _elasticityFalloffProperty;
 		private SerializedProperty _frictionProperty;
+		private SerializedProperty _rollingResistanceProperty;
 		private SerializedProperty _scatterProperty;
 		private SerializedProperty _gravityProperty;
 		private SerializedProperty _defaultScatterProperty;
@@ -40,6 +41,8 @@ namespace VisualPinball.Unity.Editor
 			_elasticityProperty = serializedObject.FindProperty(nameof(PlayfieldColliderComponent.Elasticity));
 			_elasticityFalloffProperty = serializedObject.FindProperty(nameof(PlayfieldColliderComponent.ElasticityFalloff));
 			_frictionProperty = serializedObject.FindProperty(nameof(PlayfieldColliderComponent.Friction));
+			_rollingResistanceProperty = serializedObject.FindProperty(
+				nameof(PlayfieldColliderComponent.RollingResistance));
 			_scatterProperty = serializedObject.FindProperty(nameof(PlayfieldColliderComponent.Scatter));
 			_defaultScatterProperty = serializedObject.FindProperty(nameof(PlayfieldColliderComponent.DefaultScatter));
 			_collideWithBoundsProperty = serializedObject.FindProperty(nameof(PlayfieldColliderComponent.CollideWithBounds));
@@ -57,6 +60,7 @@ namespace VisualPinball.Unity.Editor
 
 			PropertyField(_gravityProperty, "Gravity Constant");
 			PropertyField(_frictionProperty, "Playfield Friction");
+			PropertyField(_rollingResistanceProperty, "Rolling Resistance");
 			PropertyField(_elasticityProperty, "Playfield Elasticity");
 			PropertyField(_elasticityFalloffProperty, "Playfield Elasticity Falloff");
 			PropertyField(_scatterProperty, "Playfield Scatter");

@@ -74,6 +74,11 @@ namespace VisualPinball.Unity
 			set { }
 	}
 
+		public override float PhysicsRollingResistance {
+			get => 0;
+			set { }
+		}
+
 		public override float PhysicsScatter {
 			get => Scatter;
 			set => Scatter = value;

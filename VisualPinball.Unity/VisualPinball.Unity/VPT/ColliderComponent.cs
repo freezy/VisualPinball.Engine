@@ -68,6 +68,7 @@ namespace VisualPinball.Unity
 		public abstract float PhysicsElasticity { get; set; }
 		public abstract float PhysicsElasticityFalloff { get; set; }
 		public abstract float PhysicsFriction { get; set; }
+		public abstract float PhysicsRollingResistance { get; set; }
 		public abstract float PhysicsScatter { get; set; }
 		public abstract bool PhysicsOverwrite { get; set; }
 		public PhysicsMaterialAsset PhysicsMaterialReference {
@@ -110,6 +111,8 @@ namespace VisualPinball.Unity
 					Elasticity = PhysicsMaterial.Elasticity,
 					ElasticityFalloff = PhysicsMaterial.ElasticityFalloff,
 					Friction = PhysicsMaterial.Friction,
+					RollingResistance = PhysicsMaterialData.SanitizeRollingResistance(
+						PhysicsMaterial.RollingResistance),
 					ScatterAngleRad = PhysicsMaterial.ScatterAngle
 				};
 				return physicsMaterialData;
@@ -119,6 +122,7 @@ namespace VisualPinball.Unity
 				Elasticity = PhysicsElasticity,
 				ElasticityFalloff = PhysicsElasticityFalloff,
 				Friction = PhysicsFriction,
+				RollingResistance = PhysicsRollingResistance,
 				ScatterAngleRad = math.radians(PhysicsScatter)
 			};
 		}

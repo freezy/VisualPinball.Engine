@@ -16,6 +16,7 @@
 
 // ReSharper disable InconsistentNaming
 
+using System;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -31,6 +32,7 @@ namespace VisualPinball.Unity
 
 		internal BallState CreateState()
 		{
+			ValidatePhysicsProperties(Radius, Mass);
 			var pos = transform.localPosition.TranslateToVpx();
 			return new BallState {
 				Id = Id,
@@ -44,6 +46,18 @@ namespace VisualPinball.Unity
 				RingCounterOldPos = 0,
 				AngularMomentum = float3.zero
 			};
+		}
+
+		internal static void ValidatePhysicsProperties(float radius, float mass)
+		{
+			if (radius <= 0f || float.IsNaN(radius) || float.IsInfinity(radius)) {
+				throw new ArgumentOutOfRangeException(nameof(radius), radius,
+					"Ball radius must be finite and greater than zero.");
+			}
+			if (mass <= 0f || float.IsNaN(mass) || float.IsInfinity(mass)) {
+				throw new ArgumentOutOfRangeException(nameof(mass), mass,
+					"Ball mass must be finite and greater than zero.");
+			}
 		}
 
 		public void Move(BallState ball)
