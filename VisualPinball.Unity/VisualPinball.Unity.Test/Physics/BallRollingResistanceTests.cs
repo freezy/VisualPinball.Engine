@@ -130,18 +130,240 @@ namespace VisualPinball.Unity.Test
 			AssertFloat3(mixedContacts.AngularMomentum, staticOnly.AngularMomentum);
 		}
 
+		[Test]
+		public void InclineRollingIncludesRollingResistance()
+		{
+			const float angleDeg = 10f;
+			const float initialSpeed = 2f;
+			const int frames = 100;
+			Incline(angleDeg, out var normal, out var tangent);
+			var ball = CreateRollingBall(Mass, Radius, in normal, in tangent, initialSpeed,
+				float3.zero);
+			var zeroRollingBall = ball;
+			var zeroRollingMaterial = Material;
+			zeroRollingMaterial.RollingResistance = 0f;
+
+			for (var frame = 0; frame < frames; frame++) {
+				StepFrame(ref ball, in normal, in Gravity, in Material, float3.zero,
+					PhysicsConstants.PhysFactor);
+				StepFrame(ref zeroRollingBall, in normal, in Gravity, in zeroRollingMaterial,
+					float3.zero, PhysicsConstants.PhysFactor);
+			}
+
+			var angle = math.radians(angleDeg);
+			var elapsed = frames * PhysicsConstants.PhysFactor;
+			var expectedSpeed = initialSpeed + 5f / 7f * GravityMagnitude
+				* (math.sin(angle) - RollingResistance * math.cos(angle)) * elapsed;
+			Assert.That(math.dot(ball.Velocity, tangent),
+				Is.EqualTo(expectedSpeed).Within(expectedSpeed * 0.005f));
+			var expectedRollingLoss = 5f / 7f * RollingResistance * GravityMagnitude
+				* math.cos(angle) * elapsed;
+			var measuredRollingLoss = math.dot(zeroRollingBall.Velocity - ball.Velocity, tangent);
+			Assert.That(measuredRollingLoss,
+				Is.EqualTo(expectedRollingLoss).Within(expectedRollingLoss * 0.005f));
+			Assert.That(TangentialSlipSpeed(in ball, in normal, float3.zero),
+				Is.LessThanOrEqualTo(RollingTolerance));
+		}
+
+		[Test]
+		public void RollingResistanceDoesNotReverseMotion()
+		{
+			var oneStepDeceleration = 5f / 7f * RollingResistance * GravityMagnitude
+				* PhysicsConstants.PhysFactor;
+			var ball = CreateRollingBall(0.5f * oneStepDeceleration);
+
+			StepFrame(ref ball, in Material);
+
+			Assert.That(math.dot(ball.Velocity, Tangent), Is.EqualTo(0f).Within(1e-7f));
+			Assert.That(math.dot(ball.AngularMomentum, math.cross(Normal, Tangent)),
+				Is.EqualTo(0f).Within(1e-5f));
+		}
+
+		[Test]
+		public void RollingResistanceDissipatesEnergy()
+		{
+			var ball = CreateRollingBall(0.02f);
+			var previousEnergy = KineticEnergy(in ball);
+
+			for (var frame = 0; frame < 30; frame++) {
+				StepFrame(ref ball, in Material);
+				var energy = KineticEnergy(in ball);
+				Assert.That(energy, Is.LessThanOrEqualTo(previousEnergy + 1e-7f), $"frame {frame}");
+				previousEnergy = energy;
+			}
+
+			Assert.That(previousEnergy, Is.EqualTo(0f).Within(1e-7f));
+		}
+
+		[Test]
+		public void ZeroRollingResistanceIsNoOp()
+		{
+			const float angleDeg = 10f;
+			Incline(angleDeg, out var normal, out var tangent);
+			var material = Material;
+			material.RollingResistance = 0f;
+			var withRollingPath = CreateRollingBall(Mass, Radius, in normal, in tangent, 2f,
+				float3.zero);
+			var coulombOnly = withRollingPath;
+
+			BallVelocityPhysics.UpdateVelocities(ref withRollingPath, Gravity, float2.zero);
+			SolveContactAndRolling(ref withRollingPath, in normal, in Gravity, in material,
+				float3.zero, PhysicsConstants.PhysFactor);
+			BallVelocityPhysics.UpdateVelocities(ref coulombOnly, Gravity, float2.zero);
+			SolveContact(ref coulombOnly, in normal, in Gravity, in material, float3.zero,
+				PhysicsConstants.PhysFactor);
+
+			AssertFloat3(withRollingPath.Velocity, coulombOnly.Velocity, 0f);
+			AssertFloat3(withRollingPath.AngularMomentum, coulombOnly.AngularMomentum, 0f);
+		}
+
+		[Test]
+		public void RollingResistanceDoesNotAffectVerticalImpact()
+		{
+			var zeroRolling = ImpactMaterial(0f);
+			var nonzeroRolling = ImpactMaterial(0.2f);
+			var velocity = new float3(0f, 0f, -10f);
+
+			var baseline = SolveImpact(in zeroRolling, in velocity);
+			var withRollingResistance = SolveImpact(in nonzeroRolling, in velocity);
+
+			AssertFloat3(withRollingResistance.Velocity, baseline.Velocity, 0f);
+			AssertFloat3(withRollingResistance.AngularMomentum, baseline.AngularMomentum, 0f);
+		}
+
+		[Test]
+		public void RollingResistanceDoesNotAffectObliqueImpact()
+		{
+			var zeroRolling = ImpactMaterial(0f);
+			var nonzeroRolling = ImpactMaterial(0.2f);
+			var velocity = new float3(3f, 0f, -10f);
+
+			var baseline = SolveImpact(in zeroRolling, in velocity);
+			var withRollingResistance = SolveImpact(in nonzeroRolling, in velocity);
+
+			AssertFloat3(withRollingResistance.Velocity, baseline.Velocity, 0f);
+			AssertFloat3(withRollingResistance.AngularMomentum, baseline.AngularMomentum, 0f);
+		}
+
+		[Test]
+		public void RollingResistanceUsesRelativeSurfaceMotion()
+		{
+			const float relativeSpeed = 3f;
+			var colliderVelocity = 2f * Tangent;
+			var staticSurface = CreateRollingBall(relativeSpeed);
+			var movingSurface = CreateRollingBall(Mass, Radius, in Normal, in Tangent,
+				relativeSpeed, in colliderVelocity);
+
+			StepFrame(ref staticSurface, in Material);
+			StepFrame(ref movingSurface, in Normal, in Gravity, in Material,
+				in colliderVelocity, PhysicsConstants.PhysFactor);
+
+			AssertFloat3(movingSurface.Velocity - colliderVelocity, staticSurface.Velocity);
+			AssertFloat3(movingSurface.AngularMomentum, staticSurface.AngularMomentum);
+		}
+
+		[Test]
+		public void RollingResistanceIsMassInvariant()
+		{
+			const float initialSpeed = 3f;
+			const int frames = 100;
+			var reference = CreateRollingBall(initialSpeed);
+			for (var frame = 0; frame < frames; frame++) {
+				StepFrame(ref reference, in Material);
+			}
+
+			foreach (var mass in new[] { 0.5f, 2f, 5f }) {
+				var ball = CreateRollingBall(mass, Radius, in Normal, in Tangent, initialSpeed,
+					float3.zero);
+				for (var frame = 0; frame < frames; frame++) {
+					StepFrame(ref ball, in Material);
+				}
+				Assert.That(math.dot(ball.Velocity, Tangent),
+					Is.EqualTo(math.dot(reference.Velocity, Tangent)).Within(1e-5f), $"mass {mass}");
+			}
+		}
+
+		[Test]
+		public void RollingResistanceHasExpectedRadiusScaling()
+		{
+			const float initialSpeed = 3f;
+			const int frames = 100;
+			var reference = CreateRollingBall(initialSpeed);
+			for (var frame = 0; frame < frames; frame++) {
+				StepFrame(ref reference, in Material);
+			}
+
+			foreach (var radius in new[] { 10f, 50f }) {
+				var ball = CreateRollingBall(Mass, radius, in Normal, in Tangent, initialSpeed,
+					float3.zero);
+				for (var frame = 0; frame < frames; frame++) {
+					StepFrame(ref ball, in Material);
+				}
+				var rollingAxis = math.cross(Normal, Tangent);
+				var angularSpeed = math.dot(ball.AngularMomentum / ball.Inertia, rollingAxis);
+				Assert.That(math.dot(ball.Velocity, Tangent),
+					Is.EqualTo(math.dot(reference.Velocity, Tangent)).Within(1e-5f),
+					$"radius {radius}");
+				Assert.That(angularSpeed * radius,
+					Is.EqualTo(math.dot(ball.Velocity, Tangent)).Within(1e-5f),
+					$"radius {radius}");
+			}
+		}
+
+		[Test]
+		public void RollingResistanceIsSubstepInvariant()
+		{
+			var fullStep = CreateRollingBall(3f);
+			var splitStep = fullStep;
+
+			BallVelocityPhysics.UpdateVelocities(ref fullStep, Gravity, float2.zero);
+			SolveContactAndRolling(ref fullStep, in Normal, in Gravity, in Material,
+				float3.zero, PhysicsConstants.PhysFactor);
+			BallVelocityPhysics.UpdateVelocities(ref splitStep, Gravity, float2.zero);
+			SolveContactAndRolling(ref splitStep, in Normal, in Gravity, in Material,
+				float3.zero, PhysicsConstants.PhysFactor * 0.5f);
+			SolveContactAndRolling(ref splitStep, in Normal, in Gravity, in Material,
+				float3.zero, PhysicsConstants.PhysFactor * 0.5f);
+
+			AssertFloat3(splitStep.Velocity, fullStep.Velocity);
+			AssertFloat3(splitStep.AngularMomentum, fullStep.AngularMomentum);
+		}
+
 		private static void StepFrame(ref BallState ball, in PhysicsMaterialData material)
 		{
-			BallVelocityPhysics.UpdateVelocities(ref ball, Gravity, float2.zero);
+			StepFrame(ref ball, in Normal, in Gravity, in material, float3.zero,
+				PhysicsConstants.PhysFactor);
+		}
+
+		private static void StepFrame(ref BallState ball, in float3 normal, in float3 gravity,
+			in PhysicsMaterialData material, in float3 colliderVelocity, float contactTime)
+		{
+			BallVelocityPhysics.UpdateVelocities(ref ball, gravity, float2.zero);
+			SolveContactAndRolling(ref ball, in normal, in gravity, in material,
+				in colliderVelocity, contactTime);
+		}
+
+		private static void SolveContactAndRolling(ref BallState ball, in float3 normal,
+			in float3 gravity, in PhysicsMaterialData material, in float3 colliderVelocity,
+			float contactTime)
+		{
+			var supportImpulse = SolveContact(ref ball, in normal, in gravity, in material,
+				in colliderVelocity, contactTime);
+			var rollingContact = CreateContact(material.RollingResistance, supportImpulse, in normal);
+			rollingContact.ColliderVelocity = colliderVelocity;
+			BallCollider.ApplyRollingResistance(ref ball, in rollingContact);
+		}
+
+		private static float SolveContact(ref BallState ball, in float3 normal, in float3 gravity,
+			in PhysicsMaterialData material, in float3 colliderVelocity, float contactTime)
+		{
 			var collEvent = new CollisionEventData {
 				IsContact = true,
-				HitNormal = Normal,
-				HitOrgNormalVelocity = math.dot(ball.Velocity, Normal),
+				HitNormal = normal,
+				HitOrgNormalVelocity = math.dot(ball.Velocity - colliderVelocity, normal),
 			};
-			var supportImpulse = BallCollider.HandleStaticContact(ref ball, in collEvent, in material,
-				PhysicsConstants.PhysFactor, in Gravity, float3.zero);
-			var rollingContact = CreateContact(material.RollingResistance, supportImpulse, in Normal);
-			BallCollider.ApplyRollingResistance(ref ball, in rollingContact);
+			return BallCollider.HandleStaticContact(ref ball, in collEvent, in material,
+				contactTime, in gravity, in colliderVelocity);
 		}
 
 		private static void ApplySelectedContact(ref BallState ball,
@@ -177,15 +399,21 @@ namespace VisualPinball.Unity.Test
 
 		private static BallState CreateRollingBall(float speed)
 		{
+			return CreateRollingBall(Mass, Radius, in Normal, in Tangent, speed, float3.zero);
+		}
+
+		private static BallState CreateRollingBall(float mass, float radius, in float3 normal,
+			in float3 tangent, float relativeSpeed, in float3 colliderVelocity)
+		{
 			var ball = new BallState {
 				Id = 1,
-				Position = Radius * Normal,
-				Velocity = speed * Tangent,
-				Radius = Radius,
-				Mass = Mass,
+				Position = radius * normal,
+				Velocity = colliderVelocity + relativeSpeed * tangent,
+				Radius = radius,
+				Mass = mass,
 			};
-			var rollingAxis = math.normalize(math.cross(Normal, Tangent));
-			ball.AngularMomentum = ball.Inertia * speed / Radius * rollingAxis;
+			var rollingAxis = math.normalize(math.cross(normal, tangent));
+			ball.AngularMomentum = ball.Inertia * relativeSpeed / radius * rollingAxis;
 			return ball;
 		}
 
@@ -203,17 +431,63 @@ namespace VisualPinball.Unity.Test
 
 		private static float TangentialSlipSpeed(in BallState ball)
 		{
-			var contactPoint = -ball.Radius * Normal;
-			var surfaceVelocity = BallState.SurfaceVelocity(in ball, in contactPoint);
-			var tangentialSlip = surfaceVelocity - Normal * math.dot(surfaceVelocity, Normal);
+			return TangentialSlipSpeed(in ball, in Normal, float3.zero);
+		}
+
+		private static float TangentialSlipSpeed(in BallState ball, in float3 normal,
+			in float3 colliderVelocity)
+		{
+			var contactPoint = -ball.Radius * normal;
+			var surfaceVelocity = BallState.SurfaceVelocity(in ball, in contactPoint)
+				- colliderVelocity;
+			var tangentialSlip = surfaceVelocity - normal * math.dot(surfaceVelocity, normal);
 			return math.length(tangentialSlip);
 		}
 
-		private static void AssertFloat3(in float3 actual, in float3 expected)
+		private static float KineticEnergy(in BallState ball)
 		{
-			Assert.That(actual.x, Is.EqualTo(expected.x).Within(1e-6f));
-			Assert.That(actual.y, Is.EqualTo(expected.y).Within(1e-6f));
-			Assert.That(actual.z, Is.EqualTo(expected.z).Within(1e-6f));
+			var angularVelocity = ball.AngularMomentum / ball.Inertia;
+			return 0.5f * ball.Mass * math.lengthsq(ball.Velocity)
+			       + 0.5f * ball.Inertia * math.lengthsq(angularVelocity);
+		}
+
+		private static PhysicsMaterialData ImpactMaterial(float rollingResistance)
+		{
+			return new PhysicsMaterialData {
+				Elasticity = 0.8f,
+				Friction = 0.2f,
+				RollingResistance = rollingResistance,
+			};
+		}
+
+		private static BallState SolveImpact(in PhysicsMaterialData material, in float3 velocity)
+		{
+			var ball = new BallState {
+				Id = 1,
+				Position = Radius * Normal,
+				Velocity = velocity,
+				Radius = Radius,
+				Mass = Mass,
+			};
+			var collEvent = new CollisionEventData();
+			var state = new PhysicsState();
+			BallCollider.Collide3DWall(ref ball, in material, in collEvent, in Normal, ref state);
+			return ball;
+		}
+
+		private static void Incline(float angleDeg, out float3 normal, out float3 downhillTangent)
+		{
+			var angle = math.radians(angleDeg);
+			normal = new float3(math.sin(angle), 0f, math.cos(angle));
+			downhillTangent = new float3(math.cos(angle), 0f, -math.sin(angle));
+		}
+
+		private static void AssertFloat3(in float3 actual, in float3 expected,
+			float tolerance = 1e-6f)
+		{
+			Assert.That(actual.x, Is.EqualTo(expected.x).Within(tolerance));
+			Assert.That(actual.y, Is.EqualTo(expected.y).Within(tolerance));
+			Assert.That(actual.z, Is.EqualTo(expected.z).Within(tolerance));
 		}
 	}
 }
