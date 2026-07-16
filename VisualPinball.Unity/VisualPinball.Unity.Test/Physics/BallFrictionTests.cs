@@ -240,7 +240,8 @@ namespace VisualPinball.Unity.Test
 				HitNormal = normal,
 				HitOrgNormalVelocity = math.dot(ball.Velocity, normal)
 			};
-			BallCollider.HandleStaticContact(ref ball, in collEvent, Material.Friction, contactTime, in gravity, float3.zero);
+			BallCollider.HandleStaticContact(ref ball, in collEvent, in Material, contactTime,
+				in gravity, float3.zero);
 		}
 
 		private static BallState CreateBall(float mass, float radius, in float3 velocity)

@@ -49,8 +49,9 @@ namespace VisualPinball.Unity.Test
 				HitOrgNormalVelocity = -0.05f
 			};
 			var gravity = new float3(0f, 0f, -1f);
+			var material = new PhysicsMaterialData { Friction = 0.2f };
 
-			BallCollider.HandleStaticContact(ref ball, in collEvent, 0.2f,
+			BallCollider.HandleStaticContact(ref ball, in collEvent, in material,
 				PhysicsConstants.PhysFactor, in gravity, float3.zero);
 
 			AssertFloat3(ball.Velocity, initialVelocity);
