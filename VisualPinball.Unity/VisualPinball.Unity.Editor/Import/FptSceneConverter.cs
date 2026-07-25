@@ -118,12 +118,13 @@ namespace VisualPinball.Unity.Editor
 			EnsureAssetFolder(_meshAssetRoot);
 			EnsureAssetFolder(_materialAssetRoot);
 
-			_table = FuturePinballTableReader.Load(_sourcePath);
-			_manifest = FuturePinballExtractor.Extract(_sourcePath, PhysicalPath(_bundleAssetRoot), new FuturePinballExtractionOptions {
+			var extractionOptions = new FuturePinballExtractionOptions {
 				CopyOriginalTable = _options.CopyOriginalTable,
 				OverwriteChangedFiles = _options.OverwriteChangedSourceFiles,
 				LibrarySearchRoots = _options.LibrarySearchRoots ?? Array.Empty<string>()
-			});
+			};
+			_table = FuturePinballTableReader.Load(_sourcePath, extractionOptions.ReaderOptions);
+			_manifest = FuturePinballExtractor.Extract(_table, PhysicalPath(_bundleAssetRoot), extractionOptions);
 			AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
 			LoadTextures();
 

@@ -63,11 +63,25 @@ namespace VisualPinball.Engine.IO.FuturePinball
 			if (tablePath == null) throw new ArgumentNullException(nameof(tablePath));
 			if (outputDirectory == null) throw new ArgumentNullException(nameof(outputDirectory));
 			options ??= new FuturePinballExtractionOptions();
-			var sourcePath = Path.GetFullPath(tablePath);
+			return Extract(FuturePinballTableReader.Load(Path.GetFullPath(tablePath), options.ReaderOptions), outputDirectory, options);
+		}
+
+		/// <summary>
+		/// Extracts a table that has already been read, so callers that need both the parsed table
+		/// and the source bundle do not pay for a second parse and decompression pass.
+		/// </summary>
+		public static FuturePinballExtractionManifest Extract(
+			FuturePinballTable table,
+			string outputDirectory,
+			FuturePinballExtractionOptions options = null)
+		{
+			if (table == null) throw new ArgumentNullException(nameof(table));
+			if (outputDirectory == null) throw new ArgumentNullException(nameof(outputDirectory));
+			options ??= new FuturePinballExtractionOptions();
+			var sourcePath = table.SourcePath;
 			var outputRoot = Path.GetFullPath(outputDirectory);
 			Directory.CreateDirectory(outputRoot);
 
-			var table = FuturePinballTableReader.Load(sourcePath, options.ReaderOptions);
 			var issues = new List<string>(table.Issues);
 			var manifestStreams = ExtractStreams(outputRoot, table.Streams, options);
 			var libraries = LoadLibraries(sourcePath, options, issues);
