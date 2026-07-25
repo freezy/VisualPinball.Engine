@@ -163,10 +163,14 @@ namespace VisualPinball.Engine.IO.FuturePinball
 		public static FuturePinballColliderDescription FromMesh(IEnumerable<Mesh> meshes)
 		{
 			if (meshes == null) throw new ArgumentNullException(nameof(meshes));
-			var merged = new Mesh();
+			// Mesh.Merge reallocates and copies everything merged so far, so merging group by group
+			// is quadratic in total vertex count. Accumulate first and build the mesh once.
+			var vertices = new List<Vertex3DNoTex2>();
+			var indices = new List<int>();
 			foreach (var source in meshes.Where(mesh => mesh?.IsSet == true)) {
 				var world = FuturePinballCoordinateConverter.ModelMeshToWorld(source);
-				var validIndices = new List<int>();
+				var offset = vertices.Count;
+				var indexCount = indices.Count;
 				for (var i = 0; i + 2 < world.Indices.Length; i += 3) {
 					if (world.Indices[i] < 0 || world.Indices[i] >= world.Vertices.Length
 						|| world.Indices[i + 1] < 0 || world.Indices[i + 1] >= world.Vertices.Length
@@ -175,13 +179,19 @@ namespace VisualPinball.Engine.IO.FuturePinball
 					var b = world.Vertices[world.Indices[i + 1]];
 					var c = world.Vertices[world.Indices[i + 2]];
 					if (TriangleAreaSquared(a, b, c) > 1e-16f) {
-						validIndices.Add(world.Indices[i]);
-						validIndices.Add(world.Indices[i + 1]);
-						validIndices.Add(world.Indices[i + 2]);
+						indices.Add(offset + world.Indices[i]);
+						indices.Add(offset + world.Indices[i + 1]);
+						indices.Add(offset + world.Indices[i + 2]);
 					}
 				}
-				world.Indices = validIndices.ToArray();
-				if (world.Indices.Length > 0) merged.Merge(world);
+				// Merge appended every vertex of a contributing group, referenced or not.
+				if (indices.Count > indexCount) vertices.AddRange(world.Vertices);
+			}
+
+			var merged = new Mesh();
+			if (vertices.Count > 0) {
+				merged.Vertices = vertices.ToArray();
+				merged.Indices = indices.ToArray();
 			}
 			return new FuturePinballColliderDescription {
 				Kind = FuturePinballColliderKind.Mesh,
