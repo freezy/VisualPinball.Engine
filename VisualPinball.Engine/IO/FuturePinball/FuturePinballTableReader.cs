@@ -34,6 +34,8 @@ namespace VisualPinball.Engine.IO.FuturePinball
 		private const uint LightListCountTag = 0x95F5C6D2;
 		private const uint DmdFontCountTag = 0x9BFBCED2;
 
+		private const int MaximumReportedIndexGaps = 32;
+
 		public static FuturePinballTable Load(string fileName, FuturePinballReaderOptions options = null)
 		{
 			if (fileName == null) {
@@ -196,13 +198,26 @@ namespace VisualPinball.Engine.IO.FuturePinball
 					issues.Add($"{group.Key} streams contain duplicate source indices: {string.Join(", ", duplicates)}.");
 				}
 				if (indices.Length > 0) {
-					var expected = indices[0];
+					// A stream carries its own index in its name, so a malformed file can declare an
+					// arbitrarily sparse range. Report a bounded sample and a total rather than one
+					// issue per missing index, which would otherwise exhaust memory.
+					long expected = indices[0];
+					var reported = 0;
+					var missing = 0L;
 					foreach (var index in indices.Distinct()) {
-						while (expected < index) {
-							issues.Add($"{group.Key} stream index {expected} is missing.");
-							expected++;
+						var gap = index - expected;
+						if (gap > 0) {
+							var sample = (int)System.Math.Min(gap, MaximumReportedIndexGaps - reported);
+							for (var i = 0; i < sample; i++) {
+								issues.Add($"{group.Key} stream index {expected + i} is missing.");
+							}
+							reported += sample;
+							missing += gap;
 						}
-						expected = index + 1;
+						expected = (long)index + 1;
+					}
+					if (missing > reported) {
+						issues.Add($"{group.Key} streams are missing {missing} indices in total; the first {reported} are listed above.");
 					}
 				}
 			}
