@@ -79,6 +79,9 @@ namespace VisualPinball.Unity.Editor
 		private readonly Dictionary<string, string> _textureAliasSources = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 		private readonly HashSet<string> _ambiguousTextureAliases = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 		private readonly Dictionary<string, UnityMesh> _meshes = new Dictionary<string, UnityMesh>(StringComparer.Ordinal);
+		private readonly Dictionary<string, UnityMesh> _meshesByContentKey = new Dictionary<string, UnityMesh>(StringComparer.Ordinal);
+		private readonly Dictionary<LoadedModel, IReadOnlyList<FuturePinballColliderDescription>> _modelColliders =
+			new Dictionary<LoadedModel, IReadOnlyList<FuturePinballColliderDescription>>();
 		private readonly Dictionary<string, UnityMaterial> _materials = new Dictionary<string, UnityMaterial>();
 		private readonly Dictionary<string, UnityMaterial> _nativeMaterials = new Dictionary<string, UnityMaterial>(StringComparer.Ordinal);
 		private readonly HashSet<FuturePinballColliderKind> _reportedTessellatedColliderKinds = new HashSet<FuturePinballColliderKind>();
@@ -322,8 +325,8 @@ namespace VisualPinball.Unity.Editor
 						: null;
 					var usesNativeFlipperVisual = nativeFlipper != null;
 					var isSpinningDisk = _spinningDisks.TryGetValue(element, out var turntable);
-					var groups = model.Primary.CreateMeshes();
-					var worldMeshes = groups.Select(group => FuturePinballCoordinateConverter.ModelMeshToWorld(group.Mesh)).ToArray();
+					var groups = model.Groups;
+					var worldMeshes = model.WorldMeshes;
 					var modelSize = Vector3.zero;
 					var isEnvironmentScale = element.ElementType == FuturePinballElementType.Ornament
 						&& IsEnvironmentScaleOrnamentModel(worldMeshes, _nativeTable.Data, out modelSize);
@@ -481,7 +484,7 @@ namespace VisualPinball.Unity.Editor
 						}
 					}
 					var primary = assets.Variants.FirstOrDefault(variant => variant.Role == "primary_model_data")?.Model;
-					if (primary != null) result[name] = new LoadedModel(primary, source);
+					if (primary != null) result[name] = new LoadedModel(name, primary, source);
 					else _report.Warnings.Add($"Model '{name}' has no decoded primary mesh.");
 				} catch (Exception exception) {
 					_report.Warnings.Add($"Could not decode model '{name}': {exception.Message}");
@@ -492,11 +495,16 @@ namespace VisualPinball.Unity.Editor
 
 		private void CreateModelColliders(GameObject parent, FuturePinballSourceStream element, LoadedModel model)
 		{
-			var descriptions = FuturePinballColliderBuilder.FromModel(model.Source, model.Primary, new FuturePinballColliderOptions {
-				EnableAnalyticShapes = true,
-				EnablePerPolygonCollision = _options.EnablePerPolygonCollision,
-				GenerateRenderMeshFallback = _options.GenerateRenderMeshFallbackColliders
-			});
+			// Descriptions depend only on the model and the import options, and building them
+			// re-tessellates the model's meshes, so they are shared by every element using the model.
+			if (!_modelColliders.TryGetValue(model, out var descriptions)) {
+				descriptions = FuturePinballColliderBuilder.FromModel(model.Source, model.Primary, new FuturePinballColliderOptions {
+					EnableAnalyticShapes = true,
+					EnablePerPolygonCollision = _options.EnablePerPolygonCollision,
+					GenerateRenderMeshFallback = _options.GenerateRenderMeshFallbackColliders
+				});
+				_modelColliders[model] = descriptions;
+			}
 			var index = 0;
 			foreach (var description in descriptions) {
 				if (description.Status != FuturePinballColliderStatus.Generated) {
@@ -511,8 +519,14 @@ namespace VisualPinball.Unity.Editor
 				}
 				var go = Child(parent, $"VPE Collider {colliderIndex} ({description.Kind})");
 				go.transform.localPosition = new Vector3(description.Center.X, description.Center.Y, description.Center.Z);
-				var unityMesh = GetOrCreateMesh(colliderMesh,
-					$"vpe-collider-{model.Primary.SourceSha256}-{colliderIndex}-{description.Kind}");
+				// Keyed on the model resource, not on its render-mesh hash: collider shapes come from
+				// the pin-model stream, so two resources can share render geometry yet collide
+				// differently.
+				var unityMesh = GetOrCreateMesh(
+					colliderMesh,
+					$"vpe-collider-{model.Primary.SourceSha256}-{colliderIndex}-{description.Kind}",
+					$"vpe-collider-{model.Name}-{colliderIndex}-{description.Kind}"
+				);
 				AddVpePrimitiveCollider(go, unityMesh, description.GenerateHitEvent, false);
 				if (FuturePinballColliderMeshBuilder.IsTessellatedApproximation(description.Kind)
 					&& _reportedTessellatedColliderKinds.Add(description.Kind)) {
@@ -537,7 +551,11 @@ namespace VisualPinball.Unity.Editor
 		{
 			if (mesh?.IsSet != true || mesh.Vertices.Length == 0 || mesh.Indices.Length == 0) return;
 			var go = Child(parent, $"{SafeName(mesh.Name ?? "Mesh")} {part}");
-			var unityMesh = GetOrCreateMesh(mesh, meshAssetKey ?? $"{source.SourceIndex:D5}-{SafeName(ElementName(source))}-{part}");
+			var unityMesh = GetOrCreateMesh(
+				mesh,
+				meshAssetKey ?? $"{source.SourceIndex:D5}-{SafeName(ElementName(source))}-{part}",
+				meshAssetKey
+			);
 			go.AddComponent<MeshFilter>().sharedMesh = unityMesh;
 			go.AddComponent<MeshRenderer>().sharedMaterial = GetOrCreateMaterial(material);
 			if (_options.GenerateColliders && procedural && collidable) {
@@ -560,7 +578,21 @@ namespace VisualPinball.Unity.Editor
 			collider.enabled = true;
 		}
 
-		private UnityMesh GetOrCreateMesh(EngineMesh source, string assetName)
+		/// <summary>
+		/// Hashing a mesh costs roughly 250 ms per 200k vertices, and the hash is part of the asset
+		/// path, so it cannot be skipped by the path cache alone. Callers that already hold a key
+		/// identifying the content - model groups and the colliders derived from them, which repeat
+		/// across every element referencing the same model - pass it as <paramref name="contentKey"/>.
+		/// </summary>
+		private UnityMesh GetOrCreateMesh(EngineMesh source, string assetName, string contentKey = null)
+		{
+			if (contentKey != null && _meshesByContentKey.TryGetValue(contentKey, out var known)) return known;
+			var mesh = GetOrCreateMeshAsset(source, assetName);
+			if (contentKey != null) _meshesByContentKey[contentKey] = mesh;
+			return mesh;
+		}
+
+		private UnityMesh GetOrCreateMeshAsset(EngineMesh source, string assetName)
 		{
 			var path = $"{_meshAssetRoot}/{SafeName(assetName)}-{MeshHash(source).Substring(0, 16)}.asset";
 			if (_meshes.TryGetValue(path, out var cached)) return cached;
@@ -1072,11 +1104,32 @@ namespace VisualPinball.Unity.Editor
 
 		private sealed class LoadedModel
 		{
+			/// <summary>
+			/// Logical model name, unique per imported model resource. Identifies the collision
+			/// source, which <see cref="MilkShapeModel.SourceSha256"/> does not.
+			/// </summary>
+			public string Name { get; }
+
 			public MilkShapeModel Primary { get; }
 			public FuturePinballSourceStream Source { get; }
 
-			public LoadedModel(MilkShapeModel primary, FuturePinballSourceStream source)
+			/// <summary>
+			/// Built once per model rather than once per element: a table typically instantiates the
+			/// same model many times, and both the group meshes and their world transform are
+			/// deterministic. Consumers only read them.
+			/// </summary>
+			public IReadOnlyList<MilkShapeGroupMesh> Groups => _groups ??= Primary.CreateMeshes();
+
+			public EngineMesh[] WorldMeshes => _worldMeshes ??= Groups
+				.Select(group => FuturePinballCoordinateConverter.ModelMeshToWorld(group.Mesh))
+				.ToArray();
+
+			private IReadOnlyList<MilkShapeGroupMesh> _groups;
+			private EngineMesh[] _worldMeshes;
+
+			public LoadedModel(string name, MilkShapeModel primary, FuturePinballSourceStream source)
 			{
+				Name = name;
 				Primary = primary;
 				Source = source;
 			}
