@@ -310,7 +310,7 @@ namespace VisualPinball.Engine.IO.FuturePinball
 
 		private static float ReadSingle(ReadOnlySpan<byte> data)
 		{
-			return BitConverter.ToSingle(data.Slice(0, 4).ToArray(), 0);
+			return BitConverter.Int32BitsToSingle(ReadInt32(data));
 		}
 	}
 

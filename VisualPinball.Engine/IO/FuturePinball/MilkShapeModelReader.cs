@@ -93,25 +93,30 @@ namespace VisualPinball.Engine.IO.FuturePinball
 				: Groups;
 			var meshes = new List<MilkShapeGroupMesh>(groups.Count);
 			foreach (var group in groups) {
-				var vertices = new List<Vertex3DNoTex2>(group.TriangleIndices.Length * 3);
-				var indices = new List<int>(group.TriangleIndices.Length * 3);
+				// Every triangle contributes exactly three unshared vertices, so the size is known
+				// up front and the arrays can be filled directly.
+				var count = group.TriangleIndices.Length * 3;
+				var vertices = new Vertex3DNoTex2[count];
+				var indices = new int[count];
+				var next = 0;
 				foreach (var triangleIndex in group.TriangleIndices) {
 					var triangle = Triangles[triangleIndex];
 					for (var corner = 0; corner < 3; corner++) {
 						var position = Vertices[triangle.VertexIndices[corner]];
-						indices.Add(vertices.Count);
-						vertices.Add(new Vertex3DNoTex2(
+						indices[next] = next;
+						vertices[next] = new Vertex3DNoTex2(
 							position.X, position.Y, position.Z,
 							triangle.Normals[corner, 0], triangle.Normals[corner, 1], triangle.Normals[corner, 2],
 							triangle.U[corner], triangle.V[corner]
-						));
+						);
+						next++;
 					}
 				}
 				var name = string.IsNullOrWhiteSpace(group.Name) ? "mesh" : group.Name;
 				meshes.Add(new MilkShapeGroupMesh {
 					Name = name,
 					MaterialIndex = group.MaterialIndex,
-					Mesh = new Mesh(vertices.ToArray(), indices.ToArray()) { Name = name }
+					Mesh = new Mesh(vertices, indices) { Name = name }
 				});
 			}
 			return meshes;
@@ -138,7 +143,8 @@ namespace VisualPinball.Engine.IO.FuturePinball
 		{
 			var hash = Sha256(data);
 			if (_models.TryGetValue(hash, out var model)) return model;
-			model = MilkShapeModelReader.Parse(data, sourceName);
+			// Handed to the reader so the same bytes are not hashed twice on a cache miss.
+			model = MilkShapeModelReader.Parse(data, sourceName, hash);
 			_models[hash] = model;
 			return model;
 		}
@@ -182,7 +188,10 @@ namespace VisualPinball.Engine.IO.FuturePinball
 	{
 		private const string Signature = "MS3D000000";
 
-		public static MilkShapeModel Parse(byte[] data, string sourceName = null)
+		/// <param name="sourceSha256">
+		/// Precomputed hash of <paramref name="data"/>, if the caller already has one.
+		/// </param>
+		public static MilkShapeModel Parse(byte[] data, string sourceName = null, string sourceSha256 = null)
 		{
 			if (data == null) throw new ArgumentNullException(nameof(data));
 			try {
@@ -204,7 +213,7 @@ namespace VisualPinball.Engine.IO.FuturePinball
 					var trailing = reader.ReadBytes((int)(stream.Length - stream.Position));
 					return new MilkShapeModel {
 						Version = version,
-						SourceSha256 = Sha256(data),
+						SourceSha256 = sourceSha256 ?? Sha256(data),
 						Vertices = vertices,
 						Triangles = triangles,
 						Groups = groups,
@@ -249,7 +258,10 @@ namespace VisualPinball.Engine.IO.FuturePinball
 					U = new float[3],
 					V = new float[3]
 				};
-				if (triangle.VertexIndices.Any(index => index >= vertexCount)) {
+				// Checked without a predicate: the closure would be allocated once per triangle.
+				if (triangle.VertexIndices[0] >= vertexCount
+					|| triangle.VertexIndices[1] >= vertexCount
+					|| triangle.VertexIndices[2] >= vertexCount) {
 					throw Error($"Triangle {i} references a vertex outside 0..{vertexCount - 1}", sourceName, reader.BaseStream.Position - 6);
 				}
 				for (var corner = 0; corner < 3; corner++)
