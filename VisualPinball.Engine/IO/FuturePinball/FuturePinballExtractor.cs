@@ -563,7 +563,12 @@ namespace VisualPinball.Engine.IO.FuturePinball
 				// comparison is vectorized, unlike the enumerator-based LINQ SequenceEqual.
 				if (existing.Length == data.Length
 					&& new ReadOnlySpan<byte>(File.ReadAllBytes(path)).SequenceEqual(data)) return;
-				if (!options.OverwriteChangedFiles) throw new IOException($"Extraction target already exists with different content: {path}");
+				if (!options.OverwriteChangedFiles) {
+					throw new IOException(
+						$"'{relativePath}' already exists in the source bundle with different content. "
+						+ "Enable overwriting of changed source files to re-extract this table, or extract it to another directory."
+					);
+				}
 			}
 			File.WriteAllBytes(path, data);
 		}

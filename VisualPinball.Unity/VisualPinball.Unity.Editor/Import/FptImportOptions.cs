@@ -24,7 +24,13 @@ namespace VisualPinball.Unity.Editor
 		public string AssetRoot = "Assets/Tables";
 		public string[] LibrarySearchRoots = Array.Empty<string>();
 		public bool CopyOriginalTable = true;
-		public bool OverwriteChangedSourceFiles;
+
+		/// <summary>
+		/// The source bundle mirrors the table it was extracted from, so re-importing an edited
+		/// table is expected to replace it. Turning this off makes any differing file abort the
+		/// import part-way through, leaving the bundle half updated.
+		/// </summary>
+		public bool OverwriteChangedSourceFiles = true;
 		public bool ReuseGeneratedAssets = true;
 		public bool ReplaceExistingSceneRoot = true;
 		public bool ImportPrimaryModels = true;
