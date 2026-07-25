@@ -339,21 +339,37 @@ namespace VisualPinball.Engine.IO.FuturePinball
 			IReadOnlyList<FuturePinballSourceStream> streams,
 			IEnumerable<FuturePinballManifestResource> resources)
 		{
+			// Indexing every referenced name once keeps this linear in records; scanning all streams
+			// per resource is quadratic and dominates extraction on tables with many resources.
+			var referrers = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+			foreach (var stream in streams) {
+				foreach (var record in stream.Records) {
+					switch (record.Value) {
+						case string text:
+							Track(referrers, text, stream.Name);
+							break;
+						case IReadOnlyList<string> list:
+							foreach (var item in list) Track(referrers, item, stream.Name);
+							break;
+					}
+				}
+			}
+
 			foreach (var resource in resources) {
 				if (string.IsNullOrEmpty(resource.LogicalName)) continue;
-				resource.Referrers = streams.Where(stream => stream.Records.Any(record => References(record.Value, resource.LogicalName)))
-					.Select(stream => stream.Name)
-					.Distinct(StringComparer.OrdinalIgnoreCase)
-					.OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
-					.ToArray();
+				resource.Referrers = referrers.TryGetValue(resource.LogicalName, out var names)
+					? names.OrderBy(name => name, StringComparer.OrdinalIgnoreCase).ToArray()
+					: Array.Empty<string>();
 			}
 		}
 
-		private static bool References(object value, string logicalName)
+		private static void Track(IDictionary<string, HashSet<string>> referrers, string value, string streamName)
 		{
-			if (value is string text) return text.Equals(logicalName, StringComparison.OrdinalIgnoreCase);
-			if (value is IReadOnlyList<string> list) return list.Any(item => item.Equals(logicalName, StringComparison.OrdinalIgnoreCase));
-			return false;
+			if (string.IsNullOrEmpty(value)) return;
+			if (!referrers.TryGetValue(value, out var names)) {
+				referrers[value] = names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+			}
+			names.Add(streamName);
 		}
 
 		private static IReadOnlyList<FuturePinballLibrary> LoadLibraries(
