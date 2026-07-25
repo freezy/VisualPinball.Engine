@@ -135,22 +135,32 @@ namespace VisualPinball.Unity.Editor
 			var existing = _options.ReplaceExistingSceneRoot ? GameObject.Find(rootName) : null;
 			try {
 				root = new GameObject(rootName);
-				var playfield = CreateVpeHierarchy(root);
-				var rootSource = root.AddComponent<FuturePinballSourceComponent>();
-				rootSource.SourceFile = Path.GetFileName(_sourcePath);
-				rootSource.SourceHash = _manifest.SourceSha256;
-				rootSource.ImportOutcome = "lossless-source-bundle-and-vpe-native-scene";
+				try {
+					// Scene construction creates one mesh and material asset at a time; importing
+					// each of them separately is far more expensive than importing them as a batch.
+					AssetDatabase.StartAssetEditing();
 
-				var proceduralRoot = Child(playfield, "Procedural Geometry");
-				var nativeRoot = Child(playfield, "Native Elements");
-				var modelRoot = Child(playfield, "Model Instances");
-				var placeholderRoot = Child(playfield, "Preserved Placeholders");
-				var handled = new HashSet<FuturePinballSourceStream>();
-				CreateNativeElements(nativeRoot, handled);
-				CreateProceduralElements(proceduralRoot, handled);
-				CreateModelInstances(modelRoot, handled);
-				CreatePlaceholders(placeholderRoot, handled);
-				PersistNativeElements();
+					var playfield = CreateVpeHierarchy(root);
+					var rootSource = root.AddComponent<FuturePinballSourceComponent>();
+					rootSource.SourceFile = Path.GetFileName(_sourcePath);
+					rootSource.SourceHash = _manifest.SourceSha256;
+					rootSource.ImportOutcome = "lossless-source-bundle-and-vpe-native-scene";
+
+					var proceduralRoot = Child(playfield, "Procedural Geometry");
+					var nativeRoot = Child(playfield, "Native Elements");
+					var modelRoot = Child(playfield, "Model Instances");
+					var placeholderRoot = Child(playfield, "Preserved Placeholders");
+					var handled = new HashSet<FuturePinballSourceStream>();
+					CreateNativeElements(nativeRoot, handled);
+					CreateProceduralElements(proceduralRoot, handled);
+					CreateModelInstances(modelRoot, handled);
+					CreatePlaceholders(placeholderRoot, handled);
+					PersistNativeElements();
+
+				} finally {
+					AssetDatabase.StopAssetEditing();
+					AssetDatabase.Refresh();
+				}
 
 				_report.SourceFile = Path.GetFileName(_sourcePath);
 				_report.SourceSha256 = _manifest.SourceSha256;
