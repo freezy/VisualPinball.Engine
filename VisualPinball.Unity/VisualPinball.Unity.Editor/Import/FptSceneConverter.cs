@@ -71,6 +71,10 @@ namespace VisualPinball.Unity.Editor
 		private const uint SlopeTag = 0x9AF5BFD1;
 		private const uint PlayfieldTextureTag = 0xA2F4C9D5;
 
+		// Both are consulted once per generated asset, so neither is rebuilt per call.
+		private static readonly string[] BaseTextureProperties = { "_BaseColorMap", "_BaseMap", "_MainTex" };
+		private static readonly HashSet<char> InvalidFileNameCharacters = new HashSet<char>("<>:\"/\\|?*");
+
 		private readonly string _sourcePath;
 		private readonly string _tableName;
 		private readonly FptImportOptions _options;
@@ -201,11 +205,10 @@ namespace VisualPinball.Unity.Editor
 				if (supportHeight != 0f) {
 					prefab.GameObject.transform.localPosition += Vector3.up * FuturePinballCoordinateConverter.ToWorld(0f, 0f, supportHeight).Y;
 				}
-				var nativeColliders = prefab.GameObject.GetComponentsInChildren<MonoBehaviour>(true)
-					.Where(component => component is ICollidableComponent).ToArray();
-				foreach (var nativeCollider in nativeColliders) {
-					if (!_options.GenerateColliders) nativeCollider.enabled = false;
-					else if (nativeCollider.enabled) _report.Colliders++;
+				foreach (var nativeCollider in prefab.GameObject.GetComponentsInChildren<ICollidableComponent>(true)) {
+					if (!(nativeCollider is MonoBehaviour behaviour)) continue;
+					if (!_options.GenerateColliders) behaviour.enabled = false;
+					else if (behaviour.enabled) _report.Colliders++;
 				}
 				AddSource(prefab.GameObject, element, "native-vpe-counterpart");
 				_nativeObjects[element] = prefab.GameObject;
@@ -414,10 +417,14 @@ namespace VisualPinball.Unity.Editor
 			component.RotationTarget = visual.transform;
 			var radiusSquared = 0f;
 			// FP spinning-disk primary models are treated as the playable disc; auxiliary geometry can overestimate this radius.
+			var worldToVisual = visual.transform.worldToLocalMatrix;
 			foreach (var filter in visual.GetComponentsInChildren<MeshFilter>(true)) {
-				if (filter.sharedMesh == null) continue;
-				foreach (var vertex in filter.sharedMesh.vertices) {
-					var local = visual.transform.InverseTransformPoint(filter.transform.TransformPoint(vertex));
+				var mesh = filter.sharedMesh;
+				if (mesh == null) continue;
+				// Composed once per mesh rather than resolving both transforms for every vertex.
+				var meshToVisual = worldToVisual * filter.transform.localToWorldMatrix;
+				foreach (var vertex in mesh.vertices) {
+					var local = meshToVisual.MultiplyPoint3x4(vertex);
 					radiusSquared = Mathf.Max(radiusSquared, local.x * local.x + local.z * local.z);
 				}
 			}
@@ -638,7 +645,8 @@ namespace VisualPinball.Unity.Editor
 			}
 			if (existing != null) AssetDatabase.DeleteAsset(path);
 
-			var pbr = new PbrMaterial(source.ToVpeMaterial(), id: hash);
+			var vpeMaterial = source.ToVpeMaterial();
+			var pbr = new PbrMaterial(vpeMaterial, id: hash);
 			var material = RenderPipeline.Current?.MaterialConverter?.CreateMaterial(pbr, null)
 				?? new UnityMaterial(Shader.Find("Standard"));
 			material.name = source.Name;
@@ -651,7 +659,7 @@ namespace VisualPinball.Unity.Editor
 				SetFloat(material, "_Cull", 0f);
 			}
 			if (source.IsEmissive) {
-				var color = source.ToVpeMaterial().BaseColor.ToUnityColor();
+				var color = vpeMaterial.BaseColor.ToUnityColor();
 				if (material.HasProperty("_EmissiveColor")) material.SetColor("_EmissiveColor", color);
 				if (material.HasProperty("_EmissionColor")) material.SetColor("_EmissionColor", color);
 				material.EnableKeyword("_EMISSION");
@@ -993,9 +1001,14 @@ namespace VisualPinball.Unity.Editor
 			return !string.IsNullOrWhiteSpace(name) && TryGetTexture(name, out var texture) ? texture : null;
 		}
 
-		public bool HasMaterial(PbrMaterial material)
+		// The public provider methods derive the key once and hand it to the private overloads;
+		// deriving it is a SHA-256, and GetMaterial used to recompute it up to three times a call.
+		public bool HasMaterial(PbrMaterial material) => HasNativeMaterial(NativeMaterialKey(material));
+
+		public void SaveMaterial(PbrMaterial source, UnityMaterial material) => SaveMaterial(NativeMaterialKey(source), material);
+
+		private bool HasNativeMaterial(string key)
 		{
-			var key = NativeMaterialKey(material);
 			if (_nativeMaterials.ContainsKey(key)) return true;
 			if (!_options.ReuseGeneratedAssets) return false;
 			var existing = AssetDatabase.LoadAssetAtPath<UnityMaterial>(NativeMaterialPath(key));
@@ -1005,9 +1018,8 @@ namespace VisualPinball.Unity.Editor
 			return true;
 		}
 
-		public void SaveMaterial(PbrMaterial source, UnityMaterial material)
+		private void SaveMaterial(string key, UnityMaterial material)
 		{
-			var key = NativeMaterialKey(source);
 			var path = NativeMaterialPath(key);
 			var existing = AssetDatabase.LoadAssetAtPath<UnityMaterial>(path);
 			if (existing != null && _options.ReuseGeneratedAssets) {
@@ -1026,11 +1038,12 @@ namespace VisualPinball.Unity.Editor
 
 		public UnityMaterial GetMaterial(PbrMaterial material)
 		{
-			if (HasMaterial(material)) return _nativeMaterials[NativeMaterialKey(material)];
+			var key = NativeMaterialKey(material);
+			if (HasNativeMaterial(key)) return _nativeMaterials[key];
 			var unityMaterial = RenderPipeline.Current?.MaterialConverter?.CreateMaterial(material ?? new PbrMaterial(), this)
 				?? new UnityMaterial(Shader.Find("Standard"));
-			SaveMaterial(material, unityMaterial);
-			return _nativeMaterials[NativeMaterialKey(material)];
+			SaveMaterial(key, unityMaterial);
+			return _nativeMaterials[key];
 		}
 
 		public PhysicsMaterialAsset GetPhysicsMaterial(string name) => null;
@@ -1039,11 +1052,12 @@ namespace VisualPinball.Unity.Editor
 		{
 			if (textureMaterial == null) return GetMaterial(new PbrMaterial(id: vpxMaterial));
 			var source = new PbrMaterial(id: string.IsNullOrWhiteSpace(vpxMaterial) ? PbrMaterial.NameNoMaterial : vpxMaterial);
-			if (HasMaterial(source)) return _nativeMaterials[NativeMaterialKey(source)];
+			var key = NativeMaterialKey(source);
+			if (HasNativeMaterial(key)) return _nativeMaterials[key];
 			var merged = RenderPipeline.Current?.MaterialConverter?.MergeMaterials(source, textureMaterial)
 				?? new UnityMaterial(textureMaterial);
-			SaveMaterial(source, merged);
-			return _nativeMaterials[NativeMaterialKey(source)];
+			SaveMaterial(key, merged);
+			return _nativeMaterials[key];
 		}
 
 		private static string NativeMaterialKey(PbrMaterial material)
@@ -1055,7 +1069,7 @@ namespace VisualPinball.Unity.Editor
 
 		private static void SetTexture(UnityMaterial material, UnityEngine.Texture texture)
 		{
-			foreach (var property in new[] { "_BaseColorMap", "_BaseMap", "_MainTex" }) {
+			foreach (var property in BaseTextureProperties) {
 				if (material.HasProperty(property)) material.SetTexture(property, texture);
 			}
 		}
@@ -1085,8 +1099,11 @@ namespace VisualPinball.Unity.Editor
 		private static string SafeName(string value)
 		{
 			if (string.IsNullOrWhiteSpace(value)) return "unnamed";
-			var invalid = new HashSet<char>("<>:\"/\\|?*");
-			var result = new string(value.Select(character => character < 0x20 || invalid.Contains(character) ? '_' : character).ToArray()).Trim().TrimEnd('.', ' ');
+			var characters = new char[value.Length];
+			for (var i = 0; i < value.Length; i++) {
+				characters[i] = value[i] < 0x20 || InvalidFileNameCharacters.Contains(value[i]) ? '_' : value[i];
+			}
+			var result = new string(characters).Trim().TrimEnd('.', ' ');
 			return string.IsNullOrEmpty(result) ? "unnamed" : result.Length > 80 ? result.Substring(0, 80) : result;
 		}
 
