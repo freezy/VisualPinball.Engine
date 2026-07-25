@@ -1,4 +1,4 @@
-// Visual Pinball Engine
+﻿// Visual Pinball Engine
 // Copyright (C) 2026 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -84,7 +84,9 @@ namespace VisualPinball.Engine.IO.FuturePinball
 
 			var issues = new List<string>(table.Issues);
 			var manifestStreams = ExtractStreams(outputRoot, table.Streams, options);
-			var libraries = LoadLibraries(sourcePath, options, issues);
+			// Loaded on first use: every adjacent .fpl is read and fully decompressed, which is
+			// wasted work for the common case of a table with no unresolved linked resource.
+			var libraries = new Lazy<IReadOnlyList<FuturePinballLibrary>>(() => LoadLibraries(sourcePath, options, issues));
 			var resources = new List<FuturePinballManifestResource>();
 			resources.AddRange(ExtractResources(outputRoot, table.Images, "images", libraries, options, issues));
 			resources.AddRange(ExtractResources(outputRoot, table.Sounds, "sounds", libraries, options, issues));
@@ -189,7 +191,7 @@ namespace VisualPinball.Engine.IO.FuturePinball
 			string outputRoot,
 			IEnumerable<FuturePinballSourceStream> streams,
 			string category,
-			IReadOnlyList<FuturePinballLibrary> libraries,
+			Lazy<IReadOnlyList<FuturePinballLibrary>> libraries,
 			FuturePinballExtractionOptions options,
 			ICollection<string> issues)
 		{
@@ -201,7 +203,7 @@ namespace VisualPinball.Engine.IO.FuturePinball
 				FuturePinballLibrary library = null;
 				FuturePinballLibraryEntry entry = null;
 				if (data == null && linked) {
-					FindLibraryResource(libraries, logicalName, linkedPath, out library, out entry);
+					FindLibraryResource(libraries.Value, logicalName, linkedPath, out library, out entry);
 					data = entry?.Data?.DecodedBytes;
 				}
 
@@ -237,7 +239,7 @@ namespace VisualPinball.Engine.IO.FuturePinball
 		private static IEnumerable<FuturePinballManifestResource> ExtractPinModels(
 			string outputRoot,
 			IEnumerable<FuturePinballSourceStream> streams,
-			IReadOnlyList<FuturePinballLibrary> libraries,
+			Lazy<IReadOnlyList<FuturePinballLibrary>> libraries,
 			FuturePinballExtractionOptions options,
 			ICollection<string> issues)
 		{
@@ -259,7 +261,7 @@ namespace VisualPinball.Engine.IO.FuturePinball
 				FuturePinballLibraryEntry entry = null;
 				string detectedFormat = files.Count == 0 ? null : Path.GetExtension(files[0].Path).TrimStart('.');
 				if (files.Count == 0 && linked) {
-					FindLibraryResource(libraries, logicalName, linkedPath, out library, out entry);
+					FindLibraryResource(libraries.Value, logicalName, linkedPath, out library, out entry);
 					var data = entry?.Data?.DecodedBytes;
 					if (data != null) {
 						var format = DetectFormat(data, null, linkedPath);
