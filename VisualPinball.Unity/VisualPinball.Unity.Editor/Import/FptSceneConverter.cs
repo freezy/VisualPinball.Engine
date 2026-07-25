@@ -875,7 +875,7 @@ namespace VisualPinball.Unity.Editor
 				height = FuturePinballElementGeometry.Float(candidate, SurfaceTopHeightTag);
 				return true;
 			}
-			height = FuturePinballElementGeometry.Float(candidate, HeightTag);
+			height = FuturePinballElementGeometry.Millimeters(candidate, HeightTag);
 			var parentSurface = FuturePinballElementGeometry.Text(candidate, SurfaceTag);
 			if (string.IsNullOrWhiteSpace(parentSurface)) return true;
 			if (!TryResolveSurfaceHeight(parentSurface, position, placedElement, resolving, out var parentHeight)) {
@@ -919,7 +919,7 @@ namespace VisualPinball.Unity.Editor
 				worldRotation = default;
 				return false;
 			}
-			height += FuturePinballElementGeometry.Integer(element, HeightTag);
+			height += FuturePinballElementGeometry.Millimeters(element, HeightTag);
 			var world = FuturePinballCoordinateConverter.ToWorld(position.X, position.Y, height);
 			worldPosition = new Vector3(world.X, world.Y, world.Z);
 			// FPM meshes use model Y as up, unlike table records where Z is height. This basis correction is

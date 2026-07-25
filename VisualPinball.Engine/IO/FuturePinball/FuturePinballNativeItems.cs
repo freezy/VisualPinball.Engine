@@ -157,7 +157,9 @@ namespace VisualPinball.Engine.IO.FuturePinball
 			if (points.Length < 3) return null;
 			var isGuideWall = element.ElementType == FuturePinballElementType.GuideWall;
 			return new Surface(new SurfaceData(Name(element), points) {
-				HeightTop = ToVpx(FuturePinballElementGeometry.Float(element, isGuideWall ? HeightTag : TopHeightTag)),
+				HeightTop = ToVpx(isGuideWall
+					? FuturePinballElementGeometry.Millimeters(element, HeightTag)
+					: FuturePinballElementGeometry.Float(element, TopHeightTag)),
 				HeightBottom = isGuideWall ? 0f : ToVpx(FuturePinballElementGeometry.Float(element, BottomHeightTag)),
 				IsCollidable = FuturePinballElementGeometry.Integer(element, CollidableTag, 1) != 0,
 				IsTopBottomVisible = FuturePinballElementGeometry.Integer(element, RenderObjectTag, 1) != 0,
@@ -207,7 +209,7 @@ namespace VisualPinball.Engine.IO.FuturePinball
 		{
 			var points = DragPoints(element);
 			if (points.Length < 2) return null;
-			var height = ToVpx(FuturePinballElementGeometry.Integer(element, HeightTag, 25));
+			var height = ToVpx(FuturePinballElementGeometry.Millimeters(element, HeightTag, 25f));
 			return new MetalWireGuide(new MetalWireGuideData(Name(element)) {
 				DragPoints = points,
 				Height = height,

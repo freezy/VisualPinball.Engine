@@ -226,6 +226,40 @@ namespace VisualPinball.Engine.IO.FuturePinball
 			return Find(stream, tag) != null;
 		}
 
+		/// <summary>
+		/// Reads a millimetre value from a tag that some element types store as an integer and
+		/// others as a float, and which the generic reader therefore keeps opaque. Reading such a
+		/// payload with the wrong type is not a small error: a float height read as an integer
+		/// lands around 1e9, which would place the element roughly a thousand kilometres off the
+		/// table. The two encodings are far apart, so the plausible reading is picked instead: a
+		/// height stored as an integer reads back as a denormal float, and a height stored as a
+		/// float reads back as a huge integer.
+		/// </summary>
+		public static float Millimeters(FuturePinballSourceStream stream, uint tag, float fallback = 0f)
+		{
+			var record = Find(stream, tag);
+			if (record == null) return fallback;
+			if (record.Value is int knownInteger) return knownInteger;
+			if (record.Value is float knownFloat) return IsPlausibleMillimeters(knownFloat) ? knownFloat : fallback;
+			if (record.Payload.Length < 4) return fallback;
+
+			var bits = ReadInt32(record.Payload.Span);
+			var asFloat = BitConverter.Int32BitsToSingle(bits);
+			if (IsPlausibleMillimeters(asFloat)) return asFloat;
+			return IsPlausibleMillimeters(bits) ? bits : fallback;
+		}
+
+		private static bool IsPlausibleMillimeters(float value)
+		{
+			// Future Pinball tables are roughly 500 x 1200 mm, so anything beyond a hundred metres
+			// or below a micron is a misread rather than a real dimension.
+			const float maximum = 100000f;
+			const float minimum = 1e-3f;
+			if (float.IsNaN(value) || float.IsInfinity(value)) return false;
+			var magnitude = System.Math.Abs(value);
+			return magnitude == 0f || magnitude >= minimum && magnitude <= maximum;
+		}
+
 		private static FuturePinballRecord Find(FuturePinballSourceStream stream, uint tag)
 		{
 			return stream?.Records.FirstOrDefault(record => Matches(record, tag));

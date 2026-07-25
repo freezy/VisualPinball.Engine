@@ -129,6 +129,47 @@ namespace VisualPinball.Engine.Test.IO.FuturePinball
 			}
 		}
 
+		[Test]
+		public void ReadsAmbiguousHeightInEitherEncoding()
+		{
+			var path = Path.Combine(Path.GetTempPath(), $"vpe-fp-height-{Guid.NewGuid():N}.fpt");
+			try {
+				CreateAmbiguousHeightTable(path);
+				var elements = FuturePinballTableReader.Load(path).Elements;
+
+				// The tag is element-dependent, so the reader keeps it opaque and both encodings
+				// reach the same accessor. Reading a float as an integer would yield ~1.1e9.
+				Assert.That(FuturePinballElementGeometry.Millimeters(elements[0], 0xA2F8CDDD), Is.EqualTo(20f));
+				Assert.That(FuturePinballElementGeometry.Millimeters(elements[1], 0xA2F8CDDD), Is.EqualTo(25f));
+				Assert.That(FuturePinballElementGeometry.Millimeters(elements[0], 0x11223344, 7f), Is.EqualTo(7f));
+			} finally {
+				if (File.Exists(path)) File.Delete(path);
+			}
+		}
+
+		private static void CreateAmbiguousHeightTable(string path)
+		{
+			using (var table = RootStorage.Create(path, OpenMcdf.Version.V3, StorageModeFlags.None)) {
+				var storage = table.CreateStorage("Future Pinball");
+				Write(storage.CreateStream("File Version"), UInt32(1));
+				Write(storage.CreateStream("Table Data"), Join(
+					IntegerRecord(0x95FDCDD2, 2),
+					Record(0xA7FDC4E0, Array.Empty<byte>())
+				));
+				Write(storage.CreateStream("Table Element 1"), Join(
+					UInt32((uint)FuturePinballElementType.GuideWall),
+					FloatRecord(0xA2F8CDDD, 20f),
+					Record(0xA7FDC4E0, Array.Empty<byte>())
+				));
+				Write(storage.CreateStream("Table Element 2"), Join(
+					UInt32((uint)FuturePinballElementType.WireGuide),
+					IntegerRecord(0xA2F8CDDD, 25),
+					Record(0xA7FDC4E0, Array.Empty<byte>())
+				));
+				table.Flush(true);
+			}
+		}
+
 		private static void CreateSurfaceTable(string path, FuturePinballElementType type = FuturePinballElementType.Surface)
 		{
 			using (var table = RootStorage.Create(path, OpenMcdf.Version.V3, StorageModeFlags.None)) {
