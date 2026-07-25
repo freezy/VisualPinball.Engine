@@ -46,6 +46,14 @@ namespace VisualPinball.Engine.IO.FuturePinball
 
 		private static readonly UTF8Encoding Utf8 = new UTF8Encoding(false);
 		private static readonly HashSet<char> InvalidFileNameCharacters = new HashSet<char>("<>:\"/\\|?*");
+		private static readonly HashSet<string> ReservedFileNames = new HashSet<string>(
+			new[] {
+				"CON", "PRN", "AUX", "NUL",
+				"COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+				"LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
+			},
+			StringComparer.OrdinalIgnoreCase
+		);
 
 		public static FuturePinballExtractionManifest Extract(
 			string tablePath,
@@ -517,8 +525,7 @@ namespace VisualPinball.Engine.IO.FuturePinball
 			if (safe.Length == 0) safe = fallback;
 			if (safe.Length > 100) safe = safe.Substring(0, 100);
 			var stem = Path.GetFileNameWithoutExtension(safe);
-			if (new[] { "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9" }
-				.Contains(stem, StringComparer.OrdinalIgnoreCase)) safe = "_" + safe;
+			if (ReservedFileNames.Contains(stem)) safe = "_" + safe;
 			return safe;
 		}
 
@@ -536,9 +543,12 @@ namespace VisualPinball.Engine.IO.FuturePinball
 			var comparison = Path.DirectorySeparatorChar == '\\' ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
 			if (!path.StartsWith(rootPrefix, comparison)) throw new InvalidOperationException($"Extraction path escapes the output root: {relativePath}");
 			Directory.CreateDirectory(Path.GetDirectoryName(path));
-			if (File.Exists(path)) {
-				var existing = File.ReadAllBytes(path);
-				if (existing.SequenceEqual(data)) return;
+			var existing = new FileInfo(path);
+			if (existing.Exists) {
+				// Comparing the length first skips reading back media that cannot match, and the span
+				// comparison is vectorized, unlike the enumerator-based LINQ SequenceEqual.
+				if (existing.Length == data.Length
+					&& new ReadOnlySpan<byte>(File.ReadAllBytes(path)).SequenceEqual(data)) return;
 				if (!options.OverwriteChangedFiles) throw new IOException($"Extraction target already exists with different content: {path}");
 			}
 			File.WriteAllBytes(path, data);
@@ -557,12 +567,26 @@ namespace VisualPinball.Engine.IO.FuturePinball
 
 		private static string Sha256(ReadOnlySpan<byte> data)
 		{
-			return Sha256(data.ToArray());
+			// Record payloads are hashed for every record of every stream, so the copy that
+			// ComputeHash(byte[]) would need is avoided here.
+			Span<byte> hash = stackalloc byte[32];
+			using (var sha = SHA256.Create()) {
+				if (!sha.TryComputeHash(data, hash, out var written) || written != hash.Length) {
+					return Sha256(data.ToArray());
+				}
+			}
+			return Hex(hash);
 		}
 
-		private static string Hex(byte[] data)
+		private static string Hex(ReadOnlySpan<byte> data)
 		{
-			return BitConverter.ToString(data).Replace("-", string.Empty).ToLowerInvariant();
+			const string digits = "0123456789abcdef";
+			var result = new char[data.Length * 2];
+			for (var i = 0; i < data.Length; i++) {
+				result[i * 2] = digits[data[i] >> 4];
+				result[i * 2 + 1] = digits[data[i] & 0xf];
+			}
+			return new string(result);
 		}
 	}
 }
