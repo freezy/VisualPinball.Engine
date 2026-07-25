@@ -43,6 +43,7 @@ namespace VisualPinball.Engine.Test.IO.FuturePinball
 		private const uint NameTag = 0xA4F4D1D7;
 		private const uint PositionTag = 0x9BFCCFCF;
 		private const uint SurfaceTag = 0xA3EFBDD2;
+		private const uint TextureTag = 0xA300C5DC;
 		private const uint GlowCenterTag = 0x9BFCCFDD;
 
 		[Test]
@@ -57,6 +58,7 @@ namespace VisualPinball.Engine.Test.IO.FuturePinball
 				Assert.That(data.Center.X, Is.EqualTo(FuturePinballCoordinateConverter.ToVpx(100f)));
 				Assert.That(data.Center.Y, Is.EqualTo(FuturePinballCoordinateConverter.ToVpx(200f)));
 				Assert.That(data.Surface, Is.EqualTo("Upper PF"));
+				Assert.That(data.Image, Is.EqualTo("flipper-white-black"));
 				Assert.That(data.StartAngle, Is.EqualTo(122f));
 				Assert.That(data.EndAngle, Is.EqualTo(70f));
 				Assert.That(data.Strength, Is.EqualTo(2200f), "FP's discrete strength scale must not overwrite VPE's physical units.");
@@ -75,9 +77,10 @@ namespace VisualPinball.Engine.Test.IO.FuturePinball
 				Assert.That(autoPlunger.IsMechPlunger, Is.False);
 
 				var opto = Convert<Trigger>(table, FuturePinballElementType.OptoTrigger).Data;
-				Assert.That(opto.Shape, Is.EqualTo(TriggerShape.TriggerNone));
+				Assert.That(opto.Shape, Is.EqualTo(TriggerShape.TriggerButton));
 				Assert.That(opto.IsVisible, Is.False);
 				Assert.That(opto.Radius, Is.EqualTo(FuturePinballCoordinateConverter.ToVpx(30f)));
+				Assert.That(opto.DragPoints, Has.Length.EqualTo(4));
 
 				var rubber = Convert<Rubber>(table, FuturePinballElementType.ShapeableRubber).Data;
 				Assert.That(rubber.DragPoints, Has.Length.EqualTo(3));
@@ -93,6 +96,11 @@ namespace VisualPinball.Engine.Test.IO.FuturePinball
 				Assert.That(light.BlinkPattern, Is.EqualTo("1010"));
 				Assert.That(light.MeshRadius, Is.EqualTo(FuturePinballCoordinateConverter.ToVpx(10f)));
 				Assert.That(light.DragPoints, Has.Length.EqualTo(8));
+				var insertMesh = new SurfaceMeshGenerator(
+					new LightInsertData(light.DragPoints, 20f),
+					new VisualPinball.Engine.Math.Vertex3D()
+				).GetMesh(SurfaceMeshGenerator.Top, 1000f, 2000f, 0f, false);
+				Assert.That(insertMesh, Is.Not.Null, "Generated round-light contours must use VPE's triangulatable winding.");
 				Assert.That(light.Color.Red, Is.EqualTo(0x33));
 				Assert.That(light.Color.Green, Is.EqualTo(0x22));
 				Assert.That(light.Color.Blue, Is.EqualTo(0x11));
@@ -122,6 +130,9 @@ namespace VisualPinball.Engine.Test.IO.FuturePinball
 
 				var trigger = Convert<Trigger>(table, FuturePinballElementType.Trigger).Data;
 				Assert.That(trigger.IsVisible, Is.False);
+				Assert.That(trigger.DragPoints, Has.Length.EqualTo(4));
+				Assert.That(trigger.DragPoints[0].Center.X, Is.EqualTo(trigger.Center.X - 50f));
+				Assert.That(trigger.DragPoints[0].Center.Y, Is.EqualTo(trigger.Center.Y - 50f));
 			});
 		}
 
@@ -207,6 +218,7 @@ namespace VisualPinball.Engine.Test.IO.FuturePinball
 				Write(storage.CreateStream("Table MAC"), new byte[16]);
 				WriteTableElement(1, FuturePinballElementType.Flipper,
 					Common("Left Flipper", 100f, 200f, "Upper PF"),
+					StringRecord(TextureTag, "flipper-white-black"),
 					IntegerRecord(0xA900BED2, 122), IntegerRecord(0xA2EABFE4, -52),
 					IntegerRecord(0xA1FABED2, 6), IntegerRecord(0x9700C6E0, 0));
 				WriteTableElement(2, FuturePinballElementType.AutoPlunger,

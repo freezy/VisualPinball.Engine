@@ -57,6 +57,7 @@ namespace VisualPinball.Engine.IO.FuturePinball
 
 		private const uint NameTag = 0xA4F4D1D7;
 		private const uint SurfaceTag = 0xA3EFBDD2;
+		private const uint TextureTag = 0xA300C5DC;
 		private const uint RotationTag = 0xA8EDC3D3;
 		private const uint StartAngleTag = 0xA900BED2;
 		private const uint SwingTag = 0xA2EABFE4;
@@ -88,6 +89,7 @@ namespace VisualPinball.Engine.IO.FuturePinball
 		private const uint DiameterTag = 0x9D00C9E1;
 		private const uint GlowRadiusTag = 0x96FDD1D3;
 		private const uint GenerateHitEventTag = 0x95EBCDDD;
+		private const float DefaultTriggerHalfSize = 50f;
 
 		public static bool TryConvert(FuturePinballSourceStream element, out FuturePinballNativeItem converted)
 		{
@@ -220,6 +222,7 @@ namespace VisualPinball.Engine.IO.FuturePinball
 			var position = Position(element);
 			var data = new FlipperData(Name(element), position.X, position.Y) {
 				Surface = SurfaceName(element),
+				Image = FuturePinballElementGeometry.Text(element, TextureTag),
 				IsReflectionEnabled = FuturePinballElementGeometry.Integer(element, ReflectsTag, 1) != 0
 			};
 			if (FuturePinballElementGeometry.HasTag(element, StartAngleTag)) {
@@ -287,13 +290,24 @@ namespace VisualPinball.Engine.IO.FuturePinball
 			var data = new TriggerData(Name(element), position.X, position.Y) {
 				Surface = SurfaceName(element),
 				Rotation = FuturePinballElementGeometry.Integer(element, RotationTag),
-				Shape = opto ? VPT.TriggerShape.TriggerNone : VPT.TriggerShape.TriggerWireA,
-				IsVisible = !opto && FuturePinballElementGeometry.Integer(element, RenderModelTag, 1) != 0
+				Shape = opto ? VPT.TriggerShape.TriggerButton : VPT.TriggerShape.TriggerWireA,
+				IsVisible = !opto && FuturePinballElementGeometry.Integer(element, RenderModelTag, 1) != 0,
+				DragPoints = DefaultTriggerPoints(position)
 			};
 			if (opto && FuturePinballElementGeometry.HasTag(element, WidthTag)) {
 				data.Radius = ToVpx(FuturePinballElementGeometry.Integer(element, WidthTag)) / 2f;
 			}
 			return new Trigger(data);
+		}
+
+		private static DragPointData[] DefaultTriggerPoints(Vertex2D center)
+		{
+			return new[] {
+				new DragPointData(center.X - DefaultTriggerHalfSize, center.Y - DefaultTriggerHalfSize),
+				new DragPointData(center.X - DefaultTriggerHalfSize, center.Y + DefaultTriggerHalfSize),
+				new DragPointData(center.X + DefaultTriggerHalfSize, center.Y + DefaultTriggerHalfSize),
+				new DragPointData(center.X + DefaultTriggerHalfSize, center.Y - DefaultTriggerHalfSize)
+			};
 		}
 
 		private static Gate Gate(FuturePinballSourceStream element)
@@ -374,7 +388,7 @@ namespace VisualPinball.Engine.IO.FuturePinball
 			const int pointCount = 8;
 			var points = new DragPointData[pointCount];
 			for (var i = 0; i < pointCount; i++) {
-				var angle = -System.Math.PI / 2d + i * 2d * System.Math.PI / pointCount;
+				var angle = -System.Math.PI / 2d - i * 2d * System.Math.PI / pointCount;
 				points[i] = new DragPointData(
 					center.X + radius * (float)System.Math.Cos(angle),
 					center.Y + radius * (float)System.Math.Sin(angle)

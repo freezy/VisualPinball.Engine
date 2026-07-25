@@ -41,6 +41,7 @@ using VisualPinball.Engine.VPT.Spinner;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Engine.VPT.Trigger;
+using VisualPinball.Unity.Playfield;
 using VisualPinball.Unity.Simulation;
 
 using EngineMesh = VisualPinball.Engine.VPT.Mesh;
@@ -68,6 +69,7 @@ namespace VisualPinball.Unity.Editor
 		private const uint FrontGlassHeightTag = 0xA1FACCD1;
 		private const uint RearGlassHeightTag = 0xA1FAC0D1;
 		private const uint SlopeTag = 0x9AF5BFD1;
+		private const uint PlayfieldTextureTag = 0xA2F4C9D5;
 
 		private readonly string _sourcePath;
 		private readonly string _tableName;
@@ -313,32 +315,50 @@ namespace VisualPinball.Unity.Editor
 						continue;
 					}
 					var name = ElementName(element);
-					var hasNativeCounterpart = _nativeObjects.ContainsKey(element);
+					var hasNativeCounterpart = _nativeObjects.TryGetValue(element, out var nativeObject);
+					var nativeFlipper = hasNativeCounterpart && element.ElementType == FuturePinballElementType.Flipper
+						? nativeObject.GetComponent<FlipperComponent>()
+						: null;
+					var usesNativeFlipperVisual = nativeFlipper != null;
 					var isSpinningDisk = _spinningDisks.TryGetValue(element, out var turntable);
+					var groups = model.Primary.CreateMeshes();
+					var worldMeshes = groups.Select(group => FuturePinballCoordinateConverter.ModelMeshToWorld(group.Mesh)).ToArray();
+					var modelSize = Vector3.zero;
+					var isEnvironmentScale = element.ElementType == FuturePinballElementType.Ornament
+						&& IsEnvironmentScaleOrnamentModel(worldMeshes, _nativeTable.Data, out modelSize);
 					var go = Child(parent, hasNativeCounterpart || isSpinningDisk ? name + " (Source Model)" : name);
-					AddSource(go, element, isSpinningDisk
+					AddSource(go, element, isEnvironmentScale
+						? "environment-scale-model-preserved-disabled"
+						: isSpinningDisk
 						? "source-model-drives-native-turntable-visual"
+						: usesNativeFlipperVisual
+						? "source-model-drives-native-flipper-visual"
 						: hasNativeCounterpart ? "source-model-preserved-for-native-counterpart" : "static-model");
 					GameObject visualRoot;
 					if (isSpinningDisk) {
 						visualRoot = CreateSpinningDiskVisualRoot(turntable, go);
+					} else if (usesNativeFlipperVisual) {
+						visualRoot = CreateFlipperVisualRoot(nativeFlipper, go, FlipperSourceRotation(nativeFlipper.StartAngle));
 					} else {
 						go.transform.localPosition = position;
 						go.transform.localRotation = rotation;
 						visualRoot = go;
 					}
 					var elementMaterial = FuturePinballMaterialConverter.FromElement(element, TextureTag, ColorTag);
-					var groups = model.Primary.CreateMeshes();
 					for (var i = 0; i < groups.Count; i++) {
-						var worldMesh = FuturePinballCoordinateConverter.ModelMeshToWorld(groups[i].Mesh);
 						var material = groups[i].MaterialIndex >= 0 && groups[i].MaterialIndex < model.Primary.Materials.Count
 							? FuturePinballMaterialConverter.FromMilkShape(model.Primary.Materials[groups[i].MaterialIndex])
 							: elementMaterial;
-						CreateRenderer(visualRoot, element, worldMesh, material, i, false, false, $"model-{model.Primary.SourceSha256}-{i}");
+						CreateRenderer(visualRoot, element, worldMeshes[i], material, i, false, false, $"model-{model.Primary.SourceSha256}-{i}");
 					}
 					if (isSpinningDisk && ConfigureSpinningDiskVisual(turntable, visualRoot)) configuredSpinningDisks.Add(element);
-					if (_options.GenerateColliders && !hasNativeCounterpart) CreateModelColliders(go, element, model);
-					if (hasNativeCounterpart) go.SetActive(false);
+					if (isEnvironmentScale) {
+						go.SetActive(false);
+						AddEnvironmentModelBacklog(element, modelName, modelSize);
+					} else if (_options.GenerateColliders && !hasNativeCounterpart) {
+						CreateModelColliders(go, element, model);
+					}
+					if (hasNativeCounterpart && !usesNativeFlipperVisual) go.SetActive(false);
 					handled.Add(element);
 					_report.ModelInstances++;
 				}
@@ -354,6 +374,25 @@ namespace VisualPinball.Unity.Editor
 			modelRoot.transform.localPosition = Vector3.zero;
 			modelRoot.transform.localRotation = Quaternion.identity;
 			return Child(modelRoot, "Rotating Visual");
+		}
+
+		internal static Quaternion FlipperSourceRotation(float startAngle)
+		{
+			// FPT flippers have no independent placement rotation. Their FPM model rests at -90° minus start_angle.
+			return Quaternion.Euler(0f, -90f - startAngle, 0f);
+		}
+
+		internal static GameObject CreateFlipperVisualRoot(FlipperComponent component, GameObject modelRoot, Quaternion sourceRotation)
+		{
+			modelRoot.transform.localRotation = sourceRotation;
+			var sourceWorldRotation = modelRoot.transform.rotation;
+			modelRoot.transform.SetParent(component.transform, false);
+			modelRoot.transform.localPosition = Vector3.zero;
+			modelRoot.transform.rotation = sourceWorldRotation;
+			component.InstantiateAsPrefab = true;
+			// This must run before the source-model renderers are added, or they would be disabled as well.
+			DisableRenderers(component.gameObject);
+			return modelRoot;
 		}
 
 		internal static bool ConfigureSpinningDiskVisual(TurntableComponent component, GameObject visual)
@@ -373,6 +412,32 @@ namespace VisualPinball.Unity.Editor
 			if (validRadius) component.Radius = radius;
 			EditorUtility.SetDirty(component);
 			return validRadius;
+		}
+
+		internal static bool IsEnvironmentScaleOrnamentModel(IEnumerable<EngineMesh> worldMeshes, TableData tableData, out Vector3 size)
+		{
+			size = Vector3.zero;
+			if (worldMeshes == null || tableData == null) return false;
+			var min = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
+			var max = new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
+			var hasVertex = false;
+			foreach (var mesh in worldMeshes.Where(mesh => mesh?.Vertices != null)) {
+				foreach (var vertex in mesh.Vertices) {
+					var point = new Vector3(vertex.X, vertex.Y, vertex.Z);
+					min = Vector3.Min(min, point);
+					max = Vector3.Max(max, point);
+					hasVertex = true;
+				}
+			}
+			if (!hasVertex) return false;
+			size = max - min;
+			var tableWidth = Mathf.Abs(tableData.Right - tableData.Left)
+				/ FuturePinballCoordinateConverter.VpxUnitsPerMillimeter * FuturePinballCoordinateConverter.WorldUnitsPerMillimeter;
+			var tableLength = Mathf.Abs(tableData.Bottom - tableData.Top)
+				/ FuturePinballCoordinateConverter.VpxUnitsPerMillimeter * FuturePinballCoordinateConverter.WorldUnitsPerMillimeter;
+			var longestTableSide = Mathf.Max(tableWidth, tableLength);
+			var longestHorizontalExtent = Mathf.Max(size.x, size.z);
+			return longestTableSide > 0f && longestHorizontalExtent > longestTableSide * 2f;
 		}
 
 		private void CreatePlaceholders(GameObject parent, ISet<FuturePinballSourceStream> handled)
@@ -480,9 +545,10 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private static void AddVpePrimitiveCollider(GameObject go, UnityMesh mesh, bool hitEvent, bool visible)
+		internal static void AddVpePrimitiveCollider(GameObject go, UnityMesh mesh, bool hitEvent, bool visible)
 		{
-			var meshFilter = go.GetComponent<MeshFilter>() ?? go.AddComponent<MeshFilter>();
+			var meshFilter = go.GetComponent<MeshFilter>();
+			if (!meshFilter) meshFilter = go.AddComponent<MeshFilter>();
 			meshFilter.sharedMesh = mesh;
 			go.AddComponent<PrimitiveComponent>();
 			var meshComponent = go.AddComponent<PrimitiveMeshComponent>();
@@ -555,7 +621,7 @@ namespace VisualPinball.Unity.Editor
 		private GameObject CreateVpeHierarchy(GameObject root)
 		{
 			var tableData = CreateTableData();
-			_nativeTable = new NativeTableContainer(tableData).Table;
+			_nativeTable = CreateNativeTable(tableData, _textures.Keys);
 			var tableComponent = root.AddComponent<TableComponent>();
 			tableComponent.SetData(tableData);
 			root.AddComponent<DefaultGamelogicEngine>();
@@ -564,15 +630,25 @@ namespace VisualPinball.Unity.Editor
 			var playfield = Child(root, "Playfield");
 			var physicsEngine = playfield.AddComponent<PhysicsEngine>();
 			SimulationThreadComponent.EnsureFor(physicsEngine);
-			var playfieldComponent = playfield.AddComponent<PlayfieldComponent>();
-			if (_options.GenerateColliders) {
-				playfield.AddComponent<PlayfieldColliderComponent>();
-				_report.Colliders++;
-			}
-			playfieldComponent.SetData(tableData);
-			playfieldComponent.RenderSlope = tableData.AngleTiltMin;
+			var playfieldComponent = AddPlayfieldComponents(playfield, tableData, _options.GenerateColliders);
+			if (_options.GenerateColliders) _report.Colliders++;
+			playfieldComponent.SetReferencedData(tableData, _nativeTable, this, this, new Dictionary<string, IMainComponent>());
 			return playfield;
 		}
+
+		internal static PlayfieldComponent AddPlayfieldComponents(GameObject playfield, TableData tableData, bool generateCollider)
+		{
+			var playfieldComponent = playfield.AddComponent<PlayfieldComponent>();
+			if (generateCollider) playfield.AddComponent<PlayfieldColliderComponent>();
+			playfield.AddComponent<PlayfieldMeshComponent>();
+			playfield.AddComponent<MeshFilter>();
+			playfieldComponent.SetData(tableData);
+			playfieldComponent.RenderSlope = tableData.AngleTiltMin;
+			return playfieldComponent;
+		}
+
+		internal static Table CreateNativeTable(TableData tableData, IEnumerable<string> textureNames = null)
+			=> new NativeTableContainer(tableData, textureNames).Table;
 
 		private TableData CreateTableData()
 		{
@@ -631,6 +707,20 @@ namespace VisualPinball.Unity.Editor
 			});
 		}
 
+		private void AddEnvironmentModelBacklog(FuturePinballSourceStream element, string modelName, Vector3 size)
+		{
+			var message = $"{ElementName(element)} model '{modelName}' spans {size.x:F3} x {size.y:F3} x {size.z:F3} world units and appears to be room-scale environment geometry; its scene object is preserved but disabled.";
+			_report.Warnings.Add(message);
+			_report.Backlog.Add(new FptRecreationBacklogItem {
+				SourceIndex = element.SourceIndex ?? -1,
+				Name = ElementName(element),
+				ElementType = element.ElementType?.ToString() ?? $"Unknown({element.ElementTypeId})",
+				CurrentOutcome = $"The extracted '{modelName}' model is preserved on an inactive scene object because it is much larger than the table",
+				SuggestedCapability = "enable or reposition the source model manually if the surrounding Future Pinball room should be recreated",
+				SourceStream = element.Name
+			});
+		}
+
 		private void LoadTextures()
 		{
 			foreach (var resource in _manifest.Resources.Where(resource => resource.Category == "images")) {
@@ -646,6 +736,12 @@ namespace VisualPinball.Unity.Editor
 				_textures[logicalName] = texture;
 				AddTextureAlias(Path.GetFileName(logicalName), logicalName, texture);
 				AddTextureAlias(Path.GetFileNameWithoutExtension(logicalName), logicalName, texture);
+			}
+			var playfieldTextureName = FuturePinballElementGeometry.Text(_table.TableData, PlayfieldTextureTag);
+			if (!string.IsNullOrWhiteSpace(playfieldTextureName) && TryGetTexture(playfieldTextureName, out var playfieldTexture)) {
+				AddTextureAlias(FuturePinballNativeItemConverter.PlayfieldImage, playfieldTextureName, playfieldTexture);
+			} else if (!string.IsNullOrWhiteSpace(playfieldTextureName)) {
+				_report.Warnings.Add($"Playfield image '{playfieldTextureName}' was declared by the table but could not be resolved.");
 			}
 		}
 
@@ -991,16 +1087,22 @@ namespace VisualPinball.Unity.Editor
 			public override Dictionary<string, string> TableInfo { get; } = new Dictionary<string, string>();
 			public override List<CollectionData> Collections { get; } = new List<CollectionData>();
 			public override CustomInfoTags CustomInfoTags { get; } = new CustomInfoTags();
-			public override IEnumerable<EngineTexture> Textures => Array.Empty<EngineTexture>();
+			public override IEnumerable<EngineTexture> Textures => _textures.Values;
 			public override IEnumerable<EngineSound> Sounds => Array.Empty<EngineSound>();
+			private readonly Dictionary<string, EngineTexture> _textures;
 
-			public NativeTableContainer(TableData data)
+			public NativeTableContainer(TableData data, IEnumerable<string> textureNames)
 			{
+				_textures = (textureNames ?? Array.Empty<string>())
+					.Append(data.Image)
+					.Where(name => !string.IsNullOrWhiteSpace(name))
+					.Distinct(StringComparer.OrdinalIgnoreCase)
+					.ToDictionary(name => name, name => new EngineTexture(name), StringComparer.OrdinalIgnoreCase);
 				Table = new Table(this, data);
 			}
 
 			public override EngineMaterial GetMaterial(string name) => null;
-			public override EngineTexture GetTexture(string name) => null;
+			public override EngineTexture GetTexture(string name) => name != null && _textures.TryGetValue(name, out var texture) ? texture : null;
 		}
 	}
 
