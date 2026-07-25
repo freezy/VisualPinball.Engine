@@ -40,29 +40,50 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public void WriteTable(string fileName)
 		{
-			using (var output = new MemoryStream())
-			using (var hashWriter = new HashWriter())
-			using (_cf = RootStorage.Create(output, OpenMcdf.Version.V3, StorageModeFlags.LeaveOpen)) {
-				_gameStorage = _cf.CreateStorage("GameStg");
+			// Written to a sibling temporary file rather than buffered in memory: tables run into
+			// hundreds of megabytes, and buffering needs the whole thing twice over, once in the
+			// stream and once more to copy it out. Moving it into place only on success keeps the
+			// destination intact if anything throws part-way through.
+			var temporaryFile = Path.Combine(
+				Path.GetDirectoryName(Path.GetFullPath(fileName)) ?? string.Empty,
+				$"{Path.GetFileName(fileName)}.{Guid.NewGuid():N}.tmp"
+			);
+			try {
+				using (var hashWriter = new HashWriter())
+				using (_cf = RootStorage.Create(temporaryFile, OpenMcdf.Version.V3, StorageModeFlags.None)) {
+					_gameStorage = _cf.CreateStorage("GameStg");
 
-				// 1. version
-				WriteStream(_gameStorage, "Version", BitConverter.GetBytes(VpFileFormatVersion), hashWriter);
+					// 1. version
+					WriteStream(_gameStorage, "Version", BitConverter.GetBytes(VpFileFormatVersion), hashWriter);
 
-				// 2. table info
-				WriteTableInfo(hashWriter);
+					// 2. table info
+					WriteTableInfo(hashWriter);
 
-				// 3. game items
-				WriteGameItems(hashWriter);
+					// 3. game items
+					WriteGameItems(hashWriter);
 
-				// 4. the rest, which isn't hashed.
-				WriteTextures();
-				WriteSounds();
+					// 4. the rest, which isn't hashed.
+					WriteTextures();
+					WriteSounds();
 
-				// finally write hash
-				WriteStream(_gameStorage, "MAC", hashWriter.Hash());
+					// finally write hash
+					WriteStream(_gameStorage, "MAC", hashWriter.Hash());
 
-				_cf.Flush(true);
-				File.WriteAllBytes(fileName, output.ToArray());
+					_cf.Flush(true);
+				}
+
+				// Replace rather than delete-then-move: a failure between the two would destroy the
+				// existing table.
+				if (File.Exists(fileName)) {
+					File.Replace(temporaryFile, fileName, null);
+				} else {
+					File.Move(temporaryFile, fileName);
+				}
+
+			} finally {
+				if (File.Exists(temporaryFile)) {
+					File.Delete(temporaryFile);
+				}
 			}
 		}
 
