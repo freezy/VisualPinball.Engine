@@ -45,6 +45,8 @@ namespace VisualPinball.Unity.Editor
 
 	public static class DragPointSplineInspectorGUI
 	{
+		private static DragPointSplineComponent _pendingSplineEdit;
+
 		public static void OnInspectorGUI(DragPointSplineComponent component,
 			bool showEditButton = true)
 		{
@@ -84,7 +86,30 @@ namespace VisualPinball.Unity.Editor
 
 		public static void EditSpline(DragPointSplineComponent component)
 		{
+			if (!component || !component.Container) {
+				return;
+			}
+
+			_pendingSplineEdit = component;
 			Selection.activeGameObject = component.Container.gameObject;
+
+			// Tool contexts are backed by ActiveEditorTracker. Defer until after the selection
+			// change, then rebuild the tracker so Unity discovers the generated spline child.
+			EditorApplication.update -= ActivateSplineTool;
+			EditorApplication.update += ActivateSplineTool;
+		}
+
+		private static void ActivateSplineTool()
+		{
+			EditorApplication.update -= ActivateSplineTool;
+			var component = _pendingSplineEdit;
+			_pendingSplineEdit = null;
+			if (!component || !component.Container
+				|| Selection.activeGameObject != component.Container.gameObject) {
+				return;
+			}
+
+			ActiveEditorTracker.sharedTracker.ForceRebuild();
 			ToolManager.SetActiveContext<SplineToolContext>();
 			ToolManager.SetActiveTool<SplineMoveTool>();
 			SceneView.RepaintAll();
@@ -175,6 +200,9 @@ namespace VisualPinball.Unity.Editor
 
 		private static bool IsEditable(DragPointSplineComponent component)
 		{
+			if (!component || !component.Container) {
+				return false;
+			}
 			if (component.Owner is TriggerComponent trigger) {
 				var mesh = trigger.GetComponent<TriggerMeshComponent>();
 				return !mesh || !mesh.IsCircle;
