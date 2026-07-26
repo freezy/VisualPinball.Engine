@@ -16,6 +16,7 @@
 
 using NUnit.Framework;
 using System.Reflection;
+using UnityEditor;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Splines;
@@ -156,6 +157,36 @@ namespace VisualPinball.Unity.Test
 				Assert.That(trigger.DragPointSpline.transform.parent, Is.EqualTo(go.transform));
 			}
 			finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldDeferSplineToolActivationUntilAfterSelectionRefresh()
+		{
+			var previousSelection = Selection.objects;
+			var activationMethod = typeof(DragPointSplineInspectorGUI)
+				.GetMethod("ActivateSplineTool", BindingFlags.Static | BindingFlags.NonPublic);
+			Assert.That(activationMethod, Is.Not.Null);
+			var activationCallback = (EditorApplication.CallbackFunction)System.Delegate.CreateDelegate(
+				typeof(EditorApplication.CallbackFunction), activationMethod!);
+			var go = new GameObject("Surface");
+			try {
+				var surface = go.AddComponent<SurfaceComponent>();
+				surface.DragPoints = CreateDragPoints();
+				Selection.activeGameObject = go;
+
+				Assert.DoesNotThrow(() =>
+					DragPointSplineInspectorGUI.EditSpline(surface.DragPointSpline));
+
+				Assert.That(Selection.activeGameObject,
+					Is.EqualTo(surface.DragPointSpline.Container.gameObject));
+				Assert.That(System.Array.Exists(EditorApplication.update.GetInvocationList(),
+					handler => handler.Method == activationCallback.Method), Is.True);
+			}
+			finally {
+				Selection.objects = previousSelection;
+				activationCallback();
 				Object.DestroyImmediate(go);
 			}
 		}
