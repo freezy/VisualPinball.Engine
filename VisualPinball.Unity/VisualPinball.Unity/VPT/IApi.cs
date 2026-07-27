@@ -202,7 +202,7 @@ namespace VisualPinball.Unity
 	/// This has been changed. Now all game items are devices and the Switch Manager's UI adapts
 	/// accordingly.
 	/// </remarks>
-	internal interface IApiSwitchDevice
+	public interface IApiSwitchDevice
 	{
 		/// <summary>
 		/// Which switch to return.
