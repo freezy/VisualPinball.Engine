@@ -15,26 +15,25 @@
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// A stable per-object id that callers can serialize and compare later to tell whether they are
+	/// still looking at the same object - used to detect duplicated components.
+	/// </summary>
+	///
+	/// <remarks>
+	/// The id must be derived from the object itself, never handed out from a counter. Static state is
+	/// wiped on every domain reload, so a counter reassigns ids after each script compile and every
+	/// caller then concludes its object was duplicated.
+	/// </remarks>
 	public static class UnityObjectId
 	{
-#if UNITY_6000_5_OR_NEWER
-		private static readonly object Lock = new object();
-		private static readonly System.Collections.Generic.Dictionary<UnityEngine.EntityId, int> EntityIds = new System.Collections.Generic.Dictionary<UnityEngine.EntityId, int>();
-		private static int _nextId = 1;
-#endif
-
 		public static int Get(UnityEngine.Object obj)
 		{
 #if UNITY_6000_5_OR_NEWER
-			var entityId = obj.GetEntityId();
-			lock (Lock) {
-				if (EntityIds.TryGetValue(entityId, out var id)) {
-					return id;
-				}
-				id = _nextId++;
-				EntityIds.Add(entityId, id);
-				return id;
-			}
+			// EntityId supersedes the deprecated instance id and, like it, stays stable for the
+			// lifetime of the object, domain reloads included. Fold it into an int deterministically.
+			var raw = UnityEngine.EntityId.ToULong(obj.GetEntityId());
+			return (int)(raw ^ (raw >> 32));
 #else
 			return obj.GetInstanceID();
 #endif

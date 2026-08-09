@@ -59,6 +59,7 @@ namespace VisualPinball.Unity
 			RememberPositions();
 		}
 
+
 		private void OnDisable()
 		{
 			Spline.Changed -= OnSplineChanged;
@@ -94,7 +95,19 @@ namespace VisualPinball.Unity
 				throw new ArgumentNullException(nameof(owner));
 			}
 
-			if (IsFunctionalChild(owner, current)) {
+			// Owners null their migration copy of the drag points once a spline exists, but Unity
+			// deserializes a null array as an empty one - so after any serialization round trip
+			// (entering play mode, a domain reload) an already-migrated owner hands us an empty list
+			// rather than null. Applying it would overwrite the very spline we were asked to return.
+			// "Nothing to migrate" and "migrate nothing" have to mean the same thing here.
+			if (dragPoints is { Count: 0 }) {
+				dragPoints = null;
+			}
+
+			// Only short-circuit on a spline that still holds knots. An empty one may be a blank that
+			// was created while the hierarchy was incomplete, in which case the owner's real spline is
+			// still sitting alongside it and the full scan below will find it.
+			if (IsFunctionalChild(owner, current) && KnotCount(current) > 0) {
 				current.Bind(owner);
 				if (dragPoints != null) {
 					current.SetDragPoints(dragPoints);
@@ -104,6 +117,16 @@ namespace VisualPinball.Unity
 
 			var component = ResolveExisting(owner, current);
 			if (!component) {
+				// Owners drop their migration copy of the drag points once a spline exists, so the
+				// spline child is the only place the geometry lives. Creating a blank one here would
+				// silently discard it - say so loudly instead of losing the shape without a trace.
+				if (dragPoints == null || dragPoints.Count == 0) {
+					Debug.LogError(
+						$"No drag-point spline could be resolved for '{owner.SplineOwner.name}' and no drag points " +
+						"were supplied, so an empty spline is being created. The previous shape is lost. " +
+						$"Owner has {owner.SplineTransform.childCount} child object(s).",
+						owner.SplineOwner);
+				}
 				return Create(owner, dragPoints ?? Array.Empty<DragPointData>());
 			}
 
@@ -112,6 +135,14 @@ namespace VisualPinball.Unity
 				component.SetDragPoints(dragPoints);
 			}
 			return component;
+		}
+
+		private static int KnotCount(DragPointSplineComponent component)
+		{
+			if (!component || !component.TryGetComponent<SplineContainer>(out var container)) {
+				return 0;
+			}
+			return container.Spline?.Count ?? 0;
 		}
 
 		private static bool IsFunctionalChild(IDragPointSplineOwner owner,
@@ -160,6 +191,15 @@ namespace VisualPinball.Unity
 				selected = candidates[0];
 			}
 
+			// Whatever the owner's stale reference points at, the child carrying the most knots is the
+			// one holding the real geometry. Preferring it lets a blank spline created during a scene
+			// restore heal itself instead of permanently replacing the shape.
+			foreach (var candidate in candidates) {
+				if (KnotCount(candidate) > KnotCount(selected)) {
+					selected = candidate;
+				}
+			}
+
 			foreach (var candidate in candidates) {
 				if (candidate != selected) {
 					RemoveGeneratedChild(owner, candidate.gameObject,
@@ -186,6 +226,17 @@ namespace VisualPinball.Unity
 		private static void RemoveGeneratedChild(IDragPointSplineOwner owner,
 			GameObject generatedChild, string reason)
 		{
+			// Never destroy a child that still carries knots. Whatever made it look unusable - a
+			// component that failed to resolve, a duplicate - the knots are the only copy of the
+			// owner's geometry, and they are worth more than a tidy hierarchy.
+			if (generatedChild.TryGetComponent<SplineContainer>(out var container)
+				&& container.Spline is { Count: > 0 }) {
+				Debug.LogWarning(
+					$"Keeping generated spline child '{generatedChild.name}' of '{owner.SplineOwner.name}' even though " +
+					$"{reason}, because it still holds {container.Spline.Count} knots.", owner.SplineOwner);
+				return;
+			}
+
 			var canDestroy = CanDestroyGeneratedChild(generatedChild);
 			var action = canDestroy ? "Removing" : "Disabling";
 			var suffix = canDestroy
@@ -208,6 +259,7 @@ namespace VisualPinball.Unity
 #endif
 			}
 		}
+
 
 		private static bool CanDestroyGeneratedChild(GameObject generatedChild)
 		{

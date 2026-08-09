@@ -68,6 +68,15 @@ namespace VisualPinball.Engine.VPT.Rubber
 			var numRings = sv.VertexCount;
 			var numSegments = accuracy;
 
+			// The central curve collapses when the drag points are degenerate - a single point, or
+			// several that all coincide. There is no tube to build around it, so hand back an empty
+			// mesh instead of indexing into zero-length arrays below.
+			if (numRings < 2) {
+				mesh.Vertices = System.Array.Empty<Vertex3DNoTex2>();
+				mesh.Indices = System.Array.Empty<int>();
+				return mesh;
+			}
+
 			var points = new Vertex3D[numRings]; // middlepoints of rings
 			var tangents = new Vertex3D[numRings]; // pointing into the direction of the spline, even first and last
 			var right = new Vertex3D[numRings]; // pointing right, looking into tangent direction

@@ -324,7 +324,7 @@ namespace VisualPinball.Unity
 				}
 			}
 
-			CenterPivot();
+			CenterPivot(data);
 
 			return updatedComponents;
 		}
@@ -430,7 +430,15 @@ namespace VisualPinball.Unity
 			RebuildMeshes();
 		}
 
-		private void CenterPivot()
+		/// <summary>
+		/// Moves the pivot to the centre of the drag points and rebases the drag points onto it.
+		/// </summary>
+		/// <param name="data">
+		/// The data being applied, rebased along with the component. <see cref="SetReferencedData"/>
+		/// builds the child meshes straight from it, so leaving it on the old origin would offset every
+		/// mesh by the centre we just moved the transform to.
+		/// </param>
+		private void CenterPivot(RampData data = null)
 		{
 			var dragPoints = DragPoints;
 			var centerVpx = dragPoints.Aggregate(Vector3.zero, (current, dragPoint) => current + dragPoint.Center.ToUnityVector3());
@@ -445,6 +453,9 @@ namespace VisualPinball.Unity
 				dragPoint.Center -= centerVpx.ToVertex3D();
 			}
 			DragPoints = dragPoints;
+			if (data != null) {
+				data.DragPoints = dragPoints;
+			}
 			RebuildMeshes();
 		}
 
