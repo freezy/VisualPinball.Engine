@@ -174,16 +174,31 @@ namespace VisualPinball.Unity
 				SetInstanceID();
 
 				var mf = GetComponent<MeshFilter>();
-				if (mf == null) {
+				if (mf == null || mf.sharedMesh == null) {
 					return;
 				}
 
-				if (mf.sharedMesh != null) {
-					mf.sharedMesh = null;
-					RebuildMeshes();
-					Debug.Log($"[{name}] Mesh regenerated.");
-				}
+				// Never rebuild from Awake. Leaving play mode and reloading the domain both restore the
+				// scene object by object, and rebuilding here pulls on the owner's drag points while its
+				// generated spline child may not exist yet. The owner would then create a blank spline
+				// and silently lose its shape. Defer until the hierarchy is whole.
+				UnityEditor.EditorApplication.delayCall += RegenerateMesh;
 			}
+		}
+
+		private void RegenerateMesh()
+		{
+			UnityEditor.EditorApplication.delayCall -= RegenerateMesh;
+			if (!this || Application.isPlaying) {
+				return;
+			}
+			var mf = GetComponent<MeshFilter>();
+			if (mf == null || mf.sharedMesh == null) {
+				return;
+			}
+			mf.sharedMesh = null;
+			RebuildMeshes();
+			Debug.Log($"[{name}] Mesh regenerated.");
 		}
 
 		private void SetInstanceID()

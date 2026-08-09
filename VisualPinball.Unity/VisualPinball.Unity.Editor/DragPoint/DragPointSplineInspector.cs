@@ -82,6 +82,17 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 			EditorGUILayout.EndHorizontal();
+
+			EditorGUI.BeginChangeCheck();
+			var handleScale = EditorGUILayout.Slider(
+				new GUIContent("Handle Size",
+					"Size of the ring drawn behind each knot handle in the scene view. Set to 1 to disable it."),
+				DragPointSplineHandles.HandleScale, DragPointSplineHandles.MinHandleScale,
+				DragPointSplineHandles.MaxHandleScale);
+			if (EditorGUI.EndChangeCheck()) {
+				DragPointSplineHandles.HandleScale = handleScale;
+				SceneView.RepaintAll();
+			}
 		}
 
 		public static void EditSpline(DragPointSplineComponent component)

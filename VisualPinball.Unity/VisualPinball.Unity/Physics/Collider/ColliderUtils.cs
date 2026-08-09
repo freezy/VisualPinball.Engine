@@ -37,6 +37,12 @@ namespace VisualPinball.Unity
 		/// <param name="matrix">Transformation matrix to supply when adding colliders.</param>
 		public static void Generate3DPolyColliders(in float3[] rgv, ColliderInfo info, ref ColliderReference colliders, float4x4 matrix)
 		{
+			// Fewer than three points is not a polygon. Both the triangulator and the rgv[0] lookup
+			// below index unconditionally, so bail out before they do.
+			if (rgv.Length < 3) {
+				return;
+			}
+
 			var inputVerts = new float2[rgv.Length];
 
 			// Newell's method for normal computation
