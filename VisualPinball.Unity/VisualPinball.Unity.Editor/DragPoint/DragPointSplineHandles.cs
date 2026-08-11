@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEditor.EditorTools;
 using UnityEditor.Splines;
@@ -63,6 +65,11 @@ namespace VisualPinball.Unity.Editor
 		private const float RingWidth = 2f;
 		private const float OutlineWidth = 5f;
 
+		/// <summary>Screen-space radius, in pixels, for double-click picking.</summary>
+		private const float KnotPickDistance = 14f;
+		private const float CurvePickDistance = 10f;
+		private const int CurveSamples = 32;
+
 		private static readonly Color RingColor = new(0.98f, 0.75f, 0.16f, 1f);
 		private static readonly Color OutlineColor = new(0f, 0f, 0f, 0.65f);
 
@@ -104,10 +111,138 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
+			// Before the knot handles below claim the mouse down, so a double click on a knot reaches us
+			// instead of starting a drag.
+			foreach (var component in Components) {
+				if (HandleDoubleClick(component)) {
+					return;
+				}
+			}
+
 			foreach (var component in Components) {
 				DrawHandles(component, sceneView);
 			}
 		}
+
+		/// <summary>
+		/// Double click adds and removes knots: on a segment it inserts one where you clicked, on an
+		/// existing knot it deletes it. The package only offers knot insertion through the draw tool,
+		/// which appends rather than inserts and is near impossible to find.
+		/// </summary>
+		/// <returns>True when the click was consumed.</returns>
+		private static bool HandleDoubleClick(DragPointSplineComponent component)
+		{
+			var evt = Event.current;
+			if (evt.type != EventType.MouseDown || evt.button != 0 || evt.clickCount != 2
+				|| evt.alt || evt.control || evt.command) {
+				return false;
+			}
+
+			var container = component.Container;
+			var spline = container ? container.Spline : null;
+			if (spline == null || spline.Count == 0) {
+				return false;
+			}
+
+			var localToWorld = container.transform.localToWorldMatrix;
+			if (TryPickKnot(spline, localToWorld, evt.mousePosition, out var knotIndex)) {
+				RemoveKnot(component, knotIndex);
+				evt.Use();
+				return true;
+			}
+
+			if (TryPickCurve(spline, localToWorld, evt.mousePosition, out var segment, out var position)) {
+				InsertKnot(component, segment, position);
+				evt.Use();
+				return true;
+			}
+			return false;
+		}
+
+		private static bool TryPickKnot(Spline spline, Matrix4x4 localToWorld, Vector2 mouse,
+			out int knotIndex)
+		{
+			knotIndex = -1;
+			var closest = KnotPickDistance;
+			for (var i = 0; i < spline.Count; i++) {
+				var world = localToWorld.MultiplyPoint3x4(ToVector3(spline[i].Position));
+				var distance = Vector2.Distance(HandleUtility.WorldToGUIPoint(world), mouse);
+				if (distance < closest) {
+					closest = distance;
+					knotIndex = i;
+				}
+			}
+			return knotIndex >= 0;
+		}
+
+		/// <summary>
+		/// Finds the segment under the cursor and the point on it, by sampling each curve and measuring
+		/// in screen space - so picking matches what is drawn regardless of the viewing angle.
+		/// </summary>
+		private static bool TryPickCurve(Spline spline, Matrix4x4 localToWorld, Vector2 mouse,
+			out int segment, out float3 position)
+		{
+			segment = -1;
+			position = float3.zero;
+			var closest = CurvePickDistance;
+			var segmentCount = spline.Closed ? spline.Count : spline.Count - 1;
+			for (var i = 0; i < segmentCount; i++) {
+				var curve = spline.GetCurve(i);
+				for (var sample = 1; sample < CurveSamples; sample++) {
+					var local = CurveUtility.EvaluatePosition(curve, sample / (float)CurveSamples);
+					var world = localToWorld.MultiplyPoint3x4(ToVector3(local));
+					var distance = Vector2.Distance(HandleUtility.WorldToGUIPoint(world), mouse);
+					if (distance < closest) {
+						closest = distance;
+						segment = i;
+						position = local;
+					}
+				}
+			}
+			return segment >= 0;
+		}
+
+		private static void InsertKnot(DragPointSplineComponent component, int segment, float3 position)
+		{
+			var container = component.Container;
+			RecordUndo(component, "Add Drag Point");
+			// The new knot belongs after the segment's first knot. Tangents are recomputed from the
+			// positions by the change handler, so whatever is passed here is discarded.
+			container.Spline.Insert(segment + 1, new BezierKnot(position), TangentMode.Broken);
+			EditorUtility.SetDirty(container);
+			SceneView.RepaintAll();
+		}
+
+		private static void RemoveKnot(DragPointSplineComponent component, int knotIndex)
+		{
+			var container = component.Container;
+			var spline = container.Spline;
+			// A closed shape needs three knots to stay a shape, an open one needs two to stay a line.
+			var minimum = spline.Closed ? 3 : 2;
+			if (spline.Count <= minimum) {
+				Debug.LogWarning(
+					$"Cannot remove drag point: '{component.Owner?.SplineOwner.name}' needs at least " +
+					$"{minimum} of them.", component.Owner?.SplineOwner);
+				return;
+			}
+
+			RecordUndo(component, "Remove Drag Point");
+			spline.RemoveAt(knotIndex);
+			EditorUtility.SetDirty(container);
+			SceneView.RepaintAll();
+		}
+
+		private static void RecordUndo(DragPointSplineComponent component, string name)
+		{
+			var objects = new List<UnityEngine.Object> { component, component.Container };
+			var owner = component.Owner;
+			if (owner != null) {
+				objects.Add(owner.SplineOwner);
+			}
+			Undo.RecordObjects(objects.ToArray(), name);
+		}
+
+		private static Vector3 ToVector3(float3 value) => new(value.x, value.y, value.z);
 
 		/// <summary>
 		/// Collects the selected drag-point splines and tells the tool context whether it should keep
@@ -123,7 +258,10 @@ namespace VisualPinball.Unity.Editor
 				// default tangent handles back behind our backs.
 				SplineToolContext.useCustomSplineHandles = true;
 
-			} else if (_overriding) {
+			} else if (_overriding && !ToolOwnsHandles(ToolManager.activeToolType)) {
+				// Only hand the flag back when nobody else is driving it. The knot placement tool sets it
+				// on activation, and activeToolChanged reaches us afterwards - clearing it here would
+				// undo that and draw the default handles over the tool's own.
 				SplineToolContext.useCustomSplineHandles = false;
 			}
 
@@ -147,9 +285,8 @@ namespace VisualPinball.Unity.Editor
 
 			// The knot placement tool draws its own handles and manages the same global flag. Leave
 			// it alone so knots can still be inserted, and only take over for the transform tools.
-			var tool = ToolManager.activeToolType;
-			if (tool != typeof(SplineMoveTool) && tool != typeof(SplineRotateTool)
-				&& tool != typeof(SplineScaleTool)) {
+			if (ToolOwnsHandles(ToolManager.activeToolType)
+				|| !IsTransformTool(ToolManager.activeToolType)) {
 				return false;
 			}
 
@@ -165,6 +302,22 @@ namespace VisualPinball.Unity.Editor
 				Components.Add(component);
 			}
 			return Components.Count > 0;
+		}
+
+		private static bool IsTransformTool(Type tool)
+		{
+			return tool == typeof(SplineMoveTool) || tool == typeof(SplineRotateTool)
+				|| tool == typeof(SplineScaleTool);
+		}
+
+		/// <summary>
+		/// True for spline tools that draw their own handles and set
+		/// <see cref="SplineToolContext.useCustomSplineHandles"/> themselves - the knot placement tools.
+		/// Those must be left to manage the flag on their own.
+		/// </summary>
+		private static bool ToolOwnsHandles(Type tool)
+		{
+			return tool != null && typeof(SplineTool).IsAssignableFrom(tool) && !IsTransformTool(tool);
 		}
 
 		private static void DrawHandles(DragPointSplineComponent component, SceneView sceneView)
