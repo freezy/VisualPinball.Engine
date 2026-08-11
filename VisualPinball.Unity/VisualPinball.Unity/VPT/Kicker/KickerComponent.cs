@@ -55,6 +55,26 @@ namespace VisualPinball.Unity
 			set => transform.localPosition = value.TranslateToWorld();
 		}
 
+		/// <summary>
+		/// The kicker's position in the playfield's VPX space, resolved through the whole parent chain.
+		/// </summary>
+		///
+		/// <remarks>
+		/// <see cref="Position"/> is relative to the immediate parent, which only equals the playfield
+		/// for a kicker parented directly to it. Kickers are routinely grouped under sub-assemblies that
+		/// carry their own rotation or offset, so anything handing a position to something parented to
+		/// the playfield - a created ball, a gizmo drawn in playfield space - has to resolve it here.
+		/// Collider generation already does the equivalent via the local-to-playfield matrix.
+		/// </remarks>
+		public Vector3 PositionInPlayfield {
+			get {
+				var playfield = GetComponentInParent<PlayfieldComponent>();
+				return playfield
+					? ((Vector3)playfield.transform.InverseTransformPoint(transform.position)).TranslateToVpx()
+					: Position;
+			}
+		}
+
 		public float Radius {
 			get {
 				var scale = transform.localScale;
@@ -338,7 +358,13 @@ namespace VisualPinball.Unity
 
 		#region IBallCreationPosition
 
-		public Vertex3D GetBallCreationPosition() => new Vertex3D(Position.x, Position.y, 0);
+		// The ball is parented to the playfield, so its spawn point has to be expressed in playfield
+		// space - not relative to whatever the kicker happens to be grouped under.
+		public Vertex3D GetBallCreationPosition()
+		{
+			var position = PositionInPlayfield;
+			return new Vertex3D(position.x, position.y, 0);
+		}
 
 		public Vertex3D GetBallCreationVelocity() => new Vertex3D(0.1f, 0, 0);
 
