@@ -339,9 +339,16 @@ namespace VisualPinball.Unity
 				: new Vector3(PlayfieldEntrySwitch.Center.x, PlayfieldEntrySwitch.Center.y, height);
 		}
 
-		private Vector3 ExitPos(float height) => PlayfieldExitKicker == null
-			? Vector3.zero
-			: new Vector3(PlayfieldExitKicker.Position.x, PlayfieldExitKicker.Position.y, height);
+		// Drawn in playfield space below, so the kicker's position has to be resolved through its parent
+		// chain rather than taken relative to whatever it is grouped under.
+		private Vector3 ExitPos(float height)
+		{
+			if (PlayfieldExitKicker == null) {
+				return Vector3.zero;
+			}
+			var position = PlayfieldExitKicker.PositionInPlayfield;
+			return new Vector3(position.x, position.y, height);
+		}
 
 
 		private void OnDrawGizmosSelected()
