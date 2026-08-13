@@ -22,6 +22,7 @@
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using Color = UnityEngine.Color;
@@ -47,7 +48,6 @@ namespace VisualPinball.Unity.Patcher
 			SetupTrough(tableGo, playfieldGo);
 			SetupPinMame(tableGo, playfieldGo);
 			SetupDmd(tableGo);
-			SetupMapping(tableGo);
 
 			// slingshots
 			SetupLeftSlingshot(playfieldGo.transform.Find("Walls/LeftSlingshot").gameObject);
@@ -72,26 +72,31 @@ namespace VisualPinball.Unity.Patcher
 			// GLE
 			Object.DestroyImmediate(tableGo.GetComponent<DefaultGamelogicEngine>());
 			var pinmameGle = tableGo.AddComponent<Engine.PinMAME.PinMameGamelogicEngine>();
-			pinmameGle.Game = new Engine.PinMAME.Games.Terminator2();
+			pinmameGle.machineId = "williams.terminator-2-judgment-day.1991";
 			pinmameGle.romId = "t2_l82";
-			tableComponent.RepopulateHardware(pinmameGle);
-			TableSelector.Instance.TableUpdated();
+			try {
+				Engine.PinMAME.Editor.PinMameGameDefinitionEditorService.PopulateHardwareFromCache(pinmameGle, tableComponent, pinmameGle.machineId, pinmameGle.romId);
+			} catch (System.Exception exception) {
+				Debug.LogWarning($"[PinMAME] Terminator 2 was imported without hardware mappings because no usable cached machine definition was available. Open the PinMAME inspector and populate the hardware after refreshing definitions. {exception.Message}", pinmameGle);
+				EditorUtility.SetDirty(pinmameGle);
+			}
 
-			// create GI light groups
+			// The g5k table's script and collections are the authority for these table-specific groups.
+			// PinMAME callbacks 2, 3, and 4 drive the right playfield, CPU box, and left playfield respectively.
 			var gi = CreateEmptyGameObject(playfieldGo, "GI");
-			var gi1 = CreateEmptyGameObject(gi, "CPU");
-			var gi2 = CreateEmptyGameObject(gi, "Left Playfield");
-			var gi3 = CreateEmptyGameObject(gi, "Right Playfield");
-			var giCpu = AddLightGroup(tableGo, gi1, "Light2", "Light3", "Light4", "Light5");
-			var giLeftPlayfield = AddLightGroup(tableGo, gi2, "GI_35", "GI_1", "GI_3", "GI_4", "GI_12", "GI_7",
-				"GI_8", "GI_9", "GI_13", "GI_14", "GI_23", "GI_24", "GI_25", "GI_38");
-			var giRightPlayfield = AddLightGroup(tableGo, gi3, "GI_36", "GI_2", "GI_5", "GI_6", "GI_10", "GI_11", "GI_15", "GI_16", "GI_18", "GI_19", "GI_17",
-				"GI_20", "GI_21", "GI_22", "GI_26", "GI_27", "GI_28", "GI_30", "GI_29", "GI_31", "GI_32", "GI_33", "GI_34", "GI_37", "B1", "B2", "B3");
+			var giCpu = AddLightGroup(tableGo, CreateEmptyGameObject(gi, "CPU"), "Light2", "Light3", "Light4", "Light5");
+			var giLeftPlayfield = AddLightGroup(tableGo, CreateEmptyGameObject(gi, "Left Playfield"),
+				"GI_1", "GI_3", "GI_4", "GI_7", "GI_8", "GI_9", "GI_12", "GI_13", "GI_14", "GI_17", "GI_21", "GI_22", "GI_23", "GI_24", "GI_25", "GI_35", "GI_LaneGuide_1");
+			var giRightPlayfield = AddLightGroup(tableGo, CreateEmptyGameObject(gi, "Right Playfield"), "B1", "B2", "B3",
+				"GI_2", "GI_5", "GI_6", "GI_10", "GI_11", "GI_15", "GI_16", "GI_18", "GI_19", "GI_20", "GI_26", "GI_27", "GI_28", "GI_29", "GI_30", "GI_31", "GI_32", "GI_33", "GI_34", "GI_36",
+				"GI_LaneGuide_2", "GI_LaneGuide_3", "GI_LaneGuide_4");
 
-			// map GI light groups
-			tableComponent.MappingConfig.Lamps.First(lm => lm.Id == "2").Device = giRightPlayfield;
-			tableComponent.MappingConfig.Lamps.First(lm => lm.Id == "3").Device = giCpu;
-			tableComponent.MappingConfig.Lamps.First(lm => lm.Id == "4").Device = giLeftPlayfield;
+			MapGi(tableComponent, "2", "VPX GI callback 2: Right playfield", giRightPlayfield);
+			MapGi(tableComponent, "3", "VPX GI callback 3: CPU-box lights", giCpu);
+			MapGi(tableComponent, "4", "VPX GI callback 4: Left playfield", giLeftPlayfield);
+			SetupMapping(tableGo);
+			EditorUtility.SetDirty(tableComponent);
+			TableSelector.Instance.TableUpdated();
 			#endif
 		}
 
@@ -104,7 +109,7 @@ namespace VisualPinball.Unity.Patcher
 
 				// shooter
 				LinkSwitch(tc, "sw78", "78", kicker);
-				LinkCoil(tc, "sw78", "09", kicker);
+				LinkCoil(tc, "sw78", "9", kicker);
 
 				// top lock
 				LinkCoil(tc, "sw55", "10", kicker);
@@ -113,20 +118,20 @@ namespace VisualPinball.Unity.Patcher
 				LinkCoil(tc, "sw51", "16", kicker);
 
 				// cannon
-				LinkCoil(tc, "sw31", "02", kicker);
+				LinkCoil(tc, "sw31", "2", kicker);
 			}
 
 			var plungers = tableGo.GetComponentsInChildren<PlungerComponent>();
 			foreach (var plunger in plungers) {
 				// kickback
-				LinkCoil(tc, "Plunger1", "08", plunger, PlungerComponent.FireCoilId);
+				LinkCoil(tc, "Plunger1", "8", plunger, PlungerComponent.FireCoilId);
 			}
 
 			var teleporters = tableGo.GetComponentsInChildren<TeleporterComponent>();
 			foreach (var teleporter in teleporters) {
 
 				// skull kicker
-				LinkCoil(tc, "sw76", "01", teleporter, TeleporterComponent.CoilItem);
+				LinkCoil(tc, "sw76", "1", teleporter, TeleporterComponent.CoilItem);
 			}
 
 			var bumpers = tableGo.GetComponentsInChildren<BumperComponent>();
@@ -142,6 +147,25 @@ namespace VisualPinball.Unity.Patcher
 			LinkSwitch(tc, "32", cannonMech, "gun_mark_switch");
 			LinkSwitch(tc, "33", cannonMech, "gun_home_switch");
 			LinkCoil(tc, "11", cannonMech);
+
+			var dropTargetBank = tableGo.GetComponentsInChildren<DropTargetBankComponent>().FirstOrDefault(component => component.name == "sw77");
+			if (dropTargetBank != null) LinkCoil(tc, "28", dropTargetBank);
+		}
+
+		private static void MapGi(TableComponent tableComponent, string id, string description, LightGroupComponent device)
+		{
+			var mapping = tableComponent.MappingConfig.Lamps.FirstOrDefault(lamp => lamp.Id == id);
+			if (mapping == null) {
+				mapping = new LampMapping {
+					Id = id,
+					Source = LampSource.GI,
+					FadingSteps = 8,
+					Type = LampType.SingleFading,
+				};
+				tableComponent.MappingConfig.AddLamp(mapping);
+			}
+			mapping.Description = description;
+			mapping.Device = device;
 		}
 
 		private static void SetupDmd(GameObject tableGo)

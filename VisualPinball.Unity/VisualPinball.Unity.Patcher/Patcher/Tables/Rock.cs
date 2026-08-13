@@ -190,11 +190,16 @@ namespace VisualPinball.Unity.Patcher
 			// GLE
 			Object.DestroyImmediate(tableGo.GetComponent<DefaultGamelogicEngine>());
 			var pinmameGle = tableGo.AddComponent<Engine.PinMAME.PinMameGamelogicEngine>();
-			pinmameGle.Game = new Engine.PinMAME.Games.Rock();
+			pinmameGle.machineId = "premier.rock.1985";
 			pinmameGle.romId = "rock";
 			pinmameGle.DisableMechs = true;
 			pinmameGle.SolenoidDelay = 1000;
-			tableComponent.RepopulateHardware(pinmameGle);
+			try {
+				Engine.PinMAME.Editor.PinMameGameDefinitionEditorService.PopulateHardwareFromCache(pinmameGle, tableComponent, pinmameGle.machineId, pinmameGle.romId);
+			} catch (System.Exception exception) {
+				Debug.LogWarning($"[PinMAME] Rock was imported without hardware mappings because no usable cached machine definition was available. Open the PinMAME inspector and populate the hardware after refreshing definitions. {exception.Message}", pinmameGle);
+				EditorUtility.SetDirty(pinmameGle);
+			}
 			TableSelector.Instance.TableUpdated();
 #endif
 		}

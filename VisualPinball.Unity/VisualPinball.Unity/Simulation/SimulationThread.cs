@@ -790,6 +790,14 @@ namespace VisualPinball.Unity.Simulation
 				action = NativeInputApi.InputAction.RightMagnasave;
 				return true;
 			}
+			if (inputActionHint == InputConstants.ActionFire1) {
+				action = NativeInputApi.InputAction.LeftMagnasave;
+				return true;
+			}
+			if (inputActionHint == InputConstants.ActionFrontBuyIn) {
+				action = NativeInputApi.InputAction.ExtraBall;
+				return true;
+			}
 			if (inputActionHint == InputConstants.ActionStartGame) {
 				action = NativeInputApi.InputAction.Start;
 				return true;
