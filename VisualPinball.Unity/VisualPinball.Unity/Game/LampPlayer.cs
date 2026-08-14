@@ -36,12 +36,12 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Links the GLE's IDs to the lamps.
 		/// </summary>
-		private readonly Dictionary<string, List<ILampDeviceComponent>> _lampAssignments = new();
+		private readonly Dictionary<string, List<LampMapping>> _lampMappings = new();
 
 		/// <summary>
-		/// Links the GLE's IDs to the mappings.
+		/// Combines separately addressed red, green and blue outputs per physical lamp.
 		/// </summary>
-		private readonly Dictionary<string, Dictionary<ILampDeviceComponent, LampMapping>> _lampMappings = new();
+		private readonly Dictionary<ILampDeviceComponent, LampState> _rgbStates = new();
 
 		private Player? _player;
 		private TableComponent? _tableComponent;
@@ -71,15 +71,15 @@ namespace VisualPinball.Unity
 		{
 			if (_gamelogicEngine != null) {
 				var config = _tableComponent!.MappingConfig;
-				_lampAssignments.Clear();
 				_lampMappings.Clear();
+				_rgbStates.Clear();
 				var configuredMappings = 0;
 				var assignedMappings = 0;
 				var unassignedMappings = 0;
 				foreach (var lampMapping in config.Lamps) {
 					configuredMappings++;
 
-					if (lampMapping.Device == null) {
+					if (!IsAlive(lampMapping.Device)) {
 						unassignedMappings++;
 						continue;
 					}
@@ -101,10 +101,10 @@ namespace VisualPinball.Unity
 				}
 				Logger.Info(
 					$"LampPlayer mapped lamps: configured={configuredMappings}, assigned={assignedMappings}, " +
-					$"unassigned={unassignedMappings}, assignmentKeys={_lampAssignments.Count}, registeredApis={_lamps.Count}.");
+					$"unassigned={unassignedMappings}, assignmentKeys={_lampMappings.Count}, registeredApis={_lamps.Count}.");
 				_logLampEvents = true;
 
-				if (_lampAssignments.Count > 0) {
+				if (_lampMappings.Count > 0) {
 					_gamelogicEngine.OnLampChanged += HandleLampEvent;
 					_gamelogicEngine.OnLampsChanged += HandleLampsEvent;
 				}
@@ -113,20 +113,14 @@ namespace VisualPinball.Unity
 
 		private void HandleLampsEvent(object sender, LampsEventArgs lampsEvent)
 		{
-			LampAction action = default;
 			foreach (var lampEvent in lampsEvent.LampsChanged) {
-				if (Apply(lampEvent.Id, lampEvent.Source, lampEvent.IsCoil, ref action)) {
-					ApplyValue(lampEvent.Id, lampEvent.Value, action.State, action.Lamp, action.Mapping);
-				}
+				Apply(lampEvent.Id, lampEvent.Source, lampEvent.IsCoil, LampUpdate.ForValue(lampEvent.Value));
 			}
 		}
 
 		private void HandleLampEvent(object sender, LampEventArgs lampEvent)
 		{
-			LampAction action = default;
-			if (Apply(lampEvent.Id, lampEvent.Source, lampEvent.IsCoil, ref action)) {
-				ApplyValue(lampEvent.Id, lampEvent.Value, action.State, action.Lamp, action.Mapping);
-			}
+			Apply(lampEvent.Id, lampEvent.Source, lampEvent.IsCoil, LampUpdate.ForValue(lampEvent.Value));
 		}
 
 		public void HandleLampEvent(string id, float value)
@@ -136,10 +130,7 @@ namespace VisualPinball.Unity
 
 		public void HandleLampEvent(string id, float value, LampSource source)
 		{
-			LampAction action = default;
-			if (Apply(id, source, false, ref action)) {
-				ApplyValue(id, value, action.State, action.Lamp, action.Mapping);
-			}
+			Apply(id, source, false, LampUpdate.ForValue(value));
 		}
 
 		public void HandleLampEvent(string id, LampStatus status)
@@ -149,10 +140,7 @@ namespace VisualPinball.Unity
 
 		public void HandleLampEvent(string id, LampStatus status, LampSource source)
 		{
-			LampAction action = default;
-			if (Apply(id, source, false, ref action)) {
-				ApplyStatus(id, status, action.State, action.Lamp);
-			}
+			Apply(id, source, false, LampUpdate.ForStatus(status));
 		}
 
 		public void HandleLampEvent(string id, Color color)
@@ -162,35 +150,28 @@ namespace VisualPinball.Unity
 
 		public void HandleLampEvent(string id, Color color, LampSource source)
 		{
-			LampAction action = default;
-			if (Apply(id, source, false, ref action)) {
-				ApplyColor(id, color, action.State, action.Lamp);
-			}
+			Apply(id, source, false, LampUpdate.ForColor(color));
 		}
 
 		public void HandleCoilEvent(string id, bool isEnabled)
 		{
-			LampAction action = default;
-			if (Apply(id, LampSource.Lamp, true, ref action)) {
-				ApplyStatus(id, isEnabled ? LampStatus.On : LampStatus.Off, action.State, action.Lamp);
-			}
+			Apply(id, LampSource.Lamp, true, LampUpdate.ForStatus(isEnabled ? LampStatus.On : LampStatus.Off));
 		}
 
-		private bool Apply(string id, LampSource lampSource, bool isCoil, ref LampAction action)
+		private bool Apply(string id, LampSource lampSource, bool isCoil, LampUpdate update)
 		{
 			var hasChanged = false;
-			if (_lampAssignments.ContainsKey(id)) {
-				foreach (var component in _lampAssignments[id]) {
-					var mapping = _lampMappings[id][component];
+			if (_lampMappings.TryGetValue(id, out var mappings)) {
+				foreach (var mapping in mappings) {
 					if (mapping.Source != lampSource || mapping.IsCoil != isCoil) {
 						// so, if we have a coil here that happens to have the same name as a lamp,
 						// or a GI light with the same name as an other lamp, skip.
 						continue;
 					}
-					if (_lamps.ContainsKey(component)) {
-						var lamp = _lamps[component];
+					var component = mapping.Device;
+					if (IsAlive(component) && _lamps.TryGetValue(component, out var lamp)) {
 						var state = LampStates[id];
-						action = new LampAction(state, lamp, mapping);
+						ApplyUpdate(id, update, state, lamp, mapping);
 						hasChanged = true;
 					}
 				}
@@ -201,12 +182,29 @@ namespace VisualPinball.Unity
 #endif
 			} else {
 				LampStates.TryAdd(id, LampState.Default);
-				action = new LampAction(LampStates[id]);
+				ApplyUpdate(id, update, LampStates[id], null, null);
 				hasChanged = true;
 				LogLampEvent(id, lampSource, isCoil, true, mapped: false);
 			}
 
 			return hasChanged;
+		}
+
+		private void ApplyUpdate(string id, LampUpdate update, LampState state, IApiLamp? lamp, LampMapping? mapping)
+		{
+			switch (update.Kind) {
+				case LampUpdateKind.Value:
+					ApplyValue(id, update.Value, state, lamp, mapping);
+					break;
+				case LampUpdateKind.Status:
+					ApplyStatus(id, update.Status, state, lamp);
+					break;
+				case LampUpdateKind.Color:
+					ApplyColor(id, update.Color, state, lamp, mapping);
+					break;
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
 		}
 
 		private void LogLampEvent(string id, LampSource source, bool isCoil, bool applied, bool mapped)
@@ -237,11 +235,17 @@ namespace VisualPinball.Unity
 			lamp?.OnLamp(status);
 		}
 
-		private void ApplyColor(string id, Color color, LampState state, IApiLamp? lamp)
+		private void ApplyColor(string id, Color color, LampState state, IApiLamp? lamp, LampMapping? mapping)
 		{
 			state.Color.SetColorWithoutAlpha(color);
 			LampStates[id] = state;
-			lamp?.OnLamp(state.Color.ToUnityColor());
+			if (mapping?.Device != null && _rgbStates.TryGetValue(mapping.Device, out var rgbState)) {
+				rgbState.Color.SetColorWithoutAlpha(color);
+				_rgbStates[mapping.Device] = rgbState;
+				lamp?.OnLamp(rgbState.Color.ToUnityColor());
+			} else {
+				lamp?.OnLamp(state.Color.ToUnityColor());
+			}
 		}
 
 		private void ApplyValue(string id, float value, LampState state, IApiLamp? lamp, LampMapping? mapping)
@@ -271,7 +275,14 @@ namespace VisualPinball.Unity
 				case LampType.RgbMulti:
 					state.SetChannel(mapping.Channel, value / 255f);
 					LampStates[id] = state;
-					lamp?.OnLamp(state.Color.ToUnityColor());
+					if (mapping.Device != null && lamp != null) {
+						if (!_rgbStates.TryGetValue(mapping.Device, out var rgbState)) {
+							rgbState = new LampState(state.Status, state.Color.Clone());
+						}
+						rgbState.SetChannel(mapping.Channel, value / 255f);
+						_rgbStates[mapping.Device] = rgbState;
+						lamp.OnLamp(rgbState.Color.ToUnityColor());
+					}
 					break;
 
 				case LampType.SingleFading:
@@ -288,7 +299,7 @@ namespace VisualPinball.Unity
 
 		public void OnDestroy()
 		{
-			if (_lampAssignments.Count > 0 && _gamelogicEngine != null) {
+			if (_lampMappings.Count > 0 && _gamelogicEngine != null) {
 				_gamelogicEngine.OnLampChanged -= HandleLampEvent;
 				_gamelogicEngine.OnLampsChanged -= HandleLampsEvent;
 			}
@@ -309,35 +320,47 @@ namespace VisualPinball.Unity
 
 		private void AssignLampMapping(string id, LampMapping lampMapping)
 		{
-			if (!_lampAssignments.ContainsKey(id)) {
-				_lampAssignments[id] = new List<ILampDeviceComponent>();
-			}
 			if (!_lampMappings.ContainsKey(id)) {
-				_lampMappings[id] = new Dictionary<ILampDeviceComponent, LampMapping>();
+				_lampMappings[id] = new List<LampMapping>();
 			}
-			_lampAssignments[id].Add(lampMapping.Device);
-			_lampMappings[id][lampMapping.Device] = lampMapping;
+			var existingIndex = _lampMappings[id].FindIndex(existing => existing.Device == lampMapping.Device
+				&& existing.Source == lampMapping.Source && existing.IsCoil == lampMapping.IsCoil
+				&& existing.Channel == lampMapping.Channel);
+			if (existingIndex >= 0) _lampMappings[id][existingIndex] = lampMapping;
+			else _lampMappings[id].Add(lampMapping);
 			LampStates[id] = new LampState(lampMapping.Device.LampStatus, lampMapping.Device.LampColor.ToEngineColor());
 		}
 
-		private readonly struct LampAction
+		private static bool IsAlive(ILampDeviceComponent device)
 		{
-			public readonly LampState State;
-			public readonly IApiLamp? Lamp;
-			public readonly LampMapping? Mapping;
+			return device is MonoBehaviour behaviour ? behaviour : device != null;
+		}
 
-			public LampAction(LampState state)
+		private enum LampUpdateKind
+		{
+			Value,
+			Status,
+			Color,
+		}
+
+		private readonly struct LampUpdate
+		{
+			internal LampUpdateKind Kind { get; }
+			internal float Value { get; }
+			internal LampStatus Status { get; }
+			internal Color Color { get; }
+
+			private LampUpdate(LampUpdateKind kind, float value, LampStatus status, Color color)
 			{
-				State = state;
-				Lamp = null;
-				Mapping = null;
+				Kind = kind;
+				Value = value;
+				Status = status;
+				Color = color;
 			}
-			public LampAction(LampState state, IApiLamp lamp, LampMapping mapping)
-			{
-				State = state;
-				Lamp = lamp;
-				Mapping = mapping;
-			}
+
+			internal static LampUpdate ForValue(float value) => new(LampUpdateKind.Value, value, default, default);
+			internal static LampUpdate ForStatus(LampStatus status) => new(LampUpdateKind.Status, default, status, default);
+			internal static LampUpdate ForColor(Color color) => new(LampUpdateKind.Color, default, default, color);
 		}
 
 #if UNITY_EDITOR
