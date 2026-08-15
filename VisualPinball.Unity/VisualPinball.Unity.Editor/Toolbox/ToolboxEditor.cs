@@ -222,9 +222,13 @@ namespace VisualPinball.Unity.Editor
 			tableContainer.Refresh();
 			var item = create(tableContainer.Table);
 			var gameObject = CreateRenderable(item);
-			if (centerSplineOrigin
-				&& gameObject.TryGetComponent<MetalWireGuideComponent>(out var metalWireGuide)) {
-				DragPointSplineInspectorGUI.CenterOrigin(metalWireGuide.DragPointSpline,
+			if (centerSplineOrigin) {
+				var splineOwner = gameObject.GetComponent<IDragPointSplineOwner>();
+				if (splineOwner == null) {
+					throw new InvalidOperationException(
+						$"Cannot center {gameObject.name} because it has no drag-point spline owner.");
+				}
+				DragPointSplineInspectorGUI.CenterOrigin(splineOwner.SplineComponent,
 					recordUndo: false);
 			}
 			Selection.activeGameObject = gameObject;

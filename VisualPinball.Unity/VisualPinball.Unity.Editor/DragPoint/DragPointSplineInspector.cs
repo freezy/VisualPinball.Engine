@@ -354,6 +354,8 @@ namespace VisualPinball.Unity.Editor
 	internal static class DragPointSplineSceneView
 	{
 		private const int SegmentResolution = 24;
+		private const EditorSelectedRenderState DefaultSelectedRenderState =
+			EditorSelectedRenderState.Highlight | EditorSelectedRenderState.Wireframe;
 		private static Renderer _selectedMetalWireGuideRenderer;
 
 		static DragPointSplineSceneView()
@@ -367,13 +369,13 @@ namespace VisualPinball.Unity.Editor
 		{
 			if (_selectedMetalWireGuideRenderer) {
 				EditorUtility.SetSelectedRenderState(_selectedMetalWireGuideRenderer,
-					EditorSelectedRenderState.Hidden);
+					DefaultSelectedRenderState);
 			}
 
 			_selectedMetalWireGuideRenderer = GetSelectedMetalWireGuideRenderer();
 			if (_selectedMetalWireGuideRenderer) {
 				EditorUtility.SetSelectedRenderState(_selectedMetalWireGuideRenderer,
-					EditorSelectedRenderState.Highlight | EditorSelectedRenderState.Wireframe);
+					DefaultSelectedRenderState);
 			}
 			SceneView.RepaintAll();
 		}

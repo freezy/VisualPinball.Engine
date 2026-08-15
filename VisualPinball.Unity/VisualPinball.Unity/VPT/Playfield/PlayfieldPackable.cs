@@ -83,7 +83,7 @@ namespace VisualPinball.Unity
 			comp.Gravity = data.Gravity;
 			comp.DefaultScatter = data.DefaultScatter;
 			comp.CollideWithBounds = data.CollideWithBounds;
-			comp.CollideWithBackside = data.CollideWithBackside ?? comp.CollideWithBackside;
+			comp.CollideWithBackside = data.CollideWithBackside ?? true;
 		}
 	}
 }

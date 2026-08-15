@@ -77,12 +77,13 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void PackedColliderWithoutBacksideSettingKeepsCurrentBehavior()
+		public void PackedColliderWithoutBacksideSettingRestoresLegacyBehavior()
 		{
 			var gameObject = new GameObject("Playfield");
 
 			try {
 				var colliderComponent = gameObject.AddComponent<PlayfieldColliderComponent>();
+				colliderComponent.CollideWithBackside = false;
 				var bytes = Encoding.UTF8.GetBytes("{\"Gravity\":0.97,\"DefaultScatter\":0.0,\"CollideWithBounds\":true}");
 
 				colliderComponent.Unpack(bytes);

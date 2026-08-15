@@ -64,7 +64,11 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_scatterProperty, "Playfield Scatter");
 			PropertyField(_defaultScatterProperty, "Default Elements Scatter");
 			PropertyField(_collideWithBoundsProperty, "Collide with Bounds");
-			PropertyField(_collideWithBacksideProperty, "Collide with Backside");
+			using (new EditorGUI.DisabledScope(!_collideWithBoundsProperty.boolValue)) {
+				EditorGUI.indentLevel++;
+				PropertyField(_collideWithBacksideProperty, "Collide with Backside");
+				EditorGUI.indentLevel--;
+			}
 
 			base.OnInspectorGUI();
 
