@@ -23,12 +23,6 @@ namespace VisualPinball.Unity.Editor
 {
 	public static class VpxImportWizardSettings
 	{
-		public static bool ApplyPatch
-		{
-			get => EditorPrefs.GetBool("ApplyPatch", true);
-			set => EditorPrefs.SetBool("ApplyPatch", value);
-		}
-
 		public static string VpxPath
 		{
 			get => EditorPrefs.GetString("VpxPath", "");
@@ -122,7 +116,6 @@ namespace VisualPinball.Unity.Editor
 		public static void Reset()
 		{
 			VpxPath = "";
-			ApplyPatch = true;
 			TableName = "%TABLENAME%";
 			ObjectImportFilter = VpxObjectImportFilter.All;
 			ImportTextures = true;

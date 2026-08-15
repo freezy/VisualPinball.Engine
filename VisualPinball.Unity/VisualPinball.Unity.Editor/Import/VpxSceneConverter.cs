@@ -86,23 +86,17 @@ namespace VisualPinball.Unity.Editor
 		private readonly Dictionary<string, Material> _materials = new Dictionary<string, Material>();
 		private readonly Dictionary<string, PhysicsMaterialAsset> _physicalMaterials = new Dictionary<string, PhysicsMaterialAsset>();
 
-		private readonly IPatcher _patcher;
-		private bool _applyPatch = true;
-
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		/// <summary>
 		/// Creates a new converter for a new table
 		/// </summary>
 		/// <param name="sourceContainer">Source table container</param>
-		/// <param name="fileName">File name of the file being imported</param>
 		/// <param name="options">Optional convert options</param>
-		public VpxSceneConverter(FileTableContainer sourceContainer, string fileName = "", ConvertOptions options = null)
+		public VpxSceneConverter(FileTableContainer sourceContainer, ConvertOptions options = null)
 		{
 			_sourceContainer = sourceContainer;
 			_sourceTable = sourceContainer.Table;
-			_patcher = PatcherManager.GetPatcher();
-			_patcher?.Set(sourceContainer, fileName, this, this);
 			_options = options ?? new ConvertOptions();
 		}
 
@@ -142,10 +136,8 @@ namespace VisualPinball.Unity.Editor
 			CreateFileHierarchy();
 		}
 
-		public GameObject Convert(bool applyPatch = true, string tableName = null)
+		public GameObject Convert(string tableName = null)
 		{
-			_applyPatch = applyPatch;
-
 			CreateRootHierarchy(tableName);
 			CreateFileHierarchy();
 			DumpTableScript();
@@ -191,11 +183,6 @@ namespace VisualPinball.Unity.Editor
 			ConfigurePlayer(componentLookup);
 
 			SetUpAudio();
-
-			// patch
-			if (_applyPatch) {
-				_patcher?.PostPatch(_tableGo);
-			}
 
 			ApplyPlayfieldVisualMaterial();
 
@@ -387,14 +374,6 @@ namespace VisualPinball.Unity.Editor
 					var meshPath = Path.Combine(_assetsMeshes, meshFilename);
 					var mf = prefab.GameObject.GetComponent<MeshFilter>();
 					mf.sharedMesh = AssetDatabase.LoadAssetAtPath<Mesh>(meshPath);
-				}
-
-				// patch
-				if (_applyPatch) {
-					_patcher?.ApplyPatches(prefab.GameObject, _tableGo);
-					if (prefab.GameObject) { // only if not destroyed..
-						prefab.UpdateTransforms();
-					}
 				}
 
 				// persist changes

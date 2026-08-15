@@ -63,9 +63,6 @@ namespace VisualPinball.Unity.Editor
 				PrefabUtility.RecordPrefabInstancePropertyModifications(comp);
 			}
 		}
-		public void UpdateTransforms()
-		{
-		}
 
 		public void FreeBinaryData() => _primitive.Data.FreeBinaryData();
 	}
