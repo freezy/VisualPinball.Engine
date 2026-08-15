@@ -202,6 +202,7 @@ namespace VisualPinball.Unity
 					break;
 
 				case DisplayFrameFormat.Dmd24:
+				case DisplayFrameFormat.Video24:
 					if (frame.Length == _width * _height * 3) {
 						CopyRgb24FrameToTexture(frame, _texture.GetRawTextureData<byte>());
 						_texture.Apply();
@@ -270,6 +271,7 @@ namespace VisualPinball.Unity
 					break;
 
 				case DisplayFrameFormat.Dmd24:
+				case DisplayFrameFormat.Video24:
 					// no palette to handle here
 					break;
 

@@ -6,6 +6,9 @@
 		__Dimensions ("Dimensions", Vector) = (128, 32, 0, 0)
 		__Padding ("Padding", Range(0.0, 0.8)) = .2
 		__Roundness ("Roundness", Range(0.0, 0.5)) = .35
+		[HideInInspector] _SrcBlend ("Source Blend", Float) = 1
+		[HideInInspector] _DstBlend ("Destination Blend", Float) = 0
+		[HideInInspector] _ZWrite ("Z Write", Float) = 1
 	}
 	SubShader
 	{
@@ -14,6 +17,9 @@
 
 		Pass
 		{
+			Blend [_SrcBlend] [_DstBlend]
+			ZWrite [_ZWrite]
+
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
