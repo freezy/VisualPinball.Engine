@@ -28,13 +28,13 @@ namespace VisualPinball.Unity.Editor
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		public static GameObject ImportIntoScene(string path, GameObject parent = null, bool applyPatch = true, string tableName = null, ConvertOptions options = null)
+		public static GameObject ImportIntoScene(string path, GameObject parent = null, string tableName = null, ConvertOptions options = null)
 		{
 			var sw = Stopwatch.StartNew();
-			return ImportIntoScene(TableLoader.LoadTable(path), Path.GetFileName(path), parent, applyPatch, tableName, sw, options);
+			return ImportIntoScene(TableLoader.LoadTable(path), Path.GetFileName(path), parent, tableName, sw, options);
 		}
 
-		public static GameObject ImportIntoScene(FileTableContainer tableContainer, string filename = "", GameObject parent = null, bool applyPatch = true, string tableName = null, Stopwatch sw = null, ConvertOptions options = null)
+		public static GameObject ImportIntoScene(FileTableContainer tableContainer, string filename = "", GameObject parent = null, string tableName = null, Stopwatch sw = null, ConvertOptions options = null)
 		{
 			sw ??= Stopwatch.StartNew();
 			if (tableName == null && !string.IsNullOrEmpty(filename)) {
@@ -43,8 +43,8 @@ namespace VisualPinball.Unity.Editor
 
 			// load table
 			var loadedIn = sw.ElapsedMilliseconds;
-			var converter = new VpxSceneConverter(tableContainer, filename, options);
-			var tableGameObject = converter.Convert(applyPatch, tableName);
+			var converter = new VpxSceneConverter(tableContainer, options);
+			var tableGameObject = converter.Convert(tableName);
 			var convertedIn = sw.ElapsedMilliseconds;
 
 			// if an object was selected in the editor, make it its parent

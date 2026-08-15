@@ -130,12 +130,6 @@ namespace VisualPinball.Unity.Editor
 
 				GUILayout.Space(settingsMargin);
 
-				VpxImportWizardSettings.ApplyPatch = EditorGUILayout.Toggle("Apply Patch", VpxImportWizardSettings.ApplyPatch);
-
-				EditorGUILayout.LabelField("Allows you to disable the automatic patching of a table during the import", labelInfoStyle);
-
-				GUILayout.Space(settingsMargin);
-
 				VpxImportWizardSettings.TableName = EditorGUILayout.TextField("Table Name", VpxImportWizardSettings.TableName);
 
 				EditorGUILayout.LabelField("The name of the gameobject. Empty = default. Tags: %TABLENAME% = table name, %INFONAME% = Table's Info Name", labelInfoStyle);
@@ -217,10 +211,8 @@ namespace VisualPinball.Unity.Editor
 					{
 						VpxImportEngine.ImportIntoScene(
 							VpxImportWizardSettings.VpxPath,
-							null,
-							VpxImportWizardSettings.ApplyPatch,
-							VpxImportWizardSettings.TableName,
-							VpxImportWizardSettings.BuildConvertOptions()
+							tableName: VpxImportWizardSettings.TableName,
+							options: VpxImportWizardSettings.BuildConvertOptions()
 						);
 					}
 					else

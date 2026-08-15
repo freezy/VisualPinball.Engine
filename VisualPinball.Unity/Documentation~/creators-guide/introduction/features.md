@@ -79,12 +79,6 @@ Lastly, we can visualize the colliders of any object. This can be useful to debu
 
 ![Colliders](unity-colliders.jpg)
 
-## Patching System
-
-There are common patterns for VPX tables that are obsolete in VPE. For instance, VPE doesn't need a flipper shadow mesh, because it can do dynamic lighting out of the box. For that reason, we have a simple but sophisticated patcher system that allows us to apply changes to a table when imported.
-
-Of course the changes don't apply to the table data itself but to how we convert it into the Unity scene. You can read more about it [here](https://github.com/freezy/VisualPinball.Engine/tree/master/VisualPinball.Unity/VisualPinball.Unity.Patcher#unity-patching-system).
-
 ## Display Support
 
 VPE provides high-quality rendering of dot matrix and segment displays. Displays can be placed anywhere in the scene, multiple at once, and are easily linked to the game logic engine. For DMDs, dot size, shape and color can be customized, and for segment displays it's the segment weight, skew angle and color.

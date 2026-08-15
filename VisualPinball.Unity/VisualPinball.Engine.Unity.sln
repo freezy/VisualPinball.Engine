@@ -6,8 +6,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Resources", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Unity.Test", "VisualPinball.Unity.Test\VisualPinball.Unity.Test.csproj", "{B94E5F7B-C579-4C06-9242-B9A95529DE87}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Unity.Patcher", "VisualPinball.Unity.Patcher\VisualPinball.Unity.Patcher.csproj", "{5134A0F7-387C-44AC-9850-55B0D6B564ED}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Unity.Editor", "VisualPinball.Unity.Editor\VisualPinball.Unity.Editor.csproj", "{1B54F9E3-119E-4148-8C47-EB7E2C1E562E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualPinball.Engine.Test", "..\VisualPinball.Engine.Test\VisualPinball.Engine.Test.csproj", "{4CAA8C3D-7D51-4AF6-838C-10BC0C855AF8}"
@@ -80,18 +78,6 @@ Global
 		{B94E5F7B-C579-4C06-9242-B9A95529DE87}.Release|x86.Build.0 = Release|Any CPU
 		{B94E5F7B-C579-4C06-9242-B9A95529DE87}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B94E5F7B-C579-4C06-9242-B9A95529DE87}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5134A0F7-387C-44AC-9850-55B0D6B564ED}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{5134A0F7-387C-44AC-9850-55B0D6B564ED}.Debug|x64.Build.0 = Debug|Any CPU
-		{5134A0F7-387C-44AC-9850-55B0D6B564ED}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{5134A0F7-387C-44AC-9850-55B0D6B564ED}.Debug|x86.Build.0 = Debug|Any CPU
-		{5134A0F7-387C-44AC-9850-55B0D6B564ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5134A0F7-387C-44AC-9850-55B0D6B564ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5134A0F7-387C-44AC-9850-55B0D6B564ED}.Release|x64.ActiveCfg = Release|Any CPU
-		{5134A0F7-387C-44AC-9850-55B0D6B564ED}.Release|x64.Build.0 = Release|Any CPU
-		{5134A0F7-387C-44AC-9850-55B0D6B564ED}.Release|x86.ActiveCfg = Release|Any CPU
-		{5134A0F7-387C-44AC-9850-55B0D6B564ED}.Release|x86.Build.0 = Release|Any CPU
-		{5134A0F7-387C-44AC-9850-55B0D6B564ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5134A0F7-387C-44AC-9850-55B0D6B564ED}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1B54F9E3-119E-4148-8C47-EB7E2C1E562E}.Debug|x64.ActiveCfg = Debug|Any CPU
 		{1B54F9E3-119E-4148-8C47-EB7E2C1E562E}.Debug|x64.Build.0 = Debug|Any CPU
 		{1B54F9E3-119E-4148-8C47-EB7E2C1E562E}.Debug|x86.ActiveCfg = Debug|Any CPU

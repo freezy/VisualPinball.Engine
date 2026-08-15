@@ -38,8 +38,6 @@ namespace VisualPinball.Unity.Editor
 
 		public void PersistData();
 
-		public void UpdateTransforms();
-
 		void FreeBinaryData();
 	}
 }

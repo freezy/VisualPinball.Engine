@@ -71,7 +71,7 @@ namespace VisualPinball.Unity.Editor
 			UpdateTransforms();
 		}
 
-		public void UpdateTransforms()
+		private void UpdateTransforms()
 		{
 			if (_mainComponent && _mainComponent is IMainRenderableComponent renderComponent) {
 				renderComponent.UpdateTransforms();

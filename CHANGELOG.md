@@ -66,6 +66,10 @@ Built with Unity 6.5
 - Move render pipelines into separate repos ([#259](https://github.com/freezy/VisualPinball.Engine/pull/259)).
 - Put game-, mesh-, collision- animation data into separate components ([#227](https://github.com/freezy/VisualPinball.Engine/pull/227), [Documentation](https://docs.visualpinball.org/creators-guide/editor/unity-components.html)).
 
+### Removed
+
+- The legacy VPX table patcher and its import option, including `IPatcher`, `PatcherManager`, the render-pipeline material-adapter APIs, and the `applyPatch` import parameters.
+
 ### Fixed
 - Disappearing objects due to wrong bounding box ([#441](https://github.com/freezy/VisualPinball.Engine/pull/441)).
 - Default table import ([#434](https://github.com/freezy/VisualPinball.Engine/pull/434))

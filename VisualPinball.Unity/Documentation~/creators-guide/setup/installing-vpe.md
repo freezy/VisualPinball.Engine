@@ -67,9 +67,6 @@ Open the package manager by clicking on *Window -> Package Management -> Package
 
 There, enter `org.visualpinball.engine.unity.hdrp` and click *Install*. This will take a moment as Unity downloads and compiles all of VPE's dependencies and parses all the assets that we ship in our library.
 
-> [!WARNING]
-> Our patcher, which is currently part of the main package, depends on the PinMAME package. Until we move the patcher into a separate package, you will have to install the PinMAME package as well. To do that, click on the plus button again and enter `org.visualpinball.engine.pinmame`, then click on *Add*.
-
 When complete, you should now have a *Pinball* menu in the editor, and you should see the following new packages in the package manager (version numbers will vary):
 
 <p><img alt="Unity Input System Warning" width="907" src="unity-packages-after-installation.png" /></p>

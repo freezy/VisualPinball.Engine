@@ -39,12 +39,6 @@ namespace VisualPinball.Unity.Editor
 		RenderPipelineType Type { get; }
 
 		/// <summary>
-		/// Provides a bunch of helper methods for setting common attributes
-		/// in materials.
-		/// </summary>
-		IMaterialAdapter MaterialAdapter { get; }
-
-		/// <summary>
 		/// Provides access to VPE's game item prefabs.
 		/// </summary>
 		IPrefabProvider PrefabProvider { get; }
