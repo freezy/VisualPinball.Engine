@@ -45,15 +45,11 @@ namespace VisualPinball.Unity
 			//	CreateShot("F" + i);
 			//}
 
-			SetVisible(false);
+			SetVisible(false, transform.Find(NameParent).gameObject);
 		}
 
-		private void SetVisible(bool b, GameObject o = null)
+		private void SetVisible(bool b, GameObject o)
 		{
-			if (o == null) {
-				o = gameObject;
-			}
-
 			if (o.GetComponent<Renderer>() != null) {
 				o.GetComponent<Renderer>().enabled = b;
 			}
