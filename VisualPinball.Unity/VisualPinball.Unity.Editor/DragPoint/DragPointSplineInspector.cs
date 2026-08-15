@@ -354,45 +354,10 @@ namespace VisualPinball.Unity.Editor
 	internal static class DragPointSplineSceneView
 	{
 		private const int SegmentResolution = 24;
-		private const EditorSelectedRenderState DefaultSelectedRenderState =
-			EditorSelectedRenderState.Highlight | EditorSelectedRenderState.Wireframe;
-		private static Renderer _selectedMetalWireGuideRenderer;
 
 		static DragPointSplineSceneView()
 		{
 			SceneView.duringSceneGui += OnSceneGUI;
-			Selection.selectionChanged += UpdateMetalWireGuideRenderState;
-			UpdateMetalWireGuideRenderState();
-		}
-
-		private static void UpdateMetalWireGuideRenderState()
-		{
-			if (_selectedMetalWireGuideRenderer) {
-				EditorUtility.SetSelectedRenderState(_selectedMetalWireGuideRenderer,
-					DefaultSelectedRenderState);
-			}
-
-			_selectedMetalWireGuideRenderer = GetSelectedMetalWireGuideRenderer();
-			if (_selectedMetalWireGuideRenderer) {
-				EditorUtility.SetSelectedRenderState(_selectedMetalWireGuideRenderer,
-					DefaultSelectedRenderState);
-			}
-			SceneView.RepaintAll();
-		}
-
-		private static Renderer GetSelectedMetalWireGuideRenderer()
-		{
-			var selected = Selection.activeGameObject;
-			if (!selected) {
-				return null;
-			}
-
-			var metalWireGuide = selected.GetComponent<MetalWireGuideComponent>();
-			if (!metalWireGuide
-				&& selected.GetComponent<DragPointSplineComponent>() is { } spline) {
-				metalWireGuide = spline.Owner as MetalWireGuideComponent;
-			}
-			return metalWireGuide ? metalWireGuide.GetComponent<Renderer>() : null;
 		}
 
 		private static void OnSceneGUI(SceneView _)
