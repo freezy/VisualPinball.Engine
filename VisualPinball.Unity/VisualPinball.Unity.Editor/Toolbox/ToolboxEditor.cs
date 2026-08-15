@@ -190,7 +190,7 @@ namespace VisualPinball.Unity.Editor
 			GUILayout.BeginHorizontal();
 
 			if (CreateButton("Metal Wire\nGuide", Icons.MetalWireGuide(color: iconColor), iconSize, buttonStyle)) {
-				CreateItem(MetalWireGuide.GetDefault, "New MetalWireGuide");
+				CreateItem(MetalWireGuide.GetDefault, "New MetalWireGuide", centerSplineOrigin: true);
 			}
 
 			GUILayout.EndHorizontal();
@@ -215,12 +215,19 @@ namespace VisualPinball.Unity.Editor
 			);
 		}
 
-		private void CreateItem<TItem>(Func<Table, TItem> create, string actionName) where TItem : IItem
+		private void CreateItem<TItem>(Func<Table, TItem> create, string actionName,
+			bool centerSplineOrigin = false) where TItem : IItem
 		{
 			var tableContainer = TableComponent.TableContainer;
 			tableContainer.Refresh();
 			var item = create(tableContainer.Table);
-			Selection.activeGameObject = CreateRenderable(item);
+			var gameObject = CreateRenderable(item);
+			if (centerSplineOrigin
+				&& gameObject.TryGetComponent<MetalWireGuideComponent>(out var metalWireGuide)) {
+				DragPointSplineInspectorGUI.CenterOrigin(metalWireGuide.DragPointSpline,
+					recordUndo: false);
+			}
+			Selection.activeGameObject = gameObject;
 			ItemCreated?.Invoke(Selection.activeGameObject);
 			Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, actionName);
 		}

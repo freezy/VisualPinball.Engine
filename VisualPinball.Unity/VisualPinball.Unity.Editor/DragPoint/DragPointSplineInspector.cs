@@ -172,6 +172,10 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		public static void CenterOrigin(DragPointSplineComponent component)
+			=> CenterOrigin(component, recordUndo: true);
+
+		internal static void CenterOrigin(DragPointSplineComponent component,
+			bool recordUndo)
 		{
 			var owner = component.Owner;
 			var dragPoints = component.DragPoints;
@@ -179,13 +183,14 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			RecordUndo(component, $"Center pivot point of {owner.SplineOwner.name}");
+			if (recordUndo) {
+				RecordUndo(component, $"Center pivot point of {owner.SplineOwner.name}");
+			}
 			var center = dragPoints.Aggregate(Vertex3D.Zero,
 				(current, dragPoint) => current + dragPoint.Center) / dragPoints.Length;
 			var centerUnity = center.ToUnityVector3();
 			var ownerTransform = owner.SplineTransform;
-			ownerTransform.Translate(centerUnity.TranslateToWorld(ownerTransform)
-				- ownerTransform.position);
+			ownerTransform.position = centerUnity.TranslateToWorld(ownerTransform);
 			foreach (var dragPoint in dragPoints) {
 				dragPoint.Center -= center;
 			}
@@ -349,10 +354,43 @@ namespace VisualPinball.Unity.Editor
 	internal static class DragPointSplineSceneView
 	{
 		private const int SegmentResolution = 24;
+		private static Renderer _selectedMetalWireGuideRenderer;
 
 		static DragPointSplineSceneView()
 		{
 			SceneView.duringSceneGui += OnSceneGUI;
+			Selection.selectionChanged += UpdateMetalWireGuideRenderState;
+			UpdateMetalWireGuideRenderState();
+		}
+
+		private static void UpdateMetalWireGuideRenderState()
+		{
+			if (_selectedMetalWireGuideRenderer) {
+				EditorUtility.SetSelectedRenderState(_selectedMetalWireGuideRenderer,
+					EditorSelectedRenderState.Hidden);
+			}
+
+			_selectedMetalWireGuideRenderer = GetSelectedMetalWireGuideRenderer();
+			if (_selectedMetalWireGuideRenderer) {
+				EditorUtility.SetSelectedRenderState(_selectedMetalWireGuideRenderer,
+					EditorSelectedRenderState.Highlight | EditorSelectedRenderState.Wireframe);
+			}
+			SceneView.RepaintAll();
+		}
+
+		private static Renderer GetSelectedMetalWireGuideRenderer()
+		{
+			var selected = Selection.activeGameObject;
+			if (!selected) {
+				return null;
+			}
+
+			var metalWireGuide = selected.GetComponent<MetalWireGuideComponent>();
+			if (!metalWireGuide
+				&& selected.GetComponent<DragPointSplineComponent>() is { } spline) {
+				metalWireGuide = spline.Owner as MetalWireGuideComponent;
+			}
+			return metalWireGuide ? metalWireGuide.GetComponent<Renderer>() : null;
 		}
 
 		private static void OnSceneGUI(SceneView _)

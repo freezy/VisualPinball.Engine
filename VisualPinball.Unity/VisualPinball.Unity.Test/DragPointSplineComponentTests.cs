@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using NUnit.Framework;
+using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using Unity.Mathematics;
@@ -321,8 +322,15 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldCenterTheOriginWithoutMovingTheWorldCurve()
 		{
+			var parent = new GameObject("Parent");
 			var go = new GameObject("Rubber");
 			try {
+				parent.transform.SetPositionAndRotation(new Vector3(13.25f, -7.5f, 4.75f),
+					Quaternion.Euler(21f, -38f, 17f));
+				parent.transform.localScale = new Vector3(1.5f, 0.75f, 2.25f);
+				go.transform.SetParent(parent.transform, false);
+				go.transform.localPosition = new Vector3(2.5f, -1.75f, 3.25f);
+				go.transform.localRotation = Quaternion.Euler(-11f, 29f, 8f);
 				var rubber = go.AddComponent<RubberComponent>();
 				rubber.DragPoints = CreateDragPoints();
 				var before = GetWorldPositions(rubber.DragPointSpline.Container);
@@ -333,9 +341,15 @@ namespace VisualPinball.Unity.Test
 				for (var i = 0; i < before.Length; i++) {
 					Assert.That(Vector3.Distance(after[i], before[i]), Is.LessThan(1e-5f));
 				}
+				var centeredDragPoints = rubber.DragPoints;
+				var center = centeredDragPoints.Aggregate(Vertex3D.Zero,
+					(current, dragPoint) => current + dragPoint.Center) / centeredDragPoints.Length;
+				Assert.That(center.X, Is.EqualTo(0f).Within(1e-5f));
+				Assert.That(center.Y, Is.EqualTo(0f).Within(1e-5f));
+				Assert.That(center.Z, Is.EqualTo(0f).Within(1e-5f));
 			}
 			finally {
-				Object.DestroyImmediate(go);
+				Object.DestroyImmediate(parent);
 			}
 		}
 
