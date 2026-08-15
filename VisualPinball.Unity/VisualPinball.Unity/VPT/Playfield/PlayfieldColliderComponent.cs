@@ -50,6 +50,9 @@ namespace VisualPinball.Unity
 
 		public bool CollideWithBounds = true;
 
+		[Tooltip("Whether the vertical collider at the back of the playfield is generated with the outer bounds.")]
+		public bool CollideWithBackside = true;
+
 		#endregion
 
 		#region Packaging

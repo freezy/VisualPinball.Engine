@@ -65,6 +65,7 @@ namespace VisualPinball.Unity
 		public float Gravity;
 		public float DefaultScatter;
 		public bool CollideWithBounds;
+		public bool? CollideWithBackside;
 
 		public static byte[] Pack(PlayfieldColliderComponent comp)
 		{
@@ -72,6 +73,7 @@ namespace VisualPinball.Unity
 				Gravity = comp.Gravity,
 				DefaultScatter = comp.DefaultScatter,
 				CollideWithBounds = comp.CollideWithBounds,
+				CollideWithBackside = comp.CollideWithBackside,
 			});
 		}
 
@@ -81,6 +83,7 @@ namespace VisualPinball.Unity
 			comp.Gravity = data.Gravity;
 			comp.DefaultScatter = data.DefaultScatter;
 			comp.CollideWithBounds = data.CollideWithBounds;
+			comp.CollideWithBackside = data.CollideWithBackside ?? comp.CollideWithBackside;
 		}
 	}
 }

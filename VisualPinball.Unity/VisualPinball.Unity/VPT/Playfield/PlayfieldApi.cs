@@ -77,13 +77,15 @@ namespace VisualPinball.Unity
 					info
 				));
 
-				colliders.Add(new LineCollider(
-					new float2(MainComponent.Left, MainComponent.Top),
-					new float2(MainComponent.Right, MainComponent.Top),
-					0,
-					MainComponent.GlassHeight,
-					info
-				));
+				if (ColliderComponent.CollideWithBackside) {
+					colliders.Add(new LineCollider(
+						new float2(MainComponent.Left, MainComponent.Top),
+						new float2(MainComponent.Right, MainComponent.Top),
+						0,
+						MainComponent.GlassHeight,
+						info
+					));
+				}
 			}
 		}
 

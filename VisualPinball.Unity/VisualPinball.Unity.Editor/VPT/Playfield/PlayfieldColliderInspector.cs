@@ -31,6 +31,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _gravityProperty;
 		private SerializedProperty _defaultScatterProperty;
 		private SerializedProperty _collideWithBoundsProperty;
+		private SerializedProperty _collideWithBacksideProperty;
 
 		protected override void OnEnable()
 		{
@@ -43,6 +44,7 @@ namespace VisualPinball.Unity.Editor
 			_scatterProperty = serializedObject.FindProperty(nameof(PlayfieldColliderComponent.Scatter));
 			_defaultScatterProperty = serializedObject.FindProperty(nameof(PlayfieldColliderComponent.DefaultScatter));
 			_collideWithBoundsProperty = serializedObject.FindProperty(nameof(PlayfieldColliderComponent.CollideWithBounds));
+			_collideWithBacksideProperty = serializedObject.FindProperty(nameof(PlayfieldColliderComponent.CollideWithBackside));
 		}
 
 		public override void OnInspectorGUI()
@@ -62,6 +64,7 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_scatterProperty, "Playfield Scatter");
 			PropertyField(_defaultScatterProperty, "Default Elements Scatter");
 			PropertyField(_collideWithBoundsProperty, "Collide with Bounds");
+			PropertyField(_collideWithBacksideProperty, "Collide with Backside");
 
 			base.OnInspectorGUI();
 
