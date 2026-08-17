@@ -14,9 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using NUnit.Framework;
+using System;
 using System.Collections.Generic;
+using System.Reflection;
+using NUnit.Framework;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Test.VPT.Actuator
 {
@@ -244,6 +247,46 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		}
 
 		[Test]
+		public void EditModePreviewScrubsConnectedFollowersAndRestoresAuthoredPose()
+		{
+			var root = new GameObject("Actuator Preview");
+			var firstObject = new GameObject("First Follower");
+			var secondObject = new GameObject("Inactive Follower");
+			var actuator = root.AddComponent<ActuatorComponent>();
+			try {
+				firstObject.transform.localPosition = new Vector3(1f, 0f, 0f);
+				firstObject.transform.localRotation = Quaternion.Euler(0f, 10f, 0f);
+				var first = firstObject.AddComponent<ActuatorTransformComponent>();
+				first._emitter = actuator;
+				first.PositionOffset = new Vector3(4f, 0f, 0f);
+				first.AnimateRotation = true;
+				first.RotationOffset = new Vector3(0f, 40f, 0f);
+				var second = secondObject.AddComponent<ActuatorTransformComponent>();
+				second._emitter = actuator;
+				second.PositionOffset = new Vector3(0f, 6f, 0f);
+				second.ResponseCurve = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(1f, 0.5f));
+				secondObject.SetActive(false);
+
+				InvokePreview("Apply", (object)new UnityEngine.Object[] { actuator }, 0.5f);
+
+				Assert.That(firstObject.transform.localPosition.x, Is.EqualTo(3f).Within(0.0001f));
+				Assert.That(Quaternion.Angle(firstObject.transform.localRotation, Quaternion.Euler(0f, 30f, 0f)), Is.LessThan(0.001f));
+				Assert.That(secondObject.transform.localPosition.y, Is.EqualTo(1.5f).Within(0.0001f));
+
+				InvokePreview("Restore", (object)new UnityEngine.Object[] { actuator });
+
+				Assert.That(firstObject.transform.localPosition, Is.EqualTo(new Vector3(1f, 0f, 0f)));
+				Assert.That(Quaternion.Angle(firstObject.transform.localRotation, Quaternion.Euler(0f, 10f, 0f)), Is.LessThan(0.001f));
+				Assert.That(secondObject.transform.localPosition, Is.EqualTo(Vector3.zero));
+			} finally {
+				InvokePreview("Restore", (object)new UnityEngine.Object[] { actuator });
+				UnityEngine.Object.DestroyImmediate(root);
+				UnityEngine.Object.DestroyImmediate(firstObject);
+				UnityEngine.Object.DestroyImmediate(secondObject);
+			}
+		}
+
+		[Test]
 		public void ActuatorPackableRoundTripsFieldsAndCurves()
 		{
 			var gameObject = new GameObject("Actuator");
@@ -341,6 +384,17 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 				ActivationThreshold = 0.001f,
 				OneShotHoldDuration = oneShotHoldDuration,
 			};
+		}
+
+		private static void InvokePreview(string methodName, params object[] arguments)
+		{
+			var previewType = typeof(VisualPinball.Unity.Editor.ActuatorInspector).Assembly.GetType("VisualPinball.Unity.Editor.ActuatorPreview", true);
+			var parameterTypes = Array.ConvertAll(arguments, argument => argument.GetType());
+			var method = previewType.GetMethod(methodName, BindingFlags.Static | BindingFlags.NonPublic, null, parameterTypes, null);
+			if (method == null) {
+				throw new MissingMethodException(previewType.FullName, methodName);
+			}
+			method.Invoke(null, arguments);
 		}
 	}
 }

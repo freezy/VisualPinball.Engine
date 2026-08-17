@@ -19,6 +19,10 @@ The **Actuator** component turns one gamelogic coil into a normalized mechanical
 
 Children inherit their parent's movement, so decorative meshes and collision belonging to one rigid part should normally be grouped below one driven pivot. Add another follower only when a second rigid part needs a different offset, direction, or response curve.
 
+## Edit-mode preview
+
+Select the Actuator and scrub **Preview Position** to inspect every connected Actuator Transform without entering Play Mode or firing a coil. The slider uses each follower's position offset, rotation offset, response curve, and reverse setting. **Reset Preview** returns every follower to its authored local pose. Preview poses are also restored automatically before saving the scene, entering Play Mode, reloading scripts, quitting Unity, undoing, or leaving the Actuator inspector; they are never intended to become authored transform values.
+
 ## Coil modes
 
 ### Follow Coil

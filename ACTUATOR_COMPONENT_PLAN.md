@@ -138,6 +138,8 @@ The unique pack names are `Actuator` and `ActuatorTransform`; duplicate pack nam
 
 `ActuatorTransformInspector` exposes the emitter, position and rotation toggles, conditional offsets, response curve, and reverse flag. It warns when neither channel is enabled. Its `OnValidate` override remains editor-guarded to match the base signature. Documentation tells authors to set moving VPE colliders active and kinematic at load and to place the GameObject origin at the physical hinge or linkage pivot.
 
+`ActuatorInspector` also provides a non-serialized edit-mode `Preview Position` slider. Preview records each connected follower's authored local position and rotation, applies the follower's normal offsets, curve, and reverse flag directly in the editor, and restores the recorded pose on reset, inspector disable, scene save, undo/redo, script reload, editor quit, or entry into Play Mode. It includes inactive scene followers but excludes persistent prefab assets, and it reproduces the runtime's explicit-emitter and nearest-compatible-parent resolution without firing a coil or mutating actuator runtime state.
+
 ## Tests
 
 - A single nonzero sample followed by repeated nonzero values creates one toggle only.
