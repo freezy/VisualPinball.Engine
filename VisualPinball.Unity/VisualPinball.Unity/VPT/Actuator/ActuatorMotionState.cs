@@ -179,7 +179,7 @@ namespace VisualPinball.Unity
 			}
 
 			_releaseElapsed += deltaTime;
-			if (_releaseElapsed >= math.max(0f, config.ReleaseDelay)) {
+			if (_releaseElapsed + PositionEpsilon >= math.max(0f, config.ReleaseDelay)) {
 				CommitRelease(in config);
 			}
 		}
@@ -233,7 +233,7 @@ namespace VisualPinball.Unity
 			}
 
 			_transitionElapsed += deltaTime;
-			if (_transitionElapsed >= _transitionDuration) {
+			if (_transitionElapsed + PositionEpsilon >= _transitionDuration) {
 				Position = TargetPosition;
 				IsMoving = false;
 				ReachedSequence++;
@@ -266,7 +266,7 @@ namespace VisualPinball.Unity
 			}
 
 			_oneShotHoldElapsed += deltaTime;
-			if (_oneShotHoldElapsed < math.max(0f, config.OneShotHoldDuration)) {
+			if (_oneShotHoldElapsed + PositionEpsilon < math.max(0f, config.OneShotHoldDuration)) {
 				return;
 			}
 
