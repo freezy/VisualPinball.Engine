@@ -94,7 +94,7 @@ namespace VisualPinball.Unity
 		IEnumerable<IGamelogicEngineDeviceItem> IDeviceComponent<IGamelogicEngineDeviceItem>.AvailableDeviceItems => AvailableCoils;
 
 		public byte[] Pack() => ActuatorPackable.Pack(this);
-		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => Array.Empty<byte>();
 		public void Unpack(byte[] bytes) => ActuatorPackable.Unpack(bytes, this);
 		public void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs, PackagedFiles files) { }
 

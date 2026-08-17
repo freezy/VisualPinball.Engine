@@ -19,6 +19,13 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
+	public enum ActuatorTranslationSpace
+	{
+		World,
+		Local,
+		// Append new values only; packaged enum values are serialized numerically.
+	}
+
 	[DisallowMultipleComponent]
 	[PackAs("ActuatorTransform")]
 	[AddComponentMenu("Pinball/Animation/Actuator Transform")]
@@ -28,8 +35,11 @@ namespace VisualPinball.Unity
 		[Tooltip("Translate this transform from its authored local position.")]
 		public bool AnimatePosition = true;
 
-		[Tooltip("Local position offset at actuator position 1.")]
+		[Tooltip("Position offset at actuator position 1, expressed in Translation Space.")]
 		public Vector3 PositionOffset;
+
+		[Tooltip("Whether Position Offset follows world axes or the follower's authored Local gizmo axes.")]
+		public ActuatorTranslationSpace TranslationSpace = ActuatorTranslationSpace.World;
 
 		[Tooltip("Rotate this transform from its authored local rotation.")]
 		public bool AnimateRotation;
@@ -46,6 +56,7 @@ namespace VisualPinball.Unity
 
 		private Vector3 _initialLocalPosition;
 		private Quaternion _initialLocalRotation;
+		private float _currentFactor;
 		private bool _poseCaptured;
 
 		public byte[] Pack() => ActuatorTransformPackable.Pack(this);
@@ -64,6 +75,13 @@ namespace VisualPinball.Unity
 		{
 			base.OnEnable();
 			ApplyCurrentValue();
+		}
+
+		private void LateUpdate()
+		{
+			if (_poseCaptured && AnimatePosition && TranslationSpace == ActuatorTranslationSpace.World) {
+				ApplyPosition(_currentFactor);
+			}
 		}
 
 		protected override void OnAnimationValueChanged(float value) => ApplyValue(value);
@@ -93,12 +111,31 @@ namespace VisualPinball.Unity
 
 			var input = Reverse ? 1f - math.saturate(value) : math.saturate(value);
 			var factor = math.saturate(ActuatorMotionState.EvaluateCurve(ResponseCurve, input));
+			_currentFactor = factor;
 			if (AnimatePosition) {
-				transform.localPosition = _initialLocalPosition + PositionOffset * factor;
+				ApplyPosition(factor);
 			}
 			if (AnimateRotation) {
 				var endRotation = _initialLocalRotation * Quaternion.Euler(RotationOffset);
 				transform.localRotation = Quaternion.SlerpUnclamped(_initialLocalRotation, endRotation, factor);
+			}
+		}
+
+		private void ApplyPosition(float factor)
+		{
+			if (TranslationSpace == ActuatorTranslationSpace.World) {
+				var parent = transform.parent;
+				var baseline = parent != null ? parent.TransformPoint(_initialLocalPosition) : _initialLocalPosition;
+				var desiredPosition = baseline + PositionOffset * factor;
+				var desiredLocalPosition = parent != null ? parent.InverseTransformPoint(desiredPosition) : desiredPosition;
+				if (math.distancesq((float3)transform.localPosition, desiredLocalPosition) > 0.000000000001f) {
+					transform.localPosition = desiredLocalPosition;
+				}
+			} else {
+				var desiredPosition = _initialLocalPosition + _initialLocalRotation * PositionOffset * factor;
+				if (math.distancesq((float3)transform.localPosition, desiredPosition) > 0.000000000001f) {
+					transform.localPosition = desiredPosition;
+				}
 			}
 		}
 

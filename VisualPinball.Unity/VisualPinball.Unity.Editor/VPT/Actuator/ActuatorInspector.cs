@@ -121,6 +121,7 @@ namespace VisualPinball.Unity.Editor
 			internal ActuatorTransformComponent Follower;
 			internal Vector3 LocalPosition;
 			internal Quaternion LocalRotation;
+			internal float Position;
 		}
 
 		private static readonly Dictionary<ActuatorComponent, List<PreviewRecord>> Records = new();
@@ -131,7 +132,10 @@ namespace VisualPinball.Unity.Editor
 			EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
 			EditorApplication.quitting += RestoreAll;
 			EditorSceneManager.sceneSaving += OnSceneSaving;
+			PrefabStage.prefabSaving += OnPrefabSaving;
+			PrefabStage.prefabStageClosing += OnPrefabStageClosing;
 			Undo.undoRedoPerformed += RestoreAll;
+			EditorApplication.update += MaintainWorldTranslations;
 		}
 
 		internal static bool HasPreview(Object[] inspectedTargets)
@@ -146,35 +150,41 @@ namespace VisualPinball.Unity.Editor
 
 		internal static void Apply(Object[] inspectedTargets, float position)
 		{
-			Restore(inspectedTargets);
 			var normalizedPosition = Mathf.Clamp01(position);
 			if (Mathf.Approximately(normalizedPosition, 0f)) {
+				Restore(inspectedTargets);
 				return;
 			}
 
-			var followers = Object.FindObjectsByType<ActuatorTransformComponent>(FindObjectsInactive.Include);
+			ActuatorTransformComponent[] followers = null;
 			foreach (var inspectedTarget in inspectedTargets) {
 				if (!(inspectedTarget is ActuatorComponent actuator)) {
 					continue;
 				}
 
-				var records = new List<PreviewRecord>();
-				foreach (var follower in followers) {
-					if (EditorUtility.IsPersistent(follower) || !follower.gameObject.scene.IsValid() || !Follows(follower, actuator)) {
-						continue;
+				if (!Records.TryGetValue(actuator, out var records)) {
+					followers ??= Object.FindObjectsByType<ActuatorTransformComponent>(FindObjectsInactive.Include);
+					records = new List<PreviewRecord>();
+					foreach (var follower in followers) {
+						if (!CanPreview(follower) || !Follows(follower, actuator)) {
+							continue;
+						}
+
+						records.Add(new PreviewRecord {
+							Follower = follower,
+							LocalPosition = follower.transform.localPosition,
+							LocalRotation = follower.transform.localRotation,
+						});
 					}
 
-					var record = new PreviewRecord {
-						Follower = follower,
-						LocalPosition = follower.transform.localPosition,
-						LocalRotation = follower.transform.localRotation,
-					};
-					records.Add(record);
-					Apply(record, normalizedPosition);
+					if (records.Count > 0) {
+						Records[actuator] = records;
+					}
 				}
 
-				if (records.Count > 0) {
-					Records[actuator] = records;
+				Restore(records);
+				foreach (var record in records) {
+					Apply(record, normalizedPosition);
 				}
 			}
 
@@ -193,11 +203,11 @@ namespace VisualPinball.Unity.Editor
 
 		private static bool Follows(ActuatorTransformComponent follower, ActuatorComponent actuator)
 		{
-			if (follower._emitter != null) {
-				return follower._emitter == actuator;
+			if (follower._emitter is IAnimationValueEmitter<float> assignedEmitter) {
+				return ReferenceEquals(assignedEmitter, actuator);
 			}
 
-			foreach (var emitter in follower.GetComponentsInParent<IAnimationValueEmitter>(true)) {
+			foreach (var emitter in follower.GetComponentsInParent<IAnimationValueEmitter>()) {
 				if (emitter is IAnimationValueEmitter<float>) {
 					return ReferenceEquals(emitter, actuator);
 				}
@@ -205,18 +215,72 @@ namespace VisualPinball.Unity.Editor
 			return false;
 		}
 
+		private static bool CanPreview(ActuatorTransformComponent follower)
+		{
+			return follower != null
+			       && !EditorUtility.IsPersistent(follower)
+			       && follower.gameObject.scene.IsValid()
+			       && !EditorSceneManager.IsPreviewSceneObject(follower);
+		}
+
 		private static void Apply(PreviewRecord record, float position)
 		{
 			var follower = record.Follower;
+			if (follower == null) {
+				return;
+			}
+
+			record.Position = position;
 			var input = follower.Reverse ? 1f - position : position;
 			var curve = follower.ResponseCurve;
 			var factor = Mathf.Clamp01(curve == null || curve.length < 2 ? input : curve.Evaluate(input));
 			if (follower.AnimatePosition) {
-				follower.transform.localPosition = record.LocalPosition + follower.PositionOffset * factor;
+				if (follower.TranslationSpace == ActuatorTranslationSpace.World) {
+					ApplyWorldPosition(record, factor);
+				} else {
+					follower.transform.localPosition = record.LocalPosition + record.LocalRotation * follower.PositionOffset * factor;
+				}
 			}
 			if (follower.AnimateRotation) {
 				var endRotation = record.LocalRotation * Quaternion.Euler(follower.RotationOffset);
 				follower.transform.localRotation = Quaternion.SlerpUnclamped(record.LocalRotation, endRotation, factor);
+			}
+		}
+
+		private static bool ApplyWorldPosition(PreviewRecord record, float factor)
+		{
+			var follower = record.Follower;
+			var parent = follower.transform.parent;
+			var baseline = parent != null ? parent.TransformPoint(record.LocalPosition) : record.LocalPosition;
+			var desiredPosition = baseline + follower.PositionOffset * factor;
+			var desiredLocalPosition = parent != null ? parent.InverseTransformPoint(desiredPosition) : desiredPosition;
+			if ((follower.transform.localPosition - desiredLocalPosition).sqrMagnitude <= 0.000000000001f) {
+				return false;
+			}
+
+			follower.transform.localPosition = desiredLocalPosition;
+			return true;
+		}
+
+		private static void MaintainWorldTranslations()
+		{
+			var changed = false;
+			foreach (var records in Records.Values) {
+				foreach (var record in records) {
+					var follower = record.Follower;
+					if (follower == null || !follower.AnimatePosition || follower.TranslationSpace != ActuatorTranslationSpace.World) {
+						continue;
+					}
+
+					var input = follower.Reverse ? 1f - record.Position : record.Position;
+					var curve = follower.ResponseCurve;
+					var factor = Mathf.Clamp01(curve == null || curve.length < 2 ? input : curve.Evaluate(input));
+					changed |= ApplyWorldPosition(record, factor);
+				}
+			}
+
+			if (changed) {
+				Repaint();
 			}
 		}
 
@@ -226,6 +290,12 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
+			Restore(records);
+			Records.Remove(actuator);
+		}
+
+		private static void Restore(IEnumerable<PreviewRecord> records)
+		{
 			foreach (var record in records) {
 				if (record.Follower == null) {
 					continue;
@@ -233,19 +303,12 @@ namespace VisualPinball.Unity.Editor
 				record.Follower.transform.localPosition = record.LocalPosition;
 				record.Follower.transform.localRotation = record.LocalRotation;
 			}
-			Records.Remove(actuator);
 		}
 
 		private static void RestoreAll()
 		{
 			foreach (var records in Records.Values) {
-				foreach (var record in records) {
-					if (record.Follower == null) {
-						continue;
-					}
-					record.Follower.transform.localPosition = record.LocalPosition;
-					record.Follower.transform.localRotation = record.LocalRotation;
-				}
+				Restore(records);
 			}
 			Records.Clear();
 			Repaint();
@@ -259,6 +322,8 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		private static void OnSceneSaving(Scene scene, string path) => RestoreAll();
+		private static void OnPrefabSaving(GameObject prefabRoot) => RestoreAll();
+		private static void OnPrefabStageClosing(PrefabStage stage) => RestoreAll();
 
 		private static void Repaint()
 		{

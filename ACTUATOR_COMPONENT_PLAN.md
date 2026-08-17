@@ -101,10 +101,10 @@ All actuator callbacks remain on the Unity main thread because state publication
 
 Each follower applies:
 
-- an optional local `PositionOffset`, and
+- an optional `PositionOffset` in selectable local or world-aligned axes, and
 - an optional local `RotationOffset` expressed as Euler authoring values but interpolated as a quaternion.
 
-The follower has its own `ResponseCurve` and `Reverse` flag. This allows one actuator value to rotate linked left and right bridge halves in opposite directions, translate a plunger, and move decorative linkage with distinct geometric ratios. Null or keyless response curves use linear fallback. Children of a driven pivot inherit its motion naturally and need no follower of their own.
+The follower has its own `ResponseCurve`, `Reverse` flag, and translation-space selection. World is the default and applies the offset in scene units along global axes while recomputing the authored baseline through the current parent transform. A lightweight `LateUpdate` correction maintains that world-aligned offset when the parent moves while the actuator value is held. Local translation rotates `PositionOffset` by the follower's captured authored local rotation, matching Unity's Local transform gizmo axes, and inherits parent scale. This allows one actuator value to rotate linked left and right bridge halves in opposite directions, translate a plunger, and move decorative linkage with distinct geometric ratios. Null or keyless response curves use linear fallback. Children of a driven pivot inherit their parent's movement naturally and need no follower of their own.
 
 The follower intentionally uses local space. Local pivots survive table placement, packaging, and parent transforms predictably, whereas authored world-space endpoints become invalid when a packaged table is placed or scaled. Position uses `Vector3.LerpUnclamped`; rotation uses `Quaternion.SlerpUnclamped`; the response input is clamped before evaluation.
 
@@ -128,7 +128,7 @@ Decorative towers that are physically mounted to a bridge half belong below that
 
 ## Packaging
 
-`ActuatorPackable` stores the mode, initial position, directional durations and curves, release delay, threshold, and one-shot dwell. `ActuatorTransformPackable` stores the enabled position/rotation channels, `PackableFloat3` offsets, response curve, and reverse flag; `PackableFloat3` avoids Newtonsoft serializing Unity `Vector3` convenience properties as noise. `ActuatorTransformReferencesPackable` stores the selected animation emitter with `PackagedRefs` only when its type has a registered `[PackAs]` name, otherwise it writes a null reference with one clear warning. Unpack resolves with `Resolve<MonoBehaviour, IAnimationValueEmitter<float>>`; a null reference deliberately leaves `_emitter` null so the base parent search remains available.
+`ActuatorPackable` stores the mode, initial position, directional durations and curves, release delay, threshold, and one-shot dwell. `ActuatorTransformPackable` stores the enabled position/rotation channels, translation space, `PackableFloat3` offsets, response curve, and reverse flag; `PackableFloat3` avoids Newtonsoft serializing Unity `Vector3` convenience properties as noise. `ActuatorTransformReferencesPackable` stores the selected animation emitter with `PackagedRefs` only when its type has a registered `[PackAs]` name, otherwise it writes a null reference with one clear warning. Unpack resolves with `Resolve<MonoBehaviour, IAnimationValueEmitter<float>>`; a null reference deliberately leaves `_emitter` null so the base parent search remains available.
 
 The unique pack names are `Actuator` and `ActuatorTransform`; duplicate pack names would fail package registration. `Pack()` always returns bytes and never null, because null suppresses component creation. New Unity `.meta` files are committed with the implementation. No generated package artifacts are committed. This is the first follower derived from `AnimationComponent<T>` to package its emitter reference, so reference round-trip tests are mandatory.
 
@@ -136,9 +136,9 @@ The unique pack names are `Actuator` and `ActuatorTransform`; duplicate pack nam
 
 `ActuatorInspector` groups coil interpretation, travel, and initial-state fields and shows only the one-shot dwell when `OneShot` is selected. It explains that binary numeric levels are strength, not position, and that `ReleaseDelay` filters short inactive gaps.
 
-`ActuatorTransformInspector` exposes the emitter, position and rotation toggles, conditional offsets, response curve, and reverse flag. It warns when neither channel is enabled. Its `OnValidate` override remains editor-guarded to match the base signature. Documentation tells authors to set moving VPE colliders active and kinematic at load and to place the GameObject origin at the physical hinge or linkage pivot.
+`ActuatorTransformInspector` exposes the emitter, position and rotation toggles, conditional offsets, translation space, response curve, and reverse flag. It warns when neither channel is enabled. Its `OnValidate` override remains editor-guarded to match the base signature. Documentation tells authors to set moving VPE colliders active and kinematic at load and to place the GameObject origin at the physical hinge or linkage pivot.
 
-`ActuatorInspector` also provides a non-serialized edit-mode `Preview Position` slider. Preview records each connected follower's authored local position and rotation, applies the follower's normal offsets, curve, and reverse flag directly in the editor, and restores the recorded pose on reset, inspector disable, scene save, undo/redo, script reload, editor quit, or entry into Play Mode. It includes inactive scene followers but excludes persistent prefab assets, and it reproduces the runtime's explicit-emitter and nearest-compatible-parent resolution without firing a coil or mutating actuator runtime state.
+`ActuatorInspector` also provides a non-serialized edit-mode `Preview Position` slider. Preview records each connected follower's authored local position and rotation, applies the follower's normal offsets, translation space, curve, and reverse flag directly in the editor, and restores the recorded pose on reset, inspector disable, scene save, prefab save/close, undo/redo, script reload, editor quit, or entry into Play Mode. It includes inactive scene followers but excludes persistent assets and Prefab Mode preview-scene objects, and it reproduces the runtime's explicit-emitter and nearest-compatible-parent resolution without firing a coil or mutating actuator runtime state.
 
 ## Tests
 
@@ -154,7 +154,7 @@ The unique pack names are `Actuator` and `ActuatorTransform`; duplicate pack nam
 - A pending delayed release cancelled by a new nonzero input never emits a false release or rearming edge.
 - Null and keyless actuator and follower curves use a linear fallback.
 - `OnValidate` clamping does not move a live mechanism.
-- A transform follower maps 0, 0.5, and 1 to the expected local position and quaternion rotation, including reverse mode.
+- A transform follower maps 0, 0.5, and 1 to the expected position and quaternion rotation, including reverse mode; world translation uses global axes while tracking its current parent baseline.
 - Two followers subscribed to one emitter receive the same scalar while retaining independent offsets and response curves.
 - Component and reference packables round-trip all authored fields, complete curve keys/tangents, and the emitter reference.
 

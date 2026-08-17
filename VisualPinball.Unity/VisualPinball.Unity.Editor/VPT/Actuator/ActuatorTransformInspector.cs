@@ -24,6 +24,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _emitterProperty;
 		private SerializedProperty _animatePositionProperty;
 		private SerializedProperty _positionOffsetProperty;
+		private SerializedProperty _translationSpaceProperty;
 		private SerializedProperty _animateRotationProperty;
 		private SerializedProperty _rotationOffsetProperty;
 		private SerializedProperty _responseCurveProperty;
@@ -34,6 +35,7 @@ namespace VisualPinball.Unity.Editor
 			_emitterProperty = serializedObject.FindProperty(nameof(ActuatorTransformComponent._emitter));
 			_animatePositionProperty = serializedObject.FindProperty(nameof(ActuatorTransformComponent.AnimatePosition));
 			_positionOffsetProperty = serializedObject.FindProperty(nameof(ActuatorTransformComponent.PositionOffset));
+			_translationSpaceProperty = serializedObject.FindProperty(nameof(ActuatorTransformComponent.TranslationSpace));
 			_animateRotationProperty = serializedObject.FindProperty(nameof(ActuatorTransformComponent.AnimateRotation));
 			_rotationOffsetProperty = serializedObject.FindProperty(nameof(ActuatorTransformComponent.RotationOffset));
 			_responseCurveProperty = serializedObject.FindProperty(nameof(ActuatorTransformComponent.ResponseCurve));
@@ -48,6 +50,7 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.PropertyField(_animatePositionProperty);
 			if (_animatePositionProperty.hasMultipleDifferentValues || _animatePositionProperty.boolValue) {
 				EditorGUILayout.PropertyField(_positionOffsetProperty);
+				EditorGUILayout.PropertyField(_translationSpaceProperty);
 			}
 			EditorGUILayout.PropertyField(_animateRotationProperty);
 			if (_animateRotationProperty.hasMultipleDifferentValues || _animateRotationProperty.boolValue) {

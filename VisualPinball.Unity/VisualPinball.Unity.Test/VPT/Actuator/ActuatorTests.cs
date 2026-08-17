@@ -18,7 +18,9 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
+using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Test.VPT.Actuator
@@ -82,6 +84,24 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		}
 
 		[Test]
+		public void ValuesAtOrBelowActivationThresholdDoNotActivate()
+		{
+			var state = CreateState();
+			var config = Config(ActuatorCoilMode.ToggleOnPulse, activationDuration: 0f, releaseDuration: 0f, activationThreshold: 0.2f);
+
+			state.SetInput(0.19f, in config);
+			state.SetInput(0.2f, in config);
+
+			Assert.That(state.Position, Is.EqualTo(0f));
+			Assert.That(state.IsInputActive, Is.False);
+
+			state.SetInput(0.21f, in config);
+
+			Assert.That(state.Position, Is.EqualTo(1f));
+			Assert.That(state.IsInputActive, Is.True);
+		}
+
+		[Test]
 		public void PendingReleaseCanBeCancelled()
 		{
 			var state = CreateState();
@@ -129,6 +149,41 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 
 			state.Advance(0.1f, in config);
 			Assert.That(state.Position, Is.EqualTo(0f));
+		}
+
+		[Test]
+		public void OneShotHeldCoilMustReleaseBeforeRetriggering()
+		{
+			var state = CreateState();
+			var config = Config(ActuatorCoilMode.OneShot, activationDuration: 0f, releaseDuration: 0f, releaseDelay: 0f, oneShotHoldDuration: 0f);
+
+			state.SetInput(1f, in config);
+			state.Advance(0f, in config);
+			Assert.That(state.Position, Is.EqualTo(0f));
+
+			state.SetInput(1f, in config);
+			state.Advance(1f, in config);
+			Assert.That(state.Position, Is.EqualTo(0f));
+
+			state.SetInput(0f, in config);
+			state.SetInput(1f, in config);
+			Assert.That(state.Position, Is.EqualTo(1f));
+		}
+
+		[Test]
+		public void ReachedSequenceAdvancesExactlyOncePerArrival()
+		{
+			var state = CreateState();
+			var config = Config(ActuatorCoilMode.FollowCoil, activationDuration: 0f, releaseDuration: 0f);
+
+			state.SetActive(true, in config);
+			Assert.That(state.ReachedSequence, Is.EqualTo(1));
+
+			state.SetActive(true, in config);
+			Assert.That(state.ReachedSequence, Is.EqualTo(1));
+
+			state.SetActive(false, in config);
+			Assert.That(state.ReachedSequence, Is.EqualTo(2));
 		}
 
 		[Test]
@@ -181,6 +236,56 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		}
 
 		[Test]
+		public void FollowerAwakeAppliesInitialPositionBeforeFirstFrame()
+		{
+			var root = new GameObject("Actuator");
+			var followerObject = new GameObject("Follower");
+			try {
+				followerObject.transform.SetParent(root.transform);
+				followerObject.transform.localPosition = new Vector3(1f, 0f, 0f);
+				var actuator = root.AddComponent<ActuatorComponent>();
+				actuator.InitialPosition = 1f;
+				var follower = followerObject.AddComponent<ActuatorTransformComponent>();
+				follower.PositionOffset = new Vector3(2f, 0f, 0f);
+
+				InvokeLifecycle(follower, "Awake");
+
+				Assert.That(followerObject.transform.localPosition.x, Is.EqualTo(3f).Within(0.0001f));
+			} finally {
+				Object.DestroyImmediate(root);
+			}
+		}
+
+		[Test]
+		public void LateEnabledFollowerPullsCurrentActuatorPosition()
+		{
+			var root = new GameObject("Actuator");
+			var followerObject = new GameObject("Follower");
+			ActuatorTransformComponent follower = null;
+			try {
+				followerObject.transform.SetParent(root.transform);
+				var actuator = root.AddComponent<ActuatorComponent>();
+				follower = followerObject.AddComponent<ActuatorTransformComponent>();
+				follower.PositionOffset = new Vector3(2f, 0f, 0f);
+				InvokeLifecycle(follower, "Awake");
+				InvokeLifecycle(follower, "OnEnable");
+				InvokeLifecycle(follower, "OnDisable");
+
+				actuator.SnapTo(1f);
+				Assert.That(followerObject.transform.localPosition.x, Is.EqualTo(0f).Within(0.0001f));
+
+				InvokeLifecycle(follower, "OnEnable");
+
+				Assert.That(followerObject.transform.localPosition.x, Is.EqualTo(2f).Within(0.0001f));
+			} finally {
+				if (follower != null) {
+					InvokeLifecycle(follower, "OnDisable");
+				}
+				Object.DestroyImmediate(root);
+			}
+		}
+
+		[Test]
 		public void TransformFollowerMapsPositionAndRotation()
 		{
 			var gameObject = new GameObject("Follower");
@@ -200,6 +305,53 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 				Assert.That(Quaternion.Angle(gameObject.transform.localRotation, Quaternion.Euler(0f, 30f, 0f)), Is.LessThan(0.001f));
 			} finally {
 				Object.DestroyImmediate(gameObject);
+			}
+		}
+
+		[Test]
+		public void LocalTranslationUsesAuthoredFollowerGizmoAxes()
+		{
+			var followerObject = new GameObject("Follower");
+			try {
+				followerObject.transform.localPosition = new Vector3(1f, 2f, 3f);
+				followerObject.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
+				var follower = followerObject.AddComponent<ActuatorTransformComponent>();
+				follower.PositionOffset = new Vector3(0f, 0f, 2f);
+				follower.TranslationSpace = ActuatorTranslationSpace.Local;
+				follower.CaptureInitialPose();
+
+				follower.ApplyValue(1f);
+
+				Assert.That(Vector3.Distance(followerObject.transform.localPosition, new Vector3(3f, 2f, 3f)), Is.LessThan(0.0001f));
+			} finally {
+				Object.DestroyImmediate(followerObject);
+			}
+		}
+
+		[Test]
+		public void WorldTranslationStaysWorldAlignedWhenParentMoves()
+		{
+			var parent = new GameObject("Parent");
+			var followerObject = new GameObject("Follower");
+			try {
+				parent.transform.SetPositionAndRotation(new Vector3(10f, 20f, 0f), Quaternion.Euler(0f, 0f, 90f));
+				followerObject.transform.SetParent(parent.transform, false);
+				followerObject.transform.localPosition = new Vector3(1f, 0f, 0f);
+				var follower = followerObject.AddComponent<ActuatorTransformComponent>();
+				follower.PositionOffset = new Vector3(2f, 0f, 0f);
+				follower.TranslationSpace = ActuatorTranslationSpace.World;
+				follower.CaptureInitialPose();
+
+				follower.ApplyValue(1f);
+
+				Assert.That(Vector3.Distance(followerObject.transform.position, new Vector3(12f, 21f, 0f)), Is.LessThan(0.0001f));
+
+				parent.transform.SetPositionAndRotation(new Vector3(20f, 30f, 0f), Quaternion.Euler(0f, 0f, 180f));
+				InvokeLifecycle(follower, "LateUpdate");
+
+				Assert.That(Vector3.Distance(followerObject.transform.position, new Vector3(21f, 30f, 0f)), Is.LessThan(0.0001f));
+			} finally {
+				Object.DestroyImmediate(parent);
 			}
 		}
 
@@ -273,6 +425,11 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 				Assert.That(Quaternion.Angle(firstObject.transform.localRotation, Quaternion.Euler(0f, 30f, 0f)), Is.LessThan(0.001f));
 				Assert.That(secondObject.transform.localPosition.y, Is.EqualTo(1.5f).Within(0.0001f));
 
+				InvokePreview("Apply", (object)new UnityEngine.Object[] { actuator }, 0.75f);
+
+				Assert.That(firstObject.transform.localPosition.x, Is.EqualTo(4f).Within(0.0001f));
+				Assert.That(secondObject.transform.localPosition.y, Is.EqualTo(6f * second.ResponseCurve.Evaluate(0.75f)).Within(0.0001f));
+
 				InvokePreview("Restore", (object)new UnityEngine.Object[] { actuator });
 
 				Assert.That(firstObject.transform.localPosition, Is.EqualTo(new Vector3(1f, 0f, 0f)));
@@ -283,6 +440,134 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 				UnityEngine.Object.DestroyImmediate(root);
 				UnityEngine.Object.DestroyImmediate(firstObject);
 				UnityEngine.Object.DestroyImmediate(secondObject);
+			}
+		}
+
+		[Test]
+		public void EditModePreviewToleratesDestroyedCachedFollower()
+		{
+			var root = new GameObject("Actuator Preview");
+			var followerObject = new GameObject("Follower");
+			var actuator = root.AddComponent<ActuatorComponent>();
+			try {
+				var follower = followerObject.AddComponent<ActuatorTransformComponent>();
+				follower._emitter = actuator;
+				follower.PositionOffset = Vector3.right;
+				InvokePreview("Apply", (object)new UnityEngine.Object[] { actuator }, 0.5f);
+				Object.DestroyImmediate(followerObject);
+
+				Assert.DoesNotThrow(() => InvokePreview("Apply", (object)new UnityEngine.Object[] { actuator }, 0.75f));
+			} finally {
+				InvokePreview("Restore", (object)new UnityEngine.Object[] { actuator });
+				Object.DestroyImmediate(root);
+			}
+		}
+
+		[Test]
+		public void EditModePreviewSupportsWorldTranslationAxes()
+		{
+			var root = new GameObject("Actuator Preview");
+			var followerObject = new GameObject("Follower");
+			var actuator = root.AddComponent<ActuatorComponent>();
+			try {
+				root.transform.SetPositionAndRotation(new Vector3(10f, 20f, 0f), Quaternion.Euler(0f, 0f, 90f));
+				followerObject.transform.SetParent(root.transform, false);
+				followerObject.transform.localPosition = new Vector3(1f, 0f, 0f);
+				var follower = followerObject.AddComponent<ActuatorTransformComponent>();
+				follower._emitter = actuator;
+				follower.PositionOffset = new Vector3(2f, 0f, 0f);
+				follower.TranslationSpace = ActuatorTranslationSpace.World;
+
+				InvokePreview("Apply", (object)new UnityEngine.Object[] { actuator }, 1f);
+
+				Assert.That(Vector3.Distance(followerObject.transform.position, new Vector3(12f, 21f, 0f)), Is.LessThan(0.0001f));
+
+				root.transform.SetPositionAndRotation(new Vector3(20f, 30f, 0f), Quaternion.Euler(0f, 0f, 180f));
+				InvokePreview("MaintainWorldTranslations");
+
+				Assert.That(Vector3.Distance(followerObject.transform.position, new Vector3(21f, 30f, 0f)), Is.LessThan(0.0001f));
+
+				InvokePreview("Restore", (object)new UnityEngine.Object[] { actuator });
+
+				Assert.That(Vector3.Distance(followerObject.transform.localPosition, new Vector3(1f, 0f, 0f)), Is.LessThan(0.0001f));
+			} finally {
+				InvokePreview("Restore", (object)new UnityEngine.Object[] { actuator });
+				Object.DestroyImmediate(root);
+			}
+		}
+
+		[Test]
+		public void EditModePreviewSupportsFollowerLocalGizmoAxes()
+		{
+			var root = new GameObject("Actuator Preview");
+			var followerObject = new GameObject("Follower");
+			var actuator = root.AddComponent<ActuatorComponent>();
+			try {
+				followerObject.transform.localPosition = new Vector3(1f, 2f, 3f);
+				followerObject.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
+				var follower = followerObject.AddComponent<ActuatorTransformComponent>();
+				follower._emitter = actuator;
+				follower.PositionOffset = new Vector3(0f, 0f, 2f);
+				follower.TranslationSpace = ActuatorTranslationSpace.Local;
+
+				InvokePreview("Apply", (object)new UnityEngine.Object[] { actuator }, 1f);
+
+				Assert.That(Vector3.Distance(followerObject.transform.localPosition, new Vector3(3f, 2f, 3f)), Is.LessThan(0.0001f));
+
+				InvokePreview("Restore", (object)new UnityEngine.Object[] { actuator });
+
+				Assert.That(Vector3.Distance(followerObject.transform.localPosition, new Vector3(1f, 2f, 3f)), Is.LessThan(0.0001f));
+			} finally {
+				InvokePreview("Restore", (object)new UnityEngine.Object[] { actuator });
+				Object.DestroyImmediate(root);
+				Object.DestroyImmediate(followerObject);
+			}
+		}
+
+		[Test]
+		public void EditModePreviewIgnoresPreviewSceneObjects()
+		{
+			var previewScene = EditorSceneManager.NewPreviewScene();
+			var root = new GameObject("Prefab Stage Actuator");
+			var followerObject = new GameObject("Prefab Stage Follower");
+			var actuator = root.AddComponent<ActuatorComponent>();
+			try {
+				followerObject.transform.SetParent(root.transform);
+				var follower = followerObject.AddComponent<ActuatorTransformComponent>();
+				follower._emitter = actuator;
+				follower.PositionOffset = new Vector3(4f, 0f, 0f);
+				SceneManager.MoveGameObjectToScene(root, previewScene);
+
+				InvokePreview("Apply", (object)new UnityEngine.Object[] { actuator }, 1f);
+
+				Assert.That(followerObject.transform.localPosition, Is.EqualTo(Vector3.zero));
+			} finally {
+				InvokePreview("Restore", (object)new UnityEngine.Object[] { actuator });
+				Object.DestroyImmediate(root);
+				EditorSceneManager.ClosePreviewScene(previewScene);
+			}
+		}
+
+		[Test]
+		public void PreviewFallsBackToParentWhenAssignedEmitterHasWrongValueType()
+		{
+			var root = new GameObject("Actuator");
+			var followerObject = new GameObject("Follower");
+			var otherObject = new GameObject("Wrong Emitter");
+			var actuator = root.AddComponent<ActuatorComponent>();
+			try {
+				followerObject.transform.SetParent(root.transform);
+				var follower = followerObject.AddComponent<ActuatorTransformComponent>();
+				follower._emitter = otherObject.AddComponent<TurntableComponent>();
+				follower.PositionOffset = new Vector3(3f, 0f, 0f);
+
+				InvokePreview("Apply", (object)new UnityEngine.Object[] { actuator }, 1f);
+
+				Assert.That(followerObject.transform.localPosition.x, Is.EqualTo(3f).Within(0.0001f));
+			} finally {
+				InvokePreview("Restore", (object)new UnityEngine.Object[] { actuator });
+				Object.DestroyImmediate(root);
+				Object.DestroyImmediate(otherObject);
 			}
 		}
 
@@ -335,6 +620,7 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 				follower._emitter = actuator;
 				follower.AnimatePosition = true;
 				follower.PositionOffset = new Vector3(1f, 2f, 3f);
+				follower.TranslationSpace = ActuatorTranslationSpace.Local;
 				follower.AnimateRotation = true;
 				follower.RotationOffset = new Vector3(4f, 5f, 6f);
 				follower.ResponseCurve = new AnimationCurve(new Keyframe(0f, 0f, 1f, 2f), new Keyframe(1f, 1f, 3f, 4f));
@@ -348,6 +634,7 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 				var references = follower.PackReferences(root.transform, refs, null);
 				follower._emitter = null;
 				follower.PositionOffset = Vector3.zero;
+				follower.TranslationSpace = ActuatorTranslationSpace.World;
 				follower.RotationOffset = Vector3.zero;
 				follower.Reverse = false;
 
@@ -356,12 +643,27 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 
 				Assert.That(follower._emitter, Is.SameAs(actuator));
 				Assert.That(follower.PositionOffset, Is.EqualTo(new Vector3(1f, 2f, 3f)));
+				Assert.That(follower.TranslationSpace, Is.EqualTo(ActuatorTranslationSpace.Local));
 				Assert.That(follower.RotationOffset, Is.EqualTo(new Vector3(4f, 5f, 6f)));
 				Assert.That(follower.Reverse, Is.True);
 				Assert.That(follower.ResponseCurve.keys[0].outTangent, Is.EqualTo(2f));
 				Assert.That(follower.ResponseCurve.keys[1].inTangent, Is.EqualTo(3f));
 			} finally {
 				Object.DestroyImmediate(root);
+			}
+		}
+
+		[Test]
+		public void ActuatorApiCannotBeInterceptedBySimulationThreadCoilDispatch()
+		{
+			var gameObject = new GameObject("Actuator");
+			try {
+				gameObject.AddComponent<ActuatorComponent>();
+				var api = new ActuatorApi(gameObject);
+
+				Assert.That(api, Is.Not.InstanceOf<ISimulationThreadCoil>());
+			} finally {
+				Object.DestroyImmediate(gameObject);
 			}
 		}
 
@@ -372,7 +674,7 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 			return state;
 		}
 
-		private static ActuatorMotionConfig Config(ActuatorCoilMode mode, float activationDuration = 0.3f, float releaseDuration = 0.3f, float releaseDelay = 0.05f, float oneShotHoldDuration = 0.5f)
+		private static ActuatorMotionConfig Config(ActuatorCoilMode mode, float activationDuration = 0.3f, float releaseDuration = 0.3f, float releaseDelay = 0.05f, float oneShotHoldDuration = 0.5f, float activationThreshold = 0.001f)
 		{
 			return new ActuatorMotionConfig {
 				CoilMode = mode,
@@ -381,7 +683,7 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 				ActivationCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f),
 				ReleaseCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f),
 				ReleaseDelay = releaseDelay,
-				ActivationThreshold = 0.001f,
+				ActivationThreshold = activationThreshold,
 				OneShotHoldDuration = oneShotHoldDuration,
 			};
 		}
@@ -395,6 +697,15 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 				throw new MissingMethodException(previewType.FullName, methodName);
 			}
 			method.Invoke(null, arguments);
+		}
+
+		private static void InvokeLifecycle(MonoBehaviour component, string methodName)
+		{
+			var method = component.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic);
+			if (method == null) {
+				throw new MissingMethodException(component.GetType().FullName, methodName);
+			}
+			method.Invoke(component, null);
 		}
 	}
 }

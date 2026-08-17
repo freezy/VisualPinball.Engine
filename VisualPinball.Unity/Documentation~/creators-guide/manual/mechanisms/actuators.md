@@ -14,14 +14,14 @@ The **Actuator** component turns one gamelogic coil into a normalized mechanical
 2. Map its **Actuator** coil in the [Coil Manager](xref:coil_manager).
 3. Put each moving object under a GameObject whose local origin matches the real mechanical pivot or linkage origin.
 4. Add **Pinball > Animation > Actuator Transform** to every independently moving pivot and assign the same Actuator as its **Emitter**. A follower below the actuator in the hierarchy can also find it automatically.
-5. Enable **Position**, **Rotation**, or both and author the offsets representing normalized position 1. The existing local transform is position 0.
+5. Enable **Position**, **Rotation**, or both and author the offsets representing normalized position 1. The existing local transform is position 0. Translation defaults to **World**. Choose **Local** when the offset should follow the follower's authored red, green, and blue Local gizmo axes.
 6. Mark every VPE collider that moves with these pivots as **Kinematic** before the table loads.
 
 Children inherit their parent's movement, so decorative meshes and collision belonging to one rigid part should normally be grouped below one driven pivot. Add another follower only when a second rigid part needs a different offset, direction, or response curve.
 
 ## Edit-mode preview
 
-Select the Actuator and scrub **Preview Position** to inspect every connected Actuator Transform without entering Play Mode or firing a coil. The slider uses each follower's position offset, rotation offset, response curve, and reverse setting. **Reset Preview** returns every follower to its authored local pose. Preview poses are also restored automatically before saving the scene, entering Play Mode, reloading scripts, quitting Unity, undoing, or leaving the Actuator inspector; they are never intended to become authored transform values.
+Select the Actuator and scrub **Preview Position** to inspect every connected Actuator Transform without entering Play Mode or firing a coil. The slider uses each follower's position offset, rotation offset, response curve, and reverse setting. **Reset Preview** returns every follower to its authored local pose. Preview poses are also restored automatically before saving the scene, entering Play Mode, reloading scripts, quitting Unity, undoing, or leaving the Actuator inspector; they are never intended to become authored transform values. Preview is disabled for objects opened in Prefab Mode so a temporary pose cannot be saved into the prefab asset.
 
 ## Coil modes
 
@@ -45,7 +45,7 @@ Binary modes never interpret coil strength as mechanism position. A value such a
 
 ## Travel and curves
 
-**Activation Duration** and **Release Duration** are full-stroke times. A command that starts midway through the stroke scales its duration by the remaining distance. Activation and release have independent curves; every follower can additionally reshape the shared position with its own **Response Curve** or select **Reverse**.
+**Activation Duration** and **Release Duration** are full-stroke times. A command that starts midway through the stroke scales its duration by the remaining distance. Activation and release have independent curves; every follower can additionally reshape the shared position with its own **Response Curve** or select **Reverse**. A follower's **Translation Space** controls only the axes of **Position Offset**: **Local** uses the follower's authored Local gizmo orientation, while **World** uses global axes and continuously keeps the authored baseline attached to a moving parent. World offsets are measured in scene units; Local offsets inherit the parent's scale.
 
 The actuator clamps its position to the range 0 through 1. Curves can ease movement but cannot drive collision beyond the authored endpoints. A zero duration, or the runtime API's `SnapTo`, is an immediate transform teleport intended for initialization, restore, or diagnostics; it is not a gameplay-safe way to push a ball.
 
@@ -63,6 +63,8 @@ If a destroyed bridge half should wiggle when struck by a ball, add that complia
 
 ## Runtime API
 
-`ActuatorApi` exposes the current `Position`, `TargetPosition`, and `IsMoving` state. Set `IsActive` or call `Toggle()` for authored travel, listen to `Reached` for endpoint completion, and use `SnapTo(float)` only for restore or diagnostics.
+`ActuatorApi` exposes the current `Position`, `TargetPosition`, and `IsMoving` state. Set `IsActive` or call `Toggle()` for authored travel, listen to `Reached` for endpoint completion, and use `SnapTo(float)` only for restore or diagnostics. A script command takes precedence until the next qualified coil edge; it deliberately does not rewrite the sampled physical coil state.
+
+Treat `CoilMode` as authoring configuration rather than a live control. Changing modes during a pulse, stroke, or one-shot hold is unsupported; finish or restore the mechanism before changing it.
 
 The component also publishes its normalized position through `IAnimationValueProvider<float>`, allowing custom reusable followers to consume the same motion without depending on a particular table or game.

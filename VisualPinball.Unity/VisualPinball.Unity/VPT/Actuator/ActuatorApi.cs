@@ -38,12 +38,25 @@ namespace VisualPinball.Unity
 		public float TargetPosition => _component.TargetPosition;
 		public bool IsMoving => _component.IsMoving;
 
+		/// <summary>
+		/// Gets or commands the active endpoint. A script command takes precedence until the next
+		/// qualified coil edge; it does not rewrite the sampled physical coil state.
+		/// </summary>
 		public bool IsActive {
 			get => TargetPosition >= 0.5f;
 			set => _component.SetActive(value);
 		}
 
+		/// <summary>
+		/// Toggles the commanded endpoint. A script command takes precedence until the next
+		/// qualified coil edge; it does not rewrite the sampled physical coil state.
+		/// </summary>
 		public void Toggle() => _component.Toggle();
+
+		/// <summary>
+		/// Immediately restores or previews a normalized pose. A script command takes precedence
+		/// until the next qualified coil edge; it does not rewrite the sampled physical coil state.
+		/// </summary>
 		public void SnapTo(float position) => _component.SnapTo(position);
 
 		void IApi.OnInit(BallManager ballManager) => Init?.Invoke(this, EventArgs.Empty);

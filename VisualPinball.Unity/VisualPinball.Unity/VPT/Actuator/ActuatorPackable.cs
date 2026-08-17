@@ -64,6 +64,7 @@ namespace VisualPinball.Unity
 	{
 		public bool AnimatePosition;
 		public PackableFloat3 PositionOffset;
+		public ActuatorTranslationSpace TranslationSpace;
 		public bool AnimateRotation;
 		public PackableFloat3 RotationOffset;
 		public AnimationCurve ResponseCurve;
@@ -74,6 +75,7 @@ namespace VisualPinball.Unity
 			return PackageApi.Packer.Pack(new ActuatorTransformPackable {
 				AnimatePosition = comp.AnimatePosition,
 				PositionOffset = comp.PositionOffset,
+				TranslationSpace = comp.TranslationSpace,
 				AnimateRotation = comp.AnimateRotation,
 				RotationOffset = comp.RotationOffset,
 				ResponseCurve = comp.ResponseCurve,
@@ -86,6 +88,7 @@ namespace VisualPinball.Unity
 			var data = PackageApi.Packer.Unpack<ActuatorTransformPackable>(bytes);
 			comp.AnimatePosition = data.AnimatePosition;
 			comp.PositionOffset = data.PositionOffset;
+			comp.TranslationSpace = data.TranslationSpace;
 			comp.AnimateRotation = data.AnimateRotation;
 			comp.RotationOffset = data.RotationOffset;
 			comp.ResponseCurve = data.ResponseCurve;
