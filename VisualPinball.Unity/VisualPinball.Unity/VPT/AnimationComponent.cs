@@ -27,7 +27,7 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public abstract class AnimationComponent<T> : MonoBehaviour
 	{
-		private IAnimationValueEmitter<T> Emitter {
+		protected IAnimationValueEmitter<T> Emitter {
 			get => _emitter as IAnimationValueEmitter<T>;
 			set => _emitter = value as MonoBehaviour;
 		}
@@ -40,7 +40,7 @@ namespace VisualPinball.Unity
 
 		protected abstract void OnAnimationValueChanged(T value);
 
-		protected void Awake()
+		protected virtual void Awake()
 		{
 			if (_emitter != null && _emitter is IAnimationValueEmitter<T> e1) {
 				Emitter = e1;
@@ -55,14 +55,14 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void OnEnable()
+		protected virtual void OnEnable()
 		{
 			if (Emitter != null) {
 				Emitter.OnAnimationValueChanged += OnAnimationValueChanged;
 			}
 		}
 
-		private void OnDisable()
+		protected virtual void OnDisable()
 		{
 			if (Emitter != null) {
 				Emitter.OnAnimationValueChanged -= OnAnimationValueChanged;

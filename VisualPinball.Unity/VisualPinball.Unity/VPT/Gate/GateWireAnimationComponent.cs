@@ -27,7 +27,7 @@ namespace VisualPinball.Unity
 		public Vector3 RotationVector = Vector3.left;
 		private Quaternion _initialRotation;
 
-		private new void Awake()
+		protected override void Awake()
 		{
 			_initialRotation = transform.localRotation;
 			base.Awake();

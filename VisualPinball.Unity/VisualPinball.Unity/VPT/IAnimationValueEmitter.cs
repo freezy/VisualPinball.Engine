@@ -40,4 +40,13 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public event Action<T> OnAnimationValueChanged;
 	}
+
+	/// <summary>
+	/// An animation emitter whose current value can be queried by consumers that subscribe after
+	/// the initial value was established.
+	/// </summary>
+	public interface IAnimationValueProvider<T> : IAnimationValueEmitter<T>
+	{
+		T AnimationValue { get; }
+	}
 }
