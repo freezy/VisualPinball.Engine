@@ -23,6 +23,100 @@ using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
+	[CustomPropertyDrawer(typeof(ActuatorPositionSwitch))]
+	public class ActuatorPositionSwitchPropertyDrawer : PropertyDrawer
+	{
+		private const float Padding = 2f;
+
+		public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+		{
+			var typeProperty = property.FindPropertyRelative(nameof(ActuatorPositionSwitch.Type));
+			if (typeProperty.hasMultipleDifferentValues) {
+				return (EditorGUIUtility.singleLineHeight + Padding) * 5f + 4f;
+			}
+			var type = (ActuatorPositionSwitchType)typeProperty.enumValueIndex;
+			var lines = type switch {
+				ActuatorPositionSwitchType.EnableBetween => 3f,
+				ActuatorPositionSwitchType.AlwaysPulse => 4f,
+				ActuatorPositionSwitchType.PulseBetween => 5f,
+				_ => 3f,
+			};
+			return (EditorGUIUtility.singleLineHeight + Padding) * lines + 4f;
+		}
+
+		public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+		{
+			EditorGUI.BeginProperty(position, label, property);
+			position.y += 2f;
+			position.height = EditorGUIUtility.singleLineHeight;
+
+			var indent = EditorGUI.indentLevel;
+			EditorGUI.indentLevel = 0;
+
+			var typeProperty = property.FindPropertyRelative(nameof(ActuatorPositionSwitch.Type));
+			EditorGUI.PropertyField(position, property.FindPropertyRelative(nameof(ActuatorPositionSwitch.Name)), new GUIContent("Name"));
+			NextLine(ref position);
+			EditorGUI.PropertyField(position, typeProperty, new GUIContent("Switch Type"));
+
+			var hasMixedTypes = typeProperty.hasMultipleDifferentValues;
+			var type = (ActuatorPositionSwitchType)typeProperty.enumValueIndex;
+			if (hasMixedTypes || type is ActuatorPositionSwitchType.EnableBetween or ActuatorPositionSwitchType.PulseBetween) {
+				NextLine(ref position);
+				DrawRange(position, property);
+			}
+
+			if (hasMixedTypes || type is ActuatorPositionSwitchType.AlwaysPulse or ActuatorPositionSwitchType.PulseBetween) {
+				NextLine(ref position);
+				var pulseInterval = property.FindPropertyRelative(nameof(ActuatorPositionSwitch.PulseInterval));
+				EditorGUI.showMixedValue = pulseInterval.hasMultipleDifferentValues;
+				EditorGUI.BeginChangeCheck();
+				var interval = EditorGUI.Slider(position, new GUIContent("Pulse Every", "Normalized actuator travel between pulse marks."), pulseInterval.floatValue, 0.001f, 1f);
+				if (EditorGUI.EndChangeCheck()) {
+					pulseInterval.floatValue = interval;
+				}
+				EditorGUI.showMixedValue = false;
+
+				NextLine(ref position);
+				EditorGUI.PropertyField(position, property.FindPropertyRelative(nameof(ActuatorPositionSwitch.PulseDuration)), new GUIContent("Pulse Duration", "How long each generated pulse remains enabled."));
+			}
+
+			EditorGUI.indentLevel = indent;
+			EditorGUI.EndProperty();
+		}
+
+		private static void DrawRange(Rect position, SerializedProperty property)
+		{
+			var rangePosition = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), new GUIContent("Between", "Inclusive normalized actuator positions."));
+			const float SeparatorWidth = 18f;
+			const float SuffixWidth = 34f;
+			var fieldWidth = (rangePosition.width - SeparatorWidth - SuffixWidth) / 2f;
+			var beginningRect = new Rect(rangePosition.x, rangePosition.y, fieldWidth, rangePosition.height);
+			var separatorRect = new Rect(beginningRect.xMax, rangePosition.y, SeparatorWidth, rangePosition.height);
+			var endRect = new Rect(separatorRect.xMax, rangePosition.y, fieldWidth, rangePosition.height);
+			var suffixRect = new Rect(endRect.xMax + 4f, rangePosition.y, SuffixWidth - 4f, rangePosition.height);
+
+			var beginning = property.FindPropertyRelative(nameof(ActuatorPositionSwitch.PositionBeginning));
+			var end = property.FindPropertyRelative(nameof(ActuatorPositionSwitch.PositionEnd));
+			EditorGUI.showMixedValue = beginning.hasMultipleDifferentValues;
+			EditorGUI.BeginChangeCheck();
+			var beginningValue = EditorGUI.FloatField(beginningRect, beginning.floatValue);
+			if (EditorGUI.EndChangeCheck()) {
+				beginning.floatValue = Mathf.Clamp01(beginningValue);
+			}
+			EditorGUI.LabelField(separatorRect, " – ", EditorStyles.centeredGreyMiniLabel);
+			EditorGUI.showMixedValue = end.hasMultipleDifferentValues;
+			EditorGUI.BeginChangeCheck();
+			var endValue = EditorGUI.FloatField(endRect, end.floatValue);
+			if (EditorGUI.EndChangeCheck()) {
+				end.floatValue = Mathf.Clamp01(endValue);
+			}
+			EditorGUI.showMixedValue = false;
+			EditorGUI.LabelField(suffixRect, "pos");
+		}
+
+		private static void NextLine(ref Rect position) => position.y += EditorGUIUtility.singleLineHeight + Padding;
+	}
+
 	[CustomEditor(typeof(ActuatorComponent)), CanEditMultipleObjects]
 	public class ActuatorInspector : ItemInspector
 	{
@@ -35,6 +129,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _releaseDelayProperty;
 		private SerializedProperty _activationThresholdProperty;
 		private SerializedProperty _oneShotHoldDurationProperty;
+		private SerializedProperty _switchesProperty;
 		private float _previewPosition;
 
 		protected override MonoBehaviour UndoTarget => target as MonoBehaviour;
@@ -51,6 +146,7 @@ namespace VisualPinball.Unity.Editor
 			_releaseDelayProperty = serializedObject.FindProperty(nameof(ActuatorComponent.ReleaseDelay));
 			_activationThresholdProperty = serializedObject.FindProperty(nameof(ActuatorComponent.ActivationThreshold));
 			_oneShotHoldDurationProperty = serializedObject.FindProperty(nameof(ActuatorComponent.OneShotHoldDuration));
+			_switchesProperty = serializedObject.FindProperty(nameof(ActuatorComponent.Switches));
 		}
 
 		protected override void OnDisable()
@@ -85,6 +181,10 @@ namespace VisualPinball.Unity.Editor
 			} else {
 				EditorGUILayout.HelpBox("Binary modes treat every normalized value above the threshold as one energized state. Coil strength controls electrical power, not mechanism position.", MessageType.Info);
 			}
+
+			EditorGUILayout.Space(8f);
+			PropertyField(_switchesProperty, "Position Switches");
+			EditorGUILayout.HelpBox("Maintained switches follow the actuator's actual normalized position. Pulse switches emit distinct close/open edges using their configured pulse duration.", MessageType.Info);
 
 			if (!Application.isPlaying) {
 				EditorGUILayout.Space(8f);

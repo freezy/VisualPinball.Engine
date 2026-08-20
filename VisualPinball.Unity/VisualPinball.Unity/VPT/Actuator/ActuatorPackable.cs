@@ -29,6 +29,7 @@ namespace VisualPinball.Unity
 		public float ReleaseDelay;
 		public float ActivationThreshold;
 		public float OneShotHoldDuration;
+		public ActuatorPositionSwitch[] Switches;
 
 		public static byte[] Pack(ActuatorComponent comp)
 		{
@@ -42,6 +43,7 @@ namespace VisualPinball.Unity
 				ReleaseDelay = comp.ReleaseDelay,
 				ActivationThreshold = comp.ActivationThreshold,
 				OneShotHoldDuration = comp.OneShotHoldDuration,
+				Switches = comp.Switches,
 			});
 		}
 
@@ -57,6 +59,10 @@ namespace VisualPinball.Unity
 			comp.ReleaseDelay = data.ReleaseDelay;
 			comp.ActivationThreshold = data.ActivationThreshold;
 			comp.OneShotHoldDuration = data.OneShotHoldDuration;
+			comp.Switches = data.Switches ?? System.Array.Empty<ActuatorPositionSwitch>();
+			foreach (var positionSwitch in comp.Switches) {
+				positionSwitch?.Normalize();
+			}
 		}
 	}
 

@@ -15,23 +15,66 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
+using NLog;
 using Unity.Mathematics;
 using UnityEngine;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
-	public class ActuatorApi : IApi, IApiCoilDevice, IApiWireDeviceDest, IApiCoil
+	public class ActuatorApi : IApi, IApiCoilDevice, IApiSwitchDevice, IApiWireDeviceDest, IApiCoil
 	{
+		private const int MaxPendingPulses = 1024;
+		private const float PulseGapDuration = 0.001f;
+
+		private sealed class PositionSwitchRuntime
+		{
+			internal readonly ActuatorPositionSwitch Config;
+			internal readonly DeviceSwitch Switch;
+			internal int PendingPulses;
+			internal bool PulseActive;
+			internal bool WaitingForGap;
+			internal float StateTimeRemaining;
+			internal bool WarnedPulseOverflow;
+
+			internal PositionSwitchRuntime(ActuatorPositionSwitch config, DeviceSwitch positionSwitch)
+			{
+				Config = config;
+				Switch = positionSwitch;
+			}
+		}
+
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		private readonly ActuatorComponent _component;
+		private readonly Dictionary<string, PositionSwitchRuntime> _switches = new();
+		private readonly PositionSwitchRuntime[] _switchRuntimes;
 		private bool _warnedBooleanFollowValue;
 
 		public event EventHandler Init;
 		public event EventHandler Reached;
 		public event EventHandler<NoIdCoilEventArgs> CoilStatusChanged;
 
-		internal ActuatorApi(GameObject go)
+		internal ActuatorApi(GameObject go, Player player = null, PhysicsEngine physicsEngine = null)
 		{
 			_component = go.GetComponent<ActuatorComponent>();
+			var switchRuntimes = new List<PositionSwitchRuntime>();
+			foreach (var positionSwitch in _component.Switches ?? Array.Empty<ActuatorPositionSwitch>()) {
+				if (positionSwitch == null || !positionSwitch.HasId) {
+					Logger.Warn($"Ignoring actuator position switch without an ID on '{_component.name}'.");
+					continue;
+				}
+				if (_switches.ContainsKey(positionSwitch.SwitchId)) {
+					Logger.Warn($"Ignoring duplicate actuator position switch ID '{positionSwitch.SwitchId}' on '{_component.name}'.");
+					continue;
+				}
+				var deviceSwitch = new DeviceSwitch(positionSwitch.SwitchId, false, SwitchDefault.NormallyOpen, player, physicsEngine);
+				var runtime = new PositionSwitchRuntime(positionSwitch, deviceSwitch);
+				_switches[positionSwitch.SwitchId] = runtime;
+				switchRuntimes.Add(runtime);
+			}
+			_switchRuntimes = switchRuntimes.ToArray();
 		}
 
 		public float Position => _component.Position;
@@ -60,10 +103,19 @@ namespace VisualPinball.Unity
 		public void SnapTo(float position) => _component.SnapTo(position);
 
 		void IApi.OnInit(BallManager ballManager) => Init?.Invoke(this, EventArgs.Empty);
-		void IApi.OnDestroy() { }
+		void IApi.OnDestroy() => CancelPulses();
 
 		IApiCoil IApiCoilDevice.Coil(string deviceItem) => Coil(deviceItem);
+		IApiSwitch IApiSwitchDevice.Switch(string deviceItem) => Switch(deviceItem);
 		public IApiWireDest Wire(string deviceItem) => Coil(deviceItem);
+
+		public IApiSwitch Switch(string deviceItem)
+		{
+			if (_switches.TryGetValue(deviceItem, out var positionSwitch)) {
+				return positionSwitch.Switch;
+			}
+			return null;
+		}
 
 		private IApiCoil Coil(string deviceItem)
 		{
@@ -87,6 +139,112 @@ namespace VisualPinball.Unity
 		}
 
 		internal void NotifyReached() => Reached?.Invoke(this, EventArgs.Empty);
+
+		internal void UpdateSwitches(float previousPosition, float position, bool emitPulses, bool forceMaintained = false, bool resetPulses = false)
+		{
+			if (resetPulses) {
+				ResetPulseQueues();
+			}
+
+			foreach (var runtime in _switchRuntimes) {
+				if (!runtime.Config.EmitsPulses) {
+					if (runtime.PulseActive || runtime.WaitingForGap || runtime.PendingPulses > 0) {
+						ResetPulseQueue(runtime);
+					}
+					var enabled = runtime.Config.Contains(position);
+					if (forceMaintained || runtime.Switch.IsSwitchEnabled != enabled) {
+						runtime.Switch.SetSwitch(enabled);
+					}
+					continue;
+				}
+
+				if (!emitPulses) {
+					continue;
+				}
+				var pulseCount = runtime.Config.CountPulses(previousPosition, position);
+				if (pulseCount <= 0) {
+					continue;
+				}
+
+				var availableQueueSlots = MaxPendingPulses - runtime.PendingPulses;
+				var queuedPulses = math.min(availableQueueSlots, pulseCount);
+				runtime.PendingPulses += queuedPulses;
+				if (queuedPulses < pulseCount && !runtime.WarnedPulseOverflow) {
+					runtime.WarnedPulseOverflow = true;
+					Logger.Warn($"Actuator '{_component.name}' position switch '{runtime.Config.Name}' exceeded its {MaxPendingPulses}-pulse backlog; dropping additional pulses.");
+				}
+				TryStartPulse(runtime);
+			}
+		}
+
+		internal void AdvancePulses(float deltaTime)
+		{
+			var elapsed = math.max(0f, deltaTime);
+			foreach (var runtime in _switchRuntimes) {
+				if (runtime.Config.EmitsPulses) {
+					AdvancePulse(runtime, elapsed);
+				}
+			}
+		}
+
+		internal void CancelPulses() => ResetPulseQueues();
+
+		private static void AdvancePulse(PositionSwitchRuntime runtime, float elapsed)
+		{
+			if (runtime.PulseActive) {
+				runtime.StateTimeRemaining -= elapsed;
+				if (runtime.StateTimeRemaining > 0f) {
+					return;
+				}
+				runtime.Switch.SetSwitch(false);
+				runtime.PulseActive = false;
+				runtime.WaitingForGap = true;
+				runtime.StateTimeRemaining = PulseGapDuration;
+				return;
+			}
+
+			if (runtime.WaitingForGap) {
+				runtime.StateTimeRemaining -= elapsed;
+				if (runtime.StateTimeRemaining > 0f) {
+					return;
+				}
+				runtime.WaitingForGap = false;
+				runtime.StateTimeRemaining = 0f;
+			}
+
+			TryStartPulse(runtime);
+		}
+
+		private static bool TryStartPulse(PositionSwitchRuntime runtime)
+		{
+			if (runtime.PulseActive || runtime.WaitingForGap || runtime.PendingPulses <= 0) {
+				return false;
+			}
+			runtime.PendingPulses--;
+			runtime.PulseActive = true;
+			runtime.StateTimeRemaining = math.max(1, runtime.Config.PulseDuration) / 1000f;
+			runtime.Switch.SetSwitch(true);
+			return true;
+		}
+
+		private void ResetPulseQueues()
+		{
+			foreach (var runtime in _switchRuntimes) {
+				ResetPulseQueue(runtime);
+			}
+		}
+
+		private static void ResetPulseQueue(PositionSwitchRuntime runtime)
+		{
+			if (runtime.PulseActive) {
+				runtime.Switch.SetSwitch(false);
+			}
+			runtime.PendingPulses = 0;
+			runtime.PulseActive = false;
+			runtime.WaitingForGap = false;
+			runtime.StateTimeRemaining = 0f;
+			runtime.WarnedPulseOverflow = false;
+		}
 
 		private void ApplyCoilValue(float value)
 		{

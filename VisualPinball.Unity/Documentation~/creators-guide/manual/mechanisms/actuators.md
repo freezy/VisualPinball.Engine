@@ -15,13 +15,26 @@ The **Actuator** component turns one gamelogic coil into a normalized mechanical
 3. Put each moving object under a GameObject whose local origin matches the real mechanical pivot or linkage origin.
 4. Add **Pinball > Animation > Actuator Transform** to every independently moving pivot and assign the same Actuator as its **Emitter**. A follower below the actuator in the hierarchy can also find it automatically.
 5. Enable **Position**, **Rotation**, or both and author the offsets representing normalized position 1. The existing local transform is position 0. Translation defaults to **World**. Choose **Local** when the offset should follow the follower's authored red, green, and blue Local gizmo axes.
-6. Mark every VPE collider that moves with these pivots as **Kinematic** before the table loads.
+6. If the mechanism has position, limit, or encoder switches, add them under **Position Switches** and map the resulting items in the [Switch Manager](xref:switch_manager).
+7. Mark every VPE collider that moves with these pivots as **Kinematic** before the table loads.
 
 Children inherit their parent's movement, so decorative meshes and collision belonging to one rigid part should normally be grouped below one driven pivot. Add another follower only when a second rigid part needs a different offset, direction, or response curve.
 
 ## Edit-mode preview
 
 Select the Actuator and scrub **Preview Position** to inspect every connected Actuator Transform without entering Play Mode or firing a coil. The slider uses each follower's position offset, rotation offset, response curve, and reverse setting. **Reset Preview** returns every follower to its authored local pose. Preview poses are also restored automatically before saving the scene, entering Play Mode, reloading scripts, quitting Unity, undoing, or leaving the Actuator inspector; they are never intended to become authored transform values. Preview is disabled for objects opened in Prefab Mode so a temporary pose cannot be saved into the prefab asset.
+
+The preview slider changes only editor geometry. It does not emit position switches to the gamelogic engine.
+
+## Position switches
+
+Each actuator can expose any number of switches derived from its actual normalized position. The configured name appears in the Switch Manager, while VPE maintains a stable internal item ID so mappings remain intact when the display name changes. Position ranges are inclusive and use the same `0` to `1` travel value as the animation.
+
+- **Enable Between** is a maintained switch. It becomes enabled while the actuator position is inside the configured range and disabled immediately after leaving it. Two narrow ranges near `0` and `1` model ordinary endpoint or limit switches; both will be disabled through the middle of travel.
+- **Pulse Between** emits pulses at fixed normalized travel intervals while the actuator crosses a configured position range. Pulse marks are anchored at the beginning of the range and work in both travel directions.
+- **Always Pulse** uses the same travel-based interval over the entire stroke. This is useful for simple encoder or cam-wheel feedback.
+
+Set **Pulse Duration** on each pulse switch to control the minimum time its close edge remains active. When one frame crosses multiple marks, the actuator queues every mark and emits each close and open edge on a separate update frame so the gamelogic engine and direct wire consumers observe every transition. This limits sustained output to roughly half the Unity update frequency; choose a pulse interval appropriate for the mechanism's travel speed or queued feedback will lag behind its animation. `SnapTo(float)` recalculates maintained switch states, cancels pending pulses, and deliberately does not synthesize encoder pulses. The editor preview changes only geometry and does not affect any switch. These rules make restore and diagnostics deterministic rather than pretending that instantaneous repositioning was physical travel.
 
 ## Coil modes
 

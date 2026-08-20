@@ -16,7 +16,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NLog;
+using Newtonsoft.Json;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
@@ -24,11 +26,130 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
+	[Serializable]
+	public sealed class ActuatorPositionSwitch
+	{
+		private const float MinimumPulseInterval = 0.001f;
+
+		[Tooltip("How actuator travel controls this switch.")]
+		public ActuatorPositionSwitchType Type;
+
+		[Tooltip("Name shown in VPE's switch mapping UI.")]
+		public string Name = "Position Switch";
+
+		[SerializeField, JsonProperty]
+		private string _switchId;
+
+		[Range(0f, 1f)]
+		[Tooltip("Beginning of the inclusive normalized position range.")]
+		public float PositionBeginning;
+
+		[Range(0f, 1f)]
+		[Tooltip("End of the inclusive normalized position range.")]
+		public float PositionEnd = 0.01f;
+
+		[Min(MinimumPulseInterval)]
+		[Tooltip("Normalized travel between pulses.")]
+		public float PulseInterval = 0.1f;
+
+		[Min(1)]
+		[Unit("ms")]
+		[Tooltip("How long each generated pulse remains enabled.")]
+		public int PulseDuration = 20;
+
+		[JsonIgnore]
+		public GamelogicEngineSwitch Switch => new(_switchId) {
+			Description = Name,
+		};
+
+		[JsonIgnore]
+		public string SwitchId => _switchId;
+
+		[JsonIgnore]
+		public bool EmitsPulses => Type != ActuatorPositionSwitchType.EnableBetween;
+
+		public ActuatorPositionSwitch()
+		{
+		}
+
+		public ActuatorPositionSwitch(ActuatorPositionSwitchType type, string name, string switchId, float positionBeginning, float positionEnd, float pulseInterval = 0.1f, int pulseDuration = 20)
+		{
+			Type = type;
+			Name = name;
+			_switchId = switchId;
+			PositionBeginning = positionBeginning;
+			PositionEnd = positionEnd;
+			PulseInterval = pulseInterval;
+			PulseDuration = pulseDuration;
+			Normalize();
+		}
+
+		internal bool HasId => !string.IsNullOrEmpty(_switchId);
+		internal void GenerateId() => _switchId = $"switch_{Guid.NewGuid().ToString()[..8]}";
+
+		internal void Normalize()
+		{
+			PositionBeginning = math.saturate(PositionBeginning);
+			PositionEnd = math.saturate(PositionEnd);
+			PulseInterval = math.max(MinimumPulseInterval, PulseInterval);
+			PulseDuration = math.max(1, PulseDuration);
+		}
+
+		internal bool Contains(float position)
+		{
+			var normalizedPosition = math.saturate(position);
+			var beginning = math.min(PositionBeginning, PositionEnd);
+			var end = math.max(PositionBeginning, PositionEnd);
+			return normalizedPosition >= beginning && normalizedPosition <= end;
+		}
+
+		internal int CountPulses(float previousPosition, float position)
+		{
+			if (!EmitsPulses) {
+				return 0;
+			}
+
+			var previous = math.saturate(previousPosition);
+			var current = math.saturate(position);
+			var beginning = Type == ActuatorPositionSwitchType.AlwaysPulse ? 0f : math.min(PositionBeginning, PositionEnd);
+			var end = Type == ActuatorPositionSwitchType.AlwaysPulse ? 1f : math.max(PositionBeginning, PositionEnd);
+			var pulseInterval = (double)math.max(MinimumPulseInterval, PulseInterval);
+
+			if (math.abs(current - previous) <= 0.000001f) {
+				return 0;
+			}
+
+			const double epsilon = 0.000001;
+			var rangeBeginning = (double)beginning;
+			var lastRangeMark = System.Math.Max(0, (int)System.Math.Floor(((double)end - rangeBeginning + epsilon) / pulseInterval));
+			int firstCrossedMark;
+			int lastCrossedMark;
+			if (current > previous) {
+				firstCrossedMark = (int)System.Math.Floor(((double)previous + epsilon - rangeBeginning) / pulseInterval) + 1;
+				lastCrossedMark = (int)System.Math.Floor(((double)current + epsilon - rangeBeginning) / pulseInterval);
+			} else {
+				firstCrossedMark = (int)System.Math.Ceiling(((double)current - epsilon - rangeBeginning) / pulseInterval);
+				lastCrossedMark = (int)System.Math.Ceiling(((double)previous - epsilon - rangeBeginning) / pulseInterval) - 1;
+			}
+
+			firstCrossedMark = System.Math.Max(0, firstCrossedMark);
+			lastCrossedMark = System.Math.Min(lastRangeMark, lastCrossedMark);
+			return System.Math.Max(0, lastCrossedMark - firstCrossedMark + 1);
+		}
+	}
+
+	public enum ActuatorPositionSwitchType
+	{
+		EnableBetween = 0,
+		AlwaysPulse = 1,
+		PulseBetween = 2,
+	}
+
 	[DisallowMultipleComponent]
 	[PackAs("Actuator")]
 	[AddComponentMenu("Pinball/Mechs/Actuator")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/actuators.html")]
-	public class ActuatorComponent : MonoBehaviour, ICoilDeviceComponent, IAnimationValueProvider<float>, IPackable
+	public class ActuatorComponent : MonoBehaviour, ICoilDeviceComponent, ISwitchDeviceComponent, IAnimationValueProvider<float>, ISerializationCallbackReceiver, IPackable
 	{
 		public const string ActuatorCoilItem = "actuator_coil";
 
@@ -71,6 +192,9 @@ namespace VisualPinball.Unity
 		[Tooltip("Time spent at position 1 before returning in One Shot mode.")]
 		public float OneShotHoldDuration = 0.5f;
 
+		[Tooltip("Switches controlled by the actuator's normalized position.")]
+		public ActuatorPositionSwitch[] Switches = Array.Empty<ActuatorPositionSwitch>();
+
 		public ActuatorApi ActuatorApi { get; private set; }
 		public float Position => _initialized ? _motion.Position : math.saturate(InitialPosition);
 		public float TargetPosition => _initialized ? _motion.TargetPosition : math.saturate(InitialPosition);
@@ -93,6 +217,13 @@ namespace VisualPinball.Unity
 		IEnumerable<IGamelogicEngineDeviceItem> IWireableComponent.AvailableWireDestinations => AvailableCoils;
 		IEnumerable<IGamelogicEngineDeviceItem> IDeviceComponent<IGamelogicEngineDeviceItem>.AvailableDeviceItems => AvailableCoils;
 
+		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => (Switches ?? Array.Empty<ActuatorPositionSwitch>())
+			.Where(positionSwitch => positionSwitch != null && positionSwitch.HasId)
+			.Select(positionSwitch => positionSwitch.Switch);
+
+		public SwitchDefault SwitchDefault => SwitchDefault.NormallyOpen;
+		IEnumerable<GamelogicEngineSwitch> IDeviceComponent<GamelogicEngineSwitch>.AvailableDeviceItems => AvailableSwitches;
+
 		public byte[] Pack() => ActuatorPackable.Pack(this);
 		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => Array.Empty<byte>();
 		public void Unpack(byte[] bytes) => ActuatorPackable.Unpack(bytes, this);
@@ -108,19 +239,24 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			ActuatorApi = new ActuatorApi(gameObject);
+			var physicsEngine = GetComponentInParent<PhysicsEngine>();
+			ActuatorApi = new ActuatorApi(gameObject, player, physicsEngine);
+			ActuatorApi.UpdateSwitches(Position, Position, false, true, true);
 			player.Register(ActuatorApi, this);
 		}
 
 		private void Update()
 		{
 			EnsureInitialized();
+			ActuatorApi?.AdvancePulses(Time.deltaTime);
 			var previousPosition = _motion.Position;
 			var previousReachedSequence = _motion.ReachedSequence;
 			var config = CreateConfig();
 			_motion.Advance(Time.deltaTime, in config);
 			PublishChanges(previousPosition, previousReachedSequence);
 		}
+
+		private void OnDisable() => ActuatorApi?.CancelPulses();
 
 		private void OnValidate()
 		{
@@ -132,6 +268,10 @@ namespace VisualPinball.Unity
 			OneShotHoldDuration = math.max(0f, OneShotHoldDuration);
 			ActivationCurve = EnsureCurve(ActivationCurve, true);
 			ReleaseCurve = EnsureCurve(ReleaseCurve, true);
+			Switches ??= Array.Empty<ActuatorPositionSwitch>();
+			foreach (var positionSwitch in Switches) {
+				positionSwitch?.Normalize();
+			}
 		}
 
 		internal void ApplyCoilValue(float value)
@@ -172,6 +312,7 @@ namespace VisualPinball.Unity
 			if (!Approximately(previousPosition, _motion.Position)) {
 				OnAnimationValueChanged?.Invoke(_motion.Position);
 			}
+			ActuatorApi?.UpdateSwitches(previousPosition, _motion.Position, false, true, true);
 		}
 
 		void IAnimationValueEmitter<float>.UpdateAnimationValue(float value) => SnapTo(value);
@@ -201,12 +342,49 @@ namespace VisualPinball.Unity
 
 		private void PublishChanges(float previousPosition, int previousReachedSequence)
 		{
-			if (!Approximately(previousPosition, _motion.Position)) {
+			var positionChanged = !Approximately(previousPosition, _motion.Position);
+			if (positionChanged) {
 				OnAnimationValueChanged?.Invoke(_motion.Position);
+				ActuatorApi?.UpdateSwitches(previousPosition, _motion.Position, true);
 			}
 			if (_motion.ReachedSequence != previousReachedSequence) {
 				ActuatorApi?.NotifyReached();
 			}
+		}
+
+		public void OnBeforeSerialize()
+		{
+			#if UNITY_EDITOR
+			Switches ??= Array.Empty<ActuatorPositionSwitch>();
+			var switchIds = new HashSet<string>();
+			var switchNames = new HashSet<string>();
+			foreach (var positionSwitch in Switches) {
+				if (positionSwitch == null) {
+					continue;
+				}
+				positionSwitch.Normalize();
+				if (string.IsNullOrWhiteSpace(positionSwitch.Name) || switchNames.Contains(positionSwitch.Name)) {
+					const string defaultName = "Position Switch";
+					var baseName = string.IsNullOrWhiteSpace(positionSwitch.Name) ? defaultName : positionSwitch.Name;
+					var suffix = 1;
+					var uniqueName = baseName;
+					while (switchNames.Contains(uniqueName)) {
+						uniqueName = $"{baseName} {++suffix}";
+					}
+					positionSwitch.Name = uniqueName;
+				}
+				switchNames.Add(positionSwitch.Name);
+				if (!positionSwitch.HasId || switchIds.Contains(positionSwitch.SwitchId)) {
+					positionSwitch.GenerateId();
+				}
+				switchIds.Add(positionSwitch.SwitchId);
+			}
+			#endif
+		}
+
+		public void OnAfterDeserialize()
+		{
+			Switches ??= Array.Empty<ActuatorPositionSwitch>();
 		}
 
 		private static bool Approximately(float a, float b) => math.abs(a - b) <= 0.000001f;

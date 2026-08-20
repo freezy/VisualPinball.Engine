@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEditor.SceneManagement;
@@ -27,6 +28,174 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 {
 	public class ActuatorTests
 	{
+		[Test]
+		public void PositionSwitchPreservesAuthoredRangeOrderAndIncludesItsBounds()
+		{
+			var positionSwitch = new ActuatorPositionSwitch(ActuatorPositionSwitchType.EnableBetween, "Home", "home", 0.2f, 0.1f);
+
+			Assert.That(positionSwitch.PositionBeginning, Is.EqualTo(0.2f));
+			Assert.That(positionSwitch.PositionEnd, Is.EqualTo(0.1f));
+			Assert.That(positionSwitch.Contains(0.1f), Is.True);
+			Assert.That(positionSwitch.Contains(0.15f), Is.True);
+			Assert.That(positionSwitch.Contains(0.2f), Is.True);
+			Assert.That(positionSwitch.Contains(0.21f), Is.False);
+		}
+
+		[Test]
+		public void PositionSwitchCountsPulseMarksInBothDirections()
+		{
+			var positionSwitch = new ActuatorPositionSwitch(ActuatorPositionSwitchType.PulseBetween, "Encoder", "encoder", 0.4f, 0.6f, 0.1f);
+
+			Assert.That(positionSwitch.CountPulses(0.35f, 0.65f), Is.EqualTo(3));
+			Assert.That(positionSwitch.CountPulses(0.65f, 0.35f), Is.EqualTo(3));
+			Assert.That(positionSwitch.CountPulses(0.5f, 0.5f), Is.Zero);
+		}
+
+		[Test]
+		public void AlwaysPulseUsesFullStrokeAndIsPathIndependent()
+		{
+			var positionSwitch = new ActuatorPositionSwitch(ActuatorPositionSwitchType.AlwaysPulse, "Encoder", "encoder", 0.4f, 0.6f, 0.1f);
+
+			Assert.That(positionSwitch.CountPulses(0.05f, 0.15f), Is.EqualTo(1));
+			Assert.That(positionSwitch.CountPulses(0f, 1f), Is.EqualTo(10));
+			Assert.That(positionSwitch.CountPulses(0f, 0.5f) + positionSwitch.CountPulses(0.5f, 1f), Is.EqualTo(10));
+			Assert.That(positionSwitch.CountPulses(1f, 0f), Is.EqualTo(10));
+			Assert.That(positionSwitch.CountPulses(1f, 0.5f) + positionSwitch.CountPulses(0.5f, 0f), Is.EqualTo(10));
+		}
+
+		[Test]
+		public void ActuatorPublishesConfiguredSwitchItems()
+		{
+			var gameObject = new GameObject("Actuator");
+			try {
+				var actuator = gameObject.AddComponent<ActuatorComponent>();
+				actuator.Switches = new[] {
+					new ActuatorPositionSwitch(ActuatorPositionSwitchType.EnableBetween, "Home", "home", 0f, 0.01f),
+					new ActuatorPositionSwitch(ActuatorPositionSwitchType.AlwaysPulse, "Encoder", "encoder", 0f, 1f),
+					new ActuatorPositionSwitch(ActuatorPositionSwitchType.EnableBetween, "Invalid", "", 0f, 1f),
+				};
+
+				var switches = actuator.AvailableSwitches.ToArray();
+
+				Assert.That(switches.Select(item => item.Id), Is.EqualTo(new[] { "home", "encoder" }));
+				Assert.That(switches.Select(item => item.Description), Is.EqualTo(new[] { "Home", "Encoder" }));
+				Assert.That(switches.Select(item => item.IsPulseSwitch), Is.EqualTo(new[] { false, false }));
+			} finally {
+				Object.DestroyImmediate(gameObject);
+			}
+		}
+
+		[Test]
+		public void ActuatorSerializationPreservesCustomNamesWhenMakingThemUnique()
+		{
+			var gameObject = new GameObject("Actuator");
+			try {
+				var actuator = gameObject.AddComponent<ActuatorComponent>();
+				actuator.Switches = new[] {
+					new ActuatorPositionSwitch(ActuatorPositionSwitchType.EnableBetween, "Left Limit", "first", 0f, 0.1f),
+					new ActuatorPositionSwitch(ActuatorPositionSwitchType.EnableBetween, "Left Limit", "second", 0.9f, 1f),
+					new ActuatorPositionSwitch(ActuatorPositionSwitchType.AlwaysPulse, "", "encoder", 0f, 1f),
+				};
+
+				actuator.OnBeforeSerialize();
+
+				Assert.That(actuator.Switches.Select(positionSwitch => positionSwitch.Name), Is.EqualTo(new[] { "Left Limit", "Left Limit 2", "Position Switch" }));
+			} finally {
+				Object.DestroyImmediate(gameObject);
+			}
+		}
+
+		[Test]
+		public void ActuatorApiTracksMaintainedPositionRanges()
+		{
+			var root = new GameObject("Table");
+			var actuatorObject = new GameObject("Actuator");
+			try {
+				actuatorObject.transform.SetParent(root.transform);
+				var player = root.AddComponent<Player>();
+				var actuator = actuatorObject.AddComponent<ActuatorComponent>();
+				actuator.Switches = new[] {
+					new ActuatorPositionSwitch(ActuatorPositionSwitchType.EnableBetween, "Home", "home", 0f, 0.01f),
+					new ActuatorPositionSwitch(ActuatorPositionSwitchType.EnableBetween, "End", "end", 0.99f, 1f),
+				};
+				var api = new ActuatorApi(actuatorObject, player);
+				var home = api.Switch("home");
+				var end = api.Switch("end");
+				Assert.That(api.Switch("missing"), Is.Null);
+
+				api.UpdateSwitches(0f, 0f, false, true);
+				Assert.That(home.IsSwitchEnabled, Is.True);
+				Assert.That(end.IsSwitchEnabled, Is.False);
+
+				api.UpdateSwitches(0f, 0.5f, true);
+				Assert.That(home.IsSwitchEnabled, Is.False);
+				Assert.That(end.IsSwitchEnabled, Is.False);
+
+				api.UpdateSwitches(0.5f, 1f, true);
+				Assert.That(home.IsSwitchEnabled, Is.False);
+				Assert.That(end.IsSwitchEnabled, Is.True);
+			} finally {
+				Object.DestroyImmediate(root);
+			}
+		}
+
+		[Test]
+		public void ActuatorApiQueuesDistinctPulseEdgesCrossedInOneUpdate()
+		{
+			var gameObject = new GameObject("Actuator");
+			try {
+				var player = gameObject.AddComponent<Player>();
+				var actuator = gameObject.AddComponent<ActuatorComponent>();
+				actuator.Switches = new[] {
+					new ActuatorPositionSwitch(ActuatorPositionSwitchType.PulseBetween, "Encoder", "encoder", 0.4f, 0.6f, 0.1f, 10),
+				};
+				var api = new ActuatorApi(gameObject, player);
+				var encoder = api.Switch("encoder");
+				var callIndex = 0;
+				var edges = new List<(int CallIndex, bool IsEnabled)>();
+				encoder.Switch += (_, args) => edges.Add((callIndex, args.IsEnabled));
+
+				callIndex = 1;
+				api.UpdateSwitches(0.35f, 0.65f, true);
+				for (callIndex = 2; callIndex <= 6; callIndex++) {
+					api.AdvancePulses(0.1f);
+				}
+
+				Assert.That(edges, Is.EqualTo(new[] {
+					(1, true), (2, false), (3, true), (4, false), (5, true), (6, false),
+				}));
+				Assert.That(encoder.IsSwitchEnabled, Is.False);
+			} finally {
+				Object.DestroyImmediate(gameObject);
+			}
+		}
+
+		[Test]
+		public void RestoringPositionCancelsQueuedPulsesAndOpensActivePulse()
+		{
+			var gameObject = new GameObject("Actuator");
+			try {
+				var player = gameObject.AddComponent<Player>();
+				var actuator = gameObject.AddComponent<ActuatorComponent>();
+				actuator.Switches = new[] {
+					new ActuatorPositionSwitch(ActuatorPositionSwitchType.PulseBetween, "Encoder", "encoder", 0.4f, 0.6f, 0.1f, 10),
+				};
+				var api = new ActuatorApi(gameObject, player);
+				var encoder = api.Switch("encoder");
+				var states = new List<bool>();
+				encoder.Switch += (_, args) => states.Add(args.IsEnabled);
+
+				api.UpdateSwitches(0.35f, 0.65f, true);
+				api.UpdateSwitches(0.65f, 0.2f, false, true, true);
+				api.AdvancePulses(1f);
+
+				Assert.That(states, Is.EqualTo(new[] { true, false }));
+				Assert.That(encoder.IsSwitchEnabled, Is.False);
+			} finally {
+				Object.DestroyImmediate(gameObject);
+			}
+		}
+
 		[Test]
 		public void RepeatedNonzeroSamplesToggleOnlyOnce()
 		{
@@ -585,11 +754,16 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 				actuator.ActivationThreshold = 0.002f;
 				actuator.OneShotHoldDuration = 1.2f;
 				actuator.ActivationCurve = new AnimationCurve(new Keyframe(0f, 0f, 1f, 2f), new Keyframe(1f, 1f, 3f, 4f));
+				actuator.Switches = new[] {
+					new ActuatorPositionSwitch(ActuatorPositionSwitchType.EnableBetween, "Home", "home", 0f, 0.02f),
+					new ActuatorPositionSwitch(ActuatorPositionSwitchType.PulseBetween, "Encoder", "encoder", 0.2f, 0.8f, 0.05f, 15),
+				};
 
 				var bytes = actuator.Pack();
 				actuator.CoilMode = ActuatorCoilMode.FollowCoil;
 				actuator.InitialPosition = 0f;
 				actuator.ActivationCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
+				actuator.Switches = Array.Empty<ActuatorPositionSwitch>();
 				actuator.Unpack(bytes);
 
 				Assert.That(actuator.CoilMode, Is.EqualTo(ActuatorCoilMode.OneShot));
@@ -601,6 +775,12 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 				Assert.That(actuator.OneShotHoldDuration, Is.EqualTo(1.2f));
 				Assert.That(actuator.ActivationCurve.keys[0].outTangent, Is.EqualTo(2f));
 				Assert.That(actuator.ActivationCurve.keys[1].inTangent, Is.EqualTo(3f));
+				Assert.That(actuator.Switches, Has.Length.EqualTo(2));
+				Assert.That(actuator.Switches[0].SwitchId, Is.EqualTo("home"));
+				Assert.That(actuator.Switches[0].PositionEnd, Is.EqualTo(0.02f));
+				Assert.That(actuator.Switches[1].Type, Is.EqualTo(ActuatorPositionSwitchType.PulseBetween));
+				Assert.That(actuator.Switches[1].PulseInterval, Is.EqualTo(0.05f));
+				Assert.That(actuator.Switches[1].PulseDuration, Is.EqualTo(15));
 			} finally {
 				Object.DestroyImmediate(gameObject);
 			}
