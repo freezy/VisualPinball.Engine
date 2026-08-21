@@ -78,26 +78,26 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			var playfield = MainComponent.GetComponentInParent<PlayfieldComponent>();
-			var playfieldToWorld = playfield ? playfield.transform.localToWorldMatrix : Matrix4x4.identity;
 			var transform = MainComponent.transform;
-			var localPos = MainComponent.Position;
-			var worldPos = transform.parent == null ? localPos : localPos.TranslateToWorld();
+			var worldToPlayfield = playfield ? (float4x4)playfield.transform.worldToLocalMatrix : float4x4.identity;
+			var localToPlayfield = Physics.GetLocalToPlayfieldMatrixInVpx(transform.localToWorldMatrix, worldToPlayfield);
+			var rotation = new quaternion(new float3x3(
+				math.normalizesafe(localToPlayfield.c0.xyz, new float3(1f, 0f, 0f)),
+				math.normalizesafe(localToPlayfield.c1.xyz, new float3(0f, 1f, 0f)),
+				math.normalizesafe(localToPlayfield.c2.xyz, new float3(0f, 0f, 1f))
+			));
 
 			Handles.color = Color.cyan;
-			Handles.matrix = playfieldToWorld;
+			Handles.matrix = Matrix4x4.identity;
 			foreach (var coil in MainComponent.Coils) {
-				var from = MainComponent.GetBallCreationPosition().ToUnityVector3();
-				var l = coil.Speed == 0 ? 1f : 20f * coil.Speed;
-				var dir = new Vector3(
-					l * math.sin(math.radians(coil.Angle)),
-					l * math.sin(math.radians(coil.Inclination)),
-					l * math.cos(math.radians(coil.Angle))
-				);
-				var to = from + dir;
-				var worldDir = transform.TransformDirection(math.normalize( to - from));
-				var length = coil.Speed == 0 ? 0.1f : coil.Speed / 10f;
+				var previewSpeed = math.abs(coil.Speed) < Collider.Tolerance ? 1f : coil.Speed;
+				var velocity = math.mul(rotation, KickerApi.GetKickVelocity(math.radians(coil.Angle), previewSpeed, coil.Inclination));
+				var playfieldDirection = ((Vector3)velocity).TranslateToWorld();
+				var worldDirection = playfield ? playfield.transform.TransformDirection(playfieldDirection) : playfieldDirection;
+				worldDirection = math.normalizesafe((float3)worldDirection, new float3(0f, 1f, 0f));
+				var length = math.abs(coil.Speed) < Collider.Tolerance ? 0.1f : math.abs(coil.Speed) / 10f;
 
-				Handles.ArrowHandleCap(-1, worldPos, Quaternion.LookRotation(worldDir), length, EventType.Repaint);
+				Handles.ArrowHandleCap(-1, transform.position, Quaternion.LookRotation(worldDirection), length, EventType.Repaint);
 			}
 		}
 	}

@@ -20,7 +20,7 @@ using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Kicker;
-using Random = Unity.Mathematics.Random;
+using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
 {
@@ -54,6 +54,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, KickerDeviceCoil> _coils = new Dictionary<string, KickerDeviceCoil>();
 		private readonly Transform _ballParent;
 		private readonly Matrix4x4 _worldToPlayfieldMatrix;
+		private Transform _capturedBallTransform;
 
 		public KickerApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
@@ -170,52 +171,56 @@ namespace VisualPinball.Unity
 
 		private void KickXYZ(float angle, float speed, float inclination, float x, float y, float z)
 		{
-			ref var kickerState = ref PhysicsEngine.KickerState(ItemId);
-			var ballId = kickerState.Collision.BallId;
-			if (ballId != 0) {
-				var angleRad = math.radians(angle); // yaw angle, zero is along -Y axis
+			// Captured balls are parented to the kicker so moving kickers carry them along. Once the
+			// ball is released, movement snapshots contain playfield-local coordinates again and must
+			// not be applied while the transform is still parented to the kicker.
+			RestoreCapturedBallParent();
 
-				// radians or degrees?  if greater PI/2 assume degrees
-				if (math.abs(inclination) > math.PIHALF) {
-					inclination = math.radians(inclination); // convert to radians
+			// Resolve Unity-owned data before the mutation is queued. With external timing enabled,
+			// the callback runs on the simulation thread and must only touch physics state.
+			var kickerId = ItemId;
+			var globalDifficulty = TableComponent.GlobalDifficulty;
+			var m = Physics.GetLocalToPlayfieldMatrixInVpx(MainComponent.transform.localToWorldMatrix, _worldToPlayfieldMatrix);
+			var rotMatrix = new float3x3(
+				math.normalize(m.c0.xyz),
+				math.normalize(m.c1.xyz),
+				math.normalize(m.c2.xyz)
+			);
+			var rotQuaternion = new quaternion(rotMatrix);
+
+			PhysicsEngine.MutateState((ref PhysicsState state) => {
+				if (!state.KickerStates.ContainsKey(kickerId)) {
+					return;
 				}
+
+				ref var kickerState = ref state.KickerStates.GetValueByRef(kickerId);
+				var ballId = kickerState.Collision.BallId;
+				if (ballId == 0 || !state.Balls.ContainsKey(ballId)) {
+					return;
+				}
+
+				var angleRad = math.radians(angle); // yaw angle, zero is along -Y axis
 
 				// if < 0 use global value
 				var scatterAngle = kickerState.Static.Scatter < 0.0f ? 0.0f : math.radians(kickerState.Static.Scatter);
-				scatterAngle *= TableComponent.GlobalDifficulty; // apply difficulty weighting
+				scatterAngle *= globalDifficulty; // apply difficulty weighting
 
 				if (scatterAngle > 1.0e-5f) { // ignore near zero angles
-					var scatter = new Random().NextFloat(-1f, 1f); // -1.0f..1.0f
+					var scatter = state.Env.Random.NextFloat(-1f, 1f); // -1.0f..1.0f
 					scatter *= (1.0f - scatter * scatter) * 2.59808f * scatterAngle; // shape quadratic distribution and scale
 					angleRad += scatter;
 				}
 
-				var speedZ = math.sin(inclination) * speed;
-				if (speedZ > 0.0f) {
-					speed *= math.cos(inclination);
-				}
-
 				// update ball data
-				ref var ballData = ref PhysicsEngine.BallState(ballId);
+				ref var ballData = ref state.Balls.GetValueByRef(ballId);
 				ballData.Position = new float3(
 					ballData.Position.x + x,
 					ballData.Position.y + y,
 					ballData.Position.z + z
 				);
-				var velocity = new float3(
-					math.sin(angleRad) * speed,
-					-math.cos(angleRad) * speed,
-					speedZ
-				);
+				var velocity = GetKickVelocity(angleRad, speed, inclination);
 
 				// rotate with kicker parent
-				var m = Physics.GetLocalToPlayfieldMatrixInVpx(MainComponent.transform.localToWorldMatrix, _worldToPlayfieldMatrix);
-				var rotMatrix = new float3x3(
-					math.normalize(m.c0.xyz),
-					math.normalize(m.c1.xyz),
-					math.normalize(m.c2.xyz)
-				);
-				var rotQuaternion = new quaternion(rotMatrix);
 				ballData.Velocity = math.mul(rotQuaternion, velocity);
 
 				ballData.IsFrozen = false;
@@ -232,7 +237,30 @@ namespace VisualPinball.Unity
 
 				// update kicker status
 				kickerState.Collision.BallId = 0;
+			});
+		}
+
+		/// <summary>
+		/// Computes the unrotated kick velocity in VPX space. Kept separate so the editor preview and
+		/// runtime use the same angle and inclination conventions.
+		/// </summary>
+		public static float3 GetKickVelocity(float angleRad, float speed, float inclination)
+		{
+			// Radians or degrees? If greater than PI/2, assume degrees for VPX compatibility.
+			if (math.abs(inclination) > math.PIHALF) {
+				inclination = math.radians(inclination);
 			}
+
+			var speedZ = math.sin(inclination) * speed;
+			if (speedZ > 0.0f) {
+				speed *= math.cos(inclination);
+			}
+
+			return new float3(
+				math.sin(angleRad) * speed,
+				-math.cos(angleRad) * speed,
+				speedZ
+			);
 		}
 
 		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig, IApiSwitchStatus switchStatus) => AddSwitchDest(switchConfig.WithPulse(false), switchStatus);
@@ -244,7 +272,7 @@ namespace VisualPinball.Unity
 		protected override void CreateColliders(ref ColliderReference colliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
 			// reduce the hit circle radius because only the inner circle of the kicker should start a hit event
-			var radius = MainComponent.Radius * (ColliderComponent.LegacyMode ? ColliderComponent.FallThrough ? 0.75f : 0.6f : 1f);
+			var radius = MainComponent.UnscaledRadius * (ColliderComponent.LegacyMode ? ColliderComponent.FallThrough ? 0.75f : 0.6f : 1f);
 
 			colliders.Add(new CircleCollider(float2.zero, radius, 0,
 				ColliderComponent.HitHeight, GetColliderInfo(), ColliderType.KickerCircle), translateWithinPlayfieldMatrix);
@@ -263,6 +291,9 @@ namespace VisualPinball.Unity
 				Switch?.Invoke(this, new SwitchEventArgs(false, ballId));
 				OnSwitch(false);
 				ballTransform.SetParent(_ballParent, true);
+				if (_capturedBallTransform == ballTransform) {
+					_capturedBallTransform = null;
+				}
 
 			} else {
 				Hit?.Invoke(this, new HitEventArgs(ballId));
@@ -272,7 +303,23 @@ namespace VisualPinball.Unity
 				if (PhysicsEngine.BallExists(ballId)) {
 					BallMovementPhysics.Move(PhysicsEngine.BallState(ballId), ballTransform); // do the last update, since frozen balls don't get updated
 					ballTransform.SetParent(MainComponent.transform, true);
+					_capturedBallTransform = ballTransform;
 				}
+			}
+		}
+
+		private void RestoreCapturedBallParent()
+		{
+			// The cached transform is normally populated by OnHit. The child lookup also covers the
+			// narrow case where a coil callback reaches the main thread before the hit callback does.
+			if (!_capturedBallTransform) {
+				var capturedBall = MainComponent.GetComponentInChildren<BallComponent>();
+				_capturedBallTransform = capturedBall ? capturedBall.transform : null;
+			}
+
+			if (_capturedBallTransform) {
+				_capturedBallTransform.SetParent(_ballParent, true);
+				_capturedBallTransform = null;
 			}
 		}
 

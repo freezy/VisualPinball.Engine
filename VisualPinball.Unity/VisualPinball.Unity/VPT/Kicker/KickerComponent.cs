@@ -90,6 +90,18 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Radius of the kicker's untransformed collider mesh. The full transform hierarchy is applied
+		/// when the collider is registered, so the local scale represented by <see cref="Radius"/> must
+		/// not be applied a second time here.
+		/// </summary>
+		internal float UnscaledRadius {
+			get {
+				var scaleX = math.abs(transform.localScale.x);
+				return scaleX > Collider.Tolerance ? math.abs(Radius) / scaleX : math.abs(Radius);
+			}
+		}
+
 		private float _radius = 25f;
 
 		[Tooltip("R-Rotation of the kicker")]

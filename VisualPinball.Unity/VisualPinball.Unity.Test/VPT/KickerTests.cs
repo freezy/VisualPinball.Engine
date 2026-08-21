@@ -16,6 +16,7 @@
 
 using System.IO;
 using NUnit.Framework;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.Test.VPT.Kicker;
@@ -39,6 +40,41 @@ namespace VisualPinball.Unity.Test
 
 			File.Delete(tmpFileName);
 			Object.DestroyImmediate(go);
+		}
+
+		[Test]
+		public void ShouldKeepColliderRadiusStableThroughNestedScale()
+		{
+			var playfieldGo = new GameObject("Playfield");
+			var groupGo = new GameObject("Group");
+			var kickerGo = new GameObject("Kicker");
+			try {
+				playfieldGo.AddComponent<PlayfieldComponent>();
+				groupGo.transform.SetParent(playfieldGo.transform, false);
+				groupGo.transform.localScale = Vector3.one * 0.1f;
+				kickerGo.transform.SetParent(groupGo.transform, false);
+				kickerGo.transform.localScale = Vector3.one * 10f;
+				var kicker = kickerGo.AddComponent<KickerComponent>();
+
+				var matrix = Physics.GetLocalToPlayfieldMatrixInVpx(kickerGo.transform.localToWorldMatrix, playfieldGo.transform.worldToLocalMatrix);
+				var radiusInPlayfield = kicker.UnscaledRadius * math.length(matrix.c0.xyz);
+
+				Assert.That(kicker.Radius, Is.EqualTo(250f).Within(0.001f));
+				Assert.That(kicker.UnscaledRadius, Is.EqualTo(25f).Within(0.001f));
+				Assert.That(radiusInPlayfield, Is.EqualTo(25f).Within(0.001f));
+			} finally {
+				Object.DestroyImmediate(playfieldGo);
+			}
+		}
+
+		[Test]
+		public void ShouldUseRuntimeKickDirectionConventionForPreview()
+		{
+			var velocity = KickerApi.GetKickVelocity(0f, 4f, 90f);
+
+			Assert.That(velocity.x, Is.EqualTo(0f).Within(0.001f));
+			Assert.That(velocity.y, Is.EqualTo(0f).Within(0.001f));
+			Assert.That(velocity.z, Is.EqualTo(4f).Within(0.001f));
 		}
 
 	}

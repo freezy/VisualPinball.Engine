@@ -31,6 +31,11 @@ namespace VisualPinball.Unity.Playfield
 
 		#endregion
 
+		// A manually assigned playfield mesh may contain authored openings for scoops, troughs, and
+		// other devices. Treating it as procedural lets MeshComponent.Awake regenerate the solid table
+		// plane after a domain reload and silently replace those openings.
+		protected override bool IsProcedural => AutoGenerate;
+
 		protected override Mesh GetMesh(TableData data)
 			=> new TableMeshGenerator(data).GetMesh().TransformToWorld();
 
