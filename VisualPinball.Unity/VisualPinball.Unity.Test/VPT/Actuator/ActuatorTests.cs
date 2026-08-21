@@ -368,6 +368,42 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		}
 
 		[Test]
+		public void ArbitraryPositionCommandScalesTravelAndCanRetarget()
+		{
+			var state = CreateState();
+			var config = Config(ActuatorCoilMode.FollowCoil, activationDuration: 2f, releaseDuration: 1f);
+
+			state.MoveToPosition(0.75f, in config);
+			state.Advance(0.75f, in config);
+			Assert.That(state.Position, Is.EqualTo(0.375f).Within(0.0001f));
+
+			state.MoveToPosition(0.125f, in config);
+			state.Advance(0.25f, in config);
+
+			Assert.That(state.Position, Is.EqualTo(0.125f).Within(0.0001f));
+			Assert.That(state.TargetPosition, Is.EqualTo(0.125f));
+			Assert.That(state.IsMoving, Is.False);
+		}
+
+		[Test]
+		public void ActuatorApiAcceptsArbitraryPositionCommand()
+		{
+			var gameObject = new GameObject("Actuator");
+			try {
+				var actuator = gameObject.AddComponent<ActuatorComponent>();
+				actuator.ActivationDuration = 0f;
+				var api = new ActuatorApi(gameObject);
+
+				api.MoveTo(0.4f);
+
+				Assert.That(api.Position, Is.EqualTo(0.4f));
+				Assert.That(api.TargetPosition, Is.EqualTo(0.4f));
+			} finally {
+				Object.DestroyImmediate(gameObject);
+			}
+		}
+
+		[Test]
 		public void ReversalStartsAtCurrentPoseAndScalesRemainingDuration()
 		{
 			var state = CreateState();

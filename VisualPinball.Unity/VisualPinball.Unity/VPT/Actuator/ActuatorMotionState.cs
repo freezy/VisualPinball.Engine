@@ -140,6 +140,12 @@ namespace VisualPinball.Unity
 			MoveTo(TargetPosition >= 0.5f ? 0f : 1f, in config);
 		}
 
+		internal void MoveToPosition(float position, in ActuatorMotionConfig config)
+		{
+			CancelOneShot();
+			MoveTo(position, in config);
+		}
+
 		internal void SnapTo(float position)
 		{
 			CancelOneShot();

@@ -97,6 +97,13 @@ namespace VisualPinball.Unity
 		public void Toggle() => _component.Toggle();
 
 		/// <summary>
+		/// Moves to an arbitrary normalized position using the configured full-stroke
+		/// duration and direction curve. Travel time scales with the remaining distance.
+		/// A script command takes precedence until the next qualified coil edge.
+		/// </summary>
+		public void MoveTo(float position) => _component.MoveTo(position);
+
+		/// <summary>
 		/// Immediately restores or previews a normalized pose. A script command takes precedence
 		/// until the next qualified coil edge; it does not rewrite the sampled physical coil state.
 		/// </summary>

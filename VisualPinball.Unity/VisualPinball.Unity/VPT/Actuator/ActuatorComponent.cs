@@ -304,6 +304,16 @@ namespace VisualPinball.Unity
 			PublishChanges(previousPosition, previousReachedSequence);
 		}
 
+		internal void MoveTo(float position)
+		{
+			EnsureInitialized();
+			var previousPosition = _motion.Position;
+			var previousReachedSequence = _motion.ReachedSequence;
+			var config = CreateConfig();
+			_motion.MoveToPosition(position, in config);
+			PublishChanges(previousPosition, previousReachedSequence);
+		}
+
 		internal void SnapTo(float position)
 		{
 			EnsureInitialized();
