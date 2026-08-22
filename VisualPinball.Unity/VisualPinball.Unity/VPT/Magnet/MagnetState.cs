@@ -35,6 +35,7 @@ namespace VisualPinball.Unity
 		internal float GrabRadius;
 		internal float CylinderRadius;
 		internal float CylinderHeight;
+		internal float CylindricalDamping;
 		internal float PlanarDamping;
 		[MarshalAs(UnmanagedType.U1)]
 		internal bool IsEnabled;

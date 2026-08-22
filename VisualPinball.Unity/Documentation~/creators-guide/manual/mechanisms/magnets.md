@@ -42,13 +42,16 @@ The fields have different jobs and are not interchangeable:
 
 The Cylindrical controls are deliberately simpler. **Strength** controls the pull at the metal surface. **Influence Distance** says how far the pull reaches outside that surface: relative to the configured contact pull, force is 100% at contact, 50% at half the Influence Distance, and zero at or beyond the Influence Distance. There is no separate falloff setting.
 
+**Damping** mainly settles a captured ball by removing its spin while **Grab Ball** is enabled; contact with the playfield can then drain the left/right swing. It also damps motion toward or away from the cylinder for every influenced ball, but it does not directly damp motion along the surface. Damping does not change Strength, Influence Distance, or collider friction. Set it to **0** for no magnetic damping, **1** for the default behavior, or higher for faster settling. Lower it below 1 when the real ball should swing back and forth longer before coming to rest. Very high values eventually make no further difference because the affected motion is already removed within one physics step.
+
 For an exposed cylindrical magnet:
 
 1. Place the Magnet transform at the center of the collider's bottom face.
 2. Set **Cylinder Radius** and **Cylinder Height** to the collider dimensions in VPX units. If the solid geometry is a child Primitive Collider, click **Fit Cylinder to Child Collider Mesh** to fill both values automatically.
 3. Set **Influence Distance** to the maximum air gap where the ball should begin to bend toward the magnet.
 4. Set **Strength** for the amount of pull at contact.
-5. Enable **Grab Ball** if a ball that reaches the metal should close `ball_held` and remain pressed against the collider while the field can retain it.
+5. Set **Damping** for how quickly the captured ball should settle.
+6. Enable **Grab Ball** if a ball that reaches the metal should close `ball_held` and remain pressed against the collider while the field can retain it.
 
 The Cylindrical field pulls toward the closest point on the side or either cap. Grab has no distance setting: contact starts a hold when the active field is strong enough to retain the ball's separating motion. Motion along the surface does not prevent a hold, so a moving ball can glide around the cylinder. The ball remains a live physics object and is pressed against the collider instead of being teleported or frozen; collider friction still acts normally.
 

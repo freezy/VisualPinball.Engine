@@ -33,6 +33,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _grabRadiusProperty;
 		private SerializedProperty _cylinderRadiusProperty;
 		private SerializedProperty _cylinderHeightProperty;
+		private SerializedProperty _cylindricalDampingProperty;
 		private SerializedProperty _heightRangeProperty;
 		private SerializedProperty _isEnabledOnStartProperty;
 		private SerializedProperty _isKinematicProperty;
@@ -55,6 +56,7 @@ namespace VisualPinball.Unity.Editor
 			_grabRadiusProperty = serializedObject.FindProperty(nameof(MagnetComponent.GrabRadius));
 			_cylinderRadiusProperty = serializedObject.FindProperty(nameof(MagnetComponent.CylinderRadius));
 			_cylinderHeightProperty = serializedObject.FindProperty(nameof(MagnetComponent.CylinderHeight));
+			_cylindricalDampingProperty = serializedObject.FindProperty(nameof(MagnetComponent.CylindricalDamping));
 			_heightRangeProperty = serializedObject.FindProperty(nameof(MagnetComponent.HeightRange));
 			_isEnabledOnStartProperty = serializedObject.FindProperty(nameof(MagnetComponent.IsEnabledOnStart));
 			_isKinematicProperty = serializedObject.FindProperty(nameof(MagnetComponent.IsKinematic));
@@ -87,6 +89,9 @@ namespace VisualPinball.Unity.Editor
 				PropertyField(_heightRangeProperty);
 			}
 			PropertyField(_strengthProperty);
+			if (isCylindrical) {
+				PropertyField(_cylindricalDampingProperty, "Damping");
+			}
 			if (!isThreeDimensional) {
 				PropertyField(_forceProfileProperty);
 			}

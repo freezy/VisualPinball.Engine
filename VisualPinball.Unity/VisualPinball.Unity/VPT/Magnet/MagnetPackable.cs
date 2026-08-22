@@ -18,6 +18,9 @@ namespace VisualPinball.Unity
 {
 	public struct MagnetPackable
 	{
+		private const int CurrentVersion = 1;
+
+		public int Version;
 		public float Radius;
 		public float Strength;
 		public MagnetType MagnetType;
@@ -29,6 +32,7 @@ namespace VisualPinball.Unity
 		public float GrabRadius;
 		public float CylinderRadius;
 		public float CylinderHeight;
+		public float CylindricalDamping;
 		public float HeightRange;
 		public bool IsEnabledOnStart;
 		public bool IsKinematic;
@@ -37,6 +41,7 @@ namespace VisualPinball.Unity
 		public static byte[] Pack(MagnetComponent comp)
 		{
 			return PackageApi.Packer.Pack(new MagnetPackable {
+				Version = CurrentVersion,
 				Radius = comp.Radius,
 				Strength = comp.Strength,
 				MagnetType = comp.MagnetType,
@@ -48,6 +53,7 @@ namespace VisualPinball.Unity
 				GrabRadius = comp.GrabRadius,
 				CylinderRadius = comp.CylinderRadius,
 				CylinderHeight = comp.CylinderHeight,
+				CylindricalDamping = comp.CylindricalDamping,
 				HeightRange = comp.HeightRange,
 				IsEnabledOnStart = comp.IsEnabledOnStart,
 				IsKinematic = comp.IsKinematic,
@@ -69,6 +75,7 @@ namespace VisualPinball.Unity
 			comp.GrabRadius = data.GrabRadius;
 			comp.CylinderRadius = data.CylinderRadius;
 			comp.CylinderHeight = data.CylinderHeight;
+			comp.CylindricalDamping = data.Version >= 1 ? data.CylindricalDamping : MagnetComponent.DefaultCylindricalDamping;
 			comp.HeightRange = data.HeightRange;
 			comp.IsEnabledOnStart = data.IsEnabledOnStart;
 			comp.IsKinematic = data.IsKinematic;

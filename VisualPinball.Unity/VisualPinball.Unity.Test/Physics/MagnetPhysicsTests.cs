@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Text;
 using NativeTrees;
 using NUnit.Framework;
 using Unity.Collections;
@@ -47,6 +48,45 @@ namespace VisualPinball.Unity.Test
 				Assert.That(state.CylinderRadius, Is.EqualTo(component.CylinderRadius));
 				Assert.That(state.CylinderHeight, Is.EqualTo(component.CylinderHeight));
 				Assert.That(state.HeightRange, Is.EqualTo(component.HeightRange));
+			} finally {
+				UnityEngine.Object.DestroyImmediate(gameObject);
+			}
+		}
+
+		[Test]
+		public void CylindricalDampingIsStoredInPhysicsState()
+		{
+			var gameObject = new GameObject("Cylindrical Magnet Damping State Test");
+			try {
+				var component = gameObject.AddComponent<MagnetComponent>();
+				component.MagnetType = MagnetType.Cylindrical;
+				component.CylindricalDamping = 0.35f;
+
+				var state = component.CreateState();
+
+				Assert.That(state.CylindricalDamping, Is.EqualTo(0.35f));
+			} finally {
+				UnityEngine.Object.DestroyImmediate(gameObject);
+			}
+		}
+
+		[Test]
+		public void CylindricalDampingRoundTripsAndLegacyPackagesUseTheDefault()
+		{
+			var gameObject = new GameObject("Cylindrical Magnet Damping Pack Test");
+			try {
+				var component = gameObject.AddComponent<MagnetComponent>();
+				component.CylindricalDamping = 0.35f;
+
+				var bytes = component.Pack();
+				component.CylindricalDamping = 2f;
+				component.Unpack(bytes);
+
+				Assert.That(component.CylindricalDamping, Is.EqualTo(0.35f));
+
+				component.CylindricalDamping = 0f;
+				component.Unpack(Encoding.UTF8.GetBytes("{}"));
+				Assert.That(component.CylindricalDamping, Is.EqualTo(MagnetComponent.DefaultCylindricalDamping));
 			} finally {
 				UnityEngine.Object.DestroyImmediate(gameObject);
 			}
@@ -404,6 +444,49 @@ namespace VisualPinball.Unity.Test
 			Assert.That(sideBall.Velocity.x, Is.LessThan(0f));
 			Assert.That(sideBall.Velocity.y, Is.EqualTo(0f).Within(1e-5f));
 			Assert.That(capBall.Velocity.z, Is.LessThan(0f));
+		}
+
+		[Test]
+		public void CylindricalDampingControlsNormalSettlingWithoutChangingTangentialVelocity()
+		{
+			var undampedBall = CreateBall();
+			undampedBall.Position = new float3(25f, 0f, 20f);
+			undampedBall.Radius = 5f;
+			undampedBall.Velocity = new float3(50f, 20f, 0f);
+			undampedBall.AngularMomentum = new float3(0f, 4f, 0f);
+			var dampedBall = undampedBall;
+			var magnet = new MagnetState {
+				Position = float2.zero,
+				Height = 0f,
+				Radius = 100f,
+				EffectiveStrength = 1000f,
+				CylinderRadius = 20f,
+				CylinderHeight = 40f,
+				MagnetType = MagnetType.Cylindrical,
+				CylindricalDamping = 0f
+			};
+
+			MagnetPhysics.ApplyCylindricalPhysicalHold(ref undampedBall, in magnet, 1f);
+			magnet.CylindricalDamping = 1f;
+			MagnetPhysics.ApplyCylindricalPhysicalHold(ref dampedBall, in magnet, 1f);
+
+			Assert.That(math.abs(dampedBall.Velocity.x), Is.LessThan(math.abs(undampedBall.Velocity.x)));
+			Assert.That(undampedBall.Velocity.y, Is.EqualTo(20f).Within(1e-5f), "the magnet must not damp motion along the surface");
+			Assert.That(dampedBall.Velocity.y, Is.EqualTo(20f).Within(1e-5f), "the magnet must not damp motion along the surface");
+			Assert.That(undampedBall.AngularMomentum.y, Is.EqualTo(4f).Within(1e-5f));
+			Assert.That(dampedBall.AngularMomentum.y, Is.LessThan(4f));
+		}
+
+		[Test]
+		public void CylindricalGrabDampingControlsSpinAcrossPhysicsTicks()
+		{
+			var undampedSpin = SimulateCylindricalGrabSpin(0f);
+			var defaultSpin = SimulateCylindricalGrabSpin(1f);
+			var strongerDampingSpin = SimulateCylindricalGrabSpin(2f);
+
+			Assert.That(undampedSpin, Is.EqualTo(4f).Within(1e-5f));
+			Assert.That(defaultSpin, Is.LessThan(undampedSpin));
+			Assert.That(strongerDampingSpin, Is.LessThan(defaultSpin));
 		}
 
 		[Test]
@@ -1046,6 +1129,39 @@ namespace VisualPinball.Unity.Test
 				Position = new float3(50f, 0f, 10f),
 				Velocity = new float3(0f, 0f, 0f)
 			};
+		}
+
+		private static float SimulateCylindricalGrabSpin(float damping)
+		{
+			using var harness = new PhysicsStateHarness();
+			var state = harness.CreateState();
+			harness.Balls.Add(1, new BallState {
+				Id = 1,
+				Position = new float3(25f, 0f, 20f),
+				Radius = 5f,
+				Velocity = new float3(0f, 20f, 0f),
+				AngularMomentum = new float3(0f, 4f, 0f)
+			});
+			var magnet = new MagnetState {
+				Position = float2.zero,
+				Height = 0f,
+				Radius = 100f,
+				Strength = 1000f,
+				CommandedPower = 1f,
+				GrabRadius = MagnetPhysics.CylindricalContactTolerance,
+				CylinderRadius = 20f,
+				CylinderHeight = 40f,
+				CylindricalDamping = damping,
+				IsEnabled = true,
+				MagnetType = MagnetType.Cylindrical
+			};
+
+			for (var i = 0; i < 10; i++) {
+				MagnetPhysics.Update(17, ref magnet, ref state, 0.1f);
+			}
+
+			Assert.That(magnet.GrabbedBalls.Value, Is.Not.Zero);
+			return harness.Balls[1].AngularMomentum.y;
 		}
 
 		private static MagnetState CreatePhysicalGrabMagnet()

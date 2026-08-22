@@ -39,6 +39,7 @@ namespace VisualPinball.Unity
 		public const float DefaultGrabRadius = 20.009268f;
 		public const float DefaultCylinderRadius = 25f;
 		public const float DefaultCylinderHeight = 50f;
+		public const float DefaultCylindricalDamping = 1f;
 		public const float DefaultHeightRange = 92.6355f;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
@@ -90,6 +91,10 @@ namespace VisualPinball.Unity
 		[Unit("VPX")]
 		[Tooltip("Height of the magnetic cylinder above the component origin, in VPX units. Zero creates an infinite vertical cylinder.")]
 		public float CylinderHeight = DefaultCylinderHeight;
+
+		[Min(0f)]
+		[Tooltip("How quickly a Cylindrical magnet removes held-ball spin and surface-normal motion. Zero applies no magnetic damping, one preserves the default behavior, and higher values settle faster.")]
+		public float CylindricalDamping = DefaultCylindricalDamping;
 
 		[Min(0f)]
 		[Unit("VPX")]
@@ -166,6 +171,7 @@ namespace VisualPinball.Unity
 			PoleRadius = math.max(0f, PoleRadius);
 			CylinderRadius = math.max(0f, CylinderRadius);
 			CylinderHeight = math.max(0f, CylinderHeight);
+			CylindricalDamping = math.max(0f, CylindricalDamping);
 			SyncPhysicsState();
 		}
 
@@ -190,6 +196,7 @@ namespace VisualPinball.Unity
 					: 0f,
 				CylinderRadius = CylinderRadius,
 				CylinderHeight = CylinderHeight,
+				CylindricalDamping = CylindricalDamping,
 				PlanarDamping = DefaultPlanarDamping,
 				IsEnabled = IsEnabledOnStart,
 				IsKinematic = IsKinematic,

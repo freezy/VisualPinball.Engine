@@ -282,7 +282,7 @@ namespace VisualPinball.Unity
 			var normalVelocity = direction * math.dot(relativeVelocity, direction);
 			var tangentialVelocity = relativeVelocity - normalVelocity;
 			normalVelocity -= direction * force * physicsDiffTime;
-			var damping = math.saturate(math.abs(force) * PhysicalVelocityDamping * physicsDiffTime);
+			var damping = math.saturate(math.abs(force) * PhysicalVelocityDamping * math.max(0f, magnet.CylindricalDamping) * physicsDiffTime);
 			ball.Velocity = magnetVelocity + tangentialVelocity + normalVelocity * (1f - damping);
 		}
 
@@ -332,7 +332,7 @@ namespace VisualPinball.Unity
 			// Keep pressing inward so collision friction can slow a glancing ball without
 			// teleporting or freezing it.
 			ApplyCylindricalPhysicalForce(ref ball, in magnet, physicsDiffTime, magnetVelocity);
-			ball.AngularMomentum *= 1f - math.saturate(physicsDiffTime * 0.5f);
+			ball.AngularMomentum *= 1f - math.saturate(physicsDiffTime * 0.5f * math.max(0f, magnet.CylindricalDamping));
 		}
 
 		internal static void ApplyPhysicalHold(ref BallState ball, in MagnetState magnet, float physicsDiffTime, float2 magnetVelocity = default)
