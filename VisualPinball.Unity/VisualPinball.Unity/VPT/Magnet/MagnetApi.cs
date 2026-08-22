@@ -82,11 +82,10 @@ namespace VisualPinball.Unity
 				if (!_physicsEngine) {
 					return;
 				}
-				var radiusVpx = MagnetComponent.MillimetersToVpx(radius);
 				_physicsEngine.MutateState((ref PhysicsState state) => {
 					if (state.MagnetStates.ContainsKey(_itemId)) {
 						ref var magnet = ref state.MagnetStates.GetValueByRef(_itemId);
-						magnet.Radius = radiusVpx;
+						magnet.Radius = radius;
 					}
 				});
 			}

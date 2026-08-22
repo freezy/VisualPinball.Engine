@@ -29,8 +29,13 @@ namespace VisualPinball.Unity
 		private const float MinDistanceSq = MinDistance * MinDistance;
 		private const float PhysicalMinimumPoleRadius = 1f;
 		private const float AnnularPoleKernelNormalization = 3.864f;
+		// Keep cylindrical Strength on the familiar VPX magnet authoring scale.
+		// At full current, this converts the authored value to contact acceleration.
+		private const float VpxStrengthScale = 1.5f / 56f;
 		private const float PhysicalVelocityDamping = 0.02f;
 		private const float MinEffectiveCurrent = 0.0001f;
+		internal const float CylindricalContactTolerance = 1f;
+		private const float CylindricalReleaseTolerance = 2f;
 
 		[BurstCompile]
 		internal static void Update(int itemId, ref MagnetState magnet, ref PhysicsState state, float physicsDiffTime)
@@ -80,6 +85,9 @@ namespace VisualPinball.Unity
 					switch (magnet.MagnetType) {
 						case MagnetType.Spatial:
 							ApplySpatialPhysicalForce(ref ball, in magnet, physicsDiffTime, magnetVelocity);
+							break;
+						case MagnetType.Cylindrical:
+							ApplyCylindricalPhysicalForce(ref ball, in magnet, physicsDiffTime, magnetVelocity);
 							break;
 						default:
 							switch (magnet.Profile) {
@@ -183,7 +191,7 @@ namespace VisualPinball.Unity
 				if (state.InsideOfs.TryGetBallIdAtBitIndex(bitIndex, out var ballId)) {
 					if (state.Balls.ContainsKey(ballId)) {
 						ref var ball = ref state.Balls.GetValueByRef(ballId);
-						if (magnet.MagnetType == MagnetType.Spatial) {
+						if (magnet.MagnetType != MagnetType.Playfield) {
 							ApplySpatialEject(ref ball, speed, angleDeg, verticalAngleDeg, carrierVelocity);
 						} else {
 							ApplyPlanarEject(ref ball, speed, angleDeg, carrierVelocity.xy);
@@ -261,6 +269,23 @@ namespace VisualPinball.Unity
 			ball.Velocity = velocity;
 		}
 
+		internal static void ApplyCylindricalPhysicalForce(ref BallState ball, in MagnetState magnet, float physicsDiffTime, float3 magnetVelocity = default)
+		{
+			var surface = CylinderSurface(in ball, in magnet);
+			if (surface.CenterDistance <= MinDistance) {
+				return;
+			}
+
+			var force = CylindricalSurfaceForceMagnitude(surface.AirGap, in magnet);
+			var direction = surface.Offset / surface.CenterDistance;
+			var relativeVelocity = ball.Velocity - magnetVelocity;
+			var normalVelocity = direction * math.dot(relativeVelocity, direction);
+			var tangentialVelocity = relativeVelocity - normalVelocity;
+			normalVelocity -= direction * force * physicsDiffTime;
+			var damping = math.saturate(math.abs(force) * PhysicalVelocityDamping * physicsDiffTime);
+			ball.Velocity = magnetVelocity + tangentialVelocity + normalVelocity * (1f - damping);
+		}
+
 		internal static void ApplyVpxCompatibleGrab(ref BallState ball, in MagnetState magnet, float2 magnetVelocity = default)
 		{
 			ball.Position = new float3(magnet.Position.x, magnet.Position.y, ball.Position.z);
@@ -298,6 +323,15 @@ namespace VisualPinball.Unity
 			}
 
 			ball.Velocity += impulse;
+			ball.AngularMomentum *= 1f - math.saturate(physicsDiffTime * 0.5f);
+		}
+
+		internal static void ApplyCylindricalPhysicalHold(ref BallState ball, in MagnetState magnet, float physicsDiffTime, float3 magnetVelocity = default)
+		{
+			// Unlike a point magnet, the stable hold location is the collider surface.
+			// Keep pressing inward so collision friction can slow a glancing ball without
+			// teleporting or freezing it.
+			ApplyCylindricalPhysicalForce(ref ball, in magnet, physicsDiffTime, magnetVelocity);
 			ball.AngularMomentum *= 1f - math.saturate(physicsDiffTime * 0.5f);
 		}
 
@@ -365,8 +399,12 @@ namespace VisualPinball.Unity
 			if (magnet.Radius <= 0f) {
 				return false;
 			}
-			if (magnet.MagnetType == MagnetType.Spatial) {
-				return math.lengthsq(ball.Position - Center3D(in magnet)) <= magnet.Radius * magnet.Radius;
+			switch (magnet.MagnetType) {
+				case MagnetType.Spatial:
+					return math.lengthsq(ball.Position - Center3D(in magnet)) <= magnet.Radius * magnet.Radius;
+				case MagnetType.Cylindrical:
+					var surface = CylinderSurface(in ball, in magnet);
+					return surface.AirGap <= magnet.Radius;
 			}
 			if (magnet.HeightRange > 0f && (ball.Position.z < magnet.Height || ball.Position.z > magnet.Height + magnet.HeightRange)) {
 				return false;
@@ -385,10 +423,10 @@ namespace VisualPinball.Unity
 			   && magnet.GrabbedBalls.IsSet(bitIndex);
 
 		/// <summary>
-		/// Shared grab bookkeeping for both magnet kinds. The only differences are the
-		/// distance metric (spherical for spatial, planar for playfield) and which hold
-		/// is applied. Because the hold is a force, a ball knocked out of the grab
-		/// radius simply fails the range check next tick and is released.
+		/// Shared grab bookkeeping for all magnet kinds. Point magnets use their
+		/// authored grab radius. Cylindrical magnets acquire automatically at contact
+		/// and use a small internal release hysteresis, so there is no second surface
+		/// distance for creators to tune.
 		/// </summary>
 		private static bool UpdateGrab(int itemId, ref MagnetState magnet, ref PhysicsState state, ref BallState ball, float physicsDiffTime, float3 magnetVelocity)
 		{
@@ -396,13 +434,14 @@ namespace VisualPinball.Unity
 			if (magnet.GrabRadius <= 0f && magnet.GrabbedBalls.Value == 0UL && magnet.ReleasedBalls.Value == 0UL) {
 				return false;
 			}
+			if (magnet.MagnetType == MagnetType.Cylindrical) {
+				return UpdateCylindricalGrab(itemId, ref magnet, ref state, ref ball, physicsDiffTime, magnetVelocity);
+			}
 
 			var bitIndex = state.InsideOfs.GetOrCreateBitIndex(ball.Id);
 			var isGrabbed = magnet.GrabbedBalls.IsSet(bitIndex);
 			var usesPhysicalCapture = UsesPhysicalResponse(in magnet);
-			var distanceSq = magnet.MagnetType == MagnetType.Spatial
-				? math.lengthsq(ball.Position - Center3D(in magnet))
-				: math.lengthsq(ball.Position.xy - magnet.Position);
+			var distanceSq = GrabDistanceSq(in ball, in magnet);
 			var hasGrabForce = usesPhysicalCapture
 				? math.abs(magnet.EffectiveStrength) > MinDistance
 				: magnet.EffectiveStrength > 0f;
@@ -447,6 +486,38 @@ namespace VisualPinball.Unity
 			return true;
 		}
 
+		private static bool UpdateCylindricalGrab(int itemId, ref MagnetState magnet, ref PhysicsState state, ref BallState ball, float physicsDiffTime, float3 magnetVelocity)
+		{
+			var bitIndex = state.InsideOfs.GetOrCreateBitIndex(ball.Id);
+			var isGrabbed = magnet.GrabbedBalls.IsSet(bitIndex);
+			var surface = CylinderSurface(in ball, in magnet);
+			var grabDistance = isGrabbed ? CylindricalReleaseTolerance : CylindricalContactTolerance;
+			var isInGrabRange = magnet.GrabRadius > 0f &&
+			                    math.abs(magnet.EffectiveStrength) > MinDistance &&
+			                    surface.AirGap <= grabDistance;
+
+			if (!isInGrabRange) {
+				magnet.ReleasedBalls.SetBits(bitIndex, false);
+				if (isGrabbed) {
+					ReleaseGrabbedBall(itemId, ref magnet, bitIndex, ball.Id, ref state, false);
+				}
+				return false;
+			}
+			if (magnet.ReleasedBalls.IsSet(bitIndex)) {
+				return false;
+			}
+			if (!isGrabbed) {
+				if (!CanCaptureCylindrical(in ball, in magnet, in surface, magnetVelocity)) {
+					return false;
+				}
+				magnet.GrabbedBalls.SetBits(bitIndex, true);
+				state.EventQueue.Enqueue(new EventData(EventId.MagnetEventsBallGrabbed, itemId, ball.Id, true));
+			}
+
+			ApplyCylindricalPhysicalHold(ref ball, in magnet, physicsDiffTime, magnetVelocity);
+			return true;
+		}
+
 		/// <summary>
 		/// A physical grab starts only when the available hold acceleration can arrest
 		/// relative motion before the ball crosses the remaining grab volume.
@@ -455,11 +526,28 @@ namespace VisualPinball.Unity
 		{
 			var distance = math.sqrt(math.max(0f, distanceSq));
 			var remainingDistance = math.max(0f, magnet.GrabRadius - distance);
-			var relativeSpeedSq = magnet.MagnetType == MagnetType.Spatial
+			var relativeSpeedSq = magnet.MagnetType != MagnetType.Playfield
 				? math.lengthsq(ball.Velocity - magnetVelocity)
 				: math.lengthsq(ball.Velocity.xy - magnetVelocity.xy);
 			var availableAcceleration = math.abs(magnet.EffectiveStrength);
 			return relativeSpeedSq <= 2f * availableAcceleration * remainingDistance;
+		}
+
+		/// <summary>
+		/// A cylindrical contact ignores tangential speed because motion along the
+		/// surface does not break the hold. Separating normal speed is compared with
+		/// the work available in the remaining magnetic field, so stronger magnets
+		/// can catch a faster rebound without an authored grab distance.
+		/// </summary>
+		internal static bool CanCaptureCylindrical(in BallState ball, in MagnetState magnet, in CylinderSurfaceData surface, float3 magnetVelocity)
+		{
+			if (surface.CenterDistance <= MinDistance) {
+				return false;
+			}
+			var direction = surface.Offset / surface.CenterDistance;
+			var separatingSpeed = math.max(0f, math.dot(ball.Velocity - magnetVelocity, direction));
+			var availableWork = CylindricalAvailableWork(surface.AirGap, in magnet);
+			return separatingSpeed * separatingSpeed <= 2f * availableWork;
 		}
 
 		/// <summary>
@@ -480,6 +568,84 @@ namespace VisualPinball.Unity
 			return math.abs(magnet.EffectiveStrength) * kernel * cutoff / (poleRadius * poleRadius);
 		}
 
+		/// <summary>
+		/// Surface-normal attraction for an exposed cylindrical pole. The air gap is
+		/// measured from the ball skin to the finite cylinder, making side and cap
+		/// contact equivalent. Strength controls the contact force on the familiar
+		/// VPX authoring scale, while Influence Distance defines a smooth decay to
+		/// zero, with half force at half distance.
+		/// </summary>
+		internal static float CylindricalSurfaceForceMagnitude(float airGap, in MagnetState magnet)
+		{
+			return math.abs(magnet.EffectiveStrength) * VpxStrengthScale * CylindricalFalloff(airGap, magnet.Radius);
+		}
+
+		private static float CylindricalFalloff(float airGap, float influenceDistance)
+		{
+			if (influenceDistance <= MinDistance || airGap >= influenceDistance) {
+				return 0f;
+			}
+			var ratio = math.saturate(airGap / influenceDistance);
+			return 1f - ratio * ratio * (3f - 2f * ratio);
+		}
+
+		private static float CylindricalAvailableWork(float airGap, in MagnetState magnet)
+		{
+			if (magnet.Radius <= MinDistance || airGap >= magnet.Radius) {
+				return 0f;
+			}
+			var ratio = math.saturate(airGap / magnet.Radius);
+			var ratioSq = ratio * ratio;
+			var normalizedWork = 0.5f - ratio + ratioSq * ratio - 0.5f * ratioSq * ratioSq;
+			return math.abs(magnet.EffectiveStrength) * VpxStrengthScale * magnet.Radius * math.max(0f, normalizedWork);
+		}
+
+		internal static CylinderSurfaceData CylinderSurface(in BallState ball, in MagnetState magnet)
+		{
+			var radialOffset = ball.Position.xy - magnet.Position;
+			var radialDistance = math.length(radialOffset);
+			var cylinderRadius = math.max(0f, magnet.CylinderRadius);
+			var radialDirection = radialDistance > MinDistance ? radialOffset / radialDistance : new float2(1f, 0f);
+			var sidePoint = new float3(
+				magnet.Position + radialDirection * cylinderRadius,
+				magnet.CylinderHeight > 0f
+					? math.clamp(ball.Position.z, magnet.Height, magnet.Height + magnet.CylinderHeight)
+					: ball.Position.z
+			);
+			var closestPoint = sidePoint;
+
+			if (magnet.CylinderHeight > 0f) {
+				var capPlanar = radialDistance > cylinderRadius
+					? magnet.Position + radialDirection * cylinderRadius
+					: ball.Position.xy;
+				var bottomPoint = new float3(capPlanar, magnet.Height);
+				var topPoint = new float3(capPlanar, magnet.Height + magnet.CylinderHeight);
+				var sideDistanceSq = math.lengthsq(ball.Position - sidePoint);
+				var bottomDistanceSq = math.lengthsq(ball.Position - bottomPoint);
+				var topDistanceSq = math.lengthsq(ball.Position - topPoint);
+				if (bottomDistanceSq < sideDistanceSq && bottomDistanceSq <= topDistanceSq) {
+					closestPoint = bottomPoint;
+				} else if (topDistanceSq < sideDistanceSq) {
+					closestPoint = topPoint;
+				}
+			}
+
+			var offset = ball.Position - closestPoint;
+			var centerDistance = math.length(offset);
+			return new CylinderSurfaceData {
+				Offset = offset,
+				CenterDistance = centerDistance,
+				AirGap = math.max(0f, centerDistance - ball.Radius)
+			};
+		}
+
+		private static float GrabDistanceSq(in BallState ball, in MagnetState magnet)
+		{
+			return magnet.MagnetType == MagnetType.Spatial
+				? math.lengthsq(ball.Position - Center3D(in magnet))
+				: math.lengthsq(ball.Position.xy - magnet.Position);
+		}
+
 		private static float CompactSupport(float distanceSq, float radiusSq)
 		{
 			if (radiusSq <= MinDistanceSq || distanceSq >= radiusSq) {
@@ -490,7 +656,7 @@ namespace VisualPinball.Unity
 		}
 
 		private static bool UsesPhysicalResponse(in MagnetState magnet)
-			=> magnet.MagnetType == MagnetType.Spatial || magnet.Profile == MagnetForceProfile.Physical;
+			=> magnet.MagnetType != MagnetType.Playfield || magnet.Profile == MagnetForceProfile.Physical;
 
 		private static bool HasActiveField(in MagnetState magnet)
 			=> UsesPhysicalResponse(in magnet)
@@ -553,6 +719,13 @@ namespace VisualPinball.Unity
 				state.InsideOfs.SetOutsideOf(itemId, ballId);
 				state.EventQueue.Enqueue(new EventData(EventId.MagnetEventsBallExited, itemId, ballId, true));
 			}
+		}
+
+		internal struct CylinderSurfaceData
+		{
+			internal float3 Offset;
+			internal float CenterDistance;
+			internal float AirGap;
 		}
 	}
 }

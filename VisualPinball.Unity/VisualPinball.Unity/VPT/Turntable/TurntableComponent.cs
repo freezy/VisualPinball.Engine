@@ -32,6 +32,7 @@ namespace VisualPinball.Unity
 	{
 		public const string MotorCoilItem = "motor_coil";
 		public const string DirectionCoilItem = "direction_coil";
+		private const float MillimetersToWorld = 0.001f;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -199,8 +200,8 @@ namespace VisualPinball.Unity
 			var state = new TurntableState {
 				Position = pos.xy,
 				Height = pos.z,
-				Radius = MagnetComponent.MillimetersToVpx(Radius),
-				HeightRange = MagnetComponent.MillimetersToVpx(HeightRange),
+				Radius = MillimetersToVpx(Radius),
+				HeightRange = MillimetersToVpx(HeightRange),
 				Speed = 0f,
 				MaxSpeed = MaxSpeed,
 				SpinUp = SpinUp,
@@ -228,7 +229,7 @@ namespace VisualPinball.Unity
 
 		private void OnDrawGizmosSelected()
 		{
-			var radiusWorld = Radius * MagnetComponent.MillimetersToWorld;
+			var radiusWorld = Radius * MillimetersToWorld;
 			if (radiusWorld <= 0f) {
 				return;
 			}
@@ -243,5 +244,7 @@ namespace VisualPinball.Unity
 				previous = next;
 			}
 		}
+
+		private static float MillimetersToVpx(float value) => Physics.ScaleToVpx(value * MillimetersToWorld);
 	}
 }

@@ -25,6 +25,7 @@ namespace VisualPinball.Unity
 	public enum MagnetType
 	{
 		Playfield = 0,
-		Spatial = 1
+		Spatial = 1,
+		Cylindrical = 2
 	}
 }

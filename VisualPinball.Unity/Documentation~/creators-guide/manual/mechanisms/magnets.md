@@ -1,84 +1,125 @@
 ---
 uid: magnets
 title: Magnets and Turntables
-description: Native playfield magnets, ball holds, VPX repel/eject behavior, and spinning disc turntables.
+description: Configure playfield, spatial, and cylindrical magnets, ball holds, coils, and spinning disc turntables.
 ---
 
 # Magnets and Turntables
 
-VPE provides native mechanisms for playfield magnets and spinning magnetic discs. They run inside the physics loop, so they can react every physics tick instead of waiting for a script timer.
-
-Use **Magnet** for radial attraction, grab/hold behavior, VPX-compatible repulsion, and eject-style mechanisms. Use **Turntable** for a spinning disc that pushes the ball tangentially, such as VPX `cvpmTurnTable` mechanisms.
+VPE simulates magnets inside the physics loop, so their force, electrical response, and ball capture are updated every physics tick. Use a **Magnet** for attraction, holding, legacy VPX repulsion, or a mech that carries a ball. Use a **Turntable** for a spinning disc that pushes a ball tangentially.
 
 ## Magnet Setup
 
-Add the **Magnet** component to a GameObject with *Add Component -> Pinball -> Mechs -> Magnet*. Place the GameObject at the magnet core or hold position. The component uses the transform position as the center of the force field.
+Add a **Magnet** component with *Add Component -> Pinball -> Mechs -> Magnet*. Its transform defines the field origin. The component creates a force field only; add a collider separately wherever the ball must touch solid hardware.
 
-The selected object shows a radius gizmo in the scene view. Playfield magnets draw a cylinder; spatial magnets draw a sphere. If grab is enabled, a smaller grab radius is drawn as well.
+All Magnet distance fields use **VPX units**, not millimeters or Unity world units. A standard pinball has a radius of 25 VPX units, which is a useful reference when choosing distances.
+
+> [!IMPORTANT]
+> Magnet distance fields in older VPE versions were authored in millimeters. When upgrading an existing table or code that sets `MagnetApi.Radius`, multiply the old value by **1.85271** to preserve the same physical distance. New Magnet components use converted defaults, so no adjustment is needed for a newly added component.
+
+### Choose a Magnet Type
+
+| Magnet Type | Field shape | Typical use |
+|---|---|---|
+| **Playfield** | A vertical field around a point on the playfield. Distance is measured in the playfield plane. | Under-playfield magnets, Magna-Save, and imported `cvpmMagnet` behavior. |
+| **Spatial** | A sphere around the transform. Distance is measured from the transform to the ball center in 3-D. | A mouth, hand, wand, or other mech that catches and carries a ball. |
+| **Cylindrical** | A field around the side and caps of a finite upright cylinder. Distance is measured from the ball surface to the cylinder surface. | An exposed magnet core that balls can approach and touch from any direction. |
+
+Playfield and Spatial magnets treat the transform as the center of the field. A Cylindrical magnet treats the transform as the center of the cylinder base; **Cylinder Height** extends upward along the playfield normal. Tilted cylinder axes are not modeled.
+
+### Understand the Distance Fields
+
+The fields have different jobs and are not interchangeable:
+
+| Inspector field | Meaning |
+|---|---|
+| **Influence Radius / Influence Distance** | The outer cutoff of the field. A ball beyond this distance receives no force. Playfield and Spatial modes measure from the transform to the ball center. Cylindrical mode measures the empty air gap between the ball and the cylinder surface. |
+| **Pole Radius** | Shapes a Physical Playfield or Spatial field. It is not used by a Cylindrical magnet. |
+| **Grab Radius** | Defines the capture area around a Playfield or Spatial magnet's center. It is not shown for a Cylindrical magnet, which grabs automatically at contact. |
+| **Cylinder Radius** | The radius of the magnetic cylinder itself. Match it to the associated collider, in VPX units. It does not control how far the field reaches. |
+| **Cylinder Height** | The height from the component origin to the top cap, in VPX units. Match it to the associated collider. A value of zero makes the cylinder vertically unlimited. |
+| **Height Range** | The vertical window above a Playfield magnet. Use it to prevent a magnet from affecting balls on an overhead ramp. Zero removes the limit. Spatial and Cylindrical modes ignore this field. |
+
+The Cylindrical controls are deliberately simpler. **Strength** controls the pull at the metal surface. **Influence Distance** says how far the pull reaches outside that surface: relative to the configured contact pull, force is 100% at contact, 50% at half the Influence Distance, and zero at or beyond the Influence Distance. There is no separate falloff setting.
+
+For an exposed cylindrical magnet:
+
+1. Place the Magnet transform at the center of the collider's bottom face.
+2. Set **Cylinder Radius** and **Cylinder Height** to the collider dimensions in VPX units. If the solid geometry is a child Primitive Collider, click **Fit Cylinder to Child Collider Mesh** to fill both values automatically.
+3. Set **Influence Distance** to the maximum air gap where the ball should begin to bend toward the magnet.
+4. Set **Strength** for the amount of pull at contact.
+5. Enable **Grab Ball** if a ball that reaches the metal should close `ball_held` and remain pressed against the collider while the field can retain it.
+
+The Cylindrical field pulls toward the closest point on the side or either cap. Grab has no distance setting: contact starts a hold when the active field is strong enough to retain the ball's separating motion. Motion along the surface does not prevent a hold, so a moving ball can glide around the cylinder. The ball remains a live physics object and is pressed against the collider instead of being teleported or frozen; collider friction still acts normally.
+
+### Other Magnet Fields
 
 | Field | Description |
 |---|---|
-| **Magnet Type** | **Playfield** for under-playfield magnets with a cylindrical range, **Spatial** for mech-mounted magnets that grab and carry balls in 3-D. |
-| **Radius** | Influence radius in millimeters. Playfield magnets use a planar radius; spatial magnets use a spherical radius. |
-| **Height Range** | Vertical window above a playfield magnet. Use this to avoid affecting balls on ramps above the playfield. A value of zero disables the vertical limit. Spatial magnets ignore this field. |
-| **Strength** | Full-power magnet force. In VPX Compatible mode, this uses familiar `cvpmMagnet` strength values and negative values repel. |
-| **Force Profile** | **VPX Compatible** for imported VPX behavior, **Physical** for new VPE tables that use the finite-pole field model. Spatial magnets always use physical 3-D force semantics. |
-| **Pole Radius** | Effective radius of the circular or annular pole face. The Physical force is strongest in a ring near this pole and is zero laterally at the exact center. |
-| **Coil Rise Time** | Electrical rise time constant in milliseconds for Physical and Spatial magnets. Current reaches about 63% after one time constant. |
-| **Coil Fall Time** | Electrical decay time constant in milliseconds for Physical and Spatial magnets. Tune this to the coil driver and flyback circuit. |
-| **Grab Ball** | Enables center hold behavior inside the grab radius. |
-| **Grab Radius** | Capture volume for grab mode. VPX Compatible snaps on entry. Physical and Spatial magnets capture only when the current field can arrest the ball before it leaves this volume, then use a spring-damper hold that a hard hit can overcome. |
-| **Is Enabled On Start** | Starts the magnet on before a coil or script changes it. |
-| **Is Kinematic** | Moves the magnetic field with the GameObject transform during gameplay. Use this when the magnet is mounted on a moving mech. |
-| **Draw Debug Forces** | Draws play-mode force vectors for balls inside the radius. |
+| **Strength** | The authored full-power force control. VPX Compatible uses familiar `cvpmMagnet` strength values. Physical, Spatial, and Cylindrical modes always attract and use the magnitude of this value, but their numeric acceleration is calculated by their respective field models. |
+| **Force Profile** | Selects **VPX Compatible** or **Physical** for a Playfield magnet. Spatial and Cylindrical magnets always use physical electrical response and force semantics. |
+| **Coil Rise Time** | Electrical rise time constant in milliseconds. Current reaches about 63% of a steady command after one time constant. |
+| **Coil Fall Time** | Electrical decay time constant in milliseconds after the command is reduced or switched off. |
+| **Grab Ball** | Enables capture and hold behavior. Cylindrical magnets acquire at contact; Playfield and Spatial magnets use Grab Radius. |
+| **Is Enabled On Start** | Starts the field at full command before a coil or script changes it. |
+| **Is Kinematic** | Updates the field origin from the GameObject transform during gameplay. Leave this disabled for a fixed magnet. |
+| **Draw Debug Forces** | Draws play-mode force lines and a runtime coil-status gizmo. The magnet surface and marker are green while the coil is on and red while it is off. |
 
-## Coils and Switches
+The selected object also shows scene-view gizmos. Blue indicates the physical field shape and influence boundary, orange indicates the grab boundary for point magnets, and purple indicates Pole Radius for a Physical Playfield or Spatial magnet. These gizmos use the authored VPX dimensions directly and do not change size when the magnet model's Transform scale changes.
+
+## Electrical Response and PWM
 
 Magnets expose one coil:
 
 | Device item | Description |
 |---|---|
-| `magnet_coil` | Enables the magnet while the coil is active. |
+| `magnet_coil` | Sets the normalized magnet command while the coil is active. |
 
-Magnets also expose one switch:
+Map a ROM solenoid to `magnet_coil` in the [Coil Manager](../../editor/coil-manager.md). The command can be any value from 0 to 1; it is not reduced to a simple on/off flag.
 
-| Device item | Description |
-|---|---|
-| `ball_held` | Closes while one or more balls are grabbed by the magnet. |
+**VPX Compatible** applies the command immediately and scales **Strength** directly. The physical modes use **Coil Rise Time** and **Coil Fall Time** to model effective current, then calculate force from current squared. A 25% command therefore produces much less than 25% of full physical force, and a short pulse may end before the current reaches its commanded level.
 
-Map ROM solenoids to `magnet_coil` in the [Coil Manager](../../editor/coil-manager.md). The `ball_held` switch can be used by game logic when a table needs explicit confirmation that a ball is held.
-
-Some ROMs pulse-width-modulate (PWM) their magnet coils to vary grip — Iron Man, for example, drives its magnets at partial strength. The normalized coil command travels through the simulation-thread path without being reduced to a boolean. VPX Compatible scales its authored **Strength** directly by that command. Physical and Spatial magnets instead integrate effective coil current using **Coil Rise Time** and **Coil Fall Time**, then derive force from current squared. Set **Strength** to the full-power grip at 100% current.
+Tune **Strength** at 100% current first. If the game drives the coil with short or partial-power pulses, test with those real commands instead of tuning only with the coil held fully on.
 
 ## Force Profiles
 
 ### VPX Compatible
 
-Use **VPX Compatible** for imported tables or ports that already have tuned `cvpmMagnet` values. This profile follows the VPX magnet force curve and normalizes it to VPE's 1 kHz physics loop.
+Use **VPX Compatible** for an imported table or a port that already has tuned `cvpmMagnet` values. It follows the legacy VPX force curve and normalizes it to VPE's 1 kHz physics loop. Positive strength attracts and negative strength repels, which preserves scripts that use fictional magnetic repulsion.
 
-This mode is the default. It is the right choice for ROM-controlled magnets and Magna-Save style fields.
+This profile applies only to a Playfield magnet. Its attraction acts in the playfield plane and can be limited vertically with **Height Range**.
 
 ### Physical
 
-Use **Physical** for new VPE-authored tables. Its electrical response ramps toward the commanded current instead of switching the field instantaneously, and the field decays after power is removed. The force uses a finite axisymmetric pole approximation: lateral force is zero on the center axis, strongest in an annulus near **Pole Radius**, weakens with vertical air gap, and falls rapidly outside the pole. **Radius** is a hard performance boundary with a smooth force taper, so the magnet never evaluates an infinite tail.
+Use **Physical** for a newly authored under-playfield magnet. Its field ramps with coil current, weakens with vertical air gap, and tapers smoothly to zero at **Influence Radius**. The lateral force is zero on the center axis and strongest in an annulus determined by **Pole Radius**.
 
-Physical magnets always attract an ordinary steel pinball. Reversing coil polarity changes magnetic flux direction but not the direction of attraction. Use VPX Compatible when a legacy script intentionally uses negative strength as a fictional repelling force.
+A physical magnet always attracts an ordinary steel pinball. Reversing coil polarity changes the magnetic flux but not the direction of attraction. Use VPX Compatible only when a legacy script intentionally needs negative-strength repulsion.
 
-Physical grab uses a capped spring-damper hold, so the ball visibly decelerates instead of snapping to the center. Capture is based on relative speed, remaining grab distance, and effective field strength; a fast fly-by or weak PWM command does not become an artificial full-strength hold.
+Physical strength values are not equivalent to VPX Compatible values. Tune them in play mode while observing ball speed, air gap, PWM command, and capture behavior.
 
-Physical strength values are not VPX strength values. Start with a larger value than you would use in VPX Compatible mode and tune by watching ball speed and catch behavior in play mode.
+## Ball Capture and Release
 
-## Spatial Magnets
+Magnets also expose one switch:
 
-Use **Magnet Type: Spatial** for mechanisms that physically carry the ball away from the playfield, such as a mouth, hand, or wand mounted on a moving mech. Spatial magnets use a spherical radius around the transform and treat the transform as the ball center hold point.
+| Device item | Description |
+|---|---|
+| `ball_held` | Closes while one or more balls are currently grabbed. |
 
-When **Grab Ball** is enabled, a ball inside **Grab Radius** is pulled to that 3-D hold point by a strong magnetic force and held there. The ball stays a live physics object throughout — it is not frozen — so it renders at its real position and other balls collide with it normally. If **Is Kinematic** is enabled and the GameObject moves during gameplay, the hold force drags the ball along in x, y, and z. Turning the coil off or calling `ReleaseBall()` simply drops the hold, and the ball continues with whatever velocity it has. `Eject(speed, angleDeg, verticalAngleDeg)` throws it directionally; the first angle uses the same convention as kickers, and the optional vertical angle lifts or drops the shot.
+With **Grab Ball** disabled, the magnet only applies attraction. With it enabled, Playfield and Spatial magnets attempt capture inside Grab Radius. A Cylindrical magnet attempts capture when the ball touches its surface; it compares only motion separating the ball from the surface with the strength available across the field. A weak field may fail to retain a fast rebound, while fast motion along the cylinder is allowed.
 
-Because the hold is a force rather than a rigid lock, a hard enough hit from another ball can overcome it and knock the ball loose (and that ball can in turn be grabbed). A new ball is marked held only after the current field can arrest its relative motion inside **Grab Radius**. **Strength** sets how hard the magnet holds — a stronger magnet needs a harder hit to dislodge its ball. This is not a levitation model: use **Radius** and **Strength** to catch a nearby ball, not to pull one across the table or balance it far below the hold point.
+VPX Compatible capture snaps the ball to the Playfield magnet's planar center. Physical Playfield and Spatial capture use a capped spring-damper force, so the ball decelerates visibly and a sufficiently hard collision can knock it away. Cylindrical capture keeps applying surface-normal force against the collider; it does not lock the ball to one point around the cylinder.
+
+Turning the coil off or calling `ReleaseBall()` removes the hold without freezing or teleporting the ball. The ball keeps its current velocity. `Eject(speed, angleDeg, verticalAngleDeg)` releases and throws held balls; the horizontal angle follows the kicker convention, while the optional vertical angle applies to Spatial and Cylindrical magnets.
+
+## Spatial and Kinematic Magnets
+
+Use **Spatial** when a mechanism must carry a ball away from the playfield. The transform is the 3-D hold point, and a grabbed ball is pulled toward it while remaining a normal colliding physics object.
+
+Enable **Is Kinematic** only when the magnet's transform moves during gameplay. The field then follows the transform position and a held ball inherits the carrier motion. Playfield and Cylindrical fields remain aligned to the playfield normal; transform rotation does not tilt their field axis.
 
 ## Turntable Setup
 
-Add the **Turntable** component with *Add Component -> Pinball -> Mechs -> Turntable*. Place it at the disc center and set **Radius** to cover the area where the spinning disc should affect the ball. **Height Range** bounds the effect vertically so balls on ramps above the disc are unaffected; a value of zero disables the vertical limit.
+Add a **Turntable** component with *Add Component -> Pinball -> Mechs -> Turntable*. Place it at the disc center and set **Radius** to cover the area where the spinning disc should affect the ball. Turntable Radius and Height Range are authored in millimeters, as indicated by their inspector unit labels. **Height Range** prevents the disc from affecting balls on ramps above it; zero removes that limit.
 
 Turntables expose two coils:
 
@@ -87,10 +128,4 @@ Turntables expose two coils:
 | `motor_coil` | Turns the motor on while active. |
 | `direction_coil` | Selects clockwise while active and counter-clockwise while inactive. |
 
-The turntable ramps toward **Max Speed** using **Spin Up**, then ramps back toward zero using **Spin Down** when the motor turns off. Assign **Rotation Target** to the visible disc mesh if you want it to rotate with the simulated speed.
-
-## Kinematic Magnets
-
-Enable **Is Kinematic** when a magnet or turntable is parented under a moving transform. The physics engine tracks the transform during gameplay, so the force field follows the moving center. A held ball is dragged along by the hold force — planar for playfield magnets, full 3-D for spatial magnets.
-
-Kinematic tracking follows the transform position and height. The magnetic field remains playfield-aligned for playfield magnets; tilted field axes are not modeled. Spatial magnets are the supported path for carrying a held ball away from the playfield.
+The turntable ramps toward **Max Speed** using **Spin Up**, then ramps toward zero using **Spin Down** after the motor turns off. Assign **Rotation Target** to the visible disc mesh if it should rotate with the simulated speed. Enable **Is Kinematic** only if the entire turntable moves during gameplay.

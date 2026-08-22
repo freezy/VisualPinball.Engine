@@ -33,6 +33,8 @@ namespace VisualPinball.Unity
 		internal float FallTime;
 		internal float PoleRadius;
 		internal float GrabRadius;
+		internal float CylinderRadius;
+		internal float CylinderHeight;
 		internal float PlanarDamping;
 		[MarshalAs(UnmanagedType.U1)]
 		internal bool IsEnabled;

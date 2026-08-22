@@ -19,11 +19,73 @@ using NativeTrees;
 using NUnit.Framework;
 using Unity.Collections;
 using Unity.Mathematics;
+using UnityEngine;
 
 namespace VisualPinball.Unity.Test
 {
 	public class MagnetPhysicsTests
 	{
+		[Test]
+		public void ComponentDistancesAreAuthoredDirectlyInVpxUnits()
+		{
+			var gameObject = new GameObject("VPX Magnet Unit Test");
+			try {
+				var component = gameObject.AddComponent<MagnetComponent>();
+				component.Radius = 61.91f;
+				component.PoleRadius = 10f;
+				component.GrabBall = true;
+				component.GrabRadius = 10.8f;
+				component.CylinderRadius = 25.16466f;
+				component.CylinderHeight = 49.92385f;
+				component.HeightRange = 50f;
+
+				var state = component.CreateState();
+
+				Assert.That(state.Radius, Is.EqualTo(component.Radius));
+				Assert.That(state.PoleRadius, Is.EqualTo(component.PoleRadius));
+				Assert.That(state.GrabRadius, Is.EqualTo(component.GrabRadius));
+				Assert.That(state.CylinderRadius, Is.EqualTo(component.CylinderRadius));
+				Assert.That(state.CylinderHeight, Is.EqualTo(component.CylinderHeight));
+				Assert.That(state.HeightRange, Is.EqualTo(component.HeightRange));
+			} finally {
+				UnityEngine.Object.DestroyImmediate(gameObject);
+			}
+		}
+
+		[Test]
+		public void CylindricalGrabUsesAutomaticContactTolerance()
+		{
+			var gameObject = new GameObject("Cylindrical Magnet Grab Test");
+			try {
+				var component = gameObject.AddComponent<MagnetComponent>();
+				component.MagnetType = MagnetType.Cylindrical;
+				component.GrabBall = true;
+				component.GrabRadius = 500f;
+
+				var state = component.CreateState();
+
+				Assert.That(state.GrabRadius, Is.EqualTo(MagnetPhysics.CylindricalContactTolerance));
+			} finally {
+				UnityEngine.Object.DestroyImmediate(gameObject);
+			}
+		}
+
+		[Test]
+		public void NewComponentDefaultsPreserveTheFormerMillimeterDimensionsInVpx()
+		{
+			var gameObject = new GameObject("Magnet Default Unit Test");
+			try {
+				var component = gameObject.AddComponent<MagnetComponent>();
+
+				Assert.That(component.Radius, Is.EqualTo(50f * 1.85271f).Within(1e-5f));
+				Assert.That(component.PoleRadius, Is.EqualTo(10f * 1.85271f).Within(1e-5f));
+				Assert.That(component.GrabRadius, Is.EqualTo(10.8f * 1.85271f).Within(1e-5f));
+				Assert.That(component.HeightRange, Is.EqualTo(50f * 1.85271f).Within(1e-5f));
+			} finally {
+				UnityEngine.Object.DestroyImmediate(gameObject);
+			}
+		}
+
 		[Test]
 		public void GrabbedBallSurvivesMovingHeightWindow()
 		{
@@ -244,6 +306,245 @@ namespace VisualPinball.Unity.Test
 
 			Assert.That(MagnetPhysics.IsBallInRange(in ball, in playfieldMagnet), Is.False);
 			Assert.That(MagnetPhysics.IsBallInRange(in ball, in spatialMagnet), Is.True);
+		}
+
+		[Test]
+		public void CylindricalSurfaceMeasuresSideAndCapFromBallSkin()
+		{
+			var magnet = new MagnetState {
+				Position = float2.zero,
+				Height = 10f,
+				CylinderRadius = 20f,
+				CylinderHeight = 40f,
+				MagnetType = MagnetType.Cylindrical
+			};
+			var contactPositions = new[] {
+				new float3(25f, 0f, 30f),
+				new float3(-25f, 0f, 30f),
+				new float3(0f, 25f, 30f),
+				new float3(0f, -25f, 30f),
+				new float3(0f, 0f, 55f)
+			};
+
+			foreach (var position in contactPositions) {
+				var ball = CreateBall();
+				ball.Position = position;
+				ball.Radius = 5f;
+				var surface = MagnetPhysics.CylinderSurface(in ball, in magnet);
+
+				Assert.That(surface.AirGap, Is.EqualTo(0f).Within(1e-5f), $"{position} should touch the cylinder");
+				Assert.That(surface.CenterDistance, Is.EqualTo(ball.Radius).Within(1e-5f));
+			}
+		}
+
+		[Test]
+		public void CylindricalSurfaceHasADirectionForAPointInsideTheCylinder()
+		{
+			var ball = CreateBall();
+			ball.Position = new float3(10f, 0f, 20f);
+			ball.Radius = 5f;
+			var magnet = new MagnetState {
+				Position = float2.zero,
+				Height = 0f,
+				CylinderRadius = 20f,
+				CylinderHeight = 40f,
+				MagnetType = MagnetType.Cylindrical
+			};
+
+			var surface = MagnetPhysics.CylinderSurface(in ball, in magnet);
+
+			Assert.That(surface.CenterDistance, Is.EqualTo(10f).Within(1e-5f));
+			Assert.That(surface.Offset.x, Is.LessThan(0f), "the nearest surface is the cylinder side");
+		}
+
+		[Test]
+		public void CylindricalRangeExtendsOutwardFromSurface()
+		{
+			var ball = CreateBall();
+			ball.Position = new float3(30f, 0f, 20f);
+			ball.Radius = 5f;
+			var magnet = new MagnetState {
+				Position = float2.zero,
+				Height = 0f,
+				Radius = 6f,
+				CylinderRadius = 20f,
+				CylinderHeight = 40f,
+				MagnetType = MagnetType.Cylindrical
+			};
+
+			Assert.That(MagnetPhysics.IsBallInRange(in ball, in magnet), Is.True, "the ball skin is five units from the cylinder");
+			magnet.Radius = 4f;
+			Assert.That(MagnetPhysics.IsBallInRange(in ball, in magnet), Is.False);
+		}
+
+		[Test]
+		public void CylindricalForcePullsTowardSideAndCap()
+		{
+			var sideBall = CreateBall();
+			sideBall.Position = new float3(25f, 0f, 20f);
+			sideBall.Radius = 5f;
+			var capBall = CreateBall();
+			capBall.Position = new float3(0f, 0f, 45f);
+			capBall.Radius = 5f;
+			var magnet = new MagnetState {
+				Position = float2.zero,
+				Height = 0f,
+				Radius = 100f,
+				Strength = 100f,
+				EffectiveStrength = 100f,
+				PoleRadius = 20f,
+				CylinderRadius = 20f,
+				CylinderHeight = 40f,
+				MagnetType = MagnetType.Cylindrical
+			};
+
+			MagnetPhysics.ApplyCylindricalPhysicalForce(ref sideBall, in magnet, 1f);
+			MagnetPhysics.ApplyCylindricalPhysicalForce(ref capBall, in magnet, 1f);
+
+			Assert.That(sideBall.Velocity.x, Is.LessThan(0f));
+			Assert.That(sideBall.Velocity.y, Is.EqualTo(0f).Within(1e-5f));
+			Assert.That(capBall.Velocity.z, Is.LessThan(0f));
+		}
+
+		[Test]
+		public void CylindricalInfluenceDistanceDefinesTheCompleteFalloff()
+		{
+			var magnet = new MagnetState {
+				Radius = 100f,
+				EffectiveStrength = 56f / 1.5f,
+				PoleRadius = 1f,
+				MagnetType = MagnetType.Cylindrical
+			};
+
+			Assert.That(MagnetPhysics.CylindricalSurfaceForceMagnitude(0f, in magnet), Is.EqualTo(1f).Within(1e-5f));
+			Assert.That(MagnetPhysics.CylindricalSurfaceForceMagnitude(50f, in magnet), Is.EqualTo(0.5f).Within(1e-5f));
+			Assert.That(MagnetPhysics.CylindricalSurfaceForceMagnitude(100f, in magnet), Is.Zero);
+
+			magnet.PoleRadius = 1000f;
+			Assert.That(MagnetPhysics.CylindricalSurfaceForceMagnitude(50f, in magnet), Is.EqualTo(0.5f).Within(1e-5f), "Pole Radius is not a cylindrical control");
+		}
+
+		[Test]
+		public void CylindricalGrabCapturesAtColliderContact()
+		{
+			using var harness = new PhysicsStateHarness();
+			var state = harness.CreateState();
+			harness.Balls.Add(1, new BallState {
+				Id = 1,
+				Position = new float3(25f, 0f, 20f),
+				Radius = 5f,
+				Velocity = new float3(0f, 1000f, 0f)
+			});
+			var magnet = new MagnetState {
+				Position = float2.zero,
+				Height = 0f,
+				Radius = 100f,
+				Strength = 100f,
+				CommandedPower = 1f,
+				PoleRadius = 20f,
+				GrabRadius = 1f,
+				CylinderRadius = 20f,
+				CylinderHeight = 40f,
+				IsEnabled = true,
+				MagnetType = MagnetType.Cylindrical
+			};
+
+			MagnetPhysics.Update(17, ref magnet, ref state, 0.1f);
+
+			var ball = harness.Balls[1];
+			Assert.That(magnet.GrabbedBalls.Value, Is.Not.EqualTo(0UL));
+			Assert.That(ball.Velocity.x, Is.LessThan(0f), "the hold keeps pressing the ball against the collider");
+			Assert.That(ball.Velocity.y, Is.EqualTo(1000f).Within(1e-5f), "tangential motion must not prevent capture or be magnetically stopped");
+		}
+
+		[Test]
+		public void DisablingCylindricalGrabReleasesHeldBall()
+		{
+			using var harness = new PhysicsStateHarness();
+			var state = harness.CreateState();
+			harness.Balls.Add(1, new BallState {
+				Id = 1,
+				Position = new float3(25f, 0f, 20f),
+				Radius = 5f
+			});
+			var magnet = new MagnetState {
+				Position = float2.zero,
+				Height = 0f,
+				Radius = 100f,
+				Strength = 100f,
+				CommandedPower = 1f,
+				GrabRadius = MagnetPhysics.CylindricalContactTolerance,
+				CylinderRadius = 20f,
+				CylinderHeight = 40f,
+				IsEnabled = true,
+				MagnetType = MagnetType.Cylindrical
+			};
+
+			MagnetPhysics.Update(17, ref magnet, ref state, 0.1f);
+			Assert.That(magnet.GrabbedBalls.Value, Is.Not.Zero);
+
+			magnet.GrabRadius = 0f;
+			MagnetPhysics.Update(17, ref magnet, ref state, 0.1f);
+
+			Assert.That(magnet.GrabbedBalls.Value, Is.Zero);
+		}
+
+		[Test]
+		public void CylindricalCaptureDependsOnStrengthAndSeparatingSpeed()
+		{
+			var ball = CreateBall();
+			ball.Position = new float3(25f, 0f, 20f);
+			ball.Radius = 5f;
+			ball.Velocity = new float3(50f, 1000f, 0f);
+			var magnet = new MagnetState {
+				Position = float2.zero,
+				Height = 0f,
+				Radius = 100f,
+				EffectiveStrength = 100f,
+				CylinderRadius = 20f,
+				CylinderHeight = 40f,
+				MagnetType = MagnetType.Cylindrical
+			};
+			var surface = MagnetPhysics.CylinderSurface(in ball, in magnet);
+
+			Assert.That(MagnetPhysics.CanCaptureCylindrical(in ball, in magnet, in surface, float3.zero), Is.False);
+			magnet.EffectiveStrength = 10000f;
+			Assert.That(MagnetPhysics.CanCaptureCylindrical(in ball, in magnet, in surface, float3.zero), Is.True);
+		}
+
+		[Test]
+		public void CylindricalGodzillaDiagnosticPulseProducesVisibleDeflection()
+		{
+			using var harness = new PhysicsStateHarness();
+			var state = harness.CreateState();
+			harness.Balls.Add(1, new BallState {
+				Id = 1,
+				Position = new float3(50.16466f, 0f, 24.961925f),
+				Radius = 25f,
+				Velocity = float3.zero
+			});
+			var magnet = new MagnetState {
+				Position = float2.zero,
+				Height = 0f,
+				Radius = 166f,
+				Strength = 100f,
+				CommandedPower = 64f / 255f,
+				RiseTime = 2f,
+				FallTime = 2f,
+				CylinderRadius = 25.16466f,
+				CylinderHeight = 49.92385f,
+				IsEnabled = true,
+				MagnetType = MagnetType.Cylindrical
+			};
+
+			// Kiki pulses this diagnostic at level 64 for 120 ms. The engine uses
+			// normalized 10 ms time, so each 1 ms physics tick advances by 0.1.
+			for (var i = 0; i < 120; i++) {
+				MagnetPhysics.Update(17, ref magnet, ref state, 0.1f);
+			}
+
+			var ball = harness.Balls[1];
+			Assert.That(ball.Velocity.x, Is.LessThan(-1f), "the real diagnostic pulse should produce a clearly measurable inward deflection");
 		}
 
 		[Test]

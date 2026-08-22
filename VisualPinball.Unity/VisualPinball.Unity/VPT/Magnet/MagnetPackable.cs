@@ -27,6 +27,8 @@ namespace VisualPinball.Unity
 		public float PoleRadius;
 		public bool GrabBall;
 		public float GrabRadius;
+		public float CylinderRadius;
+		public float CylinderHeight;
 		public float HeightRange;
 		public bool IsEnabledOnStart;
 		public bool IsKinematic;
@@ -44,6 +46,8 @@ namespace VisualPinball.Unity
 				PoleRadius = comp.PoleRadius,
 				GrabBall = comp.GrabBall,
 				GrabRadius = comp.GrabRadius,
+				CylinderRadius = comp.CylinderRadius,
+				CylinderHeight = comp.CylinderHeight,
 				HeightRange = comp.HeightRange,
 				IsEnabledOnStart = comp.IsEnabledOnStart,
 				IsKinematic = comp.IsKinematic,
@@ -63,6 +67,8 @@ namespace VisualPinball.Unity
 			comp.PoleRadius = data.PoleRadius;
 			comp.GrabBall = data.GrabBall;
 			comp.GrabRadius = data.GrabRadius;
+			comp.CylinderRadius = data.CylinderRadius;
+			comp.CylinderHeight = data.CylinderHeight;
 			comp.HeightRange = data.HeightRange;
 			comp.IsEnabledOnStart = data.IsEnabledOnStart;
 			comp.IsKinematic = data.IsKinematic;
