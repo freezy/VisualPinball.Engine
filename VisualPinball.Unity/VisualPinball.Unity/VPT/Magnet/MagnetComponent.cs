@@ -93,7 +93,7 @@ namespace VisualPinball.Unity
 		public float CylinderHeight = DefaultCylinderHeight;
 
 		[Min(0f)]
-		[Tooltip("How quickly a Cylindrical magnet removes held-ball spin and surface-normal motion. Zero applies no magnetic damping, one preserves the default behavior, and higher values settle faster.")]
+		[Tooltip("Viscous drag on radial motion in a Cylindrical field and on sidewall motion near contact. Zero disables magnetic damping; higher values settle a captured ball faster without affecting vertical velocity or spin.")]
 		public float CylindricalDamping = DefaultCylindricalDamping;
 
 		[Min(0f)]
@@ -357,8 +357,8 @@ namespace VisualPinball.Unity
 					{
 						var ballState = new BallState { Position = ballPosition, Radius = ball.Radius };
 						var surface = MagnetPhysics.CylinderSurface(in ballState, in magnetState);
-						if (surface.AirGap <= Radius) {
-							Gizmos.DrawLine(ball.transform.position, VpxToWorld(ballPosition - surface.Offset));
+						if (MagnetPhysics.HasCylindricalField(in surface) && surface.AirGap <= Radius) {
+							Gizmos.DrawLine(ball.transform.position, VpxToWorld(new float3(magnetState.Position, ballPosition.z)));
 						}
 						break;
 					}

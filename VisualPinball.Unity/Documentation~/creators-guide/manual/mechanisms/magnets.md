@@ -23,7 +23,7 @@ All Magnet distance fields use **VPX units**, not millimeters or Unity world uni
 |---|---|---|
 | **Playfield** | A vertical field around a point on the playfield. Distance is measured in the playfield plane. | Under-playfield magnets, Magna-Save, and imported `cvpmMagnet` behavior. |
 | **Spatial** | A sphere around the transform. Distance is measured from the transform to the ball center in 3-D. | A mouth, hand, wand, or other mech that catches and carries a ball. |
-| **Cylindrical** | A field around the side and caps of a finite upright cylinder. Distance is measured from the ball surface to the cylinder surface. | An exposed magnet core that balls can approach and touch from any direction. |
+| **Cylindrical** | A field around the exterior sidewall of a finite upright cylinder. Distance is measured from the ball surface to the sidewall or its top and bottom rim. The cap faces are not magnetic surfaces, and attraction fades to zero as the ball centre moves inward over a cap. | An exposed magnet core that balls can approach and touch from any direction around its side. |
 
 Playfield and Spatial magnets treat the transform as the center of the field. A Cylindrical magnet treats the transform as the center of the cylinder base; **Cylinder Height** extends upward along the playfield normal. Tilted cylinder axes are not modeled.
 
@@ -33,16 +33,16 @@ The fields have different jobs and are not interchangeable:
 
 | Inspector field | Meaning |
 |---|---|
-| **Influence Radius / Influence Distance** | The outer cutoff of the field. A ball beyond this distance receives no force. Playfield and Spatial modes measure from the transform to the ball center. Cylindrical mode measures the empty air gap between the ball and the cylinder surface. |
+| **Influence Radius / Influence Distance** | The outer cutoff of the field. A ball beyond this distance receives no force. Playfield and Spatial modes measure from the transform to the ball center. Cylindrical mode measures the empty air gap between the ball and the exterior cylinder sidewall. |
 | **Pole Radius** | Shapes a Physical Playfield or Spatial field. It is not used by a Cylindrical magnet. |
 | **Grab Radius** | Defines the capture area around a Playfield or Spatial magnet's center. It is not shown for a Cylindrical magnet, which grabs automatically at contact. |
 | **Cylinder Radius** | The radius of the magnetic cylinder itself. Match it to the associated collider, in VPX units. It does not control how far the field reaches. |
-| **Cylinder Height** | The height from the component origin to the top cap, in VPX units. Match it to the associated collider. A value of zero makes the cylinder vertically unlimited. |
+| **Cylinder Height** | The height from the component origin to the top of the sidewall, in VPX units. Match it to the associated collider. A value of zero makes the sidewall vertically unlimited. |
 | **Height Range** | The vertical window above a Playfield magnet. Use it to prevent a magnet from affecting balls on an overhead ramp. Zero removes the limit. Spatial and Cylindrical modes ignore this field. |
 
 The Cylindrical controls are deliberately simpler. **Strength** controls the pull at the metal surface. **Influence Distance** says how far the pull reaches outside that surface: relative to the configured contact pull, force is 100% at contact, 50% at half the Influence Distance, and zero at or beyond the Influence Distance. There is no separate falloff setting.
 
-**Damping** mainly settles a captured ball by removing its spin while **Grab Ball** is enabled; contact with the playfield can then drain the left/right swing. It also damps motion toward or away from the cylinder for every influenced ball, but it does not directly damp motion along the surface. Damping does not change Strength, Influence Distance, or collider friction. Set it to **0** for no magnetic damping, **1** for the default behavior, or higher for faster settling. Lower it below 1 when the real ball should swing back and forth longer before coming to rest. Very high values eventually make no further difference because the affected motion is already removed within one physics step.
+**Damping** is viscous drag, not collider friction. It damps motion toward or away from the cylinder throughout the field. It also damps motion around the cylinder only near the sidewall: the effect is full within 1 VPX unit of the wall, blends smoothly, and is gone by 2 VPX units. This lets Damping settle a captured ball without slowing an ordinary fly-by farther out in the field. Damping never changes ball spin or vertical velocity. Set it to **0** for no magnetic damping, **1** for the standard response, or higher for faster settling. Lower it below 1 when the real ball should swing back and forth longer before coming to rest.
 
 For an exposed cylindrical magnet:
 
@@ -50,10 +50,10 @@ For an exposed cylindrical magnet:
 2. Set **Cylinder Radius** and **Cylinder Height** to the collider dimensions in VPX units. If the solid geometry is a child Primitive Collider, click **Fit Cylinder to Child Collider Mesh** to fill both values automatically.
 3. Set **Influence Distance** to the maximum air gap where the ball should begin to bend toward the magnet.
 4. Set **Strength** for the amount of pull at contact.
-5. Set **Damping** for how quickly the captured ball should settle.
+5. Set **Damping** for how quickly motion along the sidewall should settle after contact.
 6. Enable **Grab Ball** if a ball that reaches the metal should close `ball_held` and remain pressed against the collider while the field can retain it.
 
-The Cylindrical field pulls toward the closest point on the side or either cap. Grab has no distance setting: contact starts a hold when the active field is strong enough to retain the ball's separating motion. Motion along the surface does not prevent a hold, so a moving ball can glide around the cylinder. The ball remains a live physics object and is pressed against the collider instead of being teleported or frozen; collider friction still acts normally.
+The Cylindrical field measures its air gap from the closest point on the exterior sidewall or either boundary rim. The flat cap faces are excluded, and attraction fades as the ball centre moves inward over a cap until it reaches zero inside the cylinder radius. Magnetic acceleration is always parallel to the playfield and directed toward the cylinder axis; it never adds or removes vertical velocity. Grab has no distance setting: sidewall contact starts a hold when the active field is strong enough to retain the ball's separating motion and the ball is not moving outward past a finite top or bottom rim. A moving ball can glide around the cylinder while Damping gradually reduces the swing. The ball remains a live physics object instead of being teleported or frozen. Within 2 VPX units of the solid wall, magnet-added inward speed stays below the physics solver's static-contact limit; beyond that band, the allowed approach speed grows continuously with the air gap. This closes small collider-fitting gaps without turning a resting contact into repeated impacts, whether Grab Ball is enabled or disabled.
 
 ### Other Magnet Fields
 
@@ -108,9 +108,9 @@ Magnets also expose one switch:
 |---|---|
 | `ball_held` | Closes while one or more balls are currently grabbed. |
 
-With **Grab Ball** disabled, the magnet only applies attraction. With it enabled, Playfield and Spatial magnets attempt capture inside Grab Radius. A Cylindrical magnet attempts capture when the ball touches its surface; it compares only motion separating the ball from the surface with the strength available across the field. A weak field may fail to retain a fast rebound, while fast motion along the cylinder is allowed.
+With **Grab Ball** disabled, the magnet only applies attraction. With it enabled, Playfield and Spatial magnets attempt capture inside Grab Radius. A Cylindrical magnet attempts capture when the ball touches its sidewall; it compares motion separating the ball from the wall with the strength available across the field and rejects vertical motion that its planar force cannot retain. A weak field may fail to retain a fast rebound, while fast motion along the cylinder is allowed.
 
-VPX Compatible capture snaps the ball to the Playfield magnet's planar center. Physical Playfield and Spatial capture use a capped spring-damper force, so the ball decelerates visibly and a sufficiently hard collision can knock it away. Cylindrical capture keeps applying surface-normal force against the collider; it does not lock the ball to one point around the cylinder.
+VPX Compatible capture snaps the ball to the Playfield magnet's planar center. Physical Playfield and Spatial capture use a capped spring-damper force, so the ball decelerates visibly and a sufficiently hard collision can knock it away. Cylindrical capture retains motion that separates from the surface without locking the ball to one point around the cylinder or driving it continuously into the collider.
 
 Turning the coil off or calling `ReleaseBall()` removes the hold without freezing or teleporting the ball. The ball keeps its current velocity. `Eject(speed, angleDeg, verticalAngleDeg)` releases and throws held balls; the horizontal angle follows the kicker convention, while the optional vertical angle applies to Spatial and Cylindrical magnets.
 
