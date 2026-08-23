@@ -31,6 +31,7 @@ namespace VisualPinball.Unity
 		float m_elasped = 0f;   //!< elapsed time since last click
 
 		private const float GizmoHeight = 0.025f;
+		private const float DirectionGizmoRadius = 0.005f;
 		private const string NameParent = "Current";
 		private const string NameStart = "StartGizmo";
 		private const string NameEnd = "EndGizmo";
@@ -91,7 +92,7 @@ namespace VisualPinball.Unity
 			Destroy(line.GetComponent<UnityEngine.Collider>());
 			line.name = NameDirection;
 			line.transform.parent = plane.transform;
-			line.transform.localScale = new Vector3(0.005f, 1f, 0.005f);
+			line.transform.localScale = new Vector3(DirectionGizmoRadius, 1f, DirectionGizmoRadius);
 		}
 
 		private void SetShotStart(string parent, float3 p)
@@ -99,7 +100,7 @@ namespace VisualPinball.Unity
 			transform.Find($"{parent}/{NameStart}").localPosition = new float3(p.x, GizmoHeight, p.z);  // Sets the fathers position (start is the reference)
 		}
 
-		private void SetShotEnd(string parent, float3 p)
+		internal void SetShotEnd(string parent, float3 p)
 		{
 			p = new float3(p.x, GizmoHeight, p.z);
 			transform.Find($"{parent}/{NameEnd}").localPosition = p;    // Sets the direction's end position
@@ -108,11 +109,14 @@ namespace VisualPinball.Unity
 			var ps = transform.Find($"{parent}/{NameStart}").localPosition;
 			var pe = (Vector3)p;
 			var dir = transform.Find($"{parent}/{NameDirection}");
-			var length = (pe - ps).magnitude;
+			var delta = pe - ps;
+			var length = delta.magnitude;
+			// The balls and cylinder share a parent, so align them in that parent's local space.
 			dir.localPosition = (pe + ps) * 0.5f;
-			dir.localScale = new Vector3(0.005f, length * 0.5f, 0.005f);// *Globals.g_Scale;
-			dir.LookAt(_playfield.transform.localToWorldMatrix.MultiplyPoint(pe));
-			dir.Rotate(90.0f, 0.0f, 0.0f);
+			dir.localScale = new Vector3(DirectionGizmoRadius, length * 0.5f, DirectionGizmoRadius);
+			dir.localRotation = length > Mathf.Epsilon
+				? Quaternion.FromToRotation(Vector3.up, delta / length)
+				: Quaternion.identity;
 		}
 
 		private void Update()

@@ -133,6 +133,10 @@ namespace VisualPinball.Unity.Editor
 			_collidersDirty = false;
 			_transformsDirty = false;
 			_visibilityDirty = false;
+
+			if (target is Component component) {
+				ColliderMeshReadability.QueueFor(component);
+			}
 		}
 
 		protected void PropertyField(SerializedProperty serializedProperty, string label = null,
