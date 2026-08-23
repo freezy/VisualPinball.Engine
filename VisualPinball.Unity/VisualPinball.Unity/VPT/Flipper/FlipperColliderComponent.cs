@@ -110,6 +110,13 @@ namespace VisualPinball.Unity
 			set => Friction = value;
 		}
 
+		// Rolling resistance is unsupported until the equal-and-opposite
+		// generalized impulse can be applied to the flipper movement state.
+		public override float PhysicsRollingResistance {
+			get => 0;
+			set { }
+		}
+
 		public override float PhysicsScatter {
 			get => Scatter;
 			set => Scatter = value;

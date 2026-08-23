@@ -108,9 +108,11 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal static void Contact(in ColliderHeader collHeader, ref BallState ball, in CollisionEventData collEvent, double hitTime, in float3 gravity, in float3 colliderVelocity)
+		internal static float Contact(in ColliderHeader collHeader, ref BallState ball,
+			in CollisionEventData collEvent, double hitTime, in float3 gravity, in float3 colliderVelocity)
 		{
-			BallCollider.HandleStaticContact(ref ball, in collEvent, collHeader.Material.Friction, (float)hitTime, gravity, colliderVelocity);
+			return BallCollider.HandleStaticContact(ref ball, in collEvent, in collHeader.Material,
+				(float)hitTime, in gravity, in colliderVelocity);
 		}
 	}
 }

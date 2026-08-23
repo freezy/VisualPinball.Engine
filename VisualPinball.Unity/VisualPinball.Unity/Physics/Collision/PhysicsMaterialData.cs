@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using Unity.Mathematics;
 
 namespace VisualPinball.Unity
 {
@@ -23,6 +24,7 @@ namespace VisualPinball.Unity
 		public float Elasticity;
 		public float ElasticityFalloff;
 		public float Friction;
+		public float RollingResistance;
 		public float ScatterAngleRad;
 		public bool UseElasticityOverVelocity;
 		public bool UseFrictionOverVelocity;
@@ -36,6 +38,7 @@ namespace VisualPinball.Unity
 				Elasticity == other.Elasticity &&
 				ElasticityFalloff == other.ElasticityFalloff &&
 				Friction == other.Friction &&
+				RollingResistance == other.RollingResistance &&
 				ScatterAngleRad == other.ScatterAngleRad &&
 				UseElasticityOverVelocity == other.UseElasticityOverVelocity &&
 				UseFrictionOverVelocity == other.UseFrictionOverVelocity;
@@ -51,7 +54,11 @@ namespace VisualPinball.Unity
 
 		public override readonly int GetHashCode()
 		{
-			return HashCode.Combine(Elasticity, ElasticityFalloff, Friction, ScatterAngleRad, UseElasticityOverVelocity, UseFrictionOverVelocity);
+			return HashCode.Combine(Elasticity, ElasticityFalloff, Friction, RollingResistance,
+				ScatterAngleRad, UseElasticityOverVelocity, UseFrictionOverVelocity);
 		}
+
+		internal static float SanitizeRollingResistance(float value)
+			=> math.isfinite(value) ? math.max(0f, value) : 0f;
 	}
 }

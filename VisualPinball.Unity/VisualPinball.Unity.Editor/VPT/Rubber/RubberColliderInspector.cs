@@ -32,6 +32,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _elasticityProperty;
 		private SerializedProperty _elasticityFalloffProperty;
 		private SerializedProperty _frictionProperty;
+		private SerializedProperty _rollingResistanceProperty;
 		private SerializedProperty _scatterProperty;
 
 		protected override void OnEnable()
@@ -46,6 +47,8 @@ namespace VisualPinball.Unity.Editor
 			_elasticityProperty = serializedObject.FindProperty(nameof(RubberColliderComponent.Elasticity));
 			_elasticityFalloffProperty = serializedObject.FindProperty(nameof(RubberColliderComponent.ElasticityFalloff));
 			_frictionProperty = serializedObject.FindProperty(nameof(RubberColliderComponent.Friction));
+			_rollingResistanceProperty = serializedObject.FindProperty(
+				nameof(RubberColliderComponent.RollingResistance));
 			_scatterProperty = serializedObject.FindProperty(nameof(RubberColliderComponent.Scatter));
 		}
 
@@ -75,6 +78,7 @@ namespace VisualPinball.Unity.Editor
 				PropertyField(_elasticityProperty);
 				PropertyField(_elasticityFalloffProperty);
 				PropertyField(_frictionProperty);
+				PropertyField(_rollingResistanceProperty);
 				PropertyField(_scatterProperty, "Scatter Angle");
 				EditorGUI.EndDisabledGroup();
 			}

@@ -45,8 +45,17 @@ namespace VisualPinball.Unity
 		public bool UseFrictionOverVelocity => FrictionOverVelocity.keys.Length > 0;
 		public AnimationCurve FrictionOverVelocity;
 
+		[Min(0f)]
+		[Tooltip("Dimensionless rolling-resistance coefficient (Crr). Affects sustained rolling, not impacts.")]
+		public float RollingResistance;
+
 		// public AnimationCurve FrictionOverAngularMomentum;
 		public float ScatterAngle;
+
+		private void OnValidate()
+		{
+			RollingResistance = PhysicsMaterialData.SanitizeRollingResistance(RollingResistance);
+		}
 
 		/// <summary>
 		/// Returns a lookup-table of 128 values. <br/>
