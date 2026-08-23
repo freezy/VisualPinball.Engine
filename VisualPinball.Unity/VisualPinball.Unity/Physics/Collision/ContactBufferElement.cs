@@ -14,17 +14,27 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Mathematics;
+
 namespace VisualPinball.Unity
 {
 	internal struct ContactBufferElement
 	{
 		public CollisionEventData CollEvent;
 		public int BallId;
+		public float3 FrictionVelocity;
+		public float3 FrictionAngularMomentum;
+		public float3 FrictionAcceleration;
+		public bool IsDuplicate;
 
 		public ContactBufferElement(int ballId, CollisionEventData collEvent)
 		{
 			BallId = ballId;
 			CollEvent = collEvent;
+			FrictionVelocity = float3.zero;
+			FrictionAngularMomentum = float3.zero;
+			FrictionAcceleration = float3.zero;
+			IsDuplicate = false;
 		}
 	}
 }

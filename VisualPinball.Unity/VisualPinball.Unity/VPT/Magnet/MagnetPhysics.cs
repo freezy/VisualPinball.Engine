@@ -37,8 +37,6 @@ namespace VisualPinball.Unity
 		private const float MinEffectiveCurrent = 0.0001f;
 		internal const float CylindricalContactTolerance = 1f;
 		private const float CylindricalReleaseTolerance = 2f;
-		private const float CylindricalStaticContactSpeed = PhysicsConstants.ContactVel * 0.9f;
-		private const float CylindricalApproachSpeedPerVpx = 1f;
 
 		[BurstCompile]
 		internal static void Update(int itemId, ref MagnetState magnet, ref PhysicsState state, float physicsDiffTime)
@@ -226,6 +224,7 @@ namespace VisualPinball.Unity
 
 			var velocity = (ball.Velocity.xy - direction * force * physicsDiffTime) * damping;
 			ball.Velocity = new float3(velocity.x, velocity.y, ball.Velocity.z);
+			RecordExternalAcceleration(ref ball, new float3(-direction * force, 0f));
 		}
 
 		internal static void ApplyPhysicalForce(ref BallState ball, in MagnetState magnet, float physicsDiffTime, float2 magnetVelocity = default)
@@ -250,6 +249,7 @@ namespace VisualPinball.Unity
 			velocity = magnetVelocity + (velocity - magnetVelocity) * (1f - damping);
 
 			ball.Velocity = new float3(velocity.x, velocity.y, ball.Velocity.z);
+			RecordExternalAcceleration(ref ball, new float3(-direction * force, 0f));
 		}
 
 		internal static void ApplySpatialPhysicalForce(ref BallState ball, in MagnetState magnet, float physicsDiffTime, float3 magnetVelocity = default)
@@ -270,6 +270,7 @@ namespace VisualPinball.Unity
 			velocity = magnetVelocity + (velocity - magnetVelocity) * (1f - damping);
 
 			ball.Velocity = velocity;
+			RecordExternalAcceleration(ref ball, -direction * force);
 		}
 
 		internal static void ApplyCylindricalPhysicalForce(ref BallState ball, in MagnetState magnet, float physicsDiffTime, float3 magnetVelocity = default)
@@ -281,35 +282,29 @@ namespace VisualPinball.Unity
 
 			var force = CylindricalSurfaceForceMagnitude(surface.AirGap, in magnet) * surface.ExteriorWeight;
 			var direction = surface.RadialOffset / surface.RadialDistance;
-			var relativeVelocity = ball.Velocity.xy - magnetVelocity.xy;
+			var relativeVelocity = ball.Velocity.xy - magnetVelocity.xy - direction * force * physicsDiffTime;
 			var normalSpeed = math.dot(relativeVelocity, direction);
 			var tangentialVelocity = relativeVelocity - direction * normalSpeed;
-			var magneticImpulse = force * physicsDiffTime;
-
-			// Near the solid sidewall, keep magnet-added velocity inside the collision
-			// solver's static-contact range. This applies with or without Grab Ball: contact
-			// is a geometric constraint, not magnet ownership. Beyond the authoring-tolerance
-			// band the allowed approach speed grows continuously with the VPX-unit air gap.
 			var contactWeight = CylindricalContactWeight(in surface);
-			var maxInwardSpeed = CylindricalStaticContactSpeed +
-			                      math.max(0f, surface.AirGap - CylindricalReleaseTolerance) * CylindricalApproachSpeedPerVpx;
-			magneticImpulse = math.min(magneticImpulse,
-				math.max(0f, normalSpeed + maxInwardSpeed));
-			normalSpeed -= magneticImpulse;
 
 			// Implicit viscous damping is monotonic for every step size. Radial damping
-			// remains active through the field, while tangential damping is restricted to
-			// the sidewall where it settles the captured pendulum without braking fly-bys.
+			// remains active through the field. Tangential damping and axial spin drag are
+			// restricted to the sidewall so they settle a captured ball without braking fly-bys.
 			var dampingRate = math.abs(force) * PhysicalVelocityDamping * math.max(0f, magnet.CylindricalDamping);
 			var normalDampingFactor = 1f / (1f + dampingRate * physicsDiffTime);
 			var tangentialDampingFactor = 1f / (1f + dampingRate * contactWeight * physicsDiffTime);
 			var planarVelocity = magnetVelocity.xy + direction * normalSpeed * normalDampingFactor +
 			                     tangentialVelocity * tangentialDampingFactor;
 			ball.Velocity = new float3(planarVelocity, ball.Velocity.z);
+			ball.AngularMomentum = new float3(ball.AngularMomentum.x, ball.AngularMomentum.y,
+				ball.AngularMomentum.z * tangentialDampingFactor);
+			RecordExternalAcceleration(ref ball, new float3(-direction * force, 0f));
 		}
 
 		internal static void ApplyVpxCompatibleGrab(ref BallState ball, in MagnetState magnet, float2 magnetVelocity = default)
 		{
+			// This compatibility path teleports the ball and is not a continuous load.
+			// Do not report it through BallState.ExternalAcceleration.
 			ball.Position = new float3(magnet.Position.x, magnet.Position.y, ball.Position.z);
 			ball.EventPosition = new float3(magnet.Position.x, magnet.Position.y, ball.EventPosition.z);
 			ball.Velocity = new float3(magnetVelocity.x, magnetVelocity.y, ball.Velocity.z);
@@ -335,17 +330,13 @@ namespace VisualPinball.Unity
 			var holdRadius = math.max(magnet.GrabRadius, math.max(magnet.PoleRadius, PhysicalMinimumPoleRadius));
 			var stiffness = holdStrength / holdRadius;
 			var damping = 2f * math.sqrt(stiffness);
-			var impulse = (-offset * stiffness - relativeVelocity * damping) * physicsDiffTime;
-			var maxImpulse = holdStrength * physicsDiffTime;
-			var impulseLenSq = math.lengthsq(impulse);
-			var maxImpulseSq = maxImpulse * maxImpulse;
+			var springAcceleration = -offset * stiffness;
+			var acceleration = springAcceleration - relativeVelocity * damping;
+			var accelerationScale = ClampAccelerationScale(in acceleration, holdStrength);
 
-			if (impulseLenSq > maxImpulseSq && impulseLenSq > MinDistanceSq) {
-				impulse *= maxImpulse / math.sqrt(impulseLenSq);
-			}
-
-			ball.Velocity += impulse;
+			ball.Velocity += acceleration * accelerationScale * physicsDiffTime;
 			ball.AngularMomentum *= 1f - math.saturate(physicsDiffTime * 0.5f);
+			RecordExternalAcceleration(ref ball, springAcceleration * accelerationScale);
 		}
 
 		internal static void ApplyCylindricalPhysicalHold(ref BallState ball, in MagnetState magnet, float physicsDiffTime, float3 magnetVelocity = default)
@@ -367,18 +358,39 @@ namespace VisualPinball.Unity
 			var holdRadius = math.max(magnet.GrabRadius, math.max(magnet.PoleRadius, PhysicalMinimumPoleRadius));
 			var stiffness = holdStrength / holdRadius;
 			var damping = 2f * math.sqrt(stiffness);
-			var impulse = (-offset * stiffness - relativeVelocity * damping) * physicsDiffTime;
-			var maxImpulse = holdStrength * physicsDiffTime;
-			var impulseLenSq = math.lengthsq(impulse);
-			var maxImpulseSq = maxImpulse * maxImpulse;
+			var springAcceleration = -offset * stiffness;
+			var acceleration = springAcceleration - relativeVelocity * damping;
+			var accelerationScale = ClampAccelerationScale(in acceleration, holdStrength);
 
-			if (impulseLenSq > maxImpulseSq && impulseLenSq > MinDistanceSq) {
-				impulse *= maxImpulse / math.sqrt(impulseLenSq);
-			}
-
-			velocity += impulse;
+			velocity += acceleration * accelerationScale * physicsDiffTime;
 			ball.Velocity = new float3(velocity.x, velocity.y, ball.Velocity.z);
 			ball.AngularMomentum *= 1f - math.saturate(physicsDiffTime * 0.5f);
+			RecordExternalAcceleration(ref ball, new float3(springAcceleration * accelerationScale, 0f));
+		}
+
+		private static float ClampAccelerationScale(in float3 acceleration, float maxAcceleration)
+		{
+			var accelerationLengthSq = math.lengthsq(acceleration);
+			var maxAccelerationSq = maxAcceleration * maxAcceleration;
+			return accelerationLengthSq > maxAccelerationSq && accelerationLengthSq > MinDistanceSq
+				? maxAcceleration / math.sqrt(accelerationLengthSq)
+				: 1f;
+		}
+
+		private static float ClampAccelerationScale(in float2 acceleration, float maxAcceleration)
+		{
+			var accelerationLengthSq = math.lengthsq(acceleration);
+			var maxAccelerationSq = maxAcceleration * maxAcceleration;
+			return accelerationLengthSq > maxAccelerationSq && accelerationLengthSq > MinDistanceSq
+				? maxAcceleration / math.sqrt(accelerationLengthSq)
+				: 1f;
+		}
+
+		private static void RecordExternalAcceleration(ref BallState ball, in float3 acceleration)
+		{
+			if (math.all(math.isfinite(acceleration))) {
+				ball.ExternalAcceleration += acceleration;
+			}
 		}
 
 		internal static void ApplyPlanarEject(ref BallState ball, float speed, float angleDeg, float2 carrierVelocity = default)

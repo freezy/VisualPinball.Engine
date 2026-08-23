@@ -60,6 +60,7 @@ namespace VisualPinball.Unity.Test
 			var gameObject = new GameObject("Cylindrical Magnet Damping State Test");
 			try {
 				var component = gameObject.AddComponent<MagnetComponent>();
+				gameObject.transform.localScale = new Vector3(0.232208654f, 0.232208654f, 0.232208654f);
 				component.MagnetType = MagnetType.Cylindrical;
 				component.CylindricalDamping = 0.35f;
 
@@ -78,17 +79,60 @@ namespace VisualPinball.Unity.Test
 			try {
 				var component = gameObject.AddComponent<MagnetComponent>();
 				component.CylindricalDamping = 0.35f;
+				component.GenerateCylinderCollider = true;
 
 				var bytes = component.Pack();
 				component.CylindricalDamping = 2f;
 				component.Unpack(bytes);
 
 				Assert.That(component.CylindricalDamping, Is.EqualTo(0.35f));
+				Assert.That(component.GenerateCylinderCollider, Is.True);
 
 				component.CylindricalDamping = 0f;
+				component.GenerateCylinderCollider = true;
 				component.Unpack(Encoding.UTF8.GetBytes("{}"));
 				Assert.That(component.CylindricalDamping, Is.EqualTo(MagnetComponent.DefaultCylindricalDamping));
+				Assert.That(component.GenerateCylinderCollider, Is.False);
 			} finally {
+				UnityEngine.Object.DestroyImmediate(gameObject);
+			}
+		}
+
+		[Test]
+		public void GeneratedCylinderColliderUsesAuthoredVpxDimensions()
+		{
+			var gameObject = new GameObject("Generated Cylindrical Magnet Collider Test");
+			var nonTransformableTransforms = new NativeParallelHashMap<int, float4x4>(0, Allocator.Temp);
+			var colliders = new ColliderReference(ref nonTransformableTransforms, Allocator.Temp);
+			try {
+				var component = gameObject.AddComponent<MagnetComponent>();
+				component.MagnetType = MagnetType.Cylindrical;
+				component.CylinderRadius = 25.16466f;
+				component.CylinderHeight = 49.92385f;
+
+				var collidable = (ICollidableComponent)component;
+				Assert.That(collidable.IsCollidable, Is.True,
+					"an unused optional collider must not disable another collider sharing the magnet's item ID");
+				collidable.GetColliders(null, null, ref colliders, float4x4.identity, 0.1f);
+				Assert.That(colliders.Count, Is.Zero);
+
+				component.GenerateCylinderCollider = true;
+				var matrix = component.GetLocalToPlayfieldMatrixInVpx(float4x4.identity);
+				collidable.GetColliders(null, null, ref colliders, matrix, 0.1f);
+
+				Assert.That(collidable.IsCollidable, Is.True);
+				Assert.That(colliders.Count, Is.EqualTo(1));
+				var collider = (CircleCollider)colliders[0];
+				Assert.That(collider.Center, Is.EqualTo(float2.zero));
+				Assert.That(collider.Radius, Is.EqualTo(component.CylinderRadius));
+				Assert.That(collider.ZLow, Is.Zero);
+				Assert.That(collider.ZHigh, Is.EqualTo(component.CylinderHeight));
+				Assert.That(collider.Header.ItemId, Is.EqualTo(component.ItemId));
+				Assert.That(matrix.GetScale(), Is.EqualTo(new float3(1f)),
+					"visual transform scale must not resize dimensions authored directly in VPX units");
+			} finally {
+				colliders.Dispose();
+				nonTransformableTransforms.Dispose();
 				UnityEngine.Object.DestroyImmediate(gameObject);
 			}
 		}
@@ -122,6 +166,8 @@ namespace VisualPinball.Unity.Test
 				Assert.That(component.PoleRadius, Is.EqualTo(10f * 1.85271f).Within(1e-5f));
 				Assert.That(component.GrabRadius, Is.EqualTo(10.8f * 1.85271f).Within(1e-5f));
 				Assert.That(component.HeightRange, Is.EqualTo(50f * 1.85271f).Within(1e-5f));
+				Assert.That(component.PhysicsFriction, Is.Zero,
+					"the generated sidewall leaves settling to cylindrical damping by default");
 			} finally {
 				UnityEngine.Object.DestroyImmediate(gameObject);
 			}
@@ -178,6 +224,24 @@ namespace VisualPinball.Unity.Test
 
 			Assert.That(tenTickBall.Velocity.x, Is.EqualTo(oneTickBall.Velocity.x).Within(1e-5f));
 			Assert.That(tenTickBall.Velocity.y, Is.EqualTo(oneTickBall.Velocity.y).Within(1e-5f));
+		}
+
+		[Test]
+		public void VpxCompatibleForceReportsTheFieldWithoutVelocityDamping()
+		{
+			var ball = CreateBall();
+			ball.Velocity = new float3(4f, 0f, 0f);
+			var magnet = new MagnetState {
+				Position = float2.zero,
+				Radius = 100f,
+				EffectiveStrength = 12f
+			};
+
+			MagnetPhysics.ApplyVpxCompatibleForce(ref ball, in magnet, 1f, 0.5f);
+
+			Assert.That(ball.ExternalAcceleration.x, Is.EqualTo(-1.587634f).Within(1e-5f));
+			Assert.That(ball.ExternalAcceleration.x, Is.Not.EqualTo(ball.Velocity.x - 4f).Within(0.1f),
+				"velocity damping is not a sustained load for the contact solver");
 		}
 
 		[Test]
@@ -421,7 +485,7 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void CylindricalRimContactUsesTheStaticContactLimit()
+		public void CylindricalRimContactReportsItsInwardAcceleration()
 		{
 			var ball = CreateBall();
 			ball.Position = new float3(22.5f, 0f, 44.330127f);
@@ -441,8 +505,10 @@ namespace VisualPinball.Unity.Test
 
 			Assert.That(surface.AirGap, Is.Zero.Within(1e-5f));
 			Assert.That(surface.ExteriorWeight, Is.EqualTo(0.5f).Within(1e-5f));
-			Assert.That(ball.Velocity.x, Is.GreaterThan(-PhysicsConstants.ContactVel).And.LessThan(0f));
+			Assert.That(ball.Velocity.x, Is.LessThan(0f));
+			Assert.That(ball.ExternalAcceleration.x, Is.EqualTo(ball.Velocity.x).Within(1e-5f));
 			Assert.That(ball.Velocity.z, Is.Zero);
+			Assert.That(ball.ExternalAcceleration.z, Is.Zero);
 		}
 
 		[Test]
@@ -469,7 +535,7 @@ namespace VisualPinball.Unity.Test
 		public void CylindricalForceIsPlanarAndDoesNotCreateACapField()
 		{
 			var sideBall = CreateBall();
-			sideBall.Position = new float3(25f, 0f, 20f);
+			sideBall.Position = new float3(26f, 0f, 20f);
 			sideBall.Radius = 5f;
 			var capBall = CreateBall();
 			capBall.Position = new float3(0f, 0f, 45f);
@@ -499,13 +565,13 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void CylindricalDampingSmoothlyReducesPlanarMotionWithoutChangingSpinOrHeight()
+		public void CylindricalDampingSmoothlyReducesPlanarMotionAndAxialSpinWithoutChangingHeight()
 		{
 			var undampedBall = CreateBall();
 			undampedBall.Position = new float3(25f, 0f, 20f);
 			undampedBall.Radius = 5f;
 			undampedBall.Velocity = new float3(50f, 20f, 3f);
-			undampedBall.AngularMomentum = new float3(0f, 4f, 0f);
+			undampedBall.AngularMomentum = new float3(0f, 4f, 6f);
 			var dampedBall = undampedBall;
 			var magnet = new MagnetState {
 				Position = float2.zero,
@@ -529,6 +595,8 @@ namespace VisualPinball.Unity.Test
 			Assert.That(dampedBall.Velocity.z, Is.EqualTo(3f));
 			Assert.That(undampedBall.AngularMomentum.y, Is.EqualTo(4f).Within(1e-5f));
 			Assert.That(dampedBall.AngularMomentum.y, Is.EqualTo(4f).Within(1e-5f));
+			Assert.That(undampedBall.AngularMomentum.z, Is.EqualTo(6f).Within(1e-5f));
+			Assert.That(dampedBall.AngularMomentum.z, Is.GreaterThan(0f).And.LessThan(6f));
 		}
 
 		[Test]
@@ -538,6 +606,7 @@ namespace VisualPinball.Unity.Test
 			ball.Position = new float3(35f, 0f, 20f);
 			ball.Radius = 5f;
 			ball.Velocity = new float3(0f, 20f, 3f);
+			ball.AngularMomentum = new float3(1f, 2f, 3f);
 			var magnet = new MagnetState {
 				Position = float2.zero,
 				Height = 0f,
@@ -554,6 +623,7 @@ namespace VisualPinball.Unity.Test
 			Assert.That(ball.Velocity.x, Is.LessThan(0f));
 			Assert.That(ball.Velocity.y, Is.EqualTo(20f).Within(1e-5f));
 			Assert.That(ball.Velocity.z, Is.EqualTo(3f));
+			Assert.That(ball.AngularMomentum, Is.EqualTo(new float3(1f, 2f, 3f)));
 		}
 
 		[Test]
@@ -569,7 +639,7 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void CylindricalHoldDoesNotDriveRestingBallIntoCollider()
+		public void CylindricalHoldReportsInwardAccelerationToContactSolver()
 		{
 			var ball = CreateBall();
 			ball.Position = new float3(25f, 0f, 20f);
@@ -588,14 +658,15 @@ namespace VisualPinball.Unity.Test
 
 			MagnetPhysics.ApplyCylindricalPhysicalHold(ref ball, in magnet, 1f);
 
-			Assert.That(ball.Velocity.x,
-				Is.GreaterThanOrEqualTo(-PhysicsConstants.ContactVel).And.LessThan(0f),
-				"contact must remain inside the collision solver's static-contact velocity range");
+			Assert.That(ball.Velocity.x, Is.LessThan(0f));
+			Assert.That(ball.ExternalAcceleration.x, Is.EqualTo(-1000f * 1.5f / 56f).Within(1e-5f),
+				"the contact solver must see the magnetic field without viscous damping");
 			Assert.That(ball.Velocity.z, Is.EqualTo(2f).Within(1e-5f));
+			Assert.That(ball.ExternalAcceleration.z, Is.Zero);
 		}
 
 		[Test]
-		public void CylindricalHoldBrakesSeparationWithoutOvershootingIntoCollider()
+		public void CylindricalHoldDoesNotClampSeparatingVelocityToAnAnalyticSurface()
 		{
 			var ball = CreateBall();
 			ball.Position = new float3(25f, 0f, 20f);
@@ -613,11 +684,12 @@ namespace VisualPinball.Unity.Test
 
 			MagnetPhysics.ApplyCylindricalPhysicalHold(ref ball, in magnet, 1f);
 
-			Assert.That(ball.Velocity.x, Is.GreaterThanOrEqualTo(-PhysicsConstants.ContactVel).And.LessThan(0f));
+			Assert.That(ball.Velocity.x, Is.LessThan(0f));
+			Assert.That(ball.ExternalAcceleration.x, Is.EqualTo(ball.Velocity.x - 0.1f).Within(1e-5f));
 		}
 
 		[Test]
-		public void CylindricalAttractionOnlyContactStaysInsideStaticContactVelocity()
+		public void CylindricalAttractionAppliesFullForceAtAuthoredContact()
 		{
 			var ball = CreateBall();
 			ball.Position = new float3(25f, 0f, 20f);
@@ -634,19 +706,51 @@ namespace VisualPinball.Unity.Test
 
 			MagnetPhysics.ApplyCylindricalPhysicalForce(ref ball, in magnet, 1f);
 
-			Assert.That(ball.Velocity.x, Is.GreaterThan(-PhysicsConstants.ContactVel).And.LessThan(0f));
+			var expectedAcceleration = -1000f * 1.5f / 56f;
+			Assert.That(ball.Velocity.x, Is.EqualTo(expectedAcceleration).Within(1e-5f));
+			Assert.That(ball.ExternalAcceleration.x, Is.EqualTo(expectedAcceleration).Within(1e-5f));
 		}
 
 		[Test]
-		public void CylindricalContactApproachLimitIsContinuousInVpxUnits()
+		public void CylindricalForceFallsOffSmoothlyOutsideAuthoredContact()
 		{
-			var nearBall = CreateBall();
+			var contactBall = CreateBall();
+			contactBall.Position = new float3(25f, 0f, 20f);
+			contactBall.Radius = 5f;
+			var nearBall = contactBall;
 			nearBall.Position = new float3(25.5f, 0f, 20f);
-			nearBall.Radius = 5f;
 			var edgeBall = nearBall;
 			edgeBall.Position.x = 27f;
 			var outsideBall = nearBall;
 			outsideBall.Position.x = 27.01f;
+			var magnet = new MagnetState {
+				Position = float2.zero,
+				Height = 0f,
+				Radius = 4f,
+				EffectiveStrength = 56f / 1.5f,
+				CylinderRadius = 20f,
+				CylinderHeight = 40f,
+				MagnetType = MagnetType.Cylindrical
+			};
+
+			MagnetPhysics.ApplyCylindricalPhysicalForce(ref contactBall, in magnet, 1f);
+			MagnetPhysics.ApplyCylindricalPhysicalForce(ref nearBall, in magnet, 1f);
+			MagnetPhysics.ApplyCylindricalPhysicalForce(ref edgeBall, in magnet, 1f);
+			MagnetPhysics.ApplyCylindricalPhysicalForce(ref outsideBall, in magnet, 1f);
+
+			Assert.That(contactBall.Velocity.x, Is.EqualTo(-1f).Within(1e-5f));
+			Assert.That(math.abs(nearBall.Velocity.x), Is.LessThan(math.abs(contactBall.Velocity.x)));
+			Assert.That(math.abs(edgeBall.Velocity.x), Is.LessThan(math.abs(nearBall.Velocity.x)));
+			Assert.That(math.abs(outsideBall.Velocity.x), Is.LessThan(math.abs(edgeBall.Velocity.x)));
+			Assert.That(math.abs(outsideBall.Velocity.x - edgeBall.Velocity.x), Is.LessThan(0.01f));
+		}
+
+		[Test]
+		public void CylindricalForceDoesNotUseAuthoredContactAsACollisionConstraint()
+		{
+			var ball = CreateBall();
+			ball.Position = new float3(24.5f, 0f, 20f);
+			ball.Radius = 5f;
 			var magnet = new MagnetState {
 				Position = float2.zero,
 				Height = 0f,
@@ -657,18 +761,178 @@ namespace VisualPinball.Unity.Test
 				MagnetType = MagnetType.Cylindrical
 			};
 
-			MagnetPhysics.ApplyCylindricalPhysicalForce(ref nearBall, in magnet, 1f);
-			MagnetPhysics.ApplyCylindricalPhysicalForce(ref edgeBall, in magnet, 1f);
-			MagnetPhysics.ApplyCylindricalPhysicalForce(ref outsideBall, in magnet, 1f);
+			MagnetPhysics.ApplyCylindricalPhysicalForce(ref ball, in magnet, 1f);
 
-			Assert.That(math.abs(nearBall.Velocity.x), Is.LessThan(PhysicsConstants.ContactVel));
-			Assert.That(edgeBall.Velocity.x, Is.EqualTo(nearBall.Velocity.x).Within(1e-5f));
-			Assert.That(math.abs(outsideBall.Velocity.x), Is.GreaterThan(math.abs(edgeBall.Velocity.x)));
-			Assert.That(math.abs(outsideBall.Velocity.x - edgeBall.Velocity.x), Is.LessThan(0.02f));
+			Assert.That(ball.Velocity.x, Is.LessThan(0f),
+				"the real collider, not the field radius, owns contact resolution");
+			Assert.That(ball.ExternalAcceleration.x, Is.EqualTo(ball.Velocity.x).Within(1e-5f));
 		}
 
 		[Test]
-		public void CylindricalContactLimitUsesVelocityRelativeToMovingMagnet()
+		public void CylindricalContactPreservesGravityAlongTheSidewall()
+		{
+			var ball = CreateBall();
+			ball.Position = new float3(-25f, 0f, 20f);
+			ball.Radius = 5f;
+			var magnet = new MagnetState {
+				Position = float2.zero,
+				Height = 0f,
+				Radius = 100f,
+				EffectiveStrength = 1000f,
+				CylinderRadius = 20f,
+				CylinderHeight = 40f,
+				MagnetType = MagnetType.Cylindrical,
+				CylindricalDamping = 1f
+			};
+
+			BallVelocityPhysics.UpdateVelocities(ref ball, new float3(0f, 1f, 0f), float2.zero);
+			var gravitySpeed = ball.Velocity.y;
+			MagnetPhysics.ApplyCylindricalPhysicalForce(ref ball, in magnet, 1f);
+
+			Assert.That(ball.Velocity.x, Is.GreaterThan(0f));
+			Assert.That(ball.Velocity.y, Is.GreaterThan(0f).And.LessThanOrEqualTo(gravitySpeed),
+				"damping may slow downhill motion but must not stop or reverse gravity");
+			Assert.That(ball.ExternalAcceleration.x, Is.GreaterThan(0f));
+		}
+
+		[Test]
+		public void StaticContactBalancesCylindricalMagnetAtTheDownhillPoint()
+		{
+			var ball = CreateBall();
+			ball.Position = new float3(0f, 25f, 20f);
+			ball.Radius = 5f;
+			ball.Mass = 1f;
+			var magnet = new MagnetState {
+				Position = float2.zero,
+				Height = 0f,
+				Radius = 100f,
+				EffectiveStrength = 1000f,
+				CylinderRadius = 20f,
+				CylinderHeight = 40f,
+				MagnetType = MagnetType.Cylindrical,
+				CylindricalDamping = 1f
+			};
+
+			var gravity = new float3(0f, 1f, 0f);
+			BallVelocityPhysics.UpdateVelocities(ref ball, gravity, float2.zero);
+			Assert.That(ball.Velocity.y, Is.GreaterThan(0f));
+			MagnetPhysics.ApplyCylindricalPhysicalForce(ref ball, in magnet, PhysicsConstants.PhysFactor);
+			Assert.That(ball.Velocity.y, Is.LessThan(0f));
+			var collEvent = new CollisionEventData {
+				HitNormal = new float3(0f, 1f, 0f),
+				HitOrgNormalVelocity = ball.Velocity.y
+			};
+			BallCollider.HandleStaticContact(ref ball, in collEvent, 0f, PhysicsConstants.PhysFactor, gravity, float3.zero);
+
+			Assert.That(ball.Velocity.x, Is.Zero.Within(1e-5f));
+			Assert.That(ball.Velocity.y, Is.GreaterThan(0f),
+				"the collider must balance both gravity and the sustained magnetic load");
+		}
+
+		[Test]
+		public void CylindricalDownhillCornerDoesNotSinkUnderMultiContactFriction()
+		{
+			const float dt = PhysicsConstants.PhysFactor;
+			const float contactRadius = 50.1f;
+			var ball = new BallState {
+				Id = 1,
+				Position = new float3(0f, contactRadius, 25f),
+				Radius = 25f,
+				Mass = 1f
+			};
+			var magnet = new MagnetState {
+				Position = float2.zero,
+				Height = 0f,
+				Radius = 75f,
+				EffectiveStrength = 100f,
+				CylinderRadius = 25.1f,
+				CylinderHeight = 50f,
+				CylindricalDamping = 0.15f,
+				MagnetType = MagnetType.Cylindrical
+			};
+			var gravity = new float3(0f, 0.184f, -1.753f);
+			var playfieldNormal = new float3(0f, 0f, 1f);
+
+			for (var i = 0; i < 60_000; i++) {
+				BallVelocityPhysics.UpdateVelocities(ref ball, gravity, float2.zero);
+				MagnetPhysics.ApplyCylindricalPhysicalForce(ref ball, in magnet, dt);
+				ball.Position += ball.Velocity * dt;
+
+				var frictionVelocity = ball.Velocity;
+				var frictionAngularMomentum = ball.AngularMomentum;
+				var acceleration = gravity + ball.ExternalAcceleration;
+				var cylinderNormal = new float3(math.normalizesafe(ball.Position.xy), 0f);
+				var cylinderFrictionAcceleration = acceleration -
+				                                  ContactPhysics.SupportedAcceleration(in acceleration, in playfieldNormal);
+				var playfieldFrictionAcceleration = acceleration -
+				                                   ContactPhysics.SupportedAcceleration(in acceleration, in cylinderNormal);
+				var cylinderContact = new CollisionEventData {
+					HitNormal = cylinderNormal,
+					HitOrgNormalVelocity = math.dot(frictionVelocity, cylinderNormal)
+				};
+				var playfieldContact = new CollisionEventData {
+					HitNormal = playfieldNormal,
+					HitOrgNormalVelocity = math.dot(frictionVelocity, playfieldNormal)
+				};
+
+				BallCollider.HandleStaticContact(ref ball, in cylinderContact, 0.3f, dt, in gravity,
+					float3.zero, in cylinderFrictionAcceleration, in frictionVelocity, in frictionAngularMomentum);
+				BallCollider.HandleStaticContact(ref ball, in playfieldContact, 0.075f, dt, in gravity,
+					float3.zero, in playfieldFrictionAcceleration, in frictionVelocity, in frictionAngularMomentum);
+			}
+
+			Assert.That(math.length(ball.Position.xy), Is.GreaterThanOrEqualTo(contactRadius - PhysicsConstants.PhysTouch));
+			Assert.That(ball.Position.z, Is.GreaterThanOrEqualTo(25f - PhysicsConstants.PhysTouch));
+		}
+
+		[Test]
+		public void CylindricalForceAlwaysPointsRadiallyTowardTheCylinder()
+		{
+			var radialDirection = new float2(math.cos(math.radians(2f)), math.sin(math.radians(2f)));
+			var ball = CreateBall();
+			ball.Position = new float3(radialDirection * 25f, 20f);
+			ball.Radius = 5f;
+			ball.Mass = 1f;
+			var magnet = new MagnetState {
+				Position = float2.zero,
+				Height = 0f,
+				Radius = 100f,
+				EffectiveStrength = 1000f,
+				CylinderRadius = 20f,
+				CylinderHeight = 40f,
+				MagnetType = MagnetType.Cylindrical,
+				CylindricalDamping = 0f
+			};
+			MagnetPhysics.ApplyCylindricalPhysicalForce(ref ball, in magnet, PhysicsConstants.PhysFactor);
+
+			var forceDirection = math.normalizesafe(ball.ExternalAcceleration.xy);
+			Assert.That(forceDirection.x, Is.EqualTo(-radialDirection.x).Within(1e-5f));
+			Assert.That(forceDirection.y, Is.EqualTo(-radialDirection.y).Within(1e-5f));
+		}
+
+		[Test]
+		public void OutwardExternalLoadCannotTurnContactFrictionIntoAcceleration()
+		{
+			var ball = CreateBall();
+			ball.Mass = 1f;
+			ball.Radius = 1f;
+			ball.Velocity = new float3(1f, 0f, 0f);
+			ball.ExternalAcceleration = new float3(0f, 0f, 3f);
+			var collEvent = new CollisionEventData {
+				HitNormal = new float3(0f, 0f, 1f),
+				HitOrgNormalVelocity = 0f
+			};
+
+			BallCollider.HandleStaticContact(ref ball, in collEvent, 1f, PhysicsConstants.PhysFactor,
+				new float3(0f, 0f, -1f), float3.zero);
+
+			Assert.That(ball.Velocity.x, Is.EqualTo(1f).Within(1e-5f),
+				"a separating load has no normal force and therefore no friction budget");
+			Assert.That(ball.AngularMomentum, Is.EqualTo(float3.zero));
+		}
+
+		[Test]
+		public void CylindricalForceReportsAccelerationRelativeToMovingMagnet()
 		{
 			var ball = CreateBall();
 			ball.Position = new float3(25f, 0f, 20f);
@@ -686,9 +950,21 @@ namespace VisualPinball.Unity.Test
 
 			MagnetPhysics.ApplyCylindricalPhysicalForce(ref ball, in magnet, 1f, magnetVelocity);
 
-			Assert.That(ball.Velocity.x - magnetVelocity.x,
-				Is.GreaterThan(-PhysicsConstants.ContactVel).And.LessThan(0f));
+			Assert.That(ball.Velocity.x, Is.LessThan(magnetVelocity.x));
+			Assert.That(ball.ExternalAcceleration.x, Is.EqualTo(ball.Velocity.x).Within(1e-5f));
 			Assert.That(ball.Velocity.z, Is.Zero, "vertical magnet velocity must not leak into the ball");
+			Assert.That(ball.ExternalAcceleration.z, Is.Zero);
+		}
+
+		[Test]
+		public void BallVelocityStepClearsPreviousExternalAcceleration()
+		{
+			var ball = CreateBall();
+			ball.ExternalAcceleration = new float3(1f, 2f, 3f);
+
+			BallVelocityPhysics.UpdateVelocities(ref ball, float3.zero, float2.zero);
+
+			Assert.That(ball.ExternalAcceleration, Is.EqualTo(float3.zero));
 		}
 
 		[Test]
@@ -738,14 +1014,14 @@ namespace VisualPinball.Unity.Test
 
 			var ball = harness.Balls[1];
 			Assert.That(magnet.GrabbedBalls.Value, Is.Not.EqualTo(0UL));
-			Assert.That(ball.Velocity.x,
-				Is.GreaterThanOrEqualTo(-PhysicsConstants.ContactVel).And.LessThan(0f),
-				"a held contact must remain a static contact rather than a repeated impact");
+			Assert.That(ball.Velocity.x, Is.LessThan(0f));
+			Assert.That(ball.ExternalAcceleration.x, Is.EqualTo(ball.Velocity.x / 0.1f).Within(1e-4f),
+				"a held ball must report its magnetic load to the contact solver");
 			Assert.That(ball.Velocity.y, Is.EqualTo(1000f).Within(1e-5f), "tangential motion must not prevent capture or be magnetically stopped");
 		}
 
 		[Test]
-		public void CylindricalAttractionOnlyUpdateUsesTheContactLimit()
+		public void CylindricalAttractionOnlyUpdateReportsItsMagneticLoad()
 		{
 			using var harness = new PhysicsStateHarness();
 			var state = harness.CreateState();
@@ -770,7 +1046,8 @@ namespace VisualPinball.Unity.Test
 
 			var ball = harness.Balls[1];
 			Assert.That(magnet.GrabbedBalls.Value, Is.Zero);
-			Assert.That(ball.Velocity.x, Is.GreaterThan(-PhysicsConstants.ContactVel).And.LessThan(0f));
+			Assert.That(ball.Velocity.x, Is.LessThan(0f));
+			Assert.That(ball.ExternalAcceleration.x, Is.EqualTo(ball.Velocity.x / 0.1f).Within(1e-4f));
 		}
 
 		[Test]
@@ -897,7 +1174,7 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void CylindricalGodzillaContactPulseStaysInStaticContactRange()
+		public void CylindricalGodzillaContactUsesRealForceInsteadOfAnalyticConstraint()
 		{
 			using var harness = new PhysicsStateHarness();
 			var state = harness.CreateState();
@@ -915,21 +1192,18 @@ namespace VisualPinball.Unity.Test
 				CommandedPower = 64f / 255f,
 				RiseTime = 2f,
 				FallTime = 2f,
-				CylinderRadius = 25.16466f,
+				CylinderRadius = 25.1f,
 				CylinderHeight = 49.92385f,
 				IsEnabled = true,
 				MagnetType = MagnetType.Cylindrical
 			};
 
-			// Kiki pulses this diagnostic at level 64 for 120 ms. The engine uses
-			// normalized 10 ms time, so each 1 ms physics tick advances by 0.1.
-			for (var i = 0; i < 120; i++) {
-				MagnetPhysics.Update(17, ref magnet, ref state, 0.1f);
-			}
+			MagnetPhysics.Update(17, ref magnet, ref state, 0.1f);
 
 			var ball = harness.Balls[1];
-			Assert.That(ball.Velocity.x, Is.GreaterThan(-PhysicsConstants.ContactVel).And.LessThan(0f),
-				"the real contact geometry must remain a static contact throughout the diagnostic pulse");
+			Assert.That(ball.Velocity.x, Is.LessThan(0f),
+				"a small field/collider radius mismatch must not turn the magnet into an analytic constraint");
+			Assert.That(ball.ExternalAcceleration.x, Is.EqualTo(ball.Velocity.x / 0.1f).Within(1e-4f));
 		}
 
 		[Test]
@@ -1050,6 +1324,26 @@ namespace VisualPinball.Unity.Test
 			Assert.That(ball.Velocity.x, Is.LessThan(0f));
 			Assert.That(ball.Velocity.y, Is.EqualTo(0f).Within(1e-5f));
 			Assert.That(ball.AngularMomentum.y, Is.LessThan(1f));
+		}
+
+		[Test]
+		public void PhysicalHoldReportsOnlyItsSustainedSpringLoad()
+		{
+			var ball = CreateBall();
+			ball.Position = new float3(10f, 0f, 10f);
+			ball.Velocity = new float3(-5f, 0f, 0f);
+			var magnet = new MagnetState {
+				Position = float2.zero,
+				EffectiveStrength = 20f,
+				GrabRadius = 20f
+			};
+
+			MagnetPhysics.ApplyPhysicalHold(ref ball, in magnet, 0.1f);
+
+			Assert.That(ball.Velocity.x, Is.EqualTo(-5f).Within(1e-5f),
+				"spring and velocity damping cancel for this state");
+			Assert.That(ball.ExternalAcceleration.x, Is.EqualTo(-10f).Within(1e-5f),
+				"the sustained spring load remains visible to contact resolution");
 		}
 
 		[Test]

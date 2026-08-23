@@ -125,6 +125,122 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void BallTransformRotatesExternalAccelerationWithColliderFrame()
+		{
+			var ball = new BallState {
+				ExternalAcceleration = new float3(1f, 0f, 0f)
+			};
+			var matrix = float4x4.TRS(float3.zero, quaternion.RotateZ(math.radians(90f)), new float3(1f));
+
+			ball.Transform(matrix);
+
+			AssertFloat3(ball.ExternalAcceleration, new float3(0f, 1f, 0f));
+		}
+
+		[Test]
+		public void CoOrientedContactsOnTheSameItemAreDeduplicated()
+		{
+			var current = new ContactBufferElement(7, new CollisionEventData {
+				ColliderId = 11,
+				HitNormal = math.normalizesafe(new float3(1f, 0.02f, 0f))
+			});
+			var previous = new ContactBufferElement(7, new CollisionEventData {
+				ColliderId = 10,
+				HitNormal = new float3(1f, 0f, 0f)
+			});
+			var currentHeader = new ColliderHeader { ItemId = 42 };
+			var previousHeader = new ColliderHeader { ItemId = 42 };
+
+			Assert.That(ContactPhysics.IsDuplicateContact(in current, in currentHeader, in previous, in previousHeader), Is.True);
+
+			currentHeader.ItemId = 43;
+			Assert.That(ContactPhysics.IsDuplicateContact(in current, in currentHeader, in previous, in previousHeader), Is.False,
+				"parallel contacts from distinct physical items must both be resolved");
+			currentHeader.ItemId = 42;
+			current.CollEvent.IsKinematic = true;
+			Assert.That(ContactPhysics.IsDuplicateContact(in current, in currentHeader, in previous, in previousHeader), Is.False,
+				"static and kinematic contacts use different collider frames");
+			previous.CollEvent.IsKinematic = true;
+			Assert.That(ContactPhysics.IsDuplicateContact(in current, in currentHeader, in previous, in previousHeader), Is.True,
+				"facets of one kinematic item share the same transform and surface velocity");
+			current.CollEvent.IsKinematic = false;
+			previous.CollEvent.IsKinematic = false;
+			current.CollEvent.HitNormal = new float3(math.cos(math.radians(15f)), math.sin(math.radians(15f)), 0f);
+			Assert.That(ContactPhysics.IsDuplicateContact(in current, in currentHeader, in previous, in previousHeader), Is.False,
+				"adjacent mesh facets with meaningfully different normals are separate contacts");
+		}
+
+		[Test]
+		public void SkiddingBallReceivesKineticFrictionAfterNormalSupport()
+		{
+			var ball = new BallState {
+				Mass = 1f,
+				Radius = 1f,
+				Velocity = new float3(5f, 0f, 0f)
+			};
+			var contact = new CollisionEventData { HitNormal = new float3(0f, 0f, 1f) };
+			var gravity = new float3(0f, 0f, -1f);
+			var frictionVelocity = ball.Velocity;
+			var frictionAngularMomentum = ball.AngularMomentum;
+
+			BallCollider.HandleStaticContact(ref ball, in contact, 0.3f, 0.1f, in gravity, float3.zero,
+				in gravity, in frictionVelocity, in frictionAngularMomentum);
+
+			Assert.That(ball.Velocity.x, Is.LessThan(5f), "kinetic friction must reduce planar skid speed");
+			Assert.That(math.lengthsq(ball.AngularMomentum), Is.GreaterThan(0f), "friction must start converting skid into rolling spin");
+		}
+
+		[Test]
+		public void OrthogonalContactFrictionIgnoresNormalSolverExitVelocity()
+		{
+			var ball = new BallState {
+				Mass = 1f,
+				Radius = 1f,
+				ExternalAcceleration = new float3(-1f, 0f, 0f)
+			};
+			var wallContact = new CollisionEventData { HitNormal = new float3(1f, 0f, 0f) };
+			BallCollider.HandleStaticContact(ref ball, in wallContact, 0f, 0.1f, float3.zero, float3.zero);
+			var wallExitVelocity = ball.Velocity.x;
+
+			var floorContact = new CollisionEventData { HitNormal = new float3(0f, 0f, 1f) };
+			var floorAcceleration = new float3(0f, 0f, -1f);
+			var preContactVelocity = float3.zero;
+			var preContactAngularMomentum = float3.zero;
+			BallCollider.HandleStaticContact(ref ball, in floorContact, 1f, 0.1f, in floorAcceleration,
+				float3.zero, in floorAcceleration, in preContactVelocity, in preContactAngularMomentum);
+
+			Assert.That(ball.Velocity.x, Is.EqualTo(wallExitVelocity).Within(Tolerance),
+				"friction at another contact must not consume a normal-solver artifact as physical slip");
+		}
+
+		[Test]
+		public void FrictionLoadExcludesAccelerationSupportedByAnotherContact()
+		{
+			var acceleration = new float3(-2f, 1f, -1f);
+			var wallNormal = new float3(1f, 0f, 0f);
+
+			var frictionAcceleration = acceleration - ContactPhysics.SupportedAcceleration(in acceleration, in wallNormal);
+
+			AssertFloat3(frictionAcceleration, new float3(0f, 1f, -1f));
+		}
+
+		[Test]
+		public void ObliqueContactProjectionDoesNotLeavePhantomFrictionLoad()
+		{
+			var frictionAcceleration = new float3(0f, -1f, 0f);
+			var firstNormal = new float3(1f, 0f, 0f);
+			var secondNormal = new float3(-0.5f, math.sqrt(0.75f), 0f);
+
+			for (var pass = 0; pass < 8; pass++) {
+				frictionAcceleration -= ContactPhysics.SupportedAcceleration(in frictionAcceleration, in firstNormal);
+				frictionAcceleration -= ContactPhysics.SupportedAcceleration(in frictionAcceleration, in secondNormal);
+			}
+
+			Assert.That(math.length(frictionAcceleration), Is.LessThan(1e-4f),
+				"loads fully supported by an oblique wedge must not become tangential friction load");
+		}
+
+		[Test]
 		public void CollisionEventTransformRoundTripPreservesHitVelocity()
 		{
 			var collEvent = new CollisionEventData { HitVelocity = new float2(0f, 1f) };

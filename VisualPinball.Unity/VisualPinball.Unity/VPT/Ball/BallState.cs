@@ -26,6 +26,13 @@ namespace VisualPinball.Unity
 		public float3 Velocity;
 
 		/// <summary>
+		/// Continuous acceleration applied to this ball during the current physics tick,
+		/// excluding gravity. Contact resolution uses it to balance sustained loads such
+		/// as a magnet pressing the ball into a collider. Reset before every velocity step.
+		/// </summary>
+		public float3 ExternalAcceleration;
+
+		/// <summary>
 		/// AngularMomentum  - german: drehimpuls, Impulsmomemt
 		///		* Set to 0 at Manual Roll
 		///			(in BallManualRoll(in Entity entity, in float3 targetWorldPosition)
@@ -155,6 +162,7 @@ namespace VisualPinball.Unity
 			Position = matrix.MultiplyPoint(Position);
 			EventPosition = matrix.MultiplyPoint(EventPosition);
 			Velocity = matrix.MultiplyVector(Velocity);
+			ExternalAcceleration = matrix.MultiplyVector(ExternalAcceleration);
 			AngularMomentum = matrix.MultiplyVector(AngularMomentum);
 
 			//BallOrientation = math.mul(matrix, BallOrientation)

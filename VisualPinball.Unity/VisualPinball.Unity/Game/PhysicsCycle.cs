@@ -17,6 +17,7 @@
 using System;
 using NativeTrees;
 using Unity.Collections;
+using Unity.Mathematics;
 using Unity.Profiling;
 using VisualPinball.Engine.Common;
 using VisualPinball.Unity.Collections;
@@ -149,8 +150,12 @@ namespace VisualPinball.Unity
 
 				// handle contacts
 				PerfMarkerContacts.Begin();
+				PrepareContacts(ref state);
 				for (var i = 0; i < _contacts.Length; i++) {
 					ref var contact = ref _contacts.GetElementAsRef(i);
+					if (contact.IsDuplicate) {
+						continue;
+					}
 					ref var ball = ref state.Balls.GetValueByRef(contact.BallId);
 					if (contact.CollEvent.IsKinematic) {
 						ContactPhysics.Update(ref contact, ref ball, ref state, ref state.KinematicColliders, hitTime);
@@ -176,6 +181,99 @@ namespace VisualPinball.Unity
 			}
 
 			PerfMarker.End();
+		}
+
+		private void PrepareContacts(ref PhysicsState state)
+		{
+			for (var i = 0; i < _contacts.Length; i++) {
+				ref var contact = ref _contacts.GetElementAsRef(i);
+				ref var ball = ref state.Balls.GetValueByRef(contact.BallId);
+				contact.FrictionVelocity = ball.Velocity;
+				contact.FrictionAngularMomentum = ball.AngularMomentum;
+				contact.FrictionAcceleration = state.Env.Gravity + ball.ExternalAcceleration;
+				contact.IsDuplicate = false;
+			}
+
+			for (var i = 0; i < _contacts.Length; i++) {
+				ref var contact = ref _contacts.GetElementAsRef(i);
+				contact.IsDuplicate = IsDuplicateContact(i, ref state);
+			}
+
+			for (var i = 0; i < _contacts.Length; i++) {
+				ref var contact = ref _contacts.GetElementAsRef(i);
+				if (contact.IsDuplicate) {
+					continue;
+				}
+				var frictionAcceleration = contact.FrictionAcceleration;
+				// Project the load against the other active contact half-spaces. Reusing
+				// the running remainder is exact for orthogonal contacts and converges for
+				// wedges; using the original acceleration for every normal double-counts
+				// support at oblique multi-contact corners.
+				for (var pass = 0; pass < 8; pass++) {
+					var removedSupport = false;
+					for (var j = 0; j < _contacts.Length; j++) {
+						if (i == j) {
+							continue;
+						}
+						var other = _contacts[j];
+						if (other.IsDuplicate || other.BallId != contact.BallId || other.CollEvent.ColliderId < 0) {
+							continue;
+						}
+						var normal = GetContactNormalInPlayfield(in other, ref state);
+						var supported = ContactPhysics.SupportedAcceleration(in frictionAcceleration, in normal);
+						if (math.lengthsq(supported) <= 1e-10f) {
+							continue;
+						}
+						frictionAcceleration -= supported;
+						removedSupport = true;
+					}
+					if (!removedSupport) {
+						break;
+					}
+				}
+				contact.FrictionAcceleration = frictionAcceleration;
+			}
+		}
+
+		private bool IsDuplicateContact(int contactIndex, ref PhysicsState state)
+		{
+			var current = _contacts[contactIndex];
+			if (current.CollEvent.ColliderId < 0) {
+				return false;
+			}
+
+			ref var currentColliders = ref (current.CollEvent.IsKinematic
+				? ref state.KinematicColliders
+				: ref state.Colliders);
+			ref var currentHeader = ref state.GetColliderHeader(ref currentColliders, current.CollEvent.ColliderId);
+			for (var i = 0; i < contactIndex; i++) {
+				var previous = _contacts[i];
+				if (previous.IsDuplicate || previous.CollEvent.ColliderId < 0 ||
+				    previous.CollEvent.IsKinematic != current.CollEvent.IsKinematic) {
+					continue;
+				}
+				ref var previousColliders = ref (previous.CollEvent.IsKinematic
+					? ref state.KinematicColliders
+					: ref state.Colliders);
+				ref var previousHeader = ref state.GetColliderHeader(ref previousColliders, previous.CollEvent.ColliderId);
+				if (ContactPhysics.IsDuplicateContact(in current, in currentHeader, in previous, in previousHeader)) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		private static float3 GetContactNormalInPlayfield(in ContactBufferElement contact, ref PhysicsState state)
+		{
+			var normal = contact.CollEvent.HitNormal;
+			ref var colliders = ref (contact.CollEvent.IsKinematic
+				? ref state.KinematicColliders
+				: ref state.Colliders);
+			if (!colliders.IsTransformed(contact.CollEvent.ColliderId)) {
+				ref var matrix = ref state.GetNonTransformableColliderMatrix(contact.CollEvent.ColliderId, ref colliders);
+				normal = matrix.MultiplyVector(normal);
+			}
+			return math.normalizesafe(normal);
 		}
 		
 		private static void ApplyStaticTime(ref float hitTime, ref float staticCounts, in BallState ball)

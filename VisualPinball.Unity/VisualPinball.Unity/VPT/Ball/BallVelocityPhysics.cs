@@ -25,6 +25,8 @@ namespace VisualPinball.Unity
 	{
 		public static void UpdateVelocities(ref BallState ball, float3 gravity, float2 cabinetAcceleration)
 		{
+			ball.ExternalAcceleration = float3.zero;
+
 			if (ball.IsFrozen) {
 				return;
 			}

@@ -19,6 +19,7 @@ using NLog;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Engine.VPT;
 using VisualPinball.Unity.Collections;
 using Logger = NLog.Logger;
 
@@ -27,7 +28,7 @@ namespace VisualPinball.Unity
 	[PackAs("Magnet")]
 	[AddComponentMenu("Pinball/Mechs/Magnet")]
 	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/magnets.html")]
-	public class MagnetComponent : MonoBehaviour, ICoilDeviceComponent, ISwitchDeviceComponent, IPackable, IKinematicTransformComponent
+	public class MagnetComponent : MonoBehaviour, ICoilDeviceComponent, ISwitchDeviceComponent, IPackable, ICollidableComponent
 	{
 		public const string MagnetCoilItem = "magnet_coil";
 		public const string BallHeldSwitchItem = "ball_held";
@@ -41,6 +42,9 @@ namespace VisualPinball.Unity
 		public const float DefaultCylinderHeight = 50f;
 		public const float DefaultCylindricalDamping = 1f;
 		public const float DefaultHeightRange = 92.6355f;
+		private const float DefaultColliderElasticity = 0.3f;
+		private const float DefaultColliderElasticityFalloff = 0.5f;
+		private const float DefaultColliderFriction = 0f;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 		[System.NonSerialized] private Transform _gizmoPlayfieldTransform;
@@ -93,8 +97,11 @@ namespace VisualPinball.Unity
 		public float CylinderHeight = DefaultCylinderHeight;
 
 		[Min(0f)]
-		[Tooltip("Viscous drag on radial motion in a Cylindrical field and on sidewall motion near contact. Zero disables magnetic damping; higher values settle a captured ball faster without affecting vertical velocity or spin.")]
+		[Tooltip("Viscous drag on radial motion in a Cylindrical field, plus sidewall motion and axial ball spin near contact. Zero disables magnetic damping; higher values settle a captured ball faster without affecting vertical velocity.")]
 		public float CylindricalDamping = DefaultCylindricalDamping;
+
+		[Tooltip("Generate an exact circular sidewall collider from Cylinder Radius and Cylinder Height. Disable any overlapping mesh collider so the ball contacts only this smooth cylinder.")]
+		public bool GenerateCylinderCollider;
 
 		[Min(0f)]
 		[Unit("VPX")]
@@ -109,6 +116,13 @@ namespace VisualPinball.Unity
 
 		[Tooltip("Draw play-mode force vectors and a green/red runtime coil-status gizmo.")]
 		public bool DrawDebugForces;
+
+		[SerializeField, HideInInspector] private float _colliderElasticity = DefaultColliderElasticity;
+		[SerializeField, HideInInspector] private float _colliderElasticityFalloff = DefaultColliderElasticityFalloff;
+		[SerializeField, HideInInspector] private float _colliderFriction = DefaultColliderFriction;
+		[SerializeField, HideInInspector] private float _colliderScatter;
+		[SerializeField, HideInInspector] private bool _overwriteColliderPhysics = true;
+		[SerializeField, HideInInspector] private PhysicsMaterialAsset _colliderPhysicsMaterial;
 
 		public byte[] Pack() => MagnetPackable.Pack(this);
 
@@ -241,8 +255,81 @@ namespace VisualPinball.Unity
 
 		bool IKinematicTransformComponent.IsKinematic => IsKinematic;
 
+		// The physics engine disables colliders by item ID when this returns false.
+		// A magnet can share its GameObject (and therefore its item ID) with another
+		// collider, so this component must not disable the whole item when its optional
+		// generated cylinder is unused.
+		bool ICollidableComponent.IsCollidable => true;
+
+		public bool CollidersDirty { set { } }
+
+		public float PhysicsElasticity {
+			get => _colliderElasticity;
+			set => _colliderElasticity = value;
+		}
+
+		public float PhysicsElasticityFalloff {
+			get => _colliderElasticityFalloff;
+			set => _colliderElasticityFalloff = value;
+		}
+
+		public float PhysicsFriction {
+			get => _colliderFriction;
+			set => _colliderFriction = value;
+		}
+
+		public float PhysicsScatter {
+			get => _colliderScatter;
+			set => _colliderScatter = value;
+		}
+
+		public bool PhysicsOverwrite {
+			get => _overwriteColliderPhysics;
+			set => _overwriteColliderPhysics = value;
+		}
+
+		public PhysicsMaterialAsset PhysicsMaterialReference {
+			get => _colliderPhysicsMaterial;
+			set => _colliderPhysicsMaterial = value;
+		}
+
+		void ICollidableComponent.GetColliders(Player player, PhysicsEngine physicsEngine, ref ColliderReference colliders,
+			float4x4 translateWithinPlayfieldMatrix, float margin)
+		{
+			if (!isActiveAndEnabled || !GenerateCylinderCollider ||
+			    MagnetType != MagnetType.Cylindrical || CylinderRadius <= 0f || CylinderHeight <= 0f) {
+				return;
+			}
+
+			var material = !_overwriteColliderPhysics && _colliderPhysicsMaterial
+				? new PhysicsMaterialData {
+					Elasticity = _colliderPhysicsMaterial.Elasticity,
+					ElasticityFalloff = _colliderPhysicsMaterial.ElasticityFalloff,
+					Friction = _colliderPhysicsMaterial.Friction,
+					ScatterAngleRad = _colliderPhysicsMaterial.ScatterAngle
+				}
+				: new PhysicsMaterialData {
+					Elasticity = _colliderElasticity,
+					ElasticityFalloff = _colliderElasticityFalloff,
+					Friction = _colliderFriction,
+					ScatterAngleRad = math.radians(_colliderScatter)
+				};
+			var info = new ColliderInfo {
+				ItemId = ItemId,
+				ItemType = ItemType.Primitive,
+				Material = material,
+				FireEvents = false
+			};
+			colliders.Add(new CircleCollider(float2.zero, CylinderRadius, 0f, CylinderHeight, info),
+				translateWithinPlayfieldMatrix);
+		}
+
 		public float4x4 GetLocalToPlayfieldMatrixInVpx(float4x4 worldToPlayfield)
-			=> Physics.GetLocalToPlayfieldMatrixInVpx(transform.localToWorldMatrix, worldToPlayfield);
+			// Magnet dimensions are authored directly in VPX units. The GameObject scale
+			// is commonly used to size the render mesh and must not resize the field or
+			// its generated cylinder. Cylindrical magnets are always upright, so their
+			// collider transform needs only the playfield-space position.
+			=> float4x4.Translate(GetPlayfieldPositionVpx(transform));
 
 		public void OnTransformationChanged(float4x4 currTransformationMatrix)
 		{

@@ -10,7 +10,7 @@ VPE simulates magnets inside the physics loop, so their force, electrical respon
 
 ## Magnet Setup
 
-Add a **Magnet** component with *Add Component -> Pinball -> Mechs -> Magnet*. Its transform defines the field origin. The component creates a force field only; add a collider separately wherever the ball must touch solid hardware.
+Add a **Magnet** component with *Add Component -> Pinball -> Mechs -> Magnet*. Its transform defines the field origin. Playfield and Spatial magnets create only a force field, so their solid hardware needs a separate collider. A Cylindrical magnet can also generate its own exact circular sidewall collider.
 
 All Magnet distance fields use **VPX units**, not millimeters or Unity world units. A standard pinball has a radius of 25 VPX units, which is a useful reference when choosing distances.
 
@@ -38,22 +38,26 @@ The fields have different jobs and are not interchangeable:
 | **Grab Radius** | Defines the capture area around a Playfield or Spatial magnet's center. It is not shown for a Cylindrical magnet, which grabs automatically at contact. |
 | **Cylinder Radius** | The radius of the magnetic cylinder itself. Match it to the associated collider, in VPX units. It does not control how far the field reaches. |
 | **Cylinder Height** | The height from the component origin to the top of the sidewall, in VPX units. Match it to the associated collider. A value of zero makes the sidewall vertically unlimited. |
+| **Generate Cylinder Collider** | Creates one smooth, circular sidewall collider using Cylinder Radius and Cylinder Height. It requires a positive height. Disable any mesh collider covering the same cylinder. If that collider is on the Magnet GameObject itself, move it to a separate GameObject before disabling it so the two components do not share one physics item ID. |
 | **Height Range** | The vertical window above a Playfield magnet. Use it to prevent a magnet from affecting balls on an overhead ramp. Zero removes the limit. Spatial and Cylindrical modes ignore this field. |
 
 The Cylindrical controls are deliberately simpler. **Strength** controls the pull at the metal surface. **Influence Distance** says how far the pull reaches outside that surface: relative to the configured contact pull, force is 100% at contact, 50% at half the Influence Distance, and zero at or beyond the Influence Distance. There is no separate falloff setting.
 
-**Damping** is viscous drag, not collider friction. It damps motion toward or away from the cylinder throughout the field. It also damps motion around the cylinder only near the sidewall: the effect is full within 1 VPX unit of the wall, blends smoothly, and is gone by 2 VPX units. This lets Damping settle a captured ball without slowing an ordinary fly-by farther out in the field. Damping never changes ball spin or vertical velocity. Set it to **0** for no magnetic damping, **1** for the standard response, or higher for faster settling. Lower it below 1 when the real ball should swing back and forth longer before coming to rest.
+**Damping** is viscous drag, not collider friction. It damps motion toward or away from the cylinder throughout the field. It also damps motion around the cylinder and ball spin around the cylinder's upright axis only near the sidewall: the effect is full within 1 VPX unit of the wall, blends smoothly, and is gone by 2 VPX units. This lets Damping settle a captured ball without slowing an ordinary fly-by farther out in the field. It does not change vertical velocity or rolling spin around horizontal axes. Set it to **0** for no magnetic damping, **1** for the standard response, or higher for faster settling. Lower it below 1 when the real ball should swing back and forth or spin longer before coming to rest.
 
 For an exposed cylindrical magnet:
 
 1. Place the Magnet transform at the center of the collider's bottom face.
-2. Set **Cylinder Radius** and **Cylinder Height** to the collider dimensions in VPX units. If the solid geometry is a child Primitive Collider, click **Fit Cylinder to Child Collider Mesh** to fill both values automatically.
-3. Set **Influence Distance** to the maximum air gap where the ball should begin to bend toward the magnet.
-4. Set **Strength** for the amount of pull at contact.
-5. Set **Damping** for how quickly motion along the sidewall should settle after contact.
-6. Enable **Grab Ball** if a ball that reaches the metal should close `ball_held` and remain pressed against the collider while the field can retain it.
+2. Set **Cylinder Radius** and **Cylinder Height** to the visible cylinder dimensions in VPX units. If the solid geometry is a child Primitive Collider, click **Fit Cylinder to Child Collider Mesh** to fill both values automatically.
+3. Enable **Generate Cylinder Collider**. If the visible cylinder already has a Primitive Collider or Mesh Collider, disable that collider so the ball does not contact both shapes. A collider on the Magnet GameObject must first be moved to its own GameObject; disabling a co-located collider would disable their shared physics item ID.
+4. Set **Influence Distance** to the maximum air gap where the ball should begin to bend toward the magnet.
+5. Set **Strength** for the amount of pull at contact.
+6. Set **Damping** for how quickly motion along the sidewall should settle after contact.
+7. Enable **Grab Ball** if a ball that reaches the metal should close `ball_held` and remain pressed against the collider while the field can retain it.
 
-The Cylindrical field measures its air gap from the closest point on the exterior sidewall or either boundary rim. The flat cap faces are excluded, and attraction fades as the ball centre moves inward over a cap until it reaches zero inside the cylinder radius. Magnetic acceleration is always parallel to the playfield and directed toward the cylinder axis; it never adds or removes vertical velocity. Grab has no distance setting: sidewall contact starts a hold when the active field is strong enough to retain the ball's separating motion and the ball is not moving outward past a finite top or bottom rim. A moving ball can glide around the cylinder while Damping gradually reduces the swing. The ball remains a live physics object instead of being teleported or frozen. Within 2 VPX units of the solid wall, magnet-added inward speed stays below the physics solver's static-contact limit; beyond that band, the allowed approach speed grows continuously with the air gap. This closes small collider-fitting gaps without turning a resting contact into repeated impacts, whether Grab Ball is enabled or disabled.
+The Cylindrical field measures its air gap from the closest point on the exterior sidewall or either boundary rim. The flat cap faces are excluded, and attraction fades as the ball centre moves inward over a cap until it reaches zero inside the cylinder radius. Magnetic acceleration is always parallel to the playfield and directed toward the cylinder axis; it never adds or removes vertical velocity. Grab has no distance setting: sidewall contact starts a hold when the active field is strong enough to retain the ball's separating motion and the ball is not moving outward past a finite top or bottom rim. A moving ball can glide around the cylinder while Damping gradually reduces the swing. Gravity still acts along the sidewall, so a fixed upright cylinder naturally settles the ball at its downhill middle point.
+
+**Generate Cylinder Collider** creates real VPE collision geometry, not a hidden movement constraint. It is an exact circle at every angle, so the outward contact normal always points directly away from the cylinder axis. The magnet pulls in the opposite radial direction, the collider balances that inward load, and gravity remains free to move the ball around the sidewall toward the downhill point. A polygonal mesh cylinder has flat faces and edge contacts instead; using it at the same time can apply two contacts or create false resting directions, so disable the overlapping mesh collider. The ball remains a normal live physics object and can roll, swing, collide, and separate. The generated sidewall starts with zero collider friction; use magnetic Damping to control swing and spin settling without adding another authoring control.
 
 ### Other Magnet Fields
 
@@ -64,6 +68,7 @@ The Cylindrical field measures its air gap from the closest point on the exterio
 | **Coil Rise Time** | Electrical rise time constant in milliseconds. Current reaches about 63% of a steady command after one time constant. |
 | **Coil Fall Time** | Electrical decay time constant in milliseconds after the command is reduced or switched off. |
 | **Grab Ball** | Enables capture and hold behavior. Cylindrical magnets acquire at contact; Playfield and Spatial magnets use Grab Radius. |
+| **Generate Cylinder Collider** | For a Cylindrical magnet, creates the smooth solid sidewall needed for stable contact. Disable overlapping colliders. |
 | **Is Enabled On Start** | Starts the field at full command before a coil or script changes it. |
 | **Is Kinematic** | Updates the field origin from the GameObject transform during gameplay. Leave this disabled for a fixed magnet. |
 | **Draw Debug Forces** | Draws play-mode force lines and a runtime coil-status gizmo. The magnet surface and marker are green while the coil is on and red while it is off. |

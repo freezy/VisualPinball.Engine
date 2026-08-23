@@ -626,7 +626,8 @@ namespace VisualPinball.Unity
 		#region Contact
 
 		public void Contact(ref BallState ball, ref FlipperMovementState movementState, in CollisionEventData collEvent,
-			in FlipperStaticData matData, in FlipperVelocityData velData, float dTime, in float3 gravity)
+			in FlipperStaticData matData, in FlipperVelocityData velData, float dTime, in float3 acceleration,
+			in float3 frictionAcceleration, in float3 frictionVelocity, in float3 frictionAngularMomentum)
 		{
 			var normal = collEvent.HitNormal;
 
@@ -636,6 +637,11 @@ namespace VisualPinball.Unity
 			}
 
 			GetRelativeVelocity(normal, ball, in movementState, out var vRel, out var rB, out var rF);
+			var frictionBall = ball;
+			frictionBall.Velocity = frictionVelocity;
+			frictionBall.AngularMomentum = frictionAngularMomentum;
+			GetRelativeVelocity(normal, frictionBall, in movementState, out var frictionVRel,
+				out var frictionRB, out var frictionRF);
 
 			// this should be zero, but only up to +/- C_CONTACTVEL
 			var normVel = math.dot(vRel, normal);
@@ -643,9 +649,12 @@ namespace VisualPinball.Unity
 			// If some collision has changed the ball's velocity, we may not have to do anything.
 			if (normVel <= PhysicsConstants.ContactVel) {
 				// compute accelerations of point on ball and flipper
-				var aB = BallState.SurfaceAcceleration(in ball, in rB, in gravity);
+				var aB = BallState.SurfaceAcceleration(in ball, in rB, in acceleration);
 				var aF = FlipperMovementState.SurfaceAcceleration(in movementState, in velData, in rF);
 				var aRel = aB - aF;
+				var frictionAB = BallState.SurfaceAcceleration(in frictionBall, in frictionRB, in frictionAcceleration);
+				var frictionAF = FlipperMovementState.SurfaceAcceleration(in movementState, in velData, in frictionRF);
+				var frictionARel = frictionAB - frictionAF;
 
 				// time derivative of the normal vector
 				var normalDeriv = Math.CrossZ(movementState.AngleSpeed, normal);
@@ -673,8 +682,11 @@ namespace VisualPinball.Unity
 				// apply friction
 
 				// first check for slippage
-				var slip = vRel - normVel * normal; // calc the tangential slip velocity
-				var maxFriction = j * Header.Material.Friction;
+				var frictionNormVel = math.dot(frictionVRel, normal);
+				var slip = frictionVRel - frictionNormVel * normal; // calc the tangential slip velocity
+				var frictionNormAcc = math.dot(frictionARel, normal) + 2.0f * math.dot(normalDeriv, frictionVRel);
+				var frictionNormalForce = math.max(0f, -frictionNormAcc / contactForceAcc);
+				var maxFriction = frictionNormalForce * Header.Material.Friction;
 				var slipSpeed = math.length(slip);
 				float3 slipDir;
 				float3 crossF;
@@ -683,7 +695,7 @@ namespace VisualPinball.Unity
 
 				if (slipSpeed < PhysicsConstants.Precision) {
 					// slip speed zero - static friction case
-					var slipAcc = aRel - math.dot(aRel, normal) * normal; // calc the tangential slip acceleration
+					var slipAcc = frictionARel - math.dot(frictionARel, normal) * normal; // calc the tangential slip acceleration
 
 					// neither slip velocity nor slip acceleration? nothing to do here
 					if (math.lengthsq(slipAcc) < 1e-6) {
@@ -691,7 +703,7 @@ namespace VisualPinball.Unity
 					}
 
 					slipDir = math.normalize(slipAcc);
-					numer = math.dot(-slipDir, aRel);
+					numer = math.dot(-slipDir, frictionARel);
 					crossF = math.cross(rF, slipDir);
 					denomF = math.dot(slipDir, math.cross(crossF / -matData.Inertia, rF));
 
@@ -699,7 +711,7 @@ namespace VisualPinball.Unity
 					// nonzero slip speed - dynamic friction case
 					slipDir = slip / slipSpeed;
 
-					numer = math.dot(-slipDir, vRel);
+					numer = math.dot(-slipDir, frictionVRel);
 					crossF = math.cross(rF, slipDir);
 					denomF = math.dot(slipDir, math.cross(crossF / matData.Inertia, rF));
 				}

@@ -34,6 +34,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _cylinderRadiusProperty;
 		private SerializedProperty _cylinderHeightProperty;
 		private SerializedProperty _cylindricalDampingProperty;
+		private SerializedProperty _generateCylinderColliderProperty;
 		private SerializedProperty _heightRangeProperty;
 		private SerializedProperty _isEnabledOnStartProperty;
 		private SerializedProperty _isKinematicProperty;
@@ -57,6 +58,7 @@ namespace VisualPinball.Unity.Editor
 			_cylinderRadiusProperty = serializedObject.FindProperty(nameof(MagnetComponent.CylinderRadius));
 			_cylinderHeightProperty = serializedObject.FindProperty(nameof(MagnetComponent.CylinderHeight));
 			_cylindricalDampingProperty = serializedObject.FindProperty(nameof(MagnetComponent.CylindricalDamping));
+			_generateCylinderColliderProperty = serializedObject.FindProperty(nameof(MagnetComponent.GenerateCylinderCollider));
 			_heightRangeProperty = serializedObject.FindProperty(nameof(MagnetComponent.HeightRange));
 			_isEnabledOnStartProperty = serializedObject.FindProperty(nameof(MagnetComponent.IsEnabledOnStart));
 			_isKinematicProperty = serializedObject.FindProperty(nameof(MagnetComponent.IsKinematic));
@@ -84,7 +86,11 @@ namespace VisualPinball.Unity.Editor
 			if (isCylindrical) {
 				PropertyField(_cylinderRadiusProperty);
 				PropertyField(_cylinderHeightProperty);
+				using (new EditorGUI.DisabledScope(Application.isPlaying)) {
+					PropertyField(_generateCylinderColliderProperty, updateColliders: true);
+				}
 				DrawColliderFit();
+				DrawOverlappingColliderWarning();
 			} else if (!isSpatial) {
 				PropertyField(_heightRangeProperty);
 			}
@@ -137,6 +143,31 @@ namespace VisualPinball.Unity.Editor
 			if (GUILayout.Button("Fit Cylinder to Child Collider Mesh")) {
 				_cylinderRadiusProperty.floatValue = radius;
 				_cylinderHeightProperty.floatValue = height;
+			}
+		}
+
+		private void DrawOverlappingColliderWarning()
+		{
+			if (!_generateCylinderColliderProperty.boolValue) {
+				return;
+			}
+			var magnet = target as MagnetComponent;
+			var colliders = magnet ? magnet.GetComponentsInChildren<ICollidableComponent>(true) : null;
+			if (colliders == null) {
+				return;
+			}
+			foreach (var collider in colliders) {
+				if (ReferenceEquals(collider, magnet) || collider is not Component component) {
+					continue;
+				}
+				if (component.gameObject == magnet.gameObject) {
+					EditorGUILayout.HelpBox($"Move the other collider '{component.GetType().Name}' to its own GameObject. Enabling it overlaps the generated cylinder, while disabling a collider on the Magnet GameObject disables their shared physics item ID.", MessageType.Error);
+					return;
+				}
+				if (component is Behaviour behaviour && behaviour.isActiveAndEnabled) {
+					EditorGUILayout.HelpBox($"Disable the overlapping collider '{component.name}' ({component.GetType().Name}). The generated smooth cylinder must be the only collider for this surface.", MessageType.Warning);
+					return;
+				}
 			}
 		}
 
