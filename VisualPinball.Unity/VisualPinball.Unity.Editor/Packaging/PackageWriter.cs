@@ -586,6 +586,7 @@ namespace VisualPinball.Unity.Editor
 
 		private Func<Task<byte[]>> PrepareColliderMeshes()
 		{
+			ColliderMeshReadability.EnsureReadableImmediately(_table);
 			var meshGos = new List<GameObject>();
 			var colliderMeshesMeta = new Dictionary<string, ColliderMeshMetaPackable>();
 			GameObjectExport export = null;
@@ -1061,43 +1062,10 @@ namespace VisualPinball.Unity.Editor
 
 		private static void SetMeshesReadable(MeshFilter[] meshFilters, SkinnedMeshRenderer[] skinnedMeshRenderers)
 		{
-			// Keep track of which assets we've changed to avoid re-importing multiple times
-			var changedAssets = new HashSet<string>();
-
-			foreach (var mf in meshFilters) {
-				if (mf.sharedMesh != null) {
-					MakeModelReadable(mf.sharedMesh, changedAssets);
-				}
-			}
-			foreach (var smr in skinnedMeshRenderers) {
-				if (smr.sharedMesh != null) {
-					MakeModelReadable(smr.sharedMesh, changedAssets);
-				}
-			}
-		}
-
-		private static void MakeModelReadable(Mesh mesh, HashSet<string> changedAssets)
-		{
-			var assetPath = AssetDatabase.GetAssetPath(mesh);
-			if (string.IsNullOrEmpty(assetPath)) {
-				// This can happen if it's a dynamically created mesh at runtime, so just skip it
-				return;
-			}
-
-			var modelImporter = AssetImporter.GetAtPath(assetPath) as ModelImporter;
-			if (modelImporter == null) {
-				// It may not be a model (could be a .asset file or something else)
-				// If it's a .asset that you created manually, you might need a different approach.
-				// For typical .fbx or .obj models, this cast should succeed.
-				return;
-			}
-
-			if (!modelImporter.isReadable) {
-				Debug.Log($"Enabling Read/Write for: {assetPath}");
-				modelImporter.isReadable = true;
-				modelImporter.SaveAndReimport(); // Force re-import
-				changedAssets.Add(assetPath);
-			}
+			ColliderMeshReadability.EnsureReadableImmediately(
+				meshFilters.Select(meshFilter => meshFilter.sharedMesh)
+					.Concat(skinnedMeshRenderers.Select(renderer => renderer.sharedMesh))
+			);
 		}
 
 		private static List<Renderer> DisableInvalidMeshRenderers(MeshFilter[] meshFilters, SkinnedMeshRenderer[] skinnedMeshRenderers, Transform root)
