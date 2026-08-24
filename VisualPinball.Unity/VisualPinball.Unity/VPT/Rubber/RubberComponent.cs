@@ -65,9 +65,17 @@ namespace VisualPinball.Unity
 		[SerializeField, HideInInspector] private Hash128 _bakeInputHash;
 		[SerializeField, HideInInspector] private Matrix4x4 _bakeFrameToLocal = Matrix4x4.identity;
 		[SerializeField, Min(0f)] private float _restLength;
+		[SerializeField, Range(0f, 1f)]
+		[Tooltip("Rounds the unsupported spans while keeping every supporting guide in contact. Zero is taut; one leaves one contact anchor per guide.")]
+		private float _roundness;
 
 		[NonSerialized]
 		private Vertex3D[] _scalingDragPoints;
+		[NonSerialized] private RubberPathElement[] _validatedPath;
+		[NonSerialized] private uint _validatedBakeVersion;
+		[NonSerialized] private Hash128 _validatedBakeInputHash;
+		[NonSerialized] private bool _cachedPathIsValid;
+		[NonSerialized] private string _cachedPathValidationError;
 
 		#endregion
 
@@ -95,6 +103,10 @@ namespace VisualPinball.Unity
 		public float RestLength {
 			get => _restLength;
 			set => _restLength = math.max(0f, value);
+		}
+		public float Roundness {
+			get => _roundness;
+			set => _roundness = float.IsFinite(value) ? math.saturate(value) : 0f;
 		}
 
 		public bool HasValidGuidedPath {
@@ -266,6 +278,7 @@ namespace VisualPinball.Unity
 				_bakeInputHash = srcMainComp._bakeInputHash;
 				_bakeFrameToLocal = srcMainComp._bakeFrameToLocal;
 				_restLength = srcMainComp._restLength;
+				_roundness = srcMainComp._roundness;
 			}
 			RebuildMeshes();
 		}
@@ -311,11 +324,12 @@ namespace VisualPinball.Unity
 			_bakeInputHash = default;
 			_bakeFrameToLocal = Matrix4x4.identity;
 			_restLength = 0f;
+			_roundness = 0f;
 		}
 
 		internal void RestorePackedState(RubberPathSource pathSource, RubberGuideBinding[] guideBindings,
 			RubberPathElement[] bakedPath, uint bakeVersion, Hash128 bakeInputHash,
-			Matrix4x4 bakeFrameToLocal, float restLength)
+			Matrix4x4 bakeFrameToLocal, float restLength, float roundness)
 		{
 			_pathSource = pathSource;
 			_guideBindings = guideBindings ?? Array.Empty<RubberGuideBinding>();
@@ -324,6 +338,7 @@ namespace VisualPinball.Unity
 			_bakeInputHash = bakeInputHash;
 			_bakeFrameToLocal = bakeFrameToLocal;
 			_restLength = math.max(0f, restLength);
+			Roundness = roundness;
 		}
 
 		internal void RestoreGuideReferences(RubberGuideComponent[] guides)
@@ -334,6 +349,29 @@ namespace VisualPinball.Unity
 			for (var i = 0; i < guides.Length; i++) {
 				_guideBindings[i].Guide = guides[i];
 			}
+		}
+
+		internal bool TryGetCachedPathValidation(out bool isValid, out string error)
+		{
+			if (ReferenceEquals(_validatedPath, _bakedPath)
+				&& _validatedBakeVersion == _bakeVersion
+				&& _validatedBakeInputHash == _bakeInputHash) {
+				isValid = _cachedPathIsValid;
+				error = _cachedPathValidationError;
+				return true;
+			}
+			isValid = false;
+			error = null;
+			return false;
+		}
+
+		internal void CachePathValidation(bool isValid, string error)
+		{
+			_validatedPath = _bakedPath;
+			_validatedBakeVersion = _bakeVersion;
+			_validatedBakeInputHash = _bakeInputHash;
+			_cachedPathIsValid = isValid;
+			_cachedPathValidationError = error;
 		}
 
 		private DragPointSplineComponent GetOrCreateDragPointSpline()

@@ -125,6 +125,90 @@ namespace VisualPinball.Unity
 				slot.LocalHeight, slot.Profile.LocalCenter.y));
 		}
 
+		public static bool TryGetGuidePlaneAlignedPosition(RubberComponent rubber,
+			out Vector3 alignedPosition)
+		{
+			alignedPosition = rubber ? rubber.transform.position : Vector3.zero;
+			if (!rubber || rubber.GuideBindings.Count == 0) {
+				return false;
+			}
+			return TryGetGuidePlaneAlignedPosition(rubber, rubber.GuideBindings[0],
+				out alignedPosition);
+		}
+
+		public static bool TryGetGuidePlaneAlignedPosition(RubberComponent rubber,
+			RubberGuideBinding binding, out Vector3 alignedPosition)
+		{
+			alignedPosition = rubber ? rubber.transform.position : Vector3.zero;
+			if (!rubber) {
+				return false;
+			}
+			if (!binding.Guide || !binding.Guide.TryGetSlot(binding.SlotId, out var slot)) {
+				return false;
+			}
+
+			var normal = binding.Guide.transform.localToWorldMatrix
+				.MultiplyVector(Vector3.up).normalized;
+			var origin = SlotWorldCenter(binding.Guide, slot);
+			if (!IsFinite(normal) || !IsFinite(origin) || normal.sqrMagnitude < 0.99f) {
+				return false;
+			}
+			var distance = Vector3.Dot(rubber.transform.position - origin, normal);
+			if (!float.IsFinite(distance)) {
+				return false;
+			}
+			if (math.abs(Physics.ScaleToVpx(distance)) <= DefaultCoplanarToleranceVpx) {
+				return true;
+			}
+			alignedPosition = rubber.transform.position - normal * distance;
+			return IsFinite(alignedPosition);
+		}
+
+		public static Hash128 ComputeAuthoringHash(RubberComponent rubber)
+		{
+			var hash = new RubberInputHash();
+			if (!rubber) {
+				return hash.ToHash128();
+			}
+
+			hash.Add((uint)rubber.PathSource);
+			hash.Add((uint)rubber.Thickness);
+			hash.Add(rubber.Roundness);
+			hash.Add(rubber.transform.localToWorldMatrix);
+			hash.Add((uint)rubber.GuideBindings.Count);
+			foreach (var binding in rubber.GuideBindings) {
+				hash.Add(binding.SlotId.A);
+				hash.Add(binding.SlotId.B);
+				if (!binding.Guide) {
+					hash.Add(0u);
+					continue;
+				}
+
+				hash.Add(EntityId.ToULong(binding.Guide.GetEntityId()));
+				hash.Add(binding.Guide.transform.localToWorldMatrix);
+				if (!binding.Guide.TryGetSlot(binding.SlotId, out var slot)) {
+					hash.Add(0u);
+					continue;
+				}
+				hash.Add(1u);
+				hash.Add(slot.LocalHeight);
+				hash.Add((uint)slot.Profile.Type);
+				hash.Add(slot.Profile.LocalCenter.x);
+				hash.Add(slot.Profile.LocalCenter.y);
+				hash.Add(slot.Profile.Radius);
+				var hull = slot.Profile.ConvexHull;
+				hash.Add((uint)(hull?.Length ?? 0));
+				if (hull == null) {
+					continue;
+				}
+				foreach (var point in hull) {
+					hash.Add(point.x);
+					hash.Add(point.y);
+				}
+			}
+			return hash.ToHash128();
+		}
+
 		private static bool TryGetSlot(RubberGuideBinding binding, int bindingIndex,
 			out RubberGuideSlot slot, out string error)
 		{
@@ -251,6 +335,7 @@ namespace VisualPinball.Unity
 		{
 			var hash = new RubberInputHash();
 			hash.Add((uint)rubber.Thickness);
+			hash.Add(rubber.Roundness);
 			hash.Add((uint)circles.Count);
 			for (var i = 0; i < circles.Count; i++) {
 				var binding = rubber.GuideBindings[i];
@@ -281,6 +366,15 @@ namespace VisualPinball.Unity
 			private uint _d = 668265263u;
 
 			public void Add(float value) => Add(math.asuint(value));
+
+			public void Add(Matrix4x4 value)
+			{
+				for (var row = 0; row < 4; row++) {
+					for (var column = 0; column < 4; column++) {
+						Add(value[row, column]);
+					}
+				}
+			}
 
 			public void Add(ulong value)
 			{

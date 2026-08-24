@@ -259,6 +259,28 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void BezierFreeSpanSubdivisionShouldRespectChordTolerance()
+		{
+			var span = new RubberPathElement {
+				Type = RubberPathElementType.FreeSpan,
+				Start = new float2(-50f, 0f),
+				End = new float2(50f, 0f),
+				Control1 = new float2(-50f, 50f),
+				Control2 = new float2(50f, 50f),
+			};
+			const float tolerance = RubberPhysicalColliderGenerator.ArcChordToleranceVpx;
+			var subdivisions = RubberPathMath.FreeSpanSubdivisionCount(span, tolerance);
+
+			for (var segment = 0; segment < subdivisions; segment++) {
+				var start = RubberPathMath.PointAt(span, segment / (float)subdivisions);
+				var end = RubberPathMath.PointAt(span, (segment + 1f) / subdivisions);
+				var midpoint = RubberPathMath.PointAt(span, (segment + 0.5f) / subdivisions);
+				Assert.That(math.distance(midpoint, (start + end) * 0.5f),
+					Is.LessThanOrEqualTo(tolerance + 1e-5f));
+			}
+		}
+
+		[Test]
 		public void InvalidPhysicalRubberShouldGenerateLegacyFallbackColliders()
 		{
 			var go = new GameObject("Rubber");
@@ -307,6 +329,8 @@ namespace VisualPinball.Unity.Test
 						Type = RubberPathElementType.FreeSpan,
 						Start = new float2(-10f, 0f),
 						End = new float2(10f, 0f),
+						Control1 = new float2(-10f / 3f, 0f),
+						Control2 = new float2(10f / 3f, 0f),
 					},
 					new RubberPathElement {
 						Type = RubberPathElementType.SupportedArc,
@@ -359,6 +383,8 @@ namespace VisualPinball.Unity.Test
 						Type = RubberPathElementType.FreeSpan,
 						Start = new float2(-10f, 0f),
 						End = new float2(10f, 0f),
+						Control1 = new float2(-10f / 3f, 0f),
+						Control2 = new float2(10f / 3f, 0f),
 					},
 				}, null, bakeFrame, default, 1);
 				var api = new RubberApi(go, null, null);

@@ -39,11 +39,12 @@ namespace VisualPinball.Unity
 
 	/// <summary>
 	/// Computes the counter-clockwise boundary of the convex hull of expanded circular guides.
-	/// The exact result alternates between straight common tangents and outward circular arcs.
+	/// The exact result alternates between free spans and outward circular support arcs.
 	/// </summary>
 	public static class RubberCircleHullSolver
 	{
 		private const float TwoPi = 2f * math.PI;
+		private const float RoundnessEpsilon = 1e-6f;
 
 		private readonly struct Circle
 		{
@@ -82,8 +83,29 @@ namespace VisualPinball.Unity
 			public float Length => math.distance(Start, End);
 		}
 
+		private readonly struct ContactArc
+		{
+			public readonly int CircleIndex;
+			public readonly float StartAngle;
+			public readonly float SweepAngle;
+			public readonly float2 Start;
+			public readonly float2 End;
+
+			public ContactArc(int circleIndex, float startAngle, float sweepAngle,
+				float2 start, float2 end)
+			{
+				CircleIndex = circleIndex;
+				StartAngle = startAngle;
+				SweepAngle = sweepAngle;
+				Start = start;
+				End = end;
+			}
+
+			public float EndAngle => StartAngle + SweepAngle;
+		}
+
 		public static RubberAutofitResult Solve(IReadOnlyList<RubberGuideCircle> guides,
-			float cordRadius, float epsilon = 1e-4f)
+			float cordRadius, float epsilon = 1e-4f, float roundness = 0f)
 		{
 			var result = new RubberAutofitResult();
 			if (guides == null) {
@@ -96,6 +118,10 @@ namespace VisualPinball.Unity
 			}
 			if (!float.IsFinite(epsilon) || epsilon <= 0f) {
 				result.Error = "Solver epsilon must be finite and positive.";
+				return result;
+			}
+			if (!float.IsFinite(roundness) || roundness < 0f || roundness > 1f) {
+				result.Error = "Roundness must be finite and between zero and one.";
 				return result;
 			}
 
@@ -118,6 +144,7 @@ namespace VisualPinball.Unity
 			var enclosed = new HashSet<int>();
 			circles = RemoveDuplicatesAndContained(circles, epsilon, enclosed);
 			if (circles.Count == 1) {
+				// With no free spans, Roundness has nothing to relax.
 				var circle = circles[0];
 				var start = circle.Center + new float2(-circle.Radius, 0f);
 				result.Elements = new[] {
@@ -147,7 +174,18 @@ namespace VisualPinball.Unity
 				return result;
 			}
 
-			var elements = EmitElements(circles, cycle, epsilon, enclosed);
+			var supporting = new HashSet<int>();
+			foreach (var tangent in cycle) {
+				supporting.Add(circles[tangent.StartCircle].BindingIndex);
+				supporting.Add(circles[tangent.EndCircle].BindingIndex);
+			}
+			foreach (var circle in circles) {
+				if (!supporting.Contains(circle.BindingIndex)) {
+					enclosed.Add(circle.BindingIndex);
+				}
+			}
+
+			var elements = EmitElements(circles, cycle, epsilon, roundness);
 			if (elements.Count == 0) {
 				result.Error = "The guide hull produced no path elements.";
 				return result;
@@ -157,17 +195,10 @@ namespace VisualPinball.Unity
 				result.Error = validationError;
 				return result;
 			}
-
-			var supporting = new HashSet<int>();
-			foreach (var element in elements) {
-				if (element.Type == RubberPathElementType.SupportedArc) {
-					supporting.Add(element.StartBindingIndex);
-				}
-			}
-			foreach (var circle in circles) {
-				if (!supporting.Contains(circle.BindingIndex)) {
-					enclosed.Add(circle.BindingIndex);
-				}
+			if (!TryValidateGuideClearance(elements, circles, epsilon,
+				out var clearanceError)) {
+				result.Error = clearanceError;
+				return result;
 			}
 
 			result.Elements = elements.ToArray();
@@ -318,8 +349,7 @@ namespace VisualPinball.Unity
 					.ThenBy(tangent => circles[tangent.EndCircle].BindingIndex)
 					.ToList());
 			foreach (var pair in outgoing) {
-				if (pair.Value.Count > 1
-					&& math.abs(pair.Value[0].Length - pair.Value[1].Length) > epsilon) {
+				if (pair.Value.Count > 1) {
 					error = $"Guide binding {circles[pair.Key].BindingIndex} has an ambiguous hull tangent.";
 					return false;
 				}
@@ -358,49 +388,135 @@ namespace VisualPinball.Unity
 		}
 
 		private static List<RubberPathElement> EmitElements(IReadOnlyList<Circle> circles,
-			IReadOnlyList<Tangent> cycle, float epsilon, ISet<int> enclosed)
+			IReadOnlyList<Tangent> cycle, float epsilon, float roundness)
 		{
+			var contactArcs = BuildContactArcs(circles, cycle, roundness);
 			var elements = new List<RubberPathElement>(cycle.Count * 2);
 			for (var i = 0; i < cycle.Count; i++) {
 				var tangent = cycle[i];
-				var next = cycle[(i + 1) % cycle.Count];
 				var startCircle = circles[tangent.StartCircle];
 				var endCircle = circles[tangent.EndCircle];
-				elements.Add(new RubberPathElement {
-					Type = RubberPathElementType.FreeSpan,
-					Start = tangent.Start,
-					End = tangent.End,
-					StartBindingIndex = startCircle.BindingIndex,
-					EndBindingIndex = endCircle.BindingIndex,
-					Length = tangent.Length,
-				});
-
-				if (next.StartCircle != tangent.EndCircle) {
+				var previousArc = contactArcs[(i + cycle.Count - 1) % cycle.Count];
+				var nextArc = contactArcs[i];
+				if (previousArc.CircleIndex != tangent.StartCircle
+					|| nextArc.CircleIndex != tangent.EndCircle) {
 					return new List<RubberPathElement>();
 				}
-				var startAngle = math.atan2(tangent.End.y - endCircle.Center.y,
-					tangent.End.x - endCircle.Center.x);
-				var endAngle = math.atan2(next.Start.y - endCircle.Center.y,
-					next.Start.x - endCircle.Center.x);
-				var sweep = PositiveAngle(endAngle - startAngle);
-				if (sweep * endCircle.Radius <= epsilon) {
-					enclosed.Add(endCircle.BindingIndex);
+
+				var startTangent = TangentDirection(previousArc.EndAngle);
+				var endTangent = TangentDirection(nextArc.StartAngle);
+				var chord = nextArc.Start - previousArc.End;
+				var chordLength = math.length(chord);
+				if (chordLength > epsilon) {
+					var handleLength = HandleLength(chordLength, startTangent,
+						endTangent, roundness);
+					var freeSpan = new RubberPathElement {
+						Type = RubberPathElementType.FreeSpan,
+						Start = previousArc.End,
+						End = nextArc.Start,
+						Control1 = roundness <= RoundnessEpsilon
+							? previousArc.End + chord / 3f
+							: previousArc.End + startTangent * handleLength,
+						Control2 = roundness <= RoundnessEpsilon
+							? previousArc.End + chord * (2f / 3f)
+							: nextArc.Start - endTangent * handleLength,
+						StartBindingIndex = startCircle.BindingIndex,
+						EndBindingIndex = endCircle.BindingIndex,
+					};
+					freeSpan.Length = RubberPathMath.FreeSpanLength(freeSpan);
+					elements.Add(freeSpan);
+				}
+
+				if (nextArc.SweepAngle * endCircle.Radius <= epsilon) {
 					continue;
 				}
 				elements.Add(new RubberPathElement {
 					Type = RubberPathElementType.SupportedArc,
-					Start = tangent.End,
-					End = next.Start,
+					Start = nextArc.Start,
+					End = nextArc.End,
 					Center = endCircle.Center,
 					Radius = endCircle.Radius,
-					StartAngleRad = startAngle,
-					SweepAngleRad = sweep,
+					StartAngleRad = nextArc.StartAngle,
+					SweepAngleRad = nextArc.SweepAngle,
 					StartBindingIndex = endCircle.BindingIndex,
 					EndBindingIndex = endCircle.BindingIndex,
-					Length = sweep * endCircle.Radius,
+					Length = nextArc.SweepAngle * endCircle.Radius,
 				});
 			}
 			return elements;
+		}
+
+		private static ContactArc[] BuildContactArcs(IReadOnlyList<Circle> circles,
+			IReadOnlyList<Tangent> cycle, float roundness)
+		{
+			var arcs = new ContactArc[cycle.Count];
+			for (var i = 0; i < cycle.Count; i++) {
+				var tangent = cycle[i];
+				var next = cycle[(i + 1) % cycle.Count];
+				var circle = circles[tangent.EndCircle];
+				var originalStartAngle = math.atan2(tangent.End.y - circle.Center.y,
+					tangent.End.x - circle.Center.x);
+				var originalEndAngle = math.atan2(next.Start.y - circle.Center.y,
+					next.Start.x - circle.Center.x);
+				var originalSweep = PositiveAngle(originalEndAngle - originalStartAngle);
+				var middleAngle = originalStartAngle + originalSweep * 0.5f;
+				// Ease the contact anchors toward the midpoint so they remain farther apart
+				// through most of the slider range, then still converge at full roundness.
+				var contactSweep = originalSweep * (1f - roundness * roundness);
+				var startAngle = middleAngle - contactSweep * 0.5f;
+				var endAngle = middleAngle + contactSweep * 0.5f;
+				arcs[i] = new ContactArc(tangent.EndCircle, startAngle, contactSweep,
+					PointOnCircle(circle, startAngle), PointOnCircle(circle, endAngle));
+			}
+			return arcs;
+		}
+
+		internal static float HandleLength(float chordLength, float2 startTangent,
+			float2 endTangent, float roundness)
+		{
+			if (roundness <= RoundnessEpsilon) {
+				return chordLength / 3f;
+			}
+			var turn = math.clamp(math.atan2(Cross(startTangent, endTangent),
+				math.dot(startTangent, endTangent)), 0f, math.PI);
+			var cosine = math.cos(turn * 0.25f);
+			return chordLength / (3f * cosine * cosine);
+		}
+
+		private static float2 TangentDirection(float angle)
+			=> new(-math.sin(angle), math.cos(angle));
+
+		private static float2 PointOnCircle(Circle circle, float angle)
+			=> circle.Center + new float2(math.cos(angle), math.sin(angle)) * circle.Radius;
+
+		private static bool TryValidateGuideClearance(
+			IReadOnlyList<RubberPathElement> elements, IReadOnlyList<Circle> circles,
+			float epsilon, out string error)
+		{
+			error = null;
+			var clearanceTolerance = math.max(0.005f, epsilon * 4f);
+			foreach (var element in elements) {
+				var samples = element.Type == RubberPathElementType.SupportedArc
+					? math.max(2, (int)math.ceil(element.SweepAngleRad / (math.PI / 64f)))
+					: math.max(2, RubberPathMath.FreeSpanSubdivisionCount(element,
+						clearanceTolerance));
+				var previous = element.Start;
+				for (var sample = 0; sample <= samples; sample++) {
+					var point = RubberPathMath.PointAt(element, sample / (float)samples);
+					for (var i = 0; i < circles.Count; i++) {
+						if (math.distance(point, circles[i].Center)
+							< circles[i].Radius - clearanceTolerance
+							|| (element.Type == RubberPathElementType.FreeSpan && sample > 0
+							&& RubberPathMath.DistanceToSegment(circles[i].Center,
+								previous, point) < circles[i].Radius - 2f * clearanceTolerance)) {
+							error = $"The rounded path intersects guide binding {circles[i].BindingIndex}.";
+							return false;
+						}
+					}
+					previous = point;
+				}
+			}
+			return true;
 		}
 
 		private static void Normalize(List<RubberPathElement> elements, float epsilon)
@@ -450,6 +566,8 @@ namespace VisualPinball.Unity
 			angle %= TwoPi;
 			return angle < 0f ? angle + TwoPi : angle;
 		}
+
+		private static float Cross(float2 a, float2 b) => a.x * b.y - a.y * b.x;
 	}
 
 	public static class RubberPathValidator
@@ -476,7 +594,12 @@ namespace VisualPinball.Unity
 					return false;
 				}
 				if (element.Type == RubberPathElementType.FreeSpan) {
-					if (math.abs(element.Length - math.distance(element.Start, element.End)) > epsilon) {
+					var computedLength = RubberPathMath.FreeSpanLength(element);
+					if (!math.all(math.isfinite(element.Control1))
+						|| !math.all(math.isfinite(element.Control2))
+						|| !float.IsFinite(computedLength)
+						|| math.abs(element.Length - computedLength)
+						> epsilon * math.max(1f, math.max(element.Length, computedLength))) {
 						error = $"Free span {i} has an inconsistent length.";
 						return false;
 					}
@@ -516,13 +639,12 @@ namespace VisualPinball.Unity
 			var points = new List<float2>();
 			foreach (var element in elements) {
 				points.Add(element.Start);
-				if (element.Type != RubberPathElementType.SupportedArc) {
-					continue;
-				}
-				var samples = math.max(2, (int)math.ceil(element.SweepAngleRad / (math.PI / 32f)));
+				var samples = element.Type == RubberPathElementType.SupportedArc
+					? math.max(2, (int)math.ceil(element.SweepAngleRad / (math.PI / 32f)))
+					: math.max(1, RubberPathMath.FreeSpanSubdivisionCount(element,
+						math.max(0.05f, epsilon)));
 				for (var i = 1; i < samples; i++) {
-					var angle = element.StartAngleRad + element.SweepAngleRad * i / samples;
-					points.Add(element.Center + new float2(math.cos(angle), math.sin(angle)) * element.Radius);
+					points.Add(RubberPathMath.PointAt(element, i / (float)samples));
 				}
 			}
 

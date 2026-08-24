@@ -30,6 +30,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		private SerializedProperty _thicknessProperty;
 		private SerializedProperty _restLengthProperty;
+		private SerializedProperty _roundnessProperty;
 		private bool _bindingChangeScheduled;
 
 		protected override void OnEnable()
@@ -38,6 +39,7 @@ namespace VisualPinball.Unity.Editor
 
 			_thicknessProperty = serializedObject.FindProperty(nameof(RubberComponent._thickness));
 			_restLengthProperty = serializedObject.FindProperty("_restLength");
+			_roundnessProperty = serializedObject.FindProperty("_roundness");
 		}
 
 		public override void OnInspectorGUI()
@@ -47,6 +49,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			BeginEditing();
+			var roundnessChanged = false;
 
 			OnPreInspectorGUI();
 			DrawPathSection();
@@ -60,6 +63,11 @@ namespace VisualPinball.Unity.Editor
 				MainComponent.Height = newHeight;
 			}
 			PropertyField(_thicknessProperty, rebuildMesh: true);
+			if (MainComponent.PathSource == RubberPathSource.Guides) {
+				PropertyField(_roundnessProperty, "Roundness",
+					rebuildMesh: true,
+					onChanged: () => roundnessChanged = true);
+			}
 			PropertyField(_restLengthProperty);
 			var fittedLength = MainComponent.BakedPath.Sum(element => element.Length);
 			if (MainComponent.PathSource == RubberPathSource.Guides) {
@@ -80,6 +88,10 @@ namespace VisualPinball.Unity.Editor
 			base.OnInspectorGUI();
 
 			EndEditing();
+			if (roundnessChanged) {
+				RubberGuideDependencyTracker.RubbersChanged(
+					targets.OfType<RubberComponent>());
+			}
 		}
 
 		private void DrawPathSection()
@@ -302,17 +314,19 @@ namespace VisualPinball.Unity.Editor
 
 		private static void DrawPathElement(RubberComponent rubber, RubberPathElement element)
 		{
-			if (element.Type == RubberPathElementType.FreeSpan) {
+			if (element.Type == RubberPathElementType.FreeSpan
+				&& RubberPathMath.IsStraightFreeSpan(element)) {
 				Handles.DrawAAPolyLine(3f, BakeToWorld(rubber, element.Start),
 					BakeToWorld(rubber, element.End));
 				return;
 			}
-			var count = math.max(4, (int)math.ceil(element.SweepAngleRad / (math.PI / 24f)));
+			var count = element.Type == RubberPathElementType.SupportedArc
+				? math.max(4, (int)math.ceil(element.SweepAngleRad / (math.PI / 24f)))
+				: math.max(2, RubberPathMath.FreeSpanSubdivisionCount(element, 0.25f));
 			var points = new Vector3[count + 1];
 			for (var i = 0; i <= count; i++) {
-				var angle = element.StartAngleRad + element.SweepAngleRad * i / count;
-				var point = element.Center + new float2(math.cos(angle), math.sin(angle)) * element.Radius;
-				points[i] = BakeToWorld(rubber, point);
+				points[i] = BakeToWorld(rubber,
+					RubberPathMath.PointAt(element, i / (float)count));
 			}
 			Handles.DrawAAPolyLine(3f, points);
 		}

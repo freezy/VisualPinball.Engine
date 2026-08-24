@@ -12,6 +12,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.TestTools;
 using VisualPinball.Unity.Editor;
@@ -105,6 +106,27 @@ namespace VisualPinball.Unity.Test
 				UnityEngine.Object.DestroyImmediate(guideAObject);
 				UnityEngine.Object.DestroyImmediate(guideBObject);
 			}
+		}
+
+		[Test]
+		public void ShouldEvaluateRoundedSpanInAuthoredDirection()
+		{
+			var element = new RubberPathElement {
+				Type = RubberPathElementType.FreeSpan,
+				Start = new float2(0f, 0f),
+				Control1 = new float2(0f, 10f),
+				Control2 = new float2(10f, 10f),
+				End = new float2(10f, 0f),
+			};
+			var forward = new ResolvedRubberSpan(0, false, element);
+			var reversed = new ResolvedRubberSpan(0, true, element);
+
+			Assert.That(forward.PointAt(0.5f), Is.EqualTo(new float2(5f, 7.5f)));
+			Assert.That(math.distance(forward.PointAt(0.5f),
+				math.lerp(element.Start, element.End, 0.5f)), Is.GreaterThan(1f));
+			Assert.That(reversed.PointAt(0.25f), Is.EqualTo(forward.PointAt(0.75f)));
+			Assert.That(math.distance(reversed.TangentAt(0.25f),
+				-forward.TangentAt(0.75f)), Is.LessThan(1e-5f));
 		}
 
 		[Test]
@@ -382,7 +404,7 @@ namespace VisualPinball.Unity.Test
 		private static RubberGuideComponent AddGuide(GameObject gameObject)
 		{
 			var guide = gameObject.AddComponent<RubberGuideComponent>();
-			guide.AddSlot(RubberGuideSlot.Create("Default", 0.01f));
+			guide.Slots = new[] { RubberGuideSlot.Create("Default", 0.01f) };
 			return guide;
 		}
 	}

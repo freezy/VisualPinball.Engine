@@ -16,7 +16,7 @@ namespace VisualPinball.Unity
 {
 	public static class RubberPathSplineBaker
 	{
-		private const int MaximumSubdivisionsPerArc = 4096;
+		private const int MaximumSubdivisionsPerElement = 4096;
 		private const int DeviationSamplesPerSegment = 16;
 
 		private struct SampleNode
@@ -44,8 +44,9 @@ namespace VisualPinball.Unity
 
 			var subdivisions = new int[elements.Count];
 			for (var i = 0; i < elements.Count; i++) {
-				if (elements[i].Type != RubberPathElementType.SupportedArc) {
-					subdivisions[i] = 1;
+				if (elements[i].Type == RubberPathElementType.FreeSpan) {
+					subdivisions[i] = RubberPathMath.FreeSpanSubdivisionCount(elements[i],
+						renderTolerance);
 					continue;
 				}
 				var radius = elements[i].Radius;
@@ -74,14 +75,16 @@ namespace VisualPinball.Unity
 
 				var refined = false;
 				for (var i = 0; i < elements.Count; i++) {
-					if (elements[i].Type != RubberPathElementType.SupportedArc) {
+					if (elements[i].Type == RubberPathElementType.FreeSpan
+						&& RubberPathMath.IsStraightFreeSpan(elements[i])) {
 						continue;
 					}
-					if (subdivisions[i] >= MaximumSubdivisionsPerArc) {
+					if (subdivisions[i] >= MaximumSubdivisionsPerElement) {
 						error = $"The sampled spline exceeds its {renderTolerance} render tolerance.";
 						return false;
 					}
-					subdivisions[i] = math.min(MaximumSubdivisionsPerArc, subdivisions[i] * 2);
+					subdivisions[i] = math.min(MaximumSubdivisionsPerElement,
+						subdivisions[i] * 2);
 					refined = true;
 				}
 				if (!refined) {
@@ -124,48 +127,79 @@ namespace VisualPinball.Unity
 			IReadOnlyList<int> subdivisions)
 		{
 			var nodes = new List<SampleNode>();
-			var singleFullArc = elements.Count == 1
-				&& elements[0].Type == RubberPathElementType.SupportedArc
-				&& elements[0].SweepAngleRad >= 2f * math.PI - 1e-4f;
+			var fullCircle = IsFullCircle(elements);
 			for (var elementIndex = 0; elementIndex < elements.Count; elementIndex++) {
 				var element = elements[elementIndex];
 				if (nodes.Count == 0) {
 					nodes.Add(new SampleNode {
 						Position = element.Start,
-						IsSmooth = singleFullArc,
+						IsSmooth = fullCircle,
 						OutgoingElementIndex = elementIndex,
 					});
 				} else {
 					var node = nodes[^1];
 					node.OutgoingElementIndex = elementIndex;
-					if (!singleFullArc) {
-						node.IsSmooth = false;
+					if (!fullCircle) {
+						node.IsSmooth = IsSmoothJunction(elements[elementIndex - 1], element);
 					}
 					nodes[^1] = node;
 				}
 
-				var count = element.Type == RubberPathElementType.SupportedArc
-					? subdivisions[elementIndex]
-					: 1;
+				var count = subdivisions[elementIndex];
 				for (var sample = 1; sample <= count; sample++) {
 					var isLast = sample == count;
-					var position = element.Type == RubberPathElementType.FreeSpan
-						? math.lerp(element.Start, element.End, sample / (float)count)
-						: PointOnArc(element, sample / (float)count);
+					var position = RubberPathMath.PointAt(element, sample / (float)count);
 					if (elementIndex == elements.Count - 1 && isLast
 						&& math.distance(position, nodes[0].Position) <= 1e-4f) {
 						continue;
 					}
 					nodes.Add(new SampleNode {
 						Position = position,
-						IsSmooth = singleFullArc || element.Type == RubberPathElementType.SupportedArc && !isLast,
+						IsSmooth = fullCircle || !isLast
+							&& (element.Type == RubberPathElementType.SupportedArc
+								|| !RubberPathMath.IsStraightFreeSpan(element)),
 						OutgoingElementIndex = isLast && elementIndex + 1 < elements.Count
 							? elementIndex + 1
 							: elementIndex,
 					});
 				}
 			}
+			if (!fullCircle && nodes.Count > 0) {
+				var first = nodes[0];
+				first.IsSmooth = IsSmoothJunction(elements[elements.Count - 1], elements[0]);
+				nodes[0] = first;
+			}
 			return nodes;
+		}
+
+		private static bool IsSmoothJunction(RubberPathElement previous,
+			RubberPathElement next)
+		{
+			if (RubberPathMath.IsStraightFreeSpan(previous)
+				|| RubberPathMath.IsStraightFreeSpan(next)) {
+				return false;
+			}
+			var incoming = RubberPathMath.TangentAt(previous, 1f);
+			var outgoing = RubberPathMath.TangentAt(next, 0f);
+			return math.dot(incoming, outgoing) >= 1f - 1e-4f;
+		}
+
+		private static bool IsFullCircle(IReadOnlyList<RubberPathElement> elements)
+		{
+			if (elements.Count == 0) {
+				return false;
+			}
+			var first = elements[0];
+			var sweep = 0f;
+			for (var i = 0; i < elements.Count; i++) {
+				if (elements[i].Type != RubberPathElementType.SupportedArc
+					|| math.distance(elements[i].Center, first.Center) > 1e-4f
+					|| math.abs(elements[i].Radius - first.Radius) > 1e-4f) {
+					return false;
+				}
+				sweep += elements[i].SweepAngleRad;
+			}
+			return sweep >= 2f * math.PI - 1e-4f;
 		}
 
 		private static DragPointData[] ToDragPoints(IReadOnlyList<SampleNode> nodes,
@@ -182,24 +216,7 @@ namespace VisualPinball.Unity
 			return dragPoints;
 		}
 
-		private static float2 PointOnArc(RubberPathElement element, float t)
-		{
-			var angle = element.StartAngleRad + element.SweepAngleRad * t;
-			return element.Center + new float2(math.cos(angle), math.sin(angle)) * element.Radius;
-		}
-
 		private static float DistanceToElement(float2 point, RubberPathElement element)
-		{
-			if (element.Type == RubberPathElementType.SupportedArc) {
-				return math.abs(math.distance(point, element.Center) - element.Radius);
-			}
-			var delta = element.End - element.Start;
-			var lengthSquared = math.lengthsq(delta);
-			if (lengthSquared <= 1e-12f) {
-				return math.distance(point, element.Start);
-			}
-			var t = math.saturate(math.dot(point - element.Start, delta) / lengthSquared);
-			return math.distance(point, element.Start + delta * t);
-		}
+			=> RubberPathMath.DistanceToElement(point, element);
 	}
 }

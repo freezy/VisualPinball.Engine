@@ -7,6 +7,7 @@
 // (at your option) any later version.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using Unity.Mathematics;
@@ -56,6 +57,116 @@ namespace VisualPinball.Unity.Test
 				Is.EqualTo(2));
 			Assert.That(result.SupportingBindingIndices, Is.EqualTo(new[] { 0, 1 }));
 			AssertClosed(result.Elements);
+		}
+
+		[Test]
+		public void RoundnessShouldShrinkContactArcsAndCurveFreeSpans()
+		{
+			var guides = new[] {
+				new RubberGuideCircle(new float2(-40f, 0f), 12f, 0),
+				new RubberGuideCircle(new float2(50f, 10f), 20f, 1),
+			};
+			var taut = RubberCircleHullSolver.Solve(guides, 4f);
+			var rounded = RubberCircleHullSolver.Solve(guides, 4f,
+				RubberAutofit.SolverEpsilonVpx, 0.6f);
+
+			Assert.That(taut.IsValid, Is.True, taut.Error);
+			Assert.That(rounded.IsValid, Is.True, rounded.Error);
+			var tautSpans = taut.Elements
+				.Where(element => element.Type == RubberPathElementType.FreeSpan)
+				.OrderBy(element => element.StartBindingIndex)
+				.ThenBy(element => element.EndBindingIndex)
+				.ToArray();
+			var roundedSpans = rounded.Elements
+				.Where(element => element.Type == RubberPathElementType.FreeSpan)
+				.OrderBy(element => element.StartBindingIndex)
+				.ThenBy(element => element.EndBindingIndex)
+				.ToArray();
+			Assert.That(roundedSpans, Has.Length.EqualTo(tautSpans.Length));
+			for (var i = 0; i < roundedSpans.Length; i++) {
+				Assert.That(RubberPathMath.IsStraightFreeSpan(roundedSpans[i]), Is.False);
+				Assert.That(math.distance(roundedSpans[i].Start, tautSpans[i].Start),
+					Is.GreaterThan(1e-3f));
+				Assert.That(math.distance(roundedSpans[i].End, tautSpans[i].End),
+					Is.GreaterThan(1e-3f));
+				AssertGuideContact(roundedSpans[i].Start,
+					guides[roundedSpans[i].StartBindingIndex], 4f);
+				AssertGuideContact(roundedSpans[i].End,
+					guides[roundedSpans[i].EndBindingIndex], 4f);
+			}
+
+			var tautArcs = taut.Elements
+				.Where(element => element.Type == RubberPathElementType.SupportedArc)
+				.OrderBy(element => element.StartBindingIndex)
+				.ToArray();
+			var roundedArcs = rounded.Elements
+				.Where(element => element.Type == RubberPathElementType.SupportedArc)
+				.OrderBy(element => element.StartBindingIndex)
+				.ToArray();
+			for (var i = 0; i < roundedArcs.Length; i++) {
+				Assert.That(math.distance(roundedArcs[i].Center, tautArcs[i].Center),
+					Is.LessThan(1e-4f));
+				Assert.That(roundedArcs[i].Radius,
+					Is.EqualTo(tautArcs[i].Radius).Within(1e-4f));
+				Assert.That(roundedArcs[i].SweepAngleRad,
+					Is.EqualTo(tautArcs[i].SweepAngleRad * (1f - 0.6f * 0.6f))
+						.Within(1e-4f));
+				Assert.That(roundedArcs[i].SweepAngleRad,
+					Is.GreaterThan(tautArcs[i].SweepAngleRad * (1f - 0.6f)));
+			}
+			AssertClosed(rounded.Elements);
+			AssertOutsideGuides(rounded.Elements, guides, 4f);
+		}
+
+		[Test]
+		public void FullRoundnessShouldKeepOneContactAnchorPerSupportingGuide()
+		{
+			const float cordRadius = 4f;
+			var guides = new[] {
+				new RubberGuideCircle(new float2(-50f, 0f), 10f, 0),
+				new RubberGuideCircle(new float2(50f, 0f), 10f, 1),
+				new RubberGuideCircle(new float2(0f, 20f), 10f, 2),
+			};
+
+			var rounded = RubberCircleHullSolver.Solve(guides, cordRadius,
+				RubberAutofit.SolverEpsilonVpx, 1f);
+
+			Assert.That(rounded.IsValid, Is.True, rounded.Error);
+			Assert.That(rounded.Elements, Has.None.Matches<RubberPathElement>(element =>
+				element.Type == RubberPathElementType.SupportedArc));
+			Assert.That(rounded.SupportingBindingIndices, Is.EqualTo(new[] { 0, 1, 2 }));
+			Assert.That(rounded.Elements, Has.All.Matches<RubberPathElement>(element =>
+				!RubberPathMath.IsStraightFreeSpan(element)));
+			foreach (var guide in guides) {
+				var contacts = new List<float2>();
+				foreach (var span in rounded.Elements) {
+					if (span.StartBindingIndex == guide.BindingIndex) {
+						contacts.Add(span.Start);
+					}
+					if (span.EndBindingIndex == guide.BindingIndex) {
+						contacts.Add(span.End);
+					}
+				}
+				Assert.That(contacts, Has.Count.EqualTo(2));
+				Assert.That(math.distance(contacts[0], contacts[1]), Is.LessThan(1e-4f));
+				AssertGuideContact(contacts[0], guide, cordRadius);
+			}
+			AssertClosed(rounded.Elements);
+			AssertOutsideGuides(rounded.Elements, guides, cordRadius);
+			Assert.That(RubberPathSplineBaker.TryCreateDragPoints(rounded.Elements,
+				Matrix4x4.identity, 0.05f, out _, out var deviation, out var error),
+				Is.True, error);
+			Assert.That(deviation, Is.LessThanOrEqualTo(0.05f));
+		}
+
+		[Test]
+		public void NearlyStraightTangentsShouldNotWrapToHalfTurnHandles()
+		{
+			const float chordLength = 30f;
+			var handleLength = RubberCircleHullSolver.HandleLength(chordLength,
+				new float2(1f, 0f), math.normalize(new float2(1f, -1e-7f)), 0.5f);
+
+			Assert.That(handleLength, Is.EqualTo(chordLength / 3f).Within(1e-4f));
 		}
 
 		[Test]
@@ -131,6 +242,23 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldBakeRoundedLoopWithinTolerance()
+		{
+			var fit = RubberCircleHullSolver.Solve(new[] {
+				new RubberGuideCircle(new float2(-45f, 0f), 13f, 0),
+				new RubberGuideCircle(new float2(55f, 8f), 18f, 1),
+			}, 4f, RubberAutofit.SolverEpsilonVpx, 0.75f);
+			Assert.That(fit.IsValid, Is.True, fit.Error);
+
+			var baked = RubberPathSplineBaker.TryCreateDragPoints(fit.Elements,
+				Matrix4x4.identity, 0.05f, out var dragPoints, out var deviation, out var error);
+
+			Assert.That(baked, Is.True, error);
+			Assert.That(deviation, Is.LessThanOrEqualTo(0.05f));
+			Assert.That(dragPoints, Has.All.Matches<DragPointData>(point => point.IsSmooth));
+		}
+
+		[Test]
 		public void ShouldResolveUnityGuideSlotsAndDetectStaleBake()
 		{
 			var rubberObject = new GameObject("Rubber");
@@ -151,6 +279,11 @@ namespace VisualPinball.Unity.Test
 				Assert.That(baked, Is.True, error);
 				Assert.That(fit.IsValid, Is.True, fit.Error);
 				Assert.That(RubberAutofit.GetStatus(rubber).IsValid, Is.True);
+				rubber.Roundness = 0.4f;
+				var roundnessStatus = RubberAutofit.GetStatus(rubber);
+				Assert.That(roundnessStatus.IsValid, Is.False);
+				Assert.That(roundnessStatus.IsStale, Is.True);
+				Assert.That(RubberAutofit.TryBake(rubber, out _, out error), Is.True, error);
 				guideBObject.transform.position += new Vector3(0.01f, 0f, 0f);
 				var status = RubberAutofit.GetStatus(rubber);
 				Assert.That(status.IsValid, Is.False);
@@ -159,6 +292,66 @@ namespace VisualPinball.Unity.Test
 				UnityEngine.Object.DestroyImmediate(rubberObject);
 				UnityEngine.Object.DestroyImmediate(guideAObject);
 				UnityEngine.Object.DestroyImmediate(guideBObject);
+			}
+		}
+
+		[Test]
+		public void ShouldRequireExplicitAlignmentBeforeBaking()
+		{
+			var rubberObject = new GameObject("Rubber");
+			var guideAObject = new GameObject("Guide A");
+			var guideBObject = new GameObject("Guide B");
+			try {
+				rubberObject.transform.position = new Vector3(0f, 0.0053f, 0f);
+				guideBObject.transform.position = new Vector3(0.1f, 0f, 0f);
+				var rubber = rubberObject.AddComponent<RubberComponent>();
+				var guideA = AddGuide(guideAObject, 0.01f);
+				var guideB = AddGuide(guideBObject, 0.012f);
+				rubber.SetGuideBindings(new[] {
+					new RubberGuideBinding(guideA, guideA.Slots[0].Id),
+					new RubberGuideBinding(guideB, guideB.Slots[0].Id),
+				});
+
+				var bakedBeforeAlignment = RubberAutofit.TryBake(rubber, out _, out var error);
+
+				Assert.That(bakedBeforeAlignment, Is.False);
+				Assert.That(error, Does.Contain("outside the guide plane"));
+				Assert.That(RubberGuideResolver.TryGetGuidePlaneAlignedPosition(rubber,
+					out var alignedPosition), Is.True);
+				rubberObject.transform.position = alignedPosition;
+				Assert.That(RubberAutofit.TryBake(rubber, out _, out error), Is.True, error);
+				Assert.That(rubberObject.transform.position.y, Is.Zero.Within(1e-6f));
+				Assert.That(RubberAutofit.GetStatus(rubber).IsValid, Is.True);
+			} finally {
+				UnityEngine.Object.DestroyImmediate(rubberObject);
+				UnityEngine.Object.DestroyImmediate(guideAObject);
+				UnityEngine.Object.DestroyImmediate(guideBObject);
+			}
+		}
+
+		[Test]
+		public void FailedBakeShouldNotMoveRubberOrigin()
+		{
+			var rubberObject = new GameObject("Rubber");
+			var guideObject = new GameObject("Guide");
+			try {
+				var originalPosition = new Vector3(0.01f, 0f, -0.02f);
+				rubberObject.transform.position = originalPosition;
+				var rubber = rubberObject.AddComponent<RubberComponent>();
+				var guide = AddGuide(guideObject, 0.01f);
+				rubber.SetGuideBindings(new[] {
+					new RubberGuideBinding(guide, guide.Slots[0].Id),
+					new RubberGuideBinding(guide, SerializedGuid.New()),
+				});
+
+				var baked = RubberAutofit.TryBake(rubber, out _, out var error);
+
+				Assert.That(baked, Is.False);
+				Assert.That(error, Does.Contain("missing slot"));
+				Assert.That(rubberObject.transform.position, Is.EqualTo(originalPosition));
+			} finally {
+				UnityEngine.Object.DestroyImmediate(rubberObject);
+				UnityEngine.Object.DestroyImmediate(guideObject);
 			}
 		}
 
@@ -356,11 +549,14 @@ namespace VisualPinball.Unity.Test
 			var distance = 0f;
 			for (var i = 0; i < points.Length; i++) {
 				var end = points[(i + 1) % points.Length];
+				var delta = end - points[i];
 				var length = math.distance(points[i], end);
 				elements[i] = new RubberPathElement {
 					Type = RubberPathElementType.FreeSpan,
 					Start = points[i],
 					End = end,
+					Control1 = points[i] + delta / 3f,
+					Control2 = points[i] + delta * (2f / 3f),
 					StartDistance = distance,
 					Length = length,
 				};
@@ -377,7 +573,7 @@ namespace VisualPinball.Unity.Test
 		private static RubberGuideComponent AddGuide(GameObject gameObject, float radius)
 		{
 			var guide = gameObject.AddComponent<RubberGuideComponent>();
-			guide.AddSlot(RubberGuideSlot.Create("Default", radius));
+			guide.Slots = new[] { RubberGuideSlot.Create("Default", radius) };
 			return guide;
 		}
 
@@ -397,6 +593,10 @@ namespace VisualPinball.Unity.Test
 				$"element {index} start");
 			Assert.That(math.distance(actual.End, expected.End), Is.LessThan(1e-4f),
 				$"element {index} end");
+			Assert.That(math.distance(actual.Control1, expected.Control1), Is.LessThan(1e-4f),
+				$"element {index} first control");
+			Assert.That(math.distance(actual.Control2, expected.Control2), Is.LessThan(1e-4f),
+				$"element {index} second control");
 			Assert.That(actual.StartBindingIndex, Is.EqualTo(expected.StartBindingIndex),
 				$"element {index} start binding");
 			Assert.That(actual.EndBindingIndex, Is.EqualTo(expected.EndBindingIndex),
@@ -430,6 +630,32 @@ namespace VisualPinball.Unity.Test
 				}
 			}
 			return -1;
+		}
+
+		private static void AssertGuideContact(float2 point, RubberGuideCircle guide,
+			float cordRadius)
+		{
+			Assert.That(math.distance(point, guide.Center),
+				Is.EqualTo(guide.Radius + cordRadius).Within(1e-3f),
+				$"guide binding {guide.BindingIndex} contact");
+		}
+
+		private static void AssertOutsideGuides(RubberPathElement[] elements,
+			RubberGuideCircle[] guides, float cordRadius)
+		{
+			foreach (var element in elements) {
+				var samples = element.Type == RubberPathElementType.SupportedArc
+					? math.max(2, (int)math.ceil(element.SweepAngleRad / (math.PI / 64f)))
+					: math.max(2, RubberPathMath.FreeSpanSubdivisionCount(element, 0.02f));
+				for (var sample = 0; sample <= samples; sample++) {
+					var point = RubberPathMath.PointAt(element, sample / (float)samples);
+					foreach (var guide in guides) {
+						Assert.That(math.distance(point, guide.Center),
+							Is.GreaterThanOrEqualTo(guide.Radius + cordRadius - 0.05f),
+							$"path element crosses guide binding {guide.BindingIndex}");
+					}
+				}
+			}
 		}
 	}
 }

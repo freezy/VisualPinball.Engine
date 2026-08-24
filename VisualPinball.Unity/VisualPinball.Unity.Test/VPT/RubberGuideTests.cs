@@ -24,6 +24,296 @@ namespace VisualPinball.Unity.Test
 	public class RubberGuideTests
 	{
 		[Test]
+		public void ShouldCreateAndRestoreDefaultSlot()
+		{
+			var go = new GameObject("Guide");
+			try {
+				var guide = go.AddComponent<RubberGuideComponent>();
+				Assert.That(guide.Slots, Has.Length.EqualTo(1));
+				Assert.That(guide.Slots[0].DisplayName, Is.EqualTo("Default"));
+				Assert.That(guide.Slots[0].Id.IsEmpty, Is.False);
+				Assert.That(guide.Slots[0].Profile.Type, Is.EqualTo(RubberGuideProfileType.Circle));
+				Assert.That(guide.Slots[0].Profile.Radius,
+					Is.EqualTo(RubberGuideComponent.DefaultSlotRadius));
+
+				guide.Slots = Array.Empty<RubberGuideSlot>();
+				Assert.That(guide.EnsureDefaultSlot(), Is.True);
+				var restoredId = guide.Slots[0].Id;
+				Assert.That(guide.EnsureDefaultSlot(), Is.False);
+				Assert.That(guide.Slots, Has.Length.EqualTo(1));
+				Assert.That(guide.Slots[0].Id, Is.EqualTo(restoredId));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldPropagateNamedSlotAndReuseZeroHeightPlaceholders()
+		{
+			var objects = Enumerable.Range(0, 5)
+				.Select(index => new GameObject($"Guide {index}"))
+				.ToArray();
+			try {
+				var guides = objects.Select(gameObject => gameObject.AddComponent<RubberGuideComponent>())
+					.ToArray();
+				guides[0].Slots = new[] {
+					CreateSlot(new SerializedGuid(1, 1), "Upper", 0.011f, 0.02f),
+					CreateSlot(new SerializedGuid(1, 2), "Lower", 0.011f, 0.01f),
+				};
+				guides[1].Slots = new[] {
+					CreateSlot(new SerializedGuid(2, 1), "Upper", 0.012f, 0.04f),
+				};
+				var zeroNamedSlotId = new SerializedGuid(3, 1);
+				guides[2].Slots = new[] {
+					CreateSlot(zeroNamedSlotId, "Upper", 0.013f, 0f),
+				};
+				var placeholderId = new SerializedGuid(4, 1);
+				guides[3].Slots = new[] {
+					CreateSlot(placeholderId, "Default", 0.014f, 0f),
+				};
+				guides[4].Slots = new[] {
+					CreateSlot(new SerializedGuid(5, 1), "Other", 0.015f, 0.03f),
+				};
+
+				Assert.That(RubberGuideCommands.GetPropagatableSlotNames(guides),
+					Is.EqualTo(new[] { "Upper", "Lower", "Other" }));
+				Assert.That(RubberGuideCommands.TryPropagateSlot(guides, "Upper",
+					"Test Slot Propagation", out var bindings, out var error), Is.True, error);
+
+				Assert.That(bindings, Has.Length.EqualTo(guides.Length));
+				var expectedPropagatedHeights = new[] { 0.02f, 0.04f, 0.03f, 0.03f, 0.03f };
+				for (var i = 0; i < guides.Length; i++) {
+					Assert.That(guides[i].TryGetSlot(bindings[i].SlotId, out var slot), Is.True);
+					Assert.That(slot.DisplayName, Is.EqualTo("Upper"));
+					Assert.That(slot.LocalHeight,
+						Is.EqualTo(expectedPropagatedHeights[i]).Within(1e-6f));
+				}
+				Assert.That(guides[2].Slots, Has.Length.EqualTo(1));
+				Assert.That(guides[2].Slots[0].Id, Is.EqualTo(zeroNamedSlotId));
+				Assert.That(guides[2].Slots[0].Profile.Radius, Is.EqualTo(0.013f));
+				Assert.That(guides[3].Slots, Has.Length.EqualTo(1));
+				Assert.That(guides[3].Slots[0].Id, Is.EqualTo(placeholderId));
+				Assert.That(guides[3].Slots[0].Profile.Radius, Is.EqualTo(0.014f));
+				Assert.That(guides[4].Slots, Has.Length.EqualTo(2));
+				Assert.That(guides[4].Slots[0].DisplayName, Is.EqualTo("Other"));
+
+				Assert.That(RubberGuideCommands.TrySetSlotRadius(guides, "Upper",
+					0.02f, out error), Is.True, error);
+				Assert.That(RubberGuideCommands.TrySetSlotSupportFriction(guides, "Upper",
+					0.65f, out error), Is.True, error);
+				for (var i = 0; i < guides.Length; i++) {
+					var upper = guides[i].Slots.Single(slot => slot.DisplayName == "Upper"
+						&& slot.LocalHeight != 0f);
+					Assert.That(upper.LocalHeight,
+						Is.EqualTo(expectedPropagatedHeights[i]).Within(1e-6f));
+				}
+				Assert.That(RubberGuideCommands.TrySetSlotLocalHeight(guides, "Upper",
+					0.05f, out error), Is.True, error);
+				Assert.That(RubberGuideCommands.TrySetSlotLocalCenter(guides, "Upper",
+					new Vector2(0.004f, -0.006f), out error), Is.True, error);
+				foreach (var guide in guides) {
+					var upper = guide.Slots.Single(slot => slot.DisplayName == "Upper"
+						&& slot.LocalHeight != 0f);
+					Assert.That(upper.LocalHeight, Is.EqualTo(0.05f));
+					Assert.That(upper.Profile.LocalCenter, Is.EqualTo(new float2(0.004f, -0.006f)));
+					Assert.That(upper.Profile.Radius, Is.EqualTo(0.02f));
+					Assert.That(upper.RubberSupportFriction, Is.EqualTo(0.65f));
+				}
+				Assert.That(guides[4].Slots[0].Profile.Radius, Is.EqualTo(0.015f));
+				Assert.That(guides[4].Slots[0].RubberSupportFriction, Is.Zero);
+			} finally {
+				foreach (var gameObject in objects) {
+					Object.DestroyImmediate(gameObject);
+				}
+			}
+		}
+
+		[Test]
+		public void ShouldCreateGuidedRubberWithRenderedMesh()
+		{
+			var root = new GameObject("Table");
+			var previousSelection = UnityEditor.Selection.activeObject;
+			try {
+				var guideAObject = new GameObject("Guide A");
+				guideAObject.transform.SetParent(root.transform, false);
+				var guideBObject = new GameObject("Guide B");
+				guideBObject.transform.SetParent(root.transform, false);
+				guideBObject.transform.localPosition = new Vector3(0.1f, 0f, 0f);
+				var guideA = guideAObject.AddComponent<RubberGuideComponent>();
+				var guideB = guideBObject.AddComponent<RubberGuideComponent>();
+				guideA.Slots = new[] {
+					CreateSlot(new SerializedGuid(1, 1), "Upper", 0.01f, 0.02f),
+				};
+				guideB.Slots = new[] {
+					CreateSlot(new SerializedGuid(2, 1), "Upper", 0.012f, 0.02f),
+				};
+
+				RubberGuideCommands.CreateRubberAroundGuides(new[] { guideA, guideB }, "Upper");
+
+				var rubber = root.GetComponentsInChildren<RubberComponent>().Single();
+				var renderer = rubber.GetComponent<MeshRenderer>();
+				var meshFilter = rubber.GetComponent<MeshFilter>();
+				Assert.That(renderer, Is.Not.Null);
+				Assert.That(renderer.enabled, Is.True);
+				Assert.That(renderer.sharedMaterial, Is.Not.Null);
+				Assert.That(meshFilter.sharedMesh, Is.Not.Null);
+				Assert.That(meshFilter.sharedMesh.vertexCount, Is.GreaterThan(0));
+			} finally {
+				UnityEditor.Selection.activeObject = previousSelection;
+				Object.DestroyImmediate(root);
+			}
+		}
+
+		[Test]
+		public void ShouldApplySlotOptionsToOneGuideWithoutChangingItsHeight()
+		{
+			var gameObject = new GameObject("Guide");
+			try {
+				var guide = gameObject.AddComponent<RubberGuideComponent>();
+				guide.Slots = new[] {
+					CreateSlot(new SerializedGuid(1, 1), "Upper", 0.011f, 0.027f),
+				};
+
+				Assert.That(RubberGuideCommands.TrySetSlotRadius(new[] { guide }, "Upper",
+					0.02f, out var error), Is.True, error);
+				Assert.That(RubberGuideCommands.TrySetSlotSupportFriction(new[] { guide },
+					"Upper", 0.4f, out error), Is.True, error);
+
+				Assert.That(guide.Slots[0].LocalHeight, Is.EqualTo(0.027f));
+				Assert.That(guide.Slots[0].Profile.Radius, Is.EqualTo(0.02f));
+				Assert.That(guide.Slots[0].RubberSupportFriction, Is.EqualTo(0.4f));
+			} finally {
+				Object.DestroyImmediate(gameObject);
+			}
+		}
+
+		[Test]
+		public void ShouldRejectAZeroAverageWhenPropagatingSignedSlotHeights()
+		{
+			var objects = Enumerable.Range(0, 3)
+				.Select(index => new GameObject($"Guide {index}"))
+				.ToArray();
+			try {
+				var guides = objects.Select(gameObject => gameObject.AddComponent<RubberGuideComponent>())
+					.ToArray();
+				guides[0].Slots = new[] {
+					CreateSlot(new SerializedGuid(1, 1), "Contact", 0.01f, 0.02f),
+				};
+				guides[1].Slots = new[] {
+					CreateSlot(new SerializedGuid(2, 1), "Contact", 0.01f, -0.02f),
+				};
+				var placeholder = CreateSlot(new SerializedGuid(3, 1), "Default", 0.01f, 0f);
+				guides[2].Slots = new[] { placeholder };
+
+				Assert.That(RubberGuideCommands.TryPropagateSlot(guides, "Contact",
+					"Test Zero Average", out _, out var error), Is.False);
+				Assert.That(error, Does.Contain("zero average height"));
+				Assert.That(guides[2].Slots[0].DisplayName, Is.EqualTo("Default"));
+				Assert.That(guides[2].Slots[0].LocalHeight, Is.Zero);
+			} finally {
+				foreach (var gameObject in objects) {
+					Object.DestroyImmediate(gameObject);
+				}
+			}
+		}
+
+		[UnityTest]
+		public IEnumerator ContinuousGuideAndRadiusEditsShouldRebuildLive()
+		{
+			var root = new GameObject("Table");
+			try {
+				var guideAObject = new GameObject("Guide A");
+				guideAObject.transform.SetParent(root.transform, false);
+				var guideBObject = new GameObject("Guide B");
+				guideBObject.transform.SetParent(root.transform, false);
+				guideBObject.transform.localPosition = new Vector3(0.1f, 0f, 0f);
+				var guideA = guideAObject.AddComponent<RubberGuideComponent>();
+				var guideB = guideBObject.AddComponent<RubberGuideComponent>();
+				guideA.Slots = new[] {
+					CreateSlot(new SerializedGuid(1, 1), "Upper", 0.01f, 0.02f),
+				};
+				guideB.Slots = new[] {
+					CreateSlot(new SerializedGuid(2, 1), "Upper", 0.012f, 0.02f),
+				};
+				var rubberObject = new GameObject("Rubber");
+				rubberObject.transform.SetParent(root.transform, false);
+				rubberObject.transform.localPosition = new Vector3(0f, 0.02f, 0f);
+				var rubber = rubberObject.AddComponent<RubberComponent>();
+				rubber.SetGuideBindings(new[] {
+					new RubberGuideBinding(guideA, guideA.Slots[0].Id),
+					new RubberGuideBinding(guideB, guideB.Slots[0].Id),
+				});
+				Assert.That(RubberAutofit.TryBake(rubber, out _, out var bakeError),
+					Is.True, bakeError);
+				var previousRadius = rubber.BakedPath
+					.Where(element => element.Type == RubberPathElementType.SupportedArc)
+					.Max(element => element.Radius);
+
+				for (var edit = 0; edit < 4; edit++) {
+					var previousHash = rubber.BakeInputHash;
+					var radius = 0.014f + edit * 0.002f;
+					Assert.That(RubberGuideCommands.TrySetSlotRadius(new[] { guideA, guideB },
+						"Upper", radius, out var editError), Is.True, editError);
+					for (var frame = 0; frame < 3 && rubber.BakeInputHash == previousHash; frame++) {
+						yield return null;
+					}
+					Assert.That(rubber.BakeInputHash, Is.Not.EqualTo(previousHash),
+						$"Edit {edit + 1} was not previewed while input remained active.");
+					Assert.That(RubberAutofit.GetStatus(rubber).IsValid, Is.True);
+				}
+
+				Assert.That(rubber.BakedPath
+					.Where(element => element.Type == RubberPathElementType.SupportedArc)
+					.Max(element => element.Radius), Is.GreaterThan(previousRadius));
+
+				for (var move = 0; move < 4; move++) {
+					var previousHash = rubber.BakeInputHash;
+					UnityEditor.Undo.RecordObject(guideBObject.transform, "Move Rubber Guide");
+					guideBObject.transform.localPosition += new Vector3(0.005f, 0f, 0f);
+					for (var frame = 0; frame < 3 && rubber.BakeInputHash == previousHash; frame++) {
+						yield return null;
+					}
+					Assert.That(rubber.BakeInputHash, Is.Not.EqualTo(previousHash),
+						$"Move {move + 1} was not previewed while the guide remained active.");
+					Assert.That(RubberAutofit.GetStatus(rubber).IsValid, Is.True);
+				}
+
+				for (var edit = 0; edit < 4; edit++) {
+					var previousHash = rubber.BakeInputHash;
+					var serializedRubber = new UnityEditor.SerializedObject(rubber);
+					serializedRubber.Update();
+					serializedRubber.FindProperty("_roundness").floatValue
+						= 0.2f + edit * 0.2f;
+					serializedRubber.ApplyModifiedProperties();
+					for (var frame = 0; frame < 3 && rubber.BakeInputHash == previousHash; frame++) {
+						yield return null;
+					}
+					Assert.That(rubber.BakeInputHash, Is.Not.EqualTo(previousHash),
+						$"Roundness edit {edit + 1} was not previewed while input remained active.");
+					Assert.That(rubber.BakedPath
+						.Where(element => element.Type == RubberPathElementType.FreeSpan),
+						Has.Some.Matches<RubberPathElement>(element =>
+							!RubberPathMath.IsStraightFreeSpan(element)));
+					Assert.That(RubberAutofit.GetStatus(rubber).IsValid, Is.True);
+				}
+
+				for (var move = 0; move < 4; move++) {
+					var previousHash = rubber.BakeInputHash;
+					UnityEditor.Undo.RecordObject(rubberObject.transform, "Move Guided Rubber");
+					rubberObject.transform.localPosition += new Vector3(0.003f, 0f, 0f);
+					for (var frame = 0; frame < 3 && rubber.BakeInputHash == previousHash; frame++) {
+						yield return null;
+					}
+					Assert.That(rubber.BakeInputHash, Is.Not.EqualTo(previousHash),
+						$"Rubber move {move + 1} was not previewed while the transform remained active.");
+					Assert.That(RubberAutofit.GetStatus(rubber).IsValid, Is.True);
+				}
+			} finally {
+				Object.DestroyImmediate(root);
+			}
+		}
+
+		[Test]
 		public void ShouldValueCompareAndRepairSlotIds()
 		{
 			var go = new GameObject("Guide");
@@ -83,6 +373,36 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldMigrateUnsupportedGuideProfilesToCircles()
+		{
+			var gameObject = new GameObject("Legacy Guide");
+			try {
+				var guide = gameObject.AddComponent<RubberGuideComponent>();
+				guide.Slots = new[] {
+					new RubberGuideSlot {
+						Id = new SerializedGuid(1, 2),
+						DisplayName = "Legacy",
+						Profile = new RubberGuideProfile {
+							Type = RubberGuideProfileType.Convex2D,
+							LocalCenter = new float2(1f, 1f),
+							ConvexHull = new[] {
+								new float2(1f, 4f),
+								new float2(-1f, 1f),
+							},
+						},
+					},
+				};
+
+				Assert.That(guide.Slots[0].Profile.Type,
+					Is.EqualTo(RubberGuideProfileType.Circle));
+				Assert.That(guide.Slots[0].Profile.Radius, Is.EqualTo(3f).Within(1e-6f));
+				Assert.That(guide.Slots[0].Profile.ConvexHull, Is.Empty);
+			} finally {
+				Object.DestroyImmediate(gameObject);
+			}
+		}
+
+		[Test]
 		public void ShouldDefaultOldRubberPayloadsToSplineAndLegacy()
 		{
 			var go = new GameObject("Rubber");
@@ -99,6 +419,7 @@ namespace VisualPinball.Unity.Test
 				Assert.That(rubber.GuideBindings, Is.Empty);
 				Assert.That(rubber.BakedPath, Is.Empty);
 				Assert.That(rubber.RestLength, Is.Zero);
+				Assert.That(rubber.Roundness, Is.Zero);
 				Assert.That(rubber.Thickness, Is.EqualTo(9));
 			} finally {
 				Object.DestroyImmediate(go);
@@ -120,6 +441,7 @@ namespace VisualPinball.Unity.Test
 				source.DragPoints = SquareDragPoints();
 				source.SetGuideBindings(new[] { new RubberGuideBinding(guide, slot.Id) });
 				source.RestLength = 250f;
+				source.Roundness = 0.65f;
 				var hash = new Hash128(1, 2, 3, 4);
 				var path = new[] {
 					new RubberPathElement {
@@ -133,6 +455,17 @@ namespace VisualPinball.Unity.Test
 						EndBindingIndex = 0,
 						Length = 31.4f,
 					},
+					new RubberPathElement {
+						Type = RubberPathElementType.FreeSpan,
+						Start = new float2(3f, 4f),
+						End = new float2(13f, 4f),
+						Control1 = new float2(5f, 8f),
+						Control2 = new float2(11f, 8f),
+						StartBindingIndex = 0,
+						EndBindingIndex = 1,
+						StartDistance = 31.4f,
+						Length = 12f,
+					},
 				};
 				var frame = Matrix4x4.Translate(new Vector3(1f, 2f, 3f));
 				source.ApplyGuidedBake(path, null, frame, hash, 7);
@@ -144,12 +477,17 @@ namespace VisualPinball.Unity.Test
 				Assert.That(target.GuideBindings.Count, Is.EqualTo(1));
 				Assert.That(target.GuideBindings[0].Guide, Is.Null);
 				Assert.That(target.GuideBindings[0].SlotId, Is.EqualTo(slot.Id));
-				Assert.That(target.BakedPath.Count, Is.EqualTo(1));
+				Assert.That(target.BakedPath.Count, Is.EqualTo(2));
 				Assert.That(target.BakedPath[0].SweepAngleRad, Is.EqualTo(math.PI));
+				Assert.That(target.BakedPath[1].Start, Is.EqualTo(new float2(3f, 4f)));
+				Assert.That(target.BakedPath[1].End, Is.EqualTo(new float2(13f, 4f)));
+				Assert.That(target.BakedPath[1].Control1, Is.EqualTo(new float2(5f, 8f)));
+				Assert.That(target.BakedPath[1].Control2, Is.EqualTo(new float2(11f, 8f)));
 				Assert.That(target.BakeVersion, Is.EqualTo(7));
 				Assert.That(target.BakeInputHash, Is.EqualTo(hash));
 				Assert.That(target.BakeFrameToLocal, Is.EqualTo(frame));
 				Assert.That(target.RestLength, Is.EqualTo(250f));
+				Assert.That(target.Roundness, Is.EqualTo(0.65f));
 			} finally {
 				Object.DestroyImmediate(sourceObject);
 				Object.DestroyImmediate(targetObject);
@@ -254,11 +592,13 @@ namespace VisualPinball.Unity.Test
 			}
 		}
 
-		private static RubberGuideSlot CreateSlot(SerializedGuid id, string name, float radius)
+		private static RubberGuideSlot CreateSlot(SerializedGuid id, string name, float radius,
+			float localHeight = 0f)
 		{
 			return new RubberGuideSlot {
 				Id = id,
 				DisplayName = name,
+				LocalHeight = localHeight,
 				Profile = RubberGuideProfile.Circle(radius),
 			};
 		}

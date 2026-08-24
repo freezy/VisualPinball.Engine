@@ -27,6 +27,39 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Pinball/Mesh/Rubber Mesh")]
 	public class RubberMeshComponent : MeshComponent<RubberData, RubberComponent>, IPackable
 	{
+		public override void RebuildMeshes()
+		{
+			if (!TryEnsureRenderer(out _, out var error)) {
+				Debug.LogError(error, this);
+			}
+			base.RebuildMeshes();
+		}
+
+		public bool TryEnsureRenderer(out MeshRenderer renderer, out string error)
+		{
+			renderer = GetComponent<MeshRenderer>();
+			var created = !renderer;
+			if (!renderer) {
+				renderer = gameObject.AddComponent<MeshRenderer>();
+			}
+			error = null;
+			if (!renderer.sharedMaterial) {
+				var materialPath = RenderPipeline.Current.Type == RenderPipelineType.Standard
+					? "Materials/Table Opaque (Builtin)"
+					: "Materials/TableOpaque";
+				var material = Resources.Load<UnityEngine.Material>(materialPath);
+				if (!material) {
+					error = $"The default material resource '{materialPath}' is missing.";
+					return false;
+				}
+				renderer.sharedMaterial = material;
+			}
+			if (created) {
+				renderer.enabled = true;
+			}
+			return true;
+		}
+
 		protected override Mesh GetMesh(RubberData data)
 			=> new RubberMeshGenerator(MainComponent)
 				.GetTransformedMesh(0, MainComponent.PlayfieldDetailLevel)
