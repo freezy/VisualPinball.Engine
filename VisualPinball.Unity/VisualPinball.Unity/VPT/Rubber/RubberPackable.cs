@@ -26,6 +26,7 @@ namespace VisualPinball.Unity
 		public string BakeInputHash;
 		public PackableMatrix4x4 BakeFrameToLocal;
 		public float RestLength;
+		public float Roundness;
 
 		public static byte[] Pack(RubberComponent comp)
 		{
@@ -39,6 +40,7 @@ namespace VisualPinball.Unity
 				BakeInputHash = comp.BakeInputHash.isValid ? comp.BakeInputHash.ToString() : null,
 				BakeFrameToLocal = comp.BakeFrameToLocal,
 				RestLength = comp.RestLength,
+				Roundness = comp.Roundness,
 			});
 		}
 
@@ -74,7 +76,8 @@ namespace VisualPinball.Unity
 				data.BakeVersion,
 				hash,
 				data.BakeFrameToLocal.IsZero ? Matrix4x4.identity : data.BakeFrameToLocal,
-				data.RestLength
+				data.RestLength,
+				data.Roundness
 			);
 		}
 	}
@@ -122,6 +125,8 @@ namespace VisualPinball.Unity
 		public int Type;
 		public PackableFloat2 Start;
 		public PackableFloat2 End;
+		public PackableFloat2 Control1;
+		public PackableFloat2 Control2;
 		public PackableFloat2 Center;
 		public float Radius;
 		public float StartAngleRad;
@@ -137,6 +142,8 @@ namespace VisualPinball.Unity
 				Type = (int)element.Type,
 				Start = element.Start,
 				End = element.End,
+				Control1 = element.Control1,
+				Control2 = element.Control2,
 				Center = element.Center,
 				Radius = element.Radius,
 				StartAngleRad = element.StartAngleRad,
@@ -154,6 +161,8 @@ namespace VisualPinball.Unity
 				Type = (RubberPathElementType)Type,
 				Start = Start,
 				End = End,
+				Control1 = Control1,
+				Control2 = Control2,
 				Center = Center,
 				Radius = Radius,
 				StartAngleRad = StartAngleRad,

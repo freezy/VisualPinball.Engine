@@ -41,6 +41,16 @@ namespace VisualPinball.Unity
 
 		public float ToPathCoordinate(float authoredCoordinate01)
 			=> IsReversed ? 1f - authoredCoordinate01 : authoredCoordinate01;
+
+		public float2 PointAt(float authoredCoordinate01)
+			=> RubberPathMath.PointAt(Element, ToPathCoordinate(authoredCoordinate01));
+
+		public float2 TangentAt(float authoredCoordinate01)
+		{
+			var tangent = RubberPathMath.TangentAt(Element,
+				ToPathCoordinate(authoredCoordinate01));
+			return IsReversed ? -tangent : tangent;
+		}
 	}
 
 	public static class RubberSpanResolver

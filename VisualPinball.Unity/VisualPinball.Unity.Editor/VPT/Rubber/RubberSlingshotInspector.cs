@@ -85,17 +85,17 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 			var rubber = component.Rubber;
-			var pathDirection = math.normalizesafe(resolved.Element.End - resolved.Element.Start,
-				new float2(1f, 0f));
-			var inward = new float2(-pathDirection.y, pathDirection.x);
-			var start = resolved.IsReversed ? resolved.Element.End : resolved.Element.Start;
-			var end = resolved.IsReversed ? resolved.Element.Start : resolved.Element.End;
-			var worldStart = ToWorld(rubber, start);
-			var worldEnd = ToWorld(rubber, end);
+			var segmentCount = math.max(8, RubberPathMath.FreeSpanSubdivisionCount(
+				resolved.Element, RubberAutofit.RenderToleranceVpx));
+			var pathPoints = new Vector3[segmentCount + 1];
+			for (var i = 0; i <= segmentCount; i++) {
+				pathPoints[i] = ToWorld(rubber, resolved.PointAt(i / (float)segmentCount));
+			}
 			Handles.color = new Color(1f, 0.45f, 0.05f);
-			Handles.DrawAAPolyLine(4f, worldStart, worldEnd);
+			Handles.DrawAAPolyLine(4f, pathPoints);
 			foreach (var zone in component.SwitchZones) {
-				var authoredPosition = math.lerp(start, end, zone.Position01);
+				Evaluate(resolved, zone.Position01, out var authoredPosition,
+					out var inward);
 				var position = ToWorld(rubber, authoredPosition);
 				var openPosition = ToWorld(rubber,
 					authoredPosition + inward * zone.OpenDeflection);
@@ -110,18 +110,28 @@ namespace VisualPinball.Unity.Editor
 				Handles.DrawWireDisc(closePosition, rubber.transform.up, size * 0.9f);
 			}
 			Handles.color = Color.cyan;
-			var armPosition = math.lerp(start, end, component.ArmContactPosition01);
+			Evaluate(resolved, component.ArmContactPosition01, out var armPosition,
+				out var armInward);
 			var arm = ToWorld(rubber, armPosition);
 			var armRest = ToWorld(rubber,
-				armPosition + inward * component.ArmRestClearance);
+				armPosition + armInward * component.ArmRestClearance);
 			var armFired = ToWorld(rubber,
-				armPosition - inward * (component.ArmTipTravel - component.ArmRestClearance));
+				armPosition - armInward
+					* (component.ArmTipTravel - component.ArmRestClearance));
 			var armSize = HandleUtility.GetHandleSize(arm) * 0.06f;
 			Handles.DrawWireDisc(arm, rubber.transform.up, armSize);
 			Handles.DrawDottedLine(arm, armRest, 3f);
 			Handles.DrawLine(armRest, armFired);
 			Handles.DrawWireDisc(armRest, rubber.transform.up, armSize * 0.75f);
 			Handles.DrawWireDisc(armFired, rubber.transform.up, armSize);
+		}
+
+		private static void Evaluate(ResolvedRubberSpan span, float authoredPosition01,
+			out float2 position, out float2 inward)
+		{
+			position = span.PointAt(authoredPosition01);
+			var tangent = span.TangentAt(authoredPosition01);
+			inward = new float2(-tangent.y, tangent.x);
 		}
 
 		private static Vector3 ToWorld(RubberComponent rubber,

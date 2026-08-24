@@ -38,7 +38,9 @@ namespace VisualPinball.Unity
 			var cordRadius = rubberRadius + margin;
 			foreach (var element in _rubber.BakedPath) {
 				if (element.Type == RubberPathElementType.FreeSpan) {
-					Add(element.Start, element.End, zOffset, cordRadius, ref colliders);
+					var freeSpanSegmentCount = RubberPathMath.FreeSpanSubdivisionCount(element,
+						ChordTolerance(rubberRadius));
+					AddSegments(element, freeSpanSegmentCount, zOffset, cordRadius, ref colliders);
 					continue;
 				}
 
@@ -46,15 +48,18 @@ namespace VisualPinball.Unity
 					ChordTolerance(rubberRadius));
 				var segmentCount = math.max(3,
 					(int)math.ceil(element.SweepAngleRad / maximumAngle));
-				var start = element.Start;
-				for (var segment = 1; segment <= segmentCount; segment++) {
-					var angle = element.StartAngleRad
-						+ element.SweepAngleRad * segment / segmentCount;
-					var end = element.Center
-						+ new float2(math.cos(angle), math.sin(angle)) * element.Radius;
-					Add(start, end, zOffset, cordRadius, ref colliders);
-					start = end;
-				}
+				AddSegments(element, segmentCount, zOffset, cordRadius, ref colliders);
+			}
+		}
+
+		private void AddSegments(RubberPathElement element, int segmentCount,
+			float zOffset, float cordRadius, ref ColliderReference colliders)
+		{
+			var start = element.Start;
+			for (var segment = 1; segment <= segmentCount; segment++) {
+				var end = RubberPathMath.PointAt(element, segment / (float)segmentCount);
+				Add(start, end, zOffset, cordRadius, ref colliders);
+				start = end;
 			}
 		}
 

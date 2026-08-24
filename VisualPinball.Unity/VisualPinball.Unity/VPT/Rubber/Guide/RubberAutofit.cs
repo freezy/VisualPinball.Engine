@@ -28,7 +28,7 @@ namespace VisualPinball.Unity
 
 	public static class RubberAutofit
 	{
-		public const uint CurrentBakeVersion = 1;
+		public const uint CurrentBakeVersion = 4;
 		public const float SolverEpsilonVpx = 1e-4f;
 		public const float RenderToleranceVpx = 0.05f;
 
@@ -44,7 +44,7 @@ namespace VisualPinball.Unity
 			}
 
 			fit = RubberCircleHullSolver.Solve(resolution.Circles,
-				rubber.Thickness * 0.5f, SolverEpsilonVpx);
+				rubber.Thickness * 0.5f, SolverEpsilonVpx, rubber.Roundness);
 			if (!fit.IsValid) {
 				error = fit.Error;
 				return false;
@@ -104,6 +104,7 @@ namespace VisualPinball.Unity
 			var previousHash = rubber.BakeInputHash;
 			var previousFrame = rubber.BakeFrameToLocal;
 			var previousRestLength = rubber.RestLength;
+			var previousRoundness = rubber.Roundness;
 			rubber.SetGuideBindings(bindings);
 			if (TryBake(rubber, out fit, out error)) {
 				return true;
@@ -111,7 +112,7 @@ namespace VisualPinball.Unity
 
 			rubber.RestorePackedState(previousSource, previousBindings,
 				previousPath, previousVersion, previousHash, previousFrame,
-				previousRestLength);
+				previousRestLength, previousRoundness);
 			return false;
 		}
 
@@ -134,8 +135,13 @@ namespace VisualPinball.Unity
 			if (resolution.InputHash != rubber.BakeInputHash) {
 				return new RubberBakeStatus(false, true, "Guide geometry changed after the last bake.");
 			}
-			if (!RubberPathValidator.TryValidate(rubber.BakedPath,
-				SolverEpsilonVpx, out var validationError)) {
+			if (!rubber.TryGetCachedPathValidation(out var pathIsValid,
+				out var validationError)) {
+				pathIsValid = RubberPathValidator.TryValidate(rubber.BakedPath,
+					SolverEpsilonVpx, out validationError);
+				rubber.CachePathValidation(pathIsValid, validationError);
+			}
+			if (!pathIsValid) {
 				return new RubberBakeStatus(false, false, validationError);
 			}
 			return new RubberBakeStatus(true, false, "Guided bake is current.");

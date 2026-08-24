@@ -9,19 +9,23 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace VisualPinball.Unity
 {
 	[PackAs("RubberGuide")]
 	[AddComponentMenu("Pinball/Rubber/Rubber Guide")]
-	public sealed class RubberGuideComponent : MonoBehaviour, IPackable
+	public sealed class RubberGuideComponent : MonoBehaviour, IPackable,
+		ISerializationCallbackReceiver
 	{
+		public const float DefaultSlotRadius = 0.01f;
+
 		[SerializeField] private RubberGuideSlot[] _slots = Array.Empty<RubberGuideSlot>();
 
 		public RubberGuideSlot[] Slots {
 			get => _slots ?? Array.Empty<RubberGuideSlot>();
-			set => _slots = value ?? Array.Empty<RubberGuideSlot>();
+			set => _slots = NormalizeSlots(value);
 		}
 
 		public bool TryGetSlot(SerializedGuid id, out RubberGuideSlot slot)
@@ -64,7 +68,16 @@ namespace VisualPinball.Unity
 			if (slot.Id.IsEmpty) {
 				slot.Id = SerializedGuid.New();
 			}
-			_slots = Slots.Concat(new[] { slot }).ToArray();
+			_slots = Slots.Concat(new[] { NormalizeSlot(slot) }).ToArray();
+		}
+
+		public bool EnsureDefaultSlot()
+		{
+			if (Slots.Length > 0) {
+				return false;
+			}
+			AddSlot(RubberGuideSlot.Create("Default", DefaultSlotRadius));
+			return true;
 		}
 
 		public void DuplicateSlot(int index)
@@ -93,6 +106,52 @@ namespace VisualPinball.Unity
 			}
 			_slots = slots;
 			return repaired;
+		}
+
+		private void Reset()
+		{
+			EnsureDefaultSlot();
+		}
+
+		public void OnBeforeSerialize() { }
+
+		public void OnAfterDeserialize()
+		{
+			_slots = NormalizeSlots(_slots);
+		}
+
+		private static RubberGuideSlot[] NormalizeSlots(RubberGuideSlot[] slots)
+		{
+			return slots?.Select(NormalizeSlot).ToArray() ?? Array.Empty<RubberGuideSlot>();
+		}
+
+		internal static RubberGuideSlot NormalizeSlot(RubberGuideSlot slot)
+		{
+			if (slot.Profile.Type == RubberGuideProfileType.Circle) {
+				return slot;
+			}
+
+			var profile = slot.Profile;
+			var migratedRadius = 0f;
+			if (profile.ConvexHull != null) {
+				foreach (var point in profile.ConvexHull) {
+					if (math.all(math.isfinite(point))
+						&& math.all(math.isfinite(profile.LocalCenter))) {
+						migratedRadius = math.max(migratedRadius,
+							math.distance(point, profile.LocalCenter));
+					}
+				}
+			}
+			if (!float.IsFinite(migratedRadius) || migratedRadius <= 0f) {
+				migratedRadius = float.IsFinite(profile.Radius) && profile.Radius > 0f
+					? profile.Radius
+					: DefaultSlotRadius;
+			}
+			profile.Type = RubberGuideProfileType.Circle;
+			profile.Radius = migratedRadius;
+			profile.ConvexHull = Array.Empty<float2>();
+			slot.Profile = profile;
+			return slot;
 		}
 
 		public byte[] Pack() => RubberGuidePackable.Pack(this);

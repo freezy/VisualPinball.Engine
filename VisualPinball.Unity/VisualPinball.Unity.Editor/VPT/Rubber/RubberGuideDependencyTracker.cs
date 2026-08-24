@@ -7,6 +7,7 @@
 // (at your option) any later version.
 
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -16,13 +17,24 @@ namespace VisualPinball.Unity.Editor
 	[InitializeOnLoad]
 	internal static class RubberGuideDependencyTracker
 	{
-		private const double DebounceSeconds = 0.15;
 		private static readonly Dictionary<EntityId, HashSet<RubberComponent>> Dependents = new();
-		private static readonly Dictionary<EntityId, double> IgnoredRubberChanges = new();
+		private static readonly Dictionary<RubberComponent, FailedBake> FailedBakes = new();
 		private static readonly HashSet<RubberComponent> Pending = new();
 		private static bool _indexDirty = true;
 		private static bool _isRebaking;
 		private static double _rebakeAt;
+
+		private readonly struct FailedBake
+		{
+			public readonly Hash128 AuthoringHash;
+			public readonly string Error;
+
+			public FailedBake(Hash128 authoringHash, string error)
+			{
+				AuthoringHash = authoringHash;
+				Error = error;
+			}
+		}
 
 		static RubberGuideDependencyTracker()
 		{
@@ -38,6 +50,32 @@ namespace VisualPinball.Unity.Editor
 			_indexDirty = true;
 		}
 
+		internal static void GuidesChanged(IEnumerable<RubberGuideComponent> guides)
+		{
+			if (guides == null) {
+				return;
+			}
+			RebuildIndex();
+			foreach (var guide in guides) {
+				if (guide) {
+					QueueDependents(guide.GetEntityId());
+				}
+			}
+			SceneView.RepaintAll();
+		}
+
+		/// <summary>Queues guided rubbers whose own authoring inputs changed.</summary>
+		internal static void RubbersChanged(IEnumerable<RubberComponent> rubbers)
+		{
+			if (rubbers == null) {
+				return;
+			}
+			foreach (var rubber in rubbers) {
+				QueueRubber(rubber);
+			}
+			SceneView.RepaintAll();
+		}
+
 		private static void Unregister()
 		{
 			ObjectChangeEvents.changesPublished -= ChangesPublished;
@@ -51,6 +89,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			_indexDirty = true;
 			Pending.Clear();
+			FailedBakes.Clear();
 		}
 
 		private static void ChangesPublished(ref ObjectChangeEventStream stream)
@@ -62,11 +101,8 @@ namespace VisualPinball.Unity.Editor
 				var kind = stream.GetEventType(i);
 				if (kind == ObjectChangeKind.ChangeGameObjectOrComponentProperties) {
 					stream.GetChangeGameObjectOrComponentPropertiesEvent(i, out var args);
-					QueueDependents(args.entityId);
 					var changed = EditorUtility.EntityIdToObject(args.entityId);
-					if (IsIgnoredRubberChange(changed)) {
-						continue;
-					}
+					QueueDependents(args.entityId);
 					if (changed is RubberComponent rubber) {
 						QueueRubber(rubber);
 						_indexDirty = true;
@@ -93,18 +129,37 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 			foreach (var rubber in rubbers) {
-				if (rubber) {
-					Pending.Add(rubber);
-				}
+				QueueRubber(rubber);
 			}
-			_rebakeAt = EditorApplication.timeSinceStartup + DebounceSeconds;
 		}
 
 		private static void QueueRubber(RubberComponent rubber)
 		{
 			if (rubber && rubber.PathSource == RubberPathSource.Guides) {
+				var authoringHash = RubberGuideResolver.ComputeAuthoringHash(rubber);
+				if (HasUnchangedFailure(rubber, authoringHash)) {
+					return;
+				}
+				FailedBakes.Remove(rubber);
+				var wasEmpty = Pending.Count == 0;
 				Pending.Add(rubber);
-				_rebakeAt = EditorApplication.timeSinceStartup + DebounceSeconds;
+				ScheduleNextUpdate(wasEmpty);
+			}
+		}
+
+		private static bool HasUnchangedFailure(RubberComponent rubber,
+			Hash128 authoringHash)
+		{
+			return FailedBakes.TryGetValue(rubber, out var failure)
+				&& failure.AuthoringHash == authoringHash;
+		}
+
+		private static void ScheduleNextUpdate(bool wasEmpty)
+		{
+			// Keep one pending bake per editor update. Repeated changes replace its input
+			// without postponing it, so transform and inspector drags stay visually live.
+			if (wasEmpty && Pending.Count > 0) {
+				_rebakeAt = EditorApplication.timeSinceStartup;
 			}
 		}
 
@@ -113,7 +168,6 @@ namespace VisualPinball.Unity.Editor
 			if (EditorApplication.isPlayingOrWillChangePlaymode) {
 				return;
 			}
-			RemoveExpiredIgnoredChanges();
 			if (_indexDirty) {
 				RebuildIndex();
 			}
@@ -130,16 +184,25 @@ namespace VisualPinball.Unity.Editor
 						continue;
 					}
 					if (RubberAutofit.GetStatus(rubber).IsValid) {
+						FailedBakes.Remove(rubber);
 						continue;
 					}
 					// The bake is derived data. Recording a second undo operation makes one
 					// guide edit require two undos and causes undo-triggered rebake loops.
-					IgnoreDerivedChanges(rubber);
-					if (RubberAutofit.TryBake(rubber, out _, out var error)) {
+					if (RubberGuideCommands.TryBakeAligned(rubber,
+						"Update Guided Rubber", true, out _, out var error)) {
+						FailedBakes.Remove(rubber);
 						EditorUtility.SetDirty(rubber);
 						PrefabUtility.RecordPrefabInstancePropertyModifications(rubber);
 					} else {
-						Debug.LogWarning($"Could not update guided rubber '{rubber.name}': {error}", rubber);
+						var authoringHash = RubberGuideResolver.ComputeAuthoringHash(rubber);
+						var shouldLog = !FailedBakes.TryGetValue(rubber, out var previousFailure)
+							|| previousFailure.AuthoringHash != authoringHash
+							|| previousFailure.Error != error;
+						FailedBakes[rubber] = new FailedBake(authoringHash, error);
+						if (shouldLog) {
+							Debug.LogWarning($"Could not update guided rubber '{rubber.name}': {error}", rubber);
+						}
 					}
 				}
 			} finally {
@@ -148,43 +211,12 @@ namespace VisualPinball.Unity.Editor
 			SceneView.RepaintAll();
 		}
 
-		private static void IgnoreDerivedChanges(RubberComponent rubber)
-		{
-			var until = EditorApplication.timeSinceStartup + DebounceSeconds * 2.0;
-			IgnoredRubberChanges[rubber.GetEntityId()] = until;
-			IgnoredRubberChanges[rubber.gameObject.GetEntityId()] = until;
-		}
-
-		private static bool IsIgnoredRubberChange(Object changed)
-		{
-			if (!changed) {
-				return false;
-			}
-			var rubber = changed as RubberComponent;
-			if (!rubber && changed is GameObject gameObject) {
-				gameObject.TryGetComponent(out rubber);
-			}
-			return rubber && IgnoredRubberChanges.TryGetValue(rubber.GetEntityId(), out var until)
-				&& EditorApplication.timeSinceStartup <= until;
-		}
-
-		private static void RemoveExpiredIgnoredChanges()
-		{
-			var now = EditorApplication.timeSinceStartup;
-			var expired = new List<EntityId>();
-			foreach (var pair in IgnoredRubberChanges) {
-				if (pair.Value < now) {
-					expired.Add(pair.Key);
-				}
-			}
-			foreach (var entityId in expired) {
-				IgnoredRubberChanges.Remove(entityId);
-			}
-		}
-
 		private static void RebuildIndex()
 		{
 			Dependents.Clear();
+			foreach (var destroyed in FailedBakes.Keys.Where(rubber => !rubber).ToArray()) {
+				FailedBakes.Remove(destroyed);
+			}
 			foreach (var rubber in Object.FindObjectsByType<RubberComponent>(FindObjectsInactive.Include)) {
 				if (!rubber || EditorUtility.IsPersistent(rubber)
 					|| rubber.PathSource != RubberPathSource.Guides) {
@@ -198,6 +230,11 @@ namespace VisualPinball.Unity.Editor
 					AddTransformHierarchyDependencies(binding.Guide.transform, rubber);
 				}
 				AddTransformHierarchyDependencies(rubber.transform, rubber);
+				var authoringHash = RubberGuideResolver.ComputeAuthoringHash(rubber);
+				if (!HasUnchangedFailure(rubber, authoringHash)
+					&& !RubberAutofit.GetStatus(rubber).IsValid) {
+					QueueRubber(rubber);
+				}
 			}
 			_indexDirty = false;
 		}
