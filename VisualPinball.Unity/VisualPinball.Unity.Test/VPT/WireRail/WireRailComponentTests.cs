@@ -249,10 +249,13 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldRemoveInternalCapsFromAContinuousWire()
 		{
+			const int radialSegments = 8;
+			const int trianglesPerRingPair = radialSegments * 2;
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
-				component.SplineContainer.Spline.Add(
+				var spline = component.SplineContainer.Spline;
+				spline.Add(
 					new BezierKnot(new float3(0f, 1000f, 0f)), TangentMode.AutoSmooth);
 				component.SetRailCount(0, 1);
 				component.SetRailCount(1, 1);
@@ -260,12 +263,27 @@ namespace VisualPinball.Unity.Test
 				component.SetRailOffset(1, 0, new Vector2(40f, 0f));
 				component.SetWireContinuous(0, 0, false);
 				var disconnectedTriangleCount = component.RenderMesh.triangles.Length / 3;
+				var disconnectedBodyTriangleCount = 0;
+				for (var segmentIndex = 0; segmentIndex < 2; segmentIndex++) {
+					disconnectedBodyTriangleCount += (WireRailRenderMeshGenerator
+						.BuildSampleParameters(spline, component.Segments, segmentIndex, 0, 16)
+						.Count - 1) * trianglesPerRingPair;
+				}
 
 				component.SetWireContinuous(0, 0, true);
 
 				var continuousTriangleCount = component.RenderMesh.triangles.Length / 3;
-				Assert.That(disconnectedTriangleCount - continuousTriangleCount,
-					Is.EqualTo(16), "two internal octagonal caps should be removed");
+				var continuousBodyTriangleCount = 0;
+				for (var segmentIndex = 0; segmentIndex < 2; segmentIndex++) {
+					continuousBodyTriangleCount += (WireRailRenderMeshGenerator
+						.BuildSampleParameters(spline, component.Segments, segmentIndex, 0, 16)
+						.Count - 1) * trianglesPerRingPair;
+				}
+
+				Assert.That(disconnectedTriangleCount - disconnectedBodyTriangleCount,
+					Is.EqualTo(radialSegments * 4), "all four open ends should be capped");
+				Assert.That(continuousTriangleCount - continuousBodyTriangleCount,
+					Is.EqualTo(radialSegments * 2), "only the two outer ends should be capped");
 			} finally {
 				Object.DestroyImmediate(go);
 			}
@@ -361,6 +379,55 @@ namespace VisualPinball.Unity.Test
 				var outgoing = math.normalizesafe(afterKnot - atKnot, frame.Tangent);
 				Assert.That(math.dot(incoming, outgoing), Is.GreaterThan(0.9999f));
 			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldKeepAnUnchangingFourWireLayoutRigidAndParallel()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var spline = component.SplineContainer.Spline;
+				var middle = spline[1];
+				middle.Position = new float3(-400f, 300f, 0f);
+				spline.SetKnot(1, middle);
+				spline.Add(new BezierKnot(new float3(0f, 700f, 0f)) {
+					Rotation = quaternion.RotateX(math.PI * 0.5f),
+				}, TangentMode.AutoSmooth);
+
+				for (var segmentIndex = 0; segmentIndex < component.Segments.Count;
+					segmentIndex++) {
+					for (var sampleIndex = 0; sampleIndex <= 32; sampleIndex++) {
+						var curveT = sampleIndex / 32f;
+						Assert.That(WireRailSplineGeometry.TryEvaluate(spline, segmentIndex,
+							curveT, out var mainFrame), Is.True);
+						var referenceTangent = float3.zero;
+						for (var railIndex = 0; railIndex < 4; railIndex++) {
+							Assert.That(WireRailSplineGeometry.TryEvaluateRailPosition(spline,
+								component.Segments, segmentIndex, railIndex, curveT,
+								out var position), Is.True);
+							var expected = mainFrame.TransformOffset(
+								(float2)component.Segments[segmentIndex].GetRailOffset(railIndex));
+							Assert.That(math.distance(position, expected), Is.LessThan(0.001f),
+								$"wire {railIndex + 1} drifted at segment "
+								+ $"{segmentIndex + 1}, t={curveT}");
+							Assert.That(WireRailSplineGeometry.TryEvaluateRailFrame(spline,
+								component.Segments, segmentIndex, railIndex, curveT, 1f / 128f,
+								out var railFrame), Is.True);
+							if (railIndex == 0) {
+								referenceTangent = railFrame.Tangent;
+							} else {
+								Assert.That(math.dot(referenceTangent, railFrame.Tangent),
+									Is.GreaterThan(0.9999f), $"wire {railIndex + 1} was not "
+									+ $"parallel at segment {segmentIndex + 1}, t={curveT}");
+							}
+						}
+					}
+				}
+			}
+			finally {
 				Object.DestroyImmediate(go);
 			}
 		}
