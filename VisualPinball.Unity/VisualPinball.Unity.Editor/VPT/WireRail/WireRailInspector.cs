@@ -31,12 +31,15 @@ namespace VisualPinball.Unity.Editor
 	public class WireRailInspector : UnityEditor.Editor
 	{
 		private static readonly string[] ThirdRailSides = { "Left", "Right" };
+		private static readonly Color TransitionCurveColor = new(0.05f, 0.75f, 1f, 1f);
 		private static SplineContainer _pendingSplineEdit;
 		private readonly WireRailCrossSectionEditor _crossSectionEditor = new();
 
 		[MenuItem("GameObject/Pinball/Wire Rail", false, 11)]
 		private static void CreateWireRailGameObject(MenuCommand menuCommand)
 		{
+			var undoGroup = Undo.GetCurrentGroup();
+			Undo.SetCurrentGroupName("Create Wire Rail");
 			var parent = menuCommand.context as GameObject;
 			parent ??= Selection.activeGameObject;
 			var gameObject = new GameObject {
@@ -47,6 +50,7 @@ namespace VisualPinball.Unity.Editor
 			GameObjectUtility.SetParentAndAlign(gameObject, parent);
 			gameObject.AddComponent<WireRailComponent>();
 			Undo.RegisterCreatedObjectUndo(gameObject, "Create Wire Rail");
+			Undo.CollapseUndoOperations(undoGroup);
 
 			Selection.activeGameObject = gameObject;
 			EditorGUIUtility.PingObject(gameObject);
@@ -55,7 +59,9 @@ namespace VisualPinball.Unity.Editor
 		public override void OnInspectorGUI()
 		{
 			var component = (WireRailComponent)target;
-			component.SynchronizeSegments();
+			if (Event.current.type == EventType.Layout) {
+				component.SynchronizeSegments();
+			}
 			var container = component.SplineContainer;
 			if (!container) {
 				EditorGUILayout.HelpBox(
@@ -109,6 +115,9 @@ namespace VisualPinball.Unity.Editor
 
 			for (var segmentIndex = 0; segmentIndex < component.Segments.Count; segmentIndex++) {
 				DrawSegment(component, segmentIndex);
+				if (component.GetNextSegmentIndex(segmentIndex) >= 0) {
+					DrawConnection(component, segmentIndex);
+				}
 			}
 		}
 
@@ -126,7 +135,8 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("_radialSegments"),
 				new GUIContent("Tube Sides"));
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("_renderSamplesPerSegment"),
-				new GUIContent("Samples Per Segment"));
+				new GUIContent("Minimum Samples Per Segment",
+					"Base longitudinal detail. Sharper wire bends receive extra rings automatically."));
 
 			EditorGUILayout.Space(4f);
 			EditorGUILayout.LabelField("Ball Channel Collider", EditorStyles.boldLabel);
@@ -217,6 +227,89 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.EndVertical();
 		}
 
+		private static void DrawConnection(WireRailComponent component, int segmentIndex)
+		{
+			var nextSegmentIndex = component.GetNextSegmentIndex(segmentIndex);
+			var segment = component.Segments[segmentIndex];
+			var nextSegment = component.Segments[nextSegmentIndex];
+			var connection = segment.ConnectionToNext;
+			var wireCount = math.min(segment.RailCount, nextSegment.RailCount);
+
+			EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+			EditorGUILayout.LabelField(
+				$"Connection: Segment {segmentIndex + 1} → Segment {nextSegmentIndex + 1}",
+				EditorStyles.boldLabel);
+			EditorGUILayout.LabelField(
+				"Configure each matching wire as it passes through this knot.",
+				EditorStyles.wordWrappedMiniLabel);
+
+			for (var wireIndex = 0; wireIndex < wireCount; wireIndex++) {
+				EditorGUILayout.BeginVertical(GUI.skin.box);
+				EditorGUILayout.BeginHorizontal();
+				EditorGUILayout.LabelField($"Wire {wireIndex + 1}", EditorStyles.boldLabel,
+					GUILayout.Width(48f));
+				var continuous = connection.IsWireContinuous(wireIndex);
+				var toggled = EditorGUILayout.ToggleLeft(new GUIContent("Continuous",
+					"Blend this wire's position and diameter across the knot instead of "
+					+ "ending and restarting it."), continuous, GUILayout.Width(88f));
+				if (toggled != continuous) {
+					var capturedWireIndex = wireIndex;
+					Edit(component, "Change Wire Rail Continuity",
+						() => component.SetWireContinuous(segmentIndex,
+							capturedWireIndex, toggled));
+					connection = component.Segments[segmentIndex].ConnectionToNext;
+				}
+
+				if (toggled) {
+					var currentWeight = connection.GetWireWeight(wireIndex);
+					var weight = EditorGUILayout.Slider(new GUIContent("Weight",
+						"0 keeps the junction at this segment's position, 1 keeps it at the "
+						+ "next segment's position, and 0.5 meets halfway."),
+						currentWeight, 0f, 1f);
+					if (!Mathf.Approximately(weight, currentWeight)) {
+						var capturedWireIndex = wireIndex;
+						Edit(component, "Change Wire Rail Blend Weight",
+							() => component.SetWireConnectionWeight(segmentIndex,
+								capturedWireIndex, weight));
+						connection = component.Segments[segmentIndex].ConnectionToNext;
+					}
+				}
+				EditorGUILayout.EndHorizontal();
+
+				if (toggled) {
+					EditorGUI.BeginChangeCheck();
+					var editableCurve = CloneCurve(connection.GetWireCurve(wireIndex));
+					var curve = EditorGUILayout.CurveField(new GUIContent("Transition Curve",
+						"Shapes how this wire moves through both adjoining segments. The curve "
+						+ "is evaluated from 0 to 1 on each segment."),
+						editableCurve, TransitionCurveColor,
+						new Rect(0f, 0f, 1f, 1f));
+					if (EditorGUI.EndChangeCheck()) {
+						var capturedWireIndex = wireIndex;
+						Edit(component, "Change Wire Rail Transition Curve",
+							() => component.SetWireTransitionCurve(segmentIndex,
+								capturedWireIndex, curve));
+						connection = component.Segments[segmentIndex].ConnectionToNext;
+					}
+				}
+				EditorGUILayout.EndVertical();
+			}
+			EditorGUILayout.LabelField("Weight: 0 = this segment   •   0.5 = halfway   •   1 = next segment",
+				EditorStyles.centeredGreyMiniLabel);
+			EditorGUILayout.EndVertical();
+		}
+
+		private static AnimationCurve CloneCurve(AnimationCurve source)
+		{
+			if (source == null) {
+				return AnimationCurve.Linear(0f, 0f, 1f, 1f);
+			}
+			return new AnimationCurve(source.keys) {
+				preWrapMode = source.preWrapMode,
+				postWrapMode = source.postWrapMode,
+			};
+		}
+
 		private static void Edit(WireRailComponent component, string undoName, Action edit)
 		{
 			Undo.RecordObject(component, undoName);
@@ -291,6 +384,7 @@ namespace VisualPinball.Unity.Editor
 			}
 			var editing = Selection.activeGameObject == container.gameObject
 				&& ToolManager.activeContextType == typeof(SplineToolContext);
+			var evaluationContext = new WireRailPathEvaluationContext();
 
 			for (var segmentIndex = 0; segmentIndex < component.Segments.Count; segmentIndex++) {
 				var segment = component.Segments[segmentIndex];
@@ -298,8 +392,11 @@ namespace VisualPinball.Unity.Editor
 					var points = new Vector3[SamplesPerSegment + 1];
 					for (var sampleIndex = 0; sampleIndex <= SamplesPerSegment; sampleIndex++) {
 						var curveT = sampleIndex / (float)SamplesPerSegment;
-						points[sampleIndex] = EvaluateWorldPosition(container, spline,
-							segmentIndex, curveT, segment.GetRailOffset(railIndex));
+						points[sampleIndex] = WireRailSplineGeometry.TryEvaluateRailPosition(spline,
+							component.Segments, evaluationContext, segmentIndex, railIndex, curveT,
+							out var position)
+							? container.transform.TransformPoint((Vector3)position)
+							: container.transform.position;
 					}
 					Handles.color = RailColors[railIndex % RailColors.Length];
 					Handles.DrawAAPolyLine(3f, points);

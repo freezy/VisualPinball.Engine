@@ -9,7 +9,7 @@ description: Author three-dimensional wire rail routes and per-segment rail layo
 The **Wire Rail** component provides an early authoring workflow for routing playable wire rails with a native Unity spline. Each spline segment has its own rail count and cross-section offsets, and the component generates both visible wire tubes and a separate ball-channel collider.
 
 > [!warning]
-> Wire rail authoring does not yet generate junctions, transitions between different segment layouts, end fittings, or VPX import/export data.
+> Wire rail authoring does not yet generate branched junctions, end fittings, or VPX import/export data.
 
 ## Create a Wire Rail
 
@@ -51,6 +51,20 @@ Changing **Rail Count** reapplies the complete recommended layout for that segme
 
 When a knot splits a segment, the new segment receives an independent copy of the original layout. Removing a knot removes the corresponding segment layout while preserving its neighbors.
 
+## Keep Wires Continuous Between Segments
+
+The inspector displays a **Connection** panel between every neighboring pair of segment layouts. A closed spline also displays a connection from its last segment back to its first segment.
+
+Each matching wire index has its own row and is **Continuous** by default. Clear **Continuous** when that wire should intentionally stop, restart, or jump at the knot. Only indices present on both segments are listed. A continuous wire does not end and restart when its position or diameter differs between the two layouts; its rendered tube, Scene view centerline, and ball-channel collider blend through the adjoining segments instead. The rendered path also shares one tangent across the knot, preventing a crease when one layout uses an extreme offset.
+
+Each continuous wire has its own **Weight**. The weight chooses that wire's shared cross-section at the knot:
+
+- **0** places the junction entirely at the first segment's wire position. The next segment performs the full transition.
+- **0.5** places the junction halfway between both segment positions. Both segments perform half of the transition.
+- **1** places the junction entirely at the next segment's wire position. The first segment performs the full transition.
+
+The **Transition Curve** controls the interpolation shape across both adjoining spline segments. Its horizontal axis runs from the outer end of a segment toward the shared knot and its vertical axis is the amount of the transition applied. The default linear curve moves the wire at a constant rate; reshape it to ease the wire into or out of the new position. Curve endpoints are always treated as 0 and 1 so both generated wire tubes and collider profiles remain joined at the knot.
+
 ## Default Rail Positions
 
 New Wire Rail components start with four rails. The recommended layouts use an 8 VPX-unit reference wire diameter and are arranged around a 50 VPX-unit ball.
@@ -68,11 +82,11 @@ These positions are practical starting points rather than constraints. Adjust th
 
 ## Render Geometry
 
-Every authored rail is swept along the spline as a visible tube. New wires have an 8 VPX-unit diameter by default and an octagonal cross-section. Select one or more wires in a segment's cross-section to edit their individual diameters. Use **Tube Sides** to increase or decrease radial detail and **Samples Per Segment** to control how closely the tubes follow spline curvature.
+Every authored rail is swept along the spline as a visible tube. New wires have an 8 VPX-unit diameter by default and an octagonal cross-section. Select one or more wires in a segment's cross-section to edit their individual diameters. Use **Tube Sides** to increase or decrease radial detail and **Minimum Samples Per Segment** to set the baseline longitudinal detail. The generator inserts additional rings automatically wherever the actual offset wire turns by more than five degrees, so smooth bends do not collapse into one skewed end ring.
 
 Assign **Material** to control the wire's appearance. When no material is assigned, VPE uses the active render pipeline's default material.
 
-Render tubes are capped where a rail begins or ends. Matching rails on neighboring segments remain open internally so their surfaces meet without an unnecessary cap.
+Render tubes are capped where a rail begins or ends. Matching or explicitly continuous rails on neighboring segments remain open internally so their surfaces meet without an unnecessary cap.
 
 ## Ball Channel Collider
 
@@ -102,6 +116,7 @@ Enable **Show Collider Preview** to draw the generated ball-channel mesh as a ye
 ## Current Limitations
 
 - Only the first spline in the generated Spline Container is used.
-- Segment rail counts and offsets change discretely at knots; transition geometry is not generated yet.
+- Connection blending matches wires by their one-based index; it does not remap a wire to a different index on the next segment.
+- Extreme cross-section changes can alter the ball-channel facet topology and cannot currently be blended as one collider.
 - Junctions and end fittings are not generated.
 - Wire rail data is not yet imported from or exported to VPX.
