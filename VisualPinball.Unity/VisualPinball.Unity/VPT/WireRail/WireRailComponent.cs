@@ -20,6 +20,7 @@ using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Serialization;
 using UnityEngine.Splines;
 using VisualPinball.Engine.VPT;
 using Material = UnityEngine.Material;
@@ -91,17 +92,188 @@ namespace VisualPinball.Unity
 	}
 
 	[Serializable]
+	public sealed class WireRailTransition
+	{
+		public const float DefaultWeight = 0.5f;
+
+		[SerializeField] private bool _continuous = true;
+		[SerializeField, Range(0f, 1f)] private float _weight = DefaultWeight;
+		[SerializeField] private AnimationCurve _curve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
+
+		public bool Continuous => _continuous;
+		public float Weight => _weight;
+		public AnimationCurve Curve => _curve;
+
+		internal bool EnsureInitialized()
+		{
+			var changed = false;
+			var clampedWeight = math.saturate(_weight);
+			if (!Mathf.Approximately(_weight, clampedWeight)) {
+				_weight = clampedWeight;
+				changed = true;
+			}
+			if (_curve == null || _curve.length == 0) {
+				_curve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
+				changed = true;
+			}
+			return changed;
+		}
+
+		internal void SetContinuous(bool continuous)
+		{
+			_continuous = continuous;
+		}
+
+		internal void SetWeight(float weight)
+		{
+			_weight = math.saturate(weight);
+		}
+
+		internal void SetCurve(AnimationCurve curve)
+		{
+			_curve = CloneCurve(curve);
+			EnsureInitialized();
+		}
+
+		internal float Evaluate(float curveT)
+		{
+			if (curveT <= 0f) {
+				return 0f;
+			}
+			if (curveT >= 1f) {
+				return 1f;
+			}
+			return _curve == null || _curve.length == 0
+				? curveT
+				: math.saturate(_curve.Evaluate(curveT));
+		}
+
+		internal WireRailTransition Clone()
+			=> new() {
+				_continuous = _continuous,
+				_weight = _weight,
+				_curve = CloneCurve(_curve),
+			};
+
+		internal static WireRailTransition FromLegacy(bool continuous, float weight)
+			=> new() {
+				_continuous = continuous,
+				_weight = math.saturate(weight),
+			};
+
+		private static AnimationCurve CloneCurve(AnimationCurve source)
+		{
+			if (source == null || source.length == 0) {
+				return AnimationCurve.Linear(0f, 0f, 1f, 1f);
+			}
+			return new AnimationCurve(source.keys) {
+				preWrapMode = source.preWrapMode,
+				postWrapMode = source.postWrapMode,
+			};
+		}
+	}
+
+	[Serializable]
+	public sealed class WireRailConnection
+	{
+		[SerializeField] private List<WireRailTransition> _wires = new();
+		[SerializeField, HideInInspector, FormerlySerializedAs("_weight")]
+		private float _legacyWeight = WireRailTransition.DefaultWeight;
+		[SerializeField, HideInInspector, FormerlySerializedAs("_continuousWires")]
+		private List<bool> _legacyContinuousWires;
+
+		public int WireCount => _wires?.Count ?? 0;
+
+		public bool IsWireContinuous(int wireIndex)
+			=> GetWire(wireIndex).Continuous;
+
+		public float GetWireWeight(int wireIndex)
+			=> GetWire(wireIndex).Weight;
+
+		public AnimationCurve GetWireCurve(int wireIndex)
+			=> GetWire(wireIndex).Curve;
+
+		internal bool EnsureInitialized(int wireCount)
+		{
+			if (wireCount < 0) {
+				throw new ArgumentOutOfRangeException(nameof(wireCount));
+			}
+
+			var changed = false;
+			_wires ??= new List<WireRailTransition>();
+			if (_wires.Count == 0 && _legacyContinuousWires is { Count: > 0 }) {
+				foreach (var continuous in _legacyContinuousWires) {
+					_wires.Add(WireRailTransition.FromLegacy(continuous, _legacyWeight));
+				}
+				_legacyContinuousWires = null;
+				changed = true;
+			}
+			while (_wires.Count < wireCount) {
+				_wires.Add(new WireRailTransition());
+				changed = true;
+			}
+			if (_wires.Count > wireCount) {
+				_wires.RemoveRange(wireCount, _wires.Count - wireCount);
+				changed = true;
+			}
+			for (var wireIndex = 0; wireIndex < _wires.Count; wireIndex++) {
+				if (_wires[wireIndex] == null) {
+					_wires[wireIndex] = new WireRailTransition();
+					changed = true;
+				}
+				changed |= _wires[wireIndex].EnsureInitialized();
+			}
+			return changed;
+		}
+
+		internal void SetWireContinuous(int wireIndex, bool continuous)
+			=> GetWire(wireIndex).SetContinuous(continuous);
+
+		internal void SetWireWeight(int wireIndex, float weight)
+			=> GetWire(wireIndex).SetWeight(weight);
+
+		internal void SetWireCurve(int wireIndex, AnimationCurve curve)
+			=> GetWire(wireIndex).SetCurve(curve);
+
+		internal float EvaluateWireTransition(int wireIndex, float curveT)
+			=> GetWire(wireIndex).Evaluate(curveT);
+
+		internal WireRailConnection Clone()
+		{
+			var clone = new WireRailConnection {
+				_wires = new List<WireRailTransition>(),
+			};
+			if (_wires != null) {
+				foreach (var wire in _wires) {
+					clone._wires.Add(wire?.Clone() ?? new WireRailTransition());
+				}
+			}
+			return clone;
+		}
+
+		private WireRailTransition GetWire(int wireIndex)
+		{
+			if (wireIndex < 0 || wireIndex >= WireCount) {
+				throw new ArgumentOutOfRangeException(nameof(wireIndex));
+			}
+			return _wires[wireIndex];
+		}
+	}
+
+	[Serializable]
 	public sealed class WireRailSegment
 	{
 		[SerializeField] private WireRailThirdRailSide _thirdRailSide = WireRailThirdRailSide.Right;
 		[SerializeField] private List<Vector2> _railOffsets = new(
 			WireRailLayout.CreateDefaultOffsets(4));
 		[SerializeField] private List<float> _wireDiameters = new();
+		[SerializeField] private WireRailConnection _connectionToNext = new();
 
 		public WireRailThirdRailSide ThirdRailSide => _thirdRailSide;
 		public int RailCount => _railOffsets?.Count ?? 0;
 		public IReadOnlyList<Vector2> RailOffsets => _railOffsets;
 		public IReadOnlyList<float> WireDiameters => _wireDiameters;
+		public WireRailConnection ConnectionToNext => _connectionToNext;
 
 		public Vector2 GetRailOffset(int railIndex)
 		{
@@ -161,6 +333,10 @@ namespace VisualPinball.Unity
 		internal bool EnsureInitialized(float defaultWireDiameter)
 		{
 			var changed = false;
+			if (_connectionToNext == null) {
+				_connectionToNext = new WireRailConnection();
+				changed = true;
+			}
 			if (_railOffsets == null || _railOffsets.Count == 0) {
 				_railOffsets = new List<Vector2>(
 					WireRailLayout.CreateDefaultOffsets(4, _thirdRailSide));
@@ -193,7 +369,29 @@ namespace VisualPinball.Unity
 				_thirdRailSide = _thirdRailSide,
 				_railOffsets = new List<Vector2>(_railOffsets),
 				_wireDiameters = new List<float>(_wireDiameters),
+				_connectionToNext = _connectionToNext.Clone(),
 			};
+		}
+
+		internal bool EnsureConnectionInitialized(int wireCount)
+		{
+			var changed = false;
+			if (_connectionToNext == null) {
+				_connectionToNext = new WireRailConnection();
+				changed = true;
+			}
+			return _connectionToNext.EnsureInitialized(wireCount) || changed;
+		}
+
+		internal void ResetConnection()
+		{
+			_connectionToNext = new WireRailConnection();
+		}
+
+		internal void CopyConnectionFrom(WireRailSegment source)
+		{
+			_connectionToNext = source?._connectionToNext?.Clone()
+				?? new WireRailConnection();
 		}
 	}
 
@@ -223,19 +421,15 @@ namespace VisualPinball.Unity
 		[SerializeField, Min(0f)] private float _elasticityFalloff = 0.5f;
 		[SerializeField, Min(0f)] private float _friction = 0.3f;
 		[SerializeField, Range(-90f, 90f)] private float _scatter;
-		[SerializeField, HideInInspector] private Mesh _renderMesh;
-		[SerializeField, HideInInspector] private Mesh _colliderMesh;
-		[SerializeField, HideInInspector] private Vector3[] _colliderEdgeVertices = Array.Empty<Vector3>();
-
-#if UNITY_EDITOR
-		[SerializeField, HideInInspector] private int _generatedMeshOwnerId;
-#endif
-
+		[NonSerialized] private Mesh _renderMesh;
+		[NonSerialized] private Mesh _colliderMesh;
+		[NonSerialized] private Vector3[] _colliderEdgeVertices = Array.Empty<Vector3>();
 		[NonSerialized] private bool _rebuildingGeneratedMeshes;
 		[NonSerialized] private bool _collidersDirty = true;
 		[NonSerialized] private string _generationError;
 #if UNITY_EDITOR
 		[NonSerialized] private bool _validationRebuildScheduled;
+		[NonSerialized] private int _generatedInputHash;
 #endif
 
 		public SplineContainer SplineContainer => GetSplineContainerWithoutCreating();
@@ -291,6 +485,7 @@ namespace VisualPinball.Unity
 			}
 #endif
 			GetComponentInParent<PhysicsEngine>()?.DisableCollider(ItemId);
+			DestroyGeneratedMeshes();
 		}
 
 		private void OnValidate()
@@ -308,9 +503,6 @@ namespace VisualPinball.Unity
 				_validationRebuildScheduled = true;
 				EditorApplication.delayCall += RebuildAfterValidation;
 			}
-#else
-			SynchronizeSegments();
-			RebuildGeneratedMeshes();
 #endif
 		}
 
@@ -331,6 +523,9 @@ namespace VisualPinball.Unity
 				return;
 			}
 			SynchronizeSegments();
+			if (_renderMesh && _generatedInputHash == ComputeGenerationInputHash()) {
+				return;
+			}
 			RebuildGeneratedMeshes();
 			SceneView.RepaintAll();
 		}
@@ -343,8 +538,74 @@ namespace VisualPinball.Unity
 					"A wire-rail segment needs at least one rail.");
 			}
 			GetSegment(segmentIndex).SetRailCount(railCount, _wireDiameter);
+			SynchronizeSegmentConnections();
 			RebuildGeneratedMeshes();
 			MarkDirty();
+		}
+
+		public void SetWireContinuous(int segmentIndex, int wireIndex, bool continuous)
+		{
+			SynchronizeSegments();
+			var nextSegmentIndex = GetNextSegmentIndex(segmentIndex);
+			if (nextSegmentIndex < 0) {
+				throw new InvalidOperationException(
+					$"Segment {segmentIndex + 1} has no following segment.");
+			}
+			var wireCount = math.min(_segments[segmentIndex].RailCount,
+				_segments[nextSegmentIndex].RailCount);
+			var connection = _segments[segmentIndex].ConnectionToNext;
+			connection.EnsureInitialized(wireCount);
+			connection.SetWireContinuous(wireIndex, continuous);
+			RebuildGeneratedMeshes();
+			MarkDirty();
+		}
+
+		public void SetWireConnectionWeight(int segmentIndex, int wireIndex, float weight)
+		{
+			SynchronizeSegments();
+			var nextSegmentIndex = GetNextSegmentIndex(segmentIndex);
+			if (nextSegmentIndex < 0) {
+				throw new InvalidOperationException(
+					$"Segment {segmentIndex + 1} has no following segment.");
+			}
+			var wireCount = math.min(_segments[segmentIndex].RailCount,
+				_segments[nextSegmentIndex].RailCount);
+			var connection = _segments[segmentIndex].ConnectionToNext;
+			connection.EnsureInitialized(wireCount);
+			connection.SetWireWeight(wireIndex, weight);
+			RebuildGeneratedMeshes();
+			MarkDirty();
+		}
+
+		public void SetWireTransitionCurve(int segmentIndex, int wireIndex,
+			AnimationCurve curve)
+		{
+			SynchronizeSegments();
+			var nextSegmentIndex = GetNextSegmentIndex(segmentIndex);
+			if (nextSegmentIndex < 0) {
+				throw new InvalidOperationException(
+					$"Segment {segmentIndex + 1} has no following segment.");
+			}
+			var wireCount = math.min(_segments[segmentIndex].RailCount,
+				_segments[nextSegmentIndex].RailCount);
+			var connection = _segments[segmentIndex].ConnectionToNext;
+			connection.EnsureInitialized(wireCount);
+			connection.SetWireCurve(wireIndex, curve);
+			RebuildGeneratedMeshes();
+			MarkDirty();
+		}
+
+		public int GetNextSegmentIndex(int segmentIndex)
+		{
+			if (_segments == null || segmentIndex < 0 || segmentIndex >= _segments.Count) {
+				throw new ArgumentOutOfRangeException(nameof(segmentIndex));
+			}
+			if (segmentIndex + 1 < _segments.Count) {
+				return segmentIndex + 1;
+			}
+			var container = GetSplineContainerWithoutCreating();
+			return container && container.Spline != null && container.Spline.Closed
+				&& _segments.Count > 1 ? 0 : -1;
 		}
 
 		public void SetThirdRailSide(int segmentIndex, WireRailThirdRailSide side)
@@ -433,9 +694,27 @@ namespace VisualPinball.Unity
 				_segments.RemoveRange(segmentCount, _segments.Count - segmentCount);
 				changed = true;
 			}
+			changed |= SynchronizeSegmentConnections();
 
 			if (changed) {
 				MarkDirty();
+			}
+			return changed;
+		}
+
+		private bool SynchronizeSegmentConnections()
+		{
+			if (_segments == null) {
+				return false;
+			}
+			var changed = false;
+			for (var segmentIndex = 0; segmentIndex < _segments.Count; segmentIndex++) {
+				var nextSegmentIndex = GetNextSegmentIndex(segmentIndex);
+				var wireCount = nextSegmentIndex < 0
+					? 0
+					: math.min(_segments[segmentIndex].RailCount,
+						_segments[nextSegmentIndex].RailCount);
+				changed |= _segments[segmentIndex].EnsureConnectionInitialized(wireCount);
 			}
 			return changed;
 		}
@@ -475,16 +754,26 @@ namespace VisualPinball.Unity
 					var sourceIndex = spline.Closed && knotIndex == 0
 						? _segments.Count - 1
 						: math.clamp(knotIndex - 1, 0, _segments.Count - 1);
-					_segments.Insert(insertIndex,
-						_segments[sourceIndex].Clone(_wireDiameter));
+					var source = _segments[sourceIndex];
+					var inserted = source.Clone(_wireDiameter);
+					source.ResetConnection();
+					_segments.Insert(insertIndex, inserted);
 
 				} else if (modification == SplineModification.KnotRemoved
 					&& _segments.Count == expectedCount + 1 && knotIndex >= 0) {
-					_segments.RemoveAt(math.clamp(knotIndex, 0, _segments.Count - 1));
+					var removeIndex = math.clamp(knotIndex, 0, _segments.Count - 1);
+					var predecessorIndex = spline.Closed
+						? (removeIndex - 1 + _segments.Count) % _segments.Count
+						: removeIndex - 1;
+					if (predecessorIndex >= 0 && predecessorIndex != removeIndex) {
+						_segments[predecessorIndex].CopyConnectionFrom(_segments[removeIndex]);
+					}
+					_segments.RemoveAt(removeIndex);
 
 				} else {
 					SynchronizeSegments();
 				}
+				SynchronizeSegmentConnections();
 			}
 			RebuildGeneratedMeshes();
 			MarkDirty();
@@ -523,40 +812,70 @@ namespace VisualPinball.Unity
 				if (_segments == null || _segments.Count != GetSplineSegmentCount()) {
 					SynchronizeSegments();
 				}
-#if UNITY_EDITOR
-				EnsureUniqueGeneratedMeshes();
-#endif
 				_renderMesh = WireRailRenderMeshGenerator.Generate(container.Spline, _segments,
 					_renderSamplesPerSegment, _radialSegments, _renderMesh);
 				if (!WireRailColliderMeshGenerator.TryGenerate(container.Spline, _segments,
 						_referenceBallDiameter, _colliderSamplesPerSegment,
 						_colliderMesh, out _colliderMesh, out _colliderEdgeVertices,
 						out _generationError)) {
-					_colliderMesh?.Clear(false);
+					if (_colliderMesh) {
+						_colliderMesh.Clear(false);
+					} else {
+						_colliderMesh = null;
+					}
 					_colliderEdgeVertices = Array.Empty<Vector3>();
 				}
 
 				var meshFilter = GetOrAddComponent<MeshFilter>(container.gameObject);
 				var meshRenderer = GetOrAddComponent<MeshRenderer>(container.gameObject);
-				var meshChanged = meshFilter.sharedMesh != _renderMesh;
-				var materialBeforeAssignment = meshRenderer.sharedMaterial;
 				meshFilter.sharedMesh = _renderMesh;
 				AssignRenderMaterial(meshRenderer);
-				var materialChanged = materialBeforeAssignment != meshRenderer.sharedMaterial;
 				_collidersDirty = true;
-
 #if UNITY_EDITOR
-				if (!Application.isPlaying && (meshChanged || materialChanged)) {
-					EditorUtility.SetDirty(meshFilter);
-					EditorUtility.SetDirty(meshRenderer);
-					PrefabUtility.RecordPrefabInstancePropertyModifications(meshFilter);
-					PrefabUtility.RecordPrefabInstancePropertyModifications(meshRenderer);
-				}
+				_generatedInputHash = ComputeGenerationInputHash();
 #endif
 			} finally {
 				_rebuildingGeneratedMeshes = false;
 			}
 		}
+
+#if UNITY_EDITOR
+		private int ComputeGenerationInputHash()
+		{
+			unchecked {
+				var hash = 17;
+				var container = GetSplineContainerWithoutCreating();
+				var spline = container ? container.Spline : null;
+				hash = hash * 31 + (spline?.Count ?? 0);
+				hash = hash * 31 + (spline != null && spline.Closed ? 1 : 0);
+				if (spline != null) {
+					for (var knotIndex = 0; knotIndex < spline.Count; knotIndex++) {
+						hash = hash * 31 + spline[knotIndex].GetHashCode();
+						hash = hash * 31 + spline.GetTangentMode(knotIndex).GetHashCode();
+						hash = hash * 31
+							+ spline.GetAutoSmoothTension(knotIndex).GetHashCode();
+					}
+				}
+
+				hash = hash * 31 + (_segments?.Count ?? 0);
+				if (_segments != null) {
+					for (var segmentIndex = 0; segmentIndex < _segments.Count;
+						segmentIndex++) {
+						hash = hash * 31 + (_segments[segmentIndex] == null ? 0
+							: JsonUtility.ToJson(_segments[segmentIndex]).GetHashCode());
+					}
+				}
+				hash = hash * 31 + _wireDiameter.GetHashCode();
+				hash = hash * 31 + _radialSegments;
+				hash = hash * 31 + _renderSamplesPerSegment;
+				hash = hash * 31 + (_renderMaterial
+					? _renderMaterial.GetEntityId().GetHashCode() : 0);
+				hash = hash * 31 + _referenceBallDiameter.GetHashCode();
+				hash = hash * 31 + _colliderSamplesPerSegment;
+				return hash;
+			}
+		}
+#endif
 
 		public SplineContainer EnsureSplineContainerExists()
 			=> EnsureSplineContainer();
@@ -578,20 +897,6 @@ namespace VisualPinball.Unity
 			var component = gameObject.GetComponent<T>();
 			return component ? component : gameObject.AddComponent<T>();
 		}
-
-#if UNITY_EDITOR
-		private void EnsureUniqueGeneratedMeshes()
-		{
-			var currentOwnerId = UnityObjectId.Get(this);
-			if (_generatedMeshOwnerId == currentOwnerId) {
-				return;
-			}
-			_renderMesh = null;
-			_colliderMesh = null;
-			_colliderEdgeVertices = Array.Empty<Vector3>();
-			_generatedMeshOwnerId = currentOwnerId;
-		}
-#endif
 
 		private SplineContainer EnsureSplineContainer()
 		{
@@ -740,11 +1045,16 @@ namespace VisualPinball.Unity
 			=> isActiveAndEnabled && _colliderMesh && _colliderMesh.vertexCount > 0;
 
 		private void OnDestroy()
+			=> DestroyGeneratedMeshes();
+
+		private void DestroyGeneratedMeshes()
 		{
 			DestroyGeneratedMesh(_renderMesh);
 			DestroyGeneratedMesh(_colliderMesh);
 			_renderMesh = null;
 			_colliderMesh = null;
+			_colliderEdgeVertices = Array.Empty<Vector3>();
+			_collidersDirty = true;
 		}
 
 		private static void DestroyGeneratedMesh(Mesh mesh)

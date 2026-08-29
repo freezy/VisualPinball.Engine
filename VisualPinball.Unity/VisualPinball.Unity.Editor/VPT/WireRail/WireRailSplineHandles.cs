@@ -199,7 +199,7 @@ namespace VisualPinball.Unity.Editor
 			if (evt.GetTypeForControl(controlId) == EventType.MouseDown && evt.button == 0
 				&& !evt.alt && HandleUtility.nearestControl == controlId) {
 				RecordUndo(component, undoName);
-				SplineSelection.Set(element);
+				SelectElement(element, evt);
 			}
 			return Handles.FreeMoveHandle(controlId, position, size, Vector3.zero,
 				InvisibleGripCap);
@@ -219,7 +219,7 @@ namespace VisualPinball.Unity.Editor
 					if (evt.button == 0 && !evt.alt
 						&& HandleUtility.nearestControl == controlId) {
 						GUIUtility.hotControl = controlId;
-						SplineSelection.Set(element);
+						SelectElement(element, evt);
 						evt.Use();
 					}
 					break;
@@ -229,6 +229,24 @@ namespace VisualPinball.Unity.Editor
 						evt.Use();
 					}
 					break;
+			}
+		}
+
+		private static void SelectElement<T>(T element, Event evt)
+			where T : struct, ISelectableElement
+		{
+			if (evt.control || evt.command) {
+				if (SplineSelection.Contains(element)) {
+					SplineSelection.Remove(element);
+				} else {
+					SplineSelection.Add(element);
+					SplineSelection.SetActive(element);
+				}
+			} else if (evt.shift) {
+				SplineSelection.Add(element);
+				SplineSelection.SetActive(element);
+			} else {
+				SplineSelection.Set(element);
 			}
 		}
 

@@ -97,6 +97,422 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldCreateContinuousHalfWeightLinearConnectionsByDefault()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SplineContainer.Spline.Add(
+					new BezierKnot(new float3(0f, 1000f, 0f)), TangentMode.AutoSmooth);
+
+				var connection = component.Segments[0].ConnectionToNext;
+				Assert.That(connection.WireCount, Is.EqualTo(4));
+				for (var wireIndex = 0; wireIndex < connection.WireCount; wireIndex++) {
+					Assert.That(connection.IsWireContinuous(wireIndex), Is.True);
+					Assert.That(connection.GetWireWeight(wireIndex), Is.EqualTo(0.5f));
+					Assert.That(connection.GetWireCurve(wireIndex).Evaluate(0.5f),
+						Is.EqualTo(0.5f).Within(0.001f));
+				}
+				Assert.That(component.Segments[1].ConnectionToNext.WireCount, Is.Zero);
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[TestCase(0f, 0f)]
+		[TestCase(0.5f, 20f)]
+		[TestCase(1f, 40f)]
+		public void ShouldMeetAtTheWeightedConnectionPosition(float weight,
+			float expectedJunctionX)
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var spline = component.SplineContainer.Spline;
+				spline.Add(new BezierKnot(new float3(0f, 1000f, 0f)),
+					TangentMode.AutoSmooth);
+				component.SetRailCount(0, 1);
+				component.SetRailCount(1, 1);
+				component.SetRailOffset(0, 0, new Vector2(0f, 0f));
+				component.SetRailOffset(1, 0, new Vector2(40f, 0f));
+				component.SetWireConnectionWeight(0, 0, weight);
+
+				var firstStart = WireRailSplineGeometry.EvaluateRailOffset(spline,
+					component.Segments, 0, 0, 0f);
+				var firstEnd = WireRailSplineGeometry.EvaluateRailOffset(spline,
+					component.Segments, 0, 0, 1f);
+				var secondStart = WireRailSplineGeometry.EvaluateRailOffset(spline,
+					component.Segments, 1, 0, 0f);
+				var secondEnd = WireRailSplineGeometry.EvaluateRailOffset(spline,
+					component.Segments, 1, 0, 1f);
+
+				Assert.That(firstStart.x, Is.EqualTo(0f).Within(0.001f));
+				Assert.That(firstEnd.x, Is.EqualTo(expectedJunctionX).Within(0.001f));
+				Assert.That(secondStart.x, Is.EqualTo(expectedJunctionX).Within(0.001f));
+				Assert.That(secondEnd.x, Is.EqualTo(40f).Within(0.001f));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldApplyConnectionWeightPerWire()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var spline = component.SplineContainer.Spline;
+				spline.Add(new BezierKnot(new float3(0f, 1000f, 0f)),
+					TangentMode.AutoSmooth);
+				component.SetRailCount(0, 2);
+				component.SetRailCount(1, 2);
+				component.SetRailOffset(0, 0, new Vector2(-20f, 0f));
+				component.SetRailOffset(0, 1, new Vector2(20f, 0f));
+				component.SetRailOffset(1, 0, new Vector2(-40f, 0f));
+				component.SetRailOffset(1, 1, new Vector2(60f, 0f));
+				component.SetWireConnectionWeight(0, 0, 0f);
+				component.SetWireConnectionWeight(0, 1, 1f);
+
+				Assert.That(WireRailSplineGeometry.EvaluateRailOffset(spline,
+					component.Segments, 0, 0, 1f).x, Is.EqualTo(-20f).Within(0.001f));
+				Assert.That(WireRailSplineGeometry.EvaluateRailOffset(spline,
+					component.Segments, 1, 0, 0f).x, Is.EqualTo(-20f).Within(0.001f));
+				Assert.That(WireRailSplineGeometry.EvaluateRailOffset(spline,
+					component.Segments, 0, 1, 1f).x, Is.EqualTo(60f).Within(0.001f));
+				Assert.That(WireRailSplineGeometry.EvaluateRailOffset(spline,
+					component.Segments, 1, 1, 0f).x, Is.EqualTo(60f).Within(0.001f));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldShapeBothSidesOfAConnectionWithTheWireCurve()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var spline = component.SplineContainer.Spline;
+				spline.Add(new BezierKnot(new float3(0f, 1000f, 0f)),
+					TangentMode.AutoSmooth);
+				component.SetRailCount(0, 1);
+				component.SetRailCount(1, 1);
+				component.SetRailOffset(0, 0, Vector2.zero);
+				component.SetRailOffset(1, 0, new Vector2(40f, 0f));
+				component.SetWireTransitionCurve(0, 0, new AnimationCurve(
+					new Keyframe(0f, 0f), new Keyframe(0.5f, 0.25f),
+					new Keyframe(1f, 1f)));
+
+				Assert.That(WireRailSplineGeometry.EvaluateRailOffset(spline,
+					component.Segments, 0, 0, 0.5f).x, Is.EqualTo(5f).Within(0.001f));
+				Assert.That(WireRailSplineGeometry.EvaluateRailOffset(spline,
+					component.Segments, 1, 0, 0.5f).x, Is.EqualTo(25f).Within(0.001f));
+				Assert.That(WireRailSplineGeometry.EvaluateRailOffset(spline,
+					component.Segments, 0, 0, 1f).x, Is.EqualTo(20f).Within(0.001f));
+				Assert.That(WireRailSplineGeometry.EvaluateRailOffset(spline,
+					component.Segments, 1, 0, 0f).x, Is.EqualTo(20f).Within(0.001f));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldOnlyBlendTheSelectedWireIndices()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var spline = component.SplineContainer.Spline;
+				spline.Add(new BezierKnot(new float3(0f, 1000f, 0f)),
+					TangentMode.AutoSmooth);
+				component.SetRailCount(0, 2);
+				component.SetRailCount(1, 2);
+				component.SetRailOffset(0, 0, new Vector2(-20f, 0f));
+				component.SetRailOffset(0, 1, new Vector2(20f, 0f));
+				component.SetRailOffset(1, 0, new Vector2(-40f, 0f));
+				component.SetRailOffset(1, 1, new Vector2(40f, 0f));
+				component.SetWireContinuous(0, 1, false);
+
+				Assert.That(WireRailSplineGeometry.EvaluateRailOffset(spline,
+					component.Segments, 0, 0, 1f).x, Is.EqualTo(-30f).Within(0.001f));
+				Assert.That(WireRailSplineGeometry.EvaluateRailOffset(spline,
+					component.Segments, 1, 0, 0f).x, Is.EqualTo(-30f).Within(0.001f));
+				Assert.That(WireRailSplineGeometry.EvaluateRailOffset(spline,
+					component.Segments, 0, 1, 1f).x, Is.EqualTo(20f).Within(0.001f));
+				Assert.That(WireRailSplineGeometry.EvaluateRailOffset(spline,
+					component.Segments, 1, 1, 0f).x, Is.EqualTo(40f).Within(0.001f));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldRemoveInternalCapsFromAContinuousWire()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SplineContainer.Spline.Add(
+					new BezierKnot(new float3(0f, 1000f, 0f)), TangentMode.AutoSmooth);
+				component.SetRailCount(0, 1);
+				component.SetRailCount(1, 1);
+				component.SetRailOffset(0, 0, new Vector2(0f, 0f));
+				component.SetRailOffset(1, 0, new Vector2(40f, 0f));
+				component.SetWireContinuous(0, 0, false);
+				var disconnectedTriangleCount = component.RenderMesh.triangles.Length / 3;
+
+				component.SetWireContinuous(0, 0, true);
+
+				var continuousTriangleCount = component.RenderMesh.triangles.Length / 3;
+				Assert.That(disconnectedTriangleCount - continuousTriangleCount,
+					Is.EqualTo(16), "two internal octagonal caps should be removed");
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldOrientRenderRingsPerpendicularToTheWireCenterline()
+		{
+			const int radialSegments = 8;
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SplineContainer.Spline.Add(
+					new BezierKnot(new float3(0f, 1000f, 0f)) {
+						Rotation = quaternion.RotateX(math.PI * 0.5f),
+					}, TangentMode.AutoSmooth);
+				component.SetRailCount(0, 1);
+				component.SetRailCount(1, 1);
+				component.SetRailOffset(0, 0, Vector2.zero);
+				component.SetRailOffset(1, 0, new Vector2(500f, 0f));
+
+				var vertices = component.RenderMesh.vertices;
+				var samples = WireRailRenderMeshGenerator.BuildSampleParameters(
+					component.SplineContainer.Spline, component.Segments, 0, 0, 16);
+				var sampleIndex = samples.FindIndex(value => Mathf.Approximately(value, 0.5f));
+				var ringStart = sampleIndex * radialSegments;
+				var center = AverageRing(vertices, ringStart, radialSegments);
+				var tangentStep = math.min(0.5f - samples[sampleIndex - 1],
+					samples[sampleIndex + 1] - 0.5f);
+				Assert.That(WireRailSplineGeometry.TryEvaluateRailFrame(
+					component.SplineContainer.Spline, component.Segments, 0, 0, 0.5f,
+					tangentStep, out var frame), Is.True);
+
+				AssertRingPerpendicular(vertices, ringStart, radialSegments, center,
+					frame.Tangent);
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldUseTheSameWireFrameAndTangentOnBothSidesOfAConnectedKnot()
+		{
+			const int radialSegments = 8;
+			const int capVertexCount = radialSegments + 1;
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SplineContainer.Spline.Add(
+					new BezierKnot(new float3(0f, 1000f, 0f)) {
+						Rotation = quaternion.RotateX(math.PI * 0.5f),
+					}, TangentMode.AutoSmooth);
+				component.SetRailCount(0, 1);
+				component.SetRailCount(1, 1);
+				component.SetRailOffset(0, 0, Vector2.zero);
+				component.SetRailOffset(1, 0, new Vector2(500f, 0f));
+				component.SetWireConnectionWeight(0, 0, 0f);
+
+				var vertices = component.RenderMesh.vertices;
+				var firstSamples = WireRailRenderMeshGenerator.BuildSampleParameters(
+					component.SplineContainer.Spline, component.Segments, 0, 0, 16);
+				var secondSamples = WireRailRenderMeshGenerator.BuildSampleParameters(
+					component.SplineContainer.Spline, component.Segments, 1, 0, 16);
+				var firstEndRing = (firstSamples.Count - 1) * radialSegments;
+				var secondStartRing = firstSamples.Count * radialSegments + capVertexCount;
+				var firstCenter = AverageRing(vertices, firstEndRing, radialSegments);
+				var secondCenter = AverageRing(vertices, secondStartRing, radialSegments);
+				var tangentStep = math.min(1f - firstSamples[^2], secondSamples[1]);
+				Assert.That(WireRailSplineGeometry.TryEvaluateRailFrame(
+					component.SplineContainer.Spline, component.Segments, 0, 0, 1f,
+					tangentStep, out var frame), Is.True);
+
+				Assert.That(Vector3.Distance(firstCenter, secondCenter), Is.LessThan(0.001f));
+				AssertRingPerpendicular(vertices, firstEndRing, radialSegments, firstCenter,
+					frame.Tangent);
+				AssertRingPerpendicular(vertices, secondStartRing, radialSegments, secondCenter,
+					frame.Tangent);
+				var firstRadial = math.normalize((float3)(vertices[firstEndRing] - firstCenter));
+				var secondRadial = math.normalize((float3)(vertices[secondStartRing] - secondCenter));
+				Assert.That(math.dot(firstRadial, secondRadial), Is.GreaterThan(0.9999f));
+
+				const float curveStep = 1f / 1024f;
+				Assert.That(WireRailSplineGeometry.TryEvaluateRailPosition(
+					component.SplineContainer.Spline, component.Segments, 0, 0,
+					1f - curveStep, out var beforeKnot), Is.True);
+				Assert.That(WireRailSplineGeometry.TryEvaluateRailPosition(
+					component.SplineContainer.Spline, component.Segments, 0, 0,
+					1f, out var atKnot), Is.True);
+				Assert.That(WireRailSplineGeometry.TryEvaluateRailPosition(
+					component.SplineContainer.Spline, component.Segments, 1, 0,
+					curveStep, out var afterKnot), Is.True);
+				var incoming = math.normalizesafe(atKnot - beforeKnot, frame.Tangent);
+				var outgoing = math.normalizesafe(afterKnot - atKnot, frame.Tangent);
+				Assert.That(math.dot(incoming, outgoing), Is.GreaterThan(0.9999f));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldAdaptAndKeepTheLastRingsOnAForwardWirePath()
+		{
+			const int radialSegments = 8;
+			const int capVertexCount = radialSegments + 1;
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var spline = component.SplineContainer.Spline;
+				spline.Add(new BezierKnot(new float3(400f, 650f, 200f)) {
+					Rotation = quaternion.RotateX(math.PI * 0.5f),
+				}, TangentMode.AutoSmooth);
+				component.SetRailCount(0, 1);
+				component.SetRailCount(1, 1);
+				component.SetRailOffset(0, 0, Vector2.zero);
+				component.SetRailOffset(1, 0, new Vector2(500f, 0f));
+				component.SetWireConnectionWeight(0, 0, 0f);
+				component.SetWireTransitionCurve(0, 0, new AnimationCurve(
+					new Keyframe(0f, 0f, 0f, 0f),
+					new Keyframe(1f, 1f, 2f, 2f)));
+
+				var firstSamples = WireRailRenderMeshGenerator.BuildSampleParameters(
+					spline, component.Segments, 0, 0, 16);
+				var secondSamples = WireRailRenderMeshGenerator.BuildSampleParameters(
+					spline, component.Segments, 1, 0, 16);
+				var secondTubeStart = firstSamples.Count * radialSegments + capVertexCount;
+				var lastRingStart = secondTubeStart
+					+ (secondSamples.Count - 1) * radialSegments;
+				var vertices = component.RenderMesh.vertices;
+				var center = AverageRing(vertices, lastRingStart, radialSegments);
+				var tangentStep = 1f - secondSamples[^2];
+				Assert.That(WireRailSplineGeometry.TryEvaluateRailFrame(spline,
+					component.Segments, 1, 0, 1f, tangentStep, out var frame), Is.True);
+
+				AssertRingPerpendicular(vertices, lastRingStart, radialSegments, center,
+					frame.Tangent);
+				Assert.That(secondSamples.Count, Is.GreaterThan(17),
+					"curved wire spans should receive additional render rings");
+
+				Assert.That(WireRailSplineGeometry.TryEvaluateRailPosition(spline,
+					component.Segments, 1, 0, 0f, out var previousPosition), Is.True);
+				for (var sampleIndex = 1; sampleIndex <= 128; sampleIndex++) {
+					var curveT = sampleIndex / 128f;
+					Assert.That(WireRailSplineGeometry.TryEvaluateRailPosition(spline,
+						component.Segments, 1, 0, curveT, out var position), Is.True);
+					Assert.That(WireRailSplineGeometry.TryEvaluate(spline, 1, curveT,
+						out var mainFrame), Is.True);
+					var direction = math.normalizesafe(position - previousPosition,
+						mainFrame.Tangent);
+					Assert.That(math.dot(direction, mainFrame.Tangent), Is.GreaterThan(0f),
+						$"wire path reversed at t={curveT}");
+					previousPosition = position;
+				}
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldBlendTheBallChannelThroughAContinuousConnection()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SplineContainer.Spline.Add(
+					new BezierKnot(new float3(0f, 1000f, 0f)) {
+						Rotation = quaternion.RotateX(math.PI * 0.5f),
+					}, TangentMode.AutoSmooth);
+				var secondOffsets = new Vector2[4];
+				var diameters = new float[4];
+				var indices = new int[4];
+				for (var wireIndex = 0; wireIndex < 4; wireIndex++) {
+					indices[wireIndex] = wireIndex;
+					secondOffsets[wireIndex] = component.Segments[1].GetRailOffset(wireIndex)
+						+ new Vector2(40f, 0f);
+					diameters[wireIndex] = component.Segments[1].GetWireDiameter(wireIndex);
+				}
+				component.SetWireProperties(1, indices, secondOffsets, diameters);
+				var transitionCurve = new AnimationCurve(
+					new Keyframe(0f, 0f), new Keyframe(0.5f, 0.25f),
+					new Keyframe(1f, 1f));
+				for (var wireIndex = 0; wireIndex < 4; wireIndex++) {
+					component.SetWireTransitionCurve(0, wireIndex, transitionCurve);
+				}
+				Assert.That(WireRailChannelProfile.TryCreate(
+					WireRailLayout.CreateDefaultOffsets(4), 4f, 25f,
+					out var profile, out var error), Is.True, error);
+				var rowSize = profile.Vertices.Count;
+				var vertices = component.ColliderMesh.vertices;
+				var firstStartX = AverageRowX(vertices, 0, rowSize);
+				var firstMiddleX = AverageRowX(vertices, 4 * rowSize, rowSize);
+				var firstEndX = AverageRowX(vertices, 8 * rowSize, rowSize);
+				var secondStartX = AverageRowX(vertices, 9 * rowSize, rowSize);
+				var secondMiddleX = AverageRowX(vertices, 13 * rowSize, rowSize);
+				var secondEndX = AverageRowX(vertices, 17 * rowSize, rowSize);
+
+				Assert.That(firstMiddleX - firstStartX, Is.EqualTo(5f).Within(0.01f));
+				Assert.That(firstEndX - firstStartX, Is.EqualTo(20f).Within(0.01f));
+				Assert.That(secondStartX, Is.EqualTo(firstEndX).Within(0.01f));
+				Assert.That(secondMiddleX - firstStartX, Is.EqualTo(25f).Within(0.01f));
+				Assert.That(secondEndX - firstStartX, Is.EqualTo(40f).Within(0.01f));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldKeepTheOldConnectionOnTheOuterHalfOfASplitSegment()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var spline = component.SplineContainer.Spline;
+				spline.Add(new BezierKnot(new float3(0f, 1000f, 0f)),
+					TangentMode.AutoSmooth);
+				component.SetWireConnectionWeight(0, 0, 0.25f);
+				component.SetWireTransitionCurve(0, 0, new AnimationCurve(
+					new Keyframe(0f, 0f), new Keyframe(0.5f, 0.2f),
+					new Keyframe(1f, 1f)));
+
+				spline.Insert(1, new BezierKnot(new float3(0f, 250f, 0f)),
+					TangentMode.AutoSmooth);
+
+				Assert.That(component.Segments[0].ConnectionToNext.IsWireContinuous(0),
+					Is.True);
+				Assert.That(component.Segments[0].ConnectionToNext.GetWireWeight(0),
+					Is.EqualTo(0.5f));
+				Assert.That(component.Segments[1].ConnectionToNext.IsWireContinuous(0),
+					Is.True);
+				Assert.That(component.Segments[1].ConnectionToNext.GetWireWeight(0),
+					Is.EqualTo(0.25f));
+				Assert.That(component.Segments[1].ConnectionToNext.GetWireCurve(0)
+					.Evaluate(0.5f), Is.EqualTo(0.2f).Within(0.001f));
+
+				spline.RemoveAt(1);
+
+				Assert.That(component.Segments[0].ConnectionToNext.IsWireContinuous(0),
+					Is.True);
+				Assert.That(component.Segments[0].ConnectionToNext.GetWireWeight(0),
+					Is.EqualTo(0.25f));
+				Assert.That(component.Segments[0].ConnectionToNext.GetWireCurve(0)
+					.Evaluate(0.5f), Is.EqualTo(0.2f).Within(0.001f));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
 		public void ShouldApplyUsefulLayoutsFromOneThroughFiveRails()
 		{
 			var go = new GameObject("Wire Rail");
@@ -285,9 +701,47 @@ namespace VisualPinball.Unity.Test
 				Assert.That(mesh.normals, Has.Length.EqualTo(mesh.vertexCount));
 				Assert.That(mesh.bounds.min.x, Is.EqualTo(-23f).Within(0.05f));
 				Assert.That(mesh.bounds.max.x, Is.EqualTo(23f).Within(0.05f));
+				Assert.That(mesh.hideFlags & HideFlags.DontSaveInEditor,
+					Is.EqualTo(HideFlags.DontSaveInEditor));
+				Assert.That(mesh.hideFlags & HideFlags.DontSaveInBuild,
+					Is.EqualTo(HideFlags.DontSaveInBuild));
+				Assert.That(component.ColliderMesh.hideFlags & HideFlags.DontSaveInEditor,
+					Is.EqualTo(HideFlags.DontSaveInEditor));
+				Assert.That(component.ColliderMesh.hideFlags & HideFlags.DontSaveInBuild,
+					Is.EqualTo(HideFlags.DontSaveInBuild));
+				var serializedComponent = new SerializedObject(component);
+				Assert.That(serializedComponent.FindProperty("_renderMesh"), Is.Null);
+				Assert.That(serializedComponent.FindProperty("_colliderMesh"), Is.Null);
 				Assert.That(component.SplineContainer.GetComponent<MeshFilter>().sharedMesh,
 					Is.SameAs(mesh));
 				Assert.That(component.SplineContainer.GetComponent<MeshRenderer>(), Is.Not.Null);
+			}
+			finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldReleaseAndRegenerateDerivedMeshesWhenDisabled()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var renderMesh = component.RenderMesh;
+				var colliderMesh = component.ColliderMesh;
+
+				component.enabled = false;
+
+				Assert.That(renderMesh == null, Is.True);
+				Assert.That(colliderMesh == null, Is.True);
+				Assert.That(component.RenderMesh, Is.Null);
+				Assert.That(component.ColliderMesh, Is.Null);
+
+				component.enabled = true;
+				Assert.That(component.RenderMesh, Is.Not.Null);
+				Assert.That(component.ColliderMesh, Is.Not.Null);
+				Assert.That(component.RenderMesh, Is.Not.SameAs(renderMesh));
+				Assert.That(component.ColliderMesh, Is.Not.SameAs(colliderMesh));
 			}
 			finally {
 				Object.DestroyImmediate(go);
@@ -402,5 +856,33 @@ namespace VisualPinball.Unity.Test
 				Assert.That(segment.GetRailOffset(i), Is.EqualTo(expected[i]));
 			}
 		}
+
+		private static float AverageRowX(Vector3[] vertices, int start, int count)
+		{
+			var sum = 0f;
+			for (var index = start; index < start + count; index++) {
+				sum += vertices[index].x;
+			}
+			return sum / count;
+		}
+
+		private static Vector3 AverageRing(Vector3[] vertices, int start, int count)
+		{
+			var sum = Vector3.zero;
+			for (var index = start; index < start + count; index++) {
+				sum += vertices[index];
+			}
+			return sum / count;
+		}
+
+		private static void AssertRingPerpendicular(Vector3[] vertices, int start,
+			int count, Vector3 center, float3 tangent)
+		{
+			for (var index = start; index < start + count; index++) {
+				var radial = (float3)(vertices[index] - center);
+				Assert.That(math.abs(math.dot(radial, tangent)), Is.LessThan(0.001f));
+			}
+		}
+
 	}
 }
