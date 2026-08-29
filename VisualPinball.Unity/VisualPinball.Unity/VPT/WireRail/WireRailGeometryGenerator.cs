@@ -313,7 +313,8 @@ namespace VisualPinball.Unity
 			// A compact Hermite correction rotates both sides toward the same tangent without
 			// moving the knot or changing the unaffected half of either segment.
 			if (curveT > 0f && curveT < ConnectionTangentBlend
-				&& IsContinuousBoundary(segments, previousSegmentIndex, segmentIndex, railIndex)) {
+				&& RequiresRailTangentSmoothing(spline, segments, previousSegmentIndex,
+					segmentIndex, railIndex)) {
 				if (!TryEvaluateSharedBoundaryTangent(spline, segments, context,
 						previousSegmentIndex,
 						segmentIndex, railIndex, out _, out var outgoing, out var sharedTangent)) {
@@ -326,7 +327,8 @@ namespace VisualPinball.Unity
 
 			var nextSegmentIndex = GetNextSegmentIndex(spline, segments, segmentIndex);
 			if (curveT > 1f - ConnectionTangentBlend && curveT < 1f
-				&& IsContinuousBoundary(segments, segmentIndex, nextSegmentIndex, railIndex)) {
+				&& RequiresRailTangentSmoothing(spline, segments, segmentIndex,
+					nextSegmentIndex, railIndex)) {
 				if (!TryEvaluateSharedBoundaryTangent(spline, segments, context, segmentIndex,
 						nextSegmentIndex, railIndex, out var incoming, out _, out var sharedTangent)) {
 					return false;
@@ -344,13 +346,19 @@ namespace VisualPinball.Unity
 		{
 			center = default;
 			curveT = math.saturate(curveT);
-			if (!TryEvaluate(spline, segmentIndex, curveT, out mainFrame)
-				|| !TryEvaluate(spline, segmentIndex, 0f, out var startFrame)
-				|| !TryEvaluate(spline, segmentIndex, 1f, out var endFrame)) {
+			if (!TryEvaluate(spline, segmentIndex, curveT, out mainFrame)) {
 				return false;
 			}
 
 			var offset = EvaluateRailOffset(spline, segments, segmentIndex, railIndex, curveT);
+			if (HasConstantRailOffset(spline, segments, segmentIndex, railIndex)) {
+				center = mainFrame.TransformOffset(offset);
+				return true;
+			}
+			if (!TryEvaluate(spline, segmentIndex, 0f, out var startFrame)
+				|| !TryEvaluate(spline, segmentIndex, 1f, out var endFrame)) {
+				return false;
+			}
 			var startOffset = EvaluateRailOffset(spline, segments, segmentIndex, railIndex, 0f);
 			var endOffset = EvaluateRailOffset(spline, segments, segmentIndex, railIndex, 1f);
 			var offsetDelta = endOffset - startOffset;
@@ -432,6 +440,37 @@ namespace VisualPinball.Unity
 				&& segments[sourceSegmentIndex].RailCount > railIndex
 				&& segments[nextSegmentIndex].RailCount > railIndex
 				&& segments[sourceSegmentIndex].ConnectionToNext.IsWireContinuous(railIndex);
+
+		private static bool RequiresRailTangentSmoothing(Spline spline,
+			IReadOnlyList<WireRailSegment> segments, int sourceSegmentIndex,
+			int nextSegmentIndex, int railIndex)
+			=> IsContinuousBoundary(segments, sourceSegmentIndex, nextSegmentIndex, railIndex)
+				&& !(HasConstantRailOffset(spline, segments, sourceSegmentIndex, railIndex)
+					&& HasConstantRailOffset(spline, segments, nextSegmentIndex, railIndex)
+					&& RailOffsetsMatch(segments[sourceSegmentIndex],
+						segments[nextSegmentIndex], railIndex));
+
+		private static bool HasConstantRailOffset(Spline spline,
+			IReadOnlyList<WireRailSegment> segments, int segmentIndex, int railIndex)
+		{
+			var previousSegmentIndex = GetPreviousSegmentIndex(spline, segments, segmentIndex);
+			if (IsContinuousBoundary(segments, previousSegmentIndex, segmentIndex, railIndex)
+				&& !RailOffsetsMatch(segments[previousSegmentIndex], segments[segmentIndex],
+					railIndex)) {
+				return false;
+			}
+			var nextSegmentIndex = GetNextSegmentIndex(spline, segments, segmentIndex);
+			return !IsContinuousBoundary(segments, segmentIndex, nextSegmentIndex, railIndex)
+				|| RailOffsetsMatch(segments[segmentIndex], segments[nextSegmentIndex], railIndex);
+		}
+
+		private static bool RailOffsetsMatch(WireRailSegment first,
+			WireRailSegment second, int railIndex)
+		{
+			var delta = (float2)first.GetRailOffset(railIndex)
+				- (float2)second.GetRailOffset(railIndex);
+			return math.lengthsq(delta) <= 1e-8f;
+		}
 
 		private static bool IsRailConnectedBoundary(
 			IReadOnlyList<WireRailSegment> segments, int sourceSegmentIndex,
