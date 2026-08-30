@@ -6,7 +6,7 @@ description: Author three-dimensional wire rail routes, distance-based wire layo
 
 # Wire Rail Authoring
 
-The **Wire Rail** component provides an early authoring workflow for routing playable wire rails with a native Unity spline. A component-wide rail count defines the available wires, independently positioned wire layouts enable or disable those wires and control their cross-section offsets along the route, and the component generates both visible wire tubes and a separate ball-channel collider. The inspector's **Render Geometry**, **Wire Layouts**, and **Fixtures** headers can each be collapsed.
+The **Wire Rail** component provides an early authoring workflow for routing playable wire rails with a native Unity spline. A component-wide rail count defines the available wires, independently positioned wire layouts enable or disable those wires and control their cross-section offsets along the route, and the component generates both visible wire tubes and a separate ball-channel collider. The inspector's **Render Geometry**, **Ball Channel Collider**, **Wire Layouts**, and **Fixtures** headers can each be collapsed.
 
 > [!warning]
 > Wire rail authoring does not yet generate branched junctions, end fittings, or VPX import/export data.
@@ -75,11 +75,11 @@ New Wire Rail components start with four rails. Choose the component-wide **Rail
 | Rail count | Default centerline offsets (X, Z) | Layout |
 | --- | --- | --- |
 | 1 | `(0, 0)` | Bottom center |
-| 2 | `(-19, 0)`, `(19, 0)` | Bottom left and right |
-| 3 | Two bottom rails plus `(-19, 44)` or `(19, 44)` | Raised third rail on the selected side |
-| 4 | `(-19, 0)`, `(19, 0)`, `(-19, 44)`, `(19, 44)` | Bottom and middle rails on both sides |
-| 5 | Four-rail layout plus `(0, 52)` | Top center added |
-| 6 | Four-rail layout plus `(-19, 52)`, `(19, 52)` | Two top rails distributed symmetrically |
+| 2 | `(-15, 0)`, `(15, 0)` | Bottom left and right |
+| 3 | Two bottom rails plus `(-30, 30)` or `(30, 30)` | Raised third rail on the selected side |
+| 4 | `(-15, 0)`, `(15, 0)`, `(-30, 30)`, `(30, 30)` | Bottom and middle rails on both sides |
+| 5 | Four-rail layout plus `(0, 60)` | Top center added |
+| 6 | Four-rail layout plus `(-15, 60)`, `(15, 60)` | Two top rails distributed symmetrically |
 
 These positions are practical starting points rather than constraints. Adjust them for different wire diameters, wider clearances, decorative guides, or transitions into other mechanisms.
 
@@ -89,13 +89,13 @@ Fixtures are repeated structural elements positioned along the complete spline r
 
 Click **Add Brace** in the **Fixtures** section, then use **Position** to move it anywhere along the route by absolute spline distance. A new brace starts halfway along the spline, and you can add as many independently positioned braces as needed. Drag a complete brace panel by its handle to reorder the authored fixture list without changing any fixture's route position. The brace automatically encloses the wire cross-section at its position and remains perpendicular to the spline tangent. Its preview shows the evaluated brace shape, offset, cutout, and straight-line replacement.
 
-Use the compact **Offset** row to move the complete brace along the local cross-section X and Z axes, and use **Reset** to return both offsets to zero. **Scale** multiplies the automatically fitted brace radius, with `1` preserving the default fit. Offset values use VPX units. Brace thickness uses the global **Wire Diameter** from Render Geometry.
+Use the compact **Offset** row to move the complete brace along the local cross-section X and Z axes, and use **Reset** to return both offsets to zero. **Scale** multiplies the automatically fitted brace radius, with `1` preserving the default fit. **Ring Density** sets how many longitudinal tube rings make up a complete brace; partial and cutout braces use the proportional number. Offset values use VPX units. Brace thickness uses the global **Wire Diameter** from Render Geometry.
 
 Enable **Cutout** to reveal its **From/To** range control and remove that part of the ring. Angles use the brace cross-section: 0° points right along positive X and 90° points up along positive Z. Cutout ends are capped.
 
 Enable **Straight Line** to reveal its **From/To** range control and replace that part of the circular brace with the straight chord between the two angles. A brace can use a cutout and a straight line at the same time.
 
-Click the horizon icon at the end of either angle row to rotate that range until both endpoints have the same vertical height while preserving its angular span. Click **Apply to All** to copy scale, offsets, cutout, and straight-line settings to every other brace without changing any brace's route position.
+Click the horizon icon at the end of either angle row to rotate that range until both endpoints have the same vertical height while preserving its angular span. Click **Apply to All** to copy scale, ring density, offsets, cutout, and straight-line settings to every other brace without changing any brace's route position.
 
 Click **Add Cross Wire** to place a straight connector halfway along the route. **Position** and **Offset** work like their brace equivalents. **Angle** rotates the connector around the center of the complete active-rail envelope at that position: 0° runs horizontally along local X, 90° runs vertically along local Z, and the remaining values continue around the cross section. **Length** is a signed VPX adjustment to the span between the inward-facing surfaces of the two bottom rails: `0` reaches both rails, positive values extend the connector equally at both ends, and negative values shorten it. The preview renders the connected rails in gray and the cross wire in orange. If either bottom rail is inactive at the fixture position, the cross wire is not rendered.
 
@@ -123,7 +123,7 @@ The generated channel opens or closes according to the rails enabled in the acti
 - Four rails provide floor and left/right walls while keeping the top open.
 - Five or more rails add upper support and close the cross-section around the ball.
 
-The collider is registered with VPE's pinball physics engine rather than Unity's built-in physics. Configure **Ball Diameter**, collider sampling, physics material, elasticity, friction, and scatter in the Wire Rail inspector.
+The collider is registered with VPE's pinball physics engine rather than Unity's built-in physics. **Ball Diameter** is the diameter of the reference ball used to calculate the rail contact points and fit the channel around them. It changes only this generated collision channel; it does not resize the visible wires or any ball in the game. **Curvature Detail** controls adaptive tessellation: curved or changing channel spans receive more rows, while straight spans remain sparse even when the spline contains extra collinear knots. Physics material, elasticity, friction, and scatter are configured in the same collapsible **Ball Channel Collider** section.
 
 > [!note]
 > The collider facets model the continuous channel that constrains the ball, not the exact round surface of each wire. This keeps the collision topology small and prevents seams between several independent wire colliders.
@@ -134,7 +134,7 @@ Select either the Wire Rail GameObject or its spline child to display the active
 
 Selecting the Wire Rail also displays an **Edit Wire Rail Spline** button in the Scene view. While spline editing is active, knots appear as outlined circular grips; the active knot is gold, and editable Bézier tangents appear as smaller cyan grips joined to it by thick arms. A grip becomes active on the same mouse-down that starts its drag, so it does not need to be selected before moving it. Clicking a knot also displays Unity's standard position gizmo for axis- and plane-constrained movement. Hover a grip for its action hint. The panel also shows the double-click shortcuts: double-click the route line to insert a knot at that position, or double-click a knot to remove it. An open spline keeps at least two knots, and a closed spline keeps at least three.
 
-Enable **Show Collider Preview** to draw the generated ball-channel mesh as a yellow wireframe. The colored centerlines and center spine are authoring guides; their colors and line widths do not represent the render material or physical wire thickness. The wire circles in the Inspector cross-section do use their authored diameters.
+Enable **Show Collider Preview** to draw the generated ball-channel mesh with VPE's standard translucent green collider color and green edges. The colored centerlines and center spine are authoring guides; their colors and line widths do not represent the render material or physical wire thickness. The wire circles in the Inspector cross-section do use their authored diameters.
 
 ## Current Limitations
 

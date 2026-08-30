@@ -62,7 +62,7 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldCreateFourBallClearanceRailsByDefault()
+		public void ShouldCreateFourRailsOnTheDefaultAuthoringGrid()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
@@ -70,10 +70,10 @@ namespace VisualPinball.Unity.Test
 
 				Assert.That(component.Segments, Has.Count.EqualTo(1));
 				AssertOffsets(component.Segments[0],
-					new Vector2(-19f, 0f),
-					new Vector2(19f, 0f),
-					new Vector2(-19f, 44f),
-					new Vector2(19f, 44f));
+					new Vector2(-15f, 0f),
+					new Vector2(15f, 0f),
+					new Vector2(-30f, 30f),
+					new Vector2(30f, 30f));
 			}
 			finally {
 				Object.DestroyImmediate(go);
@@ -766,6 +766,28 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldUseTheAuthoredBraceRingDensity()
+		{
+			const int radialSegments = 8;
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var railTriangleCount = component.RenderMesh.triangles.Length / 3;
+				var fixtureIndex = component.AddBraceFixture(250f);
+
+				component.SetBraceFixtureProperties(fixtureIndex, 250f,
+					false, 0f, 0f, ringDensity: 12);
+
+				var brace = (WireRailBraceFixture)component.Fixtures[fixtureIndex];
+				Assert.That(brace.RingDensity, Is.EqualTo(12));
+				Assert.That(component.RenderMesh.triangles.Length / 3 - railTriangleCount,
+					Is.EqualTo(12 * radialSegments * 2));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
 		public void ShouldBevelEveryExposedRailAndFixtureCap()
 		{
 			const int radialSegments = 8;
@@ -877,7 +899,7 @@ namespace VisualPinball.Unity.Test
 				component.AddBraceFixture(250f);
 				component.AddBraceFixture(400f);
 				component.SetBraceFixtureProperties(1, 250f,
-					true, 35f, 145f, true, 215f, 325f, 7f, -11f, 1.35f);
+					true, 35f, 145f, true, 215f, 325f, 7f, -11f, 1.35f, 48);
 				component.SetBraceFixtureProperties(0, 100f,
 					false, 60f, 120f, false, 210f, 330f, 0f, 0f, 0.8f);
 				component.SetBraceFixtureProperties(2, 400f,
@@ -897,6 +919,7 @@ namespace VisualPinball.Unity.Test
 					Assert.That(brace.LateralOffset, Is.EqualTo(7f));
 					Assert.That(brace.VerticalOffset, Is.EqualTo(-11f));
 					Assert.That(brace.Scale, Is.EqualTo(1.35f));
+					Assert.That(brace.RingDensity, Is.EqualTo(48));
 				}
 			} finally {
 				Object.DestroyImmediate(go);
@@ -911,7 +934,7 @@ namespace VisualPinball.Unity.Test
 				var component = go.AddComponent<WireRailComponent>();
 				var sourceIndex = component.AddBraceFixture(175f);
 				component.SetBraceFixtureProperties(sourceIndex, 175f,
-					true, 35f, 125f, true, 205f, 315f, 6f, -9f, 1.4f);
+					true, 35f, 125f, true, 205f, 315f, 6f, -9f, 1.4f, 24);
 				var duplicateIndex = component.DuplicateBraceFixture(sourceIndex);
 				var source = (WireRailBraceFixture)component.Fixtures[sourceIndex];
 				var duplicate = (WireRailBraceFixture)component.Fixtures[duplicateIndex];
@@ -930,6 +953,7 @@ namespace VisualPinball.Unity.Test
 				Assert.That(duplicate.LateralOffset, Is.EqualTo(source.LateralOffset));
 				Assert.That(duplicate.VerticalOffset, Is.EqualTo(source.VerticalOffset));
 				Assert.That(duplicate.Scale, Is.EqualTo(source.Scale));
+				Assert.That(duplicate.RingDensity, Is.EqualTo(source.RingDensity));
 			} finally {
 				Object.DestroyImmediate(go);
 			}
@@ -1011,10 +1035,11 @@ namespace VisualPinball.Unity.Test
 			try {
 				var component = go.AddComponent<WireRailComponent>();
 				var allRailTriangles = component.RenderMesh.triangles.Length;
+				component.SetRailCount(6);
 
-				component.SetRailsActive(0, new[] { 0, 1 }, false);
+				component.SetRailsActive(0, new[] { 0, 1, 2, 3 }, false);
 
-				Assert.That(component.RailCount, Is.EqualTo(4));
+				Assert.That(component.RailCount, Is.EqualTo(6));
 				Assert.That(CountActiveRails(component.Segments[0]), Is.EqualTo(2));
 				Assert.That(component.RenderMesh.triangles.Length, Is.LessThan(allRailTriangles));
 				Assert.That(component.ColliderMesh.vertexCount, Is.GreaterThan(0));
@@ -1242,17 +1267,35 @@ namespace VisualPinball.Unity.Test
 					out var profile, out var error), Is.True, error);
 				var rowSize = profile.Vertices.Count;
 				var vertices = component.ColliderMesh.vertices;
+				var rowCount = vertices.Length / rowSize;
+				var secondStartRow = -1;
+				for (var rowIndex = 1; rowIndex < rowCount; rowIndex++) {
+					if (RowsMatch(vertices, (rowIndex - 1) * rowSize,
+							rowIndex * rowSize, rowSize)) {
+						secondStartRow = rowIndex;
+						break;
+					}
+				}
+				Assert.That(secondStartRow, Is.GreaterThan(1));
 				var firstStartX = AverageRowX(vertices, 0, rowSize);
-				var firstMiddleX = AverageRowX(vertices, 4 * rowSize, rowSize);
-				var firstEndX = AverageRowX(vertices, 8 * rowSize, rowSize);
-				var secondStartX = AverageRowX(vertices, 9 * rowSize, rowSize);
-				var secondMiddleX = AverageRowX(vertices, 13 * rowSize, rowSize);
-				var secondEndX = AverageRowX(vertices, 17 * rowSize, rowSize);
+				var firstEndX = AverageRowX(vertices,
+					(secondStartRow - 1) * rowSize, rowSize);
+				var secondStartX = AverageRowX(vertices,
+					secondStartRow * rowSize, rowSize);
+				var secondEndX = AverageRowX(vertices,
+					(rowCount - 1) * rowSize, rowSize);
+				var hasAuthoredMiddle = false;
+				for (var rowIndex = 1; rowIndex < secondStartRow - 1; rowIndex++) {
+					var rowX = AverageRowX(vertices, rowIndex * rowSize, rowSize);
+					if (math.abs(rowX - firstStartX - 10f) < 0.01f) {
+						hasAuthoredMiddle = true;
+						break;
+					}
+				}
 
-				Assert.That(firstMiddleX - firstStartX, Is.EqualTo(10f).Within(0.01f));
+				Assert.That(hasAuthoredMiddle, Is.True);
 				Assert.That(firstEndX - firstStartX, Is.EqualTo(40f).Within(0.01f));
 				Assert.That(secondStartX, Is.EqualTo(firstEndX).Within(0.01f));
-				Assert.That(secondMiddleX - firstStartX, Is.EqualTo(40f).Within(0.01f));
 				Assert.That(secondEndX - firstStartX, Is.EqualTo(40f).Within(0.01f));
 			} finally {
 				Object.DestroyImmediate(go);
@@ -1305,24 +1348,24 @@ namespace VisualPinball.Unity.Test
 
 				component.SetRailCount(2);
 				AssertOffsets(component.Segments[0],
-					new Vector2(-19f, 0f), new Vector2(19f, 0f));
+					new Vector2(-15f, 0f), new Vector2(15f, 0f));
 
 				component.SetRailCount(3);
 				AssertOffsets(component.Segments[0],
-					new Vector2(-19f, 0f), new Vector2(19f, 0f),
-					new Vector2(19f, 44f));
+					new Vector2(-15f, 0f), new Vector2(15f, 0f),
+					new Vector2(30f, 30f));
 				component.SetThirdRailSide(0, WireRailThirdRailSide.Left);
 				Assert.That(component.Segments[0].GetRailOffset(2),
-					Is.EqualTo(new Vector2(-19f, 44f)));
+					Is.EqualTo(new Vector2(-30f, 30f)));
 
 				component.SetRailCount(4);
 				AssertOffsets(component.Segments[0],
-					new Vector2(-19f, 0f), new Vector2(19f, 0f),
-					new Vector2(-19f, 44f), new Vector2(19f, 44f));
+					new Vector2(-15f, 0f), new Vector2(15f, 0f),
+					new Vector2(-30f, 30f), new Vector2(30f, 30f));
 
 				component.SetRailCount(5);
 				Assert.That(component.Segments[0].GetRailOffset(4),
-					Is.EqualTo(new Vector2(0f, 52f)));
+					Is.EqualTo(new Vector2(0f, 60f)));
 			}
 			finally {
 				Object.DestroyImmediate(go);
@@ -1335,9 +1378,9 @@ namespace VisualPinball.Unity.Test
 			var offsets = WireRailLayout.CreateDefaultOffsets(7);
 
 			Assert.That(offsets, Has.Length.EqualTo(7));
-			Assert.That(offsets[4], Is.EqualTo(new Vector2(-19f, 52f)));
-			Assert.That(offsets[5], Is.EqualTo(new Vector2(0f, 52f)));
-			Assert.That(offsets[6], Is.EqualTo(new Vector2(19f, 52f)));
+			Assert.That(offsets[4], Is.EqualTo(new Vector2(-15f, 60f)));
+			Assert.That(offsets[5], Is.EqualTo(new Vector2(0f, 60f)));
+			Assert.That(offsets[6], Is.EqualTo(new Vector2(15f, 60f)));
 		}
 
 		[Test]
@@ -1583,8 +1626,8 @@ namespace VisualPinball.Unity.Test
 				Assert.That(mesh, Is.Not.Null);
 				Assert.That(mesh.vertexCount, Is.GreaterThan(0));
 				Assert.That(mesh.normals, Has.Length.EqualTo(mesh.vertexCount));
-				Assert.That(mesh.bounds.min.x, Is.EqualTo(-23f).Within(0.05f));
-				Assert.That(mesh.bounds.max.x, Is.EqualTo(23f).Within(0.05f));
+				Assert.That(mesh.bounds.min.x, Is.EqualTo(-34f).Within(0.05f));
+				Assert.That(mesh.bounds.max.x, Is.EqualTo(34f).Within(0.05f));
 				Assert.That(mesh.hideFlags & HideFlags.DontSaveInEditor,
 					Is.EqualTo(HideFlags.DontSaveInEditor));
 				Assert.That(mesh.hideFlags & HideFlags.DontSaveInBuild,
@@ -1664,6 +1707,69 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldOpenAChannelDownwardWhenOnlyTheTopRailsAreActive()
+		{
+			var offsets = WireRailLayout.CreateDefaultOffsets(6);
+			var topOffsets = new[] { offsets[4], offsets[5] };
+			var wireRadii = new[] { 4f, 4f };
+			var envelopeCenter = new Vector2(0f, 30f);
+
+			Assert.That(WireRailChannelProfile.TryCreate(topOffsets, wireRadii, 25f,
+				envelopeCenter, out var profile, out var error), Is.True, error);
+			Assert.That(profile.RestingBallCenter.y, Is.LessThan(topOffsets[0].y));
+			Assert.That(profile.IsClosed, Is.False);
+		}
+
+		[Test]
+		public void ShouldKeepATwoRailChannelAboveReversedSupports()
+		{
+			var offsets = new[] { new Vector2(15f, 0f), new Vector2(-15f, 0f) };
+			var wireRadii = new[] { 4f, 4f };
+
+			Assert.That(WireRailChannelProfile.TryCreate(offsets, wireRadii, 25f,
+				Vector2.zero, out var profile, out var error), Is.True, error);
+			Assert.That(profile.RestingBallCenter.y, Is.GreaterThan(0f));
+		}
+
+		[Test]
+		public void ShouldKeepASingleRailChannelHorizontal()
+		{
+			var offsets = new[] { new Vector2(-15f, 0f) };
+			var wireRadii = new[] { 4f };
+
+			Assert.That(WireRailChannelProfile.TryCreate(offsets, wireRadii, 25f,
+				new Vector2(0f, 15f), out var profile, out var error), Is.True, error);
+			Assert.That(profile.RestingBallCenter.x, Is.EqualTo(-15f).Within(0.001f));
+			Assert.That(profile.Vertices[0].y,
+				Is.EqualTo(profile.Vertices[1].y).Within(0.001f));
+		}
+
+		[Test]
+		public void ShouldNotSelfIntersectAChannelBelowThreeUpperRails()
+		{
+			var allOffsets = WireRailLayout.CreateDefaultOffsets(7);
+			var offsets = new[] { allOffsets[4], allOffsets[5], allOffsets[6] };
+			var wireRadii = new[] { 4f, 4f, 4f };
+
+			Assert.That(WireRailChannelProfile.TryCreate(offsets, wireRadii, 25f,
+				new Vector2(0f, 30f), out var profile, out var error), Is.True, error);
+			Assert.That(profile.RestingBallCenter.y, Is.LessThan(offsets[0].y));
+			for (var firstSpanIndex = 0; firstSpanIndex < profile.Spans.Count;
+				firstSpanIndex++) {
+				var firstSpan = profile.Spans[firstSpanIndex];
+				for (var secondSpanIndex = firstSpanIndex + 2;
+					secondSpanIndex < profile.Spans.Count; secondSpanIndex++) {
+					var secondSpan = profile.Spans[secondSpanIndex];
+					Assert.That(SegmentsProperlyIntersect(
+						profile.Vertices[firstSpan.StartVertex],
+						profile.Vertices[firstSpan.EndVertex],
+						profile.Vertices[secondSpan.StartVertex],
+						profile.Vertices[secondSpan.EndVertex]), Is.False);
+				}
+			}
+		}
+
+		[Test]
 		public void ShouldGenerateAChannelColliderInsteadOfPerWireTubes()
 		{
 			var go = new GameObject("Wire Rail");
@@ -1671,17 +1777,43 @@ namespace VisualPinball.Unity.Test
 				var component = go.AddComponent<WireRailComponent>();
 
 				Assert.That(component.ColliderMesh, Is.Not.Null);
-				Assert.That(component.ColliderMesh.triangles, Has.Length.EqualTo(224 * 3));
+				Assert.That(component.ColliderMesh.triangles, Has.Length.EqualTo(28 * 3));
 				Assert.That(component.ColliderMesh.normals, Is.Empty);
 				Assert.That(component.ColliderMesh.uv, Is.Empty);
 				Assert.That(component.RenderMesh.vertexCount,
 					Is.GreaterThan(component.ColliderMesh.vertexCount));
 
 				component.SetRailCount(2);
-				Assert.That(component.ColliderMesh.triangles, Has.Length.EqualTo(96 * 3));
+				Assert.That(component.ColliderMesh.triangles, Has.Length.EqualTo(12 * 3));
 				Assert.That(component, Is.InstanceOf<ICollidableComponent>());
 			}
 			finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldTessellateTheColliderFromCurvatureInsteadOfKnotCount()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var spline = component.SplineContainer.Spline;
+				var straightVertexCount = component.ColliderMesh.vertexCount;
+
+				spline.Insert(1, new BezierKnot(new float3(0f, 250f, 0f)) {
+					Rotation = spline[0].Rotation,
+				},
+					TangentMode.Linear);
+				Assert.That(component.ColliderMesh.vertexCount, Is.EqualTo(straightVertexCount),
+					"a collinear knot must not force extra collider rows");
+
+				var middle = spline[1];
+				middle.Position = new float3(150f, 250f, 0f);
+				spline.SetKnot(1, middle);
+				Assert.That(component.ColliderMesh.vertexCount, Is.GreaterThan(straightVertexCount),
+					"a bend must receive adaptive collider rows");
+			} finally {
 				Object.DestroyImmediate(go);
 			}
 		}
@@ -1719,7 +1851,7 @@ namespace VisualPinball.Unity.Test
 				collidable.GetColliders(null, null, ref colliders, float4x4.identity, 0f);
 
 				Assert.That(collidable.IsCollidable, Is.True);
-				Assert.That(colliders.Count, Is.EqualTo(360));
+				Assert.That(colliders.Count, Is.EqualTo(52));
 				for (var i = 0; i < colliders.Count; i++) {
 					Assert.That(colliders[i], Is.Not.InstanceOf<CircleCollider>(),
 						"the channel must not expand into per-wire tube colliders");
@@ -1756,6 +1888,34 @@ namespace VisualPinball.Unity.Test
 				sum += vertices[index].x;
 			}
 			return sum / count;
+		}
+
+		private static bool RowsMatch(Vector3[] vertices, int firstStart, int secondStart,
+			int count)
+		{
+			for (var index = 0; index < count; index++) {
+				if ((vertices[firstStart + index] - vertices[secondStart + index]).sqrMagnitude
+					> 1e-6f) {
+					return false;
+				}
+			}
+			return true;
+		}
+
+		private static bool SegmentsProperlyIntersect(float2 firstStart, float2 firstEnd,
+			float2 secondStart, float2 secondEnd)
+		{
+			var firstDirection = firstEnd - firstStart;
+			var secondDirection = secondEnd - secondStart;
+			var firstSideA = Cross(firstDirection, secondStart - firstStart);
+			var firstSideB = Cross(firstDirection, secondEnd - firstStart);
+			var secondSideA = Cross(secondDirection, firstStart - secondStart);
+			var secondSideB = Cross(secondDirection, firstEnd - secondStart);
+			return firstSideA * firstSideB < -1e-6f
+				&& secondSideA * secondSideB < -1e-6f;
+
+			static float Cross(float2 first, float2 second)
+				=> first.x * second.y - first.y * second.x;
 		}
 
 		private static Vector3 AverageRing(Vector3[] vertices, int start, int count)

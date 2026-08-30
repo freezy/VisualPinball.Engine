@@ -155,6 +155,57 @@ namespace VisualPinball.Unity.Test
 			}
 		}
 
+		[UnityTest]
+		public IEnumerator ShouldUndoAndRedoADirectSplineKnotDrag()
+		{
+			var gameObject = new GameObject("Wire Rail");
+			try {
+				Undo.ClearAll();
+				var component = gameObject.AddComponent<WireRailComponent>();
+				// Creating the hidden spline child registers its own Undo operation. A direct
+				// knot drag starts from an already-authored object, so isolate that gesture.
+				Undo.ClearAll();
+				var container = component.SplineContainer;
+				var handles = typeof(WireRailInspector).Assembly.GetType(
+					"VisualPinball.Unity.Editor.WireRailSplineHandles");
+				var moveKnot = handles?.GetMethod("MoveKnot",
+					BindingFlags.Static | BindingFlags.NonPublic);
+				Assert.That(moveKnot, Is.Not.Null);
+
+				var splineEditorAssembly = Assembly.Load("Unity.Splines.Editor");
+				var knotType = splineEditorAssembly.GetType(
+					"UnityEditor.Splines.SelectableKnot");
+				Assert.That(knotType, Is.Not.Null);
+				var selectableKnot = System.Activator.CreateInstance(knotType,
+					new object[] { new SplineInfo(container, 0), 0 });
+				var positionProperty = knotType.GetProperty("Position");
+				Assert.That(positionProperty, Is.Not.Null);
+				var initialPosition = (float3)positionProperty.GetValue(selectableKnot);
+				var finalPosition = initialPosition + new float3(17f, 23f, 11f);
+
+				moveKnot.Invoke(null,
+					new[] { (object)component, selectableKnot, finalPosition });
+
+				Assert.That(math.distance((float3)positionProperty.GetValue(selectableKnot),
+					finalPosition),
+					Is.LessThan(0.001f));
+				yield return null;
+				Undo.PerformUndo();
+				yield return null;
+				Assert.That(math.distance(
+					(float3)positionProperty.GetValue(selectableKnot), initialPosition),
+					Is.LessThan(0.001f));
+				Undo.PerformRedo();
+				yield return null;
+				Assert.That(math.distance(
+					(float3)positionProperty.GetValue(selectableKnot), finalPosition),
+					Is.LessThan(0.001f));
+			} finally {
+				Undo.ClearAll();
+				Object.DestroyImmediate(gameObject);
+			}
+		}
+
 		[Test]
 		public void ShouldAddAndRemoveKnotsWithoutRemovingTheMinimumRoute()
 		{

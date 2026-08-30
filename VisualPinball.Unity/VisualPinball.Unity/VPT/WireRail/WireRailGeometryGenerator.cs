@@ -869,7 +869,6 @@ namespace VisualPinball.Unity
 
 	internal static class WireRailFixtureMeshGenerator
 	{
-		private const int CompleteBraceSegments = 32;
 		private const float FullTurn = math.PI * 2f;
 
 		public static void Append(Spline spline, IReadOnlyList<WireRailSegment> segments,
@@ -1081,7 +1080,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 			var longitudinalSegments = math.max(2,
-				(int)math.ceil(CompleteBraceSegments * sweepAngle / FullTurn));
+				(int)math.ceil(brace.RingDensity * sweepAngle / FullTurn));
 			var angles = BuildBraceAngles(brace, startAngle, sweepAngle, closed,
 				longitudinalSegments);
 			var ringCount = angles.Count;
@@ -1382,7 +1381,6 @@ namespace VisualPinball.Unity
 	{
 		private const int MaximumFacetCount = 8;
 		private const float FullTurn = math.PI * 2f;
-		private const float TopInwardNormalAngle = math.PI * 1.5f;
 
 		public readonly List<float2> Vertices = new();
 		public readonly List<WireRailProfileSpan> Spans = new();
@@ -1401,6 +1399,17 @@ namespace VisualPinball.Unity
 		public static bool TryCreate(IReadOnlyList<Vector2> offsets,
 			IReadOnlyList<float> wireRadii, float ballRadius,
 			out WireRailChannelProfile profile, out string error)
+			=> TryCreateCore(offsets, wireRadii, ballRadius, null, out profile, out error);
+
+		internal static bool TryCreate(IReadOnlyList<Vector2> offsets,
+			IReadOnlyList<float> wireRadii, float ballRadius, Vector2 ballCenterHint,
+			out WireRailChannelProfile profile, out string error)
+			=> TryCreateCore(offsets, wireRadii, ballRadius, (float2)ballCenterHint,
+				out profile, out error);
+
+		private static bool TryCreateCore(IReadOnlyList<Vector2> offsets,
+			IReadOnlyList<float> wireRadii, float ballRadius, float2? ballCenterHint,
+			out WireRailChannelProfile profile, out string error)
 		{
 			profile = null;
 			error = null;
@@ -1417,14 +1426,16 @@ namespace VisualPinball.Unity
 				return false;
 			}
 
-			if (!TryGetRestingBallCenter(offsets, wireRadii, ballRadius,
+			if (!TryGetRestingBallCenter(offsets, wireRadii, ballRadius, ballCenterHint,
 					out var ballCenter, out error)) {
 				return false;
 			}
 			var collisionIndices = SelectCollisionIndices(offsets.Count);
 			var supportLines = new List<FacetLine>(collisionIndices.Count);
+			var supportCenter = float2.zero;
 			foreach (var railIndex in collisionIndices) {
 				var offset = (float2)offsets[railIndex];
+				supportCenter += offset;
 				var normal = math.normalizesafe(ballCenter - offset);
 				if (math.lengthsq(normal) < 0.5f) {
 					error = "A rail lies on the reference ball center and has no contact direction.";
@@ -1434,9 +1445,16 @@ namespace VisualPinball.Unity
 					NormalizeAngle(math.atan2(normal.y, normal.x))));
 			}
 			supportLines.Sort((first, second) => first.Angle.CompareTo(second.Angle));
+			supportCenter /= collisionIndices.Count;
 
 			var closed = offsets.Count >= 5;
-			var ordered = closed ? supportLines : OrderAroundTopOpening(supportLines);
+			var openingDirection = math.normalizesafe(ballCenter - supportCenter,
+				new float2(0f, 1f));
+			var openingInwardNormal = NormalizeAngle(math.atan2(-openingDirection.y,
+				-openingDirection.x));
+			var ordered = closed
+				? supportLines
+				: OrderAroundOpening(supportLines, openingInwardNormal);
 			var lines = AddChamfers(ordered, ballCenter, ballRadius, closed);
 			if (!TryBuildProfile(lines, ballCenter, ballRadius, closed,
 					out profile, out error)) {
@@ -1463,13 +1481,15 @@ namespace VisualPinball.Unity
 		}
 
 		private static bool TryGetRestingBallCenter(IReadOnlyList<Vector2> offsets,
-			IReadOnlyList<float> wireRadii, float ballRadius,
+			IReadOnlyList<float> wireRadii, float ballRadius, float2? ballCenterHint,
 			out float2 center, out string error)
 		{
 			error = null;
 			if (offsets.Count == 1) {
-				center = (float2)offsets[0]
-					+ new float2(0f, wireRadii[0] + ballRadius);
+				var offset = (float2)offsets[0];
+				var direction = new float2(0f,
+					ballCenterHint.HasValue && ballCenterHint.Value.y < offset.y ? -1f : 1f);
+				center = offset + direction * (wireRadii[0] + ballRadius);
 				return true;
 			}
 
@@ -1479,7 +1499,7 @@ namespace VisualPinball.Unity
 			var separation = math.length(delta);
 			if (separation <= 1e-5f) {
 				center = default;
-				error = "The two bottom rails have coincident centers.";
+				error = "The two support rails have coincident centers.";
 				return false;
 			}
 			var firstRadius = wireRadii[0] + ballRadius;
@@ -1487,7 +1507,7 @@ namespace VisualPinball.Unity
 			if (separation > firstRadius + secondRadius
 				|| separation < math.abs(firstRadius - secondRadius)) {
 				center = default;
-				error = "The reference ball cannot contact both bottom rails.";
+				error = "The reference ball cannot contact both support rails.";
 				return false;
 			}
 			var distanceAlong = (firstRadius * firstRadius - secondRadius * secondRadius
@@ -1498,11 +1518,22 @@ namespace VisualPinball.Unity
 				firstRadius * firstRadius - distanceAlong * distanceAlong));
 			var firstCandidate = midpoint + perpendicular * height;
 			var secondCandidate = midpoint - perpendicular * height;
-			center = firstCandidate.y >= secondCandidate.y ? firstCandidate : secondCandidate;
+			if (ballCenterHint.HasValue) {
+				var firstDistance = math.distancesq(firstCandidate, ballCenterHint.Value);
+				var secondDistance = math.distancesq(secondCandidate, ballCenterHint.Value);
+				center = math.abs(firstDistance - secondDistance) <= 1e-4f
+					? (firstCandidate.y >= secondCandidate.y
+						? firstCandidate : secondCandidate)
+					: (firstDistance < secondDistance ? firstCandidate : secondCandidate);
+			} else {
+				center = firstCandidate.y >= secondCandidate.y
+					? firstCandidate : secondCandidate;
+			}
 			return true;
 		}
 
-		private static List<FacetLine> OrderAroundTopOpening(IReadOnlyList<FacetLine> sorted)
+		private static List<FacetLine> OrderAroundOpening(IReadOnlyList<FacetLine> sorted,
+			float openingInwardNormal)
 		{
 			if (sorted.Count <= 1) {
 				return sorted.ToList();
@@ -1514,7 +1545,7 @@ namespace VisualPinball.Unity
 				if (i == sorted.Count - 1) {
 					end += FullTurn;
 				}
-				var target = TopInwardNormalAngle;
+				var target = openingInwardNormal;
 				if (target < start) {
 					target += FullTurn;
 				}
@@ -1687,6 +1718,8 @@ namespace VisualPinball.Unity
 
 	internal static class WireRailColliderMeshGenerator
 	{
+		private const int MaximumAdaptiveDepth = 10;
+
 		public static bool TryGenerate(Spline spline, IReadOnlyList<WireRailSegment> segments,
 			float ballDiameter, int samplesPerSegment, Mesh target,
 			out Mesh mesh, out Vector3[] edgeVertices, out string error)
@@ -1728,15 +1761,30 @@ namespace VisualPinball.Unity
 		{
 			var offsets = new Vector2[activeRailIndices.Count];
 			var wireRadii = new float[activeRailIndices.Count];
+			var allOffsets = new Vector2[segments[segmentIndex].RailCount];
+			var allWireRadii = new float[segments[segmentIndex].RailCount];
+			var envelopeMinimum = new float2(float.PositiveInfinity);
+			var envelopeMaximum = new float2(float.NegativeInfinity);
+			for (var railIndex = 0; railIndex < segments[segmentIndex].RailCount;
+				railIndex++) {
+				var offset = WireRailSplineGeometry.EvaluateRailOffset(spline, segments,
+					segmentIndex, railIndex, curveT);
+				var radius = WireRailSplineGeometry.EvaluateWireDiameter(spline, segments,
+					segmentIndex, railIndex, curveT) * 0.5f;
+				allOffsets[railIndex] = (Vector2)offset;
+				allWireRadii[railIndex] = radius;
+				envelopeMinimum = math.min(envelopeMinimum, offset - radius);
+				envelopeMaximum = math.max(envelopeMaximum, offset + radius);
+			}
 			for (var activeRailIndex = 0; activeRailIndex < activeRailIndices.Count;
 				activeRailIndex++) {
 				var railIndex = activeRailIndices[activeRailIndex];
-				offsets[activeRailIndex] = WireRailSplineGeometry.EvaluateRailOffset(spline,
-					segments, segmentIndex, railIndex, curveT);
-				wireRadii[activeRailIndex] = WireRailSplineGeometry.EvaluateWireDiameter(spline,
-					segments, segmentIndex, railIndex, curveT) * 0.5f;
+				offsets[activeRailIndex] = allOffsets[railIndex];
+				wireRadii[activeRailIndex] = allWireRadii[railIndex];
 			}
+			var ballCenterHint = (Vector2)((envelopeMinimum + envelopeMaximum) * 0.5f);
 			return WireRailChannelProfile.TryCreate(offsets, wireRadii, ballRadius,
+				ballCenterHint,
 				out profile, out error);
 		}
 
@@ -1761,7 +1809,7 @@ namespace VisualPinball.Unity
 
 		private static bool AppendSegment(Spline spline,
 			IReadOnlyList<WireRailSegment> segments, int segmentIndex, float ballRadius,
-			int samplesPerSegment, ICollection<Vector3> vertices,
+			int curvatureDetail, ICollection<Vector3> vertices,
 			ICollection<int> indices, ICollection<Vector3> edges, out string error)
 		{
 			var segment = segments[segmentIndex];
@@ -1771,34 +1819,20 @@ namespace VisualPinball.Unity
 					activeRailIndices.Add(railIndex);
 				}
 			}
+			if (!TryBuildAdaptiveSamples(spline, segments, segmentIndex, activeRailIndices,
+					ballRadius, curvatureDetail, out var samples, out error)) {
+				return false;
+			}
 			var firstRow = vertices.Count;
-			WireRailChannelProfile referenceProfile = null;
-			for (var sampleIndex = 0; sampleIndex <= samplesPerSegment; sampleIndex++) {
-				var curveT = sampleIndex / (float)samplesPerSegment;
-				if (!WireRailSplineGeometry.TryEvaluateLayout(spline, segments, segmentIndex,
-						curveT,
-						out var frame)) {
-					error = $"Could not evaluate spline segment {segmentIndex + 1}.";
-					return false;
-				}
-				if (!TryCreateProfile(spline, segments, segmentIndex, curveT,
-						activeRailIndices, ballRadius, out var profile, out error)) {
-					return false;
-				}
-				if (referenceProfile == null) {
-					referenceProfile = profile;
-				} else if (!HasMatchingTopology(referenceProfile, profile)) {
-					error = $"The collider profile changes topology while blending segment "
-						+ $"{segmentIndex + 1}. Adjust the segment connection or rail layout.";
-					return false;
-				}
-				foreach (var offset in profile.Vertices) {
-					vertices.Add((Vector3)frame.TransformOffset(offset));
+			foreach (var sample in samples) {
+				foreach (var offset in sample.Profile.Vertices) {
+					vertices.Add((Vector3)sample.Frame.TransformOffset(offset));
 				}
 			}
 
+			var referenceProfile = samples[0].Profile;
 			var rowSize = referenceProfile.Vertices.Count;
-			for (var sampleIndex = 0; sampleIndex < samplesPerSegment; sampleIndex++) {
+			for (var sampleIndex = 0; sampleIndex < samples.Count - 1; sampleIndex++) {
 				var currentRow = firstRow + sampleIndex * rowSize;
 				var nextRow = currentRow + rowSize;
 				foreach (var span in referenceProfile.Spans) {
@@ -1813,6 +1847,143 @@ namespace VisualPinball.Unity
 			}
 			error = null;
 			return true;
+		}
+
+		private static bool TryBuildAdaptiveSamples(Spline spline,
+			IReadOnlyList<WireRailSegment> segments, int segmentIndex,
+			IReadOnlyList<int> activeRailIndices, float ballRadius, int curvatureDetail,
+			out List<ColliderSample> samples, out string error)
+		{
+			var builtSamples = new List<ColliderSample>();
+			samples = builtSamples;
+			var evaluationError = default(string);
+			if (!TryEvaluateSample(0f, out var start)
+				|| !TryEvaluateSample(1f, out var end)) {
+				error = evaluationError;
+				return false;
+			}
+			if (!HasMatchingTopology(start.Profile, end.Profile)) {
+				error = TopologyError();
+				return false;
+			}
+			builtSamples.Add(start);
+			return TryAppendInterval(start, end, null, 0, out error);
+
+			bool TryAppendInterval(ColliderSample intervalStart, ColliderSample intervalEnd,
+				ColliderSample? knownMiddle, int depth, out string intervalError)
+			{
+				var interval = intervalEnd.CurveT - intervalStart.CurveT;
+				if (!TryEvaluateSample(intervalStart.CurveT + interval * 0.25f,
+						out var firstQuarter)
+					|| !TryEvaluateSample(intervalStart.CurveT + interval * 0.75f,
+						out var thirdQuarter)) {
+					intervalError = evaluationError;
+					return false;
+				}
+				var middle = knownMiddle.GetValueOrDefault();
+				if (!knownMiddle.HasValue
+					&& !TryEvaluateSample(intervalStart.CurveT + interval * 0.5f,
+						out middle)) {
+					intervalError = evaluationError;
+					return false;
+				}
+				if (!HasMatchingTopology(start.Profile, firstQuarter.Profile)
+					|| !HasMatchingTopology(start.Profile, middle.Profile)
+					|| !HasMatchingTopology(start.Profile, thirdQuarter.Profile)) {
+					intervalError = TopologyError();
+					return false;
+				}
+				if (depth < MaximumAdaptiveDepth
+					&& ShouldSubdivide(intervalStart, firstQuarter, middle, thirdQuarter,
+						intervalEnd, curvatureDetail)) {
+					if (!TryAppendInterval(intervalStart, middle, firstQuarter, depth + 1,
+							out intervalError)) {
+						return false;
+					}
+					return TryAppendInterval(middle, intervalEnd, thirdQuarter, depth + 1,
+						out intervalError);
+				}
+				builtSamples.Add(intervalEnd);
+				intervalError = null;
+				return true;
+			}
+
+			bool TryEvaluateSample(float curveT, out ColliderSample sample)
+			{
+				sample = default;
+				if (!WireRailSplineGeometry.TryEvaluateLayout(spline, segments, segmentIndex,
+						curveT, out var frame)) {
+					evaluationError = $"Could not evaluate spline segment {segmentIndex + 1}.";
+					return false;
+				}
+				if (!TryCreateProfile(spline, segments, segmentIndex, curveT,
+						activeRailIndices, ballRadius, out var profile,
+						out evaluationError)) {
+					return false;
+				}
+				sample = new ColliderSample(curveT, frame, profile);
+				return true;
+			}
+
+			string TopologyError()
+				=> $"The collider profile changes topology while blending segment "
+					+ $"{segmentIndex + 1}. Adjust the segment connection or rail layout.";
+		}
+
+		private static bool ShouldSubdivide(ColliderSample start,
+			ColliderSample firstQuarter, ColliderSample middle, ColliderSample thirdQuarter,
+			ColliderSample end, int curvatureDetail)
+		{
+			curvatureDetail = math.clamp(curvatureDetail, 2, 32);
+			var maximumAngle = math.radians(45f / curvatureDetail);
+			if (Angle(start.Frame.Tangent, firstQuarter.Frame.Tangent) > maximumAngle
+				|| Angle(firstQuarter.Frame.Tangent, middle.Frame.Tangent) > maximumAngle
+				|| Angle(middle.Frame.Tangent, thirdQuarter.Frame.Tangent) > maximumAngle
+				|| Angle(thirdQuarter.Frame.Tangent, end.Frame.Tangent) > maximumAngle) {
+				return true;
+			}
+
+			var maximumDeviation = 4f / curvatureDetail;
+			var maximumDeviationSquared = maximumDeviation * maximumDeviation;
+			return SampleDeviates(firstQuarter, 0.25f)
+				|| SampleDeviates(middle, 0.5f)
+				|| SampleDeviates(thirdQuarter, 0.75f);
+
+			bool SampleDeviates(ColliderSample sample, float interpolation)
+			{
+				for (var vertexIndex = 0; vertexIndex < sample.Profile.Vertices.Count;
+					vertexIndex++) {
+					var startVertex = start.Frame.TransformOffset(
+						start.Profile.Vertices[vertexIndex]);
+					var sampleVertex = sample.Frame.TransformOffset(
+						sample.Profile.Vertices[vertexIndex]);
+					var endVertex = end.Frame.TransformOffset(end.Profile.Vertices[vertexIndex]);
+					if (math.distancesq(sampleVertex,
+							math.lerp(startVertex, endVertex, interpolation))
+						> maximumDeviationSquared) {
+						return true;
+					}
+				}
+				return false;
+			}
+		}
+
+		private static float Angle(float3 first, float3 second)
+			=> math.acos(math.clamp(math.dot(first, second), -1f, 1f));
+
+		private readonly struct ColliderSample
+		{
+			public readonly float CurveT;
+			public readonly WireRailPathFrame Frame;
+			public readonly WireRailChannelProfile Profile;
+
+			public ColliderSample(float curveT, WireRailPathFrame frame,
+				WireRailChannelProfile profile)
+			{
+				CurveT = curveT;
+				Frame = frame;
+				Profile = profile;
+			}
 		}
 
 		private static bool HasActiveRails(WireRailSegment segment)
