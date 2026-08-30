@@ -49,8 +49,6 @@ namespace VisualPinball.Unity.Editor
 		private static readonly List<SelectableKnot> SelectedKnots = new();
 		private static readonly List<SelectableTangent> SelectedTangents = new();
 		private static bool _overriding;
-		private static bool _toolVisibilityCaptured;
-		private static bool _toolsWereHidden;
 
 		static WireRailSplineHandles()
 		{
@@ -60,8 +58,6 @@ namespace VisualPinball.Unity.Editor
 			ToolManager.activeContextChanged += OnEditorStateChanged;
 			ToolManager.activeToolChanged += OnEditorStateChanged;
 			Selection.selectionChanged += OnEditorStateChanged;
-			AssemblyReloadEvents.beforeAssemblyReload += RestoreToolVisibility;
-			EditorApplication.quitting += RestoreToolVisibility;
 		}
 
 		private static void OnEditorStateChanged() => SyncOverride(out _, out _, out _);
@@ -361,36 +357,11 @@ namespace VisualPinball.Unity.Editor
 				&& !SelectionUsesDragPointHandles()) {
 				SplineToolContext.useCustomSplineHandles = false;
 			}
-			SetToolVisibility(shouldOverride
-				&& ToolManager.activeToolType == typeof(SplineMoveTool));
-
 			if (shouldOverride != _overriding) {
 				_overriding = shouldOverride;
 				SceneView.RepaintAll();
 			}
 			return shouldOverride;
-		}
-
-		private static void SetToolVisibility(bool hide)
-		{
-			if (!hide) {
-				RestoreToolVisibility();
-				return;
-			}
-			if (!_toolVisibilityCaptured) {
-				_toolsWereHidden = Tools.hidden;
-				_toolVisibilityCaptured = true;
-			}
-			Tools.hidden = true;
-		}
-
-		private static void RestoreToolVisibility()
-		{
-			if (!_toolVisibilityCaptured) {
-				return;
-			}
-			Tools.hidden = _toolsWereHidden;
-			_toolVisibilityCaptured = false;
 		}
 
 		private static bool SelectionUsesDragPointHandles()

@@ -80,6 +80,81 @@ namespace VisualPinball.Unity.Test
 			}
 		}
 
+		[UnityTest]
+		public IEnumerator ShouldKeepTheSplineMoveGizmoVisibleWhileEditingKnots()
+		{
+			var gameObject = new GameObject("Wire Rail");
+			var toolsWereHidden = Tools.hidden;
+			try {
+				Tools.hidden = false;
+				var component = gameObject.AddComponent<WireRailComponent>();
+				Selection.activeGameObject = component.SplineContainer.gameObject;
+				ActiveEditorTracker.sharedTracker.ForceRebuild();
+				yield return null;
+
+				var splineEditorAssembly = Assembly.Load("Unity.Splines.Editor");
+				var contextType = splineEditorAssembly.GetType(
+					"UnityEditor.Splines.SplineToolContext");
+				var moveToolType = splineEditorAssembly.GetType(
+					"UnityEditor.Splines.SplineMoveTool");
+				Assert.That(contextType, Is.Not.Null);
+				Assert.That(moveToolType, Is.Not.Null);
+				Assert.That(Selection.activeGameObject,
+					Is.SameAs(component.SplineContainer.gameObject));
+				ToolManager.SetActiveContext(contextType);
+				ToolManager.SetActiveTool(moveToolType);
+				yield return null;
+
+				Assert.That(ToolManager.activeToolType, Is.EqualTo(moveToolType));
+				Assert.That(Tools.hidden, Is.False,
+					"The spline move tool needs to draw its standard axis handles.");
+			} finally {
+				ToolManager.SetActiveContext<GameObjectToolContext>();
+				Selection.activeGameObject = null;
+				Tools.hidden = toolsWereHidden;
+				Object.DestroyImmediate(gameObject);
+			}
+		}
+
+		[Test]
+		public void ShouldUndoAndRedoACompleteWireDragAsOneOperation()
+		{
+			var gameObject = new GameObject("Wire Rail");
+			try {
+				Undo.ClearAll();
+				var component = gameObject.AddComponent<WireRailComponent>();
+				var initialOffset = component.Segments[0].GetRailOffset(0);
+				var intermediateOffset = initialOffset + new Vector2(5f, 3f);
+				var finalOffset = initialOffset + new Vector2(12f, 8f);
+				var editorType = typeof(WireRailInspector).Assembly.GetType(
+					"VisualPinball.Unity.Editor.WireRailCrossSectionEditor");
+				var beginDragUndo = editorType?.GetMethod("BeginDragUndo",
+					BindingFlags.Static | BindingFlags.NonPublic);
+				var endDragUndo = editorType?.GetMethod("EndDragUndo",
+					BindingFlags.Static | BindingFlags.NonPublic);
+				Assert.That(beginDragUndo, Is.Not.Null);
+				Assert.That(endDragUndo, Is.Not.Null);
+
+				var undoGroup = (int)beginDragUndo.Invoke(null, new object[] { component });
+				component.SetWireProperties(0, new[] { 0 },
+					new[] { intermediateOffset });
+				component.SetWireProperties(0, new[] { 0 }, new[] { finalOffset });
+				endDragUndo.Invoke(null, new object[] { undoGroup });
+
+				Assert.That(component.Segments[0].GetRailOffset(0),
+					Is.EqualTo(finalOffset));
+				Undo.PerformUndo();
+				Assert.That(component.Segments[0].GetRailOffset(0),
+					Is.EqualTo(initialOffset));
+				Undo.PerformRedo();
+				Assert.That(component.Segments[0].GetRailOffset(0),
+					Is.EqualTo(finalOffset));
+			} finally {
+				Undo.ClearAll();
+				Object.DestroyImmediate(gameObject);
+			}
+		}
+
 		[Test]
 		public void ShouldAddAndRemoveKnotsWithoutRemovingTheMinimumRoute()
 		{
