@@ -45,7 +45,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly List<Vector2> _dragOffsets = new();
 		private Vector2 _dragStartMouse;
 		private int _dragSegmentIndex = -1;
-		private bool _dragUndoRecorded;
+		private int _dragUndoGroup = -1;
 		private static Texture2D _circleTexture;
 		private static GUIStyle _wireLabelStyle;
 
@@ -102,7 +102,7 @@ namespace VisualPinball.Unity.Editor
 					GUIUtility.keyboardControl = controlId;
 					_dragStartMouse = evt.mousePosition;
 					_dragSegmentIndex = segmentIndex;
-					_dragUndoRecorded = false;
+					_dragUndoGroup = -1;
 					CaptureDragValues(segment, selected);
 					evt.Use();
 					GUI.changed = true;
@@ -110,9 +110,8 @@ namespace VisualPinball.Unity.Editor
 
 				case EventType.MouseDrag when GUIUtility.hotControl == controlId
 					&& _dragSegmentIndex == segmentIndex:
-					if (!_dragUndoRecorded) {
-						Undo.RecordObject(component, "Move Wire Rail Wires");
-						_dragUndoRecorded = true;
+					if (_dragUndoGroup < 0) {
+						_dragUndoGroup = BeginDragUndo(component);
 					}
 					var delta = view.ToVpxDelta(evt.mousePosition - _dragStartMouse);
 					var movedOffsets = new Vector2[_dragOffsets.Count];
@@ -127,11 +126,29 @@ namespace VisualPinball.Unity.Editor
 					break;
 
 				case EventType.MouseUp when GUIUtility.hotControl == controlId:
+					EndDragUndo(_dragUndoGroup);
 					GUIUtility.hotControl = 0;
 					_dragSegmentIndex = -1;
+					_dragUndoGroup = -1;
 					evt.Use();
 					GUI.changed = true;
 					break;
+			}
+		}
+
+		private static int BeginDragUndo(WireRailComponent component)
+		{
+			Undo.IncrementCurrentGroup();
+			var undoGroup = Undo.GetCurrentGroup();
+			Undo.SetCurrentGroupName("Move Wire Rail Wires");
+			Undo.RegisterCompleteObjectUndo(component, "Move Wire Rail Wires");
+			return undoGroup;
+		}
+
+		private static void EndDragUndo(int undoGroup)
+		{
+			if (undoGroup >= 0) {
+				Undo.CollapseUndoOperations(undoGroup);
 			}
 		}
 
@@ -320,7 +337,7 @@ namespace VisualPinball.Unity.Editor
 						offsets[i] = new Vector2(xChanged ? editedX : currentOffset.x,
 							zChanged ? editedZ : currentOffset.y);
 					}
-					Undo.RecordObject(component, "Edit Wire Rail Wires");
+					Undo.RegisterCompleteObjectUndo(component, "Edit Wire Rail Wires");
 					component.SetWireProperties(segmentIndex, indices, offsets);
 					Apply(component);
 				}
@@ -329,7 +346,7 @@ namespace VisualPinball.Unity.Editor
 				LineHeight);
 			using (new EditorGUI.DisabledScope(selected.Count == 0)) {
 				if (GUI.Button(resetRect, "Reset")) {
-					Undo.RecordObject(component, "Reset Wire Rail Layout");
+					Undo.RegisterCompleteObjectUndo(component, "Reset Wire Rail Layout");
 					component.ResetSegmentLayout(segmentIndex);
 					Apply(component);
 				}

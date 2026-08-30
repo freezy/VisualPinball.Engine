@@ -114,8 +114,8 @@ namespace VisualPinball.Unity.Editor
 				EditSpline(container);
 			}
 			EditorGUILayout.HelpBox(
-				"While editing, double-click the spline to add a knot or double-click a knot "
-				+ "to remove it.", MessageType.None);
+				"While editing, click a knot to show the position gizmo. Double-click the "
+				+ "spline to add a knot or double-click a knot to remove it.", MessageType.None);
 
 			if (container.Splines.Count > 1) {
 				EditorGUILayout.HelpBox(
@@ -859,7 +859,8 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 			if (editing) {
-				GUILayout.Label("Double-click line: add knot\nDouble-click knot: remove",
+				GUILayout.Label("Click knot: show position gizmo\n"
+					+ "Double-click line: add knot\nDouble-click knot: remove",
 					EditorStyles.miniLabel);
 			}
 			GUILayout.EndArea();
