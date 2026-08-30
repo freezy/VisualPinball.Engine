@@ -77,6 +77,7 @@ namespace VisualPinball.Unity.Editor
 		private const string GateBracketName = "gate_bracket";
 		private const string GateLifterName = "gate_lifter";
 		private const string HitTargetName = "hit_target";
+		private const string HorizonName = "horizon";
 		private const string KeyName = "keyboard";
 		private const string KickerName = "kicker";
 		private const string LightGroupName = "light_group";
@@ -124,7 +125,7 @@ namespace VisualPinball.Unity.Editor
 
 		private static readonly string[] Names = {
 			AssetLibraryName, BallRollerName, BallName, BoltName, BumperName, CalendarName, CannonName, CoilName, DropTargetBankName, DropTargetName, FlasherName,
-			FlipperName, GateName, GateLifterName, HitTargetName, KeyName, KickerName, LightGroupName, LightName, LoopButtonName, MagnetName, MechName, MechPinMameName, PlayfieldName, PlayButtonName, PlugName,
+			FlipperName, GateName, GateLifterName, HitTargetName, HorizonName, KeyName, KickerName, LightGroupName, LightName, LoopButtonName, MagnetName, MechName, MechPinMameName, PlayfieldName, PlayButtonName, PlugName,
 			PhysicsName, PlungerName, PrimitiveName, RampName, RotatorName, RubberName, ScoreReelName, ScoreReelSingleName, SlingshotName, SpinnerName, StopButtonName, SurfaceName,
 			SwitchNcName, SwitchNoName, TableName, TeleporterName, TriggerName, TroughName,
 			CoilEventName, SwitchEventName, LampEventName, LampSeqName, MetalWireGuideName,
@@ -188,6 +189,7 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D GateBracket(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(GateBracketName, size, color);
 		public static Texture2D GateLifter(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(GateLifterName, size, color);
 		public static Texture2D HitTarget(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(HitTargetName, size, color);
+		public static Texture2D Horizon(IconSize size = IconSize.Small, IconColor color = IconColor.Gray) => Instance.GetItem(HorizonName, size, color);
 		public static Texture2D Key(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(KeyName, size, color);
 		public static Texture2D Kicker(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(KickerName, size, color);
 		public static Texture2D Light(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(LightName, size, color);

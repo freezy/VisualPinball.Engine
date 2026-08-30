@@ -34,6 +34,7 @@ namespace VisualPinball.Unity.Editor
 		private static readonly string[] ThirdRailSides = { "Left", "Right" };
 		private static readonly string[] RailCounts = { "1", "2", "3", "4", "5", "6" };
 		private static readonly Color TransitionCurveColor = new(0.05f, 0.75f, 1f, 1f);
+		private static GUIContent _alignAngleRangeContent;
 		private const float LayoutLineHeight = 20f;
 		private const float LayoutPadding = 7f;
 		private const float FixtureScaleMinimum = 0.1f;
@@ -109,9 +110,16 @@ namespace VisualPinball.Unity.Editor
 			var editButtonStyle = new GUIStyle(GUI.skin.button) {
 				fontStyle = FontStyle.Bold,
 			};
-			if (GUILayout.Button("Edit Spline in Scene View", editButtonStyle,
-					GUILayout.Height(30f))) {
-				EditSpline(container);
+			using (new EditorGUILayout.HorizontalScope()) {
+				if (GUILayout.Button("Edit Spline in Scene View", editButtonStyle,
+						GUILayout.Height(30f))) {
+					EditSpline(container);
+				}
+				if (GUILayout.Button(new GUIContent("Center Pivot",
+						"Move the Wire Rail GameObject pivot to the route midpoint without moving the rail."),
+						GUILayout.Height(30f))) {
+					CenterPivot(component);
+				}
 			}
 			EditorGUILayout.HelpBox(
 				"While editing, click a knot to show the position gizmo. Double-click the "
@@ -266,8 +274,8 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		private static float GetFixtureElementHeight()
-			=> LayoutPadding * 2f + LayoutLineHeight * 6f
-				+ WireRailBracePreviewEditor.Height + 22f;
+			=> LayoutPadding * 2f + LayoutLineHeight * 7f
+				+ WireRailBracePreviewEditor.Height + 25f;
 
 		private void DrawFixtureElement(Rect rect, WireRailComponent component,
 			int fixtureIndex)
@@ -353,7 +361,27 @@ namespace VisualPinball.Unity.Editor
 				"Replace the angular range with a straight chord.", brace.HasStraightSection,
 				ref straightStart, ref straightEnd);
 
-			if (EditorGUI.EndChangeCheck()) {
+			var propertiesChanged = EditorGUI.EndChangeCheck();
+			row.y += LayoutLineHeight + 3f;
+			var hasOtherBrace = HasOtherBraceFixture(component, fixtureIndex);
+			var applyToAll = false;
+			using (new EditorGUI.DisabledScope(!hasOtherBrace)) {
+				applyToAll = GUI.Button(row, new GUIContent("Apply to All",
+					"Copy every setting except Position from this brace to all other braces."));
+			}
+			if (applyToAll) {
+				Edit(component, "Apply Wire Rail Brace Settings to All", () => {
+					if (propertiesChanged) {
+						component.SetBraceFixtureProperties(fixtureIndex, distance,
+							hasCutout, cutoutStart, cutoutEnd,
+							hasStraightSection, straightStart, straightEnd,
+							lateralOffset, verticalOffset, scale);
+					}
+					component.ApplyBracePropertiesToAll(fixtureIndex);
+				});
+				GUIUtility.ExitGUI();
+			}
+			if (propertiesChanged) {
 				Edit(component, "Edit Wire Rail Brace", () =>
 					component.SetBraceFixtureProperties(fixtureIndex, distance,
 						hasCutout, cutoutStart, cutoutEnd,
@@ -395,6 +423,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			const float toggleWidth = 102f;
 			const float fieldWidth = 42f;
+			const float alignButtonWidth = LayoutLineHeight;
 			const float spacing = 4f;
 			enabled = EditorGUI.ToggleLeft(new Rect(rect.x, rect.y, toggleWidth,
 				LayoutLineHeight), new GUIContent(label, tooltip), enabled);
@@ -404,7 +433,9 @@ namespace VisualPinball.Unity.Editor
 
 			var startRect = new Rect(rect.x + toggleWidth + spacing, rect.y, fieldWidth,
 				LayoutLineHeight);
-			var endRect = new Rect(rect.xMax - fieldWidth, rect.y, fieldWidth,
+			var alignRect = new Rect(rect.xMax - alignButtonWidth, rect.y, alignButtonWidth,
+				LayoutLineHeight);
+			var endRect = new Rect(alignRect.x - spacing - fieldWidth, rect.y, fieldWidth,
 				LayoutLineHeight);
 			var sliderRect = new Rect(startRect.xMax + spacing, rect.y,
 				math.max(10f, endRect.x - startRect.xMax - spacing * 2f), LayoutLineHeight);
@@ -412,14 +443,50 @@ namespace VisualPinball.Unity.Editor
 				"From angle in degrees."), start), 0f, 360f);
 			end = math.clamp(EditorGUI.FloatField(endRect, new GUIContent(string.Empty,
 				"To angle in degrees."), end), 0f, 360f);
-			EditorGUI.MinMaxSlider(sliderRect, ref start, ref end, 0f, 360f);
+			if (start <= end) {
+				EditorGUI.MinMaxSlider(sliderRect, ref start, ref end, 0f, 360f);
+			} else {
+				var gapStart = end;
+				var gapEnd = start;
+				EditorGUI.MinMaxSlider(sliderRect, ref gapStart, ref gapEnd, 0f, 360f);
+				start = gapEnd;
+				end = gapStart;
+			}
+			EditorGUIUtility.AddCursorRect(alignRect, MouseCursor.Link);
+			if (GUI.Button(alignRect, AlignAngleRangeContent, EditorStyles.miniButton)) {
+				var aligned = WireRailBraceFixture.AlignAngleRangeHorizontally(start, end);
+				start = aligned.x;
+				end = aligned.y;
+			}
 			return true;
+		}
+
+		private static GUIContent AlignAngleRangeContent
+			=> _alignAngleRangeContent ??= new GUIContent(Icons.Horizon(),
+				"Align both endpoints to the same vertical height.");
+
+		private static bool HasOtherBraceFixture(WireRailComponent component,
+			int sourceFixtureIndex)
+		{
+			for (var fixtureIndex = 0; fixtureIndex < component.Fixtures.Count;
+				fixtureIndex++) {
+				if (fixtureIndex != sourceFixtureIndex
+					&& component.Fixtures[fixtureIndex] is WireRailBraceFixture) {
+					return true;
+				}
+			}
+			return false;
 		}
 
 		private void DrawGenerationSettings(WireRailComponent component)
 		{
 			serializedObject.Update();
 			EditorGUI.BeginChangeCheck();
+			EditorGUI.BeginChangeCheck();
+			var railCount = EditorGUILayout.Popup(new GUIContent("Rails",
+				"Total number of rails available to every wire layout."),
+				math.clamp(component.RailCount, 1, RailCounts.Length) - 1, RailCounts) + 1;
+			var railCountChanged = EditorGUI.EndChangeCheck();
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("_renderMaterial"),
 				new GUIContent("Material"));
 			EditorGUI.BeginChangeCheck();
@@ -457,7 +524,10 @@ namespace VisualPinball.Unity.Editor
 			}
 			var settingsChanged = EditorGUI.EndChangeCheck();
 			serializedObject.ApplyModifiedProperties();
-			if (wireDiameterChanged) {
+			if (railCountChanged) {
+				Edit(component, "Change Wire Rail Count",
+					() => component.SetRailCount(railCount));
+			} else if (wireDiameterChanged) {
 				Edit(component, "Change Wire Rail Diameter",
 					() => component.SetWireDiameter(math.max(0.1f, wireDiameter)));
 			} else if (settingsChanged) {
@@ -489,7 +559,7 @@ namespace VisualPinball.Unity.Editor
 			var layout = component.Segments[layoutIndex];
 			var height = LayoutPadding * 2f + LayoutLineHeight * 2f + 6f
 				+ WireRailCrossSectionEditor.Height;
-			if (layout.RailCount == 3) {
+			if (component.RailCount == 3) {
 				height += LayoutLineHeight + 3f;
 			}
 			var connectionHeight = GetConnectionHeight(component, layoutIndex);
@@ -524,17 +594,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			row.y = content.y + LayoutLineHeight + 3f;
-			const float railsLabelWidth = 34f;
-			const float railsFieldWidth = 48f;
-			const float spacing = 5f;
-			var x = row.x;
-			EditorGUI.LabelField(new Rect(x, row.y, railsLabelWidth, LayoutLineHeight), "Rails");
-			x += railsLabelWidth;
-			var selectedRailCount = math.clamp(layout.RailCount, 1, RailCounts.Length) - 1;
-			var railCount = EditorGUI.Popup(new Rect(x, row.y, railsFieldWidth,
-				LayoutLineHeight), selectedRailCount, RailCounts) + 1;
-			x += railsFieldWidth + spacing;
-			var positionRect = new Rect(x, row.y, math.max(20f, row.xMax - x), LayoutLineHeight);
+			var positionRect = new Rect(row.x, row.y, row.width, LayoutLineHeight);
 			float position;
 			using (new EditorGUI.DisabledScope(layoutIndex == 0)) {
 				var previousLabelWidth = EditorGUIUtility.labelWidth;
@@ -543,18 +603,13 @@ namespace VisualPinball.Unity.Editor
 					"Distance along the complete spline in VPX units."), layout.Distance);
 				EditorGUIUtility.labelWidth = previousLabelWidth;
 			}
-			if (railCount != layout.RailCount) {
-				Edit(component, "Change Wire Rail Count",
-					() => component.SetRailCount(layoutIndex, railCount));
-				layout = component.Segments[layoutIndex];
-			}
 			if (!Mathf.Approximately(position, layout.Distance)) {
 				Edit(component, "Move Wire Rail Layout",
 					() => component.SetLayoutDistance(layoutIndex, position));
 				layout = component.Segments[layoutIndex];
 			}
 
-			if (layout.RailCount == 3) {
+			if (component.RailCount == 3) {
 				row.y += LayoutLineHeight + 3f;
 				var sideLabelRect = new Rect(row.x, row.y, 70f, LayoutLineHeight);
 				EditorGUI.LabelField(sideLabelRect, new GUIContent("Third Rail",
@@ -587,12 +642,13 @@ namespace VisualPinball.Unity.Editor
 				return 0f;
 			}
 			var layout = component.Segments[layoutIndex];
-			var nextLayout = component.Segments[nextLayoutIndex];
 			var connection = layout.ConnectionToNext;
-			var wireCount = math.min(layout.RailCount, nextLayout.RailCount);
+			var wireCount = component.RailCount;
 			var overriddenWireCount = 0;
 			for (var wireIndex = 0; wireIndex < wireCount; wireIndex++) {
-				if (connection.IsWireOverridden(wireIndex)) {
+				if (layout.IsRailActive(wireIndex)
+					&& component.Segments[nextLayoutIndex].IsRailActive(wireIndex)
+					&& connection.IsWireOverridden(wireIndex)) {
 					overriddenWireCount++;
 				}
 			}
@@ -608,7 +664,7 @@ namespace VisualPinball.Unity.Editor
 			var layout = component.Segments[layoutIndex];
 			var nextLayout = component.Segments[nextLayoutIndex];
 			var connection = layout.ConnectionToNext;
-			var wireCount = math.min(layout.RailCount, nextLayout.RailCount);
+			var wireCount = component.RailCount;
 			var row = new Rect(rect.x + LayoutPadding, rect.y + LayoutPadding,
 				rect.width - LayoutPadding * 2f, LayoutLineHeight);
 			EditorGUI.LabelField(row, $"Transition to Layout {nextLayoutIndex + 1}",
@@ -623,6 +679,8 @@ namespace VisualPinball.Unity.Editor
 					"Choose which wires need non-default continuity or transition curves."));
 			var overrideButtonX = row.xMax - overrideButtonsWidth;
 			for (var wireIndex = 0; wireIndex < wireCount; wireIndex++) {
+				var canTransition = layout.IsRailActive(wireIndex)
+					&& nextLayout.IsRailActive(wireIndex);
 				var style = wireCount == 1 ? EditorStyles.miniButton
 					: wireIndex == 0 ? EditorStyles.miniButtonLeft
 					: wireIndex == wireCount - 1 ? EditorStyles.miniButtonRight
@@ -630,8 +688,13 @@ namespace VisualPinball.Unity.Editor
 				var overrideRect = new Rect(overrideButtonX + wireIndex * overrideButtonWidth,
 					row.y, overrideButtonWidth, LayoutLineHeight);
 				var overridden = connection.IsWireOverridden(wireIndex);
-				var toggledOverride = GUI.Toggle(overrideRect, overridden,
-					(wireIndex + 1).ToString(), style);
+				bool toggledOverride;
+				using (new EditorGUI.DisabledScope(!canTransition)) {
+					toggledOverride = GUI.Toggle(overrideRect, overridden,
+						new GUIContent((wireIndex + 1).ToString(), canTransition
+							? "Override this wire's transition."
+							: "This wire is inactive in one or both layouts."), style);
+				}
 				if (toggledOverride != overridden) {
 					var capturedWireIndex = wireIndex;
 					Edit(component, "Change Wire Rail Transition Override",
@@ -646,7 +709,8 @@ namespace VisualPinball.Unity.Editor
 			const float continuousWidth = 88f;
 			const float spacing = 4f;
 			for (var wireIndex = 0; wireIndex < wireCount; wireIndex++) {
-				if (!connection.IsWireOverridden(wireIndex)) {
+				if (!layout.IsRailActive(wireIndex) || !nextLayout.IsRailActive(wireIndex)
+					|| !connection.IsWireOverridden(wireIndex)) {
 					continue;
 				}
 				row.y += LayoutLineHeight + 3f;
@@ -700,6 +764,25 @@ namespace VisualPinball.Unity.Editor
 			edit();
 			EditorUtility.SetDirty(component);
 			PrefabUtility.RecordPrefabInstancePropertyModifications(component);
+			SceneView.RepaintAll();
+		}
+
+		private static void CenterPivot(WireRailComponent component)
+		{
+			var container = component.SplineContainer;
+			if (!container) {
+				return;
+			}
+			const string undoName = "Center Wire Rail Pivot";
+			Undo.RecordObjects(new UnityEngine.Object[] { component.transform, container },
+				undoName);
+			if (!component.CenterPivot()) {
+				return;
+			}
+			EditorUtility.SetDirty(component.transform);
+			EditorUtility.SetDirty(container);
+			PrefabUtility.RecordPrefabInstancePropertyModifications(component.transform);
+			PrefabUtility.RecordPrefabInstancePropertyModifications(container);
 			SceneView.RepaintAll();
 		}
 
@@ -774,6 +857,9 @@ namespace VisualPinball.Unity.Editor
 			for (var segmentIndex = 0; segmentIndex < component.Segments.Count; segmentIndex++) {
 				var segment = component.Segments[segmentIndex];
 				for (var railIndex = 0; railIndex < segment.RailCount; railIndex++) {
+					if (!segment.IsRailActive(railIndex)) {
+						continue;
+					}
 					var points = new Vector3[SamplesPerSegment + 1];
 					for (var sampleIndex = 0; sampleIndex <= SamplesPerSegment; sampleIndex++) {
 						var curveT = sampleIndex / (float)SamplesPerSegment;
@@ -806,14 +892,26 @@ namespace VisualPinball.Unity.Editor
 				Handles.color = Color.white;
 				var labelPosition = EvaluateWorldPosition(container, spline, component.Segments,
 					segmentIndex, 0f);
-				Handles.Label(labelPosition, $"Layout {segmentIndex + 1}: {segment.RailCount} rail"
-					+ (segment.RailCount == 1 ? string.Empty : "s"), EditorStyles.boldLabel);
+				var activeRailCount = CountActiveRails(segment);
+				Handles.Label(labelPosition, $"Layout {segmentIndex + 1}: {activeRailCount}/"
+					+ $"{component.RailCount} rails", EditorStyles.boldLabel);
 			}
 			DrawFixturePreviews(component, container, spline);
 
 			if (component.ShowColliderPreview) {
 				DrawColliderPreview(component.ColliderMesh, container.transform);
 			}
+		}
+
+		private static int CountActiveRails(WireRailSegment segment)
+		{
+			var count = 0;
+			for (var railIndex = 0; railIndex < segment.RailCount; railIndex++) {
+				if (segment.IsRailActive(railIndex)) {
+					count++;
+				}
+			}
+			return count;
 		}
 
 		private static void DrawFixturePreviews(WireRailComponent component,

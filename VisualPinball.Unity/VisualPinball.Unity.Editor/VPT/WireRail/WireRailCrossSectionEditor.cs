@@ -32,6 +32,7 @@ namespace VisualPinball.Unity.Editor
 		private static readonly Color GridColor = new(1f, 1f, 1f, 0.07f);
 		private static readonly Color AxisColor = new(1f, 1f, 1f, 0.28f);
 		private static readonly Color SelectedColor = new(1f, 0.78f, 0.08f, 1f);
+		private static readonly Color InactiveWireColor = new(0.43f, 0.45f, 0.48f, 1f);
 		private static readonly Color[] WireColors = {
 			new(0.05f, 0.75f, 1f, 1f),
 			new(1f, 0.55f, 0.05f, 1f),
@@ -246,13 +247,15 @@ namespace VisualPinball.Unity.Editor
 			var radius = math.max(6f, diameter * 0.5f * view.Scale);
 			DrawCircle(center, radius + (selected ? 4f : 2f),
 				selected ? SelectedColor : new Color(0f, 0f, 0f, 0.75f));
-			DrawCircle(center, radius, WireColors[railIndex % WireColors.Length]);
+			DrawCircle(center, radius, segment.IsRailActive(railIndex)
+				? WireColors[railIndex % WireColors.Length] : InactiveWireColor);
 			var labelRect = new Rect(center.x - radius, center.y - 9f, radius * 2f, 18f);
 			GUI.Label(labelRect, (railIndex + 1).ToString(), WireLabelStyle);
 			GUI.Label(new Rect(center.x - radius - 4f, center.y - radius - 4f,
 					radius * 2f + 8f, radius * 2f + 8f),
 				new GUIContent(string.Empty, $"Wire {railIndex + 1}: X {offset.x:0.##}, "
-					+ $"Z {offset.y:0.##}, diameter {diameter:0.##} VPX"));
+					+ $"Z {offset.y:0.##}, diameter {diameter:0.##}, "
+					+ (segment.IsRailActive(railIndex) ? "active" : "inactive")));
 		}
 
 		private static void DrawCircle(Vector2 center, float radius, Color color)
@@ -293,22 +296,37 @@ namespace VisualPinball.Unity.Editor
 					? segment.GetRailOffset(firstIndex) : Vector2.zero;
 				var mixedX = false;
 				var mixedZ = false;
+				var firstActive = indices.Count > 0 && segment.IsRailActive(firstIndex);
+				var mixedActive = false;
 				for (var i = 1; i < indices.Count; i++) {
 					var offset = segment.GetRailOffset(indices[i]);
 					mixedX |= !Mathf.Approximately(offset.x, firstOffset.x);
 					mixedZ |= !Mathf.Approximately(offset.y, firstOffset.y);
+					mixedActive |= segment.IsRailActive(indices[i]) != firstActive;
 				}
 
 				var controlsRect = new Rect(rect.x, selectionRect.yMax + 4f, rect.width,
 					LineHeight);
 				const float resetWidth = 54f;
+				const float applyToAllWidth = 78f;
+				const float activeWidth = 18f;
 				const float positionLabelWidth = 50f;
 				const float axisLabelWidth = 14f;
 				const float spacing = 4f;
-				var numericFieldWidth = math.max(20f, (controlsRect.width - positionLabelWidth
-					- axisLabelWidth * 2f - resetWidth - spacing * 5f) * 0.5f);
+				var numericFieldWidth = math.max(20f, (controlsRect.width - activeWidth
+					- positionLabelWidth - axisLabelWidth * 2f - resetWidth - applyToAllWidth
+					- spacing * 7f)
+					* 0.5f);
 				var axisFieldWidth = axisLabelWidth + numericFieldWidth;
 				var x = controlsRect.x;
+				EditorGUI.BeginChangeCheck();
+				EditorGUI.showMixedValue = mixedActive;
+				var active = EditorGUI.Toggle(new Rect(x, controlsRect.y, activeWidth,
+					LineHeight), new GUIContent(string.Empty,
+					"Enable the selected wires for this layout span."), firstActive);
+				var activeChanged = EditorGUI.EndChangeCheck();
+				EditorGUI.showMixedValue = false;
+				x += activeWidth + spacing;
 				EditorGUI.LabelField(new Rect(x, controlsRect.y, positionLabelWidth,
 					LineHeight), "Position");
 				x += positionLabelWidth + spacing;
@@ -330,6 +348,12 @@ namespace VisualPinball.Unity.Editor
 				EditorGUI.showMixedValue = false;
 				EditorGUIUtility.labelWidth = previousLabelWidth;
 
+				if (indices.Count > 0 && activeChanged) {
+					Undo.RegisterCompleteObjectUndo(component, "Toggle Wire Rail Wires");
+					component.SetRailsActive(segmentIndex, indices, active);
+					Apply(component);
+				}
+
 				if (indices.Count > 0 && (xChanged || zChanged)) {
 					var offsets = new Vector2[indices.Count];
 					for (var i = 0; i < indices.Count; i++) {
@@ -342,12 +366,26 @@ namespace VisualPinball.Unity.Editor
 					Apply(component);
 				}
 			}
-			var resetRect = new Rect(rect.xMax - 54f, selectionRect.yMax + 4f, 54f,
-				LineHeight);
+			const float buttonSpacing = 4f;
+			const float resetButtonWidth = 54f;
+			const float applyToAllButtonWidth = 78f;
+			var applyToAllRect = new Rect(rect.xMax - applyToAllButtonWidth,
+				selectionRect.yMax + 4f, applyToAllButtonWidth, LineHeight);
+			var resetRect = new Rect(applyToAllRect.x - buttonSpacing - resetButtonWidth,
+				applyToAllRect.y, resetButtonWidth, LineHeight);
 			using (new EditorGUI.DisabledScope(selected.Count == 0)) {
 				if (GUI.Button(resetRect, "Reset")) {
 					Undo.RegisterCompleteObjectUndo(component, "Reset Wire Rail Layout");
 					component.ResetSegmentLayout(segmentIndex);
+					Apply(component);
+				}
+				if (GUI.Button(applyToAllRect, new GUIContent("Apply to All",
+					"Copy the selected wires' X and Z positions to every layout."))) {
+					var indices = new List<int>(selected);
+					indices.Sort();
+					Undo.RegisterCompleteObjectUndo(component,
+						"Apply Wire Positions to All Layouts");
+					component.ApplyWirePositionsToAllLayouts(segmentIndex, indices);
 					Apply(component);
 				}
 			}

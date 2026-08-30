@@ -161,7 +161,7 @@ namespace VisualPinball.Unity.Test
 			var gameObject = new GameObject("Wire Rail");
 			try {
 				var component = gameObject.AddComponent<WireRailComponent>();
-				component.SetRailCount(0, 3);
+				component.SetRailCount(3);
 				var handles = typeof(WireRailInspector).Assembly.GetType(
 					"VisualPinball.Unity.Editor.WireRailSplineHandles");
 				var insert = handles?.GetMethod("InsertKnot",
