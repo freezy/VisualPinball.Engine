@@ -506,6 +506,83 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldMigrateLegacyBraceRadiusOffsetToScale()
+		{
+			var brace = new WireRailBraceFixture();
+			JsonUtility.FromJsonOverwrite(
+				"{\"_diameter\":8,\"_scale\":1,\"_radiusOffset\":10,\"_scaleInitialized\":false}",
+				brace);
+
+			Assert.That(brace.EnsureScaleInitialized(50f), Is.True);
+			Assert.That(brace.Scale, Is.EqualTo(1.2f).Within(0.001f));
+			Assert.That(brace.EnsureScaleInitialized(50f), Is.False);
+		}
+
+		[Test]
+		public void ShouldKeepBraceScaleWhenMovingAcrossDifferentWireLayouts()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SplineContainer.Spline.Add(
+					new BezierKnot(new float3(0f, 1000f, 0f)), TangentMode.AutoSmooth);
+				AddMidpointLayout(component);
+				component.SetRailCount(0, 2);
+				component.SetRailCount(1, 2);
+				component.SetRailOffset(0, 0, new Vector2(-20f, 0f));
+				component.SetRailOffset(0, 1, new Vector2(20f, 0f));
+				component.SetRailOffset(1, 0, new Vector2(-40f, 0f));
+				component.SetRailOffset(1, 1, new Vector2(40f, 0f));
+				var fixtureIndex = component.AddBraceFixture(250f);
+				component.SetBraceFixtureProperties(fixtureIndex, 250f,
+					false, 0f, 0f, scale: 1.5f);
+
+				Assert.That(component.TryGetBraceCrossSection(fixtureIndex,
+					out var firstCrossSection), Is.True);
+				component.SetBraceFixtureProperties(fixtureIndex, 750f,
+					false, 0f, 0f, scale: 1.5f);
+				Assert.That(component.TryGetBraceCrossSection(fixtureIndex,
+					out var secondCrossSection), Is.True);
+
+				Assert.That(math.abs(secondCrossSection.BaseRadius
+					- firstCrossSection.BaseRadius), Is.GreaterThan(0.001f));
+				Assert.That(firstCrossSection.Radius / firstCrossSection.BaseRadius,
+					Is.EqualTo(1.5f).Within(0.001f));
+				Assert.That(secondCrossSection.Radius / secondCrossSection.BaseRadius,
+					Is.EqualTo(1.5f).Within(0.001f));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldExposeBraceCrossSectionForInspectorScale()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var fixtureIndex = component.AddBraceFixture(250f);
+
+				Assert.That(component.TryGetBraceCrossSection(fixtureIndex,
+					out var defaultCrossSection), Is.True);
+				Assert.That(defaultCrossSection.Radius,
+					Is.EqualTo(defaultCrossSection.BaseRadius).Within(0.001f));
+
+				component.SetBraceFixtureProperties(fixtureIndex, 250f,
+					false, 0f, 0f, scale: 1.5f);
+
+				Assert.That(component.TryGetBraceCrossSection(fixtureIndex,
+					out var scaledCrossSection), Is.True);
+				Assert.That(scaledCrossSection.BaseRadius,
+					Is.EqualTo(defaultCrossSection.BaseRadius).Within(0.001f));
+				Assert.That(scaledCrossSection.Radius,
+					Is.EqualTo(defaultCrossSection.BaseRadius * 1.5f).Within(0.001f));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
 		public void ShouldGenerateFullAndCutoutBraceGeometry()
 		{
 			const int radialSegments = 8;
@@ -588,14 +665,14 @@ namespace VisualPinball.Unity.Test
 
 				component.SetBraceFixtureProperties(fixtureIndex, 250f,
 					false, 60f, 120f,
-					true, 210f, 330f, 12f, -7f, 10f);
+					true, 210f, 330f, 12f, -7f, 1.25f);
 				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateBraceProfile(
 					component.SplineContainer.Spline, component.Segments, brace,
 					out var changed), Is.True);
 				Assert.That(math.distance(changed.Center, original.Center
 					+ original.Frame.Right * 12f - original.Frame.Up * 7f),
 					Is.LessThan(0.001f));
-				Assert.That(changed.Radius, Is.EqualTo(original.Radius + 10f).Within(0.001f));
+				Assert.That(changed.Radius, Is.EqualTo(original.Radius * 1.25f).Within(0.001f));
 
 				var start = brace.EvaluateCenterlineOffset(math.radians(210f), changed.Radius);
 				var middle = brace.EvaluateCenterlineOffset(math.radians(270f), changed.Radius);
@@ -606,11 +683,11 @@ namespace VisualPinball.Unity.Test
 
 				component.SetBraceFixtureProperties(fixtureIndex, 250f,
 					false, 60f, 120f,
-					true, 210f, 330f, 12f, -7f, -10f);
+					true, 210f, 330f, 12f, -7f, 0.75f);
 				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateBraceProfile(
 					component.SplineContainer.Spline, component.Segments, brace,
 					out var shrunk), Is.True);
-				Assert.That(shrunk.Radius, Is.EqualTo(original.Radius - 10f).Within(0.001f));
+				Assert.That(shrunk.Radius, Is.EqualTo(original.Radius * 0.75f).Within(0.001f));
 			} finally {
 				Object.DestroyImmediate(go);
 			}
@@ -624,7 +701,7 @@ namespace VisualPinball.Unity.Test
 				var component = go.AddComponent<WireRailComponent>();
 				var sourceIndex = component.AddBraceFixture(175f);
 				component.SetBraceFixtureProperties(sourceIndex, 175f,
-					true, 35f, 125f, true, 205f, 315f, 6f, -9f, 14f);
+					true, 35f, 125f, true, 205f, 315f, 6f, -9f, 1.4f);
 				var duplicateIndex = component.DuplicateBraceFixture(sourceIndex);
 				var source = (WireRailBraceFixture)component.Fixtures[sourceIndex];
 				var duplicate = (WireRailBraceFixture)component.Fixtures[duplicateIndex];
@@ -642,7 +719,7 @@ namespace VisualPinball.Unity.Test
 				Assert.That(duplicate.StraightEndAngle, Is.EqualTo(source.StraightEndAngle));
 				Assert.That(duplicate.LateralOffset, Is.EqualTo(source.LateralOffset));
 				Assert.That(duplicate.VerticalOffset, Is.EqualTo(source.VerticalOffset));
-				Assert.That(duplicate.RadiusOffset, Is.EqualTo(source.RadiusOffset));
+				Assert.That(duplicate.Scale, Is.EqualTo(source.Scale));
 			} finally {
 				Object.DestroyImmediate(go);
 			}

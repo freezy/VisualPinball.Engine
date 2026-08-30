@@ -466,7 +466,9 @@ namespace VisualPinball.Unity
 		[SerializeField, Range(0f, 360f)] private float _straightEndAngle = DefaultStraightEndAngle;
 		[SerializeField] private float _lateralOffset;
 		[SerializeField] private float _verticalOffset;
-		[SerializeField] private float _radiusOffset;
+		[SerializeField, Min(0.1f)] private float _scale = 1f;
+		[SerializeField, HideInInspector] private float _radiusOffset;
+		[SerializeField, HideInInspector] private bool _scaleInitialized;
 
 		public float Diameter => _diameter;
 		public bool HasCutout => _hasCutout;
@@ -477,7 +479,8 @@ namespace VisualPinball.Unity
 		public float StraightEndAngle => _straightEndAngle;
 		public float LateralOffset => _lateralOffset;
 		public float VerticalOffset => _verticalOffset;
-		public float RadiusOffset => _radiusOffset;
+		public float Scale => _scale;
+		internal bool ScaleInitialized => _scaleInitialized;
 
 		internal bool EnsureBraceInitialized(float splineLength)
 		{
@@ -487,6 +490,7 @@ namespace VisualPinball.Unity
 			var endAngle = math.clamp(_cutoutEndAngle, 0f, 360f);
 			var straightStartAngle = math.clamp(_straightStartAngle, 0f, 360f);
 			var straightEndAngle = math.clamp(_straightEndAngle, 0f, 360f);
+			var scale = math.max(0.1f, _scale);
 			if (!Mathf.Approximately(_diameter, diameter)) {
 				_diameter = diameter;
 				changed = true;
@@ -507,7 +511,24 @@ namespace VisualPinball.Unity
 				_straightEndAngle = straightEndAngle;
 				changed = true;
 			}
+			if (!Mathf.Approximately(_scale, scale)) {
+				_scale = scale;
+				changed = true;
+			}
 			return changed;
+		}
+
+		internal bool EnsureScaleInitialized(float baseRadius)
+		{
+			if (_scaleInitialized) {
+				return false;
+			}
+			var migratedRadius = math.max(_diameter * 0.5f, baseRadius + _radiusOffset);
+			_scale = baseRadius > 1e-5f
+				? math.max(0.1f, migratedRadius / baseRadius) : 1f;
+			_radiusOffset = 0f;
+			_scaleInitialized = true;
+			return true;
 		}
 
 		internal bool SetDiameter(float diameter)
@@ -523,7 +544,7 @@ namespace VisualPinball.Unity
 		internal void SetProperties(float distance, float splineLength, float diameter,
 			bool hasCutout, float cutoutStartAngle, float cutoutEndAngle,
 			bool hasStraightSection, float straightStartAngle, float straightEndAngle,
-			float lateralOffset, float verticalOffset, float radiusOffset)
+			float lateralOffset, float verticalOffset, float scale)
 		{
 			SetDistance(distance, splineLength);
 			_diameter = math.max(0.1f, diameter);
@@ -535,7 +556,9 @@ namespace VisualPinball.Unity
 			_straightEndAngle = math.clamp(straightEndAngle, 0f, 360f);
 			_lateralOffset = lateralOffset;
 			_verticalOffset = verticalOffset;
-			_radiusOffset = radiusOffset;
+			_scale = math.max(0.1f, scale);
+			_radiusOffset = 0f;
+			_scaleInitialized = true;
 		}
 
 		public bool TryGetStraightSection(out float startAngle, out float sweepAngle)
@@ -607,6 +630,21 @@ namespace VisualPinball.Unity
 			sweepAngle = math.radians(visibleSweep);
 			closed = false;
 			return true;
+		}
+	}
+
+	public readonly struct WireRailBraceCrossSection
+	{
+		public readonly Vector2 CenterOffset;
+		public readonly float BaseRadius;
+		public readonly float Radius;
+
+		internal WireRailBraceCrossSection(float2 centerOffset, float baseRadius,
+			float radius)
+		{
+			CenterOffset = new Vector2(centerOffset.x, centerOffset.y);
+			BaseRadius = baseRadius;
+			Radius = radius;
 		}
 	}
 
@@ -908,11 +946,27 @@ namespace VisualPinball.Unity
 				WireRailBraceFixture.DefaultCutoutStartAngle,
 				WireRailBraceFixture.DefaultCutoutEndAngle, false,
 				WireRailBraceFixture.DefaultStraightStartAngle,
-				WireRailBraceFixture.DefaultStraightEndAngle, 0f, 0f, 0f);
+				WireRailBraceFixture.DefaultStraightEndAngle, 0f, 0f, 1f);
 			_fixtures.Add(brace);
 			RebuildGeneratedMeshes();
 			MarkDirty();
 			return _fixtures.Count - 1;
+		}
+
+		public bool TryGetBraceCrossSection(int fixtureIndex,
+			out WireRailBraceCrossSection crossSection)
+		{
+			crossSection = default;
+			if (_fixtures == null || fixtureIndex < 0 || fixtureIndex >= _fixtures.Count
+				|| _fixtures[fixtureIndex] is not WireRailBraceFixture brace
+				|| !_splineContainer || _splineContainer.Spline == null
+				|| !WireRailFixtureMeshGenerator.TryEvaluateBraceProfile(
+					_splineContainer.Spline, _segments, brace, out var profile)) {
+				return false;
+			}
+			crossSection = new WireRailBraceCrossSection(profile.CenterOffset,
+				profile.BaseRadius, profile.Radius);
+			return true;
 		}
 
 		public void RemoveFixture(int fixtureIndex)
@@ -934,7 +988,7 @@ namespace VisualPinball.Unity
 				source.HasCutout, source.CutoutStartAngle, source.CutoutEndAngle,
 				source.HasStraightSection, source.StraightStartAngle,
 				source.StraightEndAngle, source.LateralOffset, source.VerticalOffset,
-				source.RadiusOffset);
+				source.Scale);
 			var duplicateIndex = fixtureIndex + 1;
 			_fixtures.Insert(duplicateIndex, duplicate);
 			RebuildGeneratedMeshes();
@@ -947,7 +1001,7 @@ namespace VisualPinball.Unity
 			bool hasStraightSection = false, float straightStartAngle =
 				WireRailBraceFixture.DefaultStraightStartAngle, float straightEndAngle =
 				WireRailBraceFixture.DefaultStraightEndAngle, float lateralOffset = 0f,
-			float verticalOffset = 0f, float radiusOffset = 0f)
+			float verticalOffset = 0f, float scale = 1f)
 		{
 			if (GetFixture(fixtureIndex) is not WireRailBraceFixture brace) {
 				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a brace.",
@@ -955,7 +1009,7 @@ namespace VisualPinball.Unity
 			}
 			brace.SetProperties(distance, SplineLength, _wireDiameter, hasCutout,
 				cutoutStartAngle, cutoutEndAngle, hasStraightSection, straightStartAngle,
-				straightEndAngle, lateralOffset, verticalOffset, radiusOffset);
+				straightEndAngle, lateralOffset, verticalOffset, scale);
 			RebuildGeneratedMeshes();
 			MarkDirty();
 		}
@@ -1000,6 +1054,7 @@ namespace VisualPinball.Unity
 		{
 			_fixtures ??= new List<WireRailFixture>();
 			var changed = false;
+			var spline = GetSplineContainerWithoutCreating()?.Spline;
 			for (var fixtureIndex = _fixtures.Count - 1; fixtureIndex >= 0; fixtureIndex--) {
 				var fixture = _fixtures[fixtureIndex];
 				if (fixture == null) {
@@ -1010,6 +1065,12 @@ namespace VisualPinball.Unity
 				if (fixture is WireRailBraceFixture brace) {
 					changed |= brace.EnsureBraceInitialized(SplineLength);
 					changed |= brace.SetDiameter(_wireDiameter);
+					if (!brace.ScaleInitialized && spline != null && _segments != null
+						&& _segments.Count > 0
+						&& WireRailFixtureMeshGenerator.TryEvaluateBraceProfile(spline,
+							_segments, brace, out var profile)) {
+						changed |= brace.EnsureScaleInitialized(profile.BaseRadius);
+					}
 				} else {
 					changed |= fixture.EnsureInitialized(SplineLength);
 				}

@@ -6,7 +6,7 @@ description: Author three-dimensional wire rail routes, distance-based wire layo
 
 # Wire Rail Authoring
 
-The **Wire Rail** component provides an early authoring workflow for routing playable wire rails with a native Unity spline. Independently positioned wire layouts control rail counts and cross-section offsets along the route, and the component generates both visible wire tubes and a separate ball-channel collider. The inspector's **Render Geometry**, **Fixtures**, and **Wire Layouts** headers can each be collapsed.
+The **Wire Rail** component provides an early authoring workflow for routing playable wire rails with a native Unity spline. Independently positioned wire layouts control rail counts and cross-section offsets along the route, and the component generates both visible wire tubes and a separate ball-channel collider. The inspector's **Render Geometry**, **Wire Layouts**, and **Fixtures** headers can each be collapsed.
 
 > [!warning]
 > Wire rail authoring does not yet generate branched junctions, end fittings, or VPX import/export data.
@@ -82,17 +82,17 @@ These positions are practical starting points rather than constraints. Adjust th
 
 Fixtures are repeated structural elements positioned along the complete spline rather than owned by an individual segment. The first available fixture is a **Brace**, a wire ring that surrounds and holds the authored rails together.
 
-Click **Add Brace** in the **Fixtures** section, then use **Position** to move it anywhere along the route by absolute spline distance. A new brace starts halfway along the spline, and you can add as many independently positioned braces as needed. Drag rows in **Fixture Order** to reorder the authored fixture list without changing any fixture's route position. The brace automatically encloses the wire cross-section at its position and remains perpendicular to the spline tangent.
+Click **Add Brace** in the **Fixtures** section, then use **Position** to move it anywhere along the route by absolute spline distance. A new brace starts halfway along the spline, and you can add as many independently positioned braces as needed. Drag a complete brace panel by its handle to reorder the authored fixture list without changing any fixture's route position. The brace automatically encloses the wire cross-section at its position and remains perpendicular to the spline tangent. Its preview shows the evaluated brace shape, offset, cutout, and straight-line replacement.
 
-**Lateral Offset** moves the complete brace along the local cross-section X axis, **Vertical Offset** moves it along local Z, and signed **Radius Offset** makes the complete brace larger or smaller without moving its center. These values use VPX units. Brace thickness uses the global **Wire Diameter** from Render Geometry.
+Use the compact **Offset** row to move the complete brace along the local cross-section X and Z axes, and use **Reset** to return both offsets to zero. **Scale** multiplies the automatically fitted brace radius, with `1` preserving the default fit. Offset values use VPX units. Brace thickness uses the global **Wire Diameter** from Render Geometry.
 
-Enable **Cutout** to remove part of the ring. **Cutout Start** and **Cutout End** are cross-section angles: 0° points right along positive X, 90° points up along positive Z, and the removed range follows increasing angles from start to end, wrapping through 360° when necessary. Cutout ends are capped.
+Enable **Cutout** to reveal its **From/To** range control and remove that part of the ring. Angles use the brace cross-section: 0° points right along positive X and 90° points up along positive Z. Cutout ends are capped.
 
-Enable **Straight Section** to replace an angular part of the circular brace with the straight chord between **Straight Start** and **Straight End**. The range uses the same cross-section angle convention and can wrap through 360°. A brace can use a cutout and a straight section at the same time.
+Enable **Straight Line** to reveal its **From/To** range control and replace that part of the circular brace with the straight chord between the two angles. A brace can use a cutout and a straight line at the same time.
 
 Brace fixtures are included in the visible render mesh and use the Wire Rail material. They are not added to the ball-channel collider.
 
-Click **Duplicate** in a brace header to insert an independent copy immediately after it. The duplicate starts with the same route position, diameter, offsets, cutout, and straight-section settings as its source.
+Use the duplicate icon in a brace header to insert an independent copy immediately after it, or the trash icon to remove it. The duplicate starts with the same route position, scale, offsets, cutout, and straight-line settings as its source.
 
 ## Render Geometry
 
