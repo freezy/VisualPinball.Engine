@@ -93,6 +93,80 @@ namespace VisualPinball.Unity
 			return true;
 		}
 
+		internal static bool TryEvaluateLayout(Spline spline,
+			IReadOnlyList<WireRailSegment> layouts, int layoutIndex, float layoutT,
+			out WireRailPathFrame frame)
+		{
+			frame = default;
+			if (spline == null || layouts == null || layoutIndex < 0
+				|| layoutIndex >= layouts.Count || spline.Count < 2) {
+				return false;
+			}
+			var splineLength = spline.GetLength();
+			var startDistance = math.clamp(layouts[layoutIndex].Distance, 0f, splineLength);
+			var endDistance = layoutIndex + 1 < layouts.Count
+				? math.clamp(layouts[layoutIndex + 1].Distance, startDistance, splineLength)
+				: splineLength;
+			return TryEvaluateDistance(spline,
+				math.lerp(startDistance, endDistance, math.saturate(layoutT)), out frame);
+		}
+
+		public static bool TryEvaluateLayoutPosition(Spline spline,
+			IReadOnlyList<WireRailSegment> layouts, int layoutIndex, float layoutT,
+			out float3 position)
+		{
+			position = default;
+			if (!TryEvaluateLayout(spline, layouts, layoutIndex, layoutT, out var frame)) {
+				return false;
+			}
+			position = frame.Position;
+			return true;
+		}
+
+		internal static bool TryEvaluateDistance(Spline spline, float distance,
+			out WireRailPathFrame frame)
+		{
+			frame = default;
+			if (spline == null || spline.Count < 2) {
+				return false;
+			}
+			var normalizedT = spline.ConvertIndexUnit(
+				math.clamp(distance, 0f, spline.GetLength()), PathIndexUnit.Distance,
+				PathIndexUnit.Normalized);
+			if (!spline.Evaluate(normalizedT, out var position, out var tangent, out var up)) {
+				return false;
+			}
+			tangent = math.normalizesafe(tangent, new float3(0f, 1f, 0f));
+			up -= tangent * math.dot(up, tangent);
+			up = math.normalizesafe(up, new float3(0f, 0f, 1f));
+			var right = math.normalizesafe(math.cross(tangent, up), new float3(1f, 0f, 0f));
+			up = math.normalizesafe(math.cross(right, tangent), new float3(0f, 0f, 1f));
+			frame = new WireRailPathFrame(position, tangent, right, up);
+			return true;
+		}
+
+		public static bool TryEvaluateBrace(Spline spline,
+			IReadOnlyList<WireRailSegment> segments, WireRailBraceFixture brace,
+			out float3 center, out float3 tangent, out float3 right, out float3 up,
+			out float radius)
+		{
+			center = default;
+			tangent = default;
+			right = default;
+			up = default;
+			radius = 0f;
+			if (!WireRailFixtureMeshGenerator.TryEvaluateBraceProfile(spline, segments,
+					brace, out var profile)) {
+				return false;
+			}
+			center = profile.Center;
+			tangent = profile.Frame.Tangent;
+			right = profile.Frame.Right;
+			up = profile.Frame.Up;
+			radius = profile.Radius;
+			return true;
+		}
+
 		public static float2 EvaluateRailOffset(Spline spline,
 			IReadOnlyList<WireRailSegment> segments, int segmentIndex, int railIndex,
 			float curveT)
@@ -197,7 +271,7 @@ namespace VisualPinball.Unity
 				if (connected) {
 					if (!TryEvaluateRailCenter(spline, segments, context, previousSegmentIndex,
 							railIndex, 1f - tangentStep, out _, out before)
-						|| !TryEvaluate(spline, previousSegmentIndex, 1f,
+					|| !TryEvaluateLayout(spline, segments, previousSegmentIndex, 1f,
 							out var previousMainFrame)) {
 						return false;
 					}
@@ -219,7 +293,8 @@ namespace VisualPinball.Unity
 				if (connected) {
 					if (!TryEvaluateRailCenter(spline, segments, context, nextSegmentIndex, railIndex,
 							tangentStep, out _, out after)
-						|| !TryEvaluate(spline, nextSegmentIndex, 0f, out var nextMainFrame)) {
+						|| !TryEvaluateLayout(spline, segments, nextSegmentIndex, 0f,
+							out var nextMainFrame)) {
 						return false;
 					}
 					AverageReferenceAxes(mainFrame, nextMainFrame,
@@ -346,7 +421,7 @@ namespace VisualPinball.Unity
 		{
 			center = default;
 			curveT = math.saturate(curveT);
-			if (!TryEvaluate(spline, segmentIndex, curveT, out mainFrame)) {
+			if (!TryEvaluateLayout(spline, segments, segmentIndex, curveT, out mainFrame)) {
 				return false;
 			}
 
@@ -355,8 +430,8 @@ namespace VisualPinball.Unity
 				center = mainFrame.TransformOffset(offset);
 				return true;
 			}
-			if (!TryEvaluate(spline, segmentIndex, 0f, out var startFrame)
-				|| !TryEvaluate(spline, segmentIndex, 1f, out var endFrame)) {
+			if (!TryEvaluateLayout(spline, segments, segmentIndex, 0f, out var startFrame)
+				|| !TryEvaluateLayout(spline, segments, segmentIndex, 1f, out var endFrame)) {
 				return false;
 			}
 			var startOffset = EvaluateRailOffset(spline, segments, segmentIndex, railIndex, 0f);
@@ -520,7 +595,8 @@ namespace VisualPinball.Unity
 		private const int MaximumAdaptiveDepth = 3;
 
 		public static Mesh Generate(Spline spline, IReadOnlyList<WireRailSegment> segments,
-			int samplesPerSegment, int radialSegments, Mesh target)
+			IReadOnlyList<WireRailFixture> fixtures, int samplesPerSegment,
+			int radialSegments, Mesh target)
 		{
 			var vertices = new List<Vector3>();
 			var normals = new List<Vector3>();
@@ -548,6 +624,8 @@ namespace VisualPinball.Unity
 					}
 				}
 			}
+			WireRailFixtureMeshGenerator.Append(spline, segments, fixtures, radialSegments,
+				vertices, normals, uvs, indices);
 
 			var mesh = target ? target : new Mesh();
 			mesh.Clear(false);
@@ -685,9 +763,9 @@ namespace VisualPinball.Unity
 				&& WireRailSplineGeometry.TryEvaluateRailFrame(spline, segments,
 					evaluationContext, segmentIndex, railIndex, end, evaluationStep,
 					out var endFrame)
-				&& WireRailSplineGeometry.TryEvaluate(spline, segmentIndex, start,
+				&& WireRailSplineGeometry.TryEvaluateLayout(spline, segments, segmentIndex, start,
 					out var startMainFrame)
-				&& WireRailSplineGeometry.TryEvaluate(spline, segmentIndex, end,
+				&& WireRailSplineGeometry.TryEvaluateLayout(spline, segments, segmentIndex, end,
 					out var endMainFrame)
 				&& math.dot(startFrame.Tangent, startMainFrame.Tangent) > 0f
 				&& math.dot(endFrame.Tangent, endMainFrame.Tangent) > 0f
@@ -736,6 +814,272 @@ namespace VisualPinball.Unity
 				var angle = math.PI * 2f * radialIndex / radialSegments;
 				var radial = frame.Right * math.cos(angle) + frame.Up * math.sin(angle);
 				vertices.Add((Vector3)(center + radial * radius));
+				normals.Add((Vector3)normal);
+				uvs.Add(new Vector2(math.cos(angle) * 0.5f + 0.5f,
+					math.sin(angle) * 0.5f + 0.5f));
+			}
+			for (var radialIndex = 0; radialIndex < radialSegments; radialIndex++) {
+				var next = (radialIndex + 1) % radialSegments;
+				indices.Add(centerIndex);
+				indices.Add(ringStart + (start ? radialIndex : next));
+				indices.Add(ringStart + (start ? next : radialIndex));
+			}
+		}
+	}
+
+	internal readonly struct WireRailBraceProfile
+	{
+		public readonly WireRailPathFrame Frame;
+		public readonly float2 CenterOffset;
+		public readonly float Radius;
+
+		public WireRailBraceProfile(WireRailPathFrame frame, float2 centerOffset,
+			float radius)
+		{
+			Frame = frame;
+			CenterOffset = centerOffset;
+			Radius = radius;
+		}
+
+		public float3 Center => Frame.TransformOffset(CenterOffset);
+
+		public float3 GetCenterlinePosition(float angle)
+			=> Frame.TransformOffset(CenterOffset + new float2(math.cos(angle),
+				math.sin(angle)) * Radius);
+	}
+
+	internal static class WireRailFixtureMeshGenerator
+	{
+		private const int CompleteBraceSegments = 32;
+		private const float FullTurn = math.PI * 2f;
+
+		public static void Append(Spline spline, IReadOnlyList<WireRailSegment> segments,
+			IReadOnlyList<WireRailFixture> fixtures, int radialSegments,
+			ICollection<Vector3> vertices, ICollection<Vector3> normals,
+			ICollection<Vector2> uvs, ICollection<int> indices)
+		{
+			if (fixtures == null) {
+				return;
+			}
+			foreach (var fixture in fixtures) {
+				if (fixture is WireRailBraceFixture brace
+					&& TryEvaluateBraceProfile(spline, segments, brace, out var profile)) {
+					AppendBrace(profile, brace, radialSegments, vertices, normals, uvs,
+						indices);
+				}
+			}
+		}
+
+		internal static bool TryEvaluateBraceProfile(Spline spline,
+			IReadOnlyList<WireRailSegment> segments, WireRailBraceFixture brace,
+			out WireRailBraceProfile profile)
+		{
+			profile = default;
+			if (brace == null || !TryGetSplineLocation(spline, segments, brace.Distance,
+					out var segmentIndex, out var curveT, out var frame)) {
+				return false;
+			}
+			var segment = segments[segmentIndex];
+			if (segment.RailCount == 0) {
+				return false;
+			}
+
+			var railOffsets = new float2[segment.RailCount];
+			var railRadii = new float[segment.RailCount];
+			var minimum = new float2(float.PositiveInfinity);
+			var maximum = new float2(float.NegativeInfinity);
+			var evaluationContext = new WireRailPathEvaluationContext();
+			for (var railIndex = 0; railIndex < segment.RailCount; railIndex++) {
+				if (!WireRailSplineGeometry.TryEvaluateRailPosition(spline, segments,
+						evaluationContext, segmentIndex, railIndex, curveT,
+						out var railPosition)) {
+					return false;
+				}
+				var relative = railPosition - frame.Position;
+				var offset = new float2(math.dot(relative, frame.Right),
+					math.dot(relative, frame.Up));
+				var radius = WireRailSplineGeometry.EvaluateWireDiameter(spline, segments,
+					segmentIndex, railIndex, curveT) * 0.5f;
+				railOffsets[railIndex] = offset;
+				railRadii[railIndex] = radius;
+				minimum = math.min(minimum, offset - radius);
+				maximum = math.max(maximum, offset + radius);
+			}
+
+			var automaticCenterOffset = (minimum + maximum) * 0.5f;
+			var envelopeRadius = 0f;
+			for (var railIndex = 0; railIndex < railOffsets.Length; railIndex++) {
+				envelopeRadius = math.max(envelopeRadius,
+					math.distance(railOffsets[railIndex], automaticCenterOffset)
+						+ railRadii[railIndex]);
+			}
+			var centerOffset = automaticCenterOffset
+				+ new float2(brace.LateralOffset, brace.VerticalOffset);
+			var tubeRadius = brace.Diameter * 0.5f;
+			profile = new WireRailBraceProfile(frame, centerOffset,
+				math.max(tubeRadius, envelopeRadius + tubeRadius + brace.RadiusOffset));
+			return true;
+		}
+
+		private static bool TryGetSplineLocation(Spline spline,
+			IReadOnlyList<WireRailSegment> segments, float distance,
+			out int segmentIndex, out float curveT, out WireRailPathFrame frame)
+		{
+			segmentIndex = 0;
+			curveT = 0f;
+			frame = default;
+			if (spline == null || segments == null || segments.Count == 0
+				|| spline.Count < 2) {
+				return false;
+			}
+
+			var length = spline.GetLength();
+			var clampedDistance = math.clamp(distance, 0f, math.max(0f, length));
+			segmentIndex = segments.Count - 1;
+			for (var layoutIndex = 1; layoutIndex < segments.Count; layoutIndex++) {
+				if (clampedDistance < segments[layoutIndex].Distance) {
+					segmentIndex = layoutIndex - 1;
+					break;
+				}
+			}
+			var startDistance = segments[segmentIndex].Distance;
+			var endDistance = segmentIndex + 1 < segments.Count
+				? segments[segmentIndex + 1].Distance
+				: length;
+			curveT = endDistance > startDistance
+				? math.saturate((clampedDistance - startDistance) / (endDistance - startDistance))
+				: 0f;
+			return WireRailSplineGeometry.TryEvaluateDistance(spline, clampedDistance,
+				out frame);
+		}
+
+		private static void AppendBrace(WireRailBraceProfile profile,
+			WireRailBraceFixture brace, int radialSegments,
+			ICollection<Vector3> vertices, ICollection<Vector3> normals,
+			ICollection<Vector2> uvs, ICollection<int> indices)
+		{
+			if (!brace.TryGetVisibleArc(out var startAngle, out var sweepAngle,
+					out var closed)) {
+				return;
+			}
+			var longitudinalSegments = math.max(2,
+				(int)math.ceil(CompleteBraceSegments * sweepAngle / FullTurn));
+			var angles = BuildBraceAngles(brace, startAngle, sweepAngle, closed,
+				longitudinalSegments);
+			var ringCount = angles.Count;
+			var firstRing = vertices.Count;
+			var firstFrame = default(WireRailPathFrame);
+			var lastFrame = default(WireRailPathFrame);
+			var tubeRadius = brace.Diameter * 0.5f;
+			for (var ringIndex = 0; ringIndex < ringCount; ringIndex++) {
+				var angle = angles[ringIndex];
+				var centerlineOffset = brace.EvaluateCenterlineOffset(angle, profile.Radius);
+				var tangentOffset = brace.EvaluateCenterlineTangent(angle);
+				var tangent = math.normalizesafe(profile.Frame.Right * tangentOffset.x
+					+ profile.Frame.Up * tangentOffset.y, profile.Frame.Up);
+				var outwardOffset = math.normalizesafe(
+					new float2(tangentOffset.y, -tangentOffset.x), new float2(1f, 0f));
+				if (math.dot(outwardOffset, centerlineOffset) < 0f) {
+					outwardOffset = -outwardOffset;
+				}
+				var outward = math.normalizesafe(profile.Frame.Right * outwardOffset.x
+					+ profile.Frame.Up * outwardOffset.y, profile.Frame.Right);
+				var up = math.normalizesafe(math.cross(outward, tangent),
+					-profile.Frame.Tangent);
+				var tubeFrame = new WireRailPathFrame(
+					profile.Frame.TransformOffset(profile.CenterOffset + centerlineOffset),
+					tangent, outward, up);
+				if (ringIndex == 0) {
+					firstFrame = tubeFrame;
+				}
+				lastFrame = tubeFrame;
+				for (var radialIndex = 0; radialIndex < radialSegments; radialIndex++) {
+					var radialAngle = FullTurn * radialIndex / radialSegments;
+					var radial = tubeFrame.Right * math.cos(radialAngle)
+						+ tubeFrame.Up * math.sin(radialAngle);
+					vertices.Add((Vector3)(tubeFrame.Position + radial * tubeRadius));
+					normals.Add((Vector3)radial);
+					uvs.Add(new Vector2((angle - startAngle) / sweepAngle,
+						radialIndex / (float)radialSegments));
+				}
+			}
+
+			var ringPairCount = closed ? ringCount : ringCount - 1;
+			for (var ringIndex = 0; ringIndex < ringPairCount; ringIndex++) {
+				var current = firstRing + ringIndex * radialSegments;
+				var next = firstRing + ((ringIndex + 1) % ringCount) * radialSegments;
+				for (var radialIndex = 0; radialIndex < radialSegments; radialIndex++) {
+					var radialNext = (radialIndex + 1) % radialSegments;
+					var a = current + radialIndex;
+					var b = next + radialIndex;
+					var c = current + radialNext;
+					var d = next + radialNext;
+					indices.Add(a);
+					indices.Add(b);
+					indices.Add(d);
+					indices.Add(a);
+					indices.Add(d);
+					indices.Add(c);
+				}
+			}
+
+			if (!closed) {
+				AppendCap(firstFrame, tubeRadius, radialSegments, true,
+					vertices, normals, uvs, indices);
+				AppendCap(lastFrame, tubeRadius, radialSegments, false,
+					vertices, normals, uvs, indices);
+			}
+		}
+
+		private static List<float> BuildBraceAngles(WireRailBraceFixture brace,
+			float startAngle, float sweepAngle, bool closed, int longitudinalSegments)
+		{
+			var angles = new List<float>(longitudinalSegments + 3);
+			var baseRingCount = closed ? longitudinalSegments : longitudinalSegments + 1;
+			for (var ringIndex = 0; ringIndex < baseRingCount; ringIndex++) {
+				angles.Add(startAngle + sweepAngle * ringIndex / longitudinalSegments);
+			}
+			if (brace.TryGetStraightSection(out var straightStart, out var straightSweep)) {
+				AddBoundary(straightStart);
+				AddBoundary(straightStart + straightSweep);
+			}
+			angles.Sort();
+			for (var angleIndex = angles.Count - 1; angleIndex > 0; angleIndex--) {
+				if (math.abs(angles[angleIndex] - angles[angleIndex - 1]) < 1e-5f) {
+					angles.RemoveAt(angleIndex);
+				}
+			}
+			return angles;
+
+			void AddBoundary(float boundary)
+			{
+				for (var turn = -2; turn <= 2; turn++) {
+					var unwrapped = boundary + turn * FullTurn;
+					var atEnd = math.abs(unwrapped - (startAngle + sweepAngle)) < 1e-5f;
+					if (unwrapped >= startAngle - 1e-5f
+						&& unwrapped <= startAngle + sweepAngle + 1e-5f
+						&& (!closed || !atEnd)) {
+						angles.Add(unwrapped);
+					}
+				}
+			}
+		}
+
+		private static void AppendCap(WireRailPathFrame frame, float radius,
+			int radialSegments, bool start, ICollection<Vector3> vertices,
+			ICollection<Vector3> normals, ICollection<Vector2> uvs,
+			ICollection<int> indices)
+		{
+			var normal = start ? -frame.Tangent : frame.Tangent;
+			var centerIndex = vertices.Count;
+			vertices.Add((Vector3)frame.Position);
+			normals.Add((Vector3)normal);
+			uvs.Add(new Vector2(0.5f, 0.5f));
+			var ringStart = vertices.Count;
+			for (var radialIndex = 0; radialIndex < radialSegments; radialIndex++) {
+				var angle = FullTurn * radialIndex / radialSegments;
+				var radial = frame.Right * math.cos(angle) + frame.Up * math.sin(angle);
+				vertices.Add((Vector3)(frame.Position + radial * radius));
 				normals.Add((Vector3)normal);
 				uvs.Add(new Vector2(math.cos(angle) * 0.5f + 0.5f,
 					math.sin(angle) * 0.5f + 0.5f));
@@ -1146,7 +1490,8 @@ namespace VisualPinball.Unity
 			WireRailChannelProfile referenceProfile = null;
 			for (var sampleIndex = 0; sampleIndex <= samplesPerSegment; sampleIndex++) {
 				var curveT = sampleIndex / (float)samplesPerSegment;
-				if (!WireRailSplineGeometry.TryEvaluate(spline, segmentIndex, curveT,
+				if (!WireRailSplineGeometry.TryEvaluateLayout(spline, segments, segmentIndex,
+						curveT,
 						out var frame)) {
 					error = $"Could not evaluate spline segment {segmentIndex + 1}.";
 					return false;
