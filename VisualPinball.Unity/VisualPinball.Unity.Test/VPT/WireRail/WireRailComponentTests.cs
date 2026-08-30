@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Linq;
 using NUnit.Framework;
 using Unity.Collections;
 using UnityEditor;
@@ -97,7 +98,7 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldCreateContinuousHalfWeightLinearConnectionsByDefault()
+		public void ShouldCreateContinuousLinearConnectionsByDefault()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
@@ -109,8 +110,8 @@ namespace VisualPinball.Unity.Test
 				var connection = component.Segments[0].ConnectionToNext;
 				Assert.That(connection.WireCount, Is.EqualTo(4));
 				for (var wireIndex = 0; wireIndex < connection.WireCount; wireIndex++) {
+					Assert.That(connection.IsWireOverridden(wireIndex), Is.False);
 					Assert.That(connection.IsWireContinuous(wireIndex), Is.True);
-					Assert.That(connection.GetWireWeight(wireIndex), Is.EqualTo(0.5f));
 					Assert.That(connection.GetWireCurve(wireIndex).Evaluate(0.5f),
 						Is.EqualTo(0.5f).Within(0.001f));
 				}
@@ -120,11 +121,49 @@ namespace VisualPinball.Unity.Test
 			}
 		}
 
-		[TestCase(0f, 0f)]
-		[TestCase(0.5f, 20f)]
-		[TestCase(1f, 40f)]
-		public void ShouldMeetAtTheWeightedConnectionPosition(float weight,
-			float expectedJunctionX)
+		[Test]
+		public void ShouldTrackAndResetExplicitTransitionOverrides()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SplineContainer.Spline.Add(
+					new BezierKnot(new float3(0f, 1000f, 0f)), TangentMode.AutoSmooth);
+				AddMidpointLayout(component);
+
+				component.SetWireTransitionOverride(0, 2, true);
+				var connection = component.Segments[0].ConnectionToNext;
+				Assert.That(connection.IsWireOverridden(2), Is.True);
+				Assert.That(connection.IsWireContinuous(2), Is.True);
+				Assert.That(connection.GetWireCurve(2).Evaluate(0.25f),
+					Is.EqualTo(0.25f).Within(0.001f));
+
+				component.SetWireContinuous(0, 2, false);
+				connection = component.Segments[0].ConnectionToNext;
+				Assert.That(connection.IsWireOverridden(2), Is.True);
+				Assert.That(connection.IsWireContinuous(2), Is.False);
+
+				component.SetWireTransitionOverride(0, 2, false);
+				connection = component.Segments[0].ConnectionToNext;
+				Assert.That(connection.IsWireOverridden(2), Is.False);
+				Assert.That(connection.IsWireContinuous(2), Is.True);
+				Assert.That(connection.GetWireCurve(2).Evaluate(0.25f),
+					Is.EqualTo(0.25f).Within(0.001f));
+
+				component.SetWireTransitionCurve(0, 2, new AnimationCurve(
+					new Keyframe(0f, 0f), new Keyframe(0.5f, 0.2f),
+					new Keyframe(1f, 1f)));
+				connection = component.Segments[0].ConnectionToNext;
+				Assert.That(connection.IsWireOverridden(2), Is.True);
+				Assert.That(connection.GetWireCurve(2).Evaluate(0.5f),
+					Is.EqualTo(0.2f).Within(0.001f));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldUseLayoutPositionsAsTransitionEndpoints()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
@@ -137,10 +176,11 @@ namespace VisualPinball.Unity.Test
 				component.SetRailCount(1, 1);
 				component.SetRailOffset(0, 0, new Vector2(0f, 0f));
 				component.SetRailOffset(1, 0, new Vector2(40f, 0f));
-				component.SetWireConnectionWeight(0, 0, weight);
 
 				var firstStart = WireRailSplineGeometry.EvaluateRailOffset(spline,
 					component.Segments, 0, 0, 0f);
+				var firstMiddle = WireRailSplineGeometry.EvaluateRailOffset(spline,
+					component.Segments, 0, 0, 0.5f);
 				var firstEnd = WireRailSplineGeometry.EvaluateRailOffset(spline,
 					component.Segments, 0, 0, 1f);
 				var secondStart = WireRailSplineGeometry.EvaluateRailOffset(spline,
@@ -149,8 +189,9 @@ namespace VisualPinball.Unity.Test
 					component.Segments, 1, 0, 1f);
 
 				Assert.That(firstStart.x, Is.EqualTo(0f).Within(0.001f));
-				Assert.That(firstEnd.x, Is.EqualTo(expectedJunctionX).Within(0.001f));
-				Assert.That(secondStart.x, Is.EqualTo(expectedJunctionX).Within(0.001f));
+				Assert.That(firstMiddle.x, Is.EqualTo(20f).Within(0.001f));
+				Assert.That(firstEnd.x, Is.EqualTo(40f).Within(0.001f));
+				Assert.That(secondStart.x, Is.EqualTo(40f).Within(0.001f));
 				Assert.That(secondEnd.x, Is.EqualTo(40f).Within(0.001f));
 			} finally {
 				Object.DestroyImmediate(go);
@@ -158,7 +199,7 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldApplyConnectionWeightPerWire()
+		public void ShouldTransitionEveryContinuousWireToTheNextLayout()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
@@ -173,13 +214,10 @@ namespace VisualPinball.Unity.Test
 				component.SetRailOffset(0, 1, new Vector2(20f, 0f));
 				component.SetRailOffset(1, 0, new Vector2(-40f, 0f));
 				component.SetRailOffset(1, 1, new Vector2(60f, 0f));
-				component.SetWireConnectionWeight(0, 0, 0f);
-				component.SetWireConnectionWeight(0, 1, 1f);
-
 				Assert.That(WireRailSplineGeometry.EvaluateRailOffset(spline,
-					component.Segments, 0, 0, 1f).x, Is.EqualTo(-20f).Within(0.001f));
+					component.Segments, 0, 0, 1f).x, Is.EqualTo(-40f).Within(0.001f));
 				Assert.That(WireRailSplineGeometry.EvaluateRailOffset(spline,
-					component.Segments, 1, 0, 0f).x, Is.EqualTo(-20f).Within(0.001f));
+					component.Segments, 1, 0, 0f).x, Is.EqualTo(-40f).Within(0.001f));
 				Assert.That(WireRailSplineGeometry.EvaluateRailOffset(spline,
 					component.Segments, 0, 1, 1f).x, Is.EqualTo(60f).Within(0.001f));
 				Assert.That(WireRailSplineGeometry.EvaluateRailOffset(spline,
@@ -190,7 +228,7 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldShapeBothSidesOfAConnectionWithTheWireCurve()
+		public void ShouldShapeTheSpanBetweenLayoutsWithTheWireCurve()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
@@ -208,13 +246,13 @@ namespace VisualPinball.Unity.Test
 					new Keyframe(1f, 1f)));
 
 				Assert.That(WireRailSplineGeometry.EvaluateRailOffset(spline,
-					component.Segments, 0, 0, 0.5f).x, Is.EqualTo(5f).Within(0.001f));
+					component.Segments, 0, 0, 0.5f).x, Is.EqualTo(10f).Within(0.001f));
 				Assert.That(WireRailSplineGeometry.EvaluateRailOffset(spline,
-					component.Segments, 1, 0, 0.5f).x, Is.EqualTo(25f).Within(0.001f));
+					component.Segments, 1, 0, 0.5f).x, Is.EqualTo(40f).Within(0.001f));
 				Assert.That(WireRailSplineGeometry.EvaluateRailOffset(spline,
-					component.Segments, 0, 0, 1f).x, Is.EqualTo(20f).Within(0.001f));
+					component.Segments, 0, 0, 1f).x, Is.EqualTo(40f).Within(0.001f));
 				Assert.That(WireRailSplineGeometry.EvaluateRailOffset(spline,
-					component.Segments, 1, 0, 0f).x, Is.EqualTo(20f).Within(0.001f));
+					component.Segments, 1, 0, 0f).x, Is.EqualTo(40f).Within(0.001f));
 			} finally {
 				Object.DestroyImmediate(go);
 			}
@@ -239,9 +277,9 @@ namespace VisualPinball.Unity.Test
 				component.SetWireContinuous(0, 1, false);
 
 				Assert.That(WireRailSplineGeometry.EvaluateRailOffset(spline,
-					component.Segments, 0, 0, 1f).x, Is.EqualTo(-30f).Within(0.001f));
+					component.Segments, 0, 0, 1f).x, Is.EqualTo(-40f).Within(0.001f));
 				Assert.That(WireRailSplineGeometry.EvaluateRailOffset(spline,
-					component.Segments, 1, 0, 0f).x, Is.EqualTo(-30f).Within(0.001f));
+					component.Segments, 1, 0, 0f).x, Is.EqualTo(-40f).Within(0.001f));
 				Assert.That(WireRailSplineGeometry.EvaluateRailOffset(spline,
 					component.Segments, 0, 1, 1f).x, Is.EqualTo(20f).Within(0.001f));
 				Assert.That(WireRailSplineGeometry.EvaluateRailOffset(spline,
@@ -348,7 +386,6 @@ namespace VisualPinball.Unity.Test
 				component.SetRailCount(1, 1);
 				component.SetRailOffset(0, 0, Vector2.zero);
 				component.SetRailOffset(1, 0, new Vector2(500f, 0f));
-				component.SetWireConnectionWeight(0, 0, 0f);
 
 				var vertices = component.RenderMesh.vertices;
 				var firstSamples = WireRailRenderMeshGenerator.BuildSampleParameters(
@@ -482,12 +519,56 @@ namespace VisualPinball.Unity.Test
 				Assert.That(fullBraceTriangleCount, Is.EqualTo(32 * radialSegments * 2));
 
 				component.SetBraceFixtureProperties(fixtureIndex, 250f,
-					WireRailLayout.ReferenceWireDiameter, true, 0f, 90f);
+					true, 0f, 90f);
 				var cutoutBraceTriangleCount = component.RenderMesh.triangles.Length / 3
 					- railTriangleCount;
 				Assert.That(cutoutBraceTriangleCount,
 					Is.EqualTo(24 * radialSegments * 2 + radialSegments * 2),
 					"a 90-degree cutout should leave a capped three-quarter brace");
+
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldBevelEveryExposedRailAndFixtureCap()
+		{
+			const int radialSegments = 8;
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SetRailCount(0, 2);
+				var fixtureIndex = component.AddBraceFixture(250f);
+				component.SetBraceFixtureProperties(fixtureIndex, 250f,
+					true, 0f, 90f);
+				var flatVertices = component.RenderMesh.vertexCount;
+				var flatTriangles = component.RenderMesh.triangles.Length / 3;
+
+				component.SetWireCapBevelSize(2f);
+
+				const int exposedCaps = 6; // Four rail ends plus two brace cutout ends.
+				Assert.That(component.RenderMesh.vertexCount - flatVertices,
+					Is.EqualTo(exposedCaps * radialSegments * 2));
+				Assert.That(component.RenderMesh.triangles.Length / 3 - flatTriangles,
+					Is.EqualTo(exposedCaps * radialSegments * 2));
+				Assert.That(component.WireCapBevelSize, Is.EqualTo(2f));
+
+				var samples = WireRailRenderMeshGenerator.BuildSampleParameters(
+					component.SplineContainer.Spline, component.Segments, 0, 0, 16);
+				var firstBevelVertex = samples.Count * radialSegments;
+				Assert.That(Vector3.Distance(component.RenderMesh.vertices[0],
+					component.RenderMesh.vertices[firstBevelVertex]), Is.LessThan(0.001f));
+				Assert.That(WireRailSplineGeometry.TryEvaluateRailFrame(
+					component.SplineContainer.Spline, component.Segments, 0, 0, 0f,
+					samples[1], out var frame), Is.True);
+				var capNormal = -frame.Tangent;
+				var bevelNormal = (float3)component.RenderMesh.normals[firstBevelVertex];
+				Assert.That(math.dot(bevelNormal, capNormal),
+					Is.EqualTo(math.sqrt(0.5f)).Within(0.001f));
+				var flatCapCenter = firstBevelVertex + radialSegments * 2;
+				Assert.That(math.dot((float3)component.RenderMesh.normals[flatCapCenter],
+					capNormal), Is.EqualTo(1f).Within(0.001f));
 			} finally {
 				Object.DestroyImmediate(go);
 			}
@@ -506,7 +587,7 @@ namespace VisualPinball.Unity.Test
 					out var original), Is.True);
 
 				component.SetBraceFixtureProperties(fixtureIndex, 250f,
-					WireRailLayout.ReferenceWireDiameter, false, 60f, 120f,
+					false, 60f, 120f,
 					true, 210f, 330f, 12f, -7f, 10f);
 				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateBraceProfile(
 					component.SplineContainer.Spline, component.Segments, brace,
@@ -524,7 +605,7 @@ namespace VisualPinball.Unity.Test
 				Assert.That(middle.y, Is.EqualTo(-changed.Radius * 0.5f).Within(0.001f));
 
 				component.SetBraceFixtureProperties(fixtureIndex, 250f,
-					WireRailLayout.ReferenceWireDiameter, false, 60f, 120f,
+					false, 60f, 120f,
 					true, 210f, 330f, 12f, -7f, -10f);
 				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateBraceProfile(
 					component.SplineContainer.Spline, component.Segments, brace,
@@ -542,7 +623,7 @@ namespace VisualPinball.Unity.Test
 			try {
 				var component = go.AddComponent<WireRailComponent>();
 				var sourceIndex = component.AddBraceFixture(175f);
-				component.SetBraceFixtureProperties(sourceIndex, 175f, 11f,
+				component.SetBraceFixtureProperties(sourceIndex, 175f,
 					true, 35f, 125f, true, 205f, 315f, 6f, -9f, 14f);
 				var duplicateIndex = component.DuplicateBraceFixture(sourceIndex);
 				var source = (WireRailBraceFixture)component.Fixtures[sourceIndex];
@@ -562,6 +643,26 @@ namespace VisualPinball.Unity.Test
 				Assert.That(duplicate.LateralOffset, Is.EqualTo(source.LateralOffset));
 				Assert.That(duplicate.VerticalOffset, Is.EqualTo(source.VerticalOffset));
 				Assert.That(duplicate.RadiusOffset, Is.EqualTo(source.RadiusOffset));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldReorderFixturesWithoutChangingTheirPositions()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.AddBraceFixture(100f);
+				component.AddBraceFixture(300f);
+				component.SetBraceFixtureProperties(0, 100f, false, 0f, 0f);
+				component.SetBraceFixtureProperties(1, 300f, false, 0f, 0f);
+
+				component.MoveFixture(1, 0);
+
+				Assert.That(component.Fixtures[0].Distance, Is.EqualTo(300f).Within(0.001f));
+				Assert.That(component.Fixtures[1].Distance, Is.EqualTo(100f).Within(0.001f));
 			} finally {
 				Object.DestroyImmediate(go);
 			}
@@ -589,6 +690,31 @@ namespace VisualPinball.Unity.Test
 				component.RemoveLayout(1);
 				Assert.That(component.Segments, Has.Count.EqualTo(2));
 				Assert.That(component.SplineContainer.Spline.Count, Is.EqualTo(knotCount));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldReorderLayoutsAcrossTheirExistingPositionSlots()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.AddLayout(200f);
+				component.AddLayout(400f);
+				component.SetRailCount(0, 1);
+				component.SetRailCount(1, 2);
+				component.SetRailCount(2, 3);
+
+				component.MoveLayout(2, 0);
+
+				Assert.That(component.Segments.Select(layout => layout.Distance),
+					Is.EqualTo(new[] { 0f, 200f, 400f }));
+				Assert.That(component.Segments.Select(layout => layout.RailCount),
+					Is.EqualTo(new[] { 3, 1, 2 }));
+				Assert.That(component.Segments[0].ConnectionToNext.WireCount, Is.EqualTo(1));
+				Assert.That(component.Segments[1].ConnectionToNext.WireCount, Is.EqualTo(1));
 			} finally {
 				Object.DestroyImmediate(go);
 			}
@@ -631,7 +757,6 @@ namespace VisualPinball.Unity.Test
 				component.SetRailCount(1, 1);
 				component.SetRailOffset(0, 0, Vector2.zero);
 				component.SetRailOffset(1, 0, new Vector2(500f, 0f));
-				component.SetWireConnectionWeight(0, 0, 0f);
 				component.SetWireTransitionCurve(0, 0, new AnimationCurve(
 					new Keyframe(0f, 0f, 0f, 0f),
 					new Keyframe(1f, 1f, 2f, 2f)));
@@ -686,15 +811,13 @@ namespace VisualPinball.Unity.Test
 					}, TangentMode.AutoSmooth);
 				AddMidpointLayout(component);
 				var secondOffsets = new Vector2[4];
-				var diameters = new float[4];
 				var indices = new int[4];
 				for (var wireIndex = 0; wireIndex < 4; wireIndex++) {
 					indices[wireIndex] = wireIndex;
 					secondOffsets[wireIndex] = component.Segments[1].GetRailOffset(wireIndex)
 						+ new Vector2(40f, 0f);
-					diameters[wireIndex] = component.Segments[1].GetWireDiameter(wireIndex);
 				}
-				component.SetWireProperties(1, indices, secondOffsets, diameters);
+				component.SetWireProperties(1, indices, secondOffsets);
 				var transitionCurve = new AnimationCurve(
 					new Keyframe(0f, 0f), new Keyframe(0.5f, 0.25f),
 					new Keyframe(1f, 1f));
@@ -713,10 +836,10 @@ namespace VisualPinball.Unity.Test
 				var secondMiddleX = AverageRowX(vertices, 13 * rowSize, rowSize);
 				var secondEndX = AverageRowX(vertices, 17 * rowSize, rowSize);
 
-				Assert.That(firstMiddleX - firstStartX, Is.EqualTo(5f).Within(0.01f));
-				Assert.That(firstEndX - firstStartX, Is.EqualTo(20f).Within(0.01f));
+				Assert.That(firstMiddleX - firstStartX, Is.EqualTo(10f).Within(0.01f));
+				Assert.That(firstEndX - firstStartX, Is.EqualTo(40f).Within(0.01f));
 				Assert.That(secondStartX, Is.EqualTo(firstEndX).Within(0.01f));
-				Assert.That(secondMiddleX - firstStartX, Is.EqualTo(25f).Within(0.01f));
+				Assert.That(secondMiddleX - firstStartX, Is.EqualTo(40f).Within(0.01f));
 				Assert.That(secondEndX - firstStartX, Is.EqualTo(40f).Within(0.01f));
 			} finally {
 				Object.DestroyImmediate(go);
@@ -733,7 +856,6 @@ namespace VisualPinball.Unity.Test
 				spline.Add(new BezierKnot(new float3(0f, 1000f, 0f)),
 					TangentMode.AutoSmooth);
 				AddMidpointLayout(component);
-				component.SetWireConnectionWeight(0, 0, 0.25f);
 				component.SetWireTransitionCurve(0, 0, new AnimationCurve(
 					new Keyframe(0f, 0f), new Keyframe(0.5f, 0.2f),
 					new Keyframe(1f, 1f)));
@@ -743,8 +865,6 @@ namespace VisualPinball.Unity.Test
 
 				Assert.That(component.Segments[0].ConnectionToNext.IsWireContinuous(0),
 					Is.True);
-				Assert.That(component.Segments[0].ConnectionToNext.GetWireWeight(0),
-					Is.EqualTo(0.25f));
 				Assert.That(component.Segments[0].ConnectionToNext.GetWireCurve(0)
 					.Evaluate(0.5f), Is.EqualTo(0.2f).Within(0.001f));
 				Assert.That(component.Segments, Has.Count.EqualTo(2));
@@ -753,8 +873,6 @@ namespace VisualPinball.Unity.Test
 
 				Assert.That(component.Segments[0].ConnectionToNext.IsWireContinuous(0),
 					Is.True);
-				Assert.That(component.Segments[0].ConnectionToNext.GetWireWeight(0),
-					Is.EqualTo(0.25f));
 				Assert.That(component.Segments[0].ConnectionToNext.GetWireCurve(0)
 					.Evaluate(0.5f), Is.EqualTo(0.2f).Within(0.001f));
 			} finally {
@@ -810,21 +928,48 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldEditSelectedWirePositionsAndDiametersTogether()
+		public void ShouldEditSelectedWirePositionsTogether()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
 				component.SetWireProperties(0, new[] { 0, 2 },
-					new[] { new Vector2(-22f, 1f), new Vector2(-20f, 46f) },
-					new[] { 12f, 10f });
+					new[] { new Vector2(-22f, 1f), new Vector2(-20f, 46f) });
 
 				Assert.That(component.Segments[0].GetRailOffset(0),
 					Is.EqualTo(new Vector2(-22f, 1f)));
-				Assert.That(component.Segments[0].GetWireDiameter(0), Is.EqualTo(12f));
+				Assert.That(component.Segments[0].GetWireDiameter(0), Is.EqualTo(8f));
 				Assert.That(component.Segments[0].GetWireDiameter(1), Is.EqualTo(8f));
-				Assert.That(component.Segments[0].GetWireDiameter(2), Is.EqualTo(10f));
-				Assert.That(component.RenderMesh.bounds.min.x, Is.EqualTo(-28f).Within(0.05f));
+				Assert.That(component.Segments[0].GetWireDiameter(2), Is.EqualTo(8f));
+				Assert.That(component.RenderMesh.bounds.min.x, Is.EqualTo(-26f).Within(0.05f));
+				Assert.That(component.ColliderMesh.vertexCount, Is.GreaterThan(0));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldApplyOneDiameterToEveryWireAndFixture()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.AddLayout(250f);
+				component.SetRailCount(0, 2);
+				component.SetRailCount(1, 5);
+				component.AddBraceFixture(125f);
+
+				component.SetWireDiameter(12f);
+
+				foreach (var layout in component.Layouts) {
+					for (var wireIndex = 0; wireIndex < layout.RailCount; wireIndex++) {
+						Assert.That(layout.GetWireDiameter(wireIndex), Is.EqualTo(12f));
+					}
+				}
+				Assert.That(component.WireDiameter, Is.EqualTo(12f));
+				Assert.That(((WireRailBraceFixture)component.Fixtures[0]).Diameter,
+					Is.EqualTo(12f));
+				Assert.That(component.RenderMesh.bounds.size.x, Is.GreaterThan(0f));
 				Assert.That(component.ColliderMesh.vertexCount, Is.GreaterThan(0));
 			} finally {
 				Object.DestroyImmediate(go);
@@ -863,7 +1008,7 @@ namespace VisualPinball.Unity.Test
 				var component = go.AddComponent<WireRailComponent>();
 				component.SetRailCount(0, 3);
 				component.SetRailOffset(0, 2, new Vector2(23f, 48f));
-				component.SetWireDiameter(0, 2, 11f);
+				component.SetWireDiameter(11f);
 
 				component.SplineContainer.Spline.Insert(1,
 					new BezierKnot(new float3(0f, 250f, 25f)), TangentMode.AutoSmooth);
