@@ -24,7 +24,9 @@ namespace VisualPinball.Unity.Editor
 	internal sealed class WireRailCrossSectionEditor
 	{
 		private const int ControlHint = 0x57495245;
-		private const float CanvasHeight = 190f;
+		private const float CanvasHeight = 170f;
+		private const float LineHeight = 20f;
+		public const float Height = CanvasHeight + LineHeight * 2f + 8f;
 		private const float GridStep = 10f;
 		private static readonly Color CanvasColor = new(0.105f, 0.115f, 0.13f, 1f);
 		private static readonly Color GridColor = new(1f, 1f, 1f, 0.07f);
@@ -41,31 +43,26 @@ namespace VisualPinball.Unity.Editor
 		private readonly Dictionary<int, HashSet<int>> _selectedWires = new();
 		private readonly List<int> _dragIndices = new();
 		private readonly List<Vector2> _dragOffsets = new();
-		private readonly List<float> _dragDiameters = new();
 		private Vector2 _dragStartMouse;
 		private int _dragSegmentIndex = -1;
 		private bool _dragUndoRecorded;
 		private static Texture2D _circleTexture;
 		private static GUIStyle _wireLabelStyle;
 
-		public void Draw(WireRailComponent component, int segmentIndex)
+		public void Draw(Rect rect, WireRailComponent component, int segmentIndex)
 		{
 			var segment = component.Segments[segmentIndex];
 			var selected = GetSelection(segmentIndex, segment.RailCount);
-
-			EditorGUILayout.Space(3f);
-			EditorGUILayout.LabelField("Wires", EditorStyles.boldLabel);
-			EditorGUILayout.LabelField(
-				"Click to select · Shift/Ctrl/Cmd-click for multiple · Drag to move",
-				EditorStyles.miniLabel);
-			var rect = GUILayoutUtility.GetRect(120f, CanvasHeight,
-				GUILayout.ExpandWidth(true));
-			var view = CrossSectionView.Create(rect, segment);
+			var canvasRect = new Rect(rect.x, rect.y, rect.width, CanvasHeight);
+			var view = CrossSectionView.Create(canvasRect, segment);
 			var controlId = GUIUtility.GetControlID(ControlHint + segmentIndex * 397,
-				FocusType.Passive, rect);
+				FocusType.Passive, canvasRect);
 			HandleInput(component, segmentIndex, segment, selected, view, controlId);
 			DrawCanvas(segment, selected, view);
-			DrawSelectedWireControls(component, segmentIndex, segment, selected);
+			GUI.Label(canvasRect, new GUIContent(string.Empty,
+				"Click to select · Shift/Ctrl/Cmd-click for multiple · Drag to move"));
+			DrawSelectedWireControls(new Rect(rect.x, canvasRect.yMax + 4f, rect.width,
+				LineHeight * 2f + 4f), component, segmentIndex, segment, selected);
 		}
 
 		private HashSet<int> GetSelection(int segmentIndex, int railCount)
@@ -123,7 +120,7 @@ namespace VisualPinball.Unity.Editor
 						movedOffsets[i] = _dragOffsets[i] + delta;
 					}
 					component.SetWireProperties(segmentIndex, _dragIndices,
-						movedOffsets, _dragDiameters);
+						movedOffsets);
 					Apply(component);
 					evt.Use();
 					GUI.changed = true;
@@ -166,14 +163,12 @@ namespace VisualPinball.Unity.Editor
 		{
 			_dragIndices.Clear();
 			_dragOffsets.Clear();
-			_dragDiameters.Clear();
 			foreach (var railIndex in selected) {
 				_dragIndices.Add(railIndex);
 			}
 			_dragIndices.Sort();
 			foreach (var railIndex in _dragIndices) {
 				_dragOffsets.Add(segment.GetRailOffset(railIndex));
-				_dragDiameters.Add(segment.GetWireDiameter(railIndex));
 			}
 		}
 
@@ -252,23 +247,26 @@ namespace VisualPinball.Unity.Editor
 			GUI.color = previous;
 		}
 
-		private static void DrawSelectedWireControls(WireRailComponent component,
+		private static void DrawSelectedWireControls(Rect rect, WireRailComponent component,
 			int segmentIndex, WireRailSegment segment, HashSet<int> selected)
 		{
-			EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-			EditorGUILayout.BeginHorizontal();
-			EditorGUILayout.LabelField(selected.Count == 0 ? "No wires selected"
+			var selectionRect = new Rect(rect.x, rect.y, rect.width, LineHeight);
+			var noneRect = new Rect(selectionRect.xMax - 44f, selectionRect.y, 44f,
+				LineHeight);
+			var allRect = new Rect(noneRect.x - 38f, selectionRect.y, 38f, LineHeight);
+			var labelRect = new Rect(selectionRect.x, selectionRect.y,
+				math.max(0f, allRect.x - selectionRect.x - 4f), LineHeight);
+			EditorGUI.LabelField(labelRect, selected.Count == 0 ? "No wires selected"
 				: selected.Count == 1 ? "1 wire selected" : $"{selected.Count} wires selected",
 				EditorStyles.boldLabel);
-			if (GUILayout.Button("All", EditorStyles.miniButtonLeft, GUILayout.Width(38f))) {
+			if (GUI.Button(allRect, "All", EditorStyles.miniButtonLeft)) {
 				for (var railIndex = 0; railIndex < segment.RailCount; railIndex++) {
 					selected.Add(railIndex);
 				}
 			}
-			if (GUILayout.Button("None", EditorStyles.miniButtonRight, GUILayout.Width(44f))) {
+			if (GUI.Button(noneRect, "None", EditorStyles.miniButtonRight)) {
 				selected.Clear();
 			}
-			EditorGUILayout.EndHorizontal();
 
 			using (new EditorGUI.DisabledScope(selected.Count == 0)) {
 				var indices = new List<int>(selected);
@@ -276,56 +274,66 @@ namespace VisualPinball.Unity.Editor
 				var firstIndex = indices.Count > 0 ? indices[0] : 0;
 				var firstOffset = indices.Count > 0
 					? segment.GetRailOffset(firstIndex) : Vector2.zero;
-				var firstDiameter = indices.Count > 0
-					? segment.GetWireDiameter(firstIndex) : WireRailLayout.ReferenceWireDiameter;
 				var mixedX = false;
 				var mixedZ = false;
-				var mixedDiameter = false;
 				for (var i = 1; i < indices.Count; i++) {
 					var offset = segment.GetRailOffset(indices[i]);
 					mixedX |= !Mathf.Approximately(offset.x, firstOffset.x);
 					mixedZ |= !Mathf.Approximately(offset.y, firstOffset.y);
-					mixedDiameter |= !Mathf.Approximately(
-						segment.GetWireDiameter(indices[i]), firstDiameter);
 				}
 
+				var controlsRect = new Rect(rect.x, selectionRect.yMax + 4f, rect.width,
+					LineHeight);
+				const float resetWidth = 54f;
+				const float positionLabelWidth = 50f;
+				const float axisLabelWidth = 14f;
+				const float spacing = 4f;
+				var numericFieldWidth = math.max(20f, (controlsRect.width - positionLabelWidth
+					- axisLabelWidth * 2f - resetWidth - spacing * 5f) * 0.5f);
+				var axisFieldWidth = axisLabelWidth + numericFieldWidth;
+				var x = controlsRect.x;
+				EditorGUI.LabelField(new Rect(x, controlsRect.y, positionLabelWidth,
+					LineHeight), "Position");
+				x += positionLabelWidth + spacing;
+				var previousLabelWidth = EditorGUIUtility.labelWidth;
+				EditorGUIUtility.labelWidth = axisLabelWidth;
 				EditorGUI.BeginChangeCheck();
 				EditorGUI.showMixedValue = mixedX;
-				var x = EditorGUILayout.FloatField(new GUIContent("X Position",
-					"Lateral centerline position in VPX units. Drag the label to scrub."),
-					firstOffset.x);
+				var editedX = EditorGUI.FloatField(new Rect(x, controlsRect.y, axisFieldWidth,
+					LineHeight), new GUIContent("X",
+					"Lateral centerline position in VPX units."), firstOffset.x);
 				var xChanged = EditorGUI.EndChangeCheck();
+				x += axisFieldWidth + spacing;
 				EditorGUI.BeginChangeCheck();
 				EditorGUI.showMixedValue = mixedZ;
-				var z = EditorGUILayout.FloatField(new GUIContent("Z Position",
-					"Vertical centerline position in VPX units. Drag the label to scrub."),
-					firstOffset.y);
+				var editedZ = EditorGUI.FloatField(new Rect(x, controlsRect.y, axisFieldWidth,
+					LineHeight), new GUIContent("Z",
+					"Vertical centerline position in VPX units."), firstOffset.y);
 				var zChanged = EditorGUI.EndChangeCheck();
-				EditorGUI.BeginChangeCheck();
-				EditorGUI.showMixedValue = mixedDiameter;
-				var diameter = EditorGUILayout.FloatField(new GUIContent("Diameter",
-					"Rendered wire diameter in VPX units. Drag the label to scrub."),
-					firstDiameter);
-				var diameterChanged = EditorGUI.EndChangeCheck();
 				EditorGUI.showMixedValue = false;
+				EditorGUIUtility.labelWidth = previousLabelWidth;
 
-				if (indices.Count > 0 && (xChanged || zChanged || diameterChanged)) {
+				if (indices.Count > 0 && (xChanged || zChanged)) {
 					var offsets = new Vector2[indices.Count];
-					var diameters = new float[indices.Count];
 					for (var i = 0; i < indices.Count; i++) {
 						var currentOffset = segment.GetRailOffset(indices[i]);
-						offsets[i] = new Vector2(xChanged ? x : currentOffset.x,
-							zChanged ? z : currentOffset.y);
-						diameters[i] = diameterChanged
-							? math.max(0.1f, diameter)
-							: segment.GetWireDiameter(indices[i]);
+						offsets[i] = new Vector2(xChanged ? editedX : currentOffset.x,
+							zChanged ? editedZ : currentOffset.y);
 					}
 					Undo.RecordObject(component, "Edit Wire Rail Wires");
-					component.SetWireProperties(segmentIndex, indices, offsets, diameters);
+					component.SetWireProperties(segmentIndex, indices, offsets);
 					Apply(component);
 				}
 			}
-			EditorGUILayout.EndVertical();
+			var resetRect = new Rect(rect.xMax - 54f, selectionRect.yMax + 4f, 54f,
+				LineHeight);
+			using (new EditorGUI.DisabledScope(selected.Count == 0)) {
+				if (GUI.Button(resetRect, "Reset")) {
+					Undo.RecordObject(component, "Reset Wire Rail Layout");
+					component.ResetSegmentLayout(segmentIndex);
+					Apply(component);
+				}
+			}
 		}
 
 		private static void Apply(WireRailComponent component)

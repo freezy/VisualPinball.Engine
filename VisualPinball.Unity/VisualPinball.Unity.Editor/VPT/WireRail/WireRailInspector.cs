@@ -21,6 +21,7 @@ using UnityEditor;
 using UnityEditor.EditorTools;
 using UnityEditor.SceneManagement;
 using UnityEditor.Splines;
+using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Splines;
@@ -31,9 +32,25 @@ namespace VisualPinball.Unity.Editor
 	public class WireRailInspector : UnityEditor.Editor
 	{
 		private static readonly string[] ThirdRailSides = { "Left", "Right" };
+		private static readonly string[] RailCounts = { "1", "2", "3", "4", "5", "6" };
 		private static readonly Color TransitionCurveColor = new(0.05f, 0.75f, 1f, 1f);
+		private const float LayoutLineHeight = 20f;
+		private const float LayoutPadding = 7f;
 		private static SplineContainer _pendingSplineEdit;
 		private readonly WireRailCrossSectionEditor _crossSectionEditor = new();
+		[SerializeField] private bool _showRenderGeometry = true;
+		[SerializeField] private bool _showFixtures = true;
+		[SerializeField] private bool _showWireLayouts = true;
+		private readonly List<int> _fixtureOrder = new();
+		private readonly List<int> _layoutOrder = new();
+		private ReorderableList _fixtureOrderList;
+		private ReorderableList _layoutOrderList;
+
+		private void OnEnable()
+		{
+			_fixtureOrderList = CreateFixtureOrderList();
+			_layoutOrderList = CreateLayoutOrderList();
+		}
 
 		[MenuItem("GameObject/Pinball/Wire Rail", false, 11)]
 		private static void CreateWireRailGameObject(MenuCommand menuCommand)
@@ -103,11 +120,32 @@ namespace VisualPinball.Unity.Editor
 					+ "from the container before authoring wire layouts.", MessageType.Warning);
 			}
 
-			DrawGenerationSettings(component);
-			DrawFixtures(component);
-
 			EditorGUILayout.Space(8f);
-			EditorGUILayout.LabelField("Wire Layouts", EditorStyles.boldLabel);
+			_showRenderGeometry = EditorGUILayout.BeginFoldoutHeaderGroup(
+				_showRenderGeometry, "Render Geometry");
+			if (_showRenderGeometry) {
+				DrawGenerationSettings(component);
+			}
+			EditorGUILayout.EndFoldoutHeaderGroup();
+
+			EditorGUILayout.Space(4f);
+			_showFixtures = EditorGUILayout.BeginFoldoutHeaderGroup(_showFixtures, "Fixtures");
+			if (_showFixtures) {
+				DrawFixtures(component);
+			}
+			EditorGUILayout.EndFoldoutHeaderGroup();
+
+			EditorGUILayout.Space(4f);
+			_showWireLayouts = EditorGUILayout.BeginFoldoutHeaderGroup(
+				_showWireLayouts, "Wire Layouts");
+			if (_showWireLayouts) {
+				DrawWireLayouts(component);
+			}
+			EditorGUILayout.EndFoldoutHeaderGroup();
+		}
+
+		private void DrawWireLayouts(WireRailComponent component)
+		{
 			EditorGUILayout.LabelField(
 				"Layouts are positioned by distance along the route and are independent from spline knots.",
 				EditorStyles.wordWrappedMiniLabel);
@@ -116,28 +154,21 @@ namespace VisualPinball.Unity.Editor
 					MessageType.Warning);
 				return;
 			}
+			SynchronizeOrder(_layoutOrder, component.Segments.Count);
+			_layoutOrderList.DoLayoutList();
 			if (GUILayout.Button("Add Wire Layout")) {
 				Edit(component, "Add Wire Rail Layout",
 					() => component.AddLayout(component.SplineLength * 0.5f));
-			}
-
-			for (var segmentIndex = 0; segmentIndex < component.Segments.Count; segmentIndex++) {
-				if (DrawSegment(component, segmentIndex)) {
-					return;
-				}
-				if (component.GetNextSegmentIndex(segmentIndex) >= 0) {
-					DrawConnection(component, segmentIndex);
-				}
+				SynchronizeOrder(_layoutOrder, component.Segments.Count, true);
 			}
 		}
 
-		private static void DrawFixtures(WireRailComponent component)
+		private void DrawFixtures(WireRailComponent component)
 		{
-			EditorGUILayout.Space(8f);
-			EditorGUILayout.LabelField("Fixtures", EditorStyles.boldLabel);
 			EditorGUILayout.LabelField(
 				"Fixtures are positioned by distance along the complete spline, independently "
-				+ "from its wire layouts.", EditorStyles.wordWrappedMiniLabel);
+					+ "from its wire layouts.", EditorStyles.wordWrappedMiniLabel);
+			DrawFixtureOrder(component);
 
 			var splineLength = component.SplineLength;
 			for (var fixtureIndex = 0; fixtureIndex < component.Fixtures.Count; fixtureIndex++) {
@@ -169,16 +200,14 @@ namespace VisualPinball.Unity.Editor
 				EditorGUILayout.EndHorizontal();
 
 				EditorGUI.BeginChangeCheck();
-				var distance = EditorGUILayout.Slider(new GUIContent("Position (VPX)",
+				var distance = EditorGUILayout.Slider(new GUIContent("Position",
 					"Distance along the complete spline in VPX units."), brace.Distance,
 					0f, math.max(0f, splineLength));
-				var diameter = EditorGUILayout.DelayedFloatField(new GUIContent("Diameter (VPX)",
-					"Diameter of the wire used to form this brace."), brace.Diameter);
-				var lateralOffset = EditorGUILayout.FloatField(new GUIContent("Lateral Offset (VPX)",
+				var lateralOffset = EditorGUILayout.FloatField(new GUIContent("Lateral Offset",
 					"Move the brace sideways in the spline cross-section."), brace.LateralOffset);
-				var verticalOffset = EditorGUILayout.FloatField(new GUIContent("Vertical Offset (VPX)",
+				var verticalOffset = EditorGUILayout.FloatField(new GUIContent("Vertical Offset",
 					"Move the brace vertically in the spline cross-section."), brace.VerticalOffset);
-				var radiusOffset = EditorGUILayout.FloatField(new GUIContent("Radius Offset (VPX)",
+				var radiusOffset = EditorGUILayout.FloatField(new GUIContent("Radius Offset",
 					"Increase or decrease the complete brace radius without moving its center."),
 					brace.RadiusOffset);
 				var hasCutout = EditorGUILayout.Toggle(new GUIContent("Cutout",
@@ -210,7 +239,7 @@ namespace VisualPinball.Unity.Editor
 					var capturedIndex = fixtureIndex;
 					Edit(component, "Edit Wire Rail Brace", () =>
 						component.SetBraceFixtureProperties(capturedIndex, distance,
-							diameter, hasCutout, cutoutStart, cutoutEnd,
+							hasCutout, cutoutStart, cutoutEnd,
 							hasStraightSection, straightStart, straightEnd,
 							lateralOffset, verticalOffset, radiusOffset));
 				}
@@ -221,23 +250,115 @@ namespace VisualPinball.Unity.Editor
 				if (GUILayout.Button("Add Brace")) {
 					Edit(component, "Add Wire Rail Brace",
 						() => component.AddBraceFixture(splineLength * 0.5f));
+					SynchronizeOrder(_fixtureOrder, component.Fixtures.Count, true);
 				}
+			}
+		}
+
+		private ReorderableList CreateFixtureOrderList()
+		{
+			var list = new ReorderableList(_fixtureOrder, typeof(int), true, true, false, false) {
+				headerHeight = EditorGUIUtility.singleLineHeight,
+				elementHeight = EditorGUIUtility.singleLineHeight + 2f,
+			};
+			list.drawHeaderCallback = rect => EditorGUI.LabelField(rect, "Fixture Order (drag rows)");
+			list.drawElementCallback = (rect, index, _, _) => {
+				if (target is not WireRailComponent component || index >= _fixtureOrder.Count) {
+					return;
+				}
+				var fixtureIndex = _fixtureOrder[index];
+				if (fixtureIndex < 0 || fixtureIndex >= component.Fixtures.Count) {
+					return;
+				}
+				var fixture = component.Fixtures[fixtureIndex];
+				var label = fixture is WireRailBraceFixture ? $"Brace {fixtureIndex + 1}" :
+					$"Fixture {fixtureIndex + 1}";
+				EditorGUI.LabelField(rect, label, $"Position {fixture.Distance:0.##}");
+			};
+			list.onReorderCallbackWithDetails = (_, fromIndex, toIndex) => {
+				if (target is WireRailComponent component) {
+					Edit(component, "Reorder Wire Rail Fixtures",
+						() => component.MoveFixture(fromIndex, toIndex));
+					SynchronizeOrder(_fixtureOrder, component.Fixtures.Count, true);
+				}
+			};
+			return list;
+		}
+
+		private ReorderableList CreateLayoutOrderList()
+		{
+			var list = new ReorderableList(_layoutOrder, typeof(int), true, false, false, false) {
+				headerHeight = 0f,
+				footerHeight = 0f,
+			};
+			list.drawElementBackgroundCallback = (rect, index, active, focused) => {
+				rect.y -= 2f;
+				rect.height += 2f;
+				ReorderableList.defaultBehaviours.DrawElementBackground(rect, index,
+					active, focused, true);
+			};
+			list.elementHeightCallback = index => {
+				if (target is not WireRailComponent component || index >= _layoutOrder.Count) {
+					return LayoutLineHeight;
+				}
+				return GetLayoutElementHeight(component, _layoutOrder[index]);
+			};
+			list.drawElementCallback = (rect, index, _, _) => {
+				if (target is not WireRailComponent component || index >= _layoutOrder.Count) {
+					return;
+				}
+				var layoutIndex = _layoutOrder[index];
+				if (layoutIndex < 0 || layoutIndex >= component.Segments.Count) {
+					return;
+				}
+				DrawLayoutElement(rect, component, layoutIndex);
+			};
+			list.onReorderCallbackWithDetails = (_, fromIndex, toIndex) => {
+				if (target is WireRailComponent component) {
+					Edit(component, "Reorder Wire Rail Layouts",
+						() => component.MoveLayout(fromIndex, toIndex));
+					SynchronizeOrder(_layoutOrder, component.Segments.Count, true);
+				}
+			};
+			return list;
+		}
+
+		private void DrawFixtureOrder(WireRailComponent component)
+		{
+			SynchronizeOrder(_fixtureOrder, component.Fixtures.Count);
+			if (_fixtureOrder.Count > 1) {
+				_fixtureOrderList.DoLayoutList();
+			}
+		}
+
+		private static void SynchronizeOrder(List<int> order, int count, bool force = false)
+		{
+			if (!force && order.Count == count) {
+				return;
+			}
+			order.Clear();
+			for (var index = 0; index < count; index++) {
+				order.Add(index);
 			}
 		}
 
 		private void DrawGenerationSettings(WireRailComponent component)
 		{
 			serializedObject.Update();
-			EditorGUILayout.Space(8f);
-			EditorGUILayout.LabelField("Render Geometry", EditorStyles.boldLabel);
 			EditorGUI.BeginChangeCheck();
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("_renderMaterial"),
 				new GUIContent("Material"));
-			EditorGUILayout.PropertyField(serializedObject.FindProperty("_wireDiameter"),
-				new GUIContent("New Wire Diameter",
-					"Diameter assigned when a new wire layout is created, in VPX units."));
+			EditorGUI.BeginChangeCheck();
+			var wireDiameter = EditorGUILayout.FloatField(new GUIContent("Wire Diameter",
+				"Global diameter for every rail wire and fixture wire."),
+				component.WireDiameter);
+			var wireDiameterChanged = EditorGUI.EndChangeCheck();
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("_radialSegments"),
 				new GUIContent("Tube Sides"));
+			EditorGUILayout.PropertyField(serializedObject.FindProperty("_wireCapBevelSize"),
+				new GUIContent("Wire Cap Bevel",
+					"One-segment bevel size on every exposed wire end. Each wire clamps the size "
+					+ "to half its diameter."));
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("_renderSamplesPerSegment"),
 				new GUIContent("Minimum Samples Per Layout Span",
 					"Base longitudinal detail. Sharper wire bends receive extra rings automatically."));
@@ -262,7 +383,10 @@ namespace VisualPinball.Unity.Editor
 			}
 			var settingsChanged = EditorGUI.EndChangeCheck();
 			serializedObject.ApplyModifiedProperties();
-			if (settingsChanged) {
+			if (wireDiameterChanged) {
+				Edit(component, "Change Wire Rail Diameter",
+					() => component.SetWireDiameter(math.max(0.1f, wireDiameter)));
+			} else if (settingsChanged) {
 				component.RebuildGeneratedMeshes();
 				SceneView.RepaintAll();
 			}
@@ -283,144 +407,206 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private bool DrawSegment(WireRailComponent component, int segmentIndex)
+		private float GetLayoutElementHeight(WireRailComponent component, int layoutIndex)
 		{
-			var segment = component.Segments[segmentIndex];
-			EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-			EditorGUILayout.BeginHorizontal();
-			EditorGUILayout.LabelField($"Layout {segmentIndex + 1}", EditorStyles.boldLabel);
-			using (new EditorGUI.DisabledScope(component.Segments.Count <= 1)) {
-				if (GUILayout.Button("Remove", GUILayout.Width(68f))) {
-					Edit(component, "Remove Wire Rail Layout",
-						() => component.RemoveLayout(segmentIndex));
-					EditorGUILayout.EndHorizontal();
-					EditorGUILayout.EndVertical();
-					return true;
-				}
+			if (layoutIndex < 0 || layoutIndex >= component.Segments.Count) {
+				return LayoutLineHeight;
 			}
-			EditorGUILayout.EndHorizontal();
-			using (new EditorGUI.DisabledScope(segmentIndex == 0)) {
-				var distance = EditorGUILayout.Slider(new GUIContent("Position (VPX)",
-					"Distance along the complete spline where this layout starts."),
-					segment.Distance, 0f, component.SplineLength);
-				if (!Mathf.Approximately(distance, segment.Distance)) {
-					Edit(component, "Move Wire Rail Layout",
-						() => component.SetLayoutDistance(segmentIndex, distance));
-					segment = component.Segments[segmentIndex];
-				}
+			var layout = component.Segments[layoutIndex];
+			var height = LayoutPadding * 2f + LayoutLineHeight * 2f + 6f
+				+ WireRailCrossSectionEditor.Height;
+			if (layout.RailCount == 3) {
+				height += LayoutLineHeight + 3f;
 			}
-
-			EditorGUILayout.BeginHorizontal();
-			var railCount = EditorGUILayout.DelayedIntField(new GUIContent("Rail Count",
-				"Changing the count applies the ball-clearance default layout for that count."),
-				segment.RailCount);
-			if (GUILayout.Button("−", GUILayout.Width(28f))) {
-				railCount = math.max(1, segment.RailCount - 1);
-			}
-			if (GUILayout.Button("+", GUILayout.Width(28f))) {
-				railCount = segment.RailCount + 1;
-			}
-			EditorGUILayout.EndHorizontal();
-			if (railCount != segment.RailCount) {
-				Edit(component, "Change Wire Rail Count",
-					() => component.SetRailCount(segmentIndex, math.max(1, railCount)));
-				segment = component.Segments[segmentIndex];
-			}
-
-			if (segment.RailCount == 3) {
-				EditorGUILayout.BeginHorizontal();
-				EditorGUILayout.PrefixLabel(new GUIContent("Third Rail",
-					"Choose whether the third rail starts at middle-left or middle-right."));
-				var side = (WireRailThirdRailSide)GUILayout.Toolbar(
-					(int)segment.ThirdRailSide, ThirdRailSides);
-				EditorGUILayout.EndHorizontal();
-				if (side != segment.ThirdRailSide) {
-					Edit(component, "Change Third Wire Rail Side",
-						() => component.SetThirdRailSide(segmentIndex, side));
-					segment = component.Segments[segmentIndex];
-				}
-			}
-
-			_crossSectionEditor.Draw(component, segmentIndex);
-
-			if (GUILayout.Button("Reset Layout")) {
-				Edit(component, "Reset Wire Rail Layout",
-					() => component.ResetSegmentLayout(segmentIndex));
-			}
-			EditorGUILayout.EndVertical();
-			return false;
+			var connectionHeight = GetConnectionHeight(component, layoutIndex);
+			return height + (connectionHeight > 0f ? connectionHeight + 5f : 0f);
 		}
 
-		private static void DrawConnection(WireRailComponent component, int segmentIndex)
+		private void DrawLayoutElement(Rect rect, WireRailComponent component, int layoutIndex)
 		{
-			var nextSegmentIndex = component.GetNextSegmentIndex(segmentIndex);
-			var segment = component.Segments[segmentIndex];
-			var nextSegment = component.Segments[nextSegmentIndex];
-			var connection = segment.ConnectionToNext;
-			var wireCount = math.min(segment.RailCount, nextSegment.RailCount);
+			rect.y -= 1f;
+			rect.height -= 1f;
+			var content = new Rect(rect.x + LayoutPadding, rect.y + LayoutPadding,
+				rect.width - LayoutPadding * 2f, rect.height - LayoutPadding * 2f);
+			var layout = component.Segments[layoutIndex];
+			var row = new Rect(content.x, content.y - 2f, content.width, LayoutLineHeight);
+			EditorGUI.LabelField(row, $"Layout {layoutIndex + 1}", EditorStyles.boldLabel);
+			var trashRect = new Rect(row.xMax - LayoutLineHeight, row.y, LayoutLineHeight,
+				LayoutLineHeight);
+			var trash = new GUIContent(EditorGUIUtility.IconContent("TreeEditor.Trash")) {
+				tooltip = "Remove this wire layout",
+			};
+			var canRemoveLayout = component.Segments.Count > 1;
+			if (canRemoveLayout) {
+				EditorGUIUtility.AddCursorRect(trashRect, MouseCursor.Link);
+			}
+			using (new EditorGUI.DisabledScope(!canRemoveLayout)) {
+				if (GUI.Button(trashRect, trash, GUIStyle.none)) {
+					Edit(component, "Remove Wire Rail Layout",
+						() => component.RemoveLayout(layoutIndex));
+					SynchronizeOrder(_layoutOrder, component.Segments.Count, true);
+					GUIUtility.ExitGUI();
+				}
+			}
 
-			EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-			EditorGUILayout.LabelField(
-				$"Transition: Layout {segmentIndex + 1} → Layout {nextSegmentIndex + 1}",
-				EditorStyles.boldLabel);
-			EditorGUILayout.LabelField(
-				"Configure each matching wire as it passes through the next layout position.",
-				EditorStyles.wordWrappedMiniLabel);
+			row.y = content.y + LayoutLineHeight + 3f;
+			const float railsLabelWidth = 34f;
+			const float railsFieldWidth = 48f;
+			const float spacing = 5f;
+			var x = row.x;
+			EditorGUI.LabelField(new Rect(x, row.y, railsLabelWidth, LayoutLineHeight), "Rails");
+			x += railsLabelWidth;
+			var selectedRailCount = math.clamp(layout.RailCount, 1, RailCounts.Length) - 1;
+			var railCount = EditorGUI.Popup(new Rect(x, row.y, railsFieldWidth,
+				LayoutLineHeight), selectedRailCount, RailCounts) + 1;
+			x += railsFieldWidth + spacing;
+			var positionRect = new Rect(x, row.y, math.max(20f, row.xMax - x), LayoutLineHeight);
+			float position;
+			using (new EditorGUI.DisabledScope(layoutIndex == 0)) {
+				var previousLabelWidth = EditorGUIUtility.labelWidth;
+				EditorGUIUtility.labelWidth = 52f;
+				position = EditorGUI.DelayedFloatField(positionRect, new GUIContent("Position",
+					"Distance along the complete spline in VPX units."), layout.Distance);
+				EditorGUIUtility.labelWidth = previousLabelWidth;
+			}
+			if (railCount != layout.RailCount) {
+				Edit(component, "Change Wire Rail Count",
+					() => component.SetRailCount(layoutIndex, railCount));
+				layout = component.Segments[layoutIndex];
+			}
+			if (!Mathf.Approximately(position, layout.Distance)) {
+				Edit(component, "Move Wire Rail Layout",
+					() => component.SetLayoutDistance(layoutIndex, position));
+				layout = component.Segments[layoutIndex];
+			}
 
+			if (layout.RailCount == 3) {
+				row.y += LayoutLineHeight + 3f;
+				var sideLabelRect = new Rect(row.x, row.y, 70f, LayoutLineHeight);
+				EditorGUI.LabelField(sideLabelRect, new GUIContent("Third Rail",
+					"Choose whether the raised third rail is on the left or right."));
+				var sideRect = new Rect(sideLabelRect.xMax, row.y,
+					row.xMax - sideLabelRect.xMax, LayoutLineHeight);
+				var side = (WireRailThirdRailSide)GUI.Toolbar(sideRect,
+					(int)layout.ThirdRailSide, ThirdRailSides);
+				if (side != layout.ThirdRailSide) {
+					Edit(component, "Change Third Wire Rail Side",
+						() => component.SetThirdRailSide(layoutIndex, side));
+				}
+			}
+
+			var crossSectionY = row.yMax + 4f;
+			var crossSectionRect = new Rect(content.x, crossSectionY, content.width,
+				WireRailCrossSectionEditor.Height);
+			_crossSectionEditor.Draw(crossSectionRect, component, layoutIndex);
+			var connectionHeight = GetConnectionHeight(component, layoutIndex);
+			if (connectionHeight > 0f) {
+				DrawConnection(new Rect(content.x, crossSectionRect.yMax + 5f,
+					content.width, connectionHeight), component, layoutIndex);
+			}
+		}
+
+		private static float GetConnectionHeight(WireRailComponent component, int layoutIndex)
+		{
+			var nextLayoutIndex = component.GetNextSegmentIndex(layoutIndex);
+			if (nextLayoutIndex < 0) {
+				return 0f;
+			}
+			var layout = component.Segments[layoutIndex];
+			var nextLayout = component.Segments[nextLayoutIndex];
+			var connection = layout.ConnectionToNext;
+			var wireCount = math.min(layout.RailCount, nextLayout.RailCount);
+			var overriddenWireCount = 0;
 			for (var wireIndex = 0; wireIndex < wireCount; wireIndex++) {
-				EditorGUILayout.BeginVertical(GUI.skin.box);
-				EditorGUILayout.BeginHorizontal();
-				EditorGUILayout.LabelField($"Wire {wireIndex + 1}", EditorStyles.boldLabel,
-					GUILayout.Width(48f));
+				if (connection.IsWireOverridden(wireIndex)) {
+					overriddenWireCount++;
+				}
+			}
+			return LayoutPadding * 2f + LayoutLineHeight * 2f + 3f
+				+ overriddenWireCount * (LayoutLineHeight + 3f);
+		}
+
+		private static void DrawConnection(Rect rect, WireRailComponent component,
+			int layoutIndex)
+		{
+			GUI.Box(rect, GUIContent.none, EditorStyles.helpBox);
+			var nextLayoutIndex = component.GetNextSegmentIndex(layoutIndex);
+			var layout = component.Segments[layoutIndex];
+			var nextLayout = component.Segments[nextLayoutIndex];
+			var connection = layout.ConnectionToNext;
+			var wireCount = math.min(layout.RailCount, nextLayout.RailCount);
+			var row = new Rect(rect.x + LayoutPadding, rect.y + LayoutPadding,
+				rect.width - LayoutPadding * 2f, LayoutLineHeight);
+			EditorGUI.LabelField(row, $"Transition to Layout {nextLayoutIndex + 1}",
+				EditorStyles.boldLabel);
+
+			row.y += LayoutLineHeight + 3f;
+			const float overrideButtonWidth = 24f;
+			var overrideButtonsWidth = overrideButtonWidth * wireCount;
+			EditorGUI.LabelField(new Rect(row.x, row.y,
+				math.max(0f, row.width - overrideButtonsWidth - 4f), LayoutLineHeight),
+				new GUIContent("Override Wires:",
+					"Choose which wires need non-default continuity or transition curves."));
+			var overrideButtonX = row.xMax - overrideButtonsWidth;
+			for (var wireIndex = 0; wireIndex < wireCount; wireIndex++) {
+				var style = wireCount == 1 ? EditorStyles.miniButton
+					: wireIndex == 0 ? EditorStyles.miniButtonLeft
+					: wireIndex == wireCount - 1 ? EditorStyles.miniButtonRight
+					: EditorStyles.miniButtonMid;
+				var overrideRect = new Rect(overrideButtonX + wireIndex * overrideButtonWidth,
+					row.y, overrideButtonWidth, LayoutLineHeight);
+				var overridden = connection.IsWireOverridden(wireIndex);
+				var toggledOverride = GUI.Toggle(overrideRect, overridden,
+					(wireIndex + 1).ToString(), style);
+				if (toggledOverride != overridden) {
+					var capturedWireIndex = wireIndex;
+					Edit(component, "Change Wire Rail Transition Override",
+						() => component.SetWireTransitionOverride(layoutIndex,
+							capturedWireIndex, toggledOverride));
+					GUI.changed = true;
+					return;
+				}
+			}
+
+			const float wireLabelWidth = 54f;
+			const float continuousWidth = 88f;
+			const float spacing = 4f;
+			for (var wireIndex = 0; wireIndex < wireCount; wireIndex++) {
+				if (!connection.IsWireOverridden(wireIndex)) {
+					continue;
+				}
+				row.y += LayoutLineHeight + 3f;
+				EditorGUI.LabelField(new Rect(row.x, row.y, wireLabelWidth, LayoutLineHeight),
+					$"Wire {wireIndex + 1}", EditorStyles.boldLabel);
 				var continuous = connection.IsWireContinuous(wireIndex);
-				var toggled = EditorGUILayout.ToggleLeft(new GUIContent("Continuous",
-					"Blend this wire's position and diameter across the knot instead of "
-					+ "ending and restarting it."), continuous, GUILayout.Width(88f));
+				var continuousRect = new Rect(row.x + wireLabelWidth, row.y,
+					continuousWidth, LayoutLineHeight);
+				var toggled = EditorGUI.ToggleLeft(continuousRect, new GUIContent("Continuous",
+					"Join this wire to the matching wire in the next layout."), continuous);
 				if (toggled != continuous) {
 					var capturedWireIndex = wireIndex;
 					Edit(component, "Change Wire Rail Continuity",
-						() => component.SetWireContinuous(segmentIndex,
+						() => component.SetWireContinuous(layoutIndex,
 							capturedWireIndex, toggled));
-					connection = component.Segments[segmentIndex].ConnectionToNext;
+					connection = component.Segments[layoutIndex].ConnectionToNext;
 				}
-
-				if (toggled) {
-					var currentWeight = connection.GetWireWeight(wireIndex);
-					var weight = EditorGUILayout.Slider(new GUIContent("Weight",
-						"0 keeps the junction at this segment's position, 1 keeps it at the "
-						+ "next segment's position, and 0.5 meets halfway."),
-						currentWeight, 0f, 1f);
-					if (!Mathf.Approximately(weight, currentWeight)) {
-						var capturedWireIndex = wireIndex;
-						Edit(component, "Change Wire Rail Blend Weight",
-							() => component.SetWireConnectionWeight(segmentIndex,
-								capturedWireIndex, weight));
-						connection = component.Segments[segmentIndex].ConnectionToNext;
-					}
-				}
-				EditorGUILayout.EndHorizontal();
-
-				if (toggled) {
+				var curveRect = new Rect(continuousRect.xMax + spacing, row.y,
+					math.max(20f, row.xMax - continuousRect.xMax - spacing), LayoutLineHeight);
+				using (new EditorGUI.DisabledScope(!toggled)) {
 					EditorGUI.BeginChangeCheck();
-					var editableCurve = CloneCurve(connection.GetWireCurve(wireIndex));
-					var curve = EditorGUILayout.CurveField(new GUIContent("Transition Curve",
-						"Shapes how this wire moves through both adjoining segments. The curve "
-						+ "is evaluated from 0 to 1 on each segment."),
-						editableCurve, TransitionCurveColor,
+					var curve = EditorGUI.CurveField(curveRect, new GUIContent(string.Empty,
+						"Transition curve for this wire."),
+						CloneCurve(connection.GetWireCurve(wireIndex)), TransitionCurveColor,
 						new Rect(0f, 0f, 1f, 1f));
 					if (EditorGUI.EndChangeCheck()) {
 						var capturedWireIndex = wireIndex;
 						Edit(component, "Change Wire Rail Transition Curve",
-							() => component.SetWireTransitionCurve(segmentIndex,
+							() => component.SetWireTransitionCurve(layoutIndex,
 								capturedWireIndex, curve));
-						connection = component.Segments[segmentIndex].ConnectionToNext;
+						connection = component.Segments[layoutIndex].ConnectionToNext;
 					}
 				}
-				EditorGUILayout.EndVertical();
 			}
-			EditorGUILayout.LabelField("Weight: 0 = this layout   •   0.5 = halfway   •   1 = next layout",
-				EditorStyles.centeredGreyMiniLabel);
-			EditorGUILayout.EndVertical();
 		}
 
 		private static AnimationCurve CloneCurve(AnimationCurve source)

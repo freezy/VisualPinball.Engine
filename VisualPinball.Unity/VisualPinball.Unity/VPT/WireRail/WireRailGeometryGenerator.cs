@@ -172,25 +172,14 @@ namespace VisualPinball.Unity
 			float curveT)
 		{
 			var current = (float2)segments[segmentIndex].GetRailOffset(railIndex);
-			var offset = current;
-			var previousSegmentIndex = GetPreviousSegmentIndex(spline, segments, segmentIndex);
-			if (IsContinuousBoundary(segments, previousSegmentIndex, segmentIndex, railIndex)) {
-				var previous = (float2)segments[previousSegmentIndex].GetRailOffset(railIndex);
-				var connection = segments[previousSegmentIndex].ConnectionToNext;
-				var junction = math.lerp(previous, current,
-					connection.GetWireWeight(railIndex));
-				offset += (junction - current)
-					* (1f - connection.EvaluateWireTransition(railIndex, curveT));
-			}
 			var nextSegmentIndex = GetNextSegmentIndex(spline, segments, segmentIndex);
-			if (IsContinuousBoundary(segments, segmentIndex, nextSegmentIndex, railIndex)) {
-				var next = (float2)segments[nextSegmentIndex].GetRailOffset(railIndex);
-				var connection = segments[segmentIndex].ConnectionToNext;
-				var junction = math.lerp(current, next, connection.GetWireWeight(railIndex));
-				offset += (junction - current)
-					* connection.EvaluateWireTransition(railIndex, curveT);
+			if (!IsContinuousBoundary(segments, segmentIndex, nextSegmentIndex, railIndex)) {
+				return current;
 			}
-			return offset;
+			var next = (float2)segments[nextSegmentIndex].GetRailOffset(railIndex);
+			var transition = segments[segmentIndex].ConnectionToNext
+				.EvaluateWireTransition(railIndex, curveT);
+			return math.lerp(current, next, transition);
 		}
 
 		public static float EvaluateWireDiameter(Spline spline,
@@ -198,26 +187,14 @@ namespace VisualPinball.Unity
 			float curveT)
 		{
 			var current = segments[segmentIndex].GetWireDiameter(railIndex);
-			var diameter = current;
-			var previousSegmentIndex = GetPreviousSegmentIndex(spline, segments, segmentIndex);
-			if (IsContinuousBoundary(segments, previousSegmentIndex, segmentIndex, railIndex)) {
-				var connection = segments[previousSegmentIndex].ConnectionToNext;
-				var junction = math.lerp(
-					segments[previousSegmentIndex].GetWireDiameter(railIndex), current,
-					connection.GetWireWeight(railIndex));
-				diameter += (junction - current)
-					* (1f - connection.EvaluateWireTransition(railIndex, curveT));
-			}
 			var nextSegmentIndex = GetNextSegmentIndex(spline, segments, segmentIndex);
-			if (IsContinuousBoundary(segments, segmentIndex, nextSegmentIndex, railIndex)) {
-				var connection = segments[segmentIndex].ConnectionToNext;
-				var junction = math.lerp(current,
-					segments[nextSegmentIndex].GetWireDiameter(railIndex),
-					connection.GetWireWeight(railIndex));
-				diameter += (junction - current)
-					* connection.EvaluateWireTransition(railIndex, curveT);
+			if (!IsContinuousBoundary(segments, segmentIndex, nextSegmentIndex, railIndex)) {
+				return current;
 			}
-			return diameter;
+			var next = segments[nextSegmentIndex].GetWireDiameter(railIndex);
+			var transition = segments[segmentIndex].ConnectionToNext
+				.EvaluateWireTransition(railIndex, curveT);
+			return math.lerp(current, next, transition);
 		}
 
 		public static bool IsContinuousAtStart(Spline spline,
@@ -595,8 +572,8 @@ namespace VisualPinball.Unity
 		private const int MaximumAdaptiveDepth = 3;
 
 		public static Mesh Generate(Spline spline, IReadOnlyList<WireRailSegment> segments,
-			IReadOnlyList<WireRailFixture> fixtures, int samplesPerSegment,
-			int radialSegments, Mesh target)
+			IReadOnlyList<WireRailFixture> fixtures, float wireCapBevelSize,
+			int samplesPerSegment, int radialSegments, Mesh target)
 		{
 			var vertices = new List<Vector3>();
 			var normals = new List<Vector3>();
@@ -615,7 +592,7 @@ namespace VisualPinball.Unity
 						previousSegmentFrame = previousFrame;
 					}
 					if (AppendTube(spline, segments, evaluationContext, segmentIndex, railIndex,
-						samplesPerSegment, radialSegments,
+						samplesPerSegment, radialSegments, wireCapBevelSize,
 						previousSegmentFrame,
 						vertices, normals, uvs, indices, out var lastFrame)) {
 						previousFrames[railIndex] = lastFrame;
@@ -624,8 +601,8 @@ namespace VisualPinball.Unity
 					}
 				}
 			}
-			WireRailFixtureMeshGenerator.Append(spline, segments, fixtures, radialSegments,
-				vertices, normals, uvs, indices);
+			WireRailFixtureMeshGenerator.Append(spline, segments, fixtures,
+				wireCapBevelSize, radialSegments, vertices, normals, uvs, indices);
 
 			var mesh = target ? target : new Mesh();
 			mesh.Clear(false);
@@ -643,7 +620,7 @@ namespace VisualPinball.Unity
 		private static bool AppendTube(Spline spline, IReadOnlyList<WireRailSegment> segments,
 			WireRailPathEvaluationContext evaluationContext,
 			int segmentIndex, int railIndex, int samplesPerSegment,
-			int radialSegments, WireRailPathFrame? previousSegmentFrame,
+			int radialSegments, float capBevelSize, WireRailPathFrame? previousSegmentFrame,
 			ICollection<Vector3> vertices, ICollection<Vector3> normals,
 			ICollection<Vector2> uvs, ICollection<int> indices,
 			out WireRailPathFrame lastFrame)
@@ -656,6 +633,10 @@ namespace VisualPinball.Unity
 			var sampleParameters = BuildSampleParameters(spline, segments, evaluationContext,
 				segmentIndex,
 				railIndex, samplesPerSegment);
+			var capStart = !WireRailSplineGeometry.IsRailConnectedAtStart(spline, segments,
+				segmentIndex, railIndex);
+			var capEnd = !WireRailSplineGeometry.IsRailConnectedAtEnd(spline, segments,
+				segmentIndex, railIndex);
 			for (var sampleIndex = 0; sampleIndex < sampleParameters.Count; sampleIndex++) {
 				var curveT = sampleParameters[sampleIndex];
 				var tangentStep = sampleIndex == 0
@@ -687,10 +668,20 @@ namespace VisualPinball.Unity
 				}
 				lastFrame = frame;
 				lastRadius = radius;
+				var tubeFrame = frame;
+				var clampedBevel = math.clamp(capBevelSize, 0f, radius);
+				if (clampedBevel > 1e-5f && sampleIndex == 0 && capStart) {
+					tubeFrame = new WireRailPathFrame(frame.Position + frame.Tangent * clampedBevel,
+						frame.Tangent, frame.Right, frame.Up);
+				} else if (clampedBevel > 1e-5f
+					&& sampleIndex == sampleParameters.Count - 1 && capEnd) {
+					tubeFrame = new WireRailPathFrame(frame.Position - frame.Tangent * clampedBevel,
+						frame.Tangent, frame.Right, frame.Up);
+				}
 				for (var radialIndex = 0; radialIndex < radialSegments; radialIndex++) {
 					var angle = math.PI * 2f * radialIndex / radialSegments;
-					var radial = frame.Right * math.cos(angle) + frame.Up * math.sin(angle);
-					vertices.Add((Vector3)(frame.Position + radial * radius));
+					var radial = tubeFrame.Right * math.cos(angle) + tubeFrame.Up * math.sin(angle);
+					vertices.Add((Vector3)(tubeFrame.Position + radial * radius));
 					normals.Add((Vector3)radial);
 					uvs.Add(new Vector2(curveT, radialIndex / (float)radialSegments));
 				}
@@ -714,14 +705,14 @@ namespace VisualPinball.Unity
 				}
 			}
 
-			if (!WireRailSplineGeometry.IsRailConnectedAtStart(spline, segments,
-					segmentIndex, railIndex)) {
-				AppendCap(firstFrame, firstRadius, radialSegments, true,
+			if (capStart) {
+				WireRailCapMeshGenerator.Append(firstFrame, firstRadius, capBevelSize,
+					radialSegments, true,
 					vertices, normals, uvs, indices);
 			}
-			if (!WireRailSplineGeometry.IsRailConnectedAtEnd(spline, segments,
-					segmentIndex, railIndex)) {
-				AppendCap(lastFrame, lastRadius, radialSegments, false,
+			if (capEnd) {
+				WireRailCapMeshGenerator.Append(lastFrame, lastRadius, capBevelSize,
+					radialSegments, false,
 					vertices, normals, uvs, indices);
 			}
 			return true;
@@ -799,32 +790,6 @@ namespace VisualPinball.Unity
 			return math.normalizesafe(projected, direction);
 		}
 
-		private static void AppendCap(WireRailPathFrame frame, float radius,
-			int radialSegments, bool start, ICollection<Vector3> vertices,
-			ICollection<Vector3> normals, ICollection<Vector2> uvs, ICollection<int> indices)
-		{
-			var center = frame.Position;
-			var normal = start ? -frame.Tangent : frame.Tangent;
-			var centerIndex = vertices.Count;
-			vertices.Add((Vector3)center);
-			normals.Add((Vector3)normal);
-			uvs.Add(new Vector2(0.5f, 0.5f));
-			var ringStart = vertices.Count;
-			for (var radialIndex = 0; radialIndex < radialSegments; radialIndex++) {
-				var angle = math.PI * 2f * radialIndex / radialSegments;
-				var radial = frame.Right * math.cos(angle) + frame.Up * math.sin(angle);
-				vertices.Add((Vector3)(center + radial * radius));
-				normals.Add((Vector3)normal);
-				uvs.Add(new Vector2(math.cos(angle) * 0.5f + 0.5f,
-					math.sin(angle) * 0.5f + 0.5f));
-			}
-			for (var radialIndex = 0; radialIndex < radialSegments; radialIndex++) {
-				var next = (radialIndex + 1) % radialSegments;
-				indices.Add(centerIndex);
-				indices.Add(ringStart + (start ? radialIndex : next));
-				indices.Add(ringStart + (start ? next : radialIndex));
-			}
-		}
 	}
 
 	internal readonly struct WireRailBraceProfile
@@ -854,7 +819,8 @@ namespace VisualPinball.Unity
 		private const float FullTurn = math.PI * 2f;
 
 		public static void Append(Spline spline, IReadOnlyList<WireRailSegment> segments,
-			IReadOnlyList<WireRailFixture> fixtures, int radialSegments,
+			IReadOnlyList<WireRailFixture> fixtures, float wireCapBevelSize,
+			int radialSegments,
 			ICollection<Vector3> vertices, ICollection<Vector3> normals,
 			ICollection<Vector2> uvs, ICollection<int> indices)
 		{
@@ -864,8 +830,8 @@ namespace VisualPinball.Unity
 			foreach (var fixture in fixtures) {
 				if (fixture is WireRailBraceFixture brace
 					&& TryEvaluateBraceProfile(spline, segments, brace, out var profile)) {
-					AppendBrace(profile, brace, radialSegments, vertices, normals, uvs,
-						indices);
+					AppendBrace(profile, brace, wireCapBevelSize, radialSegments, vertices,
+						normals, uvs, indices);
 				}
 			}
 		}
@@ -954,7 +920,7 @@ namespace VisualPinball.Unity
 		}
 
 		private static void AppendBrace(WireRailBraceProfile profile,
-			WireRailBraceFixture brace, int radialSegments,
+			WireRailBraceFixture brace, float capBevelSize, int radialSegments,
 			ICollection<Vector3> vertices, ICollection<Vector3> normals,
 			ICollection<Vector2> uvs, ICollection<int> indices)
 		{
@@ -971,6 +937,7 @@ namespace VisualPinball.Unity
 			var firstFrame = default(WireRailPathFrame);
 			var lastFrame = default(WireRailPathFrame);
 			var tubeRadius = brace.Diameter * 0.5f;
+			var clampedBevel = math.clamp(capBevelSize, 0f, tubeRadius);
 			for (var ringIndex = 0; ringIndex < ringCount; ringIndex++) {
 				var angle = angles[ringIndex];
 				var centerlineOffset = brace.EvaluateCenterlineOffset(angle, profile.Radius);
@@ -986,13 +953,24 @@ namespace VisualPinball.Unity
 					+ profile.Frame.Up * outwardOffset.y, profile.Frame.Right);
 				var up = math.normalizesafe(math.cross(outward, tangent),
 					-profile.Frame.Tangent);
-				var tubeFrame = new WireRailPathFrame(
+				var capFrame = new WireRailPathFrame(
 					profile.Frame.TransformOffset(profile.CenterOffset + centerlineOffset),
 					tangent, outward, up);
 				if (ringIndex == 0) {
-					firstFrame = tubeFrame;
+					firstFrame = capFrame;
 				}
-				lastFrame = tubeFrame;
+				lastFrame = capFrame;
+				var tubeFrame = capFrame;
+				if (!closed && clampedBevel > 1e-5f && ringIndex == 0) {
+					tubeFrame = new WireRailPathFrame(
+						capFrame.Position + capFrame.Tangent * clampedBevel,
+						capFrame.Tangent, capFrame.Right, capFrame.Up);
+				} else if (!closed && clampedBevel > 1e-5f
+					&& ringIndex == ringCount - 1) {
+					tubeFrame = new WireRailPathFrame(
+						capFrame.Position - capFrame.Tangent * clampedBevel,
+						capFrame.Tangent, capFrame.Right, capFrame.Up);
+				}
 				for (var radialIndex = 0; radialIndex < radialSegments; radialIndex++) {
 					var radialAngle = FullTurn * radialIndex / radialSegments;
 					var radial = tubeFrame.Right * math.cos(radialAngle)
@@ -1024,10 +1002,10 @@ namespace VisualPinball.Unity
 			}
 
 			if (!closed) {
-				AppendCap(firstFrame, tubeRadius, radialSegments, true,
-					vertices, normals, uvs, indices);
-				AppendCap(lastFrame, tubeRadius, radialSegments, false,
-					vertices, normals, uvs, indices);
+				WireRailCapMeshGenerator.Append(firstFrame, tubeRadius, capBevelSize,
+					radialSegments, true, vertices, normals, uvs, indices);
+				WireRailCapMeshGenerator.Append(lastFrame, tubeRadius, capBevelSize,
+					radialSegments, false, vertices, normals, uvs, indices);
 			}
 		}
 
@@ -1064,13 +1042,101 @@ namespace VisualPinball.Unity
 				}
 			}
 		}
+	}
 
-		private static void AppendCap(WireRailPathFrame frame, float radius,
-			int radialSegments, bool start, ICollection<Vector3> vertices,
+	internal static class WireRailCapMeshGenerator
+	{
+		private const float FullTurn = math.PI * 2f;
+
+		public static void Append(WireRailPathFrame frame, float radius,
+			float bevelSize, int radialSegments, bool start, ICollection<Vector3> vertices,
 			ICollection<Vector3> normals, ICollection<Vector2> uvs,
 			ICollection<int> indices)
 		{
 			var normal = start ? -frame.Tangent : frame.Tangent;
+			bevelSize = math.clamp(bevelSize, 0f, radius);
+			if (bevelSize > 1e-5f) {
+				AppendCapBevel(frame, normal, radius, bevelSize, radialSegments, start,
+					vertices, normals, uvs, indices);
+				radius -= bevelSize;
+			}
+			if (radius <= 1e-5f) {
+				return;
+			}
+			AppendFlatCap(frame, normal, radius, radialSegments, start,
+				vertices, normals, uvs, indices);
+		}
+
+		private static void AppendCapBevel(WireRailPathFrame frame, float3 normal,
+			float radius, float bevelSize, int radialSegments, bool start,
+			ICollection<Vector3> vertices, ICollection<Vector3> normals,
+			ICollection<Vector2> uvs, ICollection<int> indices)
+		{
+			var bodyCenter = frame.Position - normal * bevelSize;
+			var capRadius = radius - bevelSize;
+			var outerRingStart = vertices.Count;
+			for (var radialIndex = 0; radialIndex < radialSegments; radialIndex++) {
+				var angle = FullTurn * radialIndex / radialSegments;
+				var radial = frame.Right * math.cos(angle) + frame.Up * math.sin(angle);
+				var bevelNormal = math.normalizesafe(radial + normal, radial);
+				vertices.Add((Vector3)(bodyCenter + radial * radius));
+				normals.Add((Vector3)bevelNormal);
+				uvs.Add(new Vector2(0f, radialIndex / (float)radialSegments));
+			}
+			if (capRadius <= 1e-5f) {
+				for (var radialIndex = 0; radialIndex < radialSegments; radialIndex++) {
+					var next = (radialIndex + 1) % radialSegments;
+					var middleAngle = FullTurn * (radialIndex + 0.5f) / radialSegments;
+					var middleRadial = frame.Right * math.cos(middleAngle)
+						+ frame.Up * math.sin(middleAngle);
+					var tipIndex = vertices.Count;
+					vertices.Add((Vector3)frame.Position);
+					normals.Add((Vector3)math.normalizesafe(middleRadial + normal, normal));
+					uvs.Add(new Vector2(1f, (radialIndex + 0.5f) / radialSegments));
+					indices.Add(outerRingStart + radialIndex);
+					indices.Add(start ? outerRingStart + next : tipIndex);
+					indices.Add(start ? tipIndex : outerRingStart + next);
+				}
+				return;
+			}
+			var innerRingStart = vertices.Count;
+			for (var radialIndex = 0; radialIndex < radialSegments; radialIndex++) {
+				var angle = FullTurn * radialIndex / radialSegments;
+				var radial = frame.Right * math.cos(angle) + frame.Up * math.sin(angle);
+				var bevelNormal = math.normalizesafe(radial + normal, radial);
+				vertices.Add((Vector3)(frame.Position + radial * capRadius));
+				normals.Add((Vector3)bevelNormal);
+				uvs.Add(new Vector2(1f, radialIndex / (float)radialSegments));
+			}
+			for (var radialIndex = 0; radialIndex < radialSegments; radialIndex++) {
+				var next = (radialIndex + 1) % radialSegments;
+				var a = outerRingStart + radialIndex;
+				var b = innerRingStart + radialIndex;
+				var c = outerRingStart + next;
+				var d = innerRingStart + next;
+				if (start) {
+					indices.Add(a);
+					indices.Add(d);
+					indices.Add(b);
+					indices.Add(a);
+					indices.Add(c);
+					indices.Add(d);
+				} else {
+					indices.Add(a);
+					indices.Add(b);
+					indices.Add(d);
+					indices.Add(a);
+					indices.Add(d);
+					indices.Add(c);
+				}
+			}
+		}
+
+		private static void AppendFlatCap(WireRailPathFrame frame, float3 normal,
+			float radius, int radialSegments, bool start,
+			ICollection<Vector3> vertices, ICollection<Vector3> normals,
+			ICollection<Vector2> uvs, ICollection<int> indices)
+		{
 			var centerIndex = vertices.Count;
 			vertices.Add((Vector3)frame.Position);
 			normals.Add((Vector3)normal);
