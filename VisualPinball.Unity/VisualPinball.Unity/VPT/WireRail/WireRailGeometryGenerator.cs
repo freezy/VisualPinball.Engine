@@ -491,6 +491,8 @@ namespace VisualPinball.Unity
 				&& sourceSegmentIndex < segments.Count && nextSegmentIndex < segments.Count
 				&& segments[sourceSegmentIndex].RailCount > railIndex
 				&& segments[nextSegmentIndex].RailCount > railIndex
+				&& segments[sourceSegmentIndex].IsRailActive(railIndex)
+				&& segments[nextSegmentIndex].IsRailActive(railIndex)
 				&& segments[sourceSegmentIndex].ConnectionToNext.IsWireContinuous(railIndex);
 
 		private static bool RequiresRailTangentSmoothing(Spline spline,
@@ -531,7 +533,9 @@ namespace VisualPinball.Unity
 			if (sourceSegmentIndex < 0 || nextSegmentIndex < 0
 				|| sourceSegmentIndex >= segments.Count || nextSegmentIndex >= segments.Count
 				|| segments[sourceSegmentIndex].RailCount <= railIndex
-				|| segments[nextSegmentIndex].RailCount <= railIndex) {
+				|| segments[nextSegmentIndex].RailCount <= railIndex
+				|| !segments[sourceSegmentIndex].IsRailActive(railIndex)
+				|| !segments[nextSegmentIndex].IsRailActive(railIndex)) {
 				return false;
 			}
 			if (IsContinuousBoundary(segments, sourceSegmentIndex, nextSegmentIndex,
@@ -584,6 +588,10 @@ namespace VisualPinball.Unity
 			for (var segmentIndex = 0; segmentIndex < segments.Count; segmentIndex++) {
 				var segment = segments[segmentIndex];
 				for (var railIndex = 0; railIndex < segment.RailCount; railIndex++) {
+					if (!segment.IsRailActive(railIndex)) {
+						previousFrames.Remove(railIndex);
+						continue;
+					}
 					WireRailPathFrame? previousSegmentFrame = null;
 					if (segmentIndex > 0
 						&& WireRailSplineGeometry.IsRailConnectedAtStart(spline, segments,
@@ -848,16 +856,20 @@ namespace VisualPinball.Unity
 				return false;
 			}
 			var segment = segments[segmentIndex];
-			if (segment.RailCount == 0) {
+			var activeRailIndices = Enumerable.Range(0, segment.RailCount)
+				.Where(segment.IsRailActive).ToArray();
+			if (activeRailIndices.Length == 0) {
 				return false;
 			}
 
-			var railOffsets = new float2[segment.RailCount];
-			var railRadii = new float[segment.RailCount];
+			var railOffsets = new float2[activeRailIndices.Length];
+			var railRadii = new float[activeRailIndices.Length];
 			var minimum = new float2(float.PositiveInfinity);
 			var maximum = new float2(float.NegativeInfinity);
 			var evaluationContext = new WireRailPathEvaluationContext();
-			for (var railIndex = 0; railIndex < segment.RailCount; railIndex++) {
+			for (var activeRailIndex = 0; activeRailIndex < activeRailIndices.Length;
+				activeRailIndex++) {
+				var railIndex = activeRailIndices[activeRailIndex];
 				if (!WireRailSplineGeometry.TryEvaluateRailPosition(spline, segments,
 						evaluationContext, segmentIndex, railIndex, curveT,
 						out var railPosition)) {
@@ -868,8 +880,8 @@ namespace VisualPinball.Unity
 					math.dot(relative, frame.Up));
 				var radius = WireRailSplineGeometry.EvaluateWireDiameter(spline, segments,
 					segmentIndex, railIndex, curveT) * 0.5f;
-				railOffsets[railIndex] = offset;
-				railRadii[railIndex] = radius;
+				railOffsets[activeRailIndex] = offset;
+				railRadii[activeRailIndex] = radius;
 				minimum = math.min(minimum, offset - radius);
 				maximum = math.max(maximum, offset + radius);
 			}
@@ -1493,6 +1505,9 @@ namespace VisualPinball.Unity
 			var ballRadius = ballDiameter * 0.5f;
 
 			for (var segmentIndex = 0; segmentIndex < segments.Count; segmentIndex++) {
+				if (!HasActiveRails(segments[segmentIndex])) {
+					continue;
+				}
 				if (!AppendSegment(spline, segments, segmentIndex, ballRadius,
 						samplesPerSegment, vertices, indices, edges, out error)) {
 					mesh = target;
@@ -1516,15 +1531,17 @@ namespace VisualPinball.Unity
 
 		private static bool TryCreateProfile(Spline spline,
 			IReadOnlyList<WireRailSegment> segments, int segmentIndex, float curveT,
-			float ballRadius, out WireRailChannelProfile profile, out string error)
+			IReadOnlyList<int> activeRailIndices, float ballRadius,
+			out WireRailChannelProfile profile, out string error)
 		{
-			var segment = segments[segmentIndex];
-			var offsets = new Vector2[segment.RailCount];
-			var wireRadii = new float[segment.RailCount];
-			for (var railIndex = 0; railIndex < segment.RailCount; railIndex++) {
-				offsets[railIndex] = WireRailSplineGeometry.EvaluateRailOffset(spline,
+			var offsets = new Vector2[activeRailIndices.Count];
+			var wireRadii = new float[activeRailIndices.Count];
+			for (var activeRailIndex = 0; activeRailIndex < activeRailIndices.Count;
+				activeRailIndex++) {
+				var railIndex = activeRailIndices[activeRailIndex];
+				offsets[activeRailIndex] = WireRailSplineGeometry.EvaluateRailOffset(spline,
 					segments, segmentIndex, railIndex, curveT);
-				wireRadii[railIndex] = WireRailSplineGeometry.EvaluateWireDiameter(spline,
+				wireRadii[activeRailIndex] = WireRailSplineGeometry.EvaluateWireDiameter(spline,
 					segments, segmentIndex, railIndex, curveT) * 0.5f;
 			}
 			return WireRailChannelProfile.TryCreate(offsets, wireRadii, ballRadius,
@@ -1555,6 +1572,13 @@ namespace VisualPinball.Unity
 			int samplesPerSegment, ICollection<Vector3> vertices,
 			ICollection<int> indices, ICollection<Vector3> edges, out string error)
 		{
+			var segment = segments[segmentIndex];
+			var activeRailIndices = new List<int>(segment.RailCount);
+			for (var railIndex = 0; railIndex < segment.RailCount; railIndex++) {
+				if (segment.IsRailActive(railIndex)) {
+					activeRailIndices.Add(railIndex);
+				}
+			}
 			var firstRow = vertices.Count;
 			WireRailChannelProfile referenceProfile = null;
 			for (var sampleIndex = 0; sampleIndex <= samplesPerSegment; sampleIndex++) {
@@ -1565,8 +1589,8 @@ namespace VisualPinball.Unity
 					error = $"Could not evaluate spline segment {segmentIndex + 1}.";
 					return false;
 				}
-				if (!TryCreateProfile(spline, segments, segmentIndex, curveT, ballRadius,
-						out var profile, out error)) {
+				if (!TryCreateProfile(spline, segments, segmentIndex, curveT,
+						activeRailIndices, ballRadius, out var profile, out error)) {
 					return false;
 				}
 				if (referenceProfile == null) {
@@ -1597,6 +1621,16 @@ namespace VisualPinball.Unity
 			}
 			error = null;
 			return true;
+		}
+
+		private static bool HasActiveRails(WireRailSegment segment)
+		{
+			for (var railIndex = 0; railIndex < segment.RailCount; railIndex++) {
+				if (segment.IsRailActive(railIndex)) {
+					return true;
+				}
+			}
+			return false;
 		}
 
 		private static Vector3 GetVertex(ICollection<Vector3> vertices, int index)
