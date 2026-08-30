@@ -796,13 +796,15 @@ namespace VisualPinball.Unity
 	{
 		public readonly WireRailPathFrame Frame;
 		public readonly float2 CenterOffset;
+		public readonly float BaseRadius;
 		public readonly float Radius;
 
 		public WireRailBraceProfile(WireRailPathFrame frame, float2 centerOffset,
-			float radius)
+			float baseRadius, float radius)
 		{
 			Frame = frame;
 			CenterOffset = centerOffset;
+			BaseRadius = baseRadius;
 			Radius = radius;
 		}
 
@@ -882,8 +884,9 @@ namespace VisualPinball.Unity
 			var centerOffset = automaticCenterOffset
 				+ new float2(brace.LateralOffset, brace.VerticalOffset);
 			var tubeRadius = brace.Diameter * 0.5f;
-			profile = new WireRailBraceProfile(frame, centerOffset,
-				math.max(tubeRadius, envelopeRadius + tubeRadius + brace.RadiusOffset));
+			var baseRadius = envelopeRadius + tubeRadius;
+			profile = new WireRailBraceProfile(frame, centerOffset, baseRadius,
+				math.max(tubeRadius, baseRadius * brace.Scale));
 			return true;
 		}
 

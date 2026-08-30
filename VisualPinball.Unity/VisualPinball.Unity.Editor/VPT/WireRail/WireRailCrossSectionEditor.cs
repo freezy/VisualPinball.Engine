@@ -429,4 +429,156 @@ namespace VisualPinball.Unity.Editor
 				=> new(pixels.x / Scale, -pixels.y / Scale);
 		}
 	}
+
+	internal sealed class WireRailBracePreviewEditor
+	{
+		private const int PreviewSegments = 96;
+		private const float FullTurn = math.PI * 2f;
+		public const float Height = 170f;
+		private static readonly Color CanvasColor = new(0.105f, 0.115f, 0.13f, 1f);
+		private static readonly Color GridColor = new(1f, 1f, 1f, 0.07f);
+		private static readonly Color AxisColor = new(1f, 1f, 1f, 0.28f);
+		private static readonly Color OutlineColor = new(0f, 0f, 0f, 0.8f);
+		private static readonly Color BraceColor = new(1f, 0.67f, 0.12f, 1f);
+
+		public void Draw(Rect rect, WireRailComponent component, int fixtureIndex,
+			WireRailBraceFixture brace)
+		{
+			EditorGUI.DrawRect(rect, CanvasColor);
+			if (!component.TryGetBraceCrossSection(fixtureIndex, out var crossSection)) {
+				EditorGUI.LabelField(rect, "Brace preview unavailable",
+					EditorStyles.centeredGreyMiniLabel);
+				return;
+			}
+			if (!brace.TryGetVisibleArc(out var startAngle, out var sweepAngle,
+					out _)) {
+				EditorGUI.LabelField(rect, "Brace fully cut out",
+					EditorStyles.centeredGreyMiniLabel);
+				return;
+			}
+
+			var angles = BuildAngles(brace, startAngle, sweepAngle);
+			var offsets = new List<Vector2>(angles.Count);
+			foreach (var angle in angles) {
+				var centerline = brace.EvaluateCenterlineOffset(angle, crossSection.Radius);
+				offsets.Add(crossSection.CenterOffset
+					+ new Vector2(centerline.x, centerline.y));
+			}
+			var view = BracePreviewView.Create(rect, offsets, brace.Diameter * 0.5f);
+			DrawGrid(view);
+
+			var points = new Vector3[offsets.Count];
+			for (var index = 0; index < offsets.Count; index++) {
+				points[index] = view.ToScreen(offsets[index]);
+			}
+			var width = math.clamp(brace.Diameter * view.Scale, 3f, 16f);
+			Handles.BeginGUI();
+			var previousColor = Handles.color;
+			Handles.color = OutlineColor;
+			Handles.DrawAAPolyLine(width + 3f, points);
+			Handles.color = BraceColor;
+			Handles.DrawAAPolyLine(width, points);
+			Handles.color = previousColor;
+			Handles.EndGUI();
+
+			GUI.Label(new Rect(rect.x + 6f, rect.y + 4f, 30f, 18f), "Z ↑",
+				EditorStyles.miniLabel);
+			GUI.Label(new Rect(rect.xMax - 34f, rect.yMax - 20f, 30f, 18f), "X →",
+				EditorStyles.miniLabel);
+			GUI.Label(rect, new GUIContent(string.Empty,
+				"Brace cross-section at its route position"));
+		}
+
+		private static List<float> BuildAngles(WireRailBraceFixture brace,
+			float startAngle, float sweepAngle)
+		{
+			var segmentCount = math.max(2,
+				(int)math.ceil(PreviewSegments * sweepAngle / FullTurn));
+			var angles = new List<float>(segmentCount + 3);
+			for (var index = 0; index <= segmentCount; index++) {
+				angles.Add(startAngle + sweepAngle * index / segmentCount);
+			}
+			if (brace.TryGetStraightSection(out var straightStart, out var straightSweep)) {
+				AddBoundary(straightStart);
+				AddBoundary(straightStart + straightSweep);
+			}
+			angles.Sort();
+			for (var index = angles.Count - 1; index > 0; index--) {
+				if (math.abs(angles[index] - angles[index - 1]) < 1e-5f) {
+					angles.RemoveAt(index);
+				}
+			}
+			return angles;
+
+			void AddBoundary(float boundary)
+			{
+				for (var turn = -2; turn <= 2; turn++) {
+					var unwrapped = boundary + turn * FullTurn;
+					if (unwrapped >= startAngle - 1e-5f
+						&& unwrapped <= startAngle + sweepAngle + 1e-5f) {
+						angles.Add(unwrapped);
+					}
+				}
+			}
+		}
+
+		private static void DrawGrid(BracePreviewView view)
+		{
+			var span = math.max(view.Max.x - view.Min.x, view.Max.y - view.Min.y);
+			var gridStep = span > 400f ? 100f : span > 200f ? 50f : span > 100f ? 20f : 10f;
+			for (var x = math.ceil(view.Min.x / gridStep) * gridStep;
+				x <= view.Max.x; x += gridStep) {
+				var screen = view.ToScreen(new Vector2(x, 0f));
+				EditorGUI.DrawRect(new Rect(screen.x, view.Rect.y, 1f, view.Rect.height),
+					math.abs(x) < 0.01f ? AxisColor : GridColor);
+			}
+			for (var z = math.ceil(view.Min.y / gridStep) * gridStep;
+				z <= view.Max.y; z += gridStep) {
+				var screen = view.ToScreen(new Vector2(0f, z));
+				EditorGUI.DrawRect(new Rect(view.Rect.x, screen.y, view.Rect.width, 1f),
+					math.abs(z) < 0.01f ? AxisColor : GridColor);
+			}
+		}
+
+		private readonly struct BracePreviewView
+		{
+			public readonly Rect Rect;
+			public readonly Vector2 Min;
+			public readonly Vector2 Max;
+			public readonly float Scale;
+
+			private BracePreviewView(Rect rect, Vector2 min, Vector2 max, float scale)
+			{
+				Rect = rect;
+				Min = min;
+				Max = max;
+				Scale = scale;
+			}
+
+			public static BracePreviewView Create(Rect rect, IReadOnlyList<Vector2> offsets,
+				float tubeRadius)
+			{
+				var min = Vector2.zero;
+				var max = Vector2.zero;
+				var padding = math.max(8f, tubeRadius + 8f);
+				foreach (var offset in offsets) {
+					min = Vector2.Min(min, offset - Vector2.one * padding);
+					max = Vector2.Max(max, offset + Vector2.one * padding);
+				}
+				var size = Vector2.Max(max - min, new Vector2(1f, 1f));
+				var scale = math.max(0.01f, math.min((rect.width - 20f) / size.x,
+					(rect.height - 20f) / size.y));
+				var fittedSize = new Vector2((rect.width - 20f) / scale,
+					(rect.height - 20f) / scale);
+				var center = (min + max) * 0.5f;
+				min = center - fittedSize * 0.5f;
+				max = center + fittedSize * 0.5f;
+				return new BracePreviewView(rect, min, max, scale);
+			}
+
+			public Vector3 ToScreen(Vector2 vpx)
+				=> new(Rect.x + 10f + (vpx.x - Min.x) * Scale,
+					Rect.yMax - 10f - (vpx.y - Min.y) * Scale, 0f);
+		}
+	}
 }

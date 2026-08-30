@@ -36,8 +36,11 @@ namespace VisualPinball.Unity.Editor
 		private static readonly Color TransitionCurveColor = new(0.05f, 0.75f, 1f, 1f);
 		private const float LayoutLineHeight = 20f;
 		private const float LayoutPadding = 7f;
+		private const float FixtureScaleMinimum = 0.1f;
+		private const float FixtureScaleMaximum = 4f;
 		private static SplineContainer _pendingSplineEdit;
 		private readonly WireRailCrossSectionEditor _crossSectionEditor = new();
+		private readonly WireRailBracePreviewEditor _bracePreviewEditor = new();
 		[SerializeField] private bool _showRenderGeometry = true;
 		[SerializeField] private bool _showFixtures = true;
 		[SerializeField] private bool _showWireLayouts = true;
@@ -129,17 +132,17 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
 			EditorGUILayout.Space(4f);
-			_showFixtures = EditorGUILayout.BeginFoldoutHeaderGroup(_showFixtures, "Fixtures");
-			if (_showFixtures) {
-				DrawFixtures(component);
-			}
-			EditorGUILayout.EndFoldoutHeaderGroup();
-
-			EditorGUILayout.Space(4f);
 			_showWireLayouts = EditorGUILayout.BeginFoldoutHeaderGroup(
 				_showWireLayouts, "Wire Layouts");
 			if (_showWireLayouts) {
 				DrawWireLayouts(component);
+			}
+			EditorGUILayout.EndFoldoutHeaderGroup();
+
+			EditorGUILayout.Space(4f);
+			_showFixtures = EditorGUILayout.BeginFoldoutHeaderGroup(_showFixtures, "Fixtures");
+			if (_showFixtures) {
+				DrawFixtures(component);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 		}
@@ -168,84 +171,9 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.LabelField(
 				"Fixtures are positioned by distance along the complete spline, independently "
 					+ "from its wire layouts.", EditorStyles.wordWrappedMiniLabel);
-			DrawFixtureOrder(component);
-
+			SynchronizeOrder(_fixtureOrder, component.Fixtures.Count);
+			_fixtureOrderList.DoLayoutList();
 			var splineLength = component.SplineLength;
-			for (var fixtureIndex = 0; fixtureIndex < component.Fixtures.Count; fixtureIndex++) {
-				if (component.Fixtures[fixtureIndex] is not WireRailBraceFixture brace) {
-					EditorGUILayout.HelpBox($"Fixture {fixtureIndex + 1} has an unsupported type.",
-						MessageType.Warning);
-					continue;
-				}
-
-				EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-				EditorGUILayout.BeginHorizontal();
-				EditorGUILayout.LabelField($"Brace {fixtureIndex + 1}", EditorStyles.boldLabel);
-				if (GUILayout.Button("Duplicate", GUILayout.Width(76f))) {
-					var capturedIndex = fixtureIndex;
-					Edit(component, "Duplicate Wire Rail Brace",
-						() => component.DuplicateBraceFixture(capturedIndex));
-					EditorGUILayout.EndHorizontal();
-					EditorGUILayout.EndVertical();
-					return;
-				}
-				if (GUILayout.Button("Remove", GUILayout.Width(68f))) {
-					var capturedIndex = fixtureIndex;
-					Edit(component, "Remove Wire Rail Brace",
-						() => component.RemoveFixture(capturedIndex));
-					EditorGUILayout.EndHorizontal();
-					EditorGUILayout.EndVertical();
-					return;
-				}
-				EditorGUILayout.EndHorizontal();
-
-				EditorGUI.BeginChangeCheck();
-				var distance = EditorGUILayout.Slider(new GUIContent("Position",
-					"Distance along the complete spline in VPX units."), brace.Distance,
-					0f, math.max(0f, splineLength));
-				var lateralOffset = EditorGUILayout.FloatField(new GUIContent("Lateral Offset",
-					"Move the brace sideways in the spline cross-section."), brace.LateralOffset);
-				var verticalOffset = EditorGUILayout.FloatField(new GUIContent("Vertical Offset",
-					"Move the brace vertically in the spline cross-section."), brace.VerticalOffset);
-				var radiusOffset = EditorGUILayout.FloatField(new GUIContent("Radius Offset",
-					"Increase or decrease the complete brace radius without moving its center."),
-					brace.RadiusOffset);
-				var hasCutout = EditorGUILayout.Toggle(new GUIContent("Cutout",
-					"Remove an angular section from the brace."), brace.HasCutout);
-				var cutoutStart = brace.CutoutStartAngle;
-				var cutoutEnd = brace.CutoutEndAngle;
-				if (hasCutout) {
-					cutoutStart = EditorGUILayout.Slider(new GUIContent("Cutout Start",
-						"Start angle in the spline cross-section. 0° is right and 90° is up."),
-						cutoutStart, 0f, 360f);
-					cutoutEnd = EditorGUILayout.Slider(new GUIContent("Cutout End",
-						"End angle. The cutout follows increasing angles and can wrap through 360°."),
-						cutoutEnd, 0f, 360f);
-				}
-				var hasStraightSection = EditorGUILayout.Toggle(new GUIContent("Straight Section",
-					"Replace an angular section of the circle with the straight chord between its endpoints."),
-					brace.HasStraightSection);
-				var straightStart = brace.StraightStartAngle;
-				var straightEnd = brace.StraightEndAngle;
-				if (hasStraightSection) {
-					straightStart = EditorGUILayout.Slider(new GUIContent("Straight Start",
-						"Start angle in the spline cross-section. 0° is right and 90° is up."),
-						straightStart, 0f, 360f);
-					straightEnd = EditorGUILayout.Slider(new GUIContent("Straight End",
-						"End angle. The replaced section follows increasing angles and can wrap through 360°."),
-						straightEnd, 0f, 360f);
-				}
-				if (EditorGUI.EndChangeCheck()) {
-					var capturedIndex = fixtureIndex;
-					Edit(component, "Edit Wire Rail Brace", () =>
-						component.SetBraceFixtureProperties(capturedIndex, distance,
-							hasCutout, cutoutStart, cutoutEnd,
-							hasStraightSection, straightStart, straightEnd,
-							lateralOffset, verticalOffset, radiusOffset));
-				}
-				EditorGUILayout.EndVertical();
-			}
-
 			using (new EditorGUI.DisabledScope(splineLength <= 0f)) {
 				if (GUILayout.Button("Add Brace")) {
 					Edit(component, "Add Wire Rail Brace",
@@ -257,11 +185,17 @@ namespace VisualPinball.Unity.Editor
 
 		private ReorderableList CreateFixtureOrderList()
 		{
-			var list = new ReorderableList(_fixtureOrder, typeof(int), true, true, false, false) {
-				headerHeight = EditorGUIUtility.singleLineHeight,
-				elementHeight = EditorGUIUtility.singleLineHeight + 2f,
+			var list = new ReorderableList(_fixtureOrder, typeof(int), true, false, false, false) {
+				headerHeight = 0f,
+				footerHeight = 0f,
 			};
-			list.drawHeaderCallback = rect => EditorGUI.LabelField(rect, "Fixture Order (drag rows)");
+			list.drawElementBackgroundCallback = (rect, index, active, focused) => {
+				rect.y -= 2f;
+				rect.height += 2f;
+				ReorderableList.defaultBehaviours.DrawElementBackground(rect, index,
+					active, focused, true);
+			};
+			list.elementHeightCallback = index => GetFixtureElementHeight();
 			list.drawElementCallback = (rect, index, _, _) => {
 				if (target is not WireRailComponent component || index >= _fixtureOrder.Count) {
 					return;
@@ -270,10 +204,7 @@ namespace VisualPinball.Unity.Editor
 				if (fixtureIndex < 0 || fixtureIndex >= component.Fixtures.Count) {
 					return;
 				}
-				var fixture = component.Fixtures[fixtureIndex];
-				var label = fixture is WireRailBraceFixture ? $"Brace {fixtureIndex + 1}" :
-					$"Fixture {fixtureIndex + 1}";
-				EditorGUI.LabelField(rect, label, $"Position {fixture.Distance:0.##}");
+				DrawFixtureElement(rect, component, fixtureIndex);
 			};
 			list.onReorderCallbackWithDetails = (_, fromIndex, toIndex) => {
 				if (target is WireRailComponent component) {
@@ -323,14 +254,6 @@ namespace VisualPinball.Unity.Editor
 			return list;
 		}
 
-		private void DrawFixtureOrder(WireRailComponent component)
-		{
-			SynchronizeOrder(_fixtureOrder, component.Fixtures.Count);
-			if (_fixtureOrder.Count > 1) {
-				_fixtureOrderList.DoLayoutList();
-			}
-		}
-
 		private static void SynchronizeOrder(List<int> order, int count, bool force = false)
 		{
 			if (!force && order.Count == count) {
@@ -340,6 +263,157 @@ namespace VisualPinball.Unity.Editor
 			for (var index = 0; index < count; index++) {
 				order.Add(index);
 			}
+		}
+
+		private static float GetFixtureElementHeight()
+			=> LayoutPadding * 2f + LayoutLineHeight * 6f
+				+ WireRailBracePreviewEditor.Height + 22f;
+
+		private void DrawFixtureElement(Rect rect, WireRailComponent component,
+			int fixtureIndex)
+		{
+			rect.y -= 1f;
+			rect.height -= 1f;
+			var content = new Rect(rect.x + LayoutPadding, rect.y + LayoutPadding,
+				rect.width - LayoutPadding * 2f, rect.height - LayoutPadding * 2f);
+			if (component.Fixtures[fixtureIndex] is not WireRailBraceFixture brace) {
+				EditorGUI.HelpBox(content, $"Fixture {fixtureIndex + 1} has an unsupported type.",
+					MessageType.Warning);
+				return;
+			}
+
+			var row = new Rect(content.x, content.y - 2f, content.width, LayoutLineHeight);
+			EditorGUI.LabelField(row, $"Brace {fixtureIndex + 1}", EditorStyles.boldLabel);
+			var trashRect = new Rect(row.xMax - LayoutLineHeight, row.y, LayoutLineHeight,
+				LayoutLineHeight);
+			var duplicateRect = new Rect(trashRect.x - LayoutLineHeight - 2f, row.y,
+				LayoutLineHeight, LayoutLineHeight);
+			var duplicate = new GUIContent(EditorGUIUtility.IconContent("TreeEditor.Duplicate")) {
+				tooltip = "Duplicate this brace",
+			};
+			var trash = new GUIContent(EditorGUIUtility.IconContent("TreeEditor.Trash")) {
+				tooltip = "Remove this brace",
+			};
+			EditorGUIUtility.AddCursorRect(duplicateRect, MouseCursor.Link);
+			EditorGUIUtility.AddCursorRect(trashRect, MouseCursor.Link);
+			if (GUI.Button(duplicateRect, duplicate, GUIStyle.none)) {
+				Edit(component, "Duplicate Wire Rail Brace",
+					() => component.DuplicateBraceFixture(fixtureIndex));
+				SynchronizeOrder(_fixtureOrder, component.Fixtures.Count, true);
+				GUIUtility.ExitGUI();
+			}
+			if (GUI.Button(trashRect, trash, GUIStyle.none)) {
+				Edit(component, "Remove Wire Rail Brace",
+					() => component.RemoveFixture(fixtureIndex));
+				SynchronizeOrder(_fixtureOrder, component.Fixtures.Count, true);
+				GUIUtility.ExitGUI();
+			}
+
+			EditorGUI.BeginChangeCheck();
+			row.y = content.y + LayoutLineHeight + 3f;
+			var distance = EditorGUI.Slider(row, new GUIContent("Position",
+				"Distance along the complete spline in VPX units."), brace.Distance,
+				0f, math.max(0f, component.SplineLength));
+
+			row.y += LayoutLineHeight + 3f;
+			var scale = EditorGUI.Slider(row, new GUIContent("Scale",
+				"Multiplier for the automatically fitted brace radius."), brace.Scale,
+				FixtureScaleMinimum, FixtureScaleMaximum);
+
+			row.y += LayoutLineHeight + 4f;
+			var previewRect = new Rect(content.x, row.y, content.width,
+				WireRailBracePreviewEditor.Height);
+			_bracePreviewEditor.Draw(previewRect, component, fixtureIndex, brace);
+
+			row.y = previewRect.yMax + 4f;
+			var lateralOffset = brace.LateralOffset;
+			var verticalOffset = brace.VerticalOffset;
+			DrawFixtureOffsetRow(row, ref lateralOffset, ref verticalOffset,
+				out var resetOffset);
+			if (resetOffset) {
+				Edit(component, "Reset Wire Rail Brace Offset", () =>
+					component.SetBraceFixtureProperties(fixtureIndex, brace.Distance,
+						brace.HasCutout, brace.CutoutStartAngle, brace.CutoutEndAngle,
+						brace.HasStraightSection, brace.StraightStartAngle,
+						brace.StraightEndAngle, 0f, 0f, brace.Scale));
+				GUIUtility.ExitGUI();
+			}
+
+			row.y += LayoutLineHeight + 3f;
+			var cutoutStart = brace.CutoutStartAngle;
+			var cutoutEnd = brace.CutoutEndAngle;
+			var hasCutout = DrawAngleRange(row, "Cutout",
+				"Remove the angular range from the brace.", brace.HasCutout,
+				ref cutoutStart, ref cutoutEnd);
+
+			row.y += LayoutLineHeight + 3f;
+			var straightStart = brace.StraightStartAngle;
+			var straightEnd = brace.StraightEndAngle;
+			var hasStraightSection = DrawAngleRange(row, "Straight Line",
+				"Replace the angular range with a straight chord.", brace.HasStraightSection,
+				ref straightStart, ref straightEnd);
+
+			if (EditorGUI.EndChangeCheck()) {
+				Edit(component, "Edit Wire Rail Brace", () =>
+					component.SetBraceFixtureProperties(fixtureIndex, distance,
+						hasCutout, cutoutStart, cutoutEnd,
+						hasStraightSection, straightStart, straightEnd,
+						lateralOffset, verticalOffset, scale));
+			}
+		}
+
+		private static void DrawFixtureOffsetRow(Rect rect, ref float lateralOffset,
+			ref float verticalOffset, out bool reset)
+		{
+			const float resetWidth = 54f;
+			const float offsetLabelWidth = 42f;
+			const float axisLabelWidth = 14f;
+			const float spacing = 4f;
+			var numericFieldWidth = math.max(20f, (rect.width - offsetLabelWidth
+				- axisLabelWidth * 2f - resetWidth - spacing * 5f) * 0.5f);
+			var axisFieldWidth = axisLabelWidth + numericFieldWidth;
+			var x = rect.x;
+			EditorGUI.LabelField(new Rect(x, rect.y, offsetLabelWidth, LayoutLineHeight),
+				"Offset");
+			x += offsetLabelWidth + spacing;
+			var previousLabelWidth = EditorGUIUtility.labelWidth;
+			EditorGUIUtility.labelWidth = axisLabelWidth;
+			lateralOffset = EditorGUI.FloatField(new Rect(x, rect.y, axisFieldWidth,
+				LayoutLineHeight), new GUIContent("X", "Lateral offset in VPX units."),
+				lateralOffset);
+			x += axisFieldWidth + spacing;
+			verticalOffset = EditorGUI.FloatField(new Rect(x, rect.y, axisFieldWidth,
+				LayoutLineHeight), new GUIContent("Z", "Vertical offset in VPX units."),
+				verticalOffset);
+			EditorGUIUtility.labelWidth = previousLabelWidth;
+			reset = GUI.Button(new Rect(rect.xMax - resetWidth, rect.y, resetWidth,
+				LayoutLineHeight), "Reset");
+		}
+
+		private static bool DrawAngleRange(Rect rect, string label, string tooltip,
+			bool enabled, ref float start, ref float end)
+		{
+			const float toggleWidth = 102f;
+			const float fieldWidth = 42f;
+			const float spacing = 4f;
+			enabled = EditorGUI.ToggleLeft(new Rect(rect.x, rect.y, toggleWidth,
+				LayoutLineHeight), new GUIContent(label, tooltip), enabled);
+			if (!enabled) {
+				return false;
+			}
+
+			var startRect = new Rect(rect.x + toggleWidth + spacing, rect.y, fieldWidth,
+				LayoutLineHeight);
+			var endRect = new Rect(rect.xMax - fieldWidth, rect.y, fieldWidth,
+				LayoutLineHeight);
+			var sliderRect = new Rect(startRect.xMax + spacing, rect.y,
+				math.max(10f, endRect.x - startRect.xMax - spacing * 2f), LayoutLineHeight);
+			start = math.clamp(EditorGUI.FloatField(startRect, new GUIContent(string.Empty,
+				"From angle in degrees."), start), 0f, 360f);
+			end = math.clamp(EditorGUI.FloatField(endRect, new GUIContent(string.Empty,
+				"To angle in degrees."), end), 0f, 360f);
+			EditorGUI.MinMaxSlider(sliderRect, ref start, ref end, 0f, 360f);
+			return true;
 		}
 
 		private void DrawGenerationSettings(WireRailComponent component)
