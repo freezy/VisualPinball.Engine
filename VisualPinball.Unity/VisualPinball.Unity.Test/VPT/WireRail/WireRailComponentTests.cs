@@ -501,6 +501,169 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldConnectTheTwoBottomRailsWithACrossWireByDefault()
+		{
+			const int radialSegments = 8;
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var railTriangleCount = component.RenderMesh.triangles.Length / 3;
+				var fixtureIndex = component.AddCrossWireFixture(250f);
+				var crossWire = (WireRailCrossWireFixture)component.Fixtures[fixtureIndex];
+
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateCrossWireProfile(
+					component.SplineContainer.Spline, component.Segments, crossWire,
+					out var profile), Is.True);
+				Assert.That(crossWire.StartRailIndex, Is.EqualTo(0));
+				Assert.That(crossWire.EndRailIndex, Is.EqualTo(1));
+				Assert.That(crossWire.Angle, Is.EqualTo(0f));
+				var expectedStart = profile.StartRailOffset
+					+ new float2(profile.StartRailRadius, 0f);
+				var expectedEnd = profile.EndRailOffset
+					- new float2(profile.EndRailRadius, 0f);
+				Assert.That(math.distance(profile.StartOffset, expectedStart),
+					Is.LessThan(0.001f));
+				Assert.That(math.distance(profile.EndOffset, expectedEnd),
+					Is.LessThan(0.001f));
+				Assert.That(math.abs(math.dot(profile.End - profile.Start,
+					profile.Frame.Tangent)), Is.LessThan(0.001f));
+				Assert.That(component.RenderMesh.triangles.Length / 3 - railTriangleCount,
+					Is.EqualTo(radialSegments * 4),
+					"the cross wire should have one tube span and two caps");
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldOffsetAngleAndResizeACrossWire()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var fixtureIndex = component.AddCrossWireFixture(250f);
+				component.SetCrossWireFixtureProperties(fixtureIndex, 250f,
+					90f, 6f, -3f, 12f);
+				var crossWire = (WireRailCrossWireFixture)component.Fixtures[fixtureIndex];
+
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateCrossWireProfile(
+					component.SplineContainer.Spline, component.Segments, crossWire,
+					out var profile), Is.True);
+				var railDirection = math.normalize(profile.EndRailOffset
+					- profile.StartRailOffset);
+				var attachmentStart = profile.StartRailOffset
+					+ railDirection * profile.StartRailRadius;
+				var attachmentEnd = profile.EndRailOffset
+					- railDirection * profile.EndRailRadius;
+				var direction = new float2(0f, 1f);
+				var expectedLength = math.distance(attachmentStart, attachmentEnd) + 12f;
+				var bottomCenter = (attachmentStart + attachmentEnd) * 0.5f;
+				var envelopeMinimum = new float2(float.PositiveInfinity);
+				var envelopeMaximum = new float2(float.NegativeInfinity);
+				var segment = component.Segments[0];
+				for (var railIndex = 0; railIndex < segment.RailCount; railIndex++) {
+					if (!segment.IsRailActive(railIndex)) {
+						continue;
+					}
+					var railOffset = (float2)segment.GetRailOffset(railIndex);
+					var railRadius = segment.GetWireDiameter(railIndex) * 0.5f;
+					envelopeMinimum = math.min(envelopeMinimum, railOffset - railRadius);
+					envelopeMaximum = math.max(envelopeMaximum, railOffset + railRadius);
+				}
+				var expectedRotationOrigin = (envelopeMinimum + envelopeMaximum) * 0.5f;
+				Assert.That(math.distance(profile.RotationOriginOffset,
+					expectedRotationOrigin), Is.LessThan(0.001f));
+				var relativeBottomCenter = bottomCenter - profile.RotationOriginOffset;
+				var expectedCenter = profile.RotationOriginOffset
+					+ new float2(-relativeBottomCenter.y, relativeBottomCenter.x)
+					+ new float2(6f, -3f);
+				Assert.That(math.distance(profile.StartOffset,
+					expectedCenter - direction * expectedLength * 0.5f),
+					Is.LessThan(0.001f));
+				Assert.That(math.distance(profile.EndOffset,
+					expectedCenter + direction * expectedLength * 0.5f),
+					Is.LessThan(0.001f));
+				Assert.That(math.distance(profile.StartOffset, profile.EndOffset),
+					Is.EqualTo(expectedLength).Within(0.001f));
+				Assert.That(math.dot(math.normalize(profile.EndOffset - profile.StartOffset),
+					direction), Is.EqualTo(1f).Within(0.001f));
+				Assert.That(math.distance(profile.RotationOriginOffset, bottomCenter),
+					Is.GreaterThan(0.001f), "the default four-rail envelope should rotate "
+					+ "around a point above the bottom rails");
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldKeepCrossWireAngleRelativeToTheSpline()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SetRailOffset(0, 0, new Vector2(-19f, -8f));
+				component.SetRailOffset(0, 1, new Vector2(19f, 8f));
+				var fixtureIndex = component.AddCrossWireFixture(250f);
+				var crossWire = (WireRailCrossWireFixture)component.Fixtures[fixtureIndex];
+
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateCrossWireProfile(
+					component.SplineContainer.Spline, component.Segments, crossWire,
+					out var profile), Is.True);
+				Assert.That(math.dot(math.normalize(profile.EndOffset - profile.StartOffset),
+					new float2(1f, 0f)), Is.EqualTo(1f).Within(0.001f),
+					"angle zero must stay horizontal even when the bottom rails are stepped");
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldOmitDegenerateCrossWireBodyAtMaximumBevel()
+		{
+			const int radialSegments = 8;
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SetRailCount(2);
+				component.SetWireCapBevelSize(2f);
+				var railTriangleCount = component.RenderMesh.triangles.Length / 3;
+				var fixtureIndex = component.AddCrossWireFixture(250f);
+				component.SetCrossWireFixtureProperties(fixtureIndex, 250f,
+					0f, 0f, 0f, -1000f);
+
+				var fixtureTriangleCount = component.RenderMesh.triangles.Length / 3
+					- railTriangleCount;
+				Assert.That(fixtureTriangleCount, Is.EqualTo(radialSegments * 6),
+					"the two beveled caps should meet without a zero-length tube body");
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldHideACrossWireWhenEitherBottomRailIsInactive()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SetRailCount(2);
+				var fixtureIndex = component.AddCrossWireFixture(250f);
+				var crossWire = (WireRailCrossWireFixture)component.Fixtures[fixtureIndex];
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateCrossWireProfile(
+					component.SplineContainer.Spline, component.Segments, crossWire, out _),
+					Is.True);
+
+				component.SetRailsActive(0, new[] { 1 }, false);
+
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateCrossWireProfile(
+					component.SplineContainer.Spline, component.Segments, crossWire, out _),
+					Is.False);
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
 		public void ShouldMigrateLegacyBraceRadiusOffsetToScale()
 		{
 			var brace = new WireRailBraceFixture();
@@ -767,6 +930,35 @@ namespace VisualPinball.Unity.Test
 				Assert.That(duplicate.LateralOffset, Is.EqualTo(source.LateralOffset));
 				Assert.That(duplicate.VerticalOffset, Is.EqualTo(source.VerticalOffset));
 				Assert.That(duplicate.Scale, Is.EqualTo(source.Scale));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldDuplicateEveryCrossWireSetting()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var sourceIndex = component.AddCrossWireFixture(175f);
+				component.SetCrossWireFixtureProperties(sourceIndex, 175f,
+					25f, 6f, -9f, 14f);
+				var duplicateIndex = component.DuplicateCrossWireFixture(sourceIndex);
+				var source = (WireRailCrossWireFixture)component.Fixtures[sourceIndex];
+				var duplicate = (WireRailCrossWireFixture)component.Fixtures[duplicateIndex];
+
+				Assert.That(duplicateIndex, Is.EqualTo(sourceIndex + 1));
+				Assert.That(duplicate, Is.Not.SameAs(source));
+				Assert.That(duplicate.Distance, Is.EqualTo(source.Distance));
+				Assert.That(duplicate.Diameter, Is.EqualTo(source.Diameter));
+				Assert.That(duplicate.StartRailIndex, Is.EqualTo(source.StartRailIndex));
+				Assert.That(duplicate.EndRailIndex, Is.EqualTo(source.EndRailIndex));
+				Assert.That(duplicate.Angle, Is.EqualTo(source.Angle));
+				Assert.That(duplicate.LateralOffset, Is.EqualTo(source.LateralOffset));
+				Assert.That(duplicate.VerticalOffset, Is.EqualTo(source.VerticalOffset));
+				Assert.That(duplicate.LengthAdjustment,
+					Is.EqualTo(source.LengthAdjustment));
 			} finally {
 				Object.DestroyImmediate(go);
 			}
@@ -1252,6 +1444,7 @@ namespace VisualPinball.Unity.Test
 				component.AddLayout(250f);
 				component.SetRailCount(5);
 				component.AddBraceFixture(125f);
+				component.AddCrossWireFixture(375f);
 
 				component.SetWireDiameter(12f);
 
@@ -1262,6 +1455,8 @@ namespace VisualPinball.Unity.Test
 				}
 				Assert.That(component.WireDiameter, Is.EqualTo(12f));
 				Assert.That(((WireRailBraceFixture)component.Fixtures[0]).Diameter,
+					Is.EqualTo(12f));
+				Assert.That(((WireRailCrossWireFixture)component.Fixtures[1]).Diameter,
 					Is.EqualTo(12f));
 				Assert.That(component.RenderMesh.bounds.size.x, Is.GreaterThan(0f));
 				Assert.That(component.ColliderMesh.vertexCount, Is.GreaterThan(0));

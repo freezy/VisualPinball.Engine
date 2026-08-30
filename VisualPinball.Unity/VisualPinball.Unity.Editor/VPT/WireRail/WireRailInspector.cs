@@ -42,6 +42,7 @@ namespace VisualPinball.Unity.Editor
 		private static SplineContainer _pendingSplineEdit;
 		private readonly WireRailCrossSectionEditor _crossSectionEditor = new();
 		private readonly WireRailBracePreviewEditor _bracePreviewEditor = new();
+		private readonly WireRailCrossWirePreviewEditor _crossWirePreviewEditor = new();
 		[SerializeField] private bool _showRenderGeometry = true;
 		[SerializeField] private bool _showFixtures = true;
 		[SerializeField] private bool _showWireLayouts = true;
@@ -182,11 +183,21 @@ namespace VisualPinball.Unity.Editor
 			SynchronizeOrder(_fixtureOrder, component.Fixtures.Count);
 			_fixtureOrderList.DoLayoutList();
 			var splineLength = component.SplineLength;
-			using (new EditorGUI.DisabledScope(splineLength <= 0f)) {
-				if (GUILayout.Button("Add Brace")) {
-					Edit(component, "Add Wire Rail Brace",
-						() => component.AddBraceFixture(splineLength * 0.5f));
-					SynchronizeOrder(_fixtureOrder, component.Fixtures.Count, true);
+			using (new EditorGUILayout.HorizontalScope()) {
+				using (new EditorGUI.DisabledScope(splineLength <= 0f)) {
+					if (GUILayout.Button("Add Brace")) {
+						Edit(component, "Add Wire Rail Brace",
+							() => component.AddBraceFixture(splineLength * 0.5f));
+						SynchronizeOrder(_fixtureOrder, component.Fixtures.Count, true);
+					}
+				}
+				using (new EditorGUI.DisabledScope(splineLength <= 0f
+					|| component.RailCount < 2)) {
+					if (GUILayout.Button("Add Cross Wire")) {
+						Edit(component, "Add Wire Rail Cross Wire",
+							() => component.AddCrossWireFixture(splineLength * 0.5f));
+						SynchronizeOrder(_fixtureOrder, component.Fixtures.Count, true);
+					}
 				}
 			}
 		}
@@ -203,7 +214,15 @@ namespace VisualPinball.Unity.Editor
 				ReorderableList.defaultBehaviours.DrawElementBackground(rect, index,
 					active, focused, true);
 			};
-			list.elementHeightCallback = index => GetFixtureElementHeight();
+			list.elementHeightCallback = index => {
+				if (target is not WireRailComponent component || index >= _fixtureOrder.Count) {
+					return LayoutLineHeight;
+				}
+				var fixtureIndex = _fixtureOrder[index];
+				return fixtureIndex >= 0 && fixtureIndex < component.Fixtures.Count
+					? GetFixtureElementHeight(component.Fixtures[fixtureIndex])
+					: LayoutLineHeight;
+			};
 			list.drawElementCallback = (rect, index, _, _) => {
 				if (target is not WireRailComponent component || index >= _fixtureOrder.Count) {
 					return;
@@ -273,9 +292,14 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private static float GetFixtureElementHeight()
-			=> LayoutPadding * 2f + LayoutLineHeight * 7f
-				+ WireRailBracePreviewEditor.Height + 25f;
+		private static float GetFixtureElementHeight(WireRailFixture fixture)
+			=> fixture switch {
+				WireRailBraceFixture => LayoutPadding * 2f + LayoutLineHeight * 7f
+					+ WireRailBracePreviewEditor.Height + 25f,
+				WireRailCrossWireFixture => LayoutPadding * 2f + LayoutLineHeight * 5f
+					+ WireRailCrossWirePreviewEditor.Height + 25f,
+				_ => LayoutLineHeight * 2f,
+			};
 
 		private void DrawFixtureElement(Rect rect, WireRailComponent component,
 			int fixtureIndex)
@@ -284,12 +308,24 @@ namespace VisualPinball.Unity.Editor
 			rect.height -= 1f;
 			var content = new Rect(rect.x + LayoutPadding, rect.y + LayoutPadding,
 				rect.width - LayoutPadding * 2f, rect.height - LayoutPadding * 2f);
-			if (component.Fixtures[fixtureIndex] is not WireRailBraceFixture brace) {
+			if (component.Fixtures[fixtureIndex] is WireRailBraceFixture brace) {
+				DrawBraceFixtureElement(content, component, fixtureIndex, brace);
+				return;
+			}
+			if (component.Fixtures[fixtureIndex] is WireRailCrossWireFixture crossWire) {
+				DrawCrossWireFixtureElement(content, component, fixtureIndex, crossWire);
+				return;
+			}
+			{
 				EditorGUI.HelpBox(content, $"Fixture {fixtureIndex + 1} has an unsupported type.",
 					MessageType.Warning);
 				return;
 			}
+		}
 
+		private void DrawBraceFixtureElement(Rect content, WireRailComponent component,
+			int fixtureIndex, WireRailBraceFixture brace)
+		{
 			var row = new Rect(content.x, content.y - 2f, content.width, LayoutLineHeight);
 			EditorGUI.LabelField(row, $"Brace {fixtureIndex + 1}", EditorStyles.boldLabel);
 			var trashRect = new Rect(row.xMax - LayoutLineHeight, row.y, LayoutLineHeight,
@@ -390,6 +426,78 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		private void DrawCrossWireFixtureElement(Rect content, WireRailComponent component,
+			int fixtureIndex, WireRailCrossWireFixture crossWire)
+		{
+			var row = new Rect(content.x, content.y - 2f, content.width, LayoutLineHeight);
+			EditorGUI.LabelField(row, $"Cross Wire {fixtureIndex + 1}", EditorStyles.boldLabel);
+			var trashRect = new Rect(row.xMax - LayoutLineHeight, row.y, LayoutLineHeight,
+				LayoutLineHeight);
+			var duplicateRect = new Rect(trashRect.x - LayoutLineHeight - 2f, row.y,
+				LayoutLineHeight, LayoutLineHeight);
+			var duplicate = new GUIContent(EditorGUIUtility.IconContent("TreeEditor.Duplicate")) {
+				tooltip = "Duplicate this cross wire",
+			};
+			var trash = new GUIContent(EditorGUIUtility.IconContent("TreeEditor.Trash")) {
+				tooltip = "Remove this cross wire",
+			};
+			EditorGUIUtility.AddCursorRect(duplicateRect, MouseCursor.Link);
+			EditorGUIUtility.AddCursorRect(trashRect, MouseCursor.Link);
+			if (GUI.Button(duplicateRect, duplicate, GUIStyle.none)) {
+				Edit(component, "Duplicate Wire Rail Cross Wire",
+					() => component.DuplicateCrossWireFixture(fixtureIndex));
+				SynchronizeOrder(_fixtureOrder, component.Fixtures.Count, true);
+				GUIUtility.ExitGUI();
+			}
+			if (GUI.Button(trashRect, trash, GUIStyle.none)) {
+				Edit(component, "Remove Wire Rail Cross Wire",
+					() => component.RemoveFixture(fixtureIndex));
+				SynchronizeOrder(_fixtureOrder, component.Fixtures.Count, true);
+				GUIUtility.ExitGUI();
+			}
+
+			EditorGUI.BeginChangeCheck();
+			row.y = content.y + LayoutLineHeight + 3f;
+			var distance = EditorGUI.Slider(row, new GUIContent("Position",
+				"Distance along the complete spline in VPX units."), crossWire.Distance,
+				0f, math.max(0f, component.SplineLength));
+
+			row.y += LayoutLineHeight + 4f;
+			var previewRect = new Rect(content.x, row.y, content.width,
+				WireRailCrossWirePreviewEditor.Height);
+			_crossWirePreviewEditor.Draw(previewRect, component, fixtureIndex, crossWire);
+
+			row.y = previewRect.yMax + 4f;
+			var lateralOffset = crossWire.LateralOffset;
+			var verticalOffset = crossWire.VerticalOffset;
+			DrawFixtureOffsetRow(row, ref lateralOffset, ref verticalOffset,
+				out var resetOffset);
+			if (resetOffset) {
+				Edit(component, "Reset Wire Rail Cross Wire Offset", () =>
+					component.SetCrossWireFixtureProperties(fixtureIndex, crossWire.Distance,
+						crossWire.Angle, 0f, 0f,
+						crossWire.LengthAdjustment));
+				GUIUtility.ExitGUI();
+			}
+
+			row.y += LayoutLineHeight + 3f;
+			var angle = EditorGUI.Slider(row, new GUIContent("Angle",
+				"Rotation around the spline tangent. 0° is horizontal along local X; "
+				+ "90° is vertical along local Z."), crossWire.Angle, 0f, 360f);
+
+			row.y += LayoutLineHeight + 3f;
+			var lengthAdjustment = EditorGUI.FloatField(row, new GUIContent("Length",
+				"Signed VPX adjustment to the span between the bottom rails. Positive values "
+				+ "extend the wire; negative values shorten it."), crossWire.LengthAdjustment);
+
+			if (EditorGUI.EndChangeCheck()) {
+				Edit(component, "Edit Wire Rail Cross Wire", () =>
+					component.SetCrossWireFixtureProperties(fixtureIndex, distance,
+						angle, lateralOffset, verticalOffset,
+						lengthAdjustment));
+			}
+		}
+
 		private static void DrawFixtureOffsetRow(Rect rect, ref float lateralOffset,
 			ref float verticalOffset, out bool reset)
 		{
@@ -422,16 +530,23 @@ namespace VisualPinball.Unity.Editor
 			bool enabled, ref float start, ref float end)
 		{
 			const float toggleWidth = 102f;
-			const float fieldWidth = 42f;
-			const float alignButtonWidth = LayoutLineHeight;
-			const float spacing = 4f;
 			enabled = EditorGUI.ToggleLeft(new Rect(rect.x, rect.y, toggleWidth,
 				LayoutLineHeight), new GUIContent(label, tooltip), enabled);
 			if (!enabled) {
 				return false;
 			}
+			DrawAnglePairControls(rect, toggleWidth, ref start, ref end);
+			return true;
+		}
 
-			var startRect = new Rect(rect.x + toggleWidth + spacing, rect.y, fieldWidth,
+		private static void DrawAnglePairControls(Rect rect, float prefixWidth,
+			ref float start, ref float end)
+		{
+			const float fieldWidth = 42f;
+			const float alignButtonWidth = LayoutLineHeight;
+			const float alignIconSize = 16f;
+			const float spacing = 4f;
+			var startRect = new Rect(rect.x + prefixWidth + spacing, rect.y, fieldWidth,
 				LayoutLineHeight);
 			var alignRect = new Rect(rect.xMax - alignButtonWidth, rect.y, alignButtonWidth,
 				LayoutLineHeight);
@@ -453,16 +568,20 @@ namespace VisualPinball.Unity.Editor
 				end = gapStart;
 			}
 			EditorGUIUtility.AddCursorRect(alignRect, MouseCursor.Link);
-			if (GUI.Button(alignRect, AlignAngleRangeContent, EditorStyles.miniButton)) {
+			var alignClicked = GUI.Button(alignRect, AlignAngleRangeContent,
+				EditorStyles.miniButton);
+			var iconRect = new Rect(alignRect.center.x - alignIconSize * 0.5f,
+				alignRect.center.y - alignIconSize * 0.5f, alignIconSize, alignIconSize);
+			GUI.DrawTexture(iconRect, Icons.Horizon(), ScaleMode.ScaleToFit, true);
+			if (alignClicked) {
 				var aligned = WireRailBraceFixture.AlignAngleRangeHorizontally(start, end);
 				start = aligned.x;
 				end = aligned.y;
 			}
-			return true;
 		}
 
 		private static GUIContent AlignAngleRangeContent
-			=> _alignAngleRangeContent ??= new GUIContent(Icons.Horizon(),
+			=> _alignAngleRangeContent ??= new GUIContent(string.Empty,
 				"Align both endpoints to the same vertical height.");
 
 		private static bool HasOtherBraceFixture(WireRailComponent component,
@@ -918,6 +1037,23 @@ namespace VisualPinball.Unity.Editor
 			SplineContainer container, Spline spline)
 		{
 			for (var fixtureIndex = 0; fixtureIndex < component.Fixtures.Count; fixtureIndex++) {
+				if (component.Fixtures[fixtureIndex] is WireRailCrossWireFixture crossWire) {
+					if (WireRailSplineGeometry.TryEvaluateCrossWire(spline,
+							component.Segments, crossWire, out var start, out var end)) {
+						var crossWirePoints = new[] {
+							container.transform.TransformPoint((Vector3)start),
+							container.transform.TransformPoint((Vector3)end),
+						};
+						var crossWireZTest = Handles.zTest;
+						Handles.zTest = CompareFunction.Always;
+						Handles.color = new Color(1f, 0.82f, 0.1f, 1f);
+						Handles.DrawAAPolyLine(4f, crossWirePoints);
+						Handles.Label(crossWirePoints[0], $"Cross Wire {fixtureIndex + 1}",
+							EditorStyles.boldLabel);
+						Handles.zTest = crossWireZTest;
+					}
+					continue;
+				}
 				if (component.Fixtures[fixtureIndex] is not WireRailBraceFixture brace
 					|| !brace.TryGetVisibleArc(out var startAngle, out var sweepAngle, out _)
 					|| !WireRailSplineGeometry.TryEvaluateBrace(spline, component.Segments,
