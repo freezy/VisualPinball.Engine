@@ -100,23 +100,127 @@ namespace VisualPinball.Unity.Editor
 			if (container.Splines.Count > 1) {
 				EditorGUILayout.HelpBox(
 					"This first wire-rail slice uses the first spline only. Remove additional splines "
-					+ "from the container before authoring segment layouts.", MessageType.Warning);
+					+ "from the container before authoring wire layouts.", MessageType.Warning);
 			}
 
 			DrawGenerationSettings(component);
+			DrawFixtures(component);
 
 			EditorGUILayout.Space(8f);
-			EditorGUILayout.LabelField("Segments", EditorStyles.boldLabel);
+			EditorGUILayout.LabelField("Wire Layouts", EditorStyles.boldLabel);
+			EditorGUILayout.LabelField(
+				"Layouts are positioned by distance along the route and are independent from spline knots.",
+				EditorStyles.wordWrappedMiniLabel);
 			if (component.Segments.Count == 0) {
-				EditorGUILayout.HelpBox("Add at least two spline knots to create a segment.",
+				EditorGUILayout.HelpBox("Add at least two spline knots to create a wire layout.",
 					MessageType.Warning);
 				return;
 			}
+			if (GUILayout.Button("Add Wire Layout")) {
+				Edit(component, "Add Wire Rail Layout",
+					() => component.AddLayout(component.SplineLength * 0.5f));
+			}
 
 			for (var segmentIndex = 0; segmentIndex < component.Segments.Count; segmentIndex++) {
-				DrawSegment(component, segmentIndex);
+				if (DrawSegment(component, segmentIndex)) {
+					return;
+				}
 				if (component.GetNextSegmentIndex(segmentIndex) >= 0) {
 					DrawConnection(component, segmentIndex);
+				}
+			}
+		}
+
+		private static void DrawFixtures(WireRailComponent component)
+		{
+			EditorGUILayout.Space(8f);
+			EditorGUILayout.LabelField("Fixtures", EditorStyles.boldLabel);
+			EditorGUILayout.LabelField(
+				"Fixtures are positioned by distance along the complete spline, independently "
+				+ "from its wire layouts.", EditorStyles.wordWrappedMiniLabel);
+
+			var splineLength = component.SplineLength;
+			for (var fixtureIndex = 0; fixtureIndex < component.Fixtures.Count; fixtureIndex++) {
+				if (component.Fixtures[fixtureIndex] is not WireRailBraceFixture brace) {
+					EditorGUILayout.HelpBox($"Fixture {fixtureIndex + 1} has an unsupported type.",
+						MessageType.Warning);
+					continue;
+				}
+
+				EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+				EditorGUILayout.BeginHorizontal();
+				EditorGUILayout.LabelField($"Brace {fixtureIndex + 1}", EditorStyles.boldLabel);
+				if (GUILayout.Button("Duplicate", GUILayout.Width(76f))) {
+					var capturedIndex = fixtureIndex;
+					Edit(component, "Duplicate Wire Rail Brace",
+						() => component.DuplicateBraceFixture(capturedIndex));
+					EditorGUILayout.EndHorizontal();
+					EditorGUILayout.EndVertical();
+					return;
+				}
+				if (GUILayout.Button("Remove", GUILayout.Width(68f))) {
+					var capturedIndex = fixtureIndex;
+					Edit(component, "Remove Wire Rail Brace",
+						() => component.RemoveFixture(capturedIndex));
+					EditorGUILayout.EndHorizontal();
+					EditorGUILayout.EndVertical();
+					return;
+				}
+				EditorGUILayout.EndHorizontal();
+
+				EditorGUI.BeginChangeCheck();
+				var distance = EditorGUILayout.Slider(new GUIContent("Position (VPX)",
+					"Distance along the complete spline in VPX units."), brace.Distance,
+					0f, math.max(0f, splineLength));
+				var diameter = EditorGUILayout.DelayedFloatField(new GUIContent("Diameter (VPX)",
+					"Diameter of the wire used to form this brace."), brace.Diameter);
+				var lateralOffset = EditorGUILayout.FloatField(new GUIContent("Lateral Offset (VPX)",
+					"Move the brace sideways in the spline cross-section."), brace.LateralOffset);
+				var verticalOffset = EditorGUILayout.FloatField(new GUIContent("Vertical Offset (VPX)",
+					"Move the brace vertically in the spline cross-section."), brace.VerticalOffset);
+				var radiusOffset = EditorGUILayout.FloatField(new GUIContent("Radius Offset (VPX)",
+					"Increase or decrease the complete brace radius without moving its center."),
+					brace.RadiusOffset);
+				var hasCutout = EditorGUILayout.Toggle(new GUIContent("Cutout",
+					"Remove an angular section from the brace."), brace.HasCutout);
+				var cutoutStart = brace.CutoutStartAngle;
+				var cutoutEnd = brace.CutoutEndAngle;
+				if (hasCutout) {
+					cutoutStart = EditorGUILayout.Slider(new GUIContent("Cutout Start",
+						"Start angle in the spline cross-section. 0° is right and 90° is up."),
+						cutoutStart, 0f, 360f);
+					cutoutEnd = EditorGUILayout.Slider(new GUIContent("Cutout End",
+						"End angle. The cutout follows increasing angles and can wrap through 360°."),
+						cutoutEnd, 0f, 360f);
+				}
+				var hasStraightSection = EditorGUILayout.Toggle(new GUIContent("Straight Section",
+					"Replace an angular section of the circle with the straight chord between its endpoints."),
+					brace.HasStraightSection);
+				var straightStart = brace.StraightStartAngle;
+				var straightEnd = brace.StraightEndAngle;
+				if (hasStraightSection) {
+					straightStart = EditorGUILayout.Slider(new GUIContent("Straight Start",
+						"Start angle in the spline cross-section. 0° is right and 90° is up."),
+						straightStart, 0f, 360f);
+					straightEnd = EditorGUILayout.Slider(new GUIContent("Straight End",
+						"End angle. The replaced section follows increasing angles and can wrap through 360°."),
+						straightEnd, 0f, 360f);
+				}
+				if (EditorGUI.EndChangeCheck()) {
+					var capturedIndex = fixtureIndex;
+					Edit(component, "Edit Wire Rail Brace", () =>
+						component.SetBraceFixtureProperties(capturedIndex, distance,
+							diameter, hasCutout, cutoutStart, cutoutEnd,
+							hasStraightSection, straightStart, straightEnd,
+							lateralOffset, verticalOffset, radiusOffset));
+				}
+				EditorGUILayout.EndVertical();
+			}
+
+			using (new EditorGUI.DisabledScope(splineLength <= 0f)) {
+				if (GUILayout.Button("Add Brace")) {
+					Edit(component, "Add Wire Rail Brace",
+						() => component.AddBraceFixture(splineLength * 0.5f));
 				}
 			}
 		}
@@ -135,7 +239,7 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("_radialSegments"),
 				new GUIContent("Tube Sides"));
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("_renderSamplesPerSegment"),
-				new GUIContent("Minimum Samples Per Segment",
+				new GUIContent("Minimum Samples Per Layout Span",
 					"Base longitudinal detail. Sharper wire bends receive extra rings automatically."));
 
 			EditorGUILayout.Space(4f);
@@ -143,7 +247,7 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("_referenceBallDiameter"),
 				new GUIContent("Ball Diameter", "Reference ball diameter in VPX units."));
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("_colliderSamplesPerSegment"),
-				new GUIContent("Samples Per Segment"));
+				new GUIContent("Samples Per Layout Span"));
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("_showColliderPreview"),
 				new GUIContent("Show Collider Preview"));
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("_physicsMaterial"),
@@ -179,13 +283,32 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private void DrawSegment(WireRailComponent component, int segmentIndex)
+		private bool DrawSegment(WireRailComponent component, int segmentIndex)
 		{
 			var segment = component.Segments[segmentIndex];
 			EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-			EditorGUILayout.LabelField($"Segment {segmentIndex + 1}  (Knot {segmentIndex} → "
-				+ $"{(segmentIndex + 1) % component.SplineContainer.Spline.Count})",
-				EditorStyles.boldLabel);
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField($"Layout {segmentIndex + 1}", EditorStyles.boldLabel);
+			using (new EditorGUI.DisabledScope(component.Segments.Count <= 1)) {
+				if (GUILayout.Button("Remove", GUILayout.Width(68f))) {
+					Edit(component, "Remove Wire Rail Layout",
+						() => component.RemoveLayout(segmentIndex));
+					EditorGUILayout.EndHorizontal();
+					EditorGUILayout.EndVertical();
+					return true;
+				}
+			}
+			EditorGUILayout.EndHorizontal();
+			using (new EditorGUI.DisabledScope(segmentIndex == 0)) {
+				var distance = EditorGUILayout.Slider(new GUIContent("Position (VPX)",
+					"Distance along the complete spline where this layout starts."),
+					segment.Distance, 0f, component.SplineLength);
+				if (!Mathf.Approximately(distance, segment.Distance)) {
+					Edit(component, "Move Wire Rail Layout",
+						() => component.SetLayoutDistance(segmentIndex, distance));
+					segment = component.Segments[segmentIndex];
+				}
+			}
 
 			EditorGUILayout.BeginHorizontal();
 			var railCount = EditorGUILayout.DelayedIntField(new GUIContent("Rail Count",
@@ -225,6 +348,7 @@ namespace VisualPinball.Unity.Editor
 					() => component.ResetSegmentLayout(segmentIndex));
 			}
 			EditorGUILayout.EndVertical();
+			return false;
 		}
 
 		private static void DrawConnection(WireRailComponent component, int segmentIndex)
@@ -237,10 +361,10 @@ namespace VisualPinball.Unity.Editor
 
 			EditorGUILayout.BeginVertical(EditorStyles.helpBox);
 			EditorGUILayout.LabelField(
-				$"Connection: Segment {segmentIndex + 1} → Segment {nextSegmentIndex + 1}",
+				$"Transition: Layout {segmentIndex + 1} → Layout {nextSegmentIndex + 1}",
 				EditorStyles.boldLabel);
 			EditorGUILayout.LabelField(
-				"Configure each matching wire as it passes through this knot.",
+				"Configure each matching wire as it passes through the next layout position.",
 				EditorStyles.wordWrappedMiniLabel);
 
 			for (var wireIndex = 0; wireIndex < wireCount; wireIndex++) {
@@ -294,7 +418,7 @@ namespace VisualPinball.Unity.Editor
 				}
 				EditorGUILayout.EndVertical();
 			}
-			EditorGUILayout.LabelField("Weight: 0 = this segment   •   0.5 = halfway   •   1 = next segment",
+			EditorGUILayout.LabelField("Weight: 0 = this layout   •   0.5 = halfway   •   1 = next layout",
 				EditorStyles.centeredGreyMiniLabel);
 			EditorGUILayout.EndVertical();
 		}
@@ -350,6 +474,7 @@ namespace VisualPinball.Unity.Editor
 	internal static class WireRailScenePreview
 	{
 		private const int SamplesPerSegment = 24;
+		private const int FixturePreviewSegments = 48;
 		private static readonly Color[] RailColors = {
 			new(0.05f, 0.75f, 1f, 0.95f),
 			new(1f, 0.55f, 0.05f, 0.95f),
@@ -406,7 +531,7 @@ namespace VisualPinball.Unity.Editor
 				for (var sampleIndex = 0; sampleIndex <= SamplesPerSegment; sampleIndex++) {
 					var curveT = sampleIndex / (float)SamplesPerSegment;
 					spinePoints[sampleIndex] = EvaluateWorldPosition(container, spline,
-						segmentIndex, curveT, Vector2.zero);
+						component.Segments, segmentIndex, curveT);
 				}
 				var previousZTest = Handles.zTest;
 				Handles.zTest = CompareFunction.Always;
@@ -419,14 +544,44 @@ namespace VisualPinball.Unity.Editor
 				Handles.zTest = previousZTest;
 
 				Handles.color = Color.white;
-				var labelPosition = EvaluateWorldPosition(container, spline, segmentIndex,
-					0.5f, Vector2.zero);
-				Handles.Label(labelPosition, $"{segmentIndex + 1}: {segment.RailCount} rail"
+				var labelPosition = EvaluateWorldPosition(container, spline, component.Segments,
+					segmentIndex, 0f);
+				Handles.Label(labelPosition, $"Layout {segmentIndex + 1}: {segment.RailCount} rail"
 					+ (segment.RailCount == 1 ? string.Empty : "s"), EditorStyles.boldLabel);
 			}
+			DrawFixturePreviews(component, container, spline);
 
 			if (component.ShowColliderPreview) {
 				DrawColliderPreview(component.ColliderMesh, container.transform);
+			}
+		}
+
+		private static void DrawFixturePreviews(WireRailComponent component,
+			SplineContainer container, Spline spline)
+		{
+			for (var fixtureIndex = 0; fixtureIndex < component.Fixtures.Count; fixtureIndex++) {
+				if (component.Fixtures[fixtureIndex] is not WireRailBraceFixture brace
+					|| !brace.TryGetVisibleArc(out var startAngle, out var sweepAngle, out _)
+					|| !WireRailSplineGeometry.TryEvaluateBrace(spline, component.Segments,
+						brace, out var center, out _, out var right, out var up,
+						out var radius)) {
+					continue;
+				}
+				var points = new Vector3[FixturePreviewSegments + 1];
+				for (var pointIndex = 0; pointIndex <= FixturePreviewSegments; pointIndex++) {
+					var angle = startAngle + sweepAngle * pointIndex / FixturePreviewSegments;
+					var centerlineOffset = brace.EvaluateCenterlineOffset(angle, radius);
+					points[pointIndex] = container.transform.TransformPoint(
+						(Vector3)(center + right * centerlineOffset.x
+							+ up * centerlineOffset.y));
+				}
+				var previousZTest = Handles.zTest;
+				Handles.zTest = CompareFunction.Always;
+				Handles.color = new Color(1f, 0.82f, 0.1f, 1f);
+				Handles.DrawAAPolyLine(4f, points);
+				Handles.Label(points[0], $"Brace {fixtureIndex + 1}",
+					EditorStyles.boldLabel);
+				Handles.zTest = previousZTest;
 			}
 		}
 
@@ -480,23 +635,14 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		private static Vector3 EvaluateWorldPosition(SplineContainer container, Spline spline,
-			int segmentIndex, float curveT, Vector2 offset)
+			IReadOnlyList<WireRailSegment> layouts, int segmentIndex, float curveT)
 		{
-			var knotT = segmentIndex + math.saturate(curveT);
-			var normalizedT = SplineUtility.GetNormalizedInterpolation(spline, knotT,
-				PathIndexUnit.Knot);
-			if (!spline.Evaluate(normalizedT, out var position, out var tangent, out var up)) {
+			if (!WireRailSplineGeometry.TryEvaluateLayoutPosition(spline, layouts, segmentIndex,
+					curveT, out var position)) {
 				return container.transform.position;
 			}
-
-			tangent = math.normalizesafe(tangent, new float3(0f, 1f, 0f));
-			up -= tangent * math.dot(up, tangent);
-			up = math.normalizesafe(up, new float3(0f, 0f, 1f));
-			var right = math.normalizesafe(math.cross(tangent, up), new float3(1f, 0f, 0f));
-			up = math.normalizesafe(math.cross(right, tangent), new float3(0f, 0f, 1f));
-			var offsetPosition = position + right * offset.x + up * offset.y;
-			return container.transform.TransformPoint(new Vector3(offsetPosition.x,
-				offsetPosition.y, offsetPosition.z));
+			return container.transform.TransformPoint(new Vector3(position.x,
+				position.y, position.z));
 		}
 	}
 }

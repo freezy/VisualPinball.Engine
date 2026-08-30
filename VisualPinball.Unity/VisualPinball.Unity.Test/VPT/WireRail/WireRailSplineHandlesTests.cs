@@ -99,9 +99,8 @@ namespace VisualPinball.Unity.Test
 				Assert.That(insert.Invoke(null, new object[] { component, 0, 0.5f }),
 					Is.True);
 				Assert.That(component.SplineContainer.Spline.Count, Is.EqualTo(3));
-				Assert.That(component.Segments, Has.Count.EqualTo(2));
+				Assert.That(component.Segments, Has.Count.EqualTo(1));
 				Assert.That(component.Segments[0].RailCount, Is.EqualTo(3));
-				Assert.That(component.Segments[1].RailCount, Is.EqualTo(3));
 
 				Assert.That(remove.Invoke(null, new object[] { component, 1 }), Is.True);
 				Assert.That(component.SplineContainer.Spline.Count, Is.EqualTo(2));

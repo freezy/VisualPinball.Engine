@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
@@ -263,17 +264,24 @@ namespace VisualPinball.Unity
 	[Serializable]
 	public sealed class WireRailSegment
 	{
+		[SerializeField, Min(0f)] private float _distance;
 		[SerializeField] private WireRailThirdRailSide _thirdRailSide = WireRailThirdRailSide.Right;
 		[SerializeField] private List<Vector2> _railOffsets = new(
 			WireRailLayout.CreateDefaultOffsets(4));
 		[SerializeField] private List<float> _wireDiameters = new();
 		[SerializeField] private WireRailConnection _connectionToNext = new();
 
+		public float Distance => _distance;
 		public WireRailThirdRailSide ThirdRailSide => _thirdRailSide;
 		public int RailCount => _railOffsets?.Count ?? 0;
 		public IReadOnlyList<Vector2> RailOffsets => _railOffsets;
 		public IReadOnlyList<float> WireDiameters => _wireDiameters;
 		public WireRailConnection ConnectionToNext => _connectionToNext;
+
+		internal void SetDistance(float distance, float splineLength)
+		{
+			_distance = math.clamp(distance, 0f, math.max(0f, splineLength));
+		}
 
 		public Vector2 GetRailOffset(int railIndex)
 		{
@@ -366,6 +374,7 @@ namespace VisualPinball.Unity
 		{
 			EnsureInitialized(defaultWireDiameter);
 			return new WireRailSegment {
+				_distance = _distance,
 				_thirdRailSide = _thirdRailSide,
 				_railOffsets = new List<Vector2>(_railOffsets),
 				_wireDiameters = new List<float>(_wireDiameters),
@@ -395,8 +404,182 @@ namespace VisualPinball.Unity
 		}
 	}
 
+	[Serializable]
+	public abstract class WireRailFixture
+	{
+		[SerializeField, Min(0f)] private float _distance;
+
+		public float Distance => _distance;
+
+		internal bool EnsureInitialized(float splineLength)
+		{
+			var clampedDistance = math.clamp(_distance, 0f, math.max(0f, splineLength));
+			if (Mathf.Approximately(_distance, clampedDistance)) {
+				return false;
+			}
+			_distance = clampedDistance;
+			return true;
+		}
+
+		internal void SetDistance(float distance, float splineLength)
+		{
+			_distance = math.clamp(distance, 0f, math.max(0f, splineLength));
+		}
+	}
+
+	[Serializable]
+	public sealed class WireRailBraceFixture : WireRailFixture
+	{
+		public const float DefaultCutoutStartAngle = 60f;
+		public const float DefaultCutoutEndAngle = 120f;
+		public const float DefaultStraightStartAngle = 210f;
+		public const float DefaultStraightEndAngle = 330f;
+
+		[SerializeField, Min(0.1f)] private float _diameter = WireRailLayout.ReferenceWireDiameter;
+		[SerializeField] private bool _hasCutout;
+		[SerializeField, Range(0f, 360f)] private float _cutoutStartAngle = DefaultCutoutStartAngle;
+		[SerializeField, Range(0f, 360f)] private float _cutoutEndAngle = DefaultCutoutEndAngle;
+		[SerializeField] private bool _hasStraightSection;
+		[SerializeField, Range(0f, 360f)] private float _straightStartAngle = DefaultStraightStartAngle;
+		[SerializeField, Range(0f, 360f)] private float _straightEndAngle = DefaultStraightEndAngle;
+		[SerializeField] private float _lateralOffset;
+		[SerializeField] private float _verticalOffset;
+		[SerializeField] private float _radiusOffset;
+
+		public float Diameter => _diameter;
+		public bool HasCutout => _hasCutout;
+		public float CutoutStartAngle => _cutoutStartAngle;
+		public float CutoutEndAngle => _cutoutEndAngle;
+		public bool HasStraightSection => _hasStraightSection;
+		public float StraightStartAngle => _straightStartAngle;
+		public float StraightEndAngle => _straightEndAngle;
+		public float LateralOffset => _lateralOffset;
+		public float VerticalOffset => _verticalOffset;
+		public float RadiusOffset => _radiusOffset;
+
+		internal bool EnsureBraceInitialized(float splineLength)
+		{
+			var changed = EnsureInitialized(splineLength);
+			var diameter = math.max(0.1f, _diameter);
+			var startAngle = math.clamp(_cutoutStartAngle, 0f, 360f);
+			var endAngle = math.clamp(_cutoutEndAngle, 0f, 360f);
+			var straightStartAngle = math.clamp(_straightStartAngle, 0f, 360f);
+			var straightEndAngle = math.clamp(_straightEndAngle, 0f, 360f);
+			if (!Mathf.Approximately(_diameter, diameter)) {
+				_diameter = diameter;
+				changed = true;
+			}
+			if (!Mathf.Approximately(_cutoutStartAngle, startAngle)) {
+				_cutoutStartAngle = startAngle;
+				changed = true;
+			}
+			if (!Mathf.Approximately(_cutoutEndAngle, endAngle)) {
+				_cutoutEndAngle = endAngle;
+				changed = true;
+			}
+			if (!Mathf.Approximately(_straightStartAngle, straightStartAngle)) {
+				_straightStartAngle = straightStartAngle;
+				changed = true;
+			}
+			if (!Mathf.Approximately(_straightEndAngle, straightEndAngle)) {
+				_straightEndAngle = straightEndAngle;
+				changed = true;
+			}
+			return changed;
+		}
+
+		internal void SetProperties(float distance, float splineLength, float diameter,
+			bool hasCutout, float cutoutStartAngle, float cutoutEndAngle,
+			bool hasStraightSection, float straightStartAngle, float straightEndAngle,
+			float lateralOffset, float verticalOffset, float radiusOffset)
+		{
+			SetDistance(distance, splineLength);
+			_diameter = math.max(0.1f, diameter);
+			_hasCutout = hasCutout;
+			_cutoutStartAngle = math.clamp(cutoutStartAngle, 0f, 360f);
+			_cutoutEndAngle = math.clamp(cutoutEndAngle, 0f, 360f);
+			_hasStraightSection = hasStraightSection;
+			_straightStartAngle = math.clamp(straightStartAngle, 0f, 360f);
+			_straightEndAngle = math.clamp(straightEndAngle, 0f, 360f);
+			_lateralOffset = lateralOffset;
+			_verticalOffset = verticalOffset;
+			_radiusOffset = radiusOffset;
+		}
+
+		public bool TryGetStraightSection(out float startAngle, out float sweepAngle)
+		{
+			startAngle = math.radians(_straightStartAngle);
+			var rawSweep = _straightEndAngle - _straightStartAngle;
+			var sweepDegrees = math.abs(rawSweep) >= 359.999f
+				? 360f
+				: math.fmod(rawSweep + 360f, 360f);
+			sweepAngle = math.radians(sweepDegrees);
+			return _hasStraightSection && sweepDegrees > 0.001f && sweepDegrees < 359.999f;
+		}
+
+		public float2 EvaluateCenterlineOffset(float angle, float radius)
+		{
+			var circular = new float2(math.cos(angle), math.sin(angle)) * radius;
+			if (!TryGetStraightSection(out var startAngle, out var sweepAngle)) {
+				return circular;
+			}
+			var progress = math.fmod(angle - startAngle + math.PI * 4f, math.PI * 2f);
+			if (progress > sweepAngle) {
+				return circular;
+			}
+			var start = new float2(math.cos(startAngle), math.sin(startAngle)) * radius;
+			var endAngle = startAngle + sweepAngle;
+			var end = new float2(math.cos(endAngle), math.sin(endAngle)) * radius;
+			return math.lerp(start, end, progress / sweepAngle);
+		}
+
+		public float2 EvaluateCenterlineTangent(float angle)
+		{
+			var circular = new float2(-math.sin(angle), math.cos(angle));
+			if (!TryGetStraightSection(out var startAngle, out var sweepAngle)) {
+				return circular;
+			}
+			var progress = math.fmod(angle - startAngle + math.PI * 4f, math.PI * 2f);
+			if (progress > sweepAngle) {
+				return circular;
+			}
+			var start = new float2(math.cos(startAngle), math.sin(startAngle));
+			var endAngle = startAngle + sweepAngle;
+			var end = new float2(math.cos(endAngle), math.sin(endAngle));
+			return math.normalizesafe(end - start, circular);
+		}
+
+		public bool TryGetVisibleArc(out float startAngle, out float sweepAngle,
+			out bool closed)
+		{
+			startAngle = 0f;
+			sweepAngle = math.PI * 2f;
+			closed = true;
+			if (!_hasCutout) {
+				return true;
+			}
+
+			var rawCutoutSweep = _cutoutEndAngle - _cutoutStartAngle;
+			var cutoutSweep = math.abs(rawCutoutSweep) >= 359.999f
+				? 360f
+				: math.fmod(rawCutoutSweep + 360f, 360f);
+			if (cutoutSweep <= 0.001f) {
+				return true;
+			}
+
+			var visibleSweep = 360f - cutoutSweep;
+			if (visibleSweep <= 0.001f) {
+				return false;
+			}
+			startAngle = math.radians(_cutoutEndAngle);
+			sweepAngle = math.radians(visibleSweep);
+			closed = false;
+			return true;
+		}
+	}
+
 	/// <summary>
-	/// First authoring slice for a native Unity spline with a rail layout per curve segment.
+	/// Native Unity spline authoring with independently positioned wire layouts and fixtures.
 	/// The spline helper stores raw VPX coordinates; its transform converts them into Unity space.
 	/// </summary>
 	[ExecuteAlways]
@@ -408,6 +591,7 @@ namespace VisualPinball.Unity
 
 		[SerializeField] private SplineContainer _splineContainer;
 		[SerializeField] private List<WireRailSegment> _segments = new();
+		[SerializeReference] private List<WireRailFixture> _fixtures = new();
 		[SerializeField, Min(0.1f)] private float _wireDiameter = WireRailLayout.ReferenceWireDiameter;
 		[SerializeField, Range(6, 16)] private int _radialSegments = 8;
 		[SerializeField, Range(2, 64)] private int _renderSamplesPerSegment = 16;
@@ -434,6 +618,14 @@ namespace VisualPinball.Unity
 
 		public SplineContainer SplineContainer => GetSplineContainerWithoutCreating();
 		public IReadOnlyList<WireRailSegment> Segments => _segments;
+		public IReadOnlyList<WireRailSegment> Layouts => _segments;
+		public IReadOnlyList<WireRailFixture> Fixtures => _fixtures;
+		public float SplineLength {
+			get {
+				var container = GetSplineContainerWithoutCreating();
+				return container && container.Spline != null ? container.Spline.GetLength() : 0f;
+			}
+		}
 		public string GenerationError => _generationError;
 		public bool ShowColliderPreview => _showColliderPreview;
 		public Mesh RenderMesh => _renderMesh;
@@ -495,6 +687,7 @@ namespace VisualPinball.Unity
 			_renderSamplesPerSegment = math.clamp(_renderSamplesPerSegment, 2, 64);
 			_referenceBallDiameter = math.max(1f, _referenceBallDiameter);
 			_colliderSamplesPerSegment = math.clamp(_colliderSamplesPerSegment, 2, 32);
+			SynchronizeFixtures();
 			if (!GetSplineContainerWithoutCreating()) {
 				return;
 			}
@@ -667,6 +860,94 @@ namespace VisualPinball.Unity
 			MarkDirty();
 		}
 
+		public int AddBraceFixture(float distance)
+		{
+			_fixtures ??= new List<WireRailFixture>();
+			var brace = new WireRailBraceFixture();
+			brace.SetProperties(distance, SplineLength, _wireDiameter, false,
+				WireRailBraceFixture.DefaultCutoutStartAngle,
+				WireRailBraceFixture.DefaultCutoutEndAngle, false,
+				WireRailBraceFixture.DefaultStraightStartAngle,
+				WireRailBraceFixture.DefaultStraightEndAngle, 0f, 0f, 0f);
+			_fixtures.Add(brace);
+			RebuildGeneratedMeshes();
+			MarkDirty();
+			return _fixtures.Count - 1;
+		}
+
+		public void RemoveFixture(int fixtureIndex)
+		{
+			GetFixture(fixtureIndex);
+			_fixtures.RemoveAt(fixtureIndex);
+			RebuildGeneratedMeshes();
+			MarkDirty();
+		}
+
+		public int DuplicateBraceFixture(int fixtureIndex)
+		{
+			if (GetFixture(fixtureIndex) is not WireRailBraceFixture source) {
+				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a brace.",
+					nameof(fixtureIndex));
+			}
+			var duplicate = new WireRailBraceFixture();
+			duplicate.SetProperties(source.Distance, SplineLength, source.Diameter,
+				source.HasCutout, source.CutoutStartAngle, source.CutoutEndAngle,
+				source.HasStraightSection, source.StraightStartAngle,
+				source.StraightEndAngle, source.LateralOffset, source.VerticalOffset,
+				source.RadiusOffset);
+			var duplicateIndex = fixtureIndex + 1;
+			_fixtures.Insert(duplicateIndex, duplicate);
+			RebuildGeneratedMeshes();
+			MarkDirty();
+			return duplicateIndex;
+		}
+
+		public void SetBraceFixtureProperties(int fixtureIndex, float distance,
+			float diameter, bool hasCutout, float cutoutStartAngle, float cutoutEndAngle,
+			bool hasStraightSection = false, float straightStartAngle =
+				WireRailBraceFixture.DefaultStraightStartAngle, float straightEndAngle =
+				WireRailBraceFixture.DefaultStraightEndAngle, float lateralOffset = 0f,
+			float verticalOffset = 0f, float radiusOffset = 0f)
+		{
+			if (GetFixture(fixtureIndex) is not WireRailBraceFixture brace) {
+				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a brace.",
+					nameof(fixtureIndex));
+			}
+			brace.SetProperties(distance, SplineLength, diameter, hasCutout,
+				cutoutStartAngle, cutoutEndAngle, hasStraightSection, straightStartAngle,
+				straightEndAngle, lateralOffset, verticalOffset, radiusOffset);
+			RebuildGeneratedMeshes();
+			MarkDirty();
+		}
+
+		private WireRailFixture GetFixture(int fixtureIndex)
+		{
+			SynchronizeFixtures();
+			if (fixtureIndex < 0 || fixtureIndex >= _fixtures.Count) {
+				throw new ArgumentOutOfRangeException(nameof(fixtureIndex), fixtureIndex,
+					$"The wire rail has {_fixtures.Count} fixture(s).");
+			}
+			return _fixtures[fixtureIndex];
+		}
+
+		private bool SynchronizeFixtures()
+		{
+			_fixtures ??= new List<WireRailFixture>();
+			var changed = false;
+			for (var fixtureIndex = _fixtures.Count - 1; fixtureIndex >= 0; fixtureIndex--) {
+				var fixture = _fixtures[fixtureIndex];
+				if (fixture == null) {
+					_fixtures.RemoveAt(fixtureIndex);
+					changed = true;
+					continue;
+				}
+				changed |= fixture is WireRailBraceFixture brace
+					? brace.EnsureBraceInitialized(SplineLength)
+					: fixture.EnsureInitialized(SplineLength);
+			}
+			return changed;
+		}
+
 		public bool SynchronizeSegments()
 		{
 			_segments ??= new List<WireRailSegment>();
@@ -681,25 +962,106 @@ namespace VisualPinball.Unity
 				changed |= _segments[i].EnsureInitialized(_wireDiameter);
 			}
 
-			var segmentCount = GetSplineSegmentCount();
-			while (_segments.Count < segmentCount) {
-				var segment = _segments.Count == 0
-					? new WireRailSegment()
-					: _segments[^1].Clone(_wireDiameter);
-				segment.EnsureInitialized(_wireDiameter);
-				_segments.Add(segment);
+			if (_segments.Count == 0 && GetSplineSegmentCount() > 0) {
+				_segments.Add(new WireRailSegment());
 				changed = true;
 			}
-			if (_segments.Count > segmentCount) {
-				_segments.RemoveRange(segmentCount, _segments.Count - segmentCount);
+			var splineLength = SplineLength;
+			// Older scenes stored one layout per spline curve and therefore had no explicit
+			// distances. Preserve their shape once by placing those layouts at the old curve
+			// boundaries; from then on the list is completely independent from spline knots.
+			if (_segments.Count > 1 && _segments.All(segment =>
+					Mathf.Approximately(segment.Distance, 0f))) {
+				var spline = GetSplineContainerWithoutCreating()?.Spline;
+				var distance = 0f;
+				for (var layoutIndex = 0; layoutIndex < _segments.Count; layoutIndex++) {
+					_segments[layoutIndex].SetDistance(distance, splineLength);
+					if (spline != null && layoutIndex < GetSplineSegmentCount()) {
+						distance += spline.GetCurveLength(layoutIndex);
+					}
+				}
 				changed = true;
+			}
+			if (_segments.Count > 0) {
+				_segments[0].SetDistance(0f, splineLength);
+				for (var layoutIndex = 1; layoutIndex < _segments.Count; layoutIndex++) {
+					var clampedDistance = math.clamp(_segments[layoutIndex].Distance,
+						_segments[layoutIndex - 1].Distance, splineLength);
+					if (!Mathf.Approximately(_segments[layoutIndex].Distance, clampedDistance)) {
+						_segments[layoutIndex].SetDistance(clampedDistance, splineLength);
+						changed = true;
+					}
+				}
 			}
 			changed |= SynchronizeSegmentConnections();
+			changed |= SynchronizeFixtures();
 
 			if (changed) {
 				MarkDirty();
 			}
 			return changed;
+		}
+
+		public int AddLayout(float distance)
+		{
+			SynchronizeSegments();
+			if (_segments.Count == 0) {
+				throw new InvalidOperationException("A wire layout needs a valid spline.");
+			}
+			distance = math.clamp(distance, 0f, SplineLength);
+			var insertIndex = 1;
+			while (insertIndex < _segments.Count
+				&& _segments[insertIndex].Distance <= distance) {
+				insertIndex++;
+			}
+			var source = _segments[insertIndex - 1];
+			var layout = source.Clone(_wireDiameter);
+			layout.SetDistance(distance, SplineLength);
+			source.ResetConnection();
+			_segments.Insert(insertIndex, layout);
+			SynchronizeSegmentConnections();
+			RebuildGeneratedMeshes();
+			MarkDirty();
+			return insertIndex;
+		}
+
+		public void RemoveLayout(int layoutIndex)
+		{
+			SynchronizeSegments();
+			if (_segments.Count <= 1) {
+				throw new InvalidOperationException("A wire rail needs at least one layout.");
+			}
+			if (layoutIndex < 0 || layoutIndex >= _segments.Count) {
+				throw new ArgumentOutOfRangeException(nameof(layoutIndex));
+			}
+			var previousIndex = layoutIndex - 1;
+			if (previousIndex >= 0) {
+				_segments[previousIndex].CopyConnectionFrom(_segments[layoutIndex]);
+			}
+			_segments.RemoveAt(layoutIndex);
+			if (_segments.Count > 0) {
+				_segments[0].SetDistance(0f, SplineLength);
+			}
+			SynchronizeSegmentConnections();
+			RebuildGeneratedMeshes();
+			MarkDirty();
+		}
+
+		public void SetLayoutDistance(int layoutIndex, float distance)
+		{
+			var layout = GetSegment(layoutIndex);
+			if (layoutIndex == 0) {
+				distance = 0f;
+			} else {
+				var minimum = _segments[layoutIndex - 1].Distance;
+				var maximum = layoutIndex + 1 < _segments.Count
+					? _segments[layoutIndex + 1].Distance
+					: SplineLength;
+				distance = math.clamp(distance, minimum, maximum);
+			}
+			layout.SetDistance(distance, SplineLength);
+			RebuildGeneratedMeshes();
+			MarkDirty();
 		}
 
 		private bool SynchronizeSegmentConnections()
@@ -737,44 +1099,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			var expectedCount = GetSplineSegmentCount();
-			_segments ??= new List<WireRailSegment>();
-			var layoutsChanged = _segments.Count != expectedCount;
-#if UNITY_EDITOR
-			if (layoutsChanged && !Application.isPlaying && !Undo.isProcessing) {
-				Undo.RecordObject(this, "Edit Wire Rail Spline");
-			}
-#endif
-
-			if (layoutsChanged) {
-				if (modification == SplineModification.KnotInserted
-					&& _segments.Count == expectedCount - 1 && _segments.Count > 0
-					&& knotIndex >= 0) {
-					var insertIndex = math.clamp(knotIndex, 0, _segments.Count);
-					var sourceIndex = spline.Closed && knotIndex == 0
-						? _segments.Count - 1
-						: math.clamp(knotIndex - 1, 0, _segments.Count - 1);
-					var source = _segments[sourceIndex];
-					var inserted = source.Clone(_wireDiameter);
-					source.ResetConnection();
-					_segments.Insert(insertIndex, inserted);
-
-				} else if (modification == SplineModification.KnotRemoved
-					&& _segments.Count == expectedCount + 1 && knotIndex >= 0) {
-					var removeIndex = math.clamp(knotIndex, 0, _segments.Count - 1);
-					var predecessorIndex = spline.Closed
-						? (removeIndex - 1 + _segments.Count) % _segments.Count
-						: removeIndex - 1;
-					if (predecessorIndex >= 0 && predecessorIndex != removeIndex) {
-						_segments[predecessorIndex].CopyConnectionFrom(_segments[removeIndex]);
-					}
-					_segments.RemoveAt(removeIndex);
-
-				} else {
-					SynchronizeSegments();
-				}
-				SynchronizeSegmentConnections();
-			}
+			SynchronizeSegments();
 			RebuildGeneratedMeshes();
 			MarkDirty();
 		}
@@ -809,11 +1134,12 @@ namespace VisualPinball.Unity
 					_generationError = "The generated Wire Rail Spline child is missing.";
 					return;
 				}
-				if (_segments == null || _segments.Count != GetSplineSegmentCount()) {
+				if (_segments == null || _segments.Count == 0) {
 					SynchronizeSegments();
 				}
+				SynchronizeFixtures();
 				_renderMesh = WireRailRenderMeshGenerator.Generate(container.Spline, _segments,
-					_renderSamplesPerSegment, _radialSegments, _renderMesh);
+					_fixtures, _renderSamplesPerSegment, _radialSegments, _renderMesh);
 				if (!WireRailColliderMeshGenerator.TryGenerate(container.Spline, _segments,
 						_referenceBallDiameter, _colliderSamplesPerSegment,
 						_colliderMesh, out _colliderMesh, out _colliderEdgeVertices,
@@ -863,6 +1189,15 @@ namespace VisualPinball.Unity
 						segmentIndex++) {
 						hash = hash * 31 + (_segments[segmentIndex] == null ? 0
 							: JsonUtility.ToJson(_segments[segmentIndex]).GetHashCode());
+					}
+				}
+				hash = hash * 31 + (_fixtures?.Count ?? 0);
+				if (_fixtures != null) {
+					for (var fixtureIndex = 0; fixtureIndex < _fixtures.Count; fixtureIndex++) {
+						var fixture = _fixtures[fixtureIndex];
+						hash = hash * 31 + (fixture?.GetType().FullName?.GetHashCode() ?? 0);
+						hash = hash * 31 + (fixture == null ? 0
+							: JsonUtility.ToJson(fixture).GetHashCode());
 					}
 				}
 				hash = hash * 31 + _wireDiameter.GetHashCode();

@@ -1,12 +1,12 @@
 ---
 uid: wire_rail_authoring
 title: Wire Rail Authoring
-description: Author three-dimensional wire rail routes and per-segment rail layouts with Unity Splines.
+description: Author three-dimensional wire rail routes, distance-based wire layouts, and fixtures with Unity Splines.
 ---
 
 # Wire Rail Authoring
 
-The **Wire Rail** component provides an early authoring workflow for routing playable wire rails with a native Unity spline. Each spline segment has its own rail count and cross-section offsets, and the component generates both visible wire tubes and a separate ball-channel collider.
+The **Wire Rail** component provides an early authoring workflow for routing playable wire rails with a native Unity spline. Independently positioned wire layouts control rail counts and cross-section offsets along the route, and the component generates both visible wire tubes and a separate ball-channel collider.
 
 > [!warning]
 > Wire rail authoring does not yet generate branched junctions, end fittings, or VPX import/export data.
@@ -32,30 +32,32 @@ Rail offsets describe the cross-section around the spline centerline:
 
 The offset frame follows the spline through all three dimensions. Knot rotation controls how the cross-section twists around the route, so banking or inverting a rail is handled with Unity's spline rotation controls rather than by changing the meaning of X and Z.
 
-## Edit Segment Layouts
+## Edit Wire Layouts
 
-The inspector displays one layout for every spline segment. An open spline with _n_ knots has _n − 1_ segments; a closed spline has _n_ segments.
+Wire layouts are positioned by absolute distance along the complete spline and are independent from spline knots. Editing the route does not add or remove layouts, and adding a layout does not alter the route. A new Wire Rail starts with one layout at 0 VPX that applies to the complete route.
 
-For each segment, you can:
+Click **Add Wire Layout** to copy the active layout into a new independently editable layout halfway along the route. Use **Position (VPX)** to move every layout after the first; the first stays at 0 VPX so the route always has a starting definition. Remove layouts with **Remove** while retaining at least one.
+
+For each layout, you can:
 
 - Change **Rail Count** with the number field or the **−** and **+** buttons.
 - Click a wire in the **Wires** cross-section to select it.
 - Hold **Shift** while clicking to add wires to the selection, or hold **Ctrl** on Windows and Linux or **Cmd** on macOS to toggle individual wires.
 - Drag any selected wire in the cross-section to move all selected wires in X and Z together.
 - Type values into **X Position**, **Z Position**, and **Diameter**, or drag each field's label to scrub the value. A changed value is applied to every selected wire, while unchanged mixed values stay independent.
-- Use **All** and **None** to select or clear all wires in the segment.
+- Use **All** and **None** to select or clear all wires in the layout.
 - Choose **Left** or **Right** for the raised third rail when the count is three.
 - Click **Reset Layout** to restore the recommended offsets for the current rail count.
 
-Changing **Rail Count** reapplies the complete recommended layout for that segment, replacing any custom offsets and diameters on it. Set the count before fine-tuning individual wires. **New Wire Diameter** in the Render Geometry section supplies the diameter for newly created or reset layouts.
+Changing **Rail Count** reapplies the complete recommended layout for that position, replacing any custom offsets and diameters on it. Set the count before fine-tuning individual wires. **New Wire Diameter** in the Render Geometry section supplies the diameter for newly created or reset layouts.
 
-When a knot splits a segment, the new segment receives an independent copy of the original layout. Removing a knot removes the corresponding segment layout while preserving its neighbors.
+Existing scenes created before distance-based layouts are migrated by placing their old per-segment layouts at the equivalent spline-curve start distances. After migration, layout positions are independent from knots.
 
-## Keep Wires Continuous Between Segments
+## Keep Wires Continuous Between Layouts
 
-The inspector displays a **Connection** panel between every neighboring pair of segment layouts. A closed spline also displays a connection from its last segment back to its first segment.
+The inspector displays a **Transition** panel between every neighboring pair of wire layouts. A closed spline also displays a transition from its last layout back to its first layout at the spline seam.
 
-Each matching wire index has its own row and is **Continuous** by default. Clear **Continuous** when that wire should intentionally stop, restart, or jump at the knot. Only indices present on both segments are listed. A continuous wire does not end and restart when its position or diameter differs between the two layouts; its rendered tube, Scene view centerline, and ball-channel collider blend through the adjoining segments instead. The rendered path also shares one tangent across the knot, preventing a crease when one layout uses an extreme offset.
+Each matching wire index has its own row and is **Continuous** by default. Clear **Continuous** when that wire should intentionally stop, restart, or jump at the next layout position. Only indices present in both layouts are listed. A continuous wire does not end and restart when its position or diameter differs between two layouts; its rendered tube, Scene view centerline, and ball-channel collider blend through the adjoining spans instead. The rendered path also shares one tangent across the layout boundary, preventing a crease when one layout uses an extreme offset.
 
 Each continuous wire has its own **Weight**. The weight chooses that wire's shared cross-section at the knot:
 
@@ -63,7 +65,7 @@ Each continuous wire has its own **Weight**. The weight chooses that wire's shar
 - **0.5** places the junction halfway between both segment positions. Both segments perform half of the transition.
 - **1** places the junction entirely at the next segment's wire position. The first segment performs the full transition.
 
-The **Transition Curve** controls the interpolation shape across both adjoining spline segments. Its horizontal axis runs from the outer end of a segment toward the shared knot and its vertical axis is the amount of the transition applied. The default linear curve moves the wire at a constant rate; reshape it to ease the wire into or out of the new position. Curve endpoints are always treated as 0 and 1 so both generated wire tubes and collider profiles remain joined at the knot.
+The **Transition Curve** controls the interpolation shape across both adjoining layout spans. Its horizontal axis runs from the outer end of a span toward the shared layout position and its vertical axis is the amount of the transition applied. The default linear curve moves the wire at a constant rate; reshape it to ease the wire into or out of the new position. Curve endpoints are always treated as 0 and 1 so both generated wire tubes and collider profiles remain joined.
 
 ## Default Rail Positions
 
@@ -80,19 +82,35 @@ New Wire Rail components start with four rails. The recommended layouts use an 8
 
 These positions are practical starting points rather than constraints. Adjust them for different wire diameters, wider clearances, decorative guides, or transitions into other mechanisms.
 
+## Add Fixtures
+
+Fixtures are repeated structural elements positioned along the complete spline rather than owned by an individual segment. The first available fixture is a **Brace**, a wire ring that surrounds and holds the authored rails together.
+
+Click **Add Brace** in the **Fixtures** section, then use **Position (VPX)** to move it anywhere along the route by absolute spline distance. A new brace starts halfway along the spline, and you can add as many independently positioned braces as needed. The brace automatically encloses the wire cross-section at its position and remains perpendicular to the spline tangent.
+
+Use **Diameter (VPX)** to set the thickness of the brace wire. **Lateral Offset (VPX)** moves the complete brace along the local cross-section X axis, **Vertical Offset (VPX)** moves it along local Z, and signed **Radius Offset (VPX)** makes the complete brace larger or smaller without moving its center.
+
+Enable **Cutout** to remove part of the ring. **Cutout Start** and **Cutout End** are cross-section angles: 0° points right along positive X, 90° points up along positive Z, and the removed range follows increasing angles from start to end, wrapping through 360° when necessary. Cutout ends are capped.
+
+Enable **Straight Section** to replace an angular part of the circular brace with the straight chord between **Straight Start** and **Straight End**. The range uses the same cross-section angle convention and can wrap through 360°. A brace can use a cutout and a straight section at the same time.
+
+Brace fixtures are included in the visible render mesh and use the Wire Rail material. They are not added to the ball-channel collider.
+
+Click **Duplicate** in a brace header to insert an independent copy immediately after it. The duplicate starts with the same route position, diameter, offsets, cutout, and straight-section settings as its source.
+
 ## Render Geometry
 
-Every authored rail is swept along the spline as a visible tube. New wires have an 8 VPX-unit diameter by default and an octagonal cross-section. Select one or more wires in a segment's cross-section to edit their individual diameters. Use **Tube Sides** to increase or decrease radial detail and **Minimum Samples Per Segment** to set the baseline longitudinal detail. The generator inserts additional rings automatically wherever the actual offset wire turns by more than five degrees, so smooth bends do not collapse into one skewed end ring.
+Every authored rail is swept along the spline as a visible tube. New wires have an 8 VPX-unit diameter by default and an octagonal cross-section. Select one or more wires in a layout's cross-section to edit their individual diameters. Use **Tube Sides** to increase or decrease radial detail and **Minimum Samples Per Segment** to set the baseline longitudinal detail. The generator inserts additional rings automatically wherever the actual offset wire turns by more than five degrees, so smooth bends do not collapse into one skewed end ring.
 
 Assign **Material** to control the wire's appearance. When no material is assigned, VPE uses the active render pipeline's default material.
 
-Render tubes are capped where a rail begins or ends. Matching or explicitly continuous rails on neighboring segments remain open internally so their surfaces meet without an unnecessary cap.
+Render tubes are capped where a rail begins or ends. Matching or explicitly continuous rails in neighboring layouts remain open internally so their surfaces meet without an unnecessary cap.
 
 ## Ball Channel Collider
 
 The collider is one swept channel around the space occupied by the reference ball. It deliberately does not create a physics tube around every visible wire. Instead, its cross-section uses up to eight flat facets fitted to the contact directions between the rails and the reference ball.
 
-The generated channel opens or closes according to the segment's rail layout. Its facets are refitted when individual wire positions or diameters change:
+The generated channel opens or closes according to the active wire layout. Its facets are refitted when individual wire positions or diameters change:
 
 - One rail provides a narrow bottom contact surface.
 - Two bottom rails provide a faceted floor with the top open.
@@ -107,7 +125,7 @@ The collider is registered with VPE's pinball physics engine rather than Unity's
 
 ## Scene View Preview
 
-Select either the Wire Rail GameObject or its spline child to display the authored rail centerlines in the Scene view. Each rail uses a different preview color, and every segment is labeled with its segment number and rail count. A thick, high-contrast center spine marks the editable spline route over the generated geometry. The generated render tubes remain visible normally in the Scene and Game views.
+Select either the Wire Rail GameObject or its spline child to display the authored rail centerlines in the Scene view. Each rail uses a different preview color, and every layout start is labeled with its layout number and rail count. A thick, high-contrast center spine marks the editable spline route over the generated geometry. The generated render tubes remain visible normally in the Scene and Game views.
 
 Selecting the Wire Rail also displays an **Edit Wire Rail Spline** button in the Scene view. While spline editing is active, knots appear as outlined circular grips; the active knot is gold, and editable Bézier tangents appear as smaller cyan grips joined to it by thick arms. A grip becomes active on the same mouse-down that starts its drag, so it does not need to be selected before moving it. Hover a grip for its action hint. The panel also shows the double-click shortcuts: double-click the route line to insert a knot at that position, or double-click a knot to remove it. An open spline keeps at least two knots, and a closed spline keeps at least three.
 
@@ -116,7 +134,7 @@ Enable **Show Collider Preview** to draw the generated ball-channel mesh as a ye
 ## Current Limitations
 
 - Only the first spline in the generated Spline Container is used.
-- Connection blending matches wires by their one-based index; it does not remap a wire to a different index on the next segment.
+- Transition blending matches wires by their one-based index; it does not remap a wire to a different index in the next layout.
 - Extreme cross-section changes can alter the ball-channel facet topology and cannot currently be blended as one collider.
 - Junctions and end fittings are not generated.
 - Wire rail data is not yet imported from or exported to VPX.
