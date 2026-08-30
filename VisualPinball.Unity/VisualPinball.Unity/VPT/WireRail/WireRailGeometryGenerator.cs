@@ -167,6 +167,21 @@ namespace VisualPinball.Unity
 			return true;
 		}
 
+		public static bool TryEvaluateCrossWire(Spline spline,
+			IReadOnlyList<WireRailSegment> segments, WireRailCrossWireFixture crossWire,
+			out float3 start, out float3 end)
+		{
+			start = default;
+			end = default;
+			if (!WireRailFixtureMeshGenerator.TryEvaluateCrossWireProfile(spline,
+					segments, crossWire, out var profile)) {
+				return false;
+			}
+			start = profile.Start;
+			end = profile.End;
+			return true;
+		}
+
 		public static float2 EvaluateRailOffset(Spline spline,
 			IReadOnlyList<WireRailSegment> segments, int segmentIndex, int railIndex,
 			float curveT)
@@ -823,6 +838,35 @@ namespace VisualPinball.Unity
 				math.sin(angle)) * Radius);
 	}
 
+	internal readonly struct WireRailCrossWireProfile
+	{
+		public readonly WireRailPathFrame Frame;
+		public readonly float2 StartRailOffset;
+		public readonly float2 EndRailOffset;
+		public readonly float StartRailRadius;
+		public readonly float EndRailRadius;
+		public readonly float2 RotationOriginOffset;
+		public readonly float2 StartOffset;
+		public readonly float2 EndOffset;
+
+		public WireRailCrossWireProfile(WireRailPathFrame frame, float2 startRailOffset,
+			float2 endRailOffset, float startRailRadius, float endRailRadius,
+			float2 rotationOriginOffset, float2 startOffset, float2 endOffset)
+		{
+			Frame = frame;
+			StartRailOffset = startRailOffset;
+			EndRailOffset = endRailOffset;
+			StartRailRadius = startRailRadius;
+			EndRailRadius = endRailRadius;
+			RotationOriginOffset = rotationOriginOffset;
+			StartOffset = startOffset;
+			EndOffset = endOffset;
+		}
+
+		public float3 Start => Frame.TransformOffset(StartOffset);
+		public float3 End => Frame.TransformOffset(EndOffset);
+	}
+
 	internal static class WireRailFixtureMeshGenerator
 	{
 		private const int CompleteBraceSegments = 32;
@@ -842,6 +886,11 @@ namespace VisualPinball.Unity
 					&& TryEvaluateBraceProfile(spline, segments, brace, out var profile)) {
 					AppendBrace(profile, brace, wireCapBevelSize, radialSegments, vertices,
 						normals, uvs, indices);
+				} else if (fixture is WireRailCrossWireFixture crossWire
+					&& TryEvaluateCrossWireProfile(spline, segments, crossWire,
+						out var crossWireProfile)) {
+					AppendCrossWire(crossWireProfile, crossWire, wireCapBevelSize,
+						radialSegments, vertices, normals, uvs, indices);
 				}
 			}
 		}
@@ -900,6 +949,94 @@ namespace VisualPinball.Unity
 			profile = new WireRailBraceProfile(frame, centerOffset, baseRadius,
 				math.max(tubeRadius, baseRadius * brace.Scale));
 			return true;
+		}
+
+		internal static bool TryEvaluateCrossWireProfile(Spline spline,
+			IReadOnlyList<WireRailSegment> segments, WireRailCrossWireFixture crossWire,
+			out WireRailCrossWireProfile profile)
+		{
+			profile = default;
+			if (crossWire == null || !TryGetSplineLocation(spline, segments,
+					crossWire.Distance, out var segmentIndex, out var curveT, out var frame)) {
+				return false;
+			}
+			var segment = segments[segmentIndex];
+			var startRailIndex = crossWire.StartRailIndex;
+			var endRailIndex = crossWire.EndRailIndex;
+			if (startRailIndex == endRailIndex || startRailIndex >= segment.RailCount
+				|| endRailIndex >= segment.RailCount
+				|| !segment.IsRailActive(startRailIndex)
+				|| !segment.IsRailActive(endRailIndex)) {
+				return false;
+			}
+
+			var evaluationContext = new WireRailPathEvaluationContext();
+			var startRailOffset = default(float2);
+			var endRailOffset = default(float2);
+			var startRailRadius = 0f;
+			var endRailRadius = 0f;
+			var envelopeMinimum = new float2(float.PositiveInfinity);
+			var envelopeMaximum = new float2(float.NegativeInfinity);
+			for (var railIndex = 0; railIndex < segment.RailCount; railIndex++) {
+				if (!segment.IsRailActive(railIndex)) {
+					continue;
+				}
+				if (!TryEvaluateRailOffset(railIndex, out var railOffset,
+						out var railRadius)) {
+					return false;
+				}
+				if (railIndex == startRailIndex) {
+					startRailOffset = railOffset;
+					startRailRadius = railRadius;
+				}
+				if (railIndex == endRailIndex) {
+					endRailOffset = railOffset;
+					endRailRadius = railRadius;
+				}
+				envelopeMinimum = math.min(envelopeMinimum, railOffset - railRadius);
+				envelopeMaximum = math.max(envelopeMaximum, railOffset + railRadius);
+			}
+			var railDirection = math.normalizesafe(endRailOffset - startRailOffset,
+				new float2(1f, 0f));
+			var attachmentStart = startRailOffset + railDirection * startRailRadius;
+			var attachmentEnd = endRailOffset - railDirection * endRailRadius;
+			var rotationOriginOffset = (envelopeMinimum + envelopeMaximum) * 0.5f;
+			var angle = math.radians(crossWire.Angle);
+			var direction = new float2(math.cos(angle), math.sin(angle));
+			var bottomCenter = (attachmentStart + attachmentEnd) * 0.5f;
+			var relativeBottomCenter = bottomCenter - rotationOriginOffset;
+			var rotatedBottomCenter = rotationOriginOffset + new float2(
+				relativeBottomCenter.x * direction.x
+					- relativeBottomCenter.y * direction.y,
+				relativeBottomCenter.x * direction.y
+					+ relativeBottomCenter.y * direction.x);
+			var center = rotatedBottomCenter
+				+ new float2(crossWire.LateralOffset, crossWire.VerticalOffset);
+			var length = math.max(0.1f, math.distance(attachmentStart, attachmentEnd)
+				+ crossWire.LengthAdjustment);
+			var startOffset = center - direction * length * 0.5f;
+			var endOffset = center + direction * length * 0.5f;
+			profile = new WireRailCrossWireProfile(frame, startRailOffset, endRailOffset,
+				startRailRadius, endRailRadius, rotationOriginOffset, startOffset, endOffset);
+			return true;
+
+			bool TryEvaluateRailOffset(int railIndex, out float2 railOffset,
+				out float railRadius)
+			{
+				railOffset = default;
+				railRadius = 0f;
+				if (!WireRailSplineGeometry.TryEvaluateRailPosition(spline, segments,
+						evaluationContext, segmentIndex, railIndex, curveT,
+						out var railPosition)) {
+					return false;
+				}
+				var relative = railPosition - frame.Position;
+				railOffset = new float2(math.dot(relative, frame.Right),
+					math.dot(relative, frame.Up));
+				railRadius = WireRailSplineGeometry.EvaluateWireDiameter(spline, segments,
+					segmentIndex, railIndex, curveT) * 0.5f;
+				return true;
+			}
 		}
 
 		private static bool TryGetSplineLocation(Spline spline,
@@ -1022,6 +1159,61 @@ namespace VisualPinball.Unity
 				WireRailCapMeshGenerator.Append(lastFrame, tubeRadius, capBevelSize,
 					radialSegments, false, vertices, normals, uvs, indices);
 			}
+		}
+
+		private static void AppendCrossWire(WireRailCrossWireProfile profile,
+			WireRailCrossWireFixture crossWire, float capBevelSize, int radialSegments,
+			ICollection<Vector3> vertices, ICollection<Vector3> normals,
+			ICollection<Vector2> uvs, ICollection<int> indices)
+		{
+			var start = profile.Start;
+			var end = profile.End;
+			var length = math.distance(start, end);
+			if (length <= 1e-5f) {
+				return;
+			}
+			var tangent = (end - start) / length;
+			var right = math.normalizesafe(profile.Frame.Tangent,
+				new float3(0f, 1f, 0f));
+			var up = math.normalizesafe(math.cross(right, tangent), profile.Frame.Up);
+			var startFrame = new WireRailPathFrame(start, tangent, right, up);
+			var endFrame = new WireRailPathFrame(end, tangent, right, up);
+			var tubeRadius = crossWire.Diameter * 0.5f;
+			var bevel = math.min(math.clamp(capBevelSize, 0f, tubeRadius), length * 0.5f);
+			var bodyStart = start + tangent * bevel;
+			var bodyEnd = end - tangent * bevel;
+			if (math.distancesq(bodyStart, bodyEnd) > 1e-10f) {
+				var firstRing = vertices.Count;
+				for (var ringIndex = 0; ringIndex < 2; ringIndex++) {
+					var position = ringIndex == 0 ? bodyStart : bodyEnd;
+					for (var radialIndex = 0; radialIndex < radialSegments; radialIndex++) {
+						var radialAngle = FullTurn * radialIndex / radialSegments;
+						var radial = right * math.cos(radialAngle)
+							+ up * math.sin(radialAngle);
+						vertices.Add((Vector3)(position + radial * tubeRadius));
+						normals.Add((Vector3)radial);
+						uvs.Add(new Vector2(ringIndex,
+							radialIndex / (float)radialSegments));
+					}
+				}
+				for (var radialIndex = 0; radialIndex < radialSegments; radialIndex++) {
+					var radialNext = (radialIndex + 1) % radialSegments;
+					var a = firstRing + radialIndex;
+					var b = firstRing + radialSegments + radialIndex;
+					var c = firstRing + radialNext;
+					var d = firstRing + radialSegments + radialNext;
+					indices.Add(a);
+					indices.Add(b);
+					indices.Add(d);
+					indices.Add(a);
+					indices.Add(d);
+					indices.Add(c);
+				}
+			}
+			WireRailCapMeshGenerator.Append(startFrame, tubeRadius, bevel,
+				radialSegments, true, vertices, normals, uvs, indices);
+			WireRailCapMeshGenerator.Append(endFrame, tubeRadius, bevel,
+				radialSegments, false, vertices, normals, uvs, indices);
 		}
 
 		private static List<float> BuildBraceAngles(WireRailBraceFixture brace,

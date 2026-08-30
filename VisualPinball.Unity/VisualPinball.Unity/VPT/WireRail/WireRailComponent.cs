@@ -706,6 +706,79 @@ namespace VisualPinball.Unity
 		}
 	}
 
+	[Serializable]
+	public sealed class WireRailCrossWireFixture : WireRailFixture
+	{
+		public const float DefaultAngle = 0f;
+
+		[SerializeField, Min(0.1f)] private float _diameter = WireRailLayout.ReferenceWireDiameter;
+		[SerializeField, HideInInspector, Min(0)] private int _startRailIndex;
+		[SerializeField, HideInInspector, Min(0)] private int _endRailIndex = 1;
+		[SerializeField, Range(0f, 360f)]
+		private float _angle = DefaultAngle;
+		[SerializeField] private float _lateralOffset;
+		[SerializeField] private float _verticalOffset;
+		[SerializeField] private float _lengthAdjustment;
+
+		public float Diameter => _diameter;
+		public int StartRailIndex => _startRailIndex;
+		public int EndRailIndex => _endRailIndex;
+		public float Angle => _angle;
+		public float LateralOffset => _lateralOffset;
+		public float VerticalOffset => _verticalOffset;
+		public float LengthAdjustment => _lengthAdjustment;
+
+		internal bool EnsureCrossWireInitialized(float splineLength)
+		{
+			var changed = EnsureInitialized(splineLength);
+			var diameter = math.max(0.1f, _diameter);
+			var startRailIndex = math.max(0, _startRailIndex);
+			var endRailIndex = math.max(0, _endRailIndex);
+			var angle = math.clamp(_angle, 0f, 360f);
+			if (!Mathf.Approximately(_diameter, diameter)) {
+				_diameter = diameter;
+				changed = true;
+			}
+			if (_startRailIndex != startRailIndex) {
+				_startRailIndex = startRailIndex;
+				changed = true;
+			}
+			if (_endRailIndex != endRailIndex) {
+				_endRailIndex = endRailIndex;
+				changed = true;
+			}
+			if (!Mathf.Approximately(_angle, angle)) {
+				_angle = angle;
+				changed = true;
+			}
+			return changed;
+		}
+
+		internal bool SetDiameter(float diameter)
+		{
+			diameter = math.max(0.1f, diameter);
+			if (Mathf.Approximately(_diameter, diameter)) {
+				return false;
+			}
+			_diameter = diameter;
+			return true;
+		}
+
+		internal void SetProperties(float distance, float splineLength, float diameter,
+			int startRailIndex, int endRailIndex, float angle,
+			float lateralOffset, float verticalOffset, float lengthAdjustment)
+		{
+			SetDistance(distance, splineLength);
+			_diameter = math.max(0.1f, diameter);
+			_startRailIndex = math.max(0, startRailIndex);
+			_endRailIndex = math.max(0, endRailIndex);
+			_angle = math.clamp(angle, 0f, 360f);
+			_lateralOffset = lateralOffset;
+			_verticalOffset = verticalOffset;
+			_lengthAdjustment = lengthAdjustment;
+		}
+	}
+
 	public readonly struct WireRailBraceCrossSection
 	{
 		public readonly Vector2 CenterOffset;
@@ -718,6 +791,28 @@ namespace VisualPinball.Unity
 			CenterOffset = new Vector2(centerOffset.x, centerOffset.y);
 			BaseRadius = baseRadius;
 			Radius = radius;
+		}
+	}
+
+	public readonly struct WireRailCrossWireCrossSection
+	{
+		public readonly Vector2 StartRailOffset;
+		public readonly Vector2 EndRailOffset;
+		public readonly float StartRailRadius;
+		public readonly float EndRailRadius;
+		public readonly Vector2 StartOffset;
+		public readonly Vector2 EndOffset;
+
+		internal WireRailCrossWireCrossSection(float2 startRailOffset,
+			float2 endRailOffset, float startRailRadius, float endRailRadius,
+			float2 startOffset, float2 endOffset)
+		{
+			StartRailOffset = new Vector2(startRailOffset.x, startRailOffset.y);
+			EndRailOffset = new Vector2(endRailOffset.x, endRailOffset.y);
+			StartRailRadius = startRailRadius;
+			EndRailRadius = endRailRadius;
+			StartOffset = new Vector2(startOffset.x, startOffset.y);
+			EndOffset = new Vector2(endOffset.x, endOffset.y);
 		}
 	}
 
@@ -1008,6 +1103,9 @@ namespace VisualPinball.Unity
 			foreach (var brace in _fixtures.OfType<WireRailBraceFixture>()) {
 				brace.SetDiameter(diameter);
 			}
+			foreach (var crossWire in _fixtures.OfType<WireRailCrossWireFixture>()) {
+				crossWire.SetDiameter(diameter);
+			}
 			RebuildGeneratedMeshes();
 			MarkDirty();
 		}
@@ -1113,6 +1211,18 @@ namespace VisualPinball.Unity
 			return _fixtures.Count - 1;
 		}
 
+		public int AddCrossWireFixture(float distance)
+		{
+			_fixtures ??= new List<WireRailFixture>();
+			var crossWire = new WireRailCrossWireFixture();
+			crossWire.SetProperties(distance, SplineLength, _wireDiameter, 0, 1,
+				WireRailCrossWireFixture.DefaultAngle, 0f, 0f, 0f);
+			_fixtures.Add(crossWire);
+			RebuildGeneratedMeshes();
+			MarkDirty();
+			return _fixtures.Count - 1;
+		}
+
 		public bool TryGetBraceCrossSection(int fixtureIndex,
 			out WireRailBraceCrossSection crossSection)
 		{
@@ -1126,6 +1236,23 @@ namespace VisualPinball.Unity
 			}
 			crossSection = new WireRailBraceCrossSection(profile.CenterOffset,
 				profile.BaseRadius, profile.Radius);
+			return true;
+		}
+
+		public bool TryGetCrossWireCrossSection(int fixtureIndex,
+			out WireRailCrossWireCrossSection crossSection)
+		{
+			crossSection = default;
+			if (_fixtures == null || fixtureIndex < 0 || fixtureIndex >= _fixtures.Count
+				|| _fixtures[fixtureIndex] is not WireRailCrossWireFixture crossWire
+				|| !_splineContainer || _splineContainer.Spline == null
+				|| !WireRailFixtureMeshGenerator.TryEvaluateCrossWireProfile(
+					_splineContainer.Spline, _segments, crossWire, out var profile)) {
+				return false;
+			}
+			crossSection = new WireRailCrossWireCrossSection(profile.StartRailOffset,
+				profile.EndRailOffset, profile.StartRailRadius, profile.EndRailRadius,
+				profile.StartOffset, profile.EndOffset);
 			return true;
 		}
 
@@ -1156,6 +1283,24 @@ namespace VisualPinball.Unity
 			return duplicateIndex;
 		}
 
+		public int DuplicateCrossWireFixture(int fixtureIndex)
+		{
+			if (GetFixture(fixtureIndex) is not WireRailCrossWireFixture source) {
+				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a cross wire.",
+					nameof(fixtureIndex));
+			}
+			var duplicate = new WireRailCrossWireFixture();
+			duplicate.SetProperties(source.Distance, SplineLength, _wireDiameter,
+				source.StartRailIndex, source.EndRailIndex,
+				source.Angle, source.LateralOffset,
+				source.VerticalOffset, source.LengthAdjustment);
+			var duplicateIndex = fixtureIndex + 1;
+			_fixtures.Insert(duplicateIndex, duplicate);
+			RebuildGeneratedMeshes();
+			MarkDirty();
+			return duplicateIndex;
+		}
+
 		public void SetBraceFixtureProperties(int fixtureIndex, float distance,
 			bool hasCutout, float cutoutStartAngle, float cutoutEndAngle,
 			bool hasStraightSection = false, float straightStartAngle =
@@ -1170,6 +1315,21 @@ namespace VisualPinball.Unity
 			brace.SetProperties(distance, SplineLength, _wireDiameter, hasCutout,
 				cutoutStartAngle, cutoutEndAngle, hasStraightSection, straightStartAngle,
 				straightEndAngle, lateralOffset, verticalOffset, scale);
+			RebuildGeneratedMeshes();
+			MarkDirty();
+		}
+
+		public void SetCrossWireFixtureProperties(int fixtureIndex, float distance,
+			float angle, float lateralOffset = 0f,
+			float verticalOffset = 0f, float lengthAdjustment = 0f)
+		{
+			if (GetFixture(fixtureIndex) is not WireRailCrossWireFixture crossWire) {
+				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a cross wire.",
+					nameof(fixtureIndex));
+			}
+			crossWire.SetProperties(distance, SplineLength, _wireDiameter,
+				crossWire.StartRailIndex, crossWire.EndRailIndex, angle,
+				lateralOffset, verticalOffset, lengthAdjustment);
 			RebuildGeneratedMeshes();
 			MarkDirty();
 		}
@@ -1252,6 +1412,9 @@ namespace VisualPinball.Unity
 							_segments, brace, out var profile)) {
 						changed |= brace.EnsureScaleInitialized(profile.BaseRadius);
 					}
+				} else if (fixture is WireRailCrossWireFixture crossWire) {
+					changed |= crossWire.EnsureCrossWireInitialized(SplineLength);
+					changed |= crossWire.SetDiameter(_wireDiameter);
 				} else {
 					changed |= fixture.EnsureInitialized(SplineLength);
 				}

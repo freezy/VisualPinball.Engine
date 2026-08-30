@@ -85,7 +85,7 @@ These positions are practical starting points rather than constraints. Adjust th
 
 ## Add Fixtures
 
-Fixtures are repeated structural elements positioned along the complete spline rather than owned by an individual segment. The first available fixture is a **Brace**, a wire ring that surrounds and holds the authored rails together.
+Fixtures are repeated structural elements positioned along the complete spline rather than owned by an individual segment. A **Brace** is a wire ring that surrounds and holds the authored rails together. A **Cross Wire** is a straight wire joining the first two rails, which are the two bottom rails in the default layouts.
 
 Click **Add Brace** in the **Fixtures** section, then use **Position** to move it anywhere along the route by absolute spline distance. A new brace starts halfway along the spline, and you can add as many independently positioned braces as needed. Drag a complete brace panel by its handle to reorder the authored fixture list without changing any fixture's route position. The brace automatically encloses the wire cross-section at its position and remains perpendicular to the spline tangent. Its preview shows the evaluated brace shape, offset, cutout, and straight-line replacement.
 
@@ -97,9 +97,11 @@ Enable **Straight Line** to reveal its **From/To** range control and replace tha
 
 Click the horizon icon at the end of either angle row to rotate that range until both endpoints have the same vertical height while preserving its angular span. Click **Apply to All** to copy scale, offsets, cutout, and straight-line settings to every other brace without changing any brace's route position.
 
+Click **Add Cross Wire** to place a straight connector halfway along the route. **Position** and **Offset** work like their brace equivalents. **Angle** rotates the connector around the center of the complete active-rail envelope at that position: 0° runs horizontally along local X, 90° runs vertically along local Z, and the remaining values continue around the cross section. **Length** is a signed VPX adjustment to the span between the inward-facing surfaces of the two bottom rails: `0` reaches both rails, positive values extend the connector equally at both ends, and negative values shorten it. The preview renders the connected rails in gray and the cross wire in orange. If either bottom rail is inactive at the fixture position, the cross wire is not rendered.
+
 Brace fixtures are included in the visible render mesh and use the Wire Rail material. They are not added to the ball-channel collider.
 
-Use the duplicate icon in a brace header to insert an independent copy immediately after it, or the trash icon to remove it. The duplicate starts with the same route position, scale, offsets, cutout, and straight-line settings as its source.
+Use the duplicate icon in a fixture header to insert an independent copy immediately after it, or the trash icon to remove it. A duplicate starts with all of the source fixture's settings and route position.
 
 ## Render Geometry
 
