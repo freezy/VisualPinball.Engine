@@ -44,6 +44,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly WireRailBracePreviewEditor _bracePreviewEditor = new();
 		private readonly WireRailCrossWirePreviewEditor _crossWirePreviewEditor = new();
 		[SerializeField] private bool _showRenderGeometry = true;
+		[SerializeField] private bool _showBallChannelCollider = true;
 		[SerializeField] private bool _showFixtures = true;
 		[SerializeField] private bool _showWireLayouts = true;
 		private readonly List<int> _fixtureOrder = new();
@@ -136,7 +137,18 @@ namespace VisualPinball.Unity.Editor
 			_showRenderGeometry = EditorGUILayout.BeginFoldoutHeaderGroup(
 				_showRenderGeometry, "Render Geometry");
 			if (_showRenderGeometry) {
-				DrawGenerationSettings(component);
+				DrawRenderGeometrySettings(component);
+			}
+			EditorGUILayout.EndFoldoutHeaderGroup();
+			if (!string.IsNullOrEmpty(component.GenerationError)) {
+				EditorGUILayout.HelpBox(component.GenerationError, MessageType.Error);
+			}
+
+			EditorGUILayout.Space(4f);
+			_showBallChannelCollider = EditorGUILayout.BeginFoldoutHeaderGroup(
+				_showBallChannelCollider, "Ball Channel Collider");
+			if (_showBallChannelCollider) {
+				DrawBallChannelColliderSettings(component);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
@@ -294,7 +306,7 @@ namespace VisualPinball.Unity.Editor
 
 		private static float GetFixtureElementHeight(WireRailFixture fixture)
 			=> fixture switch {
-				WireRailBraceFixture => LayoutPadding * 2f + LayoutLineHeight * 7f
+				WireRailBraceFixture => LayoutPadding * 2f + LayoutLineHeight * 8f
 					+ WireRailBracePreviewEditor.Height + 25f,
 				WireRailCrossWireFixture => LayoutPadding * 2f + LayoutLineHeight * 5f
 					+ WireRailCrossWirePreviewEditor.Height + 25f,
@@ -364,6 +376,11 @@ namespace VisualPinball.Unity.Editor
 				"Multiplier for the automatically fitted brace radius."), brace.Scale,
 				FixtureScaleMinimum, FixtureScaleMaximum);
 
+			row.y += LayoutLineHeight + 3f;
+			var ringDensity = EditorGUI.IntSlider(row, new GUIContent("Ring Density",
+				"Number of longitudinal tube rings around a complete brace."),
+				brace.RingDensity, 3, 128);
+
 			row.y += LayoutLineHeight + 4f;
 			var previewRect = new Rect(content.x, row.y, content.width,
 				WireRailBracePreviewEditor.Height);
@@ -379,7 +396,8 @@ namespace VisualPinball.Unity.Editor
 					component.SetBraceFixtureProperties(fixtureIndex, brace.Distance,
 						brace.HasCutout, brace.CutoutStartAngle, brace.CutoutEndAngle,
 						brace.HasStraightSection, brace.StraightStartAngle,
-						brace.StraightEndAngle, 0f, 0f, brace.Scale));
+						brace.StraightEndAngle, 0f, 0f, brace.Scale,
+						brace.RingDensity));
 				GUIUtility.ExitGUI();
 			}
 
@@ -411,7 +429,7 @@ namespace VisualPinball.Unity.Editor
 						component.SetBraceFixtureProperties(fixtureIndex, distance,
 							hasCutout, cutoutStart, cutoutEnd,
 							hasStraightSection, straightStart, straightEnd,
-							lateralOffset, verticalOffset, scale);
+							lateralOffset, verticalOffset, scale, ringDensity);
 					}
 					component.ApplyBracePropertiesToAll(fixtureIndex);
 				});
@@ -422,7 +440,7 @@ namespace VisualPinball.Unity.Editor
 					component.SetBraceFixtureProperties(fixtureIndex, distance,
 						hasCutout, cutoutStart, cutoutEnd,
 						hasStraightSection, straightStart, straightEnd,
-						lateralOffset, verticalOffset, scale));
+						lateralOffset, verticalOffset, scale, ringDensity));
 			}
 		}
 
@@ -597,7 +615,7 @@ namespace VisualPinball.Unity.Editor
 			return false;
 		}
 
-		private void DrawGenerationSettings(WireRailComponent component)
+		private void DrawRenderGeometrySettings(WireRailComponent component)
 		{
 			serializedObject.Update();
 			EditorGUI.BeginChangeCheck();
@@ -623,12 +641,41 @@ namespace VisualPinball.Unity.Editor
 				new GUIContent("Minimum Samples Per Layout Span",
 					"Base longitudinal detail. Sharper wire bends receive extra rings automatically."));
 
-			EditorGUILayout.Space(4f);
-			EditorGUILayout.LabelField("Ball Channel Collider", EditorStyles.boldLabel);
+			var settingsChanged = EditorGUI.EndChangeCheck();
+			serializedObject.ApplyModifiedProperties();
+			if (railCountChanged) {
+				Edit(component, "Change Wire Rail Count",
+					() => component.SetRailCount(railCount));
+			} else if (wireDiameterChanged) {
+				Edit(component, "Change Wire Rail Diameter",
+					() => component.SetWireDiameter(math.max(0.1f, wireDiameter)));
+			} else if (settingsChanged) {
+				component.RebuildGeneratedMeshes();
+				SceneView.RepaintAll();
+			}
+
+			var renderMesh = component.RenderMesh;
+			if (renderMesh) {
+				EditorGUILayout.LabelField("Generated", $"{renderMesh.vertexCount} vertices");
+			}
+			if (GUILayout.Button("Rebuild Render Geometry")) {
+				component.RebuildGeneratedMeshes();
+				SceneView.RepaintAll();
+			}
+		}
+
+		private void DrawBallChannelColliderSettings(WireRailComponent component)
+		{
+			serializedObject.Update();
+			EditorGUI.BeginChangeCheck();
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("_referenceBallDiameter"),
-				new GUIContent("Ball Diameter", "Reference ball diameter in VPX units."));
+				new GUIContent("Ball Diameter",
+					"Diameter of the reference ball used to fit the collision channel. It changes "
+					+ "only the collider, not the visible wires or the game's ball."));
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("_colliderSamplesPerSegment"),
-				new GUIContent("Samples Per Layout Span"));
+				new GUIContent("Curvature Detail",
+					"Controls adaptive collider tessellation. Curves receive more rows while "
+					+ "straight spans remain sparse."));
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("_showColliderPreview"),
 				new GUIContent("Show Collider Preview"));
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("_physicsMaterial"),
@@ -643,28 +690,17 @@ namespace VisualPinball.Unity.Editor
 			}
 			var settingsChanged = EditorGUI.EndChangeCheck();
 			serializedObject.ApplyModifiedProperties();
-			if (railCountChanged) {
-				Edit(component, "Change Wire Rail Count",
-					() => component.SetRailCount(railCount));
-			} else if (wireDiameterChanged) {
-				Edit(component, "Change Wire Rail Diameter",
-					() => component.SetWireDiameter(math.max(0.1f, wireDiameter)));
-			} else if (settingsChanged) {
+			if (settingsChanged) {
 				component.RebuildGeneratedMeshes();
 				SceneView.RepaintAll();
 			}
 
-			if (!string.IsNullOrEmpty(component.GenerationError)) {
-				EditorGUILayout.HelpBox(component.GenerationError, MessageType.Error);
-			}
-			var renderMesh = component.RenderMesh;
 			var colliderMesh = component.ColliderMesh;
-			if (renderMesh && colliderMesh) {
+			if (colliderMesh) {
 				EditorGUILayout.LabelField("Generated",
-					$"{renderMesh.vertexCount} render vertices, "
-					+ $"{colliderMesh.triangles.Length / 3} collider triangles");
+					$"{colliderMesh.triangles.Length / 3} triangles");
 			}
-			if (GUILayout.Button("Rebuild Geometry")) {
+			if (GUILayout.Button("Rebuild Collider")) {
 				component.RebuildGeneratedMeshes();
 				SceneView.RepaintAll();
 			}
@@ -936,7 +972,6 @@ namespace VisualPinball.Unity.Editor
 	internal static class WireRailScenePreview
 	{
 		private const int SamplesPerSegment = 24;
-		private const int FixturePreviewSegments = 48;
 		private static readonly Color[] RailColors = {
 			new(0.05f, 0.75f, 1f, 0.95f),
 			new(1f, 0.55f, 0.05f, 0.95f),
@@ -965,6 +1000,9 @@ namespace VisualPinball.Unity.Editor
 			}
 			component.SynchronizeSegments();
 			DrawEditPanel(container);
+			if (Event.current.type != EventType.Repaint) {
+				return;
+			}
 			var spline = container.Spline;
 			if (spline == null || spline.Count < 2) {
 				return;
@@ -1061,9 +1099,11 @@ namespace VisualPinball.Unity.Editor
 						out var radius)) {
 					continue;
 				}
-				var points = new Vector3[FixturePreviewSegments + 1];
-				for (var pointIndex = 0; pointIndex <= FixturePreviewSegments; pointIndex++) {
-					var angle = startAngle + sweepAngle * pointIndex / FixturePreviewSegments;
+				var previewSegments = math.max(2,
+					(int)math.ceil(brace.RingDensity * sweepAngle / (math.PI * 2f)));
+				var points = new Vector3[previewSegments + 1];
+				for (var pointIndex = 0; pointIndex <= previewSegments; pointIndex++) {
+					var angle = startAngle + sweepAngle * pointIndex / previewSegments;
 					var centerlineOffset = brace.EvaluateCenterlineOffset(angle, radius);
 					points[pointIndex] = container.transform.TransformPoint(
 						(Vector3)(center + right * centerlineOffset.x
@@ -1109,12 +1149,42 @@ namespace VisualPinball.Unity.Editor
 			var vertices = mesh.vertices;
 			var indices = mesh.triangles;
 			var edges = new HashSet<ulong>();
-			Handles.color = new Color(1f, 0.9f, 0.05f, 0.9f);
+			var faces = new HashSet<(int, int, int)>();
+			var previousColor = Handles.color;
+			var previousZTest = Handles.zTest;
+			Handles.zTest = CompareFunction.LessEqual;
+			Handles.color = new Color32(0, 255, 75, 128);
+			for (var i = 0; i < indices.Length; i += 3) {
+				var first = indices[i];
+				var second = indices[i + 1];
+				var third = indices[i + 2];
+				if (first > second) {
+					(first, second) = (second, first);
+				}
+				if (second > third) {
+					(second, third) = (third, second);
+				}
+				if (first > second) {
+					(first, second) = (second, first);
+				}
+				// The physics mesh is two-sided. Draw each geometric triangle once,
+				// independently of the winding or emission order.
+				if (!faces.Add((first, second, third))) {
+					continue;
+				}
+				Handles.DrawAAConvexPolygon(
+					meshTransform.TransformPoint(vertices[indices[i]]),
+					meshTransform.TransformPoint(vertices[indices[i + 1]]),
+					meshTransform.TransformPoint(vertices[indices[i + 2]]));
+			}
+			Handles.color = new Color(0f, 1f, 75f / 255f, 0.9f);
 			for (var i = 0; i < indices.Length; i += 3) {
 				DrawEdge(indices[i], indices[i + 1]);
 				DrawEdge(indices[i + 1], indices[i + 2]);
 				DrawEdge(indices[i + 2], indices[i]);
 			}
+			Handles.color = previousColor;
+			Handles.zTest = previousZTest;
 
 			void DrawEdge(int first, int second)
 			{

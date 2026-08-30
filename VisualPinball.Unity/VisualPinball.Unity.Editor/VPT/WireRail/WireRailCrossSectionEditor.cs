@@ -487,7 +487,6 @@ namespace VisualPinball.Unity.Editor
 
 	internal sealed class WireRailBracePreviewEditor
 	{
-		private const int PreviewSegments = 96;
 		private const float FullTurn = math.PI * 2f;
 		public const float Height = 170f;
 		private static readonly Color CanvasColor = new(0.105f, 0.115f, 0.13f, 1f);
@@ -548,7 +547,7 @@ namespace VisualPinball.Unity.Editor
 			float startAngle, float sweepAngle)
 		{
 			var segmentCount = math.max(2,
-				(int)math.ceil(PreviewSegments * sweepAngle / FullTurn));
+				(int)math.ceil(brace.RingDensity * sweepAngle / FullTurn));
 			var angles = new List<float>(segmentCount + 3);
 			for (var index = 0; index <= segmentCount; index++) {
 				angles.Add(startAngle + sweepAngle * index / segmentCount);

@@ -47,9 +47,11 @@ namespace VisualPinball.Unity
 	{
 		public const float ReferenceBallDiameter = 50f;
 		public const float ReferenceWireDiameter = 8f;
-		public const float BottomRailSpacing = 38f;
-		public const float MiddleRailHeight = 44f;
-		public const float TopRailHeight = 52f;
+		public const float BottomRailSpacing = 30f;
+		public const float MiddleRailSpacing = 60f;
+		public const float MiddleRailHeight = 30f;
+		public const float TopRailSpacing = 30f;
+		public const float TopRailHeight = 60f;
 
 		public static Vector2[] CreateDefaultOffsets(int railCount,
 			WireRailThirdRailSide thirdRailSide = WireRailThirdRailSide.Right)
@@ -63,29 +65,33 @@ namespace VisualPinball.Unity
 				return new[] { Vector2.zero };
 			}
 
-			var halfSpacing = BottomRailSpacing * 0.5f;
+			var bottomHalfSpacing = BottomRailSpacing * 0.5f;
+			var middleHalfSpacing = MiddleRailSpacing * 0.5f;
+			var topHalfSpacing = TopRailSpacing * 0.5f;
 			var offsets = new List<Vector2>(railCount) {
-				new(-halfSpacing, 0f),
-				new(halfSpacing, 0f),
+				new(-bottomHalfSpacing, 0f),
+				new(bottomHalfSpacing, 0f),
 			};
 
 			if (railCount == 3) {
 				offsets.Add(new Vector2(
-					thirdRailSide == WireRailThirdRailSide.Left ? -halfSpacing : halfSpacing,
+					thirdRailSide == WireRailThirdRailSide.Left
+						? -middleHalfSpacing : middleHalfSpacing,
 					MiddleRailHeight));
 				return offsets.ToArray();
 			}
 
 			if (railCount >= 4) {
-				offsets.Add(new Vector2(-halfSpacing, MiddleRailHeight));
-				offsets.Add(new Vector2(halfSpacing, MiddleRailHeight));
+				offsets.Add(new Vector2(-middleHalfSpacing, MiddleRailHeight));
+				offsets.Add(new Vector2(middleHalfSpacing, MiddleRailHeight));
 			}
 
 			var topRailCount = railCount - 4;
 			for (var i = 0; i < topRailCount; i++) {
 				var x = topRailCount == 1
 					? 0f
-					: math.lerp(-halfSpacing, halfSpacing, i / (float)(topRailCount - 1));
+					: math.lerp(-topHalfSpacing, topHalfSpacing,
+						i / (float)(topRailCount - 1));
 				offsets.Add(new Vector2(x, TopRailHeight));
 			}
 			return offsets.ToArray();
@@ -499,6 +505,7 @@ namespace VisualPinball.Unity
 	[Serializable]
 	public sealed class WireRailBraceFixture : WireRailFixture
 	{
+		public const int DefaultRingDensity = 32;
 		public const float DefaultCutoutStartAngle = 60f;
 		public const float DefaultCutoutEndAngle = 120f;
 		public const float DefaultStraightStartAngle = 210f;
@@ -514,6 +521,7 @@ namespace VisualPinball.Unity
 		[SerializeField] private float _lateralOffset;
 		[SerializeField] private float _verticalOffset;
 		[SerializeField, Min(0.1f)] private float _scale = 1f;
+		[SerializeField, Range(3, 128)] private int _ringDensity = DefaultRingDensity;
 		[SerializeField, HideInInspector] private float _radiusOffset;
 		[SerializeField, HideInInspector] private bool _scaleInitialized;
 
@@ -527,6 +535,7 @@ namespace VisualPinball.Unity
 		public float LateralOffset => _lateralOffset;
 		public float VerticalOffset => _verticalOffset;
 		public float Scale => _scale;
+		public int RingDensity => _ringDensity;
 		internal bool ScaleInitialized => _scaleInitialized;
 
 		public static Vector2 AlignAngleRangeHorizontally(float startAngle, float endAngle)
@@ -564,6 +573,8 @@ namespace VisualPinball.Unity
 			var straightStartAngle = math.clamp(_straightStartAngle, 0f, 360f);
 			var straightEndAngle = math.clamp(_straightEndAngle, 0f, 360f);
 			var scale = math.max(0.1f, _scale);
+			var ringDensity = math.clamp(_ringDensity <= 0 ? DefaultRingDensity : _ringDensity,
+				3, 128);
 			if (!Mathf.Approximately(_diameter, diameter)) {
 				_diameter = diameter;
 				changed = true;
@@ -586,6 +597,10 @@ namespace VisualPinball.Unity
 			}
 			if (!Mathf.Approximately(_scale, scale)) {
 				_scale = scale;
+				changed = true;
+			}
+			if (_ringDensity != ringDensity) {
+				_ringDensity = ringDensity;
 				changed = true;
 			}
 			return changed;
@@ -617,7 +632,8 @@ namespace VisualPinball.Unity
 		internal void SetProperties(float distance, float splineLength, float diameter,
 			bool hasCutout, float cutoutStartAngle, float cutoutEndAngle,
 			bool hasStraightSection, float straightStartAngle, float straightEndAngle,
-			float lateralOffset, float verticalOffset, float scale)
+			float lateralOffset, float verticalOffset, float scale,
+			int ringDensity = DefaultRingDensity)
 		{
 			SetDistance(distance, splineLength);
 			_diameter = math.max(0.1f, diameter);
@@ -630,6 +646,7 @@ namespace VisualPinball.Unity
 			_lateralOffset = lateralOffset;
 			_verticalOffset = verticalOffset;
 			_scale = math.max(0.1f, scale);
+			_ringDensity = math.clamp(ringDensity, 3, 128);
 			_radiusOffset = 0f;
 			_scaleInitialized = true;
 		}
@@ -1204,7 +1221,8 @@ namespace VisualPinball.Unity
 				WireRailBraceFixture.DefaultCutoutStartAngle,
 				WireRailBraceFixture.DefaultCutoutEndAngle, false,
 				WireRailBraceFixture.DefaultStraightStartAngle,
-				WireRailBraceFixture.DefaultStraightEndAngle, 0f, 0f, 1f);
+				WireRailBraceFixture.DefaultStraightEndAngle, 0f, 0f, 1f,
+				WireRailBraceFixture.DefaultRingDensity);
 			_fixtures.Add(brace);
 			RebuildGeneratedMeshes();
 			MarkDirty();
@@ -1275,7 +1293,7 @@ namespace VisualPinball.Unity
 				source.HasCutout, source.CutoutStartAngle, source.CutoutEndAngle,
 				source.HasStraightSection, source.StraightStartAngle,
 				source.StraightEndAngle, source.LateralOffset, source.VerticalOffset,
-				source.Scale);
+				source.Scale, source.RingDensity);
 			var duplicateIndex = fixtureIndex + 1;
 			_fixtures.Insert(duplicateIndex, duplicate);
 			RebuildGeneratedMeshes();
@@ -1306,15 +1324,21 @@ namespace VisualPinball.Unity
 			bool hasStraightSection = false, float straightStartAngle =
 				WireRailBraceFixture.DefaultStraightStartAngle, float straightEndAngle =
 				WireRailBraceFixture.DefaultStraightEndAngle, float lateralOffset = 0f,
-			float verticalOffset = 0f, float scale = 1f)
+			float verticalOffset = 0f, float scale = 1f,
+			int ringDensity = 0)
 		{
 			if (GetFixture(fixtureIndex) is not WireRailBraceFixture brace) {
 				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a brace.",
 					nameof(fixtureIndex));
 			}
+			var resolvedRingDensity = ringDensity >= 3
+				? ringDensity
+				: (brace.RingDensity >= 3
+					? brace.RingDensity : WireRailBraceFixture.DefaultRingDensity);
 			brace.SetProperties(distance, SplineLength, _wireDiameter, hasCutout,
 				cutoutStartAngle, cutoutEndAngle, hasStraightSection, straightStartAngle,
-				straightEndAngle, lateralOffset, verticalOffset, scale);
+				straightEndAngle, lateralOffset, verticalOffset, scale,
+				resolvedRingDensity);
 			RebuildGeneratedMeshes();
 			MarkDirty();
 		}
@@ -1349,7 +1373,7 @@ namespace VisualPinball.Unity
 					source.HasCutout, source.CutoutStartAngle, source.CutoutEndAngle,
 					source.HasStraightSection, source.StraightStartAngle,
 					source.StraightEndAngle, source.LateralOffset, source.VerticalOffset,
-					source.Scale);
+					source.Scale, source.RingDensity);
 			}
 			RebuildGeneratedMeshes();
 			MarkDirty();

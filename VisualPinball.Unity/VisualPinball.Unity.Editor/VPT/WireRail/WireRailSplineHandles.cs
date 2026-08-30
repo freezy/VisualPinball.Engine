@@ -143,11 +143,10 @@ namespace VisualPinball.Unity.Editor
 				var position = ToVector3(knot.Position);
 				var size = HandleUtility.GetHandleSize(position) * KnotRadius * 1.35f;
 				if (canMoveKnots) {
-					var moved = DoFreeMoveControl(component, controlId, position, size,
-						knot, "Move Wire Rail Knot");
+					var moved = DoFreeMoveControl(controlId, position, size, knot);
 					if ((moved - position).sqrMagnitude > 1e-10f) {
-						knot.Position = new float3(moved.x, moved.y, moved.z);
-						Apply(component);
+						MoveKnot(component, knot,
+							new float3(moved.x, moved.y, moved.z));
 					}
 				} else {
 					DoSelectionControl(controlId, position, size, knot);
@@ -177,24 +176,23 @@ namespace VisualPinball.Unity.Editor
 			var controlId = GUIUtility.GetControlID(controlHint, FocusType.Passive);
 			var position = ToVector3(tangent.Position);
 			var size = HandleUtility.GetHandleSize(position) * TangentRadius * 1.5f;
-			var moved = DoFreeMoveControl(component, controlId, position, size, tangent,
-				"Move Wire Rail Tangent");
+			var moved = DoFreeMoveControl(controlId, position, size, tangent);
 			if ((moved - position).sqrMagnitude <= 1e-10f) {
 				return;
 			}
 
+			RecordUndo(component, "Move Wire Rail Tangent");
 			ApplyTangentPosition(tangent, new float3(moved.x, moved.y, moved.z));
 			Apply(component);
 		}
 
-		private static Vector3 DoFreeMoveControl<T>(WireRailComponent component,
-			int controlId, Vector3 position, float size, T element, string undoName)
+		private static Vector3 DoFreeMoveControl<T>(int controlId, Vector3 position,
+			float size, T element)
 			where T : struct, ISelectableElement
 		{
 			var evt = Event.current;
 			if (evt.GetTypeForControl(controlId) == EventType.MouseDown && evt.button == 0
 				&& !evt.alt && HandleUtility.nearestControl == controlId) {
-				RecordUndo(component, undoName);
 				SelectElement(element, evt);
 			}
 			return Handles.FreeMoveHandle(controlId, position, size, Vector3.zero,
@@ -291,6 +289,14 @@ namespace VisualPinball.Unity.Editor
 			var direction = math.normalizesafe(localDirection, fallbackDirection);
 			tangent.LocalDirection = direction
 				* math.max(0f, math.length(localDirection) + magnitudeDelta);
+		}
+
+		private static void MoveKnot(WireRailComponent component, SelectableKnot knot,
+			float3 targetPosition)
+		{
+			RecordUndo(component, "Move Wire Rail Knot");
+			knot.Position = targetPosition;
+			Apply(component);
 		}
 
 		private static void CollectSelection(SplineInfo splineInfo)
@@ -558,8 +564,11 @@ namespace VisualPinball.Unity.Editor
 
 		private static void RecordUndo(WireRailComponent component, string name)
 		{
-			Undo.RecordObjects(new UnityEngine.Object[] { component, component.SplineContainer },
-				name);
+			// Record in the same GUI event as the mutation. Unity's spline tools follow
+			// this pattern because a delta record made only on MouseDown is discarded
+			// before the first MouseDrag changes the nested spline data.
+			Undo.RecordObjects(
+				new UnityEngine.Object[] { component, component.SplineContainer }, name);
 		}
 
 		private static void Apply(WireRailComponent component)
