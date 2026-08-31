@@ -664,6 +664,273 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldCreateAConnectedLegAndUHookFootByDefault()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var railTriangleCount = component.RenderMesh.triangles.Length / 3;
+				var fixtureIndex = component.AddLegFixture(250f);
+				var leg = (WireRailLegFixture)component.Fixtures[fixtureIndex];
+
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateLegProfile(
+					component.SplineContainer.Spline, component.Segments, leg,
+					out var profile), Is.True);
+				Assert.That(leg.LegSide, Is.EqualTo(WireRailLegSide.Right));
+				Assert.That(leg.LateralOffset, Is.Zero);
+				Assert.That(leg.VerticalOffset, Is.Zero);
+				Assert.That(leg.LengthAdjustment, Is.Zero);
+				Assert.That(math.distance(profile.LegPoints[0],
+					profile.AttachmentProfile.End), Is.LessThan(0.001f),
+					"the vertical part of the L should begin at the right end by default");
+				Assert.That(math.distance(profile.CombinedPath[0],
+					profile.AttachmentProfile.Start), Is.LessThan(0.001f));
+				Assert.That(profile.CombinedPath.Any(point => math.distance(
+					point, profile.LegPoints[0]) < 0.001f), Is.False,
+					"the attachment-to-leg corner should be replaced by a rounded bend");
+				Assert.That(math.distance(profile.LegPoints[0], profile.LegPoints[1]),
+					Is.EqualTo(WireRailLegFixture.DefaultStartLength).Within(0.001f));
+				Assert.That(math.dot(math.normalize(profile.LegPoints[1]
+					- profile.LegPoints[0]), -profile.AttachmentProfile.Frame.Up),
+					Is.EqualTo(1f).Within(0.001f));
+				Assert.That(math.distance(profile.LegPoints[^1], profile.FootPoints[0]),
+					Is.LessThan(0.001f), "the leg must meet the open end of the U-hook");
+				Assert.That(leg.FootConnectionLength,
+					Is.EqualTo(WireRailLegFixture.DefaultFootConnectionLength));
+				Assert.That(math.distance(profile.FootPoints[0], profile.FootPoints[1]),
+					Is.EqualTo(WireRailLegFixture.DefaultFootConnectionLength)
+						.Within(0.001f));
+				Assert.That(profile.FootPoints.Count,
+					Is.EqualTo(WireRailLegFixture.FootBendSegments + 3));
+				Assert.That(component.RenderMesh.triangles.Length / 3,
+					Is.GreaterThan(railTriangleCount));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldOffsetAndResizeTheLegRailAttachment()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var fixtureIndex = component.AddLegFixture(250f);
+				var leg = (WireRailLegFixture)component.Fixtures[fixtureIndex];
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateLegProfile(
+					component.SplineContainer.Spline, component.Segments, leg,
+					out var original), Is.True);
+
+				component.SetLegFixtureProperties(fixtureIndex, leg.Distance, leg.LegSide,
+					leg.StartDirection, leg.StartLength, leg.FootPosition, leg.FootRotation,
+					leg.FootWidth, leg.FootLength, leg.FootConnectionLength,
+					6f, -3f, 12f);
+
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateLegProfile(
+					component.SplineContainer.Spline, component.Segments, leg,
+					out var adjusted), Is.True);
+				Assert.That(leg.LateralOffset, Is.EqualTo(6f));
+				Assert.That(leg.VerticalOffset, Is.EqualTo(-3f));
+				Assert.That(leg.LengthAdjustment, Is.EqualTo(12f));
+				var originalCenter = (original.AttachmentProfile.Start
+					+ original.AttachmentProfile.End) * 0.5f;
+				var adjustedCenter = (adjusted.AttachmentProfile.Start
+					+ adjusted.AttachmentProfile.End) * 0.5f;
+				Assert.That(math.distance(adjustedCenter, originalCenter
+					+ original.AttachmentProfile.Frame.Right * 6f
+					- original.AttachmentProfile.Frame.Up * 3f), Is.LessThan(0.001f));
+				Assert.That(math.distance(adjusted.AttachmentProfile.Start,
+					adjusted.AttachmentProfile.End), Is.EqualTo(math.distance(
+						original.AttachmentProfile.Start, original.AttachmentProfile.End)
+						+ 12f).Within(0.001f));
+				Assert.That(math.distance(adjusted.LegPoints[0],
+					adjusted.AttachmentProfile.End), Is.LessThan(0.001f));
+				var legDelta = adjusted.LegPoints[0] - original.LegPoints[0];
+				for (var pointIndex = 0; pointIndex < original.FootPoints.Count;
+					pointIndex++) {
+					Assert.That(math.distance(adjusted.FootPoints[pointIndex],
+						original.FootPoints[pointIndex] + legDelta), Is.LessThan(0.001f));
+				}
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldRoundLegJointsAndKeepTubeRingsAtTheWireRadius()
+		{
+			const int radialSegments = 8;
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var fixtureIndex = component.AddLegFixture(250f);
+				var leg = (WireRailLegFixture)component.Fixtures[fixtureIndex];
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateLegProfile(
+					component.SplineContainer.Spline, component.Segments, leg,
+					out var profile), Is.True);
+
+				foreach (var sharpCorner in new[] {
+					profile.LegPoints[0], profile.LegPoints[^1],
+				}) {
+					Assert.That(profile.CombinedPath.Any(point => math.distance(
+						point, sharpCorner) < 0.001f), Is.False,
+						"each sharp leg joint should be replaced by a rounded bend");
+				}
+				var maximumTurn = 0f;
+				for (var pointIndex = 1; pointIndex < profile.CombinedPath.Count - 1;
+					pointIndex++) {
+					var incoming = math.normalize(profile.CombinedPath[pointIndex]
+						- profile.CombinedPath[pointIndex - 1]);
+					var outgoing = math.normalize(profile.CombinedPath[pointIndex + 1]
+						- profile.CombinedPath[pointIndex]);
+					maximumTurn = math.max(maximumTurn, math.degrees(math.acos(
+						math.clamp(math.dot(incoming, outgoing), -1f, 1f))));
+				}
+				Assert.That(maximumTurn, Is.LessThanOrEqualTo(15.1f));
+
+				var vertices = new List<Vector3>();
+				var normals = new List<Vector3>();
+				var uvs = new List<Vector2>();
+				var indices = new List<int>();
+				WireRailFixtureMeshGenerator.AppendPolylineTube(profile.CombinedPath,
+					profile.AttachmentProfile.Frame, leg.Diameter, 0f, radialSegments,
+					vertices, normals, uvs, indices);
+				var expectedRadius = leg.Diameter * 0.5f;
+				for (var pointIndex = 0; pointIndex < profile.CombinedPath.Count;
+					pointIndex++) {
+					for (var radialIndex = 0; radialIndex < radialSegments; radialIndex++) {
+						var vertex = (float3)vertices[pointIndex * radialSegments + radialIndex];
+						Assert.That(math.distance(vertex, profile.CombinedPath[pointIndex]),
+							Is.EqualTo(expectedRadius).Within(0.001f));
+					}
+				}
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldRejectAReversingPolylineTube()
+		{
+			var vertices = new List<Vector3>();
+			var normals = new List<Vector3>();
+			var uvs = new List<Vector2>();
+			var indices = new List<int>();
+			var path = new[] {
+				new float3(0f, 0f, 0f),
+				new float3(10f, 0f, 0f),
+				new float3(0f, 0f, 0f),
+			};
+
+			WireRailFixtureMeshGenerator.AppendPolylineTube(path,
+				new WireRailPathFrame(float3.zero, new float3(0f, 1f, 0f),
+					new float3(1f, 0f, 0f), new float3(0f, 0f, 1f)),
+				6f, 0f, 8, vertices, normals, uvs, indices);
+
+			Assert.That(vertices, Is.Empty);
+			Assert.That(normals, Is.Empty);
+			Assert.That(uvs, Is.Empty);
+			Assert.That(indices, Is.Empty);
+		}
+
+		[TestCase(0f)]
+		[TestCase(0.02f)]
+		public void ShouldRejectLegsThatFoldBackThroughTheirAttachment(float vertical)
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var fixtureIndex = component.AddLegFixture(250f);
+				var leg = (WireRailLegFixture)component.Fixtures[fixtureIndex];
+				component.SetLegFixtureProperties(fixtureIndex, leg.Distance,
+					WireRailLegSide.Right, new Vector3(-1f, 0f, vertical),
+					leg.StartLength, leg.FootPosition, leg.FootRotation, leg.FootWidth,
+					leg.FootLength, leg.FootConnectionLength, leg.LateralOffset,
+					leg.VerticalOffset, leg.LengthAdjustment);
+
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateLegProfile(
+					component.SplineContainer.Spline, component.Segments,
+					(WireRailLegFixture)component.Fixtures[fixtureIndex], out _), Is.False);
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldPoseTheFootInThreeDimensionsAndKeepTheLegConnected()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var fixtureIndex = component.AddLegFixture(250f);
+				component.SetLegFixtureProperties(fixtureIndex, 250f,
+					WireRailLegSide.Left, new Vector3(0f, 1f, 0f), 25f,
+					new Vector3(10f, 20f, -50f), new Vector3(90f, 0f, 30f),
+					40f, 25f, 12f);
+				var leg = (WireRailLegFixture)component.Fixtures[fixtureIndex];
+
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateLegProfile(
+					component.SplineContainer.Spline, component.Segments, leg,
+					out var profile), Is.True);
+				Assert.That(math.distance(profile.LegPoints[0],
+					profile.AttachmentProfile.Start), Is.LessThan(0.001f));
+				Assert.That(math.dot(math.normalize(profile.LegPoints[1]
+					- profile.LegPoints[0]), profile.AttachmentProfile.Frame.Tangent),
+					Is.EqualTo(1f).Within(0.001f));
+				Assert.That(math.distance(profile.LegPoints[0], profile.LegPoints[1]),
+					Is.EqualTo(25f).Within(0.001f));
+				Assert.That(math.distance(profile.LegPoints[^1], profile.FootPoints[0]),
+					Is.LessThan(0.001f));
+				Assert.That(math.distance(profile.FootPoints[0], profile.FootPoints[1]),
+					Is.EqualTo(12f).Within(0.001f));
+				Assert.That(math.distance(profile.FootPoints[^2], profile.FootPoints[^1]),
+					Is.EqualTo(25f).Within(0.001f));
+				const float footRadius = 20f;
+				const float footArcCenterY = -25f * 0.5f + footRadius * 0.5f;
+				var expectedLocalFootStart = new float3(10f, 20f, -50f)
+					+ math.mul(quaternion.EulerXYZ(math.radians(new float3(90f, 0f, 30f))),
+						new float3(-footRadius, footArcCenterY + 12f, 0f));
+				var expectedFootStart = profile.LegPoints[0]
+					+ profile.AttachmentProfile.Frame.Right * expectedLocalFootStart.x
+					+ profile.AttachmentProfile.Frame.Tangent * expectedLocalFootStart.y
+					+ profile.AttachmentProfile.Frame.Up * expectedLocalFootStart.z;
+				Assert.That(math.distance(profile.FootPoints[0], expectedFootStart),
+					Is.LessThan(0.001f));
+				var footNormal = math.normalize(math.cross(
+					profile.FootPoints[1] - profile.FootPoints[0],
+					profile.FootPoints[2] - profile.FootPoints[1]));
+				Assert.That(math.abs(math.dot(footNormal,
+					profile.AttachmentProfile.Frame.Up)), Is.LessThan(0.99f),
+					"the authored foot rotation should tilt its plane out of the default orientation");
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldHideALegAndFootWhenEitherBottomRailIsInactive()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SetRailCount(2);
+				var fixtureIndex = component.AddLegFixture(250f);
+				var leg = (WireRailLegFixture)component.Fixtures[fixtureIndex];
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateLegProfile(
+					component.SplineContainer.Spline, component.Segments, leg, out _),
+					Is.True);
+
+				component.SetRailsActive(0, new[] { 0 }, false);
+
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateLegProfile(
+					component.SplineContainer.Spline, component.Segments, leg, out _),
+					Is.False);
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
 		public void ShouldMigrateLegacyBraceRadiusOffsetToScale()
 		{
 			var brace = new WireRailBraceFixture();
@@ -983,6 +1250,44 @@ namespace VisualPinball.Unity.Test
 				Assert.That(duplicate.VerticalOffset, Is.EqualTo(source.VerticalOffset));
 				Assert.That(duplicate.LengthAdjustment,
 					Is.EqualTo(source.LengthAdjustment));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldDuplicateEveryLegAndFootSetting()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var sourceIndex = component.AddLegFixture(175f);
+				component.SetLegFixtureProperties(sourceIndex, 175f,
+					WireRailLegSide.Left, new Vector3(1f, 2f, -3f), 42f,
+					new Vector3(4f, 5f, -60f), new Vector3(15f, 25f, 35f),
+					38f, 27f, 19f, 6f, -9f, 14f);
+				var duplicateIndex = component.DuplicateLegFixture(sourceIndex);
+				var source = (WireRailLegFixture)component.Fixtures[sourceIndex];
+				var duplicate = (WireRailLegFixture)component.Fixtures[duplicateIndex];
+
+				Assert.That(duplicateIndex, Is.EqualTo(sourceIndex + 1));
+				Assert.That(duplicate, Is.Not.SameAs(source));
+				Assert.That(duplicate.Distance, Is.EqualTo(source.Distance));
+				Assert.That(duplicate.Diameter, Is.EqualTo(source.Diameter));
+				Assert.That(duplicate.LegSide, Is.EqualTo(source.LegSide));
+				Assert.That(duplicate.LateralOffset, Is.EqualTo(source.LateralOffset));
+				Assert.That(duplicate.VerticalOffset, Is.EqualTo(source.VerticalOffset));
+				Assert.That(duplicate.LengthAdjustment,
+					Is.EqualTo(source.LengthAdjustment));
+				Assert.That(Vector3.Distance(duplicate.StartDirection, source.StartDirection),
+					Is.LessThan(0.0001f));
+				Assert.That(duplicate.StartLength, Is.EqualTo(source.StartLength));
+				Assert.That(duplicate.FootPosition, Is.EqualTo(source.FootPosition));
+				Assert.That(duplicate.FootRotation, Is.EqualTo(source.FootRotation));
+				Assert.That(duplicate.FootWidth, Is.EqualTo(source.FootWidth));
+				Assert.That(duplicate.FootLength, Is.EqualTo(source.FootLength));
+				Assert.That(duplicate.FootConnectionLength,
+					Is.EqualTo(source.FootConnectionLength));
 			} finally {
 				Object.DestroyImmediate(go);
 			}
@@ -1488,6 +1793,7 @@ namespace VisualPinball.Unity.Test
 				component.SetRailCount(5);
 				component.AddBraceFixture(125f);
 				component.AddCrossWireFixture(375f);
+				component.AddLegFixture(250f);
 
 				component.SetWireDiameter(12f);
 
@@ -1500,6 +1806,8 @@ namespace VisualPinball.Unity.Test
 				Assert.That(((WireRailBraceFixture)component.Fixtures[0]).Diameter,
 					Is.EqualTo(12f));
 				Assert.That(((WireRailCrossWireFixture)component.Fixtures[1]).Diameter,
+					Is.EqualTo(12f));
+				Assert.That(((WireRailLegFixture)component.Fixtures[2]).Diameter,
 					Is.EqualTo(12f));
 				Assert.That(component.RenderMesh.bounds.size.x, Is.GreaterThan(0f));
 				Assert.That(component.ColliderMesh.vertexCount, Is.GreaterThan(0));

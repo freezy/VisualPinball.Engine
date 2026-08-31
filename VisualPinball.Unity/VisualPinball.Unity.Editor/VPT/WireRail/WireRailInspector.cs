@@ -34,15 +34,20 @@ namespace VisualPinball.Unity.Editor
 		private static readonly string[] ThirdRailSides = { "Left", "Right" };
 		private static readonly string[] RailCounts = { "1", "2", "3", "4", "5", "6" };
 		private static readonly Color TransitionCurveColor = new(0.05f, 0.75f, 1f, 1f);
+		private static readonly List<SelectableKnot> SelectedGradeKnots = new();
+		private static readonly List<SelectableTangent> SelectedGradeTangents = new();
+		private static readonly List<int> SelectedGradeKnotIndices = new();
 		private static GUIContent _alignAngleRangeContent;
 		private const float LayoutLineHeight = 20f;
 		private const float LayoutPadding = 7f;
 		private const float FixtureScaleMinimum = 0.1f;
 		private const float FixtureScaleMaximum = 4f;
+		private const int PlanarSplineLengthResolution = 64;
 		private static SplineContainer _pendingSplineEdit;
 		private readonly WireRailCrossSectionEditor _crossSectionEditor = new();
 		private readonly WireRailBracePreviewEditor _bracePreviewEditor = new();
 		private readonly WireRailCrossWirePreviewEditor _crossWirePreviewEditor = new();
+		private readonly WireRailLegPreviewEditor _legPreviewEditor = new();
 		[SerializeField] private bool _showRenderGeometry = true;
 		[SerializeField] private bool _showBallChannelCollider = true;
 		[SerializeField] private bool _showFixtures = true;
@@ -56,6 +61,13 @@ namespace VisualPinball.Unity.Editor
 		{
 			_fixtureOrderList = CreateFixtureOrderList();
 			_layoutOrderList = CreateLayoutOrderList();
+			SplineSelection.changed -= Repaint;
+			SplineSelection.changed += Repaint;
+		}
+
+		private void OnDisable()
+		{
+			SplineSelection.changed -= Repaint;
 		}
 
 		[MenuItem("GameObject/Pinball/Wire Rail", false, 11)]
@@ -126,6 +138,24 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.HelpBox(
 				"While editing, click a knot to show the position gizmo. Double-click the "
 				+ "spline to add a knot or double-click a knot to remove it.", MessageType.None);
+			var hasGradeRange = TryGetGradeSplineRange(container, out var gradeStartKnot,
+				out var gradeEndKnot, out var selectedGradeKnotCount);
+			var gradeButtonLabel = selectedGradeKnotCount == 2
+				? "Grade Heights Between Selected Knots" : "Grade Heights First → Last";
+			var gradeButtonTooltip = selectedGradeKnotCount == 1 || selectedGradeKnotCount > 2
+				? "Select either no knots to grade the complete route, or exactly two knots "
+					+ "to grade only the interval between them."
+				: "Set every knot and Bézier handle in the target interval to a constant "
+					+ "grade weighted by horizontal spline distance. Auto Smooth knots become "
+					+ "editable modes so the plan-view route and unselected intervals stay fixed.";
+			using (new EditorGUI.DisabledScope(!hasGradeRange)) {
+				if (GUILayout.Button(new GUIContent(gradeButtonLabel, gradeButtonTooltip))) {
+					if (!GradeSplineHeights(component, gradeStartKnot, gradeEndKnot)) {
+						Debug.LogWarning("Cannot grade a Wire Rail spline without horizontal length.",
+							component);
+					}
+				}
+			}
 
 			if (container.Splines.Count > 1) {
 				EditorGUILayout.HelpBox(
@@ -210,6 +240,14 @@ namespace VisualPinball.Unity.Editor
 							() => component.AddCrossWireFixture(splineLength * 0.5f));
 						SynchronizeOrder(_fixtureOrder, component.Fixtures.Count, true);
 					}
+				}
+			}
+			using (new EditorGUI.DisabledScope(splineLength <= 0f
+				|| component.RailCount < 2)) {
+				if (GUILayout.Button("Add Leg & Foot")) {
+					Edit(component, "Add Wire Rail Leg and Foot",
+						() => component.AddLegFixture(splineLength * 0.5f));
+					SynchronizeOrder(_fixtureOrder, component.Fixtures.Count, true);
 				}
 			}
 		}
@@ -310,6 +348,9 @@ namespace VisualPinball.Unity.Editor
 					+ WireRailBracePreviewEditor.Height + 25f,
 				WireRailCrossWireFixture => LayoutPadding * 2f + LayoutLineHeight * 5f
 					+ WireRailCrossWirePreviewEditor.Height + 25f,
+				WireRailLegFixture => LayoutPadding * 2f + LayoutLineHeight * 15f
+					+ (GetVector3FieldHeight() - LayoutLineHeight) * 3f
+					+ WireRailLegPreviewEditor.Height + 55f,
 				_ => LayoutLineHeight * 2f,
 			};
 
@@ -326,6 +367,10 @@ namespace VisualPinball.Unity.Editor
 			}
 			if (component.Fixtures[fixtureIndex] is WireRailCrossWireFixture crossWire) {
 				DrawCrossWireFixtureElement(content, component, fixtureIndex, crossWire);
+				return;
+			}
+			if (component.Fixtures[fixtureIndex] is WireRailLegFixture leg) {
+				DrawLegFixtureElement(content, component, fixtureIndex, leg);
 				return;
 			}
 			{
@@ -515,6 +560,133 @@ namespace VisualPinball.Unity.Editor
 						lengthAdjustment));
 			}
 		}
+
+		private void DrawLegFixtureElement(Rect content, WireRailComponent component,
+			int fixtureIndex, WireRailLegFixture leg)
+		{
+			var row = new Rect(content.x, content.y - 2f, content.width, LayoutLineHeight);
+			EditorGUI.LabelField(row, $"Leg & Foot {fixtureIndex + 1}", EditorStyles.boldLabel);
+			var trashRect = new Rect(row.xMax - LayoutLineHeight, row.y, LayoutLineHeight,
+				LayoutLineHeight);
+			var duplicateRect = new Rect(trashRect.x - LayoutLineHeight - 2f, row.y,
+				LayoutLineHeight, LayoutLineHeight);
+			var duplicate = new GUIContent(EditorGUIUtility.IconContent("TreeEditor.Duplicate")) {
+				tooltip = "Duplicate this leg and foot",
+			};
+			var trash = new GUIContent(EditorGUIUtility.IconContent("TreeEditor.Trash")) {
+				tooltip = "Remove this leg and foot",
+			};
+			EditorGUIUtility.AddCursorRect(duplicateRect, MouseCursor.Link);
+			EditorGUIUtility.AddCursorRect(trashRect, MouseCursor.Link);
+			if (GUI.Button(duplicateRect, duplicate, GUIStyle.none)) {
+				Edit(component, "Duplicate Wire Rail Leg and Foot",
+					() => component.DuplicateLegFixture(fixtureIndex));
+				SynchronizeOrder(_fixtureOrder, component.Fixtures.Count, true);
+				GUIUtility.ExitGUI();
+			}
+			if (GUI.Button(trashRect, trash, GUIStyle.none)) {
+				Edit(component, "Remove Wire Rail Leg and Foot",
+					() => component.RemoveFixture(fixtureIndex));
+				SynchronizeOrder(_fixtureOrder, component.Fixtures.Count, true);
+				GUIUtility.ExitGUI();
+			}
+
+			EditorGUI.BeginChangeCheck();
+			row.y = content.y + LayoutLineHeight + 3f;
+			var distance = EditorGUI.Slider(row, new GUIContent("Position",
+				"Distance along the complete spline in VPX units."), leg.Distance,
+				0f, math.max(0f, component.SplineLength));
+
+			row.y += LayoutLineHeight + 4f;
+			var previewRect = new Rect(content.x, row.y, content.width,
+				WireRailLegPreviewEditor.Height);
+			_legPreviewEditor.Draw(previewRect, component, fixtureIndex, leg);
+
+			row.y = previewRect.yMax + 4f;
+			EditorGUI.LabelField(row, "Rail Attachment", EditorStyles.boldLabel);
+
+			row.y += LayoutLineHeight + 3f;
+			var lateralOffset = leg.LateralOffset;
+			var verticalOffset = leg.VerticalOffset;
+			DrawFixtureOffsetRow(row, ref lateralOffset, ref verticalOffset,
+				out var resetOffset);
+			if (resetOffset) {
+				Edit(component, "Reset Wire Rail Leg Attachment Offset", () =>
+					component.SetLegFixtureProperties(fixtureIndex, leg.Distance, leg.LegSide,
+						leg.StartDirection, leg.StartLength, leg.FootPosition,
+						leg.FootRotation, leg.FootWidth, leg.FootLength,
+						leg.FootConnectionLength, 0f, 0f, leg.LengthAdjustment));
+				GUIUtility.ExitGUI();
+			}
+
+			row.y += LayoutLineHeight + 3f;
+			var lengthAdjustment = EditorGUI.FloatField(row, new GUIContent("Length",
+				"Signed VPX adjustment to the attachment span between the bottom rails. "
+				+ "Positive values extend it; negative values shorten it."),
+				leg.LengthAdjustment);
+
+			row.y += LayoutLineHeight + 3f;
+			EditorGUI.LabelField(row, "Leg", EditorStyles.boldLabel);
+
+			row.y += LayoutLineHeight + 3f;
+			var legSide = (WireRailLegSide)EditorGUI.EnumPopup(row,
+				new GUIContent("Side", "End of the bottom-rail attachment where the leg begins."),
+				leg.LegSide);
+
+			row.y += LayoutLineHeight + 3f;
+			var vector3FieldHeight = GetVector3FieldHeight();
+			row.height = vector3FieldHeight;
+			var startDirection = EditorGUI.Vector3Field(row,
+				new GUIContent("Start Vector", "Route-local XYZ direction followed by the leg before it bends toward the foot."),
+				leg.StartDirection);
+
+			row.y += vector3FieldHeight + 3f;
+			row.height = LayoutLineHeight;
+			var startLength = EditorGUI.FloatField(row,
+				new GUIContent("Start Length", "Distance in VPX units traveled along the start vector before connecting to the foot."),
+				leg.StartLength);
+
+			row.y += LayoutLineHeight + 3f;
+			EditorGUI.LabelField(row, "U-Hook Foot", EditorStyles.boldLabel);
+
+			row.y += LayoutLineHeight + 3f;
+			row.height = vector3FieldHeight;
+			var footPosition = EditorGUI.Vector3Field(row,
+				new GUIContent("Position", "Route-local XYZ translation of the foot pivot, relative to the leg attachment."),
+				leg.FootPosition);
+
+			row.y += vector3FieldHeight + 3f;
+			var footRotation = EditorGUI.Vector3Field(row,
+				new GUIContent("Rotation", "Route-local XYZ Euler rotation of the complete U-hook foot."),
+				leg.FootRotation);
+
+			row.y += vector3FieldHeight + 3f;
+			row.height = LayoutLineHeight;
+			var footWidth = EditorGUI.FloatField(row,
+				new GUIContent("Width", "Centerline width across the U-hook bend in VPX units."),
+				leg.FootWidth);
+
+			row.y += LayoutLineHeight + 3f;
+			var footLength = EditorGUI.FloatField(row,
+				new GUIContent("Arm Length", "Length of the free straight U-hook arm in VPX units."),
+				leg.FootLength);
+
+			row.y += LayoutLineHeight + 3f;
+			var footConnectionLength = EditorGUI.FloatField(row,
+				new GUIContent("Connected Arm Length", "Distance from the U-hook bend to the point where the leg's connection segment joins the hook."),
+				leg.FootConnectionLength);
+
+			if (EditorGUI.EndChangeCheck()) {
+				Edit(component, "Edit Wire Rail Leg and Foot", () =>
+					component.SetLegFixtureProperties(fixtureIndex, distance, legSide,
+						startDirection, startLength, footPosition, footRotation,
+						footWidth, footLength, footConnectionLength, lateralOffset,
+						verticalOffset, lengthAdjustment));
+			}
+		}
+
+		private static float GetVector3FieldHeight()
+			=> EditorGUIUtility.wideMode ? LayoutLineHeight : LayoutLineHeight * 2f;
 
 		private static void DrawFixtureOffsetRow(Rect rect, ref float lateralOffset,
 			ref float verticalOffset, out bool reset)
@@ -941,6 +1113,178 @@ namespace VisualPinball.Unity.Editor
 			SceneView.RepaintAll();
 		}
 
+		internal static bool TryGetGradeSplineRange(SplineContainer container,
+			out int startKnotIndex, out int endKnotIndex, out int selectedKnotCount)
+		{
+			startKnotIndex = 0;
+			endKnotIndex = container && container.Spline != null
+				? container.Spline.Count - 1 : -1;
+			selectedKnotCount = 0;
+			var spline = container ? container.Spline : null;
+			if (spline == null || spline.Closed || spline.Count < 2) {
+				return false;
+			}
+
+			var splineInfo = new SplineInfo(container, 0);
+			SplineSelection.GetElements(splineInfo, SelectedGradeKnots);
+			SplineSelection.GetElements(splineInfo, SelectedGradeTangents);
+			SelectedGradeKnotIndices.Clear();
+			for (var index = 0; index < SelectedGradeKnots.Count; index++) {
+				AddSelectedGradeKnotIndex(SelectedGradeKnots[index].KnotIndex);
+			}
+			for (var index = 0; index < SelectedGradeTangents.Count; index++) {
+				AddSelectedGradeKnotIndex(SelectedGradeTangents[index].KnotIndex);
+			}
+			SelectedGradeKnotIndices.Sort();
+			selectedKnotCount = SelectedGradeKnotIndices.Count;
+			if (selectedKnotCount == 0) {
+				return true;
+			}
+			if (selectedKnotCount != 2) {
+				return false;
+			}
+
+			startKnotIndex = SelectedGradeKnotIndices[0];
+			endKnotIndex = SelectedGradeKnotIndices[1];
+			return true;
+		}
+
+		private static void AddSelectedGradeKnotIndex(int knotIndex)
+		{
+			if (!SelectedGradeKnotIndices.Contains(knotIndex)) {
+				SelectedGradeKnotIndices.Add(knotIndex);
+			}
+		}
+
+		internal static bool GradeSplineHeights(WireRailComponent component,
+			int startKnotIndex, int endKnotIndex)
+		{
+			var container = component ? component.SplineContainer : null;
+			var spline = container ? container.Spline : null;
+			if (spline == null || spline.Closed || spline.Count < 2
+				|| startKnotIndex < 0 || endKnotIndex >= spline.Count
+				|| startKnotIndex >= endKnotIndex) {
+				return false;
+			}
+
+			var rangeKnotCount = endKnotIndex - startKnotIndex + 1;
+			var knotDistances = new float[rangeKnotCount];
+			for (var segmentIndex = startKnotIndex; segmentIndex < endKnotIndex;
+				segmentIndex++) {
+				var rangeIndex = segmentIndex - startKnotIndex;
+				knotDistances[rangeIndex + 1] = knotDistances[rangeIndex]
+					+ CalculatePlanarLength(spline.GetCurve(segmentIndex));
+			}
+			var totalDistance = knotDistances[^1];
+			if (totalDistance <= 1e-5f) {
+				return false;
+			}
+
+			var originalKnots = new BezierKnot[rangeKnotCount];
+			var knots = new BezierKnot[rangeKnotCount];
+			var tangentModes = new TangentMode[rangeKnotCount];
+			var startHeight = spline[startKnotIndex].Position.z;
+			var endHeight = spline[endKnotIndex].Position.z;
+			var grade = (endHeight - startHeight) / totalDistance;
+			for (var knotIndex = startKnotIndex; knotIndex <= endKnotIndex; knotIndex++) {
+				var rangeIndex = knotIndex - startKnotIndex;
+				var knot = spline[knotIndex];
+				originalKnots[rangeIndex] = knot;
+				var ratio = knotDistances[rangeIndex] / totalDistance;
+				knot.Position.z = math.lerp(startHeight, endHeight, ratio);
+				tangentModes[rangeIndex] = spline.GetTangentMode(knotIndex);
+				if (tangentModes[rangeIndex] != TangentMode.Linear) {
+					if (knotIndex > startKnotIndex || startKnotIndex == 0) {
+						knot.TangentIn = GradeTangent(knot.TangentIn, knot.Rotation, grade,
+							false);
+					}
+					if (knotIndex < endKnotIndex || endKnotIndex == spline.Count - 1) {
+						knot.TangentOut = GradeTangent(knot.TangentOut, knot.Rotation, grade,
+							true);
+					}
+				}
+				knots[rangeIndex] = knot;
+			}
+
+			const string undoName = "Grade Wire Rail Heights";
+			Undo.RecordObjects(new UnityEngine.Object[] { component, container }, undoName);
+			for (var knotIndex = startKnotIndex; knotIndex <= endKnotIndex; knotIndex++) {
+				var rangeIndex = knotIndex - startKnotIndex;
+				var mainTangent = knotIndex == endKnotIndex
+					? BezierTangent.In : BezierTangent.Out;
+				var hasUngradedTangent = (knotIndex == startKnotIndex && startKnotIndex > 0)
+					|| (knotIndex == endKnotIndex && endKnotIndex < spline.Count - 1);
+				var tangentMode = tangentModes[rangeIndex];
+				var requiresBoundaryBreak = hasUngradedTangent
+					&& RequiresBoundaryBreak(originalKnots, knots, rangeIndex,
+						tangentMode);
+				if (tangentMode == TangentMode.AutoSmooth) {
+					if (requiresBoundaryBreak) {
+						spline.SetTangentModeNoNotify(knotIndex, TangentMode.Broken,
+							mainTangent);
+					} else if (!hasUngradedTangent) {
+						spline.SetTangentModeNoNotify(knotIndex, TangentMode.Continuous,
+							mainTangent);
+					}
+				} else if (requiresBoundaryBreak && (tangentMode == TangentMode.Continuous
+					|| tangentMode == TangentMode.Mirrored)) {
+					spline.SetTangentModeNoNotify(knotIndex, TangentMode.Broken,
+						mainTangent);
+				}
+				if (knotIndex == endKnotIndex) {
+					spline.SetKnot(knotIndex, knots[rangeIndex], mainTangent);
+				} else {
+					spline.SetKnotNoNotify(knotIndex, knots[rangeIndex], mainTangent);
+				}
+			}
+
+			EditorUtility.SetDirty(container);
+			EditorUtility.SetDirty(component);
+			PrefabUtility.RecordPrefabInstancePropertyModifications(container);
+			PrefabUtility.RecordPrefabInstancePropertyModifications(component);
+			SceneView.RepaintAll();
+			return true;
+		}
+
+		private static bool RequiresBoundaryBreak(IReadOnlyList<BezierKnot> originalKnots,
+			IReadOnlyList<BezierKnot> gradedKnots, int rangeIndex, TangentMode tangentMode)
+		{
+			var original = originalKnots[rangeIndex];
+			var graded = gradedKnots[rangeIndex];
+			if (!Approximately(original.Position, graded.Position)
+				|| !Approximately(original.TangentIn, graded.TangentIn)
+				|| !Approximately(original.TangentOut, graded.TangentOut)) {
+				return true;
+			}
+			if (tangentMode != TangentMode.AutoSmooth) {
+				return false;
+			}
+			var insideRangeIndex = rangeIndex == 0 ? 1 : rangeIndex - 1;
+			return !Approximately(originalKnots[insideRangeIndex].Position,
+				gradedKnots[insideRangeIndex].Position);
+
+			static bool Approximately(float3 left, float3 right)
+				=> math.distancesq(left, right) <= 1e-10f;
+		}
+
+		private static float CalculatePlanarLength(BezierCurve curve)
+		{
+			curve.P0.z = 0f;
+			curve.P1.z = 0f;
+			curve.P2.z = 0f;
+			curve.P3.z = 0f;
+			return CurveUtility.CalculateLength(curve, PlanarSplineLengthResolution);
+		}
+
+		private static float3 GradeTangent(float3 tangent, quaternion rotation,
+			float grade, bool outgoing)
+		{
+			var splineTangent = math.rotate(rotation, tangent);
+			var horizontalLength = math.length(splineTangent.xy);
+			splineTangent.z = (outgoing ? grade : -grade) * horizontalLength;
+			return math.rotate(math.inverse(rotation), splineTangent);
+		}
+
 		internal static void EditSpline(SplineContainer container)
 		{
 			if (!container) {
@@ -983,6 +1327,7 @@ namespace VisualPinball.Unity.Editor
 		static WireRailScenePreview()
 		{
 			SceneView.duringSceneGui += OnSceneGUI;
+			SplineSelection.changed += SceneView.RepaintAll;
 		}
 
 		private static void OnSceneGUI(SceneView _)
@@ -999,7 +1344,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 			component.SynchronizeSegments();
-			DrawEditPanel(container);
+			DrawEditPanel(component, container);
 			if (Event.current.type != EventType.Repaint) {
 				return;
 			}
@@ -1092,6 +1437,20 @@ namespace VisualPinball.Unity.Editor
 					}
 					continue;
 				}
+				if (component.Fixtures[fixtureIndex] is WireRailLegFixture leg) {
+					if (WireRailSplineGeometry.TryEvaluateLeg(spline, component.Segments,
+							leg, out var centerlinePoints)) {
+						var legPreviousZTest = Handles.zTest;
+						Handles.zTest = CompareFunction.Always;
+						DrawFixturePath(container, centerlinePoints,
+							new Color(1f, 0.82f, 0.1f, 1f));
+						Handles.Label(container.transform.TransformPoint(
+							(Vector3)centerlinePoints[0]),
+							$"Leg & Foot {fixtureIndex + 1}", EditorStyles.boldLabel);
+						Handles.zTest = legPreviousZTest;
+					}
+					continue;
+				}
 				if (component.Fixtures[fixtureIndex] is not WireRailBraceFixture brace
 					|| !brace.TryGetVisibleArc(out var startAngle, out var sweepAngle, out _)
 					|| !WireRailSplineGeometry.TryEvaluateBrace(spline, component.Segments,
@@ -1119,12 +1478,28 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private static void DrawEditPanel(SplineContainer container)
+		private static void DrawFixturePath(SplineContainer container,
+			IReadOnlyList<float3> sourcePoints, Color color)
+		{
+			if (sourcePoints == null || sourcePoints.Count < 2) {
+				return;
+			}
+			var points = new Vector3[sourcePoints.Count];
+			for (var pointIndex = 0; pointIndex < sourcePoints.Count; pointIndex++) {
+				points[pointIndex] = container.transform.TransformPoint(
+					(Vector3)sourcePoints[pointIndex]);
+			}
+			Handles.color = color;
+			Handles.DrawAAPolyLine(4f, points);
+		}
+
+		private static void DrawEditPanel(WireRailComponent component,
+			SplineContainer container)
 		{
 			var editing = Selection.activeGameObject == container.gameObject
 				&& ToolManager.activeContextType == typeof(SplineToolContext);
 			Handles.BeginGUI();
-			GUILayout.BeginArea(new Rect(55f, 42f, 250f, editing ? 86f : 58f),
+			GUILayout.BeginArea(new Rect(55f, 42f, 250f, editing ? 116f : 58f),
 				GUIContent.none, GUI.skin.window);
 			using (new EditorGUI.DisabledScope(editing)) {
 				if (GUILayout.Button(editing ? "Editing Wire Rail Spline"
@@ -1133,6 +1508,23 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 			if (editing) {
+				var hasGradeRange = WireRailInspector.TryGetGradeSplineRange(container,
+					out var startKnotIndex, out var endKnotIndex, out var selectedKnotCount);
+				var label = selectedKnotCount == 2
+					? "Grade Between Selected Knots" : "Grade Heights First → Last";
+				using (new EditorGUI.DisabledScope(!hasGradeRange)) {
+					if (GUILayout.Button(new GUIContent(label,
+							"Select no knots to grade the complete route, or exactly two knots "
+								+ "to grade only the interval between them."),
+						GUILayout.Height(22f))) {
+						if (!WireRailInspector.GradeSplineHeights(component, startKnotIndex,
+								endKnotIndex)) {
+							Debug.LogWarning(
+								"Cannot grade a Wire Rail spline without horizontal length.",
+								component);
+						}
+					}
+				}
 				GUILayout.Label("Click knot: show position gizmo\n"
 					+ "Double-click line: add knot\nDouble-click knot: remove",
 					EditorStyles.miniLabel);

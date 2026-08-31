@@ -766,4 +766,148 @@ namespace VisualPinball.Unity.Editor
 					Rect.yMax - 10f - (vpx.y - Min.y) * Scale, 0f);
 		}
 	}
+
+	internal sealed class WireRailLegPreviewEditor
+	{
+		private const int CircleSegments = 48;
+		public const float Height = 190f;
+		private static readonly Color CanvasColor = new(0.105f, 0.115f, 0.13f, 1f);
+		private static readonly Color GridColor = new(1f, 1f, 1f, 0.07f);
+		private static readonly Color AxisColor = new(1f, 1f, 1f, 0.28f);
+		private static readonly Color OutlineColor = new(0f, 0f, 0f, 0.8f);
+		private static readonly Color RailColor = new(0.55f, 0.58f, 0.62f, 1f);
+		private static readonly Color LegColor = new(1f, 0.67f, 0.12f, 1f);
+
+		public void Draw(Rect rect, WireRailComponent component, int fixtureIndex,
+			WireRailLegFixture leg)
+		{
+			EditorGUI.DrawRect(rect, CanvasColor);
+			if (!component.TryGetLegPreview(fixtureIndex, out var preview)) {
+				EditorGUI.LabelField(rect,
+					"Leg and foot preview unavailable at this position",
+					EditorStyles.centeredGreyMiniLabel);
+				return;
+			}
+
+			var view = LegPreviewView.Create(rect, preview, leg.Diameter * 0.5f);
+			DrawGrid(view);
+			var railWidth = math.clamp(leg.Diameter * view.Scale, 2f, 12f);
+			var tubeWidth = math.clamp(leg.Diameter * view.Scale, 3f, 16f);
+			Handles.BeginGUI();
+			var previousColor = Handles.color;
+			DrawRail(view, preview.StartRailOffset, preview.StartRailRadius, railWidth);
+			DrawRail(view, preview.EndRailOffset, preview.EndRailRadius, railWidth);
+			DrawPath(view, preview.CenterlinePoints, tubeWidth, LegColor);
+			Handles.color = previousColor;
+			Handles.EndGUI();
+
+			GUI.Label(new Rect(rect.x + 6f, rect.y + 4f, 88f, 18f),
+				"X / Y / Z", EditorStyles.miniLabel);
+			GUI.Label(rect, new GUIContent(string.Empty,
+				"Projected route-local view of the rounded leg and U-hook centerline."));
+		}
+
+		private static void DrawRail(LegPreviewView view, Vector3 center,
+			float radius, float width)
+		{
+			var points = new Vector3[CircleSegments + 1];
+			for (var index = 0; index <= CircleSegments; index++) {
+				var angle = math.PI * 2f * index / CircleSegments;
+				points[index] = view.ToScreen(center
+					+ new Vector3(math.cos(angle) * radius, 0f,
+						math.sin(angle) * radius));
+			}
+			Handles.color = OutlineColor;
+			Handles.DrawAAPolyLine(width + 2f, points);
+			Handles.color = RailColor;
+			Handles.DrawAAPolyLine(width, points);
+		}
+
+		private static void DrawPath(LegPreviewView view,
+			IReadOnlyList<Vector3> source, float width, Color color)
+		{
+			if (source == null || source.Count < 2) {
+				return;
+			}
+			var points = new Vector3[source.Count];
+			for (var pointIndex = 0; pointIndex < source.Count; pointIndex++) {
+				points[pointIndex] = view.ToScreen(source[pointIndex]);
+			}
+			Handles.color = OutlineColor;
+			Handles.DrawAAPolyLine(width + 3f, points);
+			Handles.color = color;
+			Handles.DrawAAPolyLine(width, points);
+		}
+
+		private static void DrawGrid(LegPreviewView view)
+		{
+			var span = math.max(view.Max.x - view.Min.x, view.Max.y - view.Min.y);
+			var gridStep = span > 400f ? 100f : span > 200f ? 50f : span > 100f ? 20f : 10f;
+			for (var x = math.ceil(view.Min.x / gridStep) * gridStep;
+				x <= view.Max.x; x += gridStep) {
+				var screen = view.ToScreenProjected(new Vector2(x, 0f));
+				EditorGUI.DrawRect(new Rect(screen.x, view.Rect.y, 1f, view.Rect.height),
+					math.abs(x) < 0.01f ? AxisColor : GridColor);
+			}
+			for (var y = math.ceil(view.Min.y / gridStep) * gridStep;
+				y <= view.Max.y; y += gridStep) {
+				var screen = view.ToScreenProjected(new Vector2(0f, y));
+				EditorGUI.DrawRect(new Rect(view.Rect.x, screen.y, view.Rect.width, 1f),
+					math.abs(y) < 0.01f ? AxisColor : GridColor);
+			}
+		}
+
+		private readonly struct LegPreviewView
+		{
+			public readonly Rect Rect;
+			public readonly Vector2 Min;
+			public readonly Vector2 Max;
+			public readonly float Scale;
+
+			private LegPreviewView(Rect rect, Vector2 min, Vector2 max, float scale)
+			{
+				Rect = rect;
+				Min = min;
+				Max = max;
+				Scale = scale;
+			}
+
+			public static LegPreviewView Create(Rect rect, WireRailLegPreview preview,
+				float tubeRadius)
+			{
+				var padding = math.max(8f, tubeRadius + 8f);
+				var min = new Vector2(float.PositiveInfinity, float.PositiveInfinity);
+				var max = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
+				Include(preview.StartRailOffset, preview.StartRailRadius + padding);
+				Include(preview.EndRailOffset, preview.EndRailRadius + padding);
+				foreach (var point in preview.CenterlinePoints) {
+					Include(point, padding);
+				}
+				var size = Vector2.Max(max - min, new Vector2(1f, 1f));
+				var scale = math.max(0.01f, math.min((rect.width - 20f) / size.x,
+					(rect.height - 20f) / size.y));
+				var fittedSize = new Vector2((rect.width - 20f) / scale,
+					(rect.height - 20f) / scale);
+				var center = (min + max) * 0.5f;
+				return new LegPreviewView(rect, center - fittedSize * 0.5f,
+					center + fittedSize * 0.5f, scale);
+
+				void Include(Vector3 point, float radius)
+				{
+					var projected = Project(point);
+					min = Vector2.Min(min, projected - Vector2.one * radius);
+					max = Vector2.Max(max, projected + Vector2.one * radius);
+				}
+			}
+
+			public Vector3 ToScreen(Vector3 vpx) => ToScreenProjected(Project(vpx));
+
+			public Vector3 ToScreenProjected(Vector2 projected)
+				=> new(Rect.x + 10f + (projected.x - Min.x) * Scale,
+					Rect.yMax - 10f - (projected.y - Min.y) * Scale, 0f);
+
+			private static Vector2 Project(Vector3 vpx)
+				=> new(vpx.x + vpx.y * 0.35f, vpx.z + vpx.y * 0.22f);
+		}
+	}
 }

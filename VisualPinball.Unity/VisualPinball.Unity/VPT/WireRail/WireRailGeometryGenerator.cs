@@ -182,6 +182,19 @@ namespace VisualPinball.Unity
 			return true;
 		}
 
+		public static bool TryEvaluateLeg(Spline spline,
+			IReadOnlyList<WireRailSegment> segments, WireRailLegFixture leg,
+			out IReadOnlyList<float3> centerlinePoints)
+		{
+			centerlinePoints = Array.Empty<float3>();
+			if (!WireRailFixtureMeshGenerator.TryEvaluateLegProfile(spline, segments,
+					leg, out var profile)) {
+				return false;
+			}
+			centerlinePoints = profile.CombinedPath;
+			return true;
+		}
+
 		public static float2 EvaluateRailOffset(Spline spline,
 			IReadOnlyList<WireRailSegment> segments, int segmentIndex, int railIndex,
 			float curveT)
@@ -867,9 +880,30 @@ namespace VisualPinball.Unity
 		public float3 End => Frame.TransformOffset(EndOffset);
 	}
 
+	internal readonly struct WireRailLegProfile
+	{
+		public readonly WireRailCrossWireProfile AttachmentProfile;
+		public readonly IReadOnlyList<float3> LegPoints;
+		public readonly IReadOnlyList<float3> FootPoints;
+		public readonly IReadOnlyList<float3> CombinedPath;
+
+		public WireRailLegProfile(WireRailCrossWireProfile attachmentProfile,
+			IReadOnlyList<float3> legPoints, IReadOnlyList<float3> footPoints,
+			IReadOnlyList<float3> combinedPath)
+		{
+			AttachmentProfile = attachmentProfile;
+			LegPoints = legPoints;
+			FootPoints = footPoints;
+			CombinedPath = combinedPath;
+		}
+	}
+
 	internal static class WireRailFixtureMeshGenerator
 	{
 		private const float FullTurn = math.PI * 2f;
+		private const float LegCornerRadiusDiameterRatio = 1f;
+		private const float LegCornerMaxAngleStep = math.PI / 12f;
+		private const float LegCornerMaxSpanFraction = 0.45f;
 
 		public static void Append(Spline spline, IReadOnlyList<WireRailSegment> segments,
 			IReadOnlyList<WireRailFixture> fixtures, float wireCapBevelSize,
@@ -890,6 +924,10 @@ namespace VisualPinball.Unity
 						out var crossWireProfile)) {
 					AppendCrossWire(crossWireProfile, crossWire, wireCapBevelSize,
 						radialSegments, vertices, normals, uvs, indices);
+				} else if (fixture is WireRailLegFixture leg
+					&& TryEvaluateLegProfile(spline, segments, leg, out var legProfile)) {
+					AppendLeg(legProfile, leg, wireCapBevelSize, radialSegments,
+						vertices, normals, uvs, indices);
 				}
 			}
 		}
@@ -955,13 +993,24 @@ namespace VisualPinball.Unity
 			out WireRailCrossWireProfile profile)
 		{
 			profile = default;
-			if (crossWire == null || !TryGetSplineLocation(spline, segments,
-					crossWire.Distance, out var segmentIndex, out var curveT, out var frame)) {
+			return crossWire != null && TryEvaluateCrossWireProfile(spline, segments,
+				crossWire.Distance, crossWire.StartRailIndex, crossWire.EndRailIndex,
+				crossWire.Angle, crossWire.LateralOffset, crossWire.VerticalOffset,
+				crossWire.LengthAdjustment, out profile);
+		}
+
+		private static bool TryEvaluateCrossWireProfile(Spline spline,
+			IReadOnlyList<WireRailSegment> segments, float distance, int startRailIndex,
+			int endRailIndex, float angleDegrees, float lateralOffset,
+			float verticalOffset, float lengthAdjustment,
+			out WireRailCrossWireProfile profile)
+		{
+			profile = default;
+			if (!TryGetSplineLocation(spline, segments, distance,
+					out var segmentIndex, out var curveT, out var frame)) {
 				return false;
 			}
 			var segment = segments[segmentIndex];
-			var startRailIndex = crossWire.StartRailIndex;
-			var endRailIndex = crossWire.EndRailIndex;
 			if (startRailIndex == endRailIndex || startRailIndex >= segment.RailCount
 				|| endRailIndex >= segment.RailCount
 				|| !segment.IsRailActive(startRailIndex)
@@ -1000,7 +1049,7 @@ namespace VisualPinball.Unity
 			var attachmentStart = startRailOffset + railDirection * startRailRadius;
 			var attachmentEnd = endRailOffset - railDirection * endRailRadius;
 			var rotationOriginOffset = (envelopeMinimum + envelopeMaximum) * 0.5f;
-			var angle = math.radians(crossWire.Angle);
+			var angle = math.radians(angleDegrees);
 			var direction = new float2(math.cos(angle), math.sin(angle));
 			var bottomCenter = (attachmentStart + attachmentEnd) * 0.5f;
 			var relativeBottomCenter = bottomCenter - rotationOriginOffset;
@@ -1010,9 +1059,9 @@ namespace VisualPinball.Unity
 				relativeBottomCenter.x * direction.y
 					+ relativeBottomCenter.y * direction.x);
 			var center = rotatedBottomCenter
-				+ new float2(crossWire.LateralOffset, crossWire.VerticalOffset);
+				+ new float2(lateralOffset, verticalOffset);
 			var length = math.max(0.1f, math.distance(attachmentStart, attachmentEnd)
-				+ crossWire.LengthAdjustment);
+				+ lengthAdjustment);
 			var startOffset = center - direction * length * 0.5f;
 			var endOffset = center + direction * length * 0.5f;
 			profile = new WireRailCrossWireProfile(frame, startRailOffset, endRailOffset,
@@ -1036,6 +1085,199 @@ namespace VisualPinball.Unity
 					segmentIndex, railIndex, curveT) * 0.5f;
 				return true;
 			}
+		}
+
+		internal static bool TryEvaluateLegProfile(Spline spline,
+			IReadOnlyList<WireRailSegment> segments, WireRailLegFixture leg,
+			out WireRailLegProfile profile)
+		{
+			profile = default;
+			if (leg == null || !TryEvaluateCrossWireProfile(spline, segments,
+					leg.Distance, 0, 1, 0f, leg.LateralOffset, leg.VerticalOffset,
+					leg.LengthAdjustment,
+					out var attachmentProfile)) {
+				return false;
+			}
+
+			var frame = attachmentProfile.Frame;
+			var legStart = leg.LegSide == WireRailLegSide.Left
+				? attachmentProfile.Start : attachmentProfile.End;
+			var authoredDirection = (float3)leg.StartDirection;
+			var startDirection = math.normalizesafe(
+				frame.Right * authoredDirection.x
+				+ frame.Tangent * authoredDirection.y
+				+ frame.Up * authoredDirection.z, -frame.Up);
+			var elbow = legStart + startDirection * leg.StartLength;
+
+			var footRotation = quaternion.EulerXYZ(math.radians((float3)leg.FootRotation));
+			var footPosition = (float3)leg.FootPosition;
+			var localFootPoints = BuildUHookPoints(leg.FootWidth, leg.FootLength,
+				leg.FootConnectionLength, WireRailLegFixture.FootBendSegments);
+			var footPoints = new float3[localFootPoints.Count];
+			for (var pointIndex = 0; pointIndex < localFootPoints.Count; pointIndex++) {
+				var local = footPosition + math.mul(footRotation, localFootPoints[pointIndex]);
+				footPoints[pointIndex] = legStart + frame.Right * local.x
+					+ frame.Tangent * local.y + frame.Up * local.z;
+			}
+
+			var legPoints = new List<float3> { legStart };
+			AddDistinct(legPoints, elbow);
+			AddDistinct(legPoints, footPoints[0]);
+			var oppositeAttachmentEnd = leg.LegSide == WireRailLegSide.Left
+				? attachmentProfile.End : attachmentProfile.Start;
+			var combinedPath = new List<float3>(legPoints.Count + footPoints.Length + 1) {
+				oppositeAttachmentEnd,
+			};
+			foreach (var legPoint in legPoints) {
+				AddDistinct(combinedPath, legPoint);
+			}
+			var lastLegCornerIndex = combinedPath.Count - 1;
+			for (var pointIndex = 1; pointIndex < footPoints.Length; pointIndex++) {
+				AddDistinct(combinedPath, footPoints[pointIndex]);
+			}
+			if (combinedPath.Count < 2) {
+				return false;
+			}
+			combinedPath = BuildRoundedLegPath(combinedPath, lastLegCornerIndex,
+				leg.Diameter * LegCornerRadiusDiameterRatio);
+			if (combinedPath == null) {
+				return false;
+			}
+			profile = new WireRailLegProfile(attachmentProfile, legPoints,
+				footPoints, combinedPath);
+			return true;
+
+			static void AddDistinct(ICollection<float3> points, float3 point)
+			{
+				if (points is List<float3> list && list.Count > 0
+					&& math.distancesq(list[^1], point) <= 1e-10f) {
+					return;
+				}
+				points.Add(point);
+			}
+		}
+
+		private static List<float3> BuildRoundedLegPath(IReadOnlyList<float3> points,
+			int lastCornerIndex, float desiredRadius)
+		{
+			var rounded = new List<float3>(points.Count + math.max(0, lastCornerIndex) * 6);
+			AddDistinct(rounded, points[0]);
+			var finalRoundedCorner = math.min(lastCornerIndex, points.Count - 2);
+			for (var pointIndex = 1; pointIndex < points.Count - 1; pointIndex++) {
+				if (IsPathReversal(points[pointIndex - 1], points[pointIndex],
+						points[pointIndex + 1])
+					|| (pointIndex <= finalRoundedCorner && IsCornerTooTight(
+						points[pointIndex - 1], points[pointIndex], points[pointIndex + 1],
+						desiredRadius * 0.5f))) {
+					return null;
+				}
+				if (pointIndex > finalRoundedCorner || !TryAppendRoundedCorner(
+						points[pointIndex - 1], points[pointIndex], points[pointIndex + 1],
+						desiredRadius, rounded)) {
+					AddDistinct(rounded, points[pointIndex]);
+				}
+			}
+			AddDistinct(rounded, points[^1]);
+			return rounded;
+
+			static bool IsCornerTooTight(float3 previous, float3 corner, float3 next,
+				float minimumRadius)
+			{
+				var incoming = corner - previous;
+				var outgoing = next - corner;
+				var incomingLength = math.length(incoming);
+				var outgoingLength = math.length(outgoing);
+				if (incomingLength <= 1e-5f || outgoingLength <= 1e-5f) {
+					return false;
+				}
+				var cornerAngle = math.acos(math.clamp(math.dot(incoming / incomingLength,
+					outgoing / outgoingLength), -1f, 1f));
+				if (cornerAngle <= math.radians(0.5f)) {
+					return false;
+				}
+				var tangentScale = math.tan(cornerAngle * 0.5f);
+				var maximumRadius = math.min(incomingLength, outgoingLength)
+					* LegCornerMaxSpanFraction / tangentScale;
+				return maximumRadius + 1e-5f < minimumRadius;
+			}
+
+			static bool TryAppendRoundedCorner(float3 previous, float3 corner, float3 next,
+				float desiredRadius, List<float3> target)
+			{
+				var incoming = corner - previous;
+				var outgoing = next - corner;
+				var incomingLength = math.length(incoming);
+				var outgoingLength = math.length(outgoing);
+				if (incomingLength <= 1e-5f || outgoingLength <= 1e-5f) {
+					return false;
+				}
+				var incomingDirection = incoming / incomingLength;
+				var outgoingDirection = outgoing / outgoingLength;
+				var cornerAngle = math.acos(math.clamp(
+					math.dot(incomingDirection, outgoingDirection), -1f, 1f));
+				if (cornerAngle <= math.radians(0.5f)
+					|| cornerAngle >= math.PI - math.radians(0.5f)) {
+					return false;
+				}
+				var tangentScale = math.tan(cornerAngle * 0.5f);
+				var tangentDistance = math.min(
+					math.max(0.05f, desiredRadius) * tangentScale,
+					math.min(incomingLength, outgoingLength) * LegCornerMaxSpanFraction);
+				if (tangentDistance <= 1e-5f || tangentScale <= 1e-5f) {
+					return false;
+				}
+				var radius = tangentDistance / tangentScale;
+				var bendNormal = math.normalizesafe(
+					math.cross(incomingDirection, outgoingDirection));
+				if (math.lengthsq(bendNormal) <= 1e-8f) {
+					return false;
+				}
+				var start = corner - incomingDirection * tangentDistance;
+				var end = corner + outgoingDirection * tangentDistance;
+				var center = start + math.cross(bendNormal, incomingDirection) * radius;
+				var startRadius = start - center;
+				var segmentCount = math.max(2,
+					(int)math.ceil(cornerAngle / LegCornerMaxAngleStep));
+				AddDistinct(target, start);
+				for (var segmentIndex = 1; segmentIndex < segmentCount; segmentIndex++) {
+					var angle = cornerAngle * segmentIndex / segmentCount;
+					AddDistinct(target, center + math.mul(
+						quaternion.AxisAngle(bendNormal, angle), startRadius));
+				}
+				AddDistinct(target, end);
+				return true;
+			}
+
+			static void AddDistinct(ICollection<float3> target, float3 point)
+			{
+				if (target is List<float3> list && list.Count > 0
+					&& math.distancesq(list[^1], point) <= 1e-10f) {
+					return;
+				}
+				target.Add(point);
+			}
+		}
+
+		private static List<float3> BuildUHookPoints(float width, float armLength,
+			float connectionArmLength, int bendSegments)
+		{
+			var radius = math.max(0.05f, width * 0.5f);
+			armLength = math.max(0f, armLength);
+			connectionArmLength = math.max(0f, connectionArmLength);
+			bendSegments = math.max(2, bendSegments);
+			var arcCenterY = -armLength * 0.5f + radius * 0.5f;
+			var openEndY = armLength * 0.5f + radius * 0.5f;
+			var points = new List<float3>(bendSegments + 3) {
+				new(-radius, arcCenterY + connectionArmLength, 0f),
+				new(-radius, arcCenterY, 0f),
+			};
+			for (var segmentIndex = 1; segmentIndex <= bendSegments; segmentIndex++) {
+				var angle = math.PI + math.PI * segmentIndex / bendSegments;
+				points.Add(new float3(math.cos(angle) * radius,
+					arcCenterY + math.sin(angle) * radius, 0f));
+			}
+			points.Add(new float3(radius, openEndY, 0f));
+			return points;
 		}
 
 		private static bool TryGetSplineLocation(Spline spline,
@@ -1215,6 +1457,144 @@ namespace VisualPinball.Unity
 				radialSegments, false, vertices, normals, uvs, indices);
 		}
 
+		private static void AppendLeg(WireRailLegProfile profile,
+			WireRailLegFixture leg, float capBevelSize, int radialSegments,
+			ICollection<Vector3> vertices, ICollection<Vector3> normals,
+			ICollection<Vector2> uvs, ICollection<int> indices)
+		{
+			AppendPolylineTube(profile.CombinedPath, profile.AttachmentProfile.Frame,
+				leg.Diameter, capBevelSize, radialSegments,
+				vertices, normals, uvs, indices);
+		}
+
+		internal static void AppendPolylineTube(IReadOnlyList<float3> sourcePoints,
+			WireRailPathFrame referenceFrame, float diameter, float capBevelSize,
+			int radialSegments, ICollection<Vector3> vertices,
+			ICollection<Vector3> normals, ICollection<Vector2> uvs,
+			ICollection<int> indices)
+		{
+			if (sourcePoints == null || sourcePoints.Count < 2) {
+				return;
+			}
+			var points = new List<float3>(sourcePoints.Count);
+			for (var pointIndex = 0; pointIndex < sourcePoints.Count; pointIndex++) {
+				if (points.Count == 0
+					|| math.distancesq(points[^1], sourcePoints[pointIndex]) > 1e-10f) {
+					points.Add(sourcePoints[pointIndex]);
+				}
+			}
+			if (points.Count < 2) {
+				return;
+			}
+			for (var pointIndex = 1; pointIndex < points.Count - 1; pointIndex++) {
+				if (IsPathReversal(points[pointIndex - 1], points[pointIndex],
+						points[pointIndex + 1])) {
+					return;
+				}
+			}
+
+			var tubeRadius = math.max(0.05f, diameter * 0.5f);
+			var firstSpan = math.distance(points[0], points[1]);
+			var lastSpan = math.distance(points[^2], points[^1]);
+			var startBevel = math.min(math.clamp(capBevelSize, 0f, tubeRadius),
+				firstSpan * 0.5f);
+			var endBevel = math.min(math.clamp(capBevelSize, 0f, tubeRadius),
+				lastSpan * 0.5f);
+			var frames = new WireRailPathFrame[points.Count];
+			for (var pointIndex = 0; pointIndex < points.Count; pointIndex++) {
+				var tangent = pointIndex == 0
+					? math.normalizesafe(points[1] - points[0], -referenceFrame.Up)
+					: pointIndex == points.Count - 1
+						? math.normalizesafe(points[^1] - points[^2], -referenceFrame.Up)
+						: EvaluateInteriorTangent(points, pointIndex, -referenceFrame.Up);
+				float3 right;
+				if (pointIndex == 0) {
+					right = Project(referenceFrame.Tangent, tangent);
+					if (math.lengthsq(right) <= 1e-8f) {
+						right = Project(referenceFrame.Right, tangent);
+					}
+					right = math.normalizesafe(right, referenceFrame.Right);
+				} else {
+					right = Transport(frames[pointIndex - 1].Right,
+						frames[pointIndex - 1].Tangent, tangent);
+				}
+				var up = math.normalizesafe(math.cross(right, tangent), referenceFrame.Up);
+				right = math.normalizesafe(math.cross(tangent, up), right);
+				frames[pointIndex] = new WireRailPathFrame(points[pointIndex], tangent,
+					right, up);
+			}
+
+			var firstRing = vertices.Count;
+			for (var pointIndex = 0; pointIndex < points.Count; pointIndex++) {
+				var frame = frames[pointIndex];
+				var position = frame.Position;
+				if (pointIndex == 0) {
+					position += frame.Tangent * startBevel;
+				} else if (pointIndex == points.Count - 1) {
+					position -= frame.Tangent * endBevel;
+				}
+				for (var radialIndex = 0; radialIndex < radialSegments; radialIndex++) {
+					var angle = FullTurn * radialIndex / radialSegments;
+					var radial = frame.Right * math.cos(angle) + frame.Up * math.sin(angle);
+					vertices.Add((Vector3)(position + radial * tubeRadius));
+					normals.Add((Vector3)radial);
+					uvs.Add(new Vector2(pointIndex / (float)(points.Count - 1),
+						radialIndex / (float)radialSegments));
+				}
+			}
+
+			for (var pointIndex = 0; pointIndex < points.Count - 1; pointIndex++) {
+				var current = firstRing + pointIndex * radialSegments;
+				var next = current + radialSegments;
+				for (var radialIndex = 0; radialIndex < radialSegments; radialIndex++) {
+					var radialNext = (radialIndex + 1) % radialSegments;
+					var a = current + radialIndex;
+					var b = next + radialIndex;
+					var c = current + radialNext;
+					var d = next + radialNext;
+					indices.Add(a);
+					indices.Add(b);
+					indices.Add(d);
+					indices.Add(a);
+					indices.Add(d);
+					indices.Add(c);
+				}
+			}
+
+			WireRailCapMeshGenerator.Append(frames[0], tubeRadius, startBevel,
+				radialSegments, true, vertices, normals, uvs, indices);
+			WireRailCapMeshGenerator.Append(frames[^1], tubeRadius, endBevel,
+				radialSegments, false, vertices, normals, uvs, indices);
+
+			static float3 Project(float3 direction, float3 tangent)
+				=> direction - tangent * math.dot(direction, tangent);
+
+			static float3 EvaluateInteriorTangent(IReadOnlyList<float3> path,
+				int pointIndex, float3 fallback)
+			{
+				var incoming = math.normalizesafe(path[pointIndex] - path[pointIndex - 1],
+					fallback);
+				var outgoing = math.normalizesafe(path[pointIndex + 1] - path[pointIndex],
+					incoming);
+				return math.normalizesafe(incoming + outgoing, incoming);
+			}
+
+			static float3 Transport(float3 direction, float3 fromTangent,
+				float3 toTangent)
+			{
+				var axis = math.cross(fromTangent, toTangent);
+				var sinAngle = math.length(axis);
+				var cosAngle = math.clamp(math.dot(fromTangent, toTangent), -1f, 1f);
+				var transported = direction;
+				if (sinAngle > 1e-6f) {
+					axis /= sinAngle;
+					transported = math.mul(quaternion.AxisAngle(axis,
+						math.atan2(sinAngle, cosAngle)), direction);
+				}
+				return math.normalizesafe(Project(transported, toTangent), direction);
+			}
+		}
+
 		private static List<float> BuildBraceAngles(WireRailBraceFixture brace,
 			float startAngle, float sweepAngle, bool closed, int longitudinalSegments)
 		{
@@ -1247,6 +1627,14 @@ namespace VisualPinball.Unity
 					}
 				}
 			}
+		}
+
+		private static bool IsPathReversal(float3 previous, float3 corner, float3 next)
+		{
+			var incoming = math.normalizesafe(corner - previous);
+			var outgoing = math.normalizesafe(next - corner);
+			return math.lengthsq(incoming) > 1e-8f && math.lengthsq(outgoing) > 1e-8f
+				&& math.dot(incoming, outgoing) <= -math.cos(math.radians(0.5f));
 		}
 	}
 
