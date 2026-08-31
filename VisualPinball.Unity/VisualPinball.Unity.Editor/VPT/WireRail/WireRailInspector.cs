@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Mathematics;
+using Unity.Profiling;
 using UnityEditor;
 using UnityEditor.EditorTools;
 using UnityEditor.SceneManagement;
@@ -196,10 +197,6 @@ namespace VisualPinball.Unity.Editor
 				DrawRenderGeometrySettings(component);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
-			if (!string.IsNullOrEmpty(component.GenerationError)) {
-				EditorGUILayout.HelpBox(component.GenerationError, MessageType.Error);
-			}
-
 			EditorGUILayout.Space(4f);
 			_showBallChannelCollider = EditorGUILayout.BeginFoldoutHeaderGroup(
 				_showBallChannelCollider, "Ball Channel Collider");
@@ -207,6 +204,13 @@ namespace VisualPinball.Unity.Editor
 				DrawBallChannelColliderSettings(component);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
+			if (component.ColliderGeometryDirty) {
+				EditorGUILayout.HelpBox(
+					"Collider validation is pending. Expand Ball Channel Collider or enable its "
+						+ "Scene preview to validate the current rail geometry.", MessageType.Info);
+			} else if (!string.IsNullOrEmpty(component.GenerationError)) {
+				EditorGUILayout.HelpBox(component.GenerationError, MessageType.Error);
+			}
 
 			EditorGUILayout.Space(4f);
 			_showWireLayouts = EditorGUILayout.BeginFoldoutHeaderGroup(
@@ -1018,7 +1022,7 @@ namespace VisualPinball.Unity.Editor
 				Edit(component, "Change Wire Rail Diameter",
 					() => component.SetWireDiameter(math.max(0.1f, wireDiameter)));
 			} else if (settingsChanged) {
-				component.RebuildGeneratedMeshes();
+				component.RebuildRenderGeometry();
 				SceneView.RepaintAll();
 			}
 
@@ -1027,7 +1031,7 @@ namespace VisualPinball.Unity.Editor
 				EditorGUILayout.LabelField("Generated", $"{renderMesh.vertexCount} vertices");
 			}
 			if (GUILayout.Button("Rebuild Render Geometry")) {
-				component.RebuildGeneratedMeshes();
+				component.RebuildRenderGeometry();
 				SceneView.RepaintAll();
 			}
 		}
@@ -1044,6 +1048,8 @@ namespace VisualPinball.Unity.Editor
 				new GUIContent("Curvature Detail",
 					"Controls adaptive collider tessellation. Curves receive more rows while "
 					+ "straight spans remain sparse."));
+			var colliderGeometryChanged = EditorGUI.EndChangeCheck();
+			EditorGUI.BeginChangeCheck();
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("_showColliderPreview"),
 				new GUIContent("Show Collider Preview"));
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("_physicsMaterial"),
@@ -1056,20 +1062,22 @@ namespace VisualPinball.Unity.Editor
 				EditorGUILayout.PropertyField(serializedObject.FindProperty("_friction"));
 				EditorGUILayout.PropertyField(serializedObject.FindProperty("_scatter"));
 			}
-			var settingsChanged = EditorGUI.EndChangeCheck();
+			var otherSettingsChanged = EditorGUI.EndChangeCheck();
 			serializedObject.ApplyModifiedProperties();
-			if (settingsChanged) {
-				component.RebuildGeneratedMeshes();
+			if (colliderGeometryChanged) {
+				component.InvalidateColliderGeometry();
+			}
+			if (colliderGeometryChanged || otherSettingsChanged) {
 				SceneView.RepaintAll();
 			}
 
 			var colliderMesh = component.ColliderMesh;
-			if (colliderMesh) {
+			if (colliderMesh && colliderMesh.subMeshCount > 0) {
 				EditorGUILayout.LabelField("Generated",
-					$"{colliderMesh.triangles.Length / 3} triangles");
+					$"{colliderMesh.GetIndexCount(0) / 3} triangles");
 			}
 			if (GUILayout.Button("Rebuild Collider")) {
-				component.RebuildGeneratedMeshes();
+				component.RebuildColliderMesh();
 				SceneView.RepaintAll();
 			}
 		}
@@ -1663,6 +1671,8 @@ namespace VisualPinball.Unity.Editor
 	internal static class WireRailScenePreview
 	{
 		private const int SamplesPerSegment = 24;
+		private static readonly ProfilerMarker ScenePreviewMarker =
+			new("WireRail.ScenePreview");
 		private static readonly Color[] RailColors = {
 			new(0.05f, 0.75f, 1f, 0.95f),
 			new(1f, 0.55f, 0.05f, 0.95f),
@@ -1670,6 +1680,33 @@ namespace VisualPinball.Unity.Editor
 			new(1f, 0.2f, 0.65f, 0.95f),
 			new(0.65f, 0.35f, 1f, 0.95f),
 		};
+		private static readonly List<SegmentPreview> SegmentPreviews = new();
+		private static readonly List<FixturePreview> FixturePreviews = new();
+		private static WireRailComponent _cachedComponent;
+		private static int _cachedRenderGeometryVersion = -1;
+		private static Matrix4x4 _cachedLocalToWorld;
+		private static Mesh _cachedColliderMesh;
+		private static int _cachedColliderGeometryVersion = -1;
+		private static Matrix4x4 _cachedColliderLocalToWorld;
+		private static Vector3[] _cachedColliderFaces = Array.Empty<Vector3>();
+		private static Vector3[] _cachedColliderEdges = Array.Empty<Vector3>();
+
+		private sealed class SegmentPreview
+		{
+			public Vector3[][] RailPoints;
+			public Vector3[] SpinePoints;
+			public Vector3 LabelPosition;
+			public int ActiveRailCount;
+			public int CachedDisplayIndex = -1;
+			public readonly GUIContent Label = new();
+			public readonly GUIContent SelectedLabel = new();
+		}
+
+		private sealed class FixturePreview
+		{
+			public Vector3[] Points;
+			public GUIContent Label;
+		}
 
 		static WireRailScenePreview()
 		{
@@ -1690,7 +1727,6 @@ namespace VisualPinball.Unity.Editor
 			if (!container) {
 				return;
 			}
-			component.SynchronizeSegments();
 			DrawEditPanel(component, container);
 			if (Event.current.type != EventType.Repaint) {
 				return;
@@ -1699,26 +1735,83 @@ namespace VisualPinball.Unity.Editor
 			if (spline == null || spline.Count < 2) {
 				return;
 			}
-			var editing = Selection.activeGameObject == container.gameObject
-				&& ToolManager.activeContextType == typeof(SplineToolContext);
-			var evaluationContext = new WireRailPathEvaluationContext();
+			using (ScenePreviewMarker.Auto()) {
+				EnsurePreviewCache(component, container, spline);
+				DrawSegmentPreviews(component, container);
+				DrawFixturePreviews();
 
-			for (var segmentIndex = 0; segmentIndex < component.Segments.Count; segmentIndex++) {
+				if (component.ShowColliderPreview) {
+					DrawColliderPreview(component, component.ColliderMesh, container.transform);
+				}
+			}
+		}
+
+		private static void EnsurePreviewCache(WireRailComponent component,
+			SplineContainer container, Spline spline)
+		{
+			var localToWorld = container.transform.localToWorldMatrix;
+			if (_cachedComponent == component
+				&& _cachedRenderGeometryVersion == component.RenderGeometryVersion
+				&& _cachedLocalToWorld == localToWorld) {
+				return;
+			}
+
+			_cachedComponent = component;
+			_cachedRenderGeometryVersion = component.RenderGeometryVersion;
+			_cachedLocalToWorld = localToWorld;
+			SegmentPreviews.Clear();
+			FixturePreviews.Clear();
+			var evaluationContext = new WireRailPathEvaluationContext();
+			for (var segmentIndex = 0; segmentIndex < component.Segments.Count;
+				segmentIndex++) {
 				var segment = component.Segments[segmentIndex];
-				var selectedLayout = WireRailLayoutEditorSelection.IsSelected(component,
-					segmentIndex);
+				var preview = new SegmentPreview {
+					RailPoints = new Vector3[segment.RailCount][],
+					SpinePoints = new Vector3[SamplesPerSegment + 1],
+					ActiveRailCount = CountActiveRails(segment),
+				};
 				for (var railIndex = 0; railIndex < segment.RailCount; railIndex++) {
 					if (!segment.IsRailActive(railIndex)) {
 						continue;
 					}
 					var points = new Vector3[SamplesPerSegment + 1];
+					preview.RailPoints[railIndex] = points;
 					for (var sampleIndex = 0; sampleIndex <= SamplesPerSegment; sampleIndex++) {
 						var curveT = sampleIndex / (float)SamplesPerSegment;
 						points[sampleIndex] = WireRailSplineGeometry.TryEvaluateRailPosition(spline,
 							component.Segments, evaluationContext, segmentIndex, railIndex, curveT,
 							out var position)
-							? container.transform.TransformPoint((Vector3)position)
+							? localToWorld.MultiplyPoint3x4((Vector3)position)
 							: container.transform.position;
+					}
+				}
+				for (var sampleIndex = 0; sampleIndex <= SamplesPerSegment; sampleIndex++) {
+					var curveT = sampleIndex / (float)SamplesPerSegment;
+					preview.SpinePoints[sampleIndex] = WireRailSplineGeometry
+						.TryEvaluateLayoutPosition(spline, component.Segments, evaluationContext,
+							segmentIndex, curveT, out var position)
+						? localToWorld.MultiplyPoint3x4((Vector3)position)
+						: container.transform.position;
+				}
+				preview.LabelPosition = preview.SpinePoints[0];
+				SegmentPreviews.Add(preview);
+			}
+			BuildFixturePreviews(component, spline, localToWorld);
+		}
+
+		private static void DrawSegmentPreviews(WireRailComponent component,
+			SplineContainer container)
+		{
+			var editing = Selection.activeGameObject == container.gameObject
+				&& ToolManager.activeContextType == typeof(SplineToolContext);
+			for (var segmentIndex = 0; segmentIndex < SegmentPreviews.Count; segmentIndex++) {
+				var preview = SegmentPreviews[segmentIndex];
+				var selectedLayout = WireRailLayoutEditorSelection.IsSelected(component,
+					segmentIndex);
+				for (var railIndex = 0; railIndex < preview.RailPoints.Length; railIndex++) {
+					var points = preview.RailPoints[railIndex];
+					if (points == null) {
+						continue;
 					}
 					if (selectedLayout) {
 						var previousRailZTest = Handles.zTest;
@@ -1734,40 +1827,116 @@ namespace VisualPinball.Unity.Editor
 					}
 				}
 
-				var spinePoints = new Vector3[SamplesPerSegment + 1];
-				for (var sampleIndex = 0; sampleIndex <= SamplesPerSegment; sampleIndex++) {
-					var curveT = sampleIndex / (float)SamplesPerSegment;
-					spinePoints[sampleIndex] = EvaluateWorldPosition(container, spline,
-						component.Segments, segmentIndex, curveT);
-				}
 				var previousZTest = Handles.zTest;
 				Handles.zTest = CompareFunction.Always;
 				Handles.color = new Color(0.02f, 0.02f, 0.02f, 0.95f);
 				Handles.DrawAAPolyLine(selectedLayout ? 13f : editing ? 11f : 8f,
-					spinePoints);
+					preview.SpinePoints);
 				Handles.color = selectedLayout
 					? new Color(1f, 0.55f, 0.05f, 1f)
 					: editing
-					? new Color(1f, 0.78f, 0.05f, 1f)
-					: new Color(0.9f, 0.95f, 1f, 1f);
+						? new Color(1f, 0.78f, 0.05f, 1f)
+						: new Color(0.9f, 0.95f, 1f, 1f);
 				Handles.DrawAAPolyLine(selectedLayout ? 6f : editing ? 5f : 4f,
-					spinePoints);
+					preview.SpinePoints);
 				Handles.zTest = previousZTest;
 
 				Handles.color = Color.white;
-				var labelPosition = EvaluateWorldPosition(container, spline, component.Segments,
-					segmentIndex, 0f);
-				var activeRailCount = CountActiveRails(segment);
 				var displayIndex = GetDisplayIndex(component.LayoutDisplayOrder, segmentIndex);
-				var selectedPrefix = selectedLayout ? "▶ " : string.Empty;
-				Handles.Label(labelPosition, $"{selectedPrefix}Layout {displayIndex + 1}: {activeRailCount}/"
-					+ $"{component.RailCount} rails", EditorStyles.boldLabel);
+				if (preview.CachedDisplayIndex != displayIndex) {
+					preview.CachedDisplayIndex = displayIndex;
+					preview.Label.text = $"Layout {displayIndex + 1}: {preview.ActiveRailCount}/"
+						+ $"{component.RailCount} rails";
+					preview.SelectedLabel.text = "▶ " + preview.Label.text;
+				}
+				Handles.Label(preview.LabelPosition,
+					selectedLayout ? preview.SelectedLabel : preview.Label,
+					EditorStyles.boldLabel);
 			}
-			DrawFixturePreviews(component, container, spline);
+		}
 
-			if (component.ShowColliderPreview) {
-				DrawColliderPreview(component.ColliderMesh, container.transform);
+		private static void BuildFixturePreviews(WireRailComponent component, Spline spline,
+			Matrix4x4 localToWorld)
+		{
+			for (var fixtureIndex = 0; fixtureIndex < component.Fixtures.Count; fixtureIndex++) {
+				if (component.Fixtures[fixtureIndex] is WireRailVBraceFixture vBrace) {
+					if (WireRailSplineGeometry.TryEvaluateVBrace(spline, component.Segments,
+							vBrace, out var points)) {
+						AddFixturePreview(points, $"V Brace {fixtureIndex + 1}");
+					}
+					continue;
+				}
+				if (component.Fixtures[fixtureIndex] is WireRailCrossWireFixture crossWire) {
+					if (WireRailSplineGeometry.TryEvaluateCrossWire(spline, component.Segments,
+							crossWire, out var start, out var end)) {
+						FixturePreviews.Add(new FixturePreview {
+							Points = new[] {
+								localToWorld.MultiplyPoint3x4((Vector3)start),
+								localToWorld.MultiplyPoint3x4((Vector3)end),
+							},
+							Label = new GUIContent($"Cross Wire {fixtureIndex + 1}"),
+						});
+					}
+					continue;
+				}
+				if (component.Fixtures[fixtureIndex] is WireRailLegFixture leg) {
+					if (WireRailSplineGeometry.TryEvaluateLeg(spline, component.Segments, leg,
+							out var points)) {
+						AddFixturePreview(points, $"Leg & Foot {fixtureIndex + 1}");
+					}
+					continue;
+				}
+				if (component.Fixtures[fixtureIndex] is not WireRailBraceFixture brace
+					|| !brace.TryGetVisibleArc(out var startAngle, out var sweepAngle, out _)
+					|| !WireRailSplineGeometry.TryEvaluateBrace(spline, component.Segments,
+						brace, out var center, out _, out var right, out var up,
+						out var radius)) {
+					continue;
+				}
+				var previewSegments = math.max(2,
+					(int)math.ceil(brace.RingDensity * sweepAngle / (math.PI * 2f)));
+				var bracePoints = new Vector3[previewSegments + 1];
+				for (var pointIndex = 0; pointIndex <= previewSegments; pointIndex++) {
+					var angle = startAngle + sweepAngle * pointIndex / previewSegments;
+					var centerlineOffset = brace.EvaluateCenterlineOffset(angle, radius);
+					bracePoints[pointIndex] = localToWorld.MultiplyPoint3x4(
+						(Vector3)(center + right * centerlineOffset.x + up * centerlineOffset.y));
+				}
+				FixturePreviews.Add(new FixturePreview {
+					Points = bracePoints,
+					Label = new GUIContent($"Brace {fixtureIndex + 1}"),
+				});
 			}
+
+			void AddFixturePreview(IReadOnlyList<float3> sourcePoints, string label)
+			{
+				if (sourcePoints == null || sourcePoints.Count < 2) {
+					return;
+				}
+				var points = new Vector3[sourcePoints.Count];
+				for (var pointIndex = 0; pointIndex < sourcePoints.Count; pointIndex++) {
+					points[pointIndex] = localToWorld.MultiplyPoint3x4(
+						(Vector3)sourcePoints[pointIndex]);
+				}
+				FixturePreviews.Add(new FixturePreview {
+					Points = points,
+					Label = new GUIContent(label),
+				});
+			}
+		}
+
+		private static void DrawFixturePreviews()
+		{
+			var previousColor = Handles.color;
+			var previousZTest = Handles.zTest;
+			Handles.zTest = CompareFunction.Always;
+			Handles.color = new Color(1f, 0.82f, 0.1f, 1f);
+			foreach (var preview in FixturePreviews) {
+				Handles.DrawAAPolyLine(4f, preview.Points);
+				Handles.Label(preview.Points[0], preview.Label, EditorStyles.boldLabel);
+			}
+			Handles.color = previousColor;
+			Handles.zTest = previousZTest;
 		}
 
 		private static int CountActiveRails(WireRailSegment segment)
@@ -1789,97 +1958,6 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 			return layoutIndex;
-		}
-
-		private static void DrawFixturePreviews(WireRailComponent component,
-			SplineContainer container, Spline spline)
-		{
-			for (var fixtureIndex = 0; fixtureIndex < component.Fixtures.Count; fixtureIndex++) {
-				if (component.Fixtures[fixtureIndex] is WireRailVBraceFixture vBrace) {
-					if (WireRailSplineGeometry.TryEvaluateVBrace(spline, component.Segments,
-							vBrace, out var centerlinePoints)) {
-						var vBracePreviousZTest = Handles.zTest;
-						Handles.zTest = CompareFunction.Always;
-						DrawFixturePath(container, centerlinePoints,
-							new Color(1f, 0.82f, 0.1f, 1f));
-						Handles.Label(container.transform.TransformPoint(
-							(Vector3)centerlinePoints[0]),
-							$"V Brace {fixtureIndex + 1}", EditorStyles.boldLabel);
-						Handles.zTest = vBracePreviousZTest;
-					}
-					continue;
-				}
-				if (component.Fixtures[fixtureIndex] is WireRailCrossWireFixture crossWire) {
-					if (WireRailSplineGeometry.TryEvaluateCrossWire(spline,
-							component.Segments, crossWire, out var start, out var end)) {
-						var crossWirePoints = new[] {
-							container.transform.TransformPoint((Vector3)start),
-							container.transform.TransformPoint((Vector3)end),
-						};
-						var crossWireZTest = Handles.zTest;
-						Handles.zTest = CompareFunction.Always;
-						Handles.color = new Color(1f, 0.82f, 0.1f, 1f);
-						Handles.DrawAAPolyLine(4f, crossWirePoints);
-						Handles.Label(crossWirePoints[0], $"Cross Wire {fixtureIndex + 1}",
-							EditorStyles.boldLabel);
-						Handles.zTest = crossWireZTest;
-					}
-					continue;
-				}
-				if (component.Fixtures[fixtureIndex] is WireRailLegFixture leg) {
-					if (WireRailSplineGeometry.TryEvaluateLeg(spline, component.Segments,
-							leg, out var centerlinePoints)) {
-						var legPreviousZTest = Handles.zTest;
-						Handles.zTest = CompareFunction.Always;
-						DrawFixturePath(container, centerlinePoints,
-							new Color(1f, 0.82f, 0.1f, 1f));
-						Handles.Label(container.transform.TransformPoint(
-							(Vector3)centerlinePoints[0]),
-							$"Leg & Foot {fixtureIndex + 1}", EditorStyles.boldLabel);
-						Handles.zTest = legPreviousZTest;
-					}
-					continue;
-				}
-				if (component.Fixtures[fixtureIndex] is not WireRailBraceFixture brace
-					|| !brace.TryGetVisibleArc(out var startAngle, out var sweepAngle, out _)
-					|| !WireRailSplineGeometry.TryEvaluateBrace(spline, component.Segments,
-						brace, out var center, out _, out var right, out var up,
-						out var radius)) {
-					continue;
-				}
-				var previewSegments = math.max(2,
-					(int)math.ceil(brace.RingDensity * sweepAngle / (math.PI * 2f)));
-				var points = new Vector3[previewSegments + 1];
-				for (var pointIndex = 0; pointIndex <= previewSegments; pointIndex++) {
-					var angle = startAngle + sweepAngle * pointIndex / previewSegments;
-					var centerlineOffset = brace.EvaluateCenterlineOffset(angle, radius);
-					points[pointIndex] = container.transform.TransformPoint(
-						(Vector3)(center + right * centerlineOffset.x
-							+ up * centerlineOffset.y));
-				}
-				var previousZTest = Handles.zTest;
-				Handles.zTest = CompareFunction.Always;
-				Handles.color = new Color(1f, 0.82f, 0.1f, 1f);
-				Handles.DrawAAPolyLine(4f, points);
-				Handles.Label(points[0], $"Brace {fixtureIndex + 1}",
-					EditorStyles.boldLabel);
-				Handles.zTest = previousZTest;
-			}
-		}
-
-		private static void DrawFixturePath(SplineContainer container,
-			IReadOnlyList<float3> sourcePoints, Color color)
-		{
-			if (sourcePoints == null || sourcePoints.Count < 2) {
-				return;
-			}
-			var points = new Vector3[sourcePoints.Count];
-			for (var pointIndex = 0; pointIndex < sourcePoints.Count; pointIndex++) {
-				points[pointIndex] = container.transform.TransformPoint(
-					(Vector3)sourcePoints[pointIndex]);
-			}
-			Handles.color = color;
-			Handles.DrawAAPolyLine(4f, points);
 		}
 
 		private static void DrawEditPanel(WireRailComponent component,
@@ -1922,73 +2000,88 @@ namespace VisualPinball.Unity.Editor
 			Handles.EndGUI();
 		}
 
-		private static void DrawColliderPreview(Mesh mesh, Transform meshTransform)
+		private static void DrawColliderPreview(WireRailComponent component, Mesh mesh,
+			Transform meshTransform)
 		{
 			if (!mesh || mesh.vertexCount == 0) {
 				return;
 			}
-			var vertices = mesh.vertices;
-			var indices = mesh.triangles;
-			var edges = new HashSet<ulong>();
-			var faces = new HashSet<(int, int, int)>();
+			EnsureColliderPreviewCache(component, mesh, meshTransform.localToWorldMatrix);
 			var previousColor = Handles.color;
 			var previousZTest = Handles.zTest;
 			Handles.zTest = CompareFunction.LessEqual;
 			Handles.color = new Color32(0, 255, 75, 128);
-			for (var i = 0; i < indices.Length; i += 3) {
-				var first = indices[i];
-				var second = indices[i + 1];
-				var third = indices[i + 2];
-				if (first > second) {
-					(first, second) = (second, first);
-				}
-				if (second > third) {
-					(second, third) = (third, second);
-				}
-				if (first > second) {
-					(first, second) = (second, first);
-				}
-				// The physics mesh is two-sided. Draw each geometric triangle once,
-				// independently of the winding or emission order.
-				if (!faces.Add((first, second, third))) {
-					continue;
-				}
+			for (var i = 0; i < _cachedColliderFaces.Length; i += 3) {
 				Handles.DrawAAConvexPolygon(
-					meshTransform.TransformPoint(vertices[indices[i]]),
-					meshTransform.TransformPoint(vertices[indices[i + 1]]),
-					meshTransform.TransformPoint(vertices[indices[i + 2]]));
+					_cachedColliderFaces[i],
+					_cachedColliderFaces[i + 1],
+					_cachedColliderFaces[i + 2]);
 			}
 			Handles.color = new Color(0f, 1f, 75f / 255f, 0.9f);
-			for (var i = 0; i < indices.Length; i += 3) {
-				DrawEdge(indices[i], indices[i + 1]);
-				DrawEdge(indices[i + 1], indices[i + 2]);
-				DrawEdge(indices[i + 2], indices[i]);
+			for (var i = 0; i < _cachedColliderEdges.Length; i += 2) {
+				Handles.DrawLine(_cachedColliderEdges[i], _cachedColliderEdges[i + 1], 2f);
 			}
 			Handles.color = previousColor;
 			Handles.zTest = previousZTest;
+		}
 
-			void DrawEdge(int first, int second)
+		private static void EnsureColliderPreviewCache(WireRailComponent component, Mesh mesh,
+			Matrix4x4 localToWorld)
+		{
+			if (_cachedColliderMesh == mesh
+				&& _cachedColliderGeometryVersion == component.ColliderGeometryVersion
+				&& _cachedColliderLocalToWorld == localToWorld) {
+				return;
+			}
+			_cachedColliderMesh = mesh;
+			_cachedColliderGeometryVersion = component.ColliderGeometryVersion;
+			_cachedColliderLocalToWorld = localToWorld;
+			var vertices = mesh.vertices;
+			var indices = mesh.triangles;
+			var edgeKeys = new HashSet<ulong>();
+			var faceKeys = new HashSet<(int, int, int)>();
+			var faces = new List<Vector3>(indices.Length / 2);
+			var edges = new List<Vector3>(indices.Length);
+			for (var index = 0; index < indices.Length; index += 3) {
+				var first = indices[index];
+				var second = indices[index + 1];
+				var third = indices[index + 2];
+				var sortedFirst = first;
+				var sortedSecond = second;
+				var sortedThird = third;
+				if (sortedFirst > sortedSecond) {
+					(sortedFirst, sortedSecond) = (sortedSecond, sortedFirst);
+				}
+				if (sortedSecond > sortedThird) {
+					(sortedSecond, sortedThird) = (sortedThird, sortedSecond);
+				}
+				if (sortedFirst > sortedSecond) {
+					(sortedFirst, sortedSecond) = (sortedSecond, sortedFirst);
+				}
+				// The physics mesh is two-sided. Cache each geometric triangle once,
+				// independently of winding or emission order.
+				if (faceKeys.Add((sortedFirst, sortedSecond, sortedThird))) {
+					faces.Add(localToWorld.MultiplyPoint3x4(vertices[first]));
+					faces.Add(localToWorld.MultiplyPoint3x4(vertices[second]));
+					faces.Add(localToWorld.MultiplyPoint3x4(vertices[third]));
+				}
+				AddEdge(first, second);
+				AddEdge(second, third);
+				AddEdge(third, first);
+			}
+			_cachedColliderFaces = faces.ToArray();
+			_cachedColliderEdges = edges.ToArray();
+
+			void AddEdge(int first, int second)
 			{
 				var min = (uint)math.min(first, second);
 				var max = (uint)math.max(first, second);
 				var key = ((ulong)min << 32) | max;
-				if (!edges.Add(key)) {
-					return;
+				if (edgeKeys.Add(key)) {
+					edges.Add(localToWorld.MultiplyPoint3x4(vertices[first]));
+					edges.Add(localToWorld.MultiplyPoint3x4(vertices[second]));
 				}
-				Handles.DrawLine(meshTransform.TransformPoint(vertices[first]),
-					meshTransform.TransformPoint(vertices[second]), 2f);
 			}
-		}
-
-		private static Vector3 EvaluateWorldPosition(SplineContainer container, Spline spline,
-			IReadOnlyList<WireRailSegment> layouts, int segmentIndex, float curveT)
-		{
-			if (!WireRailSplineGeometry.TryEvaluateLayoutPosition(spline, layouts, segmentIndex,
-					curveT, out var position)) {
-				return container.transform.position;
-			}
-			return container.transform.TransformPoint(new Vector3(position.x,
-				position.y, position.z));
 		}
 	}
 }

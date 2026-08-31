@@ -1931,6 +1931,29 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldKeepSynchronizationIdempotentOnAZeroLengthSpline()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.AddLayout(component.SplineLength * 0.5f);
+				var spline = component.SplineContainer.Spline;
+				var end = spline[1];
+				end.Position = spline[0].Position;
+				spline.SetKnot(1, end);
+				component.SynchronizeSegments();
+				var renderVersion = component.RenderGeometryVersion;
+				var colliderVersion = component.ColliderGeometryVersion;
+
+				Assert.That(component.SynchronizeSegments(), Is.False);
+				Assert.That(component.RenderGeometryVersion, Is.EqualTo(renderVersion));
+				Assert.That(component.ColliderGeometryVersion, Is.EqualTo(colliderVersion));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
 		public void ShouldKeepFixturesIndependentFromSegmentChanges()
 		{
 			var go = new GameObject("Wire Rail");
@@ -2449,6 +2472,99 @@ namespace VisualPinball.Unity.Test
 			}
 		}
 
+		[Test]
+		public void ShouldGenerateTheColliderOnlyWhenItIsConsumed()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var colliderField = typeof(WireRailComponent).GetField("_colliderMesh",
+					BindingFlags.Instance | BindingFlags.NonPublic);
+				var dirtyField = typeof(WireRailComponent).GetField("_colliderGeometryDirty",
+					BindingFlags.Instance | BindingFlags.NonPublic);
+
+				Assert.That(component.RenderMesh, Is.Not.Null);
+				Assert.That(colliderField, Is.Not.Null);
+				Assert.That(dirtyField, Is.Not.Null);
+				Assert.That(colliderField.GetValue(component), Is.Null);
+				Assert.That(dirtyField.GetValue(component), Is.True);
+
+				var collider = component.ColliderMesh;
+
+				Assert.That(collider, Is.Not.Null);
+				Assert.That(colliderField.GetValue(component), Is.SameAs(collider));
+				Assert.That(dirtyField.GetValue(component), Is.False);
+
+				component.InvalidateColliderGeometry();
+				Assert.That(colliderField.GetValue(component), Is.SameAs(collider));
+				Assert.That(dirtyField.GetValue(component), Is.True);
+				Assert.That(component.ColliderMesh, Is.SameAs(collider));
+				Assert.That(dirtyField.GetValue(component), Is.False);
+			}
+			finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldKeepStressRailMeshesStableAcrossCachedRebuilds()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var spline = component.SplineContainer.Spline;
+				component.SetRailCount(6);
+				spline.Insert(1, new BezierKnot(new float3(120f, 160f, 35f)),
+					TangentMode.AutoSmooth);
+				spline.Insert(2, new BezierKnot(new float3(-90f, 330f, 80f)),
+					TangentMode.AutoSmooth);
+				component.AddLayout(component.SplineLength * 0.33f);
+				component.AddLayout(component.SplineLength * 0.66f);
+				component.AddBraceFixture(component.SplineLength * 0.25f);
+				component.AddCrossWireFixture(component.SplineLength * 0.5f);
+				component.AddVBraceFixture(component.SplineLength * 0.75f);
+
+				var renderSignature = ComputeMeshSignature(component.RenderMesh);
+				var colliderSignature = ComputeMeshSignature(component.ColliderMesh);
+				Assert.That(renderSignature, Is.EqualTo(13543920267486304073UL));
+				Assert.That(colliderSignature, Is.EqualTo(1724548557158559258UL));
+
+				component.RebuildGeneratedMeshes();
+
+				Assert.That(ComputeMeshSignature(component.RenderMesh),
+					Is.EqualTo(renderSignature));
+				Assert.That(ComputeMeshSignature(component.ColliderMesh),
+					Is.EqualTo(colliderSignature));
+			}
+			finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldCoalesceInspectorRebuildRequests()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var initialGenerationCount = component.RenderMeshGenerationCount;
+				component.DeferEditorRebuildsForTesting = true;
+				component.SetRailOffset(0, 0, new Vector2(-20f, 2f));
+				component.SetRailOffset(0, 0, new Vector2(-22f, 3f));
+				component.SetRailOffset(0, 0, new Vector2(-24f, 4f));
+				component.DeferEditorRebuildsForTesting = false;
+
+				Assert.That(component.RenderMeshGenerationCount,
+					Is.EqualTo(initialGenerationCount));
+				component.FlushDeferredEditorRebuildForTesting();
+				Assert.That(component.RenderMeshGenerationCount,
+					Is.EqualTo(initialGenerationCount + 1));
+			}
+			finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
 		[TestCase(2, 3, false)]
 		[TestCase(3, 5, false)]
 		[TestCase(4, 7, false)]
@@ -2641,6 +2757,39 @@ namespace VisualPinball.Unity.Test
 		private static void AddMidpointLayout(WireRailComponent component)
 		{
 			component.AddLayout(component.SplineLength * 0.5f);
+		}
+
+		private static ulong ComputeMeshSignature(Mesh mesh)
+		{
+			unchecked {
+				const ulong offsetBasis = 14695981039346656037UL;
+				const ulong prime = 1099511628211UL;
+				var hash = offsetBasis;
+				Mix((uint)mesh.vertexCount);
+				foreach (var vertex in mesh.vertices) {
+					MixQuantized(vertex.x);
+					MixQuantized(vertex.y);
+					MixQuantized(vertex.z);
+				}
+				var indices = mesh.triangles;
+				Mix((uint)indices.Length);
+				foreach (var index in indices) {
+					Mix((uint)index);
+				}
+				return hash;
+
+				void Mix(uint value)
+				{
+					hash ^= value;
+					hash *= prime;
+				}
+
+				void MixQuantized(float value)
+				{
+					var quantized = (int)math.round(value * 10000f);
+					Mix((uint)quantized);
+				}
+			}
 		}
 
 		private static void AssertOffsets(WireRailSegment segment,
