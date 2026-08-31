@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Mathematics;
+using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Splines;
@@ -49,6 +50,61 @@ namespace VisualPinball.Unity
 	public sealed class WireRailPathEvaluationContext
 	{
 		internal readonly Dictionary<long, WireRailBoundaryTangent> BoundaryTangents = new();
+		internal readonly Dictionary<long, WireRailPathFrame> LayoutFrames = new();
+		internal readonly Dictionary<WireRailFrameCacheKey, WireRailPathFrame> RailFrames = new();
+		internal Spline Spline;
+		internal float SplineLength;
+
+		internal void Prepare(Spline spline)
+		{
+			if (ReferenceEquals(Spline, spline)) {
+				return;
+			}
+			Reset(spline);
+		}
+
+		internal void Reset(Spline spline)
+		{
+			Spline = spline;
+			SplineLength = spline?.GetLength() ?? 0f;
+			BoundaryTangents.Clear();
+			LayoutFrames.Clear();
+			RailFrames.Clear();
+		}
+	}
+
+	internal readonly struct WireRailFrameCacheKey : IEquatable<WireRailFrameCacheKey>
+	{
+		private readonly int _segmentIndex;
+		private readonly int _railIndex;
+		private readonly int _curveT;
+		private readonly int _tangentStep;
+
+		public WireRailFrameCacheKey(int segmentIndex, int railIndex, float curveT,
+			float tangentStep)
+		{
+			_segmentIndex = segmentIndex;
+			_railIndex = railIndex;
+			_curveT = math.asint(curveT);
+			_tangentStep = math.asint(tangentStep);
+		}
+
+		public bool Equals(WireRailFrameCacheKey other)
+			=> _segmentIndex == other._segmentIndex && _railIndex == other._railIndex
+				&& _curveT == other._curveT && _tangentStep == other._tangentStep;
+
+		public override bool Equals(object obj)
+			=> obj is WireRailFrameCacheKey other && Equals(other);
+
+		public override int GetHashCode()
+		{
+			unchecked {
+				var hash = _segmentIndex;
+				hash = hash * 397 ^ _railIndex;
+				hash = hash * 397 ^ _curveT;
+				return hash * 397 ^ _tangentStep;
+			}
+		}
 	}
 
 	internal readonly struct WireRailBoundaryTangent
@@ -69,6 +125,8 @@ namespace VisualPinball.Unity
 	{
 		private const float ConnectionTangentBlend = 0.5f;
 		private const float ConnectionTangentSampleStep = 1f / 1024f;
+		private static readonly ProfilerMarker RailFrameEvalMarker =
+			new("WireRail.RailFrameEval");
 
 		internal static bool TryEvaluate(Spline spline, int segmentIndex, float curveT,
 			out WireRailPathFrame frame)
@@ -96,27 +154,49 @@ namespace VisualPinball.Unity
 		internal static bool TryEvaluateLayout(Spline spline,
 			IReadOnlyList<WireRailSegment> layouts, int layoutIndex, float layoutT,
 			out WireRailPathFrame frame)
+			=> TryEvaluateLayout(spline, layouts, null, layoutIndex, layoutT, out frame);
+
+		internal static bool TryEvaluateLayout(Spline spline,
+			IReadOnlyList<WireRailSegment> layouts, WireRailPathEvaluationContext context,
+			int layoutIndex, float layoutT, out WireRailPathFrame frame)
 		{
 			frame = default;
 			if (spline == null || layouts == null || layoutIndex < 0
 				|| layoutIndex >= layouts.Count || spline.Count < 2) {
 				return false;
 			}
-			var splineLength = spline.GetLength();
+			layoutT = math.saturate(layoutT);
+			context?.Prepare(spline);
+			var cacheKey = ((long)layoutIndex << 32) | (uint)math.asint(layoutT);
+			if (context != null && context.LayoutFrames.TryGetValue(cacheKey, out frame)) {
+				return true;
+			}
+			var splineLength = context?.SplineLength ?? spline.GetLength();
 			var startDistance = math.clamp(layouts[layoutIndex].Distance, 0f, splineLength);
 			var endDistance = layoutIndex + 1 < layouts.Count
 				? math.clamp(layouts[layoutIndex + 1].Distance, startDistance, splineLength)
 				: splineLength;
-			return TryEvaluateDistance(spline,
-				math.lerp(startDistance, endDistance, math.saturate(layoutT)), out frame);
+			if (!TryEvaluateDistance(spline,
+					math.lerp(startDistance, endDistance, layoutT), splineLength, out frame)) {
+				return false;
+			}
+			context?.LayoutFrames.Add(cacheKey, frame);
+			return true;
 		}
 
 		public static bool TryEvaluateLayoutPosition(Spline spline,
 			IReadOnlyList<WireRailSegment> layouts, int layoutIndex, float layoutT,
 			out float3 position)
+			=> TryEvaluateLayoutPosition(spline, layouts, null, layoutIndex, layoutT,
+				out position);
+
+		public static bool TryEvaluateLayoutPosition(Spline spline,
+			IReadOnlyList<WireRailSegment> layouts, WireRailPathEvaluationContext context,
+			int layoutIndex, float layoutT, out float3 position)
 		{
 			position = default;
-			if (!TryEvaluateLayout(spline, layouts, layoutIndex, layoutT, out var frame)) {
+			if (!TryEvaluateLayout(spline, layouts, context, layoutIndex, layoutT,
+					out var frame)) {
 				return false;
 			}
 			position = frame.Position;
@@ -125,13 +205,17 @@ namespace VisualPinball.Unity
 
 		internal static bool TryEvaluateDistance(Spline spline, float distance,
 			out WireRailPathFrame frame)
+			=> TryEvaluateDistance(spline, distance, spline?.GetLength() ?? 0f, out frame);
+
+		private static bool TryEvaluateDistance(Spline spline, float distance,
+			float splineLength, out WireRailPathFrame frame)
 		{
 			frame = default;
 			if (spline == null || spline.Count < 2) {
 				return false;
 			}
 			var normalizedT = spline.ConvertIndexUnit(
-				math.clamp(distance, 0f, spline.GetLength()), PathIndexUnit.Distance,
+				math.clamp(distance, 0f, splineLength), PathIndexUnit.Distance,
 				PathIndexUnit.Normalized);
 			if (!spline.Evaluate(normalizedT, out var position, out var tangent, out var up)) {
 				return false;
@@ -273,107 +357,123 @@ namespace VisualPinball.Unity
 			railFrame = default;
 			curveT = math.saturate(curveT);
 			tangentStep = math.clamp(tangentStep, 1e-5f, 0.5f);
-			if (!TryEvaluateRailCenter(spline, segments, context, segmentIndex, railIndex, curveT,
-					out var mainFrame, out var center)) {
-				return false;
+			context ??= new WireRailPathEvaluationContext();
+			context.Prepare(spline);
+			var cacheKey = new WireRailFrameCacheKey(segmentIndex, railIndex, curveT,
+				tangentStep);
+			if (context.RailFrames.TryGetValue(cacheKey, out railFrame)) {
+				return true;
 			}
+			using (RailFrameEvalMarker.Auto()) {
+				if (!TryEvaluateRailCenter(spline, segments, context, segmentIndex, railIndex,
+						curveT, out var mainFrame, out var center)) {
+					return false;
+				}
 
-			var before = center;
-			var after = center;
-			var referenceRight = mainFrame.Right;
-			var referenceUp = mainFrame.Up;
-			if (curveT <= 0f) {
-				var previousSegmentIndex = GetPreviousSegmentIndex(spline, segments, segmentIndex);
-				var connected = IsRailConnectedBoundary(segments, previousSegmentIndex,
-					segmentIndex, railIndex);
-				if (connected) {
-					if (!TryEvaluateRailCenter(spline, segments, context, previousSegmentIndex,
-							railIndex, 1f - tangentStep, out _, out before)
-					|| !TryEvaluateLayout(spline, segments, previousSegmentIndex, 1f,
-							out var previousMainFrame)) {
+				var before = center;
+				var after = center;
+				var referenceRight = mainFrame.Right;
+				var referenceUp = mainFrame.Up;
+				if (curveT <= 0f) {
+					var previousSegmentIndex = GetPreviousSegmentIndex(spline, segments,
+						segmentIndex);
+					var connected = IsRailConnectedBoundary(segments, previousSegmentIndex,
+						segmentIndex, railIndex);
+					if (connected) {
+						if (!TryEvaluateRailCenter(spline, segments, context, previousSegmentIndex,
+								railIndex, 1f - tangentStep, out _, out before)
+							|| !TryEvaluateLayout(spline, segments, context, previousSegmentIndex,
+								1f, out var previousMainFrame)) {
+							return false;
+						}
+						AverageReferenceAxes(previousMainFrame, mainFrame,
+							out referenceRight, out referenceUp);
+					}
+					if (!TryEvaluateRailCenter(spline, segments, context, segmentIndex,
+							railIndex, tangentStep, out _, out after)) {
 						return false;
 					}
-					AverageReferenceAxes(previousMainFrame, mainFrame,
-						out referenceRight, out referenceUp);
-				}
-				if (!TryEvaluateRailCenter(spline, segments, context, segmentIndex, railIndex,
-						tangentStep, out _, out after)) {
-					return false;
-				}
-			} else if (curveT >= 1f) {
-				if (!TryEvaluateRailCenter(spline, segments, context, segmentIndex, railIndex,
-						1f - tangentStep, out _, out before)) {
-					return false;
-				}
-				var nextSegmentIndex = GetNextSegmentIndex(spline, segments, segmentIndex);
-				var connected = IsRailConnectedBoundary(segments, segmentIndex,
-					nextSegmentIndex, railIndex);
-				if (connected) {
-					if (!TryEvaluateRailCenter(spline, segments, context, nextSegmentIndex, railIndex,
-							tangentStep, out _, out after)
-						|| !TryEvaluateLayout(spline, segments, nextSegmentIndex, 0f,
-							out var nextMainFrame)) {
+				} else if (curveT >= 1f) {
+					if (!TryEvaluateRailCenter(spline, segments, context, segmentIndex,
+							railIndex, 1f - tangentStep, out _, out before)) {
 						return false;
 					}
-					AverageReferenceAxes(mainFrame, nextMainFrame,
-						out referenceRight, out referenceUp);
+					var nextSegmentIndex = GetNextSegmentIndex(spline, segments, segmentIndex);
+					var connected = IsRailConnectedBoundary(segments, segmentIndex,
+						nextSegmentIndex, railIndex);
+					if (connected) {
+						if (!TryEvaluateRailCenter(spline, segments, context, nextSegmentIndex,
+								railIndex, tangentStep, out _, out after)
+							|| !TryEvaluateLayout(spline, segments, context, nextSegmentIndex, 0f,
+								out var nextMainFrame)) {
+							return false;
+						}
+						AverageReferenceAxes(mainFrame, nextMainFrame,
+							out referenceRight, out referenceUp);
+					}
+				} else {
+					if (!TryEvaluateRailCenter(spline, segments, context, segmentIndex,
+							railIndex, math.max(0f, curveT - tangentStep), out _, out before)
+						|| !TryEvaluateRailCenter(spline, segments, context, segmentIndex,
+							railIndex, math.min(1f, curveT + tangentStep), out _, out after)) {
+						return false;
+					}
 				}
-			} else {
-				if (!TryEvaluateRailCenter(spline, segments, context, segmentIndex, railIndex,
-						math.max(0f, curveT - tangentStep), out _, out before)
-					|| !TryEvaluateRailCenter(spline, segments, context, segmentIndex, railIndex,
-						math.min(1f, curveT + tangentStep), out _, out after)) {
-					return false;
-				}
-			}
 
-			var tangentVector = after - before;
-			var derivativeStep = math.min(tangentStep, 1f / 1024f);
-			var derivativeBefore = center;
-			var derivativeAfter = center;
-			if (curveT <= 0f) {
-				var previousSegmentIndex = GetPreviousSegmentIndex(spline, segments, segmentIndex);
-				if (IsRailConnectedBoundary(segments, previousSegmentIndex, segmentIndex,
-						railIndex)
-					&& !TryEvaluateRailCenter(spline, segments, context, previousSegmentIndex, railIndex,
-						1f - derivativeStep, out _, out derivativeBefore)) {
+				var tangentVector = after - before;
+				var derivativeStep = math.min(tangentStep, 1f / 1024f);
+				var derivativeBefore = center;
+				var derivativeAfter = center;
+				if (curveT <= 0f) {
+					var previousSegmentIndex = GetPreviousSegmentIndex(spline, segments,
+						segmentIndex);
+					if (IsRailConnectedBoundary(segments, previousSegmentIndex, segmentIndex,
+							railIndex)
+						&& !TryEvaluateRailCenter(spline, segments, context,
+							previousSegmentIndex, railIndex, 1f - derivativeStep, out _,
+							out derivativeBefore)) {
+						return false;
+					}
+					if (!TryEvaluateRailCenter(spline, segments, context, segmentIndex,
+							railIndex, derivativeStep, out _, out derivativeAfter)) {
+						return false;
+					}
+				} else if (curveT >= 1f) {
+					if (!TryEvaluateRailCenter(spline, segments, context, segmentIndex,
+							railIndex, 1f - derivativeStep, out _, out derivativeBefore)) {
+						return false;
+					}
+					var nextSegmentIndex = GetNextSegmentIndex(spline, segments, segmentIndex);
+					if (IsRailConnectedBoundary(segments, segmentIndex, nextSegmentIndex,
+							railIndex)
+						&& !TryEvaluateRailCenter(spline, segments, context, nextSegmentIndex,
+							railIndex, derivativeStep, out _, out derivativeAfter)) {
+						return false;
+					}
+				} else if (!TryEvaluateRailCenter(spline, segments, context, segmentIndex,
+						railIndex, math.max(0f, curveT - derivativeStep), out _,
+						out derivativeBefore)
+					|| !TryEvaluateRailCenter(spline, segments, context, segmentIndex,
+						railIndex, math.min(1f, curveT + derivativeStep), out _,
+						out derivativeAfter)) {
 					return false;
 				}
-				if (!TryEvaluateRailCenter(spline, segments, context, segmentIndex, railIndex,
-						derivativeStep, out _, out derivativeAfter)) {
-					return false;
+				var derivative = derivativeAfter - derivativeBefore;
+				if (math.lengthsq(derivative) > 1e-12f
+					&& math.dot(math.normalize(derivative), mainFrame.Tangent) > 0f) {
+					tangentVector = derivative;
 				}
-			} else if (curveT >= 1f) {
-				if (!TryEvaluateRailCenter(spline, segments, context, segmentIndex, railIndex,
-						1f - derivativeStep, out _, out derivativeBefore)) {
-					return false;
+				var tangent = math.normalizesafe(tangentVector, mainFrame.Tangent);
+				var right = referenceRight - tangent * math.dot(referenceRight, tangent);
+				if (math.lengthsq(right) <= 1e-8f) {
+					right = math.cross(tangent, referenceUp);
 				}
-				var nextSegmentIndex = GetNextSegmentIndex(spline, segments, segmentIndex);
-				if (IsRailConnectedBoundary(segments, segmentIndex, nextSegmentIndex, railIndex)
-					&& !TryEvaluateRailCenter(spline, segments, context, nextSegmentIndex, railIndex,
-						derivativeStep, out _, out derivativeAfter)) {
-					return false;
-				}
-			} else if (!TryEvaluateRailCenter(spline, segments, context, segmentIndex, railIndex,
-					math.max(0f, curveT - derivativeStep), out _, out derivativeBefore)
-				|| !TryEvaluateRailCenter(spline, segments, context, segmentIndex, railIndex,
-					math.min(1f, curveT + derivativeStep), out _, out derivativeAfter)) {
-				return false;
+				right = math.normalizesafe(right, mainFrame.Right);
+				var up = math.normalizesafe(math.cross(right, tangent), mainFrame.Up);
+				railFrame = new WireRailPathFrame(center, tangent, right, up);
+				context.RailFrames.Add(cacheKey, railFrame);
+				return true;
 			}
-			var derivative = derivativeAfter - derivativeBefore;
-			if (math.lengthsq(derivative) > 1e-12f
-				&& math.dot(math.normalize(derivative), mainFrame.Tangent) > 0f) {
-				tangentVector = derivative;
-			}
-			var tangent = math.normalizesafe(tangentVector, mainFrame.Tangent);
-			var right = referenceRight - tangent * math.dot(referenceRight, tangent);
-			if (math.lengthsq(right) <= 1e-8f) {
-				right = math.cross(tangent, referenceUp);
-			}
-			right = math.normalizesafe(right, mainFrame.Right);
-			var up = math.normalizesafe(math.cross(right, tangent), mainFrame.Up);
-			railFrame = new WireRailPathFrame(center, tangent, right, up);
-			return true;
 		}
 
 		public static bool TryEvaluateRailPosition(Spline spline,
@@ -397,7 +497,7 @@ namespace VisualPinball.Unity
 			out WireRailPathFrame mainFrame, out float3 center)
 		{
 			curveT = math.saturate(curveT);
-			if (!TryEvaluateRailCenterUnsmoothed(spline, segments, segmentIndex, railIndex,
+			if (!TryEvaluateRailCenterUnsmoothed(spline, segments, context, segmentIndex, railIndex,
 					curveT, out mainFrame, out center)) {
 				return false;
 			}
@@ -434,12 +534,13 @@ namespace VisualPinball.Unity
 		}
 
 		private static bool TryEvaluateRailCenterUnsmoothed(Spline spline,
-			IReadOnlyList<WireRailSegment> segments, int segmentIndex, int railIndex,
+			IReadOnlyList<WireRailSegment> segments, WireRailPathEvaluationContext context,
+			int segmentIndex, int railIndex,
 			float curveT, out WireRailPathFrame mainFrame, out float3 center)
 		{
 			center = default;
 			curveT = math.saturate(curveT);
-			if (!TryEvaluateLayout(spline, segments, segmentIndex, curveT, out mainFrame)) {
+			if (!TryEvaluateLayout(spline, segments, context, segmentIndex, curveT, out mainFrame)) {
 				return false;
 			}
 
@@ -448,8 +549,8 @@ namespace VisualPinball.Unity
 				center = mainFrame.TransformOffset(offset);
 				return true;
 			}
-			if (!TryEvaluateLayout(spline, segments, segmentIndex, 0f, out var startFrame)
-				|| !TryEvaluateLayout(spline, segments, segmentIndex, 1f, out var endFrame)) {
+			if (!TryEvaluateLayout(spline, segments, context, segmentIndex, 0f, out var startFrame)
+				|| !TryEvaluateLayout(spline, segments, context, segmentIndex, 1f, out var endFrame)) {
 				return false;
 			}
 			var startOffset = EvaluateRailOffset(spline, segments, segmentIndex, railIndex, 0f);
@@ -489,13 +590,13 @@ namespace VisualPinball.Unity
 			incoming = default;
 			outgoing = default;
 			sharedTangent = default;
-			if (!TryEvaluateRailCenterUnsmoothed(spline, segments, sourceSegmentIndex,
+			if (!TryEvaluateRailCenterUnsmoothed(spline, segments, context, sourceSegmentIndex,
 					railIndex, 1f - ConnectionTangentSampleStep, out _, out var sourceBefore)
-				|| !TryEvaluateRailCenterUnsmoothed(spline, segments, sourceSegmentIndex,
+				|| !TryEvaluateRailCenterUnsmoothed(spline, segments, context, sourceSegmentIndex,
 					railIndex, 1f, out var sourceMainFrame, out var sourceEnd)
-				|| !TryEvaluateRailCenterUnsmoothed(spline, segments, nextSegmentIndex,
+				|| !TryEvaluateRailCenterUnsmoothed(spline, segments, context, nextSegmentIndex,
 					railIndex, 0f, out var nextMainFrame, out var nextStart)
-				|| !TryEvaluateRailCenterUnsmoothed(spline, segments, nextSegmentIndex,
+				|| !TryEvaluateRailCenterUnsmoothed(spline, segments, context, nextSegmentIndex,
 					railIndex, ConnectionTangentSampleStep, out _, out var nextAfter)) {
 				return false;
 			}
@@ -615,17 +716,44 @@ namespace VisualPinball.Unity
 	{
 		private const float MaximumRingAngle = 0.08726646f;
 		private const int MaximumAdaptiveDepth = 3;
+		private static readonly float2[][] RadialDirections = BuildRadialDirections();
+		[ThreadStatic] private static RenderBuffers _threadBuffers;
+
+		private sealed class RenderBuffers
+		{
+			public readonly List<Vector3> Vertices = new();
+			public readonly List<Vector3> Normals = new();
+			public readonly List<Vector2> Uvs = new();
+			public readonly List<int> Indices = new();
+			public readonly Dictionary<int, WireRailPathFrame> PreviousFrames = new();
+			public readonly List<float> SampleParameters = new();
+			public readonly WireRailPathEvaluationContext EvaluationContext = new();
+
+			public void Clear()
+			{
+				Vertices.Clear();
+				Normals.Clear();
+				Uvs.Clear();
+				Indices.Clear();
+				PreviousFrames.Clear();
+				SampleParameters.Clear();
+			}
+		}
 
 		public static Mesh Generate(Spline spline, IReadOnlyList<WireRailSegment> segments,
 			IReadOnlyList<WireRailFixture> fixtures, float wireCapBevelSize,
 			int samplesPerSegment, int radialSegments, Mesh target)
 		{
-			var vertices = new List<Vector3>();
-			var normals = new List<Vector3>();
-			var uvs = new List<Vector2>();
-			var indices = new List<int>();
-			var previousFrames = new Dictionary<int, WireRailPathFrame>();
-			var evaluationContext = new WireRailPathEvaluationContext();
+			radialSegments = math.clamp(radialSegments, 6, 16);
+			var buffers = _threadBuffers ??= new RenderBuffers();
+			buffers.Clear();
+			var vertices = buffers.Vertices;
+			var normals = buffers.Normals;
+			var uvs = buffers.Uvs;
+			var indices = buffers.Indices;
+			var previousFrames = buffers.PreviousFrames;
+			var evaluationContext = buffers.EvaluationContext;
+			evaluationContext.Reset(spline);
 			for (var segmentIndex = 0; segmentIndex < segments.Count; segmentIndex++) {
 				var segment = segments[segmentIndex];
 				for (var railIndex = 0; railIndex < segment.RailCount; railIndex++) {
@@ -642,7 +770,7 @@ namespace VisualPinball.Unity
 					}
 					if (AppendTube(spline, segments, evaluationContext, segmentIndex, railIndex,
 						samplesPerSegment, radialSegments, wireCapBevelSize,
-						previousSegmentFrame,
+						previousSegmentFrame, buffers.SampleParameters,
 						vertices, normals, uvs, indices, out var lastFrame)) {
 						previousFrames[railIndex] = lastFrame;
 					} else {
@@ -670,8 +798,8 @@ namespace VisualPinball.Unity
 			WireRailPathEvaluationContext evaluationContext,
 			int segmentIndex, int railIndex, int samplesPerSegment,
 			int radialSegments, float capBevelSize, WireRailPathFrame? previousSegmentFrame,
-			ICollection<Vector3> vertices, ICollection<Vector3> normals,
-			ICollection<Vector2> uvs, ICollection<int> indices,
+			List<float> sampleParameters, List<Vector3> vertices, List<Vector3> normals,
+			List<Vector2> uvs, List<int> indices,
 			out WireRailPathFrame lastFrame)
 		{
 			var firstRing = vertices.Count;
@@ -679,9 +807,8 @@ namespace VisualPinball.Unity
 			lastFrame = default;
 			var firstRadius = 0f;
 			var lastRadius = 0f;
-			var sampleParameters = BuildSampleParameters(spline, segments, evaluationContext,
-				segmentIndex,
-				railIndex, samplesPerSegment);
+			BuildSampleParameters(spline, segments, evaluationContext, segmentIndex, railIndex,
+				samplesPerSegment, sampleParameters);
 			var capStart = !WireRailSplineGeometry.IsRailConnectedAtStart(spline, segments,
 				segmentIndex, railIndex);
 			var capEnd = !WireRailSplineGeometry.IsRailConnectedAtEnd(spline, segments,
@@ -727,9 +854,11 @@ namespace VisualPinball.Unity
 					tubeFrame = new WireRailPathFrame(frame.Position - frame.Tangent * clampedBevel,
 						frame.Tangent, frame.Right, frame.Up);
 				}
+				var radialDirections = RadialDirections[radialSegments];
 				for (var radialIndex = 0; radialIndex < radialSegments; radialIndex++) {
-					var angle = math.PI * 2f * radialIndex / radialSegments;
-					var radial = tubeFrame.Right * math.cos(angle) + tubeFrame.Up * math.sin(angle);
+					var radialDirection = radialDirections[radialIndex];
+					var radial = tubeFrame.Right * radialDirection.x
+						+ tubeFrame.Up * radialDirection.y;
 					vertices.Add((Vector3)(tubeFrame.Position + radial * radius));
 					normals.Add((Vector3)radial);
 					uvs.Add(new Vector2(curveT, radialIndex / (float)radialSegments));
@@ -770,22 +899,40 @@ namespace VisualPinball.Unity
 		internal static List<float> BuildSampleParameters(Spline spline,
 			IReadOnlyList<WireRailSegment> segments, int segmentIndex, int railIndex,
 			int minimumSamples)
-			=> BuildSampleParameters(spline, segments, new WireRailPathEvaluationContext(),
-				segmentIndex, railIndex, minimumSamples);
+		{
+			var parameters = new List<float>(minimumSamples + 1);
+			BuildSampleParameters(spline, segments, new WireRailPathEvaluationContext(),
+				segmentIndex, railIndex, minimumSamples, parameters);
+			return parameters;
+		}
 
-		private static List<float> BuildSampleParameters(Spline spline,
+		private static void BuildSampleParameters(Spline spline,
 			IReadOnlyList<WireRailSegment> segments,
 			WireRailPathEvaluationContext evaluationContext,
-			int segmentIndex, int railIndex, int minimumSamples)
+			int segmentIndex, int railIndex, int minimumSamples, List<float> parameters)
 		{
-			var parameters = new List<float>(minimumSamples + 1) { 0f };
+			parameters.Clear();
+			parameters.Add(0f);
 			for (var sampleIndex = 0; sampleIndex < minimumSamples; sampleIndex++) {
 				var start = sampleIndex / (float)minimumSamples;
 				var end = (sampleIndex + 1f) / minimumSamples;
 				SubdivideSampleInterval(spline, segments, evaluationContext,
 					segmentIndex, railIndex, start, end, 0, parameters);
 			}
-			return parameters;
+		}
+
+		private static float2[][] BuildRadialDirections()
+		{
+			var directions = new float2[17][];
+			for (var radialSegments = 0; radialSegments < directions.Length; radialSegments++) {
+				directions[radialSegments] = new float2[radialSegments];
+				for (var radialIndex = 0; radialIndex < radialSegments; radialIndex++) {
+					var angle = math.PI * 2f * radialIndex / radialSegments;
+					directions[radialSegments][radialIndex] = new float2(math.cos(angle),
+						math.sin(angle));
+				}
+			}
+			return directions;
 		}
 
 		private static void SubdivideSampleInterval(Spline spline,
@@ -803,10 +950,10 @@ namespace VisualPinball.Unity
 				&& WireRailSplineGeometry.TryEvaluateRailFrame(spline, segments,
 					evaluationContext, segmentIndex, railIndex, end, evaluationStep,
 					out var endFrame)
-				&& WireRailSplineGeometry.TryEvaluateLayout(spline, segments, segmentIndex, start,
-					out var startMainFrame)
-				&& WireRailSplineGeometry.TryEvaluateLayout(spline, segments, segmentIndex, end,
-					out var endMainFrame)
+				&& WireRailSplineGeometry.TryEvaluateLayout(spline, segments, evaluationContext,
+					segmentIndex, start, out var startMainFrame)
+				&& WireRailSplineGeometry.TryEvaluateLayout(spline, segments, evaluationContext,
+					segmentIndex, end, out var endMainFrame)
 				&& math.dot(startFrame.Tangent, startMainFrame.Tangent) > 0f
 				&& math.dot(endFrame.Tangent, endMainFrame.Tangent) > 0f
 				&& math.acos(math.clamp(math.dot(startFrame.Tangent, endFrame.Tangent),
@@ -2378,22 +2525,47 @@ namespace VisualPinball.Unity
 	internal static class WireRailColliderMeshGenerator
 	{
 		private const int MaximumAdaptiveDepth = 10;
+		[ThreadStatic] private static ColliderBuffers _threadBuffers;
+
+		private sealed class ColliderBuffers
+		{
+			public readonly List<Vector3> Vertices = new();
+			public readonly List<int> Indices = new();
+			public readonly List<Vector3> Edges = new();
+			public readonly List<int> ActiveRailIndices = new(6);
+			public readonly List<ColliderSample> Samples = new();
+			public readonly WireRailPathEvaluationContext EvaluationContext = new();
+
+			public void Clear()
+			{
+				Vertices.Clear();
+				Indices.Clear();
+				Edges.Clear();
+				ActiveRailIndices.Clear();
+				Samples.Clear();
+			}
+		}
 
 		public static bool TryGenerate(Spline spline, IReadOnlyList<WireRailSegment> segments,
 			float ballDiameter, int samplesPerSegment, Mesh target,
 			out Mesh mesh, out Vector3[] edgeVertices, out string error)
 		{
-			var vertices = new List<Vector3>();
-			var indices = new List<int>();
-			var edges = new List<Vector3>();
+			var buffers = _threadBuffers ??= new ColliderBuffers();
+			buffers.Clear();
+			var vertices = buffers.Vertices;
+			var indices = buffers.Indices;
+			var edges = buffers.Edges;
 			var ballRadius = ballDiameter * 0.5f;
+			var evaluationContext = buffers.EvaluationContext;
+			evaluationContext.Reset(spline);
 
 			for (var segmentIndex = 0; segmentIndex < segments.Count; segmentIndex++) {
 				if (!HasActiveRails(segments[segmentIndex])) {
 					continue;
 				}
-				if (!AppendSegment(spline, segments, segmentIndex, ballRadius,
-						samplesPerSegment, vertices, indices, edges, out error)) {
+				if (!AppendSegment(spline, segments, evaluationContext, segmentIndex, ballRadius,
+						samplesPerSegment, buffers.ActiveRailIndices, buffers.Samples,
+						vertices, indices, edges, out error)) {
 					mesh = target;
 					edgeVertices = Array.Empty<Vector3>();
 					return false;
@@ -2467,19 +2639,20 @@ namespace VisualPinball.Unity
 		}
 
 		private static bool AppendSegment(Spline spline,
-			IReadOnlyList<WireRailSegment> segments, int segmentIndex, float ballRadius,
-			int curvatureDetail, ICollection<Vector3> vertices,
-			ICollection<int> indices, ICollection<Vector3> edges, out string error)
+			IReadOnlyList<WireRailSegment> segments,
+			WireRailPathEvaluationContext evaluationContext, int segmentIndex, float ballRadius,
+			int curvatureDetail, List<int> activeRailIndices, List<ColliderSample> samples,
+			List<Vector3> vertices, List<int> indices, List<Vector3> edges, out string error)
 		{
 			var segment = segments[segmentIndex];
-			var activeRailIndices = new List<int>(segment.RailCount);
+			activeRailIndices.Clear();
 			for (var railIndex = 0; railIndex < segment.RailCount; railIndex++) {
 				if (segment.IsRailActive(railIndex)) {
 					activeRailIndices.Add(railIndex);
 				}
 			}
-			if (!TryBuildAdaptiveSamples(spline, segments, segmentIndex, activeRailIndices,
-					ballRadius, curvatureDetail, out var samples, out error)) {
+			if (!TryBuildAdaptiveSamples(spline, segments, evaluationContext, segmentIndex,
+					activeRailIndices, ballRadius, curvatureDetail, samples, out error)) {
 				return false;
 			}
 			var firstRow = vertices.Count;
@@ -2509,12 +2682,12 @@ namespace VisualPinball.Unity
 		}
 
 		private static bool TryBuildAdaptiveSamples(Spline spline,
-			IReadOnlyList<WireRailSegment> segments, int segmentIndex,
+			IReadOnlyList<WireRailSegment> segments,
+			WireRailPathEvaluationContext evaluationContext, int segmentIndex,
 			IReadOnlyList<int> activeRailIndices, float ballRadius, int curvatureDetail,
-			out List<ColliderSample> samples, out string error)
+			List<ColliderSample> samples, out string error)
 		{
-			var builtSamples = new List<ColliderSample>();
-			samples = builtSamples;
+			samples.Clear();
 			var evaluationError = default(string);
 			if (!TryEvaluateSample(0f, out var start)
 				|| !TryEvaluateSample(1f, out var end)) {
@@ -2525,7 +2698,7 @@ namespace VisualPinball.Unity
 				error = TopologyError();
 				return false;
 			}
-			builtSamples.Add(start);
+			samples.Add(start);
 			return TryAppendInterval(start, end, null, 0, out error);
 
 			bool TryAppendInterval(ColliderSample intervalStart, ColliderSample intervalEnd,
@@ -2562,7 +2735,7 @@ namespace VisualPinball.Unity
 					return TryAppendInterval(middle, intervalEnd, thirdQuarter, depth + 1,
 						out intervalError);
 				}
-				builtSamples.Add(intervalEnd);
+				samples.Add(intervalEnd);
 				intervalError = null;
 				return true;
 			}
@@ -2570,8 +2743,8 @@ namespace VisualPinball.Unity
 			bool TryEvaluateSample(float curveT, out ColliderSample sample)
 			{
 				sample = default;
-				if (!WireRailSplineGeometry.TryEvaluateLayout(spline, segments, segmentIndex,
-						curveT, out var frame)) {
+				if (!WireRailSplineGeometry.TryEvaluateLayout(spline, segments, evaluationContext,
+						segmentIndex, curveT, out var frame)) {
 					evaluationError = $"Could not evaluate spline segment {segmentIndex + 1}.";
 					return false;
 				}
@@ -2655,16 +2828,11 @@ namespace VisualPinball.Unity
 			return false;
 		}
 
-		private static Vector3 GetVertex(ICollection<Vector3> vertices, int index)
-		{
-			if (vertices is List<Vector3> list) {
-				return list[index];
-			}
-			return vertices.ElementAt(index);
-		}
+		private static Vector3 GetVertex(List<Vector3> vertices, int index)
+			=> vertices[index];
 
 		private static void AppendTwoSidedQuad(int a, int b, int c, int d,
-			ICollection<int> indices)
+			List<int> indices)
 		{
 			indices.Add(a);
 			indices.Add(b);

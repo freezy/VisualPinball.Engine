@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
 using Unity.Mathematics;
+using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Serialization;
@@ -1107,6 +1108,13 @@ namespace VisualPinball.Unity
 	public class WireRailComponent : MonoBehaviour, ICollidableComponent
 	{
 		private const string SplineObjectName = "Wire Rail Spline";
+		private static readonly ProfilerMarker SynchronizeSegmentsMarker =
+			new("WireRail.SynchronizeSegments");
+		private static readonly ProfilerMarker RenderMeshMarker =
+			new("WireRail.RenderMesh");
+		private static readonly ProfilerMarker ColliderMeshMarker =
+			new("WireRail.ColliderMesh");
+		private static Material _builtinDefaultMaterial;
 
 		[SerializeField] private SplineContainer _splineContainer;
 		[SerializeField] private List<WireRailSegment> _segments = new();
@@ -1134,10 +1142,15 @@ namespace VisualPinball.Unity
 		[NonSerialized] private Vector3[] _colliderEdgeVertices = Array.Empty<Vector3>();
 		[NonSerialized] private bool _rebuildingGeneratedMeshes;
 		[NonSerialized] private bool _collidersDirty = true;
+		[NonSerialized] private bool _colliderGeometryDirty = true;
+		[NonSerialized] private int _renderGeometryVersion;
+		[NonSerialized] private int _colliderGeometryVersion;
+		[NonSerialized] private int _renderMeshGenerationCount;
 		[NonSerialized] private string _generationError;
 #if UNITY_EDITOR
-		[NonSerialized] private bool _validationRebuildScheduled;
-		[NonSerialized] private int _generatedInputHash;
+		[NonSerialized] private bool _editorRebuildScheduled;
+		[NonSerialized] private bool _editorRebuildNeedsInvalidation;
+		[NonSerialized] internal bool DeferEditorRebuildsForTesting;
 #endif
 
 		public SplineContainer SplineContainer => GetSplineContainerWithoutCreating();
@@ -1157,7 +1170,18 @@ namespace VisualPinball.Unity
 		public string GenerationError => _generationError;
 		public bool ShowColliderPreview => _showColliderPreview;
 		public Mesh RenderMesh => _renderMesh;
-		public Mesh ColliderMesh => _colliderMesh;
+		public Mesh ColliderMesh {
+			get {
+				if (isActiveAndEnabled) {
+					EnsureColliderMesh();
+				}
+				return _colliderMesh;
+			}
+		}
+		public int RenderGeometryVersion => _renderGeometryVersion;
+		public int ColliderGeometryVersion => _colliderGeometryVersion;
+		public bool ColliderGeometryDirty => _colliderGeometryDirty;
+		internal int RenderMeshGenerationCount => _renderMeshGenerationCount;
 
 		private void Reset()
 		{
@@ -1199,9 +1223,10 @@ namespace VisualPinball.Unity
 			UnityEngine.Splines.SplineContainer.SplineRemoved -= OnSplineCollectionChanged;
 #if UNITY_EDITOR
 			Undo.undoRedoPerformed -= OnUndoRedo;
-			if (_validationRebuildScheduled) {
+			if (_editorRebuildScheduled) {
 				EditorApplication.delayCall -= RebuildAfterValidation;
-				_validationRebuildScheduled = false;
+				_editorRebuildScheduled = false;
+				_editorRebuildNeedsInvalidation = false;
 			}
 #endif
 			GetComponentInParent<PhysicsEngine>()?.DisableCollider(ItemId);
@@ -1222,31 +1247,47 @@ namespace VisualPinball.Unity
 				return;
 			}
 #if UNITY_EDITOR
-			if (!_validationRebuildScheduled) {
-				_validationRebuildScheduled = true;
-				EditorApplication.delayCall += RebuildAfterValidation;
-			}
+			ScheduleEditorRebuild(true);
 #endif
 		}
 
 #if UNITY_EDITOR
 		private void RebuildAfterValidation()
 		{
-			_validationRebuildScheduled = false;
+			_editorRebuildScheduled = false;
 			if (!this || !GetSplineContainerWithoutCreating()) {
 				return;
 			}
-			SynchronizeSegments();
-			RebuildGeneratedMeshes();
+			if (_editorRebuildNeedsInvalidation) {
+				InvalidateGeneratedGeometry();
+			}
+			_editorRebuildNeedsInvalidation = false;
+			RebuildGeneratedMeshesImmediately();
+			SceneView.RepaintAll();
+		}
+
+		private void ScheduleEditorRebuild(bool needsInvalidation)
+		{
+			_editorRebuildNeedsInvalidation |= needsInvalidation;
+			if (_editorRebuildScheduled) {
+				return;
+			}
+			_editorRebuildScheduled = true;
+			EditorApplication.delayCall += RebuildAfterValidation;
+		}
+
+		internal void FlushDeferredEditorRebuildForTesting()
+		{
+			if (!_editorRebuildScheduled) {
+				return;
+			}
+			EditorApplication.delayCall -= RebuildAfterValidation;
+			RebuildAfterValidation();
 		}
 
 		private void OnUndoRedo()
 		{
 			if (!this || !GetSplineContainerWithoutCreating()) {
-				return;
-			}
-			SynchronizeSegments();
-			if (_renderMesh && _generatedInputHash == ComputeGenerationInputHash()) {
 				return;
 			}
 			RebuildGeneratedMeshes();
@@ -1498,7 +1539,7 @@ namespace VisualPinball.Unity
 				WireRailBraceFixture.DefaultStraightEndAngle, 0f, 0f, 1f,
 				WireRailBraceFixture.DefaultRingDensity);
 			_fixtures.Add(brace);
-			RebuildGeneratedMeshes();
+			RebuildRenderGeometry();
 			MarkDirty();
 			return _fixtures.Count - 1;
 		}
@@ -1510,7 +1551,7 @@ namespace VisualPinball.Unity
 			crossWire.SetProperties(distance, SplineLength, _wireDiameter, 0, 1,
 				WireRailCrossWireFixture.DefaultAngle, 0f, 0f, 0f);
 			_fixtures.Add(crossWire);
-			RebuildGeneratedMeshes();
+			RebuildRenderGeometry();
 			MarkDirty();
 			return _fixtures.Count - 1;
 		}
@@ -1528,7 +1569,7 @@ namespace VisualPinball.Unity
 				WireRailVBraceFixture.DefaultRotation,
 				WireRailVBraceFixture.DefaultCornerRadius);
 			_fixtures.Add(vBrace);
-			RebuildGeneratedMeshes();
+			RebuildRenderGeometry();
 			MarkDirty();
 			return _fixtures.Count - 1;
 		}
@@ -1544,7 +1585,7 @@ namespace VisualPinball.Unity
 				WireRailLegFixture.DefaultFootWidth, WireRailLegFixture.DefaultFootLength,
 				WireRailLegFixture.DefaultFootConnectionLength);
 			_fixtures.Add(leg);
-			RebuildGeneratedMeshes();
+			RebuildRenderGeometry();
 			MarkDirty();
 			return _fixtures.Count - 1;
 		}
@@ -1636,7 +1677,7 @@ namespace VisualPinball.Unity
 		{
 			GetFixture(fixtureIndex);
 			_fixtures.RemoveAt(fixtureIndex);
-			RebuildGeneratedMeshes();
+			RebuildRenderGeometry();
 			MarkDirty();
 		}
 
@@ -1654,7 +1695,7 @@ namespace VisualPinball.Unity
 				source.Scale, source.RingDensity);
 			var duplicateIndex = fixtureIndex + 1;
 			_fixtures.Insert(duplicateIndex, duplicate);
-			RebuildGeneratedMeshes();
+			RebuildRenderGeometry();
 			MarkDirty();
 			return duplicateIndex;
 		}
@@ -1672,7 +1713,7 @@ namespace VisualPinball.Unity
 				source.VerticalOffset, source.LengthAdjustment);
 			var duplicateIndex = fixtureIndex + 1;
 			_fixtures.Insert(duplicateIndex, duplicate);
-			RebuildGeneratedMeshes();
+			RebuildRenderGeometry();
 			MarkDirty();
 			return duplicateIndex;
 		}
@@ -1690,7 +1731,7 @@ namespace VisualPinball.Unity
 				source.RightLength, source.Angle, source.Rotation, source.CornerRadius);
 			var duplicateIndex = fixtureIndex + 1;
 			_fixtures.Insert(duplicateIndex, duplicate);
-			RebuildGeneratedMeshes();
+			RebuildRenderGeometry();
 			MarkDirty();
 			return duplicateIndex;
 		}
@@ -1709,7 +1750,7 @@ namespace VisualPinball.Unity
 				source.VerticalOffset, source.LengthAdjustment);
 			var duplicateIndex = fixtureIndex + 1;
 			_fixtures.Insert(duplicateIndex, duplicate);
-			RebuildGeneratedMeshes();
+			RebuildRenderGeometry();
 			MarkDirty();
 			return duplicateIndex;
 		}
@@ -1734,7 +1775,7 @@ namespace VisualPinball.Unity
 				cutoutStartAngle, cutoutEndAngle, hasStraightSection, straightStartAngle,
 				straightEndAngle, lateralOffset, verticalOffset, scale,
 				resolvedRingDensity);
-			RebuildGeneratedMeshes();
+			RebuildRenderGeometry();
 			MarkDirty();
 		}
 
@@ -1749,7 +1790,7 @@ namespace VisualPinball.Unity
 			crossWire.SetProperties(distance, SplineLength, _wireDiameter,
 				crossWire.StartRailIndex, crossWire.EndRailIndex, angle,
 				lateralOffset, verticalOffset, lengthAdjustment);
-			RebuildGeneratedMeshes();
+			RebuildRenderGeometry();
 			MarkDirty();
 		}
 
@@ -1765,7 +1806,7 @@ namespace VisualPinball.Unity
 			vBrace.SetProperties(distance, SplineLength, _wireDiameter, ringDensity,
 				lateralOffset, verticalOffset, hasStraightSection, straightHeight,
 				leftLength, rightLength, angle, rotation, cornerRadius);
-			RebuildGeneratedMeshes();
+			RebuildRenderGeometry();
 			MarkDirty();
 		}
 
@@ -1783,7 +1824,7 @@ namespace VisualPinball.Unity
 				startDirection, startLength, footPosition, footRotation,
 				footWidth, footLength, footConnectionLength, lateralOffset,
 				verticalOffset, lengthAdjustment);
-			RebuildGeneratedMeshes();
+			RebuildRenderGeometry();
 			MarkDirty();
 		}
 
@@ -1804,14 +1845,14 @@ namespace VisualPinball.Unity
 					source.StraightEndAngle, source.LateralOffset, source.VerticalOffset,
 					source.Scale, source.RingDensity);
 			}
-			RebuildGeneratedMeshes();
+			RebuildRenderGeometry();
 			MarkDirty();
 		}
 
 		public void SetWireCapBevelSize(float size)
 		{
 			_wireCapBevelSize = math.max(0f, size);
-			RebuildGeneratedMeshes();
+			RebuildRenderGeometry();
 			MarkDirty();
 		}
 
@@ -1830,7 +1871,7 @@ namespace VisualPinball.Unity
 			var fixture = _fixtures[fromIndex];
 			_fixtures.RemoveAt(fromIndex);
 			_fixtures.Insert(toIndex, fixture);
-			RebuildGeneratedMeshes();
+			RebuildRenderGeometry();
 			MarkDirty();
 		}
 
@@ -1922,7 +1963,7 @@ namespace VisualPinball.Unity
 			// Older scenes stored one layout per spline curve and therefore had no explicit
 			// distances. Preserve their shape once by placing those layouts at the old curve
 			// boundaries; from then on the list is completely independent from spline knots.
-			if (_segments.Count > 1 && _segments.All(segment =>
+			if (splineLength > 0f && _segments.Count > 1 && _segments.All(segment =>
 					Mathf.Approximately(segment.Distance, 0f))) {
 				var spline = GetSplineContainerWithoutCreating()?.Spline;
 				var distance = 0f;
@@ -1950,6 +1991,9 @@ namespace VisualPinball.Unity
 			changed |= SynchronizeFixtures();
 
 			if (changed) {
+				// Scene previews are version-keyed. Any synchronization mutation must
+				// participate in the same invalidation contract as an explicit edit.
+				InvalidateGeneratedGeometry();
 				MarkDirty();
 			}
 			return changed;
@@ -2176,7 +2220,6 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			SynchronizeSegments();
 			RebuildGeneratedMeshes();
 			MarkDirty();
 		}
@@ -2184,7 +2227,6 @@ namespace VisualPinball.Unity
 		private void OnSplineCollectionChanged(SplineContainer container, int _)
 		{
 			if (container == GetSplineContainerWithoutCreating()) {
-				SynchronizeSegments();
 				RebuildGeneratedMeshes();
 			}
 		}
@@ -2201,6 +2243,32 @@ namespace VisualPinball.Unity
 
 		public void RebuildGeneratedMeshes()
 		{
+			InvalidateGeneratedGeometry();
+#if UNITY_EDITOR
+			if (!Application.isPlaying
+				&& (Event.current != null || DeferEditorRebuildsForTesting)) {
+				ScheduleEditorRebuild(false);
+				return;
+			}
+#endif
+			RebuildGeneratedMeshesImmediately();
+		}
+
+		public void RebuildRenderGeometry()
+		{
+			InvalidateRenderGeometry();
+#if UNITY_EDITOR
+			if (!Application.isPlaying
+				&& (Event.current != null || DeferEditorRebuildsForTesting)) {
+				ScheduleEditorRebuild(false);
+				return;
+			}
+#endif
+			RebuildGeneratedMeshesImmediately();
+		}
+
+		private void RebuildGeneratedMeshesImmediately()
+		{
 			if (_rebuildingGeneratedMeshes) {
 				return;
 			}
@@ -2211,10 +2279,70 @@ namespace VisualPinball.Unity
 					_generationError = "The generated Wire Rail Spline child is missing.";
 					return;
 				}
+				using (SynchronizeSegmentsMarker.Auto()) {
+					SynchronizeSegments();
+				}
+				using (RenderMeshMarker.Auto()) {
+					_renderMesh = WireRailRenderMeshGenerator.Generate(container.Spline, _segments,
+						_fixtures, _wireCapBevelSize, _renderSamplesPerSegment, _radialSegments,
+						_renderMesh);
+					_renderMeshGenerationCount++;
+				}
+
+				var meshFilter = GetOrAddComponent<MeshFilter>(container.gameObject);
+				var meshRenderer = GetOrAddComponent<MeshRenderer>(container.gameObject);
+				if (meshFilter.sharedMesh != _renderMesh) {
+					meshFilter.sharedMesh = _renderMesh;
+				}
+				AssignRenderMaterial(meshRenderer);
+			} finally {
+				_rebuildingGeneratedMeshes = false;
+			}
+		}
+
+		public void RebuildColliderMesh()
+		{
+			InvalidateColliderGeometry();
+			EnsureColliderMesh();
+		}
+
+		public void InvalidateColliderGeometry()
+		{
+			_colliderGeometryDirty = true;
+			_collidersDirty = true;
+			_generationError = null;
+			unchecked {
+				_colliderGeometryVersion++;
+			}
+		}
+
+		private void InvalidateGeneratedGeometry()
+		{
+			InvalidateColliderGeometry();
+			InvalidateRenderGeometry();
+		}
+
+		private void InvalidateRenderGeometry()
+		{
+			unchecked {
+				_renderGeometryVersion++;
+			}
+		}
+
+		private bool EnsureColliderMesh()
+		{
+			if (!_colliderGeometryDirty) {
+				return _colliderMesh && _colliderMesh.vertexCount > 0;
+			}
+			var container = GetSplineContainerWithoutCreating();
+			if (!container || container.Spline == null) {
+				_generationError = "The generated Wire Rail Spline child is missing.";
+				return false;
+			}
+			using (SynchronizeSegmentsMarker.Auto()) {
 				SynchronizeSegments();
-				_renderMesh = WireRailRenderMeshGenerator.Generate(container.Spline, _segments,
-					_fixtures, _wireCapBevelSize, _renderSamplesPerSegment, _radialSegments,
-					_renderMesh);
+			}
+			using (ColliderMeshMarker.Auto()) {
 				if (!WireRailColliderMeshGenerator.TryGenerate(container.Spline, _segments,
 						_referenceBallDiameter, _colliderSamplesPerSegment,
 						_colliderMesh, out _colliderMesh, out _colliderEdgeVertices,
@@ -2226,82 +2354,34 @@ namespace VisualPinball.Unity
 					}
 					_colliderEdgeVertices = Array.Empty<Vector3>();
 				}
-
-				var meshFilter = GetOrAddComponent<MeshFilter>(container.gameObject);
-				var meshRenderer = GetOrAddComponent<MeshRenderer>(container.gameObject);
-				meshFilter.sharedMesh = _renderMesh;
-				AssignRenderMaterial(meshRenderer);
-				_collidersDirty = true;
-#if UNITY_EDITOR
-				_generatedInputHash = ComputeGenerationInputHash();
-#endif
-			} finally {
-				_rebuildingGeneratedMeshes = false;
 			}
+			_colliderGeometryDirty = false;
+			return _colliderMesh && _colliderMesh.vertexCount > 0;
 		}
-
-#if UNITY_EDITOR
-		private int ComputeGenerationInputHash()
-		{
-			unchecked {
-				var hash = 17;
-				var container = GetSplineContainerWithoutCreating();
-				var spline = container ? container.Spline : null;
-				hash = hash * 31 + (spline?.Count ?? 0);
-				hash = hash * 31 + (spline != null && spline.Closed ? 1 : 0);
-				if (spline != null) {
-					for (var knotIndex = 0; knotIndex < spline.Count; knotIndex++) {
-						hash = hash * 31 + spline[knotIndex].GetHashCode();
-						hash = hash * 31 + spline.GetTangentMode(knotIndex).GetHashCode();
-						hash = hash * 31
-							+ spline.GetAutoSmoothTension(knotIndex).GetHashCode();
-					}
-				}
-
-				hash = hash * 31 + (_segments?.Count ?? 0);
-				hash = hash * 31 + _railCount;
-				if (_segments != null) {
-					for (var segmentIndex = 0; segmentIndex < _segments.Count;
-						segmentIndex++) {
-						hash = hash * 31 + (_segments[segmentIndex] == null ? 0
-							: JsonUtility.ToJson(_segments[segmentIndex]).GetHashCode());
-					}
-				}
-				hash = hash * 31 + (_fixtures?.Count ?? 0);
-				if (_fixtures != null) {
-					for (var fixtureIndex = 0; fixtureIndex < _fixtures.Count; fixtureIndex++) {
-						var fixture = _fixtures[fixtureIndex];
-						hash = hash * 31 + (fixture?.GetType().FullName?.GetHashCode() ?? 0);
-						hash = hash * 31 + (fixture == null ? 0
-							: JsonUtility.ToJson(fixture).GetHashCode());
-					}
-				}
-				hash = hash * 31 + _wireDiameter.GetHashCode();
-				hash = hash * 31 + _wireCapBevelSize.GetHashCode();
-				hash = hash * 31 + _radialSegments;
-				hash = hash * 31 + _renderSamplesPerSegment;
-				hash = hash * 31 + (_renderMaterial
-					? _renderMaterial.GetEntityId().GetHashCode() : 0);
-				hash = hash * 31 + _referenceBallDiameter.GetHashCode();
-				hash = hash * 31 + _colliderSamplesPerSegment;
-				return hash;
-			}
-		}
-#endif
 
 		public SplineContainer EnsureSplineContainerExists()
 			=> EnsureSplineContainer();
 
 		private void AssignRenderMaterial(MeshRenderer renderer)
 		{
-			if (_renderMaterial) {
-				renderer.sharedMaterial = _renderMaterial;
-				return;
-			}
 			var pipeline = GraphicsSettings.currentRenderPipeline;
-			renderer.sharedMaterial = pipeline
-				? pipeline.defaultMaterial
-				: Resources.Load<Material>("Materials/Table Opaque (Builtin)");
+			var material = _renderMaterial
+				? _renderMaterial
+				: pipeline
+					? pipeline.defaultMaterial
+					: GetBuiltinDefaultMaterial();
+			if (renderer.sharedMaterial != material) {
+				renderer.sharedMaterial = material;
+			}
+		}
+
+		private static Material GetBuiltinDefaultMaterial()
+		{
+			if (!_builtinDefaultMaterial) {
+				_builtinDefaultMaterial = Resources.Load<Material>(
+					"Materials/Table Opaque (Builtin)");
+			}
+			return _builtinDefaultMaterial;
 		}
 
 		private static T GetOrAddComponent<T>(GameObject gameObject) where T : Component
@@ -2407,7 +2487,7 @@ namespace VisualPinball.Unity
 		void ICollidableComponent.GetColliders(Player player, PhysicsEngine physicsEngine,
 			ref ColliderReference colliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
-			if (!_colliderMesh || _colliderMesh.vertexCount == 0) {
+			if (!EnsureColliderMesh()) {
 				return;
 			}
 			var material = !_overwritePhysics && _physicsMaterial
@@ -2454,7 +2534,7 @@ namespace VisualPinball.Unity
 		}
 
 		bool ICollidableComponent.IsCollidable
-			=> isActiveAndEnabled && _colliderMesh && _colliderMesh.vertexCount > 0;
+			=> isActiveAndEnabled && EnsureColliderMesh();
 
 		private void OnDestroy()
 			=> DestroyGeneratedMeshes();
@@ -2467,6 +2547,7 @@ namespace VisualPinball.Unity
 			_colliderMesh = null;
 			_colliderEdgeVertices = Array.Empty<Vector3>();
 			_collidersDirty = true;
+			_colliderGeometryDirty = true;
 		}
 
 		private static void DestroyGeneratedMesh(Mesh mesh)
