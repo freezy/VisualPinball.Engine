@@ -39,6 +39,12 @@ namespace VisualPinball.Unity
 		Right,
 	}
 
+	public enum WireRailLegSide
+	{
+		Left,
+		Right,
+	}
+
 	/// <summary>
 	/// Creates useful starting positions for wire-rail centerlines. All values are in VPX units
 	/// and describe the X/Z cross-section around a route whose initial direction is +Y.
@@ -796,6 +802,114 @@ namespace VisualPinball.Unity
 		}
 	}
 
+	[Serializable]
+	public sealed class WireRailLegFixture : WireRailFixture
+	{
+		public const float DefaultStartLength = 40f;
+		public const float DefaultFootWidth = 30f;
+		public const float DefaultFootLength = 30f;
+		public const float DefaultFootConnectionLength = 30f;
+		public const int FootBendSegments = 12;
+
+		public static readonly Vector3 DefaultStartDirection = new(0f, 0f, -1f);
+		public static readonly Vector3 DefaultFootPosition = new(15f, -22.5f, -80f);
+
+		[SerializeField, Min(0.1f)] private float _diameter = WireRailLayout.ReferenceWireDiameter;
+		[SerializeField] private WireRailLegSide _legSide = WireRailLegSide.Right;
+		[SerializeField] private float _lateralOffset;
+		[SerializeField] private float _verticalOffset;
+		[SerializeField] private float _lengthAdjustment;
+		[SerializeField] private Vector3 _startDirection = new(0f, 0f, -1f);
+		[SerializeField, Min(0f)] private float _startLength = DefaultStartLength;
+		[SerializeField] private Vector3 _footPosition = new(15f, -22.5f, -80f);
+		[SerializeField] private Vector3 _footRotation;
+		[SerializeField, Min(0.1f)] private float _footWidth = DefaultFootWidth;
+		[SerializeField, Min(0f)] private float _footLength = DefaultFootLength;
+		[SerializeField, Min(0f)] private float _footConnectionLength = DefaultFootConnectionLength;
+
+		public float Diameter => _diameter;
+		public WireRailLegSide LegSide => _legSide;
+		public float LateralOffset => _lateralOffset;
+		public float VerticalOffset => _verticalOffset;
+		public float LengthAdjustment => _lengthAdjustment;
+		public Vector3 StartDirection => _startDirection;
+		public float StartLength => _startLength;
+		public Vector3 FootPosition => _footPosition;
+		public Vector3 FootRotation => _footRotation;
+		public float FootWidth => _footWidth;
+		public float FootLength => _footLength;
+		public float FootConnectionLength => _footConnectionLength;
+
+		internal bool EnsureLegInitialized(float splineLength)
+		{
+			var changed = EnsureInitialized(splineLength);
+			var diameter = math.max(0.1f, _diameter);
+			var startDirection = _startDirection.sqrMagnitude > 1e-8f
+				? _startDirection.normalized : DefaultStartDirection;
+			var startLength = math.max(0f, _startLength);
+			var footWidth = math.max(0.1f, _footWidth);
+			var footLength = math.max(0f, _footLength);
+			var footConnectionLength = math.max(0f, _footConnectionLength);
+			if (!Mathf.Approximately(_diameter, diameter)) {
+				_diameter = diameter;
+				changed = true;
+			}
+			if ((_startDirection - startDirection).sqrMagnitude > 1e-8f) {
+				_startDirection = startDirection;
+				changed = true;
+			}
+			if (!Mathf.Approximately(_startLength, startLength)) {
+				_startLength = startLength;
+				changed = true;
+			}
+			if (!Mathf.Approximately(_footWidth, footWidth)) {
+				_footWidth = footWidth;
+				changed = true;
+			}
+			if (!Mathf.Approximately(_footLength, footLength)) {
+				_footLength = footLength;
+				changed = true;
+			}
+			if (!Mathf.Approximately(_footConnectionLength, footConnectionLength)) {
+				_footConnectionLength = footConnectionLength;
+				changed = true;
+			}
+			return changed;
+		}
+
+		internal bool SetDiameter(float diameter)
+		{
+			diameter = math.max(0.1f, diameter);
+			if (Mathf.Approximately(_diameter, diameter)) {
+				return false;
+			}
+			_diameter = diameter;
+			return true;
+		}
+
+		internal void SetProperties(float distance, float splineLength, float diameter,
+			WireRailLegSide legSide, Vector3 startDirection, float startLength,
+			Vector3 footPosition, Vector3 footRotation, float footWidth, float footLength,
+			float footConnectionLength, float lateralOffset = 0f,
+			float verticalOffset = 0f, float lengthAdjustment = 0f)
+		{
+			SetDistance(distance, splineLength);
+			_diameter = math.max(0.1f, diameter);
+			_legSide = legSide;
+			_lateralOffset = lateralOffset;
+			_verticalOffset = verticalOffset;
+			_lengthAdjustment = lengthAdjustment;
+			_startDirection = startDirection.sqrMagnitude > 1e-8f
+				? startDirection.normalized : DefaultStartDirection;
+			_startLength = math.max(0f, startLength);
+			_footPosition = footPosition;
+			_footRotation = footRotation;
+			_footWidth = math.max(0.1f, footWidth);
+			_footLength = math.max(0f, footLength);
+			_footConnectionLength = math.max(0f, footConnectionLength);
+		}
+	}
+
 	public readonly struct WireRailBraceCrossSection
 	{
 		public readonly Vector2 CenterOffset;
@@ -830,6 +944,26 @@ namespace VisualPinball.Unity
 			EndRailRadius = endRailRadius;
 			StartOffset = new Vector2(startOffset.x, startOffset.y);
 			EndOffset = new Vector2(endOffset.x, endOffset.y);
+		}
+	}
+
+	public readonly struct WireRailLegPreview
+	{
+		public readonly Vector3 StartRailOffset;
+		public readonly Vector3 EndRailOffset;
+		public readonly float StartRailRadius;
+		public readonly float EndRailRadius;
+		public readonly IReadOnlyList<Vector3> CenterlinePoints;
+
+		internal WireRailLegPreview(Vector3 startRailOffset, Vector3 endRailOffset,
+			float startRailRadius, float endRailRadius,
+			IReadOnlyList<Vector3> centerlinePoints)
+		{
+			StartRailOffset = startRailOffset;
+			EndRailOffset = endRailOffset;
+			StartRailRadius = startRailRadius;
+			EndRailRadius = endRailRadius;
+			CenterlinePoints = centerlinePoints;
 		}
 	}
 
@@ -1123,6 +1257,9 @@ namespace VisualPinball.Unity
 			foreach (var crossWire in _fixtures.OfType<WireRailCrossWireFixture>()) {
 				crossWire.SetDiameter(diameter);
 			}
+			foreach (var leg in _fixtures.OfType<WireRailLegFixture>()) {
+				leg.SetDiameter(diameter);
+			}
 			RebuildGeneratedMeshes();
 			MarkDirty();
 		}
@@ -1241,6 +1378,22 @@ namespace VisualPinball.Unity
 			return _fixtures.Count - 1;
 		}
 
+		public int AddLegFixture(float distance)
+		{
+			_fixtures ??= new List<WireRailFixture>();
+			var leg = new WireRailLegFixture();
+			leg.SetProperties(distance, SplineLength, _wireDiameter,
+				WireRailLegSide.Right, WireRailLegFixture.DefaultStartDirection,
+				WireRailLegFixture.DefaultStartLength,
+				WireRailLegFixture.DefaultFootPosition, Vector3.zero,
+				WireRailLegFixture.DefaultFootWidth, WireRailLegFixture.DefaultFootLength,
+				WireRailLegFixture.DefaultFootConnectionLength);
+			_fixtures.Add(leg);
+			RebuildGeneratedMeshes();
+			MarkDirty();
+			return _fixtures.Count - 1;
+		}
+
 		public bool TryGetBraceCrossSection(int fixtureIndex,
 			out WireRailBraceCrossSection crossSection)
 		{
@@ -1272,6 +1425,35 @@ namespace VisualPinball.Unity
 				profile.EndRailOffset, profile.StartRailRadius, profile.EndRailRadius,
 				profile.StartOffset, profile.EndOffset);
 			return true;
+		}
+
+		public bool TryGetLegPreview(int fixtureIndex, out WireRailLegPreview preview)
+		{
+			preview = default;
+			if (_fixtures == null || fixtureIndex < 0 || fixtureIndex >= _fixtures.Count
+				|| _fixtures[fixtureIndex] is not WireRailLegFixture leg
+				|| !_splineContainer || _splineContainer.Spline == null
+				|| !WireRailFixtureMeshGenerator.TryEvaluateLegProfile(
+					_splineContainer.Spline, _segments, leg, out var profile)) {
+				return false;
+			}
+			preview = new WireRailLegPreview(
+				ToLocalOffset(profile.AttachmentProfile.StartRailOffset),
+				ToLocalOffset(profile.AttachmentProfile.EndRailOffset),
+				profile.AttachmentProfile.StartRailRadius,
+				profile.AttachmentProfile.EndRailRadius,
+				profile.CombinedPath.Select(point => ToLocalPosition(point)).ToArray());
+			return true;
+
+			Vector3 ToLocalOffset(float2 offset) => new(offset.x, 0f, offset.y);
+			Vector3 ToLocalPosition(float3 position)
+			{
+				var relative = position - profile.AttachmentProfile.Frame.Position;
+				return new Vector3(
+					math.dot(relative, profile.AttachmentProfile.Frame.Right),
+					math.dot(relative, profile.AttachmentProfile.Frame.Tangent),
+					math.dot(relative, profile.AttachmentProfile.Frame.Up));
+			}
 		}
 
 		public void RemoveFixture(int fixtureIndex)
@@ -1319,6 +1501,25 @@ namespace VisualPinball.Unity
 			return duplicateIndex;
 		}
 
+		public int DuplicateLegFixture(int fixtureIndex)
+		{
+			if (GetFixture(fixtureIndex) is not WireRailLegFixture source) {
+				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a leg and foot.",
+					nameof(fixtureIndex));
+			}
+			var duplicate = new WireRailLegFixture();
+			duplicate.SetProperties(source.Distance, SplineLength, _wireDiameter,
+				source.LegSide, source.StartDirection, source.StartLength,
+				source.FootPosition, source.FootRotation, source.FootWidth,
+				source.FootLength, source.FootConnectionLength, source.LateralOffset,
+				source.VerticalOffset, source.LengthAdjustment);
+			var duplicateIndex = fixtureIndex + 1;
+			_fixtures.Insert(duplicateIndex, duplicate);
+			RebuildGeneratedMeshes();
+			MarkDirty();
+			return duplicateIndex;
+		}
+
 		public void SetBraceFixtureProperties(int fixtureIndex, float distance,
 			bool hasCutout, float cutoutStartAngle, float cutoutEndAngle,
 			bool hasStraightSection = false, float straightStartAngle =
@@ -1354,6 +1555,24 @@ namespace VisualPinball.Unity
 			crossWire.SetProperties(distance, SplineLength, _wireDiameter,
 				crossWire.StartRailIndex, crossWire.EndRailIndex, angle,
 				lateralOffset, verticalOffset, lengthAdjustment);
+			RebuildGeneratedMeshes();
+			MarkDirty();
+		}
+
+		public void SetLegFixtureProperties(int fixtureIndex, float distance,
+			WireRailLegSide legSide, Vector3 startDirection, float startLength,
+			Vector3 footPosition, Vector3 footRotation, float footWidth, float footLength,
+			float footConnectionLength, float lateralOffset = 0f,
+			float verticalOffset = 0f, float lengthAdjustment = 0f)
+		{
+			if (GetFixture(fixtureIndex) is not WireRailLegFixture leg) {
+				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a leg and foot.",
+					nameof(fixtureIndex));
+			}
+			leg.SetProperties(distance, SplineLength, _wireDiameter, legSide,
+				startDirection, startLength, footPosition, footRotation,
+				footWidth, footLength, footConnectionLength, lateralOffset,
+				verticalOffset, lengthAdjustment);
 			RebuildGeneratedMeshes();
 			MarkDirty();
 		}
@@ -1439,6 +1658,9 @@ namespace VisualPinball.Unity
 				} else if (fixture is WireRailCrossWireFixture crossWire) {
 					changed |= crossWire.EnsureCrossWireInitialized(SplineLength);
 					changed |= crossWire.SetDiameter(_wireDiameter);
+				} else if (fixture is WireRailLegFixture leg) {
+					changed |= leg.EnsureLegInitialized(SplineLength);
+					changed |= leg.SetDiameter(_wireDiameter);
 				} else {
 					changed |= fixture.EnsureInitialized(SplineLength);
 				}
