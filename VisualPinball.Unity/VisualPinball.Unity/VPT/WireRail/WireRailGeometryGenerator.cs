@@ -1219,31 +1219,35 @@ namespace VisualPinball.Unity
 
 			var tubeRadius = vBrace.Diameter * 0.5f;
 			var envelopeCenterX = (minimum.x + maximum.x) * 0.5f;
-			var originOffset = TryCalculateDefaultVBraceOrigin(offsetsByIndex,
+			var theoreticalTip = TryCalculateDefaultVBraceOrigin(offsetsByIndex,
 				radiiByIndex, activeByIndex, tubeRadius, envelopeCenterX,
 				out var fittedOrigin) && fittedOrigin.y < minimum.y - 1e-5f
 				? fittedOrigin
 				: new float2(envelopeCenterX,
 					minimum.y - WireRailLayout.MiddleRailHeight - tubeRadius * 2f);
-			originOffset += new float2(vBrace.LateralOffset, vBrace.VerticalOffset);
+			// Freeze the bottom-center anchor at the default fit so editing the authored
+			// bottom length or arm angle reshapes the fixture without moving it.
+			var defaultHalfAngle = math.radians(WireRailVBraceFixture.DefaultAngle * 0.5f);
+			var defaultBottomRise = WireRailVBraceFixture.DefaultBottomLength * 0.5f
+				/ math.tan(defaultHalfAngle);
+			var originOffset = theoreticalTip + new float2(0f, defaultBottomRise)
+				+ new float2(vBrace.LateralOffset, vBrace.VerticalOffset);
 
 			var halfAngle = math.radians(vBrace.Angle * 0.5f);
 			var leftDirection = new float2(-math.sin(halfAngle), math.cos(halfAngle));
 			var rightDirection = new float2(math.sin(halfAngle), math.cos(halfAngle));
-			var hasVisibleStraightSection = vBrace.HasStraightSection
-				&& vBrace.StraightHeight > 1e-5f;
-			var rawPoints = new List<float2>(hasVisibleStraightSection ? 4 : 3) {
-				leftDirection * vBrace.LeftLength,
-			};
-			if (hasVisibleStraightSection) {
-				var armDistance = vBrace.StraightHeight / math.max(1e-5f,
-					math.cos(halfAngle));
-				rawPoints.Add(leftDirection * armDistance);
-				rawPoints.Add(rightDirection * armDistance);
-			} else {
-				rawPoints.Add(float2.zero);
+			var halfBottomLength = vBrace.BottomLength * 0.5f;
+			var leftBottom = new float2(-halfBottomLength, 0f);
+			var rightBottom = new float2(halfBottomLength, 0f);
+			var rawPoints = new List<float2>(4);
+			if (vBrace.LeftLength > 1e-5f) {
+				rawPoints.Add(leftBottom + leftDirection * vBrace.LeftLength);
 			}
-			rawPoints.Add(rightDirection * vBrace.RightLength);
+			rawPoints.Add(leftBottom);
+			rawPoints.Add(rightBottom);
+			if (vBrace.RightLength > 1e-5f) {
+				rawPoints.Add(rightBottom + rightDirection * vBrace.RightLength);
+			}
 
 			var rotation = math.radians(vBrace.Rotation);
 			var rotationDirection = new float2(math.cos(rotation), math.sin(rotation));
@@ -1361,7 +1365,7 @@ namespace VisualPinball.Unity
 				var tangentScale = math.tan(cornerAngle * 0.5f);
 				var tangentDistance = math.min(math.max(0.05f, desiredRadius)
 					* tangentScale, math.min(incomingLength, outgoingLength)
-					* LegCornerMaxSpanFraction);
+					* WireRailVBraceFixture.MaximumCornerSpanFraction);
 				var radius = tangentDistance / tangentScale;
 				if (radius + 1e-5f < minimumRadius) {
 					return null;
