@@ -730,6 +730,121 @@ namespace VisualPinball.Unity
 	}
 
 	[Serializable]
+	public sealed class WireRailVBraceFixture : WireRailFixture
+	{
+		public const int DefaultRingDensity = 32;
+		public const float DefaultLeftLength = 85f;
+		public const float DefaultRightLength = 85f;
+		public const float DefaultAngle = 53.130102f;
+		public const float DefaultRotation = 0f;
+		public const float DefaultCornerRadius = WireRailLayout.ReferenceWireDiameter;
+		public const float DefaultStraightHeight = 8f;
+
+		[SerializeField, Min(0.1f)] private float _diameter = WireRailLayout.ReferenceWireDiameter;
+		[SerializeField, Range(3, 128)] private int _ringDensity = DefaultRingDensity;
+		[SerializeField] private float _lateralOffset;
+		[SerializeField] private float _verticalOffset;
+		[SerializeField] private bool _hasStraightSection;
+		[SerializeField, Min(0f)] private float _straightHeight = DefaultStraightHeight;
+		[SerializeField, Min(0.1f)] private float _leftLength = DefaultLeftLength;
+		[SerializeField, Min(0.1f)] private float _rightLength = DefaultRightLength;
+		[SerializeField, Range(1f, 179f)] private float _angle = DefaultAngle;
+		[SerializeField, Range(0f, 360f)] private float _rotation = DefaultRotation;
+		[SerializeField, Min(0.1f)] private float _cornerRadius = DefaultCornerRadius;
+
+		public float Diameter => _diameter;
+		public int RingDensity => _ringDensity;
+		public float LateralOffset => _lateralOffset;
+		public float VerticalOffset => _verticalOffset;
+		public bool HasStraightSection => _hasStraightSection;
+		public float StraightHeight => _straightHeight;
+		public float LeftLength => _leftLength;
+		public float RightLength => _rightLength;
+		public float Angle => _angle;
+		public float Rotation => _rotation;
+		public float CornerRadius => _cornerRadius;
+
+		internal bool EnsureVBraceInitialized(float splineLength)
+		{
+			var changed = EnsureInitialized(splineLength);
+			var diameter = math.max(0.1f, _diameter);
+			var ringDensity = math.clamp(_ringDensity <= 0 ? DefaultRingDensity : _ringDensity,
+				3, 128);
+			var leftLength = math.max(0.1f, _leftLength);
+			var rightLength = math.max(0.1f, _rightLength);
+			var angle = math.clamp(_angle, 1f, 179f);
+			var rotation = math.clamp(_rotation, 0f, 360f);
+			var cornerRadius = math.max(diameter * 0.5f, _cornerRadius);
+			var straightHeight = _hasStraightSection
+				? ClampStraightHeight(_straightHeight, leftLength, rightLength, angle)
+				: math.max(0f, _straightHeight);
+			changed |= SetValue(ref _diameter, diameter);
+			if (_ringDensity != ringDensity) {
+				_ringDensity = ringDensity;
+				changed = true;
+			}
+			changed |= SetValue(ref _leftLength, leftLength);
+			changed |= SetValue(ref _rightLength, rightLength);
+			changed |= SetValue(ref _angle, angle);
+			changed |= SetValue(ref _rotation, rotation);
+			changed |= SetValue(ref _cornerRadius, cornerRadius);
+			changed |= SetValue(ref _straightHeight, straightHeight);
+			return changed;
+
+			static bool SetValue(ref float destination, float value)
+			{
+				if (Mathf.Approximately(destination, value)) {
+					return false;
+				}
+				destination = value;
+				return true;
+			}
+		}
+
+		internal bool SetDiameter(float diameter)
+		{
+			diameter = math.max(0.1f, diameter);
+			var changed = !Mathf.Approximately(_diameter, diameter);
+			_diameter = diameter;
+			var cornerRadius = math.max(_cornerRadius, diameter * 0.5f);
+			if (!Mathf.Approximately(_cornerRadius, cornerRadius)) {
+				_cornerRadius = cornerRadius;
+				changed = true;
+			}
+			return changed;
+		}
+
+		internal void SetProperties(float distance, float splineLength, float diameter,
+			int ringDensity, float lateralOffset, float verticalOffset,
+			bool hasStraightSection, float straightHeight, float leftLength,
+			float rightLength, float angle, float rotation, float cornerRadius)
+		{
+			SetDistance(distance, splineLength);
+			_diameter = math.max(0.1f, diameter);
+			_ringDensity = math.clamp(ringDensity, 3, 128);
+			_lateralOffset = lateralOffset;
+			_verticalOffset = verticalOffset;
+			_hasStraightSection = hasStraightSection;
+			_leftLength = math.max(0.1f, leftLength);
+			_rightLength = math.max(0.1f, rightLength);
+			_angle = math.clamp(angle, 1f, 179f);
+			_rotation = math.clamp(rotation, 0f, 360f);
+			_cornerRadius = math.max(_diameter * 0.5f, cornerRadius);
+			_straightHeight = _hasStraightSection
+				? ClampStraightHeight(straightHeight, _leftLength, _rightLength, _angle)
+				: math.max(0f, straightHeight);
+		}
+
+		private static float ClampStraightHeight(float height, float leftLength,
+			float rightLength, float angle)
+		{
+			var verticalReach = math.min(leftLength, rightLength)
+				* math.cos(math.radians(angle * 0.5f));
+			return math.clamp(height, 0f, math.max(0f, verticalReach * 0.9f));
+		}
+	}
+
+	[Serializable]
 	public sealed class WireRailCrossWireFixture : WireRailFixture
 	{
 		public const float DefaultAngle = 0f;
@@ -963,6 +1078,21 @@ namespace VisualPinball.Unity
 			EndRailOffset = endRailOffset;
 			StartRailRadius = startRailRadius;
 			EndRailRadius = endRailRadius;
+			CenterlinePoints = centerlinePoints;
+		}
+	}
+
+	public readonly struct WireRailVBracePreview
+	{
+		public readonly IReadOnlyList<Vector2> RailOffsets;
+		public readonly IReadOnlyList<float> RailRadii;
+		public readonly IReadOnlyList<Vector2> CenterlinePoints;
+
+		internal WireRailVBracePreview(IReadOnlyList<Vector2> railOffsets,
+			IReadOnlyList<float> railRadii, IReadOnlyList<Vector2> centerlinePoints)
+		{
+			RailOffsets = railOffsets;
+			RailRadii = railRadii;
 			CenterlinePoints = centerlinePoints;
 		}
 	}
@@ -1254,6 +1384,9 @@ namespace VisualPinball.Unity
 			foreach (var brace in _fixtures.OfType<WireRailBraceFixture>()) {
 				brace.SetDiameter(diameter);
 			}
+			foreach (var vBrace in _fixtures.OfType<WireRailVBraceFixture>()) {
+				vBrace.SetDiameter(diameter);
+			}
 			foreach (var crossWire in _fixtures.OfType<WireRailCrossWireFixture>()) {
 				crossWire.SetDiameter(diameter);
 			}
@@ -1378,6 +1511,24 @@ namespace VisualPinball.Unity
 			return _fixtures.Count - 1;
 		}
 
+		public int AddVBraceFixture(float distance)
+		{
+			_fixtures ??= new List<WireRailFixture>();
+			var vBrace = new WireRailVBraceFixture();
+			vBrace.SetProperties(distance, SplineLength, _wireDiameter,
+				WireRailVBraceFixture.DefaultRingDensity, 0f, 0f, false,
+				WireRailVBraceFixture.DefaultStraightHeight,
+				WireRailVBraceFixture.DefaultLeftLength,
+				WireRailVBraceFixture.DefaultRightLength,
+				WireRailVBraceFixture.DefaultAngle,
+				WireRailVBraceFixture.DefaultRotation,
+				WireRailVBraceFixture.DefaultCornerRadius);
+			_fixtures.Add(vBrace);
+			RebuildGeneratedMeshes();
+			MarkDirty();
+			return _fixtures.Count - 1;
+		}
+
 		public int AddLegFixture(float distance)
 		{
 			_fixtures ??= new List<WireRailFixture>();
@@ -1456,6 +1607,27 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		public bool TryGetVBracePreview(int fixtureIndex, out WireRailVBracePreview preview)
+		{
+			preview = default;
+			if (_fixtures == null || fixtureIndex < 0 || fixtureIndex >= _fixtures.Count
+				|| _fixtures[fixtureIndex] is not WireRailVBraceFixture vBrace
+				|| !_splineContainer || _splineContainer.Spline == null
+				|| !WireRailFixtureMeshGenerator.TryEvaluateVBraceProfile(
+					_splineContainer.Spline, _segments, vBrace, out var profile)) {
+				return false;
+			}
+			preview = new WireRailVBracePreview(
+				profile.RailOffsets.Select(offset => new Vector2(offset.x, offset.y)).ToArray(),
+				profile.RailRadii.ToArray(),
+				profile.CenterlinePoints.Select(point => {
+					var relative = point - profile.Frame.Position;
+					return new Vector2(math.dot(relative, profile.Frame.Right),
+						math.dot(relative, profile.Frame.Up));
+				}).ToArray());
+			return true;
+		}
+
 		public void RemoveFixture(int fixtureIndex)
 		{
 			GetFixture(fixtureIndex);
@@ -1494,6 +1666,24 @@ namespace VisualPinball.Unity
 				source.StartRailIndex, source.EndRailIndex,
 				source.Angle, source.LateralOffset,
 				source.VerticalOffset, source.LengthAdjustment);
+			var duplicateIndex = fixtureIndex + 1;
+			_fixtures.Insert(duplicateIndex, duplicate);
+			RebuildGeneratedMeshes();
+			MarkDirty();
+			return duplicateIndex;
+		}
+
+		public int DuplicateVBraceFixture(int fixtureIndex)
+		{
+			if (GetFixture(fixtureIndex) is not WireRailVBraceFixture source) {
+				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a V brace.",
+					nameof(fixtureIndex));
+			}
+			var duplicate = new WireRailVBraceFixture();
+			duplicate.SetProperties(source.Distance, SplineLength, _wireDiameter,
+				source.RingDensity, source.LateralOffset, source.VerticalOffset,
+				source.HasStraightSection, source.StraightHeight, source.LeftLength,
+				source.RightLength, source.Angle, source.Rotation, source.CornerRadius);
 			var duplicateIndex = fixtureIndex + 1;
 			_fixtures.Insert(duplicateIndex, duplicate);
 			RebuildGeneratedMeshes();
@@ -1555,6 +1745,22 @@ namespace VisualPinball.Unity
 			crossWire.SetProperties(distance, SplineLength, _wireDiameter,
 				crossWire.StartRailIndex, crossWire.EndRailIndex, angle,
 				lateralOffset, verticalOffset, lengthAdjustment);
+			RebuildGeneratedMeshes();
+			MarkDirty();
+		}
+
+		public void SetVBraceFixtureProperties(int fixtureIndex, float distance,
+			int ringDensity, float lateralOffset, float verticalOffset,
+			bool hasStraightSection, float straightHeight, float leftLength,
+			float rightLength, float angle, float rotation, float cornerRadius)
+		{
+			if (GetFixture(fixtureIndex) is not WireRailVBraceFixture vBrace) {
+				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a V brace.",
+					nameof(fixtureIndex));
+			}
+			vBrace.SetProperties(distance, SplineLength, _wireDiameter, ringDensity,
+				lateralOffset, verticalOffset, hasStraightSection, straightHeight,
+				leftLength, rightLength, angle, rotation, cornerRadius);
 			RebuildGeneratedMeshes();
 			MarkDirty();
 		}
@@ -1658,6 +1864,9 @@ namespace VisualPinball.Unity
 				} else if (fixture is WireRailCrossWireFixture crossWire) {
 					changed |= crossWire.EnsureCrossWireInitialized(SplineLength);
 					changed |= crossWire.SetDiameter(_wireDiameter);
+				} else if (fixture is WireRailVBraceFixture vBrace) {
+					changed |= vBrace.SetDiameter(_wireDiameter);
+					changed |= vBrace.EnsureVBraceInitialized(SplineLength);
 				} else if (fixture is WireRailLegFixture leg) {
 					changed |= leg.EnsureLegInitialized(SplineLength);
 					changed |= leg.SetDiameter(_wireDiameter);

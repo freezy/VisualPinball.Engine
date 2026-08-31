@@ -501,6 +501,317 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldFitTheDefaultVBraceToTheBottomAndMiddleRails()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var railTriangleCount = component.RenderMesh.triangles.Length / 3;
+				var fixtureIndex = component.AddVBraceFixture(250f);
+				var vBrace = (WireRailVBraceFixture)component.Fixtures[fixtureIndex];
+
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateVBraceProfile(
+					component.SplineContainer.Spline, component.Segments, vBrace,
+					out var profile), Is.True);
+				Assert.That(vBrace.Angle,
+					Is.EqualTo(WireRailVBraceFixture.DefaultAngle).Within(0.001f));
+				Assert.That(vBrace.LeftLength,
+					Is.EqualTo(WireRailVBraceFixture.DefaultLeftLength));
+				Assert.That(vBrace.RightLength,
+					Is.EqualTo(WireRailVBraceFixture.DefaultRightLength));
+				Assert.That(profile.RailOffsets, Has.Count.EqualTo(4));
+
+				var centerline = profile.CenterlinePoints.Select(ToOffset).ToArray();
+				var leftDirection = math.normalize(centerline[1] - centerline[0]);
+				var rightDirection = math.normalize(centerline[^1] - centerline[^2]);
+				AssertTouches(0, centerline[0], leftDirection);
+				AssertTouches(2, centerline[0], leftDirection);
+				AssertTouches(1, centerline[^1], rightDirection);
+				AssertTouches(3, centerline[^1], rightDirection);
+				var leftUp = -leftDirection;
+				var includedAngle = math.degrees(math.acos(math.clamp(
+					math.dot(leftUp, rightDirection), -1f, 1f)));
+				Assert.That(includedAngle, Is.EqualTo(vBrace.Angle).Within(0.01f));
+				Assert.That(component.RenderMesh.triangles.Length / 3,
+					Is.GreaterThan(railTriangleCount));
+
+				float2 ToOffset(float3 point)
+				{
+					var relative = point - profile.Frame.Position;
+					return new float2(math.dot(relative, profile.Frame.Right),
+						math.dot(relative, profile.Frame.Up));
+				}
+
+				void AssertTouches(int railIndex, float2 linePoint, float2 direction)
+				{
+					var relative = profile.RailOffsets[railIndex] - linePoint;
+					var distance = math.abs(direction.x * relative.y
+						- direction.y * relative.x);
+					Assert.That(distance, Is.EqualTo(profile.RailRadii[railIndex]
+						+ vBrace.Diameter * 0.5f).Within(0.01f));
+				}
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldRoundAndOptionallyFlattenTheVBraceBottom()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var fixtureIndex = component.AddVBraceFixture(250f);
+				var vBrace = (WireRailVBraceFixture)component.Fixtures[fixtureIndex];
+				component.SetVBraceFixtureProperties(fixtureIndex, vBrace.Distance,
+					64, 0f, 0f, false, vBrace.StraightHeight,
+					vBrace.LeftLength, vBrace.RightLength, vBrace.Angle, 0f, 12f);
+
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateVBraceProfile(
+					component.SplineContainer.Spline, component.Segments, vBrace,
+					out var rounded), Is.True);
+				var roundedOffsets = rounded.CenterlinePoints.Select(point =>
+					ToOffset(rounded, point)).ToArray();
+				Assert.That(roundedOffsets.Any(point => math.distance(point,
+					rounded.OriginOffset) < 0.001f), Is.False,
+					"the sharp V tip should be replaced by a rounded corner");
+				Assert.That(CalculateMaximumTurn(roundedOffsets),
+					Is.LessThanOrEqualTo(360f / 64f + 0.1f));
+
+				component.SetVBraceFixtureProperties(fixtureIndex, vBrace.Distance,
+					3, 0f, 0f, false, vBrace.StraightHeight,
+					vBrace.LeftLength, vBrace.RightLength, vBrace.Angle, 0f, 12f);
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateVBraceProfile(
+					component.SplineContainer.Spline, component.Segments, vBrace,
+					out var lowDensity), Is.True);
+				var lowDensityOffsets = lowDensity.CenterlinePoints.Select(point =>
+					ToOffset(lowDensity, point)).ToArray();
+				Assert.That(CalculateMaximumTurn(lowDensityOffsets),
+					Is.LessThanOrEqualTo(15.1f),
+					"low density must not introduce a visible miter waist");
+
+				component.SetVBraceFixtureProperties(fixtureIndex, vBrace.Distance,
+					64, 0f, 0f, true, 12f, vBrace.LeftLength, vBrace.RightLength,
+					vBrace.Angle, 0f, 12f);
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateVBraceProfile(
+					component.SplineContainer.Spline, component.Segments, vBrace,
+					out var flattened), Is.True);
+				var flattenedOffsets = flattened.CenterlinePoints.Select(point =>
+					ToOffset(flattened, point)).ToArray();
+				var bottomHeight = flattened.OriginOffset.y + vBrace.StraightHeight;
+				Assert.That(flattenedOffsets.Min(point => point.y),
+					Is.EqualTo(bottomHeight).Within(0.001f));
+				Assert.That(flattenedOffsets.Zip(flattenedOffsets.Skip(1),
+					(left, right) => math.abs(left.y - bottomHeight) < 0.001f
+						&& math.abs(right.y - bottomHeight) < 0.001f
+						&& math.abs(left.x - right.x) > 0.1f).Any(matches => matches),
+					Is.True, "the two rounded corners should retain a straight bottom span");
+
+				static float2 ToOffset(WireRailVBraceProfile profile, float3 point)
+				{
+					var relative = point - profile.Frame.Position;
+					return new float2(math.dot(relative, profile.Frame.Right),
+						math.dot(relative, profile.Frame.Up));
+				}
+				static float CalculateMaximumTurn(IReadOnlyList<float2> points)
+				{
+					var maximumTurn = 0f;
+					for (var pointIndex = 1; pointIndex < points.Count - 1; pointIndex++) {
+						var incoming = math.normalize(points[pointIndex]
+							- points[pointIndex - 1]);
+						var outgoing = math.normalize(points[pointIndex + 1]
+							- points[pointIndex]);
+						maximumTurn = math.max(maximumTurn, math.degrees(math.acos(
+							math.clamp(math.dot(incoming, outgoing), -1f, 1f))));
+					}
+					return maximumTurn;
+				}
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldOffsetRotateResizeAndDuplicateAVBrace()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var fixtureIndex = component.AddVBraceFixture(250f);
+				var vBrace = (WireRailVBraceFixture)component.Fixtures[fixtureIndex];
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateVBraceProfile(
+					component.SplineContainer.Spline, component.Segments, vBrace,
+					out var original), Is.True);
+
+				component.SetVBraceFixtureProperties(fixtureIndex, 175f, 48,
+					6f, -4f, true, 10f, 70f, 95f, 60f, 30f, 10f);
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateVBraceProfile(
+					component.SplineContainer.Spline, component.Segments, vBrace,
+					out var changed), Is.True);
+				Assert.That(math.distance(changed.OriginOffset,
+					original.OriginOffset + new float2(6f, -4f)), Is.LessThan(0.001f));
+				var endpoints = new[] {
+					ToOffset(changed, changed.CenterlinePoints[0]),
+					ToOffset(changed, changed.CenterlinePoints[^1]),
+				};
+				Assert.That(math.distance(endpoints[0], changed.OriginOffset),
+					Is.EqualTo(70f).Within(0.001f));
+				Assert.That(math.distance(endpoints[1], changed.OriginOffset),
+					Is.EqualTo(95f).Within(0.001f));
+				var expectedLeftDirection = Rotate(new float2(-0.5f,
+					math.cos(math.radians(30f))), 30f);
+				Assert.That(math.dot(math.normalize(endpoints[0] - changed.OriginOffset),
+					expectedLeftDirection), Is.EqualTo(1f).Within(0.001f));
+
+				var duplicateIndex = component.DuplicateVBraceFixture(fixtureIndex);
+				var duplicate = (WireRailVBraceFixture)component.Fixtures[duplicateIndex];
+				Assert.That(duplicate, Is.Not.SameAs(vBrace));
+				Assert.That(duplicate.Distance, Is.EqualTo(vBrace.Distance));
+				Assert.That(duplicate.RingDensity, Is.EqualTo(vBrace.RingDensity));
+				Assert.That(duplicate.LateralOffset, Is.EqualTo(vBrace.LateralOffset));
+				Assert.That(duplicate.VerticalOffset, Is.EqualTo(vBrace.VerticalOffset));
+				Assert.That(duplicate.HasStraightSection,
+					Is.EqualTo(vBrace.HasStraightSection));
+				Assert.That(duplicate.StraightHeight, Is.EqualTo(vBrace.StraightHeight));
+				Assert.That(duplicate.LeftLength, Is.EqualTo(vBrace.LeftLength));
+				Assert.That(duplicate.RightLength, Is.EqualTo(vBrace.RightLength));
+				Assert.That(duplicate.Angle, Is.EqualTo(vBrace.Angle));
+				Assert.That(duplicate.Rotation, Is.EqualTo(vBrace.Rotation));
+				Assert.That(duplicate.CornerRadius, Is.EqualTo(vBrace.CornerRadius));
+
+				static float2 ToOffset(WireRailVBraceProfile profile, float3 point)
+				{
+					var relative = point - profile.Frame.Position;
+					return new float2(math.dot(relative, profile.Frame.Right),
+						math.dot(relative, profile.Frame.Up));
+				}
+				static float2 Rotate(float2 point, float degrees)
+				{
+					var direction = new float2(math.cos(math.radians(degrees)),
+						math.sin(math.radians(degrees)));
+					return new float2(point.x * direction.x - point.y * direction.y,
+						point.x * direction.y + point.y * direction.x);
+				}
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldClampVBraceSettingsAndShareTheWireDiameter()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var fixtureIndex = component.AddVBraceFixture(250f);
+				component.SetVBraceFixtureProperties(fixtureIndex, 250f, 1000,
+					0f, 0f, true, 1000f, -5f, -10f, 500f, 500f, 0.1f);
+				var vBrace = (WireRailVBraceFixture)component.Fixtures[fixtureIndex];
+
+				Assert.That(vBrace.RingDensity, Is.EqualTo(128));
+				Assert.That(vBrace.LeftLength, Is.EqualTo(0.1f));
+				Assert.That(vBrace.RightLength, Is.EqualTo(0.1f));
+				Assert.That(vBrace.Angle, Is.EqualTo(179f));
+				Assert.That(vBrace.Rotation, Is.EqualTo(360f));
+				Assert.That(vBrace.CornerRadius,
+					Is.EqualTo(component.WireDiameter * 0.5f));
+				Assert.That(vBrace.StraightHeight,
+					Is.LessThanOrEqualTo(0.1f * math.cos(math.radians(89.5f)) * 0.9f
+						+ 0.0001f));
+
+				component.SetWireDiameter(12f);
+				Assert.That(vBrace.Diameter, Is.EqualTo(12f));
+				Assert.That(vBrace.CornerRadius, Is.GreaterThanOrEqualTo(6f));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldPreserveTheFlatHeightWhileTheStraightSectionIsDisabled()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var fixtureIndex = component.AddVBraceFixture(250f);
+				var vBrace = (WireRailVBraceFixture)component.Fixtures[fixtureIndex];
+
+				component.SetVBraceFixtureProperties(fixtureIndex, vBrace.Distance,
+					vBrace.RingDensity, 0f, 0f, false, 40f, 20f, 20f, 60f,
+					0f, vBrace.CornerRadius);
+				Assert.That(vBrace.StraightHeight, Is.EqualTo(40f),
+					"disabled geometry settings should remain non-destructive");
+
+				component.SetVBraceFixtureProperties(fixtureIndex, vBrace.Distance,
+					vBrace.RingDensity, 0f, 0f, true, vBrace.StraightHeight,
+					vBrace.LeftLength, vBrace.RightLength, vBrace.Angle,
+					vBrace.Rotation, vBrace.CornerRadius);
+				Assert.That(vBrace.StraightHeight,
+					Is.EqualTo(20f * math.cos(math.radians(30f)) * 0.9f).Within(0.001f));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldKeepAVBraceAvailableWithFewerThanFourActiveRails()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SetRailCount(3);
+				var fixtureIndex = component.AddVBraceFixture(250f);
+				var vBrace = (WireRailVBraceFixture)component.Fixtures[fixtureIndex];
+
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateVBraceProfile(
+					component.SplineContainer.Spline, component.Segments, vBrace,
+					out var threeRailProfile), Is.True);
+				Assert.That(threeRailProfile.RailOffsets, Has.Count.EqualTo(3));
+
+				component.SetRailsActive(0, new[] { 2 }, false);
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateVBraceProfile(
+					component.SplineContainer.Spline, component.Segments, vBrace,
+					out var twoRailProfile), Is.True);
+				Assert.That(twoRailProfile.RailOffsets, Has.Count.EqualTo(2));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[TestCase(false)]
+		[TestCase(true)]
+		public void ShouldFallBackBelowTheEnvelopeForAmbiguousFourRailLayouts(
+			bool swapBottomRails)
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				if (swapBottomRails) {
+					component.SetRailOffset(0, 0, new Vector2(15f, 0f));
+					component.SetRailOffset(0, 1, new Vector2(-15f, 0f));
+				} else {
+					component.SetRailOffset(0, 2, new Vector2(-10f, 30f));
+					component.SetRailOffset(0, 3, new Vector2(10f, 30f));
+				}
+				var fixtureIndex = component.AddVBraceFixture(250f);
+				var vBrace = (WireRailVBraceFixture)component.Fixtures[fixtureIndex];
+
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateVBraceProfile(
+					component.SplineContainer.Spline, component.Segments, vBrace,
+					out var profile), Is.True);
+				var segment = component.Segments[0];
+				var minimumHeight = Enumerable.Range(0, segment.RailCount)
+					.Where(segment.IsRailActive)
+					.Min(railIndex => segment.GetRailOffset(railIndex).y
+						- segment.GetWireDiameter(railIndex) * 0.5f);
+				Assert.That(profile.OriginOffset.y, Is.LessThan(minimumHeight),
+					"invalid outer-tangent intersections must use the below-envelope fallback");
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
 		public void ShouldConnectTheTwoBottomRailsWithACrossWireByDefault()
 		{
 			const int radialSegments = 8;
