@@ -1110,6 +1110,7 @@ namespace VisualPinball.Unity
 
 		[SerializeField] private SplineContainer _splineContainer;
 		[SerializeField] private List<WireRailSegment> _segments = new();
+		[SerializeField, HideInInspector] private List<int> _layoutDisplayOrder = new();
 		[SerializeReference] private List<WireRailFixture> _fixtures = new();
 		[SerializeField, Range(1, 6)] private int _railCount = 4;
 		[SerializeField, HideInInspector] private bool _railCountInitialized;
@@ -1142,6 +1143,7 @@ namespace VisualPinball.Unity
 		public SplineContainer SplineContainer => GetSplineContainerWithoutCreating();
 		public IReadOnlyList<WireRailSegment> Segments => _segments;
 		public IReadOnlyList<WireRailSegment> Layouts => _segments;
+		public IReadOnlyList<int> LayoutDisplayOrder => _layoutDisplayOrder;
 		public IReadOnlyList<WireRailFixture> Fixtures => _fixtures;
 		public int RailCount => _railCount;
 		public float WireDiameter => _wireDiameter;
@@ -1282,7 +1284,8 @@ namespace VisualPinball.Unity
 			foreach (var railIndex in railIndices) {
 				if (railIndex < 0 || railIndex >= segment.RailCount) {
 					throw new ArgumentOutOfRangeException(nameof(railIndices), railIndex,
-						$"Layout {segmentIndex + 1} has {segment.RailCount} wire(s).");
+						$"Layout {GetLayoutDisplayIndex(segmentIndex) + 1} has "
+							+ $"{segment.RailCount} wire(s).");
 				}
 			}
 			foreach (var railIndex in railIndices) {
@@ -1433,7 +1436,8 @@ namespace VisualPinball.Unity
 				var railIndex = railIndices[i];
 				if (railIndex < 0 || railIndex >= sourceSegment.RailCount) {
 					throw new ArgumentOutOfRangeException(nameof(railIndices), railIndex,
-						$"Layout {sourceSegmentIndex + 1} has {sourceSegment.RailCount} wire(s).");
+						$"Layout {GetLayoutDisplayIndex(sourceSegmentIndex) + 1} has "
+							+ $"{sourceSegment.RailCount} wire(s).");
 				}
 				offsets[i] = sourceSegment.GetRailOffset(railIndex);
 			}
@@ -1941,6 +1945,7 @@ namespace VisualPinball.Unity
 					}
 				}
 			}
+			changed |= SynchronizeLayoutDisplayOrder();
 			changed |= SynchronizeSegmentConnections();
 			changed |= SynchronizeFixtures();
 
@@ -1957,20 +1962,72 @@ namespace VisualPinball.Unity
 				throw new InvalidOperationException("A wire layout needs a valid spline.");
 			}
 			distance = math.clamp(distance, 0f, SplineLength);
-			var insertIndex = 1;
-			while (insertIndex < _segments.Count
-				&& _segments[insertIndex].Distance <= distance) {
-				insertIndex++;
-			}
+			var insertIndex = GetLayoutInsertIndex(distance);
 			var source = _segments[insertIndex - 1];
 			var layout = source.Clone(_wireDiameter);
 			layout.SetDistance(distance, SplineLength);
 			source.ResetConnection();
 			_segments.Insert(insertIndex, layout);
+			InsertLayoutDisplayIndex(insertIndex, _layoutDisplayOrder.Count);
 			SynchronizeSegmentConnections();
 			RebuildGeneratedMeshes();
 			MarkDirty();
 			return insertIndex;
+		}
+
+		public int DuplicateLayout(int sourceLayoutIndex, float distance)
+		{
+			SynchronizeSegments();
+			if (sourceLayoutIndex < 0 || sourceLayoutIndex >= _segments.Count) {
+				throw new ArgumentOutOfRangeException(nameof(sourceLayoutIndex));
+			}
+			distance = math.clamp(distance, 0f, SplineLength);
+			var sourceDisplayIndex = _layoutDisplayOrder.IndexOf(sourceLayoutIndex);
+			var insertIndex = GetLayoutInsertIndex(distance);
+			var source = _segments[sourceLayoutIndex];
+			var layout = source.Clone(_wireDiameter);
+			layout.SetDistance(distance, SplineLength);
+			if (sourceLayoutIndex == insertIndex - 1) {
+				source.ResetConnection();
+			} else {
+				// The physically last layout is duplicated before itself. Its predecessor
+				// keeps the authored transition into the identical copy, while the copy
+				// receives a default transition into the original last layout.
+				layout.ResetConnection();
+			}
+			_segments.Insert(insertIndex, layout);
+			InsertLayoutDisplayIndex(insertIndex, sourceDisplayIndex + 1);
+			SynchronizeSegmentConnections();
+			RebuildGeneratedMeshes();
+			MarkDirty();
+			return insertIndex;
+		}
+
+		public float GetSuggestedLayoutDistance(int sourceLayoutIndex = -1)
+		{
+			SynchronizeSegments();
+			if (sourceLayoutIndex < -1 || sourceLayoutIndex >= _segments.Count) {
+				throw new ArgumentOutOfRangeException(nameof(sourceLayoutIndex));
+			}
+			if (sourceLayoutIndex >= 0 && sourceLayoutIndex + 1 < _segments.Count) {
+				return (_segments[sourceLayoutIndex].Distance
+					+ _segments[sourceLayoutIndex + 1].Distance) * 0.5f;
+			}
+			if (_segments.Count > 1) {
+				return (_segments[^2].Distance + _segments[^1].Distance) * 0.5f;
+			}
+			return _segments.Count == 1
+				? (_segments[0].Distance + SplineLength) * 0.5f
+				: 0f;
+		}
+
+		public int GetLayoutDisplayIndex(int layoutIndex)
+		{
+			if (_segments == null || layoutIndex < 0 || layoutIndex >= _segments.Count) {
+				throw new ArgumentOutOfRangeException(nameof(layoutIndex));
+			}
+			var displayIndex = _layoutDisplayOrder?.IndexOf(layoutIndex) ?? -1;
+			return displayIndex >= 0 ? displayIndex : layoutIndex;
 		}
 
 		public void RemoveLayout(int layoutIndex)
@@ -1986,6 +2043,7 @@ namespace VisualPinball.Unity
 			if (previousIndex >= 0) {
 				_segments[previousIndex].CopyConnectionFrom(_segments[layoutIndex]);
 			}
+			RemoveLayoutDisplayIndex(layoutIndex);
 			_segments.RemoveAt(layoutIndex);
 			if (_segments.Count > 0) {
 				_segments[0].SetDistance(0f, SplineLength);
@@ -2015,25 +2073,75 @@ namespace VisualPinball.Unity
 		public void MoveLayout(int fromIndex, int toIndex)
 		{
 			SynchronizeSegments();
-			if (fromIndex < 0 || fromIndex >= _segments.Count) {
+			if (fromIndex < 0 || fromIndex >= _layoutDisplayOrder.Count) {
 				throw new ArgumentOutOfRangeException(nameof(fromIndex));
 			}
-			if (toIndex < 0 || toIndex >= _segments.Count) {
+			if (toIndex < 0 || toIndex >= _layoutDisplayOrder.Count) {
 				throw new ArgumentOutOfRangeException(nameof(toIndex));
 			}
 			if (fromIndex == toIndex) {
 				return;
 			}
-			var distanceSlots = _segments.Select(segment => segment.Distance).ToArray();
-			var layout = _segments[fromIndex];
-			_segments.RemoveAt(fromIndex);
-			_segments.Insert(toIndex, layout);
-			for (var layoutIndex = 0; layoutIndex < _segments.Count; layoutIndex++) {
-				_segments[layoutIndex].SetDistance(distanceSlots[layoutIndex], SplineLength);
-			}
-			SynchronizeSegmentConnections();
-			RebuildGeneratedMeshes();
+			var layoutIndex = _layoutDisplayOrder[fromIndex];
+			_layoutDisplayOrder.RemoveAt(fromIndex);
+			_layoutDisplayOrder.Insert(toIndex, layoutIndex);
 			MarkDirty();
+		}
+
+		private int GetLayoutInsertIndex(float distance)
+		{
+			var insertIndex = 1;
+			while (insertIndex < _segments.Count
+				&& _segments[insertIndex].Distance <= distance) {
+				insertIndex++;
+			}
+			return insertIndex;
+		}
+
+		private bool SynchronizeLayoutDisplayOrder()
+		{
+			_layoutDisplayOrder ??= new List<int>();
+			var valid = _layoutDisplayOrder.Count == _segments.Count;
+			var seen = valid ? new bool[_segments.Count] : null;
+			if (valid) {
+				foreach (var layoutIndex in _layoutDisplayOrder) {
+					if (layoutIndex < 0 || layoutIndex >= _segments.Count
+						|| seen[layoutIndex]) {
+						valid = false;
+						break;
+					}
+					seen[layoutIndex] = true;
+				}
+			}
+			if (valid) {
+				return false;
+			}
+			_layoutDisplayOrder.Clear();
+			for (var layoutIndex = 0; layoutIndex < _segments.Count; layoutIndex++) {
+				_layoutDisplayOrder.Add(layoutIndex);
+			}
+			return true;
+		}
+
+		private void InsertLayoutDisplayIndex(int layoutIndex, int displayIndex)
+		{
+			for (var index = 0; index < _layoutDisplayOrder.Count; index++) {
+				if (_layoutDisplayOrder[index] >= layoutIndex) {
+					_layoutDisplayOrder[index]++;
+				}
+			}
+			_layoutDisplayOrder.Insert(math.clamp(displayIndex, 0,
+				_layoutDisplayOrder.Count), layoutIndex);
+		}
+
+		private void RemoveLayoutDisplayIndex(int layoutIndex)
+		{
+			_layoutDisplayOrder.Remove(layoutIndex);
+			for (var index = 0; index < _layoutDisplayOrder.Count; index++) {
+				if (_layoutDisplayOrder[index] > layoutIndex) {
+					_layoutDisplayOrder[index]--;
+				}
+			}
 		}
 
 		private bool SynchronizeSegmentConnections()
