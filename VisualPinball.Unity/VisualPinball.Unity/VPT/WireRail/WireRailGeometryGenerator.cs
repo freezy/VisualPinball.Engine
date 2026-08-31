@@ -195,6 +195,19 @@ namespace VisualPinball.Unity
 			return true;
 		}
 
+		public static bool TryEvaluateVBrace(Spline spline,
+			IReadOnlyList<WireRailSegment> segments, WireRailVBraceFixture vBrace,
+			out IReadOnlyList<float3> centerlinePoints)
+		{
+			centerlinePoints = Array.Empty<float3>();
+			if (!WireRailFixtureMeshGenerator.TryEvaluateVBraceProfile(spline, segments,
+					vBrace, out var profile)) {
+				return false;
+			}
+			centerlinePoints = profile.CenterlinePoints;
+			return true;
+		}
+
 		public static float2 EvaluateRailOffset(Spline spline,
 			IReadOnlyList<WireRailSegment> segments, int segmentIndex, int railIndex,
 			float curveT)
@@ -880,6 +893,26 @@ namespace VisualPinball.Unity
 		public float3 End => Frame.TransformOffset(EndOffset);
 	}
 
+	internal readonly struct WireRailVBraceProfile
+	{
+		public readonly WireRailPathFrame Frame;
+		public readonly IReadOnlyList<float2> RailOffsets;
+		public readonly IReadOnlyList<float> RailRadii;
+		public readonly float2 OriginOffset;
+		public readonly IReadOnlyList<float3> CenterlinePoints;
+
+		public WireRailVBraceProfile(WireRailPathFrame frame,
+			IReadOnlyList<float2> railOffsets, IReadOnlyList<float> railRadii,
+			float2 originOffset, IReadOnlyList<float3> centerlinePoints)
+		{
+			Frame = frame;
+			RailOffsets = railOffsets;
+			RailRadii = railRadii;
+			OriginOffset = originOffset;
+			CenterlinePoints = centerlinePoints;
+		}
+	}
+
 	internal readonly struct WireRailLegProfile
 	{
 		public readonly WireRailCrossWireProfile AttachmentProfile;
@@ -902,7 +935,7 @@ namespace VisualPinball.Unity
 	{
 		private const float FullTurn = math.PI * 2f;
 		private const float LegCornerRadiusDiameterRatio = 1f;
-		private const float LegCornerMaxAngleStep = math.PI / 12f;
+		private const float RoundedCornerMaxAngleStep = math.PI / 12f;
 		private const float LegCornerMaxSpanFraction = 0.45f;
 
 		public static void Append(Spline spline, IReadOnlyList<WireRailSegment> segments,
@@ -919,6 +952,11 @@ namespace VisualPinball.Unity
 					&& TryEvaluateBraceProfile(spline, segments, brace, out var profile)) {
 					AppendBrace(profile, brace, wireCapBevelSize, radialSegments, vertices,
 						normals, uvs, indices);
+				} else if (fixture is WireRailVBraceFixture vBrace
+					&& TryEvaluateVBraceProfile(spline, segments, vBrace,
+						out var vBraceProfile)) {
+					AppendVBrace(vBraceProfile, vBrace, wireCapBevelSize, radialSegments,
+						vertices, normals, uvs, indices);
 				} else if (fixture is WireRailCrossWireFixture crossWire
 					&& TryEvaluateCrossWireProfile(spline, segments, crossWire,
 						out var crossWireProfile)) {
@@ -986,6 +1024,229 @@ namespace VisualPinball.Unity
 			profile = new WireRailBraceProfile(frame, centerOffset, baseRadius,
 				math.max(tubeRadius, baseRadius * brace.Scale));
 			return true;
+		}
+
+		internal static bool TryEvaluateVBraceProfile(Spline spline,
+			IReadOnlyList<WireRailSegment> segments, WireRailVBraceFixture vBrace,
+			out WireRailVBraceProfile profile)
+		{
+			profile = default;
+			if (vBrace == null || !TryGetSplineLocation(spline, segments, vBrace.Distance,
+					out var segmentIndex, out var curveT, out var frame)) {
+				return false;
+			}
+			var segment = segments[segmentIndex];
+			var railOffsets = new List<float2>(segment.RailCount);
+			var railRadii = new List<float>(segment.RailCount);
+			var offsetsByIndex = new float2[segment.RailCount];
+			var radiiByIndex = new float[segment.RailCount];
+			var activeByIndex = new bool[segment.RailCount];
+			var minimum = new float2(float.PositiveInfinity);
+			var maximum = new float2(float.NegativeInfinity);
+			var evaluationContext = new WireRailPathEvaluationContext();
+			for (var railIndex = 0; railIndex < segment.RailCount; railIndex++) {
+				if (!segment.IsRailActive(railIndex)) {
+					continue;
+				}
+				if (!WireRailSplineGeometry.TryEvaluateRailPosition(spline, segments,
+						evaluationContext, segmentIndex, railIndex, curveT,
+						out var railPosition)) {
+					return false;
+				}
+				var relative = railPosition - frame.Position;
+				var offset = new float2(math.dot(relative, frame.Right),
+					math.dot(relative, frame.Up));
+				var radius = WireRailSplineGeometry.EvaluateWireDiameter(spline, segments,
+					segmentIndex, railIndex, curveT) * 0.5f;
+				railOffsets.Add(offset);
+				railRadii.Add(radius);
+				offsetsByIndex[railIndex] = offset;
+				radiiByIndex[railIndex] = radius;
+				activeByIndex[railIndex] = true;
+				minimum = math.min(minimum, offset - radius);
+				maximum = math.max(maximum, offset + radius);
+			}
+			if (railOffsets.Count == 0) {
+				return false;
+			}
+
+			var tubeRadius = vBrace.Diameter * 0.5f;
+			var envelopeCenterX = (minimum.x + maximum.x) * 0.5f;
+			var originOffset = TryCalculateDefaultVBraceOrigin(offsetsByIndex,
+				radiiByIndex, activeByIndex, tubeRadius, envelopeCenterX,
+				out var fittedOrigin) && fittedOrigin.y < minimum.y - 1e-5f
+				? fittedOrigin
+				: new float2(envelopeCenterX,
+					minimum.y - WireRailLayout.MiddleRailHeight - tubeRadius * 2f);
+			originOffset += new float2(vBrace.LateralOffset, vBrace.VerticalOffset);
+
+			var halfAngle = math.radians(vBrace.Angle * 0.5f);
+			var leftDirection = new float2(-math.sin(halfAngle), math.cos(halfAngle));
+			var rightDirection = new float2(math.sin(halfAngle), math.cos(halfAngle));
+			var hasVisibleStraightSection = vBrace.HasStraightSection
+				&& vBrace.StraightHeight > 1e-5f;
+			var rawPoints = new List<float2>(hasVisibleStraightSection ? 4 : 3) {
+				leftDirection * vBrace.LeftLength,
+			};
+			if (hasVisibleStraightSection) {
+				var armDistance = vBrace.StraightHeight / math.max(1e-5f,
+					math.cos(halfAngle));
+				rawPoints.Add(leftDirection * armDistance);
+				rawPoints.Add(rightDirection * armDistance);
+			} else {
+				rawPoints.Add(float2.zero);
+			}
+			rawPoints.Add(rightDirection * vBrace.RightLength);
+
+			var rotation = math.radians(vBrace.Rotation);
+			var rotationDirection = new float2(math.cos(rotation), math.sin(rotation));
+			for (var pointIndex = 0; pointIndex < rawPoints.Count; pointIndex++) {
+				var point = rawPoints[pointIndex];
+				rawPoints[pointIndex] = originOffset + new float2(
+					point.x * rotationDirection.x - point.y * rotationDirection.y,
+					point.x * rotationDirection.y + point.y * rotationDirection.x);
+			}
+			var roundedOffsets = BuildRoundedVBraceOffsets(rawPoints,
+				vBrace.CornerRadius, tubeRadius, vBrace.RingDensity);
+			if (roundedOffsets == null || roundedOffsets.Count < 2) {
+				return false;
+			}
+			var centerlinePoints = roundedOffsets
+				.Select(frame.TransformOffset).ToArray();
+			profile = new WireRailVBraceProfile(frame, railOffsets, railRadii,
+				originOffset, centerlinePoints);
+			return true;
+		}
+
+		private static bool TryCalculateDefaultVBraceOrigin(IReadOnlyList<float2> offsets,
+			IReadOnlyList<float> radii, IReadOnlyList<bool> active, float tubeRadius,
+			float envelopeCenterX, out float2 origin)
+		{
+			origin = default;
+			if (offsets.Count < 4 || radii.Count < 4 || active.Count < 4
+				|| !active[0] || !active[1] || !active[2] || !active[3]) {
+				return false;
+			}
+			var bottomLeftSide = math.sign(offsets[0].x - envelopeCenterX);
+			var bottomRightSide = math.sign(offsets[1].x - envelopeCenterX);
+			var upperLeftSide = math.sign(offsets[2].x - envelopeCenterX);
+			var upperRightSide = math.sign(offsets[3].x - envelopeCenterX);
+			if (bottomLeftSide == 0f || bottomRightSide == 0f
+				|| bottomLeftSide != upperLeftSide || bottomRightSide != upperRightSide
+				|| bottomLeftSide == bottomRightSide
+				|| !TryBuildOuterTangent(offsets[0], offsets[2], radii[0] + tubeRadius,
+					radii[2] + tubeRadius, new float2(bottomLeftSide, 0f),
+					out var leftPoint, out var leftDirection)
+				|| !TryBuildOuterTangent(offsets[1], offsets[3], radii[1] + tubeRadius,
+					radii[3] + tubeRadius, new float2(bottomRightSide, 0f),
+					out var rightPoint, out var rightDirection)) {
+				return false;
+			}
+			var denominator = Cross(leftDirection, rightDirection);
+			if (math.abs(denominator) <= 1e-5f) {
+				return false;
+			}
+			var distance = Cross(rightPoint - leftPoint, rightDirection) / denominator;
+			origin = leftPoint + leftDirection * distance;
+			return math.all(math.isfinite(origin));
+
+			static bool TryBuildOuterTangent(float2 bottom, float2 upper,
+				float bottomRadius, float upperRadius, float2 outward,
+				out float2 point, out float2 direction)
+			{
+				point = default;
+				direction = default;
+				var delta = upper - bottom;
+				var distance = math.length(delta);
+				if (distance <= 1e-5f) {
+					return false;
+				}
+				var along = delta / distance;
+				var normalAlong = (bottomRadius - upperRadius) / distance;
+				if (math.abs(normalAlong) >= 1f) {
+					return false;
+				}
+				var normalAcross = math.sqrt(1f - normalAlong * normalAlong);
+				var perpendicular = new float2(-along.y, along.x);
+				var firstNormal = along * normalAlong + perpendicular * normalAcross;
+				var secondNormal = along * normalAlong - perpendicular * normalAcross;
+				var normal = math.dot(firstNormal, outward) >= math.dot(secondNormal, outward)
+					? firstNormal : secondNormal;
+				point = bottom + normal * bottomRadius;
+				direction = new float2(-normal.y, normal.x);
+				if (math.dot(direction, delta) < 0f) {
+					direction = -direction;
+				}
+				return true;
+			}
+
+			static float Cross(float2 left, float2 right)
+				=> left.x * right.y - left.y * right.x;
+		}
+
+		private static List<float2> BuildRoundedVBraceOffsets(IReadOnlyList<float2> points,
+			float desiredRadius, float minimumRadius, int ringDensity)
+		{
+			var rounded = new List<float2>(points.Count + ringDensity);
+			AddDistinct(rounded, points[0]);
+			for (var pointIndex = 1; pointIndex < points.Count - 1; pointIndex++) {
+				var previous = points[pointIndex - 1];
+				var corner = points[pointIndex];
+				var next = points[pointIndex + 1];
+				var incoming = corner - previous;
+				var outgoing = next - corner;
+				var incomingLength = math.length(incoming);
+				var outgoingLength = math.length(outgoing);
+				if (incomingLength <= 1e-5f || outgoingLength <= 1e-5f) {
+					AddDistinct(rounded, corner);
+					continue;
+				}
+				var incomingDirection = incoming / incomingLength;
+				var outgoingDirection = outgoing / outgoingLength;
+				var dot = math.clamp(math.dot(incomingDirection, outgoingDirection), -1f, 1f);
+				var cross = incomingDirection.x * outgoingDirection.y
+					- incomingDirection.y * outgoingDirection.x;
+				var cornerAngle = math.acos(dot);
+				if (cornerAngle <= math.radians(0.5f) || math.abs(cross) <= 1e-6f) {
+					AddDistinct(rounded, corner);
+					continue;
+				}
+				var tangentScale = math.tan(cornerAngle * 0.5f);
+				var tangentDistance = math.min(math.max(0.05f, desiredRadius)
+					* tangentScale, math.min(incomingLength, outgoingLength)
+					* LegCornerMaxSpanFraction);
+				var radius = tangentDistance / tangentScale;
+				if (radius + 1e-5f < minimumRadius) {
+					return null;
+				}
+				var start = corner - incomingDirection * tangentDistance;
+				var end = corner + outgoingDirection * tangentDistance;
+				var turnSign = math.sign(cross);
+				var center = start + new float2(-incomingDirection.y,
+					incomingDirection.x) * radius * turnSign;
+				var startRadius = start - center;
+				var segmentCount = math.max(2, (int)math.ceil(math.max(
+					ringDensity * cornerAngle / FullTurn,
+					cornerAngle / RoundedCornerMaxAngleStep)));
+				AddDistinct(rounded, start);
+				for (var segmentIndex = 1; segmentIndex < segmentCount; segmentIndex++) {
+					var angle = cornerAngle * turnSign * segmentIndex / segmentCount;
+					var direction = new float2(math.cos(angle), math.sin(angle));
+					AddDistinct(rounded, center + new float2(
+						startRadius.x * direction.x - startRadius.y * direction.y,
+						startRadius.x * direction.y + startRadius.y * direction.x));
+				}
+				AddDistinct(rounded, end);
+			}
+			AddDistinct(rounded, points[^1]);
+			return rounded;
+
+			static void AddDistinct(List<float2> target, float2 point)
+			{
+				if (target.Count == 0 || math.distancesq(target[^1], point) > 1e-10f) {
+					target.Add(point);
+				}
+			}
 		}
 
 		internal static bool TryEvaluateCrossWireProfile(Spline spline,
@@ -1237,7 +1498,7 @@ namespace VisualPinball.Unity
 				var center = start + math.cross(bendNormal, incomingDirection) * radius;
 				var startRadius = start - center;
 				var segmentCount = math.max(2,
-					(int)math.ceil(cornerAngle / LegCornerMaxAngleStep));
+					(int)math.ceil(cornerAngle / RoundedCornerMaxAngleStep));
 				AddDistinct(target, start);
 				for (var segmentIndex = 1; segmentIndex < segmentCount; segmentIndex++) {
 					var angle = cornerAngle * segmentIndex / segmentCount;
@@ -1455,6 +1716,16 @@ namespace VisualPinball.Unity
 				radialSegments, true, vertices, normals, uvs, indices);
 			WireRailCapMeshGenerator.Append(endFrame, tubeRadius, bevel,
 				radialSegments, false, vertices, normals, uvs, indices);
+		}
+
+		private static void AppendVBrace(WireRailVBraceProfile profile,
+			WireRailVBraceFixture vBrace, float capBevelSize, int radialSegments,
+			ICollection<Vector3> vertices, ICollection<Vector3> normals,
+			ICollection<Vector2> uvs, ICollection<int> indices)
+		{
+			AppendPolylineTube(profile.CenterlinePoints, profile.Frame,
+				vBrace.Diameter, capBevelSize, radialSegments,
+				vertices, normals, uvs, indices);
 		}
 
 		private static void AppendLeg(WireRailLegProfile profile,

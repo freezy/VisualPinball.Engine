@@ -636,6 +636,139 @@ namespace VisualPinball.Unity.Editor
 		}
 	}
 
+	internal sealed class WireRailVBracePreviewEditor
+	{
+		private const int CircleSegments = 48;
+		public const float Height = 190f;
+		private static readonly Color CanvasColor = new(0.105f, 0.115f, 0.13f, 1f);
+		private static readonly Color GridColor = new(1f, 1f, 1f, 0.07f);
+		private static readonly Color AxisColor = new(1f, 1f, 1f, 0.28f);
+		private static readonly Color OutlineColor = new(0f, 0f, 0f, 0.8f);
+		private static readonly Color RailColor = new(0.55f, 0.58f, 0.62f, 1f);
+		private static readonly Color BraceColor = new(1f, 0.67f, 0.12f, 1f);
+
+		public void Draw(Rect rect, WireRailComponent component, int fixtureIndex,
+			WireRailVBraceFixture vBrace)
+		{
+			EditorGUI.DrawRect(rect, CanvasColor);
+			if (!component.TryGetVBracePreview(fixtureIndex, out var preview)) {
+				EditorGUI.LabelField(rect, "V-brace preview unavailable at this position",
+					EditorStyles.centeredGreyMiniLabel);
+				return;
+			}
+
+			var view = VBracePreviewView.Create(rect, preview, vBrace.Diameter * 0.5f);
+			DrawGrid(view);
+			var railWidth = math.clamp(vBrace.Diameter * view.Scale, 2f, 12f);
+			var braceWidth = math.clamp(vBrace.Diameter * view.Scale, 3f, 16f);
+			Handles.BeginGUI();
+			var previousColor = Handles.color;
+			for (var railIndex = 0; railIndex < preview.RailOffsets.Count; railIndex++) {
+				DrawRail(view, preview.RailOffsets[railIndex],
+					preview.RailRadii[railIndex], railWidth);
+			}
+			var points = new Vector3[preview.CenterlinePoints.Count];
+			for (var pointIndex = 0; pointIndex < points.Length; pointIndex++) {
+				points[pointIndex] = view.ToScreen(preview.CenterlinePoints[pointIndex]);
+			}
+			Handles.color = OutlineColor;
+			Handles.DrawAAPolyLine(braceWidth + 3f, points);
+			Handles.color = BraceColor;
+			Handles.DrawAAPolyLine(braceWidth, points);
+			Handles.color = previousColor;
+			Handles.EndGUI();
+
+			GUI.Label(new Rect(rect.x + 6f, rect.y + 4f, 30f, 18f), "Z ↑",
+				EditorStyles.miniLabel);
+			GUI.Label(new Rect(rect.xMax - 34f, rect.yMax - 20f, 30f, 18f), "X →",
+				EditorStyles.miniLabel);
+			GUI.Label(rect, new GUIContent(string.Empty,
+				"V-brace cross-section at its route position"));
+		}
+
+		private static void DrawRail(VBracePreviewView view, Vector2 center,
+			float radius, float width)
+		{
+			var points = new Vector3[CircleSegments + 1];
+			for (var index = 0; index <= CircleSegments; index++) {
+				var angle = math.PI * 2f * index / CircleSegments;
+				points[index] = view.ToScreen(center
+					+ new Vector2(math.cos(angle), math.sin(angle)) * radius);
+			}
+			Handles.color = OutlineColor;
+			Handles.DrawAAPolyLine(width + 2f, points);
+			Handles.color = RailColor;
+			Handles.DrawAAPolyLine(width, points);
+		}
+
+		private static void DrawGrid(VBracePreviewView view)
+		{
+			var span = math.max(view.Max.x - view.Min.x, view.Max.y - view.Min.y);
+			var gridStep = span > 400f ? 100f : span > 200f ? 50f : span > 100f ? 20f : 10f;
+			for (var x = math.ceil(view.Min.x / gridStep) * gridStep;
+				x <= view.Max.x; x += gridStep) {
+				var screen = view.ToScreen(new Vector2(x, 0f));
+				EditorGUI.DrawRect(new Rect(screen.x, view.Rect.y, 1f, view.Rect.height),
+					math.abs(x) < 0.01f ? AxisColor : GridColor);
+			}
+			for (var z = math.ceil(view.Min.y / gridStep) * gridStep;
+				z <= view.Max.y; z += gridStep) {
+				var screen = view.ToScreen(new Vector2(0f, z));
+				EditorGUI.DrawRect(new Rect(view.Rect.x, screen.y, view.Rect.width, 1f),
+					math.abs(z) < 0.01f ? AxisColor : GridColor);
+			}
+		}
+
+		private readonly struct VBracePreviewView
+		{
+			public readonly Rect Rect;
+			public readonly Vector2 Min;
+			public readonly Vector2 Max;
+			public readonly float Scale;
+
+			private VBracePreviewView(Rect rect, Vector2 min, Vector2 max, float scale)
+			{
+				Rect = rect;
+				Min = min;
+				Max = max;
+				Scale = scale;
+			}
+
+			public static VBracePreviewView Create(Rect rect, WireRailVBracePreview preview,
+				float tubeRadius)
+			{
+				var padding = math.max(8f, tubeRadius + 8f);
+				var min = new Vector2(float.PositiveInfinity, float.PositiveInfinity);
+				var max = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
+				for (var railIndex = 0; railIndex < preview.RailOffsets.Count; railIndex++) {
+					Include(preview.RailOffsets[railIndex],
+						preview.RailRadii[railIndex] + padding);
+				}
+				foreach (var point in preview.CenterlinePoints) {
+					Include(point, padding);
+				}
+				var size = Vector2.Max(max - min, new Vector2(1f, 1f));
+				var scale = math.max(0.01f, math.min((rect.width - 20f) / size.x,
+					(rect.height - 20f) / size.y));
+				var fittedSize = new Vector2((rect.width - 20f) / scale,
+					(rect.height - 20f) / scale);
+				var center = (min + max) * 0.5f;
+				return new VBracePreviewView(rect, center - fittedSize * 0.5f,
+					center + fittedSize * 0.5f, scale);
+
+				void Include(Vector2 point, float radius)
+				{
+					min = Vector2.Min(min, point - Vector2.one * radius);
+					max = Vector2.Max(max, point + Vector2.one * radius);
+				}
+			}
+
+			public Vector3 ToScreen(Vector2 vpx)
+				=> new(Rect.x + 10f + (vpx.x - Min.x) * Scale,
+					Rect.yMax - 10f - (vpx.y - Min.y) * Scale, 0f);
+		}
+	}
+
 	internal sealed class WireRailCrossWirePreviewEditor
 	{
 		private const int CircleSegments = 48;
