@@ -1171,6 +1171,7 @@ namespace VisualPinball.Unity
 		[NonSerialized] private Mesh _renderMesh;
 		[NonSerialized] private Mesh _colliderMesh;
 		[NonSerialized] private Vector3[] _colliderEdgeVertices = Array.Empty<Vector3>();
+		[NonSerialized] private int _colliderTopologyRetryCount;
 		[NonSerialized] private bool _rebuildingGeneratedMeshes;
 		[NonSerialized] private bool _collidersDirty = true;
 		[NonSerialized] private bool _colliderGeometryDirty = true;
@@ -1209,6 +1210,7 @@ namespace VisualPinball.Unity
 				return _colliderMesh;
 			}
 		}
+		public int ColliderTopologyRetryCount => _colliderTopologyRetryCount;
 		public int RenderGeometryVersion => _renderGeometryVersion;
 		public int ColliderGeometryVersion => _colliderGeometryVersion;
 		public bool ColliderGeometryDirty => _colliderGeometryDirty;
@@ -2343,6 +2345,7 @@ namespace VisualPinball.Unity
 		{
 			_colliderGeometryDirty = true;
 			_collidersDirty = true;
+			_colliderTopologyRetryCount = 0;
 			_generationError = null;
 			unchecked {
 				_colliderGeometryVersion++;
@@ -2379,6 +2382,7 @@ namespace VisualPinball.Unity
 				if (!WireRailColliderMeshGenerator.TryGenerate(container.Spline, _segments,
 						_referenceBallDiameter, _colliderSamplesPerSegment,
 						_colliderMesh, out _colliderMesh, out _colliderEdgeVertices,
+						out _colliderTopologyRetryCount,
 						out _generationError)) {
 					if (_colliderMesh) {
 						_colliderMesh.Clear(false);

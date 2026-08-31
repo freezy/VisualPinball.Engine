@@ -2482,7 +2482,7 @@ namespace VisualPinball.Unity.Test
 
 				component.enabled = true;
 				Assert.That(component.RenderMesh, Is.Not.Null);
-				Assert.That(component.ColliderMesh, Is.Not.Null);
+				Assert.That(component.ColliderMesh, Is.Not.Null, component.GenerationError);
 				Assert.That(component.RenderMesh, Is.Not.SameAs(renderMesh));
 				Assert.That(component.ColliderMesh, Is.Not.SameAs(colliderMesh));
 			}
@@ -2588,6 +2588,7 @@ namespace VisualPinball.Unity.Test
 		[TestCase(3, 5, false)]
 		[TestCase(4, 7, false)]
 		[TestCase(5, 8, true)]
+		[TestCase(6, 8, true)]
 		[TestCase(9, 8, true)]
 		public void ShouldCreateOneSelectivelyOpenBallChannel(int railCount,
 			int expectedFacets, bool expectedClosed)
@@ -2599,6 +2600,325 @@ namespace VisualPinball.Unity.Test
 			Assert.That(profile.Spans, Has.Count.EqualTo(expectedFacets));
 			Assert.That(profile.IsClosed, Is.EqualTo(expectedClosed));
 			Assert.That(profile.Spans.Count, Is.LessThanOrEqualTo(8));
+		}
+
+		[Test]
+		public void ShouldOpenTheTopWhenTheUpperRailGapCanPassTheBall()
+		{
+			var offsets = WireRailLayout.CreateDefaultOffsets(6);
+			offsets[4] = new Vector2(-55f, 60f);
+			offsets[5] = new Vector2(55f, 60f);
+			var wireRadii = Enumerable.Repeat(3.25f, offsets.Length).ToArray();
+
+			Assert.That(WireRailChannelProfile.TryCreate(offsets, wireRadii, 25f,
+				out var profile, out var error), Is.True, error);
+			Assert.That(profile.IsClosed, Is.False);
+			Assert.That(profile.Spans.Any(span =>
+				(span.StartVertex == 0 && span.EndVertex == profile.Vertices.Count - 1)
+				|| (span.EndVertex == 0
+					&& span.StartVertex == profile.Vertices.Count - 1)), Is.False,
+				"the passable upper gap must not receive a roof facet");
+			Assert.That(profile.Vertices, Has.Count.EqualTo(offsets.Length),
+				"the open channel must have one inward contact vertex per rail");
+			Assert.That(profile.Spans, Has.Count.EqualTo(profile.Vertices.Count - 1));
+			Assert.That(MatchesRailContact(profile.Vertices[0], 4), Is.True,
+				"the left rim must terminate at the left upper rail contact");
+			Assert.That(MatchesRailContact(profile.Vertices[^1], 5), Is.True,
+				"the right rim must terminate at the right upper rail contact");
+			Assert.That(profile.Vertices.Max(vertex => vertex.y), Is.LessThan(60f),
+				"open side facets must not extrapolate above the authored upper rails");
+			for (var vertexIndex = 0; vertexIndex < profile.Vertices.Count; vertexIndex++) {
+				Assert.That(Enumerable.Range(0, offsets.Length)
+					.Any(railIndex => MatchesRailContact(profile.Vertices[vertexIndex],
+						railIndex)), Is.True,
+					$"profile vertex {vertexIndex} must be an actual rail contact, not a chamfer notch");
+			}
+
+			bool MatchesRailContact(float2 vertex, int railIndex)
+			{
+				var railCenter = (float2)offsets[railIndex];
+				var normal = math.normalizesafe(profile.RestingBallCenter - railCenter);
+				return math.distance(vertex, railCenter + normal * wireRadii[railIndex])
+					< 0.01f;
+			}
+		}
+
+		[Test]
+		public void ShouldKeepAuthoredBlockingRailsWhenTestingADecimatedTopOpening()
+		{
+			var offsets = WireRailLayout.CreateDefaultOffsets(9);
+			offsets[4] = new Vector2(-45f, 60f);
+			offsets[5] = new Vector2(-40f, 60f);
+			offsets[6] = new Vector2(0f, 60f);
+			offsets[7] = new Vector2(40f, 60f);
+			offsets[8] = new Vector2(45f, 60f);
+
+			Assert.That(WireRailChannelProfile.TryCreate(offsets, 4f, 25f,
+				out var profile, out var error), Is.True, error);
+			Assert.That(profile.IsClosed, Is.True,
+				"an upper rail omitted from the eight-facet profile still blocks the exit");
+		}
+
+		[Test]
+		public void ShouldCloseTheTopWhenTheClearGapCannotPassTheBall()
+		{
+			var offsets = WireRailLayout.CreateDefaultOffsets(6);
+			offsets[4] = new Vector2(-29f, 60f);
+			offsets[5] = new Vector2(29f, 60f);
+			var wireRadii = Enumerable.Repeat(4f, offsets.Length).ToArray();
+
+			Assert.That(WireRailChannelProfile.TryCreate(offsets, wireRadii, 25f,
+				out var profile, out var error), Is.True, error);
+			Assert.That(profile.IsClosed, Is.True,
+				"a 58-unit center spacing leaves exactly 50 units between 4-unit wires");
+		}
+
+		[Test]
+		public void ShouldOpenEitherSideOfAnOverheadRailWhenTheBallCanPass()
+		{
+			var offsets = WireRailLayout.CreateDefaultOffsets(5);
+			offsets[2] = new Vector2(-90f, 30f);
+			offsets[4] = new Vector2(-1f, 60f);
+
+			Assert.That(WireRailChannelProfile.TryCreate(offsets, 4f, 25f,
+				out var profile, out var error), Is.True, error);
+			Assert.That(profile.IsClosed, Is.False,
+				"both gaps flanking a rail above the ball must be considered within its angular radius");
+			Assert.That(MatchesRailContact(profile.Vertices[0], 2), Is.True,
+				"one open rim must terminate at the rail on the passable side");
+			Assert.That(MatchesRailContact(profile.Vertices[^1], 4), Is.True,
+				"the other open rim must terminate at the overhead rail");
+
+			bool MatchesRailContact(float2 vertex, int railIndex)
+			{
+				var railCenter = (float2)offsets[railIndex];
+				var normal = math.normalizesafe(profile.RestingBallCenter - railCenter);
+				return math.distance(vertex, railCenter + normal * 4f) < 0.01f;
+			}
+		}
+
+		[Test]
+		public void ShouldCheckTheOuterFlanksOfEveryRailCoveringTheTopDirection()
+		{
+			var offsets = WireRailLayout.CreateDefaultOffsets(6);
+			offsets[2] = new Vector2(-90f, 30f);
+			offsets[4] = new Vector2(-4f, 60f);
+			offsets[5] = new Vector2(4f, 60f);
+
+			Assert.That(WireRailChannelProfile.TryCreate(offsets, 4f, 25f,
+				out var profile, out var error), Is.True, error);
+			Assert.That(profile.IsClosed, Is.False);
+			Assert.That(profile.TopOpening.FirstRailIndex, Is.EqualTo(4));
+			Assert.That(profile.TopOpening.SecondRailIndex, Is.EqualTo(2));
+		}
+
+		[Test]
+		public void ShouldKeepTheSameOpeningPairWhenTheOppositeFlankBecomesWider()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SetRailCount(5);
+				component.SetRailOffset(0, 2, new Vector2(-91f, 30f));
+				component.SetRailOffset(0, 3, new Vector2(90f, 30f));
+				var nextLayout = component.AddLayout(component.SplineLength);
+				component.SetRailOffset(nextLayout, 2, new Vector2(-90f, 30f));
+				component.SetRailOffset(nextLayout, 3, new Vector2(91f, 30f));
+
+				Assert.That(component.ColliderMesh, Is.Not.Null, component.GenerationError);
+				Assert.That(component.ColliderMesh.vertexCount, Is.GreaterThan(0));
+				Assert.That(component.GenerationError, Is.Null);
+			}
+			finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldKeepTheOpeningPairWhenAnUpperRailCrossesDeadCenter()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SetRailCount(5);
+				component.SetRailOffset(0, 2, new Vector2(-90f, 30f));
+				component.SetRailOffset(0, 3, new Vector2(90f, 30f));
+				component.SetRailOffset(0, 4, new Vector2(-1f, 60f));
+				var nextLayout = component.AddLayout(component.SplineLength);
+				component.SetRailOffset(nextLayout, 4, new Vector2(1f, 60f));
+
+				Assert.That(component.ColliderMesh, Is.Not.Null, component.GenerationError);
+				Assert.That(component.ColliderMesh.vertexCount, Is.GreaterThan(0));
+				Assert.That(component.GenerationError, Is.Null);
+			}
+			finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldKeepTheTopOpenAcrossAClosingLayoutTransition()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SetRailCount(6);
+				component.SetRailOffset(0, 4, new Vector2(-55f, 60f));
+				component.SetRailOffset(0, 5, new Vector2(55f, 60f));
+				var nextLayout = component.AddLayout(100f);
+				component.SetRailOffset(nextLayout, 4, new Vector2(-15f, 60f));
+				component.SetRailOffset(nextLayout, 5, new Vector2(15f, 60f));
+
+				Assert.That(component.ColliderMesh, Is.Not.Null);
+				Assert.That(component.ColliderMesh.vertexCount, Is.GreaterThan(0));
+				Assert.That(component.GenerationError, Is.Null);
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldKeepTheSameRailPairAtAForcedTopOpening()
+		{
+			var closedOffsets = WireRailLayout.CreateDefaultOffsets(5);
+			var openOffsets = WireRailLayout.CreateDefaultOffsets(5);
+			openOffsets[2] = new Vector2(-90f, 30f);
+			var wireRadii = Enumerable.Repeat(4f, 5).ToArray();
+
+			Assert.That(WireRailChannelProfile.TryCreate(openOffsets, wireRadii, 25f,
+				new Vector2(0f, 30f), out var openProfile, out var openError),
+				Is.True, openError);
+			Assert.That(openProfile.IsClosed, Is.False);
+			Assert.That(openProfile.TopOpening.IsValid, Is.True);
+			Assert.That(WireRailChannelProfile.TryCreate(closedOffsets, wireRadii, 25f,
+				new Vector2(0f, 30f), openProfile.TopOpening, false,
+				out var forcedProfile, out _, out var forcedError), Is.True, forcedError);
+			Assert.That(forcedProfile.TopOpening.FirstRailIndex,
+				Is.EqualTo(openProfile.TopOpening.FirstRailIndex));
+			Assert.That(forcedProfile.TopOpening.SecondRailIndex,
+				Is.EqualTo(openProfile.TopOpening.SecondRailIndex));
+			Assert.That(MatchesRailContact(forcedProfile.Vertices[0],
+				forcedProfile.TopOpening.SecondRailIndex), Is.True);
+			Assert.That(MatchesRailContact(forcedProfile.Vertices[^1],
+				forcedProfile.TopOpening.FirstRailIndex), Is.True);
+
+			bool MatchesRailContact(float2 vertex, int railIndex)
+			{
+				var center = (float2)closedOffsets[railIndex];
+				var normal = math.normalizesafe(forcedProfile.RestingBallCenter - center);
+				return math.distance(vertex, center + normal * wireRadii[railIndex]) < 0.01f;
+			}
+		}
+
+		[Test]
+		public void ShouldUseAClosedProfileWhenARailMovesThroughTheForcedOpening()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SetRailCount(6);
+				component.SetRailOffset(0, 4, new Vector2(-55f, 60f));
+				component.SetRailOffset(0, 5, new Vector2(55f, 60f));
+				var nextLayout = component.AddLayout(component.SplineLength);
+				component.SetRailOffset(nextLayout, 3, new Vector2(0f, 75f));
+				component.SetRailOffset(nextLayout, 4, new Vector2(-55f, 60f));
+				component.SetRailOffset(nextLayout, 5, new Vector2(55f, 60f));
+
+				Assert.That(component.ColliderMesh, Is.Not.Null, component.GenerationError);
+				Assert.That(component.ColliderMesh.vertexCount, Is.GreaterThan(0));
+				Assert.That(component.GenerationError, Is.Null);
+			}
+			finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldUseAClosedProfileWhenARailCrossesTheOpeningBetweenProbes()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SetRailCount(6);
+				component.SetRailOffset(0, 4, new Vector2(-55f, 60f));
+				component.SetRailOffset(0, 5, new Vector2(55f, 60f));
+				var nextLayout = component.AddLayout(component.SplineLength);
+				component.SetRailOffset(nextLayout, 3, new Vector2(-60f, 30f));
+				component.SetWireTransitionCurve(0, 3, new AnimationCurve(
+					new Keyframe(0f, 0f), new Keyframe(0.125f, 1f / 3f),
+					new Keyframe(0.25f, 0f), new Keyframe(0.9f, 0f),
+					new Keyframe(1f, 1f)));
+				var spline = component.SplineContainer.Spline;
+				spline.Insert(1, new BezierKnot(new float3(500f, 250f, 0f)),
+					TangentMode.Linear);
+				component.SetLayoutDistance(nextLayout, component.SplineLength);
+
+				Assert.That(component.ColliderMesh, Is.Not.Null, component.GenerationError);
+				Assert.That(component.ColliderMesh.vertexCount, Is.GreaterThan(0));
+				Assert.That(component.ColliderTopologyRetryCount, Is.EqualTo(1));
+				Assert.That(component.GenerationError, Is.Null);
+			}
+			finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldReportWhenTheTopOpeningMovesToAnotherRailPair()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SetRailCount(5);
+				component.SetRailOffset(0, 2, new Vector2(-90f, 30f));
+				var nextLayout = component.AddLayout(component.SplineLength);
+				component.SetRailOffset(nextLayout, 2, new Vector2(-30f, 30f));
+				component.SetRailOffset(nextLayout, 3, new Vector2(90f, 30f));
+
+				Assert.That(component.ColliderMesh, Is.Null);
+				Assert.That(component.GenerationError, Is.Not.Null);
+				Assert.That(component.GenerationError.Contains(
+					"top opening moves between different rail pairs"), Is.True);
+			}
+			finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldRetryOpenWhenAdaptiveSamplingFindsANarrowTransitionGap()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SetRailCount(6);
+				component.SetRailOffset(0, 4, new Vector2(-10f, 60f));
+				component.SetRailOffset(0, 5, new Vector2(45f, 60f));
+				var nextLayout = component.AddLayout(component.SplineLength);
+				component.SetRailOffset(nextLayout, 4, new Vector2(-45f, 60f));
+				component.SetRailOffset(nextLayout, 5, new Vector2(10f, 60f));
+				component.SetWireTransitionCurve(0, 4, new AnimationCurve(
+					new Keyframe(0f, 0f), new Keyframe(0.125f, 1f),
+					new Keyframe(0.25f, 0f), new Keyframe(0.9f, 0f),
+					new Keyframe(1f, 1f)));
+				component.SetWireTransitionCurve(0, 5, new AnimationCurve(
+					new Keyframe(0f, 0f), new Keyframe(0.9f, 0f),
+					new Keyframe(1f, 1f)));
+				var spline = component.SplineContainer.Spline;
+				spline.Insert(1, new BezierKnot(new float3(500f, 250f, 0f)),
+					TangentMode.Linear);
+				component.SetLayoutDistance(nextLayout, component.SplineLength);
+
+				Assert.That(component.ColliderMesh, Is.Not.Null, component.GenerationError);
+				Assert.That(component.ColliderMesh.vertexCount, Is.GreaterThan(0));
+				Assert.That(component.ColliderTopologyRetryCount, Is.EqualTo(1),
+					$"collider vertices: {component.ColliderMesh.vertexCount}; "
+						+ $"layout distance: {component.Segments[nextLayout].Distance}; "
+						+ $"spline length: {component.SplineLength}");
+				Assert.That(component.GenerationError, Is.Null);
+			} finally {
+				Object.DestroyImmediate(go);
+			}
 		}
 
 		[Test]
