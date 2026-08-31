@@ -37,7 +37,12 @@ namespace VisualPinball.Unity.Editor
 		private static readonly List<SelectableKnot> SelectedGradeKnots = new();
 		private static readonly List<SelectableTangent> SelectedGradeTangents = new();
 		private static readonly List<int> SelectedGradeKnotIndices = new();
+		private static readonly List<int> BlendedWireIndices = new();
+		private static readonly GUIContent TransitionBlendHeightContent = new(
+			"Blending Wires 1, 2, 3, 4, 5, 6" + TransitionBlendMessageSuffix);
 		private static GUIContent _alignAngleRangeContent;
+		private const string TransitionBlendMessageSuffix =
+			": offset or diameter changes across this physical span.";
 		private const float LayoutLineHeight = 20f;
 		private const float LayoutPadding = 7f;
 		private const float FixtureScaleMinimum = 0.1f;
@@ -57,6 +62,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly List<int> _layoutOrder = new();
 		private ReorderableList _fixtureOrderList;
 		private ReorderableList _layoutOrderList;
+		private int _layoutSelectionBeforePointerDown = -1;
 
 		private void OnEnable()
 		{
@@ -64,11 +70,30 @@ namespace VisualPinball.Unity.Editor
 			_layoutOrderList = CreateLayoutOrderList();
 			SplineSelection.changed -= Repaint;
 			SplineSelection.changed += Repaint;
+			Undo.undoRedoPerformed -= OnUndoRedo;
+			Undo.undoRedoPerformed += OnUndoRedo;
 		}
 
 		private void OnDisable()
 		{
 			SplineSelection.changed -= Repaint;
+			Undo.undoRedoPerformed -= OnUndoRedo;
+			WireRailLayoutEditorSelection.Clear();
+		}
+
+		private void OnUndoRedo()
+		{
+			WireRailLayoutEditorSelection.Clear();
+			if (_layoutOrderList != null) {
+				_layoutOrderList.index = -1;
+			}
+			_layoutSelectionBeforePointerDown = -1;
+			if (target is WireRailComponent component && component) {
+				component.SynchronizeSegments();
+				SynchronizeLayoutOrder(_layoutOrder, component, true);
+			}
+			Repaint();
+			SceneView.RepaintAll();
 		}
 
 		[MenuItem("GameObject/Pinball/Wire Rail", false, 11)]
@@ -209,12 +234,30 @@ namespace VisualPinball.Unity.Editor
 					MessageType.Warning);
 				return;
 			}
-			SynchronizeOrder(_layoutOrder, component.Segments.Count);
+			SynchronizeLayoutOrder(_layoutOrder, component);
+			if (Event.current.type == EventType.MouseDown) {
+				_layoutSelectionBeforePointerDown = GetSelectedLayoutIndex(component);
+			}
 			_layoutOrderList.DoLayoutList();
-			if (GUILayout.Button("Add Wire Layout")) {
-				Edit(component, "Add Wire Rail Layout",
-					() => component.AddLayout(component.SplineLength * 0.5f));
-				SynchronizeOrder(_layoutOrder, component.Segments.Count, true);
+			var selectedLayoutIndex = GetSelectedLayoutIndex(component);
+			var buttonContent = selectedLayoutIndex >= 0
+				? new GUIContent($"Duplicate Layout {component.GetLayoutDisplayIndex(selectedLayoutIndex) + 1}",
+					"Duplicate the selected layout halfway toward its next physical neighbor.")
+				: new GUIContent("Add Wire Layout",
+					"Add a new layout last in the list and midway between the last two physical positions.");
+			using (new EditorGUILayout.HorizontalScope()) {
+				if (GUILayout.Button(buttonContent)) {
+					AddOrDuplicateLayout(component, selectedLayoutIndex);
+					GUIUtility.ExitGUI();
+				}
+				using (new EditorGUI.DisabledScope(selectedLayoutIndex < 0)) {
+					if (GUILayout.Button(new GUIContent("Deselect",
+							"Clear the selected layout so the Add action is available."),
+							GUILayout.Width(72f))) {
+						DeselectLayout();
+						GUIUtility.ExitGUI();
+					}
+				}
 			}
 		}
 
@@ -330,10 +373,43 @@ namespace VisualPinball.Unity.Editor
 				if (target is WireRailComponent component) {
 					Edit(component, "Reorder Wire Rail Layouts",
 						() => component.MoveLayout(fromIndex, toIndex));
-					SynchronizeOrder(_layoutOrder, component.Segments.Count, true);
+					SynchronizeLayoutOrder(_layoutOrder, component, true);
+					if (toIndex >= 0 && toIndex < _layoutOrder.Count) {
+						SelectLayout(component, _layoutOrder[toIndex]);
+					}
+				}
+			};
+			list.onSelectCallback = _ => {
+				if (target is WireRailComponent component) {
+					var layoutIndex = GetSelectedLayoutIndex(component);
+					if (layoutIndex >= 0) {
+						SelectLayout(component, layoutIndex);
+					}
 				}
 			};
 			return list;
+		}
+
+		private static void SynchronizeLayoutOrder(List<int> order,
+			WireRailComponent component, bool force = false)
+		{
+			var displayOrder = component.LayoutDisplayOrder;
+			var matches = !force && order.Count == displayOrder.Count;
+			if (matches) {
+				for (var index = 0; index < order.Count; index++) {
+					if (order[index] != displayOrder[index]) {
+						matches = false;
+						break;
+					}
+				}
+			}
+			if (matches) {
+				return;
+			}
+			order.Clear();
+			for (var index = 0; index < displayOrder.Count; index++) {
+				order.Add(displayOrder[index]);
+			}
 		}
 
 		private static void SynchronizeOrder(List<int> order, int count, bool force = false)
@@ -1021,21 +1097,45 @@ namespace VisualPinball.Unity.Editor
 				rect.width - LayoutPadding * 2f, rect.height - LayoutPadding * 2f);
 			var layout = component.Segments[layoutIndex];
 			var row = new Rect(content.x, content.y - 2f, content.width, LayoutLineHeight);
-			EditorGUI.LabelField(row, $"Layout {layoutIndex + 1}", EditorStyles.boldLabel);
+			var displayIndex = component.GetLayoutDisplayIndex(layoutIndex);
+			EditorGUI.LabelField(row, $"Layout {displayIndex + 1}", EditorStyles.boldLabel);
 			var trashRect = new Rect(row.xMax - LayoutLineHeight, row.y, LayoutLineHeight,
 				LayoutLineHeight);
+			var duplicateRect = new Rect(trashRect.x - LayoutLineHeight - 2f, row.y,
+				LayoutLineHeight, LayoutLineHeight);
+			var duplicate = new GUIContent(EditorGUIUtility.IconContent("TreeEditor.Duplicate")) {
+				tooltip = "Duplicate this wire layout between physical neighbors",
+			};
 			var trash = new GUIContent(EditorGUIUtility.IconContent("TreeEditor.Trash")) {
 				tooltip = "Remove this wire layout",
 			};
 			var canRemoveLayout = component.Segments.Count > 1;
+			EditorGUIUtility.AddCursorRect(duplicateRect, MouseCursor.Link);
 			if (canRemoveLayout) {
 				EditorGUIUtility.AddCursorRect(trashRect, MouseCursor.Link);
 			}
+			if (GUI.Button(duplicateRect, duplicate, GUIStyle.none)) {
+				AddOrDuplicateLayout(component, layoutIndex);
+				GUIUtility.ExitGUI();
+			}
 			using (new EditorGUI.DisabledScope(!canRemoveLayout)) {
 				if (GUI.Button(trashRect, trash, GUIStyle.none)) {
+					var removedDisplayIndex = component.GetLayoutDisplayIndex(layoutIndex);
+					var previousSelectedLayout = _layoutSelectionBeforePointerDown;
 					Edit(component, "Remove Wire Rail Layout",
 						() => component.RemoveLayout(layoutIndex));
-					SynchronizeOrder(_layoutOrder, component.Segments.Count, true);
+					SynchronizeLayoutOrder(_layoutOrder, component, true);
+					if (previousSelectedLayout < 0) {
+						DeselectLayout();
+					} else if (previousSelectedLayout == layoutIndex) {
+						var selectedDisplayIndex = math.min(removedDisplayIndex,
+							_layoutOrder.Count - 1);
+						SelectLayout(component, _layoutOrder[selectedDisplayIndex]);
+					} else {
+						var selectedLayoutIndex = previousSelectedLayout > layoutIndex
+							? previousSelectedLayout - 1 : previousSelectedLayout;
+						SelectLayout(component, selectedLayoutIndex);
+					}
 					GUIUtility.ExitGUI();
 				}
 			}
@@ -1046,8 +1146,11 @@ namespace VisualPinball.Unity.Editor
 			using (new EditorGUI.DisabledScope(layoutIndex == 0)) {
 				var previousLabelWidth = EditorGUIUtility.labelWidth;
 				EditorGUIUtility.labelWidth = 52f;
-				position = EditorGUI.DelayedFloatField(positionRect, new GUIContent("Position",
-					"Distance along the complete spline in VPX units."), layout.Distance);
+				var positionTooltip = layoutIndex == 0
+					? "The route's physical starting layout is anchored at 0 VPX."
+					: "Distance along the complete spline in VPX units.";
+				position = EditorGUI.DelayedFloatField(positionRect,
+					new GUIContent("Position", positionTooltip), layout.Distance);
 				EditorGUIUtility.labelWidth = previousLabelWidth;
 			}
 			if (!Mathf.Approximately(position, layout.Distance)) {
@@ -1099,7 +1202,9 @@ namespace VisualPinball.Unity.Editor
 					overriddenWireCount++;
 				}
 			}
-			return LayoutPadding * 2f + LayoutLineHeight * 2f + 3f
+			var blendInfoHeight = TransitionUsesBlending(component, layoutIndex)
+				? GetTransitionBlendInfoHeight() + 3f : 0f;
+			return LayoutPadding * 2f + LayoutLineHeight * 2f + 3f + blendInfoHeight
 				+ overriddenWireCount * (LayoutLineHeight + 3f);
 		}
 
@@ -1114,10 +1219,20 @@ namespace VisualPinball.Unity.Editor
 			var wireCount = component.RailCount;
 			var row = new Rect(rect.x + LayoutPadding, rect.y + LayoutPadding,
 				rect.width - LayoutPadding * 2f, LayoutLineHeight);
-			EditorGUI.LabelField(row, $"Transition to Layout {nextLayoutIndex + 1}",
+			var nextDisplayIndex = component.GetLayoutDisplayIndex(nextLayoutIndex);
+			EditorGUI.LabelField(row, $"Transition to Layout {nextDisplayIndex + 1}",
 				EditorStyles.boldLabel);
 
 			row.y += LayoutLineHeight + 3f;
+			if (TransitionUsesBlending(component, layoutIndex, BlendedWireIndices)) {
+				var label = BlendedWireIndices.Count == 1 ? "Wire" : "Wires";
+				var blendInfoHeight = GetTransitionBlendInfoHeight();
+				EditorGUI.HelpBox(new Rect(row.x, row.y, row.width,
+					blendInfoHeight),
+					$"Blending {label} {string.Join(", ", BlendedWireIndices)}"
+						+ TransitionBlendMessageSuffix, MessageType.Info);
+				row.y += blendInfoHeight + 3f;
+			}
 			const float overrideButtonWidth = 24f;
 			var overrideButtonsWidth = overrideButtonWidth * wireCount;
 			EditorGUI.LabelField(new Rect(row.x, row.y,
@@ -1194,6 +1309,45 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		private static bool TransitionUsesBlending(WireRailComponent component,
+			int layoutIndex, List<int> blendedWires = null)
+		{
+			blendedWires?.Clear();
+			var nextLayoutIndex = component.GetNextSegmentIndex(layoutIndex);
+			if (nextLayoutIndex < 0) {
+				return false;
+			}
+			var layout = component.Segments[layoutIndex];
+			var nextLayout = component.Segments[nextLayoutIndex];
+			var connection = layout.ConnectionToNext;
+			for (var wireIndex = 0; wireIndex < component.RailCount; wireIndex++) {
+				if (!layout.IsRailActive(wireIndex) || !nextLayout.IsRailActive(wireIndex)
+					|| !connection.IsWireContinuous(wireIndex)) {
+					continue;
+				}
+				var offsetDelta = (float2)layout.GetRailOffset(wireIndex)
+					- (float2)nextLayout.GetRailOffset(wireIndex);
+				if (math.lengthsq(offsetDelta) > 1e-8f
+					|| math.abs(layout.GetWireDiameter(wireIndex)
+						- nextLayout.GetWireDiameter(wireIndex)) > 1e-4f) {
+					if (blendedWires == null) {
+						return true;
+					}
+					blendedWires.Add(wireIndex + 1);
+				}
+			}
+			return blendedWires != null && blendedWires.Count > 0;
+		}
+
+		private static float GetTransitionBlendInfoHeight()
+		{
+			// Reserve the HelpBox info icon as well as the reorderable-list insets.
+			var availableWidth = math.max(60f,
+				EditorGUIUtility.currentViewWidth - 140f);
+			return math.ceil(EditorStyles.helpBox.CalcHeight(
+				TransitionBlendHeightContent, availableWidth));
+		}
+
 		private static AnimationCurve CloneCurve(AnimationCurve source)
 		{
 			if (source == null) {
@@ -1203,6 +1357,56 @@ namespace VisualPinball.Unity.Editor
 				preWrapMode = source.preWrapMode,
 				postWrapMode = source.postWrapMode,
 			};
+		}
+
+		private int GetSelectedLayoutIndex(WireRailComponent component)
+		{
+			var selectedDisplayIndex = _layoutOrderList?.index ?? -1;
+			if (selectedDisplayIndex < 0 || selectedDisplayIndex >= _layoutOrder.Count) {
+				return -1;
+			}
+			var layoutIndex = _layoutOrder[selectedDisplayIndex];
+			return layoutIndex >= 0 && layoutIndex < component.Segments.Count
+				? layoutIndex : -1;
+		}
+
+		private void AddOrDuplicateLayout(WireRailComponent component, int sourceLayoutIndex)
+		{
+			var distance = component.GetSuggestedLayoutDistance(sourceLayoutIndex);
+			var newLayoutIndex = -1;
+			if (sourceLayoutIndex >= 0) {
+				Edit(component, "Duplicate Wire Rail Layout",
+					() => newLayoutIndex = component.DuplicateLayout(sourceLayoutIndex, distance));
+			} else {
+				Edit(component, "Add Wire Rail Layout",
+					() => newLayoutIndex = component.AddLayout(distance));
+			}
+			SynchronizeLayoutOrder(_layoutOrder, component, true);
+			if (sourceLayoutIndex >= 0) {
+				SelectLayout(component, newLayoutIndex);
+			} else {
+				DeselectLayout();
+			}
+		}
+
+		private void SelectLayout(WireRailComponent component, int layoutIndex)
+		{
+			if (layoutIndex < 0 || layoutIndex >= component.Segments.Count) {
+				return;
+			}
+			WireRailLayoutEditorSelection.Select(component, layoutIndex);
+			_layoutOrderList.index = component.GetLayoutDisplayIndex(layoutIndex);
+			Repaint();
+			SceneView.RepaintAll();
+		}
+
+		private void DeselectLayout()
+		{
+			_layoutOrderList.index = -1;
+			_layoutSelectionBeforePointerDown = -1;
+			WireRailLayoutEditorSelection.Clear();
+			Repaint();
+			SceneView.RepaintAll();
 		}
 
 		private static void Edit(WireRailComponent component, string undoName, Action edit)
@@ -1432,6 +1636,29 @@ namespace VisualPinball.Unity.Editor
 		}
 	}
 
+	internal static class WireRailLayoutEditorSelection
+	{
+		private static WireRailComponent _component;
+		private static int _layoutIndex = -1;
+
+		internal static void Select(WireRailComponent component, int layoutIndex)
+		{
+			_component = component;
+			_layoutIndex = component ? layoutIndex : -1;
+		}
+
+		internal static bool IsSelected(WireRailComponent component, int layoutIndex)
+			=> component && component == _component
+				&& layoutIndex == _layoutIndex;
+
+		internal static void Clear()
+		{
+			_component = null;
+			_layoutIndex = -1;
+			SceneView.RepaintAll();
+		}
+	}
+
 	[InitializeOnLoad]
 	internal static class WireRailScenePreview
 	{
@@ -1478,6 +1705,8 @@ namespace VisualPinball.Unity.Editor
 
 			for (var segmentIndex = 0; segmentIndex < component.Segments.Count; segmentIndex++) {
 				var segment = component.Segments[segmentIndex];
+				var selectedLayout = WireRailLayoutEditorSelection.IsSelected(component,
+					segmentIndex);
 				for (var railIndex = 0; railIndex < segment.RailCount; railIndex++) {
 					if (!segment.IsRailActive(railIndex)) {
 						continue;
@@ -1491,8 +1720,18 @@ namespace VisualPinball.Unity.Editor
 							? container.transform.TransformPoint((Vector3)position)
 							: container.transform.position;
 					}
-					Handles.color = RailColors[railIndex % RailColors.Length];
-					Handles.DrawAAPolyLine(3f, points);
+					if (selectedLayout) {
+						var previousRailZTest = Handles.zTest;
+						Handles.zTest = CompareFunction.Always;
+						Handles.color = new Color(0.02f, 0.02f, 0.02f, 0.95f);
+						Handles.DrawAAPolyLine(7f, points);
+						Handles.color = RailColors[railIndex % RailColors.Length];
+						Handles.DrawAAPolyLine(4f, points);
+						Handles.zTest = previousRailZTest;
+					} else {
+						Handles.color = RailColors[railIndex % RailColors.Length];
+						Handles.DrawAAPolyLine(3f, points);
+					}
 				}
 
 				var spinePoints = new Vector3[SamplesPerSegment + 1];
@@ -1504,18 +1743,24 @@ namespace VisualPinball.Unity.Editor
 				var previousZTest = Handles.zTest;
 				Handles.zTest = CompareFunction.Always;
 				Handles.color = new Color(0.02f, 0.02f, 0.02f, 0.95f);
-				Handles.DrawAAPolyLine(editing ? 11f : 8f, spinePoints);
-				Handles.color = editing
+				Handles.DrawAAPolyLine(selectedLayout ? 13f : editing ? 11f : 8f,
+					spinePoints);
+				Handles.color = selectedLayout
+					? new Color(1f, 0.55f, 0.05f, 1f)
+					: editing
 					? new Color(1f, 0.78f, 0.05f, 1f)
 					: new Color(0.9f, 0.95f, 1f, 1f);
-				Handles.DrawAAPolyLine(editing ? 5f : 4f, spinePoints);
+				Handles.DrawAAPolyLine(selectedLayout ? 6f : editing ? 5f : 4f,
+					spinePoints);
 				Handles.zTest = previousZTest;
 
 				Handles.color = Color.white;
 				var labelPosition = EvaluateWorldPosition(container, spline, component.Segments,
 					segmentIndex, 0f);
 				var activeRailCount = CountActiveRails(segment);
-				Handles.Label(labelPosition, $"Layout {segmentIndex + 1}: {activeRailCount}/"
+				var displayIndex = GetDisplayIndex(component.LayoutDisplayOrder, segmentIndex);
+				var selectedPrefix = selectedLayout ? "▶ " : string.Empty;
+				Handles.Label(labelPosition, $"{selectedPrefix}Layout {displayIndex + 1}: {activeRailCount}/"
 					+ $"{component.RailCount} rails", EditorStyles.boldLabel);
 			}
 			DrawFixturePreviews(component, container, spline);
@@ -1534,6 +1779,16 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 			return count;
+		}
+
+		private static int GetDisplayIndex(IReadOnlyList<int> displayOrder, int layoutIndex)
+		{
+			for (var displayIndex = 0; displayIndex < displayOrder.Count; displayIndex++) {
+				if (displayOrder[displayIndex] == layoutIndex) {
+					return displayIndex;
+				}
+			}
+			return layoutIndex;
 		}
 
 		private static void DrawFixturePreviews(WireRailComponent component,

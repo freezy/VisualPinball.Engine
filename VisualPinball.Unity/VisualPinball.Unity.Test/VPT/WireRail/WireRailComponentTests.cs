@@ -1751,7 +1751,7 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldReorderLayoutsAcrossTheirExistingPositionSlots()
+		public void ShouldReorderLayoutNamesWithoutChangingPhysicalGeometry()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
@@ -1767,9 +1767,164 @@ namespace VisualPinball.Unity.Test
 				Assert.That(component.Segments.Select(layout => layout.Distance),
 					Is.EqualTo(new[] { 0f, 200f, 400f }));
 				Assert.That(component.Segments.Select(CountActiveRails),
-					Is.EqualTo(new[] { 3, 1, 2 }));
+					Is.EqualTo(new[] { 1, 2, 3 }));
+				Assert.That(component.LayoutDisplayOrder, Is.EqualTo(new[] { 2, 0, 1 }));
 				Assert.That(component.Segments[0].ConnectionToNext.WireCount, Is.EqualTo(3));
 				Assert.That(component.Segments[1].ConnectionToNext.WireCount, Is.EqualTo(3));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldSuggestLayoutPositionsFromPhysicalNeighbors()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				Assert.That(component.GetSuggestedLayoutDistance(),
+					Is.EqualTo(component.SplineLength * 0.5f).Within(0.001f));
+
+				component.AddLayout(200f);
+				component.AddLayout(400f);
+				component.MoveLayout(2, 0);
+
+				Assert.That(component.GetSuggestedLayoutDistance(),
+					Is.EqualTo(300f).Within(0.001f));
+				Assert.That(component.GetSuggestedLayoutDistance(0),
+					Is.EqualTo(100f).Within(0.001f));
+				Assert.That(component.GetSuggestedLayoutDistance(1),
+					Is.EqualTo(300f).Within(0.001f));
+				Assert.That(component.GetSuggestedLayoutDistance(2),
+					Is.EqualTo(300f).Within(0.001f));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldAddAnUnselectedLayoutLastInDisplayOrder()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.AddLayout(200f);
+				component.AddLayout(400f);
+
+				var layoutIndex = component.AddLayout(component.GetSuggestedLayoutDistance());
+
+				Assert.That(layoutIndex, Is.EqualTo(2));
+				Assert.That(component.Segments.Select(layout => layout.Distance),
+					Is.EqualTo(new[] { 0f, 200f, 300f, 400f }));
+				Assert.That(component.LayoutDisplayOrder, Is.EqualTo(new[] { 0, 1, 3, 2 }));
+				Assert.That(component.GetLayoutDisplayIndex(layoutIndex), Is.EqualTo(3));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldDuplicateASelectedLayoutBetweenPhysicalNeighbors()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.AddLayout(200f);
+				component.AddLayout(400f);
+				component.SetRailCount(3);
+				component.SetRailOffset(1, 0, new Vector2(42f, 17f));
+				component.SetRailsActive(1, new[] { 2 }, false);
+				component.SetWireTransitionOverride(1, 0, true);
+				component.SetWireContinuous(1, 0, false);
+
+				var layoutIndex = component.DuplicateLayout(1,
+					component.GetSuggestedLayoutDistance(1));
+
+				Assert.That(layoutIndex, Is.EqualTo(2));
+				Assert.That(component.Segments.Select(layout => layout.Distance),
+					Is.EqualTo(new[] { 0f, 200f, 300f, 400f }));
+				Assert.That(component.Segments[layoutIndex].GetRailOffset(0),
+					Is.EqualTo(new Vector2(42f, 17f)));
+				Assert.That(component.Segments[layoutIndex].IsRailActive(2), Is.False);
+				Assert.That(component.Segments[layoutIndex].ConnectionToNext
+					.IsWireOverridden(0), Is.True);
+				Assert.That(component.Segments[layoutIndex].ConnectionToNext
+					.IsWireContinuous(0), Is.False);
+				Assert.That(component.Segments[1].ConnectionToNext
+					.IsWireOverridden(0), Is.False);
+				Assert.That(component.LayoutDisplayOrder, Is.EqualTo(new[] { 0, 1, 2, 3 }));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldDuplicateTheLastPhysicalLayoutAfterItsDisplayEntry()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.AddLayout(200f);
+				component.AddLayout(400f);
+				component.SetRailOffset(2, 0, new Vector2(-25f, 35f));
+				component.MoveLayout(2, 0);
+
+				var layoutIndex = component.DuplicateLayout(2,
+					component.GetSuggestedLayoutDistance(2));
+
+				Assert.That(layoutIndex, Is.EqualTo(2));
+				Assert.That(component.Segments.Select(layout => layout.Distance),
+					Is.EqualTo(new[] { 0f, 200f, 300f, 400f }));
+				Assert.That(component.Segments[layoutIndex].GetRailOffset(0),
+					Is.EqualTo(new Vector2(-25f, 35f)));
+				Assert.That(component.LayoutDisplayOrder, Is.EqualTo(new[] { 3, 2, 0, 1 }));
+				Assert.That(component.GetLayoutDisplayIndex(layoutIndex), Is.EqualTo(1));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldPreserveDisplayOrderWhenRemovingAPhysicalLayout()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.AddLayout(200f);
+				component.AddLayout(400f);
+				component.MoveLayout(2, 0);
+
+				component.RemoveLayout(1);
+
+				Assert.That(component.Segments.Select(layout => layout.Distance),
+					Is.EqualTo(new[] { 0f, 400f }));
+				Assert.That(component.LayoutDisplayOrder, Is.EqualTo(new[] { 1, 0 }));
+				Assert.That(component.GetLayoutDisplayIndex(1), Is.Zero);
+				Assert.That(component.GetLayoutDisplayIndex(0), Is.EqualTo(1));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldRepairLegacyAndInvalidLayoutDisplayOrder()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.AddLayout(200f);
+				component.AddLayout(400f);
+				var flags = BindingFlags.Instance | BindingFlags.NonPublic;
+				var displayOrderField = typeof(WireRailComponent)
+					.GetField("_layoutDisplayOrder", flags);
+
+				displayOrderField?.SetValue(component, new List<int>());
+				Assert.That(component.SynchronizeSegments(), Is.True);
+				Assert.That(component.LayoutDisplayOrder, Is.EqualTo(new[] { 0, 1, 2 }));
+
+				displayOrderField?.SetValue(component, new List<int> { 0, 0, 2 });
+				Assert.That(component.SynchronizeSegments(), Is.True);
+				Assert.That(component.LayoutDisplayOrder, Is.EqualTo(new[] { 0, 1, 2 }));
 			} finally {
 				Object.DestroyImmediate(go);
 			}
