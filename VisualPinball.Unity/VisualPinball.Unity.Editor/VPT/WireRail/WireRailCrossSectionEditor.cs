@@ -652,7 +652,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			EditorGUI.DrawRect(rect, CanvasColor);
 			if (!component.TryGetVBracePreview(fixtureIndex, out var preview)) {
-				EditorGUI.LabelField(rect, "V-brace preview unavailable at this position",
+				EditorGUI.LabelField(rect,
+					"Cross-wire-with-arms preview unavailable at this position",
 					EditorStyles.centeredGreyMiniLabel);
 				return;
 			}
@@ -683,7 +684,7 @@ namespace VisualPinball.Unity.Editor
 			GUI.Label(new Rect(rect.xMax - 34f, rect.yMax - 20f, 30f, 18f), "X →",
 				EditorStyles.miniLabel);
 			GUI.Label(rect, new GUIContent(string.Empty,
-				"V-brace cross-section at its route position"));
+				"Cross wire with optional arms at its route position"));
 		}
 
 		private static void DrawRail(VBracePreviewView view, Vector2 center,
