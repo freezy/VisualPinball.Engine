@@ -453,12 +453,12 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			row.y += LayoutLineHeight + 3f;
-			var leftLength = EditorGUI.FloatField(row, new GUIContent("Left Length",
+			var leftLength = EditorGUI.DelayedFloatField(row, new GUIContent("Left Length",
 				"Centerline length from the theoretical bottom to the left endpoint."),
 				vBrace.LeftLength);
 
 			row.y += LayoutLineHeight + 3f;
-			var rightLength = EditorGUI.FloatField(row, new GUIContent("Right Length",
+			var rightLength = EditorGUI.DelayedFloatField(row, new GUIContent("Right Length",
 				"Centerline length from the theoretical bottom to the right endpoint."),
 				vBrace.RightLength);
 
