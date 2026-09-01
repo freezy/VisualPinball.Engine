@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Collections;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
@@ -231,9 +232,17 @@ namespace VisualPinball.Unity
 		#endregion
 
 
-		public void Collide(ref BallState ball, in CollisionEventData collEvent, ref PhysicsState state)
+		public void Collide(ref BallState ball, ref NativeQueue<EventData>.ParallelWriter hitEvents,
+			in CollisionEventData collEvent, ref PhysicsState state)
 		{
+			var impactSpeed = -math.dot(collEvent.HitNormal, ball.Velocity);
 			BallCollider.Collide3DWall(ref ball, in Header.Material, in collEvent, in collEvent.HitNormal, ref state);
+
+			// Circle is shared by non-hittable bracket and rigid-body colliders. The magnet deliberately
+			// identifies its generated cylinder as a primitive so only that circle uses primitive hit events.
+			if (Header.FireEvents && impactSpeed >= Header.Threshold && Header.IsPrimitive) {
+				Collider.FireHitEvent(ref ball, ref hitEvents, in Header);
+			}
 		}
 
 		#region Transformation

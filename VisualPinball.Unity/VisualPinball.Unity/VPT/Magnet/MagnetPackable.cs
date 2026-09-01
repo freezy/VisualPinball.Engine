@@ -18,7 +18,7 @@ namespace VisualPinball.Unity
 {
 	public struct MagnetPackable
 	{
-		private const int CurrentVersion = 2;
+		private const int CurrentVersion = 3;
 
 		public int Version;
 		public float Radius;
@@ -38,6 +38,7 @@ namespace VisualPinball.Unity
 		public bool IsEnabledOnStart;
 		public bool IsKinematic;
 		public bool DrawDebugForces;
+		public float HitThreshold;
 
 		public static byte[] Pack(MagnetComponent comp)
 		{
@@ -60,6 +61,7 @@ namespace VisualPinball.Unity
 				IsEnabledOnStart = comp.IsEnabledOnStart,
 				IsKinematic = comp.IsKinematic,
 				DrawDebugForces = comp.DrawDebugForces,
+				HitThreshold = comp.HitThreshold,
 			});
 		}
 
@@ -83,6 +85,7 @@ namespace VisualPinball.Unity
 			comp.IsEnabledOnStart = data.IsEnabledOnStart;
 			comp.IsKinematic = data.IsKinematic;
 			comp.DrawDebugForces = data.DrawDebugForces;
+			comp.HitThreshold = data.Version >= 3 ? data.HitThreshold : MagnetComponent.DefaultHitThreshold;
 		}
 	}
 }

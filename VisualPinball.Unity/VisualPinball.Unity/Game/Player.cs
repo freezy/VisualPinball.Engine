@@ -330,6 +330,9 @@ namespace VisualPinball.Unity
 			}
 			if (api is IApiMagnetEvents magnetEvents) {
 				_magnets[itemId] = magnetEvents;
+				if (api is IApiHittable magnetHittable) {
+					_hittables[itemId] = magnetHittable;
+				}
 			}
 			if (api is IApiSpinnable spinnable) {
 				_spinnables[itemId] = spinnable;

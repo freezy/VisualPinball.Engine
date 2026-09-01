@@ -39,6 +39,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _isEnabledOnStartProperty;
 		private SerializedProperty _isKinematicProperty;
 		private SerializedProperty _drawDebugForcesProperty;
+		private SerializedProperty _hitThresholdProperty;
 
 		protected override MonoBehaviour UndoTarget => target as MonoBehaviour;
 
@@ -63,6 +64,7 @@ namespace VisualPinball.Unity.Editor
 			_isEnabledOnStartProperty = serializedObject.FindProperty(nameof(MagnetComponent.IsEnabledOnStart));
 			_isKinematicProperty = serializedObject.FindProperty(nameof(MagnetComponent.IsKinematic));
 			_drawDebugForcesProperty = serializedObject.FindProperty(nameof(MagnetComponent.DrawDebugForces));
+			_hitThresholdProperty = serializedObject.FindProperty(nameof(MagnetComponent.HitThreshold));
 		}
 
 		public override void OnInspectorGUI()
@@ -88,11 +90,20 @@ namespace VisualPinball.Unity.Editor
 				PropertyField(_cylinderHeightProperty);
 				using (new EditorGUI.DisabledScope(Application.isPlaying)) {
 					PropertyField(_generateCylinderColliderProperty, updateColliders: true);
+					if (_generateCylinderColliderProperty.boolValue) {
+						PropertyField(_hitThresholdProperty, "Hit Threshold");
+					}
+				}
+				if (!_generateCylinderColliderProperty.boolValue) {
+					EditorGUILayout.HelpBox("Enable Generate Cylinder Collider to emit Hit switch pulses.", MessageType.Info);
 				}
 				DrawColliderFit();
 				DrawOverlappingColliderWarning();
 			} else if (!isSpatial) {
 				PropertyField(_heightRangeProperty);
+			}
+			if (!isCylindrical) {
+				EditorGUILayout.HelpBox("The Hit switch requires a Cylindrical magnet with Generate Cylinder Collider enabled.", MessageType.Info);
 			}
 			PropertyField(_strengthProperty);
 			if (isCylindrical) {

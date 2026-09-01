@@ -22,7 +22,7 @@ using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
 {
-	public class MagnetApi : IApi, IApiCoilDevice, IApiSwitchDevice, IApiWireDeviceDest, IApiMagnetEvents
+	public class MagnetApi : IApi, IApiCoilDevice, IApiSwitchDevice, IApiWireDeviceDest, IApiMagnetEvents, IApiHittable
 	{
 		private readonly MagnetComponent _component;
 		private readonly Player _player;
@@ -30,6 +30,7 @@ namespace VisualPinball.Unity
 		private readonly int _itemId;
 
 		private DeviceCoil _magnetCoil;
+		private DeviceSwitch _hitSwitch;
 		private DeviceSwitch _ballHeldSwitch;
 		// written by the simulation thread's coil dispatch, read by the main thread
 		private volatile bool _isEnabled;
@@ -40,6 +41,7 @@ namespace VisualPinball.Unity
 		public event EventHandler<HitEventArgs> BallExited;
 		public event EventHandler<HitEventArgs> BallGrabbed;
 		public event EventHandler<HitEventArgs> BallReleased;
+		public event EventHandler<HitEventArgs> Hit;
 
 		internal MagnetApi(GameObject go, Player player, PhysicsEngine physicsEngine)
 		{
@@ -50,6 +52,7 @@ namespace VisualPinball.Unity
 			_isEnabled = _component.IsEnabledOnStart;
 
 			_magnetCoil = new DeviceCoil(_player, onValue: OnCoilValue, onValueSimulationThread: OnCoilValueSimulationThread);
+			_hitSwitch = new DeviceSwitch(MagnetComponent.HitSwitchItem, true, SwitchDefault.NormallyOpen, _player, _physicsEngine);
 			_ballHeldSwitch = new DeviceSwitch(MagnetComponent.BallHeldSwitchItem, false, SwitchDefault.NormallyOpen, _player, _physicsEngine);
 		}
 
@@ -145,8 +148,15 @@ namespace VisualPinball.Unity
 		{
 			return deviceItem switch {
 				MagnetComponent.BallHeldSwitchItem => _ballHeldSwitch,
-				_ => throw new ArgumentException($"Unknown magnet switch \"{deviceItem}\". Valid name is \"{MagnetComponent.BallHeldSwitchItem}\".")
+				MagnetComponent.HitSwitchItem => _hitSwitch,
+				_ => throw new ArgumentException($"Unknown magnet switch \"{deviceItem}\". Valid names are \"{MagnetComponent.BallHeldSwitchItem}\" and \"{MagnetComponent.HitSwitchItem}\".")
 			};
+		}
+
+		void IApiHittable.OnHit(int ballId, bool _)
+		{
+			Hit?.Invoke(this, new HitEventArgs(ballId));
+			_hitSwitch.SetSwitch(true);
 		}
 
 		/// <summary>

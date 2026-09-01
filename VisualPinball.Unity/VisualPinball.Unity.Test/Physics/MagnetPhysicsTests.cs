@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Linq;
 using System.Text;
 using NativeTrees;
 using NUnit.Framework;
@@ -27,6 +28,36 @@ namespace VisualPinball.Unity.Test
 {
 	public class MagnetPhysicsTests
 	{
+		[Test]
+		public void ComponentExposesHitAndBallHeldSwitches()
+		{
+			var gameObject = new GameObject("Magnet Switch Test");
+			try {
+				var component = gameObject.AddComponent<MagnetComponent>();
+				var switches = component.AvailableSwitches.ToArray();
+
+				Assert.That(switches.Select(item => item.Id), Is.EqualTo(new[] {
+					MagnetComponent.BallHeldSwitchItem,
+					MagnetComponent.HitSwitchItem
+				}));
+				Assert.That(switches.Select(item => item.IsPulseSwitch), Is.EqualTo(new[] { false, true }));
+			} finally {
+				UnityEngine.Object.DestroyImmediate(gameObject);
+			}
+		}
+
+		[Test]
+		public void PulseDeviceSwitchMarksWireDestinationAsPulseSource()
+		{
+			var deviceSwitch = new DeviceSwitch(MagnetComponent.HitSwitchItem, true,
+				SwitchDefault.NormallyOpen, null, null);
+			var wireConfig = new WireDestConfig(new WireMapping());
+
+			deviceSwitch.AddWireDest(wireConfig);
+
+			Assert.That(wireConfig.IsPulseSource, Is.True);
+		}
+
 		[Test]
 		public void ComponentDistancesAreAuthoredDirectlyInVpxUnits()
 		{
@@ -80,6 +111,7 @@ namespace VisualPinball.Unity.Test
 				var component = gameObject.AddComponent<MagnetComponent>();
 				component.CylindricalDamping = 0.35f;
 				component.GenerateCylinderCollider = true;
+				component.HitThreshold = 4.5f;
 
 				var bytes = component.Pack();
 				component.CylindricalDamping = 2f;
@@ -87,12 +119,15 @@ namespace VisualPinball.Unity.Test
 
 				Assert.That(component.CylindricalDamping, Is.EqualTo(0.35f));
 				Assert.That(component.GenerateCylinderCollider, Is.True);
+				Assert.That(component.HitThreshold, Is.EqualTo(4.5f));
 
 				component.CylindricalDamping = 0f;
 				component.GenerateCylinderCollider = true;
+				component.HitThreshold = 0f;
 				component.Unpack(Encoding.UTF8.GetBytes("{}"));
 				Assert.That(component.CylindricalDamping, Is.EqualTo(MagnetComponent.DefaultCylindricalDamping));
 				Assert.That(component.GenerateCylinderCollider, Is.False);
+				Assert.That(component.HitThreshold, Is.EqualTo(MagnetComponent.DefaultHitThreshold));
 			} finally {
 				UnityEngine.Object.DestroyImmediate(gameObject);
 			}
@@ -109,6 +144,7 @@ namespace VisualPinball.Unity.Test
 				component.MagnetType = MagnetType.Cylindrical;
 				component.CylinderRadius = 25.16466f;
 				component.CylinderHeight = 49.92385f;
+				component.HitThreshold = 3.5f;
 
 				var collidable = (ICollidableComponent)component;
 				Assert.That(collidable.IsCollidable, Is.True,
@@ -128,12 +164,52 @@ namespace VisualPinball.Unity.Test
 				Assert.That(collider.ZLow, Is.Zero);
 				Assert.That(collider.ZHigh, Is.EqualTo(component.CylinderHeight));
 				Assert.That(collider.Header.ItemId, Is.EqualTo(component.ItemId));
+				Assert.That(collider.Header.FireEvents, Is.True);
+				Assert.That(collider.Header.Threshold, Is.EqualTo(component.HitThreshold));
 				Assert.That(matrix.GetScale(), Is.EqualTo(new float3(1f)),
 					"visual transform scale must not resize dimensions authored directly in VPX units");
 			} finally {
 				colliders.Dispose();
 				nonTransformableTransforms.Dispose();
 				UnityEngine.Object.DestroyImmediate(gameObject);
+			}
+		}
+
+		[Test]
+		public void GeneratedCylinderColliderFiresHitOnlyAboveThreshold()
+		{
+			var collider = new CircleCollider(float2.zero, 10f, 0f, 20f, new ColliderInfo {
+				ItemId = 1,
+				ItemType = VisualPinball.Engine.VPT.ItemType.Primitive,
+				HitThreshold = 5f,
+				FireEvents = true
+			});
+			var state = new PhysicsState();
+			var events = new NativeQueue<EventData>(Allocator.Temp);
+			try {
+				var writer = events.AsParallelWriter();
+				var collision = new CollisionEventData {
+					HitNormal = new float3(1f, 0f, 0f),
+					HitDistance = 0f
+				};
+				var ball = new BallState {
+					Id = 1,
+					Position = new float3(11f, 0f, 10f),
+					EventPosition = new float3(100f, 0f, 0f),
+					Velocity = new float3(-4f, 0f, 0f),
+					Radius = 1f,
+					Mass = 1f
+				};
+
+				collider.Collide(ref ball, ref writer, in collision, ref state);
+				Assert.That(events.Count, Is.Zero);
+
+				ball.EventPosition = new float3(100f, 0f, 0f);
+				ball.Velocity = new float3(-6f, 0f, 0f);
+				collider.Collide(ref ball, ref writer, in collision, ref state);
+				Assert.That(events.Count, Is.EqualTo(1));
+			} finally {
+				events.Dispose();
 			}
 		}
 
