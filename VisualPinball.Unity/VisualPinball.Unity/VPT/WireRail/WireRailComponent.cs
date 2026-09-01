@@ -22,6 +22,7 @@ using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 using UnityEngine.Splines;
 using VisualPinball.Engine.VPT;
@@ -495,23 +496,38 @@ namespace VisualPinball.Unity
 	[Serializable]
 	public abstract class WireRailFixture
 	{
+		public const float DefaultSolderThreshold = WireRailLayout.ReferenceWireDiameter * 0.25f;
+
 		[SerializeField, Min(0f)] private float _distance;
+		[SerializeField, Min(0f)] private float _solderThreshold = DefaultSolderThreshold;
 
 		public float Distance => _distance;
+		public float SolderThreshold => _solderThreshold;
 
 		internal bool EnsureInitialized(float splineLength)
 		{
+			var changed = false;
 			var clampedDistance = math.clamp(_distance, 0f, math.max(0f, splineLength));
-			if (Mathf.Approximately(_distance, clampedDistance)) {
-				return false;
+			if (!Mathf.Approximately(_distance, clampedDistance)) {
+				_distance = clampedDistance;
+				changed = true;
 			}
-			_distance = clampedDistance;
-			return true;
+			var solderThreshold = math.max(0f, _solderThreshold);
+			if (!Mathf.Approximately(_solderThreshold, solderThreshold)) {
+				_solderThreshold = solderThreshold;
+				changed = true;
+			}
+			return changed;
 		}
 
 		internal void SetDistance(float distance, float splineLength)
 		{
 			_distance = math.clamp(distance, 0f, math.max(0f, splineLength));
+		}
+
+		internal void SetSolderThreshold(float solderThreshold)
+		{
+			_solderThreshold = math.max(0f, solderThreshold);
 		}
 	}
 
@@ -1066,6 +1082,174 @@ namespace VisualPinball.Unity
 			_lateralOffset = lateralOffset;
 			_verticalOffset = verticalOffset;
 			_rotation = math.clamp(rotation, 0f, 360f);
+		}
+	}
+
+	/// <summary>
+	/// An endpoint-only fitting that continues two selected rails past the spline and
+	/// then bends them vertically down. The remaining rails can be shortened independently.
+	/// </summary>
+	[Serializable]
+	[MovedFrom(true, sourceClassName: "WireRailHoleDropFixture")]
+	public sealed class WireRailDropFixture : WireRailFixture
+	{
+		public const float DefaultOffset = 40f;
+		public const float DefaultDropLength = 80f;
+
+		[SerializeField, Min(0.1f)] private float _diameter = WireRailLayout.ReferenceWireDiameter;
+		[SerializeField] private WireRailEndpoint _endpoint = WireRailEndpoint.End;
+		[SerializeField, Min(0)] private int _firstRailIndex;
+		[SerializeField, Min(0)] private int _secondRailIndex = 1;
+		// Moves the drop inward from the spline endpoint, shortening the two rails. Zero drops
+		// exactly at the endpoint.
+		[FormerlySerializedAs("_distanceToHole")]
+		[SerializeField, Min(0f)] private float _offset = DefaultOffset;
+		[SerializeField, Min(0.1f)] private float _dropLength = DefaultDropLength;
+		[SerializeField] private float _zAngle;
+		[SerializeField] private List<float> _railOffsets = new();
+		[SerializeField, HideInInspector] private bool _railPairInitialized;
+
+		public float Diameter => _diameter;
+		public WireRailEndpoint Endpoint => _endpoint;
+		public int FirstRailIndex => _firstRailIndex;
+		public int SecondRailIndex => _secondRailIndex;
+		public float Offset => _offset;
+		public float DropLength => _dropLength;
+		public float ZAngle => _zAngle;
+		public int RailCount => _railOffsets?.Count ?? 0;
+		public IReadOnlyList<float> RailOffsets => _railOffsets;
+		internal bool RailPairInitialized => _railPairInitialized;
+
+		public bool IsAttachedRail(int railIndex)
+			=> railIndex == _firstRailIndex || railIndex == _secondRailIndex;
+
+		public float GetRailOffset(int railIndex)
+		{
+			if (_railOffsets == null || railIndex < 0 || railIndex >= _railOffsets.Count) {
+				throw new ArgumentOutOfRangeException(nameof(railIndex));
+			}
+			return _railOffsets[railIndex];
+		}
+
+		internal bool EnsureDropInitialized(float splineLength, int railCount)
+		{
+			var changed = EnsureInitialized(splineLength);
+			var endpoint = _endpoint == WireRailEndpoint.Start
+				? WireRailEndpoint.Start : WireRailEndpoint.End;
+			if (_endpoint != endpoint) {
+				_endpoint = endpoint;
+				changed = true;
+			}
+			var endpointDistance = _endpoint == WireRailEndpoint.Start ? 0f : splineLength;
+			if (!Mathf.Approximately(Distance, endpointDistance)) {
+				SetDistance(endpointDistance, splineLength);
+				changed = true;
+			}
+			changed |= SetValue(ref _diameter, math.max(0.1f, _diameter));
+			var maximumRailIndex = math.max(0, railCount - 1);
+			var firstRailIndex = math.clamp(_firstRailIndex, 0, maximumRailIndex);
+			var secondRailIndex = math.clamp(_secondRailIndex, 0, maximumRailIndex);
+			if (_firstRailIndex != firstRailIndex) {
+				_firstRailIndex = firstRailIndex;
+				changed = true;
+			}
+			if (_secondRailIndex != secondRailIndex) {
+				_secondRailIndex = secondRailIndex;
+				changed = true;
+			}
+			changed |= SetValue(ref _offset,
+				math.clamp(_offset, 0f, math.max(0f, splineLength)));
+			changed |= SetValue(ref _dropLength, math.max(0.1f, _dropLength));
+			_railOffsets ??= new List<float>();
+			while (_railOffsets.Count < railCount) {
+				_railOffsets.Add(0f);
+				changed = true;
+			}
+			if (_railOffsets.Count > railCount) {
+				_railOffsets.RemoveRange(railCount, _railOffsets.Count - railCount);
+				changed = true;
+			}
+			for (var railIndex = 0; railIndex < _railOffsets.Count; railIndex++) {
+				var offset = IsAttachedRail(railIndex) ? 0f : math.clamp(
+					_railOffsets[railIndex], 0f, math.max(0f, splineLength));
+				if (Mathf.Approximately(_railOffsets[railIndex], offset)) {
+					continue;
+				}
+				_railOffsets[railIndex] = offset;
+				changed = true;
+			}
+			return changed;
+
+			static bool SetValue(ref float destination, float value)
+			{
+				if (Mathf.Approximately(destination, value)) {
+					return false;
+				}
+				destination = value;
+				return true;
+			}
+		}
+
+		internal bool SetDiameter(float diameter)
+		{
+			diameter = math.max(0.1f, diameter);
+			if (Mathf.Approximately(_diameter, diameter)) {
+				return false;
+			}
+			_diameter = diameter;
+			return true;
+		}
+
+		internal bool EnsureRailPairInitialized(int firstRailIndex, int secondRailIndex)
+		{
+			if (_railPairInitialized) {
+				return false;
+			}
+			_firstRailIndex = math.max(0, firstRailIndex);
+			_secondRailIndex = math.max(0, secondRailIndex);
+			if (_railOffsets != null) {
+				if (_firstRailIndex < _railOffsets.Count) {
+					_railOffsets[_firstRailIndex] = 0f;
+				}
+				if (_secondRailIndex < _railOffsets.Count) {
+					_railOffsets[_secondRailIndex] = 0f;
+				}
+			}
+			_railPairInitialized = true;
+			return true;
+		}
+
+		internal void SetProperties(float splineLength, int railCount, float diameter,
+			WireRailEndpoint endpoint, int firstRailIndex, int secondRailIndex,
+			float offset, float dropLength, float zAngle,
+			IReadOnlyList<float> railOffsets)
+		{
+			if (railOffsets == null) {
+				throw new ArgumentNullException(nameof(railOffsets));
+			}
+			_endpoint = endpoint == WireRailEndpoint.Start
+				? WireRailEndpoint.Start : WireRailEndpoint.End;
+			SetDistance(_endpoint == WireRailEndpoint.Start ? 0f : splineLength, splineLength);
+			_diameter = math.max(0.1f, diameter);
+			var maximumRailIndex = math.max(0, railCount - 1);
+			_firstRailIndex = math.clamp(firstRailIndex, 0, maximumRailIndex);
+			_secondRailIndex = math.clamp(secondRailIndex, 0, maximumRailIndex);
+			_offset = math.clamp(offset, 0f, math.max(0f, splineLength));
+			_dropLength = math.max(0.1f, dropLength);
+			_zAngle = zAngle;
+			_railPairInitialized = true;
+			// Snapshot the incoming cutoffs first: callers may pass this fixture's own
+			// RailOffsets list, which Clear() below would otherwise empty before we read it.
+			var incoming = new float[railCount];
+			for (var railIndex = 0; railIndex < railCount; railIndex++) {
+				incoming[railIndex] = railIndex < railOffsets.Count ? railOffsets[railIndex] : 0f;
+			}
+			_railOffsets ??= new List<float>();
+			_railOffsets.Clear();
+			for (var railIndex = 0; railIndex < railCount; railIndex++) {
+				_railOffsets.Add(IsAttachedRail(railIndex)
+					? 0f : math.clamp(incoming[railIndex], 0f, math.max(0f, splineLength)));
+			}
 		}
 	}
 
@@ -1839,6 +2023,23 @@ namespace VisualPinball.Unity
 			return _fixtures.Count - 1;
 		}
 
+		public int AddDropFixture(WireRailEndpoint endpoint = WireRailEndpoint.End)
+		{
+			_fixtures ??= new List<WireRailFixture>();
+			TryGetDefaultEndpointRailPair(endpoint, out var firstRailIndex,
+				out var secondRailIndex);
+			var drop = new WireRailDropFixture();
+			drop.SetProperties(SplineLength, _railCount, _wireDiameter, endpoint,
+				firstRailIndex, secondRailIndex,
+				WireRailDropFixture.DefaultOffset,
+				WireRailDropFixture.DefaultDropLength, 0f, Array.Empty<float>());
+			_fixtures.Add(drop);
+			InvalidateColliderGeometry();
+			RebuildRenderGeometry();
+			MarkDirty();
+			return _fixtures.Count - 1;
+		}
+
 		public int AddRailTrimFixture(WireRailEndpoint endpoint = WireRailEndpoint.End)
 		{
 			_fixtures ??= new List<WireRailFixture>();
@@ -1938,7 +2139,7 @@ namespace VisualPinball.Unity
 		public void RemoveFixture(int fixtureIndex)
 		{
 			var affectsCollider = GetFixture(fixtureIndex) is WireRailDropLoopFixture
-				or WireRailTrimFixture;
+				or WireRailDropFixture or WireRailTrimFixture;
 			_fixtures.RemoveAt(fixtureIndex);
 			if (affectsCollider) {
 				InvalidateColliderGeometry();
@@ -1959,6 +2160,7 @@ namespace VisualPinball.Unity
 				source.HasStraightSection, source.StraightStartAngle,
 				source.StraightEndAngle, source.LateralOffset, source.VerticalOffset,
 				source.Scale, source.RingDensity);
+			duplicate.SetSolderThreshold(source.SolderThreshold);
 			var duplicateIndex = fixtureIndex + 1;
 			_fixtures.Insert(duplicateIndex, duplicate);
 			RebuildRenderGeometry();
@@ -1977,6 +2179,7 @@ namespace VisualPinball.Unity
 				source.StartRailIndex, source.EndRailIndex,
 				source.Angle, source.LateralOffset,
 				source.VerticalOffset, source.LengthAdjustment);
+			duplicate.SetSolderThreshold(source.SolderThreshold);
 			var duplicateIndex = fixtureIndex + 1;
 			_fixtures.Insert(duplicateIndex, duplicate);
 			RebuildRenderGeometry();
@@ -1996,6 +2199,7 @@ namespace VisualPinball.Unity
 				source.RingDensity, source.LateralOffset, source.VerticalOffset,
 				source.BottomLength, source.LeftLength, source.RightLength,
 				source.Angle, source.Rotation, source.CornerRadius);
+			duplicate.SetSolderThreshold(source.SolderThreshold);
 			var duplicateIndex = fixtureIndex + 1;
 			_fixtures.Insert(duplicateIndex, duplicate);
 			RebuildRenderGeometry();
@@ -2015,6 +2219,7 @@ namespace VisualPinball.Unity
 				source.FootPosition, source.FootRotation, source.FootWidth,
 				source.FootLength, source.FootConnectionLength, source.LateralOffset,
 				source.VerticalOffset, source.LengthAdjustment, source.FootClockwise);
+			duplicate.SetSolderThreshold(source.SolderThreshold);
 			var duplicateIndex = fixtureIndex + 1;
 			_fixtures.Insert(duplicateIndex, duplicate);
 			RebuildRenderGeometry();
@@ -2033,6 +2238,26 @@ namespace VisualPinball.Unity
 				source.FirstRailIndex, source.SecondRailIndex, source.LoopDiameter,
 				source.LeadLength, source.TangentLength, source.RingDensity,
 				source.LateralOffset, source.VerticalOffset, source.Rotation);
+			duplicate.SetSolderThreshold(source.SolderThreshold);
+			var duplicateIndex = fixtureIndex + 1;
+			_fixtures.Insert(duplicateIndex, duplicate);
+			InvalidateColliderGeometry();
+			RebuildRenderGeometry();
+			MarkDirty();
+			return duplicateIndex;
+		}
+
+		public int DuplicateDropFixture(int fixtureIndex)
+		{
+			if (GetFixture(fixtureIndex) is not WireRailDropFixture source) {
+				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a drop.",
+					nameof(fixtureIndex));
+			}
+			var duplicate = new WireRailDropFixture();
+			duplicate.SetProperties(SplineLength, _railCount, _wireDiameter, source.Endpoint,
+				source.FirstRailIndex, source.SecondRailIndex, source.Offset,
+				source.DropLength, source.ZAngle, source.RailOffsets);
+			duplicate.SetSolderThreshold(source.SolderThreshold);
 			var duplicateIndex = fixtureIndex + 1;
 			_fixtures.Insert(duplicateIndex, duplicate);
 			InvalidateColliderGeometry();
@@ -2174,12 +2399,113 @@ namespace VisualPinball.Unity
 			MarkDirty();
 		}
 
+		public void SetDropFixtureProperties(int fixtureIndex,
+			WireRailEndpoint endpoint, int firstRailIndex, int secondRailIndex,
+			float offset, float dropLength, float zAngle,
+			IReadOnlyList<float> railOffsets)
+		{
+			if (GetFixture(fixtureIndex) is not WireRailDropFixture drop) {
+				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a drop.",
+					nameof(fixtureIndex));
+			}
+			if (drop.Endpoint != endpoint
+				&& !AreEndpointRailsActive(endpoint, firstRailIndex, secondRailIndex)) {
+				TryGetDefaultEndpointRailPair(endpoint, out firstRailIndex,
+					out secondRailIndex);
+			}
+			drop.SetProperties(SplineLength, _railCount, _wireDiameter, endpoint,
+				firstRailIndex, secondRailIndex, offset, dropLength, zAngle,
+				railOffsets);
+			InvalidateColliderGeometry();
+			RebuildRenderGeometry();
+			MarkDirty();
+		}
+
+		public bool AreEndpointRailsActive(WireRailEndpoint endpoint,
+			int firstRailIndex, int secondRailIndex, float attachmentOffset = 0f)
+		{
+			if (_segments == null || _segments.Count == 0
+				|| firstRailIndex == secondRailIndex) {
+				return false;
+			}
+			// A Drop's rails attach at its offset inward from the endpoint, which may fall in a
+			// different layout, so validate there rather than at the spline endpoint.
+			int segmentIndex;
+			if (attachmentOffset > 1e-5f) {
+				var splineLength = SplineLength;
+				var attachmentDistance = math.clamp(endpoint == WireRailEndpoint.Start
+					? attachmentOffset : splineLength - attachmentOffset, 0f, splineLength);
+				segmentIndex = WireRailSplineGeometry.GetLayoutIndexAtDistance(_segments,
+					attachmentDistance, splineLength);
+			} else {
+				segmentIndex = GetEndpointSegmentIndex(endpoint);
+			}
+			if (segmentIndex < 0) {
+				return false;
+			}
+			var segment = _segments[segmentIndex];
+			return firstRailIndex >= 0 && secondRailIndex >= 0
+				&& firstRailIndex < segment.RailCount
+				&& secondRailIndex < segment.RailCount
+				&& segment.IsRailActive(firstRailIndex)
+				&& segment.IsRailActive(secondRailIndex);
+		}
+
+		private bool TryGetDefaultEndpointRailPair(WireRailEndpoint endpoint,
+			out int firstRailIndex, out int secondRailIndex)
+		{
+			SynchronizeSegments();
+			return TryGetDefaultEndpointRailPairFromSegments(endpoint,
+				out firstRailIndex, out secondRailIndex);
+		}
+
+		private bool TryGetDefaultEndpointRailPairFromSegments(WireRailEndpoint endpoint,
+			out int firstRailIndex, out int secondRailIndex)
+		{
+			firstRailIndex = 0;
+			secondRailIndex = math.min(1, math.max(0, _railCount - 1));
+			if (_segments == null || _segments.Count == 0) {
+				return false;
+			}
+			var segmentIndex = GetEndpointSegmentIndex(endpoint);
+			if (segmentIndex < 0) {
+				return false;
+			}
+			var segment = _segments[segmentIndex];
+			firstRailIndex = -1;
+			for (var railIndex = 0; railIndex < segment.RailCount; railIndex++) {
+				if (!segment.IsRailActive(railIndex)) {
+					continue;
+				}
+				if (firstRailIndex < 0) {
+					firstRailIndex = railIndex;
+					continue;
+				}
+				secondRailIndex = railIndex;
+				return true;
+			}
+			firstRailIndex = 0;
+			secondRailIndex = math.min(1, math.max(0, _railCount - 1));
+			return false;
+		}
+
+		private int GetEndpointSegmentIndex(WireRailEndpoint endpoint)
+		{
+			if (_segments == null || _segments.Count == 0) {
+				return -1;
+			}
+			var splineLength = SplineLength;
+			return WireRailSplineGeometry.GetLayoutIndexAtDistance(_segments,
+				endpoint == WireRailEndpoint.Start ? 0f : splineLength, splineLength);
+		}
+
 		public bool HasRailTrimConflict(WireRailEndpoint endpoint,
-			int firstRailIndex, int secondRailIndex)
+			int firstRailIndex, int secondRailIndex,
+			WireRailFixture requestingFixture = null)
 		{
 			SynchronizeFixtures();
 			return WireRailEndpointTrimUtility.HasRailTrimConflict(_fixtures, endpoint,
-				firstRailIndex, secondRailIndex);
+				firstRailIndex, secondRailIndex, requestingFixture);
 		}
 
 		public void SetRailTrimFixtureProperties(int fixtureIndex,
@@ -2191,6 +2517,21 @@ namespace VisualPinball.Unity
 			}
 			railTrim.SetProperties(SplineLength, _railCount, endpoint, railOffsets);
 			InvalidateColliderGeometry();
+			RebuildRenderGeometry();
+			MarkDirty();
+		}
+
+		public void SetFixtureSolderThreshold(int fixtureIndex, float solderThreshold)
+		{
+			if (solderThreshold < 0f) {
+				throw new ArgumentOutOfRangeException(nameof(solderThreshold), solderThreshold,
+					"Solder threshold cannot be negative.");
+			}
+			var fixture = GetFixture(fixtureIndex);
+			if (Mathf.Approximately(fixture.SolderThreshold, solderThreshold)) {
+				return;
+			}
+			fixture.SetSolderThreshold(solderThreshold);
 			RebuildRenderGeometry();
 			MarkDirty();
 		}
@@ -2211,6 +2552,7 @@ namespace VisualPinball.Unity
 					source.HasStraightSection, source.StraightStartAngle,
 					source.StraightEndAngle, source.LateralOffset, source.VerticalOffset,
 					source.Scale, source.RingDensity);
+				target.SetSolderThreshold(source.SolderThreshold);
 			}
 			RebuildRenderGeometry();
 			MarkDirty();
@@ -2285,6 +2627,23 @@ namespace VisualPinball.Unity
 				} else if (fixture is WireRailDropLoopFixture dropLoop) {
 					changed |= dropLoop.EnsureDropLoopInitialized(SplineLength);
 					changed |= dropLoop.SetDiameter(_wireDiameter);
+				} else if (fixture is WireRailDropFixture drop) {
+					changed |= drop.EnsureDropInitialized(SplineLength, _railCount);
+					changed |= drop.SetDiameter(_wireDiameter);
+					if (!drop.RailPairInitialized) {
+						var firstRailIndex = drop.FirstRailIndex;
+						var secondRailIndex = drop.SecondRailIndex;
+						var pairResolved = AreEndpointRailsActive(drop.Endpoint,
+							firstRailIndex, secondRailIndex);
+						if (!pairResolved) {
+							pairResolved = TryGetDefaultEndpointRailPairFromSegments(
+								drop.Endpoint, out firstRailIndex, out secondRailIndex);
+						}
+						if (pairResolved) {
+							changed |= drop.EnsureRailPairInitialized(firstRailIndex,
+								secondRailIndex);
+						}
+					}
 				} else if (fixture is WireRailTrimFixture railTrim) {
 					changed |= railTrim.EnsureRailTrimInitialized(SplineLength, _railCount);
 				} else {
