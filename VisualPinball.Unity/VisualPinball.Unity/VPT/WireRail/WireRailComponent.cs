@@ -46,6 +46,12 @@ namespace VisualPinball.Unity
 		Right,
 	}
 
+	public enum WireRailEndpoint
+	{
+		Start,
+		End,
+	}
+
 	/// <summary>
 	/// Creates useful starting positions for wire-rail centerlines. All values are in VPX units
 	/// and describe the X/Z cross-section around a route whose initial direction is +Y.
@@ -949,6 +955,195 @@ namespace VisualPinball.Unity
 		}
 	}
 
+	/// <summary>
+	/// An endpoint-only fitting that joins two rails with outward leads and a terminal
+	/// semicircle. The terminal arc is emitted into a separate collider submesh.
+	/// </summary>
+	[Serializable]
+	public sealed class WireRailDropLoopFixture : WireRailFixture
+	{
+		public const float DefaultLoopDiameter = 60f;
+		public const float DefaultLeadLength = 40f;
+		public const float DefaultTangentLength = 15f;
+		public const int DefaultRingDensity = 24;
+
+		[SerializeField, Min(0.1f)] private float _diameter = WireRailLayout.ReferenceWireDiameter;
+		[SerializeField] private WireRailEndpoint _endpoint = WireRailEndpoint.End;
+		[SerializeField, Min(0)] private int _firstRailIndex;
+		[SerializeField, Min(0)] private int _secondRailIndex = 1;
+		[SerializeField, Min(0.1f)] private float _loopDiameter = DefaultLoopDiameter;
+		[SerializeField, Min(0f)] private float _leadLength = DefaultLeadLength;
+		[SerializeField, Min(0f)] private float _tangentLength = DefaultTangentLength;
+		[SerializeField, Range(4, 128)] private int _ringDensity = DefaultRingDensity;
+		[SerializeField] private float _lateralOffset;
+		[SerializeField] private float _verticalOffset;
+		[SerializeField, Range(0f, 360f)] private float _rotation;
+
+		public float Diameter => _diameter;
+		public WireRailEndpoint Endpoint => _endpoint;
+		public int FirstRailIndex => _firstRailIndex;
+		public int SecondRailIndex => _secondRailIndex;
+		public float LoopDiameter => _loopDiameter;
+		public float LeadLength => _leadLength;
+		public float TangentLength => _tangentLength;
+		public int RingDensity => _ringDensity;
+		public float LateralOffset => _lateralOffset;
+		public float VerticalOffset => _verticalOffset;
+		public float Rotation => _rotation;
+
+		internal bool EnsureDropLoopInitialized(float splineLength)
+		{
+			var changed = EnsureInitialized(splineLength);
+			var endpoint = _endpoint == WireRailEndpoint.Start
+				? WireRailEndpoint.Start : WireRailEndpoint.End;
+			if (_endpoint != endpoint) {
+				_endpoint = endpoint;
+				changed = true;
+			}
+			var endpointDistance = _endpoint == WireRailEndpoint.Start ? 0f : splineLength;
+			if (!Mathf.Approximately(Distance, endpointDistance)) {
+				SetDistance(endpointDistance, splineLength);
+				changed = true;
+			}
+			changed |= SetValue(ref _diameter, math.max(0.1f, _diameter));
+			var firstRailIndex = math.max(0, _firstRailIndex);
+			var secondRailIndex = math.max(0, _secondRailIndex);
+			if (_firstRailIndex != firstRailIndex) {
+				_firstRailIndex = firstRailIndex;
+				changed = true;
+			}
+			if (_secondRailIndex != secondRailIndex) {
+				_secondRailIndex = secondRailIndex;
+				changed = true;
+			}
+			changed |= SetValue(ref _loopDiameter, math.max(0.1f, _loopDiameter));
+			changed |= SetValue(ref _leadLength, math.max(0f, _leadLength));
+			changed |= SetValue(ref _tangentLength, math.max(0f, _tangentLength));
+			var ringDensity = math.clamp(_ringDensity <= 0 ? DefaultRingDensity : _ringDensity,
+				4, 128);
+			if (_ringDensity != ringDensity) {
+				_ringDensity = ringDensity;
+				changed = true;
+			}
+			changed |= SetValue(ref _rotation, math.clamp(_rotation, 0f, 360f));
+			return changed;
+
+			static bool SetValue(ref float destination, float value)
+			{
+				if (Mathf.Approximately(destination, value)) {
+					return false;
+				}
+				destination = value;
+				return true;
+			}
+		}
+
+		internal bool SetDiameter(float diameter)
+		{
+			diameter = math.max(0.1f, diameter);
+			if (Mathf.Approximately(_diameter, diameter)) {
+				return false;
+			}
+			_diameter = diameter;
+			return true;
+		}
+
+		internal void SetProperties(float splineLength, float diameter,
+			WireRailEndpoint endpoint, int firstRailIndex, int secondRailIndex,
+			float loopDiameter, float leadLength, float tangentLength, int ringDensity,
+			float lateralOffset, float verticalOffset, float rotation)
+		{
+			_endpoint = endpoint == WireRailEndpoint.Start
+				? WireRailEndpoint.Start : WireRailEndpoint.End;
+			SetDistance(endpoint == WireRailEndpoint.Start ? 0f : splineLength, splineLength);
+			_diameter = math.max(0.1f, diameter);
+			_firstRailIndex = math.max(0, firstRailIndex);
+			_secondRailIndex = math.max(0, secondRailIndex);
+			_loopDiameter = math.max(0.1f, loopDiameter);
+			_leadLength = math.max(0f, leadLength);
+			_tangentLength = math.max(0f, tangentLength);
+			_ringDensity = math.clamp(ringDensity, 4, 128);
+			_lateralOffset = lateralOffset;
+			_verticalOffset = verticalOffset;
+			_rotation = math.clamp(rotation, 0f, 360f);
+		}
+	}
+
+	/// <summary>
+	/// An endpoint-only fitting that moves each rail's visible and collidable start or end
+	/// independently inward along the complete route.
+	/// </summary>
+	[Serializable]
+	public sealed class WireRailTrimFixture : WireRailFixture
+	{
+		[SerializeField] private WireRailEndpoint _endpoint = WireRailEndpoint.End;
+		[SerializeField] private List<float> _railOffsets = new();
+
+		public WireRailEndpoint Endpoint => _endpoint;
+		public int RailCount => _railOffsets?.Count ?? 0;
+		public IReadOnlyList<float> RailOffsets => _railOffsets;
+
+		public float GetRailOffset(int railIndex)
+		{
+			if (_railOffsets == null || railIndex < 0 || railIndex >= _railOffsets.Count) {
+				throw new ArgumentOutOfRangeException(nameof(railIndex));
+			}
+			return _railOffsets[railIndex];
+		}
+
+		internal bool EnsureRailTrimInitialized(float splineLength, int railCount)
+		{
+			var changed = EnsureInitialized(splineLength);
+			var endpoint = _endpoint == WireRailEndpoint.Start
+				? WireRailEndpoint.Start : WireRailEndpoint.End;
+			if (_endpoint != endpoint) {
+				_endpoint = endpoint;
+				changed = true;
+			}
+			var endpointDistance = _endpoint == WireRailEndpoint.Start ? 0f : splineLength;
+			if (!Mathf.Approximately(Distance, endpointDistance)) {
+				SetDistance(endpointDistance, splineLength);
+				changed = true;
+			}
+			_railOffsets ??= new List<float>();
+			while (_railOffsets.Count < railCount) {
+				_railOffsets.Add(0f);
+				changed = true;
+			}
+			if (_railOffsets.Count > railCount) {
+				_railOffsets.RemoveRange(railCount, _railOffsets.Count - railCount);
+				changed = true;
+			}
+			for (var railIndex = 0; railIndex < _railOffsets.Count; railIndex++) {
+				var offset = math.clamp(_railOffsets[railIndex], 0f,
+					math.max(0f, splineLength));
+				if (Mathf.Approximately(_railOffsets[railIndex], offset)) {
+					continue;
+				}
+				_railOffsets[railIndex] = offset;
+				changed = true;
+			}
+			return changed;
+		}
+
+		internal void SetProperties(float splineLength, int railCount,
+			WireRailEndpoint endpoint, IReadOnlyList<float> railOffsets)
+		{
+			if (railOffsets == null) {
+				throw new ArgumentNullException(nameof(railOffsets));
+			}
+			_endpoint = endpoint == WireRailEndpoint.Start
+				? WireRailEndpoint.Start : WireRailEndpoint.End;
+			SetDistance(_endpoint == WireRailEndpoint.Start ? 0f : splineLength, splineLength);
+			_railOffsets ??= new List<float>();
+			_railOffsets.Clear();
+			for (var railIndex = 0; railIndex < railCount; railIndex++) {
+				var offset = railIndex < railOffsets.Count ? railOffsets[railIndex] : 0f;
+				_railOffsets.Add(math.clamp(offset, 0f, math.max(0f, splineLength)));
+			}
+		}
+	}
+
 	[Serializable]
 	public sealed class WireRailLegFixture : WireRailFixture
 	{
@@ -970,6 +1165,7 @@ namespace VisualPinball.Unity
 		[SerializeField, Min(0f)] private float _startLength = DefaultStartLength;
 		[SerializeField] private Vector3 _footPosition = new(15f, -22.5f, -80f);
 		[SerializeField] private Vector3 _footRotation;
+		[SerializeField] private bool _footClockwise;
 		[SerializeField, Min(0.1f)] private float _footWidth = DefaultFootWidth;
 		[SerializeField, Min(0f)] private float _footLength = DefaultFootLength;
 		[SerializeField, Min(0f)] private float _footConnectionLength = DefaultFootConnectionLength;
@@ -983,6 +1179,7 @@ namespace VisualPinball.Unity
 		public float StartLength => _startLength;
 		public Vector3 FootPosition => _footPosition;
 		public Vector3 FootRotation => _footRotation;
+		public bool FootClockwise => _footClockwise;
 		public float FootWidth => _footWidth;
 		public float FootLength => _footLength;
 		public float FootConnectionLength => _footConnectionLength;
@@ -1038,7 +1235,8 @@ namespace VisualPinball.Unity
 			WireRailLegSide legSide, Vector3 startDirection, float startLength,
 			Vector3 footPosition, Vector3 footRotation, float footWidth, float footLength,
 			float footConnectionLength, float lateralOffset = 0f,
-			float verticalOffset = 0f, float lengthAdjustment = 0f)
+			float verticalOffset = 0f, float lengthAdjustment = 0f,
+			bool footClockwise = false)
 		{
 			SetDistance(distance, splineLength);
 			_diameter = math.max(0.1f, diameter);
@@ -1051,6 +1249,7 @@ namespace VisualPinball.Unity
 			_startLength = math.max(0f, startLength);
 			_footPosition = footPosition;
 			_footRotation = footRotation;
+			_footClockwise = footClockwise;
 			_footWidth = math.max(0.1f, footWidth);
 			_footLength = math.max(0f, footLength);
 			_footConnectionLength = math.max(0f, footConnectionLength);
@@ -1163,6 +1362,7 @@ namespace VisualPinball.Unity
 		[SerializeField, Range(2, 32)] private int _colliderSamplesPerSegment = 8;
 		[SerializeField] private bool _showColliderPreview;
 		[SerializeReference] private PhysicsMaterialAsset _physicsMaterial;
+		[SerializeField] private PhysicsMaterialAsset _terminalPhysicsMaterial;
 		[SerializeField] private bool _overwritePhysics = true;
 		[SerializeField, Min(0f)] private float _elasticity = 0.3f;
 		[SerializeField, Min(0f)] private float _elasticityFalloff = 0.5f;
@@ -1623,6 +1823,35 @@ namespace VisualPinball.Unity
 			return _fixtures.Count - 1;
 		}
 
+		public int AddDropLoopFixture(WireRailEndpoint endpoint = WireRailEndpoint.End)
+		{
+			_fixtures ??= new List<WireRailFixture>();
+			var dropLoop = new WireRailDropLoopFixture();
+			dropLoop.SetProperties(SplineLength, _wireDiameter, endpoint, 0, 1,
+				WireRailDropLoopFixture.DefaultLoopDiameter,
+				WireRailDropLoopFixture.DefaultLeadLength,
+				WireRailDropLoopFixture.DefaultTangentLength,
+				WireRailDropLoopFixture.DefaultRingDensity, 0f, 0f, 0f);
+			_fixtures.Add(dropLoop);
+			InvalidateColliderGeometry();
+			RebuildRenderGeometry();
+			MarkDirty();
+			return _fixtures.Count - 1;
+		}
+
+		public int AddRailTrimFixture(WireRailEndpoint endpoint = WireRailEndpoint.End)
+		{
+			_fixtures ??= new List<WireRailFixture>();
+			var railTrim = new WireRailTrimFixture();
+			railTrim.SetProperties(SplineLength, _railCount, endpoint,
+				Array.Empty<float>());
+			_fixtures.Add(railTrim);
+			InvalidateColliderGeometry();
+			RebuildRenderGeometry();
+			MarkDirty();
+			return _fixtures.Count - 1;
+		}
+
 		public bool TryGetBraceCrossSection(int fixtureIndex,
 			out WireRailBraceCrossSection crossSection)
 		{
@@ -1708,8 +1937,12 @@ namespace VisualPinball.Unity
 
 		public void RemoveFixture(int fixtureIndex)
 		{
-			GetFixture(fixtureIndex);
+			var affectsCollider = GetFixture(fixtureIndex) is WireRailDropLoopFixture
+				or WireRailTrimFixture;
 			_fixtures.RemoveAt(fixtureIndex);
+			if (affectsCollider) {
+				InvalidateColliderGeometry();
+			}
 			RebuildRenderGeometry();
 			MarkDirty();
 		}
@@ -1773,7 +2006,7 @@ namespace VisualPinball.Unity
 		public int DuplicateLegFixture(int fixtureIndex)
 		{
 			if (GetFixture(fixtureIndex) is not WireRailLegFixture source) {
-				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a leg and foot.",
+				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a stand.",
 					nameof(fixtureIndex));
 			}
 			var duplicate = new WireRailLegFixture();
@@ -1781,9 +2014,45 @@ namespace VisualPinball.Unity
 				source.LegSide, source.StartDirection, source.StartLength,
 				source.FootPosition, source.FootRotation, source.FootWidth,
 				source.FootLength, source.FootConnectionLength, source.LateralOffset,
-				source.VerticalOffset, source.LengthAdjustment);
+				source.VerticalOffset, source.LengthAdjustment, source.FootClockwise);
 			var duplicateIndex = fixtureIndex + 1;
 			_fixtures.Insert(duplicateIndex, duplicate);
+			RebuildRenderGeometry();
+			MarkDirty();
+			return duplicateIndex;
+		}
+
+		public int DuplicateDropLoopFixture(int fixtureIndex)
+		{
+			if (GetFixture(fixtureIndex) is not WireRailDropLoopFixture source) {
+				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a drop loop.",
+					nameof(fixtureIndex));
+			}
+			var duplicate = new WireRailDropLoopFixture();
+			duplicate.SetProperties(SplineLength, _wireDiameter, source.Endpoint,
+				source.FirstRailIndex, source.SecondRailIndex, source.LoopDiameter,
+				source.LeadLength, source.TangentLength, source.RingDensity,
+				source.LateralOffset, source.VerticalOffset, source.Rotation);
+			var duplicateIndex = fixtureIndex + 1;
+			_fixtures.Insert(duplicateIndex, duplicate);
+			InvalidateColliderGeometry();
+			RebuildRenderGeometry();
+			MarkDirty();
+			return duplicateIndex;
+		}
+
+		public int DuplicateRailTrimFixture(int fixtureIndex)
+		{
+			if (GetFixture(fixtureIndex) is not WireRailTrimFixture source) {
+				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a rail trim.",
+					nameof(fixtureIndex));
+			}
+			var duplicate = new WireRailTrimFixture();
+			duplicate.SetProperties(SplineLength, _railCount, source.Endpoint,
+				source.RailOffsets);
+			var duplicateIndex = fixtureIndex + 1;
+			_fixtures.Insert(duplicateIndex, duplicate);
+			InvalidateColliderGeometry();
 			RebuildRenderGeometry();
 			MarkDirty();
 			return duplicateIndex;
@@ -1849,16 +2118,79 @@ namespace VisualPinball.Unity
 			WireRailLegSide legSide, Vector3 startDirection, float startLength,
 			Vector3 footPosition, Vector3 footRotation, float footWidth, float footLength,
 			float footConnectionLength, float lateralOffset = 0f,
-			float verticalOffset = 0f, float lengthAdjustment = 0f)
+			float verticalOffset = 0f, float lengthAdjustment = 0f,
+			bool? footClockwise = null)
 		{
 			if (GetFixture(fixtureIndex) is not WireRailLegFixture leg) {
-				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a leg and foot.",
+				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a stand.",
 					nameof(fixtureIndex));
 			}
 			leg.SetProperties(distance, SplineLength, _wireDiameter, legSide,
 				startDirection, startLength, footPosition, footRotation,
 				footWidth, footLength, footConnectionLength, lateralOffset,
-				verticalOffset, lengthAdjustment);
+				verticalOffset, lengthAdjustment, footClockwise ?? leg.FootClockwise);
+			RebuildRenderGeometry();
+			MarkDirty();
+		}
+
+		public void MirrorLegFixture(int fixtureIndex)
+		{
+			if (GetFixture(fixtureIndex) is not WireRailLegFixture leg) {
+				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a stand.",
+					nameof(fixtureIndex));
+			}
+			var mirroredRotation = leg.FootRotation;
+			mirroredRotation.y = -mirroredRotation.y;
+			mirroredRotation.z = -mirroredRotation.z;
+			var startDirection = leg.StartDirection;
+			startDirection.x = -startDirection.x;
+			var footPosition = leg.FootPosition;
+			footPosition.x = -footPosition.x;
+			leg.SetProperties(leg.Distance, SplineLength, _wireDiameter,
+				leg.LegSide == WireRailLegSide.Left
+					? WireRailLegSide.Right : WireRailLegSide.Left,
+				startDirection, leg.StartLength, footPosition,
+				mirroredRotation, leg.FootWidth, leg.FootLength,
+				leg.FootConnectionLength, -leg.LateralOffset, leg.VerticalOffset,
+				leg.LengthAdjustment, !leg.FootClockwise);
+			RebuildRenderGeometry();
+			MarkDirty();
+		}
+
+		public void SetDropLoopFixtureProperties(int fixtureIndex,
+			WireRailEndpoint endpoint, int firstRailIndex, int secondRailIndex,
+			float loopDiameter, float leadLength, float tangentLength, int ringDensity,
+			float lateralOffset, float verticalOffset, float rotation)
+		{
+			if (GetFixture(fixtureIndex) is not WireRailDropLoopFixture dropLoop) {
+				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a drop loop.",
+					nameof(fixtureIndex));
+			}
+			dropLoop.SetProperties(SplineLength, _wireDiameter, endpoint,
+				firstRailIndex, secondRailIndex, loopDiameter, leadLength, tangentLength,
+				ringDensity, lateralOffset, verticalOffset, rotation);
+			InvalidateColliderGeometry();
+			RebuildRenderGeometry();
+			MarkDirty();
+		}
+
+		public bool HasRailTrimConflict(WireRailEndpoint endpoint,
+			int firstRailIndex, int secondRailIndex)
+		{
+			SynchronizeFixtures();
+			return WireRailEndpointTrimUtility.HasRailTrimConflict(_fixtures, endpoint,
+				firstRailIndex, secondRailIndex);
+		}
+
+		public void SetRailTrimFixtureProperties(int fixtureIndex,
+			WireRailEndpoint endpoint, IReadOnlyList<float> railOffsets)
+		{
+			if (GetFixture(fixtureIndex) is not WireRailTrimFixture railTrim) {
+				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a rail trim.",
+					nameof(fixtureIndex));
+			}
+			railTrim.SetProperties(SplineLength, _railCount, endpoint, railOffsets);
+			InvalidateColliderGeometry();
 			RebuildRenderGeometry();
 			MarkDirty();
 		}
@@ -1950,6 +2282,11 @@ namespace VisualPinball.Unity
 				} else if (fixture is WireRailLegFixture leg) {
 					changed |= leg.EnsureLegInitialized(SplineLength);
 					changed |= leg.SetDiameter(_wireDiameter);
+				} else if (fixture is WireRailDropLoopFixture dropLoop) {
+					changed |= dropLoop.EnsureDropLoopInitialized(SplineLength);
+					changed |= dropLoop.SetDiameter(_wireDiameter);
+				} else if (fixture is WireRailTrimFixture railTrim) {
+					changed |= railTrim.EnsureRailTrimInitialized(SplineLength, _railCount);
 				} else {
 					changed |= fixture.EnsureInitialized(SplineLength);
 				}
@@ -2380,7 +2717,7 @@ namespace VisualPinball.Unity
 			}
 			using (ColliderMeshMarker.Auto()) {
 				if (!WireRailColliderMeshGenerator.TryGenerate(container.Spline, _segments,
-						_referenceBallDiameter, _colliderSamplesPerSegment,
+						_fixtures, _referenceBallDiameter, _colliderSamplesPerSegment,
 						_colliderMesh, out _colliderMesh, out _colliderEdgeVertices,
 						out _colliderTopologyRetryCount,
 						out _generationError)) {
@@ -2484,32 +2821,58 @@ namespace VisualPinball.Unity
 
 		public float PhysicsElasticity {
 			get => _elasticity;
-			set => _elasticity = value;
+			set {
+				_elasticity = value;
+				_collidersDirty = true;
+			}
 		}
 
 		public float PhysicsElasticityFalloff {
 			get => _elasticityFalloff;
-			set => _elasticityFalloff = value;
+			set {
+				_elasticityFalloff = value;
+				_collidersDirty = true;
+			}
 		}
 
 		public float PhysicsFriction {
 			get => _friction;
-			set => _friction = value;
+			set {
+				_friction = value;
+				_collidersDirty = true;
+			}
 		}
 
 		public float PhysicsScatter {
 			get => _scatter;
-			set => _scatter = value;
+			set {
+				_scatter = value;
+				_collidersDirty = true;
+			}
 		}
 
 		public bool PhysicsOverwrite {
 			get => _overwritePhysics;
-			set => _overwritePhysics = value;
+			set {
+				_overwritePhysics = value;
+				_collidersDirty = true;
+			}
 		}
 
 		public PhysicsMaterialAsset PhysicsMaterialReference {
 			get => _physicsMaterial;
-			set => _physicsMaterial = value;
+			set {
+				_physicsMaterial = value;
+				_collidersDirty = true;
+			}
+		}
+
+		public PhysicsMaterialAsset TerminalPhysicsMaterialReference {
+			get => _terminalPhysicsMaterial;
+			set {
+				_terminalPhysicsMaterial = value;
+				_collidersDirty = true;
+			}
 		}
 
 		public float4x4 GetLocalToPlayfieldMatrixInVpx(float4x4 worldToPlayfield)
@@ -2550,10 +2913,25 @@ namespace VisualPinball.Unity
 			};
 			using var vertices = new NativeArray<Vector3>(_colliderMesh.vertices,
 				Allocator.TempJob);
-			using var indices = new NativeArray<int>(_colliderMesh.triangles,
+			using var channelIndices = new NativeArray<int>(_colliderMesh.GetIndices(0),
 				Allocator.TempJob);
-			ColliderUtils.GenerateCollidersFromMesh(in vertices, in indices,
+			ColliderUtils.GenerateCollidersFromMesh(in vertices, in channelIndices,
 				translateWithinPlayfieldMatrix, info, ref colliders, true);
+			if (_colliderMesh.subMeshCount > 1 && _colliderMesh.GetIndexCount(1) > 0) {
+				var terminalInfo = info;
+				if (_terminalPhysicsMaterial) {
+					terminalInfo.Material = new PhysicsMaterialData {
+						Elasticity = _terminalPhysicsMaterial.Elasticity,
+						ElasticityFalloff = _terminalPhysicsMaterial.ElasticityFalloff,
+						Friction = _terminalPhysicsMaterial.Friction,
+						ScatterAngleRad = _terminalPhysicsMaterial.ScatterAngle,
+					};
+				}
+				using var terminalIndices = new NativeArray<int>(_colliderMesh.GetIndices(1),
+					Allocator.TempJob);
+				ColliderUtils.GenerateCollidersFromMesh(in vertices, in terminalIndices,
+					translateWithinPlayfieldMatrix, terminalInfo, ref colliders, true);
+			}
 
 			var points = new HashSet<Vector3>();
 			for (var i = 0; i + 1 < _colliderEdgeVertices.Length; i += 2) {

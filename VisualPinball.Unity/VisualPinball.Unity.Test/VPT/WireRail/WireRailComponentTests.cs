@@ -1237,6 +1237,53 @@ namespace VisualPinball.Unity.Test
 			}
 		}
 
+		[TestCase(27.9f, 61f, -269.2f)]
+		[TestCase(19f, 56.9f, -269.2f)]
+		[TestCase(27.9f, 56.9f, -82f)]
+		public void ShouldKeepAStandVisibleAcrossPracticalFootAdjustments(float armLength,
+			float connectedArmLength, float zRotation)
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var railVertexCount = component.RenderMesh.vertexCount;
+				var fixtureIndex = component.AddLegFixture(250f);
+				var stand = (WireRailLegFixture)component.Fixtures[fixtureIndex];
+				component.SetLegFixtureProperties(fixtureIndex, stand.Distance,
+					WireRailLegSide.Right, new Vector3(1f, 0f, 0f), 17.36f,
+					new Vector3(69.8f, 10.5f, -4.81f),
+					new Vector3(0f, 0f, zRotation), 18.66f,
+					armLength, connectedArmLength, -5.44f, -6.03f, 0f);
+
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateLegProfile(
+					component.SplineContainer.Spline, component.Segments, stand,
+					out var profile), Is.True);
+				Assert.That(profile.CombinedPath.Count, Is.GreaterThan(1));
+				Assert.That(component.RenderMesh.vertexCount, Is.GreaterThan(railVertexCount));
+
+				var vertices = new List<Vector3>();
+				var normals = new List<Vector3>();
+				var uvs = new List<Vector2>();
+				var indices = new List<int>();
+				WireRailFixtureMeshGenerator.AppendPolylineTube(profile.CombinedPath,
+					profile.AttachmentProfile.Frame, stand.Diameter, 0f, 8,
+					vertices, normals, uvs, indices, true);
+				Assert.That(vertices, Is.Not.Empty);
+				Assert.That(indices, Is.Not.Empty);
+				var expectedRadius = stand.Diameter * 0.5f;
+				for (var pointIndex = 0; pointIndex < profile.CombinedPath.Count;
+					pointIndex++) {
+					for (var radialIndex = 0; radialIndex < 8; radialIndex++) {
+						Assert.That(math.distance((float3)vertices[pointIndex * 8 + radialIndex],
+							profile.CombinedPath[pointIndex]),
+							Is.EqualTo(expectedRadius).Within(0.001f));
+					}
+				}
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
 		[Test]
 		public void ShouldHideALegAndFootWhenEitherBottomRailIsInactive()
 		{
@@ -1255,6 +1302,613 @@ namespace VisualPinball.Unity.Test
 				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateLegProfile(
 					component.SplineContainer.Spline, component.Segments, leg, out _),
 					Is.False);
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldAttachADropLoopToTwoRailsAtTheSelectedEndpoint()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SetRailCount(2);
+				var fixtureIndex = component.AddDropLoopFixture();
+				var dropLoop = (WireRailDropLoopFixture)component.Fixtures[fixtureIndex];
+
+				Assert.That(dropLoop.Endpoint, Is.EqualTo(WireRailEndpoint.End));
+				Assert.That(dropLoop.Distance, Is.EqualTo(component.SplineLength));
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateDropLoopProfile(
+					component.SplineContainer.Spline, component.Segments, dropLoop,
+					out var endProfile), Is.True);
+				Assert.That(math.distance(endProfile.CenterlinePoints[0],
+					endProfile.FirstLeadPoints[0]), Is.LessThan(0.0001f));
+				Assert.That(math.distance(endProfile.CenterlinePoints[^1],
+					endProfile.SecondLeadPoints[^1]), Is.LessThan(0.0001f));
+				Assert.That(endProfile.CenterlinePoints.Max(point => point.y),
+					Is.GreaterThan(component.SplineLength));
+
+				component.SetDropLoopFixtureProperties(fixtureIndex, WireRailEndpoint.Start,
+					0, 1, dropLoop.LoopDiameter, dropLoop.LeadLength,
+					dropLoop.TangentLength, dropLoop.RingDensity, 0f, 0f, 0f);
+				Assert.That(dropLoop.Distance, Is.Zero);
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateDropLoopProfile(
+					component.SplineContainer.Spline, component.Segments, dropLoop,
+					out var startProfile), Is.True);
+				Assert.That(startProfile.CenterlinePoints.Min(point => point.y), Is.LessThan(0f));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[TestCase(WireRailEndpoint.Start)]
+		[TestCase(WireRailEndpoint.End)]
+		public void ShouldUseFlatRailCapsWhereADropLoopAttaches(WireRailEndpoint endpoint)
+		{
+			const int radialSegments = 8;
+			const float capBevelSize = 2f;
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SetRailCount(2);
+				component.SetWireCapBevelSize(capBevelSize);
+				component.AddDropLoopFixture(endpoint);
+
+				var spline = component.SplineContainer.Spline;
+				var samples = WireRailRenderMeshGenerator.BuildSampleParameters(
+					spline, component.Segments, 0, 0, 16);
+				var attachedAtStart = endpoint == WireRailEndpoint.Start;
+				var attachedRingIndex = attachedAtStart ? 0 : samples.Count - 1;
+				var exposedRingIndex = attachedAtStart ? samples.Count - 1 : 0;
+				var attachedCurveT = samples[attachedRingIndex];
+				var exposedCurveT = samples[exposedRingIndex];
+				var attachedStep = attachedAtStart
+					? samples[1] - samples[0]
+					: samples[^1] - samples[^2];
+				var exposedStep = attachedAtStart
+					? samples[^1] - samples[^2]
+					: samples[1] - samples[0];
+				Assert.That(WireRailSplineGeometry.TryEvaluateRailFrame(spline,
+					component.Segments, 0, 0, attachedCurveT, attachedStep,
+					out var attachedFrame), Is.True);
+				Assert.That(WireRailSplineGeometry.TryEvaluateRailFrame(spline,
+					component.Segments, 0, 0, exposedCurveT, exposedStep,
+					out var exposedFrame), Is.True);
+
+				var vertices = component.RenderMesh.vertices;
+				var attachedCenter = RingCenter(vertices,
+					attachedRingIndex * radialSegments, radialSegments);
+				var exposedCenter = RingCenter(vertices,
+					exposedRingIndex * radialSegments, radialSegments);
+				Assert.That(math.distance(attachedCenter, attachedFrame.Position),
+					Is.LessThan(0.001f), "the fitting joint must not inset the rail cap");
+				Assert.That(math.distance(exposedCenter, exposedFrame.Position),
+					Is.EqualTo(capBevelSize).Within(0.001f),
+					"the opposite exposed rail end should retain its cap bevel");
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+
+			static float3 RingCenter(IReadOnlyList<Vector3> vertices, int start,
+				int count)
+			{
+				var center = float3.zero;
+				for (var index = 0; index < count; index++) {
+					center += (float3)vertices[start + index];
+				}
+				return center / count;
+			}
+		}
+
+		[TestCase(WireRailEndpoint.Start)]
+		[TestCase(WireRailEndpoint.End)]
+		public void ShouldCapADropLoopAndRailEndsWhenItsOffsetDetachesIt(
+			WireRailEndpoint endpoint)
+		{
+			const int radialSegments = 8;
+			const float capBevelSize = 2f;
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SetRailCount(2);
+				component.SetWireCapBevelSize(capBevelSize);
+				var originalColliderIndexCount = component.ColliderMesh.GetIndexCount(0);
+				var fixtureIndex = component.AddDropLoopFixture(endpoint);
+				var dropLoop = (WireRailDropLoopFixture)component.Fixtures[fixtureIndex];
+				component.SetDropLoopFixtureProperties(fixtureIndex, endpoint,
+					dropLoop.FirstRailIndex, dropLoop.SecondRailIndex, dropLoop.LoopDiameter,
+					dropLoop.LeadLength, dropLoop.TangentLength, dropLoop.RingDensity,
+					5f, 0f, dropLoop.Rotation);
+
+				var spline = component.SplineContainer.Spline;
+				var samples = WireRailRenderMeshGenerator.BuildSampleParameters(
+					spline, component.Segments, 0, 0, 16);
+				var attachedRingIndex = endpoint == WireRailEndpoint.Start
+					? 0 : samples.Count - 1;
+				var attachedCurveT = samples[attachedRingIndex];
+				var attachedStep = endpoint == WireRailEndpoint.Start
+					? samples[1] - samples[0]
+					: samples[^1] - samples[^2];
+				Assert.That(WireRailSplineGeometry.TryEvaluateRailFrame(spline,
+					component.Segments, 0, 0, attachedCurveT, attachedStep,
+					out var attachedFrame), Is.True);
+				var attachedCenter = RingCenter(component.RenderMesh.vertices,
+					attachedRingIndex * radialSegments, radialSegments);
+				Assert.That(math.distance(attachedCenter, attachedFrame.Position),
+					Is.EqualTo(capBevelSize).Within(0.001f),
+					"a detached fitting must restore the rail's exposed cap bevel");
+
+				var fixtureVertices = new List<Vector3>();
+				var fixtureNormals = new List<Vector3>();
+				var fixtureUvs = new List<Vector2>();
+				var fixtureIndices = new List<int>();
+				WireRailFixtureMeshGenerator.Append(spline, component.Segments,
+					component.Fixtures, capBevelSize, radialSegments, fixtureVertices,
+					fixtureNormals, fixtureUvs, fixtureIndices);
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateDropLoopProfile(spline,
+					component.Segments, dropLoop, out var profile), Is.True);
+				Assert.That(fixtureVertices.Count,
+					Is.EqualTo(profile.CenterlinePoints.Count * radialSegments + 50),
+					"both fitting mouths should receive a beveled cap");
+				Assert.That(component.ColliderMesh.GetIndexCount(0),
+					Is.EqualTo(originalColliderIndexCount + 204),
+					"the detached collider should add two flat box end faces");
+				Assert.That(component.ColliderMesh.GetIndexCount(1), Is.EqualTo(288));
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateDropLoopColliderProfile(
+					spline, component.Segments, dropLoop, out var colliderProfile), Is.True);
+				var colliderVertices = component.ColliderMesh.vertices;
+				var ordinaryIndices = component.ColliderMesh.GetIndices(0);
+				var firstOutward = -math.normalizesafe(colliderProfile.CenterlinePoints[1]
+					- colliderProfile.CenterlinePoints[0]);
+				var lastOutward = math.normalizesafe(colliderProfile.CenterlinePoints[^1]
+					- colliderProfile.CenterlinePoints[^2]);
+				AssertCapNormals(ordinaryIndices.Length - 12, firstOutward);
+				AssertCapNormals(ordinaryIndices.Length - 6, lastOutward);
+
+				void AssertCapNormals(int firstIndex, float3 expectedNormal)
+				{
+					for (var triangleIndex = firstIndex;
+						triangleIndex < firstIndex + 6; triangleIndex += 3) {
+						var a = (float3)colliderVertices[ordinaryIndices[triangleIndex]];
+						var b = (float3)colliderVertices[ordinaryIndices[triangleIndex + 1]];
+						var c = (float3)colliderVertices[ordinaryIndices[triangleIndex + 2]];
+						var normal = math.normalizesafe(math.cross(b - a, c - a));
+						Assert.That(math.dot(normal, expectedNormal), Is.GreaterThan(0.999f),
+							"detached collider cap normals must point out of the box");
+					}
+				}
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+
+			static float3 RingCenter(IReadOnlyList<Vector3> vertices, int start, int count)
+			{
+				var center = float3.zero;
+				for (var index = 0; index < count; index++) {
+					center += (float3)vertices[start + index];
+				}
+				return center / count;
+			}
+		}
+
+		[Test]
+		public void ShouldOmitADropLoopThatConflictsWithARailTrim()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SetRailCount(2);
+				var trimIndex = component.AddRailTrimFixture(WireRailEndpoint.Start);
+				component.SetRailTrimFixtureProperties(trimIndex, WireRailEndpoint.Start,
+					new[] { 30f, 0f });
+				var renderVertexCount = component.RenderMesh.vertexCount;
+				var colliderVertexCount = component.ColliderMesh.vertexCount;
+				var dropLoopIndex = component.AddDropLoopFixture(WireRailEndpoint.Start);
+				var dropLoop = (WireRailDropLoopFixture)component.Fixtures[dropLoopIndex];
+
+				Assert.That(component.HasRailTrimConflict(dropLoop.Endpoint,
+					dropLoop.FirstRailIndex, dropLoop.SecondRailIndex), Is.True);
+				Assert.That(component.RenderMesh.vertexCount, Is.EqualTo(renderVertexCount),
+					"a conflicting loop must not leave floating render geometry");
+				Assert.That(component.ColliderMesh.vertexCount,
+					Is.EqualTo(colliderVertexCount),
+					"a conflicting loop must not leave a floating collider");
+				Assert.That(component.ColliderMesh.subMeshCount, Is.EqualTo(1));
+
+				component.SetRailTrimFixtureProperties(trimIndex, WireRailEndpoint.Start,
+					new[] { 0f, 0f });
+				Assert.That(component.HasRailTrimConflict(dropLoop.Endpoint,
+					dropLoop.FirstRailIndex, dropLoop.SecondRailIndex), Is.False);
+				Assert.That(component.RenderMesh.vertexCount, Is.GreaterThan(renderVertexCount));
+				Assert.That(component.ColliderMesh.subMeshCount, Is.EqualTo(2));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[TestCase(WireRailEndpoint.Start)]
+		[TestCase(WireRailEndpoint.End)]
+		public void ShouldTrimEachRailIndependentlyAtAnEndpoint(WireRailEndpoint endpoint)
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SetRailCount(2);
+				component.SetWireCapBevelSize(0f);
+				var fixtureIndex = component.AddRailTrimFixture(endpoint);
+				component.SetRailTrimFixtureProperties(fixtureIndex, endpoint,
+					new[] { 50f, 100f });
+
+				var vertices = component.RenderMesh.vertices;
+				var firstRail = vertices.Where(vertex => vertex.x < 0f).ToArray();
+				var secondRail = vertices.Where(vertex => vertex.x > 0f).ToArray();
+				Assert.That(firstRail, Is.Not.Empty);
+				Assert.That(secondRail, Is.Not.Empty);
+				if (endpoint == WireRailEndpoint.Start) {
+					Assert.That(firstRail.Min(vertex => vertex.y),
+						Is.EqualTo(50f).Within(0.25f));
+					Assert.That(secondRail.Min(vertex => vertex.y),
+						Is.EqualTo(100f).Within(0.25f));
+				} else {
+					Assert.That(firstRail.Max(vertex => vertex.y),
+						Is.EqualTo(450f).Within(0.25f));
+					Assert.That(secondRail.Max(vertex => vertex.y),
+						Is.EqualTo(400f).Within(0.25f));
+				}
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[TestCase(WireRailEndpoint.Start, 75f)]
+		[TestCase(WireRailEndpoint.End, 425f)]
+		public void ShouldTrimTheColliderToTheRemainingRailChannel(
+			WireRailEndpoint endpoint, float expectedBoundary)
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var fixtureIndex = component.AddRailTrimFixture(endpoint);
+				component.SetRailTrimFixtureProperties(fixtureIndex, endpoint,
+					new[] { 75f, 75f, 75f, 75f });
+
+				var collider = component.ColliderMesh;
+				Assert.That(collider, Is.Not.Null, component.GenerationError);
+				var actualBoundary = endpoint == WireRailEndpoint.Start
+					? collider.bounds.min.y : collider.bounds.max.y;
+				Assert.That(actualBoundary, Is.EqualTo(expectedBoundary).Within(0.25f));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldKeepTheLargestRailTrimRegardlessOfFixtureOrder()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SetRailCount(2);
+				component.SetWireCapBevelSize(0f);
+				var firstIndex = component.AddRailTrimFixture(WireRailEndpoint.Start);
+				component.SetRailTrimFixtureProperties(firstIndex, WireRailEndpoint.Start,
+					new[] { 80f, 0f });
+				var secondIndex = component.AddRailTrimFixture(WireRailEndpoint.Start);
+				component.SetRailTrimFixtureProperties(secondIndex, WireRailEndpoint.Start,
+					new[] { 30f, 0f });
+				component.MoveFixture(secondIndex, firstIndex);
+
+				var firstRail = component.RenderMesh.vertices
+					.Where(vertex => vertex.x < 0f).ToArray();
+				Assert.That(firstRail.Min(vertex => vertex.y),
+					Is.EqualTo(80f).Within(0.25f));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldResizeRailTrimOffsetsWithTheComponentRailCount()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var fixtureIndex = component.AddRailTrimFixture(WireRailEndpoint.Start);
+				component.SetRailTrimFixtureProperties(fixtureIndex, WireRailEndpoint.Start,
+					new[] { 10f, 20f, 30f, 40f });
+				component.SetRailCount(6);
+				component.SynchronizeSegments();
+
+				var railTrim = (WireRailTrimFixture)component.Fixtures[fixtureIndex];
+				Assert.That(railTrim.RailOffsets,
+					Is.EqualTo(new[] { 10f, 20f, 30f, 40f, 0f, 0f }));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldMirrorAStandWithoutLosingItsGeometry()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var fixtureIndex = component.AddLegFixture(250f);
+				component.SetLegFixtureProperties(fixtureIndex, 250f,
+					WireRailLegSide.Right, new Vector3(1f, 0f, 0f), 19.5f,
+					new Vector3(42.59f, 9.1f, 0.4f), new Vector3(0f, 0f, 90f),
+					17.6f, 19.2f, 0f, -7.9f, -6.7f);
+				var spline = component.SplineContainer.Spline;
+				var stand = (WireRailLegFixture)component.Fixtures[fixtureIndex];
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateLegProfile(
+					spline, component.Segments, stand, out var original), Is.True);
+
+				component.MirrorLegFixture(fixtureIndex);
+
+				stand = (WireRailLegFixture)component.Fixtures[fixtureIndex];
+				Assert.That(stand.LegSide, Is.EqualTo(WireRailLegSide.Left));
+				Assert.That(stand.FootClockwise, Is.True);
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateLegProfile(
+					spline, component.Segments, stand, out var mirrored), Is.True);
+				Assert.That(mirrored.CombinedPath, Has.Count.EqualTo(original.CombinedPath.Count));
+				var maximumDeviation = 0f;
+				for (var pointIndex = 0; pointIndex < original.CombinedPath.Count; pointIndex++) {
+					var expected = original.CombinedPath[pointIndex];
+					expected.x = -expected.x;
+					maximumDeviation = math.max(maximumDeviation,
+						math.distance(mirrored.CombinedPath[pointIndex], expected));
+				}
+				Assert.That(maximumDeviation, Is.LessThan(0.05f));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldReverseAStandFootToClockwise()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var fixtureIndex = component.AddLegFixture(250f);
+				var spline = component.SplineContainer.Spline;
+				var stand = (WireRailLegFixture)component.Fixtures[fixtureIndex];
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateLegProfile(
+					spline, component.Segments, stand, out var counterClockwise), Is.True);
+
+				component.SetLegFixtureProperties(fixtureIndex, stand.Distance,
+					stand.LegSide, stand.StartDirection, stand.StartLength,
+					stand.FootPosition, stand.FootRotation, stand.FootWidth,
+					stand.FootLength, stand.FootConnectionLength, stand.LateralOffset,
+					stand.VerticalOffset, stand.LengthAdjustment, true);
+
+				stand = (WireRailLegFixture)component.Fixtures[fixtureIndex];
+				Assert.That(stand.FootClockwise, Is.True);
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateLegProfile(
+					spline, component.Segments, stand, out var clockwise), Is.True);
+				var pivot = clockwise.LegPoints[0]
+					+ clockwise.AttachmentProfile.Frame.Right * stand.FootPosition.x
+					+ clockwise.AttachmentProfile.Frame.Tangent * stand.FootPosition.y
+					+ clockwise.AttachmentProfile.Frame.Up * stand.FootPosition.z;
+				var counterClockwiseStart = math.dot(counterClockwise.FootPoints[0] - pivot,
+					clockwise.AttachmentProfile.Frame.Right);
+				var counterClockwiseEnd = math.dot(counterClockwise.FootPoints[^1] - pivot,
+					clockwise.AttachmentProfile.Frame.Right);
+				var clockwiseStart = math.dot(clockwise.FootPoints[0] - pivot,
+					clockwise.AttachmentProfile.Frame.Right);
+				var clockwiseEnd = math.dot(clockwise.FootPoints[^1] - pivot,
+					clockwise.AttachmentProfile.Frame.Right);
+				Assert.That(counterClockwiseStart, Is.LessThan(counterClockwiseEnd));
+				Assert.That(clockwiseStart, Is.GreaterThan(clockwiseEnd));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[TestCase(WireRailEndpoint.Start, 100f)]
+		[TestCase(WireRailEndpoint.End, 400f)]
+		public void ShouldCapARailTrimAtAnExactLayoutBoundary(
+			WireRailEndpoint endpoint, float boundaryDistance)
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SetRailCount(1);
+				component.SetWireCapBevelSize(0f);
+				component.AddLayout(boundaryDistance);
+				var offset = endpoint == WireRailEndpoint.Start
+					? boundaryDistance : component.SplineLength - boundaryDistance;
+				var fixtureIndex = component.AddRailTrimFixture(endpoint);
+				component.SetRailTrimFixtureProperties(fixtureIndex, endpoint,
+					new[] { offset });
+				Assert.That(WireRailSplineGeometry.TryEvaluateDistance(
+					component.SplineContainer.Spline, boundaryDistance, out var frame), Is.True);
+				var expectedNormal = endpoint == WireRailEndpoint.Start
+					? -frame.Tangent : frame.Tangent;
+				var vertices = component.RenderMesh.vertices;
+				var normals = component.RenderMesh.normals;
+				var capVertexCount = 0;
+				for (var vertexIndex = 0; vertexIndex < vertices.Length; vertexIndex++) {
+					var fromBoundary = (float3)vertices[vertexIndex] - frame.Position;
+					if (math.abs(math.dot(fromBoundary, frame.Tangent)) < 0.01f
+						&& math.dot((float3)normals[vertexIndex], expectedNormal) > 0.99f) {
+						capVertexCount++;
+					}
+				}
+				Assert.That(capVertexCount, Is.GreaterThan(0));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldFlareDropLoopLeadsToTheAuthoredLoopDiameter()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SetRailCount(2);
+				component.SetRailOffset(0, 0, new Vector2(-15f, 0f));
+				component.SetRailOffset(0, 1, new Vector2(15f, 0f));
+				var fixtureIndex = component.AddDropLoopFixture();
+				component.SetDropLoopFixtureProperties(fixtureIndex, WireRailEndpoint.End,
+					0, 1, 100f, 45f, 18f, 32, 0f, 0f, 0f);
+				var dropLoop = (WireRailDropLoopFixture)component.Fixtures[fixtureIndex];
+
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateDropLoopProfile(
+					component.SplineContainer.Spline, component.Segments, dropLoop,
+					out var profile), Is.True);
+				Assert.That(math.distance(profile.TerminalPoints[0],
+					profile.TerminalPoints[^1]), Is.EqualTo(100f).Within(0.001f));
+				Assert.That(math.distance(profile.FirstLeadPoints[0],
+					profile.TerminalPoints[0]), Is.GreaterThan(20f));
+				Assert.That(profile.TerminalPoints.Count, Is.EqualTo(17));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldHideADropLoopWhenAnAttachedRailIsInactive()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SetRailCount(2);
+				var fixtureIndex = component.AddDropLoopFixture();
+				var dropLoop = (WireRailDropLoopFixture)component.Fixtures[fixtureIndex];
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateDropLoopProfile(
+					component.SplineContainer.Spline, component.Segments, dropLoop, out _),
+					Is.True);
+
+				component.SetRailsActive(0, new[] { 1 }, false);
+
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateDropLoopProfile(
+					component.SplineContainer.Spline, component.Segments, dropLoop, out _),
+					Is.False);
+
+				component.SetRailsActive(0, new[] { 1 }, true);
+				component.SplineContainer.Spline.Closed = true;
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateDropLoopProfile(
+					component.SplineContainer.Spline, component.Segments, dropLoop, out _),
+					Is.False, "a closed spline has no endpoint for an end fitting");
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldPutTheDropLoopTerminalArcInASeparateColliderSubmesh()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SetRailCount(2);
+				var originalChannelIndexCount = component.ColliderMesh.GetIndexCount(0);
+				var originalVertexCount = component.ColliderMesh.vertexCount;
+				var fixtureIndex = component.AddDropLoopFixture();
+				var dropLoop = (WireRailDropLoopFixture)component.Fixtures[fixtureIndex];
+
+				Assert.That(component.ColliderMesh.subMeshCount, Is.EqualTo(2));
+				Assert.That(component.ColliderMesh.GetIndexCount(0),
+					Is.EqualTo(originalChannelIndexCount + 192),
+					"four box faces over eight approach spans should use the ordinary material");
+				Assert.That(component.ColliderMesh.GetIndexCount(1), Is.EqualTo(288),
+					"the terminal semicircle should use twelve coarse box spans");
+				Assert.That(component.ColliderMesh.vertexCount,
+					Is.EqualTo(originalVertexCount + 84),
+					"the complete fitting should use 21 four-corner box rings");
+				Assert.That(component.ColliderMesh.GetIndices(0)
+					.Intersect(component.ColliderMesh.GetIndices(1)).Count(), Is.EqualTo(8),
+					"both material sections should share the two four-corner seam rings");
+
+				component.SetDropLoopFixtureProperties(fixtureIndex, dropLoop.Endpoint,
+					dropLoop.FirstRailIndex, dropLoop.SecondRailIndex, dropLoop.LoopDiameter,
+					dropLoop.LeadLength, dropLoop.TangentLength, 128,
+					dropLoop.LateralOffset, dropLoop.VerticalOffset, dropLoop.Rotation);
+				Assert.That(component.ColliderMesh.GetIndexCount(0),
+					Is.EqualTo(originalChannelIndexCount + 192));
+				Assert.That(component.ColliderMesh.GetIndexCount(1), Is.EqualTo(288),
+					"render ring density must not increase collider density");
+				Assert.That(component.ColliderMesh.vertexCount,
+					Is.EqualTo(originalVertexCount + 84));
+
+				component.RemoveFixture(0);
+				Assert.That(component.ColliderMesh.subMeshCount, Is.EqualTo(1));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldUseTheTerminalImpactMaterialOnlyForDropLoopArcTriangles()
+		{
+			var go = new GameObject("Wire Rail");
+			var terminalMaterial = ScriptableObject.CreateInstance<PhysicsMaterialAsset>();
+			var transforms = new NativeParallelHashMap<int, float4x4>(0, Allocator.Temp);
+			var colliders = new ColliderReference(ref transforms, Allocator.Temp);
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SetRailCount(2);
+				component.AddDropLoopFixture();
+				terminalMaterial.Elasticity = 0.91f;
+				terminalMaterial.ElasticityFalloff = 0.13f;
+				terminalMaterial.Friction = 0.27f;
+				terminalMaterial.ScatterAngle = 0.42f;
+				Assert.That(component.PhysicsOverwrite, Is.True,
+					"the terminal material is intentionally independent of the main overwrite mode");
+				component.TerminalPhysicsMaterialReference = terminalMaterial;
+				var expectedTerminalTriangleCount =
+					(int)component.ColliderMesh.GetIndexCount(1) / 3;
+
+				((ICollidableComponent)component).GetColliders(null, null, ref colliders,
+					float4x4.identity, 0f);
+
+				var triangleColliders = colliders.ToArray().OfType<TriangleCollider>().ToArray();
+				var terminalColliderCount = triangleColliders.Count(collider =>
+					math.abs(collider.Header.Material.Elasticity - 0.91f) < 0.0001f);
+				Assert.That(terminalColliderCount, Is.EqualTo(expectedTerminalTriangleCount));
+				Assert.That(triangleColliders.Any(collider =>
+					math.abs(collider.Header.Material.Elasticity - 0.3f) < 0.0001f), Is.True,
+					"the channel and approach leads should retain the ordinary material");
+			} finally {
+				colliders.Dispose();
+				transforms.Dispose();
+				Object.DestroyImmediate(terminalMaterial);
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldDuplicateEveryDropLoopSettingAndSynchronizeItsDiameter()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var sourceIndex = component.AddDropLoopFixture(WireRailEndpoint.Start);
+				component.SetDropLoopFixtureProperties(sourceIndex, WireRailEndpoint.Start,
+					2, 3, 92f, 37f, 11f, 40, 6f, -9f, 27f);
+				var duplicateIndex = component.DuplicateDropLoopFixture(sourceIndex);
+				component.SetWireDiameter(12f);
+				var source = (WireRailDropLoopFixture)component.Fixtures[sourceIndex];
+				var duplicate = (WireRailDropLoopFixture)component.Fixtures[duplicateIndex];
+
+				Assert.That(duplicateIndex, Is.EqualTo(sourceIndex + 1));
+				Assert.That(duplicate, Is.Not.SameAs(source));
+				Assert.That(duplicate.Endpoint, Is.EqualTo(source.Endpoint));
+				Assert.That(duplicate.Distance, Is.Zero);
+				Assert.That(duplicate.FirstRailIndex, Is.EqualTo(source.FirstRailIndex));
+				Assert.That(duplicate.SecondRailIndex, Is.EqualTo(source.SecondRailIndex));
+				Assert.That(duplicate.LoopDiameter, Is.EqualTo(source.LoopDiameter));
+				Assert.That(duplicate.LeadLength, Is.EqualTo(source.LeadLength));
+				Assert.That(duplicate.TangentLength, Is.EqualTo(source.TangentLength));
+				Assert.That(duplicate.RingDensity, Is.EqualTo(source.RingDensity));
+				Assert.That(duplicate.LateralOffset, Is.EqualTo(source.LateralOffset));
+				Assert.That(duplicate.VerticalOffset, Is.EqualTo(source.VerticalOffset));
+				Assert.That(duplicate.Rotation, Is.EqualTo(source.Rotation));
+				Assert.That(source.Diameter, Is.EqualTo(12f));
+				Assert.That(duplicate.Diameter, Is.EqualTo(12f));
 			} finally {
 				Object.DestroyImmediate(go);
 			}
