@@ -196,7 +196,8 @@ namespace VisualPinball.Unity
 					buffers.StartTrimOffsets, buffers.EndTrimOffsets,
 					buffers.FixturePaths, buffers.Touches);
 				foreach (var touch in buffers.Touches) {
-					AppendTouch(touch, CalculateSeed(touch), vertices, normals, uvs, indices);
+					AppendTouch(touch, CalculateSeed(touch), fixture.SolderSize,
+						vertices, normals, uvs, indices);
 				}
 			}
 		}
@@ -382,7 +383,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal static void AppendTouch(WireRailTouch touch, uint seed,
+		internal static void AppendTouch(WireRailTouch touch, uint seed, float solderSize,
 			ICollection<Vector3> vertices, ICollection<Vector3> normals,
 			ICollection<Vector2> uvs, ICollection<int> indices)
 		{
@@ -417,6 +418,10 @@ namespace VisualPinball.Unity
 			var normalExtent = math.max(math.max(touch.FirstRadius, touch.SecondRadius) * 0.75f,
 				centerDistance * 0.5f + math.min(touch.FirstRadius, touch.SecondRadius) * 0.25f)
 				* RandomRange(ref state, 0.92f, 1.08f);
+			solderSize = math.max(0.01f, solderSize);
+			firstExtent *= solderSize;
+			secondExtent *= solderSize;
+			normalExtent *= solderSize;
 
 			var buffers = _threadBuffers ??= new SolderBuffers();
 			var positions = buffers.BlobPositions;

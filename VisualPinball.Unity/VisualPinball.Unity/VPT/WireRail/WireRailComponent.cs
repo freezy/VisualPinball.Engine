@@ -61,6 +61,7 @@ namespace VisualPinball.Unity
 	{
 		public const float ReferenceBallDiameter = 50f;
 		public const float ReferenceWireDiameter = 8f;
+		public const float DefaultWireDiameter = 6.5f;
 		public const float BottomRailSpacing = 30f;
 		public const float MiddleRailSpacing = 60f;
 		public const float MiddleRailHeight = 30f;
@@ -497,12 +498,15 @@ namespace VisualPinball.Unity
 	public abstract class WireRailFixture
 	{
 		public const float DefaultSolderThreshold = WireRailLayout.ReferenceWireDiameter * 0.25f;
+		public const float DefaultSolderSize = 1f;
 
 		[SerializeField, Min(0f)] private float _distance;
 		[SerializeField, Min(0f)] private float _solderThreshold = DefaultSolderThreshold;
+		[SerializeField, Min(0.01f)] private float _solderSize = DefaultSolderSize;
 
 		public float Distance => _distance;
 		public float SolderThreshold => _solderThreshold;
+		public float SolderSize => _solderSize;
 
 		internal bool EnsureInitialized(float splineLength)
 		{
@@ -517,6 +521,12 @@ namespace VisualPinball.Unity
 				_solderThreshold = solderThreshold;
 				changed = true;
 			}
+			var solderSize = _solderSize <= 0f
+				? DefaultSolderSize : math.max(0.01f, _solderSize);
+			if (!Mathf.Approximately(_solderSize, solderSize)) {
+				_solderSize = solderSize;
+				changed = true;
+			}
 			return changed;
 		}
 
@@ -528,6 +538,11 @@ namespace VisualPinball.Unity
 		internal void SetSolderThreshold(float solderThreshold)
 		{
 			_solderThreshold = math.max(0f, solderThreshold);
+		}
+
+		internal void SetSolderSize(float solderSize)
+		{
+			_solderSize = math.max(0.01f, solderSize);
 		}
 	}
 
@@ -1536,14 +1551,20 @@ namespace VisualPinball.Unity
 		[SerializeReference] private List<WireRailFixture> _fixtures = new();
 		[SerializeField, Range(1, 6)] private int _railCount = 4;
 		[SerializeField, HideInInspector] private bool _railCountInitialized;
-		[SerializeField, Min(0.1f)] private float _wireDiameter = WireRailLayout.ReferenceWireDiameter;
+		[SerializeField, Min(0.1f)] private float _wireDiameter = WireRailLayout.DefaultWireDiameter;
 		[SerializeField, Min(0f), FormerlySerializedAs("_braceCapBevelSize")]
-		private float _wireCapBevelSize;
-		[SerializeField, Range(6, 16)] private int _radialSegments = 8;
+		private float _wireCapBevelSize = 0.5f;
+		[SerializeField, Range(6, 16)] private int _radialSegments = 10;
 		[SerializeField, Range(2, 64)] private int _renderSamplesPerSegment = 16;
 		[SerializeField] private Material _renderMaterial;
 		[SerializeField, Min(1f)] private float _referenceBallDiameter = WireRailLayout.ReferenceBallDiameter;
 		[SerializeField, Range(2, 32)] private int _colliderSamplesPerSegment = 8;
+		[SerializeField] private bool _widenStart;
+		[SerializeField, Min(1f)] private float _widenStartSize = 1.5f;
+		[SerializeField, Min(0.01f)] private float _widenStartLength = 100f;
+		[SerializeField] private bool _widenExit;
+		[SerializeField, Min(1f)] private float _widenExitSize = 1.5f;
+		[SerializeField, Min(0.01f)] private float _widenExitLength = 100f;
 		[SerializeField] private bool _showColliderPreview;
 		[SerializeReference] private PhysicsMaterialAsset _physicsMaterial;
 		[SerializeField] private PhysicsMaterialAsset _terminalPhysicsMaterial;
@@ -1585,6 +1606,12 @@ namespace VisualPinball.Unity
 		}
 		public string GenerationError => _generationError;
 		public bool ShowColliderPreview => _showColliderPreview;
+		public bool WidenStart => _widenStart;
+		public float WidenStartSize => _widenStartSize;
+		public float WidenStartLength => _widenStartLength;
+		public bool WidenExit => _widenExit;
+		public float WidenExitSize => _widenExitSize;
+		public float WidenExitLength => _widenExitLength;
 		public Mesh RenderMesh => _renderMesh;
 		public Mesh ColliderMesh {
 			get {
@@ -1659,6 +1686,10 @@ namespace VisualPinball.Unity
 			_renderSamplesPerSegment = math.clamp(_renderSamplesPerSegment, 2, 64);
 			_referenceBallDiameter = math.max(1f, _referenceBallDiameter);
 			_colliderSamplesPerSegment = math.clamp(_colliderSamplesPerSegment, 2, 32);
+			_widenStartSize = math.max(1f, _widenStartSize);
+			_widenStartLength = math.max(0.01f, _widenStartLength);
+			_widenExitSize = math.max(1f, _widenExitSize);
+			_widenExitLength = math.max(0.01f, _widenExitLength);
 			SynchronizeFixtures();
 			if (!GetSplineContainerWithoutCreating()) {
 				return;
@@ -2161,6 +2192,7 @@ namespace VisualPinball.Unity
 				source.StraightEndAngle, source.LateralOffset, source.VerticalOffset,
 				source.Scale, source.RingDensity);
 			duplicate.SetSolderThreshold(source.SolderThreshold);
+			duplicate.SetSolderSize(source.SolderSize);
 			var duplicateIndex = fixtureIndex + 1;
 			_fixtures.Insert(duplicateIndex, duplicate);
 			RebuildRenderGeometry();
@@ -2180,6 +2212,7 @@ namespace VisualPinball.Unity
 				source.Angle, source.LateralOffset,
 				source.VerticalOffset, source.LengthAdjustment);
 			duplicate.SetSolderThreshold(source.SolderThreshold);
+			duplicate.SetSolderSize(source.SolderSize);
 			var duplicateIndex = fixtureIndex + 1;
 			_fixtures.Insert(duplicateIndex, duplicate);
 			RebuildRenderGeometry();
@@ -2200,6 +2233,7 @@ namespace VisualPinball.Unity
 				source.BottomLength, source.LeftLength, source.RightLength,
 				source.Angle, source.Rotation, source.CornerRadius);
 			duplicate.SetSolderThreshold(source.SolderThreshold);
+			duplicate.SetSolderSize(source.SolderSize);
 			var duplicateIndex = fixtureIndex + 1;
 			_fixtures.Insert(duplicateIndex, duplicate);
 			RebuildRenderGeometry();
@@ -2220,6 +2254,7 @@ namespace VisualPinball.Unity
 				source.FootLength, source.FootConnectionLength, source.LateralOffset,
 				source.VerticalOffset, source.LengthAdjustment, source.FootClockwise);
 			duplicate.SetSolderThreshold(source.SolderThreshold);
+			duplicate.SetSolderSize(source.SolderSize);
 			var duplicateIndex = fixtureIndex + 1;
 			_fixtures.Insert(duplicateIndex, duplicate);
 			RebuildRenderGeometry();
@@ -2239,6 +2274,7 @@ namespace VisualPinball.Unity
 				source.LeadLength, source.TangentLength, source.RingDensity,
 				source.LateralOffset, source.VerticalOffset, source.Rotation);
 			duplicate.SetSolderThreshold(source.SolderThreshold);
+			duplicate.SetSolderSize(source.SolderSize);
 			var duplicateIndex = fixtureIndex + 1;
 			_fixtures.Insert(duplicateIndex, duplicate);
 			InvalidateColliderGeometry();
@@ -2258,6 +2294,7 @@ namespace VisualPinball.Unity
 				source.FirstRailIndex, source.SecondRailIndex, source.Offset,
 				source.DropLength, source.ZAngle, source.RailOffsets);
 			duplicate.SetSolderThreshold(source.SolderThreshold);
+			duplicate.SetSolderSize(source.SolderSize);
 			var duplicateIndex = fixtureIndex + 1;
 			_fixtures.Insert(duplicateIndex, duplicate);
 			InvalidateColliderGeometry();
@@ -2536,6 +2573,21 @@ namespace VisualPinball.Unity
 			MarkDirty();
 		}
 
+		public void SetFixtureSolderSize(int fixtureIndex, float solderSize)
+		{
+			if (solderSize <= 0f) {
+				throw new ArgumentOutOfRangeException(nameof(solderSize), solderSize,
+					"Solder size must be positive.");
+			}
+			var fixture = GetFixture(fixtureIndex);
+			if (Mathf.Approximately(fixture.SolderSize, solderSize)) {
+				return;
+			}
+			fixture.SetSolderSize(solderSize);
+			RebuildRenderGeometry();
+			MarkDirty();
+		}
+
 		public void ApplyBracePropertiesToAll(int sourceFixtureIndex)
 		{
 			if (GetFixture(sourceFixtureIndex) is not WireRailBraceFixture source) {
@@ -2553,6 +2605,7 @@ namespace VisualPinball.Unity
 					source.StraightEndAngle, source.LateralOffset, source.VerticalOffset,
 					source.Scale, source.RingDensity);
 				target.SetSolderThreshold(source.SolderThreshold);
+				target.SetSolderSize(source.SolderSize);
 			}
 			RebuildRenderGeometry();
 			MarkDirty();
@@ -2562,6 +2615,29 @@ namespace VisualPinball.Unity
 		{
 			_wireCapBevelSize = math.max(0f, size);
 			RebuildRenderGeometry();
+			MarkDirty();
+		}
+
+		public void SetColliderWidening(bool widenStart, float startSize,
+			float startLength, bool widenExit, float exitSize, float exitLength)
+		{
+			var widening = new WireRailColliderWidening(widenStart, startSize, startLength,
+				widenExit, exitSize, exitLength);
+			if (_widenStart == widening.WidenStart
+				&& Mathf.Approximately(_widenStartSize, widening.StartSize)
+				&& Mathf.Approximately(_widenStartLength, widening.StartLength)
+				&& _widenExit == widening.WidenExit
+				&& Mathf.Approximately(_widenExitSize, widening.ExitSize)
+				&& Mathf.Approximately(_widenExitLength, widening.ExitLength)) {
+				return;
+			}
+			_widenStart = widening.WidenStart;
+			_widenStartSize = widening.StartSize;
+			_widenStartLength = widening.StartLength;
+			_widenExit = widening.WidenExit;
+			_widenExitSize = widening.ExitSize;
+			_widenExitLength = widening.ExitLength;
+			InvalidateColliderGeometry();
 			MarkDirty();
 		}
 
@@ -3075,8 +3151,10 @@ namespace VisualPinball.Unity
 				SynchronizeSegments();
 			}
 			using (ColliderMeshMarker.Auto()) {
+				var widening = new WireRailColliderWidening(_widenStart, _widenStartSize,
+					_widenStartLength, _widenExit, _widenExitSize, _widenExitLength);
 				if (!WireRailColliderMeshGenerator.TryGenerate(container.Spline, _segments,
-						_fixtures, _referenceBallDiameter, _colliderSamplesPerSegment,
+						_fixtures, _referenceBallDiameter, widening, _colliderSamplesPerSegment,
 						_colliderMesh, out _colliderMesh, out _colliderEdgeVertices,
 						out _colliderTopologyRetryCount,
 						out _generationError)) {

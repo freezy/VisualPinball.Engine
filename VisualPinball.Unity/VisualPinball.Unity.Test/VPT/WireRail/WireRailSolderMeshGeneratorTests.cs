@@ -48,6 +48,7 @@ namespace VisualPinball.Unity.Test
 			var first = Generate(123u);
 			var repeated = Generate(123u);
 			var changed = Generate(124u);
+			var doubled = Generate(123u, 2f);
 
 			Assert.That(first.Indices,
 				Has.Count.EqualTo(WireRailSolderMeshGenerator.TrianglesPerBlob * 3));
@@ -62,15 +63,23 @@ namespace VisualPinball.Unity.Test
 				"the same join must not shimmer between rebuilds");
 			Assert.That(changed.Vertices, Is.Not.EqualTo(first.Vertices),
 				"different seeds should not produce cloned solder blobs");
+			for (var vertexIndex = 0; vertexIndex < first.Vertices.Count; vertexIndex++) {
+				var expected = (Vector3)touch.Position
+					+ (first.Vertices[vertexIndex] - (Vector3)touch.Position) * 2f;
+				Assert.That(Vector3.Distance(doubled.Vertices[vertexIndex], expected),
+					Is.LessThan(0.0001f),
+					"solder size must uniformly scale the blob around the wire touch");
+			}
 
 			(List<Vector3> Vertices, List<Vector3> Normals,
-				List<Vector2> Uvs, List<int> Indices) Generate(uint seed)
+				List<Vector2> Uvs, List<int> Indices) Generate(uint seed,
+				float solderSize = WireRailFixture.DefaultSolderSize)
 			{
 				var vertices = new List<Vector3>();
 				var normals = new List<Vector3>();
 				var uvs = new List<Vector2>();
 				var indices = new List<int>();
-				WireRailSolderMeshGenerator.AppendTouch(touch, seed,
+				WireRailSolderMeshGenerator.AppendTouch(touch, seed, solderSize,
 					vertices, normals, uvs, indices);
 				return (vertices, normals, uvs, indices);
 			}
@@ -79,7 +88,7 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldSolderADefaultBraceToAllFourRails()
 		{
-			const int radialSegments = 8;
+			const int radialSegments = 10;
 			var gameObject = new GameObject("Wire Rail");
 			try {
 				var component = gameObject.AddComponent<WireRailComponent>();
@@ -87,6 +96,8 @@ namespace VisualPinball.Unity.Test
 				component.SetRailOffset(0, 1, new Vector2(30f, 0f));
 				var railTriangleCount = component.RenderMesh.triangles.Length / 3;
 				var fixtureIndex = component.AddBraceFixture(250f);
+				var defaultVertices = component.RenderMesh.vertices;
+				var defaultTriangleCount = component.RenderMesh.triangles.Length;
 				var brace = (WireRailBraceFixture)component.Fixtures[fixtureIndex];
 				var touches = new List<WireRailTouch>();
 
@@ -99,6 +110,13 @@ namespace VisualPinball.Unity.Test
 				Assert.That(component.RenderMesh.triangles.Length / 3 - railTriangleCount,
 					Is.EqualTo(braceTriangles + touches.Count
 						* WireRailSolderMeshGenerator.TrianglesPerBlob));
+
+				component.SetFixtureSolderSize(fixtureIndex, 2f);
+				Assert.That(component.RenderMesh.triangles.Length,
+					Is.EqualTo(defaultTriangleCount),
+					"changing solder size must preserve the generated mesh topology");
+				Assert.That(component.RenderMesh.vertices, Is.Not.EqualTo(defaultVertices),
+					"the component render path must pass the authored solder size to the generator");
 			} finally {
 				Object.DestroyImmediate(gameObject);
 			}
@@ -128,21 +146,28 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldStoreAndDuplicateTheThresholdPerFixture()
+		public void ShouldStoreAndDuplicateTheSolderSettingsPerFixture()
 		{
 			var gameObject = new GameObject("Wire Rail");
 			try {
 				var component = gameObject.AddComponent<WireRailComponent>();
 				var fixtureIndex = component.AddBraceFixture(250f);
 				component.SetFixtureSolderThreshold(fixtureIndex, 3.5f);
+				component.SetFixtureSolderSize(fixtureIndex, 2.25f);
 				var duplicateIndex = component.DuplicateBraceFixture(fixtureIndex);
 
 				Assert.That(component.Fixtures[fixtureIndex].SolderThreshold,
 					Is.EqualTo(3.5f));
 				Assert.That(component.Fixtures[duplicateIndex].SolderThreshold,
 					Is.EqualTo(3.5f));
+				Assert.That(component.Fixtures[fixtureIndex].SolderSize,
+					Is.EqualTo(2.25f));
+				Assert.That(component.Fixtures[duplicateIndex].SolderSize,
+					Is.EqualTo(2.25f));
 				Assert.Throws<System.ArgumentOutOfRangeException>(() =>
 					component.SetFixtureSolderThreshold(fixtureIndex, -0.1f));
+				Assert.Throws<System.ArgumentOutOfRangeException>(() =>
+					component.SetFixtureSolderSize(fixtureIndex, 0f));
 			} finally {
 				Object.DestroyImmediate(gameObject);
 			}
