@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEditor;
@@ -33,6 +34,11 @@ namespace VisualPinball.Unity.Editor
 	public class WireRailInspector : UnityEditor.Editor
 	{
 		private static readonly string[] ThirdRailSides = { "Left", "Right" };
+		private static readonly GUIContent[][] RailOptions = Enumerable.Range(0, 7)
+			.Select(count => Enumerable.Range(1, count)
+				.Select(railIndex => new GUIContent($"Rail {railIndex}"))
+				.ToArray())
+			.ToArray();
 		private static readonly string[] RailCounts = { "1", "2", "3", "4", "5", "6" };
 		private static readonly Color TransitionCurveColor = new(0.05f, 0.75f, 1f, 1f);
 		private static readonly List<SelectableKnot> SelectedGradeKnots = new();
@@ -55,6 +61,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly WireRailVBracePreviewEditor _vBracePreviewEditor = new();
 		private readonly WireRailCrossWirePreviewEditor _crossWirePreviewEditor = new();
 		private readonly WireRailLegPreviewEditor _legPreviewEditor = new();
+		private readonly float[] _railTrimOffsets = new float[RailCounts.Length];
 		[SerializeField] private bool _showRenderGeometry = true;
 		[SerializeField] private bool _showBallChannelCollider = true;
 		[SerializeField] private bool _showFixtures = true;
@@ -268,11 +275,14 @@ namespace VisualPinball.Unity.Editor
 		private void DrawFixtures(WireRailComponent component)
 		{
 			EditorGUILayout.LabelField(
-				"Fixtures are positioned by distance along the complete spline, independently "
-					+ "from its wire layouts.", EditorStyles.wordWrappedMiniLabel);
+				"Supports are positioned by distance along the complete spline; end fittings "
+					+ "attach to its start or end. Both are independent from wire layouts.",
+				EditorStyles.wordWrappedMiniLabel);
 			SynchronizeOrder(_fixtureOrder, component.Fixtures.Count);
 			_fixtureOrderList.DoLayoutList();
 			var splineLength = component.SplineLength;
+			var spline = component.SplineContainer
+				? component.SplineContainer.Spline : null;
 			using (new EditorGUILayout.HorizontalScope()) {
 				using (new EditorGUI.DisabledScope(splineLength <= 0f)) {
 					if (GUILayout.Button("Add Brace")) {
@@ -295,11 +305,30 @@ namespace VisualPinball.Unity.Editor
 							() => component.AddCrossWireFixture(splineLength * 0.5f));
 						SynchronizeOrder(_fixtureOrder, component.Fixtures.Count, true);
 					}
-					if (GUILayout.Button("Add Leg & Foot")) {
-						Edit(component, "Add Wire Rail Leg and Foot",
+					if (GUILayout.Button("Add Stand")) {
+						Edit(component, "Add Wire Rail Stand",
 							() => component.AddLegFixture(splineLength * 0.5f));
 						SynchronizeOrder(_fixtureOrder, component.Fixtures.Count, true);
 					}
+				}
+			}
+			using (new EditorGUI.DisabledScope(splineLength <= 0f || spline == null
+				|| spline.Closed
+				|| component.RailCount < 2)) {
+				if (GUILayout.Button(new GUIContent("Add Drop Loop",
+						"Add an endpoint-only end fitting that joins two rails with a terminal loop."))) {
+					Edit(component, "Add Wire Rail Drop Loop",
+						() => component.AddDropLoopFixture());
+					SynchronizeOrder(_fixtureOrder, component.Fixtures.Count, true);
+				}
+			}
+			using (new EditorGUI.DisabledScope(splineLength <= 0f || spline == null
+				|| spline.Closed)) {
+				if (GUILayout.Button(new GUIContent("Add Rail Trim",
+						"Independently move each rail start or end inward along the route."))) {
+					Edit(component, "Add Wire Rail Trim",
+						() => component.AddRailTrimFixture());
+					SynchronizeOrder(_fixtureOrder, component.Fixtures.Count, true);
 				}
 			}
 		}
@@ -322,7 +351,8 @@ namespace VisualPinball.Unity.Editor
 				}
 				var fixtureIndex = _fixtureOrder[index];
 				return fixtureIndex >= 0 && fixtureIndex < component.Fixtures.Count
-					? GetFixtureElementHeight(component.Fixtures[fixtureIndex])
+					? GetFixtureElementHeight(component.Fixtures[fixtureIndex],
+						component.RailCount)
 					: LayoutLineHeight;
 			};
 			list.drawElementCallback = (rect, index, _, _) => {
@@ -427,7 +457,8 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private static float GetFixtureElementHeight(WireRailFixture fixture)
+		private static float GetFixtureElementHeight(WireRailFixture fixture,
+			int componentRailCount)
 			=> fixture switch {
 				WireRailBraceFixture => LayoutPadding * 2f + LayoutLineHeight * 8f
 					+ WireRailBracePreviewEditor.Height + 25f,
@@ -435,9 +466,13 @@ namespace VisualPinball.Unity.Editor
 					+ WireRailVBracePreviewEditor.Height + 35f,
 				WireRailCrossWireFixture => LayoutPadding * 2f + LayoutLineHeight * 5f
 					+ WireRailCrossWirePreviewEditor.Height + 25f,
-				WireRailLegFixture => LayoutPadding * 2f + LayoutLineHeight * 15f
+				WireRailLegFixture => LayoutPadding * 2f + LayoutLineHeight * 16f
 					+ (GetVector3FieldHeight() - LayoutLineHeight) * 3f
 					+ WireRailLegPreviewEditor.Height + 55f,
+				WireRailDropLoopFixture => LayoutPadding * 2f + LayoutLineHeight * 10f + 80f,
+				WireRailTrimFixture => LayoutPadding * 2f
+					+ LayoutLineHeight * (componentRailCount + 2)
+					+ 3f * (componentRailCount + 1) + 42f,
 				_ => LayoutLineHeight * 2f,
 			};
 
@@ -464,10 +499,196 @@ namespace VisualPinball.Unity.Editor
 				DrawLegFixtureElement(content, component, fixtureIndex, leg);
 				return;
 			}
+			if (component.Fixtures[fixtureIndex] is WireRailDropLoopFixture dropLoop) {
+				DrawDropLoopFixtureElement(content, component, fixtureIndex, dropLoop);
+				return;
+			}
+			if (component.Fixtures[fixtureIndex] is WireRailTrimFixture railTrim) {
+				DrawRailTrimFixtureElement(content, component, fixtureIndex, railTrim);
+				return;
+			}
 			{
 				EditorGUI.HelpBox(content, $"Fixture {fixtureIndex + 1} has an unsupported type.",
 					MessageType.Warning);
 				return;
+			}
+		}
+
+		private void DrawDropLoopFixtureElement(Rect content, WireRailComponent component,
+			int fixtureIndex, WireRailDropLoopFixture dropLoop)
+		{
+			var row = new Rect(content.x, content.y - 2f, content.width, LayoutLineHeight);
+			EditorGUI.LabelField(row, $"Drop Loop {fixtureIndex + 1}", EditorStyles.boldLabel);
+			var trashRect = new Rect(row.xMax - LayoutLineHeight, row.y, LayoutLineHeight,
+				LayoutLineHeight);
+			var duplicateRect = new Rect(trashRect.x - LayoutLineHeight - 2f, row.y,
+				LayoutLineHeight, LayoutLineHeight);
+			var duplicate = new GUIContent(EditorGUIUtility.IconContent("TreeEditor.Duplicate")) {
+				tooltip = "Duplicate this drop loop",
+			};
+			var trash = new GUIContent(EditorGUIUtility.IconContent("TreeEditor.Trash")) {
+				tooltip = "Remove this drop loop",
+			};
+			EditorGUIUtility.AddCursorRect(duplicateRect, MouseCursor.Link);
+			EditorGUIUtility.AddCursorRect(trashRect, MouseCursor.Link);
+			if (GUI.Button(duplicateRect, duplicate, GUIStyle.none)) {
+				Edit(component, "Duplicate Wire Rail Drop Loop",
+					() => component.DuplicateDropLoopFixture(fixtureIndex));
+				SynchronizeOrder(_fixtureOrder, component.Fixtures.Count, true);
+				GUIUtility.ExitGUI();
+			}
+			if (GUI.Button(trashRect, trash, GUIStyle.none)) {
+				Edit(component, "Remove Wire Rail Drop Loop",
+					() => component.RemoveFixture(fixtureIndex));
+				SynchronizeOrder(_fixtureOrder, component.Fixtures.Count, true);
+				GUIUtility.ExitGUI();
+			}
+
+			EditorGUI.BeginChangeCheck();
+			row.y = content.y + LayoutLineHeight + 3f;
+			var endpoint = (WireRailEndpoint)EditorGUI.EnumPopup(row,
+				new GUIContent("Endpoint", "Spline end where the fitting is attached."),
+				dropLoop.Endpoint);
+
+			var railNames = RailOptions[component.RailCount];
+			row.y += LayoutLineHeight + 3f;
+			var firstRailIndex = EditorGUI.Popup(row,
+				new GUIContent("Rail A", "First attached rail."),
+				math.clamp(dropLoop.FirstRailIndex, 0, component.RailCount - 1), railNames);
+
+			row.y += LayoutLineHeight + 3f;
+			var secondRailIndex = EditorGUI.Popup(row,
+				new GUIContent("Rail B", "Second attached rail."),
+				math.clamp(dropLoop.SecondRailIndex, 0, component.RailCount - 1), railNames);
+
+			row.y += LayoutLineHeight + 3f;
+			var ringDensity = EditorGUI.IntSlider(row, new GUIContent("Ring Density",
+				"Longitudinal sampling density around the complete circular loop."),
+				dropLoop.RingDensity, 4, 128);
+
+			row.y += LayoutLineHeight + 3f;
+			var lateralOffset = dropLoop.LateralOffset;
+			var verticalOffset = dropLoop.VerticalOffset;
+			DrawFixtureOffsetRow(row, ref lateralOffset, ref verticalOffset,
+				out var resetOffset);
+			if (resetOffset) {
+				Edit(component, "Reset Wire Rail Drop Loop Offset", () =>
+					component.SetDropLoopFixtureProperties(fixtureIndex, dropLoop.Endpoint,
+						dropLoop.FirstRailIndex, dropLoop.SecondRailIndex,
+						dropLoop.LoopDiameter, dropLoop.LeadLength,
+						dropLoop.TangentLength, dropLoop.RingDensity, 0f, 0f,
+						dropLoop.Rotation));
+				GUIUtility.ExitGUI();
+			}
+
+			row.y += LayoutLineHeight + 3f;
+			var loopDiameter = EditorGUI.DelayedFloatField(row,
+				new GUIContent("Loop Diameter",
+					"Centerline diameter of the terminal semicircle."),
+				dropLoop.LoopDiameter);
+
+			row.y += LayoutLineHeight + 3f;
+			var leadLength = EditorGUI.DelayedFloatField(row,
+				new GUIContent("Lead Length",
+					"Distance the loop center extends beyond the spline endpoint."),
+				dropLoop.LeadLength);
+
+			row.y += LayoutLineHeight + 3f;
+			var tangentLength = EditorGUI.DelayedFloatField(row,
+				new GUIContent("Tangent Length",
+					"Bezier handle length used to blend each rail into the loop."),
+				dropLoop.TangentLength);
+
+			row.y += LayoutLineHeight + 3f;
+			var rotation = EditorGUI.Slider(row, new GUIContent("Rotation",
+				"Rotate the loop diameter around the spline tangent."),
+				dropLoop.Rotation, 0f, 360f);
+
+			row.y += LayoutLineHeight + 3f;
+			var spline = component.SplineContainer
+				? component.SplineContainer.Spline : null;
+			var hasInvalidRailPair = firstRailIndex == secondRailIndex;
+			var hasRailTrimConflict = component.HasRailTrimConflict(endpoint,
+				firstRailIndex, secondRailIndex);
+			var message = spline != null && spline.Closed
+				? "Drop Loops require an open spline with a real start and end."
+				: hasInvalidRailPair
+					? "Select two different rails. Invalid Drop Loops are not generated."
+					: hasRailTrimConflict
+						? "A Rail Trim shortens an attached rail at this endpoint. Remove the conflict or select different rails; the Drop Loop is not generated."
+					: "The terminal semicircle uses Terminal Impact Material; its leads use the ordinary physics material.";
+			EditorGUI.HelpBox(new Rect(row.x, row.y, row.width, 30f), message,
+				spline != null && spline.Closed || hasInvalidRailPair || hasRailTrimConflict
+					? MessageType.Warning : MessageType.Info);
+
+			if (EditorGUI.EndChangeCheck()) {
+				Edit(component, "Edit Wire Rail Drop Loop", () =>
+					component.SetDropLoopFixtureProperties(fixtureIndex, endpoint,
+						firstRailIndex, secondRailIndex, loopDiameter, leadLength,
+						tangentLength, ringDensity, lateralOffset, verticalOffset,
+						rotation));
+			}
+		}
+
+		private void DrawRailTrimFixtureElement(Rect content, WireRailComponent component,
+			int fixtureIndex, WireRailTrimFixture railTrim)
+		{
+			var row = new Rect(content.x, content.y - 2f, content.width, LayoutLineHeight);
+			EditorGUI.LabelField(row, $"Rail Trim {fixtureIndex + 1}",
+				EditorStyles.boldLabel);
+			var trashRect = new Rect(row.xMax - LayoutLineHeight, row.y, LayoutLineHeight,
+				LayoutLineHeight);
+			var duplicateRect = new Rect(trashRect.x - LayoutLineHeight - 2f, row.y,
+				LayoutLineHeight, LayoutLineHeight);
+			var duplicate = new GUIContent(EditorGUIUtility.IconContent("TreeEditor.Duplicate")) {
+				tooltip = "Duplicate this rail trim",
+			};
+			var trash = new GUIContent(EditorGUIUtility.IconContent("TreeEditor.Trash")) {
+				tooltip = "Remove this rail trim",
+			};
+			EditorGUIUtility.AddCursorRect(duplicateRect, MouseCursor.Link);
+			EditorGUIUtility.AddCursorRect(trashRect, MouseCursor.Link);
+			if (GUI.Button(duplicateRect, duplicate, GUIStyle.none)) {
+				Edit(component, "Duplicate Wire Rail Trim",
+					() => component.DuplicateRailTrimFixture(fixtureIndex));
+				SynchronizeOrder(_fixtureOrder, component.Fixtures.Count, true);
+				GUIUtility.ExitGUI();
+			}
+			if (GUI.Button(trashRect, trash, GUIStyle.none)) {
+				Edit(component, "Remove Wire Rail Trim",
+					() => component.RemoveFixture(fixtureIndex));
+				SynchronizeOrder(_fixtureOrder, component.Fixtures.Count, true);
+				GUIUtility.ExitGUI();
+			}
+
+			EditorGUI.BeginChangeCheck();
+			row.y = content.y + LayoutLineHeight + 3f;
+			var endpoint = (WireRailEndpoint)EditorGUI.EnumPopup(row,
+				new GUIContent("Endpoint", "Spline end whose rails are shortened."),
+				railTrim.Endpoint);
+			for (var railIndex = 0; railIndex < component.RailCount; railIndex++) {
+				row.y += LayoutLineHeight + 3f;
+				var currentOffset = railIndex < railTrim.RailCount
+					? railTrim.GetRailOffset(railIndex) : 0f;
+				_railTrimOffsets[railIndex] = math.max(0f, EditorGUI.DelayedFloatField(row,
+					new GUIContent($"Rail {railIndex + 1}",
+						"Distance measured inward from the selected spline endpoint."),
+					currentOffset));
+			}
+
+			row.y += LayoutLineHeight + 3f;
+			var spline = component.SplineContainer
+				? component.SplineContainer.Spline : null;
+			var message = spline != null && spline.Closed
+				? "Rail Trims require an open spline with a real start and end."
+				: "Zero leaves a rail unchanged. Multiple trims at one endpoint use the largest offset per rail.";
+			EditorGUI.HelpBox(new Rect(row.x, row.y, row.width, 34f), message,
+				spline != null && spline.Closed ? MessageType.Warning : MessageType.Info);
+
+			if (EditorGUI.EndChangeCheck()) {
+				Edit(component, "Edit Wire Rail Trim", () =>
+					component.SetRailTrimFixtureProperties(fixtureIndex, endpoint,
+						_railTrimOffsets));
 			}
 		}
 
@@ -763,27 +984,27 @@ namespace VisualPinball.Unity.Editor
 			int fixtureIndex, WireRailLegFixture leg)
 		{
 			var row = new Rect(content.x, content.y - 2f, content.width, LayoutLineHeight);
-			EditorGUI.LabelField(row, $"Leg & Foot {fixtureIndex + 1}", EditorStyles.boldLabel);
+			EditorGUI.LabelField(row, $"Stand {fixtureIndex + 1}", EditorStyles.boldLabel);
 			var trashRect = new Rect(row.xMax - LayoutLineHeight, row.y, LayoutLineHeight,
 				LayoutLineHeight);
 			var duplicateRect = new Rect(trashRect.x - LayoutLineHeight - 2f, row.y,
 				LayoutLineHeight, LayoutLineHeight);
 			var duplicate = new GUIContent(EditorGUIUtility.IconContent("TreeEditor.Duplicate")) {
-				tooltip = "Duplicate this leg and foot",
+				tooltip = "Duplicate this stand",
 			};
 			var trash = new GUIContent(EditorGUIUtility.IconContent("TreeEditor.Trash")) {
-				tooltip = "Remove this leg and foot",
+				tooltip = "Remove this stand",
 			};
 			EditorGUIUtility.AddCursorRect(duplicateRect, MouseCursor.Link);
 			EditorGUIUtility.AddCursorRect(trashRect, MouseCursor.Link);
 			if (GUI.Button(duplicateRect, duplicate, GUIStyle.none)) {
-				Edit(component, "Duplicate Wire Rail Leg and Foot",
+				Edit(component, "Duplicate Wire Rail Stand",
 					() => component.DuplicateLegFixture(fixtureIndex));
 				SynchronizeOrder(_fixtureOrder, component.Fixtures.Count, true);
 				GUIUtility.ExitGUI();
 			}
 			if (GUI.Button(trashRect, trash, GUIStyle.none)) {
-				Edit(component, "Remove Wire Rail Leg and Foot",
+				Edit(component, "Remove Wire Rail Stand",
 					() => component.RemoveFixture(fixtureIndex));
 				SynchronizeOrder(_fixtureOrder, component.Fixtures.Count, true);
 				GUIUtility.ExitGUI();
@@ -827,9 +1048,20 @@ namespace VisualPinball.Unity.Editor
 			EditorGUI.LabelField(row, "Leg", EditorStyles.boldLabel);
 
 			row.y += LayoutLineHeight + 3f;
-			var legSide = (WireRailLegSide)EditorGUI.EnumPopup(row,
+			const float mirrorButtonWidth = 58f;
+			var sideRect = new Rect(row.x, row.y,
+				row.width - mirrorButtonWidth - 4f, row.height);
+			var mirrorRect = new Rect(sideRect.xMax + 4f, row.y,
+				mirrorButtonWidth, row.height);
+			var legSide = (WireRailLegSide)EditorGUI.EnumPopup(sideRect,
 				new GUIContent("Side", "End of the bottom-rail attachment where the leg begins."),
 				leg.LegSide);
+			if (GUI.Button(mirrorRect, new GUIContent("Mirror",
+					"Reflect the complete stand to the opposite route-local side."))) {
+				Edit(component, "Mirror Wire Rail Stand",
+					() => component.MirrorLegFixture(fixtureIndex));
+				GUIUtility.ExitGUI();
+			}
 
 			row.y += LayoutLineHeight + 3f;
 			var vector3FieldHeight = GetVector3FieldHeight();
@@ -860,6 +1092,13 @@ namespace VisualPinball.Unity.Editor
 
 			row.y += vector3FieldHeight + 3f;
 			row.height = LayoutLineHeight;
+			var footClockwise = EditorGUI.Toggle(row,
+				new GUIContent("Clockwise",
+					"Reverse the U-hook winding direction around its bend."),
+				leg.FootClockwise);
+
+			row.y += LayoutLineHeight + 3f;
+			row.height = LayoutLineHeight;
 			var footWidth = EditorGUI.FloatField(row,
 				new GUIContent("Width", "Centerline width across the U-hook bend in VPX units."),
 				leg.FootWidth);
@@ -875,11 +1114,11 @@ namespace VisualPinball.Unity.Editor
 				leg.FootConnectionLength);
 
 			if (EditorGUI.EndChangeCheck()) {
-				Edit(component, "Edit Wire Rail Leg and Foot", () =>
+				Edit(component, "Edit Wire Rail Stand", () =>
 					component.SetLegFixtureProperties(fixtureIndex, distance, legSide,
 						startDirection, startLength, footPosition, footRotation,
 						footWidth, footLength, footConnectionLength, lateralOffset,
-						verticalOffset, lengthAdjustment));
+						verticalOffset, lengthAdjustment, footClockwise));
 			}
 		}
 
@@ -1052,8 +1291,13 @@ namespace VisualPinball.Unity.Editor
 				new GUIContent("Show Collider Preview"));
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("_physicsMaterial"),
 				new GUIContent("Physics Material"));
+			EditorGUILayout.PropertyField(
+				serializedObject.FindProperty("_terminalPhysicsMaterial"),
+				new GUIContent("Terminal Impact Material",
+					"Optional physics material used only by Drop Loop terminal arcs. It takes precedence even when Overwrite Physics is enabled."));
 			var overwritePhysics = serializedObject.FindProperty("_overwritePhysics");
-			EditorGUILayout.PropertyField(overwritePhysics, new GUIContent("Overwrite Physics"));
+			EditorGUILayout.PropertyField(overwritePhysics, new GUIContent("Overwrite Physics",
+				"Use the inline values for the channel and Drop Loop leads. A Terminal Impact Material remains a deliberate terminal-only override."));
 			if (overwritePhysics.boolValue) {
 				EditorGUILayout.PropertyField(serializedObject.FindProperty("_elasticity"));
 				EditorGUILayout.PropertyField(serializedObject.FindProperty("_elasticityFalloff"));
@@ -1071,8 +1315,12 @@ namespace VisualPinball.Unity.Editor
 
 			var colliderMesh = component.ColliderMesh;
 			if (colliderMesh && colliderMesh.subMeshCount > 0) {
-				EditorGUILayout.LabelField("Generated",
-					$"{colliderMesh.GetIndexCount(0) / 3} triangles");
+				var triangleCount = 0UL;
+				for (var submeshIndex = 0; submeshIndex < colliderMesh.subMeshCount;
+					submeshIndex++) {
+					triangleCount += colliderMesh.GetIndexCount(submeshIndex) / 3;
+				}
+				EditorGUILayout.LabelField("Generated", $"{triangleCount} triangles");
 			}
 			if (GUILayout.Button("Rebuild Collider")) {
 				component.RebuildColliderMesh();
@@ -1881,7 +2129,14 @@ namespace VisualPinball.Unity.Editor
 				if (component.Fixtures[fixtureIndex] is WireRailLegFixture leg) {
 					if (WireRailSplineGeometry.TryEvaluateLeg(spline, component.Segments, leg,
 							out var points)) {
-						AddFixturePreview(points, $"Leg & Foot {fixtureIndex + 1}");
+						AddFixturePreview(points, $"Stand {fixtureIndex + 1}");
+					}
+					continue;
+				}
+				if (component.Fixtures[fixtureIndex] is WireRailDropLoopFixture dropLoop) {
+					if (WireRailSplineGeometry.TryEvaluateDropLoop(spline, component.Segments,
+							dropLoop, out var points)) {
+						AddFixturePreview(points, $"Drop Loop {fixtureIndex + 1}");
 					}
 					continue;
 				}
