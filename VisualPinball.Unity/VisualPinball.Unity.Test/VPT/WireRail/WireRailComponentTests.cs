@@ -290,11 +290,12 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldRemoveInternalCapsFromAContinuousWire()
 		{
-			const int radialSegments = 8;
+			const int radialSegments = 10;
 			const int trianglesPerRingPair = radialSegments * 2;
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
+				component.SetWireCapBevelSize(0f);
 				var spline = component.SplineContainer.Spline;
 				spline.Add(
 					new BezierKnot(new float3(0f, 1000f, 0f)), TangentMode.AutoSmooth);
@@ -333,10 +334,11 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldOrientRenderRingsPerpendicularToTheWireCenterline()
 		{
-			const int radialSegments = 8;
+			const int radialSegments = 10;
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
+				component.SetWireCapBevelSize(0f);
 				component.SplineContainer.Spline.Add(
 					new BezierKnot(new float3(0f, 1000f, 0f)) {
 						Rotation = quaternion.RotateX(math.PI * 0.5f),
@@ -368,11 +370,12 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldUseTheSameWireFrameAndTangentOnBothSidesOfAConnectedKnot()
 		{
-			const int radialSegments = 8;
+			const int radialSegments = 10;
 			const int capVertexCount = radialSegments + 1;
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
+				component.SetWireCapBevelSize(0f);
 				component.SplineContainer.Spline.Add(
 					new BezierKnot(new float3(0f, 1000f, 0f)) {
 						Rotation = quaternion.RotateX(math.PI * 0.5f),
@@ -833,7 +836,7 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldConnectTheTwoBottomRailsWithACrossWireByDefault()
 		{
-			const int radialSegments = 8;
+			const int radialSegments = 10;
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
@@ -861,9 +864,9 @@ namespace VisualPinball.Unity.Test
 				WireRailSolderMeshGenerator.CollectTouches(component.SplineContainer.Spline,
 					component.Segments, component.Fixtures, crossWire, touches);
 				Assert.That(component.RenderMesh.triangles.Length / 3 - railTriangleCount,
-					Is.EqualTo(radialSegments * 4 + touches.Count
+					Is.EqualTo(radialSegments * 8 + touches.Count
 						* WireRailSolderMeshGenerator.TrianglesPerBlob),
-					"the cross wire should have one tube span, two caps, and its solder joins");
+					"the cross wire should have one tube span, two beveled caps, and its solder joins");
 			} finally {
 				Object.DestroyImmediate(go);
 			}
@@ -954,7 +957,7 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldOmitDegenerateCrossWireBodyAtMaximumBevel()
 		{
-			const int radialSegments = 8;
+			const int radialSegments = 10;
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
@@ -1350,7 +1353,7 @@ namespace VisualPinball.Unity.Test
 		[TestCase(WireRailEndpoint.End)]
 		public void ShouldUseFlatRailCapsWhereADropLoopAttaches(WireRailEndpoint endpoint)
 		{
-			const int radialSegments = 8;
+			const int radialSegments = 10;
 			const float capBevelSize = 2f;
 			var go = new GameObject("Wire Rail");
 			try {
@@ -1410,7 +1413,7 @@ namespace VisualPinball.Unity.Test
 		public void ShouldCapADropLoopAndRailEndsWhenItsOffsetDetachesIt(
 			WireRailEndpoint endpoint)
 		{
-			const int radialSegments = 8;
+			const int radialSegments = 10;
 			const float capBevelSize = 2f;
 			var go = new GameObject("Wire Rail");
 			try {
@@ -1453,7 +1456,8 @@ namespace VisualPinball.Unity.Test
 				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateDropLoopProfile(spline,
 					component.Segments, dropLoop, out var profile), Is.True);
 				Assert.That(fixtureVertices.Count,
-					Is.EqualTo(profile.CenterlinePoints.Count * radialSegments + 50),
+					Is.EqualTo(profile.CenterlinePoints.Count * radialSegments
+						+ radialSegments * 6 + 2),
 					"both fitting mouths should receive a beveled cap");
 				Assert.That(component.ColliderMesh.GetIndexCount(0),
 					Is.EqualTo(originalColliderIndexCount + 204),
@@ -2010,10 +2014,11 @@ namespace VisualPinball.Unity.Test
 					Is.True);
 				var attachedRingCenter = float3.zero;
 				var renderVertices = component.RenderMesh.vertices;
-				for (var vertexIndex = 0; vertexIndex < 8; vertexIndex++) {
+				const int radialSegments = 10;
+				for (var vertexIndex = 0; vertexIndex < radialSegments; vertexIndex++) {
 					attachedRingCenter += (float3)renderVertices[vertexIndex];
 				}
-				attachedRingCenter /= 8f;
+				attachedRingCenter /= radialSegments;
 				Assert.That(math.distance(attachedRingCenter,
 					profile.FirstRailPoints[0]), Is.LessThan(0.001f),
 					"a duplicate-distance start layout must not leave a cap bevel inside the fitting");
@@ -2451,7 +2456,7 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldGenerateFullAndCutoutBraceGeometry()
 		{
-			const int radialSegments = 8;
+			const int radialSegments = 10;
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
@@ -2475,7 +2480,7 @@ namespace VisualPinball.Unity.Test
 				var cutoutBraceTriangleCount = component.RenderMesh.triangles.Length / 3
 					- railTriangleCount;
 				Assert.That(cutoutBraceTriangleCount,
-					Is.EqualTo(24 * radialSegments * 2 + radialSegments * 2
+					Is.EqualTo(24 * radialSegments * 2 + radialSegments * 6
 						+ touches.Count * WireRailSolderMeshGenerator.TrianglesPerBlob),
 					"a 90-degree cutout should leave a capped three-quarter brace");
 
@@ -2487,7 +2492,7 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldUseTheAuthoredBraceRingDensity()
 		{
-			const int radialSegments = 8;
+			const int radialSegments = 10;
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
@@ -2513,10 +2518,11 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldBevelEveryExposedRailAndFixtureCap()
 		{
-			const int radialSegments = 8;
+			const int radialSegments = 10;
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
+				component.SetWireCapBevelSize(0f);
 				component.SetRailCount(2);
 				var fixtureIndex = component.AddBraceFixture(250f);
 				component.SetBraceFixtureProperties(fixtureIndex, 250f,
@@ -3121,11 +3127,12 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldAdaptAndKeepTheLastRingsOnAForwardWirePath()
 		{
-			const int radialSegments = 8;
+			const int radialSegments = 10;
 			const int capVertexCount = radialSegments + 1;
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
+				component.SetWireCapBevelSize(0f);
 				var spline = component.SplineContainer.Spline;
 				spline.Add(new BezierKnot(new float3(400f, 650f, 200f)) {
 					Rotation = quaternion.RotateX(math.PI * 0.5f),
@@ -3333,10 +3340,11 @@ namespace VisualPinball.Unity.Test
 
 				Assert.That(component.Segments[0].GetRailOffset(0),
 					Is.EqualTo(new Vector2(-22f, 1f)));
-				Assert.That(component.Segments[0].GetWireDiameter(0), Is.EqualTo(8f));
-				Assert.That(component.Segments[0].GetWireDiameter(1), Is.EqualTo(8f));
-				Assert.That(component.Segments[0].GetWireDiameter(2), Is.EqualTo(8f));
-				Assert.That(component.RenderMesh.bounds.min.x, Is.EqualTo(-26f).Within(0.05f));
+				Assert.That(component.Segments[0].GetWireDiameter(0), Is.EqualTo(6.5f));
+				Assert.That(component.Segments[0].GetWireDiameter(1), Is.EqualTo(6.5f));
+				Assert.That(component.Segments[0].GetWireDiameter(2), Is.EqualTo(6.5f));
+				Assert.That(component.RenderMesh.bounds.min.x,
+					Is.EqualTo(-25.25f).Within(0.05f));
 				Assert.That(component.ColliderMesh.vertexCount, Is.GreaterThan(0));
 			} finally {
 				Object.DestroyImmediate(go);
@@ -3558,7 +3566,7 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldGenerateVisibleOctagonalWireTubes()
+		public void ShouldGenerateVisibleDecagonalWireTubesWithTheAuthoringDefaults()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
@@ -3568,8 +3576,10 @@ namespace VisualPinball.Unity.Test
 				Assert.That(mesh, Is.Not.Null);
 				Assert.That(mesh.vertexCount, Is.GreaterThan(0));
 				Assert.That(mesh.normals, Has.Length.EqualTo(mesh.vertexCount));
-				Assert.That(mesh.bounds.min.x, Is.EqualTo(-34f).Within(0.05f));
-				Assert.That(mesh.bounds.max.x, Is.EqualTo(34f).Within(0.05f));
+				Assert.That(component.WireDiameter, Is.EqualTo(6.5f));
+				Assert.That(component.WireCapBevelSize, Is.EqualTo(0.5f));
+				Assert.That(mesh.bounds.min.x, Is.EqualTo(-33.25f).Within(0.05f));
+				Assert.That(mesh.bounds.max.x, Is.EqualTo(33.25f).Within(0.05f));
 				Assert.That(mesh.hideFlags & HideFlags.DontSaveInEditor,
 					Is.EqualTo(HideFlags.DontSaveInEditor));
 				Assert.That(mesh.hideFlags & HideFlags.DontSaveInBuild,
@@ -3579,6 +3589,8 @@ namespace VisualPinball.Unity.Test
 				Assert.That(component.ColliderMesh.hideFlags & HideFlags.DontSaveInBuild,
 					Is.EqualTo(HideFlags.DontSaveInBuild));
 				var serializedComponent = new SerializedObject(component);
+				Assert.That(serializedComponent.FindProperty("_radialSegments").intValue,
+					Is.EqualTo(10));
 				Assert.That(serializedComponent.FindProperty("_renderMesh"), Is.Null);
 				Assert.That(serializedComponent.FindProperty("_colliderMesh"), Is.Null);
 				Assert.That(component.SplineContainer.GetComponent<MeshFilter>().sharedMesh,
@@ -3588,6 +3600,17 @@ namespace VisualPinball.Unity.Test
 			finally {
 				Object.DestroyImmediate(go);
 			}
+		}
+
+		[Test]
+		public void ShouldKeepTheLegacyReferenceDiameterForUninitializedSegments()
+		{
+			var segment = new WireRailSegment();
+
+			Assert.That(WireRailLayout.DefaultWireDiameter, Is.EqualTo(6.5f));
+			Assert.That(WireRailLayout.ReferenceWireDiameter, Is.EqualTo(8f));
+			Assert.That(segment.GetWireDiameter(0), Is.EqualTo(8f),
+				"a segment without owning-component context must retain the legacy fallback");
 		}
 
 		[Test]
@@ -3671,8 +3694,8 @@ namespace VisualPinball.Unity.Test
 
 				var renderSignature = ComputeMeshSignature(component.RenderMesh);
 				var colliderSignature = ComputeMeshSignature(component.ColliderMesh);
-				Assert.That(renderSignature, Is.EqualTo(17072644389769550800UL));
-				Assert.That(colliderSignature, Is.EqualTo(1724548557158559258UL));
+				Assert.That(renderSignature, Is.EqualTo(1557523280122205228UL));
+				Assert.That(colliderSignature, Is.EqualTo(5994109088990827143UL));
 
 				component.RebuildGeneratedMeshes();
 
@@ -4148,6 +4171,208 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldLinearlyWidenTheColliderRadiusFromEachEndpoint()
+		{
+			var widening = new WireRailColliderWidening(true, 2f, 100f,
+				true, 3f, 50f);
+
+			Assert.That(widening.EvaluateRadius(25f, 0f, 500f), Is.EqualTo(50f));
+			Assert.That(widening.EvaluateRadius(25f, 50f, 500f), Is.EqualTo(37.5f));
+			Assert.That(widening.EvaluateRadius(25f, 100f, 500f), Is.EqualTo(25f));
+			Assert.That(widening.EvaluateRadius(25f, 475f, 500f), Is.EqualTo(50f));
+			Assert.That(widening.EvaluateRadius(25f, 500f, 500f), Is.EqualTo(75f));
+
+			var overlapping = new WireRailColliderWidening(true, 2f, 100f,
+				true, 3f, 100f);
+			Assert.That(overlapping.EvaluateRadius(25f, 50f, 100f), Is.EqualTo(50f),
+				"overlapping tapers must select the larger radius instead of multiplying them");
+		}
+
+		[Test]
+		public void ShouldKeepWidenedColliderTopologyBasedOnTheReferenceBallDiameter()
+		{
+			var offsets = WireRailLayout.CreateDefaultOffsets(6);
+			offsets[4] = new Vector2(-35f, 60f);
+			offsets[5] = new Vector2(35f, 60f);
+			var wireRadii = Enumerable.Repeat(4f, 6).ToArray();
+
+			Assert.That(WireRailChannelProfile.TryCreate(offsets, wireRadii, 50f, 50f,
+				new Vector2(0f, 30f), null, false, out var profile, out _, out var error),
+				Is.True, error);
+			Assert.That(profile.IsClosed, Is.False);
+			Assert.That(profile.TopOpening.IsValid, Is.True);
+		}
+
+		[Test]
+		public void ShouldWidenTheColliderStartOverAuthoredRouteLength()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var baselineMesh = component.ColliderMesh;
+				var baselineSignature = ComputeMeshSignature(baselineMesh);
+				var baselineVertexCount = baselineMesh.vertexCount;
+				var rowSize = baselineVertexCount / 2;
+				var baselineExtent = CrossSectionExtent(baselineMesh.vertices, 0, rowSize);
+				var renderSignature = ComputeMeshSignature(component.RenderMesh);
+				component.SetColliderWidening(true, 1f, 100f,
+					true, 1f, 100f);
+				Assert.That(ComputeMeshSignature(component.ColliderMesh),
+					Is.EqualTo(baselineSignature),
+					"a size multiplier of 1 must leave geometry and tessellation unchanged");
+
+				component.SetColliderWidening(true, 2f, 100f,
+					false, 1f, 100f);
+
+				var widenedMesh = component.ColliderMesh;
+				var widenedVertices = widenedMesh.vertices;
+				Assert.That(component.WidenStart, Is.True);
+				Assert.That(component.WidenStartSize, Is.EqualTo(2f));
+				Assert.That(component.WidenStartLength, Is.EqualTo(100f));
+				Assert.That(ComputeMeshSignature(widenedMesh),
+					Is.Not.EqualTo(baselineSignature));
+				Assert.That(ComputeMeshSignature(component.RenderMesh), Is.EqualTo(renderSignature),
+					"collider widening must not rebuild or alter the visible wires");
+				Assert.That(widenedMesh.vertexCount, Is.GreaterThan(baselineVertexCount));
+				Assert.That(CrossSectionExtent(widenedVertices, 0, rowSize),
+					Is.GreaterThan(baselineExtent));
+
+				Assert.That(WireRailSplineGeometry.TryEvaluateDistance(
+					component.SplineContainer.Spline, 100f, out var taperEndFrame), Is.True);
+				var taperEndRow = FindRowAtRouteY(widenedVertices, rowSize,
+					taperEndFrame.Position.y);
+				Assert.That(taperEndRow, Is.GreaterThanOrEqualTo(0),
+					"the authored taper length must create an exact collider row; rows: "
+					+ string.Join(", ", Enumerable.Range(0, widenedVertices.Length / rowSize)
+						.Select(row => AverageRowY(widenedVertices, row * rowSize, rowSize))));
+				Assert.That(CrossSectionExtent(widenedVertices, taperEndRow, rowSize),
+					Is.EqualTo(baselineExtent).Within(0.01f));
+				Assert.That(CrossSectionExtent(widenedVertices,
+					widenedVertices.Length - rowSize, rowSize),
+					Is.EqualTo(baselineExtent).Within(0.01f));
+
+				component.SetColliderWidening(false, 1f, 100f,
+					true, 1.5f, 75f);
+				var widenedExitVertices = component.ColliderMesh.vertices;
+				Assert.That(component.WidenStart, Is.False);
+				Assert.That(component.WidenExit, Is.True);
+				Assert.That(component.WidenExitSize, Is.EqualTo(1.5f));
+				Assert.That(component.WidenExitLength, Is.EqualTo(75f));
+				Assert.That(CrossSectionExtent(widenedExitVertices, 0, rowSize),
+					Is.EqualTo(baselineExtent).Within(0.01f));
+				Assert.That(CrossSectionExtent(widenedExitVertices,
+					widenedExitVertices.Length - rowSize, rowSize),
+					Is.GreaterThan(baselineExtent));
+			}
+			finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldNotInvalidateColliderGeometryWhenWideningIsUnchanged()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				Assert.That(component.ColliderMesh, Is.Not.Null);
+				var geometryVersion = component.ColliderGeometryVersion;
+
+				component.SetColliderWidening(component.WidenStart,
+					component.WidenStartSize, component.WidenStartLength,
+					component.WidenExit, component.WidenExitSize, component.WidenExitLength);
+
+				Assert.That(component.ColliderGeometryVersion, Is.EqualTo(geometryVersion));
+				Assert.That(component.ColliderGeometryDirty, Is.False);
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[TestCase(WireRailEndpoint.Start)]
+		[TestCase(WireRailEndpoint.End)]
+		public void ShouldAlignDropFacesWithAWidenedColliderEndpoint(WireRailEndpoint endpoint)
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SetRailCount(2);
+				component.SetColliderWidening(endpoint == WireRailEndpoint.Start, 2f, 100f,
+					endpoint == WireRailEndpoint.End, 2f, 100f);
+				component.AddDropFixture(endpoint);
+
+				var vertices = component.ColliderMesh.vertices;
+				const int dropVertexCount = 8;
+				var channelVertexCount = vertices.Length - dropVertexCount;
+				Assert.That(channelVertexCount, Is.GreaterThan(0));
+				for (var dropVertex = channelVertexCount;
+					dropVertex < vertices.Length; dropVertex += 2) {
+					Assert.That(vertices.Take(channelVertexCount).Any(channelVertex =>
+						Vector3.Distance(channelVertex, vertices[dropVertex]) < 0.0001f), Is.True,
+						"each widened drop face must start on a vertex of the channel endpoint");
+				}
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldPreserveTrimAndWideningBoundariesInTheSameCollider()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SetRailCount(2);
+				var baselineMesh = component.ColliderMesh;
+				var rowSize = baselineMesh.vertexCount / 2;
+				var baselineExtent = CrossSectionExtent(baselineMesh.vertices, 0, rowSize);
+				var trimIndex = component.AddRailTrimFixture(WireRailEndpoint.Start);
+				component.SetRailTrimFixtureProperties(trimIndex, WireRailEndpoint.Start,
+					new[] { 40f, 40f });
+				component.SetColliderWidening(true, 2f, 100f,
+					false, 1f, 100f);
+
+				var vertices = component.ColliderMesh.vertices;
+				Assert.That(WireRailSplineGeometry.TryEvaluateDistance(
+					component.SplineContainer.Spline, 40f, out var trimFrame), Is.True);
+				Assert.That(WireRailSplineGeometry.TryEvaluateDistance(
+					component.SplineContainer.Spline, 100f, out var taperFrame), Is.True);
+				var trimRow = FindRowAtRouteY(vertices, rowSize, trimFrame.Position.y);
+				var taperRow = FindRowAtRouteY(vertices, rowSize, taperFrame.Position.y);
+				Assert.That(trimRow, Is.GreaterThanOrEqualTo(0),
+					"the shared rail-trim boundary must remain an exact collider row");
+				Assert.That(taperRow, Is.GreaterThanOrEqualTo(0),
+					"the widening boundary must remain an exact collider row");
+				Assert.That(CrossSectionExtent(vertices, trimRow, rowSize),
+					Is.GreaterThan(baselineExtent));
+				Assert.That(CrossSectionExtent(vertices, taperRow, rowSize),
+					Is.EqualTo(baselineExtent).Within(0.01f));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldIgnoreEndpointWideningOnAClosedRoute()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SplineContainer.Spline.Closed = true;
+				var baselineSignature = ComputeMeshSignature(component.ColliderMesh);
+
+				component.SetColliderWidening(true, 2f, 100f,
+					true, 2f, 100f);
+
+				Assert.That(ComputeMeshSignature(component.ColliderMesh),
+					Is.EqualTo(baselineSignature));
+			}
+			finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
 		public void ShouldTessellateTheColliderFromCurvatureInsteadOfKnotCount()
 		{
 			var go = new GameObject("Wire Rail");
@@ -4276,6 +4501,38 @@ namespace VisualPinball.Unity.Test
 				sum += vertices[index].x;
 			}
 			return sum / count;
+		}
+
+		private static int FindRowAtRouteY(Vector3[] vertices, int rowSize, float routeY)
+		{
+			for (var rowStart = 0; rowStart <= vertices.Length - rowSize;
+				rowStart += rowSize) {
+				if (math.abs(AverageRowY(vertices, rowStart, rowSize) - routeY) <= 0.001f) {
+					return rowStart;
+				}
+			}
+			return -1;
+		}
+
+		private static float AverageRowY(Vector3[] vertices, int start, int count)
+		{
+			var sum = 0f;
+			for (var index = start; index < start + count; index++) {
+				sum += vertices[index].y;
+			}
+			return sum / count;
+		}
+
+		private static float CrossSectionExtent(Vector3[] vertices, int start, int count)
+		{
+			var minimum = new float2(float.PositiveInfinity);
+			var maximum = new float2(float.NegativeInfinity);
+			for (var index = start; index < start + count; index++) {
+				var point = new float2(vertices[index].x, vertices[index].z);
+				minimum = math.min(minimum, point);
+				maximum = math.max(maximum, point);
+			}
+			return math.csum(maximum - minimum);
 		}
 
 		private static bool RowsMatch(Vector3[] vertices, int firstStart, int secondStart,

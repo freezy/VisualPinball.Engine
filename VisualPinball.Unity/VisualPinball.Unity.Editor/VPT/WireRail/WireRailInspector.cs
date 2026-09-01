@@ -52,7 +52,8 @@ namespace VisualPinball.Unity.Editor
 			": offset or diameter changes across this physical span.";
 		private const float LayoutLineHeight = 20f;
 		private const float LayoutPadding = 7f;
-		private const float SolderRowHeight = LayoutLineHeight + 3f;
+		private const float SolderRowsContentHeight = LayoutLineHeight * 2f + 3f;
+		private const float SolderRowHeight = SolderRowsContentHeight + 3f;
 		private const float FixtureScaleMinimum = 0.1f;
 		private const float FixtureScaleMaximum = 4f;
 		private const int PlanarSplineLengthResolution = 64;
@@ -522,7 +523,7 @@ namespace VisualPinball.Unity.Editor
 				or WireRailDropLoopFixture) {
 				return;
 			}
-			var solderRect = new Rect(content.x, content.yMax - LayoutLineHeight,
+			var solderRect = new Rect(content.x, content.yMax - SolderRowsContentHeight,
 				content.width, LayoutLineHeight);
 			EditorGUI.BeginChangeCheck();
 			var solderThreshold = math.max(0f, EditorGUI.DelayedFloatField(solderRect,
@@ -532,6 +533,17 @@ namespace VisualPinball.Unity.Editor
 			if (EditorGUI.EndChangeCheck()) {
 				Edit(component, "Edit Wire Rail Solder Threshold", () =>
 					component.SetFixtureSolderThreshold(fixtureIndex, solderThreshold));
+			}
+			solderRect.y += LayoutLineHeight + 3f;
+			EditorGUI.BeginChangeCheck();
+			var solderSize = math.max(0.01f, EditorGUI.DelayedFloatField(solderRect,
+				new GUIContent("Solder Size",
+					"Uniform scale of this fixture's solder blobs. A value of 1 uses the "
+					+ "default size; doubling it produces eight times the volume."),
+				component.Fixtures[fixtureIndex].SolderSize));
+			if (EditorGUI.EndChangeCheck()) {
+				Edit(component, "Edit Wire Rail Solder Size", () =>
+					component.SetFixtureSolderSize(fixtureIndex, solderSize));
 			}
 		}
 
@@ -1419,6 +1431,46 @@ namespace VisualPinball.Unity.Editor
 				new GUIContent("Curvature Detail",
 					"Controls adaptive collider tessellation. Curves receive more rows while "
 					+ "straight spans remain sparse."));
+			var spline = component.SplineContainer
+				? component.SplineContainer.Spline : null;
+			var closedRoute = spline != null && spline.Closed;
+			using (new EditorGUI.DisabledScope(closedRoute)) {
+				var widenStart = serializedObject.FindProperty("_widenStart");
+				EditorGUILayout.PropertyField(widenStart, new GUIContent("Widen Start",
+					"Enlarge the collider radius at the start of an open route."));
+				if (widenStart.boolValue) {
+					EditorGUI.indentLevel++;
+					EditorGUILayout.PropertyField(serializedObject.FindProperty("_widenStartSize"),
+						new GUIContent("Size",
+							"Multiplier applied to the collider radius at the route start. A value "
+							+ "of 1 leaves it unchanged."));
+					EditorGUILayout.PropertyField(serializedObject.FindProperty("_widenStartLength"),
+						new GUIContent("Length",
+							"Route distance over which the enlarged radius linearly returns to its "
+							+ "normal size."));
+					EditorGUI.indentLevel--;
+				}
+				var widenExit = serializedObject.FindProperty("_widenExit");
+				EditorGUILayout.PropertyField(widenExit, new GUIContent("Widen Exit",
+					"Enlarge the collider radius at the exit of an open route."));
+				if (widenExit.boolValue) {
+					EditorGUI.indentLevel++;
+					EditorGUILayout.PropertyField(serializedObject.FindProperty("_widenExitSize"),
+						new GUIContent("Size",
+							"Multiplier applied to the collider radius at the route exit. A value "
+							+ "of 1 leaves it unchanged."));
+					EditorGUILayout.PropertyField(serializedObject.FindProperty("_widenExitLength"),
+						new GUIContent("Length",
+							"Route distance over which the enlarged radius linearly returns to its "
+							+ "normal size."));
+					EditorGUI.indentLevel--;
+				}
+			}
+			if (closedRoute) {
+				EditorGUILayout.HelpBox(
+					"Endpoint widening is unavailable on a closed spline because it has no start or exit.",
+					MessageType.Info);
+			}
 			var colliderGeometryChanged = EditorGUI.EndChangeCheck();
 			EditorGUI.BeginChangeCheck();
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("_showColliderPreview"),
