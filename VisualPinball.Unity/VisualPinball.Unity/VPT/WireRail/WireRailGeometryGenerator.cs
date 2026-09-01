@@ -305,6 +305,39 @@ namespace VisualPinball.Unity
 			return true;
 		}
 
+		public static bool TryEvaluateDrop(Spline spline,
+			IReadOnlyList<WireRailSegment> segments, WireRailDropFixture drop,
+			out IReadOnlyList<float3> firstRailPoints,
+			out IReadOnlyList<float3> secondRailPoints)
+		{
+			firstRailPoints = Array.Empty<float3>();
+			secondRailPoints = Array.Empty<float3>();
+			if (!WireRailFixtureMeshGenerator.TryEvaluateDropProfile(spline, segments,
+					drop, out var profile)) {
+				return false;
+			}
+			firstRailPoints = profile.FirstRailPoints;
+			secondRailPoints = profile.SecondRailPoints;
+			return true;
+		}
+
+		internal static int GetLayoutIndexAtDistance(
+			IReadOnlyList<WireRailSegment> segments, float distance, float splineLength)
+		{
+			if (segments == null || segments.Count == 0) {
+				return -1;
+			}
+			var clampedDistance = math.clamp(distance, 0f, math.max(0f, splineLength));
+			var segmentIndex = segments.Count - 1;
+			for (var layoutIndex = 1; layoutIndex < segments.Count; layoutIndex++) {
+				if (clampedDistance < segments[layoutIndex].Distance) {
+					segmentIndex = layoutIndex - 1;
+					break;
+				}
+			}
+			return segmentIndex;
+		}
+
 		public static float2 EvaluateRailOffset(Spline spline,
 			IReadOnlyList<WireRailSegment> segments, int segmentIndex, int railIndex,
 			float curveT)
@@ -730,44 +763,117 @@ namespace VisualPinball.Unity
 		public const int MaximumRailCount = 6;
 		private const float MinimumSpan = 1e-5f;
 
-		public static void Collect(Spline spline, IReadOnlyList<WireRailFixture> fixtures,
-			float[] startOffsets, float[] endOffsets)
+		// A drop only contributes geometry and trimming when its two rails are a distinct, active
+		// pair at the actual attachment (the endpoint moved inward by the offset, which may cross
+		// a layout boundary). Every drop path uses this so caps, trims, colliders, and validation
+		// stay consistent across boundaries.
+		internal static bool IsDropGeneratable(IReadOnlyList<WireRailSegment> segments,
+			WireRailDropFixture drop, float splineLength)
+		{
+			if (drop == null || segments == null || segments.Count == 0
+				|| drop.FirstRailIndex == drop.SecondRailIndex
+				|| drop.FirstRailIndex < 0 || drop.SecondRailIndex < 0) {
+				return false;
+			}
+			var railTrim = math.max(0f, drop.Offset);
+			var attachmentDistance = math.clamp(drop.Endpoint == WireRailEndpoint.Start
+				? railTrim : splineLength - railTrim, 0f, splineLength);
+			var segmentIndex = WireRailSplineGeometry.GetLayoutIndexAtDistance(segments,
+				attachmentDistance, splineLength);
+			if (segmentIndex < 0) {
+				return false;
+			}
+			var segment = segments[segmentIndex];
+			return drop.FirstRailIndex < segment.RailCount
+				&& drop.SecondRailIndex < segment.RailCount
+				&& segment.IsRailActive(drop.FirstRailIndex)
+				&& segment.IsRailActive(drop.SecondRailIndex);
+		}
+
+		public static void Collect(Spline spline, IReadOnlyList<WireRailSegment> segments,
+			IReadOnlyList<WireRailFixture> fixtures,
+			float[] startOffsets, float[] endOffsets, bool includeDrop = true)
 		{
 			Array.Clear(startOffsets, 0, startOffsets.Length);
 			Array.Clear(endOffsets, 0, endOffsets.Length);
 			if (spline == null || spline.Closed || fixtures == null) {
 				return;
 			}
+			var splineLength = spline.GetLength();
 			foreach (var fixture in fixtures) {
-				if (fixture is not WireRailTrimFixture railTrim) {
-					continue;
-				}
-				var destination = railTrim.Endpoint == WireRailEndpoint.Start
-					? startOffsets : endOffsets;
-				var railCount = math.min(destination.Length, railTrim.RailCount);
-				for (var railIndex = 0; railIndex < railCount; railIndex++) {
-					destination[railIndex] = math.max(destination[railIndex],
-						railTrim.GetRailOffset(railIndex));
+				if (fixture is WireRailTrimFixture railTrim) {
+					var destination = railTrim.Endpoint == WireRailEndpoint.Start
+						? startOffsets : endOffsets;
+					var railCount = math.min(destination.Length, railTrim.RailCount);
+					for (var railIndex = 0; railIndex < railCount; railIndex++) {
+						destination[railIndex] = math.max(destination[railIndex],
+							railTrim.GetRailOffset(railIndex));
+					}
+				} else if (includeDrop && fixture is WireRailDropFixture drop) {
+					// A non-generatable or conflicting drop omits the whole fixture, so it then
+					// contributes nothing — neither the offset trim nor the other cutoffs.
+					if (!IsDropGeneratable(segments, drop, splineLength)
+						|| HasRailTrimConflict(fixtures, drop.Endpoint,
+							drop.FirstRailIndex, drop.SecondRailIndex, drop)) {
+						continue;
+					}
+					var destination = drop.Endpoint == WireRailEndpoint.Start
+						? startOffsets : endOffsets;
+					var railCount = math.min(destination.Length, drop.RailCount);
+					// The offset shortens the two attached rails so the drop starts before the
+					// endpoint; the other rails keep their own cutoffs.
+					var attachedTrim = math.max(0f, drop.Offset);
+					for (var railIndex = 0; railIndex < railCount; railIndex++) {
+						var trim = drop.IsAttachedRail(railIndex)
+							? attachedTrim
+							: drop.GetRailOffset(railIndex);
+						destination[railIndex] = math.max(destination[railIndex], trim);
+					}
 				}
 			}
 		}
 
+		// When the caller passes the fixture it is evaluating as requestingFixture, that fixture
+		// is skipped and another Drop's positive Offset (which shortens its own attached rails)
+		// also counts as a conflict on a shared rail. Callers that cannot identify themselves
+		// (e.g. the inspector) pass null and get only the rail-cutoff conflicts.
 		public static bool HasRailTrimConflict(IReadOnlyList<WireRailFixture> fixtures,
-			WireRailEndpoint endpoint, int firstRailIndex, int secondRailIndex)
+			WireRailEndpoint endpoint, int firstRailIndex, int secondRailIndex,
+			WireRailFixture requestingFixture = null)
 		{
 			if (fixtures == null || firstRailIndex < 0 || secondRailIndex < 0) {
 				return false;
 			}
 			foreach (var fixture in fixtures) {
-				if (fixture is not WireRailTrimFixture railTrim
-					|| railTrim.Endpoint != endpoint) {
+				if (ReferenceEquals(fixture, requestingFixture)) {
 					continue;
 				}
-				if ((firstRailIndex < railTrim.RailCount
-						&& railTrim.GetRailOffset(firstRailIndex) > MinimumSpan)
-					|| (secondRailIndex < railTrim.RailCount
-						&& railTrim.GetRailOffset(secondRailIndex) > MinimumSpan)) {
-					return true;
+				if (fixture is WireRailTrimFixture railTrim
+					&& railTrim.Endpoint == endpoint) {
+					if (firstRailIndex < railTrim.RailCount
+							&& railTrim.GetRailOffset(firstRailIndex) > MinimumSpan
+						|| secondRailIndex < railTrim.RailCount
+							&& railTrim.GetRailOffset(secondRailIndex) > MinimumSpan) {
+						return true;
+					}
+				} else if (fixture is WireRailDropFixture drop
+					&& drop.Endpoint == endpoint) {
+					// An invalid drop (equal indices) is not generated, so its offset must not
+					// count as a conflict that would suppress an otherwise valid fitting.
+					if (requestingFixture != null && drop.Offset > MinimumSpan
+						&& drop.FirstRailIndex != drop.SecondRailIndex
+						&& (drop.IsAttachedRail(firstRailIndex)
+							|| drop.IsAttachedRail(secondRailIndex))) {
+						return true;
+					}
+					if (!drop.IsAttachedRail(firstRailIndex)
+							&& firstRailIndex < drop.RailCount
+							&& drop.GetRailOffset(firstRailIndex) > MinimumSpan
+						|| !drop.IsAttachedRail(secondRailIndex)
+							&& secondRailIndex < drop.RailCount
+							&& drop.GetRailOffset(secondRailIndex) > MinimumSpan) {
+						return true;
+					}
 				}
 			}
 			return false;
@@ -866,12 +972,16 @@ namespace VisualPinball.Unity
 			var previousFrames = buffers.PreviousFrames;
 			var evaluationContext = buffers.EvaluationContext;
 			evaluationContext.Reset(spline);
-			WireRailEndpointTrimUtility.Collect(spline, fixtures,
+			var splineLength = evaluationContext.SplineLength;
+			var startEndpointSegmentIndex = WireRailSplineGeometry
+				.GetLayoutIndexAtDistance(segments, 0f, splineLength);
+			var endEndpointSegmentIndex = WireRailSplineGeometry
+				.GetLayoutIndexAtDistance(segments, splineLength, splineLength);
+			WireRailEndpointTrimUtility.Collect(spline, segments, fixtures,
 				buffers.StartTrimOffsets, buffers.EndTrimOffsets);
-			CollectFittedRailEnds(spline, segments, fixtures,
+			CollectFittedRailEnds(spline, segments, fixtures, splineLength,
 				buffers.StartTrimOffsets, buffers.EndTrimOffsets,
 				buffers.FittedStartRails, buffers.FittedEndRails);
-			var splineLength = evaluationContext.SplineLength;
 			for (var segmentIndex = 0; segmentIndex < segments.Count; segmentIndex++) {
 				var segment = segments[segmentIndex];
 				for (var railIndex = 0; railIndex < segment.RailCount; railIndex++) {
@@ -893,10 +1003,13 @@ namespace VisualPinball.Unity
 						&& previousFrames.TryGetValue(railIndex, out var previousFrame)) {
 						previousSegmentFrame = previousFrame;
 					}
-					var omitStartCapBevel = segmentIndex == 0
-						&& buffers.FittedStartRails.Contains(railIndex);
-					var omitEndCapBevel = segmentIndex == segments.Count - 1
-						&& buffers.FittedEndRails.Contains(railIndex);
+					// Omit the fitted flat cap where the rail actually ends: at the endpoint
+					// segment when it reaches the endpoint, or at whichever segment holds its
+					// trimmed end when a Drop offset moved the attachment across a layout.
+					var omitStartCapBevel = buffers.FittedStartRails.Contains(railIndex)
+						&& (trimmedStart || segmentIndex == startEndpointSegmentIndex);
+					var omitEndCapBevel = buffers.FittedEndRails.Contains(railIndex)
+						&& (trimmedEnd || segmentIndex == endEndpointSegmentIndex);
 					if (AppendTube(spline, segments, evaluationContext, segmentIndex, railIndex,
 						startT, endT, samplesPerSegment, radialSegments, wireCapBevelSize,
 						trimmedStart, trimmedEnd, omitStartCapBevel, omitEndCapBevel,
@@ -911,6 +1024,8 @@ namespace VisualPinball.Unity
 			}
 			WireRailFixtureMeshGenerator.Append(spline, segments, fixtures,
 				wireCapBevelSize, radialSegments, vertices, normals, uvs, indices);
+			WireRailSolderMeshGenerator.Append(spline, segments, fixtures,
+				vertices, normals, uvs, indices);
 
 			var mesh = target ? target : new Mesh();
 			mesh.Clear(false);
@@ -927,8 +1042,9 @@ namespace VisualPinball.Unity
 
 		private static void CollectFittedRailEnds(Spline spline,
 			IReadOnlyList<WireRailSegment> segments,
-			IReadOnlyList<WireRailFixture> fixtures, IReadOnlyList<float> startTrimOffsets,
-			IReadOnlyList<float> endTrimOffsets, ISet<int> fittedStartRails,
+			IReadOnlyList<WireRailFixture> fixtures, float splineLength,
+			IReadOnlyList<float> startTrimOffsets, IReadOnlyList<float> endTrimOffsets,
+			ISet<int> fittedStartRails,
 			ISet<int> fittedEndRails)
 		{
 			if (spline == null || spline.Closed || segments == null || segments.Count == 0
@@ -936,34 +1052,56 @@ namespace VisualPinball.Unity
 				return;
 			}
 			foreach (var fixture in fixtures) {
-				if (fixture is not WireRailDropLoopFixture dropLoop) {
+				WireRailEndpoint endpoint;
+				int firstRailIndex;
+				int secondRailIndex;
+				// A Drop's rails join the fitting at its offset attachment, not the spline
+				// endpoint, so validate and pick the fitted segment there — the same point the
+				// drop profile and usability checks use — so the flat cap lands on the same rail.
+				float attachmentDistance;
+				if (fixture is WireRailDropLoopFixture dropLoop) {
+					if (WireRailFixtureMeshGenerator.HasDropLoopAttachmentOffset(dropLoop)) {
+						continue;
+					}
+					endpoint = dropLoop.Endpoint;
+					firstRailIndex = dropLoop.FirstRailIndex;
+					secondRailIndex = dropLoop.SecondRailIndex;
+					attachmentDistance = endpoint == WireRailEndpoint.Start ? 0f : splineLength;
+				} else if (fixture is WireRailDropFixture drop) {
+					endpoint = drop.Endpoint;
+					firstRailIndex = drop.FirstRailIndex;
+					secondRailIndex = drop.SecondRailIndex;
+					var railTrim = math.max(0f, drop.Offset);
+					attachmentDistance = math.clamp(endpoint == WireRailEndpoint.Start
+						? railTrim : splineLength - railTrim, 0f, splineLength);
+				} else {
 					continue;
 				}
 				if (WireRailEndpointTrimUtility.HasRailTrimConflict(fixtures,
-						dropLoop.Endpoint, dropLoop.FirstRailIndex, dropLoop.SecondRailIndex)
-					|| WireRailFixtureMeshGenerator.HasDropLoopAttachmentOffset(dropLoop)) {
+						endpoint, firstRailIndex, secondRailIndex, fixture)) {
 					continue;
 				}
-				var endpointSegment = dropLoop.Endpoint == WireRailEndpoint.Start
-					? segments[0] : segments[^1];
-				if (dropLoop.FirstRailIndex == dropLoop.SecondRailIndex
-					|| dropLoop.FirstRailIndex < 0 || dropLoop.SecondRailIndex < 0
-					|| dropLoop.FirstRailIndex >= endpointSegment.RailCount
-					|| dropLoop.SecondRailIndex >= endpointSegment.RailCount
-					|| !endpointSegment.IsRailActive(dropLoop.FirstRailIndex)
-					|| !endpointSegment.IsRailActive(dropLoop.SecondRailIndex)) {
+				var endpointSegmentIndex = WireRailSplineGeometry.GetLayoutIndexAtDistance(
+					segments, attachmentDistance, splineLength);
+				if (endpointSegmentIndex < 0) {
 					continue;
 				}
-				var fittedRails = dropLoop.Endpoint == WireRailEndpoint.Start
+				var endpointSegment = segments[endpointSegmentIndex];
+				if (firstRailIndex == secondRailIndex
+					|| firstRailIndex < 0 || secondRailIndex < 0
+					|| firstRailIndex >= endpointSegment.RailCount
+					|| secondRailIndex >= endpointSegment.RailCount
+					|| !endpointSegment.IsRailActive(firstRailIndex)
+					|| !endpointSegment.IsRailActive(secondRailIndex)) {
+					continue;
+				}
+				var fittedRails = endpoint == WireRailEndpoint.Start
 					? fittedStartRails : fittedEndRails;
-				var trimOffsets = dropLoop.Endpoint == WireRailEndpoint.Start
-					? startTrimOffsets : endTrimOffsets;
-				if (trimOffsets[dropLoop.FirstRailIndex] <= 1e-5f) {
-					fittedRails.Add(dropLoop.FirstRailIndex);
-				}
-				if (trimOffsets[dropLoop.SecondRailIndex] <= 1e-5f) {
-					fittedRails.Add(dropLoop.SecondRailIndex);
-				}
+				// The attached rails connect to the fixture, so they get no end cap even when
+				// the Drop's offset trims them back: that trim is the drop attachment, not a
+				// cut end. A conflicting trim from another fixture was already rejected above.
+				fittedRails.Add(firstRailIndex);
+				fittedRails.Add(secondRailIndex);
 			}
 		}
 
@@ -1298,6 +1436,34 @@ namespace VisualPinball.Unity
 		}
 	}
 
+	internal readonly struct WireRailDropProfile
+	{
+		public readonly WireRailPathFrame Frame;
+		public readonly IReadOnlyList<float3> FirstRailPoints;
+		public readonly IReadOnlyList<float3> SecondRailPoints;
+		public readonly float FirstRailRadius;
+		public readonly float SecondRailRadius;
+		public readonly int BendStartPointIndex;
+		public readonly float3 FirstDropLinePoint;
+		public readonly float3 SecondDropLinePoint;
+
+		public WireRailDropProfile(WireRailPathFrame frame,
+			IReadOnlyList<float3> firstRailPoints,
+			IReadOnlyList<float3> secondRailPoints,
+			float firstRailRadius, float secondRailRadius, int bendStartPointIndex,
+			float3 firstDropLinePoint, float3 secondDropLinePoint)
+		{
+			Frame = frame;
+			FirstRailPoints = firstRailPoints;
+			SecondRailPoints = secondRailPoints;
+			FirstRailRadius = firstRailRadius;
+			SecondRailRadius = secondRailRadius;
+			BendStartPointIndex = bendStartPointIndex;
+			FirstDropLinePoint = firstDropLinePoint;
+			SecondDropLinePoint = secondDropLinePoint;
+		}
+	}
+
 	internal static class WireRailFixtureMeshGenerator
 	{
 		private const float FullTurn = math.PI * 2f;
@@ -1342,10 +1508,18 @@ namespace VisualPinball.Unity
 						vertices, normals, uvs, indices);
 				} else if (fixture is WireRailDropLoopFixture dropLoop
 					&& !WireRailEndpointTrimUtility.HasRailTrimConflict(fixtures,
-						dropLoop.Endpoint, dropLoop.FirstRailIndex, dropLoop.SecondRailIndex)
+						dropLoop.Endpoint, dropLoop.FirstRailIndex, dropLoop.SecondRailIndex,
+						dropLoop)
 					&& TryEvaluateDropLoopProfile(spline, segments, dropLoop,
 						out var dropLoopProfile)) {
 					AppendDropLoop(dropLoopProfile, dropLoop, wireCapBevelSize,
+						radialSegments, vertices, normals, uvs, indices);
+				} else if (fixture is WireRailDropFixture drop
+					&& !WireRailEndpointTrimUtility.HasRailTrimConflict(fixtures,
+						drop.Endpoint, drop.FirstRailIndex, drop.SecondRailIndex, drop)
+					&& TryEvaluateDropProfile(spline, segments, drop,
+						out var dropProfile)) {
+					AppendDrop(dropProfile, drop, wireCapBevelSize,
 						radialSegments, vertices, normals, uvs, indices);
 				}
 			}
@@ -1933,6 +2107,104 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		internal static bool TryEvaluateDropProfile(Spline spline,
+			IReadOnlyList<WireRailSegment> segments, WireRailDropFixture drop,
+			out WireRailDropProfile profile)
+		{
+			profile = default;
+			if (drop == null || spline == null || spline.Closed) {
+				return false;
+			}
+			// The offset shortens the rails: the drop attaches this far back from the endpoint.
+			var splineLength = spline.GetLength();
+			var railTrim = math.max(0f, drop.Offset);
+			var attachmentDistance = drop.Endpoint == WireRailEndpoint.Start
+				? railTrim : splineLength - railTrim;
+			if (!TryGetSplineLocation(spline, segments, attachmentDistance,
+					out var segmentIndex, out var curveT, out var frame)) {
+				return false;
+			}
+			var segment = segments[segmentIndex];
+			if (drop.FirstRailIndex == drop.SecondRailIndex
+				|| drop.FirstRailIndex < 0 || drop.SecondRailIndex < 0
+				|| drop.FirstRailIndex >= segment.RailCount
+				|| drop.SecondRailIndex >= segment.RailCount
+				|| !segment.IsRailActive(drop.FirstRailIndex)
+				|| !segment.IsRailActive(drop.SecondRailIndex)) {
+				return false;
+			}
+
+			var evaluationContext = new WireRailPathEvaluationContext();
+			if (!WireRailSplineGeometry.TryEvaluateRailPosition(spline, segments,
+					evaluationContext, segmentIndex, drop.FirstRailIndex, curveT,
+					out var firstAttachment)
+				|| !WireRailSplineGeometry.TryEvaluateRailPosition(spline, segments,
+					evaluationContext, segmentIndex, drop.SecondRailIndex, curveT,
+					out var secondAttachment)) {
+				return false;
+			}
+
+			var outward = drop.Endpoint == WireRailEndpoint.Start
+				? -frame.Tangent : frame.Tangent;
+			outward = math.normalizesafe(math.mul(
+				quaternion.AxisAngle(frame.Up, math.radians(drop.ZAngle)), outward),
+				outward);
+			var down = -frame.Up;
+			var bendRadius = math.min(math.max(0.05f, drop.Diameter),
+				drop.DropLength);
+			var firstRailPoints = BuildPath(firstAttachment);
+			var secondRailPoints = BuildPath(secondAttachment);
+			if (firstRailPoints == null || secondRailPoints == null
+				|| firstRailPoints.Count != secondRailPoints.Count) {
+				return false;
+			}
+			var firstRailRadius = WireRailSplineGeometry.EvaluateWireDiameter(spline,
+				segments, segmentIndex, drop.FirstRailIndex, curveT) * 0.5f;
+			var secondRailRadius = WireRailSplineGeometry.EvaluateWireDiameter(spline,
+				segments, segmentIndex, drop.SecondRailIndex, curveT) * 0.5f;
+			const int bendStartPointIndex = 0;
+			var dropLineDistance = bendRadius;
+			profile = new WireRailDropProfile(frame, firstRailPoints, secondRailPoints,
+				firstRailRadius, secondRailRadius, bendStartPointIndex,
+				firstAttachment + outward * dropLineDistance,
+				secondAttachment + outward * dropLineDistance);
+			return true;
+
+			List<float3> BuildPath(float3 attachment)
+			{
+				var bendStart = attachment;
+				var bendCenter = bendStart + down * bendRadius;
+				var bendNormal = math.normalizesafe(math.cross(outward, down));
+				if (math.lengthsq(bendNormal) <= 1e-8f) {
+					return null;
+				}
+				var bendSegments = math.max(2,
+					(int)math.ceil((math.PI * 0.5f) / RoundedCornerMaxAngleStep));
+				var points = new List<float3>(bendSegments + 3);
+				AddDistinct(points, attachment);
+				AddDistinct(points, bendStart);
+				var startRadius = -down * bendRadius;
+				for (var bendIndex = 1; bendIndex <= bendSegments; bendIndex++) {
+					var angle = math.PI * 0.5f * bendIndex / bendSegments;
+					AddDistinct(points, bendCenter + math.mul(
+						quaternion.AxisAngle(bendNormal, angle), startRadius));
+				}
+				var bendEnd = bendCenter + outward * bendRadius;
+				AddDistinct(points, bendEnd
+					+ down * math.max(0f, drop.DropLength - bendRadius));
+				return points;
+
+				static void AddDistinct(ICollection<float3> target, float3 point)
+				{
+					if (target is List<float3> list && list.Count > 0
+						&& math.distancesq(list[^1], point) <= 1e-10f) {
+						return;
+					}
+					target.Add(point);
+				}
+			}
+		}
+
 		private static List<float3> BuildRoundedLegPath(IReadOnlyList<float3> points,
 			int lastCornerIndex, float desiredRadius)
 		{
@@ -2065,13 +2337,8 @@ namespace VisualPinball.Unity
 
 			var length = spline.GetLength();
 			var clampedDistance = math.clamp(distance, 0f, math.max(0f, length));
-			segmentIndex = segments.Count - 1;
-			for (var layoutIndex = 1; layoutIndex < segments.Count; layoutIndex++) {
-				if (clampedDistance < segments[layoutIndex].Distance) {
-					segmentIndex = layoutIndex - 1;
-					break;
-				}
-			}
+			segmentIndex = WireRailSplineGeometry.GetLayoutIndexAtDistance(segments,
+				clampedDistance, length);
 			var startDistance = segments[segmentIndex].Distance;
 			var endDistance = segmentIndex + 1 < segments.Count
 				? segments[segmentIndex + 1].Distance
@@ -2257,6 +2524,19 @@ namespace VisualPinball.Unity
 			AppendPolylineTube(profile.CenterlinePoints, profile.Frame,
 				dropLoop.Diameter, capBevelSize, radialSegments,
 				vertices, normals, uvs, indices, closeEnds, closeEnds);
+		}
+
+		private static void AppendDrop(WireRailDropProfile profile,
+			WireRailDropFixture drop, float capBevelSize, int radialSegments,
+			ICollection<Vector3> vertices, ICollection<Vector3> normals,
+			ICollection<Vector2> uvs, ICollection<int> indices)
+		{
+			AppendPolylineTube(profile.FirstRailPoints, profile.Frame,
+				drop.Diameter, capBevelSize, radialSegments,
+				vertices, normals, uvs, indices, false, true);
+			AppendPolylineTube(profile.SecondRailPoints, profile.Frame,
+				drop.Diameter, capBevelSize, radialSegments,
+				vertices, normals, uvs, indices, false, true);
 		}
 
 		internal static void AppendPolylineTube(IReadOnlyList<float3> sourcePoints,
@@ -3199,8 +3479,18 @@ namespace VisualPinball.Unity
 			var ballRadius = ballDiameter * 0.5f;
 			var evaluationContext = buffers.EvaluationContext;
 			evaluationContext.Reset(spline);
-			WireRailEndpointTrimUtility.Collect(spline, fixtures,
-				buffers.StartTrimOffsets, buffers.EndTrimOffsets);
+			// The Drop's per-rail cutoffs never touch the collider (only its render mesh), but
+			// its offset shortens the colliders of the two rails it connects to: they end that
+			// far short of the endpoint, where the vertical drop faces then take over. The
+			// outer rails keep their full colliders.
+			WireRailEndpointTrimUtility.Collect(spline, segments, fixtures,
+				buffers.StartTrimOffsets, buffers.EndTrimOffsets, includeDrop: false);
+			// Drops exist only on open splines; skip their collider contributions otherwise.
+			if (spline != null && !spline.Closed) {
+				ShortenDropAttachedRailColliders(segments, fixtures,
+					evaluationContext.SplineLength, buffers.StartTrimOffsets,
+					buffers.EndTrimOffsets);
+			}
 
 			for (var segmentIndex = 0; segmentIndex < segments.Count; segmentIndex++) {
 				if (!HasActiveRails(segments[segmentIndex])) {
@@ -3218,6 +3508,7 @@ namespace VisualPinball.Unity
 				topologyRetryCount += segmentTopologyRetryCount;
 			}
 			AppendDropLoopColliders(spline, segments, fixtures, buffers);
+			AppendDropColliders(spline, segments, fixtures, ballRadius, buffers);
 
 			mesh = target ? target : new Mesh();
 			mesh.Clear(false);
@@ -3246,7 +3537,8 @@ namespace VisualPinball.Unity
 			foreach (var fixture in fixtures) {
 				if (fixture is not WireRailDropLoopFixture dropLoop
 					|| WireRailEndpointTrimUtility.HasRailTrimConflict(fixtures,
-						dropLoop.Endpoint, dropLoop.FirstRailIndex, dropLoop.SecondRailIndex)
+						dropLoop.Endpoint, dropLoop.FirstRailIndex, dropLoop.SecondRailIndex,
+						dropLoop)
 					|| !WireRailFixtureMeshGenerator.TryEvaluateDropLoopColliderProfile(spline,
 						segments, dropLoop, out var profile)) {
 					continue;
@@ -3258,6 +3550,184 @@ namespace VisualPinball.Unity
 					profile.TerminalEndSpan,
 					WireRailFixtureMeshGenerator.HasDropLoopAttachmentOffset(dropLoop));
 			}
+		}
+
+		// Shortens the collider only for the two rails the Drop connects to: a positive offset
+		// trims those rails at the drop's attachment so they end that far short of the spline
+		// end, matching the render. The outer rails keep their full colliders.
+		private static void ShortenDropAttachedRailColliders(
+			IReadOnlyList<WireRailSegment> segments,
+			IReadOnlyList<WireRailFixture> fixtures, float splineLength,
+			float[] startOffsets, float[] endOffsets)
+		{
+			if (fixtures == null) {
+				return;
+			}
+			foreach (var fixture in fixtures) {
+				if (fixture is not WireRailDropFixture drop
+					|| !WireRailEndpointTrimUtility.IsDropGeneratable(segments, drop,
+						splineLength)
+					|| WireRailEndpointTrimUtility.HasRailTrimConflict(fixtures,
+						drop.Endpoint, drop.FirstRailIndex, drop.SecondRailIndex, drop)) {
+					continue;
+				}
+				var trim = math.max(0f, drop.Offset);
+				if (trim <= 1e-5f) {
+					continue;
+				}
+				var destination = drop.Endpoint == WireRailEndpoint.Start
+					? startOffsets : endOffsets;
+				Shorten(drop.FirstRailIndex);
+				Shorten(drop.SecondRailIndex);
+
+				void Shorten(int railIndex)
+				{
+					if (railIndex >= 0 && railIndex < destination.Length) {
+						destination[railIndex] = math.max(destination[railIndex], trim);
+					}
+				}
+			}
+		}
+
+		// After the channel is scaled to the drop point, the two floor faces the ball rests on
+		// are extended straight down there for the drop length, so the ball rolls to the
+		// shortened end and then falls once it clears the vertical section.
+		private static void AppendDropColliders(Spline spline,
+			IReadOnlyList<WireRailSegment> segments,
+			IReadOnlyList<WireRailFixture> fixtures, float ballRadius,
+			ColliderBuffers buffers)
+		{
+			// Drops exist only on open splines.
+			if (fixtures == null || spline == null || spline.Closed) {
+				return;
+			}
+			var splineLength = buffers.EvaluationContext.SplineLength;
+			foreach (var fixture in fixtures) {
+				if (fixture is not WireRailDropFixture drop
+					|| !WireRailEndpointTrimUtility.IsDropGeneratable(segments, drop,
+						splineLength)
+					|| WireRailEndpointTrimUtility.HasRailTrimConflict(fixtures,
+						drop.Endpoint, drop.FirstRailIndex, drop.SecondRailIndex, drop)
+					|| !TryGetDropEndpointProfile(spline, segments, drop, ballRadius,
+						buffers, out var frame, out var profile)) {
+					continue;
+				}
+				// The channel floor can have several up-facing spans; the two the ball rests
+				// on are the pair meeting at the lowest point of the cross-section. Only those
+				// two get extended down, matching the V the ball rides into the drop.
+				var lowestVertex = -1;
+				var lowestHeight = float.PositiveInfinity;
+				foreach (var span in profile.Spans) {
+					if (!IsDropFloorSpan(profile, span)) {
+						continue;
+					}
+					UpdateLowest(span.StartVertex);
+					UpdateLowest(span.EndVertex);
+				}
+				if (lowestVertex < 0) {
+					continue;
+				}
+
+				var down = -frame.Up;
+				var vertices = buffers.Vertices;
+				var indices = buffers.Indices;
+				foreach (var span in profile.Spans) {
+					if (!IsDropFloorSpan(profile, span)
+						|| (span.StartVertex != lowestVertex
+							&& span.EndVertex != lowestVertex)) {
+						continue;
+					}
+					var top0 = frame.TransformOffset(profile.Vertices[span.StartVertex]);
+					var top1 = frame.TransformOffset(profile.Vertices[span.EndVertex]);
+					var baseIndex = vertices.Count;
+					vertices.Add((Vector3)top0);
+					vertices.Add((Vector3)(top0 + down * drop.DropLength));
+					vertices.Add((Vector3)top1);
+					vertices.Add((Vector3)(top1 + down * drop.DropLength));
+					AppendTwoSidedQuad(baseIndex, baseIndex + 1, baseIndex + 2,
+						baseIndex + 3, indices);
+				}
+
+				void UpdateLowest(int vertexIndex)
+				{
+					if (profile.Vertices[vertexIndex].y < lowestHeight) {
+						lowestHeight = profile.Vertices[vertexIndex].y;
+						lowestVertex = vertexIndex;
+					}
+				}
+			}
+		}
+
+		private static bool TryGetDropEndpointProfile(Spline spline,
+			IReadOnlyList<WireRailSegment> segments, WireRailDropFixture drop,
+			float ballRadius, ColliderBuffers buffers, out WireRailPathFrame frame,
+			out WireRailChannelProfile profile)
+		{
+			frame = default;
+			profile = null;
+			var splineLength = buffers.EvaluationContext.SplineLength;
+			// The drop point moves back into the rails by a positive offset (the channel is
+			// scaled to end there), so the faces sit on the shortened channel's floor.
+			var railTrim = math.max(0f, drop.Offset);
+			var dropPointDistance = math.clamp(drop.Endpoint == WireRailEndpoint.Start
+				? railTrim : splineLength - railTrim, 0f, splineLength);
+			var segmentIndex = WireRailSplineGeometry.GetLayoutIndexAtDistance(segments,
+				dropPointDistance, splineLength);
+			if (segmentIndex < 0) {
+				return false;
+			}
+			var segment = segments[segmentIndex];
+			var segmentStart = segment.Distance;
+			var segmentEnd = segmentIndex + 1 < segments.Count
+				? segments[segmentIndex + 1].Distance : splineLength;
+			var curveT = segmentEnd > segmentStart
+				? math.saturate((dropPointDistance - segmentStart) / (segmentEnd - segmentStart))
+				: 0f;
+			if (!WireRailSplineGeometry.TryEvaluateLayout(spline, segments, segmentIndex,
+					curveT, out frame)) {
+				return false;
+			}
+			// Build the profile from the rails actually present at the drop point: a rail is
+			// gone here if its own endpoint trim (including this drop's offset on the attached
+			// rails, or another Rail Trim) removed it before this distance. Otherwise the faces
+			// would use a different cross-section than the rendered drop and normal channel.
+			buffers.ActiveRailIndices.Clear();
+			for (var railIndex = 0; railIndex < segment.RailCount; railIndex++) {
+				if (segment.IsRailActive(railIndex)
+					&& dropPointDistance >= buffers.StartTrimOffsets[railIndex] - 1e-4f
+					&& dropPointDistance
+						<= splineLength - buffers.EndTrimOffsets[railIndex] + 1e-4f) {
+					buffers.ActiveRailIndices.Add(railIndex);
+				}
+			}
+			if (buffers.ActiveRailIndices.Count == 0
+				|| !TryCreateProfile(spline, segments, segmentIndex, curveT,
+					buffers.ActiveRailIndices, ballRadius, null, false,
+					out profile, out _, out _)
+				|| profile.Spans.Count == 0) {
+				profile = null;
+				return false;
+			}
+			return true;
+		}
+
+		// A floor span is one whose surface faces up toward the resting ball; those are the
+		// faces the ball actually sits on, so they are the ones the drop extends downward.
+		private static bool IsDropFloorSpan(WireRailChannelProfile profile,
+			WireRailProfileSpan span)
+		{
+			var start = profile.Vertices[span.StartVertex];
+			var end = profile.Vertices[span.EndVertex];
+			var edge = end - start;
+			if (math.lengthsq(edge) <= 1e-8f) {
+				return false;
+			}
+			var inwardNormal = math.normalizesafe(new float2(-edge.y, edge.x));
+			var midpoint = (start + end) * 0.5f;
+			if (math.dot(inwardNormal, profile.RestingBallCenter - midpoint) < 0f) {
+				inwardNormal = -inwardNormal;
+			}
+			return inwardNormal.y > 1e-4f;
 		}
 
 		private static bool TryCreateProfile(Spline spline,

@@ -8,6 +8,7 @@ Built with Unity 6.5
 
 ### Added
 
+- Wire Rail component with native spline authoring, fixtures (braces, cross wires, cross + arms, stands, drop loops, and drops), and an inferred ball-channel collider ([Documentation](https://docs.visualpinball.org/creators-guide/editor/wire-rail-authoring.html)).
 - Make packaging functional ([#557](https://github.com/freezy/VisualPinball.Engine/pull/557))
 - New threading model ([#552](https://github.com/freezy/VisualPinball.Engine/pull/552))
 - Free transformation ([#500](https://github.com/freezy/VisualPinball.Engine/pull/500))
