@@ -31,7 +31,9 @@ namespace VisualPinball.Unity
 	public class MagnetComponent : MonoBehaviour, ICoilDeviceComponent, ISwitchDeviceComponent, IPackable, ICollidableComponent
 	{
 		public const string MagnetCoilItem = "magnet_coil";
+		public const string HitSwitchItem = "hit_switch";
 		public const string BallHeldSwitchItem = "ball_held";
+		public const float DefaultHitThreshold = 2f;
 		public const float DefaultPlanarDamping = 0.985f;
 		public const float DefaultCoilRiseTimeMs = 20f;
 		public const float DefaultCoilFallTimeMs = 20f;
@@ -117,6 +119,10 @@ namespace VisualPinball.Unity
 		[Tooltip("Draw play-mode force vectors and a green/red runtime coil-status gizmo.")]
 		public bool DrawDebugForces;
 
+		[Min(0f)]
+		[Tooltip("Minimum normal ball impact speed against the generated cylindrical collider required to pulse the Hit switch.")]
+		public float HitThreshold = DefaultHitThreshold;
+
 		[SerializeField, HideInInspector] private float _colliderElasticity = DefaultColliderElasticity;
 		[SerializeField, HideInInspector] private float _colliderElasticityFalloff = DefaultColliderElasticityFalloff;
 		[SerializeField, HideInInspector] private float _colliderFriction = DefaultColliderFriction;
@@ -141,6 +147,10 @@ namespace VisualPinball.Unity
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => new[] {
 			new GamelogicEngineSwitch(BallHeldSwitchItem) {
 				Description = "Ball Held"
+			},
+			new GamelogicEngineSwitch(HitSwitchItem) {
+				Description = "Hit",
+				IsPulseSwitch = true
 			}
 		};
 
@@ -186,6 +196,7 @@ namespace VisualPinball.Unity
 			CylinderRadius = math.max(0f, CylinderRadius);
 			CylinderHeight = math.max(0f, CylinderHeight);
 			CylindricalDamping = math.max(0f, CylindricalDamping);
+			HitThreshold = math.max(0f, HitThreshold);
 			SyncPhysicsState();
 		}
 
@@ -318,7 +329,8 @@ namespace VisualPinball.Unity
 				ItemId = ItemId,
 				ItemType = ItemType.Primitive,
 				Material = material,
-				FireEvents = false
+				HitThreshold = HitThreshold,
+				FireEvents = true
 			};
 			colliders.Add(new CircleCollider(float2.zero, CylinderRadius, 0f, CylinderHeight, info),
 				translateWithinPlayfieldMatrix);

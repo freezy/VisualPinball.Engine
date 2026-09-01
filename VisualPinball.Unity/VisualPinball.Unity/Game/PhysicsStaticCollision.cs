@@ -71,7 +71,7 @@ namespace VisualPinball.Unity
 
 				case ColliderType.Circle: {
 					ref var circleCollider = ref colliders.Circle(colliderId);
-					circleCollider.Collide(ref ball, in ball.CollisionEvent, ref state);
+					circleCollider.Collide(ref ball, ref state.EventQueue, in ball.CollisionEvent, ref state);
 					break;
 				}
 
