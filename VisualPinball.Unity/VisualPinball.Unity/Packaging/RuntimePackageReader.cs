@@ -57,7 +57,11 @@ namespace VisualPinball.Unity
 		public RuntimePackageReader(string vpePath)
 		{
 			_vpePath = vpePath;
+			ContentResolver = new PackagedContentResolver(vpePath);
 		}
+
+		/// <summary>Resolves inert content bundles for runtime consumers without exposing zip internals.</summary>
+		public IPackagedContentResolver ContentResolver { get; }
 
 		public async Task<GameObject> ImportIntoScene(Transform parent = null, CancellationToken cancellationToken = default)
 		{
@@ -259,6 +263,9 @@ namespace VisualPinball.Unity
 					ReportProgress(progress, RuntimePackageLoadStage.RestoringMaterials, 1f, "Material profiles applied.");
 					materialsStopwatch.Stop();
 					Logger.Info($"RuntimePackageReader: Restored material profiles in {materialsStopwatch.ElapsedMilliseconds}ms.");
+					foreach (var consumer in _table.GetComponentsInChildren<MonoBehaviour>(true).OfType<IPackagedContentConsumer>()) {
+						consumer.SetPackagedContentResolver(ContentResolver);
+					}
 					loadSucceeded = true;
 
 				} finally {
