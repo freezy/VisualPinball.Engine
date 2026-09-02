@@ -4444,6 +4444,27 @@ namespace VisualPinball.Unity.Test
 			}
 		}
 
+		[Test]
+		public void ShouldTransformCollidersFromTheSplineChildSpace()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SplineContainer.transform.localPosition =
+					new float3(57f, 728f, 124f).TranslateToWorld();
+
+				var matrix = component.GetLocalToPlayfieldMatrixInVpx(float4x4.identity);
+				var transformed = matrix.MultiplyPoint(new float3(10f, 20f, 30f));
+
+				Assert.That(transformed.x, Is.EqualTo(67f).Within(0.001f));
+				Assert.That(transformed.y, Is.EqualTo(748f).Within(0.001f));
+				Assert.That(transformed.z, Is.EqualTo(154f).Within(0.001f));
+			}
+			finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
 		private static void AddMidpointLayout(WireRailComponent component)
 		{
 			component.AddLayout(component.SplineLength * 0.5f);
