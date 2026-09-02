@@ -71,6 +71,15 @@ namespace VisualPinball.Unity
 					throw new InvalidDataException($"Content contains duplicate paths that differ only by case: '{file.RelativePath}'. Rename one file for cross-platform packages.");
 				}
 
+				// Re-check for a reparse point swapped in after enumeration. Enumeration skips links,
+				// but a source tree mutated mid-export could redirect this entry outside sourceRoot
+				// before it is measured and hashed, which would otherwise package external bytes. The
+				// hash captured here also guards the later write: bytes that change afterwards fail the
+				// verification in Write().
+				if (IsLink(file.FullPath)) {
+					throw new InvalidDataException($"Content file '{file.RelativePath}' became a symbolic link after enumeration; aborting to avoid packaging content from outside the source directory.");
+				}
+
 				file.Size = new FileInfo(file.FullPath).Length;
 				checked { totalBytes += file.Size; }
 				if (totalBytes > options.MaxTotalBytes) {
