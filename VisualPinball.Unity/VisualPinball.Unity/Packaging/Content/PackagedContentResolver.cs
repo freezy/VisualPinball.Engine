@@ -35,6 +35,11 @@ namespace VisualPinball.Unity
 		// left alone; older ones are orphans from a crashed run and are safe to reap on startup.
 		private static readonly TimeSpan TemporaryDirectoryStaleAfter = TimeSpan.FromHours(1);
 
+		// While extracting, the temp directory's write time is refreshed at least this often so that a
+		// long single-file copy (which never creates another directory entry) still reads as live and
+		// is not reaped by a concurrently constructed resolver. Must stay well below the stale cutoff.
+		private static readonly TimeSpan TemporaryDirectoryHeartbeat = TimeSpan.FromMinutes(5);
+
 		private readonly string _packagePath;
 		private readonly PackagedContentCacheOptions _options;
 		private readonly string _cacheRoot;
@@ -78,6 +83,7 @@ namespace VisualPinball.Unity
 				PackagedContentValidator.ValidateManifest(manifest, contentRef, _options.MaxFileCount, _options.MaxBundleBytes);
 				var filesFolder = bundleFolder.GetFolder("files");
 				long writtenBytes = 0;
+				var lastHeartbeatUtc = DateTime.UtcNow;
 				foreach (var entry in manifest.Files.OrderBy(file => file.Path, StringComparer.Ordinal)) {
 					ct.ThrowIfCancellationRequested();
 					var targetPath = PackagedContentPath.GetContainedPath(temporary, entry.Path);
@@ -99,6 +105,16 @@ namespace VisualPinball.Unity
 						writtenBytes += read;
 						if (fileBytes > entry.Size || writtenBytes > manifest.TotalBytes) {
 							throw new InvalidDataException($"Content file '{entry.Path}' is larger than declared in its manifest.");
+						}
+						var utcNow = DateTime.UtcNow;
+						if (utcNow - lastHeartbeatUtc >= TemporaryDirectoryHeartbeat) {
+							lastHeartbeatUtc = utcNow;
+							try {
+								Directory.SetLastWriteTimeUtc(temporary, utcNow);
+							} catch {
+								// Best-effort liveness signal; failing to touch the directory only risks a
+								// benign reap by another resolver, which the caller retries.
+							}
 						}
 						progress?.Report(manifest.TotalBytes == 0 ? 1f : System.Math.Min(1f, writtenBytes / (float)manifest.TotalBytes));
 					}
