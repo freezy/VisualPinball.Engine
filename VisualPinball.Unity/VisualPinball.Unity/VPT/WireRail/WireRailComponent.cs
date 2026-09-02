@@ -3313,8 +3313,19 @@ namespace VisualPinball.Unity
 		}
 
 		public float4x4 GetLocalToPlayfieldMatrixInVpx(float4x4 worldToPlayfield)
-			=> Physics.GetLocalToPlayfieldMatrixInVpx(transform.localToWorldMatrix,
-				worldToPlayfield);
+		{
+			var container = GetSplineContainerWithoutCreating();
+			if (!container) {
+				return Physics.GetLocalToPlayfieldMatrixInVpx(transform.localToWorldMatrix,
+					worldToPlayfield);
+			}
+
+			// Collider vertices remain in VPX units, but are local to the spline child
+			// that also positions the generated render mesh. Convert that child space
+			// directly to playfield VPX space without applying VpxToWorld a second time.
+			return math.mul(Physics.WorldToVpx, math.mul(worldToPlayfield,
+				(float4x4)container.transform.localToWorldMatrix));
+		}
 
 		public void OnTransformationChanged(float4x4 currTransformationMatrix)
 		{
