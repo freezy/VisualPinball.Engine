@@ -282,7 +282,8 @@ re-normalized and checked to remain under the temporary cache root, every byte c
 is verified, and cancellation removes the temporary tree. Extraction happens in a sibling
 `<contentHash>.tmp-<random>` directory; `.complete` is written last and the directory is then
 renamed atomically. Only a final directory with a matching `.complete` marker may be reused.
-Orphan temporary directories are removed on resolver startup. Completed entries are retained by
+Orphan temporary directories older than one hour are removed on resolver startup; younger ones are
+left untouched so a concurrent resolver's in-progress extraction is never deleted. Completed entries are retained by
 directory modification time under a configurable LRU cap (4 GiB by default).
 
 ## screenshots/

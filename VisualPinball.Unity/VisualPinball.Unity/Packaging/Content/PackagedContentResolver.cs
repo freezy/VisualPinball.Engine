@@ -30,6 +30,11 @@ namespace VisualPinball.Unity
 	public sealed class PackagedContentResolver : IPackagedContentResolver
 	{
 		private const string CompleteMarker = ".complete";
+
+		// Temp directories younger than this are assumed to belong to a concurrent extraction and are
+		// left alone; older ones are orphans from a crashed run and are safe to reap on startup.
+		private static readonly TimeSpan TemporaryDirectoryStaleAfter = TimeSpan.FromHours(1);
+
 		private readonly string _packagePath;
 		private readonly PackagedContentCacheOptions _options;
 		private readonly string _cacheRoot;
@@ -182,7 +187,23 @@ namespace VisualPinball.Unity
 
 		private void CleanupTemporaryDirectories()
 		{
+			// Only reap orphans left by a previous run. Resolvers share the default cache root, so a
+			// second resolver may be constructed while another is still extracting into its own
+			// GUID-suffixed temp directory. An in-progress extraction keeps its directory young
+			// (creating entries touches the directory's write time), so an age guard avoids deleting
+			// a tree another resolver is still publishing, on file systems where an open handle does
+			// not block the delete.
+			var now = DateTime.UtcNow;
 			foreach (var directory in Directory.EnumerateDirectories(_cacheRoot, "*.tmp-*", SearchOption.TopDirectoryOnly)) {
+				DateTime lastWriteUtc;
+				try {
+					lastWriteUtc = Directory.GetLastWriteTimeUtc(directory);
+				} catch {
+					continue;
+				}
+				if (now - lastWriteUtc < TemporaryDirectoryStaleAfter) {
+					continue;
+				}
 				TryDeleteDirectory(directory);
 			}
 		}
