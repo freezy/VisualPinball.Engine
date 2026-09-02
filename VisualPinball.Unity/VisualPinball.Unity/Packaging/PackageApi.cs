@@ -51,6 +51,7 @@ namespace VisualPinball.Unity
 		public const string AssetFolder = "assets";
 		public const string SoundFolder = "sounds";
 		public const string ScreenshotsFolder = "screenshots";
+		public const string ContentFolder = "content";
 
 		// Source textures are plain image files under table/textures/, one zip entry per
 		// texture, referenced by file name from the materials payload. The zip central directory

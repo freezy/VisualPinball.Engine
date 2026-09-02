@@ -36,7 +36,7 @@ using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class PackageWriter
+	public class PackageWriter : IPackagedContentResolver
 	{
 		private readonly GameObject _table;
 		private readonly PackagedRefs _refs;
@@ -53,6 +53,7 @@ namespace VisualPinball.Unity.Editor
 		private IReadOnlyDictionary<string, GlbImageSwap.ImageReplacement> _originalGltfImageReplacements;
 		private Dictionary<Transform, string> _nodeIdByTransform;
 		private readonly SortedSet<string> _usedTypeNames = new(StringComparer.Ordinal);
+		private readonly List<PackagedContentWriter.PreparedContent> _contentBundles = new();
 
 		private const bool ExportActivesOnly = true;
 
@@ -90,6 +91,22 @@ namespace VisualPinball.Unity.Editor
 			return WritePackage(path, progress, cancellationToken);
 		}
 
+		/// <summary>
+		/// Adds an inert directory to the next package written by this writer. The directory is
+		/// scanned immediately so its reference can be serialized by table components.
+		/// </summary>
+		public PackagedContentRef AddDirectory(string kind, string sourceRoot, ContentPackOptions options = null)
+		{
+			var prepared = PackagedContentWriter.PrepareDirectory(kind, sourceRoot, options);
+			_contentBundles.Add(prepared);
+			return prepared.Reference;
+		}
+
+		public Task<string> ResolveAsync(PackagedContentRef contentRef, IProgress<float> progress, CancellationToken ct)
+		{
+			throw new NotSupportedException("PackageWriter only creates content bundles. Resolve with PackageReader.ContentResolver or RuntimePackageReader.ContentResolver.");
+		}
+
 		private async Task WritePackage(string path, IProgress<ExportProgress> progress, CancellationToken ct)
 		{
 			var sw = new Stopwatch();
@@ -107,6 +124,7 @@ namespace VisualPinball.Unity.Editor
 				storage = PackageApi.StorageManager.CreateStorage(path);
 
 				_tableFolder = storage.AddFolder(PackageApi.TableFolder);
+				var contentWriter = new PackagedContentWriter(_tableFolder);
 				_globalFolder = _tableFolder.AddFolder(PackageApi.GlobalFolder);
 				_metaFolder = _tableFolder.AddFolder(PackageApi.MetaFolder);
 				_files = new PackagedFiles(_tableFolder, _refs);
@@ -121,6 +139,16 @@ namespace VisualPinball.Unity.Editor
 				// node extras after the scene export (see SaveGltfToBytes).
 				_nodeIdByTransform = VpeNodeIds.AssignIds(_table.transform);
 				_refs.SetNodeIdsForWrite(_nodeIdByTransform);
+
+				// Content sources must receive their stable refs before component data is serialized.
+				foreach (var source in _table.GetComponentsInChildren<MonoBehaviour>(true).OfType<IPackagedContentSource>()) {
+					ct.ThrowIfCancellationRequested();
+					source.PreparePackagedContent(this);
+				}
+				foreach (var bundle in _contentBundles.OrderBy(item => item.Reference.Id, StringComparer.Ordinal)) {
+					ct.ThrowIfCancellationRequested();
+					contentWriter.Write(bundle);
+				}
 
 				// prepare scene data
 				ct.ThrowIfCancellationRequested();

@@ -49,7 +49,11 @@ namespace VisualPinball.Unity.Editor
 		public PackageReader(string vpePath)
 		{
 			_vpePath = vpePath;
+			ContentResolver = new PackagedContentResolver(vpePath);
 		}
+
+		/// <summary>Resolves packaged content through the same cache path used by Player builds.</summary>
+		public IPackagedContentResolver ContentResolver { get; }
 
 		public async Task ImportIntoScene(string tableName)
 		{
@@ -90,6 +94,10 @@ namespace VisualPinball.Unity.Editor
 					var comp = item.gameObject.GetComponent(type) as IPackable;
 					comp?.UnpackReferences(stream.GetData(), _tableRoot, _refs, _files);
 				});
+
+				foreach (var consumer in _table.GetComponentsInChildren<MonoBehaviour>(true).OfType<IPackagedContentConsumer>()) {
+					consumer.SetPackagedContentResolver(ContentResolver);
+				}
 
 				ReadGlobals();
 				ReadTableMetadata();

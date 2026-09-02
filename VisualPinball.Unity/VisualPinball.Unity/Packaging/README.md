@@ -35,6 +35,16 @@ shaped the design.
 > the metadata to which it would apply is minuscule compared to the rest, the performance
 > advantage was quickly outweighed by its unreadability and the hassle to set up.
 
+## Content author checklist
+
+Use `PackagedContentWriter.PrepareDirectory()` to produce deterministic `vpe-content` version 1
+input. Set an explicit kind and entry point, restrict includes/excludes, and choose file/count/total
+limits appropriate for the consumer. Review skipped-link warnings. Run
+`PackagedContentValidator.LintManifest()` with entry-point and executable policy enabled for web and
+machine bundles, write the package, then run `ValidatePackage()` before distribution. Finally,
+resolve it into an empty cache and launch the consumer on a clean player without source paths or
+author-installed runtimes. The normative version and migration rules are in `FORMAT.md`.
+
 ## Design rationale
 
 Decisions worth knowing the "why" of:
