@@ -71,21 +71,25 @@ namespace VisualPinball.Unity
 					throw new InvalidDataException($"Content contains duplicate paths that differ only by case: '{file.RelativePath}'. Rename one file for cross-platform packages.");
 				}
 
-				// Re-check for a reparse point swapped in after enumeration. Enumeration skips links,
-				// but a source tree mutated mid-export could redirect this entry outside sourceRoot
-				// before it is measured and hashed, which would otherwise package external bytes. The
-				// hash captured here also guards the later write: bytes that change afterwards fail the
-				// verification in Write().
+				// Bracket the measure-and-hash read with reparse-point checks on both sides. Enumeration
+				// skips links, but a source tree mutated mid-export could swap this entry for a symlink
+				// pointing outside sourceRoot; a link seen at either boundary is rejected before its
+				// bytes are packaged. Size and hash are taken from a single handle so the path is
+				// resolved once, and the captured hash later guards the write via the verification in
+				// Write(). The residual is the sub-syscall window inside the read, which cannot be
+				// closed without no-follow open semantics that netstandard2.1 does not expose.
 				if (IsLink(file.FullPath)) {
-					throw new InvalidDataException($"Content file '{file.RelativePath}' became a symbolic link after enumeration; aborting to avoid packaging content from outside the source directory.");
+					throw new InvalidDataException($"Content file '{file.RelativePath}' is a symbolic link; links are not packaged.");
+				}
+				(file.Size, file.Hash) = MeasureAndHash(file.FullPath);
+				if (IsLink(file.FullPath)) {
+					throw new InvalidDataException($"Content file '{file.RelativePath}' was replaced by a symbolic link while being hashed; aborting to avoid packaging content from outside the source directory.");
 				}
 
-				file.Size = new FileInfo(file.FullPath).Length;
 				checked { totalBytes += file.Size; }
 				if (totalBytes > options.MaxTotalBytes) {
 					throw new InvalidDataException($"Content directory is {totalBytes:N0} bytes; the configured limit is {options.MaxTotalBytes:N0} bytes.");
 				}
-				file.Hash = ComputeFileHash(file.FullPath);
 				var pathBytes = Encoding.UTF8.GetBytes(file.RelativePath);
 				canonicalHash.AppendData(pathBytes);
 				canonicalHash.AppendData(new byte[] { 0 });
@@ -219,11 +223,12 @@ namespace VisualPinball.Unity
 			return Regex.IsMatch(path, pattern, RegexOptions.CultureInvariant);
 		}
 
-		private static byte[] ComputeFileHash(string path)
+		private static (long Size, byte[] Hash) MeasureAndHash(string path)
 		{
 			using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
 			using var sha = SHA256.Create();
-			return sha.ComputeHash(stream);
+			var hash = sha.ComputeHash(stream);
+			return (stream.Length, hash);
 		}
 
 		internal static string ToHex(byte[] bytes) => string.Concat(bytes.Select(value => value.ToString("x2")));
