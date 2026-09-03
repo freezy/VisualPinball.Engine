@@ -82,6 +82,15 @@ namespace VisualPinball.Unity.Simulation
 		private readonly bool[] _actionInvertsPressed;
 		private readonly bool[] _actionToggleOnPress;
 		private readonly bool[] _actionSwitchStates;
+
+		// Hardware-rule wires that connect an input action to a simulation-thread-capable coil (e.g. a
+		// P-ROC flipper: "Left Flipper" -> flipper main coil). The native input poller dispatches these
+		// on the simulation thread so the coil energizes in the same tick as the key, instead of relying
+		// on the managed Input System callback (which the native path bypasses). Guarded by its own lock:
+		// registration happens on the main thread when rules are (de)installed, dispatch on the sim thread
+		// only on an actual input transition, so contention is negligible.
+		private readonly Dictionary<int, List<ISimulationThreadCoil>> _actionWireCoils = new();
+		private readonly object _actionWireCoilLock = new object();
 		private volatile bool _inputMappingsBuilt;
 
 		// Statistics
@@ -519,6 +528,11 @@ namespace VisualPinball.Unity.Simulation
 					continue;
 				}
 
+				// Fire any hardware-rule wire coils bound to this action on the simulation thread, so a
+				// P-ROC flipper energizes within the same tick as the key press. This is the wire path the
+				// managed Input System would otherwise own, which native polling bypasses.
+				DispatchInputActionWires(actionIndex, isPressed);
+
 				InputLatencyTracker.RecordInputPolled((NativeInputApi.InputAction)actionIndex, isPressed, evt.TimestampUsec);
 
 				if (actionIndex == (int)NativeInputApi.InputAction.Tilt
@@ -761,6 +775,62 @@ namespace VisualPinball.Unity.Simulation
 			var idx = (int)action;
 			var mapped = (uint)idx < (uint)_actionToSwitchId.Length ? _actionToSwitchId[idx] : null;
 			Logger.Info($"{LogPrefix} [SimulationThread] Mapping: {name}={mapped}");
+		}
+
+		/// <summary>
+		/// Registers a hardware-rule wire coil so the simulation-thread input loop energizes it when the
+		/// given input action fires. Only coils that expose the simulation-thread dispatch path are
+		/// eligible; others must keep to the main-thread wire path. Called on the main thread.
+		/// </summary>
+		internal void RegisterInputActionWireCoil(string inputActionHint, ISimulationThreadCoil coil)
+		{
+			if (coil == null || !TryMapInputActionHint(inputActionHint, out var action)) {
+				return;
+			}
+			var actionIndex = (int)action;
+			lock (_actionWireCoilLock) {
+				if (!_actionWireCoils.TryGetValue(actionIndex, out var list)) {
+					list = new List<ISimulationThreadCoil>(2);
+					_actionWireCoils[actionIndex] = list;
+				}
+				if (!list.Contains(coil)) {
+					list.Add(coil);
+				}
+			}
+		}
+
+		/// <summary>Removes a previously registered hardware-rule wire coil. Called on the main thread.</summary>
+		internal void UnregisterInputActionWireCoil(string inputActionHint, ISimulationThreadCoil coil)
+		{
+			if (coil == null || !TryMapInputActionHint(inputActionHint, out var action)) {
+				return;
+			}
+			lock (_actionWireCoilLock) {
+				if (_actionWireCoils.TryGetValue((int)action, out var list)) {
+					list.Remove(coil);
+				}
+			}
+		}
+
+		/// <summary>Drops all registered hardware-rule wire coils, e.g. when the gamelogic engine restarts.</summary>
+		internal void ClearInputActionWireCoils()
+		{
+			lock (_actionWireCoilLock) {
+				_actionWireCoils.Clear();
+			}
+		}
+
+		private void DispatchInputActionWires(int actionIndex, bool enabled)
+		{
+			lock (_actionWireCoilLock) {
+				if (!_actionWireCoils.TryGetValue(actionIndex, out var list) || list.Count == 0) {
+					return;
+				}
+				var value = enabled ? 1f : 0f;
+				for (var i = 0; i < list.Count; i++) {
+					list[i].OnCoilSimulationThread(value);
+				}
+			}
 		}
 
 		private static bool TryMapInputActionHint(string inputActionHint, out NativeInputApi.InputAction action)

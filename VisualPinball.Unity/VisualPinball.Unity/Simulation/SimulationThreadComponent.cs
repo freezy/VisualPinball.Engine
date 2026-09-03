@@ -740,6 +740,14 @@ namespace VisualPinball.Unity.Simulation
 			return _simulationThread.EnqueueExternalSwitch(switchId, isClosed);
 		}
 
+		/// <summary>Registers a hardware-rule wire coil for simulation-thread dispatch. See <see cref="SimulationThread.RegisterInputActionWireCoil"/>.</summary>
+		internal void RegisterInputActionWireCoil(string inputActionHint, ISimulationThreadCoil coil)
+			=> _simulationThread?.RegisterInputActionWireCoil(inputActionHint, coil);
+
+		/// <summary>Removes a hardware-rule wire coil registered for simulation-thread dispatch.</summary>
+		internal void UnregisterInputActionWireCoil(string inputActionHint, ISimulationThreadCoil coil)
+			=> _simulationThread?.UnregisterInputActionWireCoil(inputActionHint, coil);
+
 		#endregion
 
 		#region Private Methods
