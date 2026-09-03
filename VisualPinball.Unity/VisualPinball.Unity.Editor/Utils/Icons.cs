@@ -93,6 +93,7 @@ namespace VisualPinball.Unity.Editor
 		private const string PrimitiveName = "primitive";
 		private const string PhysicsName = "physics";
 		private const string RampName = "ramp";
+		private const string RampWiresName = "ramp_wires";
 		private const string RotatorName = "rotator";
 		private const string RubberName = "rubber";
 		private const string ScoreReelName = "score_reel";
@@ -126,7 +127,7 @@ namespace VisualPinball.Unity.Editor
 		private static readonly string[] Names = {
 			AssetLibraryName, BallRollerName, BallName, BoltName, BumperName, CalendarName, CannonName, CoilName, DropTargetBankName, DropTargetName, FlasherName,
 			FlipperName, GateName, GateLifterName, HitTargetName, HorizonName, KeyName, KickerName, LightGroupName, LightName, LoopButtonName, MagnetName, MechName, MechPinMameName, PlayfieldName, PlayButtonName, PlugName,
-			PhysicsName, PlungerName, PrimitiveName, RampName, RotatorName, RubberName, ScoreReelName, ScoreReelSingleName, SlingshotName, SpinnerName, StopButtonName, SurfaceName,
+			PhysicsName, PlungerName, PrimitiveName, RampName, RampWiresName, RotatorName, RubberName, ScoreReelName, ScoreReelSingleName, SlingshotName, SpinnerName, StopButtonName, SurfaceName,
 			SwitchNcName, SwitchNoName, TableName, TeleporterName, TriggerName, TroughName,
 			CoilEventName, SwitchEventName, LampEventName, LampSeqName, MetalWireGuideName,
 			PlayerVariableName, PlayerVariableEventName, TableVariableName, TableVariableEventName, UpdateDisplayName, DisplayEventName,
@@ -207,6 +208,7 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D Plunger(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PlungerName, size, color);
 		public static Texture2D Primitive(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(PrimitiveName, size, color);
 		public static Texture2D Ramp(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(RampName, size, color);
+		public static Texture2D RampWires(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(RampWiresName, size, color);
 		public static Texture2D Rotator(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(RotatorName, size, color);
 		public static Texture2D Rubber(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(RubberName, size, color);
 		public static Texture2D ScoreReel(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(ScoreReelName, size, color);

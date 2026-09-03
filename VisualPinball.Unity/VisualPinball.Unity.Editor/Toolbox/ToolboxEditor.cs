@@ -104,90 +104,94 @@ namespace VisualPinball.Unity.Editor
 				CreateItem(Ramp.GetDefault, "New Ramp");
 			}
 
-			if (CreateButton("Flipper", Icons.Flipper(color: iconColor), iconSize, buttonStyle)) {
-				CreateItem(Flipper.GetDefault, "New Flipper");
+			if (CreateButton("Wire Rail", Icons.RampWires(color: iconColor), iconSize, buttonStyle)) {
+				CreateWireRail();
 			}
 
 			GUILayout.EndHorizontal();
 			GUILayout.BeginHorizontal();
+
+			if (CreateButton("Flipper", Icons.Flipper(color: iconColor), iconSize, buttonStyle)) {
+				CreateItem(Flipper.GetDefault, "New Flipper");
+			}
 
 			if (CreateButton("Plunger", Icons.Plunger(color: iconColor), iconSize, buttonStyle)) {
 				CreateItem(Plunger.GetDefault, "New Plunger");
 			}
 
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+
 			if (CreateButton("Bumper", Icons.Bumper(color: iconColor), iconSize, buttonStyle)) {
 				CreateItem(Bumper.GetDefault, "New Bumper");
 			}
-
-			GUILayout.EndHorizontal();
-			GUILayout.BeginHorizontal();
 
 			if (CreateButton("Spinner", Icons.Spinner(color: iconColor), iconSize, buttonStyle)) {
 				CreateItem(Spinner.GetDefault, "New Spinner");
 			}
 
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+
 			if (CreateButton("Trigger", Icons.Trigger(color: iconColor), iconSize, buttonStyle)) {
 				CreateItem(Trigger.GetDefault, "New Trigger");
 			}
-
-			GUILayout.EndHorizontal();
-			GUILayout.BeginHorizontal();
 
 			if (CreateButton("Kicker", Icons.Kicker(color: iconColor), iconSize, buttonStyle)) {
 				CreateItem(Kicker.GetDefault, "New Kicker");
 			}
 
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+
 			if (CreateButton("Light", Icons.Light(color: iconColor), iconSize, buttonStyle)) {
 				CreateItem(Light.GetDefault, "New Light");
 			}
-
-			GUILayout.EndHorizontal();
-			GUILayout.BeginHorizontal();
 
 			if (CreateButton("Hit Target", Icons.HitTarget(color: iconColor), iconSize, buttonStyle)) {
 				CreateItem(HitTarget.GetHitTarget, "New Hit Target");
 			}
 
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+
 			if (CreateButton("Drop Target", Icons.DropTarget(color: iconColor), iconSize, buttonStyle)) {
 				CreateItem(HitTarget.GetDropTarget, "New Target");
 			}
-
-			GUILayout.EndHorizontal();
-			GUILayout.BeginHorizontal();
 
 			if (CreateButton("Rubber", Icons.Rubber(color: iconColor), iconSize, buttonStyle)) {
 				CreateItem(Rubber.GetDefault, "New Rubber");
 			}
 
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+
 			if (CreateButton("Primitive", Icons.Primitive(color: iconColor), iconSize, buttonStyle)) {
 				CreateItem(Primitive.GetDefault, "New Primitive");
 			}
 
-			GUILayout.EndHorizontal();
-			GUILayout.BeginHorizontal();
-
 			if (CreateButton("Trough", Icons.Trough(color: iconColor), iconSize, buttonStyle)) {
 				CreateItem(Trough.GetDefault, "New Trough");
 			}
+
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
 
 			if (CreateButton("Drop Target\nBank", Icons.DropTargetBank(color: iconColor), iconSize, buttonStyle))
 			{
 				CreatePrefab<DropTargetBankComponent>("Drop Target Banks", "Prefabs/DropTargetBank");
 			}
 
-			GUILayout.EndHorizontal();
-			GUILayout.BeginHorizontal();
-
 			if (CreateButton("Slingshot", Icons.Slingshot(color: iconColor), iconSize, buttonStyle)) {
 				CreatePrefab<SlingshotComponent>("Slingshots", "Prefabs/Slingshot");
 			}
 
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+
 			if (CreateButton("Magnet", Icons.Magnet(color: iconColor), iconSize, buttonStyle)) {
 				CreatePrefab<MagnetComponent>("Magnets", "Prefabs/Magnet");
 			}
-
-			GUILayout.EndHorizontal();
-			GUILayout.BeginHorizontal();
 
 			if (CreateButton("Metal Wire\nGuide", Icons.MetalWireGuide(color: iconColor), iconSize, buttonStyle)) {
 				CreateItem(MetalWireGuide.GetDefault, "New MetalWireGuide", centerSplineOrigin: true);
@@ -234,6 +238,19 @@ namespace VisualPinball.Unity.Editor
 			Selection.activeGameObject = gameObject;
 			ItemCreated?.Invoke(Selection.activeGameObject);
 			Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, actionName);
+		}
+
+		private void CreateWireRail()
+		{
+			var playfield = TableComponent.GetComponentInChildren<PlayfieldComponent>();
+			var parent = playfield ? playfield.gameObject : TableComponent.gameObject;
+			var gameObject = new GameObject(
+				GameObjectUtility.GetUniqueNameForSibling(parent.transform, "Wire Rail"));
+			GameObjectUtility.SetParentAndAlign(gameObject, parent);
+			gameObject.AddComponent<WireRailComponent>();
+			Undo.RegisterCreatedObjectUndo(gameObject, "New Wire Rail");
+			Selection.activeGameObject = gameObject;
+			ItemCreated?.Invoke(Selection.activeGameObject);
 		}
 
 		private GameObject CreateRenderable(IItem item)
