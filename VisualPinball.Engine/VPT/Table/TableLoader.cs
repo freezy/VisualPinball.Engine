@@ -33,17 +33,16 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public static FileTableContainer Load(string filename, bool loadGameItems = true)
 		{
-			var cf = new CompoundFile(filename);
-			try {
-				var gameStorage = cf.RootStorage.GetStorage("GameStg");
-				var gameData = gameStorage.GetStream("GameData");
+			using (var cf = RootStorage.OpenRead(filename, StorageModeFlags.None)) {
+				var gameStorage = cf.OpenStorage("GameStg");
+				var gameData = gameStorage.OpenStream("GameData");
 
-				var fileVersion = BitConverter.ToInt32(gameStorage.GetStream("Version").GetData(), 0);
-				using (var stream = new MemoryStream(gameData.GetData()))
+				var fileVersion = BitConverter.ToInt32(gameStorage.OpenStream("Version").ReadAll(), 0);
+				using (var stream = new MemoryStream(gameData.ReadAll()))
 				using (var reader = new BinaryReader(stream)) {
 					var tableContainer = new FileTableContainer(reader);
 
-					var tableInfoStorage = LoadTableInfo(tableContainer, cf.RootStorage, gameStorage);
+					var tableInfoStorage = LoadTableInfo(tableContainer, cf, gameStorage);
 					if (loadGameItems) {
 						LoadGameItems(tableContainer, gameStorage, tableContainer.NumGameItems, "GameItem");
 						LoadGameItems(tableContainer, gameStorage, tableContainer.NumVpeGameItems, "VpeGameItem");
@@ -55,25 +54,19 @@ namespace VisualPinball.Engine.VPT.Table
 
 					return tableContainer;
 				}
-
-			} finally {
-				cf.Close();
 			}
 		}
 
 		public static IEnumerable<byte[]> ReadGameItems(string fileName, int numGameItems, string storagePrefix)
 		{
 			var gameItemData = new byte[numGameItems][];
-			var cf = new CompoundFile(fileName);
-			try {
-				var storage = cf.RootStorage.GetStorage("GameStg");
+			using (var cf = RootStorage.OpenRead(fileName, StorageModeFlags.None)) {
+				var storage = cf.OpenStorage("GameStg");
 				for (var i = 0; i < numGameItems; i++) {
 					var itemName = $"{storagePrefix}{i}";
-					var itemStream = storage.GetStream(itemName);
-					gameItemData[i] = itemStream.GetData();
+					var itemStream = storage.OpenStream(itemName);
+					gameItemData[i] = itemStream.ReadAll();
 				}
-			} finally {
-				cf.Close();
 			}
 			return gameItemData;
 		}
@@ -121,16 +114,16 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 		}
 
-		private static void LoadGameItems(FileTableContainer tableContainer, CFStorage storage, int count, string storagePrefix)
+		private static void LoadGameItems(FileTableContainer tableContainer, Storage storage, int count, string storagePrefix)
 		{
 			for (var i = 0; i < count; i++) {
 				var itemName = $"{storagePrefix}{i}";
-				storage.TryGetStream(itemName, out var itemStream);
+				storage.TryOpenStream(itemName, out var itemStream);
 				if (itemStream == null) {
 					Logger.Warn("Could not find stream {0}, skipping.", itemName);
 					continue;
 				}
-				var itemData = itemStream.GetData();
+				var itemData = itemStream.ReadAll();
 				if (itemData.Length < 4) {
 					Logger.Warn("Skipping {itemName} because it has size of {itemDataLength}.", itemName, itemData.Length);
 					continue;
@@ -256,16 +249,16 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 		}
 
-		private static void LoadTextures(FileTableContainer tableContainer, CFStorage storage, CFStorage tableInfoStorage)
+		private static void LoadTextures(FileTableContainer tableContainer, Storage storage, Storage tableInfoStorage)
 		{
 			for (var i = 0; i < tableContainer.NumTextures; i++) {
 				var textureName = $"Image{i}";
-				storage.TryGetStream(textureName, out var textureStream);
+				storage.TryOpenStream(textureName, out var textureStream);
 				if (textureStream == null) {
 					Logger.Warn("Could not find stream {0}, skipping.", textureName);
 					continue;
 				}
-				var textureData = textureStream.GetData();
+				var textureData = textureStream.ReadAll();
 				if (textureData.Length < 4) {
 					Logger.Warn("Skipping {itemName} because it has size of {itemDataLength}.", textureName, textureData.Length);
 					continue;
@@ -279,32 +272,32 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 		}
 
-		private static void LoadCollections(FileTableContainer tableContainer, CFStorage storage)
+		private static void LoadCollections(FileTableContainer tableContainer, Storage storage)
 		{
 			for (var i = 0; i < tableContainer.NumCollections; i++) {
 				var collectionName = $"Collection{i}";
-				storage.TryGetStream(collectionName, out var collectionStream);
+				storage.TryOpenStream(collectionName, out var collectionStream);
 				if (collectionStream == null) {
 					Logger.Warn("Could not find stream {0}, skipping.", collectionName);
 					continue;
 				}
-				using (var stream = new MemoryStream(collectionStream.GetData()))
+				using (var stream = new MemoryStream(collectionStream.ReadAll()))
 				using (var reader = new BinaryReader(stream)) {
 					tableContainer.Collections.Add(new CollectionData(reader, collectionName));
 				}
 			}
 		}
 
-		private static void LoadSounds(FileTableContainer tableContainer, CFStorage storage, int fileVersion)
+		private static void LoadSounds(FileTableContainer tableContainer, Storage storage, int fileVersion)
 		{
 			for (var i = 0; i < tableContainer.NumSounds; i++) {
 				var soundName = $"Sound{i}";
-				storage.TryGetStream(soundName, out var soundStream);
+				storage.TryOpenStream(soundName, out var soundStream);
 				if (soundStream == null) {
 					Logger.Warn("Could not find stream {0}, skipping.", soundName);
 					continue;
 				}
-				var soundData = soundStream.GetData();
+				var soundData = soundStream.ReadAll();
 				using (var stream = new MemoryStream(soundData))
 				using (var reader = new BinaryReader(stream)) {
 					var sound = new Sound.Sound(reader, soundName, fileVersion);
@@ -313,54 +306,52 @@ namespace VisualPinball.Engine.VPT.Table
 			}
 		}
 
-		private static CFStorage LoadTableInfo(FileTableContainer tableContainer, CFStorage rootStorage, CFStorage gameStorage)
+		private static Storage LoadTableInfo(FileTableContainer tableContainer, Storage rootStorage, Storage gameStorage)
 		{
 			// first, although we can loop through entries, get them from the game storage, so we
 			// know their order, which is important when writing back (because you know, hashing).
-			gameStorage.TryGetStream("CustomInfoTags", out var citStream);
+			gameStorage.TryOpenStream("CustomInfoTags", out var citStream);
 			if (citStream != null) {
-				using (var stream = new MemoryStream(citStream.GetData()))
+				using (var stream = new MemoryStream(citStream.ReadAll()))
 				using (var reader = new BinaryReader(stream)) {
 					tableContainer.CustomInfoTags.Load(reader);
 				}
 			}
 
 			// now actually read them in
-			rootStorage.TryGetStorage("TableInfo", out var tableInfoStorage);
+			rootStorage.TryOpenStorage("TableInfo", out var tableInfoStorage);
 			if (tableInfoStorage == null) {
 				Logger.Info("TableInfo storage not found, skipping.");
 				return null;
 			}
-			tableInfoStorage.VisitEntries(item => {
+			foreach (var item in tableInfoStorage.EnumerateEntries()) {
 				if (item.Name == "Screenshot") { // skip those
-					return;
+					continue;
 				}
-				if (item.IsStream) {
-					var itemStream = item as CFStream;
-					if (itemStream != null) {
-						tableContainer.TableInfo[item.Name] = BiffUtil.ParseWideString(itemStream.GetData());
-					}
+				if (item.Type == EntryType.Stream) {
+					var itemStream = tableInfoStorage.OpenStream(item.Name);
+					tableContainer.TableInfo[item.Name] = BiffUtil.ParseWideString(itemStream.ReadAll());
 				}
-			}, false);
+			}
 
 			return tableInfoStorage;
 		}
 
-		private static void LoadTableMeta(FileTableContainer tableContainer, CFStorage gameStorage)
+		private static void LoadTableMeta(FileTableContainer tableContainer, Storage gameStorage)
 		{
 			// version
-			gameStorage.TryGetStream("Version", out var versionBytes);
+			gameStorage.TryOpenStream("Version", out var versionBytes);
 			if (versionBytes != null) {
-				tableContainer.FileVersion = BitConverter.ToInt32(versionBytes.GetData(), 0);
+				tableContainer.FileVersion = BitConverter.ToInt32(versionBytes.ReadAll(), 0);
 			} else {
 				Logger.Info("No Version under GameStg found, skipping.");
 			}
 
 
 			// hash
-			gameStorage.TryGetStream("Version", out var hashBytes);
+			gameStorage.TryOpenStream("MAC", out var hashBytes);
 			if (hashBytes != null) {
-				tableContainer.FileHash = hashBytes.GetData();
+				tableContainer.FileHash = hashBytes.ReadAll();
 			} else {
 				Logger.Info("No MAC under GameStg found, skipping.");
 			}

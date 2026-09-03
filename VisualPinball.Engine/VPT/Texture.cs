@@ -20,6 +20,7 @@ using System.Text;
 using NetVips;
 using NLog;
 using OpenMcdf;
+using VisualPinball.Engine.IO;
 using VisualPinball.Engine.Resources;
 
 namespace VisualPinball.Engine.VPT
@@ -91,7 +92,7 @@ namespace VisualPinball.Engine.VPT
 			Name = name;
 		}
 
-		public Texture(TextureData data, CFStorage tableInfoStorage) : base(data)
+		public Texture(TextureData data, Storage tableInfoStorage) : base(data)
 		{
 			if (data.Binary == null && data.Bitmap == null) {
 				if (data.LinkId == 1) {
@@ -100,14 +101,16 @@ namespace VisualPinball.Engine.VPT
 						return;
 					}
 					// load screenshot
-					_screenshot = tableInfoStorage.GetStream("Screenshot")?.GetData();
+					_screenshot = tableInfoStorage.TryOpenStream("Screenshot", out var screenshot)
+						? screenshot.ReadAll()
+						: null;
 				} else {
 					Logger.Warn($"Could not load texture {Name} from storage. No binaries and link is {data.LinkId}.");
 				}
 			}
 		}
 
-		public Texture(BinaryReader reader, string itemName, CFStorage tableInfoStorage) : this(new TextureData(reader, itemName), tableInfoStorage) { }
+		public Texture(BinaryReader reader, string itemName, Storage tableInfoStorage) : this(new TextureData(reader, itemName), tableInfoStorage) { }
 
 		private Texture(Resource res) : this(new TextureData(res), null) { }
 
