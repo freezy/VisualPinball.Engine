@@ -168,6 +168,15 @@ namespace VisualPinball.Unity
 		public IApiWireDeviceDest WireDevice(IWireableComponent c) => _wirePlayer.WireDevice(c);
 		internal void HandleWireSwitchChange(WireDestConfig wireConfig, bool isEnabled) => _wirePlayer.HandleSwitchChange(wireConfig, isEnabled);
 
+		/// <summary>Registers a hardware-rule wire coil so the simulation thread fires it when the input action fires (low-latency flippers under native input).</summary>
+		internal void RegisterInputActionWireCoil(string inputActionHint, ISimulationThreadCoil coil)
+			=> SimulationThreadComponent?.RegisterInputActionWireCoil(inputActionHint, coil);
+
+		/// <summary>Removes a hardware-rule wire coil registered for simulation-thread dispatch.</summary>
+		internal void UnregisterInputActionWireCoil(string inputActionHint, ISimulationThreadCoil coil)
+			=> SimulationThreadComponent?.UnregisterInputActionWireCoil(inputActionHint, coil);
+
+
 		internal void DispatchSwitch(string switchId, bool isClosed)
 		{
 			if (SimulationThreadComponent != null && SimulationThreadComponent.EnqueueSwitchFromMainThread(switchId, isClosed)) {

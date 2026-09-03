@@ -138,7 +138,11 @@ namespace VisualPinball.Unity
 					if (!_keyWireAssignments.ContainsKey(inputAction)) {
 						_keyWireAssignments[inputAction] = new List<WireDestConfig>();
 					}
-					_keyWireAssignments[inputAction].Add(SetupWireDestConfig(wireMapping, isHardwareRule));
+					var destConfig = SetupWireDestConfig(wireMapping, isHardwareRule);
+					_keyWireAssignments[inputAction].Add(destConfig);
+					if (isHardwareRule) {
+						RegisterSimulationThreadWireCoil(inputAction, destConfig);
+					}
 					break;
 				}
 
@@ -237,6 +241,9 @@ namespace VisualPinball.Unity
 					var assignment = _keyWireAssignments[inputAction]
 						.FirstOrDefault(a => a.IsHardwareRule && a.Device == wireMapping.DestinationDevice && a.DeviceItem == wireMapping.DestinationDeviceItem);
 					_keyWireAssignments[inputAction].Remove(assignment);
+					if (assignment != null) {
+						UnregisterSimulationThreadWireCoil(inputAction, assignment);
+					}
 					break;
 				}
 
@@ -247,6 +254,39 @@ namespace VisualPinball.Unity
 					Logger.Warn($"Unknown wire switch source \"{wireMapping.Source}\".");
 					break;
 			}
+		}
+
+		// Hardware-rule wires driven by an input action (a P-ROC flipper, say) must energize on the
+		// simulation thread: native input polling dispatches switches but not wires, and the managed
+		// Input System wire path (HandleKeyInput) is inactive while native polling owns the keys. When the
+		// wire's coil supports the simulation-thread path, hand it to the simulation thread so it fires in
+		// the same tick as the key press. Coils without that path stay on the (main-thread) wire path.
+		private void RegisterSimulationThreadWireCoil(string inputAction, WireDestConfig destConfig)
+		{
+			if (TryGetSimulationThreadCoil(destConfig, out var coil)) {
+				_player.RegisterInputActionWireCoil(inputAction, coil);
+			}
+		}
+
+		private void UnregisterSimulationThreadWireCoil(string inputAction, WireDestConfig destConfig)
+		{
+			if (TryGetSimulationThreadCoil(destConfig, out var coil)) {
+				_player.UnregisterInputActionWireCoil(inputAction, coil);
+			}
+		}
+
+		private bool TryGetSimulationThreadCoil(WireDestConfig destConfig, out ISimulationThreadCoil coil)
+		{
+			coil = null;
+			if (destConfig?.Device == null || !_wireDevices.ContainsKey(destConfig.Device)) {
+				return false;
+			}
+			if (_wireDevices[destConfig.Device].Wire(destConfig.DeviceItem) is DeviceCoil deviceCoil
+			    && deviceCoil.SupportsSimulationThreadDispatch) {
+				coil = deviceCoil;
+				return true;
+			}
+			return false;
 		}
 
 		#endregion
