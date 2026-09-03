@@ -33,6 +33,8 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _elasticityFalloffProperty;
 		private SerializedProperty _frictionProperty;
 		private SerializedProperty _scatterProperty;
+		private SerializedProperty _modeProperty;
+		private SerializedProperty _rubberPhysicsMaterialProperty;
 
 		protected override void OnEnable()
 		{
@@ -47,6 +49,8 @@ namespace VisualPinball.Unity.Editor
 			_elasticityFalloffProperty = serializedObject.FindProperty(nameof(RubberColliderComponent.ElasticityFalloff));
 			_frictionProperty = serializedObject.FindProperty(nameof(RubberColliderComponent.Friction));
 			_scatterProperty = serializedObject.FindProperty(nameof(RubberColliderComponent.Scatter));
+			_modeProperty = serializedObject.FindProperty("_mode");
+			_rubberPhysicsMaterialProperty = serializedObject.FindProperty("_rubberPhysicsMaterial");
 		}
 
 		public override void OnInspectorGUI()
@@ -59,12 +63,41 @@ namespace VisualPinball.Unity.Editor
 			BeginEditing();
 
 			OnPreInspectorGUI();
+			var currentMode = (RubberColliderMode)_modeProperty.enumValueIndex;
+			EditorGUI.showMixedValue = _modeProperty.hasMultipleDifferentValues;
+			EditorGUI.BeginChangeCheck();
+			var requestedMode = (RubberColliderMode)EditorGUILayout.EnumPopup("Collider Model", currentMode);
+			if (EditorGUI.EndChangeCheck()) {
+				if (requestedMode == RubberColliderMode.Physical && !AllTargetsCanUsePhysical()) {
+					EditorUtility.DisplayDialog("Physical Rubber Unavailable",
+						"Every selected rubber requires a current, valid guided bake.", "OK");
+				} else {
+					_modeProperty.enumValueIndex = (int)requestedMode;
+				}
+			}
+			EditorGUI.showMixedValue = false;
+			if (HasInvalidPhysicalTarget()) {
+				EditorGUILayout.HelpBox("This Physical setting is preserved but cannot run until the guided path is valid and current.",
+					MessageType.Error);
+			}
+			var showsPhysical = _modeProperty.hasMultipleDifferentValues
+				|| (RubberColliderMode)_modeProperty.enumValueIndex == RubberColliderMode.Physical;
+			if (showsPhysical) {
+				EditorGUI.BeginDisabledGroup(true);
+				PropertyField(_rubberPhysicsMaterialProperty, "Deformation Material (reserved)");
+				EditorGUI.EndDisabledGroup();
+				EditorGUILayout.HelpBox("Physical currently uses static round-cord collision and the standard contact material below. The deformation material is reserved for experimental free-span deformation.",
+					MessageType.Info);
+			}
 
 			PropertyField(_hitEventProperty, "Has Hit Event");
 			PropertyField(_zOffset, "Z-Offset", updateColliders: true);
 
 			// physics material
-			if (_foldoutMaterial = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMaterial, "Physics Material")) {
+			var materialLabel = (RubberColliderMode)_modeProperty.enumValueIndex == RubberColliderMode.Physical
+				? "Rigid/backed contact (phase 3a and supported arcs)"
+				: "Physics Material";
+			if (_foldoutMaterial = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMaterial, materialLabel)) {
 				EditorGUI.BeginDisabledGroup(_overwritePhysicsProperty.boolValue);
 				PropertyField(_physicsMaterialProperty, "Preset");
 				EditorGUI.EndDisabledGroup();
@@ -83,6 +116,29 @@ namespace VisualPinball.Unity.Editor
 			base.OnInspectorGUI();
 
 			EndEditing();
+		}
+
+		private bool AllTargetsCanUsePhysical()
+		{
+			foreach (var selected in targets) {
+				if (selected is RubberColliderComponent collider && !collider.CanUsePhysical) {
+					return false;
+				}
+			}
+			return true;
+		}
+
+		private bool HasInvalidPhysicalTarget()
+		{
+			foreach (var selected in targets) {
+				if (selected is RubberColliderComponent {
+					Mode: RubberColliderMode.Physical,
+					CanUsePhysical: false,
+				}) {
+					return true;
+				}
+			}
+			return false;
 		}
 	}
 }
