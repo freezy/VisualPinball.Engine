@@ -157,9 +157,9 @@ namespace VisualPinball.Unity.Editor
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 
-			if (_foldoutLiveCatch = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutLiveCatch, "Live Catch")) {
+			if (_foldoutLiveCatch = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutLiveCatch, "Live Catch & EOS Rubber")) {
 
-				PropertyField(_useFlipperLiveCatch, "Use Live Catch");
+				PropertyField(_useFlipperLiveCatch, "Use VPW Catch Physics");
 
 				EditorGUI.BeginDisabledGroup(!_useFlipperLiveCatch.boolValue);
 				PropertyField(_liveCatchDistanceMin, "Min Distance");

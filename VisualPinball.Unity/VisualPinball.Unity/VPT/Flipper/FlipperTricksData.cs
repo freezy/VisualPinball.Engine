@@ -35,8 +35,9 @@ namespace VisualPinball.Unity
 
 		public bool WasInContact;
 
-		// time used for live Catch
-		public double FlipperAngleEndTime;
+		// Time used for live catch. The timestamp is latched once per upstroke.
+		public uint LiveCatchEosTimeMsec;
+		public bool HasLiveCatchEosTime;
 
 		// externals
 		//  Flipper Tricks

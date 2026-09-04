@@ -60,6 +60,7 @@ namespace VisualPinball.Unity
 		{
 			var colliderId = ball.CollisionEvent.ColliderId;
 			var collHeader = state.GetColliderHeader(ref colliders, colliderId);
+			var incomingPlayfieldVelocity = ball.Velocity;
 
 			TransformBallIntoColliderSpace(ref colliders, ref ball, ref state, colliderId);
 
@@ -114,9 +115,16 @@ namespace VisualPinball.Unity
 				case ColliderType.Flipper:
 					ref var flipperState = ref state.GetFlipperState(colliderId, ref colliders);
 					ref var flipperCollider = ref colliders.Flipper(colliderId);
+					// Transformed colliders already operate in playfield space. Runtime-local colliders
+					// need their stored matrix to evaluate the VPW velocity gate in that same frame.
+					var colliderToPlayfield = float4x4.identity;
+					if (!colliders.IsTransformed(colliderId)) {
+						colliderToPlayfield = state.GetNonTransformableColliderMatrix(colliderId, ref colliders);
+					}
 					flipperCollider.Collide(ref ball, ref ball.CollisionEvent, ref flipperState.Movement,
 						ref state.EventQueue, in ball.Id, in flipperState.Tricks, in flipperState.Static,
-						in flipperState.Velocity, in flipperState.Hit, state.Env.TimeMsec
+						in flipperState.Velocity, in flipperState.Hit, flipperState.Solenoid.Value,
+						in incomingPlayfieldVelocity, in colliderToPlayfield, state.Env.TimeMsec
 					);
 					break;
 
