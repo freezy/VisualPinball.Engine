@@ -247,14 +247,14 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldRemoveDuplicateGeneratedSplinesDeterministically()
+		public void ShouldRemoveAnEmptyDuplicateGeneratedSplineDeterministically()
 		{
 			var go = new GameObject("Rubber");
 			try {
 				var rubber = go.AddComponent<RubberComponent>();
 				rubber.DragPoints = CreateDragPoints();
 				var original = rubber.DragPointSpline;
-				DragPointSplineComponent.Create(rubber, CreateDragPoints());
+				DragPointSplineComponent.Create(rubber, new DragPointData[0]);
 				ClearSplineReference(rubber);
 				LogAssert.Expect(LogType.Warning,
 					"Removing generated spline child 'Spline' from 'Rubber' because it duplicates another drag-point spline.");
@@ -262,6 +262,30 @@ namespace VisualPinball.Unity.Test
 				Assert.That(rubber.DragPointSpline, Is.SameAs(original));
 				Assert.That(go.GetComponentsInChildren<DragPointSplineComponent>(true),
 					Has.Length.EqualTo(1));
+			}
+			finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldKeepADuplicateGeneratedSplineThatStillHoldsKnots()
+		{
+			var go = new GameObject("Rubber");
+			try {
+				var rubber = go.AddComponent<RubberComponent>();
+				rubber.DragPoints = CreateDragPoints();
+				var original = rubber.DragPointSpline;
+				var duplicate = DragPointSplineComponent.Create(rubber, CreateDragPoints());
+				ClearSplineReference(rubber);
+				LogAssert.Expect(LogType.Warning,
+					"Keeping generated spline child 'Spline' of 'Rubber' even though it duplicates another drag-point spline, because it still holds 4 knots.");
+
+				Assert.That(rubber.DragPointSpline, Is.SameAs(original));
+				Assert.That(duplicate, Is.Not.Null, "knots are the only copy of the geometry and must never be destroyed");
+				Assert.That(duplicate.gameObject.activeSelf, Is.True);
+				Assert.That(go.GetComponentsInChildren<DragPointSplineComponent>(true),
+					Has.Length.EqualTo(2));
 			}
 			finally {
 				Object.DestroyImmediate(go);
@@ -360,6 +384,32 @@ namespace VisualPinball.Unity.Test
 				positions[i] = container.transform.TransformPoint(container.Spline[i].Position);
 			}
 			return positions;
+		}
+
+		[Test]
+		public void ShouldLockTheGeneratedSplineTransform()
+		{
+			var go = new GameObject("Rubber");
+			try {
+				var rubber = go.AddComponent<RubberComponent>();
+				rubber.DragPoints = CreateDragPoints();
+				var spline = rubber.DragPointSpline;
+
+				Assert.That(spline.transform.hideFlags & HideFlags.NotEditable,
+					Is.EqualTo(HideFlags.NotEditable),
+					"the generated child carries the VPX conversion and must be locked");
+
+				spline.transform.hideFlags = HideFlags.None;
+				ClearSplineReference(rubber);
+
+				Assert.That(rubber.DragPointSpline, Is.SameAs(spline));
+				Assert.That(spline.transform.hideFlags & HideFlags.NotEditable,
+					Is.EqualTo(HideFlags.NotEditable),
+					"an existing child is locked again when it is resolved");
+			}
+			finally {
+				Object.DestroyImmediate(go);
+			}
 		}
 
 		private static void ClearSplineReference(RubberComponent rubber)
