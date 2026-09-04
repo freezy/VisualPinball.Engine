@@ -829,6 +829,29 @@ namespace VisualPinball.Unity
 							: drop.GetRailOffset(railIndex);
 						destination[railIndex] = math.max(destination[railIndex], trim);
 					}
+				} else if (fixture is WireRailDropLoopFixture dropLoop) {
+					// The loop's offset shortens the two rails it connects to, so the loop
+					// attaches that far before the endpoint and the rails follow it, staying
+					// connected. A conflicting or invalid loop is not generated, so it trims
+					// nothing. Applies to both render and collider (unlike a Drop).
+					var loopTrim = math.max(0f, dropLoop.RailOffset);
+					if (loopTrim <= MinimumSpan
+						|| dropLoop.FirstRailIndex == dropLoop.SecondRailIndex
+						|| HasRailTrimConflict(fixtures, dropLoop.Endpoint,
+							dropLoop.FirstRailIndex, dropLoop.SecondRailIndex, dropLoop)) {
+						continue;
+					}
+					var destination = dropLoop.Endpoint == WireRailEndpoint.Start
+						? startOffsets : endOffsets;
+					ShortenLoopRail(dropLoop.FirstRailIndex);
+					ShortenLoopRail(dropLoop.SecondRailIndex);
+
+					void ShortenLoopRail(int railIndex)
+					{
+						if (railIndex >= 0 && railIndex < destination.Length) {
+							destination[railIndex] = math.max(destination[railIndex], loopTrim);
+						}
+					}
 				}
 			}
 		}
@@ -922,6 +945,17 @@ namespace VisualPinball.Unity
 		}
 	}
 
+	// Records where a drop loop's mouth rings landed in the render buffer so the loop tube can
+	// be welded to the rail tubes it attaches to.
+	internal struct WireRailDropLoopSeam
+	{
+		public WireRailEndpoint Endpoint;
+		public int FirstRailIndex;
+		public int SecondRailIndex;
+		public int LoopFirstRing;
+		public int LoopLastRing;
+	}
+
 	internal static class WireRailRenderMeshGenerator
 	{
 		private const float MaximumRingAngle = 0.08726646f;
@@ -943,6 +977,13 @@ namespace VisualPinball.Unity
 				new float[WireRailEndpointTrimUtility.MaximumRailCount];
 			public readonly float[] EndTrimOffsets =
 				new float[WireRailEndpointTrimUtility.MaximumRailCount];
+			// First and last (mouth) ring start-vertex index each rail contributed to the sweep,
+			// so drop loops can weld to them; -1 means the rail was not swept.
+			public readonly int[] FirstRingByRail =
+				new int[WireRailEndpointTrimUtility.MaximumRailCount];
+			public readonly int[] LastRingByRail =
+				new int[WireRailEndpointTrimUtility.MaximumRailCount];
+			public readonly List<WireRailDropLoopSeam> LoopSeams = new();
 			public readonly WireRailPathEvaluationContext EvaluationContext = new();
 
 			public void Clear()
@@ -955,6 +996,11 @@ namespace VisualPinball.Unity
 				SampleParameters.Clear();
 				FittedStartRails.Clear();
 				FittedEndRails.Clear();
+				LoopSeams.Clear();
+				for (var railIndex = 0; railIndex < FirstRingByRail.Length; railIndex++) {
+					FirstRingByRail[railIndex] = -1;
+					LastRingByRail[railIndex] = -1;
+				}
 			}
 		}
 
@@ -1015,15 +1061,26 @@ namespace VisualPinball.Unity
 						trimmedStart, trimmedEnd, omitStartCapBevel, omitEndCapBevel,
 						previousSegmentFrame,
 						buffers.SampleParameters,
-						vertices, normals, uvs, indices, out var lastFrame)) {
+						vertices, normals, uvs, indices, out var lastFrame,
+						out var firstTubeRing, out var lastTubeRing)) {
 						previousFrames[railIndex] = lastFrame;
+						// Track the rail's mouth rings (the tube rings, not the caps that follow)
+						// so drop loops can weld to them.
+						if (railIndex < buffers.FirstRingByRail.Length) {
+							if (buffers.FirstRingByRail[railIndex] < 0) {
+								buffers.FirstRingByRail[railIndex] = firstTubeRing;
+							}
+							buffers.LastRingByRail[railIndex] = lastTubeRing;
+						}
 					} else {
 						previousFrames.Remove(railIndex);
 					}
 				}
 			}
 			WireRailFixtureMeshGenerator.Append(spline, segments, fixtures,
-				wireCapBevelSize, radialSegments, vertices, normals, uvs, indices);
+				wireCapBevelSize, radialSegments, vertices, normals, uvs, indices,
+				buffers.LoopSeams);
+			WeldDropLoopSeams(buffers, radialSegments);
 			WireRailSolderMeshGenerator.Append(spline, segments, fixtures,
 				vertices, normals, uvs, indices);
 
@@ -1038,6 +1095,113 @@ namespace VisualPinball.Unity
 			mesh.SetTriangles(indices, 0, false);
 			mesh.RecalculateBounds();
 			return mesh;
+		}
+
+		// Stitches each drop loop's mouth rings to the rail tubes it attaches to, so the two
+		// tubes read as one continuous surface instead of leaving a gap at the junction.
+		private static void WeldDropLoopSeams(RenderBuffers buffers, int radialSegments)
+		{
+			foreach (var seam in buffers.LoopSeams) {
+				var firstRailRing = seam.Endpoint == WireRailEndpoint.Start
+					? RingByRail(buffers.FirstRingByRail, seam.FirstRailIndex)
+					: RingByRail(buffers.LastRingByRail, seam.FirstRailIndex);
+				var secondRailRing = seam.Endpoint == WireRailEndpoint.Start
+					? RingByRail(buffers.FirstRingByRail, seam.SecondRailIndex)
+					: RingByRail(buffers.LastRingByRail, seam.SecondRailIndex);
+				BridgeRings(buffers.Vertices, buffers.Normals, buffers.Indices, firstRailRing,
+					seam.LoopFirstRing, radialSegments);
+				BridgeRings(buffers.Vertices, buffers.Normals, buffers.Indices, secondRailRing,
+					seam.LoopLastRing, radialSegments);
+			}
+
+			static int RingByRail(int[] rings, int railIndex)
+				=> railIndex >= 0 && railIndex < rings.Length ? rings[railIndex] : -1;
+		}
+
+		// Connects two radial rings (each `radialSegments` vertices) with a triangle band that
+		// reuses the existing ring vertices, so the seam is welded and its normals stay
+		// continuous. The rings are matched by the rotation that minimizes vertex distance so
+		// the band does not twist.
+		// Maps ring-A radial index i to the paired ring-B radial index for a given rotation and
+		// whether ring B is traversed in reverse (opposite winding).
+		private static int MapRadial(int i, int offset, bool reversed, int radialSegments)
+			=> reversed
+				? (offset - i + 2 * radialSegments) % radialSegments
+				: (i + offset) % radialSegments;
+
+		private static void BridgeRings(List<Vector3> vertices, List<Vector3> normals,
+			List<int> indices, int ringA, int ringB, int radialSegments)
+		{
+			if (ringA < 0 || ringB < 0
+				|| ringA + radialSegments > vertices.Count
+				|| ringB + radialSegments > vertices.Count) {
+				return;
+			}
+			// Align the two rings before stitching. The loop's far mouth winds the opposite way
+			// around the tube (its tangent is reversed), so try both a rotation and a reflected
+			// (reversed) pairing and keep whichever matches the vertices best.
+			var centerA = Vector3.zero;
+			var centerB = Vector3.zero;
+			for (var i = 0; i < radialSegments; i++) {
+				centerA += vertices[ringA + i];
+				centerB += vertices[ringB + i];
+			}
+			var axisCenter = (centerA + centerB) / (radialSegments * 2f);
+			var bestOffset = 0;
+			var bestReversed = false;
+			var bestDistance = float.MaxValue;
+			for (var reversed = 0; reversed < 2; reversed++) {
+				for (var offset = 0; offset < radialSegments; offset++) {
+					var sum = 0f;
+					for (var i = 0; i < radialSegments; i++) {
+						var delta = vertices[ringA + i]
+							- vertices[ringB + MapRadial(i, offset, reversed == 1, radialSegments)];
+						sum += delta.sqrMagnitude;
+					}
+					if (sum < bestDistance) {
+						bestDistance = sum;
+						bestOffset = offset;
+						bestReversed = reversed == 1;
+					}
+				}
+			}
+			// Share an averaged normal between each welded pair so the shading is continuous
+			// across the seam instead of jumping between the two tubes' normals.
+			for (var i = 0; i < radialSegments; i++) {
+				var b = ringB + MapRadial(i, bestOffset, bestReversed, radialSegments);
+				var averaged = (normals[ringA + i] + normals[b]).normalized;
+				if (averaged.sqrMagnitude > 1e-6f) {
+					normals[ringA + i] = averaged;
+					normals[b] = averaged;
+				}
+			}
+			for (var i = 0; i < radialSegments; i++) {
+				var iNext = (i + 1) % radialSegments;
+				var a0 = ringA + i;
+				var a1 = ringA + iNext;
+				var b0 = ringB + MapRadial(i, bestOffset, bestReversed, radialSegments);
+				var b1 = ringB + MapRadial(iNext, bestOffset, bestReversed, radialSegments);
+				// Orient each quad so its face points away from the tube axis.
+				var centroid = (vertices[a0] + vertices[a1] + vertices[b0] + vertices[b1])
+					* 0.25f;
+				var normal = Vector3.Cross(vertices[b0] - vertices[a0],
+					vertices[b1] - vertices[a0]);
+				if (Vector3.Dot(normal, centroid - axisCenter) >= 0f) {
+					indices.Add(a0);
+					indices.Add(b0);
+					indices.Add(b1);
+					indices.Add(a0);
+					indices.Add(b1);
+					indices.Add(a1);
+				} else {
+					indices.Add(a0);
+					indices.Add(b1);
+					indices.Add(b0);
+					indices.Add(a0);
+					indices.Add(a1);
+					indices.Add(b1);
+				}
+			}
 		}
 
 		private static void CollectFittedRailEnds(Spline spline,
@@ -1060,13 +1224,14 @@ namespace VisualPinball.Unity
 				// drop profile and usability checks use — so the flat cap lands on the same rail.
 				float attachmentDistance;
 				if (fixture is WireRailDropLoopFixture dropLoop) {
-					if (WireRailFixtureMeshGenerator.HasDropLoopAttachmentOffset(dropLoop)) {
-						continue;
-					}
 					endpoint = dropLoop.Endpoint;
 					firstRailIndex = dropLoop.FirstRailIndex;
 					secondRailIndex = dropLoop.SecondRailIndex;
-					attachmentDistance = endpoint == WireRailEndpoint.Start ? 0f : splineLength;
+					// The offset shortens the connected rails, so the loop joins them that far
+					// before the endpoint; fit the cap there so it lands on the same rail.
+					var loopTrim = math.max(0f, dropLoop.RailOffset);
+					attachmentDistance = math.clamp(endpoint == WireRailEndpoint.Start
+						? loopTrim : splineLength - loopTrim, 0f, splineLength);
 				} else if (fixture is WireRailDropFixture drop) {
 					endpoint = drop.Endpoint;
 					firstRailIndex = drop.FirstRailIndex;
@@ -1113,21 +1278,28 @@ namespace VisualPinball.Unity
 			WireRailPathFrame? previousSegmentFrame,
 			List<float> sampleParameters, List<Vector3> vertices, List<Vector3> normals,
 			List<Vector2> uvs, List<int> indices,
-			out WireRailPathFrame lastFrame)
+			out WireRailPathFrame lastFrame, out int firstTubeRing, out int lastTubeRing)
 		{
 			var firstRing = vertices.Count;
+			// The tube rings occupy [firstRing, cap start); caps (if any) are appended after
+			// them, so report the ring range explicitly for callers that weld to the mouths.
+			firstTubeRing = firstRing;
+			lastTubeRing = firstRing;
 			WireRailPathFrame firstFrame = default;
 			lastFrame = default;
 			var firstRadius = 0f;
 			var lastRadius = 0f;
 			BuildSampleParameters(spline, segments, evaluationContext, segmentIndex, railIndex,
 				startT, endT, samplesPerSegment, sampleParameters);
-			var capStart = trimmedStart || startT > 1e-5f
+			// A fitted rail end joins a Drop/Drop Loop tube that continues from the same point
+			// and radius, so leave it open (no cap) for the surfaces to blend; other ends keep
+			// their flat/beveled cap.
+			var capStart = !omitStartCapBevel && (trimmedStart || startT > 1e-5f
 				|| !WireRailSplineGeometry.IsRailConnectedAtStart(spline, segments,
-					segmentIndex, railIndex);
-			var capEnd = trimmedEnd || endT < 1f - 1e-5f
+					segmentIndex, railIndex));
+			var capEnd = !omitEndCapBevel && (trimmedEnd || endT < 1f - 1e-5f
 				|| !WireRailSplineGeometry.IsRailConnectedAtEnd(spline, segments,
-					segmentIndex, railIndex);
+					segmentIndex, railIndex));
 			var startCapBevelSize = omitStartCapBevel ? 0f : capBevelSize;
 			var endCapBevelSize = omitEndCapBevel ? 0f : capBevelSize;
 			for (var sampleIndex = 0; sampleIndex < sampleParameters.Count; sampleIndex++) {
@@ -1185,6 +1357,8 @@ namespace VisualPinball.Unity
 					uvs.Add(new Vector2(curveT, radialIndex / (float)radialSegments));
 				}
 			}
+			// All tube rings are in now; caps (if any) come after, so the mouth is here.
+			lastTubeRing = vertices.Count - radialSegments;
 
 			for (var sampleIndex = 0; sampleIndex < sampleParameters.Count - 1; sampleIndex++) {
 				var current = firstRing + sampleIndex * radialSegments;
@@ -1477,17 +1651,13 @@ namespace VisualPinball.Unity
 		private const float LegCornerMaxSpanFraction = 0.45f;
 		private const int DropLoopColliderLeadSegments = 4;
 		private const int DropLoopColliderTerminalSegments = 12;
-		private const float DropLoopAttachmentEpsilon = 1e-5f;
-
-		internal static bool HasDropLoopAttachmentOffset(WireRailDropLoopFixture dropLoop)
-			=> dropLoop != null && (math.abs(dropLoop.LateralOffset) > DropLoopAttachmentEpsilon
-				|| math.abs(dropLoop.VerticalOffset) > DropLoopAttachmentEpsilon);
 
 		public static void Append(Spline spline, IReadOnlyList<WireRailSegment> segments,
 			IReadOnlyList<WireRailFixture> fixtures, float wireCapBevelSize,
 			int radialSegments,
 			ICollection<Vector3> vertices, ICollection<Vector3> normals,
-			ICollection<Vector2> uvs, ICollection<int> indices)
+			ICollection<Vector2> uvs, ICollection<int> indices,
+			ICollection<WireRailDropLoopSeam> loopSeams = null)
 		{
 			if (fixtures == null) {
 				return;
@@ -1517,8 +1687,20 @@ namespace VisualPinball.Unity
 						dropLoop)
 					&& TryEvaluateDropLoopProfile(spline, segments, dropLoop,
 						out var dropLoopProfile)) {
+					var loopFirstRing = vertices.Count;
 					AppendDropLoop(dropLoopProfile, dropLoop, wireCapBevelSize,
 						radialSegments, vertices, normals, uvs, indices);
+					// Record the loop's mouth rings so the render can weld them to the rails.
+					if (loopSeams != null
+						&& vertices.Count - loopFirstRing >= radialSegments * 2) {
+						loopSeams.Add(new WireRailDropLoopSeam {
+							Endpoint = dropLoop.Endpoint,
+							FirstRailIndex = dropLoop.FirstRailIndex,
+							SecondRailIndex = dropLoop.SecondRailIndex,
+							LoopFirstRing = loopFirstRing,
+							LoopLastRing = vertices.Count - radialSegments,
+						});
+					}
 				} else if (fixture is WireRailDropFixture drop
 					&& !WireRailEndpointTrimUtility.HasRailTrimConflict(fixtures,
 						drop.Endpoint, drop.FirstRailIndex, drop.SecondRailIndex, drop)
@@ -2010,9 +2192,17 @@ namespace VisualPinball.Unity
 			int leadSegments, int terminalSegments, out WireRailDropLoopProfile profile)
 		{
 			profile = default;
-			if (dropLoop == null || spline == null || spline.Closed
-				|| !TryGetSplineLocation(spline, segments,
-					dropLoop.Endpoint == WireRailEndpoint.Start ? 0f : spline.GetLength(),
+			if (dropLoop == null || spline == null || spline.Closed) {
+				return false;
+			}
+			// The offset shortens the connected rails, so the loop attaches this far before the
+			// endpoint; evaluate the frame and rails there so the loop meets the trimmed ends.
+			var splineLength = spline.GetLength();
+			var railTrim = math.max(0f, dropLoop.RailOffset);
+			var attachmentDistance = math.clamp(
+				dropLoop.Endpoint == WireRailEndpoint.Start ? railTrim : splineLength - railTrim,
+				0f, splineLength);
+			if (!TryGetSplineLocation(spline, segments, attachmentDistance,
 					out var segmentIndex, out var curveT, out var frame)) {
 				return false;
 			}
@@ -2036,12 +2226,12 @@ namespace VisualPinball.Unity
 				return false;
 			}
 
-			var offset = frame.Right * dropLoop.LateralOffset
-				+ frame.Up * dropLoop.VerticalOffset;
-			var firstAttachment = firstRail + offset;
-			var secondAttachment = secondRail + offset;
 			var outward = dropLoop.Endpoint == WireRailEndpoint.Start
 				? -frame.Tangent : frame.Tangent;
+			// The rails are already trimmed to the attachment distance above, so the loop joins
+			// them right at their ends.
+			var firstAttachment = firstRail;
+			var secondAttachment = secondRail;
 			var pairAxis = math.normalizesafe(secondAttachment - firstAttachment,
 				frame.Right);
 			pairAxis = math.normalizesafe(math.mul(quaternion.AxisAngle(frame.Tangent,
@@ -2577,10 +2767,10 @@ namespace VisualPinball.Unity
 			ICollection<Vector3> vertices, ICollection<Vector3> normals,
 			ICollection<Vector2> uvs, ICollection<int> indices)
 		{
-			var closeEnds = HasDropLoopAttachmentOffset(dropLoop);
+			// The loop always meets the (trimmed) rail ends, so its mouths stay open.
 			AppendPolylineTube(profile.CenterlinePoints, profile.Frame,
 				dropLoop.Diameter, capBevelSize, radialSegments,
-				vertices, normals, uvs, indices, closeEnds, closeEnds);
+				vertices, normals, uvs, indices, false, false);
 		}
 
 		private static void AppendDrop(WireRailDropProfile profile,
@@ -3664,7 +3854,7 @@ namespace VisualPinball.Unity
 					buffers.Vertices, buffers.Indices,
 					buffers.TerminalIndices, profile.TerminalStartSpan,
 					profile.TerminalEndSpan,
-					WireRailFixtureMeshGenerator.HasDropLoopAttachmentOffset(dropLoop));
+					false);
 			}
 		}
 
