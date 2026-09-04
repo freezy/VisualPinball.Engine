@@ -18,8 +18,17 @@
       href: editor/units-3d-space.md
     - name: Unity Components
       href: editor/unity-components.md
-    - name: Wire Rail Authoring
-      href: editor/wire-rail-authoring.md
+    - name: Wire Rails
+      href: editor/wire-rails/index.md
+      items:
+        - name: The Route
+          href: editor/wire-rails/route.md
+        - name: Wire Layouts
+          href: editor/wire-rails/layouts.md
+        - name: Fixtures
+          href: editor/wire-rails/fixtures.md
+        - name: Generated Geometry
+          href: editor/wire-rails/geometry.md
     - name: Materials
       href: editor/materials.md
     - name: Asset Library Style Guide
