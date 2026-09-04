@@ -485,7 +485,7 @@ namespace VisualPinball.Unity.Editor
 		}
 	}
 
-	internal sealed class WireRailBracePreviewEditor
+	internal sealed class WireRailRingPreviewEditor
 	{
 		private const float FullTurn = math.PI * 2f;
 		private const int CircleSegments = 48;
@@ -495,32 +495,32 @@ namespace VisualPinball.Unity.Editor
 		private static readonly Color AxisColor = new(1f, 1f, 1f, 0.28f);
 		private static readonly Color OutlineColor = new(0f, 0f, 0f, 0.8f);
 		private static readonly Color RailColor = new(0.55f, 0.58f, 0.62f, 1f);
-		private static readonly Color BraceColor = new(1f, 0.67f, 0.12f, 1f);
+		private static readonly Color RingColor = new(1f, 0.67f, 0.12f, 1f);
 
 		public void Draw(Rect rect, WireRailComponent component, int fixtureIndex,
-			WireRailBraceFixture brace)
+			WireRailRingFixture ring)
 		{
 			EditorGUI.DrawRect(rect, CanvasColor);
-			if (!component.TryGetBraceCrossSection(fixtureIndex, out var crossSection)) {
-				EditorGUI.LabelField(rect, "Brace preview unavailable",
+			if (!component.TryGetRingCrossSection(fixtureIndex, out var crossSection)) {
+				EditorGUI.LabelField(rect, "Ring preview unavailable",
 					EditorStyles.centeredGreyMiniLabel);
 				return;
 			}
-			if (!brace.TryGetVisibleArc(out var startAngle, out var sweepAngle,
+			if (!ring.TryGetVisibleArc(out var startAngle, out var sweepAngle,
 					out _)) {
-				EditorGUI.LabelField(rect, "Brace fully cut out",
+				EditorGUI.LabelField(rect, "Ring fully cut out",
 					EditorStyles.centeredGreyMiniLabel);
 				return;
 			}
 
-			var angles = BuildAngles(brace, startAngle, sweepAngle);
+			var angles = BuildAngles(ring, startAngle, sweepAngle);
 			var offsets = new List<Vector2>(angles.Count);
 			foreach (var angle in angles) {
-				var centerline = brace.EvaluateCenterlineOffset(angle, crossSection.Radius);
+				var centerline = ring.EvaluateCenterlineOffset(angle, crossSection.Radius);
 				offsets.Add(crossSection.CenterOffset
 					+ new Vector2(centerline.x, centerline.y));
 			}
-			var view = BracePreviewView.Create(rect, offsets, brace.Diameter * 0.5f,
+			var view = RingPreviewView.Create(rect, offsets, ring.Diameter * 0.5f,
 				crossSection.RailOffsets, crossSection.RailRadii);
 			DrawGrid(view);
 
@@ -528,18 +528,18 @@ namespace VisualPinball.Unity.Editor
 			for (var index = 0; index < offsets.Count; index++) {
 				points[index] = view.ToScreen(offsets[index]);
 			}
-			var railWidth = math.clamp(brace.Diameter * view.Scale, 2f, 12f);
-			var width = math.clamp(brace.Diameter * view.Scale, 3f, 16f);
+			var railWidth = math.clamp(ring.Diameter * view.Scale, 2f, 12f);
+			var width = math.clamp(ring.Diameter * view.Scale, 3f, 16f);
 			Handles.BeginGUI();
 			var previousColor = Handles.color;
-			// The wire rails the brace wraps around, drawn behind the brace ring.
+			// The wire rails the ring wraps around, drawn behind the ring.
 			for (var railIndex = 0; railIndex < crossSection.RailOffsets.Length; railIndex++) {
 				DrawRail(view, crossSection.RailOffsets[railIndex],
 					crossSection.RailRadii[railIndex], railWidth);
 			}
 			Handles.color = OutlineColor;
 			Handles.DrawAAPolyLine(width + 3f, points);
-			Handles.color = BraceColor;
+			Handles.color = RingColor;
 			Handles.DrawAAPolyLine(width, points);
 			Handles.color = previousColor;
 			Handles.EndGUI();
@@ -549,10 +549,10 @@ namespace VisualPinball.Unity.Editor
 			GUI.Label(new Rect(rect.xMax - 34f, rect.yMax - 20f, 30f, 18f), "X →",
 				EditorStyles.miniLabel);
 			GUI.Label(rect, new GUIContent(string.Empty,
-				"Brace cross-section at its route position"));
+				"Ring cross-section at its route position"));
 		}
 
-		private static void DrawRail(BracePreviewView view, Vector2 center,
+		private static void DrawRail(RingPreviewView view, Vector2 center,
 			float radius, float width)
 		{
 			var points = new Vector3[CircleSegments + 1];
@@ -567,16 +567,16 @@ namespace VisualPinball.Unity.Editor
 			Handles.DrawAAPolyLine(width, points);
 		}
 
-		private static List<float> BuildAngles(WireRailBraceFixture brace,
+		private static List<float> BuildAngles(WireRailRingFixture ring,
 			float startAngle, float sweepAngle)
 		{
 			var segmentCount = math.max(2,
-				(int)math.ceil(brace.RingDensity * sweepAngle / FullTurn));
+				(int)math.ceil(ring.RingDensity * sweepAngle / FullTurn));
 			var angles = new List<float>(segmentCount + 3);
 			for (var index = 0; index <= segmentCount; index++) {
 				angles.Add(startAngle + sweepAngle * index / segmentCount);
 			}
-			if (brace.TryGetStraightSection(out var straightStart, out var straightSweep)) {
+			if (ring.TryGetStraightSection(out var straightStart, out var straightSweep)) {
 				AddBoundary(straightStart);
 				AddBoundary(straightStart + straightSweep);
 			}
@@ -600,7 +600,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private static void DrawGrid(BracePreviewView view)
+		private static void DrawGrid(RingPreviewView view)
 		{
 			var span = math.max(view.Max.x - view.Min.x, view.Max.y - view.Min.y);
 			var gridStep = span > 400f ? 100f : span > 200f ? 50f : span > 100f ? 20f : 10f;
@@ -618,14 +618,14 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private readonly struct BracePreviewView
+		private readonly struct RingPreviewView
 		{
 			public readonly Rect Rect;
 			public readonly Vector2 Min;
 			public readonly Vector2 Max;
 			public readonly float Scale;
 
-			private BracePreviewView(Rect rect, Vector2 min, Vector2 max, float scale)
+			private RingPreviewView(Rect rect, Vector2 min, Vector2 max, float scale)
 			{
 				Rect = rect;
 				Min = min;
@@ -633,7 +633,7 @@ namespace VisualPinball.Unity.Editor
 				Scale = scale;
 			}
 
-			public static BracePreviewView Create(Rect rect, IReadOnlyList<Vector2> offsets,
+			public static RingPreviewView Create(Rect rect, IReadOnlyList<Vector2> offsets,
 				float tubeRadius, IReadOnlyList<Vector2> railOffsets,
 				IReadOnlyList<float> railRadii)
 			{
@@ -659,7 +659,7 @@ namespace VisualPinball.Unity.Editor
 				var center = (min + max) * 0.5f;
 				min = center - fittedSize * 0.5f;
 				max = center + fittedSize * 0.5f;
-				return new BracePreviewView(rect, min, max, scale);
+				return new RingPreviewView(rect, min, max, scale);
 			}
 
 			public Vector3 ToScreen(Vector2 vpx)
@@ -668,7 +668,7 @@ namespace VisualPinball.Unity.Editor
 		}
 	}
 
-	internal sealed class WireRailVBracePreviewEditor
+	internal sealed class WireRailCradlePreviewEditor
 	{
 		private const int CircleSegments = 48;
 		public const float Height = 190f;
@@ -677,23 +677,23 @@ namespace VisualPinball.Unity.Editor
 		private static readonly Color AxisColor = new(1f, 1f, 1f, 0.28f);
 		private static readonly Color OutlineColor = new(0f, 0f, 0f, 0.8f);
 		private static readonly Color RailColor = new(0.55f, 0.58f, 0.62f, 1f);
-		private static readonly Color BraceColor = new(1f, 0.67f, 0.12f, 1f);
+		private static readonly Color RingColor = new(1f, 0.67f, 0.12f, 1f);
 
 		public void Draw(Rect rect, WireRailComponent component, int fixtureIndex,
-			WireRailVBraceFixture vBrace)
+			WireRailCradleFixture cradle)
 		{
 			EditorGUI.DrawRect(rect, CanvasColor);
-			if (!component.TryGetVBracePreview(fixtureIndex, out var preview)) {
+			if (!component.TryGetCradlePreview(fixtureIndex, out var preview)) {
 				EditorGUI.LabelField(rect,
-					"Cross-wire-with-arms preview unavailable at this position",
+					"Cradle preview unavailable at this position",
 					EditorStyles.centeredGreyMiniLabel);
 				return;
 			}
 
-			var view = VBracePreviewView.Create(rect, preview, vBrace.Diameter * 0.5f);
+			var view = CradlePreviewView.Create(rect, preview, cradle.Diameter * 0.5f);
 			DrawGrid(view);
-			var railWidth = math.clamp(vBrace.Diameter * view.Scale, 2f, 12f);
-			var braceWidth = math.clamp(vBrace.Diameter * view.Scale, 3f, 16f);
+			var railWidth = math.clamp(cradle.Diameter * view.Scale, 2f, 12f);
+			var ringWidth = math.clamp(cradle.Diameter * view.Scale, 3f, 16f);
 			Handles.BeginGUI();
 			var previousColor = Handles.color;
 			for (var railIndex = 0; railIndex < preview.RailOffsets.Count; railIndex++) {
@@ -705,9 +705,9 @@ namespace VisualPinball.Unity.Editor
 				points[pointIndex] = view.ToScreen(preview.CenterlinePoints[pointIndex]);
 			}
 			Handles.color = OutlineColor;
-			Handles.DrawAAPolyLine(braceWidth + 3f, points);
-			Handles.color = BraceColor;
-			Handles.DrawAAPolyLine(braceWidth, points);
+			Handles.DrawAAPolyLine(ringWidth + 3f, points);
+			Handles.color = RingColor;
+			Handles.DrawAAPolyLine(ringWidth, points);
 			Handles.color = previousColor;
 			Handles.EndGUI();
 
@@ -716,10 +716,10 @@ namespace VisualPinball.Unity.Editor
 			GUI.Label(new Rect(rect.xMax - 34f, rect.yMax - 20f, 30f, 18f), "X →",
 				EditorStyles.miniLabel);
 			GUI.Label(rect, new GUIContent(string.Empty,
-				"Cross wire with optional arms at its route position"));
+				"Cradle at its route position"));
 		}
 
-		private static void DrawRail(VBracePreviewView view, Vector2 center,
+		private static void DrawRail(CradlePreviewView view, Vector2 center,
 			float radius, float width)
 		{
 			var points = new Vector3[CircleSegments + 1];
@@ -734,7 +734,7 @@ namespace VisualPinball.Unity.Editor
 			Handles.DrawAAPolyLine(width, points);
 		}
 
-		private static void DrawGrid(VBracePreviewView view)
+		private static void DrawGrid(CradlePreviewView view)
 		{
 			var span = math.max(view.Max.x - view.Min.x, view.Max.y - view.Min.y);
 			var gridStep = span > 400f ? 100f : span > 200f ? 50f : span > 100f ? 20f : 10f;
@@ -752,14 +752,14 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private readonly struct VBracePreviewView
+		private readonly struct CradlePreviewView
 		{
 			public readonly Rect Rect;
 			public readonly Vector2 Min;
 			public readonly Vector2 Max;
 			public readonly float Scale;
 
-			private VBracePreviewView(Rect rect, Vector2 min, Vector2 max, float scale)
+			private CradlePreviewView(Rect rect, Vector2 min, Vector2 max, float scale)
 			{
 				Rect = rect;
 				Min = min;
@@ -767,7 +767,7 @@ namespace VisualPinball.Unity.Editor
 				Scale = scale;
 			}
 
-			public static VBracePreviewView Create(Rect rect, WireRailVBracePreview preview,
+			public static CradlePreviewView Create(Rect rect, WireRailCradlePreview preview,
 				float tubeRadius)
 			{
 				var padding = math.max(8f, tubeRadius + 8f);
@@ -786,7 +786,7 @@ namespace VisualPinball.Unity.Editor
 				var fittedSize = new Vector2((rect.width - 20f) / scale,
 					(rect.height - 20f) / scale);
 				var center = (min + max) * 0.5f;
-				return new VBracePreviewView(rect, center - fittedSize * 0.5f,
+				return new CradlePreviewView(rect, center - fittedSize * 0.5f,
 					center + fittedSize * 0.5f, scale);
 
 				void Include(Vector2 point, float radius)
@@ -802,7 +802,7 @@ namespace VisualPinball.Unity.Editor
 		}
 	}
 
-	internal sealed class WireRailCrossWirePreviewEditor
+	internal sealed class WireRailRungPreviewEditor
 	{
 		private const int CircleSegments = 48;
 		public const float Height = 170f;
@@ -811,24 +811,24 @@ namespace VisualPinball.Unity.Editor
 		private static readonly Color AxisColor = new(1f, 1f, 1f, 0.28f);
 		private static readonly Color OutlineColor = new(0f, 0f, 0f, 0.8f);
 		private static readonly Color RailColor = new(0.55f, 0.58f, 0.62f, 1f);
-		private static readonly Color CrossWireColor = new(1f, 0.67f, 0.12f, 1f);
+		private static readonly Color RungColor = new(1f, 0.67f, 0.12f, 1f);
 
 		public void Draw(Rect rect, WireRailComponent component, int fixtureIndex,
-			WireRailCrossWireFixture crossWire)
+			WireRailRungFixture rung)
 		{
 			EditorGUI.DrawRect(rect, CanvasColor);
-			if (!component.TryGetCrossWireCrossSection(fixtureIndex, out var crossSection)) {
+			if (!component.TryGetRungCrossSection(fixtureIndex, out var crossSection)) {
 				EditorGUI.LabelField(rect,
-					"Cross-wire preview unavailable at this position",
+					"Rung preview unavailable at this position",
 					EditorStyles.centeredGreyMiniLabel);
 				return;
 			}
 
-			var view = CrossWirePreviewView.Create(rect, crossSection,
-				crossWire.Diameter * 0.5f);
+			var view = RungPreviewView.Create(rect, crossSection,
+				rung.Diameter * 0.5f);
 			DrawGrid(view);
-			var railWidth = math.clamp(crossWire.Diameter * view.Scale, 2f, 12f);
-			var crossWireWidth = math.clamp(crossWire.Diameter * view.Scale, 3f, 16f);
+			var railWidth = math.clamp(rung.Diameter * view.Scale, 2f, 12f);
+			var rungWidth = math.clamp(rung.Diameter * view.Scale, 3f, 16f);
 			var start = view.ToScreen(crossSection.StartOffset);
 			var end = view.ToScreen(crossSection.EndOffset);
 			Handles.BeginGUI();
@@ -838,9 +838,9 @@ namespace VisualPinball.Unity.Editor
 			DrawRail(view, crossSection.EndRailOffset,
 				crossSection.EndRailRadius, railWidth);
 			Handles.color = OutlineColor;
-			Handles.DrawAAPolyLine(crossWireWidth + 3f, start, end);
-			Handles.color = CrossWireColor;
-			Handles.DrawAAPolyLine(crossWireWidth, start, end);
+			Handles.DrawAAPolyLine(rungWidth + 3f, start, end);
+			Handles.color = RungColor;
+			Handles.DrawAAPolyLine(rungWidth, start, end);
 			Handles.color = previousColor;
 			Handles.EndGUI();
 
@@ -849,10 +849,10 @@ namespace VisualPinball.Unity.Editor
 			GUI.Label(new Rect(rect.xMax - 34f, rect.yMax - 20f, 30f, 18f), "X →",
 				EditorStyles.miniLabel);
 			GUI.Label(rect, new GUIContent(string.Empty,
-				"Cross-wire section at its route position"));
+				"Rung at its route position"));
 		}
 
-		private static void DrawRail(CrossWirePreviewView view, Vector2 center,
+		private static void DrawRail(RungPreviewView view, Vector2 center,
 			float radius, float width)
 		{
 			var points = new Vector3[CircleSegments + 1];
@@ -867,7 +867,7 @@ namespace VisualPinball.Unity.Editor
 			Handles.DrawAAPolyLine(width, points);
 		}
 
-		private static void DrawGrid(CrossWirePreviewView view)
+		private static void DrawGrid(RungPreviewView view)
 		{
 			var span = math.max(view.Max.x - view.Min.x, view.Max.y - view.Min.y);
 			var gridStep = span > 400f ? 100f : span > 200f ? 50f : span > 100f ? 20f : 10f;
@@ -885,14 +885,14 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private readonly struct CrossWirePreviewView
+		private readonly struct RungPreviewView
 		{
 			public readonly Rect Rect;
 			public readonly Vector2 Min;
 			public readonly Vector2 Max;
 			public readonly float Scale;
 
-			private CrossWirePreviewView(Rect rect, Vector2 min, Vector2 max, float scale)
+			private RungPreviewView(Rect rect, Vector2 min, Vector2 max, float scale)
 			{
 				Rect = rect;
 				Min = min;
@@ -900,8 +900,8 @@ namespace VisualPinball.Unity.Editor
 				Scale = scale;
 			}
 
-			public static CrossWirePreviewView Create(Rect rect,
-				WireRailCrossWireCrossSection crossSection, float tubeRadius)
+			public static RungPreviewView Create(Rect rect,
+				WireRailRungCrossSection crossSection, float tubeRadius)
 			{
 				var padding = math.max(8f, tubeRadius + 8f);
 				var min = Vector2.Min(crossSection.StartOffset, crossSection.EndOffset)
@@ -924,7 +924,7 @@ namespace VisualPinball.Unity.Editor
 				var center = (min + max) * 0.5f;
 				min = center - fittedSize * 0.5f;
 				max = center + fittedSize * 0.5f;
-				return new CrossWirePreviewView(rect, min, max, scale);
+				return new RungPreviewView(rect, min, max, scale);
 			}
 
 			public Vector3 ToScreen(Vector2 vpx)
@@ -933,7 +933,7 @@ namespace VisualPinball.Unity.Editor
 		}
 	}
 
-	internal sealed class WireRailLegPreviewEditor
+	internal sealed class WireRailStandPreviewEditor
 	{
 		private const int CircleSegments = 48;
 		public const float Height = 190f;
@@ -945,10 +945,10 @@ namespace VisualPinball.Unity.Editor
 		private static readonly Color LegColor = new(1f, 0.67f, 0.12f, 1f);
 
 		public void Draw(Rect rect, WireRailComponent component, int fixtureIndex,
-			WireRailLegFixture leg)
+			WireRailStandFixture leg)
 		{
 			EditorGUI.DrawRect(rect, CanvasColor);
-			if (!component.TryGetLegPreview(fixtureIndex, out var preview)) {
+			if (!component.TryGetStandPreview(fixtureIndex, out var preview)) {
 				EditorGUI.LabelField(rect,
 					"Leg and foot preview unavailable at this position",
 					EditorStyles.centeredGreyMiniLabel);
@@ -1038,7 +1038,7 @@ namespace VisualPinball.Unity.Editor
 				Scale = scale;
 			}
 
-			public static LegPreviewView Create(Rect rect, WireRailLegPreview preview,
+			public static LegPreviewView Create(Rect rect, WireRailStandPreview preview,
 				float tubeRadius)
 			{
 				var padding = math.max(8f, tubeRadius + 8f);
@@ -1077,38 +1077,38 @@ namespace VisualPinball.Unity.Editor
 		}
 	}
 
-	internal sealed class WireRailDropPreviewEditor
+	internal sealed class WireRailElbowPreviewEditor
 	{
 		public const float Height = WireRailPathPreview.Height;
 
 		public void Draw(Rect rect, WireRailComponent component, int fixtureIndex,
-			WireRailDropFixture drop)
+			WireRailElbowFixture elbow)
 		{
-			if (!component.TryGetDropPreview(fixtureIndex, out var preview)) {
+			if (!component.TryGetElbowPreview(fixtureIndex, out var preview)) {
 				WireRailPathPreview.DrawUnavailable(rect,
-					"Drop preview unavailable at this position");
+					"Elbow preview unavailable at this position");
 				return;
 			}
-			WireRailPathPreview.Draw(rect, drop.Diameter,
+			WireRailPathPreview.Draw(rect, elbow.Diameter,
 				"Projected route-local view of the two dropping rails.",
 				new[] { preview.FirstRailPoints, preview.SecondRailPoints });
 		}
 	}
 
-	internal sealed class WireRailDropLoopPreviewEditor
+	internal sealed class WireRailHairpinPreviewEditor
 	{
 		public const float Height = WireRailPathPreview.Height;
 
 		public void Draw(Rect rect, WireRailComponent component, int fixtureIndex,
-			WireRailDropLoopFixture dropLoop)
+			WireRailHairpinFixture hairpin)
 		{
-			if (!component.TryGetDropLoopPreview(fixtureIndex, out var preview)) {
+			if (!component.TryGetHairpinPreview(fixtureIndex, out var preview)) {
 				WireRailPathPreview.DrawUnavailable(rect,
-					"Drop Loop preview unavailable at this position");
+					"Hairpin preview unavailable at this position");
 				return;
 			}
-			WireRailPathPreview.Draw(rect, dropLoop.Diameter,
-				"Top-down route-local view of the drop loop centerline.",
+			WireRailPathPreview.Draw(rect, hairpin.Diameter,
+				"Top-down route-local view of the hairpin centerline.",
 				new[] { preview.CenterlinePoints }, WireRailPreviewProjection.Top);
 		}
 	}
@@ -1123,7 +1123,7 @@ namespace VisualPinball.Unity.Editor
 	}
 
 	// Shared projected route-local preview for the endpoint fittings whose geometry is one or
-	// more 3D centerline paths (Drop, Drop Loop), matching the leg preview's isometric look.
+	// more 3D centerline paths (Drop, Hairpin), matching the leg preview's isometric look.
 	internal static class WireRailPathPreview
 	{
 		public const float Height = 190f;

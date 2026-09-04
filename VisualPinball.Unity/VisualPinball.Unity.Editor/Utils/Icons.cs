@@ -123,6 +123,13 @@ namespace VisualPinball.Unity.Editor
 		private const string TableVariableEventName = "table_variable_event";
 		private const string UpdateDisplayName = "update_display";
 		private const string DisplayEventName = "display_event";
+		private const string WireRailRingName = "wire_rail_ring";
+		private const string WireRailCradleName = "wire_rail_cradle";
+		private const string WireRailRungName = "wire_rail_rung";
+		private const string WireRailStandName = "wire_rail_stand";
+		private const string WireRailHairpinName = "wire_rail_hairpin";
+		private const string WireRailElbowName = "wire_rail_elbow";
+		private const string WireRailTrimName = "wire_rail_trim";
 
 		private static readonly string[] Names = {
 			AssetLibraryName, BallRollerName, BallName, BoltName, BumperName, CalendarName, CannonName, CoilName, DropTargetBankName, DropTargetName, FlasherName,
@@ -135,6 +142,16 @@ namespace VisualPinball.Unity.Editor
 		};
 
 		private readonly Dictionary<IconVariant, Texture2D> _icons = new Dictionary<IconVariant, Texture2D>();
+
+		/// <summary>
+		/// Illustrative icons that have no size/color variants, stored in the "other" folder.
+		/// </summary>
+		private static readonly string[] OtherNames = {
+			WireRailRingName, WireRailCradleName, WireRailRungName, WireRailStandName,
+			WireRailHairpinName, WireRailElbowName, WireRailTrimName
+		};
+
+		private readonly Dictionary<string, Texture2D> _otherIcons = new Dictionary<string, Texture2D>();
 		private static readonly MethodInfo CopyMonoScriptIconToImporters = typeof(MonoImporter).GetMethod("CopyMonoScriptIconToImporters", BindingFlags.Static | BindingFlags.NonPublic);
 		private static readonly MethodInfo SetIconForObject = typeof(EditorGUIUtility).GetMethod("SetIconForObject", BindingFlags.Static | BindingFlags.NonPublic);
 		private static readonly MethodInfo SetGizmoEnabled = Assembly.GetAssembly(typeof(UnityEditor.Editor))?.GetType("UnityEditor.AnnotationUtility")?.GetMethod("SetGizmoEnabled", BindingFlags.Static | BindingFlags.NonPublic);
@@ -160,6 +177,12 @@ namespace VisualPinball.Unity.Editor
 							_icons[variant] = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
 						}
 					}
+				}
+			}
+			foreach (var name in OtherNames) {
+				var path = $"{iconPath}/other/{name}.png";
+				if (File.Exists(path)) {
+					_otherIcons[name] = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
 				}
 			}
 		}
@@ -224,6 +247,14 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D Trough(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(TroughName, size, color);
 		public static Texture2D Unlocked(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(UnlockedName, size, color);
 
+		public static Texture2D WireRailRing => Instance.GetOther(WireRailRingName);
+		public static Texture2D WireRailCradle => Instance.GetOther(WireRailCradleName);
+		public static Texture2D WireRailRung => Instance.GetOther(WireRailRungName);
+		public static Texture2D WireRailStand => Instance.GetOther(WireRailStandName);
+		public static Texture2D WireRailHairpin => Instance.GetOther(WireRailHairpinName);
+		public static Texture2D WireRailElbow => Instance.GetOther(WireRailElbowName);
+		public static Texture2D WireRailTrim => Instance.GetOther(WireRailTrimName);
+
 
 		public static Texture2D CoilEvent => Instance.GetItem(CoilEventName, IconSize.Large, IconColor.Colored);
 		public static Texture2D SwitchEvent => Instance.GetItem(SwitchEventName, IconSize.Large, IconColor.Colored);
@@ -265,6 +296,9 @@ namespace VisualPinball.Unity.Editor
 				CopyMonoScriptIconToImporters.Invoke(null, new object[]{ monoScript });
 			}
 		}
+
+		private Texture2D GetOther(string name)
+			=> _otherIcons.TryGetValue(name, out var texture) ? texture : null;
 
 		private Texture2D GetItem(string name, IconSize size, IconColor color)
 		{

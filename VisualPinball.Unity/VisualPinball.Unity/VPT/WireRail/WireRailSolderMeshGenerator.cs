@@ -228,8 +228,8 @@ namespace VisualPinball.Unity
 			fixturePaths.Clear();
 			if (spline == null || segments == null || segments.Count == 0
 				|| fixture == null || fixture is WireRailTrimFixture
-				|| fixture is WireRailDropLoopFixture
-				|| fixture is WireRailDropFixture
+				|| fixture is WireRailHairpinFixture
+				|| fixture is WireRailElbowFixture
 				|| !TryBuildFixturePaths(spline, segments, fixture, fixturePaths)
 				|| fixturePaths.Count == 0) {
 				return;
@@ -293,29 +293,29 @@ namespace VisualPinball.Unity
 			ICollection<FixtureWirePath> paths)
 		{
 			switch (fixture) {
-				case WireRailBraceFixture brace when WireRailFixtureMeshGenerator
-					.TryEvaluateBraceProfile(spline, segments, brace, out var braceProfile): {
-					var points = BuildBracePath(braceProfile, brace);
+				case WireRailRingFixture ring when WireRailFixtureMeshGenerator
+					.TryEvaluateRingProfile(spline, segments, ring, out var ringProfile): {
+					var points = BuildRingPath(ringProfile, ring);
 					if (points.Count >= 2) {
-						paths.Add(new FixtureWirePath(points, brace.Diameter * 0.5f));
+						paths.Add(new FixtureWirePath(points, ring.Diameter * 0.5f));
 					}
 					break;
 				}
-				case WireRailVBraceFixture vBrace when WireRailFixtureMeshGenerator
-					.TryEvaluateVBraceProfile(spline, segments, vBrace, out var vBraceProfile):
-					paths.Add(new FixtureWirePath(vBraceProfile.CenterlinePoints,
-						vBrace.Diameter * 0.5f));
+				case WireRailCradleFixture cradle when WireRailFixtureMeshGenerator
+					.TryEvaluateCradleProfile(spline, segments, cradle, out var cradleProfile):
+					paths.Add(new FixtureWirePath(cradleProfile.CenterlinePoints,
+						cradle.Diameter * 0.5f));
 					break;
-				case WireRailCrossWireFixture crossWire when WireRailFixtureMeshGenerator
-					.TryEvaluateCrossWireProfile(spline, segments, crossWire,
-						out var crossWireProfile):
+				case WireRailRungFixture rung when WireRailFixtureMeshGenerator
+					.TryEvaluateRungProfile(spline, segments, rung,
+						out var rungProfile):
 					paths.Add(new FixtureWirePath(new[] {
-						crossWireProfile.Start,
-						crossWireProfile.End,
-					}, crossWire.Diameter * 0.5f));
+						rungProfile.Start,
+						rungProfile.End,
+					}, rung.Diameter * 0.5f));
 					break;
-				case WireRailLegFixture leg when WireRailFixtureMeshGenerator
-					.TryEvaluateLegProfile(spline, segments, leg, out var legProfile):
+				case WireRailStandFixture leg when WireRailFixtureMeshGenerator
+					.TryEvaluateStandProfile(spline, segments, leg, out var legProfile):
 					paths.Add(new FixtureWirePath(new[] {
 						legProfile.AttachmentProfile.Start,
 						legProfile.AttachmentProfile.End,
@@ -327,21 +327,21 @@ namespace VisualPinball.Unity
 			return paths.Count > 0;
 		}
 
-		private static List<float3> BuildBracePath(WireRailBraceProfile profile,
-			WireRailBraceFixture brace)
+		private static List<float3> BuildRingPath(WireRailRingProfile profile,
+			WireRailRingFixture ring)
 		{
 			var points = new List<float3>();
-			if (!brace.TryGetVisibleArc(out var startAngle, out var sweepAngle,
+			if (!ring.TryGetVisibleArc(out var startAngle, out var sweepAngle,
 					out var closed)) {
 				return points;
 			}
 			var segmentCount = math.max(2,
-				(int)math.ceil(brace.RingDensity * sweepAngle / FullTurn));
-			var angles = BuildBraceAngles(brace, startAngle, sweepAngle, closed,
+				(int)math.ceil(ring.RingDensity * sweepAngle / FullTurn));
+			var angles = BuildRingAngles(ring, startAngle, sweepAngle, closed,
 				segmentCount);
 			foreach (var angle in angles) {
 				points.Add(profile.Frame.TransformOffset(profile.CenterOffset
-					+ brace.EvaluateCenterlineOffset(angle, profile.Radius)));
+					+ ring.EvaluateCenterlineOffset(angle, profile.Radius)));
 			}
 			if (closed && points.Count > 1) {
 				points.Add(points[0]);
@@ -349,7 +349,7 @@ namespace VisualPinball.Unity
 			return points;
 		}
 
-		private static List<float> BuildBraceAngles(WireRailBraceFixture brace,
+		private static List<float> BuildRingAngles(WireRailRingFixture ring,
 			float startAngle, float sweepAngle, bool closed, int segmentCount)
 		{
 			var angles = new List<float>(segmentCount + 3);
@@ -357,7 +357,7 @@ namespace VisualPinball.Unity
 			for (var pointIndex = 0; pointIndex < pointCount; pointIndex++) {
 				angles.Add(startAngle + sweepAngle * pointIndex / segmentCount);
 			}
-			if (brace.TryGetStraightSection(out var straightStart, out var straightSweep)) {
+			if (ring.TryGetStraightSection(out var straightStart, out var straightSweep)) {
 				AddBoundary(straightStart);
 				AddBoundary(straightStart + straightSweep);
 			}

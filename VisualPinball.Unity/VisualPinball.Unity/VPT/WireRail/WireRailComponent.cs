@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 		Right,
 	}
 
-	public enum WireRailLegSide
+	public enum WireRailStandSide
 	{
 		Left,
 		Right,
@@ -557,7 +557,8 @@ namespace VisualPinball.Unity
 	}
 
 	[Serializable]
-	public sealed class WireRailBraceFixture : WireRailFixture
+	[MovedFrom(true, sourceClassName: "WireRailBraceFixture")]
+	public sealed class WireRailRingFixture : WireRailFixture
 	{
 		public const int DefaultRingDensity = 32;
 		public const float DefaultCutoutStartAngle = 60f;
@@ -618,7 +619,7 @@ namespace VisualPinball.Unity
 			return new Vector2(alignedStart, alignedEnd);
 		}
 
-		internal bool EnsureBraceInitialized(float splineLength)
+		internal bool EnsureRingInitialized(float splineLength)
 		{
 			var changed = EnsureInitialized(splineLength);
 			var diameter = math.max(0.1f, _diameter);
@@ -778,11 +779,12 @@ namespace VisualPinball.Unity
 	}
 
 	/// <summary>
-	/// A bottom cross wire with independently optional rounded arms. The historic type name is
+	/// A bottom rung with independently optional rounded arms. The historic type name is
 	/// retained so existing managed-reference fixture data remains loadable.
 	/// </summary>
 	[Serializable]
-	public sealed class WireRailVBraceFixture : WireRailFixture
+	[MovedFrom(true, sourceClassName: "WireRailVBraceFixture")]
+	public sealed class WireRailCradleFixture : WireRailFixture
 	{
 		internal const float MaximumCornerSpanFraction = 0.45f;
 
@@ -817,7 +819,7 @@ namespace VisualPinball.Unity
 		public float Rotation => _rotation;
 		public float CornerRadius => _cornerRadius;
 
-		internal bool EnsureVBraceInitialized(float splineLength)
+		internal bool EnsureCradleInitialized(float splineLength)
 		{
 			var changed = EnsureInitialized(splineLength);
 			var diameter = math.max(0.1f, _diameter);
@@ -924,7 +926,8 @@ namespace VisualPinball.Unity
 	}
 
 	[Serializable]
-	public sealed class WireRailCrossWireFixture : WireRailFixture
+	[MovedFrom(true, sourceClassName: "WireRailCrossWireFixture")]
+	public sealed class WireRailRungFixture : WireRailFixture
 	{
 		public const float DefaultAngle = 0f;
 
@@ -945,7 +948,7 @@ namespace VisualPinball.Unity
 		public float VerticalOffset => _verticalOffset;
 		public float LengthAdjustment => _lengthAdjustment;
 
-		internal bool EnsureCrossWireInitialized(float splineLength)
+		internal bool EnsureRungInitialized(float splineLength)
 		{
 			var changed = EnsureInitialized(splineLength);
 			var diameter = math.max(0.1f, _diameter);
@@ -1001,7 +1004,8 @@ namespace VisualPinball.Unity
 	/// semicircle. The terminal arc is emitted into a separate collider submesh.
 	/// </summary>
 	[Serializable]
-	public sealed class WireRailDropLoopFixture : WireRailFixture
+	[MovedFrom(true, sourceClassName: "WireRailDropLoopFixture")]
+	public sealed class WireRailHairpinFixture : WireRailFixture
 	{
 		public const float DefaultLoopDiameter = 60f;
 		public const float DefaultLeadLength = 40f;
@@ -1030,7 +1034,7 @@ namespace VisualPinball.Unity
 		public float RailOffset => _railOffset;
 		public float Rotation => _rotation;
 
-		internal bool EnsureDropLoopInitialized(float splineLength)
+		internal bool EnsureHairpinInitialized(float splineLength)
 		{
 			var changed = EnsureInitialized(splineLength);
 			var endpoint = _endpoint == WireRailEndpoint.Start
@@ -1114,8 +1118,8 @@ namespace VisualPinball.Unity
 	/// then bends them vertically down. The remaining rails can be shortened independently.
 	/// </summary>
 	[Serializable]
-	[MovedFrom(true, sourceClassName: "WireRailHoleDropFixture")]
-	public sealed class WireRailDropFixture : WireRailFixture
+	[MovedFrom(true, sourceClassName: "WireRailDropFixture")]
+	public sealed class WireRailElbowFixture : WireRailFixture
 	{
 		public const float DefaultOffset = 40f;
 		public const float DefaultDropLength = 80f;
@@ -1124,7 +1128,7 @@ namespace VisualPinball.Unity
 		[SerializeField] private WireRailEndpoint _endpoint = WireRailEndpoint.End;
 		[SerializeField, Min(0)] private int _firstRailIndex;
 		[SerializeField, Min(0)] private int _secondRailIndex = 1;
-		// Moves the drop inward from the spline endpoint, shortening the two rails. Zero drops
+		// Moves the elbow inward from the spline endpoint, shortening the two rails. Zero drops
 		// exactly at the endpoint.
 		[FormerlySerializedAs("_distanceToHole")]
 		[SerializeField, Min(0f)] private float _offset = DefaultOffset;
@@ -1155,7 +1159,7 @@ namespace VisualPinball.Unity
 			return _railOffsets[railIndex];
 		}
 
-		internal bool EnsureDropInitialized(float splineLength, int railCount)
+		internal bool EnsureElbowInitialized(float splineLength, int railCount)
 		{
 			var changed = EnsureInitialized(splineLength);
 			var endpoint = _endpoint == WireRailEndpoint.Start
@@ -1353,7 +1357,8 @@ namespace VisualPinball.Unity
 	}
 
 	[Serializable]
-	public sealed class WireRailLegFixture : WireRailFixture
+	[MovedFrom(true, sourceClassName: "WireRailLegFixture")]
+	public sealed class WireRailStandFixture : WireRailFixture
 	{
 		public const float DefaultStartLength = 40f;
 		public const float DefaultFootWidth = 30f;
@@ -1365,7 +1370,7 @@ namespace VisualPinball.Unity
 		public static readonly Vector3 DefaultFootPosition = new(15f, -22.5f, -80f);
 
 		[SerializeField, Min(0.1f)] private float _diameter = WireRailLayout.ReferenceWireDiameter;
-		[SerializeField] private WireRailLegSide _legSide = WireRailLegSide.Right;
+		[SerializeField] private WireRailStandSide _legSide = WireRailStandSide.Right;
 		[SerializeField] private float _lateralOffset;
 		[SerializeField] private float _verticalOffset;
 		[SerializeField] private float _lengthAdjustment;
@@ -1379,7 +1384,7 @@ namespace VisualPinball.Unity
 		[SerializeField, Min(0f)] private float _footConnectionLength = DefaultFootConnectionLength;
 
 		public float Diameter => _diameter;
-		public WireRailLegSide LegSide => _legSide;
+		public WireRailStandSide LegSide => _legSide;
 		public float LateralOffset => _lateralOffset;
 		public float VerticalOffset => _verticalOffset;
 		public float LengthAdjustment => _lengthAdjustment;
@@ -1392,7 +1397,7 @@ namespace VisualPinball.Unity
 		public float FootLength => _footLength;
 		public float FootConnectionLength => _footConnectionLength;
 
-		internal bool EnsureLegInitialized(float splineLength)
+		internal bool EnsureStandInitialized(float splineLength)
 		{
 			var changed = EnsureInitialized(splineLength);
 			var diameter = math.max(0.1f, _diameter);
@@ -1440,7 +1445,7 @@ namespace VisualPinball.Unity
 		}
 
 		internal void SetProperties(float distance, float splineLength, float diameter,
-			WireRailLegSide legSide, Vector3 startDirection, float startLength,
+			WireRailStandSide legSide, Vector3 startDirection, float startLength,
 			Vector3 footPosition, Vector3 footRotation, float footWidth, float footLength,
 			float footConnectionLength, float lateralOffset = 0f,
 			float verticalOffset = 0f, float lengthAdjustment = 0f,
@@ -1464,16 +1469,16 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	public readonly struct WireRailBraceCrossSection
+	public readonly struct WireRailRingCrossSection
 	{
 		public readonly Vector2 CenterOffset;
 		public readonly float BaseRadius;
 		public readonly float Radius;
-		// The wires the brace wraps around, in the route-local (lateral, vertical) plane.
+		// The wires the ring wraps around, in the route-local (lateral, vertical) plane.
 		public readonly Vector2[] RailOffsets;
 		public readonly float[] RailRadii;
 
-		internal WireRailBraceCrossSection(float2 centerOffset, float baseRadius,
+		internal WireRailRingCrossSection(float2 centerOffset, float baseRadius,
 			float radius, float2[] railOffsets, float[] railRadii)
 		{
 			CenterOffset = new Vector2(centerOffset.x, centerOffset.y);
@@ -1489,7 +1494,7 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	public readonly struct WireRailCrossWireCrossSection
+	public readonly struct WireRailRungCrossSection
 	{
 		public readonly Vector2 StartRailOffset;
 		public readonly Vector2 EndRailOffset;
@@ -1498,7 +1503,7 @@ namespace VisualPinball.Unity
 		public readonly Vector2 StartOffset;
 		public readonly Vector2 EndOffset;
 
-		internal WireRailCrossWireCrossSection(float2 startRailOffset,
+		internal WireRailRungCrossSection(float2 startRailOffset,
 			float2 endRailOffset, float startRailRadius, float endRailRadius,
 			float2 startOffset, float2 endOffset)
 		{
@@ -1511,7 +1516,7 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	public readonly struct WireRailLegPreview
+	public readonly struct WireRailStandPreview
 	{
 		public readonly Vector3 StartRailOffset;
 		public readonly Vector3 EndRailOffset;
@@ -1519,7 +1524,7 @@ namespace VisualPinball.Unity
 		public readonly float EndRailRadius;
 		public readonly IReadOnlyList<Vector3> CenterlinePoints;
 
-		internal WireRailLegPreview(Vector3 startRailOffset, Vector3 endRailOffset,
+		internal WireRailStandPreview(Vector3 startRailOffset, Vector3 endRailOffset,
 			float startRailRadius, float endRailRadius,
 			IReadOnlyList<Vector3> centerlinePoints)
 		{
@@ -1531,13 +1536,13 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	public readonly struct WireRailVBracePreview
+	public readonly struct WireRailCradlePreview
 	{
 		public readonly IReadOnlyList<Vector2> RailOffsets;
 		public readonly IReadOnlyList<float> RailRadii;
 		public readonly IReadOnlyList<Vector2> CenterlinePoints;
 
-		internal WireRailVBracePreview(IReadOnlyList<Vector2> railOffsets,
+		internal WireRailCradlePreview(IReadOnlyList<Vector2> railOffsets,
 			IReadOnlyList<float> railRadii, IReadOnlyList<Vector2> centerlinePoints)
 		{
 			RailOffsets = railOffsets;
@@ -1546,14 +1551,14 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	public readonly struct WireRailDropPreview
+	public readonly struct WireRailElbowPreview
 	{
 		public readonly IReadOnlyList<Vector3> FirstRailPoints;
 		public readonly IReadOnlyList<Vector3> SecondRailPoints;
 		public readonly float FirstRailRadius;
 		public readonly float SecondRailRadius;
 
-		internal WireRailDropPreview(IReadOnlyList<Vector3> firstRailPoints,
+		internal WireRailElbowPreview(IReadOnlyList<Vector3> firstRailPoints,
 			IReadOnlyList<Vector3> secondRailPoints, float firstRailRadius,
 			float secondRailRadius)
 		{
@@ -1564,12 +1569,12 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	public readonly struct WireRailDropLoopPreview
+	public readonly struct WireRailHairpinPreview
 	{
 		public readonly IReadOnlyList<Vector3> CenterlinePoints;
 		public readonly float Radius;
 
-		internal WireRailDropLoopPreview(IReadOnlyList<Vector3> centerlinePoints,
+		internal WireRailHairpinPreview(IReadOnlyList<Vector3> centerlinePoints,
 			float radius)
 		{
 			CenterlinePoints = centerlinePoints;
@@ -1693,6 +1698,7 @@ namespace VisualPinball.Unity
 
 			var container = GetSplineContainerWithoutCreating();
 			if (container) {
+				HardenSplineChild(container.gameObject);
 				SynchronizeSegments();
 				RebuildGeneratedMeshes();
 			}
@@ -1926,16 +1932,16 @@ namespace VisualPinball.Unity
 				segment.SetAllWireDiameters(diameter);
 			}
 			SynchronizeFixtures();
-			foreach (var brace in _fixtures.OfType<WireRailBraceFixture>()) {
-				brace.SetDiameter(diameter);
+			foreach (var ring in _fixtures.OfType<WireRailRingFixture>()) {
+				ring.SetDiameter(diameter);
 			}
-			foreach (var vBrace in _fixtures.OfType<WireRailVBraceFixture>()) {
-				vBrace.SetDiameter(diameter);
+			foreach (var cradle in _fixtures.OfType<WireRailCradleFixture>()) {
+				cradle.SetDiameter(diameter);
 			}
-			foreach (var crossWire in _fixtures.OfType<WireRailCrossWireFixture>()) {
-				crossWire.SetDiameter(diameter);
+			foreach (var rung in _fixtures.OfType<WireRailRungFixture>()) {
+				rung.SetDiameter(diameter);
 			}
-			foreach (var leg in _fixtures.OfType<WireRailLegFixture>()) {
+			foreach (var leg in _fixtures.OfType<WireRailStandFixture>()) {
 				leg.SetDiameter(diameter);
 			}
 			RebuildGeneratedMeshes();
@@ -2029,95 +2035,95 @@ namespace VisualPinball.Unity
 			MarkDirty();
 		}
 
-		public int AddBraceFixture(float distance)
+		public int AddRingFixture(float distance)
 		{
 			_fixtures ??= new List<WireRailFixture>();
-			var brace = new WireRailBraceFixture();
-			brace.SetProperties(distance, SplineLength, _wireDiameter, false,
-				WireRailBraceFixture.DefaultCutoutStartAngle,
-				WireRailBraceFixture.DefaultCutoutEndAngle, false,
-				WireRailBraceFixture.DefaultStraightStartAngle,
-				WireRailBraceFixture.DefaultStraightEndAngle, 0f, 0f, 1f,
-				WireRailBraceFixture.DefaultRingDensity);
-			_fixtures.Add(brace);
+			var ring = new WireRailRingFixture();
+			ring.SetProperties(distance, SplineLength, _wireDiameter, false,
+				WireRailRingFixture.DefaultCutoutStartAngle,
+				WireRailRingFixture.DefaultCutoutEndAngle, false,
+				WireRailRingFixture.DefaultStraightStartAngle,
+				WireRailRingFixture.DefaultStraightEndAngle, 0f, 0f, 1f,
+				WireRailRingFixture.DefaultRingDensity);
+			_fixtures.Add(ring);
 			RebuildRenderGeometry();
 			MarkDirty();
 			return _fixtures.Count - 1;
 		}
 
-		public int AddCrossWireFixture(float distance)
+		public int AddRungFixture(float distance)
 		{
 			_fixtures ??= new List<WireRailFixture>();
-			var crossWire = new WireRailCrossWireFixture();
-			crossWire.SetProperties(distance, SplineLength, _wireDiameter, 0, 1,
-				WireRailCrossWireFixture.DefaultAngle, 0f, 0f, 0f);
-			_fixtures.Add(crossWire);
+			var rung = new WireRailRungFixture();
+			rung.SetProperties(distance, SplineLength, _wireDiameter, 0, 1,
+				WireRailRungFixture.DefaultAngle, 0f, 0f, 0f);
+			_fixtures.Add(rung);
 			RebuildRenderGeometry();
 			MarkDirty();
 			return _fixtures.Count - 1;
 		}
 
-		public int AddVBraceFixture(float distance)
+		public int AddCradleFixture(float distance)
 		{
 			_fixtures ??= new List<WireRailFixture>();
-			var vBrace = new WireRailVBraceFixture();
-			vBrace.SetProperties(distance, SplineLength, _wireDiameter,
-				WireRailVBraceFixture.DefaultRingDensity, 0f, 0f,
-				WireRailVBraceFixture.DefaultBottomLength,
-				WireRailVBraceFixture.DefaultLeftLength,
-				WireRailVBraceFixture.DefaultRightLength,
-				WireRailVBraceFixture.DefaultAngle,
-				WireRailVBraceFixture.DefaultRotation,
-				WireRailVBraceFixture.DefaultCornerRadius);
-			_fixtures.Add(vBrace);
+			var cradle = new WireRailCradleFixture();
+			cradle.SetProperties(distance, SplineLength, _wireDiameter,
+				WireRailCradleFixture.DefaultRingDensity, 0f, 0f,
+				WireRailCradleFixture.DefaultBottomLength,
+				WireRailCradleFixture.DefaultLeftLength,
+				WireRailCradleFixture.DefaultRightLength,
+				WireRailCradleFixture.DefaultAngle,
+				WireRailCradleFixture.DefaultRotation,
+				WireRailCradleFixture.DefaultCornerRadius);
+			_fixtures.Add(cradle);
 			RebuildRenderGeometry();
 			MarkDirty();
 			return _fixtures.Count - 1;
 		}
 
-		public int AddLegFixture(float distance)
+		public int AddStandFixture(float distance)
 		{
 			_fixtures ??= new List<WireRailFixture>();
-			var leg = new WireRailLegFixture();
+			var leg = new WireRailStandFixture();
 			leg.SetProperties(distance, SplineLength, _wireDiameter,
-				WireRailLegSide.Right, WireRailLegFixture.DefaultStartDirection,
-				WireRailLegFixture.DefaultStartLength,
-				WireRailLegFixture.DefaultFootPosition, Vector3.zero,
-				WireRailLegFixture.DefaultFootWidth, WireRailLegFixture.DefaultFootLength,
-				WireRailLegFixture.DefaultFootConnectionLength);
+				WireRailStandSide.Right, WireRailStandFixture.DefaultStartDirection,
+				WireRailStandFixture.DefaultStartLength,
+				WireRailStandFixture.DefaultFootPosition, Vector3.zero,
+				WireRailStandFixture.DefaultFootWidth, WireRailStandFixture.DefaultFootLength,
+				WireRailStandFixture.DefaultFootConnectionLength);
 			_fixtures.Add(leg);
 			RebuildRenderGeometry();
 			MarkDirty();
 			return _fixtures.Count - 1;
 		}
 
-		public int AddDropLoopFixture(WireRailEndpoint endpoint = WireRailEndpoint.End)
+		public int AddHairpinFixture(WireRailEndpoint endpoint = WireRailEndpoint.End)
 		{
 			_fixtures ??= new List<WireRailFixture>();
-			var dropLoop = new WireRailDropLoopFixture();
-			dropLoop.SetProperties(SplineLength, _wireDiameter, endpoint, 0, 1,
-				WireRailDropLoopFixture.DefaultLoopDiameter,
-				WireRailDropLoopFixture.DefaultLeadLength,
-				WireRailDropLoopFixture.DefaultTangentLength,
-				WireRailDropLoopFixture.DefaultRingDensity, 0f, 0f);
-			_fixtures.Add(dropLoop);
+			var hairpin = new WireRailHairpinFixture();
+			hairpin.SetProperties(SplineLength, _wireDiameter, endpoint, 0, 1,
+				WireRailHairpinFixture.DefaultLoopDiameter,
+				WireRailHairpinFixture.DefaultLeadLength,
+				WireRailHairpinFixture.DefaultTangentLength,
+				WireRailHairpinFixture.DefaultRingDensity, 0f, 0f);
+			_fixtures.Add(hairpin);
 			InvalidateColliderGeometry();
 			RebuildRenderGeometry();
 			MarkDirty();
 			return _fixtures.Count - 1;
 		}
 
-		public int AddDropFixture(WireRailEndpoint endpoint = WireRailEndpoint.End)
+		public int AddElbowFixture(WireRailEndpoint endpoint = WireRailEndpoint.End)
 		{
 			_fixtures ??= new List<WireRailFixture>();
 			TryGetDefaultEndpointRailPair(endpoint, out var firstRailIndex,
 				out var secondRailIndex);
-			var drop = new WireRailDropFixture();
-			drop.SetProperties(SplineLength, _railCount, _wireDiameter, endpoint,
+			var elbow = new WireRailElbowFixture();
+			elbow.SetProperties(SplineLength, _railCount, _wireDiameter, endpoint,
 				firstRailIndex, secondRailIndex,
-				WireRailDropFixture.DefaultOffset,
-				WireRailDropFixture.DefaultDropLength, 0f, Array.Empty<float>());
-			_fixtures.Add(drop);
+				WireRailElbowFixture.DefaultOffset,
+				WireRailElbowFixture.DefaultDropLength, 0f, Array.Empty<float>());
+			_fixtures.Add(elbow);
 			InvalidateColliderGeometry();
 			RebuildRenderGeometry();
 			MarkDirty();
@@ -2137,50 +2143,50 @@ namespace VisualPinball.Unity
 			return _fixtures.Count - 1;
 		}
 
-		public bool TryGetBraceCrossSection(int fixtureIndex,
-			out WireRailBraceCrossSection crossSection)
+		public bool TryGetRingCrossSection(int fixtureIndex,
+			out WireRailRingCrossSection crossSection)
 		{
 			crossSection = default;
 			if (_fixtures == null || fixtureIndex < 0 || fixtureIndex >= _fixtures.Count
-				|| _fixtures[fixtureIndex] is not WireRailBraceFixture brace
+				|| _fixtures[fixtureIndex] is not WireRailRingFixture ring
 				|| !_splineContainer || _splineContainer.Spline == null
-				|| !WireRailFixtureMeshGenerator.TryEvaluateBraceProfile(
-					_splineContainer.Spline, _segments, brace, out var profile)) {
+				|| !WireRailFixtureMeshGenerator.TryEvaluateRingProfile(
+					_splineContainer.Spline, _segments, ring, out var profile)) {
 				return false;
 			}
-			crossSection = new WireRailBraceCrossSection(profile.CenterOffset,
+			crossSection = new WireRailRingCrossSection(profile.CenterOffset,
 				profile.BaseRadius, profile.Radius, profile.RailOffsets, profile.RailRadii);
 			return true;
 		}
 
-		public bool TryGetCrossWireCrossSection(int fixtureIndex,
-			out WireRailCrossWireCrossSection crossSection)
+		public bool TryGetRungCrossSection(int fixtureIndex,
+			out WireRailRungCrossSection crossSection)
 		{
 			crossSection = default;
 			if (_fixtures == null || fixtureIndex < 0 || fixtureIndex >= _fixtures.Count
-				|| _fixtures[fixtureIndex] is not WireRailCrossWireFixture crossWire
+				|| _fixtures[fixtureIndex] is not WireRailRungFixture rung
 				|| !_splineContainer || _splineContainer.Spline == null
-				|| !WireRailFixtureMeshGenerator.TryEvaluateCrossWireProfile(
-					_splineContainer.Spline, _segments, crossWire, out var profile)) {
+				|| !WireRailFixtureMeshGenerator.TryEvaluateRungProfile(
+					_splineContainer.Spline, _segments, rung, out var profile)) {
 				return false;
 			}
-			crossSection = new WireRailCrossWireCrossSection(profile.StartRailOffset,
+			crossSection = new WireRailRungCrossSection(profile.StartRailOffset,
 				profile.EndRailOffset, profile.StartRailRadius, profile.EndRailRadius,
 				profile.StartOffset, profile.EndOffset);
 			return true;
 		}
 
-		public bool TryGetLegPreview(int fixtureIndex, out WireRailLegPreview preview)
+		public bool TryGetStandPreview(int fixtureIndex, out WireRailStandPreview preview)
 		{
 			preview = default;
 			if (_fixtures == null || fixtureIndex < 0 || fixtureIndex >= _fixtures.Count
-				|| _fixtures[fixtureIndex] is not WireRailLegFixture leg
+				|| _fixtures[fixtureIndex] is not WireRailStandFixture leg
 				|| !_splineContainer || _splineContainer.Spline == null
-				|| !WireRailFixtureMeshGenerator.TryEvaluateLegProfile(
+				|| !WireRailFixtureMeshGenerator.TryEvaluateStandProfile(
 					_splineContainer.Spline, _segments, leg, out var profile)) {
 				return false;
 			}
-			preview = new WireRailLegPreview(
+			preview = new WireRailStandPreview(
 				ToLocalOffset(profile.AttachmentProfile.StartRailOffset),
 				ToLocalOffset(profile.AttachmentProfile.EndRailOffset),
 				profile.AttachmentProfile.StartRailRadius,
@@ -2199,17 +2205,17 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public bool TryGetVBracePreview(int fixtureIndex, out WireRailVBracePreview preview)
+		public bool TryGetCradlePreview(int fixtureIndex, out WireRailCradlePreview preview)
 		{
 			preview = default;
 			if (_fixtures == null || fixtureIndex < 0 || fixtureIndex >= _fixtures.Count
-				|| _fixtures[fixtureIndex] is not WireRailVBraceFixture vBrace
+				|| _fixtures[fixtureIndex] is not WireRailCradleFixture cradle
 				|| !_splineContainer || _splineContainer.Spline == null
-				|| !WireRailFixtureMeshGenerator.TryEvaluateVBraceProfile(
-					_splineContainer.Spline, _segments, vBrace, out var profile)) {
+				|| !WireRailFixtureMeshGenerator.TryEvaluateCradleProfile(
+					_splineContainer.Spline, _segments, cradle, out var profile)) {
 				return false;
 			}
-			preview = new WireRailVBracePreview(
+			preview = new WireRailCradlePreview(
 				profile.RailOffsets.Select(offset => new Vector2(offset.x, offset.y)).ToArray(),
 				profile.RailRadii.ToArray(),
 				profile.CenterlinePoints.Select(point => {
@@ -2220,22 +2226,22 @@ namespace VisualPinball.Unity
 			return true;
 		}
 
-		public bool TryGetDropPreview(int fixtureIndex, out WireRailDropPreview preview)
+		public bool TryGetElbowPreview(int fixtureIndex, out WireRailElbowPreview preview)
 		{
 			preview = default;
 			if (_fixtures == null || fixtureIndex < 0 || fixtureIndex >= _fixtures.Count
-				|| _fixtures[fixtureIndex] is not WireRailDropFixture drop
+				|| _fixtures[fixtureIndex] is not WireRailElbowFixture elbow
 				|| !_splineContainer || _splineContainer.Spline == null
-				|| !WireRailFixtureMeshGenerator.TryEvaluateDropProfile(
-					_splineContainer.Spline, _segments, drop, out var profile)) {
+				|| !WireRailFixtureMeshGenerator.TryEvaluateElbowProfile(
+					_splineContainer.Spline, _segments, elbow, out var profile)) {
 				return false;
 			}
-			// Show a stretch of the rails leading into the drop for context. This is preview-only
+			// Show a stretch of the rails leading into the elbow for context. This is preview-only
 			// and prepended here; the generated mesh still uses the profile paths untouched.
-			var desiredLead = math.max(30f, drop.DropLength * 1.5f);
-			WireRailFixtureMeshGenerator.TryEvaluateDropIncomingLeads(_splineContainer.Spline,
-				_segments, drop, desiredLead, out var firstLead, out var secondLead);
-			preview = new WireRailDropPreview(
+			var desiredLead = math.max(30f, elbow.DropLength * 1.5f);
+			WireRailFixtureMeshGenerator.TryEvaluateElbowIncomingLeads(_splineContainer.Spline,
+				_segments, elbow, desiredLead, out var firstLead, out var secondLead);
+			preview = new WireRailElbowPreview(
 				BuildRailPath(firstLead, profile.FirstRailPoints),
 				BuildRailPath(secondLead, profile.SecondRailPoints),
 				profile.FirstRailRadius, profile.SecondRailRadius);
@@ -2266,20 +2272,20 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public bool TryGetDropLoopPreview(int fixtureIndex,
-			out WireRailDropLoopPreview preview)
+		public bool TryGetHairpinPreview(int fixtureIndex,
+			out WireRailHairpinPreview preview)
 		{
 			preview = default;
 			if (_fixtures == null || fixtureIndex < 0 || fixtureIndex >= _fixtures.Count
-				|| _fixtures[fixtureIndex] is not WireRailDropLoopFixture dropLoop
+				|| _fixtures[fixtureIndex] is not WireRailHairpinFixture hairpin
 				|| !_splineContainer || _splineContainer.Spline == null
-				|| !WireRailFixtureMeshGenerator.TryEvaluateDropLoopProfile(
-					_splineContainer.Spline, _segments, dropLoop, out var profile)) {
+				|| !WireRailFixtureMeshGenerator.TryEvaluateHairpinProfile(
+					_splineContainer.Spline, _segments, hairpin, out var profile)) {
 				return false;
 			}
-			preview = new WireRailDropLoopPreview(
+			preview = new WireRailHairpinPreview(
 				profile.CenterlinePoints.Select(point => ToLocalPosition(point)).ToArray(),
-				dropLoop.Diameter * 0.5f);
+				hairpin.Diameter * 0.5f);
 			return true;
 
 			Vector3 ToLocalPosition(float3 position)
@@ -2294,8 +2300,8 @@ namespace VisualPinball.Unity
 
 		public void RemoveFixture(int fixtureIndex)
 		{
-			var affectsCollider = GetFixture(fixtureIndex) is WireRailDropLoopFixture
-				or WireRailDropFixture or WireRailTrimFixture;
+			var affectsCollider = GetFixture(fixtureIndex) is WireRailHairpinFixture
+				or WireRailElbowFixture or WireRailTrimFixture;
 			_fixtures.RemoveAt(fixtureIndex);
 			if (affectsCollider) {
 				InvalidateColliderGeometry();
@@ -2304,13 +2310,13 @@ namespace VisualPinball.Unity
 			MarkDirty();
 		}
 
-		public int DuplicateBraceFixture(int fixtureIndex)
+		public int DuplicateRingFixture(int fixtureIndex)
 		{
-			if (GetFixture(fixtureIndex) is not WireRailBraceFixture source) {
-				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a brace.",
+			if (GetFixture(fixtureIndex) is not WireRailRingFixture source) {
+				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a ring.",
 					nameof(fixtureIndex));
 			}
-			var duplicate = new WireRailBraceFixture();
+			var duplicate = new WireRailRingFixture();
 			duplicate.SetProperties(source.Distance, SplineLength, _wireDiameter,
 				source.HasCutout, source.CutoutStartAngle, source.CutoutEndAngle,
 				source.HasStraightSection, source.StraightStartAngle,
@@ -2325,13 +2331,13 @@ namespace VisualPinball.Unity
 			return duplicateIndex;
 		}
 
-		public int DuplicateCrossWireFixture(int fixtureIndex)
+		public int DuplicateRungFixture(int fixtureIndex)
 		{
-			if (GetFixture(fixtureIndex) is not WireRailCrossWireFixture source) {
-				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a cross wire.",
+			if (GetFixture(fixtureIndex) is not WireRailRungFixture source) {
+				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a rung.",
 					nameof(fixtureIndex));
 			}
-			var duplicate = new WireRailCrossWireFixture();
+			var duplicate = new WireRailRungFixture();
 			duplicate.SetProperties(source.Distance, SplineLength, _wireDiameter,
 				source.StartRailIndex, source.EndRailIndex,
 				source.Angle, source.LateralOffset,
@@ -2345,14 +2351,14 @@ namespace VisualPinball.Unity
 			return duplicateIndex;
 		}
 
-		public int DuplicateVBraceFixture(int fixtureIndex)
+		public int DuplicateCradleFixture(int fixtureIndex)
 		{
-			if (GetFixture(fixtureIndex) is not WireRailVBraceFixture source) {
+			if (GetFixture(fixtureIndex) is not WireRailCradleFixture source) {
 				throw new ArgumentException(
-					$"Fixture {fixtureIndex + 1} is not a cross wire with arms.",
+					$"Fixture {fixtureIndex + 1} is not a cradle.",
 					nameof(fixtureIndex));
 			}
-			var duplicate = new WireRailVBraceFixture();
+			var duplicate = new WireRailCradleFixture();
 			duplicate.SetProperties(source.Distance, SplineLength, _wireDiameter,
 				source.RingDensity, source.LateralOffset, source.VerticalOffset,
 				source.BottomLength, source.LeftLength, source.RightLength,
@@ -2366,13 +2372,13 @@ namespace VisualPinball.Unity
 			return duplicateIndex;
 		}
 
-		public int DuplicateLegFixture(int fixtureIndex)
+		public int DuplicateStandFixture(int fixtureIndex)
 		{
-			if (GetFixture(fixtureIndex) is not WireRailLegFixture source) {
+			if (GetFixture(fixtureIndex) is not WireRailStandFixture source) {
 				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a stand.",
 					nameof(fixtureIndex));
 			}
-			var duplicate = new WireRailLegFixture();
+			var duplicate = new WireRailStandFixture();
 			duplicate.SetProperties(source.Distance, SplineLength, _wireDiameter,
 				source.LegSide, source.StartDirection, source.StartLength,
 				source.FootPosition, source.FootRotation, source.FootWidth,
@@ -2387,13 +2393,13 @@ namespace VisualPinball.Unity
 			return duplicateIndex;
 		}
 
-		public int DuplicateDropLoopFixture(int fixtureIndex)
+		public int DuplicateHairpinFixture(int fixtureIndex)
 		{
-			if (GetFixture(fixtureIndex) is not WireRailDropLoopFixture source) {
-				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a drop loop.",
+			if (GetFixture(fixtureIndex) is not WireRailHairpinFixture source) {
+				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a hairpin.",
 					nameof(fixtureIndex));
 			}
-			var duplicate = new WireRailDropLoopFixture();
+			var duplicate = new WireRailHairpinFixture();
 			duplicate.SetProperties(SplineLength, _wireDiameter, source.Endpoint,
 				source.FirstRailIndex, source.SecondRailIndex, source.LoopDiameter,
 				source.LeadLength, source.TangentLength, source.RingDensity,
@@ -2408,13 +2414,13 @@ namespace VisualPinball.Unity
 			return duplicateIndex;
 		}
 
-		public int DuplicateDropFixture(int fixtureIndex)
+		public int DuplicateElbowFixture(int fixtureIndex)
 		{
-			if (GetFixture(fixtureIndex) is not WireRailDropFixture source) {
-				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a drop.",
+			if (GetFixture(fixtureIndex) is not WireRailElbowFixture source) {
+				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not an elbow.",
 					nameof(fixtureIndex));
 			}
-			var duplicate = new WireRailDropFixture();
+			var duplicate = new WireRailElbowFixture();
 			duplicate.SetProperties(SplineLength, _railCount, _wireDiameter, source.Endpoint,
 				source.FirstRailIndex, source.SecondRailIndex, source.Offset,
 				source.DropLength, source.ZAngle, source.RailOffsets);
@@ -2445,23 +2451,23 @@ namespace VisualPinball.Unity
 			return duplicateIndex;
 		}
 
-		public void SetBraceFixtureProperties(int fixtureIndex, float distance,
+		public void SetRingFixtureProperties(int fixtureIndex, float distance,
 			bool hasCutout, float cutoutStartAngle, float cutoutEndAngle,
 			bool hasStraightSection = false, float straightStartAngle =
-				WireRailBraceFixture.DefaultStraightStartAngle, float straightEndAngle =
-				WireRailBraceFixture.DefaultStraightEndAngle, float lateralOffset = 0f,
+				WireRailRingFixture.DefaultStraightStartAngle, float straightEndAngle =
+				WireRailRingFixture.DefaultStraightEndAngle, float lateralOffset = 0f,
 			float verticalOffset = 0f, float scale = 1f,
 			int ringDensity = 0)
 		{
-			if (GetFixture(fixtureIndex) is not WireRailBraceFixture brace) {
-				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a brace.",
+			if (GetFixture(fixtureIndex) is not WireRailRingFixture ring) {
+				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a ring.",
 					nameof(fixtureIndex));
 			}
 			var resolvedRingDensity = ringDensity >= 3
 				? ringDensity
-				: (brace.RingDensity >= 3
-					? brace.RingDensity : WireRailBraceFixture.DefaultRingDensity);
-			brace.SetProperties(distance, SplineLength, _wireDiameter, hasCutout,
+				: (ring.RingDensity >= 3
+					? ring.RingDensity : WireRailRingFixture.DefaultRingDensity);
+			ring.SetProperties(distance, SplineLength, _wireDiameter, hasCutout,
 				cutoutStartAngle, cutoutEndAngle, hasStraightSection, straightStartAngle,
 				straightEndAngle, lateralOffset, verticalOffset, scale,
 				resolvedRingDensity);
@@ -2469,46 +2475,46 @@ namespace VisualPinball.Unity
 			MarkDirty();
 		}
 
-		public void SetCrossWireFixtureProperties(int fixtureIndex, float distance,
+		public void SetRungFixtureProperties(int fixtureIndex, float distance,
 			float angle, float lateralOffset = 0f,
 			float verticalOffset = 0f, float lengthAdjustment = 0f)
 		{
-			if (GetFixture(fixtureIndex) is not WireRailCrossWireFixture crossWire) {
-				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a cross wire.",
+			if (GetFixture(fixtureIndex) is not WireRailRungFixture rung) {
+				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a rung.",
 					nameof(fixtureIndex));
 			}
-			crossWire.SetProperties(distance, SplineLength, _wireDiameter,
-				crossWire.StartRailIndex, crossWire.EndRailIndex, angle,
+			rung.SetProperties(distance, SplineLength, _wireDiameter,
+				rung.StartRailIndex, rung.EndRailIndex, angle,
 				lateralOffset, verticalOffset, lengthAdjustment);
 			RebuildRenderGeometry();
 			MarkDirty();
 		}
 
-		public void SetVBraceFixtureProperties(int fixtureIndex, float distance,
+		public void SetCradleFixtureProperties(int fixtureIndex, float distance,
 			int ringDensity, float lateralOffset, float verticalOffset,
 			float bottomLength, float leftLength, float rightLength, float angle,
 			float rotation, float cornerRadius)
 		{
-			if (GetFixture(fixtureIndex) is not WireRailVBraceFixture vBrace) {
+			if (GetFixture(fixtureIndex) is not WireRailCradleFixture cradle) {
 				throw new ArgumentException(
-					$"Fixture {fixtureIndex + 1} is not a cross wire with arms.",
+					$"Fixture {fixtureIndex + 1} is not a cradle.",
 					nameof(fixtureIndex));
 			}
-			vBrace.SetProperties(distance, SplineLength, _wireDiameter, ringDensity,
+			cradle.SetProperties(distance, SplineLength, _wireDiameter, ringDensity,
 				lateralOffset, verticalOffset, bottomLength, leftLength, rightLength,
 				angle, rotation, cornerRadius);
 			RebuildRenderGeometry();
 			MarkDirty();
 		}
 
-		public void SetLegFixtureProperties(int fixtureIndex, float distance,
-			WireRailLegSide legSide, Vector3 startDirection, float startLength,
+		public void SetStandFixtureProperties(int fixtureIndex, float distance,
+			WireRailStandSide legSide, Vector3 startDirection, float startLength,
 			Vector3 footPosition, Vector3 footRotation, float footWidth, float footLength,
 			float footConnectionLength, float lateralOffset = 0f,
 			float verticalOffset = 0f, float lengthAdjustment = 0f,
 			bool? footClockwise = null)
 		{
-			if (GetFixture(fixtureIndex) is not WireRailLegFixture leg) {
+			if (GetFixture(fixtureIndex) is not WireRailStandFixture leg) {
 				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a stand.",
 					nameof(fixtureIndex));
 			}
@@ -2520,9 +2526,9 @@ namespace VisualPinball.Unity
 			MarkDirty();
 		}
 
-		public void MirrorLegFixture(int fixtureIndex)
+		public void MirrorStandFixture(int fixtureIndex)
 		{
-			if (GetFixture(fixtureIndex) is not WireRailLegFixture leg) {
+			if (GetFixture(fixtureIndex) is not WireRailStandFixture leg) {
 				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a stand.",
 					nameof(fixtureIndex));
 			}
@@ -2534,8 +2540,8 @@ namespace VisualPinball.Unity
 			var footPosition = leg.FootPosition;
 			footPosition.x = -footPosition.x;
 			leg.SetProperties(leg.Distance, SplineLength, _wireDiameter,
-				leg.LegSide == WireRailLegSide.Left
-					? WireRailLegSide.Right : WireRailLegSide.Left,
+				leg.LegSide == WireRailStandSide.Left
+					? WireRailStandSide.Right : WireRailStandSide.Left,
 				startDirection, leg.StartLength, footPosition,
 				mirroredRotation, leg.FootWidth, leg.FootLength,
 				leg.FootConnectionLength, -leg.LateralOffset, leg.VerticalOffset,
@@ -2544,16 +2550,16 @@ namespace VisualPinball.Unity
 			MarkDirty();
 		}
 
-		public void SetDropLoopFixtureProperties(int fixtureIndex,
+		public void SetHairpinFixtureProperties(int fixtureIndex,
 			WireRailEndpoint endpoint, int firstRailIndex, int secondRailIndex,
 			float loopDiameter, float leadLength, float tangentLength, int ringDensity,
 			float railOffset, float rotation)
 		{
-			if (GetFixture(fixtureIndex) is not WireRailDropLoopFixture dropLoop) {
-				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a drop loop.",
+			if (GetFixture(fixtureIndex) is not WireRailHairpinFixture hairpin) {
+				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a hairpin.",
 					nameof(fixtureIndex));
 			}
-			dropLoop.SetProperties(SplineLength, _wireDiameter, endpoint,
+			hairpin.SetProperties(SplineLength, _wireDiameter, endpoint,
 				firstRailIndex, secondRailIndex, loopDiameter, leadLength, tangentLength,
 				ringDensity, railOffset, rotation);
 			InvalidateColliderGeometry();
@@ -2561,21 +2567,21 @@ namespace VisualPinball.Unity
 			MarkDirty();
 		}
 
-		public void SetDropFixtureProperties(int fixtureIndex,
+		public void SetElbowFixtureProperties(int fixtureIndex,
 			WireRailEndpoint endpoint, int firstRailIndex, int secondRailIndex,
 			float offset, float dropLength, float zAngle,
 			IReadOnlyList<float> railOffsets)
 		{
-			if (GetFixture(fixtureIndex) is not WireRailDropFixture drop) {
-				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a drop.",
+			if (GetFixture(fixtureIndex) is not WireRailElbowFixture elbow) {
+				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not an elbow.",
 					nameof(fixtureIndex));
 			}
-			if (drop.Endpoint != endpoint
+			if (elbow.Endpoint != endpoint
 				&& !AreEndpointRailsActive(endpoint, firstRailIndex, secondRailIndex)) {
 				TryGetDefaultEndpointRailPair(endpoint, out firstRailIndex,
 					out secondRailIndex);
 			}
-			drop.SetProperties(SplineLength, _railCount, _wireDiameter, endpoint,
+			elbow.SetProperties(SplineLength, _railCount, _wireDiameter, endpoint,
 				firstRailIndex, secondRailIndex, offset, dropLength, zAngle,
 				railOffsets);
 			InvalidateColliderGeometry();
@@ -2725,15 +2731,15 @@ namespace VisualPinball.Unity
 			MarkDirty();
 		}
 
-		public void ApplyBracePropertiesToAll(int sourceFixtureIndex)
+		public void ApplyRingPropertiesToAll(int sourceFixtureIndex)
 		{
-			if (GetFixture(sourceFixtureIndex) is not WireRailBraceFixture source) {
-				throw new ArgumentException($"Fixture {sourceFixtureIndex + 1} is not a brace.",
+			if (GetFixture(sourceFixtureIndex) is not WireRailRingFixture source) {
+				throw new ArgumentException($"Fixture {sourceFixtureIndex + 1} is not a ring.",
 					nameof(sourceFixtureIndex));
 			}
 			for (var fixtureIndex = 0; fixtureIndex < _fixtures.Count; fixtureIndex++) {
 				if (fixtureIndex == sourceFixtureIndex
-					|| _fixtures[fixtureIndex] is not WireRailBraceFixture target) {
+					|| _fixtures[fixtureIndex] is not WireRailRingFixture target) {
 					continue;
 				}
 				target.SetProperties(target.Distance, SplineLength, source.Diameter,
@@ -2819,41 +2825,41 @@ namespace VisualPinball.Unity
 					changed = true;
 					continue;
 				}
-				if (fixture is WireRailBraceFixture brace) {
-					changed |= brace.EnsureBraceInitialized(SplineLength);
-					changed |= brace.SetDiameter(_wireDiameter);
-					if (!brace.ScaleInitialized && spline != null && _segments != null
+				if (fixture is WireRailRingFixture ring) {
+					changed |= ring.EnsureRingInitialized(SplineLength);
+					changed |= ring.SetDiameter(_wireDiameter);
+					if (!ring.ScaleInitialized && spline != null && _segments != null
 						&& _segments.Count > 0
-						&& WireRailFixtureMeshGenerator.TryEvaluateBraceProfile(spline,
-							_segments, brace, out var profile)) {
-						changed |= brace.EnsureScaleInitialized(profile.BaseRadius);
+						&& WireRailFixtureMeshGenerator.TryEvaluateRingProfile(spline,
+							_segments, ring, out var profile)) {
+						changed |= ring.EnsureScaleInitialized(profile.BaseRadius);
 					}
-				} else if (fixture is WireRailCrossWireFixture crossWire) {
-					changed |= crossWire.EnsureCrossWireInitialized(SplineLength);
-					changed |= crossWire.SetDiameter(_wireDiameter);
-				} else if (fixture is WireRailVBraceFixture vBrace) {
-					changed |= vBrace.SetDiameter(_wireDiameter);
-					changed |= vBrace.EnsureVBraceInitialized(SplineLength);
-				} else if (fixture is WireRailLegFixture leg) {
-					changed |= leg.EnsureLegInitialized(SplineLength);
+				} else if (fixture is WireRailRungFixture rung) {
+					changed |= rung.EnsureRungInitialized(SplineLength);
+					changed |= rung.SetDiameter(_wireDiameter);
+				} else if (fixture is WireRailCradleFixture cradle) {
+					changed |= cradle.SetDiameter(_wireDiameter);
+					changed |= cradle.EnsureCradleInitialized(SplineLength);
+				} else if (fixture is WireRailStandFixture leg) {
+					changed |= leg.EnsureStandInitialized(SplineLength);
 					changed |= leg.SetDiameter(_wireDiameter);
-				} else if (fixture is WireRailDropLoopFixture dropLoop) {
-					changed |= dropLoop.EnsureDropLoopInitialized(SplineLength);
-					changed |= dropLoop.SetDiameter(_wireDiameter);
-				} else if (fixture is WireRailDropFixture drop) {
-					changed |= drop.EnsureDropInitialized(SplineLength, _railCount);
-					changed |= drop.SetDiameter(_wireDiameter);
-					if (!drop.RailPairInitialized) {
-						var firstRailIndex = drop.FirstRailIndex;
-						var secondRailIndex = drop.SecondRailIndex;
-						var pairResolved = AreEndpointRailsActive(drop.Endpoint,
+				} else if (fixture is WireRailHairpinFixture hairpin) {
+					changed |= hairpin.EnsureHairpinInitialized(SplineLength);
+					changed |= hairpin.SetDiameter(_wireDiameter);
+				} else if (fixture is WireRailElbowFixture elbow) {
+					changed |= elbow.EnsureElbowInitialized(SplineLength, _railCount);
+					changed |= elbow.SetDiameter(_wireDiameter);
+					if (!elbow.RailPairInitialized) {
+						var firstRailIndex = elbow.FirstRailIndex;
+						var secondRailIndex = elbow.SecondRailIndex;
+						var pairResolved = AreEndpointRailsActive(elbow.Endpoint,
 							firstRailIndex, secondRailIndex);
 						if (!pairResolved) {
 							pairResolved = TryGetDefaultEndpointRailPairFromSegments(
-								drop.Endpoint, out firstRailIndex, out secondRailIndex);
+								elbow.Endpoint, out firstRailIndex, out secondRailIndex);
 						}
 						if (pairResolved) {
-							changed |= drop.EnsureRailPairInitialized(firstRailIndex,
+							changed |= elbow.EnsureRailPairInitialized(firstRailIndex,
 								secondRailIndex);
 						}
 					}
@@ -3258,6 +3264,15 @@ namespace VisualPinball.Unity
 			EnsureColliderMesh();
 		}
 
+		public void SetShowColliderPreview(bool show)
+		{
+			if (_showColliderPreview == show) {
+				return;
+			}
+			_showColliderPreview = show;
+			MarkDirty();
+		}
+
 		public void InvalidateColliderGeometry()
 		{
 			_colliderGeometryDirty = true;
@@ -3358,6 +3373,8 @@ namespace VisualPinball.Unity
 			splineObject.transform.localPosition = Vector3.zero;
 			splineObject.transform.localRotation = ((Matrix4x4)Physics.VpxToWorld).rotation;
 			splineObject.transform.localScale = Physics.ScaleInvVector;
+			splineObject.AddComponent<WireRailSplineComponent>();
+			splineObject.transform.hideFlags |= HideFlags.NotEditable;
 			_splineContainer = splineObject.AddComponent<SplineContainer>();
 			_splineContainer.Spline = CreateDefaultSpline();
 
@@ -3378,9 +3395,52 @@ namespace VisualPinball.Unity
 				return _splineContainer;
 			}
 
-			var child = transform.Find(SplineObjectName);
-			_splineContainer = child ? child.GetComponent<SplineContainer>() : null;
+			// Prefer the marked child; fall back to the legacy name for scenes saved before
+			// the marker existed, and harden whatever we find.
+			_splineContainer = null;
+			for (var i = 0; i < transform.childCount; i++) {
+				var candidate = transform.GetChild(i);
+				if (candidate.TryGetComponent<WireRailSplineComponent>(out _)
+					&& candidate.TryGetComponent<SplineContainer>(out var marked)) {
+					_splineContainer = marked;
+					break;
+				}
+			}
+			if (!_splineContainer) {
+				var child = transform.Find(SplineObjectName);
+				_splineContainer = child ? child.GetComponent<SplineContainer>() : null;
+			}
+			if (_splineContainer) {
+				HardenSplineChild(_splineContainer.gameObject);
+			}
 			return _splineContainer;
+		}
+
+		/// <summary>
+		/// Makes sure the spline child carries its marker and that its transform, which holds
+		/// the VPX-to-world conversion, is locked in the inspector. Idempotent.
+		/// </summary>
+		private static void HardenSplineChild(GameObject splineObject)
+		{
+			if (!splineObject.TryGetComponent<WireRailSplineComponent>(out _)) {
+#if UNITY_EDITOR
+				if (!Application.isPlaying && !Undo.isProcessing) {
+					Undo.AddComponent<WireRailSplineComponent>(splineObject);
+				} else {
+					splineObject.AddComponent<WireRailSplineComponent>();
+				}
+#else
+				splineObject.AddComponent<WireRailSplineComponent>();
+#endif
+			}
+			if ((splineObject.transform.hideFlags & HideFlags.NotEditable) == 0) {
+				splineObject.transform.hideFlags |= HideFlags.NotEditable;
+#if UNITY_EDITOR
+				if (!Application.isPlaying) {
+					EditorUtility.SetDirty(splineObject.transform);
+				}
+#endif
+			}
 		}
 
 		private static Spline CreateDefaultSpline()

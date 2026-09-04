@@ -100,6 +100,68 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldMarkAndLockTheGeneratedSplineChild()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var child = component.SplineContainer.gameObject;
+
+				Assert.That(child.GetComponent<WireRailSplineComponent>(), Is.Not.Null);
+				Assert.That(child.transform.hideFlags & HideFlags.NotEditable,
+					Is.EqualTo(HideFlags.NotEditable),
+					"the child transform carries the VPX conversion and must be locked");
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldResolveARenamedSplineChildThroughItsMarker()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var container = component.SplineContainer;
+				container.gameObject.name = "Renamed by an author";
+				ClearSplineContainerReference(component);
+
+				Assert.That(component.SplineContainer, Is.SameAs(container));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldHardenALegacySplineChildFoundByName()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var container = component.SplineContainer;
+				var child = container.gameObject;
+				Object.DestroyImmediate(child.GetComponent<WireRailSplineComponent>());
+				child.transform.hideFlags = HideFlags.None;
+				ClearSplineContainerReference(component);
+
+				Assert.That(component.SplineContainer, Is.SameAs(container),
+					"a child without a marker is still found by its legacy name");
+				Assert.That(child.GetComponent<WireRailSplineComponent>(), Is.Not.Null);
+				Assert.That(child.transform.hideFlags & HideFlags.NotEditable,
+					Is.EqualTo(HideFlags.NotEditable));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		private static void ClearSplineContainerReference(WireRailComponent component)
+		{
+			typeof(WireRailComponent)
+				.GetField("_splineContainer", BindingFlags.Instance | BindingFlags.NonPublic)!
+				.SetValue(component, null);
+		}
+
+		[Test]
 		public void ShouldCreateContinuousLinearConnectionsByDefault()
 		{
 			var go = new GameObject("Wire Rail");
@@ -477,7 +539,7 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldPlaceBraceFixturesByDistanceAcrossTheWholeSpline()
+		public void ShouldPlaceRingFixturesByDistanceAcrossTheWholeSpline()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
@@ -486,16 +548,16 @@ namespace VisualPinball.Unity.Test
 				spline.Add(new BezierKnot(new float3(0f, 1000f, 0f)) {
 					Rotation = quaternion.RotateX(math.PI * 0.5f),
 				}, TangentMode.AutoSmooth);
-				var fixtureIndex = component.AddBraceFixture(750f);
-				var brace = (WireRailBraceFixture)component.Fixtures[fixtureIndex];
+				var fixtureIndex = component.AddRingFixture(750f);
+				var ring = (WireRailRingFixture)component.Fixtures[fixtureIndex];
 
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateBraceProfile(spline,
-					component.Segments, brace, out var profile), Is.True);
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateRingProfile(spline,
+					component.Segments, ring, out var profile), Is.True);
 				Assert.That(math.distance(profile.Frame.Position, new float3(0f, 750f, 0f)),
 					Is.LessThan(0.1f));
 				Assert.That(math.abs(math.dot(profile.GetCenterlinePosition(0f) - profile.Center,
 					profile.Frame.Tangent)), Is.LessThan(0.001f),
-					"the brace ring should be perpendicular to the spline");
+					"the ring should be perpendicular to the spline");
 				Assert.That(component.Fixtures.Count, Is.EqualTo(1));
 				Assert.That(component.Segments.Count, Is.EqualTo(1));
 			} finally {
@@ -504,26 +566,26 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldFitTheDefaultCrossWireArmsToTheBottomAndMiddleRails()
+		public void ShouldFitTheDefaultRungArmsToTheBottomAndMiddleRails()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
 				var railTriangleCount = component.RenderMesh.triangles.Length / 3;
-				var fixtureIndex = component.AddVBraceFixture(250f);
-				var vBrace = (WireRailVBraceFixture)component.Fixtures[fixtureIndex];
+				var fixtureIndex = component.AddCradleFixture(250f);
+				var cradle = (WireRailCradleFixture)component.Fixtures[fixtureIndex];
 
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateVBraceProfile(
-					component.SplineContainer.Spline, component.Segments, vBrace,
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateCradleProfile(
+					component.SplineContainer.Spline, component.Segments, cradle,
 					out var profile), Is.True);
-				Assert.That(vBrace.Angle,
-					Is.EqualTo(WireRailVBraceFixture.DefaultAngle).Within(0.001f));
-				Assert.That(vBrace.BottomLength,
-					Is.EqualTo(WireRailVBraceFixture.DefaultBottomLength));
-				Assert.That(vBrace.LeftLength,
-					Is.EqualTo(WireRailVBraceFixture.DefaultLeftLength));
-				Assert.That(vBrace.RightLength,
-					Is.EqualTo(WireRailVBraceFixture.DefaultRightLength));
+				Assert.That(cradle.Angle,
+					Is.EqualTo(WireRailCradleFixture.DefaultAngle).Within(0.001f));
+				Assert.That(cradle.BottomLength,
+					Is.EqualTo(WireRailCradleFixture.DefaultBottomLength));
+				Assert.That(cradle.LeftLength,
+					Is.EqualTo(WireRailCradleFixture.DefaultLeftLength));
+				Assert.That(cradle.RightLength,
+					Is.EqualTo(WireRailCradleFixture.DefaultRightLength));
 				Assert.That(profile.RailOffsets, Has.Count.EqualTo(4));
 
 				var centerline = profile.CenterlinePoints.Select(ToOffset).ToArray();
@@ -536,7 +598,7 @@ namespace VisualPinball.Unity.Test
 				var leftUp = -leftDirection;
 				var includedAngle = math.degrees(math.acos(math.clamp(
 					math.dot(leftUp, rightDirection), -1f, 1f)));
-				Assert.That(includedAngle, Is.EqualTo(vBrace.Angle).Within(0.01f));
+				Assert.That(includedAngle, Is.EqualTo(cradle.Angle).Within(0.01f));
 				Assert.That(component.RenderMesh.triangles.Length / 3,
 					Is.GreaterThan(railTriangleCount));
 
@@ -553,7 +615,7 @@ namespace VisualPinball.Unity.Test
 					var distance = math.abs(direction.x * relative.y
 						- direction.y * relative.x);
 					Assert.That(distance, Is.EqualTo(profile.RailRadii[railIndex]
-						+ vBrace.Diameter * 0.5f).Within(0.01f));
+						+ cradle.Diameter * 0.5f).Within(0.01f));
 				}
 			} finally {
 				Object.DestroyImmediate(go);
@@ -566,14 +628,14 @@ namespace VisualPinball.Unity.Test
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
-				var fixtureIndex = component.AddVBraceFixture(250f);
-				var vBrace = (WireRailVBraceFixture)component.Fixtures[fixtureIndex];
-				component.SetVBraceFixtureProperties(fixtureIndex, vBrace.Distance,
-					64, 0f, 0f, 24f, vBrace.LeftLength, vBrace.RightLength,
-					vBrace.Angle, 0f, 12f);
+				var fixtureIndex = component.AddCradleFixture(250f);
+				var cradle = (WireRailCradleFixture)component.Fixtures[fixtureIndex];
+				component.SetCradleFixtureProperties(fixtureIndex, cradle.Distance,
+					64, 0f, 0f, 24f, cradle.LeftLength, cradle.RightLength,
+					cradle.Angle, 0f, 12f);
 
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateVBraceProfile(
-					component.SplineContainer.Spline, component.Segments, vBrace,
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateCradleProfile(
+					component.SplineContainer.Spline, component.Segments, cradle,
 					out var rounded), Is.True);
 				var roundedOffsets = rounded.CenterlinePoints.Select(point =>
 					ToOffset(rounded, point)).ToArray();
@@ -585,11 +647,11 @@ namespace VisualPinball.Unity.Test
 				Assert.That(CalculateMaximumTurn(roundedOffsets),
 					Is.LessThanOrEqualTo(360f / 64f + 0.1f));
 
-				component.SetVBraceFixtureProperties(fixtureIndex, vBrace.Distance,
-					3, 0f, 0f, vBrace.BottomLength, vBrace.LeftLength,
-					vBrace.RightLength, vBrace.Angle, 0f, 12f);
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateVBraceProfile(
-					component.SplineContainer.Spline, component.Segments, vBrace,
+				component.SetCradleFixtureProperties(fixtureIndex, cradle.Distance,
+					3, 0f, 0f, cradle.BottomLength, cradle.LeftLength,
+					cradle.RightLength, cradle.Angle, 0f, 12f);
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateCradleProfile(
+					component.SplineContainer.Spline, component.Segments, cradle,
 					out var lowDensity), Is.True);
 				var lowDensityOffsets = lowDensity.CenterlinePoints.Select(point =>
 					ToOffset(lowDensity, point)).ToArray();
@@ -597,7 +659,7 @@ namespace VisualPinball.Unity.Test
 					Is.LessThanOrEqualTo(15.1f),
 					"low density must not introduce a visible miter waist");
 
-				static float2 ToOffset(WireRailVBraceProfile profile, float3 point)
+				static float2 ToOffset(WireRailCradleProfile profile, float3 point)
 				{
 					var relative = point - profile.Frame.Position;
 					return new float2(math.dot(relative, profile.Frame.Right),
@@ -622,21 +684,21 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldOffsetRotateResizeAndDuplicateACrossWireWithArms()
+		public void ShouldOffsetRotateResizeAndDuplicateARungWithArms()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
-				var fixtureIndex = component.AddVBraceFixture(250f);
-				var vBrace = (WireRailVBraceFixture)component.Fixtures[fixtureIndex];
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateVBraceProfile(
-					component.SplineContainer.Spline, component.Segments, vBrace,
+				var fixtureIndex = component.AddCradleFixture(250f);
+				var cradle = (WireRailCradleFixture)component.Fixtures[fixtureIndex];
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateCradleProfile(
+					component.SplineContainer.Spline, component.Segments, cradle,
 					out var original), Is.True);
 
-				component.SetVBraceFixtureProperties(fixtureIndex, 175f, 48,
+				component.SetCradleFixtureProperties(fixtureIndex, 175f, 48,
 					6f, -4f, 24f, 70f, 95f, 60f, 30f, 10f);
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateVBraceProfile(
-					component.SplineContainer.Spline, component.Segments, vBrace,
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateCradleProfile(
+					component.SplineContainer.Spline, component.Segments, cradle,
 					out var changed), Is.True);
 				Assert.That(math.distance(changed.OriginOffset,
 					original.OriginOffset + new float2(6f, -4f)), Is.LessThan(0.001f));
@@ -655,21 +717,21 @@ namespace VisualPinball.Unity.Test
 				Assert.That(math.dot(math.normalize(endpoints[0] - leftBottom),
 					expectedLeftDirection), Is.EqualTo(1f).Within(0.001f));
 
-				var duplicateIndex = component.DuplicateVBraceFixture(fixtureIndex);
-				var duplicate = (WireRailVBraceFixture)component.Fixtures[duplicateIndex];
-				Assert.That(duplicate, Is.Not.SameAs(vBrace));
-				Assert.That(duplicate.Distance, Is.EqualTo(vBrace.Distance));
-				Assert.That(duplicate.RingDensity, Is.EqualTo(vBrace.RingDensity));
-				Assert.That(duplicate.LateralOffset, Is.EqualTo(vBrace.LateralOffset));
-				Assert.That(duplicate.VerticalOffset, Is.EqualTo(vBrace.VerticalOffset));
-				Assert.That(duplicate.BottomLength, Is.EqualTo(vBrace.BottomLength));
-				Assert.That(duplicate.LeftLength, Is.EqualTo(vBrace.LeftLength));
-				Assert.That(duplicate.RightLength, Is.EqualTo(vBrace.RightLength));
-				Assert.That(duplicate.Angle, Is.EqualTo(vBrace.Angle));
-				Assert.That(duplicate.Rotation, Is.EqualTo(vBrace.Rotation));
-				Assert.That(duplicate.CornerRadius, Is.EqualTo(vBrace.CornerRadius));
+				var duplicateIndex = component.DuplicateCradleFixture(fixtureIndex);
+				var duplicate = (WireRailCradleFixture)component.Fixtures[duplicateIndex];
+				Assert.That(duplicate, Is.Not.SameAs(cradle));
+				Assert.That(duplicate.Distance, Is.EqualTo(cradle.Distance));
+				Assert.That(duplicate.RingDensity, Is.EqualTo(cradle.RingDensity));
+				Assert.That(duplicate.LateralOffset, Is.EqualTo(cradle.LateralOffset));
+				Assert.That(duplicate.VerticalOffset, Is.EqualTo(cradle.VerticalOffset));
+				Assert.That(duplicate.BottomLength, Is.EqualTo(cradle.BottomLength));
+				Assert.That(duplicate.LeftLength, Is.EqualTo(cradle.LeftLength));
+				Assert.That(duplicate.RightLength, Is.EqualTo(cradle.RightLength));
+				Assert.That(duplicate.Angle, Is.EqualTo(cradle.Angle));
+				Assert.That(duplicate.Rotation, Is.EqualTo(cradle.Rotation));
+				Assert.That(duplicate.CornerRadius, Is.EqualTo(cradle.CornerRadius));
 
-				static float2 ToOffset(WireRailVBraceProfile profile, float3 point)
+				static float2 ToOffset(WireRailCradleProfile profile, float3 point)
 				{
 					var relative = point - profile.Frame.Position;
 					return new float2(math.dot(relative, profile.Frame.Right),
@@ -688,40 +750,40 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldClampCrossWireArmSettingsAndShareTheWireDiameter()
+		public void ShouldClampRungArmSettingsAndShareTheWireDiameter()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
-				var fixtureIndex = component.AddVBraceFixture(250f);
-				component.SetVBraceFixtureProperties(fixtureIndex, 250f, 1000,
+				var fixtureIndex = component.AddCradleFixture(250f);
+				component.SetCradleFixtureProperties(fixtureIndex, 250f, 1000,
 					0f, 0f, -1000f, -5f, -10f, 500f, 500f, 0.1f);
-				var vBrace = (WireRailVBraceFixture)component.Fixtures[fixtureIndex];
+				var cradle = (WireRailCradleFixture)component.Fixtures[fixtureIndex];
 
-				Assert.That(vBrace.RingDensity, Is.EqualTo(128));
-				Assert.That(vBrace.BottomLength, Is.EqualTo(0.1f));
-				Assert.That(vBrace.LeftLength, Is.Zero);
-				Assert.That(vBrace.RightLength, Is.Zero);
-				Assert.That(vBrace.Angle, Is.EqualTo(179f));
-				Assert.That(vBrace.Rotation, Is.EqualTo(360f));
-				Assert.That(vBrace.CornerRadius,
+				Assert.That(cradle.RingDensity, Is.EqualTo(128));
+				Assert.That(cradle.BottomLength, Is.EqualTo(0.1f));
+				Assert.That(cradle.LeftLength, Is.Zero);
+				Assert.That(cradle.RightLength, Is.Zero);
+				Assert.That(cradle.Angle, Is.EqualTo(179f));
+				Assert.That(cradle.Rotation, Is.EqualTo(360f));
+				Assert.That(cradle.CornerRadius,
 					Is.EqualTo(component.WireDiameter * 0.5f));
 
-				component.SetVBraceFixtureProperties(fixtureIndex, 250f,
-					vBrace.RingDensity, 0f, 0f, 0.1f, 0.1f, 0f,
-					WireRailVBraceFixture.DefaultAngle, 0f, vBrace.CornerRadius);
-				Assert.That(vBrace.BottomLength, Is.GreaterThan(0.1f));
-				Assert.That(vBrace.LeftLength, Is.GreaterThan(0.1f));
-				Assert.That(vBrace.RightLength, Is.Zero);
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateVBraceProfile(
-					component.SplineContainer.Spline, component.Segments, vBrace, out _),
+				component.SetCradleFixtureProperties(fixtureIndex, 250f,
+					cradle.RingDensity, 0f, 0f, 0.1f, 0.1f, 0f,
+					WireRailCradleFixture.DefaultAngle, 0f, cradle.CornerRadius);
+				Assert.That(cradle.BottomLength, Is.GreaterThan(0.1f));
+				Assert.That(cradle.LeftLength, Is.GreaterThan(0.1f));
+				Assert.That(cradle.RightLength, Is.Zero);
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateCradleProfile(
+					component.SplineContainer.Spline, component.Segments, cradle, out _),
 					Is.True);
 
 				component.SetWireDiameter(12f);
-				Assert.That(vBrace.Diameter, Is.EqualTo(12f));
-				Assert.That(vBrace.CornerRadius, Is.GreaterThanOrEqualTo(6f));
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateVBraceProfile(
-					component.SplineContainer.Spline, component.Segments, vBrace, out _),
+				Assert.That(cradle.Diameter, Is.EqualTo(12f));
+				Assert.That(cradle.CornerRadius, Is.GreaterThanOrEqualTo(6f));
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateCradleProfile(
+					component.SplineContainer.Spline, component.Segments, cradle, out _),
 					Is.True);
 			} finally {
 				Object.DestroyImmediate(go);
@@ -734,24 +796,24 @@ namespace VisualPinball.Unity.Test
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
-				var fixtureIndex = component.AddVBraceFixture(250f);
-				var vBrace = (WireRailVBraceFixture)component.Fixtures[fixtureIndex];
+				var fixtureIndex = component.AddCradleFixture(250f);
+				var cradle = (WireRailCradleFixture)component.Fixtures[fixtureIndex];
 
-				component.SetVBraceFixtureProperties(fixtureIndex, vBrace.Distance,
-					vBrace.RingDensity, 0f, 0f, 40f, 0f, 0f, 60f,
-					0f, vBrace.CornerRadius);
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateVBraceProfile(
-					component.SplineContainer.Spline, component.Segments, vBrace,
+				component.SetCradleFixtureProperties(fixtureIndex, cradle.Distance,
+					cradle.RingDensity, 0f, 0f, 40f, 0f, 0f, 60f,
+					0f, cradle.CornerRadius);
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateCradleProfile(
+					component.SplineContainer.Spline, component.Segments, cradle,
 					out var bottomOnly), Is.True);
 				Assert.That(bottomOnly.CenterlinePoints.Count, Is.EqualTo(2));
 				Assert.That(math.distance(bottomOnly.CenterlinePoints[0],
 					bottomOnly.CenterlinePoints[1]), Is.EqualTo(40f).Within(0.001f));
 
-				component.SetVBraceFixtureProperties(fixtureIndex, vBrace.Distance,
-					vBrace.RingDensity, 0f, 0f, 40f, 0f, 50f, 60f,
-					0f, vBrace.CornerRadius);
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateVBraceProfile(
-					component.SplineContainer.Spline, component.Segments, vBrace,
+				component.SetCradleFixtureProperties(fixtureIndex, cradle.Distance,
+					cradle.RingDensity, 0f, 0f, 40f, 0f, 50f, 60f,
+					0f, cradle.CornerRadius);
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateCradleProfile(
+					component.SplineContainer.Spline, component.Segments, cradle,
 					out var rightArmOnly), Is.True);
 				Assert.That(rightArmOnly.CenterlinePoints.Count, Is.GreaterThan(2));
 				var firstOffset = ToOffset(rightArmOnly,
@@ -764,7 +826,7 @@ namespace VisualPinball.Unity.Test
 					rightArmOnly.OriginOffset + new float2(20f, 0f)),
 					Is.EqualTo(50f).Within(0.001f));
 
-				static float2 ToOffset(WireRailVBraceProfile profile, float3 point)
+				static float2 ToOffset(WireRailCradleProfile profile, float3 point)
 				{
 					var relative = point - profile.Frame.Position;
 					return new float2(math.dot(relative, profile.Frame.Right),
@@ -776,23 +838,23 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldKeepCrossWireArmsAvailableWithFewerThanFourActiveRails()
+		public void ShouldKeepRungArmsAvailableWithFewerThanFourActiveRails()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
 				component.SetRailCount(3);
-				var fixtureIndex = component.AddVBraceFixture(250f);
-				var vBrace = (WireRailVBraceFixture)component.Fixtures[fixtureIndex];
+				var fixtureIndex = component.AddCradleFixture(250f);
+				var cradle = (WireRailCradleFixture)component.Fixtures[fixtureIndex];
 
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateVBraceProfile(
-					component.SplineContainer.Spline, component.Segments, vBrace,
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateCradleProfile(
+					component.SplineContainer.Spline, component.Segments, cradle,
 					out var threeRailProfile), Is.True);
 				Assert.That(threeRailProfile.RailOffsets, Has.Count.EqualTo(3));
 
 				component.SetRailsActive(0, new[] { 2 }, false);
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateVBraceProfile(
-					component.SplineContainer.Spline, component.Segments, vBrace,
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateCradleProfile(
+					component.SplineContainer.Spline, component.Segments, cradle,
 					out var twoRailProfile), Is.True);
 				Assert.That(twoRailProfile.RailOffsets, Has.Count.EqualTo(2));
 			} finally {
@@ -815,11 +877,11 @@ namespace VisualPinball.Unity.Test
 					component.SetRailOffset(0, 2, new Vector2(-10f, 30f));
 					component.SetRailOffset(0, 3, new Vector2(10f, 30f));
 				}
-				var fixtureIndex = component.AddVBraceFixture(250f);
-				var vBrace = (WireRailVBraceFixture)component.Fixtures[fixtureIndex];
+				var fixtureIndex = component.AddCradleFixture(250f);
+				var cradle = (WireRailCradleFixture)component.Fixtures[fixtureIndex];
 
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateVBraceProfile(
-					component.SplineContainer.Spline, component.Segments, vBrace,
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateCradleProfile(
+					component.SplineContainer.Spline, component.Segments, cradle,
 					out var profile), Is.True);
 				var segment = component.Segments[0];
 				var minimumHeight = Enumerable.Range(0, segment.RailCount)
@@ -834,22 +896,22 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldConnectTheTwoBottomRailsWithACrossWireByDefault()
+		public void ShouldConnectTheTwoBottomRailsWithARungByDefault()
 		{
 			const int radialSegments = 10;
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
 				var railTriangleCount = component.RenderMesh.triangles.Length / 3;
-				var fixtureIndex = component.AddCrossWireFixture(250f);
-				var crossWire = (WireRailCrossWireFixture)component.Fixtures[fixtureIndex];
+				var fixtureIndex = component.AddRungFixture(250f);
+				var rung = (WireRailRungFixture)component.Fixtures[fixtureIndex];
 
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateCrossWireProfile(
-					component.SplineContainer.Spline, component.Segments, crossWire,
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateRungProfile(
+					component.SplineContainer.Spline, component.Segments, rung,
 					out var profile), Is.True);
-				Assert.That(crossWire.StartRailIndex, Is.EqualTo(0));
-				Assert.That(crossWire.EndRailIndex, Is.EqualTo(1));
-				Assert.That(crossWire.Angle, Is.EqualTo(0f));
+				Assert.That(rung.StartRailIndex, Is.EqualTo(0));
+				Assert.That(rung.EndRailIndex, Is.EqualTo(1));
+				Assert.That(rung.Angle, Is.EqualTo(0f));
 				var expectedStart = profile.StartRailOffset
 					+ new float2(profile.StartRailRadius, 0f);
 				var expectedEnd = profile.EndRailOffset
@@ -862,29 +924,29 @@ namespace VisualPinball.Unity.Test
 					profile.Frame.Tangent)), Is.LessThan(0.001f));
 				var touches = new List<WireRailTouch>();
 				WireRailSolderMeshGenerator.CollectTouches(component.SplineContainer.Spline,
-					component.Segments, component.Fixtures, crossWire, touches);
+					component.Segments, component.Fixtures, rung, touches);
 				Assert.That(component.RenderMesh.triangles.Length / 3 - railTriangleCount,
 					Is.EqualTo(radialSegments * 8 + touches.Count
 						* WireRailSolderMeshGenerator.TrianglesPerBlob),
-					"the cross wire should have one tube span, two beveled caps, and its solder joins");
+					"the rung should have one tube span, two beveled caps, and its solder joins");
 			} finally {
 				Object.DestroyImmediate(go);
 			}
 		}
 
 		[Test]
-		public void ShouldOffsetAngleAndResizeACrossWire()
+		public void ShouldOffsetAngleAndResizeARung()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
-				var fixtureIndex = component.AddCrossWireFixture(250f);
-				component.SetCrossWireFixtureProperties(fixtureIndex, 250f,
+				var fixtureIndex = component.AddRungFixture(250f);
+				component.SetRungFixtureProperties(fixtureIndex, 250f,
 					90f, 6f, -3f, 12f);
-				var crossWire = (WireRailCrossWireFixture)component.Fixtures[fixtureIndex];
+				var rung = (WireRailRungFixture)component.Fixtures[fixtureIndex];
 
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateCrossWireProfile(
-					component.SplineContainer.Spline, component.Segments, crossWire,
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateRungProfile(
+					component.SplineContainer.Spline, component.Segments, rung,
 					out var profile), Is.True);
 				var railDirection = math.normalize(profile.EndRailOffset
 					- profile.StartRailOffset);
@@ -933,18 +995,18 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldKeepCrossWireAngleRelativeToTheSpline()
+		public void ShouldKeepRungAngleRelativeToTheSpline()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
 				component.SetRailOffset(0, 0, new Vector2(-19f, -8f));
 				component.SetRailOffset(0, 1, new Vector2(19f, 8f));
-				var fixtureIndex = component.AddCrossWireFixture(250f);
-				var crossWire = (WireRailCrossWireFixture)component.Fixtures[fixtureIndex];
+				var fixtureIndex = component.AddRungFixture(250f);
+				var rung = (WireRailRungFixture)component.Fixtures[fixtureIndex];
 
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateCrossWireProfile(
-					component.SplineContainer.Spline, component.Segments, crossWire,
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateRungProfile(
+					component.SplineContainer.Spline, component.Segments, rung,
 					out var profile), Is.True);
 				Assert.That(math.dot(math.normalize(profile.EndOffset - profile.StartOffset),
 					new float2(1f, 0f)), Is.EqualTo(1f).Within(0.001f),
@@ -955,7 +1017,7 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldOmitDegenerateCrossWireBodyAtMaximumBevel()
+		public void ShouldOmitDegenerateRungBodyAtMaximumBevel()
 		{
 			const int radialSegments = 10;
 			var go = new GameObject("Wire Rail");
@@ -964,8 +1026,8 @@ namespace VisualPinball.Unity.Test
 				component.SetRailCount(2);
 				component.SetWireCapBevelSize(2f);
 				var railTriangleCount = component.RenderMesh.triangles.Length / 3;
-				var fixtureIndex = component.AddCrossWireFixture(250f);
-				component.SetCrossWireFixtureProperties(fixtureIndex, 250f,
+				var fixtureIndex = component.AddRungFixture(250f);
+				component.SetRungFixtureProperties(fixtureIndex, 250f,
 					0f, 0f, 0f, -1000f);
 
 				var fixtureTriangleCount = component.RenderMesh.triangles.Length / 3
@@ -978,22 +1040,22 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldHideACrossWireWhenEitherBottomRailIsInactive()
+		public void ShouldHideARungWhenEitherBottomRailIsInactive()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
 				component.SetRailCount(2);
-				var fixtureIndex = component.AddCrossWireFixture(250f);
-				var crossWire = (WireRailCrossWireFixture)component.Fixtures[fixtureIndex];
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateCrossWireProfile(
-					component.SplineContainer.Spline, component.Segments, crossWire, out _),
+				var fixtureIndex = component.AddRungFixture(250f);
+				var rung = (WireRailRungFixture)component.Fixtures[fixtureIndex];
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateRungProfile(
+					component.SplineContainer.Spline, component.Segments, rung, out _),
 					Is.True);
 
 				component.SetRailsActive(0, new[] { 1 }, false);
 
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateCrossWireProfile(
-					component.SplineContainer.Spline, component.Segments, crossWire, out _),
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateRungProfile(
+					component.SplineContainer.Spline, component.Segments, rung, out _),
 					Is.False);
 			} finally {
 				Object.DestroyImmediate(go);
@@ -1007,13 +1069,13 @@ namespace VisualPinball.Unity.Test
 			try {
 				var component = go.AddComponent<WireRailComponent>();
 				var railTriangleCount = component.RenderMesh.triangles.Length / 3;
-				var fixtureIndex = component.AddLegFixture(250f);
-				var leg = (WireRailLegFixture)component.Fixtures[fixtureIndex];
+				var fixtureIndex = component.AddStandFixture(250f);
+				var leg = (WireRailStandFixture)component.Fixtures[fixtureIndex];
 
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateLegProfile(
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateStandProfile(
 					component.SplineContainer.Spline, component.Segments, leg,
 					out var profile), Is.True);
-				Assert.That(leg.LegSide, Is.EqualTo(WireRailLegSide.Right));
+				Assert.That(leg.LegSide, Is.EqualTo(WireRailStandSide.Right));
 				Assert.That(leg.LateralOffset, Is.Zero);
 				Assert.That(leg.VerticalOffset, Is.Zero);
 				Assert.That(leg.LengthAdjustment, Is.Zero);
@@ -1026,19 +1088,19 @@ namespace VisualPinball.Unity.Test
 					point, profile.LegPoints[0]) < 0.001f), Is.False,
 					"the attachment-to-leg corner should be replaced by a rounded bend");
 				Assert.That(math.distance(profile.LegPoints[0], profile.LegPoints[1]),
-					Is.EqualTo(WireRailLegFixture.DefaultStartLength).Within(0.001f));
+					Is.EqualTo(WireRailStandFixture.DefaultStartLength).Within(0.001f));
 				Assert.That(math.dot(math.normalize(profile.LegPoints[1]
 					- profile.LegPoints[0]), -profile.AttachmentProfile.Frame.Up),
 					Is.EqualTo(1f).Within(0.001f));
 				Assert.That(math.distance(profile.LegPoints[^1], profile.FootPoints[0]),
 					Is.LessThan(0.001f), "the leg must meet the open end of the U-hook");
 				Assert.That(leg.FootConnectionLength,
-					Is.EqualTo(WireRailLegFixture.DefaultFootConnectionLength));
+					Is.EqualTo(WireRailStandFixture.DefaultFootConnectionLength));
 				Assert.That(math.distance(profile.FootPoints[0], profile.FootPoints[1]),
-					Is.EqualTo(WireRailLegFixture.DefaultFootConnectionLength)
+					Is.EqualTo(WireRailStandFixture.DefaultFootConnectionLength)
 						.Within(0.001f));
 				Assert.That(profile.FootPoints.Count,
-					Is.EqualTo(WireRailLegFixture.FootBendSegments + 3));
+					Is.EqualTo(WireRailStandFixture.FootBendSegments + 3));
 				Assert.That(component.RenderMesh.triangles.Length / 3,
 					Is.GreaterThan(railTriangleCount));
 			} finally {
@@ -1052,18 +1114,18 @@ namespace VisualPinball.Unity.Test
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
-				var fixtureIndex = component.AddLegFixture(250f);
-				var leg = (WireRailLegFixture)component.Fixtures[fixtureIndex];
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateLegProfile(
+				var fixtureIndex = component.AddStandFixture(250f);
+				var leg = (WireRailStandFixture)component.Fixtures[fixtureIndex];
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateStandProfile(
 					component.SplineContainer.Spline, component.Segments, leg,
 					out var original), Is.True);
 
-				component.SetLegFixtureProperties(fixtureIndex, leg.Distance, leg.LegSide,
+				component.SetStandFixtureProperties(fixtureIndex, leg.Distance, leg.LegSide,
 					leg.StartDirection, leg.StartLength, leg.FootPosition, leg.FootRotation,
 					leg.FootWidth, leg.FootLength, leg.FootConnectionLength,
 					6f, -3f, 12f);
 
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateLegProfile(
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateStandProfile(
 					component.SplineContainer.Spline, component.Segments, leg,
 					out var adjusted), Is.True);
 				Assert.That(leg.LateralOffset, Is.EqualTo(6f));
@@ -1100,9 +1162,9 @@ namespace VisualPinball.Unity.Test
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
-				var fixtureIndex = component.AddLegFixture(250f);
-				var leg = (WireRailLegFixture)component.Fixtures[fixtureIndex];
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateLegProfile(
+				var fixtureIndex = component.AddStandFixture(250f);
+				var leg = (WireRailStandFixture)component.Fixtures[fixtureIndex];
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateStandProfile(
 					component.SplineContainer.Spline, component.Segments, leg,
 					out var profile), Is.True);
 
@@ -1177,17 +1239,17 @@ namespace VisualPinball.Unity.Test
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
-				var fixtureIndex = component.AddLegFixture(250f);
-				var leg = (WireRailLegFixture)component.Fixtures[fixtureIndex];
-				component.SetLegFixtureProperties(fixtureIndex, leg.Distance,
-					WireRailLegSide.Right, new Vector3(-1f, 0f, vertical),
+				var fixtureIndex = component.AddStandFixture(250f);
+				var leg = (WireRailStandFixture)component.Fixtures[fixtureIndex];
+				component.SetStandFixtureProperties(fixtureIndex, leg.Distance,
+					WireRailStandSide.Right, new Vector3(-1f, 0f, vertical),
 					leg.StartLength, leg.FootPosition, leg.FootRotation, leg.FootWidth,
 					leg.FootLength, leg.FootConnectionLength, leg.LateralOffset,
 					leg.VerticalOffset, leg.LengthAdjustment);
 
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateLegProfile(
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateStandProfile(
 					component.SplineContainer.Spline, component.Segments,
-					(WireRailLegFixture)component.Fixtures[fixtureIndex], out _), Is.False);
+					(WireRailStandFixture)component.Fixtures[fixtureIndex], out _), Is.False);
 			} finally {
 				Object.DestroyImmediate(go);
 			}
@@ -1199,14 +1261,14 @@ namespace VisualPinball.Unity.Test
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
-				var fixtureIndex = component.AddLegFixture(250f);
-				component.SetLegFixtureProperties(fixtureIndex, 250f,
-					WireRailLegSide.Left, new Vector3(0f, 1f, 0f), 25f,
+				var fixtureIndex = component.AddStandFixture(250f);
+				component.SetStandFixtureProperties(fixtureIndex, 250f,
+					WireRailStandSide.Left, new Vector3(0f, 1f, 0f), 25f,
 					new Vector3(10f, 20f, -50f), new Vector3(90f, 0f, 30f),
 					40f, 25f, 12f);
-				var leg = (WireRailLegFixture)component.Fixtures[fixtureIndex];
+				var leg = (WireRailStandFixture)component.Fixtures[fixtureIndex];
 
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateLegProfile(
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateStandProfile(
 					component.SplineContainer.Spline, component.Segments, leg,
 					out var profile), Is.True);
 				Assert.That(math.distance(profile.LegPoints[0],
@@ -1254,15 +1316,15 @@ namespace VisualPinball.Unity.Test
 			try {
 				var component = go.AddComponent<WireRailComponent>();
 				var railVertexCount = component.RenderMesh.vertexCount;
-				var fixtureIndex = component.AddLegFixture(250f);
-				var stand = (WireRailLegFixture)component.Fixtures[fixtureIndex];
-				component.SetLegFixtureProperties(fixtureIndex, stand.Distance,
-					WireRailLegSide.Right, new Vector3(1f, 0f, 0f), 17.36f,
+				var fixtureIndex = component.AddStandFixture(250f);
+				var stand = (WireRailStandFixture)component.Fixtures[fixtureIndex];
+				component.SetStandFixtureProperties(fixtureIndex, stand.Distance,
+					WireRailStandSide.Right, new Vector3(1f, 0f, 0f), 17.36f,
 					new Vector3(69.8f, 10.5f, -4.81f),
 					new Vector3(0f, 0f, zRotation), 18.66f,
 					armLength, connectedArmLength, -5.44f, -6.03f, 0f);
 
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateLegProfile(
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateStandProfile(
 					component.SplineContainer.Spline, component.Segments, stand,
 					out var profile), Is.True);
 				Assert.That(profile.CombinedPath.Count, Is.GreaterThan(1));
@@ -1298,15 +1360,15 @@ namespace VisualPinball.Unity.Test
 			try {
 				var component = go.AddComponent<WireRailComponent>();
 				component.SetRailCount(2);
-				var fixtureIndex = component.AddLegFixture(250f);
-				var leg = (WireRailLegFixture)component.Fixtures[fixtureIndex];
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateLegProfile(
+				var fixtureIndex = component.AddStandFixture(250f);
+				var leg = (WireRailStandFixture)component.Fixtures[fixtureIndex];
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateStandProfile(
 					component.SplineContainer.Spline, component.Segments, leg, out _),
 					Is.True);
 
 				component.SetRailsActive(0, new[] { 0 }, false);
 
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateLegProfile(
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateStandProfile(
 					component.SplineContainer.Spline, component.Segments, leg, out _),
 					Is.False);
 			} finally {
@@ -1315,19 +1377,19 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldAttachADropLoopToTwoRailsAtTheSelectedEndpoint()
+		public void ShouldAttachAHairpinToTwoRailsAtTheSelectedEndpoint()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
 				component.SetRailCount(2);
-				var fixtureIndex = component.AddDropLoopFixture();
-				var dropLoop = (WireRailDropLoopFixture)component.Fixtures[fixtureIndex];
+				var fixtureIndex = component.AddHairpinFixture();
+				var hairpin = (WireRailHairpinFixture)component.Fixtures[fixtureIndex];
 
-				Assert.That(dropLoop.Endpoint, Is.EqualTo(WireRailEndpoint.End));
-				Assert.That(dropLoop.Distance, Is.EqualTo(component.SplineLength));
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateDropLoopProfile(
-					component.SplineContainer.Spline, component.Segments, dropLoop,
+				Assert.That(hairpin.Endpoint, Is.EqualTo(WireRailEndpoint.End));
+				Assert.That(hairpin.Distance, Is.EqualTo(component.SplineLength));
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateHairpinProfile(
+					component.SplineContainer.Spline, component.Segments, hairpin,
 					out var endProfile), Is.True);
 				Assert.That(math.distance(endProfile.CenterlinePoints[0],
 					endProfile.FirstLeadPoints[0]), Is.LessThan(0.0001f));
@@ -1336,12 +1398,12 @@ namespace VisualPinball.Unity.Test
 				Assert.That(endProfile.CenterlinePoints.Max(point => point.y),
 					Is.GreaterThan(component.SplineLength));
 
-				component.SetDropLoopFixtureProperties(fixtureIndex, WireRailEndpoint.Start,
-					0, 1, dropLoop.LoopDiameter, dropLoop.LeadLength,
-					dropLoop.TangentLength, dropLoop.RingDensity, 0f, 0f);
-				Assert.That(dropLoop.Distance, Is.Zero);
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateDropLoopProfile(
-					component.SplineContainer.Spline, component.Segments, dropLoop,
+				component.SetHairpinFixtureProperties(fixtureIndex, WireRailEndpoint.Start,
+					0, 1, hairpin.LoopDiameter, hairpin.LeadLength,
+					hairpin.TangentLength, hairpin.RingDensity, 0f, 0f);
+				Assert.That(hairpin.Distance, Is.Zero);
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateHairpinProfile(
+					component.SplineContainer.Spline, component.Segments, hairpin,
 					out var startProfile), Is.True);
 				Assert.That(startProfile.CenterlinePoints.Min(point => point.y), Is.LessThan(0f));
 			} finally {
@@ -1351,7 +1413,7 @@ namespace VisualPinball.Unity.Test
 
 		[TestCase(WireRailEndpoint.Start)]
 		[TestCase(WireRailEndpoint.End)]
-		public void ShouldUseFlatRailCapsWhereADropLoopAttaches(WireRailEndpoint endpoint)
+		public void ShouldUseFlatRailCapsWhereAHairpinAttaches(WireRailEndpoint endpoint)
 		{
 			const int radialSegments = 10;
 			const float capBevelSize = 2f;
@@ -1360,7 +1422,7 @@ namespace VisualPinball.Unity.Test
 				var component = go.AddComponent<WireRailComponent>();
 				component.SetRailCount(2);
 				component.SetWireCapBevelSize(capBevelSize);
-				component.AddDropLoopFixture(endpoint);
+				component.AddHairpinFixture(endpoint);
 
 				var spline = component.SplineContainer.Spline;
 				var samples = WireRailRenderMeshGenerator.BuildSampleParameters(
@@ -1410,37 +1472,37 @@ namespace VisualPinball.Unity.Test
 
 		[TestCase(WireRailEndpoint.Start)]
 		[TestCase(WireRailEndpoint.End)]
-		public void ShouldShortenConnectedRailsToKeepADropLoopAttachedWhenOffset(
+		public void ShouldShortenConnectedRailsToKeepAHairpinAttachedWhenOffset(
 			WireRailEndpoint endpoint)
 		{
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
 				component.SetRailCount(2);
-				var fixtureIndex = component.AddDropLoopFixture(endpoint);
-				var dropLoop = (WireRailDropLoopFixture)component.Fixtures[fixtureIndex];
+				var fixtureIndex = component.AddHairpinFixture(endpoint);
+				var hairpin = (WireRailHairpinFixture)component.Fixtures[fixtureIndex];
 
 				// Baseline: the loop sits at the endpoint with no offset.
-				component.SetDropLoopFixtureProperties(fixtureIndex, endpoint,
-					dropLoop.FirstRailIndex, dropLoop.SecondRailIndex, dropLoop.LoopDiameter,
-					dropLoop.LeadLength, dropLoop.TangentLength, dropLoop.RingDensity,
-					0f, dropLoop.Rotation);
+				component.SetHairpinFixtureProperties(fixtureIndex, endpoint,
+					hairpin.FirstRailIndex, hairpin.SecondRailIndex, hairpin.LoopDiameter,
+					hairpin.LeadLength, hairpin.TangentLength, hairpin.RingDensity,
+					0f, hairpin.Rotation);
 				var baselineVertexCount = component.RenderMesh.vertexCount;
 				var baselineExtent = MaxComponent(component.RenderMesh.bounds.size);
 
 				// The offset moves the loop back along the rails; the two connected rails
 				// shorten to follow it so it stays attached.
 				const float offset = 20f;
-				component.SetDropLoopFixtureProperties(fixtureIndex, endpoint,
-					dropLoop.FirstRailIndex, dropLoop.SecondRailIndex, dropLoop.LoopDiameter,
-					dropLoop.LeadLength, dropLoop.TangentLength, dropLoop.RingDensity,
-					offset, dropLoop.Rotation);
+				component.SetHairpinFixtureProperties(fixtureIndex, endpoint,
+					hairpin.FirstRailIndex, hairpin.SecondRailIndex, hairpin.LoopDiameter,
+					hairpin.LeadLength, hairpin.TangentLength, hairpin.RingDensity,
+					offset, hairpin.Rotation);
 
 				Assert.That(
-					((WireRailDropLoopFixture)component.Fixtures[fixtureIndex]).RailOffset,
+					((WireRailHairpinFixture)component.Fixtures[fixtureIndex]).RailOffset,
 					Is.EqualTo(offset));
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateDropLoopProfile(
-					component.SplineContainer.Spline, component.Segments, dropLoop, out _),
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateHairpinProfile(
+					component.SplineContainer.Spline, component.Segments, hairpin, out _),
 					Is.True, "the loop must still generate when offset");
 				Assert.That(component.RenderMesh.vertexCount, Is.EqualTo(baselineVertexCount),
 					"the loop stays connected, so no detach caps are added");
@@ -1455,7 +1517,7 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldOmitADropLoopThatConflictsWithARailTrim()
+		public void ShouldOmitAHairpinThatConflictsWithARailTrim()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
@@ -1466,11 +1528,11 @@ namespace VisualPinball.Unity.Test
 					new[] { 30f, 0f });
 				var renderVertexCount = component.RenderMesh.vertexCount;
 				var colliderVertexCount = component.ColliderMesh.vertexCount;
-				var dropLoopIndex = component.AddDropLoopFixture(WireRailEndpoint.Start);
-				var dropLoop = (WireRailDropLoopFixture)component.Fixtures[dropLoopIndex];
+				var hairpinIndex = component.AddHairpinFixture(WireRailEndpoint.Start);
+				var hairpin = (WireRailHairpinFixture)component.Fixtures[hairpinIndex];
 
-				Assert.That(component.HasRailTrimConflict(dropLoop.Endpoint,
-					dropLoop.FirstRailIndex, dropLoop.SecondRailIndex), Is.True);
+				Assert.That(component.HasRailTrimConflict(hairpin.Endpoint,
+					hairpin.FirstRailIndex, hairpin.SecondRailIndex), Is.True);
 				Assert.That(component.RenderMesh.vertexCount, Is.EqualTo(renderVertexCount),
 					"a conflicting loop must not leave floating render geometry");
 				Assert.That(component.ColliderMesh.vertexCount,
@@ -1480,8 +1542,8 @@ namespace VisualPinball.Unity.Test
 
 				component.SetRailTrimFixtureProperties(trimIndex, WireRailEndpoint.Start,
 					new[] { 0f, 0f });
-				Assert.That(component.HasRailTrimConflict(dropLoop.Endpoint,
-					dropLoop.FirstRailIndex, dropLoop.SecondRailIndex), Is.False);
+				Assert.That(component.HasRailTrimConflict(hairpin.Endpoint,
+					hairpin.FirstRailIndex, hairpin.SecondRailIndex), Is.False);
 				Assert.That(component.RenderMesh.vertexCount, Is.GreaterThan(renderVertexCount));
 				Assert.That(component.ColliderMesh.subMeshCount, Is.EqualTo(2));
 			} finally {
@@ -1596,22 +1658,22 @@ namespace VisualPinball.Unity.Test
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
-				var fixtureIndex = component.AddLegFixture(250f);
-				component.SetLegFixtureProperties(fixtureIndex, 250f,
-					WireRailLegSide.Right, new Vector3(1f, 0f, 0f), 19.5f,
+				var fixtureIndex = component.AddStandFixture(250f);
+				component.SetStandFixtureProperties(fixtureIndex, 250f,
+					WireRailStandSide.Right, new Vector3(1f, 0f, 0f), 19.5f,
 					new Vector3(42.59f, 9.1f, 0.4f), new Vector3(0f, 0f, 90f),
 					17.6f, 19.2f, 0f, -7.9f, -6.7f);
 				var spline = component.SplineContainer.Spline;
-				var stand = (WireRailLegFixture)component.Fixtures[fixtureIndex];
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateLegProfile(
+				var stand = (WireRailStandFixture)component.Fixtures[fixtureIndex];
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateStandProfile(
 					spline, component.Segments, stand, out var original), Is.True);
 
-				component.MirrorLegFixture(fixtureIndex);
+				component.MirrorStandFixture(fixtureIndex);
 
-				stand = (WireRailLegFixture)component.Fixtures[fixtureIndex];
-				Assert.That(stand.LegSide, Is.EqualTo(WireRailLegSide.Left));
+				stand = (WireRailStandFixture)component.Fixtures[fixtureIndex];
+				Assert.That(stand.LegSide, Is.EqualTo(WireRailStandSide.Left));
 				Assert.That(stand.FootClockwise, Is.True);
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateLegProfile(
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateStandProfile(
 					spline, component.Segments, stand, out var mirrored), Is.True);
 				Assert.That(mirrored.CombinedPath, Has.Count.EqualTo(original.CombinedPath.Count));
 				var maximumDeviation = 0f;
@@ -1633,21 +1695,21 @@ namespace VisualPinball.Unity.Test
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
-				var fixtureIndex = component.AddLegFixture(250f);
+				var fixtureIndex = component.AddStandFixture(250f);
 				var spline = component.SplineContainer.Spline;
-				var stand = (WireRailLegFixture)component.Fixtures[fixtureIndex];
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateLegProfile(
+				var stand = (WireRailStandFixture)component.Fixtures[fixtureIndex];
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateStandProfile(
 					spline, component.Segments, stand, out var counterClockwise), Is.True);
 
-				component.SetLegFixtureProperties(fixtureIndex, stand.Distance,
+				component.SetStandFixtureProperties(fixtureIndex, stand.Distance,
 					stand.LegSide, stand.StartDirection, stand.StartLength,
 					stand.FootPosition, stand.FootRotation, stand.FootWidth,
 					stand.FootLength, stand.FootConnectionLength, stand.LateralOffset,
 					stand.VerticalOffset, stand.LengthAdjustment, true);
 
-				stand = (WireRailLegFixture)component.Fixtures[fixtureIndex];
+				stand = (WireRailStandFixture)component.Fixtures[fixtureIndex];
 				Assert.That(stand.FootClockwise, Is.True);
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateLegProfile(
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateStandProfile(
 					spline, component.Segments, stand, out var clockwise), Is.True);
 				var pivot = clockwise.LegPoints[0]
 					+ clockwise.AttachmentProfile.Frame.Right * stand.FootPosition.x
@@ -1705,7 +1767,7 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldFlareDropLoopLeadsToTheAuthoredLoopDiameter()
+		public void ShouldFlareHairpinLeadsToTheAuthoredLoopDiameter()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
@@ -1713,13 +1775,13 @@ namespace VisualPinball.Unity.Test
 				component.SetRailCount(2);
 				component.SetRailOffset(0, 0, new Vector2(-15f, 0f));
 				component.SetRailOffset(0, 1, new Vector2(15f, 0f));
-				var fixtureIndex = component.AddDropLoopFixture();
-				component.SetDropLoopFixtureProperties(fixtureIndex, WireRailEndpoint.End,
+				var fixtureIndex = component.AddHairpinFixture();
+				component.SetHairpinFixtureProperties(fixtureIndex, WireRailEndpoint.End,
 					0, 1, 100f, 45f, 18f, 32, 0f, 0f);
-				var dropLoop = (WireRailDropLoopFixture)component.Fixtures[fixtureIndex];
+				var hairpin = (WireRailHairpinFixture)component.Fixtures[fixtureIndex];
 
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateDropLoopProfile(
-					component.SplineContainer.Spline, component.Segments, dropLoop,
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateHairpinProfile(
+					component.SplineContainer.Spline, component.Segments, hairpin,
 					out var profile), Is.True);
 				Assert.That(math.distance(profile.TerminalPoints[0],
 					profile.TerminalPoints[^1]), Is.EqualTo(100f).Within(0.001f));
@@ -1732,28 +1794,28 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldHideADropLoopWhenAnAttachedRailIsInactive()
+		public void ShouldHideAHairpinWhenAnAttachedRailIsInactive()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
 				component.SetRailCount(2);
-				var fixtureIndex = component.AddDropLoopFixture();
-				var dropLoop = (WireRailDropLoopFixture)component.Fixtures[fixtureIndex];
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateDropLoopProfile(
-					component.SplineContainer.Spline, component.Segments, dropLoop, out _),
+				var fixtureIndex = component.AddHairpinFixture();
+				var hairpin = (WireRailHairpinFixture)component.Fixtures[fixtureIndex];
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateHairpinProfile(
+					component.SplineContainer.Spline, component.Segments, hairpin, out _),
 					Is.True);
 
 				component.SetRailsActive(0, new[] { 1 }, false);
 
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateDropLoopProfile(
-					component.SplineContainer.Spline, component.Segments, dropLoop, out _),
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateHairpinProfile(
+					component.SplineContainer.Spline, component.Segments, hairpin, out _),
 					Is.False);
 
 				component.SetRailsActive(0, new[] { 1 }, true);
 				component.SplineContainer.Spline.Closed = true;
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateDropLoopProfile(
-					component.SplineContainer.Spline, component.Segments, dropLoop, out _),
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateHairpinProfile(
+					component.SplineContainer.Spline, component.Segments, hairpin, out _),
 					Is.False, "a closed spline has no endpoint for an end fitting");
 			} finally {
 				Object.DestroyImmediate(go);
@@ -1761,7 +1823,7 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldPutTheDropLoopTerminalArcInASeparateColliderSubmesh()
+		public void ShouldPutTheHairpinTerminalArcInASeparateColliderSubmesh()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
@@ -1769,8 +1831,8 @@ namespace VisualPinball.Unity.Test
 				component.SetRailCount(2);
 				var originalChannelIndexCount = component.ColliderMesh.GetIndexCount(0);
 				var originalVertexCount = component.ColliderMesh.vertexCount;
-				var fixtureIndex = component.AddDropLoopFixture();
-				var dropLoop = (WireRailDropLoopFixture)component.Fixtures[fixtureIndex];
+				var fixtureIndex = component.AddHairpinFixture();
+				var hairpin = (WireRailHairpinFixture)component.Fixtures[fixtureIndex];
 
 				Assert.That(component.ColliderMesh.subMeshCount, Is.EqualTo(2));
 				Assert.That(component.ColliderMesh.GetIndexCount(0),
@@ -1785,10 +1847,10 @@ namespace VisualPinball.Unity.Test
 					.Intersect(component.ColliderMesh.GetIndices(1)).Count(), Is.EqualTo(8),
 					"both material sections should share the two four-corner seam rings");
 
-				component.SetDropLoopFixtureProperties(fixtureIndex, dropLoop.Endpoint,
-					dropLoop.FirstRailIndex, dropLoop.SecondRailIndex, dropLoop.LoopDiameter,
-					dropLoop.LeadLength, dropLoop.TangentLength, 128,
-					dropLoop.RailOffset, dropLoop.Rotation);
+				component.SetHairpinFixtureProperties(fixtureIndex, hairpin.Endpoint,
+					hairpin.FirstRailIndex, hairpin.SecondRailIndex, hairpin.LoopDiameter,
+					hairpin.LeadLength, hairpin.TangentLength, 128,
+					hairpin.RailOffset, hairpin.Rotation);
 				Assert.That(component.ColliderMesh.GetIndexCount(0),
 					Is.EqualTo(originalChannelIndexCount + 192));
 				Assert.That(component.ColliderMesh.GetIndexCount(1), Is.EqualTo(288),
@@ -1804,7 +1866,7 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldUseTheTerminalImpactMaterialOnlyForDropLoopArcTriangles()
+		public void ShouldUseTheTerminalImpactMaterialOnlyForHairpinArcTriangles()
 		{
 			var go = new GameObject("Wire Rail");
 			var terminalMaterial = ScriptableObject.CreateInstance<PhysicsMaterialAsset>();
@@ -1813,7 +1875,7 @@ namespace VisualPinball.Unity.Test
 			try {
 				var component = go.AddComponent<WireRailComponent>();
 				component.SetRailCount(2);
-				component.AddDropLoopFixture();
+				component.AddHairpinFixture();
 				terminalMaterial.Elasticity = 0.91f;
 				terminalMaterial.ElasticityFalloff = 0.13f;
 				terminalMaterial.Friction = 0.27f;
@@ -1843,18 +1905,18 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldDuplicateEveryDropLoopSettingAndSynchronizeItsDiameter()
+		public void ShouldDuplicateEveryHairpinSettingAndSynchronizeItsDiameter()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
-				var sourceIndex = component.AddDropLoopFixture(WireRailEndpoint.Start);
-				component.SetDropLoopFixtureProperties(sourceIndex, WireRailEndpoint.Start,
+				var sourceIndex = component.AddHairpinFixture(WireRailEndpoint.Start);
+				component.SetHairpinFixtureProperties(sourceIndex, WireRailEndpoint.Start,
 					2, 3, 92f, 37f, 11f, 40, 6f, 27f);
-				var duplicateIndex = component.DuplicateDropLoopFixture(sourceIndex);
+				var duplicateIndex = component.DuplicateHairpinFixture(sourceIndex);
 				component.SetWireDiameter(12f);
-				var source = (WireRailDropLoopFixture)component.Fixtures[sourceIndex];
-				var duplicate = (WireRailDropLoopFixture)component.Fixtures[duplicateIndex];
+				var source = (WireRailHairpinFixture)component.Fixtures[sourceIndex];
+				var duplicate = (WireRailHairpinFixture)component.Fixtures[duplicateIndex];
 
 				Assert.That(duplicateIndex, Is.EqualTo(sourceIndex + 1));
 				Assert.That(duplicate, Is.Not.SameAs(source));
@@ -1877,40 +1939,40 @@ namespace VisualPinball.Unity.Test
 
 		[TestCase(WireRailEndpoint.Start, -1f)]
 		[TestCase(WireRailEndpoint.End, 1f)]
-		public void ShouldBuildTwoParallelRoundedDropRails(
+		public void ShouldBuildTwoParallelRoundedElbowRails(
 			WireRailEndpoint endpoint, float endpointDirection)
 		{
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
 				component.SetRailCount(2);
-				var fixtureIndex = component.AddDropFixture(endpoint);
-				var drop = (WireRailDropFixture)component.Fixtures[fixtureIndex];
+				var fixtureIndex = component.AddElbowFixture(endpoint);
+				var elbow = (WireRailElbowFixture)component.Fixtures[fixtureIndex];
 
 				// Zero offset drops straight at the endpoint: no straight run, the rounded
-				// bend begins at the attachment and ends the drop length below it.
-				component.SetDropFixtureProperties(fixtureIndex, endpoint, 0, 1,
+				// bend begins at the attachment and ends the elbow length below it.
+				component.SetElbowFixtureProperties(fixtureIndex, endpoint, 0, 1,
 					0f, 90f, 30f, new[] { 0f, 0f });
-				Assert.That(drop.Offset, Is.Zero);
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateDropProfile(
-					component.SplineContainer.Spline, component.Segments, drop,
+				Assert.That(elbow.Offset, Is.Zero);
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateElbowProfile(
+					component.SplineContainer.Spline, component.Segments, elbow,
 					out var zeroProfile), Is.True);
 				var outward = math.normalizesafe(math.mul(quaternion.AxisAngle(
 					zeroProfile.Frame.Up, math.radians(30f)),
 					zeroProfile.Frame.Tangent * endpointDirection));
 				var attachAtEndpoint = zeroProfile.FirstRailPoints[0];
 				Assert.That(math.distance(zeroProfile.FirstRailPoints[^1],
-					attachAtEndpoint + outward * drop.Diameter
+					attachAtEndpoint + outward * elbow.Diameter
 						- zeroProfile.Frame.Up * 90f),
 					Is.LessThan(0.001f),
 					"the drop rounds outward by the bend radius, then drops straight down");
 
 				// A positive offset shortens the rails: the attachment slides inward along the
-				// spline by the offset and the same rounded drop follows it, still no straight run.
-				component.SetDropFixtureProperties(fixtureIndex, endpoint, 0, 1,
+				// spline by the offset and the same rounded elbow follows it, still no straight run.
+				component.SetElbowFixtureProperties(fixtureIndex, endpoint, 0, 1,
 					45f, 90f, 30f, new[] { 0f, 0f });
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateDropProfile(
-					component.SplineContainer.Spline, component.Segments, drop,
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateElbowProfile(
+					component.SplineContainer.Spline, component.Segments, elbow,
 					out var profile), Is.True);
 				Assert.That(profile.FirstRailPoints.Count, Is.GreaterThan(3));
 				Assert.That(profile.SecondRailPoints.Count,
@@ -1924,7 +1986,7 @@ namespace VisualPinball.Unity.Test
 					Is.GreaterThan(0.99f),
 					"the drop must move inward along the rails, not sideways");
 				Assert.That(math.distance(profile.FirstRailPoints[^1],
-					profile.FirstRailPoints[0] + outward * drop.Diameter
+					profile.FirstRailPoints[0] + outward * elbow.Diameter
 						- profile.Frame.Up * 90f),
 					Is.LessThan(0.01f),
 					"the rounded drop still starts at the (shifted) attachment, no straight run");
@@ -1942,7 +2004,7 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldChooseTheActiveRailPairForAStartDrop()
+		public void ShouldChooseTheActiveRailPairForAStartElbow()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
@@ -1954,15 +2016,15 @@ namespace VisualPinball.Unity.Test
 				component.SetRailsActive(endpointLayoutIndex,
 					new[] { 0, 1, 2, 3 }, false);
 
-				var fixtureIndex = component.AddDropFixture(WireRailEndpoint.Start);
-				var drop = (WireRailDropFixture)component.Fixtures[fixtureIndex];
+				var fixtureIndex = component.AddElbowFixture(WireRailEndpoint.Start);
+				var elbow = (WireRailElbowFixture)component.Fixtures[fixtureIndex];
 
-				Assert.That(drop.FirstRailIndex, Is.EqualTo(4));
-				Assert.That(drop.SecondRailIndex, Is.EqualTo(5));
+				Assert.That(elbow.FirstRailIndex, Is.EqualTo(4));
+				Assert.That(elbow.SecondRailIndex, Is.EqualTo(5));
 				Assert.That(component.AreEndpointRailsActive(WireRailEndpoint.Start,
-					drop.FirstRailIndex, drop.SecondRailIndex), Is.True);
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateDropProfile(
-					component.SplineContainer.Spline, component.Segments, drop,
+					elbow.FirstRailIndex, elbow.SecondRailIndex), Is.True);
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateElbowProfile(
+					component.SplineContainer.Spline, component.Segments, elbow,
 					out var profile),
 					Is.True);
 				var attachedRingCenter = float3.zero;
@@ -1981,65 +2043,65 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldDeferLegacyDropPairMigrationUntilTwoRailsAreActive()
+		public void ShouldDeferLegacyElbowPairMigrationUntilTwoRailsAreActive()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
 				component.SetRailCount(6);
 				component.SetRailsActive(0, new[] { 0, 1, 2, 3, 5 }, false);
-				var drop = new WireRailDropFixture();
+				var elbow = new WireRailElbowFixture();
 				JsonUtility.FromJsonOverwrite(
 					"{\"_endpoint\":0,\"_firstRailIndex\":0,\"_secondRailIndex\":1,"
-					+ "\"_railPairInitialized\":false}", drop);
+					+ "\"_railPairInitialized\":false}", elbow);
 				var fixturesField = typeof(WireRailComponent).GetField("_fixtures",
 					BindingFlags.Instance | BindingFlags.NonPublic);
 				Assert.That(fixturesField, Is.Not.Null);
-				fixturesField.SetValue(component, new List<WireRailFixture> { drop });
+				fixturesField.SetValue(component, new List<WireRailFixture> { elbow });
 
 				component.SynchronizeSegments();
 
-				Assert.That(drop.RailPairInitialized, Is.False);
-				Assert.That(drop.FirstRailIndex, Is.EqualTo(0));
-				Assert.That(drop.SecondRailIndex, Is.EqualTo(1));
+				Assert.That(elbow.RailPairInitialized, Is.False);
+				Assert.That(elbow.FirstRailIndex, Is.EqualTo(0));
+				Assert.That(elbow.SecondRailIndex, Is.EqualTo(1));
 
 				component.SetRailsActive(0, new[] { 5 }, true);
 				component.SynchronizeSegments();
 
-				Assert.That(drop.RailPairInitialized, Is.True);
-				Assert.That(drop.FirstRailIndex, Is.EqualTo(4));
-				Assert.That(drop.SecondRailIndex, Is.EqualTo(5));
-				Assert.That(drop.EnsureRailPairInitialized(0, 1), Is.False);
-				Assert.That(drop.FirstRailIndex, Is.EqualTo(4));
-				Assert.That(drop.SecondRailIndex, Is.EqualTo(5));
+				Assert.That(elbow.RailPairInitialized, Is.True);
+				Assert.That(elbow.FirstRailIndex, Is.EqualTo(4));
+				Assert.That(elbow.SecondRailIndex, Is.EqualTo(5));
+				Assert.That(elbow.EnsureRailPairInitialized(0, 1), Is.False);
+				Assert.That(elbow.FirstRailIndex, Is.EqualTo(4));
+				Assert.That(elbow.SecondRailIndex, Is.EqualTo(5));
 			} finally {
 				Object.DestroyImmediate(go);
 			}
 		}
 
 		[Test]
-		public void ShouldChooseANewActiveRailPairWhenTheDropEndpointChanges()
+		public void ShouldChooseANewActiveRailPairWhenTheElbowEndpointChanges()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
 				component.SetRailCount(6);
-				var fixtureIndex = component.AddDropFixture(WireRailEndpoint.End);
-				var drop = (WireRailDropFixture)component.Fixtures[fixtureIndex];
-				Assert.That(drop.FirstRailIndex, Is.EqualTo(0));
-				Assert.That(drop.SecondRailIndex, Is.EqualTo(1));
+				var fixtureIndex = component.AddElbowFixture(WireRailEndpoint.End);
+				var elbow = (WireRailElbowFixture)component.Fixtures[fixtureIndex];
+				Assert.That(elbow.FirstRailIndex, Is.EqualTo(0));
+				Assert.That(elbow.SecondRailIndex, Is.EqualTo(1));
 				component.SetRailsActive(0, new[] { 0, 1, 2, 3 }, false);
 
-				component.SetDropFixtureProperties(fixtureIndex, WireRailEndpoint.Start,
-					drop.FirstRailIndex, drop.SecondRailIndex,
-					drop.Offset, drop.DropLength, drop.ZAngle,
-					drop.RailOffsets);
-				drop = (WireRailDropFixture)component.Fixtures[fixtureIndex];
+				component.SetElbowFixtureProperties(fixtureIndex, WireRailEndpoint.Start,
+					elbow.FirstRailIndex, elbow.SecondRailIndex,
+					elbow.Offset, elbow.DropLength, elbow.ZAngle,
+					elbow.RailOffsets);
+				elbow = (WireRailElbowFixture)component.Fixtures[fixtureIndex];
 
-				Assert.That(drop.FirstRailIndex, Is.EqualTo(4));
-				Assert.That(drop.SecondRailIndex, Is.EqualTo(5));
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateDropProfile(
-					component.SplineContainer.Spline, component.Segments, drop, out _),
+				Assert.That(elbow.FirstRailIndex, Is.EqualTo(4));
+				Assert.That(elbow.SecondRailIndex, Is.EqualTo(5));
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateElbowProfile(
+					component.SplineContainer.Spline, component.Segments, elbow, out _),
 					Is.True);
 			} finally {
 				Object.DestroyImmediate(go);
@@ -2047,16 +2109,16 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldApplyDropCutoffsOnlyToTheOtherRails()
+		public void ShouldApplyElbowCutoffsOnlyToTheOtherRails()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
 				component.SetRailCount(4);
-				var fixtureIndex = component.AddDropFixture(WireRailEndpoint.End);
-				component.SetDropFixtureProperties(fixtureIndex, WireRailEndpoint.End,
+				var fixtureIndex = component.AddElbowFixture(WireRailEndpoint.End);
+				component.SetElbowFixtureProperties(fixtureIndex, WireRailEndpoint.End,
 					1, 3, 40f, 80f, 0f, new[] { 25f, 50f, 75f, 100f });
-				var drop = (WireRailDropFixture)component.Fixtures[fixtureIndex];
+				var elbow = (WireRailElbowFixture)component.Fixtures[fixtureIndex];
 				var startOffsets = new float[WireRailEndpointTrimUtility.MaximumRailCount];
 				var endOffsets = new float[WireRailEndpointTrimUtility.MaximumRailCount];
 
@@ -2065,7 +2127,7 @@ namespace VisualPinball.Unity.Test
 
 				// The per-rail cutoffs still apply only to the other rails (the attached pair
 				// is forced to zero), but the offset trims the two attached rails by 40.
-				Assert.That(drop.RailOffsets, Is.EqualTo(new[] { 25f, 0f, 75f, 0f }));
+				Assert.That(elbow.RailOffsets, Is.EqualTo(new[] { 25f, 0f, 75f, 0f }));
 				Assert.That(startOffsets, Is.All.Zero);
 				Assert.That(endOffsets.Take(4), Is.EqualTo(new[] { 25f, 40f, 75f, 40f }));
 			} finally {
@@ -2075,7 +2137,7 @@ namespace VisualPinball.Unity.Test
 
 		[TestCase(WireRailEndpoint.Start)]
 		[TestCase(WireRailEndpoint.End)]
-		public void ShouldExtendTheTwoBottomFacesDownForADrop(
+		public void ShouldExtendTheTwoBottomFacesDownForAnElbow(
 			WireRailEndpoint endpoint)
 		{
 			var go = new GameObject("Wire Rail");
@@ -2086,20 +2148,20 @@ namespace VisualPinball.Unity.Test
 				var baselineIndices = component.ColliderMesh.GetIndices(0);
 
 				const float dropLength = 30f;
-				var fixtureIndex = component.AddDropFixture(endpoint);
-				component.SetDropFixtureProperties(fixtureIndex, endpoint, 0, 1,
+				var fixtureIndex = component.AddElbowFixture(endpoint);
+				component.SetElbowFixtureProperties(fixtureIndex, endpoint, 0, 1,
 					0f, dropLength, 0f, new[] { 0f, 0f });
-				AssertDropExtendsTwoBottomFaces(component, endpoint, dropLength,
+				AssertElbowExtendsTwoBottomFaces(component, endpoint, dropLength,
 					baselineVertices, baselineIndices);
 			} finally {
 				Object.DestroyImmediate(go);
 			}
 		}
 
-		// A Drop leaves the whole normal channel untouched and appends exactly two vertical
+		// A Elbow leaves the whole normal channel untouched and appends exactly two vertical
 		// faces: the two floor faces the ball rests on, each extended straight down (along
-		// -Up) by the drop length, top-aligned with the channel floor.
-		private static void AssertDropExtendsTwoBottomFaces(WireRailComponent component,
+		// -Up) by the elbow length, top-aligned with the channel floor.
+		private static void AssertElbowExtendsTwoBottomFaces(WireRailComponent component,
 			WireRailEndpoint endpoint, float dropLength, Vector3[] baselineVertices,
 			int[] baselineIndices)
 		{
@@ -2109,13 +2171,13 @@ namespace VisualPinball.Unity.Test
 
 			// the channel prefix must be byte-for-byte the no-fixture collider
 			Assert.That(vertices.Length, Is.EqualTo(baselineVertices.Length + 8),
-				"a Drop must append exactly two four-vertex faces");
+				"an Elbow must append exactly two four-vertex faces");
 			Assert.That(indices.Length, Is.EqualTo(baselineIndices.Length + 24),
-				"a Drop must append exactly two two-sided quads");
+				"an Elbow must append exactly two two-sided quads");
 			for (var i = 0; i < baselineVertices.Length; i++) {
 				Assert.That(math.distance((float3)vertices[i],
 					(float3)baselineVertices[i]), Is.LessThan(0.0001f),
-					"a Drop must not change the existing channel collider");
+					"an Elbow must not change the existing channel collider");
 			}
 			for (var i = 0; i < baselineIndices.Length; i++) {
 				Assert.That(indices[i], Is.EqualTo(baselineIndices[i]));
@@ -2135,8 +2197,8 @@ namespace VisualPinball.Unity.Test
 				var bottom0 = (float3)vertices[b + 1];
 				var top1 = (float3)vertices[b + 2];
 				var bottom1 = (float3)vertices[b + 3];
-				AssertVerticalDrop(top0, bottom0);
-				AssertVerticalDrop(top1, bottom1);
+				AssertVerticalElbow(top0, bottom0);
+				AssertVerticalElbow(top1, bottom1);
 				AssertTopOnChannel(top0);
 				AssertTopOnChannel(top1);
 				faceTops.Add(top0);
@@ -2155,7 +2217,7 @@ namespace VisualPinball.Unity.Test
 			Assert.That(shared, Is.EqualTo(1),
 				"the two drop faces must meet at the single lowest channel point");
 
-			void AssertVerticalDrop(float3 top, float3 bottom)
+			void AssertVerticalElbow(float3 top, float3 bottom)
 			{
 				var extrusion = bottom - top;
 				Assert.That(math.length(extrusion), Is.EqualTo(dropLength).Within(0.001f),
@@ -2172,7 +2234,7 @@ namespace VisualPinball.Unity.Test
 
 		[TestCase(WireRailEndpoint.Start)]
 		[TestCase(WireRailEndpoint.End)]
-		public void ShouldExtendOnlyTheTwoBottomFacesForASixRailDrop(
+		public void ShouldExtendOnlyTheTwoBottomFacesForASixRailElbow(
 			WireRailEndpoint endpoint)
 		{
 			var go = new GameObject("Wire Rail");
@@ -2184,13 +2246,13 @@ namespace VisualPinball.Unity.Test
 
 				// A six-rail channel has several up-facing floor faces, but only the two the
 				// ball rests on may be extended, and the channel itself must not be trimmed
-				// (these railOffsets would trim rails 2 and 3 if the Drop affected the channel).
+				// (these railOffsets would trim rails 2 and 3 if the Elbow affected the channel).
 				const float dropLength = 30f;
 				var railOffsets = new[] { 0f, 0f, 50f, 50f, 0f, 0f };
-				var fixtureIndex = component.AddDropFixture(endpoint);
-				component.SetDropFixtureProperties(fixtureIndex, endpoint, 0, 1,
+				var fixtureIndex = component.AddElbowFixture(endpoint);
+				component.SetElbowFixtureProperties(fixtureIndex, endpoint, 0, 1,
 					0f, dropLength, 0f, railOffsets);
-				AssertDropExtendsTwoBottomFaces(component, endpoint, dropLength,
+				AssertElbowExtendsTwoBottomFaces(component, endpoint, dropLength,
 					baselineVertices, baselineIndices);
 			} finally {
 				Object.DestroyImmediate(go);
@@ -2199,24 +2261,24 @@ namespace VisualPinball.Unity.Test
 
 		[TestCase(WireRailEndpoint.Start)]
 		[TestCase(WireRailEndpoint.End)]
-		public void ShouldMoveTheDropInwardWithAPositiveOffset(WireRailEndpoint endpoint)
+		public void ShouldMoveTheElbowInwardWithAPositiveOffset(WireRailEndpoint endpoint)
 		{
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
 				component.SetRailCount(2);
-				var fixtureIndex = component.AddDropFixture(endpoint);
+				var fixtureIndex = component.AddElbowFixture(endpoint);
 
-				component.SetDropFixtureProperties(fixtureIndex, endpoint, 0, 1,
+				component.SetElbowFixtureProperties(fixtureIndex, endpoint, 0, 1,
 					0f, 30f, 0f, new[] { 0f, 0f });
-				var tops0 = DropFaceTops(component);
-				var channelExtent0 = ChannelExtentAlongDrop(component, endpoint);
+				var tops0 = ElbowFaceTops(component);
+				var channelExtent0 = ChannelExtentAlongElbow(component, endpoint);
 
 				const float offset = 100f;
-				component.SetDropFixtureProperties(fixtureIndex, endpoint, 0, 1,
+				component.SetElbowFixtureProperties(fixtureIndex, endpoint, 0, 1,
 					offset, 30f, 0f, new[] { 0f, 0f });
-				var topsOffset = DropFaceTops(component);
-				var channelExtentOffset = ChannelExtentAlongDrop(component, endpoint);
+				var topsOffset = ElbowFaceTops(component);
+				var channelExtentOffset = ChannelExtentAlongElbow(component, endpoint);
 
 				Assert.That(topsOffset.Length, Is.EqualTo(tops0.Length),
 					"the offset must keep exactly the two drop faces");
@@ -2242,7 +2304,7 @@ namespace VisualPinball.Unity.Test
 				Object.DestroyImmediate(go);
 			}
 
-			static float3[] DropFaceTops(WireRailComponent component)
+			static float3[] ElbowFaceTops(WireRailComponent component)
 			{
 				var v = component.ColliderMesh.vertices;
 				return new[] {
@@ -2251,9 +2313,9 @@ namespace VisualPinball.Unity.Test
 				};
 			}
 
-			// How far the channel (everything but the eight drop-face vertices) reaches toward
-			// the drop endpoint, so a positive offset must reduce it by that offset.
-			static float ChannelExtentAlongDrop(WireRailComponent component,
+			// How far the channel (everything but the eight elbow-face vertices) reaches toward
+			// the elbow endpoint, so a positive offset must reduce it by that offset.
+			static float ChannelExtentAlongElbow(WireRailComponent component,
 				WireRailEndpoint endpoint)
 			{
 				var spline = component.SplineContainer.Spline;
@@ -2273,7 +2335,7 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldOmitADropWhenAnAttachedRailIsTrimmed()
+		public void ShouldOmitAnElbowWhenAnAttachedRailIsTrimmed()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
@@ -2284,11 +2346,11 @@ namespace VisualPinball.Unity.Test
 					new[] { 30f, 0f });
 				var renderVertexCount = component.RenderMesh.vertexCount;
 				var colliderVertexCount = component.ColliderMesh.vertexCount;
-				var fixtureIndex = component.AddDropFixture(WireRailEndpoint.End);
-				var drop = (WireRailDropFixture)component.Fixtures[fixtureIndex];
+				var fixtureIndex = component.AddElbowFixture(WireRailEndpoint.End);
+				var elbow = (WireRailElbowFixture)component.Fixtures[fixtureIndex];
 
-				Assert.That(component.HasRailTrimConflict(drop.Endpoint,
-					drop.FirstRailIndex, drop.SecondRailIndex), Is.True);
+				Assert.That(component.HasRailTrimConflict(elbow.Endpoint,
+					elbow.FirstRailIndex, elbow.SecondRailIndex), Is.True);
 				Assert.That(component.RenderMesh.vertexCount, Is.EqualTo(renderVertexCount));
 				Assert.That(component.ColliderMesh.vertexCount,
 					Is.EqualTo(colliderVertexCount));
@@ -2298,21 +2360,21 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldDuplicateEveryDropSettingAndResizeItsCutoffs()
+		public void ShouldDuplicateEveryElbowSettingAndResizeItsCutoffs()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
 				component.SetRailCount(4);
-				var sourceIndex = component.AddDropFixture(WireRailEndpoint.Start);
-				component.SetDropFixtureProperties(sourceIndex, WireRailEndpoint.Start,
+				var sourceIndex = component.AddElbowFixture(WireRailEndpoint.Start);
+				component.SetElbowFixtureProperties(sourceIndex, WireRailEndpoint.Start,
 					1, 2, 55f, 95f, -32f, new[] { 20f, 0f, 0f, 65f });
-				var duplicateIndex = component.DuplicateDropFixture(sourceIndex);
+				var duplicateIndex = component.DuplicateElbowFixture(sourceIndex);
 				component.SetWireDiameter(12f);
 				component.SetRailCount(6);
 				component.SynchronizeSegments();
-				var source = (WireRailDropFixture)component.Fixtures[sourceIndex];
-				var duplicate = (WireRailDropFixture)component.Fixtures[duplicateIndex];
+				var source = (WireRailElbowFixture)component.Fixtures[sourceIndex];
+				var duplicate = (WireRailElbowFixture)component.Fixtures[duplicateIndex];
 
 				Assert.That(duplicateIndex, Is.EqualTo(sourceIndex + 1));
 				Assert.That(duplicate.Endpoint, Is.EqualTo(source.Endpoint));
@@ -2331,20 +2393,20 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldMigrateLegacyBraceRadiusOffsetToScale()
+		public void ShouldMigrateLegacyRingRadiusOffsetToScale()
 		{
-			var brace = new WireRailBraceFixture();
+			var ring = new WireRailRingFixture();
 			JsonUtility.FromJsonOverwrite(
 				"{\"_diameter\":8,\"_scale\":1,\"_radiusOffset\":10,\"_scaleInitialized\":false}",
-				brace);
+				ring);
 
-			Assert.That(brace.EnsureScaleInitialized(50f), Is.True);
-			Assert.That(brace.Scale, Is.EqualTo(1.2f).Within(0.001f));
-			Assert.That(brace.EnsureScaleInitialized(50f), Is.False);
+			Assert.That(ring.EnsureScaleInitialized(50f), Is.True);
+			Assert.That(ring.Scale, Is.EqualTo(1.2f).Within(0.001f));
+			Assert.That(ring.EnsureScaleInitialized(50f), Is.False);
 		}
 
 		[Test]
-		public void ShouldKeepBraceScaleWhenMovingAcrossDifferentWireLayouts()
+		public void ShouldKeepRingScaleWhenMovingAcrossDifferentWireLayouts()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
@@ -2357,15 +2419,15 @@ namespace VisualPinball.Unity.Test
 				component.SetRailOffset(0, 1, new Vector2(20f, 0f));
 				component.SetRailOffset(1, 0, new Vector2(-40f, 0f));
 				component.SetRailOffset(1, 1, new Vector2(40f, 0f));
-				var fixtureIndex = component.AddBraceFixture(250f);
-				component.SetBraceFixtureProperties(fixtureIndex, 250f,
+				var fixtureIndex = component.AddRingFixture(250f);
+				component.SetRingFixtureProperties(fixtureIndex, 250f,
 					false, 0f, 0f, scale: 1.5f);
 
-				Assert.That(component.TryGetBraceCrossSection(fixtureIndex,
+				Assert.That(component.TryGetRingCrossSection(fixtureIndex,
 					out var firstCrossSection), Is.True);
-				component.SetBraceFixtureProperties(fixtureIndex, 750f,
+				component.SetRingFixtureProperties(fixtureIndex, 750f,
 					false, 0f, 0f, scale: 1.5f);
-				Assert.That(component.TryGetBraceCrossSection(fixtureIndex,
+				Assert.That(component.TryGetRingCrossSection(fixtureIndex,
 					out var secondCrossSection), Is.True);
 
 				Assert.That(math.abs(secondCrossSection.BaseRadius
@@ -2380,22 +2442,22 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldExposeBraceCrossSectionForInspectorScale()
+		public void ShouldExposeRingCrossSectionForInspectorScale()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
-				var fixtureIndex = component.AddBraceFixture(250f);
+				var fixtureIndex = component.AddRingFixture(250f);
 
-				Assert.That(component.TryGetBraceCrossSection(fixtureIndex,
+				Assert.That(component.TryGetRingCrossSection(fixtureIndex,
 					out var defaultCrossSection), Is.True);
 				Assert.That(defaultCrossSection.Radius,
 					Is.EqualTo(defaultCrossSection.BaseRadius).Within(0.001f));
 
-				component.SetBraceFixtureProperties(fixtureIndex, 250f,
+				component.SetRingFixtureProperties(fixtureIndex, 250f,
 					false, 0f, 0f, scale: 1.5f);
 
-				Assert.That(component.TryGetBraceCrossSection(fixtureIndex,
+				Assert.That(component.TryGetRingCrossSection(fixtureIndex,
 					out var scaledCrossSection), Is.True);
 				Assert.That(scaledCrossSection.BaseRadius,
 					Is.EqualTo(defaultCrossSection.BaseRadius).Within(0.001f));
@@ -2407,35 +2469,35 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldGenerateFullAndCutoutBraceGeometry()
+		public void ShouldGenerateFullAndCutoutRingGeometry()
 		{
 			const int radialSegments = 10;
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
 				var railTriangleCount = component.RenderMesh.triangles.Length / 3;
-				var fixtureIndex = component.AddBraceFixture(250f);
-				var brace = (WireRailBraceFixture)component.Fixtures[fixtureIndex];
+				var fixtureIndex = component.AddRingFixture(250f);
+				var ring = (WireRailRingFixture)component.Fixtures[fixtureIndex];
 				var touches = new List<WireRailTouch>();
 				WireRailSolderMeshGenerator.CollectTouches(component.SplineContainer.Spline,
-					component.Segments, component.Fixtures, brace, touches);
-				var fullBraceTriangleCount = component.RenderMesh.triangles.Length / 3
+					component.Segments, component.Fixtures, ring, touches);
+				var fullRingTriangleCount = component.RenderMesh.triangles.Length / 3
 					- railTriangleCount;
-				Assert.That(fullBraceTriangleCount,
+				Assert.That(fullRingTriangleCount,
 					Is.EqualTo(32 * radialSegments * 2 + touches.Count
 						* WireRailSolderMeshGenerator.TrianglesPerBlob));
 
-				component.SetBraceFixtureProperties(fixtureIndex, 250f,
+				component.SetRingFixtureProperties(fixtureIndex, 250f,
 					true, 0f, 90f);
 				touches.Clear();
 				WireRailSolderMeshGenerator.CollectTouches(component.SplineContainer.Spline,
-					component.Segments, component.Fixtures, brace, touches);
-				var cutoutBraceTriangleCount = component.RenderMesh.triangles.Length / 3
+					component.Segments, component.Fixtures, ring, touches);
+				var cutoutRingTriangleCount = component.RenderMesh.triangles.Length / 3
 					- railTriangleCount;
-				Assert.That(cutoutBraceTriangleCount,
+				Assert.That(cutoutRingTriangleCount,
 					Is.EqualTo(24 * radialSegments * 2 + radialSegments * 6
 						+ touches.Count * WireRailSolderMeshGenerator.TrianglesPerBlob),
-					"a 90-degree cutout should leave a capped three-quarter brace");
+					"a 90-degree cutout should leave a capped three-quarter ring");
 
 			} finally {
 				Object.DestroyImmediate(go);
@@ -2443,23 +2505,23 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldUseTheAuthoredBraceRingDensity()
+		public void ShouldUseTheAuthoredRingRingDensity()
 		{
 			const int radialSegments = 10;
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
 				var railTriangleCount = component.RenderMesh.triangles.Length / 3;
-				var fixtureIndex = component.AddBraceFixture(250f);
+				var fixtureIndex = component.AddRingFixture(250f);
 
-				component.SetBraceFixtureProperties(fixtureIndex, 250f,
+				component.SetRingFixtureProperties(fixtureIndex, 250f,
 					false, 0f, 0f, ringDensity: 12);
 
-				var brace = (WireRailBraceFixture)component.Fixtures[fixtureIndex];
+				var ring = (WireRailRingFixture)component.Fixtures[fixtureIndex];
 				var touches = new List<WireRailTouch>();
 				WireRailSolderMeshGenerator.CollectTouches(component.SplineContainer.Spline,
-					component.Segments, component.Fixtures, brace, touches);
-				Assert.That(brace.RingDensity, Is.EqualTo(12));
+					component.Segments, component.Fixtures, ring, touches);
+				Assert.That(ring.RingDensity, Is.EqualTo(12));
 				Assert.That(component.RenderMesh.triangles.Length / 3 - railTriangleCount,
 					Is.EqualTo(12 * radialSegments * 2 + touches.Count
 						* WireRailSolderMeshGenerator.TrianglesPerBlob));
@@ -2477,15 +2539,15 @@ namespace VisualPinball.Unity.Test
 				var component = go.AddComponent<WireRailComponent>();
 				component.SetWireCapBevelSize(0f);
 				component.SetRailCount(2);
-				var fixtureIndex = component.AddBraceFixture(250f);
-				component.SetBraceFixtureProperties(fixtureIndex, 250f,
+				var fixtureIndex = component.AddRingFixture(250f);
+				component.SetRingFixtureProperties(fixtureIndex, 250f,
 					true, 0f, 90f);
 				var flatVertices = component.RenderMesh.vertexCount;
 				var flatTriangles = component.RenderMesh.triangles.Length / 3;
 
 				component.SetWireCapBevelSize(2f);
 
-				const int exposedCaps = 6; // Four rail ends plus two brace cutout ends.
+				const int exposedCaps = 6; // Four rail ends plus two ring cutout ends.
 				Assert.That(component.RenderMesh.vertexCount - flatVertices,
 					Is.EqualTo(exposedCaps * radialSegments * 2));
 				Assert.That(component.RenderMesh.triangles.Length / 3 - flatTriangles,
@@ -2513,40 +2575,40 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldOffsetAndReplacePartOfABraceWithAStraightChord()
+		public void ShouldOffsetAndReplacePartOfARingWithAStraightChord()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
-				var fixtureIndex = component.AddBraceFixture(250f);
-				var brace = (WireRailBraceFixture)component.Fixtures[fixtureIndex];
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateBraceProfile(
-					component.SplineContainer.Spline, component.Segments, brace,
+				var fixtureIndex = component.AddRingFixture(250f);
+				var ring = (WireRailRingFixture)component.Fixtures[fixtureIndex];
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateRingProfile(
+					component.SplineContainer.Spline, component.Segments, ring,
 					out var original), Is.True);
 
-				component.SetBraceFixtureProperties(fixtureIndex, 250f,
+				component.SetRingFixtureProperties(fixtureIndex, 250f,
 					false, 60f, 120f,
 					true, 210f, 330f, 12f, -7f, 1.25f);
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateBraceProfile(
-					component.SplineContainer.Spline, component.Segments, brace,
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateRingProfile(
+					component.SplineContainer.Spline, component.Segments, ring,
 					out var changed), Is.True);
 				Assert.That(math.distance(changed.Center, original.Center
 					+ original.Frame.Right * 12f - original.Frame.Up * 7f),
 					Is.LessThan(0.001f));
 				Assert.That(changed.Radius, Is.EqualTo(original.Radius * 1.25f).Within(0.001f));
 
-				var start = brace.EvaluateCenterlineOffset(math.radians(210f), changed.Radius);
-				var middle = brace.EvaluateCenterlineOffset(math.radians(270f), changed.Radius);
-				var end = brace.EvaluateCenterlineOffset(math.radians(330f), changed.Radius);
+				var start = ring.EvaluateCenterlineOffset(math.radians(210f), changed.Radius);
+				var middle = ring.EvaluateCenterlineOffset(math.radians(270f), changed.Radius);
+				var end = ring.EvaluateCenterlineOffset(math.radians(330f), changed.Radius);
 				Assert.That(math.abs((middle.x - start.x) * (end.y - start.y)
 					- (middle.y - start.y) * (end.x - start.x)), Is.LessThan(0.001f));
 				Assert.That(middle.y, Is.EqualTo(-changed.Radius * 0.5f).Within(0.001f));
 
-				component.SetBraceFixtureProperties(fixtureIndex, 250f,
+				component.SetRingFixtureProperties(fixtureIndex, 250f,
 					false, 60f, 120f,
 					true, 210f, 330f, 12f, -7f, 0.75f);
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateBraceProfile(
-					component.SplineContainer.Spline, component.Segments, brace,
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateRingProfile(
+					component.SplineContainer.Spline, component.Segments, ring,
 					out var shrunk), Is.True);
 				Assert.That(shrunk.Radius, Is.EqualTo(original.Radius * 0.75f).Within(0.001f));
 			} finally {
@@ -2557,10 +2619,10 @@ namespace VisualPinball.Unity.Test
 		[TestCase(40f, 100f, 60f, 120f)]
 		[TestCase(210f, 300f, 225f, 315f)]
 		[TestCase(10f, 300f, 305f, 235f)]
-		public void ShouldAlignBraceAngleRangesWithoutChangingTheirSweep(float start,
+		public void ShouldAlignRingAngleRangesWithoutChangingTheirSweep(float start,
 			float end, float expectedStart, float expectedEnd)
 		{
-			var aligned = WireRailBraceFixture.AlignAngleRangeHorizontally(start, end);
+			var aligned = WireRailRingFixture.AlignAngleRangeHorizontally(start, end);
 
 			Assert.That(aligned.x, Is.EqualTo(expectedStart).Within(0.001f));
 			Assert.That(aligned.y, Is.EqualTo(expectedEnd).Within(0.001f));
@@ -2572,36 +2634,36 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldApplyBracePropertiesToAllWithoutChangingPositions()
+		public void ShouldApplyRingPropertiesToAllWithoutChangingPositions()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
-				component.AddBraceFixture(100f);
-				component.AddBraceFixture(250f);
-				component.AddBraceFixture(400f);
-				component.SetBraceFixtureProperties(1, 250f,
+				component.AddRingFixture(100f);
+				component.AddRingFixture(250f);
+				component.AddRingFixture(400f);
+				component.SetRingFixtureProperties(1, 250f,
 					true, 35f, 145f, true, 215f, 325f, 7f, -11f, 1.35f, 48);
-				component.SetBraceFixtureProperties(0, 100f,
+				component.SetRingFixtureProperties(0, 100f,
 					false, 60f, 120f, false, 210f, 330f, 0f, 0f, 0.8f);
-				component.SetBraceFixtureProperties(2, 400f,
+				component.SetRingFixtureProperties(2, 400f,
 					false, 50f, 130f, false, 220f, 320f, -3f, 5f, 1.8f);
 
-				component.ApplyBracePropertiesToAll(1);
+				component.ApplyRingPropertiesToAll(1);
 
 				Assert.That(component.Fixtures.Select(fixture => fixture.Distance),
 					Is.EqualTo(new[] { 100f, 250f, 400f }));
-				foreach (var brace in component.Fixtures.Cast<WireRailBraceFixture>()) {
-					Assert.That(brace.HasCutout, Is.True);
-					Assert.That(brace.CutoutStartAngle, Is.EqualTo(35f));
-					Assert.That(brace.CutoutEndAngle, Is.EqualTo(145f));
-					Assert.That(brace.HasStraightSection, Is.True);
-					Assert.That(brace.StraightStartAngle, Is.EqualTo(215f));
-					Assert.That(brace.StraightEndAngle, Is.EqualTo(325f));
-					Assert.That(brace.LateralOffset, Is.EqualTo(7f));
-					Assert.That(brace.VerticalOffset, Is.EqualTo(-11f));
-					Assert.That(brace.Scale, Is.EqualTo(1.35f));
-					Assert.That(brace.RingDensity, Is.EqualTo(48));
+				foreach (var ring in component.Fixtures.Cast<WireRailRingFixture>()) {
+					Assert.That(ring.HasCutout, Is.True);
+					Assert.That(ring.CutoutStartAngle, Is.EqualTo(35f));
+					Assert.That(ring.CutoutEndAngle, Is.EqualTo(145f));
+					Assert.That(ring.HasStraightSection, Is.True);
+					Assert.That(ring.StraightStartAngle, Is.EqualTo(215f));
+					Assert.That(ring.StraightEndAngle, Is.EqualTo(325f));
+					Assert.That(ring.LateralOffset, Is.EqualTo(7f));
+					Assert.That(ring.VerticalOffset, Is.EqualTo(-11f));
+					Assert.That(ring.Scale, Is.EqualTo(1.35f));
+					Assert.That(ring.RingDensity, Is.EqualTo(48));
 				}
 			} finally {
 				Object.DestroyImmediate(go);
@@ -2609,17 +2671,17 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldDuplicateEveryBraceSetting()
+		public void ShouldDuplicateEveryRingSetting()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
-				var sourceIndex = component.AddBraceFixture(175f);
-				component.SetBraceFixtureProperties(sourceIndex, 175f,
+				var sourceIndex = component.AddRingFixture(175f);
+				component.SetRingFixtureProperties(sourceIndex, 175f,
 					true, 35f, 125f, true, 205f, 315f, 6f, -9f, 1.4f, 24);
-				var duplicateIndex = component.DuplicateBraceFixture(sourceIndex);
-				var source = (WireRailBraceFixture)component.Fixtures[sourceIndex];
-				var duplicate = (WireRailBraceFixture)component.Fixtures[duplicateIndex];
+				var duplicateIndex = component.DuplicateRingFixture(sourceIndex);
+				var source = (WireRailRingFixture)component.Fixtures[sourceIndex];
+				var duplicate = (WireRailRingFixture)component.Fixtures[duplicateIndex];
 
 				Assert.That(duplicateIndex, Is.EqualTo(sourceIndex + 1));
 				Assert.That(component.Fixtures, Has.Count.EqualTo(2));
@@ -2642,17 +2704,17 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldDuplicateEveryCrossWireSetting()
+		public void ShouldDuplicateEveryRungSetting()
 		{
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
-				var sourceIndex = component.AddCrossWireFixture(175f);
-				component.SetCrossWireFixtureProperties(sourceIndex, 175f,
+				var sourceIndex = component.AddRungFixture(175f);
+				component.SetRungFixtureProperties(sourceIndex, 175f,
 					25f, 6f, -9f, 14f);
-				var duplicateIndex = component.DuplicateCrossWireFixture(sourceIndex);
-				var source = (WireRailCrossWireFixture)component.Fixtures[sourceIndex];
-				var duplicate = (WireRailCrossWireFixture)component.Fixtures[duplicateIndex];
+				var duplicateIndex = component.DuplicateRungFixture(sourceIndex);
+				var source = (WireRailRungFixture)component.Fixtures[sourceIndex];
+				var duplicate = (WireRailRungFixture)component.Fixtures[duplicateIndex];
 
 				Assert.That(duplicateIndex, Is.EqualTo(sourceIndex + 1));
 				Assert.That(duplicate, Is.Not.SameAs(source));
@@ -2676,14 +2738,14 @@ namespace VisualPinball.Unity.Test
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
-				var sourceIndex = component.AddLegFixture(175f);
-				component.SetLegFixtureProperties(sourceIndex, 175f,
-					WireRailLegSide.Left, new Vector3(1f, 2f, -3f), 42f,
+				var sourceIndex = component.AddStandFixture(175f);
+				component.SetStandFixtureProperties(sourceIndex, 175f,
+					WireRailStandSide.Left, new Vector3(1f, 2f, -3f), 42f,
 					new Vector3(4f, 5f, -60f), new Vector3(15f, 25f, 35f),
 					38f, 27f, 19f, 6f, -9f, 14f);
-				var duplicateIndex = component.DuplicateLegFixture(sourceIndex);
-				var source = (WireRailLegFixture)component.Fixtures[sourceIndex];
-				var duplicate = (WireRailLegFixture)component.Fixtures[duplicateIndex];
+				var duplicateIndex = component.DuplicateStandFixture(sourceIndex);
+				var source = (WireRailStandFixture)component.Fixtures[sourceIndex];
+				var duplicate = (WireRailStandFixture)component.Fixtures[duplicateIndex];
 
 				Assert.That(duplicateIndex, Is.EqualTo(sourceIndex + 1));
 				Assert.That(duplicate, Is.Not.SameAs(source));
@@ -2714,10 +2776,10 @@ namespace VisualPinball.Unity.Test
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
-				component.AddBraceFixture(100f);
-				component.AddBraceFixture(300f);
-				component.SetBraceFixtureProperties(0, 100f, false, 0f, 0f);
-				component.SetBraceFixtureProperties(1, 300f, false, 0f, 0f);
+				component.AddRingFixture(100f);
+				component.AddRingFixture(300f);
+				component.SetRingFixtureProperties(0, 100f, false, 0f, 0f);
+				component.SetRingFixtureProperties(1, 300f, false, 0f, 0f);
 
 				component.MoveFixture(1, 0);
 
@@ -3063,8 +3125,8 @@ namespace VisualPinball.Unity.Test
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
-				component.AddBraceFixture(100f);
-				component.AddBraceFixture(400f);
+				component.AddRingFixture(100f);
+				component.AddRingFixture(400f);
 				component.SplineContainer.Spline.Add(
 					new BezierKnot(new float3(0f, 1000f, 0f)), TangentMode.AutoSmooth);
 
@@ -3386,9 +3448,9 @@ namespace VisualPinball.Unity.Test
 				var component = go.AddComponent<WireRailComponent>();
 				component.AddLayout(250f);
 				component.SetRailCount(5);
-				component.AddBraceFixture(125f);
-				component.AddCrossWireFixture(375f);
-				component.AddLegFixture(250f);
+				component.AddRingFixture(125f);
+				component.AddRungFixture(375f);
+				component.AddStandFixture(250f);
 
 				component.SetWireDiameter(12f);
 
@@ -3398,11 +3460,11 @@ namespace VisualPinball.Unity.Test
 					}
 				}
 				Assert.That(component.WireDiameter, Is.EqualTo(12f));
-				Assert.That(((WireRailBraceFixture)component.Fixtures[0]).Diameter,
+				Assert.That(((WireRailRingFixture)component.Fixtures[0]).Diameter,
 					Is.EqualTo(12f));
-				Assert.That(((WireRailCrossWireFixture)component.Fixtures[1]).Diameter,
+				Assert.That(((WireRailRungFixture)component.Fixtures[1]).Diameter,
 					Is.EqualTo(12f));
-				Assert.That(((WireRailLegFixture)component.Fixtures[2]).Diameter,
+				Assert.That(((WireRailStandFixture)component.Fixtures[2]).Diameter,
 					Is.EqualTo(12f));
 				Assert.That(component.RenderMesh.bounds.size.x, Is.GreaterThan(0f));
 				Assert.That(component.ColliderMesh.vertexCount, Is.GreaterThan(0));
@@ -3641,9 +3703,9 @@ namespace VisualPinball.Unity.Test
 					TangentMode.AutoSmooth);
 				component.AddLayout(component.SplineLength * 0.33f);
 				component.AddLayout(component.SplineLength * 0.66f);
-				component.AddBraceFixture(component.SplineLength * 0.25f);
-				component.AddCrossWireFixture(component.SplineLength * 0.5f);
-				component.AddVBraceFixture(component.SplineLength * 0.75f);
+				component.AddRingFixture(component.SplineLength * 0.25f);
+				component.AddRungFixture(component.SplineLength * 0.5f);
+				component.AddCradleFixture(component.SplineLength * 0.75f);
 
 				var renderSignature = ComputeMeshSignature(component.RenderMesh);
 				var colliderSignature = ComputeMeshSignature(component.ColliderMesh);
@@ -4244,7 +4306,7 @@ namespace VisualPinball.Unity.Test
 
 		[TestCase(WireRailEndpoint.Start)]
 		[TestCase(WireRailEndpoint.End)]
-		public void ShouldAlignDropFacesWithAWidenedColliderEndpoint(WireRailEndpoint endpoint)
+		public void ShouldAlignElbowFacesWithAWidenedColliderEndpoint(WireRailEndpoint endpoint)
 		{
 			var go = new GameObject("Wire Rail");
 			try {
@@ -4252,7 +4314,7 @@ namespace VisualPinball.Unity.Test
 				component.SetRailCount(2);
 				component.SetColliderWidening(endpoint == WireRailEndpoint.Start, 2f, 100f,
 					endpoint == WireRailEndpoint.End, 2f, 100f);
-				component.AddDropFixture(endpoint);
+				component.AddElbowFixture(endpoint);
 
 				var vertices = component.ColliderMesh.vertices;
 				const int dropVertexCount = 8;
