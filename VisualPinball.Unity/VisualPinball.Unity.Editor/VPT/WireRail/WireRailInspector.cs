@@ -482,7 +482,7 @@ namespace VisualPinball.Unity.Editor
 				// Drop Loop and Drop are endpoint fittings that WireRailSolderMeshGenerator
 				// never solders, so they carry no solder-threshold row.
 				WireRailDropLoopFixture => LayoutPadding * 2f + LayoutLineHeight * 10f
-					+ 80f + WireRailDropLoopPreviewEditor.Height + LayoutLineHeight + 3f,
+					+ 110f + WireRailDropLoopPreviewEditor.Height + LayoutLineHeight + 3f,
 				WireRailDropFixture => LayoutPadding * 2f
 					+ LayoutLineHeight * (componentRailCount + 8)
 					+ 3f * (componentRailCount + 7) + 58f
@@ -619,19 +619,10 @@ namespace VisualPinball.Unity.Editor
 				dropLoop.RingDensity, 4, 128);
 
 			row.y += LayoutLineHeight + 3f;
-			var lateralOffset = dropLoop.LateralOffset;
-			var verticalOffset = dropLoop.VerticalOffset;
-			DrawFixtureOffsetRow(row, ref lateralOffset, ref verticalOffset,
-				out var resetOffset);
-			if (resetOffset) {
-				Edit(component, "Reset Wire Rail Drop Loop Offset", () =>
-					component.SetDropLoopFixtureProperties(fixtureIndex, dropLoop.Endpoint,
-						dropLoop.FirstRailIndex, dropLoop.SecondRailIndex,
-						dropLoop.LoopDiameter, dropLoop.LeadLength,
-						dropLoop.TangentLength, dropLoop.RingDensity, 0f, 0f,
-						dropLoop.Rotation));
-				GUIUtility.ExitGUI();
-			}
+			var railOffset = math.max(0f, EditorGUI.FloatField(row, new GUIContent("Offset",
+				"How far the loop sits back from the endpoint along the rails. The two connected "
+				+ "rails shorten to follow it, so the loop stays attached."),
+				dropLoop.RailOffset));
 
 			row.y += LayoutLineHeight + 3f;
 			var loopDiameter = EditorGUI.DelayedFloatField(row,
@@ -675,7 +666,9 @@ namespace VisualPinball.Unity.Editor
 					: hasRailTrimConflict
 						? "A Rail Trim shortens an attached rail at this endpoint. Remove the conflict or select different rails; the Drop Loop is not generated."
 					: "The terminal semicircle uses Terminal Impact Material; its leads use the ordinary physics material.";
-			EditorGUI.HelpBox(new Rect(row.x, row.y, row.width, 30f), message,
+			var messageHeight = math.max(38f,
+				EditorStyles.helpBox.CalcHeight(new GUIContent(message), row.width));
+			EditorGUI.HelpBox(new Rect(row.x, row.y, row.width, messageHeight), message,
 				spline != null && spline.Closed || hasInvalidRailPair || hasRailTrimConflict
 					? MessageType.Warning : MessageType.Info);
 
@@ -683,8 +676,7 @@ namespace VisualPinball.Unity.Editor
 				Edit(component, "Edit Wire Rail Drop Loop", () =>
 					component.SetDropLoopFixtureProperties(fixtureIndex, endpoint,
 						firstRailIndex, secondRailIndex, loopDiameter, leadLength,
-						tangentLength, ringDensity, lateralOffset, verticalOffset,
-						rotation));
+						tangentLength, ringDensity, railOffset, rotation));
 			}
 		}
 

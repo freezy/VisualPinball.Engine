@@ -1016,8 +1016,7 @@ namespace VisualPinball.Unity
 		[SerializeField, Min(0f)] private float _leadLength = DefaultLeadLength;
 		[SerializeField, Min(0f)] private float _tangentLength = DefaultTangentLength;
 		[SerializeField, Range(4, 128)] private int _ringDensity = DefaultRingDensity;
-		[SerializeField] private float _lateralOffset;
-		[SerializeField] private float _verticalOffset;
+		[SerializeField] private float _railOffset;
 		[SerializeField, Range(0f, 360f)] private float _rotation;
 
 		public float Diameter => _diameter;
@@ -1028,8 +1027,7 @@ namespace VisualPinball.Unity
 		public float LeadLength => _leadLength;
 		public float TangentLength => _tangentLength;
 		public int RingDensity => _ringDensity;
-		public float LateralOffset => _lateralOffset;
-		public float VerticalOffset => _verticalOffset;
+		public float RailOffset => _railOffset;
 		public float Rotation => _rotation;
 
 		internal bool EnsureDropLoopInitialized(float splineLength)
@@ -1060,6 +1058,8 @@ namespace VisualPinball.Unity
 			changed |= SetValue(ref _loopDiameter, math.max(0.1f, _loopDiameter));
 			changed |= SetValue(ref _leadLength, math.max(0f, _leadLength));
 			changed |= SetValue(ref _tangentLength, math.max(0f, _tangentLength));
+			changed |= SetValue(ref _railOffset,
+				math.clamp(_railOffset, 0f, math.max(0f, splineLength)));
 			var ringDensity = math.clamp(_ringDensity <= 0 ? DefaultRingDensity : _ringDensity,
 				4, 128);
 			if (_ringDensity != ringDensity) {
@@ -1092,7 +1092,7 @@ namespace VisualPinball.Unity
 		internal void SetProperties(float splineLength, float diameter,
 			WireRailEndpoint endpoint, int firstRailIndex, int secondRailIndex,
 			float loopDiameter, float leadLength, float tangentLength, int ringDensity,
-			float lateralOffset, float verticalOffset, float rotation)
+			float railOffset, float rotation)
 		{
 			_endpoint = endpoint == WireRailEndpoint.Start
 				? WireRailEndpoint.Start : WireRailEndpoint.End;
@@ -1104,8 +1104,7 @@ namespace VisualPinball.Unity
 			_leadLength = math.max(0f, leadLength);
 			_tangentLength = math.max(0f, tangentLength);
 			_ringDensity = math.clamp(ringDensity, 4, 128);
-			_lateralOffset = lateralOffset;
-			_verticalOffset = verticalOffset;
+			_railOffset = math.clamp(railOffset, 0f, math.max(0f, splineLength));
 			_rotation = math.clamp(rotation, 0f, 360f);
 		}
 	}
@@ -2100,7 +2099,7 @@ namespace VisualPinball.Unity
 				WireRailDropLoopFixture.DefaultLoopDiameter,
 				WireRailDropLoopFixture.DefaultLeadLength,
 				WireRailDropLoopFixture.DefaultTangentLength,
-				WireRailDropLoopFixture.DefaultRingDensity, 0f, 0f, 0f);
+				WireRailDropLoopFixture.DefaultRingDensity, 0f, 0f);
 			_fixtures.Add(dropLoop);
 			InvalidateColliderGeometry();
 			RebuildRenderGeometry();
@@ -2398,7 +2397,7 @@ namespace VisualPinball.Unity
 			duplicate.SetProperties(SplineLength, _wireDiameter, source.Endpoint,
 				source.FirstRailIndex, source.SecondRailIndex, source.LoopDiameter,
 				source.LeadLength, source.TangentLength, source.RingDensity,
-				source.LateralOffset, source.VerticalOffset, source.Rotation);
+				source.RailOffset, source.Rotation);
 			duplicate.SetSolderThreshold(source.SolderThreshold);
 			duplicate.SetSolderSize(source.SolderSize);
 			var duplicateIndex = fixtureIndex + 1;
@@ -2548,7 +2547,7 @@ namespace VisualPinball.Unity
 		public void SetDropLoopFixtureProperties(int fixtureIndex,
 			WireRailEndpoint endpoint, int firstRailIndex, int secondRailIndex,
 			float loopDiameter, float leadLength, float tangentLength, int ringDensity,
-			float lateralOffset, float verticalOffset, float rotation)
+			float railOffset, float rotation)
 		{
 			if (GetFixture(fixtureIndex) is not WireRailDropLoopFixture dropLoop) {
 				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a drop loop.",
@@ -2556,7 +2555,7 @@ namespace VisualPinball.Unity
 			}
 			dropLoop.SetProperties(SplineLength, _wireDiameter, endpoint,
 				firstRailIndex, secondRailIndex, loopDiameter, leadLength, tangentLength,
-				ringDensity, lateralOffset, verticalOffset, rotation);
+				ringDensity, railOffset, rotation);
 			InvalidateColliderGeometry();
 			RebuildRenderGeometry();
 			MarkDirty();

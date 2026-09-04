@@ -1338,7 +1338,7 @@ namespace VisualPinball.Unity.Test
 
 				component.SetDropLoopFixtureProperties(fixtureIndex, WireRailEndpoint.Start,
 					0, 1, dropLoop.LoopDiameter, dropLoop.LeadLength,
-					dropLoop.TangentLength, dropLoop.RingDensity, 0f, 0f, 0f);
+					dropLoop.TangentLength, dropLoop.RingDensity, 0f, 0f);
 				Assert.That(dropLoop.Distance, Is.Zero);
 				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateDropLoopProfile(
 					component.SplineContainer.Spline, component.Segments, dropLoop,
@@ -1410,94 +1410,48 @@ namespace VisualPinball.Unity.Test
 
 		[TestCase(WireRailEndpoint.Start)]
 		[TestCase(WireRailEndpoint.End)]
-		public void ShouldCapADropLoopAndRailEndsWhenItsOffsetDetachesIt(
+		public void ShouldShortenConnectedRailsToKeepADropLoopAttachedWhenOffset(
 			WireRailEndpoint endpoint)
 		{
-			const int radialSegments = 10;
-			const float capBevelSize = 2f;
 			var go = new GameObject("Wire Rail");
 			try {
 				var component = go.AddComponent<WireRailComponent>();
 				component.SetRailCount(2);
-				component.SetWireCapBevelSize(capBevelSize);
-				var originalColliderIndexCount = component.ColliderMesh.GetIndexCount(0);
 				var fixtureIndex = component.AddDropLoopFixture(endpoint);
 				var dropLoop = (WireRailDropLoopFixture)component.Fixtures[fixtureIndex];
+
+				// Baseline: the loop sits at the endpoint with no offset.
 				component.SetDropLoopFixtureProperties(fixtureIndex, endpoint,
 					dropLoop.FirstRailIndex, dropLoop.SecondRailIndex, dropLoop.LoopDiameter,
 					dropLoop.LeadLength, dropLoop.TangentLength, dropLoop.RingDensity,
-					5f, 0f, dropLoop.Rotation);
+					0f, dropLoop.Rotation);
+				var baselineVertexCount = component.RenderMesh.vertexCount;
+				var baselineExtent = MaxComponent(component.RenderMesh.bounds.size);
 
-				var spline = component.SplineContainer.Spline;
-				var samples = WireRailRenderMeshGenerator.BuildSampleParameters(
-					spline, component.Segments, 0, 0, 16);
-				var attachedRingIndex = endpoint == WireRailEndpoint.Start
-					? 0 : samples.Count - 1;
-				var attachedCurveT = samples[attachedRingIndex];
-				var attachedStep = endpoint == WireRailEndpoint.Start
-					? samples[1] - samples[0]
-					: samples[^1] - samples[^2];
-				Assert.That(WireRailSplineGeometry.TryEvaluateRailFrame(spline,
-					component.Segments, 0, 0, attachedCurveT, attachedStep,
-					out var attachedFrame), Is.True);
-				var attachedCenter = RingCenter(component.RenderMesh.vertices,
-					attachedRingIndex * radialSegments, radialSegments);
-				Assert.That(math.distance(attachedCenter, attachedFrame.Position),
-					Is.EqualTo(capBevelSize).Within(0.001f),
-					"a detached fitting must restore the rail's exposed cap bevel");
+				// The offset moves the loop back along the rails; the two connected rails
+				// shorten to follow it so it stays attached.
+				const float offset = 20f;
+				component.SetDropLoopFixtureProperties(fixtureIndex, endpoint,
+					dropLoop.FirstRailIndex, dropLoop.SecondRailIndex, dropLoop.LoopDiameter,
+					dropLoop.LeadLength, dropLoop.TangentLength, dropLoop.RingDensity,
+					offset, dropLoop.Rotation);
 
-				var fixtureVertices = new List<Vector3>();
-				var fixtureNormals = new List<Vector3>();
-				var fixtureUvs = new List<Vector2>();
-				var fixtureIndices = new List<int>();
-				WireRailFixtureMeshGenerator.Append(spline, component.Segments,
-					component.Fixtures, capBevelSize, radialSegments, fixtureVertices,
-					fixtureNormals, fixtureUvs, fixtureIndices);
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateDropLoopProfile(spline,
-					component.Segments, dropLoop, out var profile), Is.True);
-				Assert.That(fixtureVertices.Count,
-					Is.EqualTo(profile.CenterlinePoints.Count * radialSegments
-						+ radialSegments * 6 + 2),
-					"both fitting mouths should receive a beveled cap");
-				Assert.That(component.ColliderMesh.GetIndexCount(0),
-					Is.EqualTo(originalColliderIndexCount + 204),
-					"the detached collider should add two flat box end faces");
-				Assert.That(component.ColliderMesh.GetIndexCount(1), Is.EqualTo(288));
-				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateDropLoopColliderProfile(
-					spline, component.Segments, dropLoop, out var colliderProfile), Is.True);
-				var colliderVertices = component.ColliderMesh.vertices;
-				var ordinaryIndices = component.ColliderMesh.GetIndices(0);
-				var firstOutward = -math.normalizesafe(colliderProfile.CenterlinePoints[1]
-					- colliderProfile.CenterlinePoints[0]);
-				var lastOutward = math.normalizesafe(colliderProfile.CenterlinePoints[^1]
-					- colliderProfile.CenterlinePoints[^2]);
-				AssertCapNormals(ordinaryIndices.Length - 12, firstOutward);
-				AssertCapNormals(ordinaryIndices.Length - 6, lastOutward);
-
-				void AssertCapNormals(int firstIndex, float3 expectedNormal)
-				{
-					for (var triangleIndex = firstIndex;
-						triangleIndex < firstIndex + 6; triangleIndex += 3) {
-						var a = (float3)colliderVertices[ordinaryIndices[triangleIndex]];
-						var b = (float3)colliderVertices[ordinaryIndices[triangleIndex + 1]];
-						var c = (float3)colliderVertices[ordinaryIndices[triangleIndex + 2]];
-						var normal = math.normalizesafe(math.cross(b - a, c - a));
-						Assert.That(math.dot(normal, expectedNormal), Is.GreaterThan(0.999f),
-							"detached collider cap normals must point out of the box");
-					}
-				}
+				Assert.That(
+					((WireRailDropLoopFixture)component.Fixtures[fixtureIndex]).RailOffset,
+					Is.EqualTo(offset));
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateDropLoopProfile(
+					component.SplineContainer.Spline, component.Segments, dropLoop, out _),
+					Is.True, "the loop must still generate when offset");
+				Assert.That(component.RenderMesh.vertexCount, Is.EqualTo(baselineVertexCount),
+					"the loop stays connected, so no detach caps are added");
+				Assert.That(baselineExtent - MaxComponent(component.RenderMesh.bounds.size),
+					Is.EqualTo(offset).Within(2f),
+					"the connected rails shorten by the offset, pulling the loop in with them");
 			} finally {
 				Object.DestroyImmediate(go);
 			}
 
-			static float3 RingCenter(IReadOnlyList<Vector3> vertices, int start, int count)
-			{
-				var center = float3.zero;
-				for (var index = 0; index < count; index++) {
-					center += (float3)vertices[start + index];
-				}
-				return center / count;
-			}
+			static float MaxComponent(Vector3 v) => math.max(v.x, math.max(v.y, v.z));
 		}
 
 		[Test]
@@ -1761,7 +1715,7 @@ namespace VisualPinball.Unity.Test
 				component.SetRailOffset(0, 1, new Vector2(15f, 0f));
 				var fixtureIndex = component.AddDropLoopFixture();
 				component.SetDropLoopFixtureProperties(fixtureIndex, WireRailEndpoint.End,
-					0, 1, 100f, 45f, 18f, 32, 0f, 0f, 0f);
+					0, 1, 100f, 45f, 18f, 32, 0f, 0f);
 				var dropLoop = (WireRailDropLoopFixture)component.Fixtures[fixtureIndex];
 
 				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateDropLoopProfile(
@@ -1834,7 +1788,7 @@ namespace VisualPinball.Unity.Test
 				component.SetDropLoopFixtureProperties(fixtureIndex, dropLoop.Endpoint,
 					dropLoop.FirstRailIndex, dropLoop.SecondRailIndex, dropLoop.LoopDiameter,
 					dropLoop.LeadLength, dropLoop.TangentLength, 128,
-					dropLoop.LateralOffset, dropLoop.VerticalOffset, dropLoop.Rotation);
+					dropLoop.RailOffset, dropLoop.Rotation);
 				Assert.That(component.ColliderMesh.GetIndexCount(0),
 					Is.EqualTo(originalChannelIndexCount + 192));
 				Assert.That(component.ColliderMesh.GetIndexCount(1), Is.EqualTo(288),
@@ -1896,7 +1850,7 @@ namespace VisualPinball.Unity.Test
 				var component = go.AddComponent<WireRailComponent>();
 				var sourceIndex = component.AddDropLoopFixture(WireRailEndpoint.Start);
 				component.SetDropLoopFixtureProperties(sourceIndex, WireRailEndpoint.Start,
-					2, 3, 92f, 37f, 11f, 40, 6f, -9f, 27f);
+					2, 3, 92f, 37f, 11f, 40, 6f, 27f);
 				var duplicateIndex = component.DuplicateDropLoopFixture(sourceIndex);
 				component.SetWireDiameter(12f);
 				var source = (WireRailDropLoopFixture)component.Fixtures[sourceIndex];
@@ -1912,8 +1866,7 @@ namespace VisualPinball.Unity.Test
 				Assert.That(duplicate.LeadLength, Is.EqualTo(source.LeadLength));
 				Assert.That(duplicate.TangentLength, Is.EqualTo(source.TangentLength));
 				Assert.That(duplicate.RingDensity, Is.EqualTo(source.RingDensity));
-				Assert.That(duplicate.LateralOffset, Is.EqualTo(source.LateralOffset));
-				Assert.That(duplicate.VerticalOffset, Is.EqualTo(source.VerticalOffset));
+				Assert.That(duplicate.RailOffset, Is.EqualTo(source.RailOffset));
 				Assert.That(duplicate.Rotation, Is.EqualTo(source.Rotation));
 				Assert.That(source.Diameter, Is.EqualTo(12f));
 				Assert.That(duplicate.Diameter, Is.EqualTo(12f));
