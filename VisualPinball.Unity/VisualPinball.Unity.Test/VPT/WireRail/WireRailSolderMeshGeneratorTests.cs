@@ -86,7 +86,7 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldSolderADefaultBraceToAllFourRails()
+		public void ShouldSolderADefaultRingToAllFourRails()
 		{
 			const int radialSegments = 10;
 			var gameObject = new GameObject("Wire Rail");
@@ -95,20 +95,20 @@ namespace VisualPinball.Unity.Test
 				component.SetRailOffset(0, 0, new Vector2(-30f, 0f));
 				component.SetRailOffset(0, 1, new Vector2(30f, 0f));
 				var railTriangleCount = component.RenderMesh.triangles.Length / 3;
-				var fixtureIndex = component.AddBraceFixture(250f);
+				var fixtureIndex = component.AddRingFixture(250f);
 				var defaultVertices = component.RenderMesh.vertices;
 				var defaultTriangleCount = component.RenderMesh.triangles.Length;
-				var brace = (WireRailBraceFixture)component.Fixtures[fixtureIndex];
+				var ring = (WireRailRingFixture)component.Fixtures[fixtureIndex];
 				var touches = new List<WireRailTouch>();
 
 				WireRailSolderMeshGenerator.CollectTouches(component.SplineContainer.Spline,
-					component.Segments, component.Fixtures, brace, touches);
+					component.Segments, component.Fixtures, ring, touches);
 
 				Assert.That(touches, Has.Count.EqualTo(4));
-				var braceTriangles = WireRailBraceFixture.DefaultRingDensity
+				var ringTriangles = WireRailRingFixture.DefaultRingDensity
 					* radialSegments * 2;
 				Assert.That(component.RenderMesh.triangles.Length / 3 - railTriangleCount,
-					Is.EqualTo(braceTriangles + touches.Count
+					Is.EqualTo(ringTriangles + touches.Count
 						* WireRailSolderMeshGenerator.TrianglesPerBlob));
 
 				component.SetFixtureSolderSize(fixtureIndex, 2f);
@@ -129,8 +129,8 @@ namespace VisualPinball.Unity.Test
 			try {
 				var component = gameObject.AddComponent<WireRailComponent>();
 				component.SetRailCount(2);
-				component.AddDropFixture(WireRailEndpoint.Start);
-				component.AddDropLoopFixture(WireRailEndpoint.End);
+				component.AddElbowFixture(WireRailEndpoint.Start);
+				component.AddHairpinFixture(WireRailEndpoint.End);
 				var touches = new List<WireRailTouch>();
 				foreach (var fixture in component.Fixtures) {
 					touches.Clear();
@@ -151,10 +151,10 @@ namespace VisualPinball.Unity.Test
 			var gameObject = new GameObject("Wire Rail");
 			try {
 				var component = gameObject.AddComponent<WireRailComponent>();
-				var fixtureIndex = component.AddBraceFixture(250f);
+				var fixtureIndex = component.AddRingFixture(250f);
 				component.SetFixtureSolderThreshold(fixtureIndex, 3.5f);
 				component.SetFixtureSolderSize(fixtureIndex, 2.25f);
-				var duplicateIndex = component.DuplicateBraceFixture(fixtureIndex);
+				var duplicateIndex = component.DuplicateRingFixture(fixtureIndex);
 
 				Assert.That(component.Fixtures[fixtureIndex].SolderThreshold,
 					Is.EqualTo(3.5f));
