@@ -503,10 +503,20 @@ namespace VisualPinball.Unity
 		[SerializeField, Min(0f)] private float _distance;
 		[SerializeField, Min(0f)] private float _solderThreshold = DefaultSolderThreshold;
 		[SerializeField, Min(0.01f)] private float _solderSize = DefaultSolderSize;
+		// Serialize-reference fixtures run field initializers on load, so pre-existing
+		// fixtures deserialize as enabled. Disabling only hides the render mesh; colliders
+		// are unaffected.
+		[SerializeField] private bool _enabled = true;
 
 		public float Distance => _distance;
 		public float SolderThreshold => _solderThreshold;
 		public float SolderSize => _solderSize;
+		public bool Enabled => _enabled;
+
+		internal void SetEnabled(bool enabled)
+		{
+			_enabled = enabled;
+		}
 
 		internal bool EnsureInitialized(float splineLength)
 		{
@@ -1527,6 +1537,37 @@ namespace VisualPinball.Unity
 		}
 	}
 
+	public readonly struct WireRailDropPreview
+	{
+		public readonly IReadOnlyList<Vector3> FirstRailPoints;
+		public readonly IReadOnlyList<Vector3> SecondRailPoints;
+		public readonly float FirstRailRadius;
+		public readonly float SecondRailRadius;
+
+		internal WireRailDropPreview(IReadOnlyList<Vector3> firstRailPoints,
+			IReadOnlyList<Vector3> secondRailPoints, float firstRailRadius,
+			float secondRailRadius)
+		{
+			FirstRailPoints = firstRailPoints;
+			SecondRailPoints = secondRailPoints;
+			FirstRailRadius = firstRailRadius;
+			SecondRailRadius = secondRailRadius;
+		}
+	}
+
+	public readonly struct WireRailDropLoopPreview
+	{
+		public readonly IReadOnlyList<Vector3> CenterlinePoints;
+		public readonly float Radius;
+
+		internal WireRailDropLoopPreview(IReadOnlyList<Vector3> centerlinePoints,
+			float radius)
+		{
+			CenterlinePoints = centerlinePoints;
+			Radius = radius;
+		}
+	}
+
 	/// <summary>
 	/// Native Unity spline authoring with independently positioned wire layouts and fixtures.
 	/// The spline helper stores raw VPX coordinates; its transform converts them into Unity space.
@@ -1549,6 +1590,9 @@ namespace VisualPinball.Unity
 		[SerializeField] private List<WireRailSegment> _segments = new();
 		[SerializeField, HideInInspector] private List<int> _layoutDisplayOrder = new();
 		[SerializeReference] private List<WireRailFixture> _fixtures = new();
+		// Reusable buffer holding only the enabled fixtures, fed to the render generator.
+		// Disabled fixtures are hidden from rendering but left untouched for colliders.
+		private readonly List<WireRailFixture> _enabledFixtures = new();
 		[SerializeField, Range(1, 6)] private int _railCount = 4;
 		[SerializeField, HideInInspector] private bool _railCountInitialized;
 		[SerializeField, Min(0.1f)] private float _wireDiameter = WireRailLayout.DefaultWireDiameter;
@@ -2167,6 +2211,78 @@ namespace VisualPinball.Unity
 			return true;
 		}
 
+		public bool TryGetDropPreview(int fixtureIndex, out WireRailDropPreview preview)
+		{
+			preview = default;
+			if (_fixtures == null || fixtureIndex < 0 || fixtureIndex >= _fixtures.Count
+				|| _fixtures[fixtureIndex] is not WireRailDropFixture drop
+				|| !_splineContainer || _splineContainer.Spline == null
+				|| !WireRailFixtureMeshGenerator.TryEvaluateDropProfile(
+					_splineContainer.Spline, _segments, drop, out var profile)) {
+				return false;
+			}
+			// Show a stretch of the rails leading into the drop for context. This is preview-only
+			// and prepended here; the generated mesh still uses the profile paths untouched.
+			var desiredLead = math.max(30f, drop.DropLength * 1.5f);
+			WireRailFixtureMeshGenerator.TryEvaluateDropIncomingLeads(_splineContainer.Spline,
+				_segments, drop, desiredLead, out var firstLead, out var secondLead);
+			preview = new WireRailDropPreview(
+				BuildRailPath(firstLead, profile.FirstRailPoints),
+				BuildRailPath(secondLead, profile.SecondRailPoints),
+				profile.FirstRailRadius, profile.SecondRailRadius);
+			return true;
+
+			Vector3[] BuildRailPath(IReadOnlyList<float3> lead, IReadOnlyList<float3> railPoints)
+			{
+				var points = new List<Vector3>(
+					(lead?.Count ?? 0) + railPoints.Count);
+				if (lead != null) {
+					foreach (var point in lead) {
+						points.Add(ToLocalPosition(point));
+					}
+				}
+				foreach (var point in railPoints) {
+					points.Add(ToLocalPosition(point));
+				}
+				return points.ToArray();
+			}
+
+			Vector3 ToLocalPosition(float3 position)
+			{
+				var relative = position - profile.Frame.Position;
+				return new Vector3(
+					math.dot(relative, profile.Frame.Right),
+					math.dot(relative, profile.Frame.Tangent),
+					math.dot(relative, profile.Frame.Up));
+			}
+		}
+
+		public bool TryGetDropLoopPreview(int fixtureIndex,
+			out WireRailDropLoopPreview preview)
+		{
+			preview = default;
+			if (_fixtures == null || fixtureIndex < 0 || fixtureIndex >= _fixtures.Count
+				|| _fixtures[fixtureIndex] is not WireRailDropLoopFixture dropLoop
+				|| !_splineContainer || _splineContainer.Spline == null
+				|| !WireRailFixtureMeshGenerator.TryEvaluateDropLoopProfile(
+					_splineContainer.Spline, _segments, dropLoop, out var profile)) {
+				return false;
+			}
+			preview = new WireRailDropLoopPreview(
+				profile.CenterlinePoints.Select(point => ToLocalPosition(point)).ToArray(),
+				dropLoop.Diameter * 0.5f);
+			return true;
+
+			Vector3 ToLocalPosition(float3 position)
+			{
+				var relative = position - profile.Frame.Position;
+				return new Vector3(
+					math.dot(relative, profile.Frame.Right),
+					math.dot(relative, profile.Frame.Tangent),
+					math.dot(relative, profile.Frame.Up));
+			}
+		}
+
 		public void RemoveFixture(int fixtureIndex)
 		{
 			var affectsCollider = GetFixture(fixtureIndex) is WireRailDropLoopFixture
@@ -2554,6 +2670,18 @@ namespace VisualPinball.Unity
 			}
 			railTrim.SetProperties(SplineLength, _railCount, endpoint, railOffsets);
 			InvalidateColliderGeometry();
+			RebuildRenderGeometry();
+			MarkDirty();
+		}
+
+		public void SetFixtureEnabled(int fixtureIndex, bool enabled)
+		{
+			var fixture = GetFixture(fixtureIndex);
+			if (fixture.Enabled == enabled) {
+				return;
+			}
+			fixture.SetEnabled(enabled);
+			// Disabling only hides the fixture's render mesh; the collider is left as-is.
 			RebuildRenderGeometry();
 			MarkDirty();
 		}
@@ -3090,8 +3218,16 @@ namespace VisualPinball.Unity
 					SynchronizeSegments();
 				}
 				using (RenderMeshMarker.Auto()) {
+					// Only enabled fixtures contribute to the render mesh (own geometry, rail
+					// trims, end fitting and solder). Colliders still use the full list.
+					_enabledFixtures.Clear();
+					foreach (var fixture in _fixtures) {
+						if (fixture != null && fixture.Enabled) {
+							_enabledFixtures.Add(fixture);
+						}
+					}
 					_renderMesh = WireRailRenderMeshGenerator.Generate(container.Spline, _segments,
-						_fixtures, _wireCapBevelSize, _renderSamplesPerSegment, _radialSegments,
+						_enabledFixtures, _wireCapBevelSize, _renderSamplesPerSegment, _radialSegments,
 						_renderMesh);
 					_renderMeshGenerationCount++;
 				}

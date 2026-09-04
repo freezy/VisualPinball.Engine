@@ -1044,4 +1044,186 @@ namespace VisualPinball.Unity.Editor
 				=> new(vpx.x + vpx.y * 0.35f, vpx.z + vpx.y * 0.22f);
 		}
 	}
+
+	internal sealed class WireRailDropPreviewEditor
+	{
+		public const float Height = WireRailPathPreview.Height;
+
+		public void Draw(Rect rect, WireRailComponent component, int fixtureIndex,
+			WireRailDropFixture drop)
+		{
+			if (!component.TryGetDropPreview(fixtureIndex, out var preview)) {
+				WireRailPathPreview.DrawUnavailable(rect,
+					"Drop preview unavailable at this position");
+				return;
+			}
+			WireRailPathPreview.Draw(rect, drop.Diameter,
+				"Projected route-local view of the two dropping rails.",
+				new[] { preview.FirstRailPoints, preview.SecondRailPoints });
+		}
+	}
+
+	internal sealed class WireRailDropLoopPreviewEditor
+	{
+		public const float Height = WireRailPathPreview.Height;
+
+		public void Draw(Rect rect, WireRailComponent component, int fixtureIndex,
+			WireRailDropLoopFixture dropLoop)
+		{
+			if (!component.TryGetDropLoopPreview(fixtureIndex, out var preview)) {
+				WireRailPathPreview.DrawUnavailable(rect,
+					"Drop Loop preview unavailable at this position");
+				return;
+			}
+			WireRailPathPreview.Draw(rect, dropLoop.Diameter,
+				"Top-down route-local view of the drop loop centerline.",
+				new[] { preview.CenterlinePoints }, WireRailPreviewProjection.Top);
+		}
+	}
+
+	// How the shared path preview flattens route-local geometry onto the 2D canvas.
+	internal enum WireRailPreviewProjection
+	{
+		// Skewed 3D look (lateral × height, with a slight along-spline shear).
+		Isometric,
+		// Straight top-down view (lateral × along-spline), looking down the route's up axis.
+		Top,
+	}
+
+	// Shared projected route-local preview for the endpoint fittings whose geometry is one or
+	// more 3D centerline paths (Drop, Drop Loop), matching the leg preview's isometric look.
+	internal static class WireRailPathPreview
+	{
+		public const float Height = 190f;
+		private static readonly Color CanvasColor = new(0.105f, 0.115f, 0.13f, 1f);
+		private static readonly Color GridColor = new(1f, 1f, 1f, 0.07f);
+		private static readonly Color AxisColor = new(1f, 1f, 1f, 0.28f);
+		private static readonly Color OutlineColor = new(0f, 0f, 0f, 0.8f);
+		private static readonly Color PathColor = new(1f, 0.67f, 0.12f, 1f);
+
+		public static void DrawUnavailable(Rect rect, string label)
+		{
+			EditorGUI.DrawRect(rect, CanvasColor);
+			EditorGUI.LabelField(rect, label, EditorStyles.centeredGreyMiniLabel);
+		}
+
+		public static void Draw(Rect rect, float diameter, string tooltip,
+			IReadOnlyList<IReadOnlyList<Vector3>> paths,
+			WireRailPreviewProjection projection = WireRailPreviewProjection.Isometric)
+		{
+			EditorGUI.DrawRect(rect, CanvasColor);
+			var view = PathPreviewView.Create(rect, paths, diameter * 0.5f, projection);
+			DrawGrid(view);
+			var tubeWidth = math.clamp(diameter * view.Scale, 3f, 16f);
+			Handles.BeginGUI();
+			var previousColor = Handles.color;
+			foreach (var path in paths) {
+				DrawPath(view, path, tubeWidth);
+			}
+			Handles.color = previousColor;
+			Handles.EndGUI();
+
+			var axisLabel = projection == WireRailPreviewProjection.Top
+				? "Top (X / Y)" : "X / Y / Z";
+			GUI.Label(new Rect(rect.x + 6f, rect.y + 4f, 88f, 18f), axisLabel,
+				EditorStyles.miniLabel);
+			GUI.Label(rect, new GUIContent(string.Empty, tooltip));
+		}
+
+		private static void DrawPath(PathPreviewView view, IReadOnlyList<Vector3> source,
+			float width)
+		{
+			if (source == null || source.Count < 2) {
+				return;
+			}
+			var points = new Vector3[source.Count];
+			for (var pointIndex = 0; pointIndex < source.Count; pointIndex++) {
+				points[pointIndex] = view.ToScreen(source[pointIndex]);
+			}
+			Handles.color = OutlineColor;
+			Handles.DrawAAPolyLine(width + 3f, points);
+			Handles.color = PathColor;
+			Handles.DrawAAPolyLine(width, points);
+		}
+
+		private static void DrawGrid(PathPreviewView view)
+		{
+			var span = math.max(view.Max.x - view.Min.x, view.Max.y - view.Min.y);
+			var gridStep = span > 400f ? 100f : span > 200f ? 50f : span > 100f ? 20f : 10f;
+			for (var x = math.ceil(view.Min.x / gridStep) * gridStep;
+				x <= view.Max.x; x += gridStep) {
+				var screen = view.ToScreenProjected(new Vector2(x, 0f));
+				EditorGUI.DrawRect(new Rect(screen.x, view.Rect.y, 1f, view.Rect.height),
+					math.abs(x) < 0.01f ? AxisColor : GridColor);
+			}
+			for (var y = math.ceil(view.Min.y / gridStep) * gridStep;
+				y <= view.Max.y; y += gridStep) {
+				var screen = view.ToScreenProjected(new Vector2(0f, y));
+				EditorGUI.DrawRect(new Rect(view.Rect.x, screen.y, view.Rect.width, 1f),
+					math.abs(y) < 0.01f ? AxisColor : GridColor);
+			}
+		}
+
+		private readonly struct PathPreviewView
+		{
+			public readonly Rect Rect;
+			public readonly Vector2 Min;
+			public readonly Vector2 Max;
+			public readonly float Scale;
+			private readonly WireRailPreviewProjection _projection;
+
+			private PathPreviewView(Rect rect, Vector2 min, Vector2 max, float scale,
+				WireRailPreviewProjection projection)
+			{
+				Rect = rect;
+				Min = min;
+				Max = max;
+				Scale = scale;
+				_projection = projection;
+			}
+
+			public static PathPreviewView Create(Rect rect,
+				IReadOnlyList<IReadOnlyList<Vector3>> paths, float tubeRadius,
+				WireRailPreviewProjection projection)
+			{
+				var padding = math.max(8f, tubeRadius + 8f);
+				var min = new Vector2(float.PositiveInfinity, float.PositiveInfinity);
+				var max = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
+				foreach (var path in paths) {
+					if (path == null) {
+						continue;
+					}
+					foreach (var point in path) {
+						var projected = Project(point, projection);
+						min = Vector2.Min(min, projected - Vector2.one * padding);
+						max = Vector2.Max(max, projected + Vector2.one * padding);
+					}
+				}
+				if (min.x > max.x) {
+					min = Vector2.zero;
+					max = Vector2.one;
+				}
+				var size = Vector2.Max(max - min, new Vector2(1f, 1f));
+				var scale = math.max(0.01f, math.min((rect.width - 20f) / size.x,
+					(rect.height - 20f) / size.y));
+				var fittedSize = new Vector2((rect.width - 20f) / scale,
+					(rect.height - 20f) / scale);
+				var center = (min + max) * 0.5f;
+				return new PathPreviewView(rect, center - fittedSize * 0.5f,
+					center + fittedSize * 0.5f, scale, projection);
+			}
+
+			public Vector3 ToScreen(Vector3 vpx) => ToScreenProjected(Project(vpx, _projection));
+
+			public Vector3 ToScreenProjected(Vector2 projected)
+				=> new(Rect.x + 10f + (projected.x - Min.x) * Scale,
+					Rect.yMax - 10f - (projected.y - Min.y) * Scale, 0f);
+
+			// vpx is route-local: x = lateral (right), y = along-spline (tangent), z = height (up).
+			private static Vector2 Project(Vector3 vpx, WireRailPreviewProjection projection)
+				=> projection == WireRailPreviewProjection.Top
+					? new Vector2(vpx.x, vpx.y)
+					: new Vector2(vpx.x + vpx.y * 0.35f, vpx.z + vpx.y * 0.22f);
+		}
+	}
 }
