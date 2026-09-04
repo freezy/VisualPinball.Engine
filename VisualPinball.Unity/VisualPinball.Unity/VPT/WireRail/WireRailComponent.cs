@@ -1470,13 +1470,23 @@ namespace VisualPinball.Unity
 		public readonly Vector2 CenterOffset;
 		public readonly float BaseRadius;
 		public readonly float Radius;
+		// The wires the brace wraps around, in the route-local (lateral, vertical) plane.
+		public readonly Vector2[] RailOffsets;
+		public readonly float[] RailRadii;
 
 		internal WireRailBraceCrossSection(float2 centerOffset, float baseRadius,
-			float radius)
+			float radius, float2[] railOffsets, float[] railRadii)
 		{
 			CenterOffset = new Vector2(centerOffset.x, centerOffset.y);
 			BaseRadius = baseRadius;
 			Radius = radius;
+			var count = railOffsets?.Length ?? 0;
+			RailOffsets = new Vector2[count];
+			RailRadii = new float[count];
+			for (var i = 0; i < count; i++) {
+				RailOffsets[i] = new Vector2(railOffsets[i].x, railOffsets[i].y);
+				RailRadii[i] = railRadii[i];
+			}
 		}
 	}
 
@@ -2140,7 +2150,7 @@ namespace VisualPinball.Unity
 				return false;
 			}
 			crossSection = new WireRailBraceCrossSection(profile.CenterOffset,
-				profile.BaseRadius, profile.Radius);
+				profile.BaseRadius, profile.Radius, profile.RailOffsets, profile.RailRadii);
 			return true;
 		}
 

@@ -488,11 +488,13 @@ namespace VisualPinball.Unity.Editor
 	internal sealed class WireRailBracePreviewEditor
 	{
 		private const float FullTurn = math.PI * 2f;
+		private const int CircleSegments = 48;
 		public const float Height = 170f;
 		private static readonly Color CanvasColor = new(0.105f, 0.115f, 0.13f, 1f);
 		private static readonly Color GridColor = new(1f, 1f, 1f, 0.07f);
 		private static readonly Color AxisColor = new(1f, 1f, 1f, 0.28f);
 		private static readonly Color OutlineColor = new(0f, 0f, 0f, 0.8f);
+		private static readonly Color RailColor = new(0.55f, 0.58f, 0.62f, 1f);
 		private static readonly Color BraceColor = new(1f, 0.67f, 0.12f, 1f);
 
 		public void Draw(Rect rect, WireRailComponent component, int fixtureIndex,
@@ -518,16 +520,23 @@ namespace VisualPinball.Unity.Editor
 				offsets.Add(crossSection.CenterOffset
 					+ new Vector2(centerline.x, centerline.y));
 			}
-			var view = BracePreviewView.Create(rect, offsets, brace.Diameter * 0.5f);
+			var view = BracePreviewView.Create(rect, offsets, brace.Diameter * 0.5f,
+				crossSection.RailOffsets, crossSection.RailRadii);
 			DrawGrid(view);
 
 			var points = new Vector3[offsets.Count];
 			for (var index = 0; index < offsets.Count; index++) {
 				points[index] = view.ToScreen(offsets[index]);
 			}
+			var railWidth = math.clamp(brace.Diameter * view.Scale, 2f, 12f);
 			var width = math.clamp(brace.Diameter * view.Scale, 3f, 16f);
 			Handles.BeginGUI();
 			var previousColor = Handles.color;
+			// The wire rails the brace wraps around, drawn behind the brace ring.
+			for (var railIndex = 0; railIndex < crossSection.RailOffsets.Length; railIndex++) {
+				DrawRail(view, crossSection.RailOffsets[railIndex],
+					crossSection.RailRadii[railIndex], railWidth);
+			}
 			Handles.color = OutlineColor;
 			Handles.DrawAAPolyLine(width + 3f, points);
 			Handles.color = BraceColor;
@@ -541,6 +550,21 @@ namespace VisualPinball.Unity.Editor
 				EditorStyles.miniLabel);
 			GUI.Label(rect, new GUIContent(string.Empty,
 				"Brace cross-section at its route position"));
+		}
+
+		private static void DrawRail(BracePreviewView view, Vector2 center,
+			float radius, float width)
+		{
+			var points = new Vector3[CircleSegments + 1];
+			for (var index = 0; index <= CircleSegments; index++) {
+				var angle = math.PI * 2f * index / CircleSegments;
+				points[index] = view.ToScreen(center
+					+ new Vector2(math.cos(angle), math.sin(angle)) * radius);
+			}
+			Handles.color = OutlineColor;
+			Handles.DrawAAPolyLine(width + 2f, points);
+			Handles.color = RailColor;
+			Handles.DrawAAPolyLine(width, points);
 		}
 
 		private static List<float> BuildAngles(WireRailBraceFixture brace,
@@ -610,7 +634,8 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			public static BracePreviewView Create(Rect rect, IReadOnlyList<Vector2> offsets,
-				float tubeRadius)
+				float tubeRadius, IReadOnlyList<Vector2> railOffsets,
+				IReadOnlyList<float> railRadii)
 			{
 				var min = Vector2.zero;
 				var max = Vector2.zero;
@@ -618,6 +643,13 @@ namespace VisualPinball.Unity.Editor
 				foreach (var offset in offsets) {
 					min = Vector2.Min(min, offset - Vector2.one * padding);
 					max = Vector2.Max(max, offset + Vector2.one * padding);
+				}
+				if (railOffsets != null) {
+					for (var railIndex = 0; railIndex < railOffsets.Count; railIndex++) {
+						var extent = Vector2.one * (railRadii[railIndex] + 8f);
+						min = Vector2.Min(min, railOffsets[railIndex] - extent);
+						max = Vector2.Max(max, railOffsets[railIndex] + extent);
+					}
 				}
 				var size = Vector2.Max(max - min, new Vector2(1f, 1f));
 				var scale = math.max(0.01f, math.min((rect.width - 20f) / size.x,
