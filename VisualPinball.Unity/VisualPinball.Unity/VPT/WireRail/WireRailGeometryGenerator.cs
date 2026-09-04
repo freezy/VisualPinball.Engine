@@ -2205,6 +2205,58 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		// Samples the two attached rails just before a drop's attachment so a preview can show
+		// the rails leading into the drop. Points are ordered from furthest-back toward the
+		// attachment (exclusive). Preview-only: this is not part of the generated mesh.
+		internal static bool TryEvaluateDropIncomingLeads(Spline spline,
+			IReadOnlyList<WireRailSegment> segments, WireRailDropFixture drop, float desiredLead,
+			out List<float3> firstLead, out List<float3> secondLead)
+		{
+			firstLead = null;
+			secondLead = null;
+			if (drop == null || spline == null || spline.Closed || desiredLead <= 1e-3f) {
+				return false;
+			}
+			var splineLength = spline.GetLength();
+			var railTrim = math.max(0f, drop.Offset);
+			var attachmentDistance = drop.Endpoint == WireRailEndpoint.Start
+				? railTrim : splineLength - railTrim;
+			// Incoming rail runs toward the spline interior (away from the drop's endpoint).
+			var inwardSign = drop.Endpoint == WireRailEndpoint.Start ? 1f : -1f;
+			var available = drop.Endpoint == WireRailEndpoint.Start
+				? splineLength - attachmentDistance : attachmentDistance;
+			var lead = math.clamp(desiredLead, 0f, math.max(0f, available));
+			if (lead <= 1e-3f) {
+				return false;
+			}
+			var sampleCount = math.clamp((int)math.ceil(lead / 5f), 4, 24);
+			var context = new WireRailPathEvaluationContext();
+			firstLead = new List<float3>(sampleCount);
+			secondLead = new List<float3>(sampleCount);
+			for (var sampleIndex = 0; sampleIndex < sampleCount; sampleIndex++) {
+				var t = lead * (1f - (float)sampleIndex / sampleCount);
+				var distance = math.clamp(attachmentDistance + inwardSign * t, 0f, splineLength);
+				if (!TryGetSplineLocation(spline, segments, distance,
+						out var segmentIndex, out var curveT, out _)) {
+					continue;
+				}
+				var segment = segments[segmentIndex];
+				if (drop.FirstRailIndex >= 0 && drop.FirstRailIndex < segment.RailCount
+					&& segment.IsRailActive(drop.FirstRailIndex)
+					&& WireRailSplineGeometry.TryEvaluateRailPosition(spline, segments, context,
+						segmentIndex, drop.FirstRailIndex, curveT, out var firstPos)) {
+					firstLead.Add(firstPos);
+				}
+				if (drop.SecondRailIndex >= 0 && drop.SecondRailIndex < segment.RailCount
+					&& segment.IsRailActive(drop.SecondRailIndex)
+					&& WireRailSplineGeometry.TryEvaluateRailPosition(spline, segments, context,
+						segmentIndex, drop.SecondRailIndex, curveT, out var secondPos)) {
+					secondLead.Add(secondPos);
+				}
+			}
+			return firstLead.Count > 0 || secondLead.Count > 0;
+		}
+
 		private static List<float3> BuildRoundedLegPath(IReadOnlyList<float3> points,
 			int lastCornerIndex, float desiredRadius)
 		{

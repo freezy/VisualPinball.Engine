@@ -63,6 +63,8 @@ namespace VisualPinball.Unity.Editor
 		private readonly WireRailVBracePreviewEditor _vBracePreviewEditor = new();
 		private readonly WireRailCrossWirePreviewEditor _crossWirePreviewEditor = new();
 		private readonly WireRailLegPreviewEditor _legPreviewEditor = new();
+		private readonly WireRailDropPreviewEditor _dropPreviewEditor = new();
+		private readonly WireRailDropLoopPreviewEditor _dropLoopPreviewEditor = new();
 		private readonly float[] _railTrimOffsets = new float[RailCounts.Length];
 		[SerializeField] private bool _showRenderGeometry = true;
 		[SerializeField] private bool _showBallChannelCollider = true;
@@ -480,10 +482,11 @@ namespace VisualPinball.Unity.Editor
 				// Drop Loop and Drop are endpoint fittings that WireRailSolderMeshGenerator
 				// never solders, so they carry no solder-threshold row.
 				WireRailDropLoopFixture => LayoutPadding * 2f + LayoutLineHeight * 10f
-					+ 80f,
+					+ 80f + WireRailDropLoopPreviewEditor.Height + LayoutLineHeight + 3f,
 				WireRailDropFixture => LayoutPadding * 2f
 					+ LayoutLineHeight * (componentRailCount + 8)
-					+ 3f * (componentRailCount + 7) + 58f,
+					+ 3f * (componentRailCount + 7) + 58f
+					+ WireRailDropPreviewEditor.Height + LayoutLineHeight + 3f,
 				WireRailTrimFixture => LayoutPadding * 2f
 					+ LayoutLineHeight * (componentRailCount + 2)
 					+ 3f * (componentRailCount + 1) + 42f,
@@ -497,6 +500,22 @@ namespace VisualPinball.Unity.Editor
 			rect.height -= 1f;
 			var content = new Rect(rect.x + LayoutPadding, rect.y + LayoutPadding,
 				rect.width - LayoutPadding * 2f, rect.height - LayoutPadding * 2f);
+
+			// Per-fixture "Enabled" toggle, drawn in the header row to the left of the
+			// duplicate/trash icons so it applies uniformly to every fixture type. Disabling
+			// only hides the fixture from the render mesh; colliders are unaffected.
+			var enabledRect = new Rect(content.xMax - LayoutLineHeight * 2f - 6f - 72f,
+				content.y - 2f, 72f, LayoutLineHeight);
+			EditorGUI.BeginChangeCheck();
+			var fixtureEnabled = EditorGUI.ToggleLeft(enabledRect,
+				new GUIContent("Enabled",
+					"Uncheck to hide this fixture from rendering. Colliders are unaffected."),
+				component.Fixtures[fixtureIndex].Enabled);
+			if (EditorGUI.EndChangeCheck()) {
+				Edit(component, "Toggle Wire Rail Fixture",
+					() => component.SetFixtureEnabled(fixtureIndex, fixtureEnabled));
+			}
+
 			if (component.Fixtures[fixtureIndex] is WireRailBraceFixture brace) {
 				DrawBraceFixtureElement(content, component, fixtureIndex, brace);
 			} else if (component.Fixtures[fixtureIndex] is WireRailVBraceFixture vBrace) {
@@ -638,6 +657,12 @@ namespace VisualPinball.Unity.Editor
 				dropLoop.Rotation, 0f, 360f);
 
 			row.y += LayoutLineHeight + 3f;
+			var loopPreviewRect = new Rect(content.x, row.y, content.width,
+				WireRailDropLoopPreviewEditor.Height);
+			_dropLoopPreviewEditor.Draw(loopPreviewRect, component, fixtureIndex, dropLoop);
+			row.y = loopPreviewRect.yMax;
+
+			row.y += LayoutLineHeight + 3f;
 			var spline = component.SplineContainer
 				? component.SplineContainer.Spline : null;
 			var hasInvalidRailPair = firstRailIndex == secondRailIndex;
@@ -744,6 +769,12 @@ namespace VisualPinball.Unity.Editor
 							currentOffset));
 				}
 			}
+
+			row.y += LayoutLineHeight + 3f;
+			var dropPreviewRect = new Rect(content.x, row.y, content.width,
+				WireRailDropPreviewEditor.Height);
+			_dropPreviewEditor.Draw(dropPreviewRect, component, fixtureIndex, drop);
+			row.y = dropPreviewRect.yMax;
 
 			row.y += LayoutLineHeight + 3f;
 			var spline = component.SplineContainer
