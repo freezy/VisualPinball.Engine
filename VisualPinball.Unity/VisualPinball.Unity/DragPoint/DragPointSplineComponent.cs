@@ -73,6 +73,7 @@ namespace VisualPinball.Unity
 			splineObject.transform.localPosition = Vector3.zero;
 			splineObject.transform.localRotation = ((Matrix4x4)Physics.VpxToWorld).rotation;
 			splineObject.transform.localScale = Physics.ScaleInvVector;
+			LockTransform(splineObject);
 
 			splineObject.AddComponent<GeneratedDragPointSplineComponent>();
 			var container = splineObject.AddComponent<SplineContainer>();
@@ -211,6 +212,7 @@ namespace VisualPinball.Unity
 
 		private static void EnsureExportMarker(GameObject splineObject)
 		{
+			LockTransform(splineObject);
 			if (!splineObject.TryGetComponent<GeneratedDragPointSplineComponent>(out _)) {
 #if UNITY_EDITOR
 				if (!Application.isPlaying) {
@@ -221,6 +223,23 @@ namespace VisualPinball.Unity
 #endif
 				splineObject.AddComponent<GeneratedDragPointSplineComponent>();
 			}
+		}
+
+		/// <summary>
+		/// The generated child's transform carries the VPX-to-world conversion; lock it in the
+		/// inspector so it cannot be edited by hand. Idempotent.
+		/// </summary>
+		private static void LockTransform(GameObject splineObject)
+		{
+			if ((splineObject.transform.hideFlags & HideFlags.NotEditable) != 0) {
+				return;
+			}
+			splineObject.transform.hideFlags |= HideFlags.NotEditable;
+#if UNITY_EDITOR
+			if (!Application.isPlaying) {
+				EditorUtility.SetDirty(splineObject.transform);
+			}
+#endif
 		}
 
 		private static void RemoveGeneratedChild(IDragPointSplineOwner owner,
