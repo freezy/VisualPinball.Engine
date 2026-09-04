@@ -1,4 +1,4 @@
-﻿// Visual Pinball Engine
+// Visual Pinball Engine
 // Copyright (C) 2023 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text.RegularExpressions;
+using System.Text;
 using NLog;
 using Unity.Mathematics;
 
@@ -34,69 +34,53 @@ namespace VisualPinball.Unity.Editor
 		public bool HasTag(string tag) => _tags.Contains(tag);
 		public bool HasAttribute(string attrKey, string attrValue) => _attributes.ContainsKey(attrKey) && _attributes[attrKey].Contains(attrValue);
 
-		public bool HasQuality(AssetQuality quality) => _quality == quality.ToString();
+		public bool HasQuality(AssetQuality quality) => string.Equals(_quality, quality.ToString(), StringComparison.OrdinalIgnoreCase);
 
 		private readonly List<AssetLibrary> _libraries;
+		private readonly Dictionary<AssetLibrary, AssetSearchIndex> _indexes = new();
 		private string _keywords;
 		private Dictionary<AssetLibrary, List<AssetCategory>> _categories;
-		private readonly Dictionary<string, HashSet<string>> _attributes = new();
-		private readonly HashSet<string> _tags = new();
+		private Dictionary<string, HashSet<string>> _attributes = new(StringComparer.OrdinalIgnoreCase);
+		private HashSet<string> _tags = new(StringComparer.OrdinalIgnoreCase);
 		private string _quality = null;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 		private readonly Stopwatch _queryTime = new();
 
-		public static string ValueToQuery(string value) => value.Contains(" ") ? value.Replace("\"", "in") : value;
+		public static string ValueToQuery(string value) => value
+			.Replace("\\", "\\\\")
+			.Replace("\"", "\\\"");
 
-		public static string QueryToValue(string query) => query.Contains(" ") ? query.Replace("in", "\"") : query;
+		public static string QueryToValue(string query)
+		{
+			var value = new StringBuilder(query.Length);
+			for (var i = 0; i < query.Length; i++) {
+				if (query[i] == '\\' && i + 1 < query.Length && (query[i + 1] == '\\' || query[i + 1] == '"')) {
+					value.Append(query[++i]);
+				} else {
+					value.Append(query[i]);
+				}
+			}
+			return value.ToString();
+		}
 
 		public AssetQuery(List<AssetLibrary> libraries)
 		{
 			_libraries = libraries;
+			foreach (var library in libraries) {
+				_indexes[library] = new AssetSearchIndex(library);
+			}
 		}
 
 		public void Search(string q)
 		{
 			StartTimer();
 
-			// parse attributes
-			_attributes.Clear();
-			const string quoted = "\"([\\w\\d\\s_/-]+)\"";
-			const string nonQuoted = "([\\w\\d_/\"-]+)";
-			var regexes = new[] {
-				new Regex($"{quoted}:{quoted}"),
-				new Regex($"{quoted}:{nonQuoted}"),
-				new Regex($"{nonQuoted}:{quoted}"),
-				new Regex($"{nonQuoted}:{nonQuoted}"),
-			};
-			foreach (var regex in regexes) {
-				foreach (Match match in regex.Matches(q)) {
-					var key = match.Groups[1].Value;
-					if (!_attributes.ContainsKey(key)) {
-						_attributes[key] = new HashSet<string>();
-					}
-					_attributes[key].Add(QueryToValue(match.Groups[2].Value));
-					q = q.Replace(match.Value, "");
-				}
-			}
-
-			_tags.Clear();
-			var tagRegex = new Regex(@"\[([^\]]+)\]");
-			foreach (Match match in tagRegex.Matches(q)) {
-				_tags.Add(match.Groups[1].Value);
-				q = q.Replace(match.Value, "");
-			}
-
-			_quality = null;
-			var qualityRegex = new Regex(@"\(([^\]]+)\)");
-			foreach (Match match in qualityRegex.Matches(q)) {
-				_quality = match.Groups[1].Value;
-				q = q.Replace(match.Value, "");
-				break;
-			}
-
-			// clean white spaces
-			_keywords = Regex.Replace(q, @"\s+", " ").Trim();
+			var parsed = AssetQueryTokenizer.Parse(q ?? string.Empty);
+			_attributes = parsed.Attributes;
+			_tags = parsed.Tags;
+			_quality = parsed.Quality;
+			_keywords = parsed.Keywords;
 
 			Run();
 		}
@@ -113,6 +97,7 @@ namespace VisualPinball.Unity.Editor
 			StartTimer();
 			if (lib.IsActive && !_libraries.Contains(lib)) {
 				_libraries.Add(lib);
+				_indexes[lib] = new AssetSearchIndex(lib);
 			}
 			if (!lib.IsActive && _libraries.Contains(lib)) {
 				_libraries.Remove(lib);
@@ -120,21 +105,28 @@ namespace VisualPinball.Unity.Editor
 			Run();
 		}
 
+		public void Reindex(AssetLibrary library)
+		{
+			if (_libraries.Contains(library)) {
+				_indexes[library] = new AssetSearchIndex(library);
+			}
+		}
+
 		public string[] AttributeNames => _libraries
-			.SelectMany(lib => lib.GetAttributeKeys())
-			.Distinct()
+			.SelectMany(lib => _indexes[lib].AttributeNames)
+			.Distinct(StringComparer.OrdinalIgnoreCase)
 			.OrderBy(x => x)
 			.ToArray();
 
 		public string[] TagNames => _libraries
-			.SelectMany(lib => lib.GetAllTags())
-			.Distinct()
+			.SelectMany(lib => _indexes[lib].TagNames)
+			.Distinct(StringComparer.OrdinalIgnoreCase)
 			.OrderBy(x => x)
 			.ToArray();
 
 		public string[] AttributeValues(string attributeKey) => _libraries
-			.SelectMany(lib => lib.GetAttributeValues(attributeKey))
-			.Distinct()
+			.SelectMany(lib => _indexes[lib].AttributeValues(attributeKey))
+			.Distinct(StringComparer.OrdinalIgnoreCase)
 			.ToArray();
 
 		private void StartTimer()
@@ -151,7 +143,7 @@ namespace VisualPinball.Unity.Editor
 						if (_categories is { Count: > 0 } && !_categories.ContainsKey(lib)) {
 							return Array.Empty<AssetResult>();
 						}
-						return lib.GetAssets(new LibraryQuery {
+						return _indexes[lib].Search(new LibraryQuery {
 							Keywords = _keywords,
 							Categories = _categories != null && _categories.ContainsKey(lib) ? _categories[lib] : null,
 							Attributes = _attributes,
@@ -166,7 +158,7 @@ namespace VisualPinball.Unity.Editor
 					}
 				})
 				.OrderBy(r => r.Score)
-				.ThenBy(r => r.Asset.Name)
+				.ThenBy(r => r.Name)
 				.ToList();
 
 			OnQueryUpdated?.Invoke(this, new AssetQueryResult(assets, _queryTime.ElapsedMilliseconds));
@@ -176,11 +168,13 @@ namespace VisualPinball.Unity.Editor
 	public class AssetResult : IEquatable<AssetResult>
 	{
 		public readonly Asset Asset;
+		public readonly string Name;
 		public long Score;
 
-		public AssetResult(Asset asset, long score)
+		public AssetResult(Asset asset, long score, string name = null)
 		{
 			Asset = asset;
+			Name = name ?? asset.Name;
 			Score = score;
 		}
 
@@ -193,7 +187,7 @@ namespace VisualPinball.Unity.Editor
 
 		public override string ToString()
 		{
-			return $"[{Asset.Library.Name}] {Asset.Name}";
+			return $"[{Asset.Library.Name}] {Name}";
 		}
 
 		#region IEquatable
