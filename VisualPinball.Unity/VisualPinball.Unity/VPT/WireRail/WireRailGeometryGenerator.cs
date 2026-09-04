@@ -1012,9 +1012,11 @@ namespace VisualPinball.Unity
 
 		public static Mesh Generate(Spline spline, IReadOnlyList<WireRailSegment> segments,
 			IReadOnlyList<WireRailFixture> fixtures, float wireCapBevelSize,
-			int samplesPerSegment, int radialSegments, Mesh target)
+			int samplesPerSegment, int radialSegments, Mesh target,
+			List<int2> segmentIndexRanges = null)
 		{
 			radialSegments = math.clamp(radialSegments, 6, 16);
+			segmentIndexRanges?.Clear();
 			var buffers = _threadBuffers ??= new RenderBuffers();
 			buffers.Clear();
 			var vertices = buffers.Vertices;
@@ -1036,6 +1038,7 @@ namespace VisualPinball.Unity
 				buffers.FittedStartRails, buffers.FittedEndRails);
 			for (var segmentIndex = 0; segmentIndex < segments.Count; segmentIndex++) {
 				var segment = segments[segmentIndex];
+				var segmentIndexStart = indices.Count;
 				for (var railIndex = 0; railIndex < segment.RailCount; railIndex++) {
 					if (!segment.IsRailActive(railIndex)) {
 						previousFrames.Remove(railIndex);
@@ -1084,6 +1087,10 @@ namespace VisualPinball.Unity
 						previousFrames.Remove(railIndex);
 					}
 				}
+				// The rail tubes of one layout span are contiguous in the index buffer, which
+				// lets the editor tint a single span without touching the mesh.
+				segmentIndexRanges?.Add(new int2(segmentIndexStart,
+					indices.Count - segmentIndexStart));
 			}
 			WireRailFixtureMeshGenerator.Append(spline, segments, fixtures,
 				wireCapBevelSize, radialSegments, vertices, normals, uvs, indices,

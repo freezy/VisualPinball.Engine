@@ -2234,16 +2234,18 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 			DrawEditPanel(component, container);
-			if (Event.current.type != EventType.Repaint) {
-				return;
-			}
 			var spline = container.Spline;
 			if (spline == null || spline.Count < 2) {
 				return;
 			}
 			using (ScenePreviewMarker.Auto()) {
 				EnsurePreviewCache(component, container, spline);
+				DrawLayoutHandles(component, container, spline);
+				if (Event.current.type != EventType.Repaint) {
+					return;
+				}
 				DrawSegmentPreviews(component, container);
+				DrawSelectedSpanOverlay(component, container);
 				DrawFixturePreviews();
 
 				if (component.ShowColliderPreview) {
@@ -2305,47 +2307,99 @@ namespace VisualPinball.Unity.Editor
 			BuildFixturePreviews(component, spline, localToWorld);
 		}
 
+		private static readonly Color SelectionColor = new(1f, 0.6f, 0.1f, 1f);
+		private static readonly Color SelectionGlowColor = new(1f, 0.6f, 0.1f, 0.28f);
+		private static readonly Color OutlineColor = new(0.02f, 0.02f, 0.02f, 0.95f);
+		private static readonly Color DimmedOutlineColor = new(0.02f, 0.02f, 0.02f, 0.35f);
+		private const float DimmedAlpha = 0.28f;
+		private static GUIStyle _selectedLabelStyle;
+		private static Texture2D _selectedLabelBackground;
+		private static readonly List<(float angle, Vector3 point)> FrameScratch = new();
+
+		private static GUIStyle SelectedLabelStyle {
+			get {
+				if (_selectedLabelStyle != null && _selectedLabelBackground) {
+					return _selectedLabelStyle;
+				}
+				_selectedLabelBackground = new Texture2D(1, 1, TextureFormat.RGBA32, false) {
+					hideFlags = HideFlags.HideAndDontSave,
+				};
+				_selectedLabelBackground.SetPixel(0, 0, new Color(0.05f, 0.05f, 0.05f, 0.85f));
+				_selectedLabelBackground.Apply();
+				_selectedLabelStyle = new GUIStyle(EditorStyles.boldLabel) {
+					fontSize = 13,
+					padding = new RectOffset(7, 7, 3, 3),
+					normal = {
+						textColor = SelectionColor,
+						background = _selectedLabelBackground,
+					},
+				};
+				return _selectedLabelStyle;
+			}
+		}
+
 		private static void DrawSegmentPreviews(WireRailComponent component,
 			SplineContainer container)
 		{
 			var editing = Selection.activeGameObject == container.gameObject
 				&& ToolManager.activeContextType == typeof(SplineToolContext);
+			var selectedIndex = GetSelectedLayoutIndex(component);
+
+			// Everything that is not the selected layout steps back, so the selection
+			// reads from contrast rather than from a couple of extra pixels of width.
 			for (var segmentIndex = 0; segmentIndex < SegmentPreviews.Count; segmentIndex++) {
 				var preview = SegmentPreviews[segmentIndex];
-				var selectedLayout = WireRailLayoutEditorSelection.IsSelected(component,
-					segmentIndex);
+				var selectedLayout = segmentIndex == selectedIndex;
+				var dimmed = selectedIndex >= 0 && !selectedLayout;
+
+				if (selectedLayout) {
+					DrawSelectionGlow(preview);
+				}
+
 				for (var railIndex = 0; railIndex < preview.RailPoints.Length; railIndex++) {
 					var points = preview.RailPoints[railIndex];
 					if (points == null) {
 						continue;
 					}
+					var railColor = RailColors[railIndex % RailColors.Length];
 					if (selectedLayout) {
 						var previousRailZTest = Handles.zTest;
 						Handles.zTest = CompareFunction.Always;
-						Handles.color = new Color(0.02f, 0.02f, 0.02f, 0.95f);
-						Handles.DrawAAPolyLine(7f, points);
-						Handles.color = RailColors[railIndex % RailColors.Length];
-						Handles.DrawAAPolyLine(4f, points);
+						Handles.color = OutlineColor;
+						Handles.DrawAAPolyLine(8f, points);
+						Handles.color = railColor;
+						Handles.DrawAAPolyLine(5f, points);
 						Handles.zTest = previousRailZTest;
 					} else {
-						Handles.color = RailColors[railIndex % RailColors.Length];
-						Handles.DrawAAPolyLine(3f, points);
+						if (dimmed) {
+							railColor.a = DimmedAlpha;
+						}
+						Handles.color = railColor;
+						Handles.DrawAAPolyLine(dimmed ? 2f : 3f, points);
 					}
 				}
 
 				var previousZTest = Handles.zTest;
 				Handles.zTest = CompareFunction.Always;
-				Handles.color = new Color(0.02f, 0.02f, 0.02f, 0.95f);
-				Handles.DrawAAPolyLine(selectedLayout ? 13f : editing ? 11f : 8f,
+				Handles.color = dimmed ? DimmedOutlineColor : OutlineColor;
+				Handles.DrawAAPolyLine(selectedLayout ? 13f : editing ? 11f : dimmed ? 6f : 8f,
 					preview.SpinePoints);
-				Handles.color = selectedLayout
-					? new Color(1f, 0.55f, 0.05f, 1f)
+				var spineColor = selectedLayout
+					? SelectionColor
 					: editing
 						? new Color(1f, 0.78f, 0.05f, 1f)
 						: new Color(0.9f, 0.95f, 1f, 1f);
-				Handles.DrawAAPolyLine(selectedLayout ? 6f : editing ? 5f : 4f,
+				if (dimmed) {
+					spineColor.a = DimmedAlpha;
+				}
+				Handles.color = spineColor;
+				Handles.DrawAAPolyLine(selectedLayout ? 6f : editing ? 5f : dimmed ? 3f : 4f,
 					preview.SpinePoints);
 				Handles.zTest = previousZTest;
+
+				if (selectedLayout) {
+					DrawSelectionFrames(preview);
+				}
 
 				Handles.color = Color.white;
 				var displayIndex = GetDisplayIndex(component.LayoutDisplayOrder, segmentIndex);
@@ -2355,10 +2409,292 @@ namespace VisualPinball.Unity.Editor
 						+ $"{component.RailCount} rails";
 					preview.SelectedLabel.text = "▶ " + preview.Label.text;
 				}
-				Handles.Label(preview.LabelPosition,
-					selectedLayout ? preview.SelectedLabel : preview.Label,
-					EditorStyles.boldLabel);
+				// Arrows sit at the start of the selected span and of the next one; the
+				// labels there would only cover them up.
+				var hasHandle = selectedIndex >= 0
+					&& (segmentIndex == selectedIndex || segmentIndex == selectedIndex + 1);
+				if (!hasHandle) {
+					Handles.Label(preview.LabelPosition, preview.Label,
+						dimmed ? EditorStyles.miniBoldLabel : EditorStyles.boldLabel);
+				}
 			}
+		}
+
+		private static int GetSelectedLayoutIndex(WireRailComponent component)
+		{
+			for (var segmentIndex = 0; segmentIndex < SegmentPreviews.Count; segmentIndex++) {
+				if (WireRailLayoutEditorSelection.IsSelected(component, segmentIndex)) {
+					return segmentIndex;
+				}
+			}
+			return -1;
+		}
+
+		/// <summary>
+		/// Move handles at the start and the end of the selected span. Dragging one slides
+		/// that layout along the route; the end handle belongs to the next layout.
+		/// </summary>
+		private static void DrawLayoutHandles(WireRailComponent component,
+			SplineContainer container, Spline spline)
+		{
+			var selectedIndex = GetSelectedLayoutIndex(component);
+			if (selectedIndex < 0 || selectedIndex >= component.Segments.Count) {
+				return;
+			}
+			// Layout 1 is pinned to the route start and has nothing to drag.
+			if (selectedIndex > 0) {
+				DrawLayoutHandle(component, container, spline, selectedIndex);
+			}
+			var nextIndex = selectedIndex + 1;
+			if (nextIndex < component.Segments.Count && nextIndex < SegmentPreviews.Count) {
+				DrawLayoutHandle(component, container, spline, nextIndex);
+			}
+		}
+
+		private static void DrawLayoutHandle(WireRailComponent component,
+			SplineContainer container, Spline spline, int layoutIndex)
+		{
+			var spine = SegmentPreviews[layoutIndex].SpinePoints;
+			var position = spine[0];
+			var tangent = spine.Length > 1 ? spine[1] - spine[0] : Vector3.forward;
+			if (tangent.sqrMagnitude < 1e-10f) {
+				tangent = Vector3.forward;
+			}
+			tangent.Normalize();
+			var size = HandleUtility.GetHandleSize(position) * 0.5f;
+			var controlId = GUIUtility.GetControlID(FocusType.Passive);
+			var hovered = HandleUtility.nearestControl == controlId
+				|| GUIUtility.hotControl == controlId;
+			var previousColor = Handles.color;
+			var previousZTest = Handles.zTest;
+			Handles.zTest = CompareFunction.Always;
+			if (Event.current.type == EventType.Repaint) {
+				// Repaint only: a cap drawn during Layout would register as a pickable
+				// control and steal the click from the move handle below.
+				Handles.color = hovered ? Color.white : OutlineColor;
+				DoubleArrowCap(tangent, 0, position, Quaternion.identity, size * 1.25f,
+					EventType.Repaint);
+			}
+			Handles.color = hovered ? new Color(1f, 0.8f, 0.35f, 1f) : SelectionColor;
+			EditorGUI.BeginChangeCheck();
+			var dragged = Handles.FreeMoveHandle(controlId, position, size, Vector3.zero,
+				(id, capPosition, rotation, capSize, eventType) =>
+					DoubleArrowCap(tangent, id, capPosition, rotation, capSize, eventType));
+			if (EditorGUI.EndChangeCheck()) {
+				var local = (float3)container.transform.InverseTransformPoint(dragged);
+				SplineUtility.GetNearestPoint(spline, local, out _, out var t);
+				var distance = spline.ConvertIndexUnit(t, PathIndexUnit.Normalized,
+					PathIndexUnit.Distance);
+				Undo.RecordObject(component, "Move Wire Rail Layout");
+				component.SetLayoutDistance(layoutIndex, distance);
+				EditorUtility.SetDirty(component);
+			}
+			if (hovered) {
+				var distance = component.Segments[layoutIndex].Distance;
+				Handles.Label(position, $"    {distance:0} units", SelectedLabelStyle);
+			}
+			Handles.color = previousColor;
+			Handles.zTest = previousZTest;
+		}
+
+		/// <summary>
+		/// A double-headed arrow along the route: two cones on a short bar. Picking treats
+		/// the whole bar as the control, not only its centerline.
+		/// </summary>
+		private static void DoubleArrowCap(Vector3 tangent, int controlId, Vector3 position,
+			Quaternion _, float size, EventType eventType)
+		{
+			var halfBar = size * 0.5f;
+			var start = position - tangent * halfBar;
+			var end = position + tangent * halfBar;
+			switch (eventType) {
+				case EventType.Layout:
+				case EventType.MouseMove:
+					// The arrow is roughly 10px thick on screen; anywhere on it counts as a hit.
+					HandleUtility.AddControl(controlId,
+						math.max(0f, HandleUtility.DistanceToLine(start, end) - 10f));
+					break;
+				case EventType.Repaint:
+					var coneSize = size * 0.7f;
+					Handles.ConeHandleCap(0, end, Quaternion.LookRotation(tangent), coneSize,
+						EventType.Repaint);
+					Handles.ConeHandleCap(0, start, Quaternion.LookRotation(-tangent), coneSize,
+						EventType.Repaint);
+					// Bar thickness in pixels, scaling with the cap size so the outline pass
+					// (drawn slightly larger) stays visible around the colored pass.
+					Handles.DrawAAPolyLine(size / HandleUtility.GetHandleSize(position) * 24f,
+						start, end);
+					break;
+			}
+		}
+
+		private static readonly Color SpanOverlayColor = new(1f, 0.6f, 0.1f, 0.35f);
+		// Push the overlay this far toward the camera so it wins the depth test against the
+		// mesh it copies instead of z-fighting with it. World units, i.e. meters.
+		private const float SpanOverlayDepthBias = 0.00025f;
+		private static Material _spanOverlayMaterial;
+		private static WireRailComponent _cachedOverlayComponent;
+		private static int _cachedOverlayVersion = -1;
+		private static int _cachedOverlaySegment = -1;
+		private static Matrix4x4 _cachedOverlayLocalToWorld;
+		private static Vector3[] _cachedOverlayTriangles = Array.Empty<Vector3>();
+
+		private static Material SpanOverlayMaterial {
+			get {
+				if (_spanOverlayMaterial) {
+					return _spanOverlayMaterial;
+				}
+				_spanOverlayMaterial = new Material(Shader.Find("Hidden/Internal-Colored")) {
+					hideFlags = HideFlags.HideAndDontSave,
+				};
+				_spanOverlayMaterial.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
+				_spanOverlayMaterial.SetInt("_DstBlend", (int)BlendMode.OneMinusSrcAlpha);
+				_spanOverlayMaterial.SetInt("_Cull", (int)CullMode.Back);
+				_spanOverlayMaterial.SetInt("_ZWrite", 0);
+				_spanOverlayMaterial.SetInt("_ZTest", (int)CompareFunction.LessEqual);
+				return _spanOverlayMaterial;
+			}
+		}
+
+		/// <summary>
+		/// Tints the rendered tubes of the selected span in the selection color, so the
+		/// selection shows on the actual geometry and not only on the centerlines.
+		/// </summary>
+		private static void DrawSelectedSpanOverlay(WireRailComponent component,
+			SplineContainer container)
+		{
+			var selectedIndex = GetSelectedLayoutIndex(component);
+			var mesh = component.RenderMesh;
+			var ranges = component.RenderSegmentIndexRanges;
+			if (selectedIndex < 0 || !mesh || selectedIndex >= ranges.Count) {
+				return;
+			}
+			var localToWorld = container.transform.localToWorldMatrix;
+			if (_cachedOverlayComponent != component
+				|| _cachedOverlayVersion != component.RenderGeometryVersion
+				|| _cachedOverlaySegment != selectedIndex
+				|| _cachedOverlayLocalToWorld != localToWorld) {
+				_cachedOverlayComponent = component;
+				_cachedOverlayVersion = component.RenderGeometryVersion;
+				_cachedOverlaySegment = selectedIndex;
+				_cachedOverlayLocalToWorld = localToWorld;
+				var range = ranges[selectedIndex];
+				var vertices = mesh.vertices;
+				var indices = mesh.triangles;
+				var end = math.min(indices.Length, range.x + range.y);
+				var triangles = new Vector3[math.max(0, end - range.x)];
+				for (var i = range.x; i < end; i++) {
+					triangles[i - range.x] = localToWorld.MultiplyPoint3x4(vertices[indices[i]]);
+				}
+				_cachedOverlayTriangles = triangles;
+			}
+			if (_cachedOverlayTriangles.Length < 3) {
+				return;
+			}
+			var camera = Camera.current;
+			var cameraPosition = camera ? camera.transform.position : Vector3.zero;
+			SpanOverlayMaterial.SetPass(0);
+			GL.PushMatrix();
+			GL.MultMatrix(Matrix4x4.identity);
+			GL.Begin(GL.TRIANGLES);
+			GL.Color(SpanOverlayColor);
+			foreach (var vertex in _cachedOverlayTriangles) {
+				var toCamera = cameraPosition - vertex;
+				var length = toCamera.magnitude;
+				GL.Vertex(length > 1e-6f
+					? vertex + toCamera * (SpanOverlayDepthBias / length)
+					: vertex);
+			}
+			GL.End();
+			GL.PopMatrix();
+		}
+
+		/// <summary>
+		/// A wide, translucent band under the selected span. Drawn on top of everything so the
+		/// highlighted stretch is visible even where the rail runs behind other geometry.
+		/// </summary>
+		private static void DrawSelectionGlow(SegmentPreview preview)
+		{
+			var previousZTest = Handles.zTest;
+			Handles.zTest = CompareFunction.Always;
+			Handles.color = SelectionGlowColor;
+			Handles.DrawAAPolyLine(26f, preview.SpinePoints);
+			for (var railIndex = 0; railIndex < preview.RailPoints.Length; railIndex++) {
+				var points = preview.RailPoints[railIndex];
+				if (points != null) {
+					Handles.DrawAAPolyLine(16f, points);
+				}
+			}
+			Handles.zTest = previousZTest;
+		}
+
+		/// <summary>
+		/// Outlines the cross-section at the start and the end of the selected span, so the
+		/// author sees exactly which stretch of the route the layout governs.
+		/// </summary>
+		private static void DrawSelectionFrames(SegmentPreview preview)
+		{
+			var lastSample = preview.SpinePoints.Length - 1;
+			if (lastSample < 1) {
+				return;
+			}
+			DrawSelectionFrame(preview, 0,
+				preview.SpinePoints[1] - preview.SpinePoints[0]);
+			DrawSelectionFrame(preview, lastSample,
+				preview.SpinePoints[lastSample] - preview.SpinePoints[lastSample - 1]);
+		}
+
+		private static void DrawSelectionFrame(SegmentPreview preview, int sampleIndex,
+			Vector3 tangent)
+		{
+			var center = preview.SpinePoints[sampleIndex];
+			if (tangent.sqrMagnitude < 1e-10f) {
+				return;
+			}
+			tangent.Normalize();
+			var reference = math.abs(Vector3.Dot(tangent, Vector3.up)) < 0.9f
+				? Vector3.up : Vector3.right;
+			var axisX = Vector3.Normalize(Vector3.Cross(reference, tangent));
+			var axisY = Vector3.Cross(tangent, axisX);
+
+			FrameScratch.Clear();
+			for (var railIndex = 0; railIndex < preview.RailPoints.Length; railIndex++) {
+				var points = preview.RailPoints[railIndex];
+				if (points == null || sampleIndex >= points.Length) {
+					continue;
+				}
+				var offset = points[sampleIndex] - center;
+				var angle = math.atan2(Vector3.Dot(offset, axisY), Vector3.Dot(offset, axisX));
+				FrameScratch.Add((angle, points[sampleIndex]));
+			}
+			if (FrameScratch.Count == 0) {
+				return;
+			}
+			FrameScratch.Sort((a, b) => a.angle.CompareTo(b.angle));
+
+			var previousZTest = Handles.zTest;
+			Handles.zTest = CompareFunction.Always;
+			var camera = Camera.current;
+			var discNormal = camera ? -camera.transform.forward : tangent;
+			if (FrameScratch.Count >= 2) {
+				var loop = new Vector3[FrameScratch.Count + 1];
+				for (var i = 0; i < FrameScratch.Count; i++) {
+					loop[i] = FrameScratch[i].point;
+				}
+				loop[FrameScratch.Count] = FrameScratch[0].point;
+				Handles.color = OutlineColor;
+				Handles.DrawAAPolyLine(7f, loop);
+				Handles.color = SelectionColor;
+				Handles.DrawAAPolyLine(4f, loop);
+			}
+			foreach (var (_, point) in FrameScratch) {
+				var radius = HandleUtility.GetHandleSize(point) * 0.028f;
+				Handles.color = OutlineColor;
+				Handles.DrawSolidDisc(point, discNormal, radius * 1.6f);
+				Handles.color = Color.white;
+				Handles.DrawSolidDisc(point, discNormal, radius);
+			}
+			Handles.zTest = previousZTest;
 		}
 
 		private static void BuildFixturePreviews(WireRailComponent component, Spline spline,
