@@ -945,15 +945,15 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	// Records where a drop loop's mouth rings landed in the render buffer so the loop tube can
-	// be welded to the rail tubes it attaches to.
-	internal struct WireRailDropLoopSeam
+	// Records where an endpoint fitting's two mouth rings landed in the render buffer so the
+	// fitting tube can be welded to the rail tubes it attaches to (Drop and Drop Loop).
+	internal struct WireRailFittingSeam
 	{
 		public WireRailEndpoint Endpoint;
 		public int FirstRailIndex;
 		public int SecondRailIndex;
-		public int LoopFirstRing;
-		public int LoopLastRing;
+		public int FirstMouthRing;
+		public int SecondMouthRing;
 	}
 
 	internal static class WireRailRenderMeshGenerator
@@ -983,7 +983,13 @@ namespace VisualPinball.Unity
 				new int[WireRailEndpointTrimUtility.MaximumRailCount];
 			public readonly int[] LastRingByRail =
 				new int[WireRailEndpointTrimUtility.MaximumRailCount];
-			public readonly List<WireRailDropLoopSeam> LoopSeams = new();
+			// The frames of those mouth rings, so a fitting tube can seed its own rings with the
+			// rail's radial orientation and line up vertex-for-vertex instead of twisting.
+			public readonly WireRailPathFrame[] FirstFrameByRail =
+				new WireRailPathFrame[WireRailEndpointTrimUtility.MaximumRailCount];
+			public readonly WireRailPathFrame[] LastFrameByRail =
+				new WireRailPathFrame[WireRailEndpointTrimUtility.MaximumRailCount];
+			public readonly List<WireRailFittingSeam> FittingSeams = new();
 			public readonly WireRailPathEvaluationContext EvaluationContext = new();
 
 			public void Clear()
@@ -996,7 +1002,7 @@ namespace VisualPinball.Unity
 				SampleParameters.Clear();
 				FittedStartRails.Clear();
 				FittedEndRails.Clear();
-				LoopSeams.Clear();
+				FittingSeams.Clear();
 				for (var railIndex = 0; railIndex < FirstRingByRail.Length; railIndex++) {
 					FirstRingByRail[railIndex] = -1;
 					LastRingByRail[railIndex] = -1;
@@ -1062,15 +1068,17 @@ namespace VisualPinball.Unity
 						previousSegmentFrame,
 						buffers.SampleParameters,
 						vertices, normals, uvs, indices, out var lastFrame,
-						out var firstTubeRing, out var lastTubeRing)) {
+						out var firstTubeRing, out var lastTubeRing, out var firstTubeFrame)) {
 						previousFrames[railIndex] = lastFrame;
-						// Track the rail's mouth rings (the tube rings, not the caps that follow)
-						// so drop loops can weld to them.
+						// Track the rail's mouth rings and their frames (the tube rings, not the
+						// caps that follow) so fittings can weld to and align with them.
 						if (railIndex < buffers.FirstRingByRail.Length) {
 							if (buffers.FirstRingByRail[railIndex] < 0) {
 								buffers.FirstRingByRail[railIndex] = firstTubeRing;
+								buffers.FirstFrameByRail[railIndex] = firstTubeFrame;
 							}
 							buffers.LastRingByRail[railIndex] = lastTubeRing;
+							buffers.LastFrameByRail[railIndex] = lastFrame;
 						}
 					} else {
 						previousFrames.Remove(railIndex);
@@ -1079,8 +1087,8 @@ namespace VisualPinball.Unity
 			}
 			WireRailFixtureMeshGenerator.Append(spline, segments, fixtures,
 				wireCapBevelSize, radialSegments, vertices, normals, uvs, indices,
-				buffers.LoopSeams);
-			WeldDropLoopSeams(buffers, radialSegments);
+				buffers.FittingSeams, buffers.FirstFrameByRail, buffers.LastFrameByRail);
+			WeldFittingSeams(buffers, radialSegments);
 			WireRailSolderMeshGenerator.Append(spline, segments, fixtures,
 				vertices, normals, uvs, indices);
 
@@ -1099,9 +1107,9 @@ namespace VisualPinball.Unity
 
 		// Stitches each drop loop's mouth rings to the rail tubes it attaches to, so the two
 		// tubes read as one continuous surface instead of leaving a gap at the junction.
-		private static void WeldDropLoopSeams(RenderBuffers buffers, int radialSegments)
+		private static void WeldFittingSeams(RenderBuffers buffers, int radialSegments)
 		{
-			foreach (var seam in buffers.LoopSeams) {
+			foreach (var seam in buffers.FittingSeams) {
 				var firstRailRing = seam.Endpoint == WireRailEndpoint.Start
 					? RingByRail(buffers.FirstRingByRail, seam.FirstRailIndex)
 					: RingByRail(buffers.LastRingByRail, seam.FirstRailIndex);
@@ -1109,9 +1117,9 @@ namespace VisualPinball.Unity
 					? RingByRail(buffers.FirstRingByRail, seam.SecondRailIndex)
 					: RingByRail(buffers.LastRingByRail, seam.SecondRailIndex);
 				BridgeRings(buffers.Vertices, buffers.Normals, buffers.Indices, firstRailRing,
-					seam.LoopFirstRing, radialSegments);
+					seam.FirstMouthRing, radialSegments);
 				BridgeRings(buffers.Vertices, buffers.Normals, buffers.Indices, secondRailRing,
-					seam.LoopLastRing, radialSegments);
+					seam.SecondMouthRing, radialSegments);
 			}
 
 			static int RingByRail(int[] rings, int railIndex)
@@ -1278,7 +1286,8 @@ namespace VisualPinball.Unity
 			WireRailPathFrame? previousSegmentFrame,
 			List<float> sampleParameters, List<Vector3> vertices, List<Vector3> normals,
 			List<Vector2> uvs, List<int> indices,
-			out WireRailPathFrame lastFrame, out int firstTubeRing, out int lastTubeRing)
+			out WireRailPathFrame lastFrame, out int firstTubeRing, out int lastTubeRing,
+			out WireRailPathFrame firstTubeFrame)
 		{
 			var firstRing = vertices.Count;
 			// The tube rings occupy [firstRing, cap start); caps (if any) are appended after
@@ -1286,6 +1295,7 @@ namespace VisualPinball.Unity
 			firstTubeRing = firstRing;
 			lastTubeRing = firstRing;
 			WireRailPathFrame firstFrame = default;
+			firstTubeFrame = default;
 			lastFrame = default;
 			var firstRadius = 0f;
 			var lastRadius = 0f;
@@ -1359,6 +1369,7 @@ namespace VisualPinball.Unity
 			}
 			// All tube rings are in now; caps (if any) come after, so the mouth is here.
 			lastTubeRing = vertices.Count - radialSegments;
+			firstTubeFrame = firstFrame;
 
 			for (var sampleIndex = 0; sampleIndex < sampleParameters.Count - 1; sampleIndex++) {
 				var current = firstRing + sampleIndex * radialSegments;
@@ -1657,10 +1668,27 @@ namespace VisualPinball.Unity
 			int radialSegments,
 			ICollection<Vector3> vertices, ICollection<Vector3> normals,
 			ICollection<Vector2> uvs, ICollection<int> indices,
-			ICollection<WireRailDropLoopSeam> loopSeams = null)
+			ICollection<WireRailFittingSeam> fittingSeams = null,
+			IReadOnlyList<WireRailPathFrame> firstFrameByRail = null,
+			IReadOnlyList<WireRailPathFrame> lastFrameByRail = null)
 		{
 			if (fixtures == null) {
 				return;
+			}
+
+			// The mouth frame of the rail a fitting attaches to, so its tube can seed its rings
+			// with the rail's radial orientation and line up vertex-for-vertex. Falls back to the
+			// fitting's own frame when the rail wasn't swept.
+			WireRailPathFrame RailMouthFrame(WireRailEndpoint endpoint, int railIndex,
+				WireRailPathFrame fallback)
+			{
+				var frames = endpoint == WireRailEndpoint.Start
+					? firstFrameByRail : lastFrameByRail;
+				if (frames == null || railIndex < 0 || railIndex >= frames.Count) {
+					return fallback;
+				}
+				var frame = frames[railIndex];
+				return math.lengthsq(frame.Tangent) > 1e-6f ? frame : fallback;
 			}
 			foreach (var fixture in fixtures) {
 				if (fixture is WireRailBraceFixture brace
@@ -1688,17 +1716,22 @@ namespace VisualPinball.Unity
 					&& TryEvaluateDropLoopProfile(spline, segments, dropLoop,
 						out var dropLoopProfile)) {
 					var loopFirstRing = vertices.Count;
+					// Seed the loop tube's rings from the first rail's mouth frame so that mouth
+					// lines up; the far mouth is still aligned by the weld's ring matching.
 					AppendDropLoop(dropLoopProfile, dropLoop, wireCapBevelSize,
-						radialSegments, vertices, normals, uvs, indices);
-					// Record the loop's mouth rings so the render can weld them to the rails.
-					if (loopSeams != null
+						radialSegments, RailMouthFrame(dropLoop.Endpoint,
+							dropLoop.FirstRailIndex, dropLoopProfile.Frame),
+						vertices, normals, uvs, indices);
+					// The loop is one tube: its first ring meets the first rail, its last ring
+					// the second rail. Record them so the render can weld the mouths.
+					if (fittingSeams != null
 						&& vertices.Count - loopFirstRing >= radialSegments * 2) {
-						loopSeams.Add(new WireRailDropLoopSeam {
+						fittingSeams.Add(new WireRailFittingSeam {
 							Endpoint = dropLoop.Endpoint,
 							FirstRailIndex = dropLoop.FirstRailIndex,
 							SecondRailIndex = dropLoop.SecondRailIndex,
-							LoopFirstRing = loopFirstRing,
-							LoopLastRing = vertices.Count - radialSegments,
+							FirstMouthRing = loopFirstRing,
+							SecondMouthRing = vertices.Count - radialSegments,
 						});
 					}
 				} else if (fixture is WireRailDropFixture drop
@@ -1706,8 +1739,23 @@ namespace VisualPinball.Unity
 						drop.Endpoint, drop.FirstRailIndex, drop.SecondRailIndex, drop)
 					&& TryEvaluateDropProfile(spline, segments, drop,
 						out var dropProfile)) {
+					// Seed each drop tube's rings from its rail's mouth frame so both align.
 					AppendDrop(dropProfile, drop, wireCapBevelSize,
-						radialSegments, vertices, normals, uvs, indices);
+						radialSegments,
+						RailMouthFrame(drop.Endpoint, drop.FirstRailIndex, dropProfile.Frame),
+						RailMouthFrame(drop.Endpoint, drop.SecondRailIndex, dropProfile.Frame),
+						vertices, normals, uvs, indices,
+						out var firstMouthRing, out var secondMouthRing);
+					// The drop is two tubes; weld each tube's mouth ring to its rail.
+					if (fittingSeams != null && firstMouthRing >= 0 && secondMouthRing >= 0) {
+						fittingSeams.Add(new WireRailFittingSeam {
+							Endpoint = drop.Endpoint,
+							FirstRailIndex = drop.FirstRailIndex,
+							SecondRailIndex = drop.SecondRailIndex,
+							FirstMouthRing = firstMouthRing,
+							SecondMouthRing = secondMouthRing,
+						});
+					}
 				}
 			}
 		}
@@ -2764,26 +2812,37 @@ namespace VisualPinball.Unity
 
 		private static void AppendDropLoop(WireRailDropLoopProfile profile,
 			WireRailDropLoopFixture dropLoop, float capBevelSize, int radialSegments,
+			WireRailPathFrame referenceFrame,
 			ICollection<Vector3> vertices, ICollection<Vector3> normals,
 			ICollection<Vector2> uvs, ICollection<int> indices)
 		{
-			// The loop always meets the (trimmed) rail ends, so its mouths stay open.
-			AppendPolylineTube(profile.CenterlinePoints, profile.Frame,
+			// The loop always meets the (trimmed) rail ends, so its mouths stay open. Seed the
+			// radial orientation from the first rail's mouth frame so that mouth lines up.
+			AppendPolylineTube(profile.CenterlinePoints, referenceFrame,
 				dropLoop.Diameter, capBevelSize, radialSegments,
-				vertices, normals, uvs, indices, false, false);
+				vertices, normals, uvs, indices, false, false, mouthFrame: referenceFrame);
 		}
 
 		private static void AppendDrop(WireRailDropProfile profile,
 			WireRailDropFixture drop, float capBevelSize, int radialSegments,
+			WireRailPathFrame firstRailFrame, WireRailPathFrame secondRailFrame,
 			ICollection<Vector3> vertices, ICollection<Vector3> normals,
-			ICollection<Vector2> uvs, ICollection<int> indices)
+			ICollection<Vector2> uvs, ICollection<int> indices,
+			out int firstMouthRing, out int secondMouthRing)
 		{
-			AppendPolylineTube(profile.FirstRailPoints, profile.Frame,
+			// Each rail tube is open at the rail attachment (capStart:false) and capped at the
+			// drop; that first ring is the mouth, reported so the render can weld it to the rail.
+			// The rail's mouth frame seeds the tube's radial orientation so the rings line up.
+			var firstStart = vertices.Count;
+			AppendPolylineTube(profile.FirstRailPoints, firstRailFrame,
 				drop.Diameter, capBevelSize, radialSegments,
-				vertices, normals, uvs, indices, false, true);
-			AppendPolylineTube(profile.SecondRailPoints, profile.Frame,
+				vertices, normals, uvs, indices, false, true, mouthFrame: firstRailFrame);
+			firstMouthRing = vertices.Count - firstStart >= radialSegments ? firstStart : -1;
+			var secondStart = vertices.Count;
+			AppendPolylineTube(profile.SecondRailPoints, secondRailFrame,
 				drop.Diameter, capBevelSize, radialSegments,
-				vertices, normals, uvs, indices, false, true);
+				vertices, normals, uvs, indices, false, true, mouthFrame: secondRailFrame);
+			secondMouthRing = vertices.Count - secondStart >= radialSegments ? secondStart : -1;
 		}
 
 		internal static void AppendPolylineTube(IReadOnlyList<float3> sourcePoints,
@@ -2801,10 +2860,12 @@ namespace VisualPinball.Unity
 			ICollection<Vector3> normals, ICollection<Vector2> uvs,
 			ICollection<int> indices, bool capStart, bool capEnd,
 			ICollection<int> secondaryIndices = null, int secondaryStartSpan = 0,
-			int secondaryEndSpan = 0, bool allowPathReversals = false)
+			int secondaryEndSpan = 0, bool allowPathReversals = false,
+			WireRailPathFrame? mouthFrame = null)
 			=> AppendPolylineSweep(sourcePoints, referenceFrame, diameter, capBevelSize,
 				radialSegments, 0f, vertices, normals, uvs, indices, capStart, capEnd,
-				secondaryIndices, secondaryStartSpan, secondaryEndSpan, allowPathReversals);
+				secondaryIndices, secondaryStartSpan, secondaryEndSpan, allowPathReversals,
+				mouthFrame);
 
 		internal static void AppendPolylineBox(IReadOnlyList<float3> sourcePoints,
 			WireRailPathFrame referenceFrame, float width,
@@ -2842,7 +2903,8 @@ namespace VisualPinball.Unity
 			ICollection<Vector3> normals, ICollection<Vector2> uvs,
 			ICollection<int> indices, bool capStart, bool capEnd,
 			ICollection<int> secondaryIndices, int secondaryStartSpan,
-			int secondaryEndSpan, bool allowPathReversals)
+			int secondaryEndSpan, bool allowPathReversals,
+			WireRailPathFrame? mouthFrame = null)
 		{
 			if (sourcePoints == null || sourcePoints.Count < 2) {
 				return;
@@ -2885,6 +2947,17 @@ namespace VisualPinball.Unity
 						: EvaluateInteriorTangent(points, pointIndex, -referenceFrame.Up,
 							allowPathReversals);
 				float3 right;
+				float3 up;
+				if (pointIndex == 0 && mouthFrame.HasValue) {
+					// Adopt the attached rail's radial orientation verbatim so this ring's
+					// vertices coincide with the rail's mouth ring (welded seam). The tube then
+					// transports naturally from here.
+					right = mouthFrame.Value.Right;
+					up = mouthFrame.Value.Up;
+					frames[pointIndex] = new WireRailPathFrame(points[pointIndex], tangent,
+						right, up);
+					continue;
+				}
 				if (pointIndex == 0) {
 					right = Project(referenceFrame.Tangent, tangent);
 					if (math.lengthsq(right) <= 1e-8f) {
@@ -2895,7 +2968,7 @@ namespace VisualPinball.Unity
 					right = Transport(frames[pointIndex - 1].Right,
 						frames[pointIndex - 1].Tangent, tangent);
 				}
-				var up = math.normalizesafe(math.cross(right, tangent), referenceFrame.Up);
+				up = math.normalizesafe(math.cross(right, tangent), referenceFrame.Up);
 				right = math.normalizesafe(math.cross(tangent, up), right);
 				frames[pointIndex] = new WireRailPathFrame(points[pointIndex], tangent,
 					right, up);
