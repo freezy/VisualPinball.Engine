@@ -13,7 +13,7 @@ There are two families. **Supports** (ring, rung, cradle, stand) sit at a **Posi
 All of them share a few rules:
 
 - Every fixture uses the rail's global **Wire Diameter** and render material.
-- Fixtures are independent of layouts. They read the cross-section at their position, so moving a layout or a wire moves the fixture with it.
+- A fixture's position is a distance along the route and has nothing to do with layouts. Its shape, though, is fitted to the wires at that point: change the layout there and the fixture refits in place. Reshape the spline and the fixture travels with the route.
 - Each panel previews the evaluated shape, with the rails it touches in gray.
 - **Enabled** hides a fixture from the render mesh only. It stays in the collider, so a hidden elbow or rail trim still shortens the channel. Use it to compare variants, not to keep spare fixtures around.
 - Supports are soldered to the rails they touch. See [Solder](#solder).
