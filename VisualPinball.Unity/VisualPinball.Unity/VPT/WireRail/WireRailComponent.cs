@@ -2934,8 +2934,8 @@ namespace VisualPinball.Unity
 			if (_segments.Count > 0) {
 				_segments[0].SetDistance(0f, splineLength);
 				for (var layoutIndex = 1; layoutIndex < _segments.Count; layoutIndex++) {
-					var clampedDistance = math.clamp(_segments[layoutIndex].Distance,
-						_segments[layoutIndex - 1].Distance, splineLength);
+					var clampedDistance = math.clamp(_segments[layoutIndex].Distance, 0f,
+						splineLength);
 					if (!Mathf.Approximately(_segments[layoutIndex].Distance, clampedDistance)) {
 						_segments[layoutIndex].SetDistance(clampedDistance, splineLength);
 						changed = true;
@@ -2943,6 +2943,7 @@ namespace VisualPinball.Unity
 				}
 			}
 			changed |= SynchronizeLayoutDisplayOrder();
+			changed |= SortLayoutsByDistance();
 			changed |= SynchronizeSegmentConnections();
 			changed |= SynchronizeFixtures();
 
@@ -3009,9 +3010,13 @@ namespace VisualPinball.Unity
 			if (sourceLayoutIndex < -1 || sourceLayoutIndex >= _segments.Count) {
 				throw new ArgumentOutOfRangeException(nameof(sourceLayoutIndex));
 			}
-			if (sourceLayoutIndex >= 0 && sourceLayoutIndex + 1 < _segments.Count) {
-				return (_segments[sourceLayoutIndex].Distance
-					+ _segments[sourceLayoutIndex + 1].Distance) * 0.5f;
+			if (sourceLayoutIndex >= 0) {
+				// Halfway to the next layout, or halfway to the end of the route when the
+				// source is the last one, so a duplicate always lands in the source's span.
+				var nextDistance = sourceLayoutIndex + 1 < _segments.Count
+					? _segments[sourceLayoutIndex + 1].Distance
+					: SplineLength;
+				return (_segments[sourceLayoutIndex].Distance + nextDistance) * 0.5f;
 			}
 			if (_segments.Count > 1) {
 				return (_segments[^2].Distance + _segments[^1].Distance) * 0.5f;
@@ -3053,21 +3058,65 @@ namespace VisualPinball.Unity
 			MarkDirty();
 		}
 
-		public void SetLayoutDistance(int layoutIndex, float distance)
+		/// <summary>
+		/// Moves a layout to any distance along the route. The physical order follows the
+		/// distances, so a layout moved past its neighbor swaps places with it. Layout 0 is
+		/// pinned to the route start.
+		/// </summary>
+		/// <returns>The layout's physical index after the move.</returns>
+		public int SetLayoutDistance(int layoutIndex, float distance)
 		{
 			var layout = GetSegment(layoutIndex);
-			if (layoutIndex == 0) {
-				distance = 0f;
-			} else {
-				var minimum = _segments[layoutIndex - 1].Distance;
-				var maximum = layoutIndex + 1 < _segments.Count
-					? _segments[layoutIndex + 1].Distance
-					: SplineLength;
-				distance = math.clamp(distance, minimum, maximum);
-			}
+			distance = layoutIndex == 0 ? 0f : math.clamp(distance, 0f, SplineLength);
 			layout.SetDistance(distance, SplineLength);
+			SortLayoutsByDistance();
+			SynchronizeSegmentConnections();
 			RebuildGeneratedMeshes();
 			MarkDirty();
+			return _segments.IndexOf(layout);
+		}
+
+		/// <summary>
+		/// Keeps the physical layout list ordered by distance, layout 0 first. Layouts at the
+		/// same distance keep their relative order. The display order is remapped so every
+		/// "Layout N" keeps pointing at the same layout.
+		/// </summary>
+		/// <returns>True when the physical order changed.</returns>
+		private bool SortLayoutsByDistance()
+		{
+			if (_segments.Count < 3) {
+				return false;
+			}
+			var sorted = true;
+			for (var layoutIndex = 2; layoutIndex < _segments.Count; layoutIndex++) {
+				if (_segments[layoutIndex].Distance < _segments[layoutIndex - 1].Distance) {
+					sorted = false;
+					break;
+				}
+			}
+			if (sorted) {
+				return false;
+			}
+			var oldOrder = new List<int>(_segments.Count) { 0 };
+			oldOrder.AddRange(Enumerable.Range(1, _segments.Count - 1)
+				.OrderBy(layoutIndex => _segments[layoutIndex].Distance));
+			var newIndexOfOld = new int[_segments.Count];
+			var reordered = new List<WireRailSegment>(_segments.Count);
+			for (var newIndex = 0; newIndex < oldOrder.Count; newIndex++) {
+				newIndexOfOld[oldOrder[newIndex]] = newIndex;
+				reordered.Add(_segments[oldOrder[newIndex]]);
+			}
+			_segments.Clear();
+			_segments.AddRange(reordered);
+			if (_layoutDisplayOrder != null) {
+				for (var displayIndex = 0; displayIndex < _layoutDisplayOrder.Count; displayIndex++) {
+					var oldIndex = _layoutDisplayOrder[displayIndex];
+					if (oldIndex >= 0 && oldIndex < newIndexOfOld.Length) {
+						_layoutDisplayOrder[displayIndex] = newIndexOfOld[oldIndex];
+					}
+				}
+			}
+			return true;
 		}
 
 		public void MoveLayout(int fromIndex, int toIndex)
