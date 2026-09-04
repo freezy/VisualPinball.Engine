@@ -1641,6 +1641,7 @@ namespace VisualPinball.Unity
 		[NonSerialized] private int _renderGeometryVersion;
 		[NonSerialized] private int _colliderGeometryVersion;
 		[NonSerialized] private int _renderMeshGenerationCount;
+		[NonSerialized] private readonly List<int2> _renderSegmentIndexRanges = new();
 		[NonSerialized] private string _generationError;
 #if UNITY_EDITOR
 		[NonSerialized] private bool _editorRebuildScheduled;
@@ -1671,6 +1672,11 @@ namespace VisualPinball.Unity
 		public float WidenExitSize => _widenExitSize;
 		public float WidenExitLength => _widenExitLength;
 		public Mesh RenderMesh => _renderMesh;
+
+		/// <summary>
+		/// Index range (start, count) of each layout span's rail tubes in <see cref="RenderMesh"/>.
+		/// </summary>
+		public IReadOnlyList<int2> RenderSegmentIndexRanges => _renderSegmentIndexRanges;
 		public Mesh ColliderMesh {
 			get {
 				if (isActiveAndEnabled) {
@@ -3243,7 +3249,7 @@ namespace VisualPinball.Unity
 					}
 					_renderMesh = WireRailRenderMeshGenerator.Generate(container.Spline, _segments,
 						_enabledFixtures, _wireCapBevelSize, _renderSamplesPerSegment, _radialSegments,
-						_renderMesh);
+						_renderMesh, _renderSegmentIndexRanges);
 					_renderMeshGenerationCount++;
 				}
 
