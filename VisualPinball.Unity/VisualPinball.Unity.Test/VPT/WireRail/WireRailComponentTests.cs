@@ -2962,7 +2962,8 @@ namespace VisualPinball.Unity.Test
 				Assert.That(component.GetSuggestedLayoutDistance(1),
 					Is.EqualTo(300f).Within(0.001f));
 				Assert.That(component.GetSuggestedLayoutDistance(2),
-					Is.EqualTo(300f).Within(0.001f));
+					Is.EqualTo(450f).Within(0.001f),
+					"the last layout duplicates halfway to the end of the route");
 			} finally {
 				Object.DestroyImmediate(go);
 			}
@@ -3038,13 +3039,49 @@ namespace VisualPinball.Unity.Test
 				var layoutIndex = component.DuplicateLayout(2,
 					component.GetSuggestedLayoutDistance(2));
 
-				Assert.That(layoutIndex, Is.EqualTo(2));
+				Assert.That(layoutIndex, Is.EqualTo(3));
 				Assert.That(component.Segments.Select(layout => layout.Distance),
-					Is.EqualTo(new[] { 0f, 200f, 300f, 400f }));
+					Is.EqualTo(new[] { 0f, 200f, 400f, 450f }));
 				Assert.That(component.Segments[layoutIndex].GetRailOffset(0),
 					Is.EqualTo(new Vector2(-25f, 35f)));
-				Assert.That(component.LayoutDisplayOrder, Is.EqualTo(new[] { 3, 2, 0, 1 }));
+				Assert.That(component.LayoutDisplayOrder, Is.EqualTo(new[] { 2, 3, 0, 1 }));
 				Assert.That(component.GetLayoutDisplayIndex(layoutIndex), Is.EqualTo(1));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldReorderLayoutsWhenAPositionMovesPastANeighbor()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.AddLayout(200f);
+				component.AddLayout(400f);
+				component.SetRailOffset(1, 0, new Vector2(42f, 17f));
+				var moved = component.Segments[1];
+
+				var newIndex = component.SetLayoutDistance(1, 450f);
+
+				Assert.That(newIndex, Is.EqualTo(2));
+				Assert.That(component.Segments[2], Is.SameAs(moved));
+				Assert.That(component.Segments.Select(layout => layout.Distance),
+					Is.EqualTo(new[] { 0f, 400f, 450f }));
+				Assert.That(component.Segments[2].GetRailOffset(0),
+					Is.EqualTo(new Vector2(42f, 17f)));
+				Assert.That(component.LayoutDisplayOrder, Is.EqualTo(new[] { 0, 2, 1 }),
+					"Layout 2 keeps its name while it moves to the end of the route");
+				Assert.That(component.GetLayoutDisplayIndex(2), Is.EqualTo(1));
+
+				Assert.That(component.SetLayoutDistance(2, 100f), Is.EqualTo(1));
+				Assert.That(component.Segments.Select(layout => layout.Distance),
+					Is.EqualTo(new[] { 0f, 100f, 400f }));
+				Assert.That(component.LayoutDisplayOrder, Is.EqualTo(new[] { 0, 1, 2 }));
+
+				Assert.That(component.SetLayoutDistance(0, 300f), Is.EqualTo(0));
+				Assert.That(component.Segments[0].Distance, Is.Zero,
+					"the first layout stays pinned to the route start");
 			} finally {
 				Object.DestroyImmediate(go);
 			}

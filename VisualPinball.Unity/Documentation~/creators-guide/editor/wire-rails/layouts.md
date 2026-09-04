@@ -11,7 +11,7 @@ A layout is a snapshot of the cross-section at one point of the route. For each 
 A new rail has a single layout at the start of the route, which is all a rail with a constant cross-section needs. You add layouts where the cross-section changes: where a guide opens into a two-wire habitrail, where a rail narrows to funnel the ball, or where an extra wire begins.
 
 ![A layout panel](layout-panel.png)
-<small>A four-wire layout with wire 3 selected. Disabled wires draw gray.</small>
+<small>A six-wire layout with wire 3 selected. Disabled wires draw gray.</small>
 
 ## How many wires
 
@@ -46,9 +46,11 @@ The checkbox before **Position** enables or disables the selected wires for this
 
 ## Adding layouts along the route
 
-A layout sits at a **Position** in units along the route, independent of the knots. Inserting a knot doesn't add a layout, and moving a layout doesn't move the route. The first layout is pinned at 0.
+A layout sits at a **Position** in units along the route, independent of the knots. Inserting a knot doesn't add a layout, and moving a layout doesn't move the route. The first layout is pinned at 0. Every other position can be anything along the route: move a layout past its neighbor and the two simply swap places, keeping their names.
 
-**Add Wire Layout** appends a layout halfway between the last two layouts on the route, or halfway to the end if there is only one. With a layout selected, the button turns into **Duplicate Layout N** and places the copy halfway to the next layout. Either way, the new layout starts as a copy of the one before it, so you only change what differs.
+**Add Wire Layout** appends a layout halfway between the last two layouts on the route, or halfway to the end if there is only one. With a layout selected, the button turns into **Duplicate Layout N** and places the copy halfway to the next layout, or halfway to the end of the route for the last one. Either way, the new layout starts as a copy of the one before it, so you only change what differs.
+
+With a layout selected, the Scene view shows an arrow at the start of its span and one at the start of the next. Drag either along the route to move that layout.
 
 Layouts can be dragged in the list to reorder them. That changes their numbering and nothing else. A layout's place on the route is its **Position**.
 
@@ -57,7 +59,7 @@ Layouts can be dragged in the list to reorder them. That changes their numbering
 Below each layout is its **Transition to Layout N** box. By default every wire is *continuous*: it leaves this layout's position and arrives at the next layout's position over the whole span between them, moving at a constant rate. The tube is unbroken, the collider follows, and the bend is smoothed across the boundary so a wire that jumps far sideways doesn't crease.
 
 ![A transition](layout-transition.png)
-<small>Wire 3 has been overridden and given an ease-in curve.</small>
+<small>The outside bend can be achieved by moving all wires to the outside, along with a curve that represents the crease.</small>
 
 Wires only get a row when you ask for one. The numbered **Override Wires** buttons expose a wire's controls:
 

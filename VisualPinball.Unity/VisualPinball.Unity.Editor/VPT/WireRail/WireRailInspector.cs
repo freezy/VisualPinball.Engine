@@ -257,7 +257,7 @@ namespace VisualPinball.Unity.Editor
 			var selectedLayoutIndex = GetSelectedLayoutIndex(component);
 			var buttonContent = selectedLayoutIndex >= 0
 				? new GUIContent($"Duplicate Layout {component.GetLayoutDisplayIndex(selectedLayoutIndex) + 1}",
-					"Duplicate the selected layout halfway toward its next physical neighbor.")
+					"Duplicate the selected layout halfway to the next layout, or halfway to the end of the route.")
 				: new GUIContent("Add Wire Layout",
 					"Add a new layout last in the list and midway between the last two physical positions.");
 			using (new EditorGUILayout.HorizontalScope()) {
@@ -1668,8 +1668,20 @@ namespace VisualPinball.Unity.Editor
 				EditorGUIUtility.labelWidth = previousLabelWidth;
 			}
 			if (!Mathf.Approximately(position, layout.Distance)) {
+				var wasSelected = WireRailLayoutEditorSelection.IsSelected(component, layoutIndex);
+				var newLayoutIndex = layoutIndex;
 				Edit(component, "Move Wire Rail Layout",
-					() => component.SetLayoutDistance(layoutIndex, position));
+					() => newLayoutIndex = component.SetLayoutDistance(layoutIndex, position));
+				if (newLayoutIndex != layoutIndex) {
+					// The layout moved past a neighbor and the physical list was re-sorted;
+					// the display list is remapped by the component, so only the scene
+					// selection, which is keyed by physical index, needs to follow.
+					SynchronizeLayoutOrder(_layoutOrder, component, true);
+					if (wasSelected) {
+						WireRailLayoutEditorSelection.Select(component, newLayoutIndex);
+					}
+					GUIUtility.ExitGUI();
+				}
 				layout = component.Segments[layoutIndex];
 			}
 
@@ -2485,9 +2497,24 @@ namespace VisualPinball.Unity.Editor
 				SplineUtility.GetNearestPoint(spline, local, out _, out var t);
 				var distance = spline.ConvertIndexUnit(t, PathIndexUnit.Normalized,
 					PathIndexUnit.Distance);
+				var selectedIndex = GetSelectedLayoutIndex(component);
+				var selectedLayout = selectedIndex >= 0 && selectedIndex < component.Segments.Count
+					? component.Segments[selectedIndex] : null;
 				Undo.RecordObject(component, "Move Wire Rail Layout");
 				component.SetLayoutDistance(layoutIndex, distance);
 				EditorUtility.SetDirty(component);
+				// Dragging a layout past its neighbor re-sorts the physical list; keep the
+				// selection on the same layout.
+				if (selectedLayout != null) {
+					for (var index = 0; index < component.Segments.Count; index++) {
+						if (component.Segments[index] == selectedLayout) {
+							if (index != selectedIndex) {
+								WireRailLayoutEditorSelection.Select(component, index);
+							}
+							break;
+						}
+					}
+				}
 			}
 			if (hovered) {
 				var distance = component.Segments[layoutIndex].Distance;
