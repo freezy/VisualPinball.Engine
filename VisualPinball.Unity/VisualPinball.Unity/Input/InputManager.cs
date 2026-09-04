@@ -172,7 +172,7 @@ namespace VisualPinball.Unity
 			map.AddAction(InputConstants.ActionFrontBuyIn, InputActionType.Button, "<Keyboard>/2");
 			map.AddAction(InputConstants.ActionStartGame, InputActionType.Button, "<Keyboard>/1");
 			map.AddAction(InputConstants.ActionPlunger, InputActionType.Button, "<Keyboard>/enter");
-			map.AddAction(InputConstants.ActionPlungerAnalog, InputActionType.Button, "<Gamepad>/rightStick/down");
+			map.AddAction(InputConstants.ActionPlungerAnalog, InputActionType.Value, "<Gamepad>/rightStick/y", processors: "invert,axisDeadzone");
 			map.AddAction(InputConstants.ActionInsertCoin1, InputActionType.Button, "<Keyboard>/5");
 			map.AddAction(InputConstants.ActionInsertCoin2, InputActionType.Button, "<Keyboard>/4");
 			map.AddAction(InputConstants.ActionInsertCoin3, InputActionType.Button, "<Keyboard>/3");

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Mathematics;
 using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity
@@ -28,7 +29,9 @@ namespace VisualPinball.Unity
 			// maximum retracted position)
 			var pos = (movement.Position - staticState.FrameEnd) / staticState.FrameLen;
 
-			var mech = staticState.IsMechPlunger ? movement.AnalogPosition : 0.0f;
+			var mech = staticState.IsMechPlunger
+				? math.clamp(math.lerp(staticState.RestPosition, 1.0f, movement.AnalogPosition), 0.0f, 1.0f)
+				: staticState.RestPosition;
 
 			// calculate the delta from the last reading
 			var dMech = velocity.Mech0 - mech;

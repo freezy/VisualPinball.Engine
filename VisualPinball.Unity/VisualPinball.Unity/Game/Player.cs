@@ -291,6 +291,7 @@ namespace VisualPinball.Unity
 
 			foreach (var (action, callback) in _actions) {
 				action.performed -= callback;
+				action.canceled -= callback;
 			}
 		}
 
@@ -303,6 +304,7 @@ namespace VisualPinball.Unity
 			Register(plungerApi, component);
 			if (actionRef != null) {
 				actionRef.action.performed += plungerApi.OnAnalogPlunge;
+				actionRef.action.canceled += plungerApi.OnAnalogPlunge;
 				_actions.Add((actionRef.action, plungerApi.OnAnalogPlunge));
 			}
 		}

@@ -135,7 +135,12 @@ namespace VisualPinball.Unity
 
 				case ColliderType.Plunger:
 					ref var plungerState = ref state.GetPlungerState(colliderId, ref colliders);
-					PlungerCollider.Collide(ref ball, ref ball.CollisionEvent, ref plungerState.Movement, in plungerState.Static, ref state.Env.Random);
+					var plungerSurfaceVelocity = state.GetKinematicSurfaceVelocity(
+						in ball.CollisionEvent,
+						ball.Position - ball.Radius * ball.CollisionEvent.HitNormal
+					);
+					PlungerCollider.Collide(ref ball, ref ball.CollisionEvent, ref plungerState.Movement,
+						in plungerState.Static, in plungerSurfaceVelocity, ref state.Env.Random);
 					break;
 
 				case ColliderType.Spinner:
