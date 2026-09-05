@@ -2888,8 +2888,8 @@ namespace VisualPinball.Unity
 			WireRailFixture requestingFixture = null)
 		{
 			SynchronizeFixtures();
-			return WireRailEndpointTrimUtility.HasRailTrimConflict(_fixtures, endpoint,
-				firstRailIndex, secondRailIndex, requestingFixture);
+			return WireRailEndpointTrimUtility.HasRailTrimConflict(_fixtures, _segments,
+				SplineLength, endpoint, firstRailIndex, secondRailIndex, requestingFixture);
 		}
 
 		public void SetRailTrimFixtureProperties(int fixtureIndex,

@@ -850,7 +850,7 @@ namespace VisualPinball.Unity
 					// A non-generatable or conflicting elbow omits the whole fixture, so it then
 					// contributes nothing — neither the offset trim nor the other cutoffs.
 					if (!IsElbowGeneratable(segments, elbow, splineLength)
-						|| HasRailTrimConflict(fixtures, elbow.Endpoint,
+						|| HasRailTrimConflict(fixtures, segments, splineLength, elbow.Endpoint,
 							elbow.FirstRailIndex, elbow.SecondRailIndex, elbow)) {
 						continue;
 					}
@@ -874,7 +874,7 @@ namespace VisualPinball.Unity
 					var loopTrim = math.max(0f, hairpin.RailOffset);
 					if (loopTrim <= MinimumSpan
 						|| !IsHairpinGeneratable(segments, hairpin, splineLength)
-						|| HasRailTrimConflict(fixtures, hairpin.Endpoint,
+						|| HasRailTrimConflict(fixtures, segments, splineLength, hairpin.Endpoint,
 							hairpin.FirstRailIndex, hairpin.SecondRailIndex, hairpin)) {
 						continue;
 					}
@@ -896,8 +896,11 @@ namespace VisualPinball.Unity
 		// When the caller passes the fixture it is evaluating as requestingFixture, that fixture
 		// is skipped and another Drop's positive Offset (which shortens its own attached rails)
 		// also counts as a conflict on a shared rail. Callers that cannot identify themselves
-		// (e.g. the inspector) pass null and get only the rail-cutoff conflicts.
+		// (e.g. the inspector) pass null and get only the rail-cutoff conflicts. An elbow that
+		// is not generated at all (see IsElbowGeneratable) contributes no trims and therefore
+		// no conflicts either.
 		public static bool HasRailTrimConflict(IReadOnlyList<WireRailFixture> fixtures,
+			IReadOnlyList<WireRailSegment> segments, float splineLength,
 			WireRailEndpoint endpoint, int firstRailIndex, int secondRailIndex,
 			WireRailFixture requestingFixture = null)
 		{
@@ -906,6 +909,10 @@ namespace VisualPinball.Unity
 			}
 			foreach (var fixture in fixtures) {
 				if (ReferenceEquals(fixture, requestingFixture)) {
+					continue;
+				}
+				if (fixture is WireRailElbowFixture omittedElbow
+					&& !IsElbowGeneratable(segments, omittedElbow, splineLength)) {
 					continue;
 				}
 				if (fixture is WireRailTrimFixture railTrim
@@ -1304,8 +1311,8 @@ namespace VisualPinball.Unity
 				} else {
 					continue;
 				}
-				if (WireRailEndpointTrimUtility.HasRailTrimConflict(fixtures,
-						endpoint, firstRailIndex, secondRailIndex, fixture)) {
+				if (WireRailEndpointTrimUtility.HasRailTrimConflict(fixtures, segments,
+						splineLength, endpoint, firstRailIndex, secondRailIndex, fixture)) {
 					continue;
 				}
 				var endpointSegmentIndex = WireRailSplineGeometry.GetLayoutIndexAtDistance(
@@ -1767,9 +1774,9 @@ namespace VisualPinball.Unity
 					AppendStand(legProfile, leg, wireCapBevelSize, radialSegments,
 						vertices, normals, uvs, indices);
 				} else if (fixture is WireRailHairpinFixture hairpin
-					&& !WireRailEndpointTrimUtility.HasRailTrimConflict(fixtures,
-						hairpin.Endpoint, hairpin.FirstRailIndex, hairpin.SecondRailIndex,
-						hairpin)
+					&& !WireRailEndpointTrimUtility.HasRailTrimConflict(fixtures, segments,
+						spline.GetLength(), hairpin.Endpoint, hairpin.FirstRailIndex,
+						hairpin.SecondRailIndex, hairpin)
 					&& TryEvaluateHairpinProfile(spline, segments, hairpin,
 						out var hairpinProfile)) {
 					var loopFirstRing = vertices.Count;
@@ -1792,8 +1799,9 @@ namespace VisualPinball.Unity
 						});
 					}
 				} else if (fixture is WireRailElbowFixture elbow
-					&& !WireRailEndpointTrimUtility.HasRailTrimConflict(fixtures,
-						elbow.Endpoint, elbow.FirstRailIndex, elbow.SecondRailIndex, elbow)
+					&& !WireRailEndpointTrimUtility.HasRailTrimConflict(fixtures, segments,
+						spline.GetLength(), elbow.Endpoint, elbow.FirstRailIndex,
+						elbow.SecondRailIndex, elbow)
 					&& TryEvaluateElbowProfile(spline, segments, elbow,
 						out var dropProfile)) {
 					// Seed each elbow tube's rings from its rail's mouth frame so both align.
@@ -3937,9 +3945,9 @@ namespace VisualPinball.Unity
 			}
 			foreach (var fixture in fixtures) {
 				if (fixture is not WireRailHairpinFixture hairpin
-					|| WireRailEndpointTrimUtility.HasRailTrimConflict(fixtures,
-						hairpin.Endpoint, hairpin.FirstRailIndex, hairpin.SecondRailIndex,
-						hairpin)
+					|| WireRailEndpointTrimUtility.HasRailTrimConflict(fixtures, segments,
+						spline.GetLength(), hairpin.Endpoint, hairpin.FirstRailIndex,
+						hairpin.SecondRailIndex, hairpin)
 					|| !WireRailFixtureMeshGenerator.TryEvaluateHairpinColliderProfile(spline,
 						segments, hairpin, out var profile)) {
 					continue;
@@ -3968,8 +3976,9 @@ namespace VisualPinball.Unity
 				if (fixture is not WireRailElbowFixture elbow
 					|| !WireRailEndpointTrimUtility.IsElbowGeneratable(segments, elbow,
 						splineLength)
-					|| WireRailEndpointTrimUtility.HasRailTrimConflict(fixtures,
-						elbow.Endpoint, elbow.FirstRailIndex, elbow.SecondRailIndex, elbow)) {
+					|| WireRailEndpointTrimUtility.HasRailTrimConflict(fixtures, segments,
+						splineLength, elbow.Endpoint, elbow.FirstRailIndex,
+						elbow.SecondRailIndex, elbow)) {
 					continue;
 				}
 				var trim = math.max(0f, elbow.Offset);
@@ -4007,8 +4016,9 @@ namespace VisualPinball.Unity
 				if (fixture is not WireRailElbowFixture elbow
 					|| !WireRailEndpointTrimUtility.IsElbowGeneratable(segments, elbow,
 						splineLength)
-					|| WireRailEndpointTrimUtility.HasRailTrimConflict(fixtures,
-						elbow.Endpoint, elbow.FirstRailIndex, elbow.SecondRailIndex, elbow)
+					|| WireRailEndpointTrimUtility.HasRailTrimConflict(fixtures, segments,
+						spline.GetLength(), elbow.Endpoint, elbow.FirstRailIndex,
+						elbow.SecondRailIndex, elbow)
 					|| !TryGetElbowEndpointProfile(spline, segments, elbow, ballRadius,
 						buffers, out var frame, out var profile)) {
 					continue;
