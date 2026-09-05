@@ -145,6 +145,12 @@ namespace VisualPinball.Unity
 
 	internal static class WireRailSolderMeshGenerator
 	{
+		/// <summary>
+		/// Blob size at Solder Size 1. The proportions below were tuned at 1.0 and then
+		/// judged a touch heavy, so the default is scaled down here rather than retuned.
+		/// </summary>
+		private const float BaseSizeFactor = 0.8f;
+
 		private const float FullTurn = math.PI * 2f;
 		private const int BlobRadialSegments = 6;
 		private const int BlobRingCount = 3;
@@ -418,7 +424,7 @@ namespace VisualPinball.Unity
 			var normalExtent = math.max(math.max(touch.FirstRadius, touch.SecondRadius) * 0.75f,
 				centerDistance * 0.5f + math.min(touch.FirstRadius, touch.SecondRadius) * 0.25f)
 				* RandomRange(ref state, 0.92f, 1.08f);
-			solderSize = math.max(0.01f, solderSize);
+			solderSize = math.max(0.01f, solderSize) * BaseSizeFactor;
 			firstExtent *= solderSize;
 			secondExtent *= solderSize;
 			normalExtent *= solderSize;
