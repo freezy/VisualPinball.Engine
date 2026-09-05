@@ -1794,6 +1794,37 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldNotTrimRailsForAHairpinItCannotGenerate()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var fixtureIndex = component.AddHairpinFixture();
+				component.SetHairpinFixtureOffset(fixtureIndex, 100f);
+				var hairpin = (WireRailHairpinFixture)component.Fixtures[fixtureIndex];
+				var spline = component.SplineContainer.Spline;
+				var startOffsets = new float[component.RailCount];
+				var endOffsets = new float[component.RailCount];
+
+				WireRailEndpointTrimUtility.Collect(spline, component.Segments,
+					component.Fixtures, startOffsets, endOffsets);
+				Assert.That(endOffsets[0], Is.EqualTo(100f).Within(0.001f));
+				Assert.That(endOffsets[1], Is.EqualTo(100f).Within(0.001f));
+
+				component.SetRailsActive(0, new[] { 0 }, false);
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateHairpinProfile(spline,
+					component.Segments, hairpin, out _), Is.False);
+				WireRailEndpointTrimUtility.Collect(spline, component.Segments,
+					component.Fixtures, startOffsets, endOffsets);
+				Assert.That(endOffsets[1], Is.Zero,
+					"a hairpin that is not generated must not shorten its surviving rail");
+				Assert.That(endOffsets[0], Is.Zero);
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
 		public void ShouldHideAHairpinWhenAnAttachedRailIsInactive()
 		{
 			var go = new GameObject("Wire Rail");
