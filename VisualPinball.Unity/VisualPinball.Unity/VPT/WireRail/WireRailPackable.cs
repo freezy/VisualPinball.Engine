@@ -469,8 +469,9 @@ namespace VisualPinball.Unity
 				if (math.lengthsq(rotation.value) < 1e-8f) {
 					rotation = quaternion.identity;
 				}
-				// Version 1 had no tension; Unity's default is what those rails were authored with.
-				var tension = data.Version >= 2 ? knot.Tension : SplineUtility.DefaultTension;
+				// Version 1 had no tension. Those rails were restored through Spline.Add, which
+				// assigns the Catmull-Rom tension, so that is what they were played with.
+				var tension = data.Version >= 2 ? knot.Tension : SplineUtility.CatmullRomTension;
 				// The tension-aware insert keeps AutoSmooth knots at their authored curvature;
 				// the plain Add would reset them to the default tension.
 				spline.Insert(spline.Count, new BezierKnot(
