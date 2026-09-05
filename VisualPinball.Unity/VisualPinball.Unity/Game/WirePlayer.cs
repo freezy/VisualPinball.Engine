@@ -340,9 +340,14 @@ namespace VisualPinball.Unity
 					continue;
 				}
 				if (IsDispatchedOnSimulationThread(wireConfig)) {
-					// The native poller already fired this coil on the simulation thread in the
-					// same tick as the key; only mirror the state for the editor UI. Without
+					// The native poller fires this coil on the simulation thread in the same
+					// tick as the key. Publish the state to the main-thread listeners (coil
+					// sounds, animations, editor UI) without the physics callbacks. Without
 					// native polling the managed path below remains the fallback.
+					if (TryGetSimulationThreadCoil(wireConfig, out var simulationCoil)
+						&& simulationCoil is DeviceCoil deviceCoil) {
+						deviceCoil.PublishSimulationThreadDispatchedState(isEnabled);
+					}
 					WireStatuses[wireConfig.Id] = (isEnabled, 0);
 					continue;
 				}
