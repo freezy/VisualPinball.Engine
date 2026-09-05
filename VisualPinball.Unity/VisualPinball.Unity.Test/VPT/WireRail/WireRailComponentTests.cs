@@ -1858,6 +1858,38 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldNotLetAnOmittedElbowSuppressAValidHairpin()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var hairpinIndex = component.AddHairpinFixture();
+				var elbowIndex = component.AddElbowFixture();
+				var hairpin = (WireRailHairpinFixture)component.Fixtures[hairpinIndex];
+				var elbow = (WireRailElbowFixture)component.Fixtures[elbowIndex];
+				Assert.That(hairpin.Endpoint, Is.EqualTo(elbow.Endpoint));
+				Assert.That(component.HasRailTrimConflict(hairpin.Endpoint,
+					hairpin.FirstRailIndex, hairpin.SecondRailIndex, hairpin), Is.True,
+					"a generated elbow on the same rails conflicts with the hairpin");
+
+				component.SetElbowFixtureOffset(elbowIndex, component.SplineLength);
+
+				Assert.That(component.HasRailTrimConflict(hairpin.Endpoint,
+					hairpin.FirstRailIndex, hairpin.SecondRailIndex, hairpin), Is.False,
+					"an elbow that is not generated cannot conflict with anything");
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateHairpinProfile(
+					component.SplineContainer.Spline, component.Segments, hairpin, out _), Is.True);
+				component.RebuildRenderGeometry();
+				Assert.That(component.RenderFixtureIndexRanges[hairpinIndex].y, Is.GreaterThan(0),
+					"the hairpin is rendered");
+				Assert.That(component.RenderFixtureIndexRanges[elbowIndex].y, Is.Zero,
+					"the omitted elbow is not");
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
 		public void ShouldHideAHairpinWhenAnAttachedRailIsInactive()
 		{
 			var go = new GameObject("Wire Rail");
