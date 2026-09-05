@@ -84,6 +84,27 @@ namespace VisualPinball.Unity.Test
 					.Unpack(LoadGolden("wire-rail-spline-v1.json"));
 				rail.Unpack(LoadGolden("wire-rail-v1.json"));
 				AssertRestored(null, rail);
+
+				// Version 1 carried no tension and was restored through Spline.Add, which gives
+				// AutoSmooth knots the Catmull-Rom tension. That is the curve those tables were
+				// authored and played with, so it is what a version 1 payload must still produce.
+				var spline = rail.SplineContainer.Spline;
+				var legacy = new Spline();
+				for (var i = 0; i < spline.Count; i++) {
+					Assert.That(spline.GetAutoSmoothTension(i),
+						Is.EqualTo(SplineUtility.CatmullRomTension).Within(1e-5f), $"knot {i}");
+					legacy.Add(spline[i], spline.GetTangentMode(i));
+				}
+				legacy.Closed = spline.Closed;
+				var maxDeviation = 0f;
+				for (var i = 0; i <= 100; i++) {
+					var t = i / 100f;
+					maxDeviation = math.max(maxDeviation, math.distance(
+						SplineUtility.EvaluatePosition(spline, t),
+						SplineUtility.EvaluatePosition(legacy, t)));
+				}
+				Assert.That(maxDeviation, Is.LessThan(0.001f),
+					"a version 1 route must follow the curve the old loader produced");
 			} finally {
 				Object.DestroyImmediate(go);
 			}
