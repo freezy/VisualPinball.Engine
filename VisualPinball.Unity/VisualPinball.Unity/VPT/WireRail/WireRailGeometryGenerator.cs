@@ -790,6 +790,34 @@ namespace VisualPinball.Unity
 				&& segment.IsRailActive(elbow.SecondRailIndex);
 		}
 
+		/// <summary>
+		/// Whether a hairpin can be generated at its offset attachment: both rails distinct,
+		/// in range and active in the layout at that point. Shared by trim collection and the
+		/// fitting generators so an omitted hairpin never shortens a rail.
+		/// </summary>
+		internal static bool IsHairpinGeneratable(IReadOnlyList<WireRailSegment> segments,
+			WireRailHairpinFixture hairpin, float splineLength)
+		{
+			if (hairpin == null || segments == null || segments.Count == 0
+				|| hairpin.FirstRailIndex == hairpin.SecondRailIndex
+				|| hairpin.FirstRailIndex < 0 || hairpin.SecondRailIndex < 0) {
+				return false;
+			}
+			var loopTrim = math.max(0f, hairpin.RailOffset);
+			var attachmentDistance = math.clamp(hairpin.Endpoint == WireRailEndpoint.Start
+				? loopTrim : splineLength - loopTrim, 0f, splineLength);
+			var segmentIndex = WireRailSplineGeometry.GetLayoutIndexAtDistance(segments,
+				attachmentDistance, splineLength);
+			if (segmentIndex < 0) {
+				return false;
+			}
+			var segment = segments[segmentIndex];
+			return hairpin.FirstRailIndex < segment.RailCount
+				&& hairpin.SecondRailIndex < segment.RailCount
+				&& segment.IsRailActive(hairpin.FirstRailIndex)
+				&& segment.IsRailActive(hairpin.SecondRailIndex);
+		}
+
 		public static void Collect(Spline spline, IReadOnlyList<WireRailSegment> segments,
 			IReadOnlyList<WireRailFixture> fixtures,
 			float[] startOffsets, float[] endOffsets, bool includeElbow = true)
@@ -836,7 +864,7 @@ namespace VisualPinball.Unity
 					// nothing. Applies to both render and collider (unlike a Drop).
 					var loopTrim = math.max(0f, hairpin.RailOffset);
 					if (loopTrim <= MinimumSpan
-						|| hairpin.FirstRailIndex == hairpin.SecondRailIndex
+						|| !IsHairpinGeneratable(segments, hairpin, splineLength)
 						|| HasRailTrimConflict(fixtures, hairpin.Endpoint,
 							hairpin.FirstRailIndex, hairpin.SecondRailIndex, hairpin)) {
 						continue;
