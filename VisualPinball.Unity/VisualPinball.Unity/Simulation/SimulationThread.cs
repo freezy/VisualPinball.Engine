@@ -833,7 +833,7 @@ namespace VisualPinball.Unity.Simulation
 			}
 		}
 
-		private static bool TryMapInputActionHint(string inputActionHint, out NativeInputApi.InputAction action)
+		internal static bool TryMapInputActionHint(string inputActionHint, out NativeInputApi.InputAction action)
 		{
 			// Keep this allocation-free and fast: match against known InputConstants strings.
 			if (inputActionHint == InputConstants.ActionLeftFlipper) {

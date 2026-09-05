@@ -20,6 +20,7 @@ using System.Linq;
 using NLog;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using VisualPinball.Unity.Simulation;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
@@ -261,19 +262,29 @@ namespace VisualPinball.Unity
 		// Input System wire path (HandleKeyInput) is inactive while native polling owns the keys. When the
 		// wire's coil supports the simulation-thread path, hand it to the simulation thread so it fires in
 		// the same tick as the key press. Coils without that path stay on the (main-thread) wire path.
+		// Destinations the simulation thread fires itself. While native polling owns the keys,
+		// the managed path must not fire them a second time.
+		private readonly HashSet<WireDestConfig> _simulationThreadWireDests = new();
+
 		private void RegisterSimulationThreadWireCoil(string inputAction, WireDestConfig destConfig)
 		{
-			if (TryGetSimulationThreadCoil(destConfig, out var coil)) {
-				_player.RegisterInputActionWireCoil(inputAction, coil);
+			if (TryGetSimulationThreadCoil(destConfig, out var coil)
+				&& _player.RegisterInputActionWireCoil(inputAction, coil)) {
+				_simulationThreadWireDests.Add(destConfig);
 			}
 		}
 
 		private void UnregisterSimulationThreadWireCoil(string inputAction, WireDestConfig destConfig)
 		{
+			_simulationThreadWireDests.Remove(destConfig);
 			if (TryGetSimulationThreadCoil(destConfig, out var coil)) {
 				_player.UnregisterInputActionWireCoil(inputAction, coil);
 			}
 		}
+
+		private bool IsDispatchedOnSimulationThread(WireDestConfig wireConfig)
+			=> _simulationThreadWireDests.Contains(wireConfig)
+				&& NativeInputManager.TryGetExistingInstance()?.IsPolling == true;
 
 		private bool TryGetSimulationThreadCoil(WireDestConfig destConfig, out ISimulationThreadCoil coil)
 		{
@@ -314,6 +325,13 @@ namespace VisualPinball.Unity
 			}
 			foreach (var wireConfig in _keyWireAssignments[actionName]) {
 				if (wireConfig.Device == null || !_wireDevices.ContainsKey(wireConfig.Device)) {
+					continue;
+				}
+				if (IsDispatchedOnSimulationThread(wireConfig)) {
+					// The native poller already fired this coil on the simulation thread in the
+					// same tick as the key; only mirror the state for the editor UI. Without
+					// native polling the managed path below remains the fallback.
+					WireStatuses[wireConfig.Id] = (isEnabled, 0);
 					continue;
 				}
 
