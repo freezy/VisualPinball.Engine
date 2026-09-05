@@ -459,6 +459,38 @@ namespace VisualPinball.Unity.Test
 			}
 		}
 
+		[Test]
+		public void ShouldAppendAKnotOnTheClosingCurveWithoutMovingTheOrigin()
+		{
+			var gameObject = new GameObject("Wire Rail");
+			try {
+				var component = gameObject.AddComponent<WireRailComponent>();
+				var spline = component.SplineContainer.Spline;
+				spline.Add(new BezierKnot(new float3(400f, 500f, 0f)), TangentMode.AutoSmooth);
+				spline.Add(new BezierKnot(new float3(400f, 0f, 0f)), TangentMode.AutoSmooth);
+				spline.Closed = true;
+				component.AddLayout(200f);
+				var origin = spline[0].Position;
+				var handles = typeof(WireRailInspector).Assembly.GetType(
+					"VisualPinball.Unity.Editor.WireRailSplineHandles");
+				var insert = handles?.GetMethod("InsertKnot",
+					BindingFlags.Static | BindingFlags.NonPublic);
+				Assert.That(insert, Is.Not.Null);
+
+				Assert.That(insert.Invoke(null, new object[] { component, 3, 0.5f }), Is.True);
+
+				Assert.That(spline.Count, Is.EqualTo(5));
+				Assert.That(math.distance(spline[0].Position, origin), Is.LessThan(0.001f),
+					"the route origin, and with it distance zero, stays where it was");
+				Assert.That(spline[4].Position.x, Is.EqualTo(200f).Within(1f),
+					"the new knot sits on the closing curve, appended after the last knot");
+				Assert.That(component.Segments[1].Distance, Is.EqualTo(200f).Within(0.001f));
+			} finally {
+				Undo.ClearAll();
+				Object.DestroyImmediate(gameObject);
+			}
+		}
+
 		[TestCase(TangentMode.AutoSmooth, false)]
 		[TestCase(TangentMode.Linear, false)]
 		[TestCase(TangentMode.Broken, true)]
