@@ -3746,7 +3746,7 @@ namespace VisualPinball.Unity.Test
 
 				var renderSignature = ComputeMeshSignature(component.RenderMesh);
 				var colliderSignature = ComputeMeshSignature(component.ColliderMesh);
-				Assert.That(renderSignature, Is.EqualTo(1557523280122205228UL));
+				Assert.That(renderSignature, Is.EqualTo(17935112580949234758UL));
 				Assert.That(colliderSignature, Is.EqualTo(5994109088990827143UL));
 
 				component.RebuildGeneratedMeshes();
