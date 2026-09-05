@@ -136,6 +136,22 @@ namespace VisualPinball.Unity
 		public void OnChange(bool enabled) => OnCoil(enabled);
 
 		/// <summary>
+		/// Publishes a transition the simulation thread has already dispatched (or is about to)
+		/// to the main-thread listeners: the enabled state, <see cref="CoilStatusChanged"/> and
+		/// the editor UI. Sounds and animations key off those, while the physics callbacks stay
+		/// with the simulation thread.
+		/// </summary>
+		public void PublishSimulationThreadDispatchedState(bool enabled)
+		{
+			_simThreadActive = true;
+			Interlocked.Exchange(ref _isEnabled, enabled ? 1 : 0);
+			CoilStatusChanged?.Invoke(this, new NoIdCoilEventArgs(enabled));
+#if UNITY_EDITOR
+			RefreshUI();
+#endif
+		}
+
+		/// <summary>
 		/// Reset simulation-thread state. Call when the simulation thread
 		/// is torn down or the gamelogic engine stops, so that a subsequent
 		/// session starts clean.
@@ -149,7 +165,7 @@ namespace VisualPinball.Unity
 #if UNITY_EDITOR
 		private void RefreshUI()
 		{
-			if (!_player.UpdateDuringGameplay) {
+			if (_player == null || !_player.UpdateDuringGameplay) {
 				return;
 			}
 
