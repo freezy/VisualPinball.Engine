@@ -119,7 +119,7 @@ namespace VisualPinball.Unity
 		{
 			_window.x = (Screen.width - _window.width) / 2f;
 			_window.y = (Screen.height - _window.height) / 2f;
-			_window = GUI.ModalWindow(GetInstanceID(), _window, DrawWindow, "Allow packaged table content?");
+			_window = GUI.ModalWindow(UnityObjectId.Get(this), _window, DrawWindow, "Allow packaged table content?");
 		}
 
 		private void DrawWindow(int id)
