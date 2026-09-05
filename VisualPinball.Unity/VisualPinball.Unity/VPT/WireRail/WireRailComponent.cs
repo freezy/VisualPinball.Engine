@@ -1623,7 +1623,7 @@ namespace VisualPinball.Unity
 		[SerializeField] private bool _overwritePhysics = true;
 		[SerializeField, Min(0f)] private float _elasticity = 0.3f;
 		[SerializeField, Min(0f)] private float _elasticityFalloff = 0.5f;
-		[SerializeField, Min(0f)] private float _friction = 0.3f;
+		[SerializeField, Min(0f)] private float _friction = 0.15f;
 		[SerializeField, Range(-90f, 90f)] private float _scatter;
 		[NonSerialized] private Mesh _renderMesh;
 		[NonSerialized] private Mesh _colliderMesh;
