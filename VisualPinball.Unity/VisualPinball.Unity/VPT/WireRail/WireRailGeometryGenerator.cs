@@ -1013,10 +1013,11 @@ namespace VisualPinball.Unity
 		public static Mesh Generate(Spline spline, IReadOnlyList<WireRailSegment> segments,
 			IReadOnlyList<WireRailFixture> fixtures, float wireCapBevelSize,
 			int samplesPerSegment, int radialSegments, Mesh target,
-			List<int2> segmentIndexRanges = null)
+			List<int2> segmentIndexRanges = null, List<int2> fixtureIndexRanges = null)
 		{
 			radialSegments = math.clamp(radialSegments, 6, 16);
 			segmentIndexRanges?.Clear();
+			fixtureIndexRanges?.Clear();
 			var buffers = _threadBuffers ??= new RenderBuffers();
 			buffers.Clear();
 			var vertices = buffers.Vertices;
@@ -1094,7 +1095,8 @@ namespace VisualPinball.Unity
 			}
 			WireRailFixtureMeshGenerator.Append(spline, segments, fixtures,
 				wireCapBevelSize, radialSegments, vertices, normals, uvs, indices,
-				buffers.FittingSeams, buffers.FirstFrameByRail, buffers.LastFrameByRail);
+				buffers.FittingSeams, buffers.FirstFrameByRail, buffers.LastFrameByRail,
+				fixtureIndexRanges);
 			WeldFittingSeams(buffers, radialSegments);
 			WireRailSolderMeshGenerator.Append(spline, segments, fixtures,
 				vertices, normals, uvs, indices);
@@ -1677,8 +1679,10 @@ namespace VisualPinball.Unity
 			ICollection<Vector2> uvs, ICollection<int> indices,
 			ICollection<WireRailFittingSeam> fittingSeams = null,
 			IReadOnlyList<WireRailPathFrame> firstFrameByRail = null,
-			IReadOnlyList<WireRailPathFrame> lastFrameByRail = null)
+			IReadOnlyList<WireRailPathFrame> lastFrameByRail = null,
+			List<int2> fixtureIndexRanges = null)
 		{
+			fixtureIndexRanges?.Clear();
 			if (fixtures == null) {
 				return;
 			}
@@ -1698,6 +1702,7 @@ namespace VisualPinball.Unity
 				return math.lengthsq(frame.Tangent) > 1e-6f ? frame : fallback;
 			}
 			foreach (var fixture in fixtures) {
+				var fixtureIndexStart = indices.Count;
 				if (fixture is WireRailRingFixture ring
 					&& TryEvaluateRingProfile(spline, segments, ring, out var profile)) {
 					AppendRing(profile, ring, wireCapBevelSize, radialSegments, vertices,
@@ -1764,6 +1769,10 @@ namespace VisualPinball.Unity
 						});
 					}
 				}
+				// One index range per fixture, in list order, so the editor can tint a single
+				// fixture. A fixture that produced no geometry gets an empty range.
+				fixtureIndexRanges?.Add(new int2(fixtureIndexStart,
+					indices.Count - fixtureIndexStart));
 			}
 		}
 

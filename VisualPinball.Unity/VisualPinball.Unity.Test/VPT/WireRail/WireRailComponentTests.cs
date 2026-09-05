@@ -3088,6 +3088,45 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldMoveSupportsAlongTheRouteAndRecordTheirMeshRanges()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var ringIndex = component.AddRingFixture(100f);
+				var rungIndex = component.AddRungFixture(200f);
+				component.SetFixtureEnabled(rungIndex, false);
+
+				component.SetFixtureDistance(ringIndex, 350f);
+				Assert.That(component.Fixtures[ringIndex].Distance,
+					Is.EqualTo(350f).Within(0.001f));
+				component.SetFixtureDistance(ringIndex, 9999f);
+				Assert.That(component.Fixtures[ringIndex].Distance,
+					Is.EqualTo(component.SplineLength).Within(0.001f),
+					"a fixture cannot leave the route");
+
+				component.RebuildRenderGeometry();
+				var ranges = component.RenderFixtureIndexRanges;
+				Assert.That(ranges, Has.Count.EqualTo(component.Fixtures.Count));
+				Assert.That(ranges[ringIndex].y, Is.GreaterThan(0),
+					"an enabled ring has triangles in the render mesh");
+				Assert.That(ranges[ringIndex].x + ranges[ringIndex].y,
+					Is.LessThanOrEqualTo(component.RenderMesh.triangles.Length));
+				Assert.That(ranges[rungIndex].y, Is.Zero,
+					"a disabled fixture has no triangles in the render mesh");
+
+				var hairpinIndex = component.AddHairpinFixture();
+				Assert.That(() => component.SetFixtureDistance(hairpinIndex, 10f),
+					Throws.ArgumentException, "end fittings have no route position");
+				component.SetHairpinFixtureOffset(hairpinIndex, 25f);
+				Assert.That(((WireRailHairpinFixture)component.Fixtures[hairpinIndex]).RailOffset,
+					Is.EqualTo(25f).Within(0.001f));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
 		public void ShouldPreserveDisplayOrderWhenRemovingAPhysicalLayout()
 		{
 			var go = new GameObject("Wire Rail");

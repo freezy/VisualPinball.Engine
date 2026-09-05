@@ -158,14 +158,40 @@ namespace VisualPinball.Unity.Editor
 			using (new EditorGUI.DisabledScope(true)) {
 				EditorGUILayout.ObjectField("Spline", container, typeof(SplineContainer), true);
 			}
+			WireRailFixtureEditorSelection.Clear();
+		}
+
+		/// <summary>
+		/// Mirrors the fixture list's selection into the static selection the Scene view
+		/// reads, so the highlighted fixture always matches the highlighted panel.
+		/// </summary>
+		private void SynchronizeFixtureSelection(WireRailComponent component)
+		{
+			var displayIndex = _fixtureOrderList?.index ?? -1;
+			var fixtureIndex = displayIndex >= 0 && displayIndex < _fixtureOrder.Count
+				? _fixtureOrder[displayIndex] : -1;
+			if (fixtureIndex < 0 || fixtureIndex >= component.Fixtures.Count) {
+				if (WireRailFixtureEditorSelection.GetSelectedIndex(component) >= 0) {
+					WireRailFixtureEditorSelection.Clear();
+				}
+				return;
+			}
+			if (!WireRailFixtureEditorSelection.IsSelected(component, fixtureIndex)) {
+				WireRailFixtureEditorSelection.Select(component, fixtureIndex);
+				SceneView.RepaintAll();
+			}
 			EditorGUILayout.Space(3f);
 			var editButtonStyle = new GUIStyle(GUI.skin.button) {
 				fontStyle = FontStyle.Bold,
 			};
 			using (new EditorGUILayout.HorizontalScope()) {
+			WireRailFixtureEditorSelection.Clear();
 				if (GUILayout.Button("Edit Spline in Scene View", editButtonStyle,
 						GUILayout.Height(30f))) {
 					EditSpline(container);
+			if (_fixtureOrderList != null) {
+				_fixtureOrderList.index = -1;
+			}
 				}
 				if (GUILayout.Button(new GUIContent("Center Pivot",
 						"Move the Wire Rail GameObject pivot to the route midpoint without moving the rail."),
@@ -201,6 +227,7 @@ namespace VisualPinball.Unity.Editor
 					+ "from the container before authoring wire layouts.", MessageType.Warning);
 			}
 
+				SynchronizeFixtureSelection(component);
 			EditorGUILayout.Space(8f);
 			_showRenderGeometry = EditorGUILayout.BeginFoldoutHeaderGroup(
 				_showRenderGeometry, "Render Geometry");
@@ -412,8 +439,7 @@ namespace VisualPinball.Unity.Editor
 				}
 				var fixtureIndex = _fixtureOrder[index];
 				return fixtureIndex >= 0 && fixtureIndex < component.Fixtures.Count
-					? GetFixtureElementHeight(component.Fixtures[fixtureIndex],
-						component.RailCount)
+					? GetFixtureElementHeight(component, component.Fixtures[fixtureIndex])
 					: LayoutLineHeight;
 			};
 			list.drawElementCallback = (rect, index, _, _) => {
@@ -593,24 +619,50 @@ namespace VisualPinball.Unity.Editor
 				or WireRailHairpinFixture) {
 				return;
 			}
-			var solderRect = new Rect(content.x, content.yMax - SolderRowsContentHeight,
-				content.width, LayoutLineHeight);
+			// Rings keep their Apply to All button as the very last row, so their solder
+			// line moves up by one row.
+			var solderBottomInset = component.Fixtures[fixtureIndex] is WireRailRingFixture
+				? LayoutLineHeight + 3f : 0f;
+			DrawSolderRow(new Rect(content.x,
+				content.yMax - SolderRowsContentHeight - solderBottomInset,
+				content.width, LayoutLineHeight), component, fixtureIndex);
+		}
+
+		/// <summary>
+		/// One line: a "Solder" caption, then the threshold and the size fields.
+		/// </summary>
+		private static void DrawSolderRow(Rect rect, WireRailComponent component,
+			int fixtureIndex)
+		{
+			const float captionWidth = 52f;
+			const float spacing = 8f;
+			var fixture = component.Fixtures[fixtureIndex];
+			EditorGUI.LabelField(new Rect(rect.x, rect.y, captionWidth, rect.height),
+				new GUIContent("Solder:", "Blobs where this fixture touches a rail."));
+			var fieldsWidth = rect.width - captionWidth - spacing;
+			var sizeRect = new Rect(rect.x + captionWidth, rect.y,
+				fieldsWidth * 0.44f, rect.height);
+			var thresholdRect = new Rect(sizeRect.xMax + spacing, rect.y,
+				fieldsWidth * 0.56f - spacing, rect.height);
+			var previousLabelWidth = EditorGUIUtility.labelWidth;
+
+			EditorGUIUtility.labelWidth = 64f;
 			EditorGUI.BeginChangeCheck();
 			var solderThreshold = math.max(0f, EditorGUI.DelayedFloatField(solderRect,
 				new GUIContent("Solder Threshold",
 					"Maximum surface gap in VPX units at which this fixture is soldered to a rail."),
-				component.Fixtures[fixtureIndex].SolderThreshold));
+				fixture.SolderThreshold));
 			if (EditorGUI.EndChangeCheck()) {
 				Edit(component, "Edit Wire Rail Solder Threshold", () =>
 					component.SetFixtureSolderThreshold(fixtureIndex, solderThreshold));
 			}
 			solderRect.y += LayoutLineHeight + 3f;
 			EditorGUI.BeginChangeCheck();
-			var solderSize = math.max(0.01f, EditorGUI.DelayedFloatField(solderRect,
-				new GUIContent("Solder Size",
-					"Uniform scale of this fixture's solder blobs. A value of 1 uses the "
-					+ "default size; doubling it produces eight times the volume."),
-				component.Fixtures[fixtureIndex].SolderSize));
+			var solderSize = math.max(0.01f, EditorGUI.DelayedFloatField(sizeRect,
+				new GUIContent("Size",
+					"Uniform scale of this fixture's solder blobs. 1 is the default size; "
+					+ "doubling it produces eight times the volume."),
+				fixture.SolderSize));
 			if (EditorGUI.EndChangeCheck()) {
 				Edit(component, "Edit Wire Rail Solder Size", () =>
 					component.SetFixtureSolderSize(fixtureIndex, solderSize));
@@ -2207,6 +2259,31 @@ namespace VisualPinball.Unity.Editor
 			}
 			DrawEditPanel(component, container);
 			var spline = container.Spline;
+	internal static class WireRailFixtureEditorSelection
+	{
+		private static WireRailComponent _component;
+		private static int _fixtureIndex = -1;
+
+		internal static void Select(WireRailComponent component, int fixtureIndex)
+		{
+			_component = component;
+			_fixtureIndex = component ? fixtureIndex : -1;
+		}
+
+		internal static bool IsSelected(WireRailComponent component, int fixtureIndex)
+			=> component && component == _component && fixtureIndex == _fixtureIndex;
+
+		internal static int GetSelectedIndex(WireRailComponent component)
+			=> component && component == _component ? _fixtureIndex : -1;
+
+		internal static void Clear()
+		{
+			_component = null;
+			_fixtureIndex = -1;
+			SceneView.RepaintAll();
+		}
+	}
+
 			if (spline == null || spline.Count < 2) {
 				return;
 			}
@@ -2218,7 +2295,8 @@ namespace VisualPinball.Unity.Editor
 				}
 				DrawSegmentPreviews(component, container);
 				DrawSelectedSpanOverlay(component, container);
-				DrawFixturePreviews();
+				DrawFixturePreviews(component);
+				DrawSelectedFixtureOverlay(component, container);
 
 				if (component.ShowColliderPreview) {
 					DrawColliderPreview(component, component.ColliderMesh, container.transform);
@@ -2246,6 +2324,7 @@ namespace VisualPinball.Unity.Editor
 				segmentIndex++) {
 				var segment = component.Segments[segmentIndex];
 				var preview = new SegmentPreview {
+			public int FixtureIndex = -1;
 					RailPoints = new Vector3[segment.RailCount][],
 					SpinePoints = new Vector3[SamplesPerSegment + 1],
 					ActiveRailCount = CountActiveRails(segment),
@@ -2275,6 +2354,7 @@ namespace VisualPinball.Unity.Editor
 				}
 				preview.LabelPosition = preview.SpinePoints[0];
 				SegmentPreviews.Add(preview);
+				DrawFixtureHandles(component, container, spline);
 			}
 			BuildFixturePreviews(component, spline, localToWorld);
 		}
@@ -2490,6 +2570,122 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		private static void DoubleArrowCap(Vector3 tangent, int controlId, Vector3 position,
 			Quaternion _, float size, EventType eventType)
+			var current = component.Segments[layoutIndex].Distance;
+			DrawRouteDistanceHandle(container, spline, spine[0], tangent,
+				$"{current:0} units", distance => {
+					var selectedIndex = GetSelectedLayoutIndex(component);
+					var selectedLayout = selectedIndex >= 0
+						&& selectedIndex < component.Segments.Count
+						? component.Segments[selectedIndex] : null;
+					Undo.RecordObject(component, "Move Wire Rail Layout");
+					component.SetLayoutDistance(layoutIndex, distance);
+					EditorUtility.SetDirty(component);
+					// Dragging a layout past its neighbor re-sorts the physical list; keep
+					// the selection on the same layout.
+					if (selectedLayout == null) {
+						return;
+					}
+					for (var index = 0; index < component.Segments.Count; index++) {
+						if (component.Segments[index] == selectedLayout) {
+							if (index != selectedIndex) {
+								WireRailLayoutEditorSelection.Select(component, index);
+							}
+							break;
+						}
+					}
+				});
+		}
+
+		/// <summary>
+		/// One arrow for the selected fixture. Supports slide along the route; hairpins and
+		/// elbows set how far from their endpoint they sit. Rail trims have no single
+		/// position and get no handle.
+		/// </summary>
+		private static void DrawFixtureHandles(WireRailComponent component,
+			SplineContainer container, Spline spline)
+		{
+			var fixtureIndex = WireRailFixtureEditorSelection.GetSelectedIndex(component);
+			if (fixtureIndex < 0 || fixtureIndex >= component.Fixtures.Count) {
+				return;
+			}
+			var fixture = component.Fixtures[fixtureIndex];
+			var splineLength = component.SplineLength;
+			float routeDistance;
+			string hoverLabel;
+			Action<float> apply;
+			switch (fixture) {
+				case WireRailHairpinFixture hairpin:
+					routeDistance = hairpin.Endpoint == WireRailEndpoint.Start
+						? hairpin.RailOffset : splineLength - hairpin.RailOffset;
+					hoverLabel = $"offset {hairpin.RailOffset:0} units";
+					apply = distance => {
+						Undo.RecordObject(component, "Move Wire Rail Hairpin");
+						component.SetHairpinFixtureOffset(fixtureIndex,
+							hairpin.Endpoint == WireRailEndpoint.Start
+								? distance : splineLength - distance);
+						EditorUtility.SetDirty(component);
+					};
+					break;
+				case WireRailElbowFixture elbow:
+					routeDistance = elbow.Endpoint == WireRailEndpoint.Start
+						? elbow.Offset : splineLength - elbow.Offset;
+					hoverLabel = $"offset {elbow.Offset:0} units";
+					apply = distance => {
+						Undo.RecordObject(component, "Move Wire Rail Elbow");
+						component.SetElbowFixtureOffset(fixtureIndex,
+							elbow.Endpoint == WireRailEndpoint.Start
+								? distance : splineLength - distance);
+						EditorUtility.SetDirty(component);
+					};
+					break;
+				case WireRailTrimFixture:
+					return;
+				default:
+					routeDistance = fixture.Distance;
+					hoverLabel = $"{fixture.Distance:0} units";
+					apply = distance => {
+						Undo.RecordObject(component, "Move Wire Rail Fixture");
+						component.SetFixtureDistance(fixtureIndex, distance);
+						EditorUtility.SetDirty(component);
+					};
+					break;
+			}
+			if (!TryEvaluateRoutePoint(container, spline, routeDistance, out var position,
+					out var tangent)) {
+				return;
+			}
+			DrawRouteDistanceHandle(container, spline, position, tangent, hoverLabel, apply);
+		}
+
+		private static bool TryEvaluateRoutePoint(SplineContainer container, Spline spline,
+			float distance, out Vector3 position, out Vector3 tangent)
+		{
+			position = default;
+			tangent = Vector3.forward;
+			if (spline == null || spline.Count < 2) {
+				return false;
+			}
+			var length = spline.GetLength();
+			var t = length > 1e-5f
+				? spline.ConvertIndexUnit(math.clamp(distance, 0f, length),
+					PathIndexUnit.Distance, PathIndexUnit.Normalized)
+				: 0f;
+			if (!spline.Evaluate(t, out var localPosition, out var localTangent, out _)) {
+				return false;
+			}
+			var localToWorld = container.transform.localToWorldMatrix;
+			position = localToWorld.MultiplyPoint3x4((Vector3)localPosition);
+			tangent = localToWorld.MultiplyVector((Vector3)localTangent);
+			return true;
+		}
+
+		/// <summary>
+		/// A double-headed arrow at a point on the route. Dragging it snaps to the nearest
+		/// point on the spline and hands that route distance to <paramref name="applyDistance"/>.
+		/// </summary>
+		private static void DrawRouteDistanceHandle(SplineContainer container, Spline spline,
+			Vector3 position, Vector3 tangent, string hoverLabel, Action<float> applyDistance)
+		{
 		{
 			var halfBar = size * 0.5f;
 			var start = position - tangent * halfBar;
@@ -2520,11 +2716,8 @@ namespace VisualPinball.Unity.Editor
 		// mesh it copies instead of z-fighting with it. World units, i.e. meters.
 		private const float SpanOverlayDepthBias = 0.00025f;
 		private static Material _spanOverlayMaterial;
-		private static WireRailComponent _cachedOverlayComponent;
-		private static int _cachedOverlayVersion = -1;
-		private static int _cachedOverlaySegment = -1;
-		private static Matrix4x4 _cachedOverlayLocalToWorld;
-		private static Vector3[] _cachedOverlayTriangles = Array.Empty<Vector3>();
+		private static readonly MeshRangeOverlay SpanOverlay = new();
+		private static readonly MeshRangeOverlay FixtureOverlay = new();
 
 		private static Material SpanOverlayMaterial {
 			get {
@@ -2553,30 +2746,76 @@ namespace VisualPinball.Unity.Editor
 			var selectedIndex = GetSelectedLayoutIndex(component);
 			var mesh = component.RenderMesh;
 			var ranges = component.RenderSegmentIndexRanges;
-			if (selectedIndex < 0 || !mesh || selectedIndex >= ranges.Count) {
-				return;
+			if (selectedIndex >= 0 && selectedIndex < ranges.Count) {
+				SpanOverlay.Draw(component, container, ranges[selectedIndex]);
 			}
-			var localToWorld = container.transform.localToWorldMatrix;
-			if (_cachedOverlayComponent != component
-				|| _cachedOverlayVersion != component.RenderGeometryVersion
-				|| _cachedOverlaySegment != selectedIndex
-				|| _cachedOverlayLocalToWorld != localToWorld) {
-				_cachedOverlayComponent = component;
-				_cachedOverlayVersion = component.RenderGeometryVersion;
-				_cachedOverlaySegment = selectedIndex;
-				_cachedOverlayLocalToWorld = localToWorld;
-				var range = ranges[selectedIndex];
-				var vertices = mesh.vertices;
-				var indices = mesh.triangles;
-				var end = math.min(indices.Length, range.x + range.y);
-				var triangles = new Vector3[math.max(0, end - range.x)];
-				for (var i = range.x; i < end; i++) {
-					triangles[i - range.x] = localToWorld.MultiplyPoint3x4(vertices[indices[i]]);
+		}
+
+		private static void DrawSelectedFixtureOverlay(WireRailComponent component,
+			SplineContainer container)
+		{
+			var fixtureIndex = WireRailFixtureEditorSelection.GetSelectedIndex(component);
+			var ranges = component.RenderFixtureIndexRanges;
+			if (fixtureIndex >= 0 && fixtureIndex < ranges.Count) {
+				FixtureOverlay.Draw(component, container, ranges[fixtureIndex]);
+			}
+		}
+
+		/// <summary>
+		/// Redraws one index range of the render mesh with the selection tint. Caches the
+		/// world-space triangles per geometry version, range and transform.
+		/// </summary>
+		private sealed class MeshRangeOverlay
+		{
+			private WireRailComponent _component;
+			private int _version = -1;
+			private int2 _range;
+			private Matrix4x4 _localToWorld;
+			private Vector3[] _triangles = Array.Empty<Vector3>();
+
+			public void Draw(WireRailComponent component, SplineContainer container, int2 range)
+			{
+				var mesh = component.RenderMesh;
+				if (!mesh || range.y < 3) {
+					return;
 				}
-				_cachedOverlayTriangles = triangles;
-			}
-			if (_cachedOverlayTriangles.Length < 3) {
-				return;
+				var localToWorld = container.transform.localToWorldMatrix;
+				// Keyed on the mesh generation: the geometry version already advances when a
+				// rebuild is requested, while the rebuild itself is deferred in the editor.
+				if (_component != component || _version != component.RenderMeshVersion
+					|| !_range.Equals(range) || _localToWorld != localToWorld) {
+					_component = component;
+					_version = component.RenderMeshVersion;
+					_range = range;
+					_localToWorld = localToWorld;
+					var vertices = mesh.vertices;
+					var indices = mesh.triangles;
+					var end = math.min(indices.Length, range.x + range.y);
+					var triangles = new Vector3[math.max(0, end - range.x)];
+					for (var i = range.x; i < end; i++) {
+						triangles[i - range.x] = localToWorld.MultiplyPoint3x4(vertices[indices[i]]);
+					}
+					_triangles = triangles;
+				}
+				if (_triangles.Length < 3) {
+					return;
+				}
+				var camera = Camera.current;
+				var cameraPosition = camera ? camera.transform.position : Vector3.zero;
+				SpanOverlayMaterial.SetPass(0);
+				GL.PushMatrix();
+				GL.MultMatrix(Matrix4x4.identity);
+				GL.Begin(GL.TRIANGLES);
+				GL.Color(SpanOverlayColor);
+				foreach (var vertex in _triangles) {
+					var toCamera = cameraPosition - vertex;
+					var length = toCamera.magnitude;
+					GL.Vertex(length > 1e-6f
+						? vertex + toCamera * (SpanOverlayDepthBias / length)
+						: vertex);
+				}
+				GL.End();
+				GL.PopMatrix();
 			}
 			var camera = Camera.current;
 			var cameraPosition = camera ? camera.transform.position : Vector3.zero;
@@ -2691,8 +2930,7 @@ namespace VisualPinball.Unity.Editor
 				if (component.Fixtures[fixtureIndex] is WireRailCradleFixture cradle) {
 					if (WireRailSplineGeometry.TryEvaluateCradle(spline, component.Segments,
 							cradle, out var points)) {
-						AddFixturePreview(points,
-							$"Cradle {fixtureIndex + 1}");
+						AddFixturePreview(points, $"Cradle {fixtureIndex + 1}", fixtureIndex);
 					}
 					continue;
 				}
@@ -2712,25 +2950,26 @@ namespace VisualPinball.Unity.Editor
 				if (component.Fixtures[fixtureIndex] is WireRailStandFixture leg) {
 					if (WireRailSplineGeometry.TryEvaluateStand(spline, component.Segments, leg,
 							out var points)) {
-						AddFixturePreview(points, $"Stand {fixtureIndex + 1}");
+						AddFixturePreview(points, $"Stand {fixtureIndex + 1}", fixtureIndex);
 					}
 					continue;
 				}
 				if (component.Fixtures[fixtureIndex] is WireRailHairpinFixture hairpin) {
 					if (WireRailSplineGeometry.TryEvaluateHairpin(spline, component.Segments,
 							hairpin, out var points)) {
-						AddFixturePreview(points, $"Hairpin {fixtureIndex + 1}");
+						AddFixturePreview(points, $"Hairpin {fixtureIndex + 1}", fixtureIndex);
 					}
 					continue;
 				}
 				if (component.Fixtures[fixtureIndex] is WireRailElbowFixture elbow) {
 					if (WireRailSplineGeometry.TryEvaluateElbow(spline, component.Segments,
 							elbow, out var firstRailPoints, out var secondRailPoints)) {
-						AddFixturePreview(firstRailPoints, $"Elbow {fixtureIndex + 1}");
-						AddFixturePreview(secondRailPoints, string.Empty);
+						AddFixturePreview(firstRailPoints, $"Elbow {fixtureIndex + 1}", fixtureIndex);
+						AddFixturePreview(secondRailPoints, string.Empty, fixtureIndex);
 					}
 					continue;
 				}
+							FixtureIndex = fixtureIndex,
 				if (component.Fixtures[fixtureIndex] is not WireRailRingFixture ring
 					|| !ring.TryGetVisibleArc(out var startAngle, out var sweepAngle, out _)
 					|| !WireRailSplineGeometry.TryEvaluateRing(spline, component.Segments,
@@ -2753,7 +2992,8 @@ namespace VisualPinball.Unity.Editor
 				});
 			}
 
-			void AddFixturePreview(IReadOnlyList<float3> sourcePoints, string label)
+			void AddFixturePreview(IReadOnlyList<float3> sourcePoints, string label,
+				int previewFixtureIndex)
 			{
 				if (sourcePoints == null || sourcePoints.Count < 2) {
 					return;
@@ -2770,15 +3010,37 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private static void DrawFixturePreviews()
+		private static readonly Color FixtureColor = new(1f, 0.82f, 0.1f, 1f);
+
+		private static void DrawFixturePreviews(WireRailComponent component)
 		{
 			var previousColor = Handles.color;
 			var previousZTest = Handles.zTest;
 			Handles.zTest = CompareFunction.Always;
 			Handles.color = new Color(1f, 0.82f, 0.1f, 1f);
+					FixtureIndex = fixtureIndex,
 			foreach (var preview in FixturePreviews) {
-				Handles.DrawAAPolyLine(4f, preview.Points);
-				Handles.Label(preview.Points[0], preview.Label, EditorStyles.boldLabel);
+				var selected = selectedFixture >= 0 && preview.FixtureIndex == selectedFixture;
+				var dimmed = selectedFixture >= 0 && !selected;
+				if (selected) {
+					Handles.color = SelectionGlowColor;
+					Handles.DrawAAPolyLine(16f, preview.Points);
+					Handles.color = OutlineColor;
+					Handles.DrawAAPolyLine(8f, preview.Points);
+					Handles.color = SelectionColor;
+					Handles.DrawAAPolyLine(5f, preview.Points);
+				} else {
+					var color = FixtureColor;
+					if (dimmed) {
+						color.a = DimmedAlpha;
+					}
+					Handles.color = color;
+					Handles.DrawAAPolyLine(dimmed ? 3f : 4f, preview.Points);
+				}
+				if (preview.Label.text.Length > 0) {
+					Handles.Label(preview.Points[0], preview.Label,
+						dimmed ? EditorStyles.miniBoldLabel : EditorStyles.boldLabel);
+				}
 			}
 			Handles.color = previousColor;
 			Handles.zTest = previousZTest;
@@ -2792,12 +3054,14 @@ namespace VisualPinball.Unity.Editor
 					count++;
 				}
 			}
+					FixtureIndex = previewFixtureIndex,
 			return count;
 		}
 
 		private static int GetDisplayIndex(IReadOnlyList<int> displayOrder, int layoutIndex)
 		{
 			for (var displayIndex = 0; displayIndex < displayOrder.Count; displayIndex++) {
+			var selectedFixture = WireRailFixtureEditorSelection.GetSelectedIndex(component);
 				if (displayOrder[displayIndex] == layoutIndex) {
 					return displayIndex;
 				}

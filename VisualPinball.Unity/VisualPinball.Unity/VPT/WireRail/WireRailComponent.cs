@@ -1636,6 +1636,8 @@ namespace VisualPinball.Unity
 		[NonSerialized] private int _colliderGeometryVersion;
 		[NonSerialized] private int _renderMeshGenerationCount;
 		[NonSerialized] private readonly List<int2> _renderSegmentIndexRanges = new();
+		[NonSerialized] private readonly List<int2> _enabledFixtureIndexRanges = new();
+		[NonSerialized] private readonly List<int2> _renderFixtureIndexRanges = new();
 		[NonSerialized] private string _generationError;
 #if UNITY_EDITOR
 		[NonSerialized] private bool _editorRebuildScheduled;
@@ -1665,6 +1667,12 @@ namespace VisualPinball.Unity
 		/// Index range (start, count) of each layout span's rail tubes in <see cref="RenderMesh"/>.
 		/// </summary>
 		public IReadOnlyList<int2> RenderSegmentIndexRanges => _renderSegmentIndexRanges;
+
+		/// <summary>
+		/// Index range (start, count) of each fixture in <see cref="RenderMesh"/>, one entry
+		/// per entry of <see cref="Fixtures"/>. Disabled or omitted fixtures have an empty range.
+		/// </summary>
+		public IReadOnlyList<int2> RenderFixtureIndexRanges => _renderFixtureIndexRanges;
 		public Mesh ColliderMesh {
 			get {
 				if (isActiveAndEnabled) {
@@ -1678,6 +1686,13 @@ namespace VisualPinball.Unity
 		public int ColliderGeometryVersion => _colliderGeometryVersion;
 		public bool ColliderGeometryDirty => _colliderGeometryDirty;
 		internal int RenderMeshGenerationCount => _renderMeshGenerationCount;
+
+		/// <summary>
+		/// Increments every time <see cref="RenderMesh"/> is actually regenerated. Unlike
+		/// <see cref="RenderGeometryVersion"/>, which advances when a rebuild is requested,
+		/// this only moves once the mesh data has changed.
+		/// </summary>
+		public int RenderMeshVersion => _renderMeshGenerationCount;
 
 		private void Reset()
 		{
@@ -2679,6 +2694,44 @@ namespace VisualPinball.Unity
 			MarkDirty();
 		}
 
+		/// <summary>
+		/// Moves a support fixture along the route. End fittings are attached to an endpoint
+		/// and have no route position of their own.
+		/// </summary>
+		public void SetFixtureDistance(int fixtureIndex, float distance)
+		{
+			var fixture = GetFixture(fixtureIndex);
+			if (fixture is WireRailHairpinFixture or WireRailElbowFixture or WireRailTrimFixture) {
+				throw new ArgumentException(
+					$"Fixture {fixtureIndex + 1} is an end fitting and has no route position.",
+					nameof(fixtureIndex));
+			}
+			fixture.SetDistance(distance, SplineLength);
+			RebuildRenderGeometry();
+			MarkDirty();
+		}
+
+		public void SetHairpinFixtureOffset(int fixtureIndex, float railOffset)
+		{
+			if (GetFixture(fixtureIndex) is not WireRailHairpinFixture hairpin) {
+				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not a hairpin.",
+					nameof(fixtureIndex));
+			}
+			SetHairpinFixtureProperties(fixtureIndex, hairpin.Endpoint, hairpin.FirstRailIndex,
+				hairpin.SecondRailIndex, hairpin.LoopDiameter, hairpin.LeadLength,
+				hairpin.TangentLength, hairpin.RingDensity, railOffset, hairpin.Rotation);
+		}
+
+		public void SetElbowFixtureOffset(int fixtureIndex, float offset)
+		{
+			if (GetFixture(fixtureIndex) is not WireRailElbowFixture elbow) {
+				throw new ArgumentException($"Fixture {fixtureIndex + 1} is not an elbow.",
+					nameof(fixtureIndex));
+			}
+			SetElbowFixtureProperties(fixtureIndex, elbow.Endpoint, elbow.FirstRailIndex,
+				elbow.SecondRailIndex, offset, elbow.DropLength, elbow.ZAngle, elbow.RailOffsets);
+		}
+
 		public void SetFixtureEnabled(int fixtureIndex, bool enabled)
 		{
 			var fixture = GetFixture(fixtureIndex);
@@ -3259,8 +3312,22 @@ namespace VisualPinball.Unity
 					}
 					_renderMesh = WireRailRenderMeshGenerator.Generate(container.Spline, _segments,
 						_enabledFixtures, _wireCapBevelSize, _renderSamplesPerSegment, _radialSegments,
-						_renderMesh, _renderSegmentIndexRanges);
+						_renderMesh, _renderSegmentIndexRanges, _enabledFixtureIndexRanges);
 					_renderMeshGenerationCount++;
+					// The generator only saw the enabled fixtures; spread its ranges back over
+					// the full list so callers can index them by fixture.
+					_renderFixtureIndexRanges.Clear();
+					var enabledRangeIndex = 0;
+					foreach (var fixture in _fixtures) {
+						var range = int2.zero;
+						if (fixture != null && fixture.Enabled) {
+							if (enabledRangeIndex < _enabledFixtureIndexRanges.Count) {
+								range = _enabledFixtureIndexRanges[enabledRangeIndex];
+							}
+							enabledRangeIndex++;
+						}
+						_renderFixtureIndexRanges.Add(range);
+					}
 				}
 
 				var meshFilter = GetOrAddComponent<MeshFilter>(container.gameObject);
