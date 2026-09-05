@@ -52,10 +52,6 @@ The last rule matters for rails with top wires. If the clear gap between the two
 
 **Curvature Detail** controls how densely the channel is sampled along the route. Curved and changing spans get more rows, straight spans stay sparse no matter how many knots they contain. Raise it if a tight bend shows visible flats in the collider preview.
 
-### Widening the ends
-
-A ball entering a rail from a ramp or a scoop rarely arrives dead center. **Widen Start** and **Widen Exit** flare the channel at an end of an open route: **Size** multiplies the channel radius at the endpoint, and **Length** is the distance over which it tapers back to normal. Only the collider changes. The wires stay where they are, and widening never opens a closed roof. When both tapers overlap on a short rail, the larger one wins rather than the two compounding. A closed route has no ends and can't be widened.
-
 ### Physics
 
 By default the channel uses the values under **Overwrite Physics**: elasticity, falloff, friction and scatter, as on any VPE collider. Untick it to use a **Physics Material** asset instead. While it's ticked, the asset is ignored.

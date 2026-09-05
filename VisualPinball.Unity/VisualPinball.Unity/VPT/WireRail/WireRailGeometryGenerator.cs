@@ -3772,48 +3772,6 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	internal readonly struct WireRailColliderWidening
-	{
-		private const float MinimumLength = 0.01f;
-
-		public readonly bool WidenStart;
-		public readonly float StartSize;
-		public readonly float StartLength;
-		public readonly bool WidenExit;
-		public readonly float ExitSize;
-		public readonly float ExitLength;
-		public bool HasStartTaper => WidenStart && StartSize > 1f + 1e-5f;
-		public bool HasExitTaper => WidenExit && ExitSize > 1f + 1e-5f;
-
-		public WireRailColliderWidening(bool widenStart, float startSize,
-			float startLength, bool widenExit, float exitSize, float exitLength)
-		{
-			WidenStart = widenStart;
-			StartSize = math.max(1f, startSize);
-			StartLength = math.max(MinimumLength, startLength);
-			WidenExit = widenExit;
-			ExitSize = math.max(1f, exitSize);
-			ExitLength = math.max(MinimumLength, exitLength);
-		}
-
-		public float EvaluateRadius(float radius, float distance, float routeLength)
-		{
-			var scale = 1f;
-			if (HasStartTaper) {
-				var startBlend = math.saturate(distance / StartLength);
-				scale = math.max(scale, math.lerp(StartSize, 1f, startBlend));
-			}
-			if (HasExitTaper) {
-				var distanceFromExit = math.max(0f, routeLength - distance);
-				var exitBlend = math.saturate(distanceFromExit / ExitLength);
-				// Overlapping endpoint tapers describe alternative clearances; multiplying them
-				// would create a larger, unintended bulge in the middle of a short route.
-				scale = math.max(scale, math.lerp(ExitSize, 1f, exitBlend));
-			}
-			return radius * scale;
-		}
-	}
-
 	internal static class WireRailColliderMeshGenerator
 	{
 		private const int MaximumAdaptiveDepth = 10;
@@ -3848,7 +3806,7 @@ namespace VisualPinball.Unity
 
 		public static bool TryGenerate(Spline spline, IReadOnlyList<WireRailSegment> segments,
 			IReadOnlyList<WireRailFixture> fixtures, float ballDiameter,
-			WireRailColliderWidening widening, int samplesPerSegment, Mesh target,
+			int samplesPerSegment, Mesh target,
 			out Mesh mesh, out Vector3[] edgeVertices, out int topologyRetryCount,
 			out string error)
 		{
@@ -3862,9 +3820,6 @@ namespace VisualPinball.Unity
 			var ballRadius = ballDiameter * 0.5f;
 			var evaluationContext = buffers.EvaluationContext;
 			evaluationContext.Reset(spline);
-			if (spline == null || spline.Closed) {
-				widening = default;
-			}
 			// The Drop's per-rail cutoffs never touch the collider (only its render mesh), but
 			// its offset shortens the colliders of the two rails it connects to: they end that
 			// far short of the endpoint, where the vertical elbow faces then take over. The
@@ -3883,7 +3838,7 @@ namespace VisualPinball.Unity
 					continue;
 				}
 				if (!AppendTrimmedSegment(spline, segments, evaluationContext, segmentIndex,
-						ballRadius, widening, samplesPerSegment, buffers.StartTrimOffsets,
+						ballRadius, samplesPerSegment, buffers.StartTrimOffsets,
 						buffers.EndTrimOffsets, buffers.ActiveRailIndices, buffers.Samples,
 						buffers.BoundaryParameters, vertices, indices, edges,
 						out var segmentTopologyRetryCount, out error)) {
@@ -3894,7 +3849,7 @@ namespace VisualPinball.Unity
 				topologyRetryCount += segmentTopologyRetryCount;
 			}
 			AppendHairpinColliders(spline, segments, fixtures, buffers);
-			AppendElbowColliders(spline, segments, fixtures, ballRadius, widening, buffers);
+			AppendElbowColliders(spline, segments, fixtures, ballRadius, buffers);
 
 			mesh = target ? target : new Mesh();
 			mesh.Clear(false);
@@ -3981,7 +3936,6 @@ namespace VisualPinball.Unity
 		private static void AppendElbowColliders(Spline spline,
 			IReadOnlyList<WireRailSegment> segments,
 			IReadOnlyList<WireRailFixture> fixtures, float ballRadius,
-			WireRailColliderWidening widening,
 			ColliderBuffers buffers)
 		{
 			// Drops exist only on open splines.
@@ -3995,7 +3949,7 @@ namespace VisualPinball.Unity
 						splineLength)
 					|| WireRailEndpointTrimUtility.HasRailTrimConflict(fixtures,
 						elbow.Endpoint, elbow.FirstRailIndex, elbow.SecondRailIndex, elbow)
-					|| !TryGetElbowEndpointProfile(spline, segments, elbow, ballRadius, widening,
+					|| !TryGetElbowEndpointProfile(spline, segments, elbow, ballRadius,
 						buffers, out var frame, out var profile)) {
 					continue;
 				}
@@ -4047,7 +4001,7 @@ namespace VisualPinball.Unity
 
 		private static bool TryGetElbowEndpointProfile(Spline spline,
 			IReadOnlyList<WireRailSegment> segments, WireRailElbowFixture elbow,
-			float ballRadius, WireRailColliderWidening widening, ColliderBuffers buffers,
+			float ballRadius, ColliderBuffers buffers,
 			out WireRailPathFrame frame,
 			out WireRailChannelProfile profile)
 		{
@@ -4060,7 +4014,6 @@ namespace VisualPinball.Unity
 			var dropPointDistance = math.clamp(elbow.Endpoint == WireRailEndpoint.Start
 				? railTrim : splineLength - railTrim, 0f, splineLength);
 			var topOpeningDiameter = ballRadius * 2f;
-			ballRadius = widening.EvaluateRadius(ballRadius, dropPointDistance, splineLength);
 			var segmentIndex = WireRailSplineGeometry.GetLayoutIndexAtDistance(segments,
 				dropPointDistance, splineLength);
 			if (segmentIndex < 0) {
@@ -4179,7 +4132,7 @@ namespace VisualPinball.Unity
 		private static bool AppendTrimmedSegment(Spline spline,
 			IReadOnlyList<WireRailSegment> segments,
 			WireRailPathEvaluationContext evaluationContext, int segmentIndex, float ballRadius,
-			WireRailColliderWidening widening, int curvatureDetail,
+			int curvatureDetail,
 			IReadOnlyList<float> startTrimOffsets,
 			IReadOnlyList<float> endTrimOffsets, List<int> activeRailIndices,
 			List<ColliderSample> samples, List<float> boundaryParameters,
@@ -4205,12 +4158,6 @@ namespace VisualPinball.Unity
 				}
 				AddBoundary(startTrimOffsets[railIndex]);
 				AddBoundary(splineLength - endTrimOffsets[railIndex]);
-			}
-			if (widening.HasStartTaper) {
-				AddBoundary(widening.StartLength);
-			}
-			if (widening.HasExitTaper) {
-				AddBoundary(splineLength - widening.ExitLength);
 			}
 			boundaryParameters.Sort();
 			for (var boundaryIndex = boundaryParameters.Count - 1; boundaryIndex > 0;
@@ -4248,15 +4195,13 @@ namespace VisualPinball.Unity
 				}
 				var trimmedRailSet = activeRailIndices.Count < authoredActiveRailCount;
 				var midpointT = (startT + endT) * 0.5f;
-				var midpointRadius = widening.EvaluateRadius(ballRadius, midpointDistance,
-					splineLength);
 				if (trimmedRailSet && !TryCreateProfile(spline, segments, segmentIndex,
-						midpointT, activeRailIndices, midpointRadius, ballRadius * 2f, null, false,
+						midpointT, activeRailIndices, ballRadius, ballRadius * 2f, null, false,
 						out _, out _, out _)) {
 					continue;
 				}
 				if (!AppendSegmentRange(spline, segments, evaluationContext, segmentIndex,
-						startT, endT, ballRadius, widening, curvatureDetail, activeRailIndices,
+						startT, endT, ballRadius, curvatureDetail, activeRailIndices,
 						samples, vertices, indices, edges, out var topologyRetried, out error)) {
 					return false;
 				}
@@ -4279,13 +4224,13 @@ namespace VisualPinball.Unity
 		private static bool AppendSegmentRange(Spline spline,
 			IReadOnlyList<WireRailSegment> segments,
 			WireRailPathEvaluationContext evaluationContext, int segmentIndex,
-			float startT, float endT, float ballRadius, WireRailColliderWidening widening,
+			float startT, float endT, float ballRadius,
 			int curvatureDetail, List<int> activeRailIndices, List<ColliderSample> samples,
 			List<Vector3> vertices, List<int> indices, List<Vector3> edges,
 			out bool topologyRetried, out string error)
 		{
 			if (!TryBuildAdaptiveSamples(spline, segments, evaluationContext, segmentIndex,
-					startT, endT, activeRailIndices, ballRadius, widening, curvatureDetail, samples,
+					startT, endT, activeRailIndices, ballRadius, curvatureDetail, samples,
 					out topologyRetried, out error)) {
 				return false;
 			}
@@ -4319,7 +4264,7 @@ namespace VisualPinball.Unity
 			IReadOnlyList<WireRailSegment> segments,
 			WireRailPathEvaluationContext evaluationContext, int segmentIndex,
 			float startT, float endT, IReadOnlyList<int> activeRailIndices,
-			float ballRadius, WireRailColliderWidening widening, int curvatureDetail,
+			float ballRadius, int curvatureDetail,
 			List<ColliderSample> samples, out bool topologyRetried, out string error)
 		{
 			topologyRetried = false;
@@ -4475,9 +4420,7 @@ namespace VisualPinball.Unity
 					return false;
 				}
 				if (!TryCreateProfile(spline, segments, segmentIndex, curveT,
-						activeRailIndices, widening.EvaluateRadius(ballRadius,
-							math.lerp(segmentStart, segmentEnd, curveT),
-							evaluationContext.SplineLength), ballRadius * 2f,
+						activeRailIndices, ballRadius, ballRadius * 2f,
 						forcedTopOpening, forceClosed,
 						out var profile, out var openingUnavailable,
 						out evaluationError)) {

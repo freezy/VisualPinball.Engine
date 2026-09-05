@@ -1617,12 +1617,6 @@ namespace VisualPinball.Unity
 		[SerializeField] private Material _renderMaterial;
 		[SerializeField, Min(1f)] private float _referenceBallDiameter = WireRailLayout.ReferenceBallDiameter;
 		[SerializeField, Range(2, 32)] private int _colliderSamplesPerSegment = 8;
-		[SerializeField] private bool _widenStart;
-		[SerializeField, Min(1f)] private float _widenStartSize = 1.5f;
-		[SerializeField, Min(0.01f)] private float _widenStartLength = 100f;
-		[SerializeField] private bool _widenExit;
-		[SerializeField, Min(1f)] private float _widenExitSize = 1.5f;
-		[SerializeField, Min(0.01f)] private float _widenExitLength = 100f;
 		[SerializeField] private bool _showColliderPreview;
 		[SerializeReference] private PhysicsMaterialAsset _physicsMaterial;
 		[SerializeField] private PhysicsMaterialAsset _terminalPhysicsMaterial;
@@ -1665,12 +1659,6 @@ namespace VisualPinball.Unity
 		}
 		public string GenerationError => _generationError;
 		public bool ShowColliderPreview => _showColliderPreview;
-		public bool WidenStart => _widenStart;
-		public float WidenStartSize => _widenStartSize;
-		public float WidenStartLength => _widenStartLength;
-		public bool WidenExit => _widenExit;
-		public float WidenExitSize => _widenExitSize;
-		public float WidenExitLength => _widenExitLength;
 		public Mesh RenderMesh => _renderMesh;
 
 		/// <summary>
@@ -1751,10 +1739,6 @@ namespace VisualPinball.Unity
 			_renderSamplesPerSegment = math.clamp(_renderSamplesPerSegment, 2, 64);
 			_referenceBallDiameter = math.max(1f, _referenceBallDiameter);
 			_colliderSamplesPerSegment = math.clamp(_colliderSamplesPerSegment, 2, 32);
-			_widenStartSize = math.max(1f, _widenStartSize);
-			_widenStartLength = math.max(0.01f, _widenStartLength);
-			_widenExitSize = math.max(1f, _widenExitSize);
-			_widenExitLength = math.max(0.01f, _widenExitLength);
 			SynchronizeFixtures();
 			if (!GetSplineContainerWithoutCreating()) {
 				return;
@@ -2767,29 +2751,6 @@ namespace VisualPinball.Unity
 			MarkDirty();
 		}
 
-		public void SetColliderWidening(bool widenStart, float startSize,
-			float startLength, bool widenExit, float exitSize, float exitLength)
-		{
-			var widening = new WireRailColliderWidening(widenStart, startSize, startLength,
-				widenExit, exitSize, exitLength);
-			if (_widenStart == widening.WidenStart
-				&& Mathf.Approximately(_widenStartSize, widening.StartSize)
-				&& Mathf.Approximately(_widenStartLength, widening.StartLength)
-				&& _widenExit == widening.WidenExit
-				&& Mathf.Approximately(_widenExitSize, widening.ExitSize)
-				&& Mathf.Approximately(_widenExitLength, widening.ExitLength)) {
-				return;
-			}
-			_widenStart = widening.WidenStart;
-			_widenStartSize = widening.StartSize;
-			_widenStartLength = widening.StartLength;
-			_widenExit = widening.WidenExit;
-			_widenExitSize = widening.ExitSize;
-			_widenExitLength = widening.ExitLength;
-			InvalidateColliderGeometry();
-			MarkDirty();
-		}
-
 		public void MoveFixture(int fromIndex, int toIndex)
 		{
 			SynchronizeFixtures();
@@ -3366,10 +3327,8 @@ namespace VisualPinball.Unity
 				SynchronizeSegments();
 			}
 			using (ColliderMeshMarker.Auto()) {
-				var widening = new WireRailColliderWidening(_widenStart, _widenStartSize,
-					_widenStartLength, _widenExit, _widenExitSize, _widenExitLength);
 				if (!WireRailColliderMeshGenerator.TryGenerate(container.Spline, _segments,
-						_fixtures, _referenceBallDiameter, widening, _colliderSamplesPerSegment,
+						_fixtures, _referenceBallDiameter, _colliderSamplesPerSegment,
 						_colliderMesh, out _colliderMesh, out _colliderEdgeVertices,
 						out _colliderTopologyRetryCount,
 						out _generationError)) {

@@ -48,6 +48,6 @@ Line widths in the preview are for legibility. The tubes underneath show the rea
 
 ## Closed routes
 
-A spline can be closed, and the wires and collider close with it. A closed route has no ends, so anything that attaches to an end is unavailable: hairpins, elbows, rail trims, and collider widening. The transition from the last layout back into the first is shown on the last layout's panel.
+A spline can be closed, and the wires and collider close with it. A closed route has no ends, so anything that attaches to an end is unavailable: hairpins, elbows and rail trims. The transition from the last layout back into the first is shown on the last layout's panel.
 
 Only the first spline in the container is used. If you've added more, the inspector warns you. Remove them.
