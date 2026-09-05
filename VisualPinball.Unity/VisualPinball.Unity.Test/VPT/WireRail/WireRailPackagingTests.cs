@@ -96,6 +96,38 @@ namespace VisualPinball.Unity.Test
 			return asset.bytes;
 		}
 
+		[Test]
+		public void ShouldPreserveAutoSmoothTensionThroughThePackables()
+		{
+			var sourceGo = new GameObject("Wire Rail");
+			var targetGo = new GameObject("Wire Rail Restored");
+			try {
+				var source = sourceGo.AddComponent<WireRailComponent>();
+				var sourceSpline = source.SplineContainer.Spline;
+				sourceSpline.Add(new BezierKnot(new float3(300f, 800f, 100f)), TangentMode.AutoSmooth);
+				sourceSpline.SetAutoSmoothTension(1, 0.8f);
+				var splineBytes = source.SplineContainer.GetComponent<WireRailSplineComponent>().Pack();
+
+				var target = targetGo.AddComponent<WireRailComponent>();
+				target.SplineContainer.GetComponent<WireRailSplineComponent>().Unpack(splineBytes);
+				var spline = target.SplineContainer.Spline;
+
+				Assert.That(spline.GetAutoSmoothTension(1), Is.EqualTo(0.8f).Within(1e-4f));
+				var maxDeviation = 0f;
+				for (var i = 0; i <= 100; i++) {
+					var t = i / 100f;
+					maxDeviation = math.max(maxDeviation, math.distance(
+						SplineUtility.EvaluatePosition(spline, t),
+						SplineUtility.EvaluatePosition(sourceSpline, t)));
+				}
+				Assert.That(maxDeviation, Is.LessThan(0.01f),
+					"the restored route must follow the authored curve, not a re-tensioned one");
+			} finally {
+				Object.DestroyImmediate(sourceGo);
+				Object.DestroyImmediate(targetGo);
+			}
+		}
+
 		[UnityTest]
 		public IEnumerator ShouldSurviveAPackageRoundTripAndCollide()
 		{

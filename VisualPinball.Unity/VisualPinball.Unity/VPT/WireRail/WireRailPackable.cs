@@ -426,7 +426,8 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public struct WireRailSplinePackable
 	{
-		private const int CurrentVersion = 1;
+		// 2: per-knot automatic tangent tension.
+		private const int CurrentVersion = 2;
 
 		public int Version;
 		public bool Closed;
@@ -447,6 +448,7 @@ namespace VisualPinball.Unity
 						Rotation = new PackableFloat4(knot.Rotation.value.x, knot.Rotation.value.y,
 							knot.Rotation.value.z, knot.Rotation.value.w),
 						TangentMode = (int)spline.GetTangentMode(i),
+						Tension = spline.GetAutoSmoothTension(i),
 					});
 				}
 			}
@@ -467,12 +469,16 @@ namespace VisualPinball.Unity
 				if (math.lengthsq(rotation.value) < 1e-8f) {
 					rotation = quaternion.identity;
 				}
-				spline.Add(new BezierKnot(
+				// Version 1 had no tension; Unity's default is what those rails were authored with.
+				var tension = data.Version >= 2 ? knot.Tension : SplineUtility.DefaultTension;
+				// The tension-aware insert keeps AutoSmooth knots at their authored curvature;
+				// the plain Add would reset them to the default tension.
+				spline.Insert(spline.Count, new BezierKnot(
 						new float3(knot.Position.X, knot.Position.Y, knot.Position.Z),
 						new float3(knot.TangentIn.X, knot.TangentIn.Y, knot.TangentIn.Z),
 						new float3(knot.TangentOut.X, knot.TangentOut.Y, knot.TangentOut.Z),
 						rotation),
-					(TangentMode)knot.TangentMode);
+					(TangentMode)knot.TangentMode, tension);
 			}
 			spline.Closed = data.Closed;
 			comp.RestoreSpline(spline);
@@ -486,6 +492,7 @@ namespace VisualPinball.Unity
 		public PackableFloat3 TangentOut;
 		public PackableFloat4 Rotation;
 		public int TangentMode;
+		public float Tension;
 	}
 
 	public struct PackableFloat4
