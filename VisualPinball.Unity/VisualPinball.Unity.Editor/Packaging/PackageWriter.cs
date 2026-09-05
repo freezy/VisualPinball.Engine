@@ -738,6 +738,10 @@ namespace VisualPinball.Unity.Editor
 						case SkinnedMeshRenderer:
 							break;
 
+						// carried by the owning component's packable (wire rail route)
+						case UnityEngine.Splines.SplineContainer:
+							break;
+
 						default:
 							getNativeData?.Invoke(component);
 							break;
