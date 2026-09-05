@@ -1825,6 +1825,39 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldOmitEndFittingsWhoseOffsetConsumesTheRoute()
+		{
+			var go = new GameObject("Wire Rail");
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var hairpinIndex = component.AddHairpinFixture();
+				component.SetHairpinFixtureOffset(hairpinIndex, component.SplineLength);
+				var elbowIndex = component.AddElbowFixture(WireRailEndpoint.Start);
+				component.SetElbowFixtureOffset(elbowIndex, component.SplineLength);
+				var spline = component.SplineContainer.Spline;
+				var hairpin = (WireRailHairpinFixture)component.Fixtures[hairpinIndex];
+				var elbow = (WireRailElbowFixture)component.Fixtures[elbowIndex];
+
+				Assert.That(WireRailFixtureMeshGenerator.TryEvaluateHairpinProfile(spline,
+					component.Segments, hairpin, out _), Is.False,
+					"no rail is left for the loop to attach to");
+				Assert.That(WireRailEndpointTrimUtility.IsElbowGeneratable(component.Segments,
+					elbow, component.SplineLength), Is.False);
+
+				var startOffsets = new float[component.RailCount];
+				var endOffsets = new float[component.RailCount];
+				WireRailEndpointTrimUtility.Collect(spline, component.Segments,
+					component.Fixtures, startOffsets, endOffsets);
+				Assert.That(startOffsets, Is.All.Zero, "an omitted elbow trims nothing");
+				Assert.That(endOffsets, Is.All.Zero, "an omitted hairpin trims nothing");
+				Assert.That(component.RenderMesh.vertexCount, Is.GreaterThan(0),
+					"the rails themselves are still rendered");
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
 		public void ShouldHideAHairpinWhenAnAttachedRailIsInactive()
 		{
 			var go = new GameObject("Wire Rail");

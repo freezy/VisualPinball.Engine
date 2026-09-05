@@ -74,7 +74,7 @@ namespace VisualPinball.Unity.Editor
 
 		private static string GetHairpinMessage(WireRailComponent component,
 			WireRailHairpinFixture hairpin, WireRailEndpoint endpoint, int firstRailIndex,
-			int secondRailIndex, out bool warning)
+			int secondRailIndex, float railOffset, out bool warning)
 		{
 			var spline = component.SplineContainer ? component.SplineContainer.Spline : null;
 			warning = true;
@@ -83,6 +83,9 @@ namespace VisualPinball.Unity.Editor
 			}
 			if (firstRailIndex == secondRailIndex) {
 				return "Select two different rails. Invalid Hairpins are not generated.";
+			}
+			if (railOffset >= component.SplineLength - 1e-5f) {
+				return "The offset consumes the whole route. Move it back so the loop has rail to attach to; the Hairpin is not generated.";
 			}
 			if (component.HasRailTrimConflict(endpoint, firstRailIndex, secondRailIndex, hairpin)) {
 				return "A Rail Trim shortens an attached rail at this endpoint. Remove the conflict or select different rails; the Hairpin is not generated.";
@@ -102,6 +105,9 @@ namespace VisualPinball.Unity.Editor
 			}
 			if (firstRailIndex == secondRailIndex) {
 				return "Select two different rails. Invalid Elbows are not generated.";
+			}
+			if (offset >= component.SplineLength - 1e-5f) {
+				return "The offset consumes the whole route. Move it back so the elbow has rail to attach to; the Elbow is not generated.";
 			}
 			if (!component.AreEndpointRailsActive(endpoint, firstRailIndex, secondRailIndex, offset)) {
 				return "Both selected rails must be active at this endpoint. Inactive Elbows are not generated.";
@@ -652,7 +658,7 @@ namespace VisualPinball.Unity.Editor
 				WireRailHairpinFixture hairpin => LayoutPadding * 2f
 					+ (LayoutLineHeight + 3f) * 10f + WireRailHairpinPreviewEditor.Height + 6f
 					+ HelpBoxHeightFor(GetHairpinMessage(component, hairpin, hairpin.Endpoint,
-						hairpin.FirstRailIndex, hairpin.SecondRailIndex, out _)),
+						hairpin.FirstRailIndex, hairpin.SecondRailIndex, hairpin.RailOffset, out _)),
 				WireRailElbowFixture elbow => LayoutPadding * 2f
 					+ (LayoutLineHeight + 3f) * (componentRailCount + 8)
 					+ WireRailElbowPreviewEditor.Height + 6f
@@ -853,7 +859,7 @@ namespace VisualPinball.Unity.Editor
 			_hairpinPreviewEditor.Draw(loopPreviewRect, component, fixtureIndex, hairpin);
 			row.y = loopPreviewRect.yMax + 6f;
 			var message = GetHairpinMessage(component, hairpin, endpoint, firstRailIndex,
-				secondRailIndex, out var warning);
+				secondRailIndex, railOffset, out var warning);
 			EditorGUI.HelpBox(new Rect(row.x, row.y, row.width, HelpBoxHeightFor(message)),
 				message, warning ? MessageType.Warning : MessageType.Info);
 

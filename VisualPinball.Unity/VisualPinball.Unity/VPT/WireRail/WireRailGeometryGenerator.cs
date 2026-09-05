@@ -776,6 +776,10 @@ namespace VisualPinball.Unity
 				return false;
 			}
 			var railTrim = math.max(0f, elbow.Offset);
+			// Same as for the hairpin: no rail left means no elbow.
+			if (railTrim >= splineLength - MinimumSpan) {
+				return false;
+			}
 			var attachmentDistance = math.clamp(elbow.Endpoint == WireRailEndpoint.Start
 				? railTrim : splineLength - railTrim, 0f, splineLength);
 			var segmentIndex = WireRailSplineGeometry.GetLayoutIndexAtDistance(segments,
@@ -804,6 +808,11 @@ namespace VisualPinball.Unity
 				return false;
 			}
 			var loopTrim = math.max(0f, hairpin.RailOffset);
+			// An offset that consumes the whole route leaves no rail to attach to; clamping it
+			// would put the loop at the opposite endpoint over rails that no longer exist.
+			if (loopTrim >= splineLength - MinimumSpan) {
+				return false;
+			}
 			var attachmentDistance = math.clamp(hairpin.Endpoint == WireRailEndpoint.Start
 				? loopTrim : splineLength - loopTrim, 0f, splineLength);
 			var segmentIndex = WireRailSplineGeometry.GetLayoutIndexAtDistance(segments,
@@ -1277,6 +1286,10 @@ namespace VisualPinball.Unity
 					var loopTrim = math.max(0f, hairpin.RailOffset);
 					attachmentDistance = math.clamp(endpoint == WireRailEndpoint.Start
 						? loopTrim : splineLength - loopTrim, 0f, splineLength);
+					if (!WireRailEndpointTrimUtility.IsHairpinGeneratable(segments, hairpin,
+							splineLength)) {
+						continue;
+					}
 				} else if (fixture is WireRailElbowFixture elbow) {
 					endpoint = elbow.Endpoint;
 					firstRailIndex = elbow.FirstRailIndex;
@@ -1284,6 +1297,10 @@ namespace VisualPinball.Unity
 					var railTrim = math.max(0f, elbow.Offset);
 					attachmentDistance = math.clamp(endpoint == WireRailEndpoint.Start
 						? railTrim : splineLength - railTrim, 0f, splineLength);
+					if (!WireRailEndpointTrimUtility.IsElbowGeneratable(segments, elbow,
+							splineLength)) {
+						continue;
+					}
 				} else {
 					continue;
 				}
@@ -2290,6 +2307,9 @@ namespace VisualPinball.Unity
 			// The offset shortens the connected rails, so the loop attaches this far before the
 			// endpoint; evaluate the frame and rails there so the loop meets the trimmed ends.
 			var splineLength = spline.GetLength();
+			if (!WireRailEndpointTrimUtility.IsHairpinGeneratable(segments, hairpin, splineLength)) {
+				return false;
+			}
 			var railTrim = math.max(0f, hairpin.RailOffset);
 			var attachmentDistance = math.clamp(
 				hairpin.Endpoint == WireRailEndpoint.Start ? railTrim : splineLength - railTrim,
@@ -2404,6 +2424,9 @@ namespace VisualPinball.Unity
 			}
 			// The offset shortens the rails: the elbow attaches this far back from the endpoint.
 			var splineLength = spline.GetLength();
+			if (!WireRailEndpointTrimUtility.IsElbowGeneratable(segments, elbow, splineLength)) {
+				return false;
+			}
 			var railTrim = math.max(0f, elbow.Offset);
 			var attachmentDistance = elbow.Endpoint == WireRailEndpoint.Start
 				? railTrim : splineLength - railTrim;
