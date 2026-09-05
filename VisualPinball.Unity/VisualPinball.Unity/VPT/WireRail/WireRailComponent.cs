@@ -116,6 +116,13 @@ namespace VisualPinball.Unity
 	[Serializable]
 	public sealed class WireRailTransition
 	{
+		internal void Restore(bool overridden, bool continuous, AnimationCurve curve)
+		{
+			_overridden = overridden;
+			_continuous = continuous;
+			_curve = curve ?? AnimationCurve.Linear(0f, 0f, 1f, 1f);
+		}
+
 		[SerializeField] private bool _overridden;
 		[SerializeField] private bool _continuous = true;
 		[SerializeField] private AnimationCurve _curve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
@@ -214,6 +221,12 @@ namespace VisualPinball.Unity
 	[Serializable]
 	public sealed class WireRailConnection
 	{
+		internal void Restore(List<WireRailTransition> wires)
+		{
+			_wires = wires ?? new List<WireRailTransition>();
+			_legacyContinuousWires = null;
+		}
+
 		[SerializeField] private List<WireRailTransition> _wires = new();
 		[SerializeField, HideInInspector, FormerlySerializedAs("_continuousWires")]
 		private List<bool> _legacyContinuousWires;
@@ -299,6 +312,18 @@ namespace VisualPinball.Unity
 	[Serializable]
 	public sealed class WireRailSegment
 	{
+		internal void Restore(float distance, WireRailThirdRailSide thirdRailSide,
+			List<Vector2> railOffsets, List<bool> activeRails, List<float> wireDiameters,
+			WireRailConnection connectionToNext)
+		{
+			_distance = math.max(0f, distance);
+			_thirdRailSide = thirdRailSide;
+			_railOffsets = railOffsets ?? new List<Vector2>();
+			_activeRails = activeRails ?? new List<bool>();
+			_wireDiameters = wireDiameters ?? new List<float>();
+			_connectionToNext = connectionToNext ?? new WireRailConnection();
+		}
+
 		[SerializeField, Min(0f)] private float _distance;
 		[SerializeField] private WireRailThirdRailSide _thirdRailSide = WireRailThirdRailSide.Right;
 		[SerializeField] private List<Vector2> _railOffsets = new(
@@ -497,6 +522,15 @@ namespace VisualPinball.Unity
 	[Serializable]
 	public abstract class WireRailFixture
 	{
+		internal void RestoreCommon(float distance, float solderThreshold, float solderSize,
+			bool enabled)
+		{
+			_distance = math.max(0f, distance);
+			_solderThreshold = math.max(0f, solderThreshold);
+			_solderSize = math.max(0.01f, solderSize);
+			_enabled = enabled;
+		}
+
 		public const float DefaultSolderThreshold = WireRailLayout.ReferenceWireDiameter * 0.25f;
 		public const float DefaultSolderSize = 1f;
 
@@ -560,6 +594,26 @@ namespace VisualPinball.Unity
 	[MovedFrom(true, sourceClassName: "WireRailBraceFixture")]
 	public sealed class WireRailRingFixture : WireRailFixture
 	{
+		internal void Restore(float diameter, bool hasCutout, float cutoutStartAngle,
+			float cutoutEndAngle, bool hasStraightSection, float straightStartAngle,
+			float straightEndAngle, float lateralOffset, float verticalOffset, float scale,
+			int ringDensity)
+		{
+			_diameter = math.max(0.1f, diameter);
+			_hasCutout = hasCutout;
+			_cutoutStartAngle = cutoutStartAngle;
+			_cutoutEndAngle = cutoutEndAngle;
+			_hasStraightSection = hasStraightSection;
+			_straightStartAngle = straightStartAngle;
+			_straightEndAngle = straightEndAngle;
+			_lateralOffset = lateralOffset;
+			_verticalOffset = verticalOffset;
+			_scale = math.max(0.1f, scale);
+			_ringDensity = math.clamp(ringDensity, 3, 128);
+			_radiusOffset = 0f;
+			_scaleInitialized = true;
+		}
+
 		public const int DefaultRingDensity = 32;
 		public const float DefaultCutoutStartAngle = 60f;
 		public const float DefaultCutoutEndAngle = 120f;
@@ -786,6 +840,22 @@ namespace VisualPinball.Unity
 	[MovedFrom(true, sourceClassName: "WireRailVBraceFixture")]
 	public sealed class WireRailCradleFixture : WireRailFixture
 	{
+		internal void Restore(float diameter, int ringDensity, float lateralOffset,
+			float verticalOffset, float bottomLength, float leftLength, float rightLength,
+			float angle, float rotation, float cornerRadius)
+		{
+			_diameter = math.max(0.1f, diameter);
+			_ringDensity = math.clamp(ringDensity, 3, 128);
+			_lateralOffset = lateralOffset;
+			_verticalOffset = verticalOffset;
+			_bottomLength = math.max(0.1f, bottomLength);
+			_leftLength = math.max(0f, leftLength);
+			_rightLength = math.max(0f, rightLength);
+			_angle = math.clamp(angle, 1f, 179f);
+			_rotation = rotation;
+			_cornerRadius = math.max(0.1f, cornerRadius);
+		}
+
 		internal const float MaximumCornerSpanFraction = 0.45f;
 
 		public const int DefaultRingDensity = 32;
@@ -929,6 +999,18 @@ namespace VisualPinball.Unity
 	[MovedFrom(true, sourceClassName: "WireRailCrossWireFixture")]
 	public sealed class WireRailRungFixture : WireRailFixture
 	{
+		internal void Restore(float diameter, int startRailIndex, int endRailIndex, float angle,
+			float lateralOffset, float verticalOffset, float lengthAdjustment)
+		{
+			_diameter = math.max(0.1f, diameter);
+			_startRailIndex = math.max(0, startRailIndex);
+			_endRailIndex = math.max(0, endRailIndex);
+			_angle = angle;
+			_lateralOffset = lateralOffset;
+			_verticalOffset = verticalOffset;
+			_lengthAdjustment = lengthAdjustment;
+		}
+
 		public const float DefaultAngle = 0f;
 
 		[SerializeField, Min(0.1f)] private float _diameter = WireRailLayout.ReferenceWireDiameter;
@@ -1007,6 +1089,22 @@ namespace VisualPinball.Unity
 	[MovedFrom(true, sourceClassName: "WireRailDropLoopFixture")]
 	public sealed class WireRailHairpinFixture : WireRailFixture
 	{
+		internal void Restore(float diameter, WireRailEndpoint endpoint, int firstRailIndex,
+			int secondRailIndex, float loopDiameter, float leadLength, float tangentLength,
+			int ringDensity, float railOffset, float rotation)
+		{
+			_diameter = math.max(0.1f, diameter);
+			_endpoint = endpoint;
+			_firstRailIndex = math.max(0, firstRailIndex);
+			_secondRailIndex = math.max(0, secondRailIndex);
+			_loopDiameter = math.max(0.1f, loopDiameter);
+			_leadLength = math.max(0f, leadLength);
+			_tangentLength = math.max(0f, tangentLength);
+			_ringDensity = math.clamp(ringDensity, 4, 128);
+			_railOffset = math.max(0f, railOffset);
+			_rotation = rotation;
+		}
+
 		public const float DefaultLoopDiameter = 60f;
 		public const float DefaultLeadLength = 40f;
 		public const float DefaultTangentLength = 15f;
@@ -1121,6 +1219,21 @@ namespace VisualPinball.Unity
 	[MovedFrom(true, sourceClassName: "WireRailDropFixture")]
 	public sealed class WireRailElbowFixture : WireRailFixture
 	{
+		internal void Restore(float diameter, WireRailEndpoint endpoint, int firstRailIndex,
+			int secondRailIndex, float offset, float dropLength, float zAngle,
+			List<float> railOffsets)
+		{
+			_diameter = math.max(0.1f, diameter);
+			_endpoint = endpoint;
+			_firstRailIndex = math.max(0, firstRailIndex);
+			_secondRailIndex = math.max(0, secondRailIndex);
+			_offset = math.max(0f, offset);
+			_dropLength = math.max(0.1f, dropLength);
+			_zAngle = zAngle;
+			_railOffsets = railOffsets ?? new List<float>();
+			_railPairInitialized = true;
+		}
+
 		public const float DefaultOffset = 40f;
 		public const float DefaultDropLength = 80f;
 
@@ -1288,6 +1401,12 @@ namespace VisualPinball.Unity
 	[Serializable]
 	public sealed class WireRailTrimFixture : WireRailFixture
 	{
+		internal void Restore(WireRailEndpoint endpoint, List<float> railOffsets)
+		{
+			_endpoint = endpoint;
+			_railOffsets = railOffsets ?? new List<float>();
+		}
+
 		[SerializeField] private WireRailEndpoint _endpoint = WireRailEndpoint.End;
 		[SerializeField] private List<float> _railOffsets = new();
 
@@ -1360,6 +1479,26 @@ namespace VisualPinball.Unity
 	[MovedFrom(true, sourceClassName: "WireRailLegFixture")]
 	public sealed class WireRailStandFixture : WireRailFixture
 	{
+		internal void Restore(float diameter, WireRailStandSide legSide, float lateralOffset,
+			float verticalOffset, float lengthAdjustment, Vector3 startDirection,
+			float startLength, Vector3 footPosition, Vector3 footRotation, bool footClockwise,
+			float footWidth, float footLength, float footConnectionLength)
+		{
+			_diameter = math.max(0.1f, diameter);
+			_legSide = legSide;
+			_lateralOffset = lateralOffset;
+			_verticalOffset = verticalOffset;
+			_lengthAdjustment = lengthAdjustment;
+			_startDirection = startDirection;
+			_startLength = math.max(0f, startLength);
+			_footPosition = footPosition;
+			_footRotation = footRotation;
+			_footClockwise = footClockwise;
+			_footWidth = math.max(0.1f, footWidth);
+			_footLength = math.max(0f, footLength);
+			_footConnectionLength = math.max(0f, footConnectionLength);
+		}
+
 		public const float DefaultStartLength = 40f;
 		public const float DefaultFootWidth = 30f;
 		public const float DefaultFootLength = 30f;
@@ -1589,7 +1728,8 @@ namespace VisualPinball.Unity
 	[ExecuteAlways]
 	[DisallowMultipleComponent]
 	[AddComponentMenu("Pinball/Game Item/Wire Rail")]
-	public class WireRailComponent : MonoBehaviour, ICollidableComponent
+	[PackAs("WireRail")]
+	public class WireRailComponent : MonoBehaviour, ICollidableComponent, IPackable
 	{
 		private const string SplineObjectName = "Wire Rail Spline";
 		private static readonly ProfilerMarker SynchronizeSegmentsMarker =
@@ -1653,6 +1793,10 @@ namespace VisualPinball.Unity
 		public int RailCount => _railCount;
 		public float WireDiameter => _wireDiameter;
 		public float WireCapBevelSize => _wireCapBevelSize;
+		public int RadialSegments => _radialSegments;
+		public int RenderSamplesPerSegment => _renderSamplesPerSegment;
+		public float ReferenceBallDiameter => _referenceBallDiameter;
+		public int ColliderSamplesPerSegment => _colliderSamplesPerSegment;
 		public float SplineLength {
 			get {
 				var container = GetSplineContainerWithoutCreating();
@@ -1693,6 +1837,73 @@ namespace VisualPinball.Unity
 		/// this only moves once the mesh data has changed.
 		/// </summary>
 		public int RenderMeshVersion => _renderMeshGenerationCount;
+
+		#region Packaging
+
+		[NonSerialized] private bool _packedDataRestored;
+
+		public byte[] Pack() => WireRailPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files)
+			=> WireRailReferencesPackable.Pack(this, files);
+
+		public void Unpack(byte[] bytes) => WireRailPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs,
+			PackagedFiles files)
+			=> WireRailReferencesPackable.Unpack(bytes, this, files);
+
+		/// <summary>
+		/// Takes over the authored data from a package. Nothing is synchronized here: the
+		/// route may not have been restored yet, and synchronizing against a missing or
+		/// default spline would clamp every distance. Geometry follows once both halves are in.
+		/// </summary>
+		internal void RestoreFromPackage(WireRailPackable data, List<WireRailSegment> layouts,
+			List<int> displayOrder, List<WireRailFixture> fixtures)
+		{
+			_railCount = math.clamp(data.RailCount, 1, 6);
+			_railCountInitialized = true;
+			_wireDiameter = math.max(0.1f, data.WireDiameter);
+			_wireCapBevelSize = math.max(0f, data.WireCapBevelSize);
+			_radialSegments = math.clamp(data.RadialSegments, 6, 16);
+			_renderSamplesPerSegment = math.clamp(data.RenderSamplesPerSegment, 2, 64);
+			_referenceBallDiameter = math.max(1f, data.ReferenceBallDiameter);
+			_colliderSamplesPerSegment = math.clamp(data.ColliderSamplesPerSegment, 2, 32);
+			_showColliderPreview = data.ShowColliderPreview;
+			_overwritePhysics = data.OverwritePhysics;
+			_elasticity = math.max(0f, data.Elasticity);
+			_elasticityFalloff = math.max(0f, data.ElasticityFalloff);
+			_friction = math.max(0f, data.Friction);
+			_scatter = math.clamp(data.Scatter, -90f, 90f);
+			_segments = layouts ?? new List<WireRailSegment>();
+			_layoutDisplayOrder = displayOrder ?? new List<int>();
+			_fixtures = fixtures ?? new List<WireRailFixture>();
+			_packedDataRestored = true;
+			TryFinishPackageRestore();
+		}
+
+		/// <summary>
+		/// Called by the spline child once its route has been restored from a package.
+		/// </summary>
+		internal void OnSplineRestored() => TryFinishPackageRestore();
+
+		private void TryFinishPackageRestore()
+		{
+			if (!_packedDataRestored) {
+				return;
+			}
+			var container = GetSplineContainerWithoutCreating();
+			if (!container || !container.TryGetComponent<WireRailSplineComponent>(out var marker)
+				|| !marker.SplineRestored) {
+				return;
+			}
+			_packedDataRestored = false;
+			InvalidateGeneratedGeometry();
+			SynchronizeSegments();
+			RebuildGeneratedMeshes();
+		}
+
+		#endregion
 
 		private void Reset()
 		{
@@ -3331,11 +3542,15 @@ namespace VisualPinball.Unity
 				}
 
 				var meshFilter = GetOrAddComponent<MeshFilter>(container.gameObject);
-				var meshRenderer = GetOrAddComponent<MeshRenderer>(container.gameObject);
+				var hadRenderer = container.gameObject.TryGetComponent<MeshRenderer>(
+					out var meshRenderer);
+				if (!hadRenderer) {
+					meshRenderer = container.gameObject.AddComponent<MeshRenderer>();
+				}
 				if (meshFilter.sharedMesh != _renderMesh) {
 					meshFilter.sharedMesh = _renderMesh;
 				}
-				AssignRenderMaterial(meshRenderer);
+				AssignRenderMaterial(meshRenderer, hadRenderer);
 			} finally {
 				_rebuildingGeneratedMeshes = false;
 			}
@@ -3414,14 +3629,17 @@ namespace VisualPinball.Unity
 		public SplineContainer EnsureSplineContainerExists()
 			=> EnsureSplineContainer();
 
-		private void AssignRenderMaterial(MeshRenderer renderer)
+		private void AssignRenderMaterial(MeshRenderer renderer, bool adoptExisting)
 		{
 			var pipeline = GraphicsSettings.currentRenderPipeline;
-			var material = _renderMaterial
-				? _renderMaterial
-				: pipeline
-					? pipeline.defaultMaterial
-					: GetBuiltinDefaultMaterial();
+			var pipelineDefault = pipeline ? pipeline.defaultMaterial : GetBuiltinDefaultMaterial();
+			if (adoptExisting && !_renderMaterial && renderer.sharedMaterial
+				&& renderer.sharedMaterial != pipelineDefault) {
+				// The renderer arrived with a material of its own, e.g. restored from a
+				// package; that is the author's choice, not something to overwrite.
+				_renderMaterial = renderer.sharedMaterial;
+			}
+			var material = _renderMaterial ? _renderMaterial : pipelineDefault;
 			if (renderer.sharedMaterial != material) {
 				renderer.sharedMaterial = material;
 			}
@@ -3449,25 +3667,46 @@ namespace VisualPinball.Unity
 				return existing;
 			}
 
-			var splineObject = new GameObject(SplineObjectName);
-			splineObject.transform.SetParent(transform, false);
-			splineObject.transform.localPosition = Vector3.zero;
-			splineObject.transform.localRotation = ((Matrix4x4)Physics.VpxToWorld).rotation;
-			splineObject.transform.localScale = Physics.ScaleInvVector;
-			splineObject.AddComponent<WireRailSplineComponent>();
-			splineObject.transform.hideFlags |= HideFlags.NotEditable;
+			// A child that already carries the marker or the legacy name but no container yet
+			// (a package import restores the container in the child's own unpack step) is
+			// adopted rather than shadowed by a second child.
+			var splineObject = FindSplineChildWithoutContainer();
+			var created = !splineObject;
+			if (created) {
+				splineObject = new GameObject(SplineObjectName);
+				splineObject.transform.SetParent(transform, false);
+				splineObject.transform.localPosition = Vector3.zero;
+				splineObject.transform.localRotation = ((Matrix4x4)Physics.VpxToWorld).rotation;
+				splineObject.transform.localScale = Physics.ScaleInvVector;
+			}
+			HardenSplineChild(splineObject);
 			_splineContainer = splineObject.AddComponent<SplineContainer>();
 			_splineContainer.Spline = CreateDefaultSpline();
 
 #if UNITY_EDITOR
 			if (!Application.isPlaying) {
-				if (!Undo.isProcessing) {
+				if (created && !Undo.isProcessing) {
 					Undo.RegisterCreatedObjectUndo(splineObject, "Create Wire Rail Spline");
 				}
 				EditorUtility.SetDirty(this);
 			}
 #endif
 			return _splineContainer;
+		}
+
+		private GameObject FindSplineChildWithoutContainer()
+		{
+			for (var i = 0; i < transform.childCount; i++) {
+				var candidate = transform.GetChild(i);
+				if (candidate.TryGetComponent<SplineContainer>(out _)) {
+					continue;
+				}
+				if (candidate.TryGetComponent<WireRailSplineComponent>(out _)
+					|| candidate.name == SplineObjectName) {
+					return candidate.gameObject;
+				}
+			}
+			return null;
 		}
 
 		private SplineContainer GetSplineContainerWithoutCreating()

@@ -1,0 +1,871 @@
+{
+  "Version": 1,
+  "RailCount": 5,
+  "WireDiameter": 7.5,
+  "WireCapBevelSize": 0.5,
+  "RadialSegments": 10,
+  "RenderSamplesPerSegment": 16,
+  "ReferenceBallDiameter": 50.0,
+  "ColliderSamplesPerSegment": 8,
+  "ShowColliderPreview": true,
+  "OverwritePhysics": true,
+  "Elasticity": 0.3,
+  "ElasticityFalloff": 0.5,
+  "Friction": 0.15,
+  "Scatter": 0.0,
+  "Layouts": [
+    {
+      "Distance": 0.0,
+      "ThirdRailSide": 1,
+      "RailOffsets": [
+        {
+          "X": -15.0,
+          "Y": 0.0
+        },
+        {
+          "X": 15.0,
+          "Y": 0.0
+        },
+        {
+          "X": -30.0,
+          "Y": 30.0
+        },
+        {
+          "X": 30.0,
+          "Y": 30.0
+        },
+        {
+          "X": 0.0,
+          "Y": 60.0
+        }
+      ],
+      "ActiveRails": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "WireDiameters": [
+        7.5,
+        7.5,
+        7.5,
+        7.5,
+        7.5
+      ],
+      "Transitions": [
+        {
+          "Overridden": false,
+          "Continuous": true,
+          "Curve": {
+            "keys": [
+              {
+                "time": 0.0,
+                "value": 0.0,
+                "inTangent": 0.0,
+                "outTangent": 1.0,
+                "inWeight": 0.0,
+                "outWeight": 0.0,
+                "weightedMode": 0,
+                "tangentMode": 0
+              },
+              {
+                "time": 1.0,
+                "value": 1.0,
+                "inTangent": 1.0,
+                "outTangent": 0.0,
+                "inWeight": 0.0,
+                "outWeight": 0.0,
+                "weightedMode": 0,
+                "tangentMode": 0
+              }
+            ],
+            "length": 2,
+            "preWrapMode": 8,
+            "postWrapMode": 8
+          }
+        },
+        {
+          "Overridden": true,
+          "Continuous": true,
+          "Curve": {
+            "keys": [
+              {
+                "time": 0.0,
+                "value": 0.0,
+                "inTangent": 0.0,
+                "outTangent": 0.0,
+                "inWeight": 0.0,
+                "outWeight": 0.0,
+                "weightedMode": 0,
+                "tangentMode": 0
+              },
+              {
+                "time": 1.0,
+                "value": 1.0,
+                "inTangent": 0.0,
+                "outTangent": 0.0,
+                "inWeight": 0.0,
+                "outWeight": 0.0,
+                "weightedMode": 0,
+                "tangentMode": 0
+              }
+            ],
+            "length": 2,
+            "preWrapMode": 8,
+            "postWrapMode": 8
+          }
+        },
+        {
+          "Overridden": true,
+          "Continuous": false,
+          "Curve": {
+            "keys": [
+              {
+                "time": 0.0,
+                "value": 0.0,
+                "inTangent": 0.0,
+                "outTangent": 1.0,
+                "inWeight": 0.0,
+                "outWeight": 0.0,
+                "weightedMode": 0,
+                "tangentMode": 0
+              },
+              {
+                "time": 1.0,
+                "value": 1.0,
+                "inTangent": 1.0,
+                "outTangent": 0.0,
+                "inWeight": 0.0,
+                "outWeight": 0.0,
+                "weightedMode": 0,
+                "tangentMode": 0
+              }
+            ],
+            "length": 2,
+            "preWrapMode": 8,
+            "postWrapMode": 8
+          }
+        },
+        {
+          "Overridden": false,
+          "Continuous": true,
+          "Curve": {
+            "keys": [
+              {
+                "time": 0.0,
+                "value": 0.0,
+                "inTangent": 0.0,
+                "outTangent": 1.0,
+                "inWeight": 0.0,
+                "outWeight": 0.0,
+                "weightedMode": 0,
+                "tangentMode": 0
+              },
+              {
+                "time": 1.0,
+                "value": 1.0,
+                "inTangent": 1.0,
+                "outTangent": 0.0,
+                "inWeight": 0.0,
+                "outWeight": 0.0,
+                "weightedMode": 0,
+                "tangentMode": 0
+              }
+            ],
+            "length": 2,
+            "preWrapMode": 8,
+            "postWrapMode": 8
+          }
+        },
+        {
+          "Overridden": false,
+          "Continuous": true,
+          "Curve": {
+            "keys": [
+              {
+                "time": 0.0,
+                "value": 0.0,
+                "inTangent": 0.0,
+                "outTangent": 1.0,
+                "inWeight": 0.0,
+                "outWeight": 0.0,
+                "weightedMode": 0,
+                "tangentMode": 0
+              },
+              {
+                "time": 1.0,
+                "value": 1.0,
+                "inTangent": 1.0,
+                "outTangent": 0.0,
+                "inWeight": 0.0,
+                "outWeight": 0.0,
+                "weightedMode": 0,
+                "tangentMode": 0
+              }
+            ],
+            "length": 2,
+            "preWrapMode": 8,
+            "postWrapMode": 8
+          }
+        }
+      ]
+    },
+    {
+      "Distance": 200.0,
+      "ThirdRailSide": 1,
+      "RailOffsets": [
+        {
+          "X": -21.0,
+          "Y": 3.0
+        },
+        {
+          "X": 15.0,
+          "Y": 0.0
+        },
+        {
+          "X": -30.0,
+          "Y": 30.0
+        },
+        {
+          "X": 30.0,
+          "Y": 30.0
+        },
+        {
+          "X": 0.0,
+          "Y": 60.0
+        }
+      ],
+      "ActiveRails": [
+        true,
+        true,
+        true,
+        true,
+        false
+      ],
+      "WireDiameters": [
+        7.5,
+        7.5,
+        7.5,
+        7.5,
+        7.5
+      ],
+      "Transitions": [
+        {
+          "Overridden": false,
+          "Continuous": true,
+          "Curve": {
+            "keys": [
+              {
+                "time": 0.0,
+                "value": 0.0,
+                "inTangent": 0.0,
+                "outTangent": 1.0,
+                "inWeight": 0.0,
+                "outWeight": 0.0,
+                "weightedMode": 0,
+                "tangentMode": 0
+              },
+              {
+                "time": 1.0,
+                "value": 1.0,
+                "inTangent": 1.0,
+                "outTangent": 0.0,
+                "inWeight": 0.0,
+                "outWeight": 0.0,
+                "weightedMode": 0,
+                "tangentMode": 0
+              }
+            ],
+            "length": 2,
+            "preWrapMode": 8,
+            "postWrapMode": 8
+          }
+        },
+        {
+          "Overridden": false,
+          "Continuous": true,
+          "Curve": {
+            "keys": [
+              {
+                "time": 0.0,
+                "value": 0.0,
+                "inTangent": 0.0,
+                "outTangent": 1.0,
+                "inWeight": 0.0,
+                "outWeight": 0.0,
+                "weightedMode": 0,
+                "tangentMode": 0
+              },
+              {
+                "time": 1.0,
+                "value": 1.0,
+                "inTangent": 1.0,
+                "outTangent": 0.0,
+                "inWeight": 0.0,
+                "outWeight": 0.0,
+                "weightedMode": 0,
+                "tangentMode": 0
+              }
+            ],
+            "length": 2,
+            "preWrapMode": 8,
+            "postWrapMode": 8
+          }
+        },
+        {
+          "Overridden": false,
+          "Continuous": true,
+          "Curve": {
+            "keys": [
+              {
+                "time": 0.0,
+                "value": 0.0,
+                "inTangent": 0.0,
+                "outTangent": 1.0,
+                "inWeight": 0.0,
+                "outWeight": 0.0,
+                "weightedMode": 0,
+                "tangentMode": 0
+              },
+              {
+                "time": 1.0,
+                "value": 1.0,
+                "inTangent": 1.0,
+                "outTangent": 0.0,
+                "inWeight": 0.0,
+                "outWeight": 0.0,
+                "weightedMode": 0,
+                "tangentMode": 0
+              }
+            ],
+            "length": 2,
+            "preWrapMode": 8,
+            "postWrapMode": 8
+          }
+        },
+        {
+          "Overridden": false,
+          "Continuous": true,
+          "Curve": {
+            "keys": [
+              {
+                "time": 0.0,
+                "value": 0.0,
+                "inTangent": 0.0,
+                "outTangent": 1.0,
+                "inWeight": 0.0,
+                "outWeight": 0.0,
+                "weightedMode": 0,
+                "tangentMode": 0
+              },
+              {
+                "time": 1.0,
+                "value": 1.0,
+                "inTangent": 1.0,
+                "outTangent": 0.0,
+                "inWeight": 0.0,
+                "outWeight": 0.0,
+                "weightedMode": 0,
+                "tangentMode": 0
+              }
+            ],
+            "length": 2,
+            "preWrapMode": 8,
+            "postWrapMode": 8
+          }
+        },
+        {
+          "Overridden": false,
+          "Continuous": true,
+          "Curve": {
+            "keys": [
+              {
+                "time": 0.0,
+                "value": 0.0,
+                "inTangent": 0.0,
+                "outTangent": 1.0,
+                "inWeight": 0.0,
+                "outWeight": 0.0,
+                "weightedMode": 0,
+                "tangentMode": 0
+              },
+              {
+                "time": 1.0,
+                "value": 1.0,
+                "inTangent": 1.0,
+                "outTangent": 0.0,
+                "inWeight": 0.0,
+                "outWeight": 0.0,
+                "weightedMode": 0,
+                "tangentMode": 0
+              }
+            ],
+            "length": 2,
+            "preWrapMode": 8,
+            "postWrapMode": 8
+          }
+        }
+      ]
+    },
+    {
+      "Distance": 400.0,
+      "ThirdRailSide": 1,
+      "RailOffsets": [
+        {
+          "X": -15.0,
+          "Y": 0.0
+        },
+        {
+          "X": 15.0,
+          "Y": 0.0
+        },
+        {
+          "X": -30.0,
+          "Y": 30.0
+        },
+        {
+          "X": 30.0,
+          "Y": 30.0
+        },
+        {
+          "X": 0.0,
+          "Y": 60.0
+        }
+      ],
+      "ActiveRails": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "WireDiameters": [
+        7.5,
+        7.5,
+        7.5,
+        7.5,
+        7.5
+      ],
+      "Transitions": []
+    }
+  ],
+  "LayoutDisplayOrder": [
+    0,
+    1,
+    2
+  ],
+  "Fixtures": [
+    {
+      "Kind": "Ring",
+      "Distance": 120.0,
+      "SolderThreshold": 2.0,
+      "SolderSize": 1.0,
+      "Enabled": true,
+      "Diameter": 7.5,
+      "HasCutout": true,
+      "CutoutStartAngle": 30.0,
+      "CutoutEndAngle": 90.0,
+      "HasStraightSection": true,
+      "StraightStartAngle": 200.0,
+      "StraightEndAngle": 300.0,
+      "Scale": 1.4,
+      "RingDensity": 24,
+      "LateralOffset": 2.0,
+      "VerticalOffset": -3.0,
+      "Angle": 0.0,
+      "Rotation": 0.0,
+      "LengthAdjustment": 0.0,
+      "Endpoint": 0,
+      "FirstRailIndex": 0,
+      "SecondRailIndex": 0,
+      "RailOffsets": null,
+      "BottomLength": 0.0,
+      "LeftLength": 0.0,
+      "RightLength": 0.0,
+      "CornerRadius": 0.0,
+      "LoopDiameter": 0.0,
+      "LeadLength": 0.0,
+      "TangentLength": 0.0,
+      "RailOffset": 0.0,
+      "Offset": 0.0,
+      "DropLength": 0.0,
+      "ZAngle": 0.0,
+      "LegSide": 0,
+      "StartDirection": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 0.0
+      },
+      "StartLength": 0.0,
+      "FootPosition": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 0.0
+      },
+      "FootRotation": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 0.0
+      },
+      "FootClockwise": false,
+      "FootWidth": 0.0,
+      "FootLength": 0.0,
+      "FootConnectionLength": 0.0
+    },
+    {
+      "Kind": "Cradle",
+      "Distance": 150.0,
+      "SolderThreshold": 2.0,
+      "SolderSize": 1.0,
+      "Enabled": true,
+      "Diameter": 7.5,
+      "HasCutout": false,
+      "CutoutStartAngle": 0.0,
+      "CutoutEndAngle": 0.0,
+      "HasStraightSection": false,
+      "StraightStartAngle": 0.0,
+      "StraightEndAngle": 0.0,
+      "Scale": 0.0,
+      "RingDensity": 32,
+      "LateralOffset": 0.0,
+      "VerticalOffset": 0.0,
+      "Angle": 53.1301,
+      "Rotation": 0.0,
+      "LengthAdjustment": 0.0,
+      "Endpoint": 0,
+      "FirstRailIndex": 0,
+      "SecondRailIndex": 0,
+      "RailOffsets": null,
+      "BottomLength": 8.0,
+      "LeftLength": 85.0,
+      "RightLength": 85.0,
+      "CornerRadius": 8.0,
+      "LoopDiameter": 0.0,
+      "LeadLength": 0.0,
+      "TangentLength": 0.0,
+      "RailOffset": 0.0,
+      "Offset": 0.0,
+      "DropLength": 0.0,
+      "ZAngle": 0.0,
+      "LegSide": 0,
+      "StartDirection": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 0.0
+      },
+      "StartLength": 0.0,
+      "FootPosition": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 0.0
+      },
+      "FootRotation": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 0.0
+      },
+      "FootClockwise": false,
+      "FootWidth": 0.0,
+      "FootLength": 0.0,
+      "FootConnectionLength": 0.0
+    },
+    {
+      "Kind": "Rung",
+      "Distance": 180.0,
+      "SolderThreshold": 2.0,
+      "SolderSize": 1.5,
+      "Enabled": true,
+      "Diameter": 7.5,
+      "HasCutout": false,
+      "CutoutStartAngle": 0.0,
+      "CutoutEndAngle": 0.0,
+      "HasStraightSection": false,
+      "StraightStartAngle": 0.0,
+      "StraightEndAngle": 0.0,
+      "Scale": 0.0,
+      "RingDensity": 0,
+      "LateralOffset": 0.0,
+      "VerticalOffset": 0.0,
+      "Angle": 0.0,
+      "Rotation": 0.0,
+      "LengthAdjustment": 0.0,
+      "Endpoint": 0,
+      "FirstRailIndex": 0,
+      "SecondRailIndex": 1,
+      "RailOffsets": null,
+      "BottomLength": 0.0,
+      "LeftLength": 0.0,
+      "RightLength": 0.0,
+      "CornerRadius": 0.0,
+      "LoopDiameter": 0.0,
+      "LeadLength": 0.0,
+      "TangentLength": 0.0,
+      "RailOffset": 0.0,
+      "Offset": 0.0,
+      "DropLength": 0.0,
+      "ZAngle": 0.0,
+      "LegSide": 0,
+      "StartDirection": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 0.0
+      },
+      "StartLength": 0.0,
+      "FootPosition": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 0.0
+      },
+      "FootRotation": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 0.0
+      },
+      "FootClockwise": false,
+      "FootWidth": 0.0,
+      "FootLength": 0.0,
+      "FootConnectionLength": 0.0
+    },
+    {
+      "Kind": "Stand",
+      "Distance": 220.0,
+      "SolderThreshold": 2.0,
+      "SolderSize": 1.0,
+      "Enabled": false,
+      "Diameter": 7.5,
+      "HasCutout": false,
+      "CutoutStartAngle": 0.0,
+      "CutoutEndAngle": 0.0,
+      "HasStraightSection": false,
+      "StraightStartAngle": 0.0,
+      "StraightEndAngle": 0.0,
+      "Scale": 0.0,
+      "RingDensity": 0,
+      "LateralOffset": 0.0,
+      "VerticalOffset": 0.0,
+      "Angle": 0.0,
+      "Rotation": 0.0,
+      "LengthAdjustment": 0.0,
+      "Endpoint": 0,
+      "FirstRailIndex": 0,
+      "SecondRailIndex": 0,
+      "RailOffsets": null,
+      "BottomLength": 0.0,
+      "LeftLength": 0.0,
+      "RightLength": 0.0,
+      "CornerRadius": 0.0,
+      "LoopDiameter": 0.0,
+      "LeadLength": 0.0,
+      "TangentLength": 0.0,
+      "RailOffset": 0.0,
+      "Offset": 0.0,
+      "DropLength": 0.0,
+      "ZAngle": 0.0,
+      "LegSide": 1,
+      "StartDirection": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": -1.0
+      },
+      "StartLength": 40.0,
+      "FootPosition": {
+        "X": 15.0,
+        "Y": -22.5,
+        "Z": -80.0
+      },
+      "FootRotation": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 0.0
+      },
+      "FootClockwise": false,
+      "FootWidth": 30.0,
+      "FootLength": 30.0,
+      "FootConnectionLength": 30.0
+    },
+    {
+      "Kind": "Hairpin",
+      "Distance": 920.8729,
+      "SolderThreshold": 2.0,
+      "SolderSize": 1.0,
+      "Enabled": true,
+      "Diameter": 7.5,
+      "HasCutout": false,
+      "CutoutStartAngle": 0.0,
+      "CutoutEndAngle": 0.0,
+      "HasStraightSection": false,
+      "StraightStartAngle": 0.0,
+      "StraightEndAngle": 0.0,
+      "Scale": 0.0,
+      "RingDensity": 24,
+      "LateralOffset": 0.0,
+      "VerticalOffset": 0.0,
+      "Angle": 0.0,
+      "Rotation": 0.0,
+      "LengthAdjustment": 0.0,
+      "Endpoint": 1,
+      "FirstRailIndex": 0,
+      "SecondRailIndex": 1,
+      "RailOffsets": null,
+      "BottomLength": 0.0,
+      "LeftLength": 0.0,
+      "RightLength": 0.0,
+      "CornerRadius": 0.0,
+      "LoopDiameter": 60.0,
+      "LeadLength": 40.0,
+      "TangentLength": 15.0,
+      "RailOffset": 12.0,
+      "Offset": 0.0,
+      "DropLength": 0.0,
+      "ZAngle": 0.0,
+      "LegSide": 0,
+      "StartDirection": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 0.0
+      },
+      "StartLength": 0.0,
+      "FootPosition": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 0.0
+      },
+      "FootRotation": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 0.0
+      },
+      "FootClockwise": false,
+      "FootWidth": 0.0,
+      "FootLength": 0.0,
+      "FootConnectionLength": 0.0
+    },
+    {
+      "Kind": "Elbow",
+      "Distance": 0.0,
+      "SolderThreshold": 2.0,
+      "SolderSize": 1.0,
+      "Enabled": true,
+      "Diameter": 7.5,
+      "HasCutout": false,
+      "CutoutStartAngle": 0.0,
+      "CutoutEndAngle": 0.0,
+      "HasStraightSection": false,
+      "StraightStartAngle": 0.0,
+      "StraightEndAngle": 0.0,
+      "Scale": 0.0,
+      "RingDensity": 0,
+      "LateralOffset": 0.0,
+      "VerticalOffset": 0.0,
+      "Angle": 0.0,
+      "Rotation": 0.0,
+      "LengthAdjustment": 0.0,
+      "Endpoint": 0,
+      "FirstRailIndex": 0,
+      "SecondRailIndex": 1,
+      "RailOffsets": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "BottomLength": 0.0,
+      "LeftLength": 0.0,
+      "RightLength": 0.0,
+      "CornerRadius": 0.0,
+      "LoopDiameter": 0.0,
+      "LeadLength": 0.0,
+      "TangentLength": 0.0,
+      "RailOffset": 0.0,
+      "Offset": 40.0,
+      "DropLength": 80.0,
+      "ZAngle": 0.0,
+      "LegSide": 0,
+      "StartDirection": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 0.0
+      },
+      "StartLength": 0.0,
+      "FootPosition": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 0.0
+      },
+      "FootRotation": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 0.0
+      },
+      "FootClockwise": false,
+      "FootWidth": 0.0,
+      "FootLength": 0.0,
+      "FootConnectionLength": 0.0
+    },
+    {
+      "Kind": "RailTrim",
+      "Distance": 920.8729,
+      "SolderThreshold": 2.0,
+      "SolderSize": 1.0,
+      "Enabled": true,
+      "Diameter": 0.0,
+      "HasCutout": false,
+      "CutoutStartAngle": 0.0,
+      "CutoutEndAngle": 0.0,
+      "HasStraightSection": false,
+      "StraightStartAngle": 0.0,
+      "StraightEndAngle": 0.0,
+      "Scale": 0.0,
+      "RingDensity": 0,
+      "LateralOffset": 0.0,
+      "VerticalOffset": 0.0,
+      "Angle": 0.0,
+      "Rotation": 0.0,
+      "LengthAdjustment": 0.0,
+      "Endpoint": 1,
+      "FirstRailIndex": 0,
+      "SecondRailIndex": 0,
+      "RailOffsets": [
+        0.0,
+        0.0,
+        0.0,
+        25.0,
+        0.0
+      ],
+      "BottomLength": 0.0,
+      "LeftLength": 0.0,
+      "RightLength": 0.0,
+      "CornerRadius": 0.0,
+      "LoopDiameter": 0.0,
+      "LeadLength": 0.0,
+      "TangentLength": 0.0,
+      "RailOffset": 0.0,
+      "Offset": 0.0,
+      "DropLength": 0.0,
+      "ZAngle": 0.0,
+      "LegSide": 0,
+      "StartDirection": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 0.0
+      },
+      "StartLength": 0.0,
+      "FootPosition": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 0.0
+      },
+      "FootRotation": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 0.0
+      },
+      "FootClockwise": false,
+      "FootWidth": 0.0,
+      "FootLength": 0.0,
+      "FootConnectionLength": 0.0
+    }
+  ]
+}
