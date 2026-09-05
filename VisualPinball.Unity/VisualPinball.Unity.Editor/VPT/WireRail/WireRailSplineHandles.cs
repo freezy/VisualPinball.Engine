@@ -530,8 +530,10 @@ namespace VisualPinball.Unity.Editor
 			up -= tangent * math.dot(up, tangent);
 			up = math.normalizesafe(up, new float3(0f, 0f, 1f));
 			var rotation = quaternion.LookRotationSafe(tangent, up);
-			var knotIndex = spline.Closed && segmentIndex == spline.Count - 1
-				? 0 : segmentIndex + 1;
+			// On a closed route the last curve runs from the last knot back to the first.
+			// Appending keeps knot 0, and with it distance zero, where the author put it;
+			// inserting at index 0 would move every layout and fixture along the route.
+			var knotIndex = segmentIndex + 1;
 
 			RecordUndo(component, "Add Wire Rail Knot");
 			spline.Insert(knotIndex, new BezierKnot(position) { Rotation = rotation },
