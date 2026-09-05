@@ -10,10 +10,10 @@ Nothing you see of a wire rail is modeled by hand. The component keeps two meshe
 
 ## Render Geometry
 
-<img src="render-geometry.png" width="420" alt="Render Geometry section" class="img-fluid float-end" style="margin-left: 15px"/>
+<img src="render-geometry.png" width="340" alt="Render Geometry section" class="img-fluid float-end" style="margin-left: 15px"/>
 
 - **Rails** is the wire count, described under [Wire Layouts](layouts.md#how-many-wires).
-- **Material** is applied to everything the rail generates. Leave it empty for the render pipeline's default material.
+- **Material** is applied to everything the rail generates.
 - **Wire Diameter** is the thickness of every wire in the rail, fixtures included. The default of 6.5 units is a typical habitrail wire next to a 50 unit ball.
 - **Tube Sides** is the polygon count around each tube, 6 to 16. Ten looks round at playing distance.
 - **Wire Cap Bevel** chamfers every exposed wire end by one segment so that cut ends catch the light. It's clamped to half the wire diameter. Ends that butt into an elbow or a hairpin are left square so the joint is flush.
@@ -25,7 +25,7 @@ Wires are capped only where they actually end: at the ends of the route, at a tr
 
 ## Ball Channel Collider
 
-<img src="collider-settings.png" width="420" alt="Ball Channel Collider section" class="img-fluid float-end" style="margin-left: 15px"/>
+<img src="collider-settings.png" width="340" alt="Ball Channel Collider section" class="img-fluid float-end" style="margin-left: 15px"/>
 
 The collider is not a tube around each wire. That would cost a lot of triangles and, worse, leave seams between the wires for the ball to catch on. Instead, the component works out where a ball of **Ball Diameter** would rest in the bundle, finds the point on each wire it would touch, and lays a flat facet through each contact point. The facets are joined into one channel profile, and the profile is swept along the route. The ball rolls on a smooth, continuous channel that behaves the way the wires would, at a fraction of the geometry.
 
