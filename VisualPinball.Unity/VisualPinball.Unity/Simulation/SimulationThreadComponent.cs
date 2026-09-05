@@ -250,6 +250,8 @@ namespace VisualPinball.Unity.Simulation
 		private PhysicsEngine _physicsEngine;
 		private IGamelogicEngine _gamelogicEngine;
 		private SimulationThread _simulationThread;
+		// Hardware-rule wire coils by input action, kept here so they outlive any one thread.
+		private readonly Dictionary<string, List<ISimulationThreadCoil>> _inputActionWireCoils = new();
 		private NativeInputManager _inputManager;
 
 		private bool _started = false;
@@ -380,6 +382,7 @@ namespace VisualPinball.Unity.Simulation
 						? new Action<string, float>((coilId, value) => player.DispatchCoilSimulationThread(coilId, value))
 						: null);
 				ConfigureTiltBobRouting();
+				ApplyInputActionWireCoils(_simulationThread);
 				_simulationThread.SyncClockFromMainThread(_physicsEngine.CurrentSimulationClockUsec, _physicsEngine.CurrentSimulationClockScale);
 
 				// Provide the triple-buffered SimulationState to PhysicsEngine so
@@ -740,13 +743,54 @@ namespace VisualPinball.Unity.Simulation
 			return _simulationThread.EnqueueExternalSwitch(switchId, isClosed);
 		}
 
-		/// <summary>Registers a hardware-rule wire coil for simulation-thread dispatch. See <see cref="SimulationThread.RegisterInputActionWireCoil"/>.</summary>
-		internal void RegisterInputActionWireCoil(string inputActionHint, ISimulationThreadCoil coil)
-			=> _simulationThread?.RegisterInputActionWireCoil(inputActionHint, coil);
+		/// <summary>
+		/// Registers a hardware-rule wire coil for simulation-thread dispatch. See
+		/// <see cref="SimulationThread.RegisterInputActionWireCoil"/>. The registration is kept at
+		/// component scope and applied to every simulation thread this component creates, so a
+		/// rule installed before <see cref="StartSimulation"/> or retained across a stop/start
+		/// cycle still reaches native-input dispatch.
+		/// </summary>
+		/// <returns>True when the input action is one the native poller can dispatch.</returns>
+		internal bool RegisterInputActionWireCoil(string inputActionHint, ISimulationThreadCoil coil)
+		{
+			if (coil == null || string.IsNullOrEmpty(inputActionHint)
+				|| !SimulationThread.TryMapInputActionHint(inputActionHint, out _)) {
+				return false;
+			}
+			if (!_inputActionWireCoils.TryGetValue(inputActionHint, out var coils)) {
+				coils = new List<ISimulationThreadCoil>(2);
+				_inputActionWireCoils[inputActionHint] = coils;
+			}
+			if (!coils.Contains(coil)) {
+				coils.Add(coil);
+			}
+			_simulationThread?.RegisterInputActionWireCoil(inputActionHint, coil);
+			return true;
+		}
 
 		/// <summary>Removes a hardware-rule wire coil registered for simulation-thread dispatch.</summary>
 		internal void UnregisterInputActionWireCoil(string inputActionHint, ISimulationThreadCoil coil)
-			=> _simulationThread?.UnregisterInputActionWireCoil(inputActionHint, coil);
+		{
+			if (coil == null || string.IsNullOrEmpty(inputActionHint)) {
+				return;
+			}
+			if (_inputActionWireCoils.TryGetValue(inputActionHint, out var coils)) {
+				coils.Remove(coil);
+				if (coils.Count == 0) {
+					_inputActionWireCoils.Remove(inputActionHint);
+				}
+			}
+			_simulationThread?.UnregisterInputActionWireCoil(inputActionHint, coil);
+		}
+
+		private void ApplyInputActionWireCoils(SimulationThread simulationThread)
+		{
+			foreach (var (inputActionHint, coils) in _inputActionWireCoils) {
+				foreach (var coil in coils) {
+					simulationThread.RegisterInputActionWireCoil(inputActionHint, coil);
+				}
+			}
+		}
 
 		#endregion
 
