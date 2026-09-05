@@ -1505,46 +1505,6 @@ namespace VisualPinball.Unity.Editor
 				new GUIContent("Curvature Detail",
 					"Controls adaptive collider tessellation. Curves receive more rows while "
 					+ "straight spans remain sparse."));
-			var spline = component.SplineContainer
-				? component.SplineContainer.Spline : null;
-			var closedRoute = spline != null && spline.Closed;
-			using (new EditorGUI.DisabledScope(closedRoute)) {
-				var widenStart = serializedObject.FindProperty("_widenStart");
-				EditorGUILayout.PropertyField(widenStart, new GUIContent("Widen Start",
-					"Enlarge the collider radius at the start of an open route."));
-				if (widenStart.boolValue) {
-					EditorGUI.indentLevel++;
-					EditorGUILayout.PropertyField(serializedObject.FindProperty("_widenStartSize"),
-						new GUIContent("Size",
-							"Multiplier applied to the collider radius at the route start. A value "
-							+ "of 1 leaves it unchanged."));
-					EditorGUILayout.PropertyField(serializedObject.FindProperty("_widenStartLength"),
-						new GUIContent("Length",
-							"Route distance over which the enlarged radius linearly returns to its "
-							+ "normal size."));
-					EditorGUI.indentLevel--;
-				}
-				var widenExit = serializedObject.FindProperty("_widenExit");
-				EditorGUILayout.PropertyField(widenExit, new GUIContent("Widen Exit",
-					"Enlarge the collider radius at the exit of an open route."));
-				if (widenExit.boolValue) {
-					EditorGUI.indentLevel++;
-					EditorGUILayout.PropertyField(serializedObject.FindProperty("_widenExitSize"),
-						new GUIContent("Size",
-							"Multiplier applied to the collider radius at the route exit. A value "
-							+ "of 1 leaves it unchanged."));
-					EditorGUILayout.PropertyField(serializedObject.FindProperty("_widenExitLength"),
-						new GUIContent("Length",
-							"Route distance over which the enlarged radius linearly returns to its "
-							+ "normal size."));
-					EditorGUI.indentLevel--;
-				}
-			}
-			if (closedRoute) {
-				EditorGUILayout.HelpBox(
-					"Endpoint widening is unavailable on a closed spline because it has no start or exit.",
-					MessageType.Info);
-			}
 			var colliderGeometryChanged = EditorGUI.EndChangeCheck();
 			EditorGUI.BeginChangeCheck();
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("_showColliderPreview"),
