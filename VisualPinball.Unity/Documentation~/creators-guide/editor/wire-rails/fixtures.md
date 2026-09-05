@@ -13,7 +13,7 @@ There are two families. **Supports** (ring, rung, cradle, stand) sit at a **Posi
 All of them share a few rules:
 
 - Every fixture uses the rail's global **Wire Diameter** and render material.
-- A fixture's position is a distance along the route and has nothing to do with layouts. Its shape, though, is fitted to the wires at that point: change the layout there and the fixture refits in place. Reshape the spline and the fixture travels with the route.
+- A fixture's position is a distance along the route and independent from the layouts. Its shape, though, is fitted to the wires at that point: change the layout there and the fixture refits in place. Reshape the spline and the fixture travels with the route.
 - Each panel previews the evaluated shape, with the rails it touches in gray.
 - **Enabled** hides a fixture from the render mesh only. It stays in the collider, so a hidden elbow or rail trim still shortens the channel. Use it to compare variants, not to keep spare fixtures around.
 - Supports are soldered to the rails they touch. See [Solder](#solder).
@@ -23,14 +23,15 @@ All of them share a few rules:
 
 ### Ring
 
-<img src="fixture-ring.png" width="420" alt="Ring parameters" class="img-fluid float-end" style="margin-left: 15px"/>
+<img src="fixture-ring.png" width="315" alt="Ring parameters" class="img-fluid float-end" style="margin-left: 15px"/>
 
 A ring around the whole bundle. It's fitted automatically: centered on the active wires at its position, and sized to just touch the outermost one. The fit follows the layout, so a ring inside a transition shrinks or grows with the wires.
 
 - **Scale** multiplies the fitted radius. 1 hugs the wires.
 - **Ring Density** is the number of tube segments around a full circle. A partial ring gets its proportional share.
 - **Offset X / Z** slides the whole ring in the cross-section.
-- **Cutout** removes an angular range, leaving an open arc with capped ends. **Straight Line** replaces a range with a straight chord, for the flat-topped or flat-bottomed brackets many rails use. Both can be active at once.
+- **Cutout** removes an angular range, leaving an open arc with capped ends. 
+- **Straight Line** replaces a range with a straight chord, for the flat-topped or flat-bottomed brackets many rails use. Both can be active at once.
 
 Angles run counter-clockwise from the right: 0° is to the right of the rail, 90° straight up, 180° left, 270° down. A range may wrap past 360°. The small horizon button beside each range keeps its width but re-centers it on straight up or straight down, whichever is closer, so both ends sit at the same height. Use it to level a chord you've roughed in with the slider.
 
@@ -40,7 +41,7 @@ Angles run counter-clockwise from the right: 0° is to the right of the rail, 90
 
 ### Rung
 
-<img src="fixture-rung.png" width="420" alt="Rung parameters" class="img-fluid float-end" style="margin-left: 15px"/>
+<img src="fixture-rung.png" width="315" alt="Rung parameters" class="img-fluid float-end" style="margin-left: 15px"/>
 
 A straight rung between the two bottom rails, wires 1 and 2. Its span is measured from wire surface to wire surface.
 
@@ -54,7 +55,7 @@ The rung disappears wherever either bottom rail is inactive.
 
 ### Cradle
 
-<img src="fixture-cradle.png" width="420" alt="Cradle parameters" class="img-fluid float-end" style="margin-left: 15px"/>
+<img src="fixture-cradle.png" width="315" alt="Cradle parameters" class="img-fluid float-end" style="margin-left: 15px"/>
 
 A rung with an arm rising from each end: the U-shaped bracket that cradles a habitrail from below. Its default shape is fitted to the default four-wire layout, with the arms leaning out at 53.13° and just touching the outside of the bottom and raised rails.
 
@@ -71,7 +72,7 @@ The fixture stays anchored where its default shape fits, so editing lengths and 
 
 ### Stand
 
-<img src="fixture-stand.png" width="420" alt="Stand parameters" class="img-fluid float-end" style="margin-left: 15px"/>
+<img src="fixture-stand.png" width="315" alt="Stand parameters" class="img-fluid float-end" style="margin-left: 15px"/>
 
 A leg from the rail down to the playfield, ending in the U-shaped hook that gets screwed down. The stand is one continuous wire: an attachment across the two bottom rails, a leg, and a foot.
 
@@ -80,7 +81,8 @@ A leg from the rail down to the playfield, ending in the U-shaped hook that gets
 **Leg**
 
 - **Side** chooses which end of the attachment the leg leaves from. Changing it moves the leg to the other rail and nothing else. **Mirror** flips the entire stand, foot included, to the other side of the rail.
-- **Start Vector** is the direction the leg sets off in, in route-local coordinates: X across the rail, Y along it, Z up. The default (0, 0, -1) goes straight down. **Start Length** is how far it travels before bending toward the foot. Give it some Y and the leg leans along the route, which is how the long diagonal struts on real rails are made.
+- **Start Vector** is the direction the leg sets off in, in route-local coordinates: X across the rail, Y along it, Z up. The default (0, 0, -1) goes straight down. 
+- **Start Length** is how far it travels before bending toward the foot. Give it some Y and the leg leans along the route, which is how the long diagonal struts on real rails are made.
 
 **U-Hook Foot**
 
@@ -96,7 +98,7 @@ Every bend in the leg is rounded to the wire diameter. The stand is omitted wher
 
 Wherever a support's wire touches a rail, the generator adds a small solder blob.
 
-![Solder blobs where a ring meets the rails](fixture-solder.png)
+<img src="fixture-solder.png" width="294" alt="Solder blobs where a ring meets the rails" class="img-fluid float-end" style="margin-left: 15px"/>
 
 - **Solder Threshold** is the largest surface gap that still counts as touching, 2 units by default. It's an absolute distance: a thicker wire doesn't get a more forgiving threshold.
 - **Solder Size** scales the blob. All three dimensions scale, so doubling it gives eight times the volume.
@@ -109,7 +111,7 @@ End fittings need an open route. Hairpins and elbows take over two rails at one 
 
 ### Hairpin
 
-<img src="fixture-hairpin.png" width="420" alt="Hairpin parameters" class="img-fluid float-end" style="margin-left: 15px"/>
+<img src="fixture-hairpin.png" width="315" alt="Hairpin parameters" class="img-fluid float-end" style="margin-left: 15px"/>
 
 Joins two rails into one semicircle past the end of the route, the shape that ends most habitrails where the ball drops out. The rails blend into the loop through smooth leads, without a notch.
 
@@ -126,7 +128,7 @@ The loop's collider is a coarse square tube along the leads and the arc, and its
 
 ### Elbow
 
-<img src="fixture-elbow.png" width="420" alt="Elbow parameters" class="img-fluid float-end" style="margin-left: 15px"/>
+<img src="fixture-elbow.png" width="315" alt="Elbow parameters" class="img-fluid float-end" style="margin-left: 15px"/>
 
 Two rails that bend straight down, side by side: the mouth of a rail feeding a hole, a scoop or a subway.
 
@@ -141,7 +143,7 @@ The bend radius equals the wire diameter (an elbow shorter than that tightens it
 
 ### Rail Trim
 
-<img src="fixture-rail-trim.png" width="420" alt="Rail trim parameters" class="img-fluid float-end" style="margin-left: 15px"/>
+<img src="fixture-rail-trim.png" width="315" alt="Rail trim parameters" class="img-fluid float-end" style="margin-left: 15px"/>
 
 Not a shape, just a distance per rail, measured inward from one endpoint. Use it when individual rails should start or end at different points without adding a layout: a top wire that stops short, a guide that starts late. 0 leaves a rail alone.
 
