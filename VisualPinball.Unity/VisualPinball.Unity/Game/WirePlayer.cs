@@ -277,9 +277,21 @@ namespace VisualPinball.Unity
 		private void UnregisterSimulationThreadWireCoil(string inputAction, WireDestConfig destConfig)
 		{
 			_simulationThreadWireDests.Remove(destConfig);
-			if (TryGetSimulationThreadCoil(destConfig, out var coil)) {
-				_player.UnregisterInputActionWireCoil(inputAction, coil);
+			if (!TryGetSimulationThreadCoil(destConfig, out var coil)) {
+				return;
 			}
+			// The same rule installed twice yields two assignments sharing one native
+			// registration. Keep that registration while another assignment on this action
+			// still routes to the coil, or the survivor would suppress its managed fallback
+			// with nothing firing on the simulation thread.
+			if (_keyWireAssignments.TryGetValue(inputAction, out var remaining)
+				&& remaining.Any(other => other != destConfig
+					&& _simulationThreadWireDests.Contains(other)
+					&& TryGetSimulationThreadCoil(other, out var otherCoil)
+					&& ReferenceEquals(otherCoil, coil))) {
+				return;
+			}
+			_player.UnregisterInputActionWireCoil(inputAction, coil);
 		}
 
 		private bool IsDispatchedOnSimulationThread(WireDestConfig wireConfig)
