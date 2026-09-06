@@ -32,9 +32,9 @@ namespace VisualPinball.Unity
 			_matrix = matrix;
 		}
 
-		internal void GenerateColliders(ref ColliderReference colliders, float zPosition)
+		internal void GenerateColliders(ref ColliderReference colliders, float3 offset)
 		{
-			GenerateSpinnerCollider(ref colliders, zPosition);
+			GenerateSpinnerCollider(ref colliders, offset);
 			if (_component.ShowBracket) {
 				GenerateBracketColliders(ref colliders);
 			}
@@ -44,8 +44,8 @@ namespace VisualPinball.Unity
 		/// The collider that triggers the animation
 		/// </summary>
 		/// <param name="colliders"></param>
-		/// <param name="zPosition"></param>
-		private void GenerateSpinnerCollider(ref ColliderReference colliders, float zPosition)
+		/// <param name="offset"></param>
+		private void GenerateSpinnerCollider(ref ColliderReference colliders, float3 offset)
 		{
 			const float halfLength = 40f;
 
@@ -53,16 +53,16 @@ namespace VisualPinball.Unity
 			// position, we generate them relative to the origin and then transform them later.
 			var v1 = new float2(
 				- (halfLength + PhysicsConstants.PhysSkin), // through the edge of the
-				0  // spinner
-			);
+				0f                                         // spinner
+			) + offset.xy;
 			var v2 = new float2(
 				halfLength + PhysicsConstants.PhysSkin, // oversize by the ball radius
-				0  // this will prevent clipping
-			);
+				0f                                      // this will prevent clipping
+			) + offset.xy;
 
 			// todo probably broke surface
-			var lineSeg0 = new LineCollider(v1, v2, zPosition + -2f * PhysicsConstants.PhysSkin, zPosition, _api.GetColliderInfo());
-			var lineSeg1 = new LineCollider(v2, v1, zPosition + -2f * PhysicsConstants.PhysSkin, zPosition, _api.GetColliderInfo());
+			var lineSeg0 = new LineCollider(v1, v2, offset.z - 2f * PhysicsConstants.PhysSkin, offset.z, _api.GetColliderInfo());
+			var lineSeg1 = new LineCollider(v2, v1, offset.z - 2f * PhysicsConstants.PhysSkin, offset.z, _api.GetColliderInfo());
 
 			colliders.Add(new SpinnerCollider(in lineSeg0, in lineSeg1, _api.GetColliderInfo()), _matrix);
 		}

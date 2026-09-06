@@ -17,6 +17,7 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
+using UnityEngine;
 using VisualPinball.Engine.VPT.Gate;
 
 namespace VisualPinball.Unity.Editor
@@ -26,6 +27,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		private SerializedProperty _zLowProperty;
 		private SerializedProperty _distanceProperty;
+		private SerializedProperty _horizontalOffsetProperty;
 		private SerializedProperty _angleMinProperty;
 		private SerializedProperty _angleMaxProperty;
 		private SerializedProperty _elasticityProperty;
@@ -40,6 +42,7 @@ namespace VisualPinball.Unity.Editor
 
 			_zLowProperty = serializedObject.FindProperty(nameof(GateColliderComponent.ZLow));
 			_distanceProperty = serializedObject.FindProperty(nameof(GateColliderComponent.Distance));
+			_horizontalOffsetProperty = serializedObject.FindProperty(nameof(GateColliderComponent.HorizontalOffset));
 			_angleMinProperty = serializedObject.FindProperty(nameof(GateColliderComponent._angleMin));
 			_angleMaxProperty = serializedObject.FindProperty(nameof(GateColliderComponent._angleMax));
 			_elasticityProperty = serializedObject.FindProperty(nameof(GateColliderComponent.Elasticity));
@@ -59,8 +62,7 @@ namespace VisualPinball.Unity.Editor
 
 			OnPreInspectorGUI();
 
-			PropertyField(_zLowProperty, "Z-Low", updateColliders: true);
-			PropertyField(_distanceProperty, "Distance", updateColliders: true);
+			DrawOffsetField();
 			PropertyField(_angleMinProperty, "Close Angle");
 			PropertyField(_angleMaxProperty, "Open Angle");
 			PropertyField(_elasticityProperty);
@@ -72,6 +74,25 @@ namespace VisualPinball.Unity.Editor
 			base.OnInspectorGUI();
 
 			EndEditing();
+		}
+
+		private void DrawOffsetField()
+		{
+			EditorGUI.BeginChangeCheck();
+			EditorGUI.showMixedValue = _horizontalOffsetProperty.hasMultipleDifferentValues
+			                           || _distanceProperty.hasMultipleDifferentValues
+			                           || _zLowProperty.hasMultipleDifferentValues;
+			var offset = EditorGUILayout.Vector3Field(
+				new GUIContent("Offset", "Collider-local X, Y, and Z offset in VPX units."),
+				new Vector3(_horizontalOffsetProperty.floatValue, _distanceProperty.floatValue, _zLowProperty.floatValue)
+			);
+			EditorGUI.showMixedValue = false;
+			if (EditorGUI.EndChangeCheck()) {
+				_horizontalOffsetProperty.floatValue = offset.x;
+				_distanceProperty.floatValue = offset.y;
+				_zLowProperty.floatValue = offset.z;
+				ColliderComponent.CollidersDirty = true;
+			}
 		}
 	}
 }

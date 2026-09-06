@@ -86,7 +86,7 @@ namespace VisualPinball.Unity
 		protected override void CreateColliders(ref ColliderReference colliders, float4x4 translateWithinPlayfieldMatrix, float margin)
 		{
 			var colliderGenerator = new SpinnerColliderGenerator(this, MainComponent, translateWithinPlayfieldMatrix);
-			colliderGenerator.GenerateColliders(ref colliders, ColliderComponent.ZPosition);
+			colliderGenerator.GenerateColliders(ref colliders, ColliderComponent.Offset);
 		}
 
 		#endregion

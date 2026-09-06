@@ -16,6 +16,8 @@
 
 // ReSharper disable MemberCanBePrivate.Global
 
+using UnityEngine;
+
 namespace VisualPinball.Unity
 {
 	public struct GatePackable
@@ -35,6 +37,7 @@ namespace VisualPinball.Unity
 		public float AngleMin;
 		public float ZLow;
 		public float Distance;
+		public PackableFloat3? Offset;
 		public float Damping;
 		public float GravityFactor;
 		public bool TwoWay;
@@ -45,8 +48,9 @@ namespace VisualPinball.Unity
 				IsMovable = comp._isKinematic,
 				AngleMax = comp.AngleMax,
 				AngleMin = comp.AngleMin,
-				ZLow = comp.ZLow,
-				Distance = comp.Distance,
+				ZLow = comp.Offset.z,
+				Distance = comp.Offset.y,
+				Offset = comp.Offset,
 				Damping = comp.Damping,
 				GravityFactor = comp.GravityFactor,
 				TwoWay = comp._twoWay
@@ -59,8 +63,9 @@ namespace VisualPinball.Unity
 			comp._isKinematic = data.IsMovable;
 			comp.AngleMax = data.AngleMax;
 			comp.AngleMin = data.AngleMin;
-			comp.ZLow = data.ZLow;
-			comp.Distance = data.Distance;
+			comp.Offset = data.Offset.HasValue
+				? (Vector3)data.Offset.Value
+				: new Vector3(0f, data.Distance, data.ZLow);
 			comp.Damping = data.Damping;
 			comp.GravityFactor = data.GravityFactor;
 			comp._twoWay = data.TwoWay;

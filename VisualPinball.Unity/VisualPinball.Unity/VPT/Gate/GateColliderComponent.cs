@@ -36,13 +36,26 @@ namespace VisualPinball.Unity
 		[ToolboxItem("Angle of bracket/plate when closed")]
 		public float _angleMin;
 
-		[Range(-50f, 50f)]
-		[ToolboxItem("Bottom Z position of the gate collider, relative to the origin.")]
+		[HideInInspector]
 		public float ZLow = -50f;
 
-		[Range(-50, 50)]
-		[ToolboxItem("Distance in gate direction of the collider.")]
+		[HideInInspector]
 		public float Distance = 0f;
+
+		[HideInInspector]
+		public float HorizontalOffset;
+
+		/// <summary>
+		/// Collider-local offset in VPX units.
+		/// </summary>
+		public Vector3 Offset {
+			get => new(HorizontalOffset, Distance, ZLow);
+			set {
+				HorizontalOffset = value.x;
+				Distance = value.y;
+				ZLow = value.z;
+			}
+		}
 
 		[Min(0)]
 		[ToolboxItem("How much damping is applied during movement")]

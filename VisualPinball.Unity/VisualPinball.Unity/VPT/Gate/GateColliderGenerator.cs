@@ -28,18 +28,16 @@ namespace VisualPinball.Unity
 		private readonly GateApi _api;
 		private readonly float4x4 _matrix;
 
-		private readonly float _zLow;
-		private readonly float _dist;
-		private const float ZHeight = 50;
+		private readonly float3 _offset;
+		private const float ZHeight = 50f;
 
-		internal GateColliderGenerator(GateApi gateApi, IGateData data, IGateColliderData collData, float zLow, float dist, float4x4 matrix)
+		internal GateColliderGenerator(GateApi gateApi, IGateData data, IGateColliderData collData, float3 offset, float4x4 matrix)
 		{
 			_api = gateApi;
 			_data = data;
 			_collData = collData;
 			_matrix = matrix;
-			_zLow = zLow;
-			_dist = dist;
+			_offset = offset;
 		}
 
 		internal void GenerateColliders(ref ColliderReference colliders) // var height = table.GetSurfaceHeight(_data.Surface, _data.Center.X, _data.Center.Y);
@@ -71,11 +69,11 @@ namespace VisualPinball.Unity
 			// position, we generate them relative to the origin and then transform them.
 
 			const float halfLength = 10f;
-			var v1 = new float2(-(halfLength + PhysicsConstants.PhysSkin), _dist);
-			var v2 = new float2(halfLength + PhysicsConstants.PhysSkin, _dist);
+			var v1 = new float2(-(halfLength + PhysicsConstants.PhysSkin), 0f) + _offset.xy;
+			var v2 = new float2(halfLength + PhysicsConstants.PhysSkin, 0f) + _offset.xy;
 
-			var lineSeg0 = new LineCollider(v1, v2, _zLow, _zLow + ZHeight, _api.GetColliderInfo());
-			var lineSeg1 = new LineCollider(v2, v1, _zLow, _zLow + ZHeight, _api.GetColliderInfo());
+			var lineSeg0 = new LineCollider(v1, v2, _offset.z, _offset.z + ZHeight, _api.GetColliderInfo());
+			var lineSeg1 = new LineCollider(v2, v1, _offset.z, _offset.z + ZHeight, _api.GetColliderInfo());
 
 			colliders.Add(new GateCollider(in lineSeg0, in lineSeg1, _api.GetColliderInfo()), _matrix);
 		}
@@ -92,11 +90,11 @@ namespace VisualPinball.Unity
 
 			// oversize by the ball's radius to prevent the ball from clipping through
 			const float halfLength = 10f;
-			var rgv0 = new float2(halfLength + PhysicsConstants.PhysSkin, _dist);
-			var rgv1 = new float2(-(halfLength + PhysicsConstants.PhysSkin), _dist);
+			var rgv0 = new float2(halfLength + PhysicsConstants.PhysSkin, 0f) + _offset.xy;
+			var rgv1 = new float2(-(halfLength + PhysicsConstants.PhysSkin), 0f) + _offset.xy;
 
 			var info = _api.GetColliderInfo(ItemType.Invalid); // hack to not treat this line seg as gate
-			colliders.Add(new LineCollider(rgv0, rgv1, _zLow, _zLow + ZHeight, info), _matrix); //!! = ball diameter
+			colliders.Add(new LineCollider(rgv0, rgv1, _offset.z, _offset.z + ZHeight, info), _matrix); //!! = ball diameter
 		}
 
 		/// <summary>
@@ -110,16 +108,16 @@ namespace VisualPinball.Unity
 			colliders.Add(new CircleCollider(
 				new float2(halfLength, 0),
 				1f,
-				_zLow,
-				_zLow + ZHeight,
+				_offset.z,
+				_offset.z + ZHeight,
 				_api.GetColliderInfo(ItemType.Invalid) // hack to not treat this hit circle as gate
 			), _matrix);
 
 			colliders.Add(new CircleCollider(
 				new float2(-halfLength, 0),
 				1f,
-				_zLow,
-				_zLow + ZHeight,
+				_offset.z,
+				_offset.z + ZHeight,
 				_api.GetColliderInfo(ItemType.Invalid) // hack to not treat this hit circle as gate
 			), _matrix);
 		}

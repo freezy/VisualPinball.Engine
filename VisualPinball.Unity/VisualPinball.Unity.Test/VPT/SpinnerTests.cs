@@ -15,7 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.IO;
+using System.Text;
 using NUnit.Framework;
+using Unity.Collections;
+using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Test.Test;
 using VisualPinball.Engine.Test.VPT.Spinner;
@@ -26,6 +29,68 @@ namespace VisualPinball.Unity.Test
 {
 	public class SpinnerTests
 	{
+		[Test]
+		public void ShouldGenerateColliderAtThreeDimensionalOffset()
+		{
+			var go = new GameObject("Spinner Collider Offset Test");
+			var nonTransformableColliderTransforms = new NativeParallelHashMap<int, float4x4>(1, Allocator.Temp);
+			var colliders = new ColliderReference(ref nonTransformableColliderTransforms, Allocator.Temp);
+
+			try {
+				go.AddComponent<SpinnerComponent>();
+				var colliderComponent = go.AddComponent<SpinnerColliderComponent>();
+				colliderComponent.Offset = new Vector3(12f, 23f, 34f);
+
+				var api = new SpinnerApi(go, null, null);
+				((IApiColliderGenerator)api).CreateColliders(ref colliders, float4x4.identity, 0f);
+
+				Assert.That(colliders.SpinnerColliders.Length, Is.EqualTo(1));
+				var line = colliders.SpinnerColliders[0].LineSeg0;
+				Assert.That((line.V1.x + line.V2.x) * 0.5f, Is.EqualTo(12f));
+				Assert.That(line.V1.y, Is.EqualTo(23f));
+				Assert.That(line.V2.y, Is.EqualTo(23f));
+				Assert.That(line.ZHigh, Is.EqualTo(34f));
+			} finally {
+				colliders.Dispose();
+				nonTransformableColliderTransforms.Dispose();
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldRoundTripColliderOffsetThroughPackable()
+		{
+			var go = new GameObject("Spinner Collider Offset Packable Test");
+			try {
+				var colliderComponent = go.AddComponent<SpinnerColliderComponent>();
+				var expected = new Vector3(12f, 23f, 34f);
+				colliderComponent.Offset = expected;
+
+				var bytes = colliderComponent.Pack();
+				colliderComponent.Offset = Vector3.zero;
+				colliderComponent.Unpack(bytes);
+
+				Assert.That(colliderComponent.Offset, Is.EqualTo(expected));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldRestoreLegacyPackedZPositionAsOffset()
+		{
+			var go = new GameObject("Legacy Spinner Collider Offset Packable Test");
+			try {
+				var colliderComponent = go.AddComponent<SpinnerColliderComponent>();
+
+				colliderComponent.Unpack(Encoding.UTF8.GetBytes("{\"ZPosition\":34.0}"));
+
+				Assert.That(colliderComponent.Offset, Is.EqualTo(new Vector3(0f, 0f, 34f)));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
 		[Test]
 		public void ShouldWriteImportedSpinnerData()
 		{

@@ -35,8 +35,26 @@ namespace VisualPinball.Unity
 		[Tooltip("Bounciness (coefficient of restitution) of the spinner bracket.")]
 		public float Elasticity = 0.3f;
 
-		[Tooltip("Collider z-position relative to the spinner.")]
+		[HideInInspector]
 		public float ZPosition;
+
+		[HideInInspector]
+		public float Distance;
+
+		[HideInInspector]
+		public float HorizontalOffset;
+
+		/// <summary>
+		/// Collider-local offset in VPX units.
+		/// </summary>
+		public Vector3 Offset {
+			get => new(HorizontalOffset, Distance, ZPosition);
+			set {
+				HorizontalOffset = value.x;
+				Distance = value.y;
+				ZPosition = value.z;
+			}
+		}
 
 		#endregion
 

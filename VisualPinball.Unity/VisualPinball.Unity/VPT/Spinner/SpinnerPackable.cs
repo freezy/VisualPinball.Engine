@@ -16,6 +16,8 @@
 
 // ReSharper disable MemberCanBePrivate.Global
 
+using UnityEngine;
+
 namespace VisualPinball.Unity
 {
 	public struct SpinnerPackable
@@ -47,13 +49,15 @@ namespace VisualPinball.Unity
 		public bool IsMovable;
 		public float? Mass;
 		public float ZPosition;
+		public PackableFloat3? Offset;
 
 		public static byte[] Pack(SpinnerColliderComponent comp)
 		{
 			return PackageApi.Packer.Pack(new SpinnerColliderPackable {
 				IsMovable = comp._isKinematic,
 				Mass = comp.Mass,
-				ZPosition = comp.ZPosition,
+				ZPosition = comp.Offset.z,
+				Offset = comp.Offset,
 			});
 		}
 
@@ -62,7 +66,9 @@ namespace VisualPinball.Unity
 			var data = PackageApi.Packer.Unpack<SpinnerColliderPackable>(bytes);
 			comp._isKinematic = data.IsMovable;
 			comp.Mass = data.Mass ?? comp.Mass;
-			comp.ZPosition = data.ZPosition;
+			comp.Offset = data.Offset.HasValue
+				? (Vector3)data.Offset.Value
+				: new Vector3(0f, 0f, data.ZPosition);
 		}
 	}
 }

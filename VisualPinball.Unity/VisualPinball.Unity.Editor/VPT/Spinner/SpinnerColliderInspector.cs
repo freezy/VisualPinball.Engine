@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using UnityEditor;
+using UnityEngine;
 using VisualPinball.Engine.VPT.Spinner;
 
 namespace VisualPinball.Unity.Editor
@@ -25,6 +26,8 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _massProperty;
 		private SerializedProperty _elasticityProperty;
 		private SerializedProperty _zPosProperty;
+		private SerializedProperty _distanceProperty;
+		private SerializedProperty _horizontalOffsetProperty;
 
 		protected override void OnEnable()
 		{
@@ -32,6 +35,8 @@ namespace VisualPinball.Unity.Editor
 			_massProperty = serializedObject.FindProperty(nameof(SpinnerColliderComponent.Mass));
 			_elasticityProperty = serializedObject.FindProperty(nameof(SpinnerColliderComponent.Elasticity));
 			_zPosProperty = serializedObject.FindProperty(nameof(SpinnerColliderComponent.ZPosition));
+			_distanceProperty = serializedObject.FindProperty(nameof(SpinnerColliderComponent.Distance));
+			_horizontalOffsetProperty = serializedObject.FindProperty(nameof(SpinnerColliderComponent.HorizontalOffset));
 		}
 
 		public override void OnInspectorGUI()
@@ -46,11 +51,30 @@ namespace VisualPinball.Unity.Editor
 
 			PropertyField(_massProperty);
 			PropertyField(_elasticityProperty, updateTransforms: true);
-			PropertyField(_zPosProperty, updateColliders: true);
+			DrawOffsetField();
 
 			base.OnInspectorGUI();
 
 			EndEditing();
+		}
+
+		private void DrawOffsetField()
+		{
+			EditorGUI.BeginChangeCheck();
+			EditorGUI.showMixedValue = _horizontalOffsetProperty.hasMultipleDifferentValues
+			                           || _distanceProperty.hasMultipleDifferentValues
+			                           || _zPosProperty.hasMultipleDifferentValues;
+			var offset = EditorGUILayout.Vector3Field(
+				new GUIContent("Offset", "Collider-local X, Y, and Z offset in VPX units."),
+				new Vector3(_horizontalOffsetProperty.floatValue, _distanceProperty.floatValue, _zPosProperty.floatValue)
+			);
+			EditorGUI.showMixedValue = false;
+			if (EditorGUI.EndChangeCheck()) {
+				_horizontalOffsetProperty.floatValue = offset.x;
+				_distanceProperty.floatValue = offset.y;
+				_zPosProperty.floatValue = offset.z;
+				ColliderComponent.CollidersDirty = true;
+			}
 		}
 	}
 }
