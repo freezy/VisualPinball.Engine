@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Actuators | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Actuators | VPE Documentation ">
+      
+      <meta name="description" content="Drive one or more moving objects from a single coil input.">
+      <link rel="icon" href="../../../favicon.png">
+      <link rel="stylesheet" href="../../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../../public/main.css">
+      <link rel="stylesheet" href="../../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../../toc.html">
+      <meta name="docfx:tocrel" content="../../toc.html">
+      
+      <meta name="docfx:rel" content="../../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/manual/mechanisms/actuators.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../../public/docfx.min.js"></script>
+      <script src="./../../../public/mermaid-11.14.0.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../../index.html">
+            <img id="logo" class="svg" src="../../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="actuator">
+<h1 id="actuators">Actuators</h1>
+
+<p>The <strong>Actuator</strong> component turns one gamelogic coil into a normalized mechanical position. Any number of <strong>Actuator Transform</strong> components can follow that position with independent translation, rotation, direction, and response curves. Use this combination for moving ramps, diverters, doors, bridges, toys, linkages, and other coil-driven geometry that does not have a dedicated VPE component.</p>
+<h2 id="setup">Setup</h2>
+<ol>
+<li>Add <strong>Pinball &gt; Mechs &gt; Actuator</strong> to a dedicated active GameObject below the table's Player.</li>
+<li>Map its <strong>Actuator</strong> coil in the <a class="xref" href="../../editor/coil-manager.html">Coil Manager</a>.</li>
+<li>Put each moving object under a GameObject whose local origin matches the real mechanical pivot or linkage origin.</li>
+<li>Add <strong>Pinball &gt; Animation &gt; Actuator Transform</strong> to every independently moving pivot and assign the same Actuator as its <strong>Emitter</strong>. A follower below the actuator in the hierarchy can also find it automatically.</li>
+<li>Enable <strong>Position</strong>, <strong>Rotation</strong>, or both and author the offsets representing normalized position 1. The existing local transform is position 0. Translation defaults to <strong>World</strong>. Choose <strong>Local</strong> when the offset should follow the follower's authored red, green, and blue Local gizmo axes.</li>
+<li>If the mechanism has position, limit, or encoder switches, add them under <strong>Position Switches</strong> and map the resulting items in the <a class="xref" href="../../editor/switch-manager.html">Switch Manager</a>.</li>
+<li>Mark every VPE collider that moves with these pivots as <strong>Kinematic</strong> before the table loads.</li>
+</ol>
+<p>Children inherit their parent's movement, so decorative meshes and collision belonging to one rigid part should normally be grouped below one driven pivot. Add another follower only when a second rigid part needs a different offset, direction, or response curve.</p>
+<h2 id="edit-mode-preview">Edit-mode preview</h2>
+<p>Select the Actuator and scrub <strong>Preview Position</strong> to inspect every connected Actuator Transform without entering Play Mode or firing a coil. The slider uses each follower's position offset, rotation offset, response curve, and reverse setting. <strong>Reset Preview</strong> returns every follower to its authored local pose. Preview poses are also restored automatically before saving the scene, entering Play Mode, reloading scripts, quitting Unity, undoing, or leaving the Actuator inspector; they are never intended to become authored transform values. Preview is disabled for objects opened in Prefab Mode so a temporary pose cannot be saved into the prefab asset.</p>
+<p>The preview slider changes only editor geometry. It does not emit position switches to the gamelogic engine.</p>
+<h2 id="position-switches">Position switches</h2>
+<p>Each actuator can expose any number of switches derived from its actual normalized position. The configured name appears in the Switch Manager, while VPE maintains a stable internal item ID so mappings remain intact when the display name changes. Position ranges are inclusive and use the same <code>0</code> to <code>1</code> travel value as the animation.</p>
+<ul>
+<li><strong>Enable Between</strong> is a maintained switch. It becomes enabled while the actuator position is inside the configured range and disabled immediately after leaving it. Two narrow ranges near <code>0</code> and <code>1</code> model ordinary endpoint or limit switches; both will be disabled through the middle of travel.</li>
+<li><strong>Pulse Between</strong> emits pulses at fixed normalized travel intervals while the actuator crosses a configured position range. Pulse marks are anchored at the beginning of the range and work in both travel directions.</li>
+<li><strong>Always Pulse</strong> uses the same travel-based interval over the entire stroke. This is useful for simple encoder or cam-wheel feedback.</li>
+</ul>
+<p>Set <strong>Pulse Duration</strong> on each pulse switch to control the minimum time its close edge remains active. When one frame crosses multiple marks, the actuator queues every mark and emits each close and open edge on a separate update frame so the gamelogic engine and direct wire consumers observe every transition. This limits sustained output to roughly half the Unity update frequency; choose a pulse interval appropriate for the mechanism's travel speed or queued feedback will lag behind its animation. <code>SnapTo(float)</code> recalculates maintained switch states, cancels pending pulses, and deliberately does not synthesize encoder pulses. The editor preview changes only geometry and does not affect any switch. These rules make restore and diagnostics deterministic rather than pretending that instantaneous repositioning was physical travel.</p>
+<h2 id="coil-modes">Coil modes</h2>
+<h3 id="follow-coil">Follow Coil</h3>
+<p>The actuator travels toward position 1 while the coil is energized and toward 0 after it remains off for <strong>Release Delay</strong>. This fits held solenoids, motors, and ordinary energized/de-energized diverters.</p>
+<h3 id="toggle-on-pulse">Toggle On Pulse</h3>
+<p>Every qualified rising edge swaps the target between 0 and 1. Repeated nonzero strength updates count as the same pulse, and short zero gaps below <strong>Release Delay</strong> do not rearm it. Use this for bistable or mechanically toggled mechanisms driven by brief pulses.</p>
+<h3 id="one-shot">One Shot</h3>
+<p>A rising edge travels to 1, waits for <strong>One Shot Hold Duration</strong>, then returns to 0. A held coil produces one cycle and must release before it can trigger another.</p>
+<h3 id="follow-value">Follow Value</h3>
+<p>The normalized coil duty cycle becomes the target position. Select this only for a genuinely proportional mechanism. It requires a plain coil mapping: wire and dynamic-wire paths carry only boolean state and cannot preserve a proportional value.</p>
+<p>Binary modes never interpret coil strength as mechanism position. A value such as <code>0.25</code> can be a reduced-power solenoid pulse that still produces one complete mechanical stroke.</p>
+<h2 id="travel-and-curves">Travel and curves</h2>
+<p><strong>Activation Duration</strong> and <strong>Release Duration</strong> are full-stroke times. A command that starts midway through the stroke scales its duration by the remaining distance. Activation and release have independent curves; every follower can additionally reshape the shared position with its own <strong>Response Curve</strong> or select <strong>Reverse</strong>. A follower's <strong>Translation Space</strong> controls only the axes of <strong>Position Offset</strong>: <strong>Local</strong> uses the follower's authored Local gizmo orientation, while <strong>World</strong> uses global axes and continuously keeps the authored baseline attached to a moving parent. World offsets are measured in scene units; Local offsets inherit the parent's scale.</p>
+<p>The actuator clamps its position to the range 0 through 1. Curves can ease movement but cannot drive collision beyond the authored endpoints. A zero duration, or the runtime API's <code>SnapTo</code>, is an immediate transform teleport intended for initialization, restore, or diagnostics; it is not a gameplay-safe way to push a ball.</p>
+<h2 id="moving-collision">Moving collision</h2>
+<p>An Actuator Transform only moves a Unity local transform. It does not discover, configure, enable, disable, or change collider modes. Collision setup remains the table author's responsibility. VPE follows collision only when the corresponding collider component is active and marked <strong>Kinematic</strong> when the physics engine initializes. Do not enable the collider later or switch the kinematic flag during play and expect it to register dynamically.</p>
+<p>Keep render and collision for a rigid moving part on the same transform branch. VPE derives linear and angular velocity from that branch's pose changes, allowing a moving ramp or bridge to interact with balls instead of merely changing appearance. Scale animation is deliberately unsupported; build moving mechanisms from rigid translated and rotated parts.</p>
+<h2 id="example-linked-collapsing-bridge">Example: linked collapsing bridge</h2>
+<p>Use one actuator mapped to the bridge coil and set it to <strong>Toggle On Pulse</strong> when each pulse mechanically swaps the bridge state. Create left and right hinge pivots as separate followers of that actuator. Give one the measured positive hinge rotation and the other the measured negative rotation, and place each half's render mesh, side walls, and kinematic collider beneath its pivot. Fixed frame and coil-bracket geometry stays outside both moving branches.</p>
+<p>If a destroyed bridge half should wiggle when struck by a ball, add that compliance on a separate child pivot below the actuator-driven hinge. Commanded bridge travel and impact response must not both write the same transform.</p>
+<h2 id="runtime-api">Runtime API</h2>
+<p><code>ActuatorApi</code> exposes the current <code>Position</code>, <code>TargetPosition</code>, and <code>IsMoving</code> state. Set <code>IsActive</code> or call <code>Toggle()</code> for authored travel, listen to <code>Reached</code> for endpoint completion, and use <code>SnapTo(float)</code> only for restore or diagnostics. A script command takes precedence until the next qualified coil edge; it deliberately does not rewrite the sampled physical coil state.</p>
+<p>Treat <code>CoilMode</code> as authoring configuration rather than a live control. Changing modes during a pulse, stroke, or one-shot hold is unsupported; finish or restore the mechanism before changing it.</p>
+<p>The component also publishes its normalized position through <code>IAnimationValueProvider&lt;float&gt;</code>, allowing custom reusable followers to consume the same motion without depending on a particular table or game.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/manual/mechanisms/actuators.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2026 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    if (window.mermaid) {
+      const getMermaidConfig = () => {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        return {
+          startOnLoad: false,
+          theme: 'base',
+          treeView: isDark ? {
+            labelColor: '#f8f9fa',
+            lineColor: '#b7bcc4'
+          } : {
+            labelColor: '#212529',
+            lineColor: '#8a8f98'
+          },
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: '#1f2328',
+            primaryColor: '#1f2328',
+            primaryTextColor: '#f8f9fa',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#292e33',
+            secondaryTextColor: '#f8f9fa',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#20242a',
+            tertiaryTextColor: '#f8f9fa',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#292e33',
+            clusterBorder: '#6c757d',
+            lineColor: '#b7bcc4',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#f8f9fa',
+            mainBkg: '#1f2328',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          } : {
+            darkMode: false,
+            background: '#ffffff',
+            primaryColor: '#f6f7f9',
+            primaryTextColor: '#212529',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#ffffff',
+            secondaryTextColor: '#212529',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#eceff3',
+            tertiaryTextColor: '#212529',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#f3f3f3',
+            clusterBorder: '#c7cbd1',
+            lineColor: '#8a8f98',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#212529',
+            mainBkg: '#f6f7f9',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          }
+        };
+      };
+
+      const initializeMermaidBlocks = () => {
+        const mermaidBlocks = document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid, pre code.mermaid');
+        mermaidBlocks.forEach((block) => {
+          const pre = block.parentElement;
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.dataset.mermaidSource = block.textContent;
+          container.textContent = block.textContent;
+          pre.replaceWith(container);
+        });
+      };
+
+      const renderMermaidBlocks = async () => {
+        const mermaidContainers = document.querySelectorAll('.mermaid[data-mermaid-source]');
+        if (mermaidContainers.length === 0) {
+          return;
+        }
+
+        mermaid.initialize(getMermaidConfig());
+
+        mermaidContainers.forEach((container) => {
+          container.removeAttribute('data-processed');
+          container.innerHTML = '';
+          container.textContent = container.dataset.mermaidSource;
+        });
+
+        await mermaid.run({ querySelector: '.mermaid[data-mermaid-source]' });
+      };
+
+      initializeMermaidBlocks();
+      renderMermaidBlocks();
+
+      let currentMermaidTheme = document.documentElement.getAttribute('data-bs-theme');
+      new MutationObserver(() => {
+        const nextTheme = document.documentElement.getAttribute('data-bs-theme');
+        if (nextTheme !== currentMermaidTheme) {
+          currentMermaidTheme = nextTheme;
+          renderMermaidBlocks();
+        }
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    }
+
+    const updateAffixHighlight = () => {
+      const affix = document.getElementById('affix');
+      if (!affix) {
+        return;
+      }
+
+      const links = Array.from(affix.querySelectorAll('a[href^="#"]'));
+      if (links.length === 0) {
+        return;
+      }
+
+      const sections = links.map((link) => {
+        const id = decodeURIComponent(link.getAttribute('href').slice(1));
+        const heading = document.getElementById(id);
+        return heading ? { link, heading } : null;
+      }).filter(Boolean);
+
+      if (sections.length === 0) {
+        return;
+      }
+
+      const threshold = 140;
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.heading.getBoundingClientRect().top - threshold <= 0) {
+          current = section;
+        } else {
+          break;
+        }
+      }
+
+      links.forEach((link) => {
+        link.classList.toggle('is-current', link === current.link);
+        if (link === current.link) {
+          link.setAttribute('aria-current', 'location');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+    }
+
+    const affixRoot = document.getElementById('affix');
+    if (affixRoot) {
+      let affixFrame = null;
+      const scheduleAffixHighlight = () => {
+        if (affixFrame !== null) {
+          cancelAnimationFrame(affixFrame);
+        }
+        affixFrame = requestAnimationFrame(() => {
+          affixFrame = null;
+          updateAffixHighlight();
+        });
+      }
+
+      scheduleAffixHighlight();
+      new MutationObserver(scheduleAffixHighlight).observe(affixRoot, { childList: true, subtree: true });
+      window.addEventListener('scroll', scheduleAffixHighlight, { passive: true });
+      window.addEventListener('resize', scheduleAffixHighlight, { passive: true });
+    }
+
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

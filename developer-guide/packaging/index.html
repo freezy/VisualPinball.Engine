@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Packaging | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Packaging | VPE Documentation ">
+      
+      <meta name="description" content="Overview of the .vpe table format and how its parts fit together.">
+      <link rel="icon" href="../../favicon.png">
+      <link rel="stylesheet" href="../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../public/main.css">
+      <link rel="stylesheet" href="../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/developer-guide/packaging/index.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../public/docfx.min.js"></script>
+      <script src="./../../public/mermaid-11.14.0.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../index.html">
+            <img id="logo" class="svg" src="../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="developer-guide-packaging-overview">
+<h1 id="packaging">Packaging</h1>
+
+<p><em>This section explains the <code>.vpe</code> table format.</em></p>
+<p>A <code>.vpe</code> file is a ZIP container, split into a few layers with different jobs. We've tried to use open and documented formats throughout: the scene is glTF, every metadata file is JSON, and textures are stored as their original PNG/JPEG source files. Basically, VPE is trying to solve two problems at once:</p>
+<ul>
+<li>package a table losslessly, in a way that stays editable and re-exportable</li>
+<li>keep the package independent from any specific render pipeline, while still loading fast</li>
+</ul>
+<p>So, the scene itself lives in glTF. Gameplay and authoring metadata live in JSON. Material behavior that glTF cannot express cleanly is described in VPE's own vocabulary, with texture bytes stored as separate source image files. The package ships lossless sources only; the GPU-ready (cooked, block-compressed) form is derived on the player's machine on first load and cached locally — it is never shipped. See <a href="benchmarks.html">Benchmarks</a> for why.</p>
+<h2 id="container-structure">Container Structure</h2>
+<p>The package looks like this at a high level:</p>
+<pre><code class="lang-mermaid">treeView-beta
+    &quot;(package root)&quot;
+        &quot;manifest.json&quot;
+        &quot;table/&quot;
+            &quot;table.glb&quot;
+            &quot;colliders.glb&quot;
+            &quot;table.json&quot;
+            &quot;textures/&quot;
+            &quot;items/&quot;
+            &quot;refs/&quot;
+            &quot;global/&quot;
+            &quot;assets/&quot;
+            &quot;sounds/&quot;
+            &quot;meta/&quot;
+                &quot;materials.json&quot;
+                &quot;colliders.json&quot;
+                &quot;sounds.json&quot;
+                &quot;lights.json&quot;
+        &quot;screenshots/&quot;
+</code></pre>
+<p>The exact file and folder names are centralized in <code>PackageApi</code>, and every JSON file is written through <code>PackageApi.Packer</code> (currently <code>JsonPacker</code>, so the extension is <code>.json</code>).</p>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Why it exists</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>manifest.json</code></td>
+<td>Root manifest with the container format version. Nodes are addressed by stable ids carried in glTF node extras (<code>vpeId</code>).</td>
+</tr>
+<tr>
+<td><code>table/table.glb</code></td>
+<td>Carries the visible scene graph: hierarchy, transforms, meshes, lights, and imported fallback materials. For materials VPE captures, the GLB carries <strong>no</strong> image bytes — those move to <code>table/textures/</code>. Only unsupported-shader materials keep their textures in the GLB.</td>
+</tr>
+<tr>
+<td><code>table/colliders.glb</code></td>
+<td>Carries meshes that exist for physics but are not naturally part of the visible glTF export.</td>
+</tr>
+<tr>
+<td><code>table/table.json</code></td>
+<td>Carries table-level metadata from <code>TableComponent.Metadata</code> (<code>TableMetadata</code>).</td>
+</tr>
+<tr>
+<td><code>table/textures/</code></td>
+<td>Carries VPE-owned textures as plain PNG/JPEG source files, one zip entry per texture, referenced by file name from <code>materials.json</code>. Stored (not deflated). This is the lossless source layer.</td>
+</tr>
+<tr>
+<td><code>table/items/</code></td>
+<td>Carries component and item data needed to rebuild gameplay objects after the hierarchy exists.</td>
+</tr>
+<tr>
+<td><code>table/refs/</code></td>
+<td>Carries cross-references that can only be restored after all items and components are in place.</td>
+</tr>
+<tr>
+<td><code>table/global/</code></td>
+<td>Carries table-wide mapping data: <code>switches.json</code>, <code>coils.json</code>, <code>lamps.json</code>, <code>wires.json</code>.</td>
+</tr>
+<tr>
+<td><code>table/assets/</code></td>
+<td>Carries serialized <code>ScriptableObject</code> assets used by the table.</td>
+</tr>
+<tr>
+<td><code>table/sounds/</code> and <code>table/meta/sounds.json</code></td>
+<td>Carry sound bytes and the metadata needed to resolve them.</td>
+</tr>
+<tr>
+<td><code>table/meta/materials.json</code></td>
+<td>Carries renderer-agnostic material intent for data that glTF does not express well enough for VPE.</td>
+</tr>
+<tr>
+<td><code>table/meta/lights.json</code></td>
+<td>Optional per-light profile data that glTF/<code>KHR_lights_punctual</code> does not carry.</td>
+</tr>
+<tr>
+<td><code>screenshots/</code></td>
+<td>Captured table screenshots (lights on/off, HDRI) plus a <code>table-bounds.json</code> crop sidecar.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="materials">Materials</h2>
+<p>If glTF covered everything VPE needed, there would be no <code>materials.json</code> and no separate <code>table/textures/</code> layer. In practice, glTF gets us a long way, but not all the way. Some authored material features are either renderer-specific, packed in ways glTF does not understand, or too fragile to trust to the fallback export/import path.</p>
+<p>VPE therefore uses a layered approach:</p>
+<ul>
+<li>glTF carries what it already does well</li>
+<li>VPE captures the missing material intent in its own schema</li>
+<li>the active renderer in the player resolves that schema into real runtime materials</li>
+</ul>
+<p>That design keeps the package from depending on HDRP, while still letting an HDRP-based player reconstruct the authored look closely.</p>
+<p>For more details about how VPE's material abstraction, what glTF covers, what VPE adds, and what a renderer must implement, see <a href="materials.html">this page</a>.</p>
+<h2 id="shader-variants">Shader Variants</h2>
+<p>The renderer-agnostic package describes material <em>intent</em>; the player turns that intent into real materials at runtime. Under HDRP this means runtime-built materials whose shader variants the editor compiles on demand but a standalone build strips — so a player must ship a captured shader variant collection. For why that is and how to keep it current as you add tables, see <a href="shader-variants.html">Shader Variants</a>.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/developer-guide/packaging/index.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2026 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    if (window.mermaid) {
+      const getMermaidConfig = () => {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        return {
+          startOnLoad: false,
+          theme: 'base',
+          treeView: isDark ? {
+            labelColor: '#f8f9fa',
+            lineColor: '#b7bcc4'
+          } : {
+            labelColor: '#212529',
+            lineColor: '#8a8f98'
+          },
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: '#1f2328',
+            primaryColor: '#1f2328',
+            primaryTextColor: '#f8f9fa',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#292e33',
+            secondaryTextColor: '#f8f9fa',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#20242a',
+            tertiaryTextColor: '#f8f9fa',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#292e33',
+            clusterBorder: '#6c757d',
+            lineColor: '#b7bcc4',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#f8f9fa',
+            mainBkg: '#1f2328',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          } : {
+            darkMode: false,
+            background: '#ffffff',
+            primaryColor: '#f6f7f9',
+            primaryTextColor: '#212529',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#ffffff',
+            secondaryTextColor: '#212529',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#eceff3',
+            tertiaryTextColor: '#212529',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#f3f3f3',
+            clusterBorder: '#c7cbd1',
+            lineColor: '#8a8f98',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#212529',
+            mainBkg: '#f6f7f9',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          }
+        };
+      };
+
+      const initializeMermaidBlocks = () => {
+        const mermaidBlocks = document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid, pre code.mermaid');
+        mermaidBlocks.forEach((block) => {
+          const pre = block.parentElement;
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.dataset.mermaidSource = block.textContent;
+          container.textContent = block.textContent;
+          pre.replaceWith(container);
+        });
+      };
+
+      const renderMermaidBlocks = async () => {
+        const mermaidContainers = document.querySelectorAll('.mermaid[data-mermaid-source]');
+        if (mermaidContainers.length === 0) {
+          return;
+        }
+
+        mermaid.initialize(getMermaidConfig());
+
+        mermaidContainers.forEach((container) => {
+          container.removeAttribute('data-processed');
+          container.innerHTML = '';
+          container.textContent = container.dataset.mermaidSource;
+        });
+
+        await mermaid.run({ querySelector: '.mermaid[data-mermaid-source]' });
+      };
+
+      initializeMermaidBlocks();
+      renderMermaidBlocks();
+
+      let currentMermaidTheme = document.documentElement.getAttribute('data-bs-theme');
+      new MutationObserver(() => {
+        const nextTheme = document.documentElement.getAttribute('data-bs-theme');
+        if (nextTheme !== currentMermaidTheme) {
+          currentMermaidTheme = nextTheme;
+          renderMermaidBlocks();
+        }
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    }
+
+    const updateAffixHighlight = () => {
+      const affix = document.getElementById('affix');
+      if (!affix) {
+        return;
+      }
+
+      const links = Array.from(affix.querySelectorAll('a[href^="#"]'));
+      if (links.length === 0) {
+        return;
+      }
+
+      const sections = links.map((link) => {
+        const id = decodeURIComponent(link.getAttribute('href').slice(1));
+        const heading = document.getElementById(id);
+        return heading ? { link, heading } : null;
+      }).filter(Boolean);
+
+      if (sections.length === 0) {
+        return;
+      }
+
+      const threshold = 140;
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.heading.getBoundingClientRect().top - threshold <= 0) {
+          current = section;
+        } else {
+          break;
+        }
+      }
+
+      links.forEach((link) => {
+        link.classList.toggle('is-current', link === current.link);
+        if (link === current.link) {
+          link.setAttribute('aria-current', 'location');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+    }
+
+    const affixRoot = document.getElementById('affix');
+    if (affixRoot) {
+      let affixFrame = null;
+      const scheduleAffixHighlight = () => {
+        if (affixFrame !== null) {
+          cancelAnimationFrame(affixFrame);
+        }
+        affixFrame = requestAnimationFrame(() => {
+          affixFrame = null;
+          updateAffixHighlight();
+        });
+      }
+
+      scheduleAffixHighlight();
+      new MutationObserver(scheduleAffixHighlight).observe(affixRoot, { childList: true, subtree: true });
+      window.addEventListener('scroll', scheduleAffixHighlight, { passive: true });
+      window.addEventListener('resize', scheduleAffixHighlight, { passive: true });
+    }
+
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

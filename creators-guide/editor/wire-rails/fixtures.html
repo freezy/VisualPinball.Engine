@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Fixtures | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Fixtures | VPE Documentation ">
+      
+      <meta name="description" content="Rings, rungs, cradles, stands and the end fittings that make a generated rail look built.">
+      <link rel="icon" href="../../../favicon.png">
+      <link rel="stylesheet" href="../../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../../public/main.css">
+      <link rel="stylesheet" href="../../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../../toc.html">
+      <meta name="docfx:tocrel" content="../../toc.html">
+      
+      <meta name="docfx:rel" content="../../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/wire-rails/fixtures.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../../public/docfx.min.js"></script>
+      <script src="./../../../public/mermaid-11.14.0.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../../index.html">
+            <img id="logo" class="svg" src="../../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="wire_rail_fixtures">
+<h1 id="fixtures">Fixtures</h1>
+
+<p>Wires on their own float. Fixtures are the metalwork that holds a real rail together and attaches it to the playfield: rings around the bundle, rungs between the bottom rails, legs down to the wood, and the hairpins and elbows where the rail ends.</p>
+<p>There are two families. <strong>Supports</strong> (ring, rung, cradle, stand) sit at a <strong>Position</strong> along the route, and you can have as many as you like. <strong>End fittings</strong> (hairpin, elbow, rail trim) attach to the start or the end of an open route and reshape the rails there.</p>
+<p>All of them share a few rules:</p>
+<ul>
+<li>Every fixture uses the rail's global <strong>Wire Diameter</strong> and render material.</li>
+<li>A fixture's position is a distance along the route and independent from the layouts. Its shape, though, is fitted to the wires at that point: change the layout there and the fixture refits in place. Reshape the spline and the fixture travels with the route.</li>
+<li>Each panel previews the evaluated shape, with the rails it touches in gray.</li>
+<li><strong>Enabled</strong> hides a fixture from the render mesh only. It stays in the collider, so a hidden elbow or rail trim still shortens the channel. Use it to compare variants, not to keep spare fixtures around.</li>
+<li>Supports are soldered to the rails they touch. See <a href="#solder">Solder</a>.</li>
+<li>Dragging a fixture in the list changes its numbering only.</li>
+</ul>
+<h2 id="supports">Supports</h2>
+<h3 id="ring">Ring</h3>
+<img src="fixture-ring.png" width="315" alt="Ring parameters" class="img-fluid float-end" style="margin-left: 15px">
+<p>A ring around the whole bundle. It's fitted automatically: centered on the active wires at its position, and sized to just touch the outermost one. The fit follows the layout, so a ring inside a transition shrinks or grows with the wires.</p>
+<ul>
+<li><strong>Scale</strong> multiplies the fitted radius. 1 hugs the wires.</li>
+<li><strong>Ring Density</strong> is the number of tube segments around a full circle. A partial ring gets its proportional share.</li>
+<li><strong>Offset X / Z</strong> slides the whole ring in the cross-section.</li>
+<li><strong>Cutout</strong> removes an angular range, leaving an open arc with capped ends.</li>
+<li><strong>Straight Line</strong> replaces a range with a straight chord, for the flat-topped or flat-bottomed brackets many rails use. Both can be active at once.</li>
+</ul>
+<p>Angles run counter-clockwise from the right: 0° is to the right of the rail, 90° straight up, 180° left, 270° down. A range may wrap past 360°. The small horizon button beside each range keeps its width but re-centers it on straight up or straight down, whichever is closer, so both ends sit at the same height. Use it to level a chord you've roughed in with the slider.</p>
+<p><strong>Apply to All</strong> copies everything except Position to every other ring on the rail. Tune one, then apply.</p>
+<div style="clear: both"></div>
+<h3 id="rung">Rung</h3>
+<img src="fixture-rung.png" width="315" alt="Rung parameters" class="img-fluid float-end" style="margin-left: 15px">
+<p>A straight rung between the two bottom rails, wires 1 and 2. Its span is measured from wire surface to wire surface.</p>
+<ul>
+<li><strong>Angle</strong> turns it around the center of the wire bundle. 0° is horizontal, 90° vertical.</li>
+<li><strong>Length</strong> is a signed adjustment to the span. Positive sticks out past both rails, negative pulls the ends in.</li>
+<li><strong>Offset X / Z</strong> moves the rung in the cross-section.</li>
+</ul>
+<p>The rung disappears wherever either bottom rail is inactive.</p>
+<div style="clear: both"></div>
+<h3 id="cradle">Cradle</h3>
+<img src="fixture-cradle.png" width="315" alt="Cradle parameters" class="img-fluid float-end" style="margin-left: 15px">
+<p>A rung with an arm rising from each end: the U-shaped bracket that cradles a habitrail from below. Its default shape is fitted to the default four-wire layout, with the arms leaning out at 53.13° and just touching the outside of the bottom and raised rails.</p>
+<ul>
+<li><strong>Bottom Length</strong> is the width of the straight bottom wire.</li>
+<li><strong>Left / Right Arm Length</strong> set each arm. Set one to 0 to leave it out. With both at 0 you have a plain capped rung.</li>
+<li><strong>Arm Angle</strong> is the angle between the two arms.</li>
+<li><strong>Rotation</strong> turns the whole fixture around the route.</li>
+<li><strong>Corner Radius</strong> rounds the bend where each arm meets the bottom.</li>
+<li><strong>Ring Density</strong> only affects the rounded corners. Bends are never stepped by more than 15° regardless, so a low value can't flatten them.</li>
+</ul>
+<p>The fixture stays anchored where its default shape fits, so editing lengths and angles reshapes it in place instead of sliding it around. Two limits are enforced quietly: the corner radius can't go below half the wire diameter, and an arm set to a small positive length is raised to the shortest length that fits its rounded corner. With fewer than four active rails, the fixture is anchored under whatever wires remain. Use the offsets to place it.</p>
+<div style="clear: both"></div>
+<h3 id="stand">Stand</h3>
+<img src="fixture-stand.png" width="315" alt="Stand parameters" class="img-fluid float-end" style="margin-left: 15px">
+<p>A leg from the rail down to the playfield, ending in the U-shaped hook that gets screwed down. The stand is one continuous wire: an attachment across the two bottom rails, a leg, and a foot.</p>
+<p><strong>Rail Attachment</strong> behaves like a rung, with the same <strong>Offset</strong> and signed <strong>Length</strong>.</p>
+<p><strong>Leg</strong></p>
+<ul>
+<li><strong>Side</strong> chooses which end of the attachment the leg leaves from. Changing it moves the leg to the other rail and nothing else. <strong>Mirror</strong> flips the entire stand, foot included, to the other side of the rail.</li>
+<li><strong>Start Vector</strong> is the direction the leg sets off in, in route-local coordinates: X across the rail, Y along it, Z up. The default (0, 0, -1) goes straight down.</li>
+<li><strong>Start Length</strong> is how far it travels before bending toward the foot. Give it some Y and the leg leans along the route, which is how the long diagonal struts on real rails are made.</li>
+</ul>
+<p><strong>U-Hook Foot</strong></p>
+<ul>
+<li><strong>Position</strong> and <strong>Rotation</strong> place the foot relative to the leg's attachment point, in the same route-local frame. Rotate it flat to sit on the playfield, or upright to mount against a wall.</li>
+<li><strong>Width</strong> is the width across the U, <strong>Arm Length</strong> the free arm, <strong>Connected Arm Length</strong> the arm the leg joins. The leg always meets that point, so moving the foot re-routes the leg.</li>
+<li><strong>Clockwise</strong> flips the winding of the U.</li>
+</ul>
+<p>Every bend in the leg is rounded to the wire diameter. The stand is omitted where either bottom rail is inactive, or when the leg would fold straight back through its attachment.</p>
+<div style="clear: both"></div>
+<h3 id="solder">Solder</h3>
+<p>Wherever a support's wire touches a rail, the generator adds a small solder blob.</p>
+<img src="fixture-solder.png" width="294" alt="Solder blobs where a ring meets the rails" class="img-fluid float-end" style="margin-left: 15px">
+<ul>
+<li><strong>Solder Threshold</strong> is the largest surface gap that still counts as touching, 2 units by default. It's an absolute distance: a thicker wire doesn't get a more forgiving threshold.</li>
+<li><strong>Solder Size</strong> scales the blob. All three dimensions scale, so doubling it gives eight times the volume.</li>
+</ul>
+<p>Blobs are placed deterministically and don't jump around between rebuilds. End fittings don't get solder. They are continuous with the rails.</p>
+<h2 id="end-fittings">End fittings</h2>
+<p>End fittings need an open route. Hairpins and elbows take over two rails at one endpoint, <strong>Rail A</strong> and <strong>Rail B</strong>, and only one fitting can own a rail at a given end. If another fitting or a rail trim already shortens one of the rails you pick, the fitting isn't generated and its panel tells you why.</p>
+<h3 id="hairpin">Hairpin</h3>
+<img src="fixture-hairpin.png" width="315" alt="Hairpin parameters" class="img-fluid float-end" style="margin-left: 15px">
+<p>Joins two rails into one semicircle past the end of the route, the shape that ends most habitrails where the ball drops out. The rails blend into the loop through smooth leads, without a notch.</p>
+<ul>
+<li><strong>Loop Diameter</strong> is the centerline diameter of the semicircle. Make it wider than the rail spacing and the leads flare out to meet it.</li>
+<li><strong>Lead Length</strong> is how far past the endpoint the loop's center sits.</li>
+<li><strong>Tangent Length</strong> controls how gradually each lead leaves its rail. It's capped at about half the lead, so a lead can't overshoot.</li>
+<li><strong>Rotation</strong> turns the loop around the route, for a loop that stands up or lies flat.</li>
+<li><strong>Offset</strong> pulls the loop back from the endpoint. The two attached rails are shortened by the same distance, so the loop stays welded to their ends. Use it to end a rail's loop before the other wires do.</li>
+<li><strong>Ring Density</strong> is the tube resolution around the loop, for rendering only.</li>
+</ul>
+<p>The loop's collider is a coarse square tube along the leads and the arc, and its Offset shortens the two rails in the collider as well. The arc is its own collider part and uses the <strong>Terminal Impact Material</strong> from the Ball Channel Collider section when one is assigned, so the last hit as the ball leaves the rail can be softer or livelier than the rails themselves. See <a href="geometry.html#physics">Physics</a>.</p>
+<div style="clear: both"></div>
+<h3 id="elbow">Elbow</h3>
+<img src="fixture-elbow.png" width="315" alt="Elbow parameters" class="img-fluid float-end" style="margin-left: 15px">
+<p>Two rails that bend straight down, side by side: the mouth of a rail feeding a hole, a scoop or a subway.</p>
+<ul>
+<li><strong>Offset</strong> moves the elbow inward from the endpoint and shortens the two attached rails to that point. 0 bends right at the endpoint.</li>
+<li><strong>Drop Length</strong> is the total vertical distance from the start of the bend.</li>
+<li><strong>Z Angle</strong> turns the bend around the vertical, for an elbow that twists as it descends.</li>
+<li><strong>Other Rail Cutoffs</strong> shorten each remaining rail by its own distance from the endpoint, so upper guide wires can stop before the elbow without a separate rail trim. The attached rails are fixed at 0.</li>
+</ul>
+<p>The bend radius equals the wire diameter (an elbow shorter than that tightens it). In the collider, the two attached rails are trimmed at the elbow and the two floor facets the ball rests on are extended straight down by the drop length, so the ball is guided into the hole rather than falling off a cliff. Other Rail Cutoffs are visual only.</p>
+<div style="clear: both"></div>
+<h3 id="rail-trim">Rail Trim</h3>
+<img src="fixture-rail-trim.png" width="315" alt="Rail trim parameters" class="img-fluid float-end" style="margin-left: 15px">
+<p>Not a shape, just a distance per rail, measured inward from one endpoint. Use it when individual rails should start or end at different points without adding a layout: a top wire that stops short, a guide that starts late. 0 leaves a rail alone.</p>
+<p>A trim can cross any number of layouts. It cuts both the tube, with a beveled cap, and the collider. Several trims at the same endpoint combine by taking the largest value per rail, so their order never matters. Where a trim leaves too few rails to form a channel, that stretch of the route has no collider.</p>
+<div style="clear: both"></div>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/wire-rails/fixtures.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2026 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    if (window.mermaid) {
+      const getMermaidConfig = () => {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        return {
+          startOnLoad: false,
+          theme: 'base',
+          treeView: isDark ? {
+            labelColor: '#f8f9fa',
+            lineColor: '#b7bcc4'
+          } : {
+            labelColor: '#212529',
+            lineColor: '#8a8f98'
+          },
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: '#1f2328',
+            primaryColor: '#1f2328',
+            primaryTextColor: '#f8f9fa',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#292e33',
+            secondaryTextColor: '#f8f9fa',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#20242a',
+            tertiaryTextColor: '#f8f9fa',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#292e33',
+            clusterBorder: '#6c757d',
+            lineColor: '#b7bcc4',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#f8f9fa',
+            mainBkg: '#1f2328',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          } : {
+            darkMode: false,
+            background: '#ffffff',
+            primaryColor: '#f6f7f9',
+            primaryTextColor: '#212529',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#ffffff',
+            secondaryTextColor: '#212529',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#eceff3',
+            tertiaryTextColor: '#212529',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#f3f3f3',
+            clusterBorder: '#c7cbd1',
+            lineColor: '#8a8f98',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#212529',
+            mainBkg: '#f6f7f9',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          }
+        };
+      };
+
+      const initializeMermaidBlocks = () => {
+        const mermaidBlocks = document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid, pre code.mermaid');
+        mermaidBlocks.forEach((block) => {
+          const pre = block.parentElement;
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.dataset.mermaidSource = block.textContent;
+          container.textContent = block.textContent;
+          pre.replaceWith(container);
+        });
+      };
+
+      const renderMermaidBlocks = async () => {
+        const mermaidContainers = document.querySelectorAll('.mermaid[data-mermaid-source]');
+        if (mermaidContainers.length === 0) {
+          return;
+        }
+
+        mermaid.initialize(getMermaidConfig());
+
+        mermaidContainers.forEach((container) => {
+          container.removeAttribute('data-processed');
+          container.innerHTML = '';
+          container.textContent = container.dataset.mermaidSource;
+        });
+
+        await mermaid.run({ querySelector: '.mermaid[data-mermaid-source]' });
+      };
+
+      initializeMermaidBlocks();
+      renderMermaidBlocks();
+
+      let currentMermaidTheme = document.documentElement.getAttribute('data-bs-theme');
+      new MutationObserver(() => {
+        const nextTheme = document.documentElement.getAttribute('data-bs-theme');
+        if (nextTheme !== currentMermaidTheme) {
+          currentMermaidTheme = nextTheme;
+          renderMermaidBlocks();
+        }
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    }
+
+    const updateAffixHighlight = () => {
+      const affix = document.getElementById('affix');
+      if (!affix) {
+        return;
+      }
+
+      const links = Array.from(affix.querySelectorAll('a[href^="#"]'));
+      if (links.length === 0) {
+        return;
+      }
+
+      const sections = links.map((link) => {
+        const id = decodeURIComponent(link.getAttribute('href').slice(1));
+        const heading = document.getElementById(id);
+        return heading ? { link, heading } : null;
+      }).filter(Boolean);
+
+      if (sections.length === 0) {
+        return;
+      }
+
+      const threshold = 140;
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.heading.getBoundingClientRect().top - threshold <= 0) {
+          current = section;
+        } else {
+          break;
+        }
+      }
+
+      links.forEach((link) => {
+        link.classList.toggle('is-current', link === current.link);
+        if (link === current.link) {
+          link.setAttribute('aria-current', 'location');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+    }
+
+    const affixRoot = document.getElementById('affix');
+    if (affixRoot) {
+      let affixFrame = null;
+      const scheduleAffixHighlight = () => {
+        if (affixFrame !== null) {
+          cancelAnimationFrame(affixFrame);
+        }
+        affixFrame = requestAnimationFrame(() => {
+          affixFrame = null;
+          updateAffixHighlight();
+        });
+      }
+
+      scheduleAffixHighlight();
+      new MutationObserver(scheduleAffixHighlight).observe(affixRoot, { childList: true, subtree: true });
+      window.addEventListener('scroll', scheduleAffixHighlight, { passive: true });
+      window.addEventListener('resize', scheduleAffixHighlight, { passive: true });
+    }
+
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

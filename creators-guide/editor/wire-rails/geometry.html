@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Generated Geometry | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Generated Geometry | VPE Documentation ">
+      
+      <meta name="description" content="What the Wire Rail builds from your route and layouts, and how to tune the render tubes and the ball channel collider.">
+      <link rel="icon" href="../../../favicon.png">
+      <link rel="stylesheet" href="../../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../../public/main.css">
+      <link rel="stylesheet" href="../../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../../toc.html">
+      <meta name="docfx:tocrel" content="../../toc.html">
+      
+      <meta name="docfx:rel" content="../../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/wire-rails/geometry.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../../public/docfx.min.js"></script>
+      <script src="./../../../public/mermaid-11.14.0.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../../index.html">
+            <img id="logo" class="svg" src="../../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="wire_rail_geometry">
+<h1 id="generated-geometry">Generated Geometry</h1>
+
+<p>Nothing you see of a wire rail is modeled by hand. The component keeps two meshes up to date from the route, the layouts and the fixtures: a render mesh of tubes, and a collider. Both are regenerated whenever anything changes, and neither is saved with the scene. They're rebuilt on load. Should a mesh ever look stale, <strong>Rebuild Render Geometry</strong> and <strong>Rebuild Collider</strong> force the issue, and each section shows its current vertex or triangle count so you can keep an eye on cost.</p>
+<h2 id="render-geometry">Render Geometry</h2>
+<img src="render-geometry.png" width="340" alt="Render Geometry section" class="img-fluid float-end" style="margin-left: 15px">
+<ul>
+<li><strong>Rails</strong> is the wire count, described under <a href="layouts.html#how-many-wires">Wire Layouts</a>.</li>
+<li><strong>Material</strong> is applied to everything the rail generates.</li>
+<li><strong>Wire Diameter</strong> is the thickness of every wire in the rail, fixtures included. The default of 6.5 units is a typical habitrail wire next to a 50 unit ball.</li>
+<li><strong>Tube Sides</strong> is the polygon count around each tube, 6 to 16. Ten looks round at playing distance.</li>
+<li><strong>Wire Cap Bevel</strong> chamfers every exposed wire end by one segment so that cut ends catch the light. It's clamped to half the wire diameter. Ends that butt into an elbow or a hairpin are left square so the joint is flush.</li>
+<li><strong>Minimum Samples Per Layout Span</strong> is the base number of rings along each span. Bends are refined on their own: wherever a wire turns more than 5° between two rings, rings are added, up to three levels deep. Raise the base value only for long, gently curving spans that still look faceted.</li>
+</ul>
+<p>Wires are capped only where they actually end: at the ends of the route, at a trim, at a layout boundary where the wire is inactive on the other side, or at a non-continuous transition. A wire that continues, even through a jump in position, is one unbroken tube.</p>
+<div style="clear: both"></div>
+<h2 id="ball-channel-collider">Ball Channel Collider</h2>
+<img src="collider-settings.png" width="340" alt="Ball Channel Collider section" class="img-fluid float-end" style="margin-left: 15px">
+<p>The collider is not a tube around each wire. That would cost a lot of triangles and, worse, leave seams between the wires for the ball to catch on. Instead, the component works out where a ball of <strong>Ball Diameter</strong> would rest in the bundle, finds the point on each wire it would touch, and lays a flat facet through each contact point. The facets are joined into one channel profile, and the profile is swept along the route. The ball rolls on a smooth, continuous channel that behaves the way the wires would, at a fraction of the geometry.</p>
+<p><strong>Ball Diameter</strong> changes only this fit. It doesn't resize the visible wires, nor the ball in the game.</p>
+<div style="clear: both"></div>
+<p><img src="collider-preview.png" alt="Collider preview">
+<small>Show Collider Preview draws the channel in green. Note the open top, and the faceted floor between the two bottom rails.</small></p>
+<h3 id="what-the-profile-looks-like">What the profile looks like</h3>
+<p>The profile is refitted wherever the layout changes, and adapts to how many wires are active:</p>
+<table>
+<thead>
+<tr>
+<th>Active wires</th>
+<th>Channel</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>A narrow flat strip under the ball</td>
+</tr>
+<tr>
+<td>2</td>
+<td>A faceted floor, open at the top</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Floor plus a wall on the Third Rail side</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Floor and both walls, open at the top</td>
+</tr>
+<tr>
+<td>5 or 6</td>
+<td>Floor, walls and a roof, unless the ball fits through the top</td>
+</tr>
+</tbody>
+</table>
+<p>The last rule matters for rails with top wires. If the clear gap between the two wires bounding the top is wider than the ball, the channel stays open there and the ball can leave the rail upward, as it could in reality. If the gap is narrower, the roof closes. Within one span between layouts, the opening has to stay between the same two wires. If your design moves the opening to a different pair, or closes it partway, add a layout at the point where that changes. The inspector says so when it's needed.</p>
+<p><strong>Curvature Detail</strong> controls how densely the channel is sampled along the route. Curved and changing spans get more rows, straight spans stay sparse no matter how many knots they contain. Raise it if a tight bend shows visible flats in the collider preview.</p>
+<h3 id="physics">Physics</h3>
+<p>By default the channel uses the values under <strong>Overwrite Physics</strong>: elasticity, falloff, friction and scatter, as on any VPE collider. Untick it to use a <strong>Physics Material</strong> asset instead. While it's ticked, the asset is ignored.</p>
+<p><strong>Terminal Impact Material</strong> is the exception. It applies only to the arc of a <a href="fixtures.html#hairpin">hairpin</a>, and it applies whenever it's assigned, overwrite or not. That's deliberate: the impact that ends a rail is the one you most often want to tune on its own.</p>
+<h3 id="how-fixtures-affect-the-collider">How fixtures affect the collider</h3>
+<ul>
+<li>A <strong>rail trim</strong> cuts the channel at the trim distance. Beyond it, the profile is refitted from the rails that remain. If they can't form a channel (a lone upper wire, say), that stretch has no collider.</li>
+<li>An <strong>elbow</strong> trims its two rails and extends the floor straight down at the bend. Its other-rail cutoffs don't touch the collider.</li>
+<li>A <strong>hairpin</strong> trims its two rails by its Offset and adds a coarse square tube along its leads and arc.</li>
+<li>Rings, rungs, cradles and stands are visual only.</li>
+<li>A fixture's <strong>Enabled</strong> toggle hides it visually only. The collider is built from all fixtures.</li>
+</ul>
+<h3 id="when-the-collider-cant-be-built">When the collider can't be built</h3>
+<p>If the channel's shape changes fundamentally inside a single span (a roof appearing, or the top opening jumping to different wires), the collider isn't built at all and the inspector shows the reason in red. A rail without a collider is a rail the ball falls through, so treat the message as a blocker. The fix is nearly always a layout at the point where the profile changes.</p>
+<p>Validation is lazy. The inspector shows <em>Collider validation is pending</em> until the Ball Channel Collider section is expanded or its preview is on. Play mode always builds it.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/wire-rails/geometry.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2026 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    if (window.mermaid) {
+      const getMermaidConfig = () => {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        return {
+          startOnLoad: false,
+          theme: 'base',
+          treeView: isDark ? {
+            labelColor: '#f8f9fa',
+            lineColor: '#b7bcc4'
+          } : {
+            labelColor: '#212529',
+            lineColor: '#8a8f98'
+          },
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: '#1f2328',
+            primaryColor: '#1f2328',
+            primaryTextColor: '#f8f9fa',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#292e33',
+            secondaryTextColor: '#f8f9fa',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#20242a',
+            tertiaryTextColor: '#f8f9fa',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#292e33',
+            clusterBorder: '#6c757d',
+            lineColor: '#b7bcc4',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#f8f9fa',
+            mainBkg: '#1f2328',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          } : {
+            darkMode: false,
+            background: '#ffffff',
+            primaryColor: '#f6f7f9',
+            primaryTextColor: '#212529',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#ffffff',
+            secondaryTextColor: '#212529',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#eceff3',
+            tertiaryTextColor: '#212529',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#f3f3f3',
+            clusterBorder: '#c7cbd1',
+            lineColor: '#8a8f98',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#212529',
+            mainBkg: '#f6f7f9',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          }
+        };
+      };
+
+      const initializeMermaidBlocks = () => {
+        const mermaidBlocks = document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid, pre code.mermaid');
+        mermaidBlocks.forEach((block) => {
+          const pre = block.parentElement;
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.dataset.mermaidSource = block.textContent;
+          container.textContent = block.textContent;
+          pre.replaceWith(container);
+        });
+      };
+
+      const renderMermaidBlocks = async () => {
+        const mermaidContainers = document.querySelectorAll('.mermaid[data-mermaid-source]');
+        if (mermaidContainers.length === 0) {
+          return;
+        }
+
+        mermaid.initialize(getMermaidConfig());
+
+        mermaidContainers.forEach((container) => {
+          container.removeAttribute('data-processed');
+          container.innerHTML = '';
+          container.textContent = container.dataset.mermaidSource;
+        });
+
+        await mermaid.run({ querySelector: '.mermaid[data-mermaid-source]' });
+      };
+
+      initializeMermaidBlocks();
+      renderMermaidBlocks();
+
+      let currentMermaidTheme = document.documentElement.getAttribute('data-bs-theme');
+      new MutationObserver(() => {
+        const nextTheme = document.documentElement.getAttribute('data-bs-theme');
+        if (nextTheme !== currentMermaidTheme) {
+          currentMermaidTheme = nextTheme;
+          renderMermaidBlocks();
+        }
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    }
+
+    const updateAffixHighlight = () => {
+      const affix = document.getElementById('affix');
+      if (!affix) {
+        return;
+      }
+
+      const links = Array.from(affix.querySelectorAll('a[href^="#"]'));
+      if (links.length === 0) {
+        return;
+      }
+
+      const sections = links.map((link) => {
+        const id = decodeURIComponent(link.getAttribute('href').slice(1));
+        const heading = document.getElementById(id);
+        return heading ? { link, heading } : null;
+      }).filter(Boolean);
+
+      if (sections.length === 0) {
+        return;
+      }
+
+      const threshold = 140;
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.heading.getBoundingClientRect().top - threshold <= 0) {
+          current = section;
+        } else {
+          break;
+        }
+      }
+
+      links.forEach((link) => {
+        link.classList.toggle('is-current', link === current.link);
+        if (link === current.link) {
+          link.setAttribute('aria-current', 'location');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+    }
+
+    const affixRoot = document.getElementById('affix');
+    if (affixRoot) {
+      let affixFrame = null;
+      const scheduleAffixHighlight = () => {
+        if (affixFrame !== null) {
+          cancelAnimationFrame(affixFrame);
+        }
+        affixFrame = requestAnimationFrame(() => {
+          affixFrame = null;
+          updateAffixHighlight();
+        });
+      }
+
+      scheduleAffixHighlight();
+      new MutationObserver(scheduleAffixHighlight).observe(affixRoot, { childList: true, subtree: true });
+      window.addEventListener('scroll', scheduleAffixHighlight, { passive: true });
+      window.addEventListener('resize', scheduleAffixHighlight, { passive: true });
+    }
+
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>
