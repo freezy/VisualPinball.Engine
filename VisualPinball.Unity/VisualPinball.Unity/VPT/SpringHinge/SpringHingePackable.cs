@@ -6,6 +6,8 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
+using UnityEngine;
+
 namespace VisualPinball.Unity
 {
 	public struct SpringHingePackable
@@ -146,6 +148,54 @@ namespace VisualPinball.Unity
 			comp.Friction = material.Friction;
 			comp.OverwritePhysics = material.Overwrite;
 			comp.PhysicsMaterial = files.GetAsset<PhysicsMaterialAsset>(material.AssetRef);
+		}
+	}
+
+	public struct SpringHingeAnimationPackable
+	{
+		private const int CurrentVersion = 1;
+
+		public int Version;
+		public PackableFloat3 RotationAxis;
+
+		public static byte[] Pack(SpringHingeAnimationComponent comp)
+		{
+			return PackageApi.Packer.Pack(new SpringHingeAnimationPackable {
+				Version = CurrentVersion,
+				RotationAxis = comp.RotationAxis
+			});
+		}
+
+		public static void Unpack(byte[] bytes, SpringHingeAnimationComponent comp)
+		{
+			var data = PackageApi.Packer.Unpack<SpringHingeAnimationPackable>(bytes);
+			comp.RotationAxis = data.RotationAxis;
+		}
+	}
+
+	public struct SpringHingeAnimationReferencesPackable
+	{
+		public ReferencePackable EmitterRef;
+
+		public static byte[] Pack(SpringHingeAnimationComponent comp, PackagedRefs refs)
+		{
+			var emitterRef = new ReferencePackable(null, null);
+			if (comp._emitter != null) {
+				if (refs.HasType(comp._emitter.GetType())) {
+					emitterRef = refs.PackReference(comp._emitter);
+				} else {
+					Debug.LogWarning($"Cannot package spring-hinge animation emitter {comp._emitter.GetType().FullName} on '{comp.name}' because it has no PackAs attribute; writing a null reference.", comp);
+				}
+			}
+			return PackageApi.Packer.Pack(new SpringHingeAnimationReferencesPackable {
+				EmitterRef = emitterRef
+			});
+		}
+
+		public static void Unpack(byte[] bytes, SpringHingeAnimationComponent comp, PackagedRefs refs)
+		{
+			var data = PackageApi.Packer.Unpack<SpringHingeAnimationReferencesPackable>(bytes);
+			comp._emitter = refs.Resolve<MonoBehaviour, IAnimationValueEmitter<float>>(data.EmitterRef);
 		}
 	}
 }

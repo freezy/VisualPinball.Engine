@@ -120,7 +120,7 @@ namespace VisualPinball.Unity
 		public bool CoupleToParentHinge;
 
 		[Unit("mm")]
-		[Tooltip("Held ball centre relative to the magnet transform, expressed in the hinge-local frame at rest.")]
+		[Tooltip("Held ball centre relative to the magnet transform, expressed in millimeters at the authored rest pose.")]
 		public Vector3 HeldBallCentreOffset;
 
 		[Min(0f)]
@@ -489,6 +489,13 @@ namespace VisualPinball.Unity
 				} else {
 					DrawVpxDisc(center, GrabRadius);
 				}
+			}
+
+			if (CoupleToParentHinge) {
+				var heldCentre = transform.TransformPoint(HeldBallCentreOffset * 0.001f);
+				Gizmos.color = new Color(0.2f, 1f, 0.45f, 0.9f);
+				Gizmos.DrawLine(transform.position, heldCentre);
+				Gizmos.DrawWireSphere(heldCentre, 0.006f);
 			}
 
 			if (MagnetType != VisualPinball.Unity.MagnetType.Cylindrical &&
