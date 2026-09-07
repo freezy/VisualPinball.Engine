@@ -187,6 +187,46 @@ namespace VisualPinball.Unity.Test
 			Assert.That(hitTime, Is.EqualTo(0.005f));
 		}
 
+		[Test]
+		public void ExhaustedStaticProgressCannotOverrunAcceptedSpringHingeHit()
+		{
+			var transforms = new NativeParallelHashMap<int, float4x4>(1, Allocator.Temp);
+			var references = new ColliderReference(ref transforms, Allocator.Temp);
+			using var harness = new PhysicsStateHarness();
+			try {
+				var pivot = float3.zero;
+				var centre = new float3(10f, 0f, 0f);
+				var extents = new float3(5f, 2f, 2f);
+				var x = new float3(1f, 0f, 0f);
+				var y = new float3(0f, 1f, 0f);
+				var z = new float3(0f, 0f, 1f);
+				var colliderId = references.Add(new SpringHingeCollider(12, in pivot, in centre,
+					in extents, in x, in y, in z, new ColliderInfo { ItemId = 12 }));
+				harness.SetStaticColliders(ref references);
+				var state = harness.CreateState();
+				var ball = new BallState {
+					Id = 1,
+					CollisionEvent = new CollisionEventData {
+						ColliderId = colliderId,
+						HitTime = 0.001f
+					}
+				};
+				var acceptedHingeTime = -1f;
+				PhysicsCycle.RecordSpringHingeHitTime(ref acceptedHingeTime, in ball, ref state);
+				var hitTime = ball.CollisionEvent.HitTime;
+				var exhaustedStaticCount = 0f;
+
+				PhysicsCycle.ApplyStaticTime(ref hitTime, ref exhaustedStaticCount, in ball);
+				Assert.That(hitTime, Is.EqualTo(PhysicsConstants.StaticTime));
+				PhysicsCycle.ClampToSpringHingeHit(ref hitTime, acceptedHingeTime);
+
+				Assert.That(hitTime, Is.EqualTo(0.001f));
+			} finally {
+				references.Dispose();
+				transforms.Dispose();
+			}
+		}
+
 		private static SpringHingeState CreateState(float angle = 0f, float angularVelocity = 0f)
 		{
 			return new SpringHingeState(12, new SpringHingeStaticState {

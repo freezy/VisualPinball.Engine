@@ -120,6 +120,12 @@ namespace VisualPinball.Unity
 					);
 					break;
 
+				case ColliderType.SpringHinge:
+					ref var springHingeState = ref state.GetSpringHingeState(colliderId, ref colliders);
+					ref var springHingeCollider = ref colliders.SpringHinge(colliderId);
+					springHingeCollider.Collide(ref ball, ref springHingeState, in ball.CollisionEvent, ref state);
+					break;
+
 				case ColliderType.Gate:
 					ref var gateState = ref state.GetGateState(colliderId, ref colliders);
 					GateCollider.Collide(ref ball, ref ball.CollisionEvent, ref gateState.Movement, ref state.EventQueue,

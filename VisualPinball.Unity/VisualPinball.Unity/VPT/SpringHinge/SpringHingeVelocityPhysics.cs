@@ -75,8 +75,12 @@ namespace VisualPinball.Unity
 
 		internal static float3 RotateAroundAxis(in float3 vector, in float3 axis, float angle)
 		{
-			var sine = math.sin(angle);
-			var cosine = math.cos(angle);
+			math.sincos(angle, out var sine, out var cosine);
+			return RotateAroundAxis(in vector, in axis, sine, cosine);
+		}
+
+		internal static float3 RotateAroundAxis(in float3 vector, in float3 axis, float sine, float cosine)
+		{
 			return vector * cosine + math.cross(axis, vector) * sine
 				+ axis * math.dot(axis, vector) * (1f - cosine);
 		}

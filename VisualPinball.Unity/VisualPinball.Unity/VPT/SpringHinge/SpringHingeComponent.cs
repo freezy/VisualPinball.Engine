@@ -181,7 +181,7 @@ namespace VisualPinball.Unity
 			return math.max(0.001f, inertiaAtCentre + ToyMass * math.lengthsq(perpendicularArm));
 		}
 
-		private float3 ToPlayfieldVpx(Vector3 worldPosition)
+		internal float3 ToPlayfieldVpx(Vector3 worldPosition)
 		{
 			var playfield = GetComponentInParent<PlayfieldComponent>();
 			return playfield
@@ -189,7 +189,7 @@ namespace VisualPinball.Unity
 				: (float3)worldPosition.TranslateToVpx();
 		}
 
-		private float3 ToPlayfieldDirection(Vector3 localDirection)
+		internal float3 ToPlayfieldDirection(Vector3 localDirection)
 		{
 			var direction = transform.TransformDirection(localDirection.normalized);
 			var playfield = GetComponentInParent<PlayfieldComponent>();
@@ -197,6 +197,16 @@ namespace VisualPinball.Unity
 				direction = playfield.transform.InverseTransformDirection(direction);
 			}
 			return math.normalizesafe(Physics.WorldToVpx.MultiplyVector(direction), new float3(1f, 0f, 0f));
+		}
+
+		internal float3 ToPlayfieldVector(Vector3 localVector)
+		{
+			var vector = transform.TransformVector(localVector);
+			var playfield = GetComponentInParent<PlayfieldComponent>();
+			if (playfield) {
+				vector = playfield.transform.InverseTransformVector(vector);
+			}
+			return Physics.WorldToVpx.MultiplyVector(vector);
 		}
 
 		private void SyncPhysicsState()
@@ -207,11 +217,22 @@ namespace VisualPinball.Unity
 
 			var itemId = ItemId;
 			var synced = CreateState();
+			var hasBakedCollider = GetComponent<SpringHingeColliderComponent>() != null;
+			var componentName = name;
 			_physicsEngine.MutateState((ref PhysicsState state) => {
 				if (!state.SpringHingeStates.ContainsKey(itemId)) {
 					return;
 				}
 				ref var hinge = ref state.SpringHingeStates.GetValueByRef(itemId);
+				if (hasBakedCollider) {
+					var geometryChanged = math.distancesq(synced.Static.Pivot, hinge.Static.Pivot) > 1e-8f
+						|| math.distancesq(synced.Static.Axis, hinge.Static.Axis) > 1e-8f;
+					if (geometryChanged) {
+						Logger.Warn($"Spring hinge {componentName} transform changes require a physics rebuild; keeping its baked collision frame for this play session.");
+					}
+					synced.Static.Pivot = hinge.Static.Pivot;
+					synced.Static.Axis = hinge.Static.Axis;
+				}
 				synced.Movement = hinge.Movement;
 				synced.Movement.Angle = math.clamp(synced.Movement.Angle,
 					synced.Static.MinimumAngle, synced.Static.MaximumAngle);

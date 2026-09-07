@@ -82,6 +82,12 @@ namespace VisualPinball.Unity
 					flipperCollider.Contact(ref ball, ref flipperState.Movement, in collEvent, in flipperState.Static,
 						in flipperState.Velocity, hitTime, in acceleration, in frictionAcceleration,
 						in frictionVelocity, in frictionAngularMomentum);
+				} else if (collHeader.Type == ColliderType.SpringHinge) {
+					ref var hingeCollider = ref colliders.SpringHinge(collEvent.ColliderId);
+					ref var hingeState = ref state.GetSpringHingeState(collEvent.ColliderId, ref colliders);
+					var acceleration = gravity + ball.ExternalAcceleration;
+					hingeCollider.Contact(ref ball, ref hingeState, in collEvent, hitTime, in acceleration,
+						in frictionAcceleration, in frictionVelocity, in frictionAngularMomentum);
 				} else {
 					// surface velocity of the collider at the contact point (zero unless kinematic and moving)
 					var colliderVelocity = state.GetKinematicSurfaceVelocity(in collEvent, ball.Position - ball.Radius * collEvent.HitNormal);
