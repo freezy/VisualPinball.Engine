@@ -257,7 +257,7 @@ The table asset must not persist captured-ball IDs, warm solver state, or runtim
 
 The phase-0 spike validates a chosen architecture; it does not leave the main scheduler undecided. If the existing sequential contact architecture fails the user's required passive-support or multiball cases, stop claiming readiness, record the specific failed fixture, and propose the smallest justified solver extension. Do not solve the problem by disabling collisions, parenting the ball, increasing mass twice, or silently removing the requirement.
 
-Phase 0 is implemented by the pure numerical fixtures alongside this plan. Phases 1–7 remain gated by their tests and pre-commit reviews.
+Phases 0 and 1 are implemented by the numerical fixtures and runtime spring-hinge skeleton alongside this plan. Phases 2–7 remain gated by their tests and pre-commit reviews.
 
 ## 13. Acceptance and regression matrix
 

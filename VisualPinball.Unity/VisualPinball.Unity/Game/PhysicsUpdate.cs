@@ -18,6 +18,7 @@ using NativeTrees;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 
 // ReSharper disable InconsistentNaming
@@ -147,6 +148,8 @@ namespace VisualPinball.Unity
 						SpinnerVelocityPhysics.UpdateVelocities(ref spinnerState.Movement, in spinnerState.Static);
 					}
 				}
+				// spring hinges
+				UpdateSpringHingeVelocities(ref state, in env.Gravity, in cabinetAcceleration, physicsDiffTime);
 				// magnets
 				using (var enumerator = state.MagnetStates.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
@@ -180,6 +183,18 @@ namespace VisualPinball.Unity
 
 			if (subSteps > 0) {
 				UpdateAnimations(ref state, env.TimeMsec, subSteps * (PhysicsConstants.PhysicsStepTime / 1000f));
+			}
+		}
+
+		internal static void UpdateSpringHingeVelocities(ref PhysicsState state, in float3 gravity,
+			in float2 cabinetAcceleration, float step)
+		{
+			var effectiveGravity = gravity;
+			effectiveGravity.xy -= PhysicsConstants.Ms2ToVpuVpt2 * cabinetAcceleration;
+			using var enumerator = state.SpringHingeStates.GetEnumerator();
+			while (enumerator.MoveNext()) {
+				ref var hingeState = ref enumerator.Current.Value;
+				SpringHingeVelocityPhysics.UpdateVelocity(ref hingeState, in effectiveGravity, step);
 			}
 		}
 
