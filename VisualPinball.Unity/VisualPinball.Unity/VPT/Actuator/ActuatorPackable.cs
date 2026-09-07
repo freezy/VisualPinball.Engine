@@ -73,6 +73,9 @@ namespace VisualPinball.Unity
 		public ActuatorTranslationSpace TranslationSpace;
 		public bool AnimateRotation;
 		public PackableFloat3 RotationOffset;
+		// Nullable fields distinguish old packages without an input range from an authored zero.
+		public float? InputMin;
+		public float? InputMax;
 		public AnimationCurve ResponseCurve;
 		public bool Reverse;
 
@@ -84,6 +87,8 @@ namespace VisualPinball.Unity
 				TranslationSpace = comp.TranslationSpace,
 				AnimateRotation = comp.AnimateRotation,
 				RotationOffset = comp.RotationOffset,
+				InputMin = comp.InputMin,
+				InputMax = comp.InputMax,
 				ResponseCurve = comp.ResponseCurve,
 				Reverse = comp.Reverse,
 			});
@@ -97,6 +102,8 @@ namespace VisualPinball.Unity
 			comp.TranslationSpace = data.TranslationSpace;
 			comp.AnimateRotation = data.AnimateRotation;
 			comp.RotationOffset = data.RotationOffset;
+			comp.InputMin = data.InputMin ?? 0f;
+			comp.InputMax = data.InputMax ?? 1f;
 			comp.ResponseCurve = data.ResponseCurve;
 			comp.Reverse = data.Reverse;
 		}

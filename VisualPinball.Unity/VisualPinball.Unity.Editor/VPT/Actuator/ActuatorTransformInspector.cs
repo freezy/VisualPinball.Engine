@@ -27,6 +27,8 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _translationSpaceProperty;
 		private SerializedProperty _animateRotationProperty;
 		private SerializedProperty _rotationOffsetProperty;
+		private SerializedProperty _inputMinProperty;
+		private SerializedProperty _inputMaxProperty;
 		private SerializedProperty _responseCurveProperty;
 		private SerializedProperty _reverseProperty;
 
@@ -38,6 +40,8 @@ namespace VisualPinball.Unity.Editor
 			_translationSpaceProperty = serializedObject.FindProperty(nameof(ActuatorTransformComponent.TranslationSpace));
 			_animateRotationProperty = serializedObject.FindProperty(nameof(ActuatorTransformComponent.AnimateRotation));
 			_rotationOffsetProperty = serializedObject.FindProperty(nameof(ActuatorTransformComponent.RotationOffset));
+			_inputMinProperty = serializedObject.FindProperty(nameof(ActuatorTransformComponent.InputMin));
+			_inputMaxProperty = serializedObject.FindProperty(nameof(ActuatorTransformComponent.InputMax));
 			_responseCurveProperty = serializedObject.FindProperty(nameof(ActuatorTransformComponent.ResponseCurve));
 			_reverseProperty = serializedObject.FindProperty(nameof(ActuatorTransformComponent.Reverse));
 		}
@@ -56,6 +60,8 @@ namespace VisualPinball.Unity.Editor
 			if (_animateRotationProperty.hasMultipleDifferentValues || _animateRotationProperty.boolValue) {
 				EditorGUILayout.PropertyField(_rotationOffsetProperty);
 			}
+			EditorGUILayout.PropertyField(_inputMinProperty);
+			EditorGUILayout.PropertyField(_inputMaxProperty);
 			EditorGUILayout.PropertyField(_responseCurveProperty);
 			EditorGUILayout.PropertyField(_reverseProperty);
 
@@ -65,6 +71,11 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.HelpBox("Place the GameObject origin at the physical pivot. Any VPE collider moving with this transform must be active and marked Kinematic when the table loads.", MessageType.Info);
 
 			serializedObject.ApplyModifiedProperties();
+			foreach (var selected in targets) {
+				if (((ActuatorTransformComponent)selected).HasValidInputRange) continue;
+				EditorGUILayout.HelpBox("Input Min must be less than Input Max, both between 0 and 1. An invalid range keeps the authored pose.", MessageType.Error);
+				break;
+			}
 		}
 	}
 }

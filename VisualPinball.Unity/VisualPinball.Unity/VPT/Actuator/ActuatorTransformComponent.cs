@@ -48,10 +48,18 @@ namespace VisualPinball.Unity
 		[Tooltip("Local Euler rotation offset at actuator position 1.")]
 		public Vector3 RotationOffset;
 
-		[Tooltip("Maps the actuator's normalized position to this transform's normalized travel.")]
+		[Range(0f, 1f)]
+		[Tooltip("Source position where this follower's response curve begins.")]
+		public float InputMin;
+
+		[Range(0f, 1f)]
+		[Tooltip("Source position where this follower's response curve ends. Must be greater than Input Min.")]
+		public float InputMax = 1f;
+
+		[Tooltip("Maps progress through Input Min/Max to this transform's normalized travel.")]
 		public AnimationCurve ResponseCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
 
-		[Tooltip("Reverse the actuator value before applying the response curve.")]
+		[Tooltip("Reverse progress within Input Min/Max before applying the response curve.")]
 		public bool Reverse;
 
 		private Vector3 _initialLocalPosition;
@@ -109,8 +117,7 @@ namespace VisualPinball.Unity
 				CaptureInitialPose();
 			}
 
-			var input = Reverse ? 1f - math.saturate(value) : math.saturate(value);
-			var factor = math.saturate(ActuatorMotionState.EvaluateCurve(ResponseCurve, input));
+			var factor = EvaluateFactor(value);
 			_currentFactor = factor;
 			if (AnimatePosition) {
 				ApplyPosition(factor);
@@ -119,6 +126,18 @@ namespace VisualPinball.Unity
 				var endRotation = _initialLocalRotation * Quaternion.Euler(RotationOffset);
 				transform.localRotation = Quaternion.SlerpUnclamped(_initialLocalRotation, endRotation, factor);
 			}
+		}
+
+		public bool HasValidInputRange => math.isfinite(InputMin) && math.isfinite(InputMax) &&
+			InputMin >= 0f && InputMax <= 1f && InputMin < InputMax;
+
+		/// <summary>Shared runtime/preview mapping. Invalid input or range retains the authored pose.</summary>
+		public float EvaluateFactor(float value)
+		{
+			if (!HasValidInputRange || !math.isfinite(value)) return 0f;
+			var progress = math.saturate((value - InputMin) / (InputMax - InputMin));
+			var input = Reverse ? 1f - progress : progress;
+			return math.saturate(ActuatorMotionState.EvaluateCurve(ResponseCurve, input));
 		}
 
 		private void ApplyPosition(float factor)

@@ -578,6 +578,104 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 			}
 		}
 
+		[TestCase(0f, false, 0f)]
+		[TestCase(0.25f, false, 0f)]
+		[TestCase(0.375f, false, 9.375f)]
+		[TestCase(0.5f, false, 30f)]
+		[TestCase(0.75f, false, 60f)]
+		[TestCase(1f, false, 60f)]
+		[TestCase(0.25f, true, 60f)]
+		[TestCase(0.75f, true, 0f)]
+		public void FollowerMapsInputWindowThroughCurveToRotation(float position, bool reverse, float expectedAngle)
+		{
+			var go = new GameObject("Gate pivot");
+			try {
+				var follower = go.AddComponent<ActuatorTransformComponent>();
+				go.transform.localRotation = Quaternion.Euler(0f, 35f, 0f);
+				var initial = go.transform.localRotation;
+				follower.AnimatePosition = false;
+				follower.AnimateRotation = true;
+				follower.RotationOffset = new Vector3(60f, 0f, 0f);
+				follower.InputMin = 0.25f;
+				follower.InputMax = 0.75f;
+				follower.ResponseCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+				follower.Reverse = reverse;
+				follower.CaptureInitialPose();
+				follower.ApplyValue(1f);
+				follower.ApplyValue(position);
+				Assert.That(Quaternion.Angle(go.transform.localRotation,
+					initial * Quaternion.Euler(expectedAngle, 0f, 0f)), Is.LessThan(0.05f));
+			} finally { Object.DestroyImmediate(go); }
+		}
+
+		[TestCase(0.5f, 0.5f)]
+		[TestCase(0.75f, 0.25f)]
+		[TestCase(-0.1f, 1f)]
+		[TestCase(0f, 1.1f)]
+		[TestCase(float.NaN, 1f)]
+		public void InvalidFollowerRangeRetainsAuthoredPose(float min, float max)
+		{
+			var go = new GameObject("Follower");
+			try {
+				var follower = go.AddComponent<ActuatorTransformComponent>();
+				follower.InputMin = min;
+				follower.InputMax = max;
+				follower.Reverse = true;
+				follower.PositionOffset = Vector3.up;
+				follower.ApplyValue(0.75f);
+				Assert.That(follower.HasValidInputRange, Is.False);
+				Assert.That(go.transform.localPosition, Is.EqualTo(Vector3.zero));
+			} finally { Object.DestroyImmediate(go); }
+		}
+
+		[Test]
+		public void PreviewUsesSamePartialRangeAsRuntimeIncludingWorldPositionMaintenance()
+		{
+			var root = new GameObject("Range preview");
+			try {
+				var actuator = root.AddComponent<ActuatorComponent>();
+				var go = new GameObject("Follower");
+				go.transform.SetParent(root.transform);
+				var follower = go.AddComponent<ActuatorTransformComponent>();
+				follower._emitter = actuator;
+				follower.InputMin = 0.5f;
+				follower.InputMax = 0.75f;
+				follower.PositionOffset = Vector3.up * 4f;
+				follower.AnimateRotation = true;
+				follower.RotationOffset = new Vector3(60f, 0f, 0f);
+				follower.Reverse = true;
+				InvokePreview("Apply", (object)new UnityEngine.Object[] { actuator }, 0.5625f);
+				InvokePreview("MaintainWorldTranslations");
+				var previewPosition = go.transform.localPosition;
+				var previewRotation = go.transform.localRotation;
+				Assert.That(previewPosition.y, Is.EqualTo(3f).Within(0.0001f));
+				InvokePreview("Restore", (object)new UnityEngine.Object[] { actuator });
+				Assert.That(go.transform.localPosition, Is.EqualTo(Vector3.zero));
+				follower.CaptureInitialPose();
+				follower.ApplyValue(0.5625f);
+				Assert.That(go.transform.localPosition, Is.EqualTo(previewPosition));
+				Assert.That(Quaternion.Angle(go.transform.localRotation, previewRotation), Is.LessThan(0.05f));
+			} finally {
+				InvokePreview("RestoreAll");
+				Object.DestroyImmediate(root);
+			}
+		}
+
+		[Test]
+		public void OldFollowerPackageWithoutRangeRestoresFullTravel()
+		{
+			var go = new GameObject("Legacy follower");
+			try {
+				var follower = go.AddComponent<ActuatorTransformComponent>();
+				follower.InputMin = 0.25f;
+				follower.InputMax = 0.5f;
+				follower.Unpack(PackageApi.Packer.Pack(new { AnimatePosition = true }));
+				Assert.That(follower.InputMin, Is.Zero);
+				Assert.That(follower.InputMax, Is.EqualTo(1f));
+				Assert.That(follower.EvaluateFactor(0.75f), Is.EqualTo(0.75f));
+			} finally { Object.DestroyImmediate(go); }
+		}
+
 		[Test]
 		public void TwoFollowersCanUseIndependentGeometry()
 		{
@@ -839,6 +937,8 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 				follower.TranslationSpace = ActuatorTranslationSpace.Local;
 				follower.AnimateRotation = true;
 				follower.RotationOffset = new Vector3(4f, 5f, 6f);
+				follower.InputMin = 0.2f;
+				follower.InputMax = 0.8f;
 				follower.ResponseCurve = new AnimationCurve(new Keyframe(0f, 0f, 1f, 2f), new Keyframe(1f, 1f, 3f, 4f));
 				follower.Reverse = true;
 
@@ -852,6 +952,8 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 				follower.PositionOffset = Vector3.zero;
 				follower.TranslationSpace = ActuatorTranslationSpace.World;
 				follower.RotationOffset = Vector3.zero;
+				follower.InputMin = 0f;
+				follower.InputMax = 1f;
 				follower.Reverse = false;
 
 				follower.Unpack(data);
@@ -862,6 +964,8 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 				Assert.That(follower.TranslationSpace, Is.EqualTo(ActuatorTranslationSpace.Local));
 				Assert.That(follower.RotationOffset, Is.EqualTo(new Vector3(4f, 5f, 6f)));
 				Assert.That(follower.Reverse, Is.True);
+				Assert.That(follower.InputMin, Is.EqualTo(0.2f));
+				Assert.That(follower.InputMax, Is.EqualTo(0.8f));
 				Assert.That(follower.ResponseCurve.keys[0].outTangent, Is.EqualTo(2f));
 				Assert.That(follower.ResponseCurve.keys[1].inTangent, Is.EqualTo(3f));
 			} finally {

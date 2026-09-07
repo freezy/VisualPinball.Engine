@@ -8,6 +8,7 @@ Built with Unity 6.5
 
 ### Added
 
+- Actuator Transform input ranges for animating a follower during only part of its source travel.
 - Wire Rail component with native spline authoring, fixtures (rings, rungs, cradles, stands, hairpins, and elbows), and an inferred ball-channel collider ([Documentation](https://docs.visualpinball.org/creators-guide/editor/wire-rails/index.html)).
 - Make packaging functional ([#557](https://github.com/freezy/VisualPinball.Engine/pull/557))
 - New threading model ([#552](https://github.com/freezy/VisualPinball.Engine/pull/552))

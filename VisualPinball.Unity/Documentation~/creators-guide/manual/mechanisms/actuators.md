@@ -62,6 +62,12 @@ Binary modes never interpret coil strength as mechanism position. A value such a
 
 The actuator clamps its position to the range 0 through 1. Curves can ease movement but cannot drive collision beyond the authored endpoints. A zero duration, or the runtime API's `SnapTo`, is an immediate transform teleport intended for initialization, restore, or diagnostics; it is not a gameplay-safe way to push a ball.
 
+### Followers that move during only part of the stroke
+
+Set **Input Min** and **Input Max** on an Actuator Transform to the source positions where its response begins and ends. Progress through that interval is clamped to 0–1, reversed if **Reverse** is enabled, then passed through **Response Curve**. Outside the interval, the curve's endpoint poses are held. The default 0–1 range preserves full-stroke behavior. Equal, inverted, or out-of-bounds ranges retain the authored pose and show an inspector error.
+
+For a gate carried by a moving building, give the gate pivot its own Actuator Transform referencing the building's actuator. Disable position animation, enable rotation, and set **Rotation Offset** to the desired local hinge rotation. Set the input interval around the handle's contact with the fixed nub, then shape the opening with the response curve. If the gate closes again after passing the nub, use a curve that rises and returns to zero. Scrub the existing actuator preview to tune the interval and check clearance. The gate follows the source's current position through stops and reversals; no separate timing is needed. Its mesh and enabled kinematic collision geometry should share the gate pivot.
+
 ## Moving collision
 
 An Actuator Transform only moves a Unity local transform. It does not discover, configure, enable, disable, or change collider modes. Collision setup remains the table author's responsibility. VPE follows collision only when the corresponding collider component is active and marked **Kinematic** when the physics engine initializes. Do not enable the collider later or switch the kinematic flag during play and expect it to register dynamically.

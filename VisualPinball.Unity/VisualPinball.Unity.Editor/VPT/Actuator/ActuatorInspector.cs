@@ -331,9 +331,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			record.Position = position;
-			var input = follower.Reverse ? 1f - position : position;
-			var curve = follower.ResponseCurve;
-			var factor = Mathf.Clamp01(curve == null || curve.length < 2 ? input : curve.Evaluate(input));
+			var factor = follower.EvaluateFactor(position);
 			if (follower.AnimatePosition) {
 				if (follower.TranslationSpace == ActuatorTranslationSpace.World) {
 					ApplyWorldPosition(record, factor);
@@ -372,9 +370,7 @@ namespace VisualPinball.Unity.Editor
 						continue;
 					}
 
-					var input = follower.Reverse ? 1f - record.Position : record.Position;
-					var curve = follower.ResponseCurve;
-					var factor = Mathf.Clamp01(curve == null || curve.length < 2 ? input : curve.Evaluate(input));
+					var factor = follower.EvaluateFactor(record.Position);
 					changed |= ApplyWorldPosition(record, factor);
 				}
 			}
