@@ -885,6 +885,9 @@ namespace VisualPinball.Unity
 
 		public BallComponent GetBall(int itemId) => _ctx.BallComponents[itemId];
 
+		public bool TryGetBall(int itemId, out BallComponent ballComponent)
+			=> _ctx.BallComponents.TryGetValue(itemId, out ballComponent);
+
 		/// <summary>
 		/// Returns the current velocity of a kinematic item, derived from its
 		/// transform updates. Values are in VPX playfield space and per second

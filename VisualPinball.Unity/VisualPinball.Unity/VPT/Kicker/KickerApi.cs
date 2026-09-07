@@ -284,7 +284,18 @@ namespace VisualPinball.Unity
 
 		void IApiHittable.OnHit(int ballId, bool isUnHit)
 		{
-			var ballComponent = PhysicsEngine.GetBall(ballId);
+			if (!PhysicsEngine.TryGetBall(ballId, out var ballComponent)) {
+				// Hit events are drained on the main thread after the simulation thread has queued them.
+				// Another callback in the same batch can destroy the ball first (for example, a trough
+				// entry trigger followed by an overlapping kicker). Ignore that stale hit, but still
+				// release the switch for a stale unhit so it cannot remain latched.
+				if (isUnHit) {
+					UnHit?.Invoke(this, new HitEventArgs(ballId));
+					Switch?.Invoke(this, new SwitchEventArgs(false, ballId));
+					OnSwitch(false);
+				}
+				return;
+			}
 			var ballTransform = ballComponent.transform;
 			if (isUnHit) {
 				UnHit?.Invoke(this, new HitEventArgs(ballId));
