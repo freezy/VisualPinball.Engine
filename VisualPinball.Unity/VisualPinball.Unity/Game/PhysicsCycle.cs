@@ -50,8 +50,10 @@ namespace VisualPinball.Unity
 			while (dTime > 0) {
 
 				var hitTime = dTime;       // begin time search from now ...  until delta ends
+				var mechanismStopTime = -1f;
 
-				ApplyFlipperTime(ref hitTime, ref state);
+				ApplyFlipperTime(ref hitTime, ref mechanismStopTime, ref state);
+				ApplySpringHingeTime(ref hitTime, ref mechanismStopTime, ref state);
 
 				// clear contacts
 				_contacts.Clear();
@@ -86,6 +88,7 @@ namespace VisualPinball.Unity
 						ApplyStaticTime(ref hitTime, ref staticCounts, in ball);
 					}
 				}
+				ClampToMechanismStop(ref hitTime, mechanismStopTime);
 
 				#region Displacement
 				PerfMarkerDisplacement.Begin();
@@ -127,6 +130,13 @@ namespace VisualPinball.Unity
 						ref var spinnerState = ref enumerator.Current.Value;
 						SpinnerDisplacementPhysics.UpdateDisplacement(enumerator.Current.Key, ref spinnerState.Movement, in spinnerState.Static,
 							hitTime, ref state.EventQueue);
+					}
+				}
+				// spring hinges
+				using (var enumerator = state.SpringHingeStates.GetEnumerator()) {
+					while (enumerator.MoveNext()) {
+						ref var hingeState = ref enumerator.Current.Value;
+						SpringHingeDisplacementPhysics.UpdateDisplacement(ref hingeState, hitTime);
 					}
 				}
 
@@ -291,7 +301,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void ApplyFlipperTime(ref float hitTime, ref PhysicsState state)
+		private void ApplyFlipperTime(ref float hitTime, ref float mechanismStopTime, ref PhysicsState state)
 		{
 			// for each flipper
 			using (var enumerator = state.FlipperStates.GetEnumerator()) {
@@ -302,8 +312,30 @@ namespace VisualPinball.Unity
 					// if flipper comes to a rest before the end of the cycle, advance to that time
 					if (flipperHitTime > 0 && flipperHitTime < hitTime) { //!! >= 0.f causes infinite loop
 						hitTime = flipperHitTime;
+						mechanismStopTime = flipperHitTime;
 					}
 				}
+			}
+		}
+
+		private static void ApplySpringHingeTime(ref float hitTime, ref float mechanismStopTime,
+			ref PhysicsState state)
+		{
+			using (var enumerator = state.SpringHingeStates.GetEnumerator()) {
+				while (enumerator.MoveNext()) {
+					var hingeHitTime = SpringHingeDisplacementPhysics.GetStopTime(enumerator.Current.Value);
+					if (hingeHitTime > 0f && hingeHitTime < hitTime) {
+						hitTime = hingeHitTime;
+						mechanismStopTime = hingeHitTime;
+					}
+				}
+			}
+		}
+
+		internal static void ClampToMechanismStop(ref float hitTime, float mechanismStopTime)
+		{
+			if (mechanismStopTime > 0f && hitTime > mechanismStopTime) {
+				hitTime = mechanismStopTime;
 			}
 		}
 

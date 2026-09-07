@@ -141,6 +141,7 @@ namespace VisualPinball.Unity
 		internal NativeParallelHashMap<int, MagnetState> MagnetStates;
 		internal NativeParallelHashMap<int, PlungerState> PlungerStates;
 		internal NativeParallelHashMap<int, SpinnerState> SpinnerStates;
+		internal NativeParallelHashMap<int, SpringHingeState> SpringHingeStates;
 		internal NativeParallelHashMap<int, SurfaceState> SurfaceStates;
 		internal NativeParallelHashMap<int, TurntableState> TurntableStates;
 		internal NativeParallelHashMap<int, TriggerState> TriggerStates;
@@ -161,6 +162,7 @@ namespace VisualPinball.Unity
 			ref NativeParallelHashMap<int, HitTargetState> hitTargetStates, ref NativeParallelHashMap<int, KickerState> kickerStates,
 			ref NativeParallelHashMap<int, MagnetState> magnetStates,
 			ref NativeParallelHashMap<int, PlungerState> plungerStates, ref NativeParallelHashMap<int, SpinnerState> spinnerStates,
+			ref NativeParallelHashMap<int, SpringHingeState> springHingeStates,
 			ref NativeParallelHashMap<int, SurfaceState> surfaceStates, ref NativeParallelHashMap<int, TurntableState> turntableStates,
 			ref NativeParallelHashMap<int, TriggerState> triggerStates,
 			ref NativeParallelHashSet<int> disabledCollisionItems, ref bool swapBallCollisionHandling,
@@ -189,6 +191,7 @@ namespace VisualPinball.Unity
 			MagnetStates = magnetStates;
 			PlungerStates = plungerStates;
 			SpinnerStates = spinnerStates;
+			SpringHingeStates = springHingeStates;
 			SurfaceStates = surfaceStates;
 			TurntableStates = turntableStates;
 			TriggerStates = triggerStates;
@@ -225,6 +228,8 @@ namespace VisualPinball.Unity
 		internal ref PlungerState GetPlungerState(int colliderId, ref NativeColliders colliders) => ref PlungerStates.GetValueByRef(colliders.GetItemId(colliderId));
 
 		internal ref SpinnerState GetSpinnerState(int colliderId, ref NativeColliders colliders) => ref SpinnerStates.GetValueByRef(colliders.GetItemId(colliderId));
+
+		internal ref SpringHingeState GetSpringHingeState(int colliderId, ref NativeColliders colliders) => ref SpringHingeStates.GetValueByRef(colliders.GetItemId(colliderId));
 
 		internal ref TriggerState GetTriggerState(int colliderId, ref NativeColliders colliders) => ref TriggerStates.GetValueByRef(colliders.GetItemId(colliderId));
 

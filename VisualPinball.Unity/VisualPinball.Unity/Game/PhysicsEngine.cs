@@ -723,6 +723,11 @@ namespace VisualPinball.Unity
 			GuardLiveStateAccess(nameof(SpinnerState));
 			return ref _ctx.SpinnerStates.Ref.GetValueByRef(itemId);
 		}
+		internal ref SpringHingeState SpringHingeState(int itemId)
+		{
+			GuardLiveStateAccess(nameof(SpringHingeState));
+			return ref _ctx.SpringHingeStates.Ref.GetValueByRef(itemId);
+		}
 		internal ref SurfaceState SurfaceState(int itemId)
 		{
 			GuardLiveStateAccess(nameof(SurfaceState));
@@ -777,6 +782,7 @@ namespace VisualPinball.Unity
 					_ctx.PlungerStates.Ref[itemId] = c.CreateState();
 					break;
 				case SpinnerComponent c: _ctx.SpinnerStates.Ref[itemId] = c.CreateState(); break;
+				case SpringHingeComponent c: _ctx.SpringHingeStates.Ref[itemId] = c.CreateState(); break;
 				case SurfaceComponent c: _ctx.SurfaceStates.Ref[itemId] = c.CreateState(); break;
 				case TurntableComponent c: _ctx.TurntableStates.Ref[itemId] = c.CreateState(); break;
 				case TriggerComponent c: _ctx.TriggerStates.Ref[itemId] = c.CreateState(); break;

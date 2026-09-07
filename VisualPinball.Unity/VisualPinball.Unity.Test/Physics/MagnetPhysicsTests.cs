@@ -1896,6 +1896,7 @@ namespace VisualPinball.Unity.Test
 		internal NativeParallelHashMap<int, BallState> Balls;
 		internal NativeParallelHashMap<int, float4x4> KinematicTransforms;
 		internal NativeParallelHashMap<int, KinematicVelocityState> KinematicVelocities;
+		internal NativeParallelHashMap<int, SpringHingeState> SpringHingeStates;
 		internal InsideOfs InsideOfs;
 		internal NativeQueue<EventData> EventQueue;
 
@@ -1929,6 +1930,11 @@ namespace VisualPinball.Unity.Test
 			Balls = new NativeParallelHashMap<int, BallState>(4, Allocator.Persistent);
 			KinematicTransforms = new NativeParallelHashMap<int, float4x4>(4, Allocator.Persistent);
 			KinematicVelocities = new NativeParallelHashMap<int, KinematicVelocityState>(4, Allocator.Persistent);
+			SpringHingeStates = new NativeParallelHashMap<int, SpringHingeState>(4, Allocator.Persistent);
+			_flipperStates = new NativeParallelHashMap<int, FlipperState>(1, Allocator.Persistent);
+			_gateStates = new NativeParallelHashMap<int, GateState>(1, Allocator.Persistent);
+			_plungerStates = new NativeParallelHashMap<int, PlungerState>(1, Allocator.Persistent);
+			_spinnerStates = new NativeParallelHashMap<int, SpinnerState>(1, Allocator.Persistent);
 			InsideOfs = new InsideOfs(Allocator.Persistent);
 			EventQueue = new NativeQueue<EventData>(Allocator.Persistent);
 		}
@@ -1941,6 +1947,7 @@ namespace VisualPinball.Unity.Test
 				ref _nonTransformableColliderTransforms, ref _kinematicColliderLookups, ref events,
 				ref InsideOfs, ref Balls, ref _bumperStates, ref _dropTargetStates, ref _flipperStates, ref _gateStates,
 				ref _hitTargetStates, ref _kickerStates, ref _magnetStates, ref _plungerStates, ref _spinnerStates,
+				ref SpringHingeStates,
 				ref _surfaceStates, ref _turntableStates, ref _triggerStates, ref _disabledCollisionItems, ref _swapBallCollisionHandling,
 				ref _elasticityLuts, ref _frictionLuts, ref KinematicVelocities);
 		}
@@ -1950,6 +1957,11 @@ namespace VisualPinball.Unity.Test
 			Balls.Dispose();
 			KinematicTransforms.Dispose();
 			KinematicVelocities.Dispose();
+			SpringHingeStates.Dispose();
+			_flipperStates.Dispose();
+			_gateStates.Dispose();
+			_plungerStates.Dispose();
+			_spinnerStates.Dispose();
 			InsideOfs.Dispose();
 			EventQueue.Dispose();
 		}

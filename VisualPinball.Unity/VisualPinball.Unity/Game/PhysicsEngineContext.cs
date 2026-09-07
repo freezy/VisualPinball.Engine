@@ -113,6 +113,7 @@ namespace VisualPinball.Unity
 		public readonly LazyInit<NativeParallelHashMap<int, MagnetState>> MagnetStates = new(() => new NativeParallelHashMap<int, MagnetState>(0, Allocator.Persistent));
 		public readonly LazyInit<NativeParallelHashMap<int, PlungerState>> PlungerStates = new(() => new NativeParallelHashMap<int, PlungerState>(0, Allocator.Persistent));
 		public readonly LazyInit<NativeParallelHashMap<int, SpinnerState>> SpinnerStates = new(() => new NativeParallelHashMap<int, SpinnerState>(0, Allocator.Persistent));
+		public readonly LazyInit<NativeParallelHashMap<int, SpringHingeState>> SpringHingeStates = new(() => new NativeParallelHashMap<int, SpringHingeState>(0, Allocator.Persistent));
 		public readonly LazyInit<NativeParallelHashMap<int, SurfaceState>> SurfaceStates = new(() => new NativeParallelHashMap<int, SurfaceState>(0, Allocator.Persistent));
 		public readonly LazyInit<NativeParallelHashMap<int, TurntableState>> TurntableStates = new(() => new NativeParallelHashMap<int, TurntableState>(0, Allocator.Persistent));
 		public readonly LazyInit<NativeParallelHashMap<int, TriggerState>> TriggerStates = new(() => new NativeParallelHashMap<int, TriggerState>(0, Allocator.Persistent));
@@ -300,6 +301,7 @@ namespace VisualPinball.Unity
 				ref NonTransformableColliderTransforms.Ref, ref KinematicColliderLookups, ref events,
 				ref InsideOfs, ref BallStates.Ref, ref BumperStates.Ref, ref DropTargetStates.Ref, ref FlipperStates.Ref, ref GateStates.Ref,
 				ref HitTargetStates.Ref, ref KickerStates.Ref, ref MagnetStates.Ref, ref PlungerStates.Ref, ref SpinnerStates.Ref,
+				ref SpringHingeStates.Ref,
 				ref SurfaceStates.Ref, ref TurntableStates.Ref, ref TriggerStates.Ref, ref DisabledCollisionItems.Ref, ref SwapBallCollisionHandling,
 				ref ElasticityOverVelocityLUTs, ref FrictionOverVelocityLUTs, ref KinematicVelocities.Ref);
 		}
@@ -342,6 +344,7 @@ namespace VisualPinball.Unity
 
 			PlungerStates.Ref.Dispose();
 			SpinnerStates.Ref.Dispose();
+			SpringHingeStates.Ref.Dispose();
 			SurfaceStates.Ref.Dispose();
 			TurntableStates.Ref.Dispose();
 
