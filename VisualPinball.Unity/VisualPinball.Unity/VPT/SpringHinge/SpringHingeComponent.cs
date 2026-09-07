@@ -7,19 +7,23 @@
 // (at your option) any later version.
 
 using System;
+using System.Collections.Generic;
 using NLog;
 using Unity.Mathematics;
 using UnityEngine;
+using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Unity.Collections;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
 	[DisallowMultipleComponent]
+	[PackAs("SpringHinge")]
 	[AddComponentMenu("Pinball/Mechs/Spring Hinge")]
-	public class SpringHingeComponent : MonoBehaviour, IAnimationValueEmitter<float>
+	public class SpringHingeComponent : MonoBehaviour, IAnimationValueEmitter<float>, IPackable, ISwitchDeviceComponent
 	{
 		private const float MillimetersToWorld = 0.001f;
+		public const string AngleSwitchItem = "angle_switch";
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		[Tooltip("Fixed hinge axis in this object's local frame.")]
@@ -68,6 +72,12 @@ namespace VisualPinball.Unity
 		[Tooltip("Runtime angle at table start in degrees.")]
 		public float InitialAngle;
 
+		[Tooltip("Expose a maintained switch that closes above Close Angle and opens below Open Angle.")]
+		public bool EnableAngleSwitch;
+
+		[Range(-180f, 180f)] public float SwitchCloseAngle = 10f;
+		[Range(-180f, 180f)] public float SwitchOpenAngle = 5f;
+
 		public SpringHingeApi SpringHingeApi { get; private set; }
 		public int ItemId => UnityObjectId.Get(gameObject);
 		internal float PublishedAngle => _animationValue;
@@ -76,6 +86,24 @@ namespace VisualPinball.Unity
 
 		private PhysicsEngine _physicsEngine;
 		private float _animationValue;
+
+		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => EnableAngleSwitch
+			? new[] { new GamelogicEngineSwitch(AngleSwitchItem) }
+			: Array.Empty<GamelogicEngineSwitch>();
+
+		public SwitchDefault SwitchDefault => SwitchDefault.NormallyOpen;
+
+		IEnumerable<GamelogicEngineSwitch> IDeviceComponent<GamelogicEngineSwitch>.AvailableDeviceItems
+			=> AvailableSwitches;
+
+		public byte[] Pack() => SpringHingePackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files)
+			=> Array.Empty<byte>();
+
+		public void Unpack(byte[] bytes) => SpringHingePackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
 
 		private void Awake()
 		{
@@ -107,6 +135,9 @@ namespace VisualPinball.Unity
 			SpringDamping = math.max(0f, SpringDamping);
 			if (MinimumAngle > MaximumAngle) {
 				(MinimumAngle, MaximumAngle) = (MaximumAngle, MinimumAngle);
+			}
+			if (SwitchOpenAngle > SwitchCloseAngle) {
+				(SwitchOpenAngle, SwitchCloseAngle) = (SwitchCloseAngle, SwitchOpenAngle);
 			}
 			InitialAngle = math.clamp(InitialAngle, MinimumAngle, MaximumAngle);
 			SyncPhysicsState();
@@ -147,6 +178,7 @@ namespace VisualPinball.Unity
 			}
 			_animationValue = angle;
 			OnAnimationValueChanged?.Invoke(angle);
+			SpringHingeApi?.OnAngleChanged(angle);
 		}
 
 		private static float DeltaAngle(float first, float second)

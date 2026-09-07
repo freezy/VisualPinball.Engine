@@ -335,7 +335,10 @@ namespace VisualPinball.Unity
 
 		public int ItemId => UnityObjectId.Get(gameObject);
 
-		bool IKinematicTransformComponent.IsKinematic => IsKinematic;
+		bool IKinematicTransformComponent.IsKinematic => IsKinematic && !(CoupleToParentHinge
+			&& MagnetType == VisualPinball.Unity.MagnetType.Spatial
+			&& ForceProfile == MagnetForceProfile.Physical
+			&& GetComponentInParent<SpringHingeComponent>());
 
 		// The physics engine disables colliders by item ID when this returns false.
 		// A magnet can share its GameObject (and therefore its item ID) with another

@@ -13,12 +13,14 @@ using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
 {
-	public class SpringHingeApi : IApi, IApiColliderGenerator, IApiHittable
+	public class SpringHingeApi : IApi, IApiColliderGenerator, IApiHittable, IApiSwitchDevice
 	{
 		private readonly SpringHingeComponent _component;
 		private readonly PhysicsEngine _physicsEngine;
 		private readonly int _itemId;
 		private readonly SpringHingeColliderComponent _colliderComponent;
+		private readonly DeviceSwitch _angleSwitch;
+		private bool _angleSwitchClosed;
 
 		public event EventHandler Init;
 		public event EventHandler<HitEventArgs> Hit;
@@ -29,9 +31,32 @@ namespace VisualPinball.Unity
 			_physicsEngine = physicsEngine;
 			_itemId = component.ItemId;
 			_colliderComponent = component.GetComponent<SpringHingeColliderComponent>();
+			var player = component.GetComponentInParent<Player>();
+			_angleSwitch = new DeviceSwitch(SpringHingeComponent.AngleSwitchItem,
+				false, SwitchDefault.NormallyOpen, player, physicsEngine);
 		}
 
 		internal float Angle => _component.PublishedAngle;
+
+		IApiSwitch IApiSwitchDevice.Switch(string deviceItem)
+			=> deviceItem == SpringHingeComponent.AngleSwitchItem
+				? _angleSwitch
+				: throw new ArgumentException($"Unknown spring-hinge switch \"{deviceItem}\". Valid name is \"{SpringHingeComponent.AngleSwitchItem}\".");
+
+		internal void OnAngleChanged(float angle)
+		{
+			if (!_component.EnableAngleSwitch) {
+				return;
+			}
+			var angleDegrees = math.degrees(angle);
+			if (!_angleSwitchClosed && angleDegrees >= _component.SwitchCloseAngle) {
+				_angleSwitchClosed = true;
+				_angleSwitch.SetSwitch(true);
+			} else if (_angleSwitchClosed && angleDegrees <= _component.SwitchOpenAngle) {
+				_angleSwitchClosed = false;
+				_angleSwitch.SetSwitch(false);
+			}
+		}
 
 		public void Reset(float angle)
 		{

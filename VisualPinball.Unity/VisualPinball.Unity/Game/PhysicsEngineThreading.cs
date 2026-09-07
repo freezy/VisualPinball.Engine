@@ -97,7 +97,9 @@ namespace VisualPinball.Unity
 		private readonly int[] _snapshotPlungerIds;
 		private readonly int[] _snapshotSpinnerIds;
 		private readonly int[] _snapshotTriggerIds;
+		private readonly int[] _snapshotSpringHingeIds;
 		private bool _ballSnapshotOverflowWarningIssued;
+		private bool _ownedSnapshotSuppressionWarningIssued;
 		private bool _floatSnapshotOverflowWarningIssued;
 		private bool _float2SnapshotOverflowWarningIssued;
 
@@ -127,8 +129,34 @@ namespace VisualPinball.Unity
 			_snapshotPlungerIds = SnapshotIds(_ctx.PlungerStates.Ref);
 			_snapshotSpinnerIds = SnapshotIds(_ctx.SpinnerStates.Ref);
 			_snapshotTriggerIds = SnapshotIds(_ctx.TriggerStates.Ref, static state => state.AnimatedItemId != 0);
+			_snapshotSpringHingeIds = SnapshotIds(_ctx.SpringHingeStates.Ref);
+			ValidateOwnedSnapshotCapacity(_snapshotSpringHingeIds.Length,
+				_ctx.BallStates.Ref.Count(), FloatAnimationSourceCount());
 			_worldToPlayfield = worldToPlayfield;
 		}
+
+		private int FloatAnimationSourceCount()
+			=> _snapshotFlipperIds.Length + _snapshotBumperRingIds.Length
+				+ _snapshotDropTargetIds.Length + _snapshotHitTargetIds.Length
+				+ _snapshotGateIds.Length + _snapshotPlungerIds.Length
+				+ _snapshotSpinnerIds.Length + _snapshotTriggerIds.Length
+				+ _snapshotSpringHingeIds.Length;
+
+		internal static void ValidateOwnedSnapshotCapacity(int springHingeCount,
+			int ballCount, int floatAnimationCount)
+		{
+			if (springHingeCount == 0) {
+				return;
+			}
+			if (ballCount > SimulationState.MaxBalls
+			    || floatAnimationCount > SimulationState.MaxFloatAnimations) {
+				throw new InvalidOperationException(
+					$"Spring-hinge snapshots require coherent ball and owner output; configured sources ({ballCount} balls, {floatAnimationCount} float animations) exceed capacities ({SimulationState.MaxBalls}, {SimulationState.MaxFloatAnimations}).");
+			}
+		}
+
+		internal static bool ShouldSuppressOwnedSnapshot(int springHingeCount, int ballCount)
+			=> springHingeCount > 0 && ballCount > SimulationState.MaxBalls;
 
 		private static int[] SnapshotIds<TState>(global::Unity.Collections.NativeParallelHashMap<int, TState> map, Func<TState, bool> predicate = null)
 			where TState : unmanaged
@@ -512,17 +540,23 @@ namespace VisualPinball.Unity
 					ballCount++;
 				}
 			}
-			snapshot.BallCount = ballCount;
+			var suppressOwnedSnapshot = ShouldSuppressOwnedSnapshot(
+				_snapshotSpringHingeIds.Length, ballSourceCount);
+			snapshot.BallCount = suppressOwnedSnapshot ? 0 : ballCount;
 			snapshot.BallSourceCount = ballSourceCount;
 			snapshot.BallSnapshotsTruncated = ballSourceCount > SimulationState.MaxBalls ? (byte)1 : (byte)0;
 			if (!_ballSnapshotOverflowWarningIssued && snapshot.BallSnapshotsTruncated != 0) {
 				_ballSnapshotOverflowWarningIssued = true;
 				Logger.Warn($"[PhysicsEngine] Ball snapshot capacity exceeded: {ballSourceCount} balls for max {SimulationState.MaxBalls}. Snapshot output is truncated.");
 			}
+			if (!_ownedSnapshotSuppressionWarningIssued && suppressOwnedSnapshot) {
+				_ownedSnapshotSuppressionWarningIssued = true;
+				Logger.Warn("[PhysicsEngine] Ball and spring-hinge snapshot output is suppressed until the ball count returns within capacity, preserving one coherent published time.");
+			}
 
 			// --- Float animations ---
 			var floatCount = 0;
-			snapshot.FloatAnimationSourceCount = _snapshotFlipperIds.Length + _snapshotBumperRingIds.Length + _snapshotDropTargetIds.Length + _snapshotHitTargetIds.Length + _snapshotGateIds.Length + _snapshotPlungerIds.Length + _snapshotSpinnerIds.Length + _snapshotTriggerIds.Length;
+			snapshot.FloatAnimationSourceCount = FloatAnimationSourceCount();
 
 			// Flippers
 			for (var i = 0; i < _snapshotFlipperIds.Length && floatCount < SimulationState.MaxFloatAnimations; i++) {
@@ -593,6 +627,15 @@ namespace VisualPinball.Unity
 				ref var s = ref _ctx.TriggerStates.Ref.GetValueByRef(itemId);
 				snapshot.FloatAnimations[floatCount++] = new SimulationState.FloatAnimation {
 					ItemId = itemId, Value = s.Movement.HeightOffset
+				};
+			}
+
+			// Spring hinges
+			for (var i = 0; !suppressOwnedSnapshot && i < _snapshotSpringHingeIds.Length && floatCount < SimulationState.MaxFloatAnimations; i++) {
+				var itemId = _snapshotSpringHingeIds[i];
+				ref var s = ref _ctx.SpringHingeStates.Ref.GetValueByRef(itemId);
+				snapshot.FloatAnimations[floatCount++] = new SimulationState.FloatAnimation {
+					ItemId = itemId, Value = s.Movement.Angle
 				};
 			}
 
@@ -930,6 +973,7 @@ namespace VisualPinball.Unity
 			_physicsMovements.ApplyPlungerMovement(ref _ctx.PlungerStates.Ref, _ctx.FloatAnimatedComponents);
 			_physicsMovements.ApplySpinnerMovement(ref _ctx.SpinnerStates.Ref, _ctx.FloatAnimatedComponents);
 			_physicsMovements.ApplyTriggerMovement(ref _ctx.TriggerStates.Ref, _ctx.FloatAnimatedComponents);
+			_physicsMovements.ApplySpringHingeMovement(ref _ctx.SpringHingeStates.Ref, _ctx.FloatAnimatedComponents);
 			_physicsMovements.ApplyTurntableMovement(ref _ctx.TurntableStates.Ref, _ctx.Float2AnimatedComponents);
 			_physicsEngine.ApplyVisualNudge(_ctx.PhysicsEnv.Nudge.CabinetOffset);
 		}
