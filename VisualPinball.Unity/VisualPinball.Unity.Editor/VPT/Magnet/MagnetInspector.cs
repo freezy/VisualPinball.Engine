@@ -40,6 +40,11 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _isKinematicProperty;
 		private SerializedProperty _drawDebugForcesProperty;
 		private SerializedProperty _hitThresholdProperty;
+		private SerializedProperty _coupleToParentHingeProperty;
+		private SerializedProperty _heldBallCentreOffsetProperty;
+		private SerializedProperty _holdStiffnessProperty;
+		private SerializedProperty _holdDampingProperty;
+		private SerializedProperty _maxHoldForceProperty;
 
 		protected override MonoBehaviour UndoTarget => target as MonoBehaviour;
 
@@ -65,6 +70,11 @@ namespace VisualPinball.Unity.Editor
 			_isKinematicProperty = serializedObject.FindProperty(nameof(MagnetComponent.IsKinematic));
 			_drawDebugForcesProperty = serializedObject.FindProperty(nameof(MagnetComponent.DrawDebugForces));
 			_hitThresholdProperty = serializedObject.FindProperty(nameof(MagnetComponent.HitThreshold));
+			_coupleToParentHingeProperty = serializedObject.FindProperty(nameof(MagnetComponent.CoupleToParentHinge));
+			_heldBallCentreOffsetProperty = serializedObject.FindProperty(nameof(MagnetComponent.HeldBallCentreOffset));
+			_holdStiffnessProperty = serializedObject.FindProperty(nameof(MagnetComponent.HoldStiffness));
+			_holdDampingProperty = serializedObject.FindProperty(nameof(MagnetComponent.HoldDamping));
+			_maxHoldForceProperty = serializedObject.FindProperty(nameof(MagnetComponent.MaxHoldForce));
 		}
 
 		public override void OnInspectorGUI()
@@ -128,6 +138,20 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			EditorGUILayout.Space(8f);
+			EditorGUILayout.LabelField("Spring Hinge Ownership", EditorStyles.boldLabel);
+			using (new EditorGUI.DisabledScope(Application.isPlaying)) {
+				PropertyField(_coupleToParentHingeProperty);
+			}
+			if (_coupleToParentHingeProperty.hasMultipleDifferentValues || _coupleToParentHingeProperty.boolValue) {
+				PropertyField(_heldBallCentreOffsetProperty);
+				PropertyField(_holdStiffnessProperty);
+				PropertyField(_holdDampingProperty);
+				PropertyField(_maxHoldForceProperty);
+				DrawOwnedModeValidation(isSpatial,
+					_forceProfileProperty.enumValueIndex == (int)MagnetForceProfile.Physical);
+			}
+
+			EditorGUILayout.Space(8f);
 			PropertyField(_isEnabledOnStartProperty);
 			// kinematic registration is fixed at startup; toggling during play would silently do nothing
 			using (new EditorGUI.DisabledScope(Application.isPlaying)) {
@@ -137,6 +161,37 @@ namespace VisualPinball.Unity.Editor
 
 			base.OnInspectorGUI();
 			EndEditing();
+		}
+
+		private void DrawOwnedModeValidation(bool isSpatial, bool usesOwnedPhysicalResponse)
+		{
+			var magnet = target as MagnetComponent;
+			var owner = magnet ? magnet.GetComponentInParent<SpringHingeComponent>() : null;
+			using (new EditorGUI.DisabledScope(true)) {
+				EditorGUILayout.ObjectField("Resolved Owner", owner,
+					typeof(SpringHingeComponent), true);
+			}
+			if (!owner) {
+				EditorGUILayout.HelpBox("Owned mode requires a parent Spring Hinge.", MessageType.Error);
+			}
+			if (!isSpatial || !usesOwnedPhysicalResponse) {
+				EditorGUILayout.HelpBox("Owned mode requires Spatial type and Physical response.", MessageType.Error);
+				if (GUILayout.Button("Use Spatial Physical Mode")) {
+					_magnetTypeProperty.enumValueIndex = (int)MagnetType.Spatial;
+					_forceProfileProperty.enumValueIndex = (int)MagnetForceProfile.Physical;
+				}
+			}
+			if (owner) {
+				var ownedCount = 0;
+				foreach (var candidate in owner.GetComponentsInChildren<MagnetComponent>(true)) {
+					if (candidate.CoupleToParentHinge) {
+						ownedCount++;
+					}
+				}
+				if (ownedCount > 1) {
+					EditorGUILayout.HelpBox("Only one owned magnet is supported per spring hinge.", MessageType.Error);
+				}
+			}
 		}
 
 		private void DrawColliderFit()
