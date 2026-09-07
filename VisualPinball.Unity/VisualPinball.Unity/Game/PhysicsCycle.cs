@@ -32,10 +32,12 @@ namespace VisualPinball.Unity
 		private static readonly ProfilerMarker PerfMarkerDisplacement = new("Displacement");
 		private static readonly ProfilerMarker PerfMarkerCollision = new("Collision");
 		private static readonly ProfilerMarker PerfMarkerContacts = new("Contacts");
+		internal int DynamicBroadPhaseRefitCount { get; private set; }
 
 		public PhysicsCycle(Allocator a)
 		{
 			_contacts = new NativeList<ContactBufferElement>(a);
+			DynamicBroadPhaseRefitCount = 0;
 		}
 
 		internal void Simulate(ref PhysicsState state, ref NativeParallelHashSet<int> overlappingColliders, ref NativeOctree<int> kinematicOctree, ref NativeOctree<int> ballOctree, float dTime)
@@ -183,17 +185,32 @@ namespace VisualPinball.Unity
 
 				using (var enumerator = state.Balls.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
-						ref var ball = ref enumerator.Current.Value;
-						BallSpinHackPhysics.Update(ref ball);
+						ApplyBallSpinCorrection(ref enumerator.Current.Value);
 					}
 				}
 
 				dTime -= hitTime;
+				if (PhysicsDynamicBroadPhase.RebuildIfMotionEscapes(ref ballOctree,
+					    ref state.Balls, dTime)) {
+					DynamicBroadPhaseRefitCount++;
+				}
 
 				state.SwapBallCollisionHandling = !state.SwapBallCollisionHandling;
 			}
 
 			PerfMarker.End();
+		}
+
+		internal void ResetDynamicBroadPhaseRefitCount()
+		{
+			DynamicBroadPhaseRefitCount = 0;
+		}
+
+		internal static void ApplyBallSpinCorrection(ref BallState ball)
+		{
+			if (ball.AttachedMagnetId == 0) {
+				BallSpinHackPhysics.Update(ref ball);
+			}
 		}
 
 		private void PrepareContacts(ref PhysicsState state)

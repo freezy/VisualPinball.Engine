@@ -233,6 +233,20 @@ namespace VisualPinball.Unity
 			if (CoupleToParentHinge && !validOwnedMode) {
 				Logger.Error($"Magnet {name} can couple only as a Spatial Physical child of a spring hinge.");
 			}
+			if (validOwnedMode) {
+				var ownedMagnets = hinge.GetComponentsInChildren<MagnetComponent>(true);
+				var ownedCount = 0;
+				for (var i = 0; i < ownedMagnets.Length; i++) {
+					if (ownedMagnets[i].CoupleToParentHinge
+					    && ownedMagnets[i].MagnetType == VisualPinball.Unity.MagnetType.Spatial
+					    && ownedMagnets[i].ForceProfile == MagnetForceProfile.Physical) {
+						ownedCount++;
+					}
+				}
+				if (ownedCount > 1) {
+					Logger.Error($"Spring hinge {hinge.name} has {ownedCount} owned magnets; only one reciprocal owner magnet is supported.");
+				}
+			}
 			var poleArm = float3.zero;
 			var heldCentreArm = float3.zero;
 			if (validOwnedMode) {
@@ -299,6 +313,13 @@ namespace VisualPinball.Unity
 				if (magnet.AttachedBallId != 0 && (!synced.CoupleToHinge
 				    || !magnet.CoupleToHinge || synced.HingeOwnerId != magnet.HingeOwnerId)) {
 					MagnetPhysics.ReleaseGrabbedBalls(itemId, ref magnet, ref state, true);
+				}
+				if (synced.CoupleToHinge && magnet.CoupleToHinge
+				    && synced.HingeOwnerId == magnet.HingeOwnerId) {
+					// These are baked geometry. Runtime visual rotation must not be sampled
+					// back into physics and then rotated by the hinge angle a second time.
+					synced.LocalPoleArm = magnet.LocalPoleArm;
+					synced.LocalHeldCentreArm = magnet.LocalHeldCentreArm;
 				}
 				synced.IsEnabled = magnet.IsEnabled;
 				synced.CommandedPower = magnet.CommandedPower;

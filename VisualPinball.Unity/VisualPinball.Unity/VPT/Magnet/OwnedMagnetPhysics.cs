@@ -68,7 +68,8 @@ namespace VisualPinball.Unity
 						    || !MagnetPhysics.HasActiveField(in magnet)
 						    || math.distancesq(attached.Position, target) > releaseDistance * releaseDistance
 						    || !HasValidProxyGap(in attached, in hinge, in target, ref state)
-						    || !CanCapture(in attached, in magnet, in hinge, in pole, in target)) {
+						    || !CanCaptureWithin(in attached, in magnet, in hinge, in pole, in target,
+							    releaseDistance)) {
 							ReleaseAttachment(itemId, ref magnet, ref state, true);
 						}
 					}
@@ -352,9 +353,14 @@ namespace VisualPinball.Unity
 
 		internal static bool CanCapture(in BallState ball, in MagnetState magnet,
 			in SpringHingeState hinge, in float3 pole, in float3 target)
+			=> CanCaptureWithin(in ball, in magnet, in hinge, in pole, in target,
+				magnet.GrabRadius);
+
+		private static bool CanCaptureWithin(in BallState ball, in MagnetState magnet,
+			in SpringHingeState hinge, in float3 pole, in float3 target, float workRadius)
 		{
 			if (ball.Mass <= MinimumValue || hinge.Static.Inertia <= MinimumValue
-			    || magnet.Radius <= MinimumValue || magnet.GrabRadius <= 0f
+			    || magnet.Radius <= MinimumValue || workRadius <= 0f
 			    || !math.isfinite(ball.Mass) || !math.isfinite(hinge.Static.Inertia)
 			    || !math.all(math.isfinite(ball.Position)) || !math.all(math.isfinite(ball.Velocity))) {
 				return false;
@@ -371,7 +377,7 @@ namespace VisualPinball.Unity
 			var holdForce = math.max(0f, magnet.MaxHoldForce)
 				* magnet.EffectiveCurrent * magnet.EffectiveCurrent;
 			var availableWork = math.min(fieldForce, holdForce)
-				* math.max(0f, magnet.GrabRadius - math.distance(ball.Position, target));
+				* math.max(0f, workRadius - math.distance(ball.Position, target));
 			if (availableWork <= 0f) {
 				return false;
 			}
@@ -403,8 +409,10 @@ namespace VisualPinball.Unity
 				}
 				var targetGap = collider.Distance(in hinge, in target, ball.Radius).Separation;
 				var currentGap = collider.Distance(in hinge, ball.Position, ball.Radius).Separation;
-				return math.abs(targetGap) <= PhysicsConstants.PhysTouch
-				       && currentGap >= -PhysicsConstants.Embedded;
+				if (math.abs(targetGap) <= PhysicsConstants.PhysTouch
+				    && currentGap >= -PhysicsConstants.Embedded) {
+					return true;
+				}
 			}
 			return false;
 		}

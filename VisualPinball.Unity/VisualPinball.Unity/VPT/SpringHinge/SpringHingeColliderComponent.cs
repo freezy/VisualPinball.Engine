@@ -30,6 +30,9 @@ namespace VisualPinball.Unity
 		[Range(0f, 1f)] public float Elasticity = 0.1f;
 		[Min(0f)] public float ElasticityFalloff = 0.5f;
 		[Range(0f, 1f)] public float Friction = 0.3f;
+		[Tooltip("Emit a Hit event when the ball strikes the toy at a new position.")]
+		public bool HitEvent = true;
+		[Min(0f)] public float HitThreshold;
 		public bool OverwritePhysics = true;
 		public PhysicsMaterialAsset PhysicsMaterial;
 

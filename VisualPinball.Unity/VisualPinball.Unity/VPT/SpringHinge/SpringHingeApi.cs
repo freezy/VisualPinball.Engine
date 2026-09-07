@@ -13,7 +13,7 @@ using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
 {
-	public class SpringHingeApi : IApi, IApiColliderGenerator
+	public class SpringHingeApi : IApi, IApiColliderGenerator, IApiHittable
 	{
 		private readonly SpringHingeComponent _component;
 		private readonly PhysicsEngine _physicsEngine;
@@ -21,6 +21,7 @@ namespace VisualPinball.Unity
 		private readonly SpringHingeColliderComponent _colliderComponent;
 
 		public event EventHandler Init;
+		public event EventHandler<HitEventArgs> Hit;
 
 		internal SpringHingeApi(SpringHingeComponent component, PhysicsEngine physicsEngine)
 		{
@@ -54,6 +55,13 @@ namespace VisualPinball.Unity
 
 		void IApi.OnDestroy()
 		{
+		}
+
+		void IApiHittable.OnHit(int ballId, bool isUnHit)
+		{
+			if (!isUnHit) {
+				Hit?.Invoke(this, new HitEventArgs(ballId));
+			}
 		}
 
 		bool IApiColliderGenerator.IsColliderAvailable => _colliderComponent && _colliderComponent.IsCollidable;
@@ -106,6 +114,8 @@ namespace VisualPinball.Unity
 			return new ColliderInfo {
 				ItemId = _itemId,
 				ItemType = itemType,
+				FireEvents = _colliderComponent.HitEvent,
+				HitThreshold = _colliderComponent.HitThreshold,
 				Material = material
 			};
 		}

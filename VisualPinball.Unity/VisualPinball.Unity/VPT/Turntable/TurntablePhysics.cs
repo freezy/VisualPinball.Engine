@@ -45,6 +45,8 @@ namespace VisualPinball.Unity
 					if (ball.IsFrozen || !IsBallInRange(in ball, in turntable)) {
 						continue;
 					}
+					MagnetPhysics.ReleaseOwnedAttachmentForUnsupportedInteraction(ref state,
+						ref ball, itemId);
 					ApplyVpxCompatibleForce(ref ball, in turntable, physicsDiffTime);
 				}
 			}

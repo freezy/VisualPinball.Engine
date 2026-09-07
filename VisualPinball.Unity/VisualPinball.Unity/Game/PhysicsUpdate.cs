@@ -87,6 +87,7 @@ namespace VisualPinball.Unity
 			// ref var overlappingColliders = ref UnsafeUtility.AsRef<NativeParallelHashSet<int>>(overlappingCollidersPtr.ToPointer());
 
 			var subSteps = 0;
+			cycle.ResetDynamicBroadPhaseRefitCount();
 			while (env.CurPhysicsFrameTime < initialTimeUsec)  // loop here until current (real) time matches the physics (simulated) time
 			{
 				// Safety cap: if we've been catching up for too many iterations (e.g. after

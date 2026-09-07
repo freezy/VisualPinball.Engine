@@ -42,5 +42,8 @@ namespace VisualPinball.Engine.Game
 		MagnetEventsBallExited = 1501,
 		MagnetEventsBallGrabbed = 1502,
 		MagnetEventsBallReleased = 1503,
+
+		// Physics diagnostics
+		PhysicsDiagnosticsUnsupportedOwnedInteraction = 1600,
 	}
 }

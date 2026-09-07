@@ -106,12 +106,14 @@ namespace VisualPinball.Unity
 					break;
 
 				case ColliderType.Bumper:
+					ReleaseBeforeUnsupportedInteraction(ref ball, in collHeader, ref state);
 					ref var bumperState = ref state.GetBumperState(colliderId, ref colliders);
 					BumperCollider.Collide(ref ball, ref state.EventQueue, ref ball.CollisionEvent, ref state,
 						in collHeader, in bumperState.Static, ref state.InsideOfs, bumperState.IsSwitchWiredToCoil);
 					break;
 
 				case ColliderType.Flipper:
+					ReleaseBeforeUnsupportedInteraction(ref ball, in collHeader, ref state);
 					ref var flipperState = ref state.GetFlipperState(colliderId, ref colliders);
 					ref var flipperCollider = ref colliders.Flipper(colliderId);
 					flipperCollider.Collide(ref ball, ref ball.CollisionEvent, ref flipperState.Movement,
@@ -133,6 +135,7 @@ namespace VisualPinball.Unity
 					break;
 
 				case ColliderType.LineSlingShot:
+					ReleaseBeforeUnsupportedInteraction(ref ball, in collHeader, ref state);
 					ref var surfaceState = ref state.GetSurfaceState(colliderId, ref colliders);
 					ref var surfaceCollider = ref colliders.LineSlingShot(colliderId);
 					surfaceCollider.Collide(ref ball, ref state.EventQueue, in surfaceState.Slingshot,
@@ -140,6 +143,7 @@ namespace VisualPinball.Unity
 					break;
 
 				case ColliderType.Plunger:
+					ReleaseBeforeUnsupportedInteraction(ref ball, in collHeader, ref state);
 					ref var plungerState = ref state.GetPlungerState(colliderId, ref colliders);
 					PlungerCollider.Collide(ref ball, ref ball.CollisionEvent, ref plungerState.Movement, in plungerState.Static, ref state.Env.Random);
 					break;
@@ -154,6 +158,7 @@ namespace VisualPinball.Unity
 					break;
 
 				case ColliderType.KickerCircle: {
+					ReleaseBeforeUnsupportedInteraction(ref ball, in collHeader, ref state);
 					ref var kickerState = ref state.GetKickerState(colliderId, ref colliders);
 					ref var circleCollider = ref colliders.Circle(colliderId);
 					KickerCollider.Collide(new float3(circleCollider.Center, circleCollider.ZLow), ref ball, ref state.EventQueue, ref state.InsideOfs,
@@ -169,6 +174,18 @@ namespace VisualPinball.Unity
 			// remove trial hit object pointer
 			ball.CollisionEvent.ClearCollider();
 		}
+
+		private static void ReleaseBeforeUnsupportedInteraction(ref BallState ball,
+			in ColliderHeader collider, ref PhysicsState state)
+		{
+			MagnetPhysics.ReleaseOwnedAttachmentForUnsupportedInteraction(ref state,
+				ref ball, collider.ItemId);
+		}
+
+		internal static bool IsUnsupportedActiveCollider(ColliderType colliderType)
+			=> colliderType is ColliderType.Bumper or ColliderType.Flipper
+				or ColliderType.LineSlingShot or ColliderType.Plunger
+				or ColliderType.KickerCircle;
 
 		private static bool CollidesWithItem(ref NativeColliders colliders, ref ColliderHeader collHeader, ref BallState ball, ref PhysicsState state)
 		{

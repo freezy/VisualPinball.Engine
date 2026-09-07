@@ -9,6 +9,7 @@
 using NUnit.Framework;
 using Unity.Collections;
 using Unity.Mathematics;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Unity.Collections;
 
@@ -372,6 +373,124 @@ namespace VisualPinball.Unity.Test
 			}
 		}
 
+		[Test]
+		public void AttachedBallUsesGapHysteresisBeyondGrabRadius()
+		{
+			using var harness = CreateAttachedHarness(out var references, out var transforms);
+			try {
+				ref var ball = ref harness.Balls.GetValueByRef(1);
+				ball.Position = new float3(16f, 3f, 0f);
+				ref var hinge = ref harness.SpringHingeStates.GetValueByRef(12);
+				SpringHingeVelocityPhysics.PrepareVelocity(ref hinge, float3.zero, 0.01f);
+				var state = harness.CreateState();
+
+				OwnedMagnetPhysics.Update(ref state, 0.01f);
+
+				Assert.That(state.MagnetStates[20].AttachedBallId, Is.EqualTo(1));
+				Assert.That(state.Balls[1].AttachedMagnetId, Is.EqualTo(20));
+				Assert.That(CountEvents(harness, EventId.MagnetEventsBallReleased), Is.Zero);
+			} finally {
+				references.Dispose();
+				transforms.Dispose();
+			}
+		}
+
+		[Test]
+		public void EqualDistanceCaptureUsesBallIdIndependentOfRegistrationOrder()
+		{
+			Assert.That(CaptureFromRegistrationOrder(1, 2), Is.EqualTo(1));
+			Assert.That(CaptureFromRegistrationOrder(2, 1), Is.EqualTo(1));
+		}
+
+		[Test]
+		public void UnsupportedActiveInteractionReleasesOnceAndPreservesMotion()
+		{
+			using var harness = CreateAttachedHarness(out var references, out var transforms);
+			try {
+				ref var ball = ref harness.Balls.GetValueByRef(1);
+				ball.Velocity = new float3(1f, 2f, 3f);
+				ball.AngularMomentum = new float3(4f, 5f, 6f);
+				var velocity = ball.Velocity;
+				var spin = ball.AngularMomentum;
+				var state = harness.CreateState();
+
+				Assert.That(MagnetPhysics.ReleaseOwnedAttachmentForUnsupportedInteraction(
+					ref state, ref ball, 77), Is.True);
+				Assert.That(MagnetPhysics.ReleaseOwnedAttachmentForUnsupportedInteraction(
+					ref state, ref ball, 77), Is.False);
+
+				AssertFloat3(ball.Velocity, velocity);
+				AssertFloat3(ball.AngularMomentum, spin);
+				Assert.That(ball.AttachedMagnetId, Is.Zero);
+				Assert.That(state.MagnetStates[20].AttachedBallId, Is.Zero);
+				var released = 0;
+				var diagnosed = 0;
+				while (harness.EventQueue.TryDequeue(out var eventData)) {
+					released += eventData.EventId == EventId.MagnetEventsBallReleased ? 1 : 0;
+					diagnosed += eventData.EventId == EventId.PhysicsDiagnosticsUnsupportedOwnedInteraction ? 1 : 0;
+				}
+				Assert.That(released, Is.EqualTo(1));
+				Assert.That(diagnosed, Is.EqualTo(1));
+			} finally {
+				references.Dispose();
+				transforms.Dispose();
+			}
+		}
+
+		[Test]
+		public void TurntableReleasesAttachedBallBeforeApplyingLegacyForce()
+		{
+			using var harness = CreateAttachedHarness(out var references, out var transforms);
+			try {
+				var state = harness.CreateState();
+				var turntable = new TurntableState {
+					Position = float2.zero,
+					Radius = 100f,
+					Speed = 10f,
+					TargetSpeed = 10f,
+					MotorOn = true
+				};
+
+				TurntablePhysics.Update(77, ref turntable, ref state, PhysicsConstants.PhysFactor);
+
+				Assert.That(state.Balls[1].AttachedMagnetId, Is.Zero);
+				Assert.That(state.MagnetStates[20].AttachedBallId, Is.Zero);
+				Assert.That(math.lengthsq(state.Balls[1].Velocity), Is.GreaterThan(0f));
+				var first = harness.EventQueue.Dequeue();
+				var second = harness.EventQueue.Dequeue();
+				Assert.That(first.EventId, Is.EqualTo(EventId.MagnetEventsBallReleased));
+				Assert.That(second.EventId, Is.EqualTo(EventId.PhysicsDiagnosticsUnsupportedOwnedInteraction));
+				Assert.That(second.IntParam, Is.EqualTo(77));
+			} finally {
+				references.Dispose();
+				transforms.Dispose();
+			}
+		}
+
+		[Test]
+		public void PassiveSupportBalancesFullOwnedHoldLoad()
+		{
+			const float step = PhysicsConstants.PhysFactor;
+			var gravity = new float3(0f, -1f, 0f);
+			var hinge = CreateHinge(inertia: 10f);
+			SpringHingeVelocityPhysics.PrepareVelocity(ref hinge, in gravity, step);
+			var magnet = CreateMagnet(stiffness: 10000f, damping: 1000f, maxForce: 10000f);
+			var target = new float3(10f, 3f, 0f);
+			var ball = CreateBall(1, target, gravity * step);
+
+			Assert.That(OwnedMagnetPhysics.SolveHold(ref ball, ref hinge, in magnet,
+				in target, step, out _), Is.True);
+			var contact = new CollisionEventData {
+				HitNormal = new float3(0f, 1f, 0f),
+				HitOrgNormalVelocity = ball.Velocity.y
+			};
+			BallCollider.HandleStaticContact(ref ball, in contact, 0f, step,
+				in gravity, float3.zero);
+
+			Assert.That(ball.Velocity.y, Is.GreaterThanOrEqualTo(-1e-5f));
+			Assert.That(hinge.Movement.CommittedMagneticTorque, Is.Not.Zero);
+		}
+
 		private static MagnetState CreateMagnet(float stiffness, float damping, float maxForce)
 		{
 			return new MagnetState {
@@ -477,6 +596,37 @@ namespace VisualPinball.Unity.Test
 			magnet.GrabbedBalls.SetBits(bitIndex, true);
 			harness.MagnetStates.Add(20, magnet);
 			return harness;
+		}
+
+		private static int CaptureFromRegistrationOrder(int firstBallId, int secondBallId)
+		{
+			using var harness = new PhysicsStateHarness();
+			var transforms = new NativeParallelHashMap<int, float4x4>(1, Allocator.Temp);
+			var references = new ColliderReference(ref transforms, Allocator.Temp);
+			try {
+				var hinge = CreateHinge(inertia: 10f);
+				harness.SpringHingeStates.Add(hinge.AnimationItemId, hinge);
+				references.Add(CreateCollider());
+				harness.SetStaticColliders(ref references);
+				harness.MagnetStates.Add(20,
+					CreateMagnet(stiffness: 1000f, damping: 100f, maxForce: 10000f));
+				harness.Balls.Add(firstBallId, CreateBall(firstBallId,
+					firstBallId == 1 ? new float3(9f, 3f, 0f) : new float3(11f, 3f, 0f),
+					float3.zero));
+				harness.Balls.Add(secondBallId, CreateBall(secondBallId,
+					secondBallId == 1 ? new float3(9f, 3f, 0f) : new float3(11f, 3f, 0f),
+					float3.zero));
+				ref var stateHinge = ref harness.SpringHingeStates.GetValueByRef(hinge.AnimationItemId);
+				SpringHingeVelocityPhysics.PrepareVelocity(ref stateHinge, float3.zero, 0.01f);
+				var state = harness.CreateState();
+
+				OwnedMagnetPhysics.Update(ref state, 0.01f);
+
+				return state.MagnetStates[20].AttachedBallId;
+			} finally {
+				references.Dispose();
+				transforms.Dispose();
+			}
 		}
 
 		private static int CountEvents(PhysicsStateHarness harness, EventId eventId)

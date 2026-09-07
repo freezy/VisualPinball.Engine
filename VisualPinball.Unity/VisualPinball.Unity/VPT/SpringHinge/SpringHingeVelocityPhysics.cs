@@ -45,6 +45,10 @@ namespace VisualPinball.Unity
 
 			var denominator = data.Inertia + step * data.Damping + step * step * data.Stiffness;
 			if (data.Inertia <= 0f || step <= 0f || denominator <= 0f || !math.isfinite(denominator)) {
+				// Degenerate authoring cannot convert a pending impulse into a finite torque.
+				// Drop it explicitly rather than leaving stale reaction state for diagnostics.
+				movement.PendingMagneticAngularImpulse = 0f;
+				movement.CommittedMagneticTorque = 0f;
 				ApplyStopConstraint(ref movement, in data);
 				movement.VelocityCommitted = true;
 				RefreshContinuousAcceleration(ref state);
