@@ -150,13 +150,7 @@ namespace VisualPinball.Unity
 				}
 				// spring hinges
 				UpdateSpringHingeVelocities(ref state, in env.Gravity, in cabinetAcceleration, physicsDiffTime);
-				// magnets
-				using (var enumerator = state.MagnetStates.GetEnumerator()) {
-					while (enumerator.MoveNext()) {
-						ref var magnetState = ref enumerator.Current.Value;
-						MagnetPhysics.Update(enumerator.Current.Key, ref magnetState, ref state, physicsDiffTime);
-					}
-				}
+				UpdateMagnetsAndCommitSpringHinges(ref state, physicsDiffTime);
 				// turntables
 				using (var enumerator = state.TurntableStates.GetEnumerator()) {
 					while (enumerator.MoveNext()) {
@@ -194,7 +188,40 @@ namespace VisualPinball.Unity
 			using var enumerator = state.SpringHingeStates.GetEnumerator();
 			while (enumerator.MoveNext()) {
 				ref var hingeState = ref enumerator.Current.Value;
-				SpringHingeVelocityPhysics.UpdateVelocity(ref hingeState, in effectiveGravity, step);
+				SpringHingeVelocityPhysics.PrepareVelocity(ref hingeState, in effectiveGravity, step);
+			}
+		}
+
+		internal static void UpdateMagnetsAndCommitSpringHinges(ref PhysicsState state, float step)
+		{
+			// Advance every coil exactly once, then preserve legacy magnet behavior before
+			// the reciprocal owned pass arbitrates captures and commits hinge velocities.
+			using (var enumerator = state.MagnetStates.GetEnumerator()) {
+				while (enumerator.MoveNext()) {
+					MagnetPhysics.AdvanceCoil(ref enumerator.Current.Value, step);
+				}
+			}
+			using (var enumerator = state.MagnetStates.GetEnumerator()) {
+				while (enumerator.MoveNext()) {
+					ref var magnetState = ref enumerator.Current.Value;
+					if (!magnetState.CoupleToHinge) {
+						MagnetPhysics.UpdateAfterCoil(enumerator.Current.Key, ref magnetState,
+							ref state, step);
+					}
+				}
+			}
+			OwnedMagnetPhysics.Update(ref state, step);
+			CommitSpringHingeVelocities(ref state);
+		}
+
+		private static void CommitSpringHingeVelocities(ref PhysicsState state)
+		{
+			using var enumerator = state.SpringHingeStates.GetEnumerator();
+			while (enumerator.MoveNext()) {
+				ref var hingeState = ref enumerator.Current.Value;
+				if (!hingeState.Movement.VelocityCommitted) {
+					SpringHingeVelocityPhysics.CommitFreeVelocity(ref hingeState);
+				}
 			}
 		}
 
