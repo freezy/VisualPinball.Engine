@@ -75,6 +75,10 @@ namespace VisualPinball.Unity
 				}
 
 				ref var collHeader = ref state.GetColliderHeader(ref colliders, collEvent.ColliderId);
+				if (PhysicsStaticCollision.IsUnsupportedActiveCollider(collHeader.Type)) {
+					MagnetPhysics.ReleaseOwnedAttachmentForUnsupportedInteraction(ref state,
+						ref ball, collHeader.ItemId);
+				}
 				if (collHeader.Type == ColliderType.Flipper) {
 					ref var flipperCollider = ref colliders.Flipper(collEvent.ColliderId);
 					ref var flipperState = ref state.GetFlipperState(collEvent.ColliderId, ref colliders);

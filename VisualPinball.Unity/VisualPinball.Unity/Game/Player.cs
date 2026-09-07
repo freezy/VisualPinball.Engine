@@ -474,6 +474,10 @@ namespace VisualPinball.Unity
 					_magnets[eventData.ItemId].OnMagnetBallReleased(eventData.BallId);
 					break;
 
+				case EventId.PhysicsDiagnosticsUnsupportedOwnedInteraction:
+					Logger.Warn($"Owned magnet {eventData.ItemId} released ball {eventData.BallId} before unsupported active interaction with item {eventData.IntParam}.");
+					break;
+
 				default:
 					throw new InvalidOperationException($"Unknown event {eventData.EventId} for entity {eventData.ItemId}");
 			}

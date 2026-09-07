@@ -59,6 +59,7 @@ namespace VisualPinball.Unity
 		public float Mass;
 		public bool IsFrozen;
 		internal int AttachedMagnetId;
+		internal Aabb DynamicBroadPhaseAabb;
 		public int RingCounterOldPos;
 
 		public bool ManualControl;

@@ -28,6 +28,7 @@ namespace VisualPinball.Unity
 		public readonly int ItemId;
 		public readonly int BallId;
 		public readonly float FloatParam;
+		public readonly int IntParam;
 		public readonly bool GroupEvent;
 
 		public EventData(EventId eventId, int itemId, int ballId, bool groupEvent = false) : this()
@@ -44,6 +45,17 @@ namespace VisualPinball.Unity
 			ItemId = itemId;
 			BallId = ballId;
 			FloatParam = floatParam;
+			GroupEvent = groupEvent;
+		}
+
+		public EventData(EventId eventId, int itemId, int ballId, float floatParam, int intParam,
+			bool groupEvent = false) : this()
+		{
+			EventId = eventId;
+			ItemId = itemId;
+			BallId = ballId;
+			FloatParam = floatParam;
+			IntParam = intParam;
 			GroupEvent = groupEvent;
 		}
 

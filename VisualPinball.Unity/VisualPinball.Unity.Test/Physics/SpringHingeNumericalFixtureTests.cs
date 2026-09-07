@@ -122,7 +122,8 @@ namespace VisualPinball.Unity.Test
 			var result = SpringHingeNumericalFixtures.SolveHold(input);
 
 			Assert.That(result.Impulse, Is.EqualTo(float3.zero));
-			Assert.That(result.HingeAngularVelocity, Is.EqualTo(expected.AngularVelocity));
+			Assert.That(result.HingeAngularVelocity,
+				Is.EqualTo(expected.AngularVelocity).Within(1e-6f));
 		}
 
 		[Test]

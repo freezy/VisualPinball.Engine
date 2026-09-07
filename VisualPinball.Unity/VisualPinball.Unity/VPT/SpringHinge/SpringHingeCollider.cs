@@ -206,7 +206,9 @@ namespace VisualPinball.Unity
 				ApplyAngularImpulse(ref hinge, -frictionImpulse * hingeTangentArm);
 			}
 			SpringHingeVelocityPhysics.RefreshContinuousAcceleration(ref hinge);
-			Collider.FireHitEvent(ref ball, ref state.EventQueue, in Header);
+			if (-normalVelocity >= Header.Threshold) {
+				Collider.FireHitEvent(ref ball, ref state.EventQueue, in Header);
+			}
 		}
 
 		internal void Contact(ref BallState ball, ref SpringHingeState hinge,

@@ -16,6 +16,7 @@
 
 using NativeTrees;
 using Unity.Collections;
+using Unity.Mathematics;
 using Unity.Profiling;
 using VisualPinball.Unity.Collections;
 
@@ -23,6 +24,8 @@ namespace VisualPinball.Unity
 {
 	public static class PhysicsDynamicBroadPhase
 	{
+		private const float MotionBoundsMargin = 0.05f;
+		private const float ContainmentTolerance = 1e-5f;
 		private static readonly ProfilerMarker PerfMarkerBallOctree = new("CreateBallOctree");
 		private static readonly ProfilerMarker PerfMarkerDynamicBroadPhase = new("DynamicBroadPhase");
 
@@ -33,9 +36,49 @@ namespace VisualPinball.Unity
 			using var enumerator = balls.GetEnumerator();
 			while (enumerator.MoveNext()) {
 				ref var ball = ref enumerator.Current.Value;
-				octree.Insert(ball.Id, ball.Aabb);
+				ball.DynamicBroadPhaseAabb = ball.Aabb;
+				octree.Insert(ball.Id, ball.DynamicBroadPhaseAabb);
 			}
 			PerfMarkerBallOctree.End();
+		}
+
+		internal static bool RebuildIfMotionEscapes(ref NativeOctree<int> octree,
+			ref NativeParallelHashMap<int, BallState> balls, float remainingTime)
+		{
+			if (remainingTime <= 0f || !RequiresRebuild(ref balls, remainingTime)) {
+				return false;
+			}
+			RebuildOctree(ref octree, ref balls);
+			return true;
+		}
+
+		internal static bool RequiresRebuild(ref NativeParallelHashMap<int, BallState> balls,
+			float remainingTime)
+		{
+			using var enumerator = balls.GetEnumerator();
+			while (enumerator.MoveNext()) {
+				ref var ball = ref enumerator.Current.Value;
+				if (!IsRemainingMotionContained(in ball, remainingTime)) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		internal static bool IsRemainingMotionContained(in BallState ball, float remainingTime)
+		{
+			var end = ball.Position + ball.Velocity * math.max(0f, remainingTime);
+			var margin = ball.Radius + MotionBoundsMargin;
+			var min = math.min(ball.Position, end) - margin;
+			var max = math.max(ball.Position, end) + margin;
+			var inserted = ball.DynamicBroadPhaseAabb;
+			return math.all(math.isfinite(min)) && math.all(math.isfinite(max))
+			       && min.x >= inserted.Left - ContainmentTolerance
+			       && max.x <= inserted.Right + ContainmentTolerance
+			       && min.y >= inserted.Top - ContainmentTolerance
+			       && max.y <= inserted.Bottom + ContainmentTolerance
+			       && min.z >= inserted.ZLow - ContainmentTolerance
+			       && max.z <= inserted.ZHigh + ContainmentTolerance;
 		}
 
 		internal static void FindOverlaps(in NativeOctree<int> octree, in BallState ball, ref NativeParallelHashSet<int> overlappingBalls, ref NativeParallelHashMap<int, BallState> balls)

@@ -748,7 +748,8 @@ namespace VisualPinball.Unity
 			return state.GetKinematicVelocityAt(itemId, Center3D(in magnet));
 		}
 
-		internal static void ReleaseGrabbedBall(int itemId, ref MagnetState magnet, ref PhysicsState state, int ballId)
+		internal static void ReleaseGrabbedBall(int itemId, ref MagnetState magnet, ref PhysicsState state,
+			int ballId, bool suppressRegrab = false)
 		{
 			if (magnet.AttachedBallId == ballId) {
 				magnet.AttachedBallId = 0;
@@ -763,7 +764,7 @@ namespace VisualPinball.Unity
 			if (!state.InsideOfs.TryGetBitIndex(ballId, out var bitIndex)) {
 				return;
 			}
-			ReleaseGrabbedBall(itemId, ref magnet, bitIndex, ballId, ref state, false);
+			ReleaseGrabbedBall(itemId, ref magnet, bitIndex, ballId, ref state, suppressRegrab);
 		}
 
 		internal static void ReleaseGrabbedBall(int itemId, ref MagnetState magnet, int bitIndex, int ballId, ref PhysicsState state, bool suppressRegrab)
@@ -778,7 +779,8 @@ namespace VisualPinball.Unity
 			state.EventQueue.Enqueue(new EventData(EventId.MagnetEventsBallReleased, itemId, ballId, true));
 		}
 
-		internal static void ReleaseOwnedAttachmentForBall(ref PhysicsState state, ref BallState ball)
+		internal static void ReleaseOwnedAttachmentForBall(ref PhysicsState state, ref BallState ball,
+			bool suppressRegrab = false)
 		{
 			var magnetId = ball.AttachedMagnetId;
 			if (magnetId == 0 || !state.MagnetStates.ContainsKey(magnetId)) {
@@ -786,7 +788,38 @@ namespace VisualPinball.Unity
 				return;
 			}
 			ref var magnet = ref state.MagnetStates.GetValueByRef(magnetId);
-			ReleaseGrabbedBall(magnetId, ref magnet, ref state, ball.Id);
+			ReleaseGrabbedBall(magnetId, ref magnet, ref state, ball.Id, suppressRegrab);
+		}
+
+		internal static bool ReleaseOwnedAttachmentForUnsupportedInteraction(ref PhysicsState state,
+			ref BallState ball, int interactionItemId)
+		{
+			var magnetId = ball.AttachedMagnetId;
+			if (magnetId == 0) {
+				return false;
+			}
+			if (!state.MagnetStates.ContainsKey(magnetId)) {
+				ball.AttachedMagnetId = 0;
+				return false;
+			}
+			ref var magnet = ref state.MagnetStates.GetValueByRef(magnetId);
+			if (!state.InsideOfs.TryGetBitIndex(ball.Id, out var bitIndex)
+			    || !magnet.GrabbedBalls.IsSet(bitIndex)) {
+				if (magnet.AttachedBallId == ball.Id) {
+					magnet.AttachedBallId = 0;
+					magnet.SaturationTicks = 0;
+				}
+				ball.AttachedMagnetId = 0;
+				return false;
+			}
+			ReleaseGrabbedBall(magnetId, ref magnet, bitIndex, ball.Id, ref state, true);
+			magnet.AttachedBallId = 0;
+			magnet.SaturationTicks = 0;
+			ball.AttachedMagnetId = 0;
+			state.EventQueue.Enqueue(new EventData(
+				EventId.PhysicsDiagnosticsUnsupportedOwnedInteraction,
+				magnetId, ball.Id, 0f, interactionItemId));
+			return true;
 		}
 
 		internal static void ReleaseOwnedAttachmentsForHinge(int hingeId, ref PhysicsState state)
