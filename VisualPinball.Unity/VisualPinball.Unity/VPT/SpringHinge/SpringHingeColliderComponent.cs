@@ -13,8 +13,9 @@ namespace VisualPinball.Unity
 {
 	[DisallowMultipleComponent]
 	[RequireComponent(typeof(SpringHingeComponent))]
+	[PackAs("SpringHingeCollider")]
 	[AddComponentMenu("Pinball/Mechs/Spring Hinge Collider")]
-	public class SpringHingeColliderComponent : MonoBehaviour, ICollidableComponent
+	public class SpringHingeColliderComponent : MonoBehaviour, ICollidableComponent, IPackable
 	{
 		[Unit("mm")]
 		[Tooltip("Collision-box centre in the hinge's local frame.")]
@@ -35,6 +36,16 @@ namespace VisualPinball.Unity
 		[Min(0f)] public float HitThreshold;
 		public bool OverwritePhysics = true;
 		public PhysicsMaterialAsset PhysicsMaterial;
+
+		public byte[] Pack() => SpringHingeColliderPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files)
+			=> SpringHingeColliderReferencesPackable.PackReferences(this, files);
+
+		public void Unpack(byte[] bytes) => SpringHingeColliderPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files)
+			=> SpringHingeColliderReferencesPackable.Unpack(data, this, files);
 
 		public int ItemId => GetComponent<SpringHingeComponent>().ItemId;
 		public bool IsKinematic => false;

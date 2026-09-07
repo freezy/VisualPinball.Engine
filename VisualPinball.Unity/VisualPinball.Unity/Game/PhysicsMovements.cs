@@ -143,6 +143,17 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		internal void ApplySpringHingeMovement(
+			ref NativeParallelHashMap<int, SpringHingeState> springHingeStates,
+			Dictionary<int, IAnimationValueEmitter<float>> floatAnimatedComponent)
+		{
+			using var enumerator = springHingeStates.GetEnumerator();
+			while (enumerator.MoveNext()) {
+				var component = floatAnimatedComponent[enumerator.Current.Key];
+				component.UpdateAnimationValue(enumerator.Current.Value.Movement.Angle);
+			}
+		}
+
 		internal void ApplyTurntableMovement(ref NativeParallelHashMap<int, TurntableState> turntableStates,
 			Dictionary<int, IAnimationValueEmitter<float2>> float2AnimatedComponent)
 		{

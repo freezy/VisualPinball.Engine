@@ -18,7 +18,7 @@ namespace VisualPinball.Unity
 {
 	public struct MagnetPackable
 	{
-		private const int CurrentVersion = 3;
+		private const int CurrentVersion = 4;
 
 		public int Version;
 		public float Radius;
@@ -39,6 +39,11 @@ namespace VisualPinball.Unity
 		public bool IsKinematic;
 		public bool DrawDebugForces;
 		public float HitThreshold;
+		public bool CoupleToParentHinge;
+		public PackableFloat3 HeldBallCentreOffset;
+		public float HoldStiffness;
+		public float HoldDamping;
+		public float MaxHoldForce;
 
 		public static byte[] Pack(MagnetComponent comp)
 		{
@@ -62,6 +67,11 @@ namespace VisualPinball.Unity
 				IsKinematic = comp.IsKinematic,
 				DrawDebugForces = comp.DrawDebugForces,
 				HitThreshold = comp.HitThreshold,
+				CoupleToParentHinge = comp.CoupleToParentHinge,
+				HeldBallCentreOffset = comp.HeldBallCentreOffset,
+				HoldStiffness = comp.HoldStiffness,
+				HoldDamping = comp.HoldDamping,
+				MaxHoldForce = comp.MaxHoldForce,
 			});
 		}
 
@@ -86,6 +96,13 @@ namespace VisualPinball.Unity
 			comp.IsKinematic = data.IsKinematic;
 			comp.DrawDebugForces = data.DrawDebugForces;
 			comp.HitThreshold = data.Version >= 3 ? data.HitThreshold : MagnetComponent.DefaultHitThreshold;
+			comp.CoupleToParentHinge = data.Version >= 4 && data.CoupleToParentHinge;
+			if (data.Version >= 4) {
+				comp.HeldBallCentreOffset = data.HeldBallCentreOffset;
+				comp.HoldStiffness = data.HoldStiffness;
+				comp.HoldDamping = data.HoldDamping;
+				comp.MaxHoldForce = data.MaxHoldForce;
+			}
 		}
 	}
 }
