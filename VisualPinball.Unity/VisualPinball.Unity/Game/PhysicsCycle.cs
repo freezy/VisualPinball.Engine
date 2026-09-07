@@ -51,6 +51,7 @@ namespace VisualPinball.Unity
 
 				var hitTime = dTime;       // begin time search from now ...  until delta ends
 				var mechanismStopTime = -1f;
+				var springHingeHitTime = -1f;
 
 				ApplyFlipperTime(ref hitTime, ref mechanismStopTime, ref state);
 				ApplySpringHingeTime(ref hitTime, ref mechanismStopTime, ref state);
@@ -75,6 +76,7 @@ namespace VisualPinball.Unity
 
 						PhysicsStaticBroadPhase.FindOverlaps(in kinematicOctree, in ball, ref overlappingColliders);
 						PhysicsStaticNarrowPhase.FindNextCollision(ref state.KinematicColliders, ref ball, ref overlappingColliders, ref _contacts, ref state);
+						RecordSpringHingeHitTime(ref springHingeHitTime, in ball, ref state);
 
 						// no negative time allowed
 						if (ball.CollisionEvent.HitTime < 0) {
@@ -89,6 +91,7 @@ namespace VisualPinball.Unity
 					}
 				}
 				ClampToMechanismStop(ref hitTime, mechanismStopTime);
+				ClampToSpringHingeHit(ref hitTime, springHingeHitTime);
 
 				#region Displacement
 				PerfMarkerDisplacement.Begin();
@@ -286,7 +289,7 @@ namespace VisualPinball.Unity
 			return math.normalizesafe(normal);
 		}
 		
-		private static void ApplyStaticTime(ref float hitTime, ref float staticCounts, in BallState ball)
+		internal static void ApplyStaticTime(ref float hitTime, ref float staticCounts, in BallState ball)
 		{
 			// for each collision event
 			var collEvent = ball.CollisionEvent;
@@ -298,6 +301,31 @@ namespace VisualPinball.Unity
 						hitTime = PhysicsConstants.StaticTime;
 					}
 				}
+			}
+		}
+
+		internal static void RecordSpringHingeHitTime(ref float springHingeHitTime,
+			in BallState ball, ref PhysicsState state)
+		{
+			var collEvent = ball.CollisionEvent;
+			if (!collEvent.HasCollider() || collEvent.HitTime <= 0f) {
+				return;
+			}
+			ref var colliders = ref (collEvent.IsKinematic
+				? ref state.KinematicColliders
+				: ref state.Colliders);
+			if (colliders.GetHeader(collEvent.ColliderId).Type != ColliderType.SpringHinge) {
+				return;
+			}
+			if (springHingeHitTime <= 0f || collEvent.HitTime < springHingeHitTime) {
+				springHingeHitTime = collEvent.HitTime;
+			}
+		}
+
+		internal static void ClampToSpringHingeHit(ref float hitTime, float springHingeHitTime)
+		{
+			if (springHingeHitTime > 0f && hitTime > springHingeHitTime) {
+				hitTime = springHingeHitTime;
 			}
 		}
 

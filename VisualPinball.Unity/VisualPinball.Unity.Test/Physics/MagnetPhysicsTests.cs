@@ -1903,6 +1903,7 @@ namespace VisualPinball.Unity.Test
 		private PhysicsEnv _env;
 		private NativeOctree<int> _octree;
 		private NativeColliders _colliders;
+		private bool _ownsColliders;
 		private NativeColliders _kinematicColliders;
 		private NativeColliders _kinematicCollidersAtIdentity;
 		private NativeParallelHashMap<int, float4x4> _kinematicTargetTransforms;
@@ -1952,6 +1953,15 @@ namespace VisualPinball.Unity.Test
 				ref _elasticityLuts, ref _frictionLuts, ref KinematicVelocities);
 		}
 
+		internal void SetStaticColliders(ref ColliderReference colliders)
+		{
+			if (_ownsColliders) {
+				_colliders.Dispose();
+			}
+			_colliders = new NativeColliders(ref colliders, Allocator.Persistent);
+			_ownsColliders = true;
+		}
+
 		public void Dispose()
 		{
 			Balls.Dispose();
@@ -1964,6 +1974,9 @@ namespace VisualPinball.Unity.Test
 			_spinnerStates.Dispose();
 			InsideOfs.Dispose();
 			EventQueue.Dispose();
+			if (_ownsColliders) {
+				_colliders.Dispose();
+			}
 		}
 	}
 }

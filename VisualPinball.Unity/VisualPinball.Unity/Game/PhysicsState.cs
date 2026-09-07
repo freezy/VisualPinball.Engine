@@ -229,7 +229,8 @@ namespace VisualPinball.Unity
 
 		internal ref SpinnerState GetSpinnerState(int colliderId, ref NativeColliders colliders) => ref SpinnerStates.GetValueByRef(colliders.GetItemId(colliderId));
 
-		internal ref SpringHingeState GetSpringHingeState(int colliderId, ref NativeColliders colliders) => ref SpringHingeStates.GetValueByRef(colliders.GetItemId(colliderId));
+		internal ref SpringHingeState GetSpringHingeState(int colliderId, ref NativeColliders colliders)
+			=> ref SpringHingeStates.GetValueByRef(colliders.GetItemId(colliderId));
 
 		internal ref TriggerState GetTriggerState(int colliderId, ref NativeColliders colliders) => ref TriggerStates.GetValueByRef(colliders.GetItemId(colliderId));
 
@@ -453,6 +454,11 @@ namespace VisualPinball.Unity
 					ref var flipperCollider = ref colliders.Flipper(colliderId);
 					return flipperCollider.HitTest(ref newCollEvent, ref InsideOfs, ref flipperState.Hit,
 						in flipperState.Movement, in flipperState.Tricks, in flipperState.Static, in ball, ball.CollisionEvent.HitTime);
+
+				case ColliderType.SpringHinge:
+					ref var springHingeState = ref GetSpringHingeState(colliderId, ref colliders);
+					return colliders.SpringHinge(colliderId).HitTest(ref newCollEvent,
+						in springHingeState, in ball, ball.CollisionEvent.HitTime);
 
 				case ColliderType.Plunger:
 					ref var plungerState = ref GetPlungerState(colliderId, ref colliders);

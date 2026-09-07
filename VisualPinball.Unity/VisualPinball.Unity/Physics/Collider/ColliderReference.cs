@@ -37,6 +37,7 @@ namespace VisualPinball.Unity
 		internal NativeList<PlungerCollider> PlungerColliders;
 		internal NativeList<PointCollider> PointColliders;
 		internal NativeList<SpinnerCollider> SpinnerColliders;
+		internal NativeList<SpringHingeCollider> SpringHingeColliders;
 		internal NativeList<TriangleCollider> TriangleColliders;
 		internal NativeList<PlaneCollider> PlaneColliders;
 
@@ -62,6 +63,7 @@ namespace VisualPinball.Unity
 			PlungerColliders = new NativeList<PlungerCollider>(allocator);
 			PointColliders = new NativeList<PointCollider>(allocator);
 			SpinnerColliders = new NativeList<SpinnerCollider>(allocator);
+			SpringHingeColliders = new NativeList<SpringHingeCollider>(allocator);
 			TriangleColliders = new NativeList<TriangleCollider>(allocator);
 			PlaneColliders = new NativeList<PlaneCollider>(allocator);
 
@@ -85,6 +87,7 @@ namespace VisualPinball.Unity
 			PlungerColliders.Dispose();
 			PointColliders.Dispose();
 			SpinnerColliders.Dispose();
+			SpringHingeColliders.Dispose();
 			TriangleColliders.Dispose();
 			PlaneColliders.Dispose();
 			using (var enumerator = _itemIdToColliderIds.GetEnumerator()) {
@@ -169,6 +172,12 @@ namespace VisualPinball.Unity
 							spinnerCollider.TransformAabb(math.inverse(matrix));
 							break;
 
+						case ColliderType.SpringHinge:
+							#if UNITY_EDITOR
+							throw new InvalidOperationException("Spring-hinge colliders cannot be kinematic.");
+							#endif
+							break;
+
 						case ColliderType.Gate:
 							ref var gateCollider = ref GateColliders.GetElementAsRef(lookup.Index);
 							#if UNITY_EDITOR
@@ -248,6 +257,7 @@ namespace VisualPinball.Unity
 				case ColliderType.Plunger: return PlungerColliders.GetElementAsRef(lookup.Index);
 				case ColliderType.Point: return PointColliders.GetElementAsRef(lookup.Index);
 				case ColliderType.Spinner: return SpinnerColliders.GetElementAsRef(lookup.Index);
+				case ColliderType.SpringHinge: return SpringHingeColliders.GetElementAsRef(lookup.Index);
 				case ColliderType.Triangle: return TriangleColliders.GetElementAsRef(lookup.Index);
 				case ColliderType.Plane: return PlaneColliders.GetElementAsRef(lookup.Index);
 			}
@@ -494,6 +504,16 @@ namespace VisualPinball.Unity
 			PlaneColliders.Add(collider);
 		}
 
+		internal int Add(SpringHingeCollider collider)
+		{
+			collider.Header.IsTransformed = true;
+			collider.Id = Lookups.Length;
+			TrackReference(collider.Header.ItemId, collider.Header.Id);
+			Lookups.Add(new ColliderLookup(ColliderType.SpringHinge, SpringHingeColliders.Length));
+			SpringHingeColliders.Add(collider);
+			return collider.Id;
+		}
+
 		#endregion
 
 		// ReSharper disable once UnusedMember.Global
@@ -532,6 +552,9 @@ namespace VisualPinball.Unity
 						break;
 					case ColliderType.Spinner:
 						array[i] = SpinnerColliders[lookup.Index];
+						break;
+					case ColliderType.SpringHinge:
+						array[i] = SpringHingeColliders[lookup.Index];
 						break;
 					case ColliderType.Triangle:
 						array[i] = TriangleColliders[lookup.Index];
