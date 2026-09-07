@@ -42,6 +42,15 @@ namespace VisualPinball.Unity
 		internal static void Update(int itemId, ref MagnetState magnet, ref PhysicsState state, float physicsDiffTime)
 		{
 			AdvanceCoil(ref magnet, physicsDiffTime);
+			if (magnet.CoupleToHinge) {
+				return;
+			}
+			UpdateAfterCoil(itemId, ref magnet, ref state, physicsDiffTime);
+		}
+
+		internal static void UpdateAfterCoil(int itemId, ref MagnetState magnet, ref PhysicsState state,
+			float physicsDiffTime)
+		{
 			if (!HasActiveField(in magnet)) {
 				ReleaseGrabbedBalls(itemId, ref magnet, ref state, false);
 				if (!state.InsideOfs.IsEmpty(itemId)) {
@@ -152,6 +161,7 @@ namespace VisualPinball.Unity
 
 		internal static void ReleaseGrabbedBalls(int itemId, ref MagnetState magnet, ref PhysicsState state, bool suppressRegrab)
 		{
+			var attachedBallId = magnet.AttachedBallId;
 			// the ball is a live physics object throughout the hold, so releasing it is
 			// just dropping the hold force — it keeps whatever velocity it currently has
 			if (magnet.GrabbedBalls.Value != 0UL) {
@@ -166,6 +176,14 @@ namespace VisualPinball.Unity
 					if (state.InsideOfs.TryGetBallIdAtBitIndex(bitIndex, out var ballId)) {
 						state.EventQueue.Enqueue(new EventData(EventId.MagnetEventsBallReleased, itemId, ballId, true));
 					}
+				}
+			}
+			magnet.AttachedBallId = 0;
+			magnet.SaturationTicks = 0;
+			if (attachedBallId != 0 && state.Balls.ContainsKey(attachedBallId)) {
+				ref var attachedBall = ref state.Balls.GetValueByRef(attachedBallId);
+				if (attachedBall.AttachedMagnetId == itemId) {
+					attachedBall.AttachedMagnetId = 0;
 				}
 			}
 
@@ -192,6 +210,9 @@ namespace VisualPinball.Unity
 				if (state.InsideOfs.TryGetBallIdAtBitIndex(bitIndex, out var ballId)) {
 					if (state.Balls.ContainsKey(ballId)) {
 						ref var ball = ref state.Balls.GetValueByRef(ballId);
+						if (ball.AttachedMagnetId == itemId) {
+							ball.AttachedMagnetId = 0;
+						}
 						if (magnet.MagnetType != MagnetType.Playfield) {
 							ApplySpatialEject(ref ball, speed, angleDeg, verticalAngleDeg, carrierVelocity);
 						} else {
@@ -199,6 +220,10 @@ namespace VisualPinball.Unity
 						}
 					}
 					state.EventQueue.Enqueue(new EventData(EventId.MagnetEventsBallReleased, itemId, ballId, true));
+				}
+				if (magnet.AttachedBallId == ballId) {
+					magnet.AttachedBallId = 0;
+					magnet.SaturationTicks = 0;
 				}
 				magnet.GrabbedBalls.SetBits(bitIndex, false);
 				magnet.ReleasedBalls.SetBits(bitIndex, true);
@@ -462,6 +487,10 @@ namespace VisualPinball.Unity
 		/// </summary>
 		private static bool UpdateGrab(int itemId, ref MagnetState magnet, ref PhysicsState state, ref BallState ball, float physicsDiffTime, float3 magnetVelocity)
 		{
+			if (ball.AttachedMagnetId != 0 && ball.AttachedMagnetId != itemId) {
+				ReleaseGrabbedBall(itemId, ref magnet, ref state, ball.Id);
+				return false;
+			}
 			// plain attraction magnets never grab; skip the bookkeeping entirely
 			if (magnet.GrabRadius <= 0f && magnet.GrabbedBalls.Value == 0UL && magnet.ReleasedBalls.Value == 0UL) {
 				return false;
@@ -709,7 +738,7 @@ namespace VisualPinball.Unity
 		private static bool UsesPhysicalResponse(in MagnetState magnet)
 			=> magnet.MagnetType != MagnetType.Playfield || magnet.Profile == MagnetForceProfile.Physical;
 
-		private static bool HasActiveField(in MagnetState magnet)
+		internal static bool HasActiveField(in MagnetState magnet)
 			=> UsesPhysicalResponse(in magnet)
 				? magnet.EffectiveCurrent > MinEffectiveCurrent && math.abs(magnet.Strength) > MinDistance
 				: magnet.IsEnabled && magnet.CommandedPower > 0f;
@@ -719,15 +748,25 @@ namespace VisualPinball.Unity
 			return state.GetKinematicVelocityAt(itemId, Center3D(in magnet));
 		}
 
-		private static void ReleaseGrabbedBall(int itemId, ref MagnetState magnet, ref PhysicsState state, int ballId)
+		internal static void ReleaseGrabbedBall(int itemId, ref MagnetState magnet, ref PhysicsState state, int ballId)
 		{
+			if (magnet.AttachedBallId == ballId) {
+				magnet.AttachedBallId = 0;
+				magnet.SaturationTicks = 0;
+				if (state.Balls.ContainsKey(ballId)) {
+					ref var ball = ref state.Balls.GetValueByRef(ballId);
+					if (ball.AttachedMagnetId == itemId) {
+						ball.AttachedMagnetId = 0;
+					}
+				}
+			}
 			if (!state.InsideOfs.TryGetBitIndex(ballId, out var bitIndex)) {
 				return;
 			}
 			ReleaseGrabbedBall(itemId, ref magnet, bitIndex, ballId, ref state, false);
 		}
 
-		private static void ReleaseGrabbedBall(int itemId, ref MagnetState magnet, int bitIndex, int ballId, ref PhysicsState state, bool suppressRegrab)
+		internal static void ReleaseGrabbedBall(int itemId, ref MagnetState magnet, int bitIndex, int ballId, ref PhysicsState state, bool suppressRegrab)
 		{
 			if (!magnet.GrabbedBalls.IsSet(bitIndex)) {
 				return;
@@ -737,6 +776,30 @@ namespace VisualPinball.Unity
 				magnet.ReleasedBalls.SetBits(bitIndex, true);
 			}
 			state.EventQueue.Enqueue(new EventData(EventId.MagnetEventsBallReleased, itemId, ballId, true));
+		}
+
+		internal static void ReleaseOwnedAttachmentForBall(ref PhysicsState state, ref BallState ball)
+		{
+			var magnetId = ball.AttachedMagnetId;
+			if (magnetId == 0 || !state.MagnetStates.ContainsKey(magnetId)) {
+				ball.AttachedMagnetId = 0;
+				return;
+			}
+			ref var magnet = ref state.MagnetStates.GetValueByRef(magnetId);
+			ReleaseGrabbedBall(magnetId, ref magnet, ref state, ball.Id);
+		}
+
+		internal static void ReleaseOwnedAttachmentsForHinge(int hingeId, ref PhysicsState state)
+		{
+			using var magnets = state.MagnetStates.GetEnumerator();
+			while (magnets.MoveNext()) {
+				if (!magnets.Current.Value.CoupleToHinge
+				    || magnets.Current.Value.HingeOwnerId != hingeId) {
+					continue;
+				}
+				ReleaseGrabbedBalls(magnets.Current.Key, ref magnets.Current.Value,
+					ref state, true);
+			}
 		}
 
 		private static void ClearReleasedBall(ref MagnetState magnet, ref PhysicsState state, int ballId)
@@ -756,7 +819,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private static void UpdateMembership(int itemId, int ballId, bool isInside, ref PhysicsState state)
+		internal static void UpdateMembership(int itemId, int ballId, bool isInside, ref PhysicsState state)
 		{
 			var wasInside = state.InsideOfs.IsInsideOf(itemId, ballId);
 			if (isInside == wasInside) {

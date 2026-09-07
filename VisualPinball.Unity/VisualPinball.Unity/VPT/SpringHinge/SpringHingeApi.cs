@@ -41,6 +41,7 @@ namespace VisualPinball.Unity
 				if (!state.SpringHingeStates.ContainsKey(_itemId)) {
 					return;
 				}
+				MagnetPhysics.ReleaseOwnedAttachmentsForHinge(_itemId, ref state);
 				ref var hinge = ref state.SpringHingeStates.GetValueByRef(_itemId);
 				hinge.Movement.Angle = math.clamp(math.radians(angle),
 					hinge.Static.MinimumAngle, hinge.Static.MaximumAngle);

@@ -116,6 +116,25 @@ namespace VisualPinball.Unity
 		[Tooltip("If set, transforming this object during gameplay moves the magnetic field with it.")]
 		public bool IsKinematic;
 
+		[Tooltip("Couple this Spatial Physical magnet reciprocally to its nearest parent spring hinge.")]
+		public bool CoupleToParentHinge;
+
+		[Unit("mm")]
+		[Tooltip("Held ball centre relative to the magnet transform, expressed in the hinge-local frame at rest.")]
+		public Vector3 HeldBallCentreOffset;
+
+		[Min(0f)]
+		[Tooltip("Translational stiffness of the owned ball hold, independent of influence distance.")]
+		public float HoldStiffness = 2f;
+
+		[Min(0f)]
+		[Tooltip("Relative translational damping of the owned ball hold.")]
+		public float HoldDamping = 2f;
+
+		[Min(0f)]
+		[Tooltip("Full-current force capacity of the owned ball hold.")]
+		public float MaxHoldForce = 10f;
+
 		[Tooltip("Draw play-mode force vectors and a green/red runtime coil-status gizmo.")]
 		public bool DrawDebugForces;
 
@@ -197,6 +216,9 @@ namespace VisualPinball.Unity
 			CylinderHeight = math.max(0f, CylinderHeight);
 			CylindricalDamping = math.max(0f, CylindricalDamping);
 			HitThreshold = math.max(0f, HitThreshold);
+			HoldStiffness = math.max(0f, HoldStiffness);
+			HoldDamping = math.max(0f, HoldDamping);
+			MaxHoldForce = math.max(0f, MaxHoldForce);
 			SyncPhysicsState();
 		}
 
@@ -205,6 +227,20 @@ namespace VisualPinball.Unity
 			var pos = GetPlayfieldPositionVpx(transform);
 			var commandedPower = IsEnabledOnStart ? 1f : 0f;
 			var usesPhysicalResponse = MagnetType != MagnetType.Playfield || ForceProfile == MagnetForceProfile.Physical;
+			var hinge = CoupleToParentHinge ? GetComponentInParent<SpringHingeComponent>() : null;
+			var validOwnedMode = hinge && MagnetType == VisualPinball.Unity.MagnetType.Spatial
+			                     && ForceProfile == MagnetForceProfile.Physical;
+			if (CoupleToParentHinge && !validOwnedMode) {
+				Logger.Error($"Magnet {name} can couple only as a Spatial Physical child of a spring hinge.");
+			}
+			var poleArm = float3.zero;
+			var heldCentreArm = float3.zero;
+			if (validOwnedMode) {
+				var pivot = hinge.ToPlayfieldVpx(hinge.transform.position);
+				poleArm = hinge.ToPlayfieldVpx(transform.position) - pivot;
+				heldCentreArm = hinge.ToPlayfieldVpx(transform.TransformPoint(
+					HeldBallCentreOffset * 0.001f)) - pivot;
+			}
 			return new MagnetState {
 				Position = pos.xy,
 				Height = pos.z,
@@ -229,6 +265,14 @@ namespace VisualPinball.Unity
 				Profile = ForceProfile,
 				HeightRange = HeightRange,
 				MagnetType = MagnetType,
+				CoupleToHinge = validOwnedMode,
+				HingeOwnerId = validOwnedMode ? hinge.ItemId : 0,
+				LocalPoleArm = poleArm,
+				LocalHeldCentreArm = heldCentreArm,
+				HoldStiffness = HoldStiffness,
+				HoldDamping = HoldDamping,
+				MaxHoldForce = MaxHoldForce,
+				AttachedBallId = 0,
 				GrabbedBalls = default,
 				ReleasedBalls = default
 			};
@@ -252,12 +296,18 @@ namespace VisualPinball.Unity
 					return;
 				}
 				ref var magnet = ref state.MagnetStates.GetValueByRef(itemId);
+				if (magnet.AttachedBallId != 0 && (!synced.CoupleToHinge
+				    || !magnet.CoupleToHinge || synced.HingeOwnerId != magnet.HingeOwnerId)) {
+					MagnetPhysics.ReleaseGrabbedBalls(itemId, ref magnet, ref state, true);
+				}
 				synced.IsEnabled = magnet.IsEnabled;
 				synced.CommandedPower = magnet.CommandedPower;
 				synced.EffectiveCurrent = magnet.EffectiveCurrent;
 				synced.EffectiveStrength = magnet.EffectiveStrength;
 				synced.GrabbedBalls = magnet.GrabbedBalls;
 				synced.ReleasedBalls = magnet.ReleasedBalls;
+				synced.AttachedBallId = magnet.AttachedBallId;
+				synced.SaturationTicks = magnet.SaturationTicks;
 				magnet = synced;
 			});
 		}

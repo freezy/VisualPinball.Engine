@@ -829,6 +829,10 @@ namespace VisualPinball.Unity
 						magnet.GrabbedBalls.SetBits(bitIndex, false);
 						_ctx.EventQueue.Ref.Enqueue(new EventData(Engine.Game.EventId.MagnetEventsBallReleased, enumerator.Current.Key, ballId, true));
 					}
+					if (magnet.AttachedBallId == ballId) {
+						magnet.AttachedBallId = 0;
+						magnet.SaturationTicks = 0;
+					}
 					magnet.ReleasedBalls.SetBits(bitIndex, false);
 				}
 			}

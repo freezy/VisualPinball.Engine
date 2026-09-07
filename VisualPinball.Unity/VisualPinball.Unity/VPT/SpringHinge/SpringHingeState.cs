@@ -48,10 +48,12 @@ namespace VisualPinball.Unity
 		internal float TickStartAngleError;
 		internal float3 EffectiveGravity;
 		internal float GravityTorque;
+		internal float PendingMagneticAngularImpulse;
 		internal float CommittedMagneticTorque;
 		internal float ContinuousAngularAcceleration;
 		internal float BlockedTorque;
 		internal float TickStep;
 		internal sbyte ActiveStop;
+		internal bool VelocityCommitted;
 	}
 }

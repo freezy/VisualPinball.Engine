@@ -17,28 +17,49 @@ namespace VisualPinball.Unity
 		internal static void UpdateVelocity(ref SpringHingeState state, in float3 effectiveGravity,
 			float step)
 		{
+			PrepareVelocity(ref state, in effectiveGravity, step);
+			CommitFreeVelocity(ref state);
+		}
+
+		internal static void PrepareVelocity(ref SpringHingeState state, in float3 effectiveGravity,
+			float step)
+		{
 			ref var movement = ref state.Movement;
 			ref var data = ref state.Static;
 
 			movement.TickStartAngularVelocity = movement.AngularVelocity;
 			movement.TickStartAngleError = movement.Angle - data.EquilibriumAngle;
 			movement.TickStep = step;
+			movement.PendingMagneticAngularImpulse = 0f;
 			movement.CommittedMagneticTorque = 0f;
+			movement.VelocityCommitted = false;
 			movement.EffectiveGravity = effectiveGravity;
 			movement.GravityTorque = CalculateGravityTorque(in data, movement.Angle, in effectiveGravity);
+		}
+
+		internal static void CommitFreeVelocity(ref SpringHingeState state)
+		{
+			ref var movement = ref state.Movement;
+			ref var data = ref state.Static;
+			var step = movement.TickStep;
 
 			var denominator = data.Inertia + step * data.Damping + step * step * data.Stiffness;
 			if (data.Inertia <= 0f || step <= 0f || denominator <= 0f || !math.isfinite(denominator)) {
 				ApplyStopConstraint(ref movement, in data);
+				movement.VelocityCommitted = true;
 				RefreshContinuousAcceleration(ref state);
 				return;
 			}
 
 			var numerator = data.Inertia * movement.TickStartAngularVelocity
 				+ step * movement.GravityTorque
+				+ movement.PendingMagneticAngularImpulse
 				- step * data.Stiffness * movement.TickStartAngleError;
 			movement.AngularVelocity = numerator / denominator;
+			movement.CommittedMagneticTorque = step > 0f
+				? movement.PendingMagneticAngularImpulse / step : 0f;
 			ApplyStopConstraint(ref movement, in data);
+			movement.VelocityCommitted = true;
 			RefreshContinuousAcceleration(ref state);
 		}
 

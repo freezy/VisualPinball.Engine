@@ -44,6 +44,18 @@ namespace VisualPinball.Unity
 		internal MagnetForceProfile Profile;
 		internal float HeightRange;
 		internal MagnetType MagnetType;
+		[MarshalAs(UnmanagedType.U1)]
+		internal bool CoupleToHinge;
+		internal int HingeOwnerId;
+		internal float3 LocalPoleArm;
+		internal float3 LocalHeldCentreArm;
+		internal float HoldStiffness;
+		internal float HoldDamping;
+		internal float MaxHoldForce;
+		internal int AttachedBallId;
+		internal int CandidateBallId;
+		internal float CandidateDistanceSq;
+		internal byte SaturationTicks;
 		internal BitField64 GrabbedBalls;
 		internal BitField64 ReleasedBalls;
 	}
