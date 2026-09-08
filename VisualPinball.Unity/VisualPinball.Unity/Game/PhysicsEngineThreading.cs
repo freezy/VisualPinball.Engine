@@ -59,8 +59,8 @@ namespace VisualPinball.Unity
 		private readonly List<PhysicsEngine.InputAction> _pendingInputActions = new();
 		private readonly List<KeyboardNudgeCommand> _pendingKeyboardNudges = new();
 		private readonly List<NudgeSensorSampleCommand> _pendingNudgeSensorSamples = new();
-		private readonly List<KeyValuePair<int, float4x4>> _pendingKinematicUpdates = new();
-		private readonly List<int> _pendingKinematicStopUpdates = new();
+		private readonly List<KeyValuePair<int, KinematicTransformSample>> _pendingKinematicUpdates = new();
+		private readonly List<KinematicStopSample> _pendingKinematicStopUpdates = new();
 
 		/// <summary>
 		/// Kinematic items that moved on the last change-detection scan, so a
@@ -190,7 +190,7 @@ namespace VisualPinball.Unity
 			var sw = Stopwatch.StartNew();
 
 			// Apply kinematic transform updates staged by main thread.
-			ApplyPendingKinematicTransforms();
+			ApplyPendingKinematicTransforms(currentTimeUsec);
 
 			var state = _ctx.CreateState();
 
@@ -306,29 +306,28 @@ namespace VisualPinball.Unity
 		/// subsequent stop are drained together, the item must end up with
 		/// zero velocity.
 		/// </remarks>
-		private void ApplyPendingKinematicTransforms()
+		private void ApplyPendingKinematicTransforms(ulong currentTimeUsec)
 		{
 			if (!_ctx.PendingKinematicTransforms.Ref.IsCreated) return;
 
 			lock (_ctx.PendingKinematicLock) {
-				var nowUsec = _ctx.PhysicsEnv.CurPhysicsFrameTime;
-
 				if (_ctx.PendingKinematicTransforms.Ref.Count() > 0) {
 					using var enumerator = _ctx.PendingKinematicTransforms.Ref.GetEnumerator();
 					while (enumerator.MoveNext()) {
-						StageKinematicTarget(enumerator.Current.Key, enumerator.Current.Value, nowUsec);
+						var sample = enumerator.Current.Value;
+						StageKinematicTarget(enumerator.Current.Key, sample.Matrix, sample.SampleTimeUsec, currentTimeUsec);
 					}
 					_ctx.PendingKinematicTransforms.Ref.Clear();
 				}
 
 				if (_ctx.PendingKinematicStops.Count > 0) {
-					foreach (var itemId in _ctx.PendingKinematicStops) {
-						StopKinematicVelocity(itemId, nowUsec);
+					foreach (var sample in _ctx.PendingKinematicStops) {
+						StopKinematicVelocity(sample.ItemId, sample.SampleTimeUsec);
 					}
 					_ctx.PendingKinematicStops.Clear();
 				}
 
-				ProcessHeldKinematicPoses(nowUsec);
+				ProcessHeldKinematicPoses(currentTimeUsec);
 			}
 		}
 
@@ -343,9 +342,9 @@ namespace VisualPinball.Unity
 		/// <b>Thread:</b> Simulation thread (inside <c>PhysicsLock</c>), or
 		/// main thread in single-threaded mode.
 		/// </remarks>
-		private void StageKinematicTarget(int itemId, in float4x4 matrix, ulong nowUsec)
+		private void StageKinematicTarget(int itemId, in float4x4 matrix, ulong sampleTimeUsec, ulong holdTimeUsec)
 		{
-			var isIsolated = DeriveKinematicVelocity(itemId, in matrix, nowUsec, out var prevMatrix);
+			var isIsolated = DeriveKinematicVelocity(itemId, in matrix, sampleTimeUsec, out var prevMatrix);
 			var wasHeld = _heldIsolatedPoses.Remove(itemId); // a follow-up resolves any hold
 
 			if (isIsolated && !wasHeld) {
@@ -354,7 +353,7 @@ namespace VisualPinball.Unity
 					SnapKinematicPose(itemId, in matrix);
 				} else {
 					// large isolated jump: hold for disambiguation
-					_heldIsolatedPoses[itemId] = new HeldKinematicPose { Pose = matrix, HeldAtUsec = nowUsec };
+					_heldIsolatedPoses[itemId] = new HeldKinematicPose { Pose = matrix, HeldAtUsec = holdTimeUsec };
 				}
 			} else {
 				// continuous motion (incl. resolving a hold): stream toward the target,
@@ -399,7 +398,8 @@ namespace VisualPinball.Unity
 			}
 			_heldPosesToApply.Clear();
 			foreach (var kvp in _heldIsolatedPoses) {
-				if (nowUsec - kvp.Value.HeldAtUsec >= PhysicsKinematics.IsolatedHoldTimeoutUsec) {
+				if (nowUsec >= kvp.Value.HeldAtUsec &&
+				    nowUsec - kvp.Value.HeldAtUsec >= PhysicsKinematics.IsolatedHoldTimeoutUsec) {
 					_heldPosesToApply.Add(kvp.Key);
 				}
 			}
@@ -421,7 +421,7 @@ namespace VisualPinball.Unity
 		/// <i>target</i> (the true motion timeline as staged), not the
 		/// possibly-lagging stepped pose.
 		/// </remarks>
-		private bool DeriveKinematicVelocity(int itemId, in float4x4 currMatrix, ulong nowUsec, out float4x4 prevMatrix)
+		private bool DeriveKinematicVelocity(int itemId, in float4x4 currMatrix, ulong sampleTimeUsec, out float4x4 prevMatrix)
 		{
 			if (_heldIsolatedPoses.TryGetValue(itemId, out var held)) {
 				prevMatrix = held.Pose;
@@ -429,14 +429,14 @@ namespace VisualPinball.Unity
 				prevMatrix = _ctx.KinematicTransforms.Ref[itemId];
 			}
 			if (_ctx.KinematicVelocities.Ref.TryGetValue(itemId, out var prevVelocity)) {
-				_ctx.KinematicVelocities.Ref[itemId] = PhysicsKinematics.DeriveVelocity(in prevVelocity, in prevMatrix, in currMatrix, nowUsec, out var isIsolated);
+				_ctx.KinematicVelocities.Ref[itemId] = PhysicsKinematics.DeriveVelocity(in prevVelocity, in prevMatrix, in currMatrix, sampleTimeUsec, out var isIsolated);
 				return isIsolated;
 			}
 
 			// first update: establish a zero-velocity baseline, velocity kicks in with the next update
 			_ctx.KinematicVelocities.Ref[itemId] = new KinematicVelocityState {
 				Pivot = currMatrix.c3.xyz,
-				LastUpdateUsec = nowUsec,
+				LastUpdateUsec = sampleTimeUsec,
 			};
 			return true;
 		}
@@ -459,14 +459,14 @@ namespace VisualPinball.Unity
 		/// hit test runs; if the pose is already settled, the seeded values are
 		/// cleared the same way on the next tick.
 		/// </remarks>
-		private void StopKinematicVelocity(int itemId, ulong nowUsec)
+		private void StopKinematicVelocity(int itemId, ulong sampleTimeUsec)
 		{
 			if (_ctx.KinematicVelocities.Ref.TryGetValue(itemId, out var velocity)) {
 				velocity.StepVelocity = velocity.LinearVelocity;
 				velocity.StepAngularVelocity = velocity.AngularVelocity;
 				velocity.LinearVelocity = float3.zero;
 				velocity.AngularVelocity = float3.zero;
-				velocity.LastUpdateUsec = nowUsec;
+				velocity.LastUpdateUsec = sampleTimeUsec;
 				_ctx.KinematicVelocities.Ref[itemId] = velocity;
 			}
 		}
@@ -769,7 +769,7 @@ namespace VisualPinball.Unity
 		/// <see cref="PhysicsEngineContext.PendingKinematicTransforms"/>
 		/// under <see cref="PhysicsEngineContext.PendingKinematicLock"/>.
 		/// </remarks>
-		internal void UpdateKinematicTransformsFromMainThread()
+		internal void UpdateKinematicTransformsFromMainThread(ulong sampleTimeUsec)
 		{
 			if (!_ctx.UseExternalTiming || !_ctx.IsInitialized || _kinematicTransformComponents == null) return;
 
@@ -785,7 +785,10 @@ namespace VisualPinball.Unity
 				if (_ctx.MainThreadKinematicCache.TryGetValue(item.ItemId, out var lastMatrix) && lastMatrix.Equals(currMatrix)) {
 					// unchanged — if it moved last frame, it just stopped, so stage a velocity reset
 					if (_movedKinematicItems.Remove(item.ItemId)) {
-						_pendingKinematicStopUpdates.Add(item.ItemId);
+						_pendingKinematicStopUpdates.Add(new KinematicStopSample {
+							ItemId = item.ItemId,
+							SampleTimeUsec = sampleTimeUsec,
+						});
 					}
 					continue;
 				}
@@ -793,7 +796,8 @@ namespace VisualPinball.Unity
 				// Transform changed — update cache
 				_ctx.MainThreadKinematicCache[item.ItemId] = currMatrix;
 				_movedKinematicItems.Add(item.ItemId);
-				_pendingKinematicUpdates.Add(new KeyValuePair<int, float4x4>(item.ItemId, currMatrix));
+				_pendingKinematicUpdates.Add(new KeyValuePair<int, KinematicTransformSample>(item.ItemId,
+					new KinematicTransformSample { Matrix = currMatrix, SampleTimeUsec = sampleTimeUsec }));
 			}
 
 			if (_pendingKinematicUpdates.Count == 0 && _pendingKinematicStopUpdates.Count == 0) {
@@ -803,9 +807,17 @@ namespace VisualPinball.Unity
 			lock (_ctx.PendingKinematicLock) {
 				foreach (var update in _pendingKinematicUpdates) {
 					_ctx.PendingKinematicTransforms.Ref[update.Key] = update.Value;
+					// If the sim thread did not drain between a stop and a later move,
+					// discard the stale stop instead of zeroing the resumed motion.
+					for (var i = _ctx.PendingKinematicStops.Count - 1; i >= 0; i--) {
+						var stop = _ctx.PendingKinematicStops[i];
+						if (stop.ItemId == update.Key && stop.SampleTimeUsec <= update.Value.SampleTimeUsec) {
+							_ctx.PendingKinematicStops.RemoveAt(i);
+						}
+					}
 				}
-				foreach (var itemId in _pendingKinematicStopUpdates) {
-					_ctx.PendingKinematicStops.Add(itemId);
+				foreach (var sample in _pendingKinematicStopUpdates) {
+					_ctx.PendingKinematicStops.Add(sample);
 				}
 			}
 
@@ -846,14 +858,14 @@ namespace VisualPinball.Unity
 				if (lastTransformationMatrix.Equals(currTransformationMatrix)) {
 					// unchanged — if it moved last frame, it just stopped, so zero its velocity
 					if (_movedKinematicItems.Remove(item.ItemId)) {
-						StopKinematicVelocity(item.ItemId, _ctx.PhysicsEnv.CurPhysicsFrameTime);
+						StopKinematicVelocity(item.ItemId, currentTimeUsec);
 					}
 					continue;
 				}
 				_movedKinematicItems.Add(item.ItemId);
-				StageKinematicTarget(item.ItemId, in currTransformationMatrix, _ctx.PhysicsEnv.CurPhysicsFrameTime);
+				StageKinematicTarget(item.ItemId, in currTransformationMatrix, currentTimeUsec, currentTimeUsec);
 			}
-			ProcessHeldKinematicPoses(_ctx.PhysicsEnv.CurPhysicsFrameTime);
+			ProcessHeldKinematicPoses(currentTimeUsec);
 
 			var state = _ctx.CreateState();
 

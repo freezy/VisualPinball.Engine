@@ -228,7 +228,7 @@ namespace VisualPinball.Unity
 		/// Staging area for kinematic transform updates computed on the
 		/// main thread. Protected by <see cref="PendingKinematicLock"/>.
 		/// </summary>
-		public readonly LazyInit<NativeParallelHashMap<int, float4x4>> PendingKinematicTransforms = new(() => new NativeParallelHashMap<int, float4x4>(0, Allocator.Persistent));
+		public readonly LazyInit<NativeParallelHashMap<int, KinematicTransformSample>> PendingKinematicTransforms = new(() => new NativeParallelHashMap<int, KinematicTransformSample>(0, Allocator.Persistent));
 
 		/// <summary>
 		/// Item IDs of kinematic items that stopped moving, staged by the main
@@ -236,7 +236,7 @@ namespace VisualPinball.Unity
 		/// transform updates, a stop neither re-transforms colliders nor dirties
 		/// the octree. Protected by <see cref="PendingKinematicLock"/>.
 		/// </summary>
-		public readonly List<int> PendingKinematicStops = new();
+		public readonly List<KinematicStopSample> PendingKinematicStops = new();
 
 		/// <summary>
 		/// Lock protecting <see cref="PendingKinematicTransforms"/> and

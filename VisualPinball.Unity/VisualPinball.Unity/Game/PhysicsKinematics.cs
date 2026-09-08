@@ -250,26 +250,26 @@ namespace VisualPinball.Unity
 		/// Same approach as Bullet's <c>btRigidBody::saveKinematicState</c> /
 		/// <c>btTransformUtil::calculateVelocity</c>: linear velocity from the
 		/// translation delta, angular velocity from the axis and angle of the
-		/// delta quaternion. The time base is the physics time elapsed between
-		/// the two transform applications — transforms arrive at Unity frame
+		/// delta quaternion. The time base is the Unity simulation-clock time
+		/// elapsed between the two transform samples — transforms arrive at Unity frame
 		/// rate, not at tick rate, so dividing by the tick length would
 		/// massively overestimate the velocity.
 		/// </remarks>
 		/// <param name="prev">Velocity state from the previous update (provides the previous timestamp)</param>
 		/// <param name="prevMatrix">LocalToPlayfieldMatrixInVpx before this update</param>
 		/// <param name="currMatrix">LocalToPlayfieldMatrixInVpx of this update</param>
-		/// <param name="nowUsec">Current physics time</param>
+		/// <param name="sampleTimeUsec">Unity simulation-clock time at which the current transform was sampled</param>
 		/// <param name="isIsolated">True if this update didn't derive a velocity: first
 		/// update after idle (outside the continuity window) or a teleport-sized jump.
 		/// Isolated updates are applied with teleport semantics (snap, no impulse).</param>
 		internal static KinematicVelocityState DeriveVelocity(in KinematicVelocityState prev, in float4x4 prevMatrix,
-			in float4x4 currMatrix, ulong nowUsec, out bool isIsolated)
+			in float4x4 currMatrix, ulong sampleTimeUsec, out bool isIsolated)
 		{
 			var pivot = currMatrix.c3.xyz;
 			isIsolated = false;
 
 			// no time elapsed (e.g. multiple updates within the same tick): keep the current velocity
-			if (nowUsec <= prev.LastUpdateUsec) {
+			if (sampleTimeUsec <= prev.LastUpdateUsec) {
 				return new KinematicVelocityState {
 					LinearVelocity = prev.LinearVelocity,
 					AngularVelocity = prev.AngularVelocity,
@@ -278,18 +278,18 @@ namespace VisualPinball.Unity
 				};
 			}
 
-			var dtSec = (nowUsec - prev.LastUpdateUsec) * 1e-6f;
+			var dtSec = (sampleTimeUsec - prev.LastUpdateUsec) * 1e-6f;
 
 			// isolated update after idle: re-baseline without imparting velocity
 			if (dtSec > ContinuityWindowSec) {
 				isIsolated = true;
-				return new KinematicVelocityState { Pivot = pivot, LastUpdateUsec = nowUsec };
+				return new KinematicVelocityState { Pivot = pivot, LastUpdateUsec = sampleTimeUsec };
 			}
 
 			// IMPORTANT: physics velocities are VPX units per DefaultStepTime (10 ms) —
 			// the VP convention, same time base as BallState.Velocity. Deriving per
 			// second yields values 100× too large and catapults balls on contact.
-			var dt = (float)((nowUsec - prev.LastUpdateUsec) / PhysicsConstants.DefaultStepTime);
+			var dt = (float)((sampleTimeUsec - prev.LastUpdateUsec) / PhysicsConstants.DefaultStepTime);
 
 			var deltaPos = pivot - prevMatrix.c3.xyz;
 
@@ -304,7 +304,7 @@ namespace VisualPinball.Unity
 			// teleport guard: a jump this large in a single update imparts no velocity
 			if (math.lengthsq(deltaPos) > TeleportDistance * TeleportDistance || angle > TeleportAngle) {
 				isIsolated = true;
-				return new KinematicVelocityState { Pivot = pivot, LastUpdateUsec = nowUsec };
+				return new KinematicVelocityState { Pivot = pivot, LastUpdateUsec = sampleTimeUsec };
 			}
 
 			var angVel = float3.zero;
@@ -317,7 +317,7 @@ namespace VisualPinball.Unity
 				LinearVelocity = deltaPos / dt,
 				AngularVelocity = angVel,
 				Pivot = pivot,
-				LastUpdateUsec = nowUsec,
+				LastUpdateUsec = sampleTimeUsec,
 			};
 		}
 

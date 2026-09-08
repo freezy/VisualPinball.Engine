@@ -148,6 +148,8 @@ namespace VisualPinball.Unity
 	}
 
 	[DisallowMultipleComponent]
+	// Publish follower transforms before PhysicsEngine samples kinematic poses.
+	[DefaultExecutionOrder(-100)]
 	[MovedFrom(true, sourceNamespace: "VisualPinball.Unity", sourceClassName: "ActuatorComponent")]
 	// Keep the serialized package name and coil ID so existing tables retain their mappings.
 	[PackAs("Actuator")]

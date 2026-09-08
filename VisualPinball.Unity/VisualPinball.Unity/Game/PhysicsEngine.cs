@@ -1144,6 +1144,7 @@ namespace VisualPinball.Unity
 			if (_threading == null) { // Start() hasn't completed yet
 				return;
 			}
+			var currentTimeUsec = NowUsec;
 			if (_ctx.UseExternalTiming) {
 				// Simulation thread mode: physics runs on simulation thread,
 				// but managed callbacks must run on Unity main thread.
@@ -1151,12 +1152,12 @@ namespace VisualPinball.Unity
 
 				// Collect kinematic transform changes on main thread and
 				// stage them for the sim thread to apply.
-				_threading.UpdateKinematicTransformsFromMainThread();
+				_threading.UpdateKinematicTransformsFromMainThread(currentTimeUsec);
 
 				_threading.ApplyMovements();
 			} else {
 				// Normal mode: Execute full physics update
-				_threading.ExecutePhysicsUpdate(NowUsec);
+				_threading.ExecutePhysicsUpdate(currentTimeUsec);
 			}
 		}
 

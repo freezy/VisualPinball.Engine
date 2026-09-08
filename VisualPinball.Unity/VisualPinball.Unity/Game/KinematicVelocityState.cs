@@ -19,6 +19,26 @@ using Unity.Mathematics;
 namespace VisualPinball.Unity
 {
 	/// <summary>
+	/// A kinematic transform together with the Unity simulation-clock time at
+	/// which it was sampled on the main thread.
+	/// </summary>
+	internal struct KinematicTransformSample
+	{
+		internal float4x4 Matrix;
+		internal ulong SampleTimeUsec;
+	}
+
+	/// <summary>
+	/// Records when the main thread first observed that a kinematic item had
+	/// stopped moving.
+	/// </summary>
+	internal struct KinematicStopSample
+	{
+		internal int ItemId;
+		internal ulong SampleTimeUsec;
+	}
+
+	/// <summary>
 	/// The velocity of a kinematic item, derived from its transform updates
 	/// (see <see cref="PhysicsKinematics.DeriveVelocity"/>).
 	/// </summary>
@@ -53,7 +73,7 @@ namespace VisualPinball.Unity
 		internal float3 Pivot;
 
 		/// <summary>
-		/// Physics time at which the velocity was last derived.
+		/// Unity simulation-clock time at which the transform was sampled.
 		/// </summary>
 		internal ulong LastUpdateUsec;
 
