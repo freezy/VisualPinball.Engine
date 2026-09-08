@@ -37,6 +37,7 @@ namespace VisualPinball.Unity
 		/// Maps the coil configuration ID to a destination.
 		/// </summary>
 		private readonly Dictionary<string, List<CoilDestConfig>> _coilAssignments = new();
+		private readonly HashSet<string> _reportedUnassignedCoils = new();
 
 		private Player? _player;
 		private TableComponent? _tableComponent;
@@ -62,6 +63,7 @@ namespace VisualPinball.Unity
 
 		public void OnStart()
 		{
+			_reportedUnassignedCoils.Clear();
 			if (_gamelogicEngine != null && _tableComponent != null) {
 				var config = _tableComponent.MappingConfig;
 				_coilAssignments.Clear();
@@ -192,8 +194,8 @@ namespace VisualPinball.Unity
 				RefreshUI();
 #endif
 
-			} else {
-				Logger.Info($"Ignoring unassigned coil \"{coilEvent.Id}\".");
+			} else if (_reportedUnassignedCoils.Add(coilEvent.Id)) {
+				Logger.Warn($"Ignoring unassigned coil \"{coilEvent.Id}\"; further events for this coil will not be logged.");
 			}
 		}
 

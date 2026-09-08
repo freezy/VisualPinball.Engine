@@ -634,15 +634,15 @@ namespace VisualPinball.Unity.Simulation
 			if (isPressed && IsFlipperAction(actionIndex)) {
 				_lastFlipperInputUsec = _lastSwitchDispatchUsec;
 			}
-			if (actionIndex == (int)NativeInputApi.InputAction.Start && Logger.IsInfoEnabled) {
-				Logger.Info($"{LogPrefix} [SimulationThread] Input Start -> Switch({switchId}, {isClosed})");
+			if (actionIndex == (int)NativeInputApi.InputAction.Start && Logger.IsDebugEnabled) {
+				Logger.Debug($"{LogPrefix} [SimulationThread] Input Start -> Switch({switchId}, {isClosed})");
 			}
-			if (Logger.IsInfoEnabled && isPressed) {
+			if (Logger.IsDebugEnabled && isPressed) {
 				if (actionIndex == (int)NativeInputApi.InputAction.LeftFlipper) {
-					Logger.Info($"{LogPrefix} [SimulationThread] Input LeftFlipper -> Switch({switchId}, True)");
+					Logger.Debug($"{LogPrefix} [SimulationThread] Input LeftFlipper -> Switch({switchId}, True)");
 				}
 				else if (actionIndex == (int)NativeInputApi.InputAction.RightFlipper) {
-					Logger.Info($"{LogPrefix} [SimulationThread] Input RightFlipper -> Switch({switchId}, True)");
+					Logger.Debug($"{LogPrefix} [SimulationThread] Input RightFlipper -> Switch({switchId}, True)");
 				}
 			}
 			if (afterDispatch != null && _inputDispatcher is MainThreadQueuedInputDispatcher queuedDispatcher) {
