@@ -101,10 +101,10 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			using (new EditorGUILayout.HorizontalScope()) {
-				if (GUILayout.Button("Fit From Child Renderers")) {
+				if (GUILayout.Button("Fit From Renderers")) {
 					Undo.RecordObjects(new Object[] { hinge, proxy }, "Fit Spring Hinge Visual Bounds");
 					if (!SpringHingeAuthoring.FitFromVisuals(hinge, proxy)) {
-						Debug.LogWarning($"Spring hinge '{hinge.name}' has no child renderers to fit.", hinge);
+						Debug.LogWarning($"Spring hinge '{hinge.name}' has no renderers to fit.", hinge);
 					}
 					EditorUtility.SetDirty(hinge);
 					EditorUtility.SetDirty(proxy);
@@ -127,7 +127,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnSceneGUI()
 		{
-			if (targets.Length != 1 || target is not SpringHingeComponent hinge) {
+			if (target is not SpringHingeComponent hinge) {
 				return;
 			}
 			var pivot = hinge.transform.position;

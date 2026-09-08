@@ -47,16 +47,13 @@ namespace VisualPinball.Unity.Editor
 
 			var hinge = Undo.AddComponent<SpringHingeComponent>(root);
 			var proxy = Undo.AddComponent<SpringHingeColliderComponent>(root);
-
-			var movingPart = new GameObject("Moving Part");
-			movingPart.transform.SetParent(root.transform, false);
-			var animation = Undo.AddComponent<SpringHingeAnimationComponent>(movingPart);
+			var animation = Undo.AddComponent<SpringHingeAnimationComponent>(root);
 			animation._emitter = hinge;
 			animation.RotationAxis = hinge.HingeAxis;
 
 			var visual = GameObject.CreatePrimitive(PrimitiveType.Cube);
 			visual.name = "Toy Visual";
-			visual.transform.SetParent(movingPart.transform, false);
+			visual.transform.SetParent(root.transform, false);
 			visual.transform.localPosition = new Vector3(0f, -0.05f, 0f);
 			visual.transform.localScale = new Vector3(0.05f, 0.1f, 0.02f);
 			var unityCollider = visual.GetComponent<UnityEngine.Collider>();
@@ -65,7 +62,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			var magnetObject = new GameObject("Owned Magnet");
-			magnetObject.transform.SetParent(movingPart.transform, false);
+			magnetObject.transform.SetParent(root.transform, false);
 			magnetObject.transform.localPosition = new Vector3(0f, -0.1f, 0f);
 			var magnet = Undo.AddComponent<MagnetComponent>(magnetObject);
 
@@ -82,36 +79,35 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			activeVisual = activeVisual ? activeVisual : visualParts[0];
-			var root = new GameObject("Spring Hinge");
-			Undo.RegisterCreatedObjectUndo(root, "Add Spring Hinge");
-			var parent = activeVisual.parent;
-			if (parent) {
-				root.transform.SetParent(parent, false);
-			}
-			root.transform.SetPositionAndRotation(activeVisual.position, activeVisual.rotation);
-
-			var hinge = Undo.AddComponent<SpringHingeComponent>(root);
-			var proxy = Undo.AddComponent<SpringHingeColliderComponent>(root);
-			var movingPart = new GameObject("Moving Part");
-			movingPart.transform.SetParent(root.transform, false);
-			var animation = Undo.AddComponent<SpringHingeAnimationComponent>(movingPart);
+			var rotatingObject = activeVisual.gameObject;
+			var hinge = rotatingObject.GetComponent<SpringHingeComponent>()
+			            ?? Undo.AddComponent<SpringHingeComponent>(rotatingObject);
+			var proxy = rotatingObject.GetComponent<SpringHingeColliderComponent>()
+			            ?? Undo.AddComponent<SpringHingeColliderComponent>(rotatingObject);
+			var animation = rotatingObject.GetComponent<SpringHingeAnimationComponent>()
+			                ?? Undo.AddComponent<SpringHingeAnimationComponent>(rotatingObject);
 			animation._emitter = hinge;
 			animation.RotationAxis = hinge.HingeAxis;
 
 			foreach (var visualPart in visualParts) {
-				if (!visualPart || visualPart == root.transform || IsAncestorSelected(visualPart, visualParts)) {
+				if (!visualPart || visualPart == activeVisual || visualPart.IsChildOf(activeVisual)
+				    || IsAncestorSelected(visualPart, visualParts)) {
 					continue;
 				}
-				Undo.SetTransformParent(visualPart, movingPart.transform, "Add Visual To Spring Hinge");
-				DisableIndependentColliders(visualPart);
+				if (activeVisual.IsChildOf(visualPart)) {
+					Debug.LogWarning($"Cannot add selected ancestor '{visualPart.name}' below spring hinge '{activeVisual.name}'. Select the common rotating root as the active object.", activeVisual);
+					continue;
+				}
+				Undo.SetTransformParent(visualPart, activeVisual, "Add Visual To Spring Hinge");
 			}
+			DisableIndependentColliders(activeVisual);
 
-			var ownedMagnets = movingPart.GetComponentsInChildren<MagnetComponent>(true);
+			var ownedMagnets = rotatingObject.GetComponentsInChildren<MagnetComponent>(true);
 			var magnet = ownedMagnets.Length == 1 ? ownedMagnets[0] : null;
 			ApplyBashPreset(hinge, proxy, magnet);
 			FitFromVisuals(hinge, proxy);
-			EditorUtility.SetDirty(root);
-			return root;
+			EditorUtility.SetDirty(rotatingObject);
+			return rotatingObject;
 		}
 
 		private static bool IsAncestorSelected(Transform candidate,
@@ -263,15 +259,16 @@ namespace VisualPinball.Unity.Editor
 				issues.Add("The analytic box proxy needs three positive half-extents.");
 			}
 
+			var localDriver = hinge.GetComponent<SpringHingeAnimationComponent>();
 			var drivers = hinge.GetComponentsInChildren<SpringHingeAnimationComponent>(true);
 			var driverCount = 0;
-			foreach (var driver in drivers) {
-				if (driver._emitter == hinge) {
+			foreach (var candidate in drivers) {
+				if (candidate._emitter == hinge) {
 					driverCount++;
 				}
 			}
-			if (driverCount != 1) {
-				issues.Add("The visual hierarchy must have exactly one Spring Hinge Transform driven by this hinge.");
+			if (!localDriver || localDriver._emitter != hinge || driverCount != 1) {
+				issues.Add("The rotating object must have exactly one Spring Hinge Transform on the same GameObject, driven by this hinge.");
 			}
 			if (hinge.GetComponentInChildren<HitTargetAnimationComponent>(true)) {
 				issues.Add("Remove hit-target animation from spring-hinge visuals; the hinge is their only animation driver.");

@@ -86,6 +86,9 @@ namespace VisualPinball.Unity
 
 		private PhysicsEngine _physicsEngine;
 		private float _animationValue;
+		private Matrix4x4 _referenceLocalMatrix;
+		private Quaternion _referenceLocalRotation;
+		private bool _referencePoseCaptured;
 
 		public IEnumerable<GamelogicEngineSwitch> AvailableSwitches => EnableAngleSwitch
 			? new[] { new GamelogicEngineSwitch(AngleSwitchItem) }
@@ -107,6 +110,7 @@ namespace VisualPinball.Unity
 
 		private void Awake()
 		{
+			CaptureReferencePose();
 			var player = GetComponentInParent<Player>();
 			if (!player) {
 				Logger.Error($"Cannot find player for spring hinge {name}.");
@@ -145,9 +149,10 @@ namespace VisualPinball.Unity
 
 		internal SpringHingeState CreateState()
 		{
-			var pivot = ToPlayfieldVpx(transform.position);
+			var pivot = ToPlayfieldVpx(ReferenceLocalToWorldMatrix.MultiplyPoint3x4(Vector3.zero));
 			var axis = ToPlayfieldDirection(HingeAxis);
-			var centreOfMass = ToPlayfieldVpx(transform.TransformPoint(CentreOfMass * MillimetersToWorld));
+			var centreOfMass = ToPlayfieldVpx(ReferenceLocalToWorldMatrix.MultiplyPoint3x4(
+				CentreOfMass * MillimetersToWorld));
 			var minimumAngle = math.radians(math.min(MinimumAngle, MaximumAngle));
 			var maximumAngle = math.radians(math.max(MinimumAngle, MaximumAngle));
 			var angle = math.clamp(math.radians(InitialAngle), minimumAngle, maximumAngle);
@@ -207,8 +212,9 @@ namespace VisualPinball.Unity
 				math.pow(math.dot(axis, x), 2f),
 				math.pow(math.dot(axis, y), 2f),
 				math.pow(math.dot(axis, z), 2f)));
-			var centreArm = ToPlayfieldVpx(transform.TransformPoint(CentreOfMass * MillimetersToWorld))
-				- ToPlayfieldVpx(transform.position);
+			var referenceMatrix = ReferenceLocalToWorldMatrix;
+			var centreArm = ToPlayfieldVpx(referenceMatrix.MultiplyPoint3x4(CentreOfMass * MillimetersToWorld))
+				- ToPlayfieldVpx(referenceMatrix.MultiplyPoint3x4(Vector3.zero));
 			var perpendicularArm = centreArm - axis * math.dot(axis, centreArm);
 			return math.max(0.001f, inertiaAtCentre + ToyMass * math.lengthsq(perpendicularArm));
 		}
@@ -223,7 +229,7 @@ namespace VisualPinball.Unity
 
 		internal float3 ToPlayfieldDirection(Vector3 localDirection)
 		{
-			var direction = transform.TransformDirection(localDirection.normalized);
+			var direction = ReferenceWorldRotation * localDirection.normalized;
 			var playfield = GetComponentInParent<PlayfieldComponent>();
 			if (playfield) {
 				direction = playfield.transform.InverseTransformDirection(direction);
@@ -233,12 +239,43 @@ namespace VisualPinball.Unity
 
 		internal float3 ToPlayfieldVector(Vector3 localVector)
 		{
-			var vector = transform.TransformVector(localVector);
+			var vector = ReferenceLocalToWorldMatrix.MultiplyVector(localVector);
 			var playfield = GetComponentInParent<PlayfieldComponent>();
 			if (playfield) {
 				vector = playfield.transform.InverseTransformVector(vector);
 			}
 			return Physics.WorldToVpx.MultiplyVector(vector);
+		}
+
+		internal Matrix4x4 ReferenceLocalToWorldMatrix {
+			get {
+				if (!Application.isPlaying || !_referencePoseCaptured) {
+					return transform.localToWorldMatrix;
+				}
+				var parentMatrix = transform.parent
+					? transform.parent.localToWorldMatrix
+					: Matrix4x4.identity;
+				return parentMatrix * _referenceLocalMatrix;
+			}
+		}
+
+		private Quaternion ReferenceWorldRotation {
+			get {
+				if (!Application.isPlaying || !_referencePoseCaptured) {
+					return transform.rotation;
+				}
+				return transform.parent
+					? transform.parent.rotation * _referenceLocalRotation
+					: _referenceLocalRotation;
+			}
+		}
+
+		private void CaptureReferencePose()
+		{
+			_referenceLocalMatrix = Matrix4x4.TRS(transform.localPosition,
+				transform.localRotation, transform.localScale);
+			_referenceLocalRotation = transform.localRotation;
+			_referencePoseCaptured = true;
 		}
 
 		private void SyncPhysicsState()

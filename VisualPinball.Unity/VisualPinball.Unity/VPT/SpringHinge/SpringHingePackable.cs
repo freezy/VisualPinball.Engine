@@ -76,12 +76,13 @@ namespace VisualPinball.Unity
 
 	public struct SpringHingeColliderPackable
 	{
-		private const int CurrentVersion = 1;
+		private const int CurrentVersion = 2;
 
 		public int Version;
 		public PackableFloat3 LocalCentre;
 		public PackableFloat3 LocalRotation;
 		public PackableFloat3 HalfExtents;
+		public bool ShowColliderMesh;
 		public float Elasticity;
 		public float ElasticityFalloff;
 		public float Friction;
@@ -96,6 +97,7 @@ namespace VisualPinball.Unity
 				LocalCentre = comp.LocalCentre,
 				LocalRotation = comp.LocalRotation,
 				HalfExtents = comp.HalfExtents,
+				ShowColliderMesh = comp.ShowColliderMesh,
 				Elasticity = comp.Elasticity,
 				ElasticityFalloff = comp.ElasticityFalloff,
 				Friction = comp.Friction,
@@ -111,6 +113,7 @@ namespace VisualPinball.Unity
 			comp.LocalCentre = data.LocalCentre;
 			comp.LocalRotation = data.LocalRotation;
 			comp.HalfExtents = data.HalfExtents;
+			comp.ShowColliderMesh = data.ShowColliderMesh;
 			comp.Elasticity = data.Elasticity;
 			comp.ElasticityFalloff = data.ElasticityFalloff;
 			comp.Friction = data.Friction;

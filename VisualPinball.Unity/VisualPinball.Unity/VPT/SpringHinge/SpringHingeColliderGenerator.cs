@@ -20,8 +20,9 @@ namespace VisualPinball.Unity
 		internal static SpringHingeCollider Create(SpringHingeComponent hinge,
 			SpringHingeColliderComponent collider, ColliderInfo info, float margin)
 		{
-			var pivot = hinge.ToPlayfieldVpx(hinge.transform.position);
-			var centre = hinge.ToPlayfieldVpx(hinge.transform.TransformPoint(
+			var referenceMatrix = hinge.ReferenceLocalToWorldMatrix;
+			var pivot = hinge.ToPlayfieldVpx(referenceMatrix.MultiplyPoint3x4(Vector3.zero));
+			var centre = hinge.ToPlayfieldVpx(referenceMatrix.MultiplyPoint3x4(
 				collider.LocalCentre * MillimetersToWorld));
 			var localRotation = Quaternion.Euler(collider.LocalRotation);
 			var halfAxisX = hinge.ToPlayfieldVector(localRotation
