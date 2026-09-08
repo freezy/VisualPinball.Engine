@@ -8,6 +8,8 @@ Built with Unity 6.5
 
 ### Added
 
+- Spring-hinge bash toys with a finite-inertia analytic box collider, reciprocal Spatial magnet holds, packaged player reconstruction, editor setup/handles, and a Play Mode qualification sample.
+- Motion Transform input ranges for animating a follower during only part of its source travel.
 - Actuator Transform input ranges for animating a follower during only part of its source travel.
 - Wire Rail component with native spline authoring, fixtures (rings, rungs, cradles, stands, hairpins, and elbows), and an inferred ball-channel collider ([Documentation](https://docs.visualpinball.org/creators-guide/editor/wire-rails/index.html)).
 - Make packaging functional ([#557](https://github.com/freezy/VisualPinball.Engine/pull/557))
@@ -51,6 +53,8 @@ Built with Unity 6.5
 - Native trough component ([#229](https://github.com/freezy/VisualPinball.Engine/pull/229), [#248](https://github.com/freezy/VisualPinball.Engine/pull/248), [#256](https://github.com/freezy/VisualPinball.Engine/pull/256), [Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/troughs.html)).
 
 ### Changed
+
+- Renamed Actuator and Actuator Transform to Motion Controller and Motion Transform in components, APIs, editor menus, and documentation, preserving existing scene references, package identifiers, and coil mappings.
 - Removed DOTS in favor of Jobs with Burst ([#459](https://github.com/freezy/VisualPinball.Engine/pull/459))
 - All geometry is now in world space.
 - Removed internal ID in gamelogic engine API ([#408](https://github.com/freezy/VisualPinball.Engine/pull/408))

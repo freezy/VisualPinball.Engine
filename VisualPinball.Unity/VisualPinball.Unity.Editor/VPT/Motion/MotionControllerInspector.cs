@@ -23,22 +23,22 @@ using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomPropertyDrawer(typeof(ActuatorPositionSwitch))]
-	public class ActuatorPositionSwitchPropertyDrawer : PropertyDrawer
+	[CustomPropertyDrawer(typeof(MotionPositionSwitch))]
+	public class MotionPositionSwitchPropertyDrawer : PropertyDrawer
 	{
 		private const float Padding = 2f;
 
 		public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
 		{
-			var typeProperty = property.FindPropertyRelative(nameof(ActuatorPositionSwitch.Type));
+			var typeProperty = property.FindPropertyRelative(nameof(MotionPositionSwitch.Type));
 			if (typeProperty.hasMultipleDifferentValues) {
 				return (EditorGUIUtility.singleLineHeight + Padding) * 5f + 4f;
 			}
-			var type = (ActuatorPositionSwitchType)typeProperty.enumValueIndex;
+			var type = (MotionPositionSwitchType)typeProperty.enumValueIndex;
 			var lines = type switch {
-				ActuatorPositionSwitchType.EnableBetween => 3f,
-				ActuatorPositionSwitchType.AlwaysPulse => 4f,
-				ActuatorPositionSwitchType.PulseBetween => 5f,
+				MotionPositionSwitchType.EnableBetween => 3f,
+				MotionPositionSwitchType.AlwaysPulse => 4f,
+				MotionPositionSwitchType.PulseBetween => 5f,
 				_ => 3f,
 			};
 			return (EditorGUIUtility.singleLineHeight + Padding) * lines + 4f;
@@ -53,31 +53,31 @@ namespace VisualPinball.Unity.Editor
 			var indent = EditorGUI.indentLevel;
 			EditorGUI.indentLevel = 0;
 
-			var typeProperty = property.FindPropertyRelative(nameof(ActuatorPositionSwitch.Type));
-			EditorGUI.PropertyField(position, property.FindPropertyRelative(nameof(ActuatorPositionSwitch.Name)), new GUIContent("Name"));
+			var typeProperty = property.FindPropertyRelative(nameof(MotionPositionSwitch.Type));
+			EditorGUI.PropertyField(position, property.FindPropertyRelative(nameof(MotionPositionSwitch.Name)), new GUIContent("Name"));
 			NextLine(ref position);
 			EditorGUI.PropertyField(position, typeProperty, new GUIContent("Switch Type"));
 
 			var hasMixedTypes = typeProperty.hasMultipleDifferentValues;
-			var type = (ActuatorPositionSwitchType)typeProperty.enumValueIndex;
-			if (hasMixedTypes || type is ActuatorPositionSwitchType.EnableBetween or ActuatorPositionSwitchType.PulseBetween) {
+			var type = (MotionPositionSwitchType)typeProperty.enumValueIndex;
+			if (hasMixedTypes || type is MotionPositionSwitchType.EnableBetween or MotionPositionSwitchType.PulseBetween) {
 				NextLine(ref position);
 				DrawRange(position, property);
 			}
 
-			if (hasMixedTypes || type is ActuatorPositionSwitchType.AlwaysPulse or ActuatorPositionSwitchType.PulseBetween) {
+			if (hasMixedTypes || type is MotionPositionSwitchType.AlwaysPulse or MotionPositionSwitchType.PulseBetween) {
 				NextLine(ref position);
-				var pulseInterval = property.FindPropertyRelative(nameof(ActuatorPositionSwitch.PulseInterval));
+				var pulseInterval = property.FindPropertyRelative(nameof(MotionPositionSwitch.PulseInterval));
 				EditorGUI.showMixedValue = pulseInterval.hasMultipleDifferentValues;
 				EditorGUI.BeginChangeCheck();
-				var interval = EditorGUI.Slider(position, new GUIContent("Pulse Every", "Normalized actuator travel between pulse marks."), pulseInterval.floatValue, 0.001f, 1f);
+				var interval = EditorGUI.Slider(position, new GUIContent("Pulse Every", "Normalized motion controller travel between pulse marks."), pulseInterval.floatValue, 0.001f, 1f);
 				if (EditorGUI.EndChangeCheck()) {
 					pulseInterval.floatValue = interval;
 				}
 				EditorGUI.showMixedValue = false;
 
 				NextLine(ref position);
-				EditorGUI.PropertyField(position, property.FindPropertyRelative(nameof(ActuatorPositionSwitch.PulseDuration)), new GUIContent("Pulse Duration", "How long each generated pulse remains enabled."));
+				EditorGUI.PropertyField(position, property.FindPropertyRelative(nameof(MotionPositionSwitch.PulseDuration)), new GUIContent("Pulse Duration", "How long each generated pulse remains enabled."));
 			}
 
 			EditorGUI.indentLevel = indent;
@@ -86,7 +86,7 @@ namespace VisualPinball.Unity.Editor
 
 		private static void DrawRange(Rect position, SerializedProperty property)
 		{
-			var rangePosition = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), new GUIContent("Between", "Inclusive normalized actuator positions."));
+			var rangePosition = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), new GUIContent("Between", "Inclusive normalized motion controller positions."));
 			const float SeparatorWidth = 18f;
 			const float SuffixWidth = 34f;
 			var fieldWidth = (rangePosition.width - SeparatorWidth - SuffixWidth) / 2f;
@@ -95,8 +95,8 @@ namespace VisualPinball.Unity.Editor
 			var endRect = new Rect(separatorRect.xMax, rangePosition.y, fieldWidth, rangePosition.height);
 			var suffixRect = new Rect(endRect.xMax + 4f, rangePosition.y, SuffixWidth - 4f, rangePosition.height);
 
-			var beginning = property.FindPropertyRelative(nameof(ActuatorPositionSwitch.PositionBeginning));
-			var end = property.FindPropertyRelative(nameof(ActuatorPositionSwitch.PositionEnd));
+			var beginning = property.FindPropertyRelative(nameof(MotionPositionSwitch.PositionBeginning));
+			var end = property.FindPropertyRelative(nameof(MotionPositionSwitch.PositionEnd));
 			EditorGUI.showMixedValue = beginning.hasMultipleDifferentValues;
 			EditorGUI.BeginChangeCheck();
 			var beginningValue = EditorGUI.FloatField(beginningRect, beginning.floatValue);
@@ -117,8 +117,8 @@ namespace VisualPinball.Unity.Editor
 		private static void NextLine(ref Rect position) => position.y += EditorGUIUtility.singleLineHeight + Padding;
 	}
 
-	[CustomEditor(typeof(ActuatorComponent)), CanEditMultipleObjects]
-	public class ActuatorInspector : ItemInspector
+	[CustomEditor(typeof(MotionControllerComponent)), CanEditMultipleObjects]
+	public class MotionControllerInspector : ItemInspector
 	{
 		private SerializedProperty _coilModeProperty;
 		private SerializedProperty _initialPositionProperty;
@@ -137,21 +137,21 @@ namespace VisualPinball.Unity.Editor
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-			_coilModeProperty = serializedObject.FindProperty(nameof(ActuatorComponent.CoilMode));
-			_initialPositionProperty = serializedObject.FindProperty(nameof(ActuatorComponent.InitialPosition));
-			_activationDurationProperty = serializedObject.FindProperty(nameof(ActuatorComponent.ActivationDuration));
-			_releaseDurationProperty = serializedObject.FindProperty(nameof(ActuatorComponent.ReleaseDuration));
-			_activationCurveProperty = serializedObject.FindProperty(nameof(ActuatorComponent.ActivationCurve));
-			_releaseCurveProperty = serializedObject.FindProperty(nameof(ActuatorComponent.ReleaseCurve));
-			_releaseDelayProperty = serializedObject.FindProperty(nameof(ActuatorComponent.ReleaseDelay));
-			_activationThresholdProperty = serializedObject.FindProperty(nameof(ActuatorComponent.ActivationThreshold));
-			_oneShotHoldDurationProperty = serializedObject.FindProperty(nameof(ActuatorComponent.OneShotHoldDuration));
-			_switchesProperty = serializedObject.FindProperty(nameof(ActuatorComponent.Switches));
+			_coilModeProperty = serializedObject.FindProperty(nameof(MotionControllerComponent.CoilMode));
+			_initialPositionProperty = serializedObject.FindProperty(nameof(MotionControllerComponent.InitialPosition));
+			_activationDurationProperty = serializedObject.FindProperty(nameof(MotionControllerComponent.ActivationDuration));
+			_releaseDurationProperty = serializedObject.FindProperty(nameof(MotionControllerComponent.ReleaseDuration));
+			_activationCurveProperty = serializedObject.FindProperty(nameof(MotionControllerComponent.ActivationCurve));
+			_releaseCurveProperty = serializedObject.FindProperty(nameof(MotionControllerComponent.ReleaseCurve));
+			_releaseDelayProperty = serializedObject.FindProperty(nameof(MotionControllerComponent.ReleaseDelay));
+			_activationThresholdProperty = serializedObject.FindProperty(nameof(MotionControllerComponent.ActivationThreshold));
+			_oneShotHoldDurationProperty = serializedObject.FindProperty(nameof(MotionControllerComponent.OneShotHoldDuration));
+			_switchesProperty = serializedObject.FindProperty(nameof(MotionControllerComponent.Switches));
 		}
 
 		protected override void OnDisable()
 		{
-			ActuatorPreview.Restore(targets);
+			MotionPreview.Restore(targets);
 			base.OnDisable();
 		}
 
@@ -172,11 +172,11 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.Space(8f);
 			PropertyField(_activationThresholdProperty);
 			PropertyField(_releaseDelayProperty);
-			if (!_coilModeProperty.hasMultipleDifferentValues && (ActuatorCoilMode)_coilModeProperty.enumValueIndex == ActuatorCoilMode.OneShot) {
+			if (!_coilModeProperty.hasMultipleDifferentValues && (MotionCoilMode)_coilModeProperty.enumValueIndex == MotionCoilMode.OneShot) {
 				PropertyField(_oneShotHoldDurationProperty);
 			}
 
-			if (!_coilModeProperty.hasMultipleDifferentValues && (ActuatorCoilMode)_coilModeProperty.enumValueIndex == ActuatorCoilMode.FollowValue) {
+			if (!_coilModeProperty.hasMultipleDifferentValues && (MotionCoilMode)_coilModeProperty.enumValueIndex == MotionCoilMode.FollowValue) {
 				EditorGUILayout.HelpBox("Follow Value requires a plain coil mapping. Wire and dynamic-wire paths are boolean and cannot preserve proportional duty-cycle values.", MessageType.Info);
 			} else {
 				EditorGUILayout.HelpBox("Binary modes treat every normalized value above the threshold as one energized state. Coil strength controls electrical power, not mechanism position.", MessageType.Info);
@@ -184,25 +184,25 @@ namespace VisualPinball.Unity.Editor
 
 			EditorGUILayout.Space(8f);
 			PropertyField(_switchesProperty, "Position Switches");
-			EditorGUILayout.HelpBox("Maintained switches follow the actuator's actual normalized position. Pulse switches emit distinct close/open edges using their configured pulse duration.", MessageType.Info);
+			EditorGUILayout.HelpBox("Maintained switches follow the motion controller's actual normalized position. Pulse switches emit distinct close/open edges using their configured pulse duration.", MessageType.Info);
 
 			if (!Application.isPlaying) {
 				EditorGUILayout.Space(8f);
 				EditorGUILayout.LabelField("Animation Preview", EditorStyles.boldLabel);
-				if (!ActuatorPreview.HasPreview(targets)) {
+				if (!MotionPreview.HasPreview(targets)) {
 					_previewPosition = 0f;
 				}
 
 				EditorGUI.BeginChangeCheck();
-				var previewPosition = EditorGUILayout.Slider(new GUIContent("Preview Position", "Scrub all Actuator Transform followers without entering Play Mode. Previewed transforms are restored before saving, entering Play Mode, reloading scripts, or leaving this inspector."), _previewPosition, 0f, 1f);
+				var previewPosition = EditorGUILayout.Slider(new GUIContent("Preview Position", "Scrub all Motion Transform followers without entering Play Mode. Previewed transforms are restored before saving, entering Play Mode, reloading scripts, or leaving this inspector."), _previewPosition, 0f, 1f);
 				if (EditorGUI.EndChangeCheck()) {
 					_previewPosition = previewPosition;
-					ActuatorPreview.Apply(targets, _previewPosition);
+					MotionPreview.Apply(targets, _previewPosition);
 				}
 
-				using (new EditorGUI.DisabledScope(!ActuatorPreview.HasPreview(targets))) {
+				using (new EditorGUI.DisabledScope(!MotionPreview.HasPreview(targets))) {
 					if (GUILayout.Button("Reset Preview")) {
-						ActuatorPreview.Restore(targets);
+						MotionPreview.Restore(targets);
 						_previewPosition = 0f;
 					}
 				}
@@ -214,19 +214,19 @@ namespace VisualPinball.Unity.Editor
 	}
 
 	[InitializeOnLoad]
-	internal static class ActuatorPreview
+	internal static class MotionPreview
 	{
 		private sealed class PreviewRecord
 		{
-			internal ActuatorTransformComponent Follower;
+			internal MotionTransformComponent Follower;
 			internal Vector3 LocalPosition;
 			internal Quaternion LocalRotation;
 			internal float Position;
 		}
 
-		private static readonly Dictionary<ActuatorComponent, List<PreviewRecord>> Records = new();
+		private static readonly Dictionary<MotionControllerComponent, List<PreviewRecord>> Records = new();
 
-		static ActuatorPreview()
+		static MotionPreview()
 		{
 			AssemblyReloadEvents.beforeAssemblyReload += RestoreAll;
 			EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
@@ -241,7 +241,7 @@ namespace VisualPinball.Unity.Editor
 		internal static bool HasPreview(Object[] inspectedTargets)
 		{
 			foreach (var inspectedTarget in inspectedTargets) {
-				if (inspectedTarget is ActuatorComponent actuator && Records.ContainsKey(actuator)) {
+				if (inspectedTarget is MotionControllerComponent motionController && Records.ContainsKey(motionController)) {
 					return true;
 				}
 			}
@@ -256,17 +256,17 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			ActuatorTransformComponent[] followers = null;
+			MotionTransformComponent[] followers = null;
 			foreach (var inspectedTarget in inspectedTargets) {
-				if (!(inspectedTarget is ActuatorComponent actuator)) {
+				if (!(inspectedTarget is MotionControllerComponent motionController)) {
 					continue;
 				}
 
-				if (!Records.TryGetValue(actuator, out var records)) {
-					followers ??= Object.FindObjectsByType<ActuatorTransformComponent>(FindObjectsInactive.Include);
+				if (!Records.TryGetValue(motionController, out var records)) {
+					followers ??= Object.FindObjectsByType<MotionTransformComponent>(FindObjectsInactive.Include);
 					records = new List<PreviewRecord>();
 					foreach (var follower in followers) {
-						if (!CanPreview(follower) || !Follows(follower, actuator)) {
+						if (!CanPreview(follower) || !Follows(follower, motionController)) {
 							continue;
 						}
 
@@ -278,7 +278,7 @@ namespace VisualPinball.Unity.Editor
 					}
 
 					if (records.Count > 0) {
-						Records[actuator] = records;
+						Records[motionController] = records;
 					}
 				}
 
@@ -294,28 +294,28 @@ namespace VisualPinball.Unity.Editor
 		internal static void Restore(Object[] inspectedTargets)
 		{
 			foreach (var inspectedTarget in inspectedTargets) {
-				if (inspectedTarget is ActuatorComponent actuator) {
-					Restore(actuator);
+				if (inspectedTarget is MotionControllerComponent motionController) {
+					Restore(motionController);
 				}
 			}
 			Repaint();
 		}
 
-		private static bool Follows(ActuatorTransformComponent follower, ActuatorComponent actuator)
+		private static bool Follows(MotionTransformComponent follower, MotionControllerComponent motionController)
 		{
 			if (follower._emitter is IAnimationValueEmitter<float> assignedEmitter) {
-				return ReferenceEquals(assignedEmitter, actuator);
+				return ReferenceEquals(assignedEmitter, motionController);
 			}
 
 			foreach (var emitter in follower.GetComponentsInParent<IAnimationValueEmitter>()) {
 				if (emitter is IAnimationValueEmitter<float>) {
-					return ReferenceEquals(emitter, actuator);
+					return ReferenceEquals(emitter, motionController);
 				}
 			}
 			return false;
 		}
 
-		private static bool CanPreview(ActuatorTransformComponent follower)
+		private static bool CanPreview(MotionTransformComponent follower)
 		{
 			return follower != null
 			       && !EditorUtility.IsPersistent(follower)
@@ -333,7 +333,7 @@ namespace VisualPinball.Unity.Editor
 			record.Position = position;
 			var factor = follower.EvaluateFactor(position);
 			if (follower.AnimatePosition) {
-				if (follower.TranslationSpace == ActuatorTranslationSpace.World) {
+				if (follower.TranslationSpace == MotionTranslationSpace.World) {
 					ApplyWorldPosition(record, factor);
 				} else {
 					follower.transform.localPosition = record.LocalPosition + record.LocalRotation * follower.PositionOffset * factor;
@@ -366,7 +366,7 @@ namespace VisualPinball.Unity.Editor
 			foreach (var records in Records.Values) {
 				foreach (var record in records) {
 					var follower = record.Follower;
-					if (follower == null || !follower.AnimatePosition || follower.TranslationSpace != ActuatorTranslationSpace.World) {
+					if (follower == null || !follower.AnimatePosition || follower.TranslationSpace != MotionTranslationSpace.World) {
 						continue;
 					}
 
@@ -380,14 +380,14 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private static void Restore(ActuatorComponent actuator)
+		private static void Restore(MotionControllerComponent motionController)
 		{
-			if (!Records.TryGetValue(actuator, out var records)) {
+			if (!Records.TryGetValue(motionController, out var records)) {
 				return;
 			}
 
 			Restore(records);
-			Records.Remove(actuator);
+			Records.Remove(motionController);
 		}
 
 		private static void Restore(IEnumerable<PreviewRecord> records)

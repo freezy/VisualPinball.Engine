@@ -23,14 +23,14 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
-	public class ActuatorApi : IApi, IApiCoilDevice, IApiSwitchDevice, IApiWireDeviceDest, IApiCoil
+	public class MotionControllerApi : IApi, IApiCoilDevice, IApiSwitchDevice, IApiWireDeviceDest, IApiCoil
 	{
 		private const int MaxPendingPulses = 1024;
 		private const float PulseGapDuration = 0.001f;
 
 		private sealed class PositionSwitchRuntime
 		{
-			internal readonly ActuatorPositionSwitch Config;
+			internal readonly MotionPositionSwitch Config;
 			internal readonly DeviceSwitch Switch;
 			internal int PendingPulses;
 			internal bool PulseActive;
@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 			internal float StateTimeRemaining;
 			internal bool WarnedPulseOverflow;
 
-			internal PositionSwitchRuntime(ActuatorPositionSwitch config, DeviceSwitch positionSwitch)
+			internal PositionSwitchRuntime(MotionPositionSwitch config, DeviceSwitch positionSwitch)
 			{
 				Config = config;
 				Switch = positionSwitch;
@@ -47,7 +47,7 @@ namespace VisualPinball.Unity
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		private readonly ActuatorComponent _component;
+		private readonly MotionControllerComponent _component;
 		private readonly Dictionary<string, PositionSwitchRuntime> _switches = new();
 		private readonly PositionSwitchRuntime[] _switchRuntimes;
 		private bool _warnedBooleanFollowValue;
@@ -56,17 +56,17 @@ namespace VisualPinball.Unity
 		public event EventHandler Reached;
 		public event EventHandler<NoIdCoilEventArgs> CoilStatusChanged;
 
-		internal ActuatorApi(GameObject go, Player player = null, PhysicsEngine physicsEngine = null)
+		internal MotionControllerApi(GameObject go, Player player = null, PhysicsEngine physicsEngine = null)
 		{
-			_component = go.GetComponent<ActuatorComponent>();
+			_component = go.GetComponent<MotionControllerComponent>();
 			var switchRuntimes = new List<PositionSwitchRuntime>();
-			foreach (var positionSwitch in _component.Switches ?? Array.Empty<ActuatorPositionSwitch>()) {
+			foreach (var positionSwitch in _component.Switches ?? Array.Empty<MotionPositionSwitch>()) {
 				if (positionSwitch == null || !positionSwitch.HasId) {
-					Logger.Warn($"Ignoring actuator position switch without an ID on '{_component.name}'.");
+					Logger.Warn($"Ignoring motion controller position switch without an ID on '{_component.name}'.");
 					continue;
 				}
 				if (_switches.ContainsKey(positionSwitch.SwitchId)) {
-					Logger.Warn($"Ignoring duplicate actuator position switch ID '{positionSwitch.SwitchId}' on '{_component.name}'.");
+					Logger.Warn($"Ignoring duplicate motion controller position switch ID '{positionSwitch.SwitchId}' on '{_component.name}'.");
 					continue;
 				}
 				var deviceSwitch = new DeviceSwitch(positionSwitch.SwitchId, false, SwitchDefault.NormallyOpen, player, physicsEngine);
@@ -127,8 +127,8 @@ namespace VisualPinball.Unity
 		private IApiCoil Coil(string deviceItem)
 		{
 			return deviceItem switch {
-				ActuatorComponent.ActuatorCoilItem => this,
-				_ => throw new ArgumentException($"Unknown actuator coil \"{deviceItem}\". Valid name is \"{ActuatorComponent.ActuatorCoilItem}\".")
+				MotionControllerComponent.MotionCoilItem => this,
+				_ => throw new ArgumentException($"Unknown motion controller coil \"{deviceItem}\". Valid name is \"{MotionControllerComponent.MotionCoilItem}\".")
 			};
 		}
 
@@ -138,9 +138,9 @@ namespace VisualPinball.Unity
 
 		void IApiWireDest.OnChange(bool enabled)
 		{
-			if (_component.CoilMode == ActuatorCoilMode.FollowValue && !_warnedBooleanFollowValue) {
+			if (_component.CoilMode == MotionCoilMode.FollowValue && !_warnedBooleanFollowValue) {
 				_warnedBooleanFollowValue = true;
-				Debug.LogWarning($"Actuator '{_component.name}' is configured to Follow Value but is receiving boolean wire input. Use a plain coil mapping to preserve proportional values.", _component);
+				Debug.LogWarning($"Motion controller '{_component.name}' is configured to Follow Value but is receiving boolean wire input. Use a plain coil mapping to preserve proportional values.", _component);
 			}
 			ApplyCoilValue(enabled ? 1f : 0f);
 		}
@@ -178,7 +178,7 @@ namespace VisualPinball.Unity
 				runtime.PendingPulses += queuedPulses;
 				if (queuedPulses < pulseCount && !runtime.WarnedPulseOverflow) {
 					runtime.WarnedPulseOverflow = true;
-					Logger.Warn($"Actuator '{_component.name}' position switch '{runtime.Config.Name}' exceeded its {MaxPendingPulses}-pulse backlog; dropping additional pulses.");
+					Logger.Warn($"Motion controller '{_component.name}' position switch '{runtime.Config.Name}' exceeded its {MaxPendingPulses}-pulse backlog; dropping additional pulses.");
 				}
 				TryStartPulse(runtime);
 			}

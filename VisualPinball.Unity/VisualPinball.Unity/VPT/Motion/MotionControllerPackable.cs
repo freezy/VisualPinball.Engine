@@ -18,9 +18,9 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	public struct ActuatorPackable
+	public struct MotionControllerPackable
 	{
-		public ActuatorCoilMode CoilMode;
+		public MotionCoilMode CoilMode;
 		public float InitialPosition;
 		public float ActivationDuration;
 		public float ReleaseDuration;
@@ -29,11 +29,11 @@ namespace VisualPinball.Unity
 		public float ReleaseDelay;
 		public float ActivationThreshold;
 		public float OneShotHoldDuration;
-		public ActuatorPositionSwitch[] Switches;
+		public MotionPositionSwitch[] Switches;
 
-		public static byte[] Pack(ActuatorComponent comp)
+		public static byte[] Pack(MotionControllerComponent comp)
 		{
-			return PackageApi.Packer.Pack(new ActuatorPackable {
+			return PackageApi.Packer.Pack(new MotionControllerPackable {
 				CoilMode = comp.CoilMode,
 				InitialPosition = comp.InitialPosition,
 				ActivationDuration = comp.ActivationDuration,
@@ -47,9 +47,9 @@ namespace VisualPinball.Unity
 			});
 		}
 
-		public static void Unpack(byte[] bytes, ActuatorComponent comp)
+		public static void Unpack(byte[] bytes, MotionControllerComponent comp)
 		{
-			var data = PackageApi.Packer.Unpack<ActuatorPackable>(bytes);
+			var data = PackageApi.Packer.Unpack<MotionControllerPackable>(bytes);
 			comp.CoilMode = data.CoilMode;
 			comp.InitialPosition = data.InitialPosition;
 			comp.ActivationDuration = data.ActivationDuration;
@@ -59,18 +59,18 @@ namespace VisualPinball.Unity
 			comp.ReleaseDelay = data.ReleaseDelay;
 			comp.ActivationThreshold = data.ActivationThreshold;
 			comp.OneShotHoldDuration = data.OneShotHoldDuration;
-			comp.Switches = data.Switches ?? System.Array.Empty<ActuatorPositionSwitch>();
+			comp.Switches = data.Switches ?? System.Array.Empty<MotionPositionSwitch>();
 			foreach (var positionSwitch in comp.Switches) {
 				positionSwitch?.Normalize();
 			}
 		}
 	}
 
-	public struct ActuatorTransformPackable
+	public struct MotionTransformPackable
 	{
 		public bool AnimatePosition;
 		public PackableFloat3 PositionOffset;
-		public ActuatorTranslationSpace TranslationSpace;
+		public MotionTranslationSpace TranslationSpace;
 		public bool AnimateRotation;
 		public PackableFloat3 RotationOffset;
 		// Nullable fields distinguish old packages without an input range from an authored zero.
@@ -79,9 +79,9 @@ namespace VisualPinball.Unity
 		public AnimationCurve ResponseCurve;
 		public bool Reverse;
 
-		public static byte[] Pack(ActuatorTransformComponent comp)
+		public static byte[] Pack(MotionTransformComponent comp)
 		{
-			return PackageApi.Packer.Pack(new ActuatorTransformPackable {
+			return PackageApi.Packer.Pack(new MotionTransformPackable {
 				AnimatePosition = comp.AnimatePosition,
 				PositionOffset = comp.PositionOffset,
 				TranslationSpace = comp.TranslationSpace,
@@ -94,9 +94,9 @@ namespace VisualPinball.Unity
 			});
 		}
 
-		public static void Unpack(byte[] bytes, ActuatorTransformComponent comp)
+		public static void Unpack(byte[] bytes, MotionTransformComponent comp)
 		{
-			var data = PackageApi.Packer.Unpack<ActuatorTransformPackable>(bytes);
+			var data = PackageApi.Packer.Unpack<MotionTransformPackable>(bytes);
 			comp.AnimatePosition = data.AnimatePosition;
 			comp.PositionOffset = data.PositionOffset;
 			comp.TranslationSpace = data.TranslationSpace;
@@ -109,11 +109,11 @@ namespace VisualPinball.Unity
 		}
 	}
 
-	public struct ActuatorTransformReferencesPackable
+	public struct MotionTransformReferencesPackable
 	{
 		public ReferencePackable EmitterRef;
 
-		public static byte[] Pack(ActuatorTransformComponent comp, PackagedRefs refs)
+		public static byte[] Pack(MotionTransformComponent comp, PackagedRefs refs)
 		{
 			var emitter = comp._emitter;
 			var emitterRef = new ReferencePackable(null, null);
@@ -124,12 +124,12 @@ namespace VisualPinball.Unity
 					Debug.LogWarning($"Cannot package animation emitter {emitter.GetType().FullName} on '{comp.name}' because it has no PackAs attribute; writing a null reference.", comp);
 				}
 			}
-			return PackageApi.Packer.Pack(new ActuatorTransformReferencesPackable { EmitterRef = emitterRef });
+			return PackageApi.Packer.Pack(new MotionTransformReferencesPackable { EmitterRef = emitterRef });
 		}
 
-		public static void Unpack(byte[] bytes, ActuatorTransformComponent comp, PackagedRefs refs)
+		public static void Unpack(byte[] bytes, MotionTransformComponent comp, PackagedRefs refs)
 		{
-			var data = PackageApi.Packer.Unpack<ActuatorTransformReferencesPackable>(bytes);
+			var data = PackageApi.Packer.Unpack<MotionTransformReferencesPackable>(bytes);
 			comp._emitter = refs.Resolve<MonoBehaviour, IAnimationValueEmitter<float>>(data.EmitterRef);
 		}
 	}

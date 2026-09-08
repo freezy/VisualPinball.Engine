@@ -126,8 +126,8 @@
         href: manual/mechanisms/teleporters.md
       - name: Drop Target Banks
         href: manual/mechanisms/drop-target-banks.md
-      - name: Actuators
-        href: manual/mechanisms/actuators.md
+      - name: Motion Controllers
+        href: manual/mechanisms/motion-controllers.md
       - name: Rotators
         href: manual/mechanisms/rotators.md
       - name: Score Reels

@@ -16,10 +16,11 @@
 
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace VisualPinball.Unity
 {
-	public enum ActuatorTranslationSpace
+	public enum MotionTranslationSpace
 	{
 		World,
 		Local,
@@ -27,25 +28,27 @@ namespace VisualPinball.Unity
 	}
 
 	[DisallowMultipleComponent]
+	[MovedFrom(true, sourceNamespace: "VisualPinball.Unity", sourceClassName: "ActuatorTransformComponent")]
+	// Existing packages identify this component by its original serialized name.
 	[PackAs("ActuatorTransform")]
-	[AddComponentMenu("Pinball/Animation/Actuator Transform")]
-	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/actuators.html")]
-	public class ActuatorTransformComponent : AnimationComponent<float>, IPackable
+	[AddComponentMenu("Pinball/Animation/Motion Transform")]
+	[HelpURL("https://docs.visualpinball.org/creators-guide/manual/mechanisms/motion-controllers.html")]
+	public class MotionTransformComponent : AnimationComponent<float>, IPackable
 	{
 		[Tooltip("Translate this transform from its authored local position.")]
 		public bool AnimatePosition = true;
 
-		[Tooltip("Position offset at actuator position 1, expressed in Translation Space.")]
+		[Tooltip("Position offset at motion controller position 1, expressed in Translation Space.")]
 		public Vector3 PositionOffset;
 
 		[Tooltip("Whether Position Offset follows world axes or the follower's authored Local gizmo axes.")]
-		public ActuatorTranslationSpace TranslationSpace = ActuatorTranslationSpace.World;
+		public MotionTranslationSpace TranslationSpace = MotionTranslationSpace.World;
 
 		[Tooltip("Rotate this transform from its authored local rotation.")]
 		public bool AnimateRotation;
 
 		[Unit("degrees")]
-		[Tooltip("Local Euler rotation offset at actuator position 1.")]
+		[Tooltip("Local Euler rotation offset at motion controller position 1.")]
 		public Vector3 RotationOffset;
 
 		[Range(0f, 1f)]
@@ -67,10 +70,10 @@ namespace VisualPinball.Unity
 		private float _currentFactor;
 		private bool _poseCaptured;
 
-		public byte[] Pack() => ActuatorTransformPackable.Pack(this);
-		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => ActuatorTransformReferencesPackable.Pack(this, refs);
-		public void Unpack(byte[] bytes) => ActuatorTransformPackable.Unpack(bytes, this);
-		public void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs, PackagedFiles files) => ActuatorTransformReferencesPackable.Unpack(bytes, this, refs);
+		public byte[] Pack() => MotionTransformPackable.Pack(this);
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => MotionTransformReferencesPackable.Pack(this, refs);
+		public void Unpack(byte[] bytes) => MotionTransformPackable.Unpack(bytes, this);
+		public void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs, PackagedFiles files) => MotionTransformReferencesPackable.Unpack(bytes, this, refs);
 
 		protected override void Awake()
 		{
@@ -87,7 +90,7 @@ namespace VisualPinball.Unity
 
 		private void LateUpdate()
 		{
-			if (_poseCaptured && AnimatePosition && TranslationSpace == ActuatorTranslationSpace.World) {
+			if (_poseCaptured && AnimatePosition && TranslationSpace == MotionTranslationSpace.World) {
 				ApplyPosition(_currentFactor);
 			}
 		}
@@ -137,12 +140,12 @@ namespace VisualPinball.Unity
 			if (!HasValidInputRange || !math.isfinite(value)) return 0f;
 			var progress = math.saturate((value - InputMin) / (InputMax - InputMin));
 			var input = Reverse ? 1f - progress : progress;
-			return math.saturate(ActuatorMotionState.EvaluateCurve(ResponseCurve, input));
+			return math.saturate(MotionState.EvaluateCurve(ResponseCurve, input));
 		}
 
 		private void ApplyPosition(float factor)
 		{
-			if (TranslationSpace == ActuatorTranslationSpace.World) {
+			if (TranslationSpace == MotionTranslationSpace.World) {
 				var parent = transform.parent;
 				var baseline = parent != null ? parent.TransformPoint(_initialLocalPosition) : _initialLocalPosition;
 				var desiredPosition = baseline + PositionOffset * factor;
@@ -162,7 +165,7 @@ namespace VisualPinball.Unity
 		protected override void OnValidate()
 		{
 			base.OnValidate();
-			ResponseCurve = ActuatorComponent.EnsureCurve(ResponseCurve, false);
+			ResponseCurve = MotionControllerComponent.EnsureCurve(ResponseCurve, false);
 		}
 #endif
 	}

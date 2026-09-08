@@ -18,8 +18,8 @@ using UnityEditor;
 
 namespace VisualPinball.Unity.Editor
 {
-	[CustomEditor(typeof(ActuatorTransformComponent)), CanEditMultipleObjects]
-	public class ActuatorTransformInspector : UnityEditor.Editor
+	[CustomEditor(typeof(MotionTransformComponent)), CanEditMultipleObjects]
+	public class MotionTransformInspector : UnityEditor.Editor
 	{
 		private SerializedProperty _emitterProperty;
 		private SerializedProperty _animatePositionProperty;
@@ -34,16 +34,16 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnEnable()
 		{
-			_emitterProperty = serializedObject.FindProperty(nameof(ActuatorTransformComponent._emitter));
-			_animatePositionProperty = serializedObject.FindProperty(nameof(ActuatorTransformComponent.AnimatePosition));
-			_positionOffsetProperty = serializedObject.FindProperty(nameof(ActuatorTransformComponent.PositionOffset));
-			_translationSpaceProperty = serializedObject.FindProperty(nameof(ActuatorTransformComponent.TranslationSpace));
-			_animateRotationProperty = serializedObject.FindProperty(nameof(ActuatorTransformComponent.AnimateRotation));
-			_rotationOffsetProperty = serializedObject.FindProperty(nameof(ActuatorTransformComponent.RotationOffset));
-			_inputMinProperty = serializedObject.FindProperty(nameof(ActuatorTransformComponent.InputMin));
-			_inputMaxProperty = serializedObject.FindProperty(nameof(ActuatorTransformComponent.InputMax));
-			_responseCurveProperty = serializedObject.FindProperty(nameof(ActuatorTransformComponent.ResponseCurve));
-			_reverseProperty = serializedObject.FindProperty(nameof(ActuatorTransformComponent.Reverse));
+			_emitterProperty = serializedObject.FindProperty(nameof(MotionTransformComponent._emitter));
+			_animatePositionProperty = serializedObject.FindProperty(nameof(MotionTransformComponent.AnimatePosition));
+			_positionOffsetProperty = serializedObject.FindProperty(nameof(MotionTransformComponent.PositionOffset));
+			_translationSpaceProperty = serializedObject.FindProperty(nameof(MotionTransformComponent.TranslationSpace));
+			_animateRotationProperty = serializedObject.FindProperty(nameof(MotionTransformComponent.AnimateRotation));
+			_rotationOffsetProperty = serializedObject.FindProperty(nameof(MotionTransformComponent.RotationOffset));
+			_inputMinProperty = serializedObject.FindProperty(nameof(MotionTransformComponent.InputMin));
+			_inputMaxProperty = serializedObject.FindProperty(nameof(MotionTransformComponent.InputMax));
+			_responseCurveProperty = serializedObject.FindProperty(nameof(MotionTransformComponent.ResponseCurve));
+			_reverseProperty = serializedObject.FindProperty(nameof(MotionTransformComponent.Reverse));
 		}
 
 		public override void OnInspectorGUI()
@@ -72,7 +72,7 @@ namespace VisualPinball.Unity.Editor
 
 			serializedObject.ApplyModifiedProperties();
 			foreach (var selected in targets) {
-				if (((ActuatorTransformComponent)selected).HasValidInputRange) continue;
+				if (((MotionTransformComponent)selected).HasValidInputRange) continue;
 				EditorGUILayout.HelpBox("Input Min must be less than Input Max, both between 0 and 1. An invalid range keeps the authored pose.", MessageType.Error);
 				break;
 			}

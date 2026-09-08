@@ -19,7 +19,7 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	public enum ActuatorCoilMode
+	public enum MotionCoilMode
 	{
 		FollowCoil,
 		ToggleOnPulse,
@@ -27,9 +27,9 @@ namespace VisualPinball.Unity
 		FollowValue,
 	}
 
-	internal struct ActuatorMotionConfig
+	internal struct MotionConfig
 	{
-		public ActuatorCoilMode CoilMode;
+		public MotionCoilMode CoilMode;
 		public float ActivationDuration;
 		public float ReleaseDuration;
 		public AnimationCurve ActivationCurve;
@@ -40,9 +40,9 @@ namespace VisualPinball.Unity
 	}
 
 	/// <summary>
-	/// Deterministic, Unity-frame-independent state machine behind <see cref="ActuatorComponent"/>.
+	/// Deterministic, Unity-frame-independent state machine behind <see cref="MotionControllerComponent"/>.
 	/// </summary>
-	internal sealed class ActuatorMotionState
+	internal sealed class MotionState
 	{
 		private const float PositionEpsilon = 0.000001f;
 
@@ -79,10 +79,10 @@ namespace VisualPinball.Unity
 			ReachedSequence = 0;
 		}
 
-		internal void SetInput(float value, in ActuatorMotionConfig config)
+		internal void SetInput(float value, in MotionConfig config)
 		{
 			value = math.saturate(value);
-			if (config.CoilMode == ActuatorCoilMode.FollowValue) {
+			if (config.CoilMode == MotionCoilMode.FollowValue) {
 				_releasePending = false;
 				_releaseElapsed = 0f;
 				_inputActive = value > 0f;
@@ -117,7 +117,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal void Advance(float deltaTime, in ActuatorMotionConfig config)
+		internal void Advance(float deltaTime, in MotionConfig config)
 		{
 			var dt = math.max(0f, deltaTime);
 			AdvancePendingRelease(dt, in config);
@@ -128,19 +128,19 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal void SetActive(bool active, in ActuatorMotionConfig config)
+		internal void SetActive(bool active, in MotionConfig config)
 		{
 			CancelOneShot();
 			MoveTo(active ? 1f : 0f, in config);
 		}
 
-		internal void Toggle(in ActuatorMotionConfig config)
+		internal void Toggle(in MotionConfig config)
 		{
 			CancelOneShot();
 			MoveTo(TargetPosition >= 0.5f ? 0f : 1f, in config);
 		}
 
-		internal void MoveToPosition(float position, in ActuatorMotionConfig config)
+		internal void MoveToPosition(float position, in MotionConfig config)
 		{
 			CancelOneShot();
 			MoveTo(position, in config);
@@ -156,17 +156,17 @@ namespace VisualPinball.Unity
 			_transitionDuration = 0f;
 		}
 
-		private void OnRisingEdge(in ActuatorMotionConfig config)
+		private void OnRisingEdge(in MotionConfig config)
 		{
 			switch (config.CoilMode) {
-				case ActuatorCoilMode.FollowCoil:
+				case MotionCoilMode.FollowCoil:
 					CancelOneShot();
 					MoveTo(1f, in config);
 					break;
-				case ActuatorCoilMode.ToggleOnPulse:
+				case MotionCoilMode.ToggleOnPulse:
 					Toggle(in config);
 					break;
-				case ActuatorCoilMode.OneShot:
+				case MotionCoilMode.OneShot:
 					_oneShotCycleArmed = true;
 					_oneShotHolding = false;
 					_oneShotHoldElapsed = 0f;
@@ -178,7 +178,7 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void AdvancePendingRelease(float deltaTime, in ActuatorMotionConfig config)
+		private void AdvancePendingRelease(float deltaTime, in MotionConfig config)
 		{
 			if (!_releasePending) {
 				return;
@@ -190,17 +190,17 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void CommitRelease(in ActuatorMotionConfig config)
+		private void CommitRelease(in MotionConfig config)
 		{
 			_inputActive = false;
 			_releasePending = false;
 			_releaseElapsed = 0f;
-			if (config.CoilMode == ActuatorCoilMode.FollowCoil) {
+			if (config.CoilMode == MotionCoilMode.FollowCoil) {
 				MoveTo(0f, in config);
 			}
 		}
 
-		private void MoveTo(float target, in ActuatorMotionConfig config)
+		private void MoveTo(float target, in MotionConfig config)
 		{
 			target = math.saturate(target);
 			if (math.abs(target - Position) <= PositionEpsilon) {
@@ -232,7 +232,7 @@ namespace VisualPinball.Unity
 			IsMoving = true;
 		}
 
-		private void AdvanceMotion(float deltaTime, in ActuatorMotionConfig config)
+		private void AdvanceMotion(float deltaTime, in MotionConfig config)
 		{
 			if (!IsMoving) {
 				return;
@@ -260,13 +260,13 @@ namespace VisualPinball.Unity
 			_oneShotHoldElapsed = 0f;
 		}
 
-		private void AdvanceOneShotHold(float deltaTime, in ActuatorMotionConfig config)
+		private void AdvanceOneShotHold(float deltaTime, in MotionConfig config)
 		{
 			if (!_oneShotHolding) {
 				return;
 			}
 
-			if (config.CoilMode != ActuatorCoilMode.OneShot) {
+			if (config.CoilMode != MotionCoilMode.OneShot) {
 				CancelOneShot();
 				return;
 			}

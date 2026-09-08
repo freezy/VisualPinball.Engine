@@ -24,14 +24,56 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
-namespace VisualPinball.Unity.Test.VPT.Actuator
+namespace VisualPinball.Unity.Test.VPT.Motion
 {
-	public class ActuatorTests
+	public class MotionControllerTests
 	{
+		[Test]
+		public void LegacyPackageNamesResolveRenamedMotionComponents()
+		{
+			var root = new GameObject("Legacy Motion Package");
+			try {
+				var refs = new PackagedRefs(root.transform);
+				var controllerType = refs.GetType("Actuator");
+				var transformType = refs.GetType("ActuatorTransform");
+				var controller = root.AddComponent(controllerType);
+				var follower = root.AddComponent(transformType);
+
+				Assert.That(controller, Is.TypeOf<MotionControllerComponent>());
+				Assert.That(follower, Is.TypeOf<MotionTransformComponent>());
+				Assert.That(refs.GetName(controller.GetType()), Is.EqualTo("Actuator"));
+				Assert.That(refs.GetName(follower.GetType()), Is.EqualTo("ActuatorTransform"));
+			} finally {
+				Object.DestroyImmediate(root);
+			}
+		}
+
+		[Test]
+		public void LegacyCoilMappingDrivesRenamedMotionController()
+		{
+			var root = new GameObject("Legacy Motion Coil");
+			try {
+				var controller = root.AddComponent<MotionControllerComponent>();
+				controller.ActivationDuration = 0f;
+				controller.ReleaseDuration = 0f;
+				controller.ReleaseDelay = 0f;
+				var api = new MotionControllerApi(root);
+				var coil = ((IApiCoilDevice)api).Coil("actuator_coil");
+
+				coil.OnCoil(true);
+				Assert.That(controller.Position, Is.EqualTo(1f));
+				coil.OnCoil(false);
+				Assert.That(controller.Position, Is.Zero);
+				Assert.That(controller.AvailableCoils.Single().Id, Is.EqualTo("actuator_coil"));
+			} finally {
+				Object.DestroyImmediate(root);
+			}
+		}
+
 		[Test]
 		public void PositionSwitchPreservesAuthoredRangeOrderAndIncludesItsBounds()
 		{
-			var positionSwitch = new ActuatorPositionSwitch(ActuatorPositionSwitchType.EnableBetween, "Home", "home", 0.2f, 0.1f);
+			var positionSwitch = new MotionPositionSwitch(MotionPositionSwitchType.EnableBetween, "Home", "home", 0.2f, 0.1f);
 
 			Assert.That(positionSwitch.PositionBeginning, Is.EqualTo(0.2f));
 			Assert.That(positionSwitch.PositionEnd, Is.EqualTo(0.1f));
@@ -44,7 +86,7 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		[Test]
 		public void PositionSwitchCountsPulseMarksInBothDirections()
 		{
-			var positionSwitch = new ActuatorPositionSwitch(ActuatorPositionSwitchType.PulseBetween, "Encoder", "encoder", 0.4f, 0.6f, 0.1f);
+			var positionSwitch = new MotionPositionSwitch(MotionPositionSwitchType.PulseBetween, "Encoder", "encoder", 0.4f, 0.6f, 0.1f);
 
 			Assert.That(positionSwitch.CountPulses(0.35f, 0.65f), Is.EqualTo(3));
 			Assert.That(positionSwitch.CountPulses(0.65f, 0.35f), Is.EqualTo(3));
@@ -54,7 +96,7 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		[Test]
 		public void AlwaysPulseUsesFullStrokeAndIsPathIndependent()
 		{
-			var positionSwitch = new ActuatorPositionSwitch(ActuatorPositionSwitchType.AlwaysPulse, "Encoder", "encoder", 0.4f, 0.6f, 0.1f);
+			var positionSwitch = new MotionPositionSwitch(MotionPositionSwitchType.AlwaysPulse, "Encoder", "encoder", 0.4f, 0.6f, 0.1f);
 
 			Assert.That(positionSwitch.CountPulses(0.05f, 0.15f), Is.EqualTo(1));
 			Assert.That(positionSwitch.CountPulses(0f, 1f), Is.EqualTo(10));
@@ -64,18 +106,18 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		}
 
 		[Test]
-		public void ActuatorPublishesConfiguredSwitchItems()
+		public void MotionControllerPublishesConfiguredSwitchItems()
 		{
-			var gameObject = new GameObject("Actuator");
+			var gameObject = new GameObject("Motion Controller");
 			try {
-				var actuator = gameObject.AddComponent<ActuatorComponent>();
-				actuator.Switches = new[] {
-					new ActuatorPositionSwitch(ActuatorPositionSwitchType.EnableBetween, "Home", "home", 0f, 0.01f),
-					new ActuatorPositionSwitch(ActuatorPositionSwitchType.AlwaysPulse, "Encoder", "encoder", 0f, 1f),
-					new ActuatorPositionSwitch(ActuatorPositionSwitchType.EnableBetween, "Invalid", "", 0f, 1f),
+				var motionController = gameObject.AddComponent<MotionControllerComponent>();
+				motionController.Switches = new[] {
+					new MotionPositionSwitch(MotionPositionSwitchType.EnableBetween, "Home", "home", 0f, 0.01f),
+					new MotionPositionSwitch(MotionPositionSwitchType.AlwaysPulse, "Encoder", "encoder", 0f, 1f),
+					new MotionPositionSwitch(MotionPositionSwitchType.EnableBetween, "Invalid", "", 0f, 1f),
 				};
 
-				var switches = actuator.AvailableSwitches.ToArray();
+				var switches = motionController.AvailableSwitches.ToArray();
 
 				Assert.That(switches.Select(item => item.Id), Is.EqualTo(new[] { "home", "encoder" }));
 				Assert.That(switches.Select(item => item.Description), Is.EqualTo(new[] { "Home", "Encoder" }));
@@ -86,39 +128,39 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		}
 
 		[Test]
-		public void ActuatorSerializationPreservesCustomNamesWhenMakingThemUnique()
+		public void MotionControllerSerializationPreservesCustomNamesWhenMakingThemUnique()
 		{
-			var gameObject = new GameObject("Actuator");
+			var gameObject = new GameObject("Motion Controller");
 			try {
-				var actuator = gameObject.AddComponent<ActuatorComponent>();
-				actuator.Switches = new[] {
-					new ActuatorPositionSwitch(ActuatorPositionSwitchType.EnableBetween, "Left Limit", "first", 0f, 0.1f),
-					new ActuatorPositionSwitch(ActuatorPositionSwitchType.EnableBetween, "Left Limit", "second", 0.9f, 1f),
-					new ActuatorPositionSwitch(ActuatorPositionSwitchType.AlwaysPulse, "", "encoder", 0f, 1f),
+				var motionController = gameObject.AddComponent<MotionControllerComponent>();
+				motionController.Switches = new[] {
+					new MotionPositionSwitch(MotionPositionSwitchType.EnableBetween, "Left Limit", "first", 0f, 0.1f),
+					new MotionPositionSwitch(MotionPositionSwitchType.EnableBetween, "Left Limit", "second", 0.9f, 1f),
+					new MotionPositionSwitch(MotionPositionSwitchType.AlwaysPulse, "", "encoder", 0f, 1f),
 				};
 
-				actuator.OnBeforeSerialize();
+				motionController.OnBeforeSerialize();
 
-				Assert.That(actuator.Switches.Select(positionSwitch => positionSwitch.Name), Is.EqualTo(new[] { "Left Limit", "Left Limit 2", "Position Switch" }));
+				Assert.That(motionController.Switches.Select(positionSwitch => positionSwitch.Name), Is.EqualTo(new[] { "Left Limit", "Left Limit 2", "Position Switch" }));
 			} finally {
 				Object.DestroyImmediate(gameObject);
 			}
 		}
 
 		[Test]
-		public void ActuatorApiTracksMaintainedPositionRanges()
+		public void MotionControllerApiTracksMaintainedPositionRanges()
 		{
 			var root = new GameObject("Table");
-			var actuatorObject = new GameObject("Actuator");
+			var motionControllerObject = new GameObject("Motion Controller");
 			try {
-				actuatorObject.transform.SetParent(root.transform);
+				motionControllerObject.transform.SetParent(root.transform);
 				var player = root.AddComponent<Player>();
-				var actuator = actuatorObject.AddComponent<ActuatorComponent>();
-				actuator.Switches = new[] {
-					new ActuatorPositionSwitch(ActuatorPositionSwitchType.EnableBetween, "Home", "home", 0f, 0.01f),
-					new ActuatorPositionSwitch(ActuatorPositionSwitchType.EnableBetween, "End", "end", 0.99f, 1f),
+				var motionController = motionControllerObject.AddComponent<MotionControllerComponent>();
+				motionController.Switches = new[] {
+					new MotionPositionSwitch(MotionPositionSwitchType.EnableBetween, "Home", "home", 0f, 0.01f),
+					new MotionPositionSwitch(MotionPositionSwitchType.EnableBetween, "End", "end", 0.99f, 1f),
 				};
-				var api = new ActuatorApi(actuatorObject, player);
+				var api = new MotionControllerApi(motionControllerObject, player);
 				var home = api.Switch("home");
 				var end = api.Switch("end");
 				Assert.That(api.Switch("missing"), Is.Null);
@@ -140,16 +182,16 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		}
 
 		[Test]
-		public void ActuatorApiQueuesDistinctPulseEdgesCrossedInOneUpdate()
+		public void MotionControllerApiQueuesDistinctPulseEdgesCrossedInOneUpdate()
 		{
-			var gameObject = new GameObject("Actuator");
+			var gameObject = new GameObject("Motion Controller");
 			try {
 				var player = gameObject.AddComponent<Player>();
-				var actuator = gameObject.AddComponent<ActuatorComponent>();
-				actuator.Switches = new[] {
-					new ActuatorPositionSwitch(ActuatorPositionSwitchType.PulseBetween, "Encoder", "encoder", 0.4f, 0.6f, 0.1f, 10),
+				var motionController = gameObject.AddComponent<MotionControllerComponent>();
+				motionController.Switches = new[] {
+					new MotionPositionSwitch(MotionPositionSwitchType.PulseBetween, "Encoder", "encoder", 0.4f, 0.6f, 0.1f, 10),
 				};
-				var api = new ActuatorApi(gameObject, player);
+				var api = new MotionControllerApi(gameObject, player);
 				var encoder = api.Switch("encoder");
 				var callIndex = 0;
 				var edges = new List<(int CallIndex, bool IsEnabled)>();
@@ -173,14 +215,14 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		[Test]
 		public void RestoringPositionCancelsQueuedPulsesAndOpensActivePulse()
 		{
-			var gameObject = new GameObject("Actuator");
+			var gameObject = new GameObject("Motion Controller");
 			try {
 				var player = gameObject.AddComponent<Player>();
-				var actuator = gameObject.AddComponent<ActuatorComponent>();
-				actuator.Switches = new[] {
-					new ActuatorPositionSwitch(ActuatorPositionSwitchType.PulseBetween, "Encoder", "encoder", 0.4f, 0.6f, 0.1f, 10),
+				var motionController = gameObject.AddComponent<MotionControllerComponent>();
+				motionController.Switches = new[] {
+					new MotionPositionSwitch(MotionPositionSwitchType.PulseBetween, "Encoder", "encoder", 0.4f, 0.6f, 0.1f, 10),
 				};
-				var api = new ActuatorApi(gameObject, player);
+				var api = new MotionControllerApi(gameObject, player);
 				var encoder = api.Switch("encoder");
 				var states = new List<bool>();
 				encoder.Switch += (_, args) => states.Add(args.IsEnabled);
@@ -200,7 +242,7 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		public void RepeatedNonzeroSamplesToggleOnlyOnce()
 		{
 			var state = CreateState();
-			var config = Config(ActuatorCoilMode.ToggleOnPulse, activationDuration: 0f, releaseDuration: 0f);
+			var config = Config(MotionCoilMode.ToggleOnPulse, activationDuration: 0f, releaseDuration: 0f);
 
 			state.SetInput(64f / 255f, in config);
 			state.SetInput(1f, in config);
@@ -214,7 +256,7 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		public void ShortInactiveGapDoesNotRearmToggle()
 		{
 			var state = CreateState();
-			var config = Config(ActuatorCoilMode.ToggleOnPulse, activationDuration: 0f, releaseDuration: 0f, releaseDelay: 0.05f);
+			var config = Config(MotionCoilMode.ToggleOnPulse, activationDuration: 0f, releaseDuration: 0f, releaseDelay: 0.05f);
 
 			state.SetInput(1f, in config);
 			state.SetInput(0f, in config);
@@ -229,7 +271,7 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		public void SustainedInactiveGapRearmsToggle()
 		{
 			var state = CreateState();
-			var config = Config(ActuatorCoilMode.ToggleOnPulse, activationDuration: 0f, releaseDuration: 0f, releaseDelay: 0.05f);
+			var config = Config(MotionCoilMode.ToggleOnPulse, activationDuration: 0f, releaseDuration: 0f, releaseDelay: 0.05f);
 
 			state.SetInput(1f, in config);
 			state.SetInput(0f, in config);
@@ -241,10 +283,10 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		}
 
 		[Test]
-		public void GodzillaBridgeLevelIsOneBinaryActivationNotPosition()
+		public void ReducedStrengthInputIsOneBinaryActivationNotPosition()
 		{
 			var state = CreateState();
-			var config = Config(ActuatorCoilMode.ToggleOnPulse, activationDuration: 0f, releaseDuration: 0f);
+			var config = Config(MotionCoilMode.ToggleOnPulse, activationDuration: 0f, releaseDuration: 0f);
 
 			state.SetInput(64f / 255f, in config);
 
@@ -256,7 +298,7 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		public void ValuesAtOrBelowActivationThresholdDoNotActivate()
 		{
 			var state = CreateState();
-			var config = Config(ActuatorCoilMode.ToggleOnPulse, activationDuration: 0f, releaseDuration: 0f, activationThreshold: 0.2f);
+			var config = Config(MotionCoilMode.ToggleOnPulse, activationDuration: 0f, releaseDuration: 0f, activationThreshold: 0.2f);
 
 			state.SetInput(0.19f, in config);
 			state.SetInput(0.2f, in config);
@@ -274,7 +316,7 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		public void PendingReleaseCanBeCancelled()
 		{
 			var state = CreateState();
-			var config = Config(ActuatorCoilMode.FollowCoil, activationDuration: 0f, releaseDuration: 0f, releaseDelay: 0.05f);
+			var config = Config(MotionCoilMode.FollowCoil, activationDuration: 0f, releaseDuration: 0f, releaseDelay: 0.05f);
 
 			state.SetInput(1f, in config);
 			state.SetInput(0f, in config);
@@ -290,7 +332,7 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		public void FollowCoilWaitsForReleaseDelay()
 		{
 			var state = CreateState();
-			var config = Config(ActuatorCoilMode.FollowCoil, activationDuration: 0f, releaseDuration: 0f, releaseDelay: 0.05f);
+			var config = Config(MotionCoilMode.FollowCoil, activationDuration: 0f, releaseDuration: 0f, releaseDelay: 0.05f);
 
 			state.SetInput(1f, in config);
 			state.SetInput(0f, in config);
@@ -305,7 +347,7 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		public void OneShotTravelsHoldsAndReturns()
 		{
 			var state = CreateState();
-			var config = Config(ActuatorCoilMode.OneShot, activationDuration: 0.1f, releaseDuration: 0.1f, oneShotHoldDuration: 0.2f);
+			var config = Config(MotionCoilMode.OneShot, activationDuration: 0.1f, releaseDuration: 0.1f, oneShotHoldDuration: 0.2f);
 
 			state.SetInput(1f, in config);
 			state.Advance(0.1f, in config);
@@ -324,7 +366,7 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		public void OneShotHeldCoilMustReleaseBeforeRetriggering()
 		{
 			var state = CreateState();
-			var config = Config(ActuatorCoilMode.OneShot, activationDuration: 0f, releaseDuration: 0f, releaseDelay: 0f, oneShotHoldDuration: 0f);
+			var config = Config(MotionCoilMode.OneShot, activationDuration: 0f, releaseDuration: 0f, releaseDelay: 0f, oneShotHoldDuration: 0f);
 
 			state.SetInput(1f, in config);
 			state.Advance(0f, in config);
@@ -343,7 +385,7 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		public void ReachedSequenceAdvancesExactlyOncePerArrival()
 		{
 			var state = CreateState();
-			var config = Config(ActuatorCoilMode.FollowCoil, activationDuration: 0f, releaseDuration: 0f);
+			var config = Config(MotionCoilMode.FollowCoil, activationDuration: 0f, releaseDuration: 0f);
 
 			state.SetActive(true, in config);
 			Assert.That(state.ReachedSequence, Is.EqualTo(1));
@@ -359,7 +401,7 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		public void FollowValueIsExplicitlyProportional()
 		{
 			var state = CreateState();
-			var config = Config(ActuatorCoilMode.FollowValue, activationDuration: 0f, releaseDuration: 0f);
+			var config = Config(MotionCoilMode.FollowValue, activationDuration: 0f, releaseDuration: 0f);
 
 			state.SetInput(0.25f, in config);
 
@@ -371,7 +413,7 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		public void ArbitraryPositionCommandScalesTravelAndCanRetarget()
 		{
 			var state = CreateState();
-			var config = Config(ActuatorCoilMode.FollowCoil, activationDuration: 2f, releaseDuration: 1f);
+			var config = Config(MotionCoilMode.FollowCoil, activationDuration: 2f, releaseDuration: 1f);
 
 			state.MoveToPosition(0.75f, in config);
 			state.Advance(0.75f, in config);
@@ -386,13 +428,13 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		}
 
 		[Test]
-		public void ActuatorApiAcceptsArbitraryPositionCommand()
+		public void MotionControllerApiAcceptsArbitraryPositionCommand()
 		{
-			var gameObject = new GameObject("Actuator");
+			var gameObject = new GameObject("Motion Controller");
 			try {
-				var actuator = gameObject.AddComponent<ActuatorComponent>();
-				actuator.ActivationDuration = 0f;
-				var api = new ActuatorApi(gameObject);
+				var motionController = gameObject.AddComponent<MotionControllerComponent>();
+				motionController.ActivationDuration = 0f;
+				var api = new MotionControllerApi(gameObject);
 
 				api.MoveTo(0.4f);
 
@@ -407,7 +449,7 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		public void ReversalStartsAtCurrentPoseAndScalesRemainingDuration()
 		{
 			var state = CreateState();
-			var config = Config(ActuatorCoilMode.FollowCoil, activationDuration: 1f, releaseDuration: 1f, releaseDelay: 0f);
+			var config = Config(MotionCoilMode.FollowCoil, activationDuration: 1f, releaseDuration: 1f, releaseDelay: 0f);
 
 			state.SetInput(1f, in config);
 			state.Advance(0.4f, in config);
@@ -422,19 +464,19 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		[Test]
 		public void NullAndKeylessCurvesFallBackToLinear()
 		{
-			Assert.That(ActuatorMotionState.EvaluateCurve(null, 0.4f), Is.EqualTo(0.4f));
-			Assert.That(ActuatorMotionState.EvaluateCurve(new AnimationCurve(), 0.7f), Is.EqualTo(0.7f));
+			Assert.That(MotionState.EvaluateCurve(null, 0.4f), Is.EqualTo(0.4f));
+			Assert.That(MotionState.EvaluateCurve(new AnimationCurve(), 0.7f), Is.EqualTo(0.7f));
 		}
 
 		[Test]
 		public void InitialValueCanBeReadBeforeAwake()
 		{
-			var gameObject = new GameObject("Actuator");
+			var gameObject = new GameObject("Motion Controller");
 			try {
-				var actuator = gameObject.AddComponent<ActuatorComponent>();
-				actuator.InitialPosition = 1f;
+				var motionController = gameObject.AddComponent<MotionControllerComponent>();
+				motionController.InitialPosition = 1f;
 
-				Assert.That(((IAnimationValueProvider<float>)actuator).AnimationValue, Is.EqualTo(1f));
+				Assert.That(((IAnimationValueProvider<float>)motionController).AnimationValue, Is.EqualTo(1f));
 			} finally {
 				Object.DestroyImmediate(gameObject);
 			}
@@ -443,14 +485,14 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		[Test]
 		public void FollowerAwakeAppliesInitialPositionBeforeFirstFrame()
 		{
-			var root = new GameObject("Actuator");
+			var root = new GameObject("Motion Controller");
 			var followerObject = new GameObject("Follower");
 			try {
 				followerObject.transform.SetParent(root.transform);
 				followerObject.transform.localPosition = new Vector3(1f, 0f, 0f);
-				var actuator = root.AddComponent<ActuatorComponent>();
-				actuator.InitialPosition = 1f;
-				var follower = followerObject.AddComponent<ActuatorTransformComponent>();
+				var motionController = root.AddComponent<MotionControllerComponent>();
+				motionController.InitialPosition = 1f;
+				var follower = followerObject.AddComponent<MotionTransformComponent>();
 				follower.PositionOffset = new Vector3(2f, 0f, 0f);
 
 				InvokeLifecycle(follower, "Awake");
@@ -462,21 +504,21 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		}
 
 		[Test]
-		public void LateEnabledFollowerPullsCurrentActuatorPosition()
+		public void LateEnabledFollowerPullsCurrentMotionControllerPosition()
 		{
-			var root = new GameObject("Actuator");
+			var root = new GameObject("Motion Controller");
 			var followerObject = new GameObject("Follower");
-			ActuatorTransformComponent follower = null;
+			MotionTransformComponent follower = null;
 			try {
 				followerObject.transform.SetParent(root.transform);
-				var actuator = root.AddComponent<ActuatorComponent>();
-				follower = followerObject.AddComponent<ActuatorTransformComponent>();
+				var motionController = root.AddComponent<MotionControllerComponent>();
+				follower = followerObject.AddComponent<MotionTransformComponent>();
 				follower.PositionOffset = new Vector3(2f, 0f, 0f);
 				InvokeLifecycle(follower, "Awake");
 				InvokeLifecycle(follower, "OnEnable");
 				InvokeLifecycle(follower, "OnDisable");
 
-				actuator.SnapTo(1f);
+				motionController.SnapTo(1f);
 				Assert.That(followerObject.transform.localPosition.x, Is.EqualTo(0f).Within(0.0001f));
 
 				InvokeLifecycle(follower, "OnEnable");
@@ -497,7 +539,7 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 			try {
 				gameObject.transform.localPosition = new Vector3(1f, 2f, 3f);
 				gameObject.transform.localRotation = Quaternion.Euler(0f, 10f, 0f);
-				var follower = gameObject.AddComponent<ActuatorTransformComponent>();
+				var follower = gameObject.AddComponent<MotionTransformComponent>();
 				follower.AnimatePosition = true;
 				follower.PositionOffset = new Vector3(4f, 0f, 0f);
 				follower.AnimateRotation = true;
@@ -520,9 +562,9 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 			try {
 				followerObject.transform.localPosition = new Vector3(1f, 2f, 3f);
 				followerObject.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
-				var follower = followerObject.AddComponent<ActuatorTransformComponent>();
+				var follower = followerObject.AddComponent<MotionTransformComponent>();
 				follower.PositionOffset = new Vector3(0f, 0f, 2f);
-				follower.TranslationSpace = ActuatorTranslationSpace.Local;
+				follower.TranslationSpace = MotionTranslationSpace.Local;
 				follower.CaptureInitialPose();
 
 				follower.ApplyValue(1f);
@@ -542,9 +584,9 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 				parent.transform.SetPositionAndRotation(new Vector3(10f, 20f, 0f), Quaternion.Euler(0f, 0f, 90f));
 				followerObject.transform.SetParent(parent.transform, false);
 				followerObject.transform.localPosition = new Vector3(1f, 0f, 0f);
-				var follower = followerObject.AddComponent<ActuatorTransformComponent>();
+				var follower = followerObject.AddComponent<MotionTransformComponent>();
 				follower.PositionOffset = new Vector3(2f, 0f, 0f);
-				follower.TranslationSpace = ActuatorTranslationSpace.World;
+				follower.TranslationSpace = MotionTranslationSpace.World;
 				follower.CaptureInitialPose();
 
 				follower.ApplyValue(1f);
@@ -565,7 +607,7 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		{
 			var gameObject = new GameObject("Follower");
 			try {
-				var follower = gameObject.AddComponent<ActuatorTransformComponent>();
+				var follower = gameObject.AddComponent<MotionTransformComponent>();
 				follower.PositionOffset = new Vector3(2f, 0f, 0f);
 				follower.Reverse = true;
 				follower.CaptureInitialPose();
@@ -590,7 +632,7 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		{
 			var go = new GameObject("Gate pivot");
 			try {
-				var follower = go.AddComponent<ActuatorTransformComponent>();
+				var follower = go.AddComponent<MotionTransformComponent>();
 				go.transform.localRotation = Quaternion.Euler(0f, 35f, 0f);
 				var initial = go.transform.localRotation;
 				follower.AnimatePosition = false;
@@ -617,7 +659,7 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		{
 			var go = new GameObject("Follower");
 			try {
-				var follower = go.AddComponent<ActuatorTransformComponent>();
+				var follower = go.AddComponent<MotionTransformComponent>();
 				follower.InputMin = min;
 				follower.InputMax = max;
 				follower.Reverse = true;
@@ -633,23 +675,23 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		{
 			var root = new GameObject("Range preview");
 			try {
-				var actuator = root.AddComponent<ActuatorComponent>();
+				var motionController = root.AddComponent<MotionControllerComponent>();
 				var go = new GameObject("Follower");
 				go.transform.SetParent(root.transform);
-				var follower = go.AddComponent<ActuatorTransformComponent>();
-				follower._emitter = actuator;
+				var follower = go.AddComponent<MotionTransformComponent>();
+				follower._emitter = motionController;
 				follower.InputMin = 0.5f;
 				follower.InputMax = 0.75f;
 				follower.PositionOffset = Vector3.up * 4f;
 				follower.AnimateRotation = true;
 				follower.RotationOffset = new Vector3(60f, 0f, 0f);
 				follower.Reverse = true;
-				InvokePreview("Apply", (object)new UnityEngine.Object[] { actuator }, 0.5625f);
+				InvokePreview("Apply", (object)new UnityEngine.Object[] { motionController }, 0.5625f);
 				InvokePreview("MaintainWorldTranslations");
 				var previewPosition = go.transform.localPosition;
 				var previewRotation = go.transform.localRotation;
 				Assert.That(previewPosition.y, Is.EqualTo(3f).Within(0.0001f));
-				InvokePreview("Restore", (object)new UnityEngine.Object[] { actuator });
+				InvokePreview("Restore", (object)new UnityEngine.Object[] { motionController });
 				Assert.That(go.transform.localPosition, Is.EqualTo(Vector3.zero));
 				follower.CaptureInitialPose();
 				follower.ApplyValue(0.5625f);
@@ -666,7 +708,7 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		{
 			var go = new GameObject("Legacy follower");
 			try {
-				var follower = go.AddComponent<ActuatorTransformComponent>();
+				var follower = go.AddComponent<MotionTransformComponent>();
 				follower.InputMin = 0.25f;
 				follower.InputMax = 0.5f;
 				follower.Unpack(PackageApi.Packer.Pack(new { AnimatePosition = true }));
@@ -682,10 +724,10 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 			var firstObject = new GameObject("First Follower");
 			var secondObject = new GameObject("Second Follower");
 			try {
-				var first = firstObject.AddComponent<ActuatorTransformComponent>();
+				var first = firstObject.AddComponent<MotionTransformComponent>();
 				first.PositionOffset = new Vector3(4f, 0f, 0f);
 				first.CaptureInitialPose();
-				var second = secondObject.AddComponent<ActuatorTransformComponent>();
+				var second = secondObject.AddComponent<MotionTransformComponent>();
 				second.PositionOffset = new Vector3(0f, 6f, 0f);
 				second.ResponseCurve = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(1f, 0.5f));
 				second.CaptureInitialPose();
@@ -704,42 +746,42 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		[Test]
 		public void EditModePreviewScrubsConnectedFollowersAndRestoresAuthoredPose()
 		{
-			var root = new GameObject("Actuator Preview");
+			var root = new GameObject("Motion Controller Preview");
 			var firstObject = new GameObject("First Follower");
 			var secondObject = new GameObject("Inactive Follower");
-			var actuator = root.AddComponent<ActuatorComponent>();
+			var motionController = root.AddComponent<MotionControllerComponent>();
 			try {
 				firstObject.transform.localPosition = new Vector3(1f, 0f, 0f);
 				firstObject.transform.localRotation = Quaternion.Euler(0f, 10f, 0f);
-				var first = firstObject.AddComponent<ActuatorTransformComponent>();
-				first._emitter = actuator;
+				var first = firstObject.AddComponent<MotionTransformComponent>();
+				first._emitter = motionController;
 				first.PositionOffset = new Vector3(4f, 0f, 0f);
 				first.AnimateRotation = true;
 				first.RotationOffset = new Vector3(0f, 40f, 0f);
-				var second = secondObject.AddComponent<ActuatorTransformComponent>();
-				second._emitter = actuator;
+				var second = secondObject.AddComponent<MotionTransformComponent>();
+				second._emitter = motionController;
 				second.PositionOffset = new Vector3(0f, 6f, 0f);
 				second.ResponseCurve = new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(1f, 0.5f));
 				secondObject.SetActive(false);
 
-				InvokePreview("Apply", (object)new UnityEngine.Object[] { actuator }, 0.5f);
+				InvokePreview("Apply", (object)new UnityEngine.Object[] { motionController }, 0.5f);
 
 				Assert.That(firstObject.transform.localPosition.x, Is.EqualTo(3f).Within(0.0001f));
 				Assert.That(Quaternion.Angle(firstObject.transform.localRotation, Quaternion.Euler(0f, 30f, 0f)), Is.LessThan(0.001f));
 				Assert.That(secondObject.transform.localPosition.y, Is.EqualTo(1.5f).Within(0.0001f));
 
-				InvokePreview("Apply", (object)new UnityEngine.Object[] { actuator }, 0.75f);
+				InvokePreview("Apply", (object)new UnityEngine.Object[] { motionController }, 0.75f);
 
 				Assert.That(firstObject.transform.localPosition.x, Is.EqualTo(4f).Within(0.0001f));
 				Assert.That(secondObject.transform.localPosition.y, Is.EqualTo(6f * second.ResponseCurve.Evaluate(0.75f)).Within(0.0001f));
 
-				InvokePreview("Restore", (object)new UnityEngine.Object[] { actuator });
+				InvokePreview("Restore", (object)new UnityEngine.Object[] { motionController });
 
 				Assert.That(firstObject.transform.localPosition, Is.EqualTo(new Vector3(1f, 0f, 0f)));
 				Assert.That(Quaternion.Angle(firstObject.transform.localRotation, Quaternion.Euler(0f, 10f, 0f)), Is.LessThan(0.001f));
 				Assert.That(secondObject.transform.localPosition, Is.EqualTo(Vector3.zero));
 			} finally {
-				InvokePreview("Restore", (object)new UnityEngine.Object[] { actuator });
+				InvokePreview("Restore", (object)new UnityEngine.Object[] { motionController });
 				UnityEngine.Object.DestroyImmediate(root);
 				UnityEngine.Object.DestroyImmediate(firstObject);
 				UnityEngine.Object.DestroyImmediate(secondObject);
@@ -749,19 +791,19 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		[Test]
 		public void EditModePreviewToleratesDestroyedCachedFollower()
 		{
-			var root = new GameObject("Actuator Preview");
+			var root = new GameObject("Motion Controller Preview");
 			var followerObject = new GameObject("Follower");
-			var actuator = root.AddComponent<ActuatorComponent>();
+			var motionController = root.AddComponent<MotionControllerComponent>();
 			try {
-				var follower = followerObject.AddComponent<ActuatorTransformComponent>();
-				follower._emitter = actuator;
+				var follower = followerObject.AddComponent<MotionTransformComponent>();
+				follower._emitter = motionController;
 				follower.PositionOffset = Vector3.right;
-				InvokePreview("Apply", (object)new UnityEngine.Object[] { actuator }, 0.5f);
+				InvokePreview("Apply", (object)new UnityEngine.Object[] { motionController }, 0.5f);
 				Object.DestroyImmediate(followerObject);
 
-				Assert.DoesNotThrow(() => InvokePreview("Apply", (object)new UnityEngine.Object[] { actuator }, 0.75f));
+				Assert.DoesNotThrow(() => InvokePreview("Apply", (object)new UnityEngine.Object[] { motionController }, 0.75f));
 			} finally {
-				InvokePreview("Restore", (object)new UnityEngine.Object[] { actuator });
+				InvokePreview("Restore", (object)new UnityEngine.Object[] { motionController });
 				Object.DestroyImmediate(root);
 			}
 		}
@@ -769,19 +811,19 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		[Test]
 		public void EditModePreviewSupportsWorldTranslationAxes()
 		{
-			var root = new GameObject("Actuator Preview");
+			var root = new GameObject("Motion Controller Preview");
 			var followerObject = new GameObject("Follower");
-			var actuator = root.AddComponent<ActuatorComponent>();
+			var motionController = root.AddComponent<MotionControllerComponent>();
 			try {
 				root.transform.SetPositionAndRotation(new Vector3(10f, 20f, 0f), Quaternion.Euler(0f, 0f, 90f));
 				followerObject.transform.SetParent(root.transform, false);
 				followerObject.transform.localPosition = new Vector3(1f, 0f, 0f);
-				var follower = followerObject.AddComponent<ActuatorTransformComponent>();
-				follower._emitter = actuator;
+				var follower = followerObject.AddComponent<MotionTransformComponent>();
+				follower._emitter = motionController;
 				follower.PositionOffset = new Vector3(2f, 0f, 0f);
-				follower.TranslationSpace = ActuatorTranslationSpace.World;
+				follower.TranslationSpace = MotionTranslationSpace.World;
 
-				InvokePreview("Apply", (object)new UnityEngine.Object[] { actuator }, 1f);
+				InvokePreview("Apply", (object)new UnityEngine.Object[] { motionController }, 1f);
 
 				Assert.That(Vector3.Distance(followerObject.transform.position, new Vector3(12f, 21f, 0f)), Is.LessThan(0.0001f));
 
@@ -790,11 +832,11 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 
 				Assert.That(Vector3.Distance(followerObject.transform.position, new Vector3(21f, 30f, 0f)), Is.LessThan(0.0001f));
 
-				InvokePreview("Restore", (object)new UnityEngine.Object[] { actuator });
+				InvokePreview("Restore", (object)new UnityEngine.Object[] { motionController });
 
 				Assert.That(Vector3.Distance(followerObject.transform.localPosition, new Vector3(1f, 0f, 0f)), Is.LessThan(0.0001f));
 			} finally {
-				InvokePreview("Restore", (object)new UnityEngine.Object[] { actuator });
+				InvokePreview("Restore", (object)new UnityEngine.Object[] { motionController });
 				Object.DestroyImmediate(root);
 			}
 		}
@@ -802,26 +844,26 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		[Test]
 		public void EditModePreviewSupportsFollowerLocalGizmoAxes()
 		{
-			var root = new GameObject("Actuator Preview");
+			var root = new GameObject("Motion Controller Preview");
 			var followerObject = new GameObject("Follower");
-			var actuator = root.AddComponent<ActuatorComponent>();
+			var motionController = root.AddComponent<MotionControllerComponent>();
 			try {
 				followerObject.transform.localPosition = new Vector3(1f, 2f, 3f);
 				followerObject.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
-				var follower = followerObject.AddComponent<ActuatorTransformComponent>();
-				follower._emitter = actuator;
+				var follower = followerObject.AddComponent<MotionTransformComponent>();
+				follower._emitter = motionController;
 				follower.PositionOffset = new Vector3(0f, 0f, 2f);
-				follower.TranslationSpace = ActuatorTranslationSpace.Local;
+				follower.TranslationSpace = MotionTranslationSpace.Local;
 
-				InvokePreview("Apply", (object)new UnityEngine.Object[] { actuator }, 1f);
+				InvokePreview("Apply", (object)new UnityEngine.Object[] { motionController }, 1f);
 
 				Assert.That(Vector3.Distance(followerObject.transform.localPosition, new Vector3(3f, 2f, 3f)), Is.LessThan(0.0001f));
 
-				InvokePreview("Restore", (object)new UnityEngine.Object[] { actuator });
+				InvokePreview("Restore", (object)new UnityEngine.Object[] { motionController });
 
 				Assert.That(Vector3.Distance(followerObject.transform.localPosition, new Vector3(1f, 2f, 3f)), Is.LessThan(0.0001f));
 			} finally {
-				InvokePreview("Restore", (object)new UnityEngine.Object[] { actuator });
+				InvokePreview("Restore", (object)new UnityEngine.Object[] { motionController });
 				Object.DestroyImmediate(root);
 				Object.DestroyImmediate(followerObject);
 			}
@@ -831,21 +873,21 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		public void EditModePreviewIgnoresPreviewSceneObjects()
 		{
 			var previewScene = EditorSceneManager.NewPreviewScene();
-			var root = new GameObject("Prefab Stage Actuator");
+			var root = new GameObject("Prefab Stage Motion Controller");
 			var followerObject = new GameObject("Prefab Stage Follower");
-			var actuator = root.AddComponent<ActuatorComponent>();
+			var motionController = root.AddComponent<MotionControllerComponent>();
 			try {
 				followerObject.transform.SetParent(root.transform);
-				var follower = followerObject.AddComponent<ActuatorTransformComponent>();
-				follower._emitter = actuator;
+				var follower = followerObject.AddComponent<MotionTransformComponent>();
+				follower._emitter = motionController;
 				follower.PositionOffset = new Vector3(4f, 0f, 0f);
 				SceneManager.MoveGameObjectToScene(root, previewScene);
 
-				InvokePreview("Apply", (object)new UnityEngine.Object[] { actuator }, 1f);
+				InvokePreview("Apply", (object)new UnityEngine.Object[] { motionController }, 1f);
 
 				Assert.That(followerObject.transform.localPosition, Is.EqualTo(Vector3.zero));
 			} finally {
-				InvokePreview("Restore", (object)new UnityEngine.Object[] { actuator });
+				InvokePreview("Restore", (object)new UnityEngine.Object[] { motionController });
 				Object.DestroyImmediate(root);
 				EditorSceneManager.ClosePreviewScene(previewScene);
 			}
@@ -854,67 +896,67 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		[Test]
 		public void PreviewFallsBackToParentWhenAssignedEmitterHasWrongValueType()
 		{
-			var root = new GameObject("Actuator");
+			var root = new GameObject("Motion Controller");
 			var followerObject = new GameObject("Follower");
 			var otherObject = new GameObject("Wrong Emitter");
-			var actuator = root.AddComponent<ActuatorComponent>();
+			var motionController = root.AddComponent<MotionControllerComponent>();
 			try {
 				followerObject.transform.SetParent(root.transform);
-				var follower = followerObject.AddComponent<ActuatorTransformComponent>();
+				var follower = followerObject.AddComponent<MotionTransformComponent>();
 				follower._emitter = otherObject.AddComponent<TurntableComponent>();
 				follower.PositionOffset = new Vector3(3f, 0f, 0f);
 
-				InvokePreview("Apply", (object)new UnityEngine.Object[] { actuator }, 1f);
+				InvokePreview("Apply", (object)new UnityEngine.Object[] { motionController }, 1f);
 
 				Assert.That(followerObject.transform.localPosition.x, Is.EqualTo(3f).Within(0.0001f));
 			} finally {
-				InvokePreview("Restore", (object)new UnityEngine.Object[] { actuator });
+				InvokePreview("Restore", (object)new UnityEngine.Object[] { motionController });
 				Object.DestroyImmediate(root);
 				Object.DestroyImmediate(otherObject);
 			}
 		}
 
 		[Test]
-		public void ActuatorPackableRoundTripsFieldsAndCurves()
+		public void MotionControllerPackableRoundTripsFieldsAndCurves()
 		{
-			var gameObject = new GameObject("Actuator");
+			var gameObject = new GameObject("Motion Controller");
 			try {
-				var actuator = gameObject.AddComponent<ActuatorComponent>();
-				actuator.CoilMode = ActuatorCoilMode.OneShot;
-				actuator.InitialPosition = 0.25f;
-				actuator.ActivationDuration = 0.7f;
-				actuator.ReleaseDuration = 0.9f;
-				actuator.ReleaseDelay = 0.04f;
-				actuator.ActivationThreshold = 0.002f;
-				actuator.OneShotHoldDuration = 1.2f;
-				actuator.ActivationCurve = new AnimationCurve(new Keyframe(0f, 0f, 1f, 2f), new Keyframe(1f, 1f, 3f, 4f));
-				actuator.Switches = new[] {
-					new ActuatorPositionSwitch(ActuatorPositionSwitchType.EnableBetween, "Home", "home", 0f, 0.02f),
-					new ActuatorPositionSwitch(ActuatorPositionSwitchType.PulseBetween, "Encoder", "encoder", 0.2f, 0.8f, 0.05f, 15),
+				var motionController = gameObject.AddComponent<MotionControllerComponent>();
+				motionController.CoilMode = MotionCoilMode.OneShot;
+				motionController.InitialPosition = 0.25f;
+				motionController.ActivationDuration = 0.7f;
+				motionController.ReleaseDuration = 0.9f;
+				motionController.ReleaseDelay = 0.04f;
+				motionController.ActivationThreshold = 0.002f;
+				motionController.OneShotHoldDuration = 1.2f;
+				motionController.ActivationCurve = new AnimationCurve(new Keyframe(0f, 0f, 1f, 2f), new Keyframe(1f, 1f, 3f, 4f));
+				motionController.Switches = new[] {
+					new MotionPositionSwitch(MotionPositionSwitchType.EnableBetween, "Home", "home", 0f, 0.02f),
+					new MotionPositionSwitch(MotionPositionSwitchType.PulseBetween, "Encoder", "encoder", 0.2f, 0.8f, 0.05f, 15),
 				};
 
-				var bytes = actuator.Pack();
-				actuator.CoilMode = ActuatorCoilMode.FollowCoil;
-				actuator.InitialPosition = 0f;
-				actuator.ActivationCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
-				actuator.Switches = Array.Empty<ActuatorPositionSwitch>();
-				actuator.Unpack(bytes);
+				var bytes = motionController.Pack();
+				motionController.CoilMode = MotionCoilMode.FollowCoil;
+				motionController.InitialPosition = 0f;
+				motionController.ActivationCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
+				motionController.Switches = Array.Empty<MotionPositionSwitch>();
+				motionController.Unpack(bytes);
 
-				Assert.That(actuator.CoilMode, Is.EqualTo(ActuatorCoilMode.OneShot));
-				Assert.That(actuator.InitialPosition, Is.EqualTo(0.25f));
-				Assert.That(actuator.ActivationDuration, Is.EqualTo(0.7f));
-				Assert.That(actuator.ReleaseDuration, Is.EqualTo(0.9f));
-				Assert.That(actuator.ReleaseDelay, Is.EqualTo(0.04f));
-				Assert.That(actuator.ActivationThreshold, Is.EqualTo(0.002f));
-				Assert.That(actuator.OneShotHoldDuration, Is.EqualTo(1.2f));
-				Assert.That(actuator.ActivationCurve.keys[0].outTangent, Is.EqualTo(2f));
-				Assert.That(actuator.ActivationCurve.keys[1].inTangent, Is.EqualTo(3f));
-				Assert.That(actuator.Switches, Has.Length.EqualTo(2));
-				Assert.That(actuator.Switches[0].SwitchId, Is.EqualTo("home"));
-				Assert.That(actuator.Switches[0].PositionEnd, Is.EqualTo(0.02f));
-				Assert.That(actuator.Switches[1].Type, Is.EqualTo(ActuatorPositionSwitchType.PulseBetween));
-				Assert.That(actuator.Switches[1].PulseInterval, Is.EqualTo(0.05f));
-				Assert.That(actuator.Switches[1].PulseDuration, Is.EqualTo(15));
+				Assert.That(motionController.CoilMode, Is.EqualTo(MotionCoilMode.OneShot));
+				Assert.That(motionController.InitialPosition, Is.EqualTo(0.25f));
+				Assert.That(motionController.ActivationDuration, Is.EqualTo(0.7f));
+				Assert.That(motionController.ReleaseDuration, Is.EqualTo(0.9f));
+				Assert.That(motionController.ReleaseDelay, Is.EqualTo(0.04f));
+				Assert.That(motionController.ActivationThreshold, Is.EqualTo(0.002f));
+				Assert.That(motionController.OneShotHoldDuration, Is.EqualTo(1.2f));
+				Assert.That(motionController.ActivationCurve.keys[0].outTangent, Is.EqualTo(2f));
+				Assert.That(motionController.ActivationCurve.keys[1].inTangent, Is.EqualTo(3f));
+				Assert.That(motionController.Switches, Has.Length.EqualTo(2));
+				Assert.That(motionController.Switches[0].SwitchId, Is.EqualTo("home"));
+				Assert.That(motionController.Switches[0].PositionEnd, Is.EqualTo(0.02f));
+				Assert.That(motionController.Switches[1].Type, Is.EqualTo(MotionPositionSwitchType.PulseBetween));
+				Assert.That(motionController.Switches[1].PulseInterval, Is.EqualTo(0.05f));
+				Assert.That(motionController.Switches[1].PulseDuration, Is.EqualTo(15));
 			} finally {
 				Object.DestroyImmediate(gameObject);
 			}
@@ -924,17 +966,17 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		public void TransformPackablesRoundTripGeometryAndEmitterReference()
 		{
 			var root = new GameObject("Table Root");
-			var actuatorObject = new GameObject("Actuator");
+			var motionControllerObject = new GameObject("Motion Controller");
 			var followerObject = new GameObject("Follower");
 			try {
-				actuatorObject.transform.SetParent(root.transform);
+				motionControllerObject.transform.SetParent(root.transform);
 				followerObject.transform.SetParent(root.transform);
-				var actuator = actuatorObject.AddComponent<ActuatorComponent>();
-				var follower = followerObject.AddComponent<ActuatorTransformComponent>();
-				follower._emitter = actuator;
+				var motionController = motionControllerObject.AddComponent<MotionControllerComponent>();
+				var follower = followerObject.AddComponent<MotionTransformComponent>();
+				follower._emitter = motionController;
 				follower.AnimatePosition = true;
 				follower.PositionOffset = new Vector3(1f, 2f, 3f);
-				follower.TranslationSpace = ActuatorTranslationSpace.Local;
+				follower.TranslationSpace = MotionTranslationSpace.Local;
 				follower.AnimateRotation = true;
 				follower.RotationOffset = new Vector3(4f, 5f, 6f);
 				follower.InputMin = 0.2f;
@@ -943,14 +985,14 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 				follower.Reverse = true;
 
 				var refs = new PackagedRefs(root.transform);
-				const string actuatorNodeId = "actuator-node";
-				refs.SetNodeIdsForWrite(new Dictionary<Transform, string> { { actuatorObject.transform, actuatorNodeId } });
-				refs.SetNodeIdsForRead(new Dictionary<string, Transform> { { actuatorNodeId, actuatorObject.transform } });
+				const string motionControllerNodeId = "motion-controller-node";
+				refs.SetNodeIdsForWrite(new Dictionary<Transform, string> { { motionControllerObject.transform, motionControllerNodeId } });
+				refs.SetNodeIdsForRead(new Dictionary<string, Transform> { { motionControllerNodeId, motionControllerObject.transform } });
 				var data = follower.Pack();
 				var references = follower.PackReferences(root.transform, refs, null);
 				follower._emitter = null;
 				follower.PositionOffset = Vector3.zero;
-				follower.TranslationSpace = ActuatorTranslationSpace.World;
+				follower.TranslationSpace = MotionTranslationSpace.World;
 				follower.RotationOffset = Vector3.zero;
 				follower.InputMin = 0f;
 				follower.InputMax = 1f;
@@ -959,9 +1001,9 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 				follower.Unpack(data);
 				follower.UnpackReferences(references, root.transform, refs, null);
 
-				Assert.That(follower._emitter, Is.SameAs(actuator));
+				Assert.That(follower._emitter, Is.SameAs(motionController));
 				Assert.That(follower.PositionOffset, Is.EqualTo(new Vector3(1f, 2f, 3f)));
-				Assert.That(follower.TranslationSpace, Is.EqualTo(ActuatorTranslationSpace.Local));
+				Assert.That(follower.TranslationSpace, Is.EqualTo(MotionTranslationSpace.Local));
 				Assert.That(follower.RotationOffset, Is.EqualTo(new Vector3(4f, 5f, 6f)));
 				Assert.That(follower.Reverse, Is.True);
 				Assert.That(follower.InputMin, Is.EqualTo(0.2f));
@@ -974,12 +1016,12 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 		}
 
 		[Test]
-		public void ActuatorApiCannotBeInterceptedBySimulationThreadCoilDispatch()
+		public void MotionControllerApiCannotBeInterceptedBySimulationThreadCoilDispatch()
 		{
-			var gameObject = new GameObject("Actuator");
+			var gameObject = new GameObject("Motion Controller");
 			try {
-				gameObject.AddComponent<ActuatorComponent>();
-				var api = new ActuatorApi(gameObject);
+				gameObject.AddComponent<MotionControllerComponent>();
+				var api = new MotionControllerApi(gameObject);
 
 				Assert.That(api, Is.Not.InstanceOf<ISimulationThreadCoil>());
 			} finally {
@@ -987,16 +1029,16 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 			}
 		}
 
-		private static ActuatorMotionState CreateState(float initialPosition = 0f)
+		private static MotionState CreateState(float initialPosition = 0f)
 		{
-			var state = new ActuatorMotionState();
+			var state = new MotionState();
 			state.Initialize(initialPosition);
 			return state;
 		}
 
-		private static ActuatorMotionConfig Config(ActuatorCoilMode mode, float activationDuration = 0.3f, float releaseDuration = 0.3f, float releaseDelay = 0.05f, float oneShotHoldDuration = 0.5f, float activationThreshold = 0.001f)
+		private static MotionConfig Config(MotionCoilMode mode, float activationDuration = 0.3f, float releaseDuration = 0.3f, float releaseDelay = 0.05f, float oneShotHoldDuration = 0.5f, float activationThreshold = 0.001f)
 		{
-			return new ActuatorMotionConfig {
+			return new MotionConfig {
 				CoilMode = mode,
 				ActivationDuration = activationDuration,
 				ReleaseDuration = releaseDuration,
@@ -1010,7 +1052,7 @@ namespace VisualPinball.Unity.Test.VPT.Actuator
 
 		private static void InvokePreview(string methodName, params object[] arguments)
 		{
-			var previewType = typeof(VisualPinball.Unity.Editor.ActuatorInspector).Assembly.GetType("VisualPinball.Unity.Editor.ActuatorPreview", true);
+			var previewType = typeof(VisualPinball.Unity.Editor.MotionControllerInspector).Assembly.GetType("VisualPinball.Unity.Editor.MotionPreview", true);
 			var parameterTypes = Array.ConvertAll(arguments, argument => argument.GetType());
 			var method = previewType.GetMethod(methodName, BindingFlags.Static | BindingFlags.NonPublic, null, parameterTypes, null);
 			if (method == null) {
