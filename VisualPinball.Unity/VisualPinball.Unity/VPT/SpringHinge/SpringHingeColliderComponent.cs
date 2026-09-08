@@ -28,6 +28,10 @@ namespace VisualPinball.Unity
 		[Tooltip("Collision-box half-extents in its local frame.")]
 		public Vector3 HalfExtents = new(25f, 50f, 10f);
 
+		[SerializeField]
+		[Tooltip("Show the analytic collision box in the Scene view.")]
+		public bool ShowColliderMesh;
+
 		[Range(0f, 1f)] public float Elasticity = 0.1f;
 		[Min(0f)] public float ElasticityFalloff = 0.5f;
 		[Range(0f, 1f)] public float Friction = 0.3f;
@@ -64,6 +68,34 @@ namespace VisualPinball.Unity
 		{
 			HalfExtents = Vector3.Max(HalfExtents, Vector3.zero);
 		}
+
+#if UNITY_EDITOR
+		private void OnDrawGizmosSelected()
+		{
+			if (!ShowColliderMesh || !enabled) {
+				return;
+			}
+			var hinge = GetComponent<SpringHingeComponent>();
+			if (!hinge) {
+				return;
+			}
+			var angle = Application.isPlaying ? hinge.PublishedAngle : 0f;
+			var axis = math.normalizesafe((float3)hinge.HingeAxis, new float3(1f, 0f, 0f));
+			var matrix = hinge.ReferenceLocalToWorldMatrix
+			             * Matrix4x4.Rotate(Quaternion.AngleAxis(math.degrees(angle), axis))
+			             * Matrix4x4.TRS(LocalCentre * 0.001f,
+				             Quaternion.Euler(LocalRotation), Vector3.one);
+			var previousMatrix = Gizmos.matrix;
+			var previousColor = Gizmos.color;
+			Gizmos.matrix = matrix;
+			Gizmos.color = ColliderColor.TransformedColliderSelected;
+			Gizmos.DrawCube(Vector3.zero, HalfExtents * 0.002f);
+			Gizmos.color = new Color32(0, 255, 75, 230);
+			Gizmos.DrawWireCube(Vector3.zero, HalfExtents * 0.002f);
+			Gizmos.matrix = previousMatrix;
+			Gizmos.color = previousColor;
+		}
+#endif
 
 		void ICollidableComponent.GetColliders(Player player, PhysicsEngine physicsEngine,
 			ref ColliderReference colliders, float4x4 translateWithinPlayfieldMatrix, float margin)

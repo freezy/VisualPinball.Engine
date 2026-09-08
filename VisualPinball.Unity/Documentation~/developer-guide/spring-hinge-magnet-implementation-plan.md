@@ -86,7 +86,7 @@ Add the existing magnet as a child of the hinge and select Spatial physical beha
 
 The coupled magnet exposes current-dependent holding capacity, hold stiffness/compliance, and relative damping separately from the influence radius. Derive sensible defaults from existing magnet strength, but changing influence range must not silently change attachment rigidity. Keep coil mapping, rise/fall time, capture region, and Ball Held switch familiar. Version one rejects owned Playfield/Cylindrical modes; the current cylindrical field is upright and does not become an arbitrarily rotating surface by parenting it.
 
-Initial testing uses a dedicated Play Mode fixture/demo scene with shot markers, weak/medium/strong launch controls, magnet off/on, timed release, reset, and diagnostic traces. It runs through the real Player/PhysicsEngine and keeps hardware output disabled in the fixture. An isolated editor preview context does not exist today and is deferred; scene gizmos and the test scene provide the first authoring workflow.
+Initial testing uses automated Play Mode fixtures that run through the real Player and PhysicsEngine with hardware output disabled. Scene gizmos provide the authoring preview; table-specific interactive testing uses the table's normal ball launch and game controls.
 
 ## 5. State and collider integration
 

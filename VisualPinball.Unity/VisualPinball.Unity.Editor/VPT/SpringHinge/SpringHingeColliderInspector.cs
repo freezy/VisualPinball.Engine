@@ -17,6 +17,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _localCentre;
 		private SerializedProperty _localRotation;
 		private SerializedProperty _halfExtents;
+		private SerializedProperty _showColliderMesh;
 		private SerializedProperty _elasticity;
 		private SerializedProperty _elasticityFalloff;
 		private SerializedProperty _friction;
@@ -34,6 +35,7 @@ namespace VisualPinball.Unity.Editor
 			_localCentre = serializedObject.FindProperty(nameof(SpringHingeColliderComponent.LocalCentre));
 			_localRotation = serializedObject.FindProperty(nameof(SpringHingeColliderComponent.LocalRotation));
 			_halfExtents = serializedObject.FindProperty(nameof(SpringHingeColliderComponent.HalfExtents));
+			_showColliderMesh = serializedObject.FindProperty(nameof(SpringHingeColliderComponent.ShowColliderMesh));
 			_elasticity = serializedObject.FindProperty(nameof(SpringHingeColliderComponent.Elasticity));
 			_elasticityFalloff = serializedObject.FindProperty(nameof(SpringHingeColliderComponent.ElasticityFalloff));
 			_friction = serializedObject.FindProperty(nameof(SpringHingeColliderComponent.Friction));
@@ -50,6 +52,11 @@ namespace VisualPinball.Unity.Editor
 			PropertyField(_localCentre, updateColliders: true);
 			PropertyField(_localRotation, updateColliders: true);
 			PropertyField(_halfExtents, updateColliders: true);
+			EditorGUI.BeginChangeCheck();
+			PropertyField(_showColliderMesh, "Show Collider");
+			if (EditorGUI.EndChangeCheck()) {
+				SceneView.RepaintAll();
+			}
 			PropertyField(_hitEvent);
 			if (_hitEvent.hasMultipleDifferentValues || _hitEvent.boolValue) {
 				PropertyField(_hitThreshold);
@@ -72,7 +79,7 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnSceneGUI()
 		{
-			if (targets.Length != 1 || target is not SpringHingeColliderComponent proxy) {
+			if (target is not SpringHingeColliderComponent proxy) {
 				return;
 			}
 			var hinge = proxy.GetComponent<SpringHingeComponent>();
@@ -80,28 +87,33 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			var centre = hinge.transform.TransformPoint(proxy.LocalCentre * 0.001f);
-			var rotation = hinge.transform.rotation * Quaternion.Euler(proxy.LocalRotation);
+			var hingePose = hinge.transform.localToWorldMatrix;
+			var centre = hingePose.MultiplyPoint3x4(proxy.LocalCentre * 0.001f);
+			var rotation = hingePose.rotation * Quaternion.Euler(proxy.LocalRotation);
 			var handleSize = HandleUtility.GetHandleSize(centre) * 0.5f;
 			EditorGUI.BeginChangeCheck();
 			var movedCentre = Handles.PositionHandle(centre, rotation);
 			var resized = Handles.ScaleHandle(proxy.HalfExtents * 0.001f, centre, rotation, handleSize);
 			if (EditorGUI.EndChangeCheck()) {
 				Undo.RecordObject(proxy, "Edit Spring Hinge Proxy");
-				proxy.LocalCentre = hinge.transform.InverseTransformPoint(movedCentre) * 1000f;
+				proxy.LocalCentre = hingePose.inverse.MultiplyPoint3x4(movedCentre) * 1000f;
 				proxy.HalfExtents = Vector3.Max(resized * 1000f, Vector3.one * 0.001f);
 				proxy.CollidersDirty = true;
 				EditorUtility.SetDirty(proxy);
 			}
 
-			var matrix = hinge.transform.localToWorldMatrix
+			var matrix = hingePose
 			             * Matrix4x4.TRS(proxy.LocalCentre * 0.001f,
 				             Quaternion.Euler(proxy.LocalRotation), Vector3.one);
-			using (new Handles.DrawingScope(new Color(0f, 1f, 1f, 0.8f), matrix)) {
-				Handles.DrawWireCube(Vector3.zero, proxy.HalfExtents * 0.002f);
+			if (!proxy.ShowColliderMesh) {
+				using (new Handles.DrawingScope(new Color(0f, 1f, 1f, 0.8f), matrix)) {
+					Handles.DrawWireCube(Vector3.zero, proxy.HalfExtents * 0.002f);
+				}
 			}
-			DrawSweep(hinge, proxy, hinge.MinimumAngle, new Color(1f, 0.6f, 0f, 0.35f));
-			DrawSweep(hinge, proxy, hinge.MaximumAngle, new Color(1f, 0.6f, 0f, 0.35f));
+			if (!Application.isPlaying) {
+				DrawSweep(hinge, proxy, hinge.MinimumAngle, new Color(1f, 0.6f, 0f, 0.35f));
+				DrawSweep(hinge, proxy, hinge.MaximumAngle, new Color(1f, 0.6f, 0f, 0.35f));
+			}
 		}
 
 		private static void DrawSweep(SpringHingeComponent hinge,

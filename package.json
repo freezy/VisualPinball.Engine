@@ -19,13 +19,6 @@
     "com.unity.ugui": "2.5.0",
     "com.unity.test-framework": "1.7.0"
   },
-  "samples": [
-    {
-      "displayName": "Spring Hinge Bash Toy",
-      "description": "Play Mode shot controls and diagnostics for a reciprocal spring-hinge magnet toy.",
-      "path": "Samples~/SpringHingeBashToy"
-    }
-  ],
   "keywords": [
     "Pinball",
     "Unity"

@@ -18,18 +18,19 @@ namespace VisualPinball.Unity.Test
 	public class SpringHingeAuthoringTests
 	{
 		[Test]
-		public void BashSetupCreatesCompleteOwnedVisualHierarchy()
+		public void BashSetupCreatesCompleteOwnedRotatingObject()
 		{
 			var root = SpringHingeAuthoring.CreateBashToy();
 			try {
 				var hinge = root.GetComponent<SpringHingeComponent>();
 				var proxy = root.GetComponent<SpringHingeColliderComponent>();
-				var animation = root.GetComponentInChildren<SpringHingeAnimationComponent>();
+				var animation = root.GetComponent<SpringHingeAnimationComponent>();
 				var magnet = root.GetComponentInChildren<MagnetComponent>();
 
 				Assert.That(hinge, Is.Not.Null);
 				Assert.That(proxy, Is.Not.Null);
 				Assert.That(animation, Is.Not.Null);
+				Assert.That(animation.gameObject, Is.SameAs(root));
 				Assert.That(animation._emitter, Is.SameAs(hinge));
 				Assert.That(magnet.CoupleToParentHinge, Is.True);
 				Assert.That(magnet.MagnetType, Is.EqualTo(MagnetType.Spatial));
@@ -89,11 +90,14 @@ namespace VisualPinball.Unity.Test
 				root = SpringHingeAuthoring.AddSpringHinge(
 					new[] { selected.transform }, selected.transform);
 
+				Assert.That(root, Is.SameAs(selected));
 				Assert.That(root.transform.parent, Is.SameAs(parent.transform));
 				Assert.That(selected.transform.position, Is.EqualTo(worldPosition));
 				Assert.That(Quaternion.Angle(selected.transform.rotation, worldRotation), Is.LessThan(0.001f));
 				Assert.That(selected.GetComponent<UnityEngine.Collider>().enabled, Is.False);
-				Assert.That(selected.GetComponentInParent<SpringHingeAnimationComponent>(), Is.Not.Null);
+				Assert.That(selected.GetComponent<SpringHingeComponent>(), Is.Not.Null);
+				Assert.That(selected.GetComponent<SpringHingeColliderComponent>(), Is.Not.Null);
+				Assert.That(selected.GetComponent<SpringHingeAnimationComponent>(), Is.Not.Null);
 				Assert.That(bracket.transform.parent, Is.SameAs(parent.transform));
 				Assert.That(SpringHingeAuthoring.Validate(root.GetComponent<SpringHingeComponent>(),
 					root.GetComponent<SpringHingeColliderComponent>()), Is.Empty);
@@ -107,15 +111,13 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void TransformFollowerAppliesRadiansAndRoundTripsReferences()
+		public void SameObjectTransformDriverCachesRestRotationAndRoundTripsReferences()
 		{
 			var root = new GameObject("Spring Hinge");
-			var moving = new GameObject("Moving Part");
 			try {
-				moving.transform.SetParent(root.transform, false);
 				var hinge = root.AddComponent<SpringHingeComponent>();
-				moving.transform.localRotation = Quaternion.Euler(0f, 12f, 0f);
-				var animation = moving.AddComponent<SpringHingeAnimationComponent>();
+				root.transform.localRotation = Quaternion.Euler(0f, 12f, 0f);
+				var animation = root.AddComponent<SpringHingeAnimationComponent>();
 				animation._emitter = hinge;
 				animation.RotationAxis = Vector3.forward;
 				animation.CaptureInitialPose();
@@ -123,12 +125,12 @@ namespace VisualPinball.Unity.Test
 				animation.ApplyAngle(math.PI / 2f);
 				var expected = Quaternion.Euler(0f, 12f, 0f)
 				               * Quaternion.AngleAxis(90f, Vector3.forward);
-				Assert.That(Quaternion.Angle(moving.transform.localRotation, expected),
+				Assert.That(Quaternion.Angle(root.transform.localRotation, expected),
 					Is.LessThan(0.001f));
 
 				var refs = new PackagedRefs(root.transform);
 				refs.SetNodeIdsForWrite(new Dictionary<Transform, string> {
-					{ root.transform, "hinge" }, { moving.transform, "moving" }
+					{ root.transform, "hinge" }
 				});
 				var values = animation.Pack();
 				var references = animation.PackReferences(root.transform, refs, null);
@@ -136,12 +138,31 @@ namespace VisualPinball.Unity.Test
 				animation._emitter = null;
 				animation.Unpack(values);
 				refs.SetNodeIdsForRead(new Dictionary<string, Transform> {
-					{ "hinge", root.transform }, { "moving", moving.transform }
+					{ "hinge", root.transform }
 				});
 				animation.UnpackReferences(references, root.transform, refs, null);
 
 				Assert.That(animation.RotationAxis, Is.EqualTo(Vector3.forward));
 				Assert.That(animation._emitter, Is.SameAs(hinge));
+			} finally {
+				Object.DestroyImmediate(root);
+			}
+		}
+
+		[Test]
+		public void ColliderVisibilityRoundTripsThroughPackage()
+		{
+			var root = new GameObject("Spring Hinge");
+			try {
+				root.AddComponent<SpringHingeComponent>();
+				var proxy = root.AddComponent<SpringHingeColliderComponent>();
+				proxy.ShowColliderMesh = true;
+
+				var bytes = proxy.Pack();
+				proxy.ShowColliderMesh = false;
+				proxy.Unpack(bytes);
+
+				Assert.That(proxy.ShowColliderMesh, Is.True);
 			} finally {
 				Object.DestroyImmediate(root);
 			}

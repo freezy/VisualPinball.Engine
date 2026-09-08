@@ -34,8 +34,8 @@ namespace VisualPinball.Unity
 
 		protected override void Awake()
 		{
-			CaptureInitialPose();
 			base.Awake();
+			CaptureInitialPose();
 		}
 
 		protected override void OnAnimationValueChanged(float angle) => ApplyAngle(angle);
