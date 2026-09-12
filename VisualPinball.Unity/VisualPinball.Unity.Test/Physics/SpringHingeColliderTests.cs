@@ -81,6 +81,19 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ConservativeFallbackRejectsFastNearMiss()
+		{
+			var collider = CreateCollider();
+			var hinge = CreateHinge();
+			var ball = CreateBall(new float3(20f, 3.1f, 0f), new float3(-100000f, -10f, 0f));
+			var collEvent = new CollisionEventData();
+
+			var time = collider.HitTest(ref collEvent, in hinge, in ball, 0.001f);
+
+			Assert.That(time, Is.EqualTo(-1f));
+		}
+
+		[Test]
 		public void FallbackPreservesConservativeAdvancementProgress()
 		{
 			var collider = CreateCollider();
