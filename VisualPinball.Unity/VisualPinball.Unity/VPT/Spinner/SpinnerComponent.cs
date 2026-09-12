@@ -235,8 +235,7 @@ namespace VisualPinball.Unity
 					AngleMax = math.radians(AngleMax),
 					AngleMin = math.radians(AngleMin),
 					Damping = math.pow(Damping, PhysicsConstants.PhysFactor),
-					Elasticity = collComponent.Elasticity,
-					Height = Position.z
+					Elasticity = collComponent.Elasticity
 				} : default;
 
 			// animation
@@ -244,8 +243,7 @@ namespace VisualPinball.Unity
 			var movementData = animComponent
 				? new SpinnerMovementState {
 					Angle = math.radians(math.clamp(0.0f, AngleMin, AngleMax)),
-					AngleSpeed = 0f,
-					InverseMass = 1 / collComponent.Mass
+					AngleSpeed = 0f
 				} : default;
 
 			return new SpinnerState(

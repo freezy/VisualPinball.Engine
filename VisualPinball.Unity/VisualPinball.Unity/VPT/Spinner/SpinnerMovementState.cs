@@ -20,6 +20,5 @@ namespace VisualPinball.Unity
 	{
 		public float Angle;
 		public float AngleSpeed;
-		public float InverseMass;
 	}
 }

@@ -64,7 +64,7 @@ namespace VisualPinball.Unity
 			var lineSeg0 = new LineCollider(v1, v2, offset.z - 2f * PhysicsConstants.PhysSkin, offset.z, _api.GetColliderInfo());
 			var lineSeg1 = new LineCollider(v2, v1, offset.z - 2f * PhysicsConstants.PhysSkin, offset.z, _api.GetColliderInfo());
 
-			colliders.Add(new SpinnerCollider(in lineSeg0, in lineSeg1, _api.GetColliderInfo()), _matrix);
+			colliders.Add(new SpinnerCollider(in lineSeg0, in lineSeg1, _component.Position.z, _api.GetColliderInfo()), _matrix);
 		}
 
 		private void GenerateBracketColliders(ref ColliderReference colliders)

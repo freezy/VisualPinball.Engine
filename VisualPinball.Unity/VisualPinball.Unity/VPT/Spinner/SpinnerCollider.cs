@@ -28,6 +28,13 @@ namespace VisualPinball.Unity
 	/// </remarks>
 	internal struct SpinnerCollider : ICollider
 	{
+		/// <summary>
+		/// Largest distance from the rotation axis in the built-in VPX spinner plate mesh at unit scale.
+		/// Used as the lower bound for the response lever so the plate edge cannot move faster than the ball.
+		/// This intentionally makes short spinners slower than VPX's height-based approximation.
+		/// </summary>
+		internal const float DefaultPlateRadius = 22.60827f;
+
 		public int Id
 		{
 			get => Header.Id;
@@ -43,14 +50,18 @@ namespace VisualPinball.Unity
 
 		public LineCollider LineSeg0;
 		public LineCollider LineSeg1;
+		private float _responseDivisor;
 
 		public ColliderBounds Bounds { get; private set; }
 
-		public SpinnerCollider(in LineCollider lineSeg0, in LineCollider lineSeg1, ColliderInfo info) : this()
+		public SpinnerCollider(in LineCollider lineSeg0, in LineCollider lineSeg1, float height, ColliderInfo info) : this()
 		{
 			Header.Init(info, ColliderType.Spinner);
 			LineSeg0 = lineSeg0;
 			LineSeg1 = lineSeg1;
+			var h = height * 0.5f;
+			var vpxDivisor = math.abs(h) > 1.0f ? h : 1.0f;
+			_responseDivisor = math.sign(vpxDivisor) * math.max(math.abs(vpxDivisor), DefaultPlateRadius);
 
 			Bounds = LineSeg0.Bounds;
 		}
@@ -80,7 +91,7 @@ namespace VisualPinball.Unity
 
 		#region Collision
 
-		public static void Collide(in BallState ball, ref CollisionEventData collEvent, ref SpinnerMovementState movement, in SpinnerStaticState state)
+		public void Collide(in BallState ball, ref CollisionEventData collEvent, ref SpinnerMovementState movement, in SpinnerStaticState state)
 		{
 			var dot = math.dot(collEvent.HitNormal, ball.Velocity);
 
@@ -89,7 +100,6 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			var h = state.Height * 0.5f;
 			// linear speed = ball speed
 			// angular speed = linear/radius (height of hit)
 
@@ -98,12 +108,7 @@ namespace VisualPinball.Unity
 			// h -coll.m_radius will be moving a at linear rate of
 			// 'speed'. We can calculate the angular speed from that.
 
-			movement.AngleSpeed = math.abs(dot) * movement.InverseMass; // use this until a better value comes along
-
-			if (math.abs(h) > 1.0f) {
-				// avoid divide by zero
-				movement.AngleSpeed /= h;
-			}
+			movement.AngleSpeed = math.abs(dot) / _responseDivisor;
 
 			movement.AngleSpeed *= state.Damping;
 
@@ -147,7 +152,8 @@ namespace VisualPinball.Unity
 
 			LineSeg0 = collider.LineSeg0.Transform(matrix);
 			LineSeg1 = collider.LineSeg1.Transform(matrix);
-			Bounds = collider.LineSeg0.Bounds;
+			_responseDivisor = collider._responseDivisor * matrix.GetScale().x;
+			Bounds = LineSeg0.Bounds;
 		}
 
 		public Aabb GetTransformedAabb(float4x4 matrix)
