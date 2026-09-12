@@ -116,10 +116,9 @@ namespace VisualPinball.Unity
 		[Tooltip("If set, transforming this object during gameplay moves the magnetic field with it.")]
 		public bool IsKinematic;
 
-		[Tooltip("Couple this Spatial Physical magnet reciprocally to its nearest parent spring hinge.")]
+		[Tooltip("Couple this Spatial magnet reciprocally to its nearest parent spring hinge.")]
 		public bool CoupleToParentHinge;
 
-		[Unit("VPX")]
 		[Tooltip("Held ball centre relative to the magnet transform, expressed in VPX units at the authored rest pose.")]
 		public Vector3 HeldBallCentreOffset;
 
@@ -228,18 +227,16 @@ namespace VisualPinball.Unity
 			var commandedPower = IsEnabledOnStart ? 1f : 0f;
 			var usesPhysicalResponse = MagnetType != MagnetType.Playfield || ForceProfile == MagnetForceProfile.Physical;
 			var hinge = CoupleToParentHinge ? GetComponentInParent<SpringHingeComponent>() : null;
-			var validOwnedMode = hinge && MagnetType == VisualPinball.Unity.MagnetType.Spatial
-			                     && ForceProfile == MagnetForceProfile.Physical;
+			var validOwnedMode = hinge && MagnetType == VisualPinball.Unity.MagnetType.Spatial;
 			if (CoupleToParentHinge && !validOwnedMode) {
-				Logger.Error($"Magnet {name} can couple only as a Spatial Physical child of a spring hinge.");
+				Logger.Error($"Magnet {name} can couple only as a Spatial child of a spring hinge.");
 			}
 			if (validOwnedMode) {
 				var ownedMagnets = hinge.GetComponentsInChildren<MagnetComponent>(true);
 				var ownedCount = 0;
 				for (var i = 0; i < ownedMagnets.Length; i++) {
 					if (ownedMagnets[i].CoupleToParentHinge
-					    && ownedMagnets[i].MagnetType == VisualPinball.Unity.MagnetType.Spatial
-					    && ownedMagnets[i].ForceProfile == MagnetForceProfile.Physical) {
+					    && ownedMagnets[i].MagnetType == VisualPinball.Unity.MagnetType.Spatial) {
 						ownedCount++;
 					}
 				}
@@ -252,8 +249,7 @@ namespace VisualPinball.Unity
 			if (validOwnedMode) {
 				var pivot = hinge.ToPlayfieldVpx(hinge.transform.position);
 				poleArm = hinge.ToPlayfieldVpx(transform.position) - pivot;
-				heldCentreArm = hinge.ToPlayfieldVpx(transform.TransformPoint(
-					HeldBallCentreOffset * Physics.ScaleInv)) - pivot;
+				heldCentreArm = hinge.ToPlayfieldVpx(GetHeldBallCentreWorldPosition()) - pivot;
 			}
 			return new MagnetState {
 				Position = pos.xy,
@@ -276,7 +272,7 @@ namespace VisualPinball.Unity
 				IsEnabled = IsEnabledOnStart,
 				IsKinematic = IsKinematic,
 				// three-dimensional magnets dispatch on MagnetType and never read Profile
-				Profile = ForceProfile,
+				Profile = MagnetType == MagnetType.Playfield ? ForceProfile : MagnetForceProfile.Physical,
 				HeightRange = HeightRange,
 				MagnetType = MagnetType,
 				CoupleToHinge = validOwnedMode,
@@ -337,7 +333,6 @@ namespace VisualPinball.Unity
 
 		bool IKinematicTransformComponent.IsKinematic => IsKinematic && !(CoupleToParentHinge
 			&& MagnetType == VisualPinball.Unity.MagnetType.Spatial
-			&& ForceProfile == MagnetForceProfile.Physical
 			&& GetComponentInParent<SpringHingeComponent>());
 
 		// The physics engine disables colliders by item ID when this returns false.
@@ -434,6 +429,14 @@ namespace VisualPinball.Unity
 				: (float3)transform.localPosition.TranslateToVpx();
 		}
 
+		/// <summary>
+		/// Returns the authored held-ball centre without applying transform scale.
+		/// Magnet dimensions are VPX distances, so render-hierarchy scale must not
+		/// change where the ball is held.
+		/// </summary>
+		public Vector3 GetHeldBallCentreWorldPosition()
+			=> transform.position + transform.rotation * (HeldBallCentreOffset * Physics.ScaleInv);
+
 		private void OnDrawGizmos()
 		{
 			if (!Application.isPlaying || !DrawDebugForces) {
@@ -492,10 +495,10 @@ namespace VisualPinball.Unity
 			}
 
 			if (CoupleToParentHinge) {
-				var heldCentre = transform.TransformPoint(HeldBallCentreOffset * Physics.ScaleInv);
+				var heldCentre = GetHeldBallCentreWorldPosition();
 				Gizmos.color = new Color(0.2f, 1f, 0.45f, 0.9f);
 				Gizmos.DrawLine(transform.position, heldCentre);
-				Gizmos.DrawWireSphere(heldCentre, 0.006f);
+				DrawVpxSphere(WorldToVpx(heldCentre), 25f);
 			}
 
 			if (MagnetType != VisualPinball.Unity.MagnetType.Cylindrical &&
