@@ -1250,7 +1250,7 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void CylindricalGodzillaContactUsesRealForceInsteadOfAnalyticConstraint()
+		public void CylindricalMechanismContactUsesRealForceInsteadOfAnalyticConstraint()
 		{
 			using var harness = new PhysicsStateHarness();
 			var state = harness.CreateState();
@@ -1283,7 +1283,7 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void CylindricalGodzillaDiagnosticPulseDeflectsBallAcrossAirGap()
+		public void CylindricalMechanismDiagnosticPulseDeflectsBallAcrossAirGap()
 		{
 			using var harness = new PhysicsStateHarness();
 			var state = harness.CreateState();

@@ -8,7 +8,7 @@ Use the Terminator 2 gun for rotation and pose preview. Assume the visual alread
 
 The main gun in the local T2 scene currently uses a PinMAME Mech Handler with 240 steps and an event rotation factor of -1/3 around local Y. This motivates the tutorial's illustrative -80-degree rotation offset; it is not a measured hardware specification. Confirm the axis and orientation on the copied model.
 
-Use only T2 or neutral component examples. Exclude Godzilla imagery, object names, and mechanism examples, including incidental background content in Unity.
+Use only T2 or neutral component examples. Exclude imagery, object names, and mechanism examples from other licensed tables, including incidental background content in Unity.
 
 ## Shared capture setup
 
