@@ -340,6 +340,7 @@ namespace VisualPinball.Unity
 
 			ball.Velocity += impulse / mass;
 			ball.ExternalAcceleration += impulse / (mass * step);
+			MagnetPhysics.DampHeldBallSpin(ref ball, step);
 			hinge.Movement.AngularVelocity = omega;
 			hinge.Movement.CommittedMagneticTorque =
 				(hinge.Movement.PendingMagneticAngularImpulse - math.dot(u, impulse)) / step;

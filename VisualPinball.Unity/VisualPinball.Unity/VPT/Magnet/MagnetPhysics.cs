@@ -34,6 +34,7 @@ namespace VisualPinball.Unity
 		// At full current, this converts the authored value to contact acceleration.
 		private const float VpxStrengthScale = 1.5f / 56f;
 		private const float PhysicalVelocityDamping = 0.02f;
+		private const float HeldBallSpinDamping = 0.5f;
 		private const float MinEffectiveCurrent = 0.0001f;
 		internal const float CylindricalContactTolerance = 1f;
 		private const float CylindricalReleaseTolerance = 2f;
@@ -360,7 +361,7 @@ namespace VisualPinball.Unity
 			var accelerationScale = ClampAccelerationScale(in acceleration, holdStrength);
 
 			ball.Velocity += acceleration * accelerationScale * physicsDiffTime;
-			ball.AngularMomentum *= 1f - math.saturate(physicsDiffTime * 0.5f);
+			DampHeldBallSpin(ref ball, physicsDiffTime);
 			RecordExternalAcceleration(ref ball, springAcceleration * accelerationScale);
 		}
 
@@ -389,8 +390,13 @@ namespace VisualPinball.Unity
 
 			velocity += acceleration * accelerationScale * physicsDiffTime;
 			ball.Velocity = new float3(velocity.x, velocity.y, ball.Velocity.z);
-			ball.AngularMomentum *= 1f - math.saturate(physicsDiffTime * 0.5f);
+			DampHeldBallSpin(ref ball, physicsDiffTime);
 			RecordExternalAcceleration(ref ball, new float3(springAcceleration * accelerationScale, 0f));
+		}
+
+		internal static void DampHeldBallSpin(ref BallState ball, float physicsDiffTime)
+		{
+			ball.AngularMomentum *= 1f - math.saturate(physicsDiffTime * HeldBallSpinDamping);
 		}
 
 		private static float ClampAccelerationScale(in float3 acceleration, float maxAcceleration)
