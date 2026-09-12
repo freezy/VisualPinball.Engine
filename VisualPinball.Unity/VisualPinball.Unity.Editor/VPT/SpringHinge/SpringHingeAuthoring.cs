@@ -6,7 +6,9 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
+using System;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
 
@@ -262,11 +264,8 @@ namespace VisualPinball.Unity.Editor
 					continue;
 				}
 				ownedCount++;
-				if (magnet.MagnetType != MagnetType.Spatial || magnet.ForceProfile != MagnetForceProfile.Physical) {
-					issues.Add($"Owned magnet '{magnet.name}' must use Spatial type and Physical response.");
-				}
-				if (proxy && IsHeldCentreInsideProxy(hinge, proxy, magnet)) {
-					issues.Add($"Owned magnet '{magnet.name}' has its held ball centre inside the analytic box proxy.");
+				if (magnet.MagnetType != MagnetType.Spatial) {
+					issues.Add($"Owned magnet '{magnet.name}' must use Spatial type.");
 				}
 			}
 			if (ownedCount > 1) {
@@ -275,16 +274,69 @@ namespace VisualPinball.Unity.Editor
 			return issues;
 		}
 
-		private static bool IsHeldCentreInsideProxy(SpringHingeComponent hinge,
-			SpringHingeColliderComponent proxy, MagnetComponent magnet)
+		public static bool TryGetHeldBallCentreGap(SpringHingeComponent hinge,
+			SpringHingeColliderComponent proxy, MagnetComponent magnet, out float gap)
 		{
-			var world = magnet.transform.TransformPoint(magnet.HeldBallCentreOffset * Physics.ScaleInv);
-			var hingeLocalVpx = hinge.transform.InverseTransformPoint(world) / Physics.ScaleInv;
-			var boxLocal = Quaternion.Inverse(Quaternion.Euler(proxy.LocalRotation))
-			               * (hingeLocalVpx - proxy.LocalCentre);
-			return Mathf.Abs(boxLocal.x) < proxy.HalfExtents.x
-			       && Mathf.Abs(boxLocal.y) < proxy.HalfExtents.y
-			       && Mathf.Abs(boxLocal.z) < proxy.HalfExtents.z;
+			gap = 0f;
+			if (!hinge || !proxy || !magnet) {
+				return false;
+			}
+			var target = ToPlayfieldVpx(hinge, magnet.GetHeldBallCentreWorldPosition());
+			return TryGetProxyDistance(hinge, proxy, target, StandardBallRadiusVpx,
+				out gap, out _, out _);
+		}
+
+		public static bool TryGetFittedHeldBallCentreOffset(SpringHingeComponent hinge,
+			SpringHingeColliderComponent proxy, MagnetComponent magnet, out Vector3 offset)
+		{
+			offset = Vector3.zero;
+			if (!hinge || !proxy || !magnet) {
+				return false;
+			}
+			var pole = ToPlayfieldVpx(hinge, magnet.transform.position);
+			if (!TryGetProxyDistance(hinge, proxy, pole, 0f,
+				    out _, out var witness, out var normal)) {
+				return false;
+			}
+			var heldCentre = ToWorld(hinge, witness + normal * StandardBallRadiusVpx);
+			offset = Quaternion.Inverse(magnet.transform.rotation)
+			         * (heldCentre - magnet.transform.position) / Physics.ScaleInv;
+			return true;
+		}
+
+		private static bool TryGetProxyDistance(SpringHingeComponent hinge,
+			SpringHingeColliderComponent proxy, Vector3 point, float sphereRadius,
+			out float separation, out Vector3 witness, out Vector3 normal)
+		{
+			separation = 0f;
+			witness = Vector3.zero;
+			normal = Vector3.zero;
+			try {
+				var collider = SpringHingeColliderGenerator.Create(hinge, proxy,
+					new ColliderInfo { ItemId = hinge.ItemId }, 0f);
+				var hingeState = hinge.CreateState();
+				hingeState.Movement.Angle = 0f;
+				var pointVpx = (float3)point;
+				var distance = collider.Distance(in hingeState, in pointVpx, sphereRadius);
+				separation = distance.Separation;
+				witness = distance.Witness;
+				normal = distance.Normal;
+				return true;
+			} catch (InvalidOperationException) {
+				return false;
+			}
+		}
+
+		private static Vector3 ToPlayfieldVpx(SpringHingeComponent hinge, Vector3 worldPoint)
+		{
+			var playfield = hinge.GetComponentInParent<PlayfieldComponent>();
+			return playfield ? worldPoint.TranslateToVpx(playfield.transform) : worldPoint.TranslateToVpx();
+		}
+
+		private static Vector3 ToWorld(SpringHingeComponent hinge, Vector3 point)
+		{
+			var playfield = hinge.GetComponentInParent<PlayfieldComponent>();
+			return playfield ? point.TranslateToWorld(playfield.transform) : point.TranslateToWorld();
 		}
 
 		private static bool HasRigidFrame(Transform transform)

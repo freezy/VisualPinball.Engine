@@ -222,6 +222,35 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void HeldBallOffsetIgnoresScaledVisualHierarchy()
+		{
+			var hingeObject = new GameObject("scaled-spring-hinge-held-ball-test");
+			var magnetObject = new GameObject("scaled-owned-magnet-held-ball-test");
+			try {
+				hingeObject.transform.localScale = Vector3.one * 0.102f;
+				var hinge = hingeObject.AddComponent<SpringHingeComponent>();
+				magnetObject.transform.SetParent(hingeObject.transform, false);
+				magnetObject.transform.localPosition = new Vector3(0.2f, 0.3f, 0.4f);
+				magnetObject.transform.localRotation = Quaternion.Euler(17f, 31f, 43f);
+				magnetObject.transform.localScale = Vector3.one * 0.6994f;
+				var magnet = magnetObject.AddComponent<MagnetComponent>();
+				magnet.MagnetType = MagnetType.Spatial;
+				magnet.CoupleToParentHinge = true;
+				magnet.HeldBallCentreOffset = new Vector3(25f, 0f, 0f);
+
+				var state = magnet.CreateState();
+				var offset = state.LocalHeldCentreArm - state.LocalPoleArm;
+
+				Assert.That(math.length(offset), Is.EqualTo(25f).Within(1e-3f));
+				Assert.That(Vector3.Distance(magnet.transform.position,
+					magnet.GetHeldBallCentreWorldPosition()),
+					Is.EqualTo(Physics.ScaleToWorld(25f)).Within(1e-6f));
+			} finally {
+				UnityEngine.Object.DestroyImmediate(hingeObject);
+			}
+		}
+
+		[Test]
 		public void GeneratorRejectsShearedBoxFrame()
 		{
 			var gameObject = new GameObject("spring-hinge-sheared-test");

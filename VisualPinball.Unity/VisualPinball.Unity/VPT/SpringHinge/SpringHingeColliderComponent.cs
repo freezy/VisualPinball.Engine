@@ -21,14 +21,12 @@ namespace VisualPinball.Unity
 		private Quaternion _initialLocalRotation;
 		private bool _poseCaptured;
 
-		[Unit("VPX")]
 		[Tooltip("Collision-box centre in VPX units along the hinge's local axes.")]
 		public Vector3 LocalCentre = new(0f, -50f, 0f);
 
 		[Tooltip("Collision-box orientation in the hinge's local frame, in degrees.")]
 		public Vector3 LocalRotation;
 
-		[Unit("VPX")]
 		[Tooltip("Collision-box half-extents in its local frame, in VPX units.")]
 		public Vector3 HalfExtents = new(25f, 50f, 10f);
 

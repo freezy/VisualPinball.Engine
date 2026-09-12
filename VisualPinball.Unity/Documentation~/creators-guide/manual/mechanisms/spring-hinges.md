@@ -97,9 +97,11 @@ The box is tested continuously against the ball, including its faces, edges, cor
 
 ## Couple a Magnet
 
-Create a child GameObject below the rotating object, position it at the physical magnet pole in the toy, and add a Magnet component. Here, "below" means a descendant in the Unity hierarchy; the magnet may physically sit anywhere in the toy, such as Mechagodzilla's belly. Select **Spatial** and **Physical**, then enable **Couple To Parent Hinge**. The child inherits the toy's rotation and resolves the Spring Hinge from its parent. Only one owned magnet and one attached ball are supported per hinge; the inspector rejects unsupported types or duplicates.
+Create a child GameObject below the rotating object, position it at the physical magnet pole in the toy, and add a Magnet component. Here, "below" means a descendant in the Unity hierarchy; the magnet may physically sit anywhere in the toy, such as Mechagodzilla's belly. Select **Spatial**, then enable **Couple To Parent Hinge**. Spatial magnets always use the Physical response, so there is no separate response setting to configure. The child inherits the toy's rotation and resolves the Spring Hinge from its parent. Only one owned magnet and one attached ball are supported per hinge; the inspector rejects unsupported types or duplicates.
 
-The magnet transform is the moving pole. **Held Ball Centre Offset** is a separate target in VPX units along the magnet's local axes at the authored rest pose. Place it outside the box at the intended collision face; for a standard 25-unit-radius ball, begin one radius beyond the face. Adjust it for a different ball radius. The green scene marker shows the target.
+The magnet transform is the moving pole. **Held Ball Centre Offset** is a separate target in VPX units along the magnet's local axes at the authored rest pose. These distances ignore GameObject and parent scale, just like the magnet's radius and other dimensions, so scaling the visual model does not move the hold point. The green Scene view sphere shows the size and position of a standard held ball.
+
+Click **Fit Hold Point to Collider** to place a standard 25-unit-radius ball against the nearest face, edge, or corner of the Spring Hinge Collider. The inspector warns when the target would put that ball inside the collider or leave a gap, because either placement prevents capture. Adjust the offset manually after fitting when the table uses a different ball radius.
 
 **Hold Stiffness** and **Hold Damping** control attachment compliance. **Max Hold Force** is the current-dependent capacity. These settings are independent of Influence Radius. Tune the field to attract the ball, then tune capacity and compliance so the intended shot captures without living at the force cap. Turning the coil off honors coil decay before release. Release preserves ball and hinge velocity.
 
@@ -111,7 +113,7 @@ Test both magnet-off impacts and magnet-on capture, a timed release in each trav
 
 - The pivot frame is fixed and must have nonzero orthogonal axes. Moving bases, shear, nested hinges, hinge-to-hinge contact, motors, and flexible toys are not supported.
 - Collision uses one box proxy. Triangle, compound, and arbitrary mesh proxies are not supported.
-- One Spatial Physical magnet may own one ball. Other balls remain free and can strike the toy or held ball.
+- One Spatial magnet may own one ball. Other balls remain free and can strike the toy or held ball.
 - Playfield and passive-surface support are qualified by the current sequential solver. Simultaneous squeezed contacts are an approximation and can retain a one-tick support lag.
 - If an attached ball reaches a flipper, plunger, kicker, bumper, slingshot, or turntable, VPE releases it before the existing active mechanism runs and emits a rate-limited diagnostic. Place the held-ball sweep away from those mechanisms.
 - Runtime save states and an isolated editor physics preview are not included. Packaged tables preserve authored values and hierarchy, not captured-ball IDs or warm solver state.

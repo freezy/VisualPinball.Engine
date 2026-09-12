@@ -16,6 +16,7 @@
 
 using UnityEditor;
 using UnityEngine;
+using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -45,6 +46,8 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _holdStiffnessProperty;
 		private SerializedProperty _holdDampingProperty;
 		private SerializedProperty _maxHoldForceProperty;
+		private IApiCoil _runtimeCoil;
+		private bool? _lastRuntimeCoilStatus;
 
 		protected override MonoBehaviour UndoTarget => target as MonoBehaviour;
 
@@ -77,8 +80,15 @@ namespace VisualPinball.Unity.Editor
 			_maxHoldForceProperty = serializedObject.FindProperty(nameof(MagnetComponent.MaxHoldForce));
 		}
 
+		protected override void OnDisable()
+		{
+			SetRuntimeCoil(null, null);
+			base.OnDisable();
+		}
+
 		public override void OnInspectorGUI()
 		{
+			UpdateRuntimeCoilSubscription();
 			BeginEditing();
 			OnPreInspectorGUI();
 			if (Application.isPlaying) {
@@ -93,7 +103,6 @@ namespace VisualPinball.Unity.Editor
 			var isSpatial = _magnetTypeProperty.enumValueIndex == (int)MagnetType.Spatial;
 			var isCylindrical = _magnetTypeProperty.enumValueIndex == (int)MagnetType.Cylindrical;
 			var isThreeDimensional = isSpatial || isCylindrical;
-
 			PropertyField(_radiusProperty, isCylindrical ? "Influence Distance" : "Influence Radius");
 			if (isCylindrical) {
 				PropertyField(_cylinderRadiusProperty);
@@ -147,8 +156,7 @@ namespace VisualPinball.Unity.Editor
 				PropertyField(_holdStiffnessProperty);
 				PropertyField(_holdDampingProperty);
 				PropertyField(_maxHoldForceProperty);
-				DrawOwnedModeValidation(isSpatial,
-					_forceProfileProperty.enumValueIndex == (int)MagnetForceProfile.Physical);
+				DrawOwnedModeValidation(isSpatial);
 			}
 
 			EditorGUILayout.Space(8f);
@@ -163,7 +171,43 @@ namespace VisualPinball.Unity.Editor
 			EndEditing();
 		}
 
-		private void DrawOwnedModeValidation(bool isSpatial, bool usesOwnedPhysicalResponse)
+		private void UpdateRuntimeCoilSubscription()
+		{
+			var magnet = target as MagnetComponent;
+			if (!Application.isPlaying || !magnet || magnet.MagnetApi == null) {
+				SetRuntimeCoil(null, null);
+				return;
+			}
+
+			var coil = ((ICoilDeviceComponent)magnet).CoilDevice(MagnetComponent.MagnetCoilItem);
+			SetRuntimeCoil(coil, magnet.MagnetApi.IsEnabled);
+		}
+
+		private void SetRuntimeCoil(IApiCoil coil, bool? isEnabled)
+		{
+			if (ReferenceEquals(_runtimeCoil, coil)) {
+				return;
+			}
+			if (_runtimeCoil != null) {
+				_runtimeCoil.CoilStatusChanged -= OnRuntimeCoilStatusChanged;
+			}
+			_runtimeCoil = coil;
+			_lastRuntimeCoilStatus = isEnabled;
+			if (_runtimeCoil != null) {
+				_runtimeCoil.CoilStatusChanged += OnRuntimeCoilStatusChanged;
+			}
+		}
+
+		private void OnRuntimeCoilStatusChanged(object sender, NoIdCoilEventArgs eventArgs)
+		{
+			if (_lastRuntimeCoilStatus == eventArgs.IsEnergized) {
+				return;
+			}
+			_lastRuntimeCoilStatus = eventArgs.IsEnergized;
+			Repaint();
+		}
+
+		private void DrawOwnedModeValidation(bool isSpatial)
 		{
 			var magnet = target as MagnetComponent;
 			var owner = magnet ? magnet.GetComponentInParent<SpringHingeComponent>() : null;
@@ -174,11 +218,10 @@ namespace VisualPinball.Unity.Editor
 			if (!owner) {
 				EditorGUILayout.HelpBox("Owned mode requires a parent Spring Hinge.", MessageType.Error);
 			}
-			if (!isSpatial || !usesOwnedPhysicalResponse) {
-				EditorGUILayout.HelpBox("Owned mode requires Spatial type and Physical response.", MessageType.Error);
-				if (GUILayout.Button("Use Spatial Physical Mode")) {
+			if (!isSpatial) {
+				EditorGUILayout.HelpBox("Owned mode requires a Spatial magnet.", MessageType.Error);
+				if (GUILayout.Button("Use Spatial Mode")) {
 					_magnetTypeProperty.enumValueIndex = (int)MagnetType.Spatial;
-					_forceProfileProperty.enumValueIndex = (int)MagnetForceProfile.Physical;
 				}
 			}
 			if (owner) {
@@ -190,6 +233,27 @@ namespace VisualPinball.Unity.Editor
 				}
 				if (ownedCount > 1) {
 					EditorGUILayout.HelpBox("Only one owned magnet is supported per spring hinge.", MessageType.Error);
+				}
+
+				var proxy = owner.GetComponent<SpringHingeColliderComponent>();
+				if (!proxy) {
+					EditorGUILayout.HelpBox("The parent Spring Hinge needs a Spring Hinge Collider before its hold point can be checked.", MessageType.Error);
+				} else {
+					if (SpringHingeAuthoring.TryGetHeldBallCentreGap(owner, proxy, magnet, out var gap)
+					    && Mathf.Abs(gap) > PhysicsConstants.PhysTouch) {
+						var message = gap < 0f
+							? $"The hold point puts a standard ball {-gap:0.##} units inside the hinge collider, so it cannot be grabbed."
+							: $"The hold point leaves a standard ball {gap:0.##} units away from the hinge collider, so it cannot be grabbed.";
+						EditorGUILayout.HelpBox(message, MessageType.Warning);
+					}
+					using (new EditorGUI.DisabledScope(Application.isPlaying
+					           || _heldBallCentreOffsetProperty.hasMultipleDifferentValues)) {
+						if (GUILayout.Button("Fit Hold Point to Collider")
+						    && SpringHingeAuthoring.TryGetFittedHeldBallCentreOffset(owner, proxy,
+							    magnet, out var offset)) {
+							_heldBallCentreOffsetProperty.vector3Value = offset;
+						}
+					}
 				}
 			}
 		}

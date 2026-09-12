@@ -28,7 +28,6 @@ namespace VisualPinball.Unity
 		[Tooltip("Fixed hinge axis in this object's local frame.")]
 		public Vector3 HingeAxis = Vector3.right;
 
-		[Unit("VPX")]
 		[Tooltip("Unloaded toy centre of mass relative to the pivot, in VPX units along this object's local axes.")]
 		public Vector3 CentreOfMass = new(0f, -50f, 0f);
 
@@ -43,7 +42,6 @@ namespace VisualPinball.Unity
 		[Tooltip("Moment of inertia about the hinge axis in ball-mass times VPX-unit squared.")]
 		public float ManualInertia = 2500f;
 
-		[Unit("VPX")]
 		[Tooltip("Half-extents of the box used to estimate unloaded toy inertia, in VPX units.")]
 		public Vector3 MassBoxHalfExtents = new(25f, 50f, 10f);
 

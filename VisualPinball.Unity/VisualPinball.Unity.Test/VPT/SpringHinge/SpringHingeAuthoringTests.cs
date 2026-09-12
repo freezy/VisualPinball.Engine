@@ -39,6 +39,96 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void SpatialOwnedMagnetUsesPhysicalResponseWithoutVisibleProfileSetup()
+		{
+			var root = SpringHingeAuthoring.CreateBashToy();
+			try {
+				var hinge = root.GetComponent<SpringHingeComponent>();
+				var proxy = root.GetComponent<SpringHingeColliderComponent>();
+				var magnet = root.GetComponentInChildren<MagnetComponent>();
+				magnet.MagnetType = MagnetType.Spatial;
+				magnet.ForceProfile = MagnetForceProfile.VpxCompatible;
+
+				Assert.That(SpringHingeAuthoring.Validate(hinge, proxy), Is.Empty);
+				var state = magnet.CreateState();
+				Assert.That(state.CoupleToHinge, Is.True);
+				Assert.That(state.Profile, Is.EqualTo(MagnetForceProfile.Physical));
+			} finally {
+				Object.DestroyImmediate(root);
+			}
+		}
+
+		[Test]
+		public void HoldPointFitAccountsForScaledVisualHierarchyAndBallRadius()
+		{
+			var root = new GameObject("Scaled Spring Hinge");
+			var magnetObject = new GameObject("Owned Magnet");
+			try {
+				root.transform.localScale = Vector3.one * 0.1f;
+				var hinge = root.AddComponent<SpringHingeComponent>();
+				var proxy = root.AddComponent<SpringHingeColliderComponent>();
+				proxy.LocalCentre = Vector3.zero;
+				proxy.HalfExtents = Vector3.one * 100f;
+
+				magnetObject.transform.SetParent(root.transform, false);
+				magnetObject.transform.localPosition = Vector3.right * Physics.ScaleToWorld(99f);
+				magnetObject.transform.localScale = Vector3.one * 0.7f;
+				var magnet = magnetObject.AddComponent<MagnetComponent>();
+				magnet.MagnetType = MagnetType.Spatial;
+				magnet.CoupleToParentHinge = true;
+				magnet.HeldBallCentreOffset = Vector3.zero;
+
+				Assert.That(SpringHingeAuthoring.TryGetHeldBallCentreGap(
+					hinge, proxy, magnet, out var initialGap), Is.True);
+				Assert.That(initialGap, Is.LessThan(-25f));
+				Assert.That(SpringHingeAuthoring.TryGetFittedHeldBallCentreOffset(
+					hinge, proxy, magnet, out var fittedOffset), Is.True);
+
+				magnet.HeldBallCentreOffset = fittedOffset;
+				Assert.That(fittedOffset.x, Is.EqualTo(25.1f).Within(0.01f));
+				Assert.That(SpringHingeAuthoring.TryGetHeldBallCentreGap(
+					hinge, proxy, magnet, out var fittedGap), Is.True);
+				Assert.That(fittedGap, Is.EqualTo(0f).Within(0.001f));
+				Assert.That(SpringHingeAuthoring.Validate(hinge, proxy), Is.Empty);
+			} finally {
+				Object.DestroyImmediate(root);
+			}
+		}
+
+		[TestCase(false)]
+		[TestCase(true)]
+		public void HoldPointFitHandlesExteriorCorner(bool rotateProxy)
+		{
+			var root = new GameObject("Spring Hinge");
+			var magnetObject = new GameObject("Owned Magnet");
+			try {
+				var hinge = root.AddComponent<SpringHingeComponent>();
+				var proxy = root.AddComponent<SpringHingeColliderComponent>();
+				proxy.LocalCentre = Vector3.zero;
+				proxy.LocalRotation = rotateProxy ? new Vector3(0f, 0f, 37f) : Vector3.zero;
+				proxy.HalfExtents = new Vector3(10f, 20f, 30f);
+
+				magnetObject.transform.SetParent(root.transform, false);
+				var boxRotation = Quaternion.Euler(proxy.LocalRotation);
+				magnetObject.transform.localPosition = boxRotation
+					* new Vector3(15f, 25f, 35f) * Physics.ScaleInv;
+				var magnet = magnetObject.AddComponent<MagnetComponent>();
+				magnet.MagnetType = MagnetType.Spatial;
+				magnet.CoupleToParentHinge = true;
+
+				Assert.That(SpringHingeAuthoring.TryGetFittedHeldBallCentreOffset(
+					hinge, proxy, magnet, out var fittedOffset), Is.True);
+
+				magnet.HeldBallCentreOffset = fittedOffset;
+				Assert.That(SpringHingeAuthoring.TryGetHeldBallCentreGap(
+					hinge, proxy, magnet, out var fittedGap), Is.True);
+				Assert.That(fittedGap, Is.EqualTo(0f).Within(0.001f));
+			} finally {
+				Object.DestroyImmediate(root);
+			}
+		}
+
+		[Test]
 		public void VisualBoundsFitMassAndProxyInVpxUnits()
 		{
 			var root = SpringHingeAuthoring.CreateBashToy();
