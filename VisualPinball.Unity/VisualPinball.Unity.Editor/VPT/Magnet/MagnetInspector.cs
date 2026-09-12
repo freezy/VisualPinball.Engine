@@ -16,6 +16,7 @@
 
 using UnityEditor;
 using UnityEngine;
+using float3 = global::Unity.Mathematics.float3;
 using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity.Editor
@@ -23,6 +24,8 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(MagnetComponent))]
 	public class MagnetInspector : ItemInspector
 	{
+		private const float OrdinaryShotMinimumSpeed = 8f;
+
 		private SerializedProperty _radiusProperty;
 		private SerializedProperty _strengthProperty;
 		private SerializedProperty _magnetTypeProperty;
@@ -233,6 +236,8 @@ namespace VisualPinball.Unity.Editor
 				}
 				if (ownedCount > 1) {
 					EditorGUILayout.HelpBox("Only one owned magnet is supported per spring hinge.", MessageType.Error);
+				} else if (isSpatial) {
+					DrawCaptureEstimate();
 				}
 
 				var proxy = owner.GetComponent<SpringHingeColliderComponent>();
@@ -256,6 +261,35 @@ namespace VisualPinball.Unity.Editor
 					}
 				}
 			}
+		}
+
+		private void DrawCaptureEstimate()
+		{
+			if (_radiusProperty.hasMultipleDifferentValues
+			    || _strengthProperty.hasMultipleDifferentValues
+			    || _poleRadiusProperty.hasMultipleDifferentValues
+			    || _grabBallProperty.hasMultipleDifferentValues
+			    || _grabRadiusProperty.hasMultipleDifferentValues
+			    || _heldBallCentreOffsetProperty.hasMultipleDifferentValues
+			    || _maxHoldForceProperty.hasMultipleDifferentValues) {
+				return;
+			}
+			var state = new MagnetState {
+				Radius = _radiusProperty.floatValue,
+				Strength = _strengthProperty.floatValue,
+				EffectiveCurrent = 1f,
+				EffectiveStrength = _strengthProperty.floatValue,
+				PoleRadius = _poleRadiusProperty.floatValue,
+				GrabRadius = _grabBallProperty.boolValue ? _grabRadiusProperty.floatValue : 0f,
+				MaxHoldForce = _maxHoldForceProperty.floatValue
+			};
+			var pole = float3.zero;
+			var target = (float3)_heldBallCentreOffsetProperty.vector3Value;
+			var speed = OwnedMagnetPhysics.EstimateStationaryHingeCaptureSpeed(in state,
+				in pole, in target);
+			var message = $"Best-case full-power capture speed at the hold point: about {speed:0.#} VPE ball-speed units for a standard ball while the toy is stationary. Actual capture may be lower because the ball enters the grab area away from this point, the coil takes time to energize, and the toy may be moving.";
+			EditorGUILayout.HelpBox(message,
+				speed < OrdinaryShotMinimumSpeed ? MessageType.Warning : MessageType.Info);
 		}
 
 		private void DrawColliderFit()

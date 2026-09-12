@@ -17,6 +17,10 @@ namespace VisualPinball.Unity.Editor
 	public static class SpringHingeAuthoring
 	{
 		private const float StandardBallRadiusVpx = 25f;
+		private const float BashMagnetStrength = 40000f;
+		private const float BashMagnetHoldStiffness = 4f;
+		private const float BashMagnetHoldDamping = 4f;
+		private const float BashMagnetMaxHoldForce = 50f;
 
 		[MenuItem("GameObject/Pinball/Add Spring Hinge", false, 12)]
 		private static void AddSpringHingeMenu(MenuCommand command)
@@ -164,14 +168,15 @@ namespace VisualPinball.Unity.Editor
 			magnet.MagnetType = MagnetType.Spatial;
 			magnet.ForceProfile = MagnetForceProfile.Physical;
 			magnet.Radius = MagnetComponent.DefaultInfluenceRadius;
+			magnet.Strength = BashMagnetStrength;
 			magnet.PoleRadius = MagnetComponent.DefaultPoleRadius;
 			magnet.GrabBall = true;
 			magnet.GrabRadius = MagnetComponent.DefaultGrabRadius;
 			magnet.CoupleToParentHinge = true;
 			magnet.HeldBallCentreOffset = Vector3.down * StandardBallRadiusVpx;
-			magnet.HoldStiffness = 2f;
-			magnet.HoldDamping = 2f;
-			magnet.MaxHoldForce = 10f;
+			magnet.HoldStiffness = BashMagnetHoldStiffness;
+			magnet.HoldDamping = BashMagnetHoldDamping;
+			magnet.MaxHoldForce = BashMagnetMaxHoldForce;
 			magnet.IsKinematic = false;
 		}
 
