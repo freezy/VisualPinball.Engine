@@ -22,15 +22,14 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Pinball/Mechs/Spring Hinge")]
 	public class SpringHingeComponent : MonoBehaviour, IAnimationValueEmitter<float>, IPackable, ISwitchDeviceComponent
 	{
-		private const float MillimetersToWorld = 0.001f;
 		public const string AngleSwitchItem = "angle_switch";
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		[Tooltip("Fixed hinge axis in this object's local frame.")]
 		public Vector3 HingeAxis = Vector3.right;
 
-		[Unit("mm")]
-		[Tooltip("Unloaded toy centre of mass relative to the pivot, in this object's local frame.")]
+		[Unit("VPX")]
+		[Tooltip("Unloaded toy centre of mass relative to the pivot, in VPX units along this object's local axes.")]
 		public Vector3 CentreOfMass = new(0f, -50f, 0f);
 
 		[Min(0.001f)]
@@ -44,8 +43,8 @@ namespace VisualPinball.Unity
 		[Tooltip("Moment of inertia about the hinge axis in ball-mass times VPX-unit squared.")]
 		public float ManualInertia = 2500f;
 
-		[Unit("mm")]
-		[Tooltip("Half-extents of the box used to estimate unloaded toy inertia.")]
+		[Unit("VPX")]
+		[Tooltip("Half-extents of the box used to estimate unloaded toy inertia, in VPX units.")]
 		public Vector3 MassBoxHalfExtents = new(25f, 50f, 10f);
 
 		[Min(0f)]
@@ -152,7 +151,7 @@ namespace VisualPinball.Unity
 			var pivot = ToPlayfieldVpx(ReferenceLocalToWorldMatrix.MultiplyPoint3x4(Vector3.zero));
 			var axis = ToPlayfieldDirection(HingeAxis);
 			var centreOfMass = ToPlayfieldVpx(ReferenceLocalToWorldMatrix.MultiplyPoint3x4(
-				CentreOfMass * MillimetersToWorld));
+				CentreOfMass * Physics.ScaleInv));
 			var minimumAngle = math.radians(math.min(MinimumAngle, MaximumAngle));
 			var maximumAngle = math.radians(math.max(MinimumAngle, MaximumAngle));
 			var angle = math.clamp(math.radians(InitialAngle), minimumAngle, maximumAngle);
@@ -201,9 +200,9 @@ namespace VisualPinball.Unity
 			var y = ToPlayfieldDirection(Vector3.up);
 			var z = ToPlayfieldDirection(Vector3.forward);
 			var halfExtents = new float3(
-				Physics.ScaleToVpx(MassBoxHalfExtents.x * MillimetersToWorld * math.abs(transform.lossyScale.x)),
-				Physics.ScaleToVpx(MassBoxHalfExtents.y * MillimetersToWorld * math.abs(transform.lossyScale.y)),
-				Physics.ScaleToVpx(MassBoxHalfExtents.z * MillimetersToWorld * math.abs(transform.lossyScale.z)));
+				MassBoxHalfExtents.x * math.abs(transform.lossyScale.x),
+				MassBoxHalfExtents.y * math.abs(transform.lossyScale.y),
+				MassBoxHalfExtents.z * math.abs(transform.lossyScale.z));
 			var principal = ToyMass / 3f * new float3(
 				halfExtents.y * halfExtents.y + halfExtents.z * halfExtents.z,
 				halfExtents.x * halfExtents.x + halfExtents.z * halfExtents.z,
@@ -213,7 +212,7 @@ namespace VisualPinball.Unity
 				math.pow(math.dot(axis, y), 2f),
 				math.pow(math.dot(axis, z), 2f)));
 			var referenceMatrix = ReferenceLocalToWorldMatrix;
-			var centreArm = ToPlayfieldVpx(referenceMatrix.MultiplyPoint3x4(CentreOfMass * MillimetersToWorld))
+			var centreArm = ToPlayfieldVpx(referenceMatrix.MultiplyPoint3x4(CentreOfMass * Physics.ScaleInv))
 				- ToPlayfieldVpx(referenceMatrix.MultiplyPoint3x4(Vector3.zero));
 			var perpendicularArm = centreArm - axis * math.dot(axis, centreArm);
 			return math.max(0.001f, inertiaAtCentre + ToyMass * math.lengthsq(perpendicularArm));

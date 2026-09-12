@@ -119,8 +119,8 @@ namespace VisualPinball.Unity
 		[Tooltip("Couple this Spatial Physical magnet reciprocally to its nearest parent spring hinge.")]
 		public bool CoupleToParentHinge;
 
-		[Unit("mm")]
-		[Tooltip("Held ball centre relative to the magnet transform, expressed in millimeters at the authored rest pose.")]
+		[Unit("VPX")]
+		[Tooltip("Held ball centre relative to the magnet transform, expressed in VPX units at the authored rest pose.")]
 		public Vector3 HeldBallCentreOffset;
 
 		[Min(0f)]
@@ -253,7 +253,7 @@ namespace VisualPinball.Unity
 				var pivot = hinge.ToPlayfieldVpx(hinge.transform.position);
 				poleArm = hinge.ToPlayfieldVpx(transform.position) - pivot;
 				heldCentreArm = hinge.ToPlayfieldVpx(transform.TransformPoint(
-					HeldBallCentreOffset * 0.001f)) - pivot;
+					HeldBallCentreOffset * Physics.ScaleInv)) - pivot;
 			}
 			return new MagnetState {
 				Position = pos.xy,
@@ -492,7 +492,7 @@ namespace VisualPinball.Unity
 			}
 
 			if (CoupleToParentHinge) {
-				var heldCentre = transform.TransformPoint(HeldBallCentreOffset * 0.001f);
+				var heldCentre = transform.TransformPoint(HeldBallCentreOffset * Physics.ScaleInv);
 				Gizmos.color = new Color(0.2f, 1f, 0.45f, 0.9f);
 				Gizmos.DrawLine(transform.position, heldCentre);
 				Gizmos.DrawWireSphere(heldCentre, 0.006f);

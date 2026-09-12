@@ -14,7 +14,6 @@ namespace VisualPinball.Unity
 {
 	internal static class SpringHingeColliderGenerator
 	{
-		private const float MillimetersToWorld = 0.001f;
 		private const float OrthogonalityTolerance = 1e-4f;
 
 		internal static SpringHingeCollider Create(SpringHingeComponent hinge,
@@ -23,14 +22,14 @@ namespace VisualPinball.Unity
 			var referenceMatrix = hinge.ReferenceLocalToWorldMatrix;
 			var pivot = hinge.ToPlayfieldVpx(referenceMatrix.MultiplyPoint3x4(Vector3.zero));
 			var centre = hinge.ToPlayfieldVpx(referenceMatrix.MultiplyPoint3x4(
-				collider.LocalCentre * MillimetersToWorld));
+				collider.LocalCentre * Physics.ScaleInv));
 			var localRotation = Quaternion.Euler(collider.LocalRotation);
 			var halfAxisX = hinge.ToPlayfieldVector(localRotation
-				* (Vector3.right * (collider.HalfExtents.x * MillimetersToWorld)));
+				* (Vector3.right * (collider.HalfExtents.x * Physics.ScaleInv)));
 			var halfAxisY = hinge.ToPlayfieldVector(localRotation
-				* (Vector3.up * (collider.HalfExtents.y * MillimetersToWorld)));
+				* (Vector3.up * (collider.HalfExtents.y * Physics.ScaleInv)));
 			var halfAxisZ = hinge.ToPlayfieldVector(localRotation
-				* (Vector3.forward * (collider.HalfExtents.z * MillimetersToWorld)));
+				* (Vector3.forward * (collider.HalfExtents.z * Physics.ScaleInv)));
 			var lengthX = math.length(halfAxisX);
 			var lengthY = math.length(halfAxisY);
 			var lengthZ = math.length(halfAxisZ);
