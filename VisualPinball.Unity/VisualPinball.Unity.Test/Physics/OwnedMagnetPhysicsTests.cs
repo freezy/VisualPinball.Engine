@@ -84,6 +84,26 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void OwnedHoldSmoothlyDampsBallSpin()
+		{
+			const float step = 0.1f;
+			var hinge = CreateHinge(inertia: 10f);
+			SpringHingeVelocityPhysics.PrepareVelocity(ref hinge, float3.zero, step);
+			var magnet = CreateMagnet(stiffness: 4f, damping: 4f, maxForce: 50f);
+			var target = new float3(2f, 0f, 0f);
+			var ball = CreateBall(1, target, float3.zero);
+			ball.AngularMomentum = new float3(3f, -4f, 5f);
+			var originalSpin = ball.AngularMomentum;
+
+			Assert.That(OwnedMagnetPhysics.SolveHold(ref ball, ref hinge, in magnet,
+				in target, step, out _), Is.True);
+
+			AssertFloat3(ball.AngularMomentum, originalSpin * 0.95f);
+			Assert.That(math.length(ball.AngularMomentum), Is.GreaterThan(0f),
+				"capture must damp spin gradually rather than stop it in one tick");
+		}
+
+		[Test]
 		public void BallGravityTransfersThroughHoldWithoutDoubleCountingMass()
 		{
 			const float step = 0.01f;
