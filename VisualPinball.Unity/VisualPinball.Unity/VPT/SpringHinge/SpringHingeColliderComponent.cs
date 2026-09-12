@@ -17,15 +17,19 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Pinball/Mechs/Spring Hinge Collider")]
 	public class SpringHingeColliderComponent : MonoBehaviour, ICollidableComponent, IPackable
 	{
-		[Unit("mm")]
-		[Tooltip("Collision-box centre in the hinge's local frame.")]
+		private SpringHingeComponent _hinge;
+		private Quaternion _initialLocalRotation;
+		private bool _poseCaptured;
+
+		[Unit("VPX")]
+		[Tooltip("Collision-box centre in VPX units along the hinge's local axes.")]
 		public Vector3 LocalCentre = new(0f, -50f, 0f);
 
 		[Tooltip("Collision-box orientation in the hinge's local frame, in degrees.")]
 		public Vector3 LocalRotation;
 
-		[Unit("mm")]
-		[Tooltip("Collision-box half-extents in its local frame.")]
+		[Unit("VPX")]
+		[Tooltip("Collision-box half-extents in its local frame, in VPX units.")]
 		public Vector3 HalfExtents = new(25f, 50f, 10f);
 
 		[SerializeField]
@@ -51,7 +55,10 @@ namespace VisualPinball.Unity
 		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files)
 			=> SpringHingeColliderReferencesPackable.Unpack(data, this, files);
 
-		public int ItemId => GetComponent<SpringHingeComponent>().ItemId;
+		private SpringHingeComponent Hinge
+			=> _hinge ? _hinge : _hinge = GetComponent<SpringHingeComponent>();
+
+		public int ItemId => Hinge.ItemId;
 		public bool IsKinematic => false;
 		public bool CollidersDirty { set { } }
 		internal bool IsCollidable => isActiveAndEnabled && math.all((float3)HalfExtents > 0f);
@@ -64,9 +71,45 @@ namespace VisualPinball.Unity
 		public bool PhysicsOverwrite { get => OverwritePhysics; set => OverwritePhysics = value; }
 		public PhysicsMaterialAsset PhysicsMaterialReference { get => PhysicsMaterial; set => PhysicsMaterial = value; }
 
+		private void Awake()
+		{
+			_hinge = GetComponent<SpringHingeComponent>();
+			CaptureInitialPose();
+		}
+
+		private void OnEnable()
+		{
+			if (Hinge) {
+				Hinge.OnAnimationValueChanged += ApplyAngle;
+			}
+		}
+
+		private void OnDisable()
+		{
+			if (Hinge) {
+				Hinge.OnAnimationValueChanged -= ApplyAngle;
+			}
+		}
+
 		private void OnValidate()
 		{
 			HalfExtents = Vector3.Max(HalfExtents, Vector3.zero);
+		}
+
+		internal void CaptureInitialPose()
+		{
+			_initialLocalRotation = transform.localRotation;
+			_poseCaptured = true;
+		}
+
+		internal void ApplyAngle(float angle)
+		{
+			if (!_poseCaptured) {
+				CaptureInitialPose();
+			}
+			var axis = math.normalizesafe((float3)Hinge.HingeAxis, new float3(1f, 0f, 0f));
+			transform.localRotation = _initialLocalRotation
+			                          * Quaternion.AngleAxis(math.degrees(angle), axis);
 		}
 
 #if UNITY_EDITOR
@@ -75,7 +118,7 @@ namespace VisualPinball.Unity
 			if (!ShowColliderMesh || !enabled) {
 				return;
 			}
-			var hinge = GetComponent<SpringHingeComponent>();
+			var hinge = Hinge;
 			if (!hinge) {
 				return;
 			}
@@ -83,15 +126,15 @@ namespace VisualPinball.Unity
 			var axis = math.normalizesafe((float3)hinge.HingeAxis, new float3(1f, 0f, 0f));
 			var matrix = hinge.ReferenceLocalToWorldMatrix
 			             * Matrix4x4.Rotate(Quaternion.AngleAxis(math.degrees(angle), axis))
-			             * Matrix4x4.TRS(LocalCentre * 0.001f,
+			             * Matrix4x4.TRS(LocalCentre * Physics.ScaleInv,
 				             Quaternion.Euler(LocalRotation), Vector3.one);
 			var previousMatrix = Gizmos.matrix;
 			var previousColor = Gizmos.color;
 			Gizmos.matrix = matrix;
 			Gizmos.color = ColliderColor.TransformedColliderSelected;
-			Gizmos.DrawCube(Vector3.zero, HalfExtents * 0.002f);
+			Gizmos.DrawCube(Vector3.zero, HalfExtents * (2f * Physics.ScaleInv));
 			Gizmos.color = new Color32(0, 255, 75, 230);
-			Gizmos.DrawWireCube(Vector3.zero, HalfExtents * 0.002f);
+			Gizmos.DrawWireCube(Vector3.zero, HalfExtents * (2f * Physics.ScaleInv));
 			Gizmos.matrix = previousMatrix;
 			Gizmos.color = previousColor;
 		}
@@ -103,7 +146,7 @@ namespace VisualPinball.Unity
 			if (!IsCollidable) {
 				return;
 			}
-			var hinge = GetComponent<SpringHingeComponent>();
+			var hinge = Hinge;
 			var api = hinge.SpringHingeApi ?? new SpringHingeApi(hinge, physicsEngine);
 			((IApiColliderGenerator)api).CreateColliders(ref colliders, float4x4.identity, margin);
 		}

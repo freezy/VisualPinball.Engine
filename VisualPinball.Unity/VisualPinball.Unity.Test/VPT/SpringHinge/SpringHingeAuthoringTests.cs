@@ -6,7 +6,6 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using Unity.Mathematics;
@@ -24,18 +23,14 @@ namespace VisualPinball.Unity.Test
 			try {
 				var hinge = root.GetComponent<SpringHingeComponent>();
 				var proxy = root.GetComponent<SpringHingeColliderComponent>();
-				var animation = root.GetComponent<SpringHingeAnimationComponent>();
 				var magnet = root.GetComponentInChildren<MagnetComponent>();
 
 				Assert.That(hinge, Is.Not.Null);
 				Assert.That(proxy, Is.Not.Null);
-				Assert.That(animation, Is.Not.Null);
-				Assert.That(animation.gameObject, Is.SameAs(root));
-				Assert.That(animation._emitter, Is.SameAs(hinge));
 				Assert.That(magnet.CoupleToParentHinge, Is.True);
 				Assert.That(magnet.MagnetType, Is.EqualTo(MagnetType.Spatial));
 				Assert.That(magnet.ForceProfile, Is.EqualTo(MagnetForceProfile.Physical));
-				Assert.That(magnet.GetComponentInParent<SpringHingeAnimationComponent>(), Is.SameAs(animation));
+				Assert.That(magnet.GetComponentInParent<SpringHingeColliderComponent>(), Is.SameAs(proxy));
 				Assert.That(root.GetComponentInChildren<UnityEngine.Collider>(), Is.Null);
 				Assert.That(SpringHingeAuthoring.Validate(hinge, proxy), Is.Empty);
 			} finally {
@@ -44,7 +39,7 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void VisualBoundsFitMassAndProxyInMillimeters()
+		public void VisualBoundsFitMassAndProxyInVpxUnits()
 		{
 			var root = SpringHingeAuthoring.CreateBashToy();
 			try {
@@ -97,7 +92,6 @@ namespace VisualPinball.Unity.Test
 				Assert.That(selected.GetComponent<UnityEngine.Collider>().enabled, Is.False);
 				Assert.That(selected.GetComponent<SpringHingeComponent>(), Is.Not.Null);
 				Assert.That(selected.GetComponent<SpringHingeColliderComponent>(), Is.Not.Null);
-				Assert.That(selected.GetComponent<SpringHingeAnimationComponent>(), Is.Not.Null);
 				Assert.That(bracket.transform.parent, Is.SameAs(parent.transform));
 				Assert.That(SpringHingeAuthoring.Validate(root.GetComponent<SpringHingeComponent>(),
 					root.GetComponent<SpringHingeColliderComponent>()), Is.Empty);
@@ -111,39 +105,21 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void SameObjectTransformDriverCachesRestRotationAndRoundTripsReferences()
+		public void ColliderUsesHingeAxisAndCachesRestRotation()
 		{
 			var root = new GameObject("Spring Hinge");
 			try {
 				var hinge = root.AddComponent<SpringHingeComponent>();
+				hinge.HingeAxis = Vector3.forward;
 				root.transform.localRotation = Quaternion.Euler(0f, 12f, 0f);
-				var animation = root.AddComponent<SpringHingeAnimationComponent>();
-				animation._emitter = hinge;
-				animation.RotationAxis = Vector3.forward;
-				animation.CaptureInitialPose();
+				var proxy = root.AddComponent<SpringHingeColliderComponent>();
+				proxy.CaptureInitialPose();
 
-				animation.ApplyAngle(math.PI / 2f);
+				proxy.ApplyAngle(math.PI / 2f);
 				var expected = Quaternion.Euler(0f, 12f, 0f)
 				               * Quaternion.AngleAxis(90f, Vector3.forward);
 				Assert.That(Quaternion.Angle(root.transform.localRotation, expected),
 					Is.LessThan(0.001f));
-
-				var refs = new PackagedRefs(root.transform);
-				refs.SetNodeIdsForWrite(new Dictionary<Transform, string> {
-					{ root.transform, "hinge" }
-				});
-				var values = animation.Pack();
-				var references = animation.PackReferences(root.transform, refs, null);
-				animation.RotationAxis = Vector3.right;
-				animation._emitter = null;
-				animation.Unpack(values);
-				refs.SetNodeIdsForRead(new Dictionary<string, Transform> {
-					{ "hinge", root.transform }
-				});
-				animation.UnpackReferences(references, root.transform, refs, null);
-
-				Assert.That(animation.RotationAxis, Is.EqualTo(Vector3.forward));
-				Assert.That(animation._emitter, Is.SameAs(hinge));
 			} finally {
 				Object.DestroyImmediate(root);
 			}

@@ -14,8 +14,7 @@ namespace VisualPinball.Unity.Editor
 {
 	public static class SpringHingeAuthoring
 	{
-		private const float WorldToMillimeters = 1000f;
-		private const float StandardBallRadiusMillimeters = 25f;
+		private const float StandardBallRadiusVpx = 25f;
 
 		[MenuItem("GameObject/Pinball/Add Spring Hinge", false, 12)]
 		private static void AddSpringHingeMenu(MenuCommand command)
@@ -47,15 +46,13 @@ namespace VisualPinball.Unity.Editor
 
 			var hinge = Undo.AddComponent<SpringHingeComponent>(root);
 			var proxy = Undo.AddComponent<SpringHingeColliderComponent>(root);
-			var animation = Undo.AddComponent<SpringHingeAnimationComponent>(root);
-			animation._emitter = hinge;
-			animation.RotationAxis = hinge.HingeAxis;
 
 			var visual = GameObject.CreatePrimitive(PrimitiveType.Cube);
 			visual.name = "Toy Visual";
 			visual.transform.SetParent(root.transform, false);
-			visual.transform.localPosition = new Vector3(0f, -0.05f, 0f);
-			visual.transform.localScale = new Vector3(0.05f, 0.1f, 0.02f);
+			visual.transform.localPosition = Vector3.down * Physics.ScaleToWorld(50f);
+			visual.transform.localScale = new Vector3(
+				Physics.ScaleToWorld(50f), Physics.ScaleToWorld(100f), Physics.ScaleToWorld(20f));
 			var unityCollider = visual.GetComponent<UnityEngine.Collider>();
 			if (unityCollider) {
 				UnityEngine.Object.DestroyImmediate(unityCollider);
@@ -63,7 +60,7 @@ namespace VisualPinball.Unity.Editor
 
 			var magnetObject = new GameObject("Owned Magnet");
 			magnetObject.transform.SetParent(root.transform, false);
-			magnetObject.transform.localPosition = new Vector3(0f, -0.1f, 0f);
+			magnetObject.transform.localPosition = Vector3.down * Physics.ScaleToWorld(100f);
 			var magnet = Undo.AddComponent<MagnetComponent>(magnetObject);
 
 			ApplyBashPreset(hinge, proxy, magnet);
@@ -84,11 +81,6 @@ namespace VisualPinball.Unity.Editor
 			            ?? Undo.AddComponent<SpringHingeComponent>(rotatingObject);
 			var proxy = rotatingObject.GetComponent<SpringHingeColliderComponent>()
 			            ?? Undo.AddComponent<SpringHingeColliderComponent>(rotatingObject);
-			var animation = rotatingObject.GetComponent<SpringHingeAnimationComponent>()
-			                ?? Undo.AddComponent<SpringHingeAnimationComponent>(rotatingObject);
-			animation._emitter = hinge;
-			animation.RotationAxis = hinge.HingeAxis;
-
 			foreach (var visualPart in visualParts) {
 				if (!visualPart || visualPart == activeVisual || visualPart.IsChildOf(activeVisual)
 				    || IsAncestorSelected(visualPart, visualParts)) {
@@ -174,7 +166,7 @@ namespace VisualPinball.Unity.Editor
 			magnet.GrabBall = true;
 			magnet.GrabRadius = MagnetComponent.DefaultGrabRadius;
 			magnet.CoupleToParentHinge = true;
-			magnet.HeldBallCentreOffset = Vector3.down * StandardBallRadiusMillimeters;
+			magnet.HeldBallCentreOffset = Vector3.down * StandardBallRadiusVpx;
 			magnet.HoldStiffness = 2f;
 			magnet.HoldDamping = 2f;
 			magnet.MaxHoldForce = 10f;
@@ -182,10 +174,10 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		public static bool TryGetVisualBounds(SpringHingeComponent hinge,
-			out Vector3 centreMillimeters, out Vector3 halfExtentsMillimeters)
+			out Vector3 centreVpx, out Vector3 halfExtentsVpx)
 		{
-			centreMillimeters = Vector3.zero;
-			halfExtentsMillimeters = Vector3.zero;
+			centreVpx = Vector3.zero;
+			halfExtentsVpx = Vector3.zero;
 			if (!hinge) {
 				return false;
 			}
@@ -213,8 +205,8 @@ namespace VisualPinball.Unity.Editor
 			if (!found) {
 				return false;
 			}
-			centreMillimeters = (minimum + maximum) * (0.5f * WorldToMillimeters);
-			halfExtentsMillimeters = (maximum - minimum) * (0.5f * WorldToMillimeters);
+			centreVpx = (minimum + maximum) * (0.5f / Physics.ScaleInv);
+			halfExtentsVpx = (maximum - minimum) * (0.5f / Physics.ScaleInv);
 			return true;
 		}
 
@@ -259,17 +251,6 @@ namespace VisualPinball.Unity.Editor
 				issues.Add("The analytic box proxy needs three positive half-extents.");
 			}
 
-			var localDriver = hinge.GetComponent<SpringHingeAnimationComponent>();
-			var drivers = hinge.GetComponentsInChildren<SpringHingeAnimationComponent>(true);
-			var driverCount = 0;
-			foreach (var candidate in drivers) {
-				if (candidate._emitter == hinge) {
-					driverCount++;
-				}
-			}
-			if (!localDriver || localDriver._emitter != hinge || driverCount != 1) {
-				issues.Add("The rotating object must have exactly one Spring Hinge Transform on the same GameObject, driven by this hinge.");
-			}
 			if (hinge.GetComponentInChildren<HitTargetAnimationComponent>(true)) {
 				issues.Add("Remove hit-target animation from spring-hinge visuals; the hinge is their only animation driver.");
 			}
@@ -297,10 +278,10 @@ namespace VisualPinball.Unity.Editor
 		private static bool IsHeldCentreInsideProxy(SpringHingeComponent hinge,
 			SpringHingeColliderComponent proxy, MagnetComponent magnet)
 		{
-			var world = magnet.transform.TransformPoint(magnet.HeldBallCentreOffset * 0.001f);
-			var hingeLocalMillimeters = hinge.transform.InverseTransformPoint(world) * WorldToMillimeters;
+			var world = magnet.transform.TransformPoint(magnet.HeldBallCentreOffset * Physics.ScaleInv);
+			var hingeLocalVpx = hinge.transform.InverseTransformPoint(world) / Physics.ScaleInv;
 			var boxLocal = Quaternion.Inverse(Quaternion.Euler(proxy.LocalRotation))
-			               * (hingeLocalMillimeters - proxy.LocalCentre);
+			               * (hingeLocalVpx - proxy.LocalCentre);
 			return Mathf.Abs(boxLocal.x) < proxy.HalfExtents.x
 			       && Mathf.Abs(boxLocal.y) < proxy.HalfExtents.y
 			       && Mathf.Abs(boxLocal.z) < proxy.HalfExtents.z;

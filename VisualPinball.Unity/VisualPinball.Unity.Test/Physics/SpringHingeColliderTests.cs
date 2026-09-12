@@ -185,6 +185,43 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ComponentGeometryUsesAuthoredVpxUnits()
+		{
+			var hingeObject = new GameObject("spring-hinge-vpx-units-test");
+			var magnetObject = new GameObject("owned-magnet-vpx-units-test");
+			try {
+				var hinge = hingeObject.AddComponent<SpringHingeComponent>();
+				hinge.CentreOfMass = new Vector3(50f, 0f, 0f);
+				var proxy = hingeObject.AddComponent<SpringHingeColliderComponent>();
+				proxy.LocalCentre = new Vector3(30f, 0f, 0f);
+				proxy.HalfExtents = new Vector3(10f, 20f, 30f);
+
+				var hingeState = hinge.CreateState();
+				var collider = SpringHingeColliderGenerator.Create(hinge, proxy,
+					new ColliderInfo { ItemId = hinge.ItemId }, 0f);
+
+				magnetObject.transform.SetParent(hingeObject.transform, false);
+				var magnet = magnetObject.AddComponent<MagnetComponent>();
+				magnet.MagnetType = MagnetType.Spatial;
+				magnet.ForceProfile = MagnetForceProfile.Physical;
+				magnet.CoupleToParentHinge = true;
+				magnet.HeldBallCentreOffset = new Vector3(25f, 0f, 0f);
+				var magnetState = magnet.CreateState();
+
+				Assert.That(math.distance(hingeState.Static.CentreOfMassArm,
+					new float3(50f, 0f, 0f)), Is.LessThan(1e-4f));
+				Assert.That(math.distance(collider.CentreArm,
+					new float3(30f, 0f, 0f)), Is.LessThan(1e-4f));
+				Assert.That(math.distance(collider.HalfExtents,
+					new float3(10f, 20f, 30f)), Is.LessThan(1e-4f));
+				Assert.That(math.distance(magnetState.LocalHeldCentreArm,
+					new float3(25f, 0f, 0f)), Is.LessThan(1e-4f));
+			} finally {
+				UnityEngine.Object.DestroyImmediate(hingeObject);
+			}
+		}
+
+		[Test]
 		public void GeneratorRejectsShearedBoxFrame()
 		{
 			var gameObject = new GameObject("spring-hinge-sheared-test");

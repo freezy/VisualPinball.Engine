@@ -148,12 +148,12 @@ namespace VisualPinball.Unity.Editor
 			Handles.DrawWireArc(pivot, worldAxis, start,
 				hinge.MaximumAngle - hinge.MinimumAngle, radius);
 
-			var centreWorld = hinge.transform.TransformPoint(hinge.CentreOfMass * 0.001f);
+			var centreWorld = hinge.transform.TransformPoint(hinge.CentreOfMass * Physics.ScaleInv);
 			EditorGUI.BeginChangeCheck();
 			var movedCentre = Handles.PositionHandle(centreWorld, hinge.transform.rotation);
 			if (EditorGUI.EndChangeCheck()) {
 				Undo.RecordObject(hinge, "Move Spring Hinge Centre of Mass");
-				hinge.CentreOfMass = hinge.transform.InverseTransformPoint(movedCentre) * 1000f;
+				hinge.CentreOfMass = hinge.transform.InverseTransformPoint(movedCentre) / Physics.ScaleInv;
 				EditorUtility.SetDirty(hinge);
 			}
 			Handles.color = Color.yellow;

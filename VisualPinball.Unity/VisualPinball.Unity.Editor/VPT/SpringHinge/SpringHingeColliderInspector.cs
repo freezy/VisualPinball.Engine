@@ -47,6 +47,7 @@ namespace VisualPinball.Unity.Editor
 
 		public override void OnInspectorGUI()
 		{
+			EditorGUILayout.HelpBox("This component applies the simulated hinge angle to the GameObject. Its authored local rotation is the zero-angle pose, and the rotation axis comes from Spring Hinge.", MessageType.Info);
 			BeginEditing();
 			EditorGUILayout.LabelField("Analytic Box", EditorStyles.boldLabel);
 			PropertyField(_localCentre, updateColliders: true);
@@ -88,26 +89,26 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			var hingePose = hinge.transform.localToWorldMatrix;
-			var centre = hingePose.MultiplyPoint3x4(proxy.LocalCentre * 0.001f);
+			var centre = hingePose.MultiplyPoint3x4(proxy.LocalCentre * Physics.ScaleInv);
 			var rotation = hingePose.rotation * Quaternion.Euler(proxy.LocalRotation);
 			var handleSize = HandleUtility.GetHandleSize(centre) * 0.5f;
 			EditorGUI.BeginChangeCheck();
 			var movedCentre = Handles.PositionHandle(centre, rotation);
-			var resized = Handles.ScaleHandle(proxy.HalfExtents * 0.001f, centre, rotation, handleSize);
+			var resized = Handles.ScaleHandle(proxy.HalfExtents * Physics.ScaleInv, centre, rotation, handleSize);
 			if (EditorGUI.EndChangeCheck()) {
 				Undo.RecordObject(proxy, "Edit Spring Hinge Proxy");
-				proxy.LocalCentre = hingePose.inverse.MultiplyPoint3x4(movedCentre) * 1000f;
-				proxy.HalfExtents = Vector3.Max(resized * 1000f, Vector3.one * 0.001f);
+				proxy.LocalCentre = hingePose.inverse.MultiplyPoint3x4(movedCentre) / Physics.ScaleInv;
+				proxy.HalfExtents = Vector3.Max(resized / Physics.ScaleInv, Vector3.one * 0.001f);
 				proxy.CollidersDirty = true;
 				EditorUtility.SetDirty(proxy);
 			}
 
 			var matrix = hingePose
-			             * Matrix4x4.TRS(proxy.LocalCentre * 0.001f,
+			             * Matrix4x4.TRS(proxy.LocalCentre * Physics.ScaleInv,
 				             Quaternion.Euler(proxy.LocalRotation), Vector3.one);
 			if (!proxy.ShowColliderMesh) {
 				using (new Handles.DrawingScope(new Color(0f, 1f, 1f, 0.8f), matrix)) {
-					Handles.DrawWireCube(Vector3.zero, proxy.HalfExtents * 0.002f);
+					Handles.DrawWireCube(Vector3.zero, proxy.HalfExtents * (2f * Physics.ScaleInv));
 				}
 			}
 			if (!Application.isPlaying) {
@@ -125,10 +126,10 @@ namespace VisualPinball.Unity.Editor
 			var rotation = Quaternion.AngleAxis(angle, axis);
 			var matrix = hinge.transform.localToWorldMatrix
 			             * Matrix4x4.Rotate(rotation)
-			             * Matrix4x4.TRS(proxy.LocalCentre * 0.001f,
+			             * Matrix4x4.TRS(proxy.LocalCentre * Physics.ScaleInv,
 				             Quaternion.Euler(proxy.LocalRotation), Vector3.one);
 			using (new Handles.DrawingScope(color, matrix)) {
-				Handles.DrawWireCube(Vector3.zero, proxy.HalfExtents * 0.002f);
+				Handles.DrawWireCube(Vector3.zero, proxy.HalfExtents * (2f * Physics.ScaleInv));
 			}
 		}
 	}

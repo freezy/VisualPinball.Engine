@@ -91,10 +91,6 @@ namespace VisualPinball.Unity.Test
 			proxy.LocalCentre = new Vector3(0f, 50f, 0f);
 			proxy.HalfExtents = new Vector3(25f, 50f, 10f);
 
-			var animation = hingeObject.AddComponent<SpringHingeAnimationComponent>();
-			animation._emitter = hinge;
-			animation.RotationAxis = Vector3.forward;
-
 			var magnetObject = new GameObject("Owned Magnet");
 			magnetObject.transform.SetParent(hingeObject.transform, false);
 			magnetObject.transform.localPosition = new Vector3(0f, 0.05f, 0f);
