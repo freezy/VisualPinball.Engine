@@ -806,9 +806,31 @@ namespace VisualPinball.Unity
 			var b = _ctx.BallComponents[ballId];
 			_ctx.BallComponents.Remove(ballId);
 			_ctx.BallStates.Ref.Remove(ballId);
+			ReleaseDestroyedBallFromKickers(ballId, _ctx.KickerStates.Ref);
 			ReleaseDestroyedBallFromMagnets(ballId);
 			_ctx.InsideOfs.SetOutsideOfAll(ballId);
 			return b;
+		}
+
+		/// <summary>
+		/// Clears the active capture reference of every kicker that still points at
+		/// a ball being removed. A stale reference makes the kicker reject all later
+		/// captures because <c>HasBall</c> only checks for a non-zero ID.
+		/// </summary>
+		internal static void ReleaseDestroyedBallFromKickers(int ballId,
+			NativeParallelHashMap<int, KickerState> kickerStates)
+		{
+			if (!kickerStates.IsCreated) {
+				return;
+			}
+
+			using var enumerator = kickerStates.GetEnumerator();
+			while (enumerator.MoveNext()) {
+				ref var kicker = ref enumerator.Current.Value;
+				if (kicker.Collision.BallId == ballId) {
+					kicker.Collision.BallId = 0;
+				}
+			}
 		}
 
 		/// <summary>
@@ -869,6 +891,7 @@ namespace VisualPinball.Unity
 					if (_ctx.BallStates.Ref.IsCreated) {
 						_ctx.BallStates.Ref.Remove(ballId);
 					}
+					ReleaseDestroyedBallFromKickers(ballId, _ctx.KickerStates.Ref);
 					ReleaseDestroyedBallFromMagnets(ballId);
 					_ctx.InsideOfs.SetOutsideOfAll(ballId);
 				}
@@ -876,6 +899,7 @@ namespace VisualPinball.Unity
 			}
 
 			_ctx.BallStates.Ref.Remove(ballId);
+			ReleaseDestroyedBallFromKickers(ballId, _ctx.KickerStates.Ref);
 			ReleaseDestroyedBallFromMagnets(ballId);
 			_ctx.InsideOfs.SetOutsideOfAll(ballId);
 
@@ -897,6 +921,44 @@ namespace VisualPinball.Unity
 
 		public bool TryGetBall(int itemId, out BallComponent ballComponent)
 			=> _ctx.BallComponents.TryGetValue(itemId, out ballComponent);
+
+		/// <summary>
+		/// Gets the currently captured ball while holding the physics lock in
+		/// external-timing mode. Invalid stale references are repaired in place.
+		/// </summary>
+		internal bool TryGetKickerBallId(int itemId, out int ballId)
+		{
+			if (_ctx.UseExternalTiming) {
+				lock (_ctx.PhysicsLock) {
+					return TryGetKickerBallIdUnsafe(itemId, out ballId);
+				}
+			}
+
+			return TryGetKickerBallIdUnsafe(itemId, out ballId);
+		}
+
+		private bool TryGetKickerBallIdUnsafe(int itemId, out int ballId)
+		{
+			ballId = 0;
+			if (!_ctx.KickerStates.Ref.IsCreated ||
+			    !_ctx.KickerStates.Ref.TryGetValue(itemId, out var kickerState)) {
+				return false;
+			}
+
+			ballId = kickerState.Collision.BallId;
+			if (ballId == 0) {
+				return false;
+			}
+
+			if (_ctx.BallStates.Ref.IsCreated && _ctx.BallStates.Ref.ContainsKey(ballId)) {
+				return true;
+			}
+
+			ref var liveKickerState = ref _ctx.KickerStates.Ref.GetValueByRef(itemId);
+			liveKickerState.Collision.BallId = 0;
+			ballId = 0;
+			return false;
+		}
 
 		/// <summary>
 		/// Returns the current velocity of a kinematic item, derived from its

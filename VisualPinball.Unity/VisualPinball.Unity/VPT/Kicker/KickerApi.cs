@@ -80,14 +80,27 @@ namespace VisualPinball.Unity
 		public void CreateBall(GameObject ballPrefab = null, float radius = 25f, float mass = 1f)
 		{
 			var ballId = BallManager.CreateBall(MainComponent, radius, mass, ballPrefab);
+			var kickerId = ItemId;
 
-			ref var ball = ref PhysicsEngine.BallState(ballId);
-			ref var kickerState = ref PhysicsEngine.KickerState(ItemId);
-			var events = PhysicsEngine.EventQueue;
-			ball.CollisionEvent.HitFlag = true; // HACK: avoid capture leaving kicker
+			PhysicsEngine.MutateState((ref PhysicsState state) => {
+				if (!state.Balls.ContainsKey(ballId) || !state.KickerStates.ContainsKey(kickerId)) {
+					return;
+				}
 
-			KickerCollider.Collide(new float3(kickerState.Static.Center, kickerState.Static.ZLow), ref ball, ref events, ref PhysicsEngine.InsideOfs, ref kickerState.Collision,
-				in kickerState.Static, in kickerState.CollisionMesh, in ball.CollisionEvent, ItemId, true);
+				ref var ball = ref state.Balls.GetValueByRef(ballId);
+				ref var kickerState = ref state.KickerStates.GetValueByRef(kickerId);
+				if (kickerState.Collision.HasBall &&
+				    !state.Balls.ContainsKey(kickerState.Collision.BallId)) {
+					kickerState.Collision.BallId = 0;
+				}
+
+				var events = state.EventQueue;
+				ball.CollisionEvent.HitFlag = true; // HACK: avoid capture leaving kicker
+				var collEvent = ball.CollisionEvent;
+				KickerCollider.Collide(new float3(kickerState.Static.Center, kickerState.Static.ZLow),
+					ref ball, ref events, ref state.InsideOfs, ref kickerState.Collision,
+					in kickerState.Static, in kickerState.CollisionMesh, in collEvent, kickerId, true);
+			});
 		}
 
 		public void CreateSizedBallWithMass(float radius, float mass)
@@ -109,10 +122,8 @@ namespace VisualPinball.Unity
 		/// </remarks>
 		public void DestroyBall()
 		{
-			ref var kickerState = ref PhysicsEngine.KickerState(ItemId);
-			if (kickerState.Collision.HasBall) {
-				BallManager.DestroyBall(kickerState.Collision.BallId);
-				OnBallDestroyed();
+			if (PhysicsEngine.TryGetKickerBallId(ItemId, out var ballId)) {
+				BallManager.DestroyBall(ballId);
 			}
 		}
 
@@ -122,8 +133,7 @@ namespace VisualPinball.Unity
 		/// <returns>True if there is a ball in the kicker, false otherwise.</returns>
 		public bool HasBall()
 		{
-			ref var kickerState = ref PhysicsEngine.KickerState(ItemId);
-			return kickerState.Collision.HasBall;
+			return PhysicsEngine.TryGetKickerBallId(ItemId, out _);
 		}
 
 		internal ref BallState GetBallData()
@@ -134,8 +144,7 @@ namespace VisualPinball.Unity
 
 		internal int BallId {
 			get {
-				ref var kickerState = ref PhysicsEngine.KickerState(ItemId);
-				return kickerState.Collision.BallId;
+				return PhysicsEngine.TryGetKickerBallId(ItemId, out var ballId) ? ballId : 0;
 			}
 		}
 
@@ -157,14 +166,6 @@ namespace VisualPinball.Unity
 			}
 
 			throw new ArgumentException($"Unknown coil \"{deviceItem}\". Valid names are [ {string.Join(", ", _coils.Select(item => $"\"{item.Key}\""))} ].");
-		}
-
-		private void OnBallDestroyed()
-		{
-			ref var kickerState = ref PhysicsEngine.KickerState(ItemId);
-			if (kickerState.Collision.HasBall) {
-				kickerState.Collision.BallId = 0;
-			}
 		}
 
 		#endregion
@@ -195,7 +196,11 @@ namespace VisualPinball.Unity
 
 				ref var kickerState = ref state.KickerStates.GetValueByRef(kickerId);
 				var ballId = kickerState.Collision.BallId;
-				if (ballId == 0 || !state.Balls.ContainsKey(ballId)) {
+				if (ballId == 0) {
+					return;
+				}
+				if (!state.Balls.ContainsKey(ballId)) {
+					kickerState.Collision.BallId = 0;
 					return;
 				}
 
