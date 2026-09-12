@@ -30,6 +30,10 @@ namespace VisualPinball.Unity.Test
 				Assert.That(magnet.CoupleToParentHinge, Is.True);
 				Assert.That(magnet.MagnetType, Is.EqualTo(MagnetType.Spatial));
 				Assert.That(magnet.ForceProfile, Is.EqualTo(MagnetForceProfile.Physical));
+				Assert.That(magnet.Strength, Is.EqualTo(40000f));
+				Assert.That(magnet.HoldStiffness, Is.EqualTo(4f));
+				Assert.That(magnet.HoldDamping, Is.EqualTo(4f));
+				Assert.That(magnet.MaxHoldForce, Is.EqualTo(50f));
 				Assert.That(magnet.GetComponentInParent<SpringHingeColliderComponent>(), Is.SameAs(proxy));
 				Assert.That(root.GetComponentInChildren<UnityEngine.Collider>(), Is.Null);
 				Assert.That(SpringHingeAuthoring.Validate(hinge, proxy), Is.Empty);

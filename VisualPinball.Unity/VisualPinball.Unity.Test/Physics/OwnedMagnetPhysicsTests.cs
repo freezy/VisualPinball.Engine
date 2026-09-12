@@ -228,6 +228,109 @@ namespace VisualPinball.Unity.Test
 				in pole, in target), Is.True);
 		}
 
+		[TestCase(0.8f, true)]
+		[TestCase(1.2f, false)]
+		public void CaptureUsesSolverContactTolerance(float penetrationMultiplier,
+			bool shouldCapture)
+		{
+			using var harness = new PhysicsStateHarness();
+			var transforms = new NativeParallelHashMap<int, float4x4>(1, Allocator.Temp);
+			var references = new ColliderReference(ref transforms, Allocator.Temp);
+			try {
+				var hinge = CreateHinge(inertia: 10f);
+				harness.SpringHingeStates.Add(hinge.AnimationItemId, hinge);
+				references.Add(CreateCollider());
+				harness.SetStaticColliders(ref references);
+				harness.MagnetStates.Add(20,
+					CreateMagnet(stiffness: 100f, damping: 10f, maxForce: 10000f));
+				harness.Balls.Add(1, CreateBall(1,
+					new float3(10f, 3f - PhysicsConstants.PhysTouch * penetrationMultiplier, 0f),
+					float3.zero));
+				var state = harness.CreateState();
+				ref var stateHinge = ref state.SpringHingeStates.GetValueByRef(hinge.AnimationItemId);
+				SpringHingeVelocityPhysics.PrepareVelocity(ref stateHinge, float3.zero, 0.01f);
+
+				OwnedMagnetPhysics.Update(ref state, 0.01f);
+
+				Assert.That(state.MagnetStates[20].AttachedBallId,
+					Is.EqualTo(shouldCapture ? 1 : 0));
+			} finally {
+				references.Dispose();
+				transforms.Dispose();
+			}
+		}
+
+		[Test]
+		public void CaptureEstimateBoundsStationaryHingeThreshold()
+		{
+			var hinge = CreateHinge(inertia: 1e20f);
+			SpringHingeVelocityPhysics.PrepareVelocity(ref hinge, float3.zero, 0.01f);
+			var magnet = CreateMagnet(stiffness: 4f, damping: 4f, maxForce: 50f);
+			var pole = new float3(10f, 0f, 0f);
+			var target = new float3(10f, 3f, 0f);
+			var speed = OwnedMagnetPhysics.EstimateStationaryHingeCaptureSpeed(in magnet,
+				in pole, in target);
+			var accepted = CreateBall(1, target, new float3(0f, 0f, speed * 0.99f));
+			var rejected = CreateBall(2, target, new float3(0f, 0f, speed * 1.01f));
+
+			Assert.That(OwnedMagnetPhysics.CanCapture(in accepted, in magnet, in hinge,
+				in pole, in target), Is.True);
+			Assert.That(OwnedMagnetPhysics.CanCapture(in rejected, in magnet, in hinge,
+				in pole, in target), Is.False);
+		}
+
+		[Test]
+		public void BashMagnetCapturesPostImpactStandardBall()
+		{
+			using var harness = new PhysicsStateHarness();
+			var transforms = new NativeParallelHashMap<int, float4x4>(1, Allocator.Temp);
+			var references = new ColliderReference(ref transforms, Allocator.Temp);
+			try {
+				var hinge = CreateHinge(inertia: 2500f);
+				harness.SpringHingeStates.Add(hinge.AnimationItemId, hinge);
+				var pivot = float3.zero;
+				var centre = new float3(100f, 0f, 0f);
+				var extents = new float3(10f, 100f, 100f);
+				var x = new float3(1f, 0f, 0f);
+				var y = new float3(0f, 1f, 0f);
+				var z = new float3(0f, 0f, 1f);
+				references.Add(new SpringHingeCollider(hinge.AnimationItemId, in pivot,
+					in centre, in extents, in x, in y, in z,
+					new ColliderInfo { ItemId = hinge.AnimationItemId }));
+				harness.SetStaticColliders(ref references);
+
+				var target = new float3(135f, 0f, 0f);
+				var magnet = CreateMagnet(stiffness: 4f, damping: 4f, maxForce: 50f);
+				magnet.Radius = 45.5f;
+				magnet.Strength = 40000f;
+				magnet.EffectiveStrength = magnet.Strength;
+				magnet.PoleRadius = 11.79f;
+				magnet.GrabRadius = 20.009268f;
+				magnet.LocalPoleArm = new float3(110f, 0f, 0f);
+				magnet.LocalHeldCentreArm = target;
+				harness.MagnetStates.Add(20, magnet);
+				harness.Balls.Add(1, new BallState {
+					Id = 1,
+					Position = target - new float3(PhysicsConstants.PhysTouch * 0.8f, 0f, 0f),
+					Velocity = new float3(3f, 0f, 0f),
+					Mass = 1f,
+					Radius = 25f
+				});
+				var state = harness.CreateState();
+				ref var stateHinge = ref state.SpringHingeStates.GetValueByRef(hinge.AnimationItemId);
+				SpringHingeVelocityPhysics.PrepareVelocity(ref stateHinge, float3.zero,
+					PhysicsConstants.PhysFactor);
+
+				OwnedMagnetPhysics.Update(ref state, PhysicsConstants.PhysFactor);
+
+				Assert.That(state.MagnetStates[20].AttachedBallId, Is.EqualTo(1));
+				Assert.That(state.Balls[1].AttachedMagnetId, Is.EqualTo(20));
+			} finally {
+				references.Dispose();
+				transforms.Dispose();
+			}
+		}
+
 		[Test]
 		public void SchedulerAdvancesOwnedCoilAndCommitsHingeExactlyOnce()
 		{

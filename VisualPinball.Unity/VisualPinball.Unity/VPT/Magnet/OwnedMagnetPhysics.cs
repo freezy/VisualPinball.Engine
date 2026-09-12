@@ -356,6 +356,16 @@ namespace VisualPinball.Unity
 			=> CanCaptureWithin(in ball, in magnet, in hinge, in pole, in target,
 				magnet.GrabRadius);
 
+		internal static float EstimateStationaryHingeCaptureSpeed(in MagnetState magnet,
+			in float3 pole, in float3 target)
+		{
+			var availableWork = AvailableCaptureWork(in magnet, in pole, in target,
+				magnet.GrabRadius);
+			return availableWork > 0f && math.isfinite(availableWork)
+				? math.sqrt(2f * availableWork)
+				: 0f;
+		}
+
 		private static bool CanCaptureWithin(in BallState ball, in MagnetState magnet,
 			in SpringHingeState hinge, in float3 pole, in float3 target, float workRadius)
 		{
@@ -365,19 +375,8 @@ namespace VisualPinball.Unity
 			    || !math.all(math.isfinite(ball.Position)) || !math.all(math.isfinite(ball.Velocity))) {
 				return false;
 			}
-			var delta = ball.Position - pole;
-			var distanceSq = math.lengthsq(delta);
-			if (distanceSq <= MinimumValue || distanceSq >= magnet.Radius * magnet.Radius) {
-				return false;
-			}
-			var distance = math.sqrt(distanceSq);
-			var cutoff = CompactSupport(distanceSq, magnet.Radius * magnet.Radius);
-			var fieldForce = MagnetPhysics.PhysicalForceMagnitude(distance, 0f, cutoff, in magnet)
-				* ball.Mass;
-			var holdForce = math.max(0f, magnet.MaxHoldForce)
-				* magnet.EffectiveCurrent * magnet.EffectiveCurrent;
-			var availableWork = math.min(fieldForce, holdForce)
-				* math.max(0f, workRadius - math.distance(ball.Position, target));
+			var availableWork = AvailableCaptureWork(in magnet, in pole, ball.Position,
+				target, workRadius, ball.Mass);
 			if (availableWork <= 0f) {
 				return false;
 			}
@@ -396,6 +395,28 @@ namespace VisualPinball.Unity
 			return math.isfinite(requiredEnergy) && requiredEnergy <= availableWork;
 		}
 
+		private static float AvailableCaptureWork(in MagnetState magnet, in float3 pole,
+			in float3 target, float workRadius)
+			=> AvailableCaptureWork(in magnet, in pole, in target, in target, workRadius, 1f);
+
+		private static float AvailableCaptureWork(in MagnetState magnet, in float3 pole,
+			in float3 ballPosition, in float3 target, float workRadius, float ballMass)
+		{
+			var delta = ballPosition - pole;
+			var distanceSq = math.lengthsq(delta);
+			if (distanceSq <= MinimumValue || distanceSq >= magnet.Radius * magnet.Radius) {
+				return 0f;
+			}
+			var distance = math.sqrt(distanceSq);
+			var cutoff = CompactSupport(distanceSq, magnet.Radius * magnet.Radius);
+			var fieldForce = MagnetPhysics.PhysicalForceMagnitude(distance, 0f, cutoff, in magnet)
+				* ballMass;
+			var holdForce = math.max(0f, magnet.MaxHoldForce)
+				* magnet.EffectiveCurrent * magnet.EffectiveCurrent;
+			return math.min(fieldForce, holdForce)
+			       * math.max(0f, workRadius - math.distance(ballPosition, target));
+		}
+
 		private static bool HasValidProxyGap(in BallState ball, in SpringHingeState hinge,
 			in float3 target, ref PhysicsState state)
 		{
@@ -410,7 +431,7 @@ namespace VisualPinball.Unity
 				var targetGap = collider.Distance(in hinge, in target, ball.Radius).Separation;
 				var currentGap = collider.Distance(in hinge, ball.Position, ball.Radius).Separation;
 				if (math.abs(targetGap) <= PhysicsConstants.PhysTouch
-				    && currentGap >= -PhysicsConstants.Embedded) {
+				    && currentGap >= -PhysicsConstants.PhysTouch) {
 					return true;
 				}
 			}

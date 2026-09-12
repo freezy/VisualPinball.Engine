@@ -103,7 +103,7 @@ The magnet transform is the moving pole. **Held Ball Centre Offset** is a separa
 
 Click **Fit Hold Point to Collider** to place a standard 25-unit-radius ball against the nearest face, edge, or corner of the Spring Hinge Collider. The inspector warns when the target would put that ball inside the collider or leave a gap, because either placement prevents capture. Adjust the offset manually after fitting when the table uses a different ball radius.
 
-**Hold Stiffness** and **Hold Damping** control attachment compliance. **Max Hold Force** is the current-dependent capacity. These settings are independent of Influence Radius. Tune the field to attract the ball, then tune capacity and compliance so the intended shot captures without living at the force cap. Turning the coil off honors coil decay before release. Release preserves ball and hinge velocity.
+**Hold Stiffness** and **Hold Damping** control attachment compliance. **Max Hold Force** is the current-dependent capacity. These settings are independent of Influence Radius. The inspector estimates the fastest standard ball the magnet can capture at full power while the toy is stationary. This is a starting point rather than a guarantee because coil rise time and toy motion also affect a real hit. Increase **Strength** when the ball reaches the hold point but bounces away without being captured; increase **Max Hold Force** when it captures and then immediately breaks free. The bash preset supplies values intended for ordinary pinball shot speeds. Turning the coil off honors coil decay before release. Release preserves ball and hinge velocity.
 
 ## Validate in Play Mode
 
