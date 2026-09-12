@@ -150,7 +150,8 @@ namespace VisualPinball.Unity
 
 				case ColliderType.Spinner:
 					ref var spinnerState = ref state.GetSpinnerState(colliderId, ref colliders);
-					SpinnerCollider.Collide(in ball, ref ball.CollisionEvent, ref spinnerState.Movement, in spinnerState.Static);
+					ref var spinnerCollider = ref colliders.Spinner(colliderId);
+					spinnerCollider.Collide(in ball, ref ball.CollisionEvent, ref spinnerState.Movement, in spinnerState.Static);
 					break;
 
 				case ColliderType.TriggerCircle:

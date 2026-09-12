@@ -34,7 +34,8 @@ namespace VisualPinball.Unity
 		protected override void OnAnimationValueChanged(float value)
 		{
 			var axis = RotationVector.normalized;
-			var rotation = Quaternion.AngleAxis(math.degrees(value), axis);
+			// VPX applies MatrixRotateX(-angle) to the plate. Keep that sign when using a configurable Unity axis.
+			var rotation = Quaternion.AngleAxis(-math.degrees(value), axis);
 			transform.localRotation = _initialRotation * rotation;
 		}
 	}
