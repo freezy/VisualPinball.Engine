@@ -143,8 +143,7 @@ namespace VisualPinball.Unity
 			if (!needsFallback && (time >= maxTime || iterations < ConservativeIterations)) {
 				return -1f;
 			}
-			return FallbackHitTest(ref collEvent, in hinge, in ball, time, in distance,
-				maxTime, rateBound);
+			return FallbackHitTest(ref collEvent, in hinge, in ball, time, maxTime);
 		}
 
 		internal void Collide(ref BallState ball, ref SpringHingeState hinge,
@@ -285,11 +284,9 @@ namespace VisualPinball.Unity
 		}
 
 		private float FallbackHitTest(ref CollisionEventData collEvent, in SpringHingeState hinge,
-			in BallState ball, float startTime, in SpringHingeDistance startDistance,
-			float maxTime, float rateBound)
+			in BallState ball, float startTime, float maxTime)
 		{
 			var previousTime = startTime;
-			var previous = startDistance;
 			for (var i = 1; i <= FallbackSegments; i++) {
 				var time = math.lerp(startTime, maxTime, (float)i / FallbackSegments);
 				var distance = Distance(in hinge, ball.Position + ball.Velocity * time, ball.Radius, time);
@@ -299,19 +296,7 @@ namespace VisualPinball.Unity
 						ball.Position + ball.Velocity * refined, ball.Radius, refined);
 					return PopulateHit(ref collEvent, in hinge, in ball, in refinedDistance, refined);
 				}
-				var interval = time - previousTime;
-				if (math.min(previous.Separation, distance.Separation) <= rateBound * interval) {
-					var speculativeTime = math.min(maxTime, math.max(previousTime, TimeEpsilon));
-					var speculativeDistance = Distance(in hinge,
-						ball.Position + ball.Velocity * speculativeTime, ball.Radius, speculativeTime);
-					var hit = PopulateHit(ref collEvent, in hinge, in ball,
-						in speculativeDistance, speculativeTime);
-					if (hit >= 0f) {
-						return hit;
-					}
-				}
 				previousTime = time;
-				previous = distance;
 			}
 			return -1f;
 		}
