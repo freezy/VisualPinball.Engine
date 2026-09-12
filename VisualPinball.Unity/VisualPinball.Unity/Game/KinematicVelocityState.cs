@@ -78,6 +78,22 @@ namespace VisualPinball.Unity
 		internal ulong LastUpdateUsec;
 
 		/// <summary>
+		/// Simulation-clock time at which the simulation thread consumed the latest
+		/// transform sample. This is deliberately separate from
+		/// <see cref="LastUpdateUsec"/>, whose Unity sample clock can drift from the
+		/// independently paced simulation clock.
+		/// </summary>
+		internal ulong LastAppliedUsec;
+
+		/// <summary>
+		/// Linear and angular speeds used to pace collider pose catch-up. These are
+		/// kept separate from the actual step velocities so the catch-up factor is
+		/// applied once instead of feeding back and compounding every tick.
+		/// </summary>
+		internal float PaceSpeed;
+		internal float PaceAngularSpeed;
+
+		/// <summary>
 		/// Instantaneous velocity of the actual pose step this tick (same unit
 		/// as <see cref="LinearVelocity"/>), written by
 		/// <see cref="PhysicsKinematics.StepKinematics"/> — nonzero only while

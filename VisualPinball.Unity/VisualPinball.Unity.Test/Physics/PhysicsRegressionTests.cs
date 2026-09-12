@@ -214,6 +214,91 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void DeepStaticTriangleContactRecoversBeforeTheBallReachesTheBackSide()
+		{
+			var triangle = new TriangleCollider(
+				new float3(-1000f, -1000f, 0f),
+				new float3(-1000f, 1000f, 0f),
+				new float3(1000f, -1000f, 0f),
+				new ColliderInfo { Id = 1, ItemId = 1, ItemType = ItemType.Primitive });
+			var ball = new BallState {
+				Id = 7,
+				Mass = 1f,
+				Radius = 25f,
+				Position = new float3(-100f, -100f, 12f),
+			};
+			var insideOfs = default(InsideOfs);
+
+			for (var i = 0; i < 3; i++) {
+				var contact = new CollisionEventData { ColliderId = 1 };
+				Assert.That(triangle.HitTest(ref contact, in insideOfs, in ball, 0.1f), Is.Zero,
+					"the triangle must keep reporting contact while the ball is being recovered");
+				BallCollider.HandleStaticContact(ref ball, in contact, 0f, 0.1f, float3.zero, float3.zero);
+			}
+
+			Assert.That(ball.Position.z, Is.GreaterThan(24.5f),
+				"the ball center must recover to the free side before the one-sided triangle rejects it");
+		}
+
+		[Test]
+		public void StaticContactInsideTheTouchBandDoesNotMoveTheBall()
+		{
+			var initialPosition = new float3(1f, 2f, 24.95f);
+			var ball = new BallState {
+				Mass = 1f,
+				Radius = 25f,
+				Position = initialPosition,
+			};
+			var contact = new CollisionEventData {
+				ColliderId = 1,
+				HitNormal = new float3(0f, 0f, 1f),
+				HitDistance = -0.05f,
+				IsContact = true,
+			};
+
+			BallCollider.HandleStaticContact(ref ball, in contact, 0f, 0.1f, float3.zero, float3.zero);
+
+			Assert.That(ball.Position, Is.EqualTo(initialPosition));
+		}
+
+		[Test]
+		public void KinematicContactKeepsEmbeddedCarryPosition()
+		{
+			var ball = new BallState {
+				Mass = 1f,
+				Radius = 25f,
+				Position = new float3(0f, 0f, 12f),
+			};
+			var contact = new CollisionEventData {
+				ColliderId = 1,
+				HitNormal = new float3(0f, 0f, 1f),
+				HitDistance = -13f,
+				IsContact = true,
+				IsKinematic = true,
+			};
+
+			BallCollider.HandleStaticContact(ref ball, in contact, 0f, 0.1f, float3.zero, float3.zero);
+
+			Assert.That(ball.Position.z, Is.EqualTo(12f).Within(Tolerance));
+		}
+
+		[Test]
+		public void DestroyedBallIsReleasedFromEveryKicker()
+		{
+			using var kickerStates = new NativeParallelHashMap<int, KickerState>(2, Allocator.Temp);
+			kickerStates.Add(1, new KickerState(default,
+				new KickerCollisionState { BallId = 7, LastCapturedBallId = 7 }, default));
+			kickerStates.Add(2, new KickerState(default,
+				new KickerCollisionState { BallId = 9, LastCapturedBallId = 9 }, default));
+
+			PhysicsEngine.ReleaseDestroyedBallFromKickers(7, kickerStates);
+
+			Assert.That(kickerStates[1].Collision.BallId, Is.Zero);
+			Assert.That(kickerStates[1].Collision.LastCapturedBallId, Is.EqualTo(7));
+			Assert.That(kickerStates[2].Collision.BallId, Is.EqualTo(9));
+		}
+
+		[Test]
 		public void FrictionLoadExcludesAccelerationSupportedByAnotherContact()
 		{
 			var acceleration = new float3(-2f, 1f, -1f);

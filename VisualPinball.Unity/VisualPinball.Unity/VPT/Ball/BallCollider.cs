@@ -23,6 +23,7 @@ namespace VisualPinball.Unity
 	internal static class BallCollider
 	{
 		private const float HardScatter = 0.0f;
+		private const float StaticContactPenetrationTolerance = 0.5f;
 
 		public static void Collide3DWall(ref BallState ball, in PhysicsMaterialData material, in CollisionEventData collEvent, in float3 hitNormal, ref PhysicsState state)
 		{
@@ -159,6 +160,18 @@ namespace VisualPinball.Unity
 
 			// If some collision has changed the ball's velocity, we may not have to do anything.
 			if (normVel <= PhysicsConstants.ContactVel) {
+				// Impacts correct penetration in Collide3DWall, but sustained contacts
+				// arrive through this path instead. A moving support can leave a ball
+				// slightly inside the next static mesh; without position recovery that
+				// error accumulates until a one-sided triangle rejects the ball as being
+				// behind it. Keep kinematic contacts unchanged so an intentionally moving
+				// support remains authoritative while it carries the ball.
+				if (collEvent.ColliderId >= 0 && !collEvent.IsKinematic &&
+				    collEvent.HitDistance < -StaticContactPenetrationTolerance) {
+					var correction = math.min(-PhysicsConstants.DispGain * collEvent.HitDistance,
+						PhysicsConstants.DispLimit);
+					ball.Position += collEvent.HitNormal * correction;
+				}
 
 				// Balance every continuous load already integrated this tick. Without the
 				// additional acceleration, a magnet can press a resting ball through a wall

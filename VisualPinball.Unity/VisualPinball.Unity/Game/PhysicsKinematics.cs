@@ -99,7 +99,7 @@ namespace VisualPinball.Unity
 		/// and re-transforms its colliders. Called once per tick; a no-op for items
 		/// that have reached their target.
 		/// </summary>
-		internal static void StepKinematics(ref PhysicsState state)
+		internal static void StepKinematics(ref PhysicsState state, ulong currentTimeUsec)
 		{
 			PerfMarkerTransform.Begin();
 			using var enumerator = state.KinematicTargetTransforms.GetEnumerator();
@@ -109,45 +109,51 @@ namespace VisualPinball.Unity
 
 				ref var current = ref state.KinematicTransforms.GetValueByRef(itemId);
 				var hasVelocity = state.KinematicVelocities.TryGetValue(itemId, out var velocity);
+				if (hasVelocity && ExpireStaleDerivedVelocity(ref velocity, currentTimeUsec)) {
+					state.KinematicVelocities[itemId] = velocity;
+				}
 				if (current.Equals(target)) {
-					// pose settled: clear the step-velocity fallback
-					if (hasVelocity && (math.lengthsq(velocity.StepVelocity) > 0f || math.lengthsq(velocity.StepAngularVelocity) > 0f)) {
+					// pose settled: clear the step-velocity fallback and catch-up pace
+					if (hasVelocity && (math.lengthsq(velocity.StepVelocity) > 0f
+					    || math.lengthsq(velocity.StepAngularVelocity) > 0f
+					    || velocity.PaceSpeed > 0f
+					    || velocity.PaceAngularSpeed > 0f)) {
 						velocity.StepVelocity = float3.zero;
 						velocity.StepAngularVelocity = float3.zero;
+						velocity.PaceSpeed = 0f;
+						velocity.PaceAngularSpeed = 0f;
 						state.KinematicVelocities[itemId] = velocity;
 					}
 					continue;
 				}
 
-				// pace the step at the item's own speed (per tick), so touching balls
-				// feel the true surface velocity; StepVelocity carries the pace across
-				// the final catch-up after the derived velocity was zeroed by a stop
+				// Pace from the measured speed, independent of the previous tick's actual
+				// step. Feeding the accelerated step back here compounds CatchUpFactor.
 				var maxLinearStep = MaxLinearStepPerTick;
 				var maxAngularStep = MaxAngularStepPerTick;
+				var hasLinearPace = false;
+				var hasAngularPace = false;
 				if (hasVelocity) {
-					var paceLin = math.max(math.length(velocity.LinearVelocity), math.length(velocity.StepVelocity))
-						* CatchUpFactor * PhysicsConstants.PhysFactor;
-					var paceAng = math.max(math.length(velocity.AngularVelocity), math.length(velocity.StepAngularVelocity))
-						* CatchUpFactor * PhysicsConstants.PhysFactor;
-					if (paceLin > 1e-6f) {
+					var paceLin = velocity.PaceSpeed * CatchUpFactor * PhysicsConstants.PhysFactor;
+					var paceAng = velocity.PaceAngularSpeed * CatchUpFactor * PhysicsConstants.PhysFactor;
+					hasLinearPace = paceLin > 0f;
+					hasAngularPace = paceAng > 0f;
+					if (hasLinearPace) {
 						maxLinearStep = math.min(paceLin, MaxLinearStepPerTick);
 					}
-					if (paceAng > 1e-8f) {
+					if (hasAngularPace) {
 						maxAngularStep = math.min(paceAng, MaxAngularStepPerTick);
 					}
 				}
 
-				// active step motion also counts as continuous: after a stop event, the
-				// derived velocity is already zeroed while the pose may still be
-				// catching up — the remaining gap must keep streaming (paced by
-				// StepVelocity), not get mistaken for an isolated warp and snapped
-				// through balls by the teleport branch of StepTowards
-				var continuous = hasVelocity && (velocity.IsMoving
-					|| math.lengthsq(velocity.StepVelocity) > 0f
-					|| math.lengthsq(velocity.StepAngularVelocity) > 0f);
+				// A measured pace keeps the remaining gap continuous after a stop has
+				// zeroed the derived surface velocity. Without a pace, the target is a
+				// teleport and must not sweep through balls.
+				var continuous = hasVelocity && (hasLinearPace || hasAngularPace);
 
 				var before = current;
-				current = StepTowards(in current, in target, continuous, maxLinearStep, maxAngularStep, out var jumped);
+				current = StepTowards(in current, in target, continuous, hasLinearPace, hasAngularPace,
+					maxLinearStep, maxAngularStep, out var jumped);
 
 				if (hasVelocity) {
 					if (jumped) {
@@ -168,8 +174,8 @@ namespace VisualPinball.Unity
 						if (qd.value.w < 0f) {
 							qd.value = -qd.value;
 						}
-						var stepAngle = 2f * math.acos(math.clamp(qd.value.w, -1f, 1f));
 						var stepAxisLenSq = math.lengthsq(qd.value.xyz);
+						var stepAngle = 2f * math.atan2(math.sqrt(stepAxisLenSq), math.clamp(qd.value.w, -1f, 1f));
 						velocity.StepAngularVelocity = stepAngle > 1e-6f && stepAxisLenSq > 1e-12f
 							? qd.value.xyz * math.rsqrt(stepAxisLenSq) * (stepAngle / PhysicsConstants.PhysFactor)
 							: float3.zero;
@@ -187,18 +193,43 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
+		/// Stops using a transform sample's derived velocity when the producer has
+		/// not refreshed it within the normal low-cadence update window.
+		/// </summary>
+		/// <remarks>
+		/// In threaded mode the Unity main thread both samples transforms and
+		/// reports that an item stopped. If that thread stalls, the simulation
+		/// thread keeps running while the collider is already sitting at its last
+		/// target pose. Leaving the last derived velocity active in that state makes
+		/// a stationary collider behave like a moving surface and can push a ball or
+		/// make the narrow phase classify a falling ball as receding from its support.
+		///
+		/// Step velocities remain intact because they describe pose movement that
+		/// actually happened on the simulation thread while catching up.
+		/// </remarks>
+		private static bool ExpireStaleDerivedVelocity(ref KinematicVelocityState velocity, ulong currentTimeUsec)
+		{
+			if (currentTimeUsec < velocity.LastAppliedUsec ||
+			    currentTimeUsec - velocity.LastAppliedUsec < KinematicVelocityTimeoutUsec ||
+			    !velocity.IsMoving) {
+				return false;
+			}
+
+			velocity.LinearVelocity = float3.zero;
+			velocity.AngularVelocity = float3.zero;
+			return true;
+		}
+
+		/// <summary>
 		/// Returns the pose one tick-step closer to the target. Deltas within
 		/// <see cref="MaxLinearJumpPerTick"/> / <see cref="MaxAngularJumpPerTick"/>
-		/// are applied as a single jump (the classic behavior, gentle embedded
-		/// carry); larger ones step at the given paced limits. An <i>isolated</i>
-		/// delta beyond the teleport thresholds snaps to the target directly (a warp
-		/// shouldn't sweep through balls); during continuous motion, large deltas
-		/// keep stepping, so fast drags stream instead of teleporting. Scale is
-		/// taken from the target (scale animation is unsupported, see
-		/// <see cref="RotationOf"/>).
+		/// are applied as a single jump. Larger continuous deltas step at the given
+		/// paced limits. A delta without a measured pace is an isolated warp and
+		/// snaps directly so it cannot sweep through balls. Scale is taken from the
+		/// target (scale animation is unsupported, see <see cref="RotationOf"/>).
 		/// </summary>
 		private static float4x4 StepTowards(in float4x4 current, in float4x4 target, bool continuous,
-			float maxLinearStep, float maxAngularStep, out bool jumped)
+			bool hasLinearPace, bool hasAngularPace, float maxLinearStep, float maxAngularStep, out bool jumped)
 		{
 			var pC = current.c3.xyz;
 			var pT = target.c3.xyz;
@@ -216,8 +247,12 @@ namespace VisualPinball.Unity
 				return target;
 			}
 
-			// an isolated teleport-sized warp snaps without imparting anything
-			if (!continuous && (dist > TeleportDistance || angle > TeleportAngle)) {
+			// Without a measured pace this is a teleport, not motion to sweep through
+			// balls. The same applies when only one motion axis has a pace and the
+			// other axis has more than a jump-sized unexplained gap.
+			if (!continuous
+			    || (!hasLinearPace && dist > MaxLinearJumpPerTick)
+			    || (!hasAngularPace && angle > MaxAngularJumpPerTick)) {
 				jumped = true;
 				return target;
 			}
@@ -275,6 +310,8 @@ namespace VisualPinball.Unity
 					AngularVelocity = prev.AngularVelocity,
 					Pivot = pivot,
 					LastUpdateUsec = prev.LastUpdateUsec,
+					PaceSpeed = prev.PaceSpeed,
+					PaceAngularSpeed = prev.PaceAngularSpeed,
 				};
 			}
 
@@ -299,7 +336,8 @@ namespace VisualPinball.Unity
 			if (qd.value.w < 0f) { // nearest-neighbor: q and -q are the same rotation
 				qd.value = -qd.value;
 			}
-			var angle = 2f * math.acos(math.clamp(qd.value.w, -1f, 1f));
+			var axisLenSq = math.lengthsq(qd.value.xyz);
+			var angle = 2f * math.atan2(math.sqrt(axisLenSq), math.clamp(qd.value.w, -1f, 1f));
 
 			// teleport guard: a jump this large in a single update imparts no velocity
 			if (math.lengthsq(deltaPos) > TeleportDistance * TeleportDistance || angle > TeleportAngle) {
@@ -308,7 +346,6 @@ namespace VisualPinball.Unity
 			}
 
 			var angVel = float3.zero;
-			var axisLenSq = math.lengthsq(qd.value.xyz);
 			if (angle > 1e-6f && axisLenSq > 1e-12f) {
 				angVel = qd.value.xyz * math.rsqrt(axisLenSq) * (angle / dt);
 			}
@@ -318,6 +355,8 @@ namespace VisualPinball.Unity
 				AngularVelocity = angVel,
 				Pivot = pivot,
 				LastUpdateUsec = sampleTimeUsec,
+				PaceSpeed = math.length(deltaPos / dt),
+				PaceAngularSpeed = math.length(angVel),
 			};
 		}
 
@@ -341,6 +380,14 @@ namespace VisualPinball.Unity
 		/// hold always derives a velocity.
 		/// </summary>
 		internal const ulong IsolatedHoldTimeoutUsec = 120_000;
+
+		/// <summary>
+		/// Maximum age of a derived transform velocity. This still supports 10 Hz
+		/// transform producers, while bounding false surface motion during a Unity
+		/// main-thread stall to less than the time needed for a supported ball to
+		/// cross a typical collider thickness.
+		/// </summary>
+		internal const ulong KinematicVelocityTimeoutUsec = 120_000;
 
 		/// <summary>
 		/// Returns whether an isolated update's delta is small enough to apply

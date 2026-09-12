@@ -350,7 +350,7 @@ namespace VisualPinball.Unity
 
 				if (_ctx.PendingKinematicStops.Count > 0) {
 					foreach (var sample in _ctx.PendingKinematicStops) {
-						StopKinematicVelocity(sample.ItemId, sample.SampleTimeUsec);
+						StopKinematicVelocity(sample.ItemId, sample.SampleTimeUsec, currentTimeUsec);
 					}
 					_ctx.PendingKinematicStops.Clear();
 				}
@@ -372,7 +372,7 @@ namespace VisualPinball.Unity
 		/// </remarks>
 		private void StageKinematicTarget(int itemId, in float4x4 matrix, ulong sampleTimeUsec, ulong holdTimeUsec)
 		{
-			var isIsolated = DeriveKinematicVelocity(itemId, in matrix, sampleTimeUsec, out var prevMatrix);
+			var isIsolated = DeriveKinematicVelocity(itemId, in matrix, sampleTimeUsec, holdTimeUsec, out var prevMatrix);
 			var wasHeld = _heldIsolatedPoses.Remove(itemId); // a follow-up resolves any hold
 
 			if (isIsolated && !wasHeld) {
@@ -449,7 +449,8 @@ namespace VisualPinball.Unity
 		/// <i>target</i> (the true motion timeline as staged), not the
 		/// possibly-lagging stepped pose.
 		/// </remarks>
-		private bool DeriveKinematicVelocity(int itemId, in float4x4 currMatrix, ulong sampleTimeUsec, out float4x4 prevMatrix)
+		private bool DeriveKinematicVelocity(int itemId, in float4x4 currMatrix, ulong sampleTimeUsec,
+			ulong simulationTimeUsec, out float4x4 prevMatrix)
 		{
 			if (_heldIsolatedPoses.TryGetValue(itemId, out var held)) {
 				prevMatrix = held.Pose;
@@ -457,7 +458,10 @@ namespace VisualPinball.Unity
 				prevMatrix = _ctx.KinematicTransforms.Ref[itemId];
 			}
 			if (_ctx.KinematicVelocities.Ref.TryGetValue(itemId, out var prevVelocity)) {
-				_ctx.KinematicVelocities.Ref[itemId] = PhysicsKinematics.DeriveVelocity(in prevVelocity, in prevMatrix, in currMatrix, sampleTimeUsec, out var isIsolated);
+				var velocity = PhysicsKinematics.DeriveVelocity(in prevVelocity, in prevMatrix, in currMatrix,
+					sampleTimeUsec, out var isIsolated);
+				velocity.LastAppliedUsec = simulationTimeUsec;
+				_ctx.KinematicVelocities.Ref[itemId] = velocity;
 				return isIsolated;
 			}
 
@@ -465,6 +469,7 @@ namespace VisualPinball.Unity
 			_ctx.KinematicVelocities.Ref[itemId] = new KinematicVelocityState {
 				Pivot = currMatrix.c3.xyz,
 				LastUpdateUsec = sampleTimeUsec,
+				LastAppliedUsec = simulationTimeUsec,
 			};
 			return true;
 		}
@@ -474,27 +479,23 @@ namespace VisualPinball.Unity
 		/// its pivot so a later update derives from a valid baseline.
 		/// </summary>
 		/// <remarks>
-		/// The derived velocity is handed over to the step velocities instead of
-		/// just being cleared: the pose may still be catching up to its target,
-		/// and while it does, the collider really is still moving — the step
-		/// velocities keep the catch-up classified as continuous (no teleport
-		/// snap of the remaining gap) and carry its pace. This also covers the
-		/// case where the final transform update and the stop are drained
-		/// together, before <see cref="PhysicsKinematics.StepKinematics"/> ever
-		/// ran for that target — the step velocities would otherwise still be
-		/// zero. From here on, StepKinematics re-derives them from the actual
-		/// step each tick and zeroes them the tick the pose settles, before any
-		/// hit test runs; if the pose is already settled, the seeded values are
-		/// cleared the same way on the next tick.
+		/// The measured speeds remain as the catch-up pace while the derived surface
+		/// velocity is cleared. This covers a final transform and stop drained in the
+		/// same tick, before <see cref="PhysicsKinematics.StepKinematics"/> has moved
+		/// toward that target. StepKinematics records each actual step as surface
+		/// velocity and clears the pace when the pose settles.
 		/// </remarks>
-		private void StopKinematicVelocity(int itemId, ulong sampleTimeUsec)
+		private void StopKinematicVelocity(int itemId, ulong sampleTimeUsec, ulong simulationTimeUsec)
 		{
 			if (_ctx.KinematicVelocities.Ref.TryGetValue(itemId, out var velocity)) {
-				velocity.StepVelocity = velocity.LinearVelocity;
-				velocity.StepAngularVelocity = velocity.AngularVelocity;
+				velocity.PaceSpeed = math.max(velocity.PaceSpeed, math.length(velocity.LinearVelocity));
+				velocity.PaceAngularSpeed = math.max(velocity.PaceAngularSpeed, math.length(velocity.AngularVelocity));
+				velocity.StepVelocity = float3.zero;
+				velocity.StepAngularVelocity = float3.zero;
 				velocity.LinearVelocity = float3.zero;
 				velocity.AngularVelocity = float3.zero;
 				velocity.LastUpdateUsec = sampleTimeUsec;
+				velocity.LastAppliedUsec = simulationTimeUsec;
 				_ctx.KinematicVelocities.Ref[itemId] = velocity;
 			}
 		}
@@ -901,7 +902,7 @@ namespace VisualPinball.Unity
 				if (lastTransformationMatrix.Equals(currTransformationMatrix)) {
 					// unchanged — if it moved last frame, it just stopped, so zero its velocity
 					if (_movedKinematicItems.Remove(item.ItemId)) {
-						StopKinematicVelocity(item.ItemId, currentTimeUsec);
+						StopKinematicVelocity(item.ItemId, currentTimeUsec, currentTimeUsec);
 					}
 					continue;
 				}
