@@ -26,6 +26,11 @@ namespace VisualPinball.Unity
 		private const float StaticContactPenetrationTolerance = 0.5f;
 
 		public static void Collide3DWall(ref BallState ball, in PhysicsMaterialData material, in CollisionEventData collEvent, in float3 hitNormal, ref PhysicsState state)
+			=> Collide3DWall(ref ball, in material, in collEvent, in hitNormal, 1f, ref state);
+
+		internal static void Collide3DWall(ref BallState ball, in PhysicsMaterialData material,
+			in CollisionEventData collEvent, in float3 hitNormal, float elasticityScale,
+			ref PhysicsState state)
 		{
 			// surface velocity of the collider at the contact point (zero unless kinematic and moving)
 			var colliderVelocity = state.GetKinematicSurfaceVelocity(in collEvent, ball.Position - ball.Radius * hitNormal);
@@ -64,18 +69,8 @@ namespace VisualPinball.Unity
 			// magnitude of the impulse which is just sufficient to keep the ball from
 			// penetrating the wall (needed for friction computations)
 			var reactionImpulse = ball.Mass * math.abs(dot);
-			float elasticity = 0;
-			if (material.UseElasticityOverVelocity) {
-				// nFozzy used the xy velocity, but using the dot velocity seems more "physical".
-				//var velocity = math.sqrt(ball.Velocity.x * ball.Velocity.x + ball.Velocity.y * ball.Velocity.y + ball.Velocity.z * ball.Velocity.z);
-				var velocity = math.abs(dot);
-				var colliders = collEvent.IsKinematic ? state.KinematicColliders : state.Colliders;
-				var itemId = colliders.GetItemId(collEvent.ColliderId);
-				var lut = state.ElasticityOverVelocityLUTs[itemId];
-				elasticity = lut.InterpolateLUT(0, 63f, velocity);
-			} else {
-				elasticity = Math.ElasticityWithFalloff(material.Elasticity, material.ElasticityFalloff, dot);
-			}
+			var elasticity = ResolveElasticity(in material, in collEvent, dot, ref state)
+				* elasticityScale;
 
 			dot *= -(1.0f + elasticity);
 			ball.Velocity += hitNormal * dot;                                  // apply collision impulse (along normal, so no torque)
@@ -197,6 +192,20 @@ namespace VisualPinball.Unity
 				ApplyFriction(ref ball, collEvent.HitNormal, dTime, friction, in frictionAcceleration,
 					in colliderVelocity, in frictionVelocity, in frictionAngularMomentum);
 			}
+		}
+
+		internal static float ResolveElasticity(in PhysicsMaterialData material,
+			in CollisionEventData collEvent, float normalVelocity, ref PhysicsState state)
+		{
+			if (material.UseElasticityOverVelocity) {
+				// nFozzy used the xy velocity, but using the normal velocity seems more physical.
+				var colliders = collEvent.IsKinematic ? state.KinematicColliders : state.Colliders;
+				var itemId = colliders.GetItemId(collEvent.ColliderId);
+				var lut = state.ElasticityOverVelocityLUTs[itemId];
+				return lut.InterpolateLUT(0, 63f, math.abs(normalVelocity));
+			}
+			return Math.ElasticityWithFalloff(material.Elasticity,
+				material.ElasticityFalloff, normalVelocity);
 		}
 
 		private static void ApplyFriction(ref BallState ball, in float3 hitNormal, float dTime, float frictionCoeff,
