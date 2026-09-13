@@ -152,6 +152,7 @@ namespace VisualPinball.Unity
 		/// This does not include balls sitting in drain before being pushed into the trough.
 		/// </remarks>
 		private int _countedStackBalls;
+		private BallPrefabQueue _ballPrefabs;
 
 		/// <summary>
 		/// The player will ask for switches to hook up to the gamelogic engine,
@@ -233,6 +234,7 @@ namespace VisualPinball.Unity
 
 			// fill up the ball stack
 			var ballCount = MainComponent.Type == TroughType.ClassicSingleBall ? 1 : MainComponent.BallCount;
+			_ballPrefabs = new BallPrefabQueue(MainComponent.BallPrefabs, MainComponent.Ball, ballCount);
 			for (var i = 0; i < ballCount; i++) {
 				AddBall();
 			}
@@ -250,7 +252,7 @@ namespace VisualPinball.Unity
 				case TroughType.ModernOpto:
 				case TroughType.ModernMech:
 				case TroughType.TwoCoilsNSwitches:
-					if (_countedStackBalls < MainComponent.BallCount) {
+					if (_countedStackBalls < _stackSwitches.Length) {
 						_stackSwitches[_countedStackBalls].SetSwitch(true);
 						_countedStackBalls++;
 					} else {
@@ -297,12 +299,15 @@ namespace VisualPinball.Unity
 		private void OnEntry(object sender, SwitchEventArgs args)
 		{
 			if (args.IsEnabled) {
-				Logger.Info("Draining ball into trough.");
-				if (_drainSwitch is KickerApi kickerApi) {
-					kickerApi.DestroyBall();
-				} else {
-					BallManager.DestroyBall(args.BallId);
+				if (!PhysicsEngine.TryGetBall(args.BallId, out var ballComponent)) {
+					Logger.Warn($"Cannot drain ball {args.BallId}: the ball no longer exists.");
+					return;
 				}
+
+				Logger.Info("Draining ball into trough.");
+				var ballPrefab = ballComponent.SourcePrefab;
+				BallManager.DestroyBall(args.BallId);
+				_ballPrefabs.Enqueue(ballPrefab);
 				DrainBall();
 
 			} else {
@@ -491,8 +496,13 @@ namespace VisualPinball.Unity
 					Logger.Warn("Trough: Cannot spawn ball without an exit kicker.");
 					return false;
 				}
+				if (_ballPrefabs == null || _ballPrefabs.Count == 0) {
+					Logger.Error("Trough: Ball prefab queue is empty while the trough still contains a ball.");
+					return false;
+				}
 				Logger.Info("Trough: Spawning new ball.");
-				_ejectKicker.CreateBall(MainComponent.Ball);
+				_ejectKicker.CreateBall(_ballPrefabs.Peek());
+				_ballPrefabs.Dequeue();
 				_ejectCoil.OnCoil(true);
 
 				// open the switch of the ejected ball immediately
@@ -683,5 +693,28 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+	}
+
+	internal sealed class BallPrefabQueue
+	{
+		private readonly Queue<GameObject> _prefabs = new Queue<GameObject>();
+
+		internal int Count => _prefabs.Count;
+
+		internal BallPrefabQueue(IReadOnlyList<GameObject> configuredPrefabs, GameObject legacyPrefab, int ballCount)
+		{
+			var useLegacyPrefab = configuredPrefabs == null || configuredPrefabs.Count == 0;
+			for (var i = 0; i < ballCount; i++) {
+				_prefabs.Enqueue(useLegacyPrefab
+					? legacyPrefab
+					: i < configuredPrefabs.Count ? configuredPrefabs[i] : null);
+			}
+		}
+
+		internal GameObject Peek() => _prefabs.Peek();
+
+		internal void Dequeue() => _prefabs.Dequeue();
+
+		internal void Enqueue(GameObject prefab) => _prefabs.Enqueue(prefab);
 	}
 }

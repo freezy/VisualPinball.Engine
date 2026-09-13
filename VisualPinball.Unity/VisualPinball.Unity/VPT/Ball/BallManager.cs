@@ -53,10 +53,19 @@ namespace VisualPinball.Unity
 
 			var ballGo = Object.Instantiate(ballPrefab, _parent);
 			var ballComp = ballGo.GetComponent<BallComponent>();
+			if (!ballComp) {
+				Object.DestroyImmediate(ballGo);
+				throw new InvalidOperationException($"Ball prefab '{ballPrefab.name}' must have a BallComponent on its root.");
+			}
+			if (ballComp.Radius <= 0f) {
+				Object.DestroyImmediate(ballGo);
+				throw new InvalidOperationException($"Ball prefab '{ballPrefab.name}' must have a radius greater than zero.");
+			}
 
 			ballGo.name = $"Ball {NumBallsCreated++}";
-			ballGo.transform.localScale = Physics.ScaleToWorld(new Vector3(radius, radius, radius) * 2f);
+			ballGo.transform.localScale *= radius / ballComp.Radius;
 			ballGo.transform.localPosition = localPos.TranslateToWorld();
+			ballComp.SourcePrefab = ballPrefab;
 			ballComp.Radius = radius;
 			ballComp.Mass = mass;
 			ballComp.Velocity = ballCreator.GetBallCreationVelocity().ToUnityFloat3();
