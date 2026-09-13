@@ -62,12 +62,16 @@ namespace VisualPinball.Unity
 		public KickerComponent PlayfieldExitKicker;
 		public string PlayfieldExitKickerItem = string.Empty;
 
-		[Tooltip("The prefab that will instantiated when ejecting a new ball.")]
+		[HideInInspector]
+		[Tooltip("Legacy ball prefab. Kept so existing tables can be migrated to Ball Prefabs.")]
 		public GameObject Ball;
 
 		[Range(1, 10)]
 		[Tooltip("How many balls the trough holds when the game starts.")]
 		public int BallCount = 6;
+
+		[Tooltip("The ball prefabs in ejection order. A null entry uses the current render pipeline's default ball.")]
+		public GameObject[] BallPrefabs = Array.Empty<GameObject>();
 
 		[Range(1, 10)]
 		[Tooltip("How many ball switches are available.")]

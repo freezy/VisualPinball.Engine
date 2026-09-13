@@ -29,6 +29,12 @@ namespace VisualPinball.Unity
 		public float3 Velocity;
 		public bool IsFrozen;
 
+		/// <summary>
+		/// The prefab this runtime ball was instantiated from. Troughs use this to put the
+		/// correct visual ball back into their prefab queue after a drain.
+		/// </summary>
+		internal GameObject SourcePrefab { get; set; }
+
 		internal BallState CreateState()
 		{
 			var pos = transform.localPosition.TranslateToVpx();

@@ -30,6 +30,52 @@ namespace VisualPinball.Unity.Test
 {
 	public class TroughTests
 	{
+		[Test]
+		public void ShouldPutDrainedBallPrefabsAtBackOfQueue()
+		{
+			var firstBall = new GameObject("First Ball");
+			var secondBall = new GameObject("Second Ball");
+			var thirdBall = new GameObject("Third Ball");
+			try {
+				var queue = new BallPrefabQueue(new[] { firstBall, secondBall, thirdBall }, null, 3);
+
+				queue.Peek().Should().BeSameAs(firstBall);
+				queue.Dequeue();
+				queue.Peek().Should().BeSameAs(secondBall);
+				queue.Dequeue();
+
+				// The second ball drains before the first one.
+				queue.Enqueue(secondBall);
+				queue.Enqueue(firstBall);
+
+				queue.Peek().Should().BeSameAs(thirdBall);
+				queue.Dequeue();
+				queue.Peek().Should().BeSameAs(secondBall);
+				queue.Dequeue();
+				queue.Peek().Should().BeSameAs(firstBall);
+			} finally {
+				Object.DestroyImmediate(firstBall);
+				Object.DestroyImmediate(secondBall);
+				Object.DestroyImmediate(thirdBall);
+			}
+		}
+
+		[Test]
+		public void ShouldUseLegacyPrefabForEveryInitialBall()
+		{
+			var legacyBall = new GameObject("Legacy Ball");
+			try {
+				var queue = new BallPrefabQueue(null, legacyBall, 3);
+
+				for (var i = 0; i < 3; i++) {
+					queue.Peek().Should().BeSameAs(legacyBall);
+					queue.Dequeue();
+				}
+				queue.Count.Should().Be(0);
+			} finally {
+				Object.DestroyImmediate(legacyBall);
+			}
+		}
 
 		[Test]
 		public void ShouldReturnCorrectSwitchesForModernOpto()
