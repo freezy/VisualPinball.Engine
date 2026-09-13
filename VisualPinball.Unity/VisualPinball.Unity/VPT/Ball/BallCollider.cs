@@ -232,13 +232,9 @@ namespace VisualPinball.Unity
 			float3 slipDir;
 			float numer;
 
-			// The normal solve has already added this tick's support velocity. Keep that
-			// live value for the static/dynamic branch gate; otherwise a skidding ball
-			// whose pre-contact normal velocity was zero never receives kinetic friction.
-			var normVel = math.dot(ball.Velocity - colliderVelocity, hitNormal);
-			if (normVel <= 0.025 || slipSpeed < PhysicsConstants.Precision) {
-				// check for <=0.025 originated from ball<->rubber collisions pushing the ball upwards, but this is still not enough, some could even use <=0.2
-				// slip speed zero - static friction case
+			if (slipSpeed < PhysicsConstants.Precision) {
+				// Near-zero tangential slip: solve the friction impulse needed to prevent
+				// this tick's tangential acceleration from starting motion.
 
 				var surfAcc = BallState.SurfaceAcceleration(in frictionState, in surfP, in acceleration);
 				// calc the tangential slip acceleration
