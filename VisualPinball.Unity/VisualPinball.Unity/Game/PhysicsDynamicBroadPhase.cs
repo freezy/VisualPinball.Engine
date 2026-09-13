@@ -18,7 +18,6 @@ using NativeTrees;
 using Unity.Collections;
 using Unity.Mathematics;
 using Unity.Profiling;
-using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
 {
@@ -110,8 +109,9 @@ namespace VisualPinball.Unity
 			using var enumerator = overlappingBalls.GetEnumerator();
 			while (enumerator.MoveNext()) {
 				var overlappingBallId = enumerator.Current;
-				ref var overlappingBall = ref balls.GetValueByRef(overlappingBallId);
-				if (overlappingBallId == ball.Id || overlappingBall.IsFrozen) {
+				if (overlappingBallId == ball.Id ||
+				    !balls.TryGetValue(overlappingBallId, out var overlappingBall) ||
+				    overlappingBall.IsFrozen) {
 					toRemove.Add(overlappingBallId);
 				}
 			}
