@@ -19,14 +19,14 @@ Physical collision is a static approximation. It gives the ball the round contac
 
 ## Guide-distance Elasticity
 
-Enable **Guide-distance Elasticity** on a Physical rubber to make unsupported free spans less bouncy than rubber backed by a guide. Supported arcs always use the full elasticity from **Ball Contact Material**. Each free-span capsule receives a fixed multiplier based on its distance along the span from the nearest supported endpoint.
+Enable **Guide-distance Elasticity** on a Physical rubber to make its unsupported free spans more bouncy than rubber backed by a guide. Supported arcs use the configured guide scale, and each free-span capsule receives a fixed multiplier that transitions toward the full **Ball Contact Material** response with distance from the nearest supported endpoint.
 
 The multipliers are generated with the capsule colliders when physics starts. They are not stored in the editor bake and do not require guide slots or other editor-only authoring state at runtime.
 
-- **Free-span Elasticity Scale** controls the response in the unsupported middle. `1` keeps the base material response and `0` removes its normal rebound term.
-- **Guide Influence Length** is the distance in VPX units over which the response transitions away from each support.
+- **Guide Elasticity Scale** controls the response where the rubber is backed by a guide. `1` keeps the base material response and `0` removes its normal rebound term at supported arcs and span endpoints.
+- **Guide Influence Length** is the distance in VPX units over which the response transitions from the guide scale toward full elasticity.
 - **Maximum Response Segment Length** sets an upper bound for capsule length while this response is active. VPE uses the smaller of this value and one eighth of **Guide Influence Length**, ensuring at least eight response samples through the transition. The inspector shows this effective maximum; shorter segments follow the transition more closely but create more colliders.
 
-The effect is disabled by default. A value of `1` for the free-span scale also preserves the existing collider count. Changes refresh Scene-view collider visualization immediately; physics already registered in Play mode uses the new settings after Play mode is restarted.
+The effect is disabled by default. A value of `1` for the guide scale also preserves the existing collider count. Changes refresh Scene-view collider visualization immediately; physics already registered in Play mode uses the new settings after Play mode is restarted.
 
 This setting changes ball-contact elasticity only. It does not change friction, scatter, the guided rubber's shape, or the reserved deformation material.

@@ -435,7 +435,7 @@ namespace VisualPinball.Unity.Test
 				sourceObject.AddComponent<RubberComponent>();
 				var source = sourceObject.AddComponent<RubberColliderComponent>();
 				source.GuideDistanceElasticityEnabled = true;
-				source.FreeSpanElasticityScale = 0.35f;
+				source.GuideElasticityScale = 0.35f;
 				source.GuideInfluenceLength = 75f;
 				source.MaximumResponseSegmentLength = 12f;
 
@@ -444,7 +444,7 @@ namespace VisualPinball.Unity.Test
 				target.Unpack(source.Pack());
 
 				Assert.That(target.GuideDistanceElasticityEnabled, Is.True);
-				Assert.That(target.FreeSpanElasticityScale, Is.EqualTo(0.35f));
+				Assert.That(target.GuideElasticityScale, Is.EqualTo(0.35f));
 				Assert.That(target.GuideInfluenceLength, Is.EqualTo(75f));
 				Assert.That(target.MaximumResponseSegmentLength, Is.EqualTo(12f));
 			} finally {
@@ -461,7 +461,7 @@ namespace VisualPinball.Unity.Test
 				gameObject.AddComponent<RubberComponent>();
 				var collider = gameObject.AddComponent<RubberColliderComponent>();
 				collider.GuideDistanceElasticityEnabled = true;
-				collider.FreeSpanElasticityScale = 0f;
+				collider.GuideElasticityScale = 0f;
 				collider.GuideInfluenceLength = 1f;
 				collider.MaximumResponseSegmentLength = 1f;
 				var oldBytes = PackageApi.Packer.Pack(new LegacyRubberColliderPackable {
@@ -478,12 +478,38 @@ namespace VisualPinball.Unity.Test
 				Assert.That(collider.ZOffset, Is.EqualTo(3f));
 				Assert.That(collider.Mode, Is.EqualTo(RubberColliderMode.Physical));
 				Assert.That(collider.GuideDistanceElasticityEnabled, Is.False);
-				Assert.That(collider.FreeSpanElasticityScale,
-					Is.EqualTo(RubberColliderComponent.DefaultFreeSpanElasticityScale));
+				Assert.That(collider.GuideElasticityScale,
+					Is.EqualTo(RubberColliderComponent.DefaultGuideElasticityScale));
 				Assert.That(collider.GuideInfluenceLength,
 					Is.EqualTo(RubberColliderComponent.DefaultGuideInfluenceLength));
 				Assert.That(collider.MaximumResponseSegmentLength,
 					Is.EqualTo(RubberColliderComponent.DefaultMaximumResponseSegmentLength));
+			} finally {
+				Object.DestroyImmediate(gameObject);
+			}
+		}
+
+		[Test]
+		public void ShouldMapVersionOneFreeSpanScaleToGuideScale()
+		{
+			var gameObject = new GameObject("Version 1 Rubber Collider");
+			try {
+				gameObject.AddComponent<RubberComponent>();
+				var collider = gameObject.AddComponent<RubberColliderComponent>();
+				var bytes = PackageApi.Packer.Pack(new RubberColliderPackable {
+					Version = 1,
+					GuideDistanceElasticityEnabled = true,
+					FreeSpanElasticityScale = 0.35f,
+					GuideInfluenceLength = 75f,
+					MaximumResponseSegmentLength = 12f,
+				});
+
+				collider.Unpack(bytes);
+
+				Assert.That(collider.GuideDistanceElasticityEnabled, Is.True);
+				Assert.That(collider.GuideElasticityScale, Is.EqualTo(0.35f));
+				Assert.That(collider.GuideInfluenceLength, Is.EqualTo(75f));
+				Assert.That(collider.MaximumResponseSegmentLength, Is.EqualTo(12f));
 			} finally {
 				Object.DestroyImmediate(gameObject);
 			}
@@ -497,9 +523,9 @@ namespace VisualPinball.Unity.Test
 				gameObject.AddComponent<RubberComponent>();
 				var collider = gameObject.AddComponent<RubberColliderComponent>();
 				var bytes = PackageApi.Packer.Pack(new RubberColliderPackable {
-					Version = 1,
+					Version = 2,
 					GuideDistanceElasticityEnabled = true,
-					FreeSpanElasticityScale = float.NaN,
+					GuideElasticityScale = float.NaN,
 					GuideInfluenceLength = float.NegativeInfinity,
 					MaximumResponseSegmentLength = 0.01f,
 				});
@@ -507,8 +533,8 @@ namespace VisualPinball.Unity.Test
 				collider.Unpack(bytes);
 
 				Assert.That(collider.GuideDistanceElasticityEnabled, Is.True);
-				Assert.That(collider.FreeSpanElasticityScale,
-					Is.EqualTo(RubberColliderComponent.DefaultFreeSpanElasticityScale));
+				Assert.That(collider.GuideElasticityScale,
+					Is.EqualTo(RubberColliderComponent.DefaultGuideElasticityScale));
 				Assert.That(collider.GuideInfluenceLength,
 					Is.EqualTo(RubberColliderComponent.DefaultGuideInfluenceLength));
 				Assert.That(collider.MaximumResponseSegmentLength,
