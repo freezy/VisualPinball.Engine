@@ -197,7 +197,7 @@ The expected hot-path change is one multiply per swept-circle collision. The mea
 
 ## 9. Acceptance criteria
 
-- The serialized feature may remain configured while inactive, but it only affects valid guided Physical rubbers; invalid Physical rubbers retain the existing Legacy fallback.
+- The serialized feature may remain configured while inactive. Physical runtime generation consumes any structurally valid serialized guided path and bake transform, independent of live guide references, slot IDs, or editor bake-current status; only a missing or structurally invalid path retains the Legacy fallback.
 - Supported arcs always use the base contact response.
 - Free-span effective elasticity varies deterministically with along-span distance to the nearest support.
 - No guide-distance work or response interpolation occurs in the per-step broad/narrow phase.

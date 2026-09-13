@@ -367,7 +367,7 @@ namespace VisualPinball.Unity.Test
 				collider.Mode = RubberColliderMode.Physical;
 				var api = new TestRubberApi(go);
 				LogAssert.Expect(LogType.Warning,
-					"Physical rubber 'Rubber' has no current valid guided bake; falling back to Legacy collision.");
+					"Physical rubber 'Rubber' has no usable serialized guided path; falling back to Legacy collision.");
 
 				api.GenerateColliders(ref references);
 
@@ -377,6 +377,62 @@ namespace VisualPinball.Unity.Test
 				references.Dispose();
 				transforms.Dispose();
 				UnityEngine.Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void StaleAuthoringStateShouldUseSerializedPhysicalPathAndRuntimeProfile()
+		{
+			var rubberObject = new GameObject("Rubber");
+			rubberObject.SetActive(false);
+			var guideAObject = new GameObject("Guide A");
+			var guideBObject = new GameObject("Guide B");
+			var transforms = new NativeParallelHashMap<int, float4x4>(1, Allocator.Temp);
+			var references = new ColliderReference(ref transforms, Allocator.Temp);
+			try {
+				guideBObject.transform.localPosition = new Vector3(0.1f, 0f, 0f);
+				var guideA = guideAObject.AddComponent<RubberGuideComponent>();
+				var guideB = guideBObject.AddComponent<RubberGuideComponent>();
+				guideA.Slots = new[] { RubberGuideSlot.Create("Default", 0.01f) };
+				guideB.Slots = new[] { RubberGuideSlot.Create("Default", 0.01f) };
+				var rubber = rubberObject.AddComponent<RubberComponent>();
+				rubber.SetGuideBindings(new[] {
+					new RubberGuideBinding(guideA, guideA.Slots[0].Id),
+					new RubberGuideBinding(guideB, guideB.Slots[0].Id),
+				});
+				Assert.That(RubberAutofit.TryBake(rubber, out _, out var bakeError),
+					Is.True, bakeError);
+
+				var rubberCollider = rubberObject.AddComponent<RubberColliderComponent>();
+				rubberCollider.Mode = RubberColliderMode.Physical;
+				rubberCollider.GuideDistanceElasticityEnabled = true;
+				rubberCollider.FreeSpanElasticityScale = 0.25f;
+				rubberCollider.GuideInfluenceLength = 50f;
+				rubberCollider.MaximumResponseSegmentLength = 20f;
+
+				guideBObject.transform.localPosition += new Vector3(0.001f, 0f, 0f);
+				Assert.That(rubber.HasValidGuidedPath, Is.False);
+				Assert.That(rubberCollider.CanUsePhysical, Is.True);
+
+				new TestRubberApi(rubberObject).GenerateColliders(ref references);
+
+				Assert.That(references.Count,
+					Is.EqualTo(references.SweptCircleColliders.Length));
+				Assert.That(references.SweptCircleColliders.Length, Is.GreaterThan(0));
+				var minimumScale = 1f;
+				var maximumScale = 0f;
+				foreach (var physicalCollider in references.SweptCircleColliders) {
+					minimumScale = math.min(minimumScale, physicalCollider.ElasticityScale);
+					maximumScale = math.max(maximumScale, physicalCollider.ElasticityScale);
+				}
+				Assert.That(minimumScale, Is.LessThan(0.5f));
+				Assert.That(maximumScale, Is.EqualTo(1f));
+			} finally {
+				references.Dispose();
+				transforms.Dispose();
+				UnityEngine.Object.DestroyImmediate(rubberObject);
+				UnityEngine.Object.DestroyImmediate(guideAObject);
+				UnityEngine.Object.DestroyImmediate(guideBObject);
 			}
 		}
 

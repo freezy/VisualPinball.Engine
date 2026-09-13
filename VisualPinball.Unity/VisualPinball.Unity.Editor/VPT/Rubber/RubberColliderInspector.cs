@@ -79,14 +79,14 @@ namespace VisualPinball.Unity.Editor
 			if (EditorGUI.EndChangeCheck()) {
 				if (requestedMode == RubberColliderMode.Physical && !AllTargetsCanUsePhysical()) {
 					EditorUtility.DisplayDialog("Physical Rubber Unavailable",
-						"Every selected rubber requires a current, valid guided bake.", "OK");
+						"Every selected rubber requires a usable serialized guided path.", "OK");
 				} else {
 					_modeProperty.enumValueIndex = (int)requestedMode;
 				}
 			}
 			EditorGUI.showMixedValue = false;
 			if (HasInvalidPhysicalTarget()) {
-				EditorGUILayout.HelpBox("This Physical setting is preserved but cannot run until the guided path is valid and current.",
+				EditorGUILayout.HelpBox("This Physical setting is preserved but cannot run until a usable guided path has been baked.",
 					MessageType.Error);
 			}
 			var showsPhysical = _modeProperty.hasMultipleDifferentValues
