@@ -48,7 +48,7 @@ namespace VisualPinball.Unity
 		{
 			if (ColliderComponent.Mode == RubberColliderMode.Physical) {
 				if (!ColliderComponent.CanUsePhysical) {
-					Debug.LogWarning($"Physical rubber '{MainComponent.name}' has no current valid guided bake; falling back to Legacy collision.",
+					Debug.LogWarning($"Physical rubber '{MainComponent.name}' has no usable serialized guided path; falling back to Legacy collision.",
 						MainComponent);
 				} else {
 					var physicalGenerator = new RubberPhysicalColliderGenerator(this, MainComponent,

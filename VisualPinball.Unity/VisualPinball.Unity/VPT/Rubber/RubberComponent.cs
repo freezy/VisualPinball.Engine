@@ -113,6 +113,10 @@ namespace VisualPinball.Unity
 			get => RubberAutofit.GetStatus(this).IsValid;
 		}
 
+		public bool HasUsableGuidedPath {
+			get => TryGetUsableGuidedPath(out _);
+		}
+
 		#endregion
 
 		#region Packaging
@@ -363,6 +367,33 @@ namespace VisualPinball.Unity
 			isValid = false;
 			error = null;
 			return false;
+		}
+
+		internal bool TryGetUsableGuidedPath(out string error)
+		{
+			if (PathSource != RubberPathSource.Guides) {
+				error = "Spline path is authoritative.";
+				return false;
+			}
+			if (BakedPath.Count == 0) {
+				error = "No guided path has been baked.";
+				return false;
+			}
+			for (var row = 0; row < 4; row++) {
+				for (var column = 0; column < 4; column++) {
+					if (float.IsFinite(BakeFrameToLocal[row, column])) {
+						continue;
+					}
+					error = "The guided path has an invalid bake transform.";
+					return false;
+				}
+			}
+			if (!TryGetCachedPathValidation(out var pathIsValid, out error)) {
+				pathIsValid = RubberPathValidator.TryValidate(BakedPath,
+					RubberAutofit.SolverEpsilonVpx, out error);
+				CachePathValidation(pathIsValid, error);
+			}
+			return pathIsValid;
 		}
 
 		internal void CachePathValidation(bool isValid, string error)

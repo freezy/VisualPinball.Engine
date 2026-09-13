@@ -111,7 +111,7 @@ namespace VisualPinball.Unity
 			=> new(GuideDistanceElasticityEnabled, FreeSpanElasticityScale,
 				GuideInfluenceLength, MaximumResponseSegmentLength);
 
-		public bool CanUsePhysical => MainComponent && MainComponent.HasValidGuidedPath;
+		public bool CanUsePhysical => MainComponent && MainComponent.HasUsableGuidedPath;
 
 		internal void RestoreGuideDistanceElasticitySettings(bool enabled, float freeSpanScale,
 			float guideInfluenceLength, float maximumResponseSegmentLength)
