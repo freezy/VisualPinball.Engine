@@ -427,6 +427,98 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldRoundTripGuideDistanceElasticityColliderSettings()
+		{
+			var sourceObject = new GameObject("Source Rubber Collider");
+			var targetObject = new GameObject("Target Rubber Collider");
+			try {
+				sourceObject.AddComponent<RubberComponent>();
+				var source = sourceObject.AddComponent<RubberColliderComponent>();
+				source.GuideDistanceElasticityEnabled = true;
+				source.FreeSpanElasticityScale = 0.35f;
+				source.GuideInfluenceLength = 75f;
+				source.MaximumResponseSegmentLength = 12f;
+
+				targetObject.AddComponent<RubberComponent>();
+				var target = targetObject.AddComponent<RubberColliderComponent>();
+				target.Unpack(source.Pack());
+
+				Assert.That(target.GuideDistanceElasticityEnabled, Is.True);
+				Assert.That(target.FreeSpanElasticityScale, Is.EqualTo(0.35f));
+				Assert.That(target.GuideInfluenceLength, Is.EqualTo(75f));
+				Assert.That(target.MaximumResponseSegmentLength, Is.EqualTo(12f));
+			} finally {
+				Object.DestroyImmediate(sourceObject);
+				Object.DestroyImmediate(targetObject);
+			}
+		}
+
+		[Test]
+		public void ShouldDefaultOldRubberColliderPayloadsToDisabledDistanceElasticity()
+		{
+			var gameObject = new GameObject("Legacy Rubber Collider");
+			try {
+				gameObject.AddComponent<RubberComponent>();
+				var collider = gameObject.AddComponent<RubberColliderComponent>();
+				collider.GuideDistanceElasticityEnabled = true;
+				collider.FreeSpanElasticityScale = 0f;
+				collider.GuideInfluenceLength = 1f;
+				collider.MaximumResponseSegmentLength = 1f;
+				var oldBytes = PackageApi.Packer.Pack(new LegacyRubberColliderPackable {
+					IsMovable = true,
+					HitEvent = true,
+					ZOffset = 3f,
+					Mode = (int)RubberColliderMode.Physical,
+				});
+
+				collider.Unpack(oldBytes);
+
+				Assert.That(collider.IsKinematic, Is.True);
+				Assert.That(collider.HitEvent, Is.True);
+				Assert.That(collider.ZOffset, Is.EqualTo(3f));
+				Assert.That(collider.Mode, Is.EqualTo(RubberColliderMode.Physical));
+				Assert.That(collider.GuideDistanceElasticityEnabled, Is.False);
+				Assert.That(collider.FreeSpanElasticityScale,
+					Is.EqualTo(RubberColliderComponent.DefaultFreeSpanElasticityScale));
+				Assert.That(collider.GuideInfluenceLength,
+					Is.EqualTo(RubberColliderComponent.DefaultGuideInfluenceLength));
+				Assert.That(collider.MaximumResponseSegmentLength,
+					Is.EqualTo(RubberColliderComponent.DefaultMaximumResponseSegmentLength));
+			} finally {
+				Object.DestroyImmediate(gameObject);
+			}
+		}
+
+		[Test]
+		public void ShouldSanitizeMalformedGuideDistanceElasticityPayload()
+		{
+			var gameObject = new GameObject("Malformed Rubber Collider");
+			try {
+				gameObject.AddComponent<RubberComponent>();
+				var collider = gameObject.AddComponent<RubberColliderComponent>();
+				var bytes = PackageApi.Packer.Pack(new RubberColliderPackable {
+					Version = 1,
+					GuideDistanceElasticityEnabled = true,
+					FreeSpanElasticityScale = float.NaN,
+					GuideInfluenceLength = float.NegativeInfinity,
+					MaximumResponseSegmentLength = 0.01f,
+				});
+
+				collider.Unpack(bytes);
+
+				Assert.That(collider.GuideDistanceElasticityEnabled, Is.True);
+				Assert.That(collider.FreeSpanElasticityScale,
+					Is.EqualTo(RubberColliderComponent.DefaultFreeSpanElasticityScale));
+				Assert.That(collider.GuideInfluenceLength,
+					Is.EqualTo(RubberColliderComponent.DefaultGuideInfluenceLength));
+				Assert.That(collider.MaximumResponseSegmentLength,
+					Is.EqualTo(RubberColliderComponent.MinimumResponseLength));
+			} finally {
+				Object.DestroyImmediate(gameObject);
+			}
+		}
+
+		[Test]
 		public void ShouldRoundTripGuidedRubberScalarData()
 		{
 			var sourceObject = new GameObject("Source Rubber");
@@ -617,6 +709,14 @@ namespace VisualPinball.Unity.Test
 		{
 			public int Thickness;
 			public DragPointPackable[] DragPoints;
+		}
+
+		private struct LegacyRubberColliderPackable
+		{
+			public bool IsMovable;
+			public bool HitEvent;
+			public float ZOffset;
+			public int Mode;
 		}
 	}
 }

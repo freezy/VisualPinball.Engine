@@ -33,15 +33,19 @@ namespace VisualPinball.Unity
 		public float3 V1;
 		public float3 V2;
 		public float CordRadius;
+		public float ElasticityScale;
 		public ColliderBounds Bounds { get; private set; }
 
 		public SweptCircleCollider(float3 v1, float3 v2, float cordRadius,
-			ColliderInfo info) : this()
+			ColliderInfo info, float elasticityScale = 1f) : this()
 		{
 			Header.Init(info, ColliderType.SweptCircle);
 			V1 = v1;
 			V2 = v2;
 			CordRadius = cordRadius;
+			ElasticityScale = float.IsFinite(elasticityScale)
+				? math.saturate(elasticityScale)
+				: 1f;
 			CalculateBounds();
 		}
 
@@ -115,7 +119,7 @@ namespace VisualPinball.Unity
 		{
 			var impactSpeed = -math.dot(collEvent.HitNormal, ball.Velocity);
 			BallCollider.Collide3DWall(ref ball, in Header.Material, in collEvent,
-				in collEvent.HitNormal, ref state);
+				in collEvent.HitNormal, ElasticityScale, ref state);
 			if (Header.FireEvents && impactSpeed >= Header.Threshold) {
 				Collider.FireHitEvent(ref ball, ref hitEvents, in Header);
 			}
@@ -149,9 +153,11 @@ namespace VisualPinball.Unity
 			if (!IsTransformable(matrix)) {
 				throw new System.InvalidOperationException("A swept-circle collider requires uniform scale.");
 			}
+			Header = collider.Header;
 			V1 = matrix.MultiplyPoint(collider.V1);
 			V2 = matrix.MultiplyPoint(collider.V2);
 			CordRadius = collider.CordRadius * math.abs(matrix.GetScale().x);
+			ElasticityScale = collider.ElasticityScale;
 			CalculateBounds();
 		}
 

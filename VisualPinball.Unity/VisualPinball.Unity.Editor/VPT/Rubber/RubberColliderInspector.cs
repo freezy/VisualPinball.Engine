@@ -17,6 +17,7 @@
 // ReSharper disable AssignmentInConditionalExpression
 
 using UnityEditor;
+using UnityEngine;
 using VisualPinball.Engine.VPT.Rubber;
 
 namespace VisualPinball.Unity.Editor
@@ -35,6 +36,10 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _scatterProperty;
 		private SerializedProperty _modeProperty;
 		private SerializedProperty _rubberPhysicsMaterialProperty;
+		private SerializedProperty _guideDistanceElasticityEnabledProperty;
+		private SerializedProperty _freeSpanElasticityScaleProperty;
+		private SerializedProperty _guideInfluenceLengthProperty;
+		private SerializedProperty _maximumResponseSegmentLengthProperty;
 
 		protected override void OnEnable()
 		{
@@ -51,6 +56,10 @@ namespace VisualPinball.Unity.Editor
 			_scatterProperty = serializedObject.FindProperty(nameof(RubberColliderComponent.Scatter));
 			_modeProperty = serializedObject.FindProperty("_mode");
 			_rubberPhysicsMaterialProperty = serializedObject.FindProperty("_rubberPhysicsMaterial");
+			_guideDistanceElasticityEnabledProperty = serializedObject.FindProperty("_guideDistanceElasticityEnabled");
+			_freeSpanElasticityScaleProperty = serializedObject.FindProperty("_freeSpanElasticityScale");
+			_guideInfluenceLengthProperty = serializedObject.FindProperty("_guideInfluenceLength");
+			_maximumResponseSegmentLengthProperty = serializedObject.FindProperty("_maximumResponseSegmentLength");
 		}
 
 		public override void OnInspectorGUI()
@@ -88,14 +97,47 @@ namespace VisualPinball.Unity.Editor
 				EditorGUI.EndDisabledGroup();
 				EditorGUILayout.HelpBox("Physical currently uses static round-cord collision and the standard contact material below. The deformation material is reserved for experimental free-span deformation.",
 					MessageType.Info);
+
+				EditorGUILayout.Space();
+				EditorGUILayout.LabelField("Guide-distance Elasticity", EditorStyles.boldLabel);
+				PropertyField(_guideDistanceElasticityEnabledProperty, "Enabled", updateColliders: true);
+				var enableResponseFields = _guideDistanceElasticityEnabledProperty.hasMultipleDifferentValues
+					|| _guideDistanceElasticityEnabledProperty.boolValue;
+				EditorGUI.BeginDisabledGroup(!enableResponseFields);
+				PropertyField(_freeSpanElasticityScaleProperty, "Free-span Elasticity Scale",
+					updateColliders: true);
+				PropertyField(_guideInfluenceLengthProperty, "Guide Influence Length",
+					updateColliders: true);
+				PropertyField(_maximumResponseSegmentLengthProperty, "Maximum Response Segment Length",
+					updateColliders: true);
+				EditorGUI.EndDisabledGroup();
+				if (enableResponseFields
+					&& !_guideInfluenceLengthProperty.hasMultipleDifferentValues
+					&& !_maximumResponseSegmentLengthProperty.hasMultipleDifferentValues) {
+					var effectiveMaximumLength = ((RubberColliderComponent)target)
+						.GuideDistanceElasticitySettings.EffectiveMaximumSegmentLength;
+					EditorGUILayout.LabelField(new GUIContent("Effective Maximum Length",
+						"The smaller of Maximum Response Segment Length and one eighth of Guide Influence Length."),
+						new GUIContent($"{effectiveMaximumLength:0.###} VPX"));
+				}
+				if (!_guideDistanceElasticityEnabledProperty.hasMultipleDifferentValues
+					&& _guideDistanceElasticityEnabledProperty.boolValue
+					&& !_freeSpanElasticityScaleProperty.hasMultipleDifferentValues
+					&& _freeSpanElasticityScaleProperty.floatValue == 1f) {
+					EditorGUILayout.HelpBox("The response is inactive while Free-span Elasticity Scale is 1; current collider count and contact behavior are preserved.",
+						MessageType.Info);
+				}
+				EditorGUILayout.HelpBox("This is a static contact approximation. Distance is measured along each free span from its nearest supporting guide. Scene-view colliders update immediately; play-mode physics uses changes after the next start.",
+					MessageType.Info);
 			}
 
 			PropertyField(_hitEventProperty, "Has Hit Event");
 			PropertyField(_zOffset, "Z-Offset", updateColliders: true);
 
 			// physics material
-			var materialLabel = (RubberColliderMode)_modeProperty.enumValueIndex == RubberColliderMode.Physical
-				? "Rigid/backed contact (phase 3a and supported arcs)"
+			var materialLabel = !_modeProperty.hasMultipleDifferentValues
+				&& (RubberColliderMode)_modeProperty.enumValueIndex == RubberColliderMode.Physical
+				? "Ball Contact Material"
 				: "Physics Material";
 			if (_foldoutMaterial = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutMaterial, materialLabel)) {
 				EditorGUI.BeginDisabledGroup(_overwritePhysicsProperty.boolValue);

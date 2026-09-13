@@ -210,18 +210,30 @@ namespace VisualPinball.Unity
 
 	public struct RubberColliderPackable
 	{
+		private const int CurrentVersion = 1;
+
+		public int Version;
 		public bool IsMovable;
 		public bool HitEvent;
 		public float ZOffset;
 		public int Mode;
+		public bool GuideDistanceElasticityEnabled;
+		public float FreeSpanElasticityScale;
+		public float GuideInfluenceLength;
+		public float MaximumResponseSegmentLength;
 
 		public static byte[] Pack(RubberColliderComponent comp)
 		{
 			return PackageApi.Packer.Pack(new RubberColliderPackable {
+				Version = CurrentVersion,
 				IsMovable = comp._isKinematic,
 				HitEvent = comp.HitEvent,
 				ZOffset = comp.ZOffset,
 				Mode = (int)comp.Mode,
+				GuideDistanceElasticityEnabled = comp.GuideDistanceElasticityEnabled,
+				FreeSpanElasticityScale = comp.FreeSpanElasticityScale,
+				GuideInfluenceLength = comp.GuideInfluenceLength,
+				MaximumResponseSegmentLength = comp.MaximumResponseSegmentLength,
 			});
 		}
 
@@ -234,6 +246,13 @@ namespace VisualPinball.Unity
 			comp.Mode = Enum.IsDefined(typeof(RubberColliderMode), data.Mode)
 				? (RubberColliderMode)data.Mode
 				: RubberColliderMode.Legacy;
+			if (data.Version >= 1) {
+				comp.RestoreGuideDistanceElasticitySettings(data.GuideDistanceElasticityEnabled,
+					data.FreeSpanElasticityScale, data.GuideInfluenceLength,
+					data.MaximumResponseSegmentLength);
+			} else {
+				comp.ResetGuideDistanceElasticitySettings();
+			}
 		}
 	}
 

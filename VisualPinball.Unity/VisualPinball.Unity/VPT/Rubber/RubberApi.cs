@@ -52,7 +52,8 @@ namespace VisualPinball.Unity
 						MainComponent);
 				} else {
 					var physicalGenerator = new RubberPhysicalColliderGenerator(this, MainComponent,
-						translateWithinPlayfieldMatrix);
+						translateWithinPlayfieldMatrix,
+						ColliderComponent.GuideDistanceElasticitySettings);
 					physicalGenerator.GenerateColliders(ColliderComponent.ZOffset, ref colliders, margin);
 					return;
 				}
