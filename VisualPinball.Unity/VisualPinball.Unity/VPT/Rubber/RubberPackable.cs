@@ -210,7 +210,7 @@ namespace VisualPinball.Unity
 
 	public struct RubberColliderPackable
 	{
-		private const int CurrentVersion = 1;
+		private const int CurrentVersion = 2;
 
 		public int Version;
 		public bool IsMovable;
@@ -218,6 +218,9 @@ namespace VisualPinball.Unity
 		public float ZOffset;
 		public int Mode;
 		public bool GuideDistanceElasticityEnabled;
+		public float GuideElasticityScale;
+		// Version 1 compatibility. Version 2 writes both names so older readers
+		// retain the authored numeric value, although their response direction differs.
 		public float FreeSpanElasticityScale;
 		public float GuideInfluenceLength;
 		public float MaximumResponseSegmentLength;
@@ -231,7 +234,8 @@ namespace VisualPinball.Unity
 				ZOffset = comp.ZOffset,
 				Mode = (int)comp.Mode,
 				GuideDistanceElasticityEnabled = comp.GuideDistanceElasticityEnabled,
-				FreeSpanElasticityScale = comp.FreeSpanElasticityScale,
+				GuideElasticityScale = comp.GuideElasticityScale,
+				FreeSpanElasticityScale = comp.GuideElasticityScale,
 				GuideInfluenceLength = comp.GuideInfluenceLength,
 				MaximumResponseSegmentLength = comp.MaximumResponseSegmentLength,
 			});
@@ -246,7 +250,11 @@ namespace VisualPinball.Unity
 			comp.Mode = Enum.IsDefined(typeof(RubberColliderMode), data.Mode)
 				? (RubberColliderMode)data.Mode
 				: RubberColliderMode.Legacy;
-			if (data.Version >= 1) {
+			if (data.Version >= 2) {
+				comp.RestoreGuideDistanceElasticitySettings(data.GuideDistanceElasticityEnabled,
+					data.GuideElasticityScale, data.GuideInfluenceLength,
+					data.MaximumResponseSegmentLength);
+			} else if (data.Version == 1) {
 				comp.RestoreGuideDistanceElasticitySettings(data.GuideDistanceElasticityEnabled,
 					data.FreeSpanElasticityScale, data.GuideInfluenceLength,
 					data.MaximumResponseSegmentLength);

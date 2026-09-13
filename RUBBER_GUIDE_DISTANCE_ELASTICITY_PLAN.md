@@ -8,7 +8,7 @@ Non-goal: deformable free-span simulation
 
 ## 1. Outcome
 
-Give each emitted round-cord capsule a deterministic elasticity response based on its distance along the rubber from the nearest supporting guide. Supported arcs retain the existing rigid/backed contact response. Free-span response transitions away from that backed response in short, piecewise-constant bands.
+Give each emitted round-cord capsule a deterministic elasticity response based on its distance along the rubber from the nearest supporting guide. Supported arcs use an authored attenuated response. Free spans transition from that backed response toward the full contact-material response in short, piecewise-constant bands.
 
 This is a static-contact approximation. It does not move the rubber, store strain energy, couple ball mass to a deforming span, or replace the separate experimental deformation path represented by `RubberPhysicsMaterialAsset` and `RubberSlingshotComponent`.
 
@@ -19,29 +19,29 @@ Legacy collider generation must remain byte-for-byte and behaviorally unchanged.
 Add an opt-in **Guide-distance elasticity** section to `RubberColliderComponent`, visible only for Physical mode:
 
 - **Enabled**, default `false`. Existing scenes, imports, and packages keep their current behavior and collider counts.
-- **Free-span elasticity scale**, default `1`, authored in the inclusive range `[0, 1]`. This multiplies the elasticity produced by the existing rigid/backed contact material, so the approximation can soften free spans but can never add rebound beyond the existing backed response.
+- **Guide elasticity scale**, default `1`, authored in the inclusive range `[0, 1]`. This multiplies the elasticity produced by the existing contact material where the rubber is backed by a guide, so the approximation can reduce supported rebound while free spans retain the full authored response.
 - **Guide influence length**, proposed default `50` VP units. This is measured as arc length along a free span from its nearest supported endpoint, not as world-space distance to a guide center.
 - **Maximum response segment length**, proposed default `20` VP units. This limits the length of free-span capsules while distance-dependent elasticity is enabled.
 
-The existing Physics Material or inline override remains the base supported response. No second material asset is introduced. Friction, scatter, and elasticity falloff retain their current authored values.
+The existing Physics Material or inline override remains the full free-span response. No second material asset is introduced. Friction, scatter, and elasticity falloff retain their current authored values.
 
 The effective scale for a capsule on a free span is sampled at the capsule midpoint:
 
 ```text
 distance = min(midpoint distance from span start, midpoint distance from span end)
 weight = smoothstep(0, guide influence length, distance)
-elasticity scale = lerp(1, free-span elasticity scale, weight)
+elasticity scale = lerp(guide elasticity scale, 1, weight)
 ```
 
 Every capsule has one constant scale. There is no guide lookup, curve evaluation, or distance calculation in the physics loop.
 
 Consequences of this definition:
 
-- Every supported arc uses scale `1`.
-- A free span starts and ends near scale `1` because both endpoints touch supports.
-- A long free span reaches the full free-span scale in its middle.
-- A span shorter than twice the influence length never reaches the full free-span scale, reflecting support from both ends.
-- Scale `1` is the existing backed response and scale `0` removes normal rebound from the elasticity term. The final resolved coefficient is not globally clamped, because existing materials may intentionally author values above one; the new feature only attenuates that existing response.
+- Every supported arc uses the guide elasticity scale.
+- A free span starts and ends near the guide elasticity scale because both endpoints touch supports.
+- A long free span reaches scale `1` in its middle.
+- A span shorter than twice the influence length never reaches scale `1`, reflecting support from both ends.
+- Scale `1` is the existing full response and guide scale `0` removes normal rebound from the elasticity term at supports. The final resolved coefficient is not globally clamped, because existing materials may intentionally author values above one; the new feature only attenuates that existing response near guides.
 
 ## 3. Collider subdivision
 
@@ -51,7 +51,7 @@ Retain the existing geometry-driven tessellation first:
 - supported arcs use the current sagitta/chord tolerance;
 - adjacent path elements continue to share their exact endpoint.
 
-When guide-distance elasticity is enabled and the free-span scale differs from `1`, further split every tessellated free-span chord into `ceil(chordLength / effectiveMaximumLength)` collinear capsules. Splitting the already accepted chord, rather than merely increasing uniform Bézier parameter subdivisions, guarantees the emitted capsule length bound even on Béziers with non-uniform parameter speed.
+When guide-distance elasticity is enabled and the guide scale differs from `1`, further split every tessellated free-span chord into `ceil(chordLength / effectiveMaximumLength)` collinear capsules. Splitting the already accepted chord, rather than merely increasing uniform Bézier parameter subdivisions, guarantees the emitted capsule length bound even on Béziers with non-uniform parameter speed.
 
 Use:
 
@@ -65,7 +65,7 @@ Add `MaximumResponseSegmentsPerElement = 4096` to `RubberPhysicalColliderGenerat
 
 Build the final point list before assigning materials. Compute cumulative distance over that emitted polyline and sample each capsule at half its chord length. This keeps distance calculation deterministic and consistent with the geometry that actually collides, without requiring an inverse arc-length solve for cubic Béziers.
 
-Do not add response subdivisions when the feature is disabled or the sanitized free-span scale is exactly `1`. That preserves current Physical collider count and ordering by default without making serialized behavior depend on an undocumented epsilon.
+Do not add response subdivisions when the feature is disabled or the sanitized guide scale is exactly `1`. That preserves current Physical collider count and ordering by default without making serialized behavior depend on an undocumented epsilon.
 
 ## 4. Material integration
 
@@ -109,9 +109,10 @@ Keep the reserved deformation material disabled. This feature does not consume `
 Add the settings to `RubberColliderPackable`, not the references payload, because they are scalar collider configuration rather than asset references. Add a small schema/version discriminator for this optional block:
 
 - old payload or version `0`: reset to disabled and retain the component's documented defaults;
-- version `1`: restore Enabled, free-span scale, influence length, and maximum response segment length through the same sanitizer used by authoring and generation.
+- version `1`: migrate the former free-span scale value to the guide scale, preserving its numeric value while adopting the corrected response direction;
+- version `2`: restore Enabled, guide scale, influence length, and maximum response segment length through the same sanitizer used by authoring and generation.
 
-The explicit version avoids treating an old payload's missing numeric fields as intentional zero values. A missing or zero version resets the entire optional block to `Enabled = false`, `FreeSpanElasticityScale = 1`, `GuideInfluenceLength = 50`, and `MaximumResponseSegmentLength = 20`. For version `1`, a non-finite scale becomes `1`, finite scale clamps to `[0, 1]`, non-finite or non-positive lengths return to their respective `50`/`20` defaults, and finite positive lengths below `0.1` clamp to `0.1`; the serialized Enabled value otherwise remains intact. Add package round-trip, old-payload, and malformed-value tests as required deliverables.
+The explicit version avoids treating an old payload's missing numeric fields as intentional zero values. A missing or zero version resets the entire optional block to `Enabled = false`, `GuideElasticityScale = 1`, `GuideInfluenceLength = 50`, and `MaximumResponseSegmentLength = 20`. For versions `1` and `2`, a non-finite scale becomes `1`, finite scale clamps to `[0, 1]`, non-finite or non-positive lengths return to their respective `50`/`20` defaults, and finite positive lengths below `0.1` clamp to `0.1`; the serialized Enabled value otherwise remains intact. Add package round-trip, version-1 migration, old-payload, and malformed-value tests as required deliverables.
 
 No new VPX fields are exported. VPX import still creates Spline + Legacy rubbers, so this setting cannot change imported-table behavior unless an author explicitly converts and enables it.
 
@@ -147,9 +148,9 @@ No changes are planned for guide slots. `RubberSupportFriction` describes rubber
 - A long straight span emits capsules no longer than the effective maximum length.
 - A curved Bézier first satisfies geometric tolerance and then the maximum emitted chord length.
 - Emitted points remain continuous and deterministically ordered.
-- Supported arcs retain scale `1` and their existing tessellation.
+- Supported arcs use the guide scale and retain their existing tessellation.
 - Free-span scales are symmetric about the span midpoint.
-- The first and last free-span capsule scales approach the supported value; the middle of a sufficiently long span reaches the configured free-span scale.
+- The first and last free-span capsule scales approach the guide value; the middle of a sufficiently long span reaches scale `1`.
 - A short span produces the expected partial transition and never overshoots either endpoint value.
 - Adjacent scales differ by no more than `3/16` of the authored scale range while the requested response bound is honored.
 - Emitted-polyline length remains within the existing chord-tolerance envelope of the baked `RubberPathElement.Length`.
@@ -198,7 +199,7 @@ The expected hot-path change is one multiply per swept-circle collision. The mea
 ## 9. Acceptance criteria
 
 - The serialized feature may remain configured while inactive. Physical runtime generation consumes any structurally valid serialized guided path and bake transform, independent of live guide references, slot IDs, or editor bake-current status; only a missing or structurally invalid path retains the Legacy fallback.
-- Supported arcs always use the base contact response.
+- Supported arcs always use the guide elasticity scale when the feature is active.
 - Free-span effective elasticity varies deterministically with along-span distance to the nearest support.
 - No guide-distance work or response interpolation occurs in the per-step broad/narrow phase.
 - Constant and velocity-dependent base materials both honor the per-capsule scale.

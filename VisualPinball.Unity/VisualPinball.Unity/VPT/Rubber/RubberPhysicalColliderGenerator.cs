@@ -44,6 +44,9 @@ namespace VisualPinball.Unity
 			var cordRadius = rubberRadius + margin;
 			var colliderInfo = _api.GetColliderInfo();
 			var responseCapWarningIssued = false;
+			var guideElasticityScale = _elasticitySettings.UsesResponseProfile
+				? _elasticitySettings.GuideElasticityScale
+				: 1f;
 			foreach (var element in _rubber.BakedPath) {
 				if (element.Type == RubberPathElementType.FreeSpan) {
 					AddFreeSpan(element, zOffset, cordRadius, in colliderInfo, ref colliders,
@@ -55,7 +58,8 @@ namespace VisualPinball.Unity
 					ChordTolerance(rubberRadius));
 				var segmentCount = math.max(3,
 					(int)math.ceil(element.SweepAngleRad / maximumAngle));
-				AddSegments(element, segmentCount, zOffset, cordRadius, 1f, in colliderInfo,
+				AddSegments(element, segmentCount, zOffset, cordRadius, guideElasticityScale,
+					in colliderInfo,
 					ref colliders);
 			}
 		}
@@ -176,8 +180,8 @@ namespace VisualPinball.Unity
 				var supportDistance = math.min(midpointDistance, totalLength - midpointDistance);
 				var weight = math.smoothstep(0f, _elasticitySettings.GuideInfluenceLength,
 					supportDistance);
-				var elasticityScale = math.lerp(1f,
-					_elasticitySettings.FreeSpanElasticityScale, weight);
+				var elasticityScale = math.lerp(_elasticitySettings.GuideElasticityScale,
+					1f, weight);
 				Add(start, end, zOffset, cordRadius, elasticityScale, in colliderInfo,
 					ref colliders);
 				cumulativeLength += length;

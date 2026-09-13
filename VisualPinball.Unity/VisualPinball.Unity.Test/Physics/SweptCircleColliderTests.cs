@@ -406,7 +406,7 @@ namespace VisualPinball.Unity.Test
 				var rubberCollider = rubberObject.AddComponent<RubberColliderComponent>();
 				rubberCollider.Mode = RubberColliderMode.Physical;
 				rubberCollider.GuideDistanceElasticityEnabled = true;
-				rubberCollider.FreeSpanElasticityScale = 0.25f;
+				rubberCollider.GuideElasticityScale = 0.25f;
 				rubberCollider.GuideInfluenceLength = 50f;
 				rubberCollider.MaximumResponseSegmentLength = 20f;
 
@@ -504,7 +504,7 @@ namespace VisualPinball.Unity.Test
 				rubber.ApplyGuidedBake(new[] { StraightSpan(-100f, 100f) }, null,
 					Matrix4x4.identity, default, 1);
 				rubberCollider.GuideDistanceElasticityEnabled = true;
-				rubberCollider.FreeSpanElasticityScale = 0.5f;
+				rubberCollider.GuideElasticityScale = 0.5f;
 				rubberCollider.GuideInfluenceLength = 50f;
 				rubberCollider.MaximumResponseSegmentLength = 20f;
 
@@ -527,9 +527,40 @@ namespace VisualPinball.Unity.Test
 					}
 				}
 				Assert.That(references.SweptCircleColliders[0].ElasticityScale,
-					Is.GreaterThan(0.98f));
+					Is.LessThan(0.52f));
 				Assert.That(references.SweptCircleColliders[15].ElasticityScale,
-					Is.EqualTo(0.5f).Within(1e-6f));
+					Is.EqualTo(1f).Within(1e-6f));
+			} finally {
+				references.Dispose();
+				transforms.Dispose();
+				UnityEngine.Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void GuideDistanceProfileShouldApplyGuideScaleToSupportedArcs()
+		{
+			var go = new GameObject("Rubber");
+			go.SetActive(false);
+			var transforms = new NativeParallelHashMap<int, float4x4>(1, Allocator.Temp);
+			var references = new ColliderReference(ref transforms, Allocator.Temp);
+			try {
+				var rubber = go.AddComponent<RubberComponent>();
+				var rubberCollider = go.AddComponent<RubberColliderComponent>();
+				rubber.SetGuideBindings(Array.Empty<RubberGuideBinding>());
+				rubber.ApplyGuidedBake(new[] { SupportedArc() }, null,
+					Matrix4x4.identity, default, 1);
+				rubberCollider.GuideDistanceElasticityEnabled = true;
+				rubberCollider.GuideElasticityScale = 0.25f;
+
+				new RubberPhysicalColliderGenerator(new RubberApi(go, null, null), rubber,
+					float4x4.identity, rubberCollider.GuideDistanceElasticitySettings)
+					.GenerateColliders(0f, ref references, 0f);
+
+				Assert.That(references.SweptCircleColliders.Length, Is.GreaterThan(0));
+				foreach (var collider in references.SweptCircleColliders) {
+					Assert.That(collider.ElasticityScale, Is.EqualTo(0.25f));
+				}
 			} finally {
 				references.Dispose();
 				transforms.Dispose();
@@ -551,7 +582,7 @@ namespace VisualPinball.Unity.Test
 				rubber.ApplyGuidedBake(new[] { StraightSpan(-100f, 100f) }, null,
 					Matrix4x4.identity, default, 1);
 				rubberCollider.GuideDistanceElasticityEnabled = true;
-				rubberCollider.FreeSpanElasticityScale = 1f;
+				rubberCollider.GuideElasticityScale = 1f;
 
 				new RubberPhysicalColliderGenerator(new RubberApi(go, null, null), rubber,
 					float4x4.identity, rubberCollider.GuideDistanceElasticitySettings)
@@ -582,7 +613,7 @@ namespace VisualPinball.Unity.Test
 					StraightSpan(0f, 100f),
 				}, null, Matrix4x4.identity, default, 1);
 				rubberCollider.GuideDistanceElasticityEnabled = true;
-				rubberCollider.FreeSpanElasticityScale = 0.5f;
+				rubberCollider.GuideElasticityScale = 0.5f;
 
 				new RubberPhysicalColliderGenerator(new RubberApi(go, null, null), rubber,
 					float4x4.identity, rubberCollider.GuideDistanceElasticitySettings)
@@ -590,9 +621,9 @@ namespace VisualPinball.Unity.Test
 
 				Assert.That(references.SweptCircleColliders.Length, Is.EqualTo(32));
 				Assert.That(references.SweptCircleColliders[15].ElasticityScale,
-					Is.GreaterThan(0.98f));
+					Is.LessThan(0.52f));
 				Assert.That(references.SweptCircleColliders[16].ElasticityScale,
-					Is.GreaterThan(0.98f));
+					Is.LessThan(0.52f));
 			} finally {
 				references.Dispose();
 				transforms.Dispose();
@@ -614,7 +645,7 @@ namespace VisualPinball.Unity.Test
 				rubber.ApplyGuidedBake(new[] { StraightSpan(-20f, 20f) }, null,
 					Matrix4x4.identity, default, 1);
 				rubberCollider.GuideDistanceElasticityEnabled = true;
-				rubberCollider.FreeSpanElasticityScale = 0.25f;
+				rubberCollider.GuideElasticityScale = 0.25f;
 				rubberCollider.GuideInfluenceLength = 50f;
 
 				new RubberPhysicalColliderGenerator(new RubberApi(go, null, null), rubber,
@@ -622,12 +653,16 @@ namespace VisualPinball.Unity.Test
 					.GenerateColliders(0f, ref references, 0f);
 
 				var minimumScale = 1f;
+				var maximumScale = 0f;
 				for (var i = 0; i < references.SweptCircleColliders.Length; i++) {
 					var scale = references.SweptCircleColliders[i].ElasticityScale;
 					Assert.That(scale, Is.InRange(0.25f, 1f));
 					minimumScale = math.min(minimumScale, scale);
+					maximumScale = math.max(maximumScale, scale);
 				}
 				Assert.That(minimumScale, Is.GreaterThan(0.25f));
+				Assert.That(maximumScale, Is.LessThan(1f));
+				Assert.That(maximumScale, Is.GreaterThan(minimumScale));
 			} finally {
 				references.Dispose();
 				transforms.Dispose();
@@ -649,7 +684,7 @@ namespace VisualPinball.Unity.Test
 				rubber.SetGuideBindings(Array.Empty<RubberGuideBinding>());
 				rubber.ApplyGuidedBake(new[] { span }, null, Matrix4x4.identity, default, 1);
 				rubberCollider.GuideDistanceElasticityEnabled = true;
-				rubberCollider.FreeSpanElasticityScale = 0.5f;
+				rubberCollider.GuideElasticityScale = 0.5f;
 				rubberCollider.GuideInfluenceLength = 50f;
 
 				new RubberPhysicalColliderGenerator(new RubberApi(go, null, null), rubber,
@@ -796,7 +831,7 @@ namespace VisualPinball.Unity.Test
 				rubber.ApplyGuidedBake(new[] { StraightSpan(-500000f, 500000f) }, null,
 					Matrix4x4.identity, default, 1);
 				rubberCollider.GuideDistanceElasticityEnabled = true;
-				rubberCollider.FreeSpanElasticityScale = 0f;
+				rubberCollider.GuideElasticityScale = 0f;
 				rubberCollider.GuideInfluenceLength = 1f;
 				rubberCollider.MaximumResponseSegmentLength = 0.1f;
 				LogAssert.Expect(LogType.Warning,
@@ -807,7 +842,7 @@ namespace VisualPinball.Unity.Test
 					.GenerateColliders(0f, ref references, 0f);
 
 				Assert.That(references.SweptCircleColliders.Length, Is.EqualTo(1));
-				Assert.That(references.SweptCircleColliders[0].ElasticityScale, Is.Zero);
+				Assert.That(references.SweptCircleColliders[0].ElasticityScale, Is.EqualTo(1f));
 			} finally {
 				references.Dispose();
 				transforms.Dispose();

@@ -27,7 +27,7 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Pinball/Collision/Rubber Collider")]
 	public class RubberColliderComponent : ColliderComponent<RubberData, RubberComponent>, IPackable
 	{
-		internal const float DefaultFreeSpanElasticityScale = 1f;
+		internal const float DefaultGuideElasticityScale = 1f;
 		internal const float DefaultGuideInfluenceLength = 50f;
 		internal const float DefaultMaximumResponseSegmentLength = 20f;
 		internal const float MinimumResponseLength = 0.1f;
@@ -66,8 +66,9 @@ namespace VisualPinball.Unity
 		private bool _guideDistanceElasticityEnabled;
 		[SerializeField]
 		[Range(0f, 1f)]
-		[Tooltip("Multiplier for ball-contact elasticity in the unsupported middle of a free span.")]
-		private float _freeSpanElasticityScale = DefaultFreeSpanElasticityScale;
+		[FormerlySerializedAs("_freeSpanElasticityScale")]
+		[Tooltip("Multiplier for ball-contact elasticity where the rubber is backed by a supporting guide. Free spans transition toward the full contact-material response.")]
+		private float _guideElasticityScale = DefaultGuideElasticityScale;
 		[SerializeField]
 		[Min(MinimumResponseLength)]
 		[Tooltip("Distance in VPX units from a supporting guide over which free-span elasticity transitions.")]
@@ -92,9 +93,9 @@ namespace VisualPinball.Unity
 			set => _guideDistanceElasticityEnabled = value;
 		}
 
-		public float FreeSpanElasticityScale {
-			get => SanitizeScale(_freeSpanElasticityScale);
-			set => _freeSpanElasticityScale = SanitizeScale(value);
+		public float GuideElasticityScale {
+			get => SanitizeScale(_guideElasticityScale);
+			set => _guideElasticityScale = SanitizeScale(value);
 		}
 
 		public float GuideInfluenceLength {
@@ -108,26 +109,26 @@ namespace VisualPinball.Unity
 		}
 
 		internal RubberGuideDistanceElasticitySettings GuideDistanceElasticitySettings
-			=> new(GuideDistanceElasticityEnabled, FreeSpanElasticityScale,
+			=> new(GuideDistanceElasticityEnabled, GuideElasticityScale,
 				GuideInfluenceLength, MaximumResponseSegmentLength);
 
 		public bool CanUsePhysical => MainComponent && MainComponent.HasUsableGuidedPath;
 
-		internal void RestoreGuideDistanceElasticitySettings(bool enabled, float freeSpanScale,
+		internal void RestoreGuideDistanceElasticitySettings(bool enabled, float guideScale,
 			float guideInfluenceLength, float maximumResponseSegmentLength)
 		{
 			GuideDistanceElasticityEnabled = enabled;
-			FreeSpanElasticityScale = freeSpanScale;
+			GuideElasticityScale = guideScale;
 			GuideInfluenceLength = guideInfluenceLength;
 			MaximumResponseSegmentLength = maximumResponseSegmentLength;
 		}
 
 		internal void ResetGuideDistanceElasticitySettings()
-			=> RestoreGuideDistanceElasticitySettings(false, DefaultFreeSpanElasticityScale,
+			=> RestoreGuideDistanceElasticitySettings(false, DefaultGuideElasticityScale,
 				DefaultGuideInfluenceLength, DefaultMaximumResponseSegmentLength);
 
 		private static float SanitizeScale(float value)
-			=> float.IsFinite(value) ? math.saturate(value) : DefaultFreeSpanElasticityScale;
+			=> float.IsFinite(value) ? math.saturate(value) : DefaultGuideElasticityScale;
 
 		private static float SanitizeLength(float value, float defaultValue)
 		{
@@ -139,11 +140,11 @@ namespace VisualPinball.Unity
 
 		protected virtual void OnValidate()
 		{
-			var freeSpanElasticityScale = FreeSpanElasticityScale;
+			var guideElasticityScale = GuideElasticityScale;
 			var guideInfluenceLength = GuideInfluenceLength;
 			var maximumResponseSegmentLength = MaximumResponseSegmentLength;
-			if (_freeSpanElasticityScale != freeSpanElasticityScale) {
-				_freeSpanElasticityScale = freeSpanElasticityScale;
+			if (_guideElasticityScale != guideElasticityScale) {
+				_guideElasticityScale = guideElasticityScale;
 			}
 			if (_guideInfluenceLength != guideInfluenceLength) {
 				_guideInfluenceLength = guideInfluenceLength;
@@ -205,24 +206,24 @@ namespace VisualPinball.Unity
 	internal readonly struct RubberGuideDistanceElasticitySettings
 	{
 		internal static RubberGuideDistanceElasticitySettings Disabled => new(false,
-			RubberColliderComponent.DefaultFreeSpanElasticityScale,
+			RubberColliderComponent.DefaultGuideElasticityScale,
 			RubberColliderComponent.DefaultGuideInfluenceLength,
 			RubberColliderComponent.DefaultMaximumResponseSegmentLength);
 
 		internal readonly bool Enabled;
-		internal readonly float FreeSpanElasticityScale;
+		internal readonly float GuideElasticityScale;
 		internal readonly float GuideInfluenceLength;
 		internal readonly float MaximumResponseSegmentLength;
 
-		internal bool UsesResponseProfile => Enabled && FreeSpanElasticityScale != 1f;
+		internal bool UsesResponseProfile => Enabled && GuideElasticityScale != 1f;
 		internal float EffectiveMaximumSegmentLength
 			=> math.min(MaximumResponseSegmentLength, GuideInfluenceLength / 8f);
 
-		internal RubberGuideDistanceElasticitySettings(bool enabled, float freeSpanElasticityScale,
+		internal RubberGuideDistanceElasticitySettings(bool enabled, float guideElasticityScale,
 			float guideInfluenceLength, float maximumResponseSegmentLength)
 		{
 			Enabled = enabled;
-			FreeSpanElasticityScale = freeSpanElasticityScale;
+			GuideElasticityScale = guideElasticityScale;
 			GuideInfluenceLength = guideInfluenceLength;
 			MaximumResponseSegmentLength = maximumResponseSegmentLength;
 		}

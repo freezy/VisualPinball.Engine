@@ -37,7 +37,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _modeProperty;
 		private SerializedProperty _rubberPhysicsMaterialProperty;
 		private SerializedProperty _guideDistanceElasticityEnabledProperty;
-		private SerializedProperty _freeSpanElasticityScaleProperty;
+		private SerializedProperty _guideElasticityScaleProperty;
 		private SerializedProperty _guideInfluenceLengthProperty;
 		private SerializedProperty _maximumResponseSegmentLengthProperty;
 
@@ -57,7 +57,7 @@ namespace VisualPinball.Unity.Editor
 			_modeProperty = serializedObject.FindProperty("_mode");
 			_rubberPhysicsMaterialProperty = serializedObject.FindProperty("_rubberPhysicsMaterial");
 			_guideDistanceElasticityEnabledProperty = serializedObject.FindProperty("_guideDistanceElasticityEnabled");
-			_freeSpanElasticityScaleProperty = serializedObject.FindProperty("_freeSpanElasticityScale");
+			_guideElasticityScaleProperty = serializedObject.FindProperty("_guideElasticityScale");
 			_guideInfluenceLengthProperty = serializedObject.FindProperty("_guideInfluenceLength");
 			_maximumResponseSegmentLengthProperty = serializedObject.FindProperty("_maximumResponseSegmentLength");
 		}
@@ -104,7 +104,7 @@ namespace VisualPinball.Unity.Editor
 				var enableResponseFields = _guideDistanceElasticityEnabledProperty.hasMultipleDifferentValues
 					|| _guideDistanceElasticityEnabledProperty.boolValue;
 				EditorGUI.BeginDisabledGroup(!enableResponseFields);
-				PropertyField(_freeSpanElasticityScaleProperty, "Free-span Elasticity Scale",
+				PropertyField(_guideElasticityScaleProperty, "Guide Elasticity Scale",
 					updateColliders: true);
 				PropertyField(_guideInfluenceLengthProperty, "Guide Influence Length",
 					updateColliders: true);
@@ -122,9 +122,9 @@ namespace VisualPinball.Unity.Editor
 				}
 				if (!_guideDistanceElasticityEnabledProperty.hasMultipleDifferentValues
 					&& _guideDistanceElasticityEnabledProperty.boolValue
-					&& !_freeSpanElasticityScaleProperty.hasMultipleDifferentValues
-					&& _freeSpanElasticityScaleProperty.floatValue == 1f) {
-					EditorGUILayout.HelpBox("The response is inactive while Free-span Elasticity Scale is 1; current collider count and contact behavior are preserved.",
+					&& !_guideElasticityScaleProperty.hasMultipleDifferentValues
+					&& _guideElasticityScaleProperty.floatValue == 1f) {
+					EditorGUILayout.HelpBox("The response is inactive while Guide Elasticity Scale is 1; current collider count and contact behavior are preserved.",
 						MessageType.Info);
 				}
 				EditorGUILayout.HelpBox("This is a static contact approximation. Distance is measured along each free span from its nearest supporting guide. Scene-view colliders update immediately; play-mode physics uses changes after the next start.",
