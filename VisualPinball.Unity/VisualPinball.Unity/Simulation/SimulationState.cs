@@ -138,6 +138,8 @@ namespace VisualPinball.Unity.Simulation
 			public long KinematicScanUsec;
 			public long EventDrainUsec;
 			public long FenceUpdateIntervalUsec;
+			/// <summary>Wall-clock time the simulation thread skipped because its tick backlog exceeded the catch-up bound.</summary>
+			public long DroppedBacklogUsec;
 			public float GamelogicCallbackRateHz;
 			public int PendingInputActionCount;
 			public int PendingScheduledActionCount;

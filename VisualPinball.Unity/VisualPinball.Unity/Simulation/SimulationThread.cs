@@ -36,6 +36,21 @@ namespace VisualPinball.Unity.Simulation
 
 		private const long TickIntervalUsec = 1000; // 1ms = 1000 microseconds
 		private const long BusyWaitThresholdUsec = 25; // Keep active spin short to avoid starving render/main thread
+
+		/// <summary>
+		/// Maximal tick backlog the loop replays after a stall. Missed ticks beyond
+		/// this are dropped from the timetable instead of being run back to back,
+		/// which would otherwise fast-forward the game at several times real time
+		/// until the timetable is caught up (a 1.5 s stall used to replay as ~1.5 s
+		/// of physics at 4-5x). Dropping only shortens the timetable; the simulation
+		/// clock itself is not advanced, so dropping never pushes it ahead of Unity's
+		/// scaled clock. If Unity time got ahead during the stall, the regular main-thread
+		/// clock sync in <see cref="SimulationTick"/> brings the simulation clock up
+		/// and physics steps to it, bounded by <c>PhysicsConstants.MaxSubSteps</c>.
+		/// The bound is generous enough to absorb frame hitches and sleep jitter
+		/// unnoticed, and short enough that a skip reads as a brief hitch.
+		/// </summary>
+		private const long MaxBacklogUsec = 100_000;
 		private const int MaxCoilOutputsPerTick = 128;
 
 		#endregion
@@ -63,8 +78,11 @@ namespace VisualPinball.Unity.Simulation
 		// Timing (Stopwatch ticks - avoids high-frequency P/Invoke)
 		private readonly long _tickIntervalTicks;
 		private readonly long _busyWaitThresholdTicks;
+		private readonly long _maxBacklogTicks;
 		private long _lastTickTicks;
 		private long _simulationTimeUsec;
+		private long _droppedBacklogUsec;
+		private bool _rebaseTimetable;
 		private long _lastTimeFenceUsec = long.MinValue;
 		private long _lastTimeFenceIntervalUsec;
 		private long _lastSimulationTickDurationUsec;
@@ -142,6 +160,7 @@ namespace VisualPinball.Unity.Simulation
 			// Precompute timing constants
 			_tickIntervalTicks = (Stopwatch.Frequency * TickIntervalUsec) / 1_000_000;
 			_busyWaitThresholdTicks = (Stopwatch.Frequency * BusyWaitThresholdUsec) / 1_000_000;
+			_maxBacklogTicks = (Stopwatch.Frequency * MaxBacklogUsec) / 1_000_000;
 			if (_tickIntervalTicks <= 0) {
 				_tickIntervalTicks = 1;
 			}
@@ -403,12 +422,19 @@ namespace VisualPinball.Unity.Simulation
 				// Build input mappings once (not on hot path)
 				BuildInputMappingsIfNeeded();
 
+				// The initialization wait above may have taken a while; start the
+				// timetable now so it does not begin with a backlog.
+				_lastTickTicks = Stopwatch.GetTimestamp();
+
 				// Main simulation loop
 				while (_running)
 				{
 					if (_paused)
 					{
 						Thread.Sleep(10);
+						// Unity time stands still while paused (the menu sets timeScale to
+						// zero); hold the timetable so no backlog accumulates to replay.
+						_lastTickTicks = Stopwatch.GetTimestamp();
 						continue;
 					}
 
@@ -416,6 +442,19 @@ namespace VisualPinball.Unity.Simulation
 					long targetTicks = _lastTickTicks + _tickIntervalTicks;
 					long nowTicks = Stopwatch.GetTimestamp();
 					long sleepTicks = targetTicks - nowTicks;
+
+					// Bound the catch-up after a stall (GC, editor hitch, overloaded ticks):
+					// keep at most MaxBacklogUsec of missed ticks to replay and drop the rest
+					// from the timetable, instead of replaying every missed tick at multiple
+					// real-time speed. See MaxBacklogUsec for why the clock is left alone.
+					if (-sleepTicks > _maxBacklogTicks)
+					{
+						var skippedTicks = -sleepTicks - _maxBacklogTicks;
+						_lastTickTicks += skippedTicks;
+						targetTicks += skippedTicks;
+						sleepTicks += skippedTicks;
+						_droppedBacklogUsec += (skippedTicks * 1_000_000L) / Stopwatch.Frequency;
+					}
 
 					if (sleepTicks > _busyWaitThresholdTicks)
 					{
@@ -439,7 +478,18 @@ namespace VisualPinball.Unity.Simulation
 					// Execute simulation tick (hot path - must be allocation-free!)
 					SimulationTick();
 
-					_lastTickTicks = targetTicks;
+					if (_rebaseTimetable)
+					{
+						// The tick synchronized the simulation clock to Unity time, which
+						// already accounts for whatever stalled us; replaying the timetable
+						// debt on top would count that interval twice.
+						_rebaseTimetable = false;
+						_lastTickTicks = Stopwatch.GetTimestamp();
+					}
+					else
+					{
+						_lastTickTicks = targetTicks;
+					}
 					_tickCount++;
 				}
 			}
@@ -470,6 +520,7 @@ namespace VisualPinball.Unity.Simulation
 				var syncedClockUsec = Interlocked.Read(ref _latestMainThreadClockUsec);
 				if (syncedClockUsec > _simulationTimeUsec) {
 					_simulationTimeUsec = syncedClockUsec;
+					_rebaseTimetable = true;
 				}
 			}
 
@@ -1001,6 +1052,7 @@ namespace VisualPinball.Unity.Simulation
 			writeBuffer.RealTimeUsec = GetTimestampUsec();
 			writeBuffer.SimulationTickDurationUsec = _lastSimulationTickDurationUsec;
 			writeBuffer.FenceUpdateIntervalUsec = _lastTimeFenceIntervalUsec;
+			writeBuffer.DroppedBacklogUsec = _droppedBacklogUsec;
 			writeBuffer.LastSwitchDispatchUsec = _lastSwitchDispatchUsec;
 			writeBuffer.LastFlipperInputUsec = _lastFlipperInputUsec;
 			writeBuffer.LastCoilDispatchUsec = _lastCoilDispatchUsec;
