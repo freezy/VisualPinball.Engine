@@ -6,6 +6,7 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Mathematics;
@@ -93,6 +94,30 @@ namespace VisualPinball.Unity
 			return TryApplyGuideBindings(rubber, bindings, out fit, out error);
 		}
 
+		public static bool TryReplaceOrRepairGuideBindings(RubberComponent rubber,
+			IEnumerable<RubberGuideBinding> bindings, out bool baked,
+			out RubberAutofitResult fit, out string error)
+		{
+			var replacements = bindings?.ToArray() ?? Array.Empty<RubberGuideBinding>();
+			var brokenBindingCount = CountBrokenBindings(rubber?.GuideBindings);
+			baked = TryReplaceGuideBindings(rubber, replacements, out fit, out error);
+			if (baked) {
+				return true;
+			}
+			if (!rubber || rubber.PathSource != RubberPathSource.Guides
+				|| brokenBindingCount == 0
+				|| CountBrokenBindings(replacements) >= brokenBindingCount) {
+				return false;
+			}
+
+			// A branch or prefab swap can invalidate several slot IDs at once. Keep each
+			// valid repair even while another stale binding still blocks the rebake.
+			// SetGuideBindings deliberately leaves the previous exact and sampled paths
+			// intact, but invalidates their version/hash until all bindings can bake.
+			rubber.SetGuideBindings(replacements);
+			return true;
+		}
+
 		private static bool TryApplyGuideBindings(RubberComponent rubber,
 			IEnumerable<RubberGuideBinding> bindings, out RubberAutofitResult fit,
 			out string error)
@@ -114,6 +139,12 @@ namespace VisualPinball.Unity
 				previousPath, previousVersion, previousHash, previousFrame,
 				previousRestLength, previousRoundness);
 			return false;
+		}
+
+		private static int CountBrokenBindings(IEnumerable<RubberGuideBinding> bindings)
+		{
+			return bindings?.Count(binding => !binding.Guide || binding.SlotId.IsEmpty
+				|| !binding.Guide.TryGetSlot(binding.SlotId, out _)) ?? 0;
 		}
 
 		public static RubberBakeStatus GetStatus(RubberComponent rubber)
