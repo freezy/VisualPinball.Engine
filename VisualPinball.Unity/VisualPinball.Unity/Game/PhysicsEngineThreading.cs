@@ -267,8 +267,15 @@ namespace VisualPinball.Unity
 			);
 			var executeUsec = ElapsedUsec(executeStartTicks, Stopwatch.GetTimestamp());
 			Interlocked.Exchange(ref _ctx.LastPhysicsExecuteUsec, executeUsec);
-			if (executeUsec > Interlocked.Read(ref _ctx.MaxPhysicsExecuteUsec)) {
-				Interlocked.Exchange(ref _ctx.MaxPhysicsExecuteUsec, executeUsec);
+			// compare-exchange loop: a concurrent reset by GetSimulationTimingDiagnostics
+			// between a plain read and exchange would otherwise drop this sample
+			var observedMax = Interlocked.Read(ref _ctx.MaxPhysicsExecuteUsec);
+			while (executeUsec > observedMax) {
+				var previousMax = Interlocked.CompareExchange(ref _ctx.MaxPhysicsExecuteUsec, executeUsec, observedMax);
+				if (previousMax == observedMax) {
+					break;
+				}
+				observedMax = previousMax;
 			}
 			Interlocked.Exchange(ref _ctx.PublishedPhysicsFrameTimeUsec, (long)_ctx.PhysicsEnv.CurPhysicsFrameTime);
 
