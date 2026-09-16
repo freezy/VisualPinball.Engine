@@ -77,6 +77,7 @@ namespace VisualPinball.Unity
 						PhysicsStaticNarrowPhase.FindNextCollision(ref state.Colliders, ref ball, ref overlappingColliders, ref _contacts, ref state);
 
 						PhysicsStaticBroadPhase.FindOverlaps(in kinematicOctree, in ball, ref overlappingColliders);
+						PhysicsStaticBroadPhase.FindMovingKinematicOverlaps(ref state, in ball, ref overlappingColliders);
 						PhysicsStaticNarrowPhase.FindNextCollision(ref state.KinematicColliders, ref ball, ref overlappingColliders, ref _contacts, ref state);
 						RecordSpringHingeHitTime(ref springHingeHitTime, in ball, ref state);
 

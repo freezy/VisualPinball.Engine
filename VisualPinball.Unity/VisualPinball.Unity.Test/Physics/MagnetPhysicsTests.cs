@@ -1925,6 +1925,8 @@ namespace VisualPinball.Unity.Test
 		private bool _swapBallCollisionHandling;
 		private NativeParallelHashMap<int, FixedList512Bytes<float>> _elasticityLuts;
 		private NativeParallelHashMap<int, FixedList512Bytes<float>> _frictionLuts;
+		private NativeParallelHashSet<int> _kinematicItemsOutOfOctree;
+		private NativeParallelHashMap<int, Aabb> _kinematicMovingItemBounds;
 
 		internal PhysicsStateHarness()
 		{
@@ -1951,7 +1953,8 @@ namespace VisualPinball.Unity.Test
 				ref _hitTargetStates, ref _kickerStates, ref MagnetStates, ref _plungerStates, ref _spinnerStates,
 				ref SpringHingeStates,
 				ref _surfaceStates, ref _turntableStates, ref _triggerStates, ref _disabledCollisionItems, ref _swapBallCollisionHandling,
-				ref _elasticityLuts, ref _frictionLuts, ref KinematicVelocities);
+				ref _elasticityLuts, ref _frictionLuts, ref KinematicVelocities,
+				ref _kinematicItemsOutOfOctree, ref _kinematicMovingItemBounds);
 		}
 
 		internal void SetStaticColliders(ref ColliderReference colliders)

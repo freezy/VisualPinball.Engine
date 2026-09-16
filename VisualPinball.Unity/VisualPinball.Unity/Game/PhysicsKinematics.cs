@@ -187,9 +187,30 @@ namespace VisualPinball.Unity
 					for (var i = 0; i < colliderLookups.Length; i++) {
 						state.TransformKinematicColliders(colliderLookups[i], current);
 					}
+					UpdateMovingItemBounds(ref state, itemId, in colliderLookups);
 				}
 			}
 			PerfMarkerTransform.End();
+		}
+
+		/// <summary>
+		/// Refreshes the current-pose bounds of an item that is excluded from the
+		/// kinematic octree (see <see cref="PhysicsState.KinematicItemsOutOfOctree"/>),
+		/// from the bounds of its freshly transformed colliders. No-op for items in
+		/// the octree.
+		/// </summary>
+		internal static void UpdateMovingItemBounds(ref PhysicsState state, int itemId, in NativeColliderIds colliderIds)
+		{
+			if (!state.KinematicItemsOutOfOctree.IsCreated || !state.KinematicMovingItemBounds.IsCreated
+			    || !state.KinematicItemsOutOfOctree.Contains(itemId)) {
+				return;
+			}
+			var bounds = new Aabb();
+			bounds.Clear();
+			for (var i = 0; i < colliderIds.Length; i++) {
+				bounds.Extend(state.GetKinematicColliderAabb(colliderIds[i]));
+			}
+			state.KinematicMovingItemBounds[itemId] = bounds;
 		}
 
 		/// <summary>
@@ -441,12 +462,20 @@ namespace VisualPinball.Unity
 			var memoAngle = 0f;
 			var memoPivot = float3.zero;
 
+			var skipMovingItems = state.KinematicItemsOutOfOctree.IsCreated && !state.KinematicItemsOutOfOctree.IsEmpty;
+
 			for (var i = 0; i < state.KinematicCollidersAtIdentity.Length; i++) {
+				var itemId = state.KinematicCollidersAtIdentity.GetItemId(i);
+
+				// moving items are broad-phased directly, see FindMovingKinematicOverlaps
+				if (skipMovingItems && state.KinematicItemsOutOfOctree.Contains(itemId)) {
+					continue;
+				}
+
 				// while an item steps toward its target pose, cover the whole swept
 				// range: union of the AABBs at the current and at the target pose,
 				// so the octree stays valid for every sub-tick step of this frame
 				var aabb = state.KinematicCollidersAtIdentity.GetTransformedAabb(i, ref state.KinematicTransforms);
-				var itemId = state.KinematicCollidersAtIdentity.GetItemId(i);
 				if (state.KinematicTargetTransforms.ContainsKey(itemId)) {
 					var targetAabb = state.KinematicCollidersAtIdentity.GetTransformedAabb(i, ref state.KinematicTargetTransforms);
 					aabb = new Aabb(
