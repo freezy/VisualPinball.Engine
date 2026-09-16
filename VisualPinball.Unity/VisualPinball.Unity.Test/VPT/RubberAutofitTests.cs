@@ -409,6 +409,62 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldRepairSeveralMissingSlotsOneBindingAtATime()
+		{
+			var rubberObject = new GameObject("Rubber");
+			var guideAObject = new GameObject("Guide A");
+			var guideBObject = new GameObject("Guide B");
+			try {
+				guideBObject.transform.localPosition = new Vector3(0.1f, 0f, 0f);
+				var rubber = rubberObject.AddComponent<RubberComponent>();
+				var guideA = AddGuide(guideAObject, 0.01f);
+				var guideB = AddGuide(guideBObject, 0.012f);
+				var originalBindings = new[] {
+					new RubberGuideBinding(guideA, guideA.Slots[0].Id),
+					new RubberGuideBinding(guideB, guideB.Slots[0].Id),
+				};
+				rubber.SetGuideBindings(originalBindings);
+				Assert.That(RubberAutofit.TryBake(rubber, out _, out var bakeError),
+					Is.True, bakeError);
+				var previousPath = rubber.BakedPath.ToArray();
+				var previousDragPoints = rubber.DragPoints.Select(point => point.Center).ToArray();
+
+				guideA.Slots = new[] { RubberGuideSlot.Create("Replacement", 0.01f) };
+				guideB.Slots = new[] { RubberGuideSlot.Create("Replacement", 0.012f) };
+				var repairedBindings = originalBindings.ToArray();
+				repairedBindings[0].SlotId = guideA.Slots[0].Id;
+
+				var firstApplied = RubberAutofit.TryReplaceOrRepairGuideBindings(rubber,
+					repairedBindings, out var firstBaked, out _, out var firstError);
+
+				Assert.That(firstApplied, Is.True, firstError);
+				Assert.That(firstBaked, Is.False);
+				Assert.That(firstError, Does.Contain("missing slot"));
+				Assert.That(rubber.GuideBindings[0].SlotId,
+					Is.EqualTo(guideA.Slots[0].Id));
+				Assert.That(rubber.GuideBindings[1].SlotId,
+					Is.EqualTo(originalBindings[1].SlotId));
+				Assert.That(rubber.BakedPath, Is.EqualTo(previousPath));
+				Assert.That(rubber.DragPoints.Select(point => point.Center),
+					Is.EqualTo(previousDragPoints));
+
+				repairedBindings[1].SlotId = guideB.Slots[0].Id;
+				var secondApplied = RubberAutofit.TryReplaceOrRepairGuideBindings(rubber,
+					repairedBindings, out var secondBaked, out _, out var secondError);
+
+				Assert.That(secondApplied, Is.True, secondError);
+				Assert.That(secondBaked, Is.True);
+				Assert.That(rubber.GuideBindings.Select(binding => binding.SlotId),
+					Is.EqualTo(new[] { guideA.Slots[0].Id, guideB.Slots[0].Id }));
+				Assert.That(rubber.HasValidGuidedPath, Is.True);
+			} finally {
+				UnityEngine.Object.DestroyImmediate(rubberObject);
+				UnityEngine.Object.DestroyImmediate(guideAObject);
+				UnityEngine.Object.DestroyImmediate(guideBObject);
+			}
+		}
+
+		[Test]
 		public void FailedGuidedReplacementShouldRestoreCurrentBake()
 		{
 			var rubberObject = new GameObject("Rubber");

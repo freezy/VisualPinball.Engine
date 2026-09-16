@@ -265,8 +265,8 @@ namespace VisualPinball.Unity.Editor
 			if (detaching) {
 				rubber.DetachFromGuides();
 				rubber.RebuildMeshes();
-			} else if (!RubberAutofit.TryReplaceGuideBindings(rubber, bindings,
-				out _, out var error)) {
+			} else if (!RubberAutofit.TryReplaceOrRepairGuideBindings(rubber, bindings,
+				out _, out _, out var error)) {
 				Undo.RevertAllInCurrentGroup();
 				EditorUtility.DisplayDialog("Rubber Binding Change Failed",
 					$"The previous bindings and sampled path were preserved.\n\n{error}", "OK");
