@@ -224,8 +224,11 @@ namespace VisualPinball.Unity
 
 			// Rebuild kinematic octree only when transforms have changed.
 			if (_ctx.KinematicOctreeDirty) {
-				PhysicsKinematics.RebuildOctree(ref _ctx.KinematicOctree, ref state);
+				var rebuildStartTicks = Stopwatch.GetTimestamp();
+				PhysicsUpdate.RebuildKinematicOctree(ref _ctx.KinematicOctree, ref state);
 				_ctx.KinematicOctreeDirty = false;
+				Interlocked.Exchange(ref _ctx.LastKinematicOctreeRebuildUsec, ElapsedUsec(rebuildStartTicks, Stopwatch.GetTimestamp()));
+				Interlocked.Increment(ref _ctx.KinematicOctreeRebuildCount);
 			}
 
 			// process input
@@ -234,6 +237,7 @@ namespace VisualPinball.Unity
 			ProcessPendingNudgeSensorSamples();
 
 			// run physics loop (Burst-compiled, thread-safe)
+			var executeStartTicks = Stopwatch.GetTimestamp();
 			PhysicsUpdate.Execute(
 				ref state,
 				ref _ctx.PhysicsEnv,
@@ -243,6 +247,11 @@ namespace VisualPinball.Unity
 				ref _ctx.PhysicsCycle,
 				currentTimeUsec
 			);
+			var executeUsec = ElapsedUsec(executeStartTicks, Stopwatch.GetTimestamp());
+			Interlocked.Exchange(ref _ctx.LastPhysicsExecuteUsec, executeUsec);
+			if (executeUsec > Interlocked.Read(ref _ctx.MaxPhysicsExecuteUsec)) {
+				Interlocked.Exchange(ref _ctx.MaxPhysicsExecuteUsec, executeUsec);
+			}
 			Interlocked.Exchange(ref _ctx.PublishedPhysicsFrameTimeUsec, (long)_ctx.PhysicsEnv.CurPhysicsFrameTime);
 
 			RecordPhysicsBusyTime(sw.ElapsedTicks);
@@ -915,7 +924,7 @@ namespace VisualPinball.Unity
 
 			// Rebuild kinematic octree only when transforms have changed.
 			if (_ctx.KinematicOctreeDirty) {
-				PhysicsKinematics.RebuildOctree(ref _ctx.KinematicOctree, ref state);
+				PhysicsUpdate.RebuildKinematicOctree(ref _ctx.KinematicOctree, ref state);
 				_ctx.KinematicOctreeDirty = false;
 			}
 

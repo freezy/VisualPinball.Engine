@@ -284,6 +284,12 @@ namespace VisualPinball.Unity
 		public long LastKinematicScanUsec;
 		public long LastEventDrainUsec;
 
+		// diagnostics: sim-tick cost breakdown (microseconds), see PhysicsEngine.GetSimulationTimingDiagnostics
+		public long LastKinematicOctreeRebuildUsec;
+		public long KinematicOctreeRebuildCount;
+		public long LastPhysicsExecuteUsec;
+		public long MaxPhysicsExecuteUsec;
+
 		#endregion
 
 		#region Methods

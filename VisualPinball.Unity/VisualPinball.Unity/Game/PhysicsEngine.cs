@@ -923,6 +923,48 @@ namespace VisualPinball.Unity
 			=> _ctx.BallComponents.TryGetValue(itemId, out ballComponent);
 
 		/// <summary>
+		/// Visitor for <see cref="VisitBallStates"/>. Invoked once per live ball on the
+		/// simulation thread; <paramref name="index"/> runs from 0 to <paramref name="count"/> - 1.
+		/// </summary>
+		public delegate void BallStateVisitor(in BallState ball, int index, int count, ulong physicsTimeUsec);
+
+		/// <summary>
+		/// Schedules a read-only visit of every live ball state. Diagnostics only.
+		/// </summary>
+		/// <remarks>
+		/// <b>Thread:</b> The visitor runs on the simulation thread inside <c>PhysicsLock</c>
+		/// (inline on the main thread in single-threaded mode). It must not touch Unity APIs
+		/// and should only copy what it needs. Balls are visited in hash-map order.
+		/// </remarks>
+		/// <summary>
+		/// Simulation-tick cost diagnostics in microseconds. Resets the execute maximum on read.
+		/// </summary>
+		public void GetSimulationTimingDiagnostics(out long octreeRebuildLastUsec, out long octreeRebuildCount,
+			out long physicsExecuteLastUsec, out long physicsExecuteMaxUsec, out long physicsBusyTotalUsec)
+		{
+			octreeRebuildLastUsec = Interlocked.Read(ref _ctx.LastKinematicOctreeRebuildUsec);
+			octreeRebuildCount = Interlocked.Read(ref _ctx.KinematicOctreeRebuildCount);
+			physicsExecuteLastUsec = Interlocked.Read(ref _ctx.LastPhysicsExecuteUsec);
+			physicsExecuteMaxUsec = Interlocked.Exchange(ref _ctx.MaxPhysicsExecuteUsec, 0);
+			physicsBusyTotalUsec = Interlocked.Read(ref _ctx.PhysicsBusyTotalUsec);
+		}
+
+		public void VisitBallStates(BallStateVisitor visitor)
+		{
+			if (visitor == null) {
+				return;
+			}
+			MutateState((ref PhysicsState state) => {
+				var count = state.Balls.Count();
+				var index = 0;
+				using var enumerator = state.Balls.GetEnumerator();
+				while (enumerator.MoveNext()) {
+					visitor(in enumerator.Current.Value, index++, count, state.Env.CurPhysicsFrameTime);
+				}
+			});
+		}
+
+		/// <summary>
 		/// Gets the currently captured ball while holding the physics lock in
 		/// external-timing mode. Invalid stale references are repaired in place.
 		/// </summary>
