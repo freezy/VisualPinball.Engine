@@ -181,6 +181,18 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Rebuilds the kinematic broad-phase octree. Burst entry point for
+		/// <see cref="PhysicsKinematics.RebuildOctree"/>: the rebuild walks every kinematic
+		/// collider of the table, and as managed code it costs milliseconds per call, which
+		/// starves the 1 kHz simulation thread whenever a kinematic item moves.
+		/// </summary>
+		[BurstCompile]
+		public static void RebuildKinematicOctree(ref NativeOctree<int> octree, ref PhysicsState state)
+		{
+			PhysicsKinematics.RebuildOctree(ref octree, ref state);
+		}
+
 		internal static void UpdateSpringHingeVelocities(ref PhysicsState state, in float3 gravity,
 			in float2 cabinetAcceleration, float step)
 		{
