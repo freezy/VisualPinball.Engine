@@ -82,6 +82,24 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<int, HeldKinematicPose> _heldIsolatedPoses = new();
 		private readonly List<int> _heldPosesToApply = new();
 
+		/// <summary>
+		/// Time (same clock as the hold timeout) of the latest streamed target per
+		/// kinematic item that is currently excluded from the kinematic octree.
+		/// An item returns to the octree once it has been quiet for
+		/// <see cref="KinematicOctreeReturnQuietUsec"/> and its pose has settled on
+		/// its target. Owned by the thread that stages kinematic targets.
+		/// </summary>
+		private readonly Dictionary<int, ulong> _kinematicMovingSinceUsec = new();
+		private readonly List<int> _kinematicOctreeReturns = new();
+
+		/// <summary>
+		/// Quiet time after the last streamed target before a moving item is put
+		/// back into the kinematic octree. Matches the continuity window, so a
+		/// low-cadence mover (10 Hz updates) stays out of the octree for its whole
+		/// motion and the rebuild happens twice per motion, not per update.
+		/// </summary>
+		private const ulong KinematicOctreeReturnQuietUsec = 250_000;
+
 		private struct HeldKinematicPose
 		{
 			public float4x4 Pose;
@@ -365,6 +383,7 @@ namespace VisualPinball.Unity
 				}
 
 				ProcessHeldKinematicPoses(currentTimeUsec);
+				ProcessKinematicOctreeReturns(currentTimeUsec);
 			}
 		}
 
@@ -396,14 +415,63 @@ namespace VisualPinball.Unity
 				// continuous motion (incl. resolving a hold): stream toward the target,
 				// capped per tick, so a fast collider can't skip past a ball
 				_ctx.KinematicTargetTransforms.Ref[itemId] = matrix;
-				// colliderless kinematic items (magnets, turntables) don't affect the octree
-				if (_ctx.KinematicColliderLookups.ContainsKey(itemId)) {
-					_ctx.KinematicOctreeDirty = true;
-				}
+				MarkKinematicItemMoving(itemId, holdTimeUsec);
 			}
 
 			var item = GetKinematicTransformComponent(itemId);
 			item?.OnTransformationChanged(matrix);
+		}
+
+		/// <summary>
+		/// Takes a streaming item out of the kinematic octree so its per-frame pose
+		/// updates no longer force an octree rebuild; its colliders are broad-phased
+		/// directly while it moves (<see cref="PhysicsStaticBroadPhase.FindMovingKinematicOverlaps"/>).
+		/// The octree is rebuilt once, without the item.
+		/// </summary>
+		private void MarkKinematicItemMoving(int itemId, ulong nowUsec)
+		{
+			// colliderless kinematic items (magnets, turntables) don't affect the octree
+			if (!_ctx.KinematicColliderLookups.ContainsKey(itemId)) {
+				return;
+			}
+			_kinematicMovingSinceUsec[itemId] = nowUsec;
+			if (_ctx.KinematicItemsOutOfOctree.Ref.Add(itemId)) {
+				_ctx.KinematicOctreeDirty = true;
+			}
+		}
+
+		/// <summary>
+		/// Puts items back into the kinematic octree once they have been quiet for
+		/// <see cref="KinematicOctreeReturnQuietUsec"/> and their stepped pose has
+		/// reached the target. The octree is rebuilt once per returning batch.
+		/// </summary>
+		/// <remarks>
+		/// <b>Thread:</b> Simulation thread (inside <c>PhysicsLock</c>), or main
+		/// thread in single-threaded mode.
+		/// </remarks>
+		private void ProcessKinematicOctreeReturns(ulong nowUsec)
+		{
+			if (_kinematicMovingSinceUsec.Count == 0) {
+				return;
+			}
+			_kinematicOctreeReturns.Clear();
+			foreach (var kvp in _kinematicMovingSinceUsec) {
+				if (nowUsec < kvp.Value || nowUsec - kvp.Value < KinematicOctreeReturnQuietUsec) {
+					continue;
+				}
+				if (_ctx.KinematicTargetTransforms.Ref.TryGetValue(kvp.Key, out var target)
+				    && !_ctx.KinematicTransforms.Ref[kvp.Key].Equals(target)) {
+					continue; // still catching up
+				}
+				_kinematicOctreeReturns.Add(kvp.Key);
+			}
+			foreach (var itemId in _kinematicOctreeReturns) {
+				_kinematicMovingSinceUsec.Remove(itemId);
+				if (_ctx.KinematicItemsOutOfOctree.Ref.Remove(itemId)) {
+					_ctx.KinematicMovingItemBounds.Ref.Remove(itemId);
+					_ctx.KinematicOctreeDirty = true;
+				}
+			}
 		}
 
 		/// <summary>
@@ -420,7 +488,12 @@ namespace VisualPinball.Unity
 				for (var i = 0; i < colliderLookups.Length; i++) {
 					state.TransformKinematicColliders(colliderLookups[i], matrix);
 				}
-				_ctx.KinematicOctreeDirty = true;
+				if (_ctx.KinematicItemsOutOfOctree.Ref.Contains(itemId)) {
+					// moving item: not in the octree, only its direct-test bounds change
+					PhysicsKinematics.UpdateMovingItemBounds(ref state, itemId, in colliderLookups);
+				} else {
+					_ctx.KinematicOctreeDirty = true;
+				}
 			}
 		}
 
@@ -919,6 +992,7 @@ namespace VisualPinball.Unity
 				StageKinematicTarget(item.ItemId, in currTransformationMatrix, currentTimeUsec, currentTimeUsec);
 			}
 			ProcessHeldKinematicPoses(currentTimeUsec);
+			ProcessKinematicOctreeReturns(currentTimeUsec);
 
 			var state = _ctx.CreateState();
 

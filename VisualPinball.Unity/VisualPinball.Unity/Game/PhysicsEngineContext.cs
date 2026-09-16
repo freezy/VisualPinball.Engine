@@ -52,18 +52,21 @@ namespace VisualPinball.Unity
 		/// </summary>
 		/// <remarks>
 		/// Created once in <see cref="PhysicsEngine.Start"/> with
-		/// <c>Allocator.Persistent</c>. Cleared and rebuilt only when
-		/// <see cref="KinematicOctreeDirty"/> is set, rather than every
-		/// physics tick. This reduces overhead from ~1 kHz to ~60 Hz.
+		/// <c>Allocator.Persistent</c>. Holds only idle kinematic items and is
+		/// cleared and rebuilt only when <see cref="KinematicOctreeDirty"/> is
+		/// set, i.e. when an item starts or stops moving or is snapped in place.
+		/// Moving items are kept in <see cref="KinematicItemsOutOfOctree"/> and
+		/// broad-phased directly, so a moving mechanism costs no rebuild per frame.
 		/// </remarks>
 		public NativeOctree<int> KinematicOctree;
 
 		/// <summary>
 		/// Whether the kinematic octree needs to be rebuilt before the
-		/// next physics tick. Set to <c>true</c> when kinematic transforms
-		/// change (either via pending staging in threaded mode or via
-		/// direct detection in single-threaded mode). Initialized to
-		/// <c>true</c> so the first tick builds the octree.
+		/// next physics tick. Set to <c>true</c> when the set of idle kinematic
+		/// items changes or an idle item is snapped to a new pose (either via
+		/// pending staging in threaded mode or via direct detection in
+		/// single-threaded mode). Initialized to <c>true</c> so the first tick
+		/// builds the octree.
 		/// </summary>
 		public bool KinematicOctreeDirty = true;
 
@@ -162,6 +165,23 @@ namespace VisualPinball.Unity
 		/// (collision and contact resolution).
 		/// </remarks>
 		public readonly LazyInit<NativeParallelHashMap<int, KinematicVelocityState>> KinematicVelocities = new(() => new NativeParallelHashMap<int, KinematicVelocityState>(0, Allocator.Persistent));
+
+		/// <summary>
+		/// Kinematic items currently excluded from <see cref="KinematicOctree"/>
+		/// because they are moving; their colliders are broad-phased directly.
+		/// See <see cref="PhysicsState.KinematicItemsOutOfOctree"/>.
+		/// </summary>
+		/// <remarks>
+		/// Written by: the thread that stages kinematic targets (sim thread, or
+		/// main thread in single-threaded mode). Read by: the physics loop.
+		/// </remarks>
+		public readonly LazyInit<NativeParallelHashSet<int>> KinematicItemsOutOfOctree = new(() => new NativeParallelHashSet<int>(0, Allocator.Persistent));
+
+		/// <summary>
+		/// Current-pose bounds of the items in <see cref="KinematicItemsOutOfOctree"/>.
+		/// See <see cref="PhysicsState.KinematicMovingItemBounds"/>.
+		/// </summary>
+		public readonly LazyInit<NativeParallelHashMap<int, Aabb>> KinematicMovingItemBounds = new(() => new NativeParallelHashMap<int, Aabb>(0, Allocator.Persistent));
 
 		/// <summary>
 		/// The current matrix to which the ball will be transformed to, if
@@ -309,7 +329,8 @@ namespace VisualPinball.Unity
 				ref HitTargetStates.Ref, ref KickerStates.Ref, ref MagnetStates.Ref, ref PlungerStates.Ref, ref SpinnerStates.Ref,
 				ref SpringHingeStates.Ref,
 				ref SurfaceStates.Ref, ref TurntableStates.Ref, ref TriggerStates.Ref, ref DisabledCollisionItems.Ref, ref SwapBallCollisionHandling,
-				ref ElasticityOverVelocityLUTs, ref FrictionOverVelocityLUTs, ref KinematicVelocities.Ref);
+				ref ElasticityOverVelocityLUTs, ref FrictionOverVelocityLUTs, ref KinematicVelocities.Ref,
+				ref KinematicItemsOutOfOctree.Ref, ref KinematicMovingItemBounds.Ref);
 		}
 
 		/// <summary>
@@ -365,6 +386,8 @@ namespace VisualPinball.Unity
 			KinematicTransforms.Ref.Dispose();
 			KinematicTargetTransforms.Ref.Dispose();
 			KinematicVelocities.Ref.Dispose();
+			KinematicItemsOutOfOctree.Ref.Dispose();
+			KinematicMovingItemBounds.Ref.Dispose();
 			PendingKinematicTransforms.Ref.Dispose();
 			NonTransformableColliderTransforms.Ref.Dispose();
 

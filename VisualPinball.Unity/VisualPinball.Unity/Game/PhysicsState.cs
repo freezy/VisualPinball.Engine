@@ -129,6 +129,28 @@ namespace VisualPinball.Unity
 		/// </remarks>
 		internal NativeParallelHashMap<int, NativeColliderIds> KinematicColliderLookups;
 
+		/// <summary>
+		/// Kinematic items whose colliders are currently excluded from the kinematic
+		/// octree because the item is moving. The octree only ever holds idle items,
+		/// so it is rebuilt when an item starts or stops moving instead of on every
+		/// pose update; moving items are broad-phased by testing their colliders'
+		/// bounds directly (<see cref="PhysicsStaticBroadPhase.FindMovingKinematicOverlaps"/>).
+		/// </summary>
+		/// <remarks>
+		/// Maintained by <c>PhysicsEngineThreading</c> on the thread that stages
+		/// kinematic targets. May be uncreated in unit tests, in which case every item
+		/// is treated as idle.
+		/// </remarks>
+		internal NativeParallelHashSet<int> KinematicItemsOutOfOctree;
+
+		/// <summary>
+		/// Union of the collider bounds of each moving item at its current pose,
+		/// refreshed by <see cref="PhysicsKinematics.StepKinematics"/> whenever the
+		/// pose steps. Lets the moving-item broad phase reject a whole item with one
+		/// test. A missing entry means the item's colliders are tested individually.
+		/// </summary>
+		internal NativeParallelHashMap<int, Aabb> KinematicMovingItemBounds;
+
 		internal NativeQueue<EventData>.ParallelWriter EventQueue;
 		internal InsideOfs InsideOfs;
 		internal NativeParallelHashMap<int, BallState> Balls;
@@ -168,7 +190,9 @@ namespace VisualPinball.Unity
 			ref NativeParallelHashSet<int> disabledCollisionItems, ref bool swapBallCollisionHandling,
 			ref NativeParallelHashMap<int, FixedList512Bytes<float>> elasticityOverVelocityLUTs,
 			ref NativeParallelHashMap<int, FixedList512Bytes<float>> frictionOverVelocityLUTs,
-			ref NativeParallelHashMap<int, KinematicVelocityState> kinematicVelocities)
+			ref NativeParallelHashMap<int, KinematicVelocityState> kinematicVelocities,
+			ref NativeParallelHashSet<int> kinematicItemsOutOfOctree,
+			ref NativeParallelHashMap<int, Aabb> kinematicMovingItemBounds)
 		{
 			Env = env;
 			Octree = octree;
@@ -201,6 +225,8 @@ namespace VisualPinball.Unity
 			ElasticityOverVelocityLUTs = elasticityOverVelocityLUTs;
 			FrictionOverVelocityLUTs = frictionOverVelocityLUTs;
 			KinematicVelocities = kinematicVelocities;
+			KinematicItemsOutOfOctree = kinematicItemsOutOfOctree;
+			KinematicMovingItemBounds = kinematicMovingItemBounds;
 		}
 
 		internal ref ColliderHeader GetColliderHeader(ref NativeColliders colliders, int colliderId) => ref colliders.GetHeader(colliderId);
@@ -341,9 +367,23 @@ namespace VisualPinball.Unity
 			return linear + math.cross(angular, position - pivot);
 		}
 
-		private bool TryGetKinematicVelocity(int itemId, out float3 linear, out float3 angular, out float3 pivot)
+		/// <summary>
+		/// Current-pose bounds of a kinematic collider. Baked (fully transformable)
+		/// colliders carry their transformed bounds; the others are stored at identity
+		/// and hit-tested in item space, so their bounds are derived from the identity
+		/// collider and the item's current transform, the same way the octree rebuild
+		/// does it.
+		/// </summary>
+		internal Aabb GetKinematicColliderAabb(int colliderId)
 		{
-			if (!KinematicVelocities.TryGetValue(itemId, out var velocity)) {
+			return KinematicColliders.IsTransformed(colliderId)
+				? KinematicColliders.GetAabb(colliderId)
+				: KinematicCollidersAtIdentity.GetTransformedAabb(colliderId, ref KinematicTransforms);
+		}
+
+		internal bool TryGetKinematicVelocity(int itemId, out float3 linear, out float3 angular, out float3 pivot)
+		{
+			if (!KinematicVelocities.IsCreated || !KinematicVelocities.TryGetValue(itemId, out var velocity)) {
 				linear = float3.zero;
 				angular = float3.zero;
 				pivot = float3.zero;
