@@ -18,6 +18,7 @@ using NativeTrees;
 using NUnit.Framework;
 using Unity.Collections;
 using Unity.Mathematics;
+using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Test
@@ -72,22 +73,22 @@ namespace VisualPinball.Unity.Test
 
 				// idle item: found through the octree, the direct pass adds nothing
 				PhysicsKinematics.RebuildOctree(ref octree, ref state);
-				PhysicsStaticBroadPhase.FindOverlaps(in octree, in ballOnFloor, ref overlaps);
+				PhysicsStaticBroadPhase.FindOverlaps(in octree, in ballOnFloor, ref overlaps, PhysicsConstants.PhysFactor);
 				Assert.That(overlaps.Contains(colliderId), Is.True, "idle item must be in the octree");
 				overlaps.Clear();
-				PhysicsStaticBroadPhase.FindMovingKinematicOverlaps(ref state, in ballOnFloor, ref overlaps);
+				PhysicsStaticBroadPhase.FindMovingKinematicOverlaps(ref state, in ballOnFloor, ref overlaps, PhysicsConstants.PhysFactor);
 				Assert.That(overlaps.Count(), Is.Zero, "idle item must not be tested directly");
 
 				// moving item: skipped by the octree, found by the direct pass
 				outOfOctree.Add(ItemId);
 				PhysicsKinematics.RebuildOctree(ref octree, ref state);
-				PhysicsStaticBroadPhase.FindOverlaps(in octree, in ballOnFloor, ref overlaps);
+				PhysicsStaticBroadPhase.FindOverlaps(in octree, in ballOnFloor, ref overlaps, PhysicsConstants.PhysFactor);
 				Assert.That(overlaps.Count(), Is.Zero, "moving item must be excluded from the octree");
-				PhysicsStaticBroadPhase.FindMovingKinematicOverlaps(ref state, in ballOnFloor, ref overlaps);
+				PhysicsStaticBroadPhase.FindMovingKinematicOverlaps(ref state, in ballOnFloor, ref overlaps, PhysicsConstants.PhysFactor);
 				Assert.That(overlaps.Contains(colliderId), Is.True, "moving item must be found by the direct pass");
 
 				overlaps.Clear();
-				PhysicsStaticBroadPhase.FindMovingKinematicOverlaps(ref state, in ballFarAway, ref overlaps);
+				PhysicsStaticBroadPhase.FindMovingKinematicOverlaps(ref state, in ballFarAway, ref overlaps, PhysicsConstants.PhysFactor);
 				Assert.That(overlaps.Count(), Is.Zero, "a ball away from the moving item must not get its colliders");
 
 				// item bounds are the union of the collider bounds at the current pose
@@ -97,10 +98,10 @@ namespace VisualPinball.Unity.Test
 				Assert.That(itemBounds.TryGetValue(ItemId, out var bounds), Is.True);
 				Assert.That(bounds.Left, Is.EqualTo(50f).Within(1e-4f));
 				Assert.That(bounds.Right, Is.EqualTo(150f).Within(1e-4f));
-				Assert.That(bounds.IntersectRect(ballOnFloor.Aabb), Is.True);
-				Assert.That(bounds.IntersectRect(ballFarAway.Aabb), Is.False);
+				Assert.That(bounds.IntersectRect(ballOnFloor.GetSweptAabb(PhysicsConstants.PhysFactor)), Is.True);
+				Assert.That(bounds.IntersectRect(ballFarAway.GetSweptAabb(PhysicsConstants.PhysFactor)), Is.False);
 				overlaps.Clear();
-				PhysicsStaticBroadPhase.FindMovingKinematicOverlaps(ref state, in ballOnFloor, ref overlaps);
+				PhysicsStaticBroadPhase.FindMovingKinematicOverlaps(ref state, in ballOnFloor, ref overlaps, PhysicsConstants.PhysFactor);
 				Assert.That(overlaps.Contains(colliderId), Is.True, "item bounds must not reject a ball that overlaps the item");
 
 				// a surface approaching the ball within the tick is admitted even when the
@@ -108,13 +109,13 @@ namespace VisualPinball.Unity.Test
 				// reported moving up at 10 units per step, the ball hovers 0.5 above it
 				var hoveringBall = new BallState { Id = 9, Radius = 25f, Position = new float3(100f, 0f, 25.5f) };
 				overlaps.Clear();
-				PhysicsStaticBroadPhase.FindMovingKinematicOverlaps(ref state, in hoveringBall, ref overlaps);
+				PhysicsStaticBroadPhase.FindMovingKinematicOverlaps(ref state, in hoveringBall, ref overlaps, PhysicsConstants.PhysFactor);
 				Assert.That(overlaps.Count(), Is.Zero, "without surface velocity a hovering ball is out of reach");
 				velocities.Add(ItemId, new KinematicVelocityState {
 					LinearVelocity = new float3(0f, 0f, 10f),
 					Pivot = matrix.c3.xyz,
 				});
-				PhysicsStaticBroadPhase.FindMovingKinematicOverlaps(ref state, in hoveringBall, ref overlaps);
+				PhysicsStaticBroadPhase.FindMovingKinematicOverlaps(ref state, in hoveringBall, ref overlaps, PhysicsConstants.PhysFactor);
 				Assert.That(overlaps.Contains(colliderId), Is.True, "surface velocity must extend the query by one tick of motion");
 				velocities.Remove(ItemId);
 
@@ -151,7 +152,7 @@ namespace VisualPinball.Unity.Test
 			try {
 				var state = new PhysicsState();
 				var ball = new BallState { Id = 7, Radius = 25f, Position = new float3(90f, -10f, 25f) };
-				PhysicsStaticBroadPhase.FindMovingKinematicOverlaps(ref state, in ball, ref overlaps);
+				PhysicsStaticBroadPhase.FindMovingKinematicOverlaps(ref state, in ball, ref overlaps, PhysicsConstants.PhysFactor);
 				Assert.That(overlaps.Count(), Is.Zero);
 			} finally {
 				overlaps.Dispose();

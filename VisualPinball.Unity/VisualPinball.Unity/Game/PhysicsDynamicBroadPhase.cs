@@ -29,14 +29,19 @@ namespace VisualPinball.Unity
 		private static readonly ProfilerMarker PerfMarkerBallOctree = new("CreateBallOctree");
 		private static readonly ProfilerMarker PerfMarkerDynamicBroadPhase = new("DynamicBroadPhase");
 
-		internal static void RebuildOctree(ref NativeOctree<int> octree, ref NativeParallelHashMap<int, BallState> balls)
+		/// <summary>
+		/// Inserts every ball with the bounds it can reach within <paramref name="dTime"/>
+		/// (see <see cref="BallState.GetSweptAabb"/>). <see cref="RebuildIfMotionEscapes"/>
+		/// refits when a ball's remaining motion leaves its inserted bounds.
+		/// </summary>
+		internal static void RebuildOctree(ref NativeOctree<int> octree, ref NativeParallelHashMap<int, BallState> balls, float dTime)
 		{
 			PerfMarkerBallOctree.Begin();
 			octree.Clear();
 			using var enumerator = balls.GetEnumerator();
 			while (enumerator.MoveNext()) {
 				ref var ball = ref enumerator.Current.Value;
-				ball.DynamicBroadPhaseAabb = ball.Aabb;
+				ball.DynamicBroadPhaseAabb = ball.GetSweptAabb(dTime);
 				octree.Insert(ball.Id, ball.DynamicBroadPhaseAabb);
 			}
 			PerfMarkerBallOctree.End();
@@ -48,7 +53,7 @@ namespace VisualPinball.Unity
 			if (remainingTime <= 0f || !RequiresRebuild(ref balls, remainingTime)) {
 				return false;
 			}
-			RebuildOctree(ref octree, ref balls);
+			RebuildOctree(ref octree, ref balls, remainingTime);
 			return true;
 		}
 
@@ -81,11 +86,11 @@ namespace VisualPinball.Unity
 			       && max.z <= inserted.ZHigh + ContainmentTolerance;
 		}
 
-		internal static void FindOverlaps(in NativeOctree<int> octree, in BallState ball, ref NativeParallelHashSet<int> overlappingBalls, ref NativeParallelHashMap<int, BallState> balls)
+		internal static void FindOverlaps(in NativeOctree<int> octree, in BallState ball, ref NativeParallelHashSet<int> overlappingBalls, ref NativeParallelHashMap<int, BallState> balls, float dTime)
 		{
 			PerfMarkerDynamicBroadPhase.Begin();
 			overlappingBalls.Clear();
-			octree.RangeAABBUnique(ball.Aabb, overlappingBalls);
+			octree.RangeAABBUnique(ball.GetSweptAabb(dTime), overlappingBalls);
 
 			// Collect IDs to remove into a stack-allocated list to avoid copying the hash set to a NativeArray.
 			var toRemove = new FixedList64Bytes<int>();

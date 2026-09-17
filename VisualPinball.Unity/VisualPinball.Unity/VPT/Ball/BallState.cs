@@ -71,6 +71,11 @@ namespace VisualPinball.Unity
 
 		public BallPositions LastPositions;
 
+		/// <summary>
+		/// Conservative bounds: the ball inflated by a full step's velocity in every
+		/// direction (VP's hit box). The physics cycle uses <see cref="GetSweptAabb"/>
+		/// instead, which only covers the time actually searched.
+		/// </summary>
 		public Aabb Aabb {
 			get {
 				var vl = math.length(Velocity) + Radius + 0.05f; // 0.05f = paranoia
@@ -83,6 +88,27 @@ namespace VisualPinball.Unity
 					Position.z + vl
 				);
 			}
+		}
+
+		/// <summary>
+		/// Bounds of the volume the ball can occupy within <paramref name="dTime"/>
+		/// (in step units, the same as <see cref="Velocity"/>): the segment from the
+		/// current position to the position after <paramref name="dTime"/>, inflated
+		/// by the radius and the contact margin.
+		/// </summary>
+		/// <remarks>
+		/// The narrow phase rejects hits later than the searched time, and the
+		/// velocity is constant between collisions, so nothing outside this box can
+		/// be hit within the search window. VP inflates by the full 10 ms velocity in
+		/// every direction because its search window is the full step; with 1 ms
+		/// sub cycles that box is up to ten times larger than needed along the motion
+		/// and pulls in every collider around a fast ball.
+		/// </remarks>
+		public Aabb GetSweptAabb(float dTime)
+		{
+			var end = Position + Velocity * math.max(0f, dTime);
+			var margin = Radius + 0.05f; // 0.05f = paranoia, matches Aabb
+			return new Aabb(math.min(Position, end) - margin, math.max(Position, end) + margin);
 		}
 
 		public float CollisionRadiusSqr {
