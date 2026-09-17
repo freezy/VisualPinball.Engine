@@ -152,14 +152,21 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
-		/// Twice the squared area below which a mesh triangle gets no collider. A
-		/// collinear triangle has no normal, and its hit test then reports a contact
-		/// at distance zero for any ball inside its bounds. Its edges and vertices
-		/// are still added.
+		/// Squared sine of the corner angle below which a mesh triangle counts as
+		/// collinear and gets no triangle collider: such a triangle has no normal,
+		/// and its hit test then reports a contact at distance zero for any ball
+		/// inside its bounds. Its edges and vertices are still added. The test is
+		/// relative to the edge lengths, so it does not depend on the unit the mesh
+		/// comes in (meters or VPX units).
 		/// </summary>
-		private const float DegenerateTriangleThreshold = 1e-6f;
+		private const float DegenerateTriangleSinSq = 1e-10f;
 
 		internal static bool IsDegenerate(in float3 rgv0, in float3 rgv1, in float3 rgv2)
-			=> math.lengthsq(math.cross(rgv1 - rgv0, rgv2 - rgv0)) < DegenerateTriangleThreshold;
+		{
+			var e1 = rgv1 - rgv0;
+			var e2 = rgv2 - rgv0;
+			// |e1 x e2|^2 = |e1|^2 |e2|^2 sin^2(angle); zero-length edges are degenerate too
+			return math.lengthsq(math.cross(e1, e2)) <= DegenerateTriangleSinSq * math.lengthsq(e1) * math.lengthsq(e2);
+		}
 	}
 }

@@ -81,6 +81,13 @@ namespace VisualPinball.Unity.Test
 				Assert.That(references.Count, Is.EqualTo(1), "only the proper triangle gets a collider");
 				Assert.That(ColliderUtils.IsDegenerate(vertices[0], vertices[3], vertices[4]), Is.True);
 				Assert.That(ColliderUtils.IsDegenerate(vertices[0], vertices[1], vertices[2]), Is.False);
+
+				// the test is scale independent: a 2 mm triangle in meters is a valid triangle,
+				// a collinear one in meters is not, and a zero-length edge is degenerate
+				var m = new float3(0.1f, 0.2f, 0f);
+				Assert.That(ColliderUtils.IsDegenerate(m, m + new float3(0.002f, 0f, 0f), m + new float3(0f, 0.002f, 0f)), Is.False);
+				Assert.That(ColliderUtils.IsDegenerate(m, m + new float3(0.002f, 0f, 0f), m + new float3(0.004f, 0f, 0f)), Is.True);
+				Assert.That(ColliderUtils.IsDegenerate(m, m, m + new float3(0f, 0.002f, 0f)), Is.True);
 			} finally {
 				indices.Dispose();
 				vertices.Dispose();
