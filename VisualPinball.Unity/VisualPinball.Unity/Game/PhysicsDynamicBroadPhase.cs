@@ -26,13 +26,22 @@ namespace VisualPinball.Unity
 	{
 		private const float MotionBoundsMargin = 0.05f;
 		private const float ContainmentTolerance = 1e-5f;
+
+		/// <summary>
+		/// Extra padding on the inserted bounds. The containment check recomputes the
+		/// end of the motion from the displaced position, which at playfield
+		/// coordinates differs from the inserted end by a few float ulps; without
+		/// padding that noise alone would refit the octree on most iterations.
+		/// </summary>
+		private const float RefitPadding = 0.5f;
 		private static readonly ProfilerMarker PerfMarkerBallOctree = new("CreateBallOctree");
 		private static readonly ProfilerMarker PerfMarkerDynamicBroadPhase = new("DynamicBroadPhase");
 
 		/// <summary>
 		/// Inserts every ball with the bounds it can reach within <paramref name="dTime"/>
-		/// (see <see cref="BallState.GetSweptAabb"/>). <see cref="RebuildIfMotionEscapes"/>
-		/// refits when a ball's remaining motion leaves its inserted bounds.
+		/// (see <see cref="BallState.GetSweptAabb"/>), padded by <see cref="RefitPadding"/>.
+		/// <see cref="RebuildIfMotionEscapes"/> refits when a ball's remaining motion
+		/// leaves its inserted bounds.
 		/// </summary>
 		internal static void RebuildOctree(ref NativeOctree<int> octree, ref NativeParallelHashMap<int, BallState> balls, float dTime)
 		{
@@ -41,7 +50,11 @@ namespace VisualPinball.Unity
 			using var enumerator = balls.GetEnumerator();
 			while (enumerator.MoveNext()) {
 				ref var ball = ref enumerator.Current.Value;
-				ball.DynamicBroadPhaseAabb = ball.GetSweptAabb(dTime);
+				var swept = ball.GetSweptAabb(dTime);
+				ball.DynamicBroadPhaseAabb = new Aabb(
+					swept.Left - RefitPadding, swept.Right + RefitPadding,
+					swept.Top - RefitPadding, swept.Bottom + RefitPadding,
+					swept.ZLow - RefitPadding, swept.ZHigh + RefitPadding);
 				octree.Insert(ball.Id, ball.DynamicBroadPhaseAabb);
 			}
 			PerfMarkerBallOctree.End();
