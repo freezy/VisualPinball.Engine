@@ -47,6 +47,7 @@ namespace VisualPinball.Unity
 				if (newCollEvent.IsContact || validHit) {
 					newCollEvent.SetBallItem(collidingBallId);
 					newCollEvent.HitTime = newTime;
+					counters.RecordHit(ref state, in ball, in newCollEvent);
 					if (newCollEvent.IsContact) {
 						contacts.Add(new ContactBufferElement(ball.Id, newCollEvent));
 

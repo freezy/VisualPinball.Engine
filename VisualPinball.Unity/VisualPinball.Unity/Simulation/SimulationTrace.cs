@@ -404,7 +404,7 @@ namespace VisualPinball.Unity.Simulation
 		private static unsafe void WriteTicks(string path)
 		{
 			using var writer = new StreamWriter(path, false, Encoding.ASCII, 1 << 16);
-			writer.WriteLine("index,start_us,target_us,late_us,sim_time_us,synced_clock_us,physics_time_us,clock_jump_us,dropped_us,wait_requested_us,wait_us,wait_mode,switches_us,input_us,outputs_us,lock_wait_us,kinematic_us,rebuild_us,execute_us,physics_advance_us,physics_us,plumb_us,fence_us,writer_us,diag_us,snapshot_lock_us,snapshot_us,total_us,balls,kinematic_updates,moving_items,gc0,iterations,hit_tests,ball_tests,contacts,max_ball_tests,max_ball_id,max_ball_x,max_ball_y,max_ball_z,tests_triangle,tests_line3d,tests_line,tests_point,tests_plane,tests_circle,tests_flipper,tests_other,ball_octree_refits,broad_phase_visits");
+			writer.WriteLine("index,start_us,target_us,late_us,sim_time_us,synced_clock_us,physics_time_us,clock_jump_us,dropped_us,wait_requested_us,wait_us,wait_mode,switches_us,input_us,outputs_us,lock_wait_us,kinematic_us,rebuild_us,execute_us,physics_advance_us,physics_us,plumb_us,fence_us,writer_us,diag_us,snapshot_lock_us,snapshot_us,total_us,balls,kinematic_updates,moving_items,gc0,iterations,hit_tests,ball_tests,contacts,max_ball_tests,max_ball_id,max_ball_x,max_ball_y,max_ball_z,tests_triangle,tests_line3d,tests_line,tests_point,tests_plane,tests_circle,tests_flipper,tests_other,ball_octree_refits,broad_phase_visits,deepest_dist,deepest_collider,deepest_item,deepest_type,deepest_contact,deepest_ball,deepest_nx,deepest_ny,deepest_nz,deepest_bx,deepest_by,deepest_bz,deepest_vx,deepest_vy,deepest_vz");
 			var sb = new StringBuilder(512);
 			var n = StoredCount(_tickCount, TickCapacity);
 			var i = FirstIndex(_tickCount, TickCapacity, _tickHead);
@@ -430,7 +430,19 @@ namespace VisualPinball.Unity.Simulation
 					.Append(c.MaxBallPosition.z.ToString("F1", CultureInfo.InvariantCulture)).Append(',')
 					.Append(c.Triangle).Append(',').Append(c.Line3D).Append(',').Append(c.Line).Append(',').Append(c.Point).Append(',')
 					.Append(c.Plane).Append(',').Append(c.Circle).Append(',').Append(c.Flipper).Append(',').Append(c.Other).Append(',')
-					.Append(t.BallOctreeRefits).Append(',').Append(c.BroadPhaseVisits);
+					.Append(t.BallOctreeRefits).Append(',').Append(c.BroadPhaseVisits).Append(',')
+					.Append(c.DeepestHitDistance == float.MaxValue ? "" : c.DeepestHitDistance.ToString("F3", CultureInfo.InvariantCulture)).Append(',')
+					.Append(c.DeepestHitColliderId).Append(',').Append(c.DeepestHitItemId).Append(',').Append(c.DeepestHitType).Append(',')
+					.Append(c.DeepestHitIsContact).Append(',').Append(c.DeepestHitBallId).Append(',')
+					.Append(c.DeepestHitNormal.x.ToString("F3", CultureInfo.InvariantCulture)).Append(',')
+					.Append(c.DeepestHitNormal.y.ToString("F3", CultureInfo.InvariantCulture)).Append(',')
+					.Append(c.DeepestHitNormal.z.ToString("F3", CultureInfo.InvariantCulture)).Append(',')
+					.Append(c.DeepestHitBallPosition.x.ToString("F2", CultureInfo.InvariantCulture)).Append(',')
+					.Append(c.DeepestHitBallPosition.y.ToString("F2", CultureInfo.InvariantCulture)).Append(',')
+					.Append(c.DeepestHitBallPosition.z.ToString("F2", CultureInfo.InvariantCulture)).Append(',')
+					.Append(c.DeepestHitBallVelocity.x.ToString("F3", CultureInfo.InvariantCulture)).Append(',')
+					.Append(c.DeepestHitBallVelocity.y.ToString("F3", CultureInfo.InvariantCulture)).Append(',')
+					.Append(c.DeepestHitBallVelocity.z.ToString("F3", CultureInfo.InvariantCulture));
 				writer.WriteLine(sb.ToString());
 			}
 		}
