@@ -316,6 +316,22 @@ namespace VisualPinball.Unity.Simulation
 			}
 		}
 
+		/// <summary>
+		/// Stops recording without writing or freeing anything, for the case where
+		/// the simulation thread could not be joined and may still touch the buffers.
+		/// The buffers are leaked; the next <see cref="Begin"/> allocates new ones.
+		/// </summary>
+		internal static unsafe void Abandon()
+		{
+			if (!_recording) {
+				return;
+			}
+			_recording = false;
+			_ticks = null;
+			_frames = null;
+			_locks = null;
+		}
+
 		/// <summary>Keeps the newest <see cref="KeptSessions"/> sessions in the folder.</summary>
 		private static void DeleteOldSessions(string directory, string currentStamp)
 		{

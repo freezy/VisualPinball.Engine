@@ -227,12 +227,19 @@ namespace VisualPinball.Unity.Simulation
 
 			_running = false;
 
+			var exited = true;
 			if (_thread != null && _thread.IsAlive)
 			{
-				_thread.Join(5000); // Wait up to 5 seconds
+				exited = _thread.Join(5000); // Wait up to 5 seconds
 			}
 
-			SimulationTrace.End();
+			if (exited) {
+				SimulationTrace.End();
+			} else {
+				// the thread may still be writing into the trace buffers; never free them under it
+				Logger.Warn($"{LogPrefix} [SimulationThread] Thread did not exit within 5 s, abandoning the simulation trace.");
+				SimulationTrace.Abandon();
+			}
 
 			Logger.Info($"{LogPrefix} [SimulationThread] Stopped after {_tickCount} ticks, {_inputEventsProcessed} input events, {_inputEventsDropped} dropped");
 		}
