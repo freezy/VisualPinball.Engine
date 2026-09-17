@@ -31,7 +31,8 @@ namespace VisualPinball.Unity
 			ref BallState ball,
 			ref NativeParallelHashSet<int> overlappingColliders,
 			ref NativeList<ContactBufferElement> contacts,
-			ref PhysicsState state
+			ref PhysicsState state,
+			ref PhysicsCounters counters
 		)
 		{
 			PerfMarkerNarrowPhase.Begin();
@@ -42,6 +43,7 @@ namespace VisualPinball.Unity
 					if (!state.IsColliderActive(ref colliders, overlappingColliderId)) {
 						continue;
 					}
+					counters.CountHitTest(state.GetColliderType(ref colliders, overlappingColliderId));
 
 					float newTime;
 					var newCollEvent = new CollisionEventData();

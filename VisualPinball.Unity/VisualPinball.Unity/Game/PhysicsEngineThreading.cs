@@ -213,7 +213,11 @@ namespace VisualPinball.Unity
 			if (!_ctx.IsInitialized) return;
 			_physicsEngine.MarkCurrentThreadAsSimulationThread();
 
+			var lockStartTicks = Stopwatch.GetTimestamp();
 			lock (_ctx.PhysicsLock) {
+				if (SimulationTrace.IsRecording) {
+					SimulationTrace.Tick.LockWaitUsec = SimulationTrace.ElapsedUsec(lockStartTicks, Stopwatch.GetTimestamp());
+				}
 				if (!_ctx.IsInitialized) {
 					return;
 				}
@@ -234,18 +238,23 @@ namespace VisualPinball.Unity
 		private void ExecutePhysicsSimulation(ulong currentTimeUsec)
 		{
 			var sw = Stopwatch.StartNew();
+			var tracing = SimulationTrace.IsRecording;
+			var tickStartTicks = Stopwatch.GetTimestamp();
 
 			// Apply kinematic transform updates staged by main thread.
 			ApplyPendingKinematicTransforms(currentTimeUsec);
+			var kinematicDoneTicks = Stopwatch.GetTimestamp();
 
 			var state = _ctx.CreateState();
 
 			// Rebuild kinematic octree only when transforms have changed.
+			var rebuildUsec = 0L;
 			if (_ctx.KinematicOctreeDirty) {
 				var rebuildStartTicks = Stopwatch.GetTimestamp();
 				PhysicsUpdate.RebuildKinematicOctree(ref _ctx.KinematicOctree, ref state);
 				_ctx.KinematicOctreeDirty = false;
-				Interlocked.Exchange(ref _ctx.LastKinematicOctreeRebuildUsec, ElapsedUsec(rebuildStartTicks, Stopwatch.GetTimestamp()));
+				rebuildUsec = ElapsedUsec(rebuildStartTicks, Stopwatch.GetTimestamp());
+				Interlocked.Exchange(ref _ctx.LastKinematicOctreeRebuildUsec, rebuildUsec);
 				Interlocked.Increment(ref _ctx.KinematicOctreeRebuildCount);
 			}
 
@@ -255,6 +264,7 @@ namespace VisualPinball.Unity
 			ProcessPendingNudgeSensorSamples();
 
 			// run physics loop (Burst-compiled, thread-safe)
+			var physicsTimeBefore = _ctx.PhysicsEnv.CurPhysicsFrameTime;
 			var executeStartTicks = Stopwatch.GetTimestamp();
 			PhysicsUpdate.Execute(
 				ref state,
@@ -278,6 +288,18 @@ namespace VisualPinball.Unity
 				observedMax = previousMax;
 			}
 			Interlocked.Exchange(ref _ctx.PublishedPhysicsFrameTimeUsec, (long)_ctx.PhysicsEnv.CurPhysicsFrameTime);
+
+			if (tracing) {
+				ref var trace = ref SimulationTrace.Tick;
+				trace.KinematicUsec = SimulationTrace.ElapsedUsec(tickStartTicks, kinematicDoneTicks);
+				trace.RebuildUsec = (int)rebuildUsec;
+				trace.ExecuteUsec = (int)executeUsec;
+				trace.PhysicsTimeUsec = (long)_ctx.PhysicsEnv.CurPhysicsFrameTime;
+				trace.PhysicsAdvanceUsec = (int)(_ctx.PhysicsEnv.CurPhysicsFrameTime - physicsTimeBefore);
+				trace.MovingItems = _kinematicMovingSinceUsec.Count;
+				trace.Counters = _ctx.PhysicsCycle.Counters;
+				trace.BallOctreeRefits = _ctx.PhysicsCycle.DynamicBroadPhaseRefitCount;
+			}
 
 			RecordPhysicsBusyTime(sw.ElapsedTicks);
 		}
@@ -372,12 +394,14 @@ namespace VisualPinball.Unity
 		{
 			if (!_ctx.PendingKinematicTransforms.Ref.IsCreated) return;
 
+			var drained = 0;
 			lock (_ctx.PendingKinematicLock) {
 				if (_ctx.PendingKinematicTransforms.Ref.Count() > 0) {
 					using var enumerator = _ctx.PendingKinematicTransforms.Ref.GetEnumerator();
 					while (enumerator.MoveNext()) {
 						var sample = enumerator.Current.Value;
 						StageKinematicTarget(enumerator.Current.Key, sample.Matrix, sample.SampleTimeUsec, currentTimeUsec);
+						drained++;
 					}
 					_ctx.PendingKinematicTransforms.Ref.Clear();
 				}
@@ -391,6 +415,9 @@ namespace VisualPinball.Unity
 
 				ProcessHeldKinematicPoses(currentTimeUsec);
 				ProcessKinematicOctreeReturns(currentTimeUsec);
+			}
+			if (SimulationTrace.IsRecording) {
+				SimulationTrace.Tick.KinematicUpdates = drained;
 			}
 		}
 
@@ -634,6 +661,9 @@ namespace VisualPinball.Unity
 				_snapshotSpringHingeIds.Length, ballSourceCount);
 			snapshot.BallCount = suppressOwnedSnapshot ? 0 : ballCount;
 			snapshot.BallSourceCount = ballSourceCount;
+			if (SimulationTrace.IsRecording) {
+				SimulationTrace.Tick.BallCount = ballSourceCount;
+			}
 			snapshot.BallSnapshotsTruncated = ballSourceCount > SimulationState.MaxBalls ? (byte)1 : (byte)0;
 			if (!_ballSnapshotOverflowWarningIssued && snapshot.BallSnapshotsTruncated != 0) {
 				_ballSnapshotOverflowWarningIssued = true;
@@ -797,8 +827,20 @@ namespace VisualPinball.Unity
 					"Call SetSimulationState() before enabling external timing.");
 			}
 
+			var applyStartTicks = Stopwatch.GetTimestamp();
 			ref readonly var snapshot = ref _ctx.SimulationState.AcquireReadBuffer();
 			ApplyMovementsFromSnapshot(in snapshot);
+			if (SimulationTrace.IsRecording) {
+				ref var frame = ref SimulationTrace.Frame;
+				frame.ApplyUsec = SimulationTrace.ElapsedUsec(applyStartTicks, Stopwatch.GetTimestamp());
+				frame.SnapshotSimTimeUsec = snapshot.SimulationTimeUsec;
+				frame.SnapshotPublishUsec = snapshot.PublishRealTimeUsec;
+				frame.SnapshotBallCount = snapshot.BallCount;
+				if (snapshot.BallCount > 0) { frame.Ball0Id = snapshot.BallSnapshots[0].Id; frame.Ball0 = snapshot.BallSnapshots[0].Position; }
+				if (snapshot.BallCount > 1) { frame.Ball1Id = snapshot.BallSnapshots[1].Id; frame.Ball1 = snapshot.BallSnapshots[1].Position; }
+				if (snapshot.BallCount > 2) { frame.Ball2Id = snapshot.BallSnapshots[2].Id; frame.Ball2 = snapshot.BallSnapshots[2].Position; }
+				if (snapshot.BallCount > 3) { frame.Ball3Id = snapshot.BallSnapshots[3].Id; frame.Ball3 = snapshot.BallSnapshots[3].Position; }
+			}
 		}
 
 		/// <summary>
@@ -864,6 +906,9 @@ namespace VisualPinball.Unity
 			var drainStartTicks = Stopwatch.GetTimestamp();
 
 			if (!Monitor.TryEnter(_ctx.PhysicsLock)) {
+				if (SimulationTrace.IsRecording) {
+					SimulationTrace.Frame.DrainSkipped = 1;
+				}
 				return; // sim thread is mid-tick; drain next frame
 			}
 			try {
@@ -886,7 +931,14 @@ namespace VisualPinball.Unity
 				action();
 			}
 
-			Interlocked.Exchange(ref _ctx.LastEventDrainUsec, ElapsedUsec(drainStartTicks, Stopwatch.GetTimestamp()));
+			var drainUsec = ElapsedUsec(drainStartTicks, Stopwatch.GetTimestamp());
+			Interlocked.Exchange(ref _ctx.LastEventDrainUsec, drainUsec);
+			if (SimulationTrace.IsRecording) {
+				ref var frame = ref SimulationTrace.Frame;
+				frame.DrainUsec = (int)drainUsec;
+				frame.EventsDrained = _deferredMainThreadEvents.Count;
+				frame.ActionsDrained = _deferredMainThreadScheduledActions.Count;
+			}
 		}
 
 		/// <summary>
@@ -931,6 +983,13 @@ namespace VisualPinball.Unity
 				_movedKinematicItems.Add(item.ItemId);
 				_pendingKinematicUpdates.Add(new KeyValuePair<int, KinematicTransformSample>(item.ItemId,
 					new KinematicTransformSample { Matrix = currMatrix, SampleTimeUsec = sampleTimeUsec }));
+			}
+
+			if (SimulationTrace.IsRecording) {
+				ref var frame = ref SimulationTrace.Frame;
+				frame.ScanUsec = SimulationTrace.ElapsedUsec(scanStartTicks, Stopwatch.GetTimestamp());
+				frame.KinematicChanged = _pendingKinematicUpdates.Count;
+				frame.KinematicStopped = _pendingKinematicStopUpdates.Count;
 			}
 
 			if (_pendingKinematicUpdates.Count == 0 && _pendingKinematicStopUpdates.Count == 0) {

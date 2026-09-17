@@ -24,20 +24,71 @@ using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
 {
+	/// <summary>
+	/// Per-update work counters of the physics cycle, for diagnostics. Reset at
+	/// the start of every <see cref="PhysicsUpdate.Execute"/>.
+	/// </summary>
+	public struct PhysicsCounters
+	{
+		/// <summary>Inner cycle iterations (hit-time sub steps) across all ticks of the update.</summary>
+		public int Iterations;
+		/// <summary>Static and kinematic collider hit tests.</summary>
+		public int HitTests;
+		/// <summary>Ball-ball hit tests.</summary>
+		public int BallTests;
+		/// <summary>Contacts handed to the contact solver.</summary>
+		public int Contacts;
+		/// <summary>Octree objects visited (bounds tests) by the static and kinematic broad phases.</summary>
+		public int BroadPhaseVisits;
+		/// <summary>Most collider hit tests one ball needed in one iteration.</summary>
+		public int MaxBallHitTests;
+		public int MaxBallId;
+		public float3 MaxBallPosition;
+		public int Triangle;
+		public int Line3D;
+		public int Line;
+		public int Point;
+		public int Plane;
+		public int Circle;
+		public int Flipper;
+		public int Other;
+
+		internal void CountHitTest(ColliderType type)
+		{
+			HitTests++;
+			switch (type) {
+				case ColliderType.Triangle: Triangle++; break;
+				case ColliderType.Line3D: Line3D++; break;
+				case ColliderType.Line:
+				case ColliderType.LineZ:
+				case ColliderType.LineSlingShot: Line++; break;
+				case ColliderType.Point: Point++; break;
+				case ColliderType.Plane: Plane++; break;
+				case ColliderType.Circle:
+				case ColliderType.Bumper:
+				case ColliderType.KickerCircle:
+				case ColliderType.TriggerCircle: Circle++; break;
+				case ColliderType.Flipper: Flipper++; break;
+				default: Other++; break;
+			}
+		}
+	}
+
 	public struct PhysicsCycle : IDisposable
 	{
 		private NativeList<ContactBufferElement> _contacts;
-
 		private static readonly ProfilerMarker PerfMarker = new("PhysicsCycle");
 		private static readonly ProfilerMarker PerfMarkerDisplacement = new("Displacement");
 		private static readonly ProfilerMarker PerfMarkerCollision = new("Collision");
 		private static readonly ProfilerMarker PerfMarkerContacts = new("Contacts");
 		internal int DynamicBroadPhaseRefitCount { get; private set; }
+		internal PhysicsCounters Counters;
 
 		public PhysicsCycle(Allocator a)
 		{
 			_contacts = new NativeList<ContactBufferElement>(a);
 			DynamicBroadPhaseRefitCount = 0;
+			Counters = default;
 		}
 
 		internal void Simulate(ref PhysicsState state, ref NativeParallelHashSet<int> overlappingColliders, ref NativeOctree<int> kinematicOctree, ref NativeOctree<int> ballOctree, float dTime)
@@ -50,6 +101,7 @@ namespace VisualPinball.Unity
 			PhysicsDynamicBroadPhase.RebuildOctree(ref ballOctree, ref state.Balls, dTime);
 
 			while (dTime > 0) {
+				Counters.Iterations++;
 
 				var hitTime = dTime;       // begin time search from now ...  until delta ends
 				var mechanismStopTime = -1f;
@@ -74,12 +126,13 @@ namespace VisualPinball.Unity
 
 						// hit testing (overlappingColliders is cleared in broad phase); the
 						// broad phase covers the same time window the narrow phase searches
-						PhysicsStaticBroadPhase.FindOverlaps(in state.Octree, in ball, ref overlappingColliders, hitTime);
-						PhysicsStaticNarrowPhase.FindNextCollision(ref state.Colliders, ref ball, ref overlappingColliders, ref _contacts, ref state);
+						var hitTestsBefore = Counters.HitTests;
+						PhysicsStaticBroadPhase.FindOverlaps(in state.Octree, in ball, ref overlappingColliders, hitTime, ref Counters);
+						PhysicsStaticNarrowPhase.FindNextCollision(ref state.Colliders, ref ball, ref overlappingColliders, ref _contacts, ref state, ref Counters);
 
-						PhysicsStaticBroadPhase.FindOverlaps(in kinematicOctree, in ball, ref overlappingColliders, hitTime);
+						PhysicsStaticBroadPhase.FindOverlaps(in kinematicOctree, in ball, ref overlappingColliders, hitTime, ref Counters);
 						PhysicsStaticBroadPhase.FindMovingKinematicOverlaps(ref state, in ball, ref overlappingColliders, hitTime);
-						PhysicsStaticNarrowPhase.FindNextCollision(ref state.KinematicColliders, ref ball, ref overlappingColliders, ref _contacts, ref state);
+						PhysicsStaticNarrowPhase.FindNextCollision(ref state.KinematicColliders, ref ball, ref overlappingColliders, ref _contacts, ref state, ref Counters);
 						RecordSpringHingeHitTime(ref springHingeHitTime, in ball, ref state);
 
 						// no negative time allowed
@@ -88,12 +141,20 @@ namespace VisualPinball.Unity
 						}
 
 						PhysicsDynamicBroadPhase.FindOverlaps(in ballOctree, in ball, ref overlappingColliders, ref state.Balls, hitTime);
-						PhysicsDynamicNarrowPhase.FindNextCollision(ref ball, ref overlappingColliders, ref _contacts, ref state);
+						PhysicsDynamicNarrowPhase.FindNextCollision(ref ball, ref overlappingColliders, ref _contacts, ref state, ref Counters);
+
+						var ballHitTests = Counters.HitTests - hitTestsBefore;
+						if (ballHitTests > Counters.MaxBallHitTests) {
+							Counters.MaxBallHitTests = ballHitTests;
+							Counters.MaxBallId = ball.Id;
+							Counters.MaxBallPosition = ball.Position;
+						}
 
 						// apply static time
 						ApplyStaticTime(ref hitTime, ref staticCounts, in ball);
 					}
 				}
+				Counters.Contacts += _contacts.Length;
 				ClampToMechanismStop(ref hitTime, mechanismStopTime);
 				ClampToSpringHingeHit(ref hitTime, springHingeHitTime);
 
@@ -206,6 +267,7 @@ namespace VisualPinball.Unity
 		internal void ResetDynamicBroadPhaseRefitCount()
 		{
 			DynamicBroadPhaseRefitCount = 0;
+			Counters = default;
 		}
 
 		internal static void ApplyBallSpinCorrection(ref BallState ball)

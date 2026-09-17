@@ -243,6 +243,9 @@ namespace VisualPinball.Unity.Simulation
 		[Range(1f, 10f)]
 		public float StatisticsInterval = 5f;
 
+		[Tooltip("Record the last ten minutes of simulation-thread and frame timing and write them as CSV files when the simulation stops (editor: Logs/SimulationTrace in the project, player: the persistent data path). -simulation-trace and -no-simulation-trace on the command line override this. Not packaged.")]
+		public bool RecordSimulationTrace = true;
+
 		#endregion
 
 		#region Fields
@@ -404,6 +407,10 @@ namespace VisualPinball.Unity.Simulation
 						Logger.Warn($"{LogPrefix} [SimulationThreadComponent] Native input not available, falling back to Unity Input System");
 					}
 				}
+
+				// Timing trace of the last minutes, written when the simulation stops
+				SimulationTrace.Enabled = SimulationTrace.CommandLineOverride() ?? RecordSimulationTrace;
+				SimulationTrace.OutputDirectory = SimulationTrace.DefaultOutputDirectory();
 
 				// Start simulation thread
 				_simulationThread.Start();

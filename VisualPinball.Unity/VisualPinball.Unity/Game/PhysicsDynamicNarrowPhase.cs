@@ -25,7 +25,7 @@ namespace VisualPinball.Unity
 		private static readonly ProfilerMarker PerfMarkerDynamicNarrowPhase = new("DynamicNarrowPhase");
 
 		internal static void FindNextCollision(ref BallState ball, ref NativeParallelHashSet<int> collidingBalls,
-			ref NativeList<ContactBufferElement> contacts, ref PhysicsState state)
+			ref NativeList<ContactBufferElement> contacts, ref PhysicsState state, ref PhysicsCounters counters)
 		{
 			// don't play with frozen balls
 			if (ball.IsFrozen) {
@@ -36,6 +36,7 @@ namespace VisualPinball.Unity
 			ref var collEvent = ref ball.CollisionEvent;
 			using var enumerator = collidingBalls.GetEnumerator();
 			while (enumerator.MoveNext()) {
+				counters.BallTests++;
 				var collidingBallId = enumerator.Current;
 				ref var collBall = ref state.Balls.GetValueByRef(collidingBallId);
 
