@@ -76,7 +76,7 @@ namespace VisualPinball.Unity
 						newTime = state.HitTest(ref colliders, overlappingColliderId, ref ball, ref newCollEvent, ref contacts);
 					}
 
-					SaveCollisions(ref ball, ref newCollEvent, ref contacts, overlappingColliderId, newTime, colliders.IsKinematic);
+					SaveCollisions(ref ball, ref newCollEvent, ref contacts, overlappingColliderId, newTime, colliders.IsKinematic, ref state, ref counters);
 				}
 			}
 
@@ -89,11 +89,14 @@ namespace VisualPinball.Unity
 		}
 
 		private static void SaveCollisions(ref BallState ball, ref CollisionEventData newCollEvent,
-			ref NativeList<ContactBufferElement> contacts, int colliderId, float newTime, bool isKinematic)
+			ref NativeList<ContactBufferElement> contacts, int colliderId, float newTime, bool isKinematic,
+			ref PhysicsState state, ref PhysicsCounters counters)
 		{
 			if (newCollEvent.IsContact || IsValidHit(ref ball, newTime)) { // todo why newCollEvent.IsContact? it's not in vpx source
 				newCollEvent.SetCollider(colliderId, isKinematic);
 				newCollEvent.HitTime = newTime;
+				// diagnostics: every accepted hit, since a later one at the same time replaces the event
+				counters.RecordHit(ref state, in ball, in newCollEvent);
 				if (newCollEvent.IsContact) { // remember all contacts?
 					contacts.Add(new ContactBufferElement(ball.Id, newCollEvent));
 

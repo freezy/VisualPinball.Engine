@@ -52,6 +52,39 @@ namespace VisualPinball.Unity
 		public int Circle;
 		public int Flipper;
 		public int Other;
+		/// <summary>Most negative hit distance (deepest penetration) reported by any hit or contact in the update.</summary>
+		public float DeepestHitDistance;
+		public int DeepestHitColliderId;
+		public int DeepestHitItemId;
+		public int DeepestHitType;
+		public int DeepestHitIsContact;
+		public int DeepestHitBallId;
+		public float3 DeepestHitNormal;
+		public float3 DeepestHitBallPosition;
+		public float3 DeepestHitBallVelocity;
+
+		internal void RecordHit(ref PhysicsState state, in BallState ball, in CollisionEventData collEvent)
+		{
+			if (collEvent.HitDistance >= DeepestHitDistance) {
+				return;
+			}
+			DeepestHitDistance = collEvent.HitDistance;
+			DeepestHitColliderId = collEvent.ColliderId;
+			DeepestHitIsContact = collEvent.IsContact ? 1 : 0;
+			DeepestHitBallId = ball.Id;
+			DeepestHitNormal = collEvent.HitNormal;
+			DeepestHitBallPosition = ball.Position;
+			DeepestHitBallVelocity = ball.Velocity;
+			if (collEvent.ColliderId >= 0) {
+				ref var colliders = ref (collEvent.IsKinematic ? ref state.KinematicColliders : ref state.Colliders);
+				ref var header = ref state.GetColliderHeader(ref colliders, collEvent.ColliderId);
+				DeepestHitItemId = header.ItemId;
+				DeepestHitType = (int)header.Type;
+			} else {
+				DeepestHitItemId = collEvent.BallId;
+				DeepestHitType = -1;
+			}
+		}
 
 		internal void CountHitTest(ColliderType type)
 		{
@@ -268,6 +301,7 @@ namespace VisualPinball.Unity
 		{
 			DynamicBroadPhaseRefitCount = 0;
 			Counters = default;
+			Counters.DeepestHitDistance = float.MaxValue;
 		}
 
 		internal static void ApplyBallSpinCorrection(ref BallState ball)
