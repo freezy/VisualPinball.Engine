@@ -202,6 +202,10 @@ namespace VisualPinball.Unity.Simulation
 			_inputEventsDropped = 0;
 			_needsInitialSwitchSync = true;
 
+			if (SimulationTrace.Enabled) {
+				SimulationTrace.Begin();
+			}
+
 			_thread = new Thread(SimulationThreadFunc)
 			{
 				Name = "VPE Simulation Thread",
@@ -227,6 +231,8 @@ namespace VisualPinball.Unity.Simulation
 			{
 				_thread.Join(5000); // Wait up to 5 seconds
 			}
+
+			SimulationTrace.End();
 
 			Logger.Info($"{LogPrefix} [SimulationThread] Stopped after {_tickCount} ticks, {_inputEventsProcessed} input events, {_inputEventsDropped} dropped");
 		}
@@ -425,6 +431,7 @@ namespace VisualPinball.Unity.Simulation
 				// The initialization wait above may have taken a while; start the
 				// timetable now so it does not begin with a backlog.
 				_lastTickTicks = Stopwatch.GetTimestamp();
+				var iterationStartTicks = _lastTickTicks;
 
 				// Main simulation loop
 				while (_running)
@@ -435,6 +442,7 @@ namespace VisualPinball.Unity.Simulation
 						// Unity time stands still while paused (the menu sets timeScale to
 						// zero); hold the timetable so no backlog accumulates to replay.
 						_lastTickTicks = Stopwatch.GetTimestamp();
+						iterationStartTicks = _lastTickTicks;
 						continue;
 					}
 
@@ -442,6 +450,12 @@ namespace VisualPinball.Unity.Simulation
 					long targetTicks = _lastTickTicks + _tickIntervalTicks;
 					long nowTicks = Stopwatch.GetTimestamp();
 					long sleepTicks = targetTicks - nowTicks;
+					var tracing = SimulationTrace.IsRecording;
+					if (tracing) {
+						SimulationTrace.Tick.WaitRequestedUsec = (int)SimulationTrace.TicksToUsec(sleepTicks);
+						SimulationTrace.Tick.DroppedUsec = 0;
+						SimulationTrace.Tick.WaitMode = 0;
+					}
 
 					// Bound the catch-up after a stall (GC, editor hitch, overloaded ticks):
 					// keep at most MaxBacklogUsec of missed ticks to replay and drop the rest
@@ -454,6 +468,9 @@ namespace VisualPinball.Unity.Simulation
 						targetTicks += skippedTicks;
 						sleepTicks += skippedTicks;
 						_droppedBacklogUsec += (skippedTicks * 1_000_000L) / Stopwatch.Frequency;
+						if (tracing) {
+							SimulationTrace.Tick.DroppedUsec = (int)SimulationTrace.TicksToUsec(skippedTicks);
+						}
 					}
 
 					if (sleepTicks > _busyWaitThresholdTicks)
@@ -463,6 +480,9 @@ namespace VisualPinball.Unity.Simulation
 							Thread.Sleep(sleepMs);
 						} else {
 							Thread.Yield();
+						}
+						if (tracing) {
+							SimulationTrace.Tick.WaitMode = sleepMs > 0 ? 2 : 1;
 						}
 					}
 
@@ -475,8 +495,16 @@ namespace VisualPinball.Unity.Simulation
 					}
 					#endif
 
+					if (tracing) {
+						var startTicks = Stopwatch.GetTimestamp();
+						SimulationTrace.Tick.StartUsec = SimulationTrace.TicksToUsec(startTicks);
+						SimulationTrace.Tick.TargetUsec = SimulationTrace.TicksToUsec(targetTicks);
+						SimulationTrace.Tick.WaitUsec = SimulationTrace.ElapsedUsec(iterationStartTicks, startTicks);
+					}
+
 					// Execute simulation tick (hot path - must be allocation-free!)
 					SimulationTick();
+					iterationStartTicks = Stopwatch.GetTimestamp();
 
 					if (_rebaseTimetable)
 					{
@@ -515,10 +543,22 @@ namespace VisualPinball.Unity.Simulation
 		private void SimulationTick()
 		{
 			var tickStartTicks = Stopwatch.GetTimestamp();
+			var tracing = SimulationTrace.IsRecording;
+			if (tracing) {
+				ref var trace = ref SimulationTrace.Tick;
+				trace.Index = _tickCount;
+				trace.SimTimeUsec = _simulationTimeUsec;
+				trace.SyncedClockUsec = _hasMainThreadClockSync ? Interlocked.Read(ref _latestMainThreadClockUsec) : 0;
+				trace.ClockJumpUsec = 0;
+				trace.Gc0 = GC.CollectionCount(0);
+			}
 
 			if (_hasMainThreadClockSync) {
 				var syncedClockUsec = Interlocked.Read(ref _latestMainThreadClockUsec);
 				if (syncedClockUsec > _simulationTimeUsec) {
+					if (tracing) {
+						SimulationTrace.Tick.ClockJumpUsec = (int)(syncedClockUsec - _simulationTimeUsec);
+					}
 					_simulationTimeUsec = syncedClockUsec;
 					_rebaseTimetable = true;
 				}
@@ -526,15 +566,19 @@ namespace VisualPinball.Unity.Simulation
 
 			// 0. Process switch events that originated on Unity/main thread.
 			ProcessExternalSwitchEvents();
+			var switchesDoneTicks = Stopwatch.GetTimestamp();
 
 			// 1. Process input events from ring buffer
 			ProcessInputEvents();
+			var inputDoneTicks = Stopwatch.GetTimestamp();
 
 			// 2. Apply low-latency coil outputs from gamelogic to simulation-side handlers.
 			ProcessGamelogicOutputs();
+			var outputsDoneTicks = Stopwatch.GetTimestamp();
 
 			// 3. Update physics simulation
 			UpdatePhysics();
+			var physicsDoneTicks = Stopwatch.GetTimestamp();
 
 			// 4. Move the emulation fence after inputs+outputs+physics.
 			// Throttle updates to reduce fence wake/sleep churn in PinMAME.
@@ -543,13 +587,25 @@ namespace VisualPinball.Unity.Simulation
 				_timeFence.SetTimeFence(_simulationTimeUsec / 1_000_000.0);
 				_lastTimeFenceUsec = _simulationTimeUsec;
 			}
+			var fenceDoneTicks = Stopwatch.GetTimestamp();
 
 			// 5. Write to shared state and swap buffers
 			WriteSharedState();
 
 			// Increment simulation time
 			_simulationTimeUsec += ScaledTickIntervalUsec();
-			_lastSimulationTickDurationUsec = (Stopwatch.GetTimestamp() - tickStartTicks) * 1_000_000L / Stopwatch.Frequency;
+			var tickEndTicks = Stopwatch.GetTimestamp();
+			_lastSimulationTickDurationUsec = (tickEndTicks - tickStartTicks) * 1_000_000L / Stopwatch.Frequency;
+
+			if (tracing) {
+				ref var trace = ref SimulationTrace.Tick;
+				trace.SwitchesUsec = SimulationTrace.ElapsedUsec(tickStartTicks, switchesDoneTicks);
+				trace.InputUsec = SimulationTrace.ElapsedUsec(switchesDoneTicks, inputDoneTicks);
+				trace.OutputsUsec = SimulationTrace.ElapsedUsec(inputDoneTicks, outputsDoneTicks);
+				trace.FenceUsec = SimulationTrace.ElapsedUsec(physicsDoneTicks, fenceDoneTicks);
+				trace.TotalUsec = SimulationTrace.ElapsedUsec(tickStartTicks, tickEndTicks);
+				SimulationTrace.CommitTick();
+			}
 		}
 
 		/// <summary>
@@ -1007,8 +1063,14 @@ namespace VisualPinball.Unity.Simulation
 				// Execute physics tick directly on simulation thread
 				// This works now because we changed Allocator.Temp to Allocator.TempJob
 				// in the physics hot path, allowing custom threads to execute physics.
+				var startTicks = Stopwatch.GetTimestamp();
 				_physicsEngine.ExecuteTick((ulong)_simulationTimeUsec);
+				var executeDoneTicks = Stopwatch.GetTimestamp();
 				ProcessPlumbTiltEvents();
+				if (SimulationTrace.IsRecording) {
+					SimulationTrace.Tick.PhysicsUsec = SimulationTrace.ElapsedUsec(startTicks, executeDoneTicks);
+					SimulationTrace.Tick.PlumbUsec = SimulationTrace.ElapsedUsec(executeDoneTicks, Stopwatch.GetTimestamp());
+				}
 			}
 		}
 
@@ -1059,6 +1121,7 @@ namespace VisualPinball.Unity.Simulation
 			lock (_externalSwitchQueueLock) {
 				writeBuffer.ExternalSwitchQueueDepth = _externalSwitchQueue.Count;
 			}
+			var diagStartTicks = Stopwatch.GetTimestamp();
 			_physicsEngine.FillDiagnostics(ref writeBuffer);
 			if (_gamelogicPerformanceStats != null && _gamelogicPerformanceStats.TryGetPerformanceStats(out var performanceStats)) {
 				writeBuffer.GamelogicCallbackRateHz = performanceStats.CallbackRateHz;
@@ -1067,12 +1130,17 @@ namespace VisualPinball.Unity.Simulation
 				writeBuffer.LastSwitchObservationUsec = latencyStats.LastSwitchObservationUsec;
 				writeBuffer.LastCoilOutputUsec = latencyStats.LastCoilOutputUsec;
 			}
+			var diagDoneTicks = Stopwatch.GetTimestamp();
 
 			// Copy PinMAME state (coils, lamps, GI)
 			writeBuffer.CoilCount = 0;
 			writeBuffer.LampCount = 0;
 			writeBuffer.GICount = 0;
 			_sharedStateWriter?.WriteSharedState(ref writeBuffer);
+			if (SimulationTrace.IsRecording) {
+				SimulationTrace.Tick.DiagUsec = SimulationTrace.ElapsedUsec(diagStartTicks, diagDoneTicks);
+				SimulationTrace.Tick.WriterUsec = SimulationTrace.ElapsedUsec(diagDoneTicks, Stopwatch.GetTimestamp());
+			}
 
 			// Increment physics state version (main thread will detect changes)
 			writeBuffer.PhysicsStateVersion++;
@@ -1086,6 +1154,9 @@ namespace VisualPinball.Unity.Simulation
 			}
 			_lastSnapshotCopyUsec = GetTimestampUsec() - snapshotStartUsec;
 			writeBuffer.SnapshotCopyUsec = _lastSnapshotCopyUsec;
+			if (SimulationTrace.IsRecording) {
+				SimulationTrace.Tick.SnapshotUsec = (int)_lastSnapshotCopyUsec;
+			}
 			writeBuffer.PublishRealTimeUsec = GetTimestampUsec();
 
 			// Atomically publish this buffer (lock-free triple-buffer swap)

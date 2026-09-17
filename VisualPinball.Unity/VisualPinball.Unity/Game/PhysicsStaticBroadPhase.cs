@@ -39,6 +39,35 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
+		/// Same as <see cref="FindOverlaps(in NativeOctree{int}, in BallState, ref NativeParallelHashSet{int}, float)"/>,
+		/// counting the octree objects visited (bounds tests) for diagnostics.
+		/// </summary>
+		internal static void FindOverlaps(in NativeOctree<int> octree, in BallState ball, ref NativeParallelHashSet<int> overlappingColliders, float dTime, ref PhysicsCounters counters)
+		{
+			PerfMarkerBroadPhase.Begin();
+			overlappingColliders.Clear();
+			var visitor = new CountingRangeVisitor { Results = overlappingColliders };
+			octree.Range(ball.GetSweptAabb(dTime), ref visitor);
+			counters.BroadPhaseVisits += visitor.Visits;
+			PerfMarkerBroadPhase.End();
+		}
+
+		private struct CountingRangeVisitor : IOctreeRangeVisitor<int>
+		{
+			public NativeParallelHashSet<int> Results;
+			public int Visits;
+
+			public bool OnVisit(int obj, AABB objBounds, AABB queryRange)
+			{
+				Visits++;
+				if (objBounds.Overlaps(queryRange)) {
+					Results.Add(obj);
+				}
+				return true;
+			}
+		}
+
+		/// <summary>
 		/// Adds the colliders of moving kinematic items that overlap the ball's bounds.
 		/// Moving items are excluded from the kinematic octree (see
 		/// <see cref="PhysicsState.KinematicItemsOutOfOctree"/>) so the octree does not

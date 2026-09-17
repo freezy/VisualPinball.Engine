@@ -533,7 +533,7 @@ namespace VisualPinball.Unity
 		/// </remarks>
 		public void NudgeSensorStatus(out float x, out float y)
 		{
-			lock (_ctx.PhysicsLock) {
+			using (SimulationTrace.Lock(_ctx.PhysicsLock, SimulationTrace.LockSite.NudgeStatus)) {
 				var nudge = _ctx.PhysicsEnv.Nudge;
 				var acceleration = nudge.ReadAndResetMaxCabinetAcceleration();
 				_ctx.PhysicsEnv.Nudge = nudge;
@@ -547,7 +547,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public void NudgeTiltStatus(out float plumbX, out float plumbY, out float tiltPercent)
 		{
-			lock (_ctx.PhysicsLock) {
+			using (SimulationTrace.Lock(_ctx.PhysicsLock, SimulationTrace.LockSite.TiltStatus)) {
 				var plumb = _ctx.PhysicsEnv.Plumb;
 				var status = plumb.ReadAndResetTiltStatus();
 				_ctx.PhysicsEnv.Plumb = plumb;
@@ -567,7 +567,7 @@ namespace VisualPinball.Unity
 				return default;
 			}
 
-			lock (_ctx.PhysicsLock) {
+			using (SimulationTrace.Lock(_ctx.PhysicsLock, SimulationTrace.LockSite.NudgeTelemetry)) {
 				var nudge = _ctx.PhysicsEnv.Nudge;
 				var plumb = _ctx.PhysicsEnv.Plumb;
 				var threshold = plumb.TiltThresholdRad;
@@ -867,7 +867,7 @@ namespace VisualPinball.Unity
 			_ctx.BallComponents[ballId] = ball;
 
 			if (_ctx.UseExternalTiming) {
-				lock (_ctx.PhysicsLock) {
+				using (SimulationTrace.Lock(_ctx.PhysicsLock, SimulationTrace.LockSite.RegisterBall)) {
 					ref var ballStates = ref _ctx.BallStates.Ref;
 					if (!ballStates.ContainsKey(ballId)) {
 						ballStates[ballId] = ballState;
@@ -887,7 +887,7 @@ namespace VisualPinball.Unity
 			_ctx.BallComponents.Remove(ballId);
 
 			if (_ctx.UseExternalTiming) {
-				lock (_ctx.PhysicsLock) {
+				using (SimulationTrace.Lock(_ctx.PhysicsLock, SimulationTrace.LockSite.UnregisterBall)) {
 					if (_ctx.BallStates.Ref.IsCreated) {
 						_ctx.BallStates.Ref.Remove(ballId);
 					}
@@ -971,7 +971,7 @@ namespace VisualPinball.Unity
 		internal bool TryGetKickerBallId(int itemId, out int ballId)
 		{
 			if (_ctx.UseExternalTiming) {
-				lock (_ctx.PhysicsLock) {
+				using (SimulationTrace.Lock(_ctx.PhysicsLock, SimulationTrace.LockSite.KickerBallId)) {
 					return TryGetKickerBallIdUnsafe(itemId, out ballId);
 				}
 			}
@@ -1069,7 +1069,11 @@ namespace VisualPinball.Unity
 				return false;
 			}
 
+			var lockStartTicks = Stopwatch.GetTimestamp();
 			lock (_ctx.PhysicsLock) {
+				if (SimulationTrace.IsRecording) {
+					SimulationTrace.Tick.SnapshotLockUsec = SimulationTrace.ElapsedUsec(lockStartTicks, Stopwatch.GetTimestamp());
+				}
 				if (!_ctx.IsInitialized) {
 					return false;
 				}
@@ -1268,6 +1272,21 @@ namespace VisualPinball.Unity
 			}
 			var currentTimeUsec = NowUsec;
 			if (_ctx.UseExternalTiming) {
+				var tracing = SimulationTrace.IsRecording;
+				var updateStartTicks = Stopwatch.GetTimestamp();
+				if (tracing) {
+					SimulationTrace.BeginFrame();
+					ref var frame = ref SimulationTrace.Frame;
+					frame.Frame = Time.frameCount;
+					frame.StartUsec = SimulationTrace.TicksToUsec(updateStartTicks);
+					frame.UnityTimeUsec = (long)currentTimeUsec;
+					frame.RealtimeUsec = (long)(Time.realtimeSinceStartupAsDouble * 1_000_000);
+					frame.UnscaledDeltaUsec = (int)(Time.unscaledDeltaTime * 1_000_000);
+					frame.DeltaUsec = (int)(Time.deltaTime * 1_000_000);
+					frame.TimeScale = Time.timeScale;
+					frame.Gc0 = GC.CollectionCount(0);
+				}
+
 				// Simulation thread mode: physics runs on simulation thread,
 				// but managed callbacks must run on Unity main thread.
 				_threading.DrainExternalThreadCallbacks();
@@ -1277,6 +1296,11 @@ namespace VisualPinball.Unity
 				_threading.UpdateKinematicTransformsFromMainThread(currentTimeUsec);
 
 				_threading.ApplyMovements();
+
+				if (tracing) {
+					SimulationTrace.Frame.UpdateUsec = SimulationTrace.ElapsedUsec(updateStartTicks, Stopwatch.GetTimestamp());
+					SimulationTrace.CommitFrame();
+				}
 			} else {
 				// Normal mode: Execute full physics update
 				_threading.ExecutePhysicsUpdate(currentTimeUsec);
