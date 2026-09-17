@@ -171,6 +171,7 @@ namespace VisualPinball.Unity
 #if UNITY_EDITOR
 
 		private Player _player;
+		private PlayfieldComponent _playfieldComponent;
 		private NativeOctree<int> _octree;
 
 		/// <summary>
@@ -207,11 +208,13 @@ namespace VisualPinball.Unity
 			if (linSq < 1e-6f && angSq < 1e-6f) {
 				return;
 			}
-			var playfieldComponent = GetComponentInParent<PlayfieldComponent>();
-			if (!playfieldComponent) {
-				return;
+			if (!_playfieldComponent) {
+				_playfieldComponent = GetComponentInParent<PlayfieldComponent>();
+				if (!_playfieldComponent) {
+					return;
+				}
 			}
-			var vpxToWorld = playfieldComponent.transform.localToWorldMatrix * (Matrix4x4)Physics.VpxToWorld;
+			var vpxToWorld = _playfieldComponent.transform.localToWorldMatrix * (Matrix4x4)Physics.VpxToWorld;
 			var origin = vpxToWorld.MultiplyPoint3x4(pivot);
 
 			if (linSq >= 1e-6f) {
