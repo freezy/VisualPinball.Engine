@@ -864,6 +864,13 @@ namespace VisualPinball.Unity
 		{
 			var ballId = UnityObjectId.Get(ball.gameObject);
 			var ballState = ball.CreateState();
+			if (_ctx.BallComponents.TryGetValue(ballId, out var existing) && existing != ball) {
+				// ids are folded from Unity's entity ids; a clash would make two balls share one
+				// physics state, which shows up as a ball that is rendered somewhere else than
+				// where it is simulated
+				var other = existing ? $"\"{existing.name}\"" : "a destroyed ball";
+				Debug.LogError($"[PhysicsEngine] Ball id {ballId} of \"{ball.name}\" is already used by {other}. The new ball shares that ball's physics state.");
+			}
 			_ctx.BallComponents[ballId] = ball;
 
 			if (_ctx.UseExternalTiming) {

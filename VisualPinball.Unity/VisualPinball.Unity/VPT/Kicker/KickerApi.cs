@@ -17,16 +17,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NLog;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Unity.Collections;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
 	public class KickerApi : CollidableApi<KickerComponent, KickerColliderComponent, KickerData>,
 		IApi, IApiHittable, IApiSwitch, IApiSwitchDevice, IApiCoilDevice, IApiWireDeviceDest
 	{
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		/// <summary>
 		/// Event emitted when the table is started.
 		/// </summary>
@@ -79,11 +83,32 @@ namespace VisualPinball.Unity
 
 		public void CreateBall(GameObject ballPrefab = null, float radius = 25f, float mass = 1f)
 		{
+			CreateCapturedBall(ballPrefab, radius, mass);
+		}
+
+		public void CreateSizedBallWithMass(float radius, float mass)
+		{
+			CreateCapturedBall(null, radius, mass);
+		}
+
+		/// <summary>
+		/// Creates a ball in this kicker and captures it right away, like VP's
+		/// <c>CreateSizedBallWithMass</c> does, so that the next kick launches it from the
+		/// kicker's capture position.
+		/// </summary>
+		private void CreateCapturedBall(GameObject ballPrefab, float radius, float mass)
+		{
 			var ballId = BallManager.CreateBall(MainComponent, radius, mass, ballPrefab);
 			var kickerId = ItemId;
+			var kickerName = MainComponent.name; // resolved here, the callback runs on the simulation thread
 
 			PhysicsEngine.MutateState((ref PhysicsState state) => {
-				if (!state.Balls.ContainsKey(ballId) || !state.KickerStates.ContainsKey(kickerId)) {
+				if (!state.Balls.ContainsKey(ballId)) {
+					Logger.Warn($"Kicker \"{kickerName}\": ball {ballId} was created but is unknown to the physics state, it cannot be captured.");
+					return;
+				}
+				if (!state.KickerStates.ContainsKey(kickerId)) {
+					Logger.Warn($"Kicker \"{kickerName}\": no kicker state, ball {ballId} stays where it was created.");
 					return;
 				}
 
@@ -100,12 +125,13 @@ namespace VisualPinball.Unity
 				KickerCollider.Collide(new float3(kickerState.Static.Center, kickerState.Static.ZLow),
 					ref ball, ref events, ref state.InsideOfs, ref kickerState.Collision,
 					in kickerState.Static, in kickerState.CollisionMesh, in collEvent, kickerId, true);
-			});
-		}
 
-		public void CreateSizedBallWithMass(float radius, float mass)
-		{
-			BallManager.CreateBall(MainComponent, radius, mass);
+				// A created ball is meant to sit captured in this kicker. If it does not, the next
+				// kick launches whatever the kicker holds from wherever it is, so say so.
+				if (!kickerState.Static.FallThrough && kickerState.Collision.BallId != ballId) {
+					Logger.Warn($"Kicker \"{kickerName}\": created ball {ballId} was not captured, the kicker holds ball {kickerState.Collision.BallId}. The new ball is at {ball.Position}.");
+				}
+			});
 		}
 
 		public void Kick(float angle, float speed, float inclination = 0)
