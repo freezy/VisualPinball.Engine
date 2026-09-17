@@ -64,9 +64,19 @@ namespace VisualPinball.Unity
 				Center.y - Radius,
 				Center.y + Radius,
 				ZLow,
-				ZHigh
+				BoundsZHigh
 			));
 		}
+
+		/// <summary>
+		/// Top of the bounds. Kickers and triggers are hit-tested with a sphere cap
+		/// above <see cref="ZHigh"/> (see <see cref="HitTestBasicRadius"/>: radius
+		/// 2.6 r centered 2.4 r below the top), which reaches 0.2 r higher than the
+		/// cylinder, so their bounds must too.
+		/// </summary>
+		private float BoundsZHigh => Header.Type is ColliderType.KickerCircle or ColliderType.TriggerCircle
+			? ZHigh + Radius * 0.2f
+			: ZHigh;
 
 		#region Narrowphase
 
@@ -293,9 +303,10 @@ namespace VisualPinball.Unity
 			var p2 = matrix.MultiplyPoint(new float3(Center.x + Radius, Center.y - Radius, ZLow));
 			var p3 = matrix.MultiplyPoint(new float3(Center.x - Radius, Center.y + Radius, ZLow));
 			var p4 = matrix.MultiplyPoint(new float3(Center.x - Radius, Center.y - Radius, ZLow));
-			var p5 = matrix.MultiplyPoint(new float3(Center.x + Radius, Center.y + Radius, ZHigh));
-			var p6 = matrix.MultiplyPoint(new float3(Center.x + Radius, Center.y - Radius, ZHigh));
-			var p7 = matrix.MultiplyPoint(new float3(Center.x - Radius, Center.y + Radius, ZHigh));
+			var zHigh = BoundsZHigh;
+			var p5 = matrix.MultiplyPoint(new float3(Center.x + Radius, Center.y + Radius, zHigh));
+			var p6 = matrix.MultiplyPoint(new float3(Center.x + Radius, Center.y - Radius, zHigh));
+			var p7 = matrix.MultiplyPoint(new float3(Center.x - Radius, Center.y + Radius, zHigh));
 			var p8 = matrix.MultiplyPoint(new float3(Center.x - Radius, Center.y - Radius, ZHigh));
 
 			var min = math.min(p1, math.min(p2, math.min(p3, math.min(p4, math.min(p5, math.min(p6, math.min(p7, p8)))))));

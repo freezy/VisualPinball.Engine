@@ -49,6 +49,34 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void DynamicBroadPhaseDoesNotRefitFromFloatNoiseAtPlayfieldCoordinates()
+		{
+			// the containment check recomputes the end of the motion from the displaced
+			// position; at playfield coordinates that differs from the inserted end by a
+			// few ulps and must not count as an escape
+			var balls = new NativeParallelHashMap<int, BallState>(1, Allocator.Temp);
+			NativeTrees.AABB bounds = new Aabb(new float3(-100f, -100f, -100f), new float3(3000f, 3000f, 300f));
+			var octree = new NativeOctree<int>(bounds, 8, 3, Allocator.Temp);
+			try {
+				var velocity = new float3(41.794586f, -37.3f, 0.7f);
+				balls.Add(1, new BallState { Id = 1, Position = new float3(1992.2317f, 1731.77f, 25.0001f), Velocity = velocity, Radius = 25f, Mass = 1f });
+				const float dTime = 0.1f;
+				PhysicsDynamicBroadPhase.RebuildOctree(ref octree, ref balls, dTime);
+
+				var remaining = dTime;
+				foreach (var hitTime in new[] { 0.05084206f, 0.013f, 0.02f, 0.0071f }) {
+					ref var ball = ref balls.GetValueByRef(1);
+					ball.Position += velocity * hitTime;
+					remaining -= hitTime;
+					Assert.That(PhysicsDynamicBroadPhase.RebuildIfMotionEscapes(ref octree, ref balls, remaining), Is.False, $"after {hitTime}");
+				}
+			} finally {
+				octree.Dispose();
+				balls.Dispose();
+			}
+		}
+
+		[Test]
 		public void DynamicBroadPhaseDoesNotRefitWhileInsertedBoundsContainMotion()
 		{
 			var balls = new NativeParallelHashMap<int, BallState>(1, Allocator.Temp);

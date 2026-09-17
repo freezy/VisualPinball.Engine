@@ -87,13 +87,14 @@ namespace VisualPinball.Unity
 			JointEnd1 = new LineZCollider(new float2(x2, position), zHeight, zHeight + Plunger.PlungerHeight, info);
 			PosY = 0;
 
+			// same height range as the line colliders above
 			Bounds = new ColliderBounds(Header.ItemId, Header.Id, new Aabb(
 				x - 0.1f,
 				x2 + 0.1f,
 				frameTop - 0.1f,
 				y + 0.1f,
-				0,
-				50
+				zHeight,
+				zHeight + Plunger.PlungerHeight
 			));
 		}
 

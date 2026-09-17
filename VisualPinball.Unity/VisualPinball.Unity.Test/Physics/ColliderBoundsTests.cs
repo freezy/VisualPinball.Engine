@@ -1,5 +1,5 @@
 // Visual Pinball Engine
-// Copyright (C) 2023 freezy and VPE Team
+// Copyright (C) 2026 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@ using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
+using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity.Test
 {
@@ -63,6 +64,52 @@ namespace VisualPinball.Unity.Test
 			var reach = flipperRadius + endRadius + 1f;
 			Assert.That(aabb.Width, Is.LessThanOrEqualTo(2f * reach));
 			Assert.That(aabb.Height, Is.LessThanOrEqualTo(2f * reach));
+		}
+
+		[TestCase(ColliderType.KickerCircle, ItemType.Kicker)]
+		[TestCase(ColliderType.TriggerCircle, ItemType.Trigger)]
+		public void KickerAndTriggerCircleBoundsCoverTheSphereCap(ColliderType type, ItemType itemType)
+		{
+			// a large round trigger, hit-tested against a sphere of 2.6 r centered
+			// 2.4 r below the top: the cap reaches 0.2 r above the cylinder
+			const float radius = 200f;
+			var center = new float2(500f, 500f);
+			var info = new ColliderInfo { ItemId = 1, ItemType = itemType };
+			var circle = new CircleCollider(center, radius, 0f, 50f, info, type);
+			Assert.That(circle.Bounds.Aabb.ZHigh, Is.EqualTo(50f + 0.2f * radius).Within(1e-4f));
+			Assert.That(new CircleCollider(center, radius, 0f, 50f, info).Bounds.Aabb.ZHigh, Is.EqualTo(50f).Within(1e-4f), "plain circles keep their cylinder");
+
+			// a ball above the top, moving horizontally into the cap: the narrow phase
+			// reports a hit within the searched time, so the swept bounds must overlap
+			var insideOfs = new InsideOfs(Allocator.Temp);
+			try {
+				var ball = new BallState { Id = 7, Radius = 25f, Position = new float3(605f, 500f, 80f), Velocity = new float3(-60f, 0f, 0f) };
+				var collEvent = new CollisionEventData();
+				var hitTime = circle.HitTestBasicRadius(ref collEvent, ref insideOfs, in ball, 0.1f, false, false, false);
+				Assert.That(hitTime, Is.GreaterThanOrEqualTo(0f).And.LessThanOrEqualTo(0.1f), "the cap is hit within the search window");
+				Assert.That(circle.Bounds.Aabb.IntersectRect(ball.GetSweptAabb(0.1f)), Is.True, "bounds must admit the ball the hit test can hit");
+			} finally {
+				insideOfs.Dispose();
+			}
+		}
+
+		[Test]
+		public void PlungerBoundsFollowThePlungerHeight()
+		{
+			var go = new GameObject("plunger");
+			try {
+				var plunger = go.AddComponent<PlungerComponent>();
+				var collider = go.AddComponent<PlungerColliderComponent>();
+				plunger.Position = new Vector3(450f, 2000f, 100f);
+				var info = new ColliderInfo { ItemId = 1, ItemType = ItemType.Plunger };
+				var plungerCollider = new PlungerCollider(plunger, collider, info);
+				Assert.That(plungerCollider.Bounds.Aabb.ZLow, Is.EqualTo(100f).Within(1e-3f));
+				Assert.That(plungerCollider.Bounds.Aabb.ZHigh, Is.EqualTo(100f + Plunger.PlungerHeight).Within(1e-3f));
+				Assert.That(plungerCollider.LineSegEnd.ZLow, Is.EqualTo(plungerCollider.Bounds.Aabb.ZLow).Within(1e-3f), "line colliders and bounds share the height range");
+				Assert.That(plungerCollider.LineSegEnd.ZHigh, Is.EqualTo(plungerCollider.Bounds.Aabb.ZHigh).Within(1e-3f));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
 		}
 
 		[Test]
