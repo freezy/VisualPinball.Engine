@@ -1012,18 +1012,26 @@ namespace VisualPinball.Unity
 		/// </summary>
 		/// <remarks>
 		/// Intended for debugging and visualization (e.g. editor gizmos).
-		/// Returns <c>false</c> if the item hasn't moved since the game started.
+		/// Returns <c>false</c> if the item hasn't moved since the game started.<br/>
+		/// <b>Thread:</b> Main thread. Acquires <c>PhysicsLock</c> non-blockingly;
+		/// if the simulation thread is mid-tick, this returns <c>false</c> rather
+		/// than stalling the caller (gizmo callbacks run every editor repaint for
+		/// every kinematic item, so blocking here stalls the whole frame).
 		/// </remarks>
 		public bool TryGetKinematicVelocity(int itemId, out float3 linearVelocity, out float3 angularVelocity, out float3 pivot)
 		{
 			// engine time unit (DefaultStepTime, 10 ms) to seconds
 			const float perSecond = (float)(1e6 / PhysicsConstants.DefaultStepTime);
-			lock (_ctx.PhysicsLock) {
-				if (_ctx.KinematicVelocities.Ref.IsCreated && _ctx.KinematicVelocities.Ref.TryGetValue(itemId, out var velocity)) {
-					linearVelocity = velocity.LinearVelocity * perSecond;
-					angularVelocity = velocity.AngularVelocity * perSecond;
-					pivot = velocity.Pivot;
-					return true;
+			if (_ctx != null && _ctx.IsInitialized && Monitor.TryEnter(_ctx.PhysicsLock)) {
+				try {
+					if (_ctx.KinematicVelocities.Ref.IsCreated && _ctx.KinematicVelocities.Ref.TryGetValue(itemId, out var velocity)) {
+						linearVelocity = velocity.LinearVelocity * perSecond;
+						angularVelocity = velocity.AngularVelocity * perSecond;
+						pivot = velocity.Pivot;
+						return true;
+					}
+				} finally {
+					Monitor.Exit(_ctx.PhysicsLock);
 				}
 			}
 			linearVelocity = float3.zero;
