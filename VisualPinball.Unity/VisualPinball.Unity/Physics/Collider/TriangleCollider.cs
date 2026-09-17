@@ -30,6 +30,9 @@ namespace VisualPinball.Unity
 	/// </remarks>
 	internal struct TriangleCollider : ICollider
 	{
+		/// <summary>Minimal upward normal component for a playfield triangle to count as floor.</summary>
+		private const float FloorNormalMinZ = 0.7f;
+
 		public int Id
 		{
 			get => Header.Id;
@@ -175,6 +178,17 @@ namespace VisualPinball.Unity
 		{
 			var dot = -math.dot(collEvent.HitNormal, ball.Velocity);
 			BallCollider.Collide3DWall(ref ball, in Header.Material, in collEvent, in _normal, ref state);
+
+			// The playfield surface is authoritative, as VP's playfield plane is (see
+			// PlaneCollider.Collide): a ball that something pressed into the floor is
+			// pushed all the way out, not by the per-impact DispLimit only. Floor-like
+			// triangles only, so a wall of a cutout cannot shove a ball sideways.
+			if (Header.ItemType == ItemType.Playfield && _normal.z > FloorNormalMinZ) {
+				var bnd = math.dot(_normal, ball.Position - Rgv0) - ball.Radius;
+				if (bnd < 0) {
+					ball.Position -= _normal * bnd;
+				}
+			}
 
 			if (Header.FireEvents && dot >= Header.Threshold && Header.IsPrimitive) {
 				// todo m_obj->m_currentHitThreshold = dot;

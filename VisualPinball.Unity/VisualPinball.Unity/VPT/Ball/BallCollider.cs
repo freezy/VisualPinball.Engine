@@ -166,8 +166,13 @@ namespace VisualPinball.Unity
 				// error accumulates until a one-sided triangle rejects the ball as being
 				// behind it. Keep kinematic contacts unchanged so an intentionally moving
 				// support remains authoritative while it carries the ball.
+				// Never recover along gravity: a collider embedded in the ball from above
+				// (a cover or wire lower than the ball is tall) would otherwise shove the
+				// ball through the floor, up to DispLimit per tick, and the floor's own
+				// recovery would fight it, leaving the ball visibly sunk while it rolls.
 				if (collEvent.ColliderId >= 0 && !collEvent.IsKinematic &&
-				    collEvent.HitDistance < -StaticContactPenetrationTolerance) {
+				    collEvent.HitDistance < -StaticContactPenetrationTolerance &&
+				    math.dot(collEvent.HitNormal, gravity) <= 0.2f * math.length(gravity)) {
 					var correction = math.min(-PhysicsConstants.DispGain * collEvent.HitDistance,
 						PhysicsConstants.DispLimit);
 					ball.Position += collEvent.HitNormal * correction;
