@@ -77,5 +77,60 @@ namespace VisualPinball.Unity.Test
 			Assert.That(velocity.z, Is.EqualTo(4f).Within(0.001f));
 		}
 
+		[Test]
+		public void ShouldCreateTheBallAtTheKickerHeight()
+		{
+			// a trough exit kicker sits below the playfield; its ball spawns down there, like in VP
+			var playfieldGo = new GameObject("Playfield");
+			var kickerGo = new GameObject("Kicker");
+			try {
+				playfieldGo.AddComponent<PlayfieldComponent>();
+				kickerGo.transform.SetParent(playfieldGo.transform, false);
+				kickerGo.transform.localPosition = new Vector3(0.4f, -0.05f, -1f);
+				var kicker = kickerGo.AddComponent<KickerComponent>();
+
+				var expected = kicker.PositionInPlayfield;
+				var creation = kicker.GetBallCreationPosition();
+
+				Assert.That(expected.z, Is.Not.EqualTo(0f).Within(0.001f), "the kicker is not at playfield level");
+				Assert.That(creation.X, Is.EqualTo(expected.x).Within(0.001f));
+				Assert.That(creation.Y, Is.EqualTo(expected.y).Within(0.001f));
+				Assert.That(creation.Z, Is.EqualTo(expected.z).Within(0.001f));
+			} finally {
+				Object.DestroyImmediate(playfieldGo);
+			}
+		}
+
+		[Test]
+		public void ShouldHoldTheBallWhereTheColliderIsForAGroupedKicker()
+		{
+			var playfieldGo = new GameObject("Playfield");
+			var groupGo = new GameObject("Group");
+			var kickerGo = new GameObject("Kicker");
+			try {
+				playfieldGo.AddComponent<PlayfieldComponent>();
+				groupGo.transform.SetParent(playfieldGo.transform, false);
+				groupGo.transform.localPosition = new Vector3(0.1f, 0.02f, -0.3f);
+				kickerGo.transform.SetParent(groupGo.transform, false);
+				kickerGo.transform.localPosition = new Vector3(0.05f, -0.05f, -0.2f);
+				var kicker = kickerGo.AddComponent<KickerComponent>();
+				kickerGo.AddComponent<KickerColliderComponent>();
+
+				var inPlayfield = kicker.PositionInPlayfield;
+				var local = kicker.Position;
+				Assert.That(math.distance((float3)inPlayfield, (float3)local), Is.GreaterThan(1f), "the group offsets the kicker");
+
+				var state = kicker.CreateState();
+				try {
+					Assert.That(state.Static.Center.x, Is.EqualTo(inPlayfield.x).Within(0.001f));
+					Assert.That(state.Static.Center.y, Is.EqualTo(inPlayfield.y).Within(0.001f));
+					Assert.That(state.Static.ZLow, Is.EqualTo(inPlayfield.z).Within(0.001f));
+				} finally {
+					state.Dispose();
+				}
+			} finally {
+				Object.DestroyImmediate(playfieldGo);
+			}
+		}
 	}
 }

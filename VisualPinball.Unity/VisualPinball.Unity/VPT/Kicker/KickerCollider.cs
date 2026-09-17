@@ -37,7 +37,13 @@ namespace VisualPinball.Unity
 		{
 			// a previous ball already in kicker?
 			if (collState.HasBall) {
-				return;
+				// a stale reference to this very ball (its id was handed out again) must not
+				// block its own capture, or the new ball stays wherever it was created and the
+				// next kick launches it from there
+				if (!newBall || collState.BallId != ball.Id) {
+					return;
+				}
+				collState.BallId = 0;
 			}
 
 			// ReSharper disable once ConditionIsAlwaysTrueOrFalse
@@ -45,8 +51,10 @@ namespace VisualPinball.Unity
 			var hitNormal = collEvent.HitNormal;
 			var hitBit = collEvent.HitFlag;
 
-			// check if kicker in ball's volume set
-			var isBallInside = insideOfs.IsInsideOf(itemId, ball.Id);
+			// check if kicker in ball's volume set. A new ball cannot be inside anything yet;
+			// a membership left behind under the same id would send it down the exit branch
+			// and leave it uncaptured.
+			var isBallInside = !newBall && insideOfs.IsInsideOf(itemId, ball.Id);
 
 			// if "New or (Hit && !Vol || UnHit && Vol)", continue.
 			if (!newBall && hitBit != isBallInside) {

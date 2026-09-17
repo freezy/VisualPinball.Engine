@@ -285,22 +285,27 @@ namespace VisualPinball.Unity
 
 		internal KickerState CreateState()
 		{
+			// The capture position and the hit mesh live in playfield space, like the colliders.
+			// A kicker grouped under an offset parent would otherwise hold its ball somewhere else
+			// than where its collider is.
+			var position = PositionInPlayfield;
+
 			// collision
 			var colliderComponent = GetComponent<KickerColliderComponent>();
 			var staticData = colliderComponent
 				? new KickerStaticState {
-					Center = new float2(Position.x, Position.y),
+					Center = new float2(position.x, position.y),
 					FallIn = colliderComponent.FallIn,
 					FallThrough = colliderComponent.FallThrough,
 					HitAccuracy = colliderComponent.HitAccuracy,
 					Scatter = colliderComponent.Scatter,
 					LegacyMode = colliderComponent.LegacyMode,
-					ZLow = Position.z
+					ZLow = position.z
 				} : default;
 
 			var meshData = colliderComponent.LegacyMode
 				? new ColliderMeshData(Array.Empty<Vertex3DNoTex2>(), 0, float3.zero, Allocator.Persistent)
-				: new ColliderMeshData(KickerHitMesh.Vertices, Radius, Position, Allocator.Persistent);
+				: new ColliderMeshData(KickerHitMesh.Vertices, Radius, position, Allocator.Persistent);
 
 			return new KickerState(
 				staticData,
@@ -371,11 +376,13 @@ namespace VisualPinball.Unity
 		#region IBallCreationPosition
 
 		// The ball is parented to the playfield, so its spawn point has to be expressed in playfield
-		// space - not relative to whatever the kicker happens to be grouped under.
+		// space - not relative to whatever the kicker happens to be grouped under. Like VP, the ball
+		// spawns at the kicker's own height: a kicker sunk below the playfield (a modelled trough
+		// exit) creates its ball down there, where the capture puts it anyway.
 		public Vertex3D GetBallCreationPosition()
 		{
 			var position = PositionInPlayfield;
-			return new Vertex3D(position.x, position.y, 0);
+			return new Vertex3D(position.x, position.y, position.z);
 		}
 
 		public Vertex3D GetBallCreationVelocity() => new Vertex3D(0.1f, 0, 0);
