@@ -79,6 +79,11 @@ namespace VisualPinball.Unity.Test
 			Assert.That(circle.Bounds.Aabb.ZHigh, Is.EqualTo(50f + 0.2f * radius).Within(1e-4f));
 			Assert.That(new CircleCollider(center, radius, 0f, 50f, info).Bounds.Aabb.ZHigh, Is.EqualTo(50f).Within(1e-4f), "plain circles keep their cylinder");
 
+			// the transformed bounds (non-transformable colliders) reach as high, at every corner
+			var rotated = circle.GetTransformedAabb(float4x4.RotateZ(math.radians(37f)));
+			Assert.That(rotated.ZHigh, Is.EqualTo(50f + 0.2f * radius).Within(1e-3f));
+			Assert.That(rotated.ZLow, Is.EqualTo(0f).Within(1e-3f));
+
 			// a ball above the top, moving horizontally into the cap: the narrow phase
 			// reports a hit within the searched time, so the swept bounds must overlap
 			var insideOfs = new InsideOfs(Allocator.Temp);
