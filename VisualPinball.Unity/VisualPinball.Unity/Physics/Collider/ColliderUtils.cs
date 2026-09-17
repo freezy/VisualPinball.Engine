@@ -79,7 +79,9 @@ namespace VisualPinball.Unity
 				var rgv1 = mesh.Vertices[i1].GetVertex().ToUnityFloat3();
 				var rgv2 = mesh.Vertices[i2].GetVertex().ToUnityFloat3();
 
-				colliders.Add(new TriangleCollider(rgv0, rgv2, rgv1, info), matrix);
+				if (!IsDegenerate(rgv0, rgv1, rgv2)) {
+					colliders.Add(new TriangleCollider(rgv0, rgv2, rgv1, info), matrix);
+				}
 
 				if (!onlyTriangles) {
 					if (addedEdges.ShouldAddHitEdge(i0, i1)) {
@@ -120,7 +122,9 @@ namespace VisualPinball.Unity
 				var rgv1 = vertices[i1];
 				var rgv2 = vertices[i2];
 
-				colliders.Add(new TriangleCollider(rgv0, rgv2, rgv1, info), matrix);
+				if (!IsDegenerate(rgv0, rgv1, rgv2)) {
+					colliders.Add(new TriangleCollider(rgv0, rgv2, rgv1, info), matrix);
+				}
 
 				if (!onlyTriangles) {
 
@@ -146,5 +150,16 @@ namespace VisualPinball.Unity
 			addedEdges.Dispose();
 			PerfMarker2.End();
 		}
+
+		/// <summary>
+		/// Twice the squared area below which a mesh triangle gets no collider. A
+		/// collinear triangle has no normal, and its hit test then reports a contact
+		/// at distance zero for any ball inside its bounds. Its edges and vertices
+		/// are still added.
+		/// </summary>
+		private const float DegenerateTriangleThreshold = 1e-6f;
+
+		internal static bool IsDegenerate(in float3 rgv0, in float3 rgv1, in float3 rgv2)
+			=> math.lengthsq(math.cross(rgv1 - rgv0, rgv2 - rgv0)) < DegenerateTriangleThreshold;
 	}
 }

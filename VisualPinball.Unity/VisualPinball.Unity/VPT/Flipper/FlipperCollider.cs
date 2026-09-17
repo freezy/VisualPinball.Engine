@@ -72,91 +72,42 @@ namespace VisualPinball.Unity
 			_zLow = bounds.Aabb.ZLow;
 			_zHigh = bounds.Aabb.ZHigh;
 
-			// compute bounds. we look at the flipper angles to compute the smallest possible bounds.
-			var r2 = endRadius + 0.1f;
-			var r3 = startRadius + 0.1f;
-
-			var a0 = ClampDegrees(startAngle);
-			var a1 = ClampDegrees(endAngle);
-
-			// start with no bounds
-			var aabb = new Aabb(0, 0, 0, 0, _zLow, _zHigh);
-
-			// extend with start and end position
-			aabb = ExtendBoundsAtPosition(aabb, flipperRadius, r2, a0);
-			aabb = ExtendBoundsAtPosition(aabb, flipperRadius, r2, a1);
-
-			// extend with extremes (-90°, 0°, 90° and 180°)
-			aabb = ExtendBoundsAtExtreme(aabb, flipperRadius, r2, r3, a0, a1, -90f);
-			aabb = ExtendBoundsAtExtreme(aabb, flipperRadius, r2, r3, a0, a1, 0f);
-			aabb = ExtendBoundsAtExtreme(aabb, flipperRadius, r2, r3, a0, a1, 90f);
-			aabb = ExtendBoundsAtExtreme(aabb, flipperRadius, r2, r3, a0, a1, 180f);
-
-			// var l = flipperRadius * 1.2f;
-			// aabb = new Aabb(-l, l, -l, l, -l, l);
-
-			Bounds = new ColliderBounds(Header.ItemId, Header.Id, aabb);
+			Bounds = new ColliderBounds(Header.ItemId, Header.Id,
+				ComputeSweepBounds(flipperRadius, baseRadius, endRadius, startAngle, endAngle, _zLow, _zHigh));
 		}
 
-		private static Aabb ExtendBoundsAtExtreme(Aabb aabb, float length, float endRadius, float startRadius, float startAngle, float endAngle, float angle)
+		/// <summary>
+		/// Bounds of everything the flipper can occupy: the base circle plus the end
+		/// circle at every angle of the sweep from <paramref name="startAngle"/> to
+		/// <paramref name="endAngle"/>, sampled every two degrees. Local space, the
+		/// base at the origin; angle 0 points to -y, 90 to +x (see the hit test).
+		/// </summary>
+		/// <remarks>
+		/// The previous closed-form version extended the box towards the sweep
+		/// extremes but dropped the base radius on the sides the flipper never
+		/// points to, so a ball touching the base from those sides was outside the
+		/// box. That went unnoticed while the broad phase inflated the ball's box by a
+		/// full step of velocity.
+		/// </remarks>
+		internal static Aabb ComputeSweepBounds(float flipperRadius, float baseRadius, float endRadius, float startAngle, float endAngle, float zLow, float zHigh)
 		{
-			if (startAngle < angle && endAngle > angle || endAngle < angle && startAngle > angle) {
-				// extend front side
-				return ExtendBoundsAtPosition(aabb, length, endRadius, angle);
+			const float margin = 0.1f;
+			var r2 = endRadius + margin;
+			var r3 = baseRadius + margin;
+			var aabb = new Aabb(-r3, r3, -r3, r3, zLow, zHigh);
+
+			var a0 = math.radians(startAngle);
+			var a1 = math.radians(endAngle);
+			var steps = math.max(1, (int)math.ceil(math.abs(a1 - a0) / math.radians(2f)));
+			for (var i = 0; i <= steps; i++) {
+				var a = math.lerp(a0, a1, (float)i / steps);
+				var center = new float2(math.sin(a), -math.cos(a)) * flipperRadius;
+				aabb.Left = math.min(aabb.Left, center.x - r2);
+				aabb.Right = math.max(aabb.Right, center.x + r2);
+				aabb.Top = math.min(aabb.Top, center.y - r2);
+				aabb.Bottom = math.max(aabb.Bottom, center.y + r2);
 			}
-
-			// extend back side
-			return ExtendBacksideBounds(aabb, startRadius, ClampDegrees(angle + 180));
-		}
-
-		private static Aabb ExtendBacksideBounds(Aabb bounds, float fixedRadius, float angle)
-		{
-			switch (angle) {
-				case -90f: bounds.Right = math.max(bounds.Right, fixedRadius); break;
-				case 90f: bounds.Left = math.min(bounds.Left, fixedRadius); break;
-				case 0f: bounds.Bottom = math.max(bounds.Bottom, fixedRadius); break;
-				case 180f: bounds.Top = math.min(bounds.Top, fixedRadius); break;
-			}
-
-			return bounds;
-		}
-
-		private static Aabb ExtendBoundsAtPosition(Aabb bounds, float length, float fixedRadius, float angle)
-		{
-			var deg = ClampDegrees(angle);
-			if (deg > 0) {
-				var l = math.sin(math.radians(180 - deg));
-				var d1 = length * l;
-				var d2 = math.sign(l) * fixedRadius;
-				bounds.Right = math.max(bounds.Right, d1 + d2);
-
-			} else {
-				var l = math.sin(math.radians(180 - deg));
-				var d1 = length * l;
-				var d2 = math.sign(l) * fixedRadius;
-				bounds.Left = math.min(bounds.Left, d1 + d2);
-			}
-
-			if (deg > 90 || deg < -90) {
-				var l = math.cos(math.radians(180 - deg));
-				var d1 =  length * l;
-				var d2 = math.sign(l) * fixedRadius;
-				bounds.Bottom = math.max(bounds.Bottom, d1 + d2);
-
-			} else {
-				var l = math.cos(math.radians(180 - deg));
-				var d1 = length * l;
-				var d2 = math.sign(l) * fixedRadius;
-				bounds.Top = math.min(bounds.Top, d1 + d2);
-			}
-
-			return bounds;
-		}
-
-		private static float ClampDegrees(float angle)
-		{
-			var deg = angle % 360;
-			return deg > 180 ? deg - 360 : deg;
+			return aabb;
 		}
 
 		#endregion
