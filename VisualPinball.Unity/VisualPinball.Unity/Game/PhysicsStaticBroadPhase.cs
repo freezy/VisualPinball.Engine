@@ -26,11 +26,15 @@ namespace VisualPinball.Unity
 	{
 		private static readonly ProfilerMarker PerfMarkerBroadPhase = new("BroadPhase");
 
-		internal static void FindOverlaps(in NativeOctree<int> octree, in BallState ball, ref NativeParallelHashSet<int> overlappingColliders)
+		/// <summary>
+		/// Collects the colliders whose bounds the ball can reach within
+		/// <paramref name="dTime"/> (see <see cref="BallState.GetSweptAabb"/>).
+		/// </summary>
+		internal static void FindOverlaps(in NativeOctree<int> octree, in BallState ball, ref NativeParallelHashSet<int> overlappingColliders, float dTime)
 		{
 			PerfMarkerBroadPhase.Begin();
 			overlappingColliders.Clear();
-			octree.RangeAABBUnique(ball.Aabb, overlappingColliders);
+			octree.RangeAABBUnique(ball.GetSweptAabb(dTime), overlappingColliders);
 			PerfMarkerBroadPhase.End();
 		}
 
@@ -51,13 +55,13 @@ namespace VisualPinball.Unity
 		/// that surface velocity covers in one tick, which is what the swept octree
 		/// bounds used to provide for these items.
 		/// </remarks>
-		internal static void FindMovingKinematicOverlaps(ref PhysicsState state, in BallState ball, ref NativeParallelHashSet<int> overlappingColliders)
+		internal static void FindMovingKinematicOverlaps(ref PhysicsState state, in BallState ball, ref NativeParallelHashSet<int> overlappingColliders, float dTime)
 		{
 			if (!state.KinematicItemsOutOfOctree.IsCreated || state.KinematicItemsOutOfOctree.IsEmpty) {
 				return;
 			}
 			PerfMarkerBroadPhase.Begin();
-			var ballAabb = ball.Aabb;
+			var ballAabb = ball.GetSweptAabb(dTime);
 			using var items = state.KinematicItemsOutOfOctree.GetEnumerator();
 			while (items.MoveNext()) {
 				var itemId = items.Current;

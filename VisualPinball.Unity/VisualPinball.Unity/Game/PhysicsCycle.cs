@@ -47,7 +47,7 @@ namespace VisualPinball.Unity
 
 			// rebuild octree of ball-to-ball collision (clear + re-insert, no alloc)
 			// it's okay to have this code outside of the inner loop, as the ball hitrects already include the maximum distance they can travel in that timespan
-			PhysicsDynamicBroadPhase.RebuildOctree(ref ballOctree, ref state.Balls);
+			PhysicsDynamicBroadPhase.RebuildOctree(ref ballOctree, ref state.Balls, dTime);
 
 			while (dTime > 0) {
 
@@ -72,12 +72,13 @@ namespace VisualPinball.Unity
 						// init contacts and event
 						ball.CollisionEvent.ClearCollider(hitTime); // search upto current hit time
 
-						// hit testing (overlappingColliders is cleared in broad phase)
-						PhysicsStaticBroadPhase.FindOverlaps(in state.Octree, in ball, ref overlappingColliders);
+						// hit testing (overlappingColliders is cleared in broad phase); the
+						// broad phase covers the same time window the narrow phase searches
+						PhysicsStaticBroadPhase.FindOverlaps(in state.Octree, in ball, ref overlappingColliders, hitTime);
 						PhysicsStaticNarrowPhase.FindNextCollision(ref state.Colliders, ref ball, ref overlappingColliders, ref _contacts, ref state);
 
-						PhysicsStaticBroadPhase.FindOverlaps(in kinematicOctree, in ball, ref overlappingColliders);
-						PhysicsStaticBroadPhase.FindMovingKinematicOverlaps(ref state, in ball, ref overlappingColliders);
+						PhysicsStaticBroadPhase.FindOverlaps(in kinematicOctree, in ball, ref overlappingColliders, hitTime);
+						PhysicsStaticBroadPhase.FindMovingKinematicOverlaps(ref state, in ball, ref overlappingColliders, hitTime);
 						PhysicsStaticNarrowPhase.FindNextCollision(ref state.KinematicColliders, ref ball, ref overlappingColliders, ref _contacts, ref state);
 						RecordSpringHingeHitTime(ref springHingeHitTime, in ball, ref state);
 
@@ -86,7 +87,7 @@ namespace VisualPinball.Unity
 							ball.CollisionEvent.ClearCollider();
 						}
 
-						PhysicsDynamicBroadPhase.FindOverlaps(in ballOctree, in ball, ref overlappingColliders, ref state.Balls);
+						PhysicsDynamicBroadPhase.FindOverlaps(in ballOctree, in ball, ref overlappingColliders, ref state.Balls, hitTime);
 						PhysicsDynamicNarrowPhase.FindNextCollision(ref ball, ref overlappingColliders, ref _contacts, ref state);
 
 						// apply static time

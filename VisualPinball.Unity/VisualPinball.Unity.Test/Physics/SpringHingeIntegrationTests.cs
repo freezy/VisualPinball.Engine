@@ -27,10 +27,10 @@ namespace VisualPinball.Unity.Test
 			try {
 				balls.Add(1, CreateBall(1, float3.zero, float3.zero));
 				balls.Add(2, CreateBall(2, new float3(20f, 0f, 0f), float3.zero));
-				PhysicsDynamicBroadPhase.RebuildOctree(ref octree, ref balls);
+				PhysicsDynamicBroadPhase.RebuildOctree(ref octree, ref balls, 0.5f);
 
 				var other = balls[2];
-				PhysicsDynamicBroadPhase.FindOverlaps(in octree, in other, ref overlaps, ref balls);
+				PhysicsDynamicBroadPhase.FindOverlaps(in octree, in other, ref overlaps, ref balls, 0.5f);
 				Assert.That(overlaps.Contains(1), Is.False);
 
 				ref var accelerated = ref balls.GetValueByRef(1);
@@ -38,7 +38,7 @@ namespace VisualPinball.Unity.Test
 				Assert.That(PhysicsDynamicBroadPhase.RebuildIfMotionEscapes(ref octree,
 					ref balls, 0.5f), Is.True);
 
-				PhysicsDynamicBroadPhase.FindOverlaps(in octree, in other, ref overlaps, ref balls);
+				PhysicsDynamicBroadPhase.FindOverlaps(in octree, in other, ref overlaps, ref balls, 0.5f);
 				Assert.That(overlaps.Contains(1), Is.True,
 					"the second ball must query the accelerated ball's refitted swept bounds");
 			} finally {
@@ -56,7 +56,7 @@ namespace VisualPinball.Unity.Test
 			var octree = new NativeOctree<int>(bounds, 8, 3, Allocator.Temp);
 			try {
 				balls.Add(1, CreateBall(1, float3.zero, new float3(2f, 0f, 0f)));
-				PhysicsDynamicBroadPhase.RebuildOctree(ref octree, ref balls);
+				PhysicsDynamicBroadPhase.RebuildOctree(ref octree, ref balls, 0.5f);
 
 				Assert.That(PhysicsDynamicBroadPhase.RebuildIfMotionEscapes(ref octree,
 					ref balls, 0.1f), Is.False);
