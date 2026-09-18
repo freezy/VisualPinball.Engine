@@ -22,6 +22,7 @@ using NLog;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
 using Color = VisualPinball.Engine.Math.Color;
+using ColorChannel = VisualPinball.Engine.Math.ColorChannel;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
@@ -42,6 +43,13 @@ namespace VisualPinball.Unity
 		/// Links the GLE's IDs to the mappings.
 		/// </summary>
 		private readonly Dictionary<string, Dictionary<ILampDeviceComponent, LampMapping>> _lampMappings = new();
+
+		/// <summary>
+		/// The RGB channels each lamp is made of. A multi-channel lamp is one light the
+		/// GLE drives through several IDs, so the colour has to be composed from all of
+		/// them - taking it from whichever channel wrote last would drop the other two.
+		/// </summary>
+		private readonly Dictionary<ILampDeviceComponent, List<LampMapping>> _rgbMultiChannels = new();
 
 		private Player? _player;
 		private TableComponent? _tableComponent;
@@ -73,6 +81,7 @@ namespace VisualPinball.Unity
 				var config = _tableComponent!.MappingConfig;
 				_lampAssignments.Clear();
 				_lampMappings.Clear();
+				_rgbMultiChannels.Clear();
 				var configuredMappings = 0;
 				var assignedMappings = 0;
 				var unassignedMappings = 0;
@@ -86,6 +95,13 @@ namespace VisualPinball.Unity
 
 					AssignLampMapping(lampMapping);
 					assignedMappings++;
+
+					if (lampMapping.Type == LampType.RgbMulti) {
+						if (!_rgbMultiChannels.ContainsKey(lampMapping.Device)) {
+							_rgbMultiChannels[lampMapping.Device] = new List<LampMapping>();
+						}
+						_rgbMultiChannels[lampMapping.Device].Add(lampMapping);
+					}
 
 					if (_lamps.ContainsKey(lampMapping.Device)) {
 						// turn off non-rgb lamps, turn on rgb lamps, but set to channel to 0
@@ -271,7 +287,7 @@ namespace VisualPinball.Unity
 				case LampType.RgbMulti:
 					state.SetChannel(mapping.Channel, value / 255f);
 					LampStates[id] = state;
-					lamp?.OnLamp(state.Color.ToUnityColor());
+					lamp?.OnLamp(ComposeRgbMulti(mapping, state));
 					break;
 
 				case LampType.SingleFading:
@@ -284,6 +300,48 @@ namespace VisualPinball.Unity
 					Logger.Error($"Unknown mapping type \"{mapping.Type}\" of lamp ID {id} for light {lamp}.");
 					break;
 			}
+		}
+
+		/// <summary>
+		/// Builds the light's colour out of every channel mapped to it. Each channel keeps
+		/// its own state, so reading one state's colour would give the channel that was
+		/// just written plus two stale ones.
+		/// </summary>
+		private UnityEngine.Color ComposeRgbMulti(LampMapping mapping, LampState writtenState)
+		{
+			if (mapping.Device == null || !_rgbMultiChannels.TryGetValue(mapping.Device, out var channels)) {
+				return writtenState.Color.ToUnityColor();
+			}
+
+			// Start from the channel that was just written, then take every other channel
+			// from its own state. Color is a reference type, so nothing here may assign to
+			// it - that would write back into the state we are reading.
+			var written = writtenState.Color;
+			var r = written.R;
+			var g = written.G;
+			var b = written.B;
+			var a = written.A;
+			foreach (var channel in channels) {
+				if (channel.Channel == mapping.Channel ||
+				    !LampStates.TryGetValue(channel.Id, out var channelState)) {
+					continue;
+				}
+				switch (channel.Channel) {
+					case ColorChannel.Red:
+						r = channelState.Color.R;
+						break;
+					case ColorChannel.Green:
+						g = channelState.Color.G;
+						break;
+					case ColorChannel.Blue:
+						b = channelState.Color.B;
+						break;
+					case ColorChannel.Alpha:
+						a = channelState.Color.A;
+						break;
+				}
+			}
+			return new UnityEngine.Color(r, g, b, a);
 		}
 
 		public void OnDestroy()
