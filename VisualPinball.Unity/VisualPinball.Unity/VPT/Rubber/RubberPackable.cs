@@ -210,7 +210,7 @@ namespace VisualPinball.Unity
 
 	public struct RubberColliderPackable
 	{
-		private const int CurrentVersion = 2;
+		private const int CurrentVersion = 3;
 
 		public int Version;
 		public bool IsMovable;
@@ -224,6 +224,17 @@ namespace VisualPinball.Unity
 		public float FreeSpanElasticityScale;
 		public float GuideInfluenceLength;
 		public float MaximumResponseSegmentLength;
+		// Version 3: experimental free-span deformation. Older payloads restore a
+		// disabled, unbaked state (outcome Invalid with RubberColliderComponent.NotBakedReason).
+		public bool DeformationEnabled;
+		public float DeflectionClearance;
+		public RubberCompiledDeformationMaterialPackable CompiledDeformationMaterial;
+		public RubberSpanDescriptorPackable[] SpanDescriptors;
+		public RubberBackedResponseDescriptorPackable[] BackedResponseDescriptors;
+		public int BakeOutcome;
+		public string BakeReason;
+		public int DeformationBakeVersion;
+		public string DeformationBakeHash;
 
 		public static byte[] Pack(RubberColliderComponent comp)
 		{
@@ -238,6 +249,18 @@ namespace VisualPinball.Unity
 				FreeSpanElasticityScale = comp.GuideElasticityScale,
 				GuideInfluenceLength = comp.GuideInfluenceLength,
 				MaximumResponseSegmentLength = comp.MaximumResponseSegmentLength,
+				DeformationEnabled = comp.DeformationEnabled,
+				DeflectionClearance = comp.DeflectionClearance,
+				CompiledDeformationMaterial = RubberCompiledDeformationMaterialPackable.From(
+					comp.CompiledDeformationMaterial),
+				SpanDescriptors = comp.SpanDescriptors
+					.Select(RubberSpanDescriptorPackable.From).ToArray(),
+				BackedResponseDescriptors = comp.BackedResponseDescriptors
+					.Select(RubberBackedResponseDescriptorPackable.From).ToArray(),
+				BakeOutcome = (int)comp.BakeOutcome,
+				BakeReason = comp.BakeReason,
+				DeformationBakeVersion = comp.DeformationBakeVersion,
+				DeformationBakeHash = comp.DeformationBakeHash,
 			});
 		}
 
@@ -261,6 +284,201 @@ namespace VisualPinball.Unity
 			} else {
 				comp.ResetGuideDistanceElasticitySettings();
 			}
+
+			if (data.Version < 3) {
+				comp.ResetDeformationSettings();
+				return;
+			}
+			comp.RestoreDeformationSettings(
+				data.DeformationEnabled,
+				data.DeflectionClearance,
+				data.CompiledDeformationMaterial.ToMaterial(),
+				data.SpanDescriptors?.Select(descriptor => descriptor.ToDescriptor()).ToArray()
+					?? Array.Empty<RubberSpanDescriptor>(),
+				data.BackedResponseDescriptors?.Select(descriptor => descriptor.ToDescriptor()).ToArray()
+					?? Array.Empty<RubberBackedResponseDescriptor>(),
+				Enum.IsDefined(typeof(RubberDeformationBakeOutcome), data.BakeOutcome)
+					? (RubberDeformationBakeOutcome)data.BakeOutcome
+					: RubberDeformationBakeOutcome.Invalid,
+				data.BakeReason,
+				data.DeformationBakeVersion,
+				data.DeformationBakeHash);
+		}
+	}
+
+	public struct RubberCompiledDeformationMaterialPackable
+	{
+		public int CompilerVersion;
+		public float LinearDensity;
+		public float DampingRatio;
+		public float SurfaceFriction;
+		public float MaximumStretchRatio;
+		public float[] StressLut;
+		public float[] TangentStiffnessLut;
+
+		public static RubberCompiledDeformationMaterialPackable From(
+			RubberCompiledDeformationMaterial material)
+		{
+			return new RubberCompiledDeformationMaterialPackable {
+				CompilerVersion = material.CompilerVersion,
+				LinearDensity = material.LinearDensity,
+				DampingRatio = material.DampingRatio,
+				SurfaceFriction = material.SurfaceFriction,
+				MaximumStretchRatio = material.MaximumStretchRatio,
+				StressLut = material.StressLut ?? Array.Empty<float>(),
+				TangentStiffnessLut = material.TangentStiffnessLut ?? Array.Empty<float>(),
+			};
+		}
+
+		public RubberCompiledDeformationMaterial ToMaterial()
+		{
+			return new RubberCompiledDeformationMaterial {
+				CompilerVersion = CompilerVersion,
+				LinearDensity = LinearDensity,
+				DampingRatio = DampingRatio,
+				SurfaceFriction = SurfaceFriction,
+				MaximumStretchRatio = MaximumStretchRatio,
+				StressLut = StressLut ?? Array.Empty<float>(),
+				TangentStiffnessLut = TangentStiffnessLut ?? Array.Empty<float>(),
+			};
+		}
+	}
+
+	public struct RubberSpanDescriptorPackable
+	{
+		public int PathElementIndex;
+		public int StartBindingIndex;
+		public int EndBindingIndex;
+		public float InstalledLength;
+		public float UnloadedLength;
+		public float InstalledTension;
+		public float TangentStiffness;
+		public PackableFloat4 ModalMass;
+		public PackableFloat4 ModalStiffness;
+		public PackableFloat4 ModalDamping;
+		public float MaxDeflection;
+		public float SurfaceFriction;
+		public int InwardSign;
+		public int SegmentCount;
+		public float[] ArcLengthFractions;
+
+		public static RubberSpanDescriptorPackable From(RubberSpanDescriptor descriptor)
+		{
+			return new RubberSpanDescriptorPackable {
+				PathElementIndex = descriptor.PathElementIndex,
+				StartBindingIndex = descriptor.StartBindingIndex,
+				EndBindingIndex = descriptor.EndBindingIndex,
+				InstalledLength = descriptor.InstalledLength,
+				UnloadedLength = descriptor.UnloadedLength,
+				InstalledTension = descriptor.InstalledTension,
+				TangentStiffness = descriptor.TangentStiffness,
+				ModalMass = ToPackable(descriptor.ModalMass),
+				ModalStiffness = ToPackable(descriptor.ModalStiffness),
+				ModalDamping = ToPackable(descriptor.ModalDamping),
+				MaxDeflection = descriptor.MaxDeflection,
+				SurfaceFriction = descriptor.SurfaceFriction,
+				InwardSign = descriptor.InwardSign,
+				SegmentCount = descriptor.SegmentCount,
+				ArcLengthFractions = descriptor.ArcLengthFractions ?? Array.Empty<float>(),
+			};
+		}
+
+		public RubberSpanDescriptor ToDescriptor()
+		{
+			return new RubberSpanDescriptor {
+				PathElementIndex = PathElementIndex,
+				StartBindingIndex = StartBindingIndex,
+				EndBindingIndex = EndBindingIndex,
+				InstalledLength = InstalledLength,
+				UnloadedLength = UnloadedLength,
+				InstalledTension = InstalledTension,
+				TangentStiffness = TangentStiffness,
+				ModalMass = ToFloat4(ModalMass),
+				ModalStiffness = ToFloat4(ModalStiffness),
+				ModalDamping = ToFloat4(ModalDamping),
+				MaxDeflection = MaxDeflection,
+				SurfaceFriction = SurfaceFriction,
+				InwardSign = (sbyte)math.clamp(InwardSign, -1, 1),
+				SegmentCount = SegmentCount,
+				ArcLengthFractions = ArcLengthFractions ?? Array.Empty<float>(),
+			};
+		}
+
+		private static PackableFloat4 ToPackable(float4 value)
+			=> new(value.x, value.y, value.z, value.w);
+
+		private static float4 ToFloat4(PackableFloat4 value)
+			=> new(value.X, value.Y, value.Z, value.W);
+	}
+
+	public struct RubberBackedResponseDescriptorPackable
+	{
+		public int BindingIndex;
+		public int PathElementIndex;
+		public PhysicsMaterialDataPackable Material;
+		public float[] ElasticityOverVelocityLut;
+		public float[] FrictionOverVelocityLut;
+		public float ElasticityScale;
+
+		public static RubberBackedResponseDescriptorPackable From(
+			RubberBackedResponseDescriptor descriptor)
+		{
+			return new RubberBackedResponseDescriptorPackable {
+				BindingIndex = descriptor.BindingIndex,
+				PathElementIndex = descriptor.PathElementIndex,
+				Material = PhysicsMaterialDataPackable.From(descriptor.Material),
+				ElasticityOverVelocityLut = descriptor.ElasticityOverVelocityLut
+					?? Array.Empty<float>(),
+				FrictionOverVelocityLut = descriptor.FrictionOverVelocityLut
+					?? Array.Empty<float>(),
+				ElasticityScale = descriptor.ElasticityScale,
+			};
+		}
+
+		public RubberBackedResponseDescriptor ToDescriptor()
+		{
+			return new RubberBackedResponseDescriptor {
+				BindingIndex = BindingIndex,
+				PathElementIndex = PathElementIndex,
+				Material = Material.ToData(),
+				ElasticityOverVelocityLut = ElasticityOverVelocityLut ?? Array.Empty<float>(),
+				FrictionOverVelocityLut = FrictionOverVelocityLut ?? Array.Empty<float>(),
+				ElasticityScale = ElasticityScale,
+			};
+		}
+	}
+
+	public struct PhysicsMaterialDataPackable
+	{
+		public float Elasticity;
+		public float ElasticityFalloff;
+		public float Friction;
+		public float ScatterAngleRad;
+		public bool UseElasticityOverVelocity;
+		public bool UseFrictionOverVelocity;
+
+		public static PhysicsMaterialDataPackable From(PhysicsMaterialData data)
+		{
+			return new PhysicsMaterialDataPackable {
+				Elasticity = data.Elasticity,
+				ElasticityFalloff = data.ElasticityFalloff,
+				Friction = data.Friction,
+				ScatterAngleRad = data.ScatterAngleRad,
+				UseElasticityOverVelocity = data.UseElasticityOverVelocity,
+				UseFrictionOverVelocity = data.UseFrictionOverVelocity,
+			};
+		}
+
+		public PhysicsMaterialData ToData()
+		{
+			return new PhysicsMaterialData {
+				Elasticity = Elasticity,
+				ElasticityFalloff = ElasticityFalloff,
+				Friction = Friction,
+				ScatterAngleRad = ScatterAngleRad,
+				UseElasticityOverVelocity = UseElasticityOverVelocity,
+				UseFrictionOverVelocity = UseFrictionOverVelocity,
+			};
 		}
 	}
 

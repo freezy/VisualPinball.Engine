@@ -18,6 +18,9 @@ using System;
 
 namespace VisualPinball.Unity
 {
+	// Serializable so baked authoring records, such as the rubber deformation
+	// backed-response descriptors, can carry a resolved material in a scene or prefab.
+	[Serializable]
 	public struct PhysicsMaterialData : IEquatable<PhysicsMaterialData>
 	{
 		public float Elasticity;
