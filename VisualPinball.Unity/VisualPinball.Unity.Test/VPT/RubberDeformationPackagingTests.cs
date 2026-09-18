@@ -224,7 +224,7 @@ namespace VisualPinball.Unity.Test
 				Assert.That(target.UpdateThreshold, Is.EqualTo(0.25f));
 				Assert.That(target.RecalculateNormals, Is.False);
 				Assert.That(target.IncludeSupportedArcs, Is.True);
-				Assert.That(RubberDeformationRenderer.RuntimeAvailable, Is.False);
+				Assert.That(RubberDeformationRenderer.RuntimeAvailable, Is.True);
 
 				target.UpdateThreshold = float.NaN;
 				Assert.That(target.UpdateThreshold,

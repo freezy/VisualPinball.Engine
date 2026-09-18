@@ -155,6 +155,44 @@ namespace VisualPinball.Unity.Test
 			yield return new ExitPlayMode();
 		}
 
+		[UnityTest]
+		public IEnumerator TheKickShouldDeformTheRubberAndSwingTheArm()
+		{
+			yield return new EnterPlayMode();
+			var fixture = Fixture.Create(selfWired: true);
+			try {
+				yield return fixture.Activate();
+				Assert.That(fixture.Renderer, Is.Not.Null);
+				Assert.That(fixture.Renderer.SpanCount, Is.GreaterThan(0),
+					"the renderer must bind the rubber's rebound-eligible spans");
+				Assert.That(fixture.Renderer.BindingCount, Is.GreaterThan(0),
+					"the synthetic cord vertices must bind to a rest chord");
+
+				yield return fixture.Shoot(25f);
+				// the shot loop stops as soon as the coil fired, so follow the animation out
+				for (var frame = 0; frame < 600 && fixture.Slingshot.IsArmAnimating; frame++) {
+					yield return null;
+					fixture.SampleVisuals();
+				}
+
+				TestContext.Out.WriteLine(
+					$"visuals|energized={fixture.Slingshot.SlingshotApi.CoilEnergizeCount}|outward={fixture.PeakOutwardDepth}|arm={fixture.PeakArmValue}|angle={fixture.PeakArmAngle}");
+				Assert.That(fixture.Slingshot.SlingshotApi.CoilEnergizeCount, Is.EqualTo(1));
+				Assert.That(fixture.PeakOutwardDepth, Is.LessThan(0f),
+					"the kick must drive the bound span outward");
+				Assert.That(fixture.PeakArmValue, Is.GreaterThan(0f),
+					"the arm must leave its rest angle");
+				Assert.That(fixture.PeakArmAngle, Is.GreaterThan(0f),
+					"the arm visual must actually rotate");
+				Assert.That(fixture.PeakArmAngle,
+					Is.LessThanOrEqualTo(fixture.Slingshot.VisualFiredAngle + 0.01f),
+					"the arm never swings past its fired angle");
+			} finally {
+				fixture.Dispose();
+			}
+			yield return new ExitPlayMode();
+		}
+
 		#region Fixture
 
 		/// <summary>
@@ -177,6 +215,19 @@ namespace VisualPinball.Unity.Test
 			internal SlingshotActuatorAsset Actuator;
 			internal GameObject BallPrefab;
 			internal int SpanId = -1;
+			internal int PathElementIndex = -1;
+			internal RubberDeformationRenderer Renderer;
+			internal GameObject ArmVisual;
+			internal Mesh CordMesh;
+
+			/// <summary>Most outward profile depth the bound span reached, in VPX units.</summary>
+			internal float PeakOutwardDepth;
+
+			/// <summary>Largest value the arm animation reached, zero at rest.</summary>
+			internal float PeakArmValue;
+
+			/// <summary>Largest angle the arm visual reached around its rotation axis.</summary>
+			internal float PeakArmAngle;
 
 			/// <summary>Fastest the ball moved during the shot, in metres per second.</summary>
 			internal float PeakSpeed;
@@ -241,6 +292,18 @@ namespace VisualPinball.Unity.Test
 				var element = fixture.Rubber.BakedPath
 					.Select((path, index) => (path, index))
 					.First(entry => entry.path.Type == RubberPathElementType.FreeSpan);
+				fixture.PathElementIndex = element.index;
+
+				// a synthetic cord mesh, so the renderer has vertices to bind without the
+				// render pipeline this bare test project does not have
+				fixture.CordMesh = BuildCordMesh(fixture.Rubber);
+				rubberObject.AddComponent<MeshFilter>().sharedMesh = fixture.CordMesh;
+				fixture.Renderer = rubberObject.AddComponent<RubberDeformationRenderer>();
+				fixture.Renderer.RecalculateNormals = false;
+				fixture.Renderer.UpdateThreshold = 0f;
+				// a little longer than the default 60 ms, so the animation is sampled
+				// whatever pace the batch-mode frames run at
+				fixture.Renderer.AnimationDurationMs = 100f;
 
 				fixture.Actuator = Actuators.Create();
 				var slingshotObject = new GameObject("Slingshot");
@@ -262,6 +325,12 @@ namespace VisualPinball.Unity.Test
 						MinimumClosedTimeMs = 8f,
 					},
 				};
+				fixture.ArmVisual = new GameObject("Coil Arm");
+				fixture.ArmVisual.transform.SetParent(slingshotObject.transform, false);
+				fixture.Slingshot.CoilArmVisual = fixture.ArmVisual;
+				fixture.Slingshot.VisualRotationAxis = Axis.Y;
+				fixture.Slingshot.VisualRestAngle = 0f;
+				fixture.Slingshot.VisualFiredAngle = 20f;
 				Assert.That(fixture.Slingshot.ValidateConfiguration(), Is.Empty);
 
 				var prefabHolder = new GameObject("Ball Prefab Holder");
@@ -328,6 +397,7 @@ namespace VisualPinball.Unity.Test
 					}
 					previous = position;
 					hasPrevious = true;
+					SampleVisuals();
 					if (frame % 20 == 0) {
 						TestContext.Out.WriteLine(
 							$"frame {frame}|world={position}|peak={PeakSpeed}|switch={Slingshot.SlingshotApi.IsSwitchClosed}");
@@ -338,6 +408,53 @@ namespace VisualPinball.Unity.Test
 						break;
 					}
 				}
+			}
+
+			/// <summary>
+			/// Records how far the renderer pushed the bound span outward and how far the
+			/// arm swung, so a 60 ms animation is not missed between two frames.
+			/// </summary>
+			internal void SampleVisuals()
+			{
+				if (Renderer && PathElementIndex >= 0
+					&& Renderer.TryGetProfile(PathElementIndex, out _, out var depth)) {
+					PeakOutwardDepth = math.min(PeakOutwardDepth, depth);
+				}
+				if (Slingshot) {
+					PeakArmValue = math.max(PeakArmValue, Slingshot.ArmAnimationValue);
+				}
+				if (ArmVisual) {
+					var angle = ArmVisual.transform.localEulerAngles.y;
+					PeakArmAngle = math.max(PeakArmAngle, angle > 180f ? 360f - angle : angle);
+				}
+			}
+
+			/// <summary>
+			/// Rings of four vertices at the cord radius around every free span of the bake,
+			/// in the rubber's local Unity space, which is where the real rubber mesh lives.
+			/// </summary>
+			private static Mesh BuildCordMesh(RubberComponent rubber)
+			{
+				var radius = VisualPinball.Unity.Physics.ScaleToWorld(rubber.Thickness * 0.5f);
+				var frame = rubber.BakeFrameToLocal;
+				var vertices = new List<Vector3>();
+				foreach (var element in rubber.BakedPath) {
+					if (element.Type != RubberPathElementType.FreeSpan) {
+						continue;
+					}
+					for (var ring = 0; ring <= 8; ring++) {
+						var bake = RubberPathMath.PointAt(element, ring / 8f);
+						Vector3 centre = frame.MultiplyPoint3x4(
+							new Vector3(bake.x, bake.y, 0f)).TranslateToWorld();
+						vertices.Add(centre + new Vector3(radius, 0f, 0f));
+						vertices.Add(centre + new Vector3(-radius, 0f, 0f));
+						vertices.Add(centre + new Vector3(0f, radius, 0f));
+						vertices.Add(centre + new Vector3(0f, -radius, 0f));
+					}
+				}
+				var mesh = new Mesh { name = "Synthetic Cord" };
+				mesh.SetVertices(vertices);
+				return mesh;
 			}
 
 			private void OnBallCreated(object sender, BallEvent args) => _ball = args.Ball;
@@ -352,6 +469,9 @@ namespace VisualPinball.Unity.Test
 				}
 				if (Actuator) {
 					Object.DestroyImmediate(Actuator);
+				}
+				if (CordMesh) {
+					Object.DestroyImmediate(CordMesh);
 				}
 			}
 
