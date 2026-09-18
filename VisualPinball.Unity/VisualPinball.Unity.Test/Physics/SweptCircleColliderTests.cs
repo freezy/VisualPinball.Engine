@@ -1116,7 +1116,7 @@ namespace VisualPinball.Unity.Test
 			var hitTimeChecksum = 0f;
 			var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 			for (var iteration = 0; iteration < iterations; iteration++) {
-				PhysicsStaticBroadPhase.FindOverlaps(in octree, in ball, ref overlaps);
+				PhysicsStaticBroadPhase.FindOverlaps(in octree, in ball, ref overlaps, 0.01f);
 				foreach (var colliderId in overlaps) {
 					var collision = new CollisionEventData();
 					hitTimeChecksum += native.SweptCircle(colliderId)

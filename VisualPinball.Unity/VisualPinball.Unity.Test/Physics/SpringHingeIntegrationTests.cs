@@ -105,11 +105,11 @@ namespace VisualPinball.Unity.Test
 				balls.Add(1, CreateBall(1, float3.zero, float3.zero));
 				balls.Add(2, CreateBall(2, float3.zero, float3.zero));
 				balls.Add(3, CreateBall(3, float3.zero, float3.zero));
-				PhysicsDynamicBroadPhase.RebuildOctree(ref octree, ref balls);
+				PhysicsDynamicBroadPhase.RebuildOctree(ref octree, ref balls, 0.5f);
 
 				var query = balls[1];
 				balls.Remove(2);
-				PhysicsDynamicBroadPhase.FindOverlaps(in octree, in query, ref overlaps, ref balls);
+				PhysicsDynamicBroadPhase.FindOverlaps(in octree, in query, ref overlaps, ref balls, 0.5f);
 
 				Assert.That(overlaps.Contains(2), Is.False,
 					"an octree entry for a removed ball must not reach the narrow phase");
