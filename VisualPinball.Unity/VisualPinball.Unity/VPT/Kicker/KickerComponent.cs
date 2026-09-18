@@ -25,6 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using NLog;
 using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
@@ -34,6 +35,7 @@ using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Engine.VPT.Table;
+using Logger = NLog.Logger;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -48,6 +50,8 @@ namespace VisualPinball.Unity
 		ICoilDeviceComponent, ITriggerComponent, IBallCreationPosition,
 		IRotatableComponent, ISerializationCallbackReceiver, IPackable
 	{
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		#region Data
 
 		public Vector3 Position {
@@ -167,7 +171,8 @@ namespace VisualPinball.Unity
 		public float2 RotatedPosition {
 			get => new(Position.x, Position.y);
 			set {
-				Position = new Vector2(value.x, value.y);
+				// keep the height: a kicker rotated by a mech must not drop to playfield level
+				Position = new Vector3(value.x, value.y, Position.z);
 				UpdateTransforms();
 			}
 		}
@@ -306,6 +311,8 @@ namespace VisualPinball.Unity
 			var meshData = colliderComponent.LegacyMode
 				? new ColliderMeshData(Array.Empty<Vertex3DNoTex2>(), 0, float3.zero, Allocator.Persistent)
 				: new ColliderMeshData(KickerHitMesh.Vertices, Radius, position, Allocator.Persistent);
+
+			Logger.Info($"Kicker \"{name}\": capture center ({position.x:F1}, {position.y:F1}), z {position.z:F1}, local {Position:F1}.");
 
 			return new KickerState(
 				staticData,
