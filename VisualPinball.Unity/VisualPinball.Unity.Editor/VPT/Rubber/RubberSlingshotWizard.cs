@@ -141,6 +141,16 @@ namespace VisualPinball.Unity.Editor
 			component.Rubber = _rubber;
 			component.Span = selected;
 			component.Actuator = _actuator;
+
+			// the runtime defaults of the plan's 3.3, written explicitly so a wizard-made
+			// slingshot does not depend on the field initializers
+			component.SelfWired = RubberSlingshotComponent.DefaultSelfWired;
+			component.WireDelayMs = RubberSlingshotComponent.DefaultWireDelayMs;
+			component.SelfWirePulseMs = RubberSlingshotComponent.DefaultSelfWirePulseMs;
+			component.KickSpeed = RubberSlingshotComponent.DefaultKickSpeed;
+			component.ArmHalfWidth01 = RubberSlingshotComponent.DefaultArmHalfWidth01;
+			component.KickWindowMs = RubberSlingshotComponent.DefaultKickWindowMs;
+			component.MinimumSwitchPulseMs = RubberSlingshotComponent.DefaultMinimumSwitchPulseMs;
 			EditorUtility.SetDirty(component);
 			Selection.activeGameObject = gameObject;
 			Close();

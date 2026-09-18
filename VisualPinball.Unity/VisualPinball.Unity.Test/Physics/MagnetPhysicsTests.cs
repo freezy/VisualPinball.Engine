@@ -1899,6 +1899,7 @@ namespace VisualPinball.Unity.Test
 		internal NativeParallelHashMap<int, MagnetState> MagnetStates;
 		internal NativeParallelHashMap<int, SpringHingeState> SpringHingeStates;
 		internal NativeParallelHashMap<int, RubberSpanRebound> RubberSpanRebounds;
+		internal NativeParallelHashMap<int, RubberSlingshotState> RubberSlingshotStates;
 		internal InsideOfs InsideOfs;
 		internal NativeQueue<EventData> EventQueue;
 
@@ -1937,6 +1938,7 @@ namespace VisualPinball.Unity.Test
 			MagnetStates = new NativeParallelHashMap<int, MagnetState>(4, Allocator.Persistent);
 			SpringHingeStates = new NativeParallelHashMap<int, SpringHingeState>(4, Allocator.Persistent);
 			RubberSpanRebounds = new NativeParallelHashMap<int, RubberSpanRebound>(4, Allocator.Persistent);
+			RubberSlingshotStates = new NativeParallelHashMap<int, RubberSlingshotState>(4, Allocator.Persistent);
 			_flipperStates = new NativeParallelHashMap<int, FlipperState>(1, Allocator.Persistent);
 			_gateStates = new NativeParallelHashMap<int, GateState>(1, Allocator.Persistent);
 			_plungerStates = new NativeParallelHashMap<int, PlungerState>(1, Allocator.Persistent);
@@ -1957,7 +1959,7 @@ namespace VisualPinball.Unity.Test
 				ref _surfaceStates, ref _turntableStates, ref _triggerStates, ref _disabledCollisionItems, ref _swapBallCollisionHandling,
 				ref _elasticityLuts, ref _frictionLuts, ref KinematicVelocities,
 				ref _kinematicItemsOutOfOctree, ref _kinematicMovingItemBounds,
-				ref RubberSpanRebounds);
+				ref RubberSpanRebounds, ref RubberSlingshotStates);
 		}
 
 		internal void SetStaticColliders(ref ColliderReference colliders)
@@ -1977,6 +1979,7 @@ namespace VisualPinball.Unity.Test
 			MagnetStates.Dispose();
 			SpringHingeStates.Dispose();
 			RubberSpanRebounds.Dispose();
+			RubberSlingshotStates.Dispose();
 			_flipperStates.Dispose();
 			_gateStates.Dispose();
 			_plungerStates.Dispose();

@@ -146,8 +146,11 @@ namespace VisualPinball.Unity
 			var impactSpeed = -math.dot(collEvent.HitNormal, ball.Velocity);
 			if (SpanId >= 0 && state.RubberSpanRebounds.IsCreated
 				&& state.RubberSpanRebounds.TryGetValue(SpanId, out var span)) {
+				// the event writer is threaded through so the response can emit the span
+				// impact event and close the switch zones bound to this span
 				RubberSpanRebound.Respond(ref ball, in Header.Material, in collEvent, in span,
-					ContactFraction(in ball), ElasticityScale, ref state, out _);
+					ContactFraction(in ball), ElasticityScale, ref state, SpanId,
+					ref hitEvents, true, out _);
 			} else {
 				BallCollider.Collide3DWall(ref ball, in Header.Material, in collEvent,
 					in collEvent.HitNormal, ElasticityScale, ref state);

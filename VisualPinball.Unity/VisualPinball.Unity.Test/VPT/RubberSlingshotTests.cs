@@ -343,7 +343,7 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldRoundTripEverySlingshotScalarFieldWithoutRuntime()
+		public void ShouldRoundTripEverySlingshotScalarField()
 		{
 			var sourceObject = new GameObject("Source Slingshot");
 			var targetObject = new GameObject("Target Slingshot");
@@ -375,6 +375,13 @@ namespace VisualPinball.Unity.Test
 				source.VisualRotationAxis = Axis.Z;
 				source.VisualRestAngle = -3f;
 				source.VisualFiredAngle = 21f;
+				source.SelfWired = false;
+				source.WireDelayMs = 7f;
+				source.SelfWirePulseMs = 23f;
+				source.KickSpeed = 26f;
+				source.ArmHalfWidth01 = 0.3f;
+				source.KickWindowMs = 35f;
+				source.MinimumSwitchPulseMs = 40f;
 
 				target.Unpack(source.Pack());
 
@@ -394,10 +401,95 @@ namespace VisualPinball.Unity.Test
 				Assert.That(target.VisualRotationAxis, Is.EqualTo(Axis.Z));
 				Assert.That(target.VisualRestAngle, Is.EqualTo(-3f));
 				Assert.That(target.VisualFiredAngle, Is.EqualTo(21f));
-				Assert.That(RubberSlingshotComponent.RuntimeAvailable, Is.False);
+				Assert.That(target.SelfWired, Is.False);
+				Assert.That(target.WireDelayMs, Is.EqualTo(7f));
+				Assert.That(target.SelfWirePulseMs, Is.EqualTo(23f));
+				Assert.That(target.KickSpeed, Is.EqualTo(26f));
+				Assert.That(target.ArmHalfWidth01, Is.EqualTo(0.3f));
+				Assert.That(target.KickWindowMs, Is.EqualTo(35f));
+				Assert.That(target.MinimumSwitchPulseMs, Is.EqualTo(40f));
+
+				// the runtime of commit 2 is live
+				Assert.That(RubberSlingshotComponent.RuntimeAvailable, Is.True);
 			} finally {
 				UnityEngine.Object.DestroyImmediate(sourceObject);
 				UnityEngine.Object.DestroyImmediate(targetObject);
+			}
+		}
+
+		[Test]
+		public void OldSlingshotPayloadShouldRestoreTheRuntimeDefaults()
+		{
+			var gameObject = new GameObject("Legacy Slingshot");
+			try {
+				var component = gameObject.AddComponent<RubberSlingshotComponent>();
+				component.SelfWired = false;
+				component.WireDelayMs = 99f;
+				component.KickSpeed = 3f;
+				component.ArmHalfWidth01 = 0.11f;
+				component.KickWindowMs = 1f;
+				component.MinimumSwitchPulseMs = 2f;
+				component.SelfWirePulseMs = 4f;
+
+				// a payload written before the runtime existed
+				var legacy = PackageApi.Packer.Pack(new RubberSlingshotPackable {
+					Version = 1,
+					SwitchZones = Array.Empty<SlingshotSwitchZonePackable>(),
+					ArmContactPosition01 = 0.4f,
+					ArmRestClearance = 3f,
+					ArmTipTravel = 17f,
+					VisualRotationAxis = (int)Axis.Y,
+				});
+				component.Unpack(legacy);
+
+				Assert.That(component.ArmContactPosition01, Is.EqualTo(0.4f));
+				Assert.That(component.SelfWired, Is.True);
+				Assert.That(component.WireDelayMs,
+					Is.EqualTo(RubberSlingshotComponent.DefaultWireDelayMs));
+				Assert.That(component.SelfWirePulseMs,
+					Is.EqualTo(RubberSlingshotComponent.DefaultSelfWirePulseMs));
+				Assert.That(component.KickSpeed,
+					Is.EqualTo(RubberSlingshotComponent.DefaultKickSpeed));
+				Assert.That(component.ArmHalfWidth01,
+					Is.EqualTo(RubberSlingshotComponent.DefaultArmHalfWidth01));
+				Assert.That(component.KickWindowMs,
+					Is.EqualTo(RubberSlingshotComponent.DefaultKickWindowMs));
+				Assert.That(component.MinimumSwitchPulseMs,
+					Is.EqualTo(RubberSlingshotComponent.DefaultMinimumSwitchPulseMs));
+			} finally {
+				UnityEngine.Object.DestroyImmediate(gameObject);
+			}
+		}
+
+		[Test]
+		public void SanitizedRuntimeFieldsShouldFallBackToTheirDefaults()
+		{
+			var gameObject = new GameObject("Sanitizing Slingshot");
+			try {
+				var component = gameObject.AddComponent<RubberSlingshotComponent>();
+				component.WireDelayMs = float.NaN;
+				component.SelfWirePulseMs = -1f;
+				component.KickSpeed = float.NegativeInfinity;
+				component.ArmHalfWidth01 = 0f;
+				component.KickWindowMs = float.NaN;
+				component.MinimumSwitchPulseMs = -3f;
+
+				Assert.That(component.WireDelayMs,
+					Is.EqualTo(RubberSlingshotComponent.DefaultWireDelayMs));
+				Assert.That(component.SelfWirePulseMs,
+					Is.EqualTo(RubberSlingshotComponent.DefaultSelfWirePulseMs));
+				Assert.That(component.KickSpeed,
+					Is.EqualTo(RubberSlingshotComponent.DefaultKickSpeed));
+				Assert.That(component.ArmHalfWidth01,
+					Is.EqualTo(RubberSlingshotComponent.DefaultArmHalfWidth01));
+				Assert.That(component.KickWindowMs,
+					Is.EqualTo(RubberSlingshotComponent.DefaultKickWindowMs));
+				Assert.That(component.MinimumSwitchPulseMs,
+					Is.EqualTo(RubberSlingshotComponent.DefaultMinimumSwitchPulseMs));
+				Assert.That(component.KickSpeedMetersPerSecond,
+					Is.EqualTo(RubberSlingshotComponent.DefaultKickSpeed / 18.53f).Within(1e-4f));
+			} finally {
+				UnityEngine.Object.DestroyImmediate(gameObject);
 			}
 		}
 

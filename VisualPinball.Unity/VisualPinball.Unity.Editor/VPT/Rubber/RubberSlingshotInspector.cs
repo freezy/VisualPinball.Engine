@@ -22,6 +22,13 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _armRestClearance;
 		private SerializedProperty _armTipTravel;
 		private SerializedProperty _actuator;
+		private SerializedProperty _selfWired;
+		private SerializedProperty _wireDelayMs;
+		private SerializedProperty _selfWirePulseMs;
+		private SerializedProperty _kickSpeed;
+		private SerializedProperty _armHalfWidth01;
+		private SerializedProperty _kickWindowMs;
+		private SerializedProperty _minimumSwitchPulseMs;
 		private SerializedProperty _coilArmVisual;
 		private SerializedProperty _visualRotationAxis;
 		private SerializedProperty _visualRestAngle;
@@ -36,6 +43,13 @@ namespace VisualPinball.Unity.Editor
 			_armRestClearance = serializedObject.FindProperty("_armRestClearance");
 			_armTipTravel = serializedObject.FindProperty("_armTipTravel");
 			_actuator = serializedObject.FindProperty("_actuator");
+			_selfWired = serializedObject.FindProperty("_selfWired");
+			_wireDelayMs = serializedObject.FindProperty("_wireDelayMs");
+			_selfWirePulseMs = serializedObject.FindProperty("_selfWirePulseMs");
+			_kickSpeed = serializedObject.FindProperty("_kickSpeed");
+			_armHalfWidth01 = serializedObject.FindProperty("_armHalfWidth01");
+			_kickWindowMs = serializedObject.FindProperty("_kickWindowMs");
+			_minimumSwitchPulseMs = serializedObject.FindProperty("_minimumSwitchPulseMs");
 			_coilArmVisual = serializedObject.FindProperty("_coilArmVisual");
 			_visualRotationAxis = serializedObject.FindProperty("_visualRotationAxis");
 			_visualRestAngle = serializedObject.FindProperty("_visualRestAngle");
@@ -52,13 +66,30 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.Space();
 			EditorGUILayout.LabelField("Switches", EditorStyles.boldLabel);
 			EditorGUILayout.PropertyField(_switchZones, true);
+			EditorGUILayout.HelpBox("Open deflection is not consulted by the static rebound model: a zone closes at its close deflection and stays closed for its minimum closed time. The value is kept and packaged for a future deformable model.",
+				MessageType.Info);
+			EditorGUILayout.PropertyField(_minimumSwitchPulseMs);
+
+			EditorGUILayout.Space();
+			EditorGUILayout.LabelField("Wire", EditorStyles.boldLabel);
+			EditorGUILayout.PropertyField(_selfWired);
+			using (new EditorGUI.DisabledScope(!_selfWired.boolValue)) {
+				EditorGUILayout.PropertyField(_wireDelayMs);
+				EditorGUILayout.PropertyField(_selfWirePulseMs);
+				EditorGUILayout.PropertyField(_kickWindowMs);
+			}
 
 			EditorGUILayout.Space();
 			EditorGUILayout.LabelField("Actuator", EditorStyles.boldLabel);
 			EditorGUILayout.PropertyField(_actuator);
+			EditorGUILayout.HelpBox("The actuator asset is stored and packaged for a future physical arm. This version applies the kick below and does not consult the asset.",
+				MessageType.Info);
 			EditorGUILayout.PropertyField(_armContactPosition);
 			EditorGUILayout.PropertyField(_armRestClearance);
 			EditorGUILayout.PropertyField(_armTipTravel);
+			EditorGUILayout.PropertyField(_armHalfWidth01);
+			EditorGUILayout.PropertyField(_kickSpeed);
+			EditorGUILayout.LabelField(" ", $"= {_kickSpeed.floatValue / 18.53f:F2} m/s");
 
 			EditorGUILayout.Space();
 			EditorGUILayout.LabelField("Arm Visual", EditorStyles.boldLabel);

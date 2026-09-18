@@ -125,10 +125,24 @@ namespace VisualPinball.Unity
 		/// Sends the switch element to the gamelogic engine and linked wires.
 		/// </summary>
 		/// <param name="enabled">Switch status</param>
-		internal void OnSwitch(bool enabled)
+		internal void OnSwitch(bool enabled) => OnSwitch(enabled, true, true);
+
+		/// <summary>
+		/// Sends the switch element to a subset of its destinations.
+		/// </summary>
+		/// <remarks>
+		/// The physical slingshot needs the two destinations to be driven separately:
+		/// player wires exist for immediate direct control and always get the raw edge,
+		/// while the gamelogic engine gets a pulse of at least a minimum duration, which
+		/// can mean delivering the opening edge later than the wires saw it.
+		/// </remarks>
+		/// <param name="enabled">Switch status</param>
+		/// <param name="toEngine">Whether to dispatch to the gamelogic engine</param>
+		/// <param name="toWires">Whether to dispatch to the linked wires</param>
+		internal void OnSwitch(bool enabled, bool toEngine, bool toWires)
 		{
 			// handle switch -> gamelogic engine
-			if (Engine != null && _switches != null) {
+			if (toEngine && Engine != null && _switches != null) {
 				foreach (var switchConfig in _switches) {
 					var isClosed = switchConfig.IsNormallyClosed ? !enabled : enabled;
 
@@ -154,7 +168,7 @@ namespace VisualPinball.Unity
 			}
 
 			// handle switch -> wire
-			if (_wires != null) {
+			if (toWires && _wires != null) {
 				foreach (var wireConfig in _wires) {
 					_player.HandleWireSwitchChange(wireConfig, enabled);
 				}
