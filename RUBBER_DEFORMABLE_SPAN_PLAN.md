@@ -1,6 +1,6 @@
 # Deformable Rubber Free Spans Implementation Plan (Phase 3b)
 
-Status: revision 5 plus the commit-1 addendum (section 14) on `feat/rubber-deformable-spans`. Commits 1 and 2 have landed. **The commit-1 fixture falsified the contact formulation of section 2.4.4 at the engine substep; per section 13 the plan is stopped at that point and runtime commits 3 to 6 do not start until section 2.4 is redesigned and re-reviewed.**
+Status: superseded. Commits 1 (numerical contract) and 2 (authoring) landed; the commit-1 fixture falsified the contact formulation of section 2.4.4 at the engine substep (section 14), and the maintainer chose the static route on 2026-09-18. The runtime is specified by `RUBBER_STATIC_REBOUND_SLINGSHOT_PLAN.md`, which reuses the authoring commit's descriptors and the fixture's reference solvers. Sections 3 to 9 of this document describe a runtime that is not being built; they are kept as the record of the design and its review.
 
 Scope: free spans of guided rubbers using `RubberColliderMode.Physical`, compiled and enabled only with the scripting define `VPE_EXPERIMENTAL_RUBBER_DEFORMATION`
 
