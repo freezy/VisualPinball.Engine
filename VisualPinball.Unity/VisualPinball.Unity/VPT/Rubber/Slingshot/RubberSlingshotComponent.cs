@@ -370,10 +370,150 @@ namespace VisualPinball.Unity
 				Debug.LogError($"Cannot find physics engine for physical slingshot '{name}'.", this);
 				return;
 			}
+			_physicsEngine = physicsEngine;
 			SlingshotApi = new RubberSlingshotApi(gameObject, player, physicsEngine, this);
+			SlingshotApi.CoilStatusChanged += OnCoilStatusChanged;
 			player.Register(SlingshotApi, this);
 			physicsEngine.Register(this);
 		}
+
+		private void OnDestroy()
+		{
+			if (SlingshotApi != null) {
+				SlingshotApi.CoilStatusChanged -= OnCoilStatusChanged;
+			}
+		}
+
+		#region Visuals
+
+		[NonSerialized] private PhysicsEngine _physicsEngine;
+		[NonSerialized] private RubberDeformationRenderer _renderer;
+		[NonSerialized] private AnimationCurve _fallbackCurve;
+		[NonSerialized] private bool _armAnimating;
+		[NonSerialized] private float _armStartMs;
+		[NonSerialized] private float _fallbackClockMs;
+		[NonSerialized] private float _armValue;
+
+		/// <summary>
+		/// Current value of the kick animation, zero at rest and one at the fired angle.
+		/// </summary>
+		public float ArmAnimationValue => _armValue;
+
+		/// <summary>Whether the arm is currently swinging.</summary>
+		public bool IsArmAnimating => _armAnimating;
+
+		/// <summary>
+		/// The deformation renderer on the bound rubber, or null. A rubber without one
+		/// shows only the arm.
+		/// </summary>
+		internal RubberDeformationRenderer DeformationRenderer {
+			get {
+				// not latched, so a renderer added later — a package load creates components
+				// in an order this component does not control — is still picked up
+				if (!_renderer && _rubber) {
+					_renderer = _rubber.GetComponent<RubberDeformationRenderer>();
+				}
+				return _renderer;
+			}
+		}
+
+		/// <summary>
+		/// Shape of the kick animation. It lives on the renderer, so a rubber without one
+		/// animates its arm on the renderer's defaults.
+		/// </summary>
+		private AnimationCurve KickCurve {
+			get {
+				var renderer = DeformationRenderer;
+				if (renderer) {
+					return renderer.KickCurve;
+				}
+				return _fallbackCurve ??= RubberDeformationRenderer.CreateDefaultKickCurve();
+			}
+		}
+
+		private float KickDurationMs {
+			get {
+				var renderer = DeformationRenderer;
+				return renderer
+					? renderer.AnimationDurationMs
+					: RubberDeformationRenderer.DefaultAnimationDurationMs;
+			}
+		}
+
+		/// <summary>
+		/// Simulation time the visuals animate on, the same clock the renderer uses.
+		/// </summary>
+		private float NowMs => _physicsEngine ? _physicsEngine.TimeMsec : _fallbackClockMs;
+
+		private void OnCoilStatusChanged(object sender, NoIdCoilEventArgs args)
+		{
+			if (!args.IsEnergized) {
+				return;
+			}
+			TriggerKickAnimation();
+		}
+
+		/// <summary>
+		/// Starts the arm swing and, when the rubber has a renderer, the outward kick
+		/// profile on the bound span.
+		/// </summary>
+		internal void TriggerKickAnimation()
+		{
+			_armAnimating = true;
+			_armStartMs = NowMs;
+			_armValue = 0f;
+
+			var renderer = DeformationRenderer;
+			if (!renderer || !TryResolveSpan(out var resolved, out _)) {
+				return;
+			}
+			var depth = Mathf.Max(0f, ArmTipTravel - ArmRestClearance);
+			renderer.PlayKick(resolved.PathElementIndex,
+				resolved.ToPathCoordinate(Mathf.Clamp01(_armContactPosition01)), depth);
+		}
+
+		private void Update()
+		{
+			if (!Application.isPlaying) {
+				return;
+			}
+			if (Time.deltaTime > 0f) {
+				_fallbackClockMs += Time.deltaTime * 1000f;
+			}
+			if (!_armAnimating) {
+				return;
+			}
+			var duration = KickDurationMs;
+			var progress = duration > 0f ? (NowMs - _armStartMs) / duration : 1f;
+			if (progress >= 1f || progress < 0f) {
+				_armAnimating = false;
+				_armValue = 0f;
+			} else {
+				_armValue = KickCurve.Evaluate(Mathf.Clamp01(progress));
+			}
+			ApplyArmRotation();
+		}
+
+		/// <summary>
+		/// Rotates the arm visual from the rest angle to the fired angle on the kick
+		/// curve, the way the legacy slingshot component does.
+		/// </summary>
+		private void ApplyArmRotation()
+		{
+			if (!_coilArmVisual) {
+				return;
+			}
+			var angle = Mathf.LerpUnclamped(_visualRestAngle, _visualFiredAngle, _armValue);
+			var euler = _coilArmVisual.transform.localEulerAngles;
+			switch (_visualRotationAxis) {
+				case Axis.X: euler.x = angle; break;
+				case Axis.Y: euler.y = angle; break;
+				case Axis.Z: euler.z = angle; break;
+			}
+			_coilArmVisual.transform.localEulerAngles = euler;
+		}
+
+		#endregion
 
 		private static ulong ToUsec(float milliseconds)
 			=> (ulong)Mathf.Max(0f, Mathf.Round(milliseconds * 1000f));
