@@ -34,6 +34,20 @@ namespace VisualPinball.Unity
 		public float3 V2;
 		public float CordRadius;
 		public float ElasticityScale;
+
+		/// <summary>
+		/// Identifies the compliant free span this capsule belongs to, or <c>-1</c> when
+		/// the capsule responds like a wall. Registration replaces the generator's
+		/// per-rubber index with the dense runtime id.
+		/// </summary>
+		public int SpanId;
+
+		/// <summary>Arc-length fraction of <see cref="V1"/> along its span.</summary>
+		public float U0;
+
+		/// <summary>Arc-length fraction of <see cref="V2"/> along its span.</summary>
+		public float U1;
+
 		public ColliderBounds Bounds { get; private set; }
 
 		public SweptCircleCollider(float3 v1, float3 v2, float cordRadius,
@@ -46,7 +60,19 @@ namespace VisualPinball.Unity
 			ElasticityScale = float.IsFinite(elasticityScale)
 				? math.saturate(elasticityScale)
 				: 1f;
+			SpanId = -1;
+			U0 = 0f;
+			U1 = 1f;
 			CalculateBounds();
+		}
+
+		public SweptCircleCollider(float3 v1, float3 v2, float cordRadius,
+			ColliderInfo info, float elasticityScale, int spanId, float u0, float u1)
+			: this(v1, v2, cordRadius, info, elasticityScale)
+		{
+			SpanId = spanId;
+			U0 = float.IsFinite(u0) ? u0 : 0f;
+			U1 = float.IsFinite(u1) ? u1 : 1f;
 		}
 
 		public float HitTest(ref CollisionEventData collEvent, in BallState ball, float dTime)
@@ -118,11 +144,32 @@ namespace VisualPinball.Unity
 			in CollisionEventData collEvent, ref PhysicsState state)
 		{
 			var impactSpeed = -math.dot(collEvent.HitNormal, ball.Velocity);
-			BallCollider.Collide3DWall(ref ball, in Header.Material, in collEvent,
-				in collEvent.HitNormal, ElasticityScale, ref state);
+			if (SpanId >= 0 && state.RubberSpanRebounds.IsCreated
+				&& state.RubberSpanRebounds.TryGetValue(SpanId, out var span)) {
+				RubberSpanRebound.Respond(ref ball, in Header.Material, in collEvent, in span,
+					ContactFraction(in ball), ElasticityScale, ref state, out _);
+			} else {
+				BallCollider.Collide3DWall(ref ball, in Header.Material, in collEvent,
+					in collEvent.HitNormal, ElasticityScale, ref state);
+			}
 			if (Header.FireEvents && impactSpeed >= Header.Threshold) {
 				Collider.FireHitEvent(ref ball, ref hitEvents, in Header);
 			}
+		}
+
+		/// <summary>
+		/// Arc-length fraction of the contact along the span, from the closest-point
+		/// parameter of the ball on the capsule axis.
+		/// </summary>
+		internal float ContactFraction(in BallState ball)
+		{
+			var axis = V2 - V1;
+			var axisLengthSquared = math.lengthsq(axis);
+			if (axisLengthSquared <= 1e-10f) {
+				return math.lerp(U0, U1, 0.5f);
+			}
+			var alpha = math.saturate(math.dot(ball.Position - V1, axis) / axisLengthSquared);
+			return math.lerp(U0, U1, alpha);
 		}
 
 		public static bool IsTransformable(float4x4 matrix)
@@ -158,6 +205,9 @@ namespace VisualPinball.Unity
 			V2 = matrix.MultiplyPoint(collider.V2);
 			CordRadius = collider.CordRadius * math.abs(matrix.GetScale().x);
 			ElasticityScale = collider.ElasticityScale;
+			SpanId = collider.SpanId;
+			U0 = collider.U0;
+			U1 = collider.U1;
 			CalculateBounds();
 		}
 

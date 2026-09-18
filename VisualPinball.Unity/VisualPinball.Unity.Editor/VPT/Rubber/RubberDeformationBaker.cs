@@ -59,10 +59,19 @@ namespace VisualPinball.Unity.Editor
 		#region Constants
 
 		/// <summary>Version of this compiler, part of the bake hash.</summary>
-		public const int CompilerVersion = 1;
+		public const int CompilerVersion = RubberDeformationBakeFormat.CompilerVersion;
 
-		/// <summary>Version of the serialized bake layout.</summary>
-		public const int BakeVersion = 1;
+		/// <summary>
+		/// Version of the serialized bake layout. It lives in the runtime assembly so
+		/// collider generation can decide staleness without the editor.
+		/// </summary>
+		public const int BakeVersion = RubberDeformationBakeFormat.BakeVersion;
+
+		/// <summary>
+		/// Why a rubber with rounded corners cannot use the compliant rebound.
+		/// </summary>
+		public const string RoundnessFallbackReason
+			= "compliant rebound requires straight free spans in this version";
 
 		/// <summary>Kilograms per VPE mass unit: one 80 g ball is mass one.</summary>
 		public const float MassUnitKg = 0.08f;
@@ -532,6 +541,10 @@ namespace VisualPinball.Unity.Editor
 				return StaticFallback(result,
 					"The rubber is kinematic; deformation does not support moving rubbers.");
 			}
+			if (rubber.Roundness > 0f) {
+				return StaticFallback(result,
+					$"The rubber has rounded corners; {RoundnessFallbackReason}.");
+			}
 			var fittedLength = path.Sum(element => element.Length);
 			if (!(rubber.RestLength > 0f)) {
 				return StaticFallback(result,
@@ -546,11 +559,11 @@ namespace VisualPinball.Unity.Editor
 				result.Reason = $"The installed stretch of {installedStretch.ToString("0.####", CultureInfo.InvariantCulture)} exceeds the material maximum of {material.MaximumStretchRatio.ToString("0.###", CultureInfo.InvariantCulture)}.";
 				return result;
 			}
-			var stress = material.SampleStress(installedStretch);
-			if (!float.IsFinite(stress) || stress <= 0f) {
-				result.Reason = "The nominal stress at the installed stretch is not positive.";
+			if (!IsMaterialDomainValid(in material, installedStretch, out var domainError)) {
+				result.Reason = domainError;
 				return result;
 			}
+			var stress = material.SampleStress(installedStretch);
 
 			var inwardSign = ComputeInwardSign(path, thickness * 0.5f);
 			var area = CrossSectionAreaVpx(thickness);
@@ -606,6 +619,7 @@ namespace VisualPinball.Unity.Editor
 					InwardSign = inwardSign,
 					SegmentCount = segmentCount,
 					ArcLengthFractions = BuildArcLengthFractions(element, segmentCount),
+					ReboundEligible = RubberPathMath.IsStraightFreeSpan(element),
 				});
 			}
 
@@ -613,6 +627,50 @@ namespace VisualPinball.Unity.Editor
 			result.Outcome = RubberDeformationBakeOutcome.Deformable;
 			result.Reason = $"{spans.Count} free span{(spans.Count == 1 ? string.Empty : "s")} compiled at an installed stretch of {installedStretch.ToString("0.###", CultureInfo.InvariantCulture)}.";
 			return result;
+		}
+
+		/// <summary>
+		/// The compliant rebound's material domain: the stress table must be
+		/// non-negative everywhere, and the tension must be strictly positive from the
+		/// installed stretch up to the material's maximum stretch, because that is the
+		/// range the massless-string surrogate reads while the cord is loaded.
+		/// </summary>
+		/// <remarks>
+		/// A zero at stretch one is correct and is what the default material has, so the
+		/// table is only required to be non-negative below the installed stretch.
+		/// </remarks>
+		public static bool IsMaterialDomainValid(in RubberCompiledDeformationMaterial material,
+			float installedStretch, out string error)
+		{
+			error = null;
+			var lut = material.StressLut;
+			if (lut == null || lut.Length != RubberCompiledDeformationMaterial.LutSampleCount) {
+				error = "The deformation material has no compiled stress table.";
+				return false;
+			}
+			var stress = material.SampleStress(installedStretch);
+			if (!float.IsFinite(stress) || stress <= 0f) {
+				error = "The nominal stress at the installed stretch is not positive.";
+				return false;
+			}
+			for (var i = 0; i < lut.Length; i++) {
+				if (material.StretchRatioAt(i) < installedStretch) {
+					continue;
+				}
+				if (float.IsFinite(lut[i]) && lut[i] > 0f) {
+					continue;
+				}
+				error = $"The nominal stress is not positive at a stretch ratio of {material.StretchRatioAt(i).ToString("0.####", CultureInfo.InvariantCulture)}; the compliant rebound needs a strictly positive tension from the installed stretch to the material maximum.";
+				return false;
+			}
+			for (var i = 0; i < lut.Length; i++) {
+				if (float.IsFinite(lut[i]) && lut[i] >= 0f) {
+					continue;
+				}
+				error = $"The nominal stress is negative at a stretch ratio of {material.StretchRatioAt(i).ToString("0.####", CultureInfo.InvariantCulture)}.";
+				return false;
+			}
+			return true;
 		}
 
 		/// <summary>

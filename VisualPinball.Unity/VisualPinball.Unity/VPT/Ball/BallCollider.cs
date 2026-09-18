@@ -22,7 +22,7 @@ namespace VisualPinball.Unity
 {
 	internal static class BallCollider
 	{
-		private const float HardScatter = 0.0f;
+		internal const float HardScatter = 0.0f;
 		private const float StaticContactPenetrationTolerance = 0.5f;
 
 		public static void Collide3DWall(ref BallState ball, in PhysicsMaterialData material, in CollisionEventData collEvent, in float3 hitNormal, ref PhysicsState state)
@@ -75,6 +75,45 @@ namespace VisualPinball.Unity
 			dot *= -(1.0f + elasticity);
 			ball.Velocity += hitNormal * dot;                                  // apply collision impulse (along normal, so no torque)
 
+			ApplyImpactFriction(ref ball, in material, in collEvent, in hitNormal,
+				in colliderVelocity, reactionImpulse, ref state);
+
+			var scatterAngle = material.ScatterAngleRad;
+			if (scatterAngle < 0.0) {
+				scatterAngle = HardScatter;
+			} // if < 0 use global value
+
+			// todo don't hardcode
+			scatterAngle *= 0.2f; //_tableData.GlobalDifficulty; // apply difficulty weighting
+
+			if (dot > 1.0 && scatterAngle > 1.0e-5) {
+				// no scatter at low velocity
+				var scatter = state.Env.Random.NextFloat(-1f, 1f);                            // -1.0f..1.0f
+				scatter *= (1.0f - scatter * scatter) * 2.59808f * scatterAngle;         // shape quadratic distribution and scale
+				var radSin = math.sin(scatter);                               // Green's transform matrix... rotate angle delta
+				var radCos = math.cos(scatter);                               // rotational transform from current position to position at time t
+				var vxt = ball.Velocity.x;
+				var vyt = ball.Velocity.y;
+				ball.Velocity.x = vxt * radCos - vyt * radSin;                           // rotate to random scatter angle
+				ball.Velocity.y = vyt * radCos + vxt * radSin;
+			}
+		}
+
+		/// <summary>
+		/// The impact-friction block of <see cref="Collide3DWall(ref BallState,in PhysicsMaterialData,in CollisionEventData,in float3,float,ref PhysicsState)"/>,
+		/// extracted verbatim so a compliant response path can reuse the wall's own
+		/// friction budget, slip direction and velocity-table sampling.
+		/// </summary>
+		/// <remarks>
+		/// Everything is evaluated on the ball state as it stands when the helper is
+		/// called, i.e. after the normal impulse has been applied, exactly as the wall
+		/// does it. <paramref name="reactionImpulse"/> is the wall's
+		/// <c>m * |v_n,in|</c>, computed from the incoming normal speed.
+		/// </remarks>
+		internal static void ApplyImpactFriction(ref BallState ball, in PhysicsMaterialData material,
+			in CollisionEventData collEvent, in float3 hitNormal, in float3 colliderVelocity,
+			float reactionImpulse, ref PhysicsState state)
+		{
 			// compute friction impulse
 			var surfP = -ball.Radius * hitNormal;                        // surface contact point relative to center of mass
 			var surfVel = BallState.SurfaceVelocity(in ball, in surfP) - colliderVelocity;           // velocity at impact point, relative to the surface
@@ -113,26 +152,6 @@ namespace VisualPinball.Unity
 				if (!float.IsNaN(jt) && !float.IsInfinity(jt)) {
 					ball.ApplySurfaceImpulse(jt * cross, jt * tangent);
 				}
-			}
-
-			var scatterAngle = material.ScatterAngleRad;
-			if (scatterAngle < 0.0) {
-				scatterAngle = HardScatter;
-			} // if < 0 use global value
-
-			// todo don't hardcode
-			scatterAngle *= 0.2f; //_tableData.GlobalDifficulty; // apply difficulty weighting
-
-			if (dot > 1.0 && scatterAngle > 1.0e-5) {
-				// no scatter at low velocity
-				var scatter = state.Env.Random.NextFloat(-1f, 1f);                            // -1.0f..1.0f
-				scatter *= (1.0f - scatter * scatter) * 2.59808f * scatterAngle;         // shape quadratic distribution and scale
-				var radSin = math.sin(scatter);                               // Green's transform matrix... rotate angle delta
-				var radCos = math.cos(scatter);                               // rotational transform from current position to position at time t
-				var vxt = ball.Velocity.x;
-				var vyt = ball.Velocity.y;
-				ball.Velocity.x = vxt * radCos - vyt * radSin;                           // rotate to random scatter angle
-				ball.Velocity.y = vyt * radCos + vxt * radSin;
 			}
 		}
 

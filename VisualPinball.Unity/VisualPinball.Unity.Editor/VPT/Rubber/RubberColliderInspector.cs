@@ -27,21 +27,6 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(RubberColliderComponent)), CanEditMultipleObjects]
 	public class RubberColliderInspector : ColliderInspector<RubberData, RubberComponent, RubberColliderComponent>
 	{
-		private const string DeformationDefine = "VPE_EXPERIMENTAL_RUBBER_DEFORMATION";
-
-		/// <summary>
-		/// The only place in the always-compiled authoring code that consults the
-		/// experimental scripting define. It decides whether the deformation fields are
-		/// editable or preserved behind the unavailability notice; the fields, the
-		/// baker and the package format exist in both configurations.
-		/// </summary>
-		private static readonly bool DeformationRuntimeAvailable =
-#if VPE_EXPERIMENTAL_RUBBER_DEFORMATION
-			true;
-#else
-			false;
-#endif
-
 		private bool _foldoutMaterial = true;
 		private bool _foldoutDeformation = true;
 		private bool _bakeRequested;
@@ -122,7 +107,7 @@ namespace VisualPinball.Unity.Editor
 				EditorGUILayout.Space();
 				EditorGUILayout.LabelField("Guide-distance Elasticity", EditorStyles.boldLabel);
 				if (deformationEnabled) {
-					EditorGUILayout.LabelField(" ", "Hidden while deformation is enabled; free spans use the deformable cord response.");
+					EditorGUILayout.LabelField(" ", "Hidden while the compliant rebound is enabled; it attenuates the rebound's restitution instead.");
 				} else {
 					PropertyField(_guideDistanceElasticityEnabledProperty, "Enabled", updateColliders: true);
 					var enableResponseFields = _guideDistanceElasticityEnabledProperty.hasMultipleDifferentValues
@@ -197,34 +182,29 @@ namespace VisualPinball.Unity.Editor
 		private void DrawDeformationSection(bool deformationEnabled)
 		{
 			_foldoutDeformation = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutDeformation,
-				"Experimental Deformation");
+				"Compliant Rebound");
 			if (!_foldoutDeformation) {
 				EditorGUILayout.EndFoldoutHeaderGroup();
 				return;
 			}
 
-			if (!DeformationRuntimeAvailable) {
-				EditorGUILayout.HelpBox($"Physical deformation runtime unavailable. Add the {DeformationDefine} scripting define to compile and run it. The settings below are preserved and packaged either way.",
-					MessageType.Warning);
-			}
-
-			EditorGUI.BeginDisabledGroup(!DeformationRuntimeAvailable);
 			PropertyField(_deformationEnabledProperty, "Enabled", updateColliders: true);
 			EditorGUI.BeginDisabledGroup(!deformationEnabled);
-			PropertyField(_rubberPhysicsMaterialProperty, "Deformation Material");
+			PropertyField(_rubberPhysicsMaterialProperty, "Rebound Material");
 			PropertyField(_deflectionClearanceProperty, "Deflection Clearance");
-			if (GUILayout.Button("Bake Deformation")) {
+			if (GUILayout.Button("Bake Compliant Rebound")) {
 				// Run after EndEditing, so the serialized object is not applied over the
 				// descriptors the baker writes directly.
 				_bakeRequested = true;
 			}
 			EditorGUI.EndDisabledGroup();
-			EditorGUI.EndDisabledGroup();
 
 			if (!deformationEnabled) {
-				EditorGUILayout.HelpBox("Physical uses static round-cord collision and the standard contact material below. The deformation material is reserved for experimental free-span deformation.",
+				EditorGUILayout.HelpBox("Physical uses static round-cord collision and the standard contact material below. The rebound material drives the compliant free-span response instead.",
 					MessageType.Info);
 			} else if (targets.Length == 1 && target is RubberColliderComponent collider) {
+				EditorGUILayout.HelpBox("Straight free spans rebound off a massless-string model, so where and how hard the ball hits decides the direction and speed. The collision geometry stays static; rounded spans and supported arcs keep today's response.",
+					MessageType.Info);
 				DrawBakeStatus(collider);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();

@@ -83,6 +83,19 @@ namespace VisualPinball.Unity.Test
 			=> vpe * KilogramsPerMassUnit / (VpxPerMetre * SecondsPerTimeUnit * SecondsPerTimeUnit);
 
 		/// <summary>
+		/// Stress converts as force over area, so one VPX scale survives:
+		/// <c>sigma_vpe = sigma_Pa * t0^2 / (m0 * S)</c>, which makes
+		/// <c>sigma_vpe * A0_vpx</c> a force in VPE units.
+		/// </summary>
+		internal static double StressToVpe(double pascals)
+			=> pascals * SecondsPerTimeUnit * SecondsPerTimeUnit
+				/ (KilogramsPerMassUnit * VpxPerMetre);
+
+		internal static double StressToSi(double vpe)
+			=> vpe * KilogramsPerMassUnit * VpxPerMetre
+				/ (SecondsPerTimeUnit * SecondsPerTimeUnit);
+
+		/// <summary>
 		/// A modal stiffness is a force per generalized coordinate, and the generalized
 		/// coordinate is a length, so the VPX scale cancels: K_vpe = K_si * t0^2 / m0.
 		/// </summary>

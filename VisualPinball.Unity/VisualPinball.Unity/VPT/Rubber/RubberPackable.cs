@@ -210,7 +210,7 @@ namespace VisualPinball.Unity
 
 	public struct RubberColliderPackable
 	{
-		private const int CurrentVersion = 3;
+		private const int CurrentVersion = 4;
 
 		public int Version;
 		public bool IsMovable;
@@ -361,6 +361,9 @@ namespace VisualPinball.Unity
 		public int InwardSign;
 		public int SegmentCount;
 		public float[] ArcLengthFractions;
+		// Version 4: compliant rebound eligibility. Version 3 payloads read false, and
+		// their bake is stale by version anyway.
+		public bool ReboundEligible;
 
 		public static RubberSpanDescriptorPackable From(RubberSpanDescriptor descriptor)
 		{
@@ -380,6 +383,7 @@ namespace VisualPinball.Unity
 				InwardSign = descriptor.InwardSign,
 				SegmentCount = descriptor.SegmentCount,
 				ArcLengthFractions = descriptor.ArcLengthFractions ?? Array.Empty<float>(),
+				ReboundEligible = descriptor.ReboundEligible,
 			};
 		}
 
@@ -401,6 +405,7 @@ namespace VisualPinball.Unity
 				InwardSign = (sbyte)math.clamp(InwardSign, -1, 1),
 				SegmentCount = SegmentCount,
 				ArcLengthFractions = ArcLengthFractions ?? Array.Empty<float>(),
+				ReboundEligible = ReboundEligible,
 			};
 		}
 

@@ -122,6 +122,13 @@ namespace VisualPinball.Unity
 		public readonly LazyInit<NativeParallelHashMap<int, TriggerState>> TriggerStates = new(() => new NativeParallelHashMap<int, TriggerState>(0, Allocator.Persistent));
 		public readonly LazyInit<NativeParallelHashSet<int>> DisabledCollisionItems = new(() => new NativeParallelHashSet<int>(0, Allocator.Persistent));
 
+		/// <summary>
+		/// Constant per-span data of the compliant rubber rebound, keyed by the dense
+		/// span id stamped on the tagged swept-circle capsules. Written once by
+		/// <see cref="PhysicsEngine.Start"/>, read only by the collide pass.
+		/// </summary>
+		public readonly LazyInit<NativeParallelHashMap<int, RubberSpanRebound>> RubberSpanRebounds = new(() => new NativeParallelHashMap<int, RubberSpanRebound>(0, Allocator.Persistent));
+
 		public NativeParallelHashMap<int, FixedList512Bytes<float>> ElasticityOverVelocityLUTs;
 		public NativeParallelHashMap<int, FixedList512Bytes<float>> FrictionOverVelocityLUTs;
 
@@ -330,7 +337,8 @@ namespace VisualPinball.Unity
 				ref SpringHingeStates.Ref,
 				ref SurfaceStates.Ref, ref TurntableStates.Ref, ref TriggerStates.Ref, ref DisabledCollisionItems.Ref, ref SwapBallCollisionHandling,
 				ref ElasticityOverVelocityLUTs, ref FrictionOverVelocityLUTs, ref KinematicVelocities.Ref,
-				ref KinematicItemsOutOfOctree.Ref, ref KinematicMovingItemBounds.Ref);
+				ref KinematicItemsOutOfOctree.Ref, ref KinematicMovingItemBounds.Ref,
+				ref RubberSpanRebounds.Ref);
 		}
 
 		/// <summary>
@@ -383,6 +391,7 @@ namespace VisualPinball.Unity
 			TriggerStates.Ref.Dispose();
 
 			DisabledCollisionItems.Ref.Dispose();
+			RubberSpanRebounds.Ref.Dispose();
 			KinematicTransforms.Ref.Dispose();
 			KinematicTargetTransforms.Ref.Dispose();
 			KinematicVelocities.Ref.Dispose();
