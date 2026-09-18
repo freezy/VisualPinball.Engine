@@ -102,6 +102,12 @@ namespace VisualPinball.Unity
 			var kickerId = ItemId;
 			var kickerName = MainComponent.name; // resolved here, the callback runs on the simulation thread
 
+			// where the ball was spawned and what the kicker's transforms say right now. A created
+			// ball that leaves from the wrong height is otherwise impossible to diagnose afterwards.
+			var creation = MainComponent.GetBallCreationPosition();
+			Logger.Info($"Kicker \"{kickerName}\": created ball {ballId} at ({creation.X:F1}, {creation.Y:F1}, {creation.Z:F1}), " +
+			            $"kicker local {MainComponent.Position:F1}, in playfield {MainComponent.PositionInPlayfield:F1}, world {MainComponent.transform.position:F4}.");
+
 			PhysicsEngine.MutateState((ref PhysicsState state) => {
 				if (!state.Balls.ContainsKey(ballId)) {
 					Logger.Warn($"Kicker \"{kickerName}\": ball {ballId} was created but is unknown to the physics state, it cannot be captured.");
@@ -130,6 +136,8 @@ namespace VisualPinball.Unity
 				// kick launches whatever the kicker holds from wherever it is, so say so.
 				if (!kickerState.Static.FallThrough && kickerState.Collision.BallId != ballId) {
 					Logger.Warn($"Kicker \"{kickerName}\": created ball {ballId} was not captured, the kicker holds ball {kickerState.Collision.BallId}. The new ball is at {ball.Position}.");
+				} else {
+					Logger.Info($"Kicker \"{kickerName}\": ball {ballId} captured at {ball.Position}, kicker center {kickerState.Static.Center}, z {kickerState.Static.ZLow}.");
 				}
 			});
 		}
