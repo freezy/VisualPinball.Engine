@@ -1,4 +1,4 @@
-﻿// Visual Pinball Engine
+// Visual Pinball Engine
 // Copyright (C) 2023 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -59,6 +59,9 @@ namespace VisualPinball.Unity.Editor
 		[NonSerialized]
 		public bool IsActive;
 
+		[NonSerialized]
+		private bool _changeScheduled;
+
 		#region Asset
 
 		public bool AddAsset(Object obj, AssetCategory category)
@@ -99,6 +102,7 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		public IEnumerable<AssetResult> GetAssets(LibraryQuery q) => _db.GetAssets(q);
+		internal IEnumerable<Asset> GetAllAssets() => _db.GetAllAssets();
 
 		/// <summary>
 		/// Physically deletes the asset from the library, including thumbnails.
@@ -127,6 +131,7 @@ namespace VisualPinball.Unity.Editor
 				throw new InvalidOperationException($"Cannot remove asset because library {Name} is locked.");
 			}
 			_db.RemoveAsset(asset);
+			SaveLibrary();
 		}
 
 		public void MoveAsset(Asset asset, AssetLibrary destLibrary)
@@ -213,6 +218,7 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		public int NumAssetsWithCategory(AssetCategory category) => _db.NumAssetsWithCategory(category);
+		internal IReadOnlyDictionary<AssetCategory, int> GetCategoryCounts() => _db.GetCategoryCounts();
 
 		public void DeleteCategory(AssetCategory category)
 		{
@@ -307,10 +313,7 @@ namespace VisualPinball.Unity.Editor
 		{
 		}
 
-		// private void OnValidate()
-		// {
-		// 	OnChange?.Invoke(this, EventArgs.Empty);
-		// }
+		private void OnValidate() => ScheduleChange();
 
 		#endregion
 
@@ -325,6 +328,24 @@ namespace VisualPinball.Unity.Editor
 		{
 			EditorUtility.SetDirty(this);
 			AssetDatabase.SaveAssetIfDirty(this);
+			ScheduleChange();
+		}
+
+		private void ScheduleChange()
+		{
+			if (_changeScheduled) {
+				return;
+			}
+			_changeScheduled = true;
+			EditorApplication.delayCall += RaiseChange;
+		}
+
+		private void RaiseChange()
+		{
+			_changeScheduled = false;
+			if (this != null) {
+				OnChange?.Invoke(this, EventArgs.Empty);
+			}
 		}
 
 		#endregion

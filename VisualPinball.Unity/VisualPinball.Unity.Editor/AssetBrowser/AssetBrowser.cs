@@ -43,6 +43,9 @@ namespace VisualPinball.Unity.Editor
 
 		[SerializeField]
 		private List<string> _selectedLibraries;
+		private readonly Dictionary<AssetLibrary, string> _libraryAssetPaths = new();
+		private readonly HashSet<AssetLibrary> _pendingLibraryReindexes = new();
+		private bool _fullLibraryRefreshPending;
 
 		[NonSerialized]
 		private List<AssetResult> _assetResults;
@@ -57,8 +60,9 @@ namespace VisualPinball.Unity.Editor
 		private AssetResult _firstSelectedResult;
 		private readonly HashSet<AssetResult> _selectedResults = new();
 
-		private readonly Dictionary<Asset, VisualElement> _elementByAsset = new();
-		private readonly Dictionary<VisualElement, AssetResult> _resultByElement = new();
+		private readonly Dictionary<AssetResult, VisualElement> _visibleElements = new();
+		private readonly List<int> _gridRowStarts = new();
+		private int _gridColumnCount = 1;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -97,6 +101,11 @@ namespace VisualPinball.Unity.Editor
 				.Select(AssetDatabase.GUIDToAssetPath)
 				.Select(AssetDatabase.LoadAssetAtPath<AssetLibrary>)
 				.Where(lib => lib != null).ToList();
+			_libraryAssetPaths.Clear();
+			foreach (var lib in Libraries) {
+				lib.IsActive = selectedLibraries?.Contains(lib.Id) ?? true;
+				_libraryAssetPaths[lib] = NormalizeAssetPath(AssetDatabase.GetAssetPath(lib));
+			}
 
 			// toggle label
 			if (Libraries.Count == 0) {
@@ -106,13 +115,15 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			// setup query
+			if (Query != null) {
+				Query.OnQueryUpdated -= OnQueryUpdated;
+			}
 			Query = new AssetQuery(Libraries.Where(lib => lib.IsActive).ToList());
 			Query.OnQueryUpdated += OnQueryUpdated;
 
 			// update left column and subscribe
 			_libraryList.Clear();
 			foreach (var lib in Libraries) {
-				lib.IsActive = selectedLibraries?.Contains(lib.Id) ?? true;
 				_libraryList.Add(NewAssetLibrary(lib));
 				lib.OnChange += OnLibraryChanged;
 			}
@@ -120,9 +131,76 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnLibraryChanged(object sender, EventArgs e)
 		{
-			RefreshLibraries();
-			RefreshCategories();
+			if (sender is AssetLibrary library) {
+				ScheduleLibraryReindex(library);
+			} else {
+				ScheduleFullLibraryRefresh();
+			}
 		}
+
+		private void OnAssetFilesChanged(string[] paths)
+		{
+			var normalizedPaths = paths.Select(NormalizeAssetPath).ToArray();
+			var libraries = (Libraries ?? Enumerable.Empty<AssetLibrary>()).ToArray();
+			var databaseRoots = libraries.ToDictionary(library => library, library => NormalizeAssetPath(library.DatabaseRoot));
+			if (normalizedPaths.Any(path => _libraryAssetPaths.Values.Contains(path))) {
+				ScheduleFullLibraryRefresh();
+				return;
+			}
+			var pathsOutsideDatabases = normalizedPaths
+				.Where(path => databaseRoots.Values.All(root => !IsPathWithin(path, root)));
+			if (pathsOutsideDatabases.Any(path => AssetDatabase.GetMainAssetTypeAtPath(path) == typeof(AssetLibrary))) {
+				ScheduleFullLibraryRefresh();
+				return;
+			}
+			foreach (var library in libraries) {
+				if (normalizedPaths.Any(path => IsPathWithin(path, databaseRoots[library]))) {
+					ScheduleLibraryReindex(library);
+				}
+			}
+		}
+
+		private void ScheduleLibraryReindex(AssetLibrary library)
+		{
+			if (library != null) {
+				_pendingLibraryReindexes.Add(library);
+			}
+			ScheduleLibraryRefresh();
+		}
+
+		private void ScheduleFullLibraryRefresh()
+		{
+			_fullLibraryRefreshPending = true;
+			ScheduleLibraryRefresh();
+		}
+
+		private void ScheduleLibraryRefresh()
+		{
+			_libraryRefreshScheduledItem?.Pause();
+			_libraryRefreshScheduledItem = rootVisualElement.schedule.Execute(ApplyPendingLibraryChanges).StartingIn(50);
+		}
+
+		private void ApplyPendingLibraryChanges()
+		{
+			if (_fullLibraryRefreshPending) {
+				_fullLibraryRefreshPending = false;
+				_pendingLibraryReindexes.Clear();
+				Refresh();
+				return;
+			}
+			var libraries = _pendingLibraryReindexes.ToArray();
+			_pendingLibraryReindexes.Clear();
+			foreach (var library in libraries.Where(library => Libraries.Contains(library))) {
+				Query.Reindex(library);
+			}
+			RefreshCategories();
+			RefreshAssets();
+		}
+
+		private static string NormalizeAssetPath(string path) => (path ?? string.Empty).Replace('\\', '/').TrimEnd('/');
+
+		private static bool IsPathWithin(string path, string root) => root.Length > 0
+			&& (string.Equals(path, root, StringComparison.Ordinal) || path.StartsWith(root + "/", StringComparison.Ordinal));
 
 		public void FilterByAttribute(string attributeKey, string value, bool remove = false)
 		{
@@ -172,20 +250,10 @@ namespace VisualPinball.Unity.Editor
 		private void UpdateQueryResults(List<AssetResult> results, long duration)
 		{
 			_assetResults = results;
-			_gridContent.Clear();
-			_elementByAsset.Clear();
-			_resultByElement.Clear();
 			_selectedResults.Clear();
 
 			LastSelectedResult = null;
-			foreach (var row in results) {
-				var element = NewItem(row);
-				_elementByAsset[row.Asset] = element;
-				_resultByElement[element] = row;
-				_gridContent.Add(element);
-			}
-
-			_gridContent.MarkDirtyRepaint(); // todo doesn't work, scrolling is still screwed.
+			RebuildGridRows(true);
 
 			if (!results.Contains(_firstSelectedResult)) {
 				_firstSelectedResult = null;
@@ -196,19 +264,11 @@ namespace VisualPinball.Unity.Editor
 			_statusLabel.text = $"Found {results.Count} asset" + (results.Count == 1 ? "" : "s") + $" in {duration}ms.";
 		}
 
-			private void AddAssetContextMenu(ContextualMenuPopulateEvent evt)
+			private void AddAssetContextMenu(ContextualMenuPopulateEvent evt, AssetResult clickedAsset)
 			{
-				if (evt.target is not VisualElement target) {
-					Debug.Log("Early out in AddAssetContextMenu, target is no VisualElement.");
+				if (clickedAsset == null) {
 					return;
 				}
-
-				if (!_resultByElement.ContainsKey(target.parent.parent)) {
-					Debug.Log($"Early out in AddAssetContextMenu, {target.parent.parent} not in resultByElement.");
-					return;
-				}
-
-				var clickedAsset = _resultByElement[target.parent.parent];
 				var libs = clickedAsset.Asset.Libraries;
 				if (libs.All(l => l.IsLocked)) {
 					Debug.Log("Early out in AddAssetContextMenu, all libraries are locked.");
@@ -219,15 +279,14 @@ namespace VisualPinball.Unity.Editor
 				foreach (var lib in libs.Where(l => !l.IsLocked)) {
 					evt.menu.AppendAction($"Remove from {lib.Name}", _ => {
 						if (_selectedResults.Add(clickedAsset)) {
-							ToggleSelectionClass(_elementByAsset[clickedAsset.Asset]);
+							UpdateSelectionClass(clickedAsset);
 						}
 						var numRemovedAssets = 0;
 						foreach (var assetResult in _selectedResults.Where(a => lib.HasAsset(a.Asset.GUID)).ToList()) {
 							_selectedResults.Remove(assetResult);
 							lib.DeleteAsset(assetResult.Asset);
-							if (libs.Length == 1 && _thumbCache.ContainsKey(assetResult.Asset.GUID)) {
-								DestroyImmediate(_thumbCache[assetResult.Asset.GUID]);
-								_thumbCache.Remove(assetResult.Asset.GUID);
+							if (libs.Length == 1) {
+								RemoveCachedThumbnails(assetResult.Asset.GUID);
 							}
 							numRemovedAssets++;
 						}
@@ -300,7 +359,7 @@ namespace VisualPinball.Unity.Editor
 							foreach (var attr in srcAsset.Attributes) {
 								destAsset.AddAttribute(attr.Key, attr.Value);
 							}
-							foreach (var link in srcAsset.Links.Where(link => destAsset.Links.FirstOrDefault(l => l.Name == link.Name) != null)) {
+							foreach (var link in srcAsset.Links.Where(link => destAsset.Links.All(l => l.Name != link.Name))) {
 								destAsset.Links.Add(new AssetLink(link.Name, link.Url));
 							}
 
@@ -330,7 +389,9 @@ namespace VisualPinball.Unity.Editor
 			if (evt.button != 0) {
 				return;
 			}
-			var clickedAsset = _resultByElement[element];
+			if (element.userData is not AssetResult clickedAsset) {
+				return;
+			}
 
 			// no modifier pressed
 			if (!evt.shiftKey && !evt.ctrlKey) {
@@ -370,7 +431,12 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		public void OnCategoriesUpdated(Dictionary<AssetLibrary, List<AssetCategory>> categories) => Query.Filter(categories);
-		private void OnSearchQueryChanged(ChangeEvent<string> evt) => Query.Search(evt.newValue);
+		private void OnSearchQueryChanged(ChangeEvent<string> evt)
+		{
+			_pendingSearch = evt.newValue;
+			_searchScheduledItem?.Pause();
+			_searchScheduledItem = _queryInput.schedule.Execute(() => Query?.Search(_pendingSearch)).StartingIn(200);
+		}
 		private void OnLibraryToggled(AssetLibrary lib, bool enabled)
 		{
 			lib.IsActive = enabled;
@@ -381,11 +447,14 @@ namespace VisualPinball.Unity.Editor
 
 		public AssetLibrary GetLibraryByPath(string pathToCheck)
 		{
-			pathToCheck = pathToCheck.Replace('\\', '/');
-			return Libraries.FirstOrDefault(assetLibrary => {
-				var libraryPath = assetLibrary.LibraryRoot.Replace('\\', '/');
-				return pathToCheck.StartsWith(libraryPath);
-			});
+			pathToCheck = pathToCheck.Replace('\\', '/').TrimEnd('/');
+			return Libraries
+				.OrderByDescending(assetLibrary => assetLibrary.LibraryRoot.Length)
+				.FirstOrDefault(assetLibrary => {
+					var libraryPath = assetLibrary.LibraryRoot.Replace('\\', '/').TrimEnd('/');
+					return string.Equals(pathToCheck, libraryPath, StringComparison.Ordinal)
+					       || pathToCheck.StartsWith(libraryPath + "/", StringComparison.Ordinal);
+				});
 		}
 
 		public void AddAssets(IEnumerable<string> paths, Func<AssetLibrary, AssetCategory> getCategory)
@@ -438,11 +507,11 @@ namespace VisualPinball.Unity.Editor
 				if (i >= start && i <= end) {
 					if (!_selectedResults.Contains(asset)) {
 						_selectedResults.Add(asset);
-						ToggleSelectionClass(_elementByAsset[asset.Asset]);
+						UpdateSelectionClass(asset);
 					}
 				} else if (_selectedResults.Contains(asset)) {
 					_selectedResults.Remove(asset);
-					ToggleSelectionClass(_elementByAsset[asset.Asset]);
+					UpdateSelectionClass(asset);
 				}
 			}
 		}
@@ -450,7 +519,7 @@ namespace VisualPinball.Unity.Editor
 		private void SelectNone()
 		{
 			foreach (var selectedAsset in _selectedResults) {
-				ToggleSelectionClass(_elementByAsset[selectedAsset.Asset]);
+				UpdateSelectionClass(selectedAsset, false);
 			}
 			_selectedResults.Clear();
 			_firstSelectedResult = null;
@@ -462,7 +531,7 @@ namespace VisualPinball.Unity.Editor
 			var wasAlreadySelected = false;
 			foreach (var selectedAsset in _selectedResults) {
 				if (selectedAsset != result) {
-					ToggleSelectionClass(_elementByAsset[selectedAsset.Asset]);
+					UpdateSelectionClass(selectedAsset, false);
 				} else {
 					wasAlreadySelected = true;
 				}
@@ -470,7 +539,7 @@ namespace VisualPinball.Unity.Editor
 			_selectedResults.Clear();
 			_selectedResults.Add(result);
 			if (!wasAlreadySelected) {
-				ToggleSelectionClass(_elementByAsset[result.Asset]);
+				UpdateSelectionClass(result, true);
 			}
 			_firstSelectedResult = result;
 			LastSelectedResult = result;
@@ -479,7 +548,7 @@ namespace VisualPinball.Unity.Editor
 		private void UnSelect(AssetResult result)
 		{
 			_selectedResults.Remove(result);
-			ToggleSelectionClass(_elementByAsset[result.Asset]);
+			UpdateSelectionClass(result, false);
 			_firstSelectedResult = _selectedResults.Count > 0 ? _selectedResults.FirstOrDefault() : null;
 			LastSelectedResult = _selectedResults.Count > 0 ? _selectedResults.LastOrDefault() : null;
 		}
@@ -488,11 +557,16 @@ namespace VisualPinball.Unity.Editor
 		private void Select(AssetResult result)
 		{
 			_selectedResults.Add(result);
-			ToggleSelectionClass(_elementByAsset[result.Asset]);
+			UpdateSelectionClass(result, true);
 			LastSelectedResult = result;
 		}
 
-		private static void ToggleSelectionClass(VisualElement element) => element.ToggleInClassList("selected");
+		private void UpdateSelectionClass(AssetResult result, bool? selected = null)
+		{
+			if (_visibleElements.TryGetValue(result, out var element)) {
+				element.EnableInClassList("selected", selected ?? _selectedResults.Contains(result));
+			}
+		}
 
 		#endregion Selection
 
@@ -567,26 +641,23 @@ namespace VisualPinball.Unity.Editor
 
 		public void RefreshThumb(Asset asset)
 		{
-			if (_thumbCache.ContainsKey(asset.GUID)) {
-				DestroyImmediate(_thumbCache[asset.GUID]);
-				_thumbCache.Remove(asset.GUID);
-			}
-			if (_elementByAsset.ContainsKey(asset)) {
-				LoadThumb(_elementByAsset[asset], asset);
+			RemoveCachedThumbnails(asset.GUID);
+			var visibleResult = _visibleElements.Keys.FirstOrDefault(result => result.Asset == asset);
+			if (visibleResult != null) {
+				LoadThumb(_visibleElements[visibleResult], asset);
 			}
 		}
 
 		private void OnThumbSizeChanged(ChangeEvent<float> evt)
 		{
 			_thumbnailSize = (int)evt.newValue;
-			foreach (var e in _elementByAsset.Values) {
-				e.Q<LibraryAssetElement>().SetSize(_thumbnailSize);
-			}
+			RebuildGridRows();
 		}
 
 		public void AttachData(AssetResult clickedResult)
 		{
 			_selectedResults.Add(clickedResult);
+			UpdateSelectionClass(clickedResult, true);
 			DragAndDrop.objectReferences = _selectedResults.Select(result => result.Asset.Object).ToArray();
 			StartDraggingAssets(_selectedResults);
 		}
