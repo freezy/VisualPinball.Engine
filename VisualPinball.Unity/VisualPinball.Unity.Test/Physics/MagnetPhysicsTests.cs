@@ -1905,6 +1905,9 @@ namespace VisualPinball.Unity.Test
 
 		private PhysicsEnv _env;
 		private NativeOctree<int> _octree;
+
+		/// <summary>The environment the states of this harness are created from.</summary>
+		internal ref PhysicsEnv Env => ref _env;
 		private NativeColliders _colliders;
 		private bool _ownsColliders;
 		private NativeColliders _kinematicColliders;

@@ -362,6 +362,23 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
+		/// Carries the random state a tick advanced back into the environment.
+		/// </summary>
+		/// <remarks>
+		/// <see cref="PhysicsState.Env"/> is a copy of <see cref="PhysicsEnv"/> taken by
+		/// <see cref="CreateState"/>. The collide pass draws scatter from that copy's
+		/// <see cref="PhysicsEnv.Random"/>, so without this write-back every tick would
+		/// start from the same generator state and scatter would repeat instead of
+		/// being one running sequence. <see cref="PhysicsUpdate.Execute"/> advances
+		/// everything else in the environment through its own reference, so only the
+		/// random state is copied back.
+		/// </remarks>
+		internal static void CommitRandom(ref PhysicsEnv env, in PhysicsState state)
+		{
+			env.Random = state.Env.Random;
+		}
+
+		/// <summary>
 		/// Dispose all native collections. Called from
 		/// <see cref="PhysicsEngine.OnDestroy"/>.
 		/// </summary>
