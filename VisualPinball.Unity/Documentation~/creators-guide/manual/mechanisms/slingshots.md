@@ -152,6 +152,8 @@ The **Actuator** asset stays assigned and packaged for a future physical arm mod
 
 With a Rubber Deformation Renderer on the rubber, every hit twangs the cord inward and every coil firing pushes it outward at the arm position over the renderer's **Animation Duration** on its **Kick Curve**. The **Coil Arm** primitive rotates from **Visual Rest Angle** to **Visual Fired Angle** on the same curve, in the same simulation clock, so rubber and arm stay in phase.
 
+To align the arm without starting a game, drag the **Kick** slider under *Preview* at the bottom of the Rubber Slingshot inspector. It poses the arm between its rest and fired angle and, with a renderer on the rubber, bends the cord outward at the arm's contact position by the arm's travel. Leave the slider up while you adjust **Visual Fired Angle**, **Arm Contact Position** or **Arm Tip Travel**, then set it back to zero. Nothing of the preview is saved, and it ends by itself when the game starts or the scene is saved.
+
 ## Limitations
 
 The cord's collision geometry never moves: the rebound is instantaneous, a second ball never sees a deflected cord, and the kick is a velocity change rather than an arm pushing rubber. Rubbers with rounded corners keep the wall response. Game logic that queues switches on its own thread, such as the PinMAME integration, may still miss a pulse under heavy load; the self wire does not depend on it.

@@ -300,6 +300,7 @@ namespace VisualPinball.Unity
 
 		private void OnDisable()
 		{
+			_previewActive = false;
 			Unsubscribe();
 			ReleaseMesh();
 			_spans = NoSpans;
@@ -721,6 +722,58 @@ namespace VisualPinball.Unity
 
 		#endregion
 
+		#region Preview
+
+		[NonSerialized] private bool _previewActive;
+		[NonSerialized] private int _previewPathElementIndex;
+		[NonSerialized] private float _previewApex;
+		[NonSerialized] private float _previewDepth;
+
+		/// <summary>Whether an edit-mode preview currently poses the cord.</summary>
+		internal bool IsPreviewing => _previewActive;
+
+		/// <summary>
+		/// Poses one span at a fixed profile outside play mode, so an author can align a
+		/// slingshot's arm against the deflected cord without starting a game. Acquires
+		/// the mesh instance the way play mode does; <see cref="EndPreview"/> hands the
+		/// shared mesh back. Ignored while the game runs, where the simulation drives
+		/// the cord.
+		/// </summary>
+		internal void Preview(int pathElementIndex, float apex01, float depth)
+		{
+			if (Application.isPlaying) {
+				return;
+			}
+			Acquire();
+			AcquireMesh();
+			if (!_bindingsValid || !ComputeFingerprint().Equals(_fingerprint)) {
+				RebuildBindings();
+			}
+			_previewActive = true;
+			_previewPathElementIndex = pathElementIndex;
+			_previewApex = apex01;
+			_previewDepth = depth;
+			RenderFrame();
+		}
+
+		/// <summary>Ends the edit-mode preview and hands the mesh filter its shared mesh back.</summary>
+		internal void EndPreview()
+		{
+			if (!_previewActive) {
+				return;
+			}
+			_previewActive = false;
+			if (Application.isPlaying) {
+				return;
+			}
+			ReleaseMesh();
+			_spans = NoSpans;
+			_bindings = NoBindings;
+			_bindingsValid = false;
+		}
+
+		#endregion
+
 		#region Frame
 
 		/// <summary>
@@ -770,6 +823,12 @@ namespace VisualPinball.Unity
 		/// </summary>
 		private void Evaluate(ref SpanVisual span, float now)
 		{
+			if (_previewActive) {
+				var previewed = span.PathElementIndex == _previewPathElementIndex;
+				span.Apex = previewed ? _previewApex : 0f;
+				span.Depth = previewed ? _previewDepth : 0f;
+				return;
+			}
 			if (_heldDeflection != 0f) {
 				span.Apex = 0.5f;
 				span.Depth = _heldDeflection;

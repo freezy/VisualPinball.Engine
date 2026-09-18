@@ -7,6 +7,8 @@
 // (at your option) any later version.
 
 using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine.SceneManagement;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -33,8 +35,12 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _visualRestAngle;
 		private SerializedProperty _visualFiredAngle;
 
+		private float _preview;
+
 		private void OnEnable()
 		{
+			EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+			EditorSceneManager.sceneSaving += OnSceneSaving;
 			_span = serializedObject.FindProperty("_span");
 			_switchZones = serializedObject.FindProperty("_switchZones");
 			_armContactPosition = serializedObject.FindProperty("_armContactPosition01");
@@ -52,6 +58,31 @@ namespace VisualPinball.Unity.Editor
 			_visualRotationAxis = serializedObject.FindProperty("_visualRotationAxis");
 			_visualRestAngle = serializedObject.FindProperty("_visualRestAngle");
 			_visualFiredAngle = serializedObject.FindProperty("_visualFiredAngle");
+		}
+
+		private void OnDisable()
+		{
+			EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+			EditorSceneManager.sceneSaving -= OnSceneSaving;
+			StopPreview();
+		}
+
+		/// <summary>The preview poses scene objects; it must never be carried into a game or a saved scene.</summary>
+		private void OnPlayModeStateChanged(PlayModeStateChange change)
+		{
+			if (change == PlayModeStateChange.ExitingEditMode) {
+				StopPreview();
+			}
+		}
+
+		private void OnSceneSaving(Scene scene, string path) => StopPreview();
+
+		private void StopPreview()
+		{
+			_preview = 0f;
+			if (target is RubberSlingshotComponent component && component) {
+				component.EndPreview();
+			}
 		}
 
 		public override void OnInspectorGUI()
@@ -109,6 +140,30 @@ namespace VisualPinball.Unity.Editor
 			}
 			foreach (var error in component.ValidateConfiguration(includeSceneUniqueness: true)) {
 				EditorGUILayout.HelpBox(error, MessageType.Error);
+			}
+
+			EditorGUILayout.Space();
+			EditorGUILayout.LabelField("Preview", EditorStyles.boldLabel);
+			using (new EditorGUI.DisabledScope(Application.isPlaying)) {
+				EditorGUI.BeginChangeCheck();
+				var preview = EditorGUILayout.Slider(new GUIContent("Kick",
+						"Poses the arm and the cord between rest and the fully fired pose, without a game. Align Visual Fired Angle and Arm Contact Position against it, then set it back to zero. Nothing of it is saved."),
+					_preview, 0f, 1f);
+				if (EditorGUI.EndChangeCheck()) {
+					_preview = preview;
+				}
+			}
+			if (Application.isPlaying) {
+				EditorGUILayout.HelpBox("The simulation drives the arm and the cord while the game runs.",
+					MessageType.None);
+			} else if (_preview > 0f) {
+				// re-posed every repaint, so edits to the angle, the contact position or the
+				// travel show while the slider is up
+				component.Preview(_preview);
+				SceneView.RepaintAll();
+			} else if (component.IsPreviewing) {
+				component.EndPreview();
+				SceneView.RepaintAll();
 			}
 		}
 
