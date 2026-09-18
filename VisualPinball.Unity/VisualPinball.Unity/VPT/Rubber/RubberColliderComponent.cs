@@ -227,6 +227,53 @@ namespace VisualPinball.Unity
 				RubberDeformationBakeOutcome.Invalid, NotBakedReason, 0, string.Empty);
 
 		/// <summary>Writes a bake result, keeping the authored settings untouched.</summary>
+		[NonSerialized] private string _lastEnsureWarning;
+
+		/// <summary>
+		/// Brings the bakes this collider depends on up to date: the guided path when a
+		/// guide moved, and the compliant rebound when any of its inputs changed. Both
+		/// are caches of the authored state, so nothing has to be baked by hand: this
+		/// runs when the game starts and whenever the editor reads them. Returns true
+		/// when the rubber has a valid guided path and, with the compliant rebound on, a
+		/// bake whose outcome is Deformable.
+		/// </summary>
+		public bool EnsureBakesCurrent()
+		{
+			var rubber = MainComponent;
+			if (Mode != RubberColliderMode.Physical || !rubber) {
+				return false;
+			}
+			if (rubber.PathSource == RubberPathSource.Guides
+				&& !RubberAutofit.EnsureCurrent(rubber, out var fitError)) {
+				WarnOnce($"Rubber '{rubber.name}' could not refit its guided path: {fitError}");
+				return false;
+			}
+			if (!_deformationEnabled) {
+				return true;
+			}
+			if (!RubberDeformationBaker.EnsureCurrent(this)) {
+				WarnOnce($"Rubber '{rubber.name}' could not bake its compliant rebound: {BakeReason}");
+				return false;
+			}
+			return BakeOutcome == RubberDeformationBakeOutcome.Deformable;
+		}
+
+		private void WarnOnce(string message)
+		{
+			if (message == _lastEnsureWarning) {
+				return;
+			}
+			_lastEnsureWarning = message;
+			Debug.LogWarning(message, this);
+		}
+
+		private void Awake()
+		{
+			if (Application.isPlaying) {
+				EnsureBakesCurrent();
+			}
+		}
+
 		internal void ApplyDeformationBake(RubberCompiledDeformationMaterial compiledMaterial,
 			RubberSpanDescriptor[] spanDescriptors,
 			RubberBackedResponseDescriptor[] backedResponseDescriptors,

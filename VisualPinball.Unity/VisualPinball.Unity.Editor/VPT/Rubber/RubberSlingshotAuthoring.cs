@@ -62,9 +62,9 @@ namespace VisualPinball.Unity.Editor
 		/// the Physical collider that the span records come from.
 		/// </summary>
 		public static bool IsEligibleRubber(RubberComponent rubber)
-			=> rubber && rubber.HasValidGuidedPath
-				&& rubber.TryGetComponent<RubberColliderComponent>(out var collider)
-				&& collider.Mode == RubberColliderMode.Physical;
+			=> rubber && rubber.TryGetComponent<RubberColliderComponent>(out var collider)
+				&& collider.Mode == RubberColliderMode.Physical
+				&& (rubber.HasValidGuidedPath || RubberAutofit.EnsureCurrent(rubber, out _));
 
 		/// <summary>The rubber's slingshot, or null.</summary>
 		public static RubberSlingshotComponent SlingshotOf(RubberComponent rubber)
@@ -134,6 +134,7 @@ namespace VisualPinball.Unity.Editor
 			if (!collider.DeformationEnabled) {
 				return "Enable the compliant rebound on the rubber collider.";
 			}
+			collider.EnsureBakesCurrent();
 			if (!RubberSpanReboundEligibility.TryValidate(collider, out var reason)) {
 				return $"Compliant rebound: {reason}";
 			}

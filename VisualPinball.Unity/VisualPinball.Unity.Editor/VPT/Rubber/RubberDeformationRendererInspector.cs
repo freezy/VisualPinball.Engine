@@ -26,6 +26,8 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(RubberDeformationRenderer)), CanEditMultipleObjects]
 	public sealed class RubberDeformationRendererInspector : UnityEditor.Editor
 	{
+		public override bool RequiresConstantRepaint() => Application.isPlaying;
+
 		public override void OnInspectorGUI()
 		{
 			DrawDefaultInspector();
@@ -72,6 +74,50 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.HelpBox(
 				"The kick curve and its duration also drive the arm of a physical slingshot bound to one of this rubber's spans.",
 				MessageType.None);
+
+			if (Application.isPlaying) {
+				DrawRuntimeState(renderer);
+			}
+		}
+
+		/// <summary>
+		/// What the renderer is actually driving while the game runs, so a cord that
+		/// stays still can be diagnosed from the inspector.
+		/// </summary>
+		private static void DrawRuntimeState(RubberDeformationRenderer renderer)
+		{
+			EditorGUILayout.Space();
+			EditorGUILayout.LabelField("Runtime", EditorStyles.boldLabel);
+			var mesh = renderer.InstancedMesh;
+			var meshFilter = renderer.GetComponent<MeshFilter>();
+			EditorGUILayout.LabelField("Mesh instance", mesh
+				? $"{mesh.name}, {mesh.vertexCount} vertices"
+				: "none acquired");
+			if (mesh && meshFilter && meshFilter.sharedMesh != mesh) {
+				EditorGUILayout.HelpBox(
+					$"The mesh filter renders '{(meshFilter.sharedMesh ? meshFilter.sharedMesh.name : "nothing")}', not the deformed instance.",
+					MessageType.Warning);
+			}
+			if (renderer.gameObject.isStatic) {
+				EditorGUILayout.HelpBox(
+					"The rubber is marked static. Static batching renders the combined mesh, so per-vertex displacement is not visible. Clear the static flag on the rubber.",
+					MessageType.Warning);
+			}
+			EditorGUILayout.LabelField("Bound spans / vertices",
+				$"{renderer.SpanCount} / {renderer.BindingCount}");
+			foreach (var line in renderer.DescribeBindings()) {
+				EditorGUILayout.LabelField(" ", line);
+			}
+			EditorGUILayout.LabelField("Impacts / kicks / mesh updates",
+				$"{renderer.ImpactCount} / {renderer.KickCount} / {renderer.MeshUpdateCount}");
+			EditorGUILayout.LabelField("Dropped impacts", renderer.DroppedImpactCount.ToString());
+			var rubber = renderer.GetComponent<RubberComponent>();
+			if (GUILayout.Button("Pluck every span")) {
+				renderer.Pluck(rubber ? rubber.Thickness * 2f : 10f);
+			}
+			renderer.HeldDeflection = EditorGUILayout.Slider(
+				new GUIContent("Hold deflection", "Pins a V of this depth in VPX units on every span, inward positive, until set back to zero."),
+				renderer.HeldDeflection, -60f, 60f);
 		}
 	}
 }

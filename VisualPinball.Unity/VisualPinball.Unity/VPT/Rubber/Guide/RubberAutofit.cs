@@ -147,6 +147,38 @@ namespace VisualPinball.Unity
 				|| !binding.Guide.TryGetSlot(binding.SlotId, out _)) ?? 0;
 		}
 
+		/// <summary>
+		/// Refits the guided path when its bake is stale or missing, so the bake stored
+		/// on the rubber is a cache nobody has to refresh by hand. Returns true when the
+		/// bake is valid afterwards. A rubber whose guides cannot be resolved keeps what
+		/// it has and reports why.
+		/// </summary>
+		public static bool EnsureCurrent(RubberComponent rubber, out string error)
+		{
+			error = null;
+			if (!rubber || rubber.PathSource != RubberPathSource.Guides) {
+				error = "The rubber is not guide-driven.";
+				return false;
+			}
+			var status = GetStatus(rubber);
+			if (status.IsValid) {
+				return true;
+			}
+			if (!status.IsStale && rubber.BakedPath.Count > 0) {
+				error = status.Message;
+				return false;
+			}
+			if (!TryBake(rubber, out _, out error)) {
+				return false;
+			}
+#if UNITY_EDITOR
+			if (!UnityEngine.Application.isPlaying) {
+				UnityEditor.EditorUtility.SetDirty(rubber);
+			}
+#endif
+			return true;
+		}
+
 		public static RubberBakeStatus GetStatus(RubberComponent rubber)
 		{
 			if (!rubber || rubber.PathSource != RubberPathSource.Guides) {

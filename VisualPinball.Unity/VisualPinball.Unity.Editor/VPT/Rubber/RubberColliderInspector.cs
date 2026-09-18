@@ -212,6 +212,8 @@ namespace VisualPinball.Unity.Editor
 
 		private static void DrawBakeStatus(RubberColliderComponent collider)
 		{
+			// the bake is a cache of the inputs: bring it up to date before showing it
+			collider.EnsureBakesCurrent();
 			var outcome = collider.BakeOutcome;
 			var current = RubberDeformationBaker.IsBakeCurrent(collider);
 			var hash = collider.DeformationBakeHash;

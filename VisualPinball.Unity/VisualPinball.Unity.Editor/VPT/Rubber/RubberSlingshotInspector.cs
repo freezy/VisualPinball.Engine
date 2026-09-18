@@ -101,6 +101,12 @@ namespace VisualPinball.Unity.Editor
 					MessageType.Warning);
 			}
 			var component = (RubberSlingshotComponent)target;
+			var collider = component.Rubber
+				? component.Rubber.GetComponent<RubberColliderComponent>()
+				: null;
+			if (collider) {
+				collider.EnsureBakesCurrent();
+			}
 			foreach (var error in component.ValidateConfiguration(includeSceneUniqueness: true)) {
 				EditorGUILayout.HelpBox(error, MessageType.Error);
 			}

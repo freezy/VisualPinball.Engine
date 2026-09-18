@@ -22,11 +22,10 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using Unity.Mathematics;
-using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.Common;
 
-namespace VisualPinball.Unity.Editor
+namespace VisualPinball.Unity
 {
 	/// <summary>
 	/// Result of one deformation bake, before it is written to the component.
@@ -48,9 +47,11 @@ namespace VisualPinball.Unity.Editor
 	/// rubber into the descriptors the deformable free-span runtime consumes.
 	/// </summary>
 	/// <remarks>
-	/// Everything here runs in the editor and is serialized on the collider
-	/// component, so the runtime never sees an <c>AnimationCurve</c>, never converts
-	/// units and never solves geometry. The pure computations — unit conversion,
+	/// The result is serialized on the collider component, so the physics thread never
+	/// sees an <c>AnimationCurve</c>, never converts units and never solves geometry.
+	/// The stored bake is a cache of the authored inputs: <see cref="EnsureCurrent"/>
+	/// rebakes when the inputs changed, at game start and whenever the editor reads
+	/// the bake, so nothing has to be baked by hand. The pure computations — unit conversion,
 	/// modal coefficients, inward sign, tessellation certification and hashing — are
 	/// public so the test assembly can exercise them without a scene.
 	/// </remarks>
@@ -688,15 +689,41 @@ namespace VisualPinball.Unity.Editor
 				&& stored == ComputeBakeHash(collider);
 		}
 
-		/// <summary>Bakes and writes the result, recording one undo step.</summary>
+		/// <summary>
+		/// Bakes and writes the result on demand. In the editor this records one undo
+		/// step.
+		/// </summary>
 		public static RubberDeformationBakeResult Bake(RubberColliderComponent collider,
 			string undoName = "Bake Rubber Deformation")
 		{
 			if (!collider) {
 				return new RubberDeformationBakeResult();
 			}
-			Undo.RecordObject(collider, undoName);
+#if UNITY_EDITOR
+			if (!Application.isPlaying) {
+				UnityEditor.Undo.RecordObject(collider, undoName);
+			}
+#endif
 			return Apply(collider);
+		}
+
+		/// <summary>
+		/// Rebakes when the stored bake does not match the current inputs, so the bake
+		/// is never something the author has to refresh. Cheap when it is current: one
+		/// hash over the inputs. Returns true when a bake is stored for the current
+		/// inputs afterwards; its outcome is on the collider.
+		/// </summary>
+		public static bool EnsureCurrent(RubberColliderComponent collider)
+		{
+			if (!collider || collider.Mode != RubberColliderMode.Physical
+				|| !collider.DeformationEnabled) {
+				return false;
+			}
+			if (IsBakeCurrent(collider)) {
+				return true;
+			}
+			Apply(collider);
+			return IsBakeCurrent(collider);
 		}
 
 		/// <summary>
@@ -715,13 +742,18 @@ namespace VisualPinball.Unity.Editor
 			Apply(collider);
 		}
 
-		private static RubberDeformationBakeResult Apply(RubberColliderComponent collider)
+		/// <summary>Computes and writes the bake, without an undo step.</summary>
+		public static RubberDeformationBakeResult Apply(RubberColliderComponent collider)
 		{
 			var result = Compute(collider);
 			collider.ApplyDeformationBake(result.Material, result.Spans, result.BackedResponses,
 				result.Outcome, result.Reason, result.BakeVersion, result.Hash);
-			EditorUtility.SetDirty(collider);
-			PrefabUtility.RecordPrefabInstancePropertyModifications(collider);
+#if UNITY_EDITOR
+			if (!Application.isPlaying) {
+				UnityEditor.EditorUtility.SetDirty(collider);
+				UnityEditor.PrefabUtility.RecordPrefabInstancePropertyModifications(collider);
+			}
+#endif
 			return result;
 		}
 
@@ -1185,51 +1217,5 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		#endregion
-	}
-
-	/// <summary>
-	/// Repaints inspectors when a material a deforming rubber depends on is
-	/// reimported, so the bake freshness badge, which is derived from the hash,
-	/// updates without a selection change.
-	/// </summary>
-	internal sealed class RubberDeformationAssetPostprocessor : AssetPostprocessor
-	{
-		private static void OnPostprocessAllAssets(string[] importedAssets,
-			string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
-		{
-			if (!TouchesDeformationMaterial(importedAssets)
-				&& !TouchesDeformationMaterial(movedAssets)
-				&& !TouchesDeformationMaterial(deletedAssets)) {
-				return;
-			}
-			// The hash comparison at read time is the source of truth for staleness, so
-			// nothing has to be rewritten here. Dependent components in open scenes only
-			// need their inspectors and gizmos to redraw.
-			var hasDependent = UnityEngine.Object.FindObjectsByType<RubberColliderComponent>(
-					FindObjectsInactive.Include, FindObjectsSortMode.None)
-				.Any(collider => collider && collider.DeformationEnabled);
-			if (!hasDependent) {
-				return;
-			}
-			SceneView.RepaintAll();
-			foreach (var editor in Resources.FindObjectsOfTypeAll<RubberColliderInspector>()) {
-				editor.Repaint();
-			}
-		}
-
-		private static bool TouchesDeformationMaterial(IEnumerable<string> paths)
-		{
-			foreach (var path in paths) {
-				if (string.IsNullOrEmpty(path) || !path.EndsWith(".asset",
-					StringComparison.OrdinalIgnoreCase)) {
-					continue;
-				}
-				var type = AssetDatabase.GetMainAssetTypeAtPath(path);
-				if (type == typeof(RubberPhysicsMaterialAsset) || type == typeof(PhysicsMaterialAsset)) {
-					return true;
-				}
-			}
-			return false;
-		}
 	}
 }

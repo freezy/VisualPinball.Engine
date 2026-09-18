@@ -74,8 +74,8 @@ namespace VisualPinball.Unity
 				error = $"Rubber '{rubber.name}' must use the Physical collider mode.";
 				return false;
 			}
-			if (!rubber.HasValidGuidedPath) {
-				error = $"Rubber '{rubber.name}' needs a current valid autofit bake.";
+			if (!RubberAutofit.EnsureCurrent(rubber, out var fitError)) {
+				error = $"Rubber '{rubber.name}' has no valid guided path: {fitError}";
 				return false;
 			}
 

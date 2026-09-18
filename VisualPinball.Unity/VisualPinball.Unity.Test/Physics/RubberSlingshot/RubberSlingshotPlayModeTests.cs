@@ -556,7 +556,10 @@ namespace VisualPinball.Unity.Test
 					TangentStiffnessLut = tangent,
 				}, spans.ToArray(), Array.Empty<RubberBackedResponseDescriptor>(),
 					RubberDeformationBakeOutcome.Deformable, "play mode fixture",
-					RubberDeformationBakeFormat.BakeVersion, new string('a', 64));
+					RubberDeformationBakeFormat.BakeVersion,
+					// the hash of the inputs, so the collider's Awake keeps this hand-built
+					// bake instead of rebaking it from a material the fixture does not have
+					RubberDeformationBaker.ComputeBakeHash(collider));
 			}
 		}
 
