@@ -158,7 +158,9 @@ namespace VisualPinball.Unity.Test
 		[UnityTest]
 		public IEnumerator TheKickShouldDeformTheRubberAndSwingTheArm()
 		{
+			IgnoreHeadlessLogErrors();
 			yield return new EnterPlayMode();
+			IgnoreHeadlessLogErrors();
 			var fixture = Fixture.Create(selfWired: true);
 			try {
 				yield return fixture.Activate();
