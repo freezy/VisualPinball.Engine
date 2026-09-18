@@ -268,6 +268,11 @@ namespace VisualPinball.Unity
 						continue;
 					}
 					ref var ball = ref state.Balls.GetValueByRef(contact.BallId);
+					if (ball.IsFrozen) {
+						// captured by a kicker in this very collision phase: the contact was found
+						// where the ball was before, its recovery would move it out of the kicker
+						continue;
+					}
 					if (contact.CollEvent.IsKinematic) {
 						ContactPhysics.Update(ref contact, ref ball, ref state, ref state.KinematicColliders, hitTime);
 					} else {

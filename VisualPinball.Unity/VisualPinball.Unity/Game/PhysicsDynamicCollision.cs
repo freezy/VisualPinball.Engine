@@ -25,6 +25,11 @@ namespace VisualPinball.Unity
 
 		internal static void Collide(float hitTime, ref BallState ball, ref PhysicsState state)
 		{
+			// a frozen ball is not hit-tested, so whatever event it carries is not from this cycle
+			if (ball.IsFrozen) {
+				return;
+			}
+
 			// pick "other" ball
 			ref var collEvent = ref ball.CollisionEvent;
 			ref var otherId = ref collEvent.BallId;

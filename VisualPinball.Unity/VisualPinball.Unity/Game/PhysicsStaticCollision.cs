@@ -26,6 +26,11 @@ namespace VisualPinball.Unity
 	{
 		internal static void Collide(float hitTime, ref BallState ball, ref PhysicsState state)
 		{
+			// a frozen ball is not hit-tested, so whatever event it carries is not from this cycle
+			if (ball.IsFrozen) {
+				return;
+			}
+
 			// find balls with hit objects and minimum time
 			if (ball.CollisionEvent.ColliderId < 0 || ball.CollisionEvent.HitTime > hitTime) {
 				return;
