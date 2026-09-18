@@ -219,6 +219,9 @@ namespace VisualPinball.Unity.Editor
 				EditorUtility.SetDirty(rubber.transform);
 				PrefabUtility.RecordPrefabInstancePropertyModifications(rubber.transform);
 			}
+			// The deformation bake is derived from the path, so a path rebake also
+			// re-bakes it. It is a no-op unless deformation is switched on.
+			RubberDeformationBaker.RebakeIfEnabled(rubber);
 			return true;
 		}
 

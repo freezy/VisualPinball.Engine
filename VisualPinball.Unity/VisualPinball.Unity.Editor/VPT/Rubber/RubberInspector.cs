@@ -28,6 +28,11 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(RubberComponent)), CanEditMultipleObjects]
 	public class RubberInspector : MainInspector<RubberData, RubberComponent>
 	{
+		/// <summary>
+		/// Installed stretch the rest length is derived from, per the plan's section 2.3.
+		/// </summary>
+		public const float DefaultInstalledStretch = 1.10f;
+
 		private SerializedProperty _thicknessProperty;
 		private SerializedProperty _restLengthProperty;
 		private SerializedProperty _roundnessProperty;
@@ -72,10 +77,20 @@ namespace VisualPinball.Unity.Editor
 			var fittedLength = MainComponent.BakedPath.Sum(element => element.Length);
 			if (MainComponent.PathSource == RubberPathSource.Guides) {
 				EditorGUILayout.LabelField("Fitted Centerline Length", $"{fittedLength:0.###} VPX");
+				EditorGUILayout.BeginHorizontal();
 				if (MainComponent.RestLength > 0f) {
 					EditorGUILayout.LabelField("Installed Stretch",
 						$"{fittedLength / MainComponent.RestLength:0.###}×");
+				} else {
+					EditorGUILayout.LabelField("Installed Stretch", "not configured");
 				}
+				using (new EditorGUI.DisabledScope(fittedLength <= 0f)) {
+					if (GUILayout.Button(new GUIContent("Set Rest Length From Fitted Length",
+						$"Sets the rest length to the fitted centerline length divided by {DefaultInstalledStretch:0.00}."))) {
+						_restLengthProperty.floatValue = fittedLength / DefaultInstalledStretch;
+					}
+				}
+				EditorGUILayout.EndHorizontal();
 			}
 
 			if (MainComponent.PathSource == RubberPathSource.Spline) {

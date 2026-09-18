@@ -16,6 +16,8 @@
 
 // ReSharper disable InconsistentNaming
 
+using System;
+using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -31,6 +33,17 @@ namespace VisualPinball.Unity
 		internal const float DefaultGuideInfluenceLength = 50f;
 		internal const float DefaultMaximumResponseSegmentLength = 20f;
 		internal const float MinimumResponseLength = 0.1f;
+		internal const float DefaultDeflectionClearance = 60f;
+		internal const float MinimumDeflectionClearance = MinimumResponseLength;
+
+		/// <summary>
+		/// Diagnostic carried by a component that was never baked, and by every
+		/// payload written before collider package version 3.
+		/// </summary>
+		public const string NotBakedReason = "Deformation has not been baked.";
+
+		/// <summary>Length of a canonical deformation bake hash, a SHA-256 in lowercase hex.</summary>
+		internal const int DeformationBakeHashLength = 64;
 
 		#region Data
 
@@ -78,6 +91,30 @@ namespace VisualPinball.Unity
 		[Tooltip("Upper bound for Physical collider length in VPX units while the distance response is active. The effective limit can be lower to sample the guide transition at least eight times.")]
 		private float _maximumResponseSegmentLength = DefaultMaximumResponseSegmentLength;
 
+		[SerializeField]
+		[Tooltip("Turn the free spans of this Physical rubber into damped, pinned transverse oscillators. Experimental; requires the VPE_EXPERIMENTAL_RUBBER_DEFORMATION scripting define to run.")]
+		private bool _deformationEnabled;
+		[SerializeField]
+		[Min(MinimumDeflectionClearance)]
+		[Tooltip("Largest deflection in VPX units a free span may reach before it stops, measured from its rest curve. Keep it below the clearance to whatever sits behind the rubber.")]
+		private float _deflectionClearance = DefaultDeflectionClearance;
+
+		[SerializeField, HideInInspector]
+		private RubberCompiledDeformationMaterial _compiledDeformationMaterial;
+		[SerializeField, HideInInspector]
+		private RubberSpanDescriptor[] _spanDescriptors = Array.Empty<RubberSpanDescriptor>();
+		[SerializeField, HideInInspector]
+		private RubberBackedResponseDescriptor[] _backedResponseDescriptors
+			= Array.Empty<RubberBackedResponseDescriptor>();
+		[SerializeField, HideInInspector]
+		private RubberDeformationBakeOutcome _bakeOutcome = RubberDeformationBakeOutcome.Invalid;
+		[SerializeField, HideInInspector]
+		private string _bakeReason = NotBakedReason;
+		[SerializeField, HideInInspector]
+		private int _deformationBakeVersion;
+		[SerializeField, HideInInspector]
+		private string _deformationBakeHash = string.Empty;
+
 		public RubberColliderMode Mode {
 			get => _mode;
 			set => _mode = value;
@@ -113,6 +150,108 @@ namespace VisualPinball.Unity
 				GuideInfluenceLength, MaximumResponseSegmentLength);
 
 		public bool CanUsePhysical => MainComponent && MainComponent.HasUsableGuidedPath;
+
+		#region Deformation
+
+		/// <summary>
+		/// Opt-in for the experimental free-span deformation of this Physical rubber.
+		/// It only takes effect with a current <see cref="RubberDeformationBakeOutcome.Deformable"/>
+		/// bake and a runtime compiled with the experimental scripting define.
+		/// </summary>
+		public bool DeformationEnabled {
+			get => _deformationEnabled;
+			set => _deformationEnabled = value;
+		}
+
+		/// <summary>Deflection cap in VPX units, before the stretch limit is applied.</summary>
+		public float DeflectionClearance {
+			get => SanitizeLength(_deflectionClearance, DefaultDeflectionClearance);
+			set => _deflectionClearance = SanitizeLength(value, DefaultDeflectionClearance);
+		}
+
+		public RubberCompiledDeformationMaterial CompiledDeformationMaterial {
+			get => _compiledDeformationMaterial;
+			internal set => _compiledDeformationMaterial = value;
+		}
+
+		public IReadOnlyList<RubberSpanDescriptor> SpanDescriptors
+			=> _spanDescriptors ?? Array.Empty<RubberSpanDescriptor>();
+
+		public IReadOnlyList<RubberBackedResponseDescriptor> BackedResponseDescriptors
+			=> _backedResponseDescriptors ?? Array.Empty<RubberBackedResponseDescriptor>();
+
+		public RubberDeformationBakeOutcome BakeOutcome => _bakeOutcome;
+
+		public string BakeReason => string.IsNullOrEmpty(_bakeReason) ? NotBakedReason : _bakeReason;
+
+		public int DeformationBakeVersion => _deformationBakeVersion;
+
+		/// <summary>
+		/// Canonical lowercase hex digest over every input that decides the bake
+		/// outcome, or an empty string when nothing has been baked.
+		/// </summary>
+		public string DeformationBakeHash => SanitizeHash(_deformationBakeHash);
+
+		internal void RestoreDeformationSettings(bool enabled, float deflectionClearance,
+			RubberCompiledDeformationMaterial compiledMaterial,
+			RubberSpanDescriptor[] spanDescriptors,
+			RubberBackedResponseDescriptor[] backedResponseDescriptors,
+			RubberDeformationBakeOutcome bakeOutcome, string bakeReason,
+			int bakeVersion, string bakeHash)
+		{
+			_deformationEnabled = enabled;
+			DeflectionClearance = deflectionClearance;
+			_compiledDeformationMaterial = compiledMaterial;
+			_spanDescriptors = spanDescriptors ?? Array.Empty<RubberSpanDescriptor>();
+			_backedResponseDescriptors = backedResponseDescriptors
+				?? Array.Empty<RubberBackedResponseDescriptor>();
+			_bakeOutcome = Enum.IsDefined(typeof(RubberDeformationBakeOutcome), bakeOutcome)
+				? bakeOutcome
+				: RubberDeformationBakeOutcome.Invalid;
+			_bakeReason = string.IsNullOrEmpty(bakeReason) ? NotBakedReason : bakeReason;
+			_deformationBakeVersion = math.max(0, bakeVersion);
+			_deformationBakeHash = SanitizeHash(bakeHash);
+			if (_deformationBakeHash.Length == 0) {
+				_deformationBakeVersion = 0;
+			}
+		}
+
+		/// <summary>
+		/// Clears the bake and every descriptor, leaving deformation switched off.
+		/// This is what a payload written before collider package version 3 restores.
+		/// </summary>
+		internal void ResetDeformationSettings()
+			=> RestoreDeformationSettings(false, DefaultDeflectionClearance,
+				default, Array.Empty<RubberSpanDescriptor>(),
+				Array.Empty<RubberBackedResponseDescriptor>(),
+				RubberDeformationBakeOutcome.Invalid, NotBakedReason, 0, string.Empty);
+
+		/// <summary>Writes a bake result, keeping the authored settings untouched.</summary>
+		internal void ApplyDeformationBake(RubberCompiledDeformationMaterial compiledMaterial,
+			RubberSpanDescriptor[] spanDescriptors,
+			RubberBackedResponseDescriptor[] backedResponseDescriptors,
+			RubberDeformationBakeOutcome bakeOutcome, string bakeReason,
+			int bakeVersion, string bakeHash)
+			=> RestoreDeformationSettings(_deformationEnabled, _deflectionClearance,
+				compiledMaterial, spanDescriptors, backedResponseDescriptors,
+				bakeOutcome, bakeReason, bakeVersion, bakeHash);
+
+		private static string SanitizeHash(string value)
+		{
+			if (string.IsNullOrEmpty(value) || value.Length != DeformationBakeHashLength) {
+				return string.Empty;
+			}
+			foreach (var character in value) {
+				var isHex = character >= '0' && character <= '9'
+					|| character >= 'a' && character <= 'f';
+				if (!isHex) {
+					return string.Empty;
+				}
+			}
+			return value;
+		}
+
+		#endregion
 
 		internal void RestoreGuideDistanceElasticitySettings(bool enabled, float guideScale,
 			float guideInfluenceLength, float maximumResponseSegmentLength)
@@ -151,6 +290,10 @@ namespace VisualPinball.Unity
 			}
 			if (_maximumResponseSegmentLength != maximumResponseSegmentLength) {
 				_maximumResponseSegmentLength = maximumResponseSegmentLength;
+			}
+			var deflectionClearance = DeflectionClearance;
+			if (_deflectionClearance != deflectionClearance) {
+				_deflectionClearance = deflectionClearance;
 			}
 		}
 

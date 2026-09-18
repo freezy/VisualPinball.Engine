@@ -16,6 +16,8 @@
 
 // ReSharper disable AssignmentInConditionalExpression
 
+using System.Globalization;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Rubber;
@@ -25,7 +27,24 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(RubberColliderComponent)), CanEditMultipleObjects]
 	public class RubberColliderInspector : ColliderInspector<RubberData, RubberComponent, RubberColliderComponent>
 	{
+		private const string DeformationDefine = "VPE_EXPERIMENTAL_RUBBER_DEFORMATION";
+
+		/// <summary>
+		/// The only place in the always-compiled authoring code that consults the
+		/// experimental scripting define. It decides whether the deformation fields are
+		/// editable or preserved behind the unavailability notice; the fields, the
+		/// baker and the package format exist in both configurations.
+		/// </summary>
+		private static readonly bool DeformationRuntimeAvailable =
+#if VPE_EXPERIMENTAL_RUBBER_DEFORMATION
+			true;
+#else
+			false;
+#endif
+
 		private bool _foldoutMaterial = true;
+		private bool _foldoutDeformation = true;
+		private bool _bakeRequested;
 		private SerializedProperty _hitEventProperty;
 		private SerializedProperty _zOffset;
 		private SerializedProperty _overwritePhysicsProperty;
@@ -40,6 +59,8 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _guideElasticityScaleProperty;
 		private SerializedProperty _guideInfluenceLengthProperty;
 		private SerializedProperty _maximumResponseSegmentLengthProperty;
+		private SerializedProperty _deformationEnabledProperty;
+		private SerializedProperty _deflectionClearanceProperty;
 
 		protected override void OnEnable()
 		{
@@ -60,6 +81,8 @@ namespace VisualPinball.Unity.Editor
 			_guideElasticityScaleProperty = serializedObject.FindProperty("_guideElasticityScale");
 			_guideInfluenceLengthProperty = serializedObject.FindProperty("_guideInfluenceLength");
 			_maximumResponseSegmentLengthProperty = serializedObject.FindProperty("_maximumResponseSegmentLength");
+			_deformationEnabledProperty = serializedObject.FindProperty("_deformationEnabled");
+			_deflectionClearanceProperty = serializedObject.FindProperty("_deflectionClearance");
 		}
 
 		public override void OnInspectorGUI()
@@ -92,43 +115,45 @@ namespace VisualPinball.Unity.Editor
 			var showsPhysical = _modeProperty.hasMultipleDifferentValues
 				|| (RubberColliderMode)_modeProperty.enumValueIndex == RubberColliderMode.Physical;
 			if (showsPhysical) {
-				EditorGUI.BeginDisabledGroup(true);
-				PropertyField(_rubberPhysicsMaterialProperty, "Deformation Material (reserved)");
-				EditorGUI.EndDisabledGroup();
-				EditorGUILayout.HelpBox("Physical currently uses static round-cord collision and the standard contact material below. The deformation material is reserved for experimental free-span deformation.",
-					MessageType.Info);
+				var deformationEnabled = _deformationEnabledProperty.hasMultipleDifferentValues
+					|| _deformationEnabledProperty.boolValue;
+				DrawDeformationSection(deformationEnabled);
 
 				EditorGUILayout.Space();
 				EditorGUILayout.LabelField("Guide-distance Elasticity", EditorStyles.boldLabel);
-				PropertyField(_guideDistanceElasticityEnabledProperty, "Enabled", updateColliders: true);
-				var enableResponseFields = _guideDistanceElasticityEnabledProperty.hasMultipleDifferentValues
-					|| _guideDistanceElasticityEnabledProperty.boolValue;
-				EditorGUI.BeginDisabledGroup(!enableResponseFields);
-				PropertyField(_guideElasticityScaleProperty, "Guide Elasticity Scale",
-					updateColliders: true);
-				PropertyField(_guideInfluenceLengthProperty, "Guide Influence Length",
-					updateColliders: true);
-				PropertyField(_maximumResponseSegmentLengthProperty, "Maximum Response Segment Length",
-					updateColliders: true);
-				EditorGUI.EndDisabledGroup();
-				if (enableResponseFields
-					&& !_guideInfluenceLengthProperty.hasMultipleDifferentValues
-					&& !_maximumResponseSegmentLengthProperty.hasMultipleDifferentValues) {
-					var effectiveMaximumLength = ((RubberColliderComponent)target)
-						.GuideDistanceElasticitySettings.EffectiveMaximumSegmentLength;
-					EditorGUILayout.LabelField(new GUIContent("Effective Maximum Length",
-						"The smaller of Maximum Response Segment Length and one eighth of Guide Influence Length."),
-						new GUIContent($"{effectiveMaximumLength:0.###} VPX"));
-				}
-				if (!_guideDistanceElasticityEnabledProperty.hasMultipleDifferentValues
-					&& _guideDistanceElasticityEnabledProperty.boolValue
-					&& !_guideElasticityScaleProperty.hasMultipleDifferentValues
-					&& _guideElasticityScaleProperty.floatValue == 1f) {
-					EditorGUILayout.HelpBox("The response is inactive while Guide Elasticity Scale is 1; current collider count and contact behavior are preserved.",
+				if (deformationEnabled) {
+					EditorGUILayout.LabelField(" ", "Hidden while deformation is enabled; free spans use the deformable cord response.");
+				} else {
+					PropertyField(_guideDistanceElasticityEnabledProperty, "Enabled", updateColliders: true);
+					var enableResponseFields = _guideDistanceElasticityEnabledProperty.hasMultipleDifferentValues
+						|| _guideDistanceElasticityEnabledProperty.boolValue;
+					EditorGUI.BeginDisabledGroup(!enableResponseFields);
+					PropertyField(_guideElasticityScaleProperty, "Guide Elasticity Scale",
+						updateColliders: true);
+					PropertyField(_guideInfluenceLengthProperty, "Guide Influence Length",
+						updateColliders: true);
+					PropertyField(_maximumResponseSegmentLengthProperty, "Maximum Response Segment Length",
+						updateColliders: true);
+					EditorGUI.EndDisabledGroup();
+					if (enableResponseFields
+						&& !_guideInfluenceLengthProperty.hasMultipleDifferentValues
+						&& !_maximumResponseSegmentLengthProperty.hasMultipleDifferentValues) {
+						var effectiveMaximumLength = ((RubberColliderComponent)target)
+							.GuideDistanceElasticitySettings.EffectiveMaximumSegmentLength;
+						EditorGUILayout.LabelField(new GUIContent("Effective Maximum Length",
+							"The smaller of Maximum Response Segment Length and one eighth of Guide Influence Length."),
+							new GUIContent($"{effectiveMaximumLength:0.###} VPX"));
+					}
+					if (!_guideDistanceElasticityEnabledProperty.hasMultipleDifferentValues
+						&& _guideDistanceElasticityEnabledProperty.boolValue
+						&& !_guideElasticityScaleProperty.hasMultipleDifferentValues
+						&& _guideElasticityScaleProperty.floatValue == 1f) {
+						EditorGUILayout.HelpBox("The response is inactive while Guide Elasticity Scale is 1; current collider count and contact behavior are preserved.",
+							MessageType.Info);
+					}
+					EditorGUILayout.HelpBox("This is a static contact approximation. Distance is measured along each free span from its nearest supporting guide. Scene-view colliders update immediately; play-mode physics uses changes after the next start.",
 						MessageType.Info);
 				}
-				EditorGUILayout.HelpBox("This is a static contact approximation. Distance is measured along each free span from its nearest supporting guide. Scene-view colliders update immediately; play-mode physics uses changes after the next start.",
-					MessageType.Info);
 			}
 
 			PropertyField(_hitEventProperty, "Has Hit Event");
@@ -158,7 +183,93 @@ namespace VisualPinball.Unity.Editor
 			base.OnInspectorGUI();
 
 			EndEditing();
+
+			if (!_bakeRequested) {
+				return;
+			}
+			_bakeRequested = false;
+			foreach (var selected in targets.OfType<RubberColliderComponent>()) {
+				RubberDeformationBaker.Bake(selected);
+			}
+			Repaint();
 		}
+
+		private void DrawDeformationSection(bool deformationEnabled)
+		{
+			_foldoutDeformation = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutDeformation,
+				"Experimental Deformation");
+			if (!_foldoutDeformation) {
+				EditorGUILayout.EndFoldoutHeaderGroup();
+				return;
+			}
+
+			if (!DeformationRuntimeAvailable) {
+				EditorGUILayout.HelpBox($"Physical deformation runtime unavailable. Add the {DeformationDefine} scripting define to compile and run it. The settings below are preserved and packaged either way.",
+					MessageType.Warning);
+			}
+
+			EditorGUI.BeginDisabledGroup(!DeformationRuntimeAvailable);
+			PropertyField(_deformationEnabledProperty, "Enabled", updateColliders: true);
+			EditorGUI.BeginDisabledGroup(!deformationEnabled);
+			PropertyField(_rubberPhysicsMaterialProperty, "Deformation Material");
+			PropertyField(_deflectionClearanceProperty, "Deflection Clearance");
+			if (GUILayout.Button("Bake Deformation")) {
+				// Run after EndEditing, so the serialized object is not applied over the
+				// descriptors the baker writes directly.
+				_bakeRequested = true;
+			}
+			EditorGUI.EndDisabledGroup();
+			EditorGUI.EndDisabledGroup();
+
+			if (!deformationEnabled) {
+				EditorGUILayout.HelpBox("Physical uses static round-cord collision and the standard contact material below. The deformation material is reserved for experimental free-span deformation.",
+					MessageType.Info);
+			} else if (targets.Length == 1 && target is RubberColliderComponent collider) {
+				DrawBakeStatus(collider);
+			}
+			EditorGUILayout.EndFoldoutHeaderGroup();
+		}
+
+		private static void DrawBakeStatus(RubberColliderComponent collider)
+		{
+			var outcome = collider.BakeOutcome;
+			var current = RubberDeformationBaker.IsBakeCurrent(collider);
+			var hash = collider.DeformationBakeHash;
+			var severity = !current ? MessageType.Warning
+				: outcome == RubberDeformationBakeOutcome.Deformable ? MessageType.Info
+				: outcome == RubberDeformationBakeOutcome.StaticFallback ? MessageType.Warning
+				: MessageType.Error;
+			var freshness = hash.Length == 0 ? "never baked"
+				: current ? $"up to date ({hash.Substring(0, 8)})"
+				: $"stale ({hash.Substring(0, 8)})";
+			EditorGUILayout.HelpBox($"{outcome}: {collider.BakeReason}\nBake {freshness}.", severity);
+
+			var spans = collider.SpanDescriptors;
+			if (spans.Count == 0) {
+				return;
+			}
+			EditorGUILayout.LabelField("Spans", EditorStyles.boldLabel);
+			EditorGUI.BeginDisabledGroup(true);
+			for (var i = 0; i < spans.Count; i++) {
+				var span = spans[i];
+				EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+				EditorGUILayout.LabelField($"Span {i + 1}", $"path element {span.PathElementIndex}");
+				EditorGUILayout.LabelField("Installed Stretch",
+					Format(span.InstalledStretch, "0.####") + "×");
+				EditorGUILayout.LabelField("Tension",
+					Format(RubberDeformationBaker.ForceToNewtons(span.InstalledTension), "0.####") + " N");
+				EditorGUILayout.LabelField("First-mode Frequency",
+					Format(RubberDeformationBaker.FrequencyHz(span.ModalStiffness.x, span.ModalMass.x), "0.##") + " Hz");
+				EditorGUILayout.LabelField("Deflection Cap",
+					Format(span.MaxDeflection, "0.###") + " VPX");
+				EditorGUILayout.LabelField("Segments", span.SegmentCount.ToString(CultureInfo.InvariantCulture));
+				EditorGUILayout.EndVertical();
+			}
+			EditorGUI.EndDisabledGroup();
+		}
+
+		private static string Format(float value, string format)
+			=> value.ToString(format, CultureInfo.InvariantCulture);
 
 		private bool AllTargetsCanUsePhysical()
 		{
