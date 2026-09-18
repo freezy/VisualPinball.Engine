@@ -404,6 +404,70 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		#region Preview
+
+		[NonSerialized] private bool _previewActive;
+		[NonSerialized] private Vector3 _previewArmRestEuler;
+
+		/// <summary>Whether an edit-mode preview currently poses the arm and the cord.</summary>
+		public bool IsPreviewing => _previewActive;
+
+		/// <summary>
+		/// Poses the arm and, with a renderer on the rubber, the cord between rest (0) and
+		/// the fully fired pose (1) outside play mode, so the arm's angle and contact
+		/// position can be aligned without starting a game. Zero puts everything back
+		/// as it was; nothing of the preview is saved. Ignored while the game runs.
+		/// </summary>
+		public void Preview(float amount01)
+		{
+			if (Application.isPlaying) {
+				return;
+			}
+			var amount = Mathf.Clamp01(float.IsFinite(amount01) ? amount01 : 0f);
+			if (amount <= 0f) {
+				EndPreview();
+				return;
+			}
+			if (!_previewActive) {
+				_previewActive = true;
+				_previewArmRestEuler = _coilArmVisual
+					? _coilArmVisual.transform.localEulerAngles
+					: Vector3.zero;
+			}
+			_armValue = amount;
+			ApplyArmRotation();
+
+			var renderer = DeformationRenderer;
+			if (renderer && TryResolveSpan(out var resolved, out _)) {
+				var depth = Mathf.Max(0f, ArmTipTravel - ArmRestClearance);
+				renderer.Preview(resolved.PathElementIndex,
+					resolved.ToPathCoordinate(Mathf.Clamp01(_armContactPosition01)),
+					-depth * amount);
+			}
+		}
+
+		/// <summary>
+		/// Ends the preview: the arm returns to where it was and the cord to its shared
+		/// mesh.
+		/// </summary>
+		public void EndPreview()
+		{
+			if (!_previewActive) {
+				return;
+			}
+			_previewActive = false;
+			_armValue = 0f;
+			if (_coilArmVisual) {
+				_coilArmVisual.transform.localEulerAngles = _previewArmRestEuler;
+			}
+			var renderer = DeformationRenderer;
+			if (renderer) {
+				renderer.EndPreview();
+			}
+		}
+
+		#endregion
+
 		#region Visuals
 
 		[NonSerialized] private PhysicsEngine _physicsEngine;

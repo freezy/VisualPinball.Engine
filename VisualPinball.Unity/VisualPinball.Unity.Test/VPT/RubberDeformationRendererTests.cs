@@ -217,6 +217,31 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldPoseTheCordInPreviewAndHandTheSharedMeshBackAfterwards()
+		{
+			using var fixture = Fixture.Create();
+			// as in edit mode: nothing acquired yet
+			fixture.Renderer.ReleaseMesh();
+			Assert.That(fixture.MeshFilter.sharedMesh, Is.SameAs(fixture.SharedMesh));
+
+			fixture.Renderer.Preview(0, 0.5f, -16f);
+
+			Assert.That(fixture.Renderer.IsPreviewing, Is.True);
+			Assert.That(fixture.MeshFilter.sharedMesh, Is.SameAs(fixture.Renderer.InstancedMesh));
+			Assert.That(fixture.Depth(), Is.EqualTo(-16f));
+			Assert.That(fixture.Renderer.InstancedMesh.vertices,
+				Is.Not.EqualTo(fixture.RestVertices).AsCollection, "the cord is posed");
+			Assert.That(fixture.SharedMesh.vertices, Is.EqualTo(fixture.RestVertices).AsCollection,
+				"the shared mesh is untouched");
+
+			fixture.Renderer.EndPreview();
+
+			Assert.That(fixture.Renderer.IsPreviewing, Is.False);
+			Assert.That(fixture.MeshFilter.sharedMesh, Is.SameAs(fixture.SharedMesh));
+			Assert.That(fixture.Renderer.InstancedMesh, Is.Null);
+		}
+
+		[Test]
 		public void ShouldKeepTheSharedMeshUntouchedAndRestoreItOnRelease()
 		{
 			using var fixture = Fixture.Create();
