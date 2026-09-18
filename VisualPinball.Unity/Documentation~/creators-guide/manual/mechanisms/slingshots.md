@@ -112,3 +112,42 @@ Before final testing, there are two things left to do:
 Then hit play and have a game!
 
 > [!Video https://www.youtube.com/embed/dNS4YPdRXTc]
+
+# Physical Slingshot
+
+The component above animates rubbers around a wall segment that Visual Pinball marks as a slingshot; the kick itself is the wall's velocity boost. VPE also has a *physical* slingshot that works the way the real assembly does: a blade switch closes when the rubber is pushed in far enough, a coil fires, and its arm kicks the ball that is still in front of the rubber. It needs a guided rubber with the [compliant rebound](xref:rubbers#compliant-rebound) enabled, because the switch reads the cord's deflection.
+
+## Requirements
+
+- A **Guided** rubber in **Physical** collision mode with **Compliant Rebound** enabled and baked as **Deformable**.
+- The slingshot binds to one **straight** free span of that rubber, identified by the two guides it runs between. A rubber on exactly two posts has two identical spans and cannot be bound; a slingshot rubber runs around three posts.
+- Optionally a **Rubber Deformation Renderer** on the rubber and a coil arm primitive, for the animation.
+
+## Creating One
+
+Select the rubber and use **GameObject → Pinball → Create Physical Slingshot On Rubber**. The wizard asks for the free span, creates a slingshot with two switch zones and sensible arm defaults, and reports anything the rubber still lacks. The inspector diagnoses the same things afterwards: rest length not configured, rebound not baked or stale, bound span not eligible.
+
+## Switch
+
+Two **Switch Zones** sit on the span at authored positions (`0` at the first guide, `1` at the second). When a ball deflects the cord, VPE evaluates the V-shaped deflection profile at each zone; a zone whose deflection reaches its **Close Deflection** closes and stays closed for its **Minimum Closed Time**. The two zones are combined into the slingshot's one logical switch, `slingshot_switch`, which the gamelogic engine and player wires see. *Open Deflection* is kept for a future version and has no effect.
+
+Because a physics switch can close and open again within one rendered frame, the slingshot stretches every pulse it delivers to the gamelogic engine to at least **Minimum Switch Pulse** milliseconds, so emulated hardware never misses it. Player wires get the raw edges.
+
+## Coil and Kick
+
+The coil, `slingshot_coil`, can be energized two ways:
+
+- **Self Wired** (on by default): the closing switch energizes the coil itself after **Wire Delay** milliseconds of simulation time, for **Self Wire Pulse** milliseconds, entirely inside the physics simulation. This is how a real slingshot is wired, and it is deterministic.
+- From the gamelogic engine or a player wire, like any other coil. Turn the self wire off when the game logic is supposed to control the slingshot.
+
+When the coil energizes, the arm kicks every ball in front of the rubber that is within its **Arm Tip Travel** minus **Arm Rest Clearance** of the cord and inside **Arm Half Width** of the **Arm Contact Position**, adding **Kick Speed** along the rubber's outward direction, scaled down toward the edges of the arm. The ball that closed the switch is kicked even if it has already bounced a little further away, as long as the coil fires within **Kick Window** milliseconds of the closure; that stands in for the time a real ball spends pressed into the rubber. A coil that fires with nothing in reach only animates, and a ball that hits the rubber while the coil is not commanded rebounds passively.
+
+The **Actuator** asset stays assigned and packaged for a future physical arm model; this version does not consult it.
+
+## Animation
+
+With a Rubber Deformation Renderer on the rubber, every hit twangs the cord inward and every coil firing pushes it outward at the arm position over the renderer's **Animation Duration** on its **Kick Curve**. The **Coil Arm** primitive rotates from **Visual Rest Angle** to **Visual Fired Angle** on the same curve, in the same simulation clock, so rubber and arm stay in phase.
+
+## Limitations
+
+The cord's collision geometry never moves: the rebound is instantaneous, a second ball never sees a deflected cord, and the kick is a velocity change rather than an arm pushing rubber. Rubbers with rounded corners keep the wall response. Game logic that queues switches on its own thread, such as the PinMAME integration, may still miss a pulse under heavy load; the self wire does not depend on it.
