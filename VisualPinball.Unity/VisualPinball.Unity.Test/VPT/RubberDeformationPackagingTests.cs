@@ -74,7 +74,9 @@ namespace VisualPinball.Unity.Test
 				Assert.That(span.InwardSign, Is.EqualTo(expected.InwardSign));
 				Assert.That(span.SegmentCount, Is.EqualTo(expected.SegmentCount));
 				Assert.That(span.ArcLengthFractions, Is.EqualTo(expected.ArcLengthFractions));
+				Assert.That(span.ReboundEligible, Is.True);
 				Assert.That(target.SpanDescriptors[1].InwardSign, Is.EqualTo((sbyte)-1));
+				Assert.That(target.SpanDescriptors[1].ReboundEligible, Is.False);
 
 				Assert.That(target.BackedResponseDescriptors.Count, Is.EqualTo(1));
 				var backed = target.BackedResponseDescriptors[0];
@@ -271,6 +273,94 @@ namespace VisualPinball.Unity.Test
 			}
 		}
 
+		[Test]
+		public void ShouldLoadVersionThreePayloadsAsAStaleBakeWithoutReboundEligibility()
+		{
+			var gameObject = new GameObject("Version 3 Rubber Collider");
+			gameObject.SetActive(false);
+			try {
+				gameObject.AddComponent<RubberComponent>();
+				var collider = gameObject.AddComponent<RubberColliderComponent>();
+
+				// version 3 knew nothing about rebound eligibility, so its span payloads
+				// carry the field's default
+				var span = RubberSpanDescriptorPackable.From(Span());
+				span.ReboundEligible = false;
+				var bytes = PackageApi.Packer.Pack(new RubberColliderPackable {
+					Version = 3,
+					Mode = (int)RubberColliderMode.Physical,
+					DeformationEnabled = true,
+					DeflectionClearance = 44f,
+					CompiledDeformationMaterial
+						= RubberCompiledDeformationMaterialPackable.From(Material()),
+					SpanDescriptors = new[] { span },
+					BackedResponseDescriptors = new[] {
+						RubberBackedResponseDescriptorPackable.From(BackedResponse()),
+					},
+					BakeOutcome = (int)RubberDeformationBakeOutcome.Deformable,
+					BakeReason = "written by the deformation commit",
+					DeformationBakeVersion = 1,
+					DeformationBakeHash = Hash('c'),
+				});
+				collider.Unpack(bytes);
+
+				// the data is restored ...
+				Assert.That(collider.DeformationEnabled, Is.True);
+				Assert.That(collider.DeflectionClearance, Is.EqualTo(44f));
+				Assert.That(collider.SpanDescriptors.Count, Is.EqualTo(1));
+				Assert.That(collider.SpanDescriptors[0].PathElementIndex, Is.EqualTo(2));
+				Assert.That(collider.SpanDescriptors[0].ReboundEligible, Is.False);
+				Assert.That(collider.BackedResponseDescriptors.Count, Is.EqualTo(1));
+				Assert.That(collider.BakeOutcome,
+					Is.EqualTo(RubberDeformationBakeOutcome.Deformable));
+				Assert.That(collider.DeformationBakeHash, Is.EqualTo(Hash('c')));
+
+				// ... but the bake is stale by version, so no span gets the compliant rebound
+				Assert.That(collider.DeformationBakeVersion, Is.EqualTo(1));
+				Assert.That(collider.DeformationBakeVersion,
+					Is.Not.EqualTo(RubberDeformationBakeFormat.BakeVersion));
+				Assert.That(RubberSpanReboundEligibility.IsBakeCurrent(collider), Is.False);
+				Assert.That(RubberSpanReboundEligibility.TryValidate(collider, out var reason),
+					Is.False);
+				Assert.That(reason, Does.Contain("stale"));
+			} finally {
+				Object.DestroyImmediate(gameObject);
+			}
+		}
+
+		[Test]
+		public void ACurrentBakeShouldBeAcceptedByTheRuntimeEligibilityCheck()
+		{
+			var gameObject = new GameObject("Current Rubber Collider");
+			gameObject.SetActive(false);
+			try {
+				gameObject.AddComponent<RubberComponent>();
+				var collider = gameObject.AddComponent<RubberColliderComponent>();
+				collider.Mode = RubberColliderMode.Physical;
+				collider.DeformationEnabled = true;
+				collider.ApplyDeformationBake(PopulatedMaterial(), new[] { Span() },
+					new[] { BackedResponse() }, RubberDeformationBakeOutcome.Deformable,
+					"one span compiled", RubberDeformationBakeFormat.BakeVersion, Hash('d'));
+
+				Assert.That(RubberSpanReboundEligibility.IsBakeCurrent(collider), Is.True);
+				Assert.That(RubberSpanReboundEligibility.TryValidate(collider, out var reason),
+					Is.True, reason);
+				Assert.That(RubberSpanReboundEligibility.EligibleDescriptors(collider).Count,
+					Is.EqualTo(1));
+			} finally {
+				Object.DestroyImmediate(gameObject);
+			}
+		}
+
+		private static RubberCompiledDeformationMaterial PopulatedMaterial()
+		{
+			var material = Material();
+			material.LinearDensity = 0.125f;
+			material.DampingRatio = 0.08f;
+			material.MaximumStretchRatio = 2f;
+			return material;
+		}
+
 		private static RubberCompiledDeformationMaterial Material()
 		{
 			var count = RubberCompiledDeformationMaterial.LutSampleCount;
@@ -303,6 +393,7 @@ namespace VisualPinball.Unity.Test
 				InwardSign = 1,
 				SegmentCount = 20,
 				ArcLengthFractions = Enumerable.Range(0, 21).Select(i => i / 20f).ToArray(),
+				ReboundEligible = true,
 			};
 		}
 
@@ -311,6 +402,7 @@ namespace VisualPinball.Unity.Test
 			var span = Span();
 			span.PathElementIndex = 4;
 			span.InwardSign = -1;
+			span.ReboundEligible = false;
 			span.SegmentCount = 16;
 			span.ArcLengthFractions = Enumerable.Range(0, 17).Select(i => i / 16f).ToArray();
 			return span;

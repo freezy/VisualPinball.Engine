@@ -556,6 +556,89 @@ namespace VisualPinball.Unity.Test
 			}
 		}
 
+		[Test]
+		public void ShouldMarkOnlyStraightFreeSpansAsReboundEligible()
+		{
+			using var fixtureScope = new Fixture(MixedStraightAndCurvedLoop());
+
+			var result = RubberDeformationBaker.Compute(fixtureScope.Collider);
+
+			Assert.That(result.Outcome, Is.EqualTo(RubberDeformationBakeOutcome.Deformable),
+				result.Reason);
+			Assert.That(result.Spans, Has.Length.EqualTo(4));
+			foreach (var span in result.Spans) {
+				var element = fixtureScope.Rubber.BakedPath[span.PathElementIndex];
+				Assert.That(span.ReboundEligible,
+					Is.EqualTo(RubberPathMath.IsStraightFreeSpan(element)),
+					$"span {span.PathElementIndex}");
+			}
+			Assert.That(result.Spans.Count(span => span.ReboundEligible), Is.EqualTo(3));
+			Assert.That(result.Spans.Count(span => !span.ReboundEligible), Is.EqualTo(1));
+		}
+
+		[Test]
+		public void ShouldMarkEveryFreeSpanOfAGuidedRubberAsReboundEligible()
+		{
+			using var fixtureScope = new Fixture();
+
+			var result = RubberDeformationBaker.Compute(fixtureScope.Collider);
+
+			Assert.That(result.Outcome, Is.EqualTo(RubberDeformationBakeOutcome.Deformable),
+				result.Reason);
+			Assert.That(result.Spans, Is.Not.Empty);
+			foreach (var span in result.Spans) {
+				Assert.That(span.ReboundEligible, Is.True,
+					$"span {span.PathElementIndex} of a guided rubber is a straight tangent");
+			}
+		}
+
+		[Test]
+		public void ShouldFallBackToStaticWhenTheRubberHasRoundedCorners()
+		{
+			using var fixtureScope = new Fixture();
+			fixtureScope.Rubber.Roundness = 0.5f;
+
+			var result = RubberDeformationBaker.Compute(fixtureScope.Collider);
+
+			Assert.That(result.Outcome, Is.EqualTo(RubberDeformationBakeOutcome.StaticFallback));
+			Assert.That(result.Reason,
+				Does.Contain(RubberDeformationBaker.RoundnessFallbackReason));
+			Assert.That(result.Spans, Is.Empty);
+		}
+
+		[Test]
+		public void ShouldAcceptTheDefaultDeformationMaterialDomain()
+		{
+			var material = DefaultMaterial();
+			try {
+				Assert.That(RubberDeformationBaker.TryCompileMaterial(material, SpanThickness,
+					out var compiled, out var compileError), Is.True, compileError);
+				Assert.That(RubberDeformationBaker.IsMaterialDomainValid(in compiled,
+					SpanStretch, out var domainError), Is.True, domainError);
+				for (var i = 0; i < compiled.StressLut.Length; i++) {
+					Assert.That(compiled.StressLut[i], Is.GreaterThanOrEqualTo(0f),
+						$"sample {i} of the default curve");
+				}
+			} finally {
+				Object.DestroyImmediate(material);
+			}
+		}
+
+		[Test]
+		public void ShouldRejectAMaterialWhoseTensionVanishesAboveTheInstalledStretch()
+		{
+			using var fixtureScope = new Fixture();
+			// positive at the installed stretch, then flat at zero up to the maximum
+			fixtureScope.Material.NominalStressMpaByStretchRatio = new AnimationCurve(
+				new Keyframe(1f, 0f, 0f, 0f), new Keyframe(1.2f, 1f, 0f, 0f),
+				new Keyframe(1.5f, 0f, 0f, 0f), new Keyframe(2f, 0f, 0f, 0f));
+
+			var result = RubberDeformationBaker.Compute(fixtureScope.Collider);
+
+			Assert.That(result.Outcome, Is.EqualTo(RubberDeformationBakeOutcome.Invalid));
+			Assert.That(result.Reason, Does.Contain("not positive"));
+		}
+
 		#endregion
 
 		#region Hash
@@ -901,6 +984,31 @@ namespace VisualPinball.Unity.Test
 					Control2 = new float2(radius * sign, -handle),
 					End = new float2(radius * sign, 0f),
 				},
+			});
+		}
+
+		/// <summary>
+		/// A rectangle whose top edge bulges gently, so three free spans are straight and
+		/// one is not, and every one of them stays inside the chord budget.
+		/// </summary>
+		private static RubberPathElement[] MixedStraightAndCurvedLoop()
+		{
+			var corners = new[] {
+				new float2(0f, 0f), new float2(200f, 0f),
+				new float2(200f, 100f), new float2(0f, 100f),
+			};
+			var bulged = new RubberPathElement {
+				Type = RubberPathElementType.FreeSpan,
+				Start = corners[2],
+				End = corners[3],
+				Control1 = math.lerp(corners[2], corners[3], 1f / 3f) + new float2(0f, 10f),
+				Control2 = math.lerp(corners[2], corners[3], 2f / 3f) + new float2(0f, 10f),
+			};
+			return Close(new[] {
+				StraightSpan(corners[0], corners[1]),
+				StraightSpan(corners[1], corners[2]),
+				bulged,
+				StraightSpan(corners[3], corners[0]),
 			});
 		}
 

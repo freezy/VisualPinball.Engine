@@ -88,6 +88,13 @@ namespace VisualPinball.Unity
 		public int SegmentCount;
 
 		/// <summary>
+		/// Whether this span may use the compliant rebound of the static-rebound plan's
+		/// section 2. It requires a straight free span; curved spans keep the static
+		/// round-cord response.
+		/// </summary>
+		public bool ReboundEligible;
+
+		/// <summary>
 		/// Curve parameters of the <see cref="SegmentCount"/> + 1 chain points, so that
 		/// consecutive points are spaced uniformly in arc length.
 		/// <c>ArcLengthFractions[k]</c> is the parameter <c>t</c> to pass to

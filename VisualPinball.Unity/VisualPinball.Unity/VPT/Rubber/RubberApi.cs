@@ -51,9 +51,14 @@ namespace VisualPinball.Unity
 					Debug.LogWarning($"Physical rubber '{MainComponent.name}' has no usable serialized guided path; falling back to Legacy collision.",
 						MainComponent);
 				} else {
+					// The collector is only set while the physics engine creates its
+					// colliders; the editor's collider preview leaves it null, so this
+					// path stays free of side effects there.
 					var physicalGenerator = new RubberPhysicalColliderGenerator(this, MainComponent,
 						translateWithinPlayfieldMatrix,
-						ColliderComponent.GuideDistanceElasticitySettings);
+						ColliderComponent.GuideDistanceElasticitySettings,
+						ColliderComponent,
+						PhysicsEngine ? PhysicsEngine.RubberSpanCollector : null);
 					physicalGenerator.GenerateColliders(ColliderComponent.ZOffset, ref colliders, margin);
 					return;
 				}

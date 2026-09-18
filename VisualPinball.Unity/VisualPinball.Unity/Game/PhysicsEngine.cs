@@ -178,6 +178,13 @@ namespace VisualPinball.Unity
 		/// </summary>
 		[NonSerialized] private PhysicsEngineThreading _threading;
 
+		/// <summary>
+		/// Non-null only while <see cref="Start"/> creates colliders. A compliant rubber
+		/// appends its span records here instead of registering them itself, which keeps
+		/// <c>RubberApi.CreateColliders</c> pure for the collider gizmo.
+		/// </summary>
+		[NonSerialized] internal RubberSpanReboundCollector RubberSpanCollector;
+
 		// Lifecycle-local references (used during Awake/Start, then passed
 		// to _threading constructor).
 		[NonSerialized] private Player _player;
@@ -1158,6 +1165,12 @@ namespace VisualPinball.Unity
 			Debug.Log($"Found {_colliderComponents.Length} collidable items ({_colliderComponents.Count(c => c.IsKinematic)} kinematic) and {_kinematicTransformComponents.Length} kinematic transforms.");
 			var colliders = new ColliderReference(ref _ctx.NonTransformableColliderTransforms.Ref, Allocator.Temp);
 			var kinematicColliders = new ColliderReference(ref _ctx.NonTransformableColliderTransforms.Ref, Allocator.Temp, true);
+
+			// Collider generation stays pure, so a compliant rubber only appends its span
+			// records here and stamps its capsules with per-rubber indices; the dense span
+			// ids are assigned below, once every collider exists and before the colliders
+			// are copied into their native arrays.
+			RubberSpanCollector = new RubberSpanReboundCollector();
 			foreach (var colliderItem in _colliderComponents) {
 				if (!colliderItem.IsCollidable) {
 					_ctx.DisabledCollisionItems.Ref.Add(colliderItem.ItemId);
@@ -1173,6 +1186,11 @@ namespace VisualPinball.Unity
 					colliderItem.GetColliders(_player, this, ref colliders, translateWithinPlayfieldMatrix, 0);
 				}
 			}
+
+			// register the compliant rubber spans and stamp their dense ids on the capsules
+			RubberSpanCollector.Register(ref colliders, ref kinematicColliders,
+				ref _ctx.RubberSpanRebounds.Ref);
+			RubberSpanCollector = null;
 
 			// allocate colliders
 			_ctx.Colliders = new NativeColliders(ref colliders, Allocator.Persistent);

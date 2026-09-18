@@ -92,7 +92,7 @@ namespace VisualPinball.Unity
 		private float _maximumResponseSegmentLength = DefaultMaximumResponseSegmentLength;
 
 		[SerializeField]
-		[Tooltip("Turn the free spans of this Physical rubber into damped, pinned transverse oscillators. Experimental; requires the VPE_EXPERIMENTAL_RUBBER_DEFORMATION scripting define to run.")]
+		[Tooltip("Let the straight free spans of this Physical rubber rebound off a massless-string model, so the rebound direction and speed depend on where and how hard the ball hits. The collision geometry stays static.")]
 		private bool _deformationEnabled;
 		[SerializeField]
 		[Min(MinimumDeflectionClearance)]
@@ -154,9 +154,9 @@ namespace VisualPinball.Unity
 		#region Deformation
 
 		/// <summary>
-		/// Opt-in for the experimental free-span deformation of this Physical rubber.
-		/// It only takes effect with a current <see cref="RubberDeformationBakeOutcome.Deformable"/>
-		/// bake and a runtime compiled with the experimental scripting define.
+		/// Opt-in for the compliant free-span rebound of this Physical rubber. It only
+		/// takes effect with a current <see cref="RubberDeformationBakeOutcome.Deformable"/>
+		/// bake, and only on the spans the bake marked rebound-eligible.
 		/// </summary>
 		public bool DeformationEnabled {
 			get => _deformationEnabled;

@@ -169,6 +169,12 @@ namespace VisualPinball.Unity
 		internal NativeParallelHashMap<int, TriggerState> TriggerStates;
 		internal NativeParallelHashSet<int> DisabledCollisionItems;
 
+		/// <summary>
+		/// Constant per-span data of the compliant rubber rebound, keyed by the dense
+		/// span id a tagged <see cref="SweptCircleCollider"/> carries. Read only.
+		/// </summary>
+		internal NativeParallelHashMap<int, RubberSpanRebound> RubberSpanRebounds;
+
 		[MarshalAs(UnmanagedType.U1)]
 		internal bool SwapBallCollisionHandling;
 
@@ -192,7 +198,8 @@ namespace VisualPinball.Unity
 			ref NativeParallelHashMap<int, FixedList512Bytes<float>> frictionOverVelocityLUTs,
 			ref NativeParallelHashMap<int, KinematicVelocityState> kinematicVelocities,
 			ref NativeParallelHashSet<int> kinematicItemsOutOfOctree,
-			ref NativeParallelHashMap<int, Aabb> kinematicMovingItemBounds)
+			ref NativeParallelHashMap<int, Aabb> kinematicMovingItemBounds,
+			ref NativeParallelHashMap<int, RubberSpanRebound> rubberSpanRebounds)
 		{
 			Env = env;
 			Octree = octree;
@@ -227,6 +234,7 @@ namespace VisualPinball.Unity
 			KinematicVelocities = kinematicVelocities;
 			KinematicItemsOutOfOctree = kinematicItemsOutOfOctree;
 			KinematicMovingItemBounds = kinematicMovingItemBounds;
+			RubberSpanRebounds = rubberSpanRebounds;
 		}
 
 		internal ref ColliderHeader GetColliderHeader(ref NativeColliders colliders, int colliderId) => ref colliders.GetHeader(colliderId);
