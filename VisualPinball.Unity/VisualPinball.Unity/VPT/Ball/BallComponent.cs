@@ -48,7 +48,8 @@ namespace VisualPinball.Unity
 				BallOrientation = float3x3.identity,
 				BallOrientationForUnity = float3x3.identity,
 				RingCounterOldPos = 0,
-				AngularMomentum = float3.zero
+				AngularMomentum = float3.zero,
+				CollisionEvent = CollisionEventData.None
 			};
 		}
 

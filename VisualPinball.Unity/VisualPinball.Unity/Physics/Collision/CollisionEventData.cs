@@ -32,7 +32,13 @@ namespace VisualPinball.Unity
 		public int ColliderId;
 		public bool IsKinematic;
 		public int BallId;
-		
+
+		/// <summary>
+		/// No pending collision. The default value of this struct is a hit with collider 0 at
+		/// time 0, so every new ball has to start out with this instead.
+		/// </summary>
+		public static CollisionEventData None => new() { ColliderId = -1 };
+
 		public void SetCollider(int colliderId, bool isKinematic)
 		{
 			// it's either collider id (for static colliders) or ball id (for dynamic colliders)
