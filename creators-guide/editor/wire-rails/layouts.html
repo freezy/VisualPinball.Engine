@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Wire Layouts | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Wire Layouts | VPE Documentation ">
+      
+      <meta name="description" content="Define which wires make up the rail and where they sit, and change that along the route.">
+      <link rel="icon" href="../../../favicon.png">
+      <link rel="stylesheet" href="../../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../../public/main.css">
+      <link rel="stylesheet" href="../../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../../toc.html">
+      <meta name="docfx:tocrel" content="../../toc.html">
+      
+      <meta name="docfx:rel" content="../../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/wire-rails/layouts.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../../public/docfx.min.js"></script>
+      <script src="./../../../public/mermaid-11.14.0.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../../index.html">
+            <img id="logo" class="svg" src="../../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="wire_rail_layouts">
+<h1 id="wire-layouts">Wire Layouts</h1>
+
+<p>A layout is a snapshot of the cross-section at one point of the route. For each of the rail's wires it says whether the wire exists here, and where it sits. The layout holds from its position until the next layout, and between two layouts the wires glide from one arrangement to the other.</p>
+<p>A new rail has a single layout at the start of the route, which is all a rail with a constant cross-section needs. You add layouts where the cross-section changes: where a guide opens into a two-wire habitrail, where a rail narrows to funnel the ball, or where an extra wire begins.</p>
+<p><img src="layout-panel.png" alt="A layout panel">
+<small>A six-wire layout with wire 3 selected. Disabled wires draw gray.</small></p>
+<h2 id="how-many-wires">How many wires</h2>
+<p><strong>Rails</strong>, in the <em>Render Geometry</em> section, sets how many wires the rail has, from one to six. The count applies to the whole rail. Individual layouts then turn wires on and off. The default arrangements are sized around a 50 unit ball:</p>
+<table>
+<thead>
+<tr>
+<th>Rails</th>
+<th>Arrangement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>A single wire under the ball</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Two bottom rails, 30 units apart</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Two bottom rails plus one raised rail, on the side chosen with <strong>Third Rail</strong></td>
+</tr>
+<tr>
+<td>4</td>
+<td>Bottom pair plus a raised pair on both sides: the classic habitrail</td>
+</tr>
+<tr>
+<td>5</td>
+<td>The four-wire rail with a top center wire</td>
+</tr>
+<tr>
+<td>6</td>
+<td>The four-wire rail with two top wires</td>
+</tr>
+</tbody>
+</table>
+<p>Bottom rails sit 15 units either side of center, raised rails 30 units out and 30 up, top rails 60 up. They are starting points, not constraints.</p>
+<p>Changing the count keeps offsets you've customized and adds new wires at their default positions, enabled in every layout. A layout that is still exactly at its defaults is re-laid out for the new count.</p>
+<div class="WARNING">
+<h5>Warning</h5>
+<p>With three rails, switching <strong>Third Rail</strong> between Left and Right resets that layout to the defaults, including the two bottom wires.</p>
+</div>
+<h2 id="positioning-wires">Positioning wires</h2>
+<p>The cross-section view is interactive. Click a wire to select it, shift-click to add to the selection, ctrl-click (cmd on macOS) to toggle. Drag a selected wire and every selected wire moves with it. Or type into <strong>X</strong> (sideways, positive to the right) and <strong>Z</strong> (up). When the selected wires have different values, the field shows a dash and only the axis you edit is applied to all of them.</p>
+<p>The checkbox before <strong>Position</strong> enables or disables the selected wires for this layout's span. A disabled wire is drawn gray, keeps its position and stays editable. It just isn't generated between this layout and the next.</p>
+<p><strong>Apply to All</strong> copies the selected wires' positions into every other layout, without touching which wires are enabled there. <strong>Reset</strong> puts the whole layout back to the defaults, not only the selection.</p>
+<div class="TIP">
+<h5>Tip</h5>
+<p>Keep wires 1 and 2 as the pair the ball rolls on. The collider fits the ball between those two, and rungs and stands attach to them. A rail where the ball rests on other wires gets its channel fitted around the wrong ones.</p>
+</div>
+<h2 id="adding-layouts-along-the-route">Adding layouts along the route</h2>
+<p>A layout sits at a <strong>Position</strong> in units along the route, independent of the knots. Inserting a knot doesn't add a layout, and moving a layout doesn't move the route. The first layout is pinned at 0. Every other position can be anything along the route: move a layout past its neighbor and the two simply swap places, keeping their names.</p>
+<p><strong>Add Wire Layout</strong> appends a layout halfway between the last two layouts on the route, or halfway to the end if there is only one. With a layout selected, the button turns into <strong>Duplicate Layout N</strong> and places the copy halfway to the next layout, or halfway to the end of the route for the last one. Either way, the new layout starts as a copy of the one before it, so you only change what differs.</p>
+<p>With a layout selected, the Scene view shows an arrow at the start of its span and one at the start of the next. Drag either along the route to move that layout.</p>
+<p>Layouts can be dragged in the list to reorder them. That changes their numbering and nothing else. A layout's place on the route is its <strong>Position</strong>.</p>
+<h2 id="transitions">Transitions</h2>
+<p>Below each layout is its <strong>Transition to Layout N</strong> box. By default every wire is <em>continuous</em>: it leaves this layout's position and arrives at the next layout's position over the whole span between them, moving at a constant rate. The tube is unbroken, the collider follows, and the bend is smoothed across the boundary so a wire that jumps far sideways doesn't crease.</p>
+<p><img src="layout-transition.png" alt="A transition">
+<small>The outside bend can be achieved by moving all wires to the outside, along with a curve that represents the crease.</small></p>
+<p>Wires only get a row when you ask for one. The numbered <strong>Override Wires</strong> buttons expose a wire's controls:</p>
+<ul>
+<li>Clear <strong>Continuous</strong> when the wire should end at the boundary and start fresh at the next layout's position. Both ends get caps.</li>
+<li>The curve reshapes the move over the span. Horizontal is the span, vertical is how much of the move has happened. The endpoints always count as 0 and 1, so the wire lands exactly on both layouts however you bend the middle.</li>
+</ul>
+<p>Turning an override off restores the continuous, linear default. Buttons are disabled for wires that aren't active in both layouts. A wire that is inactive on one side simply ends or begins at the boundary, with a cap.</p>
+<p>When wires actually move between two layouts, the box says so (<em>Blending Wires 3, 4</em>), which is handy for spotting an accidental nudge.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/wire-rails/layouts.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2026 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    if (window.mermaid) {
+      const getMermaidConfig = () => {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        return {
+          startOnLoad: false,
+          theme: 'base',
+          treeView: isDark ? {
+            labelColor: '#f8f9fa',
+            lineColor: '#b7bcc4'
+          } : {
+            labelColor: '#212529',
+            lineColor: '#8a8f98'
+          },
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: '#1f2328',
+            primaryColor: '#1f2328',
+            primaryTextColor: '#f8f9fa',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#292e33',
+            secondaryTextColor: '#f8f9fa',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#20242a',
+            tertiaryTextColor: '#f8f9fa',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#292e33',
+            clusterBorder: '#6c757d',
+            lineColor: '#b7bcc4',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#f8f9fa',
+            mainBkg: '#1f2328',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          } : {
+            darkMode: false,
+            background: '#ffffff',
+            primaryColor: '#f6f7f9',
+            primaryTextColor: '#212529',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#ffffff',
+            secondaryTextColor: '#212529',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#eceff3',
+            tertiaryTextColor: '#212529',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#f3f3f3',
+            clusterBorder: '#c7cbd1',
+            lineColor: '#8a8f98',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#212529',
+            mainBkg: '#f6f7f9',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          }
+        };
+      };
+
+      const initializeMermaidBlocks = () => {
+        const mermaidBlocks = document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid, pre code.mermaid');
+        mermaidBlocks.forEach((block) => {
+          const pre = block.parentElement;
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.dataset.mermaidSource = block.textContent;
+          container.textContent = block.textContent;
+          pre.replaceWith(container);
+        });
+      };
+
+      const renderMermaidBlocks = async () => {
+        const mermaidContainers = document.querySelectorAll('.mermaid[data-mermaid-source]');
+        if (mermaidContainers.length === 0) {
+          return;
+        }
+
+        mermaid.initialize(getMermaidConfig());
+
+        mermaidContainers.forEach((container) => {
+          container.removeAttribute('data-processed');
+          container.innerHTML = '';
+          container.textContent = container.dataset.mermaidSource;
+        });
+
+        await mermaid.run({ querySelector: '.mermaid[data-mermaid-source]' });
+      };
+
+      initializeMermaidBlocks();
+      renderMermaidBlocks();
+
+      let currentMermaidTheme = document.documentElement.getAttribute('data-bs-theme');
+      new MutationObserver(() => {
+        const nextTheme = document.documentElement.getAttribute('data-bs-theme');
+        if (nextTheme !== currentMermaidTheme) {
+          currentMermaidTheme = nextTheme;
+          renderMermaidBlocks();
+        }
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    }
+
+    const updateAffixHighlight = () => {
+      const affix = document.getElementById('affix');
+      if (!affix) {
+        return;
+      }
+
+      const links = Array.from(affix.querySelectorAll('a[href^="#"]'));
+      if (links.length === 0) {
+        return;
+      }
+
+      const sections = links.map((link) => {
+        const id = decodeURIComponent(link.getAttribute('href').slice(1));
+        const heading = document.getElementById(id);
+        return heading ? { link, heading } : null;
+      }).filter(Boolean);
+
+      if (sections.length === 0) {
+        return;
+      }
+
+      const threshold = 140;
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.heading.getBoundingClientRect().top - threshold <= 0) {
+          current = section;
+        } else {
+          break;
+        }
+      }
+
+      links.forEach((link) => {
+        link.classList.toggle('is-current', link === current.link);
+        if (link === current.link) {
+          link.setAttribute('aria-current', 'location');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+    }
+
+    const affixRoot = document.getElementById('affix');
+    if (affixRoot) {
+      let affixFrame = null;
+      const scheduleAffixHighlight = () => {
+        if (affixFrame !== null) {
+          cancelAnimationFrame(affixFrame);
+        }
+        affixFrame = requestAnimationFrame(() => {
+          affixFrame = null;
+          updateAffixHighlight();
+        });
+      }
+
+      scheduleAffixHighlight();
+      new MutationObserver(scheduleAffixHighlight).observe(affixRoot, { childList: true, subtree: true });
+      window.addEventListener('scroll', scheduleAffixHighlight, { passive: true });
+      window.addEventListener('resize', scheduleAffixHighlight, { passive: true });
+    }
+
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>
