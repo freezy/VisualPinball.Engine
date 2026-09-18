@@ -125,7 +125,11 @@ The component above animates rubbers around a wall segment that Visual Pinball m
 
 ## Creating One
 
-Select the rubber and use **GameObject → Pinball → Create Physical Slingshot On Rubber**. The wizard asks for the free span, creates a slingshot with two switch zones and sensible arm defaults, and reports anything the rubber still lacks. The inspector diagnoses the same things afterwards: rest length not configured, rebound not baked or stale, bound span not eligible.
+The physical slingshot is a component of its rubber, and a rubber has at most one. Select the rubber. In the Scene view, every free span the slingshot can bind to is highlighted, with an **Add Slingshot** button at its midpoint. Click the button on the span that faces the ball, usually the long side of the triangle, and VPE adds a *Rubber Slingshot* component to the rubber, bound to that span, with two switch zones and sensible arm defaults. From then on the bound span is marked *Slingshot* and every other span offers **Move Slingshot Here**, which re-binds it. Below the buttons, one hint names the first thing the rubber still lacks, such as a rest length or a baked rebound. You can add the slingshot before fixing that, but it cannot fire until you do.
+
+The same is available from the menu: **GameObject → Pinball → Add Physical Slingshot To Rubber** opens a small window that lists the free spans by their guides.
+
+Either way, the slingshot needs a *Slingshot Actuator* asset. If the project has none, one is created with default values at `Assets/Slingshot Actuator.asset`. The current version does not consult it, see below. The slingshot inspector diagnoses the same things afterwards: rest length not configured, rebound not baked or stale, bound span not eligible.
 
 ## Switch
 

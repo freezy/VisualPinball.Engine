@@ -25,6 +25,7 @@ namespace VisualPinball.Unity
 
 	[PackAs("RubberSlingshot")]
 	[AddComponentMenu("Pinball/Game Item/Rubber Slingshot")]
+	[DisallowMultipleComponent]
 	public sealed class RubberSlingshotComponent : MonoBehaviour,
 		ISwitchDeviceComponent, ICoilDeviceComponent, IPackable
 	{
@@ -43,7 +44,6 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		[SerializeField] private RubberComponent _rubber;
 		[SerializeField] private RubberSpanBinding _span;
 		[SerializeField] private SlingshotSwitchZone[] _switchZones = {
 			new() { Position01 = 0.3f, CloseDeflection = 4f, OpenDeflection = 2f, MinimumClosedTimeMs = 8f },
@@ -80,7 +80,19 @@ namespace VisualPinball.Unity
 		[SerializeField] private float _visualRestAngle;
 		[SerializeField] private float _visualFiredAngle = 20f;
 
-		public RubberComponent Rubber { get => _rubber; set => _rubber = value; }
+		/// <summary>
+		/// The rubber this slingshot belongs to: the one on the same game object. The
+		/// slingshot is one of the rubber's components, so nothing has to be wired.
+		/// </summary>
+		public RubberComponent Rubber {
+			get {
+				if (!_rubber) {
+					_rubber = GetComponent<RubberComponent>();
+				}
+				return _rubber;
+			}
+		}
+		[NonSerialized] private RubberComponent _rubber;
 		public RubberSpanBinding Span { get => _span; set => _span = value; }
 		public SlingshotSwitchZone[] SwitchZones {
 			get => _switchZones ?? Array.Empty<SlingshotSwitchZone>();
@@ -192,11 +204,14 @@ namespace VisualPinball.Unity
 			=> RubberSlingshotReferencesPackable.Unpack(data, this, root, refs, files);
 
 		public bool TryResolveSpan(out ResolvedRubberSpan resolved, out string error)
-			=> RubberSpanResolver.TryResolve(_rubber, _span, out resolved, out error);
+			=> RubberSpanResolver.TryResolve(Rubber, _span, out resolved, out error);
 
 		public IReadOnlyList<string> ValidateConfiguration(bool includeSceneUniqueness = false)
 		{
 			var errors = new List<string>();
+			if (!Rubber) {
+				errors.Add("A physical slingshot must be a component of a rubber.");
+			}
 			var spanResolved = TryResolveSpan(out var resolved, out var spanError);
 			if (!spanResolved) {
 				errors.Add(spanError);
@@ -237,7 +252,7 @@ namespace VisualPinball.Unity
 			if (includeSceneUniqueness && spanResolved && errors.Count == 0) {
 				foreach (var other in FindObjectsByType<RubberSlingshotComponent>(
 					FindObjectsInactive.Include, FindObjectsSortMode.None)) {
-					if (other == this || other._rubber != _rubber
+					if (other == this || other.Rubber != Rubber
 						|| !other.TryResolveSpan(out var otherResolved, out _)) {
 						continue;
 					}
@@ -257,16 +272,16 @@ namespace VisualPinball.Unity
 		private IEnumerable<string> ValidateReboundEligibility(bool spanResolved,
 			ResolvedRubberSpan resolved)
 		{
-			if (!_rubber) {
+			if (!Rubber) {
 				yield break;
 			}
-			var collider = _rubber.GetComponent<RubberColliderComponent>();
+			var collider = Rubber.GetComponent<RubberColliderComponent>();
 			if (!collider || !collider.DeformationEnabled) {
-				yield return $"Rubber '{_rubber.name}' needs the compliant rebound enabled on its collider.";
+				yield return $"Rubber '{Rubber.name}' needs the compliant rebound enabled on its collider.";
 				yield break;
 			}
 			if (!RubberSpanReboundEligibility.TryValidate(collider, out var reason)) {
-				yield return $"Rubber '{_rubber.name}' cannot use the compliant rebound: {reason}";
+				yield return $"Rubber '{Rubber.name}' cannot use the compliant rebound: {reason}";
 				yield break;
 			}
 			if (!spanResolved) {
@@ -281,11 +296,10 @@ namespace VisualPinball.Unity
 			yield return "The bound free span is not eligible for the compliant rebound; bake the rubber again.";
 		}
 
-		internal void RestoreReferences(RubberComponent rubber,
-			RubberGuideComponent startGuide, RubberGuideComponent endGuide,
-			SlingshotActuatorAsset actuator, GameObject coilArmVisual)
+		internal void RestoreReferences(RubberGuideComponent startGuide,
+			RubberGuideComponent endGuide, SlingshotActuatorAsset actuator,
+			GameObject coilArmVisual)
 		{
-			_rubber = rubber;
 			_span.StartSupport.Guide = startGuide;
 			_span.EndSupport.Guide = endGuide;
 			_actuator = actuator;
@@ -315,7 +329,7 @@ namespace VisualPinball.Unity
 			var state = new RubberSlingshotState {
 				SpanId = -1,
 				PathElementIndex = -1,
-				RubberItemId = _rubber ? UnityObjectId.Get(_rubber.gameObject) : 0,
+				RubberItemId = Rubber ? UnityObjectId.Get(Rubber.gameObject) : 0,
 				SelfWired = (byte)(_selfWired ? 1 : 0),
 				WireDelayUsec = ToUsec(WireDelayMs),
 				SelfWirePulseUsec = ToUsec(SelfWirePulseMs),
@@ -410,8 +424,8 @@ namespace VisualPinball.Unity
 			get {
 				// not latched, so a renderer added later — a package load creates components
 				// in an order this component does not control — is still picked up
-				if (!_renderer && _rubber) {
-					_renderer = _rubber.GetComponent<RubberDeformationRenderer>();
+				if (!_renderer && Rubber) {
+					_renderer = Rubber.GetComponent<RubberDeformationRenderer>();
 				}
 				return _renderer;
 			}

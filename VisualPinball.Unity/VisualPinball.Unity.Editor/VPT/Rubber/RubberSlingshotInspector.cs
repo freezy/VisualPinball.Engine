@@ -15,7 +15,6 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(RubberSlingshotComponent))]
 	public sealed class RubberSlingshotInspector : UnityEditor.Editor
 	{
-		private SerializedProperty _rubber;
 		private SerializedProperty _span;
 		private SerializedProperty _switchZones;
 		private SerializedProperty _armContactPosition;
@@ -36,7 +35,6 @@ namespace VisualPinball.Unity.Editor
 
 		private void OnEnable()
 		{
-			_rubber = serializedObject.FindProperty("_rubber");
 			_span = serializedObject.FindProperty("_span");
 			_switchZones = serializedObject.FindProperty("_switchZones");
 			_armContactPosition = serializedObject.FindProperty("_armContactPosition01");
@@ -60,7 +58,6 @@ namespace VisualPinball.Unity.Editor
 		{
 			serializedObject.Update();
 			EditorGUILayout.LabelField("Active Span", EditorStyles.boldLabel);
-			EditorGUILayout.PropertyField(_rubber);
 			EditorGUILayout.PropertyField(_span);
 
 			EditorGUILayout.Space();

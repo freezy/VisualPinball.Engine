@@ -311,6 +311,7 @@ namespace VisualPinball.Unity.Editor
 					: new Color(1f, 0.55f, 0.1f, 1f);
 				DrawPathElement(MainComponent, element);
 			}
+			DrawSlingshotHandles((RubberComponent)target);
 
 			var resolution = RubberGuideResolver.Resolve(MainComponent);
 			if (!resolution.IsValid) {
@@ -352,5 +353,84 @@ namespace VisualPinball.Unity.Editor
 			return localVpx.TranslateToWorld(rubber.transform);
 		}
 
+		#region Slingshot Handles
+
+		private static readonly Color AvailableSpanColor = new(0.35f, 1f, 0.45f, 1f);
+		private static readonly Color BoundSpanColor = new(1f, 0.45f, 0.05f, 1f);
+		private static GUIStyle _spanButtonStyle;
+		private static GUIStyle _hintStyle;
+
+		/// <summary>
+		/// Offers the physical slingshot in the scene, on every free span the wizard
+		/// would offer. A rubber without a slingshot gets an "Add Slingshot" button at
+		/// each span's midpoint; once it has one, the bound span is marked and the other
+		/// spans offer to move the slingshot there. One hint below names the first thing
+		/// the rubber still lacks before its slingshot can fire.
+		/// </summary>
+		private static void DrawSlingshotHandles(RubberComponent rubber)
+		{
+			if (!RubberSlingshotAuthoring.IsEligibleRubber(rubber)) {
+				return;
+			}
+			var candidates = RubberSlingshotAuthoring.FindSpans(rubber);
+			if (candidates.Count == 0) {
+				return;
+			}
+			var slingshot = RubberSlingshotAuthoring.SlingshotOf(rubber);
+			foreach (var candidate in candidates) {
+				Handles.color = candidate.IsBound ? BoundSpanColor : AvailableSpanColor;
+				DrawPathElement(rubber, candidate.Element);
+			}
+
+			_spanButtonStyle ??= new GUIStyle(EditorStyles.miniButton) {
+				padding = new RectOffset(8, 8, 3, 3),
+			};
+			_hintStyle ??= new GUIStyle(EditorStyles.helpBox) {
+				wordWrap = false,
+				alignment = TextAnchor.MiddleCenter,
+			};
+
+			Handles.BeginGUI();
+			var hint = RubberSlingshotAuthoring.DescribeMissing(rubber);
+			var lowest = new Vector2(float.NaN, float.NegativeInfinity);
+			foreach (var candidate in candidates) {
+				var midpoint = BakeToWorld(rubber,
+					RubberPathMath.PointAt(candidate.Element, 0.5f));
+				var gui = HandleUtility.WorldToGUIPointWithDepth(midpoint);
+				if (gui.z < 0f) {
+					continue;
+				}
+				var label = RubberSlingshotAuthoring.Label(candidate.Binding);
+				var content = candidate.IsBound
+					? new GUIContent("Slingshot", $"The slingshot is bound to {label}.")
+					: slingshot
+						? new GUIContent("Move Slingshot Here", $"Bind the slingshot to {label} instead.")
+						: new GUIContent("Add Slingshot", $"Add a physical slingshot to the rubber, bound to {label}.");
+				var size = _spanButtonStyle.CalcSize(content);
+				var rect = new Rect(gui.x - size.x * 0.5f, gui.y - size.y * 0.5f, size.x, size.y);
+				if (candidate.IsBound) {
+					GUI.Label(rect, content, _spanButtonStyle);
+				} else if (GUI.Button(rect, content, _spanButtonStyle)) {
+					if (slingshot) {
+						RubberSlingshotAuthoring.Bind(slingshot, candidate.Binding);
+					} else {
+						RubberSlingshotAuthoring.Add(rubber, candidate.Binding,
+							RubberSlingshotAuthoring.FindOrCreateActuator());
+					}
+				}
+				if (rect.yMax > lowest.y) {
+					lowest = new Vector2(gui.x, rect.yMax);
+				}
+			}
+			if (hint != null && !float.IsNaN(lowest.x)) {
+				var content = new GUIContent(hint);
+				var size = _hintStyle.CalcSize(content);
+				var rect = new Rect(lowest.x - size.x * 0.5f, lowest.y + 6f, size.x, size.y);
+				GUI.Label(rect, content, _hintStyle);
+			}
+			Handles.EndGUI();
+		}
+
+		#endregion
 	}
 }

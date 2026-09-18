@@ -308,10 +308,7 @@ namespace VisualPinball.Unity.Test
 				fixture.Renderer.AnimationDurationMs = 100f;
 
 				fixture.Actuator = Actuators.Create();
-				var slingshotObject = new GameObject("Slingshot");
-				slingshotObject.transform.SetParent(playfieldObject.transform, false);
-				fixture.Slingshot = slingshotObject.AddComponent<RubberSlingshotComponent>();
-				fixture.Slingshot.Rubber = fixture.Rubber;
+				fixture.Slingshot = rubberObject.AddComponent<RubberSlingshotComponent>();
 				fixture.Slingshot.Span = new RubberSpanBinding(
 					fixture.Rubber.GuideBindings[element.path.StartBindingIndex],
 					fixture.Rubber.GuideBindings[element.path.EndBindingIndex]);
@@ -328,7 +325,7 @@ namespace VisualPinball.Unity.Test
 					},
 				};
 				fixture.ArmVisual = new GameObject("Coil Arm");
-				fixture.ArmVisual.transform.SetParent(slingshotObject.transform, false);
+				fixture.ArmVisual.transform.SetParent(rubberObject.transform, false);
 				fixture.Slingshot.CoilArmVisual = fixture.ArmVisual;
 				fixture.Slingshot.VisualRotationAxis = Axis.Y;
 				fixture.Slingshot.VisualRestAngle = 0f;

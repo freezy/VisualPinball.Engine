@@ -139,6 +139,11 @@ namespace VisualPinball.Unity
 
 	public struct RubberSlingshotReferencesPackable
 	{
+		/// <summary>
+		/// The slingshot is a component of its rubber, so the rubber is implied by the
+		/// game object. The reference is still written so the layout does not change,
+		/// and ignored when read.
+		/// </summary>
 		public ReferencePackable RubberRef;
 		public ReferencePackable StartGuideRef;
 		public ReferencePackable EndGuideRef;
@@ -168,7 +173,6 @@ namespace VisualPinball.Unity
 			}
 			var data = PackageApi.Packer.Unpack<RubberSlingshotReferencesPackable>(bytes);
 			component.RestoreReferences(
-				refs.Resolve<RubberComponent>(data.RubberRef),
 				refs.Resolve<RubberGuideComponent>(data.StartGuideRef),
 				refs.Resolve<RubberGuideComponent>(data.EndGuideRef),
 				files.GetAsset<SlingshotActuatorAsset>(data.ActuatorRef),
