@@ -299,19 +299,20 @@ namespace VisualPinball.Unity.Test
 		public void EmptySlingshotReferencesPayloadShouldPreserveExistingReferences()
 		{
 			var rubberObject = new GameObject("Rubber");
-			var slingshotObject = new GameObject("Slingshot");
 			try {
 				var rubber = rubberObject.AddComponent<RubberComponent>();
-				var component = slingshotObject.AddComponent<RubberSlingshotComponent>();
-				component.Rubber = rubber;
+				var component = rubberObject.AddComponent<RubberSlingshotComponent>();
+				var actuator = ScriptableObject.CreateInstance<SlingshotActuatorAsset>();
+				component.Actuator = actuator;
 
 				RubberSlingshotReferencesPackable.Unpack(Array.Empty<byte>(), component,
 					null, null, null);
 
 				Assert.That(component.Rubber, Is.SameAs(rubber));
+				Assert.That(component.Actuator, Is.SameAs(actuator));
+				UnityEngine.Object.DestroyImmediate(actuator);
 			} finally {
 				UnityEngine.Object.DestroyImmediate(rubberObject);
-				UnityEngine.Object.DestroyImmediate(slingshotObject);
 			}
 		}
 

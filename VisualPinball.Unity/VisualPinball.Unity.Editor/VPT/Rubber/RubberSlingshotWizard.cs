@@ -13,15 +13,19 @@ using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
+	/// <summary>
+	/// The menu route to a physical slingshot. The rubber's scene handles offer the same
+	/// spans in place; both go through <see cref="RubberSlingshotAuthoring"/>.
+	/// </summary>
 	internal sealed class RubberSlingshotWizard : EditorWindow
 	{
 		private RubberComponent _rubber;
 		private SlingshotActuatorAsset _actuator;
 		private int _spanIndex;
-		private readonly List<RubberSpanBinding> _spans = new();
+		private readonly List<RubberSlingshotAuthoring.SpanCandidate> _spans = new();
 		private string[] _spanLabels = System.Array.Empty<string>();
 
-		[MenuItem("GameObject/Pinball/Create Physical Slingshot On Rubber", false, 21)]
+		[MenuItem("GameObject/Pinball/Add Physical Slingshot To Rubber", false, 21)]
 		private static void Open()
 		{
 			var window = CreateInstance<RubberSlingshotWizard>();
@@ -29,11 +33,12 @@ namespace VisualPinball.Unity.Editor
 			window._rubber = Selection.activeGameObject
 				? Selection.activeGameObject.GetComponent<RubberComponent>()
 				: null;
+			window._actuator = RubberSlingshotAuthoring.FindActuator();
 			window.RefreshSpans();
 			window.ShowUtility();
 		}
 
-		[MenuItem("GameObject/Pinball/Create Physical Slingshot On Rubber", true)]
+		[MenuItem("GameObject/Pinball/Add Physical Slingshot To Rubber", true)]
 		private static bool CanOpen() => Selection.activeGameObject
 			&& Selection.activeGameObject.GetComponent<RubberComponent>();
 
@@ -51,20 +56,33 @@ namespace VisualPinball.Unity.Editor
 			_actuator = (SlingshotActuatorAsset)EditorGUILayout.ObjectField("Actuator",
 				_actuator, typeof(SlingshotActuatorAsset), false);
 
-			if (!_rubber || !_rubber.HasValidGuidedPath
-				|| !_rubber.TryGetComponent<RubberColliderComponent>(out var collider)
-				|| collider.Mode != RubberColliderMode.Physical) {
+			if (!RubberSlingshotAuthoring.IsEligibleRubber(_rubber)) {
 				EditorGUILayout.HelpBox("Choose a current guide-driven Physical rubber.",
 					MessageType.Error);
+			} else if (RubberSlingshotAuthoring.SlingshotOf(_rubber)) {
+				EditorGUILayout.HelpBox(
+					"This rubber already has a slingshot. Select the rubber and pick its span in the Scene view.",
+					MessageType.Info);
 			} else if (_spanLabels.Length == 0) {
 				EditorGUILayout.HelpBox("No unambiguous free span is available.",
 					MessageType.Error);
+			} else {
+				var missing = RubberSlingshotAuthoring.DescribeMissing(_rubber);
+				if (missing != null) {
+					EditorGUILayout.HelpBox($"{missing} The slingshot cannot fire until then.",
+						MessageType.Warning);
+				}
+				if (!_actuator) {
+					EditorGUILayout.HelpBox(
+						"No actuator asset is assigned; the project's first one is used, or a default one is created.",
+						MessageType.None);
+				}
 			}
 
-			using (new EditorGUI.DisabledScope(!_rubber || !_actuator
+			using (new EditorGUI.DisabledScope(!_rubber
 				|| _spanIndex < 0 || _spanIndex >= _spans.Count)) {
-				if (GUILayout.Button("Create")) {
-					CreateSlingshot();
+				if (GUILayout.Button("Add")) {
+					AddSlingshot();
 				}
 			}
 		}
@@ -73,98 +91,29 @@ namespace VisualPinball.Unity.Editor
 		{
 			_spans.Clear();
 			_spanIndex = 0;
-			if (!_rubber || !_rubber.HasValidGuidedPath
-				|| !_rubber.TryGetComponent<RubberColliderComponent>(out var collider)
-				|| collider.Mode != RubberColliderMode.Physical) {
-				_spanLabels = System.Array.Empty<string>();
-				return;
-			}
-			var boundSpanIndices = new HashSet<int>();
-			foreach (var component in FindObjectsByType<RubberSlingshotComponent>(
-				FindObjectsInactive.Include, FindObjectsSortMode.None)) {
-				if (component.Rubber == _rubber
-					&& component.TryResolveSpan(out var resolved, out _)) {
-					boundSpanIndices.Add(resolved.PathElementIndex);
-				}
-			}
-			var freeSpans = _rubber.BakedPath
-				.Select((element, index) => (element, index))
-				.Where(item => item.element.Type == RubberPathElementType.FreeSpan)
+			_spans.AddRange(RubberSlingshotAuthoring.FindUnboundSpans(_rubber));
+			_spanLabels = _spans
+				.Select(candidate => RubberSlingshotAuthoring.Label(candidate.Binding))
 				.ToArray();
-			foreach (var (span, pathIndex) in freeSpans) {
-				var duplicateCount = freeSpans.Count(other =>
-					(other.element.StartBindingIndex == span.StartBindingIndex
-						&& other.element.EndBindingIndex == span.EndBindingIndex)
-					|| (other.element.StartBindingIndex == span.EndBindingIndex
-						&& other.element.EndBindingIndex == span.StartBindingIndex));
-				if (duplicateCount == 1 && !boundSpanIndices.Contains(pathIndex)) {
-					_spans.Add(new RubberSpanBinding(
-						_rubber.GuideBindings[span.StartBindingIndex],
-						_rubber.GuideBindings[span.EndBindingIndex]));
-				}
-			}
-			_spanLabels = _spans.Select(SpanLabel).ToArray();
 		}
 
-		private static string SpanLabel(RubberSpanBinding span)
+		private void AddSlingshot()
 		{
-			var start = BindingLabel(span.StartSupport);
-			var end = BindingLabel(span.EndSupport);
-			return $"{start} -> {end}";
-		}
-
-		private static string BindingLabel(RubberGuideBinding binding)
-		{
-			if (!binding.Guide || !binding.Guide.TryGetSlot(binding.SlotId, out var slot)) {
-				return "Missing support";
-			}
-			return $"{binding.Guide.name}/{slot.DisplayName}";
-		}
-
-		private void CreateSlingshot()
-		{
-			var selected = _spans[_spanIndex];
+			var selected = _spans[_spanIndex].Binding;
 			RefreshSpans();
 			var refreshedIndex = _spans.FindIndex(candidate =>
-				SameBinding(candidate, selected));
+				RubberSlingshotAuthoring.SameBinding(candidate.Binding, selected));
 			if (refreshedIndex < 0) {
-				EditorUtility.DisplayDialog("Cannot create physical slingshot",
+				EditorUtility.DisplayDialog("Cannot add physical slingshot",
 					"The selected free span changed or is no longer available. Select it again.",
 					"OK");
 				return;
 			}
 			_spanIndex = refreshedIndex;
-			var gameObject = new GameObject($"{_rubber.name} Slingshot");
-			Undo.RegisterCreatedObjectUndo(gameObject, "Create Physical Slingshot");
-			gameObject.transform.SetParent(_rubber.transform.parent, false);
-			var component = Undo.AddComponent<RubberSlingshotComponent>(gameObject);
-			component.Rubber = _rubber;
-			component.Span = selected;
-			component.Actuator = _actuator;
-
-			// the runtime defaults of the plan's 3.3, written explicitly so a wizard-made
-			// slingshot does not depend on the field initializers
-			component.SelfWired = RubberSlingshotComponent.DefaultSelfWired;
-			component.WireDelayMs = RubberSlingshotComponent.DefaultWireDelayMs;
-			component.SelfWirePulseMs = RubberSlingshotComponent.DefaultSelfWirePulseMs;
-			component.KickSpeed = RubberSlingshotComponent.DefaultKickSpeed;
-			component.ArmHalfWidth01 = RubberSlingshotComponent.DefaultArmHalfWidth01;
-			component.KickWindowMs = RubberSlingshotComponent.DefaultKickWindowMs;
-			component.MinimumSwitchPulseMs = RubberSlingshotComponent.DefaultMinimumSwitchPulseMs;
-			EditorUtility.SetDirty(component);
-			Selection.activeGameObject = gameObject;
+			var actuator = _actuator ? _actuator : RubberSlingshotAuthoring.FindOrCreateActuator();
+			RubberSlingshotAuthoring.Add(_rubber, selected, actuator);
+			Selection.activeGameObject = _rubber.gameObject;
 			Close();
 		}
-
-		private static bool SameBinding(RubberSpanBinding left, RubberSpanBinding right)
-		{
-			return (SameSupport(left.StartSupport, right.StartSupport)
-					&& SameSupport(left.EndSupport, right.EndSupport))
-				|| (SameSupport(left.StartSupport, right.EndSupport)
-					&& SameSupport(left.EndSupport, right.StartSupport));
-		}
-
-		private static bool SameSupport(RubberGuideBinding left, RubberGuideBinding right)
-			=> left.Guide == right.Guide && left.SlotId == right.SlotId;
 	}
 }
