@@ -233,6 +233,19 @@ namespace VisualPinball.Unity
 
 		[NonSerialized] private float _fallbackClockMs;
 		[NonSerialized] private int _droppedImpactCount;
+		[NonSerialized] private int _impactCount;
+		[NonSerialized] private int _kickCount;
+		[NonSerialized] private int _meshUpdateCount;
+		[NonSerialized] private float _heldDeflection;
+
+		/// <summary>
+		/// A deflection in VPX units held on every bound span, inward positive, for
+		/// diagnosing a cord that does not move. Zero releases it.
+		/// </summary>
+		internal float HeldDeflection {
+			get => _heldDeflection;
+			set => _heldDeflection = float.IsFinite(value) ? value : 0f;
+		}
 
 		/// <summary>Test seam for the simulation clock, in milliseconds.</summary>
 		[NonSerialized] internal Func<float> ClockMsOverride;
@@ -255,6 +268,15 @@ namespace VisualPinball.Unity
 
 		/// <summary>How many impact events arrived too late to animate.</summary>
 		internal int DroppedImpactCount => _droppedImpactCount;
+
+		/// <summary>How many impacts started a twang.</summary>
+		internal int ImpactCount => _impactCount;
+
+		/// <summary>How many slingshot kicks started an outward push.</summary>
+		internal int KickCount => _kickCount;
+
+		/// <summary>How many times displaced vertices were written to the mesh instance.</summary>
+		internal int MeshUpdateCount => _meshUpdateCount;
 
 		/// <summary>The mesh instance the displacement is written to, null when inactive.</summary>
 		internal Mesh InstancedMesh => _instancedMesh;
@@ -536,6 +558,44 @@ namespace VisualPinball.Unity
 			};
 		}
 
+		/// <summary>
+		/// One line per bound span for the inspector: how many render vertices the span
+		/// drives and, so a mesh that sits off the chord can be told from one that is
+		/// simply missing, how far the nearest render vertex is from the chord.
+		/// </summary>
+		internal IEnumerable<string> DescribeBindings()
+		{
+			if (_restVertices == null) {
+				yield return "No render mesh acquired.";
+				yield break;
+			}
+			if (_spans.Length == 0) {
+				yield return "No rebound-eligible span to bind.";
+				yield break;
+			}
+			var limit = _rubber ? _rubber.Thickness : 0f;
+			for (var spanIndex = 0; spanIndex < _spans.Length; spanIndex++) {
+				var span = _spans[spanIndex];
+				var bound = 0;
+				for (var i = 0; i < _bindings.Length; i++) {
+					if (_bindings[i].SpanIndex == spanIndex) {
+						bound++;
+					}
+				}
+				var nearest = float.PositiveInfinity;
+				for (var vertex = 0; vertex < _restVertices.Length; vertex++) {
+					var position = (float3)_restVertices[vertex];
+					var along = math.clamp(math.dot(position - span.RestStart, span.ChordDirection),
+						0f, span.ChordLength);
+					nearest = math.min(nearest,
+						math.distance(position, span.RestStart + span.ChordDirection * along));
+				}
+				var nearestVpx = float.IsFinite(nearest) ? Physics.ScaleToVpx(nearest) : float.NaN;
+				yield return $"Span {span.PathElementIndex}: depth {span.AppliedDepth:F2}, "
+					+ $"{bound} vertices bound, nearest {nearestVpx:F1} VPX from the chord (limit {limit:F0})";
+			}
+		}
+
 		#endregion
 
 		#region Profile
@@ -622,6 +682,18 @@ namespace VisualPinball.Unity
 			span.TwangApex = math.clamp(apexFraction, MinimumApex, MaximumApex);
 			span.TwangDepth = effectiveDepth;
 			span.TwangStartMs = math.min(stamp, now);
+			_impactCount++;
+		}
+
+		/// <summary>
+		/// Twangs every bound span at its middle, as a hit of the given depth would,
+		/// for diagnosing a cord that does not move in the scene.
+		/// </summary>
+		internal void Pluck(float depthVpx)
+		{
+			for (var i = 0; i < _spans.Length; i++) {
+				ApplyImpact(_spans[i].PathElementIndex, 0.5f, depthVpx, NowMs);
+			}
 		}
 
 		/// <summary>
@@ -644,6 +716,7 @@ namespace VisualPinball.Unity
 			span.KickApex = math.clamp(apexPathCoordinate01, MinimumApex, MaximumApex);
 			span.KickAmplitude = -outwardDepth;
 			span.KickStartMs = NowMs;
+			_kickCount++;
 		}
 
 		#endregion
@@ -697,6 +770,11 @@ namespace VisualPinball.Unity
 		/// </summary>
 		private void Evaluate(ref SpanVisual span, float now)
 		{
+			if (_heldDeflection != 0f) {
+				span.Apex = 0.5f;
+				span.Depth = _heldDeflection;
+				return;
+			}
 			var twangApex = 0f;
 			var twangDepth = 0f;
 			if (span.TwangActive) {
@@ -758,6 +836,7 @@ namespace VisualPinball.Unity
 				_instancedMesh.RecalculateNormals();
 			}
 			_instancedMesh.RecalculateBounds();
+			_meshUpdateCount++;
 		}
 
 		#endregion

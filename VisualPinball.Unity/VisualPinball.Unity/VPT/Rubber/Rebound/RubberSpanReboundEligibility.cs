@@ -74,7 +74,7 @@ namespace VisualPinball.Unity
 			if (!IsBakeCurrent(collider)) {
 				reason = collider.DeformationBakeHash.Length == 0
 					? "the compliant rebound has not been baked."
-					: "the compliant rebound bake is stale; bake it again.";
+					: "the compliant rebound bake is stale.";
 				return false;
 			}
 			if (collider.BakeOutcome != RubberDeformationBakeOutcome.Deformable) {

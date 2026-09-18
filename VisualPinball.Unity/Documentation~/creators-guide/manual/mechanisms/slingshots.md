@@ -119,13 +119,13 @@ The component above animates rubbers around a wall segment that Visual Pinball m
 
 ## Requirements
 
-- A **Guided** rubber in **Physical** collision mode with **Compliant Rebound** enabled and baked as **Deformable**.
+- A **Guided** rubber in **Physical** collision mode with **Compliant Rebound** enabled, whose outcome in the Rubber Collider inspector is **Deformable**. The guided path and the rebound are refit and rebaked on their own, in the editor and when the game starts.
 - The slingshot binds to one **straight** free span of that rubber, identified by the two guides it runs between. A rubber on exactly two posts has two identical spans and cannot be bound; a slingshot rubber runs around three posts.
 - Optionally a **Rubber Deformation Renderer** on the rubber and a coil arm primitive, for the animation.
 
 ## Creating One
 
-The physical slingshot is a component of its rubber, and a rubber has at most one. Select the rubber. In the Scene view, every free span the slingshot can bind to is highlighted, with an **Add Slingshot** button at its midpoint. Click the button on the span that faces the ball, usually the long side of the triangle, and VPE adds a *Rubber Slingshot* component to the rubber, bound to that span, with two switch zones and sensible arm defaults. From then on the bound span is marked *Slingshot* and every other span offers **Move Slingshot Here**, which re-binds it. Below the buttons, one hint names the first thing the rubber still lacks, such as a rest length or a baked rebound. You can add the slingshot before fixing that, but it cannot fire until you do.
+The physical slingshot is a component of its rubber, and a rubber has at most one. Select the rubber. In the Scene view, every free span the slingshot can bind to is highlighted, with an **Add Slingshot** button at its midpoint. Click the button on the span that faces the ball, usually the long side of the triangle, and VPE adds a *Rubber Slingshot* component to the rubber, bound to that span, with two switch zones and sensible arm defaults. From then on the bound span is marked *Slingshot* and every other span offers **Move Slingshot Here**, which re-binds it. Below the buttons, one hint names the first thing the rubber still lacks, such as a rest length or the compliant rebound. You can add the slingshot before fixing that, but it cannot fire until you do.
 
 The same is available from the menu: **GameObject → Pinball → Add Physical Slingshot To Rubber** opens a small window that lists the free spans by their guides.
 

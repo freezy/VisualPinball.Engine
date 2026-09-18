@@ -371,6 +371,12 @@ namespace VisualPinball.Unity
 				Debug.LogError($"Cannot find player for physical slingshot '{name}'.", this);
 				return;
 			}
+			// Awake order between the components of one game object is not defined, so
+			// the bakes are brought up to date here as well as in the collider's Awake.
+			var collider = Rubber ? Rubber.GetComponent<RubberColliderComponent>() : null;
+			if (collider) {
+				collider.EnsureBakesCurrent();
+			}
 			var errors = ValidateConfiguration();
 			if (errors.Count > 0) {
 				enabled = false;

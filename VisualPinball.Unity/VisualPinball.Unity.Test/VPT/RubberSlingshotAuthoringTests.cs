@@ -161,13 +161,19 @@ namespace VisualPinball.Unity.Test
 			Assert.That(RubberSlingshotAuthoring.DescribeMissing(rubber),
 				Does.Contain("rest length"), "no rest length yet");
 
-			rubber.RestLength = 100f;
+			rubber.RestLength = rubber.BakedPath.Sum(element => element.Length) / 1.1f;
 			Assert.That(RubberSlingshotAuthoring.DescribeMissing(rubber),
 				Does.Contain("compliant rebound"), "rebound not enabled yet");
 
 			collider.DeformationEnabled = true;
 			Assert.That(RubberSlingshotAuthoring.DescribeMissing(rubber),
-				Does.Contain("not been baked"), "rebound enabled but never baked");
+				Does.Contain("material"), "the rebound bakes on its own and reports the missing material");
+
+			var material = ScriptableObject.CreateInstance<RubberPhysicsMaterialAsset>();
+			_assets.Add(material);
+			collider.RubberPhysicsMaterial = material;
+			Assert.That(RubberSlingshotAuthoring.DescribeMissing(rubber), Is.Null,
+				"with a material the rubber bakes as Deformable without anyone pressing a button");
 		}
 
 		#region Fixtures
