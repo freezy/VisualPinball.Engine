@@ -124,6 +124,37 @@ namespace VisualPinball.Unity
 	}
 
 	/// <summary>
+	/// Internal interface for the physical slingshot, which receives its switch and
+	/// coil edges from the physics thread through the event queue.
+	/// </summary>
+	internal interface IApiRubberSlingshot
+	{
+		/// <summary>An edge of the OR-ed blade switch.</summary>
+		/// <param name="closed">Whether the switch closed or opened</param>
+		/// <param name="ballId">The causal ball of a closure, zero for an opening</param>
+		/// <param name="simulationTimeMs">Simulation time of the edge</param>
+		void OnSwitchEdge(bool closed, int ballId, float simulationTimeMs);
+
+		/// <summary>An aggregate coil transition.</summary>
+		void OnCoilEdge(bool energized, float simulationTimeMs);
+	}
+
+	/// <summary>
+	/// Internal interface for items that own compliant rubber spans and want to hear
+	/// about their deflections.
+	/// </summary>
+	/// <remarks>
+	/// The event is routed by the rubber's item id, so the implementation is the
+	/// rubber's own api. The span is identified by its dense runtime id; map it back to
+	/// a baked path element with <see cref="PhysicsEngine.TryGetRubberSpan"/>.
+	/// </remarks>
+	internal interface IApiRubberSpanImpact
+	{
+		void OnSpanImpact(int spanId, int ballId, float simulationTimeMs, float apexFraction,
+			float effectiveDepth);
+	}
+
+	/// <summary>
 	/// This interface makes the implementation act as a switch that can emit switch events to
 	/// one or many destinations.
 	/// </summary>

@@ -17,6 +17,7 @@
 using Unity.Collections;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
+using VisualPinball.Engine.Game;
 
 namespace VisualPinball.Unity
 {
@@ -409,6 +410,29 @@ namespace VisualPinball.Unity
 			float elasticityScale, ref PhysicsState state,
 			out RubberSpanReboundOutcome outcome)
 		{
+			// the silent overload: no dense span id and no event queue, for callers that
+			// only want the response (the numerical fixtures)
+			var events = default(NativeQueue<EventData>.ParallelWriter);
+			Respond(ref ball, in material, in collEvent, in span, u, elasticityScale,
+				ref state, -1, ref events, false, out outcome);
+		}
+
+		/// <summary>
+		/// The response of the plan's 2.2, plus the impact reporting of section 4: the
+		/// span impact event and the switch zones of every slingshot bound to this span.
+		/// </summary>
+		/// <param name="spanId">Dense runtime id of the span, or <c>-1</c>.</param>
+		/// <param name="events">The collide pass's event writer.</param>
+		/// <param name="emitEvents">
+		/// False when <paramref name="events"/> is not a live queue, which is the case
+		/// for the numerical fixtures that call the response directly.
+		/// </param>
+		internal static void Respond(ref BallState ball, in PhysicsMaterialData material,
+			in CollisionEventData collEvent, in RubberSpanRebound span, float u,
+			float elasticityScale, ref PhysicsState state, int spanId,
+			ref NativeQueue<EventData>.ParallelWriter events, bool emitEvents,
+			out RubberSpanReboundOutcome outcome)
+		{
 			outcome = new RubberSpanReboundOutcome { ApexFraction = u };
 
 			// The response plane contains the chord and the transverse part of the
@@ -511,9 +535,19 @@ namespace VisualPinball.Unity
 
 			outcome.Applied = true;
 
-			// HOOK (commit 2): the impact event of the plan's section 4 is emitted here,
-			// carrying outcome.ApexFraction (u_h) and outcome.EffectiveDepth (delta_eff),
-			// and only when outcome.EffectiveDepth > 0.
+			// The impact reporting of the plan's section 4 and 3.2. A rigid end and an
+			// integration failure both have zero effective depth and report nothing.
+			if (!(outcome.EffectiveDepth > 0f) || spanId < 0) {
+				return;
+			}
+			var timeMs = RubberSlingshotPhysics.SimulationTimeMs(in state, state.TickTimeUsec);
+			if (emitEvents) {
+				events.Enqueue(new EventData(EventId.RubberSpanImpact, span.ItemId, ball.Id,
+					timeMs, spanId,
+					RubberSpanImpactPayload.Pack(outcome.ApexFraction, outcome.EffectiveDepth)));
+			}
+			RubberSlingshotPhysics.ApplyImpact(spanId, ball.Id, outcome.ApexFraction,
+				outcome.EffectiveDepth, ref state, ref events, emitEvents);
 		}
 
 		#endregion

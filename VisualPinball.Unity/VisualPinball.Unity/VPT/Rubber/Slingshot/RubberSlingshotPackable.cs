@@ -42,6 +42,12 @@ namespace VisualPinball.Unity
 
 	public struct RubberSlingshotPackable
 	{
+		// Version 2 adds the runtime fields of the physical slingshot. Version 1 (and
+		// unversioned) payloads predate the runtime and restore its defaults.
+		private const int CurrentVersion = 2;
+
+		public int Version;
+
 		public ulong StartSlotIdA;
 		public ulong StartSlotIdB;
 		public ulong EndSlotIdA;
@@ -54,10 +60,19 @@ namespace VisualPinball.Unity
 		public float VisualRestAngle;
 		public float VisualFiredAngle;
 
+		public bool SelfWired;
+		public float WireDelayMs;
+		public float SelfWirePulseMs;
+		public float KickSpeed;
+		public float ArmHalfWidth01;
+		public float KickWindowMs;
+		public float MinimumSwitchPulseMs;
+
 		public static byte[] Pack(RubberSlingshotComponent component)
 		{
 			var span = component.Span;
 			return PackageApi.Packer.Pack(new RubberSlingshotPackable {
+				Version = CurrentVersion,
 				StartSlotIdA = span.StartSupport.SlotId.A,
 				StartSlotIdB = span.StartSupport.SlotId.B,
 				EndSlotIdA = span.EndSupport.SlotId.A,
@@ -69,6 +84,13 @@ namespace VisualPinball.Unity
 				VisualRotationAxis = (int)component.VisualRotationAxis,
 				VisualRestAngle = component.VisualRestAngle,
 				VisualFiredAngle = component.VisualFiredAngle,
+				SelfWired = component.SelfWired,
+				WireDelayMs = component.WireDelayMs,
+				SelfWirePulseMs = component.SelfWirePulseMs,
+				KickSpeed = component.KickSpeed,
+				ArmHalfWidth01 = component.ArmHalfWidth01,
+				KickWindowMs = component.KickWindowMs,
+				MinimumSwitchPulseMs = component.MinimumSwitchPulseMs,
 			});
 		}
 
@@ -88,6 +110,30 @@ namespace VisualPinball.Unity
 				: Axis.X;
 			component.VisualRestAngle = data.VisualRestAngle;
 			component.VisualFiredAngle = data.VisualFiredAngle;
+
+			// pre-runtime payloads carry none of the fields below
+			var current = data.Version >= 2;
+			component.SelfWired = current
+				? data.SelfWired
+				: RubberSlingshotComponent.DefaultSelfWired;
+			component.WireDelayMs = current
+				? data.WireDelayMs
+				: RubberSlingshotComponent.DefaultWireDelayMs;
+			component.SelfWirePulseMs = current
+				? data.SelfWirePulseMs
+				: RubberSlingshotComponent.DefaultSelfWirePulseMs;
+			component.KickSpeed = current
+				? data.KickSpeed
+				: RubberSlingshotComponent.DefaultKickSpeed;
+			component.ArmHalfWidth01 = current
+				? data.ArmHalfWidth01
+				: RubberSlingshotComponent.DefaultArmHalfWidth01;
+			component.KickWindowMs = current
+				? data.KickWindowMs
+				: RubberSlingshotComponent.DefaultKickWindowMs;
+			component.MinimumSwitchPulseMs = current
+				? data.MinimumSwitchPulseMs
+				: RubberSlingshotComponent.DefaultMinimumSwitchPulseMs;
 		}
 	}
 

@@ -162,6 +162,11 @@ namespace VisualPinball.Unity
 
 				#endregion
 
+				// slingshots: expire the switch-zone dwells, then apply every due coil
+				// source transition one at a time, each with its own aggregate edge.
+				// Runs before the cycle so a kick lands on this tick's integration.
+				RubberSlingshotPhysics.UpdateSlingshots(ref state, env.CurPhysicsFrameTime);
+
 				// primary physics loop
 				cycle.Simulate(ref state, ref overlappingColliders, ref kinematicOctree, ref ballOctree, physicsDiffTime);
 

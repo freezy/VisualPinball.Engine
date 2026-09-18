@@ -129,6 +129,26 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public readonly LazyInit<NativeParallelHashMap<int, RubberSpanRebound>> RubberSpanRebounds = new(() => new NativeParallelHashMap<int, RubberSpanRebound>(0, Allocator.Persistent));
 
+		/// <summary>
+		/// Physics state of the physical slingshots, keyed by the slingshot component's
+		/// item id. See <see cref="PhysicsState.RubberSlingshotStates"/>.
+		/// </summary>
+		public readonly LazyInit<NativeParallelHashMap<int, RubberSlingshotState>> RubberSlingshotStates = new(() => new NativeParallelHashMap<int, RubberSlingshotState>(0, Allocator.Persistent));
+
+		/// <summary>
+		/// Main-thread mapping between a dense compliant-span id and the rubber span it
+		/// belongs to, built in <see cref="PhysicsEngine.Start"/> and read-only after.
+		/// </summary>
+		internal RubberSpanReboundIndex RubberSpanIndex = RubberSpanReboundIndex.Empty;
+
+		/// <summary>
+		/// The physical slingshots that registered a state, in registration order. Their
+		/// dense span ids can only be resolved once every collider exists, so
+		/// <see cref="PhysicsEngine.Start"/> walks this list after the spans registered.
+		/// Main-thread only.
+		/// </summary>
+		public readonly List<RubberSlingshotComponent> SlingshotComponents = new();
+
 		public NativeParallelHashMap<int, FixedList512Bytes<float>> ElasticityOverVelocityLUTs;
 		public NativeParallelHashMap<int, FixedList512Bytes<float>> FrictionOverVelocityLUTs;
 
@@ -338,7 +358,7 @@ namespace VisualPinball.Unity
 				ref SurfaceStates.Ref, ref TurntableStates.Ref, ref TriggerStates.Ref, ref DisabledCollisionItems.Ref, ref SwapBallCollisionHandling,
 				ref ElasticityOverVelocityLUTs, ref FrictionOverVelocityLUTs, ref KinematicVelocities.Ref,
 				ref KinematicItemsOutOfOctree.Ref, ref KinematicMovingItemBounds.Ref,
-				ref RubberSpanRebounds.Ref);
+				ref RubberSpanRebounds.Ref, ref RubberSlingshotStates.Ref);
 		}
 
 		/// <summary>
@@ -392,6 +412,7 @@ namespace VisualPinball.Unity
 
 			DisabledCollisionItems.Ref.Dispose();
 			RubberSpanRebounds.Ref.Dispose();
+			RubberSlingshotStates.Ref.Dispose();
 			KinematicTransforms.Ref.Dispose();
 			KinematicTargetTransforms.Ref.Dispose();
 			KinematicVelocities.Ref.Dispose();

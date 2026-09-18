@@ -36,6 +36,59 @@ namespace VisualPinball.Unity
 	/// Managed and main-thread only: it is gone by the time the physics loop runs.
 	/// </para>
 	/// </remarks>
+	/// <summary>
+	/// The main-thread mapping between a dense span id and the rubber span it was
+	/// assigned to, built once by <see cref="RubberSpanReboundCollector.Register"/>.
+	/// </summary>
+	/// <remarks>
+	/// The collide pass only ever knows the dense id, so everything on the main thread
+	/// that has to go the other way — the slingshot api resolving its bound span, a
+	/// renderer selecting the span an impact event names — reads it here. Immutable
+	/// after <see cref="PhysicsEngine.Start"/>.
+	/// </remarks>
+	internal sealed class RubberSpanReboundIndex
+	{
+		internal static readonly RubberSpanReboundIndex Empty = new(new List<RubberSpanReboundCollector.Entry>());
+
+		private readonly int[] _itemIds;
+		private readonly int[] _pathElementIndices;
+		private readonly Dictionary<long, int> _spanIds;
+
+		internal int Count => _itemIds.Length;
+
+		internal RubberSpanReboundIndex(IReadOnlyList<RubberSpanReboundCollector.Entry> ordered)
+		{
+			_itemIds = new int[ordered.Count];
+			_pathElementIndices = new int[ordered.Count];
+			_spanIds = new Dictionary<long, int>(ordered.Count);
+			for (var i = 0; i < ordered.Count; i++) {
+				_itemIds[i] = ordered[i].ItemId;
+				_pathElementIndices[i] = ordered[i].Record.PathElementIndex;
+				_spanIds[Key(_itemIds[i], _pathElementIndices[i])] = i;
+			}
+		}
+
+		/// <summary>The dense span id of a rubber's baked free span, if it got one.</summary>
+		internal bool TryGetSpanId(int itemId, int pathElementIndex, out int spanId)
+			=> _spanIds.TryGetValue(Key(itemId, pathElementIndex), out spanId);
+
+		/// <summary>The rubber and path element a dense span id stands for.</summary>
+		internal bool TryGetSpan(int spanId, out int itemId, out int pathElementIndex)
+		{
+			if (spanId < 0 || spanId >= _itemIds.Length) {
+				itemId = 0;
+				pathElementIndex = -1;
+				return false;
+			}
+			itemId = _itemIds[spanId];
+			pathElementIndex = _pathElementIndices[spanId];
+			return true;
+		}
+
+		private static long Key(int itemId, int pathElementIndex)
+			=> ((long)itemId << 32) | (uint)pathElementIndex;
+	}
+
 	internal sealed class RubberSpanReboundCollector
 	{
 		internal struct Entry
@@ -67,7 +120,11 @@ namespace VisualPinball.Unity
 		/// Every swept-circle capsule whose <c>SpanId</c> does not resolve is reset to
 		/// <c>-1</c>, so a capsule can never point at a foreign span.
 		/// </remarks>
-		internal void Register(ref ColliderReference colliders,
+		/// <returns>
+		/// The dense-id mapping the main thread needs afterwards, see
+		/// <see cref="RubberSpanReboundIndex"/>.
+		/// </returns>
+		internal RubberSpanReboundIndex Register(ref ColliderReference colliders,
 			ref ColliderReference kinematicColliders,
 			ref NativeParallelHashMap<int, RubberSpanRebound> spans)
 		{
@@ -92,6 +149,7 @@ namespace VisualPinball.Unity
 
 			Stamp(ref colliders, ids);
 			Stamp(ref kinematicColliders, ids);
+			return new RubberSpanReboundIndex(ordered);
 		}
 
 		private static void Stamp(ref ColliderReference colliders, Dictionary<long, int> ids)
