@@ -8,6 +8,8 @@ Built with Unity 6.5
 
 ### Added
 
+- Compliant rebound for guided Physical rubbers: a ball hitting a straight free span rebounds as from a stretched cord, with direction and speed depending on where and how hard it hits ([Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/rubbers.html)).
+- Physical slingshot with a blade switch that closes on cord deflection, a self-wired or game-logic-driven coil, and an arm kick, plus a rubber deformation renderer that animates the cord and the arm ([Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/slingshots.html)).
 - Guided Physical rubbers can attenuate ball-contact elasticity near their supporting guides while preserving full response across free spans.
 - Insert presets: lamp presets (incandescent and LED, with bulb colour, fade times and an output factor), color presets (tint, cavity, lamp emission and the cover's tint and haze) and look presets (Clear Plastic, Colored Plastic), each owning its values. Materials link to a preset and follow it, and the fields a linked color preset owns are locked in the material.
 - Every insert shape in the library is a prefab variant that owns its bake. A library insert whose geometry changes is forked into the project with *Edit in project*, for that insert alone or for every insert of the same prefab, material and shape in the scene, keeping the library's cover material.

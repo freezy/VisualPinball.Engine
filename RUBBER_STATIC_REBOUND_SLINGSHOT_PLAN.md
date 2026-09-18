@@ -1,6 +1,6 @@
 # Static Rubber Rebound and Slingshot Implementation Plan
 
-Status: revision 5 on `feat/rubber-deformable-spans`, after four GPT-6 review rounds; the reviewer cleared commit 1 to start once the two contract corrections of round four were applied, which this revision does; supersedes the runtime part of `RUBBER_DEFORMABLE_SPAN_PLAN.md`
+Status: implemented on `feat/rubber-deformable-spans` (rebound, slingshot runtime, visuals, docs), after four GPT-6 review rounds; supersedes the runtime part of `RUBBER_DEFORMABLE_SPAN_PLAN.md`. Open items are in section 8.
 
 Scope: straight free spans of guided rubbers using `RubberColliderMode.Physical`; the physical slingshot runtime behind `RubberSlingshotComponent`
 
