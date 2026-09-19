@@ -31,7 +31,7 @@ The effect is disabled by default. A value of `1` for the guide scale also prese
 
 ## Compliant Rebound
 
-A ball that hits a straight free span of a real rubber does not bounce off it like off a wall. The cord stretches into a V around the ball, and the direction and speed it throws the ball back with depend on where along the span the ball hit and how hard. **Compliant Rebound** gives a Physical rubber exactly that response while its collision geometry stays static.
+A ball that hits a free span of a real rubber does not bounce off it like off a wall. The cord stretches into a V around the ball, and the direction and speed it throws the ball back with depend on where along the span the ball hit and how hard. **Compliant Rebound** gives a Physical rubber exactly that response while its collision geometry stays static.
 
 At the moment of impact, VPE computes the trajectory the ball would follow if it were riding the apex of a massless cord pinned at the span's two guides, with the cord's tension taken from the rubber's material at its current stretch, and hands the ball the resulting exit velocity. A hit near a post leaves toward the far post, a hard hit sinks deeper and turns further, and a center hit at normal incidence behaves exactly as before. Restitution, friction, scatter, and hit events come from the collider's **Ball Contact Material** as they do for every other collider.
 
@@ -44,7 +44,7 @@ At the moment of impact, VPE computes the trajectory the ball would follow if it
 
 ### What Qualifies
 
-- Only **straight** free spans get the compliant rebound. A rubber with **Roundness** above zero bakes as a static fallback.
+- Every free span gets the compliant rebound, straight or rounded. The cord model is pinned at the span's two ends and runs straight between them, so a rounded span's bulge is ignored the way the tube's thickness is.
 - The rubber must not be kinematic.
 - Every guide the path touches counts as rigid: near a post the response blends back to the wall response, so nothing ever pushes the cord through its guide.
 - A hit that would carry the cord's apex past a guide, or would stretch it beyond the material's maximum, falls back to the wall response for that hit.

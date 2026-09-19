@@ -120,7 +120,7 @@ The component above animates rubbers around a wall segment that Visual Pinball m
 ## Requirements
 
 - A **Guided** rubber in **Physical** collision mode with **Compliant Rebound** enabled, whose outcome in the Rubber Collider inspector is **Deformable**. The guided path and the rebound are refit and rebaked on their own, in the editor and when the game starts.
-- The slingshot binds to one **straight** free span of that rubber, identified by the two guides it runs between. A rubber on exactly two posts has two identical spans and cannot be bound; a slingshot rubber runs around three posts.
+- The slingshot binds to one free span of that rubber, identified by the two guides it runs between. A rubber on exactly two posts has two identical spans and cannot be bound; a slingshot rubber runs around three posts.
 - Optionally a **Rubber Deformation Renderer** on the rubber and a coil arm primitive, for the animation.
 
 ## Creating One
@@ -156,4 +156,4 @@ To align the arm without starting a game, drag the **Kick** slider under *Previe
 
 ## Limitations
 
-The cord's collision geometry never moves: the rebound is instantaneous, a second ball never sees a deflected cord, and the kick is a velocity change rather than an arm pushing rubber. Rubbers with rounded corners keep the wall response. Game logic that queues switches on its own thread, such as the PinMAME integration, may still miss a pulse under heavy load; the self wire does not depend on it.
+The cord's collision geometry never moves: the rebound is instantaneous, a second ball never sees a deflected cord, and the kick is a velocity change rather than an arm pushing rubber. Game logic that queues switches on its own thread, such as the PinMAME integration, may still miss a pulse under heavy load; the self wire does not depend on it.

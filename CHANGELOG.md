@@ -8,7 +8,7 @@ Built with Unity 6.5
 
 ### Added
 
-- Compliant rebound for guided Physical rubbers: a ball hitting a straight free span rebounds as from a stretched cord, with direction and speed depending on where and how hard it hits ([Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/rubbers.html)).
+- Compliant rebound for guided Physical rubbers: a ball hitting a free span rebounds as from a stretched cord, with direction and speed depending on where and how hard it hits ([Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/rubbers.html)).
 - Guided rubbers refit their path and rebake the compliant rebound on their own, when the game starts and whenever the editor reads them, so no bake has to be pressed by hand.
 - Physical slingshot with a blade switch that closes on cord deflection, a self-wired or game-logic-driven coil, and an arm kick, created from the selected rubber's scene handles or a wizard, plus a rubber deformation renderer that animates the cord and the arm ([Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/slingshots.html)).
 - Guided Physical rubbers can attenuate ball-contact elasticity near their supporting guides while preserving full response across free spans.

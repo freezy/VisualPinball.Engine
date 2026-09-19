@@ -217,6 +217,48 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldBindTheVerticesOfARoundedSpanAlongItsCurve()
+		{
+			using var fixture = Fixture.Create();
+			// a span that bulges about 15 VPX off its chord, more than one cord diameter
+			var element = new RubberPathElement {
+				Type = RubberPathElementType.FreeSpan,
+				Start = new float2(0f, 0f),
+				End = new float2(SpanLengthVpx, 0f),
+				Control1 = new float2(SpanLengthVpx / 3f, 20f),
+				Control2 = new float2(SpanLengthVpx * 2f / 3f, 20f),
+				Length = SpanLengthVpx * 1.05f,
+			};
+			Assert.That(RubberPathMath.IsStraightFreeSpan(element), Is.False);
+			fixture.Rubber.ApplyGuidedBake(new[] { element }, null, Matrix4x4.identity, default, 1);
+			const int samples = 9;
+			var centreline = new List<Vector3>();
+			for (var i = 0; i < samples; i++) {
+				var bake = RubberPathMath.PointAt(element, i / (float)(samples - 1));
+				centreline.Add(new Vector3(bake.x, bake.y, 0f).TranslateToWorld());
+			}
+			var curved = new Mesh { name = "Curved Cord" };
+			curved.SetVertices(centreline);
+			fixture.Renderer.ReleaseMesh();
+			fixture.MeshFilter.sharedMesh = curved;
+			try {
+				fixture.Renderer.AcquireMesh();
+				fixture.Renderer.RebuildBindings();
+
+				Assert.That(fixture.Renderer.BindingCount, Is.EqualTo(samples),
+					"every centreline sample binds, including the bulge");
+				var alphas = fixture.Renderer.Bindings.OrderBy(binding => binding.VertexIndex)
+					.Select(binding => binding.Alpha).ToList();
+				Assert.That(alphas, Is.Ordered);
+				Assert.That(alphas.First(), Is.EqualTo(0f).Within(1e-3f));
+				Assert.That(alphas.Last(), Is.EqualTo(1f).Within(1e-3f));
+			} finally {
+				fixture.Renderer.ReleaseMesh();
+				Object.DestroyImmediate(curved);
+			}
+		}
+
+		[Test]
 		public void ShouldPoseTheCordInPreviewAndHandTheSharedMeshBackAfterwards()
 		{
 			using var fixture = Fixture.Create();

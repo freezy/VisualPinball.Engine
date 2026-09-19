@@ -75,7 +75,7 @@ namespace VisualPinball.Unity.Editor
 				"The kick curve and its duration also drive the arm of a physical slingshot bound to one of this rubber's spans.",
 				MessageType.None);
 
-			if (Application.isPlaying) {
+			if (Application.isPlaying || renderer.IsPreviewing) {
 				DrawRuntimeState(renderer);
 			}
 		}
@@ -97,6 +97,27 @@ namespace VisualPinball.Unity.Editor
 				EditorGUILayout.HelpBox(
 					$"The mesh filter renders '{(meshFilter.sharedMesh ? meshFilter.sharedMesh.name : "nothing")}', not the deformed instance.",
 					MessageType.Warning);
+			}
+			var meshRenderer = renderer.GetComponent<MeshRenderer>();
+			EditorGUILayout.LabelField("Mesh renderer", meshRenderer
+				? $"{(meshRenderer.enabled ? "enabled" : "DISABLED")}, {(meshRenderer.isVisible ? "visible" : "not visible")}, {meshRenderer.sharedMaterials.Length} material(s)"
+				: "none on this object");
+			if (mesh && renderer.RestVertices != null) {
+				var vertices = mesh.vertices;
+				var rest = renderer.RestVertices;
+				var maximum = 0f;
+				var count = Mathf.Min(vertices.Length, rest.Count);
+				for (var i = 0; i < count; i++) {
+					maximum = Mathf.Max(maximum, (vertices[i] - rest[i]).magnitude);
+				}
+				EditorGUILayout.LabelField("Max displacement in instance", $"{maximum * 1000f:F2} mm");
+			}
+			foreach (var child in renderer.GetComponentsInChildren<Renderer>(true)) {
+				if (child.gameObject == renderer.gameObject) {
+					continue;
+				}
+				EditorGUILayout.LabelField("Child renderer",
+					$"{child.gameObject.name}: {child.GetType().Name}, {(child.enabled && child.gameObject.activeInHierarchy ? "drawn" : "off")}");
 			}
 			if (renderer.gameObject.isStatic) {
 				EditorGUILayout.HelpBox(
