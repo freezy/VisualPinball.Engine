@@ -414,8 +414,7 @@ namespace VisualPinball.Unity.Editor
 					if (slingshot) {
 						RubberSlingshotAuthoring.Bind(slingshot, candidate.Binding);
 					} else {
-						RubberSlingshotAuthoring.Add(rubber, candidate.Binding,
-							RubberSlingshotAuthoring.FindOrCreateActuator());
+						RubberSlingshotAuthoring.Add(rubber, candidate.Binding, null);
 					}
 				}
 				if (rect.yMax > lowest.y) {

@@ -32,9 +32,6 @@ namespace VisualPinball.Unity.Editor
 	/// </remarks>
 	public static class RubberSlingshotAuthoring
 	{
-		/// <summary>Where a default actuator asset is created when the project has none.</summary>
-		public const string DefaultActuatorAssetPath = "Assets/Slingshot Actuator.asset";
-
 		/// <summary>A free span the rubber's slingshot can be bound to, or already is.</summary>
 		public readonly struct SpanCandidate
 		{
@@ -166,8 +163,8 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>
 		/// Adds a physical slingshot to the rubber, bound to the span, with the runtime
 		/// defaults written explicitly so it does not depend on the field initializers.
-		/// A rubber that already has a slingshot keeps it and gets it bound to the span
-		/// instead. Registered with undo.
+		/// The coil model asset is optional. A rubber that already has a slingshot keeps
+		/// it and gets it bound to the span instead. Registered with undo.
 		/// </summary>
 		public static RubberSlingshotComponent Add(RubberComponent rubber,
 			RubberSpanBinding span, SlingshotActuatorAsset actuator)
@@ -198,38 +195,6 @@ namespace VisualPinball.Unity.Editor
 			slingshot.Span = span;
 			EditorUtility.SetDirty(slingshot);
 			PrefabUtility.RecordPrefabInstancePropertyModifications(slingshot);
-		}
-
-		/// <summary>
-		/// The first actuator asset in the project, in asset path order, or null.
-		/// </summary>
-		public static SlingshotActuatorAsset FindActuator()
-		{
-			var path = AssetDatabase.FindAssets($"t:{nameof(SlingshotActuatorAsset)}")
-				.Select(AssetDatabase.GUIDToAssetPath)
-				.OrderBy(assetPath => assetPath, System.StringComparer.Ordinal)
-				.FirstOrDefault();
-			return path == null ? null : AssetDatabase.LoadAssetAtPath<SlingshotActuatorAsset>(path);
-		}
-
-		/// <summary>
-		/// The project's actuator asset, created with the asset's defaults at
-		/// <see cref="DefaultActuatorAssetPath"/> when there is none. The runtime does
-		/// not consult the actuator yet but refuses a slingshot without one, so authoring
-		/// must not stop at a missing asset.
-		/// </summary>
-		public static SlingshotActuatorAsset FindOrCreateActuator()
-		{
-			var existing = FindActuator();
-			if (existing) {
-				return existing;
-			}
-			var asset = ScriptableObject.CreateInstance<SlingshotActuatorAsset>();
-			var path = AssetDatabase.GenerateUniqueAssetPath(DefaultActuatorAssetPath);
-			AssetDatabase.CreateAsset(asset, path);
-			AssetDatabase.SaveAssets();
-			Debug.Log($"Created the default slingshot actuator asset at {path}.", asset);
-			return asset;
 		}
 	}
 }

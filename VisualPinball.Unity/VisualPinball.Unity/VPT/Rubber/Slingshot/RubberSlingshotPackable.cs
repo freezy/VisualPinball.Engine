@@ -43,8 +43,9 @@ namespace VisualPinball.Unity
 	public struct RubberSlingshotPackable
 	{
 		// Version 2 adds the runtime fields of the physical slingshot. Version 1 (and
-		// unversioned) payloads predate the runtime and restore its defaults.
-		private const int CurrentVersion = 2;
+		// unversioned) payloads predate the runtime and restore its defaults. Version 3
+		// drops the arm visual's axis and angles; the arm is a Motion Controller now.
+		private const int CurrentVersion = 3;
 
 		public int Version;
 
@@ -56,9 +57,6 @@ namespace VisualPinball.Unity
 		public float ArmContactPosition01;
 		public float ArmRestClearance;
 		public float ArmTipTravel;
-		public int VisualRotationAxis;
-		public float VisualRestAngle;
-		public float VisualFiredAngle;
 
 		public bool SelfWired;
 		public float WireDelayMs;
@@ -81,9 +79,6 @@ namespace VisualPinball.Unity
 				ArmContactPosition01 = component.ArmContactPosition01,
 				ArmRestClearance = component.ArmRestClearance,
 				ArmTipTravel = component.ArmTipTravel,
-				VisualRotationAxis = (int)component.VisualRotationAxis,
-				VisualRestAngle = component.VisualRestAngle,
-				VisualFiredAngle = component.VisualFiredAngle,
 				SelfWired = component.SelfWired,
 				WireDelayMs = component.WireDelayMs,
 				SelfWirePulseMs = component.SelfWirePulseMs,
@@ -105,11 +100,6 @@ namespace VisualPinball.Unity
 			component.ArmContactPosition01 = data.ArmContactPosition01;
 			component.ArmRestClearance = data.ArmRestClearance;
 			component.ArmTipTravel = data.ArmTipTravel;
-			component.VisualRotationAxis = Enum.IsDefined(typeof(Axis), data.VisualRotationAxis)
-				? (Axis)data.VisualRotationAxis
-				: Axis.X;
-			component.VisualRestAngle = data.VisualRestAngle;
-			component.VisualFiredAngle = data.VisualFiredAngle;
 
 			// pre-runtime payloads carry none of the fields below
 			var current = data.Version >= 2;
@@ -148,7 +138,7 @@ namespace VisualPinball.Unity
 		public ReferencePackable StartGuideRef;
 		public ReferencePackable EndGuideRef;
 		public int ActuatorRef;
-		public string CoilArmVisualPath;
+		public ReferencePackable MotionControllerRef;
 
 		public static byte[] Pack(RubberSlingshotComponent component, Transform root,
 			PackagedRefs refs, PackagedFiles files)
@@ -159,9 +149,7 @@ namespace VisualPinball.Unity
 				StartGuideRef = refs.PackReference(span.StartSupport.Guide),
 				EndGuideRef = refs.PackReference(span.EndSupport.Guide),
 				ActuatorRef = files.AddAsset(component.Actuator),
-				CoilArmVisualPath = component.CoilArmVisual
-					? component.CoilArmVisual.transform.GetPath(root, activeOnly: true)
-					: null,
+				MotionControllerRef = refs.PackReference(component.MotionController),
 			});
 		}
 
@@ -176,9 +164,7 @@ namespace VisualPinball.Unity
 				refs.Resolve<RubberGuideComponent>(data.StartGuideRef),
 				refs.Resolve<RubberGuideComponent>(data.EndGuideRef),
 				files.GetAsset<SlingshotActuatorAsset>(data.ActuatorRef),
-				string.IsNullOrEmpty(data.CoilArmVisualPath)
-					? null
-					: root.FindByPath(data.CoilArmVisualPath)?.gameObject);
+				refs.Resolve<MotionControllerComponent>(data.MotionControllerRef));
 		}
 	}
 }

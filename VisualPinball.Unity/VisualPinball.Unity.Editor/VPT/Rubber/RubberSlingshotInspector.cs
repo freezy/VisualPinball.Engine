@@ -30,10 +30,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _armHalfWidth01;
 		private SerializedProperty _kickWindowMs;
 		private SerializedProperty _minimumSwitchPulseMs;
-		private SerializedProperty _coilArmVisual;
-		private SerializedProperty _visualRotationAxis;
-		private SerializedProperty _visualRestAngle;
-		private SerializedProperty _visualFiredAngle;
+		private SerializedProperty _motionController;
 
 		private float _preview;
 
@@ -54,10 +51,7 @@ namespace VisualPinball.Unity.Editor
 			_armHalfWidth01 = serializedObject.FindProperty("_armHalfWidth01");
 			_kickWindowMs = serializedObject.FindProperty("_kickWindowMs");
 			_minimumSwitchPulseMs = serializedObject.FindProperty("_minimumSwitchPulseMs");
-			_coilArmVisual = serializedObject.FindProperty("_coilArmVisual");
-			_visualRotationAxis = serializedObject.FindProperty("_visualRotationAxis");
-			_visualRestAngle = serializedObject.FindProperty("_visualRestAngle");
-			_visualFiredAngle = serializedObject.FindProperty("_visualFiredAngle");
+			_motionController = serializedObject.FindProperty("_motionController");
 		}
 
 		private void OnDisable()
@@ -108,10 +102,10 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			EditorGUILayout.Space();
-			EditorGUILayout.LabelField("Actuator", EditorStyles.boldLabel);
-			EditorGUILayout.PropertyField(_actuator);
-			EditorGUILayout.HelpBox("The actuator asset is stored and packaged for a future physical arm. This version applies the kick below and does not consult the asset.",
-				MessageType.Info);
+			EditorGUILayout.LabelField("Kick", EditorStyles.boldLabel);
+			EditorGUILayout.PropertyField(_actuator, new GUIContent("Coil Model"));
+			EditorGUILayout.HelpBox("Optional. The coil model is stored and packaged for a future physical arm; this version applies the kick below and does not consult it.",
+				MessageType.None);
 			EditorGUILayout.PropertyField(_armContactPosition);
 			EditorGUILayout.PropertyField(_armRestClearance);
 			EditorGUILayout.PropertyField(_armTipTravel);
@@ -120,11 +114,10 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.LabelField(" ", $"= {_kickSpeed.floatValue / 18.53f:F2} m/s");
 
 			EditorGUILayout.Space();
-			EditorGUILayout.LabelField("Arm Visual", EditorStyles.boldLabel);
-			EditorGUILayout.PropertyField(_coilArmVisual);
-			EditorGUILayout.PropertyField(_visualRotationAxis);
-			EditorGUILayout.PropertyField(_visualRestAngle);
-			EditorGUILayout.PropertyField(_visualFiredAngle);
+			EditorGUILayout.LabelField("Arm", EditorStyles.boldLabel);
+			EditorGUILayout.PropertyField(_motionController, new GUIContent("Motion Controller"));
+			EditorGUILayout.HelpBox("The slingshot's coil feeds this Motion Controller and the cord follows its position. Give it Motion Transform followers for the arm; One Shot with a short activation and release is a good start. Without a Motion Controller only the cord animates, on the renderer's timed curve.",
+				MessageType.None);
 			serializedObject.ApplyModifiedProperties();
 
 			if (!RubberSlingshotComponent.RuntimeAvailable) {

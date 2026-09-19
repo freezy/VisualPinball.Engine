@@ -33,7 +33,6 @@ namespace VisualPinball.Unity.Editor
 			window._rubber = Selection.activeGameObject
 				? Selection.activeGameObject.GetComponent<RubberComponent>()
 				: null;
-			window._actuator = RubberSlingshotAuthoring.FindActuator();
 			window.RefreshSpans();
 			window.ShowUtility();
 		}
@@ -53,7 +52,7 @@ namespace VisualPinball.Unity.Editor
 			using (new EditorGUI.DisabledScope(_spanLabels.Length == 0)) {
 				_spanIndex = EditorGUILayout.Popup("Free Span", _spanIndex, _spanLabels);
 			}
-			_actuator = (SlingshotActuatorAsset)EditorGUILayout.ObjectField("Actuator",
+			_actuator = (SlingshotActuatorAsset)EditorGUILayout.ObjectField("Coil Model (optional)",
 				_actuator, typeof(SlingshotActuatorAsset), false);
 
 			if (!RubberSlingshotAuthoring.IsEligibleRubber(_rubber)) {
@@ -71,11 +70,6 @@ namespace VisualPinball.Unity.Editor
 				if (missing != null) {
 					EditorGUILayout.HelpBox($"{missing} The slingshot cannot fire until then.",
 						MessageType.Warning);
-				}
-				if (!_actuator) {
-					EditorGUILayout.HelpBox(
-						"No actuator asset is assigned; the project's first one is used, or a default one is created.",
-						MessageType.None);
 				}
 			}
 
@@ -110,8 +104,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 			_spanIndex = refreshedIndex;
-			var actuator = _actuator ? _actuator : RubberSlingshotAuthoring.FindOrCreateActuator();
-			RubberSlingshotAuthoring.Add(_rubber, selected, actuator);
+			RubberSlingshotAuthoring.Add(_rubber, selected, _actuator);
 			Selection.activeGameObject = _rubber.gameObject;
 			Close();
 		}

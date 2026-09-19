@@ -121,7 +121,7 @@ The component above animates rubbers around a wall segment that Visual Pinball m
 
 - A **Guided** rubber in **Physical** collision mode with **Compliant Rebound** enabled, whose outcome in the Rubber Collider inspector is **Deformable**. The guided path and the rebound are refit and rebaked on their own, in the editor and when the game starts.
 - The slingshot binds to one free span of that rubber, identified by the two guides it runs between. A rubber on exactly two posts has two identical spans and cannot be bound; a slingshot rubber runs around three posts.
-- Optionally a **Rubber Deformation Renderer** on the rubber and a coil arm primitive, for the animation.
+- Optionally a **Rubber Deformation Renderer** on the rubber, for the cord, and a [Motion Controller](xref:motion_controller) with Motion Transform followers, for the arm.
 
 ## Creating One
 
@@ -129,7 +129,7 @@ The physical slingshot is a component of its rubber, and a rubber has at most on
 
 The same is available from the menu: **GameObject → Pinball → Add Physical Slingshot To Rubber** opens a small window that lists the free spans by their guides.
 
-Either way, the slingshot needs a *Slingshot Actuator* asset. If the project has none, one is created with default values at `Assets/Slingshot Actuator.asset`. The current version does not consult it, see below. The slingshot inspector diagnoses the same things afterwards: rest length not configured, rebound material missing, bound span not eligible.
+The slingshot inspector diagnoses the same things afterwards: rest length not configured, rebound material missing, bound span not eligible.
 
 ## Switch
 
@@ -146,13 +146,13 @@ The coil, `slingshot_coil`, can be energized two ways:
 
 When the coil energizes, the arm kicks every ball in front of the rubber that is within its **Arm Tip Travel** minus **Arm Rest Clearance** of the cord and inside **Arm Half Width** of the **Arm Contact Position**, adding **Kick Speed** along the rubber's outward direction, scaled down toward the edges of the arm. The ball that closed the switch is kicked even if it has already bounced a little further away, as long as the coil fires within **Kick Window** milliseconds of the closure; that stands in for the time a real ball spends pressed into the rubber. A coil that fires with nothing in reach only animates, and a ball that hits the rubber while the coil is not commanded rebounds passively.
 
-The **Actuator** asset stays assigned and packaged for a future physical arm model; this version does not consult it.
+The optional **Coil Model** asset is stored and packaged for a future physical arm model; this version does not consult it.
 
 ## Animation
 
-With a Rubber Deformation Renderer on the rubber, every hit twangs the cord inward and every coil firing pushes it outward at the arm position over the renderer's **Animation Duration** on its **Kick Curve**. The **Coil Arm** primitive rotates from **Visual Rest Angle** to **Visual Fired Angle** on the same curve, in the same simulation clock, so rubber and arm stay in phase.
+The arm is a [Motion Controller](xref:motion_controller): assign one under *Arm* in the Rubber Slingshot inspector. The slingshot's coil feeds the controller's coil, so the controller's **Coil Mode**, travel durations, curves and its Motion Transform followers decide how the arm moves. **One Shot** with a short **Activation Duration** and **Release Duration** matches a real slingshot arm. With a Rubber Deformation Renderer on the rubber, every hit twangs the cord inward, and the cord follows the arm outward at the contact position by **Arm Tip Travel** minus **Arm Rest Clearance** times the controller's position, so cord and arm always stay in phase. A rubber without a Motion Controller still shows the kick on the cord, over the renderer's **Animation Duration** on its **Kick Curve**.
 
-To align the arm without starting a game, drag the **Kick** slider under *Preview* at the bottom of the Rubber Slingshot inspector. It poses the arm between its rest and fired angle and, with a renderer on the rubber, bends the cord outward at the arm's contact position by the arm's travel. Leave the slider up while you adjust **Visual Fired Angle**, **Arm Contact Position** or **Arm Tip Travel**, then set it back to zero. Nothing of the preview is saved, and it ends by itself when the game starts or the scene is saved.
+To align the arm without starting a game, drag the **Kick** slider under *Preview* at the bottom of the Rubber Slingshot inspector. It poses the arm through the Motion Controller's followers and, with a renderer on the rubber, bends the cord outward at the arm's contact position by the arm's travel. Leave the slider up while you adjust the followers' offsets, **Arm Contact Position** or **Arm Tip Travel**, then set it back to zero. Nothing of the preview is saved, and it ends by itself when the game starts or the scene is saved.
 
 ## Limitations
 
