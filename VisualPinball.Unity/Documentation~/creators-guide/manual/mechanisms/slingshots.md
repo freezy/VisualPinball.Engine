@@ -129,7 +129,7 @@ The physical slingshot is a component of its rubber, and a rubber has at most on
 
 The same is available from the menu: **GameObject → Pinball → Add Physical Slingshot To Rubber** opens a small window that lists the free spans by their guides.
 
-Either way, the slingshot needs a *Slingshot Actuator* asset. If the project has none, one is created with default values at `Assets/Slingshot Actuator.asset`. The current version does not consult it, see below. The slingshot inspector diagnoses the same things afterwards: rest length not configured, rebound not baked or stale, bound span not eligible.
+Either way, the slingshot needs a *Slingshot Actuator* asset. If the project has none, one is created with default values at `Assets/Slingshot Actuator.asset`. The current version does not consult it, see below. The slingshot inspector diagnoses the same things afterwards: rest length not configured, rebound material missing, bound span not eligible.
 
 ## Switch
 

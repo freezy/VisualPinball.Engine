@@ -32,8 +32,10 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Version of the serialized bake layout. Version 2 adds the per-span
 		/// <c>ReboundEligible</c> flag and the compliant-rebound material domain check.
+		/// Version 3 makes rounded free spans eligible; older bakes read stale so a
+		/// rubber that was refused for its roundness is rebaked on its own.
 		/// </summary>
-		public const int BakeVersion = 2;
+		public const int BakeVersion = 3;
 
 		/// <summary>Version of the material compiler, part of the bake hash.</summary>
 		public const int CompilerVersion = 2;
@@ -73,12 +75,12 @@ namespace VisualPinball.Unity
 			}
 			if (!IsBakeCurrent(collider)) {
 				reason = collider.DeformationBakeHash.Length == 0
-					? "the compliant rebound has not been baked."
-					: "the compliant rebound bake is stale.";
+					? "the compliant rebound has not been set up yet."
+					: "the compliant rebound is out of date.";
 				return false;
 			}
 			if (collider.BakeOutcome != RubberDeformationBakeOutcome.Deformable) {
-				reason = $"the bake outcome is {collider.BakeOutcome}: {collider.BakeReason}";
+				reason = collider.BakeReason;
 				return false;
 			}
 			if (!collider.CompiledDeformationMaterial.IsPopulated) {

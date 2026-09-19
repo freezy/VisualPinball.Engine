@@ -293,7 +293,7 @@ namespace VisualPinball.Unity
 					yield break;
 				}
 			}
-			yield return "The bound free span is not eligible for the compliant rebound; bake the rubber again.";
+			yield return "The bound free span is not eligible for the compliant rebound.";
 		}
 
 		internal void RestoreReferences(RubberGuideComponent startGuide,

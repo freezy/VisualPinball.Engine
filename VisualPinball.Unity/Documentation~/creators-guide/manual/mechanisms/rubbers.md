@@ -40,7 +40,7 @@ At the moment of impact, VPE computes the trajectory the ball would follow if it
 1. Give the rubber a **Rest Length**. It is the unstretched length of the cord in VPX units. In the Rubber inspector, **Set Rest Length From Fitted Length** takes the fitted centerline length and assumes a ten percent installed stretch, which is a good start for a rubber ring on posts. The inspector shows the resulting installed stretch.
 2. In the Rubber Collider inspector, under **Compliant Rebound**, enable it and assign a **Rebound Material**. This is a *Rubber Physics Material* asset with the cord's density, its stress-versus-stretch curve, and its damping ratio, authored in SI units. The default asset is soft; stiffer rubber wants a steeper curve.
 3. Set the **Deflection Clearance**, the deepest deflection in VPX units the cord may reach before it is treated as stopped by whatever sits behind it. The material's maximum stretch caps it as well.
-4. That is all. VPE compiles the material and the guided path into per-span data on its own, whenever one of the inputs changes and when the game starts, and the Rubber Collider inspector reports the outcome: **Deformable** (the rebound is active), **StaticFallback** (the rubber keeps the wall response, with the reason), or **Invalid** (the data is unusable, with the reason). **Bake Compliant Rebound** re-runs it on demand.
+4. That is all. VPE compiles the material and the guided path into per-span data on its own, whenever one of the inputs changes and when the game starts, and the Rubber Collider inspector says whether the rebound is active on the rubber's free spans and, if not, why. **Recompute Compliant Rebound** re-runs it on demand.
 
 ### What Qualifies
 
