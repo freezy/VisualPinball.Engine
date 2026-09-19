@@ -74,6 +74,13 @@ namespace VisualPinball.Unity
 		[NonSerialized] private RubberPathElement[] _validatedPath;
 		[NonSerialized] private uint _validatedBakeVersion;
 		[NonSerialized] private Hash128 _validatedBakeInputHash;
+
+		/// <summary>
+		/// The guide inputs the last automatic refit was attempted for. A refit that
+		/// does not come out valid is not retried for the same inputs, so an inspector
+		/// asking every repaint cannot spin the editor.
+		/// </summary>
+		[NonSerialized] internal Hash128 RefitAttemptedInputHash;
 		[NonSerialized] private bool _cachedPathIsValid;
 		[NonSerialized] private string _cachedPathValidationError;
 

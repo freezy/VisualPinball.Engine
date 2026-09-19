@@ -230,6 +230,13 @@ namespace VisualPinball.Unity
 		[NonSerialized] private string _lastEnsureWarning;
 
 		/// <summary>
+		/// The inputs the last automatic recompute of the compliant rebound was attempted
+		/// for, so a recompute that cannot come out current is not repeated on every
+		/// inspector repaint.
+		/// </summary>
+		[NonSerialized] internal string RecomputeAttemptedHash;
+
+		/// <summary>
 		/// Brings the bakes this collider depends on up to date: the guided path when a
 		/// guide moved, and the compliant rebound when any of its inputs changed. Both
 		/// are caches of the authored state, so nothing has to be baked by hand: this

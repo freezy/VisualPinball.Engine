@@ -717,6 +717,12 @@ namespace VisualPinball.Unity
 			if (IsBakeCurrent(collider)) {
 				return true;
 			}
+			// one attempt per input state, see RubberAutofit.EnsureCurrent
+			var hash = ComputeBakeHash(collider);
+			if (collider.RecomputeAttemptedHash == hash) {
+				return false;
+			}
+			collider.RecomputeAttemptedHash = hash;
 			Apply(collider);
 			return IsBakeCurrent(collider);
 		}
