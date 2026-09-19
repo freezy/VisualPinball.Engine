@@ -94,7 +94,7 @@ namespace VisualPinball.Unity.Editor
 			}
 			EditorGUI.showMixedValue = false;
 			if (HasInvalidPhysicalTarget()) {
-				EditorGUILayout.HelpBox("This Physical setting is preserved but cannot run until a usable guided path has been baked.",
+				EditorGUILayout.HelpBox("This Physical setting is preserved but cannot run until the rubber has a usable guided path.",
 					MessageType.Error);
 			}
 			var showsPhysical = _modeProperty.hasMultipleDifferentValues
@@ -192,7 +192,7 @@ namespace VisualPinball.Unity.Editor
 			EditorGUI.BeginDisabledGroup(!deformationEnabled);
 			PropertyField(_rubberPhysicsMaterialProperty, "Rebound Material");
 			PropertyField(_deflectionClearanceProperty, "Deflection Clearance");
-			if (GUILayout.Button("Bake Compliant Rebound")) {
+			if (GUILayout.Button("Recompute Compliant Rebound")) {
 				// Run after EndEditing, so the serialized object is not applied over the
 				// descriptors the baker writes directly.
 				_bakeRequested = true;
@@ -203,30 +203,37 @@ namespace VisualPinball.Unity.Editor
 				EditorGUILayout.HelpBox("Physical uses static round-cord collision and the standard contact material below. The rebound material drives the compliant free-span response instead.",
 					MessageType.Info);
 			} else if (targets.Length == 1 && target is RubberColliderComponent collider) {
-				EditorGUILayout.HelpBox("Straight free spans rebound off a massless-string model, so where and how hard the ball hits decides the direction and speed. The collision geometry stays static; rounded spans and supported arcs keep today's response.",
+				EditorGUILayout.HelpBox("Free spans rebound off a massless-string model, so where and how hard the ball hits decides the direction and speed. The collision geometry stays static; supported arcs keep the wall response.",
 					MessageType.Info);
-				DrawBakeStatus(collider);
+				DrawReboundStatus(collider);
 			}
 			EditorGUILayout.EndFoldoutHeaderGroup();
 		}
 
-		private static void DrawBakeStatus(RubberColliderComponent collider)
+		private static void DrawReboundStatus(RubberColliderComponent collider)
 		{
-			// the bake is a cache of the inputs: bring it up to date before showing it
+			// the compiled data is a cache of the inputs: bring it up to date, then say
+			// whether the rebound is active and, if not, why
 			collider.EnsureBakesCurrent();
-			var outcome = collider.BakeOutcome;
-			var current = RubberDeformationBaker.IsBakeCurrent(collider);
-			var hash = collider.DeformationBakeHash;
-			var severity = !current ? MessageType.Warning
-				: outcome == RubberDeformationBakeOutcome.Deformable ? MessageType.Info
-				: outcome == RubberDeformationBakeOutcome.StaticFallback ? MessageType.Warning
-				: MessageType.Error;
-			var freshness = hash.Length == 0 ? "never baked"
-				: current ? $"up to date ({hash.Substring(0, 8)})"
-				: $"stale ({hash.Substring(0, 8)})";
-			EditorGUILayout.HelpBox($"{outcome}: {collider.BakeReason}\nBake {freshness}.", severity);
-
 			var spans = collider.SpanDescriptors;
+			switch (collider.BakeOutcome) {
+				case RubberDeformationBakeOutcome.Deformable: {
+					var eligible = RubberSpanReboundEligibility.EligibleDescriptors(collider).Count;
+					EditorGUILayout.HelpBox(
+						$"Compliant rebound active on {eligible} free span{(eligible == 1 ? "" : "s")}.",
+						MessageType.Info);
+					break;
+				}
+				case RubberDeformationBakeOutcome.StaticFallback:
+					EditorGUILayout.HelpBox($"Compliant rebound inactive, the rubber keeps the wall response: {collider.BakeReason}",
+						MessageType.Warning);
+					break;
+				default:
+					EditorGUILayout.HelpBox($"Compliant rebound cannot be set up: {collider.BakeReason}",
+						MessageType.Error);
+					break;
+			}
+
 			if (spans.Count == 0) {
 				return;
 			}

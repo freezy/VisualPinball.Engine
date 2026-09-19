@@ -340,7 +340,7 @@ namespace VisualPinball.Unity
 				localIndex++;
 			}
 			if (localIndex == 0) {
-				Debug.LogWarning($"Physical rubber '{_rubber.name}' keeps the static rubber response: no baked free span is eligible for the compliant rebound.",
+				Debug.LogWarning($"Physical rubber '{_rubber.name}' keeps the static rubber response: no free span is eligible for the compliant rebound.",
 					_rubber);
 			}
 		}

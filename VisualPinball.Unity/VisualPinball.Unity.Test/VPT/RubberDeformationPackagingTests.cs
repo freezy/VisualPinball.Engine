@@ -322,7 +322,7 @@ namespace VisualPinball.Unity.Test
 				Assert.That(RubberSpanReboundEligibility.IsBakeCurrent(collider), Is.False);
 				Assert.That(RubberSpanReboundEligibility.TryValidate(collider, out var reason),
 					Is.False);
-				Assert.That(reason, Does.Contain("stale"));
+				Assert.That(reason, Does.Contain("out of date"));
 			} finally {
 				Object.DestroyImmediate(gameObject);
 			}

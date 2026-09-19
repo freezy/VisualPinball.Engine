@@ -40,7 +40,7 @@ namespace VisualPinball.Unity
 		/// Diagnostic carried by a component that was never baked, and by every
 		/// payload written before collider package version 3.
 		/// </summary>
-		public const string NotBakedReason = "Deformation has not been baked.";
+		public const string NotBakedReason = "The compliant rebound has not been set up yet.";
 
 		/// <summary>Length of a canonical deformation bake hash, a SHA-256 in lowercase hex.</summary>
 		internal const int DeformationBakeHashLength = 64;
@@ -252,7 +252,7 @@ namespace VisualPinball.Unity
 				return true;
 			}
 			if (!RubberDeformationBaker.EnsureCurrent(this)) {
-				WarnOnce($"Rubber '{rubber.name}' could not bake its compliant rebound: {BakeReason}");
+				WarnOnce($"Rubber '{rubber.name}' could not set up its compliant rebound: {BakeReason}");
 				return false;
 			}
 			return BakeOutcome == RubberDeformationBakeOutcome.Deformable;

@@ -68,7 +68,7 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.LabelField("Animated free spans", eligible.ToString());
 			if (eligible == 0) {
 				EditorGUILayout.HelpBox(
-					"The current bake has no rebound-eligible free span. Bake the rubber's compliant rebound again.",
+					"No free span of this rubber is eligible for the compliant rebound; the Rubber Collider says why.",
 					MessageType.Warning);
 			}
 			EditorGUILayout.HelpBox(

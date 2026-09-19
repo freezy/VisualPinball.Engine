@@ -81,12 +81,12 @@ namespace VisualPinball.Unity
 
 			var startIndex = FindBinding(rubber, span.StartSupport);
 			if (startIndex < 0) {
-				error = "The start support no longer belongs to the rubber bake.";
+				error = "The start support no longer belongs to the rubber's guided path.";
 				return false;
 			}
 			var endIndex = FindBinding(rubber, span.EndSupport);
 			if (endIndex < 0) {
-				error = "The end support no longer belongs to the rubber bake.";
+				error = "The end support no longer belongs to the rubber's guided path.";
 				return false;
 			}
 			if (startIndex == endIndex) {
