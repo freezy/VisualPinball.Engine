@@ -68,12 +68,6 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public const int BakeVersion = RubberDeformationBakeFormat.BakeVersion;
 
-		/// <summary>
-		/// Why a rubber with rounded corners cannot use the compliant rebound.
-		/// </summary>
-		public const string RoundnessFallbackReason
-			= "compliant rebound requires straight free spans in this version";
-
 		/// <summary>Kilograms per VPE mass unit: one 80 g ball is mass one.</summary>
 		public const float MassUnitKg = 0.08f;
 
@@ -542,10 +536,6 @@ namespace VisualPinball.Unity
 				return StaticFallback(result,
 					"The rubber is kinematic; deformation does not support moving rubbers.");
 			}
-			if (rubber.Roundness > 0f) {
-				return StaticFallback(result,
-					$"The rubber has rounded corners; {RoundnessFallbackReason}.");
-			}
 			var fittedLength = path.Sum(element => element.Length);
 			if (!(rubber.RestLength > 0f)) {
 				return StaticFallback(result,
@@ -574,7 +564,11 @@ namespace VisualPinball.Unity
 			var spans = new List<RubberSpanDescriptor>(freeSpans.Count);
 			foreach (var index in freeSpans) {
 				var element = path[index];
-				var installedLength = element.Length;
+				// The string model is pinned at the span's two ends and runs straight
+				// between them, so its installed length is the chord. For a straight span
+				// that is the path length; a rounded span's cord bulges a little beyond
+				// it, which the model ignores the way it ignores the tube's thickness.
+				var installedLength = math.distance(element.Start, element.End);
 				var unloadedLength = installedLength / installedStretch;
 				var modalMass = material.LinearDensity * unloadedLength * 0.5f;
 				var stretchLimited = StretchLimitedDeflection(installedLength, installedStretch,
@@ -620,7 +614,8 @@ namespace VisualPinball.Unity
 					InwardSign = inwardSign,
 					SegmentCount = segmentCount,
 					ArcLengthFractions = BuildArcLengthFractions(element, segmentCount),
-					ReboundEligible = RubberPathMath.IsStraightFreeSpan(element),
+					// straight or rounded: the string is pinned at the ends either way
+					ReboundEligible = true,
 				});
 			}
 

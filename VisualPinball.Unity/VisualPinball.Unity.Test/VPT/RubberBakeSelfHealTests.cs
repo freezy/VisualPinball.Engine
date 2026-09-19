@@ -99,6 +99,23 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ARoundedRubberBakesDeformableOnEverySpan()
+		{
+			var (rubber, collider, _) = CreateRubber(withRebound: true);
+			rubber.Roundness = 0.5f;
+			Assert.That(RubberAutofit.TryBake(rubber, out _, out var error), Is.True, error);
+			rubber.RestLength = rubber.BakedPath.Sum(element => element.Length) / 1.1f;
+			Assert.That(rubber.BakedPath.Any(element => element.Type == RubberPathElementType.FreeSpan
+				&& !RubberPathMath.IsStraightFreeSpan(element)), Is.True, "roundness bends the free spans");
+
+			Assert.That(collider.EnsureBakesCurrent(), Is.True, collider.BakeReason);
+
+			Assert.That(collider.BakeOutcome, Is.EqualTo(RubberDeformationBakeOutcome.Deformable));
+			Assert.That(collider.SpanDescriptors.All(descriptor => descriptor.ReboundEligible), Is.True);
+			Assert.That(RubberSpanReboundEligibility.EligibleDescriptors(collider), Has.Count.EqualTo(3));
+		}
+
+		[Test]
 		public void ARubberWithoutRestLengthReportsWhyItCannotDeform()
 		{
 			var (rubber, collider, _) = CreateRubber(withRebound: true);

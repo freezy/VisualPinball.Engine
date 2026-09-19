@@ -281,6 +281,9 @@ namespace VisualPinball.Unity
 		/// <summary>The mesh instance the displacement is written to, null when inactive.</summary>
 		internal Mesh InstancedMesh => _instancedMesh;
 
+		/// <summary>The undisplaced vertices of the acquired mesh, null when none is acquired.</summary>
+		internal IReadOnlyList<Vector3> RestVertices => _restVertices;
+
 		internal IReadOnlyList<VertexBinding> Bindings => _bindings;
 
 		#endregion
@@ -427,6 +430,7 @@ namespace VisualPinball.Unity
 			var frame = _rubber.BakeFrameToLocal;
 			var descriptors = RubberSpanReboundEligibility.EligibleDescriptors(_collider);
 			var spans = new List<SpanVisual>(descriptors.Count);
+			var polylines = new List<(float3[] Points, float[] Cumulative)>(descriptors.Count);
 			foreach (var descriptor in descriptors) {
 				if (descriptor.PathElementIndex < 0 || descriptor.PathElementIndex >= path.Count) {
 					continue;
@@ -440,6 +444,7 @@ namespace VisualPinball.Unity
 				}
 				span.PathElementIndex = descriptor.PathElementIndex;
 				spans.Add(span);
+				polylines.Add(BuildRestPolyline(frame, element));
 			}
 			_spans = spans.Count > 0 ? spans.ToArray() : NoSpans;
 
@@ -457,17 +462,15 @@ namespace VisualPinball.Unity
 				var bestDistance = float.PositiveInfinity;
 				var bestAlpha = 0f;
 				for (var spanIndex = 0; spanIndex < _spans.Length; spanIndex++) {
-					var span = _spans[spanIndex];
-					var along = math.clamp(math.dot(position - span.RestStart, span.ChordDirection),
-						0f, span.ChordLength);
-					var closest = span.RestStart + span.ChordDirection * along;
-					var distance = math.distance(position, closest);
+					var polyline = polylines[spanIndex];
+					var distance = NearestOnPolyline(polyline.Points, polyline.Cumulative,
+						position, out var alpha);
 					if (distance > maximumDistance || distance >= bestDistance) {
 						continue;
 					}
 					bestSpan = spanIndex;
 					bestDistance = distance;
-					bestAlpha = along / span.ChordLength;
+					bestAlpha = alpha;
 				}
 				if (bestSpan < 0) {
 					continue;
@@ -525,6 +528,50 @@ namespace VisualPinball.Unity
 				Inward = inward / inwardLength,
 			};
 			return true;
+		}
+
+		/// <summary>
+		/// The span's rest centreline in mesh space: the chord of a straight span, a
+		/// sampled polyline of a rounded one, so the bulge of a rounded span binds too.
+		/// </summary>
+		private static (float3[] Points, float[] Cumulative) BuildRestPolyline(Matrix4x4 frame,
+			RubberPathElement element)
+		{
+			var count = RubberPathMath.IsStraightFreeSpan(element)
+				? 1
+				: math.max(8, RubberPathMath.FreeSpanSubdivisionCount(element,
+					RubberAutofit.RenderToleranceVpx));
+			var points = new float3[count + 1];
+			var cumulative = new float[count + 1];
+			for (var i = 0; i <= count; i++) {
+				points[i] = ToMeshSpace(frame, RubberPathMath.PointAt(element, i / (float)count));
+				cumulative[i] = i == 0 ? 0f : cumulative[i - 1] + math.distance(points[i - 1], points[i]);
+			}
+			return (points, cumulative);
+		}
+
+		/// <summary>
+		/// Distance from a point to a polyline, and the arc-length fraction of the
+		/// nearest point on it.
+		/// </summary>
+		private static float NearestOnPolyline(float3[] points, float[] cumulative,
+			float3 position, out float alpha)
+		{
+			var best = float.PositiveInfinity;
+			alpha = 0f;
+			var total = cumulative[cumulative.Length - 1];
+			for (var i = 1; i < points.Length; i++) {
+				var start = points[i - 1];
+				var delta = points[i] - start;
+				var lengthSq = math.lengthsq(delta);
+				var t = lengthSq > 0f ? math.saturate(math.dot(position - start, delta) / lengthSq) : 0f;
+				var distance = math.distance(position, start + delta * t);
+				if (distance < best) {
+					best = distance;
+					alpha = total > 0f ? (cumulative[i - 1] + t * math.sqrt(lengthSq)) / total : 0f;
+				}
+			}
+			return best;
 		}
 
 		/// <summary>A point of the bake plane in mesh space.</summary>

@@ -557,7 +557,7 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldMarkOnlyStraightFreeSpansAsReboundEligible()
+		public void ShouldMarkCurvedFreeSpansAsReboundEligibleOnTheirChord()
 		{
 			using var fixtureScope = new Fixture(MixedStraightAndCurvedLoop());
 
@@ -566,14 +566,15 @@ namespace VisualPinball.Unity.Test
 			Assert.That(result.Outcome, Is.EqualTo(RubberDeformationBakeOutcome.Deformable),
 				result.Reason);
 			Assert.That(result.Spans, Has.Length.EqualTo(4));
-			foreach (var span in result.Spans) {
-				var element = fixtureScope.Rubber.BakedPath[span.PathElementIndex];
-				Assert.That(span.ReboundEligible,
-					Is.EqualTo(RubberPathMath.IsStraightFreeSpan(element)),
-					$"span {span.PathElementIndex}");
-			}
-			Assert.That(result.Spans.Count(span => span.ReboundEligible), Is.EqualTo(3));
-			Assert.That(result.Spans.Count(span => !span.ReboundEligible), Is.EqualTo(1));
+			Assert.That(result.Spans.All(span => span.ReboundEligible), Is.True,
+				"the cord model is pinned at the span ends, straight or curved");
+			var curved = result.Spans.Single(span =>
+				!RubberPathMath.IsStraightFreeSpan(fixtureScope.Rubber.BakedPath[span.PathElementIndex]));
+			var element = fixtureScope.Rubber.BakedPath[curved.PathElementIndex];
+			Assert.That(curved.InstalledLength,
+				Is.EqualTo(math.distance(element.Start, element.End)).Within(1e-4f),
+				"a curved span's cord model uses the chord between its ends");
+			Assert.That(curved.InstalledLength, Is.LessThan(element.Length));
 		}
 
 		[Test]
@@ -593,17 +594,18 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldFallBackToStaticWhenTheRubberHasRoundedCorners()
+		public void ShouldBakeARubberWithRoundedCornersLikeAStraightOne()
 		{
 			using var fixtureScope = new Fixture();
 			fixtureScope.Rubber.Roundness = 0.5f;
 
 			var result = RubberDeformationBaker.Compute(fixtureScope.Collider);
 
-			Assert.That(result.Outcome, Is.EqualTo(RubberDeformationBakeOutcome.StaticFallback));
-			Assert.That(result.Reason,
-				Does.Contain(RubberDeformationBaker.RoundnessFallbackReason));
-			Assert.That(result.Spans, Is.Empty);
+			Assert.That(result.Outcome, Is.EqualTo(RubberDeformationBakeOutcome.Deformable),
+				result.Reason);
+			Assert.That(result.Spans, Is.Not.Empty);
+			Assert.That(result.Spans.All(span => span.ReboundEligible), Is.True,
+				"the cord model is pinned at the span ends, rounded or not");
 		}
 
 		[Test]
