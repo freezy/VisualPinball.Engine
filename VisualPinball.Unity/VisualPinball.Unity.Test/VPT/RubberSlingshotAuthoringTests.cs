@@ -141,31 +141,38 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ThePreviewPosesTheArmAndPutsItBack()
+		public void ThePreviewPosesTheArmThroughItsMotionControllerAndPutsItBack()
 		{
 			var rubber = CreateRubber(ThreePosts);
 			var slingshot = RubberSlingshotAuthoring.Add(rubber,
-				RubberSlingshotAuthoring.FindSpans(rubber)[0].Binding, CreateActuator());
+				RubberSlingshotAuthoring.FindSpans(rubber)[0].Binding, null);
+			var controllerObject = new GameObject("Arm Motion Controller");
+			_objects.Add(controllerObject);
+			controllerObject.SetActive(false);
+			var controller = controllerObject.AddComponent<MotionControllerComponent>();
 			var arm = new GameObject("Arm");
 			_objects.Add(arm);
+			arm.SetActive(false);
 			arm.transform.localEulerAngles = new Vector3(0f, 0f, 5f);
-			slingshot.CoilArmVisual = arm;
-			slingshot.VisualRotationAxis = Axis.Z;
-			slingshot.VisualRestAngle = 0f;
-			slingshot.VisualFiredAngle = 20f;
+			var follower = arm.AddComponent<MotionTransformComponent>();
+			follower._emitter = controller;
+			follower.AnimatePosition = false;
+			follower.AnimateRotation = true;
+			follower.RotationOffset = new Vector3(0f, 0f, 20f);
+			slingshot.MotionController = controller;
 
 			slingshot.Preview(0.5f);
 			Assert.That(slingshot.IsPreviewing, Is.True);
-			Assert.That(arm.transform.localEulerAngles.z, Is.EqualTo(10f).Within(1e-3f),
-				"half way between rest and fired");
+			Assert.That(arm.transform.localEulerAngles.z, Is.EqualTo(15f).Within(1e-3f),
+				"half way along the follower's rotation offset");
 
 			slingshot.Preview(1f);
-			Assert.That(arm.transform.localEulerAngles.z, Is.EqualTo(20f).Within(1e-3f));
+			Assert.That(arm.transform.localEulerAngles.z, Is.EqualTo(25f).Within(1e-3f));
 
 			slingshot.Preview(0f);
 			Assert.That(slingshot.IsPreviewing, Is.False);
 			Assert.That(arm.transform.localEulerAngles.z, Is.EqualTo(5f).Within(1e-3f),
-				"the arm is back where it was authored, not at the rest angle");
+				"the arm is back where it was authored");
 		}
 
 		[Test]

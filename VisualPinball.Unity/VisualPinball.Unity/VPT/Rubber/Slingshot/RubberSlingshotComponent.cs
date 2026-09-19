@@ -75,10 +75,8 @@ namespace VisualPinball.Unity
 		[Tooltip("Shortest switch pulse delivered to the gamelogic engine, in milliseconds of frame time. Player wires always get the raw edges.")]
 		[SerializeField, Min(0f)] private float _minimumSwitchPulseMs = DefaultMinimumSwitchPulseMs;
 
-		[SerializeField] private GameObject _coilArmVisual;
-		[SerializeField] private Axis _visualRotationAxis;
-		[SerializeField] private float _visualRestAngle;
-		[SerializeField] private float _visualFiredAngle = 20f;
+		[Tooltip("The Motion Controller that moves the arm. The slingshot feeds its coil when the slingshot's coil fires; the controller's mode, travel and followers decide how the arm moves, and the cord follows its position.")]
+		[SerializeField] private MotionControllerComponent _motionController;
 
 		/// <summary>
 		/// The rubber this slingshot belongs to: the one on the same game object. The
@@ -102,10 +100,7 @@ namespace VisualPinball.Unity
 		public float ArmRestClearance { get => _armRestClearance; set => _armRestClearance = value; }
 		public float ArmTipTravel { get => _armTipTravel; set => _armTipTravel = value; }
 		public SlingshotActuatorAsset Actuator { get => _actuator; set => _actuator = value; }
-		public GameObject CoilArmVisual { get => _coilArmVisual; set => _coilArmVisual = value; }
-		public Axis VisualRotationAxis { get => _visualRotationAxis; set => _visualRotationAxis = value; }
-		public float VisualRestAngle { get => _visualRestAngle; set => _visualRestAngle = value; }
-		public float VisualFiredAngle { get => _visualFiredAngle; set => _visualFiredAngle = value; }
+		public MotionControllerComponent MotionController { get => _motionController; set => _motionController = value; }
 
 		#region Runtime fields
 
@@ -242,9 +237,7 @@ namespace VisualPinball.Unity
 				|| !IsFiniteNonNegative(_armTipTravel)) {
 				errors.Add("Arm clearance and travel must be finite and non-negative.");
 			}
-			if (!_actuator) {
-				errors.Add("Assign a calibrated slingshot actuator asset.");
-			} else {
+			if (_actuator) {
 				errors.AddRange(_actuator.ValidateData());
 			}
 			errors.AddRange(ValidateReboundEligibility(spanResolved, resolved));
@@ -298,12 +291,12 @@ namespace VisualPinball.Unity
 
 		internal void RestoreReferences(RubberGuideComponent startGuide,
 			RubberGuideComponent endGuide, SlingshotActuatorAsset actuator,
-			GameObject coilArmVisual)
+			MotionControllerComponent motionController)
 		{
 			_span.StartSupport.Guide = startGuide;
 			_span.EndSupport.Guide = endGuide;
 			_actuator = actuator;
-			_coilArmVisual = coilArmVisual;
+			_motionController = motionController;
 		}
 
 		public void ValidateAfterUnpack()
@@ -390,11 +383,13 @@ namespace VisualPinball.Unity
 				Debug.LogError($"Cannot find physics engine for physical slingshot '{name}'.", this);
 				return;
 			}
-			_physicsEngine = physicsEngine;
 			SlingshotApi = new RubberSlingshotApi(gameObject, player, physicsEngine, this);
 			SlingshotApi.CoilStatusChanged += OnCoilStatusChanged;
 			player.Register(SlingshotApi, this);
 			physicsEngine.Register(this);
+			if (_motionController) {
+				_motionController.OnAnimationValueChanged += OnArmPositionChanged;
+			}
 		}
 
 		private void OnDestroy()
@@ -402,21 +397,27 @@ namespace VisualPinball.Unity
 			if (SlingshotApi != null) {
 				SlingshotApi.CoilStatusChanged -= OnCoilStatusChanged;
 			}
+			if (_motionController) {
+				_motionController.OnAnimationValueChanged -= OnArmPositionChanged;
+			}
 		}
 
 		#region Preview
 
 		[NonSerialized] private bool _previewActive;
-		[NonSerialized] private Vector3 _previewArmRestEuler;
+		[NonSerialized] private MotionTransformComponent[] _previewFollowers = Array.Empty<MotionTransformComponent>();
+		[NonSerialized] private Vector3[] _previewFollowerPositions = Array.Empty<Vector3>();
+		[NonSerialized] private Quaternion[] _previewFollowerRotations = Array.Empty<Quaternion>();
 
 		/// <summary>Whether an edit-mode preview currently poses the arm and the cord.</summary>
 		public bool IsPreviewing => _previewActive;
 
 		/// <summary>
 		/// Poses the arm and, with a renderer on the rubber, the cord between rest (0) and
-		/// the fully fired pose (1) outside play mode, so the arm's angle and contact
-		/// position can be aligned without starting a game. Zero puts everything back
-		/// as it was; nothing of the preview is saved. Ignored while the game runs.
+		/// the fully fired pose (1) outside play mode, so the arm can be aligned without
+		/// starting a game. The arm is posed through the Motion Controller's followers.
+		/// Zero puts everything back as it was; nothing of the preview is saved. Ignored
+		/// while the game runs.
 		/// </summary>
 		public void Preview(float amount01)
 		{
@@ -430,25 +431,31 @@ namespace VisualPinball.Unity
 			}
 			if (!_previewActive) {
 				_previewActive = true;
-				_previewArmRestEuler = _coilArmVisual
-					? _coilArmVisual.transform.localEulerAngles
-					: Vector3.zero;
+				_previewFollowers = FindArmFollowers();
+				_previewFollowerPositions = new Vector3[_previewFollowers.Length];
+				_previewFollowerRotations = new Quaternion[_previewFollowers.Length];
+				for (var i = 0; i < _previewFollowers.Length; i++) {
+					_previewFollowerPositions[i] = _previewFollowers[i].transform.localPosition;
+					_previewFollowerRotations[i] = _previewFollowers[i].transform.localRotation;
+					_previewFollowers[i].CaptureInitialPose();
+				}
 			}
-			_armValue = amount;
-			ApplyArmRotation();
-
+			foreach (var follower in _previewFollowers) {
+				if (follower) {
+					follower.ApplyValue(amount);
+				}
+			}
 			var renderer = DeformationRenderer;
 			if (renderer && TryResolveSpan(out var resolved, out _)) {
-				var depth = Mathf.Max(0f, ArmTipTravel - ArmRestClearance);
 				renderer.Preview(resolved.PathElementIndex,
 					resolved.ToPathCoordinate(Mathf.Clamp01(_armContactPosition01)),
-					-depth * amount);
+					-ArmTravel * amount);
 			}
 		}
 
 		/// <summary>
-		/// Ends the preview: the arm returns to where it was and the cord to its shared
-		/// mesh.
+		/// Ends the preview: the arm's followers return to where they were and the cord
+		/// to its shared mesh.
 		/// </summary>
 		public void EndPreview()
 		{
@@ -456,35 +463,48 @@ namespace VisualPinball.Unity
 				return;
 			}
 			_previewActive = false;
-			_armValue = 0f;
-			if (_coilArmVisual) {
-				_coilArmVisual.transform.localEulerAngles = _previewArmRestEuler;
+			for (var i = 0; i < _previewFollowers.Length; i++) {
+				var follower = _previewFollowers[i];
+				if (!follower) {
+					continue;
+				}
+				follower.transform.localPosition = _previewFollowerPositions[i];
+				follower.transform.localRotation = _previewFollowerRotations[i];
 			}
+			_previewFollowers = Array.Empty<MotionTransformComponent>();
 			var renderer = DeformationRenderer;
 			if (renderer) {
 				renderer.EndPreview();
 			}
 		}
 
+		/// <summary>The Motion Transform followers listening to the arm's Motion Controller.</summary>
+		private MotionTransformComponent[] FindArmFollowers()
+		{
+			if (!_motionController) {
+				return Array.Empty<MotionTransformComponent>();
+			}
+			return FindObjectsByType<MotionTransformComponent>(FindObjectsInactive.Include,
+					FindObjectsSortMode.None)
+				.Where(follower => follower._emitter == _motionController)
+				.ToArray();
+		}
+
 		#endregion
 
 		#region Visuals
 
-		[NonSerialized] private PhysicsEngine _physicsEngine;
 		[NonSerialized] private RubberDeformationRenderer _renderer;
-		[NonSerialized] private AnimationCurve _fallbackCurve;
-		[NonSerialized] private bool _armAnimating;
-		[NonSerialized] private float _armStartMs;
-		[NonSerialized] private float _fallbackClockMs;
-		[NonSerialized] private float _armValue;
+		[NonSerialized] private float _armPosition;
 
 		/// <summary>
-		/// Current value of the kick animation, zero at rest and one at the fired angle.
+		/// Where the arm is between rest (0) and fired (1), as its Motion Controller
+		/// reports it; zero without one.
 		/// </summary>
-		public float ArmAnimationValue => _armValue;
+		public float ArmPosition => _armPosition;
 
-		/// <summary>Whether the arm is currently swinging.</summary>
-		public bool IsArmAnimating => _armAnimating;
+		/// <summary>How far the arm's tip travels past the cord's rest line, in VPX units.</summary>
+		private float ArmTravel => Mathf.Max(0f, ArmTipTravel - ArmRestClearance);
 
 		/// <summary>
 		/// The deformation renderer on the bound rubber, or null. A rubber without one
@@ -492,8 +512,8 @@ namespace VisualPinball.Unity
 		/// </summary>
 		internal RubberDeformationRenderer DeformationRenderer {
 			get {
-				// not latched, so a renderer added later — a package load creates components
-				// in an order this component does not control — is still picked up
+				// not latched, so a renderer added later, a package load creates components
+				// in an order this component does not control, is still picked up
 				if (!_renderer && Rubber) {
 					_renderer = Rubber.GetComponent<RubberDeformationRenderer>();
 				}
@@ -502,99 +522,50 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
-		/// Shape of the kick animation. It lives on the renderer, so a rubber without one
-		/// animates its arm on the renderer's defaults.
+		/// The slingshot's coil is the arm's coil: both edges are handed to the Motion
+		/// Controller, whose mode, travel and followers decide how the arm moves. A
+		/// rubber without a Motion Controller still shows the kick on the cord, on the
+		/// renderer's timed curve.
 		/// </summary>
-		private AnimationCurve KickCurve {
-			get {
-				var renderer = DeformationRenderer;
-				if (renderer) {
-					return renderer.KickCurve;
-				}
-				return _fallbackCurve ??= RubberDeformationRenderer.CreateDefaultKickCurve();
-			}
-		}
-
-		private float KickDurationMs {
-			get {
-				var renderer = DeformationRenderer;
-				return renderer
-					? renderer.AnimationDurationMs
-					: RubberDeformationRenderer.DefaultAnimationDurationMs;
-			}
-		}
-
-		/// <summary>
-		/// Simulation time the visuals animate on, the same clock the renderer uses.
-		/// </summary>
-		private float NowMs => _physicsEngine ? _physicsEngine.TimeMsec : _fallbackClockMs;
-
 		private void OnCoilStatusChanged(object sender, NoIdCoilEventArgs args)
 		{
-			if (!args.IsEnergized) {
+			if (_motionController && _motionController.MotionControllerApi != null) {
+				((IApiCoil)_motionController.MotionControllerApi).OnCoil(args.IsEnergized);
 				return;
 			}
-			TriggerKickAnimation();
+			if (args.IsEnergized) {
+				TriggerKickAnimation();
+			}
 		}
 
 		/// <summary>
-		/// Starts the arm swing and, when the rubber has a renderer, the outward kick
-		/// profile on the bound span.
+		/// The cord follows the arm: it is pushed outward at the contact position by the
+		/// arm's travel times the arm's position.
 		/// </summary>
-		internal void TriggerKickAnimation()
+		private void OnArmPositionChanged(float position)
 		{
-			_armAnimating = true;
-			_armStartMs = NowMs;
-			_armValue = 0f;
-
+			_armPosition = Mathf.Clamp01(float.IsFinite(position) ? position : 0f);
 			var renderer = DeformationRenderer;
 			if (!renderer || !TryResolveSpan(out var resolved, out _)) {
 				return;
 			}
-			var depth = Mathf.Max(0f, ArmTipTravel - ArmRestClearance);
-			renderer.PlayKick(resolved.PathElementIndex,
-				resolved.ToPathCoordinate(Mathf.Clamp01(_armContactPosition01)), depth);
-		}
-
-		private void Update()
-		{
-			if (!Application.isPlaying) {
-				return;
-			}
-			if (Time.deltaTime > 0f) {
-				_fallbackClockMs += Time.deltaTime * 1000f;
-			}
-			if (!_armAnimating) {
-				return;
-			}
-			var duration = KickDurationMs;
-			var progress = duration > 0f ? (NowMs - _armStartMs) / duration : 1f;
-			if (progress >= 1f || progress < 0f) {
-				_armAnimating = false;
-				_armValue = 0f;
-			} else {
-				_armValue = KickCurve.Evaluate(Mathf.Clamp01(progress));
-			}
-			ApplyArmRotation();
+			renderer.DriveKick(resolved.PathElementIndex,
+				resolved.ToPathCoordinate(Mathf.Clamp01(_armContactPosition01)),
+				ArmTravel * _armPosition);
 		}
 
 		/// <summary>
-		/// Rotates the arm visual from the rest angle to the fired angle on the kick
-		/// curve, the way the legacy slingshot component does.
+		/// Plays the renderer's timed kick on the bound span, for a rubber whose arm is
+		/// not modelled.
 		/// </summary>
-		private void ApplyArmRotation()
+		internal void TriggerKickAnimation()
 		{
-			if (!_coilArmVisual) {
+			var renderer = DeformationRenderer;
+			if (!renderer || !TryResolveSpan(out var resolved, out _)) {
 				return;
 			}
-			var angle = Mathf.LerpUnclamped(_visualRestAngle, _visualFiredAngle, _armValue);
-			var euler = _coilArmVisual.transform.localEulerAngles;
-			switch (_visualRotationAxis) {
-				case Axis.X: euler.x = angle; break;
-				case Axis.Y: euler.y = angle; break;
-				case Axis.Z: euler.z = angle; break;
-			}
-			_coilArmVisual.transform.localEulerAngles = euler;
+			renderer.PlayKick(resolved.PathElementIndex,
+				resolved.ToPathCoordinate(Mathf.Clamp01(_armContactPosition01)), ArmTravel);
 		}
 
 		#endregion

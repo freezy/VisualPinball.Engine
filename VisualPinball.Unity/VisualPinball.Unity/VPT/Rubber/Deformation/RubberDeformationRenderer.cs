@@ -186,6 +186,10 @@ namespace VisualPinball.Unity
 			/// <summary>Signed kick amplitude, always outward, so never positive.</summary>
 			public float KickAmplitude;
 			public float KickStartMs;
+
+			/// <summary>An outward push that follows an arm's position; zero when none.</summary>
+			public float DrivenApex;
+			public float DrivenDepth;
 		}
 
 		/// <summary>One render vertex tied to the rest chord of a span.</summary>
@@ -767,6 +771,27 @@ namespace VisualPinball.Unity
 			_kickCount++;
 		}
 
+		/// <summary>
+		/// Holds the span at an outward push that follows an arm's position: applied as
+		/// long as the depth is non-zero, overriding the timed kick; twang shows again once
+		/// it is zero.
+		/// </summary>
+		internal void DriveKick(int pathElementIndex, float apexPathCoordinate01,
+			float outwardDepth)
+		{
+			if (!TryGetSpanIndex(pathElementIndex, out var index)) {
+				return;
+			}
+			ref var span = ref _spans[index];
+			var depth = float.IsFinite(outwardDepth) && outwardDepth > 0f ? -outwardDepth : 0f;
+			if (span.DrivenDepth == 0f && depth != 0f) {
+				_kickCount++;
+			}
+			span.DrivenApex = math.clamp(apexPathCoordinate01, MinimumApex, MaximumApex);
+			span.DrivenDepth = depth;
+			span.KickActive = false;
+		}
+
 		#endregion
 
 		#region Preview
@@ -879,6 +904,11 @@ namespace VisualPinball.Unity
 			if (_heldDeflection != 0f) {
 				span.Apex = 0.5f;
 				span.Depth = _heldDeflection;
+				return;
+			}
+			if (span.DrivenDepth != 0f) {
+				span.Apex = span.DrivenApex;
+				span.Depth = span.DrivenDepth;
 				return;
 			}
 			var twangApex = 0f;

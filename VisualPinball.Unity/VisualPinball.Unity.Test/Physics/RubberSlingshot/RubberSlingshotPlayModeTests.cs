@@ -172,7 +172,7 @@ namespace VisualPinball.Unity.Test
 
 				yield return fixture.Shoot(25f);
 				// the shot loop stops as soon as the coil fired, so follow the animation out
-				for (var frame = 0; frame < 600 && fixture.Slingshot.IsArmAnimating; frame++) {
+				for (var frame = 0; frame < 600 && (frame < 10 || fixture.MotionController.IsMoving); frame++) {
 					yield return null;
 					fixture.SampleVisuals();
 				}
@@ -187,7 +187,7 @@ namespace VisualPinball.Unity.Test
 				Assert.That(fixture.PeakArmAngle, Is.GreaterThan(0f),
 					"the arm visual must actually rotate");
 				Assert.That(fixture.PeakArmAngle,
-					Is.LessThanOrEqualTo(fixture.Slingshot.VisualFiredAngle + 0.01f),
+					Is.LessThanOrEqualTo(Fixture.ArmFiredAngle + 0.01f),
 					"the arm never swings past its fired angle");
 			} finally {
 				fixture.Dispose();
@@ -220,6 +220,8 @@ namespace VisualPinball.Unity.Test
 			internal int PathElementIndex = -1;
 			internal RubberDeformationRenderer Renderer;
 			internal GameObject ArmVisual;
+			internal MotionControllerComponent MotionController;
+			internal const float ArmFiredAngle = 20f;
 			internal Mesh CordMesh;
 
 			/// <summary>Most outward profile depth the bound span reached, in VPX units.</summary>
@@ -324,12 +326,23 @@ namespace VisualPinball.Unity.Test
 						MinimumClosedTimeMs = 8f,
 					},
 				};
+				// the arm: a Motion Controller the slingshot's coil feeds, with one rotating
+				// follower; One Shot with a short stroke, as a real slingshot arm behaves
+				var controllerObject = new GameObject("Arm Motion Controller");
+				controllerObject.transform.SetParent(playfieldObject.transform, false);
+				fixture.MotionController = controllerObject.AddComponent<MotionControllerComponent>();
+				fixture.MotionController.CoilMode = MotionCoilMode.OneShot;
+				fixture.MotionController.ActivationDuration = 0.03f;
+				fixture.MotionController.OneShotHoldDuration = 0.02f;
+				fixture.MotionController.ReleaseDuration = 0.05f;
 				fixture.ArmVisual = new GameObject("Coil Arm");
 				fixture.ArmVisual.transform.SetParent(rubberObject.transform, false);
-				fixture.Slingshot.CoilArmVisual = fixture.ArmVisual;
-				fixture.Slingshot.VisualRotationAxis = Axis.Y;
-				fixture.Slingshot.VisualRestAngle = 0f;
-				fixture.Slingshot.VisualFiredAngle = 20f;
+				var follower = fixture.ArmVisual.AddComponent<MotionTransformComponent>();
+				follower._emitter = fixture.MotionController;
+				follower.AnimatePosition = false;
+				follower.AnimateRotation = true;
+				follower.RotationOffset = new Vector3(0f, ArmFiredAngle, 0f);
+				fixture.Slingshot.MotionController = fixture.MotionController;
 				Assert.That(fixture.Slingshot.ValidateConfiguration(), Is.Empty);
 
 				var prefabHolder = new GameObject("Ball Prefab Holder");
@@ -420,7 +433,7 @@ namespace VisualPinball.Unity.Test
 					PeakOutwardDepth = math.min(PeakOutwardDepth, depth);
 				}
 				if (Slingshot) {
-					PeakArmValue = math.max(PeakArmValue, Slingshot.ArmAnimationValue);
+					PeakArmValue = math.max(PeakArmValue, Slingshot.ArmPosition);
 				}
 				if (ArmVisual) {
 					var angle = ArmVisual.transform.localEulerAngles.y;

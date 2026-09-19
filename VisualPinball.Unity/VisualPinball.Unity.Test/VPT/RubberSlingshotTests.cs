@@ -373,9 +373,6 @@ namespace VisualPinball.Unity.Test
 				source.ArmContactPosition01 = 0.45f;
 				source.ArmRestClearance = 1.5f;
 				source.ArmTipTravel = 19f;
-				source.VisualRotationAxis = Axis.Z;
-				source.VisualRestAngle = -3f;
-				source.VisualFiredAngle = 21f;
 				source.SelfWired = false;
 				source.WireDelayMs = 7f;
 				source.SelfWirePulseMs = 23f;
@@ -399,9 +396,6 @@ namespace VisualPinball.Unity.Test
 				Assert.That(target.ArmContactPosition01, Is.EqualTo(0.45f));
 				Assert.That(target.ArmRestClearance, Is.EqualTo(1.5f));
 				Assert.That(target.ArmTipTravel, Is.EqualTo(19f));
-				Assert.That(target.VisualRotationAxis, Is.EqualTo(Axis.Z));
-				Assert.That(target.VisualRestAngle, Is.EqualTo(-3f));
-				Assert.That(target.VisualFiredAngle, Is.EqualTo(21f));
 				Assert.That(target.SelfWired, Is.False);
 				Assert.That(target.WireDelayMs, Is.EqualTo(7f));
 				Assert.That(target.SelfWirePulseMs, Is.EqualTo(23f));
@@ -439,7 +433,6 @@ namespace VisualPinball.Unity.Test
 					ArmContactPosition01 = 0.4f,
 					ArmRestClearance = 3f,
 					ArmTipTravel = 17f,
-					VisualRotationAxis = (int)Axis.Y,
 				});
 				component.Unpack(legacy);
 
