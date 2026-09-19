@@ -478,7 +478,11 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		/// <summary>The Motion Transform followers listening to the arm's Motion Controller.</summary>
+		/// <summary>
+		/// The Motion Transform followers the arm's Motion Controller drives: those that
+		/// name it as their emitter, and those without an emitter that resolve to it the
+		/// way they do at runtime, through the nearest emitter up their own hierarchy.
+		/// </summary>
 		private MotionTransformComponent[] FindArmFollowers()
 		{
 			if (!_motionController) {
@@ -486,7 +490,11 @@ namespace VisualPinball.Unity
 			}
 			return FindObjectsByType<MotionTransformComponent>(FindObjectsInactive.Include,
 					FindObjectsSortMode.None)
-				.Where(follower => follower._emitter == _motionController)
+				.Where(follower => follower._emitter
+					? follower._emitter == _motionController
+					: follower.GetComponentsInParent<IAnimationValueEmitter>(true)
+						.OfType<IAnimationValueEmitter<float>>()
+						.FirstOrDefault() == (IAnimationValueEmitter<float>)_motionController)
 				.ToArray();
 		}
 

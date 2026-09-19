@@ -176,6 +176,31 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ThePreviewFindsAFollowerThatResolvesItsControllerAtRuntime()
+		{
+			var rubber = CreateRubber(ThreePosts);
+			var slingshot = RubberSlingshotAuthoring.Add(rubber,
+				RubberSlingshotAuthoring.FindSpans(rubber)[0].Binding, null);
+			// controller and follower on the same object, emitter left unassigned, as the
+			// runtime resolves it through the hierarchy
+			var arm = new GameObject("Arm");
+			_objects.Add(arm);
+			arm.SetActive(false);
+			var controller = arm.AddComponent<MotionControllerComponent>();
+			var follower = arm.AddComponent<MotionTransformComponent>();
+			follower.AnimatePosition = false;
+			follower.AnimateRotation = true;
+			follower.RotationOffset = new Vector3(0f, 0f, 20f);
+			slingshot.MotionController = controller;
+
+			slingshot.Preview(1f);
+			Assert.That(arm.transform.localEulerAngles.z, Is.EqualTo(20f).Within(1e-3f));
+
+			slingshot.Preview(0f);
+			Assert.That(arm.transform.localEulerAngles.z, Is.EqualTo(0f).Within(1e-3f));
+		}
+
+		[Test]
 		public void TheSameSpanIsRecognizedInEitherDirection()
 		{
 			var rubber = CreateRubber(ThreePosts);
