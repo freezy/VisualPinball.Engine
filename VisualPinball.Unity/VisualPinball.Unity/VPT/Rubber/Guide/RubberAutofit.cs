@@ -168,6 +168,15 @@ namespace VisualPinball.Unity
 				error = status.Message;
 				return false;
 			}
+			// One attempt per input state. A refit that does not come out valid must not
+			// be repeated on every inspector repaint: the dirty flag it sets would trigger
+			// the next repaint and lock the editor up.
+			var resolution = RubberGuideResolver.Resolve(rubber);
+			if (resolution.IsValid && rubber.RefitAttemptedInputHash == resolution.InputHash) {
+				error = status.Message;
+				return false;
+			}
+			rubber.RefitAttemptedInputHash = resolution.IsValid ? resolution.InputHash : default;
 			if (!TryBake(rubber, out _, out error)) {
 				return false;
 			}
@@ -176,7 +185,11 @@ namespace VisualPinball.Unity
 				UnityEditor.EditorUtility.SetDirty(rubber);
 			}
 #endif
-			return true;
+			status = GetStatus(rubber);
+			if (!status.IsValid) {
+				error = status.Message;
+			}
+			return status.IsValid;
 		}
 
 		public static RubberBakeStatus GetStatus(RubberComponent rubber)
