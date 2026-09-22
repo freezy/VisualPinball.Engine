@@ -105,6 +105,20 @@ namespace VisualPinball.Unity
 		[Tooltip("How far the starburst's rim rises above and drops below its centre, in VPX units.")]
 		private float _starburstOffset = 1.5f;
 
+		[SerializeField]
+		[Tooltip("Round cut-outs through the raised floor, down to the channel's floor. Positions are relative to the insert's origin, in VPX units.")]
+		private List<InsertHole> _holes = new();
+
+		[SerializeField]
+		[Range(3, 64)]
+		[Tooltip("How many straight sides each hole's circle is drawn with.")]
+		private int _holeSegments = 16;
+
+		[SerializeField]
+		[Min(0.01f)]
+		[Tooltip("The radius new holes are given, from the presets or when added one by one, in VPX units.")]
+		private float _holeRadius = 2f;
+
 		#endregion
 
 		#region Generated state
@@ -127,6 +141,19 @@ namespace VisualPinball.Unity
 		/// blank the object out.
 		/// </summary>
 		public string Error { get; private set; }
+
+		/// <summary>The holes cut through the raised floor, as set.</summary>
+		public IReadOnlyList<InsertHole> Holes => _holes;
+
+		/// <summary>
+		/// Replaces one hole and rebuilds, for tools that move holes without going
+		/// through the serialized properties, such as scene handles.
+		/// </summary>
+		public void SetHole(int index, InsertHole hole)
+		{
+			_holes[index] = hole;
+			RebuildMesh();
+		}
 
 		private string[] _warnings = Array.Empty<string>();
 
@@ -196,6 +223,10 @@ namespace VisualPinball.Unity
 				}
 			}
 
+			if (_holes.Count > 0 && channelWidth <= InsertOutlineBuilder.Epsilon) {
+				warnings.Add("Holes cut through the raised floor, which needs a channel to stand above.");
+			}
+
 			return new InsertBody {
 				Depth = _depth,
 				ChannelWidth = channelWidth,
@@ -203,6 +234,8 @@ namespace VisualPinball.Unity
 				StarburstBursts = _starburstBursts,
 				StarburstCenter = new float2(_starburstCenter.x, _starburstCenter.y),
 				StarburstOffset = starburstOffset,
+				Holes = _holes.ToArray(),
+				HoleSegments = _holeSegments,
 			};
 		}
 

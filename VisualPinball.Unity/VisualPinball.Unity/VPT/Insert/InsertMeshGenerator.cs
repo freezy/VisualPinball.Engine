@@ -49,6 +49,12 @@ namespace VisualPinball.Unity
 
 		/// <summary>How far the starburst's rim rises above and drops below its centre.</summary>
 		public float StarburstOffset;
+
+		/// <summary>Round cut-outs through the raised floor, down to the channel's floor.</summary>
+		public InsertHole[] Holes;
+
+		/// <summary>How many straight sides each hole's circle is drawn with.</summary>
+		public int HoleSegments;
 	}
 
 	/// <summary>
@@ -104,6 +110,14 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
+		/// The inverse of <see cref="ToLocal"/>: where a local space point lies on
+		/// the outline's plane, whatever its height.
+		/// </summary>
+		public static float2 FromLocal(Vector3 local) => math.mul(LocalToVpx, (float3)local).xy;
+
+		private static readonly float3x3 LocalToVpx = math.inverse(VpxToLocal);
+
+		/// <summary>
 		/// Turns an outline normal, which points out of the shape, into a local
 		/// space direction, either into the hollow or back out of it.
 		/// </summary>
@@ -145,7 +159,7 @@ namespace VisualPinball.Unity
 				var island = BuildRing(outline, body.ChannelWidth, out var islandMap);
 				var islandTop = floor + body.ChannelDepth;
 				var starburst = TryCoverWithStarburst(island, body, islandTop, outline.WeldTolerance);
-				AddSunkenFloor(outline, rim, rimMap, island, islandMap, starburst, floor, islandTop, size,
+				AddSunkenFloor(outline, body, rim, rimMap, island, islandMap, starburst, floor, islandTop, size,
 					vertices, normals, uvs, triangles);
 
 			} else {
@@ -439,12 +453,13 @@ namespace VisualPinball.Unity
 		/// The channel and the raised middle, all of it from one arrangement.
 		/// </summary>
 		/// <remarks>
-		/// The rim, the raised middle's outline, rungs tying the two together and
-		/// the starburst's spokes are laid into one <see cref="InsertArrangement"/>.
-		/// Every face it hands back is triangulated as it is, and told apart by a
-		/// point well inside it: in the middle's outline it is surface, otherwise
-		/// it is channel floor. Then a wall stands on every edge with different
-		/// tiers either side, facing the lower one.
+		/// The rim, the raised middle's outline, rungs tying the two together, the
+		/// starburst's spokes and the holes' circles are laid into one
+		/// <see cref="InsertArrangement"/>. Every face it hands back is triangulated
+		/// as it is, and told apart by a point well inside it: in the middle's
+		/// outline and in no hole it is surface, beyond the rim it is nothing, and
+		/// anything else is floor. Then a wall stands on every edge with different
+		/// tiers either side, facing the lower one, which is all a hole's wall is.
 		/// <para>
 		/// So nothing is built from a ring walked separately from the faces. A
 		/// walk round the middle's outline is not the edge of its faces once the
@@ -461,7 +476,7 @@ namespace VisualPinball.Unity
 		/// hands back as the whole rim, middle and all.
 		/// </para>
 		/// </remarks>
-		private static void AddSunkenFloor(InsertOutline outline, List<RingPoint> rim, int[] rimMap,
+		private static void AddSunkenFloor(InsertOutline outline, InsertBody body, List<RingPoint> rim, int[] rimMap,
 			List<RingPoint> island, int[] islandMap, InsertStarburst starburst, float floor, float islandTop,
 			float2 size, List<Vector3> vertices, List<Vector3> normals, List<Vector2> uvs, List<int> triangles)
 		{
@@ -483,6 +498,12 @@ namespace VisualPinball.Unity
 			foreach (var entry in island) {
 				polygon.Add(entry.Position);
 			}
+			var outer = new List<float2>(rim.Count);
+			foreach (var entry in rim) {
+				outer.Add(entry.Position);
+			}
+
+			var holes = AddHoles(arrangement, body.Holes, body.HoleSegments, polygon, starburst, weld, out var holeOwners);
 
 			if (starburst != null) {
 				// Spokes that start at the centre all share the one point, so however
@@ -545,7 +566,12 @@ namespace VisualPinball.Unity
 					}
 				}
 				var middle = (float2)((exact[largest.x] + exact[largest.y] + exact[largest.z]) / 3.0);
-				var tier = tiers[f] = Contains(polygon, middle) ? Tier.Surface : Tier.Floor;
+				var tier = tiers[f] = !Contains(outer, middle) ? Tier.Outside
+					: Contains(polygon, middle) && !InAnyHole(holes, middle) ? Tier.Surface
+					: Tier.Floor;
+				if (tier == Tier.Outside) {
+					continue;
+				}
 
 				// A starburst face lies within a single triangle of the wheel, which
 				// any point inside it names, and is flat in that triangle's plane. It
@@ -606,7 +632,7 @@ namespace VisualPinball.Unity
 				var fromPosition = arrangement.Position(from);
 				var toPosition = arrangement.Position(to);
 
-				WallNormals(arrangement, owners, from, to, behind == Tier.Outside ? rim : island,
+				WallNormals(arrangement, owners, holeOwners, from, to, behind == Tier.Outside ? rim : island,
 					out var fromNormal, out var toNormal, out var fromU, out var toU);
 
 				var fromTop = HeightOf(behind, fromPosition);
@@ -634,6 +660,138 @@ namespace VisualPinball.Unity
 					AddTriangle(triangles, bottomFrom, topTo, topFrom);
 				}
 			}
+		}
+
+		/// <summary>
+		/// Lays each hole into an arrangement as a closed polygon of
+		/// <paramref name="segments"/> sides, noting which hole and side each
+		/// segment is.
+		/// </summary>
+		/// <remarks>
+		/// A hole that meets nothing else would float in the face around it as a
+		/// piece of its own, and a face walk never attaches such a piece to that
+		/// face, so the face would cover it over. Each hole is tied in by a bridge
+		/// running from its centre straight out to the raised floor's outline.
+		/// Away from the starburst's centre, the bridge runs along a line through
+		/// it, and so stays within the one triangle of the wheel it starts in and
+		/// never crosses a spoke. A hole whose centre is off the raised floor
+		/// either reaches across its outline, which ties it in, swallows the
+		/// raised floor whole, which leaves nothing of it to cut, or misses it
+		/// altogether, and is left out.
+		/// </remarks>
+		/// <returns>Each hole's polygon, for telling faces inside it apart.</returns>
+		private static List<List<float2>> AddHoles(InsertArrangement arrangement, InsertHole[] holes, int segments,
+			List<float2> island, InsertStarburst starburst, float weld,
+			out Dictionary<int, (float2 Center, int Index, int Count)> owners)
+		{
+			owners = new Dictionary<int, (float2, int, int)>();
+			var polygons = new List<List<float2>>();
+			if (holes == null) {
+				return polygons;
+			}
+
+			var count = math.max(3, segments);
+			foreach (var hole in holes) {
+				var center = new float2(hole.Center.x, hole.Center.y);
+				if (hole.Radius <= weld) {
+					continue;
+				}
+
+				var circle = new List<float2>(count);
+				for (var k = 0; k < count; k++) {
+					var angle = 2f * math.PI * k / count;
+					circle.Add(center + hole.Radius * new float2(math.cos(angle), math.sin(angle)));
+				}
+
+				// A hole with the whole raised floor inside it cuts nothing to draw: its
+				// circle would float round the outside as a piece of its own, and every
+				// face is already floor for lying inside it.
+				var reaches = Reaches(circle, island);
+				if (!reaches && !Contains(circle, island[0])) {
+					continue;
+				}
+				polygons.Add(circle);
+				if (!reaches) {
+					continue;
+				}
+				var points = new int[count];
+				for (var k = 0; k < count; k++) {
+					points[k] = arrangement.AddPoint(circle[k]);
+				}
+				for (var k = 0; k < count; k++) {
+					owners[arrangement.AddSegment(points[k], points[(k + 1) % count])] = (center, k, count);
+				}
+
+				if (Contains(island, center)) {
+					var away = starburst != null ? center - starburst.Center : float2.zero;
+					var direction = math.lengthsq(away) > weld * weld ? math.normalize(away) : new float2(1f, 0f);
+					if (TryLeave(island, center, direction, out var exit)) {
+						arrangement.AddSegment(arrangement.AddPoint(center), arrangement.AddPoint(exit));
+					}
+				}
+			}
+			return polygons;
+		}
+
+		/// <summary>
+		/// Where a ray from a point inside a convex, counter-clockwise polygon
+		/// leaves it.
+		/// </summary>
+		private static bool TryLeave(List<float2> polygon, float2 origin, float2 direction, out float2 exit)
+		{
+			var leave = double.PositiveInfinity;
+			for (var i = 0; i < polygon.Count; i++) {
+				var a = (double2)polygon[i];
+				var edge = (double2)polygon[(i + 1) % polygon.Count] - a;
+				var outward = new double2(edge.y, -edge.x);
+				var rate = math.dot((double2)direction, outward);
+				if (rate <= 0.0) {
+					continue;
+				}
+				var t = math.dot(a - (double2)origin, outward) / rate;
+				if (t >= 0.0 && t < leave) {
+					leave = t;
+				}
+			}
+			exit = (float2)((double2)origin + (double2)direction * leave);
+			return !double.IsPositiveInfinity(leave) && leave > 0.0;
+		}
+
+		/// <summary>
+		/// Whether a hole's polygon reaches into the raised floor's outline: has a
+		/// corner inside it, or crosses it.
+		/// </summary>
+		private static bool Reaches(List<float2> circle, List<float2> island)
+		{
+			foreach (var point in circle) {
+				if (Contains(island, point)) {
+					return true;
+				}
+			}
+			for (var i = 0; i < circle.Count; i++) {
+				for (var j = 0; j < island.Count; j++) {
+					if (Crosses(circle[i], circle[(i + 1) % circle.Count], island[j], island[(j + 1) % island.Count])) {
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+
+		private static bool Crosses(float2 a, float2 b, float2 c, float2 d)
+		{
+			static double Side(double2 o, double2 p, double2 q) => (p.x - o.x) * (q.y - o.y) - (p.y - o.y) * (q.x - o.x);
+			return Side(a, b, c) * Side(a, b, d) < 0.0 && Side(c, d, a) * Side(c, d, b) < 0.0;
+		}
+
+		private static bool InAnyHole(List<List<float2>> holes, float2 point)
+		{
+			foreach (var hole in holes) {
+				if (Contains(hole, point)) {
+					return true;
+				}
+			}
+			return false;
 		}
 
 		/// <summary>
@@ -667,8 +825,9 @@ namespace VisualPinball.Unity
 		/// within a pixel, and simply faces square off itself.
 		/// </remarks>
 		private static void WallNormals(InsertArrangement arrangement,
-			Dictionary<int, (List<RingPoint> Ring, int Side)> owners, int from, int to, List<RingPoint> preferred,
-			out float2 fromNormal, out float2 toNormal, out float fromU, out float toU)
+			Dictionary<int, (List<RingPoint> Ring, int Side)> owners,
+			Dictionary<int, (float2 Center, int Index, int Count)> holeOwners, int from, int to,
+			List<RingPoint> preferred, out float2 fromNormal, out float2 toNormal, out float fromU, out float toU)
 		{
 			var fromPosition = arrangement.Position(from);
 			var toPosition = arrangement.Position(to);
@@ -676,10 +835,29 @@ namespace VisualPinball.Unity
 			var right = math.normalizesafe(new float2(along.y, -along.x));
 
 			var chosen = -1;
+			var circle = -1;
 			foreach (var segment in arrangement.Sources(from, to)) {
 				if (owners.TryGetValue(segment, out var owner) && (chosen < 0 || owner.Ring == preferred)) {
 					chosen = segment;
 				}
+				if (holeOwners.ContainsKey(segment)) {
+					circle = segment;
+				}
+			}
+
+			if (chosen < 0 && circle >= 0) {
+				// Round a hole, the wall shades as the circle it stands on, and runs
+				// once round U.
+				var (center, index, count) = holeOwners[circle];
+				fromNormal = math.normalizesafe(fromPosition - center, right);
+				toNormal = math.normalizesafe(toPosition - center, right);
+				fromU = (index + arrangement.T(circle, from)) / count;
+				toU = (index + arrangement.T(circle, to)) / count;
+				if (math.dot(fromNormal + toNormal, right) < 0f) {
+					fromNormal = -fromNormal;
+					toNormal = -toNormal;
+				}
+				return;
 			}
 
 			if (chosen < 0) {

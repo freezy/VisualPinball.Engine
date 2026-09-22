@@ -1587,6 +1587,306 @@ namespace VisualPinball.Unity.Test
 
 		#endregion
 
+		#region Holes
+
+		public class HoleCase
+		{
+			public string Name;
+			public OutlineCase Shape;
+			public float2 Center = TestStarburstCenter;
+			public int Bursts = TestBursts;
+			public int Segments = 16;
+
+			/// <summary>The holes, given the outline and the channel's inset.</summary>
+			public Func<InsertOutline, float, IEnumerable<InsertHole>> Holes;
+
+			public override string ToString() => Name;
+		}
+
+		private static IEnumerable<InsertHole> Radius(IEnumerable<Vector2> centers, float radius)
+			=> centers.Select(center => new InsertHole(center, radius));
+
+		private static readonly HoleCase[] HoleCases = {
+			new() {
+				Name = "corners, starburst", Shape = TriangleCases[0],
+				Holes = (outline, inset) => Radius(InsertHoles.AtCorners(outline, inset), 3f),
+			},
+			new() {
+				Name = "corners and sides, 128 bursts", Shape = TriangleCases[0], Bursts = 128,
+				Holes = (outline, inset) => Radius(InsertHoles.AtCornersAndSides(outline, inset), 2f),
+			},
+			new() {
+				Name = "seven around, flat", Shape = RectangleCases[0], Bursts = 0,
+				Holes = (outline, inset) => Radius(InsertHoles.Around(outline, inset, 7), 2.5f),
+			},
+			new() {
+				// Crosses nothing, so only its bridge ties it to the rest.
+				Name = "floating in a face", Shape = SharpSquare, Center = new float2(0f, 20f), Bursts = 4,
+				Holes = (_, _) => new[] { new InsertHole(new Vector2(2f, 1f), 1f) },
+			},
+			new() {
+				Name = "floating, flat", Shape = SharpSquare, Bursts = 0,
+				Holes = (_, _) => new[] { new InsertHole(new Vector2(1f, 1f), 2f) },
+			},
+			new() {
+				Name = "across a spoke", Shape = SharpSquare, Center = new float2(0f, 20f),
+				Holes = (_, _) => new[] { new InsertHole(Vector2.zero, 2f) },
+			},
+			new() {
+				Name = "around the starburst's centre", Shape = SharpSquare, Center = float2.zero,
+				Holes = (_, _) => new[] { new InsertHole(Vector2.zero, 2f) },
+			},
+			new() {
+				Name = "overlapping", Shape = SharpSquare,
+				Holes = (_, _) => new[] { new InsertHole(new Vector2(2f, 2f), 2f), new InsertHole(new Vector2(3.5f, 2.5f), 2f) },
+			},
+			new() {
+				Name = "over the whole middle", Shape = SharpSquare,
+				Holes = (_, _) => new[] { new InsertHole(Vector2.zero, 20f) },
+			},
+			new() {
+				Name = "off the middle, in the channel", Shape = SharpSquare,
+				Holes = (_, _) => new[] { new InsertHole(new Vector2(8.5f, 8.5f), 0.5f) },
+			},
+			new() {
+				Name = "coarse circles", Shape = RectangleCases[0], Segments = 3,
+				Holes = (outline, inset) => Radius(InsertHoles.AtCorners(outline, inset), 3f),
+			},
+		};
+
+		private static Mesh BuildHoleMesh(HoleCase test, out InsertOutline outline, out InsertHole[] holes)
+		{
+			outline = Build(test.Shape);
+			var inset = outline.ClampInset(TestChannelWidth);
+			holes = test.Holes(outline, inset).ToArray();
+			var body = new InsertBody {
+				Depth = TestDepth,
+				ChannelWidth = inset,
+				ChannelDepth = TestChannelDepth,
+				StarburstBursts = test.Bursts,
+				StarburstCenter = test.Center,
+				StarburstOffset = TestStarburstOffset,
+				Holes = holes,
+				HoleSegments = test.Segments,
+			};
+			return InsertMeshGenerator.Generate(outline, body, new Mesh());
+		}
+
+		[TestCaseSource(nameof(HoleCases))]
+		public void ShouldCloseEverySeamRoundTheHoles(HoleCase test)
+		{
+			var mesh = BuildHoleMesh(test, out _, out _);
+			try {
+				AssertSeamsClosed(mesh);
+
+			} finally {
+				UnityEngine.Object.DestroyImmediate(mesh);
+			}
+		}
+
+		[TestCaseSource(nameof(HoleCases))]
+		public void ShouldNotEmitADegenerateTriangleRoundTheHoles(HoleCase test)
+		{
+			var mesh = BuildHoleMesh(test, out var outline, out _);
+			try {
+				AssertNoDegenerateTriangles(mesh, outline);
+
+			} finally {
+				UnityEngine.Object.DestroyImmediate(mesh);
+			}
+		}
+
+		[TestCaseSource(nameof(HoleCases))]
+		public void ShouldKeepTheHolesInsideTheBucket(HoleCase test)
+		{
+			var mesh = BuildHoleMesh(test, out _, out _);
+			try {
+				AssertWithinBucket(mesh);
+
+			} finally {
+				UnityEngine.Object.DestroyImmediate(mesh);
+			}
+		}
+
+		[TestCaseSource(nameof(HoleCases))]
+		public void ShouldFaceEveryHoleWallIntoTheHole(HoleCase test)
+		{
+			// A hole's wall faces into the hole, away from the raised floor it is
+			// cut from: from each wall triangle, a step along its normal lands in a
+			// hole or off the raised floor, and a step against it lands on it.
+			var mesh = BuildHoleMesh(test, out var outline, out var holes);
+			try {
+				var inset = outline.ClampInset(TestChannelWidth);
+				var island = Enumerable.Range(0, outline.Points.Count).Select(i => outline.OffsetPoint(i, inset)).ToList();
+				var polygons = HolePolygons(holes, test.Segments);
+				var step = 0.05f;
+				var vertices = mesh.vertices;
+				var triangles = mesh.triangles;
+
+				for (var i = 0; i < triangles.Length; i += 3) {
+					float3 a = vertices[triangles[i]];
+					float3 b = vertices[triangles[i + 1]];
+					float3 c = vertices[triangles[i + 2]];
+					var wound = math.normalize(math.cross(b - a, c - a));
+					var atRim = math.abs(a.y) < 1e-7f || math.abs(b.y) < 1e-7f || math.abs(c.y) < 1e-7f;
+					if (math.abs(wound.y) > 1e-3f || atRim || PlanExtent(a, b, c) < 20f * outline.WeldTolerance) {
+						continue;
+					}
+
+					var middle = Plan((a + b + c) / 3f);
+					var direction = math.normalize(new float2(-wound.x, wound.z));
+					var ahead = middle + direction * step;
+					var behind = middle - direction * step;
+					if (IsNear(island, polygons, ahead, step * 0.5f) || IsNear(island, polygons, behind, step * 0.5f)) {
+						continue;
+					}
+					Assert.That(OnRaised(island, polygons, behind) && !OnRaised(island, polygons, ahead), Is.True,
+						$"wall triangle {i / 3} at {middle} does not face off the raised floor");
+				}
+
+			} finally {
+				UnityEngine.Object.DestroyImmediate(mesh);
+			}
+		}
+
+		[TestCaseSource(nameof(HoleCases))]
+		public void ShouldCoverTheRaisedFloorAroundTheHolesOnce(HoleCase test)
+		{
+			// Sampled: every point of the raised floor outside the holes is under
+			// exactly one piece of its surface, and every point inside a hole is
+			// under none, with the channel's floor below it instead.
+			var mesh = BuildHoleMesh(test, out var outline, out var holes);
+			try {
+				var inset = outline.ClampInset(TestChannelWidth);
+				var island = Enumerable.Range(0, outline.Points.Count).Select(i => outline.OffsetPoint(i, inset)).ToList();
+				var polygons = HolePolygons(holes, test.Segments);
+
+				var floor = -TestDepth * Scale;
+				var vertices = mesh.vertices;
+				var triangles = mesh.triangles;
+				var surface = new List<(float2, float2, float2)>();
+				var bottom = new List<(float2, float2, float2)>();
+				for (var i = 0; i < triangles.Length; i += 3) {
+					float3 a = vertices[triangles[i]];
+					float3 b = vertices[triangles[i + 1]];
+					float3 c = vertices[triangles[i + 2]];
+					if (math.normalize(math.cross(b - a, c - a)).y <= 1e-3f) {
+						continue;
+					}
+					var low = math.abs(a.y - floor) < 1e-7f && math.abs(b.y - floor) < 1e-7f && math.abs(c.y - floor) < 1e-7f;
+					(low ? bottom : surface).Add((Plan(a), Plan(b), Plan(c)));
+				}
+
+				var min = new float2(float.MaxValue);
+				var max = new float2(float.MinValue);
+				foreach (var point in island) {
+					min = math.min(min, point);
+					max = math.max(max, point);
+				}
+
+				const int samples = 40;
+				var margin = math.max(outline.Width, outline.Height) * 1e-4f;
+				for (var i = 0; i < samples; i++) {
+					for (var j = 0; j < samples; j++) {
+						var point = min + (max - min) * new float2((i + 0.37f) / samples, (j + 0.61f) / samples);
+						if (!Inside(island, point, margin) || IsNear(island, polygons, point, margin)) {
+							continue;
+						}
+						var inHole = polygons.Any(polygon => Inside(polygon, point, 0f));
+						var over = surface.Count(t => Clearance(t.Item1, t.Item2, t.Item3, point) > 0f);
+						var under = bottom.Count(t => Clearance(t.Item1, t.Item2, t.Item3, point) > 0f);
+						if (inHole) {
+							Assert.That(over, Is.EqualTo(0), $"{point} is in a hole but under the raised floor");
+							Assert.That(under, Is.EqualTo(1), $"{point} is in a hole with no floor below it");
+						} else {
+							Assert.That(over, Is.EqualTo(1), $"{point} lies in {over} pieces of the raised floor");
+						}
+					}
+				}
+
+			} finally {
+				UnityEngine.Object.DestroyImmediate(mesh);
+			}
+		}
+
+		[Test]
+		public void ShouldPutAHoleAtEveryCorner()
+		{
+			var outline = Build(TriangleCases[0]);
+			var inset = outline.ClampInset(TestChannelWidth);
+			var centers = InsertHoles.AtCorners(outline, inset);
+
+			Assert.That(centers, Has.Count.EqualTo(outline.Corners.Count));
+			var island = Enumerable.Range(0, outline.Points.Count).Select(i => outline.OffsetPoint(i, inset)).ToList();
+			foreach (var center in centers) {
+				Assert.That(DistanceToOutline(island, new float2(center.x, center.y)), Is.LessThan(1e-3f),
+					$"{center} is not on the raised floor's edge");
+			}
+		}
+
+		[Test]
+		public void ShouldPutACornerHoleOnTheEdgeEvenWhereTheCornerKeptNoPoint()
+		{
+			// Rounded all the way with a single segment, a corner can leave no
+			// point of its own, and its hole went to where the sharp corner was,
+			// well outside the shape.
+			var warnings = new List<string>();
+			var outline = InsertOutlineBuilder.Build(InsertShapes.RectangleCorners(100f, 100f,
+				new InsertCornerSettings(50f, 1)), 1);
+			var inset = outline.ClampInset(TestChannelWidth);
+			var island = Enumerable.Range(0, outline.Points.Count).Select(i => outline.OffsetPoint(i, inset)).ToList();
+
+			foreach (var center in InsertHoles.AtCorners(outline, inset)) {
+				Assert.That(DistanceToOutline(island, new float2(center.x, center.y)), Is.LessThan(1e-3f),
+					$"{center} is not on the raised floor's edge");
+			}
+		}
+
+		[Test]
+		public void ShouldSpreadHolesEvenlyAroundTheEdge()
+		{
+			var outline = Build(RectangleCases[0]);
+			var inset = outline.ClampInset(TestChannelWidth);
+			var centers = InsertHoles.Around(outline, inset, 6);
+			var island = Enumerable.Range(0, outline.Points.Count).Select(i => outline.OffsetPoint(i, inset)).ToList();
+
+			Assert.That(centers, Has.Count.EqualTo(6));
+			foreach (var center in centers) {
+				Assert.That(DistanceToOutline(island, new float2(center.x, center.y)), Is.LessThan(1e-3f));
+			}
+			Assert.That(InsertHoles.AtCornersAndSides(outline, inset), Has.Count.EqualTo(2 * outline.Corners.Count));
+		}
+
+		private static List<List<float2>> HolePolygons(IEnumerable<InsertHole> holes, int segments)
+		{
+			var count = math.max(3, segments);
+			return holes.Select(hole => Enumerable.Range(0, count).Select(k => {
+				var angle = 2f * math.PI * k / count;
+				return new float2(hole.Center.x, hole.Center.y) + hole.Radius * new float2(math.cos(angle), math.sin(angle));
+			}).ToList()).ToList();
+		}
+
+		private static bool OnRaised(List<float2> island, List<List<float2>> holes, float2 point)
+			=> Inside(island, point, 0f) && !holes.Any(hole => Inside(hole, point, 0f));
+
+		/// <summary>Whether a point is within <paramref name="distance"/> of the middle's or a hole's outline.</summary>
+		private static bool IsNear(List<float2> island, List<List<float2>> holes, float2 point, float distance)
+			=> DistanceToOutline(island, point) < distance || holes.Any(hole => DistanceToOutline(hole, point) < distance);
+
+		private static float DistanceToOutline(List<float2> polygon, float2 point)
+		{
+			var best = float.MaxValue;
+			for (var i = 0; i < polygon.Count; i++) {
+				var a = polygon[i];
+				var edge = polygon[(i + 1) % polygon.Count] - a;
+				var t = math.saturate(math.dot(point - a, edge) / math.max(math.lengthsq(edge), 1e-12f));
+				best = math.min(best, math.distance(point, a + edge * t));
+			}
+			return best;
+		}
+
+		#endregion
+
 		#region Arrangement
 
 		private static readonly TestCaseData[] UnspikeCases = {
