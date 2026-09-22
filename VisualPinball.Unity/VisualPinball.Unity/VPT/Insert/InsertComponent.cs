@@ -91,6 +91,20 @@ namespace VisualPinball.Unity
 		[Tooltip("How far the inset floor is raised, leaving a channel around it, in VPX units.")]
 		private float _channelDepth = 4f;
 
+		[SerializeField]
+		[Range(0, 128)]
+		[Tooltip("Bursts around the whole wheel, twice this many rim vertices. Counts the whole circle, not just the part landing on the insert. Below two there is no starburst and the raised floor stays flat.")]
+		private int _starburstBursts = 12;
+
+		[SerializeField]
+		[Tooltip("Where the starburst's centre sits relative to the insert's origin, in VPX units. Usually outside the insert, off past its narrow end.")]
+		private Vector2 _starburstCenter = Vector2.zero;
+
+		[SerializeField]
+		[Min(0f)]
+		[Tooltip("How far the starburst's rim rises above and drops below its centre, in VPX units.")]
+		private float _starburstOffset = 1.5f;
+
 		#endregion
 
 		#region Generated state
@@ -165,7 +179,31 @@ namespace VisualPinball.Unity
 				warnings.Add($"Channel depth reduced to {channelDepth:0.##} to stay below the rim.");
 			}
 
-			return new InsertBody { Depth = _depth, ChannelWidth = channelWidth, ChannelDepth = channelDepth };
+			var starburstOffset = _starburstOffset;
+			if (_starburstBursts >= InsertStarburst.MinBursts) {
+				if (channelWidth <= InsertOutlineBuilder.Epsilon) {
+					warnings.Add("The starburst replaces the raised floor, which needs a channel to stand above.");
+				}
+
+				// The zigzag straddles the raised floor, so it can reach no further
+				// down than the channel is deep, nor further up than the rim. It is
+				// the size that is held: a negative offset only swaps which spokes
+				// are ridges, and reaches just as far.
+				var limit = InsertStarburst.OffsetLimit(_depth, channelDepth);
+				starburstOffset = math.clamp(_starburstOffset, -limit, limit);
+				if (math.abs(starburstOffset) < math.abs(_starburstOffset) - 1e-4f) {
+					warnings.Add($"Starburst offset reduced to {starburstOffset:0.##} to stay between the channel floor and the rim.");
+				}
+			}
+
+			return new InsertBody {
+				Depth = _depth,
+				ChannelWidth = channelWidth,
+				ChannelDepth = channelDepth,
+				StarburstBursts = _starburstBursts,
+				StarburstCenter = new float2(_starburstCenter.x, _starburstCenter.y),
+				StarburstOffset = starburstOffset,
+			};
 		}
 
 		/// <summary>

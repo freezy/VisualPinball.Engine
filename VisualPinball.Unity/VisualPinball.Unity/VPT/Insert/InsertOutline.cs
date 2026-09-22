@@ -208,17 +208,6 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
-		/// Point indices covering straight run <paramref name="index"/>, tangent points included.
-		/// </summary>
-		/// <remarks>
-		/// Side <paramref name="index"/> runs from corner <paramref name="index"/> to
-		/// the next one, and normally carries at least the two tangent points that
-		/// cap it. It comes back empty when fillets have grown until their samples
-		/// coincide and were welded away, leaving a corner no points of its own: a
-		/// square whose radius reaches half its width, cut at one segment a corner,
-		/// is a diamond of four points shared between four corners.
-		/// </remarks>
-		/// <summary>
 		/// Point <paramref name="index"/> walked inwards by <paramref name="distance"/>,
 		/// as a true erosion of the shape.
 		/// </summary>
@@ -315,8 +304,10 @@ namespace VisualPinball.Unity
 			// Right at the limit the ring survives these tests as a sliver thinner
 			// than the weld, which then collapses it into a lopsided scrap of a
 			// shape. Stop while there is still something left to weld.
+			// The extent is what rules out a sliver; the area only has to say the
+			// ring has not turned inside out.
 			var extent = math.min(max.x - min.x, max.y - min.y);
-			return area > InsertOutlineBuilder.Epsilon && extent > WeldTolerance * 8f;
+			return area > 0f && extent > WeldTolerance * 8f;
 		}
 
 		/// <summary>
@@ -335,6 +326,17 @@ namespace VisualPinball.Unity
 				> InsertOutlineBuilder.Epsilon;
 		}
 
+		/// <summary>
+		/// Point indices covering straight run <paramref name="index"/>, tangent points included.
+		/// </summary>
+		/// <remarks>
+		/// Side <paramref name="index"/> runs from corner <paramref name="index"/> to
+		/// the next one, and normally carries at least the two tangent points that
+		/// cap it. It comes back empty when fillets have grown until their samples
+		/// coincide and were welded away, leaving a corner no points of its own: a
+		/// square whose radius reaches half its width, cut at one segment a corner,
+		/// is a diamond of four points shared between four corners.
+		/// </remarks>
 		public List<int> SideSpan(int index)
 		{
 			var from = CornerSpan(index);
@@ -373,6 +375,13 @@ namespace VisualPinball.Unity
 		/// float noise on parts that are tens of VPX units across.
 		/// </summary>
 		public const float Epsilon = 1e-5f;
+
+		/// <summary>
+		/// The tolerance for quantities with no length: angles, and differences
+		/// between unit vectors. <see cref="Epsilon"/> is a length and would mean
+		/// something different at every scale.
+		/// </summary>
+		public const float AngleEpsilon = 1e-5f;
 
 		private const float Tau = 2f * math.PI;
 
@@ -596,7 +605,7 @@ namespace VisualPinball.Unity
 					var delta = corner.Sweep < 0f
 						? Wrap(corner.ArcStart - angle)
 						: Wrap(angle - corner.ArcStart);
-					if (delta <= math.abs(corner.Sweep) + Epsilon) {
+					if (delta <= math.abs(corner.Sweep) + AngleEpsilon) {
 						var extreme = corner.Center + corner.Radius * new float2(math.cos(angle), math.sin(angle));
 						min = math.min(min, extreme);
 						max = math.max(max, extreme);
@@ -631,7 +640,7 @@ namespace VisualPinball.Unity
 				// Half the angle the fillet actually sits in. A reflex corner is
 				// filleted from the other side, so it uses the complement.
 				var half = concave ? (Tau - interior) * 0.5f : interior * 0.5f;
-				if (half <= Epsilon || half >= math.PI - Epsilon) {
+				if (half <= AngleEpsilon || half >= math.PI - AngleEpsilon) {
 					throw new InsertOutlineException($"Corner {index} is degenerate: its two sides are collinear.");
 				}
 
@@ -723,6 +732,7 @@ namespace VisualPinball.Unity
 		private static float2 Centroid(IReadOnlyList<InsertOutlinePoint> points)
 		{
 			var area = 0f;
+			var reach = 0f;
 			var accumulated = float2.zero;
 			for (var i = 0; i < points.Count; i++) {
 				var current = points[i].Position;
@@ -730,8 +740,11 @@ namespace VisualPinball.Unity
 				var cross = current.x * next.y - next.x * current.y;
 				area += cross;
 				accumulated += (current + next) * cross;
+				reach = math.max(reach, math.cmax(math.abs(current)));
 			}
-			return math.abs(area) < Epsilon ? float2.zero : accumulated / (3f * area);
+
+			// An area, so it is judged against the size squared.
+			return math.abs(area) <= 1e-9f * reach * reach ? float2.zero : accumulated / (3f * area);
 		}
 	}
 }

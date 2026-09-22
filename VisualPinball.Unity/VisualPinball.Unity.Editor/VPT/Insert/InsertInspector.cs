@@ -33,6 +33,9 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _depth;
 		private SerializedProperty _channelWidth;
 		private SerializedProperty _channelDepth;
+		private SerializedProperty _starburstBursts;
+		private SerializedProperty _starburstCenter;
+		private SerializedProperty _starburstOffset;
 
 		private void OnEnable()
 		{
@@ -46,6 +49,9 @@ namespace VisualPinball.Unity.Editor
 			_depth = serializedObject.FindProperty("_depth");
 			_channelWidth = serializedObject.FindProperty("_channelWidth");
 			_channelDepth = serializedObject.FindProperty("_channelDepth");
+			_starburstBursts = serializedObject.FindProperty("_starburstBursts");
+			_starburstCenter = serializedObject.FindProperty("_starburstCenter");
+			_starburstOffset = serializedObject.FindProperty("_starburstOffset");
 		}
 
 		public override void OnInspectorGUI()
@@ -78,6 +84,14 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.LabelField("Channel", EditorStyles.boldLabel);
 			EditorGUILayout.PropertyField(_channelWidth, new GUIContent("Width (VPX)"));
 			EditorGUILayout.PropertyField(_channelDepth, new GUIContent("Depth (VPX)"));
+
+			EditorGUILayout.Space();
+			EditorGUILayout.LabelField("Starburst", EditorStyles.boldLabel);
+			EditorGUILayout.PropertyField(_starburstBursts, new GUIContent("Bursts"));
+			if (_starburstBursts.intValue >= InsertStarburst.MinBursts) {
+				EditorGUILayout.PropertyField(_starburstCenter, new GUIContent("Center (VPX)"));
+				EditorGUILayout.PropertyField(_starburstOffset, new GUIContent("Offset (VPX)"));
+			}
 
 			serializedObject.ApplyModifiedProperties();
 

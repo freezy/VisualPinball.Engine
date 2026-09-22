@@ -36,6 +36,19 @@ namespace VisualPinball.Unity
 
 		/// <summary>How far the inset floor is raised, leaving a channel around it.</summary>
 		public float ChannelDepth;
+
+		/// <summary>Where the starburst's centre sits, relative to the insert's origin.</summary>
+		public float2 StarburstCenter;
+
+		/// <summary>
+		/// How many bursts the whole wheel has, whether or not they all land on the
+		/// insert. Below <see cref="InsertStarburst.MinBursts"/> there is no wheel
+		/// and the raised floor stays flat.
+		/// </summary>
+		public int StarburstBursts;
+
+		/// <summary>How far the starburst's rim rises above and drops below its centre.</summary>
+		public float StarburstOffset;
 	}
 
 	/// <summary>
@@ -111,6 +124,7 @@ namespace VisualPinball.Unity
 		private struct RingPoint
 		{
 			public float2 Position;
+
 			public float2 NormalIn;
 			public float2 NormalOut;
 			public float Distance;
@@ -124,26 +138,18 @@ namespace VisualPinball.Unity
 			var triangles = new List<int>();
 			var size = new float2(outline.Width, outline.Height);
 
-			var rim = BuildRing(outline, 0f, out _);
-			AddWall(rim, 0f, -body.Depth, true, vertices, normals, uvs, triangles);
-
 			var floor = -body.Depth;
+			var rim = BuildRing(outline, 0f, out var rimMap);
+
 			if (body.ChannelWidth > InsertOutlineBuilder.Epsilon) {
-				var inner = BuildRing(outline, body.ChannelWidth, out var map);
-
-				// The channel floor, then the raised middle's wall facing back out
-				// across it, then the middle itself.
-				AddStrip(rim, inner, map, floor, size, vertices, normals, uvs, triangles);
-
-				// A channel with no depth is a legal setting and just means an inset
-				// flat floor. Building its wall anyway would put a ring of zero area
-				// triangles between two coincident rings.
-				if (body.ChannelDepth > InsertOutlineBuilder.Epsilon) {
-					AddWall(inner, floor + body.ChannelDepth, floor, false, vertices, normals, uvs, triangles);
-				}
-				AddCap(inner, floor + body.ChannelDepth, size, vertices, normals, uvs, triangles);
+				var island = BuildRing(outline, body.ChannelWidth, out var islandMap);
+				var islandTop = floor + body.ChannelDepth;
+				var starburst = TryCoverWithStarburst(island, body, islandTop, outline.WeldTolerance);
+				AddSunkenFloor(outline, rim, rimMap, island, islandMap, starburst, floor, islandTop, size,
+					vertices, normals, uvs, triangles);
 
 			} else {
+				AddWall(rim, Level(rim.Count, 0f), Level(rim.Count, floor), true, vertices, normals, uvs, triangles);
 				AddCap(rim, floor, size, vertices, normals, uvs, triangles);
 			}
 
@@ -173,7 +179,7 @@ namespace VisualPinball.Unity
 		/// exactly the hard corner the erosion created.
 		/// </para>
 		/// <paramref name="map"/> comes back pointing each outline point at the ring
-		/// entry it ended up in, so a strip can be built across the two.
+		/// entry it ended up in, so two rings can be tied together point for point.
 		/// </remarks>
 		private static List<RingPoint> BuildRing(InsertOutline outline, float inset, out int[] map)
 		{
@@ -215,20 +221,14 @@ namespace VisualPinball.Unity
 				ring.RemoveAt(ring.Count - 1);
 			}
 
-			var distance = 0f;
-			for (var i = 0; i < ring.Count; i++) {
-				var entry = ring[i];
-				entry.Distance = distance;
-				ring[i] = entry;
-				distance += math.distance(entry.Position, ring[(i + 1) % ring.Count].Position);
-			}
+			Measure(ring);
 			return ring;
 		}
 
 		/// <summary>
 		/// A wall between two heights, facing either into the hollow or out of it.
 		/// </summary>
-		private static void AddWall(List<RingPoint> ring, float top, float bottom, bool inwards,
+		private static void AddWall(List<RingPoint> ring, float[] top, float[] bottom, bool inwards,
 			List<Vector3> vertices, List<Vector3> normals, List<Vector2> uvs, List<int> triangles)
 		{
 			var count = ring.Count;
@@ -244,7 +244,7 @@ namespace VisualPinball.Unity
 
 			for (var i = 0; i < count; i++) {
 				var entry = ring[i];
-				var split = math.distance(entry.NormalIn, entry.NormalOut) > InsertOutlineBuilder.Epsilon;
+				var split = math.distance(entry.NormalIn, entry.NormalOut) > InsertOutlineBuilder.AngleEpsilon;
 
 				// The ring closes back onto its first entry, which therefore needs a
 				// second copy carrying the far end of the U range instead of zero.
@@ -252,11 +252,11 @@ namespace VisualPinball.Unity
 				var arrivingDistance = seam ? perimeter : entry.Distance;
 
 				arrivingTop[i] = AddWallVertex(entry.Position, entry.NormalIn, arrivingDistance, perimeter,
-					top, bottom, inwards, out arrivingBottom[i], vertices, normals, uvs);
+					top[i], bottom[i], inwards, out arrivingBottom[i], vertices, normals, uvs);
 
 				if (split || seam) {
 					leavingTop[i] = AddWallVertex(entry.Position, entry.NormalOut, entry.Distance, perimeter,
-						top, bottom, inwards, out leavingBottom[i], vertices, normals, uvs);
+						top[i], bottom[i], inwards, out leavingBottom[i], vertices, normals, uvs);
 				} else {
 					leavingTop[i] = arrivingTop[i];
 					leavingBottom[i] = arrivingBottom[i];
@@ -265,13 +265,42 @@ namespace VisualPinball.Unity
 
 			for (var i = 0; i < count; i++) {
 				var next = (i + 1) % count;
+
+				// A wall may close to nothing at either end: all the way round when
+				// a channel has no depth, or at one end where its top edge comes
+				// down to meet the floor. Each triangle of the quad takes one end's
+				// height, so a closed end costs only the triangle standing on it,
+				// and closing both leaves nothing to draw.
+				var closedHere = math.abs(top[i] - bottom[i]) < InsertOutlineBuilder.Epsilon;
+				var closedThere = math.abs(top[next] - bottom[next]) < InsertOutlineBuilder.Epsilon;
+
 				if (inwards) {
 					// Along the top, then down the far side: that order faces it in.
-					AddQuad(triangles, leavingTop[i], arrivingTop[next], arrivingBottom[next], leavingBottom[i]);
+					if (!closedThere) {
+						AddTriangle(triangles, leavingTop[i], arrivingTop[next], arrivingBottom[next]);
+					}
+					if (!closedHere) {
+						AddTriangle(triangles, leavingTop[i], arrivingBottom[next], leavingBottom[i]);
+					}
 				} else {
-					AddQuad(triangles, leavingBottom[i], arrivingBottom[next], arrivingTop[next], leavingTop[i]);
+					if (!closedThere) {
+						AddTriangle(triangles, leavingBottom[i], arrivingBottom[next], arrivingTop[next]);
+					}
+					if (!closedHere) {
+						AddTriangle(triangles, leavingBottom[i], arrivingTop[next], leavingTop[i]);
+					}
 				}
 			}
+		}
+
+		/// <summary>A flat run of depths, for a wall whose edge does not vary.</summary>
+		private static float[] Level(int count, float depth)
+		{
+			var depths = new float[count];
+			for (var i = 0; i < count; i++) {
+				depths[i] = depth;
+			}
+			return depths;
 		}
 
 		private static int AddWallVertex(float2 position, float2 outward, float distance, float perimeter,
@@ -291,41 +320,6 @@ namespace VisualPinball.Unity
 			normals.Add(normal);
 			uvs.Add(new Vector2(u, 1f));
 			return topIndex;
-		}
-
-		/// <summary>
-		/// The flat channel floor between the outer ring and the inset one.
-		/// </summary>
-		/// <remarks>
-		/// Where the inset has eroded a fillet away, several outer points share one
-		/// inner point and the quad between them closes as a triangle instead.
-		/// </remarks>
-		private static void AddStrip(List<RingPoint> outer, List<RingPoint> inner, int[] map, float depth,
-			float2 size, List<Vector3> vertices, List<Vector3> normals, List<Vector2> uvs, List<int> triangles)
-		{
-			var outerStart = vertices.Count;
-			foreach (var entry in outer) {
-				vertices.Add(ToLocal(entry.Position, depth));
-				normals.Add(Vector3.up);
-				uvs.Add(PlanarUv(entry.Position, size));
-			}
-
-			var innerStart = vertices.Count;
-			foreach (var entry in inner) {
-				vertices.Add(ToLocal(entry.Position, depth));
-				normals.Add(Vector3.up);
-				uvs.Add(PlanarUv(entry.Position, size));
-			}
-
-			for (var i = 0; i < outer.Count; i++) {
-				var next = (i + 1) % outer.Count;
-				if (map[i] == map[next]) {
-					AddTriangle(triangles, outerStart + i, outerStart + next, innerStart + map[i]);
-				} else {
-					AddQuad(triangles, outerStart + i, outerStart + next,
-						innerStart + map[next], innerStart + map[i]);
-				}
-			}
 		}
 
 		/// <summary>
@@ -364,6 +358,401 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
+		/// A starburst grown to cover <paramref name="ring"/>, or null when the
+		/// body asks for too few bursts to make one.
+		/// </summary>
+		private static InsertStarburst TryCoverWithStarburst(List<RingPoint> ring, InsertBody body, float centerDepth,
+			float weld)
+		{
+			if (body.StarburstBursts < InsertStarburst.MinBursts) {
+				return null;
+			}
+
+			var footprint = new List<float2>(ring.Count);
+			foreach (var entry in ring) {
+				footprint.Add(entry.Position);
+			}
+
+			// Held to the bucket here as well as in the component, so any caller
+			// gets a surface that neither pokes through the rim nor digs below the
+			// channel floor, where its wall would fold through itself.
+			// Its size is what is held, not its value: a negative offset only swaps
+			// which spokes are ridges, and reaches just as far either way.
+			var limit = InsertStarburst.OffsetLimit(body.Depth, body.ChannelDepth);
+			var offset = math.clamp(body.StarburstOffset, -limit, limit);
+
+			// A centre a hair inside the edge sends every spoke on the far side
+			// out through it again a hair later, leaving a fan of faces nanometres
+			// tall. Put it on the edge instead, which the arrangement handles like
+			// any other point on the ring. The snap is kept to a few welds: moving
+			// the centre also slides where a shallow spoke enters, by the move over
+			// the tangent of its angle, so anything larger shows.
+			var size = 0f;
+			foreach (var point in footprint) {
+				size = math.max(size, math.cmax(math.abs(point)));
+			}
+			var center = SnapToOutline(footprint, body.StarburstCenter, math.max(weld * 4f, size * 1e-5f));
+
+			return InsertStarburst.Cover(footprint, center, body.StarburstBursts, offset, centerDepth);
+		}
+
+		/// <summary>
+		/// <paramref name="point"/>, moved onto the nearest point of the polygon's
+		/// outline if it is within <paramref name="snap"/> of it.
+		/// </summary>
+		private static float2 SnapToOutline(IReadOnlyList<float2> polygon, float2 point, float snap)
+		{
+			var nearest = point;
+			var best = float.MaxValue;
+			for (var i = 0; i < polygon.Count; i++) {
+				var from = polygon[i];
+				var edge = polygon[(i + 1) % polygon.Count] - from;
+				var length = math.lengthsq(edge);
+				var t = length > 0f ? math.saturate(math.dot(point - from, edge) / length) : 0f;
+				var candidate = from + edge * t;
+				var distance = math.distance(point, candidate);
+				if (distance < best) {
+					best = distance;
+					nearest = candidate;
+				}
+			}
+			return best <= snap ? nearest : point;
+		}
+
+		/// <summary>
+		/// Which part of the sunken floor a face of its arrangement is. A wall
+		/// stands wherever two faces of different tiers meet.
+		/// </summary>
+		private enum Tier
+		{
+			/// <summary>The channel's floor, or anywhere else down at the bottom.</summary>
+			Floor,
+
+			/// <summary>The raised middle, flat or starburst.</summary>
+			Surface,
+
+			/// <summary>Beyond the rim, where nothing is built.</summary>
+			Outside,
+		}
+
+		/// <summary>
+		/// The channel and the raised middle, all of it from one arrangement.
+		/// </summary>
+		/// <remarks>
+		/// The rim, the raised middle's outline, rungs tying the two together and
+		/// the starburst's spokes are laid into one <see cref="InsertArrangement"/>.
+		/// Every face it hands back is triangulated as it is, and told apart by a
+		/// point well inside it: in the middle's outline it is surface, otherwise
+		/// it is channel floor. Then a wall stands on every edge with different
+		/// tiers either side, facing the lower one.
+		/// <para>
+		/// So nothing is built from a ring walked separately from the faces. A
+		/// walk round the middle's outline is not the edge of its faces once the
+		/// arrangement has snapped them: where two sides of an acute tip pass
+		/// through the same two pixels, they pass through them in the same order,
+		/// and walking one side after the other goes round the tip the wrong way.
+		/// An edge either has surface on one side and floor on the other, or not,
+		/// and that is all a wall needs to know.
+		/// </para>
+		/// <para>
+		/// The rungs run from each outline point on the rim to its place on the
+		/// middle's outline, and cut the channel into cells. Without them the
+		/// channel is one face with the middle as a hole in it, which a face walk
+		/// hands back as the whole rim, middle and all.
+		/// </para>
+		/// </remarks>
+		private static void AddSunkenFloor(InsertOutline outline, List<RingPoint> rim, int[] rimMap,
+			List<RingPoint> island, int[] islandMap, InsertStarburst starburst, float floor, float islandTop,
+			float2 size, List<Vector3> vertices, List<Vector3> normals, List<Vector2> uvs, List<int> triangles)
+		{
+			var weld = outline.WeldTolerance;
+			var arrangement = new InsertArrangement(weld);
+			var owners = new Dictionary<int, (List<RingPoint> Ring, int Side)>();
+
+			var rimPoints = AddLoop(arrangement, rim, owners);
+			var islandPoints = AddLoop(arrangement, island, owners);
+
+			var rungs = new HashSet<(int, int)>();
+			for (var i = 0; i < rimMap.Length; i++) {
+				if (rungs.Add((rimMap[i], islandMap[i]))) {
+					arrangement.AddSegment(rimPoints[rimMap[i]], islandPoints[islandMap[i]]);
+				}
+			}
+
+			var polygon = new List<float2>(island.Count);
+			foreach (var entry in island) {
+				polygon.Add(entry.Position);
+			}
+
+			if (starburst != null) {
+				// Spokes that start at the centre all share the one point, so however
+				// many of them there are, they meet exactly rather than each arriving
+				// at its own idea of where the centre is.
+				var center = -1;
+				for (var spoke = 0; spoke < starburst.Count; spoke++) {
+					if (!starburst.TrySpokeWithin(spoke, polygon, weld, out var from, out var to, out var fromCenter)) {
+						continue;
+					}
+
+					int start;
+					if (fromCenter) {
+						if (center < 0) {
+							center = arrangement.AddPoint(starburst.Center);
+						}
+						start = center;
+					} else {
+						start = arrangement.AddPoint(from);
+					}
+					arrangement.AddSegment(start, arrangement.AddPoint(to));
+				}
+			}
+
+			arrangement.Build();
+			var faces = arrangement.Faces(out var faceOf);
+
+			float HeightOf(Tier tier, float2 position) => tier switch {
+				Tier.Surface => starburst?.DepthAt(position) ?? islandTop,
+				Tier.Floor => floor,
+				_ => 0f,
+			};
+
+			var tiers = new Tier[faces.Count];
+			for (var f = 0; f < faces.Count; f++) {
+				var face = faces[f];
+				var exact = new List<double2>(face.Count);
+				foreach (var point in face) {
+					exact.Add(arrangement.Exact(point));
+				}
+
+				// Clipped into ears rather than fanned. Snapping bends straight sides
+				// by up to half a pixel either way, which leaves a thin face not quite
+				// convex, and a fan can turn over on it.
+				var pieces = InsertTriangulation.EarClip(exact);
+				if (pieces.Count == 0) {
+					tiers[f] = Tier.Floor;
+					continue;
+				}
+
+				// The middle of the face's largest triangle is well inside it, which
+				// the face's own centroid need not be.
+				var largest = pieces[0];
+				var largestArea = 0.0;
+				foreach (var piece in pieces) {
+					var area = TriangleArea(exact[piece.x], exact[piece.y], exact[piece.z]);
+					if (area > largestArea) {
+						largest = piece;
+						largestArea = area;
+					}
+				}
+				var middle = (float2)((exact[largest.x] + exact[largest.y] + exact[largest.z]) / 3.0);
+				var tier = tiers[f] = Contains(polygon, middle) ? Tier.Surface : Tier.Floor;
+
+				// A starburst face lies within a single triangle of the wheel, which
+				// any point inside it names, and is flat in that triangle's plane. It
+				// carries that plane's normal, which keeps the creases crisp.
+				Vector3 normal = Vector3.up;
+				if (tier == Tier.Surface && starburst != null) {
+					var sector = starburst.SectorOf(middle);
+					float3 hub = ToLocal(starburst.Center, starburst.CenterDepth);
+					float3 opening = ToLocal(starburst.Rim(sector), starburst.RimDepth(sector));
+					float3 closing = ToLocal(starburst.Rim(sector + 1), starburst.RimDepth(sector + 1));
+					var tilted = math.normalize(math.cross(opening - hub, closing - hub));
+					normal = tilted.y < 0f ? -tilted : tilted;
+				}
+
+				// Points are lifted through the same height as the walls', so where
+				// the two meet they agree to the bit.
+				var first = vertices.Count;
+				foreach (var point in face) {
+					var position = arrangement.Position(point);
+					vertices.Add(ToLocal(position, HeightOf(tier, position)));
+					normals.Add(normal);
+					uvs.Add(PlanarUv(position, size));
+				}
+				foreach (var piece in pieces) {
+					AddTriangle(triangles, first + piece.x, first + piece.y, first + piece.z);
+				}
+			}
+
+			Tier TierOf(int from, int to) => faceOf.TryGetValue((from, to), out var face) ? tiers[face] : Tier.Outside;
+
+			var shared = new Dictionary<(int, float, float2, float), int>();
+			int WallVertex(int point, float height, float2 outward, float u, float v)
+			{
+				if (shared.TryGetValue((point, height, outward, u), out var index)) {
+					return index;
+				}
+				index = vertices.Count;
+				vertices.Add(ToLocal(arrangement.Position(point), height));
+				normals.Add(ToLocalNormal(outward, false));
+				uvs.Add(new Vector2(u, v));
+				shared[(point, height, outward, u)] = index;
+				return index;
+			}
+
+			foreach (var (a, b) in arrangement.Edges) {
+				var left = TierOf(a, b);
+				var right = TierOf(b, a);
+				if (left == right) {
+					continue;
+				}
+
+				// Turned so the lower tier is on its right, which is the way it faces:
+				// floor before surface, and both before the outside, which stands at
+				// the rim.
+				var facing = (Tier)math.min((int)left, (int)right);
+				var behind = (Tier)math.max((int)left, (int)right);
+				var (from, to) = right == facing ? (a, b) : (b, a);
+				var fromPosition = arrangement.Position(from);
+				var toPosition = arrangement.Position(to);
+
+				WallNormals(arrangement, owners, from, to, behind == Tier.Outside ? rim : island,
+					out var fromNormal, out var toNormal, out var fromU, out var toU);
+
+				var fromTop = HeightOf(behind, fromPosition);
+				var toTop = HeightOf(behind, toPosition);
+				var fromBottom = HeightOf(facing, fromPosition);
+				var toBottom = HeightOf(facing, toPosition);
+
+				// A wall may close to nothing at either end, where its top comes down
+				// to meet the floor. Each triangle of the quad takes one end's height,
+				// so a closed end costs only the triangle standing on it.
+				var closedHere = math.abs(fromTop - fromBottom) < InsertOutlineBuilder.Epsilon;
+				var closedThere = math.abs(toTop - toBottom) < InsertOutlineBuilder.Epsilon;
+				if (closedHere && closedThere) {
+					continue;
+				}
+
+				var bottomFrom = WallVertex(from, fromBottom, fromNormal, fromU, 1f);
+				var bottomTo = WallVertex(to, toBottom, toNormal, toU, 1f);
+				var topFrom = WallVertex(from, fromTop, fromNormal, fromU, 0f);
+				var topTo = WallVertex(to, toTop, toNormal, toU, 0f);
+				if (!closedThere) {
+					AddTriangle(triangles, bottomFrom, bottomTo, topTo);
+				}
+				if (!closedHere) {
+					AddTriangle(triangles, bottomFrom, topTo, topFrom);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Lays a ring into an arrangement as a closed run of segments, noting which
+		/// ring and side each segment is.
+		/// </summary>
+		/// <returns>The arrangement's point for each ring entry.</returns>
+		private static int[] AddLoop(InsertArrangement arrangement, List<RingPoint> ring,
+			Dictionary<int, (List<RingPoint> Ring, int Side)> owners)
+		{
+			var points = new int[ring.Count];
+			for (var i = 0; i < ring.Count; i++) {
+				points[i] = arrangement.AddPoint(ring[i].Position);
+			}
+			for (var i = 0; i < ring.Count; i++) {
+				owners[arrangement.AddSegment(points[i], points[(i + 1) % ring.Count])] = (ring, i);
+			}
+			return points;
+		}
+
+		/// <summary>
+		/// How a wall standing on the edge from <paramref name="from"/> to
+		/// <paramref name="to"/> shades, facing right of that direction, and where
+		/// it sits in U.
+		/// </summary>
+		/// <remarks>
+		/// Along a side of <paramref name="preferred"/>, the ring's own normals
+		/// carry through, blended along the side exactly as the outline blends
+		/// them, so the wall shades round a fillet without a crease. Any other edge
+		/// only ever borders two tiers where snapping ran it together with a side,
+		/// within a pixel, and simply faces square off itself.
+		/// </remarks>
+		private static void WallNormals(InsertArrangement arrangement,
+			Dictionary<int, (List<RingPoint> Ring, int Side)> owners, int from, int to, List<RingPoint> preferred,
+			out float2 fromNormal, out float2 toNormal, out float fromU, out float toU)
+		{
+			var fromPosition = arrangement.Position(from);
+			var toPosition = arrangement.Position(to);
+			var along = toPosition - fromPosition;
+			var right = math.normalizesafe(new float2(along.y, -along.x));
+
+			var chosen = -1;
+			foreach (var segment in arrangement.Sources(from, to)) {
+				if (owners.TryGetValue(segment, out var owner) && (chosen < 0 || owner.Ring == preferred)) {
+					chosen = segment;
+				}
+			}
+
+			if (chosen < 0) {
+				fromNormal = toNormal = right;
+				fromU = toU = 0f;
+				return;
+			}
+
+			var (ring, side) = owners[chosen];
+			var next = (side + 1) % ring.Count;
+			var length = math.distance(ring[side].Position, ring[next].Position);
+			var perimeter = ring[^1].Distance + math.distance(ring[^1].Position, ring[0].Position);
+
+			float2 NormalAt(float t) => t <= 0f ? ring[side].NormalOut
+				: t >= 1f ? ring[next].NormalIn
+				: math.normalize(math.lerp(ring[side].NormalOut, ring[next].NormalIn, t));
+			float UAt(float t) => perimeter > InsertOutlineBuilder.Epsilon
+				? (ring[side].Distance + t * length) / perimeter
+				: 0f;
+
+			var fromT = arrangement.T(chosen, from);
+			var toT = arrangement.T(chosen, to);
+			fromNormal = NormalAt(fromT);
+			toNormal = NormalAt(toT);
+			fromU = UAt(fromT);
+			toU = UAt(toT);
+
+			// The ring's normals point out of it, which is the way the middle's wall
+			// faces but not the rim's.
+			if (math.dot(fromNormal + toNormal, right) < 0f) {
+				fromNormal = -fromNormal;
+				toNormal = -toNormal;
+			}
+		}
+
+		/// <summary>
+		/// Whether a point lies inside a polygon, by counting crossings.
+		/// </summary>
+		private static bool Contains(List<float2> polygon, float2 point)
+		{
+			var inside = false;
+			for (int i = 0, j = polygon.Count - 1; i < polygon.Count; j = i++) {
+				var a = (double2)polygon[i];
+				var b = (double2)polygon[j];
+				if (a.y > point.y != b.y > point.y
+					&& point.x < (b.x - a.x) * (point.y - a.y) / (b.y - a.y) + a.x) {
+					inside = !inside;
+				}
+			}
+			return inside;
+		}
+
+		/// <summary>Area of a triangle in plan, positive counter-clockwise.</summary>
+		private static double TriangleArea(double2 a, double2 b, double2 c)
+		{
+			var ab = b - a;
+			var ac = c - a;
+			return (ab.x * ac.y - ac.x * ab.y) * 0.5;
+		}
+
+		/// <summary>Walks a ring, recording how far round each point sits.</summary>
+		private static void Measure(List<RingPoint> ring)
+		{
+			var distance = 0f;
+			for (var i = 0; i < ring.Count; i++) {
+				var entry = ring[i];
+				entry.Distance = distance;
+				ring[i] = entry;
+				distance += math.distance(entry.Position, ring[(i + 1) % ring.Count].Position);
+			}
+		}
+
+		/// <summary>
 		/// Area centroid of a ring, which for a convex shape is always strictly
 		/// inside it and so is always safe to fan from.
 		/// </summary>
@@ -373,24 +762,28 @@ namespace VisualPinball.Unity
 		/// </remarks>
 		private static float2 RingCentroid(List<RingPoint> ring)
 		{
-			var area = 0f;
-			var accumulated = float2.zero;
-			for (var i = 0; i < ring.Count; i++) {
-				var current = ring[i].Position;
-				var next = ring[(i + 1) % ring.Count].Position;
+			var origin = (double2)ring[0].Position;
+			var area = 0.0;
+			var reach = 0.0;
+			var accumulated = double2.zero;
+			for (var i = 1; i < ring.Count - 1; i++) {
+				var current = (double2)ring[i].Position - origin;
+				var next = (double2)ring[i + 1].Position - origin;
 				var cross = current.x * next.y - next.x * current.y;
 				area += cross;
 				accumulated += (current + next) * cross;
+				reach = math.max(reach, math.cmax(math.abs(current)));
 			}
 
-			if (math.abs(area) < InsertOutlineBuilder.Epsilon) {
+			// An area, so it is judged against the size squared.
+			if (math.abs(area) <= 1e-9 * reach * reach) {
 				var fallback = float2.zero;
 				foreach (var entry in ring) {
 					fallback += entry.Position;
 				}
 				return fallback / ring.Count;
 			}
-			return accumulated / (3f * area);
+			return (float2)(origin + accumulated / (3.0 * area));
 		}
 
 		private static void AddTriangle(List<int> triangles, int a, int b, int c)

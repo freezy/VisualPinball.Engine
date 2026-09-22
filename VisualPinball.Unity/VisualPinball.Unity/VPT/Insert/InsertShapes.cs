@@ -75,13 +75,15 @@ namespace VisualPinball.Unity
 		public static readonly float VpxUnitsPerInch = MetresPerInch / Physics.ScaleInv;
 
 		/// <summary>
-		/// How flat a corner may get before a shape counts as collapsed.
+		/// How flat a base angle the solve accepts at all.
 		/// </summary>
 		/// <remarks>
-		/// Oversized fillets can always be absorbed by flattening the sharp polygon
-		/// until it is a sliver that the arcs round back into the requested box. The
-		/// result is technically the right size but no longer the shape that was
-		/// asked for, so the clamp stops short of it and says so.
+		/// A floor against numerical collapse, not the guard against oversized
+		/// fillets. Those can always be absorbed by flattening the sharp polygon into
+		/// a sliver that the arcs round back into the requested box, but a genuinely
+		/// flat triangle has an angle just as shallow, so no floor can tell the two
+		/// apart. The radius clamp does that instead, by keeping to the family of
+		/// triangles connected to the sharp one.
 		/// </remarks>
 		public static readonly float MinAngle = math.radians(1f);
 
@@ -158,8 +160,23 @@ namespace VisualPinball.Unity
 		private static void SolveTriangle(float width, float height, float baseRadius, float apexRadius,
 			out float beta, out float a, out float h)
 		{
+			var failure = TrySolveTriangle(width, height, baseRadius, apexRadius, out beta, out a, out h);
+			if (failure != null) {
+				throw new InsertOutlineException(failure);
+			}
+		}
+
+		/// <summary>
+		/// <see cref="SolveTriangle"/> without the exception, for the clamp, which
+		/// asks about candidate scales and expects some of the answers to be no.
+		/// </summary>
+		/// <returns>Null on success, otherwise why there is no triangle.</returns>
+		private static string TrySolveTriangle(float width, float height, float baseRadius, float apexRadius,
+			out float beta, out float a, out float h)
+		{
+			beta = a = h = 0f;
 			if (width <= Epsilon || height <= Epsilon) {
-				throw new InsertOutlineException("Width and height must be positive.");
+				return "Width and height must be positive.";
 			}
 
 			var p = width * 0.5f - baseRadius;
@@ -167,19 +184,20 @@ namespace VisualPinball.Unity
 			var c = height - apexRadius - baseRadius;
 			var radius = math.sqrt(p * p + c * c);
 			if (radius < Epsilon || math.abs(q) > radius) {
-				throw new InsertOutlineException($"Corner radii are too large for a {width} x {height} triangle.");
+				return $"Corner radii are too large for a {width} x {height} triangle.";
 			}
 
 			beta = math.atan2(c, p) - math.asin(q / radius);
 			if (beta <= MinAngle || beta >= math.PI * 0.5f - MinAngle) {
-				throw new InsertOutlineException("No triangle fits these corner radii; reduce them or change the proportions.");
+				return "No triangle fits these corner radii; reduce them or change the proportions.";
 			}
 
 			a = width * 0.5f + baseRadius * (Cot(beta * 0.5f) - 1f);
 			h = a * math.tan(beta);
 			if (a <= Epsilon || h <= Epsilon) {
-				throw new InsertOutlineException("Corner radii leave no room for the triangle body.");
+				return "Corner radii leave no room for the triangle body.";
 			}
+			return null;
 		}
 
 		/// <summary>
@@ -210,64 +228,155 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
-		/// The largest common radius scale in 0..1 that still yields a valid
-		/// triangle, to the resolution of the scan below.
+		/// The largest common radius scale in 0..1 whose triangle is still of the
+		/// family that grows out of the sharp one.
 		/// </summary>
 		/// <remarks>
-		/// Shrinking the radii does not simply make the triangle easier. When the
-		/// two radii differ sharply, feasibility can lapse and return as they scale,
-		/// because the angle limit and the two tangent-fit limits do not carve one
-		/// unbroken stretch out of 0..1. A plain bisection latches onto the first
-		/// gap it meets and reports a far smaller scale than the shape can take.
-		/// Scanning coarsely downwards finds the highest feasible sample instead,
-		/// and the bisection then refines only the step above it, where the boundary
-		/// really is crossed once.
+		/// Scaling the radii towards zero ends at the sharp triangle, which always
+		/// fits, so the answer is where that family first stops fitting on the way
+		/// back up. It is not simply the largest scale that fits anywhere: when the
+		/// radii differ sharply, feasibility lapses and then returns at larger
+		/// scales, but what returns is a different shape altogether. There the sharp
+		/// triangle is tens of times wider than the box and its base fillets sweep
+		/// nearly half a turn each, rounding a vast flat sliver back down into a
+		/// lozenge of the requested size. The one-degree floor on the base angle
+		/// cannot keep that out, since a genuinely flat triangle has just as shallow
+		/// an angle; being connected to the sharp triangle can.
+		/// <para>
+		/// Requested radii that fit as they are still have to belong to the family:
+		/// they can land straight in the lozenge region, which is exactly the case
+		/// that most needs clamping. See <see cref="FamilyEdge"/> for where the
+		/// family ends.
+		/// </para>
 		/// </remarks>
 		private static float LargestFittingScale(float width, float height, float baseRadius, float apexRadius)
 		{
 			if (baseRadius <= Epsilon && apexRadius <= Epsilon) {
 				return 1f;
 			}
-			if (ScaleWorks(width, height, baseRadius, apexRadius, 1f)) {
+
+			// Without a sharp triangle to start from, no radius is to blame, and the
+			// message should say it is the proportions.
+			var sharp = TrySolveTriangle(width, height, 0f, 0f, out _, out _, out _);
+			if (sharp != null) {
+				throw new InsertOutlineException(sharp);
+			}
+
+			var edge = FamilyEdge(width, height, baseRadius, apexRadius);
+			if (edge > 1.0 && ScaleWorks(width, height, baseRadius, apexRadius, 1f)) {
 				return 1f;
 			}
 
-			const int steps = 64;
-			var low = 0f;
-			var high = 1f / steps;
-			for (var i = steps - 1; i >= 1; i--) {
-				var sample = (float)i / steps;
-				if (ScaleWorks(width, height, baseRadius, apexRadius, sample)) {
-					low = sample;
-					high = (float)(i + 1) / steps;
-					break;
+			// At the edge itself the limiting constraint holds with equality, so
+			// step back from it until single precision agrees the triangle fits.
+			var limit = math.min(edge, 1.0);
+			for (var margin = 1e-6; margin < 0.5; margin *= 10.0) {
+				var scale = (float)(limit * (1.0 - margin));
+				if (scale > 0f && ScaleWorks(width, height, baseRadius, apexRadius, scale)) {
+					return scale;
+				}
+			}
+			throw new InsertOutlineException($"Corner radii are far too large for a {width} x {height} triangle.");
+		}
+
+		/// <summary>
+		/// The scale at which the family of triangles grown from the sharp one first
+		/// stops fitting, or infinity if it never does.
+		/// </summary>
+		/// <remarks>
+		/// Scaling both radii by s moves p, q and c of the closed-form solve along
+		/// straight lines, and each of the family's limits then has an exact root:
+		/// <list type="bullet">
+		/// <item>The solve needs |q| no larger than the length of (p, c), and the
+		/// difference of their squares is a quadratic in s.</item>
+		/// <item>Each bound on the base angle turns p sin(beta) - c cos(beta) = -q
+		/// into an equation linear in s. It is also met by the solve's other
+		/// branch, so a root only counts where the branch actually taken has that
+		/// angle.</item>
+		/// <item>The base fillets fit along the base exactly while rb is at most
+		/// W/2.</item>
+		/// </list>
+		/// The fourth limit, apex and base fillets sharing a slanted side, never
+		/// binds first. It reduces to (ra - rb) sin(beta) not exceeding W/2 - rb,
+		/// and substituting the solve shows its boundary only where
+		/// (q^2 - p^2)(q^2 - p^2 - c^2) = 0: at a right-angled base, which the
+		/// angle bound excludes, or on the first limit above. It holds at the sharp
+		/// triangle, so it holds across the family. Worked in double precision,
+		/// since these are differences of nearly equal squares.
+		/// </remarks>
+		private static double FamilyEdge(double width, double height, double baseRadius, double apexRadius)
+		{
+			var size = math.max(math.max(width, height), math.max(baseRadius, apexRadius));
+			var edge = double.PositiveInfinity;
+
+			void Consider(double root)
+			{
+				if (root > 1e-12 && root < edge) {
+					edge = root;
 				}
 			}
 
-			if (low <= 0f) {
-				throw new InsertOutlineException($"Corner radii are far too large for a {width} x {height} triangle.");
-			}
-
-			for (var i = 0; i < 20; i++) {
-				var mid = (low + high) * 0.5f;
-				if (ScaleWorks(width, height, baseRadius, apexRadius, mid)) {
-					low = mid;
-				} else {
-					high = mid;
+			// p^2 + c^2 - q^2 = a s^2 + b s + c0, positive at the sharp triangle,
+			// and the solve runs out where it goes negative. With a never negative
+			// the parabola opens upwards, so it only goes negative between two
+			// distinct roots, from the smaller one. A double root is a parabola
+			// touching zero and rising again: the family carries straight on, so
+			// it does not count. The smaller root is taken in the form that does
+			// not subtract two nearly equal numbers.
+			var a = baseRadius * baseRadius + 4.0 * apexRadius * baseRadius;
+			var b = -width * baseRadius - 2.0 * height * (apexRadius + baseRadius);
+			var c0 = width * width * 0.25 + height * height;
+			if (a <= 1e-12 * size * size) {
+				if (math.abs(b) > 1e-12 * size) {
+					Consider(-c0 / b);
+				}
+			} else {
+				var discriminant = b * b - 4.0 * a * c0;
+				if (discriminant > 1e-9 * b * b) {
+					Consider(2.0 * c0 / (-b + math.sqrt(discriminant)));
 				}
 			}
-			return low;
+
+			if (baseRadius > 0.0) {
+				Consider(width * 0.5 / baseRadius);
+			}
+
+			foreach (var target in new[] { (double)MinAngle, math.PI_DBL * 0.5 - MinAngle }) {
+				var sin = math.sin(target);
+				var cos = math.cos(target);
+				var constant = width * 0.5 * sin - height * cos;
+				var slope = -baseRadius * sin + (apexRadius + baseRadius) * cos + (baseRadius - apexRadius);
+				if (math.abs(slope) <= 1e-12 * size) {
+					continue;
+				}
+
+				var root = -constant / slope;
+				if (BaseAngle(width, height, baseRadius * root, apexRadius * root) is { } angle
+					&& math.abs(angle - target) < 1e-7) {
+					Consider(root);
+				}
+			}
+			return edge;
+		}
+
+		/// <summary>The closed-form base angle, in double precision, or null where there is none.</summary>
+		private static double? BaseAngle(double width, double height, double baseRadius, double apexRadius)
+		{
+			var p = width * 0.5 - baseRadius;
+			var q = baseRadius - apexRadius;
+			var c = height - apexRadius - baseRadius;
+			var length = math.sqrt(p * p + c * c);
+			if (length <= 0.0 || math.abs(q) > length) {
+				return null;
+			}
+			return math.atan2(c, p) - math.asin(q / length);
 		}
 
 		private static bool ScaleWorks(float width, float height, float baseRadius, float apexRadius, float scale)
 		{
-			try {
-				SolveTriangle(width, height, baseRadius * scale, apexRadius * scale, out var beta, out var a, out _);
-				return TriangleFit(beta, a, baseRadius * scale, apexRadius * scale) >= 1f - 1e-6f;
-
-			} catch (InsertOutlineException) {
-				return false;
-			}
+			var failure = TrySolveTriangle(width, height, baseRadius * scale, apexRadius * scale,
+				out var beta, out var a, out _);
+			return failure == null && TriangleFit(beta, a, baseRadius * scale, apexRadius * scale) >= 1f - 1e-6f;
 		}
 
 		private static float Cot(float angle) => 1f / math.tan(angle);
