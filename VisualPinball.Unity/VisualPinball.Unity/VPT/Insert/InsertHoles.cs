@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -104,6 +105,56 @@ namespace VisualPinball.Unity
 				centers.Add(At(ring, distances, perimeter, start + perimeter * k / count));
 			}
 			return centers;
+		}
+
+		/// <summary>
+		/// The holes made symmetric about the insert's middle line, X = 0: any
+		/// within <paramref name="tolerance"/> of it move onto it, and any two that
+		/// nearly mirror each other across it are set to mirror it exactly, at
+		/// their average height and their average distance out.
+		/// </summary>
+		/// <remarks>
+		/// Pairs are matched closest first, so where one hole has two candidates
+		/// the better match wins. A hole with no partner stays where it is, and
+		/// radii are left alone.
+		/// </remarks>
+		public static InsertHole[] Symmetrize(IReadOnlyList<InsertHole> holes, float tolerance)
+		{
+			var result = holes.ToArray();
+			var done = new bool[result.Length];
+			for (var i = 0; i < result.Length; i++) {
+				if (math.abs(result[i].Center.x) <= tolerance) {
+					result[i].Center.x = 0f;
+					done[i] = true;
+				}
+			}
+
+			var pairs = new List<(float Error, int Left, int Right)>();
+			for (var left = 0; left < result.Length; left++) {
+				for (var right = 0; right < result.Length; right++) {
+					if (done[left] || done[right] || result[left].Center.x >= 0f || result[right].Center.x <= 0f) {
+						continue;
+					}
+					var mirrored = new Vector2(-result[left].Center.x, result[left].Center.y);
+					var error = Vector2.Distance(mirrored, result[right].Center);
+					if (error <= tolerance) {
+						pairs.Add((error, left, right));
+					}
+				}
+			}
+			pairs.Sort((a, b) => a.Error.CompareTo(b.Error));
+
+			foreach (var (_, left, right) in pairs) {
+				if (done[left] || done[right]) {
+					continue;
+				}
+				var y = (result[left].Center.y + result[right].Center.y) * 0.5f;
+				var x = (result[right].Center.x - result[left].Center.x) * 0.5f;
+				result[left].Center = new Vector2(-x, y);
+				result[right].Center = new Vector2(x, y);
+				done[left] = done[right] = true;
+			}
+			return result;
 		}
 
 		/// <summary>The raised floor's outline point in the middle of a corner.</summary>

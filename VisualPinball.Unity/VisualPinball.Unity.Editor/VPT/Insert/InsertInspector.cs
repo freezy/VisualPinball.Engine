@@ -154,9 +154,31 @@ namespace VisualPinball.Unity.Editor
 						outline != null ? new Vector2(outline.Centroid.x, outline.Centroid.y) : Vector2.zero;
 					hole.FindPropertyRelative(nameof(InsertHole.Radius)).floatValue = _holeRadius.floatValue;
 				}
+				var symmetrize = new GUIContent("Symmetrize",
+					"Moves holes near the middle line onto it, and sets holes that nearly mirror each other across it to mirror it exactly. " +
+					"Near means within 5% of the insert's larger side.");
+				using (new EditorGUI.DisabledScope(outline == null)) {
+					if (GUILayout.Button(symmetrize)) {
+						Symmetrize(0.05f * math.max(outline.Width, outline.Height));
+					}
+				}
 				if (GUILayout.Button("Clear")) {
 					_holes.ClearArray();
 				}
+			}
+		}
+
+		private void Symmetrize(float tolerance)
+		{
+			var holes = new InsertHole[_holes.arraySize];
+			for (var i = 0; i < holes.Length; i++) {
+				var hole = _holes.GetArrayElementAtIndex(i);
+				holes[i] = new InsertHole(hole.FindPropertyRelative(nameof(InsertHole.Center)).vector2Value,
+					hole.FindPropertyRelative(nameof(InsertHole.Radius)).floatValue);
+			}
+			var symmetric = InsertHoles.Symmetrize(holes, tolerance);
+			for (var i = 0; i < symmetric.Length; i++) {
+				_holes.GetArrayElementAtIndex(i).FindPropertyRelative(nameof(InsertHole.Center)).vector2Value = symmetric[i].Center;
 			}
 		}
 
@@ -236,6 +258,15 @@ namespace VisualPinball.Unity.Editor
 		/// Works on the component itself: the serialized object is off limits in
 		/// scene GUI. Every change is recorded for undo first.
 		/// </remarks>
+		private static readonly Color HoleColor = new(1f, 0.6f, 0.1f);
+
+		private static GUIStyle _holeLabel;
+
+		private static GUIStyle HoleLabel => _holeLabel ??= new GUIStyle(EditorStyles.boldLabel) {
+			fontSize = 13,
+			normal = { textColor = HoleColor },
+		};
+
 		private static void DrawHoleHandles(InsertComponent insert)
 		{
 			var transform = insert.transform;
@@ -252,8 +283,13 @@ namespace VisualPinball.Unity.Editor
 				var rim = matrix.MultiplyPoint3x4(InsertMeshGenerator.ToLocal(center + new float2(hole.Radius, 0f)));
 				var scale = HandleUtility.GetHandleSize(world);
 
-				Handles.color = new Color(1f, 0.6f, 0.1f);
+				Handles.color = HoleColor;
 				Handles.DrawWireDisc(world, up, Vector3.Distance(world, rim));
+
+				// Numbered as the list numbers its elements, so a hole in the scene
+				// can be found in the inspector and the other way round.
+				var corner = matrix.MultiplyPoint3x4(InsertMeshGenerator.ToLocal(center + new float2(0.75f, 0.75f) * hole.Radius));
+				Handles.Label(corner, i.ToString(), HoleLabel);
 
 				EditorGUI.BeginChangeCheck();
 				var moved = Handles.Slider2D(world, up, across, along, scale * 0.06f, Handles.CircleHandleCap, Vector2.zero);

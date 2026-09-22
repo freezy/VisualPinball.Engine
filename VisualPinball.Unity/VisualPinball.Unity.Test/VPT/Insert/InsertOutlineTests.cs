@@ -1843,6 +1843,34 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldSymmetrizeHoles()
+		{
+			var holes = new[] {
+				new InsertHole(new Vector2(0.3f, 5f), 1f),      // near the middle
+				new InsertHole(new Vector2(10f, -3f), 1f),      // pairs with the next
+				new InsertHole(new Vector2(-9.6f, -3.4f), 2f),
+				new InsertHole(new Vector2(4f, 20f), 1f),       // no partner
+				new InsertHole(new Vector2(-6f, 8f), 1f),       // two candidates, the closer wins
+				new InsertHole(new Vector2(6.2f, 8.1f), 1f),
+				new InsertHole(new Vector2(6.8f, 8.5f), 1f),
+			};
+
+			var symmetric = InsertHoles.Symmetrize(holes, 1f);
+
+			AssertAt(symmetric[0], new Vector2(0f, 5f));
+			AssertAt(symmetric[1], new Vector2(9.8f, -3.2f));
+			AssertAt(symmetric[2], new Vector2(-9.8f, -3.2f));
+			Assert.That(symmetric[2].Radius, Is.EqualTo(2f), "radii stay as they were");
+			AssertAt(symmetric[3], new Vector2(4f, 20f));
+			AssertAt(symmetric[4], new Vector2(-6.1f, 8.05f));
+			AssertAt(symmetric[5], new Vector2(6.1f, 8.05f));
+			AssertAt(symmetric[6], new Vector2(6.8f, 8.5f));
+
+			static void AssertAt(InsertHole hole, Vector2 expected)
+				=> Assert.That(Vector2.Distance(hole.Center, expected), Is.LessThan(1e-5f), $"{hole.Center} should be {expected}");
+		}
+
+		[Test]
 		public void ShouldSpreadHolesEvenlyAroundTheEdge()
 		{
 			var outline = Build(RectangleCases[0]);
