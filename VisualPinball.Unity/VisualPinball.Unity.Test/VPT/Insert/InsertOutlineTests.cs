@@ -1915,6 +1915,154 @@ namespace VisualPinball.Unity.Test
 
 		#endregion
 
+		#region Bevel
+
+		public class BevelCase
+		{
+			public string Name;
+			public OutlineCase Shape;
+			public bool Channel = true;
+			public int Bursts;
+			public float2 Center = TestStarburstCenter;
+			public float Width = 1f;
+			public int Segments = 4;
+			public bool Holes;
+
+			public override string ToString() => Name;
+		}
+
+		private static readonly BevelCase[] BevelCases = {
+			new() { Name = "rounded, flat middle", Shape = TriangleCases[0] },
+			new() { Name = "chamfer", Shape = TriangleCases[0], Segments = 1 },
+			new() { Name = "starburst", Shape = TriangleCases[0], Bursts = 12 },
+			new() { Name = "sharp corners mitred", Shape = SharpSquare, Bursts = 9, Center = new float2(0f, 20f), Width = 2f },
+			new() { Name = "no channel", Shape = RectangleCases[0], Channel = false, Width = 1.5f, Segments = 3 },
+			new() { Name = "sharp, no channel", Shape = SharpSquare, Channel = false, Width = 2f, Segments = 5 },
+			new() { Name = "circle, 128 bursts", Shape = Rectangle(100f, 100f, 50f, 32), Bursts = 128, Width = 2f, Segments = 6 },
+			new() { Name = "with holes", Shape = TriangleCases[0], Bursts = 12, Holes = true },
+			new() { Name = "wider than a corner's fillet", Shape = RectangleCases[0], Width = 2.8f, Segments = 8 },
+		};
+
+		private static Mesh BuildBevelMesh(BevelCase test, out InsertOutline outline, out float width)
+		{
+			outline = Build(test.Shape);
+			var inset = test.Channel ? outline.ClampInset(TestChannelWidth) : 0f;
+			width = outline.ClampInset(test.Width);
+			var body = new InsertBody {
+				Depth = TestDepth,
+				ChannelWidth = inset,
+				ChannelDepth = TestChannelDepth,
+				StarburstBursts = test.Bursts,
+				StarburstCenter = test.Center,
+				StarburstOffset = TestStarburstOffset,
+				BottomBevel = width,
+				BottomBevelSegments = test.Segments,
+				HoleSegments = 16,
+				Holes = test.Holes ? InsertHoles.AtCorners(outline, inset).Select(c => new InsertHole(c, 3f)).ToArray() : null,
+			};
+			return InsertMeshGenerator.Generate(outline, body, new Mesh());
+		}
+
+		[TestCaseSource(nameof(BevelCases))]
+		public void ShouldCloseEverySeamWithABevel(BevelCase test)
+		{
+			var mesh = BuildBevelMesh(test, out _, out _);
+			try {
+				AssertSeamsClosed(mesh);
+
+			} finally {
+				UnityEngine.Object.DestroyImmediate(mesh);
+			}
+		}
+
+		[TestCaseSource(nameof(BevelCases))]
+		public void ShouldNotEmitADegenerateTriangleWithABevel(BevelCase test)
+		{
+			var mesh = BuildBevelMesh(test, out var outline, out _);
+			try {
+				AssertNoDegenerateTriangles(mesh, outline);
+
+			} finally {
+				UnityEngine.Object.DestroyImmediate(mesh);
+			}
+		}
+
+		[TestCaseSource(nameof(BevelCases))]
+		public void ShouldTurnEveryFaceIntoTheHollowWithABevel(BevelCase test)
+		{
+			if (test.Holes) {
+				// Hole walls face into their holes, which the axis rule below does not know.
+				Assert.Pass("hole walls are checked by the hole tests");
+			}
+			var mesh = BuildBevelMesh(test, out var outline, out _);
+			try {
+				AssertFacesIntoHollow(mesh, outline);
+
+			} finally {
+				UnityEngine.Object.DestroyImmediate(mesh);
+			}
+		}
+
+		[TestCaseSource(nameof(BevelCases))]
+		public void ShouldKeepTheBevelInsideTheBucket(BevelCase test)
+		{
+			var mesh = BuildBevelMesh(test, out _, out _);
+			try {
+				AssertWithinBucket(mesh);
+
+			} finally {
+				UnityEngine.Object.DestroyImmediate(mesh);
+			}
+		}
+
+		[TestCase(1)]
+		[TestCase(4)]
+		[TestCase(9)]
+		public void ShouldRoundTheBottomEdgeOnAQuarterCircle(int segments)
+		{
+			// A sharp 20 unit square has its rim at 10 either way, so how far in a
+			// point sits is ten less the larger of its coordinates, whichever side
+			// or mitre it is on. Every bevel vertex lies on the arc from the wall,
+			// the width up, to the floor, the width in.
+			const float width = 2f;
+			var outline = Build(SharpSquare);
+			var body = new InsertBody {
+				Depth = TestDepth, BottomBevel = width, BottomBevelSegments = segments,
+			};
+			var mesh = InsertMeshGenerator.Generate(outline, body, new Mesh());
+			try {
+				var floor = -TestDepth;
+				var found = 0;
+				var vertices = mesh.vertices;
+				var normals = mesh.normals;
+				for (var i = 0; i < vertices.Length; i++) {
+					var height = vertices[i].y / Scale;
+					var plan = Plan(vertices[i]);
+					var inset = 10f - math.cmax(math.abs(plan));
+					var tilted = math.abs(normals[i].y) > 1e-3f && math.abs(normals[i].y) < 1f - 1e-3f;
+					if (!tilted) {
+						continue;
+					}
+					var distance = math.length(new float2(inset - width, height - (floor + width)));
+					Assert.That(distance, Is.EqualTo(width).Within(1e-3f), $"bevel vertex {i} at inset {inset}, height {height} is off the arc");
+					found++;
+				}
+				Assert.That(found, Is.GreaterThan(0), "no bevel vertex found");
+
+				// The wall stops where the bevel starts.
+				foreach (var vertex in vertices) {
+					if (10f - math.cmax(math.abs(Plan(vertex))) < 1e-4f) {
+						Assert.That(vertex.y / Scale, Is.GreaterThanOrEqualTo(floor + width - 1e-3f), "the wall reaches below the bevel");
+					}
+				}
+
+			} finally {
+				UnityEngine.Object.DestroyImmediate(mesh);
+			}
+		}
+
+		#endregion
+
 		#region Arrangement
 
 		private static readonly TestCaseData[] UnspikeCases = {

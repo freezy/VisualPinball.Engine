@@ -55,6 +55,17 @@ namespace VisualPinball.Unity
 
 		/// <summary>How many straight sides each hole's circle is drawn with.</summary>
 		public int HoleSegments;
+
+		/// <summary>
+		/// How far the rounding where the outer wall meets the floor reaches, both
+		/// up the wall and in across the floor.
+		/// </summary>
+		public float BottomBevel;
+
+		/// <summary>
+		/// How many steps the bottom bevel is drawn with. One is a flat chamfer.
+		/// </summary>
+		public int BottomBevelSegments;
 	}
 
 	/// <summary>
@@ -155,16 +166,35 @@ namespace VisualPinball.Unity
 			var floor = -body.Depth;
 			var rim = BuildRing(outline, 0f, out var rimMap);
 
+			// The bottom bevel rounds off where the outer wall meets the floor. The
+			// wall stops where it starts, and the floor starts where it ends, at the
+			// outline taken in by its width.
+			var bevel = body.BottomBevel > InsertOutlineBuilder.Epsilon ? body.BottomBevel : 0f;
+			var bottom = rim;
+			var bottomMap = rimMap;
+			if (bevel > 0f) {
+				bottom = BuildRing(outline, bevel, out bottomMap);
+				AddWall(rim, Level(rim.Count, 0f), Level(rim.Count, floor + bevel), true, vertices, normals, uvs, triangles);
+			}
+
+			List<RunPoint>[] floorSides = null;
 			if (body.ChannelWidth > InsertOutlineBuilder.Epsilon) {
 				var island = BuildRing(outline, body.ChannelWidth, out var islandMap);
 				var islandTop = floor + body.ChannelDepth;
 				var starburst = TryCoverWithStarburst(island, body, islandTop, outline.WeldTolerance);
-				AddSunkenFloor(outline, body, rim, rimMap, island, islandMap, starburst, floor, islandTop, size,
-					vertices, normals, uvs, triangles);
+				floorSides = AddSunkenFloor(outline, body, bottom, bottomMap, bevel > 0f, island, islandMap, starburst,
+					floor, islandTop, size, vertices, normals, uvs, triangles);
 
 			} else {
-				AddWall(rim, Level(rim.Count, 0f), Level(rim.Count, floor), true, vertices, normals, uvs, triangles);
-				AddCap(rim, floor, size, vertices, normals, uvs, triangles);
+				if (bevel <= 0f) {
+					AddWall(rim, Level(rim.Count, 0f), Level(rim.Count, floor), true, vertices, normals, uvs, triangles);
+				}
+				AddCap(bottom, floor, size, vertices, normals, uvs, triangles);
+			}
+
+			if (bevel > 0f) {
+				AddBottomBevel(outline, bevel, math.max(1, body.BottomBevelSegments), floor, bottom, bottomMap, floorSides,
+					size, vertices, normals, uvs, triangles);
 			}
 
 			mesh.Clear();
@@ -434,6 +464,156 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
+		/// A point along one side of a ring, as a bevel meets it.
+		/// </summary>
+		private readonly struct RunPoint
+		{
+			public readonly float2 Position;
+			public readonly double2 Exact;
+
+			/// <summary>How far along its side it lies, 0 to 1.</summary>
+			public readonly float T;
+
+			public RunPoint(float2 position, double2 exact, float t)
+			{
+				Position = position;
+				Exact = exact;
+				T = t;
+			}
+		}
+
+		/// <summary>
+		/// The rounding where the outer wall meets the floor: a quarter circle in
+		/// profile, <paramref name="width"/> up the wall and in across the floor.
+		/// </summary>
+		/// <remarks>
+		/// Each step of the profile is the outline itself, taken in and dropped
+		/// down by that step's share of the arc, so every step has the outline's
+		/// shape: a fillet stays round and a sharp corner mitres, like a picture
+		/// frame. Neighbouring steps are joined one outline edge at a time, cell by
+		/// cell, as the channel's floor is.
+		/// <para>
+		/// The top step is the rim, where the wall stops. The bottom step is where
+		/// the floor begins, and where there is a channel, the floor there came out
+		/// of an arrangement, so <paramref name="floorSides"/> hands over every point
+		/// the arrangement put along it, and the bevel meets those, not the ring
+		/// it started from.
+		/// </para>
+		/// <para>
+		/// With a single segment, the bevel is a flat chamfer and shades as one,
+		/// crisp against the wall and the floor. With more, it is round, and its
+		/// normals follow the arc, from the wall's at the top to straight up at the
+		/// bottom, so it runs into both without a crease.
+		/// </para>
+		/// </remarks>
+		private static void AddBottomBevel(InsertOutline outline, float width, int segments, float floor,
+			List<RingPoint> bottom, int[] bottomMap, List<RunPoint>[] floorSides, float2 size,
+			List<Vector3> vertices, List<Vector3> normals, List<Vector2> uvs, List<int> triangles)
+		{
+			// Each outline point's outward normal, arriving and leaving, which only
+			// a sharp corner tells apart.
+			var count = outline.Points.Count;
+			var normalIn = new float2[count];
+			var normalOut = new float2[count];
+			for (var i = 0; i < count; i++) {
+				var point = outline.Points[i];
+				var sharp = point.Kind == InsertOutlinePointKind.Sharp;
+				normalIn[i] = sharp ? outline.Corners[point.Corner].NormalIn : point.Normal;
+				normalOut[i] = sharp ? outline.Corners[point.Corner].NormalOut : point.Normal;
+			}
+
+			var steps = new (List<RingPoint> Ring, int[] Map, float Height, float Angle)[segments + 1];
+			for (var k = 0; k <= segments; k++) {
+				var angle = 0.5f * math.PI * k / segments;
+				var inset = width * (1f - math.cos(angle));
+				var height = floor + width * (1f - math.sin(angle));
+				if (k == segments) {
+					steps[k] = (bottom, bottomMap, floor, angle);
+				} else {
+					var ring = BuildRing(outline, inset, out var map);
+					steps[k] = (ring, map, height, angle);
+				}
+			}
+
+			var cell = new List<double2>();
+			var points = new List<(float2 Position, float Height, float Along)>();
+			for (var k = 0; k < segments; k++) {
+				var upper = steps[k];
+				var lower = steps[k + 1];
+
+				// A chamfer is one flat face; a round bevel follows its arc.
+				var upperAngle = segments == 1 ? math.PI * 0.25f : upper.Angle;
+				var lowerAngle = segments == 1 ? math.PI * 0.25f : lower.Angle;
+
+				for (var i = 0; i < count; i++) {
+					var next = (i + 1) % count;
+					cell.Clear();
+					points.Clear();
+
+					var top = Run(upper.Ring, upper.Map, i, null);
+					var foot = Run(lower.Ring, lower.Map, i, k + 1 == segments ? floorSides : null);
+					foreach (var point in top) {
+						cell.Add(point.Exact);
+						points.Add((point.Position, upper.Height, point.T));
+					}
+					for (var j = foot.Count - 1; j >= 0; j--) {
+						cell.Add(foot[j].Exact);
+						points.Add((foot[j].Position, lower.Height, foot[j].T));
+					}
+					if (cell.Count < 3) {
+						continue;
+					}
+
+					var first = vertices.Count;
+					for (var j = 0; j < points.Count; j++) {
+						var (position, height, along) = points[j];
+						var outward = math.normalizesafe(math.lerp(normalOut[i], normalIn[next], along), normalOut[i]);
+						var angle = j < top.Count ? upperAngle : lowerAngle;
+						vertices.Add(ToLocal(position, height));
+						normals.Add(math.normalize(math.mul(VpxToLocal,
+							new float3(-outward * math.cos(angle), math.sin(angle)))));
+						uvs.Add(PlanarUv(position, size));
+					}
+					foreach (var piece in InsertTriangulation.EarClip(cell)) {
+						AddTriangle(triangles, first + piece.x, first + piece.y, first + piece.z);
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// The points of a ring from outline point <paramref name="index"/> to the
+		/// next one, each with how far along that outline edge it lies.
+		/// </summary>
+		/// <param name="sides">Where given, every point the arrangement put along each
+		/// side of the ring, which then stand in for the ring's own.</param>
+		private static List<RunPoint> Run(List<RingPoint> ring, int[] map, int index, List<RunPoint>[] sides)
+		{
+			var from = map[index];
+			var to = map[(index + 1) % map.Length];
+			var run = new List<RunPoint>();
+			if (sides == null) {
+				run.Add(new RunPoint(ring[from].Position, ring[from].Position, 0f));
+				if (to != from) {
+					run.Add(new RunPoint(ring[to].Position, ring[to].Position, 1f));
+				}
+				return run;
+			}
+
+			if (to == from) {
+				var point = sides[from][0];
+				run.Add(new RunPoint(point.Position, point.Exact, 0f));
+				return run;
+			}
+			foreach (var point in sides[from]) {
+				if (run.Count == 0 || !run[^1].Exact.Equals(point.Exact)) {
+					run.Add(point);
+				}
+			}
+			return run;
+		}
+
+		/// <summary>
 		/// Which part of the sunken floor a face of its arrangement is. A wall
 		/// stands wherever two faces of different tiers meet.
 		/// </summary>
@@ -476,16 +656,23 @@ namespace VisualPinball.Unity
 		/// hands back as the whole rim, middle and all.
 		/// </para>
 		/// </remarks>
-		private static void AddSunkenFloor(InsertOutline outline, InsertBody body, List<RingPoint> rim, int[] rimMap,
-			List<RingPoint> island, int[] islandMap, InsertStarburst starburst, float floor, float islandTop,
-			float2 size, List<Vector3> vertices, List<Vector3> normals, List<Vector2> uvs, List<int> triangles)
+		/// <param name="rim">The channel floor's outer edge: the rim itself, or where
+		/// a bottom bevel lets go of the floor, in which case
+		/// <paramref name="bevelled"/> is set and the bevel stands on that edge
+		/// instead of a wall.</param>
+		/// <returns>Every point each side of <paramref name="rim"/> passes through,
+		/// in order, which is where a bevel meeting the floor has to meet it.</returns>
+		private static List<RunPoint>[] AddSunkenFloor(InsertOutline outline, InsertBody body, List<RingPoint> rim,
+			int[] rimMap, bool bevelled, List<RingPoint> island, int[] islandMap, InsertStarburst starburst, float floor,
+			float islandTop, float2 size, List<Vector3> vertices, List<Vector3> normals, List<Vector2> uvs,
+			List<int> triangles)
 		{
 			var weld = outline.WeldTolerance;
 			var arrangement = new InsertArrangement(weld);
 			var owners = new Dictionary<int, (List<RingPoint> Ring, int Side)>();
 
-			var rimPoints = AddLoop(arrangement, rim, owners);
-			var islandPoints = AddLoop(arrangement, island, owners);
+			var rimPoints = AddLoop(arrangement, rim, owners, out var rimSides);
+			var islandPoints = AddLoop(arrangement, island, owners, out _);
 
 			var rungs = new HashSet<(int, int)>();
 			for (var i = 0; i < rimMap.Length; i++) {
@@ -628,6 +815,11 @@ namespace VisualPinball.Unity
 				// the rim.
 				var facing = (Tier)math.min((int)left, (int)right);
 				var behind = (Tier)math.max((int)left, (int)right);
+
+				// Where a bevel meets the floor, it is the bevel that climbs to the rim.
+				if (bevelled && behind == Tier.Outside && facing == Tier.Floor) {
+					continue;
+				}
 				var (from, to) = right == facing ? (a, b) : (b, a);
 				var fromPosition = arrangement.Position(from);
 				var toPosition = arrangement.Position(to);
@@ -660,6 +852,16 @@ namespace VisualPinball.Unity
 					AddTriangle(triangles, bottomFrom, topTo, topFrom);
 				}
 			}
+
+			var sides = new List<RunPoint>[rimSides.Length];
+			for (var j = 0; j < rimSides.Length; j++) {
+				var cuts = arrangement.Cuts(rimSides[j]);
+				sides[j] = new List<RunPoint>(cuts.Count);
+				foreach (var (t, point) in cuts) {
+					sides[j].Add(new RunPoint(arrangement.Position(point), arrangement.Exact(point), t));
+				}
+			}
+			return sides;
 		}
 
 		/// <summary>
@@ -800,14 +1002,16 @@ namespace VisualPinball.Unity
 		/// </summary>
 		/// <returns>The arrangement's point for each ring entry.</returns>
 		private static int[] AddLoop(InsertArrangement arrangement, List<RingPoint> ring,
-			Dictionary<int, (List<RingPoint> Ring, int Side)> owners)
+			Dictionary<int, (List<RingPoint> Ring, int Side)> owners, out int[] sides)
 		{
 			var points = new int[ring.Count];
 			for (var i = 0; i < ring.Count; i++) {
 				points[i] = arrangement.AddPoint(ring[i].Position);
 			}
+			sides = new int[ring.Count];
 			for (var i = 0; i < ring.Count; i++) {
-				owners[arrangement.AddSegment(points[i], points[(i + 1) % ring.Count])] = (ring, i);
+				sides[i] = arrangement.AddSegment(points[i], points[(i + 1) % ring.Count]);
+				owners[sides[i]] = (ring, i);
 			}
 			return points;
 		}

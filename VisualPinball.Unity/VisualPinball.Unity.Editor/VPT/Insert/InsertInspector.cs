@@ -38,6 +38,8 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _starburstBursts;
 		private SerializedProperty _starburstCenter;
 		private SerializedProperty _starburstOffset;
+		private SerializedProperty _bottomBevel;
+		private SerializedProperty _bottomBevelSegments;
 		private SerializedProperty _holes;
 		private SerializedProperty _holeSegments;
 		private SerializedProperty _holeRadius;
@@ -60,6 +62,8 @@ namespace VisualPinball.Unity.Editor
 			_starburstBursts = serializedObject.FindProperty("_starburstBursts");
 			_starburstCenter = serializedObject.FindProperty("_starburstCenter");
 			_starburstOffset = serializedObject.FindProperty("_starburstOffset");
+			_bottomBevel = serializedObject.FindProperty("_bottomBevel");
+			_bottomBevelSegments = serializedObject.FindProperty("_bottomBevelSegments");
 			_holes = serializedObject.FindProperty("_holes");
 			_holeSegments = serializedObject.FindProperty("_holeSegments");
 			_holeRadius = serializedObject.FindProperty("_holeRadius");
@@ -95,6 +99,11 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.LabelField("Channel", EditorStyles.boldLabel);
 			EditorGUILayout.PropertyField(_channelWidth, new GUIContent("Width (VPX)"));
 			EditorGUILayout.PropertyField(_channelDepth, new GUIContent("Depth (VPX)"));
+
+			EditorGUILayout.Space();
+			EditorGUILayout.LabelField("Bevel", EditorStyles.boldLabel);
+			EditorGUILayout.PropertyField(_bottomBevel, new GUIContent("Bottom Width (VPX)"));
+			EditorGUILayout.PropertyField(_bottomBevelSegments, new GUIContent("Bottom Segments"));
 
 			EditorGUILayout.Space();
 			EditorGUILayout.LabelField("Starburst", EditorStyles.boldLabel);

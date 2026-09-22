@@ -92,6 +92,16 @@ namespace VisualPinball.Unity
 		private float _channelDepth = 4f;
 
 		[SerializeField]
+		[Min(0f)]
+		[Tooltip("How far the rounding where the outer wall meets the floor reaches, up the wall and in across the floor, in VPX units. Zero leaves a sharp edge.")]
+		private float _bottomBevel = 1f;
+
+		[SerializeField]
+		[Range(1, 16)]
+		[Tooltip("How many steps the bottom bevel is drawn with. One is a flat chamfer.")]
+		private int _bottomBevelSegments = 4;
+
+		[SerializeField]
 		[Range(0, 128)]
 		[Tooltip("Bursts around the whole wheel, twice this many rim vertices. Counts the whole circle, not just the part landing on the insert. Below two there is no starburst and the raised floor stays flat.")]
 		private int _starburstBursts = 12;
@@ -223,6 +233,17 @@ namespace VisualPinball.Unity
 				}
 			}
 
+			// The bevel can climb no higher than the wall, and must leave some of the
+			// channel's floor between it and the raised middle, or the two collide.
+			var bottomBevel = math.min(_bottomBevel, _depth);
+			if (channelWidth > InsertOutlineBuilder.Epsilon) {
+				bottomBevel = math.min(bottomBevel, channelWidth - math.max(outline.WeldTolerance * 16f, channelWidth * 0.05f));
+			}
+			bottomBevel = outline.ClampInset(math.max(0f, bottomBevel));
+			if (bottomBevel < _bottomBevel - 1e-4f) {
+				warnings.Add($"Bottom bevel reduced to {bottomBevel:0.##} to fit the wall and the channel.");
+			}
+
 			if (_holes.Count > 0 && channelWidth <= InsertOutlineBuilder.Epsilon) {
 				warnings.Add("Holes cut through the raised floor, which needs a channel to stand above.");
 			}
@@ -236,6 +257,8 @@ namespace VisualPinball.Unity
 				StarburstOffset = starburstOffset,
 				Holes = _holes.ToArray(),
 				HoleSegments = _holeSegments,
+				BottomBevel = bottomBevel,
+				BottomBevelSegments = _bottomBevelSegments,
 			};
 		}
 
