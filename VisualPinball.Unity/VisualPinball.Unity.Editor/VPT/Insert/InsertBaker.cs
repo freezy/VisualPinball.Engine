@@ -445,22 +445,18 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		/// <summary>
-		/// A copy of the material the insert wears unbaked, with the normal map
-		/// set. The insert's own material is never touched.
+		/// The material the insert wears baked, with the new normal map set. The
+		/// first bake starts it as a copy of the material the insert wears unbaked,
+		/// which is never touched; from then on it is the user's to edit, and a
+		/// bake only replaces its normal map.
 		/// </summary>
 		private static Material BakeMaterial(InsertComponent insert, Material existing, string path, Texture2D normalMap)
 		{
-			var source = insert.UnbakedMaterial;
-			if (source == null) {
-				source = new Material(Shader.Find("HDRP/Lit") ?? Shader.Find("Standard"));
-			}
 			var material = existing;
 			var created = material == null;
 			if (created) {
-				material = new Material(source);
-			} else {
-				material.shader = source.shader;
-				material.CopyPropertiesFromMaterial(source);
+				var source = insert.UnbakedMaterial;
+				material = source != null ? new Material(source) : new Material(Shader.Find("HDRP/Lit") ?? Shader.Find("Standard"));
 			}
 
 			if (material.HasTexture("_NormalMap")) {
@@ -476,7 +472,7 @@ namespace VisualPinball.Unity.Editor
 				// A shader graph's normal map input defaults to the flat "bump" texture.
 				material.SetTexture(slot, normalMap);
 			} else {
-				Debug.LogWarning($"{insert.name}: the material's shader {source.shader.name} has no normal map slot; set {AssetDatabase.GetAssetPath(normalMap)} yourself.");
+				Debug.LogWarning($"{insert.name}: the material's shader {material.shader.name} has no normal map slot; set {AssetDatabase.GetAssetPath(normalMap)} yourself.");
 			}
 
 			if (created) {
