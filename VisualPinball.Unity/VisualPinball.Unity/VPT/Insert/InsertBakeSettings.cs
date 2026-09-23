@@ -35,11 +35,8 @@ namespace VisualPinball.Unity
 		[Tooltip("How many pixels each UV island is extended by in the normal map. Islands are packed at least twice this far apart.")]
 		public int Padding;
 
-		[Tooltip("How far every crease of the high-poly bake source is rounded off, in VPX units. Zero bakes the mesh as it is.")]
+		[Tooltip("How far every sharp edge is rounded off in the normal map, in VPX units. Zero bakes the edges sharp.")]
 		public float EdgeBevel;
-
-		[Tooltip("How many steps the high-poly's rounded creases are drawn with.")]
-		public int EdgeBevelSegments;
 
 		[Tooltip("Let Blender unwrap the mesh along the generator's charts. Off keeps the generator's own layout and only repacks it.")]
 		public bool Unwrap;
@@ -54,7 +51,6 @@ namespace VisualPinball.Unity
 			TextureSize = 1024,
 			Padding = 8,
 			EdgeBevel = 0.25f,
-			EdgeBevelSegments = 3,
 			Unwrap = true,
 			PreferUvPackMaster = true,
 			Gpu = false,

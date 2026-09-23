@@ -135,23 +135,53 @@ def segment_distance(segment, others):
 	])
 
 
-def check_identity(request, folder, result):
-	"""Without a bevel the high-poly is the mesh itself, so everything but the starburst bakes flat."""
+def regular_tilts(request, folder, result):
+	"""The tilt of every texel outside the flat region, in degrees."""
 	normals = load_png(folder / 'normal.png')
 	uvs = np.asarray(result['Uvs']).reshape(-1, 2)
 	flat = set(request['FlatFaces'])
 	regular = [face for face in range(len(request['Charts'])) if face not in flat]
-	tilts = [np.degrees(np.arccos(np.clip(normals[row, column, 2], -1, 1)))
-		for _, _, row, column in texels(uvs, request['TextureSize'], regular)]
-	assert np.max(tilts) < 1.5, f'a flat surface baked with a tilt of {np.max(tilts):.1f} degrees'
-	print(f'identity ok: {len(tilts)} texels, largest tilt {np.max(tilts):.2f} degrees')
+	return np.asarray([np.degrees(np.arccos(np.clip(normals[row, column, 2], -1, 1)))
+		for _, _, row, column in texels(uvs, request['TextureSize'], regular)])
+
+
+def check_identity(request, folder, result):
+	"""Without a bevel the high-poly is the mesh itself, so everything outside the flat region bakes flat."""
+	tilts = regular_tilts(request, folder, result)
+	assert tilts.max() < 1.5, f'a flat surface baked with a tilt of {tilts.max():.1f} degrees'
+	print(f'identity ok: {len(tilts)} texels, largest tilt {tilts.max():.2f} degrees')
+
+
+def check_bevel(request, folder, result):
+	"""The edges are rounded off, a thin band of tilted texels along each, and nothing is torn up."""
+	tilts = regular_tilts(request, folder, result)
+	rounded = (tilts > 5).mean()
+	assert 0.005 < rounded < 0.3, f'{rounded:.1%} of the texels are tilted by the bevel'
+	# Where three surfaces meet in a hollow corner a texel or two lean steeper.
+	steep = (tilts > 50).mean()
+	assert steep < 1e-4, f'{steep:.3%} of the texels baked steeper than 50 degrees'
+	print(f'bevel ok: {rounded:.1%} of {len(tilts)} texels rounded, {steep:.4%} steeper than 50 degrees')
+
+
+def turned_high(regular, request):
+	"""A high-poly whose normals all lean 20 degrees about X, so every texel has a direction to get right."""
+	high = ORIGINAL_BUILD_HIGH(regular, dict(request, EdgeBevel=0.0))
+	angle = np.radians(20.0)
+	turn = np.array([[1, 0, 0], [0, np.cos(angle), -np.sin(angle)], [0, np.sin(angle), np.cos(angle)]])
+	normals = np.asarray(request['Normals']).reshape(-1, 3) @ turn.T
+	high.data.normals_split_custom_set(normals.tolist())
+	return high
+
+
+ORIGINAL_BUILD_HIGH = bake_insert.build_high
 
 
 def check_directions(request, folder, result):
 	"""Decoded the way Unity does with the returned tangents, the map gives the high-poly's normals.
 
-	Only where the bevel turns the surface, since that is where a wrong tangent
-	basis shows; and a mirrored bitangent must fail, or the check proves nothing.
+	Only where the high-poly turns away from the mesh, since that is where a
+	wrong tangent basis shows; and a mirrored bitangent must fail, or the check
+	proves nothing.
 	"""
 	normals = load_png(folder / 'normal.png')
 	uvs = np.asarray(result['Uvs']).reshape(-1, 2)
@@ -194,7 +224,7 @@ def check_directions(request, folder, result):
 			out.append(np.degrees(np.arccos(np.clip(decoded @ expected, -1, 1))))
 	high.to_mesh_clear()
 
-	assert len(errors) > 50, f'only {len(errors)} texels on the bevels to check'
+	assert len(errors) > 50, f'only {len(errors)} turned texels to check'
 	median, worst = np.median(errors), np.percentile(errors, 95)
 	assert median < 4 and worst < 15, f'decoded normals are off by {median:.1f} degrees (95%: {worst:.1f})'
 	assert np.median(mirrored) > 2 * median + 5, 'a mirrored bitangent decodes just as well, so the check is blind'
@@ -205,12 +235,20 @@ request, folder, result, report = bake(EdgeBevel=0.0)
 check_layout(request, folder, result, report)
 check_identity(request, folder, result)
 
+bake_insert.build_high = turned_high
 request, folder, result, report = bake()
-check_layout(request, folder, result, report)
+bake_insert.build_high = ORIGINAL_BUILD_HIGH
 check_directions(request, folder, result)
 
-request, folder, result, report = bake(Unwrap=False, PreferUvPackMaster=False)
+request, folder, result, report = bake()
 check_layout(request, folder, result, report)
+check_bevel(request, folder, result)
+
+# Without a raised middle there is no flat pass, and without a bevel then
+# every texel bakes flat.
+request, folder, result, report = bake(FlatFaces=[], EdgeBevel=0.0, Unwrap=False, PreferUvPackMaster=False)
+check_layout(request, folder, result, report)
+check_identity(request, folder, result)
 assert report['Packer'] == 'Blender'
 
 print('BAKE INSERT TESTS PASSED', bpy.app.version_string)

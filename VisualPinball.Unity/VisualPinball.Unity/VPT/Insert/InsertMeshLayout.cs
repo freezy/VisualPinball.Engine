@@ -29,13 +29,13 @@ namespace VisualPinball.Unity
 
 		/// <summary>
 		/// The chart baked from a flat copy of itself: the raised middle, starburst
-		/// and all, or the floor when there is no channel to raise it.
+		/// and all, or -1 when there is no channel to raise it.
 		/// </summary>
 		public int FlatChart;
 
 		/// <summary>
 		/// The local height the flat copy lies at, which is where the raised middle
-		/// would be without its starburst.
+		/// is without its starburst.
 		/// </summary>
 		public float FlatHeight;
 

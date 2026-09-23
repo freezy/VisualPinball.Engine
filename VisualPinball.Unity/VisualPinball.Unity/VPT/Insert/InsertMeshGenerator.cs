@@ -217,7 +217,8 @@ namespace VisualPinball.Unity
 			// square the rest will roughly need.
 			var top = buffers.NewChart();
 			var bottomChart = buffers.NewChart();
-			var outerCharts = CutBand(rim, AtlasSide(outline, body, rim, island), buffers);
+			var atlasSide = AtlasSide(outline, body, rim, island);
+			var outerCharts = CutBand(rim, atlasSide, buffers);
 
 			// The bottom bevel rounds off where the outer wall meets the floor. The
 			// wall stops where it starts, and the floor starts where it ends, at the
@@ -234,8 +235,9 @@ namespace VisualPinball.Unity
 			if (channel) {
 				var islandTop = floor + body.ChannelDepth;
 				var starburst = TryCoverWithStarburst(island, body, islandTop, outline.WeldTolerance);
+				var floorCharts = CutFloor(bottom, atlasSide * 0.5f, buffers);
 				floorSides = AddSunkenFloor(outline, body, bottom, bottomMap, bevel > 0f, island, islandMap, starburst,
-					floor, islandTop, top, bottomChart, outerCharts, buffers);
+					floor, islandTop, top, floorCharts, outerCharts, buffers);
 
 			} else {
 				if (bevel <= 0f) {
@@ -253,11 +255,8 @@ namespace VisualPinball.Unity
 
 			if (layout != null) {
 				layout.VertexCharts = buffers.Charts.ToArray();
-				// A hole can take the whole raised middle away, which leaves the
-				// floor as the only flat surface, as without a channel.
-				var middle = channel && buffers.Charts.Contains(top);
-				layout.FlatChart = middle ? top : bottomChart;
-				layout.FlatHeight = ToLocal(float2.zero, middle ? floor + body.ChannelDepth : floor).y;
+				layout.FlatChart = channel ? top : -1;
+				layout.FlatHeight = ToLocal(float2.zero, floor + body.ChannelDepth).y;
 				var hash = new Hash128();
 				hash.Append(buffers.Vertices);
 				hash.Append(buffers.Normals);
@@ -317,6 +316,65 @@ namespace VisualPinball.Unity
 				run += side;
 			}
 			return charts;
+		}
+
+		/// <summary>
+		/// A chart for each side of the channel floor's outer edge, the same one
+		/// along a run of sides until it turns further than <see cref="FloorTurn"/>
+		/// or grows longer than <paramref name="length"/>.
+		/// </summary>
+		/// <remarks>
+		/// The floor is laid out from above, so a piece keeps its bend in UV, and
+		/// the whole ring would take up the square it goes round. Pieces that are
+		/// nearly straight pack tightly.
+		/// </remarks>
+		private static int[] CutFloor(List<RingPoint> ring, float length, MeshBuffers buffers)
+		{
+			var charts = new int[ring.Count];
+			var chart = buffers.NewChart();
+			var run = 0f;
+			var turned = 0f;
+			var heading = float2.zero;
+			for (var i = 0; i < ring.Count; i++) {
+				var direction = ring[(i + 1) % ring.Count].Position - ring[i].Position;
+				var side = math.length(direction);
+				if (side > 0f) {
+					direction /= side;
+					if (math.any(heading != float2.zero)) {
+						turned += math.abs(math.atan2(heading.x * direction.y - heading.y * direction.x, math.dot(heading, direction)));
+					}
+					heading = direction;
+				}
+				if (run > 0f && (run + side > length || turned > FloorTurn)) {
+					chart = buffers.NewChart();
+					run = 0f;
+					turned = 0f;
+				}
+				charts[i] = chart;
+				run += side;
+			}
+			return charts;
+		}
+
+		/// <summary>How far a piece of the channel floor may turn before the next one starts.</summary>
+		private const float FloorTurn = math.PI / 3f;
+
+		/// <summary>The side of a ring closest to a point.</summary>
+		private static int NearestSide(List<RingPoint> ring, float2 point)
+		{
+			var nearest = 0;
+			var best = float.MaxValue;
+			for (var i = 0; i < ring.Count; i++) {
+				var a = ring[i].Position;
+				var ab = ring[(i + 1) % ring.Count].Position - a;
+				var t = math.saturate(math.dot(point - a, ab) / math.max(math.lengthsq(ab), 1e-12f));
+				var distance = math.distancesq(point, a + t * ab);
+				if (distance < best) {
+					best = distance;
+					nearest = i;
+				}
+			}
+			return nearest;
 		}
 
 		/// <summary>
@@ -739,7 +797,7 @@ namespace VisualPinball.Unity
 		/// the rim itself.</param>
 		private static List<RunPoint>[] AddSunkenFloor(InsertOutline outline, InsertBody body, List<RingPoint> rim,
 			int[] rimMap, bool bevelled, List<RingPoint> island, int[] islandMap, InsertStarburst starburst, float floor,
-			float islandTop, int topChart, int bottomChart, int[] outerCharts, MeshBuffers buffers)
+			float islandTop, int topChart, int[] floorCharts, int[] outerCharts, MeshBuffers buffers)
 		{
 			var weld = outline.WeldTolerance;
 			var arrangement = new InsertArrangement(weld);
@@ -849,8 +907,8 @@ namespace VisualPinball.Unity
 
 				// Points are lifted through the same height as the walls', so where
 				// the two meet they agree to the bit. Both floors are projected from
-				// above, into charts of their own.
-				var chart = tier == Tier.Surface ? topChart : bottomChart;
+				// above, the channel's in pieces along its length.
+				var chart = tier == Tier.Surface ? topChart : floorCharts[NearestSide(rim, middle)];
 				var first = buffers.Vertices.Count;
 				foreach (var point in face) {
 					var position = arrangement.Position(point);

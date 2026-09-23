@@ -25,23 +25,17 @@ namespace VisualPinball.Unity.Editor
 	/// Everything the Blender script bakes an insert from, written out as JSON.
 	/// </summary>
 	/// <remarks>
-	/// The mesh stays in its own local space, in metres, as Unity holds it; the
-	/// script converts to Blender's axes and back. Vertices are welded by exact
-	/// position, because the generator only splits them to carry different
-	/// normals or UVs, and the high-poly bevel needs the surface connected. What
-	/// the split carried is kept per corner instead, in triangle order, which is
-	/// also the order everything comes back in.
+	/// The mesh stays in its own local space, in metres, as Unity holds it,
+	/// which Blender reads as it is. Vertices are welded by exact position,
+	/// because the generator only splits them to carry different normals or UVs,
+	/// and the bake's rounded edges need the surface connected. What the split
+	/// carried is kept per corner instead, in triangle order, which is also the
+	/// order everything comes back in.
 	/// </remarks>
 	[Serializable]
 	public class InsertBakeRequest
 	{
-		public const int CurrentVersion = 1;
-
-		/// <summary>
-		/// How far apart two corner normals may point, as one minus their dot
-		/// product, and still be the same smooth surface.
-		/// </summary>
-		private const float SmoothTolerance = 1e-5f;
+		public const int CurrentVersion = 2;
 
 		public int Version = CurrentVersion;
 
@@ -60,24 +54,17 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>The UV chart of each triangle. Seams run between charts.</summary>
 		public int[] Charts;
 
-		/// <summary>The triangles baked from a flat copy of themselves.</summary>
+		/// <summary>The triangles baked from a flat copy of themselves: the raised middle, if any.</summary>
 		public int[] FlatFaces;
 
 		/// <summary>The local height the flat copy is laid at.</summary>
 		public float FlatHeight;
 
-		/// <summary>
-		/// Welded position pairs, one per edge where the surface creases, so the
-		/// high-poly rounds those off and nothing else.
-		/// </summary>
-		public int[] Creases;
-
 		public int TextureSize;
 		public int Padding;
 
-		/// <summary>In metres.</summary>
+		/// <summary>How far every sharp edge is rounded off, in metres.</summary>
 		public float EdgeBevel;
-		public int EdgeBevelSegments;
 
 		/// <summary>
 		/// How far above the flat copy its rays start, in metres, which must clear
@@ -123,7 +110,6 @@ namespace VisualPinball.Unity.Editor
 				TextureSize = settings.TextureSize,
 				Padding = settings.Padding,
 				EdgeBevel = settings.EdgeBevel * Physics.ScaleInv,
-				EdgeBevelSegments = settings.EdgeBevelSegments,
 				RegularExtrusion = SurfaceExtrusion,
 				FlatExtrusion = 1.2f * math.abs(starburstOffset) * Physics.ScaleInv + SurfaceExtrusion,
 				Unwrap = settings.Unwrap,
@@ -149,44 +135,7 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 			request.FlatFaces = flat.ToArray();
-			request.Creases = FindCreases(request.Triangles, request.Normals);
 			return request;
-		}
-
-		/// <summary>
-		/// Every edge shared by exactly two triangles whose normals differ at
-		/// either end. The rim, which borders one triangle, stays open.
-		/// </summary>
-		private static int[] FindCreases(int[] triangles, float[] normals)
-		{
-			var first = new Dictionary<(int, int), (int From, int To)>();
-			var shared = new HashSet<(int, int)>();
-			var creases = new List<int>();
-			for (var corner = 0; corner < triangles.Length; corner++) {
-				var next = corner - corner % 3 + (corner + 1) % 3;
-				var a = triangles[corner];
-				var b = triangles[next];
-				var key = a < b ? (a, b) : (b, a);
-				var corners = a < b ? (From: corner, To: next) : (From: next, To: corner);
-				if (!first.TryGetValue(key, out var other)) {
-					first.Add(key, corners);
-					continue;
-				}
-				if (!shared.Add(key)) {
-					continue;
-				}
-				if (!Smooth(normals, other.From, corners.From) || !Smooth(normals, other.To, corners.To)) {
-					creases.Add(key.Item1);
-					creases.Add(key.Item2);
-				}
-			}
-			return creases.ToArray();
-		}
-
-		private static bool Smooth(float[] normals, int a, int b)
-		{
-			var dot = normals[a * 3] * normals[b * 3] + normals[a * 3 + 1] * normals[b * 3 + 1] + normals[a * 3 + 2] * normals[b * 3 + 2];
-			return dot >= 1f - SmoothTolerance;
 		}
 
 		/// <summary>

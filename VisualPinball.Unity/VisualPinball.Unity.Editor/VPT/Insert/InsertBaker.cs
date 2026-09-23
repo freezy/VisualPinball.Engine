@@ -235,10 +235,10 @@ namespace VisualPinball.Unity.Editor
 
 		/// <summary>How far Blender has got, by the steps the script announces.</summary>
 		private static readonly (string Message, float Progress)[] Steps = {
-			("Baking normals onto the flat mesh", 0.4f),
-			("Baking normals onto the regular mesh", 0.6f),
-			("Baking the island mask", 0.8f),
-			("Combining and saving", 0.9f),
+			("Baking normals onto the regular mesh", 0.3f),
+			("Baking normals onto the flat mesh", 0.6f),
+			("Baking the flat region mask", 0.8f),
+			("Saving the normal map", 0.9f),
 		};
 
 		public static void Bake(InsertComponent insert)

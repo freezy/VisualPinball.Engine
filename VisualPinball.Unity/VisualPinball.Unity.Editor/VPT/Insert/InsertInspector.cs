@@ -143,8 +143,6 @@ namespace VisualPinball.Unity.Editor
 			var padding = _bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.Padding));
 			EditorGUILayout.IntSlider(padding, 1, 32, new GUIContent("Padding (px)", padding.tooltip));
 			EditorGUILayout.PropertyField(_bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.EdgeBevel)), new GUIContent("Edge Bevel (VPX)"));
-			var segments = _bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.EdgeBevelSegments));
-			EditorGUILayout.IntSlider(segments, 1, 8, new GUIContent("Edge Bevel Segments", segments.tooltip));
 			EditorGUILayout.PropertyField(_bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.Unwrap)), new GUIContent("Unwrap in Blender"));
 			EditorGUILayout.PropertyField(_bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.PreferUvPackMaster)), new GUIContent("Prefer UVPackMaster"));
 			EditorGUILayout.PropertyField(_bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.Gpu)), new GUIContent("Bake on GPU"));

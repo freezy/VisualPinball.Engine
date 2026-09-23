@@ -31,11 +31,11 @@ cross(b - a, c - a) points, the bitangent is sign * cross(normal, tangent),
 and V runs up the image. The insert just lies in Blender's XZ plane, which
 nothing below cares about.
 
-The normal map comes from a high-poly copy whose creases are rounded off. The
-flat region, the raised middle with its starburst, is baked from a flat copy
-of itself and everything else from the mesh as it is, so the starburst keeps a
-flat tangent basis. UVPackMaster packs the UVs when Blender has it installed;
-nothing else needs installing.
+The normal map is baked from a copy of the mesh whose every sharp edge a Bevel
+shader rounds off. The raised middle with its starburst is baked from a flat
+copy of itself and everything else from the mesh as it is, so the starburst
+keeps a flat tangent basis. UVPackMaster packs the UVs when Blender has it
+installed; nothing else needs installing.
 """
 
 import json
@@ -54,7 +54,12 @@ UV_NAME = 'UVMap'
 GENERATOR_UV_NAME = 'Generator'
 
 # Must match InsertBakeRequest.CurrentVersion.
-VERSION = 1
+VERSION = 2
+
+# Rays the Bevel shader traces per sample, and samples per texel. Fewer of either
+# leave the rounded edges grainy.
+BEVEL_RAYS = 16
+BEVEL_SAMPLES = 16
 
 
 class BakeFailure(Exception):
@@ -226,27 +231,30 @@ def build_flat(regular, request):
 
 
 def build_high(regular, request):
-	"""The regular mesh with every crease rounded off by the bevel width."""
+	"""The regular mesh, shaded with every sharp edge rounded off by the bevel width.
+
+	A Bevel shader rather than a bevelled mesh: the arrangement snaps edges down
+	to a fraction of a pixel, which a geometric bevel has to clamp to, all of it,
+	or else fold over. The shader rounds each point by what lies around it.
+	"""
 	high = regular.copy()
 	high.data = regular.data.copy()
 	high.name = high.data.name = 'High'
 	bpy.context.scene.collection.objects.link(high)
-	if request['EdgeBevel'] <= 0 or not request['Creases']:
-		return high
-	mesh = high.data
-	index = {tuple(sorted(edge.vertices)): edge.index for edge in mesh.edges}
-	weights = np.zeros(len(mesh.edges), dtype=np.float32)
-	creases = np.asarray(request['Creases'], dtype=np.int64).reshape(-1, 2)
-	for a, b in creases:
-		weights[index[(min(a, b), max(a, b))]] = 1.0
-	attribute = mesh.attributes.get('bevel_weight_edge') or mesh.attributes.new('bevel_weight_edge', 'FLOAT', 'EDGE')
-	attribute.data.foreach_set('value', weights)
-	bevel = high.modifiers.new('Bevel', 'BEVEL')
-	bevel.width = request['EdgeBevel']
-	bevel.segments = max(1, request['EdgeBevelSegments'])
-	bevel.limit_method = 'WEIGHT'
-	bevel.use_clamp_overlap = True
-	bevel.harden_normals = False
+	material = bpy.data.materials.new('Rounded')
+	material.use_nodes = True
+	nodes = material.node_tree.nodes
+	nodes.clear()
+	output = nodes.new('ShaderNodeOutputMaterial')
+	shader = nodes.new('ShaderNodeBsdfDiffuse')
+	material.node_tree.links.new(shader.outputs[0], output.inputs['Surface'])
+	if request['EdgeBevel'] > 0:
+		bevel = nodes.new('ShaderNodeBevel')
+		bevel.samples = BEVEL_RAYS
+		bevel.inputs['Radius'].default_value = request['EdgeBevel']
+		material.node_tree.links.new(bevel.outputs['Normal'], shader.inputs['Normal'])
+	high.data.materials.clear()
+	high.data.materials.append(material)
 	return high
 
 
@@ -282,6 +290,7 @@ def target(image, color=(1.0, 1.0, 1.0, 1.0)):
 def bake(obj, request, high=None, extrusion=0.0):
 	"""Bakes the high-poly's tangent-space normals onto obj or, without one, obj's own emission."""
 	select_only(obj, high) if high else select_only(obj)
+	bpy.context.scene.cycles.samples = BEVEL_SAMPLES if high and request['EdgeBevel'] > 0 else 1
 	result = bpy.ops.object.bake(
 		'EXEC_DEFAULT', type='NORMAL' if high else 'EMIT',
 		target='IMAGE_TEXTURES', save_mode='INTERNAL', use_clear=True,
@@ -299,24 +308,40 @@ def bake_normal_map(regular, flat, high, request, path):
 	scene = bpy.context.scene
 	scene.render.engine = 'CYCLES'
 	scene.cycles.device = 'GPU' if request['Gpu'] else 'CPU'
-	scene.cycles.samples = 1
 	scene.cycles.use_denoising = False
 	size = request['TextureSize']
-	flat_image, regular_image, mask_image = (new_image(name, size) for name in ('Flat', 'Regular', 'Mask'))
+	regular_image = new_image('Regular', size)
 
-	# The flat copy's rays start above the starburst's highest point, the
-	# regular mesh's just clear of its own surface, so they cannot reach across
-	# to a neighbouring one.
-	print('[bake_insert] Baking normals onto the flat mesh', flush=True)
-	flat.data.materials.append(target(flat_image))
-	bake(flat, request, high, request['FlatExtrusion'])
+	# The regular mesh's rays start just clear of its own surface, so they
+	# cannot reach across to a neighbouring one; the flat copy's start above
+	# the starburst's highest point.
 	print('[bake_insert] Baking normals onto the regular mesh', flush=True)
 	regular.data.materials.append(target(regular_image))
 	bake(regular, request, high, request['RegularExtrusion'])
+	pixels = image_pixels(regular_image)
+
+	if flat is not None:
+		print('[bake_insert] Baking normals onto the flat mesh', flush=True)
+		flat_image = new_image('Flat', size)
+		flat.data.materials.append(target(flat_image))
+		bake(flat, request, high, request['FlatExtrusion'])
+		merge_flat(regular, flat_image, pixels, request)
+
+	print('[bake_insert] Saving the normal map', flush=True)
+	pixels[:, :, 3] = 1.0
+	result = new_image('Normal', size)
+	result.pixels.foreach_set(pixels.ravel())
+	result.update()
+	save_png(result, path, 8)
+
+
+def merge_flat(regular, flat_image, pixels, request):
+	"""Takes the flat bake's texels wherever the flat region is, padding included."""
+	mask_image = new_image('Mask', request['TextureSize'])
 
 	# Red on the flat region, green elsewhere, padded like the bakes, so the
 	# padding round the flat region is taken from the flat bake as well.
-	print('[bake_insert] Baking the island mask', flush=True)
+	print('[bake_insert] Baking the flat region mask', flush=True)
 	regular.data.materials.clear()
 	regular.data.materials.append(target(mask_image, (0.0, 1.0, 0.0, 1.0)))
 	regular.data.materials.append(target(mask_image, (1.0, 0.0, 0.0, 1.0)))
@@ -325,19 +350,10 @@ def bake_normal_map(regular, flat, high, request, path):
 	regular.data.polygons.foreach_set('material_index', indices)
 	bake(regular, request)
 
-	print('[bake_insert] Combining and saving the normal map', flush=True)
 	mask = image_pixels(mask_image)
 	flat_region = mask[:, :, 0] > mask[:, :, 1]
-	if not flat_region.any():
-		raise BakeFailure('The flat region covers no texel. Raise the texture size.')
-	pixels = image_pixels(regular_image)
 	# Encoded normals are copied, never blended, which would shorten them.
 	pixels[flat_region] = image_pixels(flat_image)[flat_region]
-	pixels[:, :, 3] = 1.0
-	result = new_image('Normal', size)
-	result.pixels.foreach_set(pixels.ravel())
-	result.update()
-	save_png(result, path, 8)
 
 
 def save_png(image, path, bits):
@@ -405,7 +421,7 @@ def run(request, folder, report):
 	report['Timings']['uvs'] = time.perf_counter() - started
 
 	started = time.perf_counter()
-	flat = build_flat(regular, request)
+	flat = build_flat(regular, request) if request['FlatFaces'] else None
 	high = build_high(regular, request)
 	bpy.context.view_layer.update()
 	bake_normal_map(regular, flat, high, request, folder / 'normal.png')

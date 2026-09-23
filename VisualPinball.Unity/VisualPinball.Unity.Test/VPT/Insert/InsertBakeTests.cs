@@ -101,17 +101,12 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldBakeTheFloorFlatWithoutAChannel()
+		public void ShouldBakeNothingFlatWithoutAChannel()
 		{
 			var (mesh, layout) = Generate(4f, 0f, 0, 1f);
 			try {
-				Assert.That(layout.FlatHeight, Is.EqualTo(-Depth * Scale).Within(1e-7f));
-				var vertices = mesh.vertices;
-				var flat = Enumerable.Range(0, mesh.vertexCount).Where(i => layout.VertexCharts[i] == layout.FlatChart).ToArray();
-				Assert.That(flat, Is.Not.Empty);
-				foreach (var i in flat) {
-					Assert.That(vertices[i].y, Is.EqualTo(layout.FlatHeight).Within(1e-7f));
-				}
+				Assert.That(layout.VertexCharts, Has.No.Member(layout.FlatChart));
+				Assert.That(Request(mesh, layout).FlatFaces, Is.Empty);
 
 			} finally {
 				Object.DestroyImmediate(mesh);
@@ -119,13 +114,34 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldBakeTheFloorFlatWhenAHoleTakesTheWholeMiddle()
+		public void ShouldBakeNothingFlatWhenAHoleTakesTheWholeMiddle()
 		{
 			var (mesh, layout) = Generate(4f, 3f, 12, 1f, holeList: new[] { new InsertHole(Vector2.zero, 40f) });
 			try {
-				var request = Request(mesh, layout);
-				Assert.That(request.FlatFaces, Is.Not.Empty);
-				Assert.That(layout.FlatHeight, Is.EqualTo(-Depth * Scale).Within(1e-7f));
+				Assert.That(Request(mesh, layout).FlatFaces, Is.Empty);
+
+			} finally {
+				Object.DestroyImmediate(mesh);
+			}
+		}
+
+		[Test]
+		public void ShouldLayTheChannelFloorOutInPieces()
+		{
+			// A whole ring laid out from above takes up the square it goes round.
+			// A rounded rectangle's floor turns a full circle, a piece at most a
+			// sixth of one, so it comes out as more than four pieces.
+			var (mesh, layout) = Generate(6f, 3f, 12, 0f);
+			try {
+				var vertices = mesh.vertices;
+				var normals = mesh.normals;
+				var floor = -Depth * Scale;
+				var pieces = Enumerable.Range(0, mesh.vertexCount)
+					.Where(i => math.abs(vertices[i].y - floor) < 1e-7f && normals[i].y > 0.99f)
+					.Select(i => layout.VertexCharts[i])
+					.Distinct()
+					.Count();
+				Assert.That(pieces, Is.GreaterThan(4));
 
 			} finally {
 				Object.DestroyImmediate(mesh);
@@ -173,52 +189,9 @@ namespace VisualPinball.Unity.Test
 					Assert.That(request.Normals[corner * 3 + 1], Is.EqualTo(normals[vertex].y));
 					Assert.That(request.Uvs[corner * 2], Is.EqualTo(uvs[vertex].x));
 				}
-				Assert.That(request.FlatFaces, Is.Not.Empty);
+				Assert.That(request.FlatFaces, channel > 0f ? Is.Not.Empty : Is.Empty);
 				foreach (var triangle in request.FlatFaces) {
 					Assert.That(request.Charts[triangle], Is.EqualTo(layout.FlatChart));
-				}
-
-			} finally {
-				Object.DestroyImmediate(mesh);
-			}
-		}
-
-		[Test]
-		public void ShouldCreaseOnlyWhereTheSurfaceFolds()
-		{
-			// A plain sharp-cornered bucket folds along its four upright corners and
-			// its four floor edges. The rim is open and the floor's diagonal is flat.
-			var (mesh, layout) = Generate(0f, 0f, 0);
-			try {
-				var request = Request(mesh, layout);
-				Assert.That(request.Creases, Has.Length.EqualTo(8 * 2));
-				var floor = -Depth * Scale;
-				for (var i = 0; i < request.Creases.Length; i += 2) {
-					var a = request.Creases[i];
-					var b = request.Creases[i + 1];
-					var ya = request.Positions[a * 3 + 1];
-					var yb = request.Positions[b * 3 + 1];
-					var upright = request.Positions[a * 3] == request.Positions[b * 3] && request.Positions[a * 3 + 2] == request.Positions[b * 3 + 2];
-					Assert.That(upright || math.abs(ya - floor) < 1e-7f && math.abs(yb - floor) < 1e-7f, $"crease {i / 2} is neither upright nor on the floor");
-				}
-
-			} finally {
-				Object.DestroyImmediate(mesh);
-			}
-		}
-
-		[Test]
-		public void ShouldNotCreaseAcrossARoundedCorner()
-		{
-			// A filleted bucket is smooth round its corners, so the only creases run
-			// round the edge of the floor.
-			var (mesh, layout) = Generate(6f, 0f, 0);
-			try {
-				var request = Request(mesh, layout);
-				var floor = -Depth * Scale;
-				Assert.That(request.Creases, Is.Not.Empty);
-				for (var i = 0; i < request.Creases.Length; i++) {
-					Assert.That(request.Positions[request.Creases[i] * 3 + 1], Is.EqualTo(floor).Within(1e-7f));
 				}
 
 			} finally {
