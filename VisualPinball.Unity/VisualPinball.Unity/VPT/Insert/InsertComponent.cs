@@ -129,6 +129,10 @@ namespace VisualPinball.Unity
 		[Tooltip("The radius new holes are given, from the presets or when added one by one, in VPX units.")]
 		private float _holeRadius = 2f;
 
+		[SerializeField]
+		[Tooltip("How the UVs are optimized and the normal map baked, in Blender.")]
+		private InsertBakeSettings _bakeSettings = InsertBakeSettings.Default;
+
 		#endregion
 
 		#region Generated state
@@ -186,6 +190,23 @@ namespace VisualPinball.Unity
 			} catch (InsertOutlineException exception) {
 				Error = exception.Message;
 			}
+		}
+
+		public InsertBakeSettings BakeSettings => _bakeSettings;
+
+		/// <summary>
+		/// Generates the mesh the parameters describe into <paramref name="target"/>,
+		/// as the generator lays it out, and describes it into
+		/// <paramref name="layout"/>. This is what a bake starts from.
+		/// </summary>
+		/// <exception cref="InsertOutlineException">The parameters describe no valid insert.</exception>
+		public InsertBody Generate(Mesh target, InsertMeshLayout layout)
+		{
+			var warnings = new List<string>();
+			var outline = BuildOutline(warnings);
+			var body = BuildBody(outline, warnings);
+			InsertMeshGenerator.Generate(outline, body, target, layout);
+			return body;
 		}
 
 		private InsertOutline BuildOutline(List<string> warnings)

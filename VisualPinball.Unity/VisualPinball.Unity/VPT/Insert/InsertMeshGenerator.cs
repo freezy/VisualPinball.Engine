@@ -198,7 +198,11 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public static Mesh Generate(InsertOutline outline, InsertBody body, Mesh mesh)
+		/// <summary>
+		/// Builds the mesh into <paramref name="mesh"/>, and describes it for the
+		/// normal bake into <paramref name="layout"/> when one is given.
+		/// </summary>
+		public static Mesh Generate(InsertOutline outline, InsertBody body, Mesh mesh, InsertMeshLayout layout = null)
 		{
 			var buffers = new MeshBuffers();
 			var floor = -body.Depth;
@@ -246,6 +250,21 @@ namespace VisualPinball.Unity
 			}
 
 			InsertUvAtlas.Pack(buffers.Uvs, buffers.Charts);
+
+			if (layout != null) {
+				layout.VertexCharts = buffers.Charts.ToArray();
+				// A hole can take the whole raised middle away, which leaves the
+				// floor as the only flat surface, as without a channel.
+				var middle = channel && buffers.Charts.Contains(top);
+				layout.FlatChart = middle ? top : bottomChart;
+				layout.FlatHeight = ToLocal(float2.zero, middle ? floor + body.ChannelDepth : floor).y;
+				var hash = new Hash128();
+				hash.Append(buffers.Vertices);
+				hash.Append(buffers.Normals);
+				hash.Append(buffers.Uvs);
+				hash.Append(buffers.Triangles);
+				layout.Hash = hash;
+			}
 
 			mesh.Clear();
 			mesh.indexFormat = buffers.Vertices.Count > ushort.MaxValue ? IndexFormat.UInt32 : IndexFormat.UInt16;

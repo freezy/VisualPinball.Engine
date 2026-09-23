@@ -1,0 +1,218 @@
+# Visual Pinball Engine
+# Copyright (C) 2026 freezy and VPE Team
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+"""Headless tests for bake_insert.py.
+
+Run with
+
+    blender -b --python-exit-code 1 --python test_bake_insert.py
+
+It needs the Starburst Normal Baker extension installed, and uses UVPackMaster
+when that is installed too. insert.json is a request written by Unity for the
+component's default triangle with a hole in each corner.
+"""
+
+import importlib
+import json
+import struct
+import sys
+import tempfile
+from pathlib import Path
+
+import bpy
+import numpy as np
+from mathutils import Vector
+from mathutils.bvhtree import BVHTree
+from mathutils.interpolate import poly_3d_calc
+
+HERE = Path(__file__).resolve().parent
+# No __pycache__ next to the script, where Unity would import it.
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(HERE.parent))
+import bake_insert  # noqa: E402
+
+FIXTURE = json.loads((HERE / 'insert.json').read_text(encoding='utf-8'))
+
+
+def bake(**overrides):
+	request = dict(FIXTURE, **overrides)
+	folder = Path(tempfile.mkdtemp(prefix='bake-insert-'))
+	report = {'Warnings': [], 'Timings': {}}
+	result = bake_insert.run(request, folder, report)
+	return request, folder, result, report
+
+
+def texels(uvs, size, faces):
+	"""Every texel centre inside a triangle: (triangle, barycentric weights, row, column)."""
+	for face in faces:
+		a, b, c = uvs[face * 3:face * 3 + 3] * size
+		low = np.floor(np.minimum(np.minimum(a, b), c)).astype(int)
+		high = np.ceil(np.maximum(np.maximum(a, b), c)).astype(int)
+		x, y = np.meshgrid(np.arange(low[0], high[0]) + 0.5, np.arange(low[1], high[1]) + 0.5)
+		det = (b[1] - c[1]) * (a[0] - c[0]) + (c[0] - b[0]) * (a[1] - c[1])
+		u = ((b[1] - c[1]) * (x - c[0]) + (c[0] - b[0]) * (y - c[1])) / det
+		v = ((c[1] - a[1]) * (x - c[0]) + (a[0] - c[0]) * (y - c[1])) / det
+		w = 1 - u - v
+		inside = (u > 1e-3) & (v > 1e-3) & (w > 1e-3)
+		for uu, vv, ww, xx, yy in zip(u[inside], v[inside], w[inside], x[inside], y[inside]):
+			yield face, (uu, vv, ww), int(yy), int(xx)
+
+
+def load_png(path):
+	image = bpy.data.images.load(str(path), check_existing=False)
+	image.colorspace_settings.name = 'Non-Color'
+	pixels = np.empty(image.size[0] * image.size[1] * 4, dtype=np.float32)
+	image.pixels.foreach_get(pixels)
+	size = image.size[0]
+	bpy.data.images.remove(image)
+	return pixels.reshape(size, size, 4)[:, :, :3] * 2 - 1
+
+
+def check_layout(request, folder, result, report):
+	corners = len(request['Triangles'])
+	uvs = np.asarray(result['Uvs']).reshape(-1, 2)
+	tangents = np.asarray(result['Tangents']).reshape(-1, 4)
+	assert len(uvs) == corners and len(tangents) == corners
+	assert np.allclose(np.linalg.norm(tangents[:, :3], axis=1), 1, atol=1e-3), 'tangents must be unit length'
+	assert set(np.unique(tangents[:, 3])) <= {-1.0, 1.0}, 'bitangent signs must be one or minus one'
+
+	assert uvs.min() >= 0 and uvs.max() <= 1, 'UVs must stay in the unit square'
+	assert not bake_insert.folded(uvs), 'no triangle may be laid out the wrong way round'
+	baker = importlib.import_module(bake_insert.find_module(bake_insert.BAKER) + '.uv')
+	baker.uv_coverage(bpy.data.objects['Regular'].data, bake_insert.UV_NAME, request['TextureSize'], request['TextureSize'])
+
+	# Islands are packed twice the padding apart, so their padding cannot meet.
+	charts = np.asarray(request['Charts'])
+	triangles = np.asarray(request['Triangles']).reshape(-1, 3)
+	edges = {}
+	for face, corners_ in enumerate(triangles):
+		for k in range(3):
+			key = tuple(sorted((corners_[k], corners_[(k + 1) % 3])))
+			edges.setdefault(key, []).append((face, k))
+	segments, owners = [], []
+	for key, faces in edges.items():
+		if len(faces) == 2 and charts[faces[0][0]] == charts[faces[1][0]]:
+			continue
+		for face, k in faces:
+			segments.append((uvs[face * 3 + k], uvs[face * 3 + (k + 1) % 3]))
+			owners.append(charts[face])
+	segments = np.asarray(segments) * request['TextureSize']
+	owners = np.asarray(owners)
+	gap = np.inf
+	for i in range(len(segments)):
+		others = owners != owners[i]
+		gap = min(gap, segment_distance(segments[i], segments[others]).min())
+	assert gap >= 2 * request['Padding'] - 1, f'islands are only {gap:.1f} px apart'
+
+	png = (folder / 'normal.png').read_bytes()
+	assert struct.unpack('>II', png[16:24]) == (request['TextureSize'],) * 2
+	assert png[24] == 8, 'expected an 8-bit PNG'
+	print(f'layout ok: {report["Packer"]}, fill {report["UvFill"]:.2f}, closest islands {gap:.1f} px')
+
+
+def segment_distance(segment, others):
+	"""The distance from one segment to each of others, assuming none cross."""
+	def point_to(points, a, b):
+		ab = b - a
+		t = np.clip(((points - a) * ab).sum(-1) / np.maximum((ab * ab).sum(-1), 1e-12), 0, 1)
+		return np.linalg.norm(points - (a + t[..., None] * ab), axis=-1)
+	a, b = segment
+	return np.minimum.reduce([
+		point_to(others[:, 0], a, b), point_to(others[:, 1], a, b),
+		point_to(np.broadcast_to(a, others[:, 0].shape), others[:, 0], others[:, 1]),
+		point_to(np.broadcast_to(b, others[:, 0].shape), others[:, 0], others[:, 1]),
+	])
+
+
+def check_identity(request, folder, result):
+	"""Without a bevel the high-poly is the mesh itself, so everything but the starburst bakes flat."""
+	normals = load_png(folder / 'normal.png')
+	uvs = np.asarray(result['Uvs']).reshape(-1, 2)
+	flat = set(request['FlatFaces'])
+	regular = [face for face in range(len(request['Charts'])) if face not in flat]
+	tilts = [np.degrees(np.arccos(np.clip(normals[row, column, 2], -1, 1)))
+		for _, _, row, column in texels(uvs, request['TextureSize'], regular)]
+	assert np.max(tilts) < 1.5, f'a flat surface baked with a tilt of {np.max(tilts):.1f} degrees'
+	print(f'identity ok: {len(tilts)} texels, largest tilt {np.max(tilts):.2f} degrees')
+
+
+def check_directions(request, folder, result):
+	"""Decoded the way Unity does with the returned tangents, the map gives the high-poly's normals.
+
+	Only where the bevel turns the surface, since that is where a wrong tangent
+	basis shows; and a mirrored bitangent must fail, or the check proves nothing.
+	"""
+	normals = load_png(folder / 'normal.png')
+	uvs = np.asarray(result['Uvs']).reshape(-1, 2)
+	tangents = np.asarray(result['Tangents']).reshape(-1, 4)
+	positions = np.asarray(request['Positions']).reshape(-1, 3)
+	triangles = np.asarray(request['Triangles']).reshape(-1, 3)
+	corner_normals = np.asarray(request['Normals']).reshape(-1, 3)
+
+	high = bpy.data.objects['High'].evaluated_get(bpy.context.evaluated_depsgraph_get())
+	mesh = high.to_mesh()
+	vertices = [vertex.co.copy() for vertex in mesh.vertices]
+	tree = BVHTree.FromPolygons(vertices, [polygon.vertices[:] for polygon in mesh.polygons])
+	high_normals = [corner.vector.copy() for corner in mesh.corner_normals]
+
+	flat = set(request['FlatFaces'])
+	regular = [face for face in range(len(triangles)) if face not in flat]
+	errors, mirrored = [], []
+	for face, weights, row, column in texels(uvs, request['TextureSize'], regular):
+		corners = range(face * 3, face * 3 + 3)
+		position = sum(w * positions[triangles[face][k]] for k, w in enumerate(weights))
+		normal = sum(w * corner_normals[c] for w, c in zip(weights, corners))
+		normal /= np.linalg.norm(normal)
+		tangent = sum(w * tangents[c, :3] for w, c in zip(weights, corners))
+		bitangent = tangents[face * 3, 3] * np.cross(normal, tangent)
+
+		origin = Vector(position + normal * request['RegularExtrusion'] * 2)
+		hit, _, index, _ = tree.ray_cast(origin, Vector(-normal))
+		if hit is None:
+			continue
+		polygon = mesh.polygons[index]
+		blend = poly_3d_calc([vertices[v] for v in polygon.vertices], hit)
+		expected = np.asarray(sum((w * high_normals[polygon.loop_start + k] for k, w in enumerate(blend)), Vector()).normalized())
+		if np.degrees(np.arccos(np.clip(expected @ normal, -1, 1))) < 10:
+			continue
+
+		encoded = normals[row, column]
+		for sign, out in ((1, errors), (-1, mirrored)):
+			decoded = encoded[0] * tangent + sign * encoded[1] * bitangent + encoded[2] * normal
+			decoded /= np.linalg.norm(decoded)
+			out.append(np.degrees(np.arccos(np.clip(decoded @ expected, -1, 1))))
+	high.to_mesh_clear()
+
+	assert len(errors) > 50, f'only {len(errors)} texels on the bevels to check'
+	median, worst = np.median(errors), np.percentile(errors, 95)
+	assert median < 4 and worst < 15, f'decoded normals are off by {median:.1f} degrees (95%: {worst:.1f})'
+	assert np.median(mirrored) > 2 * median + 5, 'a mirrored bitangent decodes just as well, so the check is blind'
+	print(f'directions ok: {len(errors)} texels, off by {median:.1f} degrees (95%: {worst:.1f}), mirrored {np.median(mirrored):.1f}')
+
+
+request, folder, result, report = bake(EdgeBevel=0.0)
+check_layout(request, folder, result, report)
+check_identity(request, folder, result)
+
+request, folder, result, report = bake()
+check_layout(request, folder, result, report)
+check_directions(request, folder, result)
+
+request, folder, result, report = bake(Unwrap=False, PreferUvPackMaster=False)
+check_layout(request, folder, result, report)
+assert report['Packer'] == 'Blender'
+
+print('BAKE INSERT TESTS PASSED', bpy.app.version_string)
