@@ -36,15 +36,15 @@ namespace VisualPinball.Unity.Editor
 	/// material, under <c>Assets/Inserts</c>.
 	/// </summary>
 	/// <remarks>
-	/// Blender runs in the background as a child process, one bake at a time,
+	/// Blender 5 runs in the background as a child process, one bake at a time,
 	/// while a progress bar keeps the editor from changing the insert under it.
-	/// It needs the Starburst Normal Baker extension installed, and uses
-	/// UVPackMaster when that is installed too.
+	/// Everything the bake needs ships with the package, in <c>Blender~</c>,
+	/// which Unity leaves alone; UVPackMaster is used when Blender has it.
 	/// </remarks>
 	public static class InsertBaker
 	{
 		private const string BlenderPathKey = "VisualPinball.Insert.BlenderPath";
-		private const string Script = "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/VPT/Insert/Blender/bake_insert.py";
+		private const string Script = "VisualPinball.Unity/VisualPinball.Unity.Editor/VPT/Insert/Blender~/bake_insert.py";
 		private const string OutputRoot = "Assets/Inserts";
 		private const string LogPrefix = "[bake_insert] ";
 
@@ -98,7 +98,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			public string Blender;
 			public int Version;
-			public bool Baker;
+			public bool Supported;
 			public bool UvPackMaster;
 
 			/// <summary>Why the probe failed, or null.</summary>
@@ -159,8 +159,8 @@ namespace VisualPinball.Unity.Editor
 				info = new BlenderInfo { Error = "Blender did not run the bake script. Is this a Blender executable?" };
 			} else if (info.Version != InsertBakeRequest.CurrentVersion) {
 				info.Error = $"The bake script is version {info.Version}, this editor writes version {InsertBakeRequest.CurrentVersion}.";
-			} else if (!info.Baker) {
-				info.Error = "The Starburst Normal Baker extension is not installed in this Blender. It is in tools/starburst-normal-baker.";
+			} else if (!info.Supported) {
+				info.Error = $"Blender {info.Blender} is too old. The bake needs Blender 5.0 or newer.";
 			}
 			_probedPath = path;
 			_probe = info;
@@ -169,7 +169,9 @@ namespace VisualPinball.Unity.Editor
 
 		private static Process Run(string blender, string argument, ConcurrentQueue<string> output)
 		{
-			var script = Path.GetFullPath(Script);
+			// Blender~ is no asset, so it is found through the package's own folder.
+			var package = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(InsertBaker).Assembly);
+			var script = Path.Combine(package?.resolvedPath ?? "", Script);
 			if (!File.Exists(script)) {
 				throw new FileNotFoundException($"The bake script is missing at {script}.");
 			}
@@ -233,7 +235,6 @@ namespace VisualPinball.Unity.Editor
 
 		/// <summary>How far Blender has got, by the steps the script announces.</summary>
 		private static readonly (string Message, float Progress)[] Steps = {
-			("Evaluating meshes", 0.3f),
 			("Baking normals onto the flat mesh", 0.4f),
 			("Baking normals onto the regular mesh", 0.6f),
 			("Baking the island mask", 0.8f),

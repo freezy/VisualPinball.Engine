@@ -23,7 +23,7 @@ Unity runs it as
 and it writes, next to the request, normal.png and result.json: the new UV and
 tangent of every corner, in the request's triangle order, plus a report. When
 anything fails, result.json carries the error and Blender exits non-zero. With
-`-- --probe` instead, it only prints what this Blender has installed.
+`-- --probe` instead, it only prints what this Blender can do.
 
 The mesh arrives in Unity's local space and stays in it. Unity and Blender
 agree numerically on everything that matters here: a triangle faces where
@@ -31,12 +31,13 @@ cross(b - a, c - a) points, the bitangent is sign * cross(normal, tangent),
 and V runs up the image. The insert just lies in Blender's XZ plane, which
 nothing below cares about.
 
-The bake itself is the Starburst Normal Baker extension's: the starburst is
-baked from a flat copy of itself, the rest from the mesh as it is, both from a
-high-poly whose creases are rounded off.
+The normal map comes from a high-poly copy whose creases are rounded off. The
+flat region, the raised middle with its starburst, is baked from a flat copy
+of itself and everything else from the mesh as it is, so the starburst keeps a
+flat tangent basis. UVPackMaster packs the UVs when Blender has it installed;
+nothing else needs installing.
 """
 
-import importlib
 import json
 import sys
 import time
@@ -48,7 +49,6 @@ import bmesh
 import bpy
 import numpy as np
 
-BAKER = 'starburst_normal_baker'
 UVPM = 'uvpackmaster4'
 UV_NAME = 'UVMap'
 GENERATOR_UV_NAME = 'Generator'
@@ -62,7 +62,7 @@ class BakeFailure(Exception):
 
 
 def find_module(name):
-	"""The full module name of an installed extension or legacy add-on."""
+	"""The full module name of an installed extension or legacy add-on, or None."""
 	for module in addon_utils.modules(refresh=False):
 		if module.__name__.split('.')[-1] == name:
 			return module.__name__
@@ -103,11 +103,12 @@ def build_mesh(name, positions, triangles, normals, uvs):
 	return obj
 
 
-def select_only(obj):
+def select_only(*objects):
 	for other in bpy.context.scene.objects:
 		other.select_set(False)
-	obj.select_set(True)
-	bpy.context.view_layer.objects.active = obj
+	for obj in objects:
+		obj.select_set(True)
+	bpy.context.view_layer.objects.active = objects[0]
 
 
 def mark_seams(mesh, charts):
@@ -156,6 +157,27 @@ def folded(uvs):
 	return bool(np.any(ab[:, 0] * ac[:, 1] - ab[:, 1] * ac[:, 0] <= 0))
 
 
+def overlapping(uvs, size):
+	"""The first triangle whose UV interior shares a texel centre with another's, or None."""
+	covered = np.zeros((size, size), dtype=bool)
+	for face in range(len(uvs) // 3):
+		a, b, c = uvs[face * 3:face * 3 + 3].astype(np.float64) * size
+		low = np.maximum(0, np.floor(np.minimum(np.minimum(a, b), c)).astype(int))
+		high = np.minimum(size, np.ceil(np.maximum(np.maximum(a, b), c)).astype(int))
+		det = (b[1] - c[1]) * (a[0] - c[0]) + (c[0] - b[0]) * (a[1] - c[1])
+		if np.any(high <= low) or abs(det) < 1e-12:
+			continue
+		x, y = np.meshgrid(np.arange(low[0], high[0]) + 0.5, np.arange(low[1], high[1]) + 0.5)
+		u = ((b[1] - c[1]) * (x - c[0]) + (c[0] - b[0]) * (y - c[1])) / det
+		v = ((c[1] - a[1]) * (x - c[0]) + (a[0] - c[0]) * (y - c[1])) / det
+		inside = (u > 1e-7) & (v > 1e-7) & (1 - u - v > 1e-7)
+		region = covered[low[1]:high[1], low[0]:high[0]]
+		if np.any(region & inside):
+			return face
+		region |= inside
+	return None
+
+
 def pack(request, report):
 	size = request['TextureSize']
 	gap = 2 * request['Padding']
@@ -176,7 +198,9 @@ def pack(request, report):
 		if 'FINISHED' in result and prefs.engine_retcode == 0:
 			return 'UVPackMaster'
 		report['Warnings'].append(f'UVPackMaster failed ({result}, engine code {prefs.engine_retcode}); packed with Blender instead.')
-	bpy.ops.uv.pack_islands(rotate=True, margin_method='FRACTION', margin=gap / size, shape_method='CONCAVE')
+	# Blender keeps the margin clear round every island, so two of them end up
+	# twice the margin apart: half the gap is the gap.
+	bpy.ops.uv.pack_islands(rotate=True, margin_method='FRACTION', margin=gap / 2 / size, shape_method='CONCAVE')
 	return 'Blender'
 
 
@@ -226,6 +250,96 @@ def build_high(regular, request):
 	return high
 
 
+def new_image(name, size):
+	image = bpy.data.images.new(name, width=size, height=size, alpha=True, float_buffer=True, is_data=True)
+	image.colorspace_settings.name = 'Non-Color'
+	return image
+
+
+def image_pixels(image):
+	pixels = np.empty(image.size[0] * image.size[1] * 4, dtype=np.float32)
+	image.pixels.foreach_get(pixels)
+	return pixels.reshape(image.size[1], image.size[0], 4)
+
+
+def target(image, color=(1.0, 1.0, 1.0, 1.0)):
+	"""An emissive material whose active image node is where a bake lands."""
+	material = bpy.data.materials.new('Bake Target')
+	material.use_nodes = True
+	nodes = material.node_tree.nodes
+	nodes.clear()
+	output = nodes.new('ShaderNodeOutputMaterial')
+	emission = nodes.new('ShaderNodeEmission')
+	emission.inputs['Color'].default_value = color
+	material.node_tree.links.new(emission.outputs[0], output.inputs['Surface'])
+	node = nodes.new('ShaderNodeTexImage')
+	node.image = image
+	node.select = True
+	nodes.active = node
+	return material
+
+
+def bake(obj, request, high=None, extrusion=0.0):
+	"""Bakes the high-poly's tangent-space normals onto obj or, without one, obj's own emission."""
+	select_only(obj, high) if high else select_only(obj)
+	result = bpy.ops.object.bake(
+		'EXEC_DEFAULT', type='NORMAL' if high else 'EMIT',
+		target='IMAGE_TEXTURES', save_mode='INTERNAL', use_clear=True,
+		use_selected_to_active=high is not None, use_cage=False,
+		cage_extrusion=extrusion, max_ray_distance=0.0,
+		margin=request['Padding'], margin_type='EXTEND', uv_layer=UV_NAME,
+		normal_space='TANGENT', normal_r='POS_X', normal_g='POS_Y', normal_b='POS_Z',
+	)
+	if result != {'FINISHED'}:
+		raise BakeFailure('Blender cancelled the bake.')
+
+
+def bake_normal_map(regular, flat, high, request, path):
+	"""Bakes the flat region from its flat copy and everything else from the mesh, and merges the two."""
+	scene = bpy.context.scene
+	scene.render.engine = 'CYCLES'
+	scene.cycles.device = 'GPU' if request['Gpu'] else 'CPU'
+	scene.cycles.samples = 1
+	scene.cycles.use_denoising = False
+	size = request['TextureSize']
+	flat_image, regular_image, mask_image = (new_image(name, size) for name in ('Flat', 'Regular', 'Mask'))
+
+	# The flat copy's rays start above the starburst's highest point, the
+	# regular mesh's just clear of its own surface, so they cannot reach across
+	# to a neighbouring one.
+	print('[bake_insert] Baking normals onto the flat mesh', flush=True)
+	flat.data.materials.append(target(flat_image))
+	bake(flat, request, high, request['FlatExtrusion'])
+	print('[bake_insert] Baking normals onto the regular mesh', flush=True)
+	regular.data.materials.append(target(regular_image))
+	bake(regular, request, high, request['RegularExtrusion'])
+
+	# Red on the flat region, green elsewhere, padded like the bakes, so the
+	# padding round the flat region is taken from the flat bake as well.
+	print('[bake_insert] Baking the island mask', flush=True)
+	regular.data.materials.clear()
+	regular.data.materials.append(target(mask_image, (0.0, 1.0, 0.0, 1.0)))
+	regular.data.materials.append(target(mask_image, (1.0, 0.0, 0.0, 1.0)))
+	indices = np.zeros(len(regular.data.polygons), dtype=np.int32)
+	indices[request['FlatFaces']] = 1
+	regular.data.polygons.foreach_set('material_index', indices)
+	bake(regular, request)
+
+	print('[bake_insert] Combining and saving the normal map', flush=True)
+	mask = image_pixels(mask_image)
+	flat_region = mask[:, :, 0] > mask[:, :, 1]
+	if not flat_region.any():
+		raise BakeFailure('The flat region covers no texel. Raise the texture size.')
+	pixels = image_pixels(regular_image)
+	# Encoded normals are copied, never blended, which would shorten them.
+	pixels[flat_region] = image_pixels(flat_image)[flat_region]
+	pixels[:, :, 3] = 1.0
+	result = new_image('Normal', size)
+	result.pixels.foreach_set(pixels.ravel())
+	result.update()
+	save_png(result, path, 8)
+
+
 def save_png(image, path, bits):
 	scene = bpy.context.scene
 	scene.view_settings.view_transform = 'Raw'
@@ -264,12 +378,6 @@ def run(request, folder, report):
 	bpy.context.preferences.use_preferences_save = False
 	clear_scene()
 
-	baker_name = enable(BAKER)
-	if baker_name is None:
-		raise BakeFailure('The Starburst Normal Baker extension is not installed in this Blender.')
-	baker_package = importlib.import_module(baker_name)
-	baker = importlib.import_module(baker_name + '.baker')
-
 	if request['PreferUvPackMaster'] and find_module(UVPM):
 		try:
 			# UVPackMaster builds shaders as it loads, which background mode
@@ -290,37 +398,17 @@ def run(request, folder, report):
 	mark_seams(regular.data, request['Charts'])
 	unwrap(regular, request, report)
 	final_uvs = uv_array(regular.data, UV_NAME)
+	overlap = overlapping(final_uvs, request['TextureSize'])
+	if overlap is not None:
+		raise BakeFailure(f'The packed UVs overlap at triangle {overlap}, which would bake two surfaces into one texel.')
 	report['UvFill'] = uv_fill(final_uvs)
 	report['Timings']['uvs'] = time.perf_counter() - started
 
+	started = time.perf_counter()
 	flat = build_flat(regular, request)
 	high = build_high(regular, request)
-
-	started = time.perf_counter()
-	job = bpy.context.scene.starburst_baker.jobs.add()
-	job.name = 'Insert'
-	job.high = high
-	job.flat = flat
-	job.shaped = regular
-	job.uv_name = UV_NAME
-	job.flat_uv_name = UV_NAME
-	job.width = job.height = request['TextureSize']
-	job.margin = request['Padding']
-	job.extrusion = request['RegularExtrusion']
-	job.ray_distance = 0.0
-	job.separate_flat_rays = True
-	job.flat_extrusion = request['FlatExtrusion']
-	job.flat_ray_distance = 0.0
-	job.normal_y = 'POS_Y'
-	job.device = 'GPU' if request['Gpu'] else 'CPU'
-	job.output_dir = str(folder)
-	job.output_name = 'normal-16'
-	job.overwrite = True
 	bpy.context.view_layer.update()
-	baker_package.mark_faces(job, set(request['FlatFaces']))
-	path = baker.bake_job(bpy.context, job, lambda message: print('[bake_insert]', message, flush=True))
-	save_png(job.result_image, folder / 'normal.png', 8)
-	Path(path).unlink(missing_ok=True)
+	bake_normal_map(regular, flat, high, request, folder / 'normal.png')
 	report['Timings']['bake'] = time.perf_counter() - started
 
 	return {
@@ -334,7 +422,7 @@ def probe():
 	print('[bake_insert] ' + json.dumps({
 		'Blender': bpy.app.version_string,
 		'Version': VERSION,
-		'Baker': find_module(BAKER) is not None,
+		'Supported': bpy.app.version >= (5, 0, 0),
 		'UvPackMaster': find_module(UVPM) is not None,
 	}), flush=True)
 

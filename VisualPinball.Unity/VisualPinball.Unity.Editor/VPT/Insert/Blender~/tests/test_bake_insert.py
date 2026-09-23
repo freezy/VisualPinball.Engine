@@ -20,12 +20,11 @@ Run with
 
     blender -b --python-exit-code 1 --python test_bake_insert.py
 
-It needs the Starburst Normal Baker extension installed, and uses UVPackMaster
-when that is installed too. insert.json is a request written by Unity for the
-component's default triangle with a hole in each corner.
+It uses UVPackMaster when Blender has it installed and needs nothing else.
+insert.json is a request written by Unity for the component's default triangle
+with a hole in each corner.
 """
 
-import importlib
 import json
 import struct
 import sys
@@ -91,8 +90,7 @@ def check_layout(request, folder, result, report):
 
 	assert uvs.min() >= 0 and uvs.max() <= 1, 'UVs must stay in the unit square'
 	assert not bake_insert.folded(uvs), 'no triangle may be laid out the wrong way round'
-	baker = importlib.import_module(bake_insert.find_module(bake_insert.BAKER) + '.uv')
-	baker.uv_coverage(bpy.data.objects['Regular'].data, bake_insert.UV_NAME, request['TextureSize'], request['TextureSize'])
+	assert bake_insert.overlapping(uvs, request['TextureSize']) is None, 'no two triangles may share a texel'
 
 	# Islands are packed twice the padding apart, so their padding cannot meet.
 	charts = np.asarray(request['Charts'])
