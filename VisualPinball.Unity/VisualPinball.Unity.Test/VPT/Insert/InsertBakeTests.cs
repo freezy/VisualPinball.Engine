@@ -148,6 +148,36 @@ namespace VisualPinball.Unity.Test
 			}
 		}
 
+		[TestCase(4f, 3f, 12, 1f, true)]
+		[TestCase(0f, 0f, 0, 0f, false)]
+		public void ShouldTellTheWallsFromTheFloors(float radius, float channel, int bursts, float bevel, bool holes)
+		{
+			// Walls get fewer texels than the floors, so every upright triangle must
+			// be in a wall chart, and no triangle lying flat may be. The bottom
+			// bevel's foot faces up at its very edge, so it is judged by triangle.
+			var (mesh, layout) = Generate(radius, channel, bursts, bevel, holes);
+			try {
+				var normals = mesh.normals;
+				var triangles = mesh.triangles;
+				var walls = new HashSet<int>(layout.WallCharts);
+				Assert.That(walls, Is.Not.Empty);
+				Assert.That(walls, Has.No.Member(layout.FlatChart));
+				for (var i = 0; i < triangles.Length; i += 3) {
+					var chart = layout.VertexCharts[triangles[i]];
+					var up = Enumerable.Range(i, 3).All(k => normals[triangles[k]].y > 0.99f);
+					var upright = Enumerable.Range(i, 3).All(k => math.abs(normals[triangles[k]].y) < 0.01f);
+					if (up) {
+						Assert.That(walls, Has.No.Member(chart), $"triangle {i / 3} lies flat but is laid out as a wall");
+					} else if (upright) {
+						Assert.That(walls, Has.Member(chart), $"triangle {i / 3} stands upright but is laid out as a floor");
+					}
+				}
+
+			} finally {
+				Object.DestroyImmediate(mesh);
+			}
+		}
+
 		[Test]
 		public void ShouldHashTheMeshItself()
 		{

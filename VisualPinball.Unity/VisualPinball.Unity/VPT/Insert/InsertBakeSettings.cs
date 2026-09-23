@@ -50,7 +50,7 @@ namespace VisualPinball.Unity
 		public static InsertBakeSettings Default => new() {
 			TextureSize = 1024,
 			Padding = 8,
-			EdgeBevel = 0.25f,
+			EdgeBevel = 1f,
 			Unwrap = true,
 			PreferUvPackMaster = true,
 			Gpu = false,

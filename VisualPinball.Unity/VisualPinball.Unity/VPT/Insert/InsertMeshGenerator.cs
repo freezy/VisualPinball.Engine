@@ -232,10 +232,11 @@ namespace VisualPinball.Unity
 			}
 
 			List<RunPoint>[] floorSides = null;
+			int[] floorCharts = null;
 			if (channel) {
 				var islandTop = floor + body.ChannelDepth;
 				var starburst = TryCoverWithStarburst(island, body, islandTop, outline.WeldTolerance);
-				var floorCharts = CutFloor(bottom, atlasSide * 0.5f, buffers);
+				floorCharts = CutFloor(bottom, atlasSide * 0.5f, buffers);
 				floorSides = AddSunkenFloor(outline, body, bottom, bottomMap, bevel > 0f, island, islandMap, starburst,
 					floor, islandTop, top, floorCharts, outerCharts, buffers);
 
@@ -256,6 +257,19 @@ namespace VisualPinball.Unity
 			if (layout != null) {
 				layout.VertexCharts = buffers.Charts.ToArray();
 				layout.FlatChart = channel ? top : -1;
+				// Everything that is not a floor, laid out from above, is a wall.
+				var floors = new HashSet<int> { top, bottomChart };
+				if (floorCharts != null) {
+					floors.UnionWith(floorCharts);
+				}
+				var walls = new HashSet<int>();
+				foreach (var chart in buffers.Charts) {
+					if (!floors.Contains(chart)) {
+						walls.Add(chart);
+					}
+				}
+				layout.WallCharts = new int[walls.Count];
+				walls.CopyTo(layout.WallCharts);
 				layout.FlatHeight = ToLocal(float2.zero, floor + body.ChannelDepth).y;
 				var hash = new Hash128();
 				hash.Append(buffers.Vertices);

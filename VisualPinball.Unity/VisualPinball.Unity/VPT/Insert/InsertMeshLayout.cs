@@ -34,6 +34,12 @@ namespace VisualPinball.Unity
 		public int FlatChart;
 
 		/// <summary>
+		/// The charts of the walls, the outer one with its bottom bevel included,
+		/// which matter less than the floors and are given fewer texels.
+		/// </summary>
+		public int[] WallCharts;
+
+		/// <summary>
 		/// The local height the flat copy lies at, which is where the raised middle
 		/// is without its starburst.
 		/// </summary>

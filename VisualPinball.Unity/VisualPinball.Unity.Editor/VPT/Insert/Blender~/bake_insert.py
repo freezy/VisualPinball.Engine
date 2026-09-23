@@ -54,7 +54,11 @@ UV_NAME = 'UVMap'
 GENERATOR_UV_NAME = 'Generator'
 
 # Must match InsertBakeRequest.CurrentVersion.
-VERSION = 2
+VERSION = 3
+
+# How big the walls are laid out against the floors. They are seen side on, if
+# at all, and give their texels to the floors.
+WALL_SCALE = 0.5
 
 # Rays the Bevel shader traces per sample, and samples per texel. Fewer of either
 # leave the rounded edges grainy.
@@ -140,9 +144,9 @@ def unwrap(obj, request, report):
 		bpy.ops.mesh.select_all(action='SELECT')
 		bpy.context.scene.tool_settings.use_uv_select_sync = True
 		if request['Unwrap']:
-			# Minimum stretch keeps the snapped slivers of the arrangement from
-			# folding over, where angle based and conformal unwraps fold some.
-			bpy.ops.uv.unwrap(method='MINIMUM_STRETCH', margin=0.0)
+			# Minimum stretch pulls the starburst's long thin fans out of shape,
+			# where the angle based unwrap lays them out as they are.
+			bpy.ops.uv.unwrap(method='ANGLE_BASED', margin=0.0)
 			bpy.ops.object.mode_set(mode='OBJECT')
 			if folded(uv_array(mesh, UV_NAME)):
 				report['Warnings'].append("Unwrapping folded some triangles over; kept the generator's layout instead.")
@@ -150,9 +154,30 @@ def unwrap(obj, request, report):
 			bpy.ops.object.mode_set(mode='EDIT')
 			bpy.ops.mesh.select_all(action='SELECT')
 			bpy.ops.uv.average_islands_scale()
+		bpy.ops.object.mode_set(mode='OBJECT')
+		shrink_walls(mesh, request)
+		bpy.ops.object.mode_set(mode='EDIT')
+		bpy.ops.mesh.select_all(action='SELECT')
 		report['Packer'] = pack(request, report)
 	finally:
 		bpy.ops.object.mode_set(mode='OBJECT')
+
+
+def corners_of(faces):
+	"""The corner indices of the given triangles."""
+	return (np.asarray(faces, dtype=np.int64).reshape(-1, 1) * 3 + np.arange(3)).ravel()
+
+
+def shrink_walls(mesh, request):
+	"""Scales every wall's island about its middle, before packing spreads them out."""
+	charts = np.asarray(request['Charts'])
+	uvs = uv_array(mesh, UV_NAME)
+	for chart in request['WallCharts']:
+		corners = corners_of(np.nonzero(charts == chart)[0])
+		if len(corners):
+			middle = uvs[corners].mean(axis=0)
+			uvs[corners] = middle + (uvs[corners] - middle) * WALL_SCALE
+	mesh.uv_layers[UV_NAME].data.foreach_set('uv', uvs.ravel())
 
 
 def folded(uvs):
@@ -189,12 +214,15 @@ def pack(request, report):
 	if request['PreferUvPackMaster'] and report.get('UvPackMasterModule'):
 		props = bpy.context.scene.uvpm4_props.default_main_props
 		props.pixel_margin_enable = True
-		props.pixel_margin = gap
+		# Its margin is kept only to within a pixel or so.
+		props.pixel_margin = gap + 2
 		props.pixel_margin_tex_size = size
 		props.pixel_border_margin_enable = True
 		props.pixel_border_margin = request['Padding']
 		props.rotation_enable = True
-		props.rotation_step = 90
+		# Long thin charts nest far better turned by a few degrees than by quarter
+		# turns only, and a tangent space map turns with them.
+		props.rotation_step = 5
 		props.flipping_enable = False
 		props.normalize_scale = False
 		props.heuristic_enable = False
@@ -222,7 +250,7 @@ def build_flat(regular, request):
 	used, inverse = np.unique(triangles, return_inverse=True)
 	positions = np.asarray(request['Positions'], dtype=np.float64).reshape(-1, 3)[used]
 	positions[:, 1] = request['FlatHeight']
-	corners = (np.asarray(flat_faces, dtype=np.int64)[:, None] * 3 + np.arange(3)).ravel()
+	corners = corners_of(flat_faces)
 	uvs = uv_array(regular.data, UV_NAME)[corners]
 	normals = np.tile([0.0, 1.0, 0.0], (len(corners), 1))
 	flat = build_mesh('Flat', positions.tolist(), inverse.reshape(-1, 3).tolist(), normals, uvs)

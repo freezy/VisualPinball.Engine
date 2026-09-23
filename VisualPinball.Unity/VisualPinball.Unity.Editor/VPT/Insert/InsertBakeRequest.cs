@@ -35,7 +35,7 @@ namespace VisualPinball.Unity.Editor
 	[Serializable]
 	public class InsertBakeRequest
 	{
-		public const int CurrentVersion = 2;
+		public const int CurrentVersion = 3;
 
 		public int Version = CurrentVersion;
 
@@ -54,8 +54,15 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>The UV chart of each triangle. Seams run between charts.</summary>
 		public int[] Charts;
 
-		/// <summary>The triangles baked from a flat copy of themselves: the raised middle, if any.</summary>
+		/// <summary>
+		/// The triangles baked from a flat copy of themselves: the raised middle, if
+		/// any. Their chart keeps its projection from above, which no unwrap of a
+		/// starburst can match.
+		/// </summary>
 		public int[] FlatFaces;
+
+		/// <summary>The charts laid out at half the density of the floors.</summary>
+		public int[] WallCharts;
 
 		/// <summary>The local height the flat copy is laid at.</summary>
 		public float FlatHeight;
@@ -107,6 +114,7 @@ namespace VisualPinball.Unity.Editor
 				Uvs = new float[triangles.Length * 2],
 				Charts = new int[triangles.Length / 3],
 				FlatHeight = layout.FlatHeight,
+				WallCharts = layout.WallCharts,
 				TextureSize = settings.TextureSize,
 				Padding = settings.Padding,
 				EdgeBevel = settings.EdgeBevel * Physics.ScaleInv,

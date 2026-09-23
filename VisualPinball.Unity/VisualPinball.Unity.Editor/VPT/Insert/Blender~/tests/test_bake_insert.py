@@ -121,6 +121,30 @@ def check_layout(request, folder, result, report):
 	print(f'layout ok: {report["Packer"]}, fill {report["UvFill"]:.2f}, closest islands {gap:.1f} px')
 
 
+def check_density(request, result, unwrapped=True):
+	"""Every chart keeps its shape, the starburst included, and the walls get half the floors' texels a side."""
+	uvs = np.asarray(result['Uvs']).reshape(-1, 3, 2)
+	corners = np.asarray(request['Positions']).reshape(-1, 3)[np.asarray(request['Triangles']).reshape(-1, 3)]
+	uv_area = np.abs(np.cross(uvs[:, 1] - uvs[:, 0], uvs[:, 2] - uvs[:, 0]))
+	surface = np.linalg.norm(np.cross(corners[:, 1] - corners[:, 0], corners[:, 2] - corners[:, 0]), axis=1)
+	usable = surface > 1e-10
+	density = uv_area / np.maximum(surface, 1e-12)
+
+	flat = np.zeros(len(uvs), dtype=bool)
+	flat[request['FlatFaces']] = True
+	if unwrapped:
+		# The starburst is not stretched anywhere: its facets are laid out at their true size.
+		spread = np.percentile(density[flat & usable], 95) / np.percentile(density[flat & usable], 5)
+		assert spread < 1.1, f'the starburst is stretched: its faces vary {spread:.2f}x in size'
+	else:
+		spread = float('nan')
+
+	walls = np.isin(np.asarray(request['Charts']), request['WallCharts'])
+	ratio = np.median(density[walls & usable]) / np.median(density[~walls & ~flat & usable])
+	assert 0.2 < ratio < 0.3, f"walls get {ratio:.2f} of the floors' density, not a quarter"
+	print(f'density ok: starburst spread {spread:.3f}x, walls at {ratio:.2f} of the floors')
+
+
 def segment_distance(segment, others):
 	"""The distance from one segment to each of others, assuming none cross."""
 	def point_to(points, a, b):
@@ -157,10 +181,11 @@ def check_bevel(request, folder, result):
 	tilts = regular_tilts(request, folder, result)
 	rounded = (tilts > 5).mean()
 	assert 0.005 < rounded < 0.3, f'{rounded:.1%} of the texels are tilted by the bevel'
-	# Where three surfaces meet in a hollow corner a texel or two lean steeper.
-	steep = (tilts > 50).mean()
-	assert steep < 1e-4, f'{steep:.3%} of the texels baked steeper than 50 degrees'
-	print(f'bevel ok: {rounded:.1%} of {len(tilts)} texels rounded, {steep:.4%} steeper than 50 degrees')
+	# Where three surfaces meet in a hollow corner a few texels lean further
+	# than a rounded edge does, but nothing turns round.
+	steep = (tilts > 60).mean()
+	assert steep < 1e-4 and tilts.max() < 75, f'{steep:.3%} of the texels baked steeper than 60 degrees, up to {tilts.max():.0f}'
+	print(f'bevel ok: {rounded:.1%} of {len(tilts)} texels rounded, {steep:.4%} steeper than 60 degrees')
 
 
 def turned_high(regular, request):
@@ -242,6 +267,7 @@ check_directions(request, folder, result)
 
 request, folder, result, report = bake()
 check_layout(request, folder, result, report)
+check_density(request, result)
 check_bevel(request, folder, result)
 
 # Without a raised middle there is no flat pass, and without a bevel then
@@ -250,5 +276,9 @@ request, folder, result, report = bake(FlatFaces=[], EdgeBevel=0.0, Unwrap=False
 check_layout(request, folder, result, report)
 check_identity(request, folder, result)
 assert report['Packer'] == 'Blender'
+
+# Kept as the generator laid it out, the walls still shrink.
+request, folder, result, report = bake(Unwrap=False)
+check_density(request, result, unwrapped=False)
 
 print('BAKE INSERT TESTS PASSED', bpy.app.version_string)
