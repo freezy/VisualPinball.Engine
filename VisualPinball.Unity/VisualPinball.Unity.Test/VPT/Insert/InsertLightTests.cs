@@ -10,6 +10,45 @@ namespace VisualPinball.Unity.Test
 {
 	public class InsertLightTests
 	{
+		[Test]
+		public void ShouldDriveOnlyTheBodyOfAnInsertWithACustomCover()
+		{
+			var shader = Shader.Find("HDRP/Lit");
+			if (shader == null) { Assert.Ignore("Requires HDRP to verify ordinary material emission."); }
+			var root = new GameObject("Covered ordinary lamp");
+			var body = new Material(shader) { renderQueue = 3000 };
+			var cover = new Material(shader);
+			body.SetColor("_EmissiveColor", Color.white * 20f);
+			body.SetColor("_EmissiveColorLDR", Color.white);
+			cover.SetColor("_EmissiveColor", Color.black);
+			Mesh mesh = null;
+			try {
+				var driver = root.AddComponent<LightComponent>();
+				var lens = new GameObject("Lens");
+				lens.transform.SetParent(root.transform);
+				var insert = lens.AddComponent<InsertComponent>();
+				var renderer = lens.GetComponent<MeshRenderer>();
+				renderer.sharedMaterial = body;
+				insert.SetCoverMaterial(cover);
+				mesh = lens.GetComponent<MeshFilter>().sharedMesh;
+				driver.Enabled = true;
+				driver.Color = Color.red;
+				var block = new MaterialPropertyBlock();
+				renderer.GetPropertyBlock(block, 0);
+				Assert.That(block.GetColor("_EmissiveColor").r, Is.GreaterThan(0f));
+				renderer.GetPropertyBlock(block);
+				Assert.That(block.HasColor("_EmissiveColor"), Is.False, "renderer-wide emission would reach the cover");
+				renderer.GetPropertyBlock(block, 1);
+				Assert.That(block.HasColor("_EmissiveColor"), Is.False);
+				Assert.That(cover.GetColor("_EmissiveColor"), Is.EqualTo(Color.black));
+			} finally {
+				Object.DestroyImmediate(root);
+				Object.DestroyImmediate(mesh);
+				Object.DestroyImmediate(body);
+				Object.DestroyImmediate(cover);
+			}
+		}
+
 		[TestCase(1f)]
 		[TestCase(100f)]
 		public void ShouldScaleAndColourTheLensAndSpillTogether(float luminosity)
@@ -40,7 +79,7 @@ namespace VisualPinball.Unity.Test
 				control.Color = new Color(0.3f, 0.8f, 1f);
 				control.Apply();
 				var block = new MaterialPropertyBlock();
-				renderer.GetPropertyBlock(block);
+				renderer.GetPropertyBlock(block, 0);
 				Assert.That(block.GetFloat("_InsertLampLevel"), Is.EqualTo(0.25f));
 				Assert.That(block.GetVector("_InsertLampColor"), Is.EqualTo((Vector4)control.Color.linear));
 				Assert.That(spill.intensity, Is.EqualTo(luminosity).Within(1e-4f));
@@ -54,7 +93,7 @@ namespace VisualPinball.Unity.Test
 				control.Color = Color.green;
 				control.Intensity = 0;
 				control.Apply();
-				renderer.GetPropertyBlock(block);
+				renderer.GetPropertyBlock(block, 0);
 				Assert.That(block.GetFloat("_InsertLampLevel"), Is.Zero);
 				Assert.That(spill.enabled, Is.False);
 				Assert.That(spill.intensity, Is.Zero);
@@ -101,14 +140,14 @@ namespace VisualPinball.Unity.Test
 				driver.Enabled = false;
 				driver.Color = Color.red;
 				control.Apply();
-				renderer.GetPropertyBlock(block);
+				renderer.GetPropertyBlock(block, 0);
 				Assert.That(block.GetFloat("_InsertLampLevel"), Is.Zero);
 				Assert.That(control.Intensity, Is.Zero);
 				Assert.That(control.Color, Is.EqualTo(Color.red));
 				Assert.That(block.GetVector("_InsertLampColor"), Is.EqualTo((Vector4)Color.red.linear));
 				driver.Enabled = true;
 				control.Apply();
-				renderer.GetPropertyBlock(block);
+				renderer.GetPropertyBlock(block, 0);
 				Assert.That(block.GetFloat("_InsertLampLevel"), Is.EqualTo(1));
 				Assert.That(block.GetVector("_InsertLampColor"), Is.EqualTo((Vector4)Color.red.linear));
 
@@ -121,7 +160,7 @@ namespace VisualPinball.Unity.Test
 				api.OnLamp(0.35f);
 				api.OnLamp(Color.blue);
 				control.Apply();
-				renderer.GetPropertyBlock(block);
+				renderer.GetPropertyBlock(block, 0);
 				Assert.That(control.Intensity, Is.EqualTo(0.35f));
 				Assert.That(control.Color, Is.EqualTo(Color.blue));
 				Assert.That(block.GetFloat("_InsertLampLevel"), Is.EqualTo(0.35f));
@@ -129,7 +168,7 @@ namespace VisualPinball.Unity.Test
 				api.OnLamp(VisualPinball.Engine.Game.Engines.LampStatus.Off);
 				api.OnLamp(Color.green);
 				control.Apply();
-				renderer.GetPropertyBlock(block);
+				renderer.GetPropertyBlock(block, 0);
 				Assert.That(control.Intensity, Is.Zero);
 				Assert.That(block.GetFloat("_InsertLampLevel"), Is.Zero, "RGB events must leave an off ROM lamp dark.");
 				Assert.That(control.Color, Is.EqualTo(Color.green));

@@ -201,7 +201,7 @@ namespace VisualPinball.Unity
 					unityLight.color = value;
 				}
 				foreach (var (mr, intensity) in _materials) {
-					mr.GetPropertyBlock(_propBlock);
+					GetLampPropertyBlock(mr, _propBlock);
 					if (mr.sharedMaterial.HasProperty(InsertLampLevel)) {
 						if (mr.TryGetComponent<InsertLightComponent>(out var insert)) {
 							insert.Color = value;
@@ -212,7 +212,7 @@ namespace VisualPinball.Unity
 					} else {
 						RenderPipeline.Current.MaterialConverter.SetEmissiveColor(_propBlock, value * intensity);
 					}
-					mr.SetPropertyBlock(_propBlock);
+					SetLampPropertyBlock(mr, _propBlock);
 				}
 			}
 		}
@@ -279,9 +279,9 @@ namespace VisualPinball.Unity
 							if (mr.TryGetComponent<InsertLightComponent>(out var insert)) {
 								insert.Color = _color;
 							}
-							mr.GetPropertyBlock(_propBlock);
+							GetLampPropertyBlock(mr, _propBlock);
 							_propBlock.SetVector(InsertLampColor, (Vector4)_color.linear);
-							mr.SetPropertyBlock(_propBlock);
+							SetLampPropertyBlock(mr, _propBlock);
 						}
 						continue;
 					}
@@ -414,7 +414,7 @@ namespace VisualPinball.Unity
 				CollectFauxBulbs();
 			}
 			foreach (var (mr, intensity) in _materials) {
-				mr.GetPropertyBlock(_propBlock);
+				GetLampPropertyBlock(mr, _propBlock);
 				if (mr.sharedMaterial.HasProperty(InsertLampLevel)) {
 					// Expose the current ROM intensity in the Insert Light inspector,
 					// and keep editor lamp previews in sync with its next LateUpdate.
@@ -425,13 +425,26 @@ namespace VisualPinball.Unity
 				} else {
 					RenderPipeline.Current.MaterialConverter.SetEmissiveIntensity(mr.sharedMaterial, _propBlock, value * intensity);
 				}
-				mr.SetPropertyBlock(_propBlock);
+				SetLampPropertyBlock(mr, _propBlock);
 			}
 			SetFauxBulbVisibility(value);
 		}
 
 		private static readonly int InsertLampLevel = Shader.PropertyToID("_InsertLampLevel");
 		private static readonly int InsertLampColor = Shader.PropertyToID("_InsertLampColor");
+
+		// A generated insert's second material is its cover, not another lamp surface.
+		private static void GetLampPropertyBlock(Renderer renderer, MaterialPropertyBlock block)
+		{
+			if (renderer.TryGetComponent<InsertComponent>(out _)) { renderer.GetPropertyBlock(block, 0); }
+			else { renderer.GetPropertyBlock(block); }
+		}
+
+		private static void SetLampPropertyBlock(Renderer renderer, MaterialPropertyBlock block)
+		{
+			if (renderer.TryGetComponent<InsertComponent>(out _)) { renderer.SetPropertyBlock(block, 0); }
+			else { renderer.SetPropertyBlock(block); }
+		}
 
 		private void SetFauxBulbVisibility(float value)
 		{

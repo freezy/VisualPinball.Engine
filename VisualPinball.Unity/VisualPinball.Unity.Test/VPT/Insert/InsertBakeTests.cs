@@ -72,6 +72,97 @@ namespace VisualPinball.Unity.Test
 			}
 		}
 
+		[TestCase(InsertShape.Triangle, 36f)]
+		[TestCase(InsertShape.Triangle, 60f)]
+		[TestCase(InsertShape.Rectangle, 36f)]
+		[TestCase(InsertShape.Rectangle, 60f)]
+		public void ShouldKeepTheCoverSeparateFromTheBodyBake(InsertShape shape, float width)
+		{
+			var go = new GameObject("Covered insert");
+			var insert = go.AddComponent<InsertComponent>();
+			var plain = new Material(Shader.Find("Hidden/InternalErrorShader"));
+			var baked = new Material(plain);
+			var cover = new Material(plain);
+			var probe = new Mesh();
+			InsertBakeData bake = null;
+			try {
+				var settings = new UnityEditor.SerializedObject(insert);
+				settings.FindProperty("_shape").enumValueIndex = (int)shape;
+				settings.FindProperty("_width").floatValue = width;
+				settings.ApplyModifiedPropertiesWithoutUndo();
+				var renderer = go.GetComponent<MeshRenderer>();
+				renderer.sharedMaterial = plain;
+				var layout = new InsertMeshLayout();
+				insert.Generate(probe, layout);
+				bake = FakeBake(probe, layout.Hash);
+				bake.Material = baked;
+				insert.SetBake(bake);
+				var mesh = go.GetComponent<MeshFilter>().sharedMesh;
+				var vertices = mesh.vertices;
+				var normals = mesh.normals;
+				var uvs = mesh.uv;
+				var tangents = mesh.tangents;
+				var triangles = mesh.triangles;
+
+				insert.SetCoverMaterial(cover);
+				Assert.That(insert.IsBakeFresh, Is.True);
+				Assert.That(mesh.subMeshCount, Is.EqualTo(2));
+				Assert.That(renderer.sharedMaterials, Is.EqualTo(new[] { baked, cover }));
+				Assert.That(mesh.GetTriangles(0), Is.EqualTo(triangles));
+				Assert.That(mesh.vertices.Take(vertices.Length), Is.EqualTo(vertices));
+				Assert.That(mesh.normals.Take(vertices.Length), Is.EqualTo(normals));
+				Assert.That(mesh.uv.Take(vertices.Length), Is.EqualTo(uvs));
+				Assert.That(mesh.tangents.Take(vertices.Length), Is.EqualTo(tangents));
+				var covered = mesh.vertices;
+				var cap = mesh.GetTriangles(1);
+				Assert.That(cap.Length, Is.GreaterThan(0));
+				var area = 0f;
+				for (var i = 0; i < cap.Length; i += 3) {
+					var a = covered[cap[i]];
+					var b = covered[cap[i + 1]];
+					var c = covered[cap[i + 2]];
+					Assert.That(cap[i], Is.GreaterThanOrEqualTo(vertices.Length));
+					Assert.That(a.y, Is.Zero);
+					var cross = Vector3.Cross(b - a, c - a);
+					Assert.That(cross.y, Is.GreaterThan(0), "Cover triangles face up.");
+					area += cross.y * 0.5f;
+				}
+				var expectedArea = 0f;
+				var outline = insert.Outline.Points;
+				for (var i = 0; i < outline.Count; i++) {
+					expectedArea += Vector3.Cross(InsertMeshGenerator.ToLocal(outline[i].Position),
+						InsertMeshGenerator.ToLocal(outline[(i + 1) % outline.Count].Position)).y * 0.5f;
+				}
+				Assert.That(area, Is.EqualTo(expectedArea).Within(1e-8f), "The cover fills the entire rim.");
+				var nextLayout = new InsertMeshLayout();
+				insert.Generate(probe, nextLayout);
+				Assert.That(nextLayout.Hash, Is.EqualTo(layout.Hash), "Blender still receives only the body.");
+				Assert.That(probe.subMeshCount, Is.EqualTo(1));
+
+				settings.Update();
+				settings.FindProperty("_width").floatValue = width + 10f;
+				settings.ApplyModifiedPropertiesWithoutUndo();
+				insert.RebuildMesh();
+				Assert.That(insert.IsBakeFresh, Is.False);
+				Assert.That(mesh.subMeshCount, Is.EqualTo(2));
+				AssertTangentFrames(mesh);
+				Assert.That(renderer.sharedMaterials, Is.EqualTo(new[] { baked, cover }));
+				insert.SetBake(null);
+				Assert.That(renderer.sharedMaterials, Is.EqualTo(new[] { plain, cover }));
+				insert.SetCoverMaterial(null);
+				Assert.That(mesh.subMeshCount, Is.EqualTo(1));
+				Assert.That(renderer.sharedMaterials, Is.EqualTo(new[] { plain }));
+			} finally {
+				Object.DestroyImmediate(go.GetComponent<MeshFilter>().sharedMesh);
+				Object.DestroyImmediate(go);
+				Object.DestroyImmediate(probe);
+				Object.DestroyImmediate(bake);
+				Object.DestroyImmediate(plain);
+				Object.DestroyImmediate(baked);
+				Object.DestroyImmediate(cover);
+			}
+		}
+
 		[TestCase(4f, 3f, 12, 1f, true)]
 		[TestCase(0f, 3f, 0, 0f, false)]
 		[TestCase(4f, 0f, 0, 1f, false)]

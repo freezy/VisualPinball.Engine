@@ -45,6 +45,9 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _holeSegments;
 		private SerializedProperty _holeRadius;
 		private SerializedProperty _bakeSettings;
+		private SerializedProperty _coverMaterial;
+		private SerializedProperty _usePlayfieldNormals;
+		private SerializedProperty _coverPlayfield;
 
 		private static readonly int[] TextureSizes = { 512, 1024, 2048, 4096 };
 		private static readonly GUIContent[] TextureSizeNames = { new("512"), new("1024"), new("2048"), new("4096") };
@@ -73,6 +76,9 @@ namespace VisualPinball.Unity.Editor
 			_holeSegments = serializedObject.FindProperty("_holeSegments");
 			_holeRadius = serializedObject.FindProperty("_holeRadius");
 			_bakeSettings = serializedObject.FindProperty("_bakeSettings");
+			_coverMaterial = serializedObject.FindProperty("_coverMaterial");
+			_usePlayfieldNormals = serializedObject.FindProperty("_usePlayfieldNormals");
+			_coverPlayfield = serializedObject.FindProperty("_coverPlayfield");
 		}
 
 		public override void OnInspectorGUI()
@@ -130,11 +136,62 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.LabelField("Normal Bake", EditorStyles.boldLabel);
 			DrawBakeSettings();
 
+			EditorGUILayout.Space();
+			EditorGUILayout.LabelField("Clear Cover", EditorStyles.boldLabel);
+			EditorGUILayout.PropertyField(_coverMaterial, new GUIContent("Material"));
+			EditorGUILayout.PropertyField(_usePlayfieldNormals, new GUIContent("Use Playfield Normals"));
+			if (_usePlayfieldNormals.boolValue || _usePlayfieldNormals.hasMultipleDifferentValues) {
+				EditorGUILayout.PropertyField(_coverPlayfield, new GUIContent("Playfield Override"));
+				if (targets.Length == 1 && ((InsertComponent)target).CoverPlayfield != null) {
+					var playfield = ((InsertComponent)target).CoverPlayfield;
+					var material = playfield.sharedMaterial;
+					using (new EditorGUI.DisabledScope(true)) {
+						EditorGUILayout.ObjectField("Detected Surface", playfield, typeof(MeshRenderer), true);
+						EditorGUILayout.ObjectField("Source Material", material, typeof(Material), false);
+						EditorGUILayout.ObjectField("Source Normal Map", material != null && material.HasProperty("_NormalMap") ? material.GetTexture("_NormalMap") : null, typeof(Texture), false);
+					}
+				}
+			}
+
 			serializedObject.ApplyModifiedProperties();
 
 			DrawBake();
 			DrawHybridMaterial();
+			if (targets.Length == 1 && ((InsertComponent)target).CoverMaterial == null) {
+				using (new EditorGUI.DisabledScope(EditorApplication.isPlaying || Shader.Find("Visual Pinball/Insert Cover") == null)) {
+					if (GUILayout.Button("Add Clear Cover")) {
+						AddCover((InsertComponent)target);
+					}
+				}
+			}
 			DrawStatus();
+		}
+
+		public static Material AddCover(InsertComponent insert)
+		{
+			if (insert.CoverMaterial != null) {
+				return insert.CoverMaterial;
+			}
+			var shader = Shader.Find("Visual Pinball/Insert Cover");
+			if (shader == null) {
+				throw new System.InvalidOperationException("The HDRP insert cover shader is not installed.");
+			}
+			if (!AssetDatabase.IsValidFolder("Assets/Inserts")) {
+				AssetDatabase.CreateFolder("Assets", "Inserts");
+			}
+			var folder = insert.Bake != null ? Path.GetDirectoryName(AssetDatabase.GetAssetPath(insert.Bake)) : null;
+			if (string.IsNullOrEmpty(folder)) {
+				folder = "Assets/Inserts";
+			}
+			var material = new Material(shader) { name = $"{insert.name} Cover" };
+			AssetDatabase.CreateAsset(material, AssetDatabase.GenerateUniqueAssetPath($"{folder.Replace('\\', '/')}/Insert Cover.mat"));
+			Undo.RecordObjects(new Object[] { insert, insert.GetComponent<MeshRenderer>() }, "Add Clear Insert Cover");
+			insert.SetCoverMaterial(material);
+			EditorUtility.SetDirty(insert);
+			PrefabUtility.RecordPrefabInstancePropertyModifications(insert);
+			PrefabUtility.RecordPrefabInstancePropertyModifications(insert.GetComponent<MeshRenderer>());
+			AssetDatabase.SaveAssetIfDirty(material);
+			return material;
 		}
 
 		private void DrawHybridMaterial()
@@ -346,6 +403,9 @@ namespace VisualPinball.Unity.Editor
 			var insert = (InsertComponent)target;
 			if (insert.Error != null) {
 				EditorGUILayout.HelpBox($"{insert.Error}\n\nShowing the last mesh that worked.", MessageType.Error);
+			}
+			if (insert.CoverWarning != null) {
+				EditorGUILayout.HelpBox(insert.CoverWarning, MessageType.Warning);
 			}
 
 			foreach (var warning in insert.Warnings) {

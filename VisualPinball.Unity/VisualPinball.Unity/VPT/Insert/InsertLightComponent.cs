@@ -69,7 +69,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 			_properties ??= new MaterialPropertyBlock();
-			_renderer.GetPropertyBlock(_properties);
+			_renderer.GetPropertyBlock(_properties, 0);
 			var level = math.saturate(Intensity);
 			var color = Color.linear;
 			if (Application.isPlaying && _driver != null) {
@@ -79,7 +79,7 @@ namespace VisualPinball.Unity
 				_properties.SetFloat(LevelId, level);
 				_properties.SetVector(ColorId, (Vector4)color);
 			}
-			_renderer.SetPropertyBlock(_properties);
+			_renderer.SetPropertyBlock(_properties, 0);
 			if (SpillLight == null) {
 				return;
 			}
@@ -102,13 +102,13 @@ namespace VisualPinball.Unity
 			}
 			if (_renderer != null && _renderer.sharedMaterial != null && _properties != null) {
 				var material = _renderer.sharedMaterial;
-				_renderer.GetPropertyBlock(_properties);
+				_renderer.GetPropertyBlock(_properties, 0);
 				if (material.HasProperty(LuminosityId)) {
 					if (!Application.isPlaying || _driver == null) {
 						_properties.SetFloat(LevelId, material.GetFloat(LevelId));
 						_properties.SetVector(ColorId, material.GetVector(ColorId));
 					}
-					_renderer.SetPropertyBlock(_properties);
+					_renderer.SetPropertyBlock(_properties, 0);
 				}
 			}
 		}

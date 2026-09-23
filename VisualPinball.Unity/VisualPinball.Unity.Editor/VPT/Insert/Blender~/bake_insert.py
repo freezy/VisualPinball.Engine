@@ -150,7 +150,9 @@ def unwrap(obj, request, report):
 			bpy.ops.object.mode_set(mode='OBJECT')
 			if folded(uv_array(mesh, UV_NAME)):
 				report['Warnings'].append("Unwrapping folded some triangles over; kept the generator's layout instead.")
-				layer.data.foreach_set('uv', uv_array(mesh, GENERATOR_UV_NAME).ravel())
+				# Switching out of Edit mode replaces the UV layer's RNA data.
+				# Reacquire it: the pre-unwrap handle can silently leave folded UVs in place.
+				mesh.uv_layers[UV_NAME].data.foreach_set('uv', uv_array(mesh, GENERATOR_UV_NAME).ravel())
 			bpy.ops.object.mode_set(mode='EDIT')
 			bpy.ops.mesh.select_all(action='SELECT')
 			bpy.ops.uv.average_islands_scale()

@@ -291,6 +291,7 @@ namespace VisualPinball.Unity
 			// retaining an unwritten tangent stream can expose invalid values to HDRP.
 			mesh.Clear(false);
 			mesh.indexFormat = buffers.Vertices.Count > ushort.MaxValue ? IndexFormat.UInt32 : IndexFormat.UInt16;
+			mesh.subMeshCount = 1;
 			mesh.SetVertices(buffers.Vertices);
 			mesh.SetNormals(buffers.Normals);
 			mesh.SetUVs(0, buffers.Uvs);
@@ -298,6 +299,46 @@ namespace VisualPinball.Unity
 			mesh.RecalculateTangents();
 			mesh.RecalculateBounds();
 			return mesh;
+		}
+
+		/// <summary>
+		/// Appends a flat clear cover at the rim as submesh 1. The body's vertices,
+		/// UVs and tangents are retained exactly, including any applied bake.
+		/// </summary>
+		public static void AddCover(InsertOutline outline, Mesh mesh)
+		{
+			var vertices = new List<Vector3>(mesh.vertices);
+			var normals = new List<Vector3>(mesh.normals);
+			var uvs = new List<Vector2>(mesh.uv);
+			var tangents = new List<Vector4>(mesh.tangents);
+			var bodyTriangles = mesh.GetTriangles(0);
+			var first = vertices.Count;
+			var polygon = new List<double2>(outline.Points.Count);
+			var size = mesh.bounds.size;
+			foreach (var point in outline.Points) {
+				var position = ToLocal(point.Position);
+				vertices.Add(position);
+				normals.Add(Vector3.up);
+				uvs.Add(new Vector2((position.x - mesh.bounds.min.x) / size.x, (position.z - mesh.bounds.min.z) / size.z));
+				// UV X/Y run along local X/Z: cross(up, right) is -Z.
+				tangents.Add(new Vector4(1f, 0f, 0f, -1f));
+				polygon.Add(new double2(point.Position.x, point.Position.y));
+			}
+			var triangles = new List<int>();
+			foreach (var triangle in InsertTriangulation.EarClip(polygon)) {
+				triangles.Add(first + triangle.x);
+				triangles.Add(first + triangle.y);
+				triangles.Add(first + triangle.z);
+			}
+			mesh.indexFormat = vertices.Count > ushort.MaxValue ? IndexFormat.UInt32 : IndexFormat.UInt16;
+			mesh.SetVertices(vertices);
+			mesh.SetNormals(normals);
+			mesh.SetUVs(0, uvs);
+			mesh.SetTangents(tangents);
+			mesh.subMeshCount = 2;
+			mesh.SetTriangles(bodyTriangles, 0);
+			mesh.SetTriangles(triangles, 1);
+			mesh.RecalculateBounds();
 		}
 
 		/// <summary>

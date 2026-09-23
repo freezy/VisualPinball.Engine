@@ -8,6 +8,8 @@ Built with Unity 6.5
 
 ### Added
 
+- Optional clear insert cover in a second material slot, using any assigned material or automatically detecting and aligning the playfield's normal map across insert position, rotation and scale changes.
+- Hybrid insert materials expose Min Brightness for a darker, adjustable unlit body while the bulb and spill remain off at zero intensity.
 - Optional hybrid insert optics bake: neutral cavity illumination and sharp optical normals for the HDRP virtual lamp shader, with face contrast, stable optical variation, independent runtime RGB/fading, and insert brightness controls linked to a real spill light.
 - Spring-hinge bash toys with a finite-inertia analytic box collider, reciprocal Spatial magnet holds, packaged player reconstruction, editor setup/handles, and a Play Mode qualification sample.
 - Motion Transform input ranges for animating a follower during only part of its source travel.
@@ -77,6 +79,8 @@ Built with Unity 6.5
 - The legacy VPX table patcher and its import option, including `IPatcher`, `PatcherManager`, the render-pipeline material-adapter APIs, and the `applyPatch` import parameters.
 
 ### Fixed
+
+- Insert rebakes correctly restore the generator UV layout when Blender produces folded UVs, preventing false fallback success followed by overlapping-texel errors.
 
 - Hybrid inserts expose normalized Intensity and Color on the component, driven by ROM lamps at runtime, with unrestricted Max Brightness on the material and matching environmental spill.
 

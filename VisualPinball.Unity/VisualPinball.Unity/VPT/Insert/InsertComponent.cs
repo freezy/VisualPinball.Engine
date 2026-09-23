@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
+using VisualPinball.Unity.Playfield;
 
 namespace VisualPinball.Unity
 {
@@ -37,6 +38,7 @@ namespace VisualPinball.Unity
 	/// </para>
 	/// </remarks>
 	[AddComponentMenu("Visual Pinball/Insert")]
+	[ExecuteAlways]
 	[RequireComponent(typeof(MeshFilter))]
 	[RequireComponent(typeof(MeshRenderer))]
 	public class InsertComponent : MonoBehaviour
@@ -141,6 +143,18 @@ namespace VisualPinball.Unity
 		[Tooltip("The original material, restored when Clear Bake removes the bake.")]
 		private Material _unbakedMaterial;
 
+		[SerializeField]
+		[Tooltip("Optional transparent top surface at the rim, in material slot 2. Independent of the body bake.")]
+		private Material _coverMaterial;
+
+		[SerializeField]
+		[Tooltip("Use the playfield's UVs and normal map on an Insert Cover material. Otherwise the cover uses its assigned material unchanged.")]
+		private bool _usePlayfieldNormals;
+
+		[SerializeField]
+		[Tooltip("Optional surface renderer override. Leave empty to find the playfield in this table automatically.")]
+		private MeshRenderer _coverPlayfield;
+
 		#endregion
 
 		#region Generated state
@@ -182,6 +196,34 @@ namespace VisualPinball.Unity
 		/// <summary>The last bake, whether or not it still fits.</summary>
 		public InsertBakeData Bake => _bake;
 
+		public Material CoverMaterial => _coverMaterial;
+		public MeshRenderer CoverPlayfield => _coverPlayfield != null ? _coverPlayfield : _autoCoverPlayfield;
+		public string CoverWarning { get; private set; }
+		public bool UsePlayfieldNormals
+		{
+			get => _usePlayfieldNormals;
+			set { _usePlayfieldNormals = value; RebuildMesh(); }
+		}
+
+		private MeshRenderer _autoCoverPlayfield;
+		private Mesh _coverSourceMesh;
+		private int _coverProjectionVersion;
+		private InsertCoverUv _coverProjection;
+		private bool _coverProjectionValid;
+		private int _coverFirstVertex;
+		private Matrix4x4 _coverToPlayfield;
+		private Vector2 _coverTextureScale;
+		private Vector2 _coverTextureOffset;
+		private MaterialPropertyBlock _coverProperties;
+		private bool _coverMapped;
+		private bool _coverPropertiesApplied;
+
+		public void SetCoverMaterial(Material material)
+		{
+			_coverMaterial = material;
+			RebuildMesh();
+		}
+
 		/// <summary>
 		/// Whether the baked UVs and tangents fit the generated mesh. Geometry
 		/// changes make the bake stale; its material stays as a preview until rebaked.
@@ -216,6 +258,18 @@ namespace VisualPinball.Unity
 				InsertMeshGenerator.Generate(outline, body, mesh, layout);
 				IsBakeFresh = _bake != null && _bake.TryApply(mesh, layout.Hash);
 				WearBake();
+				// Add the cover only after applying the body's bake. It must never
+				// change the bake hash, atlas, or per-corner tangent mapping.
+				var renderer = GetComponent<MeshRenderer>();
+				if (_coverMaterial != null) {
+					_coverFirstVertex = mesh.vertexCount;
+					InsertMeshGenerator.AddCover(outline, mesh);
+					_coverMapped = false;
+					renderer.sharedMaterials = new[] { renderer.sharedMaterial, _coverMaterial };
+					UpdateCover(true);
+				} else if (renderer.sharedMaterials.Length > 1) {
+					renderer.sharedMaterials = new[] { renderer.sharedMaterial };
+				}
 
 			} catch (InsertOutlineException exception) {
 				Error = exception.Message;
@@ -380,14 +434,146 @@ namespace VisualPinball.Unity
 		}
 
 		private void Reset() => RebuildMesh();
+		private void OnEnable()
+		{
+			var mesh = GetComponent<MeshFilter>().sharedMesh;
+			// Restore nonserialized state once, but retain the generated mesh when
+			// an already initialized insert is simply disabled and enabled again.
+			if (Outline == null || mesh == null || mesh.name != MeshName) {
+				RebuildMesh();
+#if UNITY_EDITOR
+				_rebuildPending = false;
+#endif
+			} else {
+				UpdateCover(true);
+			}
+		}
+		private void LateUpdate() => UpdateCover(false);
+
+		private void UpdateCover(bool force)
+		{
+			CoverWarning = null;
+			if (_coverMaterial == null) { return; }
+			var renderer = GetComponent<MeshRenderer>();
+			var mesh = GetComponent<MeshFilter>().sharedMesh;
+			if (mesh == null || mesh.subMeshCount < 2) { return; }
+			if (!_usePlayfieldNormals) {
+				ClearCoverProjection(renderer, mesh, force);
+				return;
+			}
+			if (!_coverMaterial.HasProperty("_CoverNormalMap") || !_coverMaterial.HasProperty("_PlayfieldNormalStrength")) {
+				CoverWarning = "Use a Visual Pinball/Insert Cover material for playfield normals, or disable Use Playfield Normals to use this material unchanged.";
+				ClearCoverProjection(renderer, mesh, force);
+				return;
+			}
+			if (force && _coverPlayfield == null) {
+				_autoCoverPlayfield = FindCoverPlayfield();
+			}
+			var playfield = CoverPlayfield;
+			if (playfield == null) {
+				CoverWarning = "No playfield surface found in this table. Assign a Playfield Override or disable Use Playfield Normals.";
+				ClearCoverProjection(renderer, mesh, force);
+				return;
+			}
+			var sourceMesh = playfield.TryGetComponent<MeshFilter>(out var filter) ? filter.sharedMesh : null;
+			_coverProjectionValid = InsertCoverUv.TryCreate(sourceMesh, out _coverProjection, out var version) && playfield != renderer;
+			force |= sourceMesh != _coverSourceMesh || version != _coverProjectionVersion;
+			_coverSourceMesh = sourceMesh;
+			_coverProjectionVersion = version;
+			var source = playfield.sharedMaterial;
+			if (!_coverProjectionValid || source == null || !source.HasProperty("_NormalMap") ||
+				(source.HasProperty("_UVBase") && source.GetFloat("_UVBase") != 0f) ||
+				(source.HasProperty("_NormalMapSpace") && source.GetFloat("_NormalMapSpace") != 0f)) {
+				CoverWarning = "The cover needs a readable playfield mesh with planar XZ UV0 and a tangent-space normal map.";
+				ClearCoverProjection(renderer, mesh, force);
+				return;
+			}
+			var texture = source.GetTexture("_NormalMap");
+			if (texture == null) {
+				CoverWarning = "The playfield material has no normal map. The cover uses its own material settings.";
+				ClearCoverProjection(renderer, mesh, force);
+				return;
+			}
+			// HDRP Lit uses the base map's UV transform for its normal map as well.
+			var slot = source.HasProperty("_BaseColorMap") ? "_BaseColorMap" : "_NormalMap";
+			var scale = source.GetTextureScale(slot);
+			var offset = source.GetTextureOffset(slot);
+			var matrix = playfield.transform.worldToLocalMatrix * transform.localToWorldMatrix;
+			if (force || !_coverMapped || matrix != _coverToPlayfield || scale != _coverTextureScale || offset != _coverTextureOffset) {
+				_coverProjection.Apply(mesh, _coverFirstVertex, matrix, scale, offset);
+				_coverToPlayfield = matrix;
+				_coverTextureScale = scale;
+				_coverTextureOffset = offset;
+				_coverMapped = true;
+			}
+			_coverProperties ??= new MaterialPropertyBlock();
+			renderer.GetPropertyBlock(_coverProperties, 1);
+			_coverProperties.SetTexture("_CoverNormalMap", texture);
+			// Source tiling is already applied to the projected UVs.
+			_coverProperties.SetVector("_CoverNormalMap_ST", new Vector4(1f, 1f, 0f, 0f));
+			_coverProperties.SetFloat("_PlayfieldNormalStrength", source.HasProperty("_NormalScale") ? source.GetFloat("_NormalScale") : 1f);
+			renderer.SetPropertyBlock(_coverProperties, 1);
+			_coverPropertiesApplied = true;
+		}
+
+		private void ClearCoverProjection(MeshRenderer renderer, Mesh mesh, bool force)
+		{
+			if (_coverPropertiesApplied || force) {
+				renderer.SetPropertyBlock(null, 1);
+				_coverPropertiesApplied = false;
+			}
+			if (_coverMapped) {
+				InsertCoverUv.ApplyLocal(mesh, _coverFirstVertex);
+				_coverMapped = false;
+			}
+		}
+
+		private MeshRenderer FindCoverPlayfield()
+		{
+			var playfield = GetComponentInParent<PlayfieldComponent>();
+			if (playfield == null) {
+				var table = GetComponentInParent<TableComponent>();
+				if (table == null) { return null; }
+				var playfields = table.GetComponentsInChildren<PlayfieldComponent>(true);
+				if (playfields.Length != 1) { return null; }
+				playfield = playfields[0];
+			}
+			// Procedural playfields expose their surface through this component.
+			var meshComponent = playfield.GetComponentInChildren<PlayfieldMeshComponent>(true);
+			if (meshComponent != null && meshComponent.TryGetComponent<MeshRenderer>(out var procedural) && IsCoverSource(procedural)) { return procedural; }
+			// Imported boards may have no renderer on PlayfieldMeshComponent.
+			// Prefer the largest planar surface within this playfield, never another table.
+			MeshRenderer best = null;
+			var largest = 0f;
+			foreach (var candidate in playfield.GetComponentsInChildren<MeshRenderer>(true)) {
+				if (!IsCoverSource(candidate) || candidate.GetComponentInParent<InsertComponent>() != null) { continue; }
+				var size = candidate.bounds.size;
+				var area = size.x * size.z;
+				if (area <= largest || !candidate.TryGetComponent<MeshFilter>(out var filter) || !InsertCoverUv.TryCreate(filter.sharedMesh, out _)) { continue; }
+				best = candidate;
+				largest = area;
+			}
+			return best;
+		}
+
+		private static bool IsCoverSource(MeshRenderer renderer)
+		{
+			var material = renderer.sharedMaterial;
+			return renderer.enabled && renderer.gameObject.activeInHierarchy && material != null &&
+				material.HasProperty("_NormalMap") && material.GetTexture("_NormalMap") != null;
+		}
 
 #if UNITY_EDITOR
+		private bool _rebuildPending;
 		private void OnValidate()
 		{
 			// OnValidate runs mid-serialization, where touching sibling components
 			// is not allowed, so the rebuild waits for the next editor tick.
+			if (_rebuildPending) { return; }
+			_rebuildPending = true;
 			UnityEditor.EditorApplication.delayCall += () => {
-				if (this != null) {
+				if (this != null && _rebuildPending) {
+					_rebuildPending = false;
 					RebuildMesh();
 				}
 			};

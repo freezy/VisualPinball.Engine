@@ -54,6 +54,48 @@ def bake(**overrides):
 	return request, folder, result, report
 
 
+def check_unwrap_fallback():
+	"""A rejected unwrap must restore the generator's island shapes across mode switches."""
+	request = dict(FIXTURE, Unwrap=True, PreferUvPackMaster=False)
+	bake_insert.clear_scene()
+	positions = np.asarray(request['Positions']).reshape(-1, 3)
+	triangles = np.asarray(request['Triangles']).reshape(-1, 3)
+	normals = np.asarray(request['Normals']).reshape(-1, 3)
+	uvs = np.asarray(request['Uvs'], dtype=np.float32).reshape(-1, 2)
+	regular = bake_insert.build_mesh('Fallback', positions.tolist(), triangles.tolist(), normals, uvs)
+	bake_insert.mark_seams(regular.data, request['Charts'])
+	original_folded, original_shrink = bake_insert.folded, bake_insert.shrink_walls
+	checked = []
+
+	def check_restored(mesh, settings):
+		actual = bake_insert.uv_array(mesh, bake_insert.UV_NAME)
+		# A chart may contain several disconnected islands. Their scales may
+		# differ after averaging, but each triangle must retain its shape.
+		for face in range(len(triangles)):
+			corners = slice(face * 3, face * 3 + 3)
+			expected = uvs[corners] - uvs[corners].mean(axis=0)
+			found = actual[corners] - actual[corners].mean(axis=0)
+			expected /= np.linalg.norm(expected)
+			found /= np.linalg.norm(found)
+			assert np.allclose(found, expected, atol=1e-3), f'fallback did not restore triangle {face}'
+		checked.append(True)
+		original_shrink(mesh, settings)
+
+	try:
+		# Force rejection of the actual Blender unwrap, independent of solver version.
+		bake_insert.folded = lambda _: True
+		bake_insert.shrink_walls = check_restored
+		report = {'Warnings': []}
+		bake_insert.unwrap(regular, request, report)
+		assert checked and any('generator' in warning for warning in report['Warnings'])
+		packed = bake_insert.uv_array(regular.data, bake_insert.UV_NAME)
+		assert not original_folded(packed)
+		assert bake_insert.overlapping(packed, request['TextureSize']) is None
+	finally:
+		bake_insert.folded, bake_insert.shrink_walls = original_folded, original_shrink
+	print('unwrap fallback ok: generator shapes restored, no folds or overlapping texels')
+
+
 def texels(uvs, size, faces):
 	"""Every texel centre inside a triangle: (triangle, barycentric weights, row, column)."""
 	for face in faces:
@@ -257,6 +299,7 @@ def check_directions(request, folder, result):
 
 
 if __name__ == '__main__':
+	check_unwrap_fallback()
 	request, folder, result, report = bake(EdgeBevel=0.0)
 	check_layout(request, folder, result, report)
 	check_identity(request, folder, result)
