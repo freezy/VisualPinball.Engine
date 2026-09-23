@@ -133,6 +133,14 @@ namespace VisualPinball.Unity
 		[Tooltip("How the UVs are optimized and the normal map baked, in Blender.")]
 		private InsertBakeSettings _bakeSettings = InsertBakeSettings.Default;
 
+		[SerializeField]
+		[Tooltip("The last bake, applied only while it still fits the generated mesh.")]
+		private InsertBakeData _bake;
+
+		[SerializeField]
+		[Tooltip("The material the insert wears without its bake, put back when the bake stops fitting.")]
+		private Material _unbakedMaterial;
+
 		#endregion
 
 		#region Generated state
@@ -171,6 +179,24 @@ namespace VisualPinball.Unity
 
 		private string[] _warnings = Array.Empty<string>();
 
+		/// <summary>The last bake, whether or not it still fits.</summary>
+		public InsertBakeData Bake => _bake;
+
+		/// <summary>
+		/// Whether the bake fits the mesh as it is now generated, and so is shown.
+		/// Any change to the mesh makes it stale until it is baked again.
+		/// </summary>
+		public bool IsBakeFresh { get; private set; }
+
+		/// <summary>The material the insert wears when it is not showing its bake.</summary>
+		public Material UnbakedMaterial
+		{
+			get {
+				var worn = GetComponent<MeshRenderer>().sharedMaterial;
+				return _bake != null && worn == _bake.Material ? _unbakedMaterial : worn;
+			}
+		}
+
 		#endregion
 
 		public void RebuildMesh()
@@ -185,7 +211,11 @@ namespace VisualPinball.Unity
 				_warnings = warnings.ToArray();
 				Error = null;
 
-				InsertMeshGenerator.Generate(outline, body, GetOrCreateMesh());
+				var mesh = GetOrCreateMesh();
+				var layout = new InsertMeshLayout();
+				InsertMeshGenerator.Generate(outline, body, mesh, layout);
+				IsBakeFresh = _bake != null && _bake.TryApply(mesh, layout.Hash);
+				WearBake();
 
 			} catch (InsertOutlineException exception) {
 				Error = exception.Message;
@@ -193,6 +223,40 @@ namespace VisualPinball.Unity
 		}
 
 		public InsertBakeSettings BakeSettings => _bakeSettings;
+
+		/// <summary>
+		/// Replaces the bake, or drops it with null, and rebuilds. The material the
+		/// insert wore before is kept, to be put back when the bake is stale.
+		/// </summary>
+		public void SetBake(InsertBakeData bake)
+		{
+			var unbaked = UnbakedMaterial;
+			var renderer = GetComponent<MeshRenderer>();
+			if (_bake != null && renderer.sharedMaterial == _bake.Material) {
+				renderer.sharedMaterial = unbaked;
+			}
+			_bake = bake;
+			_unbakedMaterial = bake != null ? unbaked : null;
+			RebuildMesh();
+		}
+
+		/// <summary>
+		/// Puts the bake's material on while the bake fits, and the unbaked one
+		/// back when it does not, but only in place of the other: a material the
+		/// user chose themselves stays.
+		/// </summary>
+		private void WearBake()
+		{
+			if (_bake == null || _bake.Material == null) {
+				return;
+			}
+			var renderer = GetComponent<MeshRenderer>();
+			if (IsBakeFresh && renderer.sharedMaterial == _unbakedMaterial) {
+				renderer.sharedMaterial = _bake.Material;
+			} else if (!IsBakeFresh && renderer.sharedMaterial == _bake.Material) {
+				renderer.sharedMaterial = _unbakedMaterial;
+			}
+		}
 
 		/// <summary>
 		/// Generates the mesh the parameters describe into <paramref name="target"/>,

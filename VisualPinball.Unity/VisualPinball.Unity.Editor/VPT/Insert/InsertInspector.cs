@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
+using System.IO;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
@@ -43,6 +44,10 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _holes;
 		private SerializedProperty _holeSegments;
 		private SerializedProperty _holeRadius;
+		private SerializedProperty _bakeSettings;
+
+		private static readonly int[] TextureSizes = { 512, 1024, 2048, 4096 };
+		private static readonly GUIContent[] TextureSizeNames = { new("512"), new("1024"), new("2048"), new("4096") };
 
 		/// <summary>How many holes the "Around" preset spreads out, remembered while the inspector is open.</summary>
 		private int _aroundCount = 5;
@@ -67,6 +72,7 @@ namespace VisualPinball.Unity.Editor
 			_holes = serializedObject.FindProperty("_holes");
 			_holeSegments = serializedObject.FindProperty("_holeSegments");
 			_holeRadius = serializedObject.FindProperty("_holeRadius");
+			_bakeSettings = serializedObject.FindProperty("_bakeSettings");
 		}
 
 		public override void OnInspectorGUI()
@@ -120,9 +126,94 @@ namespace VisualPinball.Unity.Editor
 			DrawHolePresets();
 			EditorGUILayout.PropertyField(_holes, new GUIContent("Holes"), true);
 
+			EditorGUILayout.Space();
+			EditorGUILayout.LabelField("Normal Bake", EditorStyles.boldLabel);
+			DrawBakeSettings();
+
 			serializedObject.ApplyModifiedProperties();
 
+			DrawBake();
 			DrawStatus();
+		}
+
+		private void DrawBakeSettings()
+		{
+			var size = _bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.TextureSize));
+			EditorGUILayout.IntPopup(size, TextureSizeNames, TextureSizes, new GUIContent("Texture Size", size.tooltip));
+			var padding = _bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.Padding));
+			EditorGUILayout.IntSlider(padding, 1, 32, new GUIContent("Padding (px)", padding.tooltip));
+			EditorGUILayout.PropertyField(_bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.EdgeBevel)), new GUIContent("Edge Bevel (VPX)"));
+			var segments = _bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.EdgeBevelSegments));
+			EditorGUILayout.IntSlider(segments, 1, 8, new GUIContent("Edge Bevel Segments", segments.tooltip));
+			EditorGUILayout.PropertyField(_bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.Unwrap)), new GUIContent("Unwrap in Blender"));
+			EditorGUILayout.PropertyField(_bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.PreferUvPackMaster)), new GUIContent("Prefer UVPackMaster"));
+			EditorGUILayout.PropertyField(_bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.Gpu)), new GUIContent("Bake on GPU"));
+		}
+
+		/// <summary>
+		/// Which Blender bakes, whether the insert's bake still fits it, and the
+		/// buttons to bake or drop the bake. One insert at a time.
+		/// </summary>
+		private void DrawBake()
+		{
+			var insert = (InsertComponent)target;
+
+			using (new EditorGUILayout.HorizontalScope()) {
+				var path = InsertBaker.BlenderPath ?? "";
+				var next = EditorGUILayout.DelayedTextField("Blender", path);
+				if (GUILayout.Button("...", GUILayout.Width(28f))) {
+					var picked = EditorUtility.OpenFilePanel("Blender Executable", Path.GetDirectoryName(path) ?? "",
+						Application.platform == RuntimePlatform.WindowsEditor ? "exe" : "");
+					if (!string.IsNullOrEmpty(picked)) {
+						next = picked;
+					}
+				}
+				if (next != path) {
+					InsertBaker.BlenderPath = next;
+				}
+			}
+
+			var blender = InsertBaker.Probe();
+			if (blender == null) {
+				EditorGUILayout.HelpBox("Checking Blender...", MessageType.None);
+			} else if (blender.Error != null) {
+				EditorGUILayout.HelpBox(blender.Error, MessageType.Error);
+			} else {
+				EditorGUILayout.HelpBox($"Blender {blender.Blender}, packing with " +
+					(blender.UvPackMaster ? "UVPackMaster." : "Blender's packer. Install UVPackMaster 4 for tighter packing."), MessageType.None);
+			}
+
+			if (targets.Length > 1) {
+				return;
+			}
+
+			if (insert.Bake != null) {
+				if (insert.IsBakeFresh) {
+					EditorGUILayout.HelpBox($"Baked. UVs packed by {insert.Bake.Packer}, covering {insert.Bake.UvFill:P0} of the texture.", MessageType.Info);
+				} else {
+					EditorGUILayout.HelpBox("The insert has changed since it was baked, so it is shown without the bake. Bake again to bring it back.", MessageType.Warning);
+				}
+			}
+			if (InsertBaker.LastError != null && InsertBaker.LastErrorInsert == insert) {
+				EditorGUILayout.HelpBox($"The last bake failed: {InsertBaker.LastError}", MessageType.Error);
+				if (InsertBaker.LastLog.Count > 0 && GUILayout.Button("Copy Blender's Log")) {
+					EditorGUIUtility.systemCopyBuffer = string.Join(System.Environment.NewLine, InsertBaker.LastLog);
+				}
+			}
+
+			using (new EditorGUILayout.HorizontalScope()) {
+				using (new EditorGUI.DisabledScope(InsertBaker.Baking != null || blender?.Error != null || insert.Error != null || EditorApplication.isPlayingOrWillChangePlaymode)) {
+					if (GUILayout.Button(insert.Bake != null ? "Bake Again" : "Bake")) {
+						InsertBaker.Bake(insert);
+					}
+				}
+				using (new EditorGUI.DisabledScope(insert.Bake == null)) {
+					if (GUILayout.Button("Clear Bake")) {
+						Undo.RecordObjects(new Object[] { insert, insert.GetComponent<MeshRenderer>() }, "Clear Insert Bake");
+						insert.SetBake(null);
+					}
+				}
+			}
 		}
 
 		/// <summary>

@@ -225,5 +225,129 @@ namespace VisualPinball.Unity.Test
 				Object.DestroyImmediate(mesh);
 			}
 		}
+
+		private static InsertBakeData FakeBake(Mesh mesh, Hash128 hash)
+		{
+			// Every corner its own UV and a tangent flipping from corner to corner,
+			// so shared vertices have to split, and a mix-up shows.
+			var corners = mesh.triangles.Length;
+			var bake = ScriptableObject.CreateInstance<InsertBakeData>();
+			bake.Hash = hash.ToString();
+			bake.Uvs = Enumerable.Range(0, corners).Select(i => new Vector2(i / (float)corners, (i % 3) / 3f)).ToArray();
+			bake.Tangents = Enumerable.Range(0, corners).Select(i => new Vector4(1f, 0f, 0f, i % 2 == 0 ? 1f : -1f)).ToArray();
+			return bake;
+		}
+
+		[Test]
+		public void ShouldApplyTheBakeCornerByCorner()
+		{
+			var (mesh, layout) = Generate(4f, 3f, 12, 1f, true);
+			var bake = FakeBake(mesh, layout.Hash);
+			try {
+				var vertices = mesh.vertices;
+				var normals = mesh.normals;
+				var triangles = mesh.triangles;
+
+				Assert.That(bake.TryApply(mesh, layout.Hash), Is.True);
+				var applied = mesh.triangles;
+				Assert.That(applied, Has.Length.EqualTo(triangles.Length));
+				Assert.That(mesh.vertexCount, Is.GreaterThan(vertices.Length));
+				var uvs = mesh.uv;
+				var tangents = mesh.tangents;
+				var appliedVertices = mesh.vertices;
+				var appliedNormals = mesh.normals;
+				for (var corner = 0; corner < triangles.Length; corner++) {
+					var vertex = applied[corner];
+					Assert.That(uvs[vertex], Is.EqualTo(bake.Uvs[corner]));
+					Assert.That(tangents[vertex], Is.EqualTo(bake.Tangents[corner]));
+					Assert.That(appliedVertices[vertex], Is.EqualTo(vertices[triangles[corner]]));
+					Assert.That(appliedNormals[vertex], Is.EqualTo(normals[triangles[corner]]));
+				}
+
+			} finally {
+				Object.DestroyImmediate(mesh);
+				Object.DestroyImmediate(bake);
+			}
+		}
+
+		[Test]
+		public void ShouldNotApplyABakeMadeForAnotherMesh()
+		{
+			var (mesh, layout) = Generate(4f, 3f, 12, 1f, true);
+			var (other, otherLayout) = Generate(4f, 3f, 12, 1f, true, Offset * 0.5f);
+			var bake = FakeBake(other, otherLayout.Hash);
+			try {
+				var count = mesh.vertexCount;
+				Assert.That(bake.TryApply(mesh, layout.Hash), Is.False);
+				Assert.That(mesh.vertexCount, Is.EqualTo(count));
+				Assert.That(mesh.tangents, Is.Empty);
+
+			} finally {
+				Object.DestroyImmediate(mesh);
+				Object.DestroyImmediate(other);
+				Object.DestroyImmediate(bake);
+			}
+		}
+
+		[Test]
+		public void ShouldWearTheBakedMaterialOnlyWhileTheBakeFits()
+		{
+			var go = new GameObject("Insert");
+			var insert = go.AddComponent<InsertComponent>();
+			var renderer = go.GetComponent<MeshRenderer>();
+			var shader = Shader.Find("Hidden/InternalErrorShader");
+			var plain = new Material(shader) { name = "plain" };
+			var baked = new Material(shader) { name = "baked" };
+			var chosen = new Material(shader) { name = "chosen" };
+			var probe = new Mesh();
+			InsertBakeData bake = null;
+			try {
+				renderer.sharedMaterial = plain;
+				var layout = new InsertMeshLayout();
+				insert.Generate(probe, layout);
+				bake = FakeBake(probe, layout.Hash);
+				bake.Material = baked;
+
+				insert.SetBake(bake);
+				Assert.That(insert.IsBakeFresh, Is.True);
+				Assert.That(renderer.sharedMaterial, Is.SameAs(baked));
+				Assert.That(insert.UnbakedMaterial, Is.SameAs(plain));
+
+				// Any change to the mesh makes the bake stale, and takes its material off.
+				var serialized = new UnityEditor.SerializedObject(insert);
+				serialized.FindProperty("_depth").floatValue += 1f;
+				serialized.ApplyModifiedPropertiesWithoutUndo();
+				insert.RebuildMesh();
+				Assert.That(insert.IsBakeFresh, Is.False);
+				Assert.That(renderer.sharedMaterial, Is.SameAs(plain));
+
+				// Changed back, it fits again.
+				serialized.FindProperty("_depth").floatValue -= 1f;
+				serialized.ApplyModifiedPropertiesWithoutUndo();
+				insert.RebuildMesh();
+				Assert.That(insert.IsBakeFresh, Is.True);
+				Assert.That(renderer.sharedMaterial, Is.SameAs(baked));
+
+				// A material chosen by hand is left alone.
+				renderer.sharedMaterial = chosen;
+				insert.RebuildMesh();
+				Assert.That(renderer.sharedMaterial, Is.SameAs(chosen));
+
+				renderer.sharedMaterial = baked;
+				insert.SetBake(null);
+				Assert.That(insert.Bake, Is.Null);
+				Assert.That(renderer.sharedMaterial, Is.SameAs(plain));
+
+			} finally {
+				Object.DestroyImmediate(go);
+				Object.DestroyImmediate(probe);
+				Object.DestroyImmediate(plain);
+				Object.DestroyImmediate(baked);
+				Object.DestroyImmediate(chosen);
+				if (bake != null) {
+					Object.DestroyImmediate(bake);
+				}
+			}
+		}
 	}
 }
