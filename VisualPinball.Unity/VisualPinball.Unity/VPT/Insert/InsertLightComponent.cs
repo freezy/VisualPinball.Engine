@@ -4,6 +4,7 @@
 
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace VisualPinball.Unity
 {
@@ -18,19 +19,17 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Visual Pinball/Insert Light")]
 	public class InsertLightComponent : MonoBehaviour
 	{
-		[Min(0f)]
-		[Tooltip("Brightness multiplier for both the insert and its spill light. One is the material's nominal emission.")]
-		public float Brightness = 1f;
-
+		[FormerlySerializedAs("Level")]
 		[Range(0f, 1f)]
-		[Tooltip("Preview level. A parent VPE Light supplies the level at runtime; without one this also controls runtime dimming.")]
-		public float Level = 1f;
+		[Tooltip("Zero is off; one is the material's Max Brightness. Edit here to preview. A parent VPE Light supplies ROM intensity at runtime.")]
+		public float Intensity = 1f;
 
-		[Tooltip("Preview colour. A parent VPE Light supplies RGB at runtime; without one this also controls runtime colour.")]
+		[Tooltip("Lamp colour. Edit here to preview. A parent VPE Light supplies ROM RGB at runtime; without one this also controls runtime colour.")]
 		public Color Color = UnityEngine.Color.white;
 
+		[Header("Environment Spill")]
 		[Min(0f)]
-		[Tooltip("Spill light output in lumens at brightness and level one. Tune separately from the lens's nominal HDR emission.")]
+		[Tooltip("Spill output in lumens at Max Brightness one and full intensity. Scales with the material's Max Brightness and ROM intensity.")]
 		public float SpillLumens = 0.12f;
 
 		[Min(0.001f)]
@@ -40,7 +39,7 @@ namespace VisualPinball.Unity
 		[Tooltip("A real light above the insert's surface. Its local position remains editable.")]
 		public Light SpillLight;
 
-		private static readonly int BrightnessId = Shader.PropertyToID("_InsertBrightness");
+		private static readonly int LuminosityId = Shader.PropertyToID("_InsertLuminosity");
 		private static readonly int LevelId = Shader.PropertyToID("_InsertLampLevel");
 		private static readonly int ColorId = Shader.PropertyToID("_InsertLampColor");
 		private static readonly int EmissionId = Shader.PropertyToID("_EmissiveColor");
@@ -63,7 +62,7 @@ namespace VisualPinball.Unity
 		public void Apply()
 		{
 			var material = _renderer != null ? _renderer.sharedMaterial : null;
-			if (material == null || !material.HasProperty(BrightnessId)) {
+			if (material == null || !material.HasProperty(LuminosityId)) {
 				if (SpillLight != null) {
 					SpillLight.enabled = false;
 				}
@@ -71,21 +70,22 @@ namespace VisualPinball.Unity
 			}
 			_properties ??= new MaterialPropertyBlock();
 			_renderer.GetPropertyBlock(_properties);
-			var level = math.saturate(Level);
+			var level = math.saturate(Intensity);
 			var color = Color.linear;
 			if (Application.isPlaying && _driver != null) {
-				level = _properties.HasFloat(LevelId) ? _properties.GetFloat(LevelId) : 0f;
+				level = _properties.HasFloat(LevelId) ? math.saturate(_properties.GetFloat(LevelId)) : 0f;
 				color = _properties.HasVector(ColorId) ? (Color)_properties.GetVector(ColorId) : UnityEngine.Color.white;
 			} else {
 				_properties.SetFloat(LevelId, level);
 				_properties.SetVector(ColorId, (Vector4)color);
 			}
-			var brightness = math.max(0f, Brightness);
-			_properties.SetFloat(BrightnessId, brightness);
 			_renderer.SetPropertyBlock(_properties);
 			if (SpillLight == null) {
 				return;
 			}
+			// The material owns its base brightness so its inspector remains live.
+			// Match that factor in the spill without overriding it on the renderer.
+			var brightness = math.max(0f, material.GetFloat(LuminosityId));
 			var tint = material.GetColor(EmissionId);
 			var peak = math.max(tint.maxColorComponent, 1e-6f);
 			var converter = RenderPipeline.Current.LightConverter;
@@ -103,8 +103,7 @@ namespace VisualPinball.Unity
 			if (_renderer != null && _renderer.sharedMaterial != null && _properties != null) {
 				var material = _renderer.sharedMaterial;
 				_renderer.GetPropertyBlock(_properties);
-				if (material.HasProperty(BrightnessId)) {
-					_properties.SetFloat(BrightnessId, material.GetFloat(BrightnessId));
+				if (material.HasProperty(LuminosityId)) {
 					if (!Application.isPlaying || _driver == null) {
 						_properties.SetFloat(LevelId, material.GetFloat(LevelId));
 						_properties.SetVector(ColorId, material.GetVector(ColorId));

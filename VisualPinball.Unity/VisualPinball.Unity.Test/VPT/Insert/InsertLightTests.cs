@@ -10,14 +10,16 @@ namespace VisualPinball.Unity.Test
 {
 	public class InsertLightTests
 	{
-		[Test]
-		public void ShouldScaleAndColourTheLensAndSpillTogether()
+		[TestCase(1f)]
+		[TestCase(100f)]
+		public void ShouldScaleAndColourTheLensAndSpillTogether(float luminosity)
 		{
 			var shader = Shader.Find("Visual Pinball/Insert Hybrid");
 			if (shader == null) {
 				Assert.Ignore("Requires the HDRP insert shader.");
 			}
 			var material = new Material(shader);
+			material.SetFloat("_InsertLuminosity", luminosity);
 			var root = new GameObject("Insert spill test");
 			Mesh mesh = null;
 			try {
@@ -34,34 +36,35 @@ namespace VisualPinball.Unity.Test
 				control.SpillLight = spill;
 				control.SpillLumens = 4;
 				control.SpillRange = 0.12f;
-				control.Brightness = 2;
-				control.Level = 0.25f;
+				control.Intensity = 0.25f;
 				control.Color = new Color(0.3f, 0.8f, 1f);
 				control.Apply();
 				var block = new MaterialPropertyBlock();
 				renderer.GetPropertyBlock(block);
-				Assert.That(block.GetFloat("_InsertBrightness"), Is.EqualTo(2));
 				Assert.That(block.GetFloat("_InsertLampLevel"), Is.EqualTo(0.25f));
 				Assert.That(block.GetVector("_InsertLampColor"), Is.EqualTo((Vector4)control.Color.linear));
-				Assert.That(spill.intensity, Is.EqualTo(2f).Within(1e-4f));
+				Assert.That(spill.intensity, Is.EqualTo(luminosity).Within(1e-4f));
 				Assert.That(spill.range, Is.EqualTo(0.12f).Within(1e-5f));
 				Assert.That(spill.color.r, Is.EqualTo(control.Color.r).Within(1e-4f));
 				Assert.That(spill.enabled, Is.True);
-				Assert.That(material.GetFloat("_InsertBrightness"), Is.EqualTo(1), "Brightness is per insert, not a shared material edit.");
+				Assert.That(block.HasFloat("_InsertLuminosity"), Is.False, "Material brightness must remain editable in the inspector.");
+				material.SetFloat("_InsertLuminosity", luminosity * 2f);
+				control.Apply();
+				Assert.That(spill.intensity, Is.EqualTo(2f * luminosity).Within(1e-4f), "Material edits must immediately scale the spill too.");
 				control.Color = Color.green;
-				control.Level = 0;
+				control.Intensity = 0;
 				control.Apply();
 				renderer.GetPropertyBlock(block);
 				Assert.That(block.GetFloat("_InsertLampLevel"), Is.Zero);
 				Assert.That(spill.enabled, Is.False);
 				Assert.That(spill.intensity, Is.Zero);
 				Assert.That(renderer.enabled, Is.True);
-				control.Level = 1;
-				control.Brightness = 0;
+				control.Intensity = 1;
+				material.SetFloat("_InsertLuminosity", 0);
 				control.Apply();
 				Assert.That(spill.enabled, Is.False);
 				Assert.That(spill.intensity, Is.Zero);
-				control.Brightness = 1;
+				material.SetFloat("_InsertLuminosity", luminosity);
 				control.Apply();
 				Assert.That(spill.enabled, Is.True);
 				renderer.sharedMaterial = null;
@@ -75,7 +78,7 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldKeepLampManagerPreviewAfterTheInsertUpdates()
+		public void ShouldKeepPreviewAndRomLampEventsAfterTheInsertUpdates()
 		{
 			var shader = Shader.Find("Visual Pinball/Insert Hybrid");
 			if (shader == null) {
@@ -100,12 +103,36 @@ namespace VisualPinball.Unity.Test
 				control.Apply();
 				renderer.GetPropertyBlock(block);
 				Assert.That(block.GetFloat("_InsertLampLevel"), Is.Zero);
+				Assert.That(control.Intensity, Is.Zero);
+				Assert.That(control.Color, Is.EqualTo(Color.red));
 				Assert.That(block.GetVector("_InsertLampColor"), Is.EqualTo((Vector4)Color.red.linear));
 				driver.Enabled = true;
 				control.Apply();
 				renderer.GetPropertyBlock(block);
 				Assert.That(block.GetFloat("_InsertLampLevel"), Is.EqualTo(1));
 				Assert.That(block.GetVector("_InsertLampColor"), Is.EqualTo((Vector4)Color.red.linear));
+
+				// Exercise the same normalized intensity and RGB entry points as ROM events.
+				typeof(LightComponent).GetField("_hasLights", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(driver, true);
+				driver.FadeSpeedUp = driver.FadeSpeedDown = 0;
+				var api = driver.GetApi(null);
+				((IApi)api).OnInit(null);
+				api.OnLamp(VisualPinball.Engine.Game.Engines.LampStatus.On);
+				api.OnLamp(0.35f);
+				api.OnLamp(Color.blue);
+				control.Apply();
+				renderer.GetPropertyBlock(block);
+				Assert.That(control.Intensity, Is.EqualTo(0.35f));
+				Assert.That(control.Color, Is.EqualTo(Color.blue));
+				Assert.That(block.GetFloat("_InsertLampLevel"), Is.EqualTo(0.35f));
+				Assert.That(block.GetVector("_InsertLampColor"), Is.EqualTo((Vector4)Color.blue.linear));
+				api.OnLamp(VisualPinball.Engine.Game.Engines.LampStatus.Off);
+				api.OnLamp(Color.green);
+				control.Apply();
+				renderer.GetPropertyBlock(block);
+				Assert.That(control.Intensity, Is.Zero);
+				Assert.That(block.GetFloat("_InsertLampLevel"), Is.Zero, "RGB events must leave an off ROM lamp dark.");
+				Assert.That(control.Color, Is.EqualTo(Color.green));
 			} finally {
 				Object.DestroyImmediate(root);
 				Object.DestroyImmediate(mesh);

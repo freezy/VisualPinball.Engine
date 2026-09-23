@@ -145,11 +145,11 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 			if (data.Material != null && data.Material.HasProperty("_OpticalNormalMap")) {
-				EditorGUILayout.HelpBox("Hybrid optics are active. The material controls facet contrast, variation and reflections. Insert Light controls brightness, RGB preview and real light spilling onto the table.", MessageType.Info);
+				EditorGUILayout.HelpBox("Hybrid optics are active. The material controls Max Brightness, facet contrast and reflections. Insert Light controls Intensity, Color and real light spilling onto the table.", MessageType.Info);
 				var lighting = insert.GetComponent<InsertLightComponent>();
 				if (lighting == null || lighting.SpillLight == null) {
 					using (new EditorGUI.DisabledScope(EditorApplication.isPlaying)) {
-						if (GUILayout.Button("Add Brightness Controls and Spill Light")) {
+						if (GUILayout.Button("Add Intensity Controls and Spill Light")) {
 							AddLighting(insert);
 						}
 					}

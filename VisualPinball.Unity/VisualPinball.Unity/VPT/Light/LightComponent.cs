@@ -203,7 +203,7 @@ namespace VisualPinball.Unity
 				foreach (var (mr, intensity) in _materials) {
 					mr.GetPropertyBlock(_propBlock);
 					if (mr.sharedMaterial.HasProperty(InsertLampLevel)) {
-						if (!Application.isPlaying && mr.TryGetComponent<InsertLightComponent>(out var insert)) {
+						if (mr.TryGetComponent<InsertLightComponent>(out var insert)) {
 							insert.Color = value;
 						}
 						// Keep RGB and level independent: colour events while off must
@@ -231,10 +231,14 @@ namespace VisualPinball.Unity
 			var lights = GetComponentsInChildren<Light>()
 				.Where(light => light.GetComponentInParent<InsertLightComponent>()?.SpillLight != light).ToArray();
 			_value = 0;
-			_color = lights.FirstOrDefault()?.color ?? Color.white;
+			var insertLight = GetComponentInChildren<InsertLightComponent>(true);
+			_color = insertLight?.Color ?? lights.FirstOrDefault()?.color ?? Color.white;
 
 			// remember intensities
 			foreach (var unityLight in lights) {
+				if (insertLight != null) {
+					unityLight.color = _color;
+				}
 				_lights.Add((unityLight, unityLight.intensity));
 				if (FadeEnabled) {
 					unityLight.enabled = true;
@@ -272,6 +276,9 @@ namespace VisualPinball.Unity
 					// Other opaque emitters are faux bulbs that dim/hide with the lamp.
 					if (mr.sharedMaterial.HasProperty(InsertLampLevel) || mr.sharedMaterial.renderQueue > (int)UnityEngine.Rendering.RenderQueue.GeometryLast) {
 						if (Application.isPlaying && mr.sharedMaterial.HasProperty(InsertLampLevel)) {
+							if (mr.TryGetComponent<InsertLightComponent>(out var insert)) {
+								insert.Color = _color;
+							}
 							mr.GetPropertyBlock(_propBlock);
 							_propBlock.SetVector(InsertLampColor, (Vector4)_color.linear);
 							mr.SetPropertyBlock(_propBlock);
@@ -409,10 +416,10 @@ namespace VisualPinball.Unity
 			foreach (var (mr, intensity) in _materials) {
 				mr.GetPropertyBlock(_propBlock);
 				if (mr.sharedMaterial.HasProperty(InsertLampLevel)) {
-					// Keep the editor lamp manager and Insert Light preview in sync,
-					// otherwise its next LateUpdate would undo this lamp event.
-					if (!Application.isPlaying && mr.TryGetComponent<InsertLightComponent>(out var insert)) {
-						insert.Level = value;
+					// Expose the current ROM intensity in the Insert Light inspector,
+					// and keep editor lamp previews in sync with its next LateUpdate.
+					if (mr.TryGetComponent<InsertLightComponent>(out var insert)) {
+						insert.Intensity = math.saturate(value);
 					}
 					_propBlock.SetFloat(InsertLampLevel, value);
 				} else {

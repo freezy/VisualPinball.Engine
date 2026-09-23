@@ -78,6 +78,8 @@ Built with Unity 6.5
 
 ### Fixed
 
+- Hybrid inserts expose normalized Intensity and Color on the component, driven by ROM lamps at runtime, with unrestricted Max Brightness on the material and matching environmental spill.
+
 - Insert geometry edits rebuild tangent data to prevent HDRP blackouts, keep the current material visible, and show a rebake warning.
 - Disappearing objects due to wrong bounding box ([#441](https://github.com/freezy/VisualPinball.Engine/pull/441)).
 - Default table import ([#434](https://github.com/freezy/VisualPinball.Engine/pull/434))
