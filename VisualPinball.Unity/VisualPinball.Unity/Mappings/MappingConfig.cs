@@ -512,6 +512,7 @@ namespace VisualPinball.Unity
 		private int LampTypePriority(ILampDeviceComponent comp) => comp switch {
 			LightGroupComponent _ => 0,
 			LightComponent _ => 1,
+			InsertLightComponent _ => 1,
 			_ => 10
 		};
 

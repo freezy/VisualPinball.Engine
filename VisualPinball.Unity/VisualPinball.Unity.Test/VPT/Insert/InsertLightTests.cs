@@ -2,14 +2,216 @@
 // Copyright (C) 2026 freezy and VPE Team
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+using System;
+using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
+using VisualPinball.Engine.Game.Engines;
+using ColorChannel = VisualPinball.Engine.Math.ColorChannel;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Test
 {
 	public class InsertLightTests
 	{
+
+		[Test]
+		public void ShouldExposeAnInsertAsADirectLampAndWireDestination()
+		{
+			using var fixture = new MappedInsert();
+			fixture.Table.MappingConfig.PopulateLamps(new[] { new GamelogicEngineLamp("42") }, fixture.Table);
+			Assert.That(fixture.Table.MappingConfig.Lamps.Single().Device, Is.SameAs(fixture.Control));
+			Assert.That(fixture.Table.MappingConfig.Lamps.Single().DeviceItem, Is.EqualTo(LightComponent.LampIdDefault));
+			fixture.Start();
+			Assert.That(fixture.Player.Lamp(fixture.Control), Is.SameAs(fixture.Api));
+			fixture.AssertLevel(0f);
+			fixture.Lamps.HandleLampEvent("42", 1f);
+			fixture.AssertLevel(1f);
+			fixture.Lamps.HandleLampEvent("42", 0f);
+			fixture.Api.OnLamp(Color.green);
+			fixture.AssertLevel(0f);
+			Assert.That(fixture.Control.Color, Is.EqualTo(Color.green));
+			((IApiWireDeviceDest)fixture.Api).Wire(LightComponent.LampIdDefault).OnChange(true);
+			fixture.AssertLevel(1f);
+			((IApiWireDeviceDest)fixture.Api).Wire(LightComponent.LampIdDefault).OnChange(false);
+			fixture.AssertLevel(0f);
+		}
+
+		[TestCase(LampType.SingleFading, 100, 130f / 255f)]
+		[TestCase(LampType.Rgb, 255, 51f / 255f)]
+		public void ShouldDriveTheLensAndSpillFromNormalizedRomValues(LampType type, int steps, float expected)
+		{
+			using var fixture = new MappedInsert();
+			fixture.Map("42", type, steps: steps);
+			fixture.Start();
+			fixture.Lamps.HandleLampEvent("42", 51f);
+			fixture.AssertLevel(expected);
+			fixture.Api.OnLamp(new Color(0.25f, 0.5f, 1f));
+			fixture.AssertLevel(expected);
+			var block = new MaterialPropertyBlock();
+			fixture.Control.GetComponent<MeshRenderer>().GetPropertyBlock(block, 0);
+			Assert.That(block.GetVector("_InsertLampColor"), Is.EqualTo((Vector4)fixture.Control.Color.linear));
+			fixture.Lamps.HandleLampEvent("42", 0f);
+			fixture.AssertLevel(0f);
+			fixture.Api.OnLamp(Color.red);
+			fixture.AssertLevel(0f);
+		}
+
+		[TestCase(false)]
+		[TestCase(true)]
+		public void ShouldComposeRomRgbChannelsAndOptionalIntensity(bool alphaChannel)
+		{
+			using var fixture = new MappedInsert();
+			fixture.Map("60", LampType.RgbMulti, ColorChannel.Red);
+			fixture.Map("61", LampType.RgbMulti, ColorChannel.Green);
+			fixture.Map("62", LampType.RgbMulti, ColorChannel.Blue);
+			if (alphaChannel) { fixture.Map("63", LampType.RgbMulti, ColorChannel.Alpha); }
+			fixture.Start();
+			Assert.That(fixture.Control.SpillLight.enabled, Is.False, "RGB channels start black");
+			fixture.Lamps.HandleLampEvent("60", 255f);
+			fixture.Lamps.HandleLampEvent("61", 128f);
+			fixture.Lamps.HandleLampEvent("62", 64f);
+			if (alphaChannel) {
+				fixture.AssertLevel(0f);
+				fixture.Lamps.HandleLampEvent("63", 128f);
+			}
+			fixture.AssertLevel(alphaChannel ? 128f / 255f : 1f);
+			Assert.That(fixture.Control.Color.r, Is.EqualTo(1f).Within(0.001f));
+			Assert.That(fixture.Control.Color.g, Is.EqualTo(128f / 255f).Within(0.001f));
+			Assert.That(fixture.Control.Color.b, Is.EqualTo(64f / 255f).Within(0.001f));
+			fixture.Lamps.HandleLampEvent("61", 0f);
+			Assert.That(fixture.Control.Color.r, Is.EqualTo(1f));
+			Assert.That(fixture.Control.Color.g, Is.Zero);
+			Assert.That(fixture.Control.Color.b, Is.EqualTo(64f / 255f).Within(0.001f));
+			fixture.Lamps.HandleLampEvent("60", 0f);
+			fixture.Lamps.HandleLampEvent("62", 0f);
+			Assert.That(fixture.Control.SpillLight.enabled, Is.False);
+		}
+
+		[Test]
+		public void ShouldKeepDirectMappingIndependentOfAParentLight()
+		{
+			using var fixture = new MappedInsert();
+			var parent = fixture.Root.AddComponent<LightComponent>();
+			// Populate the parent's legacy cache before direct mapping claims the insert.
+			parent.Enabled = false;
+			fixture.Map("42", LampType.SingleOnOff);
+			fixture.Start();
+			fixture.Lamps.HandleLampEvent("42", 1f);
+			fixture.Api.OnLamp(Color.blue);
+			parent.Enabled = false;
+			parent.Color = Color.red;
+			fixture.Control.Apply();
+			fixture.AssertLevel(1f);
+			Assert.That(fixture.Control.Color, Is.EqualTo(Color.blue));
+		}
+
+		[Test]
+		public void ShouldReleaseDirectControlWhenThePlayerStops()
+		{
+			using var fixture = new MappedInsert();
+			fixture.Api.OnLamp(0.5f);
+			Assert.That(fixture.Control.IsControlledByApi, Is.True);
+			fixture.Api.OnDestroy();
+			Assert.That(fixture.Control.IsControlledByApi, Is.False);
+		}
+
+		[Test]
+		public void ShouldDriveAnInsertThroughALightGroupAndEditorPreview()
+		{
+			using var fixture = new MappedInsert();
+			var group = fixture.Root.AddComponent<LightGroupComponent>();
+			group.Lights = new System.Collections.Generic.List<ILampDeviceComponent> { fixture.Control };
+			fixture.Table.MappingConfig.Lamps.Add(new LampMapping { Id = "42", Device = group });
+			fixture.Player.Register(group.GetApi(fixture.Player), group);
+			group.GetApi(fixture.Player).OnInit(null);
+			fixture.Start();
+			fixture.Lamps.HandleLampEvent("42", 1f);
+			fixture.AssertLevel(1f);
+			fixture.Lamps.HandleLampEvent("42", 0f);
+			fixture.AssertLevel(0f);
+			var manager = typeof(VisualPinball.Unity.Editor.InsertBaker).Assembly.GetType("VisualPinball.Unity.Editor.LampManager");
+			var preview = manager.GetMethod("SetLampDeviceEnabled", BindingFlags.NonPublic | BindingFlags.Static);
+			preview.Invoke(null, new object[] { group, true });
+			fixture.Control.Apply();
+			fixture.AssertLevel(1f);
+			preview.Invoke(null, new object[] { group, false });
+			fixture.Control.Apply();
+			fixture.AssertLevel(0f);
+		}
+
+		private sealed class MappedInsert : IDisposable
+		{
+			public readonly GameObject Root = new("Mapped insert test");
+			public readonly Player Player;
+			public readonly TableComponent Table;
+			public readonly LampPlayer Lamps;
+			public readonly InsertLightComponent Control;
+			public readonly IApiLamp Api;
+			private readonly Material _material;
+			private readonly Mesh _mesh;
+
+			public MappedInsert()
+			{
+				var shader = Shader.Find("Visual Pinball/Insert Hybrid");
+				if (shader == null) { Assert.Ignore("Requires the HDRP insert shader."); }
+				Player = Root.AddComponent<Player>();
+				Table = Root.AddComponent<TableComponent>();
+				Lamps = (LampPlayer)typeof(Player).GetField("_lampPlayer", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(Player);
+				Lamps.Awake(Player, Table, Root.AddComponent<DefaultGamelogicEngine>());
+				var go = new GameObject("l42");
+				go.transform.SetParent(Root.transform);
+				go.AddComponent<InsertComponent>();
+				_mesh = go.GetComponent<MeshFilter>().sharedMesh;
+				_material = new Material(shader);
+				_material.SetFloat("_InsertLuminosity", 10f);
+				go.GetComponent<MeshRenderer>().sharedMaterial = _material;
+				Control = go.AddComponent<InsertLightComponent>();
+				var spill = new GameObject("Spill");
+				spill.transform.SetParent(go.transform);
+				Control.SpillLight = spill.AddComponent<Light>();
+				RenderPipeline.Current.LightConverter.UpdateLight(Control.SpillLight, new VisualPinball.Engine.VPT.Light.LightData(), true);
+				Control.SpillLumens = 4f;
+				Api = Control.GetApi(Player);
+				Assert.That(Player.Lamp(Control), Is.SameAs(Api), "ExecuteAlways must register before play mode");
+				Api.OnInit(null);
+			}
+
+			public void Map(string id, LampType type, ColorChannel channel = ColorChannel.Alpha, int steps = 255)
+				=> Table.MappingConfig.Lamps.Add(new LampMapping {
+					Id = id, Source = LampSource.Lamp, Device = Control, DeviceItem = LightComponent.LampIdDefault,
+					Type = type, Channel = channel, FadingSteps = steps,
+				});
+
+			public void Start() => Lamps.OnStart();
+
+			public void AssertLevel(float expected)
+			{
+				Control.Apply();
+				var renderer = Control.GetComponent<MeshRenderer>();
+				var block = new MaterialPropertyBlock();
+				renderer.GetPropertyBlock(block, 0);
+				Assert.That(Control.Intensity, Is.EqualTo(expected).Within(1e-5f));
+				Assert.That(block.GetFloat("_InsertLampLevel"), Is.EqualTo(expected).Within(1e-5f));
+				Assert.That(Control.SpillLight.intensity, Is.EqualTo(expected * 40f).Within(1e-4f));
+				Assert.That(Control.SpillLight.enabled, Is.EqualTo(expected > 0));
+				Assert.That(renderer.enabled, Is.True);
+				Assert.That(block.HasFloat("_InsertLuminosity"), Is.False);
+				Assert.That(_material.GetFloat("_InsertLuminosity"), Is.EqualTo(10f));
+				renderer.GetPropertyBlock(block);
+				Assert.That(block.HasFloat("_InsertLampLevel"), Is.False, "Renderer-wide emission would reach the cover.");
+			}
+
+			public void Dispose()
+			{
+				Lamps.OnDestroy();
+				Object.DestroyImmediate(Root);
+				Object.DestroyImmediate(_mesh);
+				Object.DestroyImmediate(_material);
+			}
+		}
+
 		[Test]
 		public void ShouldDriveOnlyTheBodyOfAnInsertWithACustomCover()
 		{

@@ -298,7 +298,37 @@ def check_directions(request, folder, result):
 	print(f'directions ok: {len(errors)} texels, off by {median:.1f} degrees (95%: {worst:.1f}), mirrored {np.median(mirrored):.1f}')
 
 
+def check_surface_grain():
+	"""Both normal projections pick up mild grain; zero strength and optical maps stay smooth."""
+	plane = dict(
+		Positions=[0, 0, 0, 0, 0, 0.02, 0.02, 0, 0.02, 0.02, 0, 0],
+		Triangles=[0, 1, 2, 0, 2, 3], Normals=[0, 1, 0] * 6,
+		Uvs=[0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1],
+		Charts=[0, 0], WallCharts=[], FlatFaces=[0], FlatHeight=0,
+		TextureSize=128, Padding=4, EdgeBevel=0, Unwrap=False,
+		PreferUvPackMaster=False, Gpu=False, HybridOptics=True,
+		NormalGrainSize=0.001,
+	)
+	_, smooth_folder, smooth_result, _ = bake(**plane, NormalGrainStrength=0)
+	request, grain_folder, result, _ = bake(**plane, NormalGrainStrength=0.25)
+	assert result['Uvs'] == smooth_result['Uvs'] and result['Tangents'] == smooth_result['Tangents']
+	smooth, grain = load_png(smooth_folder / 'normal.png'), load_png(grain_folder / 'normal.png')
+	uvs = np.asarray(result['Uvs']).reshape(-1, 2)
+	for face in range(2):
+		samples = np.asarray([grain[row, col] for _, _, row, col in texels(uvs, request['TextureSize'], [face])])
+		tilts = np.degrees(np.arctan2(np.linalg.norm(samples[:, :2], axis=1), samples[:, 2]))
+		assert 0.5 < np.median(tilts) < 5, f'grain should be subtle in projection {face}: {np.median(tilts):.2f} degrees'
+		assert np.percentile(tilts, 99) < 10, 'grain must not obscure the larger facets'
+		assert np.std(samples[:, 0]) > 0.01 and np.std(samples[:, 1]) > 0.01, 'grain must vary in both tangent directions'
+		print(f'surface grain ok: projection {face}, median {np.median(tilts):.2f} degrees, 99% {np.percentile(tilts, 99):.2f}')
+	assert np.max(np.abs(smooth[:, :, :2])) < 0.005, 'zero strength must keep the smooth normal map'
+	for name in ('optical-normal.png', 'optical-response.png'):
+		assert np.allclose(load_png(smooth_folder / name), load_png(grain_folder / name), atol=2 / 65535), f'grain changed {name}'
+	print('surface grain ok: optical normals and response unchanged')
+
+
 if __name__ == '__main__':
+	check_surface_grain()
 	check_unwrap_fallback()
 	request, folder, result, report = bake(EdgeBevel=0.0)
 	check_layout(request, folder, result, report)

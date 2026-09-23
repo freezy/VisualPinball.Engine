@@ -38,6 +38,14 @@ namespace VisualPinball.Unity
 		[Tooltip("How far every sharp edge is rounded off in the normal map, in VPX units. Zero bakes the edges sharp.")]
 		public float EdgeBevel;
 
+		[Range(0f, 1f)]
+		[Tooltip("Fine surface texture baked into the body's normals. Zero leaves the surface smooth. Takes effect after baking again.")]
+		public float NormalGrainStrength;
+
+		[Min(0.1f)]
+		[Tooltip("Size of the baked surface grain in VPX units. Smaller values make finer grain. Takes effect after baking again.")]
+		public float NormalGrainSize;
+
 		[Tooltip("Let Blender unwrap the mesh along the generator's charts. Off keeps the generator's own layout and only repacks it.")]
 		public bool Unwrap;
 
@@ -54,6 +62,8 @@ namespace VisualPinball.Unity
 			TextureSize = 1024,
 			Padding = 8,
 			EdgeBevel = 1f,
+			NormalGrainStrength = 0.25f,
+			NormalGrainSize = 1.5f,
 			Unwrap = true,
 			PreferUvPackMaster = true,
 			Gpu = false,

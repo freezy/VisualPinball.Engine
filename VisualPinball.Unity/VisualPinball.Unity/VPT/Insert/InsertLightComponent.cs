@@ -2,29 +2,31 @@
 // Copyright (C) 2026 freezy and VPE Team
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+using System;
+using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Serialization;
+using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity
 {
 	/// <summary>
-	/// Authoring controls for a hybrid insert and its real spill light. At
-	/// runtime a parent VPE Light owns colour and level; this component follows
-	/// that renderer state and applies the same brightness to the spill light.
+	/// A mappable lamp device controlling a hybrid insert and its real spill light.
+	/// An unmapped insert can also follow a parent VPE Light for existing tables.
 	/// </summary>
 	[ExecuteAlways]
 	[DisallowMultipleComponent]
 	[RequireComponent(typeof(InsertComponent), typeof(MeshRenderer))]
 	[AddComponentMenu("Visual Pinball/Insert Light")]
-	public class InsertLightComponent : MonoBehaviour
+	public class InsertLightComponent : MonoBehaviour, ILampDeviceComponent
 	{
 		[FormerlySerializedAs("Level")]
 		[Range(0f, 1f)]
-		[Tooltip("Zero is off; one is the material's Max Brightness. Edit here to preview. A parent VPE Light supplies ROM intensity at runtime.")]
+		[Tooltip("Zero is off; one is the material's Max Brightness. Edit here to preview; map this component in Lamp Manager for ROM control.")]
 		public float Intensity = 1f;
 
-		[Tooltip("Lamp colour. Edit here to preview. A parent VPE Light supplies ROM RGB at runtime; without one this also controls runtime colour.")]
+		[Tooltip("Lamp colour. Edit here to preview; RGB lamp mappings update it at runtime.")]
 		public Color Color = UnityEngine.Color.white;
 
 		[Header("Environment Spill")]
@@ -46,6 +48,68 @@ namespace VisualPinball.Unity
 		private MeshRenderer _renderer;
 		private LightComponent _driver;
 		private MaterialPropertyBlock _properties;
+		[NonSerialized] private InsertLightApi _api;
+		private bool _blinking;
+		private float _blinkStarted;
+
+		public IApiLamp GetApi(Player player) => _api ??= new InsertLightApi(this);
+		public IEnumerable<Light> LightSources => SpillLight != null ? new[] { SpillLight } : Array.Empty<Light>();
+		public Color LampColor => Color;
+		public LampStatus LampStatus => _blinking ? LampStatus.Blinking : Intensity > 0f ? LampStatus.On : LampStatus.Off;
+		public IEnumerable<GamelogicEngineLamp> AvailableLamps => new[] { new GamelogicEngineLamp(LightComponent.LampIdDefault) };
+		public IEnumerable<GamelogicEngineLamp> AvailableDeviceItems => AvailableLamps;
+		IEnumerable<IGamelogicEngineDeviceItem> IWireableComponent.AvailableWireDestinations => AvailableLamps;
+		IEnumerable<IGamelogicEngineDeviceItem> IDeviceComponent<IGamelogicEngineDeviceItem>.AvailableDeviceItems => AvailableLamps;
+
+		// Once this device receives an event, a parent Light must not overwrite it.
+		internal bool IsControlledByApi { get; private set; }
+
+		private void Awake()
+		{
+			// ExecuteAlways can invoke Awake before play mode. Register at the same
+			// point as LightComponent so the API is present when LampPlayer maps lamps.
+			var player = GetComponentInParent<Player>();
+			if (player != null) {
+				player.Register(GetApi(player), this);
+			}
+		}
+
+		internal void ReleaseApiControl()
+		{
+			IsControlledByApi = false;
+			_blinking = false;
+		}
+
+		internal void SetLampIntensity(float value)
+		{
+			IsControlledByApi = true;
+			_blinking = false;
+			Intensity = math.saturate(value);
+			Apply();
+		}
+
+		internal void SetLampColor(Color value)
+		{
+			IsControlledByApi = true;
+			Color = new Color(value.r, value.g, value.b, Color.a);
+			Apply();
+		}
+
+		internal void SetLampStatus(LampStatus status)
+		{
+			SetLampIntensity(status == LampStatus.Off ? 0f : 1f);
+			_blinking = status == LampStatus.Blinking;
+			_blinkStarted = Time.time;
+		}
+
+		/// <summary>Immediate on/off preview used by Lamp Manager outside play mode.</summary>
+		public bool Enabled {
+			set {
+				_blinking = false;
+				Intensity = value ? 1f : 0f;
+				Apply();
+			}
+		}
 
 		private void OnEnable()
 		{
@@ -61,6 +125,7 @@ namespace VisualPinball.Unity
 		/// <summary>Apply authoring changes immediately, or follow the current VPE lamp state.</summary>
 		public void Apply()
 		{
+			if (!isActiveAndEnabled) { return; }
 			var material = _renderer != null ? _renderer.sharedMaterial : null;
 			if (material == null || !material.HasProperty(LuminosityId)) {
 				if (SpillLight != null) {
@@ -72,10 +137,14 @@ namespace VisualPinball.Unity
 			_renderer.GetPropertyBlock(_properties, 0);
 			var level = math.saturate(Intensity);
 			var color = Color.linear;
-			if (Application.isPlaying && _driver != null) {
+			if (Application.isPlaying && _driver != null && !IsControlledByApi) {
 				level = _properties.HasFloat(LevelId) ? math.saturate(_properties.GetFloat(LevelId)) : 0f;
 				color = _properties.HasVector(ColorId) ? (Color)_properties.GetVector(ColorId) : UnityEngine.Color.white;
 			} else {
+				if (_blinking && Application.isPlaying) {
+					// Match the default VPE blink interval: one second per on/off step.
+					level *= (int)(Time.time - _blinkStarted) % 2 == 0 ? 1f : 0f;
+				}
 				_properties.SetFloat(LevelId, level);
 				_properties.SetVector(ColorId, (Vector4)color);
 			}
@@ -104,7 +173,9 @@ namespace VisualPinball.Unity
 				var material = _renderer.sharedMaterial;
 				_renderer.GetPropertyBlock(_properties, 0);
 				if (material.HasProperty(LuminosityId)) {
-					if (!Application.isPlaying || _driver == null) {
+					if (IsControlledByApi) {
+						_properties.SetFloat(LevelId, 0f);
+					} else if (!Application.isPlaying || _driver == null) {
 						_properties.SetFloat(LevelId, material.GetFloat(LevelId));
 						_properties.SetVector(ColorId, material.GetVector(ColorId));
 					}

@@ -73,6 +73,11 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>How far every sharp edge is rounded off, in metres.</summary>
 		public float EdgeBevel;
 
+		public float NormalGrainStrength;
+
+		/// <summary>Size of the surface grain, in metres.</summary>
+		public float NormalGrainSize;
+
 		/// <summary>
 		/// How far above the flat copy its rays start, in metres, which must clear
 		/// the starburst's highest point.
@@ -119,6 +124,8 @@ namespace VisualPinball.Unity.Editor
 				TextureSize = settings.TextureSize,
 				Padding = settings.Padding,
 				EdgeBevel = settings.EdgeBevel * Physics.ScaleInv,
+				NormalGrainStrength = math.saturate(settings.NormalGrainStrength),
+				NormalGrainSize = math.max(0.1f, settings.NormalGrainSize) * Physics.ScaleInv,
 				RegularExtrusion = SurfaceExtrusion,
 				FlatExtrusion = 1.2f * math.abs(starburstOffset) * Physics.ScaleInv + SurfaceExtrusion,
 				Unwrap = settings.Unwrap,

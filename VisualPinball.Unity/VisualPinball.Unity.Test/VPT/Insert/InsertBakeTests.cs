@@ -57,6 +57,24 @@ namespace VisualPinball.Unity.Test
 		private static InsertBakeRequest Request(Mesh mesh, InsertMeshLayout layout)
 			=> InsertBakeRequest.Build(mesh, layout, InsertBakeSettings.Default, Offset);
 
+		[TestCase(0f, 1.5f, 0f, 1.5f)]
+		[TestCase(0.25f, 2f, 0.25f, 2f)]
+		[TestCase(2f, 0f, 1f, 0.1f)]
+		public void ShouldSendNormalGrainInPhysicalUnits(float strength, float size, float expectedStrength, float expectedSize)
+		{
+			var (mesh, layout) = Generate(3f, 2f, 4);
+			try {
+				var settings = InsertBakeSettings.Default;
+				settings.NormalGrainStrength = strength;
+				settings.NormalGrainSize = size;
+				var request = InsertBakeRequest.Build(mesh, layout, settings, Offset);
+				Assert.That(request.NormalGrainStrength, Is.EqualTo(expectedStrength));
+				Assert.That(request.NormalGrainSize, Is.EqualTo(expectedSize * Scale).Within(1e-8f));
+			} finally {
+				Object.DestroyImmediate(mesh);
+			}
+		}
+
 		private static void AssertTangentFrames(Mesh mesh)
 		{
 			var tangents = mesh.tangents;

@@ -8,6 +8,10 @@ Built with Unity 6.5
 
 ### Added
 
+- Insert Light is directly selectable in Lamp Manager and light groups, with ROM on/off, fading, RGB channels, wire events and editor previews driving both the lens and spill light.
+
+- Fine surface grain in the insert normal bake, with adjustable strength and size in VPX units; optical bulb normals and the clear cover remain independent.
+
 - Optional clear insert cover in a second material slot, using any assigned material or automatically detecting and aligning the playfield's normal map across insert position, rotation and scale changes.
 - Hybrid insert materials expose Min Brightness for a darker, adjustable unlit body while the bulb and spill remain off at zero intensity.
 - Optional hybrid insert optics bake: neutral cavity illumination and sharp optical normals for the HDRP virtual lamp shader, with face contrast, stable optical variation, independent runtime RGB/fading, and insert brightness controls linked to a real spill light.

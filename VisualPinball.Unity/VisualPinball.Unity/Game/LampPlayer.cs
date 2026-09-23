@@ -287,7 +287,11 @@ namespace VisualPinball.Unity
 				case LampType.RgbMulti:
 					state.SetChannel(mapping.Channel, value / 255f);
 					LampStates[id] = state;
-					lamp?.OnLamp(ComposeRgbMulti(mapping, state));
+					var color = ComposeRgbMulti(mapping, state);
+					// RGB channels carry colour, while an optional alpha channel carries
+					// intensity. Without alpha, the composed colour has full intensity.
+					lamp?.OnLamp(color.a);
+					lamp?.OnLamp(color);
 					break;
 
 				case LampType.SingleFading:

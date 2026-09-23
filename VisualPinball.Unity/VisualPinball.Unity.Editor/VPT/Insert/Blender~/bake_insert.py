@@ -288,6 +288,36 @@ def build_high(regular, request):
 	return high
 
 
+def add_surface_grain(high, request):
+	"""A fine physical-scale bump, composed over the bevel before the tangent-space bake."""
+	strength = max(0.0, min(1.0, request.get('NormalGrainStrength', 0.0)))
+	size = request.get('NormalGrainSize', 0.0)
+	if strength == 0.0 or size <= 0.0:
+		return None
+	material = high.data.materials[0]
+	nodes, links = material.node_tree.nodes, material.node_tree.links
+	shader = next(node for node in nodes if node.type == 'BSDF_DIFFUSE')
+	geometry = nodes.new('ShaderNodeNewGeometry')
+	noise = nodes.new('ShaderNodeTexNoise')
+	noise.noise_dimensions = '3D'
+	noise.inputs['Scale'].default_value = 1.0 / size
+	noise.inputs['Detail'].default_value = 2.0
+	noise.inputs['Roughness'].default_value = 0.55
+	# Bake meshes stay in insert-local metres. Position keeps the grain continuous
+	# across UV seams, at the same size regardless of atlas packing or insert size.
+	links.new(geometry.outputs['Position'], noise.inputs['Vector'])
+	bump = nodes.new('ShaderNodeBump')
+	bump.inputs['Strength'].default_value = strength
+	# Scale height with cell size so changing frequency does not change the slope.
+	bump.inputs['Distance'].default_value = size * 0.2
+	links.new(noise.outputs['Fac'], bump.inputs['Height'])
+	original = shader.inputs['Normal'].links
+	if original:
+		links.new(original[0].from_socket, bump.inputs['Normal'])
+	links.new(bump.outputs['Normal'], shader.inputs['Normal'])
+	return bump
+
+
 def new_image(name, size):
 	image = bpy.data.images.new(name, width=size, height=size, alpha=True, float_buffer=True, is_data=True)
 	image.colorspace_settings.name = 'Non-Color'
@@ -454,9 +484,13 @@ def run(request, folder, report):
 	started = time.perf_counter()
 	flat = build_flat(regular, request) if request['FlatFaces'] else None
 	high = build_high(regular, request)
+	grain = add_surface_grain(high, request)
 	bpy.context.view_layer.update()
 	bake_normal_map(regular, flat, high, request, folder / 'normal.png')
 	report['Timings']['bake'] = time.perf_counter() - started
+	if grain is not None:
+		# Grain belongs to surface reflections, not the cavity illumination or bulb.
+		grain.inputs['Strength'].default_value = 0.0
 	lamp = None
 	if request.get('HybridOptics', False):
 		# Ships beside this entry point; no installed Blender add-on is required.

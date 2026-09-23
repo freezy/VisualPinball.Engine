@@ -197,6 +197,9 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			switch (device) {
+				case InsertLightComponent insert:
+					insert.Enabled = enabled;
+					break;
 				case LightComponent lightComponent:
 					lightComponent.Enabled = enabled;
 					break;

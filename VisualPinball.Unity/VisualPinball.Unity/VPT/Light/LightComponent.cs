@@ -201,6 +201,7 @@ namespace VisualPinball.Unity
 					unityLight.color = value;
 				}
 				foreach (var (mr, intensity) in _materials) {
+					if (mr.TryGetComponent<InsertLightComponent>(out var controlledInsert) && controlledInsert.IsControlledByApi) { continue; }
 					GetLampPropertyBlock(mr, _propBlock);
 					if (mr.sharedMaterial.HasProperty(InsertLampLevel)) {
 						if (mr.TryGetComponent<InsertLightComponent>(out var insert)) {
@@ -265,6 +266,7 @@ namespace VisualPinball.Unity
 		{
 			_propBlock = new MaterialPropertyBlock(); // this is just something we can recycle
 			foreach (var mr in GetComponentsInChildren<MeshRenderer>(true)) {
+				if (mr.TryGetComponent<InsertLightComponent>(out var controlledInsert) && controlledInsert.IsControlledByApi) { continue; }
 				var emissiveIntensity = RenderPipeline.Current.MaterialConverter.GetEmissiveIntensity(mr.sharedMaterial);
 				if (emissiveIntensity > 0) {
 					_materials.Add((mr, emissiveIntensity));
@@ -414,6 +416,7 @@ namespace VisualPinball.Unity
 				CollectFauxBulbs();
 			}
 			foreach (var (mr, intensity) in _materials) {
+				if (mr.TryGetComponent<InsertLightComponent>(out var controlledInsert) && controlledInsert.IsControlledByApi) { continue; }
 				GetLampPropertyBlock(mr, _propBlock);
 				if (mr.sharedMaterial.HasProperty(InsertLampLevel)) {
 					// Expose the current ROM intensity in the Insert Light inspector,
