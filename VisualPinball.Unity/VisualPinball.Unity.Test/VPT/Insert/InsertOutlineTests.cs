@@ -1573,12 +1573,15 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldShareWallVerticesWhereTheOutlineIsSmooth()
 		{
-			// A circle has no corner to split, so the ring is shared all the way
-			// round save for the seam, where U has to restart rather than wrap.
+			// A circle has no corner to split, so the wall's vertices are shared all
+			// the way round, save where the band it is laid out on in UV is cut into
+			// pieces, a few of them, each needing the point twice.
 			var mesh = BuildMesh(Rectangle(100f, 100f, 50f, 32), out var outline);
 			try {
-				var ring = outline.Points.Count + 1;
-				Assert.That(mesh.vertexCount, Is.EqualTo(ring * 2 + outline.Points.Count + 1));
+				var points = outline.Points.Count;
+				var wall = mesh.normals.Count(normal => math.abs(normal.y) < 1e-3f);
+				Assert.That(wall, Is.InRange(2 * (points + 1), 2 * (points + 4)));
+				Assert.That(mesh.vertexCount - wall, Is.EqualTo(points + 1), "the floor's own fan");
 
 			} finally {
 				UnityEngine.Object.DestroyImmediate(mesh);
@@ -2055,6 +2058,203 @@ namespace VisualPinball.Unity.Test
 						Assert.That(vertex.y / Scale, Is.GreaterThanOrEqualTo(floor + width - 1e-3f), "the wall reaches below the bevel");
 					}
 				}
+
+			} finally {
+				UnityEngine.Object.DestroyImmediate(mesh);
+			}
+		}
+
+		#endregion
+
+		#region UV
+
+		public class UvCase
+		{
+			public string Name;
+			public Func<Mesh> Build;
+
+			public override string ToString() => Name;
+		}
+
+		private static Mesh BuildUvMesh(OutlineCase shape, float channel, int bursts, float bevel, int bevelSegments,
+			Func<InsertOutline, float, IEnumerable<InsertHole>> holes = null, float2? center = null)
+		{
+			var outline = Build(shape);
+			var inset = channel > 0f ? outline.ClampInset(channel) : 0f;
+			var body = new InsertBody {
+				Depth = TestDepth,
+				ChannelWidth = inset,
+				ChannelDepth = TestChannelDepth,
+				StarburstBursts = bursts,
+				StarburstCenter = center ?? TestStarburstCenter,
+				StarburstOffset = TestStarburstOffset,
+				BottomBevel = outline.ClampInset(bevel),
+				BottomBevelSegments = bevelSegments,
+				HoleSegments = 16,
+				Holes = holes?.Invoke(outline, inset).ToArray(),
+			};
+			return InsertMeshGenerator.Generate(outline, body, new Mesh());
+		}
+
+		private static readonly UvCase[] UvCases = {
+			new() {
+				Name = "starburst, holes and a bevel",
+				Build = () => BuildUvMesh(TriangleCases[0], TestChannelWidth, 12, 1f, 4,
+					(outline, inset) => Radius(InsertHoles.AtCorners(outline, inset), 3f)),
+			},
+			new() { Name = "flat middle, chamfer", Build = () => BuildUvMesh(SharpSquare, TestChannelWidth, 0, 2f, 1) },
+			new() { Name = "no channel, no bevel", Build = () => BuildUvMesh(RectangleCases[0], 0f, 0, 0f, 1) },
+			new() { Name = "no channel, bevel", Build = () => BuildUvMesh(RectangleCases[0], 0f, 0, 1.5f, 3) },
+			new() {
+				Name = "circle, holes round the edge",
+				Build = () => BuildUvMesh(Rectangle(100f, 100f, 50f, 32), TestChannelWidth, 24, 2f, 6,
+					(outline, inset) => Radius(InsertHoles.Around(outline, inset, 6), 3f), new float2(0f, 90f)),
+			},
+			new() {
+				Name = "channel without a bevel",
+				Build = () => BuildUvMesh(TriangleCases[0], TestChannelWidth, 12, 0f, 1,
+					(outline, inset) => Radius(InsertHoles.AtCornersAndSides(outline, inset), 2f)),
+			},
+		};
+
+		[TestCaseSource(nameof(UvCases))]
+		public void ShouldKeepEveryUvInsideTheSquare(UvCase test)
+		{
+			var mesh = test.Build();
+			try {
+				var uvs = mesh.uv;
+				Assert.That(uvs, Has.Length.EqualTo(mesh.vertexCount));
+				foreach (var uv in uvs) {
+					Assert.That(uv.x, Is.InRange(0f, 1f));
+					Assert.That(uv.y, Is.InRange(0f, 1f));
+				}
+
+			} finally {
+				UnityEngine.Object.DestroyImmediate(mesh);
+			}
+		}
+
+		[TestCaseSource(nameof(UvCases))]
+		public void ShouldNotLayOneChartOverAnother(UvCase test)
+		{
+			// Every triangle claims the cells of a fine grid whose centres lie
+			// inside it in UV. Neighbours within a chart meet along an edge and never
+			// claim the same centre, so a cell claimed twice is two pieces of the
+			// mesh sharing texels, which a bake would smear together.
+			var mesh = test.Build();
+			try {
+				const int grid = 512;
+				var claimed = new int[grid * grid];
+				var uvs = mesh.uv;
+				var triangles = mesh.triangles;
+				for (var i = 0; i < triangles.Length; i += 3) {
+					var a = (float2)uvs[triangles[i]] * grid;
+					var b = (float2)uvs[triangles[i + 1]] * grid;
+					var c = (float2)uvs[triangles[i + 2]] * grid;
+					var min = (int2)math.floor(math.min(a, math.min(b, c)));
+					var max = (int2)math.ceil(math.max(a, math.max(b, c)));
+					for (var x = math.max(0, min.x); x < math.min(grid, max.x); x++) {
+						for (var y = math.max(0, min.y); y < math.min(grid, max.y); y++) {
+							var p = new float2(x + 0.5f, y + 0.5f);
+							var inside = Cross(b - a, p - a) > 1e-4f && Cross(c - b, p - b) > 1e-4f && Cross(a - c, p - c) > 1e-4f
+								|| Cross(b - a, p - a) < -1e-4f && Cross(c - b, p - b) < -1e-4f && Cross(a - c, p - c) < -1e-4f;
+							if (inside) {
+								Assert.That(claimed[y * grid + x]++, Is.EqualTo(0), $"UV cell {x},{y} is claimed twice, last by triangle {i / 3}");
+							}
+						}
+					}
+				}
+
+			} finally {
+				UnityEngine.Object.DestroyImmediate(mesh);
+			}
+		}
+
+		[TestCaseSource(nameof(UvCases))]
+		public void ShouldLayEveryChartOutTheRightWayRound(UvCase test)
+		{
+			// Every triangle faces its viewer, and every chart reads left to right
+			// from that side, so each winds counter-clockwise in UV as well. A
+			// mirrored one would turn a baked normal map inside out.
+			var mesh = test.Build();
+			try {
+				var uvs = mesh.uv;
+				var triangles = mesh.triangles;
+				for (var i = 0; i < triangles.Length; i += 3) {
+					var a = (float2)uvs[triangles[i]];
+					var b = (float2)uvs[triangles[i + 1]];
+					var c = (float2)uvs[triangles[i + 2]];
+					var area = Cross(b - a, c - a);
+					var span = math.max(math.distance(a, b), math.max(math.distance(b, c), math.distance(c, a)));
+					if (math.abs(area) < 1e-6f * span) {
+						continue;
+					}
+					Assert.That(area, Is.GreaterThan(0f), $"triangle {i / 3} is mirrored in UV");
+				}
+
+			} finally {
+				UnityEngine.Object.DestroyImmediate(mesh);
+			}
+		}
+
+		[TestCaseSource(nameof(UvCases))]
+		public void ShouldKeepTheTexelDensityEven(UvCase test)
+		{
+			// Every chart is laid out at one scale, so UV area over surface area is
+			// the same all over. Only the bevel's inset steps, laid out along the
+			// rim they are shorter than, and the starburst's tilted facets, seen
+			// from above, stray from it, and not far.
+			var mesh = test.Build();
+			try {
+				var vertices = mesh.vertices;
+				var uvs = mesh.uv;
+				var triangles = mesh.triangles;
+				var ratios = new List<float>();
+				for (var i = 0; i < triangles.Length; i += 3) {
+					float3 a = vertices[triangles[i]];
+					float3 b = vertices[triangles[i + 1]];
+					float3 c = vertices[triangles[i + 2]];
+					var surface = math.length(math.cross(b - a, c - a));
+					if (surface < 1e-9f) {
+						continue;
+					}
+					float2 ua = uvs[triangles[i]];
+					float2 ub = uvs[triangles[i + 1]];
+					float2 uc = uvs[triangles[i + 2]];
+					var uv = math.abs(Cross(ub - ua, uc - ua));
+					ratios.Add(uv / surface);
+				}
+				ratios.Sort();
+				var median = ratios[ratios.Count / 2];
+				foreach (var ratio in ratios) {
+					Assert.That(ratio / median, Is.InRange(0.5f, 2f));
+				}
+
+			} finally {
+				UnityEngine.Object.DestroyImmediate(mesh);
+			}
+		}
+
+		[Test]
+		public void ShouldGiveEachSideOfTheMiddleItsOwnChart()
+		{
+			// A sharp square's middle has four sides. Each of their walls is laid out
+			// on its own, so the wall vertices where two sides meet at a corner sit
+			// in two different places in UV.
+			var mesh = BuildUvMesh(SharpSquare, TestChannelWidth, 0, 0f, 1);
+			try {
+				var vertices = mesh.vertices;
+				var normals = mesh.normals;
+				var uvs = mesh.uv;
+				var island = (-TestDepth + TestChannelDepth) * Scale;
+				var corner = ((float3)InsertMeshGenerator.ToLocal(new float2(7f, 7f), -TestDepth + TestChannelDepth));
+				var places = new HashSet<Vector2>();
+				for (var i = 0; i < vertices.Length; i++) {
+					if (math.abs(normals[i].y) < 1e-3f && math.distance((float3)vertices[i], corner) < 1e-6f) {
+						places.Add(uvs[i]);
+					}
+				}
+				Assert.That(places, Has.Count.EqualTo(2));
 
 			} finally {
 				UnityEngine.Object.DestroyImmediate(mesh);

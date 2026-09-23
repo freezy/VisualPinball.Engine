@@ -82,6 +82,14 @@ namespace VisualPinball.Unity
 	/// at: the outer wall faces the middle, the raised floor's wall faces back out
 	/// at it, and both horizontal surfaces face up.
 	/// </para>
+	/// <para>
+	/// The UVs are one atlas without overlaps, at the same density everywhere,
+	/// so a map can be baked onto it: the raised middle and the floor below are
+	/// each projected from above, the outer wall and its bevel are unrolled
+	/// together as a band, cut into pieces that pack, each side of the raised
+	/// middle is its own chart, and each hole's wall is a band of its own. Every
+	/// chart reads the right way round from the side it faces.
+	/// </para>
 	/// </remarks>
 	public static class InsertMeshGenerator
 	{
@@ -155,16 +163,57 @@ namespace VisualPinball.Unity
 			public float Distance;
 		}
 
+		/// <summary>
+		/// The mesh being built, with each vertex's UV chart alongside.
+		/// </summary>
+		/// <remarks>
+		/// UVs are written in VPX units, laid out within each chart, and only
+		/// packed into the unit square once the whole mesh is there.
+		/// </remarks>
+		private sealed class MeshBuffers
+		{
+			public readonly List<Vector3> Vertices = new();
+			public readonly List<Vector3> Normals = new();
+			public readonly List<Vector2> Uvs = new();
+			public readonly List<int> Charts = new();
+			public readonly List<int> Triangles = new();
+			private int _chartCount;
+
+			public int NewChart() => _chartCount++;
+
+			public int Add(Vector3 position, Vector3 normal, Vector2 uv, int chart)
+			{
+				Vertices.Add(position);
+				Normals.Add(normal);
+				Uvs.Add(uv);
+				Charts.Add(chart);
+				return Vertices.Count - 1;
+			}
+
+			public void Triangle(int a, int b, int c)
+			{
+				Triangles.Add(a);
+				Triangles.Add(b);
+				Triangles.Add(c);
+			}
+		}
+
 		public static Mesh Generate(InsertOutline outline, InsertBody body, Mesh mesh)
 		{
-			var vertices = new List<Vector3>();
-			var normals = new List<Vector3>();
-			var uvs = new List<Vector2>();
-			var triangles = new List<int>();
-			var size = new float2(outline.Width, outline.Height);
-
+			var buffers = new MeshBuffers();
 			var floor = -body.Depth;
 			var rim = BuildRing(outline, 0f, out var rimMap);
+			var channel = body.ChannelWidth > InsertOutlineBuilder.Epsilon;
+			int[] islandMap = null;
+			var island = channel ? BuildRing(outline, body.ChannelWidth, out islandMap) : null;
+
+			// Projected from above, the floor and the raised middle would land on
+			// each other, so each gets a chart. The outer wall is unrolled into a
+			// band as long as the rim, which is cut into pieces that each fit the
+			// square the rest will roughly need.
+			var top = buffers.NewChart();
+			var bottomChart = buffers.NewChart();
+			var outerCharts = CutBand(rim, AtlasSide(outline, body, rim, island), buffers);
 
 			// The bottom bevel rounds off where the outer wall meets the floor. The
 			// wall stops where it starts, and the floor starts where it ends, at the
@@ -174,38 +223,90 @@ namespace VisualPinball.Unity
 			var bottomMap = rimMap;
 			if (bevel > 0f) {
 				bottom = BuildRing(outline, bevel, out bottomMap);
-				AddWall(rim, Level(rim.Count, 0f), Level(rim.Count, floor + bevel), true, vertices, normals, uvs, triangles);
+				AddOuterWall(rim, floor + bevel, outerCharts, buffers);
 			}
 
 			List<RunPoint>[] floorSides = null;
-			if (body.ChannelWidth > InsertOutlineBuilder.Epsilon) {
-				var island = BuildRing(outline, body.ChannelWidth, out var islandMap);
+			if (channel) {
 				var islandTop = floor + body.ChannelDepth;
 				var starburst = TryCoverWithStarburst(island, body, islandTop, outline.WeldTolerance);
 				floorSides = AddSunkenFloor(outline, body, bottom, bottomMap, bevel > 0f, island, islandMap, starburst,
-					floor, islandTop, size, vertices, normals, uvs, triangles);
+					floor, islandTop, top, bottomChart, outerCharts, buffers);
 
 			} else {
 				if (bevel <= 0f) {
-					AddWall(rim, Level(rim.Count, 0f), Level(rim.Count, floor), true, vertices, normals, uvs, triangles);
+					AddOuterWall(rim, floor, outerCharts, buffers);
 				}
-				AddCap(bottom, floor, size, vertices, normals, uvs, triangles);
+				AddCap(bottom, floor, bottomChart, buffers);
 			}
 
 			if (bevel > 0f) {
-				AddBottomBevel(outline, bevel, math.max(1, body.BottomBevelSegments), floor, bottom, bottomMap, floorSides,
-					size, vertices, normals, uvs, triangles);
+				AddBottomBevel(outline, bevel, math.max(1, body.BottomBevelSegments), floor, rim, bottom, bottomMap,
+					floorSides, outerCharts, buffers);
 			}
 
+			InsertUvAtlas.Pack(buffers.Uvs, buffers.Charts);
+
 			mesh.Clear();
-			mesh.indexFormat = vertices.Count > ushort.MaxValue ? IndexFormat.UInt32 : IndexFormat.UInt16;
-			mesh.SetVertices(vertices);
-			mesh.SetNormals(normals);
-			mesh.SetUVs(0, uvs);
-			mesh.SetTriangles(triangles, 0);
+			mesh.indexFormat = buffers.Vertices.Count > ushort.MaxValue ? IndexFormat.UInt32 : IndexFormat.UInt16;
+			mesh.SetVertices(buffers.Vertices);
+			mesh.SetNormals(buffers.Normals);
+			mesh.SetUVs(0, buffers.Uvs);
+			mesh.SetTriangles(buffers.Triangles, 0);
 			mesh.RecalculateBounds();
 			return mesh;
 		}
+
+		/// <summary>
+		/// Roughly how many VPX units the atlas's side will span, from the area
+		/// its charts will take up: the floor and the middle from above, and the
+		/// walls unrolled.
+		/// </summary>
+		private static float AtlasSide(InsertOutline outline, InsertBody body, List<RingPoint> rim, List<RingPoint> island)
+		{
+			var area = 2f * outline.Width * outline.Height + Perimeter(rim) * body.Depth;
+			if (island != null) {
+				area += Perimeter(island) * body.ChannelDepth * 1.5f;
+			}
+			if (body.Holes != null) {
+				foreach (var hole in body.Holes) {
+					area += 2f * math.PI * hole.Radius * body.ChannelDepth;
+				}
+			}
+			return math.sqrt(area * 1.3f);
+		}
+
+		private static float Perimeter(List<RingPoint> ring)
+			=> ring.Count == 0 ? 0f : ring[^1].Distance + math.distance(ring[^1].Position, ring[0].Position);
+
+		/// <summary>
+		/// A chart for each side of the rim, the same one along a run of sides
+		/// until it grows longer than <paramref name="length"/>.
+		/// </summary>
+		private static int[] CutBand(List<RingPoint> rim, float length, MeshBuffers buffers)
+		{
+			var charts = new int[rim.Count];
+			var chart = buffers.NewChart();
+			var run = 0f;
+			for (var i = 0; i < rim.Count; i++) {
+				var side = math.distance(rim[i].Position, rim[(i + 1) % rim.Count].Position);
+				if (run > 0f && run + side > length) {
+					chart = buffers.NewChart();
+					run = 0f;
+				}
+				charts[i] = chart;
+				run += side;
+			}
+			return charts;
+		}
+
+		/// <summary>
+		/// Where a point along the outer band sits in U: running clockwise, so the
+		/// band reads left to right from inside the insert, which is where it is
+		/// seen from.
+		/// </summary>
+		private static float BandU(List<RingPoint> rim, int side, float t)
+			=> -(rim[side].Distance + t * math.distance(rim[side].Position, rim[(side + 1) % rim.Count].Position));
 
 		/// <summary>
 		/// The outline offset inwards by <paramref name="inset"/> and welded.
@@ -270,100 +371,48 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
-		/// A wall between two heights, facing either into the hollow or out of it.
+		/// The outer wall, from the rim down to <paramref name="bottom"/>, facing
+		/// into the hollow.
 		/// </summary>
-		private static void AddWall(List<RingPoint> ring, float[] top, float[] bottom, bool inwards,
-			List<Vector3> vertices, List<Vector3> normals, List<Vector2> uvs, List<int> triangles)
+		/// <remarks>
+		/// Neighbouring sides share their vertices wherever the ring is smooth and
+		/// the band carries on in the same chart, so the wall shades round a fillet
+		/// without a crease. A sharp corner keeps a vertex per side, as does a cut
+		/// between two pieces of the band, which lay the same point out in two
+		/// places.
+		/// </remarks>
+		private static void AddOuterWall(List<RingPoint> rim, float bottom, int[] charts, MeshBuffers buffers)
 		{
-			var count = ring.Count;
-			var perimeter = 0f;
-			for (var i = 0; i < count; i++) {
-				perimeter += math.distance(ring[i].Position, ring[(i + 1) % count].Position);
-			}
-
-			var arrivingTop = new int[count];
-			var arrivingBottom = new int[count];
-			var leavingTop = new int[count];
-			var leavingBottom = new int[count];
-
-			for (var i = 0; i < count; i++) {
-				var entry = ring[i];
-				var split = math.distance(entry.NormalIn, entry.NormalOut) > InsertOutlineBuilder.AngleEpsilon;
-
-				// The ring closes back onto its first entry, which therefore needs a
-				// second copy carrying the far end of the U range instead of zero.
-				var seam = i == 0;
-				var arrivingDistance = seam ? perimeter : entry.Distance;
-
-				arrivingTop[i] = AddWallVertex(entry.Position, entry.NormalIn, arrivingDistance, perimeter,
-					top[i], bottom[i], inwards, out arrivingBottom[i], vertices, normals, uvs);
-
-				if (split || seam) {
-					leavingTop[i] = AddWallVertex(entry.Position, entry.NormalOut, entry.Distance, perimeter,
-						top[i], bottom[i], inwards, out leavingBottom[i], vertices, normals, uvs);
-				} else {
-					leavingTop[i] = arrivingTop[i];
-					leavingBottom[i] = arrivingBottom[i];
-				}
-			}
-
+			var count = rim.Count;
+			int previousTop = -1, previousBottom = -1;
 			for (var i = 0; i < count; i++) {
 				var next = (i + 1) % count;
+				var chart = charts[i];
+				var entry = rim[i];
 
-				// A wall may close to nothing at either end: all the way round when
-				// a channel has no depth, or at one end where its top edge comes
-				// down to meet the floor. Each triangle of the quad takes one end's
-				// height, so a closed end costs only the triangle standing on it,
-				// and closing both leaves nothing to draw.
-				var closedHere = math.abs(top[i] - bottom[i]) < InsertOutlineBuilder.Epsilon;
-				var closedThere = math.abs(top[next] - bottom[next]) < InsertOutlineBuilder.Epsilon;
-
-				if (inwards) {
-					// Along the top, then down the far side: that order faces it in.
-					if (!closedThere) {
-						AddTriangle(triangles, leavingTop[i], arrivingTop[next], arrivingBottom[next]);
-					}
-					if (!closedHere) {
-						AddTriangle(triangles, leavingTop[i], arrivingBottom[next], leavingBottom[i]);
-					}
+				int topFrom, bottomFrom;
+				var smooth = math.distance(entry.NormalIn, entry.NormalOut) <= InsertOutlineBuilder.AngleEpsilon;
+				if (i > 0 && smooth && charts[i - 1] == chart) {
+					topFrom = previousTop;
+					bottomFrom = previousBottom;
 				} else {
-					if (!closedThere) {
-						AddTriangle(triangles, leavingBottom[i], arrivingBottom[next], arrivingTop[next]);
-					}
-					if (!closedHere) {
-						AddTriangle(triangles, leavingBottom[i], arrivingTop[next], leavingTop[i]);
-					}
+					var normal = ToLocalNormal(entry.NormalOut, true);
+					var u = BandU(rim, i, 0f);
+					topFrom = buffers.Add(ToLocal(entry.Position, 0f), normal, new Vector2(u, 0f), chart);
+					bottomFrom = buffers.Add(ToLocal(entry.Position, bottom), normal, new Vector2(u, bottom), chart);
 				}
+
+				var arriving = ToLocalNormal(rim[next].NormalIn, true);
+				var end = BandU(rim, i, 1f);
+				var topTo = buffers.Add(ToLocal(rim[next].Position, 0f), arriving, new Vector2(end, 0f), chart);
+				var bottomTo = buffers.Add(ToLocal(rim[next].Position, bottom), arriving, new Vector2(end, bottom), chart);
+
+				// Along the top, then down the far side: that order faces it in.
+				buffers.Triangle(topFrom, topTo, bottomTo);
+				buffers.Triangle(topFrom, bottomTo, bottomFrom);
+				previousTop = topTo;
+				previousBottom = bottomTo;
 			}
-		}
-
-		/// <summary>A flat run of depths, for a wall whose edge does not vary.</summary>
-		private static float[] Level(int count, float depth)
-		{
-			var depths = new float[count];
-			for (var i = 0; i < count; i++) {
-				depths[i] = depth;
-			}
-			return depths;
-		}
-
-		private static int AddWallVertex(float2 position, float2 outward, float distance, float perimeter,
-			float top, float bottom, bool inwards, out int bottomIndex,
-			List<Vector3> vertices, List<Vector3> normals, List<Vector2> uvs)
-		{
-			var normal = ToLocalNormal(outward, inwards);
-			var u = perimeter > InsertOutlineBuilder.Epsilon ? distance / perimeter : 0f;
-
-			var topIndex = vertices.Count;
-			vertices.Add(ToLocal(position, top));
-			normals.Add(normal);
-			uvs.Add(new Vector2(u, 0f));
-
-			bottomIndex = vertices.Count;
-			vertices.Add(ToLocal(position, bottom));
-			normals.Add(normal);
-			uvs.Add(new Vector2(u, 1f));
-			return topIndex;
 		}
 
 		/// <summary>
@@ -374,30 +423,24 @@ namespace VisualPinball.Unity
 		/// to triangulate it: the starburst in a later step radiates from that same
 		/// point.
 		/// </remarks>
-		private static void AddCap(List<RingPoint> ring, float depth, float2 size,
-			List<Vector3> vertices, List<Vector3> normals, List<Vector2> uvs, List<int> triangles)
+		private static void AddCap(List<RingPoint> ring, float depth, int chart, MeshBuffers buffers)
 		{
 			var count = ring.Count;
-			var start = vertices.Count;
+			var start = buffers.Vertices.Count;
 
 			foreach (var entry in ring) {
-				vertices.Add(ToLocal(entry.Position, depth));
-				normals.Add(Vector3.up);
-				uvs.Add(PlanarUv(entry.Position, size));
+				buffers.Add(ToLocal(entry.Position, depth), Vector3.up, (Vector2)entry.Position, chart);
 			}
 
 			var centroid = RingCentroid(ring);
-			var center = vertices.Count;
-			vertices.Add(ToLocal(centroid, depth));
-			normals.Add(Vector3.up);
-			uvs.Add(PlanarUv(centroid, size));
+			var center = buffers.Add(ToLocal(centroid, depth), Vector3.up, (Vector2)centroid, chart);
 
 			// The outline runs counter-clockwise in VPX space, and the VPX to world
 			// basis flips Y into -Z, so a fan in ring order comes out facing +Y
 			// without needing to be reversed. The half turn is a proper rotation and
 			// leaves that alone.
 			for (var i = 0; i < count; i++) {
-				AddTriangle(triangles, center, start + i, start + (i + 1) % count);
+				buffers.Triangle(center, start + i, start + (i + 1) % count);
 			}
 		}
 
@@ -506,9 +549,13 @@ namespace VisualPinball.Unity
 		/// bottom, so it runs into both without a crease.
 		/// </para>
 		/// </remarks>
+		/// <para>
+		/// In UV, the bevel carries on down the outer wall's band, each step as far
+		/// down it as the arc has run.
+		/// </para>
 		private static void AddBottomBevel(InsertOutline outline, float width, int segments, float floor,
-			List<RingPoint> bottom, int[] bottomMap, List<RunPoint>[] floorSides, float2 size,
-			List<Vector3> vertices, List<Vector3> normals, List<Vector2> uvs, List<int> triangles)
+			List<RingPoint> rim, List<RingPoint> bottom, int[] bottomMap, List<RunPoint>[] floorSides, int[] charts,
+			MeshBuffers buffers)
 		{
 			// Each outline point's outward normal, arriving and leaving, which only
 			// a sharp corner tells apart.
@@ -535,11 +582,17 @@ namespace VisualPinball.Unity
 				}
 			}
 
+			// How far down the band each step sits: the wall's foot, less the arc
+			// run so far, step by step as it is drawn.
+			var chord = 2f * width * math.sin(math.PI / (4f * segments));
+
 			var cell = new List<double2>();
 			var points = new List<(float2 Position, float Height, float Along)>();
 			for (var k = 0; k < segments; k++) {
 				var upper = steps[k];
 				var lower = steps[k + 1];
+				var upperV = floor + width - k * chord;
+				var lowerV = floor + width - (k + 1) * chord;
 
 				// A chamfer is one flat face; a round bevel follows its arc.
 				var upperAngle = segments == 1 ? math.PI * 0.25f : upper.Angle;
@@ -564,18 +617,18 @@ namespace VisualPinball.Unity
 						continue;
 					}
 
-					var first = vertices.Count;
+					var first = buffers.Vertices.Count;
 					for (var j = 0; j < points.Count; j++) {
 						var (position, height, along) = points[j];
 						var outward = math.normalizesafe(math.lerp(normalOut[i], normalIn[next], along), normalOut[i]);
-						var angle = j < top.Count ? upperAngle : lowerAngle;
-						vertices.Add(ToLocal(position, height));
-						normals.Add(math.normalize(math.mul(VpxToLocal,
-							new float3(-outward * math.cos(angle), math.sin(angle)))));
-						uvs.Add(PlanarUv(position, size));
+						var upperRow = j < top.Count;
+						var angle = upperRow ? upperAngle : lowerAngle;
+						var normal = math.normalize(math.mul(VpxToLocal, new float3(-outward * math.cos(angle), math.sin(angle))));
+						var uv = new Vector2(BandU(rim, i, along), upperRow ? upperV : lowerV);
+						buffers.Add(ToLocal(position, height), normal, uv, charts[i]);
 					}
 					foreach (var piece in InsertTriangulation.EarClip(cell)) {
-						AddTriangle(triangles, first + piece.x, first + piece.y, first + piece.z);
+						buffers.Triangle(first + piece.x, first + piece.y, first + piece.z);
 					}
 				}
 			}
@@ -662,10 +715,12 @@ namespace VisualPinball.Unity
 		/// instead of a wall.</param>
 		/// <returns>Every point each side of <paramref name="rim"/> passes through,
 		/// in order, which is where a bevel meeting the floor has to meet it.</returns>
+		/// <param name="outerCharts">The outer band's chart for each side of the rim,
+		/// which a wall standing on <paramref name="rim"/> is laid out in when it is
+		/// the rim itself.</param>
 		private static List<RunPoint>[] AddSunkenFloor(InsertOutline outline, InsertBody body, List<RingPoint> rim,
 			int[] rimMap, bool bevelled, List<RingPoint> island, int[] islandMap, InsertStarburst starburst, float floor,
-			float islandTop, float2 size, List<Vector3> vertices, List<Vector3> normals, List<Vector2> uvs,
-			List<int> triangles)
+			float islandTop, int topChart, int bottomChart, int[] outerCharts, MeshBuffers buffers)
 		{
 			var weld = outline.WeldTolerance;
 			var arrangement = new InsertArrangement(weld);
@@ -774,32 +829,31 @@ namespace VisualPinball.Unity
 				}
 
 				// Points are lifted through the same height as the walls', so where
-				// the two meet they agree to the bit.
-				var first = vertices.Count;
+				// the two meet they agree to the bit. Both floors are projected from
+				// above, into charts of their own.
+				var chart = tier == Tier.Surface ? topChart : bottomChart;
+				var first = buffers.Vertices.Count;
 				foreach (var point in face) {
 					var position = arrangement.Position(point);
-					vertices.Add(ToLocal(position, HeightOf(tier, position)));
-					normals.Add(normal);
-					uvs.Add(PlanarUv(position, size));
+					buffers.Add(ToLocal(position, HeightOf(tier, position)), normal, (Vector2)position, chart);
 				}
 				foreach (var piece in pieces) {
-					AddTriangle(triangles, first + piece.x, first + piece.y, first + piece.z);
+					buffers.Triangle(first + piece.x, first + piece.y, first + piece.z);
 				}
 			}
 
 			Tier TierOf(int from, int to) => faceOf.TryGetValue((from, to), out var face) ? tiers[face] : Tier.Outside;
 
-			var shared = new Dictionary<(int, float, float2, float), int>();
-			int WallVertex(int point, float height, float2 outward, float u, float v)
+			var charts = new WallCharts(buffers, rim, island, outerCharts);
+			var shared = new Dictionary<(int, float, float2, float, int), int>();
+			int WallVertex(int point, float height, float2 outward, float u, int chart)
 			{
-				if (shared.TryGetValue((point, height, outward, u), out var index)) {
+				if (shared.TryGetValue((point, height, outward, u, chart), out var index)) {
 					return index;
 				}
-				index = vertices.Count;
-				vertices.Add(ToLocal(arrangement.Position(point), height));
-				normals.Add(ToLocalNormal(outward, false));
-				uvs.Add(new Vector2(u, v));
-				shared[(point, height, outward, u)] = index;
+				index = buffers.Add(ToLocal(arrangement.Position(point), height), ToLocalNormal(outward, false),
+					new Vector2(u, height), chart);
+				shared[(point, height, outward, u, chart)] = index;
 				return index;
 			}
 
@@ -824,8 +878,8 @@ namespace VisualPinball.Unity
 				var fromPosition = arrangement.Position(from);
 				var toPosition = arrangement.Position(to);
 
-				WallNormals(arrangement, owners, holeOwners, from, to, behind == Tier.Outside ? rim : island,
-					out var fromNormal, out var toNormal, out var fromU, out var toU);
+				WallFrame(arrangement, owners, holeOwners, charts, from, to, behind == Tier.Outside ? rim : island,
+					out var fromNormal, out var toNormal, out var fromU, out var toU, out var wallChart);
 
 				var fromTop = HeightOf(behind, fromPosition);
 				var toTop = HeightOf(behind, toPosition);
@@ -841,15 +895,15 @@ namespace VisualPinball.Unity
 					continue;
 				}
 
-				var bottomFrom = WallVertex(from, fromBottom, fromNormal, fromU, 1f);
-				var bottomTo = WallVertex(to, toBottom, toNormal, toU, 1f);
-				var topFrom = WallVertex(from, fromTop, fromNormal, fromU, 0f);
-				var topTo = WallVertex(to, toTop, toNormal, toU, 0f);
+				var bottomFrom = WallVertex(from, fromBottom, fromNormal, fromU, wallChart);
+				var bottomTo = WallVertex(to, toBottom, toNormal, toU, wallChart);
+				var topFrom = WallVertex(from, fromTop, fromNormal, fromU, wallChart);
+				var topTo = WallVertex(to, toTop, toNormal, toU, wallChart);
 				if (!closedThere) {
-					AddTriangle(triangles, bottomFrom, bottomTo, topTo);
+					buffers.Triangle(bottomFrom, bottomTo, topTo);
 				}
 				if (!closedHere) {
-					AddTriangle(triangles, bottomFrom, topTo, topFrom);
+					buffers.Triangle(bottomFrom, topTo, topFrom);
 				}
 			}
 
@@ -884,16 +938,17 @@ namespace VisualPinball.Unity
 		/// <returns>Each hole's polygon, for telling faces inside it apart.</returns>
 		private static List<List<float2>> AddHoles(InsertArrangement arrangement, InsertHole[] holes, int segments,
 			List<float2> island, InsertStarburst starburst, float weld,
-			out Dictionary<int, (float2 Center, int Index, int Count)> owners)
+			out Dictionary<int, (float2 Center, int Index, float Chord, int Hole)> owners)
 		{
-			owners = new Dictionary<int, (float2, int, int)>();
+			owners = new Dictionary<int, (float2, int, float, int)>();
 			var polygons = new List<List<float2>>();
 			if (holes == null) {
 				return polygons;
 			}
 
 			var count = math.max(3, segments);
-			foreach (var hole in holes) {
+			for (var index = 0; index < holes.Length; index++) {
+				var hole = holes[index];
 				var center = new float2(hole.Center.x, hole.Center.y);
 				if (hole.Radius <= weld) {
 					continue;
@@ -921,7 +976,8 @@ namespace VisualPinball.Unity
 					points[k] = arrangement.AddPoint(circle[k]);
 				}
 				for (var k = 0; k < count; k++) {
-					owners[arrangement.AddSegment(points[k], points[(k + 1) % count])] = (center, k, count);
+					var chord = 2f * hole.Radius * math.sin(math.PI / count);
+					owners[arrangement.AddSegment(points[k], points[(k + 1) % count])] = (center, k, chord, index);
 				}
 
 				if (Contains(island, center)) {
@@ -1017,9 +1073,51 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
+		/// The UV charts walls are laid out in: the outer band's pieces, one chart
+		/// per side of the raised middle, one band per hole, and a chart of its own
+		/// for any other edge, made as they are first asked for.
+		/// </summary>
+		private sealed class WallCharts
+		{
+			private readonly MeshBuffers _buffers;
+			private readonly Dictionary<(List<RingPoint>, int), int> _sides = new();
+			private readonly Dictionary<int, int> _holes = new();
+
+			public readonly List<RingPoint> Rim;
+			public readonly List<RingPoint> Island;
+			public readonly int[] Outer;
+
+			public WallCharts(MeshBuffers buffers, List<RingPoint> rim, List<RingPoint> island, int[] outer)
+			{
+				_buffers = buffers;
+				Rim = rim;
+				Island = island;
+				Outer = outer;
+			}
+
+			public int Side(List<RingPoint> ring, int side)
+			{
+				if (!_sides.TryGetValue((ring, side), out var chart)) {
+					_sides[(ring, side)] = chart = _buffers.NewChart();
+				}
+				return chart;
+			}
+
+			public int Hole(int hole)
+			{
+				if (!_holes.TryGetValue(hole, out var chart)) {
+					_holes[hole] = chart = _buffers.NewChart();
+				}
+				return chart;
+			}
+
+			public int Other() => _buffers.NewChart();
+		}
+
+		/// <summary>
 		/// How a wall standing on the edge from <paramref name="from"/> to
 		/// <paramref name="to"/> shades, facing right of that direction, and where
-		/// it sits in U.
+		/// it is laid out in UV.
 		/// </summary>
 		/// <remarks>
 		/// Along a side of <paramref name="preferred"/>, the ring's own normals
@@ -1027,11 +1125,18 @@ namespace VisualPinball.Unity
 		/// them, so the wall shades round a fillet without a crease. Any other edge
 		/// only ever borders two tiers where snapping ran it together with a side,
 		/// within a pixel, and simply faces square off itself.
+		/// <para>
+		/// In UV, U runs along the wall and V is its height, so every chart reads
+		/// left to right as seen from the side the wall faces. The rim's walls
+		/// belong to the outer band. Each side of the raised middle is a chart of
+		/// its own, and each hole's wall a band of its own, round the hole.
+		/// </para>
 		/// </remarks>
-		private static void WallNormals(InsertArrangement arrangement,
+		private static void WallFrame(InsertArrangement arrangement,
 			Dictionary<int, (List<RingPoint> Ring, int Side)> owners,
-			Dictionary<int, (float2 Center, int Index, int Count)> holeOwners, int from, int to,
-			List<RingPoint> preferred, out float2 fromNormal, out float2 toNormal, out float fromU, out float toU)
+			Dictionary<int, (float2 Center, int Index, float Chord, int Hole)> holeOwners, WallCharts charts,
+			int from, int to, List<RingPoint> preferred, out float2 fromNormal, out float2 toNormal,
+			out float fromU, out float toU, out int chart)
 		{
 			var fromPosition = arrangement.Position(from);
 			var toPosition = arrangement.Position(to);
@@ -1050,13 +1155,14 @@ namespace VisualPinball.Unity
 			}
 
 			if (chosen < 0 && circle >= 0) {
-				// Round a hole, the wall shades as the circle it stands on, and runs
-				// once round U.
-				var (center, index, count) = holeOwners[circle];
+				// Round a hole, the wall shades as the circle it stands on. The band
+				// runs clockwise, which reads left to right from inside the hole.
+				var (center, index, chord, hole) = holeOwners[circle];
 				fromNormal = math.normalizesafe(fromPosition - center, right);
 				toNormal = math.normalizesafe(toPosition - center, right);
-				fromU = (index + arrangement.T(circle, from)) / count;
-				toU = (index + arrangement.T(circle, to)) / count;
+				fromU = -(index + arrangement.T(circle, from)) * chord;
+				toU = -(index + arrangement.T(circle, to)) * chord;
+				chart = charts.Hole(hole);
 				if (math.dot(fromNormal + toNormal, right) < 0f) {
 					fromNormal = -fromNormal;
 					toNormal = -toNormal;
@@ -1066,28 +1172,38 @@ namespace VisualPinball.Unity
 
 			if (chosen < 0) {
 				fromNormal = toNormal = right;
-				fromU = toU = 0f;
+				fromU = 0f;
+				toU = math.length(along);
+				chart = charts.Other();
 				return;
 			}
 
 			var (ring, side) = owners[chosen];
 			var next = (side + 1) % ring.Count;
 			var length = math.distance(ring[side].Position, ring[next].Position);
-			var perimeter = ring[^1].Distance + math.distance(ring[^1].Position, ring[0].Position);
 
 			float2 NormalAt(float t) => t <= 0f ? ring[side].NormalOut
 				: t >= 1f ? ring[next].NormalIn
 				: math.normalize(math.lerp(ring[side].NormalOut, ring[next].NormalIn, t));
-			float UAt(float t) => perimeter > InsertOutlineBuilder.Epsilon
-				? (ring[side].Distance + t * length) / perimeter
-				: 0f;
 
 			var fromT = arrangement.T(chosen, from);
 			var toT = arrangement.T(chosen, to);
 			fromNormal = NormalAt(fromT);
 			toNormal = NormalAt(toT);
-			fromU = UAt(fromT);
-			toU = UAt(toT);
+
+			if (ring == charts.Rim && charts.Outer != null) {
+				fromU = BandU(ring, side, fromT);
+				toU = BandU(ring, side, toT);
+				chart = charts.Outer[side];
+			} else if (ring == charts.Island) {
+				fromU = fromT * length;
+				toU = toT * length;
+				chart = charts.Side(ring, side);
+			} else {
+				fromU = 0f;
+				toU = math.length(along);
+				chart = charts.Other();
+			}
 
 			// The ring's normals point out of it, which is the way the middle's wall
 			// faces but not the rim's.
@@ -1168,28 +1284,5 @@ namespace VisualPinball.Unity
 			return (float2)(origin + accumulated / (3.0 * area));
 		}
 
-		private static void AddTriangle(List<int> triangles, int a, int b, int c)
-		{
-			triangles.Add(a);
-			triangles.Add(b);
-			triangles.Add(c);
-		}
-
-		private static void AddQuad(List<int> triangles, int a, int b, int c, int d)
-		{
-			AddTriangle(triangles, a, b, c);
-			AddTriangle(triangles, a, c, d);
-		}
-
-		/// <summary>
-		/// Placeholder mapping that just normalises the bounding box, so a material
-		/// renders sensibly before step 5 lays out the real UVs.
-		/// </summary>
-		private static Vector2 PlanarUv(float2 position, float2 size)
-		{
-			return new Vector2(
-				size.x > InsertOutlineBuilder.Epsilon ? position.x / size.x + 0.5f : 0.5f,
-				size.y > InsertOutlineBuilder.Epsilon ? position.y / size.y + 0.5f : 0.5f);
-		}
 	}
 }
