@@ -47,6 +47,9 @@ namespace VisualPinball.Unity
 		[Tooltip("Bake on the GPU, as set up in Blender's preferences, instead of the CPU.")]
 		public bool Gpu;
 
+		[Tooltip("Also bake optical normals and a soft internal light response for the HDRP hybrid insert material.")]
+		public bool HybridOptics;
+
 		public static InsertBakeSettings Default => new() {
 			TextureSize = 1024,
 			Padding = 8,

@@ -45,6 +45,9 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public float FlatHeight;
 
+		/// <summary>Actual local centre X/Z, sector count and lowest height of the generated starburst, or zero without one.</summary>
+		public Vector4 OpticalStarburst;
+
 		/// <summary>
 		/// A hash of the generated vertices, normals, UVs and triangles. A bake made
 		/// for one mesh fits another exactly when their hashes match, whichever

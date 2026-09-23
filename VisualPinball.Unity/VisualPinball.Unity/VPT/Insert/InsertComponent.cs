@@ -26,9 +26,9 @@ namespace VisualPinball.Unity
 	/// </summary>
 	/// <remarks>
 	/// Every parameter stays editable for the life of the object: the mesh is
-	/// thrown away and rebuilt from scratch whenever anything changes, so there is
-	/// no baked state for a later edit to contradict. Hand edits to the generated
-	/// mesh do not survive, which is the point.
+	/// rebuilt from scratch whenever anything changes. Baked UVs and tangents
+	/// apply only while they fit that geometry. Hand edits to the generated mesh
+	/// do not survive, which is the point.
 	/// <para>
 	/// Parameters are in VPX units, like the rest of the engine. The generated
 	/// mesh is converted to world units on the way out, so the object is the right
@@ -134,11 +134,11 @@ namespace VisualPinball.Unity
 		private InsertBakeSettings _bakeSettings = InsertBakeSettings.Default;
 
 		[SerializeField]
-		[Tooltip("The last bake, applied only while it still fits the generated mesh.")]
+		[Tooltip("The last bake. Its UVs and tangents apply only while it fits; its material stays as a preview until rebaked.")]
 		private InsertBakeData _bake;
 
 		[SerializeField]
-		[Tooltip("The material the insert wears without its bake, put back when the bake stops fitting.")]
+		[Tooltip("The original material, restored when Clear Bake removes the bake.")]
 		private Material _unbakedMaterial;
 
 		#endregion
@@ -183,8 +183,8 @@ namespace VisualPinball.Unity
 		public InsertBakeData Bake => _bake;
 
 		/// <summary>
-		/// Whether the bake fits the mesh as it is now generated, and so is shown.
-		/// Any change to the mesh makes it stale until it is baked again.
+		/// Whether the baked UVs and tangents fit the generated mesh. Geometry
+		/// changes make the bake stale; its material stays as a preview until rebaked.
 		/// </summary>
 		public bool IsBakeFresh { get; private set; }
 
@@ -226,7 +226,7 @@ namespace VisualPinball.Unity
 
 		/// <summary>
 		/// Replaces the bake, or drops it with null, and rebuilds. The material the
-		/// insert wore before is kept, to be put back when the bake is stale.
+		/// insert wore before is kept, to be put back when the bake is cleared.
 		/// </summary>
 		public void SetBake(InsertBakeData bake)
 		{
@@ -241,9 +241,9 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
-		/// Puts the bake's material on while the bake fits, and the unbaked one
-		/// back when it does not, but only in place of the other: a material the
-		/// user chose themselves stays.
+		/// Puts a fresh bake's material on in place of the original material.
+		/// Geometry edits keep the material as a preview, and a material the
+		/// user chose themselves is left alone.
 		/// </summary>
 		private void WearBake()
 		{
@@ -253,8 +253,6 @@ namespace VisualPinball.Unity
 			var renderer = GetComponent<MeshRenderer>();
 			if (IsBakeFresh && renderer.sharedMaterial == _unbakedMaterial) {
 				renderer.sharedMaterial = _bake.Material;
-			} else if (!IsBakeFresh && renderer.sharedMaterial == _bake.Material) {
-				renderer.sharedMaterial = _unbakedMaterial;
 			}
 		}
 

@@ -85,6 +85,7 @@ namespace VisualPinball.Unity.Editor
 		public bool Unwrap;
 		public bool PreferUvPackMaster;
 		public bool Gpu;
+		public bool HybridOptics;
 
 		public static InsertBakeRequest Build(Mesh mesh, InsertMeshLayout layout, InsertBakeSettings settings, float starburstOffset)
 		{
@@ -123,6 +124,7 @@ namespace VisualPinball.Unity.Editor
 				Unwrap = settings.Unwrap,
 				PreferUvPackMaster = settings.PreferUvPackMaster,
 				Gpu = settings.Gpu,
+				HybridOptics = settings.HybridOptics,
 			};
 
 			var flat = new List<int>();

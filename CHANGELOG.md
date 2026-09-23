@@ -8,6 +8,7 @@ Built with Unity 6.5
 
 ### Added
 
+- Optional hybrid insert optics bake: neutral cavity illumination and sharp optical normals for the HDRP virtual lamp shader, with face contrast, stable optical variation, independent runtime RGB/fading, and insert brightness controls linked to a real spill light.
 - Spring-hinge bash toys with a finite-inertia analytic box collider, reciprocal Spatial magnet holds, packaged player reconstruction, editor setup/handles, and a Play Mode qualification sample.
 - Motion Transform input ranges for animating a follower during only part of its source travel.
 - Wire Rail component with native spline authoring, fixtures (rings, rungs, cradles, stands, hairpins, and elbows), and an inferred ball-channel collider ([Documentation](https://docs.visualpinball.org/creators-guide/editor/wire-rails/index.html)).
@@ -76,6 +77,8 @@ Built with Unity 6.5
 - The legacy VPX table patcher and its import option, including `IPatcher`, `PatcherManager`, the render-pipeline material-adapter APIs, and the `applyPatch` import parameters.
 
 ### Fixed
+
+- Insert geometry edits rebuild tangent data to prevent HDRP blackouts, keep the current material visible, and show a rebake warning.
 - Disappearing objects due to wrong bounding box ([#441](https://github.com/freezy/VisualPinball.Engine/pull/441)).
 - Default table import ([#434](https://github.com/freezy/VisualPinball.Engine/pull/434))
 - Remaining ball spinning issue should now be solved ([#397](https://github.com/freezy/VisualPinball.Engine/pull/397)).

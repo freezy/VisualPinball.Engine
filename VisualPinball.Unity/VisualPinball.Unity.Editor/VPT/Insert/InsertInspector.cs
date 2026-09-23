@@ -133,7 +133,56 @@ namespace VisualPinball.Unity.Editor
 			serializedObject.ApplyModifiedProperties();
 
 			DrawBake();
+			DrawHybridMaterial();
 			DrawStatus();
+		}
+
+		private void DrawHybridMaterial()
+		{
+			var insert = (InsertComponent)target;
+			var data = insert.Bake;
+			if (data == null || data.OpticalNormalMap == null || data.OpticalResponseMap == null) {
+				return;
+			}
+			if (data.Material != null && data.Material.HasProperty("_OpticalNormalMap")) {
+				EditorGUILayout.HelpBox("Hybrid optics are active. The material controls facet contrast, variation and reflections. Insert Light controls brightness, RGB preview and real light spilling onto the table.", MessageType.Info);
+				var lighting = insert.GetComponent<InsertLightComponent>();
+				if (lighting == null || lighting.SpillLight == null) {
+					using (new EditorGUI.DisabledScope(EditorApplication.isPlaying)) {
+						if (GUILayout.Button("Add Brightness Controls and Spill Light")) {
+							AddLighting(insert);
+						}
+					}
+				}
+				return;
+			}
+			using (new EditorGUI.DisabledScope(!insert.IsBakeFresh || InsertBaker.Baking != null || EditorApplication.isPlaying || Shader.Find(InsertBaker.HybridShaderName) == null)) {
+				if (GUILayout.Button("Use HDRP Hybrid Material")) {
+					InsertBaker.UseHybridMaterial(insert);
+				}
+			}
+		}
+
+		public static InsertLightComponent AddLighting(InsertComponent insert)
+		{
+			var lighting = insert.GetComponent<InsertLightComponent>() ?? Undo.AddComponent<InsertLightComponent>(insert.gameObject);
+			if (lighting.SpillLight == null) {
+				var go = new GameObject("Insert Spill Light");
+				Undo.RegisterCreatedObjectUndo(go, "Add Insert Spill Light");
+				go.transform.SetParent(insert.transform, false);
+				var bounds = insert.GetComponent<MeshFilter>().sharedMesh.bounds;
+				go.transform.localPosition = new Vector3(bounds.center.x, bounds.max.y + 0.008f, bounds.center.z);
+				var light = go.AddComponent<Light>();
+				light.type = LightType.Point;
+				var converter = RenderPipeline.Current.LightConverter;
+				converter.UpdateLight(light, new VisualPinball.Engine.VPT.Light.LightData(), true);
+				converter.SetShadow(light, false, false);
+				Undo.RecordObject(lighting, "Assign Insert Spill Light");
+				lighting.SpillLight = light;
+				PrefabUtility.RecordPrefabInstancePropertyModifications(lighting);
+			}
+			lighting.Apply();
+			return lighting;
 		}
 
 		private void DrawBakeSettings()
@@ -146,6 +195,7 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.PropertyField(_bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.Unwrap)), new GUIContent("Unwrap in Blender"));
 			EditorGUILayout.PropertyField(_bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.PreferUvPackMaster)), new GUIContent("Prefer UVPackMaster"));
 			EditorGUILayout.PropertyField(_bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.Gpu)), new GUIContent("Bake on GPU"));
+			EditorGUILayout.PropertyField(_bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.HybridOptics)), new GUIContent("Bake Hybrid Optics"));
 		}
 
 		/// <summary>
@@ -189,7 +239,7 @@ namespace VisualPinball.Unity.Editor
 				if (insert.IsBakeFresh) {
 					EditorGUILayout.HelpBox($"Baked. UVs packed by {insert.Bake.Packer}, covering {insert.Bake.UvFill:P0} of the texture.", MessageType.Info);
 				} else {
-					EditorGUILayout.HelpBox("The insert has changed since it was baked, so it is shown without the bake. Bake again to bring it back.", MessageType.Warning);
+					EditorGUILayout.HelpBox("The insert geometry has changed. The material is kept as a preview, but its baked textures may no longer line up. Bake Again to update the UVs, normals and optical maps.", MessageType.Warning);
 				}
 			}
 			if (InsertBaker.LastError != null && InsertBaker.LastErrorInsert == insert) {

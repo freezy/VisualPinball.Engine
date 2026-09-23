@@ -202,7 +202,16 @@ namespace VisualPinball.Unity
 				}
 				foreach (var (mr, intensity) in _materials) {
 					mr.GetPropertyBlock(_propBlock);
-					RenderPipeline.Current.MaterialConverter.SetEmissiveColor(_propBlock, value * intensity);
+					if (mr.sharedMaterial.HasProperty(InsertLampLevel)) {
+						if (!Application.isPlaying && mr.TryGetComponent<InsertLightComponent>(out var insert)) {
+							insert.Color = value;
+						}
+						// Keep RGB and level independent: colour events while off must
+						// stay dark, and subsequent fades must retain the latest colour.
+						_propBlock.SetVector(InsertLampColor, (Vector4)value.linear);
+					} else {
+						RenderPipeline.Current.MaterialConverter.SetEmissiveColor(_propBlock, value * intensity);
+					}
 					mr.SetPropertyBlock(_propBlock);
 				}
 			}
@@ -217,7 +226,10 @@ namespace VisualPinball.Unity
 			}
 			player.Register(GetApi(player), this);
 
-			var lights = GetComponentsInChildren<Light>();
+			// Insert spill lights follow the emissive renderer in LateUpdate. They
+			// must not also be cached and driven as independent native lamps here.
+			var lights = GetComponentsInChildren<Light>()
+				.Where(light => light.GetComponentInParent<InsertLightComponent>()?.SpillLight != light).ToArray();
 			_value = 0;
 			_color = lights.FirstOrDefault()?.color ?? Color.white;
 
@@ -255,10 +267,15 @@ namespace VisualPinball.Unity
 
 					// Transparent emissive renderers are lamp-lit *surfaces* (e.g. insert lens
 					// materials on pipelines that fake transmission with emission): they get the
-					// emissive drive above, but must stay visible when the lamp is off. Only
-					// opaque emissive renderers are faux-bulb visuals that dim/hide with lamp
-					// intensity, independent of object naming.
-					if (mr.sharedMaterial.renderQueue > (int)UnityEngine.Rendering.RenderQueue.GeometryLast) {
+					// emissive drive above, but must stay visible when the lamp is off.
+					// Hybrid inserts are opaque surfaces with the same requirement.
+					// Other opaque emitters are faux bulbs that dim/hide with the lamp.
+					if (mr.sharedMaterial.HasProperty(InsertLampLevel) || mr.sharedMaterial.renderQueue > (int)UnityEngine.Rendering.RenderQueue.GeometryLast) {
+						if (Application.isPlaying && mr.sharedMaterial.HasProperty(InsertLampLevel)) {
+							mr.GetPropertyBlock(_propBlock);
+							_propBlock.SetVector(InsertLampColor, (Vector4)_color.linear);
+							mr.SetPropertyBlock(_propBlock);
+						}
 						continue;
 					}
 					var hasBaseColor = mr.sharedMaterial.HasProperty(BaseColor);
@@ -391,15 +408,27 @@ namespace VisualPinball.Unity
 			}
 			foreach (var (mr, intensity) in _materials) {
 				mr.GetPropertyBlock(_propBlock);
-				RenderPipeline.Current.MaterialConverter.SetEmissiveIntensity(mr.sharedMaterial, _propBlock, value * intensity);
+				if (mr.sharedMaterial.HasProperty(InsertLampLevel)) {
+					// Keep the editor lamp manager and Insert Light preview in sync,
+					// otherwise its next LateUpdate would undo this lamp event.
+					if (!Application.isPlaying && mr.TryGetComponent<InsertLightComponent>(out var insert)) {
+						insert.Level = value;
+					}
+					_propBlock.SetFloat(InsertLampLevel, value);
+				} else {
+					RenderPipeline.Current.MaterialConverter.SetEmissiveIntensity(mr.sharedMaterial, _propBlock, value * intensity);
+				}
 				mr.SetPropertyBlock(_propBlock);
 			}
 			SetFauxBulbVisibility(value);
 		}
 
+		private static readonly int InsertLampLevel = Shader.PropertyToID("_InsertLampLevel");
+		private static readonly int InsertLampColor = Shader.PropertyToID("_InsertLampColor");
+
 		private void SetFauxBulbVisibility(float value)
 		{
-			if (_fauxBulbs.Count == 0 && !Application.isPlaying) {
+			if (_fauxBulbs.Count == 0 && _materials.Count == 0 && !Application.isPlaying) {
 				CollectFauxBulbs();
 			}
 

@@ -205,6 +205,9 @@ namespace VisualPinball.Unity
 		public static Mesh Generate(InsertOutline outline, InsertBody body, Mesh mesh, InsertMeshLayout layout = null)
 		{
 			var buffers = new MeshBuffers();
+			if (layout != null) {
+				layout.OpticalStarburst = Vector4.zero;
+			}
 			var floor = -body.Depth;
 			var rim = BuildRing(outline, 0f, out var rimMap);
 			var channel = body.ChannelWidth > InsertOutlineBuilder.Epsilon;
@@ -236,6 +239,10 @@ namespace VisualPinball.Unity
 			if (channel) {
 				var islandTop = floor + body.ChannelDepth;
 				var starburst = TryCoverWithStarburst(island, body, islandTop, outline.WeldTolerance);
+				if (layout != null && starburst != null) {
+					var center = ToLocal(starburst.Center, starburst.CenterDepth - starburst.Offset);
+					layout.OpticalStarburst = new Vector4(center.x, center.z, starburst.Count, center.y);
+				}
 				floorCharts = CutFloor(bottom, atlasSide * 0.5f, buffers);
 				floorSides = AddSunkenFloor(outline, body, bottom, bottomMap, bevel > 0f, island, islandMap, starburst,
 					floor, islandTop, top, floorCharts, outerCharts, buffers);
@@ -279,12 +286,16 @@ namespace VisualPinball.Unity
 				layout.Hash = hash;
 			}
 
-			mesh.Clear();
+			// The same mesh may previously have held Blender's baked tangents.
+			// Clear the vertex layout too, then populate every shading attribute:
+			// retaining an unwritten tangent stream can expose invalid values to HDRP.
+			mesh.Clear(false);
 			mesh.indexFormat = buffers.Vertices.Count > ushort.MaxValue ? IndexFormat.UInt32 : IndexFormat.UInt16;
 			mesh.SetVertices(buffers.Vertices);
 			mesh.SetNormals(buffers.Normals);
 			mesh.SetUVs(0, buffers.Uvs);
 			mesh.SetTriangles(buffers.Triangles, 0);
+			mesh.RecalculateTangents();
 			mesh.RecalculateBounds();
 			return mesh;
 		}

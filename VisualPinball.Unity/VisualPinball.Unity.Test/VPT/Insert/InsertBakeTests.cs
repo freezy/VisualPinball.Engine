@@ -16,6 +16,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using NUnit.Framework;
 using Unity.Mathematics;
 using UnityEngine;
@@ -55,6 +56,87 @@ namespace VisualPinball.Unity.Test
 
 		private static InsertBakeRequest Request(Mesh mesh, InsertMeshLayout layout)
 			=> InsertBakeRequest.Build(mesh, layout, InsertBakeSettings.Default, Offset);
+
+		private static void AssertTangentFrames(Mesh mesh)
+		{
+			var tangents = mesh.tangents;
+			var normals = mesh.normals;
+			Assert.That(tangents, Has.Length.EqualTo(mesh.vertexCount));
+			for (var i = 0; i < tangents.Length; i++) {
+				var t = tangents[i];
+				Assert.That(math.all(math.isfinite(new float4(t.x, t.y, t.z, t.w))), Is.True, $"tangent {i} is not finite");
+				var direction = new Vector3(t.x, t.y, t.z);
+				Assert.That(direction.sqrMagnitude, Is.EqualTo(1f).Within(1e-4f), $"tangent {i} is not normalized");
+				Assert.That(Vector3.Dot(normals[i], direction), Is.EqualTo(0f).Within(1e-4f), $"tangent {i} is not perpendicular to the normal");
+				Assert.That(math.abs(t.w), Is.EqualTo(1f), $"tangent {i} has no handedness");
+			}
+		}
+
+		[TestCase(4f, 3f, 12, 1f, true)]
+		[TestCase(0f, 3f, 0, 0f, false)]
+		[TestCase(4f, 0f, 0, 1f, false)]
+		public void ShouldBuildTangentFramesBeforeBaking(float radius, float channel, int bursts, float bevel, bool holes)
+		{
+			var (mesh, _) = Generate(radius, channel, bursts, bevel, holes);
+			try {
+				AssertTangentFrames(mesh);
+			} finally {
+				Object.DestroyImmediate(mesh);
+			}
+		}
+
+		[TestCase(36.12f)]
+		[TestCase(40.05f)]
+		[TestCase(60f)]
+		public void ShouldRebuildTangentFramesWhenResizingABakedInsert(float width)
+		{
+			var go = new GameObject("Resized insert");
+			var insert = go.AddComponent<InsertComponent>();
+			var probe = new Mesh();
+			InsertBakeData bake = null;
+			try {
+				var layout = new InsertMeshLayout();
+				insert.Generate(probe, layout);
+				bake = FakeBake(probe, layout.Hash);
+				insert.SetBake(bake);
+				Assert.That(insert.IsBakeFresh, Is.True);
+				var mesh = go.GetComponent<MeshFilter>().sharedMesh;
+
+				var serialized = new UnityEditor.SerializedObject(insert);
+				serialized.FindProperty("_width").floatValue = width;
+				serialized.ApplyModifiedPropertiesWithoutUndo();
+				insert.RebuildMesh();
+				Assert.That(insert.IsBakeFresh, Is.False);
+				Assert.That(go.GetComponent<MeshFilter>().sharedMesh, Is.SameAs(mesh));
+				AssertTangentFrames(mesh);
+			} finally {
+				Object.DestroyImmediate(go.GetComponent<MeshFilter>().sharedMesh);
+				Object.DestroyImmediate(go);
+				Object.DestroyImmediate(probe);
+				Object.DestroyImmediate(bake);
+			}
+		}
+
+		[TestCase(3f, 12, 24)]
+		[TestCase(0f, 12, 0)]
+		[TestCase(3f, 0, 0)]
+		public void ShouldDescribeOnlyTheStarburstThatWasGenerated(float channel, int bursts, int expectedSectors)
+		{
+			var (mesh, layout) = Generate(4f, channel, bursts);
+			try {
+				Assert.That(layout.OpticalStarburst.z, Is.EqualTo(expectedSectors));
+				if (expectedSectors > 0) {
+					var center = InsertMeshGenerator.ToLocal(new float2(0f, -40f));
+					Assert.That(layout.OpticalStarburst.x, Is.EqualTo(center.x).Within(1e-6f));
+					Assert.That(layout.OpticalStarburst.y, Is.EqualTo(center.z).Within(1e-6f));
+					Assert.That(layout.OpticalStarburst.w, Is.LessThan(layout.FlatHeight));
+				} else {
+					Assert.That(layout.OpticalStarburst, Is.EqualTo(Vector4.zero));
+				}
+			} finally {
+				Object.DestroyImmediate(mesh);
+			}
+		}
 
 		[TestCase(4f, 3f, 12, 1f, true)]
 		[TestCase(0f, 3f, 0, 0f, false)]
@@ -242,6 +324,64 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldCopyHybridTuningWhenADuplicateGetsItsOwnBakeMaterial()
+		{
+			var shader = Shader.Find("Visual Pinball/Insert Hybrid");
+			if (shader == null) {
+				Assert.Ignore("Requires the HDRP insert shader.");
+			}
+			var root = new GameObject("Original insert");
+			var plain = new Material(Shader.Find("Hidden/InternalErrorShader"));
+			var hybrid = new Material(shader);
+			hybrid.SetFloat("_OpticalVariation", 0.23f);
+			hybrid.SetVector("_OpticalLamp", new Vector4(0.003f, -0.02f, 0.004f, 0.007f));
+			var probe = new Mesh();
+			InsertBakeData bake = null;
+			GameObject copy = null;
+			var path = UnityEditor.AssetDatabase.GenerateUniqueAssetPath("Assets/Insert Material Copy Test.mat");
+			var texturePath = UnityEditor.AssetDatabase.GenerateUniqueAssetPath("Assets/Insert Material Copy Normal.asset");
+			var normalMap = new Texture2D(2, 2);
+			try {
+				UnityEditor.AssetDatabase.CreateAsset(normalMap, texturePath);
+				var insert = root.AddComponent<InsertComponent>();
+				root.GetComponent<MeshRenderer>().sharedMaterial = plain;
+				var layout = new InsertMeshLayout();
+				insert.Generate(probe, layout);
+				bake = FakeBake(probe, layout.Hash);
+				bake.Material = hybrid;
+				insert.SetBake(bake);
+				copy = Object.Instantiate(root);
+				var duplicate = copy.GetComponent<InsertComponent>();
+				duplicate.RebuildMesh();
+				Assert.That(duplicate.Bake, Is.SameAs(bake));
+				Assert.That(duplicate.UnbakedMaterial, Is.SameAs(plain));
+
+				// A shared bake takes the new-material path, not the in-place update.
+				var method = typeof(InsertBaker).GetMethod("BakeMaterial", BindingFlags.Static | BindingFlags.NonPublic);
+				var material = (Material)method.Invoke(null, new object[] { duplicate, null, path, normalMap });
+				Assert.That(material, Is.Not.SameAs(hybrid));
+				Assert.That(material.shader, Is.SameAs(shader));
+				Assert.That(material.GetFloat("_OpticalVariation"), Is.EqualTo(0.23f));
+				Assert.That(material.GetVector("_OpticalLamp"), Is.EqualTo(hybrid.GetVector("_OpticalLamp")));
+				Assert.That(UnityEditor.AssetDatabase.GetAssetPath(material.GetTexture("_NormalMap")), Is.EqualTo(texturePath));
+				Assert.That(hybrid.GetTexture("_NormalMap"), Is.Null);
+			} finally {
+				UnityEditor.AssetDatabase.DeleteAsset(path);
+				UnityEditor.AssetDatabase.DeleteAsset(texturePath);
+				if (copy != null) {
+					Object.DestroyImmediate(copy.GetComponent<MeshFilter>().sharedMesh);
+					Object.DestroyImmediate(copy);
+				}
+				Object.DestroyImmediate(root.GetComponent<MeshFilter>().sharedMesh);
+				Object.DestroyImmediate(root);
+				Object.DestroyImmediate(probe);
+				Object.DestroyImmediate(bake);
+				Object.DestroyImmediate(plain);
+				Object.DestroyImmediate(hybrid);
+			}
+		}
+
+		[Test]
 		public void ShouldApplyTheBakeCornerByCorner()
 		{
 			var (mesh, layout) = Generate(4f, 3f, 12, 1f, true);
@@ -281,9 +421,10 @@ namespace VisualPinball.Unity.Test
 			var bake = FakeBake(other, otherLayout.Hash);
 			try {
 				var count = mesh.vertexCount;
+				var tangents = mesh.tangents;
 				Assert.That(bake.TryApply(mesh, layout.Hash), Is.False);
 				Assert.That(mesh.vertexCount, Is.EqualTo(count));
-				Assert.That(mesh.tangents, Is.Empty);
+				Assert.That(mesh.tangents, Is.EqualTo(tangents));
 
 			} finally {
 				Object.DestroyImmediate(mesh);
@@ -293,7 +434,7 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldWearTheBakedMaterialOnlyWhileTheBakeFits()
+		public void ShouldKeepTheBakedMaterialAsAPreviewUntilTheBakeIsCleared()
 		{
 			var go = new GameObject("Insert");
 			var insert = go.AddComponent<InsertComponent>();
@@ -316,16 +457,18 @@ namespace VisualPinball.Unity.Test
 				Assert.That(renderer.sharedMaterial, Is.SameAs(baked));
 				Assert.That(insert.UnbakedMaterial, Is.SameAs(plain));
 
-				// Any change to the mesh makes the bake stale, and takes its material off.
+				// Geometry edits invalidate the bake, but keep the tuned material visible.
 				var serialized = new UnityEditor.SerializedObject(insert);
-				serialized.FindProperty("_depth").floatValue += 1f;
+				serialized.FindProperty("_width").floatValue += 1f;
 				serialized.ApplyModifiedPropertiesWithoutUndo();
 				insert.RebuildMesh();
 				Assert.That(insert.IsBakeFresh, Is.False);
-				Assert.That(renderer.sharedMaterial, Is.SameAs(plain));
+				Assert.That(renderer.sharedMaterial, Is.SameAs(baked));
+				Assert.That(insert.UnbakedMaterial, Is.SameAs(plain));
+				AssertTangentFrames(go.GetComponent<MeshFilter>().sharedMesh);
 
 				// Changed back, it fits again.
-				serialized.FindProperty("_depth").floatValue -= 1f;
+				serialized.FindProperty("_width").floatValue -= 1f;
 				serialized.ApplyModifiedPropertiesWithoutUndo();
 				insert.RebuildMesh();
 				Assert.That(insert.IsBakeFresh, Is.True);

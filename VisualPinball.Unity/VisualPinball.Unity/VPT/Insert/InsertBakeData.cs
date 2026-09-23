@@ -27,8 +27,8 @@ namespace VisualPinball.Unity
 	/// </summary>
 	/// <remarks>
 	/// It fits exactly the mesh whose <see cref="InsertMeshLayout.Hash"/> it was
-	/// made from. Any other mesh gets it not at all, so a stale bake can never
-	/// put its map on UVs it was not baked for.
+	/// made from. A changed mesh keeps its generated UVs and tangents; the
+	/// material can remain visible as an approximate preview until rebaked.
 	/// </remarks>
 	public class InsertBakeData : ScriptableObject
 	{
@@ -43,7 +43,19 @@ namespace VisualPinball.Unity
 
 		public Texture2D NormalMap;
 
-		[Tooltip("A copy of the insert's material with the normal map set, which the insert wears while the bake is fresh.")]
+		[Tooltip("Bevelled optical normals in insert local space, encoded as RGB = normal * 0.5 + 0.5. Linear data, independent of UV chart rotation.")]
+		public Texture2D OpticalNormalMap;
+
+		[Tooltip("Linear RGB: soft cavity illumination, rounded edge response, and transmission mask. These approximate internal light transport.")]
+		public Texture2D OpticalResponseMap;
+
+		[Tooltip("Suggested virtual lamp position in insert local metres, and its radius in w.")]
+		public Vector4 OpticalLamp;
+
+		[Tooltip("Local X/Z starburst centre, sector count, and lowest starburst height, used to keep optical variation aligned with the generated faces.")]
+		public Vector4 OpticalStarburst;
+
+		[Tooltip("The material with the baked textures, retained as a preview between bakes.")]
 		public Material Material;
 
 		[Tooltip("Which UV packer laid the charts out.")]

@@ -315,17 +315,18 @@ def target(image, color=(1.0, 1.0, 1.0, 1.0)):
 	return material
 
 
-def bake(obj, request, high=None, extrusion=0.0):
+def bake(obj, request, high=None, extrusion=0.0, bake_type=None, samples=None):
 	"""Bakes the high-poly's tangent-space normals onto obj or, without one, obj's own emission."""
 	select_only(obj, high) if high else select_only(obj)
-	bpy.context.scene.cycles.samples = BEVEL_SAMPLES if high and request['EdgeBevel'] > 0 else 1
+	bpy.context.scene.cycles.samples = samples or (BEVEL_SAMPLES if high and request['EdgeBevel'] > 0 else 1)
 	result = bpy.ops.object.bake(
-		'EXEC_DEFAULT', type='NORMAL' if high else 'EMIT',
+		'EXEC_DEFAULT', type=bake_type or ('NORMAL' if high else 'EMIT'),
 		target='IMAGE_TEXTURES', save_mode='INTERNAL', use_clear=True,
 		use_selected_to_active=high is not None, use_cage=False,
 		cage_extrusion=extrusion, max_ray_distance=0.0,
 		margin=request['Padding'], margin_type='EXTEND', uv_layer=UV_NAME,
 		normal_space='TANGENT', normal_r='POS_X', normal_g='POS_Y', normal_b='POS_Z',
+		pass_filter={'DIRECT', 'INDIRECT'},
 	)
 	if result != {'FINISHED'}:
 		raise BakeFailure('Blender cancelled the bake.')
@@ -454,10 +455,20 @@ def run(request, folder, report):
 	bpy.context.view_layer.update()
 	bake_normal_map(regular, flat, high, request, folder / 'normal.png')
 	report['Timings']['bake'] = time.perf_counter() - started
+	lamp = None
+	if request.get('HybridOptics', False):
+		# Ships beside this entry point; no installed Blender add-on is required.
+		sys.dont_write_bytecode = True
+		sys.path.insert(0, str(Path(__file__).resolve().parent))
+		from insert_optics import bake_optics
+		started = time.perf_counter()
+		lamp = bake_optics(sys.modules[__name__], regular, flat, high, request, folder)
+		report['Timings']['optics'] = time.perf_counter() - started
 
 	return {
 		'Uvs': final_uvs.ravel().tolist(),
 		'Tangents': tangents(regular.data).ravel().tolist(),
+		'OpticalLamp': lamp,
 	}
 
 

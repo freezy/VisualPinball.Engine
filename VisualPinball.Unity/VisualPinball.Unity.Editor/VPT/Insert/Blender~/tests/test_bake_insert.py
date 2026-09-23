@@ -256,29 +256,30 @@ def check_directions(request, folder, result):
 	print(f'directions ok: {len(errors)} texels, off by {median:.1f} degrees (95%: {worst:.1f}), mirrored {np.median(mirrored):.1f}')
 
 
-request, folder, result, report = bake(EdgeBevel=0.0)
-check_layout(request, folder, result, report)
-check_identity(request, folder, result)
+if __name__ == '__main__':
+	request, folder, result, report = bake(EdgeBevel=0.0)
+	check_layout(request, folder, result, report)
+	check_identity(request, folder, result)
 
-bake_insert.build_high = turned_high
-request, folder, result, report = bake()
-bake_insert.build_high = ORIGINAL_BUILD_HIGH
-check_directions(request, folder, result)
+	bake_insert.build_high = turned_high
+	request, folder, result, report = bake()
+	bake_insert.build_high = ORIGINAL_BUILD_HIGH
+	check_directions(request, folder, result)
 
-request, folder, result, report = bake()
-check_layout(request, folder, result, report)
-check_density(request, result)
-check_bevel(request, folder, result)
+	request, folder, result, report = bake()
+	check_layout(request, folder, result, report)
+	check_density(request, result)
+	check_bevel(request, folder, result)
 
-# Without a raised middle there is no flat pass, and without a bevel then
-# every texel bakes flat.
-request, folder, result, report = bake(FlatFaces=[], EdgeBevel=0.0, Unwrap=False, PreferUvPackMaster=False)
-check_layout(request, folder, result, report)
-check_identity(request, folder, result)
-assert report['Packer'] == 'Blender'
+	# Without a raised middle there is no flat pass, and without a bevel then
+	# every texel bakes flat.
+	request, folder, result, report = bake(FlatFaces=[], EdgeBevel=0.0, Unwrap=False, PreferUvPackMaster=False)
+	check_layout(request, folder, result, report)
+	check_identity(request, folder, result)
+	assert report['Packer'] == 'Blender'
 
-# Kept as the generator laid it out, the walls still shrink.
-request, folder, result, report = bake(Unwrap=False)
-check_density(request, result, unwrapped=False)
+	# Kept as the generator laid it out, the walls still shrink.
+	request, folder, result, report = bake(Unwrap=False)
+	check_density(request, result, unwrapped=False)
 
-print('BAKE INSERT TESTS PASSED', bpy.app.version_string)
+	print('BAKE INSERT TESTS PASSED', bpy.app.version_string)

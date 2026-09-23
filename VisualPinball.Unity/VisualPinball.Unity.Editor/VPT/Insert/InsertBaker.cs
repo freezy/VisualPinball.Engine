@@ -47,6 +47,7 @@ namespace VisualPinball.Unity.Editor
 		private const string Script = "VisualPinball.Unity/VisualPinball.Unity.Editor/VPT/Insert/Blender~/bake_insert.py";
 		private const string OutputRoot = "Assets/Inserts";
 		private const string LogPrefix = "[bake_insert] ";
+		public const string HybridShaderName = "Visual Pinball/Insert Hybrid";
 
 		#region Blender
 
@@ -212,6 +213,8 @@ namespace VisualPinball.Unity.Editor
 			public string Folder;
 			public string Hash;
 			public int TextureSize;
+			public bool HybridOptics;
+			public Vector4 OpticalStarburst;
 			public Process Process;
 			public readonly ConcurrentQueue<string> Output = new();
 			public readonly List<string> Log = new();
@@ -239,6 +242,9 @@ namespace VisualPinball.Unity.Editor
 			("Baking normals onto the flat mesh", 0.6f),
 			("Baking the flat region mask", 0.8f),
 			("Saving the normal map", 0.9f),
+			("Baking internal scatter proxy", 0.92f),
+			("Baking optical normals", 0.95f),
+			("Baking optical response masks", 0.98f),
 		};
 
 		public static void Bake(InsertComponent insert)
@@ -260,6 +266,8 @@ namespace VisualPinball.Unity.Editor
 				var layout = new InsertMeshLayout();
 				var body = insert.Generate(mesh, layout);
 				var request = InsertBakeRequest.Build(mesh, layout, insert.BakeSettings, body.StarburstOffset);
+				// A hybrid material always needs maps from this exact UV layout.
+				request.HybridOptics |= insert.Bake != null && insert.Bake.Material != null && insert.Bake.Material.HasProperty("_OpticalNormalMap");
 
 				var folder = Path.GetFullPath(Path.Combine("Library", "InsertBake", Guid.NewGuid().ToString("N")));
 				Directory.CreateDirectory(folder);
@@ -272,6 +280,8 @@ namespace VisualPinball.Unity.Editor
 					Folder = folder,
 					Hash = layout.Hash.ToString(),
 					TextureSize = request.TextureSize,
+					HybridOptics = request.HybridOptics,
+					OpticalStarburst = layout.OpticalStarburst,
 				};
 				job.Process = Run(blender, $"\"{requestPath}\"", job.Output);
 				_job = job;
@@ -316,7 +326,7 @@ namespace VisualPinball.Unity.Editor
 					job.Status = message;
 					foreach (var step in Steps) {
 						if (message.StartsWith(step.Message)) {
-							job.Progress = step.Progress;
+							job.Progress = math.max(job.Progress, step.Progress);
 						}
 					}
 				}
@@ -358,6 +368,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			public float[] Uvs;
 			public float[] Tangents;
+			public float[] OpticalLamp;
 			public BakeReport Report;
 		}
 
@@ -380,6 +391,9 @@ namespace VisualPinball.Unity.Editor
 			var result = JsonUtility.FromJson<BakeResult>(File.ReadAllText(resultPath));
 			if (!string.IsNullOrEmpty(result.Report?.Error)) {
 				throw new InvalidOperationException(result.Report.Error);
+			}
+			if (job.HybridOptics && (result.OpticalLamp?.Length != 4 || !File.Exists(Path.Combine(job.Folder, "optical-normal.png")) || !File.Exists(Path.Combine(job.Folder, "optical-response.png")))) {
+				throw new InvalidOperationException("Blender did not return the complete hybrid optics bake. The previous bake has been kept.");
 			}
 			var insert = job.Insert;
 			if (insert == null) {
@@ -427,9 +441,16 @@ namespace VisualPinball.Unity.Editor
 				data.Tangents[i] = new Vector4(result.Tangents[i * 4], result.Tangents[i * 4 + 1], result.Tangents[i * 4 + 2], result.Tangents[i * 4 + 3]);
 			}
 			data.NormalMap = texture;
+			data.OpticalStarburst = job.OpticalStarburst;
+			data.OpticalNormalMap = ImportOptics(job, folder, name, "optical-normal.png", "Optical Normals", data.OpticalNormalMap);
+			data.OpticalResponseMap = ImportOptics(job, folder, name, "optical-response.png", "Optical Response", data.OpticalResponseMap);
+			if (result.OpticalLamp?.Length == 4) {
+				data.OpticalLamp = new Vector4(result.OpticalLamp[0], result.OpticalLamp[1], result.OpticalLamp[2], result.OpticalLamp[3]);
+			}
 			data.Packer = result.Report.Packer;
 			data.UvFill = result.Report.UvFill;
 			data.Material = BakeMaterial(insert, own != null ? own.Material : null, $"{folder}/{name} Baked.mat", texture);
+			BindOptics(data);
 			if (created) {
 				AssetDatabase.CreateAsset(data, $"{folder}/{name} Bake.asset");
 			} else {
@@ -444,27 +465,88 @@ namespace VisualPinball.Unity.Editor
 			PrefabUtility.RecordPrefabInstancePropertyModifications(renderer);
 		}
 
+		private static Texture2D ImportOptics(Job job, string folder, string name, string source, string suffix, Texture2D existing)
+		{
+			var sourcePath = Path.Combine(job.Folder, source);
+			if (!File.Exists(sourcePath)) {
+				return null;
+			}
+			var path = existing != null ? AssetDatabase.GetAssetPath(existing) : $"{folder}/{name} {suffix}.png";
+			File.Copy(sourcePath, path, true);
+			AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+			var importer = (TextureImporter)AssetImporter.GetAtPath(path);
+			importer.textureType = TextureImporterType.Default;
+			importer.sRGBTexture = false;
+			importer.isReadable = false;
+			importer.wrapMode = TextureWrapMode.Clamp;
+			importer.textureCompression = TextureImporterCompression.Uncompressed;
+			importer.maxTextureSize = math.max(32, job.TextureSize);
+			importer.SaveAndReimport();
+			return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+		}
+
+		private static void BindOptics(InsertBakeData data)
+		{
+			if (data.Material == null || !data.Material.HasProperty("_OpticalNormalMap")) {
+				return;
+			}
+			data.Material.SetTexture("_OpticalNormalMap", data.OpticalNormalMap);
+			data.Material.SetTexture("_OpticalResponseMap", data.OpticalResponseMap);
+			if (data.Material.HasProperty("_OpticalStarburst")) {
+				data.Material.SetVector("_OpticalStarburst", data.OpticalStarburst);
+			}
+			EditorUtility.SetDirty(data.Material);
+		}
+
+		/// <summary>Explicitly opt into the HDRP hybrid, keeping the previous material asset intact.</summary>
+		public static void UseHybridMaterial(InsertComponent insert)
+		{
+			var shader = Shader.Find(HybridShaderName);
+			var data = insert.Bake;
+			if (shader == null || data == null || !insert.IsBakeFresh || data.OpticalNormalMap == null || data.OpticalResponseMap == null) {
+				throw new InvalidOperationException("Bake Hybrid Optics first, with the HDRP package installed.");
+			}
+			if (SharedWithAnotherInsert(insert)) {
+				throw new InvalidOperationException("This bake belongs to another insert as well. Bake this insert again before choosing its own material.");
+			}
+			var renderer = insert.GetComponent<MeshRenderer>();
+			Undo.RecordObjects(new Object[] { data, renderer }, "Use Hybrid Insert Material");
+			var folder = Path.GetDirectoryName(AssetDatabase.GetAssetPath(data))?.Replace('\\', '/');
+			var material = new Material(shader) { name = $"{insert.name} Hybrid" };
+			material.SetTexture("_NormalMap", data.NormalMap);
+			material.SetVector("_OpticalLamp", data.OpticalLamp);
+			AssetDatabase.CreateAsset(material, AssetDatabase.GenerateUniqueAssetPath($"{folder}/{FileName(insert.name)} Hybrid.mat"));
+			data.Material = material;
+			BindOptics(data);
+			renderer.sharedMaterial = material;
+			EditorUtility.SetDirty(data);
+			PrefabUtility.RecordPrefabInstancePropertyModifications(renderer);
+			AssetDatabase.SaveAssets();
+		}
+
 		/// <summary>
 		/// The material the insert wears baked, with the new normal map set. The
-		/// first bake starts it as a copy of the material the insert wears unbaked,
-		/// which is never touched; from then on it is the user's to edit, and a
-		/// bake only replaces its normal map.
+		/// first bake copies the current material, including a duplicated insert's
+		/// tuned hybrid material. The source is never touched; later bakes replace
+		/// only the bake-owned texture bindings.
 		/// </summary>
 		private static Material BakeMaterial(InsertComponent insert, Material existing, string path, Texture2D normalMap)
 		{
 			var material = existing;
 			var created = material == null;
 			if (created) {
-				var source = insert.UnbakedMaterial;
+				var source = insert.GetComponent<MeshRenderer>().sharedMaterial;
 				material = source != null ? new Material(source) : new Material(Shader.Find("HDRP/Lit") ?? Shader.Find("Standard"));
 			}
 
 			if (material.HasTexture("_NormalMap")) {
 				// HDRP's Lit family.
 				material.SetTexture("_NormalMap", normalMap);
-				material.SetFloat("_NormalMapSpace", 0f);
-				material.EnableKeyword("_NORMALMAP");
-				material.EnableKeyword("_NORMALMAP_TANGENT_SPACE");
+				if (material.HasProperty("_NormalMapSpace")) {
+					material.SetFloat("_NormalMapSpace", 0f);
+					material.EnableKeyword("_NORMALMAP");
+					material.EnableKeyword("_NORMALMAP_TANGENT_SPACE");
+				}
 			} else if (material.HasTexture("_BumpMap")) {
 				material.SetTexture("_BumpMap", normalMap);
 				material.EnableKeyword("_NORMALMAP");
