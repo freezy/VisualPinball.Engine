@@ -38,6 +38,9 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _triangleBase;
 		private SerializedProperty _triangleApex;
 		private SerializedProperty _rectangleCorner;
+		private SerializedProperty _diamondSide;
+		private SerializedProperty _diamondTip;
+		private SerializedProperty _diamondShear;
 		private SerializedProperty _diameter;
 		private SerializedProperty _circleVertices;
 		private SerializedProperty _bananaThickness;
@@ -81,6 +84,9 @@ namespace VisualPinball.Unity.Editor
 			_triangleBase = serializedObject.FindProperty("_triangleBase");
 			_triangleApex = serializedObject.FindProperty("_triangleApex");
 			_rectangleCorner = serializedObject.FindProperty("_rectangleCorner");
+			_diamondSide = serializedObject.FindProperty("_diamondSide");
+			_diamondTip = serializedObject.FindProperty("_diamondTip");
+			_diamondShear = serializedObject.FindProperty("_diamondShear");
 			_diameter = serializedObject.FindProperty("_diameter");
 			_circleVertices = serializedObject.FindProperty("_circleVertices");
 			_bananaThickness = serializedObject.FindProperty("_bananaThickness");
@@ -214,6 +220,13 @@ namespace VisualPinball.Unity.Editor
 				case InsertShape.Circle:
 					Field(_diameter, "Diameter");
 					Field(_circleVertices, "Vertices");
+					break;
+				case InsertShape.Diamond:
+					Field(_width, "Width");
+					Field(_height, "Height");
+					CornerField(_diamondSide, "Side Points");
+					CornerField(_diamondTip, "Top and Bottom");
+					Field(_diamondShear, "Shear");
 					break;
 				case InsertShape.Banana:
 					Field(_diameter, "Diameter");

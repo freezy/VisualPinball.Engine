@@ -75,6 +75,19 @@ namespace VisualPinball.Unity
 		private InsertCornerSettings _rectangleCorner = new(4f, 8);
 
 		[SerializeField]
+		[Tooltip("The fillet shared by the diamond's left and right points.")]
+		private InsertCornerSettings _diamondSide = new(2f, 8);
+
+		[SerializeField]
+		[Tooltip("The fillet shared by the diamond's top and bottom points.")]
+		private InsertCornerSettings _diamondTip = new(4f, 8);
+
+		[SerializeField]
+		[Range(-75f, 75f)]
+		[Tooltip("How far the diamond's top and bottom points lean over, in degrees from upright, positive to the right as seen on the table.")]
+		private float _diamondShear;
+
+		[SerializeField]
 		[Min(0.01f)]
 		[Tooltip("Diameter of the circle, or of the circle a banana's band is bent round, in VPX units.")]
 		private float _diameter = InsertShapes.VpxUnitsPerInch;
@@ -398,6 +411,7 @@ namespace VisualPinball.Unity
 				InsertShape.Rectangle => InsertShapes.RectangleCorners(_width, _height, _rectangleCorner),
 				InsertShape.Circle => InsertShapes.CircleCorners(_diameter, _circleVertices),
 				InsertShape.Banana => InsertShapes.BananaCorners(_diameter, _bananaThickness, _bananaAngle, _bananaSegments, _bananaEndSegments, out arcCenter),
+				InsertShape.Diamond => InsertShapes.DiamondCorners(_width, _height, _diamondSide, _diamondTip, _diamondShear, warnings),
 				_ => throw new InsertOutlineException($"Shape {_shape} has no outline builder yet."),
 			};
 			ArcCenter = new Vector2(arcCenter.x, arcCenter.y);

@@ -86,6 +86,23 @@ namespace VisualPinball.Unity.Test
 			Triangle(200f, 50f, 5f, 4, 20f, 4),
 		};
 
+		private static OutlineCase Diamond(float width, float height, float sideRadius, int sideSegments, float tipRadius, int tipSegments, float shear) => new() {
+			Name = $"diamond {width:0.##}x{height:0.##} sides={sideRadius}/{sideSegments} tips={tipRadius}/{tipSegments} shear={shear}",
+			Width = width,
+			Height = height,
+			Corners = (segments, warnings) => InsertShapes.DiamondCorners(width, height,
+				new InsertCornerSettings(sideRadius, segments > 0 ? segments : sideSegments),
+				new InsertCornerSettings(tipRadius, segments > 0 ? segments : tipSegments), shear, warnings),
+		};
+
+		private static readonly OutlineCase[] DiamondCases = {
+			Diamond(Inch, 2f * Inch, 2f, 8, 4f, 8, 0f), // the component's own defaults
+			Diamond(50.8f, 25.4f, 0f, 1, 0f, 1, 0f),
+			Diamond(60f, 40f, 4f, 6, 4f, 6, 30f),
+			Diamond(100f, 30f, 1.5f, 4, 6f, 12, -20f),
+			Diamond(40f, 40f, 3f, 8, 3f, 8, 35f),
+		};
+
 		private static OutlineCase Circle(float diameter, int vertices)
 		{
 			// The bounding box of the polygon the circle is drawn as, which only a
@@ -150,7 +167,7 @@ namespace VisualPinball.Unity.Test
 			Rectangle(200f, 50f, 2f, 3),
 		};
 
-		private static readonly OutlineCase[] ConvexCases = TriangleCases.Concat(RectangleCases).Concat(CircleCases).ToArray();
+		private static readonly OutlineCase[] ConvexCases = TriangleCases.Concat(RectangleCases).Concat(CircleCases).Concat(DiamondCases).ToArray();
 
 		private static readonly OutlineCase[] Cases = ConvexCases.Concat(BananaCases).ToArray();
 
@@ -454,6 +471,55 @@ namespace VisualPinball.Unity.Test
 				}
 			}
 			Assert.That(twice, Is.GreaterThan(0), "a spoke through the notch comes back in two pieces");
+		}
+
+		[TestCaseSource(nameof(DiamondCases))]
+		public void ShouldStandTheDiamondOnItsPoints(OutlineCase test)
+		{
+			// The side points sit on the middle line, at the full width; the top and
+			// bottom points lean over by the shear, one each way.
+			var outline = Build(test);
+			var right = outline.Corners.First(c => c.Index == 0);
+			var top = outline.Corners.First(c => c.Index == 1);
+			var left = outline.Corners.First(c => c.Index == 2);
+			var bottom = outline.Corners.First(c => c.Index == 3);
+			Assert.That(right.Position.y, Is.EqualTo(0f).Within(Tolerance));
+			Assert.That(left.Position.y, Is.EqualTo(0f).Within(Tolerance));
+			Assert.That(right.Position.x, Is.EqualTo(-left.Position.x).Within(Tolerance));
+			Assert.That(top.Position.x, Is.EqualTo(-bottom.Position.x).Within(Tolerance));
+			// Positive shear leans to the right on the table, which is the shape's
+			// left: the mesh turns the shape half round.
+			var shear = float.Parse(test.Name.Split("shear=")[1], System.Globalization.CultureInfo.InvariantCulture);
+			var lean = math.degrees(math.atan2(bottom.Position.x - top.Position.x, top.Position.y - bottom.Position.y));
+			Assert.That(lean, Is.EqualTo(shear).Within(0.01f));
+		}
+
+		[TestCase(20f, 40f, 0f, 0f, 70f)]
+		[TestCase(40f, 20f, 0f, 8f, 70f)]
+		public void ShouldHoldTheShearShortOfTheSides(float width, float height, float sideRadius, float tipRadius, float shear)
+		{
+			// However the fillets move the diagonals, the top and bottom end up
+			// between the side points, and the warning says so.
+			var warnings = new List<string>();
+			var corners = InsertShapes.DiamondCorners(width, height, new InsertCornerSettings(sideRadius, 8), new InsertCornerSettings(tipRadius, 8), shear, warnings);
+			Assert.That(warnings, Has.Some.Contains("Shear reduced"));
+			Assert.That(math.abs(corners[1].Position.x), Is.LessThan(corners[0].Position.x));
+			var outline = InsertOutlineBuilder.Build(corners);
+			Assert.That(outline.Width, Is.EqualTo(width).Within(Tolerance));
+			Assert.That(outline.Height, Is.EqualTo(height).Within(Tolerance));
+		}
+
+		[Test]
+		public void ShouldRoundTheDiamondsCornersDownToWhatFits()
+		{
+			// Fillets far too round for the shape are scaled back until the shape
+			// fills its box, rather than the box quietly coming out smaller.
+			var warnings = new List<string>();
+			var corners = InsertShapes.DiamondCorners(20f, 40f, new InsertCornerSettings(20f, 8), new InsertCornerSettings(20f, 8), 0f, warnings);
+			Assert.That(warnings, Has.Some.Contains("Corner radius reduced"));
+			var outline = InsertOutlineBuilder.Build(corners);
+			Assert.That(outline.Width, Is.EqualTo(20f).Within(Tolerance));
+			Assert.That(outline.Height, Is.EqualTo(40f).Within(Tolerance));
 		}
 
 		[TestCaseSource(nameof(RectangleCases))]

@@ -30,6 +30,7 @@ namespace VisualPinball.Unity
 		Rectangle,
 		Circle,
 		Banana,
+		Diamond,
 	}
 
 	/// <summary>
@@ -215,6 +216,87 @@ namespace VisualPinball.Unity
 			}
 			arcCenter = -(low + high) * 0.5f;
 			return corners.ToArray();
+		}
+
+		/// <summary>
+		/// A diamond: a rhombus standing on its points, the left and right pair
+		/// filleted alike and the top and bottom pair alike, sheared by an angle
+		/// so the top leans over to one side. The finished shape, fillets and
+		/// all, fills the width by the height exactly.
+		/// </summary>
+		/// <remarks>
+		/// A fillet on a corner that is not a right angle pulls the shape's
+		/// extreme in from the sharp corner, by an amount that depends on the
+		/// corner's angle, which the shear changes as well. Rather than solve
+		/// that in closed form for every combination, the sharp rhombus is
+		/// measured as the outline builder itself would build it, and its
+		/// half-diagonals are corrected by what is missing, a few times over,
+		/// which converges in a handful of steps since the pull barely moves.
+		/// Fillets too round for the shape are scaled down until it does
+		/// converge, with a warning, as a triangle's are.
+		/// </remarks>
+		/// <param name="shear">How far the top and bottom points lean over, in
+		/// degrees from upright, positive to the right as seen on the table,
+		/// which is the shape's left, since the mesh turns the shape half round.
+		/// Held short of the sides' points at every step, or the shape stops
+		/// being a diamond.</param>
+		public static InsertCorner[] DiamondCorners(float width, float height, InsertCornerSettings side, InsertCornerSettings tip,
+			float shear, List<string> warnings)
+		{
+			if (width <= Epsilon || height <= Epsilon) {
+				throw new InsertOutlineException("Width and height must be positive.");
+			}
+			var requested = math.tan(math.radians(math.clamp(shear, -80f, 80f)));
+			var slope = requested;
+			var scale = 1f;
+			InsertCorner[] corners = null;
+			var converged = false;
+
+			InsertCorner[] Sharp(float halfWidth, float halfHeight) => new[] {
+				new InsertCorner(new float2(halfWidth, 0f), side.Radius * scale, side.Segments, "Right"),
+				new InsertCorner(new float2(-halfHeight * slope, halfHeight), tip.Radius * scale, tip.Segments, "Top"),
+				new InsertCorner(new float2(-halfWidth, 0f), side.Radius * scale, side.Segments, "Left"),
+				new InsertCorner(new float2(halfHeight * slope, -halfHeight), tip.Radius * scale, tip.Segments, "Bottom"),
+			};
+
+			for (var attempt = 0; attempt < 12 && !converged; attempt++) {
+				var a = width * 0.5f;
+				var b = height * 0.5f;
+				for (var step = 0; step < 24; step++) {
+					// The lean is held short of the sides at every step, since the
+					// diagonals move under it.
+					var limit = 0.9f * a / b;
+					if (math.abs(slope) > limit) {
+						slope = limit * math.sign(slope);
+					}
+					corners = Sharp(a, b);
+					var measured = InsertOutlineBuilder.Build(corners, 1, false);
+					var missingWidth = width - measured.Width;
+					var missingHeight = height - measured.Height;
+					if (math.abs(missingWidth) < 1e-5f && math.abs(missingHeight) < 1e-5f) {
+						converged = true;
+						break;
+					}
+					a += missingWidth * 0.5f;
+					b += missingHeight * 0.5f;
+					if (a <= Epsilon || b <= Epsilon) {
+						break;
+					}
+				}
+				if (!converged) {
+					scale *= 0.8f;
+				}
+			}
+			if (!converged) {
+				throw new InsertOutlineException("The corners are too round for a diamond this size.");
+			}
+			if (scale < 1f - 1e-4f) {
+				warnings?.Add($"Corner radius reduced to {scale * 100f:0}% to fit the diamond.");
+			}
+			if (math.abs(slope - requested) > 1e-6f) {
+				warnings?.Add($"Shear reduced to {math.degrees(math.atan(slope)):0.#} degrees, so the top and bottom stay between the sides.");
+			}
+			return corners;
 		}
 
 		/// <summary>
