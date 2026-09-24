@@ -38,6 +38,45 @@ namespace VisualPinball.Unity.Test
 			fixture.AssertLevel(0f);
 		}
 
+		[Test]
+		public void ShouldTintTheBodyAndTheCoverWithTheLampWhileLit()
+		{
+			// With the toggle on, the body's block and the cover's block carry the
+			// tint amount and the cover gets the lamp's level and colour too; off,
+			// the tint is zero and nothing else of the cover's block changes.
+			using var fixture = new MappedInsert();
+			var coverShader = Shader.Find("Visual Pinball/Insert Cover");
+			if (coverShader == null) { Assert.Ignore("Requires the HDRP insert cover shader."); }
+			var cover = new Material(coverShader);
+			var renderer = fixture.Control.GetComponent<MeshRenderer>();
+			try {
+				fixture.Control.GetComponent<InsertComponent>().SetCoverMaterial(cover);
+				fixture.Control.TintWithLamp = true;
+				fixture.Control.LampTint = 0.5f;
+				fixture.Control.Color = Color.red;
+				fixture.Control.Intensity = 0.75f;
+				fixture.Control.Apply();
+				var body = new MaterialPropertyBlock();
+				var top = new MaterialPropertyBlock();
+				renderer.GetPropertyBlock(body, 0);
+				renderer.GetPropertyBlock(top, 1);
+				Assert.That(body.GetFloat("_InsertLampTint"), Is.EqualTo(0.5f));
+				Assert.That(top.GetFloat("_InsertLampTint"), Is.EqualTo(0.5f));
+				Assert.That(top.GetFloat("_InsertLampLevel"), Is.EqualTo(0.75f));
+				Assert.That(top.GetVector("_InsertLampColor"), Is.EqualTo((Vector4)Color.red.linear));
+
+				fixture.Control.TintWithLamp = false;
+				fixture.Control.Apply();
+				renderer.GetPropertyBlock(body, 0);
+				renderer.GetPropertyBlock(top, 1);
+				Assert.That(body.GetFloat("_InsertLampTint"), Is.Zero);
+				Assert.That(top.GetFloat("_InsertLampTint"), Is.Zero);
+			} finally {
+				fixture.Control.GetComponent<InsertComponent>().SetCoverMaterial(null);
+				Object.DestroyImmediate(cover);
+			}
+		}
+
 		[TestCase(LampType.SingleFading, 100, 130f / 255f)]
 		[TestCase(LampType.Rgb, 255, 51f / 255f)]
 		public void ShouldDriveTheLensAndSpillFromNormalizedRomValues(LampType type, int steps, float expected)

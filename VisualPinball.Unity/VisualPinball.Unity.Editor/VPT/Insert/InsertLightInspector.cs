@@ -30,6 +30,8 @@ namespace VisualPinball.Unity.Editor
 	{
 		private SerializedProperty _intensity;
 		private SerializedProperty _color;
+		private SerializedProperty _tintWithLamp;
+		private SerializedProperty _lampTint;
 		private SerializedProperty _spillLumens;
 		private SerializedProperty _spillRange;
 		private SerializedProperty _spillLight;
@@ -43,6 +45,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			_intensity = serializedObject.FindProperty(nameof(InsertLightComponent.Intensity));
 			_color = serializedObject.FindProperty(nameof(InsertLightComponent.Color));
+			_tintWithLamp = serializedObject.FindProperty(nameof(InsertLightComponent.TintWithLamp));
+			_lampTint = serializedObject.FindProperty(nameof(InsertLightComponent.LampTint));
 			_spillLumens = serializedObject.FindProperty(nameof(InsertLightComponent.SpillLumens));
 			_spillRange = serializedObject.FindProperty(nameof(InsertLightComponent.SpillRange));
 			_spillLight = serializedObject.FindProperty(nameof(InsertLightComponent.SpillLight));
@@ -65,6 +69,10 @@ namespace VisualPinball.Unity.Editor
 				using (new EditorGUI.DisabledScope(!hybrid)) {
 					Field(_intensity, "Intensity");
 					Field(_color, "Color");
+					Field(_tintWithLamp, "Tint With Lamp");
+					using (new EditorGUI.DisabledScope(!_tintWithLamp.boolValue && !_tintWithLamp.hasMultipleDifferentValues)) {
+						Field(_lampTint, "Tint Amount");
+					}
 				}
 				if (Application.isPlaying) {
 					EditorGUILayout.HelpBox("While playing, a lamp mapped in Lamp Manager or under a Light follows the game and overwrites these.", MessageType.None);

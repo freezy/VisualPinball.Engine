@@ -29,6 +29,13 @@ namespace VisualPinball.Unity
 		[Tooltip("Lamp colour. Edit here to preview; RGB lamp mappings update it at runtime.")]
 		public Color Color = UnityEngine.Color.white;
 
+		[Tooltip("Turns the hue and saturation of the body and of the clear cover towards the lamp's while the lamp is lit, as far as it is lit, never their brightness: a grey cover milks a coloured lamp otherwise. A white lamp changes nothing, and a lamp that is off leaves both their own colour.")]
+		public bool TintWithLamp;
+
+		[Range(0f, 1f)]
+		[Tooltip("How much of the lamp's hue the body and the cover take at full intensity.")]
+		public float LampTint = 1f;
+
 		[Header("Environment Spill")]
 		[Min(0f)]
 		[Tooltip("Spill output in lumens at Max Brightness one and full intensity. Scales with the material's Max Brightness and ROM intensity.")]
@@ -44,10 +51,13 @@ namespace VisualPinball.Unity
 		private static readonly int LuminosityId = Shader.PropertyToID("_InsertLuminosity");
 		private static readonly int LevelId = Shader.PropertyToID("_InsertLampLevel");
 		private static readonly int ColorId = Shader.PropertyToID("_InsertLampColor");
+		private static readonly int TintId = Shader.PropertyToID("_InsertLampTint");
 		private static readonly int EmissionId = Shader.PropertyToID("_EmissiveColor");
 		private MeshRenderer _renderer;
 		private LightComponent _driver;
 		private MaterialPropertyBlock _properties;
+		private MaterialPropertyBlock _coverProperties;
+		private readonly List<Material> _materials = new();
 		[NonSerialized] private InsertLightApi _api;
 		private bool _blinking;
 		private float _blinkStarted;
@@ -141,6 +151,8 @@ namespace VisualPinball.Unity
 				if (SpillLight != null) {
 					SpillLight.enabled = false;
 				}
+				// A body that stopped being the hybrid one takes its tint off the cover too.
+				TintCover(0f, UnityEngine.Color.white);
 				return;
 			}
 			_properties ??= new MaterialPropertyBlock();
@@ -158,7 +170,9 @@ namespace VisualPinball.Unity
 				_properties.SetFloat(LevelId, level);
 				_properties.SetVector(ColorId, (Vector4)color);
 			}
+			_properties.SetFloat(TintId, TintWithLamp ? math.saturate(LampTint) : 0f);
 			_renderer.SetPropertyBlock(_properties, 0);
+			TintCover(level, color);
 			if (SpillLight == null) {
 				return;
 			}
@@ -172,6 +186,27 @@ namespace VisualPinball.Unity
 			converter.SetRange(SpillLight, math.max(0.001f, SpillRange));
 			converter.SetIntensity(SpillLight, math.max(0f, SpillLumens) * brightness * math.max(0f, level));
 			SpillLight.enabled = brightness * level * SpillLumens > 0f && color.maxColorComponent > 0f;
+		}
+
+		/// <summary>
+		/// Hands the lamp's level and colour, and how much of its hue to take,
+		/// to the clear cover in the renderer's second slot, through that slot's
+		/// own property block, which the insert's playfield-normal projection
+		/// shares: both read the block before writing it.
+		/// </summary>
+		private void TintCover(float level, Color color)
+		{
+			// Into a list: the array property copies on every read, every frame.
+			_renderer.GetSharedMaterials(_materials);
+			if (_materials.Count < 2 || _materials[1] == null || !_materials[1].HasProperty(TintId)) {
+				return;
+			}
+			_coverProperties ??= new MaterialPropertyBlock();
+			_renderer.GetPropertyBlock(_coverProperties, 1);
+			_coverProperties.SetFloat(LevelId, level);
+			_coverProperties.SetVector(ColorId, (Vector4)color);
+			_coverProperties.SetFloat(TintId, TintWithLamp ? math.saturate(LampTint) : 0f);
+			_renderer.SetPropertyBlock(_coverProperties, 1);
 		}
 
 		private void OnDisable()
@@ -191,6 +226,11 @@ namespace VisualPinball.Unity
 					}
 					_renderer.SetPropertyBlock(_properties, 0);
 				}
+			}
+			// The cover does not stay tinted by a light that is gone; its
+			// projection properties in the same block are left as they are.
+			if (_renderer != null) {
+				TintCover(0f, UnityEngine.Color.white);
 			}
 		}
 

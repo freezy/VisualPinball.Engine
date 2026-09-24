@@ -117,3 +117,4 @@ Built with Unity 6.5
 - Clear texture and material references that don't exist before writing (VP 10.7 behavior) ([#291](https://github.com/freezy/VisualPinball.Engine/pull/291)).
 - Bug in writing animation vertices which caused VP to hang when re-reading the file ([#291](https://github.com/freezy/VisualPinball.Engine/pull/291)).
 - A few bugs in drag point gizmos ([#246](https://github.com/freezy/VisualPinball.Engine/pull/246)).
+- Insert Light has Tint With Lamp: the hue and saturation of the clear cover's haze and of the body turn towards the lamp's while the lamp is lit, in proportion to its intensity and never their brightness, so a coloured lamp is not milked by a grey cover and a lamp that is off leaves both their own colour.
