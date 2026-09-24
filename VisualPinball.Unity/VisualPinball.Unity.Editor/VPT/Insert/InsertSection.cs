@@ -38,13 +38,12 @@ namespace VisualPinball.Unity.Editor
 		{
 			var open = SessionState.GetBool(key, true);
 			var rect = GUILayoutUtility.GetRect(0f, 26f, GUILayout.ExpandWidth(true));
-			// Out to the inspector's edge, like the component header above it.
+			// Out to the inspector's edge, like the component header above it. The
+			// style paints the bar itself, arrow and all.
 			rect.xMin -= 14f;
 			rect.xMax += 4f;
-			EditorGUI.DrawRect(rect, EditorGUIUtility.isProSkin ? new Color(0.24f, 0.24f, 0.24f) : new Color(0.72f, 0.72f, 0.72f));
-			var label = new Rect(rect.x + 14f, rect.y + 2f, rect.width - 14f, rect.height - 4f);
 			EditorGUI.BeginChangeCheck();
-			open = EditorGUI.Foldout(label, open, title, true, Header);
+			open = EditorGUI.Foldout(rect, open, title, true, Header);
 			if (EditorGUI.EndChangeCheck()) {
 				SessionState.SetBool(key, open);
 			}
