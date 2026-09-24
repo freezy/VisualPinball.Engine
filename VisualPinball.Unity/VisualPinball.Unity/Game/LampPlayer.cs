@@ -93,6 +93,17 @@ namespace VisualPinball.Unity
 						continue;
 					}
 
+					// A device registers itself in Awake. An ExecuteAlways device had
+					// its Awake in edit mode already, and Enter Play Mode without a
+					// scene reload does not call it again, so such a device never
+					// arrives here on its own: take it now, and initialise it the way
+					// the ones that did were before OnStart.
+					if (!_lamps.ContainsKey(lampMapping.Device) && lampMapping.Device is MonoBehaviour behaviour && _player != null) {
+						var api = lampMapping.Device.GetApi(_player);
+						_player.Register(api, behaviour);
+						api.OnInit(_player.BallManager);
+					}
+
 					AssignLampMapping(lampMapping);
 					assignedMappings++;
 

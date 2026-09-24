@@ -64,12 +64,21 @@ namespace VisualPinball.Unity
 		// Once this device receives an event, a parent Light must not overwrite it.
 		internal bool IsControlledByApi { get; private set; }
 
-		private void Awake()
+		private void Awake() => RegisterWithPlayer();
+
+		/// <summary>
+		/// Registers the lamp with the player, as LightComponent does in Awake, so
+		/// the API is there when LampPlayer maps lamps. This component executes
+		/// always, so its Awake may have run in edit mode only, and a script
+		/// reload since then has dropped what it registered: Enter Play Mode
+		/// without a scene reload does not call Awake again, hence OnEnable, which
+		/// a reload does call, registers too, and LampPlayer takes a mapped device
+		/// that still missed both.
+		/// </summary>
+		private void RegisterWithPlayer()
 		{
-			// ExecuteAlways can invoke Awake before play mode. Register at the same
-			// point as LightComponent so the API is present when LampPlayer maps lamps.
 			var player = GetComponentInParent<Player>();
-			if (player != null) {
+			if (player != null && player.Lamp(this) == null) {
 				player.Register(GetApi(player), this);
 			}
 		}
@@ -113,6 +122,7 @@ namespace VisualPinball.Unity
 
 		private void OnEnable()
 		{
+			RegisterWithPlayer();
 			_renderer = GetComponent<MeshRenderer>();
 			_driver = GetComponentInParent<LightComponent>();
 			_properties ??= new MaterialPropertyBlock();

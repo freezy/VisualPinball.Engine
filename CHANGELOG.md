@@ -96,6 +96,7 @@ Built with Unity 6.5
 
 ### Fixed
 
+- Insert Light components mapped in Lamp Manager never lit from the ROM in a project that enters play mode without a scene reload: the component executes always, so its Awake had run in edit mode only and a later script reload dropped that registration. The lamp player now takes any mapped device that missed its Awake, and the component registers on enable as well.
 - Insert rebakes correctly restore the generator UV layout when Blender produces folded UVs, preventing false fallback success followed by overlapping-texel errors.
 
 - Hybrid inserts expose normalized Intensity and Color on the component, driven by ROM lamps at runtime, with unrestricted Max Brightness on the material and matching environmental spill.
