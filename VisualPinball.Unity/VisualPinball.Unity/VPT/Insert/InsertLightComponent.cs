@@ -29,6 +29,21 @@ namespace VisualPinball.Unity
 		[Tooltip("Lamp colour. Edit here to preview; RGB lamp mappings update it at runtime.")]
 		public Color Color = UnityEngine.Color.white;
 
+		/// <summary>A bulb of the material's beyond the first: its own colour and level.</summary>
+		[Serializable]
+		public class Bulb
+		{
+			[Range(0f, 1f)]
+			[Tooltip("This bulb's intensity, zero to one. Edit here to preview.")]
+			public float Intensity = 1f;
+
+			[Tooltip("This bulb's colour. Edit here to preview.")]
+			public Color Color = UnityEngine.Color.white;
+		}
+
+		[Tooltip("The material's second, third and fourth bulb, where it has them: each with a colour and intensity of its own. The first bulb is Intensity and Color above.")]
+		public Bulb[] ExtraBulbs = { new(), new(), new() };
+
 		[Tooltip("Turns the hue and saturation of the body and of the clear cover towards the lamp's while the lamp is lit, as far as it is lit, never their brightness: a grey cover milks a coloured lamp otherwise. A white lamp changes nothing, and a lamp that is off leaves both their own colour.")]
 		public bool TintWithLamp;
 
@@ -58,6 +73,7 @@ namespace VisualPinball.Unity
 		private static readonly int LevelId = Shader.PropertyToID("_InsertLampLevel");
 		private static readonly int ColorId = Shader.PropertyToID("_InsertLampColor");
 		private static readonly int TintId = Shader.PropertyToID("_InsertLampTint");
+		private static readonly int[] BulbColorIds = { Shader.PropertyToID("_InsertLampColorB"), Shader.PropertyToID("_InsertLampColorC"), Shader.PropertyToID("_InsertLampColorD") };
 		private static readonly int EmissionId = Shader.PropertyToID("_EmissiveColor");
 		private MeshRenderer _renderer;
 		private LightComponent _driver;
@@ -177,6 +193,11 @@ namespace VisualPinball.Unity
 				_properties.SetVector(ColorId, (Vector4)color);
 			}
 			_properties.SetFloat(TintId, TintWithLamp ? math.saturate(LampTint) : 0f);
+			for (var i = 0; i < BulbColorIds.Length; i++) {
+				var bulb = ExtraBulbs != null && i < ExtraBulbs.Length ? ExtraBulbs[i] : null;
+				var drive = bulb != null ? bulb.Color.linear : UnityEngine.Color.white;
+				_properties.SetVector(BulbColorIds[i], new Vector4(drive.r, drive.g, drive.b, bulb != null ? math.saturate(bulb.Intensity) : 0f));
+			}
 			_renderer.SetPropertyBlock(_properties, 0);
 			TintCover(level, color);
 			if (SpillLight == null) {
@@ -224,11 +245,22 @@ namespace VisualPinball.Unity
 				var material = _renderer.sharedMaterial;
 				_renderer.GetPropertyBlock(_properties, 0);
 				if (material.HasProperty(LuminosityId)) {
+					// The extra bulbs go with the first: off, or back to the material's own.
 					if (IsControlledByApi) {
 						_properties.SetFloat(LevelId, 0f);
+						foreach (var id in BulbColorIds) {
+							var drive = _properties.HasVector(id) ? _properties.GetVector(id) : new Vector4(1f, 1f, 1f, 0f);
+							drive.w = 0f;
+							_properties.SetVector(id, drive);
+						}
 					} else if (!Application.isPlaying || _driver == null) {
 						_properties.SetFloat(LevelId, material.GetFloat(LevelId));
 						_properties.SetVector(ColorId, material.GetVector(ColorId));
+						foreach (var id in BulbColorIds) {
+							if (material.HasProperty(id)) {
+								_properties.SetVector(id, material.GetVector(id));
+							}
+						}
 					}
 					_renderer.SetPropertyBlock(_properties, 0);
 				}
