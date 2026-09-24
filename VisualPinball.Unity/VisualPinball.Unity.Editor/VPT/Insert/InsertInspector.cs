@@ -41,6 +41,12 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _diamondSide;
 		private SerializedProperty _diamondTip;
 		private SerializedProperty _diamondShear;
+		private SerializedProperty _flashTip;
+		private SerializedProperty _flashNotch;
+		private SerializedProperty _flashStep;
+		private SerializedProperty _flashTipCorner;
+		private SerializedProperty _flashSpikeCorner;
+		private SerializedProperty _flashNotchCorner;
 		private SerializedProperty _diameter;
 		private SerializedProperty _circleVertices;
 		private SerializedProperty _bananaThickness;
@@ -87,6 +93,12 @@ namespace VisualPinball.Unity.Editor
 			_diamondSide = serializedObject.FindProperty("_diamondSide");
 			_diamondTip = serializedObject.FindProperty("_diamondTip");
 			_diamondShear = serializedObject.FindProperty("_diamondShear");
+			_flashTip = serializedObject.FindProperty("_flashTip");
+			_flashNotch = serializedObject.FindProperty("_flashNotch");
+			_flashStep = serializedObject.FindProperty("_flashStep");
+			_flashTipCorner = serializedObject.FindProperty("_flashTipCorner");
+			_flashSpikeCorner = serializedObject.FindProperty("_flashSpikeCorner");
+			_flashNotchCorner = serializedObject.FindProperty("_flashNotchCorner");
 			_diameter = serializedObject.FindProperty("_diameter");
 			_circleVertices = serializedObject.FindProperty("_circleVertices");
 			_bananaThickness = serializedObject.FindProperty("_bananaThickness");
@@ -227,6 +239,16 @@ namespace VisualPinball.Unity.Editor
 					CornerField(_diamondSide, "Side Points");
 					CornerField(_diamondTip, "Top and Bottom");
 					Field(_diamondShear, "Shear");
+					break;
+				case InsertShape.Flash:
+					Field(_width, "Width");
+					Field(_height, "Height");
+					Field(_flashTip, "Tip Width");
+					Field(_flashNotch, "Notch Depth");
+					Field(_flashStep, "Step Height");
+					CornerField(_flashTipCorner, "Tip Corners");
+					CornerField(_flashSpikeCorner, "Spike Corners");
+					CornerField(_flashNotchCorner, "Notch Corners");
 					break;
 				case InsertShape.Banana:
 					Field(_diameter, "Diameter");

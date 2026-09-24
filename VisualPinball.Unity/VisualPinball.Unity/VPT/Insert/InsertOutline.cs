@@ -281,11 +281,16 @@ namespace VisualPinball.Unity
 			var min = new float2(float.MaxValue);
 			var max = new float2(float.MinValue);
 			var area = 0f;
+			var count = Points.Count;
+			var offset = new float2[count];
+			for (var i = 0; i < count; i++) {
+				offset[i] = OffsetPoint(i, distance);
+			}
 
-			for (var i = 0; i < Points.Count; i++) {
-				var next = (i + 1) % Points.Count;
-				var a = OffsetPoint(i, distance);
-				var b = OffsetPoint(next, distance);
+			for (var i = 0; i < count; i++) {
+				var next = (i + 1) % count;
+				var a = offset[i];
+				var b = offset[next];
 
 				var moved = b - a;
 				if (math.lengthsq(moved) > InsertOutlineBuilder.Epsilon * InsertOutlineBuilder.Epsilon) {
@@ -307,7 +312,34 @@ namespace VisualPinball.Unity
 			// The extent is what rules out a sliver; the area only has to say the
 			// ring has not turned inside out.
 			var extent = math.min(max.x - min.x, max.y - min.y);
-			return area > 0f && extent > WeldTolerance * 8f;
+			if (area <= 0f || extent <= WeldTolerance * 8f) {
+				return false;
+			}
+
+			// A ring can also cross itself with every edge still running its way,
+			// where two parts of it far apart along the ring meet: a notch closing
+			// onto the side across from it, say. Only edges that are not
+			// neighbours can cross; neighbours meet at their shared point.
+			for (var i = 0; i < count; i++) {
+				var a = offset[i];
+				var b = offset[(i + 1) % count];
+				for (var j = i + 2; j < count; j++) {
+					if (i == 0 && j == count - 1) {
+						continue;
+					}
+					if (Crosses(a, b, offset[j], offset[(j + 1) % count])) {
+						return false;
+					}
+				}
+			}
+			return true;
+		}
+
+		/// <summary>Whether two segments cross properly, neither touching the other at a point.</summary>
+		private static bool Crosses(float2 a, float2 b, float2 c, float2 d)
+		{
+			static double Side(double2 o, double2 p, double2 q) => (p.x - o.x) * (q.y - o.y) - (p.y - o.y) * (q.x - o.x);
+			return Side(a, b, c) * Side(a, b, d) < 0.0 && Side(c, d, a) * Side(c, d, b) < 0.0;
 		}
 
 		/// <summary>

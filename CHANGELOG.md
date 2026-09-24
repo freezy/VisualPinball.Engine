@@ -8,6 +8,7 @@ Built with Unity 6.5
 
 ### Added
 
+- A flash insert shape, the lightning bolt: width, height, tip width, notch depth and step height, with fillets of their own on the tips, the spikes and the notches; it fills its width and height exactly.
 - A diamond insert shape, with its own fillets on the side points and on the top and bottom, and a shear that leans it over; the fillets and the shear leave the width and height exactly as set.
 - A banana insert shape: a band bent round a circle of a given diameter, with rounded ends, set by its thickness, angle and vertex counts, with a button that centres the starburst on the circle; every option of the other shapes works on it.
 - A circle insert shape, drawn as a regular polygon of a chosen diameter and vertex count, with every option of the other shapes.

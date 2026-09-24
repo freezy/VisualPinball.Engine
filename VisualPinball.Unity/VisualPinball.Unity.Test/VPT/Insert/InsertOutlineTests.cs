@@ -142,6 +142,25 @@ namespace VisualPinball.Unity.Test
 			};
 		}
 
+		private static OutlineCase Flash(float width, float height, float tip, float notch, float step,
+			float tipRadius, float spikeRadius, float notchRadius, int segments) => new() {
+			Name = $"flash {width:0.##}x{height:0.##} tip={tip} notch={notch} step={step} radii={tipRadius}/{spikeRadius}/{notchRadius} segs={segments}",
+			Width = width,
+			Height = height,
+			Corners = (segs, warnings) => InsertShapes.FlashCorners(width, height, tip, notch, step,
+				new InsertCornerSettings(tipRadius, segs > 0 ? segs : segments),
+				new InsertCornerSettings(spikeRadius, segs > 0 ? segs : segments),
+				new InsertCornerSettings(notchRadius, segs > 0 ? segs : segments), warnings),
+		};
+
+		/// <summary>Bolts, which bend in on themselves at their two notches.</summary>
+		private static readonly OutlineCase[] FlashCases = {
+			Flash(0.6f * Inch, 2f * Inch, 6f, 10f, 8f, 3f, 2f, 2f, 8), // the component's own defaults
+			Flash(30f, 100f, 8f, 8f, 0f, 0f, 0f, 0f, 1),
+			Flash(40f, 120f, 10f, 15f, 12f, 5f, 3f, 4f, 6),
+			Flash(60f, 90f, 20f, 25f, 5f, 2f, 1f, 1f, 4),
+		};
+
 		/// <summary>The one shape that bends in on itself, which the convex-only invariants leave out.</summary>
 		private static readonly OutlineCase[] BananaCases = {
 			Banana(Inch, 0.5f * Inch, 90f, 24, 8), // the component's own defaults
@@ -169,7 +188,7 @@ namespace VisualPinball.Unity.Test
 
 		private static readonly OutlineCase[] ConvexCases = TriangleCases.Concat(RectangleCases).Concat(CircleCases).Concat(DiamondCases).ToArray();
 
-		private static readonly OutlineCase[] Cases = ConvexCases.Concat(BananaCases).ToArray();
+		private static readonly OutlineCase[] Cases = ConvexCases.Concat(BananaCases).Concat(FlashCases).ToArray();
 
 		private static InsertOutline Build(OutlineCase test, int segments = 0, int sideSegments = 1)
 		{
@@ -427,6 +446,41 @@ namespace VisualPinball.Unity.Test
 		#endregion
 
 		#region Rectangle
+
+		[Test]
+		public void ShouldStopInsettingWhereANotchWouldCrossTheOtherSide()
+		{
+			// A flash whose notches leave only six units between them at the
+			// middle: inset by three, the two notches would cross each other with
+			// every edge still running its way. The inset stops short of that.
+			var outline = Build(Flash(30f, 100f, 8f, 12f, 0f, 0f, 0f, 0f, 1));
+			var inset = outline.ClampInset(3f);
+			Assert.That(inset, Is.GreaterThan(0f));
+			Assert.That(inset, Is.LessThan(3f));
+			Assert.That(outline.ClampInset(inset), Is.EqualTo(inset).Within(1e-6f), "what fits, fits");
+		}
+
+		[TestCaseSource(nameof(FlashCases))]
+		public void ShouldTurnTheFlashHalfRoundOntoItself(OutlineCase test)
+		{
+			// Each corner is the point reflection of the one four along: the two
+			// arms are the same arm, turned half round. The steps are level, the
+			// flat ends as wide as asked and the notches as deep.
+			var outline = Build(test);
+			var corners = outline.Corners.OrderBy(c => c.Index).ToArray();
+			Assert.That(corners, Has.Length.EqualTo(8));
+			for (var i = 0; i < 4; i++) {
+				Assert.That(corners[i + 4].Position.x, Is.EqualTo(-corners[i].Position.x).Within(Tolerance), $"corner {i}");
+				Assert.That(corners[i + 4].Position.y, Is.EqualTo(-corners[i].Position.y).Within(Tolerance), $"corner {i}");
+			}
+			var parts = test.Name.Split(' ');
+			float Of(string key) => float.Parse(parts.First(p => p.StartsWith(key + "=")).Split('=')[1], System.Globalization.CultureInfo.InvariantCulture);
+			Assert.That(corners[2].Position.y, Is.EqualTo(corners[3].Position.y).Within(Tolerance), "the left step is level");
+			Assert.That(corners[2].Position.y, Is.EqualTo(Of("step")).Within(Tolerance));
+			Assert.That(corners[0].Position.x - corners[1].Position.x, Is.EqualTo(Of("tip")).Within(Tolerance));
+			Assert.That(corners[3].Position.x - corners[2].Position.x, Is.EqualTo(Of("notch")).Within(Tolerance));
+			Assert.That(outline.Corners.Count(c => c.Concave), Is.EqualTo(2), "the two notches turn inwards");
+		}
 
 		[TestCaseSource(nameof(BananaCases))]
 		public void ShouldBendTheBananaAboutItsArc(OutlineCase test)

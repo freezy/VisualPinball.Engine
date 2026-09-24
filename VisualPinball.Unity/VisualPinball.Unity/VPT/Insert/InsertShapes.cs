@@ -31,6 +31,7 @@ namespace VisualPinball.Unity
 		Circle,
 		Banana,
 		Diamond,
+		Flash,
 	}
 
 	/// <summary>
@@ -248,28 +249,94 @@ namespace VisualPinball.Unity
 			}
 			var requested = math.tan(math.radians(math.clamp(shear, -80f, 80f)));
 			var slope = requested;
+			var corners = FitBox(width, height, "diamond", warnings, (a, b, scale) => {
+				// The lean is held short of the sides at every step, since the
+				// diagonals move under it.
+				var limit = 0.9f * a / b;
+				if (math.abs(slope) > limit) {
+					slope = limit * math.sign(slope);
+				}
+				return new[] {
+					new InsertCorner(new float2(a, 0f), side.Radius * scale, side.Segments, "Right"),
+					new InsertCorner(new float2(-b * slope, b), tip.Radius * scale, tip.Segments, "Top"),
+					new InsertCorner(new float2(-a, 0f), side.Radius * scale, side.Segments, "Left"),
+					new InsertCorner(new float2(b * slope, -b), tip.Radius * scale, tip.Segments, "Bottom"),
+				};
+			});
+			if (math.abs(slope - requested) > 1e-6f) {
+				warnings?.Add($"Shear reduced to {math.degrees(math.atan(slope)):0.#} degrees, so the top and bottom stay between the sides.");
+			}
+			return corners;
+		}
+
+		/// <summary>
+		/// A flash: the lightning bolt. Two arms, one above the other and turned
+		/// half round from each other, each with a flat end, an outer edge
+		/// running from that end down to a spike, and a step back in from the
+		/// spike to a notch where the other arm's outer edge takes over. Six
+		/// numbers draw the sharp shape: its width and height, how wide the flat
+		/// ends are, how far the steps go in from the spikes, and how far above
+		/// and below the middle the two steps sit. The tips' corners, the spikes
+		/// and the notches each round off with fillets of their own, the notches'
+		/// turning inwards.
+		/// </summary>
+		/// <remarks>
+		/// The flat ends touch the top and bottom whatever their fillets, but the
+		/// spikes and the tips' outer corners are the widest points, and a fillet
+		/// pulls them in, so the sharp width is fitted to the box the way a
+		/// diamond's is.
+		/// </remarks>
+		public static InsertCorner[] FlashCorners(float width, float height, float tipWidth, float notchDepth, float step,
+			InsertCornerSettings tipCorner, InsertCornerSettings spikeCorner, InsertCornerSettings notchCorner, List<string> warnings)
+		{
+			if (width <= Epsilon || height <= Epsilon) {
+				throw new InsertOutlineException("Width and height must be positive.");
+			}
+			if (tipWidth <= Epsilon || tipWidth >= width - Epsilon) {
+				throw new InsertOutlineException("The tips must be narrower than the flash and wider than nothing.");
+			}
+			if (notchDepth <= Epsilon || notchDepth >= width * 0.5f - Epsilon) {
+				throw new InsertOutlineException("The notches must reach in, and less than halfway across.");
+			}
+			if (step < 0f || step >= height * 0.5f - Epsilon) {
+				throw new InsertOutlineException("The steps must sit between the middle and the ends.");
+			}
+			return FitBox(width, height, "flash", warnings, (a, b, scale) => new[] {
+				new InsertCorner(new float2(a, b), tipCorner.Radius * scale, tipCorner.Segments, "TopRight"),
+				new InsertCorner(new float2(a - tipWidth, b), tipCorner.Radius * scale, tipCorner.Segments, "TopLeft"),
+				new InsertCorner(new float2(-a, step), spikeCorner.Radius * scale, spikeCorner.Segments, "SpikeLeft"),
+				new InsertCorner(new float2(-a + notchDepth, step), notchCorner.Radius * scale, notchCorner.Segments, "NotchLeft"),
+				new InsertCorner(new float2(-a, -b), tipCorner.Radius * scale, tipCorner.Segments, "BottomLeft"),
+				new InsertCorner(new float2(-a + tipWidth, -b), tipCorner.Radius * scale, tipCorner.Segments, "BottomRight"),
+				new InsertCorner(new float2(a, -step), spikeCorner.Radius * scale, spikeCorner.Segments, "SpikeRight"),
+				new InsertCorner(new float2(a - notchDepth, -step), notchCorner.Radius * scale, notchCorner.Segments, "NotchRight"),
+			});
+		}
+
+		/// <summary>
+		/// The sharp corners of a shape whose fillets pull its extremes in,
+		/// fitted so the finished shape fills the width by the height exactly.
+		/// </summary>
+		/// <remarks>
+		/// The sharp shape is measured as the outline builder itself would build
+		/// it, and its half-width and half-height are corrected by what is
+		/// missing, a few times over, which converges in a handful of steps since
+		/// the pull barely moves. Fillets too round for the shape are scaled down
+		/// until it does converge, with a warning, as a triangle's are.
+		/// </remarks>
+		/// <param name="sharp">The corners for a half-width, a half-height and a
+		/// scale on every fillet radius.</param>
+		private static InsertCorner[] FitBox(float width, float height, string shape, List<string> warnings,
+			Func<float, float, float, InsertCorner[]> sharp)
+		{
 			var scale = 1f;
 			InsertCorner[] corners = null;
 			var converged = false;
-
-			InsertCorner[] Sharp(float halfWidth, float halfHeight) => new[] {
-				new InsertCorner(new float2(halfWidth, 0f), side.Radius * scale, side.Segments, "Right"),
-				new InsertCorner(new float2(-halfHeight * slope, halfHeight), tip.Radius * scale, tip.Segments, "Top"),
-				new InsertCorner(new float2(-halfWidth, 0f), side.Radius * scale, side.Segments, "Left"),
-				new InsertCorner(new float2(halfHeight * slope, -halfHeight), tip.Radius * scale, tip.Segments, "Bottom"),
-			};
-
 			for (var attempt = 0; attempt < 12 && !converged; attempt++) {
 				var a = width * 0.5f;
 				var b = height * 0.5f;
 				for (var step = 0; step < 24; step++) {
-					// The lean is held short of the sides at every step, since the
-					// diagonals move under it.
-					var limit = 0.9f * a / b;
-					if (math.abs(slope) > limit) {
-						slope = limit * math.sign(slope);
-					}
-					corners = Sharp(a, b);
+					corners = sharp(a, b, scale);
 					var measured = InsertOutlineBuilder.Build(corners, 1, false);
 					var missingWidth = width - measured.Width;
 					var missingHeight = height - measured.Height;
@@ -288,13 +355,10 @@ namespace VisualPinball.Unity
 				}
 			}
 			if (!converged) {
-				throw new InsertOutlineException("The corners are too round for a diamond this size.");
+				throw new InsertOutlineException($"The corners are too round for a {shape} this size.");
 			}
 			if (scale < 1f - 1e-4f) {
-				warnings?.Add($"Corner radius reduced to {scale * 100f:0}% to fit the diamond.");
-			}
-			if (math.abs(slope - requested) > 1e-6f) {
-				warnings?.Add($"Shear reduced to {math.degrees(math.atan(slope)):0.#} degrees, so the top and bottom stay between the sides.");
+				warnings?.Add($"Corner radius reduced to {scale * 100f:0}% to fit the {shape}.");
 			}
 			return corners;
 		}
