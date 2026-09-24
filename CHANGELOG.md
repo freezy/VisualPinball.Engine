@@ -8,6 +8,8 @@ Built with Unity 6.5
 
 ### Added
 
+- The hybrid insert material has Lamp Spread: how far from the virtual lamp the lit look reaches before it has fallen to half, so raising Max Brightness brightens the bulb region without flooding the whole body.
+- Insert Light has Tint With Lamp: the hue and saturation of the clear cover's haze and of the body turn towards the lamp's while the lamp is lit, in proportion to its intensity and never their brightness, so a coloured lamp is not milked by a grey cover and a lamp that is off leaves both their own colour.
 - An insert keeps the material it is given: a bake goes into the material the insert wears when that carries the bake's maps, such as a copy made for another colour, or into a copy of it otherwise, and never puts an older material back. The cover is whatever the renderer's second slot holds. The hybrid material's baked maps and starburst are editable, to be put back after another material's properties were copied over them.
 - An arrow insert shape: an arrowhead on two feet with a notch cut up into its base, set by the notch's depth and width and the tilt of the feet, with fillets at the tip, the notch, the inner corners and the feet; it covers the scooped arrow, the arrowhead with a hollow base and the chevron, and fills its width and height exactly.
 - A bullet insert shape: a flat base, straight sides up to the shoulders, and flanks that lean in as tangents to a round tip, with fillets on the shoulders and the base corners; the width and height are exact.
