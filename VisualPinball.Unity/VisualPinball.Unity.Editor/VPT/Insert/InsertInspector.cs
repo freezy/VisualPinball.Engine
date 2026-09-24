@@ -40,6 +40,10 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _rectangleCorner;
 		private SerializedProperty _diameter;
 		private SerializedProperty _circleVertices;
+		private SerializedProperty _bananaThickness;
+		private SerializedProperty _bananaAngle;
+		private SerializedProperty _bananaSegments;
+		private SerializedProperty _bananaEndSegments;
 		private SerializedProperty _sideSegments;
 		private SerializedProperty _depth;
 		private SerializedProperty _channel;
@@ -80,6 +84,10 @@ namespace VisualPinball.Unity.Editor
 			_rectangleCorner = serializedObject.FindProperty("_rectangleCorner");
 			_diameter = serializedObject.FindProperty("_diameter");
 			_circleVertices = serializedObject.FindProperty("_circleVertices");
+			_bananaThickness = serializedObject.FindProperty("_bananaThickness");
+			_bananaAngle = serializedObject.FindProperty("_bananaAngle");
+			_bananaSegments = serializedObject.FindProperty("_bananaSegments");
+			_bananaEndSegments = serializedObject.FindProperty("_bananaEndSegments");
 			_sideSegments = serializedObject.FindProperty("_sideSegments");
 			_depth = serializedObject.FindProperty("_depth");
 			_channel = serializedObject.FindProperty("_channel");
@@ -146,6 +154,9 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.LabelField(title, EditorStyles.boldLabel);
 		}
 
+		/// <summary>Whether the selected shape's vertex counts are its sampling, with no sides to subdivide and no corners to speak of.</summary>
+		private bool Sampled => (InsertShape)_shape.enumValueIndex is InsertShape.Circle or InsertShape.Banana;
+
 		/// <summary>The property with its label, and the tooltip its field declares.</summary>
 		private static void Field(SerializedProperty property, string label, bool children = false)
 		{
@@ -206,8 +217,15 @@ namespace VisualPinball.Unity.Editor
 					Field(_diameter, "Diameter");
 					Field(_circleVertices, "Vertices");
 					break;
+				case InsertShape.Banana:
+					Field(_width, "Width");
+					Field(_bananaThickness, "Thickness");
+					Field(_bananaAngle, "Angle");
+					Field(_bananaSegments, "Arc Vertices");
+					Field(_bananaEndSegments, "End Vertices");
+					break;
 			}
-			if ((InsertShape)_shape.enumValueIndex != InsertShape.Circle) {
+			if (!Sampled) {
 				Field(_sideSegments, "Side Segments");
 			}
 
@@ -238,6 +256,14 @@ namespace VisualPinball.Unity.Editor
 				var starburst = enabled && (_starburstBursts.hasMultipleDifferentValues || _starburstBursts.intValue >= InsertStarburst.MinBursts);
 				using (new EditorGUI.DisabledScope(!starburst)) {
 					Field(_starburstCenter, "Center");
+					if ((InsertShape)_shape.enumValueIndex == InsertShape.Banana && targets.Length == 1) {
+						var arc = ((InsertComponent)target).ArcCenter;
+						using (new EditorGUI.DisabledScope(_starburstCenter.vector2Value == arc)) {
+							if (GUILayout.Button(new GUIContent("Centre on the Arc", "Puts the starburst's centre where the banana's arc has its own, so every spoke crosses the band straight."))) {
+								_starburstCenter.vector2Value = arc;
+							}
+						}
+					}
 					Field(_starburstOffset, "Offset");
 				}
 			}
@@ -321,13 +347,19 @@ namespace VisualPinball.Unity.Editor
 			var rim = outline.Points.Select(point => point.Position).ToList();
 			var rimScreen = rim.Select(Map).ToArray();
 			Handles.color = dark ? new Color(0.35f, 0.38f, 0.45f, 0.5f) : new Color(0.55f, 0.6f, 0.7f, 0.5f);
-			Handles.DrawAAConvexPolygon(rimScreen);
+			if (IsConvex(rim)) {
+				Handles.DrawAAConvexPolygon(rimScreen);
+			} else {
+				foreach (var piece in InsertTriangulation.EarClip(rim.Select(p => (double2)p).ToList())) {
+					Handles.DrawAAConvexPolygon(rimScreen[piece.x], rimScreen[piece.y], rimScreen[piece.z]);
+				}
+			}
 			Handles.color = dark ? new Color(0.75f, 0.8f, 0.9f) : new Color(0.2f, 0.25f, 0.35f);
 			Handles.DrawAAPolyLine(2.5f, Closed(rimScreen));
 
 			// The floor that can be carved: the raised middle inside the channel, or
 			// without one, the floor inside the bevel's foot.
-			var inset = FloorInset(outline);
+			var inset = FloorInset(insert);
 			var island = rim;
 			if (inset > 0f) {
 				island = Enumerable.Range(0, outline.Points.Count).Select(i => outline.OffsetPoint(i, inset)).ToList();
@@ -344,7 +376,7 @@ namespace VisualPinball.Unity.Editor
 				for (var sector = 0; sector < sectors; sector += stride) {
 					var angle = math.PI * 2f * sector / sectors;
 					var direction = new float2(math.cos(angle), math.sin(angle));
-					if (Clip(center, direction, island, out var enter, out var exit)) {
+					foreach (var (enter, exit) in Through(center, direction, island)) {
 						Handles.DrawAAPolyLine(1f, Map(center + direction * enter), Map(center + direction * exit));
 					}
 				}
@@ -373,12 +405,36 @@ namespace VisualPinball.Unity.Editor
 
 		/// <summary>
 		/// How far in from the outline the floor that holes and the starburst go
-		/// on starts: the channel's width, or the bottom bevel's without a channel.
+		/// on starts: the channel's width, or the bottom bevel's without a channel,
+		/// both as the generator clamped them for the mesh that is there.
 		/// </summary>
-		private float FloorInset(InsertOutline outline)
+		private static float FloorInset(InsertComponent insert)
 		{
-			var channel = _channel.boolValue && _channelWidth.floatValue > 0f;
-			return outline?.ClampInset(channel ? _channelWidth.floatValue : _bottomBevel.floatValue) ?? 0f;
+			var body = insert.Body;
+			return body.ChannelWidth > InsertOutlineBuilder.Epsilon ? body.ChannelWidth : body.BottomBevel;
+		}
+
+		/// <summary>
+		/// A point well inside the outline, for a new hole to start from: the
+		/// middle of the largest triangle the outline cuts into, which unlike the
+		/// centroid is inside even when the shape bends in on itself.
+		/// </summary>
+		private static Vector2 Inside(InsertOutline outline)
+		{
+			var polygon = outline.Points.Select(point => (double2)point.Position).ToList();
+			var best = double2.zero;
+			var largest = -1.0;
+			foreach (var piece in InsertTriangulation.EarClip(polygon)) {
+				var a = polygon[piece.x];
+				var b = polygon[piece.y];
+				var c = polygon[piece.z];
+				var area = math.abs((b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x));
+				if (area > largest) {
+					largest = area;
+					best = (a + b + c) / 3.0;
+				}
+			}
+			return largest < 0.0 ? new Vector2(outline.Centroid.x, outline.Centroid.y) : new Vector2((float)best.x, (float)best.y);
 		}
 
 		private static Vector3[] Closed(Vector3[] points)
@@ -389,45 +445,62 @@ namespace VisualPinball.Unity.Editor
 			return closed;
 		}
 
-		/// <summary>
-		/// Where a ray from <paramref name="origin"/> along <paramref name="direction"/>
-		/// runs through a convex polygon: from where it enters, or the origin when
-		/// that lies inside, to where it leaves. False when it misses. The ray is
-		/// cut down by each edge's half-plane in turn, which needs no count of
-		/// crossings that a corner could throw off.
-		/// </summary>
-		private static bool Clip(float2 origin, float2 direction, List<float2> polygon, out float enter, out float exit)
+		private static bool IsConvex(List<float2> polygon)
 		{
-			enter = 0f;
-			exit = float.MaxValue;
-			var area = 0f;
+			var sign = 0f;
 			for (var i = 0; i < polygon.Count; i++) {
 				var a = polygon[i];
 				var b = polygon[(i + 1) % polygon.Count];
-				area += a.x * b.y - b.x * a.y;
-			}
-			var inwards = area >= 0f ? 1f : -1f;
-			for (var i = 0; i < polygon.Count; i++) {
-				var a = polygon[i];
-				var edge = polygon[(i + 1) % polygon.Count] - a;
-				// The inside is to the left of a counter-clockwise edge.
-				var normal = inwards * new float2(-edge.y, edge.x);
-				var numerator = math.dot(normal, a - origin);
-				var denominator = math.dot(normal, direction);
-				if (math.abs(denominator) < 1e-9f) {
-					if (numerator > 0f) {
-						return false;
-					}
+				var c = polygon[(i + 2) % polygon.Count];
+				var cross = (b.x - a.x) * (c.y - b.y) - (b.y - a.y) * (c.x - b.x);
+				if (math.abs(cross) < 1e-9f) {
 					continue;
 				}
-				var t = numerator / denominator;
-				if (denominator > 0f) {
-					enter = math.max(enter, t);
-				} else {
-					exit = math.min(exit, t);
+				if (sign == 0f) {
+					sign = math.sign(cross);
+				} else if (math.sign(cross) != sign) {
+					return false;
 				}
 			}
-			return exit > enter;
+			return true;
+		}
+
+		/// <summary>
+		/// The stretches of a ray from <paramref name="origin"/> along
+		/// <paramref name="direction"/> that lie inside a polygon, convex or not:
+		/// between each entry and the exit after it, starting at the origin when
+		/// that is inside. Crossings are counted half open along each edge, so a
+		/// ray through a corner counts it once.
+		/// </summary>
+		private static IEnumerable<(float Enter, float Exit)> Through(float2 origin, float2 direction, List<float2> polygon)
+		{
+			var crossings = new List<float>();
+			for (var i = 0; i < polygon.Count; i++) {
+				var a = polygon[i];
+				var b = polygon[(i + 1) % polygon.Count];
+				// Judged by the edge's ends, so a corner only grazed counts twice or
+				// not at all, and one passed through once.
+				var sideA = direction.x * (a.y - origin.y) - direction.y * (a.x - origin.x) > 0f;
+				var sideB = direction.x * (b.y - origin.y) - direction.y * (b.x - origin.x) > 0f;
+				if (sideA == sideB) {
+					continue;
+				}
+				var edge = b - a;
+				var delta = a - origin;
+				var t = (delta.x * edge.y - delta.y * edge.x) / (direction.x * edge.y - direction.y * edge.x);
+				if (t >= 0f) {
+					crossings.Add(t);
+				}
+			}
+			crossings.Sort();
+			var i0 = 0;
+			if (crossings.Count % 2 == 1) {
+				yield return (0f, crossings[0]);
+				i0 = 1;
+			}
+			for (var i = i0; i + 1 < crossings.Count; i += 2) {
+				yield return (crossings[i], crossings[i + 1]);
+			}
 		}
 
 		/// <summary>
@@ -438,11 +511,11 @@ namespace VisualPinball.Unity.Editor
 		{
 			var insert = (InsertComponent)target;
 			var outline = insert.Outline;
-			var inset = FloorInset(outline);
+			var inset = FloorInset(insert);
 
 			using (new EditorGUI.DisabledScope(outline == null || targets.Length > 1)) {
-				// A circle's corners are its sampling, not places for holes.
-				using (new EditorGUI.DisabledScope((InsertShape)_shape.enumValueIndex == InsertShape.Circle))
+				// A circle's or a banana's corners are its sampling, not places for holes.
+				using (new EditorGUI.DisabledScope(Sampled))
 				using (new EditorGUILayout.HorizontalScope()) {
 					if (GUILayout.Button(new GUIContent("Corners", "One hole at each corner of the raised floor."))) {
 						SetHoles(InsertHoles.AtCorners(outline, inset));
@@ -466,8 +539,7 @@ namespace VisualPinball.Unity.Editor
 					var index = _holes.arraySize;
 					_holes.InsertArrayElementAtIndex(index);
 					var hole = _holes.GetArrayElementAtIndex(index);
-					hole.FindPropertyRelative(nameof(InsertHole.Center)).vector2Value =
-						outline != null ? new Vector2(outline.Centroid.x, outline.Centroid.y) : Vector2.zero;
+					hole.FindPropertyRelative(nameof(InsertHole.Center)).vector2Value = outline != null ? Inside(outline) : Vector2.zero;
 					hole.FindPropertyRelative(nameof(InsertHole.Radius)).floatValue = _holeRadius.floatValue;
 				}
 				var symmetrize = new GUIContent("Symmetrize",

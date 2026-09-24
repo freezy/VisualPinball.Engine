@@ -49,6 +49,9 @@ namespace VisualPinball.Unity.Test
 			/// </summary>
 			public Func<int, List<string>, InsertCorner[]> Corners;
 
+			/// <summary>A banana's own parameters, for the checks that need its arc.</summary>
+			public (float Thickness, float Angle, int Arcs, int Ends) Banana;
+
 			public override string ToString() => Name;
 		}
 
@@ -103,6 +106,32 @@ namespace VisualPinball.Unity.Test
 			};
 		}
 
+		private static OutlineCase Banana(float width, float thickness, float angle, int arcSegments, int endSegments)
+		{
+			var corners = InsertShapes.BananaCorners(width, thickness, angle, arcSegments, endSegments, out _);
+			var low = new float2(float.MaxValue);
+			var high = new float2(float.MinValue);
+			foreach (var corner in corners) {
+				low = math.min(low, corner.Position);
+				high = math.max(high, corner.Position);
+			}
+			return new OutlineCase {
+				Name = $"banana {width:0.##}x{thickness:0.##} {angle}deg arcs={arcSegments} ends={endSegments}",
+				Width = width,
+				Height = high.y - low.y,
+				Corners = (_, _) => InsertShapes.BananaCorners(width, thickness, angle, arcSegments, endSegments, out _),
+				Banana = (thickness, angle, arcSegments, endSegments),
+			};
+		}
+
+		/// <summary>The one shape that bends in on itself, which the convex-only invariants leave out.</summary>
+		private static readonly OutlineCase[] BananaCases = {
+			Banana(Inch, 0.5f * Inch, 90f, 24, 8), // the component's own defaults
+			Banana(2f * Inch, 0.5f * Inch, 60f, 16, 4),
+			Banana(3f * Inch, 0.75f * Inch, 180f, 32, 12),
+			Banana(50.8f, 10f, 20f, 8, 2),
+		};
+
 		private static readonly OutlineCase[] CircleCases = {
 			Circle(Inch, 32), // the component's own defaults
 			Circle(25.4f, 6),
@@ -120,7 +149,9 @@ namespace VisualPinball.Unity.Test
 			Rectangle(200f, 50f, 2f, 3),
 		};
 
-		private static readonly OutlineCase[] Cases = TriangleCases.Concat(RectangleCases).Concat(CircleCases).ToArray();
+		private static readonly OutlineCase[] ConvexCases = TriangleCases.Concat(RectangleCases).Concat(CircleCases).ToArray();
+
+		private static readonly OutlineCase[] Cases = ConvexCases.Concat(BananaCases).ToArray();
 
 		private static InsertOutline Build(OutlineCase test, int segments = 0, int sideSegments = 1)
 		{
@@ -180,7 +211,7 @@ namespace VisualPinball.Unity.Test
 			Assert.That(area, Is.GreaterThan(0f), "a clockwise outline would flip the generated face");
 		}
 
-		[TestCaseSource(nameof(Cases))]
+		[TestCaseSource(nameof(ConvexCases))]
 		public void ShouldPointEveryNormalOutwards(OutlineCase test)
 		{
 			// Every shape here is convex, so no point may sit in front of another
@@ -378,6 +409,49 @@ namespace VisualPinball.Unity.Test
 		#endregion
 
 		#region Rectangle
+
+		[TestCaseSource(nameof(BananaCases))]
+		public void ShouldBendTheBananaAboutItsArc(OutlineCase test)
+		{
+			// Every point of the band, ends included, lies between the arc's inner
+			// and outer radius about its centre, and the width is as asked.
+			var outline = Build(test);
+			var (thickness, angle, arcs, ends) = test.Banana;
+			InsertShapes.BananaCorners(test.Width, thickness, angle, arcs, ends, out var arcCenter);
+			var radius = (test.Width - thickness) / (2f * math.sin(math.radians(angle) * 0.5f));
+			foreach (var point in outline.Points) {
+				var distance = math.distance(point.Position, arcCenter);
+				Assert.That(distance, Is.InRange(radius - thickness * 0.5f - Tolerance, radius + thickness * 0.5f + Tolerance));
+			}
+			Assert.That(outline.Width, Is.EqualTo(test.Width).Within(Tolerance));
+			Assert.That(arcCenter.y, Is.GreaterThan(0f), "the arc's centre is above the band, so the ends turn up");
+		}
+
+		[Test]
+		public void ShouldTrimASpokeToEveryStretchInsideTheBand()
+		{
+			// From the arc's centre a spoke crosses the band once; from the side it
+			// may pass through the band, out through the notch and in again.
+			var outline = Build(BananaCases[2]);
+			var footprint = outline.Points.Select(p => p.Position).ToList();
+			InsertShapes.BananaCorners(3f * Inch, 0.75f * Inch, 180f, 32, 12, out var arcCenter);
+			var fromCenter = InsertStarburst.Cover(footprint, arcCenter, 16, 1f, 0f);
+			for (var spoke = 0; spoke < fromCenter.Count; spoke++) {
+				var parts = fromCenter.SpokeWithin(spoke, footprint, 1e-4f);
+				Assert.That(parts.Count, Is.LessThanOrEqualTo(1), $"spoke {spoke} from the arc's centre crosses the band once at most");
+				foreach (var part in parts) {
+					Assert.That(part.FromCenter, Is.False);
+				}
+			}
+			var fromSide = InsertStarburst.Cover(footprint, new float2(-3f * Inch, arcCenter.y), 64, 1f, 0f);
+			var twice = 0;
+			for (var spoke = 0; spoke < fromSide.Count; spoke++) {
+				if (fromSide.SpokeWithin(spoke, footprint, 1e-4f).Count > 1) {
+					twice++;
+				}
+			}
+			Assert.That(twice, Is.GreaterThan(0), "a spoke through the notch comes back in two pieces");
+		}
 
 		[TestCaseSource(nameof(RectangleCases))]
 		public void ShouldGiveARectangleFourRightAngles(OutlineCase test)
@@ -607,7 +681,6 @@ namespace VisualPinball.Unity.Test
 		/// </summary>
 		private static void AssertFacesIntoHollow(Mesh mesh, InsertOutline outline)
 		{
-			var axis = (float3)InsertMeshGenerator.ToLocal(outline.Centroid);
 			var vertices = mesh.vertices;
 			var normals = mesh.normals;
 			var triangles = mesh.triangles;
@@ -646,7 +719,25 @@ namespace VisualPinball.Unity.Test
 					Assert.That(wound.y, Is.GreaterThan(0f), $"triangle {i / 3} is a floor facing down ({pixels} px)");
 
 				} else {
-					var inwards = new float3(axis.x - middle.x, 0f, axis.z - middle.z);
+					// In across the hollow is against the outline's outward normal
+					// where the wall stands, which also holds for a shape that bends
+					// in on itself, whose middle lies in its notch.
+					var plan = InsertMeshGenerator.FromLocal(middle);
+					var outward = float2.zero;
+					var best = float.MaxValue;
+					for (var j = 0; j < outline.Points.Count; j++) {
+						// The nearest edge, not point: a long side has few samples, and a
+						// corner's own normal is nothing like its sides'.
+						var from = outline.Points[j].Position;
+						var edge = outline.Points[(j + 1) % outline.Points.Count].Position - from;
+						var along = math.saturate(math.dot(plan - from, edge) / math.max(math.lengthsq(edge), 1e-12f));
+						var distance = math.distancesq(plan, from + along * edge);
+						if (distance < best) {
+							best = distance;
+							outward = math.normalize(new float2(edge.y, -edge.x));
+						}
+					}
+					var inwards = -(float3)InsertMeshGenerator.ToLocalNormal(outward, false);
 					var atRim = math.abs(a.y) < 1e-7f || math.abs(b.y) < 1e-7f || math.abs(c.y) < 1e-7f;
 					var facing = math.dot(wound, inwards);
 
@@ -1588,10 +1679,10 @@ namespace VisualPinball.Unity.Test
 			// A sharp corner's two sides carry genuinely different normals, so the
 			// wall must not share a vertex across it or the crease shades round.
 			// Four corners, each needing a vertex per side at the rim and at the
-			// floor, plus the floor's own ring and its fan centre.
+			// floor, plus the floor's own ring.
 			var mesh = BuildMesh(Rectangle(25.4f, 25.4f, 0f, 1), out _);
 			try {
-				Assert.That(mesh.vertexCount, Is.EqualTo(4 * 2 * 2 + 4 + 1));
+				Assert.That(mesh.vertexCount, Is.EqualTo(4 * 2 * 2 + 4));
 
 			} finally {
 				UnityEngine.Object.DestroyImmediate(mesh);
@@ -1609,7 +1700,7 @@ namespace VisualPinball.Unity.Test
 				var points = outline.Points.Count;
 				var wall = mesh.normals.Count(normal => math.abs(normal.y) < 1e-3f);
 				Assert.That(wall, Is.InRange(2 * (points + 1), 2 * (points + 4)));
-				Assert.That(mesh.vertexCount - wall, Is.EqualTo(points + 1), "the floor's own fan");
+				Assert.That(mesh.vertexCount - wall, Is.EqualTo(points), "the floor's own ring");
 
 			} finally {
 				UnityEngine.Object.DestroyImmediate(mesh);

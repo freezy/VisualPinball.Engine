@@ -598,28 +598,22 @@ namespace VisualPinball.Unity
 		/// A horizontal surface filling a ring, facing up into the hollow.
 		/// </summary>
 		/// <remarks>
-		/// The fan radiates from the outline's centroid, which is not merely a way
-		/// to triangulate it: the starburst in a later step radiates from that same
-		/// point.
+		/// Ear clipped rather than fanned from the middle, so a ring that bends in
+		/// on itself, a banana say, is filled as it is. The outline runs
+		/// counter-clockwise in VPX space, and the VPX to world basis flips Y into
+		/// -Z, so a triangle in ring order comes out facing +Y without needing to
+		/// be reversed. The half turn is a proper rotation and leaves that alone.
 		/// </remarks>
 		private static void AddCap(List<RingPoint> ring, float depth, int chart, MeshBuffers buffers)
 		{
-			var count = ring.Count;
 			var start = buffers.Vertices.Count;
-
+			var polygon = new List<double2>(ring.Count);
 			foreach (var entry in ring) {
 				buffers.Add(ToLocal(entry.Position, depth), Vector3.up, (Vector2)entry.Position, chart);
+				polygon.Add(entry.Position);
 			}
-
-			var centroid = RingCentroid(ring);
-			var center = buffers.Add(ToLocal(centroid, depth), Vector3.up, (Vector2)centroid, chart);
-
-			// The outline runs counter-clockwise in VPX space, and the VPX to world
-			// basis flips Y into -Z, so a fan in ring order comes out facing +Y
-			// without needing to be reversed. The half turn is a proper rotation and
-			// leaves that alone.
-			for (var i = 0; i < count; i++) {
-				buffers.Triangle(center, start + i, start + (i + 1) % count);
+			foreach (var piece in InsertTriangulation.EarClip(polygon)) {
+				buffers.Triangle(start + piece.x, start + piece.y, start + piece.z);
 			}
 		}
 
@@ -966,20 +960,18 @@ namespace VisualPinball.Unity
 				// at its own idea of where the centre is.
 				var center = -1;
 				for (var spoke = 0; spoke < starburst.Count; spoke++) {
-					if (!starburst.TrySpokeWithin(spoke, polygon, weld, out var from, out var to, out var fromCenter)) {
-						continue;
-					}
-
-					int start;
-					if (fromCenter) {
-						if (center < 0) {
-							center = arrangement.AddPoint(starburst.Center);
+					foreach (var (from, to, fromCenter) in starburst.SpokeWithin(spoke, polygon, weld)) {
+						int start;
+						if (fromCenter) {
+							if (center < 0) {
+								center = arrangement.AddPoint(starburst.Center);
+							}
+							start = center;
+						} else {
+							start = arrangement.AddPoint(from);
 						}
-						start = center;
-					} else {
-						start = arrangement.AddPoint(from);
+						arrangement.AddSegment(start, arrangement.AddPoint(to));
 					}
-					arrangement.AddSegment(start, arrangement.AddPoint(to));
 				}
 			}
 
@@ -1210,27 +1202,31 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
-		/// Where a ray from a point inside a convex, counter-clockwise polygon
-		/// leaves it.
+		/// Where a ray from a point inside a polygon first leaves it: the nearest
+		/// edge it actually crosses, not the nearest supporting line it meets,
+		/// which on a shape that bends in on itself can lie well short of the
+		/// boundary.
 		/// </summary>
 		private static bool TryLeave(List<float2> polygon, float2 origin, float2 direction, out float2 exit)
 		{
 			var leave = double.PositiveInfinity;
+			var d = (double2)direction;
 			for (var i = 0; i < polygon.Count; i++) {
 				var a = (double2)polygon[i];
 				var edge = (double2)polygon[(i + 1) % polygon.Count] - a;
-				var outward = new double2(edge.y, -edge.x);
-				var rate = math.dot((double2)direction, outward);
-				if (rate <= 0.0) {
+				var denominator = d.x * edge.y - d.y * edge.x;
+				if (math.abs(denominator) < 1e-12) {
 					continue;
 				}
-				var t = math.dot(a - (double2)origin, outward) / rate;
-				if (t >= 0.0 && t < leave) {
+				var delta = a - (double2)origin;
+				var t = (delta.x * edge.y - delta.y * edge.x) / denominator;
+				var s = (delta.x * d.y - delta.y * d.x) / denominator;
+				if (t > 0.0 && s >= 0.0 && s <= 1.0 && t < leave) {
 					leave = t;
 				}
 			}
-			exit = (float2)((double2)origin + (double2)direction * leave);
-			return !double.IsPositiveInfinity(leave) && leave > 0.0;
+			exit = (float2)((double2)origin + d * leave);
+			return !double.IsPositiveInfinity(leave);
 		}
 
 		/// <summary>
@@ -1468,39 +1464,6 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		/// <summary>
-		/// Area centroid of a ring, which for a convex shape is always strictly
-		/// inside it and so is always safe to fan from.
-		/// </summary>
-		/// <remarks>
-		/// Averaging the points instead would drag the centre towards whichever
-		/// corner happened to be sampled most finely.
-		/// </remarks>
-		private static float2 RingCentroid(List<RingPoint> ring)
-		{
-			var origin = (double2)ring[0].Position;
-			var area = 0.0;
-			var reach = 0.0;
-			var accumulated = double2.zero;
-			for (var i = 1; i < ring.Count - 1; i++) {
-				var current = (double2)ring[i].Position - origin;
-				var next = (double2)ring[i + 1].Position - origin;
-				var cross = current.x * next.y - next.x * current.y;
-				area += cross;
-				accumulated += (current + next) * cross;
-				reach = math.max(reach, math.cmax(math.abs(current)));
-			}
-
-			// An area, so it is judged against the size squared.
-			if (math.abs(area) <= 1e-9 * reach * reach) {
-				var fallback = float2.zero;
-				foreach (var entry in ring) {
-					fallback += entry.Position;
-				}
-				return fallback / ring.Count;
-			}
-			return (float2)(origin + accumulated / (3.0 * area));
-		}
 
 	}
 }

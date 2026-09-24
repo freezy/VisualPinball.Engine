@@ -8,6 +8,7 @@ Built with Unity 6.5
 
 ### Added
 
+- A banana insert shape: a band bent round an arc with rounded ends, set by its width, thickness, angle and vertex counts, with a button that centres the starburst on the arc; every option of the other shapes works on it.
 - A circle insert shape, drawn as a regular polygon of a chosen diameter and vertex count, with every option of the other shapes.
 - The insert's channel is optional: without it the floor reaches the wall and carries the starburst and the holes itself, the holes to a depth of their own. Depth is now the floor's own depth, with the channel sunk below it.
 - The insert's starburst can be switched off, keeping the raised floor flat, and its holes are listed one per line.

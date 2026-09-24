@@ -85,6 +85,26 @@ namespace VisualPinball.Unity
 		private int _circleVertices = 32;
 
 		[SerializeField]
+		[Min(0.01f)]
+		[Tooltip("How thick the banana's band is, across its arc, in VPX units.")]
+		private float _bananaThickness = 0.5f * InsertShapes.VpxUnitsPerInch;
+
+		[SerializeField]
+		[Range(1f, 180f)]
+		[Tooltip("How far round its arc the banana reaches, in degrees. The arc's centre is above the band, so its ends turn up.")]
+		private float _bananaAngle = 90f;
+
+		[SerializeField]
+		[Range(2, 128)]
+		[Tooltip("How many straight sides each of the banana's two arcs is drawn with.")]
+		private int _bananaSegments = 24;
+
+		[SerializeField]
+		[Range(2, 32)]
+		[Tooltip("How many straight sides each of the banana's rounded ends is drawn with.")]
+		private int _bananaEndSegments = 8;
+
+		[SerializeField]
 		[Range(1, 32)]
 		[Tooltip("Subdivisions along each straight run. Raise it to even out the vertex spacing against heavily rounded corners.")]
 		private int _sideSegments = 1;
@@ -211,6 +231,18 @@ namespace VisualPinball.Unity
 		public IReadOnlyList<InsertHole> Holes => _holes;
 
 		/// <summary>
+		/// Where a banana's arc has its centre, relative to the insert's origin, in
+		/// VPX units: where its starburst belongs. Zero for any other shape.
+		/// </summary>
+		public Vector2 ArcCenter { get; private set; }
+
+		/// <summary>
+		/// The body the current mesh was built from, every value clamped as the
+		/// generator got it: the channel's width and the bevel as they really are.
+		/// </summary>
+		public InsertBody Body { get; private set; }
+
+		/// <summary>
 		/// Replaces one hole and rebuilds, for tools that move holes without going
 		/// through the serialized properties, such as scene handles.
 		/// </summary>
@@ -285,6 +317,7 @@ namespace VisualPinball.Unity
 				var body = BuildBody(outline, warnings);
 
 				Outline = outline;
+				Body = body;
 				_warnings = warnings.ToArray();
 				Error = null;
 
@@ -364,17 +397,31 @@ namespace VisualPinball.Unity
 		{
 			// Each shape keeps its own corner settings, so switching type and back
 			// does not quietly overwrite what was there.
+			var arcCenter = float2.zero;
 			var corners = _shape switch {
 				InsertShape.Triangle => InsertShapes.TriangleCorners(_width, _height, _triangleBase, _triangleApex, warnings),
 				InsertShape.Rectangle => InsertShapes.RectangleCorners(_width, _height, _rectangleCorner),
 				InsertShape.Circle => InsertShapes.CircleCorners(_diameter, _circleVertices),
+				InsertShape.Banana => InsertShapes.BananaCorners(_width, _bananaThickness, _bananaAngle, _bananaSegments, _bananaEndSegments, out arcCenter),
 				_ => throw new InsertOutlineException($"Shape {_shape} has no outline builder yet."),
 			};
-			// A circle's sides are its sampling already; subdividing them further
-			// only multiplies wall charts and lets the inset clamp trip on the
-			// samples nearest each corner.
-			return InsertOutlineBuilder.Build(corners, _shape == InsertShape.Circle ? 1 : _sideSegments);
+			ArcCenter = new Vector2(arcCenter.x, arcCenter.y);
+			// A circle's or a banana's sides are its sampling already; subdividing
+			// them further only multiplies wall charts and lets the inset clamp
+			// trip on the samples nearest each corner.
+			return InsertOutlineBuilder.Build(corners, Sampled ? 1 : _sideSegments);
 		}
+
+		/// <summary>Whether the shape's own vertex counts are its sampling, with no sides to subdivide.</summary>
+		private bool Sampled => _shape is InsertShape.Circle or InsertShape.Banana;
+
+		/// <summary>
+		/// How far the outline can be inset at all: a band can take no more than
+		/// half its thickness before its two arcs meet, less a little to weld.
+		/// </summary>
+		private float MaxInset(InsertOutline outline) => _shape == InsertShape.Banana
+			? math.max(0f, _bananaThickness * 0.5f - math.max(outline.WeldTolerance * 16f, _bananaThickness * 0.05f))
+			: float.MaxValue;
 
 		private InsertBody BuildBody(InsertOutline outline, List<string> warnings)
 		{
@@ -382,7 +429,7 @@ namespace VisualPinball.Unity
 			// depends on the outline, so it is the outline that works it out.
 			var channelWidth = 0f;
 			if (_channel) {
-				channelWidth = outline.ClampInset(_channelWidth);
+				channelWidth = outline.ClampInset(math.min(_channelWidth, MaxInset(outline)));
 				if (channelWidth < _channelWidth - 1e-4f) {
 					warnings.Add($"Channel width reduced to {channelWidth:0.##} to fit inside the outline.");
 				}
@@ -400,7 +447,7 @@ namespace VisualPinball.Unity
 			if (channel) {
 				bottomBevel = math.min(bottomBevel, channelWidth - math.max(outline.WeldTolerance * 16f, channelWidth * 0.05f));
 			}
-			bottomBevel = outline.ClampInset(math.max(0f, bottomBevel));
+			bottomBevel = outline.ClampInset(math.max(0f, math.min(bottomBevel, MaxInset(outline))));
 			if (bottomBevel < _bottomBevel - 1e-4f) {
 				warnings.Add($"Bottom bevel reduced to {bottomBevel:0.##} to fit the wall and the channel.");
 			}
