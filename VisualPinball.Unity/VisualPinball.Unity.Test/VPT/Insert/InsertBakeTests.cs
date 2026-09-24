@@ -605,6 +605,40 @@ namespace VisualPinball.Unity.Test
 			}
 		}
 		[Test]
+		public void ShouldKeepTheFloorFlatWithTheStarburstOff()
+		{
+			var root = new GameObject("Insert without starburst");
+			var probe = new Mesh();
+			try {
+				var insert = root.AddComponent<InsertComponent>();
+				var serialized = new UnityEditor.SerializedObject(insert);
+				serialized.FindProperty("_starburstBursts").intValue = 12;
+				serialized.FindProperty("_starburst").boolValue = true;
+				serialized.ApplyModifiedPropertiesWithoutUndo();
+				var with = new InsertMeshLayout();
+				insert.Generate(probe, with);
+				Assert.That(with.OpticalStarburst.z, Is.GreaterThanOrEqualTo(4f));
+
+				serialized.FindProperty("_starburst").boolValue = false;
+				serialized.ApplyModifiedPropertiesWithoutUndo();
+				var without = new InsertMeshLayout();
+				insert.Generate(probe, without);
+				Assert.That(without.OpticalStarburst.z, Is.EqualTo(0f));
+
+				serialized.FindProperty("_starburst").boolValue = true;
+				serialized.FindProperty("_starburstBursts").intValue = 0;
+				serialized.ApplyModifiedPropertiesWithoutUndo();
+				var none = new InsertMeshLayout();
+				insert.Generate(probe, none);
+				Assert.That(none.Hash, Is.EqualTo(without.Hash), "off is the same flat floor as no bursts at all");
+			} finally {
+				Object.DestroyImmediate(root.GetComponent<MeshFilter>().sharedMesh);
+				Object.DestroyImmediate(root);
+				Object.DestroyImmediate(probe);
+			}
+		}
+
+		[Test]
 		public void ShouldGiveADuplicateAnIdOfItsOwn()
 		{
 			var root = new GameObject("Original insert");

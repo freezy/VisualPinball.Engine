@@ -42,6 +42,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _depth;
 		private SerializedProperty _channelWidth;
 		private SerializedProperty _channelDepth;
+		private SerializedProperty _starburst;
 		private SerializedProperty _starburstBursts;
 		private SerializedProperty _starburstCenter;
 		private SerializedProperty _starburstOffset;
@@ -77,6 +78,7 @@ namespace VisualPinball.Unity.Editor
 			_depth = serializedObject.FindProperty("_depth");
 			_channelWidth = serializedObject.FindProperty("_channelWidth");
 			_channelDepth = serializedObject.FindProperty("_channelDepth");
+			_starburst = serializedObject.FindProperty("_starburst");
 			_starburstBursts = serializedObject.FindProperty("_starburstBursts");
 			_starburstCenter = serializedObject.FindProperty("_starburstCenter");
 			_starburstOffset = serializedObject.FindProperty("_starburstOffset");
@@ -210,14 +212,18 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			SubHeader("Starburst");
-			Field(_starburstBursts, "Bursts");
-			var starburst = _starburstBursts.hasMultipleDifferentValues || _starburstBursts.intValue >= InsertStarburst.MinBursts;
-			using (new EditorGUI.DisabledScope(!starburst)) {
-				Field(_starburstCenter, "Center");
-				Field(_starburstOffset, "Offset");
-			}
-			if (starburst && !channel) {
-				EditorGUILayout.HelpBox("The starburst replaces the raised floor, which needs a channel to stand above.", MessageType.Info);
+			Field(_starburst, "Starburst");
+			var enabled = _starburst.hasMultipleDifferentValues || _starburst.boolValue;
+			using (new EditorGUI.DisabledScope(!enabled)) {
+				Field(_starburstBursts, "Bursts");
+				var starburst = enabled && (_starburstBursts.hasMultipleDifferentValues || _starburstBursts.intValue >= InsertStarburst.MinBursts);
+				using (new EditorGUI.DisabledScope(!starburst)) {
+					Field(_starburstCenter, "Center");
+					Field(_starburstOffset, "Offset");
+				}
+				if (starburst && !channel) {
+					EditorGUILayout.HelpBox("The starburst replaces the raised floor, which needs a channel to stand above.", MessageType.Info);
+				}
 			}
 
 			SubHeader("Holes");
@@ -311,7 +317,7 @@ namespace VisualPinball.Unity.Editor
 				Handles.DrawAAPolyLine(1.5f, Closed(island.Select(Map).ToArray()));
 			}
 
-			if (_starburstBursts.intValue >= InsertStarburst.MinBursts && inset > 0f) {
+			if (_starburst.boolValue && _starburstBursts.intValue >= InsertStarburst.MinBursts && inset > 0f) {
 				var center = new float2(_starburstCenter.vector2Value.x, _starburstCenter.vector2Value.y);
 				var sectors = _starburstBursts.intValue * 2;
 				// Enough spokes to show the fan, never so many they turn into a smear.

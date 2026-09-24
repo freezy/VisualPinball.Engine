@@ -105,6 +105,10 @@ namespace VisualPinball.Unity
 		private int _bottomBevelSegments = 4;
 
 		[SerializeField]
+		[Tooltip("Whether the raised floor carries a starburst. Off keeps it flat.")]
+		private bool _starburst = true;
+
+		[SerializeField]
 		[Range(0, 128)]
 		[Tooltip("Bursts around the whole wheel, twice this many rim vertices. Counts the whole circle, not just the part landing on the insert. Below two there is no starburst and the raised floor stays flat.")]
 		private int _starburstBursts = 12;
@@ -365,8 +369,9 @@ namespace VisualPinball.Unity
 				warnings.Add($"Channel depth reduced to {channelDepth:0.##} to stay below the rim.");
 			}
 
+			var bursts = _starburst ? _starburstBursts : 0;
 			var starburstOffset = _starburstOffset;
-			if (_starburstBursts >= InsertStarburst.MinBursts) {
+			if (bursts >= InsertStarburst.MinBursts) {
 				if (channelWidth <= InsertOutlineBuilder.Epsilon) {
 					warnings.Add("The starburst replaces the raised floor, which needs a channel to stand above.");
 				}
@@ -401,7 +406,7 @@ namespace VisualPinball.Unity
 				Depth = _depth,
 				ChannelWidth = channelWidth,
 				ChannelDepth = channelDepth,
-				StarburstBursts = _starburstBursts,
+				StarburstBursts = bursts,
 				StarburstCenter = new float2(_starburstCenter.x, _starburstCenter.y),
 				StarburstOffset = starburstOffset,
 				Holes = _holes.ToArray(),
