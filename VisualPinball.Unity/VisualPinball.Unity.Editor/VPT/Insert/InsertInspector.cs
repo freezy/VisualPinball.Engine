@@ -41,6 +41,8 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _diamondSide;
 		private SerializedProperty _diamondTip;
 		private SerializedProperty _diamondShear;
+		private SerializedProperty _flashWidth;
+		private SerializedProperty _flashHeight;
 		private SerializedProperty _flashTip;
 		private SerializedProperty _flashNotch;
 		private SerializedProperty _flashStep;
@@ -93,6 +95,8 @@ namespace VisualPinball.Unity.Editor
 			_diamondSide = serializedObject.FindProperty("_diamondSide");
 			_diamondTip = serializedObject.FindProperty("_diamondTip");
 			_diamondShear = serializedObject.FindProperty("_diamondShear");
+			_flashWidth = serializedObject.FindProperty("_flashWidth");
+			_flashHeight = serializedObject.FindProperty("_flashHeight");
 			_flashTip = serializedObject.FindProperty("_flashTip");
 			_flashNotch = serializedObject.FindProperty("_flashNotch");
 			_flashStep = serializedObject.FindProperty("_flashStep");
@@ -241,8 +245,8 @@ namespace VisualPinball.Unity.Editor
 					Field(_diamondShear, "Shear");
 					break;
 				case InsertShape.Flash:
-					Field(_width, "Width");
-					Field(_height, "Height");
+					Field(_flashWidth, "Width");
+					Field(_flashHeight, "Height");
 					Field(_flashTip, "Tip Width");
 					Field(_flashNotch, "Notch Depth");
 					Field(_flashStep, "Step Height");

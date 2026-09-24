@@ -155,7 +155,7 @@ namespace VisualPinball.Unity.Test
 
 		/// <summary>Bolts, which bend in on themselves at their two notches.</summary>
 		private static readonly OutlineCase[] FlashCases = {
-			Flash(0.6f * Inch, 2f * Inch, 6f, 10f, 8f, 3f, 2f, 2f, 8), // the component's own defaults
+			Flash(50f, 125f, 10f, 16f, -8f, 5.2f, 5f, 3f, 4), // the component's own defaults
 			Flash(30f, 100f, 8f, 8f, 0f, 0f, 0f, 0f, 1),
 			Flash(40f, 120f, 10f, 15f, 12f, 5f, 3f, 4f, 6),
 			Flash(60f, 90f, 20f, 25f, 5f, 2f, 1f, 1f, 4),
