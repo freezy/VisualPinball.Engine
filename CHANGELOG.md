@@ -8,6 +8,7 @@ Built with Unity 6.5
 
 ### Added
 
+- An arrow insert shape: an arrowhead on two feet with a notch cut up into its base, set by the notch's depth and width and the tilt of the feet, with fillets at the tip, the notch, the inner corners and the feet; it covers the scooped arrow, the arrowhead with a hollow base and the chevron, and fills its width and height exactly.
 - A bullet insert shape: a flat base, straight sides up to the shoulders, and flanks that lean in as tangents to a round tip, with fillets on the shoulders and the base corners; the width and height are exact.
 - A flash insert shape, the lightning bolt: width, height, tip width, notch depth and step height, with fillets of their own on the tips, the spikes and the notches; it fills its width and height exactly.
 - A diamond insert shape, with its own fillets on the side points and on the top and bottom, and a shear that leans it over; the fillets and the shear leave the width and height exactly as set.

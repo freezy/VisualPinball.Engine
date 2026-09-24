@@ -55,6 +55,9 @@ namespace VisualPinball.Unity.Test
 			/// <summary>A bullet's tip radius and shoulder height, for the checks that need its circle.</summary>
 			public (float Radius, float Shoulder) Bullet;
 
+			/// <summary>An arrow's notch and feet, for the checks that need them.</summary>
+			public (float Depth, float Width, float FootAngle) Arrow;
+
 			public override string ToString() => Name;
 		}
 
@@ -178,6 +181,29 @@ namespace VisualPinball.Unity.Test
 			Bullet(25f, 80f, 3f, 50f, 4f, 6f, 6),
 		};
 
+		private static OutlineCase Arrow(float width, float height, float tipRadius, float depth, float notchWidth,
+			float footAngle, float notchRadius, float innerRadius, float footRadius, int segments) => new() {
+			Name = $"arrow {width:0.##}x{height:0.##} tip={tipRadius} depth={depth} notch={notchWidth} feet={footAngle}deg radii={notchRadius}/{innerRadius}/{footRadius} segs={segments}",
+			Width = width,
+			Height = height,
+			Corners = (segs, warnings) => InsertShapes.ArrowCorners(width, height,
+				new InsertCornerSettings(tipRadius, segs > 0 ? segs : segments), depth, notchWidth, footAngle,
+				new InsertCornerSettings(notchRadius, segs > 0 ? segs : segments),
+				new InsertCornerSettings(innerRadius, segs > 0 ? segs : segments),
+				new InsertCornerSettings(footRadius, segs > 0 ? segs : segments), warnings),
+			Arrow = (depth, notchWidth, footAngle),
+		};
+
+		/// <summary>Arrowheads on two feet, which bend in at the notch between them.</summary>
+		private static readonly OutlineCase[] ArrowCases = {
+			Arrow(Inch, 2f * Inch, 4f, 10f, 14f, 0f, 4f, 2f, 2.5f, 8), // the component's own defaults
+			Arrow(40f, 60f, 2f, 25f, 40f, 0f, 6f, 0f, 3f, 6), // the whole base one hollow arc
+			Arrow(30f, 55f, 1f, 33f, 26f, -70f, 1f, 1f, 1f, 4), // a chevron, its feet cut off square
+			Arrow(30f, 40f, 4f, 12f, 12f, 20f, 1.5f, 1f, 2f, 6), // feet lifted
+			Arrow(50f, 40f, 3f, 14f, 30f, -20f, 5f, 2f, 2f, 8), // wide, feet dropped
+			Arrow(20f, 50f, 0f, 0f, 10f, 0f, 0f, 0f, 0f, 1), // no notch: a plain triangle
+		};
+
 		/// <summary>Bolts, which bend in on themselves at their two notches.</summary>
 		private static readonly OutlineCase[] FlashCases = {
 			Flash(50f, 125f, 10f, 16f, -8f, 5.2f, 5f, 3f, 4), // the component's own defaults
@@ -214,7 +240,7 @@ namespace VisualPinball.Unity.Test
 
 		private static readonly OutlineCase[] ConvexCases = TriangleCases.Concat(RectangleCases).Concat(CircleCases).Concat(DiamondCases).Concat(BulletCases).ToArray();
 
-		private static readonly OutlineCase[] Cases = ConvexCases.Concat(BananaCases).Concat(FlashCases).ToArray();
+		private static readonly OutlineCase[] Cases = ConvexCases.Concat(BananaCases).Concat(FlashCases).Concat(ArrowCases).ToArray();
 
 		private static InsertOutline Build(OutlineCase test, int segments = 0, int sideSegments = 1)
 		{
@@ -515,6 +541,106 @@ namespace VisualPinball.Unity.Test
 			Assert.That(corners[0].Position.x - corners[1].Position.x, Is.EqualTo(Of("tip")).Within(Tolerance));
 			Assert.That(corners[3].Position.x - corners[2].Position.x, Is.EqualTo(Of("notch")).Within(Tolerance));
 			Assert.That(outline.Corners.Count(c => c.Concave), Is.EqualTo(2), "the two notches turn inwards");
+		}
+
+		[TestCaseSource(nameof(ArrowCases))]
+		public void ShouldCutTheNotchUpIntoTheArrow(OutlineCase test)
+		{
+			// The notch's apex sits on the axis, as far up from the bottom as
+			// asked; the inner corners open the notch as wide as asked and tilt
+			// with the feet; the two halves mirror each other.
+			var outline = Build(test);
+			var (depth, notchWidth, footAngle) = test.Arrow;
+			var apex = outline.Corners.Single(c => c.Tag == "Apex");
+			Assert.That(apex.Position.x, Is.EqualTo(0f).Within(Tolerance));
+			var left = outline.Corners.Single(c => c.Tag == "FootLeft");
+			var right = outline.Corners.Single(c => c.Tag == "FootRight");
+			Assert.That(left.Position.x, Is.EqualTo(-right.Position.x).Within(Tolerance));
+			Assert.That(left.Position.y, Is.EqualTo(right.Position.y).Within(Tolerance));
+
+			var notch = outline.Corners.SingleOrDefault(c => c.Tag == "Notch");
+			if (depth <= 0f) {
+				Assert.That(notch, Is.Null, "a flat base has no notch");
+				Assert.That(outline.Corners.Count, Is.EqualTo(3));
+				return;
+			}
+			Assert.That(notch, Is.Not.Null);
+			Assert.That(notch.Concave, Is.True, "the notch turns inwards");
+			Assert.That(notch.Position.x, Is.EqualTo(0f).Within(Tolerance));
+			Assert.That(notch.Position.y, Is.EqualTo(-test.Height * 0.5f + depth).Within(Tolerance));
+
+			var inner = outline.Corners.Where(c => c.Tag is "InnerLeft" or "InnerRight").OrderBy(c => c.Position.x).ToArray();
+			if (notchWidth >= test.Width) {
+				Assert.That(inner, Is.Empty, "a notch as wide as the base leaves no feet");
+				return;
+			}
+			Assert.That(inner, Has.Length.EqualTo(2));
+			Assert.That(inner[1].Position.x - inner[0].Position.x, Is.EqualTo(notchWidth).Within(Tolerance));
+			Assert.That(inner[0].Position.x, Is.EqualTo(-inner[1].Position.x).Within(Tolerance));
+			// The fit may move the feet's outer corners out to make up for their
+			// fillets; the feet tilt by their angle as fitted.
+			var foot = right.Position.x - inner[1].Position.x;
+			var rise = foot * math.tan(math.radians(footAngle));
+			Assert.That(inner[1].Position.y - right.Position.y, Is.EqualTo(rise).Within(Tolerance), "the feet tilt by the foot angle");
+			Assert.That(inner[1].Position.y, Is.LessThan(notch.Position.y), "the inner corners stay below the notch");
+		}
+
+		[Test]
+		public void ShouldFitAnArrowWithSteepFeet()
+		{
+			// Steep feet make the fit's lift depend on where the notch sits, which
+			// settles slowly; it settles all the same, without a radius clamp.
+			var warnings = new List<string>();
+			var corners = InsertShapes.ArrowCorners(20f, 50f, new InsertCornerSettings(4f, 8), 25f, 10f, 85f,
+				new InsertCornerSettings(4f, 8), new InsertCornerSettings(2f, 4), new InsertCornerSettings(2.5f, 8), warnings);
+			Assert.That(warnings, Has.None.Contains("Corner radius reduced"));
+			var outline = InsertOutlineBuilder.Build(corners);
+			Assert.That(outline.Width, Is.EqualTo(20f).Within(Tolerance));
+			Assert.That(outline.Height, Is.EqualTo(50f).Within(Tolerance));
+		}
+
+		[Test]
+		public void ShouldKeepTheFootAngleWhenTheFitWidensTheFeet()
+		{
+			// Fillets on the feet have the fit move their outer corners out; the
+			// feet still tilt by the angle asked, with no warning about it.
+			var warnings = new List<string>();
+			var corners = InsertShapes.ArrowCorners(50f, 40f, new InsertCornerSettings(4f, 8), 20f, 25f, 20f,
+				new InsertCornerSettings(4f, 8), new InsertCornerSettings(2f, 4), new InsertCornerSettings(2.5f, 8), warnings);
+			Assert.That(warnings, Has.None.Contains("Foot angle"));
+			var outline = InsertOutlineBuilder.Build(corners);
+			var right = outline.Corners.Single(c => c.Tag == "FootRight");
+			var inner = outline.Corners.Single(c => c.Tag == "InnerRight");
+			var lean = math.degrees(math.atan2(inner.Position.y - right.Position.y, right.Position.x - inner.Position.x));
+			Assert.That(lean, Is.EqualTo(20f).Within(0.01f));
+			Assert.That(right.Position.x, Is.GreaterThan(25f), "the fit did move the feet out");
+		}
+
+		[Test]
+		public void ShouldHoldTheArrowsNotchAndFeetInsideIt()
+		{
+			// A notch deeper than the arrow, wider than its base, or feet lifted
+			// into the notch or out through the flanks are all pulled back, with
+			// a warning each, and the box stays put.
+			var warnings = new List<string>();
+			var sharp = new InsertCornerSettings(0f, 1);
+			var corners = InsertShapes.ArrowCorners(20f, 50f, sharp, 60f, 30f, 0f, sharp, sharp, sharp, warnings);
+			Assert.That(warnings, Has.Some.Contains("Notch depth reduced"));
+			Assert.That(warnings, Has.Some.Contains("Notch width reduced"));
+			var outline = InsertOutlineBuilder.Build(corners);
+			Assert.That(outline.Corners.Any(c => c.Tag == "InnerLeft"), Is.False);
+			Assert.That(outline.Width, Is.EqualTo(20f).Within(Tolerance));
+			Assert.That(outline.Height, Is.EqualTo(50f).Within(Tolerance));
+
+			warnings.Clear();
+			corners = InsertShapes.ArrowCorners(20f, 50f, sharp, 10f, 10f, 80f, sharp, sharp, sharp, warnings);
+			Assert.That(warnings, Is.EqualTo(new[] { "Foot angle reduced to 60.9 degrees, so the feet stay inside the arrow." }));
+			outline = InsertOutlineBuilder.Build(corners);
+			var notch = outline.Corners.Single(c => c.Tag == "Notch");
+			var inner = outline.Corners.Single(c => c.Tag == "InnerRight");
+			Assert.That(inner.Position.y, Is.LessThan(notch.Position.y));
+			Assert.That(outline.Width, Is.EqualTo(20f).Within(Tolerance));
+			Assert.That(outline.Height, Is.EqualTo(50f).Within(Tolerance));
 		}
 
 		[TestCaseSource(nameof(BulletCases))]

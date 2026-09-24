@@ -141,6 +141,37 @@ namespace VisualPinball.Unity
 		private InsertCornerSettings _bulletBaseCorner = new(3f, 8);
 
 		[SerializeField]
+		[Tooltip("The fillet at the arrow's tip.")]
+		private InsertCornerSettings _arrowTip = new(4f, 8);
+
+		[SerializeField]
+		[Min(0f)]
+		[Tooltip("How far the notch cuts up into the arrow from its bottom, in VPX units. Zero leaves the base flat.")]
+		private float _arrowNotchDepth = 10f;
+
+		[SerializeField]
+		[Min(0f)]
+		[Tooltip("How wide the notch is where it opens into the base, between the two feet, in VPX units. The full width leaves no feet: the whole base is the notch.")]
+		private float _arrowNotchWidth = 14f;
+
+		[SerializeField]
+		[Range(-85f, 85f)]
+		[Tooltip("How far the feet tilt, in degrees. Positive lifts their inner corners up towards the notch; negative drops them below the outer corners, which cuts a chevron's feet off square.")]
+		private float _arrowFootAngle;
+
+		[SerializeField]
+		[Tooltip("The fillet at the notch's apex, which rounds inwards. Large enough, it turns the notch into a round scoop.")]
+		private InsertCornerSettings _arrowNotchCorner = new(4f, 8);
+
+		[SerializeField]
+		[Tooltip("The fillet shared by the two inner corners, where a foot turns up into the notch.")]
+		private InsertCornerSettings _arrowInnerCorner = new(2f, 4);
+
+		[SerializeField]
+		[Tooltip("The fillet shared by the two feet, the arrow's outer base corners.")]
+		private InsertCornerSettings _arrowFootCorner = new(2.5f, 8);
+
+		[SerializeField]
 		[Min(0.01f)]
 		[Tooltip("Diameter of the circle, or of the circle a banana's band is bent round, in VPX units.")]
 		private float _diameter = InsertShapes.VpxUnitsPerInch;
@@ -467,6 +498,7 @@ namespace VisualPinball.Unity
 				InsertShape.Diamond => InsertShapes.DiamondCorners(_width, _height, _diamondSide, _diamondTip, _diamondShear, warnings),
 				InsertShape.Flash => InsertShapes.FlashCorners(_flashWidth, _flashHeight, _flashTip, _flashNotch, _flashStep, _flashTipCorner, _flashSpikeCorner, _flashNotchCorner, warnings),
 				InsertShape.Bullet => InsertShapes.BulletCorners(_width, _height, _bulletTip, _bulletShoulder, _bulletShoulderCorner, _bulletBaseCorner, warnings),
+				InsertShape.Arrow => InsertShapes.ArrowCorners(_width, _height, _arrowTip, _arrowNotchDepth, _arrowNotchWidth, _arrowFootAngle, _arrowNotchCorner, _arrowInnerCorner, _arrowFootCorner, warnings),
 				_ => throw new InsertOutlineException($"Shape {_shape} has no outline builder yet."),
 			};
 			ArcCenter = new Vector2(arcCenter.x, arcCenter.y);

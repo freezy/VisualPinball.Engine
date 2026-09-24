@@ -53,6 +53,13 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _bulletShoulder;
 		private SerializedProperty _bulletShoulderCorner;
 		private SerializedProperty _bulletBaseCorner;
+		private SerializedProperty _arrowTip;
+		private SerializedProperty _arrowNotchDepth;
+		private SerializedProperty _arrowNotchWidth;
+		private SerializedProperty _arrowFootAngle;
+		private SerializedProperty _arrowNotchCorner;
+		private SerializedProperty _arrowInnerCorner;
+		private SerializedProperty _arrowFootCorner;
 		private SerializedProperty _diameter;
 		private SerializedProperty _circleVertices;
 		private SerializedProperty _bananaThickness;
@@ -111,6 +118,13 @@ namespace VisualPinball.Unity.Editor
 			_bulletShoulder = serializedObject.FindProperty("_bulletShoulder");
 			_bulletShoulderCorner = serializedObject.FindProperty("_bulletShoulderCorner");
 			_bulletBaseCorner = serializedObject.FindProperty("_bulletBaseCorner");
+			_arrowTip = serializedObject.FindProperty("_arrowTip");
+			_arrowNotchDepth = serializedObject.FindProperty("_arrowNotchDepth");
+			_arrowNotchWidth = serializedObject.FindProperty("_arrowNotchWidth");
+			_arrowFootAngle = serializedObject.FindProperty("_arrowFootAngle");
+			_arrowNotchCorner = serializedObject.FindProperty("_arrowNotchCorner");
+			_arrowInnerCorner = serializedObject.FindProperty("_arrowInnerCorner");
+			_arrowFootCorner = serializedObject.FindProperty("_arrowFootCorner");
 			_diameter = serializedObject.FindProperty("_diameter");
 			_circleVertices = serializedObject.FindProperty("_circleVertices");
 			_bananaThickness = serializedObject.FindProperty("_bananaThickness");
@@ -270,6 +284,29 @@ namespace VisualPinball.Unity.Editor
 					CornerField(_bulletShoulderCorner, "Shoulder Corners");
 					CornerField(_bulletBaseCorner, "Base Corners");
 					break;
+				case InsertShape.Arrow: {
+					Field(_width, "Width");
+					Field(_height, "Height");
+					CornerField(_arrowTip, "Tip");
+					Field(_arrowNotchDepth, "Notch Depth");
+					// Without a notch there is nothing else to set; a notch as
+					// wide as the base leaves no feet to tilt or inner corners
+					// to round. A mixed selection keeps everything editable.
+					var mixed = _width.hasMultipleDifferentValues || _arrowNotchDepth.hasMultipleDifferentValues || _arrowNotchWidth.hasMultipleDifferentValues;
+					InsertShapes.ArrowTopology(_width.floatValue, _arrowNotchDepth.floatValue, _arrowNotchWidth.floatValue, out var notched, out var footed);
+					notched |= mixed;
+					footed |= mixed;
+					using (new EditorGUI.DisabledScope(!notched)) {
+						Field(_arrowNotchWidth, "Notch Width");
+						CornerField(_arrowNotchCorner, "Notch Corner");
+					}
+					using (new EditorGUI.DisabledScope(!footed)) {
+						Field(_arrowFootAngle, "Foot Angle");
+						CornerField(_arrowInnerCorner, "Inner Corners");
+					}
+					CornerField(_arrowFootCorner, "Feet");
+					break;
+				}
 				case InsertShape.Banana:
 					Field(_diameter, "Diameter");
 					Field(_bananaThickness, "Thickness");

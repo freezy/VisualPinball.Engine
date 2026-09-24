@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -33,6 +34,7 @@ namespace VisualPinball.Unity
 		Diamond,
 		Flash,
 		Bullet,
+		Arrow,
 	}
 
 	/// <summary>
@@ -250,7 +252,7 @@ namespace VisualPinball.Unity
 			}
 			var requested = math.tan(math.radians(math.clamp(shear, -80f, 80f)));
 			var slope = requested;
-			var corners = FitBox(width, height, "diamond", warnings, (a, b, scale) => {
+			var corners = FitBox(width, height, "diamond", warnings, (a, b, scale, _) => {
 				// The lean is held short of the sides at every step, since the
 				// diagonals move under it.
 				var limit = 0.9f * a / b;
@@ -314,7 +316,7 @@ namespace VisualPinball.Unity
 					throw new InsertOutlineException("The steps overlap too far for the notches: raise the step height, or make the notches shallower or the tips wider.");
 				}
 			}
-			return FitBox(width, height, "flash", warnings, (a, b, scale) => new[] {
+			return FitBox(width, height, "flash", warnings, (a, b, scale, _) => new[] {
 				new InsertCorner(new float2(a, b), tipCorner.Radius * scale, tipCorner.Segments, "TopRight"),
 				new InsertCorner(new float2(a - tipWidth, b), tipCorner.Radius * scale, tipCorner.Segments, "TopLeft"),
 				new InsertCorner(new float2(-a, step), spikeCorner.Radius * scale, spikeCorner.Segments, "SpikeLeft"),
@@ -366,7 +368,7 @@ namespace VisualPinball.Unity
 
 			// With no straight side to hold it, a base fillet pulls the widest
 			// point in from the corner, which the fit makes up for.
-			return FitBox(width, height, "bullet", warnings, (a, b, scale) => {
+			return FitBox(width, height, "bullet", warnings, (a, b, scale, _) => {
 				var center = b - radius;
 				var shoulderY = math.min(-b + shoulder, center);
 
@@ -424,6 +426,103 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
+		/// An arrow: an arrowhead standing on two feet, with a notch cut up into
+		/// its base between them. The notch's depth, its width at the base and
+		/// the tilt of the feet, with the fillets at the tip, the notch, the
+		/// inner corners and the feet, cover a rounded arrow with a scooped
+		/// base, an arrowhead whose whole base is one hollow arc, and a chevron
+		/// with its feet cut off square. The finished shape fills the width by
+		/// the height exactly.
+		/// </summary>
+		/// <param name="notchDepth">From the shape's bottom up to the notch's
+		/// apex, in VPX units. Zero leaves the base flat.</param>
+		/// <param name="notchWidth">Between the two inner corners, where the
+		/// notch opens into the base, in VPX units. The full width leaves no
+		/// feet: the notch runs from one outer corner to the other.</param>
+		/// <param name="footAngle">How far the feet tilt, in degrees: positive
+		/// lifts their inner corners up towards the notch, negative drops them
+		/// below the outer corners.</param>
+		public static InsertCorner[] ArrowCorners(float width, float height, InsertCornerSettings tip, float notchDepth,
+			float notchWidth, float footAngle, InsertCornerSettings notchCorner, InsertCornerSettings innerCorner,
+			InsertCornerSettings footCorner, List<string> warnings)
+		{
+			if (width <= Epsilon || height <= Epsilon) {
+				throw new InsertOutlineException("Width and height must be positive.");
+			}
+			var depth = math.max(0f, notchDepth);
+			if (depth > height * 0.9f) {
+				depth = height * 0.9f;
+				warnings?.Add($"Notch depth reduced to {depth:0.#}, so the notch stays below the tip.");
+			}
+			var opening = math.clamp(notchWidth, 0f, width);
+			if (notchWidth > width + 1e-6f) {
+				warnings?.Add("Notch width reduced to the width: the whole base is the notch.");
+			}
+
+			// A foot, or a notch, too narrow to hold its own corners is none.
+			ArrowTopology(width, depth, opening, out var notched, out var footed);
+			var slope = math.tan(math.radians(math.clamp(footAngle, -85f, 85f)));
+			var held = slope;
+
+			// The tip's fillet pulls the top down and the feet's pull the width
+			// in, and dropped feet's inner corners are the bottom: the fit makes
+			// up for all of it. The inner corners stay where the notch width
+			// puts them, so the notch opens as wide as asked whatever the fit
+			// does to the outer corners, and the notch's apex is measured from
+			// the finished bottom, which the fit reports as the lift. The feet
+			// tilt by their angle as fitted, so it stays what was asked however
+			// wide the fit makes them.
+			var fitted = FitBox(width, height, "arrow", warnings, (a, b, scale, lift) => {
+				var rise = 0f;
+				if (footed) {
+					var foot = a - opening * 0.5f;
+					rise = foot * slope;
+					// Lifted feet keep their inner corners below the notch and
+					// inside the flanks; dropped feet leave a head above them.
+					var most = rise > 0f ? 0.9f * math.min(depth, 2f * b * foot / a) : 0.9f * height;
+					if (math.abs(rise) > most) {
+						rise = most * math.sign(rise);
+					}
+					held = rise / foot;
+				}
+				var corners = new List<InsertCorner>(6) {
+					new(new float2(0f, b), tip.Radius * scale, tip.Segments, "Apex"),
+					new(new float2(-a, -b), footCorner.Radius * scale, footCorner.Segments, "FootLeft"),
+				};
+				if (notched) {
+					var bottom = -b + math.min(0f, rise) + lift;
+					if (footed) {
+						corners.Add(new InsertCorner(new float2(-opening * 0.5f, -b + rise), innerCorner.Radius * scale, innerCorner.Segments, "InnerLeft"));
+					}
+					corners.Add(new InsertCorner(new float2(0f, bottom + depth), notchCorner.Radius * scale, notchCorner.Segments, "Notch"));
+					if (footed) {
+						corners.Add(new InsertCorner(new float2(opening * 0.5f, -b + rise), innerCorner.Radius * scale, innerCorner.Segments, "InnerRight"));
+					}
+				}
+				corners.Add(new InsertCorner(new float2(a, -b), footCorner.Radius * scale, footCorner.Segments, "FootRight"));
+				return corners.ToArray();
+			});
+			if (math.abs(held - slope) > 1e-6f) {
+				warnings?.Add($"Foot angle reduced to {math.degrees(math.atan(held)):0.#} degrees, so the feet stay inside the arrow.");
+			}
+			return fitted;
+		}
+
+		/// <summary>
+		/// What an arrow's notch amounts to: none at all without depth or an
+		/// opening to speak of, and one without inner corners when the feet it
+		/// would leave are too narrow to hold their own. The inspector greys
+		/// out by the same rule.
+		/// </summary>
+		public static void ArrowTopology(float width, float notchDepth, float notchWidth, out bool notched, out bool footed)
+		{
+			var least = math.max(Epsilon * 10f, width * 0.01f);
+			var opening = math.min(notchWidth, width);
+			notched = notchDepth > Epsilon && opening > least;
+			footed = notched && (width - opening) * 0.5f > least;
+		}
+
+		/// <summary>
 		/// The sharp corners of a shape whose fillets pull its extremes in,
 		/// fitted so the finished shape fills the width by the height exactly.
 		/// </summary>
@@ -434,10 +533,13 @@ namespace VisualPinball.Unity
 		/// the pull barely moves. Fillets too round for the shape are scaled down
 		/// until it does converge, with a warning, as a triangle's are.
 		/// </remarks>
-		/// <param name="sharp">The corners for a half-width, a half-height and a
-		/// scale on every fillet radius.</param>
+		/// <param name="sharp">The corners for a half-width, a half-height, a
+		/// scale on every fillet radius, and the lift: how far the fillets at the
+		/// bottom pulled the finished bottom up from the lowest sharp corner in
+		/// the previous pass, for a shape that places something relative to the
+		/// finished bottom.</param>
 		private static InsertCorner[] FitBox(float width, float height, string shape, List<string> warnings,
-			Func<float, float, float, InsertCorner[]> sharp)
+			Func<float, float, float, float, InsertCorner[]> sharp)
 		{
 			var scale = 1f;
 			InsertCorner[] corners = null;
@@ -445,12 +547,17 @@ namespace VisualPinball.Unity
 			for (var attempt = 0; attempt < 12 && !converged; attempt++) {
 				var a = width * 0.5f;
 				var b = height * 0.5f;
-				for (var step = 0; step < 24; step++) {
-					corners = sharp(a, b, scale);
+				var lift = 0f;
+				for (var step = 0; step < 64; step++) {
+					corners = sharp(a, b, scale, lift);
 					var measured = InsertOutlineBuilder.Build(corners, 1, false);
 					var missingWidth = width - measured.Width;
 					var missingHeight = height - measured.Height;
-					if (math.abs(missingWidth) < 1e-5f && math.abs(missingHeight) < 1e-5f) {
+					InsertOutlineBuilder.AnalyticBounds(measured.Corners, out var low, out _);
+					var lifted = low.y - corners.Min(c => c.Position.y);
+					var settled = math.abs(lifted - lift) < 1e-5f;
+					lift = lifted;
+					if (math.abs(missingWidth) < 1e-5f && math.abs(missingHeight) < 1e-5f && settled) {
 						converged = true;
 						break;
 					}
