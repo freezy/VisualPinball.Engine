@@ -23,6 +23,11 @@ using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
 {
+	/// <summary>
+	/// The insert's inspector: its geometry with a top view of it, its bake and
+	/// its clear cover, each in a section of its own, with every control saying
+	/// what it does and switched off where it would do nothing.
+	/// </summary>
 	[CustomEditor(typeof(InsertComponent))]
 	[CanEditMultipleObjects]
 	public class InsertInspector : UnityEditor.Editor
@@ -56,6 +61,10 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>How many holes the "Around" preset spreads out, remembered while the inspector is open.</summary>
 		private int _aroundCount = 5;
 
+		private const string GeometryKey = "VisualPinball.Insert.Geometry";
+		private const string BakeKey = "VisualPinball.Insert.Bake";
+		private const string CoverKey = "VisualPinball.Insert.Cover";
+
 		private void OnEnable()
 		{
 			_shape = serializedObject.FindProperty("_shape");
@@ -86,186 +95,422 @@ namespace VisualPinball.Unity.Editor
 		{
 			serializedObject.Update();
 
-			EditorGUILayout.LabelField("Outline", EditorStyles.boldLabel);
-			EditorGUILayout.PropertyField(_shape);
-			EditorGUILayout.PropertyField(_width, new GUIContent("Width (VPX)"));
-			EditorGUILayout.PropertyField(_height, new GUIContent("Height (VPX)"));
-
-			switch ((InsertShape)_shape.enumValueIndex) {
-				case InsertShape.Triangle:
-					EditorGUILayout.PropertyField(_triangleBase, new GUIContent("Base Corners"), true);
-					EditorGUILayout.PropertyField(_triangleApex, new GUIContent("Apex Corner"), true);
-					break;
-
-				case InsertShape.Rectangle:
-					EditorGUILayout.PropertyField(_rectangleCorner, new GUIContent("Corners"), true);
-					break;
+			if (InsertSection.Begin(GeometryKey, "Geometry")) {
+				DrawGeometry();
 			}
+			InsertSection.End();
 
-			EditorGUILayout.PropertyField(_sideSegments);
-
-			EditorGUILayout.Space();
-			EditorGUILayout.LabelField("Body", EditorStyles.boldLabel);
-			EditorGUILayout.PropertyField(_depth, new GUIContent("Depth (VPX)"));
-
-			EditorGUILayout.Space();
-			EditorGUILayout.LabelField("Channel", EditorStyles.boldLabel);
-			EditorGUILayout.PropertyField(_channelWidth, new GUIContent("Width (VPX)"));
-			EditorGUILayout.PropertyField(_channelDepth, new GUIContent("Depth (VPX)"));
-
-			EditorGUILayout.Space();
-			EditorGUILayout.LabelField("Bevel", EditorStyles.boldLabel);
-			EditorGUILayout.PropertyField(_bottomBevel, new GUIContent("Bottom Width (VPX)"));
-			EditorGUILayout.PropertyField(_bottomBevelSegments, new GUIContent("Bottom Segments"));
-
-			EditorGUILayout.Space();
-			EditorGUILayout.LabelField("Starburst", EditorStyles.boldLabel);
-			EditorGUILayout.PropertyField(_starburstBursts, new GUIContent("Bursts"));
-			if (_starburstBursts.intValue >= InsertStarburst.MinBursts) {
-				EditorGUILayout.PropertyField(_starburstCenter, new GUIContent("Center (VPX)"));
-				EditorGUILayout.PropertyField(_starburstOffset, new GUIContent("Offset (VPX)"));
-			}
-
-			EditorGUILayout.Space();
-			EditorGUILayout.LabelField("Holes", EditorStyles.boldLabel);
-			EditorGUILayout.PropertyField(_holeSegments, new GUIContent("Circle Segments"));
-			EditorGUILayout.PropertyField(_holeRadius, new GUIContent("New Hole Radius (VPX)"));
-			DrawHolePresets();
-			EditorGUILayout.PropertyField(_holes, new GUIContent("Holes"), true);
-
-			EditorGUILayout.Space();
-			EditorGUILayout.LabelField("Normal Bake", EditorStyles.boldLabel);
-			using (new EditorGUI.DisabledScope(IsLocked)) {
+			if (InsertSection.Begin(BakeKey, "Normal Bake")) {
 				DrawBakeSettings();
-			}
-
-			EditorGUILayout.Space();
-			EditorGUILayout.LabelField("Clear Cover", EditorStyles.boldLabel);
-			EditorGUILayout.PropertyField(_coverMaterial, new GUIContent("Material"));
-			EditorGUILayout.PropertyField(_usePlayfieldNormals, new GUIContent("Use Playfield Normals"));
-			if (_usePlayfieldNormals.boolValue || _usePlayfieldNormals.hasMultipleDifferentValues) {
-				EditorGUILayout.PropertyField(_coverPlayfield, new GUIContent("Playfield Override"));
-				if (targets.Length == 1 && ((InsertComponent)target).CoverPlayfield != null) {
-					var playfield = ((InsertComponent)target).CoverPlayfield;
-					var material = playfield.sharedMaterial;
-					using (new EditorGUI.DisabledScope(true)) {
-						EditorGUILayout.ObjectField("Detected Surface", playfield, typeof(MeshRenderer), true);
-						EditorGUILayout.ObjectField("Source Material", material, typeof(Material), false);
-						EditorGUILayout.ObjectField("Source Normal Map", material != null && material.HasProperty("_NormalMap") ? material.GetTexture("_NormalMap") : null, typeof(Texture), false);
-					}
-				}
 			}
 
 			serializedObject.ApplyModifiedProperties();
 
-			DrawBake();
-			DrawHybridMaterial();
-			if (targets.Length == 1 && ((InsertComponent)target).CoverMaterial == null) {
-				using (new EditorGUI.DisabledScope(EditorApplication.isPlaying || Shader.Find("Visual Pinball/Insert Cover") == null)) {
-					if (GUILayout.Button("Add Clear Cover")) {
-						AddCover((InsertComponent)target);
-					}
-				}
+			// Buttons act on the components themselves, once the fields are applied.
+			if (SessionState.GetBool(BakeKey, true)) {
+				DrawBake();
+				DrawHybridMaterial();
 			}
-			DrawStatus();
-		}
+			InsertSection.End();
 
-		public static Material AddCover(InsertComponent insert)
-		{
-			if (insert.CoverMaterial != null) {
-				return insert.CoverMaterial;
-			}
-			var shader = Shader.Find("Visual Pinball/Insert Cover");
-			if (shader == null) {
-				throw new System.InvalidOperationException("The HDRP insert cover shader is not installed.");
-			}
-			if (!AssetDatabase.IsValidFolder("Assets/Inserts")) {
-				AssetDatabase.CreateFolder("Assets", "Inserts");
-			}
-			var folder = insert.Bake != null && !InsertBaker.IsReadOnly(insert.Bake) ? Path.GetDirectoryName(AssetDatabase.GetAssetPath(insert.Bake)) : null;
-			if (string.IsNullOrEmpty(folder)) {
-				folder = "Assets/Inserts";
-			}
-			var material = new Material(shader) { name = $"{insert.name} Cover" };
-			AssetDatabase.CreateAsset(material, AssetDatabase.GenerateUniqueAssetPath($"{folder.Replace('\\', '/')}/Insert Cover.mat"));
-			Undo.RecordObjects(new Object[] { insert, insert.GetComponent<MeshRenderer>() }, "Add Clear Insert Cover");
-			insert.SetCoverMaterial(material);
-			EditorUtility.SetDirty(insert);
-			PrefabUtility.RecordPrefabInstancePropertyModifications(insert);
-			PrefabUtility.RecordPrefabInstancePropertyModifications(insert.GetComponent<MeshRenderer>());
-			AssetDatabase.SaveAssetIfDirty(material);
-			return material;
-		}
-
-		private void DrawHybridMaterial()
-		{
-			if (targets.Length > 1) {
-				return;
-			}
-			var insert = (InsertComponent)target;
-			var data = insert.Bake;
-			if (data == null || data.OpticalNormalMap == null || data.OpticalResponseMap == null) {
-				return;
-			}
-			if (data.Material != null && data.Material.HasProperty("_OpticalNormalMap")) {
-				EditorGUILayout.HelpBox("Hybrid optics are active. The material controls Max Brightness, facet contrast and reflections. Insert Light controls Intensity, Color and real light spilling onto the table.", MessageType.Info);
-				var lighting = insert.GetComponent<InsertLightComponent>();
-				if (lighting == null || lighting.SpillLight == null) {
-					using (new EditorGUI.DisabledScope(EditorApplication.isPlaying)) {
-						if (GUILayout.Button("Add Intensity Controls and Spill Light")) {
-							AddLighting(insert);
+			if (InsertSection.Begin(CoverKey, "Clear Cover")) {
+				serializedObject.Update();
+				DrawCover();
+				serializedObject.ApplyModifiedProperties();
+				if (targets.Length == 1 && ((InsertComponent)target).CoverMaterial == null) {
+					using (new EditorGUI.DisabledScope(EditorApplication.isPlaying || Shader.Find("Visual Pinball/Insert Cover") == null)) {
+						if (GUILayout.Button("Add Clear Cover")) {
+							AddCover((InsertComponent)target);
 						}
 					}
 				}
+			}
+			InsertSection.End();
+
+			DrawStatus();
+		}
+
+		private static void SubHeader(string title)
+		{
+			EditorGUILayout.Space(4f);
+			EditorGUILayout.LabelField(title, EditorStyles.boldLabel);
+		}
+
+		/// <summary>The property with its label, and the tooltip its field declares.</summary>
+		private static void Field(SerializedProperty property, string label, bool children = false)
+		{
+			EditorGUILayout.PropertyField(property, new GUIContent(label, property.tooltip), children);
+		}
+
+		/// <summary>A corner's radius and segment count on one line, which is all they need.</summary>
+		private static void CornerField(SerializedProperty corner, string label)
+		{
+			var radius = corner.FindPropertyRelative(nameof(InsertCornerSettings.Radius));
+			var segments = corner.FindPropertyRelative(nameof(InsertCornerSettings.Segments));
+			var rect = EditorGUI.PrefixLabel(EditorGUILayout.GetControlRect(), new GUIContent(label, corner.tooltip));
+			var indent = EditorGUI.indentLevel;
+			var labelWidth = EditorGUIUtility.labelWidth;
+			EditorGUI.indentLevel = 0;
+			const float gap = 8f;
+			var half = (rect.width - gap) * 0.5f;
+			var left = new Rect(rect.x, rect.y, half, rect.height);
+			var right = new Rect(rect.x + half + gap, rect.y, half, rect.height);
+			EditorGUIUtility.labelWidth = 48f;
+			EditorGUI.PropertyField(left, radius, new GUIContent("Radius", radius.tooltip));
+			EditorGUIUtility.labelWidth = 64f;
+			// A plain field rather than the range slider, which has no room here.
+			var content = EditorGUI.BeginProperty(right, new GUIContent("Segments", segments.tooltip), segments);
+			EditorGUI.BeginChangeCheck();
+			var count = EditorGUI.IntField(right, content, segments.intValue);
+			if (EditorGUI.EndChangeCheck()) {
+				segments.intValue = Mathf.Clamp(count, 1, 64);
+			}
+			EditorGUI.EndProperty();
+			EditorGUIUtility.labelWidth = labelWidth;
+			EditorGUI.indentLevel = indent;
+		}
+
+		#region Geometry
+
+		private void DrawGeometry()
+		{
+			if (targets.Length == 1) {
+				DrawPreview((InsertComponent)target);
+			}
+
+			SubHeader("Outline");
+			Field(_shape, "Shape");
+			Field(_width, "Width");
+			Field(_height, "Height");
+			switch ((InsertShape)_shape.enumValueIndex) {
+				case InsertShape.Triangle:
+					CornerField(_triangleBase, "Base Corners");
+					CornerField(_triangleApex, "Apex Corner");
+					break;
+				case InsertShape.Rectangle:
+					CornerField(_rectangleCorner, "Corners");
+					break;
+			}
+			Field(_sideSegments, "Side Segments");
+
+			SubHeader("Body");
+			Field(_depth, "Depth");
+
+			SubHeader("Channel");
+			Field(_channelWidth, "Width");
+			var channel = _channelWidth.hasMultipleDifferentValues || _channelWidth.floatValue > 0f;
+			using (new EditorGUI.DisabledScope(!channel)) {
+				Field(_channelDepth, "Depth");
+			}
+
+			SubHeader("Bottom Bevel");
+			Field(_bottomBevel, "Width");
+			using (new EditorGUI.DisabledScope(!_bottomBevel.hasMultipleDifferentValues && _bottomBevel.floatValue <= 0f)) {
+				Field(_bottomBevelSegments, "Segments");
+			}
+
+			SubHeader("Starburst");
+			Field(_starburstBursts, "Bursts");
+			var starburst = _starburstBursts.hasMultipleDifferentValues || _starburstBursts.intValue >= InsertStarburst.MinBursts;
+			using (new EditorGUI.DisabledScope(!starburst)) {
+				Field(_starburstCenter, "Center");
+				Field(_starburstOffset, "Offset");
+			}
+			if (starburst && !channel) {
+				EditorGUILayout.HelpBox("The starburst replaces the raised floor, which needs a channel to stand above.", MessageType.Info);
+			}
+
+			SubHeader("Holes");
+			if (!channel) {
+				EditorGUILayout.HelpBox("Holes cut through the raised floor, which needs a channel to stand above.", MessageType.Info);
+			}
+			using (new EditorGUI.DisabledScope(!channel)) {
+				Field(_holeSegments, "Circle Segments");
+				Field(_holeRadius, "New Hole Radius");
+				DrawHolePresets();
+				Field(_holes, "Holes", true);
+			}
+		}
+
+		private const float PreviewHeight = 220f;
+		private static readonly Color HoleColor = new(1f, 0.6f, 0.1f);
+
+		private static GUIStyle _holeLabel;
+		private static GUIStyle HoleLabel => _holeLabel ??= new GUIStyle(EditorStyles.boldLabel) {
+			fontSize = 13,
+			normal = { textColor = HoleColor },
+		};
+
+		private static GUIStyle _previewLabel;
+		private static GUIStyle PreviewLabel => _previewLabel ??= new GUIStyle(EditorStyles.miniLabel) {
+			alignment = TextAnchor.LowerRight,
+			normal = { textColor = new Color(0.6f, 0.6f, 0.6f) },
+		};
+
+		private static GUIStyle _holeNumber;
+		private static GUIStyle HoleNumber => _holeNumber ??= new GUIStyle(EditorStyles.miniBoldLabel) {
+			normal = { textColor = HoleColor },
+		};
+
+		/// <summary>
+		/// The insert from above, as the player sees the playfield: the outline,
+		/// the raised floor inside the channel, the starburst's spokes over it and
+		/// the holes through it, numbered as the list numbers them.
+		/// </summary>
+		private void DrawPreview(InsertComponent insert)
+		{
+			var area = EditorGUILayout.GetControlRect(false, PreviewHeight);
+			var outline = insert.Outline;
+			if (Event.current.type != EventType.Repaint) {
 				return;
 			}
-			using (new EditorGUI.DisabledScope(!insert.IsBakeFresh || IsLocked || InsertBaker.Baking != null || EditorApplication.isPlaying || Shader.Find(InsertBaker.HybridShaderName) == null)) {
-				if (GUILayout.Button("Use HDRP Hybrid Material")) {
-					InsertBaker.UseHybridMaterial(insert);
+			var dark = EditorGUIUtility.isProSkin;
+			EditorGUI.DrawRect(area, dark ? new Color(0.14f, 0.14f, 0.14f) : new Color(0.8f, 0.8f, 0.8f));
+			if (outline == null || outline.Points.Count < 3) {
+				return;
+			}
+			// Everything below is clipped to the preview, and drawn relative to it,
+			// so a hole dragged off the insert cannot draw over the fields below.
+			GUI.BeginClip(area);
+			var rect = new Rect(0f, 0f, area.width, area.height);
+			using (new Handles.DrawingScope(Handles.color, Matrix4x4.identity)) {
+				DrawPreview(insert, outline, rect, dark);
+			}
+			GUI.EndClip();
+		}
+
+		private void DrawPreview(InsertComponent insert, InsertOutline outline, Rect rect, bool dark)
+		{
+
+			var low = new float2(float.MaxValue);
+			var high = new float2(float.MinValue);
+			foreach (var point in outline.Points) {
+				low = math.min(low, point.Position);
+				high = math.max(high, point.Position);
+			}
+			var extent = math.max(high - low, 1e-3f);
+			const float margin = 18f;
+			var scale = math.min((rect.width - 2f * margin) / extent.x, (rect.height - 2f * margin) / extent.y);
+			var middle = (low + high) * 0.5f;
+			// Turned as the mesh is: the generator gives a shape half a turn about
+			// the up axis, so its +Y points up the table, and up the screen here.
+			Vector3 Map(float2 p) => new(rect.center.x - (p.x - middle.x) * scale, rect.center.y - (p.y - middle.y) * scale, 0f);
+
+			var rim = outline.Points.Select(point => point.Position).ToList();
+			var rimScreen = rim.Select(Map).ToArray();
+			Handles.color = dark ? new Color(0.35f, 0.38f, 0.45f, 0.5f) : new Color(0.55f, 0.6f, 0.7f, 0.5f);
+			Handles.DrawAAConvexPolygon(rimScreen);
+			Handles.color = dark ? new Color(0.75f, 0.8f, 0.9f) : new Color(0.2f, 0.25f, 0.35f);
+			Handles.DrawAAPolyLine(2.5f, Closed(rimScreen));
+
+			var inset = outline.ClampInset(_channelWidth.floatValue);
+			var island = rim;
+			if (inset > 0f) {
+				island = Enumerable.Range(0, outline.Points.Count).Select(i => outline.OffsetPoint(i, inset)).ToList();
+				Handles.color = dark ? new Color(0.6f, 0.65f, 0.75f, 0.8f) : new Color(0.3f, 0.35f, 0.45f, 0.8f);
+				Handles.DrawAAPolyLine(1.5f, Closed(island.Select(Map).ToArray()));
+			}
+
+			if (_starburstBursts.intValue >= InsertStarburst.MinBursts && inset > 0f) {
+				var center = new float2(_starburstCenter.vector2Value.x, _starburstCenter.vector2Value.y);
+				var sectors = _starburstBursts.intValue * 2;
+				// Enough spokes to show the fan, never so many they turn into a smear.
+				var stride = math.max(1, (int)math.ceil(sectors / 96f));
+				Handles.color = dark ? new Color(0.9f, 0.9f, 0.7f, 0.35f) : new Color(0.3f, 0.3f, 0.1f, 0.35f);
+				for (var sector = 0; sector < sectors; sector += stride) {
+					var angle = math.PI * 2f * sector / sectors;
+					var direction = new float2(math.cos(angle), math.sin(angle));
+					if (Clip(center, direction, island, out var enter, out var exit)) {
+						Handles.DrawAAPolyLine(1f, Map(center + direction * enter), Map(center + direction * exit));
+					}
+				}
+				var hub = Map(center);
+				if (rect.Contains(hub)) {
+					Handles.color = dark ? new Color(0.9f, 0.9f, 0.7f) : new Color(0.3f, 0.3f, 0.1f);
+					Handles.DrawAAPolyLine(1.5f, hub + Vector3.left * 5f, hub + Vector3.right * 5f);
+					Handles.DrawAAPolyLine(1.5f, hub + Vector3.up * 5f, hub + Vector3.down * 5f);
+				}
+			}
+
+			for (var i = 0; i < insert.Holes.Count; i++) {
+				var hole = insert.Holes[i];
+				var center = new float2(hole.Center.x, hole.Center.y);
+				Handles.color = HoleColor;
+				Handles.DrawWireDisc(Map(center), Vector3.forward, hole.Radius * scale);
+				var corner = Map(center + new float2(hole.Radius, hole.Radius) * 0.75f);
+				GUI.Label(new Rect(corner.x, corner.y - 14f, 24f, 16f), i.ToString(), HoleNumber);
+			}
+
+			var inch = 1f / InsertShapes.VpxUnitsPerInch;
+			var millimetre = InsertShapes.MetresPerInch * 1000f * inch;
+			GUI.Label(new Rect(rect.x, rect.yMax - 18f, rect.width - 6f, 16f),
+				$"{outline.Width * millimetre:0.#} x {outline.Height * millimetre:0.#} mm, seen from above", PreviewLabel);
+		}
+
+		private static Vector3[] Closed(Vector3[] points)
+		{
+			var closed = new Vector3[points.Length + 1];
+			points.CopyTo(closed, 0);
+			closed[^1] = points[0];
+			return closed;
+		}
+
+		/// <summary>
+		/// Where a ray from <paramref name="origin"/> along <paramref name="direction"/>
+		/// runs through a convex polygon: from where it enters, or the origin when
+		/// that lies inside, to where it leaves. False when it misses. The ray is
+		/// cut down by each edge's half-plane in turn, which needs no count of
+		/// crossings that a corner could throw off.
+		/// </summary>
+		private static bool Clip(float2 origin, float2 direction, List<float2> polygon, out float enter, out float exit)
+		{
+			enter = 0f;
+			exit = float.MaxValue;
+			var area = 0f;
+			for (var i = 0; i < polygon.Count; i++) {
+				var a = polygon[i];
+				var b = polygon[(i + 1) % polygon.Count];
+				area += a.x * b.y - b.x * a.y;
+			}
+			var inwards = area >= 0f ? 1f : -1f;
+			for (var i = 0; i < polygon.Count; i++) {
+				var a = polygon[i];
+				var edge = polygon[(i + 1) % polygon.Count] - a;
+				// The inside is to the left of a counter-clockwise edge.
+				var normal = inwards * new float2(-edge.y, edge.x);
+				var numerator = math.dot(normal, a - origin);
+				var denominator = math.dot(normal, direction);
+				if (math.abs(denominator) < 1e-9f) {
+					if (numerator > 0f) {
+						return false;
+					}
+					continue;
+				}
+				var t = numerator / denominator;
+				if (denominator > 0f) {
+					enter = math.max(enter, t);
+				} else {
+					exit = math.min(exit, t);
+				}
+			}
+			return exit > enter;
+		}
+
+		/// <summary>
+		/// Buttons that lay holes out along the raised floor's edge, replacing
+		/// whatever holes were there. Each hole can be moved afterwards.
+		/// </summary>
+		private void DrawHolePresets()
+		{
+			var insert = (InsertComponent)target;
+			var outline = insert.Outline;
+			var inset = outline?.ClampInset(_channelWidth.floatValue) ?? 0f;
+
+			using (new EditorGUI.DisabledScope(outline == null || targets.Length > 1)) {
+				using (new EditorGUILayout.HorizontalScope()) {
+					if (GUILayout.Button(new GUIContent("Corners", "One hole at each corner of the raised floor."))) {
+						SetHoles(InsertHoles.AtCorners(outline, inset));
+					}
+					if (GUILayout.Button(new GUIContent("Corners + Sides", "A hole at each corner and one halfway along each side."))) {
+						SetHoles(InsertHoles.AtCornersAndSides(outline, inset));
+					}
+				}
+				using (new EditorGUILayout.HorizontalScope()) {
+					_aroundCount = EditorGUILayout.IntSlider(new GUIContent("Around", "How many holes to spread evenly along the raised floor's edge."), _aroundCount, 1, 64);
+					if (GUILayout.Button("Around", GUILayout.Width(80f))) {
+						SetHoles(InsertHoles.Around(outline, inset, _aroundCount));
+					}
+				}
+			}
+			// A new hole goes in the middle of this insert's outline, which means
+			// nothing to another insert, so it is one at a time like the presets.
+			using (new EditorGUI.DisabledScope(targets.Length > 1))
+			using (new EditorGUILayout.HorizontalScope()) {
+				if (GUILayout.Button(new GUIContent("Add Hole", "A hole of the radius above, in the middle of the insert, to be moved from there."))) {
+					var index = _holes.arraySize;
+					_holes.InsertArrayElementAtIndex(index);
+					var hole = _holes.GetArrayElementAtIndex(index);
+					hole.FindPropertyRelative(nameof(InsertHole.Center)).vector2Value =
+						outline != null ? new Vector2(outline.Centroid.x, outline.Centroid.y) : Vector2.zero;
+					hole.FindPropertyRelative(nameof(InsertHole.Radius)).floatValue = _holeRadius.floatValue;
+				}
+				var symmetrize = new GUIContent("Symmetrize",
+					"Moves holes near the middle line onto it, and sets holes that nearly mirror each other across it to mirror it exactly. " +
+					"Near means within 5% of the insert's larger side.");
+				using (new EditorGUI.DisabledScope(outline == null || _holes.arraySize == 0)) {
+					if (GUILayout.Button(symmetrize)) {
+						Symmetrize(0.05f * math.max(outline.Width, outline.Height));
+					}
+				}
+				using (new EditorGUI.DisabledScope(_holes.arraySize == 0)) {
+					if (GUILayout.Button(new GUIContent("Clear", "Removes every hole."))) {
+						_holes.ClearArray();
+					}
 				}
 			}
 		}
 
-		public static InsertLightComponent AddLighting(InsertComponent insert)
+		private void Symmetrize(float tolerance)
 		{
-			var lighting = insert.GetComponent<InsertLightComponent>() ?? Undo.AddComponent<InsertLightComponent>(insert.gameObject);
-			if (lighting.SpillLight == null) {
-				var go = new GameObject("Insert Spill Light");
-				Undo.RegisterCreatedObjectUndo(go, "Add Insert Spill Light");
-				go.transform.SetParent(insert.transform, false);
-				var bounds = insert.GetComponent<MeshFilter>().sharedMesh.bounds;
-				go.transform.localPosition = new Vector3(bounds.center.x, bounds.max.y + 0.008f, bounds.center.z);
-				var light = go.AddComponent<Light>();
-				light.type = LightType.Point;
-				var converter = RenderPipeline.Current.LightConverter;
-				converter.UpdateLight(light, new VisualPinball.Engine.VPT.Light.LightData(), true);
-				converter.SetShadow(light, false, false);
-				Undo.RecordObject(lighting, "Assign Insert Spill Light");
-				lighting.SpillLight = light;
-				PrefabUtility.RecordPrefabInstancePropertyModifications(lighting);
+			var holes = new InsertHole[_holes.arraySize];
+			for (var i = 0; i < holes.Length; i++) {
+				var hole = _holes.GetArrayElementAtIndex(i);
+				holes[i] = new InsertHole(hole.FindPropertyRelative(nameof(InsertHole.Center)).vector2Value,
+					hole.FindPropertyRelative(nameof(InsertHole.Radius)).floatValue);
 			}
-			lighting.Apply();
-			return lighting;
+			var symmetric = InsertHoles.Symmetrize(holes, tolerance);
+			for (var i = 0; i < symmetric.Length; i++) {
+				_holes.GetArrayElementAtIndex(i).FindPropertyRelative(nameof(InsertHole.Center)).vector2Value = symmetric[i].Center;
+			}
 		}
+
+		private void SetHoles(List<Vector2> centers)
+		{
+			_holes.ClearArray();
+			for (var i = 0; i < centers.Count; i++) {
+				_holes.InsertArrayElementAtIndex(i);
+				var hole = _holes.GetArrayElementAtIndex(i);
+				hole.FindPropertyRelative(nameof(InsertHole.Center)).vector2Value = centers[i];
+				hole.FindPropertyRelative(nameof(InsertHole.Radius)).floatValue = _holeRadius.floatValue;
+			}
+		}
+
+		#endregion
+
+		#region Bake
+
+		/// <summary>
+		/// Whether the insert's bake sits where it cannot be written to, which
+		/// locks everything that would write it until the bake is forked.
+		/// </summary>
+		private bool IsLocked => targets.Any(selected => InsertBaker.IsReadOnly(((InsertComponent)selected).Bake));
 
 		private void DrawBakeSettings()
 		{
-			var size = _bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.TextureSize));
-			EditorGUILayout.IntPopup(size, TextureSizeNames, TextureSizes, new GUIContent("Texture Size", size.tooltip));
-			var padding = _bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.Padding));
-			EditorGUILayout.IntSlider(padding, 1, 32, new GUIContent("Padding (px)", padding.tooltip));
-			EditorGUILayout.PropertyField(_bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.EdgeBevel)), new GUIContent("Edge Bevel (VPX)"));
-			EditorGUILayout.PropertyField(_bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.NormalGrainStrength)), new GUIContent("Normal Grain Strength"));
-			EditorGUILayout.PropertyField(_bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.NormalGrainSize)), new GUIContent("Normal Grain Size (VPX)"));
-			EditorGUILayout.PropertyField(_bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.Unwrap)), new GUIContent("Unwrap in Blender"));
-			EditorGUILayout.PropertyField(_bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.PreferUvPackMaster)), new GUIContent("Prefer UVPackMaster"));
-			EditorGUILayout.PropertyField(_bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.Gpu)), new GUIContent("Bake on GPU"));
-			EditorGUILayout.PropertyField(_bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.HybridOptics)), new GUIContent("Bake Hybrid Optics"));
+			if (IsLocked) {
+				EditorGUILayout.HelpBox("The bake cannot be written to where it is, so its settings are locked. Fork to Project below to bake here.", MessageType.None);
+			}
+			using (new EditorGUI.DisabledScope(IsLocked)) {
+				var size = _bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.TextureSize));
+				EditorGUILayout.IntPopup(size, TextureSizeNames, TextureSizes, new GUIContent("Texture Size", size.tooltip));
+				var padding = _bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.Padding));
+				EditorGUILayout.IntSlider(padding, 1, 32, new GUIContent("Padding (px)", padding.tooltip));
+				Field(_bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.EdgeBevel)), "Edge Bevel");
+				var grain = _bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.NormalGrainStrength));
+				Field(grain, "Grain Strength");
+				using (new EditorGUI.DisabledScope(!grain.hasMultipleDifferentValues && grain.floatValue <= 0f)) {
+					Field(_bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.NormalGrainSize)), "Grain Size");
+				}
+				Field(_bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.Unwrap)), "Unwrap in Blender");
+				Field(_bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.PreferUvPackMaster)), "Prefer UVPackMaster");
+				Field(_bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.Gpu)), "Bake on GPU");
+				Field(_bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.HybridOptics)), "Bake Hybrid Optics");
+			}
 		}
 
 		/// <summary>
 		/// Which Blender bakes, whether the insert's bake still fits it, and the
-		/// buttons to bake or drop the bake. One insert at a time.
+		/// buttons to bake, fork or drop the bake. One insert at a time.
 		/// </summary>
 		private void DrawBake()
 		{
@@ -273,7 +518,7 @@ namespace VisualPinball.Unity.Editor
 
 			using (new EditorGUILayout.HorizontalScope()) {
 				var path = InsertBaker.BlenderPath ?? "";
-				var next = EditorGUILayout.DelayedTextField("Blender", path);
+				var next = EditorGUILayout.DelayedTextField(new GUIContent("Blender", "The Blender 5 executable that bakes. Found on its own when left empty."), path);
 				if (GUILayout.Button("...", GUILayout.Width(28f))) {
 					var picked = EditorUtility.OpenFilePanel("Blender Executable", Path.GetDirectoryName(path) ?? "",
 						Application.platform == RuntimePlatform.WindowsEditor ? "exe" : "");
@@ -326,12 +571,12 @@ namespace VisualPinball.Unity.Editor
 
 			using (new EditorGUILayout.HorizontalScope()) {
 				using (new EditorGUI.DisabledScope(IsLocked || InsertBaker.Baking != null || blender?.Error != null || insert.Error != null || EditorApplication.isPlayingOrWillChangePlaymode)) {
-					if (GUILayout.Button(insert.Bake != null ? "Bake Again" : "Bake")) {
+					if (GUILayout.Button(new GUIContent(insert.Bake != null ? "Bake Again" : "Bake", "Unwraps and packs the UVs and bakes the normal map, and the optical maps when asked, in Blender."))) {
 						InsertBaker.Bake(insert);
 					}
 				}
 				using (new EditorGUI.DisabledScope(insert.Bake == null || IsLocked)) {
-					if (GUILayout.Button("Clear Bake")) {
+					if (GUILayout.Button(new GUIContent("Clear Bake", "Drops the bake and puts the original material back. The bake's assets stay on disk."))) {
 						Undo.RecordObjects(new Object[] { insert, insert.GetComponent<MeshRenderer>() }, "Clear Insert Bake");
 						insert.SetBake(null);
 					}
@@ -339,88 +584,112 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		/// <summary>
-		/// Buttons that lay holes out along the raised floor's edge, replacing
-		/// whatever holes were there. Each hole can be moved afterwards.
-		/// </summary>
-		private void DrawHolePresets()
+		private void DrawHybridMaterial()
 		{
+			if (targets.Length > 1) {
+				return;
+			}
 			var insert = (InsertComponent)target;
-			var outline = insert.Outline;
-			var inset = outline?.ClampInset(_channelWidth.floatValue) ?? 0f;
-
-			using (new EditorGUI.DisabledScope(outline == null || targets.Length > 1)) {
-				using (new EditorGUILayout.HorizontalScope()) {
-					if (GUILayout.Button("Corners")) {
-						SetHoles(InsertHoles.AtCorners(outline, inset));
-					}
-					if (GUILayout.Button("Corners + Sides")) {
-						SetHoles(InsertHoles.AtCornersAndSides(outline, inset));
-					}
-				}
-				using (new EditorGUILayout.HorizontalScope()) {
-					_aroundCount = EditorGUILayout.IntSlider(_aroundCount, 1, 64);
-					if (GUILayout.Button("Around", GUILayout.Width(80f))) {
-						SetHoles(InsertHoles.Around(outline, inset, _aroundCount));
-					}
-				}
+			var data = insert.Bake;
+			if (data == null || data.OpticalNormalMap == null || data.OpticalResponseMap == null) {
+				return;
 			}
-			// A new hole goes in the middle of this insert's outline, which means
-			// nothing to another insert, so it is one at a time like the presets.
-			using (new EditorGUI.DisabledScope(targets.Length > 1))
-			using (new EditorGUILayout.HorizontalScope()) {
-				if (GUILayout.Button("Add Hole")) {
-					var index = _holes.arraySize;
-					_holes.InsertArrayElementAtIndex(index);
-					var hole = _holes.GetArrayElementAtIndex(index);
-					hole.FindPropertyRelative(nameof(InsertHole.Center)).vector2Value =
-						outline != null ? new Vector2(outline.Centroid.x, outline.Centroid.y) : Vector2.zero;
-					hole.FindPropertyRelative(nameof(InsertHole.Radius)).floatValue = _holeRadius.floatValue;
-				}
-				var symmetrize = new GUIContent("Symmetrize",
-					"Moves holes near the middle line onto it, and sets holes that nearly mirror each other across it to mirror it exactly. " +
-					"Near means within 5% of the insert's larger side.");
-				using (new EditorGUI.DisabledScope(outline == null)) {
-					if (GUILayout.Button(symmetrize)) {
-						Symmetrize(0.05f * math.max(outline.Width, outline.Height));
+			if (data.Material != null && data.Material.HasProperty("_OpticalNormalMap")) {
+				EditorGUILayout.HelpBox("Hybrid optics are active. The material controls Max Brightness, facet contrast and reflections. Insert Light controls Intensity, Color and real light spilling onto the table.", MessageType.Info);
+				var lighting = insert.GetComponent<InsertLightComponent>();
+				if (lighting == null || lighting.SpillLight == null) {
+					using (new EditorGUI.DisabledScope(EditorApplication.isPlaying)) {
+						if (GUILayout.Button(new GUIContent("Add Intensity Controls and Spill Light", "Adds the Insert Light component, with a point light just above the insert that lights the playfield around it."))) {
+							AddLighting(insert);
+						}
 					}
 				}
-				if (GUILayout.Button("Clear")) {
-					_holes.ClearArray();
+				return;
+			}
+			using (new EditorGUI.DisabledScope(!insert.IsBakeFresh || IsLocked || InsertBaker.Baking != null || EditorApplication.isPlaying || Shader.Find(InsertBaker.HybridShaderName) == null)) {
+				if (GUILayout.Button(new GUIContent("Use HDRP Hybrid Material", "Creates a hybrid material with the baked optical maps and puts it on the insert. The previous material stays on disk."))) {
+					InsertBaker.UseHybridMaterial(insert);
 				}
 			}
 		}
 
-		private void Symmetrize(float tolerance)
+		public static InsertLightComponent AddLighting(InsertComponent insert)
 		{
-			var holes = new InsertHole[_holes.arraySize];
-			for (var i = 0; i < holes.Length; i++) {
-				var hole = _holes.GetArrayElementAtIndex(i);
-				holes[i] = new InsertHole(hole.FindPropertyRelative(nameof(InsertHole.Center)).vector2Value,
-					hole.FindPropertyRelative(nameof(InsertHole.Radius)).floatValue);
+			var lighting = insert.GetComponent<InsertLightComponent>() ?? Undo.AddComponent<InsertLightComponent>(insert.gameObject);
+			if (lighting.SpillLight == null) {
+				var go = new GameObject("Insert Spill Light");
+				Undo.RegisterCreatedObjectUndo(go, "Add Insert Spill Light");
+				go.transform.SetParent(insert.transform, false);
+				var bounds = insert.GetComponent<MeshFilter>().sharedMesh.bounds;
+				go.transform.localPosition = new Vector3(bounds.center.x, bounds.max.y + 0.008f, bounds.center.z);
+				var light = go.AddComponent<Light>();
+				light.type = LightType.Point;
+				var converter = RenderPipeline.Current.LightConverter;
+				converter.UpdateLight(light, new VisualPinball.Engine.VPT.Light.LightData(), true);
+				converter.SetShadow(light, false, false);
+				Undo.RecordObject(lighting, "Assign Insert Spill Light");
+				lighting.SpillLight = light;
+				PrefabUtility.RecordPrefabInstancePropertyModifications(lighting);
 			}
-			var symmetric = InsertHoles.Symmetrize(holes, tolerance);
-			for (var i = 0; i < symmetric.Length; i++) {
-				_holes.GetArrayElementAtIndex(i).FindPropertyRelative(nameof(InsertHole.Center)).vector2Value = symmetric[i].Center;
-			}
+			lighting.Apply();
+			return lighting;
 		}
 
-		private void SetHoles(List<Vector2> centers)
+		#endregion
+
+		#region Cover
+
+		private void DrawCover()
 		{
-			_holes.ClearArray();
-			for (var i = 0; i < centers.Count; i++) {
-				_holes.InsertArrayElementAtIndex(i);
-				var hole = _holes.GetArrayElementAtIndex(i);
-				hole.FindPropertyRelative(nameof(InsertHole.Center)).vector2Value = centers[i];
-				hole.FindPropertyRelative(nameof(InsertHole.Radius)).floatValue = _holeRadius.floatValue;
+			Field(_coverMaterial, "Material");
+			var cover = _coverMaterial.hasMultipleDifferentValues || _coverMaterial.objectReferenceValue != null;
+			using (new EditorGUI.DisabledScope(!cover)) {
+				Field(_usePlayfieldNormals, "Use Playfield Normals");
+				if (_usePlayfieldNormals.boolValue || _usePlayfieldNormals.hasMultipleDifferentValues) {
+					Field(_coverPlayfield, "Playfield Override");
+					if (targets.Length == 1 && ((InsertComponent)target).CoverPlayfield != null) {
+						var playfield = ((InsertComponent)target).CoverPlayfield;
+						var material = playfield.sharedMaterial;
+						using (new EditorGUI.DisabledScope(true)) {
+							EditorGUILayout.ObjectField(new GUIContent("Detected Surface", "The renderer whose normal map and UVs the cover follows."), playfield, typeof(MeshRenderer), true);
+							EditorGUILayout.ObjectField("Source Material", material, typeof(Material), false);
+							EditorGUILayout.ObjectField("Source Normal Map", material != null && material.HasProperty("_NormalMap") ? material.GetTexture("_NormalMap") : null, typeof(Texture), false);
+						}
+					}
+				}
 			}
 		}
 
-		/// <summary>
-		/// Whether the insert's bake sits where it cannot be written to, which
-		/// locks everything that would write it until the bake is forked.
-		/// </summary>
-		private bool IsLocked => targets.Any(selected => InsertBaker.IsReadOnly(((InsertComponent)selected).Bake));
+		public static Material AddCover(InsertComponent insert)
+		{
+			if (insert.CoverMaterial != null) {
+				return insert.CoverMaterial;
+			}
+			var shader = Shader.Find("Visual Pinball/Insert Cover");
+			if (shader == null) {
+				throw new System.InvalidOperationException("The HDRP insert cover shader is not installed.");
+			}
+			if (!AssetDatabase.IsValidFolder("Assets/Inserts")) {
+				AssetDatabase.CreateFolder("Assets", "Inserts");
+			}
+			var folder = insert.Bake != null && !InsertBaker.IsReadOnly(insert.Bake) ? Path.GetDirectoryName(AssetDatabase.GetAssetPath(insert.Bake)) : null;
+			if (string.IsNullOrEmpty(folder)) {
+				folder = "Assets/Inserts";
+			}
+			var material = new Material(shader) { name = $"{insert.name} Cover" };
+			AssetDatabase.CreateAsset(material, AssetDatabase.GenerateUniqueAssetPath($"{folder.Replace('\\', '/')}/Insert Cover.mat"));
+			Undo.RecordObjects(new Object[] { insert, insert.GetComponent<MeshRenderer>() }, "Add Clear Insert Cover");
+			insert.SetCoverMaterial(material);
+			EditorUtility.SetDirty(insert);
+			PrefabUtility.RecordPrefabInstancePropertyModifications(insert);
+			PrefabUtility.RecordPrefabInstancePropertyModifications(insert.GetComponent<MeshRenderer>());
+			AssetDatabase.SaveAssetIfDirty(material);
+			return material;
+		}
+
+		#endregion
+
+		#region Status and scene
 
 		private void DrawStatus()
 		{
@@ -490,15 +759,6 @@ namespace VisualPinball.Unity.Editor
 		/// Works on the component itself: the serialized object is off limits in
 		/// scene GUI. Every change is recorded for undo first.
 		/// </remarks>
-		private static readonly Color HoleColor = new(1f, 0.6f, 0.1f);
-
-		private static GUIStyle _holeLabel;
-
-		private static GUIStyle HoleLabel => _holeLabel ??= new GUIStyle(EditorStyles.boldLabel) {
-			fontSize = 13,
-			normal = { textColor = HoleColor },
-		};
-
 		private static void DrawHoleHandles(InsertComponent insert)
 		{
 			var transform = insert.transform;
@@ -547,5 +807,7 @@ namespace VisualPinball.Unity.Editor
 			insert.SetHole(index, hole);
 			PrefabUtility.RecordPrefabInstancePropertyModifications(insert);
 		}
+
+		#endregion
 	}
 }

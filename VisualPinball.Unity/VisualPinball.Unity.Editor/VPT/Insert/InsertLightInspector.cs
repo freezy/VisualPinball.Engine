@@ -1,0 +1,106 @@
+// Visual Pinball Engine
+// Copyright (C) 2026 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using System.Linq;
+using UnityEditor;
+using UnityEngine;
+
+namespace VisualPinball.Unity.Editor
+{
+	/// <summary>
+	/// The insert light's inspector: the lamp as previewed and mapped, and the
+	/// real light that spills onto the playfield around the insert.
+	/// </summary>
+	[CustomEditor(typeof(InsertLightComponent))]
+	[CanEditMultipleObjects]
+	public class InsertLightInspector : UnityEditor.Editor
+	{
+		private SerializedProperty _intensity;
+		private SerializedProperty _color;
+		private SerializedProperty _spillLumens;
+		private SerializedProperty _spillRange;
+		private SerializedProperty _spillLight;
+
+		private static readonly int LuminosityId = Shader.PropertyToID("_InsertLuminosity");
+
+		private const string LampKey = "VisualPinball.InsertLight.Lamp";
+		private const string SpillKey = "VisualPinball.InsertLight.Spill";
+
+		private void OnEnable()
+		{
+			_intensity = serializedObject.FindProperty(nameof(InsertLightComponent.Intensity));
+			_color = serializedObject.FindProperty(nameof(InsertLightComponent.Color));
+			_spillLumens = serializedObject.FindProperty(nameof(InsertLightComponent.SpillLumens));
+			_spillRange = serializedObject.FindProperty(nameof(InsertLightComponent.SpillRange));
+			_spillLight = serializedObject.FindProperty(nameof(InsertLightComponent.SpillLight));
+		}
+
+		public override void OnInspectorGUI()
+		{
+			serializedObject.Update();
+
+			// Without the hybrid material there is nothing for the lamp to drive.
+			var hybrid = targets.All(selected => {
+				var material = ((InsertLightComponent)selected).GetComponent<MeshRenderer>().sharedMaterial;
+				return material != null && material.HasProperty(LuminosityId);
+			});
+			if (!hybrid) {
+				EditorGUILayout.HelpBox("The insert's material is not the hybrid material, so Intensity and Color have nothing to drive and the spill stays off. Bake the insert with Hybrid Optics and click Use HDRP Hybrid Material on it.", MessageType.Warning);
+			}
+
+			if (InsertSection.Begin(LampKey, "Lamp")) {
+				using (new EditorGUI.DisabledScope(!hybrid)) {
+					Field(_intensity, "Intensity");
+					Field(_color, "Color");
+				}
+				if (Application.isPlaying) {
+					EditorGUILayout.HelpBox("While playing, a lamp mapped in Lamp Manager or under a Light follows the game and overwrites these.", MessageType.None);
+				}
+			}
+			InsertSection.End();
+
+			if (InsertSection.Begin(SpillKey, "Spill")) {
+				Field(_spillLight, "Light");
+				var light = _spillLight.hasMultipleDifferentValues || _spillLight.objectReferenceValue != null;
+				using (new EditorGUI.DisabledScope(!hybrid || !light)) {
+					Field(_spillLumens, "Lumens");
+					Field(_spillRange, "Range (m)");
+				}
+				if (!light) {
+					EditorGUILayout.HelpBox("No spill light: the insert glows but lights nothing around it.", MessageType.None);
+					using (new EditorGUI.DisabledScope(targets.Length > 1 || EditorApplication.isPlaying)) {
+						if (GUILayout.Button(new GUIContent("Add Spill Light", "A point light just above the insert, without shadows, driven with the lamp."))) {
+							InsertInspector.AddLighting(((InsertLightComponent)target).GetComponent<InsertComponent>());
+						}
+					}
+				} else if (targets.Length == 1 && hybrid) {
+					var component = (InsertLightComponent)target;
+					var material = component.GetComponent<MeshRenderer>().sharedMaterial;
+					var lumens = _spillLumens.floatValue * Mathf.Max(0f, material.GetFloat(LuminosityId)) * _intensity.floatValue;
+					EditorGUILayout.LabelField(new GUIContent("Configured Spill", "Lumens times the material's Max Brightness times the Intensity above: what the light puts out at that intensity. While playing, the game's lamp level takes the place of Intensity."), new GUIContent($"{lumens:0.###} lm"));
+				}
+			}
+			InsertSection.End();
+
+			serializedObject.ApplyModifiedProperties();
+		}
+
+		private static void Field(SerializedProperty property, string label)
+		{
+			EditorGUILayout.PropertyField(property, new GUIContent(label, property.tooltip));
+		}
+	}
+}
