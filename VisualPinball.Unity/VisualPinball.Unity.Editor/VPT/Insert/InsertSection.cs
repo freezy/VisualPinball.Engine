@@ -33,10 +33,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			var open = SessionState.GetBool(key, true);
 			var rect = GUILayoutUtility.GetRect(0f, Header.fixedHeight > 0f ? Header.fixedHeight : EditorGUIUtility.singleLineHeight + 2f, GUILayout.ExpandWidth(true));
-			// Out to the inspector's edge, like the component header above it. The
-			// style paints the bar itself, arrow and all.
-			rect.xMin -= 14f;
-			rect.xMax += 4f;
+			// The style paints the bar itself, arrow and all, from the content's
+			// edge, so the arrow lines up with the component header's.
 			EditorGUI.BeginChangeCheck();
 			open = EditorGUI.Foldout(rect, open, title, true, Header);
 			if (EditorGUI.EndChangeCheck()) {
