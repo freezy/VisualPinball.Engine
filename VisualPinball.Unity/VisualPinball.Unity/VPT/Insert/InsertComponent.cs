@@ -76,7 +76,7 @@ namespace VisualPinball.Unity
 
 		[SerializeField]
 		[Min(0.01f)]
-		[Tooltip("Diameter of the circle in VPX units.")]
+		[Tooltip("Diameter of the circle, or of the circle a banana's band is bent round, in VPX units.")]
 		private float _diameter = InsertShapes.VpxUnitsPerInch;
 
 		[SerializeField]
@@ -86,12 +86,12 @@ namespace VisualPinball.Unity
 
 		[SerializeField]
 		[Min(0.01f)]
-		[Tooltip("How thick the banana's band is, across its arc, in VPX units.")]
+		[Tooltip("How thick the banana's band is, across its circle, in VPX units. Half of it reaches out either side of the circle.")]
 		private float _bananaThickness = 0.5f * InsertShapes.VpxUnitsPerInch;
 
 		[SerializeField]
 		[Range(1f, 180f)]
-		[Tooltip("How far round its arc the banana reaches, in degrees. The arc's centre is above the band, so its ends turn up.")]
+		[Tooltip("How far round its circle the banana reaches, in degrees. The circle's centre is above the band, so its ends turn up.")]
 		private float _bananaAngle = 90f;
 
 		[SerializeField]
@@ -130,7 +130,7 @@ namespace VisualPinball.Unity
 
 		[SerializeField]
 		[Min(0f)]
-		[Tooltip("How far the rounding where the outer wall meets the floor reaches, up the wall and in across the floor, in VPX units. Zero leaves a sharp edge.")]
+		[Tooltip("How far the rounding where the outer wall meets the channel's floor reaches, up the wall and in across the floor, in VPX units. Zero leaves a sharp edge. Without a channel there is no bevel.")]
 		private float _bottomBevel = 1f;
 
 		[SerializeField]
@@ -157,7 +157,7 @@ namespace VisualPinball.Unity
 		private float _starburstOffset = 1.5f;
 
 		[SerializeField]
-		[Tooltip("Round cut-outs through the raised floor, down to the channel's floor. Positions are relative to the insert's origin, in VPX units.")]
+		[Tooltip("Round cut-outs through the raised floor, down to the channel's floor. Positions are relative to the insert's origin, in VPX units. Without a channel there is no raised floor, and no holes.")]
 		private List<InsertHole> _holes = new();
 
 		[SerializeField]
@@ -169,11 +169,6 @@ namespace VisualPinball.Unity
 		[Min(0.01f)]
 		[Tooltip("The radius new holes are given, from the presets or when added one by one, in VPX units.")]
 		private float _holeRadius = 2f;
-
-		[SerializeField]
-		[Min(0f)]
-		[Tooltip("How far the holes go down below the floor when there is no channel, in VPX units. With a channel, they go down to the channel's floor.")]
-		private float _holeDepth = 4f;
 
 		[SerializeField]
 		[Tooltip("How the UVs are optimized and the normal map baked, in Blender.")]
@@ -402,7 +397,7 @@ namespace VisualPinball.Unity
 				InsertShape.Triangle => InsertShapes.TriangleCorners(_width, _height, _triangleBase, _triangleApex, warnings),
 				InsertShape.Rectangle => InsertShapes.RectangleCorners(_width, _height, _rectangleCorner),
 				InsertShape.Circle => InsertShapes.CircleCorners(_diameter, _circleVertices),
-				InsertShape.Banana => InsertShapes.BananaCorners(_width, _bananaThickness, _bananaAngle, _bananaSegments, _bananaEndSegments, out arcCenter),
+				InsertShape.Banana => InsertShapes.BananaCorners(_diameter, _bananaThickness, _bananaAngle, _bananaSegments, _bananaEndSegments, out arcCenter),
 				_ => throw new InsertOutlineException($"Shape {_shape} has no outline builder yet."),
 			};
 			ArcCenter = new Vector2(arcCenter.x, arcCenter.y);
@@ -441,15 +436,18 @@ namespace VisualPinball.Unity
 			// one, else the floor itself.
 			var depth = _depth + channelDepth;
 
-			// The bevel can climb no higher than the wall, and must leave some of the
-			// channel's floor between it and the raised middle, or the two collide.
-			var bottomBevel = math.min(_bottomBevel, depth);
+			// The bevel rounds the wall into the channel's floor, so there is none
+			// without a channel. It can climb no higher than the wall, and must
+			// leave some of the channel's floor between it and the raised middle,
+			// or the two collide.
+			var bottomBevel = 0f;
 			if (channel) {
+				bottomBevel = math.min(_bottomBevel, depth);
 				bottomBevel = math.min(bottomBevel, channelWidth - math.max(outline.WeldTolerance * 16f, channelWidth * 0.05f));
-			}
-			bottomBevel = outline.ClampInset(math.max(0f, math.min(bottomBevel, MaxInset(outline))));
-			if (bottomBevel < _bottomBevel - 1e-4f) {
-				warnings.Add($"Bottom bevel reduced to {bottomBevel:0.##} to fit the wall and the channel.");
+				bottomBevel = outline.ClampInset(math.max(0f, math.min(bottomBevel, MaxInset(outline))));
+				if (bottomBevel < _bottomBevel - 1e-4f) {
+					warnings.Add($"Bottom bevel reduced to {bottomBevel:0.##} to fit the wall and the channel.");
+				}
 			}
 
 			var body = new InsertBody {
@@ -459,9 +457,8 @@ namespace VisualPinball.Unity
 				StarburstBursts = _starburst ? _starburstBursts : 0,
 				StarburstCenter = new float2(_starburstCenter.x, _starburstCenter.y),
 				StarburstOffset = _starburstOffset,
-				Holes = _holes.ToArray(),
+				Holes = channel ? _holes.ToArray() : null,
 				HoleSegments = _holeSegments,
-				HoleDepth = _holeDepth,
 				BottomBevel = bottomBevel,
 				BottomBevelSegments = _bottomBevelSegments,
 			};
@@ -476,7 +473,7 @@ namespace VisualPinball.Unity
 				if (math.abs(body.StarburstOffset) < math.abs(_starburstOffset) - 1e-4f) {
 					warnings.Add(channel
 						? $"Starburst offset reduced to {body.StarburstOffset:0.##} to stay between the channel floor and the rim."
-						: $"Starburst offset reduced to {body.StarburstOffset:0.##} to stay below the rim and the bevel, and above the holes.");
+						: $"Starburst offset reduced to {body.StarburstOffset:0.##} to stay below the rim.");
 				}
 			}
 			return body;

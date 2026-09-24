@@ -49,8 +49,8 @@ namespace VisualPinball.Unity.Test
 			/// </summary>
 			public Func<int, List<string>, InsertCorner[]> Corners;
 
-			/// <summary>A banana's own parameters, for the checks that need its arc.</summary>
-			public (float Thickness, float Angle, int Arcs, int Ends) Banana;
+			/// <summary>A banana's own parameters, for the checks that need its circle.</summary>
+			public (float Diameter, float Thickness, float Angle, int Arcs, int Ends) Banana;
 
 			public override string ToString() => Name;
 		}
@@ -106,9 +106,10 @@ namespace VisualPinball.Unity.Test
 			};
 		}
 
-		private static OutlineCase Banana(float width, float thickness, float angle, int arcSegments, int endSegments)
+		private static OutlineCase Banana(float diameter, float thickness, float angle, int arcSegments, int endSegments)
 		{
-			var corners = InsertShapes.BananaCorners(width, thickness, angle, arcSegments, endSegments, out _);
+			// The bounding box is the polygon's own, like a circle's.
+			var corners = InsertShapes.BananaCorners(diameter, thickness, angle, arcSegments, endSegments, out _);
 			var low = new float2(float.MaxValue);
 			var high = new float2(float.MinValue);
 			foreach (var corner in corners) {
@@ -116,11 +117,11 @@ namespace VisualPinball.Unity.Test
 				high = math.max(high, corner.Position);
 			}
 			return new OutlineCase {
-				Name = $"banana {width:0.##}x{thickness:0.##} {angle}deg arcs={arcSegments} ends={endSegments}",
-				Width = width,
+				Name = $"banana d={diameter:0.##} t={thickness:0.##} {angle}deg arcs={arcSegments} ends={endSegments}",
+				Width = high.x - low.x,
 				Height = high.y - low.y,
-				Corners = (_, _) => InsertShapes.BananaCorners(width, thickness, angle, arcSegments, endSegments, out _),
-				Banana = (thickness, angle, arcSegments, endSegments),
+				Corners = (_, _) => InsertShapes.BananaCorners(diameter, thickness, angle, arcSegments, endSegments, out _),
+				Banana = (diameter, thickness, angle, arcSegments, endSegments),
 			};
 		}
 
@@ -413,18 +414,19 @@ namespace VisualPinball.Unity.Test
 		[TestCaseSource(nameof(BananaCases))]
 		public void ShouldBendTheBananaAboutItsArc(OutlineCase test)
 		{
-			// Every point of the band, ends included, lies between the arc's inner
-			// and outer radius about its centre, and the width is as asked.
+			// Every point of the band, ends included, lies within half a thickness
+			// of the circle the band is bent round, and its middle line is on it.
 			var outline = Build(test);
-			var (thickness, angle, arcs, ends) = test.Banana;
-			InsertShapes.BananaCorners(test.Width, thickness, angle, arcs, ends, out var arcCenter);
-			var radius = (test.Width - thickness) / (2f * math.sin(math.radians(angle) * 0.5f));
+			var (diameter, thickness, angle, arcs, ends) = test.Banana;
+			InsertShapes.BananaCorners(diameter, thickness, angle, arcs, ends, out var arcCenter);
+			var radius = diameter * 0.5f;
 			foreach (var point in outline.Points) {
 				var distance = math.distance(point.Position, arcCenter);
 				Assert.That(distance, Is.InRange(radius - thickness * 0.5f - Tolerance, radius + thickness * 0.5f + Tolerance));
 			}
-			Assert.That(outline.Width, Is.EqualTo(test.Width).Within(Tolerance));
-			Assert.That(arcCenter.y, Is.GreaterThan(0f), "the arc's centre is above the band, so the ends turn up");
+			var onCircle = outline.Points.Count(p => math.abs(math.distance(p.Position, arcCenter) - radius - thickness * 0.5f) < Tolerance);
+			Assert.That(onCircle, Is.EqualTo(arcs + 1), "the outer arc's points sit half a thickness outside the circle");
+			Assert.That(arcCenter.y, Is.GreaterThan(0f), "the circle's centre is above the band, so the ends turn up");
 		}
 
 		[Test]
@@ -435,6 +437,7 @@ namespace VisualPinball.Unity.Test
 			var outline = Build(BananaCases[2]);
 			var footprint = outline.Points.Select(p => p.Position).ToList();
 			InsertShapes.BananaCorners(3f * Inch, 0.75f * Inch, 180f, 32, 12, out var arcCenter);
+			Assert.That(footprint.Max(p => p.x), Is.GreaterThan(1.4f * Inch), "the half-turn band spans its circle");
 			var fromCenter = InsertStarburst.Cover(footprint, arcCenter, 16, 1f, 0f);
 			for (var spoke = 0; spoke < fromCenter.Count; spoke++) {
 				var parts = fromCenter.SpokeWithin(spoke, footprint, 1e-4f);
@@ -2058,8 +2061,6 @@ namespace VisualPinball.Unity.Test
 			new() { Name = "chamfer", Shape = TriangleCases[0], Segments = 1 },
 			new() { Name = "starburst", Shape = TriangleCases[0], Bursts = 12 },
 			new() { Name = "sharp corners mitred", Shape = SharpSquare, Bursts = 9, Center = new float2(0f, 20f), Width = 2f },
-			new() { Name = "no channel", Shape = RectangleCases[0], Channel = false, Width = 1.5f, Segments = 3 },
-			new() { Name = "sharp, no channel", Shape = SharpSquare, Channel = false, Width = 2f, Segments = 5 },
 			new() { Name = "circle, 128 bursts", Shape = Rectangle(100f, 100f, 50f, 32), Bursts = 128, Width = 2f, Segments = 6 },
 			new() { Name = "with holes", Shape = TriangleCases[0], Bursts = 12, Holes = true },
 			new() { Name = "wider than a corner's fillet", Shape = RectangleCases[0], Width = 2.8f, Segments = 8 },
@@ -2148,8 +2149,10 @@ namespace VisualPinball.Unity.Test
 			// the width up, to the floor, the width in.
 			const float width = 2f;
 			var outline = Build(SharpSquare);
+			// The bevel rounds the wall into a channel's floor, so there is a channel.
 			var body = new InsertBody {
-				Depth = TestDepth, BottomBevel = width, BottomBevelSegments = segments,
+				Depth = TestDepth, ChannelWidth = outline.ClampInset(TestChannelWidth), ChannelDepth = TestChannelDepth,
+				BottomBevel = width, BottomBevelSegments = segments,
 			};
 			var mesh = InsertMeshGenerator.Generate(outline, body, new Mesh());
 			try {

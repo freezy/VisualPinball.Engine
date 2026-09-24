@@ -48,7 +48,6 @@ namespace VisualPinball.Unity.Test
 				BottomBevelSegments = 3,
 				HoleSegments = 12,
 				Holes = holeList ?? (holes ? InsertHoles.AtCorners(outline, inset).Select(c => new InsertHole(c, 2f)).ToArray() : null),
-				HoleDepth = ChannelDepth,
 			};
 			var layout = new InsertMeshLayout();
 			var mesh = InsertMeshGenerator.Generate(outline, body, new Mesh(), layout);
@@ -296,19 +295,25 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldCarveTheFloorItselfWithoutAChannel()
 		{
-			// No channel: the floor carries the starburst, the holes go into it to
-			// their own depth, and the bevel comes down onto the starburst.
+			// No channel: the floor is the outline straight down, carrying the
+			// starburst, and neither the holes nor the bevel asked for exist, since
+			// both need a channel.
 			var (mesh, layout) = Generate(4f, 0f, 12, 1f, true);
 			try {
 				var vertices = mesh.vertices;
 				var floor = -Depth * Scale;
-				var holeFloor = -(Depth + ChannelDepth) * Scale;
+				var reach = Offset * Scale + 1e-6f;
 				Assert.That(layout.OpticalStarburst.z, Is.GreaterThanOrEqualTo(4f));
+				// Every wall vertex is at the rim or on the starburst: nothing rounds
+				// off between, and nothing goes down into a hole.
+				var walls = Enumerable.Range(0, vertices.Length).Where(i => math.abs(mesh.normals[i].y) < 1e-3f).ToArray();
+				Assert.That(walls, Is.Not.Empty);
+				foreach (var i in walls) {
+					Assert.That(vertices[i].y >= -1e-6f || math.abs(vertices[i].y - floor) <= reach, Is.True, $"wall vertex {i} sits on a bevel or in a hole");
+				}
 				Assert.That(layout.FlatHeight, Is.EqualTo(floor).Within(1e-7f));
 				Assert.That(layout.VertexCharts, Has.Member(layout.FlatChart));
-				Assert.That(vertices.Any(v => math.abs(v.y - holeFloor) < 1e-6f), "the holes have floors of their own");
-				Assert.That(vertices.All(v => v.y >= holeFloor - 1e-6f && v.y <= 1e-6f), "nothing below the holes or above the rim");
-				var reach = Offset * Scale + 1e-6f;
+				Assert.That(vertices.All(v => v.y >= floor - reach && v.y <= 1e-6f), "nothing below the starburst or above the rim");
 				var surface = Enumerable.Range(0, vertices.Length).Where(i => layout.VertexCharts[i] == layout.FlatChart).ToArray();
 				Assert.That(surface, Is.Not.Empty);
 				foreach (var i in surface) {
@@ -324,12 +329,10 @@ namespace VisualPinball.Unity.Test
 		public void ShouldHoldTheStarburstWithinWhatIsBelowAndAboveIt()
 		{
 			var holes = new[] { new InsertHole(Vector2.zero, 2f) };
-			var body = new InsertBody { Depth = 20f, ChannelWidth = 0f, ChannelDepth = 0f, BottomBevel = 1f, HoleDepth = 3f, Holes = holes };
-			Assert.That(body.StarburstLimit(), Is.EqualTo(1f), "the bevel's foot on the wall is the lowest ceiling");
-			body.BottomBevel = 0f;
-			Assert.That(body.StarburstLimit(), Is.EqualTo(3f), "then the holes' floors");
+			var body = new InsertBody { Depth = 20f, ChannelWidth = 0f, ChannelDepth = 0f, BottomBevel = 1f, Holes = holes };
+			Assert.That(body.StarburstLimit(), Is.EqualTo(20f), "the rim: holes and bevel count for nothing without a channel");
 			body.Holes = null;
-			Assert.That(body.StarburstLimit(), Is.EqualTo(20f), "then the rim");
+			Assert.That(body.StarburstLimit(), Is.EqualTo(20f));
 			body.ChannelWidth = 3f;
 			body.ChannelDepth = 4f;
 			Assert.That(body.StarburstLimit(), Is.EqualTo(InsertStarburst.OffsetLimit(20f, 4f)), "with a channel, as before");

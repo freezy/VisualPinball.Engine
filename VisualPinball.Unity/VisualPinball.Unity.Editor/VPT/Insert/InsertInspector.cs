@@ -58,7 +58,6 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _holes;
 		private SerializedProperty _holeSegments;
 		private SerializedProperty _holeRadius;
-		private SerializedProperty _holeDepth;
 		private SerializedProperty _bakeSettings;
 		private SerializedProperty _coverMaterial;
 		private SerializedProperty _usePlayfieldNormals;
@@ -102,7 +101,6 @@ namespace VisualPinball.Unity.Editor
 			_holes = serializedObject.FindProperty("_holes");
 			_holeSegments = serializedObject.FindProperty("_holeSegments");
 			_holeRadius = serializedObject.FindProperty("_holeRadius");
-			_holeDepth = serializedObject.FindProperty("_holeDepth");
 			_bakeSettings = serializedObject.FindProperty("_bakeSettings");
 			_coverMaterial = serializedObject.FindProperty("_coverMaterial");
 			_usePlayfieldNormals = serializedObject.FindProperty("_usePlayfieldNormals");
@@ -218,7 +216,7 @@ namespace VisualPinball.Unity.Editor
 					Field(_circleVertices, "Vertices");
 					break;
 				case InsertShape.Banana:
-					Field(_width, "Width");
+					Field(_diameter, "Diameter");
 					Field(_bananaThickness, "Thickness");
 					Field(_bananaAngle, "Angle");
 					Field(_bananaSegments, "Arc Vertices");
@@ -243,9 +241,12 @@ namespace VisualPinball.Unity.Editor
 			channel = channel && (_channelWidth.hasMultipleDifferentValues || _channelWidth.floatValue > 0f);
 
 			SubHeader("Bottom Bevel");
-			Field(_bottomBevel, "Width");
-			using (new EditorGUI.DisabledScope(!_bottomBevel.hasMultipleDifferentValues && _bottomBevel.floatValue <= 0f)) {
-				Field(_bottomBevelSegments, "Segments");
+			// The bevel rounds the wall into the channel's floor: nothing to round without one.
+			using (new EditorGUI.DisabledScope(!channel)) {
+				Field(_bottomBevel, "Width");
+				using (new EditorGUI.DisabledScope(!_bottomBevel.hasMultipleDifferentValues && _bottomBevel.floatValue <= 0f)) {
+					Field(_bottomBevelSegments, "Segments");
+				}
 			}
 
 			SubHeader("Starburst");
@@ -269,15 +270,15 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			SubHeader("Holes");
-			Field(_holes, "Holes", true);
-			// With a channel the holes go down to its floor; without one they have
-			// a depth of their own.
-			using (new EditorGUI.DisabledScope(channel && !_channel.hasMultipleDifferentValues && !_channelWidth.hasMultipleDifferentValues)) {
-				Field(_holeDepth, "Depth");
+			if (!channel) {
+				EditorGUILayout.HelpBox("Holes cut through the raised middle, down to the channel's floor. Without a channel there is neither.", MessageType.None);
 			}
-			Field(_holeSegments, "Circle Segments");
-			Field(_holeRadius, "New Hole Radius");
-			DrawHolePresets();
+			using (new EditorGUI.DisabledScope(!channel)) {
+				Field(_holes, "Holes", true);
+				Field(_holeSegments, "Circle Segments");
+				Field(_holeRadius, "New Hole Radius");
+				DrawHolePresets();
+			}
 		}
 
 		private const float PreviewHeight = 220f;
@@ -358,7 +359,7 @@ namespace VisualPinball.Unity.Editor
 			Handles.DrawAAPolyLine(2.5f, Closed(rimScreen));
 
 			// The floor that can be carved: the raised middle inside the channel, or
-			// without one, the floor inside the bevel's foot.
+			// without one, the floor itself.
 			var inset = FloorInset(insert);
 			var island = rim;
 			if (inset > 0f) {
@@ -388,7 +389,8 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 
-			for (var i = 0; i < insert.Holes.Count; i++) {
+			// Holes are drawn only where they are cut: through a raised middle.
+			for (var i = 0; inset > 0f && i < insert.Holes.Count; i++) {
 				var hole = insert.Holes[i];
 				var center = new float2(hole.Center.x, hole.Center.y);
 				Handles.color = HoleColor;
@@ -405,14 +407,11 @@ namespace VisualPinball.Unity.Editor
 
 		/// <summary>
 		/// How far in from the outline the floor that holes and the starburst go
-		/// on starts: the channel's width, or the bottom bevel's without a channel,
-		/// both as the generator clamped them for the mesh that is there.
+		/// on starts: the channel's width as the generator clamped it for the mesh
+		/// that is there, or nothing without a channel, when the floor is the
+		/// outline itself.
 		/// </summary>
-		private static float FloorInset(InsertComponent insert)
-		{
-			var body = insert.Body;
-			return body.ChannelWidth > InsertOutlineBuilder.Epsilon ? body.ChannelWidth : body.BottomBevel;
-		}
+		private static float FloorInset(InsertComponent insert) => insert.Body.ChannelWidth;
 
 		/// <summary>
 		/// A point well inside the outline, for a new hole to start from: the

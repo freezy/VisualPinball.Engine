@@ -152,46 +152,41 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
-		/// A band bent round an arc, with ends rounded off to half circles: the
-		/// classic banana. The arc is what lies below the band's middle, so the
-		/// ends turn up, and the whole thing is as wide as asked, ends included.
-		/// Every point is a sharp corner of the polygon the shape is drawn as, like
-		/// a circle's; the arcs get <paramref name="arcSegments"/> sides each, and
-		/// each end <paramref name="endSegments"/>.
+		/// A band bent round a circle, with ends rounded off to half circles: the
+		/// classic banana. The circle is the one the band's middle line follows,
+		/// half the thickness reaching out either side of it. Its centre lies
+		/// above the band, so the ends turn up. Every point is a sharp corner of
+		/// the polygon the shape is drawn as, like a circle's; the arcs get
+		/// <paramref name="arcSegments"/> sides each, and each end
+		/// <paramref name="endSegments"/>.
 		/// </summary>
+		/// <param name="diameter">Diameter of the circle the band is bent round.</param>
 		/// <param name="thickness">How thick the band is, across the arc.</param>
-		/// <param name="angle">How far round the arc the band reaches, in degrees, up to half a turn.</param>
-		/// <param name="arcCenter">Where the arc's centre lands, relative to the outline's origin once it is centred on its bounding box: where a starburst wants to be.</param>
-		public static InsertCorner[] BananaCorners(float width, float thickness, float angle, int arcSegments, int endSegments,
+		/// <param name="angle">How far round the circle the band reaches, in degrees, up to half a turn.</param>
+		/// <param name="arcCenter">Where the circle's centre lands, relative to the outline's origin once it is centred on its bounding box: where a starburst wants to be.</param>
+		public static InsertCorner[] BananaCorners(float diameter, float thickness, float angle, int arcSegments, int endSegments,
 			out float2 arcCenter)
 		{
-			if (width <= Epsilon || thickness <= Epsilon) {
-				throw new InsertOutlineException("Width and thickness must be positive.");
+			if (diameter <= Epsilon || thickness <= Epsilon) {
+				throw new InsertOutlineException("Diameter and thickness must be positive.");
 			}
 			if (angle <= 0f || angle > 180f) {
 				throw new InsertOutlineException("The angle must be between zero and half a turn.");
 			}
-			if (width <= thickness + Epsilon) {
-				throw new InsertOutlineException("A banana must be wider than it is thick.");
+			var radius = diameter * 0.5f;
+			var half = thickness * 0.5f;
+			var inner = radius - half;
+			if (inner <= math.max(Epsilon, thickness * 0.01f)) {
+				throw new InsertOutlineException("The band is thicker than the circle it is bent round: reduce the thickness or widen the diameter.");
 			}
+			var outer = radius + half;
 			arcSegments = math.max(2, arcSegments);
 			endSegments = math.max(2, endSegments);
 
-			// The rounded ends are half circles about the ends of the band's middle
-			// line, which reach a full half thickness sideways whatever the angle,
-			// so the width is the middle line's chord plus the thickness.
+			// The band sits below the circle's centre, from one end to the other,
+			// so the outer arc runs counter-clockwise about the centre and the
+			// shape with it: its inside is on the left of every arc and end.
 			var sweep = math.radians(angle);
-			var half = thickness * 0.5f;
-			var radius = (width - thickness) / (2f * math.sin(sweep * 0.5f));
-			var inner = radius - half;
-			if (inner <= math.max(Epsilon, thickness * 0.01f)) {
-				throw new InsertOutlineException("The banana bends too tightly for its width: widen it, or reduce the angle or the thickness.");
-			}
-			var outer = radius + half;
-
-			// The band sits below the arc's centre, from one end to the other, so
-			// the outer arc runs counter-clockwise about the centre and the shape
-			// with it: its inside is on the left of every arc and end.
 			var from = -math.PI * 0.5f - sweep * 0.5f;
 			var to = -math.PI * 0.5f + sweep * 0.5f;
 			var corners = new List<InsertCorner>(2 * arcSegments + 2 * endSegments);
@@ -199,22 +194,19 @@ namespace VisualPinball.Unity
 			for (var i = 0; i <= arcSegments; i++) {
 				corners.Add(new InsertCorner(Polar(outer, math.lerp(from, to, (float)i / arcSegments)), 0f, 1, i == 0 ? "OuterStart" : i == arcSegments ? "OuterEnd" : null));
 			}
-			// Each end's half circle gets a vertex where it reaches furthest
-			// sideways, so the width comes out exactly as asked however coarsely the
-			// end is drawn.
 			var endCenter = Polar(radius, to);
-			foreach (var a in EndAngles(to, to + math.PI, 0f, endSegments)) {
-				corners.Add(new InsertCorner(endCenter + Polar(half, a), 0f, 1));
+			for (var i = 1; i < endSegments; i++) {
+				corners.Add(new InsertCorner(endCenter + Polar(half, to + math.PI * i / endSegments), 0f, 1));
 			}
 			for (var i = 0; i <= arcSegments; i++) {
 				corners.Add(new InsertCorner(Polar(inner, math.lerp(to, from, (float)i / arcSegments)), 0f, 1, i == 0 ? "InnerEnd" : i == arcSegments ? "InnerStart" : null));
 			}
 			endCenter = Polar(radius, from);
-			foreach (var a in EndAngles(from + math.PI, from + 2f * math.PI, math.PI, endSegments)) {
-				corners.Add(new InsertCorner(endCenter + Polar(half, a), 0f, 1));
+			for (var i = 1; i < endSegments; i++) {
+				corners.Add(new InsertCorner(endCenter + Polar(half, from + math.PI + math.PI * i / endSegments), 0f, 1));
 			}
 
-			// The outline is centred on its bounding box; the arc's centre moves with it.
+			// The outline is centred on its bounding box; the circle's centre moves with it.
 			var low = new float2(float.MaxValue);
 			var high = new float2(float.MinValue);
 			foreach (var corner in corners) {
@@ -223,32 +215,6 @@ namespace VisualPinball.Unity
 			}
 			arcCenter = -(low + high) * 0.5f;
 			return corners.ToArray();
-		}
-
-		/// <summary>
-		/// The angles of an end's half circle between its two arcs, the ends
-		/// themselves excluded, with the circle's widest point among them unless
-		/// it is one of the ends already.
-		/// </summary>
-		private static IEnumerable<float> EndAngles(float start, float end, float widest, int segments)
-		{
-			var span = end - start;
-			var at = (widest - start) / span;
-			if (at <= 1e-4f || at >= 1f - 1e-4f) {
-				for (var i = 1; i < segments; i++) {
-					yield return start + span * i / segments;
-				}
-				yield break;
-			}
-			var before = math.clamp((int)math.round(segments * at), 1, segments - 1);
-			for (var i = 1; i < before; i++) {
-				yield return start + (widest - start) * i / before;
-			}
-			yield return widest;
-			var after = segments - before;
-			for (var i = 1; i < after; i++) {
-				yield return widest + (end - widest) * i / after;
-			}
 		}
 
 		/// <summary>
