@@ -35,6 +35,9 @@ namespace VisualPinball.Unity
 		[Tooltip("The hash of the generated mesh this bake was made from.")]
 		public string Hash;
 
+		[Tooltip("The id of the insert this bake was made for, which is the only one allowed to write over it. Empty on bakes from before inserts had ids.")]
+		public string Owner;
+
 		[Tooltip("The UV of every triangle corner, in the generated mesh's triangle order.")]
 		public Vector2[] Uvs;
 

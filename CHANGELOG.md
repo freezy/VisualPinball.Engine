@@ -8,6 +8,7 @@ Built with Unity 6.5
 
 ### Added
 
+- Insert bakes record the insert they were made for, so a duplicated insert, wherever it ends up, bakes into a folder of its own instead of over the original's.
 - Inserts whose bake lives in a read-only package have their bake options locked, with Fork to Project copying the bake into the project as a material variant that keeps following the package's tuning and baking there from then on.
 - Insert Light is directly selectable in Lamp Manager and light groups, with ROM on/off, fading, RGB channels, wire events and editor previews driving both the lens and spill light.
 

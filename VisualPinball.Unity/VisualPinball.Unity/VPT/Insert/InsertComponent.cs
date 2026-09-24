@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Unity.Playfield;
@@ -144,6 +145,11 @@ namespace VisualPinball.Unity
 		private Material _unbakedMaterial;
 
 		[SerializeField]
+		[HideInInspector]
+		[Tooltip("Tells this insert from its duplicates, so a bake knows whose it is.")]
+		private string _id;
+
+		[SerializeField]
 		[Tooltip("Optional transparent top surface at the rim, in material slot 2. Independent of the body bake.")]
 		private Material _coverMaterial;
 
@@ -195,6 +201,12 @@ namespace VisualPinball.Unity
 
 		/// <summary>The last bake, whether or not it still fits.</summary>
 		public InsertBakeData Bake => _bake;
+
+		/// <summary>
+		/// An id of this insert's own, kept across sessions and different from
+		/// any duplicate's, which is what a bake records as its owner.
+		/// </summary>
+		public string Id => _id;
 
 		public Material CoverMaterial => _coverMaterial;
 		public MeshRenderer CoverPlayfield => _coverPlayfield != null ? _coverPlayfield : _autoCoverPlayfield;
@@ -436,6 +448,9 @@ namespace VisualPinball.Unity
 		private void Reset() => RebuildMesh();
 		private void OnEnable()
 		{
+#if UNITY_EDITOR
+			ClaimId();
+#endif
 			var mesh = GetComponent<MeshFilter>().sharedMesh;
 			// Restore nonserialized state once, but retain the generated mesh when
 			// an already initialized insert is simply disabled and enabled again.
@@ -449,6 +464,136 @@ namespace VisualPinball.Unity
 			}
 		}
 		private void LateUpdate() => UpdateCover(false);
+
+#if UNITY_EDITOR
+		/// <summary>Which living, enabled insert holds which id, so a duplicate shows up on arrival.</summary>
+		private static readonly Dictionary<string, InsertComponent> Ids = new();
+
+		/// <summary>
+		/// The insert's id, made sure of: one of its own, that no other insert in
+		/// the open scenes or the prefab being edited carries as well. A duplicate
+		/// arrives with its original's id and an instance with its prefab's, and
+		/// an inactive one never passes through OnEnable, so this is asked before
+		/// anything is written in the id's name. The insert that holds the id from
+		/// having been enabled keeps it and every other carrier is renewed; when
+		/// none of them was enabled, nobody can tell the original from the copy,
+		/// so the one asking is the one renewed, and its bake goes to a fresh
+		/// folder rather than over anyone's.
+		/// </summary>
+		public string EnsureId()
+		{
+			if (_persistPending) {
+				// What OnEnable put off is written down now, at a safe point.
+				Persist();
+			}
+			if (string.IsNullOrEmpty(_id) || InheritsId()) {
+				Renew(true);
+				return _id;
+			}
+			Ids.TryGetValue(_id, out var holder);
+			if (holder != null && holder != this) {
+				Renew(true);
+				return _id;
+			}
+			var others = LoadedInserts().Where(other => other != this && other._id == _id).ToList();
+			if (others.Count > 0) {
+				if (holder != this) {
+					Renew(true);
+					return _id;
+				}
+				foreach (var other in others) {
+					other.Renew(true);
+				}
+			}
+			Ids[_id] = this;
+			return _id;
+		}
+
+		/// <summary>
+		/// On enabling: takes the id if it is free, or a new one if it has none,
+		/// is its prefab's, or is held by another enabled insert.
+		/// </summary>
+		private void ClaimId()
+		{
+			if (Application.isPlaying) {
+				return;
+			}
+			if (string.IsNullOrEmpty(_id) || InheritsId()) {
+				Renew(false);
+				return;
+			}
+			if (Ids.TryGetValue(_id, out var holder) && holder != null && holder != this) {
+				Renew(false);
+				return;
+			}
+			Ids[_id] = this;
+		}
+
+		/// <summary>
+		/// Whether the id is a prefab's, only shown by this instance: the prefab's
+		/// bake is the prefab's, and an instance is told from the prefab and from
+		/// its siblings by an id of its own, recorded as an override.
+		/// </summary>
+		private bool InheritsId()
+		{
+			if (_persistPending || !UnityEditor.PrefabUtility.IsPartOfPrefabInstance(this)) {
+				return false;
+			}
+			var source = UnityEditor.PrefabUtility.GetCorrespondingObjectFromSource(this);
+			var modifications = UnityEditor.PrefabUtility.GetPropertyModifications(this);
+			return modifications == null || !modifications.Any(m => m.target == source && m.propertyPath == "_id");
+		}
+
+		/// <summary>
+		/// A new id, written down at once when asked for at a safe point, or on
+		/// the next editor tick when it happened while a scene was loading.
+		/// </summary>
+		private void Renew(bool now)
+		{
+			_id = Guid.NewGuid().ToString("N");
+			Ids[_id] = this;
+			if (now) {
+				Persist();
+			} else if (!_persistPending) {
+				_persistPending = true;
+				UnityEditor.EditorApplication.delayCall += Persist;
+			}
+		}
+
+		/// <summary>Whether a renewed id still waits to be written down; until then it counts as the insert's own.</summary>
+		[NonSerialized]
+		private bool _persistPending;
+
+		private void Persist()
+		{
+			_persistPending = false;
+			if (this == null) {
+				return;
+			}
+			UnityEditor.EditorUtility.SetDirty(this);
+			if (UnityEditor.PrefabUtility.IsPartOfPrefabInstance(this)) {
+				UnityEditor.PrefabUtility.RecordPrefabInstancePropertyModifications(this);
+			}
+		}
+
+		/// <summary>Every insert in the open scenes and the prefab being edited, inactive ones included.</summary>
+		private static IEnumerable<InsertComponent> LoadedInserts()
+		{
+			var inserts = FindObjectsByType<InsertComponent>(FindObjectsInactive.Include).AsEnumerable();
+			var stage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
+			if (stage != null) {
+				inserts = inserts.Concat(stage.prefabContentsRoot.GetComponentsInChildren<InsertComponent>(true));
+			}
+			return inserts.Distinct();
+		}
+
+		private void OnDestroy()
+		{
+			if (!string.IsNullOrEmpty(_id) && Ids.TryGetValue(_id, out var holder) && holder == this) {
+				Ids.Remove(_id);
+			}
+		}
+#endif
 
 		private void UpdateCover(bool force)
 		{

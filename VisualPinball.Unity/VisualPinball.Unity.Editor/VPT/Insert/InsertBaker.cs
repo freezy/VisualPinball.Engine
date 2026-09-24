@@ -408,7 +408,7 @@ namespace VisualPinball.Unity.Editor
 			// A duplicated insert shares its original's bake until it bakes its own,
 			// which must not overwrite the original's. A bake that cannot be written
 			// to, in a package, is never anyone's to overwrite.
-			var own = insert.Bake != null && !SharedWithAnotherInsert(insert) && !IsReadOnly(insert.Bake) ? insert.Bake : null;
+			var own = Owns(insert, insert.Bake) && !IsReadOnly(insert.Bake) ? insert.Bake : null;
 			var folder = own != null ? Path.GetDirectoryName(AssetDatabase.GetAssetPath(own))?.Replace('\\', '/') : NewFolder(insert);
 			var name = FileName(insert.name);
 
@@ -435,6 +435,9 @@ namespace VisualPinball.Unity.Editor
 				data = ScriptableObject.CreateInstance<InsertBakeData>();
 			}
 			data.Hash = job.Hash;
+			// Made sure of even when there was no bake to own: an id never seen
+			// by OnEnable could still be a duplicate's or a prefab's.
+			data.Owner = insert.EnsureId();
 			data.Uvs = new Vector2[result.Uvs.Length / 2];
 			for (var i = 0; i < data.Uvs.Length; i++) {
 				data.Uvs[i] = new Vector2(result.Uvs[i * 2], result.Uvs[i * 2 + 1]);
@@ -513,14 +516,16 @@ namespace VisualPinball.Unity.Editor
 			if (shader == null || data == null || !insert.IsBakeFresh || data.OpticalNormalMap == null || data.OpticalResponseMap == null) {
 				throw new InvalidOperationException("Bake Hybrid Optics first, with the HDRP package installed.");
 			}
-			if (SharedWithAnotherInsert(insert)) {
-				throw new InvalidOperationException("This bake belongs to another insert as well. Bake this insert again before choosing its own material.");
-			}
 			if (IsReadOnly(data)) {
 				throw new InvalidOperationException($"This bake belongs to {ReadOnlyReason(data)} and cannot be written to. Fork it to the project first.");
 			}
+			if (!Owns(insert, data)) {
+				throw new InvalidOperationException("This bake is not this insert's own. Bake this insert again before choosing its own material.");
+			}
 			var renderer = insert.GetComponent<MeshRenderer>();
 			Undo.RecordObjects(new Object[] { data, renderer }, "Use Hybrid Insert Material");
+			// A bake from before ids is claimed on the way.
+			data.Owner = insert.Id;
 			var folder = Path.GetDirectoryName(AssetDatabase.GetAssetPath(data))?.Replace('\\', '/');
 			var material = new Material(shader) { name = $"{insert.name} Hybrid" };
 			material.SetTexture("_NormalMap", data.NormalMap);
@@ -666,6 +671,7 @@ namespace VisualPinball.Unity.Editor
 			try {
 				data = Object.Instantiate(source);
 				data.name = $"{name} Bake";
+				data.Owner = insert.EnsureId();
 				data.NormalMap = CopyTexture(source.NormalMap, $"{folder}/{name} Normal Map");
 				data.OpticalNormalMap = CopyTexture(source.OpticalNormalMap, $"{folder}/{name} Optical Normals");
 				data.OpticalResponseMap = CopyTexture(source.OpticalResponseMap, $"{folder}/{name} Optical Response");
@@ -730,16 +736,27 @@ namespace VisualPinball.Unity.Editor
 		#region Ownership
 
 		/// <summary>
-		/// Whether the insert's bake belongs to another insert as well: one in the
-		/// open scenes, or its prefab, when it has the bake from there.
+		/// Whether the bake is the insert's to write over: it was made for this
+		/// insert's id, wherever the two now are. The id is made sure of first,
+		/// so a duplicate that never passed through OnEnable cannot pass for its
+		/// original. A prefab instance never owns the bake it has from its
+		/// prefab, and a bake from before inserts had ids is the insert's as long
+		/// as no other insert in the open scenes shows it.
 		/// </summary>
-		private static bool SharedWithAnotherInsert(InsertComponent insert)
+		public static bool Owns(InsertComponent insert, InsertBakeData bake)
 		{
-			if (PrefabUtility.IsPartOfPrefabInstance(insert) && !new SerializedObject(insert).FindProperty("_bake").prefabOverride) {
-				return true;
+			if (bake == null) {
+				return false;
 			}
-			return Object.FindObjectsByType<InsertComponent>(FindObjectsInactive.Include)
-				.Any(other => other != insert && other.Bake == insert.Bake);
+			if (PrefabUtility.IsPartOfPrefabInstance(insert) && !new SerializedObject(insert).FindProperty("_bake").prefabOverride) {
+				return false;
+			}
+			var id = insert.EnsureId();
+			if (!string.IsNullOrEmpty(bake.Owner)) {
+				return bake.Owner == id;
+			}
+			return !Object.FindObjectsByType<InsertComponent>(FindObjectsInactive.Include)
+				.Any(other => other != insert && other.Bake == bake);
 		}
 
 		/// <summary>

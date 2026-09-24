@@ -605,6 +605,235 @@ namespace VisualPinball.Unity.Test
 			}
 		}
 		[Test]
+		public void ShouldGiveADuplicateAnIdOfItsOwn()
+		{
+			var root = new GameObject("Original insert");
+			GameObject copy = null;
+			try {
+				var insert = root.AddComponent<InsertComponent>();
+				Assert.That(insert.Id, Is.Not.Empty);
+				var id = insert.Id;
+				copy = Object.Instantiate(root);
+				var duplicate = copy.GetComponent<InsertComponent>();
+				Assert.That(duplicate.Id, Is.Not.Empty);
+				Assert.That(duplicate.Id, Is.Not.EqualTo(id));
+				Assert.That(insert.Id, Is.EqualTo(id));
+				// Disabling and enabling keeps an id; it is not up for grabs.
+				root.SetActive(false);
+				root.SetActive(true);
+				Assert.That(insert.Id, Is.EqualTo(id));
+			} finally {
+				if (copy != null) {
+					Object.DestroyImmediate(copy.GetComponent<MeshFilter>().sharedMesh);
+					Object.DestroyImmediate(copy);
+				}
+				Object.DestroyImmediate(root.GetComponent<MeshFilter>().sharedMesh);
+				Object.DestroyImmediate(root);
+			}
+		}
+
+		[Test]
+		public void ShouldOwnOnlyTheBakeMadeForItsId()
+		{
+			var root = new GameObject("Original insert");
+			var probe = new Mesh();
+			InsertBakeData bake = null;
+			GameObject copy = null;
+			try {
+				var insert = root.AddComponent<InsertComponent>();
+				var layout = new InsertMeshLayout();
+				insert.Generate(probe, layout);
+				bake = FakeBake(probe, layout.Hash);
+				insert.SetBake(bake);
+
+				// Made for this insert: its own, even with a duplicate showing it.
+				bake.Owner = insert.Id;
+				copy = Object.Instantiate(root);
+				var duplicate = copy.GetComponent<InsertComponent>();
+				Assert.That(InsertBaker.Owns(insert, bake), Is.True);
+				Assert.That(InsertBaker.Owns(duplicate, bake), Is.False);
+
+				// Made for another insert, wherever that one is now: not this one's.
+				bake.Owner = "someone else";
+				Assert.That(InsertBaker.Owns(insert, bake), Is.False);
+
+				// From before ids: the insert's as long as nobody else shows it.
+				bake.Owner = null;
+				Assert.That(InsertBaker.Owns(insert, bake), Is.False);
+				Object.DestroyImmediate(copy.GetComponent<MeshFilter>().sharedMesh);
+				Object.DestroyImmediate(copy);
+				copy = null;
+				Assert.That(InsertBaker.Owns(insert, bake), Is.True);
+				Assert.That(InsertBaker.Owns(insert, null), Is.False);
+			} finally {
+				if (copy != null) {
+					Object.DestroyImmediate(copy.GetComponent<MeshFilter>().sharedMesh);
+					Object.DestroyImmediate(copy);
+				}
+				Object.DestroyImmediate(root.GetComponent<MeshFilter>().sharedMesh);
+				Object.DestroyImmediate(root);
+				Object.DestroyImmediate(probe);
+				Object.DestroyImmediate(bake);
+			}
+		}
+
+		[Test]
+		public void ShouldNotLetAnInactiveDuplicatePassForItsOriginal()
+		{
+			// An inactive object never passes through OnEnable, so the duplicate
+			// keeps the original's id until ownership is asked about.
+			var root = new GameObject("Original insert");
+			var probe = new Mesh();
+			InsertBakeData bake = null;
+			GameObject copy = null;
+			try {
+				var insert = root.AddComponent<InsertComponent>();
+				var layout = new InsertMeshLayout();
+				insert.Generate(probe, layout);
+				bake = FakeBake(probe, layout.Hash);
+				insert.SetBake(bake);
+				bake.Owner = insert.Id;
+				var id = insert.Id;
+
+				root.SetActive(false);
+				copy = Object.Instantiate(root);
+				var duplicate = copy.GetComponent<InsertComponent>();
+				Assert.That(duplicate.Id, Is.EqualTo(id), "the duplicate arrives with the original's id");
+
+				Assert.That(InsertBaker.Owns(duplicate, bake), Is.False);
+				Assert.That(duplicate.Id, Is.Not.EqualTo(id));
+				Assert.That(insert.Id, Is.EqualTo(id));
+				Assert.That(InsertBaker.Owns(insert, bake), Is.True);
+
+				// The other way round, the enabled original still keeps its id.
+				var second = Object.Instantiate(root).GetComponent<InsertComponent>();
+				try {
+					Assert.That(second.Id, Is.EqualTo(id));
+					Assert.That(InsertBaker.Owns(insert, bake), Is.True);
+					Assert.That(insert.Id, Is.EqualTo(id));
+					Assert.That(second.Id, Is.Not.EqualTo(id));
+				} finally {
+					Object.DestroyImmediate(second.GetComponent<MeshFilter>().sharedMesh);
+					Object.DestroyImmediate(second.gameObject);
+				}
+			} finally {
+				if (copy != null) {
+					Object.DestroyImmediate(copy.GetComponent<MeshFilter>().sharedMesh);
+					Object.DestroyImmediate(copy);
+				}
+				Object.DestroyImmediate(root.GetComponent<MeshFilter>().sharedMesh);
+				Object.DestroyImmediate(root);
+				Object.DestroyImmediate(probe);
+				Object.DestroyImmediate(bake);
+			}
+		}
+
+		[Test]
+		public void ShouldAwardNobodyAnIdThatTwoUnenabledInsertsCarry()
+		{
+			// Both loaded inactive, as from a saved scene: neither passed through
+			// OnEnable, so nothing tells the original from the copy.
+			var id = System.Guid.NewGuid().ToString("N");
+			var original = new GameObject("Unenabled insert");
+			var copy = new GameObject("Unenabled copy");
+			var probe = new Mesh();
+			InsertBakeData bake = null;
+			try {
+				original.SetActive(false);
+				copy.SetActive(false);
+				var insert = original.AddComponent<InsertComponent>();
+				var duplicate = copy.AddComponent<InsertComponent>();
+				foreach (var component in new[] { insert, duplicate }) {
+					var serialized = new UnityEditor.SerializedObject(component);
+					serialized.FindProperty("_id").stringValue = id;
+					serialized.ApplyModifiedPropertiesWithoutUndo();
+				}
+				var layout = new InsertMeshLayout();
+				insert.Generate(probe, layout);
+				bake = FakeBake(probe, layout.Hash);
+				bake.Owner = id;
+
+				// Whoever asks first is the one renewed; the bake is nobody's to overwrite.
+				Assert.That(InsertBaker.Owns(duplicate, bake), Is.False);
+				Assert.That(duplicate.Id, Is.Not.EqualTo(id));
+				Assert.That(insert.Id, Is.EqualTo(id));
+				Assert.That(InsertBaker.Owns(insert, bake), Is.True, "with the copy renewed, the id has one carrier left");
+
+				// Enabling is what settles it the other way round.
+				var third = copy.AddComponent<InsertComponent>();
+				var again = new UnityEditor.SerializedObject(third);
+				again.FindProperty("_id").stringValue = insert.Id;
+				again.ApplyModifiedPropertiesWithoutUndo();
+				original.SetActive(true);
+				Assert.That(InsertBaker.Owns(third, bake), Is.False);
+				Assert.That(third.Id, Is.Not.EqualTo(insert.Id));
+				Assert.That(InsertBaker.Owns(insert, bake), Is.True);
+			} finally {
+				foreach (var go in new[] { copy, original }) {
+					var mesh = go.GetComponent<MeshFilter>()?.sharedMesh;
+					if (mesh != null) {
+						Object.DestroyImmediate(mesh);
+					}
+					Object.DestroyImmediate(go);
+				}
+				Object.DestroyImmediate(probe);
+				Object.DestroyImmediate(bake);
+			}
+		}
+
+		[Test]
+		public void ShouldGiveEveryPrefabInstanceAnIdOfItsOwn()
+		{
+			var root = new GameObject("Insert Id Prefab Test");
+			var path = UnityEditor.AssetDatabase.GenerateUniqueAssetPath("Assets/Insert Id Prefab Test.prefab");
+			var probe = new Mesh();
+			GameObject prefab = null;
+			GameObject first = null;
+			GameObject second = null;
+			InsertBakeData bake = null;
+			try {
+				var insert = root.AddComponent<InsertComponent>();
+				var layout = new InsertMeshLayout();
+				insert.Generate(probe, layout);
+				bake = FakeBake(probe, layout.Hash);
+				UnityEditor.AssetDatabase.CreateAsset(bake, path.Replace(".prefab", " Bake.asset"));
+				insert.SetBake(bake);
+				bake.Owner = insert.Id;
+				prefab = UnityEditor.PrefabUtility.SaveAsPrefabAsset(root, path);
+				var asset = prefab.GetComponent<InsertComponent>();
+				Assert.That(asset.Id, Is.EqualTo(insert.Id), "the prefab keeps the id it was saved with");
+
+				first = (GameObject)UnityEditor.PrefabUtility.InstantiatePrefab(prefab);
+				second = (GameObject)UnityEditor.PrefabUtility.InstantiatePrefab(prefab);
+				var one = first.GetComponent<InsertComponent>();
+				var two = second.GetComponent<InsertComponent>();
+				// Instances only show the prefab's id; each gets one of its own, as an override.
+				Assert.That(one.Id, Is.Not.EqualTo(asset.Id));
+				Assert.That(two.Id, Is.Not.EqualTo(asset.Id));
+				Assert.That(one.Id, Is.Not.EqualTo(two.Id));
+				// OnEnable puts the override off to the next tick; asking for the id writes it down, unchanged.
+				var id = one.Id;
+				Assert.That(one.EnsureId(), Is.EqualTo(id));
+				Assert.That(new UnityEditor.SerializedObject(one).FindProperty("_id").prefabOverride, Is.True);
+				// The prefab's bake is the prefab's, whatever the ids say.
+				Assert.That(InsertBaker.Owns(one, bake), Is.False);
+				Assert.That(InsertBaker.Owns(two, bake), Is.False);
+			} finally {
+				foreach (var go in new[] { first, second }) {
+					if (go != null) {
+						Object.DestroyImmediate(go.GetComponent<MeshFilter>().sharedMesh);
+						Object.DestroyImmediate(go);
+					}
+				}
+				Object.DestroyImmediate(root.GetComponent<MeshFilter>().sharedMesh);
+				Object.DestroyImmediate(root);
+				Object.DestroyImmediate(probe);
+				UnityEditor.AssetDatabase.DeleteAsset(path);
+				UnityEditor.AssetDatabase.DeleteAsset(path.Replace(".prefab", " Bake.asset"));
+			}
+		}
+
+		[Test]
 		public void ShouldTellReadOnlyBakesByTheirPackage()
 		{
 			// A registry package is immutable; the engine package is referenced by
@@ -658,6 +887,9 @@ namespace VisualPinball.Unity.Test
 				Assert.That(fork, Is.Not.EqualTo(bake));
 				Assert.That(insert.Bake, Is.EqualTo(fork));
 				Assert.That(insert.IsBakeFresh, Is.True);
+				// The fork is the insert's own from now on; the source never was.
+				Assert.That(fork.Owner, Is.EqualTo(insert.Id));
+				Assert.That(InsertBaker.Owns(insert, fork), Is.True);
 				var forkPath = UnityEditor.AssetDatabase.GetAssetPath(fork);
 				var forkFolder = System.IO.Path.GetDirectoryName(forkPath).Replace('\\', '/');
 				Assert.That(forkPath, Does.StartWith("Assets/Inserts/"));
@@ -686,13 +918,18 @@ namespace VisualPinball.Unity.Test
 				var source = UnityEditor.AssetDatabase.LoadAssetAtPath<InsertBakeData>($"{folder}/Bake.asset");
 				Assert.That(UnityEditor.AssetDatabase.GetAssetPath(source.NormalMap), Is.EqualTo($"{folder}/Normal.asset"));
 				Assert.That(UnityEditor.AssetDatabase.GetAssetPath(source.Material), Is.EqualTo($"{folder}/Source.mat"));
+				Assert.That(string.IsNullOrEmpty(source.Owner), Is.True);
 				// A cover in the project is left alone; only a read-only one is forked.
 				Assert.That(UnityEditor.AssetDatabase.GetAssetPath(insert.CoverMaterial), Is.EqualTo($"{folder}/Cover.mat"));
 			} finally {
-				// Whatever the fork made, or left behind on failure, is named after the insert.
+				// Whatever the fork made, or left behind on failure, is named after the
+				// insert; the Inserts folder goes too when the test was all it held.
 				if (UnityEditor.AssetDatabase.IsValidFolder("Assets/Inserts")) {
 					foreach (var made in UnityEditor.AssetDatabase.GetSubFolders("Assets/Inserts").Where(f => System.IO.Path.GetFileName(f).StartsWith(root.name))) {
 						UnityEditor.AssetDatabase.DeleteAsset(made);
+					}
+					if (UnityEditor.AssetDatabase.FindAssets("", new[] { "Assets/Inserts" }).Length == 0) {
+						UnityEditor.AssetDatabase.DeleteAsset("Assets/Inserts");
 					}
 				}
 				UnityEditor.AssetDatabase.DeleteAsset(folder);
