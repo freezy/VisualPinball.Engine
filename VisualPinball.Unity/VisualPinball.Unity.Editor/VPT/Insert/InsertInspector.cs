@@ -231,10 +231,10 @@ namespace VisualPinball.Unity.Editor
 				EditorGUILayout.HelpBox("Holes cut through the raised floor, which needs a channel to stand above.", MessageType.Info);
 			}
 			using (new EditorGUI.DisabledScope(!channel)) {
+				Field(_holes, "Holes", true);
 				Field(_holeSegments, "Circle Segments");
 				Field(_holeRadius, "New Hole Radius");
 				DrawHolePresets();
-				Field(_holes, "Holes", true);
 			}
 		}
 

@@ -21,23 +21,18 @@ namespace VisualPinball.Unity.Editor
 {
 	/// <summary>
 	/// A collapsible section header for the insert inspectors, in the look of
-	/// Unity's foldout headers but a size up, and without their rule against
-	/// anything with a foldout of its own being drawn inside.
+	/// Unity's foldout headers, without their rule against anything with a
+	/// foldout of its own being drawn inside.
 	/// </summary>
 	internal static class InsertSection
 	{
-		private static GUIStyle _header;
-
-		private static GUIStyle Header => _header ??= new GUIStyle(EditorStyles.foldoutHeader) {
-			fontSize = 13,
-			fixedHeight = 0f,
-		};
+		private static GUIStyle Header => EditorStyles.foldoutHeader;
 
 		/// <summary>Draws the header and says whether the section is open. The state outlives the inspector, not the editor session.</summary>
 		public static bool Begin(string key, string title)
 		{
 			var open = SessionState.GetBool(key, true);
-			var rect = GUILayoutUtility.GetRect(0f, 26f, GUILayout.ExpandWidth(true));
+			var rect = GUILayoutUtility.GetRect(0f, Header.fixedHeight > 0f ? Header.fixedHeight : EditorGUIUtility.singleLineHeight + 2f, GUILayout.ExpandWidth(true));
 			// Out to the inspector's edge, like the component header above it. The
 			// style paints the bar itself, arrow and all.
 			rect.xMin -= 14f;
