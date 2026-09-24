@@ -98,8 +98,7 @@ namespace VisualPinball.Unity
 		private float _flashNotch = 10f;
 
 		[SerializeField]
-		[Min(0f)]
-		[Tooltip("How far above and below the middle the two steps sit, in VPX units. Zero puts both steps on the middle line.")]
+		[Tooltip("How far above and below the middle the two steps sit, in VPX units. Zero puts both steps on the middle line; below zero the left step drops below it and the right one rises above, so the arms overlap further.")]
 		private float _flashStep = 8f;
 
 		[SerializeField]

@@ -159,6 +159,7 @@ namespace VisualPinball.Unity.Test
 			Flash(30f, 100f, 8f, 8f, 0f, 0f, 0f, 0f, 1),
 			Flash(40f, 120f, 10f, 15f, 12f, 5f, 3f, 4f, 6),
 			Flash(60f, 90f, 20f, 25f, 5f, 2f, 1f, 1f, 4),
+			Flash(40f, 120f, 10f, 12f, -10f, 3f, 2f, 2f, 6), // steps swapped over: the arms overlap further
 		};
 
 		/// <summary>The one shape that bends in on itself, which the convex-only invariants leave out.</summary>
@@ -446,6 +447,15 @@ namespace VisualPinball.Unity.Test
 		#endregion
 
 		#region Rectangle
+
+		[Test]
+		public void ShouldRefuseStepsThatOverlapTooFar()
+		{
+			// Steps far below the middle with deep notches would have the arms cut
+			// through each other; the shape says so instead of drawing it.
+			Assert.Throws<InsertOutlineException>(() =>
+				InsertShapes.FlashCorners(30f, 100f, 4f, 14f, -40f, new InsertCornerSettings(0f, 1), new InsertCornerSettings(0f, 1), new InsertCornerSettings(0f, 1), null));
+		}
 
 		[Test]
 		public void ShouldStopInsettingWhereANotchWouldCrossTheOtherSide()

@@ -276,7 +276,8 @@ namespace VisualPinball.Unity
 		/// spike to a notch where the other arm's outer edge takes over. Six
 		/// numbers draw the sharp shape: its width and height, how wide the flat
 		/// ends are, how far the steps go in from the spikes, and how far above
-		/// and below the middle the two steps sit. The tips' corners, the spikes
+		/// and below the middle the two steps sit, which below zero swaps them
+		/// over so the arms overlap further. The tips' corners, the spikes
 		/// and the notches each round off with fillets of their own, the notches'
 		/// turning inwards.
 		/// </summary>
@@ -298,8 +299,19 @@ namespace VisualPinball.Unity
 			if (notchDepth <= Epsilon || notchDepth >= width * 0.5f - Epsilon) {
 				throw new InsertOutlineException("The notches must reach in, and less than halfway across.");
 			}
-			if (step < 0f || step >= height * 0.5f - Epsilon) {
-				throw new InsertOutlineException("The steps must sit between the middle and the ends.");
+			if (math.abs(step) >= height * 0.5f - Epsilon) {
+				throw new InsertOutlineException("The steps must sit between the ends.");
+			}
+			// Below the middle, the left step sits where the lower arm's outer
+			// edge runs; that edge has to pass the notch on the inside, or the arms
+			// cut through each other.
+			if (step < 0f) {
+				var b = height * 0.5f;
+				var a = width * 0.5f;
+				var crossing = -a + tipWidth + (2f * a - tipWidth) * (b + step) / (b - step);
+				if (crossing <= -a + notchDepth + Epsilon) {
+					throw new InsertOutlineException("The steps overlap too far for the notches: raise the step height, or make the notches shallower or the tips wider.");
+				}
 			}
 			return FitBox(width, height, "flash", warnings, (a, b, scale) => new[] {
 				new InsertCorner(new float2(a, b), tipCorner.Radius * scale, tipCorner.Segments, "TopRight"),
