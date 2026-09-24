@@ -81,17 +81,21 @@ namespace VisualPinball.Unity
 
 		[SerializeField]
 		[Min(0.01f)]
-		[Tooltip("How far the bucket is sunk below the rim, in VPX units.")]
-		private float _depth = 20f;
+		[Tooltip("How far the floor is sunk below the rim, in VPX units. With a channel, that is the raised middle; the channel goes deeper still.")]
+		private float _depth = 16f;
+
+		[SerializeField]
+		[Tooltip("Whether a channel runs round the floor, sunk further below it, which leaves the floor standing as a raised middle. Off makes the floor reach the wall.")]
+		private bool _channel = true;
 
 		[SerializeField]
 		[Min(0f)]
-		[Tooltip("How far the floor is inset before being raised again, in VPX units. Zero leaves a plain flat floor.")]
+		[Tooltip("How far in from the outline the channel reaches, in VPX units.")]
 		private float _channelWidth = 3f;
 
 		[SerializeField]
 		[Min(0f)]
-		[Tooltip("How far the inset floor is raised, leaving a channel around it, in VPX units.")]
+		[Tooltip("How far below the floor the channel is sunk, in VPX units.")]
 		private float _channelDepth = 4f;
 
 		[SerializeField]
@@ -135,6 +139,11 @@ namespace VisualPinball.Unity
 		[Min(0.01f)]
 		[Tooltip("The radius new holes are given, from the presets or when added one by one, in VPX units.")]
 		private float _holeRadius = 2f;
+
+		[SerializeField]
+		[Min(0f)]
+		[Tooltip("How far the holes go down below the floor when there is no channel, in VPX units. With a channel, they go down to the channel's floor.")]
+		private float _holeDepth = 4f;
 
 		[SerializeField]
 		[Tooltip("How the UVs are optimized and the normal map baked, in Blender.")]
@@ -357,40 +366,24 @@ namespace VisualPinball.Unity
 		{
 			// How far the floor can be inset before the ring folds through itself
 			// depends on the outline, so it is the outline that works it out.
-			var channelWidth = outline.ClampInset(_channelWidth);
-			if (channelWidth < _channelWidth - 1e-4f) {
-				warnings.Add($"Channel width reduced to {channelWidth:0.##} to fit inside the outline.");
-			}
-
-			// A raised floor standing proud of the rim would poke through whatever
-			// the insert is seated in.
-			var channelDepth = math.min(_channelDepth, _depth);
-			if (channelDepth < _channelDepth - 1e-4f) {
-				warnings.Add($"Channel depth reduced to {channelDepth:0.##} to stay below the rim.");
-			}
-
-			var bursts = _starburst ? _starburstBursts : 0;
-			var starburstOffset = _starburstOffset;
-			if (bursts >= InsertStarburst.MinBursts) {
-				if (channelWidth <= InsertOutlineBuilder.Epsilon) {
-					warnings.Add("The starburst replaces the raised floor, which needs a channel to stand above.");
-				}
-
-				// The zigzag straddles the raised floor, so it can reach no further
-				// down than the channel is deep, nor further up than the rim. It is
-				// the size that is held: a negative offset only swaps which spokes
-				// are ridges, and reaches just as far.
-				var limit = InsertStarburst.OffsetLimit(_depth, channelDepth);
-				starburstOffset = math.clamp(_starburstOffset, -limit, limit);
-				if (math.abs(starburstOffset) < math.abs(_starburstOffset) - 1e-4f) {
-					warnings.Add($"Starburst offset reduced to {starburstOffset:0.##} to stay between the channel floor and the rim.");
+			var channelWidth = 0f;
+			if (_channel) {
+				channelWidth = outline.ClampInset(_channelWidth);
+				if (channelWidth < _channelWidth - 1e-4f) {
+					warnings.Add($"Channel width reduced to {channelWidth:0.##} to fit inside the outline.");
 				}
 			}
+			var channel = channelWidth > InsertOutlineBuilder.Epsilon;
+			var channelDepth = channel ? _channelDepth : 0f;
+
+			// The body's depth is the bucket's: the channel's floor when there is
+			// one, else the floor itself.
+			var depth = _depth + channelDepth;
 
 			// The bevel can climb no higher than the wall, and must leave some of the
 			// channel's floor between it and the raised middle, or the two collide.
-			var bottomBevel = math.min(_bottomBevel, _depth);
-			if (channelWidth > InsertOutlineBuilder.Epsilon) {
+			var bottomBevel = math.min(_bottomBevel, depth);
+			if (channel) {
 				bottomBevel = math.min(bottomBevel, channelWidth - math.max(outline.WeldTolerance * 16f, channelWidth * 0.05f));
 			}
 			bottomBevel = outline.ClampInset(math.max(0f, bottomBevel));
@@ -398,22 +391,34 @@ namespace VisualPinball.Unity
 				warnings.Add($"Bottom bevel reduced to {bottomBevel:0.##} to fit the wall and the channel.");
 			}
 
-			if (_holes.Count > 0 && channelWidth <= InsertOutlineBuilder.Epsilon) {
-				warnings.Add("Holes cut through the raised floor, which needs a channel to stand above.");
-			}
-
-			return new InsertBody {
-				Depth = _depth,
+			var body = new InsertBody {
+				Depth = depth,
 				ChannelWidth = channelWidth,
 				ChannelDepth = channelDepth,
-				StarburstBursts = bursts,
+				StarburstBursts = _starburst ? _starburstBursts : 0,
 				StarburstCenter = new float2(_starburstCenter.x, _starburstCenter.y),
-				StarburstOffset = starburstOffset,
+				StarburstOffset = _starburstOffset,
 				Holes = _holes.ToArray(),
 				HoleSegments = _holeSegments,
+				HoleDepth = _holeDepth,
 				BottomBevel = bottomBevel,
 				BottomBevelSegments = _bottomBevelSegments,
 			};
+
+			if (body.StarburstBursts >= InsertStarburst.MinBursts) {
+				// The zigzag straddles the floor, so it can reach no further down than
+				// what lies below it, nor further up than the rim. It is the size that
+				// is held: a negative offset only swaps which spokes are ridges, and
+				// reaches just as far.
+				var limit = body.StarburstLimit();
+				body.StarburstOffset = math.clamp(_starburstOffset, -limit, limit);
+				if (math.abs(body.StarburstOffset) < math.abs(_starburstOffset) - 1e-4f) {
+					warnings.Add(channel
+						? $"Starburst offset reduced to {body.StarburstOffset:0.##} to stay between the channel floor and the rim."
+						: $"Starburst offset reduced to {body.StarburstOffset:0.##} to stay below the rim and the bevel, and above the holes.");
+				}
+			}
+			return body;
 		}
 
 		/// <summary>

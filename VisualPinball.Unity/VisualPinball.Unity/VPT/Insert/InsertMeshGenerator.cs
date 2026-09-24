@@ -50,11 +50,17 @@ namespace VisualPinball.Unity
 		/// <summary>How far the starburst's rim rises above and drops below its centre.</summary>
 		public float StarburstOffset;
 
-		/// <summary>Round cut-outs through the raised floor, down to the channel's floor.</summary>
+		/// <summary>
+		/// Round cut-outs through the raised floor, down to the channel's floor,
+		/// or, without a channel, <see cref="HoleDepth"/> into the floor itself.
+		/// </summary>
 		public InsertHole[] Holes;
 
 		/// <summary>How many straight sides each hole's circle is drawn with.</summary>
 		public int HoleSegments;
+
+		/// <summary>How far the holes go down below the floor when there is no channel.</summary>
+		public float HoleDepth;
 
 		/// <summary>
 		/// How far the rounding where the outer wall meets the floor reaches, both
@@ -66,6 +72,27 @@ namespace VisualPinball.Unity
 		/// How many steps the bottom bevel is drawn with. One is a flat chamfer.
 		/// </summary>
 		public int BottomBevelSegments;
+
+		/// <summary>
+		/// How far the starburst may rise and fall about its centre's plane. With a
+		/// channel, it stays between the channel floor and the rim. Without one,
+		/// it stays below the rim and below where the bevel leaves the wall, and
+		/// above the holes' floors.
+		/// </summary>
+		public float StarburstLimit()
+		{
+			if (ChannelWidth > InsertOutlineBuilder.Epsilon) {
+				return InsertStarburst.OffsetLimit(Depth, ChannelDepth);
+			}
+			var limit = Depth;
+			if (BottomBevel > InsertOutlineBuilder.Epsilon) {
+				limit = math.min(limit, BottomBevel);
+			}
+			if (Holes != null && Holes.Length > 0) {
+				limit = math.min(limit, HoleDepth);
+			}
+			return math.max(0f, limit);
+		}
 	}
 
 	/// <summary>
@@ -213,6 +240,10 @@ namespace VisualPinball.Unity
 			var channel = body.ChannelWidth > InsertOutlineBuilder.Epsilon;
 			int[] islandMap = null;
 			var island = channel ? BuildRing(outline, body.ChannelWidth, out islandMap) : null;
+			// Without a channel the floor itself is the raised middle: it carries the
+			// starburst, and the holes are cut into it to a depth of their own. With
+			// nothing to carve, it is a plain cap.
+			var carved = channel || body.StarburstBursts >= InsertStarburst.MinBursts || (body.Holes?.Length ?? 0) > 0;
 
 			// Projected from above, the floor and the raised middle would land on
 			// each other, so each gets a chart. The outer wall is unrolled into a
@@ -236,16 +267,18 @@ namespace VisualPinball.Unity
 
 			List<RunPoint>[] floorSides = null;
 			int[] floorCharts = null;
-			if (channel) {
-				var islandTop = floor + body.ChannelDepth;
-				var starburst = TryCoverWithStarburst(island, body, islandTop, outline.WeldTolerance);
+			InsertStarburst starburst = null;
+			var surface = channel ? floor + body.ChannelDepth : floor;
+			if (carved) {
+				starburst = TryCoverWithStarburst(island ?? bottom, body, surface, outline.WeldTolerance);
 				if (layout != null && starburst != null) {
 					var center = ToLocal(starburst.Center, starburst.CenterDepth - starburst.Offset);
 					layout.OpticalStarburst = new Vector4(center.x, center.z, starburst.Count, center.y);
 				}
 				floorCharts = CutFloor(bottom, atlasSide * 0.5f, buffers);
+				var low = channel ? floor : floor - math.max(body.HoleDepth, 0f);
 				floorSides = AddSunkenFloor(outline, body, bottom, bottomMap, bevel > 0f, island, islandMap, starburst,
-					floor, islandTop, top, floorCharts, outerCharts, buffers);
+					low, surface, top, floorCharts, outerCharts, buffers);
 
 			} else {
 				if (bevel <= 0f) {
@@ -255,15 +288,17 @@ namespace VisualPinball.Unity
 			}
 
 			if (bevel > 0f) {
+				// Without a channel, the bevel comes down onto the starburst itself.
+				System.Func<float2, float> foot = !channel && starburst != null ? starburst.DepthAt : null;
 				AddBottomBevel(outline, bevel, math.max(1, body.BottomBevelSegments), floor, rim, bottom, bottomMap,
-					floorSides, outerCharts, buffers);
+					floorSides, outerCharts, buffers, foot);
 			}
 
 			InsertUvAtlas.Pack(buffers.Uvs, buffers.Charts);
 
 			if (layout != null) {
 				layout.VertexCharts = buffers.Charts.ToArray();
-				layout.FlatChart = channel ? top : -1;
+				layout.FlatChart = carved ? top : -1;
 				// Everything that is not a floor, laid out from above, is a wall.
 				var floors = new HashSet<int> { top, bottomChart };
 				if (floorCharts != null) {
@@ -277,7 +312,7 @@ namespace VisualPinball.Unity
 				}
 				layout.WallCharts = new int[walls.Count];
 				walls.CopyTo(layout.WallCharts);
-				layout.FlatHeight = ToLocal(float2.zero, floor + body.ChannelDepth).y;
+				layout.FlatHeight = ToLocal(float2.zero, surface).y;
 				var hash = new Hash128();
 				hash.Append(buffers.Vertices);
 				hash.Append(buffers.Normals);
@@ -353,8 +388,9 @@ namespace VisualPinball.Unity
 				area += Perimeter(island) * body.ChannelDepth * 1.5f;
 			}
 			if (body.Holes != null) {
+				var holeDepth = island != null ? body.ChannelDepth : body.HoleDepth;
 				foreach (var hole in body.Holes) {
-					area += 2f * math.PI * hole.Radius * body.ChannelDepth;
+					area += 2f * math.PI * hole.Radius * holeDepth;
 				}
 			}
 			return math.sqrt(area * 1.3f);
@@ -608,7 +644,7 @@ namespace VisualPinball.Unity
 			// channel floor, where its wall would fold through itself.
 			// Its size is what is held, not its value: a negative offset only swaps
 			// which spokes are ridges, and reaches just as far either way.
-			var limit = InsertStarburst.OffsetLimit(body.Depth, body.ChannelDepth);
+			var limit = body.StarburstLimit();
 			var offset = math.clamp(body.StarburstOffset, -limit, limit);
 
 			// A centre a hair inside the edge sends every spoke on the far side
@@ -696,9 +732,16 @@ namespace VisualPinball.Unity
 		/// In UV, the bevel carries on down the outer wall's band, each step as far
 		/// down it as the arc has run.
 		/// </para>
+		/// <param name="foot">Where the bevel comes down onto a surface that is not
+		/// flat, the surface's height at a point of the bevel's foot ring; null for
+		/// a flat floor. The profile stands on that height and reaches up to the
+		/// wall's foot, so it is squeezed, never folded, where the surface rises,
+		/// and it shades as the squeezed profile. Every step reads the surface at
+		/// the foot straight below it, which is on the surface; the steps above
+		/// lie outside it, where the surface is not defined.</param>
 		private static void AddBottomBevel(InsertOutline outline, float width, int segments, float floor,
 			List<RingPoint> rim, List<RingPoint> bottom, int[] bottomMap, List<RunPoint>[] floorSides, int[] charts,
-			MeshBuffers buffers)
+			MeshBuffers buffers, System.Func<float2, float> foot = null)
 		{
 			// Each outline point's outward normal, arriving and leaving, which only
 			// a sharp corner tells apart.
@@ -729,8 +772,10 @@ namespace VisualPinball.Unity
 			// run so far, step by step as it is drawn.
 			var chord = 2f * width * math.sin(math.PI / (4f * segments));
 
+			var wallFoot = floor + width;
+
 			var cell = new List<double2>();
-			var points = new List<(float2 Position, float Height, float Along)>();
+			var points = new List<(float2 Position, float Angle, float Along)>();
 			for (var k = 0; k < segments; k++) {
 				var upper = steps[k];
 				var lower = steps[k + 1];
@@ -747,14 +792,14 @@ namespace VisualPinball.Unity
 					points.Clear();
 
 					var top = Run(upper.Ring, upper.Map, i, null);
-					var foot = Run(lower.Ring, lower.Map, i, k + 1 == segments ? floorSides : null);
 					foreach (var point in top) {
 						cell.Add(point.Exact);
-						points.Add((point.Position, upper.Height, point.T));
+						points.Add((point.Position, upper.Angle, point.T));
 					}
-					for (var j = foot.Count - 1; j >= 0; j--) {
-						cell.Add(foot[j].Exact);
-						points.Add((foot[j].Position, lower.Height, foot[j].T));
+					var base_ = Run(lower.Ring, lower.Map, i, k + 1 == segments ? floorSides : null);
+					for (var j = base_.Count - 1; j >= 0; j--) {
+						cell.Add(base_[j].Exact);
+						points.Add((base_[j].Position, lower.Angle, base_[j].T));
 					}
 					if (cell.Count < 3) {
 						continue;
@@ -762,11 +807,25 @@ namespace VisualPinball.Unity
 
 					var first = buffers.Vertices.Count;
 					for (var j = 0; j < points.Count; j++) {
-						var (position, height, along) = points[j];
+						var (position, stepAngle, along) = points[j];
 						var outward = math.normalizesafe(math.lerp(normalOut[i], normalIn[next], along), normalOut[i]);
 						var upperRow = j < top.Count;
 						var angle = upperRow ? upperAngle : lowerAngle;
-						var normal = math.normalize(math.mul(VpxToLocal, new float3(-outward * math.cos(angle), math.sin(angle))));
+						// What the profile stands on here: the surface at the foot ring's
+						// point straight below, along the same outline edge.
+						var stand = floor;
+						if (foot != null) {
+							var below = upperRow || k + 1 < segments
+								? math.lerp(bottom[bottomMap[i]].Position, bottom[bottomMap[next]].Position, along)
+								: position;
+							stand = math.clamp(foot(below), floor - width, wallFoot);
+						}
+						var rise = wallFoot - stand;
+						var height = stand + rise * (1f - math.sin(stepAngle));
+						// The normal of the profile as squeezed: the arc's, scaled by how
+						// far it has to rise against how far it reaches in.
+						var normal = math.normalizesafe(math.mul(VpxToLocal, new float3(-outward * rise * math.cos(angle), width * math.sin(angle))),
+							math.mul(VpxToLocal, new float3(0f, 0f, 1f)));
 						var uv = new Vector2(BandU(rim, i, along), upperRow ? upperV : lowerV);
 						buffers.Add(ToLocal(position, height), normal, uv, charts[i]);
 					}
@@ -861,6 +920,10 @@ namespace VisualPinball.Unity
 		/// <param name="outerCharts">The outer band's chart for each side of the rim,
 		/// which a wall standing on <paramref name="rim"/> is laid out in when it is
 		/// the rim itself.</param>
+		/// <param name="island">The raised middle's outline, or null when there is
+		/// no channel and the whole floor is the middle: then everything within the
+		/// rim is surface, the holes' floors apart, and the rim's own wall comes
+		/// down onto that surface.</param>
 		private static List<RunPoint>[] AddSunkenFloor(InsertOutline outline, InsertBody body, List<RingPoint> rim,
 			int[] rimMap, bool bevelled, List<RingPoint> island, int[] islandMap, InsertStarburst starburst, float floor,
 			float islandTop, int topChart, int[] floorCharts, int[] outerCharts, MeshBuffers buffers)
@@ -870,23 +933,30 @@ namespace VisualPinball.Unity
 			var owners = new Dictionary<int, (List<RingPoint> Ring, int Side)>();
 
 			var rimPoints = AddLoop(arrangement, rim, owners, out var rimSides);
-			var islandPoints = AddLoop(arrangement, island, owners, out _);
-
-			var rungs = new HashSet<(int, int)>();
-			for (var i = 0; i < rimMap.Length; i++) {
-				if (rungs.Add((rimMap[i], islandMap[i]))) {
-					arrangement.AddSegment(rimPoints[rimMap[i]], islandPoints[islandMap[i]]);
+			if (island != null) {
+				var islandPoints = AddLoop(arrangement, island, owners, out _);
+				var rungs = new HashSet<(int, int)>();
+				for (var i = 0; i < rimMap.Length; i++) {
+					if (rungs.Add((rimMap[i], islandMap[i]))) {
+						arrangement.AddSegment(rimPoints[rimMap[i]], islandPoints[islandMap[i]]);
+					}
 				}
 			}
 
-			var polygon = new List<float2>(island.Count);
-			foreach (var entry in island) {
-				polygon.Add(entry.Position);
-			}
 			var outer = new List<float2>(rim.Count);
 			foreach (var entry in rim) {
 				outer.Add(entry.Position);
 			}
+			var polygon = outer;
+			if (island != null) {
+				polygon = new List<float2>(island.Count);
+				foreach (var entry in island) {
+					polygon.Add(entry.Position);
+				}
+			}
+			// The tier the rim's wall stands over: the channel's floor, or the
+			// surface itself without one.
+			var inner = island != null ? Tier.Floor : Tier.Surface;
 
 			var holes = AddHoles(arrangement, body.Holes, body.HoleSegments, polygon, starburst, weld, out var holeOwners);
 
@@ -1014,8 +1084,13 @@ namespace VisualPinball.Unity
 				var behind = (Tier)math.max((int)left, (int)right);
 
 				// Where a bevel meets the floor, it is the bevel that climbs to the rim.
-				if (bevelled && behind == Tier.Outside && facing == Tier.Floor) {
-					continue;
+				// A hole cut across the bevel's foot stands its wall under the bevel,
+				// from the surface down, rather than up to the rim through it.
+				if (bevelled && behind == Tier.Outside) {
+					if (facing == inner) {
+						continue;
+					}
+					behind = inner;
 				}
 				var (from, to) = right == facing ? (a, b) : (b, a);
 				var fromPosition = arrangement.Position(from);

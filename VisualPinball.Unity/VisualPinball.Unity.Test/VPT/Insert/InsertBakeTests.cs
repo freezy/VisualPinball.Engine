@@ -48,6 +48,7 @@ namespace VisualPinball.Unity.Test
 				BottomBevelSegments = 3,
 				HoleSegments = 12,
 				Holes = holeList ?? (holes ? InsertHoles.AtCorners(outline, inset).Select(c => new InsertHole(c, 2f)).ToArray() : null),
+				HoleDepth = ChannelDepth,
 			};
 			var layout = new InsertMeshLayout();
 			var mesh = InsertMeshGenerator.Generate(outline, body, new Mesh(), layout);
@@ -227,8 +228,9 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[TestCase(3f, 12, 24)]
-		[TestCase(0f, 12, 0)]
+		[TestCase(0f, 12, 24)]
 		[TestCase(3f, 0, 0)]
+		[TestCase(0f, 0, 0)]
 		public void ShouldDescribeOnlyTheStarburstThatWasGenerated(float channel, int bursts, int expectedSectors)
 		{
 			var (mesh, layout) = Generate(4f, channel, bursts);
@@ -289,6 +291,48 @@ namespace VisualPinball.Unity.Test
 			} finally {
 				Object.DestroyImmediate(mesh);
 			}
+		}
+
+		[Test]
+		public void ShouldCarveTheFloorItselfWithoutAChannel()
+		{
+			// No channel: the floor carries the starburst, the holes go into it to
+			// their own depth, and the bevel comes down onto the starburst.
+			var (mesh, layout) = Generate(4f, 0f, 12, 1f, true);
+			try {
+				var vertices = mesh.vertices;
+				var floor = -Depth * Scale;
+				var holeFloor = -(Depth + ChannelDepth) * Scale;
+				Assert.That(layout.OpticalStarburst.z, Is.GreaterThanOrEqualTo(4f));
+				Assert.That(layout.FlatHeight, Is.EqualTo(floor).Within(1e-7f));
+				Assert.That(layout.VertexCharts, Has.Member(layout.FlatChart));
+				Assert.That(vertices.Any(v => math.abs(v.y - holeFloor) < 1e-6f), "the holes have floors of their own");
+				Assert.That(vertices.All(v => v.y >= holeFloor - 1e-6f && v.y <= 1e-6f), "nothing below the holes or above the rim");
+				var reach = Offset * Scale + 1e-6f;
+				var surface = Enumerable.Range(0, vertices.Length).Where(i => layout.VertexCharts[i] == layout.FlatChart).ToArray();
+				Assert.That(surface, Is.Not.Empty);
+				foreach (var i in surface) {
+					Assert.That(vertices[i].y, Is.InRange(floor - reach, floor + reach), $"vertex {i}");
+				}
+				Assert.That(Request(mesh, layout).FlatFaces, Is.Not.Empty);
+			} finally {
+				Object.DestroyImmediate(mesh);
+			}
+		}
+
+		[Test]
+		public void ShouldHoldTheStarburstWithinWhatIsBelowAndAboveIt()
+		{
+			var holes = new[] { new InsertHole(Vector2.zero, 2f) };
+			var body = new InsertBody { Depth = 20f, ChannelWidth = 0f, ChannelDepth = 0f, BottomBevel = 1f, HoleDepth = 3f, Holes = holes };
+			Assert.That(body.StarburstLimit(), Is.EqualTo(1f), "the bevel's foot on the wall is the lowest ceiling");
+			body.BottomBevel = 0f;
+			Assert.That(body.StarburstLimit(), Is.EqualTo(3f), "then the holes' floors");
+			body.Holes = null;
+			Assert.That(body.StarburstLimit(), Is.EqualTo(20f), "then the rim");
+			body.ChannelWidth = 3f;
+			body.ChannelDepth = 4f;
+			Assert.That(body.StarburstLimit(), Is.EqualTo(InsertStarburst.OffsetLimit(20f, 4f)), "with a channel, as before");
 		}
 
 		[Test]

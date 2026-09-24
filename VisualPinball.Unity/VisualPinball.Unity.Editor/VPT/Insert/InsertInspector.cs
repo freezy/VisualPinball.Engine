@@ -40,6 +40,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _rectangleCorner;
 		private SerializedProperty _sideSegments;
 		private SerializedProperty _depth;
+		private SerializedProperty _channel;
 		private SerializedProperty _channelWidth;
 		private SerializedProperty _channelDepth;
 		private SerializedProperty _starburst;
@@ -51,6 +52,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _holes;
 		private SerializedProperty _holeSegments;
 		private SerializedProperty _holeRadius;
+		private SerializedProperty _holeDepth;
 		private SerializedProperty _bakeSettings;
 		private SerializedProperty _coverMaterial;
 		private SerializedProperty _usePlayfieldNormals;
@@ -76,6 +78,7 @@ namespace VisualPinball.Unity.Editor
 			_rectangleCorner = serializedObject.FindProperty("_rectangleCorner");
 			_sideSegments = serializedObject.FindProperty("_sideSegments");
 			_depth = serializedObject.FindProperty("_depth");
+			_channel = serializedObject.FindProperty("_channel");
 			_channelWidth = serializedObject.FindProperty("_channelWidth");
 			_channelDepth = serializedObject.FindProperty("_channelDepth");
 			_starburst = serializedObject.FindProperty("_starburst");
@@ -87,6 +90,7 @@ namespace VisualPinball.Unity.Editor
 			_holes = serializedObject.FindProperty("_holes");
 			_holeSegments = serializedObject.FindProperty("_holeSegments");
 			_holeRadius = serializedObject.FindProperty("_holeRadius");
+			_holeDepth = serializedObject.FindProperty("_holeDepth");
 			_bakeSettings = serializedObject.FindProperty("_bakeSettings");
 			_coverMaterial = serializedObject.FindProperty("_coverMaterial");
 			_usePlayfieldNormals = serializedObject.FindProperty("_usePlayfieldNormals");
@@ -199,11 +203,14 @@ namespace VisualPinball.Unity.Editor
 			Field(_depth, "Depth");
 
 			SubHeader("Channel");
-			Field(_channelWidth, "Width");
-			var channel = _channelWidth.hasMultipleDifferentValues || _channelWidth.floatValue > 0f;
+			Field(_channel, "Channel");
+			var channel = _channel.hasMultipleDifferentValues || _channel.boolValue;
 			using (new EditorGUI.DisabledScope(!channel)) {
+				Field(_channelWidth, "Width");
 				Field(_channelDepth, "Depth");
 			}
+			// Ticked but nought wide is no channel either.
+			channel = channel && (_channelWidth.hasMultipleDifferentValues || _channelWidth.floatValue > 0f);
 
 			SubHeader("Bottom Bevel");
 			Field(_bottomBevel, "Width");
@@ -221,21 +228,18 @@ namespace VisualPinball.Unity.Editor
 					Field(_starburstCenter, "Center");
 					Field(_starburstOffset, "Offset");
 				}
-				if (starburst && !channel) {
-					EditorGUILayout.HelpBox("The starburst replaces the raised floor, which needs a channel to stand above.", MessageType.Info);
-				}
 			}
 
 			SubHeader("Holes");
-			if (!channel) {
-				EditorGUILayout.HelpBox("Holes cut through the raised floor, which needs a channel to stand above.", MessageType.Info);
+			Field(_holes, "Holes", true);
+			// With a channel the holes go down to its floor; without one they have
+			// a depth of their own.
+			using (new EditorGUI.DisabledScope(channel && !_channel.hasMultipleDifferentValues && !_channelWidth.hasMultipleDifferentValues)) {
+				Field(_holeDepth, "Depth");
 			}
-			using (new EditorGUI.DisabledScope(!channel)) {
-				Field(_holes, "Holes", true);
-				Field(_holeSegments, "Circle Segments");
-				Field(_holeRadius, "New Hole Radius");
-				DrawHolePresets();
-			}
+			Field(_holeSegments, "Circle Segments");
+			Field(_holeRadius, "New Hole Radius");
+			DrawHolePresets();
 		}
 
 		private const float PreviewHeight = 220f;
@@ -309,7 +313,9 @@ namespace VisualPinball.Unity.Editor
 			Handles.color = dark ? new Color(0.75f, 0.8f, 0.9f) : new Color(0.2f, 0.25f, 0.35f);
 			Handles.DrawAAPolyLine(2.5f, Closed(rimScreen));
 
-			var inset = outline.ClampInset(_channelWidth.floatValue);
+			// The floor that can be carved: the raised middle inside the channel, or
+			// without one, the floor inside the bevel's foot.
+			var inset = FloorInset(outline);
 			var island = rim;
 			if (inset > 0f) {
 				island = Enumerable.Range(0, outline.Points.Count).Select(i => outline.OffsetPoint(i, inset)).ToList();
@@ -317,7 +323,7 @@ namespace VisualPinball.Unity.Editor
 				Handles.DrawAAPolyLine(1.5f, Closed(island.Select(Map).ToArray()));
 			}
 
-			if (_starburst.boolValue && _starburstBursts.intValue >= InsertStarburst.MinBursts && inset > 0f) {
+			if (_starburst.boolValue && _starburstBursts.intValue >= InsertStarburst.MinBursts) {
 				var center = new float2(_starburstCenter.vector2Value.x, _starburstCenter.vector2Value.y);
 				var sectors = _starburstBursts.intValue * 2;
 				// Enough spokes to show the fan, never so many they turn into a smear.
@@ -351,6 +357,16 @@ namespace VisualPinball.Unity.Editor
 			var millimetre = InsertShapes.MetresPerInch * 1000f * inch;
 			GUI.Label(new Rect(rect.x, rect.yMax - 18f, rect.width - 6f, 16f),
 				$"{outline.Width * millimetre:0.#} x {outline.Height * millimetre:0.#} mm, seen from above", PreviewLabel);
+		}
+
+		/// <summary>
+		/// How far in from the outline the floor that holes and the starburst go
+		/// on starts: the channel's width, or the bottom bevel's without a channel.
+		/// </summary>
+		private float FloorInset(InsertOutline outline)
+		{
+			var channel = _channel.boolValue && _channelWidth.floatValue > 0f;
+			return outline?.ClampInset(channel ? _channelWidth.floatValue : _bottomBevel.floatValue) ?? 0f;
 		}
 
 		private static Vector3[] Closed(Vector3[] points)
@@ -410,7 +426,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			var insert = (InsertComponent)target;
 			var outline = insert.Outline;
-			var inset = outline?.ClampInset(_channelWidth.floatValue) ?? 0f;
+			var inset = FloorInset(outline);
 
 			using (new EditorGUI.DisabledScope(outline == null || targets.Length > 1)) {
 				using (new EditorGUILayout.HorizontalScope()) {

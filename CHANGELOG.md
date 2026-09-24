@@ -8,6 +8,7 @@ Built with Unity 6.5
 
 ### Added
 
+- The insert's channel is optional: without it the floor reaches the wall and carries the starburst and the holes itself, the holes to a depth of their own. Depth is now the floor's own depth, with the channel sunk below it.
 - The insert's starburst can be switched off, keeping the raised floor flat, and its holes are listed one per line.
 - The Insert and Insert Light inspectors are grouped into sections with a tooltip on every control, controls that would do nothing greyed out, and a top view of the insert's outline, raised floor, starburst and holes.
 - Insert bakes record the insert they were made for, so a duplicated insert, wherever it ends up, bakes into a folder of its own instead of over the original's.
