@@ -261,6 +261,13 @@ namespace VisualPinball.Unity.Editor
 			if (!Sampled) {
 				Field(_sideSegments, "Side Segments");
 			}
+			// A fillet larger than its sides can take is clamped, and the field
+			// then stops doing anything; say so here, next to the field.
+			if (targets.Length == 1) {
+				foreach (var warning in ((InsertComponent)target).Warnings.Where(w => w.Contains("radius"))) {
+					EditorGUILayout.HelpBox(warning + " A rounder corner needs longer sides either side of it.", MessageType.Info);
+				}
+			}
 
 			SubHeader("Body");
 			Field(_depth, "Depth");
