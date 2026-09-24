@@ -16,6 +16,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
@@ -134,7 +135,9 @@ namespace VisualPinball.Unity.Editor
 
 			EditorGUILayout.Space();
 			EditorGUILayout.LabelField("Normal Bake", EditorStyles.boldLabel);
-			DrawBakeSettings();
+			using (new EditorGUI.DisabledScope(IsLocked)) {
+				DrawBakeSettings();
+			}
 
 			EditorGUILayout.Space();
 			EditorGUILayout.LabelField("Clear Cover", EditorStyles.boldLabel);
@@ -179,7 +182,7 @@ namespace VisualPinball.Unity.Editor
 			if (!AssetDatabase.IsValidFolder("Assets/Inserts")) {
 				AssetDatabase.CreateFolder("Assets", "Inserts");
 			}
-			var folder = insert.Bake != null ? Path.GetDirectoryName(AssetDatabase.GetAssetPath(insert.Bake)) : null;
+			var folder = insert.Bake != null && !InsertBaker.IsReadOnly(insert.Bake) ? Path.GetDirectoryName(AssetDatabase.GetAssetPath(insert.Bake)) : null;
 			if (string.IsNullOrEmpty(folder)) {
 				folder = "Assets/Inserts";
 			}
@@ -196,6 +199,9 @@ namespace VisualPinball.Unity.Editor
 
 		private void DrawHybridMaterial()
 		{
+			if (targets.Length > 1) {
+				return;
+			}
 			var insert = (InsertComponent)target;
 			var data = insert.Bake;
 			if (data == null || data.OpticalNormalMap == null || data.OpticalResponseMap == null) {
@@ -213,7 +219,7 @@ namespace VisualPinball.Unity.Editor
 				}
 				return;
 			}
-			using (new EditorGUI.DisabledScope(!insert.IsBakeFresh || InsertBaker.Baking != null || EditorApplication.isPlaying || Shader.Find(InsertBaker.HybridShaderName) == null)) {
+			using (new EditorGUI.DisabledScope(!insert.IsBakeFresh || IsLocked || InsertBaker.Baking != null || EditorApplication.isPlaying || Shader.Find(InsertBaker.HybridShaderName) == null)) {
 				if (GUILayout.Button("Use HDRP Hybrid Material")) {
 					InsertBaker.UseHybridMaterial(insert);
 				}
@@ -297,8 +303,18 @@ namespace VisualPinball.Unity.Editor
 			if (insert.Bake != null) {
 				if (insert.IsBakeFresh) {
 					EditorGUILayout.HelpBox($"Baked. UVs packed by {insert.Bake.Packer}, covering {insert.Bake.UvFill:P0} of the texture.", MessageType.Info);
+				} else if (IsLocked) {
+					EditorGUILayout.HelpBox("The insert geometry has changed, and its bake cannot be updated where it is. Fork to Project to bake it here.", MessageType.Warning);
 				} else {
 					EditorGUILayout.HelpBox("The insert geometry has changed. The material is kept as a preview, but its baked textures may no longer line up. Bake Again to update the UVs, normals and optical maps.", MessageType.Warning);
+				}
+			}
+			if (IsLocked && insert.Bake != null) {
+				EditorGUILayout.HelpBox($"This insert's bake and material belong to {InsertBaker.ReadOnlyReason(insert.Bake)}, which cannot be written to. Fork to Project copies them into this project's Assets/Inserts, as a material variant that keeps following the original's tuning, and bakes there from then on.", MessageType.Info);
+				using (new EditorGUI.DisabledScope(InsertBaker.Baking != null || EditorApplication.isPlayingOrWillChangePlaymode)) {
+					if (GUILayout.Button("Fork to Project")) {
+						InsertBaker.Fork(insert);
+					}
 				}
 			}
 			if (InsertBaker.LastError != null && InsertBaker.LastErrorInsert == insert) {
@@ -309,12 +325,12 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			using (new EditorGUILayout.HorizontalScope()) {
-				using (new EditorGUI.DisabledScope(InsertBaker.Baking != null || blender?.Error != null || insert.Error != null || EditorApplication.isPlayingOrWillChangePlaymode)) {
+				using (new EditorGUI.DisabledScope(IsLocked || InsertBaker.Baking != null || blender?.Error != null || insert.Error != null || EditorApplication.isPlayingOrWillChangePlaymode)) {
 					if (GUILayout.Button(insert.Bake != null ? "Bake Again" : "Bake")) {
 						InsertBaker.Bake(insert);
 					}
 				}
-				using (new EditorGUI.DisabledScope(insert.Bake == null)) {
+				using (new EditorGUI.DisabledScope(insert.Bake == null || IsLocked)) {
 					if (GUILayout.Button("Clear Bake")) {
 						Undo.RecordObjects(new Object[] { insert, insert.GetComponent<MeshRenderer>() }, "Clear Insert Bake");
 						insert.SetBake(null);
@@ -399,6 +415,12 @@ namespace VisualPinball.Unity.Editor
 				hole.FindPropertyRelative(nameof(InsertHole.Radius)).floatValue = _holeRadius.floatValue;
 			}
 		}
+
+		/// <summary>
+		/// Whether the insert's bake sits where it cannot be written to, which
+		/// locks everything that would write it until the bake is forked.
+		/// </summary>
+		private bool IsLocked => targets.Any(selected => InsertBaker.IsReadOnly(((InsertComponent)selected).Bake));
 
 		private void DrawStatus()
 		{

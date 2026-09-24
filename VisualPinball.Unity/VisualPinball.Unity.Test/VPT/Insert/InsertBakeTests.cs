@@ -604,5 +604,104 @@ namespace VisualPinball.Unity.Test
 				}
 			}
 		}
+		[Test]
+		public void ShouldTellReadOnlyBakesByTheirPackage()
+		{
+			// A registry package is immutable; the engine package is referenced by
+			// path, which Unity keeps editable; the project's own assets always are.
+			Assert.That(InsertBaker.IsReadOnly("Packages/com.unity.test-framework/package.json"), Is.True);
+			var engine = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(InsertBaker).Assembly);
+			Assert.That(InsertBaker.IsReadOnly($"{engine.assetPath}/package.json"), Is.False);
+			Assert.That(InsertBaker.IsReadOnly("Assets/Nothing Here.asset"), Is.False);
+			Assert.That(InsertBaker.IsReadOnly((InsertBakeData)null), Is.False);
+		}
+
+		[Test]
+		public void ShouldForkABakeIntoTheProjectAsAVariant()
+		{
+			// Asset references are compared by path or by Unity's own equality:
+			// a reimport may hand back another wrapper for the same asset.
+			var root = new GameObject("Insert Fork Test Insert");
+			var probe = new Mesh();
+			var folder = UnityEditor.AssetDatabase.GenerateUniqueAssetPath("Assets/Insert Fork Test");
+			var hybrid = Shader.Find("Visual Pinball/Insert Hybrid");
+			var shader = hybrid != null ? hybrid : Shader.Find("Hidden/InternalErrorShader");
+			var plain = new Material(Shader.Find("Hidden/InternalErrorShader"));
+			InsertBakeData bake = null;
+			try {
+				UnityEditor.AssetDatabase.CreateFolder("Assets", System.IO.Path.GetFileName(folder));
+				var normalMap = new Texture2D(4, 4);
+				UnityEditor.AssetDatabase.CreateAsset(normalMap, $"{folder}/Normal.asset");
+				var material = new Material(shader);
+				if (hybrid != null) {
+					material.SetFloat("_OpticalVariation", 0.23f);
+				}
+				UnityEditor.AssetDatabase.CreateAsset(material, $"{folder}/Source.mat");
+				var cover = new Material(Shader.Find("Hidden/InternalErrorShader"));
+				UnityEditor.AssetDatabase.CreateAsset(cover, $"{folder}/Cover.mat");
+
+				var insert = root.AddComponent<InsertComponent>();
+				root.GetComponent<MeshRenderer>().sharedMaterial = plain;
+				var layout = new InsertMeshLayout();
+				insert.Generate(probe, layout);
+				bake = FakeBake(probe, layout.Hash);
+				bake.NormalMap = normalMap;
+				bake.Material = material;
+				UnityEditor.AssetDatabase.CreateAsset(bake, $"{folder}/Bake.asset");
+				insert.SetBake(bake);
+				insert.SetCoverMaterial(cover);
+				Assert.That(insert.IsBakeFresh, Is.True);
+				Assert.That(root.GetComponent<MeshRenderer>().sharedMaterial, Is.EqualTo(material));
+
+				var fork = InsertBaker.Fork(insert);
+
+				Assert.That(fork, Is.Not.EqualTo(bake));
+				Assert.That(insert.Bake, Is.EqualTo(fork));
+				Assert.That(insert.IsBakeFresh, Is.True);
+				var forkPath = UnityEditor.AssetDatabase.GetAssetPath(fork);
+				var forkFolder = System.IO.Path.GetDirectoryName(forkPath).Replace('\\', '/');
+				Assert.That(forkPath, Does.StartWith("Assets/Inserts/"));
+				Assert.That(fork.Hash, Is.EqualTo(bake.Hash));
+				Assert.That(fork.Uvs, Is.EqualTo(bake.Uvs));
+				// The maps are copies of their own, in the fork's folder.
+				var forkMapPath = UnityEditor.AssetDatabase.GetAssetPath(fork.NormalMap);
+				Assert.That(forkMapPath, Is.Not.EqualTo($"{folder}/Normal.asset"));
+				Assert.That(System.IO.Path.GetDirectoryName(forkMapPath).Replace('\\', '/'), Is.EqualTo(forkFolder));
+				Assert.That(fork.NormalMap.width, Is.EqualTo(4));
+				// The material is a variant of the source, wearing the copied map and
+				// inheriting the source's tuning; the renderer wears it.
+				var forkMaterialPath = UnityEditor.AssetDatabase.GetAssetPath(fork.Material);
+				Assert.That(System.IO.Path.GetDirectoryName(forkMaterialPath).Replace('\\', '/'), Is.EqualTo(forkFolder));
+				Assert.That(UnityEditor.AssetDatabase.GetAssetPath(fork.Material.parent), Is.EqualTo($"{folder}/Source.mat"));
+				if (hybrid != null) {
+					// Tuning is inherited, not overridden; only the maps are the variant's own.
+					Assert.That(fork.Material.GetFloat("_OpticalVariation"), Is.EqualTo(0.23f));
+					Assert.That(fork.Material.IsPropertyOverriden(Shader.PropertyToID("_OpticalVariation")), Is.False);
+					Assert.That(UnityEditor.AssetDatabase.GetAssetPath(fork.Material.GetTexture("_NormalMap")), Is.EqualTo(forkMapPath));
+					Assert.That(fork.Material.IsPropertyOverriden(Shader.PropertyToID("_NormalMap")), Is.True);
+				}
+				Assert.That(root.GetComponent<MeshRenderer>().sharedMaterial, Is.EqualTo(fork.Material));
+				Assert.That(insert.UnbakedMaterial, Is.EqualTo(plain));
+				// The source stays as it was.
+				var source = UnityEditor.AssetDatabase.LoadAssetAtPath<InsertBakeData>($"{folder}/Bake.asset");
+				Assert.That(UnityEditor.AssetDatabase.GetAssetPath(source.NormalMap), Is.EqualTo($"{folder}/Normal.asset"));
+				Assert.That(UnityEditor.AssetDatabase.GetAssetPath(source.Material), Is.EqualTo($"{folder}/Source.mat"));
+				// A cover in the project is left alone; only a read-only one is forked.
+				Assert.That(UnityEditor.AssetDatabase.GetAssetPath(insert.CoverMaterial), Is.EqualTo($"{folder}/Cover.mat"));
+			} finally {
+				// Whatever the fork made, or left behind on failure, is named after the insert.
+				if (UnityEditor.AssetDatabase.IsValidFolder("Assets/Inserts")) {
+					foreach (var made in UnityEditor.AssetDatabase.GetSubFolders("Assets/Inserts").Where(f => System.IO.Path.GetFileName(f).StartsWith(root.name))) {
+						UnityEditor.AssetDatabase.DeleteAsset(made);
+					}
+				}
+				UnityEditor.AssetDatabase.DeleteAsset(folder);
+				Object.DestroyImmediate(root.GetComponent<MeshFilter>().sharedMesh);
+				Object.DestroyImmediate(root);
+				Object.DestroyImmediate(probe);
+				Object.DestroyImmediate(plain);
+			}
+		}
+
 	}
 }

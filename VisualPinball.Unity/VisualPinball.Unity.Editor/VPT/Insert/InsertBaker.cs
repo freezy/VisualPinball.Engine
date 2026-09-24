@@ -23,6 +23,8 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Unity.Mathematics;
 using UnityEditor;
+using UnityEditor.PackageManager;
+using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Debug = UnityEngine.Debug;
@@ -404,14 +406,15 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			// A duplicated insert shares its original's bake until it bakes its own,
-			// which must not overwrite the original's.
-			var own = insert.Bake != null && !SharedWithAnotherInsert(insert) ? insert.Bake : null;
+			// which must not overwrite the original's. A bake that cannot be written
+			// to, in a package, is never anyone's to overwrite.
+			var own = insert.Bake != null && !SharedWithAnotherInsert(insert) && !IsReadOnly(insert.Bake) ? insert.Bake : null;
 			var folder = own != null ? Path.GetDirectoryName(AssetDatabase.GetAssetPath(own))?.Replace('\\', '/') : NewFolder(insert);
 			var name = FileName(insert.name);
 
 			// Not "... Normal.png": the asset library re-applies its own normal map
 			// preset to every such file on import, wrapping included.
-			var texturePath = own != null && own.NormalMap != null ? AssetDatabase.GetAssetPath(own.NormalMap) : $"{folder}/{name} Normal Map.png";
+			var texturePath = own != null && own.NormalMap != null && IsPng(own.NormalMap) ? AssetDatabase.GetAssetPath(own.NormalMap) : $"{folder}/{name} Normal Map.png";
 			File.Copy(Path.Combine(job.Folder, "normal.png"), texturePath, true);
 			AssetDatabase.ImportAsset(texturePath, ImportAssetOptions.ForceUpdate);
 			var importer = (TextureImporter)AssetImporter.GetAtPath(texturePath);
@@ -471,7 +474,7 @@ namespace VisualPinball.Unity.Editor
 			if (!File.Exists(sourcePath)) {
 				return null;
 			}
-			var path = existing != null ? AssetDatabase.GetAssetPath(existing) : $"{folder}/{name} {suffix}.png";
+			var path = existing != null && IsPng(existing) ? AssetDatabase.GetAssetPath(existing) : $"{folder}/{name} {suffix}.png";
 			File.Copy(sourcePath, path, true);
 			AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
 			var importer = (TextureImporter)AssetImporter.GetAtPath(path);
@@ -484,6 +487,10 @@ namespace VisualPinball.Unity.Editor
 			importer.SaveAndReimport();
 			return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
 		}
+
+		/// <summary>Whether the texture is a PNG the bake can write over, rather than some other asset it was given.</summary>
+		private static bool IsPng(Texture2D texture)
+			=> string.Equals(Path.GetExtension(AssetDatabase.GetAssetPath(texture)), ".png", StringComparison.OrdinalIgnoreCase);
 
 		private static void BindOptics(InsertBakeData data)
 		{
@@ -509,6 +516,9 @@ namespace VisualPinball.Unity.Editor
 			if (SharedWithAnotherInsert(insert)) {
 				throw new InvalidOperationException("This bake belongs to another insert as well. Bake this insert again before choosing its own material.");
 			}
+			if (IsReadOnly(data)) {
+				throw new InvalidOperationException($"This bake belongs to {ReadOnlyReason(data)} and cannot be written to. Fork it to the project first.");
+			}
 			var renderer = insert.GetComponent<MeshRenderer>();
 			Undo.RecordObjects(new Object[] { data, renderer }, "Use Hybrid Insert Material");
 			var folder = Path.GetDirectoryName(AssetDatabase.GetAssetPath(data))?.Replace('\\', '/');
@@ -526,9 +536,9 @@ namespace VisualPinball.Unity.Editor
 
 		/// <summary>
 		/// The material the insert wears baked, with the new normal map set. The
-		/// first bake copies the current material, including a duplicated insert's
-		/// tuned hybrid material. The source is never touched; later bakes replace
-		/// only the bake-owned texture bindings.
+		/// first bake derives it from the current material, including a duplicated
+		/// insert's tuned hybrid material. The source is never touched; later
+		/// bakes replace only the bake-owned texture bindings.
 		/// </summary>
 		private static Material BakeMaterial(InsertComponent insert, Material existing, string path, Texture2D normalMap)
 		{
@@ -536,9 +546,22 @@ namespace VisualPinball.Unity.Editor
 			var created = material == null;
 			if (created) {
 				var source = insert.GetComponent<MeshRenderer>().sharedMaterial;
-				material = source != null ? new Material(source) : new Material(Shader.Find("HDRP/Lit") ?? Shader.Find("Standard"));
+				material = source != null ? Derive(source) : new Material(Shader.Find("HDRP/Lit") ?? Shader.Find("Standard"));
 			}
 
+			SetNormalMap(material, normalMap, insert.name);
+
+			if (created) {
+				material.name = Path.GetFileNameWithoutExtension(path);
+				AssetDatabase.CreateAsset(material, path);
+			} else {
+				EditorUtility.SetDirty(material);
+			}
+			return material;
+		}
+
+		private static void SetNormalMap(Material material, Texture2D normalMap, string insertName)
+		{
 			if (material.HasTexture("_NormalMap")) {
 				// HDRP's Lit family.
 				material.SetTexture("_NormalMap", normalMap);
@@ -554,17 +577,26 @@ namespace VisualPinball.Unity.Editor
 				// A shader graph's normal map input defaults to the flat "bump" texture.
 				material.SetTexture(slot, normalMap);
 			} else {
-				Debug.LogWarning($"{insert.name}: the material's shader {material.shader.name} has no normal map slot; set {AssetDatabase.GetAssetPath(normalMap)} yourself.");
+				Debug.LogWarning($"{insertName}: the material's shader {material.shader.name} has no normal map slot; set {AssetDatabase.GetAssetPath(normalMap)} yourself.");
 			}
-
-			if (created) {
-				material.name = Path.GetFileNameWithoutExtension(path);
-				AssetDatabase.CreateAsset(material, path);
-			} else {
-				EditorUtility.SetDirty(material);
-			}
-			return material;
 		}
+
+		/// <summary>
+		/// A material of the insert's own, made from the one it wears: a variant
+		/// when that one is an asset that cannot be written to, so its tuning
+		/// keeps following the package's; a plain copy otherwise.
+		/// </summary>
+		private static Material Derive(Material source)
+		{
+			return IsReadOnly(AssetDatabase.GetAssetPath(source)) ? Variant(source, source.name) : new Material(source);
+		}
+
+		/// <summary>
+		/// A variant of the material, inheriting everything: it starts as a copy,
+		/// so nothing counts as overridden until it is set afterwards. A fresh
+		/// material given a parent would keep the shader's defaults instead.
+		/// </summary>
+		private static Material Variant(Material source, string name) => new(source) { parent = source, name = name };
 
 		private static string NormalMapSlot(Shader shader)
 		{
@@ -578,6 +610,124 @@ namespace VisualPinball.Unity.Editor
 			}
 			return null;
 		}
+
+		#endregion
+
+		#region Forking
+
+		/// <summary>
+		/// Whether the bake's assets cannot be written to: they live in a package
+		/// Unity keeps immutable, or version control holds them.
+		/// </summary>
+		public static bool IsReadOnly(InsertBakeData bake) => bake != null && IsReadOnly(AssetDatabase.GetAssetPath(bake));
+
+		public static bool IsReadOnly(string assetPath)
+		{
+			if (string.IsNullOrEmpty(assetPath)) {
+				return false;
+			}
+			var package = PackageInfo.FindForAssetPath(assetPath);
+			if (package != null && package.source != PackageSource.Embedded && package.source != PackageSource.Local) {
+				return true;
+			}
+			return !AssetDatabase.IsOpenForEdit(assetPath, StatusQueryOptions.UseCachedIfPossible);
+		}
+
+		/// <summary>What keeps the bake read-only, for the inspector to say.</summary>
+		public static string ReadOnlyReason(InsertBakeData bake)
+		{
+			var path = AssetDatabase.GetAssetPath(bake);
+			var package = PackageInfo.FindForAssetPath(path);
+			return package != null && package.source != PackageSource.Embedded && package.source != PackageSource.Local
+				? $"the package {package.displayName}"
+				: "version control";
+		}
+
+		/// <summary>
+		/// Gives the insert a bake of its own in the project: copies of the maps
+		/// and bake data it wears, and a variant of its material with the copies
+		/// bound, so an insert from a package can be tuned and baked here while
+		/// the package stays as it is. A cover material from a package gets a
+		/// variant too. When the copy no longer fits the mesh, a bake follows at
+		/// once.
+		/// </summary>
+		public static InsertBakeData Fork(InsertComponent insert)
+		{
+			var source = insert.Bake;
+			if (source == null) {
+				throw new InvalidOperationException("The insert has no bake to fork.");
+			}
+			var renderer = insert.GetComponent<MeshRenderer>();
+			var folder = NewFolder(insert);
+			var name = FileName(insert.name);
+
+			InsertBakeData data;
+			Material cover = null;
+			try {
+				data = Object.Instantiate(source);
+				data.name = $"{name} Bake";
+				data.NormalMap = CopyTexture(source.NormalMap, $"{folder}/{name} Normal Map");
+				data.OpticalNormalMap = CopyTexture(source.OpticalNormalMap, $"{folder}/{name} Optical Normals");
+				data.OpticalResponseMap = CopyTexture(source.OpticalResponseMap, $"{folder}/{name} Optical Response");
+				if (source.Material != null) {
+					var material = Variant(source.Material, $"{name} {source.Material.name}");
+					if (data.NormalMap != null) {
+						SetNormalMap(material, data.NormalMap, insert.name);
+					}
+					// Unique, because the body and the cover may share a name.
+					AssetDatabase.CreateAsset(material, AssetDatabase.GenerateUniqueAssetPath($"{folder}/{name} {FileName(source.Material.name)}.mat"));
+					data.Material = material;
+					BindOptics(data);
+				}
+				AssetDatabase.CreateAsset(data, $"{folder}/{name} Bake.asset");
+				if (insert.CoverMaterial != null && IsReadOnly(AssetDatabase.GetAssetPath(insert.CoverMaterial))) {
+					cover = Variant(insert.CoverMaterial, $"{name} {insert.CoverMaterial.name}");
+					AssetDatabase.CreateAsset(cover, AssetDatabase.GenerateUniqueAssetPath($"{folder}/{name} {FileName(insert.CoverMaterial.name)}.mat"));
+				}
+			} catch {
+				// Nothing half-forked is left behind: the insert still wears the source.
+				AssetDatabase.DeleteAsset(folder);
+				throw;
+			}
+
+			Undo.RecordObjects(new Object[] { insert, renderer }, "Fork Insert Bake");
+			if (cover != null) {
+				insert.SetCoverMaterial(cover);
+			}
+			insert.SetBake(data);
+			// A copy that no longer fits the mesh is still the preview the source
+			// was, until the bake that follows replaces it; the plain material
+			// underneath is remembered by SetBake as before.
+			if (data.Material != null && !insert.IsBakeFresh) {
+				renderer.sharedMaterial = data.Material;
+			}
+			PrefabUtility.RecordPrefabInstancePropertyModifications(insert);
+			PrefabUtility.RecordPrefabInstancePropertyModifications(renderer);
+			AssetDatabase.SaveAssets();
+
+			if (!insert.IsBakeFresh) {
+				Bake(insert);
+			}
+			return data;
+		}
+
+		/// <summary>A copy of the texture asset, import settings included, or null without one.</summary>
+		private static Texture2D CopyTexture(Texture2D texture, string pathWithoutExtension)
+		{
+			if (texture == null) {
+				return null;
+			}
+			var sourcePath = AssetDatabase.GetAssetPath(texture);
+			var path = pathWithoutExtension + Path.GetExtension(sourcePath);
+			if (!AssetDatabase.CopyAsset(sourcePath, path)) {
+				throw new InvalidOperationException($"{sourcePath} could not be copied to {path}.");
+			}
+			return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+		}
+
+		#endregion
+
+		#region Ownership
 
 		/// <summary>
 		/// Whether the insert's bake belongs to another insert as well: one in the
