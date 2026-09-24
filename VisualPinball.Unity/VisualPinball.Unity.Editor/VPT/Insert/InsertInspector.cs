@@ -847,7 +847,23 @@ namespace VisualPinball.Unity.Editor
 
 		private void DrawCover()
 		{
-			Field(_coverMaterial, "Material");
+			// Through the component, which puts the material in the renderer's
+			// second slot: the slot is the cover, and the field only mirrors it.
+			EditorGUI.showMixedValue = _coverMaterial.hasMultipleDifferentValues;
+			EditorGUI.BeginChangeCheck();
+			var chosen = (Material)EditorGUILayout.ObjectField(new GUIContent("Material", _coverMaterial.tooltip), _coverMaterial.objectReferenceValue, typeof(Material), false);
+			EditorGUI.showMixedValue = false;
+			if (EditorGUI.EndChangeCheck()) {
+				var objects = targets.SelectMany(t => new Object[] { t, ((InsertComponent)t).GetComponent<MeshRenderer>() }).ToArray();
+				Undo.RecordObjects(objects, "Set Insert Cover Material");
+				foreach (var t in targets) {
+					var insert = (InsertComponent)t;
+					insert.SetCoverMaterial(chosen);
+					PrefabUtility.RecordPrefabInstancePropertyModifications(insert);
+					PrefabUtility.RecordPrefabInstancePropertyModifications(insert.GetComponent<MeshRenderer>());
+				}
+				serializedObject.Update();
+			}
 			var cover = _coverMaterial.hasMultipleDifferentValues || _coverMaterial.objectReferenceValue != null;
 			using (new EditorGUI.DisabledScope(!cover)) {
 				Field(_usePlayfieldNormals, "Use Playfield Normals");

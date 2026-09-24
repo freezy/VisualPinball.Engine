@@ -411,6 +411,10 @@ namespace VisualPinball.Unity.Editor
 			var own = Owns(insert, insert.Bake) && !IsReadOnly(insert.Bake) ? insert.Bake : null;
 			var folder = own != null ? Path.GetDirectoryName(AssetDatabase.GetAssetPath(own))?.Replace('\\', '/') : NewFolder(insert);
 			var name = FileName(insert.name);
+			// Whether the material the insert wears is this bake's own is judged
+			// against the maps the bake had, before the new ones replace them.
+			var renderer = insert.GetComponent<MeshRenderer>();
+			var wornIsOwn = own != null && Carries(renderer.sharedMaterial, own);
 
 			// Not "... Normal.png": the asset library re-applies its own normal map
 			// preset to every such file on import, wrapping included.
@@ -455,7 +459,7 @@ namespace VisualPinball.Unity.Editor
 			}
 			data.Packer = result.Report.Packer;
 			data.UvFill = result.Report.UvFill;
-			data.Material = BakeMaterial(insert, own != null ? own.Material : null, $"{folder}/{name} Baked.mat", texture);
+			data.Material = BakeMaterial(insert, wornIsOwn, folder, name, texture);
 			BindOptics(data);
 			if (created) {
 				AssetDatabase.CreateAsset(data, $"{folder}/{name} Bake.asset");
@@ -464,7 +468,6 @@ namespace VisualPinball.Unity.Editor
 			}
 			AssetDatabase.SaveAssets();
 
-			var renderer = insert.GetComponent<MeshRenderer>();
 			Undo.RecordObjects(new Object[] { insert, renderer }, "Bake Insert");
 			insert.SetBake(data);
 			PrefabUtility.RecordPrefabInstancePropertyModifications(insert);
@@ -540,29 +543,77 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		/// <summary>
-		/// The material the insert wears baked, with the new normal map set. The
-		/// first bake derives it from the current material, including a duplicated
-		/// insert's tuned hybrid material. The source is never touched; later
-		/// bakes replace only the bake-owned texture bindings.
+		/// The material the bake goes into, with the new normal map set: the one
+		/// the insert wears when that is the bake's own (<paramref name="wornIsOwn"/>:
+		/// the material the bake made or one carrying its maps, so a colour given
+		/// to it, or a copy made of it with the maps kept, stays on) and no other
+		/// insert wears it. Otherwise a copy of what the insert wears, a variant
+		/// when that is a package's, so a material other inserts share is never
+		/// written into and the insert still keeps its look.
 		/// </summary>
-		private static Material BakeMaterial(InsertComponent insert, Material existing, string path, Texture2D normalMap)
+		private static Material BakeMaterial(InsertComponent insert, bool wornIsOwn, string folder, string name, Texture2D normalMap)
 		{
-			var material = existing;
-			var created = material == null;
+			var worn = insert.GetComponent<MeshRenderer>().sharedMaterial;
+			var material = worn;
+			var created = worn == null || !wornIsOwn || !EditorUtility.IsPersistent(worn) || IsReadOnly(AssetDatabase.GetAssetPath(worn));
+			if (!created && WornElsewhere(worn, insert)) {
+				created = true;
+				Debug.Log($"{insert.name}: another insert wears {worn.name} too, so this bake goes into a copy of it.");
+			}
 			if (created) {
-				var source = insert.GetComponent<MeshRenderer>().sharedMaterial;
-				material = source != null ? Derive(source) : new Material(Shader.Find("HDRP/Lit") ?? Shader.Find("Standard"));
+				material = worn != null ? Derive(worn) : new Material(Shader.Find("HDRP/Lit") ?? Shader.Find("Standard"));
+				material.name = worn != null ? $"{name} {worn.name}" : $"{name} Baked";
+			} else {
+				Undo.RecordObject(material, "Bake Insert");
 			}
 
 			SetNormalMap(material, normalMap, insert.name);
 
 			if (created) {
-				material.name = Path.GetFileNameWithoutExtension(path);
-				AssetDatabase.CreateAsset(material, path);
+				AssetDatabase.CreateAsset(material, AssetDatabase.GenerateUniqueAssetPath($"{folder}/{FileName(material.name)}.mat"));
 			} else {
 				EditorUtility.SetDirty(material);
 			}
 			return material;
+		}
+
+		/// <summary>
+		/// Whether another insert in the open scenes, or the prefab being edited,
+		/// wears the material: a bake written into it would break that insert.
+		/// </summary>
+		private static bool WornElsewhere(Material material, InsertComponent insert)
+		{
+			foreach (var other in Object.FindObjectsByType<InsertComponent>(FindObjectsInactive.Include, FindObjectsSortMode.None)) {
+				if (other != insert && other.TryGetComponent<MeshRenderer>(out var renderer) && renderer.sharedMaterial == material) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		/// <summary>
+		/// Whether the material is the bake's own: the one the bake made, or any
+		/// other carrying one of its maps, such as a copy made for another colour.
+		/// </summary>
+		public static bool Carries(Material material, InsertBakeData bake)
+		{
+			if (material == null || bake == null) {
+				return false;
+			}
+			if (material == bake.Material) {
+				return true;
+			}
+			var shader = material.shader;
+			for (var i = 0; i < shader.GetPropertyCount(); i++) {
+				if (shader.GetPropertyType(i) != ShaderPropertyType.Texture) {
+					continue;
+				}
+				var texture = material.GetTexture(shader.GetPropertyName(i));
+				if (texture != null && (texture == bake.NormalMap || texture == bake.OpticalNormalMap || texture == bake.OpticalResponseMap)) {
+					return true;
+				}
+			}
+			return false;
 		}
 
 		private static void SetNormalMap(Material material, Texture2D normalMap, string insertName)
@@ -650,9 +701,10 @@ namespace VisualPinball.Unity.Editor
 
 		/// <summary>
 		/// Gives the insert a bake of its own in the project: copies of the maps
-		/// and bake data it wears, and a variant of its material with the copies
-		/// bound, so an insert from a package can be tuned and baked here while
-		/// the package stays as it is. A cover material from a package gets a
+		/// and bake data it wears, bound into the material it wears when that is
+		/// the project's own, or into a variant of it when that is a package's,
+		/// so an insert from a package can be tuned and baked here while the
+		/// package stays as it is. A cover material from a package gets a
 		/// variant too. When the copy no longer fits the mesh, a bake follows at
 		/// once.
 		/// </summary>
@@ -675,17 +727,33 @@ namespace VisualPinball.Unity.Editor
 				data.NormalMap = CopyTexture(source.NormalMap, $"{folder}/{name} Normal Map");
 				data.OpticalNormalMap = CopyTexture(source.OpticalNormalMap, $"{folder}/{name} Optical Normals");
 				data.OpticalResponseMap = CopyTexture(source.OpticalResponseMap, $"{folder}/{name} Optical Response");
-				if (source.Material != null) {
-					var material = Variant(source.Material, $"{name} {source.Material.name}");
+				AssetDatabase.CreateAsset(data, $"{folder}/{name} Bake.asset");
+				// The material the insert wears takes the copies: a colour of the
+				// user's own carrying the source's maps in place, when it is the
+				// project's; the source's own material, or a package's, as a
+				// variant that keeps following its tuning, since the source is
+				// left as it was.
+				var worn = renderer.sharedMaterial != null ? renderer.sharedMaterial : source.Material;
+				if (worn != null) {
+					var own = worn != source.Material && Carries(worn, source) && EditorUtility.IsPersistent(worn)
+						&& !IsReadOnly(AssetDatabase.GetAssetPath(worn)) && !WornElsewhere(worn, insert);
+					var material = own ? worn : Variant(worn, $"{name} {worn.name}");
+					if (own) {
+						Undo.RecordObject(material, "Fork Insert Bake");
+					}
 					if (data.NormalMap != null) {
 						SetNormalMap(material, data.NormalMap, insert.name);
 					}
-					// Unique, because the body and the cover may share a name.
-					AssetDatabase.CreateAsset(material, AssetDatabase.GenerateUniqueAssetPath($"{folder}/{name} {FileName(source.Material.name)}.mat"));
+					if (own) {
+						EditorUtility.SetDirty(material);
+					} else {
+						// Unique, because the body and the cover may share a name.
+						AssetDatabase.CreateAsset(material, AssetDatabase.GenerateUniqueAssetPath($"{folder}/{name} {FileName(worn.name)}.mat"));
+					}
 					data.Material = material;
 					BindOptics(data);
+					EditorUtility.SetDirty(data);
 				}
-				AssetDatabase.CreateAsset(data, $"{folder}/{name} Bake.asset");
 				if (insert.CoverMaterial != null && IsReadOnly(AssetDatabase.GetAssetPath(insert.CoverMaterial))) {
 					cover = Variant(insert.CoverMaterial, $"{name} {insert.CoverMaterial.name}");
 					AssetDatabase.CreateAsset(cover, AssetDatabase.GenerateUniqueAssetPath($"{folder}/{name} {FileName(insert.CoverMaterial.name)}.mat"));
@@ -700,13 +768,9 @@ namespace VisualPinball.Unity.Editor
 			if (cover != null) {
 				insert.SetCoverMaterial(cover);
 			}
-			insert.SetBake(data);
 			// A copy that no longer fits the mesh is still the preview the source
-			// was, until the bake that follows replaces it; the plain material
-			// underneath is remembered by SetBake as before.
-			if (data.Material != null && !insert.IsBakeFresh) {
-				renderer.sharedMaterial = data.Material;
-			}
+			// was, until the bake that follows replaces it.
+			insert.SetBake(data);
 			PrefabUtility.RecordPrefabInstancePropertyModifications(insert);
 			PrefabUtility.RecordPrefabInstancePropertyModifications(renderer);
 			AssetDatabase.SaveAssets();

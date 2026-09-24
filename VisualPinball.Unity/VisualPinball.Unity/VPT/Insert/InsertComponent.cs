@@ -376,10 +376,20 @@ namespace VisualPinball.Unity
 		private MaterialPropertyBlock _coverProperties;
 		private bool _coverMapped;
 		private bool _coverPropertiesApplied;
+		private bool _coverSlotRead;
 
+		/// <summary>
+		/// Puts a cover material on, in the renderer's second slot, or takes the
+		/// cover off with null. The slot is the cover: a material put there the
+		/// way any renderer takes one is as good as one set here, and neither
+		/// overwrites the other.
+		/// </summary>
 		public void SetCoverMaterial(Material material)
 		{
 			_coverMaterial = material;
+			var renderer = GetComponent<MeshRenderer>();
+			var body = renderer.sharedMaterial;
+			renderer.sharedMaterials = material != null ? new[] { body, material } : new[] { body };
 			RebuildMesh();
 		}
 
@@ -417,17 +427,28 @@ namespace VisualPinball.Unity
 				var layout = new InsertMeshLayout();
 				InsertMeshGenerator.Generate(outline, body, mesh, layout);
 				IsBakeFresh = _bake != null && _bake.TryApply(mesh, layout.Hash);
-				WearBake();
 				// Add the cover only after applying the body's bake. It must never
 				// change the bake hash, atlas, or per-corner tangent mapping.
+				// The renderer's second slot is the cover: whatever was put there,
+				// through the field or straight onto the renderer, stays, and a
+				// slot taken away takes the cover off. The field mirrors the slot
+				// for the inspector, and seeds it just once, on an insert whose
+				// renderer arrives without one.
 				var renderer = GetComponent<MeshRenderer>();
+				var slots = renderer.sharedMaterials;
+				if (_coverSlotRead || slots.Length > 1) {
+					_coverMaterial = slots.Length > 1 ? slots[1] : null;
+				}
+				_coverSlotRead = true;
 				if (_coverMaterial != null) {
 					_coverFirstVertex = mesh.vertexCount;
 					InsertMeshGenerator.AddCover(outline, mesh);
 					_coverMapped = false;
-					renderer.sharedMaterials = new[] { renderer.sharedMaterial, _coverMaterial };
+					if (slots.Length != 2 || slots[1] != _coverMaterial) {
+						renderer.sharedMaterials = new[] { renderer.sharedMaterial, _coverMaterial };
+					}
 					UpdateCover(true);
-				} else if (renderer.sharedMaterials.Length > 1) {
+				} else if (slots.Length > 1) {
 					renderer.sharedMaterials = new[] { renderer.sharedMaterial };
 				}
 
@@ -439,35 +460,34 @@ namespace VisualPinball.Unity
 		public InsertBakeSettings BakeSettings => _bakeSettings;
 
 		/// <summary>
-		/// Replaces the bake, or drops it with null, and rebuilds. The material the
-		/// insert wore before is kept, to be put back when the bake is cleared.
+		/// Replaces the bake and puts its material on, or drops the bake with null
+		/// and puts back the material the insert wore before its first bake, and
+		/// rebuilds.
 		/// </summary>
+		/// <remarks>
+		/// This is the one place a bake changes what the insert wears. A material
+		/// put on by hand stays on through geometry edits and rebuilds, and a bake
+		/// made after that is made into that material, or into a copy of it, so
+		/// what comes back here is never an older material.
+		/// </remarks>
 		public void SetBake(InsertBakeData bake)
 		{
-			var unbaked = UnbakedMaterial;
 			var renderer = GetComponent<MeshRenderer>();
-			if (_bake != null && renderer.sharedMaterial == _bake.Material) {
-				renderer.sharedMaterial = unbaked;
+			if (bake == null) {
+				if (_bake != null && renderer.sharedMaterial == _bake.Material) {
+					renderer.sharedMaterial = _unbakedMaterial;
+				}
+				_unbakedMaterial = null;
+			} else {
+				if (_bake == null) {
+					_unbakedMaterial = renderer.sharedMaterial;
+				}
+				if (bake.Material != null) {
+					renderer.sharedMaterial = bake.Material;
+				}
 			}
 			_bake = bake;
-			_unbakedMaterial = bake != null ? unbaked : null;
 			RebuildMesh();
-		}
-
-		/// <summary>
-		/// Puts a fresh bake's material on in place of the original material.
-		/// Geometry edits keep the material as a preview, and a material the
-		/// user chose themselves is left alone.
-		/// </summary>
-		private void WearBake()
-		{
-			if (_bake == null || _bake.Material == null) {
-				return;
-			}
-			var renderer = GetComponent<MeshRenderer>();
-			if (IsBakeFresh && renderer.sharedMaterial == _unbakedMaterial) {
-				renderer.sharedMaterial = _bake.Material;
-			}
 		}
 
 		/// <summary>

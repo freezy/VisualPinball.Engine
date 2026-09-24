@@ -514,7 +514,9 @@ namespace VisualPinball.Unity.Test
 
 				// A shared bake takes the new-material path, not the in-place update.
 				var method = typeof(InsertBaker).GetMethod("BakeMaterial", BindingFlags.Static | BindingFlags.NonPublic);
-				var material = (Material)method.Invoke(null, new object[] { duplicate, null, path, normalMap });
+				var material = (Material)method.Invoke(null, new object[] { duplicate, false, "Assets", "Insert Material Copy Test", normalMap });
+				path = UnityEditor.AssetDatabase.GetAssetPath(material);
+				Assert.That(path, Does.StartWith("Assets/Insert Material Copy Test"));
 				Assert.That(material, Is.Not.SameAs(hybrid));
 				Assert.That(material.shader, Is.SameAs(shader));
 				Assert.That(material.GetFloat("_OpticalVariation"), Is.EqualTo(0.23f));
@@ -630,10 +632,15 @@ namespace VisualPinball.Unity.Test
 				Assert.That(insert.IsBakeFresh, Is.True);
 				Assert.That(renderer.sharedMaterial, Is.SameAs(baked));
 
-				// A material chosen by hand is left alone.
+				// A material chosen by hand is left alone, through rebuilds and
+				// through the original material of the bake wandering back on.
 				renderer.sharedMaterial = chosen;
 				insert.RebuildMesh();
 				Assert.That(renderer.sharedMaterial, Is.SameAs(chosen));
+				renderer.sharedMaterial = plain;
+				insert.RebuildMesh();
+				Assert.That(renderer.sharedMaterial, Is.SameAs(plain), "the material the bake was made from is a choice like any other");
+				Assert.That(insert.UnbakedMaterial, Is.SameAs(plain));
 
 				renderer.sharedMaterial = baked;
 				insert.SetBake(null);
@@ -651,6 +658,146 @@ namespace VisualPinball.Unity.Test
 				}
 			}
 		}
+		[Test]
+		public void ShouldBakeIntoTheMaterialTheInsertWearsWhenItCarriesTheBakesMaps()
+		{
+			// A copy of the baked material made for another colour, maps kept,
+			// is the bake's own: the next bake goes into it and it stays on.
+			// Assets are compared by Unity's own equality: a reimport may hand
+			// back another wrapper for the same asset.
+			var shader = Shader.Find("HDRP/Lit");
+			if (shader == null) {
+				Assert.Ignore("Requires HDRP.");
+			}
+			var folder = UnityEditor.AssetDatabase.GenerateUniqueAssetPath("Assets/Insert Rebake Test");
+			UnityEditor.AssetDatabase.CreateFolder("Assets", System.IO.Path.GetFileName(folder));
+			var root = new GameObject("Insert");
+			var probe = new Mesh();
+			InsertBakeData bake = null;
+			GameObject other = null;
+			try {
+				var plain = new Material(shader) { name = "Plain" };
+				var baked = new Material(shader) { name = "Baked" };
+				var recoloured = new Material(shader) { name = "Blue" };
+				var oldMap = new Texture2D(2, 2);
+				var newMap = new Texture2D(2, 2);
+				UnityEditor.AssetDatabase.CreateAsset(oldMap, $"{folder}/Old Map.asset");
+				UnityEditor.AssetDatabase.CreateAsset(newMap, $"{folder}/New Map.asset");
+				baked.SetTexture("_NormalMap", oldMap);
+				recoloured.SetTexture("_NormalMap", oldMap);
+				recoloured.SetColor("_BaseColor", Color.blue);
+				UnityEditor.AssetDatabase.CreateAsset(plain, $"{folder}/Plain.mat");
+				UnityEditor.AssetDatabase.CreateAsset(baked, $"{folder}/Baked.mat");
+				UnityEditor.AssetDatabase.CreateAsset(recoloured, $"{folder}/Blue.mat");
+
+				var insert = root.AddComponent<InsertComponent>();
+				var renderer = root.GetComponent<MeshRenderer>();
+				renderer.sharedMaterial = plain;
+				var layout = new InsertMeshLayout();
+				insert.Generate(probe, layout);
+				bake = FakeBake(probe, layout.Hash);
+				bake.NormalMap = oldMap;
+				bake.Material = baked;
+				UnityEditor.AssetDatabase.CreateAsset(bake, $"{folder}/Bake.asset");
+				insert.SetBake(bake);
+				bake.Owner = insert.Id;
+				Assert.That(renderer.sharedMaterial, Is.EqualTo(baked));
+
+				renderer.sharedMaterial = recoloured;
+				Assert.That(InsertBaker.Carries(recoloured, bake), Is.True, "the recoloured copy carries the bake's map, so it is the bake's own");
+				var method = typeof(InsertBaker).GetMethod("BakeMaterial", BindingFlags.Static | BindingFlags.NonPublic);
+				var material = (Material)method.Invoke(null, new object[] { insert, true, folder, "Insert", newMap });
+				Assert.That(material, Is.EqualTo(recoloured));
+				Assert.That(recoloured.GetTexture("_NormalMap"), Is.EqualTo(newMap));
+				Assert.That(recoloured.GetColor("_BaseColor"), Is.EqualTo(Color.blue));
+				Assert.That(baked.GetTexture("_NormalMap"), Is.EqualTo(oldMap), "the older material is left as it was");
+
+				// Wearing the outcome, as the bake does, keeps it on.
+				bake.Material = material;
+				insert.SetBake(bake);
+				Assert.That(renderer.sharedMaterial, Is.EqualTo(recoloured));
+				Assert.That(insert.UnbakedMaterial, Is.EqualTo(plain));
+
+				// A material without the bake's maps is not the bake's to write
+				// into: a copy of it takes the map, the material stays clean.
+				var shared = new Material(shader) { name = "Shared Red" };
+				shared.SetColor("_BaseColor", Color.red);
+				UnityEditor.AssetDatabase.CreateAsset(shared, $"{folder}/Shared Red.mat");
+				renderer.sharedMaterial = shared;
+				Assert.That(InsertBaker.Carries(shared, bake), Is.False);
+				material = (Material)method.Invoke(null, new object[] { insert, false, folder, "Insert", newMap });
+				Assert.That(material, Is.Not.EqualTo(shared));
+				Assert.That(material.GetColor("_BaseColor"), Is.EqualTo(Color.red), "the copy keeps the look");
+				Assert.That(material.GetTexture("_NormalMap"), Is.EqualTo(newMap));
+				Assert.That(shared.GetTexture("_NormalMap"), Is.Null);
+				Assert.That(UnityEditor.AssetDatabase.GetAssetPath(material), Is.EqualTo($"{folder}/Insert Shared Red.mat"));
+
+				// The bake's own material, worn by another insert as well, is not
+				// written into either: that insert's maps would go with it.
+				other = new GameObject("Other insert");
+				other.AddComponent<InsertComponent>();
+				other.GetComponent<MeshRenderer>().sharedMaterial = recoloured;
+				renderer.sharedMaterial = recoloured;
+				material = (Material)method.Invoke(null, new object[] { insert, true, folder, "Insert", newMap });
+				Assert.That(material, Is.Not.EqualTo(recoloured));
+				Assert.That(material.GetColor("_BaseColor"), Is.EqualTo(Color.blue));
+				Assert.That(UnityEditor.AssetDatabase.GetAssetPath(material), Is.EqualTo($"{folder}/Insert Blue.mat"));
+			} finally {
+				if (other != null) {
+					Object.DestroyImmediate(other.GetComponent<MeshFilter>().sharedMesh);
+					Object.DestroyImmediate(other);
+				}
+				Object.DestroyImmediate(root.GetComponent<MeshFilter>().sharedMesh);
+				Object.DestroyImmediate(root);
+				Object.DestroyImmediate(probe);
+				UnityEditor.AssetDatabase.DeleteAsset(folder);
+			}
+		}
+
+		[Test]
+		public void ShouldTakeTheCoverFromTheRenderersSecondSlot()
+		{
+			// A cover material put straight onto the renderer, the way any
+			// renderer takes one, is the cover; rebuilds do not put the field's
+			// material back over it.
+			var go = new GameObject("Insert");
+			var insert = go.AddComponent<InsertComponent>();
+			var shader = Shader.Find("Hidden/InternalErrorShader");
+			var body = new Material(shader) { name = "body" };
+			var cover = new Material(shader) { name = "cover" };
+			var other = new Material(shader) { name = "other" };
+			try {
+				var renderer = go.GetComponent<MeshRenderer>();
+				renderer.sharedMaterial = body;
+				insert.SetCoverMaterial(cover);
+				Assert.That(renderer.sharedMaterials, Is.EqualTo(new[] { body, cover }));
+
+				renderer.sharedMaterials = new[] { body, other };
+				insert.RebuildMesh();
+				Assert.That(renderer.sharedMaterials, Is.EqualTo(new[] { body, other }));
+				Assert.That(insert.CoverMaterial, Is.SameAs(other));
+
+				renderer.sharedMaterials = new[] { body, null };
+				insert.RebuildMesh();
+				Assert.That(renderer.sharedMaterials, Is.EqualTo(new[] { body }), "an emptied slot takes the cover off");
+				Assert.That(insert.CoverMaterial, Is.Null);
+				Assert.That(go.GetComponent<MeshFilter>().sharedMesh.subMeshCount, Is.EqualTo(1));
+
+				insert.SetCoverMaterial(cover);
+				renderer.sharedMaterials = new[] { body };
+				insert.RebuildMesh();
+				Assert.That(renderer.sharedMaterials, Is.EqualTo(new[] { body }), "a slot taken away takes the cover off too");
+				Assert.That(insert.CoverMaterial, Is.Null);
+				Assert.That(go.GetComponent<MeshFilter>().sharedMesh.subMeshCount, Is.EqualTo(1));
+			} finally {
+				Object.DestroyImmediate(go.GetComponent<MeshFilter>().sharedMesh);
+				Object.DestroyImmediate(go);
+				Object.DestroyImmediate(body);
+				Object.DestroyImmediate(cover);
+				Object.DestroyImmediate(other);
+			}
+		}
+
 		[Test]
 		public void ShouldKeepTheFloorFlatWithTheStarburstOff()
 		{
