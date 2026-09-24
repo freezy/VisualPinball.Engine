@@ -83,6 +83,34 @@ namespace VisualPinball.Unity.Test
 			Triangle(200f, 50f, 5f, 4, 20f, 4),
 		};
 
+		private static OutlineCase Circle(float diameter, int vertices)
+		{
+			// The bounding box of the polygon the circle is drawn as, which only a
+			// count divisible by four fills to the diameter both ways.
+			var low = new float2(float.MaxValue);
+			var high = new float2(float.MinValue);
+			for (var i = 0; i < vertices; i++) {
+				var angle = math.PI * 2f * i / vertices;
+				var point = 0.5f * diameter * new float2(math.cos(angle), math.sin(angle));
+				low = math.min(low, point);
+				high = math.max(high, point);
+			}
+			return new OutlineCase {
+				Name = $"circle {diameter:0.##} vertices={vertices}",
+				Width = high.x - low.x,
+				Height = high.y - low.y,
+				Corners = (_, _) => InsertShapes.CircleCorners(diameter, vertices),
+			};
+		}
+
+		private static readonly OutlineCase[] CircleCases = {
+			Circle(Inch, 32), // the component's own defaults
+			Circle(25.4f, 6),
+			Circle(25.4f, 7),
+			Circle(50.8f, 64),
+			Circle(200f, 12),
+		};
+
 		private static readonly OutlineCase[] RectangleCases = {
 			Rectangle(Inch, 2f * Inch, 4f, 8),
 			Rectangle(25.4f, 25.4f, 0f, 1),
@@ -92,7 +120,7 @@ namespace VisualPinball.Unity.Test
 			Rectangle(200f, 50f, 2f, 3),
 		};
 
-		private static readonly OutlineCase[] Cases = TriangleCases.Concat(RectangleCases).ToArray();
+		private static readonly OutlineCase[] Cases = TriangleCases.Concat(RectangleCases).Concat(CircleCases).ToArray();
 
 		private static InsertOutline Build(OutlineCase test, int segments = 0, int sideSegments = 1)
 		{

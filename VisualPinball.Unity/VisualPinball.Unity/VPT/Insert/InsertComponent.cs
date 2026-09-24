@@ -75,6 +75,16 @@ namespace VisualPinball.Unity
 		private InsertCornerSettings _rectangleCorner = new(4f, 8);
 
 		[SerializeField]
+		[Min(0.01f)]
+		[Tooltip("Diameter of the circle in VPX units.")]
+		private float _diameter = InsertShapes.VpxUnitsPerInch;
+
+		[SerializeField]
+		[Range(6, 128)]
+		[Tooltip("How many straight sides the circle is drawn with, which is all the sampling a circle gets: Side Segments do not apply.")]
+		private int _circleVertices = 32;
+
+		[SerializeField]
 		[Range(1, 32)]
 		[Tooltip("Subdivisions along each straight run. Raise it to even out the vertex spacing against heavily rounded corners.")]
 		private int _sideSegments = 1;
@@ -357,9 +367,13 @@ namespace VisualPinball.Unity
 			var corners = _shape switch {
 				InsertShape.Triangle => InsertShapes.TriangleCorners(_width, _height, _triangleBase, _triangleApex, warnings),
 				InsertShape.Rectangle => InsertShapes.RectangleCorners(_width, _height, _rectangleCorner),
+				InsertShape.Circle => InsertShapes.CircleCorners(_diameter, _circleVertices),
 				_ => throw new InsertOutlineException($"Shape {_shape} has no outline builder yet."),
 			};
-			return InsertOutlineBuilder.Build(corners, _sideSegments);
+			// A circle's sides are its sampling already; subdividing them further
+			// only multiplies wall charts and lets the inset clamp trip on the
+			// samples nearest each corner.
+			return InsertOutlineBuilder.Build(corners, _shape == InsertShape.Circle ? 1 : _sideSegments);
 		}
 
 		private InsertBody BuildBody(InsertOutline outline, List<string> warnings)

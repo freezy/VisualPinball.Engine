@@ -28,6 +28,7 @@ namespace VisualPinball.Unity
 	{
 		Triangle,
 		Rectangle,
+		Circle,
 	}
 
 	/// <summary>
@@ -125,6 +126,28 @@ namespace VisualPinball.Unity
 				new InsertCorner(new float2(a, 0f), baseRadius, baseCorner.Segments, "BaseRight"),
 				new InsertCorner(new float2(0f, h), apexRadius, apexCorner.Segments, "Apex"),
 			};
+		}
+
+		/// <summary>
+		/// A circle of the given diameter, drawn as a regular polygon of that many
+		/// sharp corners. There is nothing to fillet: the corners are the circle's
+		/// own sampling, and the sides between them are what a fillet's arc would
+		/// be. The first corner sits at the right, so an even count spans the
+		/// diameter exactly across, and a count divisible by four spans it both ways.
+		/// </summary>
+		public static InsertCorner[] CircleCorners(float diameter, int vertices)
+		{
+			if (diameter <= Epsilon) {
+				throw new InsertOutlineException("Diameter must be positive.");
+			}
+			vertices = math.max(3, vertices);
+			var radius = diameter * 0.5f;
+			var corners = new InsertCorner[vertices];
+			for (var i = 0; i < vertices; i++) {
+				var angle = math.PI * 2f * i / vertices;
+				corners[i] = new InsertCorner(radius * new float2(math.cos(angle), math.sin(angle)), 0f, 1, i == 0 ? "Right" : null);
+			}
+			return corners;
 		}
 
 		/// <summary>

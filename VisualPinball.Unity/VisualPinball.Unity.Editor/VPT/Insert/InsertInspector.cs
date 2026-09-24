@@ -38,6 +38,8 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _triangleBase;
 		private SerializedProperty _triangleApex;
 		private SerializedProperty _rectangleCorner;
+		private SerializedProperty _diameter;
+		private SerializedProperty _circleVertices;
 		private SerializedProperty _sideSegments;
 		private SerializedProperty _depth;
 		private SerializedProperty _channel;
@@ -76,6 +78,8 @@ namespace VisualPinball.Unity.Editor
 			_triangleBase = serializedObject.FindProperty("_triangleBase");
 			_triangleApex = serializedObject.FindProperty("_triangleApex");
 			_rectangleCorner = serializedObject.FindProperty("_rectangleCorner");
+			_diameter = serializedObject.FindProperty("_diameter");
+			_circleVertices = serializedObject.FindProperty("_circleVertices");
 			_sideSegments = serializedObject.FindProperty("_sideSegments");
 			_depth = serializedObject.FindProperty("_depth");
 			_channel = serializedObject.FindProperty("_channel");
@@ -186,18 +190,26 @@ namespace VisualPinball.Unity.Editor
 
 			SubHeader("Outline");
 			Field(_shape, "Shape");
-			Field(_width, "Width");
-			Field(_height, "Height");
 			switch ((InsertShape)_shape.enumValueIndex) {
 				case InsertShape.Triangle:
+					Field(_width, "Width");
+					Field(_height, "Height");
 					CornerField(_triangleBase, "Base Corners");
 					CornerField(_triangleApex, "Apex Corner");
 					break;
 				case InsertShape.Rectangle:
+					Field(_width, "Width");
+					Field(_height, "Height");
 					CornerField(_rectangleCorner, "Corners");
 					break;
+				case InsertShape.Circle:
+					Field(_diameter, "Diameter");
+					Field(_circleVertices, "Vertices");
+					break;
 			}
-			Field(_sideSegments, "Side Segments");
+			if ((InsertShape)_shape.enumValueIndex != InsertShape.Circle) {
+				Field(_sideSegments, "Side Segments");
+			}
 
 			SubHeader("Body");
 			Field(_depth, "Depth");
@@ -429,6 +441,8 @@ namespace VisualPinball.Unity.Editor
 			var inset = FloorInset(outline);
 
 			using (new EditorGUI.DisabledScope(outline == null || targets.Length > 1)) {
+				// A circle's corners are its sampling, not places for holes.
+				using (new EditorGUI.DisabledScope((InsertShape)_shape.enumValueIndex == InsertShape.Circle))
 				using (new EditorGUILayout.HorizontalScope()) {
 					if (GUILayout.Button(new GUIContent("Corners", "One hole at each corner of the raised floor."))) {
 						SetHoles(InsertHoles.AtCorners(outline, inset));
