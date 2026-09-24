@@ -36,16 +36,22 @@ namespace VisualPinball.Unity
 		[Tooltip("How much of the lamp's hue the body and the cover take at full intensity.")]
 		public float LampTint = 1f;
 
+		/// <summary>The defaults a point-light spill was made with, before spills were spots.</summary>
+		public const float PointSpillLumens = 0.12f;
+		public const float PointSpillRange = 0.065f;
+		public const float SpotSpillLumens = 1.5f;
+		public const float SpotSpillRange = 0.1f;
+
 		[Header("Environment Spill")]
 		[Min(0f)]
 		[Tooltip("Spill output in lumens at Max Brightness one and full intensity. Scales with the material's Max Brightness and ROM intensity.")]
-		public float SpillLumens = 0.12f;
+		public float SpillLumens = SpotSpillLumens;
 
 		[Min(0.001f)]
 		[Tooltip("Spill range in metres.")]
-		public float SpillRange = 0.065f;
+		public float SpillRange = SpotSpillRange;
 
-		[Tooltip("A real light above the insert's surface. Its local position remains editable.")]
+		[Tooltip("A real light driven with the lamp: a wide spot just under the insert, pointing up through it at the ball and whatever else is above. Its transform remains editable.")]
 		public Light SpillLight;
 
 		private static readonly int LuminosityId = Shader.PropertyToID("_InsertLuminosity");

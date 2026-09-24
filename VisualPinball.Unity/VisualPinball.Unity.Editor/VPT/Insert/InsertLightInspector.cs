@@ -90,12 +90,20 @@ namespace VisualPinball.Unity.Editor
 				if (!light) {
 					EditorGUILayout.HelpBox("No spill light: the insert glows but lights nothing around it.", MessageType.None);
 					using (new EditorGUI.DisabledScope(targets.Length > 1 || EditorApplication.isPlaying)) {
-						if (GUILayout.Button(new GUIContent("Add Spill Light", "A point light just above the insert, without shadows, driven with the lamp."))) {
+						if (GUILayout.Button(new GUIContent("Add Spill Light", "A wide spot light just under the insert, pointing up through it at the ball and whatever else is above, without shadows, driven with the lamp."))) {
 							InsertInspector.AddLighting(((InsertLightComponent)target).GetComponent<InsertComponent>());
 						}
 					}
 				} else if (targets.Length == 1 && hybrid) {
 					var component = (InsertLightComponent)target;
+					if (component.SpillLight != null && component.SpillLight.type != LightType.Spot) {
+						EditorGUILayout.HelpBox("This spill is a point light, dearer than it needs to be and hard to aim. A wide spot under the insert, pointing up, does the same job.", MessageType.Info);
+						using (new EditorGUI.DisabledScope(EditorApplication.isPlaying)) {
+							if (GUILayout.Button(new GUIContent("Make It a Spot Light", "Turns the spill into a wide spot under the insert pointing up, with the spot's range and lumens where it still had the point light's defaults."))) {
+								InsertInspector.MakeSpillSpot(component);
+							}
+						}
+					}
 					var material = component.GetComponent<MeshRenderer>().sharedMaterial;
 					var lumens = _spillLumens.floatValue * Mathf.Max(0f, material.GetFloat(LuminosityId)) * _intensity.floatValue;
 					EditorGUILayout.LabelField(new GUIContent("Configured Spill", "Lumens times the material's Max Brightness times the Intensity above: what the light puts out at that intensity. While playing, the game's lamp level takes the place of Intensity."), new GUIContent($"{lumens:0.###} lm"));

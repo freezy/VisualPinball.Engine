@@ -45,6 +45,22 @@ namespace VisualPinball.Unity
 		void SetRange(Light light, float range);
 
 		/// <summary>
+		/// Makes the light an insert's spill: a wide spot, cheaper than a point
+		/// light and aimed, sitting under the insert and pointing up through it
+		/// at the ball and whatever else is above, with no shadows and no bounce.
+		/// A pipeline with more to set, a source radius or volumetrics, overrides
+		/// this.
+		/// </summary>
+		void InsertSpill(Light light)
+		{
+			light.type = LightType.Spot;
+			light.spotAngle = 147f;
+			light.innerSpotAngle = 91f;
+			light.bounceIntensity = 0f;
+			light.shadows = LightShadows.None;
+		}
+
+		/// <summary>
 		/// Sets the intensity of a given light.
 		/// </summary>
 		/// <param name="light">Which light to update</param>

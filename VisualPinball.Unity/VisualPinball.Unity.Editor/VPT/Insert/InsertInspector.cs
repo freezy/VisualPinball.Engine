@@ -805,7 +805,7 @@ namespace VisualPinball.Unity.Editor
 				var lighting = insert.GetComponent<InsertLightComponent>();
 				if (lighting == null || lighting.SpillLight == null) {
 					using (new EditorGUI.DisabledScope(EditorApplication.isPlaying)) {
-						if (GUILayout.Button(new GUIContent("Add Intensity Controls and Spill Light", "Adds the Insert Light component, with a point light just above the insert that lights the playfield around it."))) {
+						if (GUILayout.Button(new GUIContent("Add Intensity Controls and Spill Light", "Adds the Insert Light component, with a wide spot light just under the insert, pointing up through it at the ball and whatever else is above."))) {
 							AddLighting(insert);
 						}
 					}
@@ -826,19 +826,57 @@ namespace VisualPinball.Unity.Editor
 				var go = new GameObject("Insert Spill Light");
 				Undo.RegisterCreatedObjectUndo(go, "Add Insert Spill Light");
 				go.transform.SetParent(insert.transform, false);
-				var bounds = insert.GetComponent<MeshFilter>().sharedMesh.bounds;
-				go.transform.localPosition = new Vector3(bounds.center.x, bounds.max.y + 0.008f, bounds.center.z);
 				var light = go.AddComponent<Light>();
-				light.type = LightType.Point;
 				var converter = RenderPipeline.Current.LightConverter;
 				converter.UpdateLight(light, new VisualPinball.Engine.VPT.Light.LightData(), true);
-				converter.SetShadow(light, false, false);
 				Undo.RecordObject(lighting, "Assign Insert Spill Light");
 				lighting.SpillLight = light;
+				MakeSpillSpot(lighting);
 				PrefabUtility.RecordPrefabInstancePropertyModifications(lighting);
 			}
 			lighting.Apply();
 			return lighting;
+		}
+
+		/// <summary>
+		/// Makes the insert's spill light the spot it is meant to be: under the
+		/// insert, pointing up through it, a wide soft cone with no shadows. A
+		/// spill made before this was a point light above the insert, dearer
+		/// and harder to aim; this turns it round, and gives it the spot's
+		/// range and lumens where it still had the point light's defaults.
+		/// </summary>
+		public static void MakeSpillSpot(InsertLightComponent lighting)
+		{
+			var light = lighting.SpillLight;
+			if (light == null) {
+				return;
+			}
+			var bounds = lighting.GetComponent<MeshFilter>().sharedMesh.bounds;
+			// The whole light object, so the pipeline's own light data, added or
+			// changed inside InsertSpill, comes back on undo as well.
+			Undo.RecordObject(lighting, "Make Insert Spill a Spot Light");
+			Undo.RegisterFullObjectHierarchyUndo(light.gameObject, "Make Insert Spill a Spot Light");
+			// Placed through the insert's transform, so a light that is not the
+			// insert's own child still ends up under the insert, pointing up it.
+			var insert = lighting.transform;
+			light.transform.position = insert.TransformPoint(new Vector3(bounds.center.x, bounds.min.y - 0.0015f, bounds.center.z));
+			light.transform.rotation = insert.rotation * Quaternion.Euler(-90f, 0f, 0f);
+			var converter = RenderPipeline.Current.LightConverter;
+			converter.InsertSpill(light);
+			converter.SetShadow(light, false, false);
+			if (Mathf.Approximately(lighting.SpillRange, InsertLightComponent.PointSpillRange)) {
+				lighting.SpillRange = InsertLightComponent.SpotSpillRange;
+			}
+			if (Mathf.Approximately(lighting.SpillLumens, InsertLightComponent.PointSpillLumens)) {
+				lighting.SpillLumens = InsertLightComponent.SpotSpillLumens;
+			}
+			lighting.Apply();
+			EditorUtility.SetDirty(lighting);
+			PrefabUtility.RecordPrefabInstancePropertyModifications(lighting);
+			foreach (var component in light.GetComponents<Component>()) {
+				EditorUtility.SetDirty(component);
+				PrefabUtility.RecordPrefabInstancePropertyModifications(component);
+			}
 		}
 
 		#endregion
