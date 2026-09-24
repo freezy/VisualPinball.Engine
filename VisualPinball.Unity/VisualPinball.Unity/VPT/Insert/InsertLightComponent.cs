@@ -74,6 +74,8 @@ namespace VisualPinball.Unity
 		private static readonly int ColorId = Shader.PropertyToID("_InsertLampColor");
 		private static readonly int TintId = Shader.PropertyToID("_InsertLampTint");
 		private static readonly int[] BulbColorIds = { Shader.PropertyToID("_InsertLampColorB"), Shader.PropertyToID("_InsertLampColorC"), Shader.PropertyToID("_InsertLampColorD") };
+		private static readonly int[] LampIds = { Shader.PropertyToID("_OpticalLamp"), Shader.PropertyToID("_OpticalLampB"), Shader.PropertyToID("_OpticalLampC"), Shader.PropertyToID("_OpticalLampD") };
+		private static readonly int SpreadId = Shader.PropertyToID("_OpticalSpread");
 		private static readonly int EmissionId = Shader.PropertyToID("_EmissiveColor");
 		private MeshRenderer _renderer;
 		private LightComponent _driver;
@@ -174,7 +176,7 @@ namespace VisualPinball.Unity
 					SpillLight.enabled = false;
 				}
 				// A body that stopped being the hybrid one takes its tint off the cover too.
-				TintCover(0f, UnityEngine.Color.white);
+				TintCover(0f, UnityEngine.Color.white, tint: false);
 				return;
 			}
 			_properties ??= new MaterialPropertyBlock();
@@ -221,7 +223,7 @@ namespace VisualPinball.Unity
 		/// own property block, which the insert's playfield-normal projection
 		/// shares: both read the block before writing it.
 		/// </summary>
-		private void TintCover(float level, Color color)
+		private void TintCover(float level, Color color, bool tint = true)
 		{
 			// Into a list: the array property copies on every read, every frame.
 			_renderer.GetSharedMaterials(_materials);
@@ -232,7 +234,17 @@ namespace VisualPinball.Unity
 			_renderer.GetPropertyBlock(_coverProperties, 1);
 			_coverProperties.SetFloat(LevelId, level);
 			_coverProperties.SetVector(ColorId, (Vector4)color);
-			_coverProperties.SetFloat(TintId, TintWithLamp ? math.saturate(LampTint) : 0f);
+			_coverProperties.SetFloat(TintId, tint && TintWithLamp ? math.saturate(LampTint) : 0f);
+			// The body's bulbs, where they sit, their spread and how the others
+			// are driven, so the haze can take the nearest one's colour.
+			var body = _materials[0];
+			for (var i = 0; i < LampIds.Length; i++) {
+				_coverProperties.SetVector(LampIds[i], body != null && body.HasProperty(LampIds[i]) ? body.GetVector(LampIds[i]) : Vector4.zero);
+			}
+			_coverProperties.SetFloat(SpreadId, body != null && body.HasProperty(SpreadId) ? body.GetFloat(SpreadId) : 0f);
+			for (var i = 0; i < BulbColorIds.Length; i++) {
+				_coverProperties.SetVector(BulbColorIds[i], _properties.HasVector(BulbColorIds[i]) ? _properties.GetVector(BulbColorIds[i]) : new Vector4(1f, 1f, 1f, 0f));
+			}
 			_renderer.SetPropertyBlock(_coverProperties, 1);
 		}
 
@@ -265,10 +277,11 @@ namespace VisualPinball.Unity
 					_renderer.SetPropertyBlock(_properties, 0);
 				}
 			}
-			// The cover does not stay tinted by a light that is gone; its
-			// projection properties in the same block are left as they are.
+			// The cover does not stay tinted by a light that is gone, whatever
+			// drives the body still holds; its projection properties in the same
+			// block are left as they are.
 			if (_renderer != null) {
-				TintCover(0f, UnityEngine.Color.white);
+				TintCover(0f, UnityEngine.Color.white, tint: false);
 			}
 		}
 
