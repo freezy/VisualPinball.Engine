@@ -52,6 +52,9 @@ namespace VisualPinball.Unity.Test
 			/// <summary>A banana's own parameters, for the checks that need its circle.</summary>
 			public (float Diameter, float Thickness, float Angle, int Arcs, int Ends) Banana;
 
+			/// <summary>A bullet's tip radius and shoulder height, for the checks that need its circle.</summary>
+			public (float Radius, float Shoulder) Bullet;
+
 			public override string ToString() => Name;
 		}
 
@@ -153,6 +156,28 @@ namespace VisualPinball.Unity.Test
 				new InsertCornerSettings(notchRadius, segs > 0 ? segs : segments), warnings),
 		};
 
+		private static OutlineCase Bullet(float width, float height, float tipRadius, float shoulder,
+			float shoulderRadius, float baseRadius, int segments) => new() {
+			Name = $"bullet {width:0.##}x{height:0.##} tip={tipRadius} shoulder={shoulder} radii={shoulderRadius}/{baseRadius} segs={segments}",
+			Width = width,
+			Height = height,
+			Corners = (segs, warnings) => InsertShapes.BulletCorners(width, height,
+				new InsertCornerSettings(tipRadius, segs > 0 ? segs : segments), shoulder,
+				new InsertCornerSettings(shoulderRadius, segs > 0 ? segs : segments),
+				new InsertCornerSettings(baseRadius, segs > 0 ? segs : segments), warnings),
+			Bullet = (tipRadius, shoulder),
+		};
+
+		private static readonly OutlineCase[] BulletCases = {
+			Bullet(Inch, 2f * Inch, 5f, 20f, 2f, 3f, 8), // the component's own defaults
+			Bullet(20f, 60f, 10f, 20f, 2f, 3f, 6), // a tip as wide as the bullet: no shoulders
+			Bullet(30f, 50f, 0f, 10f, 1f, 1f, 4), // pointed
+			Bullet(40f, 40f, 8f, 0f, 0f, 4f, 8), // flanks straight off the base corners
+			Bullet(40f, 20f, 10f, 0f, 0f, 0f, 12), // a dome: the tip's centre on the base
+			Bullet(20f, 10f, 10f, 0f, 0f, 0f, 12), // half a disc
+			Bullet(25f, 80f, 3f, 50f, 4f, 6f, 6),
+		};
+
 		/// <summary>Bolts, which bend in on themselves at their two notches.</summary>
 		private static readonly OutlineCase[] FlashCases = {
 			Flash(50f, 125f, 10f, 16f, -8f, 5.2f, 5f, 3f, 4), // the component's own defaults
@@ -187,7 +212,7 @@ namespace VisualPinball.Unity.Test
 			Rectangle(200f, 50f, 2f, 3),
 		};
 
-		private static readonly OutlineCase[] ConvexCases = TriangleCases.Concat(RectangleCases).Concat(CircleCases).Concat(DiamondCases).ToArray();
+		private static readonly OutlineCase[] ConvexCases = TriangleCases.Concat(RectangleCases).Concat(CircleCases).Concat(DiamondCases).Concat(BulletCases).ToArray();
 
 		private static readonly OutlineCase[] Cases = ConvexCases.Concat(BananaCases).Concat(FlashCases).ToArray();
 
@@ -490,6 +515,146 @@ namespace VisualPinball.Unity.Test
 			Assert.That(corners[0].Position.x - corners[1].Position.x, Is.EqualTo(Of("tip")).Within(Tolerance));
 			Assert.That(corners[3].Position.x - corners[2].Position.x, Is.EqualTo(Of("notch")).Within(Tolerance));
 			Assert.That(outline.Corners.Count(c => c.Concave), Is.EqualTo(2), "the two notches turn inwards");
+		}
+
+		[TestCaseSource(nameof(BulletCases))]
+		public void ShouldRoundTheBulletsTipOnItsCircle(OutlineCase test)
+		{
+			// Every sampled tip point sits on the circle of the tip radius that
+			// touches the top, and a flank leaves that circle along its tangent,
+			// square to the radius where it touches.
+			var outline = Build(test);
+			var (radius, _) = test.Bullet;
+			var centre = new float2(0f, test.Height * 0.5f - radius);
+			var tips = outline.Corners.Where(c => c.Tag != null && c.Tag.StartsWith("Tip")).ToList();
+			Assert.That(tips, Is.Not.Empty);
+			foreach (var corner in tips) {
+				Assert.That(math.distance(corner.Position, centre), Is.EqualTo(radius).Within(Tolerance));
+			}
+			var top = outline.Corners.Single(c => c.Tag == "Tip");
+			Assert.That(top.Position.x, Is.EqualTo(0f).Within(Tolerance));
+			Assert.That(top.Position.y, Is.EqualTo(test.Height * 0.5f).Within(Tolerance));
+
+			var shoulder = outline.Corners.FirstOrDefault(c => c.Tag == "ShoulderRight")
+				?? outline.Corners.FirstOrDefault(c => c.Tag == "BaseRight");
+			if (shoulder == null || radius <= 0f) {
+				return;
+			}
+			var touch = outline.Corners.Single(c => c.Tag == "TipRight");
+			var flank = math.normalize(touch.Position - shoulder.Position);
+			Assert.That(math.dot(flank, touch.Position - centre), Is.EqualTo(0f).Within(1e-4f * radius));
+			Assert.That(flank.x, Is.LessThanOrEqualTo(1e-4f), "the flank leans in, never out");
+		}
+
+		[Test]
+		public void ShouldStraightenTheFlanksWhenTheTipFillsTheWidth()
+		{
+			// A tip as wide as the bullet is touched vertically, right above the
+			// sides, so there is no shoulder corner to round, and every point sits
+			// within the sides.
+			var outline = Build(BulletCases[1]);
+			Assert.That(outline.Corners.Any(c => c.Tag == "ShoulderRight"), Is.False);
+			Assert.That(outline.Corners.Any(c => c.Tag == "ShoulderLeft"), Is.False);
+			Assert.That(outline.Corners.Single(c => c.Tag == "TipRight").Position.x, Is.EqualTo(10f).Within(Tolerance));
+			foreach (var point in outline.Points) {
+				Assert.That(math.abs(point.Position.x), Is.LessThanOrEqualTo(10f + Tolerance));
+			}
+		}
+
+		[Test]
+		public void ShouldLeaveHalfADiscNothingButItsArc()
+		{
+			// A tip as wide as the bullet and as tall as the whole shape meets the
+			// base at the base's own corners: the arc is the whole outline.
+			var outline = Build(BulletCases[5]);
+			Assert.That(outline.Corners.All(c => c.Tag == null || c.Tag.StartsWith("Tip")), Is.True);
+			Assert.That(outline.Corners.Count, Is.EqualTo(13));
+			var touch = outline.Corners.Single(c => c.Tag == "TipRight").Position;
+			Assert.That(touch.x, Is.EqualTo(10f).Within(Tolerance));
+			Assert.That(touch.y, Is.EqualTo(-5f).Within(Tolerance));
+		}
+
+		[Test]
+		public void ShouldKeepTheBulletsWidthWhereABaseFilletStartsTheFlank()
+		{
+			// With no straight side, the base fillet rounds off the widest point;
+			// the corners move out to give the fillet its width back.
+			var outline = Build(BulletCases[3]);
+			Assert.That(outline.Width, Is.EqualTo(40f).Within(Tolerance));
+			Assert.That(outline.Corners.Single(c => c.Tag == "BaseRight").Position.x, Is.GreaterThan(20f));
+		}
+
+		[Test]
+		public void ShouldLeaveTheBulletsTipChordsToSideSegments()
+		{
+			// Side segments subdivide the sides and the flanks, never the chords
+			// of the sampled tip: slivers there would only limit how far the
+			// channel can be inset.
+			var plain = Build(BulletCases[0]);
+			var outline = Build(BulletCases[0], sideSegments: 8);
+			var tips = outline.Corners.Where(c => c.Tag != null && c.Tag.StartsWith("Tip")).Select(c => c.Index).ToHashSet();
+			var last = outline.Corners.Single(c => c.Tag == "TipLeft").Index;
+			foreach (var point in outline.Points.Where(p => p.Kind == InsertOutlinePointKind.Side)) {
+				Assert.That(!tips.Contains(point.Side) || point.Side == last, Is.True, $"a chord leaving corner {point.Side} was subdivided");
+			}
+			Assert.That(outline.ClampInset(3f), Is.EqualTo(plain.ClampInset(3f)).Within(1e-4f));
+			Assert.That(outline.ClampInset(3f), Is.EqualTo(3f).Within(1e-4f));
+		}
+
+		[Test]
+		public void ShouldCollapseAVanishingTipToAPoint()
+		{
+			// A tip whose whole arc is shorter than the builder tells apart would
+			// put its samples on top of each other; it is a point instead, and a
+			// slightly larger one takes fewer samples than asked.
+			var corners = InsertShapes.BulletCorners(20f, 60f, new InsertCornerSettings(0.01f, 8), 60f,
+				new InsertCornerSettings(0f, 1), new InsertCornerSettings(0f, 1), null);
+			Assert.That(corners.Count(c => c.Tag != null && c.Tag.StartsWith("Tip")), Is.EqualTo(1));
+			var outline = InsertOutlineBuilder.Build(corners);
+			Assert.That(outline.Height, Is.EqualTo(60f).Within(Tolerance));
+
+			corners = InsertShapes.BulletCorners(20f, 60f, new InsertCornerSettings(0.0008f, 64), 20f,
+				new InsertCornerSettings(0f, 1), new InsertCornerSettings(0f, 1), null);
+			outline = InsertOutlineBuilder.Build(corners);
+			Assert.That(outline.Corners.Count(c => c.Tag != null && c.Tag.StartsWith("Tip")), Is.EqualTo(3), "one sample each side of the top");
+			Assert.That(outline.Height, Is.EqualTo(60f).Within(Tolerance));
+		}
+
+		[Test]
+		public void ShouldHoldTheBulletsTipWithinItsWidthAndHeight()
+		{
+			// A tip rounder than half the width, or taller than the whole shape,
+			// is pulled back to what fits, with a warning, and the box stays put.
+			var warnings = new List<string>();
+			var corners = InsertShapes.BulletCorners(20f, 60f, new InsertCornerSettings(15f, 8), 10f,
+				new InsertCornerSettings(0f, 1), new InsertCornerSettings(0f, 1), warnings);
+			Assert.That(warnings, Has.Some.Contains("Tip radius reduced to half the width"));
+			var outline = InsertOutlineBuilder.Build(corners);
+			Assert.That(outline.Width, Is.EqualTo(20f).Within(Tolerance));
+			Assert.That(outline.Height, Is.EqualTo(60f).Within(Tolerance));
+
+			warnings.Clear();
+			corners = InsertShapes.BulletCorners(60f, 20f, new InsertCornerSettings(25f, 8), 0f,
+				new InsertCornerSettings(0f, 1), new InsertCornerSettings(0f, 1), warnings);
+			Assert.That(warnings, Is.EqualTo(new[] { "Tip radius reduced to the height." }));
+			outline = InsertOutlineBuilder.Build(corners);
+			Assert.That(outline.Width, Is.EqualTo(60f).Within(Tolerance));
+			Assert.That(outline.Height, Is.EqualTo(20f).Within(Tolerance));
+		}
+
+		[Test]
+		public void ShouldKeepTheShouldersBelowTheTipsCentre()
+		{
+			// Shoulders above the tip's centre would have the flanks lean out to
+			// reach the circle; they are lowered to its centre instead.
+			var warnings = new List<string>();
+			var corners = InsertShapes.BulletCorners(20f, 60f, new InsertCornerSettings(5f, 8), 58f,
+				new InsertCornerSettings(0f, 1), new InsertCornerSettings(0f, 1), warnings);
+			Assert.That(warnings, Has.Some.Contains("Shoulders lowered"));
+			var outline = InsertOutlineBuilder.Build(corners);
+			Assert.That(outline.Corners.Single(c => c.Tag == "ShoulderRight").Position.y, Is.EqualTo(25f).Within(Tolerance));
+			Assert.That(outline.Width, Is.EqualTo(20f).Within(Tolerance));
+			Assert.That(outline.Height, Is.EqualTo(60f).Within(Tolerance));
 		}
 
 		[TestCaseSource(nameof(BananaCases))]

@@ -124,6 +124,23 @@ namespace VisualPinball.Unity
 		private InsertCornerSettings _flashNotchCorner = new(3f, 3);
 
 		[SerializeField]
+		[Tooltip("The round of the bullet's tip: a circle of this radius touching the top, no wider than the bullet and no taller, drawn with this many segments over the whole arc, rounded up to an even count. A radius of zero makes a pointed tip.")]
+		private InsertCornerSettings _bulletTip = new(5f, 8);
+
+		[SerializeField]
+		[Min(0f)]
+		[Tooltip("How far up from the base the bullet's straight sides run before the flanks turn in towards the tip, in VPX units. Zero starts the flanks at the base corners; the shoulders stay below the tip's centre.")]
+		private float _bulletShoulder = 20f;
+
+		[SerializeField]
+		[Tooltip("The fillet shared by the bullet's two shoulders, where a straight side turns in towards the tip.")]
+		private InsertCornerSettings _bulletShoulderCorner = new(2f, 4);
+
+		[SerializeField]
+		[Tooltip("The fillet shared by the bullet's two base corners.")]
+		private InsertCornerSettings _bulletBaseCorner = new(3f, 8);
+
+		[SerializeField]
 		[Min(0.01f)]
 		[Tooltip("Diameter of the circle, or of the circle a banana's band is bent round, in VPX units.")]
 		private float _diameter = InsertShapes.VpxUnitsPerInch;
@@ -449,6 +466,7 @@ namespace VisualPinball.Unity
 				InsertShape.Banana => InsertShapes.BananaCorners(_diameter, _bananaThickness, _bananaAngle, _bananaSegments, _bananaEndSegments, out arcCenter),
 				InsertShape.Diamond => InsertShapes.DiamondCorners(_width, _height, _diamondSide, _diamondTip, _diamondShear, warnings),
 				InsertShape.Flash => InsertShapes.FlashCorners(_flashWidth, _flashHeight, _flashTip, _flashNotch, _flashStep, _flashTipCorner, _flashSpikeCorner, _flashNotchCorner, warnings),
+				InsertShape.Bullet => InsertShapes.BulletCorners(_width, _height, _bulletTip, _bulletShoulder, _bulletShoulderCorner, _bulletBaseCorner, warnings),
 				_ => throw new InsertOutlineException($"Shape {_shape} has no outline builder yet."),
 			};
 			ArcCenter = new Vector2(arcCenter.x, arcCenter.y);

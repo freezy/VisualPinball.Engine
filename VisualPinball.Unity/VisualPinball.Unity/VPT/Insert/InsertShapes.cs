@@ -32,6 +32,7 @@ namespace VisualPinball.Unity
 		Banana,
 		Diamond,
 		Flash,
+		Bullet,
 	}
 
 	/// <summary>
@@ -322,6 +323,103 @@ namespace VisualPinball.Unity
 				new InsertCorner(new float2(-a + tipWidth, -b), tipCorner.Radius * scale, tipCorner.Segments, "BottomRight"),
 				new InsertCorner(new float2(a, -step), spikeCorner.Radius * scale, spikeCorner.Segments, "SpikeRight"),
 				new InsertCorner(new float2(a - notchDepth, -step), notchCorner.Radius * scale, notchCorner.Segments, "NotchRight"),
+			});
+		}
+
+		/// <summary>
+		/// A bullet: a flat base, straight sides running up to the shoulders,
+		/// and from there flanks that lean in as tangents to the round tip, a
+		/// circle of the tip radius touching the top. Where the flanks lean
+		/// follows from the width, the tip and the shoulders, so the shape
+		/// fills its width and height exactly without any solving.
+		/// </summary>
+		/// <remarks>
+		/// The tip is sampled along its circle as sharp corners, the way the
+		/// banana's arcs are, rather than built as a fillet on an apex: a tip as
+		/// wide as the bullet has vertical flanks and no apex at all. The whole
+		/// arc takes the tip's segment count, rounded up to an even number so the
+		/// topmost point is a vertex and the height is exact.
+		/// </remarks>
+		/// <param name="shoulder">How far up from the base the straight sides
+		/// run before the flanks turn in, in VPX units. Held below the tip's
+		/// centre, or the flanks would lean out instead of in.</param>
+		public static InsertCorner[] BulletCorners(float width, float height, InsertCornerSettings tip, float shoulder,
+			InsertCornerSettings shoulderCorner, InsertCornerSettings baseCorner, List<string> warnings)
+		{
+			if (width <= Epsilon || height <= Epsilon) {
+				throw new InsertOutlineException("Width and height must be positive.");
+			}
+			// The tip's circle can be no wider than the bullet, and its centre
+			// can drop no further than the base: half a disc.
+			var radius = math.clamp(tip.Radius, 0f, math.min(width * 0.5f, height));
+			if (tip.Radius > width * 0.5f + 1e-6f) {
+				warnings?.Add("Tip radius reduced to half the width.");
+			}
+			if (tip.Radius > height + 1e-6f) {
+				warnings?.Add("Tip radius reduced to the height.");
+			}
+			shoulder = math.max(0f, shoulder);
+			if (shoulder > height - radius + 1e-6f) {
+				warnings?.Add($"Shoulders lowered to {height - radius:0.#} to stay below the tip's centre.");
+				shoulder = height - radius;
+			}
+
+			// With no straight side to hold it, a base fillet pulls the widest
+			// point in from the corner, which the fit makes up for.
+			return FitBox(width, height, "bullet", warnings, (a, b, scale) => {
+				var center = b - radius;
+				var shoulderY = math.min(-b + shoulder, center);
+
+				// The flank from the right shoulder touches the tip's circle where
+				// the direction from the centre to the shoulder turns by the angle
+				// whose cosine is the radius over that distance. A tip as wide as
+				// the bullet is touched vertically, right above the side, and the
+				// shoulder is no corner at all; nor is it one when the sides have no
+				// length.
+				var toShoulder = new float2(a, shoulderY - center);
+				var touch = radius <= Epsilon
+					? math.PI * 0.5f
+					: math.atan2(toShoulder.y, toShoulder.x) + math.acos(math.min(1f, radius / math.length(toShoulder)));
+				var flanked = touch > math.radians(0.5f);
+				var shouldered = flanked && shoulderY > -b + Epsilon;
+				// The one bullet whose tip meets the base at the base's own corners:
+				// half a disc, which is nothing but its arc.
+				var based = flanked || center > -b + Epsilon;
+
+				var corners = new List<InsertCorner>();
+				if (based) {
+					corners.Add(new InsertCorner(new float2(a, -b), baseCorner.Radius * scale, baseCorner.Segments, "BaseRight"));
+				}
+				if (shouldered) {
+					corners.Add(new InsertCorner(new float2(a, shoulderY), shoulderCorner.Radius * scale, shoulderCorner.Segments, "ShoulderRight"));
+				}
+				// A tip too small to sample, its whole arc shorter than the least
+				// chord the builder tells apart, is a point; a larger one takes no
+				// more samples than keep its chords that long. The chords are not
+				// sides: side segments leave them alone.
+				var top = math.PI * 0.5f;
+				var minChord = math.max(Epsilon * 10f, math.max(a, b) * 2e-5f);
+				var arc = radius * (top - touch);
+				if (radius <= Epsilon || arc < minChord) {
+					corners.Add(new InsertCorner(new float2(0f, b), 0f, 1, "Tip"));
+				} else {
+					var halves = math.clamp((tip.Segments + 1) / 2, 1, (int)math.floor(arc / minChord));
+					var origin = new float2(0f, center);
+					static float2 Polar(float r, float angle) => r * new float2(math.cos(angle), math.sin(angle));
+					for (var i = 0; i <= halves; i++) {
+						corners.Add(new InsertCorner(origin + Polar(radius, math.lerp(touch, top, (float)i / halves)), 0f, 1, i == 0 ? "TipRight" : i == halves ? "Tip" : null, true));
+					}
+					for (var i = 1; i <= halves; i++) {
+						corners.Add(new InsertCorner(origin + Polar(radius, math.lerp(top, math.PI - touch, (float)i / halves)), 0f, 1, i == halves ? "TipLeft" : null, i < halves));
+					}
+				}
+				if (shouldered) {
+					corners.Add(new InsertCorner(new float2(-a, shoulderY), shoulderCorner.Radius * scale, shoulderCorner.Segments, "ShoulderLeft"));
+				}
+				if (based) {
+					corners.Add(new InsertCorner(new float2(-a, -b), baseCorner.Radius * scale, baseCorner.Segments, "BaseLeft"));
+				}
+				return corners.ToArray();
 			});
 		}
 

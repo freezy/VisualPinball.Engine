@@ -49,6 +49,10 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _flashTipCorner;
 		private SerializedProperty _flashSpikeCorner;
 		private SerializedProperty _flashNotchCorner;
+		private SerializedProperty _bulletTip;
+		private SerializedProperty _bulletShoulder;
+		private SerializedProperty _bulletShoulderCorner;
+		private SerializedProperty _bulletBaseCorner;
 		private SerializedProperty _diameter;
 		private SerializedProperty _circleVertices;
 		private SerializedProperty _bananaThickness;
@@ -103,6 +107,10 @@ namespace VisualPinball.Unity.Editor
 			_flashTipCorner = serializedObject.FindProperty("_flashTipCorner");
 			_flashSpikeCorner = serializedObject.FindProperty("_flashSpikeCorner");
 			_flashNotchCorner = serializedObject.FindProperty("_flashNotchCorner");
+			_bulletTip = serializedObject.FindProperty("_bulletTip");
+			_bulletShoulder = serializedObject.FindProperty("_bulletShoulder");
+			_bulletShoulderCorner = serializedObject.FindProperty("_bulletShoulderCorner");
+			_bulletBaseCorner = serializedObject.FindProperty("_bulletBaseCorner");
 			_diameter = serializedObject.FindProperty("_diameter");
 			_circleVertices = serializedObject.FindProperty("_circleVertices");
 			_bananaThickness = serializedObject.FindProperty("_bananaThickness");
@@ -253,6 +261,14 @@ namespace VisualPinball.Unity.Editor
 					CornerField(_flashTipCorner, "Tip Corners");
 					CornerField(_flashSpikeCorner, "Spike Corners");
 					CornerField(_flashNotchCorner, "Notch Corners");
+					break;
+				case InsertShape.Bullet:
+					Field(_width, "Width");
+					Field(_height, "Height");
+					CornerField(_bulletTip, "Tip");
+					Field(_bulletShoulder, "Shoulder Height");
+					CornerField(_bulletShoulderCorner, "Shoulder Corners");
+					CornerField(_bulletBaseCorner, "Base Corners");
 					break;
 				case InsertShape.Banana:
 					Field(_diameter, "Diameter");

@@ -63,15 +63,23 @@ namespace VisualPinball.Unity
 		/// </remarks>
 		public readonly string Tag;
 
-		public InsertCorner(float2 position, float radius, int segments, string tag = null)
+		/// <summary>
+		/// Whether the edge leaving this corner is a chord of a sampled curve
+		/// rather than a side: side segments leave it alone, since cutting a
+		/// chord into slivers only limits how far the outline can be inset.
+		/// </summary>
+		public readonly bool Chord;
+
+		public InsertCorner(float2 position, float radius, int segments, string tag = null, bool chord = false)
 		{
 			Position = position;
 			Radius = radius;
 			Segments = segments;
 			Tag = tag;
+			Chord = chord;
 		}
 
-		public InsertCorner WithRadius(float radius) => new(Position, radius, Segments, Tag);
+		public InsertCorner WithRadius(float radius) => new(Position, radius, Segments, Tag, Chord);
 	}
 
 	/// <summary>
@@ -143,6 +151,7 @@ namespace VisualPinball.Unity
 		public float Radius;
 		public int Segments;
 		public string Tag;
+		public bool Chord;
 
 		/// <summary>Unit direction of the side arriving at this corner.</summary>
 		public float2 Incoming;
@@ -497,7 +506,8 @@ namespace VisualPinball.Unity
 				var start = points[^1].Position;
 				var end = CornerEntry(following);
 				var sideNormal = OutwardNormal(corner.Outgoing);
-				for (var step = 1; step < sideSegments; step++) {
+				var steps = corner.Chord ? 1 : sideSegments;
+				for (var step = 1; step < steps; step++) {
 					var t = (float)step / sideSegments;
 					points.Add(new InsertOutlinePoint {
 						Position = start + (end - start) * t,
@@ -683,6 +693,7 @@ namespace VisualPinball.Unity
 					Radius = radius,
 					Segments = math.max(corner.Segments, 1),
 					Tag = corner.Tag,
+					Chord = corner.Chord,
 					Incoming = incoming,
 					Outgoing = outgoing,
 					NormalIn = OutwardNormal(incoming),
