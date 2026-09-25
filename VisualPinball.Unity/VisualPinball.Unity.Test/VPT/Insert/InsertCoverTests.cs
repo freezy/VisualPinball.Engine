@@ -292,6 +292,30 @@ namespace VisualPinball.Unity.Test
 					}
 					Assert.That(normal.y / normal.magnitude, Is.GreaterThan(-1e-3f), "the trough faces up");
 				}
+				// The trough's edges are creases: its own corners there face
+				// across it, the flat top's corners keep facing up.
+				var normals = mesh.normals;
+				int across = 0, upOnTrough = 0, tiltedOnFlat = 0;
+				for (var t = 0; t < triangles.Length; t += 3) {
+					var ids = new[] { triangles[t], triangles[t + 1], triangles[t + 2] };
+					// A trough triangle reaches below the surface; a flat one lies on
+					// it; a wall's, from the rim down, is neither.
+					var inTrough = ids.Any(i => vertices[i].y < surface - 1e-6f && vertices[i].y > trough - 1e-6f);
+					var onFlat = ids.All(i => math.abs(vertices[i].y - surface) < 1e-6f);
+					foreach (var i in ids) {
+						if (math.abs(vertices[i].y - surface) > 1e-6f) {
+							continue;
+						}
+						if (inTrough) {
+							if (normals[i].y < 0.05f) { across++; } else { upOnTrough++; }
+						} else if (onFlat && normals[i].y < 0.999f) {
+							tiltedOnFlat++;
+						}
+					}
+				}
+				Assert.That(across, Is.GreaterThan(0));
+				Assert.That(upOnTrough, Is.Zero, "a trough corner on the edge faces across the trough");
+				Assert.That(tiltedOnFlat, Is.Zero, "a flat corner on the edge faces up");
 				settings.FindProperty("_flashGroove").boolValue = false;
 				settings.ApplyModifiedPropertiesWithoutUndo();
 				insert.RebuildMesh();

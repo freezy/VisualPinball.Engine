@@ -568,9 +568,13 @@ namespace VisualPinball.Unity
 			}
 			var half = math.max(_flashGrooveWidth, 0.1f) * 0.5f;
 			var inset = channelWidth + math.max(_flashGrooveInset, half + 0.01f);
-			// Sharp all the way: a tip the erosion closes up is a point, and the
-			// band's edges meet there in mitres, as the engraver's line does.
-			var corners = InsertShapes.Erode(outline, inset, 0f, warnings);
+			// A tip the erosion closes up is all but a point: a round of half the
+			// line's half width, so the band's outer edge turns it as an arc a
+			// little wider than the band itself, and its inner edge closes onto
+			// one point. A sharp mitre would send the band's edges out in a
+			// spike thinner than the floor's arrangement can keep, which then
+			// let the flat top pour into the trough there.
+			var corners = InsertShapes.Erode(outline, inset, half * 0.5f, warnings);
 			if (corners == null) {
 				warnings.Add("The engraved line does not fit inside the flash: bring its inset down.");
 				return null;

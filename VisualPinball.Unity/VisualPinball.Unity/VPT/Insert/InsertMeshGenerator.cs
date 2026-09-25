@@ -1090,11 +1090,8 @@ namespace VisualPinball.Unity
 					// the profile's normal where it sits; a point on its edge in a
 					// flat face keeps the flat's, so the edge stays a crease.
 					var pointNormal = normal;
-					if (groove != null && tier == Tier.Surface) {
+					if (groove != null && tier == Tier.Surface && GrooveAcross(groove, middle, out _) < groove.Width * 0.5f) {
 						GrooveProfile(groove, position, out pointNormal);
-						if (pointNormal.y > 1f - 1e-6f || GrooveProfile(groove, middle, out _) >= 0f) {
-							pointNormal = normal;
-						}
 					}
 					buffers.Add(ToLocal(position, HeightOf(tier, position)), pointNormal, (Vector2)position, chart);
 				}
@@ -1333,15 +1330,12 @@ namespace VisualPinball.Unity
 		/// squashed to the line's depth, horizontal at its edges, up at its
 		/// middle, always facing back towards the line's centre.
 		/// </summary>
-		private static float GrooveProfile(InsertGroove groove, float2 position, out Vector3 normal)
+		/// <summary>
+		/// How far a point sits from the engraved line's middle, and which way
+		/// back to it: the trough is the same either side of the line.
+		/// </summary>
+		private static float GrooveAcross(InsertGroove groove, float2 position, out float2 back)
 		{
-			normal = Vector3.up;
-			var half = groove.Width * 0.5f;
-			if (half <= InsertOutlineBuilder.Epsilon) {
-				return 0f;
-			}
-			// Where the line's middle passes nearest: the trough is the same
-			// either side of it.
 			var points = groove.Outline.Points;
 			var nearest = float.MaxValue;
 			var foot = float2.zero;
@@ -1358,15 +1352,33 @@ namespace VisualPinball.Unity
 				}
 			}
 			var across = math.sqrt(nearest);
-			if (across >= half - InsertOutlineBuilder.Epsilon) {
+			back = across > InsertOutlineBuilder.Epsilon ? (foot - position) / across : float2.zero;
+			return across;
+		}
+
+		private static float GrooveProfile(InsertGroove groove, float2 position, out Vector3 normal)
+		{
+			normal = Vector3.up;
+			var half = groove.Width * 0.5f;
+			if (half <= InsertOutlineBuilder.Epsilon) {
+				return 0f;
+			}
+			var across = GrooveAcross(groove, position, out var back);
+			// The arrangement snaps the edge's points by up to a pixel either
+			// way, so a point that near the edge is on it: at the surface, and
+			// facing across the trough, straight back at its middle, which is
+			// the crease against the flat top. A flat face's own corner there
+			// keeps facing up; the caller sees to that.
+			var slack = math.max(InsertOutlineBuilder.Epsilon, half * 0.05f);
+			if (across >= half + slack) {
 				return 0f;
 			}
 			if (across <= InsertOutlineBuilder.Epsilon) {
 				// The trough's middle faces straight up, and has no way back to name.
 				return -groove.Depth;
 			}
+			across = across >= half - slack ? half : across;
 			var sine = math.sqrt(math.max(0f, 1f - across * across / (half * half)));
-			var back = (foot - position) / across;
 			var toCenter = ToLocalNormal(-back, inwards: true);
 			normal = math.normalize((float3)toCenter * (across / half * groove.Depth) + new float3(0f, sine * half, 0f) + new float3(0f, 1e-6f, 0f));
 			return -groove.Depth * sine;
