@@ -210,6 +210,26 @@ namespace VisualPinball.Unity.Editor
 		private bool Sampled => (InsertShape)_shape.enumValueIndex is InsertShape.Circle or InsertShape.Banana;
 
 		/// <summary>The property with its label, and the tooltip its field declares.</summary>
+		/// <summary>What the raised middle's surface carries.</summary>
+		private enum Pattern
+		{
+			None = 0,
+			Starburst = 1,
+			EngravedLine = 2,
+		}
+
+		private static readonly string[] Patterns = { "None", "Starburst" };
+		private static readonly string[] FlashPatterns = { "None", "Starburst", "Engraved Line" };
+
+		/// <summary>The pattern the two stored flags mean: the line, on a flash, over the starburst.</summary>
+		private static Pattern PatternOf(bool starburst, bool groove, bool flash)
+		{
+			if (flash && groove) {
+				return Pattern.EngravedLine;
+			}
+			return starburst ? Pattern.Starburst : Pattern.None;
+		}
+
 		private static void Field(SerializedProperty property, string label, bool children = false)
 		{
 			EditorGUILayout.PropertyField(property, new GUIContent(label, property.tooltip), children);
@@ -285,13 +305,6 @@ namespace VisualPinball.Unity.Editor
 					CornerField(_flashTipCorner, "Tip Corners");
 					CornerField(_flashSpikeCorner, "Spike Corners");
 					CornerField(_flashNotchCorner, "Notch Corners");
-					Field(_flashGroove, "Engraved Line");
-					using (new EditorGUI.DisabledScope(!_flashGroove.boolValue && !_flashGroove.hasMultipleDifferentValues)) {
-						Field(_flashGrooveInset, "Line Inset");
-						Field(_flashGrooveWidth, "Line Width");
-						Field(_flashGrooveDepth, "Line Depth");
-						Field(_flashGrooveSegments, "Line Segments");
-					}
 					break;
 				case InsertShape.Bullet:
 					Field(_width, "Width");
@@ -365,17 +378,28 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 
-			SubHeader("Starburst");
-			// A flash whose engraved line was built has given the starburst's
-			// surface away; a line that did not fit leaves the starburst be.
-			var engraved = targets.All(selected => selected is InsertComponent component && component.Groove != null);
-			using (new EditorGUI.DisabledScope(engraved)) {
-				Field(_starburst, engraved ? "Starburst (engraved line instead)" : "Starburst");
+			SubHeader("Pattern");
+			// What the raised middle's surface carries: nothing, the starburst,
+			// or, on a flash, the engraved line. One choice, and only its own
+			// settings shown; the two flags behind it stay as they are stored.
+			var flash = !_shape.hasMultipleDifferentValues && (InsertShape)_shape.enumValueIndex == InsertShape.Flash;
+			var pattern = PatternOf(_starburst.boolValue, _flashGroove.boolValue, flash);
+			var patternMixed = _starburst.hasMultipleDifferentValues || _flashGroove.hasMultipleDifferentValues || _shape.hasMultipleDifferentValues;
+			var choices = flash ? FlashPatterns : Patterns;
+			EditorGUI.showMixedValue = patternMixed;
+			EditorGUI.BeginChangeCheck();
+			var chosen = (Pattern)EditorGUILayout.Popup(new GUIContent("Pattern", "What the raised middle's surface carries: nothing, the starburst, or, on a flash, a thin line engraved a little way in from its edge. The starburst and the line never share the surface."), (int)pattern, choices);
+			if (EditorGUI.EndChangeCheck()) {
+				_starburst.boolValue = chosen == Pattern.Starburst;
+				_flashGroove.boolValue = chosen == Pattern.EngravedLine;
+				pattern = chosen;
+				patternMixed = false;
 			}
-			var enabled = !engraved && (_starburst.hasMultipleDifferentValues || _starburst.boolValue);
-			using (new EditorGUI.DisabledScope(!enabled)) {
+			EditorGUI.showMixedValue = false;
+
+			if (!patternMixed && pattern == Pattern.Starburst) {
 				Field(_starburstBursts, "Bursts");
-				var starburst = enabled && (_starburstBursts.hasMultipleDifferentValues || _starburstBursts.intValue >= InsertStarburst.MinBursts);
+				var starburst = _starburstBursts.hasMultipleDifferentValues || _starburstBursts.intValue >= InsertStarburst.MinBursts;
 				using (new EditorGUI.DisabledScope(!starburst)) {
 					Field(_starburstCenter, "Center");
 					if ((InsertShape)_shape.enumValueIndex == InsertShape.Banana && targets.Length == 1) {
@@ -387,6 +411,21 @@ namespace VisualPinball.Unity.Editor
 						}
 					}
 					Field(_starburstOffset, "Offset");
+				}
+			} else if (!patternMixed && pattern == Pattern.EngravedLine) {
+				Field(_flashGrooveInset, "Inset");
+				Field(_flashGrooveWidth, "Width");
+				Field(_flashGrooveDepth, "Depth");
+				Field(_flashGrooveSegments, "Segments");
+				// A line that did not fit says so here, where its settings are.
+				foreach (var selected in targets) {
+					if (selected is InsertComponent component && component.Groove == null) {
+						var reasons = component.Warnings.Where(w => w.Contains("line") || w.Contains("Eroding")).ToArray();
+						EditorGUILayout.HelpBox(reasons.Length > 0
+							? string.Join(" ", reasons)
+							: "The engraved line could not be built.", MessageType.Warning);
+						break;
+					}
 				}
 			}
 

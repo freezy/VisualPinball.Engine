@@ -124,7 +124,7 @@ namespace VisualPinball.Unity
 		private InsertCornerSettings _flashNotchCorner = new(3f, 3);
 
 		[SerializeField]
-		[Tooltip("A thin line engraved into the flash's raised middle, a little way in from its edge: a lightning bolt drawn into the plastic, its ends sharp and its notches rounded. It takes the starburst's place.")]
+		[Tooltip("A thin line engraved into the flash's raised middle, a little way in from its edge: a lightning bolt drawn into the plastic, its ends sharp and its notches rounded. It takes the starburst's place: the inspector offers the two as one Pattern choice.")]
 		private bool _flashGroove;
 
 		[SerializeField]
