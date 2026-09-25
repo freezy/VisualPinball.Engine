@@ -278,7 +278,7 @@ namespace VisualPinball.Unity.Test
 				var vertices = mesh.vertices;
 				var triangles = mesh.GetTriangles(0);
 				Assert.That(vertices.Any(v => math.abs(v.y - trough) < 1e-5f), Is.True, "the trough dips below the middle by its depth");
-				Assert.That(vertices.Count(v => v.y < surface - 1e-6f && v.y > trough - 1e-6f), Is.GreaterThan(insert.Groove.Outline.Points.Count), "with its rings between");
+				Assert.That(vertices.Count(v => math.abs(v.y - trough) < 1e-6f), Is.GreaterThanOrEqualTo(3), "the trough's floor runs along the line");
 				for (var t = 0; t < triangles.Length; t += 3) {
 					var a = vertices[triangles[t]];
 					var b = vertices[triangles[t + 1]];
@@ -321,6 +321,84 @@ namespace VisualPinball.Unity.Test
 				insert.RebuildMesh();
 				Assert.That(insert.Groove, Is.Null);
 				Assert.That(insert.Body.StarburstBursts, Is.GreaterThan(0), "the starburst is back once the line is off");
+			} finally {
+				Object.DestroyImmediate(go);
+				Object.DestroyImmediate(mesh);
+			}
+		}
+
+		[Test]
+		public void ShouldKeepTheTroughFacingUpOnATightLine()
+		{
+			var go = new GameObject("Tight engraved flash");
+			Mesh mesh = null;
+			try {
+				var insert = go.AddComponent<InsertComponent>();
+				var settings = new UnityEditor.SerializedObject(insert);
+				settings.FindProperty("_shape").enumValueIndex = (int)InsertShape.Flash;
+				settings.FindProperty("_channel").boolValue = false;
+				settings.FindProperty("_flashTip").floatValue = 5f;
+				settings.FindProperty("_flashNotch").floatValue = 5f;
+				settings.FindProperty("_flashStep").floatValue = 0f;
+				foreach (var corner in new[] { "_flashTipCorner", "_flashSpikeCorner", "_flashNotchCorner" }) {
+					settings.FindProperty(corner).FindPropertyRelative("Radius").floatValue = 0f;
+				}
+				settings.FindProperty("_flashGroove").boolValue = true;
+				settings.FindProperty("_flashGrooveInset").floatValue = 2.1f;
+				settings.FindProperty("_flashGrooveWidth").floatValue = 4f;
+				settings.ApplyModifiedPropertiesWithoutUndo();
+				insert.RebuildMesh();
+				mesh = go.GetComponent<MeshFilter>().sharedMesh;
+				Assert.That(insert.Groove, Is.Not.Null, string.Join(" | ", insert.Warnings));
+				var vertices = mesh.vertices;
+				var triangles = mesh.GetTriangles(0);
+				var surface = InsertMeshGenerator.ToLocal(float2.zero, -insert.Body.Depth + insert.Body.ChannelDepth).y;
+				var trough = InsertMeshGenerator.ToLocal(float2.zero, -insert.Body.Depth + insert.Body.ChannelDepth - 0.8f).y;
+				for (var t = 0; t < triangles.Length; t += 3) {
+					var a = vertices[triangles[t]];
+					var b = vertices[triangles[t + 1]];
+					var c = vertices[triangles[t + 2]];
+					if (!(new[] { a, b, c }.Any(v => v.y < surface - 1e-6f && v.y > trough - 1e-6f))) {
+						continue;
+					}
+					var normal = Vector3.Cross(b - a, c - a);
+					if (normal.magnitude < 1e-9f) {
+						continue;
+					}
+					Assert.That(normal.y / normal.magnitude, Is.GreaterThan(-1e-3f), "every trough triangle faces up, collapsed sides included");
+				}
+			} finally {
+				Object.DestroyImmediate(go);
+				Object.DestroyImmediate(mesh);
+			}
+		}
+
+		[Test]
+		public void ShouldRefuseALineThatReachesPastTheMiddle()
+		{
+			var go = new GameObject("Overreaching engraved flash");
+			Mesh mesh = null;
+			try {
+				var insert = go.AddComponent<InsertComponent>();
+				var settings = new UnityEditor.SerializedObject(insert);
+				settings.FindProperty("_shape").enumValueIndex = (int)InsertShape.Flash;
+				settings.FindProperty("_channel").boolValue = false;
+				settings.FindProperty("_flashWidth").floatValue = 20f;
+				settings.FindProperty("_flashHeight").floatValue = 60f;
+				settings.FindProperty("_flashTip").floatValue = 18f;
+				settings.FindProperty("_flashNotch").floatValue = 9.8f;
+				settings.FindProperty("_flashStep").floatValue = 27f;
+				foreach (var corner in new[] { "_flashTipCorner", "_flashSpikeCorner", "_flashNotchCorner" }) {
+					settings.FindProperty(corner).FindPropertyRelative("Radius").floatValue = 1f;
+				}
+				settings.FindProperty("_flashGroove").boolValue = true;
+				settings.FindProperty("_flashGrooveInset").floatValue = 1f;
+				settings.FindProperty("_flashGrooveWidth").floatValue = 1f;
+				settings.ApplyModifiedPropertiesWithoutUndo();
+				insert.RebuildMesh();
+				mesh = go.GetComponent<MeshFilter>().sharedMesh;
+				Assert.That(insert.Groove, Is.Null, "a band whose outer edge leaves the middle is not built");
+				Assert.That(insert.Warnings, Has.Some.Contains("past the middle"));
 			} finally {
 				Object.DestroyImmediate(go);
 				Object.DestroyImmediate(mesh);

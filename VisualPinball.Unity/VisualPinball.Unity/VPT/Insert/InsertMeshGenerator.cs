@@ -846,6 +846,9 @@ namespace VisualPinball.Unity
 
 			/// <summary>Beyond the rim, where nothing is built.</summary>
 			Outside,
+
+			/// <summary>The engraved line's band on the raised middle, built from its own rings instead.</summary>
+			Band,
 		}
 
 		/// <summary>
@@ -945,79 +948,27 @@ namespace VisualPinball.Unity
 				}
 			}
 
-			// The engraved line's profile, ring by ring across the trough, laid in
-			// as loops, with rungs between the rings and a bridge from the outer
-			// one to the surface's outline: the face walk knows nothing of one
-			// loop inside another, so the rungs cut the trough into cells and the
-			// bridge ties its outer edge into the flat around it, as the rungs tie
-			// the rim to the middle. The faces between two rings are the trough's,
-			// lifted by where each point sits across it; the rest stays flat.
+			// The engraved line's trough is stitched on its own from its profile
+			// rings, and only its two edges go into the arrangement, as loops tied
+			// in by a bridge each, so the face walk finds the flat top around the
+			// trough and the flat middle inside it; the band between the edges
+			// comes back as faces of its own, which are left out, the trough's
+			// strips standing there instead. Kept out of the arrangement, the
+			// trough's sharp mitres and thin faces are never snapped.
 			var groove = starburst == null ? body.Groove : null;
+			List<float2> bandOuter = null;
+			List<float2> bandInner = null;
 			if (groove != null) {
-				var count = groove.Outline.Points.Count;
-				var steps = math.max(1, groove.Segments) * 2;
-				int[] previousPoints = null;
-				int[] previousMap = null;
-				var rungs = new HashSet<(int, int)>();
-				for (var k = 0; k <= steps; k++) {
-					var lateral = -groove.Width * 0.5f * math.cos(math.PI * k / steps);
-					var ring = new List<float2>(count);
-					var map = new int[count];
-					for (var i = 0; i < count; i++) {
-						var position = groove.Outline.OffsetPoint(i, lateral);
-						if (ring.Count > 0 && math.distance(position, ring[^1]) < weld) {
-							map[i] = ring.Count - 1;
-							continue;
-						}
-						map[i] = ring.Count;
-						ring.Add(position);
-					}
-					if (ring.Count > 3 && math.distance(ring[^1], ring[0]) < weld) {
-						for (var i = 0; i < count; i++) {
-							if (map[i] == ring.Count - 1) {
-								map[i] = 0;
-							}
-						}
-						ring.RemoveAt(ring.Count - 1);
-					}
-					if (ring.Count < 3) {
-						continue;
-					}
-					var points = new int[ring.Count];
-					for (var i = 0; i < ring.Count; i++) {
-						points[i] = arrangement.AddPoint(ring[i]);
-					}
-					for (var i = 0; i < ring.Count; i++) {
-						arrangement.AddSegment(points[i], points[(i + 1) % ring.Count]);
-					}
-					if (previousPoints == null) {
-						// The bridge, at the nearest pair of the outer edge and the outline.
-						var surfacePoints = islandPoints ?? rimPoints;
-						var surfaceRing = island ?? rim;
-						var nearest = float.MaxValue;
-						int edgeAt = 0, surfaceAt = 0;
-						for (var i = 0; i < ring.Count; i++) {
-							for (var j = 0; j < surfaceRing.Count; j++) {
-								var apart = math.distancesq(ring[i], surfaceRing[j].Position);
-								if (apart < nearest) {
-									nearest = apart;
-									edgeAt = i;
-									surfaceAt = j;
-								}
-							}
-						}
-						arrangement.AddSegment(points[edgeAt], surfacePoints[surfaceAt]);
-					} else {
-						for (var i = 0; i < count; i++) {
-							var from = previousPoints[previousMap[i]];
-							var to = points[map[i]];
-							if (from != to && rungs.Add((from, to))) {
-								arrangement.AddSegment(from, to);
-							}
-						}
-					}
-					previousPoints = points;
-					previousMap = map;
+				AddGrooveStrips(groove, islandTop, topChart, weld, buffers, out bandOuter, out bandInner);
+				var surfacePoints = islandPoints ?? rimPoints;
+				var surfaceRing = island ?? rim;
+				var surfacePositions = new List<float2>(surfaceRing.Count);
+				foreach (var entry in surfaceRing) {
+					surfacePositions.Add(entry.Position);
+				}
+				var outerPoints = AddGrooveLoop(arrangement, bandOuter, surfacePositions, surfacePoints);
+				if (outerPoints != null) {
+					AddGrooveLoop(arrangement, bandInner, bandOuter, outerPoints);
 				}
 			}
 
@@ -1025,7 +976,7 @@ namespace VisualPinball.Unity
 			var faces = arrangement.Faces(out var faceOf);
 
 			float HeightOf(Tier tier, float2 position) => tier switch {
-				Tier.Surface => starburst?.DepthAt(position) ?? islandTop + (groove != null ? GrooveProfile(groove, position, out _) : 0f),
+				Tier.Surface => starburst?.DepthAt(position) ?? islandTop,
 				Tier.Floor => floor,
 				_ => 0f,
 			};
@@ -1060,9 +1011,10 @@ namespace VisualPinball.Unity
 				}
 				var middle = (float2)((exact[largest.x] + exact[largest.y] + exact[largest.z]) / 3.0);
 				var tier = tiers[f] = !Contains(outer, middle) ? Tier.Outside
-					: Contains(polygon, middle) && !InAnyHole(holes, middle) ? Tier.Surface
+					: Contains(polygon, middle) && !InAnyHole(holes, middle)
+						? bandOuter != null && Contains(bandOuter, middle) && !Contains(bandInner, middle) ? Tier.Band : Tier.Surface
 					: Tier.Floor;
-				if (tier == Tier.Outside) {
+				if (tier == Tier.Outside || tier == Tier.Band) {
 					continue;
 				}
 
@@ -1086,14 +1038,7 @@ namespace VisualPinball.Unity
 				var first = buffers.Vertices.Count;
 				foreach (var point in face) {
 					var position = arrangement.Position(point);
-					// The trough shades smoothly across its round, each point with
-					// the profile's normal where it sits; a point on its edge in a
-					// flat face keeps the flat's, so the edge stays a crease.
-					var pointNormal = normal;
-					if (groove != null && tier == Tier.Surface && GrooveAcross(groove, middle, out _) < groove.Width * 0.5f) {
-						GrooveProfile(groove, position, out pointNormal);
-					}
-					buffers.Add(ToLocal(position, HeightOf(tier, position)), pointNormal, (Vector2)position, chart);
+					buffers.Add(ToLocal(position, HeightOf(tier, position)), normal, (Vector2)position, chart);
 				}
 				foreach (var piece in pieces) {
 					buffers.Triangle(first + piece.x, first + piece.y, first + piece.z);
@@ -1116,8 +1061,11 @@ namespace VisualPinball.Unity
 			}
 
 			foreach (var (a, b) in arrangement.Edges) {
+				// The band lies on the surface: no wall stands between the two.
 				var left = TierOf(a, b);
 				var right = TierOf(b, a);
+				left = left == Tier.Band ? Tier.Surface : left;
+				right = right == Tier.Band ? Tier.Surface : right;
 				if (left == right) {
 					continue;
 				}
@@ -1331,57 +1279,260 @@ namespace VisualPinball.Unity
 		/// middle, always facing back towards the line's centre.
 		/// </summary>
 		/// <summary>
-		/// How far a point sits from the engraved line's middle, and which way
-		/// back to it: the trough is the same either side of the line.
+		/// The engraved line's trough: its profile drawn as rings, each the line's
+		/// outline offset sideways and dropped to the floor's height there, from
+		/// the outer edge in, and stitched into strips ring to ring. The rings
+		/// share the line's points, so a strip is a quad per side of the line;
+		/// where an offset folds points together or the ring back on itself, the
+		/// fold is welded or cut out, and the stitching skips what is folded flat.
+		/// The edges are creases: the ring on them faces across the trough, and
+		/// the flat around and inside the trough keeps its own corners.
 		/// </summary>
-		private static float GrooveAcross(InsertGroove groove, float2 position, out float2 back)
+		private static void AddGrooveStrips(InsertGroove groove, float surface, int chart, float weld, MeshBuffers buffers,
+			out List<float2> outerEdge, out List<float2> innerEdge)
 		{
-			var points = groove.Outline.Points;
-			var nearest = float.MaxValue;
-			var foot = float2.zero;
-			for (int i = 0, j = points.Count - 1; i < points.Count; j = i++) {
-				var a = points[j].Position;
-				var b = points[i].Position;
-				var side = b - a;
-				var t = math.saturate(math.dot(position - a, side) / math.max(math.lengthsq(side), 1e-12f));
-				var candidate = a + t * side;
-				var apart = math.distancesq(position, candidate);
-				if (apart < nearest) {
-					nearest = apart;
-					foot = candidate;
+			var line = groove.Outline;
+			var count = line.Points.Count;
+			var half = groove.Width * 0.5f;
+			var depth = math.max(0f, groove.Depth);
+			var steps = math.max(1, groove.Segments) * 2;
+			var rings = new List<float2>[steps + 1];
+			var maps = new int[steps + 1][];
+			var ringVertices = new int[steps + 1][];
+			for (var k = 0; k <= steps; k++) {
+				var angle = math.PI * k / steps;
+				var lateral = -half * math.cos(angle);
+				var height = -depth * math.sin(angle);
+				// A side too short for the offset runs backwards once offset: its
+				// two ends are drawn together onto where its neighbours' offsets
+				// meet, as an erosion does, and weld into one point below.
+				var positions = new float2[count];
+				for (var i = 0; i < count; i++) {
+					positions[i] = line.OffsetPoint(i, lateral);
+				}
+				for (var pass = 0; pass < count; pass++) {
+					var folded = false;
+					for (var i = 0; i < count; i++) {
+						var next = (i + 1) % count;
+						var previous = (i - 1 + count) % count;
+						var after = (next + 1) % count;
+						var offset = positions[next] - positions[i];
+						var along = line.Points[next].Position - line.Points[i].Position;
+						if (math.lengthsq(offset) <= weld * weld || math.dot(offset, along) >= 0f) {
+							continue;
+						}
+						if (!Meet(positions[previous], positions[i] - positions[previous], positions[next], positions[after] - positions[next], out var meeting)) {
+							continue;
+						}
+						positions[i] = meeting;
+						positions[next] = meeting;
+						folded = true;
+					}
+					if (!folded) {
+						break;
+					}
+				}
+
+				var ring = new List<float2>(count);
+				var normals = new List<Vector3>(count);
+				var map = new int[count];
+				for (var i = 0; i < count; i++) {
+					var position = positions[i];
+					if (ring.Count > 0 && math.distance(position, ring[^1]) < weld) {
+						map[i] = ring.Count - 1;
+						continue;
+					}
+					map[i] = ring.Count;
+					ring.Add(position);
+					// A half round squashed to the depth: across at the edges, up
+					// in the middle, always facing back at the trough's middle.
+					var across = ToLocalNormal(line.Points[i].Normal, inwards: true);
+					normals.Add(math.normalize((float3)across * (math.cos(angle) * depth) + new float3(0f, math.sin(angle) * half, 0f) + new float3(0f, 1e-6f, 0f)));
+				}
+				if (ring.Count > 3 && math.distance(ring[^1], ring[0]) < weld) {
+					for (var i = 0; i < count; i++) {
+						if (map[i] == ring.Count - 1) {
+							map[i] = 0;
+						}
+					}
+					ring.RemoveAt(ring.Count - 1);
+					normals.RemoveAt(normals.Count - 1);
+				}
+				Unfold(ring, map, normals);
+				rings[k] = ring;
+				maps[k] = map;
+				ringVertices[k] = new int[ring.Count];
+				for (var j = 0; j < ring.Count; j++) {
+					ringVertices[k][j] = buffers.Add(ToLocal(ring[j], surface + height), normals[j], (Vector2)ring[j], chart);
 				}
 			}
-			var across = math.sqrt(nearest);
-			back = across > InsertOutlineBuilder.Epsilon ? (foot - position) / across : float2.zero;
-			return across;
+
+			// A triangle faces up when its footprint runs counter-clockwise; one
+			// that a collapse has turned over, or folded flat, is left out.
+			void Up(int k0, int j0, int k1, int j1, int k2, int j2)
+			{
+				var p0 = rings[k0][j0];
+				var p1 = rings[k1][j1];
+				var p2 = rings[k2][j2];
+				var area = (p1.x - p0.x) * (p2.y - p0.y) - (p1.y - p0.y) * (p2.x - p0.x);
+				if (area > weld * weld) {
+					buffers.Triangle(ringVertices[k0][j0], ringVertices[k1][j1], ringVertices[k2][j2]);
+				}
+			}
+			for (var k = 0; k < steps; k++) {
+				for (var i = 0; i < count; i++) {
+					var next = (i + 1) % count;
+					Up(k, maps[k][i], k, maps[k][next], k + 1, maps[k + 1][next]);
+					Up(k, maps[k][i], k + 1, maps[k + 1][next], k + 1, maps[k + 1][i]);
+				}
+			}
+			outerEdge = rings[0];
+			innerEdge = rings[steps];
 		}
 
-		private static float GrooveProfile(InsertGroove groove, float2 position, out Vector3 normal)
+		/// <summary>
+		/// Lays one of the trough's edges into the arrangement as a loop, tied
+		/// by a bridge at its nearest pair to a loop already there, so the face
+		/// walk, which knows nothing of one loop inside another, finds the face
+		/// between the two. Returns the loop's points, or null for a loop too
+		/// small to lay.
+		/// </summary>
+		private static int[] AddGrooveLoop(InsertArrangement arrangement, List<float2> loop, List<float2> around, int[] aroundPoints)
 		{
-			normal = Vector3.up;
-			var half = groove.Width * 0.5f;
-			if (half <= InsertOutlineBuilder.Epsilon) {
-				return 0f;
+			if (loop == null || loop.Count < 3) {
+				return null;
 			}
-			var across = GrooveAcross(groove, position, out var back);
-			// The arrangement snaps the edge's points by up to a pixel either
-			// way, so a point that near the edge is on it: at the surface, and
-			// facing across the trough, straight back at its middle, which is
-			// the crease against the flat top. A flat face's own corner there
-			// keeps facing up; the caller sees to that.
-			var slack = math.max(InsertOutlineBuilder.Epsilon, half * 0.05f);
-			if (across >= half + slack) {
-				return 0f;
+			var points = new int[loop.Count];
+			for (var i = 0; i < loop.Count; i++) {
+				points[i] = arrangement.AddPoint(loop[i]);
 			}
-			if (across <= InsertOutlineBuilder.Epsilon) {
-				// The trough's middle faces straight up, and has no way back to name.
-				return -groove.Depth;
+			for (var i = 0; i < loop.Count; i++) {
+				arrangement.AddSegment(points[i], points[(i + 1) % loop.Count]);
 			}
-			across = across >= half - slack ? half : across;
-			var sine = math.sqrt(math.max(0f, 1f - across * across / (half * half)));
-			var toCenter = ToLocalNormal(-back, inwards: true);
-			normal = math.normalize((float3)toCenter * (across / half * groove.Depth) + new float3(0f, sine * half, 0f) + new float3(0f, 1e-6f, 0f));
-			return -groove.Depth * sine;
+			var nearest = float.MaxValue;
+			int loopAt = 0, aroundAt = 0;
+			for (var i = 0; i < loop.Count; i++) {
+				for (var j = 0; j < around.Count; j++) {
+					var apart = math.distancesq(loop[i], around[j]);
+					if (apart < nearest) {
+						nearest = apart;
+						loopAt = i;
+						aroundAt = j;
+					}
+				}
+			}
+			arrangement.AddSegment(points[loopAt], aroundPoints[aroundAt]);
+			return points;
+		}
+
+		/// <summary>
+		/// Takes the loops out of a ring offset past what a short side could
+		/// take: where the ring crosses itself, everything between the two
+		/// crossing sides is folded back on itself, and it is cut out and
+		/// replaced by the crossing point, which every point that was in the
+		/// loop now maps to.
+		/// </summary>
+		private static void Unfold(List<float2> ring, int[] map, List<Vector3> normals)
+		{
+			for (var guard = 0; guard < map.Length; guard++) {
+				var n = ring.Count;
+				if (n < 4) {
+					return;
+				}
+				var found = false;
+				for (var i = 0; i < n && !found; i++) {
+					var a = ring[i];
+					var b = ring[(i + 1) % n];
+					for (var j = i + 2; j < n; j++) {
+						if (i == 0 && j == n - 1) {
+							continue;
+						}
+						if (!Crossing(a, b, ring[j], ring[(j + 1) % n], out var crossing)) {
+							continue;
+						}
+						// The loop is the shorter way round, from i + 1 to j; the
+						// longer way holds the ring itself.
+						var inside = j - i;
+						var outside = n - inside;
+						int from, to;
+						if (inside <= outside) {
+							from = i + 1;
+							to = j;
+						} else {
+							from = j + 1;
+							to = i + n;
+						}
+						var kept = new List<float2>(n);
+						var keptNormals = new List<Vector3>(n);
+						var remap = new int[n];
+						var crossingAt = -1;
+						var start = from % n;
+						var length = to - from;
+						for (var m = 0; m < n; m++) {
+							// Membership round the ring, however the loop wraps.
+							var eaten = (m - start + n) % n <= length;
+							if (eaten) {
+								if (crossingAt < 0) {
+									crossingAt = kept.Count;
+									kept.Add(crossing);
+									keptNormals.Add(normals[m]);
+								}
+								remap[m] = crossingAt;
+							} else {
+								remap[m] = kept.Count;
+								kept.Add(ring[m]);
+								keptNormals.Add(normals[m]);
+							}
+						}
+						for (var p = 0; p < map.Length; p++) {
+							map[p] = remap[map[p]];
+						}
+						ring.Clear();
+						ring.AddRange(kept);
+						normals.Clear();
+						normals.AddRange(keptNormals);
+						found = true;
+						break;
+					}
+				}
+				if (!found) {
+					return;
+				}
+			}
+		}
+
+		/// <summary>Where two lines meet, or false when they run parallel.</summary>
+		private static bool Meet(float2 originA, float2 directionA, float2 originB, float2 directionB, out float2 point)
+		{
+			var determinant = directionA.x * directionB.y - directionA.y * directionB.x;
+			point = originA;
+			if (math.abs(determinant) < 1e-12f) {
+				return false;
+			}
+			var offset = originB - originA;
+			var t = (offset.x * directionB.y - offset.y * directionB.x) / determinant;
+			point = originA + t * directionA;
+			return true;
+		}
+
+		/// <summary>Whether two segments cross properly, and where.</summary>
+		private static bool Crossing(float2 a, float2 b, float2 c, float2 d, out float2 point)
+		{
+			point = a;
+			var ab = b - a;
+			var cd = d - c;
+			var determinant = ab.x * cd.y - ab.y * cd.x;
+			if (math.abs(determinant) < 1e-12f) {
+				return false;
+			}
+			var ac = c - a;
+			var t = (ac.x * cd.y - ac.y * cd.x) / determinant;
+			var u = (ac.x * ab.y - ac.y * ab.x) / determinant;
+			if (t <= 0f || t >= 1f || u <= 0f || u >= 1f) {
+				return false;
+			}
+			point = a + t * ab;
+			return true;
 		}
 
 		private static int[] AddLoop(InsertArrangement arrangement, List<RingPoint> ring,
@@ -1543,7 +1694,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Whether a point lies inside a polygon, by counting crossings.
 		/// </summary>
-		private static bool Contains(List<float2> polygon, float2 point)
+		internal static bool Contains(List<float2> polygon, float2 point)
 		{
 			var inside = false;
 			for (int i = 0, j = polygon.Count - 1; i < polygon.Count; j = i++) {

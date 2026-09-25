@@ -144,8 +144,8 @@ namespace VisualPinball.Unity
 
 		[SerializeField]
 		[Range(1, 16)]
-		[Tooltip("How many steps each side of the line's round floor is drawn with, from its edge down to its middle. One is a V cut.")]
-		private int _flashGrooveSegments = 3;
+		[Tooltip("How many steps each side of the line's floor is drawn with, from its edge down to its middle. One is a V cut, which the bake's edge bevel rounds off; more draw the round in the mesh itself.")]
+		private int _flashGrooveSegments = 1;
 
 		[SerializeField]
 		[Tooltip("The round of the bullet's tip: a circle of this radius touching the top, no wider than the bullet and no taller, drawn with this many segments over the whole arc, rounded up to an even count. A radius of zero makes a pointed tip.")]
@@ -568,26 +568,37 @@ namespace VisualPinball.Unity
 			}
 			var half = math.max(_flashGrooveWidth, 0.1f) * 0.5f;
 			var inset = channelWidth + math.max(_flashGrooveInset, half + 0.01f);
-			// A tip the erosion closes up is all but a point: a round of half the
-			// line's half width, so the band's outer edge turns it as an arc a
-			// little wider than the band itself, and its inner edge closes onto
-			// one point. A sharp mitre would send the band's edges out in a
-			// spike thinner than the floor's arrangement can keep, which then
-			// let the flat top pour into the trough there.
-			var corners = InsertShapes.Erode(outline, inset, half * 0.5f, warnings);
+			// Sharp all the way: a tip the erosion closes up is a point, and the
+			// band's edges meet there in mitres, as the engraver's line does.
+			var corners = InsertShapes.Erode(outline, inset, 0f, warnings);
 			if (corners == null) {
 				warnings.Add("The engraved line does not fit inside the flash: bring its inset down.");
 				return null;
 			}
 			InsertOutline line;
 			try {
-				line = InsertOutlineBuilder.Build(corners, _sideSegments, center: false);
+				// The line's straight runs need no subdividing: the trough along
+				// them is flat, and every point costs a column of faces.
+				line = InsertOutlineBuilder.Build(corners, 1, center: false);
 			} catch (InsertOutlineException e) {
 				warnings.Add($"The engraved line cannot be drawn: {e.Message}");
 				return null;
 			}
 			foreach (var warning in line.Warnings) {
 				warnings.Add("Engraved line: " + warning);
+			}
+			// The band's outer edge, the line offset outwards by half its width,
+			// has to stay on the raised middle: at a sharp tip it runs on past
+			// the line's own end, and a small inset lets it out over the edge.
+			var surface = new List<float2>(outline.Points.Count);
+			for (var i = 0; i < outline.Points.Count; i++) {
+				surface.Add(outline.OffsetPoint(i, channelWidth));
+			}
+			for (var i = 0; i < line.Points.Count; i++) {
+				if (!InsertMeshGenerator.Contains(surface, line.OffsetPoint(i, -half))) {
+					warnings.Add("The engraved line's edge reaches past the middle's edge: bring its inset up or its width down.");
+					return null;
+				}
 			}
 			// The band's inner edge may fold at a short side of the line; the
 			// mesh cuts such folds out, so the width is kept as asked.

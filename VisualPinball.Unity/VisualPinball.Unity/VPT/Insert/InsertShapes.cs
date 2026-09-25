@@ -960,9 +960,11 @@ namespace VisualPinball.Unity
 					// The corner between two sides that were neighbours all along.
 					var corner = corners[current];
 					var radius = corner.Concave ? corner.Radius + distance : math.max(corner.Radius - distance, minConvexRadius);
+					// A wider arc takes more segments, but not in proportion: a
+					// segment's chord may grow with the radius before its sag does.
 					var segments = corner.Segments;
 					if (corner.Concave && corner.Radius > Epsilon) {
-						segments = math.min(64, math.max(segments, (int)math.ceil(segments * radius / corner.Radius)));
+						segments = math.min(64, math.max(segments, (int)math.ceil(segments * math.sqrt(radius / corner.Radius))));
 					}
 					result[j] = new InsertCorner(vertices[j], radius, math.max(1, segments), corner.Tag);
 				} else {
