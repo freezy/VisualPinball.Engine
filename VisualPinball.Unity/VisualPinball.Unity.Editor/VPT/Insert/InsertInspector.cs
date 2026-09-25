@@ -99,6 +99,8 @@ namespace VisualPinball.Unity.Editor
 		private const string GeometryKey = "VisualPinball.Insert.Geometry";
 		private const string BakeKey = "VisualPinball.Insert.Bake";
 		private const string CoverKey = "VisualPinball.Insert.Cover";
+		private const string TemplateKey = "VisualPinball.Insert.Template";
+		private const string TemplateChoiceKey = "VisualPinball.Insert.Template.Choice";
 
 		private void OnEnable()
 		{
@@ -194,6 +196,11 @@ namespace VisualPinball.Unity.Editor
 						}
 					}
 				}
+			}
+			InsertSection.End();
+
+			if (InsertSection.Begin(TemplateKey, "Material Template")) {
+				DrawTemplates();
 			}
 			InsertSection.End();
 
@@ -876,6 +883,61 @@ namespace VisualPinball.Unity.Editor
 			using (new EditorGUI.DisabledScope(!insert.IsBakeFresh || IsLocked || InsertBaker.Baking != null || EditorApplication.isPlaying || Shader.Find(InsertBaker.HybridShaderName) == null)) {
 				if (GUILayout.Button(new GUIContent("Use HDRP Hybrid Material", "Creates a hybrid material with the baked optical maps and puts it on the insert. The previous material stays on disk."))) {
 					InsertBaker.UseHybridMaterial(insert);
+				}
+			}
+		}
+
+		/// <summary>
+		/// A template is the look of an insert's materials without their bake:
+		/// pick one and put it on the selected inserts, or save the look these
+		/// have as a new one.
+		/// </summary>
+		private void DrawTemplates()
+		{
+			var inserts = targets.OfType<InsertComponent>().ToArray();
+			var styled = inserts.Count(InsertMaterialTemplates.HasStyledMaterial);
+			if (styled == 0) {
+				EditorGUILayout.HelpBox("Templates carry the look of the hybrid material and the clear cover, everything but the baked maps and the virtual lamps. Bake the insert and click Use HDRP Hybrid Material first.", MessageType.None);
+			} else {
+				EditorGUILayout.HelpBox("A template puts a look on the insert's materials, everything but the baked maps and the virtual lamps: Clear and Colored ship with the package, and the look of any insert can be saved as another.", MessageType.None);
+			}
+
+			var templates = InsertMaterialTemplates.Find();
+			var labels = InsertMaterialTemplates.Labels(templates);
+			var remembered = SessionState.GetString(TemplateChoiceKey, string.Empty);
+			var index = 0;
+			for (var i = 0; i < templates.Length; i++) {
+				if (AssetDatabase.GetAssetPath(templates[i]) == remembered) {
+					index = i + 1;
+				}
+			}
+			using (new EditorGUILayout.HorizontalScope()) {
+				EditorGUI.BeginChangeCheck();
+				index = EditorGUILayout.Popup(new GUIContent("Template", "The look to put on the selected inserts' materials."), index, labels);
+				if (EditorGUI.EndChangeCheck()) {
+					SessionState.SetString(TemplateChoiceKey, index > 0 ? AssetDatabase.GetAssetPath(templates[index - 1]) : string.Empty);
+				}
+				using (new EditorGUI.DisabledScope(index == 0 || styled == 0 || EditorApplication.isPlaying)) {
+					if (GUILayout.Button(new GUIContent("Apply", "Puts the template's values on the body material and the cover material of every selected insert that has the hybrid material. Materials shared with other inserts change for them too."), GUILayout.Width(60f))) {
+						var template = templates[index - 1];
+						var count = 0;
+						foreach (var insert in inserts) {
+							count += InsertMaterialTemplates.Apply(template, insert);
+						}
+						Debug.Log($"Applied template \"{template.name}\" to {styled} insert(s): {count} values set.");
+					}
+				}
+			}
+			if (templates.Length == 0) {
+				EditorGUILayout.HelpBox("No templates found. The HDRP package ships Clear and Colored; a template of your own can be saved below.", MessageType.Warning);
+			}
+			using (new EditorGUI.DisabledScope(inserts.Length != 1 || styled == 0 || EditorApplication.isPlaying)) {
+				if (GUILayout.Button(new GUIContent("Save Look as Template...", "Saves the look of this insert's body and cover materials as a new template asset, to put on other inserts."))) {
+					var saved = InsertMaterialTemplates.SaveAs(inserts[0]);
+					if (saved != null) {
+						SessionState.SetString(TemplateChoiceKey, AssetDatabase.GetAssetPath(saved));
+						EditorGUIUtility.PingObject(saved);
+					}
 				}
 			}
 		}
