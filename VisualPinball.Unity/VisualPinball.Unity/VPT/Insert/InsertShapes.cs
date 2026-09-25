@@ -937,20 +937,10 @@ namespace VisualPinball.Unity
 			}
 
 			// Two parts of the shape far apart along its edge can meet under the
-			// erosion, the arms of a flash whose notches nearly touch, say: what
-			// is left crosses itself, and is nothing either.
-			var m2 = active.Count;
-			for (var i = 0; i < m2; i++) {
-				for (var j = i + 2; j < m2; j++) {
-					if (i == 0 && j == m2 - 1) {
-						continue;
-					}
-					if (SegmentsCross(vertices[i], vertices[(i + 1) % m2], vertices[j], vertices[(j + 1) % m2])) {
-						warnings?.Add($"Eroding the outline by {distance:0.##} leaves nothing of it in one piece.");
-						return null;
-					}
-				}
-			}
+			// erosion, the arms of a flash whose notches nearly touch, say. The
+			// corners alone cannot tell: a concave corner's mitre overshoots
+			// where its widened fillet would not, so that is judged on the
+			// outline built from these, fillets and all.
 
 			var result = new InsertCorner[active.Count];
 			for (var j = 0; j < active.Count; j++) {
@@ -978,13 +968,6 @@ namespace VisualPinball.Unity
 				}
 			}
 			return result;
-		}
-
-		/// <summary>Whether two segments cross properly, neither touching the other at a point.</summary>
-		private static bool SegmentsCross(float2 a, float2 b, float2 c, float2 d)
-		{
-			static double Side(double2 o, double2 p, double2 q) => (p.x - o.x) * (q.y - o.y) - (p.y - o.y) * (q.x - o.x);
-			return Side(a, b, c) * Side(a, b, d) < 0.0 && Side(c, d, a) * Side(c, d, b) < 0.0;
 		}
 
 		/// <summary>Where two lines meet, or false when they run parallel.</summary>

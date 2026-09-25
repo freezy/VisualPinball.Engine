@@ -1303,60 +1303,25 @@ namespace VisualPinball.Unity
 				var angle = math.PI * k / steps;
 				var lateral = -half * math.cos(angle);
 				var height = -depth * math.sin(angle);
-				// A side too short for the offset runs backwards once offset: its
-				// two ends are drawn together onto where its neighbours' offsets
-				// meet, as an erosion does, and weld into one point below.
-				var positions = new float2[count];
-				for (var i = 0; i < count; i++) {
-					positions[i] = line.OffsetPoint(i, lateral);
+				// The ring is the line's own offset, welded and unfolded by the
+				// line, with a map from the line's points to the ring's.
+				var ring = groove.Ring(lateral, weld, out var map);
+				// A half round squashed to the depth: across at the edges, up in
+				// the middle, always facing back at the trough's middle; a ring
+				// point that several line points welded onto takes the first's.
+				var normals = new List<Vector3>(ring.Count);
+				for (var j = 0; j < ring.Count; j++) {
+					normals.Add(Vector3.up);
 				}
-				for (var pass = 0; pass < count; pass++) {
-					var folded = false;
-					for (var i = 0; i < count; i++) {
-						var next = (i + 1) % count;
-						var previous = (i - 1 + count) % count;
-						var after = (next + 1) % count;
-						var offset = positions[next] - positions[i];
-						var along = line.Points[next].Position - line.Points[i].Position;
-						if (math.lengthsq(offset) <= weld * weld || math.dot(offset, along) >= 0f) {
-							continue;
-						}
-						if (!Meet(positions[previous], positions[i] - positions[previous], positions[next], positions[after] - positions[next], out var meeting)) {
-							continue;
-						}
-						positions[i] = meeting;
-						positions[next] = meeting;
-						folded = true;
-					}
-					if (!folded) {
-						break;
-					}
-				}
-
-				var ring = new List<float2>(count);
-				var normals = new List<Vector3>(count);
-				var map = new int[count];
+				var given = new bool[ring.Count];
 				for (var i = 0; i < count; i++) {
-					var position = positions[i];
-					if (ring.Count > 0 && math.distance(position, ring[^1]) < weld) {
-						map[i] = ring.Count - 1;
+					var j = map[i];
+					if (given[j]) {
 						continue;
 					}
-					map[i] = ring.Count;
-					ring.Add(position);
-					// A half round squashed to the depth: across at the edges, up
-					// in the middle, always facing back at the trough's middle.
+					given[j] = true;
 					var across = ToLocalNormal(line.Points[i].Normal, inwards: true);
-					normals.Add(math.normalize((float3)across * (math.cos(angle) * depth) + new float3(0f, math.sin(angle) * half, 0f) + new float3(0f, 1e-6f, 0f)));
-				}
-				if (ring.Count > 3 && math.distance(ring[^1], ring[0]) < weld) {
-					for (var i = 0; i < count; i++) {
-						if (map[i] == ring.Count - 1) {
-							map[i] = 0;
-						}
-					}
-					ring.RemoveAt(ring.Count - 1);
-					normals.RemoveAt(normals.Count - 1);
+					normals[j] = math.normalize((float3)across * (math.cos(angle) * depth) + new float3(0f, math.sin(angle) * half, 0f) + new float3(0f, 1e-6f, 0f));
 				}
 				Unfold(ring, map, normals);
 				rings[k] = ring;
@@ -1499,20 +1464,6 @@ namespace VisualPinball.Unity
 					return;
 				}
 			}
-		}
-
-		/// <summary>Where two lines meet, or false when they run parallel.</summary>
-		private static bool Meet(float2 originA, float2 directionA, float2 originB, float2 directionB, out float2 point)
-		{
-			var determinant = directionA.x * directionB.y - directionA.y * directionB.x;
-			point = originA;
-			if (math.abs(determinant) < 1e-12f) {
-				return false;
-			}
-			var offset = originB - originA;
-			var t = (offset.x * directionB.y - offset.y * directionB.x) / determinant;
-			point = originA + t * directionA;
-			return true;
 		}
 
 		/// <summary>Whether two segments cross properly, and where.</summary>

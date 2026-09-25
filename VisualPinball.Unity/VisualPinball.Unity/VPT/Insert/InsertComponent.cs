@@ -587,27 +587,39 @@ namespace VisualPinball.Unity
 			foreach (var warning in line.Warnings) {
 				warnings.Add("Engraved line: " + warning);
 			}
+			// Two parts of the shape far apart along its edge can meet under the
+			// erosion, the arms of a flash whose notches nearly touch, say: the
+			// line then crosses itself, and there is no drawing it in one piece.
+			var path = new List<float2>(line.Points.Count);
+			foreach (var point in line.Points) {
+				path.Add(point.Position);
+			}
+			if (InsertGroove.SelfCrossing(path)) {
+				warnings.Add("The engraved line crosses itself where the shape pinches: bring its inset down.");
+				return null;
+			}
 			// The band's outer edge, the line offset outwards by half its width,
-			// has to stay on the raised middle: at a sharp tip it runs on past
-			// the line's own end, and a small inset lets it out over the edge.
+			// has to stay on the raised middle. A sharp tip's mitre is shortened
+			// where it would leave it; what is still outside is a line too close
+			// to the edge for its width.
 			var surface = new List<float2>(outline.Points.Count);
 			for (var i = 0; i < outline.Points.Count; i++) {
 				surface.Add(outline.OffsetPoint(i, channelWidth));
 			}
-			for (var i = 0; i < line.Points.Count; i++) {
-				if (!InsertMeshGenerator.Contains(surface, line.OffsetPoint(i, -half))) {
-					warnings.Add("The engraved line's edge reaches past the middle's edge: bring its inset up or its width down.");
-					return null;
-				}
-			}
-			// The band's inner edge may fold at a short side of the line; the
-			// mesh cuts such folds out, so the width is kept as asked.
-			return new InsertGroove {
+			var groove = new InsertGroove {
 				Outline = line,
+				Surface = surface,
 				Width = half * 2f,
 				Depth = math.max(0f, _flashGrooveDepth),
 				Segments = math.clamp(_flashGrooveSegments, 1, 16),
 			};
+			foreach (var edge in groove.Ring(-half, line.WeldTolerance, out _)) {
+				if (!InsertGroove.Contains(surface, edge)) {
+					warnings.Add("The engraved line's edge reaches past the middle's edge: bring its inset up or its width down.");
+					return null;
+				}
+			}
+			return groove;
 		}
 
 		/// <summary>Whether the shape's own vertex counts are its sampling, with no sides to subdivide.</summary>

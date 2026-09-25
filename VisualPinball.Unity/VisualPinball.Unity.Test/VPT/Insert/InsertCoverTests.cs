@@ -246,10 +246,13 @@ namespace VisualPinball.Unity.Test
 			}
 			Assert.That(InsertShapes.Erode(outline, 60f, 1f, warnings), Is.Null, "an erosion past the shape leaves nothing");
 
-			// Arms whose notches nearly touch cross each other under the erosion.
+			// Arms whose notches nearly touch cross each other under the erosion,
+			// which the line built from the eroded corners shows.
 			var pinched = InsertOutlineBuilder.Build(InsertShapes.FlashCorners(100f, 125f, 10f, 45f, 0f,
 				new InsertCornerSettings(0f, 1), new InsertCornerSettings(0f, 1), new InsertCornerSettings(0f, 4), warnings));
-			Assert.That(InsertShapes.Erode(pinched, 6f, 0f, warnings), Is.Null, "an erosion that crosses itself leaves nothing in one piece");
+			var crossed = InsertOutlineBuilder.Build(InsertShapes.Erode(pinched, 6f, 0f, warnings), 1, center: false);
+			Assert.That(InsertGroove.SelfCrossing(crossed.Points.Select(p => p.Position).ToList()), Is.True, "an erosion that crosses itself is caught on the line");
+			Assert.That(InsertGroove.SelfCrossing(line.Points.Select(p => p.Position).ToList()), Is.False);
 		}
 
 		[Test]
@@ -328,6 +331,34 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldKeepTheLineWhileTheNotchesLeaveANeck()
+		{
+			var go = new GameObject("Necked engraved flash");
+			Mesh mesh = null;
+			try {
+				var insert = go.AddComponent<InsertComponent>();
+				var settings = new UnityEditor.SerializedObject(insert);
+				settings.FindProperty("_shape").enumValueIndex = (int)InsertShape.Flash;
+				settings.FindProperty("_channel").boolValue = true;
+				settings.FindProperty("_channelWidth").floatValue = 2.6f;
+				settings.FindProperty("_flashGroove").boolValue = true;
+				settings.FindProperty("_flashGrooveInset").floatValue = 6f;
+				settings.ApplyModifiedPropertiesWithoutUndo();
+				insert.RebuildMesh();
+				mesh = go.GetComponent<MeshFilter>().sharedMesh;
+				Assert.That(insert.Groove, Is.Not.Null, "the notches' arcs leave a neck at this depth: " + string.Join(" | ", insert.Warnings));
+				settings.FindProperty("_flashGrooveInset").floatValue = 9f;
+				settings.ApplyModifiedPropertiesWithoutUndo();
+				insert.RebuildMesh();
+				Assert.That(insert.Groove, Is.Null, "deeper in, the arcs cross and the line is refused");
+				Assert.That(insert.Warnings, Has.Some.Contains("crosses itself").Or.Some.Contains("leaves nothing"));
+			} finally {
+				Object.DestroyImmediate(go);
+				Object.DestroyImmediate(mesh);
+			}
+		}
+
+		[Test]
 		public void ShouldKeepTheTroughFacingUpOnATightLine()
 		{
 			var go = new GameObject("Tight engraved flash");
@@ -374,7 +405,7 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldRefuseALineThatReachesPastTheMiddle()
+		public void ShouldKeepTheBandOnTheMiddle()
 		{
 			var go = new GameObject("Overreaching engraved flash");
 			Mesh mesh = null;
@@ -397,8 +428,18 @@ namespace VisualPinball.Unity.Test
 				settings.ApplyModifiedPropertiesWithoutUndo();
 				insert.RebuildMesh();
 				mesh = go.GetComponent<MeshFilter>().sharedMesh;
-				Assert.That(insert.Groove, Is.Null, "a band whose outer edge leaves the middle is not built");
-				Assert.That(insert.Warnings, Has.Some.Contains("past the middle"));
+				Assert.That(insert.Groove, Is.Not.Null, "a tip's mitre is shortened to fit: " + string.Join(" | ", insert.Warnings));
+				foreach (var edge in insert.Groove.Ring(-0.5f, insert.Groove.Outline.WeldTolerance, out _)) {
+					Assert.That(InsertGroove.Contains(insert.Groove.Surface, edge), Is.True, "the band's outer edge stays on the middle");
+				}
+				// A band wider than its inset allows has its inset lifted to fit.
+				settings.FindProperty("_flashGrooveWidth").floatValue = 3f;
+				settings.ApplyModifiedPropertiesWithoutUndo();
+				insert.RebuildMesh();
+				Assert.That(insert.Groove, Is.Not.Null, string.Join(" | ", insert.Warnings));
+				foreach (var edge in insert.Groove.Ring(-1.5f, insert.Groove.Outline.WeldTolerance, out _)) {
+					Assert.That(InsertGroove.Contains(insert.Groove.Surface, edge), Is.True, "the wider band's outer edge stays on the middle too");
+				}
 			} finally {
 				Object.DestroyImmediate(go);
 				Object.DestroyImmediate(mesh);
