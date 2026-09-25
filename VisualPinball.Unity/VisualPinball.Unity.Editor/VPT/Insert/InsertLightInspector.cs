@@ -72,11 +72,14 @@ namespace VisualPinball.Unity.Editor
 					Field(_intensity, "Intensity");
 					Field(_color, "Color");
 					// One row per bulb the material has beyond the first.
-					var bulbs = targets.Length == 1 ? ExtraBulbCount((InsertLightComponent)target) : 0;
+					var bulbs = targets.Length == 1 ? ((InsertLightComponent)target).BulbCount - 1 : 0;
 					for (var i = 0; i < bulbs && i < _extraBulbs.arraySize; i++) {
 						var bulb = _extraBulbs.GetArrayElementAtIndex(i);
 						Field(bulb.FindPropertyRelative(nameof(InsertLightComponent.Bulb.Intensity)), $"Bulb {i + 2} Intensity");
 						Field(bulb.FindPropertyRelative(nameof(InsertLightComponent.Bulb.Color)), $"Bulb {i + 2} Color");
+					}
+					if (bulbs > 0) {
+						EditorGUILayout.HelpBox($"Each bulb is a lamp of its own in Lamp Manager: the Element column offers Bulb 1 to Bulb {bulbs + 1} for this insert.", MessageType.None);
 					}
 					Field(_tintWithLamp, "Tint With Lamp");
 					using (new EditorGUI.DisabledScope(!_tintWithLamp.boolValue && !_tintWithLamp.hasMultipleDifferentValues)) {
@@ -121,27 +124,6 @@ namespace VisualPinball.Unity.Editor
 			InsertSection.End();
 
 			serializedObject.ApplyModifiedProperties();
-		}
-
-		/// <summary>
-		/// How many bulbs beyond the first the material has switched on: up to
-		/// the highest with a radius, since the shader lights every one that
-		/// has one, whatever a revert left in between.
-		/// </summary>
-		private static int ExtraBulbCount(InsertLightComponent component)
-		{
-			var material = component.GetComponent<MeshRenderer>().sharedMaterial;
-			if (material == null) {
-				return 0;
-			}
-			var names = new[] { "_OpticalLampB", "_OpticalLampC", "_OpticalLampD" };
-			var count = 0;
-			for (var i = 0; i < names.Length; i++) {
-				if (material.HasProperty(names[i]) && material.GetVector(names[i]).w > 0f) {
-					count = i + 1;
-				}
-			}
-			return count;
 		}
 
 		private static void Field(SerializedProperty property, string label)

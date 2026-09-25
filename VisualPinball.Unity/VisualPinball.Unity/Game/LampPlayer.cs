@@ -35,21 +35,24 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<ILampDeviceComponent, IApiLamp> _lamps = new();
 
 		/// <summary>
-		/// Links the GLE's IDs to the lamps.
+		/// Links the GLE's IDs to the mappings, every mapping of an ID driven in turn.
 		/// </summary>
-		private readonly Dictionary<string, List<ILampDeviceComponent>> _lampAssignments = new();
+		private readonly Dictionary<string, List<LampMapping>> _lampAssignments = new();
 
 		/// <summary>
-		/// Links the GLE's IDs to the mappings.
+		/// The API each mapping drives: the device's own, or the one of the device's
+		/// lamps the mapping names, such as one bulb of an insert with several.
 		/// </summary>
-		private readonly Dictionary<string, Dictionary<ILampDeviceComponent, LampMapping>> _lampMappings = new();
+		private readonly Dictionary<LampMapping, IApiLamp> _mappedLamps = new();
 
 		/// <summary>
 		/// The RGB channels each lamp is made of. A multi-channel lamp is one light the
 		/// GLE drives through several IDs, so the colour has to be composed from all of
 		/// them - taking it from whichever channel wrote last would drop the other two.
+		/// Keyed by the lamp the channels drive, so two bulbs of one insert keep their
+		/// colours apart, and two names for the same lamp share one colour.
 		/// </summary>
-		private readonly Dictionary<ILampDeviceComponent, List<LampMapping>> _rgbMultiChannels = new();
+		private readonly Dictionary<IApiLamp, List<LampMapping>> _rgbMultiChannels = new();
 
 		private Player? _player;
 		private TableComponent? _tableComponent;
@@ -64,6 +67,18 @@ namespace VisualPinball.Unity
 		private const int MaxLoggedUnmappedLampEvents = 24;
 
 		internal IApiLamp? Lamp(ILampDeviceComponent component) => _lamps.ContainsKey(component) ? _lamps[component] : null;
+
+		/// <summary>The API of one of a registered device's lamps, the device's own where it has one.</summary>
+		internal IApiLamp? Lamp(ILampDeviceComponent component, string deviceItem)
+			=> _lamps.TryGetValue(component, out var api) ? ItemLamp(api, deviceItem) : null;
+
+		/// <summary>
+		/// The lamp a mapping's device item names on the device's registered API: the
+		/// API itself unless it is a device of several lamps, such as an insert with
+		/// its bulbs, and the item is one of them.
+		/// </summary>
+		private static IApiLamp ItemLamp(IApiLamp api, string deviceItem)
+			=> api is IApiLampDevice device ? device.Lamp(deviceItem) ?? api : api;
 
 		internal Dictionary<string, LampState> LampStates { get; } = new();
 		internal void RegisterLamp(ILampDeviceComponent component, IApiLamp lampApi) => _lamps[component] = lampApi;
@@ -80,7 +95,7 @@ namespace VisualPinball.Unity
 			if (_gamelogicEngine != null) {
 				var config = _tableComponent!.MappingConfig;
 				_lampAssignments.Clear();
-				_lampMappings.Clear();
+				_mappedLamps.Clear();
 				_rgbMultiChannels.Clear();
 				var configuredMappings = 0;
 				var assignedMappings = 0;
@@ -107,11 +122,11 @@ namespace VisualPinball.Unity
 					AssignLampMapping(lampMapping);
 					assignedMappings++;
 
-					if (lampMapping.Type == LampType.RgbMulti) {
-						if (!_rgbMultiChannels.ContainsKey(lampMapping.Device)) {
-							_rgbMultiChannels[lampMapping.Device] = new List<LampMapping>();
+					if (lampMapping.Type == LampType.RgbMulti && _mappedLamps.TryGetValue(lampMapping, out var mappedLamp)) {
+						if (!_rgbMultiChannels.ContainsKey(mappedLamp)) {
+							_rgbMultiChannels[mappedLamp] = new List<LampMapping>();
 						}
-						_rgbMultiChannels[lampMapping.Device].Add(lampMapping);
+						_rgbMultiChannels[mappedLamp].Add(lampMapping);
 					}
 
 					if (_lamps.ContainsKey(lampMapping.Device)) {
@@ -140,20 +155,14 @@ namespace VisualPinball.Unity
 
 		private void HandleLampsEvent(object sender, LampsEventArgs lampsEvent)
 		{
-			LampAction action = default;
 			foreach (var lampEvent in lampsEvent.LampsChanged) {
-				if (Apply(lampEvent.Id, lampEvent.Source, lampEvent.IsCoil, ref action)) {
-					ApplyValue(lampEvent.Id, lampEvent.Value, action.State, action.Lamp, action.Mapping);
-				}
+				Dispatch(lampEvent.Id, lampEvent.Source, lampEvent.IsCoil, LampEvent.Of(lampEvent.Value));
 			}
 		}
 
 		private void HandleLampEvent(object sender, LampEventArgs lampEvent)
 		{
-			LampAction action = default;
-			if (Apply(lampEvent.Id, lampEvent.Source, lampEvent.IsCoil, ref action)) {
-				ApplyValue(lampEvent.Id, lampEvent.Value, action.State, action.Lamp, action.Mapping);
-			}
+			Dispatch(lampEvent.Id, lampEvent.Source, lampEvent.IsCoil, LampEvent.Of(lampEvent.Value));
 		}
 
 		public void HandleLampEvent(string id, float value)
@@ -163,10 +172,7 @@ namespace VisualPinball.Unity
 
 		public void HandleLampEvent(string id, float value, LampSource source)
 		{
-			LampAction action = default;
-			if (Apply(id, source, false, ref action)) {
-				ApplyValue(id, value, action.State, action.Lamp, action.Mapping);
-			}
+			Dispatch(id, source, false, LampEvent.Of(value));
 		}
 
 		public void HandleLampEvent(string id, LampStatus status)
@@ -176,10 +182,7 @@ namespace VisualPinball.Unity
 
 		public void HandleLampEvent(string id, LampStatus status, LampSource source)
 		{
-			LampAction action = default;
-			if (Apply(id, source, false, ref action)) {
-				ApplyStatus(id, status, action.State, action.Lamp);
-			}
+			Dispatch(id, source, false, LampEvent.Of(status));
 		}
 
 		public void HandleLampEvent(string id, Color color)
@@ -189,51 +192,59 @@ namespace VisualPinball.Unity
 
 		public void HandleLampEvent(string id, Color color, LampSource source)
 		{
-			LampAction action = default;
-			if (Apply(id, source, false, ref action)) {
-				ApplyColor(id, color, action.State, action.Lamp);
-			}
+			Dispatch(id, source, false, LampEvent.Of(color));
 		}
 
 		public void HandleCoilEvent(string id, bool isEnabled)
 		{
-			LampAction action = default;
-			if (Apply(id, LampSource.Lamp, true, ref action)) {
-				ApplyStatus(id, isEnabled ? LampStatus.On : LampStatus.Off, action.State, action.Lamp);
-			}
+			Dispatch(id, LampSource.Lamp, true, LampEvent.Of(isEnabled ? LampStatus.On : LampStatus.Off));
 		}
 
-		private bool Apply(string id, LampSource lampSource, bool isCoil, ref LampAction action)
+		/// <summary>
+		/// Hands an event to every lamp its ID is mapped to, or keeps its state if
+		/// none is: an ID may drive several devices, or several bulbs of one.
+		/// </summary>
+		private void Dispatch(string id, LampSource lampSource, bool isCoil, in LampEvent lampEvent)
 		{
-			var hasChanged = false;
-			if (_lampAssignments.ContainsKey(id)) {
-				foreach (var component in _lampAssignments[id]) {
-					var mapping = _lampMappings[id][component];
+			if (_lampAssignments.TryGetValue(id, out var mappings)) {
+				var applied = false;
+				foreach (var mapping in mappings) {
 					if (mapping.Source != lampSource || mapping.IsCoil != isCoil) {
 						// so, if we have a coil here that happens to have the same name as a lamp,
 						// or a GI light with the same name as an other lamp, skip.
 						continue;
 					}
-					if (_lamps.ContainsKey(component)) {
-						var lamp = _lamps[component];
-						var state = LampStates[id];
-						action = new LampAction(state, lamp, mapping);
-						hasChanged = true;
+					if (_mappedLamps.TryGetValue(mapping, out var lamp)) {
+						ApplyEvent(id, lampEvent, lamp, mapping);
+						applied = true;
 					}
 				}
-				LogLampEvent(id, lampSource, isCoil, hasChanged, mapped: true);
+				LogLampEvent(id, lampSource, isCoil, applied, mapped: true);
 
 #if UNITY_EDITOR
 				RefreshUI();
 #endif
 			} else {
 				LampStates.TryAdd(id, LampState.Default);
-				action = new LampAction(LampStates[id]);
-				hasChanged = true;
+				ApplyEvent(id, lampEvent, null, null);
 				LogLampEvent(id, lampSource, isCoil, true, mapped: false);
 			}
+		}
 
-			return hasChanged;
+		private void ApplyEvent(string id, in LampEvent lampEvent, IApiLamp? lamp, LampMapping? mapping)
+		{
+			var state = LampStates[id];
+			switch (lampEvent.Kind) {
+				case LampEventKind.Value:
+					ApplyValue(id, lampEvent.Value, state, lamp, mapping);
+					break;
+				case LampEventKind.Status:
+					ApplyStatus(id, lampEvent.Status, state, lamp);
+					break;
+				case LampEventKind.Color:
+					ApplyColor(id, lampEvent.Color, state, lamp);
+					break;
+			}
 		}
 
 		private void LogLampEvent(string id, LampSource source, bool isCoil, bool applied, bool mapped)
@@ -320,25 +331,25 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Builds the light's colour out of every channel mapped to it. Each channel keeps
 		/// its own state, so reading one state's colour would give the channel that was
-		/// just written plus two stale ones.
+		/// just written plus two stale ones. Only the lamp's own channels are read, each
+		/// for the one component it drives: a state shared with another lamp's channel,
+		/// where one ID drives both, carries that channel too, and it must not leak in.
+		/// Channels the lamp lacks are black, and its intensity full.
 		/// </summary>
 		private UnityEngine.Color ComposeRgbMulti(LampMapping mapping, LampState writtenState)
 		{
-			if (mapping.Device == null || !_rgbMultiChannels.TryGetValue(mapping.Device, out var channels)) {
+			if (!_mappedLamps.TryGetValue(mapping, out var lamp) || !_rgbMultiChannels.TryGetValue(lamp, out var channels)) {
 				return writtenState.Color.ToUnityColor();
 			}
 
-			// Start from the channel that was just written, then take every other channel
-			// from its own state. Color is a reference type, so nothing here may assign to
-			// it - that would write back into the state we are reading.
-			var written = writtenState.Color;
-			var r = written.R;
-			var g = written.G;
-			var b = written.B;
-			var a = written.A;
+			// Color is a reference type, so nothing here may assign to it - that would
+			// write back into the state we are reading.
+			var r = 0f;
+			var g = 0f;
+			var b = 0f;
+			var a = 1f;
 			foreach (var channel in channels) {
-				if (channel.Channel == mapping.Channel ||
-				    !LampStates.TryGetValue(channel.Id, out var channelState)) {
+				if (!LampStates.TryGetValue(channel.Id, out var channelState)) {
 					continue;
 				}
 				switch (channel.Channel) {
@@ -383,34 +394,41 @@ namespace VisualPinball.Unity
 		private void AssignLampMapping(string id, LampMapping lampMapping)
 		{
 			if (!_lampAssignments.ContainsKey(id)) {
-				_lampAssignments[id] = new List<ILampDeviceComponent>();
+				_lampAssignments[id] = new List<LampMapping>();
 			}
-			if (!_lampMappings.ContainsKey(id)) {
-				_lampMappings[id] = new Dictionary<ILampDeviceComponent, LampMapping>();
+			_lampAssignments[id].Add(lampMapping);
+			if (_lamps.TryGetValue(lampMapping.Device, out var api)) {
+				_mappedLamps[lampMapping] = ItemLamp(api, lampMapping.DeviceItem);
 			}
-			_lampAssignments[id].Add(lampMapping.Device);
-			_lampMappings[id][lampMapping.Device] = lampMapping;
 			LampStates[id] = new LampState(lampMapping.Device.LampStatus, lampMapping.Device.LampColor.ToEngineColor());
 		}
 
-		private readonly struct LampAction
+		private enum LampEventKind
 		{
-			public readonly LampState State;
-			public readonly IApiLamp? Lamp;
-			public readonly LampMapping? Mapping;
+			Value,
+			Status,
+			Color,
+		}
 
-			public LampAction(LampState state)
+		/// <summary>What a lamp event carries: a value, a status or a colour.</summary>
+		private readonly struct LampEvent
+		{
+			public readonly LampEventKind Kind;
+			public readonly float Value;
+			public readonly LampStatus Status;
+			public readonly Color Color;
+
+			private LampEvent(LampEventKind kind, float value, LampStatus status, Color color)
 			{
-				State = state;
-				Lamp = null;
-				Mapping = null;
+				Kind = kind;
+				Value = value;
+				Status = status;
+				Color = color;
 			}
-			public LampAction(LampState state, IApiLamp lamp, LampMapping mapping)
-			{
-				State = state;
-				Lamp = lamp;
-				Mapping = mapping;
-			}
+
+			public static LampEvent Of(float value) => new(LampEventKind.Value, value, LampStatus.Off, null!);
+			public static LampEvent Of(LampStatus status) => new(LampEventKind.Status, 0f, status, null!);
+			public static LampEvent Of(Color color) => new(LampEventKind.Color, 0f, LampStatus.Off, color);
 		}
 
 #if UNITY_EDITOR

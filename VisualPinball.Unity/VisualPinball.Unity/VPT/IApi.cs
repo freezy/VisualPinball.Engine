@@ -249,6 +249,20 @@ namespace VisualPinball.Unity
 	}
 
 	/// <summary>
+	/// This interface makes the implementation act as a device with one or more lamps that can
+	/// each consume lamp events, such as an insert with several bulbs.
+	/// </summary>
+	public interface IApiLampDevice
+	{
+		/// <summary>
+		/// Which lamp to return.
+		/// </summary>
+		/// <param name="deviceItem">Name of the actual lamp, as the mapping names it</param>
+		/// <returns>The lamp's API, the device's own for an item it does not know</returns>
+		IApiLamp Lamp(string deviceItem);
+	}
+
+	/// <summary>
 	/// A game item that acts a lamp that can either receive a float value or a color.
 	/// </summary>
 	public interface IApiLamp : IApiWireDest, IApi

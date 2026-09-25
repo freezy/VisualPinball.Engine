@@ -172,10 +172,10 @@ namespace VisualPinball.Unity.Test
 			fixture.AssertLevel(0f);
 			var manager = typeof(VisualPinball.Unity.Editor.InsertBaker).Assembly.GetType("VisualPinball.Unity.Editor.LampManager");
 			var preview = manager.GetMethod("SetLampDeviceEnabled", BindingFlags.NonPublic | BindingFlags.Static);
-			preview.Invoke(null, new object[] { group, true });
+			preview.Invoke(null, new object[] { group, LightComponent.LampIdDefault, true });
 			fixture.Control.Apply();
 			fixture.AssertLevel(1f);
-			preview.Invoke(null, new object[] { group, false });
+			preview.Invoke(null, new object[] { group, LightComponent.LampIdDefault, false });
 			fixture.Control.Apply();
 			fixture.AssertLevel(0f);
 		}
@@ -217,11 +217,27 @@ namespace VisualPinball.Unity.Test
 				Api.OnInit(null);
 			}
 
-			public void Map(string id, LampType type, ColorChannel channel = ColorChannel.Alpha, int steps = 255)
+			public void Map(string id, LampType type, ColorChannel channel = ColorChannel.Alpha, int steps = 255, string item = LightComponent.LampIdDefault)
 				=> Table.MappingConfig.Lamps.Add(new LampMapping {
-					Id = id, Source = LampSource.Lamp, Device = Control, DeviceItem = LightComponent.LampIdDefault,
+					Id = id, Source = LampSource.Lamp, Device = Control, DeviceItem = item,
 					Type = type, Channel = channel, FadingSteps = steps,
 				});
+
+			/// <summary>Switches the material's bulbs beyond the first on, a radius each.</summary>
+			public void Bulbs(int count)
+			{
+				var names = new[] { "_OpticalLampB", "_OpticalLampC", "_OpticalLampD" };
+				for (var i = 0; i < names.Length; i++) {
+					_material.SetVector(names[i], new Vector4(0.01f * (i + 1), -0.015f, 0f, i < count - 1 ? 0.008f : 0f));
+				}
+			}
+
+			public Vector4 BulbDrive(int bulb)
+			{
+				var block = new MaterialPropertyBlock();
+				Control.GetComponent<MeshRenderer>().GetPropertyBlock(block, 0);
+				return block.GetVector(new[] { "_InsertLampColor", "_InsertLampColorB", "_InsertLampColorC", "_InsertLampColorD" }[bulb]);
+			}
 
 			public void Start() => Lamps.OnStart();
 
@@ -249,6 +265,168 @@ namespace VisualPinball.Unity.Test
 				Object.DestroyImmediate(_mesh);
 				Object.DestroyImmediate(_material);
 			}
+		}
+
+		[Test]
+		public void ShouldOfferOneLampPerBulbOfTheMaterial()
+		{
+			using var fixture = new MappedInsert();
+			Assert.That(fixture.Control.BulbCount, Is.EqualTo(1));
+			Assert.That(fixture.Control.AvailableLamps.Select(l => l.Id), Is.EqualTo(new[] { LightComponent.LampIdDefault }));
+			Assert.That(fixture.Control.AvailableLamps.Single().Description, Is.Null.Or.Empty, "one bulb is one lamp, nothing to pick");
+
+			fixture.Bulbs(3);
+			Assert.That(fixture.Control.BulbCount, Is.EqualTo(3));
+			Assert.That(fixture.Control.AvailableLamps.Select(l => l.Id), Is.EqualTo(new[] { LightComponent.LampIdDefault, "bulb_2", "bulb_3" }));
+			Assert.That(fixture.Control.AvailableLamps.Select(l => l.Description), Is.EqualTo(new[] { "Bulb 1", "Bulb 2", "Bulb 3" }));
+			Assert.That(InsertLightComponent.BulbIndex(null), Is.Zero);
+			Assert.That(InsertLightComponent.BulbIndex(LightComponent.LampIdDefault), Is.Zero);
+			Assert.That(InsertLightComponent.BulbIndex("bulb_3"), Is.EqualTo(2));
+			Assert.That(InsertLightComponent.BulbIndex("bulb_9"), Is.EqualTo(3), "clamped to the last bulb");
+			var device = (IApiLampDevice)fixture.Api;
+			Assert.That(device.Lamp(LightComponent.LampIdDefault), Is.SameAs(fixture.Api));
+			Assert.That(device.Lamp(null), Is.SameAs(fixture.Api));
+			Assert.That(device.Lamp("bulb_2"), Is.Not.SameAs(fixture.Api));
+			Assert.That(device.Lamp("bulb_2"), Is.SameAs(device.Lamp("bulb_2")), "one API per bulb");
+			Assert.That(fixture.Player.Lamp(fixture.Control, "bulb_2"), Is.SameAs(device.Lamp("bulb_2")));
+			Assert.That(fixture.Player.Lamp(fixture.Control, LightComponent.LampIdDefault), Is.SameAs(fixture.Api));
+		}
+
+		[Test]
+		public void ShouldDriveEachBulbFromItsOwnMapping()
+		{
+			using var fixture = new MappedInsert();
+			fixture.Bulbs(3);
+			fixture.Map("42", LampType.SingleFading, steps: 100);
+			fixture.Map("43", LampType.SingleFading, steps: 100, item: "bulb_2");
+			fixture.Map("44", LampType.SingleOnOff, item: "bulb_3");
+			fixture.Start();
+			fixture.AssertLevel(0f);
+			Assert.That(fixture.BulbDrive(1).w, Is.Zero, "bulbs start off");
+			Assert.That(fixture.BulbDrive(2).w, Is.Zero);
+
+			// The lamp state keeps the level as a byte, so a half is 127 of 255.
+			fixture.Lamps.HandleLampEvent("43", 50f);
+			fixture.Control.Apply();
+			Assert.That(fixture.Control.Intensity, Is.Zero, "the first bulb is not the second");
+			Assert.That(fixture.Control.ExtraBulbs[0].Intensity, Is.EqualTo(0.5f).Within(0.005f));
+			Assert.That(fixture.BulbDrive(1).w, Is.EqualTo(0.5f).Within(0.005f));
+			Assert.That(fixture.BulbDrive(2).w, Is.Zero);
+
+			fixture.Lamps.HandleLampEvent("44", 1f);
+			fixture.Lamps.HandleLampEvent("42", 100f);
+			fixture.Control.Apply();
+			fixture.AssertLevel(1f);
+			Assert.That(fixture.BulbDrive(1).w, Is.EqualTo(0.5f).Within(0.005f));
+			Assert.That(fixture.BulbDrive(2).w, Is.EqualTo(1f));
+
+			fixture.Lamps.HandleLampEvent("44", 0f);
+			fixture.Control.Apply();
+			Assert.That(fixture.BulbDrive(2).w, Is.Zero);
+			Assert.That(fixture.BulbDrive(1).w, Is.EqualTo(0.5f).Within(0.005f), "the other bulbs keep theirs");
+			fixture.AssertLevel(1f);
+		}
+
+		[Test]
+		public void ShouldComposeRgbChannelsPerBulb()
+		{
+			using var fixture = new MappedInsert();
+			fixture.Bulbs(2);
+			fixture.Map("60", LampType.RgbMulti, ColorChannel.Red);
+			fixture.Map("61", LampType.RgbMulti, ColorChannel.Green);
+			fixture.Map("62", LampType.RgbMulti, ColorChannel.Blue);
+			fixture.Map("70", LampType.RgbMulti, ColorChannel.Red, item: "bulb_2");
+			fixture.Map("71", LampType.RgbMulti, ColorChannel.Green, item: "bulb_2");
+			fixture.Map("72", LampType.RgbMulti, ColorChannel.Blue, item: "bulb_2");
+			fixture.Start();
+			fixture.Lamps.HandleLampEvent("60", 255f);
+			fixture.Lamps.HandleLampEvent("72", 255f);
+			fixture.Control.Apply();
+			Assert.That(fixture.Control.Color.r, Is.EqualTo(1f).Within(0.001f));
+			Assert.That(fixture.Control.Color.b, Is.Zero, "the second bulb's blue is not the first's");
+			Assert.That(fixture.Control.ExtraBulbs[0].Color.r, Is.Zero);
+			Assert.That(fixture.Control.ExtraBulbs[0].Color.b, Is.EqualTo(1f).Within(0.001f));
+			Assert.That(fixture.BulbDrive(1).z, Is.EqualTo(1f).Within(0.001f));
+			Assert.That(fixture.BulbDrive(1).w, Is.EqualTo(1f), "RGB channels without an intensity channel drive the bulb fully");
+			fixture.Lamps.HandleLampEvent("71", 128f);
+			Assert.That(fixture.Control.ExtraBulbs[0].Color.g, Is.EqualTo(128f / 255f).Within(0.001f));
+			Assert.That(fixture.Control.ExtraBulbs[0].Color.b, Is.EqualTo(1f).Within(0.001f), "composed from every channel of that bulb");
+			Assert.That(fixture.Control.Color.g, Is.Zero);
+		}
+
+		[Test]
+		public void ShouldLeaveTheFirstBulbToAParentLightWhenOnlyAnotherIsMapped()
+		{
+			using var fixture = new MappedInsert();
+			fixture.Bulbs(2);
+			fixture.Map("43", LampType.SingleOnOff, item: "bulb_2");
+			fixture.Start();
+			fixture.Lamps.HandleLampEvent("43", 1f);
+			Assert.That(fixture.Control.IsControlledByApi, Is.False, "the second bulb's event does not claim the first");
+			Assert.That(fixture.Control.AreExtraBulbsControlledByApi, Is.True);
+			fixture.Api.OnDestroy();
+			Assert.That(fixture.Control.AreExtraBulbsControlledByApi, Is.False);
+		}
+
+		[Test]
+		public void ShouldPreviewEachBulbFromLampManager()
+		{
+			using var fixture = new MappedInsert();
+			fixture.Bulbs(2);
+			fixture.Control.SetBulbEnabled("bulb_2", true);
+			Assert.That(fixture.Control.ExtraBulbs[0].Intensity, Is.EqualTo(1f));
+			fixture.Control.SetBulbEnabled("bulb_2", false);
+			Assert.That(fixture.Control.ExtraBulbs[0].Intensity, Is.Zero);
+			Assert.That(fixture.Control.Intensity, Is.EqualTo(1f), "the first bulb is untouched");
+			fixture.Control.SetBulbEnabled(LightComponent.LampIdDefault, false);
+			Assert.That(fixture.Control.Intensity, Is.Zero);
+		}
+
+		[Test]
+		public void ShouldComposeRgbFromTheBulbsOwnChannelsOnly()
+		{
+			using var fixture = new MappedInsert();
+			fixture.Bulbs(2);
+			// One ID is the first bulb's intensity and the second bulb's red: each
+			// bulb reads only what the ID means to it. And the first bulb's channels
+			// are named two ways, both meaning the first bulb.
+			fixture.Map("60", LampType.RgbMulti, ColorChannel.Red, item: "");
+			fixture.Map("61", LampType.RgbMulti, ColorChannel.Green);
+			fixture.Map("63", LampType.RgbMulti, ColorChannel.Alpha);
+			fixture.Map("63", LampType.RgbMulti, ColorChannel.Red, item: "bulb_2");
+			fixture.Map("71", LampType.RgbMulti, ColorChannel.Green, item: "bulb_2");
+			fixture.Start();
+			fixture.Lamps.HandleLampEvent("60", 255f);
+			fixture.Lamps.HandleLampEvent("61", 255f);
+			Assert.That(fixture.Control.Color.r, Is.EqualTo(1f).Within(0.001f), "both names of the first bulb compose together");
+			Assert.That(fixture.Control.Color.g, Is.EqualTo(1f).Within(0.001f));
+			fixture.Lamps.HandleLampEvent("63", 128f);
+			fixture.AssertLevel(128f / 255f);
+			Assert.That(fixture.Control.ExtraBulbs[0].Color.r, Is.EqualTo(128f / 255f).Within(0.001f));
+			Assert.That(fixture.Control.ExtraBulbs[0].Intensity, Is.EqualTo(1f), "the second bulb has no intensity channel: full");
+			fixture.Lamps.HandleLampEvent("71", 255f);
+			Assert.That(fixture.Control.ExtraBulbs[0].Intensity, Is.EqualTo(1f));
+			Assert.That(fixture.Control.ExtraBulbs[0].Color.r, Is.EqualTo(128f / 255f).Within(0.001f));
+			Assert.That(fixture.Control.ExtraBulbs[0].Color.g, Is.EqualTo(1f).Within(0.001f));
+			fixture.AssertLevel(128f / 255f);
+		}
+
+		[Test]
+		public void ShouldDriveEveryBulbMappedToTheSameLamp()
+		{
+			using var fixture = new MappedInsert();
+			fixture.Bulbs(2);
+			fixture.Map("42", LampType.SingleOnOff);
+			fixture.Map("42", LampType.SingleOnOff, item: "bulb_2");
+			fixture.Start();
+			fixture.Lamps.HandleLampEvent("42", 1f);
+			fixture.Control.Apply();
+			fixture.AssertLevel(1f);
+			Assert.That(fixture.BulbDrive(1).w, Is.EqualTo(1f));
+			fixture.Lamps.HandleLampEvent("42", 0f);
+			fixture.Control.Apply();
+			fixture.AssertLevel(0f);
+			Assert.That(fixture.BulbDrive(1).w, Is.Zero);
 		}
 
 		[Test]

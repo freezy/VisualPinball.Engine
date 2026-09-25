@@ -41,8 +41,18 @@ namespace VisualPinball.Unity
 			public Color Color = UnityEngine.Color.white;
 		}
 
-		[Tooltip("The material's second, third and fourth bulb, where it has them: each with a colour and intensity of its own. The first bulb is Intensity and Color above.")]
+		[Tooltip("The material's second, third and fourth bulb, where it has them: each with a colour and intensity of its own, driven by its own lamp mapping. The first bulb is Intensity and Color above.")]
 		public Bulb[] ExtraBulbs = { new(), new(), new() };
+
+		/// <summary>How many bulbs the material can have: the first and three more.</summary>
+		public const int MaxBulbs = 4;
+
+		/// <summary>
+		/// The device item of a bulb beyond the first, its one-based number
+		/// appended; the first bulb's is the default lamp id, so a mapping made
+		/// before the bulbs came keeps driving it.
+		/// </summary>
+		public const string BulbIdPrefix = "bulb_";
 
 		[Tooltip("Turns the hue and saturation of the body and of the clear cover towards the lamp's while the lamp is lit, as far as it is lit, never their brightness: a grey cover milks a coloured lamp otherwise. A white lamp changes nothing, and a lamp that is off leaves both their own colour.")]
 		public bool TintWithLamp;
@@ -90,13 +100,72 @@ namespace VisualPinball.Unity
 		public IEnumerable<Light> LightSources => SpillLight != null ? new[] { SpillLight } : Array.Empty<Light>();
 		public Color LampColor => Color;
 		public LampStatus LampStatus => _blinking ? LampStatus.Blinking : Intensity > 0f ? LampStatus.On : LampStatus.Off;
-		public IEnumerable<GamelogicEngineLamp> AvailableLamps => new[] { new GamelogicEngineLamp(LightComponent.LampIdDefault) };
+		/// <summary>
+		/// One lamp per bulb the material has: an insert with one bulb is one
+		/// lamp, as any light, and one with more offers Bulb 1 to Bulb 4 as the
+		/// device items to map, each with a lamp of its own.
+		/// </summary>
+		public IEnumerable<GamelogicEngineLamp> AvailableLamps {
+			get {
+				var count = BulbCount;
+				if (count <= 1) {
+					return new[] { new GamelogicEngineLamp(LightComponent.LampIdDefault) };
+				}
+				var lamps = new GamelogicEngineLamp[count];
+				for (var i = 0; i < count; i++) {
+					lamps[i] = new GamelogicEngineLamp(BulbId(i)) { Description = $"Bulb {i + 1}" };
+				}
+				return lamps;
+			}
+		}
+
+		/// <summary>
+		/// How many bulbs the material has switched on: the first and those
+		/// beyond it up to the highest with a radius, since the shader lights
+		/// every one that has one, whatever a revert left in between.
+		/// </summary>
+		public int BulbCount {
+			get {
+				var renderer = _renderer != null ? _renderer : GetComponent<MeshRenderer>();
+				var material = renderer != null ? renderer.sharedMaterial : null;
+				if (material == null) {
+					return 1;
+				}
+				var count = 1;
+				for (var i = 1; i < LampIds.Length; i++) {
+					if (material.HasProperty(LampIds[i]) && material.GetVector(LampIds[i]).w > 0f) {
+						count = i + 1;
+					}
+				}
+				return count;
+			}
+		}
+
+		/// <summary>The device item naming the bulb at that index.</summary>
+		public static string BulbId(int bulb) => bulb <= 0 ? LightComponent.LampIdDefault : BulbIdPrefix + (bulb + 1);
+
+		/// <summary>
+		/// The bulb a device item names: the first for the default lamp, for
+		/// no item at all and for anything unknown.
+		/// </summary>
+		public static int BulbIndex(string deviceItem)
+		{
+			if (!string.IsNullOrEmpty(deviceItem) && deviceItem.StartsWith(BulbIdPrefix)
+				&& int.TryParse(deviceItem.Substring(BulbIdPrefix.Length), out var number)) {
+				return math.clamp(number - 1, 0, MaxBulbs - 1);
+			}
+			return 0;
+		}
 		public IEnumerable<GamelogicEngineLamp> AvailableDeviceItems => AvailableLamps;
 		IEnumerable<IGamelogicEngineDeviceItem> IWireableComponent.AvailableWireDestinations => AvailableLamps;
 		IEnumerable<IGamelogicEngineDeviceItem> IDeviceComponent<IGamelogicEngineDeviceItem>.AvailableDeviceItems => AvailableLamps;
 
 		// Once this device receives an event, a parent Light must not overwrite it.
+		// The first bulb is the one a parent Light drives; the others are owned
+		// on their own, so mapping only a second bulb leaves the first to the
+		// parent.
 		internal bool IsControlledByApi { get; private set; }
+		internal bool AreExtraBulbsControlledByApi { get; private set; }
 
 		private void Awake() => RegisterWithPlayer();
 
@@ -120,6 +189,7 @@ namespace VisualPinball.Unity
 		internal void ReleaseApiControl()
 		{
 			IsControlledByApi = false;
+			AreExtraBulbsControlledByApi = false;
 			_blinking = false;
 		}
 
@@ -145,6 +215,57 @@ namespace VisualPinball.Unity
 			_blinkStarted = Time.time;
 		}
 
+		/// <summary>
+		/// Drives one bulb: the first is the lamp itself, the others their own
+		/// entry, which a blinking status leaves on, since only the first bulb
+		/// blinks.
+		/// </summary>
+		internal void SetBulbIntensity(int bulb, float value)
+		{
+			if (bulb <= 0) {
+				SetLampIntensity(value);
+				return;
+			}
+			AreExtraBulbsControlledByApi = true;
+			ExtraBulb(bulb).Intensity = math.saturate(value);
+			Apply();
+		}
+
+		internal void SetBulbColor(int bulb, Color value)
+		{
+			if (bulb <= 0) {
+				SetLampColor(value);
+				return;
+			}
+			AreExtraBulbsControlledByApi = true;
+			var extra = ExtraBulb(bulb);
+			extra.Color = new Color(value.r, value.g, value.b, extra.Color.a);
+			Apply();
+		}
+
+		internal void SetBulbStatus(int bulb, LampStatus status)
+		{
+			if (bulb <= 0) {
+				SetLampStatus(status);
+				return;
+			}
+			SetBulbIntensity(bulb, status == LampStatus.Off ? 0f : 1f);
+		}
+
+		/// <summary>The entry of a bulb beyond the first, the array made whole if it was cut short.</summary>
+		private Bulb ExtraBulb(int bulb)
+		{
+			var index = math.clamp(bulb, 1, MaxBulbs - 1) - 1;
+			if (ExtraBulbs == null || ExtraBulbs.Length < MaxBulbs - 1) {
+				var bulbs = new Bulb[MaxBulbs - 1];
+				for (var i = 0; i < bulbs.Length; i++) {
+					bulbs[i] = ExtraBulbs != null && i < ExtraBulbs.Length && ExtraBulbs[i] != null ? ExtraBulbs[i] : new Bulb();
+				}
+				ExtraBulbs = bulbs;
+			}
+			return ExtraBulbs[index] ??= new Bulb();
+		}
+
 		/// <summary>Immediate on/off preview used by Lamp Manager outside play mode.</summary>
 		public bool Enabled {
 			set {
@@ -152,6 +273,18 @@ namespace VisualPinball.Unity
 				Intensity = value ? 1f : 0f;
 				Apply();
 			}
+		}
+
+		/// <summary>The same preview for the bulb a device item names.</summary>
+		public void SetBulbEnabled(string deviceItem, bool enabled)
+		{
+			var bulb = BulbIndex(deviceItem);
+			if (bulb == 0) {
+				Enabled = enabled;
+				return;
+			}
+			ExtraBulb(bulb).Intensity = enabled ? 1f : 0f;
+			Apply();
 		}
 
 		private void OnEnable()
@@ -257,17 +390,20 @@ namespace VisualPinball.Unity
 				var material = _renderer.sharedMaterial;
 				_renderer.GetPropertyBlock(_properties, 0);
 				if (material.HasProperty(LuminosityId)) {
-					// The extra bulbs go with the first: off, or back to the material's own.
+					// Each bulb the game drove goes off; the others go back to the material's own.
 					if (IsControlledByApi) {
 						_properties.SetFloat(LevelId, 0f);
+					} else if (!Application.isPlaying || _driver == null) {
+						_properties.SetFloat(LevelId, material.GetFloat(LevelId));
+						_properties.SetVector(ColorId, material.GetVector(ColorId));
+					}
+					if (AreExtraBulbsControlledByApi) {
 						foreach (var id in BulbColorIds) {
 							var drive = _properties.HasVector(id) ? _properties.GetVector(id) : new Vector4(1f, 1f, 1f, 0f);
 							drive.w = 0f;
 							_properties.SetVector(id, drive);
 						}
 					} else if (!Application.isPlaying || _driver == null) {
-						_properties.SetFloat(LevelId, material.GetFloat(LevelId));
-						_properties.SetVector(ColorId, material.GetVector(ColorId));
 						foreach (var id in BulbColorIds) {
 							if (material.HasProperty(id)) {
 								_properties.SetVector(id, material.GetVector(id));

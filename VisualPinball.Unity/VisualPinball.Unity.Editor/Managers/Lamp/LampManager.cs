@@ -175,7 +175,10 @@ namespace VisualPinball.Unity.Editor
 				var handledByApi = false;
 				if (Application.isPlaying && player) {
 					try {
-						device.GetApi(player).OnLamp(enabled ? LampStatus.On : LampStatus.Off);
+						// The lamp the mapping names on the device, one bulb of an insert
+						// with several, or the device's own.
+						var api = player.Lamp(device, lampMapping.DeviceItem) ?? device.GetApi(player);
+						api.OnLamp(enabled ? LampStatus.On : LampStatus.Off);
 						handledByApi = true;
 					} catch (Exception ex) {
 						Logger.Warn(ex, $"Failed to toggle lamp via API for device \"{(device as Component)?.name}\".");
@@ -183,12 +186,12 @@ namespace VisualPinball.Unity.Editor
 				}
 
 				if (!handledByApi) {
-					SetLampDeviceEnabled(device, enabled);
+					SetLampDeviceEnabled(device, lampMapping.DeviceItem, enabled);
 				}
 			}
 		}
 
-		private static void SetLampDeviceEnabled(ILampDeviceComponent device, bool enabled)
+		private static void SetLampDeviceEnabled(ILampDeviceComponent device, string deviceItem, bool enabled)
 		{
 			// In edit mode LightComponent runtime caches are not initialized yet,
 			// so directly toggling Unity lights keeps the manager buttons responsive.
@@ -198,14 +201,14 @@ namespace VisualPinball.Unity.Editor
 
 			switch (device) {
 				case InsertLightComponent insert:
-					insert.Enabled = enabled;
+					insert.SetBulbEnabled(deviceItem, enabled);
 					break;
 				case LightComponent lightComponent:
 					lightComponent.Enabled = enabled;
 					break;
 				case LightGroupComponent lightGroup:
 					foreach (var child in lightGroup.Lights.Where(child => child != null)) {
-						SetLampDeviceEnabled(child, enabled);
+						SetLampDeviceEnabled(child, deviceItem, enabled);
 					}
 					break;
 				default:

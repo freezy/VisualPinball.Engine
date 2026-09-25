@@ -98,7 +98,7 @@ namespace VisualPinball.Unity.Editor
 			if (player == null || data.Device == null || string.IsNullOrEmpty(data.DeviceItem)) {
 				return;
 			}
-			var lamp = player.Lamp(data.Device);
+			var lamp = player.Lamp(data.Device, data.DeviceItem);
 			lamp?.OnChange(pressedDown);
 			if (player.LampStatuses.ContainsKey(data.Id)) {
 				var status = player.LampStatuses[data.Id];
