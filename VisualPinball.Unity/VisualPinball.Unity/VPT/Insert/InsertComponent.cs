@@ -453,7 +453,12 @@ namespace VisualPinball.Unity
 				var mesh = GetOrCreateMesh();
 				var layout = new InsertMeshLayout();
 				InsertMeshGenerator.Generate(outline, body, mesh, layout);
-				IsBakeFresh = _bake != null && _bake.TryApply(mesh, layout.Hash);
+				// An engraved line is geometry for the bake alone: while a bake
+				// fits, the raised middle is pressed flat and the line lives in
+				// the maps; a change to it makes the bake stale, and the trough
+				// is back in the mesh until the next bake.
+				var flat = body.Groove != null ? FlatVertices(layout) : null;
+				IsBakeFresh = _bake != null && _bake.TryApply(mesh, layout.Hash, flat, layout.FlatHeight);
 				// Add the cover only after applying the body's bake. It must never
 				// change the bake hash, atlas, or per-corner tangent mapping.
 				// The renderer's second slot is the cover: whatever was put there,
@@ -478,9 +483,75 @@ namespace VisualPinball.Unity
 				} else if (slots.Length > 1) {
 					renderer.sharedMaterials = new[] { renderer.sharedMaterial };
 				}
+				UpdateBakePreview(renderer);
 
 			} catch (InsertOutlineException exception) {
 				Error = exception.Message;
+			}
+		}
+
+		/// <summary>Which generated vertices belong to the raised middle, or null without one.</summary>
+		private static bool[] FlatVertices(InsertMeshLayout layout)
+		{
+			if (layout.FlatChart < 0 || layout.VertexCharts == null) {
+				return null;
+			}
+			var flat = new bool[layout.VertexCharts.Length];
+			for (var i = 0; i < flat.Length; i++) {
+				flat[i] = layout.VertexCharts[i] == layout.FlatChart;
+			}
+			return flat;
+		}
+
+		/// <summary>
+		/// Whether the insert shows its geometry in place of the bake's maps:
+		/// while the bake is stale, the maps no longer lie on the geometry.
+		/// </summary>
+		public bool IsShowingGeometry { get; private set; }
+
+		private static readonly int FacetFlattenId = Shader.PropertyToID("_InsertFacetFlatten");
+
+		/// <summary>
+		/// The hybrid material's terms that draw the look from the maps, held at
+		/// zero while the geometry is shown: the shading normal is then the
+		/// mesh's own, unflattened, and the facets do not refract or contrast.
+		/// </summary>
+		private static readonly int[] GeometryPreviewIds = {
+			FacetFlattenId,
+			Shader.PropertyToID("_NormalStrength"),
+			Shader.PropertyToID("_OpticalWarp"),
+			Shader.PropertyToID("_OpticalContrast"),
+		};
+
+		private MaterialPropertyBlock _bakePreview;
+
+		/// <summary>
+		/// Shows the geometry while the bake is stale and the insert wears the
+		/// bake's material, through the renderer's property block, so nothing
+		/// is written to the material or the scene; a bake that fits takes the
+		/// hold off. A block cannot give one value back, so the whole block
+		/// goes, and the Insert Light puts its own values into it again.
+		/// </summary>
+		private void UpdateBakePreview(MeshRenderer renderer)
+		{
+			var material = renderer.sharedMaterial;
+			var show = _bake != null && !IsBakeFresh && material != null && material == _bake.Material && material.HasProperty(FacetFlattenId);
+			if (show == IsShowingGeometry) {
+				return;
+			}
+			IsShowingGeometry = show;
+			if (show) {
+				_bakePreview ??= new MaterialPropertyBlock();
+				renderer.GetPropertyBlock(_bakePreview, 0);
+				foreach (var id in GeometryPreviewIds) {
+					_bakePreview.SetFloat(id, 0f);
+				}
+				renderer.SetPropertyBlock(_bakePreview, 0);
+			} else {
+				renderer.SetPropertyBlock(null, 0);
+				if (TryGetComponent<InsertLightComponent>(out var light)) {
+					light.Apply();
+				}
 			}
 		}
 

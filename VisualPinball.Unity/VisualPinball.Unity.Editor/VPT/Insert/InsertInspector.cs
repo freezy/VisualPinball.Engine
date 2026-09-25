@@ -424,6 +424,11 @@ namespace VisualPinball.Unity.Editor
 				Field(_flashGrooveWidth, "Width");
 				Field(_flashGrooveDepth, "Depth");
 				Field(_flashGrooveSegments, "Segments");
+				if (targets.Length == 1 && target is InsertComponent single && single.Groove != null) {
+					EditorGUILayout.HelpBox(single.IsBakeFresh
+						? "Baked: the middle is flat and the line is in the maps. Changing the line puts its trough back into the mesh until the next bake."
+						: "The line is a trough in the mesh, for the bake: once baked, the middle is flat and the line is in the maps.", MessageType.None);
+				}
 				// A line that did not fit says so here, where its settings are.
 				foreach (var selected in targets) {
 					if (selected is InsertComponent component && component.Groove == null) {
@@ -824,6 +829,8 @@ namespace VisualPinball.Unity.Editor
 					EditorGUILayout.HelpBox($"Baked. UVs packed by {insert.Bake.Packer}, covering {insert.Bake.UvFill:P0} of the texture.", MessageType.Info);
 				} else if (IsLocked) {
 					EditorGUILayout.HelpBox("The insert geometry has changed, and its bake cannot be updated where it is. Fork to Project to bake it here.", MessageType.Warning);
+				} else if (insert.IsShowingGeometry) {
+					EditorGUILayout.HelpBox("The insert geometry has changed, so the insert shows its geometry in place of the bake's maps: the mesh's own shading, an engraved line as a trough, no facet flattening. Bake Again to put the geometry into the maps, with the UVs, normals and optical maps.", MessageType.Warning);
 				} else {
 					EditorGUILayout.HelpBox("The insert geometry has changed. The material is kept as a preview, but its baked textures may no longer line up. Bake Again to update the UVs, normals and optical maps.", MessageType.Warning);
 				}

@@ -467,6 +467,177 @@ namespace VisualPinball.Unity.Test
 			}
 		}
 
+		/// <summary>A bake that fits the mesh as generated: its own UVs and tangents, per corner.</summary>
+		private static InsertBakeData GeneratorBake(Mesh mesh, Hash128 hash)
+		{
+			var triangles = mesh.triangles;
+			var uvs = mesh.uv;
+			var tangents = mesh.tangents;
+			var bake = ScriptableObject.CreateInstance<InsertBakeData>();
+			bake.Hash = hash.ToString();
+			bake.Uvs = triangles.Select(vertex => uvs[vertex]).ToArray();
+			bake.Tangents = triangles.Select(vertex => tangents[vertex]).ToArray();
+			return bake;
+		}
+
+		private static InsertComponent EngravedFlash(GameObject go)
+		{
+			var insert = go.AddComponent<InsertComponent>();
+			var settings = new UnityEditor.SerializedObject(insert);
+			settings.FindProperty("_shape").enumValueIndex = (int)InsertShape.Flash;
+			settings.FindProperty("_channel").boolValue = false;
+			settings.FindProperty("_flashGroove").boolValue = true;
+			settings.ApplyModifiedPropertiesWithoutUndo();
+			insert.RebuildMesh();
+			Assert.That(insert.Groove, Is.Not.Null, string.Join(" | ", insert.Warnings));
+			return insert;
+		}
+
+		private static bool HasTrough(Mesh mesh, float surface, float trough)
+			=> mesh.vertices.Any(v => v.y < surface - 1e-5f && v.y > trough - 1e-5f);
+
+		[Test]
+		public void ShouldPressTheEngravedMiddleFlatWhileTheBakeFits()
+		{
+			var go = new GameObject("Engraved flash");
+			var probe = new Mesh();
+			InsertBakeData bake = null;
+			try {
+				var insert = EngravedFlash(go);
+				var layout = new InsertMeshLayout();
+				insert.Generate(probe, layout);
+				var surface = layout.FlatHeight;
+				var trough = InsertMeshGenerator.ToLocal(float2.zero, -insert.Body.Depth - insert.Groove.Depth).y;
+				var filter = go.GetComponent<MeshFilter>();
+				Assert.That(HasTrough(filter.sharedMesh, surface, trough), Is.True, "the trough is in the mesh before a bake");
+
+				bake = GeneratorBake(probe, layout.Hash);
+				insert.SetBake(bake);
+				Assert.That(insert.IsBakeFresh, Is.True);
+				var mesh = filter.sharedMesh;
+				Assert.That(HasTrough(mesh, surface, trough), Is.False, "a fitting bake presses the trough flat");
+				var vertices = mesh.vertices;
+				var normals = mesh.normals;
+				var tangents = mesh.tangents;
+				var pressed = 0;
+				for (var i = 0; i < vertices.Length; i++) {
+					if (Mathf.Abs(vertices[i].y - surface) > 1e-5f || normals[i] != Vector3.up) {
+						continue;
+					}
+					pressed++;
+					Assert.That(tangents[i].y, Is.EqualTo(0f).Within(1e-5f), "a flat vertex's tangent lies in the flat face");
+					Assert.That(new Vector2(tangents[i].x, tangents[i].z).magnitude, Is.EqualTo(1f).Within(1e-4f));
+					Assert.That(Mathf.Abs(tangents[i].w), Is.EqualTo(1f));
+				}
+				Assert.That(pressed, Is.GreaterThan(0));
+
+				// A change to the line makes the bake stale, and the trough comes back.
+				var settings = new UnityEditor.SerializedObject(insert);
+				settings.FindProperty("_flashGrooveInset").floatValue = 7f;
+				settings.ApplyModifiedPropertiesWithoutUndo();
+				insert.RebuildMesh();
+				Assert.That(insert.IsBakeFresh, Is.False);
+				Assert.That(HasTrough(filter.sharedMesh, surface, trough), Is.True, "a stale bake shows the trough again");
+			} finally {
+				Object.DestroyImmediate(go);
+				Object.DestroyImmediate(probe);
+				if (bake != null) {
+					Object.DestroyImmediate(bake);
+				}
+			}
+		}
+
+		[Test]
+		public void ShouldKeepTheStarburstInTheMeshUnderAFittingBake()
+		{
+			var go = new GameObject("Starburst insert");
+			var probe = new Mesh();
+			InsertBakeData bake = null;
+			try {
+				var insert = go.AddComponent<InsertComponent>();
+				var settings = new UnityEditor.SerializedObject(insert);
+				settings.FindProperty("_starburst").boolValue = true;
+				settings.FindProperty("_starburstBursts").intValue = 16;
+				settings.FindProperty("_channel").boolValue = true;
+				settings.ApplyModifiedPropertiesWithoutUndo();
+				insert.RebuildMesh();
+				var layout = new InsertMeshLayout();
+				insert.Generate(probe, layout);
+				bake = GeneratorBake(probe, layout.Hash);
+				insert.SetBake(bake);
+				Assert.That(insert.IsBakeFresh, Is.True);
+				var raised = go.GetComponent<MeshFilter>().sharedMesh.vertices.Any(v => v.y > layout.FlatHeight + 1e-4f && v.y < -1e-4f);
+				Assert.That(raised, Is.True, "the starburst's ridges stay in the mesh; only an engraved line is pressed flat");
+			} finally {
+				Object.DestroyImmediate(go);
+				Object.DestroyImmediate(probe);
+				if (bake != null) {
+					Object.DestroyImmediate(bake);
+				}
+			}
+		}
+
+		[Test]
+		public void ShouldShowTheGeometryWhileTheBakeIsStale()
+		{
+			var shader = Shader.Find("Visual Pinball/Insert Hybrid");
+			if (shader == null) {
+				Assert.Ignore("Requires the HDRP insert shader.");
+			}
+			var go = new GameObject("Engraved flash");
+			var material = new Material(shader);
+			var probe = new Mesh();
+			var again = new Mesh();
+			InsertBakeData bake = null;
+			InsertBakeData refreshed = null;
+			try {
+				var insert = EngravedFlash(go);
+				var renderer = go.GetComponent<MeshRenderer>();
+				var layout = new InsertMeshLayout();
+				insert.Generate(probe, layout);
+				bake = GeneratorBake(probe, layout.Hash);
+				bake.Material = material;
+				insert.SetBake(bake);
+				var light = go.AddComponent<InsertLightComponent>();
+				light.Intensity = 0.6f;
+				light.Apply();
+				var block = new MaterialPropertyBlock();
+				renderer.GetPropertyBlock(block, 0);
+				Assert.That(insert.IsShowingGeometry, Is.False);
+				Assert.That(block.HasFloat("_InsertFacetFlatten"), Is.False, "a fitting bake leaves the material's flattening alone");
+
+				var settings = new UnityEditor.SerializedObject(insert);
+				settings.FindProperty("_flashGrooveInset").floatValue = 7f;
+				settings.ApplyModifiedPropertiesWithoutUndo();
+				insert.RebuildMesh();
+				renderer.GetPropertyBlock(block, 0);
+				Assert.That(insert.IsShowingGeometry, Is.True);
+				Assert.That(block.GetFloat("_InsertFacetFlatten"), Is.EqualTo(0f), "a stale bake shows the mesh's own shading");
+				Assert.That(block.GetFloat("_NormalStrength"), Is.EqualTo(0f));
+				Assert.That(block.GetFloat("_InsertLampLevel"), Is.EqualTo(0.6f).Within(1e-5f), "the light's own values stay in the block");
+
+				var layoutAgain = new InsertMeshLayout();
+				insert.Generate(again, layoutAgain);
+				refreshed = GeneratorBake(again, layoutAgain.Hash);
+				refreshed.Material = material;
+				insert.SetBake(refreshed);
+				renderer.GetPropertyBlock(block, 0);
+				Assert.That(insert.IsShowingGeometry, Is.False);
+				Assert.That(block.HasFloat("_InsertFacetFlatten"), Is.False, "a bake that fits again takes the hold off");
+				Assert.That(block.GetFloat("_InsertLampLevel"), Is.EqualTo(0.6f).Within(1e-5f), "and the light puts its values back");
+			} finally {
+				Object.DestroyImmediate(go);
+				Object.DestroyImmediate(material);
+				Object.DestroyImmediate(probe);
+				Object.DestroyImmediate(again);
+				foreach (var data in new[] { bake, refreshed }) {
+					if (data != null) {
+						Object.DestroyImmediate(data);
+					}
+				}
+			}
+		}
+
 		private static InsertBakeData FakeBake(Mesh mesh, Hash128 hash)
 		{
 			// Every corner its own UV and a tangent flipping from corner to corner,
