@@ -8,6 +8,7 @@ using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
+using Unity.Mathematics;
 
 namespace VisualPinball.Unity.Test
 {
@@ -222,6 +223,110 @@ namespace VisualPinball.Unity.Test
 				Object.DestroyImmediate(mesh);
 				Object.DestroyImmediate(material);
 			}
+		}
+
+		[Test]
+		public void ShouldErodeAFlashIntoItsEngravedLine()
+		{
+			var warnings = new System.Collections.Generic.List<string>();
+			var corners = InsertShapes.FlashCorners(50f, 125f, 10f, 16f, -8f,
+				new InsertCornerSettings(5.2f, 4), new InsertCornerSettings(5f, 4), new InsertCornerSettings(3f, 3), warnings);
+			var outline = InsertOutlineBuilder.Build(corners);
+			var eroded = InsertShapes.Erode(outline, 6f, 1f, warnings);
+			Assert.That(eroded, Is.Not.Null);
+			Assert.That(eroded.Length, Is.EqualTo(6), "each flat end closes up into one point");
+			Assert.That(eroded.Count(c => c.Tag.Contains("+")), Is.EqualTo(2), "the merged ends carry both corners' names");
+			Assert.That(eroded.Where(c => c.Tag.StartsWith("Notch")).Select(c => c.Radius), Is.All.EqualTo(9f).Within(1e-4f), "concave corners widen by the distance");
+			Assert.That(eroded.Where(c => c.Tag.StartsWith("Spike")).Select(c => c.Radius), Is.All.EqualTo(1f).Within(1e-4f), "convex corners shrink, never below the minimum");
+			var line = InsertOutlineBuilder.Build(eroded, 1, center: false);
+			var polygon = outline.Points.Select(p => p.Position).ToList();
+			foreach (var point in line.Points) {
+				Assert.That(Inside(polygon, point.Position), Is.True, "the line stays inside the flash");
+				Assert.That(DistanceToEdges(polygon, point.Position), Is.GreaterThan(5.5f), "and about the inset away from its edge");
+			}
+			Assert.That(InsertShapes.Erode(outline, 60f, 1f, warnings), Is.Null, "an erosion past the shape leaves nothing");
+
+			// Arms whose notches nearly touch cross each other under the erosion.
+			var pinched = InsertOutlineBuilder.Build(InsertShapes.FlashCorners(100f, 125f, 10f, 45f, 0f,
+				new InsertCornerSettings(0f, 1), new InsertCornerSettings(0f, 1), new InsertCornerSettings(0f, 4), warnings));
+			Assert.That(InsertShapes.Erode(pinched, 6f, 0f, warnings), Is.Null, "an erosion that crosses itself leaves nothing in one piece");
+		}
+
+		[Test]
+		public void ShouldEngraveTheLineIntoAFlashsMiddleInsteadOfTheStarburst()
+		{
+			var go = new GameObject("Engraved flash");
+			Mesh mesh = null;
+			try {
+				var insert = go.AddComponent<InsertComponent>();
+				var settings = new UnityEditor.SerializedObject(insert);
+				settings.FindProperty("_shape").enumValueIndex = (int)InsertShape.Flash;
+				// Without a channel the line is eroded from the rim by its inset
+				// alone; a channel adds its width, and the default flash's arms
+				// would cross under that.
+				settings.FindProperty("_channel").boolValue = false;
+				settings.FindProperty("_starburst").boolValue = true;
+				settings.FindProperty("_flashGroove").boolValue = true;
+				settings.ApplyModifiedPropertiesWithoutUndo();
+				insert.RebuildMesh();
+				mesh = go.GetComponent<MeshFilter>().sharedMesh;
+				Assert.That(insert.Groove, Is.Not.Null);
+				Assert.That(insert.Body.StarburstBursts, Is.Zero, "the line takes the starburst's place");
+				Assert.That(insert.Warnings, Has.Some.Contains("starburst"));
+				var surface = InsertMeshGenerator.ToLocal(float2.zero, -insert.Body.Depth + insert.Body.ChannelDepth).y;
+				var trough = InsertMeshGenerator.ToLocal(float2.zero, -insert.Body.Depth + insert.Body.ChannelDepth - 0.8f).y;
+				var vertices = mesh.vertices;
+				var triangles = mesh.GetTriangles(0);
+				Assert.That(vertices.Any(v => math.abs(v.y - trough) < 1e-5f), Is.True, "the trough dips below the middle by its depth");
+				Assert.That(vertices.Count(v => v.y < surface - 1e-6f && v.y > trough - 1e-6f), Is.GreaterThan(insert.Groove.Outline.Points.Count), "with its rings between");
+				for (var t = 0; t < triangles.Length; t += 3) {
+					var a = vertices[triangles[t]];
+					var b = vertices[triangles[t + 1]];
+					var c = vertices[triangles[t + 2]];
+					if (a.y >= surface - 1e-6f && b.y >= surface - 1e-6f && c.y >= surface - 1e-6f || a.y < trough - 1e-6f || b.y < trough - 1e-6f || c.y < trough - 1e-6f) {
+						continue;
+					}
+					var normal = Vector3.Cross(b - a, c - a);
+					if (normal.magnitude < 1e-9f) {
+						continue;
+					}
+					Assert.That(normal.y / normal.magnitude, Is.GreaterThan(-1e-3f), "the trough faces up");
+				}
+				settings.FindProperty("_flashGroove").boolValue = false;
+				settings.ApplyModifiedPropertiesWithoutUndo();
+				insert.RebuildMesh();
+				Assert.That(insert.Groove, Is.Null);
+				Assert.That(insert.Body.StarburstBursts, Is.GreaterThan(0), "the starburst is back once the line is off");
+			} finally {
+				Object.DestroyImmediate(go);
+				Object.DestroyImmediate(mesh);
+			}
+		}
+
+		private static bool Inside(System.Collections.Generic.List<float2> polygon, float2 point)
+		{
+			var inside = false;
+			for (int i = 0, j = polygon.Count - 1; i < polygon.Count; j = i++) {
+				var a = polygon[i];
+				var b = polygon[j];
+				if (a.y > point.y != b.y > point.y && point.x < (b.x - a.x) * (point.y - a.y) / (b.y - a.y) + a.x) {
+					inside = !inside;
+				}
+			}
+			return inside;
+		}
+
+		private static float DistanceToEdges(System.Collections.Generic.List<float2> polygon, float2 point)
+		{
+			var nearest = float.MaxValue;
+			for (var i = 0; i < polygon.Count; i++) {
+				var a = polygon[i];
+				var b = polygon[(i + 1) % polygon.Count];
+				var side = b - a;
+				var t = math.saturate(math.dot(point - a, side) / math.max(math.lengthsq(side), 1e-9f));
+				nearest = math.min(nearest, math.distance(point, a + t * side));
+			}
+			return nearest;
 		}
 
 		[UnityTest]

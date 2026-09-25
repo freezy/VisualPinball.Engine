@@ -124,6 +124,30 @@ namespace VisualPinball.Unity
 		private InsertCornerSettings _flashNotchCorner = new(3f, 3);
 
 		[SerializeField]
+		[Tooltip("A thin line engraved into the flash's raised middle, a little way in from its edge: a lightning bolt drawn into the plastic, its ends sharp and its notches rounded. It takes the starburst's place.")]
+		private bool _flashGroove;
+
+		[SerializeField]
+		[Min(0.1f)]
+		[Tooltip("How far in from the raised middle's edge the line's middle runs, in VPX units. Far enough in and the flat ends close up into points.")]
+		private float _flashGrooveInset = 6f;
+
+		[SerializeField]
+		[Min(0.1f)]
+		[Tooltip("How wide the engraved line is, in VPX units.")]
+		private float _flashGrooveWidth = 2f;
+
+		[SerializeField]
+		[Min(0f)]
+		[Tooltip("How deep the line goes into the surface at its middle, in VPX units; its floor is a half round.")]
+		private float _flashGrooveDepth = 0.8f;
+
+		[SerializeField]
+		[Range(1, 16)]
+		[Tooltip("How many steps each side of the line's round floor is drawn with, from its edge down to its middle. One is a V cut.")]
+		private int _flashGrooveSegments = 3;
+
+		[SerializeField]
 		[Tooltip("The round of the bullet's tip: a circle of this radius touching the top, no wider than the bullet and no taller, drawn with this many segments over the whole arc, rounded up to an even count. A radius of zero makes a pointed tip.")]
 		private InsertCornerSettings _bulletTip = new(5f, 8);
 
@@ -305,6 +329,9 @@ namespace VisualPinball.Unity
 		/// input from here rather than re-deriving it from the parameters.
 		/// </summary>
 		public InsertOutline Outline { get; private set; }
+
+		/// <summary>The line engraved into the raised middle's surface, or null without one.</summary>
+		public InsertGroove Groove => Body.Groove;
 
 		/// <summary>
 		/// Non-fatal complaints about the current parameters, such as a corner
@@ -528,6 +555,46 @@ namespace VisualPinball.Unity
 			return InsertOutlineBuilder.Build(corners, Sampled ? 1 : _sideSegments);
 		}
 
+		/// <summary>
+		/// The flash's engraved line: the outline eroded by the channel's width
+		/// and the line's inset, which closes the flat ends up into points and
+		/// widens the notches, built into an outline of its own, its corners
+		/// sharp where the erosion sharpened them.
+		/// </summary>
+		private InsertGroove BuildGroove(InsertOutline outline, float channelWidth, List<string> warnings)
+		{
+			if (_shape != InsertShape.Flash || !_flashGroove) {
+				return null;
+			}
+			var half = math.max(_flashGrooveWidth, 0.1f) * 0.5f;
+			var inset = channelWidth + math.max(_flashGrooveInset, half + 0.01f);
+			// Sharp all the way: a tip the erosion closes up is a point, and the
+			// band's edges meet there in mitres, as the engraver's line does.
+			var corners = InsertShapes.Erode(outline, inset, 0f, warnings);
+			if (corners == null) {
+				warnings.Add("The engraved line does not fit inside the flash: bring its inset down.");
+				return null;
+			}
+			InsertOutline line;
+			try {
+				line = InsertOutlineBuilder.Build(corners, _sideSegments, center: false);
+			} catch (InsertOutlineException e) {
+				warnings.Add($"The engraved line cannot be drawn: {e.Message}");
+				return null;
+			}
+			foreach (var warning in line.Warnings) {
+				warnings.Add("Engraved line: " + warning);
+			}
+			// The band's inner edge may fold at a short side of the line; the
+			// mesh cuts such folds out, so the width is kept as asked.
+			return new InsertGroove {
+				Outline = line,
+				Width = half * 2f,
+				Depth = math.max(0f, _flashGrooveDepth),
+				Segments = math.clamp(_flashGrooveSegments, 1, 16),
+			};
+		}
+
 		/// <summary>Whether the shape's own vertex counts are its sampling, with no sides to subdivide.</summary>
 		private bool Sampled => _shape is InsertShape.Circle or InsertShape.Banana;
 
@@ -571,11 +638,19 @@ namespace VisualPinball.Unity
 				}
 			}
 
+			// The engraved line takes the raised middle's surface, where the
+			// starburst would be: the two never share it.
+			var groove = BuildGroove(outline, channelWidth, warnings);
+			if (groove != null && _starburst) {
+				warnings.Add("The engraved line takes the starburst's place: the starburst is not built while the line is on.");
+			}
+
 			var body = new InsertBody {
 				Depth = depth,
 				ChannelWidth = channelWidth,
 				ChannelDepth = channelDepth,
-				StarburstBursts = _starburst ? _starburstBursts : 0,
+				Groove = groove,
+				StarburstBursts = _starburst && groove == null ? _starburstBursts : 0,
 				StarburstCenter = new float2(_starburstCenter.x, _starburstCenter.y),
 				StarburstOffset = _starburstOffset,
 				Holes = channel ? _holes.ToArray() : null,

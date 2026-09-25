@@ -833,5 +833,170 @@ namespace VisualPinball.Unity
 		}
 
 		private static float Cot(float angle) => 1f / math.tan(angle);
+
+		/// <summary>
+		/// The outline's sharp polygon eroded by <paramref name="distance"/>: every
+		/// side moved in by that much, neighbouring sides meeting again where they
+		/// cross, and a side its neighbours cross before they reach it, such as
+		/// the flat end of a flash, gone, its two corners one sharp point. Convex
+		/// fillets shrink by the distance, never below
+		/// <paramref name="minConvexRadius"/>; concave ones grow by it, with more
+		/// segments to match, so the eroded shape keeps its rounds where it can.
+		/// </summary>
+		/// <remarks>
+		/// This is what an engraved line inside a shape follows: unlike an inset
+		/// clamped to keep every side, it lets narrow ends close up into points.
+		/// The corners come back in the outline's own space, already centred,
+		/// so the outline built from them must not be centred again.
+		/// </remarks>
+		/// <returns>The eroded corners, or null when nothing is left.</returns>
+		public static InsertCorner[] Erode(InsertOutline outline, float distance, float minConvexRadius, List<string> warnings)
+		{
+			var corners = outline.Corners;
+			var count = corners.Count;
+			var origins = new float2[count];
+			var directions = new float2[count];
+			for (var i = 0; i < count; i++) {
+				var from = corners[i].Position;
+				var to = corners[(i + 1) % count].Position;
+				var side = to - from;
+				var length = math.length(side);
+				var direction = length > Epsilon ? side / length : corners[i].Outgoing;
+				directions[i] = direction;
+				// The polygon runs counter-clockwise, so inwards is to the left.
+				origins[i] = from + distance * new float2(-direction.y, direction.x);
+			}
+
+			// Sides that the erosion turns back on themselves go, one at a time,
+			// the most reversed first, until every side that is left still runs
+			// its own way.
+			var active = new List<int>(count);
+			for (var i = 0; i < count; i++) {
+				active.Add(i);
+			}
+			var vertices = new float2[count];
+			while (true) {
+				var m = active.Count;
+				if (m < 3) {
+					warnings?.Add($"Eroding the outline by {distance:0.##} leaves nothing of it.");
+					return null;
+				}
+				var gone = -1;
+				var worst = float.MaxValue;
+				for (var j = 0; j < m; j++) {
+					var previous = active[(j - 1 + m) % m];
+					var current = active[j];
+					if (!Intersect(origins[previous], directions[previous], origins[current], directions[current], out vertices[j])) {
+						// Parallel neighbours meet nowhere: the one between them is a
+						// side of no width, which goes.
+						gone = current;
+						worst = float.MinValue;
+						break;
+					}
+				}
+				if (gone < 0) {
+					for (var j = 0; j < m; j++) {
+						var run = math.dot(vertices[(j + 1) % m] - vertices[j], directions[active[j]]);
+						if (run <= Epsilon && run < worst) {
+							worst = run;
+							gone = active[j];
+						}
+					}
+				}
+				if (gone < 0) {
+					break;
+				}
+				active.Remove(gone);
+			}
+
+			// An erosion deeper than the shape turns what is left inside out, or
+			// carries it outside the shape altogether: nothing is left then.
+			var area = 0f;
+			for (var j = 0; j < active.Count; j++) {
+				var a = vertices[j];
+				var b = vertices[(j + 1) % active.Count];
+				area += a.x * b.y - b.x * a.y;
+			}
+			if (area <= Epsilon) {
+				warnings?.Add($"Eroding the outline by {distance:0.##} leaves nothing of it.");
+				return null;
+			}
+			for (var j = 0; j < active.Count; j++) {
+				var inside = false;
+				for (int i = 0, k = count - 1; i < count; k = i++) {
+					var a = corners[i].Position;
+					var b = corners[k].Position;
+					if (a.y > vertices[j].y != b.y > vertices[j].y && vertices[j].x < (b.x - a.x) * (vertices[j].y - a.y) / (b.y - a.y) + a.x) {
+						inside = !inside;
+					}
+				}
+				if (!inside) {
+					warnings?.Add($"Eroding the outline by {distance:0.##} leaves nothing of it.");
+					return null;
+				}
+			}
+
+			// Two parts of the shape far apart along its edge can meet under the
+			// erosion, the arms of a flash whose notches nearly touch, say: what
+			// is left crosses itself, and is nothing either.
+			var m2 = active.Count;
+			for (var i = 0; i < m2; i++) {
+				for (var j = i + 2; j < m2; j++) {
+					if (i == 0 && j == m2 - 1) {
+						continue;
+					}
+					if (SegmentsCross(vertices[i], vertices[(i + 1) % m2], vertices[j], vertices[(j + 1) % m2])) {
+						warnings?.Add($"Eroding the outline by {distance:0.##} leaves nothing of it in one piece.");
+						return null;
+					}
+				}
+			}
+
+			var result = new InsertCorner[active.Count];
+			for (var j = 0; j < active.Count; j++) {
+				var previous = active[(j - 1 + active.Count) % active.Count];
+				var current = active[j];
+				if ((previous + 1) % count == current) {
+					// The corner between two sides that were neighbours all along.
+					var corner = corners[current];
+					var radius = corner.Concave ? corner.Radius + distance : math.max(corner.Radius - distance, minConvexRadius);
+					var segments = corner.Segments;
+					if (corner.Concave && corner.Radius > Epsilon) {
+						segments = math.min(64, math.max(segments, (int)math.ceil(segments * radius / corner.Radius)));
+					}
+					result[j] = new InsertCorner(vertices[j], radius, math.max(1, segments), corner.Tag);
+				} else {
+					// Two sides that met across the sides between them: those and
+					// their corners are gone, and what is left is a point.
+					var tags = new List<string>();
+					for (var eaten = (previous + 1) % count; eaten != (current + 1) % count; eaten = (eaten + 1) % count) {
+						tags.Add(corners[eaten].Tag ?? eaten.ToString());
+					}
+					result[j] = new InsertCorner(vertices[j], minConvexRadius, 2, string.Join("+", tags));
+				}
+			}
+			return result;
+		}
+
+		/// <summary>Whether two segments cross properly, neither touching the other at a point.</summary>
+		private static bool SegmentsCross(float2 a, float2 b, float2 c, float2 d)
+		{
+			static double Side(double2 o, double2 p, double2 q) => (p.x - o.x) * (q.y - o.y) - (p.y - o.y) * (q.x - o.x);
+			return Side(a, b, c) * Side(a, b, d) < 0.0 && Side(c, d, a) * Side(c, d, b) < 0.0;
+		}
+
+		/// <summary>Where two lines meet, or false when they run parallel.</summary>
+		private static bool Intersect(float2 originA, float2 directionA, float2 originB, float2 directionB, out float2 point)
+		{
+			var determinant = directionA.x * directionB.y - directionA.y * directionB.x;
+			point = originA;
+			if (math.abs(determinant) < 1e-9f) {
+				return false;
+			}
+			var offset = originB - originA;
+			var t = (offset.x * directionB.y - offset.y * directionB.x) / determinant;
+			point = originA + t * directionA;
+			return true;
+		}
 	}
 }

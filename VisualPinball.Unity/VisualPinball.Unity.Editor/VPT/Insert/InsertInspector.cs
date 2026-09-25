@@ -49,6 +49,11 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _flashTipCorner;
 		private SerializedProperty _flashSpikeCorner;
 		private SerializedProperty _flashNotchCorner;
+		private SerializedProperty _flashGroove;
+		private SerializedProperty _flashGrooveInset;
+		private SerializedProperty _flashGrooveWidth;
+		private SerializedProperty _flashGrooveDepth;
+		private SerializedProperty _flashGrooveSegments;
 		private SerializedProperty _bulletTip;
 		private SerializedProperty _bulletShoulder;
 		private SerializedProperty _bulletShoulderCorner;
@@ -114,6 +119,11 @@ namespace VisualPinball.Unity.Editor
 			_flashTipCorner = serializedObject.FindProperty("_flashTipCorner");
 			_flashSpikeCorner = serializedObject.FindProperty("_flashSpikeCorner");
 			_flashNotchCorner = serializedObject.FindProperty("_flashNotchCorner");
+			_flashGroove = serializedObject.FindProperty("_flashGroove");
+			_flashGrooveInset = serializedObject.FindProperty("_flashGrooveInset");
+			_flashGrooveWidth = serializedObject.FindProperty("_flashGrooveWidth");
+			_flashGrooveDepth = serializedObject.FindProperty("_flashGrooveDepth");
+			_flashGrooveSegments = serializedObject.FindProperty("_flashGrooveSegments");
 			_bulletTip = serializedObject.FindProperty("_bulletTip");
 			_bulletShoulder = serializedObject.FindProperty("_bulletShoulder");
 			_bulletShoulderCorner = serializedObject.FindProperty("_bulletShoulderCorner");
@@ -275,6 +285,13 @@ namespace VisualPinball.Unity.Editor
 					CornerField(_flashTipCorner, "Tip Corners");
 					CornerField(_flashSpikeCorner, "Spike Corners");
 					CornerField(_flashNotchCorner, "Notch Corners");
+					Field(_flashGroove, "Engraved Line");
+					using (new EditorGUI.DisabledScope(!_flashGroove.boolValue && !_flashGroove.hasMultipleDifferentValues)) {
+						Field(_flashGrooveInset, "Line Inset");
+						Field(_flashGrooveWidth, "Line Width");
+						Field(_flashGrooveDepth, "Line Depth");
+						Field(_flashGrooveSegments, "Line Segments");
+					}
 					break;
 				case InsertShape.Bullet:
 					Field(_width, "Width");
@@ -349,8 +366,13 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			SubHeader("Starburst");
-			Field(_starburst, "Starburst");
-			var enabled = _starburst.hasMultipleDifferentValues || _starburst.boolValue;
+			// A flash whose engraved line was built has given the starburst's
+			// surface away; a line that did not fit leaves the starburst be.
+			var engraved = targets.All(selected => selected is InsertComponent component && component.Groove != null);
+			using (new EditorGUI.DisabledScope(engraved)) {
+				Field(_starburst, engraved ? "Starburst (engraved line instead)" : "Starburst");
+			}
+			var enabled = !engraved && (_starburst.hasMultipleDifferentValues || _starburst.boolValue);
 			using (new EditorGUI.DisabledScope(!enabled)) {
 				Field(_starburstBursts, "Bursts");
 				var starburst = enabled && (_starburstBursts.hasMultipleDifferentValues || _starburstBursts.intValue >= InsertStarburst.MinBursts);

@@ -72,6 +72,12 @@ namespace VisualPinball.Unity
 		public int BottomBevelSegments;
 
 		/// <summary>
+		/// A line engraved into the raised middle's surface, in the starburst's
+		/// place: the two never share a surface. Null for none.
+		/// </summary>
+		public InsertGroove Groove;
+
+		/// <summary>
 		/// How far the starburst may rise and fall about its centre's plane. With a
 		/// channel, it stays between the channel floor and the rim. Without one,
 		/// it stays below the rim.
@@ -229,7 +235,7 @@ namespace VisualPinball.Unity
 			// flat or with the starburst on it; holes need a raised floor to cut
 			// through, as the bevel needs a channel's floor to round into. With
 			// nothing to carve, it is a plain cap.
-			var carved = channel || body.StarburstBursts >= InsertStarburst.MinBursts;
+			var carved = channel || body.StarburstBursts >= InsertStarburst.MinBursts || body.Groove != null;
 			if (!channel) {
 				body.Holes = null;
 			}
@@ -890,8 +896,9 @@ namespace VisualPinball.Unity
 			var owners = new Dictionary<int, (List<RingPoint> Ring, int Side)>();
 
 			var rimPoints = AddLoop(arrangement, rim, owners, out var rimSides);
+			int[] islandPoints = null;
 			if (island != null) {
-				var islandPoints = AddLoop(arrangement, island, owners, out _);
+				islandPoints = AddLoop(arrangement, island, owners, out _);
 				var rungs = new HashSet<(int, int)>();
 				for (var i = 0; i < rimMap.Length; i++) {
 					if (rungs.Add((rimMap[i], islandMap[i]))) {
@@ -938,11 +945,87 @@ namespace VisualPinball.Unity
 				}
 			}
 
+			// The engraved line's profile, ring by ring across the trough, laid in
+			// as loops, with rungs between the rings and a bridge from the outer
+			// one to the surface's outline: the face walk knows nothing of one
+			// loop inside another, so the rungs cut the trough into cells and the
+			// bridge ties its outer edge into the flat around it, as the rungs tie
+			// the rim to the middle. The faces between two rings are the trough's,
+			// lifted by where each point sits across it; the rest stays flat.
+			var groove = starburst == null ? body.Groove : null;
+			if (groove != null) {
+				var count = groove.Outline.Points.Count;
+				var steps = math.max(1, groove.Segments) * 2;
+				int[] previousPoints = null;
+				int[] previousMap = null;
+				var rungs = new HashSet<(int, int)>();
+				for (var k = 0; k <= steps; k++) {
+					var lateral = -groove.Width * 0.5f * math.cos(math.PI * k / steps);
+					var ring = new List<float2>(count);
+					var map = new int[count];
+					for (var i = 0; i < count; i++) {
+						var position = groove.Outline.OffsetPoint(i, lateral);
+						if (ring.Count > 0 && math.distance(position, ring[^1]) < weld) {
+							map[i] = ring.Count - 1;
+							continue;
+						}
+						map[i] = ring.Count;
+						ring.Add(position);
+					}
+					if (ring.Count > 3 && math.distance(ring[^1], ring[0]) < weld) {
+						for (var i = 0; i < count; i++) {
+							if (map[i] == ring.Count - 1) {
+								map[i] = 0;
+							}
+						}
+						ring.RemoveAt(ring.Count - 1);
+					}
+					if (ring.Count < 3) {
+						continue;
+					}
+					var points = new int[ring.Count];
+					for (var i = 0; i < ring.Count; i++) {
+						points[i] = arrangement.AddPoint(ring[i]);
+					}
+					for (var i = 0; i < ring.Count; i++) {
+						arrangement.AddSegment(points[i], points[(i + 1) % ring.Count]);
+					}
+					if (previousPoints == null) {
+						// The bridge, at the nearest pair of the outer edge and the outline.
+						var surfacePoints = islandPoints ?? rimPoints;
+						var surfaceRing = island ?? rim;
+						var nearest = float.MaxValue;
+						int edgeAt = 0, surfaceAt = 0;
+						for (var i = 0; i < ring.Count; i++) {
+							for (var j = 0; j < surfaceRing.Count; j++) {
+								var apart = math.distancesq(ring[i], surfaceRing[j].Position);
+								if (apart < nearest) {
+									nearest = apart;
+									edgeAt = i;
+									surfaceAt = j;
+								}
+							}
+						}
+						arrangement.AddSegment(points[edgeAt], surfacePoints[surfaceAt]);
+					} else {
+						for (var i = 0; i < count; i++) {
+							var from = previousPoints[previousMap[i]];
+							var to = points[map[i]];
+							if (from != to && rungs.Add((from, to))) {
+								arrangement.AddSegment(from, to);
+							}
+						}
+					}
+					previousPoints = points;
+					previousMap = map;
+				}
+			}
+
 			arrangement.Build();
 			var faces = arrangement.Faces(out var faceOf);
 
 			float HeightOf(Tier tier, float2 position) => tier switch {
-				Tier.Surface => starburst?.DepthAt(position) ?? islandTop,
+				Tier.Surface => starburst?.DepthAt(position) ?? islandTop + (groove != null ? GrooveProfile(groove, position, out _) : 0f),
 				Tier.Floor => floor,
 				_ => 0f,
 			};
@@ -1003,7 +1086,17 @@ namespace VisualPinball.Unity
 				var first = buffers.Vertices.Count;
 				foreach (var point in face) {
 					var position = arrangement.Position(point);
-					buffers.Add(ToLocal(position, HeightOf(tier, position)), normal, (Vector2)position, chart);
+					// The trough shades smoothly across its round, each point with
+					// the profile's normal where it sits; a point on its edge in a
+					// flat face keeps the flat's, so the edge stays a crease.
+					var pointNormal = normal;
+					if (groove != null && tier == Tier.Surface) {
+						GrooveProfile(groove, position, out pointNormal);
+						if (pointNormal.y > 1f - 1e-6f || GrooveProfile(groove, middle, out _) >= 0f) {
+							pointNormal = normal;
+						}
+					}
+					buffers.Add(ToLocal(position, HeightOf(tier, position)), pointNormal, (Vector2)position, chart);
 				}
 				foreach (var piece in pieces) {
 					buffers.Triangle(first + piece.x, first + piece.y, first + piece.z);
@@ -1234,6 +1327,51 @@ namespace VisualPinball.Unity
 		/// ring and side each segment is.
 		/// </summary>
 		/// <returns>The arrangement's point for each ring entry.</returns>
+		/// <summary>
+		/// How far below the surface the engraved line dips at a point, zero
+		/// beyond its width, and which way the trough faces there: a half round
+		/// squashed to the line's depth, horizontal at its edges, up at its
+		/// middle, always facing back towards the line's centre.
+		/// </summary>
+		private static float GrooveProfile(InsertGroove groove, float2 position, out Vector3 normal)
+		{
+			normal = Vector3.up;
+			var half = groove.Width * 0.5f;
+			if (half <= InsertOutlineBuilder.Epsilon) {
+				return 0f;
+			}
+			// Where the line's middle passes nearest: the trough is the same
+			// either side of it.
+			var points = groove.Outline.Points;
+			var nearest = float.MaxValue;
+			var foot = float2.zero;
+			for (int i = 0, j = points.Count - 1; i < points.Count; j = i++) {
+				var a = points[j].Position;
+				var b = points[i].Position;
+				var side = b - a;
+				var t = math.saturate(math.dot(position - a, side) / math.max(math.lengthsq(side), 1e-12f));
+				var candidate = a + t * side;
+				var apart = math.distancesq(position, candidate);
+				if (apart < nearest) {
+					nearest = apart;
+					foot = candidate;
+				}
+			}
+			var across = math.sqrt(nearest);
+			if (across >= half - InsertOutlineBuilder.Epsilon) {
+				return 0f;
+			}
+			if (across <= InsertOutlineBuilder.Epsilon) {
+				// The trough's middle faces straight up, and has no way back to name.
+				return -groove.Depth;
+			}
+			var sine = math.sqrt(math.max(0f, 1f - across * across / (half * half)));
+			var back = (foot - position) / across;
+			var toCenter = ToLocalNormal(-back, inwards: true);
+			normal = math.normalize((float3)toCenter * (across / half * groove.Depth) + new float3(0f, sine * half, 0f) + new float3(0f, 1e-6f, 0f));
+			return -groove.Depth * sine;
+		}
+
 		private static int[] AddLoop(InsertArrangement arrangement, List<RingPoint> ring,
 			Dictionary<int, (List<RingPoint> Ring, int Side)> owners, out int[] sides)
 		{
