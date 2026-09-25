@@ -47,6 +47,9 @@ namespace VisualPinball.Unity
 		/// <summary>How many bulbs the material can have: the first and three more.</summary>
 		public const int MaxBulbs = 4;
 
+		[Tooltip("What to call each bulb in Lamp Manager, such as Left, Middle and Right, so the right lamp goes to the right bulb. Empty names show as Bulb 1 to Bulb 4.")]
+		public string[] BulbNames = new string[MaxBulbs];
+
 		/// <summary>
 		/// The device item of a bulb beyond the first, its one-based number
 		/// appended; the first bulb's is the default lamp id, so a mapping made
@@ -113,10 +116,29 @@ namespace VisualPinball.Unity
 				}
 				var lamps = new GamelogicEngineLamp[count];
 				for (var i = 0; i < count; i++) {
-					lamps[i] = new GamelogicEngineLamp(BulbId(i)) { Description = $"Bulb {i + 1}" };
+					lamps[i] = new GamelogicEngineLamp(BulbId(i)) { Description = BulbLabel(i) };
 				}
 				return lamps;
 			}
+		}
+
+		/// <summary>The bulb's name, or Bulb N where it has none.</summary>
+		public string BulbLabel(int bulb)
+		{
+			var name = BulbNames != null && bulb >= 0 && bulb < BulbNames.Length ? BulbNames[bulb] : null;
+			return string.IsNullOrWhiteSpace(name) ? $"Bulb {bulb + 1}" : name.Trim();
+		}
+
+		/// <summary>Where the material puts the bulb, in insert space, in millimetres.</summary>
+		public Vector3 BulbPosition(int bulb)
+		{
+			var renderer = _renderer != null ? _renderer : GetComponent<MeshRenderer>();
+			var material = renderer != null ? renderer.sharedMaterial : null;
+			if (material == null || bulb < 0 || bulb >= LampIds.Length || !material.HasProperty(LampIds[bulb])) {
+				return Vector3.zero;
+			}
+			var lamp = material.GetVector(LampIds[bulb]);
+			return new Vector3(lamp.x, lamp.y, lamp.z) * 1000f;
 		}
 
 		/// <summary>

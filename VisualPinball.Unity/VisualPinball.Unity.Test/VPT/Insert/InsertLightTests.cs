@@ -279,6 +279,10 @@ namespace VisualPinball.Unity.Test
 			Assert.That(fixture.Control.BulbCount, Is.EqualTo(3));
 			Assert.That(fixture.Control.AvailableLamps.Select(l => l.Id), Is.EqualTo(new[] { LightComponent.LampIdDefault, "bulb_2", "bulb_3" }));
 			Assert.That(fixture.Control.AvailableLamps.Select(l => l.Description), Is.EqualTo(new[] { "Bulb 1", "Bulb 2", "Bulb 3" }));
+			fixture.Control.BulbNames[1] = " Left ";
+			fixture.Control.BulbNames[2] = "";
+			Assert.That(fixture.Control.AvailableLamps.Select(l => l.Description), Is.EqualTo(new[] { "Bulb 1", "Left", "Bulb 3" }), "named bulbs show their names");
+			Assert.That(fixture.Control.BulbPosition(1).x, Is.EqualTo(10f).Within(1e-3f), "where the material puts it, in millimetres");
 			Assert.That(InsertLightComponent.BulbIndex(null), Is.Zero);
 			Assert.That(InsertLightComponent.BulbIndex(LightComponent.LampIdDefault), Is.Zero);
 			Assert.That(InsertLightComponent.BulbIndex("bulb_3"), Is.EqualTo(2));

@@ -32,6 +32,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _color;
 		private SerializedProperty _tintWithLamp;
 		private SerializedProperty _extraBulbs;
+		private SerializedProperty _bulbNames;
 		private SerializedProperty _lampTint;
 		private SerializedProperty _spillLumens;
 		private SerializedProperty _spillRange;
@@ -48,6 +49,7 @@ namespace VisualPinball.Unity.Editor
 			_color = serializedObject.FindProperty(nameof(InsertLightComponent.Color));
 			_tintWithLamp = serializedObject.FindProperty(nameof(InsertLightComponent.TintWithLamp));
 			_extraBulbs = serializedObject.FindProperty(nameof(InsertLightComponent.ExtraBulbs));
+			_bulbNames = serializedObject.FindProperty(nameof(InsertLightComponent.BulbNames));
 			_lampTint = serializedObject.FindProperty(nameof(InsertLightComponent.LampTint));
 			_spillLumens = serializedObject.FindProperty(nameof(InsertLightComponent.SpillLumens));
 			_spillRange = serializedObject.FindProperty(nameof(InsertLightComponent.SpillRange));
@@ -71,15 +73,22 @@ namespace VisualPinball.Unity.Editor
 				using (new EditorGUI.DisabledScope(!hybrid)) {
 					Field(_intensity, "Intensity");
 					Field(_color, "Color");
-					// One row per bulb the material has beyond the first.
-					var bulbs = targets.Length == 1 ? ((InsertLightComponent)target).BulbCount - 1 : 0;
+					// One row per bulb the material has beyond the first, each bulb
+					// named, with where the material puts it beside the name so the
+					// right lamp goes to the right bulb.
+					var component = (InsertLightComponent)target;
+					var bulbs = targets.Length == 1 ? component.BulbCount - 1 : 0;
+					if (bulbs > 0) {
+						BulbName(component, 0);
+					}
 					for (var i = 0; i < bulbs && i < _extraBulbs.arraySize; i++) {
 						var bulb = _extraBulbs.GetArrayElementAtIndex(i);
+						BulbName(component, i + 1);
 						Field(bulb.FindPropertyRelative(nameof(InsertLightComponent.Bulb.Intensity)), $"Bulb {i + 2} Intensity");
 						Field(bulb.FindPropertyRelative(nameof(InsertLightComponent.Bulb.Color)), $"Bulb {i + 2} Color");
 					}
 					if (bulbs > 0) {
-						EditorGUILayout.HelpBox($"Each bulb is a lamp of its own in Lamp Manager: the Element column offers Bulb 1 to Bulb {bulbs + 1} for this insert.", MessageType.None);
+						EditorGUILayout.HelpBox($"Each bulb is a lamp of its own in Lamp Manager: the Element column offers the {bulbs + 1} bulbs by these names for this insert.", MessageType.None);
 					}
 					Field(_tintWithLamp, "Tint With Lamp");
 					using (new EditorGUI.DisabledScope(!_tintWithLamp.boolValue && !_tintWithLamp.hasMultipleDifferentValues)) {
@@ -124,6 +133,21 @@ namespace VisualPinball.Unity.Editor
 			InsertSection.End();
 
 			serializedObject.ApplyModifiedProperties();
+		}
+
+		/// <summary>
+		/// The bulb's name field, labelled with where the material puts the bulb,
+		/// in the millimetres the material's inspector shows.
+		/// </summary>
+		private void BulbName(InsertLightComponent component, int bulb)
+		{
+			if (_bulbNames.arraySize < InsertLightComponent.MaxBulbs) {
+				_bulbNames.arraySize = InsertLightComponent.MaxBulbs;
+			}
+			var position = component.BulbPosition(bulb);
+			var label = new GUIContent($"Bulb {bulb + 1} Name (x {position.x:0.#}, z {position.z:0.#})",
+				$"What Lamp Manager calls this bulb, the one the material puts at x {position.x:0.#} mm, z {position.z:0.#} mm in insert space. Empty shows as Bulb {bulb + 1}.");
+			EditorGUILayout.PropertyField(_bulbNames.GetArrayElementAtIndex(bulb), label);
 		}
 
 		private static void Field(SerializedProperty property, string label)
