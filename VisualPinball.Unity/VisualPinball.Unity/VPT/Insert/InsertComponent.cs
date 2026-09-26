@@ -500,55 +500,68 @@ namespace VisualPinball.Unity
 
 		/// <summary>
 		/// Whether the insert shows its geometry in place of the bake's maps:
-		/// while the bake is stale, the maps no longer lie on the geometry.
+		/// while the bake is stale, the maps no longer lie on the geometry, so
+		/// the renderer is off and the generated mesh is drawn as a gizmo in
+		/// the scene instead, yellow and see-through with its wireframe over it,
+		/// the way a collider preview is. Only in the editor, outside play mode.
 		/// </summary>
 		public bool IsShowingGeometry { get; private set; }
 
-		private static readonly int FacetFlattenId = Shader.PropertyToID("_InsertFacetFlatten");
+		[SerializeField]
+		[HideInInspector]
+		[Tooltip("Whether the renderer was switched off for a stale bake, so it is switched back on when the bake fits again, whatever happened in between.")]
+		private bool _rendererOffForBake;
 
 		/// <summary>
-		/// The hybrid material's terms that draw the look from the maps, held at
-		/// zero while the geometry is shown: the shading normal is then the
-		/// mesh's own, unflattened, and the facets do not refract or contrast.
-		/// </summary>
-		private static readonly int[] GeometryPreviewIds = {
-			FacetFlattenId,
-			Shader.PropertyToID("_NormalStrength"),
-			Shader.PropertyToID("_OpticalWarp"),
-			Shader.PropertyToID("_OpticalContrast"),
-		};
-
-		private MaterialPropertyBlock _bakePreview;
-
-		/// <summary>
-		/// Shows the geometry while the bake is stale and the insert wears the
-		/// bake's material, through the renderer's property block, so nothing
-		/// is written to the material or the scene; a bake that fits takes the
-		/// hold off. A block cannot give one value back, so the whole block
-		/// goes, and the Insert Light puts its own values into it again.
+		/// Switches the renderer off while the bake is stale, and back on when a
+		/// bake fits again or the geometry is not being shown, as in play mode
+		/// and in a build, where an insert saved with its renderer off comes
+		/// back on.
 		/// </summary>
 		private void UpdateBakePreview(MeshRenderer renderer)
 		{
-			var material = renderer.sharedMaterial;
-			var show = _bake != null && !IsBakeFresh && material != null && material == _bake.Material && material.HasProperty(FacetFlattenId);
-			if (show == IsShowingGeometry) {
-				return;
-			}
-			IsShowingGeometry = show;
-			if (show) {
-				_bakePreview ??= new MaterialPropertyBlock();
-				renderer.GetPropertyBlock(_bakePreview, 0);
-				foreach (var id in GeometryPreviewIds) {
-					_bakePreview.SetFloat(id, 0f);
+			IsShowingGeometry = _bake != null && !IsBakeFresh && !Application.isPlaying;
+			if (IsShowingGeometry) {
+				if (renderer.enabled) {
+					renderer.enabled = false;
+					_rendererOffForBake = true;
 				}
-				renderer.SetPropertyBlock(_bakePreview, 0);
-			} else {
-				renderer.SetPropertyBlock(null, 0);
-				if (TryGetComponent<InsertLightComponent>(out var light)) {
-					light.Apply();
-				}
+			} else if (_rendererOffForBake) {
+				renderer.enabled = true;
+				_rendererOffForBake = false;
 			}
 		}
+
+#if UNITY_EDITOR
+		/// <summary>The fill of the geometry gizmo, yellow and see-through.</summary>
+		private static readonly Color GizmoFill = new(1f, 0.85f, 0.1f, 0.3f);
+
+		/// <summary>The wireframe of the geometry gizmo, drawn solid over the fill.</summary>
+		private static readonly Color GizmoWire = new(1f, 0.85f, 0.1f, 1f);
+
+		/// <summary>
+		/// The generated mesh in the insert's place while its bake is stale: the
+		/// body as a see-through yellow fill under its solid wireframe, the way
+		/// a collider preview draws, so the geometry to be baked is what is
+		/// seen, and not maps that no longer lie on it.
+		/// </summary>
+		private void OnDrawGizmos()
+		{
+			if (!IsShowingGeometry || !isActiveAndEnabled) {
+				return;
+			}
+			var mesh = GetComponent<MeshFilter>().sharedMesh;
+			if (mesh == null || mesh.vertexCount == 0) {
+				return;
+			}
+			Gizmos.matrix = transform.localToWorldMatrix;
+			Gizmos.color = GizmoFill;
+			Gizmos.DrawMesh(mesh, 0, Vector3.zero, Quaternion.identity, Vector3.one);
+			Gizmos.color = GizmoWire;
+			Gizmos.DrawWireMesh(mesh, 0, Vector3.zero, Quaternion.identity, Vector3.one);
+			Gizmos.matrix = Matrix4x4.identity;
+		}
+#endif
 
 		public InsertBakeSettings BakeSettings => _bakeSettings;
 

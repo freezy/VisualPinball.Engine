@@ -621,7 +621,7 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldShowTheGeometryWhileTheBakeIsStale()
+		public void ShouldSwitchTheRendererOffWhileTheBakeIsStale()
 		{
 			var shader = Shader.Find("Visual Pinball/Insert Hybrid");
 			if (shader == null) {
@@ -644,30 +644,42 @@ namespace VisualPinball.Unity.Test
 				var light = go.AddComponent<InsertLightComponent>();
 				light.Intensity = 0.6f;
 				light.Apply();
-				var block = new MaterialPropertyBlock();
-				renderer.GetPropertyBlock(block, 0);
 				Assert.That(insert.IsShowingGeometry, Is.False);
-				Assert.That(block.HasFloat("_InsertFacetFlatten"), Is.False, "a fitting bake leaves the material's flattening alone");
+				Assert.That(renderer.enabled, Is.True, "a fitting bake leaves the renderer on");
 
 				var settings = new UnityEditor.SerializedObject(insert);
 				settings.FindProperty("_flashGrooveInset").floatValue = 7f;
 				settings.ApplyModifiedPropertiesWithoutUndo();
 				insert.RebuildMesh();
-				renderer.GetPropertyBlock(block, 0);
 				Assert.That(insert.IsShowingGeometry, Is.True);
-				Assert.That(block.GetFloat("_InsertFacetFlatten"), Is.EqualTo(0f), "a stale bake shows the mesh's own shading");
-				Assert.That(block.GetFloat("_NormalStrength"), Is.EqualTo(0f));
-				Assert.That(block.GetFloat("_InsertLampLevel"), Is.EqualTo(0.6f).Within(1e-5f), "the light's own values stay in the block");
+				Assert.That(renderer.enabled, Is.False, "a stale bake switches the renderer off, the geometry drawn as a gizmo instead");
+				Assert.That(new UnityEditor.SerializedObject(insert).FindProperty("_rendererOffForBake").boolValue, Is.True, "and remembers that it did");
+				var block = new MaterialPropertyBlock();
+				renderer.GetPropertyBlock(block, 0);
+				Assert.That(block.GetFloat("_InsertLampLevel"), Is.EqualTo(0.6f).Within(1e-5f), "the light's own values are left alone");
 
 				var layoutAgain = new InsertMeshLayout();
 				insert.Generate(again, layoutAgain);
 				refreshed = GeneratorBake(again, layoutAgain.Hash);
 				refreshed.Material = material;
 				insert.SetBake(refreshed);
-				renderer.GetPropertyBlock(block, 0);
 				Assert.That(insert.IsShowingGeometry, Is.False);
-				Assert.That(block.HasFloat("_InsertFacetFlatten"), Is.False, "a bake that fits again takes the hold off");
-				Assert.That(block.GetFloat("_InsertLampLevel"), Is.EqualTo(0.6f).Within(1e-5f), "and the light puts its values back");
+				Assert.That(renderer.enabled, Is.True, "a bake that fits again switches the renderer back on");
+				Assert.That(new UnityEditor.SerializedObject(insert).FindProperty("_rendererOffForBake").boolValue, Is.False);
+
+				// A renderer switched off by hand stays off: the insert only puts
+				// back what it took away.
+				renderer.enabled = false;
+				// A fresh view of the insert: the old one would write its stale
+				// copy of the bake back over the refreshed one.
+				settings = new UnityEditor.SerializedObject(insert);
+				settings.FindProperty("_flashGrooveInset").floatValue = 6f;
+				settings.ApplyModifiedPropertiesWithoutUndo();
+				insert.RebuildMesh();
+				Assert.That(insert.IsShowingGeometry, Is.True);
+				insert.SetBake(bake);
+				Assert.That(insert.IsShowingGeometry, Is.False);
+				Assert.That(renderer.enabled, Is.False, "a renderer that was off already is not switched on");
 			} finally {
 				Object.DestroyImmediate(go);
 				Object.DestroyImmediate(material);

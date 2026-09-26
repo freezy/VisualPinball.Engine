@@ -834,7 +834,7 @@ namespace VisualPinball.Unity.Editor
 				} else if (IsLocked) {
 					EditorGUILayout.HelpBox("The insert geometry has changed, and its bake cannot be updated where it is. Fork to Project to bake it here.", MessageType.Warning);
 				} else if (insert.IsShowingGeometry) {
-					EditorGUILayout.HelpBox("The insert geometry has changed, so the insert shows its geometry in place of the bake's maps: the mesh's own shading, an engraved line as a trough, no facet flattening. Bake Again to put the geometry into the maps, with the UVs, normals and optical maps.", MessageType.Warning);
+					EditorGUILayout.HelpBox("The insert geometry has changed, so the renderer is off and the geometry to be baked is drawn in the scene instead, yellow with its wireframe, an engraved line as a trough. Bake Again to put the geometry into the maps and the renderer back on.", MessageType.Warning);
 				} else {
 					EditorGUILayout.HelpBox("The insert geometry has changed. The material is kept as a preview, but its baked textures may no longer line up. Bake Again to update the UVs, normals and optical maps.", MessageType.Warning);
 				}
