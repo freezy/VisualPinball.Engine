@@ -132,13 +132,70 @@ namespace VisualPinball.Unity
 		/// <summary>Where the material puts the bulb, in insert space, in millimetres.</summary>
 		public Vector3 BulbPosition(int bulb)
 		{
-			var renderer = _renderer != null ? _renderer : GetComponent<MeshRenderer>();
-			var material = renderer != null ? renderer.sharedMaterial : null;
+			var material = BulbMaterial();
 			if (material == null || bulb < 0 || bulb >= LampIds.Length || !material.HasProperty(LampIds[bulb])) {
 				return Vector3.zero;
 			}
 			var lamp = material.GetVector(LampIds[bulb]);
 			return new Vector3(lamp.x, lamp.y, lamp.z) * 1000f;
+		}
+
+		/// <summary>Changes the material's active bulb count, preserving disabled bulbs' places.</summary>
+		public bool SetBulbCount(int count)
+		{
+			var material = BulbMaterial();
+			if (material == null || !material.HasProperty(LuminosityId)) {
+				return false;
+			}
+			count = math.clamp(count, 1, MaxBulbs);
+			var first = material.GetVector(LampIds[0]);
+			var radius = math.max(first.w, 0.0001f);
+			if (first.w <= 0f) {
+				first.w = radius;
+				material.SetVector(LampIds[0], first);
+			}
+			for (var i = 1; i < LampIds.Length; i++) {
+				if (!material.HasProperty(LampIds[i])) {
+					continue;
+				}
+				var value = material.GetVector(LampIds[i]);
+				if (i < count) {
+					if (value.x == 0f && value.y == 0f && value.z == 0f) {
+						var previous = material.GetVector(LampIds[i - 1]);
+						value.x = previous.x;
+						value.y = previous.y;
+						value.z = previous.z + radius * 2.5f;
+					}
+					value.w = radius;
+				} else {
+					value.w = 0f;
+				}
+				material.SetVector(LampIds[i], value);
+			}
+			Apply();
+			return true;
+		}
+
+		/// <summary>Moves one virtual bulb in the material, in insert-local millimetres.</summary>
+		public bool SetBulbPosition(int bulb, Vector3 millimetres)
+		{
+			var material = BulbMaterial();
+			if (material == null || bulb < 0 || bulb >= LampIds.Length || !material.HasProperty(LampIds[bulb])) {
+				return false;
+			}
+			var value = material.GetVector(LampIds[bulb]);
+			value.x = millimetres.x * 0.001f;
+			value.y = millimetres.y * 0.001f;
+			value.z = millimetres.z * 0.001f;
+			material.SetVector(LampIds[bulb], value);
+			Apply();
+			return true;
+		}
+
+		private Material BulbMaterial()
+		{
+			var renderer = _renderer != null ? _renderer : GetComponent<MeshRenderer>();
+			return renderer != null ? renderer.sharedMaterial : null;
 		}
 
 		/// <summary>
@@ -148,8 +205,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public int BulbCount {
 			get {
-				var renderer = _renderer != null ? _renderer : GetComponent<MeshRenderer>();
-				var material = renderer != null ? renderer.sharedMaterial : null;
+				var material = BulbMaterial();
 				if (material == null) {
 					return 1;
 				}

@@ -37,8 +37,16 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _spillLumens;
 		private SerializedProperty _spillRange;
 		private SerializedProperty _spillLight;
+		private Material _checkedMaterial;
+		private bool _materialReadOnly;
+		private readonly Vector3[] _lampHandleOffsets = new Vector3[InsertLightComponent.MaxBulbs];
 
 		private static readonly int LuminosityId = Shader.PropertyToID("_InsertLuminosity");
+		private static readonly Color[] BulbColors = { Color.cyan, Color.yellow, Color.magenta, Color.green };
+		private static GUIStyle _lampLabel;
+		private static GUIStyle LampLabel => _lampLabel ??= new GUIStyle(EditorStyles.boldLabel) {
+			normal = { textColor = Color.black },
+		};
 
 		private const string LampKey = "VisualPinball.InsertLight.Lamp";
 		private const string SpillKey = "VisualPinball.InsertLight.Spill";
@@ -54,6 +62,21 @@ namespace VisualPinball.Unity.Editor
 			_spillLumens = serializedObject.FindProperty(nameof(InsertLightComponent.SpillLumens));
 			_spillRange = serializedObject.FindProperty(nameof(InsertLightComponent.SpillRange));
 			_spillLight = serializedObject.FindProperty(nameof(InsertLightComponent.SpillLight));
+			EditorApplication.projectChanged += InvalidateMaterialAccess;
+		}
+
+		private void OnDisable() => EditorApplication.projectChanged -= InvalidateMaterialAccess;
+
+		private void InvalidateMaterialAccess() => _checkedMaterial = null;
+
+		private bool MaterialIsReadOnly(Material material)
+		{
+			if (material == null) { return false; }
+			if (_checkedMaterial != material) {
+				_checkedMaterial = material;
+				_materialReadOnly = InsertBaker.IsReadOnly(AssetDatabase.GetAssetPath(material));
+			}
+			return _materialReadOnly;
 		}
 
 		public override void OnInspectorGUI()
@@ -69,26 +92,14 @@ namespace VisualPinball.Unity.Editor
 				EditorGUILayout.HelpBox("The insert's material is not the hybrid material, so Intensity and Color have nothing to drive and the spill stays off. Bake the insert with Hybrid Optics and click Use HDRP Hybrid Material on it.", MessageType.Warning);
 			}
 
-			if (InsertSection.Begin(LampKey, "Lamp")) {
+			if (InsertSection.Begin(LampKey, "Lamps")) {
 				using (new EditorGUI.DisabledScope(!hybrid)) {
-					Field(_intensity, "Intensity");
-					Field(_color, "Color");
-					// One row per bulb the material has beyond the first, each bulb
-					// named, with where the material puts it beside the name so the
-					// right lamp goes to the right bulb.
-					var component = (InsertLightComponent)target;
-					var bulbs = targets.Length == 1 ? component.BulbCount - 1 : 0;
-					if (bulbs > 0) {
-						BulbName(component, 0);
-					}
-					for (var i = 0; i < bulbs && i < _extraBulbs.arraySize; i++) {
-						var bulb = _extraBulbs.GetArrayElementAtIndex(i);
-						BulbName(component, i + 1);
-						Field(bulb.FindPropertyRelative(nameof(InsertLightComponent.Bulb.Intensity)), $"Bulb {i + 2} Intensity");
-						Field(bulb.FindPropertyRelative(nameof(InsertLightComponent.Bulb.Color)), $"Bulb {i + 2} Color");
-					}
-					if (bulbs > 0) {
-						EditorGUILayout.HelpBox($"Each bulb is a lamp of its own in Lamp Manager: the Element column offers the {bulbs + 1} bulbs by these names for this insert.", MessageType.None);
+					if (targets.Length == 1) {
+						DrawLampLayout((InsertLightComponent)target);
+					} else {
+						Field(_intensity, "Intensity");
+						Field(_color, "Color");
+						EditorGUILayout.HelpBox("Select one insert to edit its lamp count and positions.", MessageType.None);
 					}
 					Field(_tintWithLamp, "Tint With Lamp");
 					using (new EditorGUI.DisabledScope(!_tintWithLamp.boolValue && !_tintWithLamp.hasMultipleDifferentValues)) {
@@ -135,19 +146,115 @@ namespace VisualPinball.Unity.Editor
 			serializedObject.ApplyModifiedProperties();
 		}
 
-		/// <summary>
-		/// The bulb's name field, labelled with where the material puts the bulb,
-		/// in the millimetres the material's inspector shows.
-		/// </summary>
-		private void BulbName(InsertLightComponent component, int bulb)
+		/// <summary>One compact row per active lamp: its name, drive and material position.</summary>
+		private void DrawLampLayout(InsertLightComponent component)
 		{
+			var material = component.GetComponent<MeshRenderer>().sharedMaterial;
+			var readOnly = MaterialIsReadOnly(material);
+			var count = component.BulbCount;
 			if (_bulbNames.arraySize < InsertLightComponent.MaxBulbs) {
 				_bulbNames.arraySize = InsertLightComponent.MaxBulbs;
 			}
-			var position = component.BulbPosition(bulb);
-			var label = new GUIContent($"Bulb {bulb + 1} Name (x {position.x:0.#}, z {position.z:0.#})",
-				$"What Lamp Manager calls this bulb, the one the material puts at x {position.x:0.#} mm, z {position.z:0.#} mm in insert space. Empty shows as Bulb {bulb + 1}.");
-			EditorGUILayout.PropertyField(_bulbNames.GetArrayElementAtIndex(bulb), label);
+			if (_extraBulbs.arraySize < InsertLightComponent.MaxBulbs - 1) {
+				_extraBulbs.arraySize = InsertLightComponent.MaxBulbs - 1;
+			}
+			for (var i = 0; i < count; i++) {
+				var intensity = i == 0 ? _intensity : _extraBulbs.GetArrayElementAtIndex(i - 1).FindPropertyRelative(nameof(InsertLightComponent.Bulb.Intensity));
+				EditorGUI.BeginChangeCheck();
+				var preview = EditorGUILayout.Slider(new GUIContent($"Lamp {i + 1}", "Preview this lamp's intensity from off to full brightness."), intensity.floatValue, 0f, 1f);
+				if (EditorGUI.EndChangeCheck()) {
+					intensity.floatValue = preview;
+				}
+			}
+			EditorGUILayout.Space();
+			using (new EditorGUI.DisabledScope(Application.isPlaying || readOnly)) {
+				EditorGUI.BeginChangeCheck();
+				var wanted = EditorGUILayout.IntSlider(new GUIContent("Number of lamps", "Number of virtual lamps on this insert, from one to four. The material stores their positions and shared radius."), count, 1, InsertLightComponent.MaxBulbs);
+				if (EditorGUI.EndChangeCheck()) {
+					Undo.RecordObject(material, "Change Insert Lamp Count");
+					component.SetBulbCount(wanted);
+					EditorUtility.SetDirty(material);
+					SceneView.RepaintAll();
+					count = component.BulbCount;
+				}
+			}
+			using (new EditorGUILayout.HorizontalScope()) {
+				GUILayout.Label("#", GUILayout.Width(18f));
+				GUILayout.Label(new GUIContent("Name", "Name shown in Lamp Manager when this insert has several lamps."), GUILayout.Width(65f));
+				GUILayout.Label("Color", GUILayout.Width(38f));
+				GUILayout.Label(new GUIContent("Position (mm)", "Lamp position in insert-local X, Y and Z. Drag its handle in Scene view to move it."));
+			}
+			for (var i = 0; i < count; i++) {
+				var extra = i > 0 ? _extraBulbs.GetArrayElementAtIndex(i - 1) : null;
+				var color = i == 0 ? _color : extra.FindPropertyRelative(nameof(InsertLightComponent.Bulb.Color));
+				using (new EditorGUILayout.HorizontalScope()) {
+					GUILayout.Label((i + 1).ToString(), GUILayout.Width(18f));
+					EditorGUILayout.PropertyField(_bulbNames.GetArrayElementAtIndex(i), GUIContent.none, GUILayout.Width(65f));
+					EditorGUILayout.PropertyField(color, GUIContent.none, GUILayout.Width(38f));
+					using (new EditorGUI.DisabledScope(Application.isPlaying || readOnly)) {
+						EditorGUI.BeginChangeCheck();
+						var position = EditorGUILayout.Vector3Field(GUIContent.none, component.BulbPosition(i), GUILayout.MinWidth(120f));
+						if (EditorGUI.EndChangeCheck()) {
+							Undo.RecordObject(material, "Move Insert Lamp");
+							component.SetBulbPosition(i, position);
+							EditorUtility.SetDirty(material);
+							SceneView.RepaintAll();
+						}
+					}
+				}
+			}
+			if (readOnly) {
+				EditorGUILayout.HelpBox("This insert material is read-only. Fork the insert to the project to change its lamp count or positions.", MessageType.Info);
+			}
+		}
+
+		private void OnSceneGUI()
+		{
+			if (Application.isPlaying || Selection.count != 1) {
+				return;
+			}
+			var component = (InsertLightComponent)target;
+			var material = component.GetComponent<MeshRenderer>().sharedMaterial;
+			if (material == null || !material.HasProperty(LuminosityId)) {
+				return;
+			}
+			var readOnly = MaterialIsReadOnly(material);
+			var originalColor = Handles.color;
+			var count = component.BulbCount;
+			var transform = component.transform;
+			var up = transform.up;
+			var across = transform.right;
+			var along = transform.forward;
+			for (var i = 0; i < count; i++) {
+				var position = component.BulbPosition(i);
+				var world = transform.TransformPoint(position * 0.001f);
+				var size = HandleUtility.GetHandleSize(world);
+				// Hold the offset through a drag, so crossing the pivot cannot jump the lamp.
+				if (GUIUtility.hotControl == 0) {
+					_lampHandleOffsets[i] = Vector2.Distance(HandleUtility.WorldToGUIPoint(world), HandleUtility.WorldToGUIPoint(Tools.handlePosition)) < 20f
+						? -(across + along) * size * 0.25f : Vector3.zero;
+				}
+				var handle = world + _lampHandleOffsets[i];
+				Handles.color = BulbColors[i];
+				if (handle != world) {
+					Handles.DrawDottedLine(world, handle, 3f);
+				}
+				Handles.Label(handle + across * size * 0.08f, component.BulbLabel(i), LampLabel);
+				if (readOnly) {
+					Handles.CircleHandleCap(0, handle, Quaternion.LookRotation(up), size * 0.06f, EventType.Repaint);
+					continue;
+				}
+				EditorGUI.BeginChangeCheck();
+				var moved = Handles.Slider2D(handle, up, across, along, size * 0.06f, Handles.CircleHandleCap, Vector2.zero);
+				if (!EditorGUI.EndChangeCheck()) {
+					continue;
+				}
+				Undo.RecordObject(material, "Move Insert Lamp");
+				var local = transform.InverseTransformPoint(world + moved - handle) * 1000f;
+				component.SetBulbPosition(i, new Vector3(local.x, position.y, local.z));
+				EditorUtility.SetDirty(material);
+			}
+			Handles.color = originalColor;
 		}
 
 		private static void Field(SerializedProperty property, string label)

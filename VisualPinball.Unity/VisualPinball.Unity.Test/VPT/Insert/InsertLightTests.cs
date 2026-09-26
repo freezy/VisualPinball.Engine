@@ -297,6 +297,32 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldConfigureLampCountAndKeepEachPositionWhenDisabled()
+		{
+			using var fixture = new MappedInsert();
+			var material = fixture.Control.GetComponent<MeshRenderer>().sharedMaterial;
+			material.SetVector("_OpticalLamp", new Vector4(0f, -0.02f, 0f, 0.007f));
+
+			Assert.That(fixture.Control.SetBulbCount(3), Is.True);
+			Assert.That(fixture.Control.BulbCount, Is.EqualTo(3));
+			Assert.That(fixture.Control.AvailableLamps.Select(l => l.Id), Is.EqualTo(new[] { LightComponent.LampIdDefault, "bulb_2", "bulb_3" }));
+			Assert.That(material.GetVector("_OpticalLampB").w, Is.EqualTo(0.007f).Within(1e-6f));
+			Assert.That(material.GetVector("_OpticalLampC").z, Is.EqualTo(0.035f).Within(1e-6f), "new bulbs start beyond the preceding one");
+
+			var moved = new Vector3(12f, -15f, -6f);
+			Assert.That(fixture.Control.SetBulbPosition(1, moved), Is.True);
+			Assert.That(Vector3.Distance(fixture.Control.BulbPosition(1), moved), Is.LessThan(1e-3f));
+			Assert.That(material.GetVector("_OpticalLampB").w, Is.EqualTo(0.007f).Within(1e-6f), "moving a bulb keeps its radius");
+
+			fixture.Control.SetBulbCount(1);
+			Assert.That(fixture.Control.BulbCount, Is.EqualTo(1));
+			Assert.That(material.GetVector("_OpticalLampB").w, Is.Zero);
+			fixture.Control.SetBulbCount(2);
+			Assert.That(Vector3.Distance(fixture.Control.BulbPosition(1), moved), Is.LessThan(1e-3f));
+			Assert.That(material.GetVector("_OpticalLampB").w, Is.EqualTo(0.007f).Within(1e-6f));
+		}
+
+		[Test]
 		public void ShouldDriveEachBulbFromItsOwnMapping()
 		{
 			using var fixture = new MappedInsert();
