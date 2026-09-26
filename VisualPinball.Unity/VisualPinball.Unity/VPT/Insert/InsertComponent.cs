@@ -507,28 +507,20 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public bool IsShowingGeometry { get; private set; }
 
-		[SerializeField]
-		[HideInInspector]
-		[Tooltip("Whether the renderer was switched off for a stale bake, so it is switched back on when the bake fits again, whatever happened in between.")]
-		private bool _rendererOffForBake;
-
 		/// <summary>
-		/// Switches the renderer off while the bake is stale, and back on when a
-		/// bake fits again or the geometry is not being shown, as in play mode
-		/// and in a build, where an insert saved with its renderer off comes
-		/// back on.
+		/// The renderer is off while the bake is stale and on otherwise, set from
+		/// the bake's state on every rebuild and remembered nowhere: an undo
+		/// puts the geometry back and the rebuild that follows puts the renderer
+		/// back with it, where a flag on the component would be undone without
+		/// the renderer, and leave the insert gone. The insert owns its
+		/// renderer's on and off, as it owns its mesh. In play mode and in a
+		/// build the renderer is on whatever the bake's state.
 		/// </summary>
 		private void UpdateBakePreview(MeshRenderer renderer)
 		{
 			IsShowingGeometry = _bake != null && !IsBakeFresh && !Application.isPlaying;
-			if (IsShowingGeometry) {
-				if (renderer.enabled) {
-					renderer.enabled = false;
-					_rendererOffForBake = true;
-				}
-			} else if (_rendererOffForBake) {
-				renderer.enabled = true;
-				_rendererOffForBake = false;
+			if (renderer.enabled == IsShowingGeometry) {
+				renderer.enabled = !IsShowingGeometry;
 			}
 		}
 

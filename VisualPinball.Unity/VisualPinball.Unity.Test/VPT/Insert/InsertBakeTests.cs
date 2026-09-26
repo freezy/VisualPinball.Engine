@@ -653,7 +653,6 @@ namespace VisualPinball.Unity.Test
 				insert.RebuildMesh();
 				Assert.That(insert.IsShowingGeometry, Is.True);
 				Assert.That(renderer.enabled, Is.False, "a stale bake switches the renderer off, the geometry drawn as a gizmo instead");
-				Assert.That(new UnityEditor.SerializedObject(insert).FindProperty("_rendererOffForBake").boolValue, Is.True, "and remembers that it did");
 				var block = new MaterialPropertyBlock();
 				renderer.GetPropertyBlock(block, 0);
 				Assert.That(block.GetFloat("_InsertLampLevel"), Is.EqualTo(0.6f).Within(1e-5f), "the light's own values are left alone");
@@ -665,21 +664,29 @@ namespace VisualPinball.Unity.Test
 				insert.SetBake(refreshed);
 				Assert.That(insert.IsShowingGeometry, Is.False);
 				Assert.That(renderer.enabled, Is.True, "a bake that fits again switches the renderer back on");
-				Assert.That(new UnityEditor.SerializedObject(insert).FindProperty("_rendererOffForBake").boolValue, Is.False);
 
-				// A renderer switched off by hand stays off: the insert only puts
-				// back what it took away.
-				renderer.enabled = false;
+				// An undo of the change puts the geometry back, and the rebuild
+				// that follows puts the renderer back with it: nothing on the
+				// component remembers the renderer, so nothing is undone without it.
+				UnityEditor.Undo.IncrementCurrentGroup();
+				UnityEditor.Undo.RecordObject(insert, "Change the line");
 				// A fresh view of the insert: the old one would write its stale
 				// copy of the bake back over the refreshed one.
 				settings = new UnityEditor.SerializedObject(insert);
 				settings.FindProperty("_flashGrooveInset").floatValue = 6f;
-				settings.ApplyModifiedPropertiesWithoutUndo();
+				settings.ApplyModifiedProperties();
 				insert.RebuildMesh();
 				Assert.That(insert.IsShowingGeometry, Is.True);
-				insert.SetBake(bake);
+				Assert.That(renderer.enabled, Is.False);
+				UnityEditor.Undo.PerformUndo();
+				insert.RebuildMesh();
+				Assert.That(insert.IsBakeFresh, Is.True, "the undo put the baked geometry back");
 				Assert.That(insert.IsShowingGeometry, Is.False);
-				Assert.That(renderer.enabled, Is.False, "a renderer that was off already is not switched on");
+				Assert.That(renderer.enabled, Is.True, "and the rebuild after it put the renderer back on");
+				// The renderer follows the bake whatever was done to it by hand.
+				renderer.enabled = false;
+				insert.RebuildMesh();
+				Assert.That(renderer.enabled, Is.True, "the insert owns its renderer's on and off");
 			} finally {
 				Object.DestroyImmediate(go);
 				Object.DestroyImmediate(material);
