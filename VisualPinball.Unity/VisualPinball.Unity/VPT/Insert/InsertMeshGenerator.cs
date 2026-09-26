@@ -264,6 +264,7 @@ namespace VisualPinball.Unity
 			List<RunPoint>[] floorSides = null;
 			int[] floorCharts = null;
 			InsertStarburst starburst = null;
+			InsertFlatIsland flatIsland = null;
 			var surface = channel ? floor + body.ChannelDepth : floor;
 			if (carved) {
 				starburst = TryCoverWithStarburst(island ?? bottom, body, surface, outline.WeldTolerance);
@@ -273,7 +274,7 @@ namespace VisualPinball.Unity
 				}
 				floorCharts = CutFloor(bottom, atlasSide * 0.5f, buffers);
 				floorSides = AddSunkenFloor(outline, body, bottom, bottomMap, bevel > 0f, island, islandMap, starburst,
-					floor, surface, top, floorCharts, outerCharts, buffers);
+					floor, surface, top, floorCharts, outerCharts, buffers, out flatIsland);
 
 			} else {
 				if (bevel <= 0f) {
@@ -292,6 +293,20 @@ namespace VisualPinball.Unity
 			if (layout != null) {
 				layout.VertexCharts = buffers.Charts.ToArray();
 				layout.FlatChart = carved ? top : -1;
+				var flatTriangles = new List<int>();
+				if (carved) {
+					for (var t = 0; t < buffers.Triangles.Count / 3; t++) {
+						if (buffers.Charts[buffers.Triangles[t * 3]] == top) {
+							flatTriangles.Add(t);
+						}
+					}
+				}
+				layout.FlatTriangles = flatTriangles.ToArray();
+				// A line's trough is geometry for the bake alone: the middle keeps
+				// its projection through the bake, so the plain island the insert
+				// shows once baked can carry the map.
+				layout.FlatProjected = flatIsland != null;
+				layout.FlatIsland = flatIsland;
 				// Everything that is not a floor, laid out from above, is a wall.
 				var floors = new HashSet<int> { top, bottomChart };
 				if (floorCharts != null) {
@@ -892,10 +907,11 @@ namespace VisualPinball.Unity
 		/// rim is surface, and the rim's own wall comes down onto that surface.</param>
 		private static List<RunPoint>[] AddSunkenFloor(InsertOutline outline, InsertBody body, List<RingPoint> rim,
 			int[] rimMap, bool bevelled, List<RingPoint> island, int[] islandMap, InsertStarburst starburst, float floor,
-			float islandTop, int topChart, int[] floorCharts, int[] outerCharts, MeshBuffers buffers)
+			float islandTop, int topChart, int[] floorCharts, int[] outerCharts, MeshBuffers buffers, out InsertFlatIsland flatIsland)
 		{
 			var weld = outline.WeldTolerance;
 			var arrangement = new InsertArrangement(weld);
+			flatIsland = null;
 			var owners = new Dictionary<int, (List<RingPoint> Ring, int Side)>();
 
 			var rimPoints = AddLoop(arrangement, rim, owners, out var rimSides);
@@ -959,7 +975,7 @@ namespace VisualPinball.Unity
 			List<float2> bandOuter = null;
 			List<float2> bandInner = null;
 			if (groove != null) {
-				AddGrooveStrips(groove, islandTop, topChart, weld, buffers, out bandOuter, out bandInner);
+				AddGrooveStrips(groove, islandTop, topChart, weld, arrangement, buffers, out bandOuter, out bandInner);
 				var surfacePoints = islandPoints ?? rimPoints;
 				var surfaceRing = island ?? rim;
 				var surfacePositions = new List<float2>(surfaceRing.Count);
@@ -970,6 +986,7 @@ namespace VisualPinball.Unity
 				if (outerPoints != null) {
 					AddGrooveLoop(arrangement, bandInner, bandOuter, outerPoints);
 				}
+				flatIsland = PlainIsland(surfaceRing, polygon, body, holes, islandTop, weld);
 			}
 
 			arrangement.Build();
@@ -1257,6 +1274,232 @@ namespace VisualPinball.Unity
 			return Side(a, b, c) * Side(a, b, d) < 0.0 && Side(c, d, a) * Side(c, d, b) < 0.0;
 		}
 
+		/// <summary>
+		/// The raised middle as a plain flat surface, its holes cut out and
+		/// nothing carved into it: what stands in for the middle's triangles once
+		/// a bake fits and the engraved line lives in the maps. Its edge and its
+		/// holes are the same points the walls stand on, so they meet exactly.
+		/// </summary>
+		private static InsertFlatIsland PlainIsland(List<RingPoint> ring, List<float2> polygon, InsertBody body,
+			List<List<float2>> holes, float height, float weld)
+		{
+			var arrangement = new InsertArrangement(weld);
+			AddLoop(arrangement, ring, new Dictionary<int, (List<RingPoint> Ring, int Side)>(), out _);
+			AddHoles(arrangement, body.Holes, body.HoleSegments, polygon, null, weld, out _);
+			arrangement.Build();
+			var faces = arrangement.Faces(out _);
+			var vertices = new List<Vector3>();
+			var indices = new Dictionary<Vector3, int>();
+			var triangles = new List<int>();
+			foreach (var face in faces) {
+				var exact = new List<double2>(face.Count);
+				foreach (var point in face) {
+					exact.Add(arrangement.Exact(point));
+				}
+				var pieces = InsertTriangulation.EarClip(exact);
+				if (pieces.Count == 0) {
+					continue;
+				}
+				var largest = pieces[0];
+				var largestArea = 0.0;
+				foreach (var piece in pieces) {
+					var area = TriangleArea(exact[piece.x], exact[piece.y], exact[piece.z]);
+					if (area > largestArea) {
+						largest = piece;
+						largestArea = area;
+					}
+				}
+				var middle = (float2)((exact[largest.x] + exact[largest.y] + exact[largest.z]) / 3.0);
+				if (!Contains(polygon, middle) || InAnyHole(holes, middle)) {
+					continue;
+				}
+				var corners = new int[face.Count];
+				for (var i = 0; i < face.Count; i++) {
+					var position = ToLocal(arrangement.Position(face[i]), height);
+					if (!indices.TryGetValue(position, out var index)) {
+						index = vertices.Count;
+						indices.Add(position, index);
+						vertices.Add(position);
+					}
+					corners[i] = index;
+				}
+				foreach (var piece in pieces) {
+					triangles.Add(corners[piece.x]);
+					triangles.Add(corners[piece.y]);
+					triangles.Add(corners[piece.z]);
+				}
+			}
+			return new InsertFlatIsland { Vertices = vertices.ToArray(), Triangles = triangles.ToArray() };
+		}
+
+		/// <summary>
+		/// Takes the raised middle's triangles out of a mesh wearing a fitting
+		/// bake and puts the plain flat island in their place, the engraved
+		/// line's trough gone from the mesh. The island's UVs and tangents come
+		/// from the map's projection of the middle, fitted to the corners the
+		/// bake laid out: the bake keeps that chart as the generator projected it
+		/// from above, so the map lies on any triangulation of the middle.
+		/// </summary>
+		/// <returns>False, leaving the mesh as it is, when there is no island to
+		/// put in, or the bake's chart is not a projection, as one made before
+		/// the middle kept its projection is not.</returns>
+		public static bool ReplaceMiddle(Mesh mesh, InsertMeshLayout layout)
+		{
+			var island = layout.FlatIsland;
+			if (island == null || layout.FlatTriangles == null || layout.FlatTriangles.Length == 0 || island.Triangles.Length == 0) {
+				return false;
+			}
+			var vertices = mesh.vertices;
+			var normals = mesh.normals;
+			var uvs = mesh.uv;
+			var tangents = mesh.tangents;
+			var triangles = mesh.triangles;
+			if (uvs.Length != vertices.Length || tangents.Length != vertices.Length) {
+				return false;
+			}
+			var flat = new bool[triangles.Length / 3];
+			foreach (var t in layout.FlatTriangles) {
+				if (t < flat.Length) {
+					flat[t] = true;
+				}
+			}
+
+			// The map's U and V, each an affine function of local X and Z, by
+			// least squares over the middle's corners.
+			var m = new double[3, 3];
+			var ru = new double[3];
+			var rv = new double[3];
+			for (var t = 0; t < flat.Length; t++) {
+				if (!flat[t]) {
+					continue;
+				}
+				for (var c = 0; c < 3; c++) {
+					var vertex = triangles[t * 3 + c];
+					var q = new double[] { vertices[vertex].x, vertices[vertex].z, 1.0 };
+					for (var i = 0; i < 3; i++) {
+						for (var j = 0; j < 3; j++) {
+							m[i, j] += q[i] * q[j];
+						}
+						ru[i] += q[i] * uvs[vertex].x;
+						rv[i] += q[i] * uvs[vertex].y;
+					}
+				}
+			}
+			if (!Solve(m, ru, out var cu) || !Solve(m, rv, out var cv)) {
+				return false;
+			}
+			// A chart that was unwrapped rather than projected does not fit an
+			// affine map: its trough lies wider in the map than on the middle.
+			for (var t = 0; t < flat.Length; t++) {
+				if (!flat[t]) {
+					continue;
+				}
+				for (var c = 0; c < 3; c++) {
+					var vertex = triangles[t * 3 + c];
+					var u = cu[0] * vertices[vertex].x + cu[1] * vertices[vertex].z + cu[2];
+					var v = cv[0] * vertices[vertex].x + cv[1] * vertices[vertex].z + cv[2];
+					if (math.abs(u - uvs[vertex].x) > 1e-4 || math.abs(v - uvs[vertex].y) > 1e-4) {
+						return false;
+					}
+				}
+			}
+
+			// The tangent runs where U grows and the bitangent where V does, the
+			// columns of the map's inverse; the sign says which way V turns.
+			var determinant = cu[0] * cv[1] - cu[1] * cv[0];
+			if (math.abs(determinant) < 1e-18) {
+				return false;
+			}
+			var tangent = new Vector3((float)(cv[1] / determinant), 0f, (float)(-cv[0] / determinant)).normalized;
+			var bitangent = new Vector3((float)(-cu[1] / determinant), 0f, (float)(cu[0] / determinant));
+			var sign = tangent.z * bitangent.x - tangent.x * bitangent.z < 0f ? -1f : 1f;
+			var islandTangent = new Vector4(tangent.x, 0f, tangent.z, sign);
+
+			var outVertices = new List<Vector3>(vertices.Length);
+			var outNormals = new List<Vector3>(vertices.Length);
+			var outUvs = new List<Vector2>(vertices.Length);
+			var outTangents = new List<Vector4>(vertices.Length);
+			var outTriangles = new List<int>(triangles.Length);
+			var remap = new int[vertices.Length];
+			for (var i = 0; i < remap.Length; i++) {
+				remap[i] = -1;
+			}
+			for (var t = 0; t < flat.Length; t++) {
+				if (flat[t]) {
+					continue;
+				}
+				for (var c = 0; c < 3; c++) {
+					var vertex = triangles[t * 3 + c];
+					if (remap[vertex] < 0) {
+						remap[vertex] = outVertices.Count;
+						outVertices.Add(vertices[vertex]);
+						outNormals.Add(normals[vertex]);
+						outUvs.Add(uvs[vertex]);
+						outTangents.Add(tangents[vertex]);
+					}
+					outTriangles.Add(remap[vertex]);
+				}
+			}
+			var first = outVertices.Count;
+			foreach (var position in island.Vertices) {
+				outVertices.Add(position);
+				outNormals.Add(Vector3.up);
+				outUvs.Add(new Vector2((float)(cu[0] * position.x + cu[1] * position.z + cu[2]), (float)(cv[0] * position.x + cv[1] * position.z + cv[2])));
+				outTangents.Add(islandTangent);
+			}
+			foreach (var index in island.Triangles) {
+				outTriangles.Add(first + index);
+			}
+
+			mesh.Clear();
+			mesh.indexFormat = outVertices.Count > ushort.MaxValue ? IndexFormat.UInt32 : IndexFormat.UInt16;
+			mesh.SetVertices(outVertices);
+			mesh.SetNormals(outNormals);
+			mesh.SetUVs(0, outUvs);
+			mesh.SetTangents(outTangents);
+			mesh.SetTriangles(outTriangles, 0);
+			mesh.RecalculateBounds();
+			return true;
+		}
+
+		/// <summary>Solves a three by three system by elimination with pivoting.</summary>
+		private static bool Solve(double[,] m, double[] r, out double[] x)
+		{
+			var a = new double[3, 4];
+			for (var i = 0; i < 3; i++) {
+				for (var j = 0; j < 3; j++) {
+					a[i, j] = m[i, j];
+				}
+				a[i, 3] = r[i];
+			}
+			for (var column = 0; column < 3; column++) {
+				var pivot = column;
+				for (var row = column + 1; row < 3; row++) {
+					if (System.Math.Abs(a[row, column]) > System.Math.Abs(a[pivot, column])) {
+						pivot = row;
+					}
+				}
+				if (System.Math.Abs(a[pivot, column]) < 1e-18) {
+					x = null;
+					return false;
+				}
+				for (var j = 0; j < 4; j++) {
+					(a[column, j], a[pivot, j]) = (a[pivot, j], a[column, j]);
+				}
+				for (var row = 0; row < 3; row++) {
+					if (row == column) {
+						continue;
+					}
+					var factor = a[row, column] / a[column, column];
+					for (var j = column; j < 4; j++) {
+						a[row, j] -= factor * a[column, j];
+					}
+				}
+			}
+			x = new[] { a[0, 3] / a[0, 0], a[1, 3] / a[1, 1], a[2, 3] / a[2, 2] };
+			return true;
+		}
+
 		private static bool InAnyHole(List<List<float2>> holes, float2 point)
 		{
 			foreach (var hole in holes) {
@@ -1288,8 +1531,8 @@ namespace VisualPinball.Unity
 		/// The edges are creases: the ring on them faces across the trough, and
 		/// the flat around and inside the trough keeps its own corners.
 		/// </summary>
-		private static void AddGrooveStrips(InsertGroove groove, float surface, int chart, float weld, MeshBuffers buffers,
-			out List<float2> outerEdge, out List<float2> innerEdge)
+		private static void AddGrooveStrips(InsertGroove groove, float surface, int chart, float weld, InsertArrangement arrangement,
+			MeshBuffers buffers, out List<float2> outerEdge, out List<float2> innerEdge)
 		{
 			var line = groove.Outline;
 			var count = line.Points.Count;
@@ -1324,6 +1567,15 @@ namespace VisualPinball.Unity
 					normals[j] = math.normalize((float3)across * (math.cos(angle) * depth) + new float3(0f, math.sin(angle) * half, 0f) + new float3(0f, 1e-6f, 0f));
 				}
 				Unfold(ring, map, normals);
+				// The two edges are laid into the arrangement as loops, whose
+				// points it snaps: the rings take the snapped positions, so the
+				// strips meet the faces around and within them to the bit, and the
+				// bake welds the middle into one piece.
+				if (k == 0 || k == steps) {
+					for (var j = 0; j < ring.Count; j++) {
+						ring[j] = arrangement.Snap(ring[j]);
+					}
+				}
 				rings[k] = ring;
 				maps[k] = map;
 				ringVertices[k] = new int[ring.Count];

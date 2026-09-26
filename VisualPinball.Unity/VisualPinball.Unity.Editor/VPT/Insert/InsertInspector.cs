@@ -425,9 +425,13 @@ namespace VisualPinball.Unity.Editor
 				Field(_flashGrooveDepth, "Depth");
 				Field(_flashGrooveSegments, "Segments");
 				if (targets.Length == 1 && target is InsertComponent single && single.Groove != null) {
-					EditorGUILayout.HelpBox(single.IsBakeFresh
-						? "Baked: the middle is flat and the line is in the maps. Changing the line puts its trough back into the mesh until the next bake."
-						: "The line is a trough in the mesh, for the bake: once baked, the middle is flat and the line is in the maps.", MessageType.None);
+					if (single.IsMiddleFlat) {
+						EditorGUILayout.HelpBox("Baked: the trough is gone from the mesh and the line is in the maps. Changing the line puts its trough back into the mesh until the next bake.", MessageType.None);
+					} else if (single.IsBakeFresh) {
+						EditorGUILayout.HelpBox("This bake was made before the middle kept its projection, so the trough is still in the mesh. Bake Again to take it out.", MessageType.Warning);
+					} else {
+						EditorGUILayout.HelpBox("The line is a trough in the mesh, for the bake: once baked, the trough is gone from the mesh and the line is in the maps.", MessageType.None);
+					}
 				}
 				// A line that did not fit says so here, where its settings are.
 				foreach (var selected in targets) {

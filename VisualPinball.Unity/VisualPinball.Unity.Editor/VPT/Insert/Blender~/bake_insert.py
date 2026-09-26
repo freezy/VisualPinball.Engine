@@ -34,8 +34,10 @@ nothing below cares about.
 The normal map is baked from a copy of the mesh whose every sharp edge a Bevel
 shader rounds off. The raised middle with its starburst is baked from a flat
 copy of itself and everything else from the mesh as it is, so the starburst
-keeps a flat tangent basis. UVPackMaster packs the UVs when Blender has it
-installed; nothing else needs installing.
+keeps a flat tangent basis. A middle with an engraved line keeps the
+generator's projection from above through the unwrap, so that the plain flat
+middle the insert shows once baked carries the map. UVPackMaster packs the UVs
+when Blender has it installed; nothing else needs installing.
 """
 
 import json
@@ -153,6 +155,8 @@ def unwrap(obj, request, report):
 				# Switching out of Edit mode replaces the UV layer's RNA data.
 				# Reacquire it: the pre-unwrap handle can silently leave folded UVs in place.
 				mesh.uv_layers[UV_NAME].data.foreach_set('uv', uv_array(mesh, GENERATOR_UV_NAME).ravel())
+			elif request.get('FlatProjected', False) and request['FlatFaces']:
+				keep_flat_projection(mesh, request)
 			bpy.ops.object.mode_set(mode='EDIT')
 			bpy.ops.mesh.select_all(action='SELECT')
 			bpy.ops.uv.average_islands_scale()
@@ -163,6 +167,20 @@ def unwrap(obj, request, report):
 		report['Packer'] = pack(request, report)
 	finally:
 		bpy.ops.object.mode_set(mode='OBJECT')
+
+
+def keep_flat_projection(mesh, request):
+	"""The flat faces as the generator projected them from above, the unwrap undone on them.
+
+	An engraved line's trough unfolds under the unwrap, wider than it lies, and
+	the plain middle shown once baked could not carry that; the projection any
+	triangulation of the middle carries is kept instead, scaled and packed with
+	the rest as a piece.
+	"""
+	corners = corners_of(request['FlatFaces'])
+	uvs = uv_array(mesh, UV_NAME)
+	uvs[corners] = uv_array(mesh, GENERATOR_UV_NAME)[corners]
+	mesh.uv_layers[UV_NAME].data.foreach_set('uv', uvs.ravel())
 
 
 def corners_of(faces):

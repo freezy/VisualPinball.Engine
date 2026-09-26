@@ -34,6 +34,27 @@ namespace VisualPinball.Unity
 		public int FlatChart;
 
 		/// <summary>
+		/// The triangles of the raised middle's chart, by triangle index, or
+		/// empty when there is no raised middle.
+		/// </summary>
+		public int[] FlatTriangles;
+
+		/// <summary>
+		/// Whether the raised middle's chart keeps the generator's projection from
+		/// above through the bake, instead of being unwrapped, so that any
+		/// triangulation of the middle carries the map. Set when the middle holds
+		/// an engraved line, whose trough is geometry for the bake alone.
+		/// </summary>
+		public bool FlatProjected;
+
+		/// <summary>
+		/// A plain, flat triangulation of the raised middle without its engraved
+		/// line, to stand in for the middle's triangles once a bake fits, or null
+		/// when there is no line.
+		/// </summary>
+		public InsertFlatIsland FlatIsland;
+
+		/// <summary>
 		/// The charts of the walls, the outer one with its bottom bevel included,
 		/// which matter less than the floors and are given fewer texels.
 		/// </summary>
@@ -54,5 +75,12 @@ namespace VisualPinball.Unity
 		/// parameters or generator version produced them.
 		/// </summary>
 		public Hash128 Hash;
+	}
+
+	/// <summary>The raised middle as a plain flat surface, in local space.</summary>
+	public sealed class InsertFlatIsland
+	{
+		public Vector3[] Vertices;
+		public int[] Triangles;
 	}
 }

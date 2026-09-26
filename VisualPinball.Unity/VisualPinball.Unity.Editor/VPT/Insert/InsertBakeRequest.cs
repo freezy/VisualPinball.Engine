@@ -67,6 +67,13 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>The local height the flat copy is laid at.</summary>
 		public float FlatHeight;
 
+		/// <summary>
+		/// Whether the flat faces keep the generator's projection from above
+		/// through the unwrap, so that another triangulation of them can carry
+		/// the map.
+		/// </summary>
+		public bool FlatProjected;
+
 		public int TextureSize;
 		public int Padding;
 
@@ -120,6 +127,7 @@ namespace VisualPinball.Unity.Editor
 				Uvs = new float[triangles.Length * 2],
 				Charts = new int[triangles.Length / 3],
 				FlatHeight = layout.FlatHeight,
+				FlatProjected = layout.FlatProjected,
 				WallCharts = layout.WallCharts,
 				TextureSize = settings.TextureSize,
 				Padding = settings.Padding,

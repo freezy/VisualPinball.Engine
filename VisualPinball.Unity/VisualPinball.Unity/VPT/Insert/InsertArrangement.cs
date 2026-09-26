@@ -93,6 +93,17 @@ namespace VisualPinball.Unity
 		public float2 Position(int vertex) => (float2)_vertices[vertex];
 
 		/// <summary>
+		/// Where a point will lie once the arrangement is built: its pixel's
+		/// centre, exactly as <see cref="Position"/> gives it, so a vertex laid
+		/// beside the arrangement's own meets it to the bit.
+		/// </summary>
+		public float2 Snap(float2 position)
+		{
+			var key = Pixel(position);
+			return (float2)(_origin + (new double2(key.Item1, key.Item2) + 0.5) * _pixel);
+		}
+
+		/// <summary>
 		/// The same, unrounded. Vertices sit on a lattice, where no three that are
 		/// not in line are closer to it than half a pixel squared over their
 		/// spread, and a test on these sees that; the float positions do not.

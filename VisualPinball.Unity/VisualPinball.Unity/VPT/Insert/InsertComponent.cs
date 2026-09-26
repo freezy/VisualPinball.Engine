@@ -453,12 +453,12 @@ namespace VisualPinball.Unity
 				var mesh = GetOrCreateMesh();
 				var layout = new InsertMeshLayout();
 				InsertMeshGenerator.Generate(outline, body, mesh, layout);
+				IsBakeFresh = _bake != null && _bake.TryApply(mesh, layout.Hash);
 				// An engraved line is geometry for the bake alone: while a bake
-				// fits, the raised middle is pressed flat and the line lives in
-				// the maps; a change to it makes the bake stale, and the trough
-				// is back in the mesh until the next bake.
-				var flat = body.Groove != null ? FlatVertices(layout) : null;
-				IsBakeFresh = _bake != null && _bake.TryApply(mesh, layout.Hash, flat, layout.FlatHeight);
+				// fits, the middle's triangles, trough and all, give way to a plain
+				// flat island carrying the maps; a change to the line makes the
+				// bake stale, and the trough is back in the mesh until the next bake.
+				IsMiddleFlat = IsBakeFresh && InsertMeshGenerator.ReplaceMiddle(mesh, layout);
 				// Add the cover only after applying the body's bake. It must never
 				// change the bake hash, atlas, or per-corner tangent mapping.
 				// The renderer's second slot is the cover: whatever was put there,
@@ -490,18 +490,13 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		/// <summary>Which generated vertices belong to the raised middle, or null without one.</summary>
-		private static bool[] FlatVertices(InsertMeshLayout layout)
-		{
-			if (layout.FlatChart < 0 || layout.VertexCharts == null) {
-				return null;
-			}
-			var flat = new bool[layout.VertexCharts.Length];
-			for (var i = 0; i < flat.Length; i++) {
-				flat[i] = layout.VertexCharts[i] == layout.FlatChart;
-			}
-			return flat;
-		}
+		/// <summary>
+		/// Whether the raised middle is the plain flat island, the engraved
+		/// line's trough gone from the mesh and carried by a fitting bake's maps.
+		/// False with a line whose bake was made before the middle kept its
+		/// projection, which needs baking again.
+		/// </summary>
+		public bool IsMiddleFlat { get; private set; }
 
 		/// <summary>
 		/// Whether the insert shows its geometry in place of the bake's maps:

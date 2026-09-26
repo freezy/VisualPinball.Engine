@@ -497,7 +497,7 @@ namespace VisualPinball.Unity.Test
 			=> mesh.vertices.Any(v => v.y < surface - 1e-5f && v.y > trough - 1e-5f);
 
 		[Test]
-		public void ShouldPressTheEngravedMiddleFlatWhileTheBakeFits()
+		public void ShouldReplaceTheEngravedMiddleWithAFlatIslandWhileTheBakeFits()
 		{
 			var go = new GameObject("Engraved flash");
 			var probe = new Mesh();
@@ -506,30 +506,70 @@ namespace VisualPinball.Unity.Test
 				var insert = EngravedFlash(go);
 				var layout = new InsertMeshLayout();
 				insert.Generate(probe, layout);
+				Assert.That(layout.FlatProjected, Is.True, "a middle with a line keeps its projection through the bake");
+				Assert.That(layout.FlatIsland, Is.Not.Null);
+				var request = Request(probe, layout);
+				Assert.That(request.FlatProjected, Is.True);
+				// The bake welds the mesh by position: the middle's faces, trough
+				// strips included, have to come out as one piece, or Blender packs
+				// them as separate islands and the projection is lost.
+				var parent = new Dictionary<int, int>();
+				int Find(int i) => parent[i] == i ? i : parent[i] = Find(parent[i]);
+				foreach (var t in request.FlatFaces) {
+					for (var c = 0; c < 3; c++) {
+						var welded = request.Triangles[t * 3 + c];
+						parent.TryAdd(welded, welded);
+					}
+					for (var c = 1; c < 3; c++) {
+						parent[Find(request.Triangles[t * 3 + c])] = Find(request.Triangles[t * 3]);
+					}
+				}
+				Assert.That(parent.Keys.ToList().Select(Find).Distinct().Count(), Is.EqualTo(1), "the middle with its trough welds into one piece");
 				var surface = layout.FlatHeight;
 				var trough = InsertMeshGenerator.ToLocal(float2.zero, -insert.Body.Depth - insert.Groove.Depth).y;
 				var filter = go.GetComponent<MeshFilter>();
 				Assert.That(HasTrough(filter.sharedMesh, surface, trough), Is.True, "the trough is in the mesh before a bake");
+				Assert.That(insert.IsMiddleFlat, Is.False);
 
 				bake = GeneratorBake(probe, layout.Hash);
 				insert.SetBake(bake);
 				Assert.That(insert.IsBakeFresh, Is.True);
+				Assert.That(insert.IsMiddleFlat, Is.True, "a fitting bake takes the trough out");
 				var mesh = filter.sharedMesh;
-				Assert.That(HasTrough(mesh, surface, trough), Is.False, "a fitting bake presses the trough flat");
+				Assert.That(HasTrough(mesh, surface, trough), Is.False, "the trough is gone from the mesh");
+				Assert.That(mesh.triangles.Length, Is.LessThan(probe.triangles.Length), "the plain island is leaner than the middle with its trough");
 				var vertices = mesh.vertices;
 				var normals = mesh.normals;
+				var uvs = mesh.uv;
 				var tangents = mesh.tangents;
-				var pressed = 0;
+				// The island's UVs are the projection the bake laid the middle out
+				// with: at the middle's edge, where both meshes have a vertex, they
+				// are the generated mesh's own.
+				var generated = new Dictionary<Vector2, Vector2>();
+				var generatedVertices = probe.vertices;
+				var generatedUvs = probe.uv;
+				for (var i = 0; i < generatedVertices.Length; i++) {
+					if (layout.VertexCharts[i] == layout.FlatChart) {
+						generated[new Vector2(generatedVertices[i].x, generatedVertices[i].z)] = generatedUvs[i];
+					}
+				}
+				var island = 0;
+				var matched = 0;
 				for (var i = 0; i < vertices.Length; i++) {
 					if (Mathf.Abs(vertices[i].y - surface) > 1e-5f || normals[i] != Vector3.up) {
 						continue;
 					}
-					pressed++;
-					Assert.That(tangents[i].y, Is.EqualTo(0f).Within(1e-5f), "a flat vertex's tangent lies in the flat face");
+					island++;
+					Assert.That(tangents[i].y, Is.EqualTo(0f).Within(1e-5f), "an island vertex's tangent lies in the island");
 					Assert.That(new Vector2(tangents[i].x, tangents[i].z).magnitude, Is.EqualTo(1f).Within(1e-4f));
 					Assert.That(Mathf.Abs(tangents[i].w), Is.EqualTo(1f));
+					if (generated.TryGetValue(new Vector2(vertices[i].x, vertices[i].z), out var uv)) {
+						matched++;
+						Assert.That(Vector2.Distance(uvs[i], uv), Is.LessThan(1e-4f), "an island vertex carries the map where the generated middle had it");
+					}
 				}
-				Assert.That(pressed, Is.GreaterThan(0));
+				Assert.That(island, Is.GreaterThan(0));
+				Assert.That(matched, Is.GreaterThan(island / 2), "most island vertices lie on the middle's edge or its holes");
 
 				// A change to the line makes the bake stale, and the trough comes back.
 				var settings = new UnityEditor.SerializedObject(insert);
@@ -537,6 +577,7 @@ namespace VisualPinball.Unity.Test
 				settings.ApplyModifiedPropertiesWithoutUndo();
 				insert.RebuildMesh();
 				Assert.That(insert.IsBakeFresh, Is.False);
+				Assert.That(insert.IsMiddleFlat, Is.False);
 				Assert.That(HasTrough(filter.sharedMesh, surface, trough), Is.True, "a stale bake shows the trough again");
 			} finally {
 				Object.DestroyImmediate(go);
@@ -566,8 +607,10 @@ namespace VisualPinball.Unity.Test
 				bake = GeneratorBake(probe, layout.Hash);
 				insert.SetBake(bake);
 				Assert.That(insert.IsBakeFresh, Is.True);
+				Assert.That(insert.IsMiddleFlat, Is.False);
+				Assert.That(layout.FlatProjected, Is.False, "a starburst's chart is unwrapped as before");
 				var raised = go.GetComponent<MeshFilter>().sharedMesh.vertices.Any(v => v.y > layout.FlatHeight + 1e-4f && v.y < -1e-4f);
-				Assert.That(raised, Is.True, "the starburst's ridges stay in the mesh; only an engraved line is pressed flat");
+				Assert.That(raised, Is.True, "the starburst's ridges stay in the mesh; only an engraved line gives way to a flat island");
 			} finally {
 				Object.DestroyImmediate(go);
 				Object.DestroyImmediate(probe);
