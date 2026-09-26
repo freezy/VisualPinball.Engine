@@ -18,11 +18,17 @@ namespace VisualPinball.Unity.Editor
 	public static class InsertMaterialTemplates
 	{
 		private const string LuminosityProperty = "_InsertLuminosity";
+		private static InsertMaterialTemplate[] _templates;
+
+		static InsertMaterialTemplates()
+		{
+			EditorApplication.projectChanged += () => _templates = null;
+		}
 
 		/// <summary>Every template in the project and its packages, by name.</summary>
 		public static InsertMaterialTemplate[] Find()
 		{
-			return AssetDatabase.FindAssets("t:" + nameof(InsertMaterialTemplate))
+			return _templates ??= AssetDatabase.FindAssets("t:" + nameof(InsertMaterialTemplate))
 				.Select(guid => AssetDatabase.LoadAssetAtPath<InsertMaterialTemplate>(AssetDatabase.GUIDToAssetPath(guid)))
 				.Where(template => template != null)
 				.OrderBy(template => template.name)
@@ -86,6 +92,7 @@ namespace VisualPinball.Unity.Editor
 				AssetDatabase.Refresh();
 			}
 			AssetDatabase.CreateAsset(template, path);
+			_templates = null;
 			AssetDatabase.SaveAssets();
 			return AssetDatabase.LoadAssetAtPath<InsertMaterialTemplate>(path);
 		}
