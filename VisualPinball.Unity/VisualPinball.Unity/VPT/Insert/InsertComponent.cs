@@ -484,6 +484,9 @@ namespace VisualPinball.Unity
 					renderer.sharedMaterials = new[] { renderer.sharedMaterial };
 				}
 				UpdateBakePreview(renderer);
+#if UNITY_EDITOR
+				_gizmoEdges = IsShowingGeometry ? FeatureEdges(mesh) : null;
+#endif
 
 			} catch (InsertOutlineException exception) {
 				Error = exception.Message;
@@ -502,7 +505,7 @@ namespace VisualPinball.Unity
 		/// Whether the insert shows its geometry in place of the bake's maps:
 		/// while the bake is stale, the maps no longer lie on the geometry, so
 		/// the renderer is off and the generated mesh is drawn as a gizmo in
-		/// the scene instead, yellow and see-through with its wireframe over it,
+		/// the scene instead, yellow and see-through with its feature edges over it,
 		/// the way a collider preview is. Only in the editor, outside play mode.
 		/// </summary>
 		public bool IsShowingGeometry { get; private set; }
@@ -528,12 +531,96 @@ namespace VisualPinball.Unity
 		/// <summary>The fill of the geometry gizmo, yellow and see-through.</summary>
 		private static readonly Color GizmoFill = new(1f, 0.85f, 0.1f, 0.3f);
 
-		/// <summary>The wireframe of the geometry gizmo, drawn solid over the fill.</summary>
+		/// <summary>The feature edges of the geometry gizmo, drawn solid over the fill.</summary>
 		private static readonly Color GizmoWire = new(1f, 0.85f, 0.1f, 1f);
+
+		[NonSerialized] private Vector3[] _gizmoEdges;
+
+		private struct GizmoEdge
+		{
+			public Vector3 From;
+			public Vector3 To;
+			public Vector3 FromNormal;
+			public Vector3 ToNormal;
+			public Vector3 FaceNormal;
+			public int Faces;
+			public bool IsCrease;
+		}
+
+		/// <summary>
+		/// Weld UV and shading splits by position, then keep open boundaries and
+		/// edges whose surface normals break, plus strong geometric folds such as
+		/// the bottom of a V-shaped trough, whose vertices share smoothed normals.
+		/// Smooth walls and triangulation inside flat faces do not need wires.
+		/// </summary>
+		internal static Vector3[] FeatureEdges(Mesh mesh)
+		{
+			var vertices = mesh.vertices;
+			var normals = mesh.normals;
+			var triangles = mesh.GetTriangles(0);
+			var weld = math.max(1e-7f, mesh.bounds.size.magnitude * 1e-6f);
+			var points = new Dictionary<Vector3Int, int>();
+			var welded = new int[vertices.Length];
+			for (var i = 0; i < vertices.Length; i++) {
+				var point = vertices[i];
+				var key = new Vector3Int((int)math.round(point.x / weld), (int)math.round(point.y / weld), (int)math.round(point.z / weld));
+				if (!points.TryGetValue(key, out var index)) {
+					points.Add(key, index = points.Count);
+				}
+				welded[i] = index;
+			}
+
+			var edges = new Dictionary<(int, int), GizmoEdge>();
+			const float creaseDot = 0.99996f; // Approximately half a degree.
+			const float foldDot = 0.7071068f; // 45 degrees; leaves rounded profiles uncluttered.
+			void AddEdge(int from, int to, Vector3 faceNormal)
+			{
+				var a = welded[from];
+				var b = welded[to];
+				if (a == b) {
+					return;
+				}
+				if (a > b) {
+					(a, b) = (b, a);
+					(from, to) = (to, from);
+				}
+				var key = (a, b);
+				if (edges.TryGetValue(key, out var edge)) {
+					edge.Faces++;
+					edge.IsCrease |= math.dot((float3)edge.FromNormal, (float3)normals[from]) < creaseDot
+						|| math.dot((float3)edge.ToNormal, (float3)normals[to]) < creaseDot
+						|| math.dot((float3)edge.FaceNormal, (float3)faceNormal) < foldDot;
+					edges[key] = edge;
+				} else {
+					edges.Add(key, new GizmoEdge {
+						From = vertices[from], To = vertices[to],
+						FromNormal = normals[from], ToNormal = normals[to], FaceNormal = faceNormal, Faces = 1,
+					});
+				}
+			}
+
+			for (var i = 0; i < triangles.Length; i += 3) {
+				var a = triangles[i];
+				var b = triangles[i + 1];
+				var c = triangles[i + 2];
+				var faceNormal = Vector3.Cross(vertices[b] - vertices[a], vertices[c] - vertices[a]).normalized;
+				AddEdge(a, b, faceNormal);
+				AddEdge(b, c, faceNormal);
+				AddEdge(c, a, faceNormal);
+			}
+			var lines = new List<Vector3>();
+			foreach (var edge in edges.Values) {
+				if (edge.Faces == 1 || edge.IsCrease) {
+					lines.Add(edge.From);
+					lines.Add(edge.To);
+				}
+			}
+			return lines.ToArray();
+		}
 
 		/// <summary>
 		/// The generated mesh in the insert's place while its bake is stale: the
-		/// body as a see-through yellow fill under its solid wireframe, the way
+		/// body as a see-through yellow fill under its solid feature edges, the way
 		/// a collider preview draws, so the geometry to be baked is what is
 		/// seen, and not maps that no longer lie on it.
 		/// </summary>
@@ -550,7 +637,8 @@ namespace VisualPinball.Unity
 			Gizmos.color = GizmoFill;
 			Gizmos.DrawMesh(mesh, 0, Vector3.zero, Quaternion.identity, Vector3.one);
 			Gizmos.color = GizmoWire;
-			Gizmos.DrawWireMesh(mesh, 0, Vector3.zero, Quaternion.identity, Vector3.one);
+			_gizmoEdges ??= FeatureEdges(mesh);
+			Gizmos.DrawLineList(_gizmoEdges);
 			Gizmos.matrix = Matrix4x4.identity;
 		}
 #endif

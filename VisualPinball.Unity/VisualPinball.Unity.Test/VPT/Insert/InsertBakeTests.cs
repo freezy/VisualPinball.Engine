@@ -57,6 +57,31 @@ namespace VisualPinball.Unity.Test
 		private static InsertBakeRequest Request(Mesh mesh, InsertMeshLayout layout)
 			=> InsertBakeRequest.Build(mesh, layout, InsertBakeSettings.Default, Offset);
 
+		[Test]
+		public void ShouldDrawOnlyBoundariesAndCreasesInTheGeometryPreview()
+		{
+			var mesh = new Mesh {
+				vertices = new[] {
+					new Vector3(0f, 0f, 0f), new Vector3(1f, 0f, 0f), new Vector3(1f, 0f, 1f),
+					new Vector3(0f, 0f, 0f), new Vector3(1f, 0f, 1f), new Vector3(0f, 0f, 1f),
+				},
+				normals = Enumerable.Repeat(Vector3.up, 6).ToArray(),
+				triangles = new[] { 0, 1, 2, 3, 4, 5 },
+			};
+			try {
+				Assert.That(InsertComponent.FeatureEdges(mesh), Has.Length.EqualTo(8),
+					"a flat face has four boundary wires, even when its triangles have separate UV vertices");
+				var normals = mesh.normals;
+				normals[3] = Vector3.right;
+				normals[4] = Vector3.right;
+				mesh.normals = normals;
+				Assert.That(InsertComponent.FeatureEdges(mesh), Has.Length.EqualTo(10),
+					"a break in surface normals restores the shared edge");
+			} finally {
+				Object.DestroyImmediate(mesh);
+			}
+		}
+
 		[TestCase(0f, 1.5f, 0f, 1.5f)]
 		[TestCase(0.25f, 2f, 0.25f, 2f)]
 		[TestCase(2f, 0f, 1f, 0.1f)]
@@ -491,6 +516,24 @@ namespace VisualPinball.Unity.Test
 			insert.RebuildMesh();
 			Assert.That(insert.Groove, Is.Not.Null, string.Join(" | ", insert.Warnings));
 			return insert;
+		}
+
+		[Test]
+		public void ShouldDrawTheBottomOfAnEngravedLineDespiteItsSmoothedNormals()
+		{
+			var go = new GameObject("Engraved flash");
+			try {
+				var insert = EngravedFlash(go);
+				var mesh = go.GetComponent<MeshFilter>().sharedMesh;
+				var lines = InsertComponent.FeatureEdges(mesh);
+				var trough = InsertMeshGenerator.ToLocal(float2.zero, -insert.Body.Depth - insert.Groove.Depth).y;
+				Assert.That(Enumerable.Range(0, lines.Length / 2).Any(i =>
+					math.abs(lines[i * 2].y - trough) < 1e-5f &&
+					math.abs(lines[i * 2 + 1].y - trough) < 1e-5f), Is.True,
+					"the default V-shaped trough has a visible wire along its bottom");
+			} finally {
+				Object.DestroyImmediate(go);
+			}
 		}
 
 		private static bool HasTrough(Mesh mesh, float surface, float trough)
