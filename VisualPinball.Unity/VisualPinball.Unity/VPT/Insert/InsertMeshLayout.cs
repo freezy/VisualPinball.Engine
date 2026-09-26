@@ -40,6 +40,13 @@ namespace VisualPinball.Unity
 		public int[] FlatTriangles;
 
 		/// <summary>
+		/// Local-space line pairs for the editor's geometry preview. These follow
+		/// generated wall quads and surface strips, without triangulation diagonals.
+		/// They do not affect the bake hash or runtime mesh.
+		/// </summary>
+		public Vector3[] PreviewEdges;
+
+		/// <summary>
 		/// Whether the raised middle's chart keeps the generator's projection from
 		/// above through the bake, instead of being unwrapped, so that any
 		/// triangulation of the middle carries the map. Set when the middle holds

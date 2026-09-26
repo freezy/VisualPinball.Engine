@@ -58,25 +58,47 @@ namespace VisualPinball.Unity.Test
 			=> InsertBakeRequest.Build(mesh, layout, InsertBakeSettings.Default, Offset);
 
 		[Test]
-		public void ShouldDrawOnlyBoundariesAndCreasesInTheGeometryPreview()
+		public void ShouldDrawWallQuadsWithoutTheirTriangleDiagonals()
 		{
-			var mesh = new Mesh {
-				vertices = new[] {
-					new Vector3(0f, 0f, 0f), new Vector3(1f, 0f, 0f), new Vector3(1f, 0f, 1f),
-					new Vector3(0f, 0f, 0f), new Vector3(1f, 0f, 1f), new Vector3(0f, 0f, 1f),
-				},
-				normals = Enumerable.Repeat(Vector3.up, 6).ToArray(),
-				triangles = new[] { 0, 1, 2, 3, 4, 5 },
-			};
+			var (mesh, layout) = Generate(0f, 0f, 0);
 			try {
-				Assert.That(InsertComponent.FeatureEdges(mesh), Has.Length.EqualTo(8),
-					"a flat face has four boundary wires, even when its triangles have separate UV vertices");
-				var normals = mesh.normals;
-				normals[3] = Vector3.right;
-				normals[4] = Vector3.right;
-				mesh.normals = normals;
-				Assert.That(InsertComponent.FeatureEdges(mesh), Has.Length.EqualTo(10),
-					"a break in surface normals restores the shared edge");
+				var vertices = mesh.vertices;
+				var triangles = mesh.triangles;
+				var lines = layout.PreviewEdges;
+				bool HasEdge(int from, int to) => Enumerable.Range(0, lines.Length / 2).Any(i =>
+					lines[i * 2] == vertices[from] && lines[i * 2 + 1] == vertices[to] ||
+					lines[i * 2] == vertices[to] && lines[i * 2 + 1] == vertices[from]);
+				var a = triangles[0];
+				var b = triangles[1];
+				var c = triangles[2];
+				var d = triangles[5];
+				Assert.That(HasEdge(a, b) && HasEdge(b, c) && HasEdge(c, d) && HasEdge(d, a), Is.True,
+					"the four sides of the generated wall quad are visible");
+				Assert.That(HasEdge(a, c), Is.False, "the triangle diagonal is hidden");
+			} finally {
+				Object.DestroyImmediate(mesh);
+			}
+		}
+
+		[Test]
+		public void ShouldHideHoleBridgesInTheStarburstPreview()
+		{
+			var center = new float2(5f, 0f);
+			var (mesh, layout) = Generate(4f, 3f, 12, 1f,
+				holeList: new[] { new InsertHole(center, 2f) });
+			try {
+				var local = InsertMeshGenerator.ToLocal(center);
+				var origin = new float2(local.x, local.z);
+				var radius = 2f * Scale;
+				float Distance(Vector3 point) => math.distance(new float2(point.x, point.z), origin);
+				bool OnHole(Vector3 point) => math.abs(Distance(point) - radius) < 0.02f * Scale;
+				var lines = layout.PreviewEdges;
+				Assert.That(layout.OpticalStarburst.z, Is.GreaterThan(0f));
+				Assert.That(lines.Any(OnHole), Is.True, "the hole contour is present in the preview");
+				Assert.That(Enumerable.Range(0, lines.Length / 2).Any(i =>
+					(OnHole(lines[i * 2]) && Distance(lines[i * 2 + 1]) > 5f * Scale) ||
+					(OnHole(lines[i * 2 + 1]) && Distance(lines[i * 2]) > 5f * Scale)), Is.False,
+					"the face-walk bridge from the hole to the island edge is not a visible wire");
 			} finally {
 				Object.DestroyImmediate(mesh);
 			}
@@ -519,13 +541,15 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldDrawTheBottomOfAnEngravedLineDespiteItsSmoothedNormals()
+		public void ShouldDrawTheBottomOfAnEngravedLineInTheQuadPreview()
 		{
 			var go = new GameObject("Engraved flash");
+			var mesh = new Mesh();
 			try {
 				var insert = EngravedFlash(go);
-				var mesh = go.GetComponent<MeshFilter>().sharedMesh;
-				var lines = InsertComponent.FeatureEdges(mesh);
+				var layout = new InsertMeshLayout();
+				insert.Generate(mesh, layout);
+				var lines = layout.PreviewEdges;
 				var trough = InsertMeshGenerator.ToLocal(float2.zero, -insert.Body.Depth - insert.Groove.Depth).y;
 				Assert.That(Enumerable.Range(0, lines.Length / 2).Any(i =>
 					math.abs(lines[i * 2].y - trough) < 1e-5f &&
@@ -533,6 +557,7 @@ namespace VisualPinball.Unity.Test
 					"the default V-shaped trough has a visible wire along its bottom");
 			} finally {
 				Object.DestroyImmediate(go);
+				Object.DestroyImmediate(mesh);
 			}
 		}
 

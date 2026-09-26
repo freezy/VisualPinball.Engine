@@ -195,7 +195,15 @@ namespace VisualPinball.Unity
 			public readonly List<Vector2> Uvs = new();
 			public readonly List<int> Charts = new();
 			public readonly List<int> Triangles = new();
+			private readonly List<(int From, int To)> _previewEdges;
 			private int _chartCount;
+
+			public MeshBuffers(bool preview)
+			{
+				if (preview) {
+					_previewEdges = new List<(int, int)>();
+				}
+			}
 
 			public int NewChart() => _chartCount++;
 
@@ -214,6 +222,52 @@ namespace VisualPinball.Unity
 				Triangles.Add(b);
 				Triangles.Add(c);
 			}
+
+			public void PreviewEdge(int from, int to) => _previewEdges?.Add((from, to));
+
+			public void PreviewPolygon(int first, int count)
+			{
+				for (var i = 0; i < count; i++) {
+					PreviewEdge(first + i, first + (i + 1) % count);
+				}
+			}
+
+			public void PreviewQuad(int a, int b, int c, int d)
+			{
+				PreviewEdge(a, b);
+				PreviewEdge(b, c);
+				PreviewEdge(c, d);
+				PreviewEdge(d, a);
+			}
+
+			public Vector3[] PreviewLines()
+			{
+				if (_previewEdges == null || _previewEdges.Count == 0) {
+					return Array.Empty<Vector3>();
+				}
+				var bounds = new Bounds(Vertices[0], Vector3.zero);
+				foreach (var vertex in Vertices) {
+					bounds.Encapsulate(vertex);
+				}
+				var weld = math.max(1e-7f, bounds.size.magnitude * 1e-6f);
+				Vector3Int Key(Vector3 p) => new((int)math.round(p.x / weld), (int)math.round(p.y / weld), (int)math.round(p.z / weld));
+				var seen = new HashSet<(Vector3Int, Vector3Int)>();
+				var lines = new List<Vector3>(_previewEdges.Count * 2);
+				foreach (var (from, to) in _previewEdges) {
+					var a = Key(Vertices[from]);
+					var b = Key(Vertices[to]);
+					if (a == b) {
+						continue;
+					}
+					var first = a.x < b.x || a.x == b.x && (a.y < b.y || a.y == b.y && a.z < b.z);
+					var edge = first ? (a, b) : (b, a);
+					if (seen.Add(edge)) {
+						lines.Add(Vertices[from]);
+						lines.Add(Vertices[to]);
+					}
+				}
+				return lines.ToArray();
+			}
 		}
 
 		/// <summary>
@@ -222,7 +276,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public static Mesh Generate(InsertOutline outline, InsertBody body, Mesh mesh, InsertMeshLayout layout = null)
 		{
-			var buffers = new MeshBuffers();
+			var buffers = new MeshBuffers(layout != null && Application.isEditor && !Application.isPlaying);
 			if (layout != null) {
 				layout.OpticalStarburst = Vector4.zero;
 			}
@@ -291,6 +345,7 @@ namespace VisualPinball.Unity
 			InsertUvAtlas.Pack(buffers.Uvs, buffers.Charts);
 
 			if (layout != null) {
+				layout.PreviewEdges = buffers.PreviewLines();
 				layout.VertexCharts = buffers.Charts.ToArray();
 				layout.FlatChart = carved ? top : -1;
 				var flatTriangles = new List<int>();
@@ -596,6 +651,7 @@ namespace VisualPinball.Unity
 				// Along the top, then down the far side: that order faces it in.
 				buffers.Triangle(topFrom, topTo, bottomTo);
 				buffers.Triangle(topFrom, bottomTo, bottomFrom);
+				buffers.PreviewQuad(topFrom, topTo, bottomTo, bottomFrom);
 				previousTop = topTo;
 				previousBottom = bottomTo;
 			}
@@ -811,6 +867,7 @@ namespace VisualPinball.Unity
 					foreach (var piece in InsertTriangulation.EarClip(cell)) {
 						buffers.Triangle(first + piece.x, first + piece.y, first + piece.z);
 					}
+					buffers.PreviewPolygon(first, points.Count);
 				}
 			}
 		}
@@ -941,7 +998,8 @@ namespace VisualPinball.Unity
 			// surface itself without one.
 			var inner = island != null ? Tier.Floor : Tier.Surface;
 
-			var holes = AddHoles(arrangement, body.Holes, body.HoleSegments, polygon, starburst, weld, out var holeOwners);
+			var holes = AddHoles(arrangement, body.Holes, body.HoleSegments, polygon, starburst, weld,
+				out var holeOwners, out var holeBridges);
 
 			if (starburst != null) {
 				// Spokes that start at the centre all share the one point, so however
@@ -1060,6 +1118,21 @@ namespace VisualPinball.Unity
 				foreach (var piece in pieces) {
 					buffers.Triangle(first + piece.x, first + piece.y, first + piece.z);
 				}
+				if (tier == Tier.Surface && starburst != null) {
+					// The hole bridges split a sector for the face walk; they are
+					// not seams in the starburst and have no preview wire.
+					for (var edge = 0; edge < face.Count; edge++) {
+						var next = (edge + 1) % face.Count;
+						var sources = arrangement.Sources(face[edge], face[next]);
+						var bridgeOnly = sources.Count > 0;
+						foreach (var source in sources) {
+							bridgeOnly &= holeBridges.Contains(source);
+						}
+						if (!bridgeOnly) {
+							buffers.PreviewEdge(first + edge, first + next);
+						}
+					}
+				}
 			}
 
 			Tier TierOf(int from, int to) => faceOf.TryGetValue((from, to), out var face) ? tiers[face] : Tier.Outside;
@@ -1075,6 +1148,22 @@ namespace VisualPinball.Unity
 					new Vector2(u, height), chart);
 				shared[(point, height, outward, u, chart)] = index;
 				return index;
+			}
+
+			bool WallCorner(int point, int other)
+			{
+				// Arrangement intersections split a wall for triangulation, but do
+				// not introduce another upright wire in its preview quad strip.
+				foreach (var source in arrangement.Sources(point, other)) {
+					if (!owners.ContainsKey(source) && !holeOwners.ContainsKey(source)) {
+						continue;
+					}
+					var t = arrangement.T(source, point);
+					if (t <= 1e-5f || t >= 1f - 1e-5f) {
+						return true;
+					}
+				}
+				return false;
 			}
 
 			foreach (var (a, b) in arrangement.Edges) {
@@ -1133,6 +1222,14 @@ namespace VisualPinball.Unity
 				if (!closedHere) {
 					buffers.Triangle(bottomFrom, topTo, topFrom);
 				}
+				buffers.PreviewEdge(bottomFrom, bottomTo);
+				buffers.PreviewEdge(topFrom, topTo);
+				if (WallCorner(from, to)) {
+					buffers.PreviewEdge(bottomFrom, topFrom);
+				}
+				if (WallCorner(to, from)) {
+					buffers.PreviewEdge(bottomTo, topTo);
+				}
 			}
 
 			var sides = new List<RunPoint>[rimSides.Length];
@@ -1166,9 +1263,10 @@ namespace VisualPinball.Unity
 		/// <returns>Each hole's polygon, for telling faces inside it apart.</returns>
 		private static List<List<float2>> AddHoles(InsertArrangement arrangement, InsertHole[] holes, int segments,
 			List<float2> island, InsertStarburst starburst, float weld,
-			out Dictionary<int, (float2 Center, int Index, float Chord, int Hole)> owners)
+			out Dictionary<int, (float2 Center, int Index, float Chord, int Hole)> owners, out HashSet<int> bridges)
 		{
 			owners = new Dictionary<int, (float2, int, float, int)>();
+			bridges = new HashSet<int>();
 			var polygons = new List<List<float2>>();
 			if (holes == null) {
 				return polygons;
@@ -1212,7 +1310,7 @@ namespace VisualPinball.Unity
 					var away = starburst != null ? center - starburst.Center : float2.zero;
 					var direction = math.lengthsq(away) > weld * weld ? math.normalize(away) : new float2(1f, 0f);
 					if (TryLeave(island, center, direction, out var exit)) {
-						arrangement.AddSegment(arrangement.AddPoint(center), arrangement.AddPoint(exit));
+						bridges.Add(arrangement.AddSegment(arrangement.AddPoint(center), arrangement.AddPoint(exit)));
 					}
 				}
 			}
@@ -1285,7 +1383,7 @@ namespace VisualPinball.Unity
 		{
 			var arrangement = new InsertArrangement(weld);
 			AddLoop(arrangement, ring, new Dictionary<int, (List<RingPoint> Ring, int Side)>(), out _);
-			AddHoles(arrangement, body.Holes, body.HoleSegments, polygon, null, weld, out _);
+			AddHoles(arrangement, body.Holes, body.HoleSegments, polygon, null, weld, out _, out _);
 			arrangement.Build();
 			var faces = arrangement.Faces(out _);
 			var vertices = new List<Vector3>();
@@ -1586,7 +1684,7 @@ namespace VisualPinball.Unity
 
 			// A triangle faces up when its footprint runs counter-clockwise; one
 			// that a collapse has turned over, or folded flat, is left out.
-			void Up(int k0, int j0, int k1, int j1, int k2, int j2)
+			bool Up(int k0, int j0, int k1, int j1, int k2, int j2)
 			{
 				var p0 = rings[k0][j0];
 				var p1 = rings[k1][j1];
@@ -1594,13 +1692,30 @@ namespace VisualPinball.Unity
 				var area = (p1.x - p0.x) * (p2.y - p0.y) - (p1.y - p0.y) * (p2.x - p0.x);
 				if (area > weld * weld) {
 					buffers.Triangle(ringVertices[k0][j0], ringVertices[k1][j1], ringVertices[k2][j2]);
+					return true;
 				}
+				return false;
 			}
 			for (var k = 0; k < steps; k++) {
 				for (var i = 0; i < count; i++) {
 					var next = (i + 1) % count;
-					Up(k, maps[k][i], k, maps[k][next], k + 1, maps[k + 1][next]);
-					Up(k, maps[k][i], k + 1, maps[k + 1][next], k + 1, maps[k + 1][i]);
+					var first = Up(k, maps[k][i], k, maps[k][next], k + 1, maps[k + 1][next]);
+					var second = Up(k, maps[k][i], k + 1, maps[k + 1][next], k + 1, maps[k + 1][i]);
+					var a = ringVertices[k][maps[k][i]];
+					var b = ringVertices[k][maps[k][next]];
+					var c = ringVertices[k + 1][maps[k + 1][next]];
+					var d = ringVertices[k + 1][maps[k + 1][i]];
+					if (first && second) {
+						buffers.PreviewQuad(a, b, c, d);
+					} else if (first) {
+						buffers.PreviewEdge(a, b);
+						buffers.PreviewEdge(b, c);
+						buffers.PreviewEdge(c, a);
+					} else if (second) {
+						buffers.PreviewEdge(a, c);
+						buffers.PreviewEdge(c, d);
+						buffers.PreviewEdge(d, a);
+					}
 				}
 			}
 			outerEdge = rings[0];
