@@ -10,15 +10,11 @@ using UnityEngine.Rendering;
 namespace VisualPinball.Unity
 {
 	/// <summary>
-	/// The look of an insert's materials without their bake: every number,
-	/// colour and vector the body's and the cover's materials show in their
-	/// inspectors, saved to be put on another insert whose baked maps stay as
-	/// they are. A clear insert and a coloured one differ in nothing else.
+	/// The body material's numeric look, without its colors, maps, or cover.
 	/// </summary>
 	/// <remarks>
-	/// What a template leaves alone: textures, which the bake writes; the
-	/// virtual lamps, which sit where each insert's own bulbs are; and every
-	/// hidden property, which the bake or the Insert Light drives at runtime.
+	/// What a template leaves alone: colors, texture maps, the
+	/// cover material, the virtual lamps, and hidden bake or runtime properties.
 	/// </remarks>
 	[CreateAssetMenu(fileName = "Insert Material Template", menuName = "Visual Pinball/Insert Material Template")]
 	public sealed class InsertMaterialTemplate : ScriptableObject
@@ -43,39 +39,38 @@ namespace VisualPinball.Unity
 		[Tooltip("The shader the body's values were taken from.")]
 		public string BodyShader;
 
-		[Tooltip("The body material's values, the baked maps and the virtual lamps left out.")]
+		[Tooltip("The body material's numeric values, with colors, maps and virtual lamps left out.")]
 		public List<Entry> Body = new();
 
-		[Tooltip("The shader the cover's values were taken from, or empty without a cover.")]
+		[HideInInspector]
+		[Tooltip("Legacy cover data from older templates; never applied.")]
 		public string CoverShader;
 
-		[Tooltip("The clear cover material's values.")]
+		[HideInInspector]
+		[Tooltip("Legacy cover values from older templates; never applied.")]
 		public List<Entry> Cover = new();
 
 		/// <summary>The properties a template never carries: the virtual lamps sit where each insert's own bulbs are.</summary>
 		private static readonly HashSet<string> Excluded = new() { "_OpticalLamp", "_OpticalLampB", "_OpticalLampC", "_OpticalLampD" };
 
-		/// <summary>Takes the look off the materials, the body's and the cover's if there is one.</summary>
+		/// <summary>Captures body-only numeric settings. The cover argument is kept for existing callers.</summary>
 		public void Capture(Material body, Material cover)
 		{
 			BodyShader = body != null && body.shader != null ? body.shader.name : string.Empty;
 			Body = body != null ? Read(body) : new List<Entry>();
-			CoverShader = cover != null && cover.shader != null ? cover.shader.name : string.Empty;
-			Cover = cover != null ? Read(cover) : new List<Entry>();
+			CoverShader = string.Empty;
+			Cover = new List<Entry>();
 		}
 
 		/// <summary>
-		/// Puts the look on the materials, each value on the property of that
-		/// name where the material has one, and returns how many were set.
+		/// Applies body-only numeric settings and returns how many were set.
+		/// The cover argument is kept for existing callers and is never modified.
 		/// </summary>
 		public int Apply(Material body, Material cover)
 		{
 			var count = 0;
 			if (body != null) {
 				count += Write(body, Body);
-			}
-			if (cover != null) {
-				count += Write(cover, Cover);
 			}
 			return count;
 		}
@@ -84,7 +79,7 @@ namespace VisualPinball.Unity
 		public static bool IsStyle(Shader shader, int index)
 		{
 			var type = shader.GetPropertyType(index);
-			if (type == ShaderPropertyType.Texture) {
+			if (type is ShaderPropertyType.Texture or ShaderPropertyType.Color) {
 				return false;
 			}
 			if ((shader.GetPropertyFlags(index) & ShaderPropertyFlags.HideInInspector) != 0) {
@@ -108,9 +103,6 @@ namespace VisualPinball.Unity
 					case ShaderPropertyType.Int:
 						entries.Add(new Entry { Name = name, Kind = Kind.Float, Float = material.GetFloat(name) });
 						break;
-					case ShaderPropertyType.Color:
-						entries.Add(new Entry { Name = name, Kind = Kind.Color, Color = material.GetColor(name) });
-						break;
 					case ShaderPropertyType.Vector:
 						entries.Add(new Entry { Name = name, Kind = Kind.Vector, Vector = material.GetVector(name) });
 						break;
@@ -126,7 +118,7 @@ namespace VisualPinball.Unity
 				return 0;
 			}
 			foreach (var entry in entries) {
-				if (entry == null || string.IsNullOrEmpty(entry.Name) || Excluded.Contains(entry.Name) || !material.HasProperty(entry.Name)) {
+				if (entry == null || entry.Kind == Kind.Color || string.IsNullOrEmpty(entry.Name) || Excluded.Contains(entry.Name) || !material.HasProperty(entry.Name)) {
 					continue;
 				}
 				var index = material.shader.FindPropertyIndex(entry.Name);
@@ -136,9 +128,6 @@ namespace VisualPinball.Unity
 				switch (entry.Kind) {
 					case Kind.Float:
 						material.SetFloat(entry.Name, entry.Float);
-						break;
-					case Kind.Color:
-						material.SetColor(entry.Name, entry.Color);
 						break;
 					case Kind.Vector:
 						material.SetVector(entry.Name, entry.Vector);

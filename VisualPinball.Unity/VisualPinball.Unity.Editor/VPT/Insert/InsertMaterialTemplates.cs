@@ -11,9 +11,8 @@ using UnityEngine;
 namespace VisualPinball.Unity.Editor
 {
 	/// <summary>
-	/// Finds, saves and applies insert material templates: the look of a
-	/// clear or a coloured insert, put on another insert's materials without
-	/// touching their bake.
+	/// Finds, saves and applies insert material templates: numeric settings
+	/// for the hybrid body, without changing colors, maps, or the cover.
 	/// </summary>
 	public static class InsertMaterialTemplates
 	{
@@ -43,9 +42,8 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		/// <summary>
-		/// Puts the template on the insert's body material and, where it has
-		/// one, its cover material, undoably, and returns how many values were
-		/// set.
+		/// Applies the template to the insert's body material, undoably, and
+		/// returns how many values were set.
 		/// </summary>
 		public static int Apply(InsertMaterialTemplate template, InsertComponent insert)
 		{
@@ -53,18 +51,14 @@ namespace VisualPinball.Unity.Editor
 			if (body == null || !body.HasProperty(LuminosityProperty)) {
 				return 0;
 			}
-			var cover = insert.CoverMaterial;
-			var touched = cover != null ? new Object[] { body, cover } : new Object[] { body };
-			Undo.RecordObjects(touched, "Apply Insert Material Template");
-			var count = template.Apply(body, cover);
-			foreach (var material in touched) {
-				EditorUtility.SetDirty(material);
-			}
+			Undo.RecordObject(body, "Apply Insert Material Template");
+			var count = template.Apply(body, null);
+			EditorUtility.SetDirty(body);
 			return count;
 		}
 
 		/// <summary>
-		/// Saves the insert's current look as a new template, asking where, and
+		/// Saves the insert's current body settings as a new template, asking where, and
 		/// returns it, or null when the user cancelled.
 		/// </summary>
 		public static InsertMaterialTemplate SaveAs(InsertComponent insert)
@@ -74,14 +68,14 @@ namespace VisualPinball.Unity.Editor
 				return null;
 			}
 			var path = EditorUtility.SaveFilePanelInProject("Save Insert Material Template", body.name + " Template", "asset",
-				"Where to save the look of this insert's materials.");
+				"Where to save this insert's numeric body settings.");
 			if (string.IsNullOrEmpty(path)) {
 				return null;
 			}
-			return Save(body, insert.CoverMaterial, path);
+			return Save(body, null, path);
 		}
 
-		/// <summary>Saves the look of the two materials as a template asset at that path.</summary>
+		/// <summary>Saves the body's numeric settings as a template asset at that path.</summary>
 		public static InsertMaterialTemplate Save(Material body, Material cover, string path)
 		{
 			var template = ScriptableObject.CreateInstance<InsertMaterialTemplate>();

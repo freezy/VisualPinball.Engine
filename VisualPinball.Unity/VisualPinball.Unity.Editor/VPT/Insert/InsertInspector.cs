@@ -899,18 +899,17 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		/// <summary>
-		/// A template is the look of an insert's materials without their bake:
-		/// pick one and put it on the selected inserts, or save the look these
-		/// have as a new one.
+		/// A template carries numeric body settings; colors, maps, and covers
+		/// stay with each insert when it is applied.
 		/// </summary>
 		private void DrawTemplates()
 		{
 			var inserts = targets.OfType<InsertComponent>().ToArray();
 			var styled = inserts.Count(InsertMaterialTemplates.HasStyledMaterial);
 			if (styled == 0) {
-				EditorGUILayout.HelpBox("Templates carry the look of the hybrid material and the clear cover, everything but the baked maps and the virtual lamps. Bake the insert and click Use HDRP Hybrid Material first.", MessageType.None);
+				EditorGUILayout.HelpBox("Templates carry numeric settings for the hybrid body material. Colors, maps, virtual lamps and the cover material stay unchanged. Bake the insert and click Use HDRP Hybrid Material first.", MessageType.None);
 			} else {
-				EditorGUILayout.HelpBox("A template puts a look on the insert's materials, everything but the baked maps and the virtual lamps: Clear and Colored ship with the package, and the look of any insert can be saved as another.", MessageType.None);
+				EditorGUILayout.HelpBox("A template applies numeric body settings while leaving colors, maps, virtual lamps and the cover material unchanged. Clear and Colored ship with the package; you can save another template from any hybrid insert.", MessageType.None);
 			}
 
 			var templates = InsertMaterialTemplates.Find();
@@ -924,12 +923,12 @@ namespace VisualPinball.Unity.Editor
 			}
 			using (new EditorGUILayout.HorizontalScope()) {
 				EditorGUI.BeginChangeCheck();
-				index = EditorGUILayout.Popup(new GUIContent("Template", "The look to put on the selected inserts' materials."), index, labels);
+				index = EditorGUILayout.Popup(new GUIContent("Template", "The numeric body settings to apply to the selected inserts."), index, labels);
 				if (EditorGUI.EndChangeCheck()) {
 					SessionState.SetString(TemplateChoiceKey, index > 0 ? AssetDatabase.GetAssetPath(templates[index - 1]) : string.Empty);
 				}
 				using (new EditorGUI.DisabledScope(index == 0 || styled == 0 || EditorApplication.isPlaying)) {
-					if (GUILayout.Button(new GUIContent("Apply", "Puts the template's values on the body material and the cover material of every selected insert that has the hybrid material. Materials shared with other inserts change for them too."), GUILayout.Width(60f))) {
+					if (GUILayout.Button(new GUIContent("Apply", "Applies numeric body settings to every selected hybrid insert. Colors, maps and cover materials stay unchanged. A shared body material changes for all inserts that use it."), GUILayout.Width(60f))) {
 						var template = templates[index - 1];
 						var count = 0;
 						foreach (var insert in inserts) {
@@ -943,7 +942,7 @@ namespace VisualPinball.Unity.Editor
 				EditorGUILayout.HelpBox("No templates found. The HDRP package ships Clear and Colored; a template of your own can be saved below.", MessageType.Warning);
 			}
 			using (new EditorGUI.DisabledScope(inserts.Length != 1 || styled == 0 || EditorApplication.isPlaying)) {
-				if (GUILayout.Button(new GUIContent("Save Look as Template...", "Saves the look of this insert's body and cover materials as a new template asset, to put on other inserts."))) {
+				if (GUILayout.Button(new GUIContent("Save Settings as Template...", "Saves this insert's numeric body settings as a new template asset."))) {
 					var saved = InsertMaterialTemplates.SaveAs(inserts[0]);
 					if (saved != null) {
 						SessionState.SetString(TemplateChoiceKey, AssetDatabase.GetAssetPath(saved));
