@@ -64,6 +64,7 @@ namespace VisualPinball.Unity
 		public bool GenerateMipMaps = true;
 		// Whether a reader without a cook path should GPU-compress after decoding.
 		public bool RuntimeCompress = true;
+		public bool ForceUncompressed;
 		// Optional source hint for debugging.
 		public string SourceName;
 		public int Width;

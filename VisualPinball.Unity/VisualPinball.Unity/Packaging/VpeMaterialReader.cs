@@ -107,7 +107,8 @@ namespace VisualPinball.Unity
 			resolverDiagnostics?.ResetDiagnostics();
 
 			var profilesByName = BuildProfileLookup(payload.Profiles);
-			var resolvedMaterialsByImportedId = new Dictionary<int, Material>();
+			var profilesBySlot = BuildSlotBindings(payload, resolveNodeById);
+			var resolvedMaterialsByImportedId = new Dictionary<(int, string), Material>();
 			var resolvedMaterialsBySignature = new Dictionary<string, Material>(StringComparer.Ordinal);
 			// The semantic part of the cache key serializes the whole profile; doing that once per
 			// profile instead of once per material slot keeps the traversal cheap on big tables.
@@ -137,7 +138,8 @@ namespace VisualPinball.Unity
 					stats.TotalSlots++;
 
 					var key = NormalizeMaterialName(imported.name);
-					if (!profilesByName.TryGetValue(key, out var profile)) {
+					if (!profilesBySlot.TryGetValue((renderer, i), out var profile)
+						&& !profilesByName.TryGetValue(key, out profile)) {
 						stats.UnmatchedNames.Add(key);
 						continue;
 					}
@@ -148,7 +150,7 @@ namespace VisualPinball.Unity
 						continue;
 					}
 
-					var importedMaterialId = UnityObjectId.Get(imported);
+					var importedMaterialId = (UnityObjectId.Get(imported), profile.Id ?? profile.Name ?? string.Empty);
 					if (resolvedMaterialsByImportedId.TryGetValue(importedMaterialId, out var cachedReplacement)) {
 						materials[i] = cachedReplacement;
 						modified = true;
@@ -275,6 +277,26 @@ namespace VisualPinball.Unity
 			return lookup;
 		}
 
+		private static Dictionary<(Renderer, int), VpeMaterialProfile> BuildSlotBindings(
+			VpeMaterialsPayload payload, Func<string, Transform> resolveNodeById)
+		{
+			var result = new Dictionary<(Renderer, int), VpeMaterialProfile>();
+			if (payload?.Bindings == null || resolveNodeById == null) { return result; }
+			var byId = new Dictionary<string, VpeMaterialProfile>(StringComparer.Ordinal);
+			foreach (var profile in payload.Profiles) {
+				if (profile != null && !string.IsNullOrEmpty(profile.Id)) { byId[profile.Id] = profile; }
+			}
+			foreach (var binding in payload.Bindings) {
+				if (binding == null || string.IsNullOrEmpty(binding.ProfileId)
+					|| !byId.TryGetValue(binding.ProfileId, out var profile)) { continue; }
+				var node = resolveNodeById(binding.NodeId);
+				if (node && node.TryGetComponent<Renderer>(out var renderer)) {
+					result[(renderer, binding.Slot)] = profile;
+				}
+			}
+			return result;
+		}
+
 		private static string BuildResolvedMaterialCacheKey(VpeMaterialProfile profile, Material imported, string profileSemanticKey)
 		{
 			if (profile == null || !imported) {
@@ -359,6 +381,12 @@ namespace VisualPinball.Unity
 					if (profile.Insert != null) {
 						payload = PackageApi.Packer.Pack(profile.Insert);
 					}
+					break;
+				case VpeMaterialTypes.InsertHybrid:
+					if (profile.InsertHybrid != null) { payload = PackageApi.Packer.Pack(profile.InsertHybrid); }
+					break;
+				case VpeMaterialTypes.InsertCover:
+					if (profile.InsertCover != null) { payload = PackageApi.Packer.Pack(profile.InsertCover); }
 					break;
 			}
 

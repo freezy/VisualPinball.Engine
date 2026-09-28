@@ -472,8 +472,21 @@ namespace VisualPinball.Unity
 				if (!string.IsNullOrEmpty(decalNormal)) {
 					ids.Add(decalNormal);
 				}
+				CollectInsertNormals(profile?.InsertHybrid, ids);
+				CollectInsertNormals(profile?.InsertCover, ids);
 			}
 			return ids;
+		}
+
+		private static void CollectInsertNormals(VpeInsertShaderProfile insert, HashSet<string> ids)
+		{
+			if (insert?.Properties == null) { return; }
+			foreach (var property in insert.Properties) {
+				if (property != null && property.Name is "_NormalMap" or "_CoverNormalMap"
+					&& !string.IsNullOrEmpty(property.Texture?.TextureId)) {
+					ids.Add(property.Texture.TextureId);
+				}
+			}
 		}
 
 		private static List<CookPlanItem> BuildPlan(
@@ -530,14 +543,14 @@ namespace VisualPinball.Unity
 					width = Mathf.Max(1, width >> 1);
 					height = Mathf.Max(1, height >> 1);
 				}
-				for (var d = VpeTextureCookSettings.ResolutionDivisor; d > 1; d >>= 1) {
+				for (var d = asset.ForceUncompressed ? 1 : VpeTextureCookSettings.ResolutionDivisor; d > 1; d >>= 1) {
 					width = Mathf.Max(1, width >> 1);
 					height = Mathf.Max(1, height >> 1);
 				}
 
 				var mipCount = asset.GenerateMipMaps ? MipCountFor(width, height) : 1;
 				item.IsNormal = normalIds.Contains(asset.Id);
-				item.UseBc7 = VpeTextureCookSettings.CompressTextures
+				item.UseBc7 = !asset.ForceUncompressed && VpeTextureCookSettings.CompressTextures
 					&& width % 4 == 0 && height % 4 == 0 && width >= 4 && height >= 4;
 				item.MainThreadDecode = item.UseBc7 && asset.ByteLength >= MainThreadDecodeThresholdBytes;
 				item.MipWidths = new int[mipCount];

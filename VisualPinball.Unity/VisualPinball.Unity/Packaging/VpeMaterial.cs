@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 
 	public static class VpeMaterialSchema
 	{
-		public const int Version = 1;
+		public const int Version = 2;
 	}
 
 	public static class VpeMaterialTypes
@@ -51,6 +51,8 @@ namespace VisualPinball.Unity
 		public const string Dmd = "vpe.dmd";
 		public const string FabricSilk = "vpe.fabric.silk";
 		public const string Insert = "vpe.insert";
+		public const string InsertHybrid = "vpe.insert.hybrid";
+		public const string InsertCover = "vpe.insert.cover";
 	}
 
 	// The two physical parts of a playfield insert. The lens is the piece flush with the
@@ -156,6 +158,17 @@ namespace VisualPinball.Unity
 		// Per-renderer state that glTF does not carry. Restored after glTF import so the Player
 		// sees the same shadow/lighting topology the author set up.
 		public VpeRendererState[] RendererStates = Array.Empty<VpeRendererState>();
+		// A material name is not an identity: independently baked inserts can have the same name.
+		// Bind the authored material to the exported node and its renderer slot instead.
+		public VpeMaterialBinding[] Bindings = Array.Empty<VpeMaterialBinding>();
+	}
+
+	[Serializable]
+	public class VpeMaterialBinding
+	{
+		public string NodeId;
+		public int Slot;
+		public string ProfileId;
 	}
 
 	[Serializable]
@@ -185,6 +198,8 @@ namespace VisualPinball.Unity
 	{
 		// Name of the source material. Used to match against renderer materials at import.
 		public string Name;
+		// Unique within a package; Bindings resolve this rather than relying on Name.
+		public string Id;
 		// Discriminator for the payload shape. See VpeMaterialTypes. Readers skip unknown types.
 		public string Type;
 
@@ -198,6 +213,31 @@ namespace VisualPinball.Unity
 		public VpeShaderGraphProfile Dmd;
 		public VpeFabricSilkProfile Fabric;
 		public VpeInsertProfile Insert;
+		public VpeInsertShaderProfile InsertHybrid;
+		public VpeInsertShaderProfile InsertCover;
+	}
+
+	// Both insert shaders use a stable semantic type and an authored property set. The player
+	// supplies the pipeline-specific shader; packages never contain Unity shader binaries.
+	[Serializable]
+	public class VpeInsertShaderProfile
+	{
+		public VpeInsertShaderProperty[] Properties = Array.Empty<VpeInsertShaderProperty>();
+		public int RenderQueue = -1;
+		public bool EnableInstancing;
+		public bool DoubleSidedGi;
+	}
+
+	[Serializable]
+	public class VpeInsertShaderProperty
+	{
+		public string Name;
+		// One of float, integer, color, vector, texture.
+		public string Kind;
+		public float FloatValue;
+		public int IntValue;
+		public Vector4 VectorValue;
+		public VpeTextureRef Texture;
 	}
 
 	// A playfield-insert material: translucent plastic lit from below by a lamp. The nested Lit
@@ -455,6 +495,8 @@ namespace VisualPinball.Unity
 		public bool GenerateMipMaps = true;
 		// Whether a runtime without a cook path should GPU-compress after decoding.
 		public bool RuntimeCompress = true;
+		// Keep 8-bit optical response and local-space normal values free of lossy GPU block compression.
+		public bool ForceUncompressed;
 		// Optional source hint for debugging.
 		public string SourceName;
 		// Authored dimensions (after any importer max-size clamp). Larger source files are

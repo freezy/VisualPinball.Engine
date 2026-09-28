@@ -57,6 +57,7 @@ namespace VisualPinball.Unity.Editor
 			var textureImporter = (TextureImporter)assetImporter;
 			textureImporter.textureType = pending.IsNormalMap ? TextureImporterType.NormalMap : TextureImporterType.Default;
 			textureImporter.sRGBTexture = !string.Equals(asset.ColorSpace, VpeColorSpaces.Linear, StringComparison.OrdinalIgnoreCase);
+			if (asset.ForceUncompressed) { textureImporter.textureCompression = TextureImporterCompression.Uncompressed; }
 			textureImporter.mipmapEnabled = asset.GenerateMipMaps;
 			textureImporter.wrapMode = (TextureWrapMode)asset.WrapMode;
 			textureImporter.filterMode = (FilterMode)asset.FilterMode;

@@ -32,7 +32,7 @@ namespace VisualPinball.Unity
 	public static class VpeTextureCookSettings
 	{
 		// Bump when the cook output format or pipeline changes incompatibly.
-		public const int FormatVersion = 1;
+		public const int FormatVersion = 2;
 
 		/// <summary>
 		/// Divides texture resolution while cooking (1 = authored size, 2 = half, 4 = quarter).

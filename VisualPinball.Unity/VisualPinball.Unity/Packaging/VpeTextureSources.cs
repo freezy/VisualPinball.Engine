@@ -65,6 +65,7 @@ namespace VisualPinball.Unity
 				AnisoLevel = texture.AnisoLevel,
 				GenerateMipMaps = texture.GenerateMipMaps,
 				RuntimeCompress = texture.RuntimeCompress,
+				ForceUncompressed = texture.ForceUncompressed,
 				SourceName = texture.SourceName,
 				Width = texture.Width,
 				Height = texture.Height,

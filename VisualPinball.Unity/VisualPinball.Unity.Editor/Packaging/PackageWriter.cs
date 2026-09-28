@@ -914,7 +914,7 @@ namespace VisualPinball.Unity.Editor
 			}
 			foreach (var asset in payload.Textures) {
 				if (asset != null) {
-					asset.RuntimeCompress = runtimeCompress;
+					asset.RuntimeCompress = runtimeCompress && !asset.ForceUncompressed;
 				}
 			}
 		}
