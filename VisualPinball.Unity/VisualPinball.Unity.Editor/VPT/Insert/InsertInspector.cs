@@ -99,8 +99,8 @@ namespace VisualPinball.Unity.Editor
 		private const string GeometryKey = "VisualPinball.Insert.Geometry";
 		private const string BakeKey = "VisualPinball.Insert.Bake";
 		private const string CoverKey = "VisualPinball.Insert.Cover";
-		private const string TemplateKey = "VisualPinball.Insert.Template";
-		private const string TemplateChoiceKey = "VisualPinball.Insert.Template.Choice";
+		private const string PresetKey = "VisualPinball.Insert.Preset";
+		private const string PresetChoiceKey = "VisualPinball.Insert.Preset.Choice";
 
 		private void OnEnable()
 		{
@@ -199,8 +199,8 @@ namespace VisualPinball.Unity.Editor
 			}
 			InsertSection.End();
 
-			if (InsertSection.Begin(TemplateKey, "Material Template")) {
-				DrawTemplates();
+			if (InsertSection.Begin(PresetKey, "Presets")) {
+				DrawPresets();
 			}
 			InsertSection.End();
 
@@ -899,53 +899,86 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		/// <summary>
-		/// A template carries numeric body settings; colors, maps, and covers
-		/// stay with each insert when it is applied.
+		/// Color presets switch the insert's body and cover materials; material
+		/// presets adjust the body's numeric settings without changing its color.
 		/// </summary>
-		private void DrawTemplates()
+		private void DrawPresets()
 		{
 			var inserts = targets.OfType<InsertComponent>().ToArray();
-			var styled = inserts.Count(InsertMaterialTemplates.HasStyledMaterial);
-			if (styled == 0) {
-				EditorGUILayout.HelpBox("Templates carry numeric settings for the hybrid body material. Colors, maps, virtual lamps and the cover material stay unchanged. Bake the insert and click Use HDRP Hybrid Material first.", MessageType.None);
-			} else {
-				EditorGUILayout.HelpBox("A template applies numeric body settings while leaving colors, maps, virtual lamps and the cover material unchanged. Clear and Colored ship with the package; you can save another template from any hybrid insert.", MessageType.None);
+			SubHeader("Color");
+			var colors = InsertColorPresets.Find();
+			if (colors.Length == 0) {
+				EditorGUILayout.HelpBox("No insert color presets found.", MessageType.Warning);
+			}
+			using (new EditorGUI.DisabledScope(EditorApplication.isPlaying || !inserts.Any(InsertColorPresets.CanApply))) {
+				using (new EditorGUILayout.HorizontalScope()) {
+					foreach (var color in colors) {
+						var previous = GUI.backgroundColor;
+						GUI.backgroundColor = color.Swatch;
+						var clicked = GUILayout.Button(new GUIContent(" ", color.ColorName), GUILayout.MinWidth(28f), GUILayout.Height(24f));
+						GUI.backgroundColor = previous;
+						if (clicked) {
+							Undo.IncrementCurrentGroup();
+							var group = Undo.GetCurrentGroup();
+							Undo.SetCurrentGroupName("Apply Insert Color Preset");
+							var changed = 0;
+							try {
+								foreach (var insert in inserts) {
+									if (InsertColorPresets.Apply(color, insert)) {
+										changed++;
+									}
+								}
+							} finally {
+								Undo.CollapseUndoOperations(group);
+							}
+							Debug.Log($"Applied {color.ColorName} color preset to {changed} insert(s).");
+						}
+					}
+				}
 			}
 
-			var templates = InsertMaterialTemplates.Find();
-			var labels = InsertMaterialTemplates.Labels(templates);
-			var remembered = SessionState.GetString(TemplateChoiceKey, string.Empty);
+			SubHeader("Material");
+			var styled = inserts.Count(InsertMaterialPresets.HasStyledMaterial);
+			if (styled == 0) {
+				EditorGUILayout.HelpBox("Presets carry numeric settings for the hybrid body material. Colors, maps, virtual lamps and the cover material stay unchanged. Bake the insert and click Use HDRP Hybrid Material first.", MessageType.None);
+			} else {
+				EditorGUILayout.HelpBox("A preset applies numeric body settings while leaving colors, maps, virtual lamps and the cover material unchanged. Clear and Colored ship with the package; you can save another preset from any hybrid insert.", MessageType.None);
+			}
+
+			var presets = InsertMaterialPresets.Find();
+			var labels = InsertMaterialPresets.Labels(presets);
+			var remembered = SessionState.GetString(PresetChoiceKey, string.Empty);
 			var index = 0;
-			for (var i = 0; i < templates.Length; i++) {
-				if (AssetDatabase.GetAssetPath(templates[i]) == remembered) {
+			for (var i = 0; i < presets.Length; i++) {
+				if (AssetDatabase.GetAssetPath(presets[i]) == remembered) {
 					index = i + 1;
 				}
 			}
 			using (new EditorGUILayout.HorizontalScope()) {
 				EditorGUI.BeginChangeCheck();
-				index = EditorGUILayout.Popup(new GUIContent("Template", "The numeric body settings to apply to the selected inserts."), index, labels);
+				index = EditorGUILayout.Popup(new GUIContent("Preset", "The numeric body settings to apply to the selected inserts."), index, labels);
 				if (EditorGUI.EndChangeCheck()) {
-					SessionState.SetString(TemplateChoiceKey, index > 0 ? AssetDatabase.GetAssetPath(templates[index - 1]) : string.Empty);
+					SessionState.SetString(PresetChoiceKey, index > 0 ? AssetDatabase.GetAssetPath(presets[index - 1]) : string.Empty);
 				}
 				using (new EditorGUI.DisabledScope(index == 0 || styled == 0 || EditorApplication.isPlaying)) {
 					if (GUILayout.Button(new GUIContent("Apply", "Applies numeric body settings to every selected hybrid insert. Colors, maps and cover materials stay unchanged. A shared body material changes for all inserts that use it."), GUILayout.Width(60f))) {
-						var template = templates[index - 1];
+						var preset = presets[index - 1];
 						var count = 0;
 						foreach (var insert in inserts) {
-							count += InsertMaterialTemplates.Apply(template, insert);
+							count += InsertMaterialPresets.Apply(preset, insert);
 						}
-						Debug.Log($"Applied template \"{template.name}\" to {styled} insert(s): {count} values set.");
+						Debug.Log($"Applied preset \"{preset.name}\" to {styled} insert(s): {count} values set.");
 					}
 				}
 			}
-			if (templates.Length == 0) {
-				EditorGUILayout.HelpBox("No templates found. The HDRP package ships Clear and Colored; a template of your own can be saved below.", MessageType.Warning);
+			if (presets.Length == 0) {
+				EditorGUILayout.HelpBox("No presets found. The HDRP package ships Clear and Colored; a preset of your own can be saved below.", MessageType.Warning);
 			}
 			using (new EditorGUI.DisabledScope(inserts.Length != 1 || styled == 0 || EditorApplication.isPlaying)) {
-				if (GUILayout.Button(new GUIContent("Save Settings as Template...", "Saves this insert's numeric body settings as a new template asset."))) {
-					var saved = InsertMaterialTemplates.SaveAs(inserts[0]);
+				if (GUILayout.Button(new GUIContent("Save Settings as Preset...", "Saves this insert's numeric body settings as a new preset asset."))) {
+					var saved = InsertMaterialPresets.SaveAs(inserts[0]);
 					if (saved != null) {
-						SessionState.SetString(TemplateChoiceKey, AssetDatabase.GetAssetPath(saved));
+						SessionState.SetString(PresetChoiceKey, AssetDatabase.GetAssetPath(saved));
 						EditorGUIUtility.PingObject(saved);
 					}
 				}

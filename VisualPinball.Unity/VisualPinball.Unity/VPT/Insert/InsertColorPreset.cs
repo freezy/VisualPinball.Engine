@@ -1,0 +1,35 @@
+// Visual Pinball Engine
+// Copyright (C) 2026 freezy and VPE Team
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+using UnityEngine;
+
+namespace VisualPinball.Unity
+{
+	/// <summary>The colors to use when making a new insert body and cover material.</summary>
+	[CreateAssetMenu(fileName = "Insert Color Preset", menuName = "Visual Pinball/Insert Color Preset")]
+	public sealed class InsertColorPreset : ScriptableObject
+	{
+		[Tooltip("Color name used in material names and lookup.")]
+		public string ColorName;
+
+		[Tooltip("Order of the color button in the insert inspector.")]
+		public int Order;
+
+		[Tooltip("Color of the button in the insert inspector.")]
+		public Color Swatch = Color.white;
+
+		[Tooltip("The hybrid body's Base Color.")]
+		public Color BodyColor = Color.white;
+
+		[Tooltip("The hybrid body's Cavity Color.")]
+		public Color CavityColor = Color.white;
+
+		[ColorUsage(true, true)]
+		[Tooltip("The hybrid body's HDR lamp emission color.")]
+		public Color LampEmission = Color.white;
+
+		[Tooltip("The cover material's Haze Color.")]
+		public Color CoverColor = Color.white;
+	}
+}

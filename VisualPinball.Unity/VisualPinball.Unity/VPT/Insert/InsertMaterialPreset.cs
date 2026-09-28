@@ -13,11 +13,11 @@ namespace VisualPinball.Unity
 	/// The body material's numeric look, without its colors, maps, or cover.
 	/// </summary>
 	/// <remarks>
-	/// What a template leaves alone: colors, texture maps, the
+	/// What a preset leaves alone: colors, texture maps, the
 	/// cover material, the virtual lamps, and hidden bake or runtime properties.
 	/// </remarks>
-	[CreateAssetMenu(fileName = "Insert Material Template", menuName = "Visual Pinball/Insert Material Template")]
-	public sealed class InsertMaterialTemplate : ScriptableObject
+	[CreateAssetMenu(fileName = "Insert Material Preset", menuName = "Visual Pinball/Insert Material Preset")]
+	public sealed class InsertMaterialPreset : ScriptableObject
 	{
 		public enum Kind
 		{
@@ -43,14 +43,14 @@ namespace VisualPinball.Unity
 		public List<Entry> Body = new();
 
 		[HideInInspector]
-		[Tooltip("Legacy cover data from older templates; never applied.")]
+		[Tooltip("Legacy cover data from older presets; never applied.")]
 		public string CoverShader;
 
 		[HideInInspector]
-		[Tooltip("Legacy cover values from older templates; never applied.")]
+		[Tooltip("Legacy cover values from older presets; never applied.")]
 		public List<Entry> Cover = new();
 
-		/// <summary>The properties a template never carries: the virtual lamps sit where each insert's own bulbs are.</summary>
+		/// <summary>The properties a preset never carries: the virtual lamps sit where each insert's own bulbs are.</summary>
 		private static readonly HashSet<string> Excluded = new() { "_OpticalLamp", "_OpticalLampB", "_OpticalLampC", "_OpticalLampD" };
 
 		/// <summary>Captures body-only numeric settings. The cover argument is kept for existing callers.</summary>

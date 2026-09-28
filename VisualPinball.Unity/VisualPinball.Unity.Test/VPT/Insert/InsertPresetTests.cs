@@ -4,11 +4,20 @@
 
 using NUnit.Framework;
 using UnityEngine;
+using VisualPinball.Unity.Editor;
 
 namespace VisualPinball.Unity.Test
 {
-	public class InsertTemplateTests
+	public class InsertPresetTests
 	{
+		[Test]
+		public void ShouldLoadShippedMaterialPresetsAfterRename()
+		{
+			var presets = InsertMaterialPresets.Find();
+			Assert.That(presets, Has.Some.Matches<InsertMaterialPreset>(preset => preset.name == "Clear"));
+			Assert.That(presets, Has.Some.Matches<InsertMaterialPreset>(preset => preset.name == "Colored"));
+		}
+
 		[Test]
 		public void ShouldApplyBodySettingsWithoutChangingColorsMapsOrCover()
 		{
@@ -21,7 +30,7 @@ namespace VisualPinball.Unity.Test
 			var targetCover = new Material(coverShader);
 			var sourceMap = new Texture2D(4, 4);
 			var targetMap = new Texture2D(4, 4);
-			var template = ScriptableObject.CreateInstance<InsertMaterialTemplate>();
+			var preset = ScriptableObject.CreateInstance<InsertMaterialPreset>();
 			try {
 				source.SetFloat("_InsertLuminosity", 1.58f);
 				source.SetFloat("_InsertClarity", 1f);
@@ -36,24 +45,24 @@ namespace VisualPinball.Unity.Test
 				sourceCover.SetColor("_HazeColor", new Color(0.8f, 0.8f, 0.8f));
 				sourceCover.SetFloat("_CoverOpacity", 0.365f);
 
-				template.Capture(source, sourceCover);
-				Assert.That(template.BodyShader, Is.EqualTo(shader.name));
-				Assert.That(template.Body, Has.Some.Matches<InsertMaterialTemplate.Entry>(e => e.Name == "_InsertLuminosity" && Mathf.Approximately(e.Float, 1.58f)));
-				Assert.That(template.Body, Has.Count.EqualTo(20), "the hybrid body's visible numeric settings are captured");
-				Assert.That(template.Body, Has.None.Matches<InsertMaterialTemplate.Entry>(e => e.Kind == InsertMaterialTemplate.Kind.Color), "new templates exclude all color values");
-				Assert.That(template.Body, Has.None.Matches<InsertMaterialTemplate.Entry>(e => e.Name == "_NormalMap"), "new templates exclude texture maps");
-				Assert.That(template.Body, Has.None.Matches<InsertMaterialTemplate.Entry>(e => e.Name is "_OpticalLamp" or "_OpticalLampB" or "_OpticalLampC" or "_OpticalLampD"), "the virtual lamps are the insert's own");
-				Assert.That(template.Body, Has.None.Matches<InsertMaterialTemplate.Entry>(e => e.Name == "_OpticalStarburst" || e.Name == "_InsertLampLevel"), "hidden bake and runtime values stay out");
-				Assert.That(template.Cover, Is.Empty, "new templates exclude the cover material");
-				Assert.That(template.CoverShader, Is.Empty);
+				preset.Capture(source, sourceCover);
+				Assert.That(preset.BodyShader, Is.EqualTo(shader.name));
+				Assert.That(preset.Body, Has.Some.Matches<InsertMaterialPreset.Entry>(e => e.Name == "_InsertLuminosity" && Mathf.Approximately(e.Float, 1.58f)));
+				Assert.That(preset.Body, Has.Count.EqualTo(20), "the hybrid body's visible numeric settings are captured");
+				Assert.That(preset.Body, Has.None.Matches<InsertMaterialPreset.Entry>(e => e.Kind == InsertMaterialPreset.Kind.Color), "new presets exclude all color values");
+				Assert.That(preset.Body, Has.None.Matches<InsertMaterialPreset.Entry>(e => e.Name == "_NormalMap"), "new presets exclude texture maps");
+				Assert.That(preset.Body, Has.None.Matches<InsertMaterialPreset.Entry>(e => e.Name is "_OpticalLamp" or "_OpticalLampB" or "_OpticalLampC" or "_OpticalLampD"), "the virtual lamps are the insert's own");
+				Assert.That(preset.Body, Has.None.Matches<InsertMaterialPreset.Entry>(e => e.Name == "_OpticalStarburst" || e.Name == "_InsertLampLevel"), "hidden bake and runtime values stay out");
+				Assert.That(preset.Cover, Is.Empty, "new presets exclude the cover material");
+				Assert.That(preset.CoverShader, Is.Empty);
 
-				// Existing template assets can still contain colors and cover entries.
-				template.Body.Add(new InsertMaterialTemplate.Entry { Name = "_BaseColor", Kind = InsertMaterialTemplate.Kind.Color, Color = Color.white });
-				template.Body.Add(new InsertMaterialTemplate.Entry { Name = "_InsertCavityColor", Kind = InsertMaterialTemplate.Kind.Color, Color = Color.green });
-				template.Body.Add(new InsertMaterialTemplate.Entry { Name = "_EmissiveColor", Kind = InsertMaterialTemplate.Kind.Color, Color = Color.blue });
-				template.Cover.Add(new InsertMaterialTemplate.Entry { Name = "_HazeColor", Kind = InsertMaterialTemplate.Kind.Color, Color = Color.white });
-				template.Cover.Add(new InsertMaterialTemplate.Entry { Name = "_CoverOpacity", Kind = InsertMaterialTemplate.Kind.Float, Float = 0.365f });
-				template.Cover.Add(new InsertMaterialTemplate.Entry { Name = "_Smoothness", Kind = InsertMaterialTemplate.Kind.Float, Float = 0.85f });
+				// Existing preset assets can still contain colors and cover entries.
+				preset.Body.Add(new InsertMaterialPreset.Entry { Name = "_BaseColor", Kind = InsertMaterialPreset.Kind.Color, Color = Color.white });
+				preset.Body.Add(new InsertMaterialPreset.Entry { Name = "_InsertCavityColor", Kind = InsertMaterialPreset.Kind.Color, Color = Color.green });
+				preset.Body.Add(new InsertMaterialPreset.Entry { Name = "_EmissiveColor", Kind = InsertMaterialPreset.Kind.Color, Color = Color.blue });
+				preset.Cover.Add(new InsertMaterialPreset.Entry { Name = "_HazeColor", Kind = InsertMaterialPreset.Kind.Color, Color = Color.white });
+				preset.Cover.Add(new InsertMaterialPreset.Entry { Name = "_CoverOpacity", Kind = InsertMaterialPreset.Kind.Float, Float = 0.365f });
+				preset.Cover.Add(new InsertMaterialPreset.Entry { Name = "_Smoothness", Kind = InsertMaterialPreset.Kind.Float, Float = 0.85f });
 
 				target.SetFloat("_InsertLuminosity", 10f);
 				target.SetFloat("_Smoothness", 0.9f);
@@ -68,7 +77,7 @@ namespace VisualPinball.Unity.Test
 				targetCover.SetFloat("_CoverOpacity", 0.8f);
 				targetCover.SetFloat("_Smoothness", 0.73f);
 
-				var count = template.Apply(target, targetCover);
+				var count = preset.Apply(target, targetCover);
 				Assert.That(count, Is.EqualTo(20));
 				Assert.That(target.GetFloat("_InsertLuminosity"), Is.EqualTo(1.58f).Within(1e-5f));
 				Assert.That(target.GetFloat("_InsertClarity"), Is.EqualTo(1f));
@@ -83,9 +92,9 @@ namespace VisualPinball.Unity.Test
 				Assert.That(targetCover.GetColor("_HazeColor"), Is.EqualTo(Color.red));
 				Assert.That(targetCover.GetFloat("_CoverOpacity"), Is.EqualTo(0.8f).Within(1e-5f));
 				Assert.That(targetCover.GetFloat("_Smoothness"), Is.EqualTo(0.73f).Within(1e-5f));
-				Assert.That(template.Apply(target, null), Is.GreaterThan(0), "a body without a cover takes the body's look alone");
+				Assert.That(preset.Apply(target, null), Is.GreaterThan(0), "a body without a cover takes the body's look alone");
 			} finally {
-				Object.DestroyImmediate(template);
+				Object.DestroyImmediate(preset);
 				Object.DestroyImmediate(sourceMap);
 				Object.DestroyImmediate(targetMap);
 				Object.DestroyImmediate(source);
