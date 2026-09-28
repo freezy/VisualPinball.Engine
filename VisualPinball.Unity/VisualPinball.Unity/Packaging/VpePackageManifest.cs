@@ -62,6 +62,7 @@ namespace VisualPinball.Unity
 	{
 		public const string Items = "items";
 		public const string Materials = "materials";
+		public const string Inserts = "inserts";
 		public const string Lights = "lights";
 		public const string Sounds = "sounds";
 	}

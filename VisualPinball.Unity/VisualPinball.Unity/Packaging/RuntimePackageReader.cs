@@ -745,7 +745,8 @@ namespace VisualPinball.Unity
 
 			if (payload == null) {
 				// Prefetch failed or carried no payload; read synchronously.
-				if (VpeMaterialReader.TryLoad(_tableFolder, loadSourceBytes: true, out payload, out var sources)) {
+				if (VpeMaterialReader.TryLoad(_tableFolder, loadSourceBytes: true, out payload, out var sources,
+					includeEditorOnlyTextures: false)) {
 					entries = sources.Entries;
 					blob = sources.Blob;
 				}
@@ -812,7 +813,8 @@ namespace VisualPinball.Unity
 				using var storage = PackageApi.StorageManager.OpenStorage(vpePath);
 				var tableFolder = storage.GetFolder(PackageApi.TableFolder);
 
-				if (!VpeMaterialReader.TryLoad(tableFolder, loadSourceBytes: false, out var payload, out var entriesOnly)) {
+				if (!VpeMaterialReader.TryLoad(tableFolder, loadSourceBytes: false, out var payload, out var entriesOnly,
+					includeEditorOnlyTextures: false)) {
 					return null;
 				}
 
@@ -824,7 +826,8 @@ namespace VisualPinball.Unity
 
 				// No cache: load the source bytes for the cook (re-parses the payload; only the
 				// first load pays this, and the cook dwarfs it).
-				if (VpeMaterialReader.TryLoad(tableFolder, loadSourceBytes: true, out payload, out var sources)) {
+				if (VpeMaterialReader.TryLoad(tableFolder, loadSourceBytes: true, out payload, out var sources,
+					includeEditorOnlyTextures: false)) {
 					result.Payload = payload;
 					result.Sources = sources;
 				}

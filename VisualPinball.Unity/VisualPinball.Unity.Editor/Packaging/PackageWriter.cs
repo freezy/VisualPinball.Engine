@@ -46,6 +46,9 @@ namespace VisualPinball.Unity.Editor
 		private IPackageFolder _metaFolder;
 		private VpeMaterialsPayload _capturedMaterialPayload;
 		private IReadOnlyList<VpeTextureBlobSource> _capturedBlobSources;
+		private IReadOnlyDictionary<Material, string> _capturedMaterialIds;
+		private IReadOnlyDictionary<Texture2D, string> _capturedTextureIds;
+		private bool _wroteInsertAuthoring;
 		private IReadOnlyDictionary<string, byte[]> _capturedMaterialTextureBlobs;
 		private readonly bool _runtimeCompressSideChannelTextures;
 		private readonly bool _runtimeCompressNormalMaps;
@@ -188,6 +191,7 @@ namespace VisualPinball.Unity.Editor
 				WriteTableMetadata();
 				WriteGlobals();
 				WriteMaterialProfiles();
+				WriteInsertAuthoring();
 				WriteLightProfiles();
 				Logger.Info($"Globals written in {sw1.ElapsedMilliseconds}ms.");
 
@@ -327,6 +331,9 @@ namespace VisualPinball.Unity.Editor
 			};
 			if (_capturedMaterialPayload != null) {
 				manifest.Schemas[VpePackageSchemas.Materials] = VpeMaterialSchema.Version;
+			}
+			if (_wroteInsertAuthoring) {
+				manifest.Schemas[VpePackageSchemas.Inserts] = InsertAuthoringPayload.Version;
 			}
 			if (_wroteLightProfiles) {
 				manifest.Schemas[VpePackageSchemas.Lights] = 1;
@@ -827,6 +834,8 @@ namespace VisualPinball.Unity.Editor
 			_capturedMaterialPayload = null;
 			_capturedBlobSources = null;
 			_capturedMaterialTextureBlobs = null;
+			_capturedMaterialIds = capture.ProfileIdsByMaterial;
+			_capturedTextureIds = capture.TextureIdsByTexture;
 			if (payload?.Profiles == null || payload.Profiles.Length == 0) {
 				if (VpeMaterialTranslator.Active == null) {
 					Logger.Info("Skipping materials export: no IVpeMaterialTranslator is registered.");
@@ -844,6 +853,18 @@ namespace VisualPinball.Unity.Editor
 			Logger.Info(
 				$"Captured material payload: {payload.Profiles.Length} profile(s), " +
 				$"{sourceCount} source texture(s) (bytes loaded later off-thread).");
+		}
+
+		private void WriteInsertAuthoring()
+		{
+			_wroteInsertAuthoring = false;
+			var payload = InsertAuthoringPayload.Capture(_table.transform, _nodeIdByTransform,
+				_capturedMaterialIds, _capturedTextureIds);
+			if (payload.Inserts.Length == 0) { return; }
+			_metaFolder.AddFile(PackageApi.InsertAuthoringFile, PackageApi.Packer.FileExtension)
+				.SetData(PackageApi.Packer.Pack(payload));
+			_wroteInsertAuthoring = true;
+			Logger.Info($"Packaged editor authoring data for {payload.Inserts.Length} insert(s).");
 		}
 
 		private bool _wroteLightProfiles;

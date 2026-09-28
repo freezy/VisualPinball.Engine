@@ -61,6 +61,7 @@ namespace VisualPinball.Unity
 		// of each profile; pipeline-specific hints live in a nested "hdrp" (etc.) block that
 		// other engines are free to ignore. See VpeMaterial.cs.
 		public const string MaterialsFile = "materials";
+		public const string InsertAuthoringFile = "inserts";
 		public const string LightsFile = "lights";
 
 		public const float LightIntensityFactor = 100f;

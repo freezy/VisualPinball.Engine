@@ -32,13 +32,19 @@ namespace VisualPinball.Unity.Editor
 		/// <paramref name="tableRoot"/>. Also applies the payload's renderer states, resolving
 		/// node ids through <paramref name="resolveNode"/> (null for legacy packages).
 		/// </summary>
-		/// <returns>Number of material slots that received a rebuilt material.</returns>
-		int Apply(
+		/// <returns>Applied slot count and rebuilt assets keyed by package profile id.</returns>
+		VpeMaterialImportResult Apply(
 			Transform tableRoot,
 			VpeMaterialsPayload payload,
 			IReadOnlyDictionary<string, Texture2D> texturesById,
 			string materialAssetFolder,
 			Func<string, Transform> resolveNode);
+	}
+
+	public sealed class VpeMaterialImportResult
+	{
+		public int AppliedSlots;
+		public IReadOnlyDictionary<string, Material> MaterialsById;
 	}
 
 	public static class VpeMaterialEditorImport

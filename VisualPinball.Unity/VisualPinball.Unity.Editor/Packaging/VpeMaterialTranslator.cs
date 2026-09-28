@@ -42,10 +42,14 @@ namespace VisualPinball.Unity.Editor
 
 	public readonly struct VpeMaterialCaptureResult
 	{
-		public VpeMaterialCaptureResult(VpeMaterialsPayload payload, IReadOnlyList<VpeTextureBlobSource> textureBlobSources)
+		public VpeMaterialCaptureResult(VpeMaterialsPayload payload, IReadOnlyList<VpeTextureBlobSource> textureBlobSources,
+			IReadOnlyDictionary<Material, string> profileIdsByMaterial = null,
+			IReadOnlyDictionary<Texture2D, string> textureIdsByTexture = null)
 		{
 			Payload = payload;
 			TextureBlobSources = textureBlobSources;
+			ProfileIdsByMaterial = profileIdsByMaterial;
+			TextureIdsByTexture = textureIdsByTexture;
 		}
 
 		public VpeMaterialsPayload Payload { get; }
@@ -54,6 +58,9 @@ namespace VisualPinball.Unity.Editor
 		// them — typically in parallel on worker threads — into the final byte blobs; see
 		// VpeTextureBlobLoader. Kept deferred so the heavy disk + PNG16→8 work stays off the main thread.
 		public IReadOnlyList<VpeTextureBlobSource> TextureBlobSources { get; }
+
+		public IReadOnlyDictionary<Material, string> ProfileIdsByMaterial { get; }
+		public IReadOnlyDictionary<Texture2D, string> TextureIdsByTexture { get; }
 	}
 
 	public static class VpeMaterialTranslator

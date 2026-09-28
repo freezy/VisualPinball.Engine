@@ -497,6 +497,8 @@ namespace VisualPinball.Unity
 		public bool RuntimeCompress = true;
 		// Keep 8-bit optical response and local-space normal values free of lossy GPU block compression.
 		public bool ForceUncompressed;
+		// Used only to rebuild authoring assets on editor import. Runtime readers skip the bytes.
+		public bool EditorOnly;
 		// Optional source hint for debugging.
 		public string SourceName;
 		// Authored dimensions (after any importer max-size clamp). Larger source files are

@@ -43,6 +43,8 @@ namespace VisualPinball.Unity.Editor
 		private Dictionary<string, Transform> _transformByNodeId;
 		private PackagedRefs _refs;
 		private PackagedFiles _files;
+		private IReadOnlyDictionary<string, Material> _importedMaterialsById;
+		private IReadOnlyDictionary<string, Texture2D> _importedTexturesById;
 		private readonly HashSet<string> _unknownTypeNames = new(StringComparer.Ordinal);
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -114,6 +116,7 @@ namespace VisualPinball.Unity.Editor
 				SimulationThreadComponent.EnsureForTable(_tableRoot.gameObject);
 				RestoreLights();
 				ImportMaterials();
+				RestoreInsertAuthoring();
 				importSucceeded = true;
 
 			} finally {
@@ -188,15 +191,28 @@ namespace VisualPinball.Unity.Editor
 
 			Logger.Info($"Editor import: writing {sources.Entries.Length} source texture(s) as assets...");
 			var texturesById = ImportTextureAssets(payload, sources);
+			_importedTexturesById = texturesById;
 
 			var materialFolder = Path.Combine(_assetPath, "Materials");
 			Directory.CreateDirectory(materialFolder);
 			var materialAssetFolder = Path.GetRelativePath(Path.Combine(Application.dataPath, ".."), materialFolder).Replace('\\', '/');
 
 			Logger.Info($"Editor import: rebuilding materials for {payload.Profiles.Length} profile(s)...");
-			var applied = importer.Apply(_tableRoot, payload, texturesById, materialAssetFolder,
+			var result = importer.Apply(_tableRoot, payload, texturesById, materialAssetFolder,
 				id => _transformByNodeId.GetValueOrDefault(id));
-			Logger.Info($"Editor import rebuilt materials for {applied} slot(s) from the materials payload.");
+			_importedMaterialsById = result.MaterialsById;
+			Logger.Info($"Editor import rebuilt materials for {result.AppliedSlots} slot(s) from the materials payload.");
+		}
+
+		private void RestoreInsertAuthoring()
+		{
+			if (!_tableFolder.TryGetFolder(PackageApi.MetaFolder, out var meta)
+				|| !meta.TryGetFile(PackageApi.InsertAuthoringFile, out var file, PackageApi.Packer.FileExtension)) {
+				return;
+			}
+			var payload = PackageApi.Packer.Unpack<InsertAuthoringPayload>(file.GetData());
+			payload.Restore(id => _transformByNodeId.GetValueOrDefault(id),
+				_importedMaterialsById, _importedTexturesById, _assetPath);
 		}
 
 		private Dictionary<string, Texture2D> ImportTextureAssets(VpeMaterialsPayload payload, VpeTextureSources.Result sources)

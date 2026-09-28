@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NLog;
@@ -49,7 +50,8 @@ namespace VisualPinball.Unity
 			IPackageFolder tableFolder,
 			bool loadSourceBytes,
 			out VpeMaterialsPayload payload,
-			out VpeTextureSources.Result sources)
+			out VpeTextureSources.Result sources,
+			bool includeEditorOnlyTextures = true)
 		{
 			payload = null;
 			sources = null;
@@ -76,6 +78,10 @@ namespace VisualPinball.Unity
 					"understand. Falling back to glTF-imported materials.");
 				payload = null;
 				return false;
+			}
+			if (!includeEditorOnlyTextures) {
+				payload.Textures = payload.Textures?.Where(texture => texture != null && !texture.EditorOnly).ToArray()
+					?? Array.Empty<VpeTexture>();
 			}
 			sources = loadSourceBytes
 				? VpeTextureSources.Load(tableFolder, payload)
@@ -106,7 +112,7 @@ namespace VisualPinball.Unity
 			var resolverDiagnostics = resolver as IVpeMaterialResolverDiagnostics;
 			resolverDiagnostics?.ResetDiagnostics();
 
-			var profilesByName = BuildProfileLookup(payload.Profiles);
+			var profilesByName = BuildProfileLookup(payload);
 			var profilesBySlot = BuildSlotBindings(payload, resolveNodeById);
 			var resolvedMaterialsByImportedId = new Dictionary<(int, string), Material>();
 			var resolvedMaterialsBySignature = new Dictionary<string, Material>(StringComparer.Ordinal);
@@ -265,11 +271,16 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private static Dictionary<string, VpeMaterialProfile> BuildProfileLookup(VpeMaterialProfile[] profiles)
+		private static Dictionary<string, VpeMaterialProfile> BuildProfileLookup(VpeMaterialsPayload payload)
 		{
-			var lookup = new Dictionary<string, VpeMaterialProfile>(profiles.Length, StringComparer.Ordinal);
-			foreach (var profile in profiles) {
-				if (profile == null || string.IsNullOrWhiteSpace(profile.Name)) {
+			var lookup = new Dictionary<string, VpeMaterialProfile>(payload.Profiles.Length, StringComparer.Ordinal);
+			var boundIds = new HashSet<string>(StringComparer.Ordinal);
+			foreach (var binding in payload.Bindings ?? Array.Empty<VpeMaterialBinding>()) {
+				if (!string.IsNullOrEmpty(binding?.ProfileId)) { boundIds.Add(binding.ProfileId); }
+			}
+			foreach (var profile in payload.Profiles) {
+				if (profile == null || string.IsNullOrWhiteSpace(profile.Name)
+					|| boundIds.Count > 0 && !boundIds.Contains(profile.Id)) {
 					continue;
 				}
 				lookup[NormalizeMaterialName(profile.Name)] = profile;

@@ -459,6 +459,21 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>The exact material saved before the current bake, including when another is worn now.</summary>
+		public Material PreBakeMaterial => _unbakedMaterial;
+
+		/// <summary>Completes an editor import after its generator and bake sidecar has been loaded.</summary>
+		public void RestoreAuthoring(InsertBakeData bake, Material preBakeMaterial)
+		{
+			_bake = bake;
+			_unbakedMaterial = preBakeMaterial;
+			var slots = GetComponent<MeshRenderer>().sharedMaterials;
+			_coverMaterial = slots.Length > 1 ? slots[1] : null;
+			_coverSlotRead = true;
+			_usesPackagedMesh = false;
+			RebuildMesh();
+		}
+
 		#endregion
 
 		public void RebuildMesh()
