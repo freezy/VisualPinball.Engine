@@ -187,7 +187,7 @@ namespace VisualPinball.Unity
 							var comps = item.gameObject.GetComponents(type);
 							var comp = comps.Length > index
 								? comps[index]
-								: item.gameObject.AddComponent(type);
+								: AddPackageComponent(item.gameObject, type);
 							if (comp is IPackable packable) {
 								packable.Unpack(file.GetData());
 							} else {
@@ -210,7 +210,7 @@ namespace VisualPinball.Unity
 							var comps = item.gameObject.GetComponents(type);
 							var comp = comps.Length > index
 								? comps[index]
-								: item.gameObject.AddComponent(type);
+								: AddPackageComponent(item.gameObject, type);
 							if (comp == null) {
 								Logger.Warn($"Cannot create component of type {type.FullName} on {item.name}.");
 								return;
@@ -510,6 +510,15 @@ namespace VisualPinball.Unity
 			}
 			var itemData = ItemPackable.Unpack(itemFile.GetData());
 			itemData.ApplyRuntime(gameObject);
+		}
+
+		private static Component AddPackageComponent(GameObject gameObject, Type type)
+		{
+			// In the Editor, AddComponent calls Reset even while the table is inactive.
+			// Suppress insert generation only for this synchronous call, before Unpack marks
+			// its GLB mesh as packaged; other inserts can keep updating during the import.
+			using var scope = InsertComponent.DeferGenerationForPackageImport();
+			return gameObject.AddComponent(type);
 		}
 
 		/// <summary>

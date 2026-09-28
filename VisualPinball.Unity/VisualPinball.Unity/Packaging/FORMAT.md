@@ -6,8 +6,7 @@ unpack and load a table. The implementation notes live in [README.md](README.md)
 
 Two hard constraints shape the format:
 
-1. **Lossless** — a package re-imports into the editor without quality loss. Sources are stored
-   as original bytes; nothing is re-encoded on the way in.
+1. **Editable reimport** — a package restores the scene, generator settings, material intent, and bake maps for further editing. Supported 8-bit source images retain their original bytes; 16-bit PNGs are normalized to 8-bit PNGs on export, which is sufficient for the insert optical maps.
 2. **Engine-neutral** — nothing in the format requires Unity. Scene and meshes are glTF, images
    are PNG/JPEG, audio is WAV/OGG/MP3, metadata is JSON. Where pipeline-specific data exists, it
    is isolated in clearly-marked hint blocks that other engines ignore.
@@ -36,9 +35,10 @@ table/
 │   └── lamps.json
 ├── assets/<Type>/…          ← serialized shared assets + their meta
 ├── sounds/<file>            ← original audio files (wav/ogg/mp3/aiff)
-├── textures/<file>          ← original image files (png/jpg), the lossless source layer
+├── textures/<file>          ← image sources (png/jpg; 16-bit PNGs normalized to 8-bit)
 └── meta/
-    ├── materials.json       ← portable material payload
+    ├── materials.json       ← portable material payload and texture inventory
+    ├── inserts.json         ← editor-only insert generator and bake state
     ├── lights.json          ← light-source payload
     ├── sounds.json          ← audio meta (ids, import intent)
     └── colliders.json       ← collider-mesh meta
@@ -63,7 +63,7 @@ parses; **a file without a manifest is not a valid .vpe package** and must be re
   "FormatVersion": 1,
   "WrittenBy": "VPE 0.16.0 (Unity 6000.5.0f1)",
   "RootNodeId": "9f2c6c1e6a414b1f8d3a2b7c5e4f0a91",
-  "Schemas": { "items": 1, "materials": 1, "lights": 1, "sounds": 1 },
+  "Schemas": { "items": 1, "materials": 2, "inserts": 1, "lights": 1, "sounds": 1 },
   "ComponentTypes": [ "Flipper", "KickerCoil", "Surface", "…" ]
 }
 ```
@@ -150,12 +150,13 @@ added later) that readers are free to ignore.
 
 ```json
 {
-  "FormatVersion": 1,
+  "FormatVersion": 2,
   "WrittenBy": "HdrpMaterialTranslator",
-  "Profiles":        [ { "Name", "Type", "Lit|Decal|Unlit|Metal|Rubber|Dmd": { … } } ],
+  "Profiles":        [ { "Id", "Name", "Type", "Lit|Decal|Unlit|Metal|Rubber|Dmd|InsertHybrid|InsertCover": { … } } ],
   "Textures":        [ { "Id", "FileName", "MimeType", "ColorSpace", "WrapMode", "FilterMode",
-                         "AnisoLevel", "GenerateMipMaps", "RuntimeCompress", "SourceName",
+                         "AnisoLevel", "GenerateMipMaps", "RuntimeCompress", "ForceUncompressed", "EditorOnly", "SourceName",
                          "Width", "Height" } ],
+  "Bindings":        [ { "NodeId", "Slot", "ProfileId" } ],
   "RendererStates":  [ { "NodeId", "CastShadows", "ReceiveShadows", "RenderingLayerMask",
                          "Hdrp": { "RayTracingMode" } } ]
 }
@@ -171,6 +172,10 @@ added later) that readers are free to ignore.
 | `vpe.metal`, `vpe.rubber` | `Metal`/`Rubber` + `Lit` | Player-owned template (by `TemplateName`); the `Lit` profile is the portable fallback. |
 | `vpe.fabric.silk` | `Fabric` | HDRP fabric/silk surface; contains a `Lit` portable fallback plus fabric-specific HDRP controls. |
 | `vpe.dmd` | `Dmd` | Player-owned DMD template. |
+| `vpe.insert.hybrid` | `InsertHybrid` | Opaque insert body Shader Graph properties; the player supplies the pipeline shader. |
+| `vpe.insert.cover` | `InsertCover` | Transparent cover Shader Graph properties; the player supplies the pipeline shader. |
+
+`Bindings` identify a renderer node and material slot, so independently baked inserts can share a material name without sharing a profile. `EditorOnly` textures are used only by insert authoring data and are skipped by the player before source loading and cooking. Optical response and optical normal maps remain 8-bit, retain their exported resolution, and are not block-compressed by the player cook.
 
 **`Lit` portable core** — semantics map onto glTF PBR and its KHR extensions where they exist:
 
@@ -208,13 +213,16 @@ imported glTF material".
 **Enumerations** are strings, defined in this spec; the only ints left are quantities and the
 explicitly Unity-valued fields inside `Hdrp` blocks.
 
+## meta/inserts.json
+
+This editor-only sidecar has `FormatVersion: 1` and an `Inserts` array keyed by `NodeId`. Each record stores the serialized generator fields as `GeneratorJson`, the pre-bake material profile id, and optional bake data: hash, owner, UVs, tangents, map texture ids, optical parameters, bake material profile id, packer, and UV fill. The editor imports these references as project assets and regenerates an editable insert mesh. Runtime readers never open this file; the player renders the finished insert meshes in `table.glb` and restores only runtime insert and lamp component state from `items/` and `refs/`.
+
 ## table/textures/ — the source layer
 
-One plain image file per captured texture, stored, never re-encoded:
+One plain image file per captured texture, usually the source bytes:
 
 - `FileName` in the payload's texture table is the entry name; `Id` is the stable reference key.
-- Allowed types: `image/png`, `image/jpeg`. Sources that have no usable file (runtime-generated)
-  are stored as lossless PNG re-encodes of their pixels.
+- Allowed types: `image/png`, `image/jpeg`. Sources that have no usable file (runtime-generated) are stored as PNG re-encodes of their pixels. A 16-bit PNG source is converted to 8-bit PNG on export.
 - `Width`/`Height` carry the *authored* size (after any import clamp); larger source files are
   downsized to this when cooking.
 - `ColorSpace` (`sRGB` | `Linear`) is decided by the semantic slot (mask/thickness/normal data is

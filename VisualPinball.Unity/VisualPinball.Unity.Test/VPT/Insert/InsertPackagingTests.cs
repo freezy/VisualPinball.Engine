@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -17,6 +18,64 @@ namespace VisualPinball.Unity.Test
 {
 	public class InsertPackagingTests
 	{
+		[UnityTest]
+		public IEnumerator PackagedInsertUsesGlbMeshAndRestoresLampInRuntimeReader()
+		{
+			var packagePath = Path.Combine(Path.GetTempPath(), $"vpe-insert-package-{Guid.NewGuid():N}.vpe");
+			GameObject source = null;
+			GameObject imported = null;
+			Material body = null;
+			Material cover = null;
+			try {
+				source = new GameObject("Table");
+				source.AddComponent<TableComponent>();
+				var insertGo = new GameObject("Insert");
+				insertGo.transform.SetParent(source.transform, false);
+				var insert = insertGo.AddComponent<InsertComponent>();
+				body = new Material(Shader.Find("Visual Pinball/Insert Hybrid")) { name = "Test Insert Body" };
+				cover = new Material(Shader.Find("Visual Pinball/Insert Cover")) { name = "Test Insert Cover" };
+				insertGo.GetComponent<MeshRenderer>().sharedMaterial = body;
+				insert.SetCoverMaterial(cover);
+				var defaultBoundsMagnitude = insertGo.GetComponent<MeshFilter>().sharedMesh.bounds.size.magnitude;
+				var generator = new SerializedObject(insert);
+				generator.FindProperty("_shape").enumValueIndex = (int)InsertShape.Circle;
+				generator.FindProperty("_circleVertices").intValue = 19;
+				generator.FindProperty("_diameter").floatValue = 200f;
+				generator.ApplyModifiedPropertiesWithoutUndo();
+				insert.RebuildMesh();
+				var light = insertGo.AddComponent<InsertLightComponent>();
+				light.Intensity = 0.6f;
+				light.ExtraBulbs[0].Intensity = 0.4f;
+				var sourceMesh = insertGo.GetComponent<MeshFilter>().sharedMesh;
+				Assert.That(sourceMesh, Is.Not.Null);
+
+				new PackageWriter(source).WritePackageSync(packagePath);
+
+				var importTask = new RuntimePackageReader(packagePath).ImportIntoScene();
+				while (!importTask.IsCompleted) { yield return null; }
+				if (importTask.IsFaulted) { throw importTask.Exception!.GetBaseException(); }
+				imported = importTask.Result;
+				var restoredInsert = imported.GetComponentInChildren<InsertComponent>(true);
+				Assert.That(restoredInsert, Is.Not.Null);
+				var restoredMesh = restoredInsert.GetComponent<MeshFilter>().sharedMesh;
+				Assert.That(restoredMesh, Is.Not.Null);
+				Assert.That(restoredMesh.bounds.size.magnitude, Is.GreaterThan(defaultBoundsMagnitude * 2f),
+					"the packaged wide circle must not be replaced by the default generated triangle");
+				Assert.That(new SerializedObject(restoredInsert).FindProperty("_usesPackagedMesh").boolValue, Is.True);
+				restoredInsert.RebuildMesh();
+				Assert.That(restoredInsert.GetComponent<MeshFilter>().sharedMesh, Is.SameAs(restoredMesh));
+				var restoredLight = restoredInsert.GetComponent<InsertLightComponent>();
+				Assert.That(restoredLight.Intensity, Is.EqualTo(0.6f));
+				Assert.That(restoredLight.ExtraBulbs[0].Intensity, Is.EqualTo(0.4f));
+			} finally {
+				if (source) { Object.DestroyImmediate(source); }
+				if (imported) { Object.DestroyImmediate(imported); }
+				if (body) { Object.DestroyImmediate(body); }
+				if (cover) { Object.DestroyImmediate(cover); }
+				File.Delete(packagePath);
+			}
+		}
+
 		[Test]
 		public void ImportedInsertKeepsItsGlbMeshWhenEnabled()
 		{

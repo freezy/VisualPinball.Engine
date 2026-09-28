@@ -90,9 +90,7 @@ The entry point is `PackageWriter`. Order of operations:
    (`PrepareGltfExport`) so the GLB carries no duplicate image data.
 4. **Write items and refs**, keyed by node id: `items/<id>/<Type>/<n>.json` via each component's
    `IPackable`, refs in a second pass.
-5. **Write globals** (mapping config, devices referenced by node id), **table metadata**,
-   **materials** (HDRP translator → portable payload + source texture blobs) and **lights**
-   (per-light profiles by node id).
+5. **Write globals**, table metadata, material profiles and texture sources, the editor-only insert generator/bake sidecar, and light profiles. The insert sidecar refers to material and texture ids assigned during material capture.
 6. **Write assets and sounds** (with audio import intent).
 7. **Finish the GLB**: glTFast writes to memory; the writer replaces re-encoded images with the
    original asset bytes and injects the node ids into the glTF `extras`
@@ -111,6 +109,7 @@ The entry point is `RuntimePackageReader`. Notable mechanics:
   `extras.vpeId`s yields the id → transform map. The table root is `manifest.RootNodeId`.
 - Worker threads prefetch in parallel with the scene import: the material payload + source
   textures (or the cooked cache), all item/ref bytes in bulk, and the PackAs type scan.
+- Insert meshes come from the GLB and are never regenerated at runtime. The runtime reader does not open `meta/inserts.json`; it filters authoring-only textures before source loading and cooking.
 - **Texture cook**: on first load, source images are decoded in parallel (StbImageSharp on
   workers, Unity's native decoder for the few huge files), normals are AG-repacked, mips
   generated and BC7-encoded on the GPU, and the result is persisted per-table under
@@ -135,6 +134,7 @@ The entry point is `PackageReader`. Differences from runtime:
   `VpeTextureImportPreprocessor` — each texture runs through the asset pipeline exactly once.
 - Material reconstruction goes through the registered `IVpeMaterialEditorImporter`; the HDRP
   implementation drives the same `HdrpMaterialResolver` the player uses and saves `.mat` assets.
+- After materials are imported, `meta/inserts.json` restores generator settings and bake assets, then rebuilds each insert for further editing. Missing optional material or map references produce warnings and leave those references empty.
 - Lights are restored the same way as at runtime (`VpeLightRestore`), so a re-imported table's
   lights match the authored ones.
 - Sounds are de-duplicated against existing project assets by guid; new files get their import
