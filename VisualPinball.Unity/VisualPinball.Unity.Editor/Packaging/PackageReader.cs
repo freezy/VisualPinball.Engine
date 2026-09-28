@@ -60,11 +60,15 @@ namespace VisualPinball.Unity.Editor
 			var sw = new Stopwatch();
 			sw.Start();
 			_tableName = tableName;
+			var restoreActive = false;
+			var importSucceeded = false;
 
 			using var storage = PackageApi.StorageManager.OpenStorage(_vpePath);
 			try {
 				Setup(storage);
 				await ImportModels();
+				restoreActive = _table.activeSelf;
+				_table.SetActive(false);
 
 				_refs = new PackagedRefs(_tableRoot);
 				_refs.SetNodeIdsForRead(_transformByNodeId);
@@ -72,9 +76,14 @@ namespace VisualPinball.Unity.Editor
 				WarnMissingComponentTypes();
 
 				await ReadAssets();
+				using var insertGenerationScope = InsertComponent.DeferGenerationForPackageImport();
 
 				// create components and update game objects
-				ReadPackables(PackageApi.ItemFolder, (go, file) => ItemPackable.Unpack(file.GetData()).Apply(go), (item, type, file, index) => {
+				ReadPackables(PackageApi.ItemFolder, (go, file) => {
+					ItemPackable.Unpack(file.GetData()).Apply(go);
+					// The table node can itself carry an ItemPackable that reactivates it.
+					if (go == _table) { _table.SetActive(false); }
+				}, (item, type, file, index) => {
 					// add or update component
 					var comps = item.gameObject.GetComponents(type);
 					var comp = comps.Length > index
@@ -94,6 +103,7 @@ namespace VisualPinball.Unity.Editor
 					var comp = item.gameObject.GetComponent(type) as IPackable;
 					comp?.UnpackReferences(stream.GetData(), _tableRoot, _refs, _files);
 				});
+				insertGenerationScope.Dispose();
 
 				foreach (var consumer in _table.GetComponentsInChildren<MonoBehaviour>(true).OfType<IPackagedContentConsumer>()) {
 					consumer.SetPackagedContentResolver(ContentResolver);
@@ -104,8 +114,10 @@ namespace VisualPinball.Unity.Editor
 				SimulationThreadComponent.EnsureForTable(_tableRoot.gameObject);
 				RestoreLights();
 				ImportMaterials();
+				importSucceeded = true;
 
 			} finally {
+				if (importSucceeded && _table) { _table.SetActive(restoreActive); }
 				storage.Close();
 				Logger.Info($"Scene import took {sw.ElapsedMilliseconds}ms.");
 			}

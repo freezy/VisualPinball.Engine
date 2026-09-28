@@ -512,6 +512,9 @@ namespace VisualPinball.Unity.Editor
 			var meshFilters = _table.GetComponentsInChildren<MeshFilter>(!ExportActivesOnly);
 			var skinnedMeshRenderers = _table.GetComponentsInChildren<SkinnedMeshRenderer>(!ExportActivesOnly);
 			SetMeshesReadable(meshFilters, skinnedMeshRenderers);
+			foreach (var insert in _table.GetComponentsInChildren<InsertComponent>(!ExportActivesOnly)) {
+				insert.PrepareForPackageExport();
+			}
 
 			var logger = new ConsoleLogger();
 

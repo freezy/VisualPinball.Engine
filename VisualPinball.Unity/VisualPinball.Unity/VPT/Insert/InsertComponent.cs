@@ -39,11 +39,32 @@ namespace VisualPinball.Unity
 	/// </para>
 	/// </remarks>
 	[AddComponentMenu("Visual Pinball/Insert")]
+	[PackAs("Insert")]
 	[ExecuteAlways]
 	[RequireComponent(typeof(MeshFilter))]
 	[RequireComponent(typeof(MeshRenderer))]
-	public class InsertComponent : MonoBehaviour
+	public class InsertComponent : MonoBehaviour, IPackable
 	{
+		private static int _packageImportDepth;
+
+		public static IDisposable DeferGenerationForPackageImport()
+		{
+			_packageImportDepth++;
+			return new PackageImportScope();
+		}
+
+		private sealed class PackageImportScope : IDisposable
+		{
+			private bool _disposed;
+
+			public void Dispose()
+			{
+				if (_disposed) { return; }
+				_disposed = true;
+				_packageImportDepth--;
+			}
+		}
+
 		private string MeshName => $"Insert (generated) {GetEntityId()}";
 
 		#region Data
@@ -320,6 +341,9 @@ namespace VisualPinball.Unity
 		[Tooltip("Optional surface renderer override. Leave empty to find the playfield in this table automatically.")]
 		private MeshRenderer _coverPlayfield;
 
+		[SerializeField, HideInInspector]
+		private bool _usesPackagedMesh;
+
 		#endregion
 
 		#region Generated state
@@ -439,6 +463,11 @@ namespace VisualPinball.Unity
 
 		public void RebuildMesh()
 		{
+			if (_packageImportDepth > 0) { return; }
+			if (_usesPackagedMesh) {
+				UsePackagedMesh();
+				return;
+			}
 			try {
 				var warnings = new List<string>();
 				var outline = BuildOutline(warnings);
@@ -814,12 +843,20 @@ namespace VisualPinball.Unity
 #endif
 		}
 
-		private void Reset() => RebuildMesh();
+		private void Reset()
+		{
+			if (_packageImportDepth == 0) { RebuildMesh(); }
+		}
 		private void OnEnable()
 		{
+			if (_packageImportDepth > 0) { return; }
 #if UNITY_EDITOR
 			ClaimId();
 #endif
+			if (_usesPackagedMesh) {
+				UsePackagedMesh();
+				return;
+			}
 			var mesh = GetComponent<MeshFilter>().sharedMesh;
 			// Restore nonserialized state once, but retain the generated mesh when
 			// an already initialized insert is simply disabled and enabled again.
@@ -832,7 +869,39 @@ namespace VisualPinball.Unity
 				UpdateCover(true);
 			}
 		}
-		private void LateUpdate() => UpdateCover(false);
+		private void LateUpdate()
+		{
+			if (!_usesPackagedMesh) { UpdateCover(false); }
+		}
+
+		private void UsePackagedMesh()
+		{
+			var renderer = GetComponent<MeshRenderer>();
+			var slots = renderer.sharedMaterials;
+			_coverMaterial = slots.Length > 1 ? slots[1] : null;
+			_coverSlotRead = true;
+			UpdateCover(true);
+		}
+
+		public byte[] Pack() => InsertPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files)
+			=> InsertPackable.PackReferences(this, refs);
+
+		public void Unpack(byte[] bytes) => InsertPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs, PackagedFiles files)
+			=> InsertPackable.UnpackReferences(bytes, this, refs);
+
+		internal void UseImportedMesh(bool value) => _usesPackagedMesh = value;
+
+		internal void RestoreCoverState(bool usePlayfieldNormals, MeshRenderer playfield)
+		{
+			_usePlayfieldNormals = usePlayfieldNormals;
+			_coverPlayfield = playfield;
+		}
+
+		public void PrepareForPackageExport() => UpdateCover(true);
 
 #if UNITY_EDITOR
 		/// <summary>Which living, enabled insert holds which id, so a duplicate shows up on arrival.</summary>
@@ -989,11 +1058,15 @@ namespace VisualPinball.Unity
 				ClearCoverProjection(renderer, mesh, force);
 				return;
 			}
-			var sourceMesh = playfield.TryGetComponent<MeshFilter>(out var filter) ? filter.sharedMesh : null;
-			_coverProjectionValid = InsertCoverUv.TryCreate(sourceMesh, out _coverProjection, out var version) && playfield != renderer;
-			force |= sourceMesh != _coverSourceMesh || version != _coverProjectionVersion;
-			_coverSourceMesh = sourceMesh;
-			_coverProjectionVersion = version;
+			if (!_usesPackagedMesh) {
+				var sourceMesh = playfield.TryGetComponent<MeshFilter>(out var filter) ? filter.sharedMesh : null;
+				_coverProjectionValid = InsertCoverUv.TryCreate(sourceMesh, out _coverProjection, out var version) && playfield != renderer;
+				force |= sourceMesh != _coverSourceMesh || version != _coverProjectionVersion;
+				_coverSourceMesh = sourceMesh;
+				_coverProjectionVersion = version;
+			} else {
+				_coverProjectionValid = playfield != renderer;
+			}
 			var source = playfield.sharedMaterial;
 			if (!_coverProjectionValid || source == null || !source.HasProperty("_NormalMap") ||
 				(source.HasProperty("_UVBase") && source.GetFloat("_UVBase") != 0f) ||
@@ -1013,7 +1086,7 @@ namespace VisualPinball.Unity
 			var scale = source.GetTextureScale(slot);
 			var offset = source.GetTextureOffset(slot);
 			var matrix = playfield.transform.worldToLocalMatrix * transform.localToWorldMatrix;
-			if (force || !_coverMapped || matrix != _coverToPlayfield || scale != _coverTextureScale || offset != _coverTextureOffset) {
+			if (!_usesPackagedMesh && (force || !_coverMapped || matrix != _coverToPlayfield || scale != _coverTextureScale || offset != _coverTextureOffset)) {
 				_coverProjection.Apply(mesh, _coverFirstVertex, matrix, scale, offset);
 				_coverToPlayfield = matrix;
 				_coverTextureScale = scale;
@@ -1063,7 +1136,8 @@ namespace VisualPinball.Unity
 				if (!IsCoverSource(candidate) || candidate.GetComponentInParent<InsertComponent>() != null) { continue; }
 				var size = candidate.bounds.size;
 				var area = size.x * size.z;
-				if (area <= largest || !candidate.TryGetComponent<MeshFilter>(out var filter) || !InsertCoverUv.TryCreate(filter.sharedMesh, out _)) { continue; }
+				if (area <= largest || !_usesPackagedMesh &&
+					(!candidate.TryGetComponent<MeshFilter>(out var filter) || !InsertCoverUv.TryCreate(filter.sharedMesh, out _))) { continue; }
 				best = candidate;
 				largest = area;
 			}
@@ -1081,6 +1155,7 @@ namespace VisualPinball.Unity
 		private bool _rebuildPending;
 		private void OnValidate()
 		{
+			if (_usesPackagedMesh) { return; }
 			// OnValidate runs mid-serialization, where touching sibling components
 			// is not allowed, so the rebuild waits for the next editor tick.
 			if (_rebuildPending) { return; }

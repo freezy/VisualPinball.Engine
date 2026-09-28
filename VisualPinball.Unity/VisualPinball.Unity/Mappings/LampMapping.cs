@@ -46,6 +46,8 @@ namespace VisualPinball.Unity
 
 		[JsonProperty]
 		private string _deviceId { get; set; }
+		[JsonProperty]
+		private string _deviceType { get; set; }
 
 		public string DeviceItem = string.Empty;
 
@@ -56,12 +58,15 @@ namespace VisualPinball.Unity
 		public void SaveReference(PackagedRefs refs)
 		{
 			_deviceId = refs.GetNodeId(_device ? _device.transform : null);
+			_deviceType = _device ? refs.GetName(_device.GetType()) : null;
 		}
 
 		public void RestoreReference(PackagedRefs refs)
 		{
 			var node = refs.GetNode(_deviceId);
-			_device = node ? node.GetComponent<ILampDeviceComponent>() as MonoBehaviour : null;
+			_device = node && !string.IsNullOrEmpty(_deviceType) && refs.TryGetType(_deviceType, out var type)
+				? node.GetComponent(type) as MonoBehaviour
+				: null;
 		}
 	}
 }

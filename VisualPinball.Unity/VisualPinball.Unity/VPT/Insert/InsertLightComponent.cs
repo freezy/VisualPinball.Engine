@@ -16,10 +16,11 @@ namespace VisualPinball.Unity
 	/// An unmapped insert can also follow a parent VPE Light for existing tables.
 	/// </summary>
 	[ExecuteAlways]
+	[PackAs("InsertLight")]
 	[DisallowMultipleComponent]
 	[RequireComponent(typeof(InsertComponent), typeof(MeshRenderer))]
 	[AddComponentMenu("Visual Pinball/Insert Light")]
-	public class InsertLightComponent : MonoBehaviour, ILampDeviceComponent
+	public class InsertLightComponent : MonoBehaviour, ILampDeviceComponent, IPackable
 	{
 		[FormerlySerializedAs("Level")]
 		[Range(0f, 1f)]
@@ -81,6 +82,16 @@ namespace VisualPinball.Unity
 
 		[Tooltip("A real light driven with the lamp: a wide spot just under the insert, pointing up through it at the ball and whatever else is above. Its transform remains editable.")]
 		public Light SpillLight;
+
+		public byte[] Pack() => InsertLightPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files)
+			=> InsertLightPackable.PackReferences(this, refs);
+
+		public void Unpack(byte[] bytes) => InsertLightPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs, PackagedFiles files)
+			=> InsertLightPackable.UnpackReferences(bytes, this, refs);
 
 		private static readonly int LuminosityId = Shader.PropertyToID("_InsertLuminosity");
 		private static readonly int LevelId = Shader.PropertyToID("_InsertLampLevel");
