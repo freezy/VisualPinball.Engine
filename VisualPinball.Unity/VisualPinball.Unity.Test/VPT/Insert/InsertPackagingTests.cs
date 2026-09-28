@@ -19,6 +19,91 @@ namespace VisualPinball.Unity.Test
 	public class InsertPackagingTests
 	{
 		[UnityTest]
+		public IEnumerator EditorPackageRoundTripRestoresGeneratorAndBake()
+		{
+			var tableName = "InsertPackagingTest-" + Guid.NewGuid().ToString("N");
+			var packagePath = Path.Combine(Path.GetTempPath(), tableName + ".vpe");
+			GameObject source = null;
+			GameObject imported = null;
+			InsertBakeData sourceBake = null;
+			Material body = null;
+			Material cover = null;
+			try {
+				source = new GameObject(tableName);
+				source.AddComponent<TableComponent>();
+				var insertGo = new GameObject("Editable Insert");
+				insertGo.transform.SetParent(source.transform, false);
+				var insert = insertGo.AddComponent<InsertComponent>();
+				var generator = new SerializedObject(insert);
+				generator.FindProperty("_shape").enumValueIndex = (int)InsertShape.Circle;
+				generator.FindProperty("_circleVertices").intValue = 19;
+				generator.FindProperty("_diameter").floatValue = 200f;
+				generator.ApplyModifiedPropertiesWithoutUndo();
+				insert.RebuildMesh();
+				body = new Material(Shader.Find("Visual Pinball/Insert Hybrid")) { name = "Editor Round Trip Body" };
+				cover = new Material(Shader.Find("Visual Pinball/Insert Cover")) { name = "Editor Round Trip Cover" };
+				insertGo.GetComponent<MeshRenderer>().sharedMaterial = body;
+				insert.SetCoverMaterial(cover);
+				sourceBake = ScriptableObject.CreateInstance<InsertBakeData>();
+				var bakeMesh = new Mesh();
+				var bakeLayout = new InsertMeshLayout();
+				insert.Generate(bakeMesh, bakeLayout);
+				sourceBake.Hash = bakeLayout.Hash.ToString();
+				sourceBake.Owner = insert.EnsureId();
+				var triangleCorners = bakeMesh.triangles.Length;
+				sourceBake.Uvs = new Vector2[triangleCorners];
+				sourceBake.Tangents = new Vector4[triangleCorners];
+				for (var i = 0; i < triangleCorners; i++) {
+					sourceBake.Uvs[i] = new Vector2(0.25f, 0.75f);
+					sourceBake.Tangents[i] = new Vector4(1f, 0f, 0f, 1f);
+				}
+				Object.DestroyImmediate(bakeMesh);
+				insert.SetBake(sourceBake);
+				Assert.That(insert.IsBakeFresh, Is.True);
+				Assert.That(insertGo.GetComponent<MeshRenderer>().enabled, Is.True);
+				Assert.That(insertGo.GetComponent<MeshFilter>().sharedMesh.subMeshCount, Is.EqualTo(2));
+				Assert.That(insertGo.GetComponent<MeshRenderer>().sharedMaterials, Has.Length.EqualTo(2));
+
+				new PackageWriter(source).WritePackageSync(packagePath);
+				var importTask = new PackageReader(packagePath).ImportIntoScene(tableName);
+				while (!importTask.IsCompleted) { yield return null; }
+				if (importTask.IsFaulted) { throw importTask.Exception!.GetBaseException(); }
+				foreach (var table in Object.FindObjectsByType<TableComponent>(FindObjectsSortMode.None)) {
+					if (table.gameObject != source && table.name == tableName) { imported = table.gameObject; break; }
+				}
+				Assert.That(imported, Is.Not.Null);
+				var restored = imported.GetComponentInChildren<InsertComponent>(true);
+				Assert.That(restored, Is.Not.Null);
+				var restoredGenerator = new SerializedObject(restored);
+				Assert.That(restoredGenerator.FindProperty("_shape").enumValueIndex, Is.EqualTo((int)InsertShape.Circle));
+				Assert.That(restoredGenerator.FindProperty("_circleVertices").intValue, Is.EqualTo(19));
+				Assert.That(restoredGenerator.FindProperty("_diameter").floatValue, Is.EqualTo(200f));
+				Assert.That(restored.Bake, Is.Not.Null);
+				Assert.That(restored.Bake.Hash, Is.EqualTo(sourceBake.Hash));
+				Assert.That(restored.Bake.Uvs[0], Is.EqualTo(new Vector2(0.25f, 0.75f)));
+				Assert.That(AssetDatabase.Contains(restored.Bake), Is.True);
+				Assert.That(restored.PreBakeMaterial, Is.Not.Null, "the pre-bake material must restore from its profile id");
+				var renderers = restored.GetComponentsInChildren<MeshRenderer>(true);
+				var rendererLayout = string.Join("; ", Array.ConvertAll(renderers, renderer =>
+					$"{renderer.name}: slots={renderer.sharedMaterials.Length}, mesh={renderer.GetComponent<MeshFilter>()?.sharedMesh?.subMeshCount}"));
+				Assert.That(restored.GetComponent<MeshRenderer>().sharedMaterials, Has.Length.EqualTo(2),
+					"the cover renderer slot must survive the GLB/editor material import: " + rendererLayout);
+				Assert.That(restored.CoverMaterial, Is.Not.Null, "the cover material must restore from renderer slot 1");
+				Assert.That(restored.PreBakeMaterial.shader.name, Is.EqualTo("Visual Pinball/Insert Hybrid"));
+				Assert.That(restored.CoverMaterial.shader.name, Is.EqualTo("Visual Pinball/Insert Cover"));
+				Assert.That(restored.GetComponent<MeshFilter>().sharedMesh, Is.Not.Null);
+			} finally {
+				if (source) { Object.DestroyImmediate(source); }
+				if (imported) { Object.DestroyImmediate(imported); }
+				if (sourceBake) { Object.DestroyImmediate(sourceBake); }
+				if (body) { Object.DestroyImmediate(body); }
+				if (cover) { Object.DestroyImmediate(cover); }
+				AssetDatabase.DeleteAsset("Assets/Resources/" + tableName);
+				File.Delete(packagePath);
+			}
+		}
+
+		[UnityTest]
 		public IEnumerator PackagedInsertUsesGlbMeshAndRestoresLampInRuntimeReader()
 		{
 			var packagePath = Path.Combine(Path.GetTempPath(), $"vpe-insert-package-{Guid.NewGuid():N}.vpe");
@@ -26,6 +111,7 @@ namespace VisualPinball.Unity.Test
 			GameObject imported = null;
 			Material body = null;
 			Material cover = null;
+			InsertBakeData staleBake = null;
 			try {
 				source = new GameObject("Table");
 				source.AddComponent<TableComponent>();
@@ -46,10 +132,16 @@ namespace VisualPinball.Unity.Test
 				var light = insertGo.AddComponent<InsertLightComponent>();
 				light.Intensity = 0.6f;
 				light.ExtraBulbs[0].Intensity = 0.4f;
+				staleBake = ScriptableObject.CreateInstance<InsertBakeData>();
+				staleBake.Hash = "stale-bake";
+				insert.SetBake(staleBake);
+				Assert.That(insertGo.GetComponent<MeshRenderer>().enabled, Is.False);
 				var sourceMesh = insertGo.GetComponent<MeshFilter>().sharedMesh;
 				Assert.That(sourceMesh, Is.Not.Null);
 
 				new PackageWriter(source).WritePackageSync(packagePath);
+				Assert.That(insertGo.GetComponent<MeshRenderer>().enabled, Is.False,
+					"export must restore the author's hidden stale-bake preview");
 
 				var importTask = new RuntimePackageReader(packagePath).ImportIntoScene();
 				while (!importTask.IsCompleted) { yield return null; }
@@ -59,6 +151,7 @@ namespace VisualPinball.Unity.Test
 				Assert.That(restoredInsert, Is.Not.Null);
 				var restoredMesh = restoredInsert.GetComponent<MeshFilter>().sharedMesh;
 				Assert.That(restoredMesh, Is.Not.Null);
+				Assert.That(restoredMesh.subMeshCount, Is.EqualTo(2), "the disabled insert's cover must be present in the GLB");
 				Assert.That(restoredMesh.bounds.size.magnitude, Is.GreaterThan(defaultBoundsMagnitude * 2f),
 					"the packaged wide circle must not be replaced by the default generated triangle");
 				Assert.That(new SerializedObject(restoredInsert).FindProperty("_usesPackagedMesh").boolValue, Is.True);
@@ -72,6 +165,7 @@ namespace VisualPinball.Unity.Test
 				if (imported) { Object.DestroyImmediate(imported); }
 				if (body) { Object.DestroyImmediate(body); }
 				if (cover) { Object.DestroyImmediate(cover); }
+				if (staleBake) { Object.DestroyImmediate(staleBake); }
 				File.Delete(packagePath);
 			}
 		}

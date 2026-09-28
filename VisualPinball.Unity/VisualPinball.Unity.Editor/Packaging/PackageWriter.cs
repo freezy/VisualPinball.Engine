@@ -577,20 +577,25 @@ namespace VisualPinball.Unity.Editor
 
 			var export = new GameObjectExport(exportSettings, gameObjectExportSettings, logger: logger);
 			var disabledRenderers = DisableInvalidMeshRenderers(meshFilters, skinnedMeshRenderers, _table.transform);
-			var reenabledLights = EnableDisabledLights();
-			var renderers = _table.GetComponentsInChildren<Renderer>(!ExportActivesOnly);
-			// glTFast re-encodes images (JPEG for opaque base color). The package format is
-			// lossless, so the original asset bytes are swapped back in after export — for
-			// captured materials the textures are stripped anyway, this covers the
-			// unsupported-shader materials that keep their textures in the GLB.
-			_originalGltfImageReplacements = BuildOriginalGltfImageReplacements(renderers);
-			var gltfExportScope = VpeMaterialTranslator.PrepareGltfExport(renderers);
+			List<MeshRenderer> reenabledInsertRenderers = null;
+			List<Light> reenabledLights = null;
+			IDisposable gltfExportScope = null;
 			try {
+				reenabledInsertRenderers = EnableDisabledInsertRenderers();
+				reenabledLights = EnableDisabledLights();
+				var renderers = _table.GetComponentsInChildren<Renderer>(!ExportActivesOnly);
+				// glTFast re-encodes images (JPEG for opaque base color). The package format is
+				// lossless, so the original asset bytes are swapped back in after export — for
+				// captured materials the textures are stripped anyway, this covers the
+				// unsupported-shader materials that keep their textures in the GLB.
+				_originalGltfImageReplacements = BuildOriginalGltfImageReplacements(renderers);
+				gltfExportScope = VpeMaterialTranslator.PrepareGltfExport(renderers);
 				export.AddScene(new [] { _table }, _table.transform.worldToLocalMatrix, "VPE Table");
 
 			} finally {
 				gltfExportScope?.Dispose();
-				RestoreDisabledLights(reenabledLights);
+				if (reenabledLights != null) { RestoreDisabledLights(reenabledLights); }
+				if (reenabledInsertRenderers != null) { RestoreDisabledInsertRenderers(reenabledInsertRenderers); }
 				RestoreDisabledRenderers(disabledRenderers);
 			}
 
@@ -611,6 +616,31 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 			return toRestore;
+		}
+
+		private List<MeshRenderer> EnableDisabledInsertRenderers()
+		{
+			var toRestore = new List<MeshRenderer>();
+			foreach (var insert in _table.GetComponentsInChildren<InsertComponent>(!ExportActivesOnly)) {
+				var renderer = insert.GetComponent<MeshRenderer>();
+				var mesh = insert.GetComponent<MeshFilter>()?.sharedMesh;
+				if (!renderer || renderer.enabled || IsInvalidMeshForGltfExport(mesh, out _)) { continue; }
+				// A stale bake hides its renderer in the editor and shows a gizmo instead.
+				// The player still needs the finished geometry in table.glb.
+				renderer.enabled = true;
+				toRestore.Add(renderer);
+				if (insert.IsShowingGeometry) {
+					Logger.Warn($"Exporting insert '{insert.name}' with a stale bake; rebake it to align its maps with the generated mesh.");
+				}
+			}
+			return toRestore;
+		}
+
+		private static void RestoreDisabledInsertRenderers(List<MeshRenderer> renderers)
+		{
+			foreach (var renderer in renderers) {
+				if (renderer) { renderer.enabled = false; }
+			}
 		}
 
 		private static void RestoreDisabledLights(List<Light> reenabledLights)
