@@ -904,20 +904,25 @@ namespace VisualPinball.Unity.Editor
 		private void DrawPresets()
 		{
 			var inserts = targets.OfType<InsertComponent>().ToArray();
+			var revealAsset = EditorGUI.actionKey;
 			SubHeader("Color");
 			var colors = InsertColorPresets.Find();
 			if (colors.Length == 0) {
 				EditorGUILayout.HelpBox("No insert color presets found.", MessageType.Warning);
 			}
-			using (new EditorGUI.DisabledScope(EditorApplication.isPlaying || !inserts.Any(InsertColorPresets.CanApply))) {
+			using (new EditorGUI.DisabledScope(!revealAsset && (EditorApplication.isPlaying || !inserts.Any(InsertColorPresets.CanApply)))) {
 				using (new EditorGUILayout.HorizontalScope()) {
 					foreach (var color in colors) {
-						var clicked = GUILayout.Button(new GUIContent(string.Empty, color.ColorName), GUIStyle.none, GUILayout.Width(36f), GUILayout.Height(36f));
+						var clicked = GUILayout.Button(new GUIContent(string.Empty, $"{color.ColorName}. Ctrl/Cmd+click to highlight the preset asset in the Project window."), GUIStyle.none, GUILayout.Width(36f), GUILayout.Height(36f));
 						var swatch = GUILayoutUtility.GetLastRect();
 						var fill = GUI.enabled ? color.Swatch : Color.Lerp(color.Swatch, Color.gray, 0.75f);
 						EditorGUI.DrawRect(swatch, new Color(0.13f, 0.13f, 0.13f));
 						EditorGUI.DrawRect(new Rect(swatch.x + 1f, swatch.y + 1f, swatch.width - 2f, swatch.height - 2f), fill);
 						if (clicked) {
+							if (revealAsset) {
+								EditorGUIUtility.PingObject(color);
+								continue;
+							}
 							Undo.IncrementCurrentGroup();
 							var group = Undo.GetCurrentGroup();
 							Undo.SetCurrentGroupName("Apply Insert Color Preset");
@@ -947,9 +952,13 @@ namespace VisualPinball.Unity.Editor
 
 			var presets = InsertMaterialPresets.Find();
 			using (new EditorGUILayout.HorizontalScope()) {
-				using (new EditorGUI.DisabledScope(styled == 0 || EditorApplication.isPlaying)) {
+				using (new EditorGUI.DisabledScope(!revealAsset && (styled == 0 || EditorApplication.isPlaying))) {
 					foreach (var preset in presets) {
-						if (GUILayout.Button(new GUIContent(preset.name, $"{preset.name}: applies numeric body settings to every selected hybrid insert. Colors, maps and cover materials stay unchanged. A shared body material changes for all inserts that use it."), GUILayout.MinWidth(24f), GUILayout.MaxWidth(110f), GUILayout.ExpandWidth(false), GUILayout.Height(24f))) {
+						if (GUILayout.Button(new GUIContent(preset.name, $"{preset.name}: applies numeric body settings to every selected hybrid insert. Colors, maps and cover materials stay unchanged. A shared body material changes for all inserts that use it. Ctrl/Cmd+click to highlight the preset asset in the Project window."), GUILayout.MinWidth(24f), GUILayout.MaxWidth(110f), GUILayout.ExpandWidth(false), GUILayout.Height(24f))) {
+							if (revealAsset) {
+								EditorGUIUtility.PingObject(preset);
+								continue;
+							}
 							var count = 0;
 							foreach (var insert in inserts) {
 								count += InsertMaterialPresets.Apply(preset, insert);
