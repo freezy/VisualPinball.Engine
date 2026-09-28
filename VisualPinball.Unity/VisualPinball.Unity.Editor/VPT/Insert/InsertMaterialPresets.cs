@@ -2,7 +2,6 @@
 // Copyright (C) 2026 freezy and VPE Team
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -89,17 +88,6 @@ namespace VisualPinball.Unity.Editor
 			_presets = null;
 			AssetDatabase.SaveAssets();
 			return AssetDatabase.LoadAssetAtPath<InsertMaterialPreset>(path);
-		}
-
-		/// <summary>The names a popup shows for the presets, with a line for none.</summary>
-		public static string[] Labels(IReadOnlyList<InsertMaterialPreset> presets)
-		{
-			var labels = new string[presets.Count + 1];
-			labels[0] = "Choose a preset";
-			for (var i = 0; i < presets.Count; i++) {
-				labels[i + 1] = presets[i].name;
-			}
-			return labels;
 		}
 	}
 }

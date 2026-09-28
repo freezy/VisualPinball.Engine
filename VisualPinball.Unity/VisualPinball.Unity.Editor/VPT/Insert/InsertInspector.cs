@@ -100,7 +100,6 @@ namespace VisualPinball.Unity.Editor
 		private const string BakeKey = "VisualPinball.Insert.Bake";
 		private const string CoverKey = "VisualPinball.Insert.Cover";
 		private const string PresetKey = "VisualPinball.Insert.Preset";
-		private const string PresetChoiceKey = "VisualPinball.Insert.Preset.Choice";
 
 		private void OnEnable()
 		{
@@ -947,42 +946,31 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			var presets = InsertMaterialPresets.Find();
-			var labels = InsertMaterialPresets.Labels(presets);
-			var remembered = SessionState.GetString(PresetChoiceKey, string.Empty);
-			var index = 0;
-			for (var i = 0; i < presets.Length; i++) {
-				if (AssetDatabase.GetAssetPath(presets[i]) == remembered) {
-					index = i + 1;
-				}
-			}
 			using (new EditorGUILayout.HorizontalScope()) {
-				EditorGUI.BeginChangeCheck();
-				index = EditorGUILayout.Popup(new GUIContent("Preset", "The numeric body settings to apply to the selected inserts."), index, labels);
-				if (EditorGUI.EndChangeCheck()) {
-					SessionState.SetString(PresetChoiceKey, index > 0 ? AssetDatabase.GetAssetPath(presets[index - 1]) : string.Empty);
-				}
-				using (new EditorGUI.DisabledScope(index == 0 || styled == 0 || EditorApplication.isPlaying)) {
-					if (GUILayout.Button(new GUIContent("Apply", "Applies numeric body settings to every selected hybrid insert. Colors, maps and cover materials stay unchanged. A shared body material changes for all inserts that use it."), GUILayout.Width(60f))) {
-						var preset = presets[index - 1];
-						var count = 0;
-						foreach (var insert in inserts) {
-							count += InsertMaterialPresets.Apply(preset, insert);
+				using (new EditorGUI.DisabledScope(styled == 0 || EditorApplication.isPlaying)) {
+					foreach (var preset in presets) {
+						if (GUILayout.Button(new GUIContent(preset.name, $"{preset.name}: applies numeric body settings to every selected hybrid insert. Colors, maps and cover materials stay unchanged. A shared body material changes for all inserts that use it."), GUILayout.MinWidth(24f), GUILayout.MaxWidth(110f), GUILayout.ExpandWidth(false), GUILayout.Height(24f))) {
+							var count = 0;
+							foreach (var insert in inserts) {
+								count += InsertMaterialPresets.Apply(preset, insert);
+							}
+							Debug.Log($"Applied preset \"{preset.name}\" to {styled} insert(s): {count} values set.");
 						}
-						Debug.Log($"Applied preset \"{preset.name}\" to {styled} insert(s): {count} values set.");
+					}
+				}
+				GUILayout.FlexibleSpace();
+				using (new EditorGUI.DisabledScope(inserts.Length != 1 || styled == 0 || EditorApplication.isPlaying)) {
+					if (GUILayout.Button(new GUIContent("+", "Save this insert's current numeric body settings as a new material preset."), GUILayout.Width(24f), GUILayout.Height(24f))) {
+						var saved = InsertMaterialPresets.SaveAs(inserts[0]);
+						if (saved != null) {
+							EditorGUIUtility.PingObject(saved);
+						}
+						GUIUtility.ExitGUI();
 					}
 				}
 			}
 			if (presets.Length == 0) {
-				EditorGUILayout.HelpBox("No presets found. The HDRP package ships Clear and Colored; a preset of your own can be saved below.", MessageType.Warning);
-			}
-			using (new EditorGUI.DisabledScope(inserts.Length != 1 || styled == 0 || EditorApplication.isPlaying)) {
-				if (GUILayout.Button(new GUIContent("Save Settings as Preset...", "Saves this insert's numeric body settings as a new preset asset."))) {
-					var saved = InsertMaterialPresets.SaveAs(inserts[0]);
-					if (saved != null) {
-						SessionState.SetString(PresetChoiceKey, AssetDatabase.GetAssetPath(saved));
-						EditorGUIUtility.PingObject(saved);
-					}
-				}
+				EditorGUILayout.HelpBox("No material presets found. The HDRP package ships Clear and Colored; click + to save your own.", MessageType.Warning);
 			}
 		}
 
