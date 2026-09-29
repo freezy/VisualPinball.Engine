@@ -18,6 +18,23 @@
       href: editor/units-3d-space.md
     - name: Unity Components
       href: editor/unity-components.md
+    - name: Inserts
+      href: editor/inserts/index.md
+      items:
+        - name: Customizing Inserts
+          href: editor/inserts/customizing.md
+        - name: Geometry
+          href: editor/inserts/geometry.md
+        - name: Patterns
+          href: editor/inserts/patterns.md
+        - name: Baking
+          href: editor/inserts/baking.md
+        - name: Lighting
+          href: editor/inserts/lighting.md
+        - name: Body Material
+          href: editor/inserts/body-material.md
+        - name: Cover Material
+          href: editor/inserts/cover.md
     - name: Wire Rails
       href: editor/wire-rails/index.md
       items:

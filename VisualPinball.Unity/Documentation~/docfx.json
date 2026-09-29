@@ -11,6 +11,9 @@
 					"developer-guide/**.md",
 					"toc.yml",
 					"*.md"
+				],
+				"exclude": [
+					"creators-guide/editor/inserts/visuals.md"
 				]
 			},
 			{
