@@ -67,6 +67,7 @@ namespace VisualPinball.Unity
 			Unwrap = true,
 			PreferUvPackMaster = true,
 			Gpu = false,
+			HybridOptics = true,
 		};
 	}
 }
