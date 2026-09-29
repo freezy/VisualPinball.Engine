@@ -216,6 +216,7 @@ namespace VisualPinball.Unity.Editor
 			public string Hash;
 			public int TextureSize;
 			public bool HybridOptics;
+			public bool UseHybridMaterial;
 			public Vector4 OpticalStarburst;
 			public Process Process;
 			public readonly ConcurrentQueue<string> Output = new();
@@ -249,7 +250,7 @@ namespace VisualPinball.Unity.Editor
 			("Baking optical response masks", 0.98f),
 		};
 
-		public static void Bake(InsertComponent insert)
+		public static void Bake(InsertComponent insert, bool useHybridMaterial = false)
 		{
 			if (_job != null) {
 				return;
@@ -269,8 +270,18 @@ namespace VisualPinball.Unity.Editor
 				var body = insert.Generate(mesh, layout);
 				var request = InsertBakeRequest.Build(mesh, layout, insert.BakeSettings,
 					math.max(math.abs(body.StarburstOffset), body.StippleHeight));
+				var renderer = insert.GetComponent<MeshRenderer>();
+				var hybridShader = Shader.Find(HybridShaderName);
+				// A new lit insert has no material worth keeping. Give it a working
+				// hybrid body as part of its first bake.
+				var setUpNewLight = insert.GetComponent<InsertLightComponent>() != null &&
+					renderer.sharedMaterial == null && hybridShader != null;
+				useHybridMaterial |= setUpNewLight;
 				// A hybrid material always needs maps from this exact UV layout.
-				request.HybridOptics |= insert.Bake != null && insert.Bake.Material != null && insert.Bake.Material.HasProperty("_OpticalNormalMap");
+				request.HybridOptics |= useHybridMaterial || insert.Bake != null && insert.Bake.Material != null && insert.Bake.Material.HasProperty("_OpticalNormalMap");
+				if (useHybridMaterial && hybridShader == null) {
+					throw new InvalidOperationException("The HDRP hybrid insert shader is not installed.");
+				}
 
 				var folder = Path.GetFullPath(Path.Combine("Library", "InsertBake", Guid.NewGuid().ToString("N")));
 				Directory.CreateDirectory(folder);
@@ -284,6 +295,7 @@ namespace VisualPinball.Unity.Editor
 					Hash = layout.Hash.ToString(),
 					TextureSize = request.TextureSize,
 					HybridOptics = request.HybridOptics,
+					UseHybridMaterial = useHybridMaterial,
 					OpticalStarburst = layout.OpticalStarburst,
 				};
 				job.Process = Run(blender, $"\"{requestPath}\"", job.Output);
@@ -460,7 +472,11 @@ namespace VisualPinball.Unity.Editor
 			}
 			data.Packer = result.Report.Packer;
 			data.UvFill = result.Report.UvFill;
-			data.Material = BakeMaterial(insert, wornIsOwn, folder, name, texture);
+			// The hybrid step creates the body material. Keep the previous material
+			// reference for Undo, without writing a copy that would be replaced.
+			if (!job.UseHybridMaterial) {
+				data.Material = BakeMaterial(insert, wornIsOwn, folder, name, texture);
+			}
 			BindOptics(data);
 			if (created) {
 				AssetDatabase.CreateAsset(data, $"{folder}/{name} Bake.asset");
@@ -469,10 +485,38 @@ namespace VisualPinball.Unity.Editor
 			}
 			AssetDatabase.SaveAssets();
 
+			var wornBeforeBake = renderer.sharedMaterial;
 			Undo.RecordObjects(new Object[] { insert, renderer }, "Bake Insert");
 			insert.SetBake(data);
+			if (job.UseHybridMaterial) {
+				// SetBake can put the previous bake's material back. Preserve the
+				// material actually worn until the hybrid replaces it, or a fallback
+				// needs to derive a plain material from it.
+				renderer.sharedMaterial = wornBeforeBake;
+			}
 			PrefabUtility.RecordPrefabInstancePropertyModifications(insert);
 			PrefabUtility.RecordPrefabInstancePropertyModifications(renderer);
+			if (job.UseHybridMaterial) {
+				try {
+					UseHybridMaterial(insert);
+				} catch (Exception exception) {
+					string fallbackError = null;
+					try {
+						data.Material = BakeMaterial(insert, wornIsOwn, folder, name, texture);
+						EditorUtility.SetDirty(data);
+						insert.SetBake(data);
+						PrefabUtility.RecordPrefabInstancePropertyModifications(insert);
+						PrefabUtility.RecordPrefabInstancePropertyModifications(renderer);
+						AssetDatabase.SaveAssets();
+					} catch (Exception materialException) {
+						fallbackError = $" Plain material recovery also failed: {materialException.Message}";
+					}
+					LastError = $"Bake succeeded, but hybrid material setup failed: {exception.Message}";
+					LastError += fallbackError;
+					LastErrorInsert = insert;
+					Debug.LogError($"{insert.name}: {LastError}");
+				}
+			}
 		}
 
 		private static Texture2D ImportOptics(Job job, string folder, string name, string source, string suffix, Texture2D existing)
@@ -845,7 +889,7 @@ namespace VisualPinball.Unity.Editor
 
 		private static void Fail(InsertComponent insert, string error)
 		{
-			LastError = error;
+			LastError = $"Bake failed: {error}";
 			LastErrorInsert = insert;
 			Debug.LogError($"Baking {(insert != null ? insert.name : "an insert")} failed: {error}");
 		}

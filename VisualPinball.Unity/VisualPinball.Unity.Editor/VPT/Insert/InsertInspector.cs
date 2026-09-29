@@ -869,7 +869,7 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 			if (InsertBaker.LastError != null && InsertBaker.LastErrorInsert == insert) {
-				EditorGUILayout.HelpBox($"The last bake failed: {InsertBaker.LastError}", MessageType.Error);
+				EditorGUILayout.HelpBox(InsertBaker.LastError, MessageType.Error);
 				if (InsertBaker.LastLog.Count > 0 && GUILayout.Button("Copy Blender's Log")) {
 					EditorGUIUtility.systemCopyBuffer = string.Join(System.Environment.NewLine, InsertBaker.LastLog);
 				}

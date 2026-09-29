@@ -89,7 +89,21 @@ namespace VisualPinball.Unity.Editor
 				return material != null && material.HasProperty(LuminosityId);
 			});
 			if (!hybrid) {
-				EditorGUILayout.HelpBox("The insert's material is not the hybrid material, so Intensity and Color have nothing to drive and the spill stays off. Bake the insert with Hybrid Optics and click Use HDRP Hybrid Material on it.", MessageType.Warning);
+				EditorGUILayout.HelpBox("The insert needs a hybrid bake and material before Intensity, Color and spill can work.", MessageType.Warning);
+				if (targets.Length == 1) {
+					var insert = ((InsertLightComponent)target).GetComponent<InsertComponent>();
+					if (insert != null) {
+						var blenderError = InsertBaker.Probe()?.Error;
+						using (new EditorGUI.DisabledScope(InsertBaker.Baking != null || InsertBaker.IsReadOnly(insert.Bake) || EditorApplication.isPlayingOrWillChangePlaymode || Shader.Find(InsertBaker.HybridShaderName) == null || blenderError != null || insert.Error != null)) {
+							if (GUILayout.Button(new GUIContent("Bake Hybrid and Use Material", "Bakes optical maps and replaces the current body material with an HDRP hybrid material. The previous material stays on disk."))) {
+								InsertBaker.Bake(insert, true);
+							}
+						}
+						if (InsertBaker.LastErrorInsert == insert && InsertBaker.LastError != null) {
+							EditorGUILayout.HelpBox(InsertBaker.LastError, MessageType.Error);
+						}
+					}
+				}
 			}
 
 			if (InsertSection.Begin(LampKey, "Lamps")) {
