@@ -364,6 +364,7 @@ namespace VisualPinball.Unity.Test
 				source.RebuildMesh();
 				sourceBake = ScriptableObject.CreateInstance<InsertBakeData>();
 				sourceBake.Hash = "saved-hash";
+				sourceBake.PlainStipple = true;
 				sourceBake.Owner = source.EnsureId();
 				sourceBake.Uvs = new[] { new Vector2(0.25f, 0.75f) };
 				sourceBake.Tangents = new[] { new Vector4(1f, 0f, 0f, 1f) };
@@ -392,6 +393,7 @@ namespace VisualPinball.Unity.Test
 				Assert.That(new SerializedObject(target).FindProperty("_width").floatValue, Is.EqualTo(37f));
 				Assert.That(target.Bake, Is.Not.Null);
 				Assert.That(target.Bake.Hash, Is.EqualTo("saved-hash"));
+				Assert.That(target.Bake.PlainStipple, Is.True);
 				Assert.That(target.Bake.Uvs[0], Is.EqualTo(new Vector2(0.25f, 0.75f)));
 				Assert.That(target.Bake.NormalMap, Is.SameAs(normal));
 				Assert.That(target.Bake.OpticalNormalMap, Is.SameAs(optical));

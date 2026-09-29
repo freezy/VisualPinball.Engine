@@ -217,6 +217,7 @@ namespace VisualPinball.Unity.Editor
 			public int TextureSize;
 			public bool HybridOptics;
 			public bool UseHybridMaterial;
+			public bool PlainStipple;
 			public Vector4 OpticalStarburst;
 			public Process Process;
 			public readonly ConcurrentQueue<string> Output = new();
@@ -265,11 +266,22 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			var mesh = new Mesh();
+			Mesh plainMesh = null;
 			try {
 				var layout = new InsertMeshLayout();
 				var body = insert.Generate(mesh, layout);
-				var request = InsertBakeRequest.Build(mesh, layout, insert.BakeSettings,
-					math.max(math.abs(body.StarburstOffset), body.StippleHeight));
+				var relief = math.max(math.abs(body.StarburstOffset), body.StippleHeight);
+				InsertBakeRequest request;
+				if (body.StippleHeight > 0f) {
+					plainMesh = new Mesh();
+					var plainLayout = new InsertMeshLayout();
+					insert.Generate(plainMesh, plainLayout, true);
+					request = InsertBakeRequest.Build(plainMesh, plainLayout, insert.BakeSettings, relief);
+					var source = InsertBakeRequest.Build(mesh, layout, insert.BakeSettings, relief);
+					request.SetHighSource(source);
+				} else {
+					request = InsertBakeRequest.Build(mesh, layout, insert.BakeSettings, relief);
+				}
 				var renderer = insert.GetComponent<MeshRenderer>();
 				var hybridShader = Shader.Find(HybridShaderName);
 				// A new lit insert has no material worth keeping. Give it a working
@@ -296,6 +308,7 @@ namespace VisualPinball.Unity.Editor
 					TextureSize = request.TextureSize,
 					HybridOptics = request.HybridOptics,
 					UseHybridMaterial = useHybridMaterial,
+					PlainStipple = body.StippleHeight > 0f,
 					OpticalStarburst = layout.OpticalStarburst,
 				};
 				job.Process = Run(blender, $"\"{requestPath}\"", job.Output);
@@ -310,6 +323,7 @@ namespace VisualPinball.Unity.Editor
 
 			} finally {
 				Object.DestroyImmediate(mesh);
+				if (plainMesh != null) { Object.DestroyImmediate(plainMesh); }
 			}
 		}
 
@@ -452,6 +466,7 @@ namespace VisualPinball.Unity.Editor
 				data = ScriptableObject.CreateInstance<InsertBakeData>();
 			}
 			data.Hash = job.Hash;
+			data.PlainStipple = job.PlainStipple;
 			// Made sure of even when there was no bake to own: an id never seen
 			// by OnEnable could still be a duplicate's or a prefab's.
 			data.Owner = insert.EnsureId();

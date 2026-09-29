@@ -327,7 +327,39 @@ def check_surface_grain():
 	print('surface grain ok: optical normals and response unchanged')
 
 
+def check_plain_stipple_target():
+	"""A plain, channel-free cap receives the pyramid relief from a separate source."""
+	positions = np.array([
+		[0, 0, 0], [0, 0, 0.02], [0.02, 0, 0.02], [0.02, 0, 0],
+	], dtype=np.float32)
+	high_positions = np.vstack((positions, [0.01, 0.003, 0.01]))
+	high_triangles = np.array([[0, 1, 4], [1, 2, 4], [2, 3, 4], [3, 0, 4]])
+	face_normals = np.cross(
+		high_positions[high_triangles[:, 1]] - high_positions[high_triangles[:, 0]],
+		high_positions[high_triangles[:, 2]] - high_positions[high_triangles[:, 0]]
+	)
+	face_normals /= np.linalg.norm(face_normals, axis=1)[:, None]
+	high_normals = np.repeat(face_normals, 3, axis=0)
+	request, folder, result, _ = bake(
+		Positions=positions.ravel().tolist(), Triangles=[0, 1, 2, 0, 2, 3],
+		Normals=[0, 1, 0] * 6, Uvs=[0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0],
+		Charts=[0, 0], WallCharts=[], FlatFaces=[0, 1], FlatHeight=0,
+		HighPositions=high_positions.ravel().tolist(), HighTriangles=high_triangles.ravel().tolist(),
+		HighNormals=high_normals.ravel().tolist(), HighUvs=[0, 0, 0, 1, 0.5, 0.5] * 4,
+		TextureSize=128, Padding=4, EdgeBevel=0, Unwrap=False,
+		PreferUvPackMaster=False, Gpu=False, HybridOptics=False,
+		NormalGrainStrength=0, RegularExtrusion=0.000254, FlatExtrusion=0.004,
+	)
+	uvs = np.asarray(result['Uvs']).reshape(-1, 2)
+	normals = load_png(folder / 'normal.png')
+	tilts = np.array([np.degrees(np.arctan2(np.linalg.norm(normals[row, col, :2]), normals[row, col, 2]))
+		for _, _, row, col in texels(uvs, request['TextureSize'], request['FlatFaces'])])
+	assert len(tilts) > 100 and (tilts > 5).mean() > 0.5, 'the detailed pyramids did not reach the plain cap map'
+	print(f'plain stipple target ok: {len(tilts)} cap texels, {(tilts > 5).mean():.0%} tilted')
+
+
 if __name__ == '__main__':
+	check_plain_stipple_target()
 	check_surface_grain()
 	check_unwrap_fallback()
 	request, folder, result, report = bake(EdgeBevel=0.0)

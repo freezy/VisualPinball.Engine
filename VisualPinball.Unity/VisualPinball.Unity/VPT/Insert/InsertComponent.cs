@@ -516,11 +516,22 @@ namespace VisualPinball.Unity
 				var mesh = GetOrCreateMesh();
 				var layout = new InsertMeshLayout();
 				InsertMeshGenerator.Generate(outline, body, mesh, layout);
-				IsBakeFresh = _bake != null && _bake.TryApply(mesh, layout.Hash);
-				// Engraving and stipples are geometry for the bake alone: while a bake
-				// fits, the relief gives way to a plain island carrying the maps. A
-				// pattern change makes the bake stale and restores the source geometry.
-				IsMiddleFlat = IsBakeFresh && InsertMeshGenerator.ReplaceMiddle(mesh, layout);
+				var plainStipple = body.StippleHeight > 0f && _bake != null
+					&& _bake.PlainStipple && _bake.Fits(layout.Hash);
+				if (plainStipple) {
+					var plainBody = body;
+					plainBody.StippleHeight = 0f;
+					InsertMeshGenerator.Generate(outline, plainBody, mesh);
+					IsBakeFresh = _bake.TryApply(mesh, layout.Hash);
+					if (!IsBakeFresh) {
+						InsertMeshGenerator.Generate(outline, body, mesh, layout);
+					}
+				} else {
+					IsBakeFresh = body.StippleHeight <= 0f && _bake != null && _bake.TryApply(mesh, layout.Hash);
+				}
+				// Bake-only relief never appears in the finished mesh. Stipples bake
+				// against the whole plain body; an engraved line replaces its middle.
+				IsMiddleFlat = IsBakeFresh && (plainStipple || InsertMeshGenerator.ReplaceMiddle(mesh, layout));
 				// Add the cover only after applying the body's bake. It must never
 				// change the bake hash, atlas, or per-corner tangent mapping.
 				// The renderer's second slot is the cover: whatever was put there,
@@ -661,11 +672,12 @@ namespace VisualPinball.Unity
 		/// <paramref name="layout"/>. This is what a bake starts from.
 		/// </summary>
 		/// <exception cref="InsertOutlineException">The parameters describe no valid insert.</exception>
-		public InsertBody Generate(Mesh target, InsertMeshLayout layout)
+		public InsertBody Generate(Mesh target, InsertMeshLayout layout, bool withoutStipples = false)
 		{
 			var warnings = new List<string>();
 			var outline = BuildOutline(warnings);
 			var body = BuildBody(outline, warnings);
+			if (withoutStipples) { body.StippleHeight = 0f; }
 			InsertMeshGenerator.Generate(outline, body, target, layout);
 			return body;
 		}

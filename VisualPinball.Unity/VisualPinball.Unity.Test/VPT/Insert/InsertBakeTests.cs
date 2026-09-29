@@ -252,6 +252,7 @@ namespace VisualPinball.Unity.Test
 		{
 			var go = new GameObject("Stippled insert");
 			var probe = new Mesh();
+			var plain = new Mesh();
 			InsertBakeData bake = null;
 			try {
 				var insert = go.AddComponent<InsertComponent>();
@@ -262,10 +263,18 @@ namespace VisualPinball.Unity.Test
 				settings.ApplyModifiedPropertiesWithoutUndo();
 				var layout = new InsertMeshLayout();
 				insert.Generate(probe, layout);
-				bake = GeneratorBake(probe, layout.Hash);
+				insert.Generate(plain, new InsertMeshLayout(), true);
+				bake = GeneratorBake(plain, layout.Hash);
+				bake.PlainStipple = true;
 				insert.SetBake(bake);
 				Assert.That(insert.IsBakeFresh, Is.True);
 				Assert.That(insert.IsMiddleFlat, Is.True);
+				var plainBody = insert.Body;
+				plainBody.StippleHeight = 0f;
+				InsertMeshGenerator.Generate(insert.Outline, plainBody, plain);
+				var displayed = go.GetComponent<MeshFilter>().sharedMesh;
+				Assert.That(displayed.triangles.Select(i => displayed.vertices[i]).ToArray(),
+					Is.EqualTo(plain.triangles.Select(i => plain.vertices[i]).ToArray()));
 				var apexHeight = InsertMeshGenerator.ToLocal(float2.zero, -insert.Body.Depth + insert.Body.ChannelDepth + insert.Body.StippleHeight).y;
 				Assert.That(go.GetComponent<MeshFilter>().sharedMesh.vertices.Any(v => math.abs(v.y - apexHeight) < 1e-5f), Is.False);
 				settings.Update();
@@ -277,7 +286,61 @@ namespace VisualPinball.Unity.Test
 			} finally {
 				Object.DestroyImmediate(go);
 				Object.DestroyImmediate(probe);
+				Object.DestroyImmediate(plain);
 				if (bake != null) { Object.DestroyImmediate(bake); }
+			}
+		}
+
+		[TestCase(false, false)]
+		[TestCase(true, false)]
+		[TestCase(true, true)]
+		public void StippleBakeRequestShouldKeepThePlainTargetTopology(bool channel, bool holes)
+		{
+			var outline = InsertOutlineBuilder.Build(
+				InsertShapes.RectangleCorners(40f, 30f, new InsertCornerSettings(5f, 6)), 1);
+			var inset = channel ? outline.ClampInset(3f) : 0f;
+			var body = new InsertBody {
+				Depth = Depth,
+				ChannelWidth = inset,
+				ChannelDepth = channel ? ChannelDepth : 0f,
+				BottomBevel = channel ? 1f : 0f,
+				BottomBevelSegments = 3,
+				HoleSegments = 12,
+				Holes = holes ? InsertHoles.AtCorners(outline, inset)
+					.Select(c => new InsertHole(c, 2f)).ToArray() : null,
+				StippleWidth = 4f,
+				StippleMargin = 0.5f,
+				StippleHeight = 1f,
+			};
+			var detailed = new Mesh();
+			var plain = new Mesh();
+			try {
+				var detailedLayout = new InsertMeshLayout();
+				InsertMeshGenerator.Generate(outline, body, detailed, detailedLayout);
+				body.StippleHeight = 0f;
+				var plainLayout = new InsertMeshLayout();
+				InsertMeshGenerator.Generate(outline, body, plain, plainLayout);
+				Assert.That(detailed.triangles.Length, Is.GreaterThan(plain.triangles.Length));
+				var request = InsertBakeRequest.Build(plain, plainLayout, InsertBakeSettings.Default, 1f);
+				var source = InsertBakeRequest.Build(detailed, detailedLayout, InsertBakeSettings.Default, 1f);
+				request.SetHighSource(source);
+				var capFaces = Enumerable.Range(0, request.Triangles.Length / 3).Where(face =>
+					Enumerable.Range(face * 3, 3).All(corner =>
+						math.abs(request.Positions[request.Triangles[corner] * 3 + 1] - request.FlatHeight) < 1e-5f &&
+						request.Normals[corner * 3 + 1] > 0.99f)).ToArray();
+				Assert.That(capFaces, Is.Not.Empty);
+				Assert.That(request.FlatFaces, Is.EquivalentTo(capFaces), "the entire plain cap needs the high-start bake");
+				Assert.That(request.Triangles.Length, Is.EqualTo(plain.triangles.Length));
+				Assert.That(request.HighTriangles.Length, Is.EqualTo(detailed.triangles.Length));
+				Assert.That(request.HighPositions, Is.EqualTo(source.Positions));
+				Assert.That(request.HighNormals, Is.EqualTo(source.Normals));
+				Assert.That(request.HighUvs, Is.EqualTo(source.Uvs));
+				var json = JsonUtility.ToJson(request);
+				Assert.That(json, Does.Contain("HighTriangles"));
+				Assert.That(json, Does.Contain("HighPositions"));
+			} finally {
+				Object.DestroyImmediate(detailed);
+				Object.DestroyImmediate(plain);
 			}
 		}
 

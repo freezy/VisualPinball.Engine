@@ -32,12 +32,12 @@ and V runs up the image. The insert just lies in Blender's XZ plane, which
 nothing below cares about.
 
 The normal map is baked from a copy of the mesh whose every sharp edge a Bevel
-shader rounds off. The raised middle with its starburst is baked from a flat
-copy of itself and everything else from the mesh as it is, so the starburst
-keeps a flat tangent basis. A middle with an engraved line keeps the
-generator's projection from above through the unwrap, so that the plain flat
-middle the insert shows once baked carries the map. UVPackMaster packs the UVs
-when Blender has it installed; nothing else needs installing.
+shader rounds off. Stippled requests carry a separate detailed source mesh;
+the regular mesh is then the plain display target and owns the final UV atlas.
+The raised middle is also baked from a flat copy of itself, so its relief keeps
+a flat tangent basis. An engraved middle keeps the generator's projection from
+above through the unwrap. UVPackMaster packs the UVs when Blender has it
+installed; nothing else needs installing.
 """
 
 import json
@@ -56,7 +56,7 @@ UV_NAME = 'UVMap'
 GENERATOR_UV_NAME = 'Generator'
 
 # Must match InsertBakeRequest.CurrentVersion.
-VERSION = 3
+VERSION = 4
 
 # How big the walls are laid out against the floors. They are seen side on, if
 # at all, and give their texels to the floors.
@@ -501,7 +501,16 @@ def run(request, folder, report):
 
 	started = time.perf_counter()
 	flat = build_flat(regular, request) if request['FlatFaces'] else None
-	high = build_high(regular, request)
+	if request.get('HighPositions'):
+		high_positions = np.asarray(request['HighPositions'], dtype=np.float64).reshape(-1, 3)
+		high_triangles = np.asarray(request['HighTriangles'], dtype=np.int64).reshape(-1, 3)
+		high_normals = np.asarray(request['HighNormals'], dtype=np.float64).reshape(-1, 3)
+		high_uvs = np.asarray(request['HighUvs'], dtype=np.float32).reshape(-1, 2)
+		high_source = build_mesh('Detailed Source', high_positions.tolist(), high_triangles.tolist(), high_normals, high_uvs)
+		high = build_high(high_source, request)
+		bpy.data.objects.remove(high_source, do_unlink=True)
+	else:
+		high = build_high(regular, request)
 	grain = add_surface_grain(high, request)
 	bpy.context.view_layer.update()
 	bake_normal_map(regular, flat, high, request, folder / 'normal.png')

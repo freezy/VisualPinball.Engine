@@ -27,13 +27,18 @@ namespace VisualPinball.Unity
 	/// </summary>
 	/// <remarks>
 	/// It fits exactly the mesh whose <see cref="InsertMeshLayout.Hash"/> it was
-	/// made from. A changed mesh keeps its generated UVs and tangents; the
-	/// material can remain visible as an approximate preview until rebaked.
+	/// made from. For stipples that hash describes the detailed source, while
+	/// the UVs and tangents follow the plain display mesh. A changed mesh keeps
+	/// its generated UVs and tangents; its material remains as an approximate
+	/// preview until rebaked.
 	/// </remarks>
 	public class InsertBakeData : ScriptableObject
 	{
 		[Tooltip("The hash of the generated mesh this bake was made from.")]
 		public string Hash;
+
+		[Tooltip("The stipple relief was baked onto the plain display mesh. UVs and tangents follow that mesh's triangle order.")]
+		public bool PlainStipple;
 
 		[Tooltip("The id of the insert this bake was made for, which is the only one allowed to write over it. Empty on bakes from before inserts had ids.")]
 		public string Owner;

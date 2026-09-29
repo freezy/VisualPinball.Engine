@@ -18,7 +18,7 @@ namespace VisualPinball.Unity.Editor
 	[Serializable]
 	public sealed class InsertAuthoringPayload
 	{
-		public const int Version = 1;
+		public const int Version = 2;
 		public int FormatVersion = Version;
 		public InsertAuthoringRecord[] Inserts = Array.Empty<InsertAuthoringRecord>();
 
@@ -45,6 +45,7 @@ namespace VisualPinball.Unity.Editor
 					var bake = insert.Bake;
 					record.Bake = new InsertBakeAuthoringRecord {
 						Hash = bake.Hash,
+						PlainStipple = bake.PlainStipple,
 						Owner = bake.Owner,
 						Uvs = bake.Uvs,
 						Tangents = bake.Tangents,
@@ -85,6 +86,7 @@ namespace VisualPinball.Unity.Editor
 					bake = ScriptableObject.CreateInstance<InsertBakeData>();
 					bake.name = $"Insert Bake {insert.name}";
 					bake.Hash = source.Hash;
+					bake.PlainStipple = source.PlainStipple;
 					bake.Owner = source.Owner;
 					bake.Uvs = source.Uvs;
 					bake.Tangents = source.Tangents;
@@ -151,6 +153,7 @@ namespace VisualPinball.Unity.Editor
 	public sealed class InsertBakeAuthoringRecord
 	{
 		public string Hash;
+		public bool PlainStipple;
 		public string Owner;
 		public Vector2[] Uvs;
 		public Vector4[] Tangents;

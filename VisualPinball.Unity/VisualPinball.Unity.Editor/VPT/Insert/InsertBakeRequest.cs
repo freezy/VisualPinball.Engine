@@ -35,7 +35,7 @@ namespace VisualPinball.Unity.Editor
 	[Serializable]
 	public class InsertBakeRequest
 	{
-		public const int CurrentVersion = 3;
+		public const int CurrentVersion = 4;
 
 		public int Version = CurrentVersion;
 
@@ -53,6 +53,15 @@ namespace VisualPinball.Unity.Editor
 
 		/// <summary>The UV chart of each triangle. Seams run between charts.</summary>
 		public int[] Charts;
+
+		/// <summary>
+		/// Optional detailed source geometry for a stippled bake. The fields above
+		/// describe the plain display target, so Blender packs its final UV atlas.
+		/// </summary>
+		public float[] HighPositions;
+		public int[] HighTriangles;
+		public float[] HighNormals;
+		public float[] HighUvs;
 
 		/// <summary>
 		/// The triangles baked from a flat copy of themselves: the raised middle, if
@@ -98,6 +107,35 @@ namespace VisualPinball.Unity.Editor
 		public bool PreferUvPackMaster;
 		public bool Gpu;
 		public bool HybridOptics;
+
+		public void SetHighSource(InsertBakeRequest source)
+		{
+			HighPositions = source.Positions;
+			HighTriangles = source.Triangles;
+			HighNormals = source.Normals;
+			HighUvs = source.Uvs;
+			// Without a channel the plain target is a cap, not a raised island.
+			// Give it the same high-start projection as an island so rays begin
+			// above the stipples rather than inside their pyramids.
+			if (FlatFaces.Length == 0) {
+				var cap = new List<int>();
+				for (var face = 0; face < Triangles.Length / 3; face++) {
+					var top = true;
+					for (var corner = face * 3; corner < face * 3 + 3; corner++) {
+						var vertex = Triangles[corner];
+						if (math.abs(Positions[vertex * 3 + 1] - FlatHeight) > 1e-5f ||
+						    Normals[corner * 3 + 1] < 0.99f) {
+							top = false;
+							break;
+						}
+					}
+					if (top) {
+						cap.Add(face);
+					}
+				}
+				FlatFaces = cap.ToArray();
+			}
+		}
 
 		public static InsertBakeRequest Build(Mesh mesh, InsertMeshLayout layout, InsertBakeSettings settings, float surfaceRelief)
 		{
