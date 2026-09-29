@@ -1650,6 +1650,20 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldResolveBakeDestinationsInLocalPackages()
+		{
+			var package = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(InsertBaker).Assembly);
+			var method = typeof(InsertBaker).GetMethod("DiskPath", BindingFlags.Static | BindingFlags.NonPublic);
+			foreach (var map in new[] { "Normal Map", "Optical Normals", "Optical Response" }) {
+				var relative = $"VisualPinball.Unity/Tests/{map}.png";
+				var path = (string)method.Invoke(null, new object[] { $"{package.assetPath}/{relative}" });
+				Assert.That(System.IO.Path.GetFullPath(path), Is.EqualTo(System.IO.Path.GetFullPath(System.IO.Path.Combine(package.resolvedPath, relative))));
+			}
+			var projectPath = "Assets/Inserts/Test Normal Map.png";
+			Assert.That(method.Invoke(null, new object[] { projectPath }), Is.EqualTo(System.IO.Path.GetFullPath(projectPath)));
+		}
+
+		[Test]
 		public void ShouldTellReadOnlyBakesByTheirPackage()
 		{
 			// A registry package is immutable; the engine package is referenced by

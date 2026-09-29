@@ -446,7 +446,7 @@ namespace VisualPinball.Unity.Editor
 			// Not "... Normal.png": the asset library re-applies its own normal map
 			// preset to every such file on import, wrapping included.
 			var texturePath = own != null && own.NormalMap != null && IsPng(own.NormalMap) ? AssetDatabase.GetAssetPath(own.NormalMap) : $"{folder}/{name} Normal Map.png";
-			File.Copy(Path.Combine(job.Folder, "normal.png"), texturePath, true);
+			File.Copy(Path.Combine(job.Folder, "normal.png"), DiskPath(texturePath), true);
 			AssetDatabase.ImportAsset(texturePath, ImportAssetOptions.ForceUpdate);
 			var importer = (TextureImporter)AssetImporter.GetAtPath(texturePath);
 			var textureSettings = new TextureImporterSettings();
@@ -541,7 +541,7 @@ namespace VisualPinball.Unity.Editor
 				return null;
 			}
 			var path = existing != null && IsPng(existing) ? AssetDatabase.GetAssetPath(existing) : $"{folder}/{name} {suffix}.png";
-			File.Copy(sourcePath, path, true);
+			File.Copy(sourcePath, DiskPath(path), true);
 			AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
 			var importer = (TextureImporter)AssetImporter.GetAtPath(path);
 			importer.textureType = TextureImporterType.Default;
@@ -736,6 +736,15 @@ namespace VisualPinball.Unity.Editor
 		/// Unity keeps immutable, or version control holds them.
 		/// </summary>
 		public static bool IsReadOnly(InsertBakeData bake) => bake != null && IsReadOnly(AssetDatabase.GetAssetPath(bake));
+
+		/// <summary>The physical destination for a project or package asset; imports still use its asset path.</summary>
+		private static string DiskPath(string assetPath)
+		{
+			var package = PackageInfo.FindForAssetPath(assetPath);
+			return package != null
+				? Path.Combine(package.resolvedPath, assetPath.Substring(package.assetPath.Length).TrimStart('/'))
+				: Path.GetFullPath(assetPath);
+		}
 
 		public static bool IsReadOnly(string assetPath)
 		{
