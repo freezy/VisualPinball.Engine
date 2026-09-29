@@ -241,7 +241,7 @@ namespace VisualPinball.Unity.Test
 
 			public void Start() => Lamps.OnStart();
 
-			public void AssertLevel(float expected)
+			public void AssertLevel(float expected, float? spillLevel = null)
 			{
 				Control.Apply();
 				var renderer = Control.GetComponent<MeshRenderer>();
@@ -249,8 +249,8 @@ namespace VisualPinball.Unity.Test
 				renderer.GetPropertyBlock(block, 0);
 				Assert.That(Control.Intensity, Is.EqualTo(expected).Within(1e-5f));
 				Assert.That(block.GetFloat("_InsertLampLevel"), Is.EqualTo(expected).Within(1e-5f));
-				Assert.That(Control.SpillLight.intensity, Is.EqualTo(expected * 40f).Within(1e-4f));
-				Assert.That(Control.SpillLight.enabled, Is.EqualTo(expected > 0));
+				Assert.That(Control.SpillLight.intensity, Is.EqualTo((spillLevel ?? expected) * 40f).Within(1e-4f));
+				Assert.That(Control.SpillLight.enabled, Is.EqualTo((spillLevel ?? expected) > 0));
 				Assert.That(renderer.enabled, Is.True);
 				Assert.That(block.HasFloat("_InsertLuminosity"), Is.False);
 				Assert.That(_material.GetFloat("_InsertLuminosity"), Is.EqualTo(10f));
@@ -265,6 +265,86 @@ namespace VisualPinball.Unity.Test
 				Object.DestroyImmediate(_mesh);
 				Object.DestroyImmediate(_material);
 			}
+		}
+
+		[TestCase(1)]
+		[TestCase(2)]
+		[TestCase(3)]
+		public void ShouldSpillFromAnExtraBulbWhenTheFirstIsOff(int bulb)
+		{
+			using var fixture = new MappedInsert();
+			fixture.Bulbs(4);
+			fixture.Control.GetComponent<MeshRenderer>().sharedMaterial.SetColor("_EmissiveColor", Color.white);
+			fixture.Control.Intensity = 0f;
+			foreach (var extra in fixture.Control.ExtraBulbs) { extra.Intensity = 0f; }
+			var lit = fixture.Control.ExtraBulbs[bulb - 1];
+			lit.Intensity = 0.5f;
+			lit.Color = new Color(0.25f, 0.5f, 1f);
+			fixture.AssertLevel(0f, spillLevel: 0.5f);
+			AssertSpillColor(fixture, lit.Color);
+		}
+
+		[TestCase(1)]
+		[TestCase(2)]
+		[TestCase(3)]
+		[TestCase(4)]
+		public void ShouldAddTheSpillOfEveryActiveBulb(int count)
+		{
+			using var fixture = new MappedInsert();
+			fixture.Bulbs(count);
+			fixture.AssertLevel(1f, spillLevel: count);
+		}
+
+		[Test]
+		public void ShouldMixSpillColorsInLinearSpace()
+		{
+			using var fixture = new MappedInsert();
+			fixture.Bulbs(2);
+			var tint = new Color(1f, 0.5f, 0.25f);
+			fixture.Control.GetComponent<MeshRenderer>().sharedMaterial.SetColor("_EmissiveColor", tint * 3f);
+			fixture.Control.Intensity = 0.25f;
+			fixture.Control.Color = new Color(0.2f, 0.5f, 1f);
+			fixture.Control.ExtraBulbs[0].Intensity = 0.75f;
+			fixture.Control.ExtraBulbs[0].Color = new Color(1f, 0.25f, 0.1f);
+			fixture.AssertLevel(0.25f, spillLevel: 1f);
+			var expected = ((fixture.Control.Color.linear * 0.25f + fixture.Control.ExtraBulbs[0].Color.linear * 0.75f) * tint).gamma;
+			AssertSpillColor(fixture, expected);
+		}
+
+		[Test]
+		public void ShouldIgnoreSpillFromDisabledMaterialBulbs()
+		{
+			using var fixture = new MappedInsert();
+			fixture.Bulbs(1);
+			fixture.Control.GetComponent<MeshRenderer>().sharedMaterial.SetColor("_EmissiveColor", Color.white);
+			fixture.Control.Intensity = 0.25f;
+			fixture.Control.ExtraBulbs[0].Color = Color.red;
+			fixture.AssertLevel(0.25f);
+			AssertSpillColor(fixture, Color.white);
+			fixture.Control.Intensity = 0f;
+			fixture.AssertLevel(0f);
+		}
+
+		[Test]
+		public void ShouldDisableSpillWhenActiveBulbsAreBlackOrOff()
+		{
+			using var fixture = new MappedInsert();
+			fixture.Bulbs(2);
+			fixture.Control.Intensity = 0f;
+			fixture.Control.ExtraBulbs[0].Color = Color.black;
+			fixture.Control.Apply();
+			Assert.That(fixture.Control.SpillLight.enabled, Is.False);
+			fixture.Control.ExtraBulbs[0].Color = Color.blue;
+			fixture.Control.ExtraBulbs[0].Intensity = 0f;
+			fixture.AssertLevel(0f);
+		}
+
+		private static void AssertSpillColor(MappedInsert fixture, Color expected)
+		{
+			var actual = fixture.Control.SpillLight.color;
+			Assert.That(actual.r, Is.EqualTo(expected.r).Within(1e-5f));
+			Assert.That(actual.g, Is.EqualTo(expected.g).Within(1e-5f));
+			Assert.That(actual.b, Is.EqualTo(expected.b).Within(1e-5f));
 		}
 
 		[Test]
@@ -346,7 +426,7 @@ namespace VisualPinball.Unity.Test
 			fixture.Lamps.HandleLampEvent("44", 1f);
 			fixture.Lamps.HandleLampEvent("42", 100f);
 			fixture.Control.Apply();
-			fixture.AssertLevel(1f);
+			fixture.AssertLevel(1f, spillLevel: 2f + 127f / 255f);
 			Assert.That(fixture.BulbDrive(1).w, Is.EqualTo(0.5f).Within(0.005f));
 			Assert.That(fixture.BulbDrive(2).w, Is.EqualTo(1f));
 
@@ -354,7 +434,7 @@ namespace VisualPinball.Unity.Test
 			fixture.Control.Apply();
 			Assert.That(fixture.BulbDrive(2).w, Is.Zero);
 			Assert.That(fixture.BulbDrive(1).w, Is.EqualTo(0.5f).Within(0.005f), "the other bulbs keep theirs");
-			fixture.AssertLevel(1f);
+			fixture.AssertLevel(1f, spillLevel: 1f + 127f / 255f);
 		}
 
 		[Test]
@@ -431,14 +511,14 @@ namespace VisualPinball.Unity.Test
 			Assert.That(fixture.Control.Color.r, Is.EqualTo(1f).Within(0.001f), "both names of the first bulb compose together");
 			Assert.That(fixture.Control.Color.g, Is.EqualTo(1f).Within(0.001f));
 			fixture.Lamps.HandleLampEvent("63", 128f);
-			fixture.AssertLevel(128f / 255f);
+			fixture.AssertLevel(128f / 255f, spillLevel: 1f + 128f / 255f);
 			Assert.That(fixture.Control.ExtraBulbs[0].Color.r, Is.EqualTo(128f / 255f).Within(0.001f));
 			Assert.That(fixture.Control.ExtraBulbs[0].Intensity, Is.EqualTo(1f), "the second bulb has no intensity channel: full");
 			fixture.Lamps.HandleLampEvent("71", 255f);
 			Assert.That(fixture.Control.ExtraBulbs[0].Intensity, Is.EqualTo(1f));
 			Assert.That(fixture.Control.ExtraBulbs[0].Color.r, Is.EqualTo(128f / 255f).Within(0.001f));
 			Assert.That(fixture.Control.ExtraBulbs[0].Color.g, Is.EqualTo(1f).Within(0.001f));
-			fixture.AssertLevel(128f / 255f);
+			fixture.AssertLevel(128f / 255f, spillLevel: 1f + 128f / 255f);
 		}
 
 		[Test]
@@ -451,7 +531,7 @@ namespace VisualPinball.Unity.Test
 			fixture.Start();
 			fixture.Lamps.HandleLampEvent("42", 1f);
 			fixture.Control.Apply();
-			fixture.AssertLevel(1f);
+			fixture.AssertLevel(1f, spillLevel: 2f);
 			Assert.That(fixture.BulbDrive(1).w, Is.EqualTo(1f));
 			fixture.Lamps.HandleLampEvent("42", 0f);
 			fixture.Control.Apply();

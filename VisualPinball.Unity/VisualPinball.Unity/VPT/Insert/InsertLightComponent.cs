@@ -73,14 +73,14 @@ namespace VisualPinball.Unity
 
 		[Header("Environment Spill")]
 		[Min(0f)]
-		[Tooltip("Spill output in lumens at Max Brightness one and full intensity. Scales with the material's Max Brightness and ROM intensity.")]
+		[Tooltip("Spill output per bulb in lumens at Max Brightness one and full intensity. Active bulbs add their output and mix their colours.")]
 		public float SpillLumens = SpotSpillLumens;
 
 		[Min(0.001f)]
 		[Tooltip("Spill range in metres.")]
 		public float SpillRange = SpotSpillRange;
 
-		[Tooltip("A real light driven with the lamp: a wide spot just under the insert, pointing up through it at the ball and whatever else is above. Its transform remains editable.")]
+		[Tooltip("A real light driven with all active bulbs: a wide spot just under the insert, pointing up through it at the ball and whatever else is above. Its transform remains editable.")]
 		public Light SpillLight;
 
 		public byte[] Pack() => InsertLightPackable.Pack(this);
@@ -417,10 +417,18 @@ namespace VisualPinball.Unity
 				_properties.SetVector(ColorId, (Vector4)color);
 			}
 			_properties.SetFloat(TintId, TintWithLamp ? math.saturate(LampTint) : 0f);
+			var spillLevel = level;
+			var spillColor = color * level;
 			for (var i = 0; i < BulbColorIds.Length; i++) {
 				var bulb = ExtraBulbs != null && i < ExtraBulbs.Length ? ExtraBulbs[i] : null;
 				var drive = bulb != null ? bulb.Color.linear : UnityEngine.Color.white;
-				_properties.SetVector(BulbColorIds[i], new Vector4(drive.r, drive.g, drive.b, bulb != null ? math.saturate(bulb.Intensity) : 0f));
+				var bulbLevel = bulb != null ? math.saturate(bulb.Intensity) : 0f;
+				_properties.SetVector(BulbColorIds[i], new Vector4(drive.r, drive.g, drive.b, bulbLevel));
+				// Match the shader's active slots; disabled bulbs retain their authoring state.
+				if (SpillLight != null && material.HasProperty(LampIds[i + 1]) && material.GetVector(LampIds[i + 1]).w > 0f) {
+					spillLevel += bulbLevel;
+					spillColor += drive * bulbLevel;
+				}
 			}
 			_renderer.SetPropertyBlock(_properties, 0);
 			TintCover(level, color);
@@ -433,10 +441,12 @@ namespace VisualPinball.Unity
 			var tint = material.GetColor(EmissionId);
 			var peak = math.max(tint.maxColorComponent, 1e-6f);
 			var converter = RenderPipeline.Current.LightConverter;
-			converter.SetColor(SpillLight, (color * (tint / peak)).gamma);
+			// Average the linear colours and add levels so one shared light emits their sum.
+			spillColor = spillLevel > 0f ? spillColor / spillLevel : color;
+			converter.SetColor(SpillLight, (spillColor * (tint / peak)).gamma);
 			converter.SetRange(SpillLight, math.max(0.001f, SpillRange));
-			converter.SetIntensity(SpillLight, math.max(0f, SpillLumens) * brightness * math.max(0f, level));
-			SpillLight.enabled = brightness * level * SpillLumens > 0f && color.maxColorComponent > 0f;
+			converter.SetIntensity(SpillLight, math.max(0f, SpillLumens) * brightness * spillLevel);
+			SpillLight.enabled = brightness * spillLevel * SpillLumens > 0f && spillColor.maxColorComponent > 0f;
 		}
 
 		/// <summary>

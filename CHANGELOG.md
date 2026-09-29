@@ -102,6 +102,7 @@ Built with Unity 6.5
 
 ### Fixed
 
+- Multi-bulb inserts spill light from every active bulb, adding their intensities and mixing their colours in linear space.
 - Destroying an insert releases its generated mesh without destroying imported or shared meshes.
 - Insert rebakes write their texture maps to the resolved location of local packages.
 - Applying an insert color preset preserves its material family instead of selecting another insert's baked maps and bulb positions.
