@@ -32,6 +32,72 @@ namespace VisualPinball.Unity.Test
 		private const float ChannelDepth = 4f;
 		private const float Offset = 1.5f;
 
+		[TestCase(false)]
+		[TestCase(true)]
+		public void ShouldDestroyItsGeneratedMeshWithTheInsert(bool loseOwnership)
+		{
+			var go = new GameObject("Generated insert mesh");
+			try {
+				var insert = go.AddComponent<InsertComponent>();
+				var mesh = go.GetComponent<MeshFilter>().sharedMesh;
+				insert.RebuildMesh();
+				Assert.That(go.GetComponent<MeshFilter>().sharedMesh, Is.EqualTo(mesh), "rebuilds reuse the owned mesh");
+				if (loseOwnership) {
+					typeof(InsertComponent).GetField("_generatedMesh", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(insert, null);
+					go.SetActive(false);
+				}
+				Object.DestroyImmediate(go);
+				Assert.That(mesh == null, Is.True, "the native mesh is destroyed with its owner");
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldKeepTheOriginalMeshWhenADuplicateIsDestroyed()
+		{
+			var original = new GameObject("Original insert mesh");
+			GameObject duplicate = null;
+			try {
+				original.AddComponent<InsertComponent>();
+				var mesh = original.GetComponent<MeshFilter>().sharedMesh;
+				duplicate = Object.Instantiate(original);
+				var copyMesh = duplicate.GetComponent<MeshFilter>().sharedMesh;
+				Assert.That(copyMesh, Is.Not.EqualTo(mesh));
+				Object.DestroyImmediate(duplicate);
+				Assert.That(copyMesh == null, Is.True);
+				Assert.That(mesh != null, Is.True, "the original still owns its mesh");
+				Assert.That(original.GetComponent<MeshFilter>().sharedMesh, Is.EqualTo(mesh));
+			} finally {
+				Object.DestroyImmediate(duplicate);
+				Object.DestroyImmediate(original);
+			}
+		}
+
+		[TestCase(false)]
+		[TestCase(true)]
+		public void ShouldReleaseItsGeneratedMeshWhenTheFilterIsReplaced(bool rebuild)
+		{
+			var go = new GameObject("Replaced insert mesh");
+			var external = new Mesh { name = "External insert mesh" };
+			try {
+				var insert = go.AddComponent<InsertComponent>();
+				var owned = go.GetComponent<MeshFilter>().sharedMesh;
+				go.GetComponent<MeshFilter>().sharedMesh = external;
+				if (rebuild) {
+					insert.RebuildMesh();
+					Assert.That(owned == null, Is.True, "replacing the generated mesh releases the previous one");
+					owned = go.GetComponent<MeshFilter>().sharedMesh;
+				}
+				Object.DestroyImmediate(go);
+				Assert.That(owned == null, Is.True);
+				Assert.That(external != null, Is.True, "an externally assigned mesh is never owned");
+			} finally {
+				Object.DestroyImmediate(go);
+				Object.DestroyImmediate(external);
+			}
+		}
+
 		private static (Mesh Mesh, InsertMeshLayout Layout) Generate(float radius, float channel, int bursts,
 			float bevel = 0f, bool holes = false, float offset = Offset, InsertHole[] holeList = null)
 		{

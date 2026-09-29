@@ -102,6 +102,7 @@ Built with Unity 6.5
 
 ### Fixed
 
+- Destroying an insert releases its generated mesh without destroying imported or shared meshes.
 - Insert rebakes write their texture maps to the resolved location of local packages.
 - Applying an insert color preset preserves its material family instead of selecting another insert's baked maps and bulb positions.
 - Insert Light components mapped in Lamp Manager never lit from the ROM in a project that enters play mode without a scene reload: the component executes always, so its Awake had run in edit mode only and a later script reload dropped that registration. The lamp player now takes any mapped device that missed its Awake, and the component registers on enable as well.

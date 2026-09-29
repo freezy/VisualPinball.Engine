@@ -191,6 +191,8 @@ namespace VisualPinball.Unity.Test
 
 				Assert.That(go.GetComponent<MeshFilter>().sharedMesh, Is.SameAs(mesh));
 				Assert.That(mesh.name, Is.EqualTo("GLB insert mesh"));
+				Object.DestroyImmediate(go);
+				Assert.That(mesh != null, Is.True, "the imported mesh is not owned by the insert");
 			} finally {
 				Object.DestroyImmediate(go);
 				Object.DestroyImmediate(mesh);

@@ -367,6 +367,9 @@ namespace VisualPinball.Unity
 
 		#region Generated state
 
+		[NonSerialized]
+		private Mesh _generatedMesh;
+
 		/// <summary>
 		/// The outline the current mesh was built from. Later build steps read their
 		/// input from here rather than re-deriving it from the parameters.
@@ -875,13 +878,27 @@ namespace VisualPinball.Unity
 		{
 			var filter = GetComponent<MeshFilter>();
 			var mesh = filter.sharedMesh;
-			if (mesh != null && mesh.name == MeshName && !IsAsset(mesh)) {
+			if (OwnsMesh(mesh)) {
+				if (_generatedMesh != mesh) { ReleaseGeneratedMesh(); }
+				_generatedMesh = mesh;
 				return mesh;
 			}
 
+			ReleaseGeneratedMesh();
 			mesh = new Mesh { name = MeshName };
+			_generatedMesh = mesh;
 			filter.sharedMesh = mesh;
 			return mesh;
+		}
+
+		private bool OwnsMesh(Mesh mesh) => mesh != null && mesh.name == MeshName && !IsAsset(mesh);
+
+		private void ReleaseGeneratedMesh()
+		{
+			var mesh = _generatedMesh;
+			_generatedMesh = null;
+			if (!OwnsMesh(mesh)) { return; }
+			if (Application.isPlaying) { Destroy(mesh); } else { DestroyImmediate(mesh); }
 		}
 
 		private static bool IsAsset(Mesh mesh)
@@ -1075,13 +1092,22 @@ namespace VisualPinball.Unity
 			return inserts.Distinct();
 		}
 
+#endif
+
 		private void OnDestroy()
 		{
+#if UNITY_EDITOR
 			if (!string.IsNullOrEmpty(_id) && Ids.TryGetValue(_id, out var holder) && holder == this) {
 				Ids.Remove(_id);
 			}
-		}
 #endif
+			// An inactive insert may not have reclaimed its mesh after a domain reload.
+			if (_generatedMesh == null && !_usesPackagedMesh) {
+				var filter = GetComponent<MeshFilter>();
+				if (filter != null && OwnsMesh(filter.sharedMesh)) { _generatedMesh = filter.sharedMesh; }
+			}
+			ReleaseGeneratedMesh();
+		}
 
 		private void UpdateCover(bool force)
 		{
