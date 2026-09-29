@@ -299,6 +299,25 @@ namespace VisualPinball.Unity
 		private float _starburstOffset = 1.5f;
 
 		[SerializeField]
+		[Tooltip("Whether the flat surface carries a grid of square pyramids for the normal bake.")]
+		private bool _stippled;
+
+		[SerializeField]
+		[Min(0.01f)]
+		[Tooltip("How far each stipple's apex rises above the flat surface, in VPX units.")]
+		private float _stippleHeight = 1f;
+
+		[SerializeField]
+		[Min(0.01f)]
+		[Tooltip("The length of each side of a stipple's square base, in VPX units.")]
+		private float _stippleWidth = 4f;
+
+		[SerializeField]
+		[Min(0f)]
+		[Tooltip("The flat space between adjacent stipple bases, in VPX units.")]
+		private float _stippleMargin = 0.5f;
+
+		[SerializeField]
 		[Tooltip("Round cut-outs through the raised floor, down to the channel's floor. Positions are relative to the insert's origin, in VPX units. Without a channel there is no raised floor, and no holes.")]
 		private List<InsertHole> _holes = new();
 
@@ -498,10 +517,9 @@ namespace VisualPinball.Unity
 				var layout = new InsertMeshLayout();
 				InsertMeshGenerator.Generate(outline, body, mesh, layout);
 				IsBakeFresh = _bake != null && _bake.TryApply(mesh, layout.Hash);
-				// An engraved line is geometry for the bake alone: while a bake
-				// fits, the middle's triangles, trough and all, give way to a plain
-				// flat island carrying the maps; a change to the line makes the
-				// bake stale, and the trough is back in the mesh until the next bake.
+				// Engraving and stipples are geometry for the bake alone: while a bake
+				// fits, the relief gives way to a plain island carrying the maps. A
+				// pattern change makes the bake stale and restores the source geometry.
 				IsMiddleFlat = IsBakeFresh && InsertMeshGenerator.ReplaceMiddle(mesh, layout);
 				// Add the cover only after applying the body's bake. It must never
 				// change the bake hash, atlas, or per-corner tangent mapping.
@@ -538,10 +556,8 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
-		/// Whether the raised middle is the plain flat island, the engraved
-		/// line's trough gone from the mesh and carried by a fitting bake's maps.
-		/// False with a line whose bake was made before the middle kept its
-		/// projection, which needs baking again.
+		/// Whether the middle is the plain flat island, with engraved relief or
+		/// stipples carried by a fitting bake's maps.
 		/// </summary>
 		public bool IsMiddleFlat { get; private set; }
 
@@ -685,7 +701,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		private InsertGroove BuildGroove(InsertOutline outline, float channelWidth, List<string> warnings)
 		{
-			if (_shape != InsertShape.Flash || !_flashGroove) {
+			if (_shape != InsertShape.Flash || !_flashGroove || _stippled) {
 				return null;
 			}
 			var half = math.max(_flashGrooveWidth, 0.1f) * 0.5f;
@@ -799,14 +815,21 @@ namespace VisualPinball.Unity
 				ChannelWidth = channelWidth,
 				ChannelDepth = channelDepth,
 				Groove = groove,
-				StarburstBursts = _starburst && groove == null ? _starburstBursts : 0,
+				StarburstBursts = _starburst && groove == null && !_stippled ? _starburstBursts : 0,
 				StarburstCenter = new float2(_starburstCenter.x, _starburstCenter.y),
 				StarburstOffset = _starburstOffset,
+				StippleHeight = _stippled ? math.min(math.max(0.01f, _stippleHeight),
+					math.max(0f, depth - channelDepth - math.max(outline.WeldTolerance * 4f, 0.01f))) : 0f,
+				StippleWidth = math.max(0.01f, _stippleWidth),
+				StippleMargin = math.max(0f, _stippleMargin),
 				Holes = channel ? _holes.ToArray() : null,
 				HoleSegments = _holeSegments,
 				BottomBevel = bottomBevel,
 				BottomBevelSegments = _bottomBevelSegments,
 			};
+			if (_stippled && body.StippleHeight < _stippleHeight - 1e-4f) {
+				warnings.Add($"Stipple height reduced to {body.StippleHeight:0.##} to stay below the rim.");
+			}
 
 			if (body.StarburstBursts >= InsertStarburst.MinBursts) {
 				// The zigzag straddles the floor, so it can reach no further down than

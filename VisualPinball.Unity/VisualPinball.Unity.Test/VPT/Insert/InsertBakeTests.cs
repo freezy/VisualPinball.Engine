@@ -57,6 +57,230 @@ namespace VisualPinball.Unity.Test
 		private static InsertBakeRequest Request(Mesh mesh, InsertMeshLayout layout)
 			=> InsertBakeRequest.Build(mesh, layout, InsertBakeSettings.Default, Offset);
 
+		[TestCase(InsertShape.Triangle)]
+		[TestCase(InsertShape.Rectangle)]
+		[TestCase(InsertShape.Circle)]
+		[TestCase(InsertShape.Banana)]
+		[TestCase(InsertShape.Diamond)]
+		[TestCase(InsertShape.Flash)]
+		[TestCase(InsertShape.Bullet)]
+		[TestCase(InsertShape.Arrow)]
+		public void ShouldPutStipplesOnEveryShape(InsertShape shape)
+		{
+			var go = new GameObject("Stippled insert");
+			var mesh = new Mesh();
+			try {
+				var insert = go.AddComponent<InsertComponent>();
+				var settings = new UnityEditor.SerializedObject(insert);
+				settings.FindProperty("_shape").enumValueIndex = (int)shape;
+				settings.FindProperty("_stippled").boolValue = true;
+				settings.FindProperty("_starburst").boolValue = false;
+				settings.ApplyModifiedPropertiesWithoutUndo();
+				var layout = new InsertMeshLayout();
+				insert.Generate(mesh, layout);
+				Assert.That(mesh.vertices.Any(v => v.y > layout.FlatHeight + 1e-5f), Is.True, shape.ToString());
+				Assert.That(layout.FlatProjected, Is.True);
+				Assert.That(layout.FlatIsland, Is.Not.Null);
+				Assert.That(Request(mesh, layout).FlatProjected, Is.True);
+			} finally {
+				Object.DestroyImmediate(go);
+				Object.DestroyImmediate(mesh);
+			}
+		}
+
+		[Test]
+		public void ShouldUseTheSpecifiedSquareWidthHeightAndMargin()
+		{
+			var outline = InsertOutlineBuilder.Build(InsertShapes.RectangleCorners(20f, 20f, new InsertCornerSettings(0f, 1)), 1);
+			var body = new InsertBody { Depth = 10f, StippleHeight = 2f, StippleWidth = 4f, StippleMargin = 1f };
+			var mesh = new Mesh();
+			try {
+				var layout = new InsertMeshLayout();
+				InsertMeshGenerator.Generate(outline, body, mesh, layout);
+				var apexHeight = InsertMeshGenerator.ToLocal(float2.zero, -8f).y;
+				var apexes = mesh.vertices.Where(v => math.abs(v.y - apexHeight) < 1e-5f)
+					.Select(InsertMeshGenerator.FromLocal).Distinct().ToArray();
+				Assert.That(apexes.Length, Is.EqualTo(16));
+				var xs = apexes.Select(p => p.x).Distinct().OrderBy(x => x).ToArray();
+				var ys = apexes.Select(p => p.y).Distinct().OrderBy(y => y).ToArray();
+				Assert.That(xs.Length, Is.EqualTo(4));
+				Assert.That(ys.Length, Is.EqualTo(4));
+				for (var i = 1; i < 4; i++) {
+					Assert.That(xs[i] - xs[i - 1], Is.EqualTo(5f).Within(1e-4f));
+					Assert.That(ys[i] - ys[i - 1], Is.EqualTo(5f).Within(1e-4f));
+				}
+				var vertices = mesh.vertices;
+				var normals = mesh.normals;
+				var triangles = mesh.triangles;
+				var slopes = 0;
+				foreach (var face in layout.FlatTriangles) {
+					var a = triangles[face * 3];
+					var b = triangles[face * 3 + 1];
+					var c = triangles[face * 3 + 2];
+					if (math.max(vertices[a].y, math.max(vertices[b].y, vertices[c].y)) <= layout.FlatHeight + 1e-5f) {
+						continue;
+					}
+					var geometric = (Vector3)math.normalize((float3)Vector3.Cross(vertices[b] - vertices[a], vertices[c] - vertices[a]));
+					Assert.That(Vector3.Dot(geometric, normals[a]), Is.GreaterThan(0.99f),
+						$"each pyramid face keeps its own outward normal: face {face}, a {vertices[a]}, b {vertices[b]}, c {vertices[c]}, normal {normals[a]}, geometric {geometric}");
+					slopes++;
+				}
+				Assert.That(slopes, Is.GreaterThan(0));
+			} finally {
+				Object.DestroyImmediate(mesh);
+			}
+		}
+
+		[Test]
+		public void ShouldAcceptZeroStippleMargin()
+		{
+			var outline = InsertOutlineBuilder.Build(InsertShapes.RectangleCorners(21f, 21f, new InsertCornerSettings(0f, 1)), 1);
+			var body = new InsertBody { Depth = 10f, StippleHeight = 2f, StippleWidth = 4f, StippleMargin = 0f };
+			var mesh = new Mesh();
+			try {
+				var layout = new InsertMeshLayout();
+				InsertMeshGenerator.Generate(outline, body, mesh, layout);
+				var apexHeight = InsertMeshGenerator.ToLocal(float2.zero, -8f).y;
+				var apexes = mesh.vertices.Where(v => math.abs(v.y - apexHeight) < 1e-5f).Distinct().ToArray();
+				Assert.That(apexes.Length, Is.EqualTo(25));
+				Assert.That(Request(mesh, layout).FlatProjected, Is.True);
+			} finally {
+				Object.DestroyImmediate(mesh);
+			}
+		}
+
+		[Test]
+		public void ShouldSpaceWholeStipplesClearOfRoundedCornersAndHoles()
+		{
+			var outline = InsertOutlineBuilder.Build(InsertShapes.RectangleCorners(40f, 30f, new InsertCornerSettings(5f, 6)), 1);
+			var hole = new InsertHole(Vector2.zero, 5f);
+			var body = new InsertBody {
+				Depth = 16f,
+				ChannelWidth = 3f,
+				ChannelDepth = 4f,
+				Holes = new[] { hole },
+				HoleSegments = 20,
+				StippleHeight = 2f,
+				StippleWidth = 4f,
+				StippleMargin = 1f,
+			};
+			var mesh = new Mesh();
+			try {
+				var layout = new InsertMeshLayout();
+				InsertMeshGenerator.Generate(outline, body, mesh, layout);
+				var apexHeight = InsertMeshGenerator.ToLocal(float2.zero, -body.Depth + body.ChannelDepth + body.StippleHeight).y;
+				var apexes = mesh.vertices.Where(v => math.abs(v.y - apexHeight) < 1e-5f).Distinct().ToArray();
+				Assert.That(apexes.Length, Is.GreaterThan(0));
+				var surface = Enumerable.Range(0, outline.Points.Count).Select(i => outline.OffsetPoint(i, body.ChannelWidth)).ToList();
+				foreach (var apex in apexes) {
+					var center = InsertMeshGenerator.FromLocal(apex);
+					var nearest = math.max(math.abs(center) - new float2(body.StippleWidth * 0.5f), float2.zero);
+					Assert.That(math.length(nearest), Is.GreaterThan(hole.Radius), "a whole square must clear the hole");
+					foreach (var corner in new[] {
+						center + new float2(-2f, -2f), center + new float2(2f, -2f),
+						center + new float2(2f, 2f), center + new float2(-2f, 2f),
+					}) {
+						Assert.That(InsertGroove.Contains(surface, corner), Is.True, "a whole square must stay within the rounded inner surface");
+					}
+				}
+				Assert.That(layout.PreviewEdges.Length, Is.GreaterThan(0));
+				var request = Request(mesh, layout);
+				var parent = new Dictionary<int, int>();
+				int Find(int i) => parent[i] == i ? i : parent[i] = Find(parent[i]);
+				foreach (var face in request.FlatFaces) {
+					var first = request.Triangles[face * 3];
+					for (var corner = 0; corner < 3; corner++) {
+						var vertex = request.Triangles[face * 3 + corner];
+						parent.TryAdd(vertex, vertex);
+					}
+					for (var corner = 1; corner < 3; corner++) {
+						parent[Find(request.Triangles[face * 3 + corner])] = Find(first);
+					}
+				}
+				Assert.That(parent.Keys.ToArray().Select(Find).Distinct().Count(), Is.EqualTo(1), "the projected middle must be one UV island");
+				var bake = GeneratorBake(mesh, layout.Hash);
+				try {
+					Assert.That(bake.TryApply(mesh, layout.Hash), Is.True);
+					Assert.That(InsertMeshGenerator.ReplaceMiddle(mesh, layout), Is.True);
+					var bakedVertices = mesh.vertices;
+					var bakedNormals = mesh.normals;
+					var flat = new HashSet<Vector3>();
+					for (var i = 0; i < bakedVertices.Length; i++) {
+						if (bakedNormals[i] == Vector3.up && math.abs(bakedVertices[i].y - layout.FlatHeight) < 1e-5f) {
+							flat.Add(bakedVertices[i]);
+						}
+					}
+					var wallTops = 0;
+					for (var i = 0; i < bakedVertices.Length; i++) {
+						if (bakedNormals[i] == Vector3.up || math.abs(bakedVertices[i].y - layout.FlatHeight) >= 1e-5f) {
+							continue;
+						}
+						Assert.That(flat.Contains(bakedVertices[i]), Is.True, "the baked middle must meet every wall-top vertex, including hole walls");
+						wallTops++;
+					}
+					Assert.That(wallTops, Is.GreaterThan(0));
+				} finally {
+					Object.DestroyImmediate(bake);
+				}
+			} finally {
+				Object.DestroyImmediate(mesh);
+			}
+		}
+
+		[Test]
+		public void ShouldKeepStippleApexesBelowTheRim()
+		{
+			var go = new GameObject("Tall stippled insert");
+			try {
+				var insert = go.AddComponent<InsertComponent>();
+				var settings = new UnityEditor.SerializedObject(insert);
+				settings.FindProperty("_stippled").boolValue = true;
+				settings.FindProperty("_starburst").boolValue = false;
+				settings.FindProperty("_depth").floatValue = 1f;
+				settings.FindProperty("_stippleHeight").floatValue = 10f;
+				settings.ApplyModifiedPropertiesWithoutUndo();
+				insert.RebuildMesh();
+				Assert.That(insert.Body.StippleHeight, Is.LessThan(1f));
+				Assert.That(insert.Warnings.Any(w => w.Contains("Stipple height reduced")), Is.True);
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldFlattenStipplesWhenTheBakeFits()
+		{
+			var go = new GameObject("Stippled insert");
+			var probe = new Mesh();
+			InsertBakeData bake = null;
+			try {
+				var insert = go.AddComponent<InsertComponent>();
+				var settings = new UnityEditor.SerializedObject(insert);
+				settings.FindProperty("_shape").enumValueIndex = (int)InsertShape.Rectangle;
+				settings.FindProperty("_stippled").boolValue = true;
+				settings.FindProperty("_starburst").boolValue = false;
+				settings.ApplyModifiedPropertiesWithoutUndo();
+				var layout = new InsertMeshLayout();
+				insert.Generate(probe, layout);
+				bake = GeneratorBake(probe, layout.Hash);
+				insert.SetBake(bake);
+				Assert.That(insert.IsBakeFresh, Is.True);
+				Assert.That(insert.IsMiddleFlat, Is.True);
+				var apexHeight = InsertMeshGenerator.ToLocal(float2.zero, -insert.Body.Depth + insert.Body.ChannelDepth + insert.Body.StippleHeight).y;
+				Assert.That(go.GetComponent<MeshFilter>().sharedMesh.vertices.Any(v => math.abs(v.y - apexHeight) < 1e-5f), Is.False);
+				settings.Update();
+				settings.FindProperty("_stippleHeight").floatValue = 2f;
+				settings.ApplyModifiedPropertiesWithoutUndo();
+				insert.RebuildMesh();
+				Assert.That(insert.IsBakeFresh, Is.False);
+				Assert.That(insert.IsMiddleFlat, Is.False);
+			} finally {
+				Object.DestroyImmediate(go);
+				Object.DestroyImmediate(probe);
+				if (bake != null) { Object.DestroyImmediate(bake); }
+			}
+		}
+
 		[Test]
 		public void ShouldDrawWallQuadsWithoutTheirTriangleDiagonals()
 		{

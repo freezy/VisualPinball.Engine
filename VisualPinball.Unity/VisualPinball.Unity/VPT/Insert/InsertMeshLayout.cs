@@ -50,14 +50,13 @@ namespace VisualPinball.Unity
 		/// Whether the raised middle's chart keeps the generator's projection from
 		/// above through the bake, instead of being unwrapped, so that any
 		/// triangulation of the middle carries the map. Set when the middle holds
-		/// an engraved line, whose trough is geometry for the bake alone.
+		/// an engraved line or stipples, whose relief is geometry for the bake alone.
 		/// </summary>
 		public bool FlatProjected;
 
 		/// <summary>
-		/// A plain, flat triangulation of the raised middle without its engraved
-		/// line, to stand in for the middle's triangles once a bake fits, or null
-		/// when there is no line.
+		/// A plain triangulation of the middle without its engraved line or stipples,
+		/// to stand in for that relief once a bake fits.
 		/// </summary>
 		public InsertFlatIsland FlatIsland;
 

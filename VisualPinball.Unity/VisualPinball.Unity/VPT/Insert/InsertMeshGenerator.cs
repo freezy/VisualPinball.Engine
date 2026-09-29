@@ -50,6 +50,15 @@ namespace VisualPinball.Unity
 		/// <summary>How far the starburst's rim rises above and drops below its centre.</summary>
 		public float StarburstOffset;
 
+		/// <summary>Height of the square pyramids above the flat surface; zero disables stippling.</summary>
+		public float StippleHeight;
+
+		/// <summary>Side length of each pyramid's square base.</summary>
+		public float StippleWidth;
+
+		/// <summary>Flat space between adjacent pyramid bases.</summary>
+		public float StippleMargin;
+
 		/// <summary>
 		/// Round cut-outs through the raised floor, down to the channel's floor.
 		/// Without a channel there is no raised floor to cut, and they are ignored.
@@ -289,7 +298,7 @@ namespace VisualPinball.Unity
 			// flat or with the starburst on it; holes need a raised floor to cut
 			// through, as the bevel needs a channel's floor to round into. With
 			// nothing to carve, it is a plain cap.
-			var carved = channel || body.StarburstBursts >= InsertStarburst.MinBursts || body.Groove != null;
+			var carved = channel || body.StarburstBursts >= InsertStarburst.MinBursts || body.Groove != null || body.StippleHeight > 0f;
 			if (!channel) {
 				body.Holes = null;
 			}
@@ -357,7 +366,7 @@ namespace VisualPinball.Unity
 					}
 				}
 				layout.FlatTriangles = flatTriangles.ToArray();
-				// A line's trough is geometry for the bake alone: the middle keeps
+				// An engraved line or stipples are geometry for the bake alone: the middle keeps
 				// its projection through the bake, so the plain island the insert
 				// shows once baked can carry the map.
 				layout.FlatProjected = flatIsland != null;
@@ -973,8 +982,9 @@ namespace VisualPinball.Unity
 
 			var rimPoints = AddLoop(arrangement, rim, owners, out var rimSides);
 			int[] islandPoints = null;
+			int[] islandSides = null;
 			if (island != null) {
-				islandPoints = AddLoop(arrangement, island, owners, out _);
+				islandPoints = AddLoop(arrangement, island, owners, out islandSides);
 				var rungs = new HashSet<(int, int)>();
 				for (var i = 0; i < rimMap.Length; i++) {
 					if (rungs.Add((rimMap[i], islandMap[i]))) {
@@ -1030,6 +1040,9 @@ namespace VisualPinball.Unity
 			// strips standing there instead. Kept out of the arrangement, the
 			// trough's sharp mitres and thin faces are never snapped.
 			var groove = starburst == null ? body.Groove : null;
+			var stipple = body.StippleHeight > 0f && starburst == null && groove == null
+				? new InsertStipple(polygon, body.Holes, body.StippleWidth, body.StippleMargin, body.StippleHeight, weld)
+				: null;
 			List<float2> bandOuter = null;
 			List<float2> bandInner = null;
 			if (groove != null) {
@@ -1046,12 +1059,34 @@ namespace VisualPinball.Unity
 				}
 				flatIsland = PlainIsland(surfaceRing, polygon, body, holes, islandTop, weld);
 			}
+			if (stipple != null) {
+				stipple.AddSegments(arrangement);
+			}
 
 			arrangement.Build();
+			if (stipple != null) {
+				// Grid lines split the middle's edge and can split hole edges. The
+				// baked flat island needs those same cuts or it meets the walls at
+				// T-junctions after the relief is removed.
+				var boundaryCuts = new List<float2>();
+				void KeepCuts(int segment)
+				{
+					foreach (var (_, vertex) in arrangement.Cuts(segment)) {
+						boundaryCuts.Add(arrangement.Position(vertex));
+					}
+				}
+				foreach (var segment in islandSides ?? rimSides) {
+					KeepCuts(segment);
+				}
+				foreach (var segment in holeOwners.Keys) {
+					KeepCuts(segment);
+				}
+				flatIsland = PlainIsland(island ?? rim, polygon, body, holes, islandTop, weld, boundaryCuts);
+			}
 			var faces = arrangement.Faces(out var faceOf);
 
 			float HeightOf(Tier tier, float2 position) => tier switch {
-				Tier.Surface => starburst?.DepthAt(position) ?? islandTop,
+				Tier.Surface => starburst?.DepthAt(position) ?? islandTop + (stipple?.Height(position) ?? 0f),
 				Tier.Floor => floor,
 				_ => 0f,
 			};
@@ -1104,6 +1139,8 @@ namespace VisualPinball.Unity
 					float3 closing = ToLocal(starburst.Rim(sector + 1), starburst.RimDepth(sector + 1));
 					var tilted = math.normalize(math.cross(opening - hub, closing - hub));
 					normal = tilted.y < 0f ? -tilted : tilted;
+				} else if (tier == Tier.Surface && stipple != null) {
+					normal = stipple.Normal(middle);
 				}
 
 				// Points are lifted through the same height as the walls', so where
@@ -1129,6 +1166,14 @@ namespace VisualPinball.Unity
 							bridgeOnly &= holeBridges.Contains(source);
 						}
 						if (!bridgeOnly) {
+							buffers.PreviewEdge(first + edge, first + next);
+						}
+					}
+				} else if (tier == Tier.Surface && stipple != null) {
+					for (var edge = 0; edge < face.Count; edge++) {
+						var next = (edge + 1) % face.Count;
+						if (stipple.IsStippleSegment(arrangement.Sources(face[edge], face[next]))
+							&& stipple.TryAt((arrangement.Position(face[edge]) + arrangement.Position(face[next])) * 0.5f, out _)) {
 							buffers.PreviewEdge(first + edge, first + next);
 						}
 					}
@@ -1375,15 +1420,20 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// The raised middle as a plain flat surface, its holes cut out and
 		/// nothing carved into it: what stands in for the middle's triangles once
-		/// a bake fits and the engraved line lives in the maps. Its edge and its
+		/// a bake fits and the relief lives in the maps. Its edge and its
 		/// holes are the same points the walls stand on, so they meet exactly.
 		/// </summary>
 		private static InsertFlatIsland PlainIsland(List<RingPoint> ring, List<float2> polygon, InsertBody body,
-			List<List<float2>> holes, float height, float weld)
+			List<List<float2>> holes, float height, float weld, IReadOnlyList<float2> boundaryCuts = null)
 		{
 			var arrangement = new InsertArrangement(weld);
 			AddLoop(arrangement, ring, new Dictionary<int, (List<RingPoint> Ring, int Side)>(), out _);
 			AddHoles(arrangement, body.Holes, body.HoleSegments, polygon, null, weld, out _, out _);
+			if (boundaryCuts != null) {
+				foreach (var point in boundaryCuts) {
+					arrangement.AddHotPoint(point);
+				}
+			}
 			arrangement.Build();
 			var faces = arrangement.Faces(out _);
 			var vertices = new List<Vector3>();
@@ -1433,7 +1483,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Takes the raised middle's triangles out of a mesh wearing a fitting
 		/// bake and puts the plain flat island in their place, the engraved
-		/// line's trough gone from the mesh. The island's UVs and tangents come
+		/// line's trough or stipples gone from the mesh. The island's UVs and tangents come
 		/// from the map's projection of the middle, fitted to the corners the
 		/// bake laid out: the bake keeps that chart as the generator projected it
 		/// from above, so the map lies on any triangulation of the middle.

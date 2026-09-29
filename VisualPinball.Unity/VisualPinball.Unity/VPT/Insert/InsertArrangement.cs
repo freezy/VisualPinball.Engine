@@ -65,6 +65,7 @@ namespace VisualPinball.Unity
 		private readonly double _pixel;
 		private readonly double2 _origin;
 		private readonly List<float2> _points = new();
+		private readonly List<float2> _hotPoints = new();
 		private readonly List<Segment> _segments = new();
 
 		private List<double2> _vertices;
@@ -116,6 +117,9 @@ namespace VisualPinball.Unity
 			return _points.Count - 1;
 		}
 
+		/// <summary>Keep a point on any segment it lies along without adding a new edge.</summary>
+		public void AddHotPoint(float2 position) => _hotPoints.Add(position);
+
 		/// <returns>The index of the segment, for <see cref="Cuts"/>.</returns>
 		public int AddSegment(int from, int to)
 		{
@@ -134,6 +138,9 @@ namespace VisualPinball.Unity
 			foreach (var segment in _segments) {
 				Heat(hot, _points[segment.From]);
 				Heat(hot, _points[segment.To]);
+			}
+			foreach (var point in _hotPoints) {
+				Heat(hot, point);
 			}
 
 			// Only segments sharing a cell of a coarse grid can meet, and only hot

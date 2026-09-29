@@ -80,6 +80,10 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _starburstBursts;
 		private SerializedProperty _starburstCenter;
 		private SerializedProperty _starburstOffset;
+		private SerializedProperty _stippled;
+		private SerializedProperty _stippleHeight;
+		private SerializedProperty _stippleWidth;
+		private SerializedProperty _stippleMargin;
 		private SerializedProperty _bottomBevel;
 		private SerializedProperty _bottomBevelSegments;
 		private SerializedProperty _holes;
@@ -151,6 +155,10 @@ namespace VisualPinball.Unity.Editor
 			_starburstBursts = serializedObject.FindProperty("_starburstBursts");
 			_starburstCenter = serializedObject.FindProperty("_starburstCenter");
 			_starburstOffset = serializedObject.FindProperty("_starburstOffset");
+			_stippled = serializedObject.FindProperty("_stippled");
+			_stippleHeight = serializedObject.FindProperty("_stippleHeight");
+			_stippleWidth = serializedObject.FindProperty("_stippleWidth");
+			_stippleMargin = serializedObject.FindProperty("_stippleMargin");
 			_bottomBevel = serializedObject.FindProperty("_bottomBevel");
 			_bottomBevelSegments = serializedObject.FindProperty("_bottomBevelSegments");
 			_holes = serializedObject.FindProperty("_holes");
@@ -222,14 +230,18 @@ namespace VisualPinball.Unity.Editor
 			None = 0,
 			Starburst = 1,
 			EngravedLine = 2,
+			Stippled = 3,
 		}
 
-		private static readonly string[] Patterns = { "None", "Starburst" };
-		private static readonly string[] FlashPatterns = { "None", "Starburst", "Engraved Line" };
+		private static readonly string[] Patterns = { "None", "Starburst", "Stippled" };
+		private static readonly string[] FlashPatterns = { "None", "Starburst", "Engraved Line", "Stippled" };
 
-		/// <summary>The pattern the two stored flags mean: the line, on a flash, over the starburst.</summary>
-		private static Pattern PatternOf(bool starburst, bool groove, bool flash)
+		/// <summary>The pattern represented by the stored flags.</summary>
+		private static Pattern PatternOf(bool starburst, bool groove, bool stippled, bool flash)
 		{
+			if (stippled) {
+				return Pattern.Stippled;
+			}
 			if (flash && groove) {
 				return Pattern.EngravedLine;
 			}
@@ -385,19 +397,20 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			SubHeader("Pattern");
-			// What the raised middle's surface carries: nothing, the starburst,
-			// or, on a flash, the engraved line. One choice, and only its own
-			// settings shown; the two flags behind it stay as they are stored.
+			// One choice for the flat surface, with only that pattern's settings shown.
 			var flash = !_shape.hasMultipleDifferentValues && (InsertShape)_shape.enumValueIndex == InsertShape.Flash;
-			var pattern = PatternOf(_starburst.boolValue, _flashGroove.boolValue, flash);
-			var patternMixed = _starburst.hasMultipleDifferentValues || _flashGroove.hasMultipleDifferentValues || _shape.hasMultipleDifferentValues;
+			var pattern = PatternOf(_starburst.boolValue, _flashGroove.boolValue, _stippled.boolValue, flash);
+			var patternMixed = _starburst.hasMultipleDifferentValues || _flashGroove.hasMultipleDifferentValues || _stippled.hasMultipleDifferentValues || _shape.hasMultipleDifferentValues;
 			var choices = flash ? FlashPatterns : Patterns;
+			var index = flash ? (int)pattern : pattern == Pattern.Stippled ? 2 : (int)pattern;
 			EditorGUI.showMixedValue = patternMixed;
 			EditorGUI.BeginChangeCheck();
-			var chosen = (Pattern)EditorGUILayout.Popup(new GUIContent("Pattern", "What the raised middle's surface carries: nothing, the starburst, or, on a flash, a thin line engraved a little way in from its edge. The starburst and the line never share the surface."), (int)pattern, choices);
+			var selection = EditorGUILayout.Popup(new GUIContent("Pattern", "The flat surface's pattern. Stippled and Engraved Line become normal maps after baking; Starburst stays in the mesh."), index, choices);
 			if (EditorGUI.EndChangeCheck()) {
+				var chosen = !flash && selection == 2 ? Pattern.Stippled : (Pattern)selection;
 				_starburst.boolValue = chosen == Pattern.Starburst;
 				_flashGroove.boolValue = chosen == Pattern.EngravedLine;
+				_stippled.boolValue = chosen == Pattern.Stippled;
 				pattern = chosen;
 				patternMixed = false;
 			}
@@ -441,6 +454,15 @@ namespace VisualPinball.Unity.Editor
 							: "The engraved line could not be built.", MessageType.Warning);
 						break;
 					}
+				}
+			} else if (!patternMixed && pattern == Pattern.Stippled) {
+				Field(_stippleHeight, "Stipple Height");
+				Field(_stippleWidth, "Stipple Width");
+				Field(_stippleMargin, "Stipple Margin");
+				if (targets.Length == 1 && target is InsertComponent single) {
+					EditorGUILayout.HelpBox(single.IsMiddleFlat
+						? "Baked: the pyramids are in the maps and the mesh is flat."
+						: "The pyramids are bake geometry. Bake to put them into the maps and flatten the mesh.", MessageType.None);
 				}
 			}
 

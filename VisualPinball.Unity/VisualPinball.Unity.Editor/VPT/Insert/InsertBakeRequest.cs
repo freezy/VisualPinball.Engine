@@ -87,7 +87,7 @@ namespace VisualPinball.Unity.Editor
 
 		/// <summary>
 		/// How far above the flat copy its rays start, in metres, which must clear
-		/// the starburst's highest point.
+		/// the surface pattern's highest point.
 		/// </summary>
 		public float FlatExtrusion;
 
@@ -99,7 +99,7 @@ namespace VisualPinball.Unity.Editor
 		public bool Gpu;
 		public bool HybridOptics;
 
-		public static InsertBakeRequest Build(Mesh mesh, InsertMeshLayout layout, InsertBakeSettings settings, float starburstOffset)
+		public static InsertBakeRequest Build(Mesh mesh, InsertMeshLayout layout, InsertBakeSettings settings, float surfaceRelief)
 		{
 			var vertices = mesh.vertices;
 			var normals = mesh.normals;
@@ -135,7 +135,7 @@ namespace VisualPinball.Unity.Editor
 				NormalGrainStrength = math.saturate(settings.NormalGrainStrength),
 				NormalGrainSize = math.max(0.1f, settings.NormalGrainSize) * Physics.ScaleInv,
 				RegularExtrusion = SurfaceExtrusion,
-				FlatExtrusion = 1.2f * math.abs(starburstOffset) * Physics.ScaleInv + SurfaceExtrusion,
+				FlatExtrusion = 1.2f * math.abs(surfaceRelief) * Physics.ScaleInv + SurfaceExtrusion,
 				Unwrap = settings.Unwrap,
 				PreferUvPackMaster = settings.PreferUvPackMaster,
 				Gpu = settings.Gpu,

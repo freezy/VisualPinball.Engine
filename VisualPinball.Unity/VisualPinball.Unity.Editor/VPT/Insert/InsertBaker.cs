@@ -267,7 +267,8 @@ namespace VisualPinball.Unity.Editor
 			try {
 				var layout = new InsertMeshLayout();
 				var body = insert.Generate(mesh, layout);
-				var request = InsertBakeRequest.Build(mesh, layout, insert.BakeSettings, body.StarburstOffset);
+				var request = InsertBakeRequest.Build(mesh, layout, insert.BakeSettings,
+					math.max(math.abs(body.StarburstOffset), body.StippleHeight));
 				// A hybrid material always needs maps from this exact UV layout.
 				request.HybridOptics |= insert.Bake != null && insert.Bake.Material != null && insert.Bake.Material.HasProperty("_OpticalNormalMap");
 
