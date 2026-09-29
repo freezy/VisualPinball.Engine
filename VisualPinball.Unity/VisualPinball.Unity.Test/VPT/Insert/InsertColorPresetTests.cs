@@ -136,6 +136,52 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldKeepTheSourceMapsWhenOnlyAnotherInsertHasTheRequestedColor()
+		{
+			var shader = Shader.Find("Visual Pinball/Insert Hybrid");
+			if (shader == null) { Assert.Ignore("Requires the HDRP insert shader."); }
+			var folder = "Assets/InsertColorPresetTests" + Guid.NewGuid().ToString("N");
+			AssetDatabase.CreateFolder("Assets", folder.Substring("Assets/".Length));
+			var source = new Material(shader) { name = "Insert, Circle, Red" };
+			var unrelated = new Material(shader) { name = "Insert, Triangle, Blue" };
+			var sourceMap = new Texture2D(1, 1);
+			var unrelatedMap = new Texture2D(1, 1);
+			var preset = ScriptableObject.CreateInstance<InsertColorPreset>();
+			var go = new GameObject("Insert");
+			try {
+				AssetDatabase.CreateAsset(sourceMap, folder + "/Circle Map.asset");
+				AssetDatabase.CreateAsset(unrelatedMap, folder + "/Triangle Map.asset");
+				source.SetTexture("_OpticalNormalMap", sourceMap);
+				unrelated.SetTexture("_OpticalNormalMap", unrelatedMap);
+				var lamp = new Vector4(0f, -0.02f, 0f, 0.007f);
+				source.SetVector("_OpticalLamp", lamp);
+				unrelated.SetVector("_OpticalLamp", new Vector4(0.02f, -0.01f, 0.03f, 0.004f));
+				AssetDatabase.CreateAsset(source, folder + "/Insert, Circle, Red.mat");
+				AssetDatabase.CreateAsset(unrelated, folder + "/Insert, Triangle, Blue.mat");
+				var insert = go.AddComponent<InsertComponent>();
+				var renderer = go.GetComponent<MeshRenderer>();
+				renderer.sharedMaterial = source;
+				preset.ColorName = "Blue";
+				preset.BodyColor = Color.blue;
+
+				Assert.That(InsertColorPresets.Apply(preset, insert), Is.True);
+				var result = renderer.sharedMaterial;
+				Assert.That(result, Is.Not.EqualTo(unrelated));
+				Assert.That(result.name, Is.EqualTo("Insert, Circle, Blue"));
+				Assert.That(AssetDatabase.GetAssetPath(result), Is.EqualTo(folder + "/Insert, Circle, Blue.mat"));
+				Assert.That(AssetDatabase.GetAssetPath(result.GetTexture("_OpticalNormalMap")), Is.EqualTo(folder + "/Circle Map.asset"));
+				Assert.That(result.GetVector("_OpticalLamp"), Is.EqualTo(lamp));
+				Assert.That(result.GetColor("_BaseColor"), Is.EqualTo(Color.blue));
+			} finally {
+				var filter = go.GetComponent<MeshFilter>();
+				if (filter != null && filter.sharedMesh != null) { Object.DestroyImmediate(filter.sharedMesh); }
+				Object.DestroyImmediate(go);
+				Object.DestroyImmediate(preset);
+				AssetDatabase.DeleteAsset(folder);
+			}
+		}
+
+		[Test]
 		public void ShouldMakeVariantWhenSourceHasNoColorName()
 		{
 			var shader = Shader.Find("Visual Pinball/Insert Hybrid");

@@ -118,7 +118,6 @@ namespace VisualPinball.Unity.Editor
 		{
 			var sourceFolder = string.IsNullOrEmpty(sourcePath) ? null : Path.GetDirectoryName(sourcePath)?.Replace('\\', '/');
 			var folders = new[] { writableFolder, sourceFolder }.Where(folder => !string.IsNullOrEmpty(folder) && AssetDatabase.IsValidFolder(folder)).Distinct();
-			Material uniqueColorMatch = null;
 			foreach (var folder in folders) {
 				var matches = AssetDatabase.FindAssets("t:Material", new[] { folder })
 					.Select(AssetDatabase.GUIDToAssetPath)
@@ -136,11 +135,8 @@ namespace VisualPinball.Unity.Editor
 				if (related != null) {
 					return related;
 				}
-				if (uniqueColorMatch == null && matches.Length == 1) {
-					uniqueColorMatch = matches[0];
-				}
 			}
-			return uniqueColorMatch;
+			return null;
 		}
 
 		/// <summary>Replaces a color word in a material name, or appends one for a colorless source.</summary>
