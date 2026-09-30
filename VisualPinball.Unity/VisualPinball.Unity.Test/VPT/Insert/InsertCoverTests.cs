@@ -145,7 +145,8 @@ namespace VisualPinball.Unity.Test
 				Assert.That(mesh.uv, Is.EqualTo(localUvs));
 				Assert.That(mesh.tangents, Is.EqualTo(localTangents));
 				renderer.GetPropertyBlock(properties, 1);
-				Assert.That(properties.isEmpty, Is.True);
+				Assert.That(properties.HasTexture("_CoverNormalMap"), Is.False, "the projection is off the cover's block; the slab's thickness stays");
+				Assert.That(properties.HasFloat("_PlayfieldNormalStrength"), Is.False);
 				// Reassignment must project again even though transforms did not change.
 				source.SetTexture("_NormalMap", Texture2D.whiteTexture);
 				insert.SendMessage("LateUpdate");
@@ -155,7 +156,8 @@ namespace VisualPinball.Unity.Test
 				Assert.That(mesh.tangents, Is.EqualTo(localTangents));
 				Assert.That(insert.CoverWarning, Is.Null);
 				renderer.GetPropertyBlock(properties, 1);
-				Assert.That(properties.isEmpty, Is.True);
+				Assert.That(properties.HasTexture("_CoverNormalMap"), Is.False, "the projection is off the cover's block; the slab's thickness stays");
+				Assert.That(properties.HasFloat("_PlayfieldNormalStrength"), Is.False);
 			} finally {
 				Object.DestroyImmediate(go);
 				Object.DestroyImmediate(board);
@@ -217,7 +219,8 @@ namespace VisualPinball.Unity.Test
 				Assert.That(insert.CoverWarning, Is.Null);
 				var properties = new MaterialPropertyBlock();
 				renderer.GetPropertyBlock(properties, 1);
-				Assert.That(properties.isEmpty, Is.True);
+				Assert.That(properties.HasTexture("_CoverNormalMap"), Is.False, "the projection is off the cover's block; the slab's thickness stays");
+				Assert.That(properties.HasFloat("_PlayfieldNormalStrength"), Is.False);
 			} finally {
 				Object.DestroyImmediate(go);
 				Object.DestroyImmediate(mesh);
@@ -446,6 +449,45 @@ namespace VisualPinball.Unity.Test
 			}
 		}
 
+		[Test]
+		public void ShouldTellTheCoverHowThickTheSlabIs()
+		{
+			var coverShader = Shader.Find("Visual Pinball/Insert Cover");
+			if (coverShader == null) {
+				Assert.Ignore("Requires the HDRP insert cover shader.");
+			}
+			var go = new GameObject("Slab cover insert");
+			var cover = new Material(coverShader);
+			Mesh mesh = null;
+			try {
+				var insert = go.AddComponent<InsertComponent>();
+				insert.SetCoverMaterial(cover);
+				mesh = go.GetComponent<MeshFilter>().sharedMesh;
+				var renderer = go.GetComponent<MeshRenderer>();
+				var block = new MaterialPropertyBlock();
+				renderer.GetPropertyBlock(block, 1);
+				// From the rim down to the raised middle's surface, in millimetres.
+				var expected = -InsertMeshGenerator.ToLocal(float2.zero, -insert.Body.Depth + insert.Body.ChannelDepth).y * 1000f;
+				Assert.That(expected, Is.GreaterThan(1f));
+				Assert.That(insert.CoverThickness, Is.EqualTo(expected).Within(1e-4f));
+				Assert.That(block.HasFloat("_CoverThickness"), Is.True, "the cover's block carries the slab's thickness");
+				Assert.That(block.GetFloat("_CoverThickness"), Is.EqualTo(expected).Within(1e-4f));
+
+				// A deeper insert writes its new depth on the rebuild.
+				var settings = new UnityEditor.SerializedObject(insert);
+				settings.FindProperty("_depth").floatValue += 3f;
+				settings.ApplyModifiedPropertiesWithoutUndo();
+				insert.RebuildMesh();
+				renderer.GetPropertyBlock(block, 1);
+				Assert.That(block.GetFloat("_CoverThickness"), Is.EqualTo(insert.CoverThickness).Within(1e-4f));
+				Assert.That(insert.CoverThickness, Is.GreaterThan(expected + 1f));
+			} finally {
+				Object.DestroyImmediate(go);
+				Object.DestroyImmediate(cover);
+				Object.DestroyImmediate(mesh);
+			}
+		}
+
 		private static bool Inside(System.Collections.Generic.List<float2> polygon, float2 point)
 		{
 			var inside = false;
@@ -542,7 +584,8 @@ namespace VisualPinball.Unity.Test
 				insert.RebuildMesh();
 				Assert.That(insert.CoverPlayfield, Is.Null);
 				go.GetComponent<MeshRenderer>().GetPropertyBlock(properties, 1);
-				Assert.That(properties.isEmpty, Is.True);
+				Assert.That(properties.HasTexture("_CoverNormalMap"), Is.False, "the projection is off the cover's block; the slab's thickness stays");
+				Assert.That(properties.HasFloat("_PlayfieldNormalStrength"), Is.False);
 			} finally {
 				Object.DestroyImmediate(go);
 				Object.DestroyImmediate(root);

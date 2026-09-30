@@ -1134,11 +1134,13 @@ namespace VisualPinball.Unity
 			if (mesh == null || mesh.subMeshCount < 2) { return; }
 			if (!_usePlayfieldNormals) {
 				ClearCoverProjection(renderer, mesh, force);
+				ApplyCoverThickness(renderer);
 				return;
 			}
 			if (!_coverMaterial.HasProperty("_CoverNormalMap") || !_coverMaterial.HasProperty("_PlayfieldNormalStrength")) {
 				CoverWarning = "Use a Visual Pinball/Insert Cover material for playfield normals, or disable Use Playfield Normals to use this material unchanged.";
 				ClearCoverProjection(renderer, mesh, force);
+				ApplyCoverThickness(renderer);
 				return;
 			}
 			if (force && _coverPlayfield == null) {
@@ -1148,6 +1150,7 @@ namespace VisualPinball.Unity
 			if (playfield == null) {
 				CoverWarning = "No playfield surface found in this table. Assign a Playfield Override or disable Use Playfield Normals.";
 				ClearCoverProjection(renderer, mesh, force);
+				ApplyCoverThickness(renderer);
 				return;
 			}
 			if (!_usesPackagedMesh) {
@@ -1165,12 +1168,14 @@ namespace VisualPinball.Unity
 				(source.HasProperty("_NormalMapSpace") && source.GetFloat("_NormalMapSpace") != 0f)) {
 				CoverWarning = "The cover needs a readable playfield mesh with planar XZ UV0 and a tangent-space normal map.";
 				ClearCoverProjection(renderer, mesh, force);
+				ApplyCoverThickness(renderer);
 				return;
 			}
 			var texture = source.GetTexture("_NormalMap");
 			if (texture == null) {
 				CoverWarning = "The playfield material has no normal map. The cover uses its own material settings.";
 				ClearCoverProjection(renderer, mesh, force);
+				ApplyCoverThickness(renderer);
 				return;
 			}
 			// HDRP Lit uses the base map's UV transform for its normal map as well.
@@ -1191,8 +1196,38 @@ namespace VisualPinball.Unity
 			// Source tiling is already applied to the projected UVs.
 			_coverProperties.SetVector("_CoverNormalMap_ST", new Vector4(1f, 1f, 0f, 0f));
 			_coverProperties.SetFloat("_PlayfieldNormalStrength", source.HasProperty("_NormalScale") ? source.GetFloat("_NormalScale") : 1f);
+			_coverProperties.SetFloat(CoverThicknessId, CoverThickness);
 			renderer.SetPropertyBlock(_coverProperties, 1);
 			_coverPropertiesApplied = true;
+			_coverThicknessApplied = true;
+		}
+
+		private static readonly int CoverThicknessId = Shader.PropertyToID("_CoverThickness");
+		private bool _coverThicknessApplied;
+
+		/// <summary>
+		/// How deep the plastic is under the cover, in millimetres: from the
+		/// rim down to the raised middle's surface, which is what shows through.
+		/// </summary>
+		public float CoverThickness => Outline != null
+			? math.max(0.1f, -InsertMeshGenerator.ToLocal(float2.zero, -Body.Depth + Body.ChannelDepth).y * 1000f)
+			: 4f;
+
+		/// <summary>
+		/// Writes the slab's thickness into the cover's property block, once
+		/// after the block was cleared or the geometry changed: the cover
+		/// refracts what shows through it as through a slab that deep.
+		/// </summary>
+		private void ApplyCoverThickness(MeshRenderer renderer)
+		{
+			if (_coverThicknessApplied || _coverMaterial == null || !_coverMaterial.HasProperty(CoverThicknessId)) {
+				return;
+			}
+			_coverProperties ??= new MaterialPropertyBlock();
+			renderer.GetPropertyBlock(_coverProperties, 1);
+			_coverProperties.SetFloat(CoverThicknessId, CoverThickness);
+			renderer.SetPropertyBlock(_coverProperties, 1);
+			_coverThicknessApplied = true;
 		}
 
 		private void ClearCoverProjection(MeshRenderer renderer, Mesh mesh, bool force)
@@ -1200,6 +1235,7 @@ namespace VisualPinball.Unity
 			if (_coverPropertiesApplied || force) {
 				renderer.SetPropertyBlock(null, 1);
 				_coverPropertiesApplied = false;
+				_coverThicknessApplied = false;
 			}
 			if (_coverMapped) {
 				InsertCoverUv.ApplyLocal(mesh, _coverFirstVertex);
