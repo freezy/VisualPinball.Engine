@@ -182,6 +182,91 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		/// <summary>
+		/// Overwrites the user-authored metadata of this asset with a deep copy of the metadata of
+		/// another asset.
+		///
+		/// Internal data like the referenced object, the library, the category and the date added
+		/// are left untouched. Material targets pointing into the source prefab are remapped to the
+		/// object at the same path in this asset's prefab, if it exists.
+		/// </summary>
+		/// <param name="src">Asset to copy the metadata from</param>
+		public void CopyMetadataFrom(Asset src)
+		{
+			Description = src.Description;
+			Quality = src.Quality;
+			UnpackPrefab = src.UnpackPrefab;
+
+			Tags = src.Tags?.Select(t => new AssetTag(t.TagName)).ToList() ?? new List<AssetTag>();
+			Attributes = src.Attributes?.Select(a => new AssetAttribute(a.Key, a.Value)).ToList() ?? new List<AssetAttribute>();
+			Links = src.Links?.Select(l => new AssetLink(l.Name, l.Url)).ToList() ?? new List<AssetLink>();
+
+			GroupBy = src.GroupBy == null ? null : new AssetMaterialVariationGroupConfig {
+				GroupBy = src.GroupBy.GroupBy,
+				Object = RemapObject(src.GroupBy.Object, src.Object),
+			};
+			MaterialVariations = src.MaterialVariations?.Select(v => CopyVariation(v, src.Object)).ToList() ?? new List<AssetMaterialVariation>();
+			DecalVariations = src.DecalVariations?.Select(v => CopyVariation(v, src.Object)).ToList() ?? new List<AssetMaterialVariation>();
+			MaterialDefaults = src.MaterialDefaults?.Select(d => new AssetMaterialDefault {
+				VariationName = d.VariationName,
+				OverrideName = d.OverrideName,
+				Target = CopyTarget(d.Target, src.Object),
+			}).ToList() ?? new List<AssetMaterialDefault>();
+			MaterialCombinationRules = src.MaterialCombinationRules?.Select(r => new AssetMaterialCombinationRule {
+				Type = r.Type,
+				Targets = r.Targets?.Select(t => CopyTarget(t, src.Object)).ToList() ?? new List<AssetMaterialTarget>(),
+			}).ToList() ?? new List<AssetMaterialCombinationRule>();
+
+			EnvironmentGameObjectName = src.EnvironmentGameObjectName;
+			ThumbCameraPreset = src.ThumbCameraPreset;
+			ThumbCameraHeight = src.ThumbCameraHeight;
+			ThumbCameraPos = src.ThumbCameraPos;
+			ThumbCameraRot = src.ThumbCameraRot;
+		}
+
+		private AssetMaterialVariation CopyVariation(AssetMaterialVariation src, Object srcRoot) => new() {
+			Name = src.Name,
+			Target = CopyTarget(src.Target, srcRoot),
+			Overrides = src.Overrides?.Select(o => new AssetMaterialOverride {
+				Name = o.Name,
+				Material = o.Material,
+				// override ids go into the thumbnail id, so another prefab gets its own (nested prefabs would collide otherwise).
+				Id = srcRoot == Object ? o.Id : Guid.NewGuid().ToString(),
+			}).ToList() ?? new List<AssetMaterialOverride>(),
+		};
+
+		private AssetMaterialTarget CopyTarget(AssetMaterialTarget src, Object srcRoot) => src == null ? null : new AssetMaterialTarget {
+			Object = RemapObject(src.Object, srcRoot),
+			Slot = src.Slot,
+		};
+
+		/// <summary>
+		/// Finds the object in this asset's prefab that corresponds to an object of the source
+		/// prefab, first by its path relative to the root, then by name. Falls back to the
+		/// original reference, since variations are matched by name when applied anyway.
+		/// </summary>
+		private Object RemapObject(Object obj, Object srcRoot)
+		{
+			if (obj == null || srcRoot == Object) {
+				return obj;
+			}
+			if (obj == srcRoot) {
+				return Object;
+			}
+			if (obj is not GameObject go || srcRoot is not GameObject srcGo || Object is not GameObject destGo) {
+				return obj;
+			}
+			if (go.transform.IsChildOf(srcGo.transform)) {
+				var path = AnimationUtility.CalculateTransformPath(go.transform, srcGo.transform);
+				var match = destGo.transform.Find(path);
+				if (match != null) {
+					return match.gameObject;
+				}
+			}
+			var byName = destGo.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name == go.name);
+			return byName != null ? byName.gameObject : obj;
+		}
+
 		public IEnumerable<Asset> GetNestedAssets() => EditorUtility.CollectDependencies(new[] { Object })
 			.Where(o => o is GameObject)
 			.Select(g => AssetDatabase.TryGetGUIDAndLocalFileIdentifier(g, out var guid, out _) ? guid : null)

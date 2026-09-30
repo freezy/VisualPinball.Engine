@@ -60,6 +60,11 @@ namespace VisualPinball.Unity.Editor
 		private readonly Dictionary<Asset, VisualElement> _elementByAsset = new();
 		private readonly Dictionary<VisualElement, AssetResult> _resultByElement = new();
 
+		/// <summary>
+		/// Snapshot of the metadata copied via the context menu, shared across browser windows.
+		/// </summary>
+		private static Asset _copiedMetadata;
+
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		[MenuItem("Pinball/Asset Browser")]
@@ -238,6 +243,14 @@ namespace VisualPinball.Unity.Editor
 					});
 				}
 
+				if (!clickedAsset.Asset.Library.IsLocked) {
+					evt.menu.AppendSeparator();
+					evt.menu.AppendAction("Copy Metadata", _ => CopyMetadata(clickedAsset.Asset));
+					if (_copiedMetadata != null) {
+						evt.menu.AppendAction($"Paste Metadata from {_copiedMetadata.Name}", _ => PasteMetadata(clickedAsset));
+					}
+				}
+
 				if (_selectedResults.Count > 1) {
 					var srcAsset = clickedAsset.Asset;
 					evt.menu.AppendSeparator();
@@ -317,6 +330,45 @@ namespace VisualPinball.Unity.Editor
 		private IEnumerable<Asset> OtherSelected(AssetResult src)
 		{
 			return _selectedResults.Where(a => !a.Asset.Library.IsLocked && a.Asset.GUID != src.Asset.GUID).Select(ar => ar.Asset);
+		}
+
+		private static void CopyMetadata(Asset src)
+		{
+			// take a snapshot, so later edits of the source don't end up in the paste
+			ClearCopiedMetadata();
+			_copiedMetadata = CreateInstance<Asset>();
+			_copiedMetadata.hideFlags = HideFlags.HideAndDontSave;
+			_copiedMetadata.Object = src.Object;
+			_copiedMetadata.CopyMetadataFrom(src);
+
+			// the static reference doesn't survive a domain reload, so the hidden snapshot would leak.
+			AssemblyReloadEvents.beforeAssemblyReload += ClearCopiedMetadata;
+		}
+
+		private static void ClearCopiedMetadata()
+		{
+			AssemblyReloadEvents.beforeAssemblyReload -= ClearCopiedMetadata;
+			if (_copiedMetadata != null) {
+				DestroyImmediate(_copiedMetadata);
+			}
+			_copiedMetadata = null;
+		}
+
+		private void PasteMetadata(AssetResult clickedAsset)
+		{
+			// paste into the whole selection if the clicked asset is part of it, otherwise only into the clicked asset.
+			var destAssets = (_selectedResults.Contains(clickedAsset) ? _selectedResults.Select(r => r.Asset) : new[] { clickedAsset.Asset })
+				.Where(a => !a.Library.IsLocked)
+				.ToArray();
+
+			Undo.RecordObjects(destAssets, "paste asset metadata");
+			foreach (var destAsset in destAssets) {
+				destAsset.CopyMetadataFrom(_copiedMetadata);
+				destAsset.Save();
+			}
+
+			_detailsElement.Refresh();
+			_statusLabel.text = $"Pasted metadata of {_copiedMetadata.Name} into {destAssets.Length} asset" + (destAssets.Length == 1 ? "" : "s") + ".";
 		}
 
 		private void OnEmptyClicked(PointerUpEvent evt)
