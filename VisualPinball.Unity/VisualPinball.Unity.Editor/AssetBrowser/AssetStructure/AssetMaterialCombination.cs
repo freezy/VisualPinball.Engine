@@ -57,12 +57,15 @@ namespace VisualPinball.Unity.Editor
 
 				var varsWithDefaults = VariationsWithDefaults;
 				foreach (var rule in Asset.MaterialCombinationRules) {
+					// a rule only constrains the variations it targets, so one that matches none (e.g. no targets set) can't be violated.
+					var ruleVars = varsWithDefaults
+						.Where(v => rule.Targets != null && rule.Targets.Any(t => t == v.Target))
+						.ToArray();
 					switch (rule.Type) {
 						case AssetMaterialCombinationType.MustAllBeEqual: {
-							var allEqual = varsWithDefaults
-								.Where(v => rule.Targets.Any(t => t == v.Target))
+							var allEqual = ruleVars
 								.GroupBy(v => v.OverrideName)
-								.Count() == 1;
+								.Count() <= 1;
 							if (!allEqual) {
 								return false;
 							}
@@ -70,10 +73,9 @@ namespace VisualPinball.Unity.Editor
 						}
 
 						case AssetMaterialCombinationType.MustAllBeDifferent: {
-							var allDifferent = varsWithDefaults
-								.Where(v => rule.Targets.Any(t => t == v.Target))
+							var allDifferent = ruleVars
 								.GroupBy(v => v.OverrideName)
-								.Count() == varsWithDefaults.Length;
+								.Count() == ruleVars.Length;
 							if (!allDifferent) {
 								return false;
 							}
