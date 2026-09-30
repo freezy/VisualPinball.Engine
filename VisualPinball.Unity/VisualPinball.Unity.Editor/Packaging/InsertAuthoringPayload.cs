@@ -18,7 +18,7 @@ namespace VisualPinball.Unity.Editor
 	[Serializable]
 	public sealed class InsertAuthoringPayload
 	{
-		public const int Version = 2;
+		public const int Version = 3;
 		public int FormatVersion = Version;
 		public InsertAuthoringRecord[] Inserts = Array.Empty<InsertAuthoringRecord>();
 
@@ -36,10 +36,13 @@ namespace VisualPinball.Unity.Editor
 				serialized.Remove("_coverMaterial");
 				serialized.Remove("_coverPlayfield");
 				serialized.Remove("_usesPackagedMesh");
+				serialized.Remove("_customMesh");
 				var record = new InsertAuthoringRecord {
 					NodeId = nodeId,
 					GeneratorJson = serialized.ToString(Newtonsoft.Json.Formatting.None),
 					PreBakeMaterialId = MaterialId(insert.PreBakeMaterial, materialIds),
+					CustomMesh = serialized.Value<int>("_shape") == (int)InsertShape.Custom
+						? InsertCustomMeshAuthoringRecord.Capture(insert.CustomMesh) : null,
 				};
 				if (insert.Bake != null) {
 					var bake = insert.Bake;
@@ -80,6 +83,12 @@ namespace VisualPinball.Unity.Editor
 				var insert = resolveNode(record.NodeId)?.GetComponent<InsertComponent>();
 				if (!insert) { throw new InvalidOperationException($"Insert authoring node '{record.NodeId}' is missing."); }
 				JsonUtility.FromJsonOverwrite(record.GeneratorJson, insert);
+				if (record.CustomMesh != null) {
+					var mesh = record.CustomMesh.CreateMesh();
+					var sourcePath = Path.Combine(bakeFolder, $"{record.NodeId}-source.asset");
+					AssetDatabase.CreateAsset(mesh, Path.GetRelativePath(projectRoot, sourcePath).Replace('\\', '/'));
+					insert.CustomMesh = mesh;
+				}
 				InsertBakeData bake = null;
 				if (record.Bake != null) {
 					var source = record.Bake;
@@ -147,6 +156,44 @@ namespace VisualPinball.Unity.Editor
 		public string GeneratorJson;
 		public string PreBakeMaterialId;
 		public InsertBakeAuthoringRecord Bake;
+		public InsertCustomMeshAuthoringRecord CustomMesh;
+	}
+
+	/// <summary>The original source mesh lives only in the editor sidecar, never the player's GLB.</summary>
+	[Serializable]
+	public sealed class InsertCustomMeshAuthoringRecord
+	{
+		public string Name;
+		public Vector3[] Vertices;
+		public InsertCustomSubmeshAuthoringRecord[] Submeshes;
+
+		public static InsertCustomMeshAuthoringRecord Capture(Mesh mesh)
+		{
+			if (!mesh) { return null; }
+			if (!mesh.isReadable) { throw new InvalidOperationException("Enable Read/Write on the custom insert's source mesh before exporting."); }
+			var submeshes = new InsertCustomSubmeshAuthoringRecord[mesh.subMeshCount];
+			for (var i = 0; i < submeshes.Length; i++) {
+				submeshes[i] = new InsertCustomSubmeshAuthoringRecord { Topology = mesh.GetTopology(i), Indices = mesh.GetIndices(i) };
+			}
+			return new InsertCustomMeshAuthoringRecord { Name = mesh.name, Vertices = mesh.vertices, Submeshes = submeshes };
+		}
+
+		public Mesh CreateMesh()
+		{
+			var mesh = new Mesh { name = Name, indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 };
+			mesh.vertices = Vertices;
+			mesh.subMeshCount = Submeshes.Length;
+			for (var i = 0; i < Submeshes.Length; i++) { mesh.SetIndices(Submeshes[i].Indices, Submeshes[i].Topology, i); }
+			mesh.RecalculateBounds();
+			return mesh;
+		}
+	}
+
+	[Serializable]
+	public sealed class InsertCustomSubmeshAuthoringRecord
+	{
+		public MeshTopology Topology;
+		public int[] Indices;
 	}
 
 	[Serializable]

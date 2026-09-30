@@ -33,7 +33,7 @@ All lengths here are VPX units. Use an adequately sized outline so radius and ch
 
 | Parameter | Suggested two values / states | View and prerequisites |
 | --- | --- | --- |
-| Shape | Triangle / Rectangle; supplement with all eight shapes | Top view; common approximate bounding size |
+| Shape | Standard / Custom; supplement with all eight built-in shapes | Top view; common approximate bounding size |
 | Width, on Triangle, Rectangle, Diamond, Bullet, and Arrow | 47.059 / 70.588 | Separate pair for each shape; fix Height |
 | Height, on Triangle, Rectangle, Diamond, Bullet, and Arrow | 70.588 / 94.118 | Separate pair for each shape; fix Width |
 | Each corner group's Radius | 0 / 4 | Separate pair for every group listed below; distinguish concave and convex corners |
@@ -56,6 +56,9 @@ All lengths here are VPX units. Use an adequately sized outline so radius and ch
 | Arrow Notch Depth | 0 / 10 | Flat base versus notched base |
 | Arrow Notch Width | 14 / full Width | Narrow notch versus chevron; nonzero Notch Depth |
 | Arrow Foot Angle | −25 / 25 | Nonzero notch narrower than Width; retain feet |
+| Custom Source Mesh | None / valid wire; supplement with the matching filled surface | Same final outline; include open, non-flat, and multiple-boundary error states |
+| Custom Corners Radius / Segments | Radius 0/2, then Segments 1/8 | Separate pairs; nonzero radius for sampling comparison |
+| Custom Reload | Before / after source reimport and Reload | Source changed; show stale bake state afterward |
 | Body Depth | 8 / 16 | Oblique/cutaway; fix channel depth |
 | Channel | Off / On | Cutaway; use nonzero Width when on |
 | Channel Width | 2 / 5 | Top and cutaway; keep below the outline's clamp |
@@ -70,15 +73,15 @@ All lengths here are VPX units. Use an adequately sized outline so radius and ch
 | New Hole Radius | 2 / 4 | Apply Add Hole separately after setting each value |
 | Around count | 4 / 8 | Apply Around separately; show both placement results |
 
-Corner groups needing individual Radius and Segments pairs are **Triangle: Base Corners, Apex Corner; Rectangle: Corners; Diamond: Side Points, Top and Bottom; Flash: Tip Corners, Spike Corners, Notch Corners; Bullet: Tip, Shoulder Corners, Base Corners; Arrow: Tip, Notch Corner, Inner Corners, Feet**. For Bullet Tip, Segments covers its whole circular tip and rounds up to an even count; caption this exception.
+Corner groups needing individual Radius and Segments pairs are **Custom: Corners; Triangle: Base Corners, Apex Corner; Rectangle: Corners; Diamond: Side Points, Top and Bottom; Flash: Tip Corners, Spike Corners, Notch Corners; Bullet: Tip, Shoulder Corners, Base Corners; Arrow: Tip, Notch Corner, Inner Corners, Feet**. For Bullet Tip, Segments covers its whole circular tip and rounds up to an even count; caption this exception.
 
-Use the comments `geometry-triangle`, `geometry-rectangle`, `geometry-circle`, `geometry-diamond`, and `geometry-holes` for the corresponding screenshots. Banana, Flash, Bullet, Arrow, and the body would benefit from the dimension diagrams below as well as their parameter pairs.
+Use the comments `geometry-triangle`, `geometry-rectangle`, `geometry-circle`, `geometry-diamond`, `geometry-custom`, and `geometry-holes` for the corresponding screenshots. Banana, Flash, Bullet, Arrow, and the body would benefit from the dimension diagrams below as well as their parameter pairs.
 
 ## Pattern comparisons
 
 | Parameter / action | Suggested two values / states | View and prerequisites |
 | --- | --- | --- |
-| Pattern | None / Starburst, then None / Stippled, and None / Engraved Line | Same rectangle for the first two; Flash for engraving; source and baked views |
+| Pattern | None / Starburst, then None / Stippled, and None / Engraved Line | Same rectangle for the first two; Flash and Custom for engraving; source and baked views |
 | Bursts | 8 / 24 | Starburst; fix Center and Offset |
 | Center X | 0 / 30 | Starburst; fix Center Y |
 | Center Y | 0 / 60 | Starburst; fix Center X; show an external fan center |

@@ -149,6 +149,25 @@ The arrow can have a flat base, a narrow notch with feet on either side, or a no
 
 <!-- Diagram: geometry-arrow-measures. Flat base, notched arrow, and full-width chevron, with the four corner groups labeled. -->
 
+## Custom
+
+Choose **Custom** when a standard outline cannot match the playfield opening. Assign a mesh asset in **Source Mesh**, including a mesh subasset from an imported model. The source is separate from the generated insert: VPE reads its outline, then builds the body, channel, bevel, holes, and selected pattern using the same controls as the standard shapes.
+
+| Parameter / action | Default | Meaning |
+| --- | --- | --- |
+| **Source Mesh** | None | A readable, flat mesh containing one closed wire boundary, or a filled surface with one outer boundary. Lines, an explicitly closed Line Strip, triangles, and quads are supported. |
+| **Corners** | Radius 0 / Segments 8 | Shared rounding for the imported outline's corners. Zero preserves the source outline. Straight boundary samples are merged before rounding. |
+| **Reload** | Action | Reads the source again after you change or reimport the mesh. Geometry edits also read it again. Rebake if the source geometry changed. |
+
+The source's local dimensions are in Unity meters. VPE centers its bounding box and aligns its plane with the insert's XZ plane, retaining its size. A source already in XZ keeps its orientation; other planes are rotated flat. Position, rotation, and scale on the GameObject that originally used the mesh are not part of a mesh asset. Apply those transforms in your modeling tool when they should change the source's dimensions.
+
+An invalid source shows an error in the Inspector and keeps the last mesh that worked. The bake button is disabled until the problem is corrected. Open boundaries, non-flat vertices, separate shapes, nested boundaries, branches, zero-length edges, and self-intersections are rejected. Add holes with the insert's **Holes** controls instead of placing another boundary in the source. Enable **Read/Write** in the model's import settings if requested.
+
+<!-- Screenshot: geometry-custom. A closed wire and matching filled mesh producing the same insert; Source Mesh None/assigned, Corners Radius 0/2 and Segments 1/8. Show errors for an open, non-flat, and multiple-outline source. -->
+
+> [!NOTE]
+> **Source geometry and packaged geometry.** The custom source is authoring data. Its original vertex positions and edge/face indices are saved in the editor sidecar when exporting a `.vpe` and restored as a project mesh asset when importing for editing. The player receives the finished generated mesh in the GLB and never reads or regenerates the custom source. Imported UV/normal seams at identical positions are welded when checking the boundary; the source's UVs and shading normals do not drive the generated insert.
+
 ## Body, channel, and bottom bevel
 
 **Depth** sinks the main floor below the rim. A channel surrounds that floor and sits lower still, leaving the main floor as a raised middle. This distinction matters when placing holes and limiting pattern height.

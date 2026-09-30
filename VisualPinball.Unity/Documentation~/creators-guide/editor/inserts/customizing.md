@@ -26,7 +26,7 @@ Color and material changes are immediate. Shape and pattern changes alter the ba
 ## Create an insert from scratch
 
 1. Create a GameObject at the insert's position and add **Visual Pinball → Insert** through **Add Component**. Unity adds the required Mesh Filter and Mesh Renderer.
-2. Choose the outline and dimensions in **Geometry**. Add a channel, bevel, holes, and pattern as needed. See [Geometry](geometry.md) and [Patterns](patterns.md).
+2. Choose the outline and dimensions in **Geometry**. For an imported outline, choose Custom and assign its Source Mesh. Add a channel, bevel, holes, and pattern as needed. See [Geometry](geometry.md) and [Patterns](patterns.md).
 3. Add **Visual Pinball → Insert Light** if the insert should respond to lamps.
 4. Keep **Bake Hybrid Optics** enabled in **Normal Bake**, select a Blender 5 executable if it is not found automatically, and bake.
 5. With Insert Light and an empty body material slot, the first bake sets up a hybrid body material automatically. If you started with another material, use **Bake Hybrid and Use Material** on Insert Light, or bake the optical maps and click **Use HDRP Hybrid Material** on Insert.

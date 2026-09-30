@@ -10,10 +10,10 @@ A pattern shapes the floor you see through the insert. It changes how the lamp b
 
 | Pattern | Shapes | Finished mesh after baking |
 | --- | --- | --- |
-| **None** | All eight shapes | Plain floor |
-| **Starburst** | All eight shapes | Radial facets remain in the mesh |
-| **Stippled** | All eight shapes | Ordinary no-pattern body mesh; pyramids live in the maps |
-| **Engraved Line** | Flash | Plain middle; the trough lives in the maps |
+| **None** | All shapes | Plain floor |
+| **Starburst** | All shapes | Radial facets remain in the mesh |
+| **Stippled** | All shapes | Ordinary no-pattern body mesh; pyramids live in the maps |
+| **Engraved Line** | Flash and Custom | Plain middle; the trough lives in the maps |
 
 <!-- Screenshot: patterns-family. The same rectangle with None, Starburst, and Stippled; a separate flash with Engraved Line. Lit and unlit. -->
 
@@ -63,7 +63,7 @@ The generator places only complete pyramids. A pyramid is omitted if its base wo
 
 ## Engraved Line
 
-On a flash, Engraved Line makes a narrow trough following an inset version of the floor's outline. As the outline is inset, its flat ends can close into points and its inward notches widen. The result resembles a lightning bolt engraved into the plastic.
+Engraved Line makes a narrow trough following an inset version of the floor's outline. As the outline is inset, its flat ends can close into points and its inward notches widen. On a flash, the result resembles a lightning bolt engraved into the plastic; a custom shape follows its own floor outline.
 
 | Parameter | Meaning |
 | --- | --- |
@@ -72,7 +72,7 @@ On a flash, Engraved Line makes a narrow trough following an inset version of th
 | **Depth** | Depth of the line at its middle, in VPX units. The default is 0.8. Zero removes its vertical cut. |
 | **Segments** | Steps down each side of the trough, from 1 to 16. One gives a V cut; additional steps approximate a rounded floor. The default is 1. The bake's Edge Bevel can soften the V cut. |
 
-Engraved Line is available only for Flash, and takes the place of the starburst or stipples. If the inset line cannot fit or crosses itself at a narrow part of the flash, the Inspector reports why. Reduce Inset when the inner outline collapses; increase clearance or reduce Width when its outer edge reaches beyond the floor.
+Engraved Line is available for Flash and Custom shapes, and takes the place of the starburst or stipples. If the inset line cannot fit or crosses itself at a narrow part of the outline, the Inspector reports why. Reduce Inset when the inner outline collapses; increase clearance or reduce Width when its outer edge reaches beyond the floor.
 
 <!-- Diagram: patterns-engraving. Flash outline, channel edge, and line center; cross-section showing Width, Depth, and Segments. -->
 <!-- Screenshot: patterns-engraving. Inset 4/7, Width 1/3, Depth 0.4/1.2, Segments 1/6, with an inset that fits each chosen flash. -->

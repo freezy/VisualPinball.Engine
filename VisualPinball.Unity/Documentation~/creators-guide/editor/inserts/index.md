@@ -14,9 +14,9 @@ Most standard inserts will be available in the **Asset Library**. Start there wh
 
 ## What you can make
 
-The generator supports **Triangle, Rectangle, Circle, Banana, Diamond, Flash, Bullet, and Arrow** outlines. Rounded corners, a recessed body, a surrounding channel, a bottom bevel, and holes give them the structure of molded inserts. The top-view preview helps you fit that structure before baking it.
+The generator supports **Triangle, Rectangle, Circle, Banana, Diamond, Flash, Bullet, and Arrow** outlines, plus **Custom** outlines supplied by a mesh. Rounded corners, a recessed body, a surrounding channel, a bottom bevel, and holes give them the structure of molded inserts. The top-view preview helps you fit that structure before baking it.
 
-Choose a plain surface, a radial **Starburst**, or a grid of **Stipples**. A flash can also have an **Engraved Line** following its outline. Patterns share the same body settings; they are described together on the [Patterns](patterns.md) page so their differences are easy to compare.
+Choose a plain surface, a radial **Starburst**, or a grid of **Stipples**. Flash and Custom shapes can also have an **Engraved Line** following the floor outline. Patterns share the same body settings; they are described together on the [Patterns](patterns.md) page so their differences are easy to compare.
 
 The **Insert Hybrid** material combines ordinary surface reflections with a baked internal glow and a virtual image of the lamp underneath. It supports colored plastic and clear plastic, independently adjustable reflection and refraction, and up to four lamps with their own colors and intensities. An optional **Insert Cover** material adds a smooth top, haze, and scratches. Its normal map can follow the playfield for continuous surface detail across the edge of the insert.
 
@@ -66,7 +66,7 @@ An **Insert Light** component connects those lamps to the game. You can preview 
 
 ## Saved tables and the player
 
-Inserts are supported by VPE's `.vpe` packaging. The finished mesh, materials, textures, and lamp state travel with the table. Re-importing into the Editor restores the generator settings and bake data, so the insert remains editable.
+Inserts are supported by VPE's `.vpe` packaging. The finished mesh, materials, textures, and lamp state travel with the table. Re-importing into the Editor restores the generator settings, custom source meshes, and bake data, so the insert remains editable.
 
 > [!NOTE]
 > **Editor data and runtime data.** The player uses the finished insert meshes stored in `table.glb`; it does not regenerate them or run Blender. The generation parameters and editor bake data live in `meta/inserts.json`, a sidecar read when the package is imported for editing. The hybrid and cover material properties are described by VPE's material serialization rather than being reduced to a generic glTF material.

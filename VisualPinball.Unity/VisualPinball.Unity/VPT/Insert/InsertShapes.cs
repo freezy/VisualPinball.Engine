@@ -35,6 +35,7 @@ namespace VisualPinball.Unity
 		Flash,
 		Bullet,
 		Arrow,
+		Custom,
 	}
 
 	/// <summary>

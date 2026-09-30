@@ -33,6 +33,8 @@ namespace VisualPinball.Unity.Editor
 	public class InsertInspector : UnityEditor.Editor
 	{
 		private SerializedProperty _shape;
+		private SerializedProperty _customMesh;
+		private SerializedProperty _customCorner;
 		private SerializedProperty _width;
 		private SerializedProperty _height;
 		private SerializedProperty _triangleBase;
@@ -108,6 +110,8 @@ namespace VisualPinball.Unity.Editor
 		private void OnEnable()
 		{
 			_shape = serializedObject.FindProperty("_shape");
+			_customMesh = serializedObject.FindProperty("_customMesh");
+			_customCorner = serializedObject.FindProperty("_customCorner");
 			_width = serializedObject.FindProperty("_width");
 			_height = serializedObject.FindProperty("_height");
 			_triangleBase = serializedObject.FindProperty("_triangleBase");
@@ -234,7 +238,7 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		private static readonly string[] Patterns = { "None", "Starburst", "Stippled" };
-		private static readonly string[] FlashPatterns = { "None", "Starburst", "Engraved Line", "Stippled" };
+		private static readonly string[] GroovePatterns = { "None", "Starburst", "Engraved Line", "Stippled" };
 
 		/// <summary>The pattern represented by the stored flags.</summary>
 		private static Pattern PatternOf(bool starburst, bool groove, bool stippled, bool flash)
@@ -292,6 +296,16 @@ namespace VisualPinball.Unity.Editor
 			SubHeader("Outline");
 			Field(_shape, "Shape");
 			switch ((InsertShape)_shape.enumValueIndex) {
+				case InsertShape.Custom:
+					using (new EditorGUILayout.HorizontalScope()) {
+						Field(_customMesh, "Source Mesh");
+						if (GUILayout.Button(new GUIContent("Reload", "Re-read the source mesh after changing or reimporting it."), GUILayout.Width(55f))) {
+							serializedObject.ApplyModifiedProperties();
+							foreach (var selected in targets.Cast<InsertComponent>()) { selected.RebuildMesh(); }
+						}
+					}
+					CornerField(_customCorner, "Corners");
+					break;
 				case InsertShape.Triangle:
 					Field(_width, "Width");
 					Field(_height, "Height");
@@ -398,16 +412,16 @@ namespace VisualPinball.Unity.Editor
 
 			SubHeader("Pattern");
 			// One choice for the flat surface, with only that pattern's settings shown.
-			var flash = !_shape.hasMultipleDifferentValues && (InsertShape)_shape.enumValueIndex == InsertShape.Flash;
-			var pattern = PatternOf(_starburst.boolValue, _flashGroove.boolValue, _stippled.boolValue, flash);
+			var engraved = !_shape.hasMultipleDifferentValues && (InsertShape)_shape.enumValueIndex is InsertShape.Flash or InsertShape.Custom;
+			var pattern = PatternOf(_starburst.boolValue, _flashGroove.boolValue, _stippled.boolValue, engraved);
 			var patternMixed = _starburst.hasMultipleDifferentValues || _flashGroove.hasMultipleDifferentValues || _stippled.hasMultipleDifferentValues || _shape.hasMultipleDifferentValues;
-			var choices = flash ? FlashPatterns : Patterns;
-			var index = flash ? (int)pattern : pattern == Pattern.Stippled ? 2 : (int)pattern;
+			var choices = engraved ? GroovePatterns : Patterns;
+			var index = engraved ? (int)pattern : pattern == Pattern.Stippled ? 2 : (int)pattern;
 			EditorGUI.showMixedValue = patternMixed;
 			EditorGUI.BeginChangeCheck();
 			var selection = EditorGUILayout.Popup(new GUIContent("Pattern", "The flat surface's pattern. Stippled and Engraved Line become normal maps after baking; Starburst stays in the mesh."), index, choices);
 			if (EditorGUI.EndChangeCheck()) {
-				var chosen = !flash && selection == 2 ? Pattern.Stippled : (Pattern)selection;
+				var chosen = !engraved && selection == 2 ? Pattern.Stippled : (Pattern)selection;
 				_starburst.boolValue = chosen == Pattern.Starburst;
 				_flashGroove.boolValue = chosen == Pattern.EngravedLine;
 				_stippled.boolValue = chosen == Pattern.Stippled;

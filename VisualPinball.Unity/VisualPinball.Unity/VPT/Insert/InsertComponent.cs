@@ -74,6 +74,14 @@ namespace VisualPinball.Unity
 		private InsertShape _shape = InsertShape.Triangle;
 
 		[SerializeField]
+		[Tooltip("A readable mesh containing one flat, closed outline or a filled planar surface. Its local dimensions are in meters; the outline is centered and aligned to the insert plane.")]
+		private Mesh _customMesh;
+
+		[SerializeField]
+		[Tooltip("Rounding applied to every corner of the custom outline. Zero preserves the source shape.")]
+		private InsertCornerSettings _customCorner = new(0f, 8);
+
+		[SerializeField]
 		[Min(0.01f)]
 		[Tooltip("Width in VPX units, measured on the finished shape with its rounded corners applied.")]
 		private float _width = InsertShapes.VpxUnitsPerInch;
@@ -392,6 +400,13 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public string Error { get; private set; }
 
+		/// <summary>The mesh supplying a custom outline, separate from the generated insert mesh.</summary>
+		public Mesh CustomMesh
+		{
+			get => _customMesh;
+			set { _customMesh = value; RebuildMesh(); }
+		}
+
 		/// <summary>The holes cut through the raised floor, as set.</summary>
 		public IReadOnlyList<InsertHole> Holes => _holes;
 
@@ -699,6 +714,7 @@ namespace VisualPinball.Unity
 				InsertShape.Flash => InsertShapes.FlashCorners(_flashWidth, _flashHeight, _flashTip, _flashNotch, _flashStep, _flashTipCorner, _flashSpikeCorner, _flashNotchCorner, warnings),
 				InsertShape.Bullet => InsertShapes.BulletCorners(_width, _height, _bulletTip, _bulletShoulder, _bulletShoulderCorner, _bulletBaseCorner, warnings),
 				InsertShape.Arrow => InsertShapes.ArrowCorners(_width, _height, _arrowTip, _arrowNotchDepth, _arrowNotchWidth, _arrowFootAngle, _arrowNotchCorner, _arrowInnerCorner, _arrowFootCorner, warnings),
+				InsertShape.Custom => InsertCustomShape.Corners(_customMesh, _customCorner),
 				_ => throw new InsertOutlineException($"Shape {_shape} has no outline builder yet."),
 			};
 			ArcCenter = new Vector2(arcCenter.x, arcCenter.y);
@@ -709,14 +725,14 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
-		/// The flash's engraved line: the outline eroded by the channel's width
+		/// The engraved line: the outline eroded by the channel's width
 		/// and the line's inset, which closes the flat ends up into points and
 		/// widens the notches, built into an outline of its own, its corners
 		/// sharp where the erosion sharpened them.
 		/// </summary>
 		private InsertGroove BuildGroove(InsertOutline outline, float channelWidth, List<string> warnings)
 		{
-			if (_shape != InsertShape.Flash || !_flashGroove || _stippled) {
+			if (_shape is not InsertShape.Flash and not InsertShape.Custom || !_flashGroove || _stippled) {
 				return null;
 			}
 			var half = math.max(_flashGrooveWidth, 0.1f) * 0.5f;
@@ -725,7 +741,7 @@ namespace VisualPinball.Unity
 			// band's edges meet there in mitres, as the engraver's line does.
 			var corners = InsertShapes.Erode(outline, inset, 0f, warnings);
 			if (corners == null) {
-				warnings.Add("The engraved line does not fit inside the flash: bring its inset down.");
+				warnings.Add("The engraved line does not fit inside the insert: bring its inset down.");
 				return null;
 			}
 			InsertOutline line;

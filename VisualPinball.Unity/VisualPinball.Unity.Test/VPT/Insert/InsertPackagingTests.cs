@@ -112,6 +112,7 @@ namespace VisualPinball.Unity.Test
 			Material body = null;
 			Material cover = null;
 			InsertBakeData staleBake = null;
+			Mesh customSource = null;
 			try {
 				source = new GameObject("Table");
 				source.AddComponent<TableComponent>();
@@ -124,9 +125,12 @@ namespace VisualPinball.Unity.Test
 				insert.SetCoverMaterial(cover);
 				var defaultBoundsMagnitude = insertGo.GetComponent<MeshFilter>().sharedMesh.bounds.size.magnitude;
 				var generator = new SerializedObject(insert);
-				generator.FindProperty("_shape").enumValueIndex = (int)InsertShape.Circle;
-				generator.FindProperty("_circleVertices").intValue = 19;
-				generator.FindProperty("_diameter").floatValue = 200f;
+				customSource = new Mesh { name = "Custom package outline" };
+				customSource.vertices = new[] { new Vector3(-0.06f, 0, -0.12f), new Vector3(0.06f, 0, -0.12f),
+					new Vector3(0.06f, 0, 0.12f), new Vector3(0, 0, 0.07f), new Vector3(-0.06f, 0, 0.12f) };
+				customSource.SetIndices(new[] { 0, 1, 1, 2, 2, 3, 3, 4, 4, 0 }, MeshTopology.Lines, 0);
+				generator.FindProperty("_shape").enumValueIndex = (int)InsertShape.Custom;
+				generator.FindProperty("_customMesh").objectReferenceValue = customSource;
 				generator.ApplyModifiedPropertiesWithoutUndo();
 				insert.RebuildMesh();
 				var light = insertGo.AddComponent<InsertLightComponent>();
@@ -149,11 +153,12 @@ namespace VisualPinball.Unity.Test
 				imported = importTask.Result;
 				var restoredInsert = imported.GetComponentInChildren<InsertComponent>(true);
 				Assert.That(restoredInsert, Is.Not.Null);
+				Assert.That(restoredInsert.CustomMesh, Is.Null, "the runtime reader must not load editor source meshes");
 				var restoredMesh = restoredInsert.GetComponent<MeshFilter>().sharedMesh;
 				Assert.That(restoredMesh, Is.Not.Null);
 				Assert.That(restoredMesh.subMeshCount, Is.EqualTo(2), "the disabled insert's cover must be present in the GLB");
 				Assert.That(restoredMesh.bounds.size.magnitude, Is.GreaterThan(defaultBoundsMagnitude * 2f),
-					"the packaged wide circle must not be replaced by the default generated triangle");
+					"the packaged custom insert must not be replaced by the default generated triangle");
 				Assert.That(new SerializedObject(restoredInsert).FindProperty("_usesPackagedMesh").boolValue, Is.True);
 				restoredInsert.RebuildMesh();
 				Assert.That(restoredInsert.GetComponent<MeshFilter>().sharedMesh, Is.SameAs(restoredMesh));
@@ -166,6 +171,7 @@ namespace VisualPinball.Unity.Test
 				if (body) { Object.DestroyImmediate(body); }
 				if (cover) { Object.DestroyImmediate(cover); }
 				if (staleBake) { Object.DestroyImmediate(staleBake); }
+				if (customSource) { Object.DestroyImmediate(customSource); }
 				File.Delete(packagePath);
 			}
 		}
