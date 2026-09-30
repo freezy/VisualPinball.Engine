@@ -64,14 +64,30 @@ def bake_optics(api, regular, flat, high, request, folder):
 	positive = strength[strength > 0]
 	white = max(float(np.percentile(positive, 99)) if len(positive) else 0, 1e-6)
 	strength = np.clip(strength / white, 0, 1)
-	# This term represents scattered light, so suppress Monte Carlo grain in
-	# that low-frequency response. Two texels stay inside the padded islands.
-	for axis in (0, 1):
-		padding = [(0, 0), (0, 0)]
-		padding[axis] = (2, 2)
-		padded = np.pad(strength, padding, mode='edge')
-		strength = sum(weight * np.take(padded, np.arange(strength.shape[axis]) + offset, axis=axis)
-			for offset, weight in enumerate((1, 4, 6, 4, 1))) / 16
+	# This term represents scattered light, low in frequency: what the bake
+	# has is grainy, and on a starburst it is stepped as well. Light bounces
+	# between the pleats, and across a facet the facets beyond the next ridge
+	# come into view and go out of it, so the bounced light steps in plateaus
+	# with straight edges; the edge bevel smears those into streaks along the
+	# facets, seen on every other pleat. A blur a few texels wide at the bake's
+	# resolution takes the steps out and leaves the facet-to-facet difference,
+	# which is forty texels across on a two inch insert. The blur is weighted
+	# by the islands' coverage so their edges are not darkened by the black
+	# between them, and the padding keeps the surface clear of that anyway.
+	sigma = 4.0 * request['TextureSize'] / 1024.0
+	radius = int(np.ceil(sigma * 3))
+	kernel = np.exp(-0.5 * (np.arange(-radius, radius + 1) / sigma) ** 2)
+	kernel /= kernel.sum()
+	coverage = (glow[:, :, 3] > 0).astype(np.float32)
+	def blur(values):
+		for axis in (0, 1):
+			padding = [(0, 0), (0, 0)]
+			padding[axis] = (radius, radius)
+			padded = np.pad(values, padding, mode='constant')
+			values = sum(weight * np.take(padded, np.arange(values.shape[axis]) + offset, axis=axis)
+				for offset, weight in enumerate(kernel))
+		return values
+	strength = blur(strength * coverage) / np.maximum(blur(coverage), 1e-6) * coverage
 
 	material = high.data.materials[0]
 	nodes, links = material.node_tree.nodes, material.node_tree.links
