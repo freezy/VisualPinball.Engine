@@ -104,6 +104,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _stippleWidth;
 		private SerializedProperty _stippleMargin;
 		private SerializedProperty _stippleWhole;
+		private SerializedProperty _stippleOffset;
 		private SerializedProperty _bottomBevel;
 		private SerializedProperty _bottomBevelSegments;
 		private SerializedProperty _holes;
@@ -199,6 +200,7 @@ namespace VisualPinball.Unity.Editor
 			_stippleWidth = serializedObject.FindProperty("_stippleWidth");
 			_stippleMargin = serializedObject.FindProperty("_stippleMargin");
 			_stippleWhole = serializedObject.FindProperty("_stippleWhole");
+			_stippleOffset = serializedObject.FindProperty("_stippleOffset");
 			_bottomBevel = serializedObject.FindProperty("_bottomBevel");
 			_bottomBevelSegments = serializedObject.FindProperty("_bottomBevelSegments");
 			_holes = serializedObject.FindProperty("_holes");
@@ -557,6 +559,7 @@ namespace VisualPinball.Unity.Editor
 				Field(_stippleHeight, "Stipple Height");
 				Field(_stippleWidth, "Stipple Width");
 				Field(_stippleMargin, "Stipple Margin");
+				Field(_stippleOffset, "Stipple Offset");
 				Field(_stippleWhole, "Whole Only");
 				if (targets.Length == 1 && target is InsertComponent single) {
 					EditorGUILayout.HelpBox(single.IsMiddleFlat

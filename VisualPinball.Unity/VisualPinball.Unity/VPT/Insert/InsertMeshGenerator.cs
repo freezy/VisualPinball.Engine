@@ -112,8 +112,11 @@ namespace VisualPinball.Unity
 			: RibWidth >= InsertRibs.MinWidth ? RibOffset : RingWidth >= InsertRings.MinWidth ? RingOffset
 			: GemSides >= InsertGem.MinSides ? GemOffset : 0f;
 
-		/// <summary>Height of the square pyramids above the flat surface; zero disables stippling.</summary>
+		/// <summary>Height of the square pyramids above the flat surface, or below it when negative; zero disables stippling.</summary>
 		public float StippleHeight;
+
+		/// <summary>How far the grid of pyramids is moved from centred on the surface.</summary>
+		public float2 StippleOffset;
 
 		/// <summary>Side length of each pyramid's square base.</summary>
 		public float StippleWidth;
@@ -366,7 +369,7 @@ namespace VisualPinball.Unity
 			// flat or with the starburst on it; holes need a raised floor to cut
 			// through, as the bevel needs a channel's floor to round into. With
 			// nothing to carve, it is a plain cap.
-			var carved = channel || body.HasRelief || body.Groove != null || body.StippleHeight > 0f;
+			var carved = channel || body.HasRelief || body.Groove != null || body.StippleHeight != 0f;
 			if (!channel) {
 				body.Holes = null;
 			}
@@ -1112,8 +1115,8 @@ namespace VisualPinball.Unity
 			// strips standing there instead. Kept out of the arrangement, the
 			// trough's sharp mitres and thin faces are never snapped.
 			var groove = starburst == null ? body.Groove : null;
-			var stipple = body.StippleHeight > 0f && starburst == null && groove == null
-				? new InsertStipple(polygon, body.Holes, body.StippleWidth, body.StippleMargin, body.StippleHeight, weld, body.StippleCut)
+			var stipple = body.StippleHeight != 0f && starburst == null && groove == null
+				? new InsertStipple(polygon, body.Holes, body.StippleWidth, body.StippleMargin, body.StippleHeight, weld, body.StippleCut, body.StippleOffset)
 				: null;
 			List<float2> bandOuter = null;
 			List<float2> bandInner = null;

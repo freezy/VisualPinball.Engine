@@ -18,9 +18,10 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	/// <summary>
-	/// A centred grid of square pyramids on an insert's finished flat surface:
-	/// only those that fit on it whole, or every one the surface reaches, cut
-	/// off at its outline.
+	/// A centred grid of square pyramids on an insert's finished flat surface,
+	/// moved by an offset: only those that fit on it whole, or every one the
+	/// surface reaches, cut off at its outline. A negative height sinks them
+	/// into the surface instead.
 	/// </summary>
 	internal sealed class InsertStipple
 	{
@@ -49,13 +50,13 @@ namespace VisualPinball.Unity
 			return false;
 		}
 
-		public InsertStipple(List<float2> polygon, InsertHole[] holes, float width, float margin, float height, float weld, bool cut = false)
+		public InsertStipple(List<float2> polygon, InsertHole[] holes, float width, float margin, float height, float weld, bool cut = false, float2 offset = default)
 		{
 			_polygon = polygon;
 			_cut = cut;
 			_width = math.max(width, 0.01f);
 			_step = _width + math.max(0f, margin);
-			_height = math.max(0f, height);
+			_height = height;
 			_tolerance = math.max(weld * 2f, 1e-4f);
 			_min = new float2(float.MaxValue);
 			_max = new float2(float.MinValue);
@@ -67,15 +68,21 @@ namespace VisualPinball.Unity
 			// Whole stipples: as many as fit across the span. Cut ones: enough
 			// to reach past it, so the outline cuts through the last on each side.
 			var across = (span + _step - _width) / _step;
-			_columns = math.max(0, (int)(cut ? math.ceil(across.x) : math.floor(across.x)));
-			_rows = math.max(0, (int)(cut ? math.ceil(across.y) : math.floor(across.y)));
-			if ((long)_columns * _rows > MaxCells) {
+			var columns = math.max(0, (int)(cut ? math.ceil(across.x) : math.floor(across.x)));
+			var rows = math.max(0, (int)(cut ? math.ceil(across.y) : math.floor(across.y)));
+			if ((long)(columns + 1) * (rows + 1) > MaxCells) {
 				throw new InsertOutlineException($"Stipple settings would make more than {MaxCells} cells. Increase the width or margin.");
 			}
+			// The grid is periodic, so an offset moves it by its remainder of a
+			// step, and one more column and row, starting a step early, cover
+			// what the move uncovers at the start.
+			var shift = offset - _step * math.floor(offset / _step);
+			_columns = columns > 0 ? columns + 1 : 0;
+			_rows = rows > 0 ? rows + 1 : 0;
 			_included = new bool[_columns * _rows];
 			_start = (_min + _max - new float2(
-				_columns > 0 ? _columns * _step - (_step - _width) : 0f,
-				_rows > 0 ? _rows * _step - (_step - _width) : 0f)) * 0.5f;
+				columns > 0 ? columns * _step - (_step - _width) : 0f,
+				rows > 0 ? rows * _step - (_step - _width) : 0f)) * 0.5f - _step + shift;
 			for (var row = 0; row < _rows; row++) {
 				for (var column = 0; column < _columns; column++) {
 					var lower = _start + new float2(column * _step, row * _step);

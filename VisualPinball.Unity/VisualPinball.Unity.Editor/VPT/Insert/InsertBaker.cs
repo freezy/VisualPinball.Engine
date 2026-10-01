@@ -270,9 +270,9 @@ namespace VisualPinball.Unity.Editor
 			try {
 				var layout = new InsertMeshLayout();
 				var body = insert.Generate(mesh, layout);
-				var relief = math.max(math.abs(body.ReliefOffset), body.StippleHeight);
+				var relief = math.max(math.abs(body.ReliefOffset), math.abs(body.StippleHeight));
 				InsertBakeRequest request;
-				if (body.StippleHeight > 0f) {
+				if (body.StippleHeight != 0f) {
 					plainMesh = new Mesh();
 					var plainLayout = new InsertMeshLayout();
 					insert.Generate(plainMesh, plainLayout, true);
@@ -308,7 +308,7 @@ namespace VisualPinball.Unity.Editor
 					TextureSize = request.TextureSize,
 					HybridOptics = request.HybridOptics,
 					UseHybridMaterial = useHybridMaterial,
-					PlainStipple = body.StippleHeight > 0f,
+					PlainStipple = body.StippleHeight != 0f,
 					OpticalStarburst = layout.OpticalStarburst,
 				};
 				job.Process = Run(blender, $"\"{requestPath}\"", job.Output);

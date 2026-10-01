@@ -391,8 +391,7 @@ namespace VisualPinball.Unity
 		private bool _stippled;
 
 		[SerializeField]
-		[Min(0.01f)]
-		[Tooltip("How far each stipple's apex rises above the flat surface, in VPX units.")]
+		[Tooltip("How far each stipple's apex rises above the flat surface, in VPX units. Negative sinks the stipples into the surface instead.")]
 		private float _stippleHeight = 1f;
 
 		[SerializeField]
@@ -408,6 +407,10 @@ namespace VisualPinball.Unity
 		[SerializeField]
 		[Tooltip("Only stipples that fit on the surface whole are built. Off builds every stipple the surface reaches and cuts it off at the outline.")]
 		private bool _stippleWhole = true;
+
+		[SerializeField]
+		[Tooltip("How far the grid of stipples is moved from centred on the surface, in VPX units.")]
+		private Vector2 _stippleOffset = Vector2.zero;
 
 		[SerializeField]
 		[Tooltip("Round cut-outs through the raised floor, down to the channel's floor. Positions are relative to the insert's origin, in VPX units. Without a channel there is no raised floor, and no holes.")]
@@ -618,7 +621,7 @@ namespace VisualPinball.Unity
 				var mesh = GetOrCreateMesh();
 				var layout = new InsertMeshLayout();
 				InsertMeshGenerator.Generate(outline, body, mesh, layout);
-				var plainStipple = body.StippleHeight > 0f && _bake != null
+				var plainStipple = body.StippleHeight != 0f && _bake != null
 					&& _bake.PlainStipple && _bake.Fits(layout.Hash);
 				if (plainStipple) {
 					var plainBody = body;
@@ -629,7 +632,7 @@ namespace VisualPinball.Unity
 						InsertMeshGenerator.Generate(outline, body, mesh, layout);
 					}
 				} else {
-					IsBakeFresh = body.StippleHeight <= 0f && _bake != null && _bake.TryApply(mesh, layout.Hash);
+					IsBakeFresh = body.StippleHeight == 0f && _bake != null && _bake.TryApply(mesh, layout.Hash);
 				}
 				// Bake-only relief never appears in the finished mesh. Stipples bake
 				// against the whole plain body; an engraved line replaces its middle.
@@ -933,6 +936,16 @@ namespace VisualPinball.Unity
 			var ribWidth = _ribbed && groove == null && !_stippled && starburstBursts < InsertStarburst.MinBursts ? math.max(_ribWidth, InsertRibs.MinWidth) : 0f;
 			var ringWidth = _ringed && groove == null && !_stippled && starburstBursts < InsertStarburst.MinBursts && ribWidth <= 0f ? math.max(_ringWidth, InsertRings.MinWidth) : 0f;
 
+			// Stipples rise no higher than the rim, and sink no deeper than the
+			// surface they are cut into stands above what lies below it.
+			var clearance = math.max(outline.WeldTolerance * 4f, 0.01f);
+			var stippleHeight = 0f;
+			if (_stippled) {
+				stippleHeight = _stippleHeight < 0f
+					? -math.min(math.max(0.01f, -_stippleHeight), math.max(0f, (channel ? channelDepth : depth) - clearance))
+					: math.min(math.max(0.01f, _stippleHeight), math.max(0f, depth - channelDepth - clearance));
+			}
+
 			var body = new InsertBody {
 				Depth = depth,
 				ChannelWidth = channelWidth,
@@ -955,18 +968,20 @@ namespace VisualPinball.Unity
 				GemRowLength = _gemRowLength,
 				GemSpread = _gemSpread,
 				GemOffset = _gemOffset,
-				StippleHeight = _stippled ? math.min(math.max(0.01f, _stippleHeight),
-					math.max(0f, depth - channelDepth - math.max(outline.WeldTolerance * 4f, 0.01f))) : 0f,
+				StippleHeight = stippleHeight,
 				StippleWidth = math.max(0.01f, _stippleWidth),
 				StippleMargin = math.max(0f, _stippleMargin),
 				StippleCut = !_stippleWhole,
+				StippleOffset = new float2(_stippleOffset.x, _stippleOffset.y),
 				Holes = channel ? _holes.ToArray() : null,
 				HoleSegments = _holeSegments,
 				BottomBevel = bottomBevel,
 				BottomBevelSegments = _bottomBevelSegments,
 			};
-			if (_stippled && body.StippleHeight < _stippleHeight - 1e-4f) {
-				warnings.Add($"Stipple height reduced to {body.StippleHeight:0.##} to stay below the rim.");
+			if (_stippled && math.abs(body.StippleHeight) < math.abs(_stippleHeight) - 1e-4f) {
+				warnings.Add(body.StippleHeight < 0f
+					? $"Stipple depth reduced to {-body.StippleHeight:0.##} to stay within the surface."
+					: $"Stipple height reduced to {body.StippleHeight:0.##} to stay below the rim.");
 			}
 
 			if (body.HasRelief) {

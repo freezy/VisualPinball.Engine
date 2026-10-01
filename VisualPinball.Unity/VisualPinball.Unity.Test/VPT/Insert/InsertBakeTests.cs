@@ -246,6 +246,85 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldMoveTheStipplesByTheOffset()
+		{
+			var outline = InsertOutlineBuilder.Build(InsertShapes.RectangleCorners(20f, 20f, new InsertCornerSettings(0f, 1)), 1);
+			var apexHeight = InsertMeshGenerator.ToLocal(float2.zero, -8f).y;
+			float[] Columns(float2 offset)
+			{
+				var body = new InsertBody { Depth = 10f, StippleHeight = 2f, StippleWidth = 4f, StippleMargin = 1f, StippleOffset = offset };
+				var mesh = new Mesh();
+				try {
+					InsertMeshGenerator.Generate(outline, body, mesh, new InsertMeshLayout());
+					return mesh.vertices.Where(v => math.abs(v.y - apexHeight) < 1e-5f).Select(InsertMeshGenerator.FromLocal)
+						.Select(p => math.round(p.x * 100f) / 100f).Distinct().OrderBy(x => x).ToArray();
+				} finally {
+					Object.DestroyImmediate(mesh);
+				}
+			}
+			Assert.That(Columns(float2.zero), Is.EqualTo(new[] { -7.5f, -2.5f, 2.5f, 7.5f }).Within(1e-3f));
+			// Moved a unit along X, the last column no longer fits whole and the
+			// one before the first still does not: three remain, a unit over.
+			Assert.That(Columns(new float2(1f, 0f)), Is.EqualTo(new[] { -6.5f, -1.5f, 3.5f }).Within(1e-3f));
+			// Moved a whole step, the grid is where it was.
+			Assert.That(Columns(new float2(5f, 0f)), Is.EqualTo(new[] { -7.5f, -2.5f, 2.5f, 7.5f }).Within(1e-3f));
+			Assert.That(Columns(new float2(-4f, 0f)), Is.EqualTo(new[] { -6.5f, -1.5f, 3.5f }).Within(1e-3f), "and a move back is a move on by the rest of the step");
+		}
+
+		[Test]
+		public void ShouldSinkTheStipplesForANegativeHeight()
+		{
+			var outline = InsertOutlineBuilder.Build(InsertShapes.RectangleCorners(20f, 20f, new InsertCornerSettings(0f, 1)), 1);
+			var body = new InsertBody { Depth = 10f, StippleHeight = -2f, StippleWidth = 4f, StippleMargin = 1f };
+			var mesh = new Mesh();
+			try {
+				var layout = new InsertMeshLayout();
+				InsertMeshGenerator.Generate(outline, body, mesh, layout);
+				var apexHeight = InsertMeshGenerator.ToLocal(float2.zero, -12f).y;
+				Assert.That(mesh.vertices.Where(v => math.abs(v.y - apexHeight) < 1e-5f).Select(InsertMeshGenerator.FromLocal).Distinct().Count(), Is.EqualTo(16), "the apexes lie two units under the surface");
+				var vertices = mesh.vertices;
+				var normals = mesh.normals;
+				var triangles = mesh.triangles;
+				var slopes = 0;
+				foreach (var face in layout.FlatTriangles) {
+					var a = triangles[face * 3];
+					var b = triangles[face * 3 + 1];
+					var c = triangles[face * 3 + 2];
+					Assert.That(vertices[a].y, Is.LessThanOrEqualTo(layout.FlatHeight + 1e-5f), "nothing rises above the surface");
+					if (math.min(vertices[a].y, math.min(vertices[b].y, vertices[c].y)) >= layout.FlatHeight - 1e-5f) {
+						continue;
+					}
+					var geometric = (Vector3)math.normalize((float3)Vector3.Cross(vertices[b] - vertices[a], vertices[c] - vertices[a]));
+					Assert.That(Vector3.Dot(geometric, normals[a]), Is.GreaterThan(0.99f), $"each dent's face keeps its own upward normal: face {face}");
+					Assert.That(normals[a].y, Is.GreaterThan(0.5f));
+					slopes++;
+				}
+				Assert.That(slopes, Is.GreaterThan(0));
+			} finally {
+				Object.DestroyImmediate(mesh);
+			}
+
+			// The component holds a dent to the surface it is cut into.
+			var go = new GameObject("Sunk stipples");
+			try {
+				var insert = go.AddComponent<InsertComponent>();
+				var settings = new UnityEditor.SerializedObject(insert);
+				settings.FindProperty("_starburst").boolValue = false;
+				settings.FindProperty("_stippled").boolValue = true;
+				settings.FindProperty("_stippleHeight").floatValue = -100f;
+				settings.ApplyModifiedPropertiesWithoutUndo();
+				insert.RebuildMesh();
+				Assert.That(insert.Error, Is.Null);
+				Assert.That(insert.Body.StippleHeight, Is.LessThan(0f));
+				Assert.That(-insert.Body.StippleHeight, Is.LessThanOrEqualTo(insert.Body.ChannelDepth > 0f ? insert.Body.ChannelDepth : insert.Body.Depth));
+				Assert.That(insert.Warnings, Has.Some.Contains("Stipple depth reduced"));
+			} finally {
+				Object.DestroyImmediate(go.GetComponent<MeshFilter>().sharedMesh);
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
 		public void ShouldAcceptZeroStippleMargin()
 		{
 			var outline = InsertOutlineBuilder.Build(InsertShapes.RectangleCorners(21f, 21f, new InsertCornerSettings(0f, 1)), 1);
