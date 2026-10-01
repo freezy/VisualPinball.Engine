@@ -233,59 +233,7 @@ namespace VisualPinball.Unity
 		/// which is the case when the centre is inside the polygon or on its edge,
 		/// so every spoke leaving it can share the one point.</returns>
 		public List<(float2 From, float2 To, bool FromCenter)> SpokeWithin(int index, IReadOnlyList<float2> polygon, float tolerance)
-		{
-			var direction = Direction(index);
-			var crossings = new List<float>();
-			for (var i = 0; i < polygon.Count; i++) {
-				var a = polygon[i];
-				var b = polygon[(i + 1) % polygon.Count];
-				// An edge crosses the spoke's line when its ends lie either side of
-				// it. Judged by the ends, a corner the spoke passes through counts
-				// once, for one of its two edges, and a corner the spoke only grazes,
-				// both edges on one side, counts twice or not at all.
-				var sideA = direction.x * (a.y - Center.y) - direction.y * (a.x - Center.x) > 0f;
-				var sideB = direction.x * (b.y - Center.y) - direction.y * (b.x - Center.x) > 0f;
-				if (sideA == sideB) {
-					continue;
-				}
-				var edge = b - a;
-				var denominator = direction.x * edge.y - direction.y * edge.x;
-				var delta = a - Center;
-				var t = (delta.x * edge.y - delta.y * edge.x) / denominator;
-				if (t >= 0f) {
-					crossings.Add(t);
-				}
-			}
-			crossings.Sort();
-
-			// An odd number of crossings ahead means the centre is inside, and the
-			// first part starts there.
-			var parts = new List<(float2, float2, bool)>();
-			var inside = crossings.Count % 2 == 1;
-			var index0 = 0;
-			var near = 0f;
-			if (!inside) {
-				if (crossings.Count == 0) {
-					return parts;
-				}
-				near = crossings[0];
-				index0 = 1;
-			}
-			for (var i = index0; i <= crossings.Count; i += 2) {
-				var far = i < crossings.Count ? crossings[i] : Radius;
-				far = math.min(far, Radius);
-				if (far - near > tolerance) {
-					var fromCenter = near <= tolerance;
-					parts.Add((fromCenter ? Center : Center + direction * near, Center + direction * far, fromCenter));
-				}
-				if (i + 1 < crossings.Count) {
-					near = crossings[i + 1];
-				} else {
-					break;
-				}
-			}
-			return parts;
-		}
+			=> RayWithin(Center, Direction(index), Radius, polygon, tolerance);
 
 		private int Mod(int index) => (index % Count + Count) % Count;
 	}

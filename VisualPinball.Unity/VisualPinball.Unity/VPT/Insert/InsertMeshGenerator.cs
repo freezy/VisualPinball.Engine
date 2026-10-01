@@ -63,11 +63,25 @@ namespace VisualPinball.Unity
 		/// <summary>How far the ribs' ridges rise above and grooves drop below the floor.</summary>
 		public float RibOffset;
 
-		/// <summary>Whether the raised floor carries a starburst or ribs.</summary>
-		public bool HasRelief => StarburstBursts >= InsertStarburst.MinBursts || RibWidth >= InsertRibs.MinWidth;
+		/// <summary>
+		/// Ridge to ridge of the concentric rings across the raised floor, in VPX
+		/// units, or zero for none. Rings come after the starburst and the ribs
+		/// when more than one is asked for.
+		/// </summary>
+		public float RingWidth;
+
+		/// <summary>Where the rings' centre sits, relative to the insert's origin.</summary>
+		public float2 RingCenter;
+
+		/// <summary>How far the rings' ridges rise above and grooves drop below the floor.</summary>
+		public float RingOffset;
+
+		/// <summary>Whether the raised floor carries a starburst, ribs or rings.</summary>
+		public bool HasRelief => StarburstBursts >= InsertStarburst.MinBursts || RibWidth >= InsertRibs.MinWidth || RingWidth >= InsertRings.MinWidth;
 
 		/// <summary>How far whichever relief the floor carries rises and falls about it.</summary>
-		public float ReliefOffset => StarburstBursts >= InsertStarburst.MinBursts ? StarburstOffset : RibWidth >= InsertRibs.MinWidth ? RibOffset : 0f;
+		public float ReliefOffset => StarburstBursts >= InsertStarburst.MinBursts ? StarburstOffset
+			: RibWidth >= InsertRibs.MinWidth ? RibOffset : RingWidth >= InsertRings.MinWidth ? RingOffset : 0f;
 
 		/// <summary>Height of the square pyramids above the flat surface; zero disables stippling.</summary>
 		public float StippleHeight;
@@ -731,7 +745,9 @@ namespace VisualPinball.Unity
 			var limit = body.StarburstLimit();
 			var offset = math.clamp(body.ReliefOffset, -limit, limit);
 			if (body.StarburstBursts < InsertStarburst.MinBursts) {
-				return InsertRibs.Cover(footprint, body.RibAngle, body.RibWidth, offset, centerDepth);
+				return body.RibWidth >= InsertRibs.MinWidth
+					? InsertRibs.Cover(footprint, body.RibAngle, body.RibWidth, offset, centerDepth)
+					: InsertRings.Cover(footprint, body.RingCenter, body.RingWidth, offset, centerDepth);
 			}
 
 			// A centre a hair inside the edge sends every spoke on the far side
@@ -1150,10 +1166,13 @@ namespace VisualPinball.Unity
 				// A relief face lies within a single facet, a triangle of the wheel
 				// or a strip between two ribs, which any point inside it names, and
 				// is flat in that facet's plane. It carries that plane's normal,
-				// which keeps the creases crisp.
+				// which keeps the creases crisp, unless the facet stands in for a
+				// curved surface, whose normal the relief gives point by point.
 				Vector3 normal = Vector3.up;
+				var sector = 0;
 				if (tier == Tier.Surface && starburst != null) {
-					normal = starburst.LocalNormal(starburst.SectorOf(middle));
+					sector = starburst.SectorOf(middle);
+					normal = starburst.LocalNormal(sector);
 				} else if (tier == Tier.Surface && stipple != null) {
 					normal = stipple.Normal(middle);
 				}
@@ -1165,7 +1184,8 @@ namespace VisualPinball.Unity
 				var first = buffers.Vertices.Count;
 				foreach (var point in face) {
 					var position = arrangement.Position(point);
-					buffers.Add(ToLocal(position, HeightOf(tier, position)), normal, (Vector2)position, chart);
+					var pointNormal = tier == Tier.Surface && starburst != null ? (Vector3)starburst.LocalNormal(sector, position) : normal;
+					buffers.Add(ToLocal(position, HeightOf(tier, position)), pointNormal, (Vector2)position, chart);
 				}
 				foreach (var piece in pieces) {
 					buffers.Triangle(first + piece.x, first + piece.y, first + piece.z);

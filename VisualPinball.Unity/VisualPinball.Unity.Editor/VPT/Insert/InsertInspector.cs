@@ -86,6 +86,10 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _ribAngle;
 		private SerializedProperty _ribWidth;
 		private SerializedProperty _ribOffset;
+		private SerializedProperty _ringed;
+		private SerializedProperty _ringCenter;
+		private SerializedProperty _ringWidth;
+		private SerializedProperty _ringOffset;
 		private SerializedProperty _stippled;
 		private SerializedProperty _stippleHeight;
 		private SerializedProperty _stippleWidth;
@@ -167,6 +171,10 @@ namespace VisualPinball.Unity.Editor
 			_ribAngle = serializedObject.FindProperty("_ribAngle");
 			_ribWidth = serializedObject.FindProperty("_ribWidth");
 			_ribOffset = serializedObject.FindProperty("_ribOffset");
+			_ringed = serializedObject.FindProperty("_ringed");
+			_ringCenter = serializedObject.FindProperty("_ringCenter");
+			_ringWidth = serializedObject.FindProperty("_ringWidth");
+			_ringOffset = serializedObject.FindProperty("_ringOffset");
 			_stippled = serializedObject.FindProperty("_stippled");
 			_stippleHeight = serializedObject.FindProperty("_stippleHeight");
 			_stippleWidth = serializedObject.FindProperty("_stippleWidth");
@@ -244,15 +252,16 @@ namespace VisualPinball.Unity.Editor
 			EngravedLine = 2,
 			Stippled = 3,
 			Ribbed = 4,
+			Rings = 5,
 		}
 
-		private static readonly Pattern[] PatternChoices = { Pattern.None, Pattern.Starburst, Pattern.Ribbed, Pattern.Stippled };
-		private static readonly Pattern[] GroovePatternChoices = { Pattern.None, Pattern.Starburst, Pattern.Ribbed, Pattern.EngravedLine, Pattern.Stippled };
-		private static readonly string[] Patterns = { "None", "Starburst", "Ribbed", "Stippled" };
-		private static readonly string[] GroovePatterns = { "None", "Starburst", "Ribbed", "Engraved Line", "Stippled" };
+		private static readonly Pattern[] PatternChoices = { Pattern.None, Pattern.Starburst, Pattern.Ribbed, Pattern.Rings, Pattern.Stippled };
+		private static readonly Pattern[] GroovePatternChoices = { Pattern.None, Pattern.Starburst, Pattern.Ribbed, Pattern.Rings, Pattern.EngravedLine, Pattern.Stippled };
+		private static readonly string[] Patterns = { "None", "Starburst", "Ribbed", "Rings", "Stippled" };
+		private static readonly string[] GroovePatterns = { "None", "Starburst", "Ribbed", "Rings", "Engraved Line", "Stippled" };
 
 		/// <summary>The pattern represented by the stored flags.</summary>
-		private static Pattern PatternOf(bool starburst, bool ribbed, bool groove, bool stippled, bool flash)
+		private static Pattern PatternOf(bool starburst, bool ribbed, bool ringed, bool groove, bool stippled, bool flash)
 		{
 			if (stippled) {
 				return Pattern.Stippled;
@@ -263,7 +272,10 @@ namespace VisualPinball.Unity.Editor
 			if (starburst) {
 				return Pattern.Starburst;
 			}
-			return ribbed ? Pattern.Ribbed : Pattern.None;
+			if (ribbed) {
+				return Pattern.Ribbed;
+			}
+			return ringed ? Pattern.Rings : Pattern.None;
 		}
 
 		private static void Field(SerializedProperty property, string label, bool children = false)
@@ -427,18 +439,19 @@ namespace VisualPinball.Unity.Editor
 			SubHeader("Pattern");
 			// One choice for the flat surface, with only that pattern's settings shown.
 			var engraved = !_shape.hasMultipleDifferentValues && (InsertShape)_shape.enumValueIndex is InsertShape.Flash or InsertShape.Custom;
-			var pattern = PatternOf(_starburst.boolValue, _ribbed.boolValue, _flashGroove.boolValue, _stippled.boolValue, engraved);
-			var patternMixed = _starburst.hasMultipleDifferentValues || _ribbed.hasMultipleDifferentValues || _flashGroove.hasMultipleDifferentValues || _stippled.hasMultipleDifferentValues || _shape.hasMultipleDifferentValues;
+			var pattern = PatternOf(_starburst.boolValue, _ribbed.boolValue, _ringed.boolValue, _flashGroove.boolValue, _stippled.boolValue, engraved);
+			var patternMixed = _starburst.hasMultipleDifferentValues || _ribbed.hasMultipleDifferentValues || _ringed.hasMultipleDifferentValues || _flashGroove.hasMultipleDifferentValues || _stippled.hasMultipleDifferentValues || _shape.hasMultipleDifferentValues;
 			var choices = engraved ? GroovePatterns : Patterns;
 			var choiceValues = engraved ? GroovePatternChoices : PatternChoices;
 			var index = System.Math.Max(0, System.Array.IndexOf(choiceValues, pattern));
 			EditorGUI.showMixedValue = patternMixed;
 			EditorGUI.BeginChangeCheck();
-			var selection = EditorGUILayout.Popup(new GUIContent("Pattern", "The flat surface's pattern. Stippled and Engraved Line become normal maps after baking; Starburst and Ribbed stay in the mesh."), index, choices);
+			var selection = EditorGUILayout.Popup(new GUIContent("Pattern", "The flat surface's pattern. Stippled and Engraved Line become normal maps after baking; Starburst, Ribbed and Rings stay in the mesh."), index, choices);
 			if (EditorGUI.EndChangeCheck()) {
 				var chosen = choiceValues[selection];
 				_starburst.boolValue = chosen == Pattern.Starburst;
 				_ribbed.boolValue = chosen == Pattern.Ribbed;
+				_ringed.boolValue = chosen == Pattern.Rings;
 				_flashGroove.boolValue = chosen == Pattern.EngravedLine;
 				_stippled.boolValue = chosen == Pattern.Stippled;
 				pattern = chosen;
@@ -465,6 +478,18 @@ namespace VisualPinball.Unity.Editor
 				Field(_ribAngle, "Angle");
 				Field(_ribWidth, "Width");
 				Field(_ribOffset, "Offset");
+			} else if (!patternMixed && pattern == Pattern.Rings) {
+				Field(_ringCenter, "Center");
+				if ((InsertShape)_shape.enumValueIndex == InsertShape.Banana && targets.Length == 1) {
+					var arc = ((InsertComponent)target).ArcCenter;
+					using (new EditorGUI.DisabledScope(_ringCenter.vector2Value == arc)) {
+						if (GUILayout.Button(new GUIContent("Centre on the Arc", "Puts the rings' centre where the banana's arc has its own, so the rings run along the band."))) {
+							_ringCenter.vector2Value = arc;
+						}
+					}
+				}
+				Field(_ringWidth, "Width");
+				Field(_ringOffset, "Offset");
 			} else if (!patternMixed && pattern == Pattern.EngravedLine) {
 				Field(_flashGrooveInset, "Inset");
 				Field(_flashGrooveWidth, "Width");
@@ -642,6 +667,30 @@ namespace VisualPinball.Unity.Editor
 					foreach (var (enter, exit) in Through(origin, along, island)) {
 						Handles.DrawAAPolyLine(crease == 0 ? 1.5f : 1f, Map(origin + along * enter), Map(origin + along * exit));
 					}
+				}
+			}
+
+			if (_ringed.boolValue && !_starburst.boolValue && !_ribbed.boolValue && _ringWidth.floatValue >= InsertRings.MinWidth) {
+				// Every ring that reaches the floor, ridges and grooves alike, drawn
+				// whole: a circle is cheap to look at and the floor's edge says
+				// where it stops. The centre is marked.
+				var center = new float2(_ringCenter.vector2Value.x, _ringCenter.vector2Value.y);
+				var reach = 0f;
+				foreach (var point in island) {
+					reach = math.max(reach, math.distance(point, center));
+				}
+				var half = _ringWidth.floatValue * 0.5f;
+				var rings = (int)math.ceil(reach / half);
+				var stride = math.max(1, (int)math.ceil(rings / 64f));
+				Handles.color = dark ? new Color(0.9f, 0.9f, 0.7f, 0.35f) : new Color(0.3f, 0.3f, 0.1f, 0.35f);
+				for (var ring = 1; ring <= rings; ring += stride) {
+					Handles.DrawWireDisc(Map(center), Vector3.forward, ring * half * scale);
+				}
+				var hub = Map(center);
+				if (rect.Contains(hub)) {
+					Handles.color = dark ? new Color(0.9f, 0.9f, 0.7f) : new Color(0.3f, 0.3f, 0.1f);
+					Handles.DrawAAPolyLine(1.5f, hub + Vector3.left * 5f, hub + Vector3.right * 5f);
+					Handles.DrawAAPolyLine(1.5f, hub + Vector3.up * 5f, hub + Vector3.down * 5f);
 				}
 			}
 
