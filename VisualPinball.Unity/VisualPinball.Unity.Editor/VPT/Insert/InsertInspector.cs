@@ -353,6 +353,11 @@ namespace VisualPinball.Unity.Editor
 						}
 					}
 					CornerField(_customCorner, "Corners");
+					if (targets.Length == 1 && target is InsertComponent custom && custom.Error != null && custom.CustomMesh != null) {
+						// The status box at the bottom says so too, but this is where
+						// the source is chosen, and the mesh in the scene is the old one.
+						EditorGUILayout.HelpBox(custom.Error, MessageType.Error);
+					}
 					break;
 				case InsertShape.Triangle:
 					Field(_width, "Width");

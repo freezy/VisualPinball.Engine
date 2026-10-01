@@ -172,6 +172,23 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ReadsTheLibrarysShapes()
+		{
+			// The shapes the asset library ships are read as they are imported,
+			// whatever their import's Read/Write says: the editor keeps the data.
+			var assets = UnityEditor.AssetDatabase.LoadAllAssetsAtPath("Packages/org.visualpinball.unity.assets/Assets/Library/Inserts/Insert Shapes.blend");
+			if (assets == null || assets.Length == 0) {
+				Assert.Ignore("Requires the asset library.");
+			}
+			var arrow = assets.OfType<Mesh>().FirstOrDefault(m => m.name.Contains("Arrow"));
+			Assert.That(arrow, Is.Not.Null);
+			Assert.That(InsertCustomShape.IsReadable(arrow), Is.True);
+			var corners = InsertCustomShape.Read(arrow);
+			Assert.That(corners.Length, Is.GreaterThanOrEqualTo(7), "an arrow's outline");
+			Assert.That(corners.Max(c => c.y) - corners.Min(c => c.y), Is.GreaterThan(corners.Max(c => c.x) - corners.Min(c => c.x)), "taller than wide");
+		}
+
+		[Test]
 		public void ReportsInvalidSourceInComponentAndRetainsLastGoodMesh()
 		{
 			var go = new GameObject("Custom insert");

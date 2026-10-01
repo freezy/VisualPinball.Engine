@@ -12,11 +12,28 @@ namespace VisualPinball.Unity
 	/// <summary>Reads one planar, closed boundary from a wire mesh or a filled surface.</summary>
 	public static class InsertCustomShape
 	{
+		/// <summary>
+		/// Whether the mesh's vertices can be read here: a player discards an
+		/// imported mesh's data unless its import keeps it readable, but the
+		/// editor keeps every imported mesh's data, whatever the import says.
+		/// </summary>
+		public static bool IsReadable(Mesh mesh)
+		{
+			if (mesh.isReadable) {
+				return true;
+			}
+#if UNITY_EDITOR
+			return UnityEditor.EditorUtility.IsPersistent(mesh);
+#else
+			return false;
+#endif
+		}
+
 		/// <summary>Returns centered, counter-clockwise generator coordinates in VPX units.</summary>
 		public static Vector2[] Read(Mesh mesh)
 		{
 			if (!mesh) { throw new InsertOutlineException("Assign a source mesh for the custom shape."); }
-			if (!mesh.isReadable) {
+			if (!IsReadable(mesh)) {
 				throw new InsertOutlineException("The custom shape mesh is not readable. Enable Read/Write in its import settings.");
 			}
 			var vertices = mesh.vertices;

@@ -798,6 +798,11 @@ namespace VisualPinball.Unity
 				_ => throw new InsertOutlineException($"Shape {_shape} has no outline builder yet."),
 			};
 			ArcCenter = new Vector2(arcCenter.x, arcCenter.y);
+			if (_shape == InsertShape.Custom && _customMesh != null && !_customMesh.isReadable) {
+				// The editor read it, a build could not: a build rebuilds its
+				// inserts as they come in.
+				warnings.Add("The source mesh's Read/Write is off: it works here, but a build cannot read it. Enable Read/Write in its import settings.");
+			}
 			// A circle's or a banana's sides are its sampling already; subdividing
 			// them further only multiplies wall charts and lets the inset clamp
 			// trip on the samples nearest each corner.
