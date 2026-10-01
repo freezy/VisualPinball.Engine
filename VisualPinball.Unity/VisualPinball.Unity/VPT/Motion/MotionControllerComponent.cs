@@ -21,14 +21,12 @@ using NLog;
 using Newtonsoft.Json;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.Scripting.APIUpdating;
 using VisualPinball.Engine.Game.Engines;
 using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
 	[Serializable]
-	[MovedFrom(true, sourceNamespace: "VisualPinball.Unity", sourceClassName: "ActuatorPositionSwitch")]
 	public sealed class MotionPositionSwitch
 	{
 		private const float MinimumPulseInterval = 0.001f;
@@ -150,7 +148,6 @@ namespace VisualPinball.Unity
 	[DisallowMultipleComponent]
 	// Publish follower transforms before PhysicsEngine samples kinematic poses.
 	[DefaultExecutionOrder(-100)]
-	[MovedFrom(true, sourceNamespace: "VisualPinball.Unity", sourceClassName: "ActuatorComponent")]
 	// Keep the serialized package name and coil ID so existing tables retain their mappings.
 	[PackAs("Actuator")]
 	[AddComponentMenu("Pinball/Mechs/Motion Controller")]

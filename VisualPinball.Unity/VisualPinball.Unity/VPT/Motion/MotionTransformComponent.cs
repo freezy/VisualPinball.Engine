@@ -16,7 +16,6 @@
 
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.Scripting.APIUpdating;
 
 namespace VisualPinball.Unity
 {
@@ -28,7 +27,6 @@ namespace VisualPinball.Unity
 	}
 
 	[DisallowMultipleComponent]
-	[MovedFrom(true, sourceNamespace: "VisualPinball.Unity", sourceClassName: "ActuatorTransformComponent")]
 	// Existing packages identify this component by its original serialized name.
 	[PackAs("ActuatorTransform")]
 	[AddComponentMenu("Pinball/Animation/Motion Transform")]

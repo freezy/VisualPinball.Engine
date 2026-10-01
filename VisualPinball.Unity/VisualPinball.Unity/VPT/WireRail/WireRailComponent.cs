@@ -22,7 +22,6 @@ using Unity.Mathematics;
 using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 using UnityEngine.Splines;
 using VisualPinball.Engine.VPT;
@@ -591,7 +590,6 @@ namespace VisualPinball.Unity
 	}
 
 	[Serializable]
-	[MovedFrom(true, sourceClassName: "WireRailBraceFixture")]
 	public sealed class WireRailRingFixture : WireRailFixture
 	{
 		internal void Restore(float diameter, bool hasCutout, float cutoutStartAngle,
@@ -837,7 +835,6 @@ namespace VisualPinball.Unity
 	/// retained so existing managed-reference fixture data remains loadable.
 	/// </summary>
 	[Serializable]
-	[MovedFrom(true, sourceClassName: "WireRailVBraceFixture")]
 	public sealed class WireRailCradleFixture : WireRailFixture
 	{
 		internal void Restore(float diameter, int ringDensity, float lateralOffset,
@@ -996,7 +993,6 @@ namespace VisualPinball.Unity
 	}
 
 	[Serializable]
-	[MovedFrom(true, sourceClassName: "WireRailCrossWireFixture")]
 	public sealed class WireRailRungFixture : WireRailFixture
 	{
 		internal void Restore(float diameter, int startRailIndex, int endRailIndex, float angle,
@@ -1086,7 +1082,6 @@ namespace VisualPinball.Unity
 	/// semicircle. The terminal arc is emitted into a separate collider submesh.
 	/// </summary>
 	[Serializable]
-	[MovedFrom(true, sourceClassName: "WireRailDropLoopFixture")]
 	public sealed class WireRailHairpinFixture : WireRailFixture
 	{
 		internal void Restore(float diameter, WireRailEndpoint endpoint, int firstRailIndex,
@@ -1216,7 +1211,6 @@ namespace VisualPinball.Unity
 	/// then bends them vertically down. The remaining rails can be shortened independently.
 	/// </summary>
 	[Serializable]
-	[MovedFrom(true, sourceClassName: "WireRailDropFixture")]
 	public sealed class WireRailElbowFixture : WireRailFixture
 	{
 		internal void Restore(float diameter, WireRailEndpoint endpoint, int firstRailIndex,
@@ -1476,7 +1470,6 @@ namespace VisualPinball.Unity
 	}
 
 	[Serializable]
-	[MovedFrom(true, sourceClassName: "WireRailLegFixture")]
 	public sealed class WireRailStandFixture : WireRailFixture
 	{
 		internal void Restore(float diameter, WireRailStandSide legSide, float lateralOffset,
