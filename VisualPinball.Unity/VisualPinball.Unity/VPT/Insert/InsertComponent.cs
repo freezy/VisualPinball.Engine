@@ -406,6 +406,10 @@ namespace VisualPinball.Unity
 		private float _stippleMargin = 0.5f;
 
 		[SerializeField]
+		[Tooltip("Only stipples that fit on the surface whole are built. Off builds every stipple the surface reaches and cuts it off at the outline.")]
+		private bool _stippleWhole = true;
+
+		[SerializeField]
 		[Tooltip("Round cut-outs through the raised floor, down to the channel's floor. Positions are relative to the insert's origin, in VPX units. Without a channel there is no raised floor, and no holes.")]
 		private List<InsertHole> _holes = new();
 
@@ -955,6 +959,7 @@ namespace VisualPinball.Unity
 					math.max(0f, depth - channelDepth - math.max(outline.WeldTolerance * 4f, 0.01f))) : 0f,
 				StippleWidth = math.max(0.01f, _stippleWidth),
 				StippleMargin = math.max(0f, _stippleMargin),
+				StippleCut = !_stippleWhole,
 				Holes = channel ? _holes.ToArray() : null,
 				HoleSegments = _holeSegments,
 				BottomBevel = bottomBevel,

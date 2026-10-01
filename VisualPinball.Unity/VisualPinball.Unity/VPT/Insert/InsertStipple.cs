@@ -17,10 +17,15 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	/// <summary>A centred grid of whole square pyramids on an insert's finished flat surface.</summary>
+	/// <summary>
+	/// A centred grid of square pyramids on an insert's finished flat surface:
+	/// only those that fit on it whole, or every one the surface reaches, cut
+	/// off at its outline.
+	/// </summary>
 	internal sealed class InsertStipple
 	{
 		private const int MaxCells = 4096;
+		private readonly bool _cut;
 		private readonly float2 _start;
 		private readonly List<float2> _polygon;
 		private readonly float2 _min;
@@ -44,9 +49,10 @@ namespace VisualPinball.Unity
 			return false;
 		}
 
-		public InsertStipple(List<float2> polygon, InsertHole[] holes, float width, float margin, float height, float weld)
+		public InsertStipple(List<float2> polygon, InsertHole[] holes, float width, float margin, float height, float weld, bool cut = false)
 		{
 			_polygon = polygon;
+			_cut = cut;
 			_width = math.max(width, 0.01f);
 			_step = _width + math.max(0f, margin);
 			_height = math.max(0f, height);
@@ -58,8 +64,11 @@ namespace VisualPinball.Unity
 				_max = math.max(_max, point);
 			}
 			var span = _max - _min;
-			_columns = math.max(0, (int)math.floor((span.x + _step - _width) / _step));
-			_rows = math.max(0, (int)math.floor((span.y + _step - _width) / _step));
+			// Whole stipples: as many as fit across the span. Cut ones: enough
+			// to reach past it, so the outline cuts through the last on each side.
+			var across = (span + _step - _width) / _step;
+			_columns = math.max(0, (int)(cut ? math.ceil(across.x) : math.floor(across.x)));
+			_rows = math.max(0, (int)(cut ? math.ceil(across.y) : math.floor(across.y)));
 			if ((long)_columns * _rows > MaxCells) {
 				throw new InsertOutlineException($"Stipple settings would make more than {MaxCells} cells. Increase the width or margin.");
 			}
@@ -70,7 +79,7 @@ namespace VisualPinball.Unity
 			for (var row = 0; row < _rows; row++) {
 				for (var column = 0; column < _columns; column++) {
 					var lower = _start + new float2(column * _step, row * _step);
-					_included[row * _columns + column] = Fits(polygon, holes, lower);
+					_included[row * _columns + column] = cut ? Reaches(polygon, holes, lower) : Fits(polygon, holes, lower);
 				}
 			}
 		}
@@ -100,6 +109,39 @@ namespace VisualPinball.Unity
 					var center = new float2(hole.Center.x, hole.Center.y);
 					var nearest = math.clamp(center, lo, hi);
 					if (math.distancesq(nearest, center) <= hole.Radius * hole.Radius) {
+						return false;
+					}
+				}
+			}
+			return true;
+		}
+
+		/// <summary>Whether any of the stipple lies on the surface: a corner inside it, or its outline crossing the base, and not all of it down a hole.</summary>
+		private bool Reaches(List<float2> polygon, InsertHole[] holes, float2 lower)
+		{
+			var lo = lower + _tolerance;
+			var hi = lower + _width - _tolerance;
+			if (math.any(hi <= lo)) {
+				return false;
+			}
+			var corners = new[] {
+				lo, new float2(hi.x, lo.y), hi, new float2(lo.x, hi.y),
+			};
+			var reaches = false;
+			foreach (var corner in corners) {
+				reaches |= InsertMeshGenerator.Contains(polygon, corner);
+			}
+			for (var i = 0; !reaches && i < polygon.Count; i++) {
+				reaches |= IntersectsBox(polygon[i], polygon[(i + 1) % polygon.Count], lo, hi);
+			}
+			if (!reaches) {
+				return false;
+			}
+			if (holes != null) {
+				var center = lower + _width * 0.5f;
+				var halfDiagonal = _width * 0.5f * math.SQRT2;
+				foreach (var hole in holes) {
+					if (hole.Radius > 0f && math.distance(center, new float2(hole.Center.x, hole.Center.y)) + halfDiagonal <= hole.Radius) {
 						return false;
 					}
 				}
@@ -172,8 +214,20 @@ namespace VisualPinball.Unity
 					}
 					var lo = _start + new float2(column * _step, row * _step);
 					var hi = lo + _width;
-					var apex = arrangement.AddPoint((lo + hi) * 0.5f);
-					foreach (var corner in new[] { lo, new float2(hi.x, lo.y), hi, new float2(lo.x, hi.y) }) {
+					var middle = (lo + hi) * 0.5f;
+					var corners = new[] { lo, new float2(hi.x, lo.y), hi, new float2(lo.x, hi.y) };
+					if (_cut) {
+						// Only what lies on the surface: the outline cuts the rest off,
+						// and the arrangement meets it there like any other line.
+						foreach (var corner in corners) {
+							foreach (var (from, to) in InsertRelief.SegmentWithin(corner, middle, _polygon, _tolerance)) {
+								_segments.Add(arrangement.AddSegment(arrangement.AddPoint(from), arrangement.AddPoint(to)));
+							}
+						}
+						continue;
+					}
+					var apex = arrangement.AddPoint(middle);
+					foreach (var corner in corners) {
 						_segments.Add(arrangement.AddSegment(arrangement.AddPoint(corner), apex));
 					}
 				}

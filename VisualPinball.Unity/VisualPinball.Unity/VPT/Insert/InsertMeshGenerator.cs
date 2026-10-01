@@ -122,6 +122,12 @@ namespace VisualPinball.Unity
 		public float StippleMargin;
 
 		/// <summary>
+		/// Whether every pyramid the surface reaches is built and cut off at its
+		/// outline, rather than only those that fit on it whole.
+		/// </summary>
+		public bool StippleCut;
+
+		/// <summary>
 		/// Round cut-outs through the raised floor, down to the channel's floor.
 		/// Without a channel there is no raised floor to cut, and they are ignored.
 		/// </summary>
@@ -1107,7 +1113,7 @@ namespace VisualPinball.Unity
 			// trough's sharp mitres and thin faces are never snapped.
 			var groove = starburst == null ? body.Groove : null;
 			var stipple = body.StippleHeight > 0f && starburst == null && groove == null
-				? new InsertStipple(polygon, body.Holes, body.StippleWidth, body.StippleMargin, body.StippleHeight, weld)
+				? new InsertStipple(polygon, body.Holes, body.StippleWidth, body.StippleMargin, body.StippleHeight, weld, body.StippleCut)
 				: null;
 			List<float2> bandOuter = null;
 			List<float2> bandInner = null;

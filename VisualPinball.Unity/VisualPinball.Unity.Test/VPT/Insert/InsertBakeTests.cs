@@ -198,6 +198,54 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldCutStipplesOffAtTheOutlineWhenAsked()
+		{
+			var outline = InsertOutlineBuilder.Build(InsertShapes.RectangleCorners(22f, 22f, new InsertCornerSettings(0f, 1)), 1);
+			var whole = new InsertBody { Depth = 10f, StippleHeight = 2f, StippleWidth = 4f, StippleMargin = 1f };
+			var cut = new InsertBody { Depth = 10f, StippleHeight = 2f, StippleWidth = 4f, StippleMargin = 1f, StippleCut = true };
+			var wholeMesh = new Mesh();
+			var cutMesh = new Mesh();
+			try {
+				InsertMeshGenerator.Generate(outline, whole, wholeMesh, new InsertMeshLayout());
+				var layout = new InsertMeshLayout();
+				InsertMeshGenerator.Generate(outline, cut, cutMesh, layout);
+				var apexHeight = InsertMeshGenerator.ToLocal(float2.zero, -8f).y;
+				// Four stipples fit across whole; cut, five reach across, the outer
+				// ones overhanging the edge by a VPX unit on each side.
+				Assert.That(wholeMesh.vertices.Count(v => math.abs(v.y - apexHeight) < 1e-5f) / 4, Is.EqualTo(16));
+				var apexes = cutMesh.vertices.Where(v => math.abs(v.y - apexHeight) < 1e-5f).Select(InsertMeshGenerator.FromLocal).Distinct().ToArray();
+				Assert.That(apexes.Length, Is.EqualTo(25));
+				Assert.That(apexes.Select(a => a.x).Distinct().OrderBy(x => x), Is.EqualTo(new[] { -10f, -5f, 0f, 5f, 10f }).Within(1e-4f));
+				// The outline cuts through the outer stipples: the surface is lifted
+				// where it meets the edge, and nowhere higher than an apex.
+				var vertices = cutMesh.vertices;
+				var triangles = cutMesh.triangles;
+				var lifted = new List<Vector3>();
+				foreach (var face in layout.FlatTriangles) {
+					for (var c = 0; c < 3; c++) {
+						var vertex = vertices[triangles[face * 3 + c]];
+						var plan = InsertMeshGenerator.FromLocal(vertex);
+						Assert.That(vertex.y, Is.LessThanOrEqualTo(apexHeight + 1e-5f));
+						if (math.abs(math.cmax(math.abs(plan)) - 11f) < 1e-3f && vertex.y > layout.FlatHeight + 1e-5f) {
+							lifted.Add(vertex);
+						}
+					}
+				}
+				Assert.That(lifted.Count, Is.GreaterThan(0), "cut stipples stand on the edge");
+				// And the walls climb with them: every lifted edge vertex has a wall
+				// vertex standing at the same place, so nothing is left open.
+				var flat = new HashSet<int>(layout.FlatTriangles.SelectMany(face => new[] { triangles[face * 3], triangles[face * 3 + 1], triangles[face * 3 + 2] }));
+				var others = Enumerable.Range(0, vertices.Length).Where(i => !flat.Contains(i)).Select(i => vertices[i]).ToList();
+				foreach (var vertex in lifted) {
+					Assert.That(others.Any(other => Vector3.Distance(other, vertex) < 1e-6f), Is.True, $"a wall vertex at {vertex:F6}");
+				}
+			} finally {
+				Object.DestroyImmediate(wholeMesh);
+				Object.DestroyImmediate(cutMesh);
+			}
+		}
+
+		[Test]
 		public void ShouldAcceptZeroStippleMargin()
 		{
 			var outline = InsertOutlineBuilder.Build(InsertShapes.RectangleCorners(21f, 21f, new InsertCornerSettings(0f, 1)), 1);

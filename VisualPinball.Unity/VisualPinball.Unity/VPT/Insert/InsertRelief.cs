@@ -190,7 +190,7 @@ namespace VisualPinball.Unity
 		/// <paramref name="to"/> lying inside a polygon, judged by where the
 		/// segment's line crosses the polygon's edges and whether its start is in.
 		/// </summary>
-		protected static IEnumerable<(float2 From, float2 To)> SegmentWithin(float2 from, float2 to, IReadOnlyList<float2> polygon, float tolerance)
+		internal static IEnumerable<(float2 From, float2 To)> SegmentWithin(float2 from, float2 to, IReadOnlyList<float2> polygon, float tolerance)
 		{
 			var length = math.distance(from, to);
 			if (length <= tolerance) {
