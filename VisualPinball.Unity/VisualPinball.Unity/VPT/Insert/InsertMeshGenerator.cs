@@ -97,6 +97,9 @@ namespace VisualPinball.Unity
 		/// <summary>How far out each further row of the gem's facets starts beyond the last, or zero for one row straight to the edge.</summary>
 		public float GemRowLength;
 
+		/// <summary>How evenly the gem's last row meets the edge: at zero its lines meet there two by two, at one evenly spaced.</summary>
+		public float GemSpread;
+
 		/// <summary>How far the gem's table rises above and its girdle drops below the floor.</summary>
 		public float GemOffset;
 
@@ -775,7 +778,7 @@ namespace VisualPinball.Unity
 					? InsertRibs.Cover(footprint, body.RibAngle, body.RibWidth, offset, centerDepth, body.RibRoundness)
 					: body.RingWidth >= InsertRings.MinWidth
 						? InsertRings.Cover(footprint, body.RingCenter, body.RingWidth, offset, centerDepth, body.RingRoundness)
-						: InsertGem.Cover(footprint, body.GemCenter, body.GemSides, body.GemTable, body.GemRowLength, offset, centerDepth);
+						: InsertGem.Cover(footprint, body.GemCenter, body.GemSides, body.GemTable, body.GemRowLength, body.GemSpread, offset, centerDepth);
 			}
 
 			// A centre a hair inside the edge sends every spoke on the far side

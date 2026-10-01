@@ -29,8 +29,8 @@ namespace VisualPinball.Unity.Test
 			new float2(size / 2f, size / 2f), new float2(-size / 2f, size / 2f),
 		};
 
-		private static InsertGem OneRow() => InsertGem.Cover(Square(40f), float2.zero, 8, 0.5f, 0f, 1.5f, -10f);
-		private static InsertGem Rowed() => InsertGem.Cover(Square(40f), float2.zero, 8, 0.4f, 5f, 1.5f, -10f);
+		private static InsertGem OneRow() => InsertGem.Cover(Square(40f), float2.zero, 8, 0.5f, 0f, 0f, 1.5f, -10f);
+		private static InsertGem Rowed() => InsertGem.Cover(Square(40f), float2.zero, 8, 0.4f, 5f, 0f, 1.5f, -10f);
 
 		[Test]
 		public void ShouldRunOneRowStraightToTheEdge()
@@ -157,19 +157,58 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldHoldTheTableAndTheSides()
 		{
-			var gem = InsertGem.Cover(Square(40f), float2.zero, 2, 2f, 0f, 1.5f, -10f);
+			var gem = InsertGem.Cover(Square(40f), float2.zero, 2, 2f, 0f, 0f, 1.5f, -10f);
 			Assert.That(gem.Sides, Is.EqualTo(InsertGem.MinSides));
 			Assert.That(gem.TableRadius / gem.Reach, Is.EqualTo(InsertGem.MaxTable).Within(1e-5f));
 			// A row length longer than the way out is one row to the edge.
-			var one = InsertGem.Cover(Square(40f), float2.zero, 8, 0.5f, 100f, 1.5f, -10f);
+			var one = InsertGem.Cover(Square(40f), float2.zero, 8, 0.5f, 100f, 0f, 1.5f, -10f);
 			Assert.That(one.Rows, Is.EqualTo(1));
 			Assert.That(one.Radius(1), Is.EqualTo(one.Reach).Within(1e-4f));
+			// A row length near zero asks for no more than the most rows, each at
+			// least the shortest row long.
+			var many = InsertGem.Cover(Square(40f), float2.zero, 8, 0.5f, 0.001f, 0f, 1.5f, -10f);
+			Assert.That(many.Rows, Is.EqualTo(InsertGem.MaxRows));
+			Assert.That(many.RowLength, Is.GreaterThanOrEqualTo(InsertGem.MinRowLength));
+			Assert.That(many.Radius(many.Rows), Is.EqualTo(many.Reach).Within(1e-4f));
+		}
+
+		[Test]
+		public void ShouldSpreadTheLastRowsLinesEvenlyAlongTheEdge()
+		{
+			var paired = OneRow();
+			var even = InsertGem.Cover(Square(40f), float2.zero, 8, 0.5f, 0f, 1f, 1.5f, -10f);
+			// Unspread, the two lines from neighbouring corners meet at one point
+			// of the outermost ring; spread, every point is a side's quarter
+			// turn from the next, sixteen of them evenly round.
+			Assert.That(math.distance(paired.Edge(2, true), paired.Edge(3, false)), Is.LessThan(1e-4f));
+			Assert.That(even.SpreadAngle, Is.EqualTo(math.PI / 16f).Within(1e-6f));
+			for (var i = 0; i < 8; i++) {
+				var a = even.Edge(i, false) - even.Center;
+				var b = even.Edge(i, true) - even.Center;
+				var c = even.Edge(i + 1, false) - even.Center;
+				Assert.That(math.acos(math.dot(math.normalize(a), math.normalize(b))), Is.EqualTo(math.PI / 8f).Within(1e-4f));
+				Assert.That(math.acos(math.dot(math.normalize(b), math.normalize(c))), Is.EqualTo(math.PI / 8f).Within(1e-4f));
+			}
+			// The facet off a side is a trapezoid now, and still one plane: its
+			// fourth corner lies on it, at the edge's depth.
+			Assert.That(even.DepthInSector(even.OutwardSector(0, 2), even.Edge(3, false)), Is.EqualTo(even.EdgeDepth).Within(1e-4f));
+			Assert.That(even.DepthInSector(even.OutwardSector(0, 2), even.Edge(2, true)), Is.EqualTo(even.EdgeDepth).Within(1e-4f));
+			// Just inside an edge point, the facet off the side lies towards the
+			// side's middle and the facet off the corner the other way.
+			var edge = even.Edge(2, true);
+			var sideways = new float2(-edge.y, edge.x) / math.length(edge) * 1.5f;
+			Assert.That(even.SectorOf(edge * 0.98f + sideways), Is.EqualTo(even.OutwardSector(0, 2)));
+			Assert.That(even.SectorOf(edge * 0.98f - sideways), Is.EqualTo(even.InwardSector(0, 2)));
+			// The outermost ring's sides still clear the square.
+			Assert.That(even.Reach * math.cos(math.PI / 16f), Is.GreaterThan(20f * math.SQRT2));
+			Assert.That(even.Reach, Is.LessThan(paired.Reach), "and need not lie as far out as the paired ring's longer sides");
+			Assert.That(even.CreasesWithin(Square(40f), 1e-4f).Count(), Is.EqualTo(24));
 		}
 
 		[Test]
 		public void ShouldDescribeTheGemToTheMaterial()
 		{
-			var gem = InsertGem.Cover(Square(40f), new float2(5f, -3f), 8, 0.5f, 0f, 1.5f, -10f);
+			var gem = InsertGem.Cover(Square(40f), new float2(5f, -3f), 8, 0.5f, 0f, 0f, 1.5f, -10f);
 			var optical = gem.Optical();
 			Assert.That(optical.z, Is.EqualTo(2008f), "the sides past two thousand, so the material knows a gem from a wheel");
 			var centre = InsertMeshGenerator.ToLocal(new float2(5f, -3f), -11.5f);

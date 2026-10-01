@@ -32,10 +32,14 @@ namespace VisualPinball.Unity
 	/// a row are the triangles between two rings: one off every side of the
 	/// inner ring out to the point beyond it, and one off every point of the
 	/// inner ring in between, its base on the outer ring. The outermost ring
-	/// lies beyond the surface, so the last row always reaches its edge. One
-	/// row, the table's sides running straight out to the edge, is the usual
-	/// insert; a row length adds a ring every that far out, which is how a
-	/// brilliant's crown is cut.
+	/// lies beyond the surface, so the last row always reaches its edge, and
+	/// it can hold two points where the others hold one, spread either side
+	/// of where the one would be, so the lines of the last row meet the edge
+	/// evenly instead of two by two; the facet off a side is then a trapezoid,
+	/// its outer side parallel to the inner, which keeps it flat. One row, the
+	/// table's sides running straight out to the edge, is the usual insert; a
+	/// row length adds a ring every that far out, which is how a brilliant's
+	/// crown is cut.
 	/// </remarks>
 	public class InsertGem : InsertRelief
 	{
@@ -45,6 +49,10 @@ namespace VisualPinball.Unity
 
 		/// <summary>The largest share of the way out to the edge the table's corners can take.</summary>
 		public const float MaxTable = 0.9f;
+
+		/// <summary>The shortest row, so a slider dragged near zero cannot ask for rings by the hundred, and the most rows there can be.</summary>
+		public const float MinRowLength = 1f;
+		public const int MaxRows = 12;
 
 		private readonly float2 _center;
 		private readonly float _centerDepth;
@@ -65,6 +73,17 @@ namespace VisualPinball.Unity
 		/// <summary>The radius of the outermost ring, beyond every point of the surface.</summary>
 		public readonly float Reach;
 
+		/// <summary>
+		/// How far the outermost ring's two points either side of where one
+		/// point would be are spread apart, as a share of the way to evenly
+		/// spaced: at zero they are one point, at one every point of the ring
+		/// is as far from the next as from the last.
+		/// </summary>
+		public readonly float Spread;
+
+		/// <summary>The angle from where one point of the outermost ring would be to each of its two, in radians.</summary>
+		public float SpreadAngle => math.PI / Sides * (1f - 0.5f * Spread);
+
 		public override float2 Center => _center;
 		public override float CenterDepth => _centerDepth;
 		public override float Offset => _offset;
@@ -75,7 +94,7 @@ namespace VisualPinball.Unity
 		/// <summary>The depth of the outermost ring, the offset below the middle plane.</summary>
 		public float EdgeDepth => _centerDepth - _offset;
 
-		private InsertGem(float2 center, int sides, float tableRadius, float rowLength, int rows, float reach, float offset, float centerDepth)
+		private InsertGem(float2 center, int sides, float tableRadius, float rowLength, int rows, float reach, float spread, float offset, float centerDepth)
 		{
 			_center = center;
 			Sides = sides;
@@ -83,6 +102,7 @@ namespace VisualPinball.Unity
 			RowLength = rowLength;
 			Rows = rows;
 			Reach = reach;
+			Spread = spread;
 			_offset = offset;
 			_centerDepth = centerDepth;
 		}
@@ -93,9 +113,9 @@ namespace VisualPinball.Unity
 		/// of the way out to the edge, and a ring every <paramref name="rowLength"/>
 		/// beyond the table's sides, or none before the edge when that is zero;
 		/// the outermost ring sits just beyond every point of
-		/// <paramref name="footprint"/>.
+		/// <paramref name="footprint"/>, its points spread by <paramref name="spread"/>.
 		/// </summary>
-		public static InsertGem Cover(IReadOnlyList<float2> footprint, float2 center, int sides, float table, float rowLength, float offset, float centerDepth)
+		public static InsertGem Cover(IReadOnlyList<float2> footprint, float2 center, int sides, float table, float rowLength, float spread, float offset, float centerDepth)
 		{
 			if (footprint.Count == 0) {
 				throw new InsertOutlineException("A gem needs a surface to cover.");
@@ -109,19 +129,25 @@ namespace VisualPinball.Unity
 				throw new InsertOutlineException("The surface the gem should cover has no size.");
 			}
 			// The rows end on the outermost ring's sides, which must clear the
-			// surface, not only its points.
+			// surface, not only its points: the widest side is the one spanning
+			// the larger of the two angles its points are spread at.
+			spread = math.saturate(spread);
+			var half = math.PI / sides * (1f - 0.5f * spread);
+			var widest = math.max(half, math.PI / sides - half);
 			var cos = math.cos(math.PI / sides);
-			reach *= 1.01f / cos;
-			var tableRadius = reach * math.clamp(table, 0.05f, MaxTable);
+			var tableRadius = reach * 1.01f / cos * math.clamp(table, 0.05f, MaxTable);
 			var apothem = tableRadius * cos;
+			reach = math.max(reach * 1.01f / math.cos(widest), apothem + MinRowLength);
 			var rows = 1;
 			if (rowLength > InsertOutlineBuilder.Epsilon && apothem + rowLength < reach) {
-				rows = (int)math.ceil((reach - apothem) / rowLength);
+				rowLength = math.max(rowLength, MinRowLength);
+				rows = math.clamp((int)math.ceil((reach - apothem) / rowLength), 1, MaxRows);
+				rowLength = math.max(rowLength, (reach - apothem) / rows);
 				reach = apothem + rows * rowLength;
 			} else {
 				rowLength = reach - apothem;
 			}
-			return new InsertGem(center, sides, tableRadius, rowLength, rows, reach, offset, centerDepth);
+			return new InsertGem(center, sides, tableRadius, rowLength, rows, reach, spread, offset, centerDepth);
 		}
 
 		/// <summary>The radius of ring <paramref name="ring"/>'s points: the table's corners, then a row length further out each.</summary>
@@ -137,8 +163,23 @@ namespace VisualPinball.Unity
 			return new float2(math.cos(angle), math.sin(angle));
 		}
 
-		/// <summary>Point <paramref name="index"/> of ring <paramref name="ring"/>.</summary>
+		/// <summary>Point <paramref name="index"/> of ring <paramref name="ring"/>, short of the outermost, which has two a point.</summary>
 		public float2 Point(int ring, int index) => _center + Direction(ring, index) * Radius(ring);
+
+		/// <summary>
+		/// The outermost ring's point spread <paramref name="after"/> or before
+		/// where its point <paramref name="index"/> would be: at no spread the
+		/// two are one, where the ring before's point <paramref name="index"/>
+		/// and the next have their lines meet.
+		/// </summary>
+		public float2 Edge(int index, bool after)
+		{
+			var angle = math.PI * 2f * (index + ((Rows - 1) & 1) * 0.5f) / Sides + (after ? SpreadAngle : -SpreadAngle);
+			return _center + new float2(math.cos(angle), math.sin(angle)) * Reach;
+		}
+
+		/// <summary>Whether row <paramref name="row"/> is the last, whose outer ring is the spread one.</summary>
+		private bool Last(int row) => row == Rows - 1;
 
 		/// <summary>Which way the middle of ring <paramref name="ring"/>'s side from point <paramref name="index"/> to the next lies.</summary>
 		public float2 SideDirection(int ring, int index)
@@ -185,10 +226,12 @@ namespace VisualPinball.Unity
 			// the line from that point out to the outer one.
 			var angle = math.atan2(delta.y, delta.x) / (math.PI * 2f) * Sides - (row & 1) * 0.5f;
 			var span = (int)math.floor(angle);
-			var outer = Point(row + 1, span + (row & 1)) - _center;
-			var after = Cross(outer, delta) > 0f;
-			var inner = Point(row, after ? span + 1 : span) - _center;
 			var sideMiddle = SideDirection(row, span) * Radius(row) * math.cos(math.PI / Sides);
+			var after = Cross(sideMiddle, delta) > 0f;
+			var inner = Point(row, after ? span + 1 : span) - _center;
+			// In the last row the nearer point's own line out to the edge is the
+			// boundary; before it, the line to the one point beyond the span.
+			var outer = (Last(row) ? Edge(after ? span + 1 : span, !after) : Point(row + 1, span + (row & 1))) - _center;
 			var test = Cross(outer - inner, delta - inner);
 			return test * Cross(outer - inner, sideMiddle - inner) > 0f
 				? OutwardSector(row, span)
@@ -204,13 +247,18 @@ namespace VisualPinball.Unity
 			var row = (sector - 1) / (2 * Sides);
 			var rest = (sector - 1) % (2 * Sides);
 			if (rest < Sides) {
+				// Off a side: a triangle to the one point beyond, or in the last
+				// row a trapezoid, whose fourth corner lies in the same plane.
+				var beyond = Last(row) ? Edge(rest, true) : Point(row + 1, rest + (row & 1));
 				return (new float3(Point(row, rest), RingDepth(row)), new float3(Point(row, rest + 1), RingDepth(row)),
-					new float3(Point(row + 1, rest + (row & 1)), RingDepth(row + 1)));
+					new float3(beyond, RingDepth(row + 1)));
 			}
 			var index = rest - Sides;
+			var before = Last(row) ? Edge(index, false) : Point(row + 1, index - 1 + (row & 1));
+			var next = Last(row) ? Edge(index, true) : Point(row + 1, index + (row & 1));
 			return (new float3(Point(row, index), RingDepth(row)),
-				new float3(Point(row + 1, index - 1 + (row & 1)), RingDepth(row + 1)),
-				new float3(Point(row + 1, index + (row & 1)), RingDepth(row + 1)));
+				new float3(before, RingDepth(row + 1)),
+				new float3(next, RingDepth(row + 1)));
 		}
 
 		public override float DepthAt(float2 position) => DepthInSector(SectorOf(position), position);
@@ -246,10 +294,10 @@ namespace VisualPinball.Unity
 			for (var ring = 0; ring < Rows; ring++) {
 				for (var index = 0; index < Sides; index++) {
 					var point = Point(ring, index);
+					var before = Last(ring) ? Edge(index, false) : Point(ring + 1, index - 1 + (ring & 1));
+					var next = Last(ring) ? Edge(index, true) : Point(ring + 1, index + (ring & 1));
 					foreach (var (from, to) in Segments(polygon, tolerance,
-						(point, Point(ring, index + 1)),
-						(point, Point(ring + 1, index - 1 + (ring & 1))),
-						(point, Point(ring + 1, index + (ring & 1))))) {
+						(point, Point(ring, index + 1)), (point, before), (point, next))) {
 						yield return (from, to, false);
 					}
 				}

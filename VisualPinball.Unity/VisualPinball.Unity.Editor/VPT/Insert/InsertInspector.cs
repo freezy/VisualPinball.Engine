@@ -97,6 +97,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _gemSides;
 		private SerializedProperty _gemTable;
 		private SerializedProperty _gemRowLength;
+		private SerializedProperty _gemSpread;
 		private SerializedProperty _gemOffset;
 		private SerializedProperty _stippled;
 		private SerializedProperty _stippleHeight;
@@ -190,6 +191,7 @@ namespace VisualPinball.Unity.Editor
 			_gemSides = serializedObject.FindProperty("_gemSides");
 			_gemTable = serializedObject.FindProperty("_gemTable");
 			_gemRowLength = serializedObject.FindProperty("_gemRowLength");
+			_gemSpread = serializedObject.FindProperty("_gemSpread");
 			_gemOffset = serializedObject.FindProperty("_gemOffset");
 			_stippled = serializedObject.FindProperty("_stippled");
 			_stippleHeight = serializedObject.FindProperty("_stippleHeight");
@@ -518,6 +520,7 @@ namespace VisualPinball.Unity.Editor
 				Field(_gemSides, "Sides");
 				Field(_gemTable, "Table");
 				Field(_gemRowLength, "Row Length");
+				Field(_gemSpread, "Spread");
 				Field(_gemOffset, "Offset");
 			} else if (!patternMixed && pattern == Pattern.EngravedLine) {
 				Field(_flashGrooveInset, "Inset");
@@ -730,7 +733,7 @@ namespace VisualPinball.Unity.Editor
 				var center = new float2(_gemCenter.vector2Value.x, _gemCenter.vector2Value.y);
 				InsertGem gem = null;
 				try {
-					gem = InsertGem.Cover(island, center, _gemSides.intValue, _gemTable.floatValue, _gemRowLength.floatValue, 0f, 0f);
+					gem = InsertGem.Cover(island, center, _gemSides.intValue, _gemTable.floatValue, _gemRowLength.floatValue, _gemSpread.floatValue, 0f, 0f);
 				} catch (InsertOutlineException) {
 				}
 				if (gem != null) {

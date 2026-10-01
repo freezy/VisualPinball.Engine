@@ -377,6 +377,11 @@ namespace VisualPinball.Unity
 		private float _gemRowLength;
 
 		[SerializeField]
+		[Range(0f, 1f)]
+		[Tooltip("How evenly the facets meet the edge. At zero the lines from two neighbouring corners meet the edge at one point; at one every line meets it as far from the next as from the last, and the facet off each side runs out to the edge as a trapezoid.")]
+		private float _gemSpread = 1f;
+
+		[SerializeField]
 		[Min(0f)]
 		[Tooltip("How far the table rises above and the girdle drops below the floor, in VPX units.")]
 		private float _gemOffset = 3f;
@@ -939,6 +944,7 @@ namespace VisualPinball.Unity
 				GemCenter = new float2(_gemCenter.x, _gemCenter.y),
 				GemTable = _gemTable,
 				GemRowLength = _gemRowLength,
+				GemSpread = _gemSpread,
 				GemOffset = _gemOffset,
 				StippleHeight = _stippled ? math.min(math.max(0.01f, _stippleHeight),
 					math.max(0f, depth - channelDepth - math.max(outline.WeldTolerance * 4f, 0.01f))) : 0f,
