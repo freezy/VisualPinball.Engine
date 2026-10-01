@@ -29,56 +29,80 @@ namespace VisualPinball.Unity.Test
 			new float2(size / 2f, size / 2f), new float2(-size / 2f, size / 2f),
 		};
 
-		private static InsertGem Brilliant() => InsertGem.Cover(Square(40f), float2.zero, 8, 0.5f, 1.5f, -10f);
+		private static InsertGem OneRow() => InsertGem.Cover(Square(40f), float2.zero, 8, 0.5f, 0f, 1.5f, -10f);
+		private static InsertGem Rowed() => InsertGem.Cover(Square(40f), float2.zero, 8, 0.4f, 5f, 1.5f, -10f);
 
 		[Test]
-		public void ShouldSitTheTableFlatAndSlopeTheFacetsOutward()
+		public void ShouldRunOneRowStraightToTheEdge()
 		{
-			var gem = Brilliant();
+			var gem = OneRow();
 			Assert.That(gem.Sides, Is.EqualTo(8));
-			Assert.That(gem.Reach, Is.GreaterThan(20f * math.SQRT2), "the girdle lies beyond the square's corners");
+			Assert.That(gem.Rows, Is.EqualTo(1));
+			Assert.That(gem.Reach * math.cos(math.PI / 8f), Is.GreaterThan(20f * math.SQRT2), "the outermost ring's sides clear the square's corners");
+			Assert.That(gem.Radius(1), Is.EqualTo(gem.Reach).Within(1e-4f));
 			Assert.That(gem.TableRadius, Is.EqualTo(gem.Reach * 0.5f).Within(1e-4f));
-			// The table is a plateau the offset above the middle plane.
+			// The table is a plateau the offset above the middle plane; the one
+			// row drops from it straight to the edge.
 			Assert.That(gem.DepthAt(float2.zero), Is.EqualTo(-8.5f).Within(1e-4f));
-			Assert.That(gem.DepthAt(gem.Direction(3) * (gem.TableRadius - 1e-3f)), Is.EqualTo(-8.5f).Within(1e-3f));
-			// Out along a corner's line the kite slopes straight down to the girdle.
-			var halfway = gem.Direction(3) * math.lerp(gem.TableRadius, gem.Reach, 0.5f);
-			Assert.That(gem.DepthAt(halfway), Is.EqualTo(-10f).Within(1e-3f));
-			Assert.That(gem.DepthAt(gem.Direction(3) * (gem.Reach - 1e-3f)), Is.EqualTo(-11.5f).Within(1e-2f));
-			// Out along a junction's line the star facet drops to the junction and
-			// the girdle facets on from there, the junction between the two.
-			Assert.That(gem.JunctionDepth, Is.LessThan(-8.5f));
-			Assert.That(gem.JunctionDepth, Is.GreaterThan(-11.5f));
-			Assert.That(gem.DepthAt(gem.Junction(2)), Is.EqualTo(gem.JunctionDepth).Within(1e-3f));
+			Assert.That(gem.DepthAt(gem.Direction(0, 3) * (gem.TableRadius - 1e-3f)), Is.EqualTo(-8.5f).Within(1e-3f));
+			Assert.That(gem.RingDepth(1), Is.EqualTo(-11.5f).Within(1e-5f));
 			var apothem = gem.TableRadius * math.cos(math.PI / 8f);
-			Assert.That(gem.DepthAt(gem.Bisector(2) * math.lerp(apothem, gem.JunctionRadius, 0.5f)), Is.EqualTo(math.lerp(-8.5f, gem.JunctionDepth, 0.5f)).Within(1e-3f));
-			Assert.That(gem.DepthAt(gem.Bisector(2) * math.lerp(gem.JunctionRadius, gem.Reach, 0.5f)), Is.EqualTo(math.lerp(gem.JunctionDepth, -11.5f, 0.5f)).Within(1e-3f));
+			var halfway = gem.Direction(1, 2) * math.lerp(apothem, gem.Reach, 0.5f);
+			Assert.That(gem.DepthAt(halfway), Is.EqualTo(-10f).Within(1e-3f), "halfway out along an outward facet's middle");
+			Assert.That(gem.SectorCount, Is.EqualTo(17));
+		}
+
+		[Test]
+		public void ShouldAddARingEveryRowLength()
+		{
+			var gem = Rowed();
+			var apothem = gem.TableRadius * math.cos(math.PI / 8f);
+			Assert.That(gem.Rows, Is.EqualTo((int)math.ceil((gem.Reach - apothem) / 5f)));
+			Assert.That(gem.Rows, Is.GreaterThanOrEqualTo(3));
+			Assert.That(gem.Radius(1), Is.EqualTo(apothem + 5f).Within(1e-4f));
+			Assert.That(gem.Radius(2), Is.EqualTo(apothem + 10f).Within(1e-4f));
+			Assert.That(gem.Radius(gem.Rows), Is.EqualTo(gem.Reach).Within(1e-4f), "the last ring is the reach, the row kept whole");
+			// Each ring is turned half a side on from the one before.
+			Assert.That(math.dot(gem.Direction(0, 0), gem.Direction(1, 0)), Is.EqualTo(math.cos(math.PI / 8f)).Within(1e-5f));
+			Assert.That(math.distance(gem.Direction(0, 1), gem.Direction(2, 1)), Is.LessThan(1e-6f));
+			// A step down a ring.
+			for (var ring = 0; ring < gem.Rows; ring++) {
+				Assert.That(gem.RingDepth(ring + 1), Is.EqualTo(gem.RingDepth(ring) - 3f / gem.Rows).Within(1e-4f));
+			}
+			Assert.That(gem.SectorCount, Is.EqualTo(1 + gem.Rows * 16));
 		}
 
 		[Test]
 		public void ShouldNameTheFacetUnderEachPoint()
 		{
-			var gem = Brilliant();
+			var gem = Rowed();
 			Assert.That(gem.SectorOf(float2.zero), Is.EqualTo(InsertGem.TableSector));
-			Assert.That(gem.SectorOf(gem.Direction(5) * (gem.TableRadius - 1e-2f)), Is.EqualTo(InsertGem.TableSector), "just inside a corner");
-			Assert.That(gem.SectorOf(gem.Direction(5) * (gem.TableRadius + 1e-2f)), Is.EqualTo(gem.KiteSector(5)), "just beyond a corner");
+			Assert.That(gem.SectorOf(gem.Direction(0, 5) * (gem.TableRadius - 1e-2f)), Is.EqualTo(InsertGem.TableSector), "just inside a corner");
+			Assert.That(gem.SectorOf(gem.Direction(0, 5) * (gem.TableRadius + 1e-2f)), Is.EqualTo(gem.InwardSector(0, 5)), "just beyond a corner: the facet off that point");
 			var apothem = gem.TableRadius * math.cos(math.PI / 8f);
-			Assert.That(gem.SectorOf(gem.Bisector(5) * (apothem + 1e-2f)), Is.EqualTo(gem.StarSector(5)), "just beyond a side");
-			Assert.That(gem.SectorOf(gem.Bisector(5) * (gem.JunctionRadius + 1e-2f)), Is.EqualTo(gem.GirdleSector(5, true)).Or.EqualTo(gem.GirdleSector(5, false)), "just beyond a junction");
-			Assert.That(gem.SectorOf(gem.Bisector(5) * (gem.Reach - 1e-2f) + new float2(-gem.Bisector(5).y, gem.Bisector(5).x) * 0.1f), Is.EqualTo(gem.GirdleSector(5, true)), "past the junction's line, anticlockwise");
-			Assert.That(gem.SectorOf(gem.Bisector(5) * (gem.Reach - 1e-2f) - new float2(-gem.Bisector(5).y, gem.Bisector(5).x) * 0.1f), Is.EqualTo(gem.GirdleSector(5, false)), "and clockwise");
-			// A kite is named the same from both halves of it.
-			var side = new float2(-gem.Direction(5).y, gem.Direction(5).x) * 0.5f;
-			var onAxis = gem.Direction(5) * math.lerp(gem.TableRadius, gem.Reach, 0.3f);
-			Assert.That(gem.SectorOf(onAxis + side), Is.EqualTo(gem.KiteSector(5)));
-			Assert.That(gem.SectorOf(onAxis - side), Is.EqualTo(gem.KiteSector(5)));
-			Assert.That(gem.SectorCount, Is.EqualTo(33));
+			Assert.That(gem.SectorOf(gem.SideDirection(0, 5) * (apothem + 1e-2f)), Is.EqualTo(gem.OutwardSector(0, 5)), "just beyond a side: the facet off that side");
+			// The first ring's points lie on the sides' middles; just beyond one
+			// is the facet off that point, just short of it the outward facet.
+			var point = gem.Point(1, 5);
+			Assert.That(gem.SectorOf(point * (1f + 1e-3f)), Is.EqualTo(gem.InwardSector(1, 5)));
+			Assert.That(gem.SectorOf(point * (1f - 1e-3f)), Is.EqualTo(gem.OutwardSector(0, 5)));
+			// Just beyond a second ring point, off that point again, and the
+			// outward facet between two of its points.
+			Assert.That(gem.SectorOf(gem.Point(2, 3) * (1f + 1e-3f)), Is.EqualTo(gem.InwardSector(2, 3)));
+			Assert.That(gem.SectorOf(gem.SideDirection(2, 3) * (gem.Radius(2) * math.cos(math.PI / 8f) + 1e-2f)), Is.EqualTo(gem.OutwardSector(2, 3)));
+			// Either side of a ring's side, the facets off it agree on the name
+			// from both of the row's halves.
+			var side = gem.Direction(1, 2);
+			var onLine = side * (gem.Radius(1) + gem.RowLength * 0.3f);
+			var across = new float2(-side.y, side.x) * 0.2f;
+			Assert.That(gem.SectorOf(onLine + across), Is.EqualTo(gem.InwardSector(1, 2)));
+			Assert.That(gem.SectorOf(onLine - across), Is.EqualTo(gem.InwardSector(1, 2)));
 		}
 
 		[Test]
 		public void ShouldJoinTheFacetsAlongTheirSides()
 		{
-			var gem = Brilliant();
+			var gem = Rowed();
 			void Agree(int a, int b, float2 from, float2 to, string where)
 			{
 				for (var t = 0.1f; t < 1f; t += 0.2f) {
@@ -86,25 +110,25 @@ namespace VisualPinball.Unity.Test
 					Assert.That(gem.DepthInSector(a, point), Is.EqualTo(gem.DepthInSector(b, point)).Within(1e-4f), where);
 				}
 			}
-			Agree(InsertGem.TableSector, gem.StarSector(1), gem.Table(1), gem.Table(2), "the table's side");
-			Agree(gem.StarSector(1), gem.KiteSector(1), gem.Table(1), gem.Junction(1), "a star facet's side");
-			Agree(gem.StarSector(1), gem.KiteSector(2), gem.Table(2), gem.Junction(1), "its other side");
-			Agree(gem.KiteSector(1), gem.GirdleSector(1, false), gem.Junction(1), gem.Girdle(1), "a kite's outer side");
-			Agree(gem.KiteSector(2), gem.GirdleSector(1, true), gem.Junction(1), gem.Girdle(2), "the next kite's");
-			Agree(gem.GirdleSector(1, false), gem.GirdleSector(1, true), gem.Junction(1), gem.GirdleMiddle(1), "between the girdle facets");
-			// All the way round, not only on the first corners.
-			for (var i = 0; i < gem.Sides; i++) {
-				Agree(gem.KiteSector(i), gem.GirdleSector(i, false), gem.Junction(i), gem.Girdle(i), $"kite {i}'s outer side");
-				Agree(gem.KiteSector(i + 1), gem.GirdleSector(i, true), gem.Junction(i), gem.Girdle(i + 1), $"kite {i + 1}'s inner side");
-				Agree(gem.GirdleSector(i, false), gem.GirdleSector(i, true), gem.Junction(i), gem.GirdleMiddle(i), $"girdle {i}");
-				Assert.That(gem.DepthInSector(gem.GirdleSector(i, true), gem.GirdleMiddle(i)), Is.EqualTo(gem.GirdleDepth).Within(1e-4f), $"girdle {i}'s middle");
+			for (var ring = 0; ring < gem.Rows; ring++) {
+				for (var i = 0; i < gem.Sides; i++) {
+					var shift = ring & 1;
+					// A ring's side: the outward facet off it and, inside, the
+					// table or the facet off the point of the ring before.
+					var inside = ring == 0 ? InsertGem.TableSector : gem.InwardSector(ring - 1, i + 1 - ((ring - 1) & 1));
+					Agree(inside, gem.OutwardSector(ring, i), gem.Point(ring, i), gem.Point(ring, i + 1), $"ring {ring} side {i}");
+					// The zigzag either side of the outward facet.
+					Agree(gem.OutwardSector(ring, i), gem.InwardSector(ring, i), gem.Point(ring, i), gem.Point(ring + 1, i + shift), $"ring {ring} zig {i}");
+					Agree(gem.OutwardSector(ring, i), gem.InwardSector(ring, i + 1), gem.Point(ring, i + 1), gem.Point(ring + 1, i + shift), $"ring {ring} zag {i}");
+				}
 			}
-			// A kite is one plane: the junction on its other side lies on it too.
-			Assert.That(gem.DepthInSector(gem.KiteSector(1), gem.Junction(0)), Is.EqualTo(gem.JunctionDepth).Within(1e-4f));
-			// Every facet but the table tilts, and leans away from the centre.
+			// Every facet but the table tilts away from the centre.
 			for (var sector = 1; sector < gem.SectorCount; sector++) {
 				var normal = gem.LocalNormal(sector);
-				Assert.That(normal.y, Is.InRange(0.5f, 0.999f), $"facet {sector}");
+				Assert.That(normal.y, Is.InRange(0.5f, 0.9999f), $"facet {sector}");
+				var (a, b, c) = gem.Corners(sector);
+				var middle = InsertMeshGenerator.ToLocal((a.xy + b.xy + c.xy) / 3f, 0f) - InsertMeshGenerator.ToLocal(float2.zero, 0f);
+				Assert.That(normal.x * middle.x + normal.z * middle.z, Is.GreaterThan(0f), $"facet {sector} leans outward");
 			}
 			Assert.That(gem.LocalNormal(InsertGem.TableSector).y, Is.EqualTo(1f).Within(1e-6f));
 		}
@@ -112,37 +136,40 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldLayEveryFacetSideIntoTheFloor()
 		{
-			var gem = Brilliant();
+			var gem = OneRow();
 			var parts = gem.CreasesWithin(Square(40f), 1e-4f).ToList();
 			Assert.That(parts.Any(p => p.FromCenter), Is.False);
-			// The table lies wholly inside: all its sides come back whole.
+			// The table lies wholly inside: all its sides come back whole, and
+			// every line out of its corners reaches the square's edge.
 			var tableSides = parts.Where(p => math.abs(math.length(p.From) - gem.TableRadius) < 1e-3f && math.abs(math.length(p.To) - gem.TableRadius) < 1e-3f).ToList();
 			Assert.That(tableSides.Count, Is.EqualTo(8));
-			// Six sides a corner, every one at least partly inside.
-			Assert.That(parts.Count, Is.EqualTo(48));
+			var outward = parts.Where(p => math.cmax(math.abs(p.To)) > 20f - 1e-3f || math.cmax(math.abs(p.From)) > 20f - 1e-3f).ToList();
+			Assert.That(outward.Count, Is.EqualTo(16));
+			Assert.That(parts.Count, Is.EqualTo(24), "and nothing of the outermost ring, which lies beyond");
 			foreach (var (from, to, _) in parts) {
 				Assert.That(math.cmax(math.abs(from)), Is.LessThanOrEqualTo(20f + 1e-3f));
 				Assert.That(math.cmax(math.abs(to)), Is.LessThanOrEqualTo(20f + 1e-3f));
 			}
+			Assert.That(Rowed().CreasesWithin(Square(40f), 1e-4f).Count(), Is.GreaterThan(24 + 16));
 			Assert.That(math.all(gem.BridgeDirection(new float2(3f, 4f)) == math.normalize(new float2(3f, 4f))));
 		}
 
 		[Test]
-		public void ShouldHoldTheTableSmallEnoughForTheKitesToSlopeOutward()
+		public void ShouldHoldTheTableAndTheSides()
 		{
-			var gem = InsertGem.Cover(Square(40f), float2.zero, 8, 0.9f, 1.5f, -10f);
-			Assert.That(gem.TableRadius / gem.Reach, Is.EqualTo(InsertGem.TableLimit(8)).Within(1e-5f));
-			Assert.That(gem.JunctionRadius * math.cos(math.PI / 8f), Is.GreaterThan(gem.TableRadius), "the junctions lie beyond the corners along the kites");
-			Assert.That(gem.JunctionDepth, Is.LessThan(gem.TableDepth));
-			var few = InsertGem.Cover(Square(40f), float2.zero, 2, 0.5f, 1.5f, -10f);
-			Assert.That(few.Sides, Is.EqualTo(InsertGem.MinSides));
-			Assert.That(few.JunctionRadius * math.cos(math.PI / few.Sides), Is.GreaterThan(few.TableRadius));
+			var gem = InsertGem.Cover(Square(40f), float2.zero, 2, 2f, 0f, 1.5f, -10f);
+			Assert.That(gem.Sides, Is.EqualTo(InsertGem.MinSides));
+			Assert.That(gem.TableRadius / gem.Reach, Is.EqualTo(InsertGem.MaxTable).Within(1e-5f));
+			// A row length longer than the way out is one row to the edge.
+			var one = InsertGem.Cover(Square(40f), float2.zero, 8, 0.5f, 100f, 1.5f, -10f);
+			Assert.That(one.Rows, Is.EqualTo(1));
+			Assert.That(one.Radius(1), Is.EqualTo(one.Reach).Within(1e-4f));
 		}
 
 		[Test]
 		public void ShouldDescribeTheGemToTheMaterial()
 		{
-			var gem = InsertGem.Cover(Square(40f), new float2(5f, -3f), 8, 0.5f, 1.5f, -10f);
+			var gem = InsertGem.Cover(Square(40f), new float2(5f, -3f), 8, 0.5f, 0f, 1.5f, -10f);
 			var optical = gem.Optical();
 			Assert.That(optical.z, Is.EqualTo(2008f), "the sides past two thousand, so the material knows a gem from a wheel");
 			var centre = InsertMeshGenerator.ToLocal(new float2(5f, -3f), -11.5f);
@@ -151,8 +178,9 @@ namespace VisualPinball.Unity.Test
 			Assert.That(optical.w, Is.EqualTo(centre.y).Within(1e-7f), "the lowest height");
 		}
 
-		[Test]
-		public void ShouldBuildAGemFloor()
+		[TestCase(0f)]
+		[TestCase(4f)]
+		public void ShouldBuildAGemFloor(float rowLength)
 		{
 			var outline = InsertOutlineBuilder.Build(InsertShapes.CircleCorners(40f, 48), 1);
 			var inset = outline.ClampInset(3f);
@@ -163,6 +191,7 @@ namespace VisualPinball.Unity.Test
 				GemSides = 8,
 				GemCenter = float2.zero,
 				GemTable = 0.5f,
+				GemRowLength = rowLength,
 				GemOffset = 1.5f,
 				Holes = new[] { new InsertHole(new float2(9f, 0f), 2f) },
 				HoleSegments = 12,
@@ -172,7 +201,7 @@ namespace VisualPinball.Unity.Test
 			var layout = new InsertMeshLayout();
 			var mesh = InsertMeshGenerator.Generate(outline, body, new Mesh(), layout);
 			try {
-				Assert.That(layout.FlatTriangles.Length, Is.GreaterThan(40));
+				Assert.That(layout.FlatTriangles.Length, Is.GreaterThan(30));
 				Assert.That(layout.OpticalStarburst.z, Is.EqualTo(2008f), "the bake is told this is a gem");
 				var normals = mesh.normals;
 				var triangles = mesh.triangles;
@@ -191,11 +220,11 @@ namespace VisualPinball.Unity.Test
 						if (n.x * radial.x + n.z * radial.y > 0.1f) { outward++; }
 					}
 					for (var c = 0; c < 3; c++) {
-						Assert.That(math.abs(vertices[triangles[t * 3 + c]].y - centre.y), Is.LessThanOrEqualTo(rise + 1e-5f), "every point of the floor lies between the girdle and the table");
+						Assert.That(math.abs(vertices[triangles[t * 3 + c]].y - centre.y), Is.LessThanOrEqualTo(rise + 1e-5f), "every point of the floor lies between the edge and the table");
 					}
 				}
 				Assert.That(flat, Is.GreaterThan(5), "the table");
-				Assert.That(outward, Is.GreaterThan(20), "and the facets leaning away from the centre");
+				Assert.That(outward, Is.GreaterThan(15), "and the facets leaning away from the centre");
 			} finally {
 				Object.DestroyImmediate(mesh);
 			}
@@ -212,11 +241,13 @@ namespace VisualPinball.Unity.Test
 				settings.FindProperty("_gem").boolValue = true;
 				settings.FindProperty("_gemSides").intValue = 6;
 				settings.FindProperty("_gemCenter").vector2Value = new Vector2(2f, 1f);
+				settings.FindProperty("_gemRowLength").floatValue = 3f;
 				settings.FindProperty("_gemOffset").floatValue = 100f;
 				settings.ApplyModifiedPropertiesWithoutUndo();
 				insert.RebuildMesh();
 				Assert.That(insert.Error, Is.Null);
 				Assert.That(insert.Body.GemSides, Is.EqualTo(6));
+				Assert.That(insert.Body.GemRowLength, Is.EqualTo(3f));
 				Assert.That(insert.Body.RingWidth, Is.EqualTo(0f));
 				Assert.That(insert.Body.RibWidth, Is.EqualTo(0f));
 				Assert.That(insert.Body.StarburstBursts, Is.EqualTo(0));

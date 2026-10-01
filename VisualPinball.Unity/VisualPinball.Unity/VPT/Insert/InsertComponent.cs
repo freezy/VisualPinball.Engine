@@ -354,7 +354,7 @@ namespace VisualPinball.Unity
 		private float _ringRoundness = 0.5f;
 
 		[SerializeField]
-		[Tooltip("Whether the raised floor is cut like the crown of a gem: a flat table with a ring of facets round it. Off keeps it flat.")]
+		[Tooltip("Whether the raised floor is cut like a gem: a flat table with rows of triangular facets zigzagging out to the edge. Off keeps it flat.")]
 		private bool _gem;
 
 		[SerializeField]
@@ -367,9 +367,14 @@ namespace VisualPinball.Unity
 		private int _gemSides = 8;
 
 		[SerializeField]
-		[Range(0.05f, 0.75f)]
-		[Tooltip("How far out the table's corners lie, as a share of the way from the centre to the edge. Held small enough that the facets round the table still slope outwards.")]
+		[Range(0.05f, 0.9f)]
+		[Tooltip("How far out the table's corners lie, as a share of the way from the centre to the edge.")]
 		private float _gemTable = 0.5f;
+
+		[SerializeField]
+		[Min(0f)]
+		[Tooltip("How far out each further row of facets starts beyond the last, from the table's sides, in VPX units. Zero runs one row of facets straight from the table to the edge; a length adds a ring of facets every that far out, as a brilliant's crown has.")]
+		private float _gemRowLength;
 
 		[SerializeField]
 		[Min(0f)]
@@ -933,6 +938,7 @@ namespace VisualPinball.Unity
 				GemSides = _gem && groove == null && !_stippled && starburstBursts < InsertStarburst.MinBursts && ribWidth <= 0f && ringWidth <= 0f ? math.clamp(_gemSides, InsertGem.MinSides, InsertGem.MaxSides) : 0,
 				GemCenter = new float2(_gemCenter.x, _gemCenter.y),
 				GemTable = _gemTable,
+				GemRowLength = _gemRowLength,
 				GemOffset = _gemOffset,
 				StippleHeight = _stippled ? math.min(math.max(0.01f, _stippleHeight),
 					math.max(0f, depth - channelDepth - math.max(outline.WeldTolerance * 4f, 0.01f))) : 0f,

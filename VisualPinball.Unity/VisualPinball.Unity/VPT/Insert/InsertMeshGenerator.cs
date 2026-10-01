@@ -91,8 +91,11 @@ namespace VisualPinball.Unity
 		/// <summary>Where the gem's centre sits, relative to the insert's origin.</summary>
 		public float2 GemCenter;
 
-		/// <summary>How far out the table's corners lie, as a share of the way to the girdle.</summary>
+		/// <summary>How far out the table's corners lie, as a share of the way to the edge.</summary>
 		public float GemTable;
+
+		/// <summary>How far out each further row of the gem's facets starts beyond the last, or zero for one row straight to the edge.</summary>
+		public float GemRowLength;
 
 		/// <summary>How far the gem's table rises above and its girdle drops below the floor.</summary>
 		public float GemOffset;
@@ -772,7 +775,7 @@ namespace VisualPinball.Unity
 					? InsertRibs.Cover(footprint, body.RibAngle, body.RibWidth, offset, centerDepth, body.RibRoundness)
 					: body.RingWidth >= InsertRings.MinWidth
 						? InsertRings.Cover(footprint, body.RingCenter, body.RingWidth, offset, centerDepth, body.RingRoundness)
-						: InsertGem.Cover(footprint, body.GemCenter, body.GemSides, body.GemTable, offset, centerDepth);
+						: InsertGem.Cover(footprint, body.GemCenter, body.GemSides, body.GemTable, body.GemRowLength, offset, centerDepth);
 			}
 
 			// A centre a hair inside the edge sends every spoke on the far side
