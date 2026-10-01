@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using UnityEngine;
+using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity
 {
@@ -18,10 +19,20 @@ namespace VisualPinball.Unity
 		public float LampTint;
 		public float SpillLumens;
 		public float SpillRange;
+		public int State;
+		public string BlinkPattern;
+		public int BlinkInterval;
+		public float FadeSpeedUp;
+		public float FadeSpeedDown;
 
 		public static byte[] Pack(InsertLightComponent light) => PackageApi.Packer.Pack(new InsertLightPackable {
 			Intensity = light.Intensity,
 			Color = light.Color,
+			State = (int)light.State,
+			BlinkPattern = light.BlinkPattern,
+			BlinkInterval = light.BlinkInterval,
+			FadeSpeedUp = light.FadeSpeedUp,
+			FadeSpeedDown = light.FadeSpeedDown,
 			ExtraBulbs = light.ExtraBulbs?.Select(bulb => new InsertLightBulbPackable {
 				Intensity = bulb?.Intensity ?? 0f,
 				Color = bulb != null ? bulb.Color : UnityEngine.Color.white,
@@ -38,6 +49,11 @@ namespace VisualPinball.Unity
 			var data = PackageApi.Packer.Unpack<InsertLightPackable>(bytes);
 			light.Intensity = data.Intensity;
 			light.Color = data.Color;
+			light.State = (LampStatus)data.State;
+			light.BlinkPattern = data.BlinkPattern ?? "";
+			light.BlinkInterval = data.BlinkInterval;
+			light.FadeSpeedUp = data.FadeSpeedUp;
+			light.FadeSpeedDown = data.FadeSpeedDown;
 			light.ExtraBulbs = data.ExtraBulbs?.Select(bulb => new InsertLightComponent.Bulb {
 				Intensity = bulb.Intensity,
 				Color = bulb.Color,

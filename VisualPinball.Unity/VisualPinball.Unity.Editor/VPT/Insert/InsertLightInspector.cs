@@ -37,6 +37,11 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _spillLumens;
 		private SerializedProperty _spillRange;
 		private SerializedProperty _spillLight;
+		private SerializedProperty _state;
+		private SerializedProperty _blinkPattern;
+		private SerializedProperty _blinkInterval;
+		private SerializedProperty _fadeSpeedUp;
+		private SerializedProperty _fadeSpeedDown;
 		private Material _checkedMaterial;
 		private bool _materialReadOnly;
 		private readonly Vector3[] _lampHandleOffsets = new Vector3[InsertLightComponent.MaxBulbs];
@@ -50,6 +55,7 @@ namespace VisualPinball.Unity.Editor
 
 		private const string LampKey = "VisualPinball.InsertLight.Lamp";
 		private const string SpillKey = "VisualPinball.InsertLight.Spill";
+		private const string StateKey = "VisualPinball.InsertLight.State";
 
 		private void OnEnable()
 		{
@@ -62,6 +68,11 @@ namespace VisualPinball.Unity.Editor
 			_spillLumens = serializedObject.FindProperty(nameof(InsertLightComponent.SpillLumens));
 			_spillRange = serializedObject.FindProperty(nameof(InsertLightComponent.SpillRange));
 			_spillLight = serializedObject.FindProperty(nameof(InsertLightComponent.SpillLight));
+			_state = serializedObject.FindProperty(nameof(InsertLightComponent.State));
+			_blinkPattern = serializedObject.FindProperty(nameof(InsertLightComponent.BlinkPattern));
+			_blinkInterval = serializedObject.FindProperty(nameof(InsertLightComponent.BlinkInterval));
+			_fadeSpeedUp = serializedObject.FindProperty(nameof(InsertLightComponent.FadeSpeedUp));
+			_fadeSpeedDown = serializedObject.FindProperty(nameof(InsertLightComponent.FadeSpeedDown));
 			EditorApplication.projectChanged += InvalidateMaterialAccess;
 		}
 
@@ -123,6 +134,16 @@ namespace VisualPinball.Unity.Editor
 				if (Application.isPlaying) {
 					EditorGUILayout.HelpBox("While playing, a lamp mapped in Lamp Manager or under a Light follows the game and overwrites these.", MessageType.None);
 				}
+			}
+			InsertSection.End();
+
+			if (InsertSection.Begin(StateKey, "State")) {
+				Field(_state, "State");
+				Field(_blinkPattern, "Blink Pattern");
+				Field(_blinkInterval, "Blink Interval (ms)");
+				Field(_fadeSpeedUp, "Fade Up (s)");
+				Field(_fadeSpeedDown, "Fade Down (s)");
+				EditorGUILayout.HelpBox("The status the lamp starts the game in, and how it blinks and fades when the game drives it. Under a Light, the Light's own settings apply instead.", MessageType.None);
 			}
 			InsertSection.End();
 

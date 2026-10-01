@@ -147,6 +147,84 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldStartTheGameInItsStateAndBlinkToItsPattern()
+		{
+			using var fixture = new MappedInsert();
+			var lamp = fixture.Control;
+			lamp.State = LampStatus.On;
+			lamp.GetApi(fixture.Player).OnInit(null);
+			Assert.That(lamp.LampStatus, Is.EqualTo(LampStatus.On));
+			Assert.That(lamp.Level, Is.EqualTo(1f), "on from the start, no fade in");
+			lamp.State = LampStatus.Off;
+			lamp.GetApi(fixture.Player).OnInit(null);
+			Assert.That(lamp.Level, Is.EqualTo(0f));
+			// Blinking to a pattern, a step each interval, round and round.
+			lamp.State = LampStatus.Blinking;
+			lamp.BlinkPattern = "110";
+			lamp.BlinkInterval = 500;
+			lamp.GetApi(fixture.Player).OnInit(null);
+			Assert.That(lamp.LampStatus, Is.EqualTo(LampStatus.Blinking));
+			Assert.That(lamp.IsBlinkOn, Is.True);
+			lamp.RewindBlink(0.5f);
+			Assert.That(lamp.IsBlinkOn, Is.True);
+			lamp.RewindBlink(0.5f);
+			Assert.That(lamp.IsBlinkOn, Is.False);
+			lamp.RewindBlink(0.5f);
+			Assert.That(lamp.IsBlinkOn, Is.True, "and round again");
+			// Without a pattern it blinks on and off, a second each by default.
+			lamp.BlinkPattern = "";
+			lamp.BlinkInterval = 0;
+			lamp.GetApi(fixture.Player).OnInit(null);
+			Assert.That(lamp.IsBlinkOn, Is.True);
+			lamp.RewindBlink(1f);
+			Assert.That(lamp.IsBlinkOn, Is.False);
+			// A level while blinking keeps it blinking at that level; a status ends it.
+			fixture.Api.OnLamp(0.5f);
+			Assert.That(lamp.LampStatus, Is.EqualTo(LampStatus.Blinking));
+			lamp.RewindBlink(1f);
+			lamp.Advance(1f);
+			Assert.That(lamp.Level, Is.EqualTo(0.5f));
+			fixture.Api.OnLamp(LampStatus.Off);
+			Assert.That(lamp.LampStatus, Is.EqualTo(LampStatus.Off));
+			lamp.Advance(1f);
+			Assert.That(lamp.Level, Is.EqualTo(0f));
+		}
+
+		[Test]
+		public void ShouldFadeAtTheFadeSpeeds()
+		{
+			using var fixture = new MappedInsert();
+			var lamp = fixture.Control;
+			lamp.FadeSpeedUp = 1f;
+			lamp.FadeSpeedDown = 0.5f;
+			lamp.GetApi(fixture.Player).OnInit(null);
+			Assert.That(lamp.Level, Is.EqualTo(0f));
+			fixture.Api.OnLamp(1f);
+			lamp.Advance(0.25f);
+			Assert.That(lamp.Level, Is.EqualTo(0.25f).Within(1e-5f), "a second from off to full");
+			lamp.Advance(1f);
+			Assert.That(lamp.Level, Is.EqualTo(1f).Within(1e-5f));
+			fixture.Api.OnLamp(LampStatus.Off);
+			lamp.Advance(0.25f);
+			Assert.That(lamp.Level, Is.EqualTo(0.5f).Within(1e-5f), "half a second from full to off");
+			lamp.Advance(1f);
+			Assert.That(lamp.Level, Is.EqualTo(0f).Within(1e-5f));
+			// An off lamp wakes to a level, and without fade times jumps to it.
+			lamp.FadeSpeedUp = 0f;
+			lamp.FadeSpeedDown = 0f;
+			fixture.Api.OnLamp(0.3f);
+			Assert.That(lamp.LampStatus, Is.EqualTo(LampStatus.On));
+			lamp.Advance(0f);
+			Assert.That(lamp.Level, Is.EqualTo(0.3f).Within(1e-5f));
+			// The other bulbs fade the same way.
+			lamp.FadeSpeedUp = 2f;
+			fixture.Api.OnLamp(LampStatus.Off);
+			((IApiLampDevice)fixture.Api).Lamp(InsertLightComponent.BulbId(1)).OnLamp(1f);
+			lamp.Advance(0.5f);
+			Assert.That(lamp.ExtraBulbs[0].Intensity, Is.EqualTo(1f));
+		}
+
+		[Test]
 		public void ShouldReleaseDirectControlWhenThePlayerStops()
 		{
 			using var fixture = new MappedInsert();

@@ -82,6 +82,7 @@ namespace VisualPinball.Unity.Editor
 		private const string KickerName = "kicker";
 		private const string LightGroupName = "light_group";
 		private const string LightName = "light";
+		private const string LightInsertName = "light_insert";
 		private const string LoopButtonName = "player";
 		private const string MagnetName = "magnet";
 		private const string MechName = "mech";
@@ -133,7 +134,7 @@ namespace VisualPinball.Unity.Editor
 
 		private static readonly string[] Names = {
 			AssetLibraryName, BallRollerName, BallName, BoltName, BumperName, CalendarName, CannonName, CoilName, DropTargetBankName, DropTargetName, FlasherName,
-			FlipperName, GateName, GateLifterName, HitTargetName, HorizonName, KeyName, KickerName, LightGroupName, LightName, LoopButtonName, MagnetName, MechName, MechPinMameName, PlayfieldName, PlayButtonName, PlugName,
+			FlipperName, GateName, GateLifterName, HitTargetName, HorizonName, KeyName, KickerName, LightGroupName, LightName, LightInsertName, LoopButtonName, MagnetName, MechName, MechPinMameName, PlayfieldName, PlayButtonName, PlugName,
 			PhysicsName, PlungerName, PrimitiveName, RampName, RampWiresName, RotatorName, RubberName, ScoreReelName, ScoreReelSingleName, SlingshotName, SpinnerName, StopButtonName, SurfaceName,
 			SwitchNcName, SwitchNoName, TableName, TeleporterName, TriggerName, TroughName,
 			CoilEventName, SwitchEventName, LampEventName, LampSeqName, MetalWireGuideName,
@@ -219,6 +220,7 @@ namespace VisualPinball.Unity.Editor
 		public static Texture2D Light(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(LightName, size, color);
 		public static Texture2D LoopButton(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(LoopButtonName, size, color);
 		public static Texture2D LightGroup(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(LightGroupName, size, color);
+		public static Texture2D LightInsert(IconSize size = IconSize.Small, IconColor color = IconColor.Gray) => Instance.GetItem(LightInsertName, size, color);
 		public static Texture2D Locked(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(LockedName, size, color);
 		public static Texture2D Magnet(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(MagnetName, size, color);
 		public static Texture2D Mech(IconSize size = IconSize.Large, IconColor color = IconColor.Gray) => Instance.GetItem(MechName, size, color);
@@ -306,9 +308,16 @@ namespace VisualPinball.Unity.Editor
 			if (!_icons.ContainsKey(variant)) {
 				variant = new IconVariant(name, IconSize.Large, color);
 			}
+			// Some icons only come small.
+			if (!_icons.ContainsKey(variant)) {
+				variant = new IconVariant(name, IconSize.Small, color);
+			}
 
 			if (!_icons.ContainsKey(variant)) {
 				variant = new IconVariant(name, IconSize.Large, IconColor.Gray);
+			}
+			if (!_icons.ContainsKey(variant)) {
+				variant = new IconVariant(name, IconSize.Small, IconColor.Gray);
 			}
 
 			if (!_icons.ContainsKey(variant)) {
@@ -345,6 +354,8 @@ namespace VisualPinball.Unity.Editor
 				case HitTargetComponent _: return Icons.HitTarget(size, color);
 				case KickerComponent _: return Icons.Kicker(size, color);
 				case LightComponent _: return Icons.Light(size, color);
+				case InsertComponent _: return Icons.LightInsert(size, color);
+				case InsertLightComponent _: return Icons.LightInsert(size, color);
 				case LightGroupComponent _: return Icons.LightGroup(size, color);
 				case PhysicsEngine _: return Icons.Physics(size, color);
 				case PlungerComponent _: return Icons.Plunger(size, color);

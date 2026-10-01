@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
@@ -29,6 +30,24 @@ namespace VisualPinball.Unity
 
 		[Tooltip("Lamp colour. Edit here to preview; RGB lamp mappings update it at runtime.")]
 		public Color Color = UnityEngine.Color.white;
+
+		[Tooltip("The lamp's status when the game starts: off, on, or blinking. The game's lamp events take over from there.")]
+		public LampStatus State;
+
+		[Tooltip("The blink sequence as ones and zeros, one step each interval, such as 10 or 1100. Empty blinks on and off.")]
+		public string BlinkPattern = "";
+
+		[Min(0)]
+		[Tooltip("How long each step of the blink pattern lasts, in milliseconds. Zero is a second.")]
+		public int BlinkInterval;
+
+		[Min(0)]
+		[Tooltip("Time in seconds the lamp takes to reach full intensity.")]
+		public float FadeSpeedUp;
+
+		[Min(0)]
+		[Tooltip("Time in seconds the lamp takes to turn off.")]
+		public float FadeSpeedDown;
 
 		/// <summary>A bulb of the material's beyond the first: its own colour and level.</summary>
 		[Serializable]
@@ -107,13 +126,19 @@ namespace VisualPinball.Unity
 		private MaterialPropertyBlock _coverProperties;
 		private readonly List<Material> _materials = new();
 		[NonSerialized] private InsertLightApi _api;
-		private bool _blinking;
+		private bool _driven;
+		private LampStatus _status;
+		private float _target = 1f;
+		private float _level;
 		private float _blinkStarted;
+		private readonly float[] _bulbLevels = new float[MaxBulbs - 1];
+		private string _patternSource;
+		private bool[] _pattern = { true, false };
 
 		public IApiLamp GetApi(Player player) => _api ??= new InsertLightApi(this);
 		public IEnumerable<Light> LightSources => SpillLight != null ? new[] { SpillLight } : Array.Empty<Light>();
 		public Color LampColor => Color;
-		public LampStatus LampStatus => _blinking ? LampStatus.Blinking : Intensity > 0f ? LampStatus.On : LampStatus.Off;
+		public LampStatus LampStatus => _driven || IsControlledByApi ? _status : Intensity > 0f ? LampStatus.On : LampStatus.Off;
 		/// <summary>
 		/// One lamp per bulb the material has: an insert with one bulb is one
 		/// lamp, as any light, and one with more offers Bulb 1 to Bulb 4 as the
@@ -279,14 +304,39 @@ namespace VisualPinball.Unity
 		{
 			IsControlledByApi = false;
 			AreExtraBulbsControlledByApi = false;
-			_blinking = false;
+			_driven = false;
+			_status = LampStatus.Off;
 		}
 
+		/// <summary>
+		/// The game has started: the lamp takes its State, at once, and from
+		/// here on fades towards whatever the status asks for.
+		/// </summary>
+		internal void StartGame()
+		{
+			_driven = true;
+			_status = State;
+			_target = 1f;
+			_level = State == LampStatus.On ? 1f : 0f;
+			_blinkStarted = Time.time;
+			for (var i = 0; i < _bulbLevels.Length; i++) {
+				_bulbLevels[i] = ExtraBulbs != null && i < ExtraBulbs.Length && ExtraBulbs[i] != null ? math.saturate(ExtraBulbs[i].Intensity) : 0f;
+			}
+			Apply();
+		}
+
+		/// <summary>
+		/// A level without a status: an off lamp wakes to it, a blinking one
+		/// keeps blinking at it, since fading and RGB mappings send levels alone.
+		/// </summary>
 		internal void SetLampIntensity(float value)
 		{
 			IsControlledByApi = true;
-			_blinking = false;
-			Intensity = math.saturate(value);
+			_target = math.saturate(value);
+			if (_status != LampStatus.Blinking) {
+				_status = _target > 0f ? LampStatus.On : LampStatus.Off;
+			}
+			Intensity = _target;
 			Apply();
 		}
 
@@ -299,9 +349,70 @@ namespace VisualPinball.Unity
 
 		internal void SetLampStatus(LampStatus status)
 		{
-			SetLampIntensity(status == LampStatus.Off ? 0f : 1f);
-			_blinking = status == LampStatus.Blinking;
+			IsControlledByApi = true;
+			_status = status;
+			_target = status == LampStatus.Off ? 0f : 1f;
+			Intensity = _target;
 			_blinkStarted = Time.time;
+			Apply();
+		}
+
+		/// <summary>The level shown while the game drives the lamp, on its way to what the status asks for.</summary>
+		internal float Level => _level;
+
+		/// <summary>Moves the levels on by <paramref name="seconds"/> towards what the statuses ask for, as a frame does.</summary>
+		internal void Advance(float seconds)
+		{
+			_level = Fade(_level, Wanted(), FadeSpeedUp, FadeSpeedDown, seconds);
+			for (var i = 0; i < _bulbLevels.Length; i++) {
+				var bulb = ExtraBulbs != null && i < ExtraBulbs.Length ? ExtraBulbs[i] : null;
+				_bulbLevels[i] = Fade(_bulbLevels[i], bulb != null ? math.saturate(bulb.Intensity) : 0f, FadeSpeedUp, FadeSpeedDown, seconds);
+			}
+		}
+
+		/// <summary>Whether the blink pattern is on right now.</summary>
+		internal bool IsBlinkOn => BlinkStep();
+
+		/// <summary>Moves the blinking's start back by <paramref name="seconds"/>, as if that much time had passed.</summary>
+		internal void RewindBlink(float seconds) => _blinkStarted -= seconds;
+
+		/// <summary>The level the status asks for right now: the blink pattern's step, where it blinks.</summary>
+		private float Wanted()
+		{
+			switch (_status) {
+				case LampStatus.Off:
+					return 0f;
+				case LampStatus.Blinking:
+					return BlinkStep() ? _target : 0f;
+				default:
+					return _target;
+			}
+		}
+
+		/// <summary>Whether the blink pattern is on at this moment, a step each interval since the blinking began.</summary>
+		private bool BlinkStep()
+		{
+			if (!ReferenceEquals(_patternSource, BlinkPattern)) {
+				_patternSource = BlinkPattern;
+				var pattern = (BlinkPattern ?? "").Trim();
+				_pattern = pattern.Length < 2 ? new[] { true, false } : pattern.Select(c => c == '1').ToArray();
+			}
+			var interval = (BlinkInterval <= 0 ? 1000 : BlinkInterval) / 1000f;
+			var step = (int)math.floor((Time.time - _blinkStarted) / interval);
+			return _pattern[(step % _pattern.Length + _pattern.Length) % _pattern.Length];
+		}
+
+		/// <summary>
+		/// A level on its way to another: the whole way up takes the fade up
+		/// time, the whole way down the fade down time, and no time at all
+		/// without either.
+		/// </summary>
+		private static float Fade(float level, float wanted, float up, float down, float seconds)
+		{
+			if (wanted > level) {
+				return up > 0f ? math.min(wanted, level + seconds / up) : wanted;
+			}
+			return down > 0f ? math.max(wanted, level - seconds / down) : wanted;
 		}
 
 		/// <summary>
@@ -358,8 +469,10 @@ namespace VisualPinball.Unity
 		/// <summary>Immediate on/off preview used by Lamp Manager outside play mode.</summary>
 		public bool Enabled {
 			set {
-				_blinking = false;
-				Intensity = value ? 1f : 0f;
+				_status = value ? LampStatus.On : LampStatus.Off;
+				_target = value ? 1f : 0f;
+				_level = _target;
+				Intensity = _target;
 				Apply();
 			}
 		}
@@ -405,13 +518,17 @@ namespace VisualPinball.Unity
 			_renderer.GetPropertyBlock(_properties, 0);
 			var level = math.saturate(Intensity);
 			var color = Color.linear;
+			// The game drives the lamp: by a Light above it, whose own fading and
+			// blinking it follows, or through its own status, towards which it
+			// fades at its own pace. Outside the game, what is authored shows.
+			var game = Application.isPlaying && (_driven || IsControlledByApi);
 			if (Application.isPlaying && _driver != null && !IsControlledByApi) {
 				level = _properties.HasFloat(LevelId) ? math.saturate(_properties.GetFloat(LevelId)) : 0f;
 				color = _properties.HasVector(ColorId) ? (Color)_properties.GetVector(ColorId) : UnityEngine.Color.white;
 			} else {
-				if (_blinking && Application.isPlaying) {
-					// Match the default VPE blink interval: one second per on/off step.
-					level *= (int)(Time.time - _blinkStarted) % 2 == 0 ? 1f : 0f;
+				if (game) {
+					_level = Fade(_level, Wanted(), FadeSpeedUp, FadeSpeedDown, Time.deltaTime);
+					level = _level;
 				}
 				_properties.SetFloat(LevelId, level);
 				_properties.SetVector(ColorId, (Vector4)color);
@@ -423,6 +540,10 @@ namespace VisualPinball.Unity
 				var bulb = ExtraBulbs != null && i < ExtraBulbs.Length ? ExtraBulbs[i] : null;
 				var drive = bulb != null ? bulb.Color.linear : UnityEngine.Color.white;
 				var bulbLevel = bulb != null ? math.saturate(bulb.Intensity) : 0f;
+				if (game) {
+					_bulbLevels[i] = Fade(_bulbLevels[i], bulbLevel, FadeSpeedUp, FadeSpeedDown, Time.deltaTime);
+					bulbLevel = _bulbLevels[i];
+				}
 				_properties.SetVector(BulbColorIds[i], new Vector4(drive.r, drive.g, drive.b, bulbLevel));
 				// Match the shader's active slots; disabled bulbs retain their authoring state.
 				if (SpillLight != null && material.HasProperty(LampIds[i + 1]) && material.GetVector(LampIds[i + 1]).w > 0f) {

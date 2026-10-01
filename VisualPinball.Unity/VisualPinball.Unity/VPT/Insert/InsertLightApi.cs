@@ -47,6 +47,7 @@ namespace VisualPinball.Unity
 		public void OnInit(BallManager ballManager)
 		{
 			_initialized = true;
+			_component.StartGame();
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 

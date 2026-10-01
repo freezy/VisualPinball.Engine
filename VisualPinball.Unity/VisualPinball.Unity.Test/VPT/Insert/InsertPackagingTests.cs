@@ -11,6 +11,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
+using VisualPinball.Engine.Game.Engines;
 using VisualPinball.Unity.Editor;
 using Object = UnityEngine.Object;
 
@@ -245,6 +246,11 @@ namespace VisualPinball.Unity.Test
 				insertLight.TintWithLamp = true;
 				insertLight.SpillLumens = 3.5f;
 				insertLight.SpillLight = spill;
+				insertLight.State = LampStatus.Blinking;
+				insertLight.BlinkPattern = "1100";
+				insertLight.BlinkInterval = 250;
+				insertLight.FadeSpeedUp = 0.2f;
+				insertLight.FadeSpeedDown = 0.4f;
 
 				var refs = new PackagedRefs(go.transform);
 				refs.SetNodeIdsForWrite(new Dictionary<Transform, string> {
@@ -264,6 +270,11 @@ namespace VisualPinball.Unity.Test
 				insertLight.TintWithLamp = false;
 				insertLight.SpillLumens = 0f;
 				insertLight.SpillLight = null;
+				insertLight.State = LampStatus.Off;
+				insertLight.BlinkPattern = "";
+				insertLight.BlinkInterval = 0;
+				insertLight.FadeSpeedUp = 0f;
+				insertLight.FadeSpeedDown = 0f;
 
 				insertLight.Unpack(data);
 				insertLight.UnpackReferences(referenceData, go.transform, refs, null);
@@ -275,6 +286,11 @@ namespace VisualPinball.Unity.Test
 				Assert.That(insertLight.TintWithLamp, Is.True);
 				Assert.That(insertLight.SpillLumens, Is.EqualTo(3.5f));
 				Assert.That(insertLight.SpillLight, Is.SameAs(spill));
+				Assert.That(insertLight.State, Is.EqualTo(LampStatus.Blinking));
+				Assert.That(insertLight.BlinkPattern, Is.EqualTo("1100"));
+				Assert.That(insertLight.BlinkInterval, Is.EqualTo(250));
+				Assert.That(insertLight.FadeSpeedUp, Is.EqualTo(0.2f));
+				Assert.That(insertLight.FadeSpeedDown, Is.EqualTo(0.4f));
 			} finally {
 				Object.DestroyImmediate(go);
 			}
