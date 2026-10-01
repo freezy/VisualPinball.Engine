@@ -622,7 +622,7 @@ namespace VisualPinball.Unity.Editor
 			}
 			if (created) {
 				material = worn != null ? Derive(worn) : new Material(Shader.Find("HDRP/Lit") ?? Shader.Find("Standard"));
-				material.name = worn != null ? $"{name} {worn.name}" : $"{name} Baked";
+				material.name = worn != null ? $"{name} {BaseName(worn)}" : $"{name} Baked";
 			} else {
 				Undo.RecordObject(material, "Bake Insert");
 			}
@@ -713,6 +713,32 @@ namespace VisualPinball.Unity.Editor
 		/// material given a parent would keep the shader's defaults instead.
 		/// </summary>
 		private static Material Variant(Material source, string name) => new(source) { parent = source, name = name };
+
+		/// <summary>
+		/// What a material derived from <paramref name="worn"/> is named after:
+		/// the top of its variant chain, less the name of whichever insert it
+		/// was made for. A bake of a bake, or a fork of a fork, would otherwise
+		/// carry every insert's name along the way.
+		/// </summary>
+		private static string BaseName(Material worn)
+		{
+			while (worn.parent != null) {
+				worn = worn.parent;
+			}
+			var baseName = worn.name;
+			var inserts = Object.FindObjectsByType<InsertComponent>(FindObjectsInactive.Include);
+			for (var stripped = true; stripped;) {
+				stripped = false;
+				foreach (var insert in inserts) {
+					var prefix = insert.name + " ";
+					if (baseName.Length > prefix.Length && baseName.StartsWith(prefix, StringComparison.Ordinal)) {
+						baseName = baseName.Substring(prefix.Length);
+						stripped = true;
+					}
+				}
+			}
+			return baseName;
+		}
 
 		private static string NormalMapSlot(Shader shader)
 		{
@@ -806,7 +832,7 @@ namespace VisualPinball.Unity.Editor
 				if (worn != null) {
 					var own = worn != source.Material && Carries(worn, source) && EditorUtility.IsPersistent(worn)
 						&& !IsReadOnly(AssetDatabase.GetAssetPath(worn)) && !WornElsewhere(worn, insert);
-					var material = own ? worn : Variant(worn, $"{name} {worn.name}");
+					var material = own ? worn : Variant(worn, $"{name} {BaseName(worn)}");
 					if (own) {
 						Undo.RecordObject(material, "Fork Insert Bake");
 					}
@@ -817,15 +843,15 @@ namespace VisualPinball.Unity.Editor
 						EditorUtility.SetDirty(material);
 					} else {
 						// Unique, because the body and the cover may share a name.
-						AssetDatabase.CreateAsset(material, AssetDatabase.GenerateUniqueAssetPath($"{folder}/{name} {FileName(worn.name)}.mat"));
+						AssetDatabase.CreateAsset(material, AssetDatabase.GenerateUniqueAssetPath($"{folder}/{name} {FileName(BaseName(worn))}.mat"));
 					}
 					data.Material = material;
 					BindOptics(data);
 					EditorUtility.SetDirty(data);
 				}
 				if (insert.CoverMaterial != null && IsReadOnly(AssetDatabase.GetAssetPath(insert.CoverMaterial))) {
-					cover = Variant(insert.CoverMaterial, $"{name} {insert.CoverMaterial.name}");
-					AssetDatabase.CreateAsset(cover, AssetDatabase.GenerateUniqueAssetPath($"{folder}/{name} {FileName(insert.CoverMaterial.name)}.mat"));
+					cover = Variant(insert.CoverMaterial, $"{name} {BaseName(insert.CoverMaterial)}");
+					AssetDatabase.CreateAsset(cover, AssetDatabase.GenerateUniqueAssetPath($"{folder}/{name} {FileName(BaseName(insert.CoverMaterial))}.mat"));
 				}
 			} catch {
 				// Nothing half-forked is left behind: the insert still wears the source.

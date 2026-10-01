@@ -1396,6 +1396,24 @@ namespace VisualPinball.Unity.Test
 				Assert.That(material, Is.Not.EqualTo(recoloured));
 				Assert.That(material.GetColor("_BaseColor"), Is.EqualTo(Color.blue));
 				Assert.That(UnityEditor.AssetDatabase.GetAssetPath(material), Is.EqualTo($"{folder}/Insert Blue.mat"));
+
+				// A fork of a fork is named after the root of the chain, not after
+				// every insert along the way.
+				var variant = new Material(shared) { name = "Other Shared Red" };
+				UnityEditor.AssetDatabase.CreateAsset(variant, $"{folder}/Other Shared Red.mat");
+				variant.parent = shared;
+				Assert.That(variant.parent, Is.EqualTo(shared), "a saved material can be made a variant");
+				renderer.sharedMaterial = variant;
+				material = (Material)method.Invoke(null, new object[] { insert, false, folder, "Third", newMap });
+				Assert.That(material.name, Is.EqualTo("Third Shared Red"));
+				Assert.That(UnityEditor.AssetDatabase.GetAssetPath(material), Is.EqualTo($"{folder}/Third Shared Red.mat"));
+				// So is a bake of a bake's copy, named after the insert that wore it.
+				var copy = new Material(shared) { name = "Insert Shared Red" };
+				UnityEditor.AssetDatabase.CreateFolder(folder, "Copy");
+				UnityEditor.AssetDatabase.CreateAsset(copy, $"{folder}/Copy/Insert Shared Red.mat");
+				renderer.sharedMaterial = copy;
+				material = (Material)method.Invoke(null, new object[] { insert, false, folder, "Fourth", newMap });
+				Assert.That(material.name, Is.EqualTo("Fourth Shared Red"));
 			} finally {
 				if (other != null) {
 					Object.DestroyImmediate(other.GetComponent<MeshFilter>().sharedMesh);
