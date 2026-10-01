@@ -99,6 +99,17 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		/// <summary>
+		/// Selects the object with the given name among the dropdown's objects, or clears the
+		/// selection if there is none. Call after <see cref="AddObjectsToDropdown{T}"/>.
+		/// </summary>
+		public void SetValue(string objName)
+		{
+			var selectedGo = string.IsNullOrEmpty(objName) ? null : _objects.FirstOrDefault(go => go.name == objName);
+			_dropdown.SetValueWithoutNotify(selectedGo != null ? selectedGo.name : null);
+			_objectPicker.value = selectedGo;
+		}
+
 		private void OnDropdownValueChanged(ChangeEvent<string> evt)
 		{
 			var selectedGo = _objects.FirstOrDefault(go => go.name == evt.newValue);

@@ -119,6 +119,8 @@ namespace VisualPinball.Unity.Editor
 			_body.Q<ListView>("variations").itemsAdded += OnNewMaterialVariation;
 			_bodyReadOnly.Q<Button>("replace-selected").clicked += OnReplaceSelected;
 			_addButton.clicked += OnAddSelected;
+			RegisterCallback<AttachToPanelEvent>(_ => Undo.undoRedoPerformed += OnUndoRedo);
+			RegisterCallback<DetachFromPanelEvent>(_ => Undo.undoRedoPerformed -= OnUndoRedo);
 
 			Add(_emptyLabel);
 			Add(_detailView);
@@ -202,14 +204,26 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 			bgo.visible = true;
-			bgo.Value = _asset?.EnvironmentGameObjectName != null ? bgParent.transform.Find(_asset.EnvironmentGameObjectName)?.gameObject : null;
+			// populate first, then resolve by name like the thumb generator does (objects can be nested).
 			bgo.AddObjectsToDropdown<MeshRenderer>(bgParent, true);
+			bgo.SetValue(_asset?.EnvironmentGameObjectName);
 			bgo.RegisterValueChangedCallback(OnThumbEnvironmentChanged);
 		}
 		
 		private void OnThumbEnvironmentChanged(Object obj)
 		{
+			// not bound to a serialized property, so record and dirty manually, otherwise it won't get saved.
+			Undo.RecordObject(_asset, "change thumbnail environment");
 			_asset.EnvironmentGameObjectName = obj.name;
+			EditorUtility.SetDirty(_asset);
+		}
+
+		private void OnUndoRedo()
+		{
+			// the environment dropdown isn't bound, so sync it manually.
+			if (_asset != null) {
+				_body.Q<ObjectDropdownElement>("environment-field").SetValue(_asset.EnvironmentGameObjectName);
+			}
 		}
 
 		private void BindInfo(Asset asset)
