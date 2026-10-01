@@ -247,10 +247,23 @@ def pack(request, report):
 		props.normalize_scale = False
 		props.heuristic_enable = False
 		prefs = bpy.context.preferences.addons[report['UvPackMasterModule']].preferences
-		result = bpy.ops.uvpackmaster4.pack('EXEC_DEFAULT', mode_id='pack.single_tile', pack_op_type='0')
-		if 'FINISHED' in result and prefs.engine_retcode == 0:
-			return 'UVPackMaster'
-		report['Warnings'].append(f'UVPackMaster failed ({result}, engine code {prefs.engine_retcode}); packed with Blender instead.')
+		# The packer runs in an engine process of its own, which can die under
+		# it, now and then, before it has packed anything; a second go starts
+		# it afresh, and failing that Blender's own packer takes over, so a
+		# dropped engine never costs the bake.
+		failure = None
+		for attempt in range(2):
+			try:
+				result = bpy.ops.uvpackmaster4.pack('EXEC_DEFAULT', mode_id='pack.single_tile', pack_op_type='0')
+			except RuntimeError as exc:
+				failure = f'{exc}'.strip()
+				print(f'[bake_insert] UVPackMaster raised on attempt {attempt + 1}: {failure}', flush=True)
+				continue
+			if 'FINISHED' in result and prefs.engine_retcode == 0:
+				return 'UVPackMaster'
+			failure = f'{result}, engine code {prefs.engine_retcode}'
+			break
+		report['Warnings'].append(f'UVPackMaster failed ({failure}); packed with Blender instead.')
 	# Blender keeps the margin clear round every island, so two of them end up
 	# twice the margin apart: half the gap is the gap.
 	bpy.ops.uv.pack_islands(rotate=True, margin_method='FRACTION', margin=gap / 2 / size, shape_method='CONCAVE')
