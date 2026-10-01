@@ -37,7 +37,9 @@ namespace VisualPinball.Unity
 	/// would: each point's normal leans straight away from or towards the
 	/// centre, and nothing folds along the lines out of it. Rounded rings cut
 	/// each slope into several strips that follow the curve, and their normals
-	/// come from the curve itself, so the ridges and grooves roll over.
+	/// come from the curve itself, so the ridges and grooves roll over. The
+	/// rings can start some way out from the centre, leaving a flat disc in
+	/// the middle at the ridges' height, from which the first slope drops.
 	/// </remarks>
 	public class InsertRings : InsertRelief
 	{
@@ -61,6 +63,13 @@ namespace VisualPinball.Unity
 		/// <summary>How many strips each slope from a ridge to a groove is cut into.</summary>
 		public readonly int Steps;
 
+		/// <summary>
+		/// The radius of the flat disc in the middle, where the rings start, in
+		/// VPX units: a whole number of pitches, so the rings lie where they
+		/// would without the disc and the material finds them from the pitch alone.
+		/// </summary>
+		public readonly float Start;
+
 		/// <summary>How many sides every ring's polygon has, and how many lines run out from the centre.</summary>
 		public readonly int Segments;
 
@@ -74,7 +83,7 @@ namespace VisualPinball.Unity
 		public override float CenterDepth => _centerDepth;
 		public override float Offset => _offset;
 
-		private InsertRings(float2 center, float width, float offset, float centerDepth, float roundness, int segments, int count)
+		private InsertRings(float2 center, float width, float offset, float centerDepth, float roundness, float start, int segments, int count)
 		{
 			_center = center;
 			Width = width;
@@ -82,17 +91,22 @@ namespace VisualPinball.Unity
 			_centerDepth = centerDepth;
 			Roundness = roundness;
 			Steps = ProfileSteps(roundness);
+			Start = start;
 			Segments = segments;
 			Count = count;
 			Reach = Apothem(count) / math.cos(math.PI / segments) * 1.01f;
 		}
 
+		/// <summary>The start rounded to the whole pitches the rings keep to.</summary>
+		public static float SnapStart(float start, float width) => math.max(0f, math.round(start / width)) * width;
+
 		/// <summary>
 		/// Rings round <paramref name="center"/>, <paramref name="width"/> apart
 		/// from ridge to ridge, enough of them to cover every point of
-		/// <paramref name="footprint"/>, rounded over by <paramref name="roundness"/>.
+		/// <paramref name="footprint"/>, rounded over by <paramref name="roundness"/>,
+		/// starting <paramref name="start"/> out from the centre, rounded to whole pitches.
 		/// </summary>
-		public static InsertRings Cover(IReadOnlyList<float2> footprint, float2 center, float width, float offset, float centerDepth, float roundness = 0f)
+		public static InsertRings Cover(IReadOnlyList<float2> footprint, float2 center, float width, float offset, float centerDepth, float roundness = 0f, float start = 0f)
 		{
 			if (width < MinWidth) {
 				throw new InsertOutlineException($"Rings need a width of at least {MinWidth}.");
@@ -108,14 +122,15 @@ namespace VisualPinball.Unity
 				throw new InsertOutlineException("The surface the rings should cover has no size.");
 			}
 			roundness = math.saturate(roundness);
+			start = SnapStart(start, width);
 			var step = width * 0.5f / ProfileSteps(roundness);
 			// A line beyond the surface as well, so the outermost strip has both
 			// its edges and a point on the edge is never a borderline case.
-			var count = (int)math.ceil(reach / step) + 1;
+			var count = (int)math.ceil(math.max(reach - start, 0f) / step) + 1;
 			// Sides no longer than a pitch on the outermost ring, and never so few
 			// that a ridge reads as a polygon.
-			var segments = math.clamp((int)math.ceil(2f * math.PI * count * step / width), MinSegments, MaxSegments);
-			return new InsertRings(center, width, offset, centerDepth, roundness, segments, count);
+			var segments = math.clamp((int)math.ceil(2f * math.PI * (start + count * step) / width), MinSegments, MaxSegments);
+			return new InsertRings(center, width, offset, centerDepth, roundness, start, segments, count);
 		}
 
 		/// <summary>
@@ -125,8 +140,11 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public float RingDepth(int index) => _centerDepth + _offset * ProfileHeight((float)index / Steps, Roundness);
 
-		/// <summary>The radius line <paramref name="index"/>'s corners sit at.</summary>
-		public float Radius(int index) => index * Width * 0.5f / Steps;
+		/// <summary>The radius line <paramref name="index"/>'s corners sit at: the first on the disc's edge.</summary>
+		public float Radius(int index) => Start + index * Width * 0.5f / Steps;
+
+		/// <summary>The strip index that stands for the flat disc in the middle, inside the first line.</summary>
+		public int DiscRing => Count;
 
 		/// <summary>How far ring <paramref name="index"/>'s sides lie from the centre.</summary>
 		public float Apothem(int index) => Radius(index) * math.cos(math.PI / Segments);
@@ -165,15 +183,19 @@ namespace VisualPinball.Unity
 
 		/// <summary>
 		/// Which ring's strip <paramref name="position"/> lies in, within its
-		/// angular sector: the chords are judged where they are, a side of the
-		/// polygon, not the circle through its corners, so a point between the
-		/// two belongs to the strip outside the side.
+		/// angular sector, or the disc's: the chords are judged where they are,
+		/// a side of the polygon, not the circle through its corners, so a
+		/// point between the two belongs to the strip outside the side.
 		/// </summary>
 		public int Ring(float2 position, int angularSector)
 		{
 			var along = math.dot(position - _center, Bisector(angularSector));
-			var spacing = Width * 0.5f / Steps * math.cos(math.PI / Segments);
-			return math.clamp((int)math.floor(along / spacing), 0, Count - 1);
+			var cos = math.cos(math.PI / Segments);
+			if (Start > 0f && along < Start * cos) {
+				return DiscRing;
+			}
+			var spacing = Width * 0.5f / Steps * cos;
+			return math.clamp((int)math.floor((along - Start * cos) / spacing), 0, Count - 1);
 		}
 
 		/// <summary>One index for the facet: the ring's strip and the angular sector within it.</summary>
@@ -195,6 +217,9 @@ namespace VisualPinball.Unity
 		public float DepthInSector(int sector, float2 position)
 		{
 			var ring = sector / Segments;
+			if (ring == DiscRing) {
+				return RingDepth(0);
+			}
 			var angular = sector % Segments;
 			var along = math.dot(position - _center, Bisector(angular));
 			var t = (along - Apothem(ring)) / math.max(Apothem(ring + 1) - Apothem(ring), 1e-9f);
@@ -204,10 +229,13 @@ namespace VisualPinball.Unity
 		public override float3 LocalNormal(int sector)
 		{
 			var ring = sector / Segments;
+			if (ring == DiscRing) {
+				return math.up();
+			}
 			var angular = sector % Segments;
 			float3 a = InsertMeshGenerator.ToLocal(Corner(ring + 1, angular), RingDepth(ring + 1));
 			float3 b = InsertMeshGenerator.ToLocal(Corner(ring + 1, angular + 1), RingDepth(ring + 1));
-			float3 c = ring == 0
+			float3 c = ring == 0 && Start <= 0f
 				? InsertMeshGenerator.ToLocal(_center, RingDepth(0))
 				: InsertMeshGenerator.ToLocal(Corner(ring, angular), RingDepth(ring));
 			var tilted = math.normalize(math.cross(b - a, c - a));
@@ -226,11 +254,11 @@ namespace VisualPinball.Unity
 		{
 			var origin = (float3)InsertMeshGenerator.ToLocal(_center, 0f);
 			var radial = ((float3)InsertMeshGenerator.ToLocal(position, 0f) - origin).xz;
-			if (math.lengthsq(radial) < 1e-12f) {
+			if (math.lengthsq(radial) < 1e-12f || sector / Segments == DiscRing) {
 				return LocalNormal(sector);
 			}
 			var half = Width * 0.5f;
-			var u = math.distance(position, _center) / half;
+			var u = math.max(0f, math.distance(position, _center) - Start) / half;
 			var crease = sector / Segments / Steps;
 			var slope = _offset / half * ProfileSlope(u, crease, Roundness);
 			radial = math.normalize(radial) * -slope;
@@ -245,7 +273,9 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public override IEnumerable<(float2 From, float2 To, bool FromCenter)> CreasesWithin(IReadOnlyList<float2> polygon, float tolerance)
 		{
-			for (var ring = 1; ring <= Count; ring++) {
+			// The disc's edge is a crease too; the lines out of the centre start
+			// there rather than at the centre, which they then do not share.
+			for (var ring = Start > 0f ? 0 : 1; ring <= Count; ring++) {
 				for (var corner = 0; corner < Segments; corner++) {
 					var from = Corner(ring, corner);
 					var to = Corner(ring, corner + 1);
@@ -255,8 +285,9 @@ namespace VisualPinball.Unity
 				}
 			}
 			for (var corner = 0; corner < Segments; corner++) {
-				foreach (var part in RayWithin(_center, Direction(corner), Reach, polygon, tolerance)) {
-					yield return part;
+				var direction = Direction(corner);
+				foreach (var part in RayWithin(_center + direction * Start, direction, Reach - Start, polygon, tolerance)) {
+					yield return (part.From, part.To, part.FromCenter && Start <= 0f);
 				}
 			}
 		}

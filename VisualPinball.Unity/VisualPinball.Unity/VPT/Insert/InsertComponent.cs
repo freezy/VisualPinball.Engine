@@ -354,6 +354,11 @@ namespace VisualPinball.Unity
 		private float _ringRoundness = 0.5f;
 
 		[SerializeField]
+		[Min(0f)]
+		[Tooltip("How far out from the centre the rings start, in VPX units, leaving a flat disc in the middle at the ridges' height. Rounded to whole widths, so the rings lie where they would without the disc.")]
+		private float _ringStart;
+
+		[SerializeField]
 		[Tooltip("Whether the raised floor is cut like a gem: a flat table with rows of triangular facets zigzagging out to the edge. Off keeps it flat.")]
 		private bool _gem;
 
@@ -962,6 +967,7 @@ namespace VisualPinball.Unity
 				RingCenter = new float2(_ringCenter.x, _ringCenter.y),
 				RingOffset = _ringOffset,
 				RingRoundness = _ringRoundness,
+				RingStart = _ringStart,
 				GemSides = _gem && groove == null && !_stippled && starburstBursts < InsertStarburst.MinBursts && ribWidth <= 0f && ringWidth <= 0f ? math.clamp(_gemSides, InsertGem.MinSides, InsertGem.MaxSides) : 0,
 				GemCenter = new float2(_gemCenter.x, _gemCenter.y),
 				GemTable = _gemTable,

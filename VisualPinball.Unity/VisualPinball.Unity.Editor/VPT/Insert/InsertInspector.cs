@@ -92,6 +92,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _ringWidth;
 		private SerializedProperty _ringOffset;
 		private SerializedProperty _ringRoundness;
+		private SerializedProperty _ringStart;
 		private SerializedProperty _gem;
 		private SerializedProperty _gemCenter;
 		private SerializedProperty _gemSides;
@@ -188,6 +189,7 @@ namespace VisualPinball.Unity.Editor
 			_ringWidth = serializedObject.FindProperty("_ringWidth");
 			_ringOffset = serializedObject.FindProperty("_ringOffset");
 			_ringRoundness = serializedObject.FindProperty("_ringRoundness");
+			_ringStart = serializedObject.FindProperty("_ringStart");
 			_gem = serializedObject.FindProperty("_gem");
 			_gemCenter = serializedObject.FindProperty("_gemCenter");
 			_gemSides = serializedObject.FindProperty("_gemSides");
@@ -522,6 +524,7 @@ namespace VisualPinball.Unity.Editor
 					}
 				}
 				Field(_ringWidth, "Width");
+				Field(_ringStart, "Start");
 				Field(_ringOffset, "Offset");
 				Field(_ringRoundness, "Roundness");
 			} else if (!patternMixed && pattern == Pattern.Gem) {
@@ -723,11 +726,12 @@ namespace VisualPinball.Unity.Editor
 					reach = math.max(reach, math.distance(point, center));
 				}
 				var half = _ringWidth.floatValue * 0.5f;
-				var rings = (int)math.ceil(reach / half);
+				var start = InsertRings.SnapStart(_ringStart.floatValue, _ringWidth.floatValue);
+				var rings = (int)math.ceil(math.max(reach - start, 0f) / half);
 				var stride = math.max(1, (int)math.ceil(rings / 64f));
 				Handles.color = dark ? new Color(0.9f, 0.9f, 0.7f, 0.35f) : new Color(0.3f, 0.3f, 0.1f, 0.35f);
-				for (var ring = 1; ring <= rings; ring += stride) {
-					Handles.DrawWireDisc(Map(center), Vector3.forward, ring * half * scale);
+				for (var ring = start > 0f ? 0 : 1; ring <= rings; ring += stride) {
+					Handles.DrawWireDisc(Map(center), Vector3.forward, (start + ring * half) * scale);
 				}
 				var hub = Map(center);
 				if (rect.Contains(hub)) {

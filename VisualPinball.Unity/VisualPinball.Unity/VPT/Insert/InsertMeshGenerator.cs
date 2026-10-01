@@ -82,6 +82,9 @@ namespace VisualPinball.Unity
 		/// <summary>How far the rings are rounded over, from sharp creases at zero to a cosine at one.</summary>
 		public float RingRoundness;
 
+		/// <summary>How far out from the centre the rings start, leaving a flat disc inside, in VPX units; rounded to whole pitches.</summary>
+		public float RingStart;
+
 		/// <summary>
 		/// How many sides the gem's table has, or zero for no gem. The gem comes
 		/// after every other relief when more than one is asked for.
@@ -786,7 +789,7 @@ namespace VisualPinball.Unity
 				return body.RibWidth >= InsertRibs.MinWidth
 					? InsertRibs.Cover(footprint, body.RibAngle, body.RibWidth, offset, centerDepth, body.RibRoundness)
 					: body.RingWidth >= InsertRings.MinWidth
-						? InsertRings.Cover(footprint, body.RingCenter, body.RingWidth, offset, centerDepth, body.RingRoundness)
+						? InsertRings.Cover(footprint, body.RingCenter, body.RingWidth, offset, centerDepth, body.RingRoundness, body.RingStart)
 						: InsertGem.Cover(footprint, body.GemCenter, body.GemSides, body.GemTable, body.GemRowLength, body.GemSpread, offset, centerDepth);
 			}
 

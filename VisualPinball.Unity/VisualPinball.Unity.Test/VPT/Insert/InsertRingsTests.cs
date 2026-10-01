@@ -136,6 +136,40 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldLeaveAFlatDiscWhereTheRingsStart()
+		{
+			var rings = InsertRings.Cover(Square(40f), float2.zero, 4f, 1.5f, -10f, 0f, 5f);
+			Assert.That(rings.Start, Is.EqualTo(4f), "rounded to whole pitches");
+			Assert.That(InsertRings.SnapStart(6.5f, 4f), Is.EqualTo(8f));
+			Assert.That(InsertRings.SnapStart(1f, 4f), Is.EqualTo(0f));
+			Assert.That(rings.Radius(0), Is.EqualTo(4f));
+			Assert.That(rings.Radius(2), Is.EqualTo(8f));
+			// The disc is flat at the ridges' height; the first groove lies a half
+			// pitch beyond its edge, the next ridge a pitch beyond.
+			var bisector = rings.Bisector(0);
+			Assert.That(rings.DepthAt(float2.zero), Is.EqualTo(-8.5f).Within(1e-4f));
+			Assert.That(rings.DepthAt(bisector * 3f), Is.EqualTo(-8.5f).Within(1e-4f));
+			Assert.That(rings.DepthAt(bisector * rings.Apothem(1)), Is.EqualTo(-11.5f).Within(1e-3f));
+			Assert.That(rings.DepthAt(bisector * rings.Apothem(2)), Is.EqualTo(-8.5f).Within(1e-3f));
+			var disc = rings.SectorOf(bisector * 3f);
+			Assert.That(disc / rings.Segments, Is.EqualTo(rings.DiscRing));
+			Assert.That(rings.LocalNormal(disc).y, Is.EqualTo(1f).Within(1e-6f));
+			Assert.That(rings.LocalNormal(disc, bisector * 3f).y, Is.EqualTo(1f).Within(1e-6f));
+			// Just outside the disc's edge the first slope drops away from the centre.
+			var outside = bisector * (rings.Apothem(0) + 0.1f);
+			var normal = rings.LocalNormal(rings.SectorOf(outside), outside);
+			Assert.That(normal.y, Is.LessThan(0.99f));
+			// The disc's edge is laid as a crease and the lines out of the centre
+			// start there, sharing nothing.
+			var parts = rings.CreasesWithin(Square(40f), 1e-4f).ToList();
+			Assert.That(parts.Any(p => p.FromCenter), Is.False);
+			var edge = parts.Where(p => math.abs(math.length(p.From) - 4f) < 1e-3f && math.abs(math.length(p.To) - 4f) < 1e-3f).ToList();
+			Assert.That(edge.Count, Is.EqualTo(rings.Segments));
+			Assert.That(parts.Count(p => math.abs(math.length(p.From) - 4f) < 1e-3f && math.length(p.To) > 4.5f), Is.EqualTo(rings.Segments), "a line out from every corner of the disc");
+			Assert.That(parts.All(p => math.length(p.From) > 4f - 1e-3f && math.length(p.To) > 4f - 1e-3f), "and nothing inside it");
+		}
+
+		[Test]
 		public void ShouldLayRingsAndLinesIntoTheFloor()
 		{
 			var rings = InsertRings.Cover(Square(40f), float2.zero, 4f, 1.5f, -10f);
