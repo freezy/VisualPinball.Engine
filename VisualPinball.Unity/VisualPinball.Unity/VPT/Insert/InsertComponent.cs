@@ -307,6 +307,25 @@ namespace VisualPinball.Unity
 		private float _starburstOffset = 1.5f;
 
 		[SerializeField]
+		[Tooltip("Whether the raised floor carries parallel ribs. Off keeps it flat.")]
+		private bool _ribbed;
+
+		[SerializeField]
+		[Range(-180f, 180f)]
+		[Tooltip("The direction the ribs run, in degrees from the insert's X axis: zero runs them along X, ninety along Y.")]
+		private float _ribAngle = 90f;
+
+		[SerializeField]
+		[Min(0.2f)]
+		[Tooltip("Ridge to ridge, in VPX units. A ridge runs through the insert's origin.")]
+		private float _ribWidth = 4f;
+
+		[SerializeField]
+		[Min(0f)]
+		[Tooltip("How far the ribs' ridges rise above and grooves drop below the floor, in VPX units.")]
+		private float _ribOffset = 1.5f;
+
+		[SerializeField]
 		[Tooltip("Whether the flat surface carries a grid of square pyramids for the normal bake.")]
 		private bool _stippled;
 
@@ -837,18 +856,22 @@ namespace VisualPinball.Unity
 			// The engraved line takes the raised middle's surface, where the
 			// starburst would be: the two never share it.
 			var groove = BuildGroove(outline, channelWidth, warnings);
-			if (groove != null && _starburst) {
-				warnings.Add("The engraved line takes the starburst's place: the starburst is not built while the line is on.");
+			if (groove != null && (_starburst || _ribbed)) {
+				warnings.Add("The engraved line takes the pattern's place: the starburst or ribs are not built while the line is on.");
 			}
+			var starburstBursts = _starburst && groove == null && !_stippled ? _starburstBursts : 0;
 
 			var body = new InsertBody {
 				Depth = depth,
 				ChannelWidth = channelWidth,
 				ChannelDepth = channelDepth,
 				Groove = groove,
-				StarburstBursts = _starburst && groove == null && !_stippled ? _starburstBursts : 0,
+				StarburstBursts = starburstBursts,
 				StarburstCenter = new float2(_starburstCenter.x, _starburstCenter.y),
 				StarburstOffset = _starburstOffset,
+				RibWidth = _ribbed && groove == null && !_stippled && starburstBursts < InsertStarburst.MinBursts ? math.max(_ribWidth, InsertRibs.MinWidth) : 0f,
+				RibAngle = _ribAngle,
+				RibOffset = _ribOffset,
 				StippleHeight = _stippled ? math.min(math.max(0.01f, _stippleHeight),
 					math.max(0f, depth - channelDepth - math.max(outline.WeldTolerance * 4f, 0.01f))) : 0f,
 				StippleWidth = math.max(0.01f, _stippleWidth),
@@ -862,17 +885,24 @@ namespace VisualPinball.Unity
 				warnings.Add($"Stipple height reduced to {body.StippleHeight:0.##} to stay below the rim.");
 			}
 
-			if (body.StarburstBursts >= InsertStarburst.MinBursts) {
+			if (body.HasRelief) {
 				// The zigzag straddles the floor, so it can reach no further down than
 				// what lies below it, nor further up than the rim. It is the size that
-				// is held: a negative offset only swaps which spokes are ridges, and
+				// is held: a negative offset only swaps which creases are ridges, and
 				// reaches just as far.
 				var limit = body.StarburstLimit();
-				body.StarburstOffset = math.clamp(_starburstOffset, -limit, limit);
-				if (math.abs(body.StarburstOffset) < math.abs(_starburstOffset) - 1e-4f) {
+				var asked = body.StarburstBursts >= InsertStarburst.MinBursts ? _starburstOffset : _ribOffset;
+				var held = math.clamp(asked, -limit, limit);
+				if (body.StarburstBursts >= InsertStarburst.MinBursts) {
+					body.StarburstOffset = held;
+				} else {
+					body.RibOffset = held;
+				}
+				if (math.abs(held) < math.abs(asked) - 1e-4f) {
+					var pattern = body.StarburstBursts >= InsertStarburst.MinBursts ? "Starburst" : "Rib";
 					warnings.Add(channel
-						? $"Starburst offset reduced to {body.StarburstOffset:0.##} to stay between the channel floor and the rim."
-						: $"Starburst offset reduced to {body.StarburstOffset:0.##} to stay below the rim.");
+						? $"{pattern} offset reduced to {held:0.##} to stay between the channel floor and the rim."
+						: $"{pattern} offset reduced to {held:0.##} to stay below the rim.");
 				}
 			}
 			return body;

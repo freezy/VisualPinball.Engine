@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Mathematics;
+using UnityEngine;
 
 namespace VisualPinball.Unity
 {
@@ -45,18 +46,22 @@ namespace VisualPinball.Unity
 	/// surface keeps each face flat.
 	/// </para>
 	/// </remarks>
-	public class InsertStarburst
+	public class InsertStarburst : InsertRelief
 	{
 		/// <summary>Fewer than two bursts cannot make a wheel.</summary>
 		public const int MinBursts = 2;
 
-		public readonly float2 Center;
+		private readonly float2 _center;
+		private readonly float _centerDepth;
+		private readonly float _offset;
+
+		public override float2 Center => _center;
 
 		/// <summary>The depth the centre sits at, which the rim straddles.</summary>
-		public readonly float CenterDepth;
+		public override float CenterDepth => _centerDepth;
 
 		/// <summary>How far the rim rises above and drops below the centre.</summary>
-		public readonly float Offset;
+		public override float Offset => _offset;
 
 		public readonly float Radius;
 
@@ -75,9 +80,9 @@ namespace VisualPinball.Unity
 
 		private InsertStarburst(float2 center, float centerDepth, float offset, float radius, int count)
 		{
-			Center = center;
-			CenterDepth = centerDepth;
-			Offset = offset;
+			_center = center;
+			_centerDepth = centerDepth;
+			_offset = offset;
 			Radius = radius;
 
 			_rim = new float2[count];
@@ -126,7 +131,7 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Which triangle <paramref name="position"/> falls in, looking from above.
 		/// </summary>
-		public int SectorOf(float2 position)
+		public override int SectorOf(float2 position)
 		{
 			var delta = position - Center;
 			if (math.lengthsq(delta) < InsertOutlineBuilder.Epsilon * InsertOutlineBuilder.Epsilon) {
@@ -143,7 +148,42 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// The depth of the surface above or below <paramref name="position"/>.
 		/// </summary>
-		public float DepthAt(float2 position) => DepthInSector(SectorOf(position), position);
+		public override float DepthAt(float2 position) => DepthInSector(SectorOf(position), position);
+
+		public override float3 LocalNormal(int sector)
+		{
+			float3 hub = InsertMeshGenerator.ToLocal(Center, CenterDepth);
+			float3 opening = InsertMeshGenerator.ToLocal(Rim(sector), RimDepth(sector));
+			float3 closing = InsertMeshGenerator.ToLocal(Rim(sector + 1), RimDepth(sector + 1));
+			var tilted = math.normalize(math.cross(opening - hub, closing - hub));
+			return tilted.y < 0f ? -tilted : tilted;
+		}
+
+		/// <summary>Every spoke's parts inside the polygon, those from the centre saying so.</summary>
+		public override IEnumerable<(float2 From, float2 To, bool FromCenter)> CreasesWithin(IReadOnlyList<float2> polygon, float tolerance)
+		{
+			for (var spoke = 0; spoke < Count; spoke++) {
+				foreach (var part in SpokeWithin(spoke, polygon, tolerance)) {
+					yield return part;
+				}
+			}
+		}
+
+		/// <summary>
+		/// Away from the centre: a line through it stays within the one
+		/// triangle of the wheel it starts in and never crosses a spoke.
+		/// </summary>
+		public override float2 BridgeDirection(float2 from)
+		{
+			var away = from - Center;
+			return math.lengthsq(away) > 1e-12f ? math.normalize(away) : new float2(1f, 0f);
+		}
+
+		public override Vector4 Optical()
+		{
+			var lowest = InsertMeshGenerator.ToLocal(Center, CenterDepth - Offset);
+			return new Vector4(lowest.x, lowest.z, Count, lowest.y);
+		}
 
 		/// <summary>
 		/// The depth of triangle <paramref name="sector"/>'s plane at
@@ -246,22 +286,6 @@ namespace VisualPinball.Unity
 			}
 			return parts;
 		}
-
-		/// <summary>
-		/// The largest offset that keeps the surface between the bucket's floor
-		/// and its rim, with the centre <paramref name="channelDepth"/> above the
-		/// floor of a bucket <paramref name="depth"/> deep.
-		/// </summary>
-		/// <remarks>
-		/// Nowhere on the surface strays further from the centre's plane than the
-		/// offset's size, whichever way it points, so keeping both extremes inside
-		/// the bucket keeps all of it inside. The raised floor never reaches out to
-		/// the rim of the wheel, which was grown past it, so at the limit it still
-		/// stops short of the channel floor and the wall around it never closes to
-		/// nothing.
-		/// </remarks>
-		public static float OffsetLimit(float depth, float channelDepth) =>
-			math.max(0f, math.min(channelDepth, depth - channelDepth));
 
 		private int Mod(int index) => (index % Count + Count) % Count;
 	}

@@ -270,7 +270,7 @@ namespace VisualPinball.Unity.Editor
 			try {
 				var layout = new InsertMeshLayout();
 				var body = insert.Generate(mesh, layout);
-				var relief = math.max(math.abs(body.StarburstOffset), body.StippleHeight);
+				var relief = math.max(math.abs(body.ReliefOffset), body.StippleHeight);
 				InsertBakeRequest request;
 				if (body.StippleHeight > 0f) {
 					plainMesh = new Mesh();

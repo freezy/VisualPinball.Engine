@@ -60,7 +60,7 @@ namespace VisualPinball.Unity
 		[Tooltip("Suggested virtual lamp position in insert local metres, and its radius in w.")]
 		public Vector4 OpticalLamp;
 
-		[Tooltip("Local X/Z starburst centre, sector count, and lowest starburst height, used to keep optical variation aligned with the generated faces.")]
+		[Tooltip("Local X/Z starburst centre, sector count, and lowest starburst height, used to keep optical variation aligned with the generated faces. For ribs: the direction across them in X/Z, the half pitch in metres made negative, and the lowest height.")]
 		public Vector4 OpticalStarburst;
 
 		[Tooltip("The material with the baked textures, retained as a preview between bakes.")]

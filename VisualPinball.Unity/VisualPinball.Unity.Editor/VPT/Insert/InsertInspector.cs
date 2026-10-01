@@ -82,6 +82,10 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _starburstBursts;
 		private SerializedProperty _starburstCenter;
 		private SerializedProperty _starburstOffset;
+		private SerializedProperty _ribbed;
+		private SerializedProperty _ribAngle;
+		private SerializedProperty _ribWidth;
+		private SerializedProperty _ribOffset;
 		private SerializedProperty _stippled;
 		private SerializedProperty _stippleHeight;
 		private SerializedProperty _stippleWidth;
@@ -159,6 +163,10 @@ namespace VisualPinball.Unity.Editor
 			_starburstBursts = serializedObject.FindProperty("_starburstBursts");
 			_starburstCenter = serializedObject.FindProperty("_starburstCenter");
 			_starburstOffset = serializedObject.FindProperty("_starburstOffset");
+			_ribbed = serializedObject.FindProperty("_ribbed");
+			_ribAngle = serializedObject.FindProperty("_ribAngle");
+			_ribWidth = serializedObject.FindProperty("_ribWidth");
+			_ribOffset = serializedObject.FindProperty("_ribOffset");
 			_stippled = serializedObject.FindProperty("_stippled");
 			_stippleHeight = serializedObject.FindProperty("_stippleHeight");
 			_stippleWidth = serializedObject.FindProperty("_stippleWidth");
@@ -235,13 +243,16 @@ namespace VisualPinball.Unity.Editor
 			Starburst = 1,
 			EngravedLine = 2,
 			Stippled = 3,
+			Ribbed = 4,
 		}
 
-		private static readonly string[] Patterns = { "None", "Starburst", "Stippled" };
-		private static readonly string[] GroovePatterns = { "None", "Starburst", "Engraved Line", "Stippled" };
+		private static readonly Pattern[] PatternChoices = { Pattern.None, Pattern.Starburst, Pattern.Ribbed, Pattern.Stippled };
+		private static readonly Pattern[] GroovePatternChoices = { Pattern.None, Pattern.Starburst, Pattern.Ribbed, Pattern.EngravedLine, Pattern.Stippled };
+		private static readonly string[] Patterns = { "None", "Starburst", "Ribbed", "Stippled" };
+		private static readonly string[] GroovePatterns = { "None", "Starburst", "Ribbed", "Engraved Line", "Stippled" };
 
 		/// <summary>The pattern represented by the stored flags.</summary>
-		private static Pattern PatternOf(bool starburst, bool groove, bool stippled, bool flash)
+		private static Pattern PatternOf(bool starburst, bool ribbed, bool groove, bool stippled, bool flash)
 		{
 			if (stippled) {
 				return Pattern.Stippled;
@@ -249,7 +260,10 @@ namespace VisualPinball.Unity.Editor
 			if (flash && groove) {
 				return Pattern.EngravedLine;
 			}
-			return starburst ? Pattern.Starburst : Pattern.None;
+			if (starburst) {
+				return Pattern.Starburst;
+			}
+			return ribbed ? Pattern.Ribbed : Pattern.None;
 		}
 
 		private static void Field(SerializedProperty property, string label, bool children = false)
@@ -413,16 +427,18 @@ namespace VisualPinball.Unity.Editor
 			SubHeader("Pattern");
 			// One choice for the flat surface, with only that pattern's settings shown.
 			var engraved = !_shape.hasMultipleDifferentValues && (InsertShape)_shape.enumValueIndex is InsertShape.Flash or InsertShape.Custom;
-			var pattern = PatternOf(_starburst.boolValue, _flashGroove.boolValue, _stippled.boolValue, engraved);
-			var patternMixed = _starburst.hasMultipleDifferentValues || _flashGroove.hasMultipleDifferentValues || _stippled.hasMultipleDifferentValues || _shape.hasMultipleDifferentValues;
+			var pattern = PatternOf(_starburst.boolValue, _ribbed.boolValue, _flashGroove.boolValue, _stippled.boolValue, engraved);
+			var patternMixed = _starburst.hasMultipleDifferentValues || _ribbed.hasMultipleDifferentValues || _flashGroove.hasMultipleDifferentValues || _stippled.hasMultipleDifferentValues || _shape.hasMultipleDifferentValues;
 			var choices = engraved ? GroovePatterns : Patterns;
-			var index = engraved ? (int)pattern : pattern == Pattern.Stippled ? 2 : (int)pattern;
+			var choiceValues = engraved ? GroovePatternChoices : PatternChoices;
+			var index = System.Math.Max(0, System.Array.IndexOf(choiceValues, pattern));
 			EditorGUI.showMixedValue = patternMixed;
 			EditorGUI.BeginChangeCheck();
-			var selection = EditorGUILayout.Popup(new GUIContent("Pattern", "The flat surface's pattern. Stippled and Engraved Line become normal maps after baking; Starburst stays in the mesh."), index, choices);
+			var selection = EditorGUILayout.Popup(new GUIContent("Pattern", "The flat surface's pattern. Stippled and Engraved Line become normal maps after baking; Starburst and Ribbed stay in the mesh."), index, choices);
 			if (EditorGUI.EndChangeCheck()) {
-				var chosen = !engraved && selection == 2 ? Pattern.Stippled : (Pattern)selection;
+				var chosen = choiceValues[selection];
 				_starburst.boolValue = chosen == Pattern.Starburst;
+				_ribbed.boolValue = chosen == Pattern.Ribbed;
 				_flashGroove.boolValue = chosen == Pattern.EngravedLine;
 				_stippled.boolValue = chosen == Pattern.Stippled;
 				pattern = chosen;
@@ -445,6 +461,10 @@ namespace VisualPinball.Unity.Editor
 					}
 					Field(_starburstOffset, "Offset");
 				}
+			} else if (!patternMixed && pattern == Pattern.Ribbed) {
+				Field(_ribAngle, "Angle");
+				Field(_ribWidth, "Width");
+				Field(_ribOffset, "Offset");
 			} else if (!patternMixed && pattern == Pattern.EngravedLine) {
 				Field(_flashGrooveInset, "Inset");
 				Field(_flashGrooveWidth, "Width");
@@ -597,6 +617,31 @@ namespace VisualPinball.Unity.Editor
 					Handles.color = dark ? new Color(0.9f, 0.9f, 0.7f) : new Color(0.3f, 0.3f, 0.1f);
 					Handles.DrawAAPolyLine(1.5f, hub + Vector3.left * 5f, hub + Vector3.right * 5f);
 					Handles.DrawAAPolyLine(1.5f, hub + Vector3.up * 5f, hub + Vector3.down * 5f);
+				}
+			}
+
+			if (_ribbed.boolValue && !_starburst.boolValue && _ribWidth.floatValue >= InsertRibs.MinWidth) {
+				// Every crease across the floor, ridges and grooves alike, the
+				// pitch halved between them; the ridge through the origin marked.
+				var radians = math.radians(_ribAngle.floatValue);
+				var along = new float2(math.cos(radians), math.sin(radians));
+				var across = new float2(-along.y, along.x);
+				var nearest = float.MaxValue;
+				var farthest = float.MinValue;
+				var reach = 0f;
+				foreach (var point in island) {
+					nearest = math.min(nearest, math.dot(point, across));
+					farthest = math.max(farthest, math.dot(point, across));
+					reach = math.max(reach, math.abs(math.dot(point, along)));
+				}
+				var half = _ribWidth.floatValue * 0.5f;
+				var stride = math.max(1, (int)math.ceil((farthest - nearest) / half / 96f));
+				Handles.color = dark ? new Color(0.9f, 0.9f, 0.7f, 0.35f) : new Color(0.3f, 0.3f, 0.1f, 0.35f);
+				for (var crease = (int)math.floor(nearest / half); crease <= (int)math.ceil(farthest / half); crease += stride) {
+					var origin = across * (crease * half) - along * (reach + half);
+					foreach (var (enter, exit) in Through(origin, along, island)) {
+						Handles.DrawAAPolyLine(crease == 0 ? 1.5f : 1f, Map(origin + along * enter), Map(origin + along * exit));
+					}
 				}
 			}
 

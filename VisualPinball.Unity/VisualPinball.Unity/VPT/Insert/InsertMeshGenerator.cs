@@ -50,6 +50,25 @@ namespace VisualPinball.Unity
 		/// <summary>How far the starburst's rim rises above and drops below its centre.</summary>
 		public float StarburstOffset;
 
+		/// <summary>
+		/// Ridge to ridge of the parallel ribs across the raised floor, in VPX
+		/// units, or zero for none. Ribs and starburst never share the floor:
+		/// the starburst comes first when both are asked for.
+		/// </summary>
+		public float RibWidth;
+
+		/// <summary>The direction the ribs run, in degrees from the X axis.</summary>
+		public float RibAngle;
+
+		/// <summary>How far the ribs' ridges rise above and grooves drop below the floor.</summary>
+		public float RibOffset;
+
+		/// <summary>Whether the raised floor carries a starburst or ribs.</summary>
+		public bool HasRelief => StarburstBursts >= InsertStarburst.MinBursts || RibWidth >= InsertRibs.MinWidth;
+
+		/// <summary>How far whichever relief the floor carries rises and falls about it.</summary>
+		public float ReliefOffset => StarburstBursts >= InsertStarburst.MinBursts ? StarburstOffset : RibWidth >= InsertRibs.MinWidth ? RibOffset : 0f;
+
 		/// <summary>Height of the square pyramids above the flat surface; zero disables stippling.</summary>
 		public float StippleHeight;
 
@@ -92,7 +111,7 @@ namespace VisualPinball.Unity
 		/// it stays below the rim.
 		/// </summary>
 		public float StarburstLimit()
-			=> ChannelWidth > InsertOutlineBuilder.Epsilon ? InsertStarburst.OffsetLimit(Depth, ChannelDepth) : math.max(0f, Depth);
+			=> ChannelWidth > InsertOutlineBuilder.Epsilon ? InsertRelief.OffsetLimit(Depth, ChannelDepth) : math.max(0f, Depth);
 	}
 
 	/// <summary>
@@ -298,7 +317,7 @@ namespace VisualPinball.Unity
 			// flat or with the starburst on it; holes need a raised floor to cut
 			// through, as the bevel needs a channel's floor to round into. With
 			// nothing to carve, it is a plain cap.
-			var carved = channel || body.StarburstBursts >= InsertStarburst.MinBursts || body.Groove != null || body.StippleHeight > 0f;
+			var carved = channel || body.HasRelief || body.Groove != null || body.StippleHeight > 0f;
 			if (!channel) {
 				body.Holes = null;
 			}
@@ -326,14 +345,13 @@ namespace VisualPinball.Unity
 
 			List<RunPoint>[] floorSides = null;
 			int[] floorCharts = null;
-			InsertStarburst starburst = null;
+			InsertRelief starburst = null;
 			InsertFlatIsland flatIsland = null;
 			var surface = channel ? floor + body.ChannelDepth : floor;
 			if (carved) {
-				starburst = TryCoverWithStarburst(island ?? bottom, body, surface, outline.WeldTolerance);
+				starburst = TryCoverWithRelief(island ?? bottom, body, surface, outline.WeldTolerance);
 				if (layout != null && starburst != null) {
-					var center = ToLocal(starburst.Center, starburst.CenterDepth - starburst.Offset);
-					layout.OpticalStarburst = new Vector4(center.x, center.z, starburst.Count, center.y);
+					layout.OpticalStarburst = starburst.Optical();
 				}
 				floorCharts = CutFloor(bottom, atlasSide * 0.5f, buffers);
 				floorSides = AddSunkenFloor(outline, body, bottom, bottomMap, bevel > 0f, island, islandMap, starburst,
@@ -693,10 +711,10 @@ namespace VisualPinball.Unity
 		/// A starburst grown to cover <paramref name="ring"/>, or null when the
 		/// body asks for too few bursts to make one.
 		/// </summary>
-		private static InsertStarburst TryCoverWithStarburst(List<RingPoint> ring, InsertBody body, float centerDepth,
+		private static InsertRelief TryCoverWithRelief(List<RingPoint> ring, InsertBody body, float centerDepth,
 			float weld)
 		{
-			if (body.StarburstBursts < InsertStarburst.MinBursts) {
+			if (!body.HasRelief) {
 				return null;
 			}
 
@@ -711,7 +729,10 @@ namespace VisualPinball.Unity
 			// Its size is what is held, not its value: a negative offset only swaps
 			// which spokes are ridges, and reaches just as far either way.
 			var limit = body.StarburstLimit();
-			var offset = math.clamp(body.StarburstOffset, -limit, limit);
+			var offset = math.clamp(body.ReliefOffset, -limit, limit);
+			if (body.StarburstBursts < InsertStarburst.MinBursts) {
+				return InsertRibs.Cover(footprint, body.RibAngle, body.RibWidth, offset, centerDepth);
+			}
 
 			// A centre a hair inside the edge sends every spoke on the far side
 			// out through it again a hair later, leaving a fan of faces nanometres
@@ -972,7 +993,7 @@ namespace VisualPinball.Unity
 		/// no channel and the whole floor is the middle: then everything within the
 		/// rim is surface, and the rim's own wall comes down onto that surface.</param>
 		private static List<RunPoint>[] AddSunkenFloor(InsertOutline outline, InsertBody body, List<RingPoint> rim,
-			int[] rimMap, bool bevelled, List<RingPoint> island, int[] islandMap, InsertStarburst starburst, float floor,
+			int[] rimMap, bool bevelled, List<RingPoint> island, int[] islandMap, InsertRelief starburst, float floor,
 			float islandTop, int topChart, int[] floorCharts, int[] outerCharts, MeshBuffers buffers, out InsertFlatIsland flatIsland)
 		{
 			var weld = outline.WeldTolerance;
@@ -1012,23 +1033,21 @@ namespace VisualPinball.Unity
 				out var holeOwners, out var holeBridges);
 
 			if (starburst != null) {
-				// Spokes that start at the centre all share the one point, so however
-				// many of them there are, they meet exactly rather than each arriving
-				// at its own idea of where the centre is.
+				// Creases that start at a shared point, a wheel's centre, all get
+				// the one point, so however many of them there are, they meet
+				// exactly rather than each arriving at its own idea of where it is.
 				var center = -1;
-				for (var spoke = 0; spoke < starburst.Count; spoke++) {
-					foreach (var (from, to, fromCenter) in starburst.SpokeWithin(spoke, polygon, weld)) {
-						int start;
-						if (fromCenter) {
-							if (center < 0) {
-								center = arrangement.AddPoint(starburst.Center);
-							}
-							start = center;
-						} else {
-							start = arrangement.AddPoint(from);
+				foreach (var (from, to, fromCenter) in starburst.CreasesWithin(polygon, weld)) {
+					int start;
+					if (fromCenter) {
+						if (center < 0) {
+							center = arrangement.AddPoint(starburst.Center);
 						}
-						arrangement.AddSegment(start, arrangement.AddPoint(to));
+						start = center;
+					} else {
+						start = arrangement.AddPoint(from);
 					}
+					arrangement.AddSegment(start, arrangement.AddPoint(to));
 				}
 			}
 
@@ -1128,17 +1147,13 @@ namespace VisualPinball.Unity
 					continue;
 				}
 
-				// A starburst face lies within a single triangle of the wheel, which
-				// any point inside it names, and is flat in that triangle's plane. It
-				// carries that plane's normal, which keeps the creases crisp.
+				// A relief face lies within a single facet, a triangle of the wheel
+				// or a strip between two ribs, which any point inside it names, and
+				// is flat in that facet's plane. It carries that plane's normal,
+				// which keeps the creases crisp.
 				Vector3 normal = Vector3.up;
 				if (tier == Tier.Surface && starburst != null) {
-					var sector = starburst.SectorOf(middle);
-					float3 hub = ToLocal(starburst.Center, starburst.CenterDepth);
-					float3 opening = ToLocal(starburst.Rim(sector), starburst.RimDepth(sector));
-					float3 closing = ToLocal(starburst.Rim(sector + 1), starburst.RimDepth(sector + 1));
-					var tilted = math.normalize(math.cross(opening - hub, closing - hub));
-					normal = tilted.y < 0f ? -tilted : tilted;
+					normal = starburst.LocalNormal(starburst.SectorOf(middle));
 				} else if (tier == Tier.Surface && stipple != null) {
 					normal = stipple.Normal(middle);
 				}
@@ -1307,7 +1322,7 @@ namespace VisualPinball.Unity
 		/// </remarks>
 		/// <returns>Each hole's polygon, for telling faces inside it apart.</returns>
 		private static List<List<float2>> AddHoles(InsertArrangement arrangement, InsertHole[] holes, int segments,
-			List<float2> island, InsertStarburst starburst, float weld,
+			List<float2> island, InsertRelief starburst, float weld,
 			out Dictionary<int, (float2 Center, int Index, float Chord, int Hole)> owners, out HashSet<int> bridges)
 		{
 			owners = new Dictionary<int, (float2, int, float, int)>();
@@ -1352,8 +1367,7 @@ namespace VisualPinball.Unity
 				}
 
 				if (Contains(island, center)) {
-					var away = starburst != null ? center - starburst.Center : float2.zero;
-					var direction = math.lengthsq(away) > weld * weld ? math.normalize(away) : new float2(1f, 0f);
+					var direction = starburst != null ? starburst.BridgeDirection(center) : new float2(1f, 0f);
 					if (TryLeave(island, center, direction, out var exit)) {
 						bridges.Add(arrangement.AddSegment(arrangement.AddPoint(center), arrangement.AddPoint(exit)));
 					}
