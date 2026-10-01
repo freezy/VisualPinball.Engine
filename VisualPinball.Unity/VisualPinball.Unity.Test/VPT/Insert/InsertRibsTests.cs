@@ -102,6 +102,30 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldRollTheRibsOverWhenRounded()
+		{
+			var sharp = InsertRibs.Cover(Rectangle(40f, 30f), 90f, 4f, 1.5f, -10f);
+			var round = InsertRibs.Cover(Rectangle(40f, 30f), 90f, 4f, 1.5f, -10f, 1f);
+			Assert.That(round.Steps, Is.EqualTo(InsertRelief.RoundedSteps));
+			Assert.That(round.LastCrease - round.FirstCrease, Is.GreaterThan((sharp.LastCrease - sharp.FirstCrease) * (InsertRelief.RoundedSteps - 1)));
+			// Ridge through the origin, groove a half pitch across, level a
+			// quarter pitch across, and still high a step across.
+			Assert.That(round.DepthAt(float2.zero), Is.EqualTo(-8.5f).Within(1e-3f));
+			Assert.That(round.DepthAt(round.Across * 2f), Is.EqualTo(-11.5f).Within(1e-3f));
+			Assert.That(round.DepthAt(round.Across * 1f), Is.EqualTo(-10f).Within(1e-3f));
+			Assert.That(round.DepthAt(round.Across * 0.5f), Is.GreaterThan(math.lerp(-8.5f, -11.5f, 0.25f)));
+			Assert.That(round.DepthAt(-round.Across * 2f), Is.EqualTo(-11.5f).Within(1e-3f), "and the same the other way");
+			// The normal stands up at the ridge and leans most halfway down.
+			var ridge = round.Across * 0f + round.Along * 3f;
+			Assert.That(round.LocalNormal(round.SectorOf(ridge + round.Across * 1e-3f), ridge).y, Is.EqualTo(1f).Within(1e-3f));
+			var halfway = round.Across * 1f + round.Along * 3f;
+			var leaning = round.LocalNormal(round.SectorOf(halfway), halfway);
+			Assert.That(leaning.y, Is.LessThan(0.8f));
+			// Sharp ribs keep their planes.
+			Assert.That(math.distance(sharp.LocalNormal(sharp.SectorOf(halfway), halfway), sharp.LocalNormal(sharp.SectorOf(halfway))), Is.LessThan(1e-6f));
+		}
+
+		[Test]
 		public void ShouldDescribeTheRibsToTheMaterial()
 		{
 			var ribs = InsertRibs.Cover(Rectangle(40f, 30f), 90f, 4f, 1.5f, -10f);

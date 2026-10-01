@@ -35,7 +35,9 @@ namespace VisualPinball.Unity
 	/// the innermost ridge, a point, and the first groove a half pitch out.
 	/// The trapezoids only stand in for the cone, so they shade as the cone
 	/// would: each point's normal leans straight away from or towards the
-	/// centre, and nothing folds along the lines out of it.
+	/// centre, and nothing folds along the lines out of it. Rounded rings cut
+	/// each slope into several strips that follow the curve, and their normals
+	/// come from the curve itself, so the ridges and grooves roll over.
 	/// </remarks>
 	public class InsertRings : InsertRelief
 	{
@@ -53,10 +55,16 @@ namespace VisualPinball.Unity
 		/// <summary>Ridge to ridge, in VPX units.</summary>
 		public readonly float Width;
 
+		/// <summary>How far the zigzag is rounded over, from sharp creases at zero to a cosine at one.</summary>
+		public readonly float Roundness;
+
+		/// <summary>How many strips each slope from a ridge to a groove is cut into.</summary>
+		public readonly int Steps;
+
 		/// <summary>How many sides every ring's polygon has, and how many lines run out from the centre.</summary>
 		public readonly int Segments;
 
-		/// <summary>How many rings there are, the outermost beyond the surface they cover.</summary>
+		/// <summary>How many lines there are, every strip's edge counted, the outermost beyond the surface they cover.</summary>
 		public readonly int Count;
 
 		/// <summary>How far the lines from the centre run, beyond the outermost ring.</summary>
@@ -66,12 +74,14 @@ namespace VisualPinball.Unity
 		public override float CenterDepth => _centerDepth;
 		public override float Offset => _offset;
 
-		private InsertRings(float2 center, float width, float offset, float centerDepth, int segments, int count)
+		private InsertRings(float2 center, float width, float offset, float centerDepth, float roundness, int segments, int count)
 		{
 			_center = center;
 			Width = width;
 			_offset = offset;
 			_centerDepth = centerDepth;
+			Roundness = roundness;
+			Steps = ProfileSteps(roundness);
 			Segments = segments;
 			Count = count;
 			Reach = Apothem(count) / math.cos(math.PI / segments) * 1.01f;
@@ -80,9 +90,9 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Rings round <paramref name="center"/>, <paramref name="width"/> apart
 		/// from ridge to ridge, enough of them to cover every point of
-		/// <paramref name="footprint"/>, with sides about a pitch and a half long.
+		/// <paramref name="footprint"/>, rounded over by <paramref name="roundness"/>.
 		/// </summary>
-		public static InsertRings Cover(IReadOnlyList<float2> footprint, float2 center, float width, float offset, float centerDepth)
+		public static InsertRings Cover(IReadOnlyList<float2> footprint, float2 center, float width, float offset, float centerDepth, float roundness = 0f)
 		{
 			if (width < MinWidth) {
 				throw new InsertOutlineException($"Rings need a width of at least {MinWidth}.");
@@ -97,21 +107,26 @@ namespace VisualPinball.Unity
 			if (reach < InsertOutlineBuilder.Epsilon) {
 				throw new InsertOutlineException("The surface the rings should cover has no size.");
 			}
-			var half = width * 0.5f;
-			// A ring beyond the surface as well, so the outermost strip has both
-			// its creases and a point on the edge is never a borderline case.
-			var count = (int)math.ceil(reach / half) + 1;
+			roundness = math.saturate(roundness);
+			var step = width * 0.5f / ProfileSteps(roundness);
+			// A line beyond the surface as well, so the outermost strip has both
+			// its edges and a point on the edge is never a borderline case.
+			var count = (int)math.ceil(reach / step) + 1;
 			// Sides no longer than a pitch on the outermost ring, and never so few
 			// that a ridge reads as a polygon.
-			var segments = math.clamp((int)math.ceil(2f * math.PI * count * half / width), MinSegments, MaxSegments);
-			return new InsertRings(center, width, offset, centerDepth, segments, count);
+			var segments = math.clamp((int)math.ceil(2f * math.PI * count * step / width), MinSegments, MaxSegments);
+			return new InsertRings(center, width, offset, centerDepth, roundness, segments, count);
 		}
 
-		/// <summary>The depth of ring <paramref name="index"/>: ridges at even indices, the centre included, grooves at odd.</summary>
-		public float RingDepth(int index) => _centerDepth + ((index & 1) == 0 ? _offset : -_offset);
+		/// <summary>
+		/// The depth of line <paramref name="index"/>: the zigzag's height
+		/// there, a ridge at the centre, a groove a half pitch out, and the
+		/// slope between them sampled every step.
+		/// </summary>
+		public float RingDepth(int index) => _centerDepth + _offset * ProfileHeight((float)index / Steps, Roundness);
 
-		/// <summary>The radius ring <paramref name="index"/>'s corners sit at.</summary>
-		public float Radius(int index) => index * Width * 0.5f;
+		/// <summary>The radius line <paramref name="index"/>'s corners sit at.</summary>
+		public float Radius(int index) => index * Width * 0.5f / Steps;
 
 		/// <summary>How far ring <paramref name="index"/>'s sides lie from the centre.</summary>
 		public float Apothem(int index) => Radius(index) * math.cos(math.PI / Segments);
@@ -157,7 +172,7 @@ namespace VisualPinball.Unity
 		public int Ring(float2 position, int angularSector)
 		{
 			var along = math.dot(position - _center, Bisector(angularSector));
-			var spacing = Width * 0.5f * math.cos(math.PI / Segments);
+			var spacing = Width * 0.5f / Steps * math.cos(math.PI / Segments);
 			return math.clamp((int)math.floor(along / spacing), 0, Count - 1);
 		}
 
@@ -200,31 +215,33 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
-		/// The cone's normal at <paramref name="position"/>: the facet's lean,
-		/// which is along its sector's bisector, turned to point straight out
-		/// from the centre through the position. Along a line out of the centre
-		/// both facets lean the same way, so the shading runs across it, and at
-		/// the centre itself, where there is no such direction, the facet's own.
+		/// The normal of the surface of revolution at <paramref name="position"/>:
+		/// the zigzag's slope at that radius, on the side of the crease the facet
+		/// lies on, leaning straight away from or towards the centre. Along a
+		/// line out of the centre both facets lean the same way, so the shading
+		/// runs across it; at the centre itself, where there is no such
+		/// direction, the facet's own normal stands in.
 		/// </summary>
 		public override float3 LocalNormal(int sector, float2 position)
 		{
-			var planar = LocalNormal(sector);
 			var origin = (float3)InsertMeshGenerator.ToLocal(_center, 0f);
 			var radial = ((float3)InsertMeshGenerator.ToLocal(position, 0f) - origin).xz;
 			if (math.lengthsq(radial) < 1e-12f) {
-				return planar;
+				return LocalNormal(sector);
 			}
-			var bisector = ((float3)InsertMeshGenerator.ToLocal(_center + Bisector(sector % Segments), 0f) - origin).xz;
-			var lean = math.dot(planar.xz, math.normalize(bisector));
-			radial = math.normalize(radial) * lean;
-			return math.normalize(new float3(radial.x, planar.y, radial.y));
+			var half = Width * 0.5f;
+			var u = math.distance(position, _center) / half;
+			var crease = sector / Segments / Steps;
+			var slope = _offset / half * ProfileSlope(u, crease, Roundness);
+			radial = math.normalize(radial) * -slope;
+			return math.normalize(new float3(radial.x, 1f, radial.y));
 		}
 
 		/// <summary>
-		/// Every ring's sides and every line out from the centre, the parts of
-		/// them inside the polygon. The lines are not creases, the surface does
-		/// not fold along them, but the face walk needs them to cut each strip
-		/// into its flat trapezoids.
+		/// Every line's sides and every line out from the centre, the parts of
+		/// them inside the polygon. Only the ridges and grooves are creases; the
+		/// rest do not fold the surface, but the face walk needs them to cut
+		/// each strip into its flat trapezoids.
 		/// </summary>
 		public override IEnumerable<(float2 From, float2 To, bool FromCenter)> CreasesWithin(IReadOnlyList<float2> polygon, float tolerance)
 		{

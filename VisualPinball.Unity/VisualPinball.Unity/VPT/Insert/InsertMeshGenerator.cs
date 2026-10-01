@@ -63,6 +63,9 @@ namespace VisualPinball.Unity
 		/// <summary>How far the ribs' ridges rise above and grooves drop below the floor.</summary>
 		public float RibOffset;
 
+		/// <summary>How far the ribs are rounded over, from sharp creases at zero to a cosine at one.</summary>
+		public float RibRoundness;
+
 		/// <summary>
 		/// Ridge to ridge of the concentric rings across the raised floor, in VPX
 		/// units, or zero for none. Rings come after the starburst and the ribs
@@ -76,12 +79,32 @@ namespace VisualPinball.Unity
 		/// <summary>How far the rings' ridges rise above and grooves drop below the floor.</summary>
 		public float RingOffset;
 
-		/// <summary>Whether the raised floor carries a starburst, ribs or rings.</summary>
-		public bool HasRelief => StarburstBursts >= InsertStarburst.MinBursts || RibWidth >= InsertRibs.MinWidth || RingWidth >= InsertRings.MinWidth;
+		/// <summary>How far the rings are rounded over, from sharp creases at zero to a cosine at one.</summary>
+		public float RingRoundness;
+
+		/// <summary>
+		/// How many sides the gem's table has, or zero for no gem. The gem comes
+		/// after every other relief when more than one is asked for.
+		/// </summary>
+		public int GemSides;
+
+		/// <summary>Where the gem's centre sits, relative to the insert's origin.</summary>
+		public float2 GemCenter;
+
+		/// <summary>How far out the table's corners lie, as a share of the way to the girdle.</summary>
+		public float GemTable;
+
+		/// <summary>How far the gem's table rises above and its girdle drops below the floor.</summary>
+		public float GemOffset;
+
+		/// <summary>Whether the raised floor carries a starburst, ribs, rings or a gem.</summary>
+		public bool HasRelief => StarburstBursts >= InsertStarburst.MinBursts || RibWidth >= InsertRibs.MinWidth
+			|| RingWidth >= InsertRings.MinWidth || GemSides >= InsertGem.MinSides;
 
 		/// <summary>How far whichever relief the floor carries rises and falls about it.</summary>
 		public float ReliefOffset => StarburstBursts >= InsertStarburst.MinBursts ? StarburstOffset
-			: RibWidth >= InsertRibs.MinWidth ? RibOffset : RingWidth >= InsertRings.MinWidth ? RingOffset : 0f;
+			: RibWidth >= InsertRibs.MinWidth ? RibOffset : RingWidth >= InsertRings.MinWidth ? RingOffset
+			: GemSides >= InsertGem.MinSides ? GemOffset : 0f;
 
 		/// <summary>Height of the square pyramids above the flat surface; zero disables stippling.</summary>
 		public float StippleHeight;
@@ -746,8 +769,10 @@ namespace VisualPinball.Unity
 			var offset = math.clamp(body.ReliefOffset, -limit, limit);
 			if (body.StarburstBursts < InsertStarburst.MinBursts) {
 				return body.RibWidth >= InsertRibs.MinWidth
-					? InsertRibs.Cover(footprint, body.RibAngle, body.RibWidth, offset, centerDepth)
-					: InsertRings.Cover(footprint, body.RingCenter, body.RingWidth, offset, centerDepth);
+					? InsertRibs.Cover(footprint, body.RibAngle, body.RibWidth, offset, centerDepth, body.RibRoundness)
+					: body.RingWidth >= InsertRings.MinWidth
+						? InsertRings.Cover(footprint, body.RingCenter, body.RingWidth, offset, centerDepth, body.RingRoundness)
+						: InsertGem.Cover(footprint, body.GemCenter, body.GemSides, body.GemTable, offset, centerDepth);
 			}
 
 			// A centre a hair inside the edge sends every spoke on the far side

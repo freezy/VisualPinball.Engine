@@ -99,6 +99,41 @@ namespace VisualPinball.Unity
 		public static float OffsetLimit(float depth, float channelDepth) =>
 			math.max(0f, math.min(channelDepth, depth - channelDepth));
 
+		/// <summary>How many strips a rounded zigzag cuts each slope into, so its facets can follow the curve.</summary>
+		public const int RoundedSteps = 3;
+
+		/// <summary>
+		/// How many strips each slope of a zigzag is cut into: one while it is
+		/// sharp, since a straight slope is one plane, and more once it is
+		/// rounded, so the facets can follow the curve.
+		/// </summary>
+		public static int ProfileSteps(float roundness) => roundness > 0f ? RoundedSteps : 1;
+
+		/// <summary>
+		/// The height of a zigzag of ridges and grooves, between one and minus
+		/// one, at <paramref name="u"/> half pitches from a ridge: a triangle
+		/// wave, sharp at every crease, rounded over towards a cosine by
+		/// <paramref name="roundness"/>, which a moulded ridge is nearer to.
+		/// </summary>
+		public static float ProfileHeight(float u, float roundness)
+		{
+			var phase = u - 2f * math.floor(u * 0.5f);
+			var triangle = 2f * math.abs(phase - 1f) - 1f;
+			return math.lerp(triangle, math.cos(math.PI * u), roundness);
+		}
+
+		/// <summary>
+		/// The slope of the zigzag at <paramref name="u"/>, in heights per half
+		/// pitch, on the slope that runs from crease <paramref name="crease"/>
+		/// to the next, which settles which way the triangle wave's corner
+		/// faces when <paramref name="u"/> sits right on a crease.
+		/// </summary>
+		public static float ProfileSlope(float u, int crease, float roundness)
+		{
+			var triangle = (crease & 1) == 0 ? -2f : 2f;
+			return math.lerp(triangle, -math.PI * math.sin(math.PI * u), roundness);
+		}
+
 		/// <summary>
 		/// The parts of a ray from <paramref name="origin"/> along
 		/// <paramref name="direction"/>, out to <paramref name="reach"/>, lying

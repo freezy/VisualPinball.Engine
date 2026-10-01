@@ -326,6 +326,11 @@ namespace VisualPinball.Unity
 		private float _ribOffset = 1.5f;
 
 		[SerializeField]
+		[Range(0f, 1f)]
+		[Tooltip("How far the ribs' ridges and grooves are rounded over: zero leaves them sharp creases, one makes them roll over like a moulded wave.")]
+		private float _ribRoundness = 0.5f;
+
+		[SerializeField]
 		[Tooltip("Whether the raised floor carries concentric rings. Off keeps it flat.")]
 		private bool _ringed;
 
@@ -342,6 +347,34 @@ namespace VisualPinball.Unity
 		[Min(0f)]
 		[Tooltip("How far the rings' ridges rise above and grooves drop below the floor, in VPX units.")]
 		private float _ringOffset = 1.5f;
+
+		[SerializeField]
+		[Range(0f, 1f)]
+		[Tooltip("How far the rings' ridges and grooves are rounded over: zero leaves them sharp creases, one makes them roll over like a moulded wave.")]
+		private float _ringRoundness = 0.5f;
+
+		[SerializeField]
+		[Tooltip("Whether the raised floor is cut like the crown of a gem: a flat table with a ring of facets round it. Off keeps it flat.")]
+		private bool _gem;
+
+		[SerializeField]
+		[Tooltip("Where the gem's centre sits relative to the insert's origin, in VPX units.")]
+		private Vector2 _gemCenter = Vector2.zero;
+
+		[SerializeField]
+		[Range(4, 16)]
+		[Tooltip("How many sides the table has, and kites round it. A brilliant has eight.")]
+		private int _gemSides = 8;
+
+		[SerializeField]
+		[Range(0.05f, 0.75f)]
+		[Tooltip("How far out the table's corners lie, as a share of the way from the centre to the edge. Held small enough that the facets round the table still slope outwards.")]
+		private float _gemTable = 0.5f;
+
+		[SerializeField]
+		[Min(0f)]
+		[Tooltip("How far the table rises above and the girdle drops below the floor, in VPX units.")]
+		private float _gemOffset = 3f;
 
 		[SerializeField]
 		[Tooltip("Whether the flat surface carries a grid of square pyramids for the normal bake.")]
@@ -874,11 +907,12 @@ namespace VisualPinball.Unity
 			// The engraved line takes the raised middle's surface, where the
 			// starburst would be: the two never share it.
 			var groove = BuildGroove(outline, channelWidth, warnings);
-			if (groove != null && (_starburst || _ribbed || _ringed)) {
-				warnings.Add("The engraved line takes the pattern's place: the starburst, ribs or rings are not built while the line is on.");
+			if (groove != null && (_starburst || _ribbed || _ringed || _gem)) {
+				warnings.Add("The engraved line takes the pattern's place: the starburst, ribs, rings or gem are not built while the line is on.");
 			}
 			var starburstBursts = _starburst && groove == null && !_stippled ? _starburstBursts : 0;
 			var ribWidth = _ribbed && groove == null && !_stippled && starburstBursts < InsertStarburst.MinBursts ? math.max(_ribWidth, InsertRibs.MinWidth) : 0f;
+			var ringWidth = _ringed && groove == null && !_stippled && starburstBursts < InsertStarburst.MinBursts && ribWidth <= 0f ? math.max(_ringWidth, InsertRings.MinWidth) : 0f;
 
 			var body = new InsertBody {
 				Depth = depth,
@@ -891,9 +925,15 @@ namespace VisualPinball.Unity
 				RibWidth = ribWidth,
 				RibAngle = _ribAngle,
 				RibOffset = _ribOffset,
-				RingWidth = _ringed && groove == null && !_stippled && starburstBursts < InsertStarburst.MinBursts && ribWidth <= 0f ? math.max(_ringWidth, InsertRings.MinWidth) : 0f,
+				RibRoundness = _ribRoundness,
+				RingWidth = ringWidth,
 				RingCenter = new float2(_ringCenter.x, _ringCenter.y),
 				RingOffset = _ringOffset,
+				RingRoundness = _ringRoundness,
+				GemSides = _gem && groove == null && !_stippled && starburstBursts < InsertStarburst.MinBursts && ribWidth <= 0f && ringWidth <= 0f ? math.clamp(_gemSides, InsertGem.MinSides, InsertGem.MaxSides) : 0,
+				GemCenter = new float2(_gemCenter.x, _gemCenter.y),
+				GemTable = _gemTable,
+				GemOffset = _gemOffset,
 				StippleHeight = _stippled ? math.min(math.max(0.01f, _stippleHeight),
 					math.max(0f, depth - channelDepth - math.max(outline.WeldTolerance * 4f, 0.01f))) : 0f,
 				StippleWidth = math.max(0.01f, _stippleWidth),
@@ -913,17 +953,19 @@ namespace VisualPinball.Unity
 				// is held: a negative offset only swaps which creases are ridges, and
 				// reaches just as far.
 				var limit = body.StarburstLimit();
-				var asked = body.StarburstBursts >= InsertStarburst.MinBursts ? _starburstOffset : body.RibWidth > 0f ? _ribOffset : _ringOffset;
+				var asked = body.StarburstBursts >= InsertStarburst.MinBursts ? _starburstOffset : body.RibWidth > 0f ? _ribOffset : body.RingWidth > 0f ? _ringOffset : _gemOffset;
 				var held = math.clamp(asked, -limit, limit);
 				if (body.StarburstBursts >= InsertStarburst.MinBursts) {
 					body.StarburstOffset = held;
 				} else if (body.RibWidth > 0f) {
 					body.RibOffset = held;
-				} else {
+				} else if (body.RingWidth > 0f) {
 					body.RingOffset = held;
+				} else {
+					body.GemOffset = held;
 				}
 				if (math.abs(held) < math.abs(asked) - 1e-4f) {
-					var pattern = body.StarburstBursts >= InsertStarburst.MinBursts ? "Starburst" : body.RibWidth > 0f ? "Rib" : "Ring";
+					var pattern = body.StarburstBursts >= InsertStarburst.MinBursts ? "Starburst" : body.RibWidth > 0f ? "Rib" : body.RingWidth > 0f ? "Ring" : "Gem";
 					warnings.Add(channel
 						? $"{pattern} offset reduced to {held:0.##} to stay between the channel floor and the rim."
 						: $"{pattern} offset reduced to {held:0.##} to stay below the rim.");

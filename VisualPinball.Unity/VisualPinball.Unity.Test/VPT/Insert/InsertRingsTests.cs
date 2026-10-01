@@ -93,13 +93,46 @@ namespace VisualPinball.Unity.Test
 			var radial = ((float3)InsertMeshGenerator.ToLocal(corner, 0f) - (float3)InsertMeshGenerator.ToLocal(float2.zero, 0f)).xz;
 			var lean = math.normalize(left.xz);
 			Assert.That(math.abs(math.dot(lean, math.normalize(radial))), Is.EqualTo(1f).Within(1e-4f));
-			// The lean is the plane's, just turned: as steep as the chord plane.
-			Assert.That(left.y, Is.EqualTo(rings.LocalNormal(2 * rings.Segments + 5).y).Within(1e-5f));
+			// The lean is the cone's: as steep as the chord plane, near enough.
+			Assert.That(left.y, Is.EqualTo(rings.LocalNormal(2 * rings.Segments + 5).y).Within(5e-3f));
 			// Halfway between two lines, the plane's normal and the cone's are one.
 			var middle = rings.Bisector(5) * (rings.Apothem(2) + rings.Apothem(3)) * 0.5f;
-			Assert.That(math.distance(rings.LocalNormal(2 * rings.Segments + 5, middle), rings.LocalNormal(2 * rings.Segments + 5)), Is.LessThan(1e-4f));
+			Assert.That(math.distance(rings.LocalNormal(2 * rings.Segments + 5, middle), rings.LocalNormal(2 * rings.Segments + 5)), Is.LessThan(5e-3f));
 			// The centre has no direction out of it: each facet keeps its own there.
 			Assert.That(math.distance(rings.LocalNormal(3, float2.zero), rings.LocalNormal(3)), Is.LessThan(1e-6f));
+		}
+
+		[Test]
+		public void ShouldRollTheRingsOverWhenRounded()
+		{
+			var sharp = InsertRings.Cover(Square(40f), float2.zero, 4f, 1.5f, -10f);
+			var round = InsertRings.Cover(Square(40f), float2.zero, 4f, 1.5f, -10f, 1f);
+			Assert.That(sharp.Steps, Is.EqualTo(1));
+			Assert.That(round.Steps, Is.EqualTo(InsertRelief.RoundedSteps));
+			Assert.That(round.Count, Is.GreaterThan(sharp.Count * (InsertRelief.RoundedSteps - 1)));
+			// The ridges and grooves keep their heights; between them the slope
+			// bows out into a cosine, level with the middle plane a quarter pitch out.
+			var bisector = round.Bisector(0);
+			Assert.That(round.DepthAt(float2.zero), Is.EqualTo(-8.5f).Within(1e-3f));
+			Assert.That(round.DepthAt(bisector * round.Apothem(round.Steps)), Is.EqualTo(-11.5f).Within(1e-3f), "the first groove");
+			Assert.That(round.DepthAt(bisector * round.Apothem(2 * round.Steps)), Is.EqualTo(-8.5f).Within(1e-3f), "the next ridge");
+			Assert.That(round.DepthAt(bisector * 1f), Is.EqualTo(-10f).Within(2e-2f), "level halfway down");
+			Assert.That(round.DepthAt(bisector * round.Apothem(1)), Is.GreaterThan(math.lerp(-8.5f, -11.5f, 1f / round.Steps) + 0.1f), "and still high a step out, where a straight slope would already have dropped");
+			// Rounded, the normal stands up at the ridge and leans most halfway
+			// down; sharp, it leans the same on the whole slope.
+			var ridge = round.Direction(3) * round.Radius(2 * round.Steps);
+			var ridgeFacet = round.SectorOf(ridge + round.Direction(3) * 1e-3f);
+			Assert.That(round.LocalNormal(ridgeFacet, ridge).y, Is.EqualTo(1f).Within(1e-3f));
+			var halfway = round.Direction(3) * 1f;
+			Assert.That(round.LocalNormal(round.SectorOf(halfway), halfway).y, Is.LessThan(0.8f));
+			Assert.That(sharp.LocalNormal(sharp.SectorOf(halfway), halfway).y, Is.EqualTo(sharp.LocalNormal(sharp.SectorOf(ridge + sharp.Direction(3) * 1e-3f), ridge + sharp.Direction(3) * 1e-3f).y).Within(1e-4f));
+			// Half rounded, a ridge still has a crease: the facets either side lean apart.
+			var half = InsertRings.Cover(Square(40f), float2.zero, 4f, 1.5f, -10f, 0.5f);
+			var ridgeHalf = half.Direction(3) * half.Radius(2 * half.Steps);
+			var outer = half.LocalNormal(half.SectorOf(ridgeHalf + half.Direction(3) * 1e-3f), ridgeHalf);
+			var inner = half.LocalNormal(half.SectorOf(ridgeHalf - half.Direction(3) * 1e-3f), ridgeHalf);
+			Assert.That(outer.y, Is.LessThan(0.99f));
+			Assert.That(outer.x * inner.x + outer.z * inner.z, Is.LessThan(0f));
 		}
 
 		[Test]

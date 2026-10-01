@@ -46,6 +46,12 @@ namespace VisualPinball.Unity
 		/// <summary>Ridge to ridge, in VPX units.</summary>
 		public readonly float Width;
 
+		/// <summary>How far the zigzag is rounded over, from sharp creases at zero to a cosine at one.</summary>
+		public readonly float Roundness;
+
+		/// <summary>How many strips each slope from a ridge to a groove is cut into.</summary>
+		public readonly int Steps;
+
 		/// <summary>How far the ribs reach beyond the surface they cover, so every crease runs clear across it.</summary>
 		public readonly float Reach;
 
@@ -58,11 +64,11 @@ namespace VisualPinball.Unity
 		public override float Offset => _offset;
 		public override float2 Center => float2.zero;
 
-		/// <summary>The crease index of the first ridge or groove on the surface, and the last.</summary>
+		/// <summary>The index of the first line on the surface, every strip's edge counted, and the last.</summary>
 		public int FirstCrease => _first;
 		public int LastCrease => _last;
 
-		private InsertRibs(float angle, float width, float offset, float centerDepth, float reach, int first, int last)
+		private InsertRibs(float angle, float width, float offset, float centerDepth, float roundness, float reach, int first, int last)
 		{
 			var radians = math.radians(angle);
 			Along = new float2(math.cos(radians), math.sin(radians));
@@ -70,6 +76,8 @@ namespace VisualPinball.Unity
 			Width = width;
 			_offset = offset;
 			_centerDepth = centerDepth;
+			Roundness = roundness;
+			Steps = ProfileSteps(roundness);
 			Reach = reach;
 			_first = first;
 			_last = last;
@@ -78,9 +86,10 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Ribs running at <paramref name="angle"/> degrees from the X axis,
 		/// <paramref name="width"/> apart from ridge to ridge, laid across
-		/// every point of <paramref name="footprint"/>.
+		/// every point of <paramref name="footprint"/>, rounded over by
+		/// <paramref name="roundness"/>.
 		/// </summary>
-		public static InsertRibs Cover(IReadOnlyList<float2> footprint, float angle, float width, float offset, float centerDepth)
+		public static InsertRibs Cover(IReadOnlyList<float2> footprint, float angle, float width, float offset, float centerDepth, float roundness = 0f)
 		{
 			if (width < MinWidth) {
 				throw new InsertOutlineException($"Ribs need a width of at least {MinWidth}.");
@@ -103,27 +112,32 @@ namespace VisualPinball.Unity
 			if (high - low < InsertOutlineBuilder.Epsilon && reach < InsertOutlineBuilder.Epsilon) {
 				throw new InsertOutlineException("The surface the ribs should cover has no size.");
 			}
-			var half = width * 0.5f;
-			// The creases either side of the surface as well, so the strips at
-			// its edges have both their creases and a point on the edge is never
-			// a borderline case for the strip lookup.
-			var first = (int)math.floor(low / half) - 1;
-			var last = (int)math.ceil(high / half) + 1;
-			return new InsertRibs(angle, width, offset, centerDepth, reach * 1.01f + width, first, last);
+			roundness = math.saturate(roundness);
+			var step = width * 0.5f / ProfileSteps(roundness);
+			// The lines either side of the surface as well, so the strips at its
+			// edges have both their edges and a point on the edge is never a
+			// borderline case for the strip lookup.
+			var first = (int)math.floor(low / step) - 1;
+			var last = (int)math.ceil(high / step) + 1;
+			return new InsertRibs(angle, width, offset, centerDepth, roundness, reach * 1.01f + width, first, last);
 		}
 
-		/// <summary>The depth of crease <paramref name="index"/>: ridges at even indices, grooves at odd.</summary>
-		public float CreaseDepth(int index) => _centerDepth + ((index & 1) == 0 ? _offset : -_offset);
+		/// <summary>
+		/// The depth of line <paramref name="index"/>: the zigzag's height there,
+		/// a ridge through the origin, a groove a half pitch across, and the
+		/// slope between them sampled every step.
+		/// </summary>
+		public float CreaseDepth(int index) => _centerDepth + _offset * ProfileHeight((float)index / Steps, Roundness);
 
-		/// <summary>How far crease <paramref name="index"/> lies from the origin, across the ribs.</summary>
-		public float CreaseLateral(int index) => index * Width * 0.5f;
+		/// <summary>How far line <paramref name="index"/> lies from the origin, across the ribs.</summary>
+		public float CreaseLateral(int index) => index * Width * 0.5f / Steps;
 
 		/// <summary>
 		/// Which strip <paramref name="position"/> falls in: the index of the
-		/// crease on its lower side.
+		/// line on its lower side.
 		/// </summary>
 		public override int SectorOf(float2 position)
-			=> math.clamp((int)math.floor(math.dot(position, Across) / (Width * 0.5f)), _first, _last - 1);
+			=> math.clamp((int)math.floor(math.dot(position, Across) / (Width * 0.5f / Steps)), _first, _last - 1);
 
 		public override float DepthAt(float2 position) => DepthInSector(SectorOf(position), position);
 
@@ -136,8 +150,26 @@ namespace VisualPinball.Unity
 		public float DepthInSector(int sector, float2 position)
 		{
 			var lateral = math.dot(position, Across);
-			var t = (lateral - CreaseLateral(sector)) / (Width * 0.5f);
+			var t = (lateral - CreaseLateral(sector)) / (Width * 0.5f / Steps);
 			return math.lerp(CreaseDepth(sector), CreaseDepth(sector + 1), t);
+		}
+
+		/// <summary>
+		/// The normal of the rounded zigzag at <paramref name="position"/>: its
+		/// slope there, on the side of the crease the strip lies on, leaning
+		/// across the ribs. Sharp ribs give their strips' own planes.
+		/// </summary>
+		public override float3 LocalNormal(int sector, float2 position)
+		{
+			if (Roundness <= 0f) {
+				return LocalNormal(sector);
+			}
+			var half = Width * 0.5f;
+			var u = math.dot(position, Across) / half;
+			var crease = (int)math.floor(sector / (float)Steps);
+			var slope = _offset / half * ProfileSlope(u, crease, Roundness);
+			var across = ((float3)InsertMeshGenerator.ToLocalNormal(Across, false)).xz * -slope;
+			return math.normalize(new float3(across.x, 1f, across.y));
 		}
 
 		public override float3 LocalNormal(int sector)

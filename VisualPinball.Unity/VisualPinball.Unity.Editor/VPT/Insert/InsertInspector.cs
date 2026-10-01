@@ -86,10 +86,17 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _ribAngle;
 		private SerializedProperty _ribWidth;
 		private SerializedProperty _ribOffset;
+		private SerializedProperty _ribRoundness;
 		private SerializedProperty _ringed;
 		private SerializedProperty _ringCenter;
 		private SerializedProperty _ringWidth;
 		private SerializedProperty _ringOffset;
+		private SerializedProperty _ringRoundness;
+		private SerializedProperty _gem;
+		private SerializedProperty _gemCenter;
+		private SerializedProperty _gemSides;
+		private SerializedProperty _gemTable;
+		private SerializedProperty _gemOffset;
 		private SerializedProperty _stippled;
 		private SerializedProperty _stippleHeight;
 		private SerializedProperty _stippleWidth;
@@ -171,10 +178,17 @@ namespace VisualPinball.Unity.Editor
 			_ribAngle = serializedObject.FindProperty("_ribAngle");
 			_ribWidth = serializedObject.FindProperty("_ribWidth");
 			_ribOffset = serializedObject.FindProperty("_ribOffset");
+			_ribRoundness = serializedObject.FindProperty("_ribRoundness");
 			_ringed = serializedObject.FindProperty("_ringed");
 			_ringCenter = serializedObject.FindProperty("_ringCenter");
 			_ringWidth = serializedObject.FindProperty("_ringWidth");
 			_ringOffset = serializedObject.FindProperty("_ringOffset");
+			_ringRoundness = serializedObject.FindProperty("_ringRoundness");
+			_gem = serializedObject.FindProperty("_gem");
+			_gemCenter = serializedObject.FindProperty("_gemCenter");
+			_gemSides = serializedObject.FindProperty("_gemSides");
+			_gemTable = serializedObject.FindProperty("_gemTable");
+			_gemOffset = serializedObject.FindProperty("_gemOffset");
 			_stippled = serializedObject.FindProperty("_stippled");
 			_stippleHeight = serializedObject.FindProperty("_stippleHeight");
 			_stippleWidth = serializedObject.FindProperty("_stippleWidth");
@@ -253,15 +267,16 @@ namespace VisualPinball.Unity.Editor
 			Stippled = 3,
 			Ribbed = 4,
 			Rings = 5,
+			Gem = 6,
 		}
 
-		private static readonly Pattern[] PatternChoices = { Pattern.None, Pattern.Starburst, Pattern.Ribbed, Pattern.Rings, Pattern.Stippled };
-		private static readonly Pattern[] GroovePatternChoices = { Pattern.None, Pattern.Starburst, Pattern.Ribbed, Pattern.Rings, Pattern.EngravedLine, Pattern.Stippled };
-		private static readonly string[] Patterns = { "None", "Starburst", "Ribbed", "Rings", "Stippled" };
-		private static readonly string[] GroovePatterns = { "None", "Starburst", "Ribbed", "Rings", "Engraved Line", "Stippled" };
+		private static readonly Pattern[] PatternChoices = { Pattern.None, Pattern.Starburst, Pattern.Ribbed, Pattern.Rings, Pattern.Gem, Pattern.Stippled };
+		private static readonly Pattern[] GroovePatternChoices = { Pattern.None, Pattern.Starburst, Pattern.Ribbed, Pattern.Rings, Pattern.Gem, Pattern.EngravedLine, Pattern.Stippled };
+		private static readonly string[] Patterns = { "None", "Starburst", "Ribbed", "Rings", "Gem", "Stippled" };
+		private static readonly string[] GroovePatterns = { "None", "Starburst", "Ribbed", "Rings", "Gem", "Engraved Line", "Stippled" };
 
 		/// <summary>The pattern represented by the stored flags.</summary>
-		private static Pattern PatternOf(bool starburst, bool ribbed, bool ringed, bool groove, bool stippled, bool flash)
+		private static Pattern PatternOf(bool starburst, bool ribbed, bool ringed, bool gem, bool groove, bool stippled, bool flash)
 		{
 			if (stippled) {
 				return Pattern.Stippled;
@@ -275,7 +290,10 @@ namespace VisualPinball.Unity.Editor
 			if (ribbed) {
 				return Pattern.Ribbed;
 			}
-			return ringed ? Pattern.Rings : Pattern.None;
+			if (ringed) {
+				return Pattern.Rings;
+			}
+			return gem ? Pattern.Gem : Pattern.None;
 		}
 
 		private static void Field(SerializedProperty property, string label, bool children = false)
@@ -439,19 +457,20 @@ namespace VisualPinball.Unity.Editor
 			SubHeader("Pattern");
 			// One choice for the flat surface, with only that pattern's settings shown.
 			var engraved = !_shape.hasMultipleDifferentValues && (InsertShape)_shape.enumValueIndex is InsertShape.Flash or InsertShape.Custom;
-			var pattern = PatternOf(_starburst.boolValue, _ribbed.boolValue, _ringed.boolValue, _flashGroove.boolValue, _stippled.boolValue, engraved);
-			var patternMixed = _starburst.hasMultipleDifferentValues || _ribbed.hasMultipleDifferentValues || _ringed.hasMultipleDifferentValues || _flashGroove.hasMultipleDifferentValues || _stippled.hasMultipleDifferentValues || _shape.hasMultipleDifferentValues;
+			var pattern = PatternOf(_starburst.boolValue, _ribbed.boolValue, _ringed.boolValue, _gem.boolValue, _flashGroove.boolValue, _stippled.boolValue, engraved);
+			var patternMixed = _starburst.hasMultipleDifferentValues || _ribbed.hasMultipleDifferentValues || _ringed.hasMultipleDifferentValues || _gem.hasMultipleDifferentValues || _flashGroove.hasMultipleDifferentValues || _stippled.hasMultipleDifferentValues || _shape.hasMultipleDifferentValues;
 			var choices = engraved ? GroovePatterns : Patterns;
 			var choiceValues = engraved ? GroovePatternChoices : PatternChoices;
 			var index = System.Math.Max(0, System.Array.IndexOf(choiceValues, pattern));
 			EditorGUI.showMixedValue = patternMixed;
 			EditorGUI.BeginChangeCheck();
-			var selection = EditorGUILayout.Popup(new GUIContent("Pattern", "The flat surface's pattern. Stippled and Engraved Line become normal maps after baking; Starburst, Ribbed and Rings stay in the mesh."), index, choices);
+			var selection = EditorGUILayout.Popup(new GUIContent("Pattern", "The flat surface's pattern. Stippled and Engraved Line become normal maps after baking; Starburst, Ribbed, Rings and Gem stay in the mesh."), index, choices);
 			if (EditorGUI.EndChangeCheck()) {
 				var chosen = choiceValues[selection];
 				_starburst.boolValue = chosen == Pattern.Starburst;
 				_ribbed.boolValue = chosen == Pattern.Ribbed;
 				_ringed.boolValue = chosen == Pattern.Rings;
+				_gem.boolValue = chosen == Pattern.Gem;
 				_flashGroove.boolValue = chosen == Pattern.EngravedLine;
 				_stippled.boolValue = chosen == Pattern.Stippled;
 				pattern = chosen;
@@ -478,6 +497,7 @@ namespace VisualPinball.Unity.Editor
 				Field(_ribAngle, "Angle");
 				Field(_ribWidth, "Width");
 				Field(_ribOffset, "Offset");
+				Field(_ribRoundness, "Roundness");
 			} else if (!patternMixed && pattern == Pattern.Rings) {
 				Field(_ringCenter, "Center");
 				if ((InsertShape)_shape.enumValueIndex == InsertShape.Banana && targets.Length == 1) {
@@ -490,6 +510,12 @@ namespace VisualPinball.Unity.Editor
 				}
 				Field(_ringWidth, "Width");
 				Field(_ringOffset, "Offset");
+				Field(_ringRoundness, "Roundness");
+			} else if (!patternMixed && pattern == Pattern.Gem) {
+				Field(_gemCenter, "Center");
+				Field(_gemSides, "Sides");
+				Field(_gemTable, "Table");
+				Field(_gemOffset, "Offset");
 			} else if (!patternMixed && pattern == Pattern.EngravedLine) {
 				Field(_flashGrooveInset, "Inset");
 				Field(_flashGrooveWidth, "Width");
@@ -691,6 +717,30 @@ namespace VisualPinball.Unity.Editor
 					Handles.color = dark ? new Color(0.9f, 0.9f, 0.7f) : new Color(0.3f, 0.3f, 0.1f);
 					Handles.DrawAAPolyLine(1.5f, hub + Vector3.left * 5f, hub + Vector3.right * 5f);
 					Handles.DrawAAPolyLine(1.5f, hub + Vector3.up * 5f, hub + Vector3.down * 5f);
+				}
+			}
+
+			if (_gem.boolValue && !_starburst.boolValue && !_ribbed.boolValue && !_ringed.boolValue && island.Count > 0) {
+				// Every facet's sides, as the generator will lay them: the table,
+				// the star triangles and kites round it, and the girdle facets
+				// out to the edge. The centre is marked.
+				var center = new float2(_gemCenter.vector2Value.x, _gemCenter.vector2Value.y);
+				InsertGem gem = null;
+				try {
+					gem = InsertGem.Cover(island, center, _gemSides.intValue, _gemTable.floatValue, 0f, 0f);
+				} catch (InsertOutlineException) {
+				}
+				if (gem != null) {
+					Handles.color = dark ? new Color(0.9f, 0.9f, 0.7f, 0.35f) : new Color(0.3f, 0.3f, 0.1f, 0.35f);
+					foreach (var (from, to, _) in gem.CreasesWithin(island, 1e-4f)) {
+						Handles.DrawAAPolyLine(1f, Map(from), Map(to));
+					}
+					var hub = Map(center);
+					if (rect.Contains(hub)) {
+						Handles.color = dark ? new Color(0.9f, 0.9f, 0.7f) : new Color(0.3f, 0.3f, 0.1f);
+						Handles.DrawAAPolyLine(1.5f, hub + Vector3.left * 5f, hub + Vector3.right * 5f);
+						Handles.DrawAAPolyLine(1.5f, hub + Vector3.up * 5f, hub + Vector3.down * 5f);
+					}
 				}
 			}
 

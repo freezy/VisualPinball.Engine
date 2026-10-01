@@ -134,3 +134,5 @@ Built with Unity 6.5
 - Bug in writing animation vertices which caused VP to hang when re-reading the file ([#291](https://github.com/freezy/VisualPinball.Engine/pull/291)).
 - A few bugs in drag point gizmos ([#246](https://github.com/freezy/VisualPinball.Engine/pull/246)).
 - Insert Light has Tint With Lamp: the hue and saturation of the clear cover's haze and of the body turn towards the lamp's while the lamp is lit, in proportion to its intensity and never their brightness, so a coloured lamp is not milked by a grey cover and a lamp that is off leaves both their own colour.
+- A Roundness setting for the ribbed and rings insert patterns, rolling their ridges and grooves over from sharp creases towards a moulded wave, in the mesh and its normals.
+- A gem insert pattern: the crown of a brilliant cut across the raised floor, a flat table with star triangles, kites and girdle facets round it, set by the centre, the number of sides, the table's size and the height, under Pattern beside the other reliefs.
