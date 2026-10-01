@@ -655,10 +655,11 @@ namespace VisualPinball.Unity.Editor
 				GUI.Label(new Rect(corner.x, corner.y - 14f, 24f, 16f), i.ToString(), HoleNumber);
 			}
 
+			// Inches: what insert parts are catalogued in, and what the trade
+			// still talks in.
 			var inch = 1f / InsertShapes.VpxUnitsPerInch;
-			var millimetre = InsertShapes.MetresPerInch * 1000f * inch;
 			GUI.Label(new Rect(rect.x, rect.yMax - 18f, rect.width - 6f, 16f),
-				$"{outline.Width * millimetre:0.#} x {outline.Height * millimetre:0.#} mm, seen from above", PreviewLabel);
+				$"{outline.Width * inch:0.##} x {outline.Height * inch:0.##} in, seen from above", PreviewLabel);
 		}
 
 		/// <summary>
