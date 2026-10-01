@@ -56,8 +56,25 @@ def bake_optics(api, regular, flat, high, request, folder):
 	bpy.context.scene.cycles.diffuse_bounces = 4
 	bpy.context.scene.cycles.max_bounces = 6
 	bpy.context.view_layer.update()
+	# Only the high mesh is lit. The bake targets stay in the scene, the
+	# regular mesh coincident with it and the flat copy a disk through the
+	# middle of the relief, and either would shadow it: the flat copy blacked
+	# out every facet below the floor's height, and the coincident copy gave
+	# the rest shadow acne, which the blur only hid while the facets were
+	# small. Baking needs the targets' geometry, not their shadows.
+	targets = [obj for obj in (regular, flat) if obj is not None]
+	visibility = ('visible_diffuse', 'visible_glossy', 'visible_transmission', 'visible_shadow', 'visible_volume_scatter')
+	saved = [(obj, [getattr(obj, flag) for flag in visibility]) for obj in targets]
+	for obj in targets:
+		for flag in visibility:
+			setattr(obj, flag, False)
 	print('[bake_insert] Baking internal scatter proxy', flush=True)
-	glow = projected(api, regular, flat, high, request, 'Internal Glow', 'DIFFUSE', 64)
+	try:
+		glow = projected(api, regular, flat, high, request, 'Internal Glow', 'DIFFUSE', 64)
+	finally:
+		for obj, flags in saved:
+			for flag, value in zip(visibility, flags):
+				setattr(obj, flag, value)
 	# Exposure-independent coefficients. Runtime emission carries the lamp's
 	# actual colour and brightness. Keep rare fireflies out of normalization.
 	strength = glow[:, :, :3].mean(axis=2)
