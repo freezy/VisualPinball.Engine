@@ -14,7 +14,7 @@ The current runtime architecture is built around four domains:
 | --- | --- | --- |
 | Unity main thread | `PhysicsEngine.Update()`, `SimulationThreadComponent.Update()`, `PinMameGamelogicEngine.Update()` | Applies visuals, drains queued callbacks, polls some PinMAME outputs, runs Unity APIs |
 | Simulation thread | `SimulationThread`, `PhysicsEngineThreading.ExecuteTick()` | Runs the 1 kHz physics simulation loop, dispatches low-latency inputs, advances physics, publishes snapshots |
-| Native input polling thread | `NativeInputManager`, `VisualPinball.Unity.NativeInput` | Polls keyboard input outside Unity's frame loop and forwards events into a lock-free ring buffer |
+| Native input polling thread | `NativeInputManager`, `VisualPinball.NativeInput` | Polls keyboard input outside Unity's frame loop and forwards events into a lock-free ring buffer |
 | PinMAME native callback thread(s) | `pinmame-dotnet` callbacks, `PinMameGamelogicEngine` handlers | Raises ROM-driven outputs such as coils, displays, mechs, audio, and state changes |
 
 ## High-level flow
@@ -67,7 +67,7 @@ Physics itself runs under `PhysicsLock`, but the published animation data crosse
 
 ### Native input polling thread
 
-When `SimulationThreadComponent` enables native input, `NativeInputManager` starts a native polling thread through `VisualPinball.Unity.NativeInput`.
+When `SimulationThreadComponent` enables native input, `NativeInputManager` starts a native polling thread through `VisualPinball.NativeInput`.
 
 - On Windows, the native code uses `GetAsyncKeyState()` in a dedicated highest-priority polling thread.
 - The default poll interval is 500 microseconds, but the editor clamps it to 1000 microseconds to avoid destabilizing stop/start behavior.
