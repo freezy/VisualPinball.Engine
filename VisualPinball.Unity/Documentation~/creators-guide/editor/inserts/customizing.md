@@ -42,7 +42,7 @@ The colored squares select materials for the insert's body and, when assigned, i
 
 Clicking a color first searches for a matching material in the current material's folder. It matches the shader, requested color word, and related material name, so another insert's unrelated color material is not chosen merely because it is green. If a matching material exists, it is assigned with its existing settings intact.
 
-When there is no match, VPE derives a new material from the current one. A recognized color word is replaced with the selected color; without a color word, the new name receives `, <Color>` and the material is made a variant of its source. The body receives the preset's **Body Color**, **Cavity Color**, and **Lamp Emission**; the cover receives **Cover Color** as its haze color. The textures stay inherited or copied from the source material.
+When there is no match, VPE derives a new material from the current one. A recognized color word is replaced with the selected color; without a color word, the new name receives `, <Color>` and the material is made a variant of its source. The body receives the preset's **Tint**, **Cavity Color**, **Lamp Emission** and **Max Brightness**; the cover receives **Haze Color** and **Cover Tint**. The textures stay inherited or copied from the source material.
 
 For package materials, VPE checks both the package folder and its equivalent project folder. Newly created materials go into the project. For example, `Packages/<package>/Assets/Art/Materials/Inserts` maps to `Assets/Art/Materials/Inserts`. A material without an asset path uses `Assets/Inserts`.
 
@@ -60,10 +60,12 @@ Ctrl-click a color button, or Cmd-click on macOS, to highlight its preset asset 
 | **Color Name** | Color word used in the button tooltip, material naming, and lookup. Use a distinct, stable name. |
 | **Order** | Button ordering; lower values appear first, with names used to break ties. |
 | **Swatch** | The button's display color. It does not change the rendered material. |
-| **Body Color** | The hybrid body's Tint when a new color material is created. |
+| **Tint** | The hybrid body's Tint when a new color material is created. |
 | **Cavity Color** | Color underneath the clear share of the plastic. Its effect depends on Clarity. |
 | **Lamp Emission** | HDR emission color and magnitude on the newly created body material. It multiplies the lamps' own colors. |
-| **Cover Color** | Haze Color on a newly created cover color material. It needs a cover and nonzero Opacity to show. |
+| **Max Brightness** | The body's Max Brightness. Colors differ in how bright they look through the plastic, so each has its own. |
+| **Haze Color** | Haze Color on a newly created cover color material. It needs a cover and nonzero Opacity to show. |
+| **Cover Tint** | The cover's Tint: the color the lamp light and the body underneath take on their way up through the plastic slab. Keep a little of every channel in it, and in Lamp Emission, so a bright lamp fades to white instead of shifting hue under the tonemapper. |
 
 ## Material presets
 

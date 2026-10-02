@@ -80,6 +80,7 @@ namespace VisualPinball.Unity.Test
 				sourceBody.SetColor("_BaseColor", Color.red);
 				sourceBody.SetFloat("_Smoothness", 0.37f);
 				sourceCover.SetColor("_HazeColor", Color.red);
+				sourceCover.SetColor("_CoverTint", new Color(0.9f, 0.3f, 0.45f));
 				sourceCover.SetFloat("_CoverOpacity", 0.42f);
 				AssetDatabase.CreateAsset(sourceBody, folder + "/Insert, Circle, Red.mat");
 				AssetDatabase.CreateAsset(sourceCover, folder + "/Insert, Cover, Red.mat");
@@ -92,6 +93,7 @@ namespace VisualPinball.Unity.Test
 				preset.CavityColor = Color.cyan;
 				preset.LampEmission = new Color(0f, 300f, 1024f);
 				preset.HazeColor = new Color(0f, 0.3f, 0.8f);
+				preset.CoverTint = new Color(0.1f, 0.5f, 0.95f);
 
 				Assert.That(InsertColorPresets.Apply(preset, insert), Is.True);
 				var blueBody = renderer.sharedMaterial;
@@ -107,8 +109,12 @@ namespace VisualPinball.Unity.Test
 				Assert.That(blueCover.GetColor("_HazeColor").g, Is.EqualTo(0.3f).Within(1e-5f));
 				Assert.That(blueCover.GetColor("_HazeColor").b, Is.EqualTo(0.8f).Within(1e-5f));
 				Assert.That(blueCover.GetFloat("_CoverOpacity"), Is.EqualTo(0.42f).Within(1e-5f));
+				Assert.That(blueCover.GetColor("_CoverTint").r, Is.EqualTo(0.1f).Within(1e-5f));
+				Assert.That(blueCover.GetColor("_CoverTint").g, Is.EqualTo(0.5f).Within(1e-5f));
+				Assert.That(blueCover.GetColor("_CoverTint").b, Is.EqualTo(0.95f).Within(1e-5f));
 				Assert.That(sourceBody.GetColor("_BaseColor"), Is.EqualTo(Color.red));
 				Assert.That(sourceCover.GetColor("_HazeColor"), Is.EqualTo(Color.red));
+				Assert.That(sourceCover.GetColor("_CoverTint").g, Is.EqualTo(0.3f).Within(1e-5f));
 				Undo.PerformUndo();
 				Assert.That(AssetDatabase.GetAssetPath(renderer.sharedMaterial), Is.EqualTo(AssetDatabase.GetAssetPath(sourceBody)));
 				Assert.That(AssetDatabase.GetAssetPath(insert.CoverMaterial), Is.EqualTo(AssetDatabase.GetAssetPath(sourceCover)));

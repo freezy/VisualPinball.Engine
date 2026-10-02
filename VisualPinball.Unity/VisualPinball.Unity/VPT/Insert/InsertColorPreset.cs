@@ -41,5 +41,8 @@ namespace VisualPinball.Unity
 		[FormerlySerializedAs("CoverColor")]
 		[Tooltip("The cover material's Haze Color.")]
 		public Color HazeColor = Color.white;
+
+		[Tooltip("The cover material's Tint: the color the light has taken once it has come the tint depth through the plastic.")]
+		public Color CoverTint = Color.white;
 	}
 }

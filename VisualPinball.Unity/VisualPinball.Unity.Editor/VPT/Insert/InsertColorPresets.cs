@@ -275,6 +275,7 @@ namespace VisualPinball.Unity.Editor
 			}
 			if (cover != null) {
 				preset.HazeColor = GetColor(cover, "_HazeColor", preset.HazeColor);
+				preset.CoverTint = GetColor(cover, "_CoverTint", preset.CoverTint);
 			}
 			EditorUtility.SetDirty(preset);
 			Sync(preset, LinkedMaterials(preset), true);
@@ -287,7 +288,8 @@ namespace VisualPinball.Unity.Editor
 		private static bool Write(Material material, InsertColorPreset preset, bool cover)
 		{
 			if (cover) {
-				return SetColor(material, "_HazeColor", preset.HazeColor);
+				var hazed = SetColor(material, "_HazeColor", preset.HazeColor);
+				return SetColor(material, "_CoverTint", preset.CoverTint) || hazed;
 			}
 			var changed = SetColor(material, "_BaseColor", preset.Tint);
 			changed |= SetColor(material, "_InsertCavityColor", preset.CavityColor);
@@ -300,7 +302,7 @@ namespace VisualPinball.Unity.Editor
 		public static bool Differs(Material material, InsertColorPreset preset, bool cover)
 		{
 			if (cover) {
-				return Differs(material, "_HazeColor", preset.HazeColor);
+				return Differs(material, "_HazeColor", preset.HazeColor) || Differs(material, "_CoverTint", preset.CoverTint);
 			}
 			return Differs(material, "_BaseColor", preset.Tint)
 				|| Differs(material, "_InsertCavityColor", preset.CavityColor)
