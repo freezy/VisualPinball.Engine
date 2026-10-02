@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 namespace VisualPinball.Unity.Editor
@@ -270,10 +271,15 @@ namespace VisualPinball.Unity.Editor
 
 				if (!obj.activeSelf) {
 					obj.SetActive(true);
+					PrefabUtility.RecordPrefabInstancePropertyModifications(obj);
 				}
-				var materials = obj.gameObject.GetComponent<MeshRenderer>().sharedMaterials;
+				var renderer = obj.GetComponent<MeshRenderer>();
+				var materials = renderer.sharedMaterials;
 				materials[v.Variation.Target.Slot] = v.Override.Material;
-				obj.gameObject.GetComponent<MeshRenderer>().sharedMaterials = materials;
+				renderer.sharedMaterials = materials;
+				// On a prefab instance, a change that isn't recorded as an override is
+				// lost with the next reload, and the instance wears the prefab's again.
+				PrefabUtility.RecordPrefabInstancePropertyModifications(renderer);
 			}
 		}
 
