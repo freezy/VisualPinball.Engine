@@ -68,6 +68,16 @@ namespace VisualPinball.Unity.Editor
 				return matchedGo;
 			}
 
+			// By where the target sits in its prefab first, since the instance's root
+			// may have been renamed, as "keep name" does when replacing an object.
+			var target = Target.Object is GameObject targetGo ? targetGo : Target.Object is Component targetComponent ? targetComponent.gameObject : null;
+			if (!IsNested && target != null) {
+				var match = target.transform.parent == null ? go.transform : go.transform.Find(AnimationUtility.CalculateTransformPath(target.transform, target.transform.root));
+				if (match != null) {
+					return match.gameObject;
+				}
+			}
+
 			return go.name == Target.Object.name
 				? go 
 				: go!.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.gameObject.name == Target.Object.name)?.gameObject;

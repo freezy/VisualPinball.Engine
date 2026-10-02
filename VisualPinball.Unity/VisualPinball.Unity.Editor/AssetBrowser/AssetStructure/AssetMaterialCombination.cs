@@ -264,8 +264,8 @@ namespace VisualPinball.Unity.Editor
 			foreach (var v in Overrides) {
 				var obj = v.Variation.Match(go);
 				if (obj == null) {
-					Debug.LogError("Unable to determine which to object the material needs to be applied to.");
-					return;
+					Debug.LogError($"Unable to find {v.Variation.Target.Object.name} in {go.name} to apply {v.Override.Name} {v.Variation.Name} to.");
+					continue;
 				}
 
 				if (!obj.activeSelf) {
@@ -281,13 +281,19 @@ namespace VisualPinball.Unity.Editor
 
 		#region Combining
 
-		public AssetMaterialCombination GetValidCombination()
+		public AssetMaterialCombination GetValidCombination() => GetValidCombination(Asset.GetCombinations(true, true));
+
+		/// <summary>
+		/// Returns this combination if it's valid, otherwise the first valid combination containing all of its overrides.
+		/// </summary>
+		/// <param name="validCombinations">The asset's valid combinations, so they don't need to be computed for every call.</param>
+		public AssetMaterialCombination GetValidCombination(IEnumerable<AssetMaterialCombination> validCombinations)
 		{
 			if (IsValidCombination) {
 				return this;
 			}
 
-			return Asset.GetCombinations(true, true)
+			return validCombinations
 				.Where(c => c.Matches(this))
 				.FirstOrDefault(c => c.IsValidCombination);
 		}

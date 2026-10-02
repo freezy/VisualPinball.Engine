@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.UIElements;
 
@@ -59,12 +60,15 @@ namespace VisualPinball.Unity.Editor
 			if (materialCombinations.Length > 0) {
 				Clear();
 
+				// invalid combinations resolve to the closest valid one, so several of them can end up being the same.
+				var validCombinations = asset.GetCombinations(true, true).ToArray();
+				var addedThumbIds = new HashSet<string>();
 				foreach (var combination in materialCombinations) {
-					var validCombination = combination.GetValidCombination();
-					if (validCombination == null) {
-						continue; // skip invalid combinations
+					var validCombination = combination.GetValidCombination(validCombinations);
+					if (validCombination == null || !addedThumbIds.Add(validCombination.ThumbId)) {
+						continue; // skip invalid combinations and duplicates
 					}
-					var combinationEl = new AssetMaterialCombinationElement(validCombination, asset, combination.Name);
+					var combinationEl = new AssetMaterialCombinationElement(validCombination, asset, GetLabel(validCombination));
 					combinationEl.OnClicked += OnVariationClicked;
 					_container.Add(combinationEl);
 				}
@@ -75,6 +79,19 @@ namespace VisualPinball.Unity.Editor
 				SelectedMaterialCombination = null;
 				SetVisibility(_foldout, false);
 			}
+		}
+
+		/// <summary>
+		/// Names the combination by its material overrides. If they all share the same name, like a body and
+		/// a cover that a rule keeps equal, that name alone is enough.
+		/// </summary>
+		private static string GetLabel(AssetMaterialCombination combination)
+		{
+			var overrides = combination.Overrides.Where(o => !o.IsDecal).ToArray();
+			if (overrides.Length > 1 && overrides.All(o => o.Override.Name == overrides[0].Override.Name)) {
+				return overrides[0].Override.Name;
+			}
+			return string.Join(", ", overrides.Select(o => $"{o.Override.Name} {o.Variation.Name}"));
 		}
 
 		private void OnVariationClicked(object clickedVariation, bool enabled)
