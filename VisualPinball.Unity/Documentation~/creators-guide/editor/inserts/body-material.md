@@ -68,6 +68,7 @@ Max Brightness is shared by the material; each lamp's **Intensity** is a normali
 | **Radius (mm)** | 8 before bake suggestions; minimum 0.1 | Size of the soft bulb image. A larger radius broadens the moving hotspot and also increases the physical extent represented by Cavity Spread. |
 | **Strength** | 1.5; 0–5 | Contribution of the virtual bulb image. Zero removes that image, leaving the baked glow controls available. |
 | **Bulb Definition** | 1.5; 0–5 | Strength of a tighter bulb image inside its soft halo. Zero leaves only the halo. Needs nonzero virtual lamp Strength. |
+| **Bulb Warmth** | 0; 0–1 | Colors the bulb image as a filament's warm white instead of the Lamp Emission color, at the emission's peak brightness. A red insert's bulb then clips to yellow, as on a photograph, while the glow around it stays red; the cover's tint still colors it. Needs nonzero Bulb Definition. |
 | **Index of Refraction** | 1.49; 1.01–2 | Strength of refraction through the plastic. It shapes the virtual lamp image and the clear cavity view. |
 | **Optical Facet Strength** | 1; 0–3 | Scales the optical normals' sideways tilt. One follows the baked directions; zero removes the facet bending. It also influences starburst contrast and the clear cavity view. |
 | **Lamp Spread (mm)** | 0; 0–100 | Distance at which each lamp's spatial falloff reaches half its output. At twice that distance it reaches one fifth, and at three times one tenth. Zero disables this distance falloff, allowing the bulb to reach the whole body. Also controls the reach of lamp tint. |
