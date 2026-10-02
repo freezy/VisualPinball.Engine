@@ -41,6 +41,7 @@ installed; nothing else needs installing.
 """
 
 import json
+import math
 import sys
 import time
 import traceback
@@ -122,13 +123,33 @@ def select_only(*objects):
 	bpy.context.view_layer.objects.active = objects[0]
 
 
+# Faces of one chart meeting at more than this angle are a crease, like the
+# facets of a starburst: a seam goes between them.
+CREASE_ANGLE = math.radians(15.0)
+
+
 def mark_seams(mesh, charts):
-	"""A seam wherever two triangles of different charts meet."""
+	"""A seam wherever two triangles of different charts meet, or two of one chart meet at a crease.
+
+	The generator lays a relief's facets into one chart with the floor around
+	them, so without the crease seams the edge between two facets ran across
+	the texels: a diagonal line of stair steps, one texel wide, blurred by the
+	filtering, which showed on every crease at any zoom, and the only remedy
+	was more texels. Cut along the creases, every facet is an island of its
+	own whose texels all hold the one direction, and the crease is the
+	triangle's edge, as sharp as the mesh. Bends of a few degrees, like the
+	segments round a ring, stay in one piece.
+	"""
 	bm = bmesh.new()
 	bm.from_mesh(mesh)
+	bm.normal_update()
 	for edge in bm.edges:
 		faces = edge.link_faces
-		edge.seam = len(faces) == 2 and charts[faces[0].index] != charts[faces[1].index]
+		if len(faces) != 2:
+			edge.seam = False
+			continue
+		edge.seam = charts[faces[0].index] != charts[faces[1].index] \
+			or faces[0].normal.angle(faces[1].normal, 0.0) > CREASE_ANGLE
 	bm.to_mesh(mesh)
 	bm.free()
 
