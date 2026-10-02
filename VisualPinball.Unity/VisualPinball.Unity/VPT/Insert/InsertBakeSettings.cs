@@ -32,19 +32,35 @@ namespace VisualPinball.Unity
 		[Tooltip("Width and height of the baked normal map, in pixels.")]
 		public int TextureSize;
 
-		[Tooltip("How many pixels each UV island is extended by in the normal map. Islands are packed at least twice this far apart.")]
+		[Tooltip("How much smaller than the normal map the optical normals are baked: one facet shares one direction, so only its creases need texels. 1 is the same size, 2 half, 4 a quarter.")]
+		public int OpticalScale;
+
+		[Tooltip("How much smaller than the normal map the light response is baked: a soft glow and smooth masks that need few texels. 1 is the same size, 2 half, 4 a quarter, 8 an eighth.")]
+		public int ResponseScale;
+
+		[Tooltip("How many pixels each UV island is extended by in the normal map. Islands are packed at least twice this far apart; the smaller maps keep the same distance in their own pixels.")]
 		public int Padding;
 
 		[Tooltip("How far every sharp edge is rounded off in the normal map, in VPX units. Zero bakes the edges sharp.")]
 		public float EdgeBevel;
 
 		[Range(0f, 1f)]
-		[Tooltip("Fine surface texture baked into the body's normals. Zero leaves the surface smooth. Takes effect after baking again.")]
+		[Tooltip("Fine surface texture baked into the body's normals. Zero leaves the surface smooth. The hybrid material's Surface Grain draws the same grain at any zoom without a bake; keep this at zero with it. Takes effect after baking again.")]
 		public float NormalGrainStrength;
 
 		[Min(0.1f)]
 		[Tooltip("Size of the baked surface grain in VPX units. Smaller values make finer grain. Takes effect after baking again.")]
 		public float NormalGrainSize;
+
+		/// <summary>The optical normals' size in pixels, from the normal map's and the scale.</summary>
+		public int OpticalSize => ScaledSize(OpticalScale);
+
+		/// <summary>The light response's size in pixels, from the normal map's and the scale.</summary>
+		public int ResponseSize => ScaledSize(ResponseScale);
+
+		private int ScaledSize(int scale) => System.Math.Max(MinMapSize, TextureSize / System.Math.Max(1, scale));
+
+		public const int MinMapSize = 64;
 
 		[Tooltip("Let Blender unwrap the mesh along the generator's charts. Off keeps the generator's own layout and only repacks it.")]
 		public bool Unwrap;
@@ -60,9 +76,11 @@ namespace VisualPinball.Unity
 
 		public static InsertBakeSettings Default => new() {
 			TextureSize = 1024,
+			OpticalScale = 2,
+			ResponseScale = 4,
 			Padding = 8,
 			EdgeBevel = 1f,
-			NormalGrainStrength = 0.25f,
+			NormalGrainStrength = 0f,
 			NormalGrainSize = 1.5f,
 			Unwrap = true,
 			PreferUvPackMaster = true,

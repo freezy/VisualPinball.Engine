@@ -20,10 +20,12 @@ Keep **Bake Hybrid Optics** enabled for the hybrid lamp material. Click **Bake**
 
 | Parameter | Default / choices | Effect |
 | --- | --- | --- |
-| **Texture Size** | 1024; 512, 1024, 2048, or 4096 | Width and height of each baked map in pixels. Raise it when small pattern details are visibly lost. Doubling each dimension uses four times as many texels. |
-| **Padding (px)** | 8; 1–32 | Extension around each UV island. Islands are packed at least twice this distance apart so their padding does not meet. More padding helps filtering at a distance but leaves less space for the surfaces themselves. |
+| **Texture Size** | 1024; 256 to 4096 | Width and height of the baked surface normal map in pixels. Size it for the insert: about 15 texels per millimeter keeps the creases crisp when a player zooms in, so 1024 suits a 2in insert and 256 a 0.75in one. Doubling each dimension uses four times as many texels. |
+| **Optical Normals** | Half; same size to an eighth | Size of the optical normal map as a fraction of Texture Size, shown in pixels. Every facet shares one direction, so only its creases need texels. |
+| **Light Response** | Quarter; same size to an eighth | Size of the light response map as a fraction of Texture Size, shown in pixels. It holds a soft glow and smooth masks, which need few texels; its blur scales with it so the look does not change. |
+| **Padding (px)** | 8; 1–32 | Extension around each UV island in the normal map. Islands are packed at least twice this distance apart so their padding does not meet; the smaller maps keep the same distance in their own pixels. More padding helps filtering at a distance but leaves less space for the surfaces themselves. |
 | **Edge Bevel** | 1 | Width of rounded sharp edges in the surface normal bake, in VPX units. Zero keeps them sharp. This affects reflection detail rather than adding bevel triangles. |
-| **Grain Strength** | 0.25; 0–1 | Amount of fine texture in the body's baked surface normals. Zero is smooth and disables Grain Size. |
+| **Grain Strength** | 0; 0–1 | Amount of fine texture in the body's baked surface normals. Zero is smooth and disables Grain Size. The hybrid material's Surface Grain draws the same grain at any zoom without a bake and without the texels a baked grain needs; keep this at zero with it. |
 | **Grain Size** | 1.5; minimum 0.1 | Size of that baked texture in VPX units. Smaller makes finer grain. It affects surface reflections, rather than the optical lamp or cover. |
 | **Unwrap in Blender** | Enabled | Unwraps along the generator's charts before packing. Disabled keeps the generator's UV shapes and repacks them. |
 | **Prefer UVPackMaster** | Enabled | Uses UVPackMaster when installed in Blender. Otherwise Blender's own packer is used; the add-on is optional. The Inspector reports the available packer. |
@@ -35,7 +37,7 @@ Once a baked hybrid material is in use, rebaking also updates its optical maps s
 <!-- Screenshot: baking-settings. Separate two-value comparisons for resolution, padding, edge bevel, grain strength/size, and unwrap. Compare the UV atlases for packer settings; show CPU/GPU as configuration states. -->
 
 > [!NOTE]
-> **Three kinds of fine detail.** Bottom Bevel is body geometry. Edge Bevel and Grain Strength/Size are baked reflection normals. The material's Grain adds procedural color and emission variation at rendering time. The cover's Normal Map is another independent surface layer. Each has its own purpose and should be tuned in the place that owns it.
+> **Three kinds of fine detail.** Bottom Bevel is body geometry. Edge Bevel and Grain Strength/Size are baked reflection normals. The material's Grain adds procedural color and emission variation at rendering time, and its Surface Grain the procedural reflection grain that replaces the baked one. The cover's Normal Map is another independent surface layer. Each has its own purpose and should be tuned in the place that owns it.
 
 ## What the bake writes
 

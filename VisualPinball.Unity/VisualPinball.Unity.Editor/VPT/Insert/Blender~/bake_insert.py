@@ -56,7 +56,7 @@ UV_NAME = 'UVMap'
 GENERATOR_UV_NAME = 'Generator'
 
 # Must match InsertBakeRequest.CurrentVersion.
-VERSION = 4
+VERSION = 5
 
 # How big the walls are laid out against the floors. They are seen side on, if
 # at all, and give their texels to the floors.
@@ -378,7 +378,13 @@ def target(image, color=(1.0, 1.0, 1.0, 1.0)):
 	return material
 
 
-def bake(obj, request, high=None, extrusion=0.0, bake_type=None, samples=None):
+def margin(request, size=None):
+	"""The padding in the pixels of a map of that size: the smaller maps keep the normal map's distance."""
+	size = size or request['TextureSize']
+	return max(1, int(round(request['Padding'] * size / request['TextureSize'])))
+
+
+def bake(obj, request, high=None, extrusion=0.0, bake_type=None, samples=None, size=None):
 	"""Bakes the high-poly's tangent-space normals onto obj or, without one, obj's own emission."""
 	select_only(obj, high) if high else select_only(obj)
 	bpy.context.scene.cycles.samples = samples or (BEVEL_SAMPLES if high and request['EdgeBevel'] > 0 else 1)
@@ -387,7 +393,7 @@ def bake(obj, request, high=None, extrusion=0.0, bake_type=None, samples=None):
 		target='IMAGE_TEXTURES', save_mode='INTERNAL', use_clear=True,
 		use_selected_to_active=high is not None, use_cage=False,
 		cage_extrusion=extrusion, max_ray_distance=0.0,
-		margin=request['Padding'], margin_type='EXTEND', uv_layer=UV_NAME,
+		margin=margin(request, size), margin_type='EXTEND', uv_layer=UV_NAME,
 		normal_space='TANGENT', normal_r='POS_X', normal_g='POS_Y', normal_b='POS_Z',
 		pass_filter={'DIRECT', 'INDIRECT'},
 	)
@@ -427,9 +433,10 @@ def bake_normal_map(regular, flat, high, request, path):
 	save_png(result, path, 8)
 
 
-def merge_flat(regular, flat_image, pixels, request):
+def merge_flat(regular, flat_image, pixels, request, size=None):
 	"""Takes the flat bake's texels wherever the flat region is, padding included."""
-	mask_image = new_image('Mask', request['TextureSize'])
+	size = size or request['TextureSize']
+	mask_image = new_image('Mask', size)
 
 	# Red on the flat region, green elsewhere, padded like the bakes, so the
 	# padding round the flat region is taken from the flat bake as well.
@@ -440,7 +447,7 @@ def merge_flat(regular, flat_image, pixels, request):
 	indices = np.zeros(len(regular.data.polygons), dtype=np.int32)
 	indices[request['FlatFaces']] = 1
 	regular.data.polygons.foreach_set('material_index', indices)
-	bake(regular, request)
+	bake(regular, request, size=size)
 
 	mask = image_pixels(mask_image)
 	flat_region = mask[:, :, 0] > mask[:, :, 1]

@@ -34,6 +34,8 @@ Start with every lamp off. Choose how dark the colored body should be, or how mu
 | --- | --- | --- |
 | **Smoothness** | 0.93; 0–1 | Sharpness of reflected lights and probes. A high value is glossy; a low value broadens the highlights. With a cover, the top can be glossy while the body stays duller. |
 | **Surface Normal Strength** | 0.15; 0–2 | Strength of the baked surface normal map in reflections, including edge rounding and baked grain. Zero removes its contribution. Needs a Surface Normal map and Facet Flatten below one. |
+| **Surface Grain** | 0; 0–1 | Fine texture of the molded plastic in its reflections, drawn procedurally in insert space. It stays sharp at any zoom and any map size, so prefer it over the bake's Grain Strength, which it replaces; it fades out where its cells fall below a pixel. Variation Seed picks another pattern. |
+| **Surface Grain Size (mm)** | 0.75; 0.1–5 | Size of the grain's cells. The bake's grain measured 1.5 VPX units, about 0.75 mm. Needs nonzero Surface Grain. |
 | **Facet Flatten** | 0; 0–1 | Turns the reflection shading normal toward the flat top normal. Zero retains facets; one fully flattens their reflection shading. Values around 0.85 can soften the strong alternating reflection ribs of a clear starburst. It leaves optical refraction intact. |
 | **Grain** | 0.25; 0–1 | Fine procedural variation multiplying the body's color and emission. Zero is uniform. Variation Seed selects another distribution. This does not add normal-map roughness. |
 

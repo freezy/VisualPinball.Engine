@@ -35,7 +35,7 @@ namespace VisualPinball.Unity.Editor
 	[Serializable]
 	public class InsertBakeRequest
 	{
-		public const int CurrentVersion = 4;
+		public const int CurrentVersion = 5;
 
 		public int Version = CurrentVersion;
 
@@ -84,6 +84,13 @@ namespace VisualPinball.Unity.Editor
 		public bool FlatProjected;
 
 		public int TextureSize;
+
+		/// <summary>The optical normals' size in pixels; the bake's padding scales with it.</summary>
+		public int OpticalSize;
+
+		/// <summary>The light response's size in pixels; the bake's padding and blur scale with it.</summary>
+		public int ResponseSize;
+
 		public int Padding;
 
 		/// <summary>How far every sharp edge is rounded off, in metres.</summary>
@@ -168,6 +175,8 @@ namespace VisualPinball.Unity.Editor
 				FlatProjected = layout.FlatProjected,
 				WallCharts = layout.WallCharts,
 				TextureSize = settings.TextureSize,
+				OpticalSize = settings.OpticalSize,
+				ResponseSize = settings.ResponseSize,
 				Padding = settings.Padding,
 				EdgeBevel = settings.EdgeBevel * Physics.ScaleInv,
 				NormalGrainStrength = math.saturate(settings.NormalGrainStrength),

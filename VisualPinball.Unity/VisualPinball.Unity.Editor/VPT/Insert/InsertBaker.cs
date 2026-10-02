@@ -216,6 +216,8 @@ namespace VisualPinball.Unity.Editor
 			public string Folder;
 			public string Hash;
 			public int TextureSize;
+			public int OpticalSize;
+			public int ResponseSize;
 			public bool HybridOptics;
 			public bool UseHybridMaterial;
 			/// <summary>The prefab whose package folder the bake goes into, or null for the project.</summary>
@@ -319,6 +321,8 @@ namespace VisualPinball.Unity.Editor
 					Folder = folder,
 					Hash = layout.Hash.ToString(),
 					TextureSize = request.TextureSize,
+					OpticalSize = request.OpticalSize,
+					ResponseSize = request.ResponseSize,
 					HybridOptics = request.HybridOptics,
 					UseHybridMaterial = useHybridMaterial,
 					PackagePrefab = packagePrefab,
@@ -510,8 +514,8 @@ namespace VisualPinball.Unity.Editor
 			}
 			data.NormalMap = texture;
 			data.OpticalStarburst = job.OpticalStarburst;
-			data.OpticalNormalMap = ImportOptics(job, folder, name, "optical-normal.png", "Optical Normals", data.OpticalNormalMap);
-			data.OpticalResponseMap = ImportOptics(job, folder, name, "optical-response.png", "Optical Response", data.OpticalResponseMap);
+			data.OpticalNormalMap = ImportOptics(job, folder, name, "optical-normal.png", "Optical Normals", data.OpticalNormalMap, job.OpticalSize);
+			data.OpticalResponseMap = ImportOptics(job, folder, name, "optical-response.png", "Optical Response", data.OpticalResponseMap, job.ResponseSize);
 			if (result.OpticalLamp?.Length == 4) {
 				data.OpticalLamp = new Vector4(result.OpticalLamp[0], result.OpticalLamp[1], result.OpticalLamp[2], result.OpticalLamp[3]);
 			}
@@ -566,7 +570,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private static Texture2D ImportOptics(Job job, string folder, string name, string source, string suffix, Texture2D existing)
+		private static Texture2D ImportOptics(Job job, string folder, string name, string source, string suffix, Texture2D existing, int size)
 		{
 			var sourcePath = Path.Combine(job.Folder, source);
 			if (!File.Exists(sourcePath)) {
@@ -581,7 +585,7 @@ namespace VisualPinball.Unity.Editor
 			importer.isReadable = false;
 			importer.wrapMode = TextureWrapMode.Clamp;
 			importer.textureCompression = TextureImporterCompression.Uncompressed;
-			importer.maxTextureSize = math.max(32, job.TextureSize);
+			importer.maxTextureSize = math.max(32, size);
 			importer.SaveAndReimport();
 			return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
 		}

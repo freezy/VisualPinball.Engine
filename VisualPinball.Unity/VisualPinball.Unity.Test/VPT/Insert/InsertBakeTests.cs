@@ -584,6 +584,27 @@ namespace VisualPinball.Unity.Test
 			}
 		}
 
+		[TestCase(1024, 2, 4, 512, 256)]
+		[TestCase(1024, 1, 1, 1024, 1024)]
+		[TestCase(256, 4, 8, 64, 64)]
+		[TestCase(512, 0, 0, 512, 512)]
+		public void ShouldSizeTheOpticalMapsFromTheNormalMap(int textureSize, int opticalScale, int responseScale, int expectedOptical, int expectedResponse)
+		{
+			var (mesh, layout) = Generate(3f, 2f, 4);
+			try {
+				var settings = InsertBakeSettings.Default;
+				settings.TextureSize = textureSize;
+				settings.OpticalScale = opticalScale;
+				settings.ResponseScale = responseScale;
+				var request = InsertBakeRequest.Build(mesh, layout, settings, Offset);
+				Assert.That(request.TextureSize, Is.EqualTo(textureSize));
+				Assert.That(request.OpticalSize, Is.EqualTo(expectedOptical));
+				Assert.That(request.ResponseSize, Is.EqualTo(expectedResponse));
+			} finally {
+				Object.DestroyImmediate(mesh);
+			}
+		}
+
 		[TestCase(0f, 1.5f, 0f, 1.5f)]
 		[TestCase(0.25f, 2f, 0.25f, 2f)]
 		[TestCase(2f, 0f, 1f, 0.1f)]
@@ -1295,7 +1316,7 @@ namespace VisualPinball.Unity.Test
 
 				// A shared bake takes the new-material path, not the in-place update.
 				var method = typeof(InsertBaker).GetMethod("BakeMaterial", BindingFlags.Static | BindingFlags.NonPublic);
-				var material = (Material)method.Invoke(null, new object[] { duplicate, false, "Assets", "Insert Material Copy Test", normalMap });
+				var material = (Material)method.Invoke(null, new object[] { duplicate, false, "Assets", "Insert Material Copy Test", normalMap, null });
 				path = UnityEditor.AssetDatabase.GetAssetPath(material);
 				Assert.That(path, Does.StartWith("Assets/Insert Material Copy Test"));
 				Assert.That(material, Is.Not.SameAs(hybrid));
@@ -1487,7 +1508,7 @@ namespace VisualPinball.Unity.Test
 				renderer.sharedMaterial = recoloured;
 				Assert.That(InsertBaker.Carries(recoloured, bake), Is.True, "the recoloured copy carries the bake's map, so it is the bake's own");
 				var method = typeof(InsertBaker).GetMethod("BakeMaterial", BindingFlags.Static | BindingFlags.NonPublic);
-				var material = (Material)method.Invoke(null, new object[] { insert, true, folder, "Insert", newMap });
+				var material = (Material)method.Invoke(null, new object[] { insert, true, folder, "Insert", newMap, null });
 				Assert.That(material, Is.EqualTo(recoloured));
 				Assert.That(recoloured.GetTexture("_NormalMap"), Is.EqualTo(newMap));
 				Assert.That(recoloured.GetColor("_BaseColor"), Is.EqualTo(Color.blue));
@@ -1506,7 +1527,7 @@ namespace VisualPinball.Unity.Test
 				UnityEditor.AssetDatabase.CreateAsset(shared, $"{folder}/Shared Red.mat");
 				renderer.sharedMaterial = shared;
 				Assert.That(InsertBaker.Carries(shared, bake), Is.False);
-				material = (Material)method.Invoke(null, new object[] { insert, false, folder, "Insert", newMap });
+				material = (Material)method.Invoke(null, new object[] { insert, false, folder, "Insert", newMap, null });
 				Assert.That(material, Is.Not.EqualTo(shared));
 				Assert.That(material.GetColor("_BaseColor"), Is.EqualTo(Color.red), "the copy keeps the look");
 				Assert.That(material.GetTexture("_NormalMap"), Is.EqualTo(newMap));
@@ -1519,7 +1540,7 @@ namespace VisualPinball.Unity.Test
 				other.AddComponent<InsertComponent>();
 				other.GetComponent<MeshRenderer>().sharedMaterial = recoloured;
 				renderer.sharedMaterial = recoloured;
-				material = (Material)method.Invoke(null, new object[] { insert, true, folder, "Insert", newMap });
+				material = (Material)method.Invoke(null, new object[] { insert, true, folder, "Insert", newMap, null });
 				Assert.That(material, Is.Not.EqualTo(recoloured));
 				Assert.That(material.GetColor("_BaseColor"), Is.EqualTo(Color.blue));
 				Assert.That(UnityEditor.AssetDatabase.GetAssetPath(material), Is.EqualTo($"{folder}/Insert Blue.mat"));
@@ -1531,7 +1552,7 @@ namespace VisualPinball.Unity.Test
 				variant.parent = shared;
 				Assert.That(variant.parent, Is.EqualTo(shared), "a saved material can be made a variant");
 				renderer.sharedMaterial = variant;
-				material = (Material)method.Invoke(null, new object[] { insert, false, folder, "Third", newMap });
+				material = (Material)method.Invoke(null, new object[] { insert, false, folder, "Third", newMap, null });
 				Assert.That(material.name, Is.EqualTo("Third Shared Red"));
 				Assert.That(UnityEditor.AssetDatabase.GetAssetPath(material), Is.EqualTo($"{folder}/Third Shared Red.mat"));
 				// So is a bake of a bake's copy, named after the insert that wore it.
@@ -1539,7 +1560,7 @@ namespace VisualPinball.Unity.Test
 				UnityEditor.AssetDatabase.CreateFolder(folder, "Copy");
 				UnityEditor.AssetDatabase.CreateAsset(copy, $"{folder}/Copy/Insert Shared Red.mat");
 				renderer.sharedMaterial = copy;
-				material = (Material)method.Invoke(null, new object[] { insert, false, folder, "Fourth", newMap });
+				material = (Material)method.Invoke(null, new object[] { insert, false, folder, "Fourth", newMap, null });
 				Assert.That(material.name, Is.EqualTo("Fourth Shared Red"));
 			} finally {
 				if (other != null) {

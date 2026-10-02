@@ -116,8 +116,10 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _usePlayfieldNormals;
 		private SerializedProperty _coverPlayfield;
 
-		private static readonly int[] TextureSizes = { 512, 1024, 2048, 4096 };
-		private static readonly GUIContent[] TextureSizeNames = { new("512"), new("1024"), new("2048"), new("4096") };
+		private static readonly int[] TextureSizes = { 256, 512, 1024, 2048, 4096 };
+		private static readonly GUIContent[] TextureSizeNames = { new("256"), new("512"), new("1024"), new("2048"), new("4096") };
+		private static readonly int[] MapScales = { 1, 2, 4, 8 };
+		private static readonly GUIContent[] MapScaleNames = { new("Same size"), new("Half"), new("Quarter"), new("Eighth") };
 
 		/// <summary>How many holes the "Around" preset spreads out, remembered while the inspector is open.</summary>
 		private int _aroundCount = 5;
@@ -977,6 +979,8 @@ namespace VisualPinball.Unity.Editor
 			using (new EditorGUI.DisabledScope(IsLocked)) {
 				var size = _bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.TextureSize));
 				EditorGUILayout.IntPopup(size, TextureSizeNames, TextureSizes, new GUIContent("Texture Size", size.tooltip));
+				DrawMapScale(nameof(InsertBakeSettings.OpticalScale), "Optical Normals", size);
+				DrawMapScale(nameof(InsertBakeSettings.ResponseScale), "Light Response", size);
 				var padding = _bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.Padding));
 				EditorGUILayout.IntSlider(padding, 1, 32, new GUIContent("Padding (px)", padding.tooltip));
 				Field(_bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.EdgeBevel)), "Edge Bevel");
@@ -990,6 +994,23 @@ namespace VisualPinball.Unity.Editor
 				Field(_bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.Gpu)), "Bake on GPU");
 				Field(_bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.HybridOptics)), "Bake Hybrid Optics");
 			}
+		}
+
+		/// <summary>
+		/// A hybrid map's size as a fraction of the normal map's, with the pixels
+		/// that makes, since what the user wants to know is whether the map is
+		/// big enough, not the fraction.
+		/// </summary>
+		private void DrawMapScale(string property, string label, SerializedProperty size)
+		{
+			var scale = _bakeSettings.FindPropertyRelative(property);
+			var pixels = Mathf.Max(InsertBakeSettings.MinMapSize, size.intValue / Mathf.Max(1, scale.intValue));
+			var text = scale.hasMultipleDifferentValues || size.hasMultipleDifferentValues ? label : $"{label} ({pixels} px)";
+			// A setting from before the scales reads zero: the same size, as it was baked.
+			if (!scale.hasMultipleDifferentValues && scale.intValue < 1) {
+				scale.intValue = 1;
+			}
+			EditorGUILayout.IntPopup(scale, MapScaleNames, MapScales, new GUIContent(text, scale.tooltip));
 		}
 
 		/// <summary>

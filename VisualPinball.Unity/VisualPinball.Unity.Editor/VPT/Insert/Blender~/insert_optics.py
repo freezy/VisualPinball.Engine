@@ -16,26 +16,30 @@ import numpy as np
 from mathutils import Vector
 
 
-def projected(api, regular, flat, high, request, name, bake_type='EMIT', samples=16):
-	"""Match the normal bake's projections and its padded flat-region merge."""
-	image = api.new_image(name, request['TextureSize'])
+def projected(api, regular, flat, high, request, name, size, bake_type='EMIT', samples=16):
+	"""Match the normal bake's projections and its padded flat-region merge, at the map's own size."""
+	image = api.new_image(name, size)
 	regular.data.materials.clear()
 	regular.data.materials.append(api.target(image))
 	for face in regular.data.polygons:
 		face.material_index = 0
-	api.bake(regular, request, high, request['RegularExtrusion'], bake_type, samples)
+	api.bake(regular, request, high, request['RegularExtrusion'], bake_type, samples, size)
 	pixels = api.image_pixels(image)
 	if flat is not None:
-		flat_image = api.new_image(name + ' Flat', request['TextureSize'])
+		flat_image = api.new_image(name + ' Flat', size)
 		flat.data.materials.clear()
 		flat.data.materials.append(api.target(flat_image))
-		api.bake(flat, request, high, request['FlatExtrusion'], bake_type, samples)
-		api.merge_flat(regular, flat_image, pixels, request)
+		api.bake(flat, request, high, request['FlatExtrusion'], bake_type, samples, size)
+		api.merge_flat(regular, flat_image, pixels, request, size)
 	return pixels
 
 
 def bake_optics(api, regular, flat, high, request, folder):
 	positions = np.asarray(request['Positions']).reshape(-1, 3)
+	# The optical normals hold one direction per facet and the response a soft
+	# glow and smooth masks: neither needs the normal map's texels.
+	optical_size = request.get('OpticalSize') or request['TextureSize']
+	response_size = request.get('ResponseSize') or request['TextureSize']
 	low, upper = positions.min(axis=0), positions.max(axis=0)
 	center = (low + upper) * 0.5
 	radius = max(float(upper[0] - low[0]) * 0.4, 0.001)
@@ -70,7 +74,7 @@ def bake_optics(api, regular, flat, high, request, folder):
 			setattr(obj, flag, False)
 	print('[bake_insert] Baking internal scatter proxy', flush=True)
 	try:
-		glow = projected(api, regular, flat, high, request, 'Internal Glow', 'DIFFUSE', 64)
+		glow = projected(api, regular, flat, high, request, 'Internal Glow', response_size, 'DIFFUSE', 64)
 	finally:
 		for obj, flags in saved:
 			for flag, value in zip(visibility, flags):
@@ -91,7 +95,7 @@ def bake_optics(api, regular, flat, high, request, folder):
 	# which is forty texels across on a two inch insert. The blur is weighted
 	# by the islands' coverage so their edges are not darkened by the black
 	# between them, and the padding keeps the surface clear of that anyway.
-	sigma = 4.0 * request['TextureSize'] / 1024.0
+	sigma = 4.0 * response_size / 1024.0
 	radius = int(np.ceil(sigma * 3))
 	kernel = np.exp(-0.5 * (np.arange(-radius, radius + 1) / sigma) ** 2)
 	kernel /= kernel.sum()
@@ -124,8 +128,8 @@ def bake_optics(api, regular, flat, high, request, folder):
 	encode.inputs[2].default_value = (0.5, 0.5, 0.5)
 	links.new(encode.outputs['Vector'], emission.inputs['Color'])
 	print('[bake_insert] Baking optical normals', flush=True)
-	optical = projected(api, regular, flat, high, request, 'Optical Normal')
-	image = api.new_image('Optical Normal Result', request['TextureSize'])
+	optical = projected(api, regular, flat, high, request, 'Optical Normal', optical_size)
+	image = api.new_image('Optical Normal Result', optical_size)
 	image.pixels.foreach_set(optical.ravel())
 	image.update()
 	api.save_png(image, folder / 'optical-normal.png', 16)
@@ -156,9 +160,9 @@ def bake_optics(api, regular, flat, high, request, folder):
 	links.new(transmission.outputs['Result'], combine.inputs['Z'])
 	links.new(combine.outputs[0], emission.inputs['Color'])
 	print('[bake_insert] Baking optical response masks', flush=True)
-	response = projected(api, regular, flat, high, request, 'Optical Response')
+	response = projected(api, regular, flat, high, request, 'Optical Response', response_size)
 	response[:, :, 0] = strength
-	image = api.new_image('Optical Response Result', request['TextureSize'])
+	image = api.new_image('Optical Response Result', response_size)
 	image.pixels.foreach_set(response.ravel())
 	image.update()
 	api.save_png(image, folder / 'optical-response.png', 16)
