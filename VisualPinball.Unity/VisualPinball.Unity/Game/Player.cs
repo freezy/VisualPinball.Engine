@@ -253,9 +253,13 @@ namespace VisualPinball.Unity
 				Application.targetFrameRate = 60;
 			#endif
 
-			// trigger init events now
+			// trigger init events now, each on its own, so one that fails can't stop the game from starting.
 			foreach (var i in _apis) {
-				i.OnInit(BallManager);
+				try {
+					i.OnInit(BallManager);
+				} catch (Exception e) {
+					Logger.Error(e, $"Initializing {i.GetType().Name} failed, skipping it.");
+				}
 			}
 
 			_coilPlayer.OnStart();

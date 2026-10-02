@@ -46,6 +46,9 @@ namespace VisualPinball.Unity
 
 		public void OnInit(BallManager ballManager)
 		{
+			// Registered while editing and destroyed since, say by replacing the
+			// insert: nothing left to light.
+			if (_component == null) { return; }
 			_initialized = true;
 			_component.StartGame();
 			Init?.Invoke(this, EventArgs.Empty);
@@ -54,25 +57,25 @@ namespace VisualPinball.Unity
 		public void OnDestroy()
 		{
 			_initialized = false;
-			_component.ReleaseApiControl();
+			if (_component != null) { _component.ReleaseApiControl(); }
 		}
 
 		public void OnLamp(LampStatus status)
 		{
-			if (_root._initialized) { _component.SetBulbStatus(_bulb, status); }
+			if (_root._initialized && _component != null) { _component.SetBulbStatus(_bulb, status); }
 		}
 
 		public void OnLamp(float intensity)
 		{
 			// Fading/RGB mappings send an absolute normalized level without a separate
 			// On status. A positive level must therefore also wake an off insert.
-			if (_root._initialized) { _component.SetBulbIntensity(_bulb, intensity); }
+			if (_root._initialized && _component != null) { _component.SetBulbIntensity(_bulb, intensity); }
 		}
 
 		public void OnLamp(Color color)
 		{
 			// Colour changes must retain the current intensity, including zero.
-			if (_root._initialized) { _component.SetBulbColor(_bulb, color); }
+			if (_root._initialized && _component != null) { _component.SetBulbColor(_bulb, color); }
 		}
 
 		public void OnChange(bool enabled) => OnLamp(enabled ? LampStatus.On : LampStatus.Off);
