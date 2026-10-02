@@ -326,6 +326,12 @@ namespace VisualPinball.Unity.Editor
 			var selection = Selection.gameObjects;
 			var newSelection = new List<GameObject>();
 			var keepName = _replaceSelectedKeepName.value;
+			var replacements = new Dictionary<Object, Object>();
+			var replaced = new List<GameObject>();
+
+			Undo.IncrementCurrentGroup();
+			var undoGroup = Undo.GetCurrentGroup();
+			Undo.SetCurrentGroupName("Replace object with asset");
 
 			foreach (var selected in selection) {
 
@@ -352,51 +358,102 @@ namespace VisualPinball.Unity.Editor
 				go.transform.localRotation = selected.transform.localRotation;
 				go.transform.localScale = selected.transform.localScale;
 				go.transform.SetSiblingIndex(selected.transform.GetSiblingIndex());
-				
-				// update references
-				UpdateReferences(selected, go);
-					
-				Undo.DestroyObjectImmediate(selected);
+
+				MapReplacements(selected, go, replacements);
+				replaced.Add(selected);
 
 				// apply variation materials
 				ApplyVariation(go);
-				
+
 				newSelection.Add(go);
 			}
+
+			// point whatever referenced the replaced objects at their replacements, while both still exist.
+			UpdateReferences(replacements, replaced);
+			foreach (var selected in replaced) {
+				Undo.DestroyObjectImmediate(selected);
+			}
+			Undo.CollapseUndoOperations(undoGroup);
 
 			Selection.objects = newSelection.Select(go => (Object)go).ToArray();
 		}
 
-		private static void UpdateReferences(GameObject srcGo, GameObject destGo)
+		/// <summary>
+		/// Pairs every object of the replaced hierarchy with its counterpart in the
+		/// new one: game objects by their path below the root, and their components
+		/// by type, in the order they come on the game object.
+		/// </summary>
+		private static void MapReplacements(GameObject srcRoot, GameObject destRoot, Dictionary<Object, Object> replacements)
 		{
-			var tc = srcGo.GetComponentInParent<TableComponent>();
-			if (tc == null) {
-				return;
-			}
-			
-			Undo.RecordObject(tc, "replace object with asset");
-
-			UpdateReferences(tc.MappingConfig.Coils, m => m.Device, (m, comp) => m.Device = comp, srcGo, destGo);
-			UpdateReferences(tc.MappingConfig.Switches, m => m.Device, (m, comp) => m.Device = comp, srcGo, destGo);
-			UpdateReferences(tc.MappingConfig.Lamps, m => m.Device, (m, comp) => m.Device = comp, srcGo, destGo);
-			UpdateReferences(tc.MappingConfig.Wires, m => m.SourceDevice, (m, comp) => m.SourceDevice = comp, srcGo, destGo);
-			UpdateReferences(tc.MappingConfig.Wires, m => m.DestinationDevice, (m, comp) => m.DestinationDevice = comp, srcGo, destGo);
-		}
-
-		private static void UpdateReferences<TMapping, TComponent>(List<TMapping> mappings, Func<TMapping, TComponent> getComp, Action<TMapping, TComponent> setComp, GameObject srcGo, GameObject destGo)
-		{
-			foreach (var mapping in mappings) {
-				var referencedComponent = getComp(mapping);
-				if (referencedComponent == null) {
+			foreach (var srcTransform in srcRoot.GetComponentsInChildren<Transform>(true)) {
+				var path = srcTransform == srcRoot.transform ? null : AnimationUtility.CalculateTransformPath(srcTransform, srcRoot.transform);
+				var destTransform = path == null ? destRoot.transform : destRoot.transform.Find(path);
+				if (destTransform == null) {
 					continue;
 				}
-				foreach (var srcComponent in srcGo.GetComponents<TComponent>()) {
-					if (referencedComponent as MonoBehaviour == srcComponent as MonoBehaviour) {
-						if (destGo.GetComponent(srcComponent.GetType()) is TComponent destComponent) {
-							setComp(mapping, destComponent);
+				replacements[srcTransform.gameObject] = destTransform.gameObject;
+				foreach (var group in srcTransform.GetComponents<Component>().Where(c => c != null).GroupBy(c => c.GetType())) {
+					var destComponents = destTransform.GetComponents(group.Key);
+					var i = 0;
+					foreach (var srcComponent in group) {
+						if (i < destComponents.Length) {
+							replacements[srcComponent] = destComponents[i];
 						}
+						i++;
 					}
 				}
+			}
+		}
+
+		/// <summary>
+		/// Goes through every component in the open scenes, and the prefab being
+		/// edited, and points its references to replaced objects at their
+		/// replacements, undoably. That covers the table's switch, coil, lamp and
+		/// wire mappings as well as any other component. References to replaced
+		/// objects without a counterpart are logged, since they'll be missing.
+		/// </summary>
+		private static void UpdateReferences(Dictionary<Object, Object> replacements, List<GameObject> replaced)
+		{
+			var doomed = new HashSet<GameObject>(replaced.SelectMany(go => go.GetComponentsInChildren<Transform>(true)).Select(t => t.gameObject));
+			var scenes = Enumerable.Range(0, SceneManager.sceneCount).Select(SceneManager.GetSceneAt).Where(scene => scene.isLoaded).ToList();
+			var prefabStage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
+			if (prefabStage != null) {
+				scenes.Add(prefabStage.scene);
+			}
+
+			var updated = 0;
+			var lost = new List<string>();
+			foreach (var component in scenes.SelectMany(scene => scene.GetRootGameObjects()).SelectMany(root => root.GetComponentsInChildren<Component>(true))) {
+				// a transform's references are the hierarchy itself, which mustn't be rewired.
+				if (component == null || component is Transform || doomed.Contains(component.gameObject)) {
+					continue;
+				}
+				var so = new SerializedObject(component);
+				var property = so.GetIterator();
+				var changed = false;
+				while (property.Next(true)) {
+					if (property.propertyType != SerializedPropertyType.ObjectReference || property.objectReferenceValue == null) {
+						continue;
+					}
+					var target = property.objectReferenceValue;
+					if (replacements.TryGetValue(target, out var replacement)) {
+						property.objectReferenceValue = replacement;
+						changed = true;
+						updated++;
+					} else if (target is GameObject go && doomed.Contains(go) || target is Component c && doomed.Contains(c.gameObject)) {
+						lost.Add($"{component.name}.{component.GetType().Name}.{property.propertyPath} -> {target.name} ({target.GetType().Name})");
+					}
+				}
+				if (changed) {
+					so.ApplyModifiedProperties();
+				}
+			}
+
+			if (updated > 0) {
+				Debug.Log($"Replace: pointed {updated} reference(s) at the new objects.");
+			}
+			if (lost.Count > 0) {
+				Debug.LogWarning($"Replace: {lost.Count} reference(s) point at objects the new asset has no counterpart for, and will be missing:\n{string.Join("\n", lost)}");
 			}
 		}
 
