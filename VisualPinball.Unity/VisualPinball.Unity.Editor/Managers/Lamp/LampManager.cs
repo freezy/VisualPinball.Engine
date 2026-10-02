@@ -207,8 +207,11 @@ namespace VisualPinball.Unity.Editor
 					lightComponent.Enabled = enabled;
 					break;
 				case LightGroupComponent lightGroup:
-					foreach (var child in lightGroup.Lights.Where(child => child != null)) {
-						SetLampDeviceEnabled(child, deviceItem, enabled);
+					// each light with the lamp the group drives of it, like a single bulb of an insert.
+					for (var i = 0; i < lightGroup._lights.Length; i++) {
+						if (lightGroup._lights[i] is ILampDeviceComponent child) {
+							SetLampDeviceEnabled(child, lightGroup.LampId(i) ?? deviceItem, enabled);
+						}
 					}
 					break;
 				default:

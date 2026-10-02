@@ -16,6 +16,7 @@
 
 // ReSharper disable MemberCanBePrivate.Global
 
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -25,17 +26,33 @@ namespace VisualPinball.Unity
 	{
 		public ReferencePackable[] Lights;
 
+		/// <summary>The lamp of each light the group drives, by index, null for its first or only one. Missing in older packages.</summary>
+		public string[] LampIds;
+
 		public static byte[] Pack(LightGroupComponent comp, PackagedRefs refs)
 		{
 			return PackageApi.Packer.Pack(new LightGroupReferencesPackable {
 				Lights = refs.PackReferences(comp._lights).ToArray(),
+				LampIds = comp._lights.Select((_, i) => comp.LampId(i)).ToArray(),
 			});
 		}
 
 		public static void Unpack(byte[] bytes, LightGroupComponent comp, PackagedRefs refs)
 		{
 			var data = PackageApi.Packer.Unpack<LightGroupReferencesPackable>(bytes);
-			comp._lights = refs.Resolve<MonoBehaviour, ILampDeviceComponent>(data.Lights).ToArray();
+			// light by light, so each keeps its lamp when one can't be resolved.
+			var lights = new List<MonoBehaviour>();
+			var lampIds = new List<string>();
+			for (var i = 0; i < (data.Lights?.Length ?? 0); i++) {
+				var light = refs.Resolve<MonoBehaviour, ILampDeviceComponent>(data.Lights[i]);
+				if (light == null) {
+					continue;
+				}
+				lights.Add(light);
+				lampIds.Add(data.LampIds != null && i < data.LampIds.Length ? data.LampIds[i] : null);
+			}
+			comp._lights = lights.ToArray();
+			comp._lampIds = lampIds.ToArray();
 		}
 	}
 }

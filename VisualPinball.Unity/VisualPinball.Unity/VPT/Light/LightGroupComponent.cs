@@ -34,12 +34,26 @@ namespace VisualPinball.Unity
 
 		public List<ILampDeviceComponent> Lights {
 			get => _lights.Select(l => l as ILampDeviceComponent).Where(l => l != null).ToList();
-			set => _lights = value.Select(l => l as MonoBehaviour).ToArray();
+			set {
+				_lights = value.Select(l => l as MonoBehaviour).ToArray();
+				_lampIds = Array.Empty<string>();
+			}
 		}
 		[SerializeField]
 		[TypeRestriction(typeof(ILampDeviceComponent), PickerLabel = "Lamps", UpdateTransforms = false)]
 		[Tooltip("The children of this light group. Can be lights or even other light groups.")]
 		public MonoBehaviour[] _lights = Array.Empty<MonoBehaviour>();
+
+		/// <summary>
+		/// Which of its lamps each of <see cref="_lights"/> takes part with, by
+		/// index, for lights that have more than one, like an insert with several
+		/// bulbs. Empty, or missing, is the light's first or only lamp.
+		/// </summary>
+		[SerializeField]
+		public string[] _lampIds = Array.Empty<string>();
+
+		/// <summary>The lamp of the light at that index the group drives, or null for its first or only one.</summary>
+		public string LampId(int index) => _lampIds != null && index >= 0 && index < _lampIds.Length && !string.IsNullOrEmpty(_lampIds[index]) ? _lampIds[index] : null;
 
 		#endregion
 
@@ -58,13 +72,28 @@ namespace VisualPinball.Unity
 		#endregion
 
 		public IApiLamp GetApi(Player player) => _api ??= new LightGroupApi(
-			Lights.Select(l => l.GetApi(player)).ToArray()
+			_lights
+				.Select((light, index) => (Light: light as ILampDeviceComponent, LampId: LampId(index)))
+				.Where(entry => entry.Light != null)
+				.Select(entry => LampApi(entry.Light, entry.LampId, player))
+				.ToArray()
 		);
+
+		/// <summary>The API of the light's lamp the group names, or the light's own for its first or only one.</summary>
+		private static IApiLamp LampApi(ILampDeviceComponent light, string lampId, Player player)
+		{
+			var api = light.GetApi(player);
+			return lampId != null && api is IApiLampDevice device ? device.Lamp(lampId) : api;
+		}
 		public IEnumerable<Light> LightSources => Lights.SelectMany(l => l.LightSources).ToArray();
 		public Color LampColor => _lights.Length > 0 ? (_lights.First() as ILampDeviceComponent)!.LampColor : Color.blue;
 		public LampStatus LampStatus => _lights.Length > 0 ? (_lights.First() as ILampDeviceComponent)!.LampStatus : LampStatus.Off;
 		[NonSerialized]
 		private LightGroupApi _api;
+
+		// Without a domain or scene reload, the API would survive into the next
+		// game with the lights and lamps it was made with.
+		private void OnValidate() => _api = null;
 
 		#region Wiring
 
