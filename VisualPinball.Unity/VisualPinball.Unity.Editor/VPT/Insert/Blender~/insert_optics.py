@@ -95,7 +95,8 @@ def bake_optics(api, regular, flat, high, request, folder):
 	# which is forty texels across on a two inch insert. The blur is weighted
 	# by the islands' coverage so their edges are not darkened by the black
 	# between them, and the padding keeps the surface clear of that anyway.
-	sigma = 4.0 * response_size / 1024.0
+	# Never under a texel and a half, or a small map keeps the bake's noise.
+	sigma = max(4.0 * response_size / 1024.0, 1.5)
 	radius = int(np.ceil(sigma * 3))
 	kernel = np.exp(-0.5 * (np.arange(-radius, radius + 1) / sigma) ** 2)
 	kernel /= kernel.sum()

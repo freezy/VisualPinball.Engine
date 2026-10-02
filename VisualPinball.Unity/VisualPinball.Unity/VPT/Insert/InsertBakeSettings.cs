@@ -32,10 +32,10 @@ namespace VisualPinball.Unity
 		[Tooltip("Width and height of the baked normal map, in pixels.")]
 		public int TextureSize;
 
-		[Tooltip("How much smaller than the normal map the optical normals are baked: one facet shares one direction, so only its creases need texels. 1 is the same size, 2 half, 4 a quarter.")]
+		[Tooltip("How much smaller than the normal map the optical normals are baked. Every facet is an island of its own, so a small map runs out of texels for the islands before it runs out of detail: keep the same size unless the insert has few facets. 1 is the same size, 2 half, 4 a quarter.")]
 		public int OpticalScale;
 
-		[Tooltip("How much smaller than the normal map the light response is baked: a soft glow and smooth masks that need few texels. 1 is the same size, 2 half, 4 a quarter, 8 an eighth.")]
+		[Tooltip("How much smaller than the normal map the light response is baked: a soft glow and smooth masks that need fewer texels than the creases, but each facet island still needs a few of its own. 1 is the same size, 2 half, 4 a quarter, 8 an eighth.")]
 		public int ResponseScale;
 
 		[Tooltip("How many pixels each UV island is extended by in the normal map. Islands are packed at least twice this far apart; the smaller maps keep the same distance in their own pixels.")]
@@ -76,8 +76,8 @@ namespace VisualPinball.Unity
 
 		public static InsertBakeSettings Default => new() {
 			TextureSize = 1024,
-			OpticalScale = 2,
-			ResponseScale = 4,
+			OpticalScale = 1,
+			ResponseScale = 2,
 			Padding = 8,
 			EdgeBevel = 1f,
 			NormalGrainStrength = 0f,
