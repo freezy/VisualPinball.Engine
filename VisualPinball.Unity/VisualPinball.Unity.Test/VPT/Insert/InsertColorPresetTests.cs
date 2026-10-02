@@ -18,7 +18,7 @@ namespace VisualPinball.Unity.Test
 		{
 			Assert.That(InsertColorPresets.NameFor("Insert, Circle, 1in, Red", "Blue"), Is.EqualTo("Insert, Circle, 1in, Blue"));
 			Assert.That(InsertColorPresets.NameFor("Insert, Blue Angel, Red", "Green"), Is.EqualTo("Insert, Blue Angel, Green"));
-			Assert.That(InsertColorPresets.NameFor("Insert, Triangle, Clear, 34", "White"), Is.EqualTo("Insert, Triangle, White, 34"));
+			Assert.That(InsertColorPresets.NameFor("Insert, Triangle, White, 34", "Clear"), Is.EqualTo("Insert, Triangle, Clear, 34"));
 			Assert.That(InsertColorPresets.NameFor("Insert, Triangle", "Purple"), Is.EqualTo("Insert, Triangle, Purple"));
 			Assert.That(InsertColorPresets.WritableFolder("Packages/org.visualpinball.unity.assetlibrary/Assets/Library/Inserts/Insert, Red.mat"), Is.EqualTo("Assets/Library/Inserts"));
 			Assert.That(InsertColorPresets.WritableFolder("Assets/Inserts/Insert, Red.mat"), Is.EqualTo("Assets/Inserts"));
@@ -28,7 +28,7 @@ namespace VisualPinball.Unity.Test
 		public void ShouldLoadGodzillaColorValues()
 		{
 			var colors = InsertColorPresets.Find();
-			Assert.That(colors, Has.Some.Matches<InsertColorPreset>(preset => preset.ColorName == "White"));
+			Assert.That(colors, Has.Some.Matches<InsertColorPreset>(preset => preset.ColorName == "Clear"));
 			Assert.That(colors, Has.Some.Matches<InsertColorPreset>(preset => preset.ColorName == "Blue" && preset.LampEmission.b > 1000f));
 			Assert.That(colors, Has.Some.Matches<InsertColorPreset>(preset => preset.ColorName == "Green"));
 			Assert.That(colors, Has.Some.Matches<InsertColorPreset>(preset => preset.ColorName == "Red"));
@@ -88,10 +88,10 @@ namespace VisualPinball.Unity.Test
 				renderer.sharedMaterial = sourceBody;
 				insert.SetCoverMaterial(sourceCover);
 				preset.ColorName = "Blue";
-				preset.BodyColor = Color.blue;
+				preset.Tint = Color.blue;
 				preset.CavityColor = Color.cyan;
 				preset.LampEmission = new Color(0f, 300f, 1024f);
-				preset.CoverColor = new Color(0f, 0.3f, 0.8f);
+				preset.HazeColor = new Color(0f, 0.3f, 0.8f);
 
 				Assert.That(InsertColorPresets.Apply(preset, insert), Is.True);
 				var blueBody = renderer.sharedMaterial;
@@ -162,7 +162,7 @@ namespace VisualPinball.Unity.Test
 				var renderer = go.GetComponent<MeshRenderer>();
 				renderer.sharedMaterial = source;
 				preset.ColorName = "Blue";
-				preset.BodyColor = Color.blue;
+				preset.Tint = Color.blue;
 
 				Assert.That(InsertColorPresets.Apply(preset, insert), Is.True);
 				var result = renderer.sharedMaterial;
@@ -201,8 +201,8 @@ namespace VisualPinball.Unity.Test
 				renderer.sharedMaterial = source;
 				insert.SetCoverMaterial(sourceCover);
 				preset.ColorName = "Teal";
-				preset.BodyColor = Color.cyan;
-				preset.CoverColor = Color.cyan;
+				preset.Tint = Color.cyan;
+				preset.HazeColor = Color.cyan;
 				Assert.That(InsertColorPresets.Apply(preset, insert), Is.True);
 				Assert.That(renderer.sharedMaterial.name, Is.EqualTo("Insert, Circle, Teal"));
 				Assert.That(AssetDatabase.GetAssetPath(renderer.sharedMaterial.parent), Is.EqualTo(AssetDatabase.GetAssetPath(source)));

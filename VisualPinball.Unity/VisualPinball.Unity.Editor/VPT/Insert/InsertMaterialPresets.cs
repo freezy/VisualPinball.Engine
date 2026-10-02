@@ -52,6 +52,8 @@ namespace VisualPinball.Unity.Editor
 			}
 			Undo.RecordObject(body, "Apply Insert Material Preset");
 			var count = preset.Apply(body, null);
+			// A body linked to a color preset keeps that preset's Max Brightness.
+			InsertColorPresets.Refresh(body);
 			EditorUtility.SetDirty(body);
 			return count;
 		}

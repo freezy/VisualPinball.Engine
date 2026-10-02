@@ -24,6 +24,7 @@ using System.Text.RegularExpressions;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEditor.PackageManager;
+using UnityEditor.SceneManagement;
 using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -217,6 +218,8 @@ namespace VisualPinball.Unity.Editor
 			public int TextureSize;
 			public bool HybridOptics;
 			public bool UseHybridMaterial;
+			/// <summary>The prefab whose package folder the bake goes into, or null for the project.</summary>
+			public string PackagePrefab;
 			public bool PlainStipple;
 			public Vector4 OpticalStarburst;
 			public Process Process;
@@ -251,13 +254,23 @@ namespace VisualPinball.Unity.Editor
 			("Baking optical response masks", 0.98f),
 		};
 
-		public static void Bake(InsertComponent insert, bool useHybridMaterial = false)
+		/// <param name="insert">The insert to bake</param>
+		/// <param name="useHybridMaterial">Whether to put a hybrid material on the insert afterwards</param>
+		/// <param name="toPackage">Whether to bake into the package folder of the prefab the insert comes from, when that package can be written to</param>
+		public static void Bake(InsertComponent insert, bool useHybridMaterial = false, bool toPackage = false)
 		{
 			if (_job != null) {
 				return;
 			}
 			LastError = null;
 			LastErrorInsert = null;
+			string packagePrefab = null;
+			if (toPackage) {
+				packagePrefab = PackagePrefabPath(insert);
+				if (packagePrefab == null) {
+					Debug.LogWarning($"{insert.name} isn't from a prefab in a package that can be written to, so it's baked into the project as usual.");
+				}
+			}
 			var blender = BlenderPath;
 			var info = Probe();
 			if (info?.Error != null) {
@@ -308,6 +321,7 @@ namespace VisualPinball.Unity.Editor
 					TextureSize = request.TextureSize,
 					HybridOptics = request.HybridOptics,
 					UseHybridMaterial = useHybridMaterial,
+					PackagePrefab = packagePrefab,
 					PlainStipple = body.StippleHeight != 0f,
 					OpticalStarburst = layout.OpticalStarburst,
 				};
@@ -432,12 +446,28 @@ namespace VisualPinball.Unity.Editor
 				Debug.LogWarning($"{insert.name}: {warning}");
 			}
 
-			// A duplicated insert shares its original's bake until it bakes its own,
-			// which must not overwrite the original's. A bake that cannot be written
-			// to, in a package, is never anyone's to overwrite.
-			var own = Owns(insert, insert.Bake) && !IsReadOnly(insert.Bake) ? insert.Bake : null;
-			var folder = own != null ? Path.GetDirectoryName(AssetDatabase.GetAssetPath(own))?.Replace('\\', '/') : NewFolder(insert);
-			var name = FileName(insert.name);
+			InsertBakeData own;
+			string folder, name, owner;
+			var packagePrefab = job.PackagePrefab != null && AssetDatabase.LoadMainAssetAtPath(job.PackagePrefab) != null && !IsReadOnly(job.PackagePrefab)
+				? job.PackagePrefab
+				: null;
+			if (packagePrefab != null) {
+				// Asked for the package: next to the prefab and named after it. The
+				// bake there is the prefab's, so it's updated whichever of the prefab's
+				// inserts bakes it, and the prefab's own insert owns it.
+				folder = Path.GetDirectoryName(packagePrefab)?.Replace('\\', '/');
+				name = FileName(Path.GetFileNameWithoutExtension(packagePrefab));
+				own = PackageBake(folder, name);
+				owner = PackageOwner(insert);
+			} else {
+				// A duplicated insert shares its original's bake until it bakes its own,
+				// which must not overwrite the original's. A bake that cannot be written
+				// to, in a package, is never anyone's to overwrite.
+				own = Owns(insert, insert.Bake) && !IsReadOnly(insert.Bake) ? insert.Bake : null;
+				folder = own != null ? Path.GetDirectoryName(AssetDatabase.GetAssetPath(own))?.Replace('\\', '/') : NewFolder(insert);
+				name = FileName(insert.name);
+				owner = insert.EnsureId();
+			}
 			// Whether the material the insert wears is this bake's own is judged
 			// against the maps the bake had, before the new ones replace them.
 			var renderer = insert.GetComponent<MeshRenderer>();
@@ -445,7 +475,7 @@ namespace VisualPinball.Unity.Editor
 
 			// Not "... Normal.png": the asset library re-applies its own normal map
 			// preset to every such file on import, wrapping included.
-			var texturePath = own != null && own.NormalMap != null && IsPng(own.NormalMap) ? AssetDatabase.GetAssetPath(own.NormalMap) : $"{folder}/{name} Normal Map.png";
+			var texturePath = own != null && own.NormalMap != null && IsPng(own.NormalMap) ? AssetDatabase.GetAssetPath(own.NormalMap) : $"{folder}/{name}, Normal Map.png";
 			File.Copy(Path.Combine(job.Folder, "normal.png"), DiskPath(texturePath), true);
 			AssetDatabase.ImportAsset(texturePath, ImportAssetOptions.ForceUpdate);
 			var importer = (TextureImporter)AssetImporter.GetAtPath(texturePath);
@@ -469,7 +499,7 @@ namespace VisualPinball.Unity.Editor
 			data.PlainStipple = job.PlainStipple;
 			// Made sure of even when there was no bake to own: an id never seen
 			// by OnEnable could still be a duplicate's or a prefab's.
-			data.Owner = insert.EnsureId();
+			data.Owner = owner;
 			data.Uvs = new Vector2[result.Uvs.Length / 2];
 			for (var i = 0; i < data.Uvs.Length; i++) {
 				data.Uvs[i] = new Vector2(result.Uvs[i * 2], result.Uvs[i * 2 + 1]);
@@ -490,11 +520,13 @@ namespace VisualPinball.Unity.Editor
 			// The hybrid step creates the body material. Keep the previous material
 			// reference for Undo, without writing a copy that would be replaced.
 			if (!job.UseHybridMaterial) {
-				data.Material = BakeMaterial(insert, wornIsOwn, folder, name, texture);
+				data.Material = BakeMaterial(insert, wornIsOwn, folder, name, texture, packagePrefab);
 			}
 			BindOptics(data);
 			if (created) {
-				AssetDatabase.CreateAsset(data, $"{folder}/{name} Bake.asset");
+				// A package folder may already hold something by that name.
+				var bakePath = $"{folder}/{name}, Bake.asset";
+				AssetDatabase.CreateAsset(data, AssetDatabase.LoadMainAssetAtPath(bakePath) != null ? AssetDatabase.GenerateUniqueAssetPath(bakePath) : bakePath);
 			} else {
 				EditorUtility.SetDirty(data);
 			}
@@ -513,11 +545,11 @@ namespace VisualPinball.Unity.Editor
 			PrefabUtility.RecordPrefabInstancePropertyModifications(renderer);
 			if (job.UseHybridMaterial) {
 				try {
-					UseHybridMaterial(insert);
+					UseHybridMaterial(insert, packagePrefab != null);
 				} catch (Exception exception) {
 					string fallbackError = null;
 					try {
-						data.Material = BakeMaterial(insert, wornIsOwn, folder, name, texture);
+						data.Material = BakeMaterial(insert, wornIsOwn, folder, name, texture, packagePrefab);
 						EditorUtility.SetDirty(data);
 						insert.SetBake(data);
 						PrefabUtility.RecordPrefabInstancePropertyModifications(insert);
@@ -540,7 +572,7 @@ namespace VisualPinball.Unity.Editor
 			if (!File.Exists(sourcePath)) {
 				return null;
 			}
-			var path = existing != null && IsPng(existing) ? AssetDatabase.GetAssetPath(existing) : $"{folder}/{name} {suffix}.png";
+			var path = existing != null && IsPng(existing) ? AssetDatabase.GetAssetPath(existing) : $"{folder}/{name}, {suffix}.png";
 			File.Copy(sourcePath, DiskPath(path), true);
 			AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
 			var importer = (TextureImporter)AssetImporter.GetAtPath(path);
@@ -572,7 +604,9 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		/// <summary>Explicitly opt into the HDRP hybrid, keeping the previous material asset intact.</summary>
-		public static void UseHybridMaterial(InsertComponent insert)
+		/// <param name="insert">The insert to put the hybrid material on</param>
+		/// <param name="packageBake">Whether the bake was just made into the package of the insert's prefab, which makes it the insert's to use whoever owns it</param>
+		public static void UseHybridMaterial(InsertComponent insert, bool packageBake = false)
 		{
 			var shader = Shader.Find(HybridShaderName);
 			var data = insert.Bake;
@@ -582,13 +616,15 @@ namespace VisualPinball.Unity.Editor
 			if (IsReadOnly(data)) {
 				throw new InvalidOperationException($"This bake belongs to {ReadOnlyReason(data)} and cannot be written to. Fork it to the project first.");
 			}
-			if (!Owns(insert, data)) {
+			if (!packageBake && !Owns(insert, data)) {
 				throw new InvalidOperationException("This bake is not this insert's own. Bake this insert again before choosing its own material.");
 			}
 			var renderer = insert.GetComponent<MeshRenderer>();
 			Undo.RecordObjects(new Object[] { data, renderer }, "Use Hybrid Insert Material");
-			// A bake from before ids is claimed on the way.
-			data.Owner = insert.Id;
+			// A bake from before ids is claimed on the way. A package's bake stays its prefab's.
+			if (!packageBake) {
+				data.Owner = insert.Id;
+			}
 			var folder = Path.GetDirectoryName(AssetDatabase.GetAssetPath(data))?.Replace('\\', '/');
 			var material = new Material(shader) { name = $"{insert.name} Hybrid" };
 			material.SetTexture("_NormalMap", data.NormalMap);
@@ -609,14 +645,16 @@ namespace VisualPinball.Unity.Editor
 		/// to it, or a copy made of it with the maps kept, stays on) and no other
 		/// insert wears it. Otherwise a copy of what the insert wears, a variant
 		/// when that is a package's, so a material other inserts share is never
-		/// written into and the insert still keeps its look.
+		/// written into and the insert still keeps its look. When baking into a
+		/// package (<paramref name="packagePrefab"/>), the other inserts of that
+		/// prefab don't count: they are to follow the package.
 		/// </summary>
-		private static Material BakeMaterial(InsertComponent insert, bool wornIsOwn, string folder, string name, Texture2D normalMap)
+		private static Material BakeMaterial(InsertComponent insert, bool wornIsOwn, string folder, string name, Texture2D normalMap, string packagePrefab)
 		{
 			var worn = insert.GetComponent<MeshRenderer>().sharedMaterial;
 			var material = worn;
 			var created = worn == null || !wornIsOwn || !EditorUtility.IsPersistent(worn) || IsReadOnly(AssetDatabase.GetAssetPath(worn));
-			if (!created && WornElsewhere(worn, insert)) {
+			if (!created && WornElsewhere(worn, insert, packagePrefab)) {
 				created = true;
 				Debug.Log($"{insert.name}: another insert wears {worn.name} too, so this bake goes into a copy of it.");
 			}
@@ -640,11 +678,13 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>
 		/// Whether another insert in the open scenes, or the prefab being edited,
 		/// wears the material: a bake written into it would break that insert.
+		/// Inserts of <paramref name="ignoredPrefab"/>, when given, are left out.
 		/// </summary>
-		private static bool WornElsewhere(Material material, InsertComponent insert)
+		private static bool WornElsewhere(Material material, InsertComponent insert, string ignoredPrefab = null)
 		{
 			foreach (var other in Object.FindObjectsByType<InsertComponent>(FindObjectsInactive.Include, FindObjectsSortMode.None)) {
-				if (other != insert && other.TryGetComponent<MeshRenderer>(out var renderer) && renderer.sharedMaterial == material) {
+				if (other != insert && other.TryGetComponent<MeshRenderer>(out var renderer) && renderer.sharedMaterial == material
+					&& (ignoredPrefab == null || PrefabPath(other) != ignoredPrefab)) {
 					return true;
 				}
 			}
@@ -817,12 +857,12 @@ namespace VisualPinball.Unity.Editor
 			Material cover = null;
 			try {
 				data = Object.Instantiate(source);
-				data.name = $"{name} Bake";
+				data.name = $"{name}, Bake";
 				data.Owner = insert.EnsureId();
-				data.NormalMap = CopyTexture(source.NormalMap, $"{folder}/{name} Normal Map");
-				data.OpticalNormalMap = CopyTexture(source.OpticalNormalMap, $"{folder}/{name} Optical Normals");
-				data.OpticalResponseMap = CopyTexture(source.OpticalResponseMap, $"{folder}/{name} Optical Response");
-				AssetDatabase.CreateAsset(data, $"{folder}/{name} Bake.asset");
+				data.NormalMap = CopyTexture(source.NormalMap, $"{folder}/{name}, Normal Map");
+				data.OpticalNormalMap = CopyTexture(source.OpticalNormalMap, $"{folder}/{name}, Optical Normals");
+				data.OpticalResponseMap = CopyTexture(source.OpticalResponseMap, $"{folder}/{name}, Optical Response");
+				AssetDatabase.CreateAsset(data, $"{folder}/{name}, Bake.asset");
 				// The material the insert wears takes the copies: a colour of the
 				// user's own carrying the source's maps in place, when it is the
 				// project's; the source's own material, or a package's, as a
@@ -929,6 +969,51 @@ namespace VisualPinball.Unity.Editor
 			}
 			var guid = AssetDatabase.CreateFolder(OutputRoot, $"{FileName(insert.name)} {Guid.NewGuid().ToString("N")[..8]}");
 			return AssetDatabase.GUIDToAssetPath(guid);
+		}
+
+		/// <summary>
+		/// The prefab the insert comes from, when it lives in a package that can
+		/// be written to, or null. Baking into the package puts the bake next to it.
+		/// </summary>
+		private static string PackagePrefabPath(InsertComponent insert)
+		{
+			var path = PrefabPath(insert);
+			return !string.IsNullOrEmpty(path) && path.StartsWith("Packages/", StringComparison.Ordinal) && !IsReadOnly(path) ? path : null;
+		}
+
+		/// <summary>The prefab asset the insert is an instance of, or the one open in prefab mode, or null.</summary>
+		private static string PrefabPath(InsertComponent insert)
+		{
+			if (PrefabUtility.IsPartOfPrefabInstance(insert)) {
+				return PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(insert.gameObject);
+			}
+			var stage = PrefabStageUtility.GetPrefabStage(insert.gameObject);
+			return stage != null ? stage.assetPath : null;
+		}
+
+		/// <summary>
+		/// The bake in the package folder to update: the one named after the
+		/// prefab. Not whatever bake the insert wears, even in that folder: a
+		/// prefab duplicated next to its original still wears the original's
+		/// bake, and its id too, which would then be overwritten.
+		/// </summary>
+		private static InsertBakeData PackageBake(string folder, string name)
+		{
+			var bake = AssetDatabase.LoadAssetAtPath<InsertBakeData>($"{folder}/{name}, Bake.asset");
+			return bake != null && !IsReadOnly(bake) ? bake : null;
+		}
+
+		/// <summary>
+		/// Who owns a bake in the package: the prefab's own insert, so baking in
+		/// prefab mode keeps updating it, rather than whichever instance baked it.
+		/// </summary>
+		private static string PackageOwner(InsertComponent insert)
+		{
+			if (!PrefabUtility.IsPartOfPrefabInstance(insert)) {
+				return insert.EnsureId();
+			}
+			var source = PrefabUtility.GetCorrespondingObjectFromSource(insert);
+			return source != null && !string.IsNullOrEmpty(source.Id) ? source.Id : string.Empty;
 		}
 
 		private static string FileName(string name)
