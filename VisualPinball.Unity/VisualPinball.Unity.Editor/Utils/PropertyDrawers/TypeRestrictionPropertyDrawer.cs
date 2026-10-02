@@ -124,35 +124,63 @@ namespace VisualPinball.Unity.Editor
 						_itemPickDropdownState,
 						ta,
 						attrib.PickerLabel,
-						item => {
-							switch (item) {
-								case null:
-									_component = null;
-									property.objectReferenceValue = null;
-									break;
-								case MonoBehaviour mb:
-									_component = mb;
-									property.objectReferenceValue = mb;
-									break;
-							}
-							property.serializedObject.ApplyModifiedProperties();
-							if (comp is IMainRenderableComponent renderable) {
-								if (attrib.RebuildMeshes) {
-									renderable.RebuildMeshes();
-								}
-								if (attrib.UpdateTransforms) {
-									renderable.UpdateTransforms();
-								}
-							}
-						}
+						item => Assign(property, attrib, comp, item as MonoBehaviour)
 					);
 					dropdown.Show(pos);
 				}
+			}
+
+			// handle drag and drop: a game object counts as its component of the wanted type.
+			if ((Event.current.type == EventType.DragUpdated || Event.current.type == EventType.DragPerform) && pos.Contains(Event.current.mousePosition)) {
+				var dropped = Droppable(DragAndDrop.objectReferences, attrib.Type, ta);
+				DragAndDrop.visualMode = dropped != null ? DragAndDropVisualMode.Link : DragAndDropVisualMode.Rejected;
+				if (dropped != null) {
+					DragAndDrop.activeControlID = id;
+					if (Event.current.type == EventType.DragPerform) {
+						DragAndDrop.AcceptDrag();
+						DragAndDrop.activeControlID = 0;
+						Assign(property, attrib, comp, dropped);
+					}
+				}
+				Event.current.Use();
 			}
 			if (Event.current.type == EventType.Repaint) {
 				EditorStyles.objectField.Draw(pos, content, id, DragAndDrop.activeControlID == id, pos.Contains(Event.current.mousePosition));
 				objectFieldButton.Draw(suffixButtonPos, GUIContent.none, id, DragAndDrop.activeControlID == id, suffixButtonPos.Contains(Event.current.mousePosition));
 			}
+		}
+
+		private void Assign(SerializedProperty property, TypeRestrictionAttribute attrib, Component comp, MonoBehaviour value)
+		{
+			_component = value;
+			property.objectReferenceValue = value;
+			property.serializedObject.ApplyModifiedProperties();
+			if (comp is IMainRenderableComponent renderable) {
+				if (attrib.RebuildMeshes) {
+					renderable.RebuildMeshes();
+				}
+				if (attrib.UpdateTransforms) {
+					renderable.UpdateTransforms();
+				}
+			}
+		}
+
+		/// <summary>
+		/// The first of the dragged objects that is, or whose game object has, a
+		/// component of the wanted type under the same table, as the picker would
+		/// offer it. Assets in the project don't count.
+		/// </summary>
+		private static MonoBehaviour Droppable(UnityEngine.Object[] objects, Type type, TableComponent table)
+		{
+			foreach (var obj in objects) {
+				var candidate = obj is MonoBehaviour mb && type.IsInstanceOfType(mb)
+					? mb
+					: (obj as GameObject ?? (obj as Component)?.gameObject)?.GetComponent(type) as MonoBehaviour;
+				if (candidate != null && !EditorUtility.IsPersistent(candidate) && candidate.GetComponentInParent<TableComponent>(true) == table) {
+					return candidate;
+				}
+			}
+			return null;
 		}
 
 		private void DeviceItemDropdown(Rect pos, SerializedProperty property, TypeRestrictionAttribute attrib, UnityEngine.Object field)
