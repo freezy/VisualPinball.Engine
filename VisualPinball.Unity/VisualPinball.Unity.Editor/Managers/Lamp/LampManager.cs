@@ -133,10 +133,12 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		/// <summary>
-		/// The kind of bulb the table is lit by: a dropdown of the lamp presets,
-		/// read from the inserts, that puts the chosen bulb under every insert
-		/// and its fades on every other lamp, flashers aside. It works during
-		/// a game in the editor too, so a table can be judged under both.
+		/// The kind of bulb the table is lit by: one button per lamp preset,
+		/// the inserts' own lit, that puts the chosen bulb under every insert
+		/// and its fades on every other lamp, flashers aside. Buttons, not a
+		/// dropdown: a dropdown opens a native menu that holds the editor, and
+		/// the game with it, until it closes, and this is meant to be used
+		/// during a game in the editor, so a table can be judged under both.
 		/// </summary>
 		private void DrawLampPreset()
 		{
@@ -144,18 +146,15 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 			var presets = InsertLampPresets.Find();
-			var names = presets.Select(preset => preset.LampName).Append("Custom").ToArray();
 			var current = InsertLampPresets.TableLamp(TableComponent, out var mixed);
-			var index = current != null ? Array.IndexOf(presets, current) : presets.Length;
 			GUILayout.Space(8f);
-			GUILayout.Label(new GUIContent("Lamp", "The kind of bulb the table is lit by: its colour, output and fades go under every insert, and its fades to every other lamp but the flashers. Taken from the inserts; Custom leaves everything as it is."), GUILayout.ExpandWidth(false));
-			EditorGUI.showMixedValue = mixed;
-			EditorGUI.BeginChangeCheck();
-			var chosen = EditorGUILayout.Popup(index, names, GUILayout.Width(130f));
-			EditorGUI.showMixedValue = false;
-			if (EditorGUI.EndChangeCheck()) {
-				var (inserts, lamps) = InsertLampPresets.ApplyToTable(chosen < presets.Length ? presets[chosen] : null, TableComponent);
-				Logger.Info($"Lamp Manager: {names[chosen]} under {inserts} inserts and {lamps} other lamps.");
+			GUILayout.Label(new GUIContent("Lamp", "The kind of bulb the table is lit by: its colour, output and fades go under every insert, and its fades to every other lamp but the flashers. The lit button is the inserts'; none lit, they follow none or not all the same."), GUILayout.ExpandWidth(false));
+			foreach (var preset in presets) {
+				var on = !mixed && preset == current;
+				if (GUILayout.Toggle(on, new GUIContent(preset.LampName, $"{preset.LampName}: colour {preset.Color}, output {preset.Output:0.##}, fades {preset.FadeSpeedUp:0.##} s up and {preset.FadeSpeedDown:0.##} s down."), EditorStyles.miniButton, GUILayout.ExpandWidth(false)) && !on) {
+					var (inserts, lamps) = InsertLampPresets.ApplyToTable(preset, TableComponent);
+					Logger.Info($"Lamp Manager: {preset.LampName} under {inserts} inserts and {lamps} other lamps.");
+				}
 			}
 		}
 

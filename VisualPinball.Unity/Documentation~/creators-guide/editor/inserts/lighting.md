@@ -17,14 +17,14 @@ The **Lamp** dropdown under the intensity sliders in the **Lamps** section says 
 | Preset | Bulb |
 | --- | --- |
 | **Incandescent** | A warm filament, such as a #44 or #555: amber light that fades in over a tenth of a second and out over a fifth. The right choice for every table built before LEDs, and the look most players know. |
-| **Warm White LED** | A warm-white LED kit: slightly warm light, half as much again as a filament, instant on and off. |
-| **Cool White LED** | A cool-white LED kit: slightly blue light, half as much again, instant. |
-| **RGB LED** | A colour-changing LED driven by the game: white, half as much again, instant. Map its lamp as **RGB** in [Lamp Manager](../lamp-manager.md), which supplies the colour. |
+| **Warm White LED** | A warm-white LED kit: slightly warm light, three times a filament's output, instant on and off. |
+| **Cool White LED** | A cool-white LED kit: slightly blue light, three times the output, instant. |
+| **RGB LED** | A colour-changing LED driven by the game: white, three times the output, instant. Map its lamp as **RGB** in [Lamp Manager](../lamp-manager.md), which supplies the colour. |
 | **Custom** | The values as they are, following no preset. |
 
 | Parameter | Meaning |
 | --- | --- |
-| **Output** | How much light the bulb gives, relative to a #44 filament. It scales every lamp's lit look and the spill alike, at every intensity, so an LED kit is brighter without touching the material's Max Brightness, which stays the plastic's. |
+| **Output** | How much light the bulb gives, relative to a #44 filament: a two-chip LED kit gives about three times as much. It scales every lamp's lit look and the spill alike, at every intensity, so an LED kit is brighter without touching the material's Max Brightness, which stays the plastic's. Where an insert already clips to white under the tonemapper, more output shows mainly in its fall-off, its spill and its bloom, not in the core. |
 
 Editing the colour, output or fades of a light that follows a preset keeps the preset's name; the Inspector then says the values differ and offers **Reset to Preset**. **Give All Inserts This Lamp** puts the bulb under every insert of the table, since a table is lit by one kind of lamp until it gets an LED kit: pick the preset on one insert, then press the button. Fades included: an insert that is driven by a parent VPE Light fades with that Light's own settings instead, as the [State](#connect-lamps-to-the-game) section says. The whole table, other lamps included, switches in one go from the **Lamp** dropdown in [Lamp Manager](../lamp-manager.md#lamp-type).
 
