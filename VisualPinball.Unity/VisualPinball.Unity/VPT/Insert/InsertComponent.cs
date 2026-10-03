@@ -43,7 +43,7 @@ namespace VisualPinball.Unity
 	[ExecuteAlways]
 	[RequireComponent(typeof(MeshFilter))]
 	[RequireComponent(typeof(MeshRenderer))]
-	public class InsertComponent : MonoBehaviour, IPackable
+	public class InsertComponent : MonoBehaviour, IPackable, ISerializationCallbackReceiver
 	{
 		private static int _packageImportDepth;
 
@@ -226,7 +226,7 @@ namespace VisualPinball.Unity
 
 		[SerializeField]
 		[Min(0.01f)]
-		[Tooltip("Diameter of the circle, or of the circle a banana's band is bent round, in VPX units.")]
+		[Tooltip("Diameter of the circle, in VPX units.")]
 		private float _diameter = InsertShapes.VpxUnitsPerInch;
 
 		[SerializeField]
@@ -236,18 +236,23 @@ namespace VisualPinball.Unity
 
 		[SerializeField]
 		[Min(0.01f)]
+		[Tooltip("Diameter of the circle the banana's band is bent round, in VPX units. The middle of the band follows it.")]
+		private float _bananaDiameter = 510.3f;
+
+		[SerializeField]
+		[Min(0.01f)]
 		[Tooltip("How thick the banana's band is, across its circle, in VPX units. Half of it reaches out either side of the circle.")]
-		private float _bananaThickness = 0.5f * InsertShapes.VpxUnitsPerInch;
+		private float _bananaThickness = 38.3f;
 
 		[SerializeField]
 		[Range(1f, 180f)]
 		[Tooltip("How far round its circle the banana reaches, in degrees. The circle's centre is above the band, so its ends turn up.")]
-		private float _bananaAngle = 90f;
+		private float _bananaAngle = 27.4f;
 
 		[SerializeField]
 		[Range(2, 128)]
 		[Tooltip("How many straight sides each of the banana's two arcs is drawn with.")]
-		private int _bananaSegments = 24;
+		private int _bananaSegments = 11;
 
 		[SerializeField]
 		[Range(2, 32)]
@@ -479,6 +484,9 @@ namespace VisualPinball.Unity
 		/// radius that had to be clamped to fit.
 		/// </summary>
 		public IReadOnlyList<string> Warnings => _warnings;
+
+		/// <summary>How the engraved line's own complaints start, told apart from the outline's.</summary>
+		public const string EngravedLineWarning = "Engraved line: ";
 
 		/// <summary>
 		/// Why the last rebuild failed, or null. The previous mesh is kept when a
@@ -796,7 +804,7 @@ namespace VisualPinball.Unity
 				InsertShape.Triangle => InsertShapes.TriangleCorners(_width, _height, _triangleBase, _triangleApex, warnings),
 				InsertShape.Rectangle => InsertShapes.RectangleCorners(_width, _height, _rectangleCorner),
 				InsertShape.Circle => InsertShapes.CircleCorners(_diameter, _circleVertices),
-				InsertShape.Banana => InsertShapes.BananaCorners(_diameter, _bananaThickness, _bananaAngle, _bananaSegments, _bananaEndSegments, out arcCenter),
+				InsertShape.Banana => InsertShapes.BananaCorners(_bananaDiameter, _bananaThickness, _bananaAngle, _bananaSegments, _bananaEndSegments, out arcCenter),
 				InsertShape.Diamond => InsertShapes.DiamondCorners(_width, _height, _diamondSide, _diamondTip, _diamondShear, warnings),
 				InsertShape.Flash => InsertShapes.FlashCorners(_flashWidth, _flashHeight, _flashTip, _flashNotch, _flashStep, _flashTipCorner, _flashSpikeCorner, _flashNotchCorner, warnings),
 				InsertShape.Bullet => InsertShapes.BulletCorners(_width, _height, _bulletTip, _bulletShoulder, _bulletShoulderCorner, _bulletBaseCorner, warnings),
@@ -841,7 +849,7 @@ namespace VisualPinball.Unity
 				return null;
 			}
 			foreach (var warning in line.Warnings) {
-				warnings.Add("Engraved line: " + warning);
+				warnings.Add(EngravedLineWarning + warning);
 			}
 			// Two parts of the shape far apart along its edge can meet under the
 			// erosion, the arms of a flash whose notches nearly touch, say: the
@@ -1053,6 +1061,26 @@ namespace VisualPinball.Unity
 #else
 			return false;
 #endif
+		}
+
+		/// <summary>
+		/// The version of the generator's fields. A banana once took the circle's
+		/// diameter; data saved before it had its own has no version, and its banana
+		/// keeps the diameter it was made with.
+		/// </summary>
+		[SerializeField, HideInInspector]
+		private int _version;
+
+		private const int Version = 1;
+
+		void ISerializationCallbackReceiver.OnBeforeSerialize() => _version = Version;
+
+		void ISerializationCallbackReceiver.OnAfterDeserialize()
+		{
+			if (_version < 1) {
+				_bananaDiameter = _diameter;
+			}
+			_version = Version;
 		}
 
 		private void Reset()

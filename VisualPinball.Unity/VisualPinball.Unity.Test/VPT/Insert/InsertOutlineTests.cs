@@ -215,10 +215,11 @@ namespace VisualPinball.Unity.Test
 
 		/// <summary>The one shape that bends in on itself, which the convex-only invariants leave out.</summary>
 		private static readonly OutlineCase[] BananaCases = {
-			Banana(Inch, 0.5f * Inch, 90f, 24, 8), // the component's own defaults
+			Banana(Inch, 0.5f * Inch, 90f, 24, 8),
 			Banana(2f * Inch, 0.5f * Inch, 60f, 16, 4),
 			Banana(3f * Inch, 0.75f * Inch, 180f, 32, 12),
 			Banana(50.8f, 10f, 20f, 8, 2),
+			Banana(510.3f, 38.3f, 27.4f, 11, 8), // the component's own defaults
 		};
 
 		private static readonly OutlineCase[] CircleCases = {

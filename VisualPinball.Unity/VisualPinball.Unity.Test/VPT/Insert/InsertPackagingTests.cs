@@ -19,6 +19,37 @@ namespace VisualPinball.Unity.Test
 {
 	public class InsertPackagingTests
 	{
+		[Test]
+		public void ShouldKeepTheDiameterOfABananaSavedBeforeItHadItsOwn()
+		{
+			var go = new GameObject("Old banana");
+			try {
+				var insert = go.AddComponent<InsertComponent>();
+				// Data from before the split carries no version (read as zero), and the banana's diameter in the circle's.
+				JsonUtility.FromJsonOverwrite("{\"_shape\":3,\"_diameter\":200.0,\"_version\":0}", insert);
+				Assert.That(new SerializedObject(insert).FindProperty("_bananaDiameter").floatValue, Is.EqualTo(200f));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldKeepTheBananaAndCircleDiametersApart()
+		{
+			var go = new GameObject("Banana");
+			try {
+				var insert = go.AddComponent<InsertComponent>();
+				var settings = new SerializedObject(insert);
+				Assert.That(settings.FindProperty("_bananaDiameter").floatValue, Is.EqualTo(510.3f));
+				settings.FindProperty("_diameter").floatValue = 200f;
+				settings.ApplyModifiedPropertiesWithoutUndo();
+				JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(insert), insert);
+				Assert.That(new SerializedObject(insert).FindProperty("_bananaDiameter").floatValue, Is.EqualTo(510.3f));
+			} finally {
+				Object.DestroyImmediate(go);
+			}
+		}
+
 		[UnityTest]
 		public IEnumerator EditorPackageRoundTripRestoresGeneratorAndBake()
 		{

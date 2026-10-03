@@ -68,6 +68,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _arrowInnerCorner;
 		private SerializedProperty _arrowFootCorner;
 		private SerializedProperty _diameter;
+		private SerializedProperty _bananaDiameter;
 		private SerializedProperty _circleVertices;
 		private SerializedProperty _bananaThickness;
 		private SerializedProperty _bananaAngle;
@@ -166,6 +167,7 @@ namespace VisualPinball.Unity.Editor
 			_arrowInnerCorner = serializedObject.FindProperty("_arrowInnerCorner");
 			_arrowFootCorner = serializedObject.FindProperty("_arrowFootCorner");
 			_diameter = serializedObject.FindProperty("_diameter");
+			_bananaDiameter = serializedObject.FindProperty("_bananaDiameter");
 			_circleVertices = serializedObject.FindProperty("_circleVertices");
 			_bananaThickness = serializedObject.FindProperty("_bananaThickness");
 			_bananaAngle = serializedObject.FindProperty("_bananaAngle");
@@ -429,7 +431,7 @@ namespace VisualPinball.Unity.Editor
 					break;
 				}
 				case InsertShape.Banana:
-					Field(_diameter, "Diameter");
+					Field(_bananaDiameter, "Diameter");
 					Field(_bananaThickness, "Thickness");
 					Field(_bananaAngle, "Angle");
 					Field(_bananaSegments, "Arc Vertices");
@@ -439,7 +441,8 @@ namespace VisualPinball.Unity.Editor
 			// A fillet larger than its sides can take is clamped, and the field
 			// then stops doing anything; say so here, next to the field.
 			if (targets.Length == 1) {
-				foreach (var warning in ((InsertComponent)target).Warnings.Where(w => w.Contains("radius"))) {
+				// The engraved line rounds its own corners, and says so with its settings.
+				foreach (var warning in ((InsertComponent)target).Warnings.Where(w => w.Contains("radius") && !w.StartsWith(InsertComponent.EngravedLineWarning))) {
 					EditorGUILayout.HelpBox(warning + " A rounder corner needs longer sides either side of it.", MessageType.Info);
 				}
 			}
@@ -543,6 +546,9 @@ namespace VisualPinball.Unity.Editor
 						EditorGUILayout.HelpBox("This bake was made before the middle kept its projection, so the trough is still in the mesh. Bake Again to take it out.", MessageType.Warning);
 					} else {
 						EditorGUILayout.HelpBox("The line is a trough in the mesh, for the bake: once baked, the trough is gone from the mesh and the line is in the maps.", MessageType.None);
+					}
+					foreach (var warning in single.Warnings.Where(w => w.StartsWith(InsertComponent.EngravedLineWarning))) {
+						EditorGUILayout.HelpBox(warning, MessageType.Info);
 					}
 				}
 				// A line that did not fit says so here, where its settings are.
