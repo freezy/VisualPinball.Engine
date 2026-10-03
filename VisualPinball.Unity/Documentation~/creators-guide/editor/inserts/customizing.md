@@ -38,7 +38,7 @@ Color and material changes are immediate. Shape and pattern changes alter the ba
 
 ## Color presets
 
-The colored squares select materials for the insert's body and, when assigned, its cover. They use an **Insert Color Preset** asset containing the plastic, cavity, HDR emission, and haze colors. These are material colors; the lamps' own runtime **Color** values remain independently editable on Insert Light.
+The colored squares select materials for the insert's body and, when assigned, its cover. They use an **Insert Color Preset** asset containing the plastic, cavity, HDR emission, and haze colors. These are material colors and describe the plastic under a white lamp; the bulb behind it is the Insert Light's [Lamp preset](lighting.md#choose-the-kind-of-bulb), whose colour multiplies the emission, so the same red material is right over an incandescent bulb and over an LED.
 
 Clicking a color first searches for a matching material in the current material's folder. It matches the shader, requested color word, and related material name, so another insert's unrelated color material is not chosen merely because it is green. If a matching material exists, it is assigned with its existing settings intact.
 
@@ -62,7 +62,7 @@ Ctrl-click a color button, or Cmd-click on macOS, to highlight its preset asset 
 | **Swatch** | The button's display color. It does not change the rendered material. |
 | **Tint** | The hybrid body's Tint when a new color material is created. |
 | **Cavity Color** | Color underneath the clear share of the plastic. Its effect depends on Clarity. |
-| **Lamp Emission** | HDR emission color and magnitude on the newly created body material. It multiplies the lamps' own colors. |
+| **Lamp Emission** | HDR emission color and magnitude on the newly created body material: the colour of the plastic lit from below by a white lamp. The lamps' own colors, from the Insert Light's Lamp preset, multiply it. |
 | **Max Brightness** | The body's Max Brightness. Colors differ in how bright they look through the plastic, so each has its own. |
 | **Haze Color** | Haze Color on a newly created cover color material. It needs a cover and nonzero Opacity to show. |
 | **Cover Tint** | The cover's Tint: the color the lamp light and the body underneath take on their way up through the plastic slab. Keep a little of every channel in it, and in Lamp Emission, so a bright lamp fades to white instead of shifting hue under the tonemapper. |

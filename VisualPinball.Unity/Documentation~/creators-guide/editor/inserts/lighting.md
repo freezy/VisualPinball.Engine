@@ -10,6 +10,24 @@ description: Preview and place up to four virtual lamps, map them to the game, t
 
 The body needs a hybrid material with optical maps. If the Inspector reports that they are missing, use **Bake Hybrid and Use Material**. The material sets the full-intensity look; Insert Light previews and animates it.
 
+## Choose the kind of bulb
+
+The **Lamp** dropdown at the top of the **Lamps** section says what bulb sits under the insert. It sets the lamps' **Color** and the **Fade Up** and **Fade Down** times from an **Insert Lamp Preset** asset, and the light remembers which preset it follows. The plastic's colour stays in the material's [color preset](customizing.md#color-presets); the bulb's colour multiplies it, so a red insert over an incandescent bulb goes yellow-white in its brightest spot, and the same insert over a cool LED goes white.
+
+| Preset | Bulb |
+| --- | --- |
+| **Incandescent** | A warm filament, such as a #44 or #555: amber light that fades in over a tenth of a second and out over a fifth. The right choice for every table built before LEDs, and the look most players know. |
+| **Warm White LED** | A warm-white LED kit: slightly warm light, instant on and off. |
+| **Cool White LED** | A cool-white LED kit: slightly blue light, instant. |
+| **RGB LED** | A colour-changing LED driven by the game: white, instant. Map its lamp as **RGB** in [Lamp Manager](../lamp-manager.md), which supplies the colour. |
+| **Custom** | The values below as they are, following no preset. |
+
+Editing the colour or fades of a light that follows a preset keeps the preset's name; the Inspector then says the values differ and offers **Reset to Preset**. **Give All Inserts This Lamp** puts the bulb under every insert of the table, since a table is lit by one kind of lamp until it gets an LED kit: pick the preset on one insert, then press the button.
+
+The shipped presets are in the HDRP package's `Assets/Art/Materials/Insert Presets` folder. For another bulb, create an asset with **Create → Visual Pinball → Insert Lamp Preset**; keep a little of every channel in its colour, so a bright lamp fades to white under the tonemapper instead of shifting hue.
+
+<!-- Screenshot: lighting-lamp-presets. The same clear and red insert lit under Incandescent and Cool White LED. -->
+
 ## Preview and arrange the lamps
 
 The **Lamps** section places one **Lamp N** intensity slider at the top for each active lamp. Below **Number of lamps**, each row shows its Name, Color, and Position. Preview one lamp at a time before checking how their bright regions overlap.
@@ -19,7 +37,7 @@ The **Lamps** section places one **Lamp N** intensity slider at the top for each
 | **Lamp N** / **Intensity** | Preview drive from 0, off, to 1, the material's Max Brightness. Each lamp has its own value. In a multi-object selection, Intensity and Color edit the first lamp. |
 | **Number of lamps** | Active virtual lamp count, from 1 to 4. Count is stored in the body material. Lowering it preserves disabled lamps' placement for reuse. |
 | **Name** | Name offered in Lamp Manager for that lamp. Empty names fall back to Bulb 1, Bulb 2, and so on. Descriptive names such as Left, Center, and Right make mappings easier. |
-| **Color** | That lamp's drive color, independent of the plastic Tint. It multiplies the material's Lamp Emission color. Each lamp can have its own RGB mapping. |
+| **Color** | That lamp's drive color, independent of the plastic Tint. It multiplies the material's Lamp Emission color. The Lamp preset sets it for every bulb; each lamp can still have its own RGB mapping. |
 | **Position (mm)** | Position relative to the insert in Unity-local X/Y/Z, in millimeters. Y is height; negative is below the rim. Changing X/Z moves the bright region, while changing Y affects depth and parallax. |
 
 Drag the labeled **circular handles** in Scene view to move lamps in the insert's local XZ plane. The handles keep their Y height; edit Y in the Inspector to move a lamp vertically. Lamp count and position edits are disabled during Play mode and for read-only materials.

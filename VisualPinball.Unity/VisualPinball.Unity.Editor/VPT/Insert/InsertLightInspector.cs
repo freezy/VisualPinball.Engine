@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -119,6 +120,7 @@ namespace VisualPinball.Unity.Editor
 
 			if (InsertSection.Begin(LampKey, "Lamps")) {
 				using (new EditorGUI.DisabledScope(!hybrid)) {
+					DrawLampPreset();
 					if (targets.Length == 1) {
 						DrawLampLayout((InsertLightComponent)target);
 					} else {
@@ -179,6 +181,53 @@ namespace VisualPinball.Unity.Editor
 			InsertSection.End();
 
 			serializedObject.ApplyModifiedProperties();
+		}
+
+		/// <summary>
+		/// The bulb's kind: a dropdown of the lamp presets, with the way back to
+		/// one once the colour or fades were edited, and the way to give the
+		/// whole table the same bulbs.
+		/// </summary>
+		private void DrawLampPreset()
+		{
+			var lights = targets.Cast<InsertLightComponent>().ToArray();
+			var presets = InsertLampPresets.Find();
+			var names = presets.Select(preset => preset.LampName).Append("Custom").ToArray();
+			var first = Array.FindIndex(presets, preset => preset.LampName == lights[0].Lamp);
+			var mixed = lights.Any(light => light.Lamp != lights[0].Lamp);
+			var index = first >= 0 ? first : presets.Length;
+			using (new EditorGUI.DisabledScope(Application.isPlaying)) {
+				EditorGUI.showMixedValue = mixed;
+				EditorGUI.BeginChangeCheck();
+				var chosen = EditorGUILayout.Popup(new GUIContent("Lamp", "The kind of bulb under the insert: its colour and how it fades. The plastic's colour is the material's; this is the lamp behind it. Custom keeps the values below as they are."), index, names);
+				EditorGUI.showMixedValue = false;
+				if (EditorGUI.EndChangeCheck()) {
+					InsertLampPresets.Apply(chosen < presets.Length ? presets[chosen] : null, lights);
+					serializedObject.Update();
+				}
+				var followed = first >= 0 && !mixed ? presets[first] : null;
+				if (followed != null) {
+					if (lights.Any(light => InsertLampPresets.Differs(light, followed))) {
+						EditorGUILayout.HelpBox($"The colour or fades differ from the {followed.LampName} preset.", MessageType.None);
+						if (GUILayout.Button(new GUIContent("Reset to Preset", "Takes the preset's colour and fades again."))) {
+							InsertLampPresets.Apply(followed, lights);
+							serializedObject.Update();
+						}
+					}
+					if (targets.Length == 1) {
+						var siblings = InsertLampPresets.Siblings(lights[0]);
+						var others = siblings.Count(light => light.Lamp != followed.LampName || InsertLampPresets.Differs(light, followed));
+						using (new EditorGUI.DisabledScope(others == 0)) {
+							if (GUILayout.Button(new GUIContent(others > 0 ? $"Give All {siblings.Length} Inserts This Lamp" : "All Inserts Have This Lamp", "Puts this bulb under every insert of the table: a table is lit by one kind of lamp, until it gets an LED kit."))) {
+								InsertLampPresets.Apply(followed, siblings);
+								serializedObject.Update();
+							}
+						}
+					}
+				} else if (!mixed && !string.IsNullOrEmpty(lights[0].Lamp)) {
+					EditorGUILayout.HelpBox($"The lamp preset \"{lights[0].Lamp}\" is not in the project; the bulb keeps its values.", MessageType.None);
+				}
+			}
 		}
 
 		/// <summary>One compact row per active lamp: its name, drive and material position.</summary>

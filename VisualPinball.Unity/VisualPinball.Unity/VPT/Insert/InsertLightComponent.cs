@@ -31,6 +31,9 @@ namespace VisualPinball.Unity
 		[Tooltip("Lamp colour. Edit here to preview; RGB lamp mappings update it at runtime.")]
 		public Color Color = UnityEngine.Color.white;
 
+		[Tooltip("The lamp preset the bulb was taken from, by name: its colour and fades. Empty is a bulb of its own.")]
+		public string Lamp = "";
+
 		[Tooltip("The lamp's status when the game starts: off, on, or blinking. The game's lamp events take over from there.")]
 		public LampStatus State;
 
