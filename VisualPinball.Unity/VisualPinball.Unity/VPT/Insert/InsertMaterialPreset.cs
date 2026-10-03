@@ -50,8 +50,44 @@ namespace VisualPinball.Unity
 		[Tooltip("Legacy cover values from older presets; never applied.")]
 		public List<Entry> Cover = new();
 
-		/// <summary>The properties a preset never carries: the virtual lamps sit where each insert's own bulbs are.</summary>
-		private static readonly HashSet<string> Excluded = new() { "_OpticalLamp", "_OpticalLampB", "_OpticalLampC", "_OpticalLampD" };
+		/// <summary>
+		/// The properties a preset never carries: the virtual lamps sit where
+		/// each insert's own bulbs are, and Max Brightness is the colour's,
+		/// since colours differ in how bright they look through the plastic.
+		/// </summary>
+		private static readonly HashSet<string> Excluded = new() { "_OpticalLamp", "_OpticalLampB", "_OpticalLampC", "_OpticalLampD", "_InsertLuminosity" };
+
+		/// <summary>The preset's value for the property, or null when it has none.</summary>
+		public Entry Find(string name) => Body?.Find(entry => entry != null && entry.Name == name && entry.Kind != Kind.Color && !Excluded.Contains(name));
+
+		/// <summary>Whether the material has the entry's value.</summary>
+		public static bool Matches(Material material, Entry entry)
+		{
+			if (entry == null || !material.HasProperty(entry.Name)) {
+				return true;
+			}
+			return entry.Kind switch {
+				Kind.Float => Mathf.Approximately(material.GetFloat(entry.Name), entry.Float),
+				Kind.Vector => material.GetVector(entry.Name) == entry.Vector,
+				_ => true,
+			};
+		}
+
+		/// <summary>How many of the preset's values the material has changed.</summary>
+		public int Edited(Material material)
+		{
+			var edited = 0;
+			foreach (var entry in Body) {
+				if (entry == null || entry.Kind == Kind.Color || Excluded.Contains(entry.Name) || !material.HasProperty(entry.Name)) {
+					continue;
+				}
+				var index = material.shader.FindPropertyIndex(entry.Name);
+				if (index >= 0 && IsStyle(material.shader, index) && !Matches(material, entry)) {
+					edited++;
+				}
+			}
+			return edited;
+		}
 
 		/// <summary>Captures body-only numeric settings. The cover argument is kept for existing callers.</summary>
 		public void Capture(Material body, Material cover)

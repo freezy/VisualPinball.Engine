@@ -1141,8 +1141,9 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		/// <summary>
-		/// Color presets switch the insert's body and cover materials; material
-		/// presets adjust the body's numeric settings without changing its color.
+		/// Color presets switch the insert's body and cover materials; look
+		/// presets are what the body material follows for its numeric settings,
+		/// its colour and Max Brightness aside.
 		/// </summary>
 		private void DrawPresets()
 		{
@@ -1187,34 +1188,41 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 
-			SubHeader("Material");
+			SubHeader("Look");
 			var styled = inserts.Count(InsertMaterialPresets.HasStyledMaterial);
+			var bodies = inserts.Select(insert => insert.GetComponent<MeshRenderer>().sharedMaterial).Where(InsertMaterialPresets.CanLink).Distinct().ToArray();
+			var followed = bodies.Select(InsertMaterialPresets.LinkedPreset).Distinct().ToArray();
 			if (styled == 0) {
-				EditorGUILayout.HelpBox("Presets carry numeric settings for the hybrid body material. Colors, maps, virtual lamps and the cover material stay unchanged. Bake the insert and click Use HDRP Hybrid Material first.", MessageType.None);
+				EditorGUILayout.HelpBox("A look is how the insert is moulded and behaves optically: every numeric setting of the hybrid body material, but not its colours and Max Brightness, which are the Color's, nor the bulb, which is the Lamp's. Bake the insert and click Use HDRP Hybrid Material first.", MessageType.None);
+			} else if (followed.Length == 1 && followed[0] != null) {
+				var edited = bodies.Sum(InsertMaterialPresets.Edited);
+				EditorGUILayout.HelpBox(edited == 0
+					? $"The body material follows the look {followed[0].name}. Clear Plastic and Colored Plastic ship with the package; + saves this insert's own look as a new one."
+					: $"The body material follows the look {followed[0].name}, with {edited} values edited in the material, where they are marked •. The look overwrites them when it changes.", MessageType.None);
 			} else {
-				EditorGUILayout.HelpBox("A preset applies numeric body settings while leaving colors, maps, virtual lamps and the cover material unchanged. Clear and Colored ship with the package; you can save another preset from any hybrid insert.", MessageType.None);
+				EditorGUILayout.HelpBox(followed.Length > 1 ? "The selected inserts follow different looks." : "The body material follows no look: its numeric settings are its own. Click a look to link it; Clear Plastic and Colored Plastic ship with the package.", MessageType.None);
 			}
 
 			var presets = InsertMaterialPresets.Find();
 			using (new EditorGUILayout.HorizontalScope()) {
 				using (new EditorGUI.DisabledScope(!revealAsset && (styled == 0 || EditorApplication.isPlaying))) {
 					foreach (var preset in presets) {
-						if (GUILayout.Button(new GUIContent(preset.name, $"{preset.name}: applies numeric body settings to every selected hybrid insert. Colors, maps and cover materials stay unchanged. A shared body material changes for all inserts that use it. Ctrl/Cmd+click to highlight the preset asset in the Project window."), GUILayout.MinWidth(24f), GUILayout.MaxWidth(110f), GUILayout.ExpandWidth(false), GUILayout.Height(24f))) {
+						var current = followed.Length == 1 && followed[0] == preset;
+						if (GUILayout.Toggle(current, new GUIContent(preset.name, $"{preset.name}: links every selected insert's body material to this look, which gives it the look's values now and whenever the look changes. Colors, Max Brightness, maps, lamps and the cover stay as they are. A shared body material changes for all inserts that use it. Ctrl/Cmd+click to highlight the preset asset in the Project window."), EditorStyles.miniButton, GUILayout.MinWidth(24f), GUILayout.MaxWidth(120f), GUILayout.ExpandWidth(false), GUILayout.Height(24f)) && !current) {
 							if (revealAsset) {
 								EditorGUIUtility.PingObject(preset);
 								continue;
 							}
-							var count = 0;
-							foreach (var insert in inserts) {
-								count += InsertMaterialPresets.Apply(preset, insert);
+							if (InsertMaterialPresets.LinkAsking(bodies, preset, bodies.Length == 1, "This insert's")) {
+								Debug.Log($"Linked {bodies.Length} body material(s) to the look \"{preset.name}\".");
 							}
-							Debug.Log($"Applied preset \"{preset.name}\" to {styled} insert(s): {count} values set.");
+							GUIUtility.ExitGUI();
 						}
 					}
 				}
 				GUILayout.FlexibleSpace();
 				using (new EditorGUI.DisabledScope(inserts.Length != 1 || styled == 0 || EditorApplication.isPlaying)) {
-					if (GUILayout.Button(new GUIContent("+", "Save this insert's current numeric body settings as a new material preset."), GUILayout.Width(24f), GUILayout.Height(24f))) {
+					if (GUILayout.Button(new GUIContent("+", "Save this insert's current look as a new preset, and have its body material follow it."), GUILayout.Width(24f), GUILayout.Height(24f))) {
 						var saved = InsertMaterialPresets.SaveAs(inserts[0]);
 						if (saved != null) {
 							EditorGUIUtility.PingObject(saved);
@@ -1224,7 +1232,7 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 			if (presets.Length == 0) {
-				EditorGUILayout.HelpBox("No material presets found. The HDRP package ships Clear and Colored; click + to save your own.", MessageType.Warning);
+				EditorGUILayout.HelpBox("No look presets found. The HDRP package ships Clear Plastic and Colored Plastic; click + to save your own.", MessageType.Warning);
 			}
 		}
 

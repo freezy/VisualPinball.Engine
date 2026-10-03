@@ -12,7 +12,7 @@ Start with the closest standard insert in the **Asset Library**. Most common sha
 
 1. Place the insert in your table and align its rim with the playfield opening. Keep its scale at one when its authored dimensions already match.
 2. Use the **Color** buttons under **Insert → Presets** to choose White, Blue, Green, Red, Yellow, Teal, or Purple.
-3. Choose a **Material** preset such as **Clear** or **Colored**, then adjust the [body material](body-material.md) and optional [cover](cover.md) as needed.
+3. Choose a **Look** such as **Clear Plastic** or **Colored Plastic**, then adjust the [body material](body-material.md) and optional [cover](cover.md) as needed.
 4. Set the lamp colors and preview intensities on **Insert Light**, position its lamps, and connect them in [Lamp Manager](../lamp-manager.md).
 5. If you change geometry or want a different bake, use **Fork to Project** when the source assets are read-only, then **Bake Again**.
 
@@ -63,28 +63,30 @@ Ctrl-click a color button, or Cmd-click on macOS, to highlight its preset asset 
 | **Tint** | The hybrid body's Tint when a new color material is created. |
 | **Cavity Color** | Color underneath the clear share of the plastic. Its effect depends on Clarity. |
 | **Lamp Emission** | HDR emission color and magnitude on the newly created body material: the colour of the plastic lit from below by a white lamp. The lamps' own colors, from the Insert Light's Lamp preset, multiply it. |
-| **Max Brightness** | The body's Max Brightness. Colors differ in how bright they look through the plastic, so each has its own. |
+| **Max Brightness** | The body's Max Brightness. Colors differ in how bright they look through the plastic, so each has its own; a look never touches it. |
 | **Haze Color** | Haze Color on a newly created cover color material. It needs a cover and nonzero Opacity to show. |
 | **Cover Tint** | The cover's Tint: the color the lamp light and the body underneath take on their way up through the plastic slab. Keep a little of every channel in it, and in Lamp Emission, so a bright lamp fades to white instead of shifting hue under the tonemapper. |
 
-## Material presets
+## Look presets
 
-Material presets such as **Clear** and **Colored** apply the body's numeric look settings: clarity, brightness, reflection strength, optical behavior, and variation. They preserve all color values, texture maps, virtual lamp positions and radii, and the cover material. They also leave hidden bake metadata and runtime lamp drive alone.
+A look is how the insert is moulded and behaves optically: every numeric setting of the hybrid body material — clarity, surface, the virtual lamp's strength and spread, glow, facets, mottle, grain — but not its colours and Max Brightness, which are the [color preset](#color-presets)'s, nor the lamp positions, which are the shape's, nor the bulb, which is the [lamp preset](lighting.md#choose-the-kind-of-bulb)'s. **Clear Plastic** and **Colored Plastic** ship with the package.
 
-The preset buttons apply directly; there is no dropdown or extra Apply step. The **+** button on the same line saves the current numeric body settings as a new **Insert Material Preset** asset. Ctrl/Cmd-click a preset button to highlight its asset in the Project window.
+Clicking a look under **Presets → Look** links the insert's body material to it: the material takes the look's values now and whenever the look changes, and the lit button shows which look a material follows. Where the material already has values of its own, you are asked whether to copy them into the look first. The **+** button saves the selected insert's current look as a new preset and links the material to it. Ctrl/Cmd-click a look button to highlight its asset in the Project window.
 
-<!-- Screenshot: customizing-material-presets. Clear and Colored applied to the same shape and color, with the same lamps. -->
+In the body material's inspector, every value a look owns says so in its tooltip, and a value edited in the material since is marked **•**; the Look row at the top counts them and offers **Copy to** the look and **Reset to** it. See [Presets](presets.md) for the whole picture.
+
+<!-- Screenshot: customizing-look-presets. Clear Plastic and Colored Plastic applied to the same shape and colour, with the same lamps. -->
 
 > [!NOTE]
-> **Shared material edits.** A material preset edits the assigned body material. Every insert using that same material sees the change. Lamp count and positions also live in the body material. Give an insert its own writable material or variant before making a change that should affect only that insert. Lamp colors and intensities use per-renderer overrides and can differ between inserts sharing a material.
+> **Shared material edits.** A look is applied to the assigned body material. Every insert using that same material sees the change. Lamp count and positions also live in the body material. Give an insert its own writable material or variant before making a change that should affect only that insert. Lamp colors and intensities use per-renderer overrides and can differ between inserts sharing a material, and so does Roughness.
 
-A material preset asset stores **Body Shader**, the shader name it was captured from, and a **Body** list of numeric properties. Each entry's **Name** is the shader property reference, **Kind** identifies its value type, and **Float** or **Vector** supplies the corresponding value. Use the **+** button to capture a preset, then edit the stored numbers when refining it. Color entries are not applied; colors belong to color presets.
+A look preset asset stores **Body Shader**, the shader name it was captured from, and a **Body** list of numeric properties. Each entry's **Name** is the shader property reference, **Kind** identifies its value type, and **Float** or **Vector** supplies the corresponding value. Color entries are never applied; colors belong to color presets, and so does Max Brightness.
 
 ## A practical tuning order
 
 Fit [Geometry](geometry.md), choose the [Pattern](patterns.md), and finish the [Bake](baking.md) first. Then tune the unlit body with all lamps off. Bring one lamp up and adjust Max Brightness, its position, spread, and radius. Add the other lamps and test their combinations. Finish the cover's reflections and haze, then check the result in the game's camera and exposure.
 
-For a colored insert, the **Colored** preset is a useful start; keep Clarity near zero and use Min Brightness to set the off appearance. For clear plastic, start with **Clear**, use Cavity Color for the board or reflector beneath it, and soften the reflection ribs with Facet Flatten. Both looks can use the same geometry and maps.
+For a colored insert, the **Colored Plastic** look is a useful start; keep Clarity near zero and use Min Brightness to set the off appearance. For clear plastic, start with **Clear Plastic**, use Cavity Color for the board or reflector beneath it, and soften the reflection ribs with Facet Flatten. Both looks can use the same geometry and maps.
 
 ## Common surprises
 

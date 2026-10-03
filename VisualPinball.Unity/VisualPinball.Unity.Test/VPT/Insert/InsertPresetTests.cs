@@ -14,8 +14,8 @@ namespace VisualPinball.Unity.Test
 		public void ShouldLoadShippedMaterialPresetsAfterRename()
 		{
 			var presets = InsertMaterialPresets.Find();
-			Assert.That(presets, Has.Some.Matches<InsertMaterialPreset>(preset => preset.name == "Clear"));
-			Assert.That(presets, Has.Some.Matches<InsertMaterialPreset>(preset => preset.name == "Colored"));
+			Assert.That(presets, Has.Some.Matches<InsertMaterialPreset>(preset => preset.name == "Clear Plastic" && preset.Find("_InsertLuminosity") == null));
+			Assert.That(presets, Has.Some.Matches<InsertMaterialPreset>(preset => preset.name == "Colored Plastic" && preset.Find("_InsertLuminosity") == null));
 		}
 
 		[Test]
@@ -47,8 +47,12 @@ namespace VisualPinball.Unity.Test
 
 				preset.Capture(source, sourceCover);
 				Assert.That(preset.BodyShader, Is.EqualTo(shader.name));
-				Assert.That(preset.Body, Has.Some.Matches<InsertMaterialPreset.Entry>(e => e.Name == "_InsertLuminosity" && Mathf.Approximately(e.Float, 1.58f)));
-				Assert.That(preset.Body, Has.Count.EqualTo(20), "the hybrid body's visible numeric settings are captured");
+				Assert.That(preset.Body, Has.None.Matches<InsertMaterialPreset.Entry>(e => e.Name == "_InsertLuminosity"), "Max Brightness is the colour's, not the look's");
+				Assert.That(preset.Body, Has.Count.EqualTo(22), "the hybrid body's visible numeric settings are captured");
+				Assert.That(preset.Edited(source), Is.EqualTo(0));
+				source.SetFloat("_Smoothness", 0.5f);
+				Assert.That(preset.Edited(source), Is.EqualTo(1), "an edited value is counted");
+				source.SetFloat("_Smoothness", 0.37f);
 				Assert.That(preset.Body, Has.None.Matches<InsertMaterialPreset.Entry>(e => e.Kind == InsertMaterialPreset.Kind.Color), "new presets exclude all color values");
 				Assert.That(preset.Body, Has.None.Matches<InsertMaterialPreset.Entry>(e => e.Name == "_NormalMap"), "new presets exclude texture maps");
 				Assert.That(preset.Body, Has.None.Matches<InsertMaterialPreset.Entry>(e => e.Name is "_OpticalLamp" or "_OpticalLampB" or "_OpticalLampC" or "_OpticalLampD"), "the virtual lamps are the insert's own");
@@ -78,8 +82,8 @@ namespace VisualPinball.Unity.Test
 				targetCover.SetFloat("_Smoothness", 0.73f);
 
 				var count = preset.Apply(target, targetCover);
-				Assert.That(count, Is.EqualTo(20));
-				Assert.That(target.GetFloat("_InsertLuminosity"), Is.EqualTo(1.58f).Within(1e-5f));
+				Assert.That(count, Is.EqualTo(22));
+				Assert.That(target.GetFloat("_InsertLuminosity"), Is.EqualTo(10f).Within(1e-5f), "Max Brightness is the colour's and a look leaves it alone");
 				Assert.That(target.GetFloat("_InsertClarity"), Is.EqualTo(1f));
 				Assert.That(target.GetFloat("_Smoothness"), Is.EqualTo(0.37f).Within(1e-5f), "legacy cover settings cannot overwrite body settings");
 				Assert.That(target.GetColor("_BaseColor"), Is.EqualTo(Color.red));

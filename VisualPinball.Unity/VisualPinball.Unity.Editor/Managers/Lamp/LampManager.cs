@@ -91,6 +91,13 @@ namespace VisualPinball.Unity.Editor
 			return true;
 		}
 
+		/// <summary>The lamp settings row, on its own line above the list, when it is open.</summary>
+		protected override void OnGUI()
+		{
+			base.OnGUI();
+			DrawLampSettings();
+		}
+
 		protected override void OnButtonBarGUI()
 		{
 			if (GUILayout.Button("Populate All", GUILayout.ExpandWidth(false))) {
@@ -154,6 +161,53 @@ namespace VisualPinball.Unity.Editor
 				if (GUILayout.Toggle(on, new GUIContent(preset.LampName, $"{preset.LampName}: colour {preset.Color}, output {preset.Output:0.##}, fades {preset.FadeSpeedUp:0.##} s up and {preset.FadeSpeedDown:0.##} s down."), EditorStyles.miniButton, GUILayout.ExpandWidth(false)) && !on) {
 					var (inserts, lamps) = InsertLampPresets.ApplyToTable(preset, TableComponent);
 					Logger.Info($"Lamp Manager: {preset.LampName} under {inserts} inserts and {lamps} other lamps.");
+				}
+			}
+			if (current != null && !mixed) {
+				_lampSettings = GUILayout.Toggle(_lampSettings, new GUIContent("Settings", $"Edit the {current.LampName} lamp here: its colour, output and fades go to the preset, and from there under every insert of the table, as you change them."), EditorStyles.miniButton, GUILayout.ExpandWidth(false));
+			}
+		}
+
+		private static bool _lampSettings;
+
+		/// <summary>
+		/// The table's lamp, editable where it is used: the preset's four values,
+		/// written to the preset and put under every insert as they change. No
+		/// black box, and nothing that pauses a running game.
+		/// </summary>
+		private void DrawLampSettings()
+		{
+			if (!_lampSettings || TableComponent == null) {
+				return;
+			}
+			var current = InsertLampPresets.TableLamp(TableComponent, out var mixed);
+			if (current == null || mixed) {
+				return;
+			}
+			using (new EditorGUILayout.HorizontalScope()) {
+				GUILayout.Space(8f);
+				GUILayout.Label(new GUIContent(current.LampName, "The lamp preset asset these values belong to."), EditorStyles.boldLabel, GUILayout.ExpandWidth(false));
+				EditorGUI.BeginChangeCheck();
+				EditorGUIUtility.labelWidth = 44f;
+				var color = EditorGUILayout.ColorField(new GUIContent("Color", "The light the bulb gives; it multiplies the plastic's Lamp Emission."), current.Color, GUILayout.Width(110f));
+				EditorGUIUtility.labelWidth = 48f;
+				var output = EditorGUILayout.FloatField(new GUIContent("Output", "How much light the bulb gives, relative to a #44 filament."), current.Output, GUILayout.Width(90f));
+				EditorGUIUtility.labelWidth = 56f;
+				var up = EditorGUILayout.FloatField(new GUIContent("Fade up", "Seconds to full intensity."), current.FadeSpeedUp, GUILayout.Width(100f));
+				EditorGUIUtility.labelWidth = 66f;
+				var down = EditorGUILayout.FloatField(new GUIContent("Fade down", "Seconds to off."), current.FadeSpeedDown, GUILayout.Width(110f));
+				EditorGUIUtility.labelWidth = 0f;
+				if (EditorGUI.EndChangeCheck()) {
+					Undo.RecordObject(current, "Edit Insert Lamp Preset");
+					current.Color = color;
+					current.Output = Mathf.Max(0f, output);
+					current.FadeSpeedUp = Mathf.Max(0f, up);
+					current.FadeSpeedDown = Mathf.Max(0f, down);
+					EditorUtility.SetDirty(current);
+					InsertLampPresets.ApplyToTable(current, TableComponent);
+				}
+				if (GUILayout.Button(new GUIContent("Asset", "Highlights the preset asset in the Project window."), EditorStyles.miniButton, GUILayout.ExpandWidth(false))) {
+					EditorGUIUtility.PingObject(current);
 				}
 			}
 		}

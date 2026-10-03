@@ -44,6 +44,7 @@ An **Insert Light** component connects those lamps to the game. You can preview 
 | You want to… | Start here |
 | --- | --- |
 | Place a library insert, change its look, or create one from scratch | [Customizing Inserts](customizing.md) |
+| Know which preset owns which value, and how brightness is composed | [Presets](presets.md) |
 | Change a shape, round a corner, or move a hole | [Geometry](geometry.md) |
 | Choose and tune molded surface detail | [Patterns](patterns.md) |
 | Generate maps, understand a stale bake, or fork package assets | [Baking](baking.md) |
