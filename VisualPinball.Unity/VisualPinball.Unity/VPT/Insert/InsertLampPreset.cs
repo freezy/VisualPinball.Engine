@@ -23,6 +23,10 @@ namespace VisualPinball.Unity
 		[Tooltip("The light the bulb gives: the Insert Light's Color, which multiplies the material's Lamp Emission. Keep a little of every channel in it, so a bright lamp fades to white under the tonemapper instead of shifting hue.")]
 		public Color Color = Color.white;
 
+		[Min(0f)]
+		[Tooltip("How much light the bulb gives, relative to a #44 filament: an LED kit is brighter. Scales the lit look and the spill alike.")]
+		public float Output = 1f;
+
 		[Min(0)]
 		[Tooltip("Time in seconds the lamp takes to reach full intensity: a filament warms up, an LED is instant.")]
 		public float FadeSpeedUp;

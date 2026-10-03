@@ -25,11 +25,13 @@ namespace VisualPinball.Unity
 		public float FadeSpeedUp;
 		public float FadeSpeedDown;
 		public string Lamp;
+		public float Output;
 
 		public static byte[] Pack(InsertLightComponent light) => PackageApi.Packer.Pack(new InsertLightPackable {
 			Intensity = light.Intensity,
 			Color = light.Color,
 			Lamp = light.Lamp,
+			Output = light.Output,
 			State = (int)light.State,
 			BlinkPattern = light.BlinkPattern,
 			BlinkInterval = light.BlinkInterval,
@@ -52,6 +54,8 @@ namespace VisualPinball.Unity
 			light.Intensity = data.Intensity;
 			light.Color = data.Color;
 			light.Lamp = data.Lamp ?? "";
+			// A package from before the output knew no LED kits: a #44's worth.
+			light.Output = data.Output > 0f ? data.Output : 1f;
 			light.State = (LampStatus)data.State;
 			light.BlinkPattern = data.BlinkPattern ?? "";
 			light.BlinkInterval = data.BlinkInterval;

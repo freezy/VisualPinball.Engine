@@ -31,6 +31,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		private SerializedProperty _intensity;
 		private SerializedProperty _color;
+		private SerializedProperty _output;
 		private SerializedProperty _tintWithLamp;
 		private SerializedProperty _extraBulbs;
 		private SerializedProperty _bulbNames;
@@ -62,6 +63,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			_intensity = serializedObject.FindProperty(nameof(InsertLightComponent.Intensity));
 			_color = serializedObject.FindProperty(nameof(InsertLightComponent.Color));
+			_output = serializedObject.FindProperty(nameof(InsertLightComponent.Output));
 			_tintWithLamp = serializedObject.FindProperty(nameof(InsertLightComponent.TintWithLamp));
 			_extraBulbs = serializedObject.FindProperty(nameof(InsertLightComponent.ExtraBulbs));
 			_bulbNames = serializedObject.FindProperty(nameof(InsertLightComponent.BulbNames));
@@ -120,11 +122,11 @@ namespace VisualPinball.Unity.Editor
 
 			if (InsertSection.Begin(LampKey, "Lamps")) {
 				using (new EditorGUI.DisabledScope(!hybrid)) {
-					DrawLampPreset();
 					if (targets.Length == 1) {
 						DrawLampLayout((InsertLightComponent)target);
 					} else {
 						Field(_intensity, "Intensity");
+						DrawLampPreset();
 						Field(_color, "Color");
 						EditorGUILayout.HelpBox("Select one insert to edit its lamp count and positions.", MessageType.None);
 					}
@@ -174,8 +176,8 @@ namespace VisualPinball.Unity.Editor
 						}
 					}
 					var material = component.GetComponent<MeshRenderer>().sharedMaterial;
-					var lumens = _spillLumens.floatValue * Mathf.Max(0f, material.GetFloat(LuminosityId)) * _intensity.floatValue;
-					EditorGUILayout.LabelField(new GUIContent("Configured Spill", "Lumens times the material's Max Brightness times the Intensity above: what the light puts out at that intensity. While playing, the game's lamp level takes the place of Intensity."), new GUIContent($"{lumens:0.###} lm"));
+					var lumens = _spillLumens.floatValue * Mathf.Max(0f, material.GetFloat(LuminosityId)) * Mathf.Max(0f, _output.floatValue) * _intensity.floatValue;
+					EditorGUILayout.LabelField(new GUIContent("Configured Spill", "Lumens times the material's Max Brightness times the lamp's Output times the Intensity above: what the light puts out at that intensity. While playing, the game's lamp level takes the place of Intensity."), new GUIContent($"{lumens:0.###} lm"));
 				}
 			}
 			InsertSection.End();
@@ -199,17 +201,18 @@ namespace VisualPinball.Unity.Editor
 			using (new EditorGUI.DisabledScope(Application.isPlaying)) {
 				EditorGUI.showMixedValue = mixed;
 				EditorGUI.BeginChangeCheck();
-				var chosen = EditorGUILayout.Popup(new GUIContent("Lamp", "The kind of bulb under the insert: its colour and how it fades. The plastic's colour is the material's; this is the lamp behind it. Custom keeps the values below as they are."), index, names);
+				var chosen = EditorGUILayout.Popup(new GUIContent("Lamp", "The kind of bulb under the insert: its colour, how much light it gives and how it fades. The plastic's colour is the material's; this is the lamp behind it. Custom keeps the values as they are."), index, names);
 				EditorGUI.showMixedValue = false;
 				if (EditorGUI.EndChangeCheck()) {
 					InsertLampPresets.Apply(chosen < presets.Length ? presets[chosen] : null, lights);
 					serializedObject.Update();
 				}
+				Field(_output, "Output");
 				var followed = first >= 0 && !mixed ? presets[first] : null;
 				if (followed != null) {
 					if (lights.Any(light => InsertLampPresets.Differs(light, followed))) {
-						EditorGUILayout.HelpBox($"The colour or fades differ from the {followed.LampName} preset.", MessageType.None);
-						if (GUILayout.Button(new GUIContent("Reset to Preset", "Takes the preset's colour and fades again."))) {
+						EditorGUILayout.HelpBox($"The colour, output or fades differ from the {followed.LampName} preset.", MessageType.None);
+						if (GUILayout.Button(new GUIContent("Reset to Preset", "Takes the preset's colour, output and fades again."))) {
 							InsertLampPresets.Apply(followed, lights);
 							serializedObject.Update();
 						}
@@ -250,6 +253,7 @@ namespace VisualPinball.Unity.Editor
 					intensity.floatValue = preview;
 				}
 			}
+			DrawLampPreset();
 			EditorGUILayout.Space();
 			using (new EditorGUI.DisabledScope(Application.isPlaying || readOnly)) {
 				EditorGUI.BeginChangeCheck();

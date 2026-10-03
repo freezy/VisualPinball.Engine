@@ -15,8 +15,8 @@ namespace VisualPinball.Unity.Test
 		public void ShouldShipAnIncandescentAndAnLedLamp()
 		{
 			var lamps = InsertLampPresets.Find();
-			Assert.That(lamps, Has.Some.Matches<InsertLampPreset>(preset => preset.LampName == "Incandescent" && preset.Color.b < preset.Color.r && preset.FadeSpeedDown > 0f));
-			Assert.That(lamps, Has.Some.Matches<InsertLampPreset>(preset => preset.LampName == "Cool White LED" && preset.Color.b > preset.Color.r && preset.FadeSpeedDown == 0f));
+			Assert.That(lamps, Has.Some.Matches<InsertLampPreset>(preset => preset.LampName == "Incandescent" && preset.Color.b < preset.Color.r && preset.FadeSpeedDown > 0f && preset.Output == 1f));
+			Assert.That(lamps, Has.Some.Matches<InsertLampPreset>(preset => preset.LampName == "Cool White LED" && preset.Color.b > preset.Color.r && preset.FadeSpeedDown == 0f && preset.Output > 1f));
 			Assert.That(lamps, Has.Some.Matches<InsertLampPreset>(preset => preset.LampName == "RGB LED" && preset.Color == Color.white));
 		}
 
@@ -28,6 +28,7 @@ namespace VisualPinball.Unity.Test
 			try {
 				preset.LampName = "Test Lamp";
 				preset.Color = new Color(1f, 0.7f, 0.4f);
+				preset.Output = 1.5f;
 				preset.FadeSpeedUp = 0.1f;
 				preset.FadeSpeedDown = 0.3f;
 				go.AddComponent<InsertComponent>();
@@ -39,12 +40,17 @@ namespace VisualPinball.Unity.Test
 				Assert.That(light.Lamp, Is.EqualTo("Test Lamp"));
 				Assert.That(light.Color, Is.EqualTo(preset.Color));
 				Assert.That(light.ExtraBulbs[0].Color, Is.EqualTo(preset.Color));
+				Assert.That(light.Output, Is.EqualTo(1.5f));
 				Assert.That(light.FadeSpeedUp, Is.EqualTo(0.1f));
 				Assert.That(light.FadeSpeedDown, Is.EqualTo(0.3f));
 				Assert.That(InsertLampPresets.Differs(light, preset), Is.False);
 
 				light.Color = Color.white;
 				Assert.That(InsertLampPresets.Differs(light, preset), Is.True);
+				light.Color = preset.Color;
+				light.Output = 1f;
+				Assert.That(InsertLampPresets.Differs(light, preset), Is.True, "a dimmer bulb differs");
+				light.Color = Color.white;
 
 				InsertLampPresets.Apply(null, new[] { light });
 				Assert.That(light.Lamp, Is.Empty);

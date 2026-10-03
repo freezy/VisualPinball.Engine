@@ -31,8 +31,12 @@ namespace VisualPinball.Unity
 		[Tooltip("Lamp colour. Edit here to preview; RGB lamp mappings update it at runtime.")]
 		public Color Color = UnityEngine.Color.white;
 
-		[Tooltip("The lamp preset the bulb was taken from, by name: its colour and fades. Empty is a bulb of its own.")]
+		[Tooltip("The lamp preset the bulb was taken from, by name: its colour, output and fades. Empty is a bulb of its own.")]
 		public string Lamp = "";
+
+		[Min(0f)]
+		[Tooltip("How much light the bulb gives, relative to a #44 filament: an LED kit is brighter. Scales the lit look and the spill alike, at every level.")]
+		public float Output = 1f;
 
 		[Tooltip("The lamp's status when the game starts: off, on, or blinking. The game's lamp events take over from there.")]
 		public LampStatus State;
@@ -119,6 +123,7 @@ namespace VisualPinball.Unity
 		private static readonly int LevelId = Shader.PropertyToID("_InsertLampLevel");
 		private static readonly int ColorId = Shader.PropertyToID("_InsertLampColor");
 		private static readonly int TintId = Shader.PropertyToID("_InsertLampTint");
+		private static readonly int OutputId = Shader.PropertyToID("_InsertLampOutput");
 		private static readonly int[] BulbColorIds = { Shader.PropertyToID("_InsertLampColorB"), Shader.PropertyToID("_InsertLampColorC"), Shader.PropertyToID("_InsertLampColorD") };
 		private static readonly int[] LampIds = { Shader.PropertyToID("_OpticalLamp"), Shader.PropertyToID("_OpticalLampB"), Shader.PropertyToID("_OpticalLampC"), Shader.PropertyToID("_OpticalLampD") };
 		private static readonly int SpreadId = Shader.PropertyToID("_OpticalSpread");
@@ -537,6 +542,8 @@ namespace VisualPinball.Unity
 				_properties.SetVector(ColorId, (Vector4)color);
 			}
 			_properties.SetFloat(TintId, TintWithLamp ? math.saturate(LampTint) : 0f);
+			var output = math.max(0f, Output);
+			_properties.SetFloat(OutputId, output);
 			var spillLevel = level;
 			var spillColor = color * level;
 			for (var i = 0; i < BulbColorIds.Length; i++) {
@@ -569,8 +576,8 @@ namespace VisualPinball.Unity
 			spillColor = spillLevel > 0f ? spillColor / spillLevel : color;
 			converter.SetColor(SpillLight, (spillColor * (tint / peak)).gamma);
 			converter.SetRange(SpillLight, math.max(0.001f, SpillRange));
-			converter.SetIntensity(SpillLight, math.max(0f, SpillLumens) * brightness * spillLevel);
-			SpillLight.enabled = brightness * spillLevel * SpillLumens > 0f && spillColor.maxColorComponent > 0f;
+			converter.SetIntensity(SpillLight, math.max(0f, SpillLumens) * brightness * output * spillLevel);
+			SpillLight.enabled = brightness * output * spillLevel * SpillLumens > 0f && spillColor.maxColorComponent > 0f;
 		}
 
 		/// <summary>

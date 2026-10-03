@@ -38,6 +38,7 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>Whether the light's bulb is not the preset's any more.</summary>
 		public static bool Differs(InsertLightComponent light, InsertLampPreset preset)
 			=> light.Color != preset.Color
+			   || !Mathf.Approximately(light.Output, preset.Output)
 			   || !Mathf.Approximately(light.FadeSpeedUp, preset.FadeSpeedUp)
 			   || !Mathf.Approximately(light.FadeSpeedDown, preset.FadeSpeedDown)
 			   || light.ExtraBulbs != null && light.ExtraBulbs.Any(bulb => bulb != null && bulb.Color != preset.Color);
@@ -56,6 +57,7 @@ namespace VisualPinball.Unity.Editor
 			foreach (var light in lights) {
 				if (preset != null) {
 					light.Color = preset.Color;
+					light.Output = preset.Output;
 					light.FadeSpeedUp = preset.FadeSpeedUp;
 					light.FadeSpeedDown = preset.FadeSpeedDown;
 					foreach (var bulb in light.ExtraBulbs ?? System.Array.Empty<InsertLightComponent.Bulb>()) {
