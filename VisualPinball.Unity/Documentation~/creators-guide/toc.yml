@@ -21,14 +21,14 @@
     - name: Inserts
       href: editor/inserts/index.md
       items:
-        - name: Customizing Inserts
-          href: editor/inserts/customizing.md
-        - name: Presets
-          href: editor/inserts/presets.md
         - name: Geometry
           href: editor/inserts/geometry.md
         - name: Patterns
           href: editor/inserts/patterns.md
+        - name: Presets
+          href: editor/inserts/presets.md
+        - name: Customizing Inserts
+          href: editor/inserts/customizing.md
         - name: Baking
           href: editor/inserts/baking.md
         - name: Lighting

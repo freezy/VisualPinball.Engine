@@ -6,12 +6,12 @@ description: Start with a standard library insert, create a custom insert, and u
 
 # Customizing Inserts
 
-Start with the closest standard insert in the **Asset Library**. Most common shapes and sizes will be available there, already prepared for use. Choose custom geometry when the outline, molded pattern, or lamp arrangement needs to match something more specific.
+Start with the closest insert in the **Asset Library**; the common shapes and sizes are there, baked and ready. Generate your own when the outline, the pattern or the lamp arrangement has to match something the library doesn't have.
 
-## Customize a library insert
+## Library inserts
 
 1. Place the insert in your table and align its rim with the playfield opening. Keep its scale at one when its authored dimensions already match.
-2. Use the **Color** buttons under **Insert → Presets** to choose White, Blue, Green, Red, Yellow, Teal, or Purple.
+2. Pick a color under **Insert → Presets**.
 3. Choose a **Look** such as **Clear Plastic** or **Colored Plastic**, then adjust the [body material](body-material.md) and optional [cover](cover.md) as needed.
 4. Set the lamp colors and preview intensities on **Insert Light**, position its lamps, and connect them in [Lamp Manager](../lamp-manager.md).
 5. If you change geometry or want a different bake, use **Fork to Project** when the source assets are read-only, then **Bake Again**.
@@ -23,7 +23,7 @@ Color and material changes are immediate. Shape and pattern changes alter the ba
 > [!NOTE]
 > **Package assets and project assets.** A library bake can be referenced by many inserts and may belong to a package. Fork to Project copies the bake into `Assets/Inserts` and derives a writable material variant. That gives the customized insert its own bake while retaining the original material's inherited tuning. If the copied bake is stale, the fork starts a new bake automatically; a fitting bake is simply copied.
 
-## Create an insert from scratch
+## Inserts from scratch
 
 1. Create a GameObject at the insert's position and add **Visual Pinball → Insert** through **Add Component**. Unity adds the required Mesh Filter and Mesh Renderer.
 2. Choose the outline and dimensions in **Geometry**. For an imported outline, choose Custom and assign its Source Mesh. Add a channel, bevel, holes, and pattern as needed. See [Geometry](geometry.md) and [Patterns](patterns.md).
@@ -38,7 +38,7 @@ Color and material changes are immediate. Shape and pattern changes alter the ba
 
 ## Color presets
 
-The colored squares select materials for the insert's body and, when assigned, its cover. They use an **Insert Color Preset** asset containing the plastic, cavity, HDR emission, and haze colors. These are material colors and describe the plastic under a white lamp; the bulb behind it is the Insert Light's [Lamp preset](lighting.md#choose-the-kind-of-bulb), whose colour multiplies the emission, so the same red material is right over an incandescent bulb and over an LED.
+What a color preset is and how it is set, changed and added is on the [Presets](presets.md#color) page. This is what happens to the materials when a color is clicked.
 
 Clicking a color first searches for a matching material in the current material's folder. It matches the shader, requested color word, and related material name, so another insert's unrelated color material is not chosen merely because it is green. If a matching material exists, it is assigned with its existing settings intact.
 
@@ -46,14 +46,7 @@ When there is no match, VPE derives a new material from the current one. A recog
 
 For package materials, VPE checks both the package folder and its equivalent project folder. Newly created materials go into the project. For example, `Packages/<package>/Assets/Art/Materials/Inserts` maps to `Assets/Art/Materials/Inserts`. A material without an asset path uses `Assets/Inserts`.
 
-<!-- Screenshot: customizing-colors. Same insert, same exposure and lamp drive, with each of the seven color buttons applied. -->
-
-> [!NOTE]
-> **Presets create a starting point.** Selecting an existing color material does not overwrite it with the current preset's colors. Editing the preset changes the colors used for future material creation; existing materials can keep their individual tuning.
-
-### Edit or add a color preset
-
-Ctrl-click a color button, or Cmd-click on macOS, to highlight its preset asset in the **Project** window. The shipped presets are in the HDRP package's `Assets/Art/Materials/Insert Presets` folder. For a project-specific preset, create an asset with **Create → Visual Pinball → Insert Color Preset**.
+### Color preset values
 
 | Parameter | Meaning |
 | --- | --- |
@@ -62,33 +55,27 @@ Ctrl-click a color button, or Cmd-click on macOS, to highlight its preset asset 
 | **Swatch** | The button's display color. It does not change the rendered material. |
 | **Tint** | The hybrid body's Tint when a new color material is created. |
 | **Cavity Color** | Color underneath the clear share of the plastic. Its effect depends on Clarity. |
-| **Lamp Emission** | HDR emission color and magnitude on the newly created body material: the colour of the plastic lit from below by a white lamp. The lamps' own colors, from the Insert Light's Lamp preset, multiply it. |
+| **Lamp Emission** | HDR emission color and magnitude of the body material: the color of the plastic lit from below by a white lamp. The lamp's own color, from the lamp preset, multiplies it. |
 | **Max Brightness** | The body's Max Brightness. Colors differ in how bright they look through the plastic, so each has its own; a look never touches it. |
 | **Haze Color** | Haze Color on a newly created cover color material. It needs a cover and nonzero Opacity to show. |
 | **Cover Tint** | The cover's Tint: the color the lamp light and the body underneath take on their way up through the plastic slab. Keep a little of every channel in it, and in Lamp Emission, so a bright lamp fades to white instead of shifting hue under the tonemapper. |
 
 ## Look presets
 
-A look is how the insert is moulded and behaves optically: every numeric setting of the hybrid body material — clarity, surface, the virtual lamp's strength and spread, glow, facets, mottle, grain — but not its colours and Max Brightness, which are the [color preset](#color-presets)'s, nor the lamp positions, which are the shape's, nor the bulb, which is the [lamp preset](lighting.md#choose-the-kind-of-bulb)'s. **Clear Plastic** and **Colored Plastic** ship with the package.
-
-Clicking a look under **Presets → Look** links the insert's body material to it: the material takes the look's values now and whenever the look changes, and the lit button shows which look a material follows. Where the material already has values of its own, you are asked whether to copy them into the look first. The **+** button saves the selected insert's current look as a new preset and links the material to it. Ctrl/Cmd-click a look button to highlight its asset in the Project window.
-
-In the body material's inspector, every value a look owns says so in its tooltip, and a value edited in the material since is marked **•**; the Look row at the top counts them and offers **Copy to** the look and **Reset to** it. See [Presets](presets.md) for the whole picture.
-
-<!-- Screenshot: customizing-look-presets. Clear Plastic and Colored Plastic applied to the same shape and colour, with the same lamps. -->
+What a look is and how it is set, changed and added is on the [Presets](presets.md#look) page.
 
 > [!NOTE]
-> **Shared material edits.** A look is applied to the assigned body material. Every insert using that same material sees the change. Lamp count and positions also live in the body material. Give an insert its own writable material or variant before making a change that should affect only that insert. Lamp colors and intensities use per-renderer overrides and can differ between inserts sharing a material, and so does Roughness.
+> **Shared materials.** A look is applied to the body material, and every insert using that material sees the change. Lamp count and positions live in the body material too. Give an insert its own material or variant before changing something that should affect only that insert. Lamp colors and intensities are per-renderer overrides and can differ between inserts sharing a material.
 
 A look preset asset stores **Body Shader**, the shader name it was captured from, and a **Body** list of numeric properties. Each entry's **Name** is the shader property reference, **Kind** identifies its value type, and **Float** or **Vector** supplies the corresponding value. Color entries are never applied; colors belong to color presets, and so does Max Brightness.
 
-## A practical tuning order
+## Tuning order
 
 Fit [Geometry](geometry.md), choose the [Pattern](patterns.md), and finish the [Bake](baking.md) first. Then tune the unlit body with all lamps off. Bring one lamp up and adjust Max Brightness, its position, spread, and radius. Add the other lamps and test their combinations. Finish the cover's reflections and haze, then check the result in the game's camera and exposure.
 
 For a colored insert, the **Colored Plastic** look is a useful start; keep Clarity near zero and use Min Brightness to set the off appearance. For clear plastic, start with **Clear Plastic**, use Cavity Color for the board or reflector beneath it, and soften the reflection ribs with Facet Flatten. Both looks can use the same geometry and maps.
 
-## Common surprises
+## Troubleshooting
 
 | What you see | What to check |
 | --- | --- |

@@ -80,7 +80,7 @@ Engraved Line is available for Flash and Custom shapes, and takes the place of t
 > [!NOTE]
 > **Replacing the trough.** The engraved middle keeps its projection from above through UV packing. After a fitting bake, VPE replaces the middle's trough geometry with a plain island carrying the same projected maps. Changing the line brings its source geometry back until the next bake. This differs from stippling, which bakes onto a separate plain body target from the start.
 
-## Detail shared by every pattern
+## Shared detail
 
 **Bottom Bevel** shapes the actual body where the outer wall meets the channel. **Edge Bevel** rounds sharp edges in the baked surface normals, including pattern edges. **Grain Strength** and **Grain Size** add fine baked surface texture. These apply across patterns, so they are documented once under [Geometry](geometry.md#body-channel-and-bottom-bevel) and [Baking](baking.md#bake-settings).
 

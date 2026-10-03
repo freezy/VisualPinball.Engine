@@ -6,7 +6,7 @@ description: Configure Blender, optimize UVs, bake surface and optical maps, and
 
 # Baking Inserts
 
-Baking turns the insert's generated detail into maps that the material can read quickly. It also optimizes the UV layout and supplies the tangent frames needed to interpret the surface normal map. Work through **Insert → Normal Bake** after fitting the geometry and pattern.
+Baking turns the insert's generated detail into maps that the material can read quickly: Blender turns the source geometry into textures. Stipples bake from the detailed pyramids onto a plain mesh, an engraved line is replaced by a plain middle after baking, and starburst facets stay in the mesh. The bake writes the surface normals for the reflections and separate optical maps for the lamp, optimizes the UV layout and supplies the tangent frames needed to read the surface normal map. Work through **Insert → Normal Bake** after fitting the geometry and pattern.
 
 ## First bake
 
@@ -39,7 +39,7 @@ Once a baked hybrid material is in use, rebaking also updates its optical maps s
 > [!NOTE]
 > **Three kinds of fine detail.** Bottom Bevel is body geometry. Edge Bevel and Grain Strength/Size are baked reflection normals. The material's Grain adds procedural color and emission variation at rendering time, and its Surface Grain the procedural reflection grain that replaces the baked one. The cover's Normal Map is another independent surface layer. Each has its own purpose and should be tuned in the place that owns it.
 
-## What the bake writes
+## Output
 
 VPE stores generated assets in an insert-specific folder under `Assets/Inserts`, named with the insert and an identifier. Subsequent bakes update that insert's owned assets and preserve its material tuning.
 
@@ -66,7 +66,20 @@ An engraved line keeps a projection from above so a plain middle can carry its b
 
 If an unwrap folds triangles, the baker falls back to the generator's UV layout. If the packed layout overlaps, the bake stops with an error so two surfaces cannot write into the same texel.
 
-## Fresh and stale bakes
+## What needs a new bake
+
+| Change | Bake again? |
+| --- | --- |
+| Shape, dimensions, corners, body depth, channel, bottom bevel, holes, or pattern geometry | **Yes**, when it changes the generated source mesh |
+| Texture size, padding, edge bevel, baked grain, or unwrap settings | **Yes**, to see the new settings; changing them alone does not mark the current bake stale |
+| Body material settings, presets | **No** |
+| Lamp count, placement, radius, color, intensity, or spill | **No** |
+| Cover material, haze, smoothness, normal strength, playfield normals | **No** |
+
+> [!TIP]
+> Fit the shape and pattern first, bake once, then tune the material and lamps through the game camera. Material changes show immediately.
+
+## Stale bakes
 
 A fitting bake matches the generated source mesh. Changing geometry invalidates that match; VPE does not apply stale per-corner UVs or tangents to a different mesh.
 
@@ -76,7 +89,7 @@ The renderer returns when a new bake fits. Play mode and builds render the avail
 
 <!-- Screenshot: baking-stale. Fitting shaded insert versus the yellow source preview after a geometry edit. -->
 
-## Bake actions and ownership
+## Actions
 
 | Action / readout | Meaning |
 | --- | --- |
@@ -90,6 +103,6 @@ The renderer returns when a new bake fits. Play mode and builds render the avail
 > [!NOTE]
 > **Duplicated inserts.** A duplicate can initially reference the original's fitting bake. Each insert has its own identifier, so baking the duplicate creates or uses its own assets rather than overwriting another insert's bake. Shared material settings still affect all users of that material; material ownership and bake ownership are separate concerns.
 
-## If baking fails
+## Troubleshooting
 
 Correct any geometry error first. For Blender failures, check the executable and reported version, then copy the log. If GPU baking fails, verify the Cycles device in Blender or try the CPU. If UVPackMaster is unavailable, turn off its preference and use Blender's packer. A failed bake keeps the previous bake, allowing you to correct the cause and try again.

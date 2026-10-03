@@ -90,9 +90,11 @@ In Visual Pinball, you can put GI lamps into a collection and address the whole 
 
 ## Lamp Type
 
-The **Incandescent** and **LED** buttons in the toolbar say what kind of bulb lights the table; the lit one is what the inserts run. Pressing the other puts that bulb under every [insert](inserts/lighting.md#choose-the-kind-of-bulb) — colour, output and fades — and gives every other lamp its fades, so a filament table warms up and cools down everywhere and an LED kit snaps everywhere. Two kinds of lamp are left alone: lamps mapped as **RGB** or **RGB Multi**, whose colour and fading the game drives, so they are RGB LEDs whatever the rest runs; and flashers, another bulb altogether. No Light's colour is touched: GI and flashers keep the colour they were given.
+The **Incandescent** and **LED** buttons in the toolbar say what kind of bulb lights the table; the lit one is what the inserts run. Pressing the other applies that [lamp preset](inserts/lighting.md#lamp) to every insert (color, output and fades) and gives every other lamp its fades, so a filament table warms up and cools down everywhere and an LED kit snaps everywhere. Lamps mapped as **RGB** or **RGB Multi** are left alone, since the game drives their color and fading, and so are flashers. No Light's color is changed.
 
-It is a tuning tool as much as a table setting: it works while the game runs in the editor and never pauses it, so a table can be judged under both kinds of bulb mid-game. The fades take effect at the next lamp change.
+**Settings** shows the lit preset's color, output and fade times above the toolbar; changes go into the preset and under every insert of the table as you make them. **Edit…** opens the [Insert Presets](inserts/presets.md) window.
+
+The buttons work while the game runs in the editor and don't pause it, so a table can be judged under both kinds of bulb mid-game. The fades take effect at the next lamp change.
 
 ## Editor vs Runtime
 

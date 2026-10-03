@@ -8,7 +8,7 @@ description: Every Insert Hybrid shader control for plastic, surface reflections
 
 The **Visual Pinball/Insert Hybrid** material renders the inside of an insert. Its **Plastic**, **Lamp**, and **Baked Data** sections separate the unlit body, the lamp shining through it, and the maps that describe its geometry. These controls update immediately and do not require another bake.
 
-This reference uses the custom material Inspector's labels. Defaults are the shader's starting values; a library material or the Clear/Colored presets may provide a different, more specific look. Controls are disabled when their dependencies make them ineffective.
+This page uses the material inspector's labels. Defaults are the shader's; a library material or a look preset sets different values. Controls are disabled where the shader would ignore them.
 
 ## Plastic
 
@@ -26,9 +26,9 @@ Start with every lamp off. Choose how dark the colored body should be, or how mu
 <!-- Screenshot: material-plastic. Separate Tint, Clarity 0/1, Cavity Color dark/light, Cavity Spread 2/6, Cavity Contrast 0/0.5, and Min Brightness 0.04/0.4 comparisons, with lamps off. -->
 
 > [!NOTE]
-> **Clear is an optical appearance, not a transparent body pass.** The hybrid body is opaque. Its clear look approximates the ambient-lit board or reflector viewed through plastic, using the baked response and virtual lamp positions. It does not sample a real object behind the insert or the screen color. The optional cover supplies the transparent top layer.
+> **Clear is an appearance, not transparency.** The hybrid body is opaque. Its clear look approximates the ambient-lit board or reflector viewed through plastic, using the baked response and virtual lamp positions. It does not sample a real object behind the insert or the screen color. The optional cover supplies the transparent top layer.
 
-## Surface reflections
+## Surface
 
 | Parameter | Shader default / range | Effect |
 | --- | --- | --- |
@@ -39,8 +39,6 @@ Start with every lamp off. Choose how dark the colored body should be, or how mu
 | **Facet Flatten** | 0; 0–1 | Turns the reflection shading normal toward the flat top normal. Zero retains facets; one fully flattens their reflection shading. Values around 0.85 can soften the strong alternating reflection ribs of a clear starburst. It leaves optical refraction intact. |
 | **Grain** | 0.25; 0–1 | Fine procedural variation multiplying the body's color and emission. Zero is uniform. Variation Seed selects another distribution. This does not add normal-map roughness. |
 
-Wear is not a material setting: the insert's own **Roughness**, in the Insert component's **Wear** section, is written per renderer over the material these values come from. At one it takes the top's Smoothness down by sixty percent, softens Facet Contrast by seventy, adds half a Surface Grain, and scatters the lamp's rays and bulb image into the baked glow, which is what a top the ball has sanded does to the light coming up through it; the bottom of the plastic, just above the bulb, is not worn and stays sharp. Inserts sharing a material can be worn differently: on a real playfield the ones in the ball's path are the rough ones. The clear cover is the playfield's clearcoat and is not involved.
-
 For a starburst, begin with a modest Surface Normal Strength because the mesh already has tilted facets. Stipples and engraving have a plain displayed floor and rely on their surface map for reflection relief. Setting Facet Flatten to one also suppresses that mapped relief in the reflection normal.
 
 <!-- Screenshot: material-surface. Smoothness 0.4/0.93, Surface Normal Strength 0/0.3, Facet Flatten 0/0.85, and Grain 0/0.5. Include a recognizable reflected light. -->
@@ -48,7 +46,7 @@ For a starburst, begin with a modest Surface Normal Strength because the mesh al
 > [!NOTE]
 > **Two normals, two jobs.** Surface Normal is tangent-space data used by lights and probes. Optical Normals store sharp directions in insert-local space for the virtual bulb. Surface Normal Strength and Facet Flatten do not change optical direction; Optical Facet Strength does not change surface reflections. Baked grain affects the first map only.
 
-## Overall lamp output
+## Lamp output
 
 | Parameter | Shader default / range | Effect |
 | --- | --- | --- |
@@ -102,6 +100,7 @@ These controls use the baked starburst sector metadata to align variation with t
 
 | Parameter | Shader default / range | Effect |
 | --- | --- | --- |
+| **Roughness** | 0; 0–1 | How rough the structure inside the plastic is: the facets, channels and holes the light comes up through. Zero gives crisp ribs and rays; one diffuses them, softening the ribs and sending the rays and the bulb's image into the glow. The finish of the top is the cover's. |
 | **Facet Contrast** | 0.8; 0–1 | Difference in light coupling between opposing starburst slopes. Zero is even; one makes strongly alternating ribs. Around 0.25 can suit clear plastic. |
 | **Mottle Amount** | 0.4; 0–1 | Cloudy variation across the ribs and small differences between sectors. Zero removes those variations. |
 | **Mottle Size (mm)** | 1.4; 0.2–5 | Spacing of the cloud cells. Smaller is finer. Enabled when Mottle Amount is nonzero. Fine detail fades when it becomes smaller than a pixel. |
@@ -117,7 +116,7 @@ These controls use the baked starburst sector metadata to align variation with t
 | --- | --- |
 | **Surface Normal** | Tangent-space normal texture used for surface reflections. |
 | **Optical Normals** | Texture of sharp directions in insert-local space. |
-| **Optical Response** | RGB cavity, edge, and transmission data described on [Baking](baking.md#what-the-bake-writes). |
+| **Optical Response** | RGB cavity, edge, and transmission data described on [Baking](baking.md#output). |
 | **Starburst Sectors** | Sector count, normally twice the generator's Bursts. Below four the starburst-specific variation is inactive. |
 | **Starburst Centre (mm)** | X/Z fan center in insert-local millimeters. It must match the generated starburst center. |
 
@@ -126,7 +125,7 @@ Do not retile these maps independently. The body's final UVs, tangents, and all 
 <!-- Screenshot: material-baked-data. The three maps and the Baked Data Inspector; use correct/mismatched assets only as an explanatory example. -->
 
 > [!NOTE]
-> **Shader data reference.** The custom controls use `_BaseColor` (Tint), `_InsertClarity`, `_InsertCavityColor`, `_InsertCavitySpread`, `_InsertCavityContrast`, `_InsertMinBrightness`, `_Smoothness`, `_NormalStrength`, `_InsertFacetFlatten`, `_OpticalGrain`, `_InsertLuminosity`, `_EmissiveColor`, `_OpticalLampGain`, `_OpticalBulbDefinition`, `_OpticalIor`, `_OpticalWarp`, `_OpticalSpread`, `_OpticalScatter`, `_OpticalEdgeGlow`, `_OpticalContrast`, `_OpticalVariation`, `_OpticalMottleSize`, and `_OpticalSeed`. These references are useful when editing preset entries; use the Inspector labels for normal authoring.
+> **Shader properties.** The controls use `_BaseColor` (Tint), `_InsertClarity`, `_InsertCavityColor`, `_InsertCavitySpread`, `_InsertCavityContrast`, `_InsertMinBrightness`, `_Smoothness`, `_NormalStrength`, `_InsertFacetFlatten`, `_OpticalGrain`, `_InsertLuminosity`, `_EmissiveColor`, `_OpticalLampGain`, `_OpticalBulbDefinition`, `_OpticalIor`, `_OpticalWarp`, `_OpticalSpread`, `_OpticalScatter`, `_OpticalEdgeGlow`, `_OpticalContrast`, `_OpticalVariation`, `_OpticalMottleSize`, `_OpticalSeed` and `_InsertRoughness`. The names matter when editing look preset entries; the inspector shows the labels.
 
 > [!NOTE]
 > **Generated and runtime properties.** `_NormalMap`, `_OpticalNormalMap`, and `_OpticalResponseMap` hold the textures. `_OpticalLamp`, `_OpticalLampB`, `_OpticalLampC`, and `_OpticalLampD` store local XYZ and radius W in meters; an additional bulb with radius zero is inactive. `_OpticalStarburst` stores center X/Z in X/Y, sector count in Z, and lowest fan height in W, with positions in meters. Insert Light supplies `_InsertLampLevel` and linear `_InsertLampColor` for the first lamp, `_InsertLampColorB/C/D` as linear RGB plus intensity in W for the other lamps, and `_InsertLampTint` for the tint blend. Edit those runtime values through Insert Light rather than through the material asset.

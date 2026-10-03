@@ -8,7 +8,7 @@ description: Add a transparent top, tune haze and reflections, and project the p
 
 The body supplies the molded interior and its optical appearance. A **clear cover** closes the opening at the rim with a flat top, adding its own reflections, haze, and surface detail. It is optional and independent of the body bake, so you can add or tune it without baking again.
 
-## Add the top surface
+## Adding a cover
 
 In **Insert → Clear Cover**, assign **Material** or click **Add Clear Cover**. The helper creates a **Visual Pinball/Insert Cover** material with a subtle haze and glossy finish. Clearing Material removes the top surface.
 
@@ -35,11 +35,11 @@ Open the cover material's **Haze** section to tune the veil seen over the interi
 | **Opacity** | 0.01; 0–0.5 | Amount of haze blended over the body. The default gives a clean top with very little veil. Values around 0.05–0.1 soften the interior like worn or slightly frosted plastic. Specular reflection strength is preserved as opacity changes. |
 | **Haze Color** | RGB (0.8, 0.8, 0.8) | Color of the veil. White brightens it, a darker gray dulls it, and a colored haze filters its appearance. Disabled at zero Opacity. |
 
-With **Tint With Lamp** enabled on Insert Light, the haze can take the local lamp hue while preserving its brightness value. Without that tint, a gray veil can make a saturated lamp look pale. See [Lighting](lighting.md#tint-the-body-and-cover-with-the-lamp).
+With **Tint With Lamp** enabled on Insert Light, the haze can take the local lamp hue while preserving its brightness value. Without that tint, a gray veil can make a saturated lamp look pale. See [Lighting](lighting.md#tint-with-lamp).
 
 <!-- Screenshot: cover-haze. Opacity 0.01/0.1, then Haze Color light/dark with opacity fixed. -->
 
-## Surface reflections and normal detail
+## Surface
 
 | Parameter | Shader default / range | Effect |
 | --- | --- | --- |
@@ -53,14 +53,14 @@ The cover's material Inspector reports when inserts in the open scene use playfi
 
 <!-- Screenshot: cover-surface. Smoothness 0.4/0.96, map absent/present, Tiling 1/4, Offset 0/0.25, and Normal Strength 0/1. -->
 
-## Follow the playfield surface
+## Playfield normals
 
 Enable **Use Playfield Normals** when scratches, wood grain, or other top-surface normal detail should continue across the insert boundary. VPE detects a surface under the enclosing Playfield, or under the single Playfield in the same Table, and can choose the largest suitable imported surface. Use **Playfield Override** when the intended surface is not the detected one.
 
 The source must have a readable mesh with a planar top and usable UV0 in its first submesh. Enable **Read/Write** on an imported mesh if needed. Its first material needs a supported normal map; the projection supports HDRP Lit tangent-space normal maps and follows the source base-map tiling, offset, and normal strength.
 
 > [!NOTE]
-> **Projection rather than matching tiling by eye.** VPE derives the source mesh's actual XZ-to-UV mapping, including rotations, flips, and margins. The cover receives matching UVs and tangent frames, while a per-renderer override supplies the source normal texture and strength. Neither shared material is rewritten. Moving either object updates the projection in the authoring scene.
+> **Projection.** VPE derives the source mesh's actual XZ-to-UV mapping, including rotations, flips, and margins. The cover receives matching UVs and tangent frames, while a per-renderer override supplies the source normal texture and strength. Neither shared material is rewritten. Moving either object updates the projection in the authoring scene.
 
 <!-- Diagram: cover-projection. One scratch crossing playfield and cover, with the source UV transform and cover's matching projection highlighted. -->
 
@@ -68,7 +68,7 @@ The source texture needs detail over the insert area for anything to appear ther
 
 Disabling projection restores the local cover UVs and its own material settings. If detection or the source becomes invalid, the Inspector reports the problem and falls back to those material settings. Check Detected Surface, Source Material, and Source Normal Map before trying to compensate with cover tiling.
 
-## Shader data reference
+## Shader properties
 
 > [!NOTE]
 > The authored cover properties are `_CoverOpacity`, `_HazeColor`, `_Smoothness`, `_CoverNormalMap` (including its texture tiling and offset), and `_CoverNormalStrength`. `_PlayfieldNormalStrength` is supplied by the component for a detected source and defaults to one for a local map. Insert Light also supplies `_InsertLampLevel`, `_InsertLampColor`, `_InsertLampTint`, `_OpticalLamp/B/C/D`, `_InsertLampColorB/C/D`, and `_OpticalSpread` to this material slot. Their encodings match the [body's runtime data](body-material.md#baked-data). They let the haze follow the same spatial lamp mix; the cover itself emits no lamp light.

@@ -6,35 +6,27 @@ description: Preview and place up to four virtual lamps, map them to the game, t
 
 # Insert Lighting
 
-**Insert Light** drives the lamp colors and intensities seen through the hybrid body and, optionally, a real light above the insert. It supports **one to four lamps on every shape**. A banana may benefit from several lamps along its length, but rectangles, circles, and the other shapes can use them too.
+**Insert Light** drives the lamp colors and intensities seen through the hybrid body and, optionally, a real light above the insert. Every shape can have one to four lamps; a banana usually wants several along its length.
 
 The body needs a hybrid material with optical maps. If the Inspector reports that they are missing, use **Bake Hybrid and Use Material**. The material sets the full-intensity look; Insert Light previews and animates it.
 
-## Choose the kind of bulb
+## Lamp
 
-The **Lamp** dropdown under the intensity sliders in the **Lamps** section says what bulb sits under the insert. It sets the lamps' **Color**, the bulb's **Output** and the **Fade Up** and **Fade Down** times from an **Insert Lamp Preset** asset, and the light remembers which preset it follows. The plastic's colour stays in the material's [color preset](customizing.md#color-presets); the bulb's colour multiplies it, so a red insert over an incandescent bulb goes yellow-white in its brightest spot, and the same insert over a cool LED goes white.
+The **Lamp** dropdown under the intensity sliders says what bulb sits under the insert: it sets the lamps' **Color**, the bulb's **Output** and the **Fade Up** and **Fade Down** times from a [lamp preset](presets.md#lamp), and the light remembers which preset it follows. **Custom** keeps the values as they are, following no preset.
 
-| Preset | Bulb |
-| --- | --- |
-| **Incandescent** | A warm filament, such as a #44 or #555: amber light that fades in over a tenth of a second and out over a fifth. Every table built before LEDs, and the look most players know. |
-| **LED** | A neutral white LED kit: three times a filament's output, instant on and off. |
-| **Custom** | The values as they are, following no preset. |
-
-An insert whose lamp is mapped as **RGB** or **RGB Multi** in [Lamp Manager](../lamp-manager.md) is an RGB LED whatever the rest of the table runs: the game drives its colour and its fading, so no preset goes under it and its Lamp row says so. Two presets, not more, is deliberate: the switch is for seeing a table under both kinds of bulb while tuning, not for choosing a shade of white. For another bulb, create a preset of your own.
+An insert whose lamp is mapped as **RGB** or **RGB Multi** in [Lamp Manager](../lamp-manager.md) is an RGB LED whatever the rest of the table runs: the game drives its color and fading, so no preset is applied to it and its Lamp row says so.
 
 | Parameter | Meaning |
 | --- | --- |
-| **Output** | How much light the bulb gives, relative to a #44 filament: a two-chip LED kit gives about three times as much. It scales every lamp's lit look and the spill alike, at every intensity, so an LED kit is brighter without touching the material's Max Brightness, which stays the plastic's. Where an insert already clips to white under the tonemapper, more output shows mainly in its fall-off, its spill and its bloom, not in the core. |
+| **Output** | How much light the bulb gives, relative to a #44 filament. It scales every lamp's lit look and the spill alike, at every intensity, without touching the material's Max Brightness. An insert that already clips to white does not get whiter with more output; the difference shows in its fall-off, its spill and its bloom. |
 
-Editing the colour, output or fades of a light that follows a preset keeps the preset's name; the Inspector then says the values differ and offers **Reset to Preset**. **Give All Inserts This Lamp** puts the bulb under every insert of the table, since a table is lit by one kind of lamp until it gets an LED kit: pick the preset on one insert, then press the button. Fades included: an insert that is driven by a parent VPE Light fades with that Light's own settings instead, as the [State](#connect-lamps-to-the-game) section says. The whole table, other lamps included, switches in one go from the **Incandescent** and **LED** buttons in [Lamp Manager](../lamp-manager.md#lamp-type), during a game in the editor as well.
+A light whose values no longer match its preset says so and offers **Reset to Preset**. **Give All Inserts This Lamp** applies the preset to every insert of the table; the **Incandescent** and **LED** buttons in [Lamp Manager](../lamp-manager.md#lamp-type) do the same and also give the table's other lamps the fades. An insert driven by a parent VPE Light fades with that Light's settings instead. **Edit…** opens the [Insert Presets](presets.md) window.
 
-The two presets are in the HDRP package's `Assets/Art/Materials/Insert Presets` folder; select one in the Project window to edit its colour, output and fades. A light that follows it keeps its own values until they are applied again: the preset's Inspector counts the insert lights of the open scenes that follow it and offers **Apply to N Insert Lights**. For another bulb, create an asset with **Create → Visual Pinball → Insert Lamp Preset** anywhere in the project; it joins the dropdown. Keep a little of every channel in its colour, so a bright lamp fades to white under the tonemapper instead of shifting hue.
-
-A blue insert is the dimmest on an incandescent table: a warm filament has little blue to give, and the blue plastic keeps the rest. That is how real ones look. Where a table needs it brighter all the same, raise the Blue [color preset](customizing.md#color-presets)'s **Max Brightness**, which exists because colours differ in how bright they look through the plastic.
+A blue insert is the dimmest on an incandescent table: a warm filament has little blue to give, and the blue plastic keeps the rest. Where a table needs it brighter all the same, raise the Blue [color preset](customizing.md#color-presets)'s **Max Brightness**.
 
 <!-- Screenshot: lighting-lamp-presets. The same clear and red insert lit under Incandescent and LED. -->
 
-## Preview and arrange the lamps
+## Lamps
 
 The **Lamps** section places one **Lamp N** intensity slider at the top for each active lamp. Below **Number of lamps**, each row shows its Name, Color, and Position. Preview one lamp at a time before checking how their bright regions overlap.
 
@@ -56,7 +48,7 @@ Drag the labeled **circular handles** in Scene view to move lamps in the insert'
 > [!NOTE]
 > **A virtual lamp is a shader image.** Its position describes where the optical shader looks for a bulb. It is not a Unity Light and moving it does not move the spill light. Colors and intensities are passed as per-renderer material overrides, so different insert objects can animate independently while sharing a material.
 
-## Tint the body and cover with the lamp
+## Tint With Lamp
 
 | Parameter | Meaning |
 | --- | --- |
@@ -65,9 +57,9 @@ Drag the labeled **circular handles** in Scene view to move lamps in the insert'
 
 This blend preserves the color's brightness value. It does not make the body emit on its own, and an off lamp leaves the authored tint intact. A white lamp supplies no hue change. With several colored lamps, the local blend follows their positions and **Lamp Spread**, so a long insert can be red at one end and blue at the other.
 
-<!-- Screenshot: lighting-tint. Same grey cover over a saturated lamp, Tint With Lamp off/on; Tint Amount 0.25/1 separately. -->
+<!-- Screenshot: lighting-tint. Same gray cover over a saturated lamp, Tint With Lamp off/on; Tint Amount 0.25/1 separately. -->
 
-## Spill onto the ball and table
+## Spill
 
 A glowing insert does not by itself supply a controllable direct light to nearby geometry. Assign a light under **Spill → Light**, or use **Add Spill Light** to create one just under the insert, pointing upward through it.
 
@@ -89,7 +81,7 @@ For example, Lumens 1.5, Max Brightness 20, and one lamp at 0.5 gives **15 lm**.
 > [!NOTE]
 > **Default spill setup.** The helper creates a wide spot with a 147° cone, a soft inner cone, a small light source, and no shadows, bounce, or volumetric contribution. Aim and range are important because the light is deliberately broad. Each enabled spill also adds a real light's rendering cost; use it where nearby objects need illumination.
 
-## Connect lamps to the game
+## Mapping
 
 Select **Insert Light** as a destination in [Lamp Manager](../lamp-manager.md). A single-lamp insert offers its normal lamp item; an insert with several lamps offers a separately named item for each bulb. Map each game output to the intended item.
 
