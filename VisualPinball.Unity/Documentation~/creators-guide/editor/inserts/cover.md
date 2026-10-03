@@ -15,6 +15,7 @@ In **Insert → Clear Cover**, assign **Material** or click **Add Clear Cover**.
 | Component parameter | Meaning |
 | --- | --- |
 | **Material** | Material assigned to the generated top surface. It occupies the renderer's second material slot. Any material can be assigned, but the dedicated cover shader supplies the haze, lamp tint, and playfield-normal features described here. |
+| **Roughness** | How worn this insert's top is, from 0 to 1. Zero is the cover material's finish; one a sanded, scuffed top whose reflections of the lights are a blur and which veils the pattern a little, a tenth of haze on top of the material's Opacity. It is this insert's own, written per renderer, so inserts sharing one cover material can be worn differently: on a real playfield the inserts in the ball's path are the rough ones, and the bottom of an insert, just above the bulb, stays sharp whatever the top looks like. |
 | **Use Playfield Normals** | Projects the detected playfield's normal detail across the cover. Available for the dedicated Insert Cover material. Disabled uses the cover material's own map and local UVs. |
 | **Playfield Override** | Optional Mesh Renderer supplying the normal map and UV projection. Leave empty for automatic playfield detection. |
 | **Detected Surface** | Readout identifying the resolved source renderer. |

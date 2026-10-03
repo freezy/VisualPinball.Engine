@@ -114,6 +114,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _bakeSettings;
 		private SerializedProperty _coverMaterial;
 		private SerializedProperty _usePlayfieldNormals;
+		private SerializedProperty _roughness;
 		private SerializedProperty _coverPlayfield;
 
 		private static readonly int[] TextureSizes = { 256, 512, 1024, 2048, 4096 };
@@ -213,6 +214,7 @@ namespace VisualPinball.Unity.Editor
 			_bakeSettings = serializedObject.FindProperty("_bakeSettings");
 			_coverMaterial = serializedObject.FindProperty("_coverMaterial");
 			_usePlayfieldNormals = serializedObject.FindProperty("_usePlayfieldNormals");
+			_roughness = serializedObject.FindProperty("_roughness");
 			_coverPlayfield = serializedObject.FindProperty("_coverPlayfield");
 		}
 
@@ -1293,6 +1295,19 @@ namespace VisualPinball.Unity.Editor
 			}
 			var cover = _coverMaterial.hasMultipleDifferentValues || _coverMaterial.objectReferenceValue != null;
 			using (new EditorGUI.DisabledScope(!cover)) {
+				// Through the component, so the cover's block takes it at once.
+				EditorGUI.showMixedValue = _roughness.hasMultipleDifferentValues;
+				EditorGUI.BeginChangeCheck();
+				var roughness = EditorGUILayout.Slider(new GUIContent("Roughness", _roughness.tooltip), _roughness.floatValue, 0f, 1f);
+				EditorGUI.showMixedValue = false;
+				if (EditorGUI.EndChangeCheck()) {
+					Undo.RecordObjects(targets, "Set Insert Roughness");
+					foreach (var t in targets) {
+						((InsertComponent)t).Roughness = roughness;
+						PrefabUtility.RecordPrefabInstancePropertyModifications(t);
+					}
+					serializedObject.Update();
+				}
 				Field(_usePlayfieldNormals, "Use Playfield Normals");
 				if (_usePlayfieldNormals.boolValue || _usePlayfieldNormals.hasMultipleDifferentValues) {
 					Field(_coverPlayfield, "Playfield Override");

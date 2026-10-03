@@ -457,6 +457,11 @@ namespace VisualPinball.Unity
 		private bool _usePlayfieldNormals;
 
 		[SerializeField]
+		[Range(0f, 1f)]
+		[Tooltip("How worn this insert's top is: zero is the cover material's finish, one a sanded, scuffed top that blurs the reflections and veils the pattern a little. This insert's own, over the cover material it shares with the others.")]
+		private float _roughness;
+
+		[SerializeField]
 		[Tooltip("Optional surface renderer override. Leave empty to find the playfield in this table automatically.")]
 		private MeshRenderer _coverPlayfield;
 
@@ -538,6 +543,20 @@ namespace VisualPinball.Unity
 		public Material CoverMaterial => _coverMaterial;
 		public MeshRenderer CoverPlayfield => _coverPlayfield != null ? _coverPlayfield : _autoCoverPlayfield;
 		public string CoverWarning { get; private set; }
+		/// <summary>How worn this insert's top is, zero to one, written into the cover's property block.</summary>
+		public float Roughness
+		{
+			get => _roughness;
+			set {
+				_roughness = math.saturate(value);
+				_coverThicknessApplied = false;
+				var renderer = GetComponent<MeshRenderer>();
+				if (renderer != null) {
+					ApplyCoverThickness(renderer);
+				}
+			}
+		}
+
 		public bool UsePlayfieldNormals
 		{
 			get => _usePlayfieldNormals;
@@ -1342,6 +1361,7 @@ namespace VisualPinball.Unity
 		}
 
 		private static readonly int CoverThicknessId = Shader.PropertyToID("_CoverThickness");
+		private static readonly int CoverRoughnessId = Shader.PropertyToID("_CoverRoughness");
 		private bool _coverThicknessApplied;
 
 		/// <summary>
@@ -1353,9 +1373,10 @@ namespace VisualPinball.Unity
 			: 4f;
 
 		/// <summary>
-		/// Writes the slab's thickness into the cover's property block, once
-		/// after the block was cleared or the geometry changed: the cover
-		/// refracts what shows through it as through a slab that deep.
+		/// Writes the slab's thickness and this insert's wear into the cover's
+		/// property block, once after the block was cleared or either changed:
+		/// the cover refracts what shows through it as through a slab that
+		/// deep, and roughens its top as far as this insert is worn.
 		/// </summary>
 		private void ApplyCoverThickness(MeshRenderer renderer)
 		{
@@ -1365,6 +1386,9 @@ namespace VisualPinball.Unity
 			_coverProperties ??= new MaterialPropertyBlock();
 			renderer.GetPropertyBlock(_coverProperties, 1);
 			_coverProperties.SetFloat(CoverThicknessId, CoverThickness);
+			if (_coverMaterial.HasProperty(CoverRoughnessId)) {
+				_coverProperties.SetFloat(CoverRoughnessId, _roughness);
+			}
 			renderer.SetPropertyBlock(_coverProperties, 1);
 			_coverThicknessApplied = true;
 		}
