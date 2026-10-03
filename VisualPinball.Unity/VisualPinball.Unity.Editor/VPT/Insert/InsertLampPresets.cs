@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -74,12 +75,23 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		/// <summary>
-		/// The lamp every insert light of the table follows, or null when they
-		/// follow none or not all the same. <paramref name="mixed"/> tells the two apart.
+		/// Whether the game drives the lamp's colour and fading: a lamp mapped
+		/// as RGB is an RGB LED whatever the table's other bulbs are, and no
+		/// preset is put under it.
+		/// </summary>
+		public static bool IsRgb(TableComponent table, ILampDeviceComponent device)
+			=> table != null && device != null && table.MappingConfig.Lamps.Any(mapping => mapping.Device == device && mapping.Type is LampType.Rgb or LampType.RgbMulti);
+
+		public static bool IsRgb(InsertLightComponent light) => IsRgb(light.GetComponentInParent<TableComponent>(true), light);
+
+		/// <summary>
+		/// The lamp every insert light of the table follows, RGB ones aside, or
+		/// null when they follow none or not all the same. <paramref name="mixed"/>
+		/// tells the two apart.
 		/// </summary>
 		public static InsertLampPreset TableLamp(TableComponent table, out bool mixed)
 		{
-			var names = table.GetComponentsInChildren<InsertLightComponent>(true).Select(light => light.Lamp).Distinct().ToArray();
+			var names = table.GetComponentsInChildren<InsertLightComponent>(true).Where(light => !IsRgb(table, light)).Select(light => light.Lamp).Distinct().ToArray();
 			mixed = names.Length > 1;
 			return names.Length == 1 ? Find().FirstOrDefault(preset => preset.LampName == names[0]) : null;
 		}
@@ -87,20 +99,23 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>
 		/// Puts the bulb under every insert of the table, and gives the table's
 		/// other lamps its fades: a Light under the playfield is the same kind of
-		/// bulb, with a colour of its own. Flashers keep theirs, being another
-		/// bulb altogether. Works while the game runs in the editor, too: fades
-		/// are read live, and a lamp mapping keeps driving the colour it drives.
+		/// bulb, with a colour of its own. Lamps mapped as RGB are the game's,
+		/// colour and fading, and flashers keep theirs, being another bulb
+		/// altogether. Works while the game runs in the editor, too: fades are
+		/// read live, and nothing here pauses the game.
 		/// </summary>
 		/// <returns>How many insert lights and how many other lamps took the preset</returns>
 		public static (int Inserts, int Lamps) ApplyToTable(InsertLampPreset preset, TableComponent table)
 		{
-			var inserts = table.GetComponentsInChildren<InsertLightComponent>(true);
+			var inserts = table.GetComponentsInChildren<InsertLightComponent>(true).Where(light => !IsRgb(table, light)).ToArray();
 			Apply(preset, inserts);
 			if (preset == null) {
 				return (inserts.Length, 0);
 			}
-			var flashers = new HashSet<ILampDeviceComponent>(table.MappingConfig.Lamps.Where(mapping => mapping.IsCoil && mapping.Device != null).Select(mapping => mapping.Device));
-			var lamps = table.GetComponentsInChildren<LightComponent>(true).Where(light => !flashers.Contains(light)).ToArray();
+			var theirs = new HashSet<ILampDeviceComponent>(table.MappingConfig.Lamps
+				.Where(mapping => mapping.Device != null && (mapping.IsCoil || mapping.Type is LampType.Rgb or LampType.RgbMulti))
+				.Select(mapping => mapping.Device));
+			var lamps = table.GetComponentsInChildren<LightComponent>(true).Where(light => !theirs.Contains(light)).ToArray();
 			if (lamps.Length > 0) {
 				Undo.RecordObjects(lamps.Cast<Object>().ToArray(), "Apply Insert Lamp Preset");
 				foreach (var light in lamps) {

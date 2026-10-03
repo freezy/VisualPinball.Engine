@@ -16,23 +16,23 @@ The **Lamp** dropdown under the intensity sliders in the **Lamps** section says 
 
 | Preset | Bulb |
 | --- | --- |
-| **Incandescent** | A warm filament, such as a #44 or #555: amber light that fades in over a tenth of a second and out over a fifth. The right choice for every table built before LEDs, and the look most players know. |
-| **Warm White LED** | A warm-white LED kit: slightly warm light, three times a filament's output, instant on and off. |
-| **Cool White LED** | A cool-white LED kit: slightly blue light, three times the output, instant. |
-| **RGB LED** | A colour-changing LED driven by the game: white, three times the output, instant. Map its lamp as **RGB** in [Lamp Manager](../lamp-manager.md), which supplies the colour. |
+| **Incandescent** | A warm filament, such as a #44 or #555: amber light that fades in over a tenth of a second and out over a fifth. Every table built before LEDs, and the look most players know. |
+| **LED** | A neutral white LED kit: three times a filament's output, instant on and off. |
 | **Custom** | The values as they are, following no preset. |
+
+An insert whose lamp is mapped as **RGB** or **RGB Multi** in [Lamp Manager](../lamp-manager.md) is an RGB LED whatever the rest of the table runs: the game drives its colour and its fading, so no preset goes under it and its Lamp row says so. Two presets, not more, is deliberate: the switch is for seeing a table under both kinds of bulb while tuning, not for choosing a shade of white. For another bulb, create a preset of your own.
 
 | Parameter | Meaning |
 | --- | --- |
 | **Output** | How much light the bulb gives, relative to a #44 filament: a two-chip LED kit gives about three times as much. It scales every lamp's lit look and the spill alike, at every intensity, so an LED kit is brighter without touching the material's Max Brightness, which stays the plastic's. Where an insert already clips to white under the tonemapper, more output shows mainly in its fall-off, its spill and its bloom, not in the core. |
 
-Editing the colour, output or fades of a light that follows a preset keeps the preset's name; the Inspector then says the values differ and offers **Reset to Preset**. **Give All Inserts This Lamp** puts the bulb under every insert of the table, since a table is lit by one kind of lamp until it gets an LED kit: pick the preset on one insert, then press the button. Fades included: an insert that is driven by a parent VPE Light fades with that Light's own settings instead, as the [State](#connect-lamps-to-the-game) section says. The whole table, other lamps included, switches in one go from the **Lamp** dropdown in [Lamp Manager](../lamp-manager.md#lamp-type).
+Editing the colour, output or fades of a light that follows a preset keeps the preset's name; the Inspector then says the values differ and offers **Reset to Preset**. **Give All Inserts This Lamp** puts the bulb under every insert of the table, since a table is lit by one kind of lamp until it gets an LED kit: pick the preset on one insert, then press the button. Fades included: an insert that is driven by a parent VPE Light fades with that Light's own settings instead, as the [State](#connect-lamps-to-the-game) section says. The whole table, other lamps included, switches in one go from the **Incandescent** and **LED** buttons in [Lamp Manager](../lamp-manager.md#lamp-type), during a game in the editor as well.
 
-The shipped presets are in the HDRP package's `Assets/Art/Materials/Insert Presets` folder; select one in the Project window to edit its colour, output and fades. A light that follows it keeps its own values until they are applied again: the preset's Inspector counts the insert lights of the open scenes that follow it and offers **Apply to N Insert Lights**. For another bulb, create an asset with **Create → Visual Pinball → Insert Lamp Preset** anywhere in the project; it joins the dropdown. Keep a little of every channel in its colour, so a bright lamp fades to white under the tonemapper instead of shifting hue.
+The two presets are in the HDRP package's `Assets/Art/Materials/Insert Presets` folder; select one in the Project window to edit its colour, output and fades. A light that follows it keeps its own values until they are applied again: the preset's Inspector counts the insert lights of the open scenes that follow it and offers **Apply to N Insert Lights**. For another bulb, create an asset with **Create → Visual Pinball → Insert Lamp Preset** anywhere in the project; it joins the dropdown. Keep a little of every channel in its colour, so a bright lamp fades to white under the tonemapper instead of shifting hue.
 
 A blue insert is the dimmest on an incandescent table: a warm filament has little blue to give, and the blue plastic keeps the rest. That is how real ones look. Where a table needs it brighter all the same, raise the Blue [color preset](customizing.md#color-presets)'s **Max Brightness**, which exists because colours differ in how bright they look through the plastic.
 
-<!-- Screenshot: lighting-lamp-presets. The same clear and red insert lit under Incandescent and Cool White LED. -->
+<!-- Screenshot: lighting-lamp-presets. The same clear and red insert lit under Incandescent and LED. -->
 
 ## Preview and arrange the lamps
 

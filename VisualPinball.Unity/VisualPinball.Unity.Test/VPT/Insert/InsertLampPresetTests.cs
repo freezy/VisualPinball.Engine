@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 using NUnit.Framework;
+using VisualPinball.Engine.Game.Engines;
 using UnityEngine;
 using VisualPinball.Unity.Editor;
 using Object = UnityEngine.Object;
@@ -16,8 +17,7 @@ namespace VisualPinball.Unity.Test
 		{
 			var lamps = InsertLampPresets.Find();
 			Assert.That(lamps, Has.Some.Matches<InsertLampPreset>(preset => preset.LampName == "Incandescent" && preset.Color.b < preset.Color.r && preset.FadeSpeedDown > 0f && preset.Output == 1f));
-			Assert.That(lamps, Has.Some.Matches<InsertLampPreset>(preset => preset.LampName == "Cool White LED" && preset.Color.b > preset.Color.r && preset.FadeSpeedDown == 0f && preset.Output > 1f));
-			Assert.That(lamps, Has.Some.Matches<InsertLampPreset>(preset => preset.LampName == "RGB LED" && preset.Color == Color.white));
+			Assert.That(lamps, Has.Some.Matches<InsertLampPreset>(preset => preset.LampName == "LED" && preset.Color == Color.white && preset.FadeSpeedDown == 0f && preset.Output > 1f));
 		}
 
 		[Test]
@@ -38,10 +38,16 @@ namespace VisualPinball.Unity.Test
 				var flasher = new GameObject("Flasher").AddComponent<LightComponent>();
 				flasher.transform.SetParent(table.transform);
 				tableComponent.MappingConfig.AddLamp(new LampMapping { IsCoil = true, Device = flasher });
+				var rgb = new GameObject("RGB Insert").AddComponent<InsertComponent>().gameObject.AddComponent<InsertLightComponent>();
+				rgb.transform.SetParent(table.transform);
+				tableComponent.MappingConfig.AddLamp(new LampMapping { Type = LampType.Rgb, Device = rgb });
 
 				var (inserts, lamps) = InsertLampPresets.ApplyToTable(preset, tableComponent);
 
 				Assert.That((inserts, lamps), Is.EqualTo((1, 1)));
+				Assert.That(InsertLampPresets.IsRgb(rgb), Is.True);
+				Assert.That(rgb.Lamp, Is.Empty, "an RGB lamp is the game's");
+				Assert.That(rgb.Color, Is.EqualTo(Color.white));
 				Assert.That(insert.Lamp, Is.EqualTo("Test Lamp"));
 				Assert.That(insert.Color, Is.EqualTo(preset.Color));
 				Assert.That((lamp.FadeSpeedUp, lamp.FadeSpeedDown), Is.EqualTo((0.1f, 0.3f)), "a lamp takes the fades");
