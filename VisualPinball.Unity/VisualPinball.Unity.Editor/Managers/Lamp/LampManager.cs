@@ -91,11 +91,11 @@ namespace VisualPinball.Unity.Editor
 			return true;
 		}
 
-		/// <summary>The lamp settings row, on its own line above the list, when it is open.</summary>
+		/// <summary>The lamp settings row, on its own line above the toolbar, when it is open.</summary>
 		protected override void OnGUI()
 		{
-			base.OnGUI();
 			DrawLampSettings();
+			base.OnGUI();
 		}
 
 		protected override void OnButtonBarGUI()
