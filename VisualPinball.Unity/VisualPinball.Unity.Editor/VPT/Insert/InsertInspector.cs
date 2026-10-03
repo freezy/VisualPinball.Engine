@@ -129,6 +129,7 @@ namespace VisualPinball.Unity.Editor
 		private const string BakeKey = "VisualPinball.Insert.Bake";
 		private const string CoverKey = "VisualPinball.Insert.Cover";
 		private const string PresetKey = "VisualPinball.Insert.Preset";
+		private const string WearKey = "VisualPinball.Insert.Wear";
 
 		private void OnEnable()
 		{
@@ -256,6 +257,23 @@ namespace VisualPinball.Unity.Editor
 
 			if (InsertSection.Begin(PresetKey, "Presets")) {
 				DrawPresets();
+			}
+			InsertSection.End();
+
+			if (InsertSection.Begin(WearKey, "Wear")) {
+				// Through the component, so the body's block takes it at once.
+				EditorGUI.showMixedValue = _roughness.hasMultipleDifferentValues;
+				EditorGUI.BeginChangeCheck();
+				var roughness = EditorGUILayout.Slider(new GUIContent("Roughness", _roughness.tooltip), _roughness.floatValue, 0f, 1f);
+				EditorGUI.showMixedValue = false;
+				if (EditorGUI.EndChangeCheck()) {
+					Undo.RecordObjects(targets, "Set Insert Roughness");
+					foreach (var t in targets) {
+						((InsertComponent)t).Roughness = roughness;
+						PrefabUtility.RecordPrefabInstancePropertyModifications(t);
+					}
+					serializedObject.Update();
+				}
 			}
 			InsertSection.End();
 
@@ -1295,19 +1313,6 @@ namespace VisualPinball.Unity.Editor
 			}
 			var cover = _coverMaterial.hasMultipleDifferentValues || _coverMaterial.objectReferenceValue != null;
 			using (new EditorGUI.DisabledScope(!cover)) {
-				// Through the component, so the cover's block takes it at once.
-				EditorGUI.showMixedValue = _roughness.hasMultipleDifferentValues;
-				EditorGUI.BeginChangeCheck();
-				var roughness = EditorGUILayout.Slider(new GUIContent("Roughness", _roughness.tooltip), _roughness.floatValue, 0f, 1f);
-				EditorGUI.showMixedValue = false;
-				if (EditorGUI.EndChangeCheck()) {
-					Undo.RecordObjects(targets, "Set Insert Roughness");
-					foreach (var t in targets) {
-						((InsertComponent)t).Roughness = roughness;
-						PrefabUtility.RecordPrefabInstancePropertyModifications(t);
-					}
-					serializedObject.Update();
-				}
 				Field(_usePlayfieldNormals, "Use Playfield Normals");
 				if (_usePlayfieldNormals.boolValue || _usePlayfieldNormals.hasMultipleDifferentValues) {
 					Field(_coverPlayfield, "Playfield Override");

@@ -458,7 +458,7 @@ namespace VisualPinball.Unity
 
 		[SerializeField]
 		[Range(0f, 1f)]
-		[Tooltip("How worn this insert's top is: zero is the cover material's finish, one a sanded, scuffed top that blurs the reflections and veils the pattern a little. This insert's own, over the cover material it shares with the others.")]
+		[Tooltip("How worn this insert's plastic is on top, under the clearcoat: zero is the body material's finish, one a top the ball has sanded, matte and grainy in its reflections, with the ribs and the lamp's rays gone soft into the glow. This insert's own, over the body material it shares with the others.")]
 		private float _roughness;
 
 		[SerializeField]
@@ -543,18 +543,34 @@ namespace VisualPinball.Unity
 		public Material CoverMaterial => _coverMaterial;
 		public MeshRenderer CoverPlayfield => _coverPlayfield != null ? _coverPlayfield : _autoCoverPlayfield;
 		public string CoverWarning { get; private set; }
-		/// <summary>How worn this insert's top is, zero to one, written into the cover's property block.</summary>
+		/// <summary>How worn this insert's plastic is on top, zero to one, written into the body's property block.</summary>
 		public float Roughness
 		{
 			get => _roughness;
 			set {
 				_roughness = math.saturate(value);
-				_coverThicknessApplied = false;
-				var renderer = GetComponent<MeshRenderer>();
-				if (renderer != null) {
-					ApplyCoverThickness(renderer);
-				}
+				ApplyRoughness();
 			}
+		}
+
+		private static readonly int RoughnessId = Shader.PropertyToID("_InsertRoughness");
+		private MaterialPropertyBlock _bodyProperties;
+
+		/// <summary>
+		/// Writes this insert's wear into the body's property block, which the
+		/// insert light shares and reads before it writes: the material is the
+		/// shape's and every colour's, the wear is this insert's.
+		/// </summary>
+		private void ApplyRoughness()
+		{
+			var renderer = GetComponent<MeshRenderer>();
+			if (renderer == null) {
+				return;
+			}
+			_bodyProperties ??= new MaterialPropertyBlock();
+			renderer.GetPropertyBlock(_bodyProperties, 0);
+			_bodyProperties.SetFloat(RoughnessId, _roughness);
+			renderer.SetPropertyBlock(_bodyProperties, 0);
 		}
 
 		public bool UsePlayfieldNormals
@@ -1094,6 +1110,8 @@ namespace VisualPinball.Unity
 #if UNITY_EDITOR
 			ClaimId();
 #endif
+			// The block is not serialized: the wear goes back in with the component.
+			ApplyRoughness();
 			if (_usesPackagedMesh) {
 				UsePackagedMesh();
 				return;
@@ -1361,7 +1379,6 @@ namespace VisualPinball.Unity
 		}
 
 		private static readonly int CoverThicknessId = Shader.PropertyToID("_CoverThickness");
-		private static readonly int CoverRoughnessId = Shader.PropertyToID("_CoverRoughness");
 		private bool _coverThicknessApplied;
 
 		/// <summary>
@@ -1373,10 +1390,9 @@ namespace VisualPinball.Unity
 			: 4f;
 
 		/// <summary>
-		/// Writes the slab's thickness and this insert's wear into the cover's
-		/// property block, once after the block was cleared or either changed:
-		/// the cover refracts what shows through it as through a slab that
-		/// deep, and roughens its top as far as this insert is worn.
+		/// Writes the slab's thickness into the cover's property block, once
+		/// after the block was cleared or the geometry changed: the cover
+		/// refracts what shows through it as through a slab that deep.
 		/// </summary>
 		private void ApplyCoverThickness(MeshRenderer renderer)
 		{
@@ -1386,9 +1402,6 @@ namespace VisualPinball.Unity
 			_coverProperties ??= new MaterialPropertyBlock();
 			renderer.GetPropertyBlock(_coverProperties, 1);
 			_coverProperties.SetFloat(CoverThicknessId, CoverThickness);
-			if (_coverMaterial.HasProperty(CoverRoughnessId)) {
-				_coverProperties.SetFloat(CoverRoughnessId, _roughness);
-			}
 			renderer.SetPropertyBlock(_coverProperties, 1);
 			_coverThicknessApplied = true;
 		}

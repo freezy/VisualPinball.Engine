@@ -39,6 +39,8 @@ Start with every lamp off. Choose how dark the colored body should be, or how mu
 | **Facet Flatten** | 0; 0–1 | Turns the reflection shading normal toward the flat top normal. Zero retains facets; one fully flattens their reflection shading. Values around 0.85 can soften the strong alternating reflection ribs of a clear starburst. It leaves optical refraction intact. |
 | **Grain** | 0.25; 0–1 | Fine procedural variation multiplying the body's color and emission. Zero is uniform. Variation Seed selects another distribution. This does not add normal-map roughness. |
 
+Wear is not a material setting: the insert's own **Roughness**, in the Insert component's **Wear** section, is written per renderer over the material these values come from. At one it takes the top's Smoothness down by sixty percent, softens Facet Contrast by seventy, adds half a Surface Grain, and scatters the lamp's rays and bulb image into the baked glow, which is what a top the ball has sanded does to the light coming up through it; the bottom of the plastic, just above the bulb, is not worn and stays sharp. Inserts sharing a material can be worn differently: on a real playfield the ones in the ball's path are the rough ones. The clear cover is the playfield's clearcoat and is not involved.
+
 For a starburst, begin with a modest Surface Normal Strength because the mesh already has tilted facets. Stipples and engraving have a plain displayed floor and rely on their surface map for reflection relief. Setting Facet Flatten to one also suppresses that mapped relief in the reflection normal.
 
 <!-- Screenshot: material-surface. Smoothness 0.4/0.93, Surface Normal Strength 0/0.3, Facet Flatten 0/0.85, and Grain 0/0.5. Include a recognizable reflected light. -->

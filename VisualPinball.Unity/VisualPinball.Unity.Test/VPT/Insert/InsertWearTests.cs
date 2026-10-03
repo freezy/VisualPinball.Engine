@@ -8,25 +8,20 @@ using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Test
 {
-	public class InsertCoverTests
+	public class InsertWearTests
 	{
 		[Test]
-		public void ShouldWearTheCoverPerInsert()
+		public void ShouldWearTheBodyPerInsert()
 		{
-			var shader = Shader.Find("Visual Pinball/Insert Cover");
-			if (shader == null) { Assert.Ignore("Requires the HDRP insert cover shader."); }
-			var cover = new Material(shader);
 			var go = new GameObject("Insert");
 			try {
 				var insert = go.AddComponent<InsertComponent>();
-				insert.SetCoverMaterial(cover);
 				var renderer = go.GetComponent<MeshRenderer>();
 				var block = new MaterialPropertyBlock();
 
 				insert.Roughness = 0.6f;
-				renderer.GetPropertyBlock(block, 1);
-				Assert.That(block.GetFloat("_CoverRoughness"), Is.EqualTo(0.6f).Within(1e-5f));
-				Assert.That(block.GetFloat("_CoverThickness"), Is.GreaterThan(0f), "the slab's thickness comes along");
+				renderer.GetPropertyBlock(block, 0);
+				Assert.That(block.GetFloat("_InsertRoughness"), Is.EqualTo(0.6f).Within(1e-5f), "the body's block, which the insert light shares, carries the wear");
 
 				insert.Roughness = 2f;
 				Assert.That(insert.Roughness, Is.EqualTo(1f), "worn is as far as it goes");
@@ -39,7 +34,6 @@ namespace VisualPinball.Unity.Test
 				var filter = go.GetComponent<MeshFilter>();
 				if (filter != null && filter.sharedMesh != null) { Object.DestroyImmediate(filter.sharedMesh); }
 				Object.DestroyImmediate(go);
-				Object.DestroyImmediate(cover);
 			}
 		}
 	}
