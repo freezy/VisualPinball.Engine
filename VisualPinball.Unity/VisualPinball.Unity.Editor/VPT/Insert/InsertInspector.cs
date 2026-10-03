@@ -73,7 +73,6 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _bananaAngle;
 		private SerializedProperty _bananaSegments;
 		private SerializedProperty _bananaEndSegments;
-		private SerializedProperty _sideSegments;
 		private SerializedProperty _depth;
 		private SerializedProperty _channel;
 		private SerializedProperty _channelWidth;
@@ -172,7 +171,6 @@ namespace VisualPinball.Unity.Editor
 			_bananaAngle = serializedObject.FindProperty("_bananaAngle");
 			_bananaSegments = serializedObject.FindProperty("_bananaSegments");
 			_bananaEndSegments = serializedObject.FindProperty("_bananaEndSegments");
-			_sideSegments = serializedObject.FindProperty("_sideSegments");
 			_depth = serializedObject.FindProperty("_depth");
 			_channel = serializedObject.FindProperty("_channel");
 			_channelWidth = serializedObject.FindProperty("_channelWidth");
@@ -437,9 +435,6 @@ namespace VisualPinball.Unity.Editor
 					Field(_bananaSegments, "Arc Vertices");
 					Field(_bananaEndSegments, "End Vertices");
 					break;
-			}
-			if (!Sampled) {
-				Field(_sideSegments, "Side Segments");
 			}
 			// A fillet larger than its sides can take is clamped, and the field
 			// then stops doing anything; say so here, next to the field.

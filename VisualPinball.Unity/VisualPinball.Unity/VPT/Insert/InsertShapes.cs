@@ -551,7 +551,7 @@ namespace VisualPinball.Unity
 				var lift = 0f;
 				for (var step = 0; step < 64; step++) {
 					corners = sharp(a, b, scale, lift);
-					var measured = InsertOutlineBuilder.Build(corners, 1, false);
+					var measured = InsertOutlineBuilder.Build(corners, false);
 					var missingWidth = width - measured.Width;
 					var missingHeight = height - measured.Height;
 					InsertOutlineBuilder.AnalyticBounds(measured.Corners, out var low, out _);

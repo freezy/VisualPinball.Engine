@@ -101,7 +101,7 @@ namespace VisualPinball.Unity.Test
 		private static (Mesh Mesh, InsertMeshLayout Layout) Generate(float radius, float channel, int bursts,
 			float bevel = 0f, bool holes = false, float offset = Offset, InsertHole[] holeList = null)
 		{
-			var outline = InsertOutlineBuilder.Build(InsertShapes.RectangleCorners(40f, 30f, new InsertCornerSettings(radius, 6)), 1);
+			var outline = InsertOutlineBuilder.Build(InsertShapes.RectangleCorners(40f, 30f, new InsertCornerSettings(radius, 6)));
 			var inset = channel > 0f ? outline.ClampInset(channel) : 0f;
 			var body = new InsertBody {
 				Depth = Depth,
@@ -157,7 +157,7 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldUseTheSpecifiedSquareWidthHeightAndMargin()
 		{
-			var outline = InsertOutlineBuilder.Build(InsertShapes.RectangleCorners(20f, 20f, new InsertCornerSettings(0f, 1)), 1);
+			var outline = InsertOutlineBuilder.Build(InsertShapes.RectangleCorners(20f, 20f, new InsertCornerSettings(0f, 1)));
 			var body = new InsertBody { Depth = 10f, StippleHeight = 2f, StippleWidth = 4f, StippleMargin = 1f };
 			var mesh = new Mesh();
 			try {
@@ -200,7 +200,7 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldCutStipplesOffAtTheOutlineWhenAsked()
 		{
-			var outline = InsertOutlineBuilder.Build(InsertShapes.RectangleCorners(22f, 22f, new InsertCornerSettings(0f, 1)), 1);
+			var outline = InsertOutlineBuilder.Build(InsertShapes.RectangleCorners(22f, 22f, new InsertCornerSettings(0f, 1)));
 			var whole = new InsertBody { Depth = 10f, StippleHeight = 2f, StippleWidth = 4f, StippleMargin = 1f };
 			var cut = new InsertBody { Depth = 10f, StippleHeight = 2f, StippleWidth = 4f, StippleMargin = 1f, StippleCut = true };
 			var wholeMesh = new Mesh();
@@ -248,7 +248,7 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldMoveTheStipplesByTheOffset()
 		{
-			var outline = InsertOutlineBuilder.Build(InsertShapes.RectangleCorners(20f, 20f, new InsertCornerSettings(0f, 1)), 1);
+			var outline = InsertOutlineBuilder.Build(InsertShapes.RectangleCorners(20f, 20f, new InsertCornerSettings(0f, 1)));
 			var apexHeight = InsertMeshGenerator.ToLocal(float2.zero, -8f).y;
 			float[] Columns(float2 offset)
 			{
@@ -274,7 +274,7 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldSinkTheStipplesForANegativeHeight()
 		{
-			var outline = InsertOutlineBuilder.Build(InsertShapes.RectangleCorners(20f, 20f, new InsertCornerSettings(0f, 1)), 1);
+			var outline = InsertOutlineBuilder.Build(InsertShapes.RectangleCorners(20f, 20f, new InsertCornerSettings(0f, 1)));
 			var body = new InsertBody { Depth = 10f, StippleHeight = -2f, StippleWidth = 4f, StippleMargin = 1f };
 			var mesh = new Mesh();
 			try {
@@ -327,7 +327,7 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldAcceptZeroStippleMargin()
 		{
-			var outline = InsertOutlineBuilder.Build(InsertShapes.RectangleCorners(21f, 21f, new InsertCornerSettings(0f, 1)), 1);
+			var outline = InsertOutlineBuilder.Build(InsertShapes.RectangleCorners(21f, 21f, new InsertCornerSettings(0f, 1)));
 			var body = new InsertBody { Depth = 10f, StippleHeight = 2f, StippleWidth = 4f, StippleMargin = 0f };
 			var mesh = new Mesh();
 			try {
@@ -345,7 +345,7 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldSpaceWholeStipplesClearOfRoundedCornersAndHoles()
 		{
-			var outline = InsertOutlineBuilder.Build(InsertShapes.RectangleCorners(40f, 30f, new InsertCornerSettings(5f, 6)), 1);
+			var outline = InsertOutlineBuilder.Build(InsertShapes.RectangleCorners(40f, 30f, new InsertCornerSettings(5f, 6)));
 			var hole = new InsertHole(Vector2.zero, 5f);
 			var body = new InsertBody {
 				Depth = 16f,
@@ -490,7 +490,7 @@ namespace VisualPinball.Unity.Test
 		public void StippleBakeRequestShouldKeepThePlainTargetTopology(bool channel, bool holes)
 		{
 			var outline = InsertOutlineBuilder.Build(
-				InsertShapes.RectangleCorners(40f, 30f, new InsertCornerSettings(5f, 6)), 1);
+				InsertShapes.RectangleCorners(40f, 30f, new InsertCornerSettings(5f, 6)));
 			var inset = channel ? outline.ClampInset(3f) : 0f;
 			var body = new InsertBody {
 				Depth = Depth,

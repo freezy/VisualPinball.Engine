@@ -207,7 +207,7 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldBuildARingedFloor()
 		{
-			var outline = InsertOutlineBuilder.Build(InsertShapes.CircleCorners(40f, 48), 1);
+			var outline = InsertOutlineBuilder.Build(InsertShapes.CircleCorners(40f, 48));
 			var inset = outline.ClampInset(3f);
 			var body = new InsertBody {
 				Depth = 20f,

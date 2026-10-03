@@ -242,10 +242,10 @@ namespace VisualPinball.Unity.Test
 
 		private static readonly OutlineCase[] Cases = ConvexCases.Concat(BananaCases).Concat(FlashCases).Concat(ArrowCases).ToArray();
 
-		private static InsertOutline Build(OutlineCase test, int segments = 0, int sideSegments = 1)
+		private static InsertOutline Build(OutlineCase test, int segments = 0)
 		{
 			var warnings = new List<string>();
-			var outline = InsertOutlineBuilder.Build(test.Corners(segments, warnings), sideSegments);
+			var outline = InsertOutlineBuilder.Build(test.Corners(segments, warnings));
 
 			Assert.That(warnings, Is.Empty, "the fixture should not need clamping");
 			Assert.That(outline.Warnings, Is.Empty, "the fixture should not need clamping");
@@ -711,23 +711,6 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldLeaveTheBulletsTipChordsToSideSegments()
-		{
-			// Side segments subdivide the sides and the flanks, never the chords
-			// of the sampled tip: slivers there would only limit how far the
-			// channel can be inset.
-			var plain = Build(BulletCases[0]);
-			var outline = Build(BulletCases[0], sideSegments: 8);
-			var tips = outline.Corners.Where(c => c.Tag != null && c.Tag.StartsWith("Tip")).Select(c => c.Index).ToHashSet();
-			var last = outline.Corners.Single(c => c.Tag == "TipLeft").Index;
-			foreach (var point in outline.Points.Where(p => p.Kind == InsertOutlinePointKind.Side)) {
-				Assert.That(!tips.Contains(point.Side) || point.Side == last, Is.True, $"a chord leaving corner {point.Side} was subdivided");
-			}
-			Assert.That(outline.ClampInset(3f), Is.EqualTo(plain.ClampInset(3f)).Within(1e-4f));
-			Assert.That(outline.ClampInset(3f), Is.EqualTo(3f).Within(1e-4f));
-		}
-
-		[Test]
 		public void ShouldCollapseAVanishingTipToAPoint()
 		{
 			// A tip whose whole arc is shorter than the builder tells apart would
@@ -936,18 +919,6 @@ namespace VisualPinball.Unity.Test
 		#endregion
 
 		#region Sampling and mesh
-
-		[TestCase(3, 9)]
-		[TestCase(4, 12)]
-		public void ShouldSubdivideOnlyStraightRuns(int sideCount, int expected)
-		{
-			var test = sideCount == 3 ? TriangleCases[0] : RectangleCases[0];
-			var outline = Build(test, sideSegments: 4);
-			var sides = outline.Points.Where(p => p.Kind == InsertOutlinePointKind.Side).ToArray();
-
-			Assert.That(sides.Length, Is.EqualTo(expected), "each side should gain three subdivisions");
-			Assert.That(sides.All(p => p.Corner == -1 && p.Side >= 0), "a side point is tagged to a corner");
-		}
 
 		#endregion
 
@@ -1597,7 +1568,7 @@ namespace VisualPinball.Unity.Test
 		{
 			var mesh = BuildStarburstMesh(test, out var outline, out _);
 			try {
-				AssertTilesTheIsland(mesh, outline, test.SideSegments, test.ChannelWidth);
+				AssertTilesTheIsland(mesh, outline, test.ChannelWidth);
 
 			} finally {
 				UnityEngine.Object.DestroyImmediate(mesh);
@@ -1609,7 +1580,7 @@ namespace VisualPinball.Unity.Test
 		{
 			var mesh = BuildStarburstMesh(test, out var outline);
 			try {
-				AssertTilesTheIsland(mesh, outline, 1);
+				AssertTilesTheIsland(mesh, outline);
 
 			} finally {
 				UnityEngine.Object.DestroyImmediate(mesh);
@@ -1627,8 +1598,7 @@ namespace VisualPinball.Unity.Test
 		/// one triangle. A sample within a hair of any triangle's edge is on a seam,
 		/// where one or two would both be right, and is skipped.
 		/// </remarks>
-		private static void AssertTilesTheIsland(Mesh mesh, InsertOutline outline, int sideSegments,
-			float channelWidth = TestChannelWidth)
+		private static void AssertTilesTheIsland(Mesh mesh, InsertOutline outline, float channelWidth = TestChannelWidth)
 		{
 			var inset = outline.ClampInset(channelWidth);
 			var island = new List<float2>();
@@ -1853,7 +1823,6 @@ namespace VisualPinball.Unity.Test
 		{
 			public string Name;
 			public OutlineCase Shape;
-			public int SideSegments = 1;
 			public float2 Center;
 			public int Bursts;
 			public float Offset = TestStarburstOffset;
@@ -1931,10 +1900,6 @@ namespace VisualPinball.Unity.Test
 				Name = "offset past the rim and the floor", Shape = SharpSquare,
 				Center = new float2(0f, 0f), Bursts = 2, Offset = 100f,
 			},
-			new() {
-				Name = "subdivided sides, flat", Shape = Rectangle(25.4f, 25.4f, 0f, 1), SideSegments = 2,
-				Center = TestStarburstCenter, Bursts = 9, Offset = 0f,
-			},
 			new() { Name = "128 bursts", Shape = TriangleCases[0], Center = TestStarburstCenter, Bursts = 128 },
 			new() { Name = "128 bursts, centre inside", Shape = RectangleCases[0], Center = float2.zero, Bursts = 128 },
 			new() { Name = "rounded, centre inside", Shape = RectangleCases[0], Center = new float2(5f, -10f), Bursts = 12 },
@@ -1972,7 +1937,7 @@ namespace VisualPinball.Unity.Test
 
 		private static Mesh BuildStarburstMesh(StarburstCase test, out InsertOutline outline, out InsertStarburst starburst)
 		{
-			outline = Build(test.Shape, sideSegments: test.SideSegments);
+			outline = Build(test.Shape);
 			var body = new InsertBody {
 				Depth = TestDepth,
 				ChannelWidth = outline.ClampInset(test.ChannelWidth),
@@ -2378,7 +2343,7 @@ namespace VisualPinball.Unity.Test
 			// well outside the shape.
 			var warnings = new List<string>();
 			var outline = InsertOutlineBuilder.Build(InsertShapes.RectangleCorners(100f, 100f,
-				new InsertCornerSettings(50f, 1)), 1);
+				new InsertCornerSettings(50f, 1)));
 			var inset = outline.ClampInset(TestChannelWidth);
 			var island = Enumerable.Range(0, outline.Points.Count).Select(i => outline.OffsetPoint(i, inset)).ToList();
 

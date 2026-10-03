@@ -426,7 +426,7 @@ namespace VisualPinball.Unity
 
 		private const float Tau = 2f * math.PI;
 
-		public static InsertOutline Build(IReadOnlyList<InsertCorner> corners, int sideSegments = 1, bool center = true)
+		public static InsertOutline Build(IReadOnlyList<InsertCorner> corners, bool center = true)
 		{
 			if (corners.Count < 3) {
 				throw new InsertOutlineException("An outline needs at least three corners.");
@@ -464,7 +464,6 @@ namespace VisualPinball.Unity
 				}
 			}
 
-			sideSegments = math.max(sideSegments, 1);
 			var points = new List<InsertOutlinePoint>();
 			foreach (var corner in resolved) {
 				if (corner.Radius <= Epsilon) {
@@ -500,24 +499,6 @@ namespace VisualPinball.Unity
 							Miter = 1f,
 						});
 					}
-				}
-
-				var following = resolved[(corner.Index + 1) % resolved.Count];
-				var start = points[^1].Position;
-				var end = CornerEntry(following);
-				var sideNormal = OutwardNormal(corner.Outgoing);
-				var steps = corner.Chord ? 1 : sideSegments;
-				for (var step = 1; step < steps; step++) {
-					var t = (float)step / sideSegments;
-					points.Add(new InsertOutlinePoint {
-						Position = start + (end - start) * t,
-						Normal = sideNormal,
-						Kind = InsertOutlinePointKind.Side,
-						Corner = -1,
-						Side = corner.Index,
-						T = t,
-						Miter = 1f,
-					});
 				}
 			}
 

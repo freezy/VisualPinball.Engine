@@ -139,7 +139,7 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldBuildARibbedFloor()
 		{
-			var outline = InsertOutlineBuilder.Build(InsertShapes.RectangleCorners(40f, 30f, new InsertCornerSettings(3f, 6)), 1);
+			var outline = InsertOutlineBuilder.Build(InsertShapes.RectangleCorners(40f, 30f, new InsertCornerSettings(3f, 6)));
 			var inset = outline.ClampInset(3f);
 			var body = new InsertBody {
 				Depth = 20f,

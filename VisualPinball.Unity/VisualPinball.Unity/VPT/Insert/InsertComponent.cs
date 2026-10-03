@@ -231,7 +231,7 @@ namespace VisualPinball.Unity
 
 		[SerializeField]
 		[Range(6, 128)]
-		[Tooltip("How many straight sides the circle is drawn with, which is all the sampling a circle gets: Side Segments do not apply.")]
+		[Tooltip("How many straight sides the circle is drawn with, which is all the sampling a circle gets.")]
 		private int _circleVertices = 32;
 
 		[SerializeField]
@@ -253,11 +253,6 @@ namespace VisualPinball.Unity
 		[Range(2, 32)]
 		[Tooltip("How many straight sides each of the banana's rounded ends is drawn with.")]
 		private int _bananaEndSegments = 8;
-
-		[SerializeField]
-		[Range(1, 32)]
-		[Tooltip("Subdivisions along each straight run. Raise it to even out the vertex spacing against heavily rounded corners.")]
-		private int _sideSegments = 1;
 
 		[SerializeField]
 		[Min(0.01f)]
@@ -815,10 +810,7 @@ namespace VisualPinball.Unity
 				// inserts as they come in.
 				warnings.Add("The source mesh's Read/Write is off: it works here, but a build cannot read it. Enable Read/Write in its import settings.");
 			}
-			// A circle's or a banana's sides are its sampling already; subdividing
-			// them further only multiplies wall charts and lets the inset clamp
-			// trip on the samples nearest each corner.
-			return InsertOutlineBuilder.Build(corners, Sampled ? 1 : _sideSegments);
+			return InsertOutlineBuilder.Build(corners);
 		}
 
 		/// <summary>
@@ -843,9 +835,7 @@ namespace VisualPinball.Unity
 			}
 			InsertOutline line;
 			try {
-				// The line's straight runs need no subdividing: the trough along
-				// them is flat, and every point costs a column of faces.
-				line = InsertOutlineBuilder.Build(corners, 1, center: false);
+				line = InsertOutlineBuilder.Build(corners, center: false);
 			} catch (InsertOutlineException e) {
 				warnings.Add($"The engraved line cannot be drawn: {e.Message}");
 				return null;
