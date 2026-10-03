@@ -88,6 +88,12 @@ Note that you cannot change the *ID* of the lamp, because it's still linked to t
 
 In Visual Pinball, you can put GI lamps into a collection and address the whole collection at once via script. VPE provides [light groups](xref:light_groups) as a similar feature.
 
+## Lamp Type
+
+The **Lamp** dropdown in the toolbar says what kind of bulb lights the table: **Incandescent**, one of the LED kits, or **Custom**. It is read from the table's inserts, and choosing one puts that bulb under every [insert](inserts/lighting.md#choose-the-kind-of-bulb) — colour, output and fades — and gives every other lamp its fades, so a filament table warms up and cools down everywhere and an LED kit snaps everywhere. Flashers keep their own fades, being another kind of bulb, and no Light's colour is touched: GI and flashers keep the colour they were given.
+
+It works while the game runs in the editor, so a table can be judged under both kinds of lamp without leaving play mode; the fades take effect at the next lamp change, and a mapping that drives an RGB lamp keeps driving its colour.
+
 ## Editor vs Runtime
 
 While editing the table in the Unity editor, you may find it helpful to disable lamps you're not editing. You can quickly do that with the top-right controls, which allow you to toggle selectively GIs, inserts, flashers, lamps selected in the manager, or all lamps. You can also quickly select the light source to quickly edit multiple lights.

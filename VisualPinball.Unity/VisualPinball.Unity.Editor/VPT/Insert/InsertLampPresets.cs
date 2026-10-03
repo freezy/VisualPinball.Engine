@@ -73,6 +73,46 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		/// <summary>
+		/// The lamp every insert light of the table follows, or null when they
+		/// follow none or not all the same. <paramref name="mixed"/> tells the two apart.
+		/// </summary>
+		public static InsertLampPreset TableLamp(TableComponent table, out bool mixed)
+		{
+			var names = table.GetComponentsInChildren<InsertLightComponent>(true).Select(light => light.Lamp).Distinct().ToArray();
+			mixed = names.Length > 1;
+			return names.Length == 1 ? Find().FirstOrDefault(preset => preset.LampName == names[0]) : null;
+		}
+
+		/// <summary>
+		/// Puts the bulb under every insert of the table, and gives the table's
+		/// other lamps its fades: a Light under the playfield is the same kind of
+		/// bulb, with a colour of its own. Flashers keep theirs, being another
+		/// bulb altogether. Works while the game runs in the editor, too: fades
+		/// are read live, and a lamp mapping keeps driving the colour it drives.
+		/// </summary>
+		/// <returns>How many insert lights and how many other lamps took the preset</returns>
+		public static (int Inserts, int Lamps) ApplyToTable(InsertLampPreset preset, TableComponent table)
+		{
+			var inserts = table.GetComponentsInChildren<InsertLightComponent>(true);
+			Apply(preset, inserts);
+			if (preset == null) {
+				return (inserts.Length, 0);
+			}
+			var flashers = new HashSet<ILampDeviceComponent>(table.MappingConfig.Lamps.Where(mapping => mapping.IsCoil && mapping.Device != null).Select(mapping => mapping.Device));
+			var lamps = table.GetComponentsInChildren<LightComponent>(true).Where(light => !flashers.Contains(light)).ToArray();
+			if (lamps.Length > 0) {
+				Undo.RecordObjects(lamps.Cast<Object>().ToArray(), "Apply Insert Lamp Preset");
+				foreach (var light in lamps) {
+					light.FadeSpeedUp = preset.FadeSpeedUp;
+					light.FadeSpeedDown = preset.FadeSpeedDown;
+					EditorUtility.SetDirty(light);
+					PrefabUtility.RecordPrefabInstancePropertyModifications(light);
+				}
+			}
+			return (inserts.Length, lamps.Length);
+		}
+
 		/// <summary>Every insert light of the table the light is on, or of its scene without a table.</summary>
 		public static InsertLightComponent[] Siblings(InsertLightComponent light)
 		{

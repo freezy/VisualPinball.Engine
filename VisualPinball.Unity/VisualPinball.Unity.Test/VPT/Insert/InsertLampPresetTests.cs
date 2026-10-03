@@ -21,6 +21,50 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldLightTheWholeTableButTheFlashers()
+		{
+			var preset = ScriptableObject.CreateInstance<InsertLampPreset>();
+			var table = new GameObject("Table");
+			try {
+				preset.LampName = "Test Lamp";
+				preset.Color = new Color(1f, 0.6f, 0.3f);
+				preset.FadeSpeedUp = 0.1f;
+				preset.FadeSpeedDown = 0.3f;
+				var tableComponent = table.AddComponent<TableComponent>();
+				var insert = new GameObject("Insert").AddComponent<InsertComponent>().gameObject.AddComponent<InsertLightComponent>();
+				insert.transform.SetParent(table.transform);
+				var lamp = new GameObject("Lamp").AddComponent<LightComponent>();
+				lamp.transform.SetParent(table.transform);
+				var flasher = new GameObject("Flasher").AddComponent<LightComponent>();
+				flasher.transform.SetParent(table.transform);
+				tableComponent.MappingConfig.AddLamp(new LampMapping { IsCoil = true, Device = flasher });
+
+				var (inserts, lamps) = InsertLampPresets.ApplyToTable(preset, tableComponent);
+
+				Assert.That((inserts, lamps), Is.EqualTo((1, 1)));
+				Assert.That(insert.Lamp, Is.EqualTo("Test Lamp"));
+				Assert.That(insert.Color, Is.EqualTo(preset.Color));
+				Assert.That((lamp.FadeSpeedUp, lamp.FadeSpeedDown), Is.EqualTo((0.1f, 0.3f)), "a lamp takes the fades");
+				Assert.That((flasher.FadeSpeedUp, flasher.FadeSpeedDown), Is.EqualTo((0f, 0f)), "a flasher keeps its own");
+				// The preset is not an asset, so the table's lamp resolves to none; it is at least not mixed.
+				Assert.That(InsertLampPresets.TableLamp(tableComponent, out var mixed), Is.Null);
+				Assert.That(mixed, Is.False);
+				insert.Lamp = "Another";
+				var second = new GameObject("Insert 2").AddComponent<InsertComponent>().gameObject.AddComponent<InsertLightComponent>();
+				second.transform.SetParent(table.transform);
+				second.Lamp = "Test Lamp";
+				InsertLampPresets.TableLamp(tableComponent, out mixed);
+				Assert.That(mixed, Is.True, "two inserts with different lamps are mixed");
+			} finally {
+				foreach (var filter in table.GetComponentsInChildren<MeshFilter>(true)) {
+					if (filter.sharedMesh != null) { Object.DestroyImmediate(filter.sharedMesh); }
+				}
+				Object.DestroyImmediate(table);
+				Object.DestroyImmediate(preset);
+			}
+		}
+
+		[Test]
 		public void ShouldGiveEveryBulbThePresetAndNoticeEdits()
 		{
 			var preset = ScriptableObject.CreateInstance<InsertLampPreset>();

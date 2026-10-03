@@ -111,6 +111,8 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 
+			DrawLampPreset();
+
 			GUILayout.FlexibleSpace();
 
 			_toggleAction = (ToggleAction)EditorGUILayout.EnumPopup(_toggleAction);
@@ -128,6 +130,33 @@ namespace VisualPinball.Unity.Editor
 					: lights.Select(l => l.gameObject.transform.parent.gameObject as Object).ToArray();
 			}
 			_toggleSource = GUILayout.Toggle(_toggleSource, "Source");
+		}
+
+		/// <summary>
+		/// The kind of bulb the table is lit by: a dropdown of the lamp presets,
+		/// read from the inserts, that puts the chosen bulb under every insert
+		/// and its fades on every other lamp, flashers aside. It works during
+		/// a game in the editor too, so a table can be judged under both.
+		/// </summary>
+		private void DrawLampPreset()
+		{
+			if (TableComponent == null) {
+				return;
+			}
+			var presets = InsertLampPresets.Find();
+			var names = presets.Select(preset => preset.LampName).Append("Custom").ToArray();
+			var current = InsertLampPresets.TableLamp(TableComponent, out var mixed);
+			var index = current != null ? Array.IndexOf(presets, current) : presets.Length;
+			GUILayout.Space(8f);
+			GUILayout.Label(new GUIContent("Lamp", "The kind of bulb the table is lit by: its colour, output and fades go under every insert, and its fades to every other lamp but the flashers. Taken from the inserts; Custom leaves everything as it is."), GUILayout.ExpandWidth(false));
+			EditorGUI.showMixedValue = mixed;
+			EditorGUI.BeginChangeCheck();
+			var chosen = EditorGUILayout.Popup(index, names, GUILayout.Width(130f));
+			EditorGUI.showMixedValue = false;
+			if (EditorGUI.EndChangeCheck()) {
+				var (inserts, lamps) = InsertLampPresets.ApplyToTable(chosen < presets.Length ? presets[chosen] : null, TableComponent);
+				Logger.Info($"Lamp Manager: {names[chosen]} under {inserts} inserts and {lamps} other lamps.");
+			}
 		}
 
 		private void Toggle(Action<Light> action)
