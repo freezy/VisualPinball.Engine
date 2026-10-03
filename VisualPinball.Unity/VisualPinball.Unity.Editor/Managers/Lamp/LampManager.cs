@@ -166,6 +166,7 @@ namespace VisualPinball.Unity.Editor
 			if (current != null && !mixed) {
 				_lampSettings = GUILayout.Toggle(_lampSettings, new GUIContent("Settings", $"Edit the {current.LampName} lamp here: its colour, output and fades go to the preset, and from there under every insert of the table, as you change them."), EditorStyles.miniButton, GUILayout.ExpandWidth(false));
 			}
+			InsertPresetGui.EditButton(InsertPresetWindow.Kind.Lamp, current);
 		}
 
 		private static bool _lampSettings;

@@ -204,13 +204,16 @@ namespace VisualPinball.Unity.Editor
 			var mixed = lights.Any(light => light.Lamp != lights[0].Lamp);
 			var index = first >= 0 ? first : presets.Length;
 			using (new EditorGUI.DisabledScope(Application.isPlaying)) {
-				EditorGUI.showMixedValue = mixed;
-				EditorGUI.BeginChangeCheck();
-				var chosen = EditorGUILayout.Popup(new GUIContent("Lamp", "The kind of bulb under the insert: its colour, how much light it gives and how it fades. The plastic's colour is the material's; this is the lamp behind it. Custom keeps the values as they are."), index, names);
-				EditorGUI.showMixedValue = false;
-				if (EditorGUI.EndChangeCheck()) {
-					InsertLampPresets.Apply(chosen < presets.Length ? presets[chosen] : null, lights);
-					serializedObject.Update();
+				using (new EditorGUILayout.HorizontalScope()) {
+					EditorGUI.showMixedValue = mixed;
+					EditorGUI.BeginChangeCheck();
+					var chosen = EditorGUILayout.Popup(new GUIContent("Lamp", "The kind of bulb under the insert: its colour, how much light it gives and how it fades. The plastic's colour is the material's; this is the lamp behind it. Custom keeps the values as they are. Edit… opens the Insert Presets window, where the lamps live and new ones are made."), index, names);
+					EditorGUI.showMixedValue = false;
+					if (EditorGUI.EndChangeCheck()) {
+						InsertLampPresets.Apply(chosen < presets.Length ? presets[chosen] : null, lights);
+						serializedObject.Update();
+					}
+					InsertPresetGui.EditButton(InsertPresetWindow.Kind.Lamp, first >= 0 && !mixed ? presets[first] : null);
 				}
 				Field(_output, "Output");
 				var followed = first >= 0 && !mixed ? presets[first] : null;

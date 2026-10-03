@@ -114,7 +114,6 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _bakeSettings;
 		private SerializedProperty _coverMaterial;
 		private SerializedProperty _usePlayfieldNormals;
-		private SerializedProperty _roughness;
 		private SerializedProperty _coverPlayfield;
 
 		private static readonly int[] TextureSizes = { 256, 512, 1024, 2048, 4096 };
@@ -129,7 +128,6 @@ namespace VisualPinball.Unity.Editor
 		private const string BakeKey = "VisualPinball.Insert.Bake";
 		private const string CoverKey = "VisualPinball.Insert.Cover";
 		private const string PresetKey = "VisualPinball.Insert.Preset";
-		private const string WearKey = "VisualPinball.Insert.Wear";
 
 		private void OnEnable()
 		{
@@ -215,7 +213,6 @@ namespace VisualPinball.Unity.Editor
 			_bakeSettings = serializedObject.FindProperty("_bakeSettings");
 			_coverMaterial = serializedObject.FindProperty("_coverMaterial");
 			_usePlayfieldNormals = serializedObject.FindProperty("_usePlayfieldNormals");
-			_roughness = serializedObject.FindProperty("_roughness");
 			_coverPlayfield = serializedObject.FindProperty("_coverPlayfield");
 		}
 
@@ -257,23 +254,6 @@ namespace VisualPinball.Unity.Editor
 
 			if (InsertSection.Begin(PresetKey, "Presets")) {
 				DrawPresets();
-			}
-			InsertSection.End();
-
-			if (InsertSection.Begin(WearKey, "Wear")) {
-				// Through the component, so the body's block takes it at once.
-				EditorGUI.showMixedValue = _roughness.hasMultipleDifferentValues;
-				EditorGUI.BeginChangeCheck();
-				var roughness = EditorGUILayout.Slider(new GUIContent("Roughness", _roughness.tooltip), _roughness.floatValue, 0f, 1f);
-				EditorGUI.showMixedValue = false;
-				if (EditorGUI.EndChangeCheck()) {
-					Undo.RecordObjects(targets, "Set Insert Roughness");
-					foreach (var t in targets) {
-						((InsertComponent)t).Roughness = roughness;
-						PrefabUtility.RecordPrefabInstancePropertyModifications(t);
-					}
-					serializedObject.Update();
-				}
 			}
 			InsertSection.End();
 
@@ -1154,36 +1134,35 @@ namespace VisualPinball.Unity.Editor
 			SubHeader("Color");
 			var colors = InsertColorPresets.Find();
 			if (colors.Length == 0) {
-				EditorGUILayout.HelpBox("No insert color presets found.", MessageType.Warning);
+				EditorGUILayout.HelpBox("No insert color presets found. Pinball → Insert Presets lists where they live and adds one.", MessageType.Warning);
+			}
+			var worn = new HashSet<int>();
+			var current = inserts.Select(insert => insert.GetComponent<MeshRenderer>().sharedMaterial).Where(material => material != null).Select(InsertColorPresets.LinkedPreset).Distinct().ToArray();
+			if (current.Length == 1 && current[0] != null) {
+				worn.Add(System.Array.IndexOf(colors, current[0]));
 			}
 			using (new EditorGUI.DisabledScope(!revealAsset && (EditorApplication.isPlaying || !inserts.Any(InsertColorPresets.CanApply)))) {
-				using (new EditorGUILayout.HorizontalScope()) {
-					foreach (var color in colors) {
-						var clicked = GUILayout.Button(new GUIContent(string.Empty, $"{color.ColorName}. Materials made for it follow the preset when it changes. Ctrl/Cmd+click to highlight the preset asset in the Project window. Ctrl/Cmd+Shift+click to create missing materials next to the insert's own when those are in a package that can be written to, instead of in the project."), GUIStyle.none, GUILayout.Width(36f), GUILayout.Height(36f));
-						var swatch = GUILayoutUtility.GetLastRect();
-						var fill = GUI.enabled ? color.Swatch : Color.Lerp(color.Swatch, Color.gray, 0.75f);
-						EditorGUI.DrawRect(swatch, new Color(0.13f, 0.13f, 0.13f));
-						EditorGUI.DrawRect(new Rect(swatch.x + 1f, swatch.y + 1f, swatch.width - 2f, swatch.height - 2f), fill);
-						if (clicked) {
-							if (revealAsset) {
-								EditorGUIUtility.PingObject(color);
-								continue;
-							}
-							Undo.IncrementCurrentGroup();
-							var group = Undo.GetCurrentGroup();
-							Undo.SetCurrentGroupName("Apply Insert Color Preset");
-							var changed = 0;
-							try {
-								foreach (var insert in inserts) {
-									if (InsertColorPresets.Apply(color, insert, toPackage)) {
-										changed++;
-									}
+				var labels = colors.Select(color => InsertPresetGui.Label(color, $"{color.ColorName}. {InsertPresetGui.Where(color)} Materials made for it follow the preset when it changes. Ctrl/Cmd+click to highlight the asset. Ctrl/Cmd+Shift+click to create missing materials next to the insert's own when those are in a package that can be written to, instead of in the project.")).ToArray();
+				var clicked = InsertPresetGui.Buttons(labels, worn, () => InsertPresetGui.EditButton(InsertPresetWindow.Kind.Color, current.Length == 1 ? current[0] : null), 64f);
+				if (clicked >= 0) {
+					var color = colors[clicked];
+					if (revealAsset) {
+						EditorGUIUtility.PingObject(color);
+					} else {
+						Undo.IncrementCurrentGroup();
+						var group = Undo.GetCurrentGroup();
+						Undo.SetCurrentGroupName("Apply Insert Color Preset");
+						var changed = 0;
+						try {
+							foreach (var insert in inserts) {
+								if (InsertColorPresets.Apply(color, insert, toPackage)) {
+									changed++;
 								}
-							} finally {
-								Undo.CollapseUndoOperations(group);
 							}
-							Debug.Log($"Applied {color.ColorName} color preset to {changed} insert(s).");
+						} finally {
+							Undo.CollapseUndoOperations(group);
 						}
+						Debug.Log($"Applied {color.ColorName} color preset to {changed} insert(s).");
 					}
 				}
 			}
@@ -1204,31 +1183,32 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			var presets = InsertMaterialPresets.Find();
-			using (new EditorGUILayout.HorizontalScope()) {
-				using (new EditorGUI.DisabledScope(!revealAsset && (styled == 0 || EditorApplication.isPlaying))) {
-					foreach (var preset in presets) {
-						var current = followed.Length == 1 && followed[0] == preset;
-						if (GUILayout.Toggle(current, new GUIContent(preset.name, $"{preset.name}: links every selected insert's body material to this look, which gives it the look's values now and whenever the look changes. Colors, Max Brightness, maps, lamps and the cover stay as they are. A shared body material changes for all inserts that use it. Ctrl/Cmd+click to highlight the preset asset in the Project window."), EditorStyles.miniButton, GUILayout.MinWidth(24f), GUILayout.MaxWidth(120f), GUILayout.ExpandWidth(false), GUILayout.Height(24f)) && !current) {
-							if (revealAsset) {
-								EditorGUIUtility.PingObject(preset);
-								continue;
-							}
-							if (InsertMaterialPresets.LinkAsking(bodies, preset, bodies.Length == 1, "This insert's")) {
-								Debug.Log($"Linked {bodies.Length} body material(s) to the look \"{preset.name}\".");
+			var following = new HashSet<int>();
+			if (followed.Length == 1 && followed[0] != null) {
+				following.Add(System.Array.IndexOf(presets, followed[0]));
+			}
+			using (new EditorGUI.DisabledScope(!revealAsset && (styled == 0 || EditorApplication.isPlaying))) {
+				var labels = presets.Select(preset => InsertPresetGui.Label(preset, $"{preset.name}: links every selected insert's body material to this look, which gives it the look's values now and whenever the look changes. {InsertPresetGui.Where(preset)} Colors, Max Brightness, maps, lamps and the cover stay as they are. A shared body material changes for all inserts that use it. Ctrl/Cmd+click to highlight the asset.")).ToArray();
+				var clicked = InsertPresetGui.Buttons(labels, following, () => {
+					InsertPresetGui.EditButton(InsertPresetWindow.Kind.Look, followed.Length == 1 ? followed[0] : null);
+					using (new EditorGUI.DisabledScope(inserts.Length != 1 || styled == 0 || EditorApplication.isPlaying)) {
+						if (GUILayout.Button(new GUIContent("+", "Save this insert's current look as a new preset in the project, and have its body material follow it."), EditorStyles.miniButton, GUILayout.Width(24f))) {
+							var saved = InsertMaterialPresets.SaveAs(inserts[0]);
+							if (saved != null) {
+								EditorGUIUtility.PingObject(saved);
 							}
 							GUIUtility.ExitGUI();
 						}
 					}
-				}
-				GUILayout.FlexibleSpace();
-				using (new EditorGUI.DisabledScope(inserts.Length != 1 || styled == 0 || EditorApplication.isPlaying)) {
-					if (GUILayout.Button(new GUIContent("+", "Save this insert's current look as a new preset, and have its body material follow it."), GUILayout.Width(24f), GUILayout.Height(24f))) {
-						var saved = InsertMaterialPresets.SaveAs(inserts[0]);
-						if (saved != null) {
-							EditorGUIUtility.PingObject(saved);
-						}
-						GUIUtility.ExitGUI();
+				}, 92f);
+				if (clicked >= 0) {
+					var preset = presets[clicked];
+					if (revealAsset) {
+						EditorGUIUtility.PingObject(preset);
+					} else if (InsertMaterialPresets.LinkAsking(bodies, preset, bodies.Length == 1, "This insert's")) {
+						Debug.Log($"Linked {bodies.Length} body material(s) to the look \"{preset.name}\".");
 					}
+					GUIUtility.ExitGUI();
 				}
 			}
 			if (presets.Length == 0) {
