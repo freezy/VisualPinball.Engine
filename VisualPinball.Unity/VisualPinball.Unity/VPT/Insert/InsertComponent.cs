@@ -457,11 +457,6 @@ namespace VisualPinball.Unity
 		private bool _usePlayfieldNormals;
 
 		[SerializeField]
-		[Range(0f, 1f)]
-		[Tooltip("How worn this insert's plastic is on top, under the clearcoat: zero is the body material's finish, one a top the ball has sanded, matte and grainy in its reflections, with the ribs and the lamp's rays gone soft into the glow. This insert's own, over the body material it shares with the others.")]
-		private float _roughness;
-
-		[SerializeField]
 		[Tooltip("Optional surface renderer override. Leave empty to find the playfield in this table automatically.")]
 		private MeshRenderer _coverPlayfield;
 
@@ -543,36 +538,6 @@ namespace VisualPinball.Unity
 		public Material CoverMaterial => _coverMaterial;
 		public MeshRenderer CoverPlayfield => _coverPlayfield != null ? _coverPlayfield : _autoCoverPlayfield;
 		public string CoverWarning { get; private set; }
-		/// <summary>How worn this insert's plastic is on top, zero to one, written into the body's property block.</summary>
-		public float Roughness
-		{
-			get => _roughness;
-			set {
-				_roughness = math.saturate(value);
-				ApplyRoughness();
-			}
-		}
-
-		private static readonly int RoughnessId = Shader.PropertyToID("_InsertRoughness");
-		private MaterialPropertyBlock _bodyProperties;
-
-		/// <summary>
-		/// Writes this insert's wear into the body's property block, which the
-		/// insert light shares and reads before it writes: the material is the
-		/// shape's and every colour's, the wear is this insert's.
-		/// </summary>
-		private void ApplyRoughness()
-		{
-			var renderer = GetComponent<MeshRenderer>();
-			if (renderer == null) {
-				return;
-			}
-			_bodyProperties ??= new MaterialPropertyBlock();
-			renderer.GetPropertyBlock(_bodyProperties, 0);
-			_bodyProperties.SetFloat(RoughnessId, _roughness);
-			renderer.SetPropertyBlock(_bodyProperties, 0);
-		}
-
 		public bool UsePlayfieldNormals
 		{
 			get => _usePlayfieldNormals;
@@ -1110,8 +1075,6 @@ namespace VisualPinball.Unity
 #if UNITY_EDITOR
 			ClaimId();
 #endif
-			// The block is not serialized: the wear goes back in with the component.
-			ApplyRoughness();
 			if (_usesPackagedMesh) {
 				UsePackagedMesh();
 				return;

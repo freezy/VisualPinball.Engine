@@ -10,17 +10,14 @@ namespace VisualPinball.Unity
 	public struct InsertPackable
 	{
 		public bool UsePlayfieldNormals;
-		public float Roughness;
 
 		public static byte[] Pack(InsertComponent insert) => PackageApi.Packer.Pack(new InsertPackable {
 			UsePlayfieldNormals = insert.UsePlayfieldNormals,
-			Roughness = insert.Roughness,
 		});
 
 		public static void Unpack(byte[] bytes, InsertComponent insert)
 		{
 			var data = PackageApi.Packer.Unpack<InsertPackable>(bytes);
-			insert.Roughness = data.Roughness;
 			insert.RestoreCoverState(data.UsePlayfieldNormals, null);
 			insert.UseImportedMesh(true);
 		}
