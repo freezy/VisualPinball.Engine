@@ -119,6 +119,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			DrawLampPreset();
+			DrawInsertBrightness();
 
 			GUILayout.FlexibleSpace();
 
@@ -170,6 +171,33 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		private static bool _lampSettings;
+
+		/// <summary>
+		/// The table's insert brightness: a factor on every insert's output and
+		/// spill, and the default the player starts the table with until its
+		/// user sets another. A field, not a slider: it's the author's number,
+		/// and works while the game runs.
+		/// </summary>
+		private void DrawInsertBrightness()
+		{
+			if (TableComponent == null) {
+				return;
+			}
+			GUILayout.Space(8f);
+			GUILayout.Label(new GUIContent("Insert Brightness:", "A factor on every insert's output and spill. It's the table's default: the player lets its user change it per table."), GUILayout.ExpandWidth(false));
+			EditorGUI.BeginChangeCheck();
+			var brightness = EditorGUILayout.FloatField(TableComponent.InsertBrightness, GUILayout.Width(40f));
+			if (EditorGUI.EndChangeCheck()) {
+				RecordUndo("Change Insert Brightness");
+				TableComponent.InsertBrightness = Mathf.Max(0f, brightness);
+				EditorUtility.SetDirty(TableComponent);
+				PrefabUtility.RecordPrefabInstancePropertyModifications(TableComponent);
+				foreach (var insert in TableComponent.GetComponentsInChildren<InsertLightComponent>(true)) {
+					insert.Apply();
+				}
+				SceneView.RepaintAll();
+			}
+		}
 
 		/// <summary>
 		/// The table's lamp, editable where it is used: the preset's four values,

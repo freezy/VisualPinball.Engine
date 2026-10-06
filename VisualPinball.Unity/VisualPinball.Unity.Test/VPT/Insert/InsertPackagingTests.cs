@@ -261,6 +261,28 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void TableInsertBrightnessRoundTrips()
+		{
+			var source = new GameObject("Table").AddComponent<TableComponent>();
+			var target = new GameObject("Restored").AddComponent<TableComponent>();
+			var legacy = new GameObject("Legacy").AddComponent<TableComponent>();
+			try {
+				source.InsertBrightness = 0.6f;
+
+				target.Unpack(source.Pack());
+				legacy.Unpack(System.Text.Encoding.UTF8.GetBytes("{\"GlobalDifficulty\":0.3}"));
+
+				Assert.That(target.InsertBrightness, Is.EqualTo(0.6f));
+				Assert.That(legacy.InsertBrightness, Is.EqualTo(1f), "a package from before the setting keeps the default");
+				Assert.That(legacy.GlobalDifficulty, Is.EqualTo(0.3f));
+			} finally {
+				Object.DestroyImmediate(source.gameObject);
+				Object.DestroyImmediate(target.gameObject);
+				Object.DestroyImmediate(legacy.gameObject);
+			}
+		}
+
+		[Test]
 		public void InsertLightStateAndSpillReferenceRoundTrip()
 		{
 			var go = new GameObject("Insert Lamp");

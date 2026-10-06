@@ -132,6 +132,7 @@ namespace VisualPinball.Unity
 		private static readonly int EmissionId = Shader.PropertyToID("_EmissiveColor");
 		private MeshRenderer _renderer;
 		private LightComponent _driver;
+		private TableComponent _table;
 		private MaterialPropertyBlock _properties;
 		private MaterialPropertyBlock _coverProperties;
 		private readonly List<Material> _materials = new();
@@ -243,6 +244,12 @@ namespace VisualPinball.Unity
 			var renderer = _renderer != null ? _renderer : GetComponent<MeshRenderer>();
 			return renderer != null ? renderer.sharedMaterial : null;
 		}
+
+		/// <summary>
+		/// The table's insert brightness, a factor on the output: the author's
+		/// default, or what the player's user set it to. One without a table.
+		/// </summary>
+		public float InsertBrightness => _table != null ? math.max(0f, _table.InsertBrightness) : 1f;
 
 		/// <summary>
 		/// How many bulbs the material has switched on: the first and those
@@ -504,11 +511,17 @@ namespace VisualPinball.Unity
 			RegisterWithPlayer();
 			_renderer = GetComponent<MeshRenderer>();
 			_driver = GetComponentInParent<LightComponent>();
+			_table = GetComponentInParent<TableComponent>(true);
 			_properties ??= new MaterialPropertyBlock();
 			Apply();
 		}
 
-		private void OnTransformParentChanged() => _driver = GetComponentInParent<LightComponent>();
+		private void OnTransformParentChanged()
+		{
+			_driver = GetComponentInParent<LightComponent>();
+			_table = GetComponentInParent<TableComponent>(true);
+		}
+
 		private void LateUpdate() => Apply();
 
 		/// <summary>Apply authoring changes immediately, or follow the current VPE lamp state.</summary>
@@ -544,7 +557,8 @@ namespace VisualPinball.Unity
 				_properties.SetVector(ColorId, (Vector4)color);
 			}
 			_properties.SetFloat(TintId, TintWithLamp ? math.saturate(LampTint) : 0f);
-			var output = math.max(0f, Output);
+			// The table's insert brightness scales the bulb, in the shader and the spill alike.
+			var output = math.max(0f, Output) * InsertBrightness;
 			_properties.SetFloat(OutputId, output);
 			var spillLevel = level;
 			var spillColor = color * level;

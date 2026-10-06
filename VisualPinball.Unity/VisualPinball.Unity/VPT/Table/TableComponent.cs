@@ -47,6 +47,14 @@ namespace VisualPinball.Unity
 		public float GlobalDifficulty = 0.2f;
 		public int OverridePhysics;
 		public float NudgeTime = 5f;
+		/// <summary>
+		/// How bright the inserts are, as a factor on every insert light's output
+		/// and spill. The table's default, set in Lamp Manager; the player lets
+		/// the user change it per table.
+		/// </summary>
+		[Tooltip("How bright the inserts are, as a factor on every insert light's output and spill. The player lets the user change it.")]
+		[Min(0f)]
+		public float InsertBrightness = 1f;
 
 		#endregion
 

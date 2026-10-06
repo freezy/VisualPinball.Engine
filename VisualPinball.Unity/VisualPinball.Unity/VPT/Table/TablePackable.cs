@@ -21,11 +21,14 @@ namespace VisualPinball.Unity
 	public struct TablePackable
 	{
 		public float GlobalDifficulty;
+		// Optional: packages written before it keep the component's default.
+		public float? InsertBrightness;
 
 		public static byte[] Pack(TableComponent comp)
 		{
 			return PackageApi.Packer.Pack(new TablePackable {
 				GlobalDifficulty = comp.GlobalDifficulty,
+				InsertBrightness = comp.InsertBrightness,
 			});
 		}
 
@@ -33,6 +36,7 @@ namespace VisualPinball.Unity
 		{
 			var data = PackageApi.Packer.Unpack<TablePackable>(bytes);
 			comp.GlobalDifficulty = data.GlobalDifficulty;
+			comp.InsertBrightness = data.InsertBrightness ?? comp.InsertBrightness;
 		}
 	}
 }

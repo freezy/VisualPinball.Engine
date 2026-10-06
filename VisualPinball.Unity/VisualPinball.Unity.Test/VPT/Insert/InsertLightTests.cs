@@ -734,9 +734,61 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldScaleTheLensAndSpillByTheTablesInsertBrightness()
+		{
+			var shader = Shader.Find("Pinball/Insert Hybrid");
+			if (shader == null) {
+				Assert.Ignore("Requires the HDRP insert shader.");
+			}
+			var material = new Material(shader);
+			material.SetFloat("_InsertLuminosity", 1f);
+			var root = new GameObject("Insert brightness test");
+			Mesh mesh = null;
+			try {
+				var table = root.AddComponent<TableComponent>();
+				var go = new GameObject("Insert");
+				go.transform.SetParent(root.transform);
+				var insert = go.AddComponent<InsertComponent>();
+				insert.RebuildMesh();
+				mesh = go.GetComponent<MeshFilter>().sharedMesh;
+				var renderer = go.GetComponent<MeshRenderer>();
+				renderer.sharedMaterial = material;
+				var control = go.AddComponent<InsertLightComponent>();
+				var spillObject = new GameObject("Spill");
+				spillObject.transform.SetParent(go.transform);
+				var spill = spillObject.AddComponent<Light>();
+				RenderPipeline.Current.LightConverter.UpdateLight(spill, new VisualPinball.Engine.VPT.Light.LightData(), true);
+				control.SpillLight = spill;
+				control.SpillLumens = 4;
+				control.Output = 1.5f;
+				control.Intensity = 1f;
+				control.Apply();
+				var block = new MaterialPropertyBlock();
+				renderer.GetPropertyBlock(block, 0);
+				Assert.That(block.GetFloat("_InsertLampOutput"), Is.EqualTo(1.5f), "the default brightness leaves the output alone");
+				var lit = spill.intensity;
+
+				table.InsertBrightness = 0.5f;
+				control.Apply();
+				renderer.GetPropertyBlock(block, 0);
+				Assert.That(block.GetFloat("_InsertLampOutput"), Is.EqualTo(0.75f).Within(1e-6f));
+				Assert.That(spill.intensity, Is.EqualTo(lit * 0.5f).Within(1e-4f), "the spill dims with the lens");
+				Assert.That(control.Output, Is.EqualTo(1.5f), "the bulb's own output stays as authored");
+
+				table.InsertBrightness = 0f;
+				control.Apply();
+				Assert.That(spill.enabled, Is.False);
+			} finally {
+				Object.DestroyImmediate(root);
+				Object.DestroyImmediate(material);
+				Object.DestroyImmediate(mesh);
+			}
+		}
+
+		[Test]
 		public void ShouldKeepPreviewAndRomLampEventsAfterTheInsertUpdates()
 		{
-			var shader = Shader.Find("Visual Pinball/Insert Hybrid");
+			var shader = Shader.Find("Pinball/Insert Hybrid");
 			if (shader == null) {
 				Assert.Ignore("Requires the HDRP insert shader.");
 			}

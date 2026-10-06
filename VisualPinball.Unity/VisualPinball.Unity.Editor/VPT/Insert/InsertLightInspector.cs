@@ -178,8 +178,8 @@ namespace VisualPinball.Unity.Editor
 						}
 					}
 					var material = component.GetComponent<MeshRenderer>().sharedMaterial;
-					var lumens = _spillLumens.floatValue * Mathf.Max(0f, material.GetFloat(LuminosityId)) * Mathf.Max(0f, _output.floatValue) * _intensity.floatValue;
-					EditorGUILayout.LabelField(new GUIContent("Configured Spill", "Lumens times the material's Max Brightness times the lamp's Output times the Intensity above: what the light puts out at that intensity. While playing, the game's lamp level takes the place of Intensity."), new GUIContent($"{lumens:0.###} lm"));
+					var lumens = _spillLumens.floatValue * Mathf.Max(0f, material.GetFloat(LuminosityId)) * Mathf.Max(0f, _output.floatValue) * component.InsertBrightness * _intensity.floatValue;
+					EditorGUILayout.LabelField(new GUIContent("Configured Spill", "Lumens times the material's Max Brightness times the lamp's Output times the table's Insert Brightness times the Intensity above: what the light puts out at that intensity. While playing, the game's lamp level takes the place of Intensity."), new GUIContent($"{lumens:0.###} lm"));
 				}
 			}
 			InsertSection.End();
