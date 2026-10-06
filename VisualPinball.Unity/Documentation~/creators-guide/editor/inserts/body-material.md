@@ -19,7 +19,7 @@ The pictures show two clear inserts sharing one material, with the *Clear* color
 Start with every lamp off. Choose how dark the colored body should be, or how much of a bright cavity should show through clear plastic, before setting the lit brightness.
 
 - *Color Preset* is the [color preset](presets.md#color) the material follows, which owns *Tint*, *Cavity Color*, *Lamp Emission*, and *Max Brightness*. *Copy to* puts this material's values into the preset.
-- *Look Preset* is the [look preset](presets.md#look) the material follows, which owns everything else on this page. Values edited here are marked with a •. *Copy to* makes them part of the look; *Reset to* takes the look's values back. A material of the asset library, or of a locked library, is greyed out and can't be changed; its *Color Preset* row offers to edit the inserts wearing it, which gives them copies of their own. See [Changing a color](customizing.md#changing-a-color).
+- *Look Preset* is the [look preset](presets.md#look) the material follows, which owns everything else on this page. Values edited here are marked with a •. *Copy to* makes them part of the look; *Reset to* takes the look's values back. A material of the asset library, or of a locked library, is greyed out and can't be changed; its *Color Preset* row offers to edit it for the inserts wearing it, which gives them copies of their own. See [Changing a color](customizing.md#changing-a-color).
 
 <div style="clear: both"></div>
 

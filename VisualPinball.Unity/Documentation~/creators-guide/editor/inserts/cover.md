@@ -66,7 +66,7 @@ The cover is the top of a slab of plastic as deep as the insert. What shows thro
 
 <img src="cover/inspector-haze.png" width="340" alt="The Haze section of the cover material" class="img-fluid float-end" style="margin-left: 15px"/>
 
-The haze is the veil seen over the interior. It can be nearly invisible, lightly worn, or milky. *Color Preset* is the [color preset](presets.md#color) the cover follows, which owns the *Haze Color* and the plastic's *Tint*. *Copy to* puts this material's values into the preset. A material of the asset library, or of a locked library, is greyed out and can't be changed; its *Color Preset* row offers to edit the inserts wearing it, which gives them copies of their own. See [Changing a color](customizing.md#changing-a-color).
+The haze is the veil seen over the interior. It can be nearly invisible, lightly worn, or milky. *Color Preset* is the [color preset](presets.md#color) the cover follows, which owns the *Haze Color* and the plastic's *Tint*. *Copy to* puts this material's values into the preset. A material of the asset library, or of a locked library, is greyed out and can't be changed; its *Color Preset* row offers to edit it for the inserts wearing it, which gives them copies of their own. See [Changing a color](customizing.md#changing-a-color).
 
 With *Tint With Lamp* enabled on the Insert Light component, the haze takes the local lamp hue while keeping its brightness. Without that tint, a gray veil can make a saturated lamp look pale. See [Lighting](lighting.md#tint-with-lamp).
 

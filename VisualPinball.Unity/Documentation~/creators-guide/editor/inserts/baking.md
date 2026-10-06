@@ -46,7 +46,7 @@ Once a baked hybrid material is in use, rebaking also updates its optical maps s
 
 ## Output
 
-VPE stores generated assets in an insert-specific folder under `Assets/Inserts`, named with the insert and an identifier. Subsequent bakes update that insert's owned assets and preserve its material tuning.
+VPE stores generated assets in the insert's folder. For an insert of a prefab, that's the prefab's folder at the same place under `Assets`, without the asset library's `Library` folder: the inserts of `Packages/org.visualpinball.unity.assets/Assets/Library/Inserts/Insert, Triangle, 2in, Starburst/Insert, Triangle, 2in, Starburst.prefab` go to `Assets/Inserts/Insert, Triangle, 2in, Starburst`. Every insert of that prefab shares the folder, and its files are named after the insert. An insert of no prefab gets a folder of its own under `Assets/Inserts`, named after it and an identifier. Subsequent bakes update that insert's owned assets and preserve its material tuning.
 
 | Output | What it stores | How the shader uses it |
 | --- | --- | --- |
@@ -99,7 +99,7 @@ The renderer returns when a new bake fits. Play mode and builds render the avail
 | Action / readout | Meaning |
 | --- | --- |
 | *Bake* / *Bake Again* | Generates UVs, tangents, the normal map, and requested optical maps. Available outside Play mode when the insert and Blender are valid and its bake is writable. |
-| *Fork to Project* | Copies a read-only bake, one from a package or a locked asset library, and its maps to this project's Assets/Inserts and derives writable materials. If the copied bake is stale, it starts baking the changed geometry. |
+| *Edit in project* | Copies a read-only bake, one from a package or a locked asset library, and its maps to the insert's folder in the project, described under [Output](#output), and derives writable materials. If the copied bake is stale, it starts baking the changed geometry. |
 | *Clear Bake* | Removes the bake assignment and restores the original unbaked body material. It leaves the baked assets on disk. |
 | *Use HDRP Hybrid Material* | Creates and assigns a hybrid material from a fitting bake with optical maps. The previous material asset remains available. |
 | *Copy Blender's Log* | Copies output after a bake failure for diagnosing Blender or device configuration problems. |

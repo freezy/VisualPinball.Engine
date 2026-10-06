@@ -20,27 +20,35 @@ Then connect its lamp in [*Lamp Manager*](../lamp-manager.md), as described unde
 
 Click a color square under *Presets* on the Insert component. A color is a material, so the insert gets a different material for it: VPE looks for one of that color next to the insert's current material, and if there is none, it creates one as a variant of the current material and links it to the [color preset](presets.md#color). New materials go into your project, also when the insert's material comes from a package.
 
-The plastic's molding and how it treats light is the [look preset](presets.md#look), which you choose with the buttons under the colors.
+The plastic's molding and how it treats light is the [look preset](presets.md#look), which you choose with the buttons under the colors. On a library insert, those buttons work once its materials are edited, as described below.
 
 ### Changing a color
 
+<img src="customizing/readonly-presets.png" width="340" alt="The Presets section of a library insert, with the buttons to edit its materials" class="img-fluid float-end" style="margin-left: 15px"/>
+
 The asset library is installed as a package that can't be changed, and so are its materials and color presets. **Unity shows the inspector of such a material greyed out: nothing in it can be edited.** VPE treats a library that is locked in the *Asset Browser* the same way: it doesn't change what's in the library's folder, nor the materials the library's insert prefabs come with, and greys out their inspectors too. VPE says so at the top of the material's inspector, and in the insert's *Presets* section.
 
-To change the color of a library insert, edit it. Under the color buttons, or in the material's inspector, choose which inserts:
+To change the color of a library insert, edit its materials. Under the color buttons, or in the material's inspector, choose for which inserts:
 
-- *Edit This Insert* (or *Edit N Selected Inserts*) edits only the selected inserts. Other inserts wearing the same materials keep the library's.
-- *Edit All N Inserts* edits every insert in the open scene that wears the same materials. They keep sharing them, so a change to one changes all of them.
+- *Edit for this insert* (or *Edit for N selected inserts*) edits them for the selected inserts only. Other inserts wearing the same materials keep the library's.
+- *Edit for all N inserts* edits them for every insert in the open scene that wears the same materials. They keep sharing them, so a change to one changes all of them.
 
-Editing an insert gives it copies of its body and cover materials, in your project, at the same path under `Assets` as they have in the package, or in `Assets/Inserts` for a locked library inside your project. Inserts edited later get the same copies.
+<div style="clear: both"></div>
+
+<img src="customizing/readonly-material.png" width="340" alt="The inspector of a library material, greyed out, with the buttons to edit it" class="img-fluid float-end" style="margin-left: 15px"/>
+
+Editing gives the inserts copies of their body and cover materials, in the folder a bake of the insert would use, described under [Output](baking.md#output). Copies for a single insert are named after it, so clicking *Edit in project* on that insert later uses them instead of making new ones; copies for several inserts are named after the material. Editing again uses the copies made before.
 
 A copy is a variant of the library's material: until you change a value, it follows the library's, and it stays linked to its color preset, so that color's button stays lit. Change the colors in the copies' inspectors, as described under [Body Material](body-material.md) (*Tint*, *Cavity Color*, *Lamp Emission*, *Max Brightness*) and [Cover](cover.md) (*Haze Color*, *Tint*).
+
+<div style="clear: both"></div>
 
 > [!WARNING]
 > **A color change in a material linked to a library color is not kept.** The color preset puts its values back when a look is applied to the material, when another color is applied, and when an update of the asset library changes the preset. To keep your colors, set the material's *Color Preset* to none, or link it to a color preset of your own.
 
 ### Adding a color
 
-For a color you'll use on several inserts, add a color preset: *Duplicate* the closest color on the *Color* tab of the *Insert Presets* window, as described under [Color](presets.md#color), and set its values there. Its button then appears on every insert. Clicking it on an insert creates that color's body and cover materials in your project, linked to your preset, so changing the preset later changes every insert of that color. This works on library inserts too, without editing them first.
+For a color you'll use on several inserts, add a color preset: *Duplicate* the closest color on the *Color* tab of the *Insert Presets* window, as described under [Color](presets.md#color), and set its values there. Its button then appears on every insert. Clicking it on an insert creates that color's body and cover materials in your project, linked to your preset, so changing the preset later changes every insert of that color. This works on library inserts too, without editing their materials first.
 
 To start from an insert you have already tuned, add the preset, then pick it as the *Color Preset* of the insert's body and cover materials and choose *Copy to* when VPE asks whose values to keep.
 
@@ -49,7 +57,7 @@ To start from an insert you have already tuned, add the preset, then pick it as 
 
 ## Changing the shape
 
-A library insert's bake belongs to the asset library's package, which can't be changed. Click *Fork to Project* in the *Normal Bake* section to copy the bake and its maps into your project first.
+A library insert's bake belongs to the asset library's package, which can't be changed. Click *Edit in project* in the *Normal Bake* section to copy the bake and its maps into your project first.
 
 Then change its outline and dimensions in the *Geometry* section, as described under [Geometry](geometry.md), and its floor in the same section, as described under [Patterns](patterns.md). Any change to the geometry makes the bake stale, and the insert shows as yellow wireframe until you bake it again with *Bake Again*. Baking needs Blender 5 or newer; see [Baking](baking.md).
 
@@ -76,7 +84,7 @@ You can also add *Pinball → Insert* and *Pinball → Insert Light* to any Game
 | --- | --- |
 | *Intensity* is one but the insert doesn't light | The body needs the hybrid material and its optical maps: bake with *Bake Hybrid Optics* enabled. See [Baking](baking.md). |
 | The insert shows as yellow wireframe after an edit | Its bake no longer fits its geometry. Press *Bake Again*; see [Stale bakes](baking.md#stale-bakes). |
-| The material's inspector is greyed out | The material belongs to the asset library. Edit the insert first; see [Changing a color](#changing-a-color). |
+| The material's inspector is greyed out | The material belongs to the asset library. Edit it for the insert first; see [Changing a color](#changing-a-color). |
 | A color change is gone after applying a look | The material is linked to a library color, which puts its values back. Unlink it or link it to a color of your own; see [Changing a color](#changing-a-color). |
 | Changing one insert changes another | They share a material. Give the insert its own material or variant first. |
 | A colored lamp looks pale through the top | Try [*Tint With Lamp*](lighting.md#tint-with-lamp), and check the cover's [*Opacity*](cover.md#opacity) and [*Haze Color*](cover.md#haze-color). |
