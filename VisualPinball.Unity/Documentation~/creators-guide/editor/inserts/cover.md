@@ -1,74 +1,128 @@
 ---
 uid: insert_cover
 title: Insert Cover
-description: Add a transparent top, tune haze and reflections, and project the playfield's normal detail continuously across an insert.
+description: Add a transparent top, tune its plastic, haze and reflections, and project the playfield's normal detail continuously across an insert.
 ---
 
 # Insert Cover
 
 The body supplies the molded interior and its optical appearance. A **clear cover** closes the opening at the rim with a flat top, adding its own reflections, haze, and surface detail. It is optional and independent of the body bake, so you can add or tune it without baking again.
 
+The pictures show two clear inserts sharing one cover material, changing one value at a time: the upper insert is off, the lower one is lit. The middle picture is the value the clear cover has today.
+
 ## Adding a cover
 
-In **Insert → Clear Cover**, assign **Material** or click **Add Clear Cover**. The helper creates a **Visual Pinball/Insert Cover** material with a subtle haze and glossy finish. Clearing Material removes the top surface.
+<img src="cover/inspector-component.png" width="340" alt="The Clear Cover section of an insert" class="img-fluid float-end" style="margin-left: 15px"/>
 
-| Component parameter | Meaning |
+In the *Clear Cover* section of the Insert component, assign *Material* or click *Add Clear Cover*. The helper creates a *Pinball/Insert Cover* material with a subtle haze and glossy finish. Clearing *Material* removes the top surface.
+
+- *Material* is the material of the generated top surface, in the renderer's second material slot. Any material can be assigned, but the dedicated cover shader supplies the plastic, haze, lamp tint, and playfield-normal features described here.
+- *Use Playfield Normals* projects the detected playfield's normal detail across the cover. Available for the dedicated Insert Cover material. Off, the cover uses its material's own map and local UVs.
+- *Playfield Override* is an optional Mesh Renderer component supplying the normal map and UV projection. Leave it empty for automatic playfield detection.
+- *Detected Surface*, *Source Material*, and *Source Normal Map* show the renderer the projection comes from, its first material, and that material's normal map.
+
+<div style="clear: both"></div>
+
+| No cover | Clear cover |
 | --- | --- |
-| **Material** | Material assigned to the generated top surface. It occupies the renderer's second material slot. Any material can be assigned, but the dedicated cover shader supplies the haze, lamp tint, and playfield-normal features described here. |
-| **Use Playfield Normals** | Projects the detected playfield's normal detail across the cover. Available for the dedicated Insert Cover material. Disabled uses the cover material's own map and local UVs. |
-| **Playfield Override** | Optional Mesh Renderer supplying the normal map and UV projection. Leave empty for automatic playfield detection. |
-| **Detected Surface** | Readout identifying the resolved source renderer. |
-| **Source Material** | Readout of that source renderer's first material. |
-| **Source Normal Map** | Readout of the normal map supplied by that material. |
-
-<!-- Screenshot: cover-component. Cover absent/present, then Use Playfield Normals disabled/enabled with source readouts. -->
+| <img src="cover/cover-none.png" width="240" alt="No cover"> | <img src="cover/cover-clear.png" width="240" alt="Clear cover"> |
 
 > [!NOTE]
 > **Separate material slot.** The cover is added after the body's bake has been applied. Its triangles, UVs, and per-slot material overrides do not change the body's bake hash or atlas. A custom cover material determines its own transparency and shadows; the dedicated cover keeps reflections visible at low opacity and does not cast a solid shadow.
 
+## Plastic
+
+<img src="cover/inspector-plastic.png" width="340" alt="The Plastic section of the cover material" class="img-fluid float-end" style="margin-left: 15px"/>
+
+The cover is the top of a slab of plastic as deep as the insert. What shows through it is refracted as through that slab, and the light takes the plastic's tint on its way up, the more the longer its path.
+
+<div style="clear: both"></div>
+
+### Index of Refraction
+
+*Index of Refraction* is how much the plastic bends the view, from 1 to 2: 1.49 for acrylic, 1.59 for polycarbonate. One is no slab at all. A higher index shows the ribs nearer than they lie. The shift shows at a low angle, so these pictures look along the inserts from behind: watch the near insert's floor and holes against its frame.
+
+| 1 | 1.49 | 2 |
+| --- | --- | --- |
+| <img src="cover/ior-1.png" width="240" alt="Index of Refraction 1"> | <img src="cover/ior-1.49.png" width="240" alt="Index of Refraction 1.49"> | <img src="cover/ior-2.png" width="240" alt="Index of Refraction 2"> |
+
+### Tint
+
+*Tint* is the color the light has once it has come *Tint Depth* through the plastic. White suits clear plastic; a colored insert takes its color, and then darkens toward its edges and at grazing views, as tinted plastic does.
+
+| White (Clear) | Red | Blue |
+| --- | --- | --- |
+| <img src="cover/tint-white.png" width="240" alt="White tint"> | <img src="cover/tint-red.png" width="240" alt="Red tint"> | <img src="cover/tint-blue.png" width="240" alt="Blue tint"> |
+
+### Tint Depth
+
+*Tint Depth (mm)* is how far through the plastic the light goes to take the tint, from 0.1 to 20 mm. Shorter is a denser plastic. Shown with the red tint.
+
+| 0.1 mm | 3 mm | 20 mm |
+| --- | --- | --- |
+| <img src="cover/tint-depth-0.1.png" width="240" alt="Tint Depth 0.1 mm"> | <img src="cover/tint-depth-3.png" width="240" alt="Tint Depth 3 mm"> | <img src="cover/tint-depth-20.png" width="240" alt="Tint Depth 20 mm"> |
+
 ## Haze
 
-Open the cover material's **Haze** section to tune the veil seen over the interior. It can be nearly invisible, lightly worn, or milky.
+<img src="cover/inspector-haze.png" width="340" alt="The Haze section of the cover material" class="img-fluid float-end" style="margin-left: 15px"/>
 
-| Parameter | Shader default / range | Effect |
+The haze is the veil seen over the interior. It can be nearly invisible, lightly worn, or milky. *Color Preset* is the [color preset](presets.md#color) the cover follows, which owns the *Haze Color* and the plastic's *Tint*. *Copy to* puts this material's values into the preset. A material of the asset library, or of a locked library, is greyed out and can't be changed; its *Color Preset* row offers to edit the inserts wearing it, which gives them copies of their own. See [Changing a color](customizing.md#changing-a-color).
+
+With *Tint With Lamp* enabled on the Insert Light component, the haze takes the local lamp hue while keeping its brightness. Without that tint, a gray veil can make a saturated lamp look pale. See [Lighting](lighting.md#tint-with-lamp).
+
+<div style="clear: both"></div>
+
+### Opacity
+
+*Opacity* is how much of the haze shows over the body, from 0 to 0.5. A hundredth is a clean top with only its reflection; 0.05 to 0.1 is a veil that softens the ribs like worn or slightly frosted plastic. The reflections stay at full strength whatever the value.
+
+| 0.01 (Clear) | 0.1 | 0.5 |
 | --- | --- | --- |
-| **Opacity** | 0.01; 0–0.5 | Amount of haze blended over the body. The default gives a clean top with very little veil. Values around 0.05–0.1 soften the interior like worn or slightly frosted plastic. Specular reflection strength is preserved as opacity changes. |
-| **Haze Color** | RGB (0.8, 0.8, 0.8) | Color of the veil. White brightens it, a darker gray dulls it, and a colored haze filters its appearance. Disabled at zero Opacity. |
+| <img src="cover/opacity-0.01.png" width="240" alt="Opacity 0.01"> | <img src="cover/opacity-0.1.png" width="240" alt="Opacity 0.1"> | <img src="cover/opacity-0.5.png" width="240" alt="Opacity 0.5"> |
 
-With **Tint With Lamp** enabled on Insert Light, the haze can take the local lamp hue while preserving its brightness value. Without that tint, a gray veil can make a saturated lamp look pale. See [Lighting](lighting.md#tint-with-lamp).
+### Haze Color
 
-<!-- Screenshot: cover-haze. Opacity 0.01/0.1, then Haze Color light/dark with opacity fixed. -->
+*Haze Color* is the color of that veil. A light gray suits worn clear plastic; darker grays dull the body, white brightens it, and a colored haze filters it. Disabled at zero *Opacity*. Shown at *Opacity* 0.3, where the color reads.
+
+| Light gray (Clear) | Blue | Orange |
+| --- | --- | --- |
+| <img src="cover/haze-color-light.png" width="240" alt="Light gray haze"> | <img src="cover/haze-color-blue.png" width="240" alt="Blue haze"> | <img src="cover/haze-color-orange.png" width="240" alt="Orange haze"> |
 
 ## Surface
 
-| Parameter | Shader default / range | Effect |
+<img src="cover/inspector-surface.png" width="340" alt="The Surface section of the cover material" class="img-fluid float-end" style="margin-left: 15px"/>
+
+- *Normal Map* holds scratches or fine texture for the top. Without playfield projection it uses local 0–1 UVs spanning the top. *Tiling* and *Offset* repeat and shift it; they are disabled when no map is assigned.
+- *Normal Strength* scales the detail, from 0 to 2. Zero is flat. With playfield projection, it multiplies the source material's normal strength; one matches the source. The playfield on these pictures has too little normal detail over the inserts to show a difference, so this one has no pictures.
+
+The cover's material Inspector reports when inserts in the open scene use playfield normals instead of its own map. In that case the source supplies the effective texture and projection; the cover's *Smoothness* and *Normal Strength* still apply.
+
+<div style="clear: both"></div>
+
+### Smoothness
+
+*Smoothness* is how sharp the lights and probes reflected in the top are, from 0 to 1. Match the surrounding playfield for a highlight that continues across the insert. A rough top turns matte and veils the body under its own diffuse reflection; at zero it hides it entirely.
+
+| 0.5 | 0.75 | 0.96 (Clear) |
 | --- | --- | --- |
-| **Smoothness** | 0.96; 0–1 | Sharpness of lights and probes reflected in the top. Match the surrounding playfield for a highlight that continues across the insert. |
-| **Normal Map** | Unassigned | Tangent-space scratches or fine texture on the cover. Without playfield projection, it uses local 0–1 UVs spanning the top. |
-| **Tiling** | (1, 1) | Repeat scale of the material's own normal texture. Disabled when no map is assigned. |
-| **Offset** | (0, 0) | Shift of that texture within its local cover UVs. |
-| **Normal Strength** | 1; 0–2 | Strength of the cover detail. Zero is flat. With playfield projection, it multiplies the source material's normal strength; one matches the source. |
-
-The cover's material Inspector reports when inserts in the open scene use playfield normals instead of its own map. In that case the source supplies the effective texture and projection; the cover's Smoothness and Normal Strength still apply.
-
-<!-- Screenshot: cover-surface. Smoothness 0.4/0.96, map absent/present, Tiling 1/4, Offset 0/0.25, and Normal Strength 0/1. -->
+| <img src="cover/smoothness-0.5.png" width="240" alt="Smoothness 0.5"> | <img src="cover/smoothness-0.75.png" width="240" alt="Smoothness 0.75"> | <img src="cover/smoothness-0.96.png" width="240" alt="Smoothness 0.96"> |
 
 ## Playfield normals
 
-Enable **Use Playfield Normals** when scratches, wood grain, or other top-surface normal detail should continue across the insert boundary. VPE detects a surface under the enclosing Playfield, or under the single Playfield in the same Table, and can choose the largest suitable imported surface. Use **Playfield Override** when the intended surface is not the detected one.
+Enable *Use Playfield Normals* when scratches, wood grain, or other top-surface normal detail should continue across the insert boundary. VPE detects a surface under the enclosing Playfield component, or under the single Playfield component in the same Table component, and can choose the largest suitable imported surface. Use *Playfield Override* when the intended surface is not the detected one. Like *Normal Strength*, it only shows where the playfield's normal map has detail over the insert, which is not the case on these pictures.
 
-The source must have a readable mesh with a planar top and usable UV0 in its first submesh. Enable **Read/Write** on an imported mesh if needed. Its first material needs a supported normal map; the projection supports HDRP Lit tangent-space normal maps and follows the source base-map tiling, offset, and normal strength.
+The source must have a readable mesh with a planar top and usable UV0 in its first submesh. Enable *Read/Write* on an imported mesh if needed. Its first material needs a supported normal map; the projection supports HDRP Lit tangent-space normal maps and follows the source base-map tiling, offset, and normal strength.
 
 > [!NOTE]
 > **Projection.** VPE derives the source mesh's actual XZ-to-UV mapping, including rotations, flips, and margins. The cover receives matching UVs and tangent frames, while a per-renderer override supplies the source normal texture and strength. Neither shared material is rewritten. Moving either object updates the projection in the authoring scene.
 
 <!-- Diagram: cover-projection. One scratch crossing playfield and cover, with the source UV transform and cover's matching projection highlighted. -->
 
-The source texture needs detail over the insert area for anything to appear there. Matching normal detail does not also match smoothness: tune the cover's Smoothness to the playfield's effective mask-map smoothness for a continuous highlight.
+The source texture needs detail over the insert area for anything to appear there. Matching normal detail does not also match smoothness: tune the cover's *Smoothness* to the playfield's effective mask-map smoothness for a continuous highlight.
 
-Disabling projection restores the local cover UVs and its own material settings. If detection or the source becomes invalid, the Inspector reports the problem and falls back to those material settings. Check Detected Surface, Source Material, and Source Normal Map before trying to compensate with cover tiling.
+Disabling projection restores the local cover UVs and its own material settings. If detection or the source becomes invalid, the Inspector reports the problem and falls back to those material settings. Check *Detected Surface*, *Source Material*, and *Source Normal Map* before trying to compensate with cover tiling.
 
 ## Shader properties
 
 > [!NOTE]
-> The authored cover properties are `_CoverOpacity`, `_HazeColor`, `_Smoothness`, `_CoverNormalMap` (including its texture tiling and offset), and `_CoverNormalStrength`. `_PlayfieldNormalStrength` is supplied by the component for a detected source and defaults to one for a local map. Insert Light also supplies `_InsertLampLevel`, `_InsertLampColor`, `_InsertLampTint`, `_OpticalLamp/B/C/D`, `_InsertLampColorB/C/D`, and `_OpticalSpread` to this material slot. Their encodings match the [body's runtime data](body-material.md#baked-data). They let the haze follow the same spatial lamp mix; the cover itself emits no lamp light.
+> The authored cover properties are `_CoverIor`, `_CoverTint`, `_CoverTintDepth`, `_CoverOpacity`, `_HazeColor`, `_Smoothness`, `_CoverNormalMap` (including its texture tiling and offset), and `_CoverNormalStrength`. `_CoverThickness` is supplied by the component from the insert's depth, and `_PlayfieldNormalStrength` for a detected source; it defaults to one for a local map. The Insert Light component also supplies `_InsertLampLevel`, `_InsertLampColor`, `_InsertLampTint`, `_OpticalLamp/B/C/D`, `_InsertLampColorB/C/D`, and `_OpticalSpread` to this material slot. Their encodings match the [body's runtime data](body-material.md#baked-data). They let the haze follow the same spatial lamp mix; the cover itself emits no lamp light.

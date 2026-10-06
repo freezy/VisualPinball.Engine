@@ -1,87 +1,83 @@
 ---
 uid: insert_customizing
 title: Customizing Inserts
-description: Start with a standard library insert, create a custom insert, and use color and material presets without losing its baked detail.
+description: Use an insert from the asset library, change its color or shape, or create one from scratch.
 ---
 
 # Customizing Inserts
 
-Start with the closest insert in the **Asset Library**; the common shapes and sizes are there, baked and ready. Generate your own when the outline, the pattern or the lamp arrangement has to match something the library doesn't have.
+The [Asset Library](xref:asset_library) already contains most of the shapes and colors you'll need. However, you might have different cut-outs in your playfield that don't exactly fit, or shape/pattern combinations that aren't in the asset library.
 
-## Library inserts
+This section describes how you to use, customize existing inserts or create them from scratch.
 
-1. Place the insert in your table and align its rim with the playfield opening. Keep its scale at one when its authored dimensions already match.
-2. Pick a color under **Insert → Presets**.
-3. Choose a **Look** such as **Clear Plastic** or **Colored Plastic**, then adjust the [body material](body-material.md) and optional [cover](cover.md) as needed.
-4. Set the lamp colors and preview intensities on **Insert Light**, position its lamps, and connect them in [Lamp Manager](../lamp-manager.md).
-5. If you change geometry or want a different bake, use **Fork to Project** when the source assets are read-only, then **Bake Again**.
+## From the asset library
 
-Color and material changes are immediate. Shape and pattern changes alter the bake source and need a new bake.
+The easiest way to get an insert is the [Asset Library](xref:asset_library). It contains most common insert shapes and sizes, in several colors each, already baked, with their lamp and spill light set up. Open it with *Asset Browser* in the toolbox, drag the insert you want into your table, and align its rim with the opening in the playfield.
 
-<!-- Screenshot: customizing-library. A library insert placed on a table, with Color and Material preset buttons visible. -->
+Then connect its lamp in [*Lamp Manager*](../lamp-manager.md), as described under [Mapping](lighting.md#mapping). That's all a library insert needs. Changing its color, look or lamps doesn't need Blender; only changing its shape does.
 
-> [!NOTE]
-> **Package assets and project assets.** A library bake can be referenced by many inserts and may belong to a package. Fork to Project copies the bake into `Assets/Inserts` and derives a writable material variant. That gives the customized insert its own bake while retaining the original material's inherited tuning. If the copied bake is stale, the fork starts a new bake automatically; a fitting bake is simply copied.
+## Changing the color
 
-## Inserts from scratch
+Click a color square under *Presets* on the Insert component. A color is a material, so the insert gets a different material for it: VPE looks for one of that color next to the insert's current material, and if there is none, it creates one as a variant of the current material and links it to the [color preset](presets.md#color). New materials go into your project, also when the insert's material comes from a package.
 
-1. Create a GameObject at the insert's position and add **Visual Pinball → Insert** through **Add Component**. Unity adds the required Mesh Filter and Mesh Renderer.
-2. Choose the outline and dimensions in **Geometry**. For an imported outline, choose Custom and assign its Source Mesh. Add a channel, bevel, holes, and pattern as needed. See [Geometry](geometry.md) and [Patterns](patterns.md).
-3. Add **Visual Pinball → Insert Light** if the insert should respond to lamps.
-4. Keep **Bake Hybrid Optics** enabled in **Normal Bake**, select a Blender 5 executable if it is not found automatically, and bake.
-5. With Insert Light and an empty body material slot, the first bake sets up a hybrid body material automatically. If you started with another material, use **Bake Hybrid and Use Material** on Insert Light, or bake the optical maps and click **Use HDRP Hybrid Material** on Insert.
-6. Click **Add Intensity Controls and Spill Light** or **Add Spill Light** when you want the insert to illuminate nearby objects. Use **Add Clear Cover** for the optional glossy top.
-7. Choose presets and finish the material and lamp settings from the game camera.
+The plastic's molding and how it treats light is the [look preset](presets.md#look), which you choose with the buttons under the colors.
 
-> [!TIP]
-> A normal bake and a working lamp material are separate requirements. A material without the hybrid shader cannot use the Insert Light's Intensity and Color. The Inspector's **Bake Hybrid and Use Material** button handles both requirements together.
+### Changing a color
 
-## Color presets
+The asset library is installed as a package that can't be changed, and so are its materials and color presets. **Unity shows the inspector of such a material greyed out: nothing in it can be edited.** VPE treats a library that is locked in the *Asset Browser* the same way: it doesn't change what's in the library's folder, nor the materials the library's insert prefabs come with, and greys out their inspectors too. VPE says so at the top of the material's inspector, and in the insert's *Presets* section.
 
-What a color preset is and how it is set, changed and added is on the [Presets](presets.md#color) page. This is what happens to the materials when a color is clicked.
+To change the color of a library insert, edit it. Under the color buttons, or in the material's inspector, choose which inserts:
 
-Clicking a color first searches for a matching material in the current material's folder. It matches the shader, requested color word, and related material name, so another insert's unrelated color material is not chosen merely because it is green. If a matching material exists, it is assigned with its existing settings intact.
+- *Edit This Insert* (or *Edit N Selected Inserts*) edits only the selected inserts. Other inserts wearing the same materials keep the library's.
+- *Edit All N Inserts* edits every insert in the open scene that wears the same materials. They keep sharing them, so a change to one changes all of them.
 
-When there is no match, VPE derives a new material from the current one. A recognized color word is replaced with the selected color; without a color word, the new name receives `, <Color>` and the material is made a variant of its source. The body receives the preset's **Tint**, **Cavity Color**, **Lamp Emission** and **Max Brightness**; the cover receives **Haze Color** and **Cover Tint**. The textures stay inherited or copied from the source material.
+Editing an insert gives it copies of its body and cover materials, in your project, at the same path under `Assets` as they have in the package, or in `Assets/Inserts` for a locked library inside your project. Inserts edited later get the same copies.
 
-For package materials, VPE checks both the package folder and its equivalent project folder. Newly created materials go into the project. For example, `Packages/<package>/Assets/Art/Materials/Inserts` maps to `Assets/Art/Materials/Inserts`. A material without an asset path uses `Assets/Inserts`.
+A copy is a variant of the library's material: until you change a value, it follows the library's, and it stays linked to its color preset, so that color's button stays lit. Change the colors in the copies' inspectors, as described under [Body Material](body-material.md) (*Tint*, *Cavity Color*, *Lamp Emission*, *Max Brightness*) and [Cover](cover.md) (*Haze Color*, *Tint*).
 
-### Color preset values
+> [!WARNING]
+> **A color change in a material linked to a library color is not kept.** The color preset puts its values back when a look is applied to the material, when another color is applied, and when an update of the asset library changes the preset. To keep your colors, set the material's *Color Preset* to none, or link it to a color preset of your own.
 
-| Parameter | Meaning |
-| --- | --- |
-| **Color Name** | Color word used in the button tooltip, material naming, and lookup. Use a distinct, stable name. |
-| **Order** | Button ordering; lower values appear first, with names used to break ties. |
-| **Swatch** | The button's display color. It does not change the rendered material. |
-| **Tint** | The hybrid body's Tint when a new color material is created. |
-| **Cavity Color** | Color underneath the clear share of the plastic. Its effect depends on Clarity. |
-| **Lamp Emission** | HDR emission color and magnitude of the body material: the color of the plastic lit from below by a white lamp. The lamp's own color, from the lamp preset, multiplies it. |
-| **Max Brightness** | The body's Max Brightness. Colors differ in how bright they look through the plastic, so each has its own; a look never touches it. |
-| **Haze Color** | Haze Color on a newly created cover color material. It needs a cover and nonzero Opacity to show. |
-| **Cover Tint** | The cover's Tint: the color the lamp light and the body underneath take on their way up through the plastic slab. Keep a little of every channel in it, and in Lamp Emission, so a bright lamp fades to white instead of shifting hue under the tonemapper. |
+### Adding a color
 
-## Look presets
+For a color you'll use on several inserts, add a color preset: *Duplicate* the closest color on the *Color* tab of the *Insert Presets* window, as described under [Color](presets.md#color), and set its values there. Its button then appears on every insert. Clicking it on an insert creates that color's body and cover materials in your project, linked to your preset, so changing the preset later changes every insert of that color. This works on library inserts too, without editing them first.
 
-What a look is and how it is set, changed and added is on the [Presets](presets.md#look) page.
+To start from an insert you have already tuned, add the preset, then pick it as the *Color Preset* of the insert's body and cover materials and choose *Copy to* when VPE asks whose values to keep.
 
 > [!NOTE]
-> **Shared materials.** A look is applied to the body material, and every insert using that material sees the change. Lamp count and positions live in the body material too. Give an insert its own material or variant before changing something that should affect only that insert. Lamp colors and intensities are per-renderer overrides and can differ between inserts sharing a material.
+> **Shared materials.** A look is applied to the body material, so every insert using that material sees the change. The lamp count and positions live in the body material too. Give an insert its own material or variant before changing something that should affect only that insert. Lamp colors and intensities are set per insert, so inserts sharing a material can still differ in those.
 
-A look preset asset stores **Body Shader**, the shader name it was captured from, and a **Body** list of numeric properties. Each entry's **Name** is the shader property reference, **Kind** identifies its value type, and **Float** or **Vector** supplies the corresponding value. Color entries are never applied; colors belong to color presets, and so does Max Brightness.
+## Changing the shape
 
-## Tuning order
+A library insert's bake belongs to the asset library's package, which can't be changed. Click *Fork to Project* in the *Normal Bake* section to copy the bake and its maps into your project first.
 
-Fit [Geometry](geometry.md), choose the [Pattern](patterns.md), and finish the [Bake](baking.md) first. Then tune the unlit body with all lamps off. Bring one lamp up and adjust Max Brightness, its position, spread, and radius. Add the other lamps and test their combinations. Finish the cover's reflections and haze, then check the result in the game's camera and exposure.
+Then change its outline and dimensions in the *Geometry* section, as described under [Geometry](geometry.md), and its floor in the same section, as described under [Patterns](patterns.md). Any change to the geometry makes the bake stale, and the insert shows as yellow wireframe until you bake it again with *Bake Again*. Baking needs Blender 5 or newer; see [Baking](baking.md).
 
-For a colored insert, the **Colored Plastic** look is a useful start; keep Clarity near zero and use Min Brightness to set the off appearance. For clear plastic, start with **Clear Plastic**, use Cavity Color for the board or reflector beneath it, and soften the reflection ribs with Facet Flatten. Both looks can use the same geometry and maps.
+## From scratch
+
+<img src="customizing/toolbox-insert.png" width="214" alt="The Insert button in the toolbox" class="img-fluid float-end" style="margin-left: 15px"/>
+
+Click *Insert* in the toolbox (*Pinball → Toolbox*). It creates an insert in the middle of the playfield, under the table's *Inserts*, with an Insert Light component and a spill light. Then:
+
+1. Move it over its opening in the playfield.
+2. Set its shape in the *Geometry* section, as described under [Geometry](geometry.md), and its floor, as described under [Patterns](patterns.md).
+3. Bake it, as described under [Baking](baking.md). The first bake also gives it the hybrid body material.
+4. Choose its color and look under *Presets*, as described under [Presets](presets.md).
+5. Add a clear cover if it should have a glossy top, as described under [Cover](cover.md).
+6. Connect its lamp in *Lamp Manager*, as described under [Mapping](lighting.md#mapping).
+
+You can also add *Pinball → Insert* and *Pinball → Insert Light* to any GameObject through *Add Component*. Without an Insert Light component, the insert doesn't light up.
+
+<div style="clear: both"></div>
 
 ## Troubleshooting
 
 | What you see | What to check |
 | --- | --- |
-| Intensity is one but the insert does not light | The body needs the hybrid material and optical maps. Check Max Brightness, Lamp Emission, and the lamp's Color as well. |
-| The insert becomes yellow geometry in Scene view after an edit | Its previous bake no longer fits. Bake Again; the yellow preview shows the current source geometry. |
-| A colored lamp looks pale through the top | Try Tint With Lamp and Tint Amount; check the cover's Opacity and Haze Color. |
-| Changing one insert changes another | They share a material. Give the insert a separate material or variant before editing material settings or lamp layout. |
-| The lamp glows but the ball stays dark | Add or assign a real spill light and check its Lumens, Range, and orientation. |
-| A bake or lamp-position field is locked | Its material or bake belongs to a read-only source. Fork to Project before editing. |
+| *Intensity* is one but the insert doesn't light | The body needs the hybrid material and its optical maps: bake with *Bake Hybrid Optics* enabled. See [Baking](baking.md). |
+| The insert shows as yellow wireframe after an edit | Its bake no longer fits its geometry. Press *Bake Again*; see [Stale bakes](baking.md#stale-bakes). |
+| The material's inspector is greyed out | The material belongs to the asset library. Edit the insert first; see [Changing a color](#changing-a-color). |
+| A color change is gone after applying a look | The material is linked to a library color, which puts its values back. Unlink it or link it to a color of your own; see [Changing a color](#changing-a-color). |
+| Changing one insert changes another | They share a material. Give the insert its own material or variant first. |
+| A colored lamp looks pale through the top | Try [*Tint With Lamp*](lighting.md#tint-with-lamp), and check the cover's [*Opacity*](cover.md#opacity) and [*Haze Color*](cover.md#haze-color). |
+| The insert glows but the ball stays dark | It has no spill light, or its *Lumens* or *Range* are too low. See [Spill](lighting.md#spill). |

@@ -90,9 +90,11 @@ In Visual Pinball, you can put GI lamps into a collection and address the whole 
 
 ## Lamp Type
 
-The **Incandescent** and **LED** buttons in the toolbar say what kind of bulb lights the table; the lit one is what the inserts run. Pressing the other applies that [lamp preset](inserts/lighting.md#lamp) to every insert (color, output and fades) and gives every other lamp its fades, so a filament table warms up and cools down everywhere and an LED kit snaps everywhere. Lamps mapped as **RGB** or **RGB Multi** are left alone, since the game drives their color and fading, and so are flashers. No Light's color is changed.
+The **Incandescent** and **LED** buttons next to **Lamp Preset:** in the toolbar say what kind of bulb lights the table; the lit one is what the inserts run. Pressing the other applies that [lamp preset](inserts/presets.md#lamp) to every insert (color, output and fades) and gives every other lamp its fades, so a filament table warms up and cools down everywhere and an LED kit snaps everywhere. Lamps mapped as **RGB** or **RGB Multi** are left alone, since the game drives their color and fading, and so are flashers. No Light's color is changed.
 
-**Settings** shows the lit preset's color, output and fade times above the toolbar; changes go into the preset and under every insert of the table as you make them. **Edit…** opens the [Insert Presets](inserts/presets.md) window.
+**Settings** shows the lit preset's color, output and fade times above the toolbar; changes go into the preset and under every insert of the table as you make them. **Manage** opens the [Insert Presets](inserts/presets.md) window.
+
+**Insert Brightness:** is a factor on every insert's output and spill light. It's saved with the table and packed into the .vpe file as the table's default; the player starts the table with it, and lets its user change it per table.
 
 The buttons work while the game runs in the editor and don't pause it, so a table can be judged under both kinds of bulb mid-game. The fades take effect at the next lamp change.
 

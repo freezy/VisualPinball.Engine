@@ -11,7 +11,7 @@ An insert is the plastic window in the playfield that lights up to show a shot, 
 ![Rendered inserts](inserts-showcase-lit.png)
 ![Insert outlines](inserts-showcase-unlit.png)
 
-Most standard inserts are in the **Asset Library**: place one in the desired color, map its lamp to the ROM, done. The vast majority of those inserts are created by VPE's procedural insert generator. If you need a size, shape or variant that isn't in the asset library, it's easy to generate new ones (see [Customizing Inserts](customizing.md)).
+Most standard inserts are in the Asset Library: place one in the desired color, map its lamp to the ROM, done. The vast majority of those inserts are created by VPE's procedural insert generator. If you need a size, shape or variant that isn't in the asset library, it's easy to generate new ones (see [Customizing Inserts](customizing.md)).
 
 ## Features
 
@@ -21,7 +21,7 @@ Most standard inserts are in the **Asset Library**: place one in the desired col
 
 **Materials:** the Insert Hybrid body material is a custom shader that combines surface reflections with a baked internal glow and a virtual image of the lamp underneath, for colored and clear plastic, with up to four lamps. The optional Insert Cover is the clear top: haze, reflections, and a normal map that can follow the playfield's across the edge of the insert. See [Body Material](body-material.md) and [Cover](cover.md).
 
-**Lamps:** the Insert Light component holds the lamps, lets you preview them, move them in the Scene view and map them in Lamp Manager, and can drive a real spill light for the ball and the objects above the insert. See [Lighting](lighting.md).
+**Lamps:** the Insert Light component holds the lamps, lets you preview them, move them in the Scene view and map them in *Lamp Manager*, and can drive a real spill light for the ball and the objects above the insert. See [Lighting](lighting.md).
 
 > [!NOTE]
 > The mesh generator is part of VPE's main Unity package. The Insert Hybrid and Insert Cover shaders come with the HDRP package and need HDRP; they are not (yet) available in URP.

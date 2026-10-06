@@ -25,18 +25,18 @@
           href: editor/inserts/geometry.md
         - name: Patterns
           href: editor/inserts/patterns.md
+        - name: Body Material
+          href: editor/inserts/body-material.md
+        - name: Cover Material
+          href: editor/inserts/cover.md
+        - name: Lighting
+          href: editor/inserts/lighting.md
         - name: Presets
           href: editor/inserts/presets.md
         - name: Customizing Inserts
           href: editor/inserts/customizing.md
         - name: Baking
           href: editor/inserts/baking.md
-        - name: Lighting
-          href: editor/inserts/lighting.md
-        - name: Body Material
-          href: editor/inserts/body-material.md
-        - name: Cover Material
-          href: editor/inserts/cover.md
     - name: Wire Rails
       href: editor/wire-rails/index.md
       items:

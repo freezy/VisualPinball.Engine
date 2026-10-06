@@ -14,7 +14,7 @@ For **each parameter**, capture at least **two labeled values or states**, varyi
 
 Use a top view for outline changes, an oblique or cutaway view for height and bevel changes, and a reflected light for normal/smoothness changes. Bake both states when the parameter affects geometry or bake settings. Turn the optional cover off when it hides body detail. For material controls, use a fixed camera and a fitting bake. Record the prerequisite settings in the caption so a reader can reproduce the comparison.
 
-For vectors, vary one coordinate at a time when the axes do different jobs. Color fields need two clearly different colors at equal brightness unless brightness is the purpose of the comparison. Pure configuration fields such as Blender executable and Bake on GPU need Inspector states or explanatory diagrams, rather than a claimed visual change in the insert.
+For vectors, vary one coordinate at a time when the axes do different jobs. Color fields need two clearly different colors at equal brightness unless brightness is the purpose of the comparison. Pure configuration fields such as *Blender* executable and *Bake on GPU* need Inspector states or explanatory diagrams, rather than a claimed visual change in the insert.
 
 ## Overview and workflow
 
@@ -73,7 +73,7 @@ All lengths here are VPX units. Use an adequately sized outline so radius and ch
 | New Hole Radius | 2 / 4 | Apply Add Hole separately after setting each value |
 | Around count | 4 / 8 | Apply Around separately; show both placement results |
 
-Corner groups needing individual Radius and Segments pairs are **Custom: Corners; Triangle: Base Corners, Apex Corner; Rectangle: Corners; Diamond: Side Points, Top and Bottom; Flash: Tip Corners, Spike Corners, Notch Corners; Bullet: Tip, Shoulder Corners, Base Corners; Arrow: Tip, Notch Corner, Inner Corners, Feet**. For Bullet Tip, Segments covers its whole circular tip and rounds up to an even count; caption this exception.
+Corner groups needing individual *Radius* and *Segments* pairs are Custom: *Corners*; Triangle: *Base Corners*, *Apex Corner*; Rectangle: *Corners*; Diamond: *Side Points*, *Top and Bottom*; Flash: *Tip Corners*, *Spike Corners*, *Notch Corners*; Bullet: *Tip*, *Shoulder Corners*, *Base Corners*; Arrow: *Tip*, *Notch Corner*, *Inner Corners*, *Feet*. For Bullet *Tip*, *Segments* covers its whole circular tip and rounds up to an even count; caption this exception.
 
 Use the comments `geometry-triangle`, `geometry-rectangle`, `geometry-circle`, `geometry-diamond`, `geometry-custom`, and `geometry-holes` for the corresponding screenshots. Banana, Flash, Bullet, Arrow, and the body would benefit from the dimension diagrams below as well as their parameter pairs.
 
@@ -131,7 +131,7 @@ Use `baking-settings` for these pairs. Illustrate the outputs and encodings at `
 | Lumens | 0 / 1.5 | Ball/nearby object; one active lamp and Max Brightness fixed |
 | Range (m) | 0.04 / 0.1 | Nearby object spanning the two ranges |
 
-Use `lighting-layout`, `lighting-tint`, and `lighting-spill`. **Bulbs** and **Position** in the material are the same stored layout as Number of lamps and Position here; use the same figure with both UI locations labeled. Capture Radius under the material reference.
+Use `lighting-layout`, `lighting-tint`, and `lighting-spill`. *Bulbs* and *Position* in the material are the same stored layout as *Number of lamps* and *Position* here; use the same figure with both UI locations labeled. Capture *Radius* under the material reference.
 
 ## Body material comparisons
 
@@ -151,9 +151,7 @@ Use `lighting-layout`, `lighting-tint`, and `lighting-spill`. **Bulbs** and **Po
 | Lamp Emission | Neutral / colored, equal HDR magnitude | Same runtime lamp Color; add a magnitude pair if useful |
 | Radius (mm) | 4 / 10 | Same position and optical strengths |
 | Strength | 0 / 1.5 | Baked Scatter left nonzero |
-| Bulb Definition | 0 / 2 | Strength nonzero |
 | Index of Refraction | 1.1 / 1.49 | Oblique view, tilted optical facets |
-| Optical Facet Strength | 0 / 1 | Same pattern and camera |
 | Lamp Spread (mm) | 0 / 12 | Long insert, one lamp; inset extra example with spread 4/16 if needed |
 | Baked Scatter | 0 / 0.5 | Fixed virtual Strength |
 | Edge Glow | 0 / 0.2 | Channel and holes; fixed Scatter |
@@ -167,7 +165,7 @@ Use `lighting-layout`, `lighting-tint`, and `lighting-spill`. **Bulbs** and **Po
 | Starburst Sectors | Correct count / mismatched count | Mottle enabled; label mismatch as diagnostic, not a recipe |
 | Starburst Centre (mm) | Correct center / shifted center | Mottle enabled; vary X and Z separately |
 
-Place groups at `material-plastic`, `material-surface`, `material-output`, `material-virtual-lamp`, `material-glow`, `material-variation`, and `material-baked-data`. Hidden runtime properties are demonstrated through Insert Light rather than through separate material asset edits.
+Place groups at `material-plastic`, `material-surface`, `material-output`, `material-virtual-lamp`, `material-glow`, `material-variation`, and `material-baked-data`. Hidden runtime properties are demonstrated through the Insert Light component rather than through separate material asset edits.
 
 ## Cover comparisons
 
@@ -184,7 +182,7 @@ Place groups at `material-plastic`, `material-surface`, `material-output`, `mate
 | Offset X / Y | 0 / 0.25 per axis | Own normal map; independent pair for each axis |
 | Normal Strength | 0 / 1 | Own map; optionally repeat with playfield projection to show multiplier behavior |
 
-Use `cover-component`, `cover-haze`, and `cover-surface`. Detected Surface, Source Material, Source Normal Map, Configured Spill, and UV fill are readouts: show them with the corresponding changed source/configuration rather than presenting them as editable parameters.
+Use `cover-component`, `cover-haze`, and `cover-surface`. *Detected Surface*, *Source Material*, *Source Normal Map*, *Configured Spill*, and *UV fill* are readouts: show them with the corresponding changed source/configuration rather than presenting them as editable parameters.
 
 ## Preset asset comparisons
 
