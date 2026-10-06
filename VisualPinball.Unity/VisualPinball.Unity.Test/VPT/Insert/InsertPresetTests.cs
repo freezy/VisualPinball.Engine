@@ -48,7 +48,7 @@ namespace VisualPinball.Unity.Test
 				preset.Capture(source, sourceCover);
 				Assert.That(preset.BodyShader, Is.EqualTo(shader.name));
 				Assert.That(preset.Body, Has.None.Matches<InsertMaterialPreset.Entry>(e => e.Name == "_InsertLuminosity"), "Max Brightness is the colour's, not the look's");
-				Assert.That(preset.Body, Has.Count.EqualTo(23), "the hybrid body's visible numeric settings are captured");
+				Assert.That(preset.Body, Has.Count.EqualTo(20), "the hybrid body's visible numeric settings are captured");
 				Assert.That(preset.Edited(source), Is.EqualTo(0));
 				source.SetFloat("_Smoothness", 0.5f);
 				Assert.That(preset.Edited(source), Is.EqualTo(1), "an edited value is counted");
@@ -82,7 +82,7 @@ namespace VisualPinball.Unity.Test
 				targetCover.SetFloat("_Smoothness", 0.73f);
 
 				var count = preset.Apply(target, targetCover);
-				Assert.That(count, Is.EqualTo(23));
+				Assert.That(count, Is.EqualTo(20));
 				Assert.That(target.GetFloat("_InsertLuminosity"), Is.EqualTo(10f).Within(1e-5f), "Max Brightness is the colour's and a look leaves it alone");
 				Assert.That(target.GetFloat("_InsertClarity"), Is.EqualTo(1f));
 				Assert.That(target.GetFloat("_Smoothness"), Is.EqualTo(0.37f).Within(1e-5f), "legacy cover settings cannot overwrite body settings");
