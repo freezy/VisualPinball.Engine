@@ -975,7 +975,7 @@ namespace VisualPinball.Unity.Editor
 		private void DrawBakeSettings()
 		{
 			if (IsLocked) {
-				EditorGUILayout.HelpBox("The bake cannot be written to where it is, so its settings are locked. Fork to Project below to bake here.", MessageType.None);
+				EditorGUILayout.HelpBox("The bake cannot be written to where it is, so its settings are locked. Edit in project below to bake here.", MessageType.None);
 			}
 			using (new EditorGUI.DisabledScope(IsLocked)) {
 				var size = _bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.TextureSize));
@@ -1055,7 +1055,7 @@ namespace VisualPinball.Unity.Editor
 				if (insert.IsBakeFresh) {
 					EditorGUILayout.HelpBox($"Baked. UVs packed by {insert.Bake.Packer}, covering {insert.Bake.UvFill:P0} of the texture.", MessageType.Info);
 				} else if (IsLocked) {
-					EditorGUILayout.HelpBox("The insert geometry has changed, and its bake cannot be updated where it is. Fork to Project to bake it here.", MessageType.Warning);
+					EditorGUILayout.HelpBox("The insert geometry has changed, and its bake cannot be updated where it is. Edit in project to bake it here.", MessageType.Warning);
 				} else if (insert.IsShowingGeometry) {
 					EditorGUILayout.HelpBox("The insert geometry has changed, so the renderer is off and the geometry to be baked is drawn in the scene instead, yellow with its wireframe, an engraved line as a trough. Bake Again to put the geometry into the maps and the renderer back on.", MessageType.Warning);
 				} else {
@@ -1063,9 +1063,9 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 			if (IsLocked && insert.Bake != null) {
-				EditorGUILayout.HelpBox($"This insert's bake and material belong to {InsertBaker.ReadOnlyReason(insert.Bake)}, which cannot be written to. Fork to Project copies them into this project's Assets/Inserts, as a material variant that keeps following the original's tuning, and bakes there from then on.", MessageType.Info);
+				EditorGUILayout.HelpBox($"This insert's bake and material belong to {InsertBaker.ReadOnlyReason(insert.Bake)}, which cannot be written to. Edit in project copies them into the insert's folder in this project, its prefab's folder under Assets or one of its own, as a material variant that keeps following the original's tuning, and bakes there from then on.", MessageType.Info);
 				using (new EditorGUI.DisabledScope(InsertBaker.Baking != null || EditorApplication.isPlayingOrWillChangePlaymode)) {
-					if (GUILayout.Button("Fork to Project")) {
+					if (GUILayout.Button("Edit in project")) {
 						InsertBaker.Fork(insert);
 					}
 				}
@@ -1187,11 +1187,11 @@ namespace VisualPinball.Unity.Editor
 				using (new EditorGUI.DisabledScope(EditorApplication.isPlaying))
 				using (new EditorGUILayout.HorizontalScope()) {
 					var copyTooltip = "Gives {0} copies of {1} body and cover materials in the project, which can be changed. They keep following the package's materials, and their color preset, until a value is changed. Inserts wearing the same material share the copy.";
-					var selectedLabel = readOnly.Length == 1 ? "Edit for This Insert" : $"Edit for {readOnly.Length} Selected Inserts";
+					var selectedLabel = readOnly.Length == 1 ? "Edit for this insert" : $"Edit for {readOnly.Length} selected inserts";
 					if (GUILayout.Button(new GUIContent(selectedLabel, string.Format(copyTooltip, readOnly.Length == 1 ? "the insert" : "the selected inserts", readOnly.Length == 1 ? "its" : "their") + " Other inserts wearing the same materials keep them."))) {
 						CopyMaterials(readOnly);
 					}
-					if (sharing.Length > readOnly.Length && GUILayout.Button(new GUIContent($"Edit for All {sharing.Length} Inserts", string.Format(copyTooltip, $"all {sharing.Length} inserts in the open scenes that wear the same materials", "their") + " They stay alike: changing a copy changes all of them."))) {
+					if (sharing.Length > readOnly.Length && GUILayout.Button(new GUIContent($"Edit for all {sharing.Length} inserts", string.Format(copyTooltip, $"all {sharing.Length} inserts in the open scenes that wear the same materials", "their") + " They stay alike: changing a copy changes all of them."))) {
 						CopyMaterials(sharing);
 					}
 				}
@@ -1201,7 +1201,11 @@ namespace VisualPinball.Unity.Editor
 			var styled = inserts.Count(InsertMaterialPresets.HasStyledMaterial);
 			var bodies = inserts.Select(insert => insert.GetComponent<MeshRenderer>().sharedMaterial).Where(InsertMaterialPresets.CanLink).Distinct().ToArray();
 			var followed = bodies.Select(InsertMaterialPresets.LinkedPreset).Distinct().ToArray();
-			if (styled == 0) {
+			// Linking a look writes it into the body material, which a library's can't take.
+			var lockedBody = inserts.Any(insert => InsertColorPresets.IsReadOnly(insert, insert.GetComponent<MeshRenderer>().sharedMaterial));
+			if (lockedBody) {
+				EditorGUILayout.HelpBox("The body material can't be changed, so no look can be linked to it. Edit it for the insert first, with the buttons under the colors.", MessageType.None);
+			} else if (styled == 0) {
 				EditorGUILayout.HelpBox("A look is how the insert is moulded and behaves optically: every numeric setting of the hybrid body material, but not its colours and Max Brightness, which are the Color's, nor the bulb, which is the Lamp's. Bake the insert and click Use HDRP Hybrid Material first.", MessageType.None);
 			} else if (followed.Length == 1 && followed[0] != null) {
 				var edited = bodies.Sum(InsertMaterialPresets.Edited);
@@ -1217,7 +1221,7 @@ namespace VisualPinball.Unity.Editor
 			if (followed.Length == 1 && followed[0] != null) {
 				following.Add(System.Array.IndexOf(presets, followed[0]));
 			}
-			using (new EditorGUI.DisabledScope(!revealAsset && (styled == 0 || EditorApplication.isPlaying))) {
+			using (new EditorGUI.DisabledScope(!revealAsset && (styled == 0 || lockedBody || EditorApplication.isPlaying))) {
 				var labels = presets.Select(preset => InsertPresetGui.Label(preset, $"{preset.name}: links every selected insert's body material to this look, which gives it the look's values now and whenever the look changes. {InsertPresetGui.Where(preset)} Colors, Max Brightness, maps, lamps and the cover stay as they are. A shared body material changes for all inserts that use it. Ctrl/Cmd+click to highlight the asset.")).ToArray();
 				var clicked = InsertPresetGui.Buttons(labels, following, () => InsertPresetGui.EditButton(InsertPresetWindow.Kind.Look, followed.Length == 1 ? followed[0] : null), 92f);
 				if (clicked >= 0) {
