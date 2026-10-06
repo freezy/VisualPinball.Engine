@@ -108,6 +108,125 @@ namespace VisualPinball.Unity.Editor
 			return material;
 		}
 
+		#region Project copies
+
+		/// <summary>Whether the material is an asset that can't be written to, like the installed asset library's.</summary>
+		public static bool IsReadOnly(Material material)
+			=> material != null && InsertBaker.IsReadOnly(AssetDatabase.GetAssetPath(material));
+
+		/// <summary>
+		/// Whether the insert's material can't be changed: its asset can't be
+		/// written to, or it comes with the insert's prefab from a locked asset
+		/// library, wherever the material itself lives.
+		/// </summary>
+		public static bool IsReadOnly(InsertComponent insert, Material material)
+		{
+			if (material == null) {
+				return false;
+			}
+			if (IsReadOnly(material)) {
+				return true;
+			}
+			var source = PrefabUtility.GetCorrespondingObjectFromOriginalSource(insert.gameObject);
+			if (source == null || InsertBaker.LockedLibrary(AssetDatabase.GetAssetPath(source)) == null) {
+				return false;
+			}
+			var renderer = source.GetComponent<MeshRenderer>();
+			var sourceInsert = source.GetComponent<InsertComponent>();
+			return renderer != null && renderer.sharedMaterial == material || sourceInsert != null && sourceInsert.CoverMaterial == material;
+		}
+
+		/// <summary>Whether the insert's body or cover material can't be changed.</summary>
+		public static bool HasReadOnlyMaterial(InsertComponent insert)
+			=> IsReadOnly(insert, insert.GetComponent<MeshRenderer>().sharedMaterial) || IsReadOnly(insert, insert.CoverMaterial);
+
+		/// <summary>The inserts in the open scenes that wear the material, as body or cover.</summary>
+		public static InsertComponent[] Wearing(Material material)
+			=> material == null ? Array.Empty<InsertComponent>() : Object.FindObjectsByType<InsertComponent>(FindObjectsInactive.Include)
+				.Where(insert => insert.GetComponent<MeshRenderer>().sharedMaterial == material || insert.CoverMaterial == material)
+				.ToArray();
+
+		/// <summary>
+		/// The inserts in the open scenes that wear any of the given inserts'
+		/// read-only materials, the given ones included: those a copy for all
+		/// of them would go to.
+		/// </summary>
+		public static InsertComponent[] SharingReadOnlyMaterials(IReadOnlyCollection<InsertComponent> inserts)
+		{
+			var materials = inserts
+				.SelectMany(insert => new[] { insert.GetComponent<MeshRenderer>().sharedMaterial, insert.CoverMaterial }.Where(material => IsReadOnly(insert, material)))
+				.Distinct();
+			return inserts.Concat(materials.SelectMany(Wearing)).Distinct().ToArray();
+		}
+
+		/// <summary>
+		/// Gives the inserts copies of their read-only body and cover materials,
+		/// in the project, so they can be changed. A copy is a variant of the
+		/// package's material: it keeps following it, and its color preset,
+		/// until a value is changed. Inserts wearing the same material get the
+		/// same copy, and a copy made before is used again.
+		/// </summary>
+		/// <returns>How many inserts got a copy</returns>
+		public static int CopyToProject(IEnumerable<InsertComponent> inserts)
+		{
+			var copies = new Dictionary<Material, Material>();
+			var changed = 0;
+			Undo.IncrementCurrentGroup();
+			var group = Undo.GetCurrentGroup();
+			foreach (var insert in inserts) {
+				var renderer = insert.GetComponent<MeshRenderer>();
+				var body = renderer.sharedMaterial;
+				var cover = insert.CoverMaterial;
+				var bodyCopy = IsReadOnly(insert, body) ? Copy(body, copies) : body;
+				var coverCopy = IsReadOnly(insert, cover) ? Copy(cover, copies) : cover;
+				if (bodyCopy == body && coverCopy == cover) {
+					continue;
+				}
+				Undo.RecordObjects(new Object[] { insert, renderer }, "Copy Insert Materials to Project");
+				renderer.sharedMaterial = bodyCopy;
+				if (coverCopy != cover) {
+					insert.SetCoverMaterial(coverCopy);
+				}
+				PrefabUtility.RecordPrefabInstancePropertyModifications(insert);
+				PrefabUtility.RecordPrefabInstancePropertyModifications(renderer);
+				changed++;
+			}
+			Undo.SetCurrentGroupName("Copy Insert Materials to Project");
+			Undo.CollapseUndoOperations(group);
+			AssetDatabase.SaveAssets();
+			return changed;
+		}
+
+		/// <summary>
+		/// The project's copy of a material: a variant of it, at the same path
+		/// under Assets as it has in its package.
+		/// </summary>
+		public static Material ProjectCopy(Material source)
+		{
+			var folder = WritableFolder(AssetDatabase.GetAssetPath(source));
+			var path = folder + "/" + FileName(source.name) + ".mat";
+			var existing = AssetDatabase.LoadAssetAtPath<Material>(path);
+			if (existing != null && existing.parent == source) {
+				return existing;
+			}
+			EnsureFolder(folder);
+			// A copy given its parent, so nothing counts as overridden until it's changed.
+			var copy = new Material(source) { parent = source, name = source.name };
+			AssetDatabase.CreateAsset(copy, AssetDatabase.GenerateUniqueAssetPath(path));
+			return copy;
+		}
+
+		private static Material Copy(Material source, Dictionary<Material, Material> copies)
+		{
+			if (!copies.TryGetValue(source, out var copy)) {
+				copy = ProjectCopy(source);
+				copies[source] = copy;
+			}
+			return copy;
+		}
+
+		#endregion
+
 		#region Linking
 
 		/// <summary>
@@ -371,8 +490,18 @@ namespace VisualPinball.Unity.Editor
 			return match.Success ? sourceName.Substring(0, match.Index) + colorName + sourceName.Substring(match.Index + match.Length) : sourceName + ", " + colorName;
 		}
 
-		/// <summary>Maps a package material's folder to the same path under Assets.</summary>
+		/// <summary>
+		/// Maps a package material's folder to the same path under Assets. A
+		/// folder that is part of a locked asset library maps to Assets/Inserts,
+		/// since what's written there would be the library's again.
+		/// </summary>
 		public static string WritableFolder(string sourcePath)
+		{
+			var folder = MappedFolder(sourcePath);
+			return InsertBaker.LockedLibrary(folder + "/") != null ? "Assets/Inserts" : folder;
+		}
+
+		private static string MappedFolder(string sourcePath)
 		{
 			var folder = string.IsNullOrEmpty(sourcePath) ? null : Path.GetDirectoryName(sourcePath)?.Replace('\\', '/');
 			if (string.IsNullOrEmpty(folder)) {

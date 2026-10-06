@@ -803,7 +803,8 @@ namespace VisualPinball.Unity.Editor
 
 		/// <summary>
 		/// Whether the bake's assets cannot be written to: they live in a package
-		/// Unity keeps immutable, or version control holds them.
+		/// Unity keeps immutable, in a locked asset library, or version control
+		/// holds them.
 		/// </summary>
 		public static bool IsReadOnly(InsertBakeData bake) => bake != null && IsReadOnly(AssetDatabase.GetAssetPath(bake));
 
@@ -825,6 +826,9 @@ namespace VisualPinball.Unity.Editor
 			if (package != null && package.source != PackageSource.Embedded && package.source != PackageSource.Local) {
 				return true;
 			}
+			if (LockedLibrary(assetPath) != null) {
+				return true;
+			}
 			return !AssetDatabase.IsOpenForEdit(assetPath, StatusQueryOptions.UseCachedIfPossible);
 		}
 
@@ -833,10 +837,57 @@ namespace VisualPinball.Unity.Editor
 		{
 			var path = AssetDatabase.GetAssetPath(bake);
 			var package = PackageInfo.FindForAssetPath(path);
-			return package != null && package.source != PackageSource.Embedded && package.source != PackageSource.Local
-				? $"the package {package.displayName}"
-				: "version control";
+			if (package != null && package.source != PackageSource.Embedded && package.source != PackageSource.Local) {
+				return $"the package {package.displayName}";
+			}
+			var library = LockedLibrary(path);
+			return library != null ? $"the locked asset library {library.Name}" : "version control";
 		}
+
+		/// <summary>
+		/// The locked asset library the asset belongs to, or null: one whose
+		/// folder it is in, or one it is an asset of. A locked library's files
+		/// can be written to, but VPE leaves them alone, as it does a package's.
+		/// </summary>
+		public static AssetLibrary LockedLibrary(string assetPath)
+		{
+			if (string.IsNullOrEmpty(assetPath)) {
+				return null;
+			}
+			var guid = AssetDatabase.AssetPathToGUID(assetPath);
+			foreach (var library in Libraries()) {
+				if (library == null || !library.IsLocked) {
+					continue;
+				}
+				var root = library.LibraryRoot?.Replace('\\', '/').TrimEnd('/');
+				if (!string.IsNullOrEmpty(root) && assetPath.StartsWith(root + "/", StringComparison.Ordinal)) {
+					return library;
+				}
+				if (!string.IsNullOrEmpty(guid) && library.HasAsset(guid)) {
+					return library;
+				}
+			}
+			return null;
+		}
+
+		private static AssetLibrary[] _libraries;
+
+		// Inspectors ask on every repaint, so the libraries are looked up once per project change;
+		// whether one is locked is read live.
+		private static AssetLibrary[] Libraries()
+		{
+			if (_libraries == null) {
+				_libraries = AssetDatabase.FindAssets("t:" + nameof(AssetLibrary))
+					.Select(guid => AssetDatabase.LoadAssetAtPath<AssetLibrary>(AssetDatabase.GUIDToAssetPath(guid)))
+					.Where(library => library != null)
+					.ToArray();
+				EditorApplication.projectChanged -= ForgetLibraries;
+				EditorApplication.projectChanged += ForgetLibraries;
+			}
+			return _libraries;
+		}
+
+		private static void ForgetLibraries() => _libraries = null;
 
 		/// <summary>
 		/// Gives the insert a bake of its own in the project: copies of the maps

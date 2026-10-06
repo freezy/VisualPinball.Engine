@@ -224,5 +224,99 @@ namespace VisualPinball.Unity.Test
 				AssetDatabase.DeleteAsset(folder);
 			}
 		}
+
+		[Test]
+		public void ShouldTreatALockedAssetLibraryAsReadOnly()
+		{
+			const string root = "Assets/Locked Library Test";
+			const string outside = "Assets/Locked Library Test Materials";
+			var forget = typeof(InsertBaker).GetMethod("ForgetLibraries", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+			AssetDatabase.CreateFolder("Assets", "Locked Library Test");
+			AssetDatabase.CreateFolder("Assets", "Locked Library Test Materials");
+			GameObject instance = null;
+			try {
+				var library = ScriptableObject.CreateInstance<AssetLibrary>();
+				library.LibraryRoot = root;
+				library.IsLocked = true;
+				AssetDatabase.CreateAsset(library, root + "/Library.asset");
+				var inside = new Material(Shader.Find("HDRP/Lit"));
+				AssetDatabase.CreateAsset(inside, root + "/Inside.mat");
+				var away = new Material(Shader.Find("HDRP/Lit"));
+				AssetDatabase.CreateAsset(away, outside + "/Outside.mat");
+				var go = new GameObject("Locked Insert");
+				go.AddComponent<InsertComponent>().GetComponent<MeshRenderer>().sharedMaterial = away;
+				var prefab = PrefabUtility.SaveAsPrefabAsset(go, root + "/Locked Insert.prefab");
+				Object.DestroyImmediate(go);
+				instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+				var insert = instance.GetComponent<InsertComponent>();
+				forget.Invoke(null, null);
+
+				Assert.That(InsertBaker.IsReadOnly(root + "/Inside.mat"), Is.True, "what's in a locked library's folder");
+				Assert.That(InsertBaker.IsReadOnly(outside + "/Outside.mat"), Is.False);
+				Assert.That(InsertColorPresets.WritableFolder(root + "/Inside.mat"), Is.EqualTo("Assets/Inserts"), "copies don't go back into the library");
+				Assert.That(InsertColorPresets.IsReadOnly(insert, away), Is.True, "a material the library's prefab gives the insert, wherever it lives");
+				Assert.That(InsertColorPresets.HasReadOnlyMaterial(insert), Is.True);
+
+				library.IsLocked = false;
+				Assert.That(InsertBaker.IsReadOnly(root + "/Inside.mat"), Is.False, "an unlocked library can be changed");
+				Assert.That(InsertColorPresets.HasReadOnlyMaterial(insert), Is.False);
+			} finally {
+				if (instance != null) {
+					Object.DestroyImmediate(instance);
+				}
+				AssetDatabase.DeleteAsset(root);
+				AssetDatabase.DeleteAsset(outside);
+				forget.Invoke(null, null);
+			}
+		}
+
+		[Test]
+		public void ShouldCopyReadOnlyMaterialsToTheProject()
+		{
+			// Any material of an immutable package stands in for the installed asset library's.
+			const string sourcePath = "Packages/com.unity.render-pipelines.high-definition/Editor/SceneTemplates/Materials/Black.mat";
+			const string copyFolder = "Assets/Editor/SceneTemplates";
+			var source = AssetDatabase.LoadAssetAtPath<Material>(sourcePath);
+			if (source == null) {
+				Assert.Ignore("Requires the HDRP package's scene template materials.");
+			}
+			var folderExisted = AssetDatabase.IsValidFolder(copyFolder);
+			var first = new GameObject("Read-only insert");
+			var second = new GameObject("Read-only insert 2");
+			try {
+				var a = first.AddComponent<InsertComponent>();
+				var b = second.AddComponent<InsertComponent>();
+				a.GetComponent<MeshRenderer>().sharedMaterial = source;
+				b.GetComponent<MeshRenderer>().sharedMaterial = source;
+				Assert.That(InsertColorPresets.IsReadOnly(source), Is.True);
+				Assert.That(InsertColorPresets.HasReadOnlyMaterial(a), Is.True);
+
+				Assert.That(InsertColorPresets.SharingReadOnlyMaterials(new[] { a }), Is.EquivalentTo(new[] { a, b }), "a copy for all would go to both");
+
+				Assert.That(InsertColorPresets.CopyToProject(new[] { a }), Is.EqualTo(1));
+
+				var copy = a.GetComponent<MeshRenderer>().sharedMaterial;
+				Assert.That(copy, Is.Not.SameAs(source));
+				Assert.That(copy.parent, Is.SameAs(source), "the copy keeps following the package's material");
+				Assert.That(AssetDatabase.GetAssetPath(copy), Does.StartWith(copyFolder + "/Materials/"), "at the package's path, under Assets");
+				Assert.That(InsertColorPresets.IsReadOnly(copy), Is.False);
+				Assert.That(b.GetComponent<MeshRenderer>().sharedMaterial, Is.SameAs(source), "a copy for one insert leaves the others as they are");
+
+				Assert.That(InsertColorPresets.CopyToProject(new[] { a, b }), Is.EqualTo(1), "only the insert still wearing the package's material");
+				Assert.That(b.GetComponent<MeshRenderer>().sharedMaterial, Is.SameAs(copy), "a copy made before is used again");
+				Assert.That(InsertColorPresets.ProjectCopy(source), Is.SameAs(copy));
+				Assert.That(InsertColorPresets.CopyToProject(new[] { a }), Is.Zero, "nothing left to copy");
+
+				Undo.PerformUndo();
+				Assert.That(b.GetComponent<MeshRenderer>().sharedMaterial, Is.SameAs(source), "one undo takes the last copy back");
+				Assert.That(a.GetComponent<MeshRenderer>().sharedMaterial, Is.SameAs(copy), "and only that one");
+			} finally {
+				Object.DestroyImmediate(first);
+				Object.DestroyImmediate(second);
+				if (!folderExisted) {
+					AssetDatabase.DeleteAsset(copyFolder);
+				}
+			}
+		}
 	}
 }

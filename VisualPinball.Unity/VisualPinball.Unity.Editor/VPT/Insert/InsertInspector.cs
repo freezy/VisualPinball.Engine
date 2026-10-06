@@ -1121,6 +1121,13 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
+		private static void CopyMaterials(IReadOnlyList<InsertComponent> inserts)
+		{
+			var copied = InsertColorPresets.CopyToProject(inserts);
+			Debug.Log($"Copied the materials of {copied} insert(s) to the project.");
+			GUIUtility.ExitGUI();
+		}
+
 		/// <summary>
 		/// Color presets switch the insert's body and cover materials; look
 		/// presets are what the body material follows for its numeric settings,
@@ -1164,6 +1171,28 @@ namespace VisualPinball.Unity.Editor
 							Undo.CollapseUndoOperations(group);
 						}
 						Debug.Log($"Applied {color.ColorName} color preset to {changed} insert(s).");
+					}
+				}
+			}
+
+			// A library insert wears the materials of a package that can't be written to:
+			// its colors are changed in copies of them.
+			var readOnly = inserts.Where(InsertColorPresets.HasReadOnlyMaterial).ToArray();
+			if (readOnly.Length > 0) {
+				EditorGUILayout.HelpBox(inserts.Length == 1
+					? "This insert's materials belong to a package that can't be changed, like the installed asset library, or to a locked asset library. The buttons above switch it to other materials. To change the colors themselves, edit it: it then gets copies of its materials in the project."
+					: $"{readOnly.Length} of the selected inserts wear materials of a package that can't be changed, like the installed asset library, or of a locked asset library. To change their colors, edit them: they then get copies of their materials in the project.", MessageType.None);
+				// For the selection alone, or for every insert wearing the same materials, which then stay alike.
+				var sharing = InsertColorPresets.SharingReadOnlyMaterials(readOnly);
+				using (new EditorGUI.DisabledScope(EditorApplication.isPlaying))
+				using (new EditorGUILayout.HorizontalScope()) {
+					var copyTooltip = "Gives {0} copies of {1} body and cover materials in the project, which can be changed. They keep following the package's materials, and their color preset, until a value is changed. Inserts wearing the same material share the copy.";
+					var selectedLabel = readOnly.Length == 1 ? "Edit This Insert" : $"Edit {readOnly.Length} Selected Inserts";
+					if (GUILayout.Button(new GUIContent(selectedLabel, string.Format(copyTooltip, readOnly.Length == 1 ? "the insert" : "the selected inserts", readOnly.Length == 1 ? "its" : "their") + " Other inserts wearing the same materials keep them."))) {
+						CopyMaterials(readOnly);
+					}
+					if (sharing.Length > readOnly.Length && GUILayout.Button(new GUIContent($"Edit All {sharing.Length} Inserts", string.Format(copyTooltip, $"all {sharing.Length} inserts in the open scenes that wear the same materials", "their") + " They stay alike: changing a copy changes all of them."))) {
+						CopyMaterials(sharing);
 					}
 				}
 			}
