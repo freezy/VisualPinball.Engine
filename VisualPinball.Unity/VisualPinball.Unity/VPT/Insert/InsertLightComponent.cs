@@ -60,9 +60,11 @@ namespace VisualPinball.Unity
 		[Serializable]
 		public class Bulb
 		{
+			// Off until previewed or driven: inserts share materials, and one that
+			// gives its material more bulbs must not light the others' unused ones.
 			[Range(0f, 1f)]
 			[Tooltip("This bulb's intensity, zero to one. Edit here to preview.")]
-			public float Intensity = 1f;
+			public float Intensity;
 
 			[Tooltip("This bulb's colour. Edit here to preview.")]
 			public Color Color = UnityEngine.Color.white;

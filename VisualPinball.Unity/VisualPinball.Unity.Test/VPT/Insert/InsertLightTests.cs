@@ -370,7 +370,17 @@ namespace VisualPinball.Unity.Test
 		{
 			using var fixture = new MappedInsert();
 			fixture.Bulbs(count);
+			foreach (var extra in fixture.Control.ExtraBulbs) { extra.Intensity = 1f; }
 			fixture.AssertLevel(1f, spillLevel: count);
+		}
+
+		[Test]
+		public void ShouldLeaveTheOtherBulbsOffUntilDriven()
+		{
+			// Another insert sharing the material may have given it more bulbs.
+			using var fixture = new MappedInsert();
+			fixture.Bulbs(3);
+			fixture.AssertLevel(1f, spillLevel: 1f);
 		}
 
 		[Test]
