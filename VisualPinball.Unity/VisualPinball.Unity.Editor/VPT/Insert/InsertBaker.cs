@@ -468,8 +468,9 @@ namespace VisualPinball.Unity.Editor
 				// which must not overwrite the original's. A bake that cannot be written
 				// to, in a package, is never anyone's to overwrite.
 				own = Owns(insert, insert.Bake) && !IsReadOnly(insert.Bake) ? insert.Bake : null;
-				folder = own != null ? Path.GetDirectoryName(AssetDatabase.GetAssetPath(own))?.Replace('\\', '/') : NewFolder(insert);
-				name = FileName(insert.name);
+				folder = own != null ? Path.GetDirectoryName(AssetDatabase.GetAssetPath(own))?.Replace('\\', '/') : InsertFolder(insert);
+				// Other inserts of the same prefab bake into the same folder.
+				name = own != null ? FileName(insert.name) : UniqueName(folder, FileName(insert.name));
 				owner = insert.EnsureId();
 			}
 			// Whether the material the insert wears is this bake's own is judged
@@ -905,8 +906,10 @@ namespace VisualPinball.Unity.Editor
 				throw new InvalidOperationException("The insert has no bake to fork.");
 			}
 			var renderer = insert.GetComponent<MeshRenderer>();
-			var folder = NewFolder(insert);
-			var name = FileName(insert.name);
+			var folder = InsertFolder(insert);
+			// Other inserts of the same prefab fork into the same folder.
+			var name = UniqueName(folder, FileName(insert.name));
+			var made = new List<Object>();
 
 			InsertBakeData data;
 			Material cover = null;
@@ -915,9 +918,13 @@ namespace VisualPinball.Unity.Editor
 				data.name = $"{name}, Bake";
 				data.Owner = insert.EnsureId();
 				data.NormalMap = CopyTexture(source.NormalMap, $"{folder}/{name}, Normal Map");
+				made.Add(data.NormalMap);
 				data.OpticalNormalMap = CopyTexture(source.OpticalNormalMap, $"{folder}/{name}, Optical Normals");
+				made.Add(data.OpticalNormalMap);
 				data.OpticalResponseMap = CopyTexture(source.OpticalResponseMap, $"{folder}/{name}, Optical Response");
+				made.Add(data.OpticalResponseMap);
 				AssetDatabase.CreateAsset(data, $"{folder}/{name}, Bake.asset");
+				made.Add(data);
 				// The material the insert wears takes the copies: a colour of the
 				// user's own carrying the source's maps in place, when it is the
 				// project's; the source's own material, or a package's, as a
@@ -939,6 +946,7 @@ namespace VisualPinball.Unity.Editor
 					} else {
 						// Unique, because the body and the cover may share a name.
 						AssetDatabase.CreateAsset(material, AssetDatabase.GenerateUniqueAssetPath($"{folder}/{name} {FileName(BaseName(worn))}.mat"));
+						made.Add(material);
 					}
 					data.Material = material;
 					BindOptics(data);
@@ -947,10 +955,20 @@ namespace VisualPinball.Unity.Editor
 				if (insert.CoverMaterial != null && IsReadOnly(AssetDatabase.GetAssetPath(insert.CoverMaterial))) {
 					cover = Variant(insert.CoverMaterial, $"{name} {BaseName(insert.CoverMaterial)}");
 					AssetDatabase.CreateAsset(cover, AssetDatabase.GenerateUniqueAssetPath($"{folder}/{name} {FileName(BaseName(insert.CoverMaterial))}.mat"));
+					made.Add(cover);
 				}
 			} catch {
 				// Nothing half-forked is left behind: the insert still wears the source.
-				AssetDatabase.DeleteAsset(folder);
+				// The folder may be shared, so only what the fork made goes.
+				foreach (var asset in made) {
+					var path = asset != null ? AssetDatabase.GetAssetPath(asset) : null;
+					if (!string.IsNullOrEmpty(path)) {
+						AssetDatabase.DeleteAsset(path);
+					}
+				}
+				if (folder.StartsWith(OutputRoot + "/", StringComparison.Ordinal) && !AssetDatabase.FindAssets(string.Empty, new[] { folder }).Any()) {
+					AssetDatabase.DeleteAsset(folder);
+				}
 				throw;
 			}
 
@@ -1024,6 +1042,87 @@ namespace VisualPinball.Unity.Editor
 			}
 			var guid = AssetDatabase.CreateFolder(OutputRoot, $"{FileName(insert.name)} {Guid.NewGuid().ToString("N")[..8]}");
 			return AssetDatabase.GUIDToAssetPath(guid);
+		}
+
+		/// <summary>
+		/// Where the insert's own assets go in the project when it has none yet:
+		/// its bake, its maps, and the materials made for it. For an insert of a
+		/// prefab, that's the prefab's folder mirrored under Assets, which every
+		/// insert of that prefab shares; for any other, a folder of its own.
+		/// </summary>
+		public static string InsertFolder(InsertComponent insert)
+		{
+			var prefab = PrefabPath(insert);
+			var folder = string.IsNullOrEmpty(prefab) ? null : MirroredFolder(Path.GetDirectoryName(prefab)?.Replace('\\', '/'));
+			// A locked library in the project mirrors onto itself: what's written there would be the library's again.
+			if (folder == null || LockedLibrary(folder + "/") != null) {
+				return NewFolder(insert);
+			}
+			EnsureFolder(folder);
+			return folder;
+		}
+
+		/// <summary>
+		/// Where materials made for the insert go: next to the bake it owns, when
+		/// that can be written to, or else in its folder.
+		/// </summary>
+		public static string MaterialFolder(InsertComponent insert)
+		{
+			var own = Owns(insert, insert.Bake) && !IsReadOnly(insert.Bake) ? insert.Bake : null;
+			return own != null ? Path.GetDirectoryName(AssetDatabase.GetAssetPath(own))?.Replace('\\', '/') : InsertFolder(insert);
+		}
+
+		/// <summary>
+		/// A package's or the project's folder at the same place under Assets,
+		/// less the asset library's Library folder:
+		/// <c>Packages/org.visualpinball.unity.assets/Assets/Library/Inserts/X</c>
+		/// is <c>Assets/Inserts/X</c>. Null for a folder that is neither.
+		/// </summary>
+		public static string MirroredFolder(string folder)
+		{
+			if (string.IsNullOrEmpty(folder)) {
+				return null;
+			}
+			string relative;
+			if (folder.StartsWith("Packages/", StringComparison.Ordinal)) {
+				var slash = folder.IndexOf('/', "Packages/".Length);
+				relative = slash < 0 ? string.Empty : folder.Substring(slash + 1);
+				relative = relative == "Assets" ? string.Empty : relative.StartsWith("Assets/", StringComparison.Ordinal) ? relative.Substring("Assets/".Length) : relative;
+			} else if (folder == "Assets" || folder.StartsWith("Assets/", StringComparison.Ordinal)) {
+				relative = folder.Length > "Assets/".Length ? folder.Substring("Assets/".Length) : string.Empty;
+			} else {
+				return null;
+			}
+			relative = relative == "Library" ? string.Empty : relative.StartsWith("Library/", StringComparison.Ordinal) ? relative.Substring("Library/".Length) : relative;
+			return relative.Length == 0 ? "Assets" : "Assets/" + relative;
+		}
+
+		/// <summary>
+		/// A name for an insert's new files in a folder other inserts may share:
+		/// its own, or with a number when another's files already go by it.
+		/// </summary>
+		public static string UniqueName(string folder, string name)
+		{
+			var disk = DiskPath(folder);
+			for (var i = 1; ; i++) {
+				var candidate = i == 1 ? name : $"{name} {i}";
+				if (!Directory.Exists(disk) || !Directory.EnumerateFiles(disk, candidate + ", *").Any(file => !file.EndsWith(".meta", StringComparison.Ordinal))) {
+					return candidate;
+				}
+			}
+		}
+
+		private static void EnsureFolder(string folder)
+		{
+			var parts = folder.Split('/');
+			var path = parts[0];
+			for (var i = 1; i < parts.Length; i++) {
+				var child = path + "/" + parts[i];
+				if (!AssetDatabase.IsValidFolder(child)) {
+					AssetDatabase.CreateFolder(path, parts[i]);
+				}
+				path = child;
+			}
 		}
 
 		/// <summary>

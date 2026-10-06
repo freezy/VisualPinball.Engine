@@ -3,6 +3,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -20,7 +23,7 @@ namespace VisualPinball.Unity.Test
 			Assert.That(InsertColorPresets.NameFor("Insert, Blue Angel, Red", "Green"), Is.EqualTo("Insert, Blue Angel, Green"));
 			Assert.That(InsertColorPresets.NameFor("Insert, Triangle, White, 34", "Clear"), Is.EqualTo("Insert, Triangle, Clear, 34"));
 			Assert.That(InsertColorPresets.NameFor("Insert, Triangle", "Purple"), Is.EqualTo("Insert, Triangle, Purple"));
-			Assert.That(InsertColorPresets.WritableFolder("Packages/org.visualpinball.unity.assetlibrary/Assets/Library/Inserts/Insert, Red.mat"), Is.EqualTo("Assets/Library/Inserts"));
+			Assert.That(InsertColorPresets.WritableFolder("Packages/org.visualpinball.unity.assetlibrary/Assets/Library/Inserts/Insert, Red.mat"), Is.EqualTo("Assets/Inserts"), "less the asset library's Library folder");
 			Assert.That(InsertColorPresets.WritableFolder("Assets/Inserts/Insert, Red.mat"), Is.EqualTo("Assets/Inserts"));
 		}
 
@@ -275,14 +278,14 @@ namespace VisualPinball.Unity.Test
 		{
 			// Any material of an immutable package stands in for the installed asset library's.
 			const string sourcePath = "Packages/com.unity.render-pipelines.high-definition/Editor/SceneTemplates/Materials/Black.mat";
-			const string copyFolder = "Assets/Editor/SceneTemplates";
 			var source = AssetDatabase.LoadAssetAtPath<Material>(sourcePath);
 			if (source == null) {
 				Assert.Ignore("Requires the HDRP package's scene template materials.");
 			}
-			var folderExisted = AssetDatabase.IsValidFolder(copyFolder);
+			var insertsExisted = AssetDatabase.IsValidFolder("Assets/Inserts");
 			var first = new GameObject("Read-only insert");
 			var second = new GameObject("Read-only insert 2");
+			var folders = new List<string>();
 			try {
 				var a = first.AddComponent<InsertComponent>();
 				var b = second.AddComponent<InsertComponent>();
@@ -296,15 +299,21 @@ namespace VisualPinball.Unity.Test
 				Assert.That(InsertColorPresets.CopyToProject(new[] { a }), Is.EqualTo(1));
 
 				var copy = a.GetComponent<MeshRenderer>().sharedMaterial;
+				var copyPath = AssetDatabase.GetAssetPath(copy);
+				folders.Add(Path.GetDirectoryName(copyPath)?.Replace('\\', '/'));
 				Assert.That(copy, Is.Not.SameAs(source));
 				Assert.That(copy.parent, Is.SameAs(source), "the copy keeps following the package's material");
-				Assert.That(AssetDatabase.GetAssetPath(copy), Does.StartWith(copyFolder + "/Materials/"), "at the package's path, under Assets");
+				Assert.That(copyPath, Does.StartWith("Assets/Inserts/Read-only insert "), "where a bake of an insert of no prefab goes");
+				Assert.That(Path.GetFileNameWithoutExtension(copyPath), Is.EqualTo("Read-only insert Black"), "named after the insert, as a fork names it");
 				Assert.That(InsertColorPresets.IsReadOnly(copy), Is.False);
 				Assert.That(b.GetComponent<MeshRenderer>().sharedMaterial, Is.SameAs(source), "a copy for one insert leaves the others as they are");
+				Assert.That(InsertColorPresets.ProjectCopy(source, folders[0], "Read-only insert Black"), Is.SameAs(copy), "a copy made before is used again");
 
 				Assert.That(InsertColorPresets.CopyToProject(new[] { a, b }), Is.EqualTo(1), "only the insert still wearing the package's material");
-				Assert.That(b.GetComponent<MeshRenderer>().sharedMaterial, Is.SameAs(copy), "a copy made before is used again");
-				Assert.That(InsertColorPresets.ProjectCopy(source), Is.SameAs(copy));
+				var shared = b.GetComponent<MeshRenderer>().sharedMaterial;
+				folders.Add(Path.GetDirectoryName(AssetDatabase.GetAssetPath(shared))?.Replace('\\', '/'));
+				Assert.That(shared.parent, Is.SameAs(source));
+				Assert.That(shared.name, Is.EqualTo("Black"), "a copy for several inserts is named after the material");
 				Assert.That(InsertColorPresets.CopyToProject(new[] { a }), Is.Zero, "nothing left to copy");
 
 				Undo.PerformUndo();
@@ -313,9 +322,51 @@ namespace VisualPinball.Unity.Test
 			} finally {
 				Object.DestroyImmediate(first);
 				Object.DestroyImmediate(second);
-				if (!folderExisted) {
-					AssetDatabase.DeleteAsset(copyFolder);
+				foreach (var folder in folders.Where(folder => !string.IsNullOrEmpty(folder)).Distinct()) {
+					AssetDatabase.DeleteAsset(folder);
 				}
+				if (!insertsExisted) {
+					AssetDatabase.DeleteAsset("Assets/Inserts");
+				}
+			}
+		}
+
+		[TestCase("Packages/org.visualpinball.unity.assets/Assets/Library/Inserts/Insert, Triangle, 2in, Starburst", "Assets/Inserts/Insert, Triangle, 2in, Starburst")]
+		[TestCase("Assets/Library/Inserts/Insert, Circle", "Assets/Inserts/Insert, Circle")]
+		[TestCase("Packages/org.visualpinball.unity.assets/Assets/Library", "Assets")]
+		[TestCase("Packages/com.example/Runtime/Materials", "Assets/Runtime/Materials")]
+		[TestCase("Assets/Prefabs/My Insert", "Assets/Prefabs/My Insert")]
+		[TestCase("C:/Elsewhere", null)]
+		public void ShouldMirrorAFolderUnderAssetsWithoutTheLibraryFolder(string folder, string expected)
+		{
+			Assert.That(InsertBaker.MirroredFolder(folder), Is.EqualTo(expected));
+		}
+
+		[Test]
+		public void ShouldPutAPrefabsInsertsInItsMirroredFolder()
+		{
+			const string folder = "Assets/Insert Folder Test";
+			AssetDatabase.CreateFolder("Assets", "Insert Folder Test");
+			GameObject instance = null;
+			try {
+				var go = new GameObject("Folder Insert");
+				go.AddComponent<InsertComponent>();
+				var prefab = PrefabUtility.SaveAsPrefabAsset(go, folder + "/Folder Insert.prefab");
+				Object.DestroyImmediate(go);
+				instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+
+				Assert.That(InsertBaker.InsertFolder(instance.GetComponent<InsertComponent>()), Is.EqualTo(folder), "every insert of the prefab shares its folder");
+
+				// Another insert's files go by the name already, so a second one of that name gets a number.
+				File.WriteAllText(Path.GetFullPath(folder + "/Folder Insert, Bake.asset"), string.Empty);
+				Assert.That(InsertBaker.UniqueName(folder, "Folder Insert"), Is.EqualTo("Folder Insert 2"));
+				Assert.That(InsertBaker.UniqueName(folder, "Other Insert"), Is.EqualTo("Other Insert"));
+			} finally {
+				if (instance != null) {
+					Object.DestroyImmediate(instance);
+				}
+				File.Delete(Path.GetFullPath(folder + "/Folder Insert, Bake.asset"));
+				AssetDatabase.DeleteAsset(folder);
 			}
 		}
 	}

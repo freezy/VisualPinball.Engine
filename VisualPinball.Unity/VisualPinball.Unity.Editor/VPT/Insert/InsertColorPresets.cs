@@ -163,22 +163,32 @@ namespace VisualPinball.Unity.Editor
 		/// Gives the inserts copies of their read-only body and cover materials,
 		/// in the project, so they can be changed. A copy is a variant of the
 		/// package's material: it keeps following it, and its color preset,
-		/// until a value is changed. Inserts wearing the same material get the
-		/// same copy, and a copy made before is used again.
+		/// until a value is changed. The inserts share their copies.
 		/// </summary>
+		/// <remarks>
+		/// Copies go where the insert's bake would, the folder of its prefab
+		/// mirrored under Assets, or one of its own. A single insert's are named
+		/// after it, as a fork names the materials it makes, so a later fork
+		/// binds its maps into them; shared ones are named after the material.
+		/// A copy made before is used again.
+		/// </remarks>
 		/// <returns>How many inserts got a copy</returns>
-		public static int CopyToProject(IEnumerable<InsertComponent> inserts)
+		public static int CopyToProject(IReadOnlyCollection<InsertComponent> inserts)
 		{
 			var copies = new Dictionary<Material, Material>();
 			var changed = 0;
 			Undo.IncrementCurrentGroup();
 			var group = Undo.GetCurrentGroup();
+			var first = inserts.FirstOrDefault(HasReadOnlyMaterial);
+			string folder = null;
+			string Folder() => folder ??= InsertBaker.MaterialFolder(first);
+			string Name(Material source) => inserts.Count == 1 ? $"{FileName(first.name)} {source.name}" : source.name;
 			foreach (var insert in inserts) {
 				var renderer = insert.GetComponent<MeshRenderer>();
 				var body = renderer.sharedMaterial;
 				var cover = insert.CoverMaterial;
-				var bodyCopy = IsReadOnly(insert, body) ? Copy(body, copies) : body;
-				var coverCopy = IsReadOnly(insert, cover) ? Copy(cover, copies) : cover;
+				var bodyCopy = IsReadOnly(insert, body) ? Copy(body, copies, Folder, Name) : body;
+				var coverCopy = IsReadOnly(insert, cover) ? Copy(cover, copies, Folder, Name) : cover;
 				if (bodyCopy == body && coverCopy == cover) {
 					continue;
 				}
@@ -199,27 +209,30 @@ namespace VisualPinball.Unity.Editor
 
 		/// <summary>
 		/// The project's copy of a material: a variant of it, at the same path
-		/// under Assets as it has in its package.
+		/// under Assets as it has in its package, for a material no insert wears.
 		/// </summary>
 		public static Material ProjectCopy(Material source)
+			=> ProjectCopy(source, WritableFolder(AssetDatabase.GetAssetPath(source)), source.name);
+
+		/// <summary>The project's copy of a material, in that folder and by that name: a variant of it.</summary>
+		public static Material ProjectCopy(Material source, string folder, string name)
 		{
-			var folder = WritableFolder(AssetDatabase.GetAssetPath(source));
-			var path = folder + "/" + FileName(source.name) + ".mat";
+			var path = folder + "/" + FileName(name) + ".mat";
 			var existing = AssetDatabase.LoadAssetAtPath<Material>(path);
 			if (existing != null && existing.parent == source) {
 				return existing;
 			}
 			EnsureFolder(folder);
 			// A copy given its parent, so nothing counts as overridden until it's changed.
-			var copy = new Material(source) { parent = source, name = source.name };
+			var copy = new Material(source) { parent = source, name = name };
 			AssetDatabase.CreateAsset(copy, AssetDatabase.GenerateUniqueAssetPath(path));
 			return copy;
 		}
 
-		private static Material Copy(Material source, Dictionary<Material, Material> copies)
+		private static Material Copy(Material source, Dictionary<Material, Material> copies, Func<string> folder, Func<Material, string> name)
 		{
 			if (!copies.TryGetValue(source, out var copy)) {
-				copy = ProjectCopy(source);
+				copy = ProjectCopy(source, folder(), name(source));
 				copies[source] = copy;
 			}
 			return copy;
@@ -504,21 +517,7 @@ namespace VisualPinball.Unity.Editor
 		private static string MappedFolder(string sourcePath)
 		{
 			var folder = string.IsNullOrEmpty(sourcePath) ? null : Path.GetDirectoryName(sourcePath)?.Replace('\\', '/');
-			if (string.IsNullOrEmpty(folder)) {
-				return "Assets/Inserts";
-			}
-			if (folder.StartsWith("Assets/", StringComparison.Ordinal) || folder == "Assets") {
-				return folder;
-			}
-			if (folder.StartsWith("Packages/", StringComparison.Ordinal)) {
-				var slash = folder.IndexOf('/', "Packages/".Length);
-				var relative = slash < 0 ? string.Empty : folder.Substring(slash + 1);
-				if (relative.StartsWith("Assets/", StringComparison.Ordinal)) {
-					relative = relative.Substring("Assets/".Length);
-				}
-				return string.IsNullOrEmpty(relative) ? "Assets" : "Assets/" + relative;
-			}
-			return "Assets/Inserts";
+			return InsertBaker.MirroredFolder(folder) ?? "Assets/Inserts";
 		}
 
 		/// <summary>Whether the asset is in a package, and that package can be written to.</summary>
