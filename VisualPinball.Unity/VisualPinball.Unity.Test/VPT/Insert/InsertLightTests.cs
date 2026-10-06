@@ -45,7 +45,7 @@ namespace VisualPinball.Unity.Test
 			// tint amount and the cover gets the lamp's level and colour too; off,
 			// the tint is zero and nothing else of the cover's block changes.
 			using var fixture = new MappedInsert();
-			var coverShader = Shader.Find("Visual Pinball/Insert Cover");
+			var coverShader = Shader.Find("Pinball/Insert Cover");
 			if (coverShader == null) { Assert.Ignore("Requires the HDRP insert cover shader."); }
 			var cover = new Material(coverShader);
 			var renderer = fixture.Control.GetComponent<MeshRenderer>();
@@ -271,7 +271,7 @@ namespace VisualPinball.Unity.Test
 
 			public MappedInsert()
 			{
-				var shader = Shader.Find("Visual Pinball/Insert Hybrid");
+				var shader = Shader.Find("Pinball/Insert Hybrid");
 				if (shader == null) { Assert.Ignore("Requires the HDRP insert shader."); }
 				Player = Root.AddComponent<Player>();
 				Table = Root.AddComponent<TableComponent>();
@@ -670,7 +670,7 @@ namespace VisualPinball.Unity.Test
 		[TestCase(100f)]
 		public void ShouldScaleAndColourTheLensAndSpillTogether(float luminosity)
 		{
-			var shader = Shader.Find("Visual Pinball/Insert Hybrid");
+			var shader = Shader.Find("Pinball/Insert Hybrid");
 			if (shader == null) {
 				Assert.Ignore("Requires the HDRP insert shader.");
 			}
@@ -799,7 +799,7 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldKeepRgbAndLevelIndependentWithoutHidingTheInsert()
 		{
-			var shader = Shader.Find("Visual Pinball/Insert Hybrid");
+			var shader = Shader.Find("Pinball/Insert Hybrid");
 			if (shader == null) {
 				Assert.Ignore("Requires the HDRP insert shader.");
 			}

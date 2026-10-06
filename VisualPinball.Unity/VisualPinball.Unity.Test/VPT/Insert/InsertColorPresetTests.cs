@@ -67,8 +67,8 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldCreateAndReuseBodyAndCoverColorMaterials()
 		{
-			var bodyShader = Shader.Find("Visual Pinball/Insert Hybrid");
-			var coverShader = Shader.Find("Visual Pinball/Insert Cover");
+			var bodyShader = Shader.Find("Pinball/Insert Hybrid");
+			var coverShader = Shader.Find("Pinball/Insert Cover");
 			if (bodyShader == null || coverShader == null) { Assert.Ignore("Requires the HDRP insert shaders."); }
 			var folder = "Assets/InsertColorPresetTests" + Guid.NewGuid().ToString("N");
 			AssetDatabase.CreateFolder("Assets", folder.Substring("Assets/".Length));
@@ -144,7 +144,7 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldKeepTheSourceMapsWhenOnlyAnotherInsertHasTheRequestedColor()
 		{
-			var shader = Shader.Find("Visual Pinball/Insert Hybrid");
+			var shader = Shader.Find("Pinball/Insert Hybrid");
 			if (shader == null) { Assert.Ignore("Requires the HDRP insert shader."); }
 			var folder = "Assets/InsertColorPresetTests" + Guid.NewGuid().ToString("N");
 			AssetDatabase.CreateFolder("Assets", folder.Substring("Assets/".Length));
@@ -190,8 +190,8 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldMakeVariantWhenSourceHasNoColorName()
 		{
-			var shader = Shader.Find("Visual Pinball/Insert Hybrid");
-			var coverShader = Shader.Find("Visual Pinball/Insert Cover");
+			var shader = Shader.Find("Pinball/Insert Hybrid");
+			var coverShader = Shader.Find("Pinball/Insert Cover");
 			if (shader == null || coverShader == null) { Assert.Ignore("Requires the HDRP insert shaders."); }
 			var folder = "Assets/InsertColorPresetTests" + Guid.NewGuid().ToString("N");
 			AssetDatabase.CreateFolder("Assets", folder.Substring("Assets/".Length));

@@ -21,8 +21,8 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldApplyBodySettingsWithoutChangingColorsMapsOrCover()
 		{
-			var shader = Shader.Find("Visual Pinball/Insert Hybrid");
-			var coverShader = Shader.Find("Visual Pinball/Insert Cover");
+			var shader = Shader.Find("Pinball/Insert Hybrid");
+			var coverShader = Shader.Find("Pinball/Insert Cover");
 			if (shader == null || coverShader == null) { Assert.Ignore("Requires the HDRP insert shaders."); }
 			var source = new Material(shader);
 			var sourceCover = new Material(coverShader);

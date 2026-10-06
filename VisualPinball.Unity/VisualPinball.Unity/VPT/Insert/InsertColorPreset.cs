@@ -11,7 +11,7 @@ namespace VisualPinball.Unity
 	/// The colors to use when making a new insert body and cover material. Materials
 	/// linked to the preset keep following it when it changes.
 	/// </summary>
-	[CreateAssetMenu(fileName = "Insert Color Preset", menuName = "Visual Pinball/Insert Color Preset")]
+	[CreateAssetMenu(fileName = "Insert Color Preset", menuName = "Pinball/Insert Color Preset")]
 	public sealed class InsertColorPreset : ScriptableObject
 	{
 		[Tooltip("Color name used in material names and lookup.")]

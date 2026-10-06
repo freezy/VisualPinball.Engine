@@ -20,7 +20,7 @@ namespace VisualPinball.Unity
 	[PackAs("InsertLight")]
 	[DisallowMultipleComponent]
 	[RequireComponent(typeof(InsertComponent), typeof(MeshRenderer))]
-	[AddComponentMenu("Visual Pinball/Insert Light")]
+	[AddComponentMenu("Pinball/Insert Light")]
 	public class InsertLightComponent : MonoBehaviour, ILampDeviceComponent, IPackable
 	{
 		[FormerlySerializedAs("Level")]

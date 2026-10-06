@@ -243,7 +243,7 @@ namespace VisualPinball.Unity.Editor
 				DrawCover();
 				serializedObject.ApplyModifiedProperties();
 				if (targets.Length == 1 && ((InsertComponent)target).CoverMaterial == null) {
-					using (new EditorGUI.DisabledScope(EditorApplication.isPlaying || Shader.Find("Visual Pinball/Insert Cover") == null)) {
+					using (new EditorGUI.DisabledScope(EditorApplication.isPlaying || Shader.Find("Pinball/Insert Cover") == null)) {
 						if (GUILayout.Button("Add Clear Cover")) {
 							AddCover((InsertComponent)target);
 						}
@@ -1312,7 +1312,7 @@ namespace VisualPinball.Unity.Editor
 			if (insert.CoverMaterial != null) {
 				return insert.CoverMaterial;
 			}
-			var shader = Shader.Find("Visual Pinball/Insert Cover");
+			var shader = Shader.Find("Pinball/Insert Cover");
 			if (shader == null) {
 				throw new System.InvalidOperationException("The HDRP insert cover shader is not installed.");
 			}

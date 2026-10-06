@@ -38,7 +38,7 @@ namespace VisualPinball.Unity
 	/// from the inches insert parts are catalogued in.
 	/// </para>
 	/// </remarks>
-	[AddComponentMenu("Visual Pinball/Insert")]
+	[AddComponentMenu("Pinball/Insert")]
 	[PackAs("Insert")]
 	[ExecuteAlways]
 	[RequireComponent(typeof(MeshFilter))]
@@ -1295,7 +1295,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 			if (!_coverMaterial.HasProperty("_CoverNormalMap") || !_coverMaterial.HasProperty("_PlayfieldNormalStrength")) {
-				CoverWarning = "Use a Visual Pinball/Insert Cover material for playfield normals, or disable Use Playfield Normals to use this material unchanged.";
+				CoverWarning = "Use a Pinball/Insert Cover material for playfield normals, or disable Use Playfield Normals to use this material unchanged.";
 				ClearCoverProjection(renderer, mesh, force);
 				ApplyCoverThickness(renderer);
 				return;

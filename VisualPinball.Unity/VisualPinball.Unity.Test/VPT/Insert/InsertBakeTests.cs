@@ -1192,7 +1192,7 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldSwitchTheRendererOffWhileTheBakeIsStale()
 		{
-			var shader = Shader.Find("Visual Pinball/Insert Hybrid");
+			var shader = Shader.Find("Pinball/Insert Hybrid");
 			if (shader == null) {
 				Assert.Ignore("Requires the HDRP insert shader.");
 			}
@@ -1284,7 +1284,7 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldCopyHybridTuningWhenADuplicateGetsItsOwnBakeMaterial()
 		{
-			var shader = Shader.Find("Visual Pinball/Insert Hybrid");
+			var shader = Shader.Find("Pinball/Insert Hybrid");
 			if (shader == null) {
 				Assert.Ignore("Requires the HDRP insert shader.");
 			}
@@ -1915,7 +1915,7 @@ namespace VisualPinball.Unity.Test
 			var root = new GameObject("Insert Fork Test Insert");
 			var probe = new Mesh();
 			var folder = UnityEditor.AssetDatabase.GenerateUniqueAssetPath("Assets/Insert Fork Test");
-			var hybrid = Shader.Find("Visual Pinball/Insert Hybrid");
+			var hybrid = Shader.Find("Pinball/Insert Hybrid");
 			var shader = hybrid != null ? hybrid : Shader.Find("Hidden/InternalErrorShader");
 			var plain = new Material(Shader.Find("Hidden/InternalErrorShader"));
 			InsertBakeData bake = null;

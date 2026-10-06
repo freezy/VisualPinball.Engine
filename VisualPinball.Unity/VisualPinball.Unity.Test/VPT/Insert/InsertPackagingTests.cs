@@ -72,8 +72,8 @@ namespace VisualPinball.Unity.Test
 				generator.FindProperty("_diameter").floatValue = 200f;
 				generator.ApplyModifiedPropertiesWithoutUndo();
 				insert.RebuildMesh();
-				body = new Material(Shader.Find("Visual Pinball/Insert Hybrid")) { name = "Editor Round Trip Body" };
-				cover = new Material(Shader.Find("Visual Pinball/Insert Cover")) { name = "Editor Round Trip Cover" };
+				body = new Material(Shader.Find("Pinball/Insert Hybrid")) { name = "Editor Round Trip Body" };
+				cover = new Material(Shader.Find("Pinball/Insert Cover")) { name = "Editor Round Trip Cover" };
 				insertGo.GetComponent<MeshRenderer>().sharedMaterial = body;
 				insert.SetCoverMaterial(cover);
 				sourceBake = ScriptableObject.CreateInstance<InsertBakeData>();
@@ -121,8 +121,8 @@ namespace VisualPinball.Unity.Test
 				Assert.That(restored.GetComponent<MeshRenderer>().sharedMaterials, Has.Length.EqualTo(2),
 					"the cover renderer slot must survive the GLB/editor material import: " + rendererLayout);
 				Assert.That(restored.CoverMaterial, Is.Not.Null, "the cover material must restore from renderer slot 1");
-				Assert.That(restored.PreBakeMaterial.shader.name, Is.EqualTo("Visual Pinball/Insert Hybrid"));
-				Assert.That(restored.CoverMaterial.shader.name, Is.EqualTo("Visual Pinball/Insert Cover"));
+				Assert.That(restored.PreBakeMaterial.shader.name, Is.EqualTo("Pinball/Insert Hybrid"));
+				Assert.That(restored.CoverMaterial.shader.name, Is.EqualTo("Pinball/Insert Cover"));
 				Assert.That(restored.GetComponent<MeshFilter>().sharedMesh, Is.Not.Null);
 			} finally {
 				if (source) { Object.DestroyImmediate(source); }
@@ -151,8 +151,8 @@ namespace VisualPinball.Unity.Test
 				var insertGo = new GameObject("Insert");
 				insertGo.transform.SetParent(source.transform, false);
 				var insert = insertGo.AddComponent<InsertComponent>();
-				body = new Material(Shader.Find("Visual Pinball/Insert Hybrid")) { name = "Test Insert Body" };
-				cover = new Material(Shader.Find("Visual Pinball/Insert Cover")) { name = "Test Insert Cover" };
+				body = new Material(Shader.Find("Pinball/Insert Hybrid")) { name = "Test Insert Body" };
+				cover = new Material(Shader.Find("Pinball/Insert Cover")) { name = "Test Insert Cover" };
 				insertGo.GetComponent<MeshRenderer>().sharedMaterial = body;
 				insert.SetCoverMaterial(cover);
 				var defaultBoundsMagnitude = insertGo.GetComponent<MeshFilter>().sharedMesh.bounds.size.magnitude;

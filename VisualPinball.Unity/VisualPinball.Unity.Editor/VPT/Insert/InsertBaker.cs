@@ -50,7 +50,7 @@ namespace VisualPinball.Unity.Editor
 		private const string Script = "VisualPinball.Unity/VisualPinball.Unity.Editor/VPT/Insert/Blender~/bake_insert.py";
 		private const string OutputRoot = "Assets/Inserts";
 		private const string LogPrefix = "[bake_insert] ";
-		public const string HybridShaderName = "Visual Pinball/Insert Hybrid";
+		public const string HybridShaderName = "Pinball/Insert Hybrid";
 
 		#region Blender
 

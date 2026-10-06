@@ -191,7 +191,7 @@ namespace VisualPinball.Unity.Simulation
 	/// - Unity main thread runs at display refresh rate (60-144 Hz)
 	/// - Lock-free communication between threads using ring buffers and triple-buffering
 	/// </summary>
-	[AddComponentMenu("Visual Pinball/Simulation Thread")]
+	[AddComponentMenu("Pinball/Simulation Thread")]
 	[RequireComponent(typeof(PhysicsEngine))]
 	[PackAs("SimulationThread")]
 	public class SimulationThreadComponent : MonoBehaviour, IPackable

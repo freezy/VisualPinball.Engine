@@ -11,7 +11,7 @@ namespace VisualPinball.Unity
 	/// The plastic's colour is the color preset's; this is the lamp behind it,
 	/// so a table swaps from incandescent to LED without touching a material.
 	/// </summary>
-	[CreateAssetMenu(fileName = "Insert Lamp Preset", menuName = "Visual Pinball/Insert Lamp Preset")]
+	[CreateAssetMenu(fileName = "Insert Lamp Preset", menuName = "Pinball/Insert Lamp Preset")]
 	public sealed class InsertLampPreset : ScriptableObject
 	{
 		[Tooltip("Name shown in the Insert Light's Lamp dropdown, and what a light that follows this preset remembers it by.")]

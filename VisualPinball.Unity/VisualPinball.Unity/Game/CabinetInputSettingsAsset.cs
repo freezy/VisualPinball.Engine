@@ -26,7 +26,7 @@ namespace VisualPinball.Unity
 	/// an editor-friendly default/preset container and can be written during Play
 	/// Mode in the editor when a human intentionally wants to update the preset.
 	/// </remarks>
-	[CreateAssetMenu(menuName = "Visual Pinball/Cabinet Input Settings", fileName = "CabinetInputSettings")]
+	[CreateAssetMenu(menuName = "Pinball/Cabinet Input Settings", fileName = "CabinetInputSettings")]
 	public sealed class CabinetInputSettingsAsset : ScriptableObject
 	{
 		public CabinetInputSettings settings = new();

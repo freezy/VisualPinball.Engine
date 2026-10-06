@@ -16,7 +16,7 @@ namespace VisualPinball.Unity
 	/// What a preset leaves alone: colors, texture maps, the
 	/// cover material, the virtual lamps, and hidden bake or runtime properties.
 	/// </remarks>
-	[CreateAssetMenu(fileName = "Insert Material Preset", menuName = "Visual Pinball/Insert Material Preset")]
+	[CreateAssetMenu(fileName = "Insert Material Preset", menuName = "Pinball/Insert Material Preset")]
 	public sealed class InsertMaterialPreset : ScriptableObject
 	{
 		public enum Kind
