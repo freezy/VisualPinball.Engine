@@ -148,50 +148,57 @@ namespace VisualPinball.Unity.Editor
 				CreateItem(Light.GetDefault, "New Light");
 			}
 
-			if (CreateButton("Hit Target", Icons.HitTarget(color: iconColor), iconSize, buttonStyle)) {
-				CreateItem(HitTarget.GetHitTarget, "New Hit Target");
+			if (CreateButton("Insert", Icons.LightInsert(IconSize.Large, iconColor), iconSize, buttonStyle)) {
+				CreateInsert();
 			}
 
 			GUILayout.EndHorizontal();
 			GUILayout.BeginHorizontal();
+
+			if (CreateButton("Hit Target", Icons.HitTarget(color: iconColor), iconSize, buttonStyle)) {
+				CreateItem(HitTarget.GetHitTarget, "New Hit Target");
+			}
 
 			if (CreateButton("Drop Target", Icons.DropTarget(color: iconColor), iconSize, buttonStyle)) {
 				CreateItem(HitTarget.GetDropTarget, "New Target");
 			}
 
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+
 			if (CreateButton("Rubber", Icons.Rubber(color: iconColor), iconSize, buttonStyle)) {
 				CreateItem(Rubber.GetDefault, "New Rubber");
 			}
-
-			GUILayout.EndHorizontal();
-			GUILayout.BeginHorizontal();
 
 			if (CreateButton("Primitive", Icons.Primitive(color: iconColor), iconSize, buttonStyle)) {
 				CreateItem(Primitive.GetDefault, "New Primitive");
 			}
 
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+
 			if (CreateButton("Trough", Icons.Trough(color: iconColor), iconSize, buttonStyle)) {
 				CreateItem(Trough.GetDefault, "New Trough");
 			}
-
-			GUILayout.EndHorizontal();
-			GUILayout.BeginHorizontal();
 
 			if (CreateButton("Drop Target\nBank", Icons.DropTargetBank(color: iconColor), iconSize, buttonStyle))
 			{
 				CreatePrefab<DropTargetBankComponent>("Drop Target Banks", "Prefabs/DropTargetBank");
 			}
 
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
+
 			if (CreateButton("Slingshot", Icons.Slingshot(color: iconColor), iconSize, buttonStyle)) {
 				CreatePrefab<SlingshotComponent>("Slingshots", "Prefabs/Slingshot");
 			}
 
-			GUILayout.EndHorizontal();
-			GUILayout.BeginHorizontal();
-
 			if (CreateButton("Magnet", Icons.Magnet(color: iconColor), iconSize, buttonStyle)) {
 				CreatePrefab<MagnetComponent>("Magnets", "Prefabs/Magnet");
 			}
+
+			GUILayout.EndHorizontal();
+			GUILayout.BeginHorizontal();
 
 			if (CreateButton("Metal Wire\nGuide", Icons.MetalWireGuide(color: iconColor), iconSize, buttonStyle)) {
 				CreateItem(MetalWireGuide.GetDefault, "New MetalWireGuide", centerSplineOrigin: true);
@@ -238,6 +245,34 @@ namespace VisualPinball.Unity.Editor
 			Selection.activeGameObject = gameObject;
 			ItemCreated?.Invoke(Selection.activeGameObject);
 			Undo.RegisterCreatedObjectUndo(Selection.activeGameObject, actionName);
+		}
+
+		/// <summary>
+		/// A new insert in the middle of the playfield, under the table's other
+		/// inserts, with a lamp and a spill light. Its first bake gives it the
+		/// hybrid material, since its body slot is still empty.
+		/// </summary>
+		private void CreateInsert()
+		{
+			// One undo step takes all of it back: the insert, its lamp and its spill light.
+			Undo.IncrementCurrentGroup();
+			var group = Undo.GetCurrentGroup();
+			var converter = new VpxSceneConverter(TableComponent);
+			TableComponent.TableContainer.Refresh();
+			var parent = converter.GetGroupParent("Inserts");
+			var gameObject = new GameObject(GameObjectUtility.GetUniqueNameForSibling(parent.transform, "Insert"));
+			Undo.RegisterCreatedObjectUndo(gameObject, "New Insert");
+			gameObject.transform.SetParent(parent.transform, false);
+			var playfield = TableComponent.GetComponentInChildren<PlayfieldComponent>();
+			if (playfield != null) {
+				gameObject.transform.localPosition = Physics.TranslateToWorld(playfield.Width / 2f, playfield.Height / 2f, 0f);
+			}
+			var insert = Undo.AddComponent<InsertComponent>(gameObject);
+			InsertInspector.AddLighting(insert);
+			Undo.SetCurrentGroupName("New Insert");
+			Undo.CollapseUndoOperations(group);
+			Selection.activeGameObject = gameObject;
+			ItemCreated?.Invoke(gameObject);
 		}
 
 		private void CreateWireRail()
