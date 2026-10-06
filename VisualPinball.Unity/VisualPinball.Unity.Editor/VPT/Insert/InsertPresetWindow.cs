@@ -95,7 +95,7 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>The button that opens the preset window on a kind of preset, with one selected.</summary>
 		public static void EditButton(InsertPresetWindow.Kind kind, Object select = null)
 		{
-			if (GUILayout.Button(new GUIContent("Edit…", "Opens the Insert Presets window: every preset of this kind, where it lives, and the way to add, copy and change the project's own."), EditorStyles.miniButton, GUILayout.Width(50f))) {
+			if (GUILayout.Button(new GUIContent("Manage", "Opens the Insert Presets window: every preset of this kind, where it lives, and the way to add, copy and change the project's own."), EditorStyles.miniButton, GUILayout.Width(60f))) {
 				InsertPresetWindow.Open(kind, select);
 			}
 		}

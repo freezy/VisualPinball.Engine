@@ -155,7 +155,7 @@ namespace VisualPinball.Unity.Editor
 			var presets = InsertLampPresets.Find();
 			var current = InsertLampPresets.TableLamp(TableComponent, out var mixed);
 			GUILayout.Space(8f);
-			GUILayout.Label(new GUIContent("Lamp", "The kind of bulb the table is lit by: its colour, output and fades go under every insert, and its fades to every other lamp but the flashers. The lit button is the inserts'; none lit, they follow none or not all the same."), GUILayout.ExpandWidth(false));
+			GUILayout.Label(new GUIContent("Lamp Preset:", "The kind of bulb the table is lit by: its colour, output and fades go under every insert, and its fades to every other lamp but the flashers. The lit button is the inserts'; none lit, they follow none or not all the same."), GUILayout.ExpandWidth(false));
 			foreach (var preset in presets) {
 				var on = !mixed && preset == current;
 				if (GUILayout.Toggle(on, new GUIContent(preset.LampName, $"{preset.LampName}: colour {preset.Color}, output {preset.Output:0.##}, fades {preset.FadeSpeedUp:0.##} s up and {preset.FadeSpeedDown:0.##} s down."), EditorStyles.miniButton, GUILayout.ExpandWidth(false)) && !on) {

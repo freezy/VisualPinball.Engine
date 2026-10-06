@@ -207,7 +207,7 @@ namespace VisualPinball.Unity.Editor
 				using (new EditorGUILayout.HorizontalScope()) {
 					EditorGUI.showMixedValue = mixed;
 					EditorGUI.BeginChangeCheck();
-					var chosen = EditorGUILayout.Popup(new GUIContent("Lamp", "The kind of bulb under the insert: its colour, how much light it gives and how it fades. The plastic's colour is the material's; this is the lamp behind it. Custom keeps the values as they are. Edit… opens the Insert Presets window, where the lamps live and new ones are made."), index, names);
+					var chosen = EditorGUILayout.Popup(new GUIContent("Lamp Preset", "The kind of bulb under the insert: its colour, how much light it gives and how it fades. The plastic's colour is the material's; this is the lamp behind it. Custom keeps the values as they are. Manage opens the Insert Presets window, where the lamps live and new ones are made."), index, names);
 					EditorGUI.showMixedValue = false;
 					if (EditorGUI.EndChangeCheck()) {
 						InsertLampPresets.Apply(chosen < presets.Length ? presets[chosen] : null, lights);
@@ -229,7 +229,7 @@ namespace VisualPinball.Unity.Editor
 						var siblings = InsertLampPresets.Siblings(lights[0]).Where(light => !InsertLampPresets.IsRgb(light)).ToArray();
 						var others = siblings.Count(light => light.Lamp != followed.LampName || InsertLampPresets.Differs(light, followed));
 						using (new EditorGUI.DisabledScope(others == 0)) {
-							if (GUILayout.Button(new GUIContent(others > 0 ? $"Give All {siblings.Length} Inserts This Lamp" : "All Inserts Have This Lamp", "Puts this bulb under every insert of the table: a table is lit by one kind of lamp, until it gets an LED kit."))) {
+							if (GUILayout.Button(new GUIContent(others > 0 ? $"Apply to All {siblings.Length} Lamps" : "All Lamps Have This Preset", "Puts this bulb under every insert of the table: a table is lit by one kind of lamp, until it gets an LED kit."))) {
 								InsertLampPresets.Apply(followed, siblings);
 								serializedObject.Update();
 							}

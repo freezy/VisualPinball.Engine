@@ -211,44 +211,6 @@ namespace VisualPinball.Unity.Editor
 			Sync(preset, LinkedMaterials(preset), true);
 		}
 
-		/// <summary>
-		/// Saves the insert's current look as a new preset, asking where, links
-		/// the body to it and returns it, or null when the user cancelled.
-		/// </summary>
-		public static InsertMaterialPreset SaveAs(InsertComponent insert)
-		{
-			var body = insert.GetComponent<MeshRenderer>().sharedMaterial;
-			if (body == null) {
-				return null;
-			}
-			var path = EditorUtility.SaveFilePanelInProject("Save Insert Look Preset", body.name + " Look", "asset",
-				"Where to save this insert's look: the body's numeric settings, Max Brightness and the lamps aside.");
-			if (string.IsNullOrEmpty(path)) {
-				return null;
-			}
-			var preset = Save(body, null, path);
-			if (preset != null && CanLink(body)) {
-				Link(body, preset);
-			}
-			return preset;
-		}
-
-		/// <summary>Saves the body's numeric settings as a preset asset at that path.</summary>
-		public static InsertMaterialPreset Save(Material body, Material cover, string path)
-		{
-			var preset = ScriptableObject.CreateInstance<InsertMaterialPreset>();
-			preset.Capture(body, cover);
-			var folder = Path.GetDirectoryName(path)?.Replace('\\', '/');
-			if (!string.IsNullOrEmpty(folder) && !AssetDatabase.IsValidFolder(folder)) {
-				Directory.CreateDirectory(folder);
-				AssetDatabase.Refresh();
-			}
-			AssetDatabase.CreateAsset(preset, path);
-			_presets = null;
-			AssetDatabase.SaveAssets();
-			return AssetDatabase.LoadAssetAtPath<InsertMaterialPreset>(path);
-		}
-
 		private static string Guid(Object asset)
 			=> AssetDatabase.TryGetGUIDAndLocalFileIdentifier(asset, out var guid, out long _) ? guid : null;
 	}

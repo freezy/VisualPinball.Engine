@@ -20,7 +20,7 @@ namespace VisualPinball.Unity.Editor
 			DrawDefaultInspector();
 			var preset = (InsertLampPreset)target;
 			if (string.IsNullOrWhiteSpace(preset.LampName)) {
-				EditorGUILayout.HelpBox("Give the lamp a name to list it in the Insert Light's Lamp dropdown.", MessageType.Info);
+				EditorGUILayout.HelpBox("Give the lamp a name to list it in the Insert Light's Lamp Preset dropdown.", MessageType.Info);
 				return;
 			}
 			var followers = Object.FindObjectsByType<InsertLightComponent>(FindObjectsInactive.Include, FindObjectsSortMode.None)

@@ -1177,7 +1177,7 @@ namespace VisualPinball.Unity.Editor
 			} else if (followed.Length == 1 && followed[0] != null) {
 				var edited = bodies.Sum(InsertMaterialPresets.Edited);
 				EditorGUILayout.HelpBox(edited == 0
-					? $"The body material follows the look {followed[0].name}. Clear Plastic and Colored Plastic ship with the package; + saves this insert's own look as a new one."
+					? $"The body material follows the look {followed[0].name}. Clear Plastic and Colored Plastic ship with the package; Manage adds your own."
 					: $"The body material follows the look {followed[0].name}, with {edited} values edited in the material, where they are marked •. The look overwrites them when it changes.", MessageType.None);
 			} else {
 				EditorGUILayout.HelpBox(followed.Length > 1 ? "The selected inserts follow different looks." : "The body material follows no look: its numeric settings are its own. Click a look to link it; Clear Plastic and Colored Plastic ship with the package.", MessageType.None);
@@ -1190,18 +1190,7 @@ namespace VisualPinball.Unity.Editor
 			}
 			using (new EditorGUI.DisabledScope(!revealAsset && (styled == 0 || EditorApplication.isPlaying))) {
 				var labels = presets.Select(preset => InsertPresetGui.Label(preset, $"{preset.name}: links every selected insert's body material to this look, which gives it the look's values now and whenever the look changes. {InsertPresetGui.Where(preset)} Colors, Max Brightness, maps, lamps and the cover stay as they are. A shared body material changes for all inserts that use it. Ctrl/Cmd+click to highlight the asset.")).ToArray();
-				var clicked = InsertPresetGui.Buttons(labels, following, () => {
-					InsertPresetGui.EditButton(InsertPresetWindow.Kind.Look, followed.Length == 1 ? followed[0] : null);
-					using (new EditorGUI.DisabledScope(inserts.Length != 1 || styled == 0 || EditorApplication.isPlaying)) {
-						if (GUILayout.Button(new GUIContent("+", "Save this insert's current look as a new preset in the project, and have its body material follow it."), EditorStyles.miniButton, GUILayout.Width(24f))) {
-							var saved = InsertMaterialPresets.SaveAs(inserts[0]);
-							if (saved != null) {
-								EditorGUIUtility.PingObject(saved);
-							}
-							GUIUtility.ExitGUI();
-						}
-					}
-				}, 92f);
+				var clicked = InsertPresetGui.Buttons(labels, following, () => InsertPresetGui.EditButton(InsertPresetWindow.Kind.Look, followed.Length == 1 ? followed[0] : null), 92f);
 				if (clicked >= 0) {
 					var preset = presets[clicked];
 					if (revealAsset) {
@@ -1213,7 +1202,7 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 			if (presets.Length == 0) {
-				EditorGUILayout.HelpBox("No look presets found. The HDRP package ships Clear Plastic and Colored Plastic; click + to save your own.", MessageType.Warning);
+				EditorGUILayout.HelpBox("No look presets found. The HDRP package ships Clear Plastic and Colored Plastic; Manage adds your own.", MessageType.Warning);
 			}
 		}
 
