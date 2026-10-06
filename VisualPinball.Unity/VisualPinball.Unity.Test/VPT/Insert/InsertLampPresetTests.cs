@@ -112,5 +112,34 @@ namespace VisualPinball.Unity.Test
 				Object.DestroyImmediate(preset);
 			}
 		}
+
+		[Test]
+		public void ShouldLetGoOfThePresetOnceTheBulbIsEdited()
+		{
+			var preset = ScriptableObject.CreateInstance<InsertLampPreset>();
+			var go = new GameObject("Insert");
+			try {
+				preset.LampName = "Test Lamp";
+				preset.Color = new Color(1f, 0.7f, 0.4f);
+				preset.Output = 1.5f;
+				go.AddComponent<InsertComponent>();
+				var light = go.AddComponent<InsertLightComponent>();
+				InsertLampPresets.Apply(preset, new[] { light });
+				var matched = new[] { (light, preset) };
+
+				InsertLampPresets.UnfollowEdited(matched);
+				Assert.That(light.Lamp, Is.EqualTo("Test Lamp"), "an untouched bulb keeps its preset");
+
+				light.Output = 2f;
+				InsertLampPresets.UnfollowEdited(matched);
+				Assert.That(light.Lamp, Is.Empty, "an edited bulb is a custom one");
+				Assert.That(light.Output, Is.EqualTo(2f), "and keeps the edit");
+			} finally {
+				var filter = go.GetComponent<MeshFilter>();
+				if (filter != null && filter.sharedMesh != null) { Object.DestroyImmediate(filter.sharedMesh); }
+				Object.DestroyImmediate(go);
+				Object.DestroyImmediate(preset);
+			}
+		}
 	}
 }

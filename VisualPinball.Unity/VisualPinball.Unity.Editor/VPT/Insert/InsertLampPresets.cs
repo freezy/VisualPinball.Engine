@@ -44,6 +44,19 @@ namespace VisualPinball.Unity.Editor
 			   || !Mathf.Approximately(light.FadeSpeedDown, preset.FadeSpeedDown)
 			   || light.ExtraBulbs != null && light.ExtraBulbs.Any(bulb => bulb != null && bulb.Color != preset.Color);
 
+		/// <summary>The lights that have their preset's bulb, with that preset.</summary>
+		public static (InsertLightComponent Light, InsertLampPreset Preset)[] Matching(IEnumerable<InsertLightComponent> lights)
+			=> lights.Select(light => (light, Followed(light))).Where(entry => entry.Item2 != null && !Differs(entry.light, entry.Item2)).ToArray();
+
+		/// <summary>
+		/// Lets go of the preset on the lights that had its bulb and no longer
+		/// do: a bulb edited away from its preset is a custom one, and says so.
+		/// A light whose preset changed under it isn't in the list, and keeps
+		/// following it until it's reset.
+		/// </summary>
+		public static void UnfollowEdited(IEnumerable<(InsertLightComponent Light, InsertLampPreset Preset)> matched)
+			=> Apply(null, matched.Where(entry => entry.Light != null && Differs(entry.Light, entry.Preset)).Select(entry => entry.Light).ToArray());
+
 		/// <summary>
 		/// Gives the lights the preset's bulb, undoably, and has them follow it. All
 		/// of a light's bulbs take the colour: they are the same kind of lamp.

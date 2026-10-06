@@ -96,6 +96,8 @@ namespace VisualPinball.Unity.Editor
 		public override void OnInspectorGUI()
 		{
 			serializedObject.Update();
+			// Edited away from its lamp preset below, a bulb follows none: the dropdown says Custom.
+			var matched = InsertLampPresets.Matching(targets.Cast<InsertLightComponent>());
 
 			// Without the hybrid material there is nothing for the lamp to drive.
 			var hybrid = targets.All(selected => {
@@ -183,6 +185,7 @@ namespace VisualPinball.Unity.Editor
 			InsertSection.End();
 
 			serializedObject.ApplyModifiedProperties();
+			InsertLampPresets.UnfollowEdited(matched);
 		}
 
 		/// <summary>
