@@ -11,7 +11,7 @@ An insert is the plastic window in the playfield that lights up to show a shot, 
 ![Rendered inserts](inserts-showcase-lit.png)
 ![Insert outlines](inserts-showcase-unlit.png)
 
-Most standard inserts are in the Asset Library: place one in the desired color, map its lamp to the ROM, done. The vast majority of those inserts are created by VPE's procedural insert generator. If you need a size, shape or variant that isn't in the asset library, it's easy to generate new ones (see [Customizing Inserts](customizing.md)).
+Most standard inserts are in the Asset Library: place one in the desired color, map its lamp to the ROM, done. The vast majority of those inserts are created by VPE's procedural insert generator. If you need a size, shape or variant that isn't in the asset library, it's easy to generate new ones (see [Working with Inserts](basics.md)).
 
 ## Features
 

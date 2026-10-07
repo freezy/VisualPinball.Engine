@@ -49,7 +49,7 @@ An insert that already clips to white does not get whiter with more output; the 
 | --- | --- | --- |
 | <img src="lighting/color-incandescent.png" width="240" alt="Incandescent lamp"> | <img src="lighting/color-white.png" width="240" alt="White lamp"> | <img src="lighting/color-red.png" width="240" alt="Red lamp"> |
 
-A blue insert is the dimmest on an incandescent table: a warm filament has little blue to give, and the blue plastic keeps the rest. Where a table needs it brighter all the same, raise *Max Brightness* in its body material, as described under [Changing a color](customizing.md#changing-a-color).
+A blue insert is the dimmest on an incandescent table: a warm filament has little blue to give, and the blue plastic keeps the rest. Where a table needs it brighter all the same, raise *Max Brightness* in its body material, as described under [Material changes](basics.md#material-changes).
 
 ### Number of lamps
 

@@ -21,6 +21,8 @@
     - name: Inserts
       href: editor/inserts/index.md
       items:
+        - name: Basics
+          href: editor/inserts/basics.md
         - name: Geometry
           href: editor/inserts/geometry.md
         - name: Patterns
@@ -33,8 +35,6 @@
           href: editor/inserts/lighting.md
         - name: Presets
           href: editor/inserts/presets.md
-        - name: Customizing Inserts
-          href: editor/inserts/customizing.md
         - name: Baking
           href: editor/inserts/baking.md
     - name: Wire Rails

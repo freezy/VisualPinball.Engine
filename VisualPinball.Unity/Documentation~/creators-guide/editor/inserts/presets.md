@@ -69,9 +69,9 @@ Off, each color shows as tinted plastic over the dark cavity. On, it shows the l
 
 **To set:** click a color square under *Presets* on the Insert component. VPE looks for a material of that color next to the insert's current one and assigns it; if there is none, it makes one and links it to the preset.
 
-**To change:** edit the values on the *Color* tab, or Ctrl-click a color square to highlight its asset and edit it in the Inspector. Every linked material follows along. It also works the other way around: tune the body or cover material of one insert until it is right, then press *Copy to Red* at the top of the material's inspector to put those values into the preset and, through it, into every other insert of that color.
+**To change:** edit the values on the *Color* tab, or Ctrl-click a color square to highlight its asset and edit it in the Inspector. Every linked material follows along. **A linked material shows the preset's values grayed out:** they're changed in the preset, for every insert of that color, or the material is unlinked first by setting its *Color Preset* to none, which keeps the values it has.
 
-**To add:** press *Duplicate* or *New* on the *Color* tab, or choose *Create → Pinball → Insert Color Preset*. Give it a name and a swatch, and a new square appears on every insert. The quickest way to fill in its values is to apply it to one insert, tune the materials, and press *Copy to*.
+**To add:** press *Duplicate* or *New* on the *Color* tab, or choose *Create → Pinball → Insert Color Preset*. Give it a name and a swatch, and a new square appears on every insert. To fill it with the colors of an insert you have tuned, pick it as the *Color Preset* of that insert's body and cover materials and choose *Copy to* when VPE asks whose values to keep.
 
 A color preset holds these values:
 

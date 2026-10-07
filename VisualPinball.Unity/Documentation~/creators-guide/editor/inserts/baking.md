@@ -26,7 +26,7 @@ Keep *Bake Hybrid Optics* enabled for the hybrid lamp material. Click *Bake*, th
 | Parameter | Default / choices | Effect |
 | --- | --- | --- |
 | *Texture Size* | 1024; 256 to 4096 | Width and height of the baked surface normal map in pixels. The creases between facets are seams in the bake, so they stay as sharp as the mesh at any size; size the map for the rounded edges and walls instead: 512 suits most inserts and 256 the small ones. Doubling each dimension uses four times as many texels. |
-| *Optical Normals* | Same size; same size to an eighth | Size of the optical normal map as a fraction of *Texture Size*, shown in pixels. Every facet is an island of its own, so a small map runs out of texels for the islands before it runs out o f detail; halve it only on inserts with few facets. |
+| *Optical Normals* | Same size; same size to an eighth | Size of the optical normal map as a fraction of *Texture Size*, shown in pixels. Every facet is an island of its own, so a small map runs out of texels for the islands before it runs out of detail; halve it only on inserts with few facets. |
 | *Light Response* | Half; same size to an eighth | Size of the light response map as a fraction of *Texture Size*, shown in pixels. It holds a soft glow and smooth masks, which need fewer texels than the creases; its blur scales with it, never under a texel and a half, so the glow stays smooth. A quarter leaves the facet islands too few texels on a 512 map. |
 | *Padding (px)* | 8; 1–32 | Extension around each UV island in the normal map. Islands are packed at least twice this distance apart so their padding does not meet; the smaller maps keep the same distance in their own pixels. More padding helps filtering at a distance but leaves less space for the surfaces themselves: every facet is an island of its own, so the UV fill readout drops with many facets at a small size, which costs nothing while a facet's texels all hold the one direction. |
 | *Edge Bevel* | 1 | Width of rounded sharp edges in the surface normal bake, in VPX units. Zero keeps them sharp. This affects reflection detail rather than adding bevel triangles. |
@@ -46,7 +46,7 @@ Once a baked hybrid material is in use, rebaking also updates its optical maps s
 
 ## Output
 
-VPE stores generated assets in the insert's folder. For an insert of a prefab, that's the prefab's folder at the same place under `Assets`, without the asset library's `Library` folder: the inserts of `Packages/org.visualpinball.unity.assets/Assets/Library/Inserts/Insert, Triangle, 2in, Starburst/Insert, Triangle, 2in, Starburst.prefab` go to `Assets/Inserts/Insert, Triangle, 2in, Starburst`. Every insert of that prefab shares the folder, and its files are named after the insert. An insert of no prefab gets a folder of its own under `Assets/Inserts`, named after it and an identifier. Subsequent bakes update that insert's owned assets and preserve its material tuning.
+VPE stores generated assets in the insert's folder. For an insert of a prefab, that's the prefab's folder at the same place under `Assets`, without the asset library's `Library` folder: the inserts of `Packages/org.visualpinball.unity.assets/Assets/Library/Inserts/Insert, Triangle, 2in, Starburst/Insert, Triangle, 2in, Starburst.prefab` go to `Assets/Inserts/Insert, Triangle, 2in, Starburst`. Every insert of that prefab shares the folder. [Forking an insert](basics.md#forking-an-insert) puts a variant of its prefab there, with its material copies, and the variant's first bake adds its bake and maps, all named after the variant: a second variant of the same prefab is numbered, like `Insert, Triangle, 2in, Starburst 2`. The variant owns its bake, which every instance of it wears, and a bake of any instance that keeps the variant's shape updates it. An insert of no prefab gets a folder of its own under `Assets/Inserts`, named after it and an identifier, and owns its bake itself. Subsequent bakes update the existing assets and preserve the material tuning.
 
 | Output | What it stores | How the shader uses it |
 | --- | --- | --- |
@@ -98,8 +98,9 @@ The renderer returns when a new bake fits. Play mode and builds render the avail
 
 | Action / readout | Meaning |
 | --- | --- |
-| *Bake* / *Bake Again* | Generates UVs, tangents, the normal map, and requested optical maps. Available outside Play mode when the insert and Blender are valid and its bake is writable. |
-| *Edit in project* | Copies a read-only bake, one from a package or a locked asset library, and its maps to the insert's folder in the project, described under [Output](#output), and derives writable materials. If the copied bake is stale, it starts baking the changed geometry. |
+| *Bake* / *Bake Again* | Generates UVs, tangents, the normal map, and requested optical maps. Available outside Play mode when the insert and Blender are valid and it can be baked where it is: its bake is writable, or it's an instance of a prefab in the project. Otherwise, [fork it](basics.md#forking-an-insert) first. |
+| *Apply to all N inserts* / *Apply to prefab* | Shown instead of *Bake Again* when an instance's shape differs from its prefab in the project. Puts the shape into the prefab and bakes it, for every instance that keeps the prefab's shape. |
+| *Bake as new prefab* | Makes a new variant of the prefab with the instance's shape, makes the insert an instance of it, and bakes it. The prefab's other instances stay as they are. |
 | *Clear Bake* | Removes the bake assignment and restores the original unbaked body material. It leaves the baked assets on disk. |
 | *Use HDRP Hybrid Material* | Creates and assigns a hybrid material from a fitting bake with optical maps. The previous material asset remains available. |
 | *Copy Blender's Log* | Copies output after a bake failure for diagnosing Blender or device configuration problems. |
