@@ -220,6 +220,8 @@ namespace VisualPinball.Unity.Editor
 		{
 			serializedObject.Update();
 
+			DrawEditInProject();
+
 			if (InsertSection.Begin(GeometryKey, "Geometry")) {
 				DrawGeometry();
 			}
@@ -967,15 +969,65 @@ namespace VisualPinball.Unity.Editor
 		#region Bake
 
 		/// <summary>
-		/// Whether the insert's bake sits where it cannot be written to, which
-		/// locks everything that would write it until the bake is forked.
+		/// Whether the insert can't be baked where it is, which locks everything
+		/// that would write its bake until it's edited in the project.
 		/// </summary>
-		private bool IsLocked => targets.Any(selected => InsertBaker.IsReadOnly(((InsertComponent)selected).Bake));
+		private bool IsLocked => targets.Any(selected => !InsertBaker.BakesHere((InsertComponent)selected));
+
+		/// <summary>
+		/// The one place an insert is edited in the project, when its bake or
+		/// materials can't be changed: a prefab's instance then follows a variant
+		/// of its prefab, with the others sharing its shape and materials if asked.
+		/// </summary>
+		private void DrawEditInProject()
+		{
+			var inserts = targets.OfType<InsertComponent>().Where(InsertBaker.NeedsEditing).ToArray();
+			if (inserts.Length == 0) {
+				return;
+			}
+			using (new EditorGUI.DisabledScope(InsertBaker.Baking != null || EditorApplication.isPlayingOrWillChangePlaymode)) {
+				if (targets.Length > 1) {
+					EditorGUILayout.HelpBox($"{inserts.Length} of the selected inserts have a bake or materials that can't be changed, from a package like the installed asset library or from a locked asset library. Edit them in the project to change their colors, look or shape: the selected inserts of a prefab with the same shape and materials then follow a variant of it.", MessageType.Info);
+					if (GUILayout.Button(new GUIContent($"Edit {inserts.Length} selected inserts in project", "Makes a variant of each selected insert's prefab in the project, with copies of what can't be changed, which the inserts of that prefab with the same shape and materials then follow. Inserts of no prefab get copies of their own."))) {
+						InsertBaker.EditInProject(inserts);
+						GUIUtility.ExitGUI();
+					}
+					return;
+				}
+				var insert = inserts[0];
+				var sharing = InsertBaker.Sharing(insert);
+				var prefabbed = InsertBaker.IsInstanceRoot(insert);
+				var lockedBake = !InsertBaker.BakesHere(insert);
+				var lockedMaterials = InsertColorPresets.HasReadOnlyMaterial(insert);
+				var what = lockedBake ? lockedMaterials ? "bake and materials" : "bake" : "materials";
+				var where = lockedBake ? InsertBaker.ReadOnlyReason(insert.Bake) : "a package like the installed asset library, or to a locked asset library";
+				var text = prefabbed
+					? $"This insert's {what} belong to {where}, which can't be changed. Edit in project makes a variant of its prefab in this project, with copies of its materials, which the insert and its duplicates then follow. Its colors, look and shape can then be changed, and the variant gets a bake of its own when it's baked."
+					: $"This insert's {what} belong to {where}, which can't be changed. Edit in project gives it copies of them in a folder of its own in this project. Its colors, look and shape can then be changed.";
+				if (sharing.Length > 0) {
+					text += $" Edit {sharing.Length + 1} inserts in project does the same for {(sharing.Length == 1 ? "the other insert" : $"the {sharing.Length} other inserts")} of its prefab in the open scenes with the same shape and materials, which then stay alike.";
+				}
+				EditorGUILayout.HelpBox(text, MessageType.Info);
+				using (new EditorGUILayout.HorizontalScope()) {
+					var tooltip = prefabbed
+						? "Makes a variant of the insert's prefab in its folder in this project, holding this insert's shape and copies of its materials, and makes this insert an instance of it, keeping its position, lamp and other settings. Bakes the variant when this insert's shape has changed."
+						: "Copies the bake and materials into a folder of the insert's own in this project, as material variants that keep following the originals until a value is changed.";
+					if (GUILayout.Button(new GUIContent("Edit in project", tooltip + (sharing.Length > 0 ? " The other inserts of its prefab stay as they are." : "")))) {
+						InsertBaker.EditInProject(insert, System.Array.Empty<InsertComponent>());
+						GUIUtility.ExitGUI();
+					}
+					if (sharing.Length > 0 && GUILayout.Button(new GUIContent($"Edit {sharing.Length + 1} inserts in project", $"Makes a variant of the insert's prefab in its folder in this project, holding this insert's shape and copies of its materials, and makes this insert and the {sharing.Length} others with the same shape and materials instances of it, keeping their positions, lamps and other settings. Bakes the variant when this insert's shape has changed. All of them follow the variant from then on."))) {
+						InsertBaker.EditInProject(insert, sharing);
+						GUIUtility.ExitGUI();
+					}
+				}
+			}
+		}
 
 		private void DrawBakeSettings()
 		{
 			if (IsLocked) {
-				EditorGUILayout.HelpBox("The bake cannot be written to where it is, so its settings are locked. Edit in project below to bake here.", MessageType.None);
+				EditorGUILayout.HelpBox("The bake cannot be written to where it is, so its settings are locked. Edit the insert in the project, at the top, to bake it.", MessageType.None);
 			}
 			using (new EditorGUI.DisabledScope(IsLocked)) {
 				var size = _bakeSettings.FindPropertyRelative(nameof(InsertBakeSettings.TextureSize));
@@ -1022,9 +1074,14 @@ namespace VisualPinball.Unity.Editor
 		{
 			var insert = (InsertComponent)target;
 
+			// The version found goes into the label; only a problem with it gets a box of its own.
+			var blender = InsertBaker.Probe();
 			using (new EditorGUILayout.HorizontalScope()) {
 				var path = InsertBaker.BlenderPath ?? "";
-				var next = EditorGUILayout.DelayedTextField(new GUIContent("Blender", "The Blender 5 executable that bakes. Found on its own when left empty."), path);
+				var found = blender != null && blender.Error == null;
+				var label = found ? $"Blender ({blender.Blender})" : "Blender";
+				var packer = !found ? "" : blender.UvPackMaster ? " Packs with UVPackMaster." : " Packs with Blender's packer: install UVPackMaster 4 in Blender for tighter packing.";
+				var next = EditorGUILayout.DelayedTextField(new GUIContent(label, "The Blender 5 executable that bakes. Found on its own when left empty." + packer), path);
 				if (GUILayout.Button("...", GUILayout.Width(28f))) {
 					var picked = EditorUtility.OpenFilePanel("Blender Executable", Path.GetDirectoryName(path) ?? "",
 						Application.platform == RuntimePlatform.WindowsEditor ? "exe" : "");
@@ -1037,39 +1094,56 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 
-			var blender = InsertBaker.Probe();
-			if (blender == null) {
-				EditorGUILayout.HelpBox("Checking Blender...", MessageType.None);
-			} else if (blender.Error != null) {
+			if (blender?.Error != null) {
 				EditorGUILayout.HelpBox(blender.Error, MessageType.Error);
-			} else {
-				EditorGUILayout.HelpBox($"Blender {blender.Blender}, packing with " +
-					(blender.UvPackMaster ? "UVPackMaster." : "Blender's packer. Install UVPackMaster 4 for tighter packing."), MessageType.None);
 			}
 
 			if (targets.Length > 1) {
 				return;
 			}
 
+			// Every shape is a prefab: one reshaped on its own goes into its prefab, or becomes a new one.
+			var reshaped = IsLocked ? null : InsertBaker.ReshapedPrefab(insert);
 			if (insert.Bake != null) {
 				if (insert.IsBakeFresh) {
 					EditorGUILayout.HelpBox($"Baked. UVs packed by {insert.Bake.Packer}, covering {insert.Bake.UvFill:P0} of the texture.", MessageType.Info);
 				} else if (IsLocked) {
-					EditorGUILayout.HelpBox("The insert geometry has changed, and its bake cannot be updated where it is. Edit in project to bake it here.", MessageType.Warning);
+					EditorGUILayout.HelpBox("The insert geometry has changed, and its bake cannot be updated where it is. Edit the insert in the project, at the top, to bake it.", MessageType.Warning);
+				} else if (reshaped != null) {
+					// Told below, with the choice of where the shape goes.
 				} else if (insert.IsShowingGeometry) {
 					EditorGUILayout.HelpBox("The insert geometry has changed, so the renderer is off and the geometry to be baked is drawn in the scene instead, yellow with its wireframe, an engraved line as a trough. Bake Again to put the geometry into the maps and the renderer back on.", MessageType.Warning);
 				} else {
 					EditorGUILayout.HelpBox("The insert geometry has changed. The material is kept as a preview, but its baked textures may no longer line up. Bake Again to update the UVs, normals and optical maps.", MessageType.Warning);
 				}
 			}
-			if (IsLocked && insert.Bake != null) {
-				EditorGUILayout.HelpBox($"This insert's bake and material belong to {InsertBaker.ReadOnlyReason(insert.Bake)}, which cannot be written to. Edit in project copies them into the insert's folder in this project, its prefab's folder under Assets or one of its own, as a material variant that keeps following the original's tuning, and bakes there from then on.", MessageType.Info);
-				using (new EditorGUI.DisabledScope(InsertBaker.Baking != null || EditorApplication.isPlayingOrWillChangePlaymode)) {
-					if (GUILayout.Button("Edit in project")) {
-						InsertBaker.Fork(insert);
+			var canBake = !(InsertBaker.Baking != null || blender?.Error != null || insert.Error != null || EditorApplication.isPlayingOrWillChangePlaymode);
+			if (reshaped != null) {
+				var followers = InsertBaker.Followers(insert);
+				// Quoted: library names have commas of their own.
+				var prefabName = $"\"{Path.GetFileNameWithoutExtension(reshaped)}\"";
+				var stale = insert.IsBakeFresh ? "" : insert.IsShowingGeometry ? " Its bake no longer fits: the geometry to be baked is drawn in the scene, yellow with its wireframe." : " Its bake no longer fits.";
+				EditorGUILayout.HelpBox(followers.Length == 0
+					? $"This insert's shape differs from its prefab, {prefabName}.{stale} Apply the shape to the prefab and bake it there, or bake it as a new prefab of this shape, which this insert then follows."
+					: $"This insert's shape differs from its prefab, {prefabName}, which {(followers.Length == 1 ? "another insert" : $"{followers.Length} other inserts")} in the open scenes follow.{stale} Apply the shape to the prefab and bake it there, for all of them, or bake it as a new prefab of this shape, which only this insert then follows.", MessageType.Warning);
+				using (new EditorGUI.DisabledScope(!canBake))
+				using (new EditorGUILayout.HorizontalScope()) {
+					var applyLabel = followers.Length == 0 ? "Apply to prefab" : $"Apply to all {followers.Length + 1} inserts";
+					if (GUILayout.Button(new GUIContent(applyLabel, $"Puts this insert's shape into {prefabName}, which every instance of it that keeps the prefab's shape then has too, and bakes the prefab."))) {
+						InsertBaker.ApplyShape(insert);
+						InsertBaker.Bake(insert, prefab: reshaped);
+						GUIUtility.ExitGUI();
+					}
+					if (GUILayout.Button(new GUIContent("Bake as new prefab", $"Makes a variant of {prefabName} in its folder, holding this insert's shape and a copy of its material, makes this insert an instance of it, and bakes it, which gives the new prefab a bake of its own. Duplicates of this insert then follow the new prefab, and the other instances of {prefabName} stay as they are."))) {
+						InsertBaker.ForkIntoVariant(insert, System.Array.Empty<InsertComponent>());
+						if (InsertBaker.Baking == null) {
+							InsertBaker.Bake(insert);
+						}
+						GUIUtility.ExitGUI();
 					}
 				}
 			}
+
 			if (InsertBaker.LastError != null && InsertBaker.LastErrorInsert == insert) {
 				EditorGUILayout.HelpBox(InsertBaker.LastError, MessageType.Error);
 				if (InsertBaker.LastLog.Count > 0 && GUILayout.Button("Copy Blender's Log")) {
@@ -1078,8 +1152,8 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			using (new EditorGUILayout.HorizontalScope()) {
-				using (new EditorGUI.DisabledScope(IsLocked || InsertBaker.Baking != null || blender?.Error != null || insert.Error != null || EditorApplication.isPlayingOrWillChangePlaymode)) {
-					if (GUILayout.Button(new GUIContent(insert.Bake != null ? "Bake Again" : "Bake", "Unwraps and packs the UVs and bakes the normal map, and the optical maps when asked, in Blender. Ctrl/Cmd+Shift+click to bake into the package the insert's prefab comes from, next to the prefab, when that package can be written to."))) {
+				using (new EditorGUI.DisabledScope(IsLocked || reshaped != null || !canBake)) {
+					if (GUILayout.Button(new GUIContent(insert.Bake != null ? "Bake Again" : "Bake", "Unwraps and packs the UVs and bakes the normal map, and the optical maps when asked, in Blender. An instance of a prefab in the project bakes the prefab, which all its instances wear. Ctrl/Cmd+Shift+click to bake into the package the insert's prefab comes from, next to the prefab, when that package can be written to."))) {
 						InsertBaker.Bake(insert, toPackage: EditorGUI.actionKey && Event.current.shift);
 					}
 				}
@@ -1103,7 +1177,6 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 			if (data.Material != null && data.Material.HasProperty("_OpticalNormalMap")) {
-				EditorGUILayout.HelpBox("Hybrid optics are active. The material controls Max Brightness, facet contrast and reflections. Insert Light controls Intensity, Color and real light spilling onto the table.", MessageType.Info);
 				var lighting = insert.GetComponent<InsertLightComponent>();
 				if (lighting == null || lighting.SpillLight == null) {
 					using (new EditorGUI.DisabledScope(EditorApplication.isPlaying)) {
@@ -1114,18 +1187,11 @@ namespace VisualPinball.Unity.Editor
 				}
 				return;
 			}
-			using (new EditorGUI.DisabledScope(!insert.IsBakeFresh || IsLocked || InsertBaker.Baking != null || EditorApplication.isPlaying || Shader.Find(InsertBaker.HybridShaderName) == null)) {
+			using (new EditorGUI.DisabledScope(!insert.IsBakeFresh || InsertBaker.IsReadOnly(insert.Bake) || InsertBaker.Baking != null || EditorApplication.isPlaying || Shader.Find(InsertBaker.HybridShaderName) == null)) {
 				if (GUILayout.Button(new GUIContent("Use HDRP Hybrid Material", "Creates a hybrid material with the baked optical maps and puts it on the insert. The previous material stays on disk."))) {
 					InsertBaker.UseHybridMaterial(insert);
 				}
 			}
-		}
-
-		private static void CopyMaterials(IReadOnlyList<InsertComponent> inserts)
-		{
-			var copied = InsertColorPresets.CopyToProject(inserts);
-			Debug.Log($"Copied the materials of {copied} insert(s) to the project.");
-			GUIUtility.ExitGUI();
 		}
 
 		/// <summary>
@@ -1175,26 +1241,9 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 
-			// A library insert wears the materials of a package that can't be written to:
-			// its colors are changed in copies of them.
-			var readOnly = inserts.Where(InsertColorPresets.HasReadOnlyMaterial).ToArray();
-			if (readOnly.Length > 0) {
-				EditorGUILayout.HelpBox(inserts.Length == 1
-					? "This insert's materials belong to a package that can't be changed, like the installed asset library, or to a locked asset library. The buttons above switch it to other materials. To change the colors themselves, edit its materials: it then gets copies of them in the project."
-					: $"{readOnly.Length} of the selected inserts wear materials of a package that can't be changed, like the installed asset library, or of a locked asset library. To change their colors, edit their materials: they then get copies of them in the project.", MessageType.None);
-				// For the selection alone, or for every insert wearing the same materials, which then stay alike.
-				var sharing = InsertColorPresets.SharingReadOnlyMaterials(readOnly);
-				using (new EditorGUI.DisabledScope(EditorApplication.isPlaying))
-				using (new EditorGUILayout.HorizontalScope()) {
-					var copyTooltip = "Gives {0} copies of {1} body and cover materials in the project, which can be changed. They keep following the package's materials, and their color preset, until a value is changed. Inserts wearing the same material share the copy.";
-					var selectedLabel = readOnly.Length == 1 ? "Edit for this insert" : $"Edit for {readOnly.Length} selected inserts";
-					if (GUILayout.Button(new GUIContent(selectedLabel, string.Format(copyTooltip, readOnly.Length == 1 ? "the insert" : "the selected inserts", readOnly.Length == 1 ? "its" : "their") + " Other inserts wearing the same materials keep them."))) {
-						CopyMaterials(readOnly);
-					}
-					if (sharing.Length > readOnly.Length && GUILayout.Button(new GUIContent($"Edit for all {sharing.Length} inserts", string.Format(copyTooltip, $"all {sharing.Length} inserts in the open scenes that wear the same materials", "their") + " They stay alike: changing a copy changes all of them."))) {
-						CopyMaterials(sharing);
-					}
-				}
+			// A library insert's colors are changed in the project, from the top.
+			if (inserts.Any(InsertColorPresets.HasReadOnlyMaterial)) {
+				EditorGUILayout.HelpBox("The colors above switch the insert to other materials. To change the colors themselves, edit the insert in the project, at the top.", MessageType.None);
 			}
 
 			SubHeader("Look");
@@ -1204,7 +1253,7 @@ namespace VisualPinball.Unity.Editor
 			// Linking a look writes it into the body material, which a library's can't take.
 			var lockedBody = inserts.Any(insert => InsertColorPresets.IsReadOnly(insert, insert.GetComponent<MeshRenderer>().sharedMaterial));
 			if (lockedBody) {
-				EditorGUILayout.HelpBox("The body material can't be changed, so no look can be linked to it. Edit it for the insert first, with the buttons under the colors.", MessageType.None);
+				EditorGUILayout.HelpBox("The body material can't be changed, so no look can be linked to it. Edit the insert in the project first, at the top.", MessageType.None);
 			} else if (styled == 0) {
 				EditorGUILayout.HelpBox("A look is how the insert is moulded and behaves optically: every numeric setting of the hybrid body material, but not its colours and Max Brightness, which are the Color's, nor the bulb, which is the Lamp's. Bake the insert and click Use HDRP Hybrid Material first.", MessageType.None);
 			} else if (followed.Length == 1 && followed[0] != null) {

@@ -294,8 +294,6 @@ namespace VisualPinball.Unity.Test
 				Assert.That(InsertColorPresets.IsReadOnly(source), Is.True);
 				Assert.That(InsertColorPresets.HasReadOnlyMaterial(a), Is.True);
 
-				Assert.That(InsertColorPresets.SharingReadOnlyMaterials(new[] { a }), Is.EquivalentTo(new[] { a, b }), "a copy for all would go to both");
-
 				Assert.That(InsertColorPresets.CopyToProject(new[] { a }), Is.EqualTo(1));
 
 				var copy = a.GetComponent<MeshRenderer>().sharedMaterial;

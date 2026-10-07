@@ -147,24 +147,6 @@ namespace VisualPinball.Unity.Editor
 				.ToArray();
 
 		/// <summary>
-		/// The inserts in the open scenes that wear the given inserts' read-only
-		/// body material, the given ones included: those a copy for all of them
-		/// would go to. The cover counts only where the body can be changed:
-		/// a library's covers are shared by inserts of every color.
-		/// </summary>
-		public static InsertComponent[] SharingReadOnlyMaterials(IReadOnlyCollection<InsertComponent> inserts)
-		{
-			var materials = inserts
-				.Select(insert => {
-					var body = insert.GetComponent<MeshRenderer>().sharedMaterial;
-					return IsReadOnly(insert, body) ? body : IsReadOnly(insert, insert.CoverMaterial) ? insert.CoverMaterial : null;
-				})
-				.Where(material => material != null)
-				.Distinct();
-			return inserts.Concat(materials.SelectMany(Wearing)).Distinct().ToArray();
-		}
-
-		/// <summary>
 		/// Gives the inserts copies of their read-only body and cover materials,
 		/// in the project, so they can be changed. A copy is a variant of the
 		/// package's material: it keeps following it, and its color preset,

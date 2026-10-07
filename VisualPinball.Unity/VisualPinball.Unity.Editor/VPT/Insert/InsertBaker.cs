@@ -259,7 +259,8 @@ namespace VisualPinball.Unity.Editor
 		/// <param name="insert">The insert to bake</param>
 		/// <param name="useHybridMaterial">Whether to put a hybrid material on the insert afterwards</param>
 		/// <param name="toPackage">Whether to bake into the package folder of the prefab the insert comes from, when that package can be written to</param>
-		public static void Bake(InsertComponent insert, bool useHybridMaterial = false, bool toPackage = false)
+		/// <param name="prefab">The project prefab the insert is an instance of, to bake into that prefab, which all its instances wear, rather than into the insert</param>
+		public static void Bake(InsertComponent insert, bool useHybridMaterial = false, bool toPackage = false, string prefab = null)
 		{
 			if (_job != null) {
 				return;
@@ -267,11 +268,17 @@ namespace VisualPinball.Unity.Editor
 			LastError = null;
 			LastErrorInsert = null;
 			string packagePrefab = null;
-			if (toPackage) {
+			if (prefab != null) {
+				packagePrefab = prefab;
+			} else if (toPackage) {
 				packagePrefab = PackagePrefabPath(insert);
 				if (packagePrefab == null) {
 					Debug.LogWarning($"{insert.name} isn't from a prefab in a package that can be written to, so it's baked into the project as usual.");
 				}
+			} else {
+				// An unchanged instance of a project prefab, like a variant made by
+				// Edit in project, bakes the prefab's bake, which all its instances wear.
+				packagePrefab = PrefabBakePath(insert);
 			}
 			var blender = BlenderPath;
 			var info = Probe();
@@ -456,7 +463,8 @@ namespace VisualPinball.Unity.Editor
 				? job.PackagePrefab
 				: null;
 			if (packagePrefab != null) {
-				// Asked for the package: next to the prefab and named after it. The
+				// Asked for the package, or an unchanged instance of a project prefab:
+				// next to the prefab and named after it. The
 				// bake there is the prefab's, so it's updated whichever of the prefab's
 				// inserts bakes it, and the prefab's own insert owns it.
 				folder = Path.GetDirectoryName(packagePrefab)?.Replace('\\', '/');
@@ -537,6 +545,15 @@ namespace VisualPinball.Unity.Editor
 			}
 			AssetDatabase.SaveAssets();
 
+			// A project prefab's bake is the prefab's: what the bake puts on this
+			// instance goes into the prefab, for all its instances, and so does the
+			// material when the prefab wore its bake's, rather than a colour of its own.
+			var projectPrefab = packagePrefab != null && packagePrefab.StartsWith("Assets/", StringComparison.Ordinal) && PrefabUtility.IsPartOfPrefabInstance(insert)
+				? PrefabUtility.GetCorrespondingObjectFromSource(insert)
+				: null;
+			var prefabWoreBake = projectPrefab != null && projectPrefab.TryGetComponent<MeshRenderer>(out var prefabRenderer)
+				&& (prefabRenderer.sharedMaterial == null || Carries(prefabRenderer.sharedMaterial, projectPrefab.Bake));
+
 			var wornBeforeBake = renderer.sharedMaterial;
 			Undo.RecordObjects(new Object[] { insert, renderer }, "Bake Insert");
 			insert.SetBake(data);
@@ -567,6 +584,24 @@ namespace VisualPinball.Unity.Editor
 					LastError += fallbackError;
 					LastErrorInsert = insert;
 					Debug.LogError($"{insert.name}: {LastError}");
+				}
+			}
+			if (projectPrefab != null) {
+				var serialized = new SerializedObject(insert);
+				foreach (var property in new[] { "_bake", "_unbakedMaterial" }.Select(serialized.FindProperty)) {
+					if (property.prefabOverride) {
+						PrefabUtility.ApplyPropertyOverride(property, packagePrefab, InteractionMode.AutomatedAction);
+					}
+				}
+				var material = new SerializedObject(renderer).FindProperty("m_Materials.Array.data[0]");
+				if (prefabWoreBake && material != null && material.prefabOverride) {
+					PrefabUtility.ApplyPropertyOverride(material, packagePrefab, InteractionMode.AutomatedAction);
+				}
+			}
+			// The other inserts wearing the bake, like the prefab's other instances, take its new UVs.
+			foreach (var other in Object.FindObjectsByType<InsertComponent>(FindObjectsInactive.Include, FindObjectsSortMode.None)) {
+				if (other != insert && other.Bake == data) {
+					other.RebuildMesh();
 				}
 			}
 		}
@@ -658,7 +693,11 @@ namespace VisualPinball.Unity.Editor
 		{
 			var worn = insert.GetComponent<MeshRenderer>().sharedMaterial;
 			var material = worn;
-			var created = worn == null || !wornIsOwn || !EditorUtility.IsPersistent(worn) || IsReadOnly(AssetDatabase.GetAssetPath(worn));
+			// A project prefab's own body is its bake's, also before its first bake,
+			// when it's still a copy carrying another prefab's maps.
+			var prefabBody = packagePrefab != null && packagePrefab.StartsWith("Assets/", StringComparison.Ordinal) && worn != null
+				&& PrefabUtility.GetCorrespondingObjectFromSource(insert.GetComponent<MeshRenderer>()) is { } prefabRenderer && prefabRenderer.sharedMaterial == worn;
+			var created = worn == null || !(wornIsOwn || prefabBody) || !EditorUtility.IsPersistent(worn) || IsReadOnly(AssetDatabase.GetAssetPath(worn));
 			if (!created && WornElsewhere(worn, insert, packagePrefab)) {
 				created = true;
 				Debug.Log($"{insert.name}: another insert wears {worn.name} too, so this bake goes into a copy of it.");
@@ -891,19 +930,24 @@ namespace VisualPinball.Unity.Editor
 		private static void ForgetLibraries() => _libraries = null;
 
 		/// <summary>
-		/// Gives the insert a bake of its own in the project: copies of the maps
-		/// and bake data it wears, bound into the material it wears when that is
-		/// the project's own, or into a variant of it when that is a package's,
-		/// so an insert from a package can be tuned and baked here while the
+		/// Gives the insert a bake in the project: copies of the maps and bake
+		/// data it wears, bound into the material it wears when that is the
+		/// project's own, or into a variant of it when that is a package's, so
+		/// an insert from a package can be tuned and baked here while the
 		/// package stays as it is. A cover material from a package gets a
-		/// variant too. When the copy no longer fits the mesh, a bake follows at
-		/// once.
+		/// variant too. A prefab's instance gets them in a variant of its
+		/// prefab, which owns them, as every shape is a prefab of its own and
+		/// the insert's duplicates follow it; any other insert owns them itself.
+		/// When the copy no longer fits the mesh, a bake follows at once.
 		/// </summary>
 		public static InsertBakeData Fork(InsertComponent insert)
 		{
-			var source = insert.Bake;
-			if (source == null) {
+			if (insert.Bake == null) {
 				throw new InvalidOperationException("The insert has no bake to fork.");
+			}
+			if (IsInstanceRoot(insert)) {
+				ForkIntoVariant(insert, Array.Empty<InsertComponent>());
+				return insert.Bake;
 			}
 			var renderer = insert.GetComponent<MeshRenderer>();
 			var folder = InsertFolder(insert);
@@ -912,63 +956,11 @@ namespace VisualPinball.Unity.Editor
 			var made = new List<Object>();
 
 			InsertBakeData data;
-			Material cover = null;
+			Material cover;
 			try {
-				data = Object.Instantiate(source);
-				data.name = $"{name}, Bake";
-				data.Owner = insert.EnsureId();
-				data.NormalMap = CopyTexture(source.NormalMap, $"{folder}/{name}, Normal Map");
-				made.Add(data.NormalMap);
-				data.OpticalNormalMap = CopyTexture(source.OpticalNormalMap, $"{folder}/{name}, Optical Normals");
-				made.Add(data.OpticalNormalMap);
-				data.OpticalResponseMap = CopyTexture(source.OpticalResponseMap, $"{folder}/{name}, Optical Response");
-				made.Add(data.OpticalResponseMap);
-				AssetDatabase.CreateAsset(data, $"{folder}/{name}, Bake.asset");
-				made.Add(data);
-				// The material the insert wears takes the copies: a colour of the
-				// user's own carrying the source's maps in place, when it is the
-				// project's; the source's own material, or a package's, as a
-				// variant that keeps following its tuning, since the source is
-				// left as it was.
-				var worn = renderer.sharedMaterial != null ? renderer.sharedMaterial : source.Material;
-				if (worn != null) {
-					var own = worn != source.Material && Carries(worn, source) && EditorUtility.IsPersistent(worn)
-						&& !IsReadOnly(AssetDatabase.GetAssetPath(worn)) && !WornElsewhere(worn, insert);
-					var material = own ? worn : Variant(worn, $"{name} {BaseName(worn)}");
-					if (own) {
-						Undo.RecordObject(material, "Fork Insert Bake");
-					}
-					if (data.NormalMap != null) {
-						SetNormalMap(material, data.NormalMap, insert.name);
-					}
-					if (own) {
-						EditorUtility.SetDirty(material);
-					} else {
-						// Unique, because the body and the cover may share a name.
-						AssetDatabase.CreateAsset(material, AssetDatabase.GenerateUniqueAssetPath($"{folder}/{name} {FileName(BaseName(worn))}.mat"));
-						made.Add(material);
-					}
-					data.Material = material;
-					BindOptics(data);
-					EditorUtility.SetDirty(data);
-				}
-				if (insert.CoverMaterial != null && IsReadOnly(AssetDatabase.GetAssetPath(insert.CoverMaterial))) {
-					cover = Variant(insert.CoverMaterial, $"{name} {BaseName(insert.CoverMaterial)}");
-					AssetDatabase.CreateAsset(cover, AssetDatabase.GenerateUniqueAssetPath($"{folder}/{name} {FileName(BaseName(insert.CoverMaterial))}.mat"));
-					made.Add(cover);
-				}
+				(data, cover) = ForkAssets(insert, folder, name, insert.EnsureId(), made, new[] { insert });
 			} catch {
-				// Nothing half-forked is left behind: the insert still wears the source.
-				// The folder may be shared, so only what the fork made goes.
-				foreach (var asset in made) {
-					var path = asset != null ? AssetDatabase.GetAssetPath(asset) : null;
-					if (!string.IsNullOrEmpty(path)) {
-						AssetDatabase.DeleteAsset(path);
-					}
-				}
-				if (folder.StartsWith(OutputRoot + "/", StringComparison.Ordinal) && !AssetDatabase.FindAssets(string.Empty, new[] { folder }).Any()) {
-					AssetDatabase.DeleteAsset(folder);
-				}
+				Discard(made, folder);
 				throw;
 			}
 
@@ -987,6 +979,404 @@ namespace VisualPinball.Unity.Editor
 				Bake(insert);
 			}
 			return data;
+		}
+
+		/// <summary>
+		/// The other inserts in the open scenes that a fork of the insert's bake
+		/// could go to as well: instances of the same prefab that wear the same
+		/// bake, still fitting it, and the same materials. None when the insert
+		/// isn't a prefab's instance of its own.
+		/// </summary>
+		public static InsertComponent[] Sharing(InsertComponent insert)
+		{
+			if (insert.Bake == null || !IsInstanceRoot(insert)) {
+				return Array.Empty<InsertComponent>();
+			}
+			var prefab = PrefabPath(insert);
+			var body = insert.GetComponent<MeshRenderer>().sharedMaterial;
+			return Object.FindObjectsByType<InsertComponent>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+				.Where(other => other != insert && IsInstanceRoot(other) && PrefabPath(other) == prefab
+					&& other.Bake == insert.Bake && other.IsBakeFresh
+					&& other.GetComponent<MeshRenderer>().sharedMaterial == body && other.CoverMaterial == insert.CoverMaterial)
+				.OrderBy(other => other.name)
+				.ToArray();
+		}
+
+		/// <summary>Whether the insert is a prefab's instance of its own, rather than part of another's or of none.</summary>
+		public static bool IsInstanceRoot(InsertComponent insert)
+			=> PrefabUtility.IsPartOfPrefabInstance(insert) && PrefabUtility.GetOutermostPrefabInstanceRoot(insert.gameObject) == insert.gameObject;
+
+		/// <summary>
+		/// Edits the insert in the project, with the others that share its
+		/// prefab, shape and materials: a prefab's instance becomes an instance
+		/// of a variant of it, any other insert gets copies of what it has that
+		/// can't be changed. Either can then be recoloured, tuned and reshaped.
+		/// </summary>
+		public static void EditInProject(InsertComponent insert, IReadOnlyCollection<InsertComponent> others)
+		{
+			if (IsInstanceRoot(insert)) {
+				ForkIntoVariant(insert, others);
+				return;
+			}
+			// An insert of no prefab owns its copies itself: of a bake that can't
+			// be baked over, with the materials bound to it, and of what's left.
+			if (insert.Bake != null && IsReadOnly(insert.Bake)) {
+				Fork(insert);
+			}
+			InsertColorPresets.CopyToProject(new[] { insert }.Concat(others).Distinct().ToArray());
+		}
+
+		/// <summary>
+		/// Edits the inserts in the project that need it, each with those of the
+		/// others that share its prefab, shape and materials.
+		/// </summary>
+		public static void EditInProject(IReadOnlyCollection<InsertComponent> inserts)
+		{
+			var left = inserts.Where(NeedsEditing).ToList();
+			while (left.Count > 0) {
+				var insert = left[0];
+				var group = Sharing(insert).Where(left.Contains).ToArray();
+				EditInProject(insert, group);
+				left.Remove(insert);
+				left.RemoveAll(group.Contains);
+			}
+		}
+
+		/// <summary>Whether the insert can be baked where it is: its bake can be written to, or its prefab, in the project, takes the bake.</summary>
+		public static bool BakesHere(InsertComponent insert)
+			=> insert.Bake == null || !IsReadOnly(insert.Bake) || ProjectPrefab(insert) != null;
+
+		/// <summary>Whether something the insert has can't be changed, so it's to be edited in the project first.</summary>
+		public static bool NeedsEditing(InsertComponent insert)
+			=> !BakesHere(insert) || InsertColorPresets.HasReadOnlyMaterial(insert);
+
+		/// <summary>The prefab in the project, which can be written to, that the insert is an instance of, or null.</summary>
+		private static string ProjectPrefab(InsertComponent insert)
+		{
+			if (!IsInstanceRoot(insert)) {
+				return null;
+			}
+			var path = PrefabPath(insert);
+			return !string.IsNullOrEmpty(path) && path.StartsWith("Assets/", StringComparison.Ordinal) && !IsReadOnly(path) ? path : null;
+		}
+
+		/// <summary>
+		/// Makes a variant of the insert's prefab in the project, and the insert
+		/// and the given others instances of it: the variant holds the insert's
+		/// shape and materials, so they follow it from then on. Their own
+		/// positions and other overrides are kept. A material that can't be
+		/// changed, or that inserts not following the variant wear, is copied,
+		/// as a material variant that keeps following it; a cover the project
+		/// can change is shared, as it is a colour's rather than a shape's. The
+		/// bake stays the one the insert wears until the variant is baked, which
+		/// makes it one of its own, next to the variant and named after it.
+		/// This is a library insert's edit, and an insert of a project prefab
+		/// reshaped on its own becoming a prefab of its own shape. When the
+		/// bake no longer fits the shape, a bake follows at once.
+		/// </summary>
+		/// <returns>The variant</returns>
+		public static GameObject ForkIntoVariant(InsertComponent insert, IReadOnlyCollection<InsertComponent> others)
+		{
+			if (!IsInstanceRoot(insert)) {
+				throw new InvalidOperationException("The insert is no prefab instance of its own.");
+			}
+			var prefabPath = PrefabPath(insert);
+			var folder = InsertFolder(insert);
+			// The variant's bake will be named after it, which is where a bake of its
+			// inserts looks for it, so neither may be taken: an insert's own fork may
+			// already go by the prefab's name.
+			var prefabName = FileName(Path.GetFileNameWithoutExtension(prefabPath));
+			var name = prefabName;
+			for (var i = 2; UniqueName(folder, name) != name || AssetDatabase.LoadMainAssetAtPath($"{folder}/{name}.prefab") != null; i++) {
+				name = $"{prefabName} {i}";
+			}
+			var variantPath = $"{folder}/{name}.prefab";
+			var id = Guid.NewGuid().ToString("N");
+			var inserts = new[] { insert }.Concat(others).Distinct().ToArray();
+			var shape = ShapeOverrides(insert);
+			var made = new List<Object>();
+
+			GameObject variant;
+			GameObject temp = null;
+			try {
+				var renderer = insert.GetComponent<MeshRenderer>();
+				var body = renderer.sharedMaterial;
+				// The variant's bake will go into its body, which no insert outside it may wear.
+				if (body != null && (InsertColorPresets.IsReadOnly(insert, body) || WornOutside(body, inserts))) {
+					body = Copy(body, folder, name, made);
+				}
+				var cover = insert.CoverMaterial;
+				if (cover != null && InsertColorPresets.IsReadOnly(insert, cover)) {
+					cover = Copy(cover, folder, name, made);
+				}
+				// A fresh instance of the prefab takes the shape only, not what
+				// else this insert sets, like its lamp, which the others don't share.
+				temp = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath));
+				var tempInsert = temp.GetComponent<InsertComponent>();
+				var from = new SerializedObject(insert);
+				var to = new SerializedObject(tempInsert);
+				foreach (var path in shape) {
+					to.CopyFromSerializedProperty(from.FindProperty(path));
+				}
+				to.FindProperty("_id").stringValue = id;
+				to.ApplyModifiedPropertiesWithoutUndo();
+				if (insert.Bake != tempInsert.Bake) {
+					tempInsert.SetBake(insert.Bake);
+				}
+				if (cover != tempInsert.CoverMaterial) {
+					tempInsert.SetCoverMaterial(cover);
+				}
+				var tempRenderer = temp.GetComponent<MeshRenderer>();
+				var materials = tempRenderer.sharedMaterials;
+				materials[0] = body;
+				tempRenderer.sharedMaterials = materials;
+				PrefabUtility.RecordPrefabInstancePropertyModifications(tempInsert);
+				PrefabUtility.RecordPrefabInstancePropertyModifications(temp.GetComponent<MeshRenderer>());
+				variant = PrefabUtility.SaveAsPrefabAsset(temp, variantPath, out var saved);
+				if (!saved || variant == null) {
+					throw new InvalidOperationException($"The prefab variant could not be saved at {variantPath}.");
+				}
+				made.Add(variant);
+			} catch {
+				Discard(made, folder);
+				throw;
+			} finally {
+				if (temp != null) {
+					Object.DestroyImmediate(temp);
+				}
+			}
+
+			Undo.IncrementCurrentGroup();
+			var group = Undo.GetCurrentGroup();
+			var settings = new PrefabReplacingSettings {
+				logInfo = false,
+				changeRootNameToAssetName = false,
+				objectMatchMode = ObjectMatchMode.ByHierarchy,
+				prefabOverridesOptions = PrefabOverridesOptions.KeepAllPossibleOverrides,
+			};
+			var follows = shape.Concat(new[] { "_bake", "_unbakedMaterial", "_coverMaterial" }).ToArray();
+			foreach (var go in inserts.Select(each => each.gameObject).ToArray()) {
+				PrefabUtility.ReplacePrefabAssetOfPrefabInstance(go, variant, settings, InteractionMode.UserAction);
+				// What the variant now holds is followed rather than overridden.
+				var component = go.GetComponent<InsertComponent>();
+				var serialized = new SerializedObject(component);
+				foreach (var path in follows) {
+					var property = serialized.FindProperty(path);
+					if (property != null && property.prefabOverride) {
+						PrefabUtility.RevertPropertyOverride(property, InteractionMode.UserAction);
+					}
+				}
+				var materials = new SerializedObject(go.GetComponent<MeshRenderer>()).FindProperty("m_Materials");
+				if (materials.prefabOverride) {
+					PrefabUtility.RevertPropertyOverride(materials, InteractionMode.UserAction);
+				}
+				component.RebuildMesh();
+			}
+			Undo.SetCurrentGroupName("Edit Inserts in Project");
+			Undo.CollapseUndoOperations(group);
+			AssetDatabase.SaveAssets();
+
+			if (!insert.IsBakeFresh) {
+				Bake(insert);
+			}
+			return variant;
+		}
+
+		/// <summary>
+		/// Whether anything but the inserts wears the material as its body: an
+		/// insert in the open scenes, or the prefab of the first of them, which
+		/// keeps wearing it for its instances elsewhere.
+		/// </summary>
+		private static bool WornOutside(Material material, IReadOnlyCollection<InsertComponent> inserts)
+		{
+			var source = PrefabUtility.GetCorrespondingObjectFromSource(inserts.First().GetComponent<MeshRenderer>());
+			if (source != null && source.sharedMaterial == material) {
+				return true;
+			}
+			return Object.FindObjectsByType<InsertComponent>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+				.Any(other => !inserts.Contains(other) && other.GetComponent<MeshRenderer>().sharedMaterial == material);
+		}
+
+		/// <summary>A variant of the material in the folder, named after the one it's for, which keeps following the material until a value is set.</summary>
+		private static Material Copy(Material material, string folder, string name, List<Object> made)
+		{
+			var copy = Variant(material, $"{name} {BaseName(material)}");
+			// Unique, because the body and the cover may share a name.
+			AssetDatabase.CreateAsset(copy, AssetDatabase.GenerateUniqueAssetPath($"{folder}/{name} {FileName(BaseName(material))}.mat"));
+			made.Add(copy);
+			return copy;
+		}
+
+		/// <summary>
+		/// The insert's properties that its instance overrides and that make its
+		/// shape and bake, by their top-level names: not its id, its bake and
+		/// materials, nor the cover's playfield, which are its own.
+		/// </summary>
+		private static string[] ShapeOverrides(InsertComponent insert)
+		{
+			var source = PrefabUtility.GetCorrespondingObjectFromSource(insert);
+			return (PrefabUtility.GetPropertyModifications(insert) ?? Array.Empty<PropertyModification>())
+				.Where(modification => modification.target == source)
+				.Select(modification => modification.propertyPath.Split('.')[0])
+				.Where(path => !path.StartsWith("m_", StringComparison.Ordinal) && !NotShape.Contains(path))
+				.Distinct()
+				.ToArray();
+		}
+
+		private static readonly HashSet<string> NotShape = new() {
+			"_id", "_bake", "_unbakedMaterial", "_coverMaterial", "_usePlayfieldNormals", "_coverPlayfield", "_usesPackagedMesh", "_generatedMesh",
+		};
+
+		/// <summary>
+		/// The prefab in the project whose bake the insert is to bake: the one it
+		/// is an instance of, when it wears the prefab's bake and doesn't change
+		/// its shape, so the bake fits every instance alike. Null otherwise. Only
+		/// the bake named after the prefab, next to it, is baked over; any other
+		/// gives way to a new one there, which the prefab then wears.
+		/// </summary>
+		private static string PrefabBakePath(InsertComponent insert)
+		{
+			if (insert.Bake == null || !PrefabUtility.IsPartOfPrefabInstance(insert)) {
+				return null;
+			}
+			var path = PrefabPath(insert);
+			if (string.IsNullOrEmpty(path) || !path.StartsWith("Assets/", StringComparison.Ordinal) || IsReadOnly(path)) {
+				return null;
+			}
+			var source = PrefabUtility.GetCorrespondingObjectFromSource(insert);
+			if (source == null || source.Bake != insert.Bake) {
+				return null;
+			}
+			return ShapeOverrides(insert).Length == 0 ? path : null;
+		}
+
+		/// <summary>
+		/// The project prefab the insert is an instance of, when the instance
+		/// changes the prefab's shape: the shape then either goes into the
+		/// prefab, for all its instances, or makes a prefab of its own. Null
+		/// otherwise, and for a prefab that can't be written to.
+		/// </summary>
+		public static string ReshapedPrefab(InsertComponent insert)
+		{
+			var path = insert.Bake != null ? ProjectPrefab(insert) : null;
+			return path != null && ShapeOverrides(insert).Length > 0 ? path : null;
+		}
+
+		/// <summary>
+		/// The other instances in the open scenes of the prefab the insert is an
+		/// instance of that keep its shape, and so would follow a shape put into it.
+		/// </summary>
+		public static InsertComponent[] Followers(InsertComponent insert)
+		{
+			if (!IsInstanceRoot(insert)) {
+				return Array.Empty<InsertComponent>();
+			}
+			var prefab = PrefabPath(insert);
+			return Object.FindObjectsByType<InsertComponent>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+				.Where(other => other != insert && IsInstanceRoot(other) && PrefabPath(other) == prefab && ShapeOverrides(other).Length == 0)
+				.ToArray();
+		}
+
+		/// <summary>
+		/// Puts the shape the insert's instance changes into its prefab, which
+		/// all its instances that keep the prefab's shape then have too. A bake
+		/// is to follow, of the prefab.
+		/// </summary>
+		public static void ApplyShape(InsertComponent insert)
+		{
+			var path = ReshapedPrefab(insert);
+			if (path == null) {
+				throw new InvalidOperationException("The insert doesn't change the shape of a prefab in the project.");
+			}
+			var followers = Followers(insert);
+			Undo.IncrementCurrentGroup();
+			var group = Undo.GetCurrentGroup();
+			var serialized = new SerializedObject(insert);
+			foreach (var name in ShapeOverrides(insert)) {
+				PrefabUtility.ApplyPropertyOverride(serialized.FindProperty(name), path, InteractionMode.UserAction);
+			}
+			Undo.SetCurrentGroupName("Apply Insert Shape to Prefab");
+			Undo.CollapseUndoOperations(group);
+			insert.RebuildMesh();
+			foreach (var other in followers) {
+				other.RebuildMesh();
+			}
+		}
+
+		/// <summary>
+		/// Copies the bake the insert wears, and its maps, into the folder under
+		/// the name, owned by the owner, with the material the insert wears
+		/// taking the copies: a colour of the user's own carrying the source's
+		/// maps in place, when it is the project's and none but the wearers
+		/// wear it; the source's own material, or a package's, as a variant that
+		/// keeps following its tuning, since the source is left as it was. A
+		/// cover material from a package gets a variant too.
+		/// </summary>
+		private static (InsertBakeData data, Material cover) ForkAssets(InsertComponent insert, string folder, string name, string owner, List<Object> made, IReadOnlyCollection<InsertComponent> wearers)
+		{
+			var source = insert.Bake;
+			var data = Object.Instantiate(source);
+			data.name = $"{name}, Bake";
+			data.Owner = owner;
+			data.NormalMap = CopyTexture(source.NormalMap, $"{folder}/{name}, Normal Map");
+			made.Add(data.NormalMap);
+			data.OpticalNormalMap = CopyTexture(source.OpticalNormalMap, $"{folder}/{name}, Optical Normals");
+			made.Add(data.OpticalNormalMap);
+			data.OpticalResponseMap = CopyTexture(source.OpticalResponseMap, $"{folder}/{name}, Optical Response");
+			made.Add(data.OpticalResponseMap);
+			AssetDatabase.CreateAsset(data, $"{folder}/{name}, Bake.asset");
+			made.Add(data);
+			var renderer = insert.GetComponent<MeshRenderer>();
+			var worn = renderer.sharedMaterial != null ? renderer.sharedMaterial : source.Material;
+			if (worn != null) {
+				var own = worn != source.Material && Carries(worn, source) && EditorUtility.IsPersistent(worn)
+					&& !IsReadOnly(AssetDatabase.GetAssetPath(worn))
+					&& !Object.FindObjectsByType<InsertComponent>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+						.Any(other => !wearers.Contains(other) && other.GetComponent<MeshRenderer>().sharedMaterial == worn);
+				var material = own ? worn : Variant(worn, $"{name} {BaseName(worn)}");
+				if (own) {
+					Undo.RecordObject(material, "Fork Insert Bake");
+				}
+				if (data.NormalMap != null) {
+					SetNormalMap(material, data.NormalMap, insert.name);
+				}
+				if (own) {
+					EditorUtility.SetDirty(material);
+				} else {
+					// Unique, because the body and the cover may share a name.
+					AssetDatabase.CreateAsset(material, AssetDatabase.GenerateUniqueAssetPath($"{folder}/{name} {FileName(BaseName(worn))}.mat"));
+					made.Add(material);
+				}
+				data.Material = material;
+				BindOptics(data);
+				EditorUtility.SetDirty(data);
+			}
+			Material cover = null;
+			if (insert.CoverMaterial != null && IsReadOnly(AssetDatabase.GetAssetPath(insert.CoverMaterial))) {
+				cover = Variant(insert.CoverMaterial, $"{name} {BaseName(insert.CoverMaterial)}");
+				AssetDatabase.CreateAsset(cover, AssetDatabase.GenerateUniqueAssetPath($"{folder}/{name} {FileName(BaseName(insert.CoverMaterial))}.mat"));
+				made.Add(cover);
+			}
+			return (data, cover);
+		}
+
+		/// <summary>
+		/// Deletes what a fork that failed made, so nothing half-forked is left
+		/// behind and the inserts still wear the source. The folder may be
+		/// shared, so only what the fork made goes, and the folder only when
+		/// that leaves it empty.
+		/// </summary>
+		private static void Discard(IEnumerable<Object> made, string folder)
+		{
+			foreach (var asset in made) {
+				var path = asset != null ? AssetDatabase.GetAssetPath(asset) : null;
+				if (!string.IsNullOrEmpty(path)) {
+					AssetDatabase.DeleteAsset(path);
+				}
+			}
+			if (folder.StartsWith(OutputRoot + "/", StringComparison.Ordinal) && !AssetDatabase.FindAssets(string.Empty, new[] { folder }).Any()) {
+				AssetDatabase.DeleteAsset(folder);
+			}
 		}
 
 		/// <summary>A copy of the texture asset, import settings included, or null without one.</summary>

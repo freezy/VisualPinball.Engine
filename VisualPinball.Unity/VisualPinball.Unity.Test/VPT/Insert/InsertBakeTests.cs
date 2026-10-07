@@ -2002,5 +2002,158 @@ namespace VisualPinball.Unity.Test
 			}
 		}
 
+		[Test]
+		public void ShouldEditInsertsInTheProjectAsAPrefabVariant()
+		{
+			const string folder = "Assets/Library/Inserts/Share Test";
+			const string variantFolder = "Assets/Inserts/Share Test";
+			var libraryExisted = UnityEditor.AssetDatabase.IsValidFolder("Assets/Library");
+			var insertsExisted = UnityEditor.AssetDatabase.IsValidFolder("Assets/Inserts");
+			var probe = new Mesh();
+			var instances = new List<GameObject>();
+			try {
+				foreach (var (parent, child) in new[] { ("Assets", "Library"), ("Assets/Library", "Inserts"), ("Assets/Library/Inserts", "Share Test") }) {
+					if (!UnityEditor.AssetDatabase.IsValidFolder($"{parent}/{child}")) {
+						UnityEditor.AssetDatabase.CreateFolder(parent, child);
+					}
+				}
+				var normalMap = new Texture2D(4, 4);
+				UnityEditor.AssetDatabase.CreateAsset(normalMap, $"{folder}/Normal.asset");
+				var material = new Material(Shader.Find("Hidden/InternalErrorShader"));
+				UnityEditor.AssetDatabase.CreateAsset(material, $"{folder}/Source.mat");
+
+				var go = new GameObject("Share Test");
+				var source = go.AddComponent<InsertComponent>();
+				var layout = new InsertMeshLayout();
+				source.Generate(probe, layout);
+				var bake = FakeBake(probe, layout.Hash);
+				bake.NormalMap = normalMap;
+				bake.Material = material;
+				UnityEditor.AssetDatabase.CreateAsset(bake, $"{folder}/Share Test, Bake.asset");
+				source.SetBake(bake);
+				var libraryCover = new Material(Shader.Find("Hidden/InternalErrorShader"));
+				UnityEditor.AssetDatabase.CreateAsset(libraryCover, $"{folder}/Cover.mat");
+				source.SetCoverMaterial(libraryCover);
+				var prefab = UnityEditor.PrefabUtility.SaveAsPrefabAsset(go, $"{folder}/Share Test.prefab");
+				Object.DestroyImmediate(go);
+
+				InsertComponent Instance(string name)
+				{
+					var instance = (GameObject)UnityEditor.PrefabUtility.InstantiatePrefab(prefab);
+					instance.name = name;
+					instances.Add(instance);
+					return instance.GetComponent<InsertComponent>();
+				}
+				var a = Instance("Share Test A");
+				var b = Instance("Share Test B");
+				var c = Instance("Share Test C");
+				b.transform.position = new Vector3(1f, 2f, 3f);
+				// Edited for both, as the presets' Edit for all does: a cover of their own.
+				var ownCover = new Material(libraryCover);
+				UnityEditor.AssetDatabase.CreateAsset(ownCover, $"{folder}/Own Cover.mat");
+				foreach (var each in new[] { a, b }) {
+					each.SetCoverMaterial(ownCover);
+					UnityEditor.PrefabUtility.RecordPrefabInstancePropertyModifications(each);
+					UnityEditor.PrefabUtility.RecordPrefabInstancePropertyModifications(each.GetComponent<MeshRenderer>());
+				}
+				// A bake setting is part of the shape, but leaves the bake fitting.
+				var serializedA = new UnityEditor.SerializedObject(a);
+				serializedA.FindProperty("_bakeSettings.Padding").intValue = 13;
+				serializedA.ApplyModifiedProperties();
+				a.UsePlayfieldNormals = true;
+				UnityEditor.PrefabUtility.RecordPrefabInstancePropertyModifications(a);
+				// Reshaped on its own, so it no longer fits the bake.
+				var serializedC = new UnityEditor.SerializedObject(c);
+				serializedC.FindProperty("_width").floatValue *= 2f;
+				serializedC.ApplyModifiedProperties();
+				c.RebuildMesh();
+				a.RebuildMesh();
+				Assert.That(a.IsBakeFresh, Is.True);
+				Assert.That(c.IsBakeFresh, Is.False);
+
+				Assert.That(InsertBaker.Sharing(a), Is.EqualTo(new[] { b }), "the instances of the same prefab still fitting the same bake");
+
+				var variant = InsertBaker.ForkIntoVariant(a, new[] { b });
+
+				Assert.That(UnityEditor.AssetDatabase.GetAssetPath(variant), Is.EqualTo($"{variantFolder}/Share Test.prefab"));
+				Assert.That(UnityEditor.PrefabUtility.GetCorrespondingObjectFromSource(variant), Is.EqualTo(prefab), "a variant of the library's prefab");
+				foreach (var each in new[] { a, b }) {
+					Assert.That(UnityEditor.PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(each.gameObject), Is.EqualTo($"{variantFolder}/Share Test.prefab"));
+				}
+				Assert.That(UnityEditor.PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(c.gameObject), Is.EqualTo($"{folder}/Share Test.prefab"), "a reshaped insert is left as it is");
+
+				var variantInsert = variant.GetComponent<InsertComponent>();
+				Assert.That(string.IsNullOrEmpty(variantInsert.Id), Is.False);
+				Assert.That(variantInsert.Id, Is.Not.EqualTo(source.Id));
+				// The bake stays the prefab's until the variant is baked, which makes it one of its own.
+				Assert.That(variantInsert.Bake, Is.EqualTo(bake));
+				Assert.That(a.Bake, Is.EqualTo(bake));
+				Assert.That(b.Bake, Is.EqualTo(bake));
+				// The body is a copy: the prefab keeps wearing its own, which the variant's bake would write into.
+				var body = variant.GetComponent<MeshRenderer>().sharedMaterial;
+				Assert.That(UnityEditor.AssetDatabase.GetAssetPath(body), Is.EqualTo($"{variantFolder}/Share Test Source.mat"));
+				Assert.That(body.parent, Is.EqualTo(material), "a material variant, which keeps following the original");
+				Assert.That(a.GetComponent<MeshRenderer>().sharedMaterial, Is.EqualTo(body));
+				Assert.That(b.GetComponent<MeshRenderer>().sharedMaterial, Is.EqualTo(body));
+				Assert.That(b.IsBakeFresh, Is.True);
+				Assert.That(UnityEditor.AssetDatabase.GetAssetPath(variantInsert.CoverMaterial), Is.EqualTo($"{folder}/Own Cover.mat"), "the cover they wore goes into the variant");
+				Assert.That(UnityEditor.AssetDatabase.GetAssetPath(b.CoverMaterial), Is.EqualTo($"{folder}/Own Cover.mat"));
+
+				// The shape went into the variant, which the insert now follows; its own settings stay its own.
+				Assert.That(variantInsert.BakeSettings.Padding, Is.EqualTo(13));
+				Assert.That(a.BakeSettings.Padding, Is.EqualTo(13));
+				Assert.That(new UnityEditor.SerializedObject(a).FindProperty("_bakeSettings").prefabOverride, Is.False);
+				Assert.That(variantInsert.UsePlayfieldNormals, Is.False);
+				Assert.That(a.UsePlayfieldNormals, Is.True);
+				Assert.That(b.transform.position, Is.EqualTo(new Vector3(1f, 2f, 3f)));
+
+				// A bake of an unchanged instance is the variant's.
+				var prefabBakePath = typeof(InsertBaker).GetMethod("PrefabBakePath", BindingFlags.NonPublic | BindingFlags.Static);
+				Assert.That(prefabBakePath.Invoke(null, new object[] { b }), Is.EqualTo($"{variantFolder}/Share Test.prefab"));
+				Assert.That(prefabBakePath.Invoke(null, new object[] { c }), Is.Null);
+
+				UnityEditor.Undo.PerformUndo();
+				Assert.That(UnityEditor.PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(b.gameObject), Is.EqualTo($"{folder}/Share Test.prefab"), "one undo puts them back");
+				Assert.That(UnityEditor.PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(a.gameObject), Is.EqualTo($"{folder}/Share Test.prefab"));
+
+				// A single insert's fork is a variant of its own, whose name the first one has taken.
+				var d = Instance("Share Test D");
+				InsertBaker.EditInProject(d, System.Array.Empty<InsertComponent>());
+				Assert.That(UnityEditor.PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(d.gameObject), Is.EqualTo($"{variantFolder}/Share Test 2.prefab"));
+				Assert.That(d.Bake, Is.EqualTo(bake));
+				Assert.That(UnityEditor.AssetDatabase.GetAssetPath(d.GetComponent<MeshRenderer>().sharedMaterial), Is.EqualTo($"{variantFolder}/Share Test 2 Source.mat"));
+				Assert.That(InsertBaker.NeedsEditing(d), Is.False);
+				Assert.That(InsertBaker.ReshapedPrefab(d), Is.Null);
+
+				// A duplicate follows it; a shape changed on one instance goes into the prefab, for both.
+				var second = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>($"{variantFolder}/Share Test 2.prefab");
+				var e = ((GameObject)UnityEditor.PrefabUtility.InstantiatePrefab(second)).GetComponent<InsertComponent>();
+				instances.Add(e.gameObject);
+				var serializedD = new UnityEditor.SerializedObject(d);
+				serializedD.FindProperty("_bakeSettings.Padding").intValue = 9;
+				serializedD.ApplyModifiedProperties();
+				Assert.That(InsertBaker.ReshapedPrefab(d), Is.EqualTo($"{variantFolder}/Share Test 2.prefab"));
+				Assert.That(InsertBaker.Followers(d), Is.EqualTo(new[] { e }));
+				Assert.That(prefabBakePath.Invoke(null, new object[] { d }), Is.Null, "a reshaped instance doesn't bake its prefab");
+
+				InsertBaker.ApplyShape(d);
+
+				Assert.That(second.GetComponent<InsertComponent>().BakeSettings.Padding, Is.EqualTo(9));
+				Assert.That(e.BakeSettings.Padding, Is.EqualTo(9));
+				Assert.That(InsertBaker.ReshapedPrefab(d), Is.Null);
+				Assert.That(prefabBakePath.Invoke(null, new object[] { d }), Is.EqualTo($"{variantFolder}/Share Test 2.prefab"));
+			} finally {
+				foreach (var instance in instances.Where(instance => instance != null)) {
+					Object.DestroyImmediate(instance);
+				}
+				UnityEditor.AssetDatabase.DeleteAsset(variantFolder);
+				if (!insertsExisted) {
+					UnityEditor.AssetDatabase.DeleteAsset("Assets/Inserts");
+				}
+				UnityEditor.AssetDatabase.DeleteAsset(libraryExisted ? folder : "Assets/Library");
+				Object.DestroyImmediate(probe);
+			}
+		}
+
 	}
 }
