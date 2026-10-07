@@ -369,5 +369,34 @@ namespace VisualPinball.Unity.Test
 				AssetDatabase.DeleteAsset(folder);
 			}
 		}
+
+		[Test]
+		public void ShouldPutANewCoverInTheInsertsFolder()
+		{
+			if (Shader.Find("Pinball/Insert Cover") == null) {
+				Assert.Ignore("Requires the HDRP insert cover shader.");
+			}
+			const string folder = "Assets/Insert Cover Test";
+			AssetDatabase.CreateFolder("Assets", "Insert Cover Test");
+			GameObject instance = null;
+			try {
+				var go = new GameObject("Cover Insert");
+				go.AddComponent<InsertComponent>();
+				var prefab = PrefabUtility.SaveAsPrefabAsset(go, folder + "/Cover Insert.prefab");
+				Object.DestroyImmediate(go);
+				instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+				var insert = instance.GetComponent<InsertComponent>();
+
+				var cover = InsertInspector.AddCover(insert);
+
+				Assert.That(AssetDatabase.GetAssetPath(cover), Is.EqualTo(folder + "/Cover Insert Cover.mat"), "in the prefab's folder, named after the insert");
+				Assert.That(AssetDatabase.GetAssetPath(insert.CoverMaterial), Is.EqualTo(folder + "/Cover Insert Cover.mat"));
+			} finally {
+				if (instance != null) {
+					Object.DestroyImmediate(instance);
+				}
+				AssetDatabase.DeleteAsset(folder);
+			}
+		}
 	}
 }

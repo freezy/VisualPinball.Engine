@@ -1170,7 +1170,7 @@ namespace VisualPinball.Unity.Editor
 			return source != null && !string.IsNullOrEmpty(source.Id) ? source.Id : string.Empty;
 		}
 
-		private static string FileName(string name)
+		internal static string FileName(string name)
 		{
 			var clean = Regex.Replace(name, @"[<>:""/\\|?*\x00-\x1f]", "_").Trim().TrimEnd('.');
 			return string.IsNullOrEmpty(clean) ? "Insert" : clean;

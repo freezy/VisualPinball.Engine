@@ -1349,15 +1349,10 @@ namespace VisualPinball.Unity.Editor
 			if (shader == null) {
 				throw new System.InvalidOperationException("The HDRP insert cover shader is not installed.");
 			}
-			if (!AssetDatabase.IsValidFolder("Assets/Inserts")) {
-				AssetDatabase.CreateFolder("Assets", "Inserts");
-			}
-			var folder = insert.Bake != null && !InsertBaker.IsReadOnly(insert.Bake) ? Path.GetDirectoryName(AssetDatabase.GetAssetPath(insert.Bake)) : null;
-			if (string.IsNullOrEmpty(folder)) {
-				folder = "Assets/Inserts";
-			}
+			// Where the insert's other materials go, named after it like them.
+			var folder = InsertBaker.MaterialFolder(insert);
 			var material = new Material(shader) { name = $"{insert.name} Cover" };
-			AssetDatabase.CreateAsset(material, AssetDatabase.GenerateUniqueAssetPath($"{folder.Replace('\\', '/')}/Insert Cover.mat"));
+			AssetDatabase.CreateAsset(material, AssetDatabase.GenerateUniqueAssetPath($"{folder}/{InsertBaker.FileName(insert.name)} Cover.mat"));
 			Undo.RecordObjects(new Object[] { insert, insert.GetComponent<MeshRenderer>() }, "Add Clear Insert Cover");
 			insert.SetCoverMaterial(material);
 			EditorUtility.SetDirty(insert);
