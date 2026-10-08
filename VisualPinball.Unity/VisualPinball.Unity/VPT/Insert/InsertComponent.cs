@@ -1312,6 +1312,14 @@ namespace VisualPinball.Unity
 			}
 			if (!_usesPackagedMesh) {
 				var sourceMesh = playfield.TryGetComponent<MeshFilter>(out var filter) ? filter.sharedMesh : null;
+#if UNITY_EDITOR
+				if (MakeReadable(sourceMesh)) {
+					// The cover maps again once the model is reimported.
+					ClearCoverProjection(renderer, mesh, force);
+					ApplyCoverThickness(renderer);
+					return;
+				}
+#endif
 				_coverProjectionValid = InsertCoverUv.TryCreate(sourceMesh, out _coverProjection, out var version) && playfield != renderer;
 				force |= sourceMesh != _coverSourceMesh || version != _coverProjectionVersion;
 				_coverSourceMesh = sourceMesh;
@@ -1417,15 +1425,34 @@ namespace VisualPinball.Unity
 			// Prefer the largest planar surface within this playfield, never another table.
 			MeshRenderer best = null;
 			var largest = 0f;
+			Mesh unreadable = null;
+			var unreadableArea = 0f;
 			foreach (var candidate in playfield.GetComponentsInChildren<MeshRenderer>(true)) {
 				if (!IsCoverSource(candidate) || candidate.GetComponentInParent<InsertComponent>() != null) { continue; }
 				var size = candidate.bounds.size;
 				var area = size.x * size.z;
-				if (area <= largest || !_usesPackagedMesh &&
-					(!candidate.TryGetComponent<MeshFilter>(out var filter) || !InsertCoverUv.TryCreate(filter.sharedMesh, out _))) { continue; }
+				if (area <= largest) { continue; }
+				if (!_usesPackagedMesh) {
+					var candidateMesh = candidate.TryGetComponent<MeshFilter>(out var filter) ? filter.sharedMesh : null;
+					if (candidateMesh != null && !candidateMesh.isReadable) {
+						// Its UVs can't be checked until it's readable.
+						if (area > unreadableArea) {
+							unreadable = candidateMesh;
+							unreadableArea = area;
+						}
+						continue;
+					}
+					if (!InsertCoverUv.TryCreate(candidateMesh, out _)) { continue; }
+				}
 				best = candidate;
 				largest = area;
 			}
+#if UNITY_EDITOR
+			// The board is usually the largest surface: read it, and search again once it's reimported.
+			if (unreadableArea > largest) {
+				MakeReadable(unreadable);
+			}
+#endif
 			return best;
 		}
 
@@ -1437,6 +1464,42 @@ namespace VisualPinball.Unity
 		}
 
 #if UNITY_EDITOR
+		// Model paths waiting to become readable, with the inserts to rebuild once they are.
+		private static readonly Dictionary<string, HashSet<InsertComponent>> ReadablePending = new();
+
+		/// <summary>
+		/// Turns on Read/Write for the imported model a cover needs to read, then
+		/// rebuilds every insert that asked. Returns whether the mesh is on its way
+		/// to being readable.
+		/// </summary>
+		private bool MakeReadable(Mesh mesh)
+		{
+			if (mesh == null || mesh.isReadable || UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode) { return false; }
+			var path = UnityEditor.AssetDatabase.GetAssetPath(mesh);
+			if (string.IsNullOrEmpty(path) || UnityEditor.AssetImporter.GetAtPath(path) is not UnityEditor.ModelImporter importer || importer.isReadable) {
+				return false;
+			}
+			if (ReadablePending.TryGetValue(path, out var waiting)) {
+				waiting.Add(this);
+				return true;
+			}
+			ReadablePending[path] = new HashSet<InsertComponent> { this };
+			// Not mid-update or mid-serialization: reimport on the next editor tick.
+			UnityEditor.EditorApplication.delayCall += () => {
+				ReadablePending.Remove(path, out var inserts);
+				// Never reimport while the game runs; the inserts ask again back in edit mode.
+				if (UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode) { return; }
+				if (importer != null && !importer.isReadable) {
+					importer.isReadable = true;
+					importer.SaveAndReimport();
+				}
+				foreach (var insert in inserts) {
+					if (insert != null) { insert.RebuildMesh(); }
+				}
+			};
+			return true;
+		}
+
 		private bool _rebuildPending;
 		private void OnValidate()
 		{
