@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using NLog;
 using UnityEngine;
 using VisualPinball.Engine.Common;
@@ -384,6 +385,12 @@ namespace VisualPinball.Unity.Simulation
 					player != null
 						? new Action<string, float>((coilId, value) => player.DispatchCoilSimulationThread(coilId, value))
 						: null);
+				if (player != null) {
+					_simulationThread.SetInputSwitchMappings(player.SwitchMapping
+						.Where(m => m.Source == SwitchSource.InputSystem && !string.IsNullOrEmpty(m.InputAction))
+						.Select(m => new InputSwitchMapping(m.InputAction, m.Id, m.IsNormallyClosed))
+						.ToArray());
+				}
 				ConfigureTiltBobRouting();
 				ApplyInputActionWireCoils(_simulationThread);
 				_simulationThread.SyncClockFromMainThread(_physicsEngine.CurrentSimulationClockUsec, _physicsEngine.CurrentSimulationClockScale);

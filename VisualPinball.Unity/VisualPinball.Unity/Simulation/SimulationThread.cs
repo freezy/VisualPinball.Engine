@@ -96,10 +96,9 @@ namespace VisualPinball.Unity.Simulation
 
 		// Input state tracking (allocation-free indexed arrays)
 		private readonly bool[] _actionStates;
-		private readonly string[] _actionToSwitchId;
-		private readonly bool[] _actionInvertsPressed;
-		private readonly bool[] _actionToggleOnPress;
-		private readonly bool[] _actionSwitchStates;
+		// Switches driven by each input action. An action can drive several switches (e.g. a lower
+		// and an upper flipper switch on the same button), each with its own polarity and state.
+		private readonly InputSwitchBinding[][] _actionBindings;
 
 		// Hardware-rule wires that connect an input action to a simulation-thread-capable coil (e.g. a
 		// P-ROC flipper: "Left Flipper" -> flipper main coil). The native input poller dispatches these
@@ -110,6 +109,7 @@ namespace VisualPinball.Unity.Simulation
 		private readonly Dictionary<int, List<ISimulationThreadCoil>> _actionWireCoils = new();
 		private readonly object _actionWireCoilLock = new object();
 		private volatile bool _inputMappingsBuilt;
+		private volatile InputSwitchMapping[] _inputSwitchMappings;
 
 		// Statistics
 		private long _tickCount = 0;
@@ -168,10 +168,7 @@ namespace VisualPinball.Unity.Simulation
 			// Initialize input state + mapping arrays
 			var actionCount = Enum.GetValues(typeof(NativeInputApi.InputAction)).Length;
 			_actionStates = new bool[actionCount];
-			_actionToSwitchId = new string[actionCount];
-			_actionInvertsPressed = new bool[actionCount];
-			_actionToggleOnPress = new bool[actionCount];
-			_actionSwitchStates = new bool[actionCount];
+			_actionBindings = new InputSwitchBinding[actionCount][];
 			_needsInitialSwitchSync = true;
 
 			if (_gamelogicEngine != null) {
@@ -720,50 +717,53 @@ namespace VisualPinball.Unity.Simulation
 
 		private void SendMappedSwitch(int actionIndex, bool isPressed, Action afterDispatch = null)
 		{
-			if ((uint)actionIndex >= (uint)_actionToSwitchId.Length) {
-				afterDispatch?.Invoke();
-				return;
-			}
-			var switchId = _actionToSwitchId[actionIndex];
-			if (switchId == null) {
+			var bindings = (uint)actionIndex < (uint)_actionBindings.Length ? _actionBindings[actionIndex] : null;
+			if (bindings == null) {
 				// No switch mapped: the GLE never sees the action, run the follow-up now.
 				afterDispatch?.Invoke();
 				return;
 			}
 
-			bool isClosed;
-			if (_actionToggleOnPress[actionIndex]) {
-				// VP-style coin door behavior toggles only on key-down.
-				if (!isPressed) {
-					afterDispatch?.Invoke();
-					return;
+			// VP-style coin door behavior toggles only on key-down, so a release may dispatch nothing.
+			// The follow-up runs once, with the last switch this action dispatches.
+			var lastDispatched = -1;
+			for (var i = 0; i < bindings.Length; i++) {
+				if (!bindings[i].ToggleOnPress || isPressed) {
+					lastDispatched = i;
 				}
-				isClosed = !_actionSwitchStates[actionIndex];
-			} else {
-				isClosed = _actionInvertsPressed[actionIndex] ? !isPressed : isPressed;
 			}
-			_actionSwitchStates[actionIndex] = isClosed;
+			if (lastDispatched < 0) {
+				afterDispatch?.Invoke();
+				return;
+			}
 
 			_lastSwitchDispatchUsec = GetTimestampUsec();
 			if (isPressed && IsFlipperAction(actionIndex)) {
 				_lastFlipperInputUsec = _lastSwitchDispatchUsec;
 			}
-			if (actionIndex == (int)NativeInputApi.InputAction.Start && Logger.IsDebugEnabled) {
-				Logger.Debug($"{LogPrefix} [SimulationThread] Input Start -> Switch({switchId}, {isClosed})");
-			}
-			if (Logger.IsDebugEnabled && isPressed) {
-				if (actionIndex == (int)NativeInputApi.InputAction.LeftFlipper) {
-					Logger.Debug($"{LogPrefix} [SimulationThread] Input LeftFlipper -> Switch({switchId}, True)");
+			for (var i = 0; i <= lastDispatched; i++) {
+				var binding = bindings[i];
+				bool isClosed;
+				if (binding.ToggleOnPress) {
+					if (!isPressed) {
+						continue;
+					}
+					isClosed = !binding.State;
+				} else {
+					isClosed = binding.InvertsPressed ? !isPressed : isPressed;
 				}
-				else if (actionIndex == (int)NativeInputApi.InputAction.RightFlipper) {
-					Logger.Debug($"{LogPrefix} [SimulationThread] Input RightFlipper -> Switch({switchId}, True)");
+				binding.State = isClosed;
+
+				if (Logger.IsDebugEnabled && (isPressed || actionIndex == (int)NativeInputApi.InputAction.Start)) {
+					Logger.Debug($"{LogPrefix} [SimulationThread] Input {(NativeInputApi.InputAction)actionIndex} -> Switch({binding.SwitchId}, {isClosed})");
 				}
-			}
-			if (afterDispatch != null && _inputDispatcher is MainThreadQueuedInputDispatcher queuedDispatcher) {
-				queuedDispatcher.DispatchSwitch(switchId, isClosed, afterDispatch);
-			} else {
-				_inputDispatcher.DispatchSwitch(switchId, isClosed);
-				afterDispatch?.Invoke();
+				var followUp = i == lastDispatched ? afterDispatch : null;
+				if (followUp != null && _inputDispatcher is MainThreadQueuedInputDispatcher queuedDispatcher) {
+					queuedDispatcher.DispatchSwitch(binding.SwitchId, isClosed, followUp);
+				} else {
+					_inputDispatcher.DispatchSwitch(binding.SwitchId, isClosed);
+					followUp?.Invoke();
+				}
 			}
 		}
 
@@ -810,13 +810,15 @@ namespace VisualPinball.Unity.Simulation
 
 		private void SyncAllMappedSwitches()
 		{
-			for (var i = 0; i < _actionToSwitchId.Length; i++)
+			for (var i = 0; i < _actionBindings.Length; i++)
 			{
-				var switchId = _actionToSwitchId[i];
-				if (switchId == null) {
+				var bindings = _actionBindings[i];
+				if (bindings == null) {
 					continue;
 				}
-				_inputDispatcher.DispatchSwitch(switchId, _actionSwitchStates[i]);
+				for (var j = 0; j < bindings.Length; j++) {
+					_inputDispatcher.DispatchSwitch(bindings[j].SwitchId, bindings[j].State);
+				}
 			}
 		}
 
@@ -832,43 +834,31 @@ namespace VisualPinball.Unity.Simulation
 
 		private void BuildInputMappings()
 		{
-			Array.Clear(_actionToSwitchId, 0, _actionToSwitchId.Length);
-			Array.Clear(_actionInvertsPressed, 0, _actionInvertsPressed.Length);
-			Array.Clear(_actionToggleOnPress, 0, _actionToggleOnPress.Length);
-			Array.Clear(_actionSwitchStates, 0, _actionSwitchStates.Length);
+			Array.Clear(_actionBindings, 0, _actionBindings.Length);
 
 			if (_gamelogicEngine == null) {
 				return;
 			}
 
-			var requestedSwitches = _gamelogicEngine.RequestedSwitches;
-			for (var i = 0; i < requestedSwitches.Length; i++)
-			{
-				var sw = requestedSwitches[i];
-				if (sw == null || string.IsNullOrEmpty(sw.InputActionHint)) {
-					continue;
+			// The table's switch mappings are authoritative: native polling bypasses the Input System
+			// path in SwitchPlayer, so a switch the author bound to a key in the switch manager only
+			// works if it lands here. The GLE's hints are the fallback for when no table is attached.
+			var inputSwitchMappings = _inputSwitchMappings;
+			if (inputSwitchMappings != null) {
+				for (var i = 0; i < inputSwitchMappings.Length; i++) {
+					var mapping = inputSwitchMappings[i];
+					AssignInputSwitch(mapping.InputAction, mapping.SwitchId, mapping.NormallyClosed);
 				}
 
-				if (!TryMapInputActionHint(sw.InputActionHint, out var action)) {
-					continue;
+			} else {
+				var requestedSwitches = _gamelogicEngine.RequestedSwitches;
+				for (var i = 0; i < requestedSwitches.Length; i++) {
+					var sw = requestedSwitches[i];
+					if (sw == null || string.IsNullOrEmpty(sw.InputActionHint)) {
+						continue;
+					}
+					AssignInputSwitch(sw.InputActionHint, sw.Id, sw.NormallyClosed);
 				}
-
-				var actionIndex = (int)action;
-				if ((uint)actionIndex >= (uint)_actionToSwitchId.Length) {
-					continue;
-				}
-
-				// Prefer the first mapping we see.
-				if (_actionToSwitchId[actionIndex] != null) {
-					continue;
-				}
-
-				_actionToSwitchId[actionIndex] = sw.Id;
-				_actionInvertsPressed[actionIndex] = sw.NormallyClosed;
-				_actionToggleOnPress[actionIndex] = sw.InputActionHint == InputConstants.ActionCoinDoorOpenClose;
-				_actionSwitchStates[actionIndex] = _actionToggleOnPress[actionIndex]
-					? sw.NormallyClosed
-					: (sw.NormallyClosed ? !_actionStates[actionIndex] : _actionStates[actionIndex]);
 			}
 
 			if (Logger.IsDebugEnabled)
@@ -884,11 +874,69 @@ namespace VisualPinball.Unity.Simulation
 			}
 		}
 
+		private void AssignInputSwitch(string inputAction, string switchId, bool normallyClosed)
+		{
+			if (string.IsNullOrEmpty(inputAction) || string.IsNullOrEmpty(switchId)) {
+				return;
+			}
+
+			// Aliases such as "Fire 1" share a native action with their canonical name.
+			if (!TryMapInputActionHint(inputAction, out var action)
+				&& !TryMapInputActionHint(InputManager.GetCanonicalActionName(inputAction), out action)) {
+				Logger.Info($"{LogPrefix} [SimulationThread] Input action \"{inputAction}\" of switch \"{switchId}\" has no native input equivalent, ignoring.");
+				return;
+			}
+
+			var actionIndex = (int)action;
+			if ((uint)actionIndex >= (uint)_actionBindings.Length) {
+				return;
+			}
+
+			var bindings = _actionBindings[actionIndex];
+			if (bindings != null) {
+				for (var i = 0; i < bindings.Length; i++) {
+					if (bindings[i].SwitchId == switchId) {
+						return;
+					}
+				}
+			}
+
+			var toggleOnPress = inputAction == InputConstants.ActionCoinDoorOpenClose;
+			var binding = new InputSwitchBinding {
+				SwitchId = switchId,
+				InvertsPressed = normallyClosed,
+				ToggleOnPress = toggleOnPress,
+				State = toggleOnPress
+					? normallyClosed
+					: (normallyClosed ? !_actionStates[actionIndex] : _actionStates[actionIndex]),
+			};
+			if (bindings == null) {
+				_actionBindings[actionIndex] = new[] { binding };
+			} else {
+				Array.Resize(ref bindings, bindings.Length + 1);
+				bindings[^1] = binding;
+				_actionBindings[actionIndex] = bindings;
+			}
+		}
+
 		private void LogMapping(NativeInputApi.InputAction action, string name)
 		{
 			var idx = (int)action;
-			var mapped = (uint)idx < (uint)_actionToSwitchId.Length ? _actionToSwitchId[idx] : null;
+			var bindings = (uint)idx < (uint)_actionBindings.Length ? _actionBindings[idx] : null;
+			var mapped = bindings == null ? null : string.Join(", ", Array.ConvertAll(bindings, b => b.SwitchId));
 			Logger.Info($"{LogPrefix} [SimulationThread] Mapping: {name}={mapped}");
+		}
+
+		/// <summary>
+		/// Sets the table's input-action-to-switch mappings (switches whose source is the Input
+		/// System). These replace the gamelogic engine's input action hints when routing native
+		/// input to switches. Called on the main thread.
+		/// </summary>
+		internal void SetInputSwitchMappings(InputSwitchMapping[] mappings)
+		{
+			_inputSwitchMappings = mappings;
+			_inputMappingsBuilt = false;
+			_needsInitialSwitchSync = true;
 		}
 
 		/// <summary>
@@ -1208,5 +1256,33 @@ namespace VisualPinball.Unity.Simulation
 		}
 
 		#endregion
+	}
+
+	/// <summary>
+	/// One switch driven by an input action on the simulation thread.
+	/// </summary>
+	internal sealed class InputSwitchBinding
+	{
+		public string SwitchId;
+		public bool InvertsPressed;
+		public bool ToggleOnPress;
+		public bool State;
+	}
+
+	/// <summary>
+	/// A switch the table maps to an input action, as handed to the simulation thread.
+	/// </summary>
+	internal readonly struct InputSwitchMapping
+	{
+		public readonly string InputAction;
+		public readonly string SwitchId;
+		public readonly bool NormallyClosed;
+
+		public InputSwitchMapping(string inputAction, string switchId, bool normallyClosed)
+		{
+			InputAction = inputAction;
+			SwitchId = switchId;
+			NormallyClosed = normallyClosed;
+		}
 	}
 }
