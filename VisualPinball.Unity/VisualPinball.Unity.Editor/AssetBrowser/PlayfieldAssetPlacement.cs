@@ -94,6 +94,10 @@ namespace VisualPinball.Unity.Editor
 			}
 			if (Surfaces.Count == 0) {
 				Clear();
+				// Without a playfield, Unity's own drop places them, at the root; a selection still says where they go.
+				if (perform && Target(out var target)) {
+					MoveAfterDrop(objects.Cast<GameObject>().ToArray(), target);
+				}
 				return DragAndDropVisualMode.None;
 			}
 
@@ -300,6 +304,82 @@ namespace VisualPinball.Unity.Editor
 		private static bool Contains(Surface surface, Vector3 point) => Contains(surface.Bounds, surface.Transform.InverseTransformPoint(point));
 		private static bool Contains(Bounds bounds, Vector3 point) => point.x >= bounds.min.x && point.x <= bounds.max.x && point.z >= bounds.min.z && point.z <= bounds.max.z;
 
+		/// <summary>Where dropped assets go, when something in the scene is selected.</summary>
+		private readonly struct DropTarget
+		{
+			/// <summary>The parent, or null for the scene's root.</summary>
+			public readonly Transform Parent;
+			public readonly Scene Scene;
+			/// <summary>The selected prefab instance they go after, when they're placed beside it, or null when they go into the selection.</summary>
+			public readonly Transform After;
+
+			public DropTarget(Transform parent, Scene scene, Transform after)
+			{
+				Parent = parent;
+				Scene = scene;
+				After = after;
+			}
+
+			public string Name => Parent ? Parent.name : Scene.name;
+		}
+
+		/// <summary>
+		/// Where dropped assets go after the first object selected in the scene:
+		/// into it, or beside it when it's part of a prefab instance, whose
+		/// hierarchy stays as its prefab has it. False without a selection in the
+		/// scene, in which case they go into the playfield they're dropped on.
+		/// </summary>
+		private static bool Target(out DropTarget target)
+		{
+			target = default;
+			var stage = StageUtility.GetCurrentStageHandle();
+			var selected = Selection.objects.OfType<GameObject>()
+				.FirstOrDefault(go => !EditorUtility.IsPersistent(go) && go.scene.IsValid() && StageUtility.GetStageHandle(go) == stage);
+			if (!selected) {
+				return false;
+			}
+			if (PrefabUtility.IsPartOfPrefabInstance(selected)) {
+				var root = PrefabUtility.GetOutermostPrefabInstanceRoot(selected).transform;
+				target = new DropTarget(root.parent, root.gameObject.scene, root);
+			} else {
+				target = new DropTarget(selected.transform, selected.scene, null);
+			}
+			return true;
+		}
+
+		/// <summary>
+		/// Moves what Unity's own drop of the prefabs places at the root, and
+		/// selects, to where the selection says, once the drop is done, as part
+		/// of the drop's undo step.
+		/// </summary>
+		private static void MoveAfterDrop(GameObject[] prefabs, DropTarget target)
+		{
+			var group = Undo.GetCurrentGroup();
+			EditorApplication.delayCall += () => {
+				var dropped = Selection.gameObjects
+					.Where(go => go.transform.parent == null && prefabs.Contains(PrefabUtility.GetCorrespondingObjectFromSource(go)))
+					.ToArray();
+				foreach (var go in dropped) {
+					Move(go, target, "Place asset");
+				}
+				Undo.CollapseUndoOperations(group);
+			};
+		}
+
+		/// <summary>Puts the object under the target, where it is in the world, after the target's prefab instance when it has one.</summary>
+		private static void Move(GameObject go, DropTarget target, string undoName)
+		{
+			if (go.transform.parent != target.Parent) {
+				Undo.SetTransformParent(go.transform, target.Parent, true, undoName);
+			}
+			if (!target.Parent && go.scene != target.Scene) {
+				Undo.MoveGameObjectToScene(go, target.Scene, undoName);
+			}
+			if (target.After) {
+				Undo.SetSiblingIndex(go.transform, target.After.GetSiblingIndex() + 1, undoName);
+			}
+		}
+
 		private static void Place()
 		{
 			Undo.IncrementCurrentGroup();
@@ -307,17 +387,33 @@ namespace VisualPinball.Unity.Editor
 			Undo.SetCurrentGroupName("Place assets on playfield");
 			var placed = new List<Object>();
 			try {
+				// Into the selection, or beside it, or else into the playfield they're dropped on.
+				var target = Target(out var selected) ? selected : new DropTarget(_surface.Playfield.transform, _surface.Playfield.gameObject.scene, null);
+				var after = target.After;
 				for (var i = 0; i < _prefabs.Length; i++) {
 					var prefab = _prefabs[i];
-					var parent = _surface.Playfield.transform;
-					var name = GameObjectUtility.GetUniqueNameForSibling(parent, prefab.name);
-					var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
+					var parent = target.Parent;
+					var name = parent ? GameObjectUtility.GetUniqueNameForSibling(parent, prefab.name) : prefab.name;
+					var go = parent ? (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent) : (GameObject)PrefabUtility.InstantiatePrefab(prefab, target.Scene);
 					Undo.RegisterCreatedObjectUndo(go, "Place asset on playfield");
 					Undo.RecordObject(go.transform, "Position asset on playfield");
 					go.name = name;
-					go.transform.localPosition = _positions[i];
-					go.transform.localRotation = prefab.transform.localRotation;
-					go.transform.localScale = prefab.transform.localScale;
+					// Where the preview showed it, whatever its parent.
+					var playfield = _surface.Playfield.transform;
+					if (parent == playfield) {
+						go.transform.SetLocalPositionAndRotation(_positions[i], prefab.transform.localRotation);
+						go.transform.localScale = prefab.transform.localScale;
+					} else {
+						var world = playfield.localToWorldMatrix * Matrix4x4.TRS(_positions[i], prefab.transform.localRotation, prefab.transform.localScale);
+						var local = (parent ? parent.worldToLocalMatrix : Matrix4x4.identity) * world;
+						go.transform.SetLocalPositionAndRotation(local.GetPosition(), local.rotation);
+						go.transform.localScale = local.lossyScale;
+					}
+					if (after) {
+						// Each one after the one before, in the order they were dragged.
+						go.transform.SetSiblingIndex(after.GetSiblingIndex() + 1);
+						after = go.transform;
+					}
 					PrefabUtility.RecordPrefabInstancePropertyModifications(go.transform);
 					if (DragAndDrop.GetGenericData("assets") is HashSet<AssetResult> assets && assets.Any(result => result.Asset.Object == prefab && result.Asset.UnpackPrefab)) {
 						PrefabUtility.UnpackPrefabInstance(go, PrefabUnpackMode.OutermostRoot, InteractionMode.AutomatedAction);
@@ -374,7 +470,11 @@ namespace VisualPinball.Unity.Editor
 				Handles.zTest = previousDepth;
 			}
 			Handles.BeginGUI();
-			GUI.Label(new Rect(70, 12, 380, 25), _valid ? $"Place on {_surface.Playfield.name}" : "Move the cursor over the playfield", EditorStyles.helpBox);
+			var label = !_valid ? "Move the cursor over the playfield"
+				: !Target(out var target) ? $"Place on {_surface.Playfield.name}"
+				: target.After ? $"Place on {_surface.Playfield.name}, beside {target.After.name}"
+				: $"Place on {_surface.Playfield.name}, into {target.Name}";
+			GUI.Label(new Rect(70, 12, 560, 25), label, EditorStyles.helpBox);
 			Handles.EndGUI();
 		}
 

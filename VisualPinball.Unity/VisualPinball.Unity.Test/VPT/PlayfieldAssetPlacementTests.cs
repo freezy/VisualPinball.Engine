@@ -132,9 +132,81 @@ namespace VisualPinball.Unity.Test
 			}, false);
 		}
 
+		[Test]
+		public void DropGoesIntoTheSelectedObjectWhereThePreviewShowedIt()
+		{
+			WithPrefab((prefab, playfield) => {
+				var group = new GameObject("Placement Test Group");
+				try {
+					group.transform.SetParent(playfield.transform, false);
+					group.transform.localPosition = new Vector3(0.1f, 0f, -0.2f);
+					Selection.objects = new Object[] { group };
+					var (placed, world) = Drop(prefab, playfield);
+					Assert.That(placed.transform.parent, Is.SameAs(group.transform));
+					Assert.That(Vector3.Distance(placed.transform.position, world), Is.LessThan(0.0001f));
+					Assert.That(PrefabUtility.GetCorrespondingObjectFromSource(placed), Is.EqualTo(prefab));
+				} finally {
+					Object.DestroyImmediate(group);
+				}
+			}, false);
+		}
+
+		[Test]
+		public void DropGoesBesideASelectedPrefabInstance()
+		{
+			WithPrefab((prefab, playfield) => {
+				var first = (GameObject)PrefabUtility.InstantiatePrefab(prefab, playfield.transform);
+				var last = new GameObject("Placement Test Last");
+				try {
+					last.transform.SetParent(playfield.transform, false);
+					Selection.objects = new Object[] { first };
+					var (placed, world) = Drop(prefab, playfield);
+					Assert.That(placed.transform.parent, Is.SameAs(playfield.transform));
+					Assert.That(placed.transform.GetSiblingIndex(), Is.EqualTo(first.transform.GetSiblingIndex() + 1), "right after the selected instance");
+					Assert.That(Vector3.Distance(placed.transform.position, world), Is.LessThan(0.0001f));
+				} finally {
+					Object.DestroyImmediate(first);
+					Object.DestroyImmediate(last);
+				}
+			}, false);
+		}
+
+		[Test]
+		public void DropFollowsTheFirstOfSeveralSelectedObjects()
+		{
+			WithPrefab((prefab, playfield) => {
+				var group = new GameObject("Placement Test Group");
+				var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, playfield.transform);
+				try {
+					group.transform.SetParent(playfield.transform, false);
+					Selection.objects = new Object[] { group, instance };
+					var (placed, _) = Drop(prefab, playfield);
+					Assert.That(placed.transform.parent, Is.SameAs(group.transform));
+				} finally {
+					Object.DestroyImmediate(group);
+					Object.DestroyImmediate(instance);
+				}
+			}, false);
+		}
+
+		/// <summary>Drops the prefab on the playfield's middle, and returns what was placed and where in the world the preview showed it.</summary>
+		private static (GameObject placed, Vector3 world) Drop(GameObject prefab, PlayfieldComponent playfield)
+		{
+			Invoke("Begin", new object[] { new[] { prefab } });
+			var hitArgs = new object[] { new Ray(playfield.transform.position + Vector3.up, Vector3.down), null, null };
+			Assert.That(Invoke("FindSurface", hitArgs), Is.True);
+			SetField("_surface", hitArgs[1]);
+			var position = playfield.transform.InverseTransformPoint((Vector3)hitArgs[2]) + Vector3.up * prefab.transform.localPosition.y;
+			((Vector3[])Field("_positions"))[0] = position;
+			Invoke("Place");
+			return (Selection.activeGameObject, playfield.transform.TransformPoint(position));
+		}
+
 		private static void WithPrefab(Action<GameObject, PlayfieldComponent> test, bool procedural = true)
 		{
 			var selection = Selection.objects;
+			// A selection says where a drop goes: none, unless a test makes one.
+			Selection.objects = Array.Empty<Object>();
 			var path = $"Assets/__VpePlacementTest_{Guid.NewGuid():N}.prefab";
 			GameObject source = null;
 			GameObject slab = null;
