@@ -106,6 +106,10 @@ namespace VisualPinball.Unity
 		private void Awake()
 		{
 			var player = GetComponentInParent<Player>();
+			// Standalone playfields (for example in LookDev) also define editor placement surfaces.
+			if (!player) {
+				return;
+			}
 			var physicsEngine = GetComponentInParent<PhysicsEngine>();
 			PlayfieldApi = new PlayfieldApi(gameObject, player, physicsEngine);
 			player.Register(PlayfieldApi);

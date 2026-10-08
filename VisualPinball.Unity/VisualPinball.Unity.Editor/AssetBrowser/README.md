@@ -75,6 +75,12 @@ By clicking on the categories in the left panel, you can filter assets by catego
 
 You can also toggle entire libraries by toggling the checkbox in the library listing at the top of the left panel.
 
+## Placing Assets on the Playfield
+
+Drag a prefab from the Asset Browser or Project window into the Scene View to preview it under the cursor on an active `PlayfieldComponent`. Release to place a linked prefab under that playfield; Undo removes the whole drop. Move outside the playfield or press Escape to cancel. When no playfield is present, Unity's standard placement applies.
+
+Placement uses the top plane and footprint of the playfield mesh, including across cutouts, without requiring a collider. Prefabs keep their authored rotation, scale, and mounting height relative to the playfield. Their origin should therefore sit at the mounting point, rather than at the bottom of any below-playfield geometry. Multiple selected prefabs are previewed side by side. For a standalone mesh such as a LookDev background, add `PlayfieldComponent` to the mesh object.
+
 ## Editing
 
 If you want to contribute to the asset package, you'll need you git clone the repository and import it as a local package (as opposed to loading it through the VPE registry, which is the default). Once you do that, you can select the library asset and unlock it.

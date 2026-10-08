@@ -8,6 +8,7 @@ Built with Unity 6.5
 
 ### Added
 
+- Prefabs dragged from the Asset Browser or Project window preview under the cursor on the playfield and drop at their mounting height, with prefab links and Undo preserved. Playfields need no Unity collider for placement.
 - Custom insert outlines from a flat, closed wire or filled mesh, with Inspector validation, shared corner rounding, extrusion, channels, holes, all patterns, and normal/optical baking. Custom source meshes are preserved in the editor sidecar when packaging and restored for editing; the player uses the finished GLB mesh.
 - A flash insert's engraved line: a thin trough a little way in from the raised middle's edge, in the starburst's place, chosen under Pattern with its inset, width, depth and rounding. The trough is geometry for the bake alone: while a bake fits, the middle's triangles give way to a plain flat island carrying the maps, the middle's chart having kept its projection through the bake so any triangulation of it carries the map. A geometry change makes the bake stale, and until the next bake the insert's renderer is off and the geometry to be baked is drawn in the scene instead, a yellow see-through body under its wireframe the way a collider preview is drawn, so the line can be tuned without a bake for every step.
 - The insert's spill light is a wide spot under the insert pointing up, cheaper than the point light above it that earlier inserts got and aimed; an insert that still has a point light offers to turn it round.
