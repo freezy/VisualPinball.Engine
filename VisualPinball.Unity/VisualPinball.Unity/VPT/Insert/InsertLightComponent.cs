@@ -297,6 +297,10 @@ namespace VisualPinball.Unity
 		// parent.
 		internal bool IsControlledByApi { get; private set; }
 		internal bool AreExtraBulbsControlledByApi { get; private set; }
+		// Whether the game set the colour: an RGB lamp's, which a lamp preset applied while it
+		// runs must leave alone.
+		internal bool IsColorControlledByApi { get; private set; }
+		internal bool AreExtraBulbColorsControlledByApi { get; private set; }
 
 		private void Awake() => RegisterWithPlayer();
 
@@ -321,6 +325,8 @@ namespace VisualPinball.Unity
 		{
 			IsControlledByApi = false;
 			AreExtraBulbsControlledByApi = false;
+			IsColorControlledByApi = false;
+			AreExtraBulbColorsControlledByApi = false;
 			_driven = false;
 			_status = LampStatus.Off;
 		}
@@ -360,6 +366,7 @@ namespace VisualPinball.Unity
 		internal void SetLampColor(Color value)
 		{
 			IsControlledByApi = true;
+			IsColorControlledByApi = true;
 			Color = new Color(value.r, value.g, value.b, Color.a);
 			Apply();
 		}
@@ -455,6 +462,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 			AreExtraBulbsControlledByApi = true;
+			AreExtraBulbColorsControlledByApi = true;
 			var extra = ExtraBulb(bulb);
 			extra.Color = new Color(value.r, value.g, value.b, extra.Color.a);
 			Apply();

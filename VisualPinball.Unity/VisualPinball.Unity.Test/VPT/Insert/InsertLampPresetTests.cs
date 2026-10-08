@@ -44,10 +44,9 @@ namespace VisualPinball.Unity.Test
 
 				var (inserts, lamps) = InsertLampPresets.ApplyToTable(preset, tableComponent);
 
-				Assert.That((inserts, lamps), Is.EqualTo((1, 1)));
-				Assert.That(InsertLampPresets.IsRgb(rgb), Is.True);
-				Assert.That(rgb.Lamp, Is.Empty, "an RGB lamp is the game's");
-				Assert.That(rgb.Color, Is.EqualTo(Color.white));
+				Assert.That((inserts, lamps), Is.EqualTo((2, 1)));
+				Assert.That(rgb.Lamp, Is.EqualTo("Test Lamp"), "an RGB LED is still a lamp of the kit");
+				Assert.That((rgb.FadeSpeedUp, rgb.FadeSpeedDown), Is.EqualTo((0.1f, 0.3f)));
 				Assert.That(insert.Lamp, Is.EqualTo("Test Lamp"));
 				Assert.That(insert.Color, Is.EqualTo(preset.Color));
 				Assert.That((lamp.FadeSpeedUp, lamp.FadeSpeedDown), Is.EqualTo((0.1f, 0.3f)), "a lamp takes the fades");
@@ -105,6 +104,38 @@ namespace VisualPinball.Unity.Test
 				InsertLampPresets.Apply(null, new[] { light });
 				Assert.That(light.Lamp, Is.Empty);
 				Assert.That(light.Color, Is.EqualTo(Color.white), "unfollowing keeps the bulb as it is");
+			} finally {
+				var filter = go.GetComponent<MeshFilter>();
+				if (filter != null && filter.sharedMesh != null) { Object.DestroyImmediate(filter.sharedMesh); }
+				Object.DestroyImmediate(go);
+				Object.DestroyImmediate(preset);
+			}
+		}
+
+		[Test]
+		public void ShouldKeepTheGamesColourWhileItRuns()
+		{
+			var preset = ScriptableObject.CreateInstance<InsertLampPreset>();
+			var go = new GameObject("Insert");
+			try {
+				preset.LampName = "Test Lamp";
+				preset.Color = new Color(1f, 0.7f, 0.4f);
+				preset.Output = 1.5f;
+				preset.FadeSpeedUp = 0.1f;
+				go.AddComponent<InsertComponent>();
+				var light = go.AddComponent<InsertLightComponent>();
+				light.SetBulbColor(0, Color.red);
+				light.SetBulbColor(1, Color.green);
+
+				InsertLampPresets.Apply(preset, new[] { light });
+
+				Assert.That(light.Color, Is.EqualTo(Color.red), "the game's colour stays");
+				Assert.That(light.ExtraBulbs[0].Color, Is.EqualTo(Color.green));
+				Assert.That((light.Output, light.FadeSpeedUp), Is.EqualTo((1.5f, 0.1f)), "the bulb's output and fades are the preset's");
+
+				light.ReleaseApiControl();
+				InsertLampPresets.Apply(preset, new[] { light });
+				Assert.That(light.Color, Is.EqualTo(preset.Color), "once the game lets go, the preset's colour applies");
 			} finally {
 				var filter = go.GetComponent<MeshFilter>();
 				if (filter != null && filter.sharedMesh != null) { Object.DestroyImmediate(filter.sharedMesh); }

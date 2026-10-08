@@ -196,11 +196,6 @@ namespace VisualPinball.Unity.Editor
 		private void DrawLampPreset()
 		{
 			var lights = targets.Cast<InsertLightComponent>().ToArray();
-			if (lights.All(InsertLampPresets.IsRgb)) {
-				EditorGUILayout.HelpBox("Mapped as RGB in Lamp Manager: the game drives the colour and the fading, so this is an RGB LED whatever the table's other lamps are.", MessageType.None);
-				Field(_output, "Output");
-				return;
-			}
 			var presets = InsertLampPresets.Find();
 			var names = presets.Select(preset => preset.LampName).Append("Custom").ToArray();
 			var first = Array.FindIndex(presets, preset => preset.LampName == lights[0].Lamp);
@@ -229,7 +224,7 @@ namespace VisualPinball.Unity.Editor
 						}
 					}
 					if (targets.Length == 1) {
-						var siblings = InsertLampPresets.Siblings(lights[0]).Where(light => !InsertLampPresets.IsRgb(light)).ToArray();
+						var siblings = InsertLampPresets.Siblings(lights[0]);
 						var others = siblings.Count(light => light.Lamp != followed.LampName || InsertLampPresets.Differs(light, followed));
 						using (new EditorGUI.DisabledScope(others == 0)) {
 							if (GUILayout.Button(new GUIContent(others > 0 ? $"Apply to All {siblings.Length} Lamps" : "All Lamps Have This Preset", "Puts this bulb under every insert of the table: a table is lit by one kind of lamp, until it gets an LED kit."))) {

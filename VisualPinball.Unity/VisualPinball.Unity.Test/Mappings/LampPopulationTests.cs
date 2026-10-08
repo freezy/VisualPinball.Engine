@@ -74,6 +74,58 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldUpdateTheTypeOfAnExistingRow()
+		{
+			var table = new TableBuilder()
+				.AddLight("some_light")
+				.Build();
+
+			var go = VpxImportEngine.ImportIntoScene(table, options: ConvertOptions.SkipNone);
+			var tableComponent = go.GetComponent<TableComponent>();
+
+			var gameEngineLamps = new[] {
+				new GamelogicEngineLamp("some_light") { Type = LampType.Rgb },
+				new GamelogicEngineLamp("fading_light") { Type = LampType.SingleFading, FadingSteps = 8 },
+			};
+
+			tableComponent.MappingConfig.Clear();
+			tableComponent.MappingConfig.AddLamp(new LampMapping { Id = "some_light", Type = LampType.SingleOnOff });
+			tableComponent.MappingConfig.AddLamp(new LampMapping { Id = "some_light", Type = LampType.SingleOnOff });
+			tableComponent.MappingConfig.AddLamp(new LampMapping { Id = "fading_light", Type = LampType.SingleOnOff });
+			tableComponent.MappingConfig.PopulateLamps(gameEngineLamps, tableComponent);
+
+			tableComponent.MappingConfig.Lamps.Should().HaveCount(3);
+			tableComponent.MappingConfig.Lamps.Where(l => l.Id == "some_light").Should().OnlyContain(l => l.Type == LampType.Rgb);
+			tableComponent.MappingConfig.Lamps.Single(l => l.Id == "fading_light").Type.Should().Be(LampType.SingleFading);
+			tableComponent.MappingConfig.Lamps.Single(l => l.Id == "fading_light").FadingSteps.Should().Be(8);
+		}
+
+		[Test]
+		public void ShouldKeepTheTypesOfALampAndAGiStringWithTheSameId()
+		{
+			var table = new TableBuilder()
+				.AddLight("some_light")
+				.Build();
+
+			var go = VpxImportEngine.ImportIntoScene(table, options: ConvertOptions.SkipNone);
+			var tableComponent = go.GetComponent<TableComponent>();
+
+			var gameEngineLamps = new[] {
+				new GamelogicEngineLamp("1") { Type = LampType.SingleOnOff, Source = LampSource.Lamp },
+				new GamelogicEngineLamp("1") { Type = LampType.SingleFading, FadingSteps = 8, Source = LampSource.GI },
+			};
+
+			tableComponent.MappingConfig.Clear();
+			tableComponent.MappingConfig.AddLamp(new LampMapping { Id = "1", Type = LampType.SingleOnOff, Source = LampSource.Lamp });
+			tableComponent.MappingConfig.AddLamp(new LampMapping { Id = "1", Type = LampType.SingleFading, FadingSteps = 8, Source = LampSource.GI });
+			tableComponent.MappingConfig.PopulateLamps(gameEngineLamps, tableComponent);
+
+			tableComponent.MappingConfig.Lamps.Should().HaveCount(2);
+			tableComponent.MappingConfig.Lamps.Single(l => l.Source == LampSource.Lamp).Type.Should().Be(LampType.SingleOnOff);
+			tableComponent.MappingConfig.Lamps.Single(l => l.Source == LampSource.GI).Type.Should().Be(LampType.SingleFading);
+		}
+
+		[Test]
 		public void ShouldMapALampWithTheSameNumericalId()
 		{
 			var table = new TableBuilder()

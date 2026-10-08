@@ -473,8 +473,16 @@ namespace VisualPinball.Unity
 			var sortedEngineLamps = (engineLamps ?? Array.Empty<GamelogicEngineLamp>())
 				.OrderBy(engineLamp => engineLamp.Id, StringComparer.Ordinal);
 			foreach (var engineLamp in sortedEngineLamps) {
-				var lampMapping = Lamps.FirstOrDefault(mappingsLampData => mappingsLampData.Id == engineLamp.Id && mappingsLampData.Channel == engineLamp.Channel && !mappingsLampData.IsCoil);
-				if (lampMapping != null) {
+				// A lamp and a GI string may share an id; the player keeps them apart by source, and so does this.
+				var lampMappings = Lamps.Where(mappingsLampData => mappingsLampData.Id == engineLamp.Id && mappingsLampData.Channel == engineLamp.Channel && mappingsLampData.Source == engineLamp.Source && !mappingsLampData.IsCoil).ToArray();
+				if (lampMappings.Length > 0) {
+					// The engine knows how it drives its lamps: rows made before it said so get its type.
+					foreach (var lampMapping in lampMappings) {
+						lampMapping.Type = engineLamp.Type;
+						if (engineLamp.Type == LampType.SingleFading) {
+							lampMapping.FadingSteps = engineLamp.FadingSteps;
+						}
+					}
 					continue;
 				}
 
