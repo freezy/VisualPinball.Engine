@@ -51,6 +51,29 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldNotAddALampRowForAFlasherCoil()
+		{
+			var table = new TableBuilder()
+				.AddLight("some_light")
+				.Build();
+
+			var go = VpxImportEngine.ImportIntoScene(table, options: ConvertOptions.SkipNone);
+			var tableComponent = go.GetComponent<TableComponent>();
+
+			var gameEngineLamps = new[] {
+				new GamelogicEngineLamp("some_light") { Description = "Some Light"}
+			};
+
+			tableComponent.MappingConfig.Clear();
+			tableComponent.MappingConfig.AddLamp(new LampMapping { Id = "some_flasher", IsCoil = true });
+			tableComponent.MappingConfig.PopulateLamps(gameEngineLamps, tableComponent);
+			tableComponent.MappingConfig.PopulateLamps(gameEngineLamps, tableComponent);
+
+			tableComponent.MappingConfig.Lamps.Should().HaveCount(2);
+			tableComponent.MappingConfig.Lamps.Where(l => l.Id == "some_flasher").Should().ContainSingle(l => l.IsCoil);
+		}
+
+		[Test]
 		public void ShouldMapALampWithTheSameNumericalId()
 		{
 			var table = new TableBuilder()

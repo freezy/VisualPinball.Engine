@@ -468,7 +468,11 @@ namespace VisualPinball.Unity
 		public void PopulateLamps(GamelogicEngineLamp[] engineLamps, TableComponent tableComponent)
 		{
 			var lamps = tableComponent.GetComponentsInChildren<ILampDeviceComponent>().OrderBy(LampTypePriority).ToArray();
-			foreach (var engineLamp in GetLamps(engineLamps)) {
+			// Only the engine's own lamps. Ids added manually already have a row, and a flasher coil's
+			// IsCoil row would otherwise come back as a lamp name and get a phantom lamp row.
+			var sortedEngineLamps = (engineLamps ?? Array.Empty<GamelogicEngineLamp>())
+				.OrderBy(engineLamp => engineLamp.Id, StringComparer.Ordinal);
+			foreach (var engineLamp in sortedEngineLamps) {
 				var lampMapping = Lamps.FirstOrDefault(mappingsLampData => mappingsLampData.Id == engineLamp.Id && mappingsLampData.Channel == engineLamp.Channel && !mappingsLampData.IsCoil);
 				if (lampMapping != null) {
 					continue;
