@@ -927,7 +927,7 @@ namespace VisualPinball.Unity.Editor
 			return _libraries;
 		}
 
-		private static void ForgetLibraries() => _libraries = null;
+		internal static void ForgetLibraries() => _libraries = null;
 
 		/// <summary>
 		/// Gives the insert a bake in the project: copies of the maps and bake
