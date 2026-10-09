@@ -49,6 +49,7 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		private static GameObject[] _prefabs;
+		private static AssetMaterialCombination _combination;
 		private static readonly List<Surface> Surfaces = new();
 		private static readonly List<PreviewPart> PreviewParts = new();
 		private static Matrix4x4[] _matrices;
@@ -89,7 +90,7 @@ namespace VisualPinball.Unity.Editor
 				return DragAndDropVisualMode.None;
 			}
 
-			if (_prefabs == null || !_prefabs.SequenceEqual(objects)) {
+			if (_prefabs == null || !_prefabs.SequenceEqual(objects) || _combination != AssetBrowser.DraggedMaterialCombination) {
 				Begin(objects.Cast<GameObject>().ToArray());
 			}
 			if (Surfaces.Count == 0) {
@@ -131,6 +132,7 @@ namespace VisualPinball.Unity.Editor
 		{
 			Clear();
 			_prefabs = prefabs;
+			_combination = AssetBrowser.DraggedMaterialCombination;
 			_positions = new Vector3[prefabs.Length];
 			_matrices = new Matrix4x4[prefabs.Length];
 			_offsets = new Vector3[prefabs.Length];
@@ -163,14 +165,16 @@ namespace VisualPinball.Unity.Editor
 			for (var i = 0; i < prefabs.Length; i++) {
 				var prefab = prefabs[i];
 				var instance = prefab;
-				if (prefab.GetComponentsInChildren<MeshFilter>().Any(filter => !filter.sharedMesh) || prefab.GetComponentInChildren<SkinnedMeshRenderer>()) {
-					// Missing generated geometry and skinned poses need an instance. Ordinary prefabs use their stored meshes directly.
+				var combination = _combination?.Asset.Object == prefab ? _combination : null;
+				if (combination != null || prefab.GetComponentsInChildren<MeshFilter>().Any(filter => !filter.sharedMesh) || prefab.GetComponentInChildren<SkinnedMeshRenderer>()) {
+					// Variations may enable children; generated geometry and skinned poses also need an isolated instance.
 					if (!_previewScene.IsValid()) {
 						_previewScene = EditorSceneManager.NewPreviewScene();
 					}
 					instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, _previewScene);
 					instance.hideFlags = HideFlags.HideAndDontSave;
 				}
+				combination?.ApplyMaterial(instance);
 				var inverseRoot = instance.transform.worldToLocalMatrix;
 				var bounds = new Bounds();
 				var hasBounds = false;
@@ -415,7 +419,9 @@ namespace VisualPinball.Unity.Editor
 						after = go.transform;
 					}
 					PrefabUtility.RecordPrefabInstancePropertyModifications(go.transform);
-					if (DragAndDrop.GetGenericData("assets") is HashSet<AssetResult> assets && assets.Any(result => result.Asset.Object == prefab && result.Asset.UnpackPrefab)) {
+					var combination = _combination?.Asset.Object == prefab ? _combination : null;
+					combination?.ApplyMaterial(go);
+					if (combination?.Asset.UnpackPrefab == true || DragAndDrop.GetGenericData("assets") is HashSet<AssetResult> assets && assets.Any(result => result.Asset.Object == prefab && result.Asset.UnpackPrefab)) {
 						PrefabUtility.UnpackPrefabInstance(go, PrefabUnpackMode.OutermostRoot, InteractionMode.AutomatedAction);
 					}
 					placed.Add(go);
@@ -499,6 +505,7 @@ namespace VisualPinball.Unity.Editor
 			}
 			Surfaces.Clear();
 			_prefabs = null;
+			_combination = null;
 			_surface = null;
 			_valid = false;
 			if (_view) {

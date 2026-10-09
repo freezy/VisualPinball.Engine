@@ -92,7 +92,7 @@ namespace VisualPinball.Unity.Editor
 				_objectPicker.value = null;
 				return;
 			}
-			var selectedGo = _objects.FirstOrDefault(go => go.name == obj.name);
+			var selectedGo = _objects.FirstOrDefault(go => go != null && go.name == obj.name);
 			if (selectedGo != null) {
 				_dropdown.SetValueWithoutNotify(obj.name);
 				_objectPicker.value = selectedGo;
@@ -105,14 +105,14 @@ namespace VisualPinball.Unity.Editor
 		/// </summary>
 		public void SetValue(string objName)
 		{
-			var selectedGo = string.IsNullOrEmpty(objName) ? null : _objects.FirstOrDefault(go => go.name == objName);
+			var selectedGo = string.IsNullOrEmpty(objName) ? null : _objects.FirstOrDefault(go => go != null && go.name == objName);
 			_dropdown.SetValueWithoutNotify(selectedGo != null ? selectedGo.name : null);
 			_objectPicker.value = selectedGo;
 		}
 
 		private void OnDropdownValueChanged(ChangeEvent<string> evt)
 		{
-			var selectedGo = _objects.FirstOrDefault(go => go.name == evt.newValue);
+			var selectedGo = _objects.FirstOrDefault(go => go != null && go.name == evt.newValue);
 			if (selectedGo != null) {
 				_objectPicker.value = selectedGo;
 				_onValueChanged?.Invoke(selectedGo);

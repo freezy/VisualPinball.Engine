@@ -77,6 +77,8 @@ You can also toggle entire libraries by toggling the checkbox in the library lis
 
 ## Placing Assets on the Playfield
 
+Drag a tile from **Material Variations** onto the playfield to preview and place the asset with that tile's material combination. Click a tile to select it for the **Add** button as before. Dragged variations retain prefab links and support Undo; assets configured with **Unpack Prefab** are unpacked on placement.
+
 Drag a prefab from the Asset Browser or Project window into the Scene View to preview it under the cursor on an active `PlayfieldComponent`. Release to place a linked prefab under that playfield; Undo removes the whole drop. Move outside the playfield or press Escape to cancel. When no playfield is present, Unity's standard placement applies.
 
 Placement uses the top plane and footprint of the playfield mesh, including across cutouts, without requiring a collider. Prefabs keep their authored rotation, scale, and mounting height relative to the playfield. Their origin should therefore sit at the mounting point, rather than at the bottom of any below-playfield geometry. Multiple selected prefabs are previewed side by side. For a standalone mesh such as a LookDev background, add `PlayfieldComponent` to the mesh object.

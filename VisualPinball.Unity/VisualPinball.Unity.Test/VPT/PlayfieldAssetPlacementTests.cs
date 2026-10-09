@@ -16,6 +16,8 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEditor;
@@ -133,6 +135,52 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void VariationPreviewUsesSelectedMaterialWithoutChangingThePrefab()
+		{
+			WithVariation((prefab, playfield, combination, material) => {
+				var original = prefab.GetComponent<MeshRenderer>().sharedMaterial;
+				Invoke("Begin", new object[] { new[] { prefab } });
+				var parts = (IList)Field("PreviewParts");
+				Assert.That(parts.Count, Is.EqualTo(1));
+				var materials = (Material[])parts[0].GetType().GetField("Materials").GetValue(parts[0]);
+				Assert.That(materials[0], Is.SameAs(material));
+				Assert.That(prefab.GetComponent<MeshRenderer>().sharedMaterial, Is.SameAs(original));
+				Assert.That(((Scene)Field("_previewScene")).IsValid(), Is.True);
+				Invoke("Clear");
+				Assert.That(((Scene)Field("_previewScene")).IsValid(), Is.False);
+				Assert.That(material != null, Is.True, "Cancel must retain the variation's shared material.");
+			});
+		}
+
+		[TestCase(false)]
+		[TestCase(true)]
+		public void VariationDropPreservesMaterialThroughUndoRedoAndHonorsUnpack(bool unpack)
+		{
+			WithVariation((prefab, playfield, combination, material) => {
+				combination.Asset.UnpackPrefab = unpack;
+				Invoke("Begin", new object[] { new[] { prefab } });
+				var hitArgs = new object[] { new Ray(playfield.transform.position + Vector3.up, Vector3.down), null, null };
+				Assert.That(Invoke("FindSurface", hitArgs), Is.True);
+				SetField("_surface", hitArgs[1]);
+				((Vector3[])Field("_positions"))[0] = Vector3.up * prefab.transform.localPosition.y;
+				Invoke("Place");
+				var placed = Selection.activeGameObject;
+				Assert.That(placed.transform.parent, Is.SameAs(playfield.transform));
+				Assert.That(placed.GetComponent<MeshRenderer>().sharedMaterial, Is.SameAs(material));
+				Assert.That(PrefabUtility.IsPartOfPrefabInstance(placed), Is.EqualTo(!unpack));
+				Assert.That(DragAndDrop.GetGenericData("VPE.MaterialCombination"), Is.Null);
+				Undo.FlushUndoRecordObjects();
+				Undo.PerformUndo();
+				Assert.That(placed == null, Is.True);
+				Undo.PerformRedo();
+				placed = playfield.transform.GetChild(0).gameObject;
+				Assert.That(placed.GetComponent<MeshRenderer>().sharedMaterial, Is.SameAs(material));
+				Assert.That(PrefabUtility.IsPartOfPrefabInstance(placed), Is.EqualTo(!unpack));
+				Undo.PerformUndo();
+			});
+		}
+
+		[Test]
 		public void DropGoesIntoTheSelectedObjectWhereThePreviewShowedIt()
 		{
 			WithPrefab((prefab, playfield) => {
@@ -202,6 +250,35 @@ namespace VisualPinball.Unity.Test
 			return (Selection.activeGameObject, playfield.transform.TransformPoint(position));
 		}
 
+		private static void WithVariation(Action<GameObject, PlayfieldComponent, AssetMaterialCombination, Material> test)
+		{
+			WithPrefab((prefab, playfield) => {
+				var asset = ScriptableObject.CreateInstance<Asset>();
+				var material = new Material(prefab.GetComponent<MeshRenderer>().sharedMaterial);
+				var references = DragAndDrop.objectReferences;
+				try {
+					asset.Object = prefab;
+					asset.MaterialVariations = new List<AssetMaterialVariation> {
+						new() {
+							Name = "Body", Target = new AssetMaterialTarget { Object = prefab, Slot = 0 },
+							Overrides = new List<AssetMaterialOverride> { new() { Name = "Amber", Material = material } }
+						}
+					};
+					var combination = asset.GetCombinations(true, false).Single(c => !c.IsOriginal);
+					typeof(AssetBrowser).GetMethod("AttachMaterialCombination", BindingFlags.Static | BindingFlags.NonPublic)
+						.Invoke(null, new object[] { combination });
+					Assert.That(DragAndDrop.objectReferences, Is.EqualTo(new Object[] { prefab }));
+					test(prefab, playfield, combination, material);
+				} finally {
+					Invoke("Clear");
+					AssetBrowser.StopDraggingAssets();
+					DragAndDrop.objectReferences = references;
+					Object.DestroyImmediate(material);
+					Object.DestroyImmediate(asset);
+				}
+			}, false);
+		}
+
 		private static void WithPrefab(Action<GameObject, PlayfieldComponent> test, bool procedural = true)
 		{
 			var selection = Selection.objects;
@@ -217,7 +294,9 @@ namespace VisualPinball.Unity.Test
 				if (procedural) { source.AddComponent<InsertComponent>(); }
 				source.SetActive(true);
 				if (procedural) { source.GetComponent<MeshFilter>().sharedMesh = null; }
-				source.GetComponent<MeshRenderer>().sharedMaterials = Array.Empty<Material>();
+				source.GetComponent<MeshRenderer>().sharedMaterials = procedural
+					? Array.Empty<Material>()
+					: new[] { AssetDatabase.GetBuiltinExtraResource<Material>("Default-Material.mat") };
 				source.transform.localPosition = new Vector3(0, -0.0001f, 0);
 				source.transform.localRotation = Quaternion.Euler(0, 30, 0);
 				source.transform.localScale = Vector3.one * 0.8f;

@@ -19,6 +19,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
+using UnityEngine;
 using UnityEngine.UIElements;
 using Image = UnityEngine.UIElements.Image;
 
@@ -34,6 +35,8 @@ namespace VisualPinball.Unity.Editor
 		public readonly AssetMaterialCombination Combination;
 
 		private readonly ToolbarToggle _toggle;
+		private bool _dragReady;
+		private Vector3 _dragStart;
 
 		public AssetMaterialCombinationElement(AssetMaterialCombination combination, Asset asset, string name)
 		{
@@ -55,6 +58,28 @@ namespace VisualPinball.Unity.Editor
 				ui.Q<Image>("thumbnail").image = tex;
 			}
 			Add(ui);
+			// Captured pointer events go directly to the toggle, bypassing its ancestors.
+			_toggle.RegisterCallback<PointerDownEvent>(evt => {
+				_dragReady = evt.button == 0 && evt.isPrimary && asset.Object is GameObject;
+				_dragStart = evt.position;
+			}, TrickleDown.TrickleDown);
+			_toggle.RegisterCallback<PointerMoveEvent>(OnPointerMove, TrickleDown.TrickleDown);
+			_toggle.RegisterCallback<PointerUpEvent>(_ => _dragReady = false, TrickleDown.TrickleDown);
+			_toggle.RegisterCallback<PointerCaptureOutEvent>(_ => _dragReady = false);
+			RegisterCallback<DetachFromPanelEvent>(_ => _dragReady = false);
+		}
+
+		private void OnPointerMove(PointerMoveEvent evt)
+		{
+			if (!_dragReady || (evt.pressedButtons & 1) == 0 || (evt.position - _dragStart).sqrMagnitude < 36f) {
+				return;
+			}
+			_dragReady = false;
+			DragAndDrop.PrepareStartDrag();
+			AssetBrowser.AttachMaterialCombination(Combination);
+			_toggle.ReleasePointer(evt.pointerId);
+			DragAndDrop.StartDrag($"{Combination.Asset.Object.name} ({Name})");
+			evt.StopImmediatePropagation();
 		}
 	}
 }

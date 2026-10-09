@@ -550,8 +550,27 @@ namespace VisualPinball.Unity.Editor
 
 		#region Drag and Drop
 
-		private static void StartDraggingAssets(HashSet<AssetResult> data) => DragAndDrop.SetGenericData("assets", data);
-		public static void StopDraggingAssets() => DragAndDrop.SetGenericData("assets", null);
+		private static void StartDraggingAssets(HashSet<AssetResult> data)
+		{
+			StopDraggingAssets();
+			DragAndDrop.SetGenericData("assets", data);
+		}
+		private const string MaterialCombinationDragKey = "VPE.MaterialCombination";
+		internal static AssetMaterialCombination DraggedMaterialCombination => DragAndDrop.GetGenericData(MaterialCombinationDragKey) as AssetMaterialCombination;
+
+		internal static void AttachMaterialCombination(AssetMaterialCombination combination)
+		{
+			StopDraggingAssets();
+			DragAndDrop.objectReferences = new[] { combination.Asset.Object };
+			DragAndDrop.paths = Array.Empty<string>();
+			DragAndDrop.SetGenericData(MaterialCombinationDragKey, combination);
+		}
+
+		public static void StopDraggingAssets()
+		{
+			DragAndDrop.SetGenericData("assets", null);
+			DragAndDrop.SetGenericData(MaterialCombinationDragKey, null);
+		}
 
 		public static bool IsDraggingExistingAssets => DragAndDrop.GetGenericData("assets") is HashSet<AssetResult>;
 
