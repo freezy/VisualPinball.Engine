@@ -141,6 +141,10 @@ namespace VisualPinball.Unity
 		private float _flashStep = -8f;
 
 		[SerializeField]
+		[Tooltip("Mirrors the flash left to right, so the bolt runs the other way.")]
+		private bool _flashMirror;
+
+		[SerializeField]
 		[Tooltip("The fillet shared by the four corners of the flash's flat ends.")]
 		private InsertCornerSettings _flashTipCorner = new(5.2f, 4);
 
@@ -806,7 +810,7 @@ namespace VisualPinball.Unity
 				InsertShape.Circle => InsertShapes.CircleCorners(_diameter, _circleVertices),
 				InsertShape.Banana => InsertShapes.BananaCorners(_bananaDiameter, _bananaThickness, _bananaAngle, _bananaSegments, _bananaEndSegments, out arcCenter),
 				InsertShape.Diamond => InsertShapes.DiamondCorners(_width, _height, _diamondSide, _diamondTip, _diamondShear, warnings),
-				InsertShape.Flash => InsertShapes.FlashCorners(_flashWidth, _flashHeight, _flashTip, _flashNotch, _flashStep, _flashTipCorner, _flashSpikeCorner, _flashNotchCorner, warnings),
+				InsertShape.Flash => InsertShapes.FlashCorners(_flashWidth, _flashHeight, _flashTip, _flashNotch, _flashStep, _flashTipCorner, _flashSpikeCorner, _flashNotchCorner, warnings, _flashMirror),
 				InsertShape.Bullet => InsertShapes.BulletCorners(_width, _height, _bulletTip, _bulletShoulder, _bulletShoulderCorner, _bulletBaseCorner, warnings),
 				InsertShape.Arrow => InsertShapes.ArrowCorners(_width, _height, _arrowTip, _arrowNotchDepth, _arrowNotchWidth, _arrowFootAngle, _arrowNotchCorner, _arrowInnerCorner, _arrowFootCorner, warnings),
 				InsertShape.Custom => InsertCustomShape.Corners(_customMesh, _customCorner),

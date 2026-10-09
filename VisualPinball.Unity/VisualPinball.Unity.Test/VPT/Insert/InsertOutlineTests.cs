@@ -510,6 +510,36 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldMirrorTheFlashLeftToRight()
+		{
+			// Mirrored, every point of the outline is the original's on the other
+			// side, and the outline still winds the same way, so it's no hole.
+			InsertCorner[] Corners(bool mirror) => InsertShapes.FlashCorners(50f, 125f, 10f, 16f, -8f,
+				new InsertCornerSettings(5.2f, 4), new InsertCornerSettings(5f, 4), new InsertCornerSettings(3f, 3), new List<string>(), mirror);
+			var plain = InsertOutlineBuilder.Build(Corners(false));
+			var mirrored = InsertOutlineBuilder.Build(Corners(true));
+			Assert.That(mirrored.Points, Has.Count.EqualTo(plain.Points.Count));
+			foreach (var point in mirrored.Points) {
+				var nearest = plain.Points.Min(other => math.distance(other.Position, new float2(-point.Position.x, point.Position.y)));
+				Assert.That(nearest, Is.LessThan(Tolerance));
+			}
+			static float Area(InsertOutline outline)
+			{
+				var area = 0f;
+				for (var i = 0; i < outline.Points.Count; i++) {
+					var a = outline.Points[i].Position;
+					var b = outline.Points[(i + 1) % outline.Points.Count].Position;
+					area += a.x * b.y - b.x * a.y;
+				}
+				return area * 0.5f;
+			}
+			Assert.That(Area(mirrored), Is.EqualTo(Area(plain)).Within(0.01f), "the same size, winding the same way");
+			// A corner is named after the side it's on.
+			Assert.That(Corners(true).Single(c => c.Tag == "SpikeLeft").Position.x, Is.LessThan(0f));
+			Assert.That(Corners(true).Single(c => c.Tag == "SpikeRight").Position.x, Is.GreaterThan(0f));
+		}
+
+		[Test]
 		public void ShouldStopInsettingWhereANotchWouldCrossTheOtherSide()
 		{
 			// A flash whose notches leave only six units between them at the

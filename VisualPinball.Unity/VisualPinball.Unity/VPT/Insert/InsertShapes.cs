@@ -291,8 +291,9 @@ namespace VisualPinball.Unity
 		/// pulls them in, so the sharp width is fitted to the box the way a
 		/// diamond's is.
 		/// </remarks>
+		/// <param name="mirror">Whether the flash is mirrored left to right, so the bolt runs the other way.</param>
 		public static InsertCorner[] FlashCorners(float width, float height, float tipWidth, float notchDepth, float step,
-			InsertCornerSettings tipCorner, InsertCornerSettings spikeCorner, InsertCornerSettings notchCorner, List<string> warnings)
+			InsertCornerSettings tipCorner, InsertCornerSettings spikeCorner, InsertCornerSettings notchCorner, List<string> warnings, bool mirror = false)
 		{
 			if (width <= Epsilon || height <= Epsilon) {
 				throw new InsertOutlineException("Width and height must be positive.");
@@ -317,7 +318,7 @@ namespace VisualPinball.Unity
 					throw new InsertOutlineException("The steps overlap too far for the notches: raise the step height, or make the notches shallower or the tips wider.");
 				}
 			}
-			return FitBox(width, height, "flash", warnings, (a, b, scale, _) => new[] {
+			var corners = FitBox(width, height, "flash", warnings, (a, b, scale, _) => new[] {
 				new InsertCorner(new float2(a, b), tipCorner.Radius * scale, tipCorner.Segments, "TopRight"),
 				new InsertCorner(new float2(a - tipWidth, b), tipCorner.Radius * scale, tipCorner.Segments, "TopLeft"),
 				new InsertCorner(new float2(-a, step), spikeCorner.Radius * scale, spikeCorner.Segments, "SpikeLeft"),
@@ -327,6 +328,26 @@ namespace VisualPinball.Unity
 				new InsertCorner(new float2(a, -step), spikeCorner.Radius * scale, spikeCorner.Segments, "SpikeRight"),
 				new InsertCorner(new float2(a - notchDepth, -step), notchCorner.Radius * scale, notchCorner.Segments, "NotchRight"),
 			});
+			return mirror ? Mirror(corners) : corners;
+		}
+
+		/// <summary>
+		/// The outline mirrored left to right: every corner on the other side,
+		/// in reverse order so the outline still winds the same way, and its
+		/// tag saying the side it's on now. The edge leaving a corner is then
+		/// the one that arrived at it, whose chord flag the corner before had.
+		/// </summary>
+		private static InsertCorner[] Mirror(InsertCorner[] corners)
+		{
+			var n = corners.Length;
+			var mirrored = new InsertCorner[n];
+			for (var i = 0; i < n; i++) {
+				var k = n - 1 - i;
+				var corner = corners[k];
+				var tag = corner.Tag?.Replace("Left", "\0").Replace("Right", "Left").Replace("\0", "Right");
+				mirrored[i] = new InsertCorner(new float2(-corner.Position.x, corner.Position.y), corner.Radius, corner.Segments, tag, corners[(k + n - 1) % n].Chord);
+			}
+			return mirrored;
 		}
 
 		/// <summary>

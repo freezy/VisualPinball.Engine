@@ -48,6 +48,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _flashTip;
 		private SerializedProperty _flashNotch;
 		private SerializedProperty _flashStep;
+		private SerializedProperty _flashMirror;
 		private SerializedProperty _flashTipCorner;
 		private SerializedProperty _flashSpikeCorner;
 		private SerializedProperty _flashNotchCorner;
@@ -147,6 +148,7 @@ namespace VisualPinball.Unity.Editor
 			_flashTip = serializedObject.FindProperty("_flashTip");
 			_flashNotch = serializedObject.FindProperty("_flashNotch");
 			_flashStep = serializedObject.FindProperty("_flashStep");
+			_flashMirror = serializedObject.FindProperty("_flashMirror");
 			_flashTipCorner = serializedObject.FindProperty("_flashTipCorner");
 			_flashSpikeCorner = serializedObject.FindProperty("_flashSpikeCorner");
 			_flashNotchCorner = serializedObject.FindProperty("_flashNotchCorner");
@@ -397,6 +399,7 @@ namespace VisualPinball.Unity.Editor
 					Field(_flashTip, "Tip Width");
 					Field(_flashNotch, "Notch Depth");
 					Field(_flashStep, "Step Height");
+					Field(_flashMirror, "Mirror");
 					CornerField(_flashTipCorner, "Tip Corners");
 					CornerField(_flashSpikeCorner, "Spike Corners");
 					CornerField(_flashNotchCorner, "Notch Corners");
