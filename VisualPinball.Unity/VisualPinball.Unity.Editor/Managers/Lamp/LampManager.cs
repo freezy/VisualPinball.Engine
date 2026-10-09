@@ -339,6 +339,7 @@ namespace VisualPinball.Unity.Editor
 				RecordUndo(DataTypeName + " Data Change");
 
 				lampListData.Update();
+				RefreshSearch();
 			});
 		}
 

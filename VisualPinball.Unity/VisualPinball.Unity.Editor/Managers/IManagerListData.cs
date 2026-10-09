@@ -20,4 +20,9 @@ namespace VisualPinball.Unity.Editor
 	{
 		string Name { get; }
 	}
+
+	public interface ISearchableManagerListData : IManagerListData
+	{
+		string Description { get; }
+	}
 }

@@ -95,6 +95,28 @@ namespace VisualPinball.Unity.Editor
 				_data.AddRange(data);
 			}
 			Reload();
+			if (hasSearch) {
+				RemoveHiddenSelection();
+			}
+		}
+
+		public void SetSearch(string query)
+		{
+			searchString = query ?? string.Empty;
+			RemoveHiddenSelection();
+		}
+
+		/// <summary>Filters the rows again, after their data changed.</summary>
+		public void RefreshSearch()
+		{
+			Reload();
+			RemoveHiddenSelection();
+		}
+
+		private void RemoveHiddenSelection()
+		{
+			var visibleIds = new HashSet<int>(GetRows().Select(row => row.id));
+			SetSelection(GetSelection().Where(visibleIds.Contains).ToList(), TreeViewSelectionOptions.FireSelectionChanged);
 		}
 
 		public void SelectItemWithName(string name)
@@ -117,8 +139,12 @@ namespace VisualPinball.Unity.Editor
 		protected override IList<UnityTreeViewItem> BuildRows(UnityTreeViewItem root)
 		{
 			var items = new List<UnityTreeViewItem>();
+			var query = searchString?.Trim();
 
 			for (int i = 0; i < _data.Count; i++) {
+				if (!string.IsNullOrEmpty(query) && !MatchesSearch(_data[i], query)) {
+					continue;
+				}
 				items.Add(new RowData(i, _data[i]));
 			}
 
@@ -166,6 +192,12 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			return items;
+		}
+
+		private static bool MatchesSearch(T data, string query)
+		{
+			return data.Name?.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0
+				|| data is ISearchableManagerListData searchable && searchable.Description?.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0;
 		}
 
 		// not supporting multi select for now

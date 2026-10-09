@@ -113,6 +113,7 @@ namespace VisualPinball.Unity.Editor
 				RecordUndo(DataTypeName + " Data Change");
 
 				switchListData.Update();
+				RefreshSearch();
 			});
 		}
 

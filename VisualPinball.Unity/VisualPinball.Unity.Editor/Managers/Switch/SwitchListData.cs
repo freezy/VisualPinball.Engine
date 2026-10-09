@@ -19,7 +19,7 @@ using VisualPinball.Engine.Game.Engines;
 
 namespace VisualPinball.Unity.Editor
 {
-	public class SwitchListData : IManagerListData, IDeviceListData<GamelogicEngineSwitch>
+	public class SwitchListData : ISearchableManagerListData, IDeviceListData<GamelogicEngineSwitch>
 	{
 		[ManagerListColumn(Order = 0, HeaderName = "ID", Width = 150)]
 		public string Name => Id;

@@ -20,6 +20,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
+using Unity.Mathematics;
 using UnityEngine;
 using Color = VisualPinball.Engine.Math.Color;
 using Object = UnityEngine.Object;
@@ -79,6 +80,12 @@ namespace VisualPinball.Unity.Editor
 		private bool _isImplMoveData;
 		private bool _isImplRenameExistingItem;
 		private Vector2 _scrollPos = Vector2.zero;
+		[SerializeField] private string _searchText = string.Empty;
+		private SearchField _searchField;
+		private Vector2 _buttonBarScroll;
+		private Rect _buttonBarRect;
+		private float _buttonBarContentWidth;
+		private bool _searchStale;
 
 		public void Reload()
 		{
@@ -107,6 +114,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			SetTable(TableSelector.Instance.SelectedTable);
+			_searchField = new SearchField();
 		}
 
 		protected virtual void OnGUI()
@@ -119,6 +127,14 @@ namespace VisualPinball.Unity.Editor
 
 			if (!SetupCompleted()) {
 				return;
+			}
+
+			// Outside the rows' drawing, which an edit in a row happens in.
+			if (_searchStale) {
+				_searchStale = false;
+				if (!string.IsNullOrEmpty(_searchText)) {
+					_listView.RefreshSearch();
+				}
 			}
 
 			if (!string.IsNullOrEmpty(_forceSelectItemWithName)) {
@@ -135,7 +151,27 @@ namespace VisualPinball.Unity.Editor
 				Add();
 			}
 
-			EditorGUILayout.BeginHorizontal();
+			var maxScroll = math.max(0f, _buttonBarContentWidth - _buttonBarRect.width);
+			_buttonBarScroll.x = math.clamp(_buttonBarScroll.x, 0f, maxScroll);
+			_buttonBarScroll.y = 0f;
+			var evt = Event.current;
+			if (evt.type == EventType.ScrollWheel && _buttonBarRect.Contains(evt.mousePosition) && maxScroll > 0f) {
+				var delta = math.abs(evt.delta.x) > math.abs(evt.delta.y) ? evt.delta.x : evt.delta.y;
+				_buttonBarScroll.x = math.clamp(_buttonBarScroll.x + delta * 20f, 0f, maxScroll);
+				evt.Use();
+				Repaint();
+			}
+			_buttonBarScroll = GUILayout.BeginScrollView(_buttonBarScroll, false, false, GUIStyle.none, GUIStyle.none,
+				GUILayout.Height(EditorGUIUtility.singleLineHeight + 6f));
+			var buttonBar = EditorGUILayout.BeginHorizontal(GUILayout.MinWidth(math.max(0f, position.width - 4f)));
+			if (typeof(ISearchableManagerListData).IsAssignableFrom(typeof(T))) {
+				var query = _searchField.OnGUI(_searchText, GUILayout.Width(160f / 3f));
+				if (query != _searchText) {
+					_searchText = query;
+					_listView?.SetSearch(_searchText);
+				}
+			}
+
 			EditorGUI.BeginDisabledGroup(!IsTableSelected);
 			if (_isImplAddNewData && GUILayout.Button("Add", GUILayout.ExpandWidth(false))) {
 				Add();
@@ -160,6 +196,11 @@ namespace VisualPinball.Unity.Editor
 			OnButtonBarGUI();
 			EditorGUI.EndDisabledGroup();
 			EditorGUILayout.EndHorizontal();
+			GUILayout.EndScrollView();
+			if (Event.current.type == EventType.Repaint) {
+				_buttonBarContentWidth = buttonBar.width;
+				_buttonBarRect = GUILayoutUtility.GetLastRect();
+			}
 
 			if (_isImplMoveData && _selectedItem != null) {
 				EditorGUILayout.BeginHorizontal();
@@ -354,6 +395,16 @@ namespace VisualPinball.Unity.Editor
 
 		#endregion
 
+		/// <summary>
+		/// After an edit in a row: its ID or description may not match the
+		/// search any more, so the rows are filtered again on the next redraw.
+		/// </summary>
+		protected void RefreshSearch()
+		{
+			_searchStale = true;
+			Repaint();
+		}
+
 		protected void FinalizeChange<TField>(string label, ref TField field, TField val)
 		{
 			string undoName = "Edit " + DataTypeName + ": " + label;
@@ -417,6 +468,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			_listView.RowHeight = _rowHeight;
+			_listView.SetSearch(_searchText);
 		}
 
 		private bool IsNameInUse(string name, T ignore = null)

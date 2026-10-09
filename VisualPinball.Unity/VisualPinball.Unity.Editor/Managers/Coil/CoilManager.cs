@@ -109,6 +109,7 @@ namespace VisualPinball.Unity.Editor
 			_listViewItemRenderer.Render(TableComponent, data, cellRect, column, coilListData => {
 				RecordUndo(DataTypeName + " Data Change");
 				coilListData.Update();
+				RefreshSearch();
 			});
 		}
 
