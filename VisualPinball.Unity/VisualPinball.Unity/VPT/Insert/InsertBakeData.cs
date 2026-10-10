@@ -145,29 +145,39 @@ namespace VisualPinball.Unity
 				_legacyTangents = null;
 				return;
 			}
-			if (_cornerCount <= 0 || _cornerIndices == null || _cornerData == null || _cornerIndices.Length % _cornerCount != 0) {
-				Uvs = null;
-				Tangents = null;
+			Uvs = null;
+			Tangents = null;
+			// A damaged or half merged bake reads as no bake, which leaves the generated mesh as it is.
+			if (_cornerCount <= 0 || _cornerIndices == null || _cornerData == null || _cornerData.Length % 8 != 0) {
 				return;
 			}
 			var width = _cornerIndices.Length / _cornerCount;
-			Uvs = new Vector2[_cornerCount];
-			Tangents = new Vector4[_cornerCount];
+			if (width != 2 && width != 4 || _cornerIndices.Length != _cornerCount * width) {
+				return;
+			}
+			var records = _cornerData.Length / 8;
+			var uvs = new Vector2[_cornerCount];
+			var tangents = new Vector4[_cornerCount];
 			for (var corner = 0; corner < _cornerCount; corner++) {
-				var index = 0;
+				var index = 0u;
 				for (var i = 0; i < width; i++) {
-					index |= _cornerIndices[corner * width + i] << (i * 8);
+					index |= (uint)_cornerIndices[corner * width + i] << (i * 8);
 				}
-				var at = index * 8;
-				Uvs[corner] = new Vector2(
+				if (index >= records) {
+					return;
+				}
+				var at = (int)index * 8;
+				uvs[corner] = new Vector2(
 					(_cornerData[at] | _cornerData[at + 1] << 8) / UvScale,
 					(_cornerData[at + 2] | _cornerData[at + 3] << 8) / UvScale);
-				Tangents[corner] = new Vector4(
+				tangents[corner] = new Vector4(
 					(sbyte)_cornerData[at + 4] / 127f,
 					(sbyte)_cornerData[at + 5] / 127f,
 					(sbyte)_cornerData[at + 6] / 127f,
 					(sbyte)_cornerData[at + 7] / 127f);
 			}
+			Uvs = uvs;
+			Tangents = tangents;
 		}
 
 		// A power of two, so that halves and quarters stay exact.
