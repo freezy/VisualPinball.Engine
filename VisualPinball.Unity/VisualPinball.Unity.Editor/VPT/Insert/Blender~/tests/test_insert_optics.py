@@ -11,9 +11,13 @@ from test_bake_insert import bake, load_png, texels
 import numpy as np
 
 
+def srgb_decode(values):
+	return np.where(values <= 0.04045, values / 12.92, np.power((values + 0.055) / 1.055, 2.4))
+
+
 def check_optics(request, folder, result):
 	optical = load_png(folder / 'optical-normal.png')
-	response = (load_png(folder / 'optical-response.png') + 1) * 0.5
+	response = srgb_decode((load_png(folder / 'optical-response.png') + 1) * 0.5)
 	normal_map = load_png(folder / 'normal.png')
 	assert np.isfinite(optical).all() and np.isfinite(response).all()
 	assert response.min() >= 0 and response.max() <= 1

@@ -523,8 +523,9 @@ namespace VisualPinball.Unity.Editor
 			}
 			data.NormalMap = texture;
 			data.OpticalStarburst = job.OpticalStarburst;
-			data.OpticalNormalMap = ImportOptics(job, folder, name, "optical-normal.png", "Optical Normals", data.OpticalNormalMap, job.OpticalSize);
-			data.OpticalResponseMap = ImportOptics(job, folder, name, "optical-response.png", "Optical Response", data.OpticalResponseMap, job.ResponseSize);
+			data.OpticalNormalMap = ImportOptics(job, folder, name, "optical-normal.png", "Optical Normals", data.OpticalNormalMap, job.OpticalSize, false);
+			// The response is written with the sRGB curve, which the importer takes off again.
+			data.OpticalResponseMap = ImportOptics(job, folder, name, "optical-response.png", "Optical Response", data.OpticalResponseMap, job.ResponseSize, true);
 			if (result.OpticalLamp?.Length == 4) {
 				data.OpticalLamp = new Vector4(result.OpticalLamp[0], result.OpticalLamp[1], result.OpticalLamp[2], result.OpticalLamp[3]);
 			}
@@ -606,7 +607,7 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private static Texture2D ImportOptics(Job job, string folder, string name, string source, string suffix, Texture2D existing, int size)
+		private static Texture2D ImportOptics(Job job, string folder, string name, string source, string suffix, Texture2D existing, int size, bool srgb)
 		{
 			var sourcePath = Path.Combine(job.Folder, source);
 			if (!File.Exists(sourcePath)) {
@@ -617,7 +618,7 @@ namespace VisualPinball.Unity.Editor
 			AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
 			var importer = (TextureImporter)AssetImporter.GetAtPath(path);
 			importer.textureType = TextureImporterType.Default;
-			importer.sRGBTexture = false;
+			importer.sRGBTexture = srgb;
 			importer.isReadable = false;
 			importer.wrapMode = TextureWrapMode.Clamp;
 			importer.textureCompression = TextureImporterCompression.Uncompressed;
