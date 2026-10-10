@@ -8,6 +8,23 @@ Built with Unity 6.5
 
 ### Added
 
+- Insert presets: lamp presets (incandescent and LED, with bulb colour, fade times and an output factor), color presets (tint, cavity, lamp emission and the cover's tint and haze) and look presets (Clear Plastic, Colored Plastic), each owning its values. Materials link to a preset and follow it, and the fields a linked color preset owns are locked in the material.
+- Every insert shape in the library is a prefab variant that owns its bake. A library insert whose geometry changes is forked into the project with *Edit in project*, for that insert alone or for every insert of the same prefab, material and shape in the scene, keeping the library's cover material.
+- A stippled insert pattern: a grid of bumps over the raised floor, set by their spacing, size and height.
+- A Mirror option for the flash insert shape.
+- The hybrid insert material's Clarity, Cavity Color, Cavity Spread and Cavity Contrast: a clear insert shows the lamp board under it, lit by room light, lamp or no lamp.
+- Room Return for clear inserts: room light that comes in through the top, reflects in the grooves and leaves through the top again, followed through the groove, normalised by the sky's brightness and lit by whatever lights the insert. Room Blur and Room Return Exposure soften and scale it.
+- Flecks on the hybrid insert material: the nicks along a moulded rib's ridges, dashes that glint with the lights, with a Fleck Size.
+- Mottle clouds the unlit insert plastic, blotches lighter and darker than the rest, set by Mottle Amount and Mottle Size.
+- Surface grain is drawn in the hybrid insert material instead of baked, as fine at any zoom.
+- Insert bakes write the optical maps at a fraction of the normal map's size, cut seams along creases steeper than 15 degrees for sharp facets, go down to 256 pixels, and fall back to Blender's packer when UVPackMaster crashes.
+- Packaged inserts keep their GLB meshes, shader materials, lamps and cover depth, with their authoring data in an editor sidecar.
+- Toolbox buttons and thumbnail camera presets for inserts and wire rails.
+- Assets dropped on the playfield go into or beside the selected object, depending on whether it is a prefab, with a label saying where.
+- Light groups pick which lamp of a multi-bulb light they drive, in a reorderable list.
+- Lamp Manager has a table lighting row: the kind of bulb the whole table is lit by, and a table-wide insert brightness packed with the table as the player's default.
+- Device pickers accept a GameObject dropped on them; an insert dropped into a light group, for example, takes its Insert Light.
+- Asset Browser: copy and paste of asset metadata, and previews lit and exposed like a table instead of Unity's default preview.
 - Material variation tiles in the Asset Browser can be dragged onto the playfield, previewing and placing the prefab with the displayed material combination.
 - Search boxes in Switch, Coil and Lamp Manager filter rows by ID or description, ignoring case. Manager toolbars scroll horizontally with the mouse wheel when their controls exceed the window width, without a visible scrollbar.
 - Prefabs dragged from the Asset Browser or Project window preview under the cursor on the playfield and drop at their mounting height, with prefab links and Undo preserved. Playfields need no Unity collider for placement.
@@ -48,11 +65,52 @@ Built with Unity 6.5
 - Optional clear insert cover in a second material slot, using any assigned material or automatically detecting and aligning the playfield's normal map across insert position, rotation and scale changes.
 - Hybrid insert materials expose Min Brightness for a darker, adjustable unlit body while the bulb and spill remain off at zero intensity.
 - Optional hybrid insert optics bake: neutral cavity illumination and sharp optical normals for the HDRP virtual lamp shader, with face contrast, stable optical variation, independent runtime RGB/fading, and insert brightness controls linked to a real spill light.
+- Trough ball queues are prefab-aware: one prefab per slot, drained balls return as their own prefab, and the ball manager scales relative to the prefab's radius ([#578](https://github.com/freezy/VisualPinball.Engine/pull/578)).
+- Simulation trace: a per-tick, per-frame and lock ring buffer written to `Logs/SimulationTrace`, switched on the Simulation Thread component or with `-simulation-trace` ([#577](https://github.com/freezy/VisualPinball.Engine/pull/577)).
+- Portable content bundles in `.vpe` packages: hash-addressed directory trees with a verified extraction cache, path-traversal protection and per-content user consent ([#574](https://github.com/freezy/VisualPinball.Engine/pull/574)).
+- Cylindrical surface magnets with configurable damping and a hit switch.
+- Pinball 2000 video output: a 24-bit video frame format rendered through the display texture path with overlay blending ([#573](https://github.com/freezy/VisualPinball.Engine/pull/573)).
+- Motion Controller: a generic coil-driven motion with position switches, arbitrary position targets and an edit-mode preview, with Motion Transform followers ([Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/motion-controllers.html)).
+- Gate and spinner colliders take a single offset instead of Z-Low, Distance and Z-Position, and the playfield's backside collider can be replaced.
+- Drag points are Unity Splines: VPX drag points convert losslessly to Bezier knots, edited with Unity's spline tools, with double-click to add or remove knots ([#567](https://github.com/freezy/VisualPinball.Engine/pull/567)).
+- Collider meshes get Read/Write enabled automatically, with an error when they can't be.
+- Magnets: attract, repel, grab, hold and eject, with a force profile matching VPX's `cvpmMagnet` or a physical one with coil rise and decay, spatial magnets mounted on mechanisms that carry the ball in 3D, and PWM strength from the ROM ([#561](https://github.com/freezy/VisualPinball.Engine/pull/561), [Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/magnets.html)).
+- Turntables: a spinning disc with motor and direction coils and VPX-compatible tangential force ([#561](https://github.com/freezy/VisualPinball.Engine/pull/561)).
+- Coils carry a normalized strength for PWM-driven devices.
+- Cabinet nudging: keyboard nudge with damping, an analog cabinet sensor model with a Kalman filter, and render-only table motion ([#560](https://github.com/freezy/VisualPinball.Engine/pull/560), [Documentation](https://docs.visualpinball.org/creators-guide/manual/nudging.html)).
+- Plumb-bob tilt simulation driven by cabinet acceleration, and a Tilt Bob component that is either simulated or a real mapped switch ([Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/tilt-bobs.html)).
+- KL25Z and Pinscape accelerometer calibration in the Simulation Thread inspector, with live axis graphs and mount orientation.
+- Moving kinematic colliders pass their velocity and friction to the ball, and step their pose per physics tick so fast movers don't tunnel through it ([#559](https://github.com/freezy/VisualPinball.Engine/pull/559)).
+- A `vpe.insert` material type in packages, and packaged audio clips load at runtime.
+- Display hook for external DMD output: an external package such as DMD Extensions can own a display and drive real, virtual or colorized DMDs from the gamelogic engine's frames ([#558](https://github.com/freezy/VisualPinball.Engine/pull/558)).
+- Package screenshots of the table, cabinet and backbox with lamps on and off, with Cabinet and Backbox marker components.
+- Runtime loading of `.vpe` packages, asynchronous with progress, for the player app ([#557](https://github.com/freezy/VisualPinball.Engine/pull/557)).
+- Packages store lossless source textures and the player cooks them on first load (BC7 on the GPU, optional zstd cache), so a large table loads in about a second after its first start ([#557](https://github.com/freezy/VisualPinball.Engine/pull/557)).
+- The `.vpe` format is glTF-based, with a `manifest.json`, stable node IDs and a versioned specification ([Documentation](https://docs.visualpinball.org/developer-guide/packaging/index.html)).
+- Asynchronous, cancelable package export, compression options and materials-only import ([#557](https://github.com/freezy/VisualPinball.Engine/pull/557)).
+- Simulation thread: physics at 1 kHz and gamelogic timing run on a thread of their own, with triple-buffered shared state ([#552](https://github.com/freezy/VisualPinball.Engine/pull/552), [Documentation](https://docs.visualpinball.org/developer-guide/threading-model.html)).
+- Native input polling, independent of the frame rate and fed straight to the simulation thread, for lower flipper latency ([#552](https://github.com/freezy/VisualPinball.Engine/pull/552)).
+- PinMAME runs in step with the simulation thread: switches are forwarded from it, its time fence follows the simulation clock, and coils that support it, such as flippers and gate lifters, are dispatched straight into physics ([#552](https://github.com/freezy/VisualPinball.Engine/pull/552)).
+- Frame pacing overlay with FPS, CPU busy time, the physics loop and input latency.
+- Plunger "fire and pull back" mode for kickbacks ([Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/plungers.html)).
+- Physics render mask, showing only the components that take part in physics ([#554](https://github.com/freezy/VisualPinball.Engine/pull/554)).
+- VPX import options: dump the table script, render bumpers as colliders, skip images and sounds, import only collidables, and use one material for all objects ([#554](https://github.com/freezy/VisualPinball.Engine/pull/554)).
+- Developer guide: setup, the threading model, packaging, and designs for accelerometer input, B2S and DOF integration ([Documentation](https://docs.visualpinball.org/developer-guide/index.html)).
+- Asset and package reference locator tools ([#550](https://github.com/freezy/VisualPinball.Engine/pull/550)).
+- Spinner mass, and lever animation offsets for spinners and gates.
+- Event Rotate and Event Translate components, moving or rotating an object on device events from bumpers, flippers, kickers, troughs and others.
+- Switch Animation component for rollover and trigger wires, and a new drop target animation component ([#546](https://github.com/freezy/VisualPinball.Engine/pull/546)).
+- Asset Browser: material defaults, combination rules, decal variations, grouping, moving assets between libraries and a clean-up tool for wrongly linked assets; thumbnails are WebP.
+- Debug Shot component: click and drag to shoot the nearest ball, Space to repeat, Ctrl for a new ball; and a debug keyboard shortcut manager.
+- Runtime camera controller with smoothing, target lock and ball lock.
+- Asset library style guide ([#530](https://github.com/freezy/VisualPinball.Engine/pull/530), [Documentation](https://docs.visualpinball.org/creators-guide/editor/asset-library-styleguide.html)).
+- Music and callout sound assets, coordinated by a music coordinator (a priority stack with cross-fades) and a callout coordinator (a priority queue with a minimum pause), a default audio mixer that ducks music and effects during callouts, and multi-play modes for re-triggered sounds (thanks @arthurkehrwald, [#521](https://github.com/freezy/VisualPinball.Engine/pull/521), [Documentation](https://docs.visualpinball.org/creators-guide/manual/sound.html)).
+- One import menu for both `.vpx` and `.vpe` files ([#526](https://github.com/freezy/VisualPinball.Engine/pull/526)).
+- Drop target banks support inactive targets, and drop and hit targets support front and back colliders.
+- The `.vpe` package format: a single file with JSON payloads and GLB collider meshes, packing every component, mechanism, display and sound with its references and mappings ([#515](https://github.com/freezy/VisualPinball.Engine/pull/515)).
 - Spring-hinge bash toys with a finite-inertia analytic box collider, reciprocal Spatial magnet holds, packaged player reconstruction, editor setup/handles, and a Play Mode qualification sample.
 - Motion Transform input ranges for animating a follower during only part of its source travel.
 - Wire Rail component with native spline authoring, fixtures (rings, rungs, cradles, stands, hairpins, and elbows), and an inferred ball-channel collider ([Documentation](https://docs.visualpinball.org/creators-guide/editor/wire-rails/index.html)).
-- Make packaging functional ([#557](https://github.com/freezy/VisualPinball.Engine/pull/557))
-- New threading model ([#552](https://github.com/freezy/VisualPinball.Engine/pull/552))
 - Free transformation ([#500](https://github.com/freezy/VisualPinball.Engine/pull/500))
 - Kinematic collisions ([#460](https://github.com/freezy/VisualPinball.Engine/pull/460))
 - Flipper tricks by nFozzy ([#436](https://github.com/freezy/VisualPinball.Engine/pull/436))
@@ -93,7 +151,19 @@ Built with Unity 6.5
 
 ### Changed
 
-- Renamed Actuator and Actuator Transform to Motion Controller and Motion Transform in components, APIs, editor menus, and documentation, preserving existing scene references, package identifiers, and coil mappings.
+- Upgraded from Unity 2022.3 to Unity 6, and later to Unity 6.5 with HDRP 17. New dependencies: Unity Splines and NativeTrees.
+- Hybrid optics are on by default for newly lit inserts, and RGB-mapped lamps are treated as game-driven LEDs.
+- The VPE editor menus and the insert shaders are under *Pinball* instead of *Visual Pinball* ([#520](https://github.com/freezy/VisualPinball.Engine/pull/520)).
+- `IGamelogicEngine.Init` is asynchronous, so engines such as MPF connect without blocking (thanks @arthurkehrwald, [#504](https://github.com/freezy/VisualPinball.Engine/pull/504)).
+- `IApiCoil.OnCoil` takes a float strength instead of a bool.
+- Sound assets have a type (synthetic or mechanical), only effects can be spatial, and spam protection moved from the component to the asset ([#521](https://github.com/freezy/VisualPinball.Engine/pull/521)).
+- Animations are published through generic value emitters, with the animation code in per-item animation components ([#546](https://github.com/freezy/VisualPinball.Engine/pull/546)).
+- Flipper tricks follow the current nFozzy and rothbauerw implementations.
+- Surfaces collide with their render mesh, keeping the side mesh for slingshot colliders.
+- Kinematic octree rebuilds are Burst-compiled, and moving kinematic items are kept out of the octree ([#577](https://github.com/freezy/VisualPinball.Engine/pull/577)).
+- The broad phase queries with the ball's swept bounds instead of the full physics step, cutting the worst tick's hit tests by an order of magnitude ([#577](https://github.com/freezy/VisualPinball.Engine/pull/577)).
+- The UPM package is signed before publishing.
+- Renamed Actuator and Actuator Transform to Motion Controller and Motion Transform in components, APIs, editor menus, and documentation; packages keep their identifiers and coil mappings.
 - Removed DOTS in favor of Jobs with Burst ([#459](https://github.com/freezy/VisualPinball.Engine/pull/459))
 - All geometry is now in world space.
 - Removed internal ID in gamelogic engine API ([#408](https://github.com/freezy/VisualPinball.Engine/pull/408))
@@ -113,10 +183,35 @@ Built with Unity 6.5
 
 ### Removed
 
+- NuGet packages of the core are no longer published.
+- The `[MovedFrom]` mappings from the old Actuator and wire rail fixture names; existing tables have been migrated.
 - The legacy VPX table patcher and its import option, including `IPatcher`, `PatcherManager`, the render-pipeline material-adapter APIs, and the `applyPatch` import parameters.
 
 ### Fixed
 
+- Insert Light fades advance once per frame instead of once per lamp event.
+- Packages saved before lamp mappings stored their device's type keep their lamp links.
+- A light's extra bulbs stay off until driven, instead of lighting the unused bulbs of other inserts sharing the material.
+- Native input goes through the table's Switch Manager key mappings, and hardware-rule wires such as P-ROC flipper rules work under native input.
+- Populate no longer adds lamp rows for flasher coils, and updates existing rows to the lamp type the gamelogic engine reports.
+- RGB multi-channel lamps are composed per device instead of each channel overwriting the light.
+- The player keeps starting when an item fails to initialize.
+- Balls created by a kicker spawn at its height and are captured, instead of being launched from playfield level ([#579](https://github.com/freezy/VisualPinball.Engine/pull/579)).
+- After a stall the simulation thread caught up every missed tick, so balls raced as if the playfield were steeper; catch-up is capped at 100 ms and resuming from pause doesn't replay the pause ([#577](https://github.com/freezy/VisualPinball.Engine/pull/577)).
+- Balls no longer sink into the floor under covers embedded in them from above.
+- Collider bounds: the flipper's backside, kicker and trigger sphere caps, plunger height and degenerate mesh triangles ([#577](https://github.com/freezy/VisualPinball.Engine/pull/577)).
+- Spinner collision speed and direction.
+- Transformed colliders: Line3D hit normals, point collider bounds, LineZ endpoints, scale from the basis, and the ball radius in scaled collider space ([#562](https://github.com/freezy/VisualPinball.Engine/pull/562)).
+- Input is dropped while the player is paused or unfocused.
+- Dot-matrix and segment display shaders, DMD colours, and RGB24 frames rendered upside down ([#548](https://github.com/freezy/VisualPinball.Engine/pull/548), [#549](https://github.com/freezy/VisualPinball.Engine/pull/549), [#558](https://github.com/freezy/VisualPinball.Engine/pull/558)).
+- Lamp Manager batch activation, and the faux bulb is hidden when the light is off.
+- Asset Browser: replacing an object re-points references to it, applied variation materials survive a reload, and each variation is listed once.
+- VPX import: ramp and surface UVs when centring the pivot, randomly missing elements, and textures in the screenshot slot of old files ([#526](https://github.com/freezy/VisualPinball.Engine/pull/526)).
+- Bumpers apply their impulse in the physics loop, and their coil events and sounds work again (thanks @arthurkehrwald, [#491](https://github.com/freezy/VisualPinball.Engine/pull/491), [#528](https://github.com/freezy/VisualPinball.Engine/pull/528)).
+- Rubber meshes under transformation ([#516](https://github.com/freezy/VisualPinball.Engine/pull/516)).
+- Exception when a ball drained while parented to a kicker ([#517](https://github.com/freezy/VisualPinball.Engine/pull/517)).
+- Hardware rules are flagged as such (thanks @arthurkehrwald, [#502](https://github.com/freezy/VisualPinball.Engine/pull/502)).
+- Burst crash with `NativeParallelHashMap.GetKeyArray()`.
 - Multi-bulb inserts spill light from every active bulb, adding their intensities and mixing their colours in linear space.
 - Destroying an insert releases its generated mesh without destroying imported or shared meshes.
 - Insert rebakes write their texture maps to the resolved location of local packages.

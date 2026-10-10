@@ -13,8 +13,22 @@ file format and uses Visual Pinball's physics code for the simulation during gam
 
 ![image](.github/readme-editor.jpg)
 
-For a more detailed overview, header over to the [website](https://docs.visualpinball.org/creators-guide/introduction/overview.html). It's also where all the new features get documented.
+For a more detailed overview, head over to the [website](https://docs.visualpinball.org/creators-guide/introduction/overview.html). It's also where all the new features get documented.
 
+
+## Recent Developments
+
+Since early 2025, VPE has moved to Unity 6.5 and grown in every direction. The highlights:
+
+- **Physics.** Every element can be moved, rotated and scaled freely, also at runtime, and moving colliders pass their velocity and friction to the ball. Magnets, turntables, spring-hinge bash toys and generic [motion controllers](https://docs.visualpinball.org/creators-guide/manual/mechanisms/motion-controllers.html) are native components.
+- **Low latency.** Input polling, physics and PinMAME each run on a thread of their own, so flipper input reaches the physics without waiting for the next frame ([threading model](https://docs.visualpinball.org/developer-guide/threading-model.html)).
+- **Nudging and tilt.** A port of Visual Pinball's cabinet nudge physics, a simulated plumb-bob tilt, and accelerometer support for KL25Z and Pinscape boards ([nudging](https://docs.visualpinball.org/creators-guide/manual/nudging.html)).
+- **Packaging.** Tables are saved as `.vpe` files: a single, versioned, glTF-based format with lossless assets and nothing Unity-specific in it, meant to load years from now. A player app loads them at runtime, cooking and caching textures on first start ([packaging](https://docs.visualpinball.org/developer-guide/packaging/index.html)).
+- **Sound.** Mechanical sounds are assigned to game items in the editor without code, alongside music and callouts with ducking ([sound](https://docs.visualpinball.org/creators-guide/manual/sound.html)).
+- **Displays.** DMDs can be driven by DMD Extensions, including real and colorized displays, and Pinball 2000 video is supported.
+- **Authoring.** Drag points are Unity Splines, the asset browser handles material and decal variations and places prefabs straight onto the playfield, and new generators build [wire rails](https://docs.visualpinball.org/creators-guide/editor/wire-rails/index.html) and [procedural inserts](https://docs.visualpinball.org/creators-guide/editor/inserts/index.html) with baked optics, presets and lamp-driven lighting.
+
+The [changelog](CHANGELOG.md) lists everything in detail.
 
 ## History
 
@@ -22,8 +36,8 @@ The project started in late 2019 and is still actively being developed. We're pa
 virtual pinball community and as such, this project is a community effort. The following is
 a list of relevant posts that document the progress of VPE so far.
 
-- [Feburary 2020](https://www.vpforums.org/index.php?showtopic=43651) - First public post with VPX import working
-- [Feburary 2020](https://www.vpforums.org/index.php?showtopic=43651&page=7#entry443589) - It's alive!
+- [February 2020](https://www.vpforums.org/index.php?showtopic=43651) - First public post with VPX import working
+- [February 2020](https://www.vpforums.org/index.php?showtopic=43651&page=7#entry443589) - It's alive!
 - [March 2020](https://www.vpforums.org/index.php?showtopic=43651&page=11#entry445624) - PinMAME is working
 - [May 2020](https://www.vpforums.org/index.php?showtopic=43651&page=12#entry451724) - Physics game loop ported over from Visual Pinball
 - [June 2020](https://www.vpforums.org/index.php?showtopic=43651&page=14#entry452533) - More physics
@@ -43,9 +57,17 @@ a list of relevant posts that document the progress of VPE so far.
 - [July 2022](https://vpuniverse.com/forums/topic/5362-wip-visual-pinball-in-unity-2021-edition/?do=findComment&comment=64348) - Visual Scripting, Physics, Asset Library, Tutorials, VR/AR, the future
 - [December 2022](https://vpuniverse.com/forums/topic/5362-wip-visual-pinball-in-unity-2021-edition/?do=findComment&comment=67277) - Asset library, world space, score motors
 - [January 2024](https://vpuniverse.com/forums/topic/9733-visual-pinball-in-unity-2024/) - From DOTS to Bursted Jobs, Kinematic Colliders
-- [February 2025](https://vpuniverse.com/forums/topic/11571-visual-pinball-engine-2025-updates/) - Unrestricted transformations, Sounds, Packaging, Retrospective
+- [February 2025](https://vpuniverse.com/forums/topic/11571-visual-pinball-engine-20252026-updates/?do=findComment&comment=86060) - Unrestricted transformations, Sounds, Packaging, Retrospective
+- [March 2025](https://vpuniverse.com/forums/topic/11571-visual-pinball-engine-20252026-updates/?do=findComment&comment=86513) - Asset library style guide
+- [June 2025](https://vpuniverse.com/forums/topic/11571-visual-pinball-engine-20252026-updates/?do=findComment&comment=89469) - Asset browser decals and color variations
+- [October 2025](https://vpuniverse.com/forums/topic/11571-visual-pinball-engine-20252026-updates/?do=findComment&comment=90885) - Starting work on low input latency
+- [April 2026](https://vpuniverse.com/forums/topic/11571-visual-pinball-engine-20252026-updates/?do=findComment&comment=94228) - Input, physics and PinMAME on their own threads
+- [June 2026](https://vpuniverse.com/forums/topic/11571-visual-pinball-engine-20252026-updates/?do=findComment&comment=95284) - Player app, future-proof .vpe format, texture cache
+- [June 2026](https://vpuniverse.com/forums/topic/11571-visual-pinball-engine-20252026-updates/?do=findComment&comment=95499) - DMD Extensions in VPE
+- [July 2026](https://vpuniverse.com/forums/topic/11571-visual-pinball-engine-20252026-updates/?do=findComment&comment=95627) - Moving colliders with velocity, Nudging, Tilt bob
+- [September 2026](https://vpuniverse.com/forums/topic/11571-visual-pinball-engine-20252026-updates/?do=findComment&comment=96285) - Wire rail generator
 
-During that time, we've also written [a guest article at thisweekinpinball.com](https://www.thisweekinpinball.com/a-peek-into-the-digital-creator-community/) about our community..
+During that time, we've also written [a guest article at thisweekinpinball.com](https://www.thisweekinpinball.com/a-peek-into-the-digital-creator-community/) about our community.
 
 
 ## VPE Repositories
