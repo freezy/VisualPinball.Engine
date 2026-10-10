@@ -65,6 +65,8 @@ namespace VisualPinball.Unity.Editor
 			public string[] floats;
 			/// <summary>"_Property=r,g,b" on the body material.</summary>
 			public string[] colors;
+			/// <summary>The name of a material both inserts wear as their cover for this still instead of their own, which coverFloats and coverColors then change.</summary>
+			public string coverMaterial;
 			public string[] coverFloats;
 			public string[] coverColors;
 			/// <summary>Both inserts without their cover.</summary>
@@ -86,6 +88,8 @@ namespace VisualPinball.Unity.Editor
 			/// <summary>What the name of a neighbour sharing its material contains, kept off, so each still shows the material lit and unlit.</summary>
 			public string unlit;
 			public float[] ballOffset = { 0f, 0f, 0.02f };
+			/// <summary>What the names of other inserts in view contain, kept off during the stills, whatever the scene has them at.</summary>
+			public string[] off;
 			public Shot[] shots;
 		}
 
@@ -114,6 +118,8 @@ namespace VisualPinball.Unity.Editor
 		private static InsertLightComponent _light;
 		private static Material _body;
 		private static Material _cover;
+		// The cover the current still's values went to: the inserts' own, or the still's coverMaterial.
+		private static Material _shotCover;
 		private static InsertComponent _unlit;
 		private static InsertLightComponent _unlitLight;
 		private static float _unlitIntensity;
@@ -129,12 +135,25 @@ namespace VisualPinball.Unity.Editor
 		// The materials' values as they were, and whether a variant had them overridden.
 		private static readonly Dictionary<string, MaterialValue> BodyBackup = new();
 		private static readonly Dictionary<string, MaterialValue> CoverBackup = new();
+		// The other inserts kept off, with their intensity, and whether their instance overrode it.
+		private static readonly List<(InsertLightComponent light, float intensity, bool overridden)> OffBackup = new();
 		// Each insert's cover and playfield normals as they were.
 		private static readonly List<(InsertComponent insert, Material cover, bool normals)> ComponentBackup = new();
 
 		private static float P(string s) => float.Parse(s, CultureInfo.InvariantCulture);
 
 		private static Config LoadConfig() => JsonUtility.FromJson<Config>(File.ReadAllText(Path.Combine(Folder, "shots.json")));
+
+		private static Material FindMaterial(string name)
+		{
+			var material = AssetDatabase.FindAssets($"\"{name}\" t:Material")
+				.Select(guid => AssetDatabase.LoadAssetAtPath<Material>(AssetDatabase.GUIDToAssetPath(guid)))
+				.FirstOrDefault(m => m != null && m.name == name);
+			if (material == null) {
+				throw new InvalidOperationException($"Automation: there is no material named \"{name}\".");
+			}
+			return material;
+		}
 
 		private static InsertComponent Find(string name) => Object.FindObjectsByType<InsertComponent>(FindObjectsInactive.Include, FindObjectsSortMode.None).First(i => i.name.Contains(name));
 
@@ -162,6 +181,10 @@ namespace VisualPinball.Unity.Editor
 				Debug.LogError("Automation: the lit insert has no spill light.");
 				return;
 			}
+			// Before anything changes: a missing cover would stop the run halfway.
+			foreach (var shot in _config.shots.Where(shot => !string.IsNullOrEmpty(shot.coverMaterial))) {
+				FindMaterial(shot.coverMaterial);
+			}
 			_running = true;
 			AutomationShots.Acquire();
 			_unlitIntensity = _unlitLight != null ? _unlitLight.Intensity : 0f;
@@ -173,6 +196,16 @@ namespace VisualPinball.Unity.Editor
 				ExtraIntensity = Enumerable.Range(0, bulbs.arraySize).Select(i => bulbs.GetArrayElementAtIndex(i).FindPropertyRelative("Intensity").floatValue).ToArray(),
 				ExtraColor = Enumerable.Range(0, bulbs.arraySize).Select(i => bulbs.GetArrayElementAtIndex(i).FindPropertyRelative("Color").colorValue).ToArray(),
 			};
+			OffBackup.Clear();
+			foreach (var name in _config.off ?? new string[0]) {
+				var light = Find(name).GetComponent<InsertLightComponent>();
+				if (light == null || light == _light || light == _unlitLight) {
+					continue;
+				}
+				OffBackup.Add((light, light.Intensity, PrefabUtility.IsPartOfPrefabInstance(light) && new SerializedObject(light).FindProperty("Intensity").prefabOverride));
+				light.Intensity = 0f;
+				light.Apply();
+			}
 			_lampBackup = LampVectors.Select(v => _body.GetVector(v)).ToArray();
 			_lampInherited = LampVectors.Select(v => _body.parent != null && !_body.IsPropertyOverriden(v)).ToArray();
 			_cover = _insert.CoverMaterial;
@@ -340,6 +373,15 @@ namespace VisualPinball.Unity.Editor
 				_unlitLight.Intensity = _unlitIntensity;
 				_unlitLight.Apply();
 			}
+			foreach (var (light, intensity, overridden) in OffBackup) {
+				light.Intensity = intensity;
+				// An instance that followed its prefab keeps following it.
+				if (!overridden && PrefabUtility.IsPartOfPrefabInstance(light)) {
+					PrefabUtility.RevertPropertyOverride(new SerializedObject(light).FindProperty("Intensity"), InteractionMode.AutomatedAction);
+				}
+				light.Apply();
+			}
+			OffBackup.Clear();
 			if (_ball != null) {
 				Object.DestroyImmediate(_ball);
 				_ball = null;
@@ -356,8 +398,9 @@ namespace VisualPinball.Unity.Editor
 		{
 			RestoreMaterials();
 			Set(_body, BodyBackup, shot.floats, shot.colors);
-			if (_cover != null) {
-				Set(_cover, CoverBackup, shot.coverFloats, shot.coverColors);
+			_shotCover = string.IsNullOrEmpty(shot.coverMaterial) ? _cover : FindMaterial(shot.coverMaterial);
+			if (_shotCover != null) {
+				Set(_shotCover, CoverBackup, shot.coverFloats, shot.coverColors);
 			}
 		}
 
@@ -392,8 +435,8 @@ namespace VisualPinball.Unity.Editor
 		private static void RestoreMaterials()
 		{
 			Restore(_body, BodyBackup);
-			if (_cover != null) {
-				Restore(_cover, CoverBackup);
+			if (_shotCover != null) {
+				Restore(_shotCover, CoverBackup);
 			}
 		}
 
@@ -415,7 +458,7 @@ namespace VisualPinball.Unity.Editor
 		private static void SetComponents(Shot shot)
 		{
 			foreach (var (insert, cover, normals) in ComponentBackup) {
-				var wanted = shot.noCover ? null : cover;
+				var wanted = shot.noCover ? null : string.IsNullOrEmpty(shot.coverMaterial) ? cover : _shotCover;
 				if (insert.CoverMaterial != wanted) {
 					insert.SetCoverMaterial(wanted);
 				}
@@ -537,8 +580,35 @@ namespace VisualPinball.Unity.Editor
 			// A material's inspector draws only while its foldout is open, which each material remembers.
 			InternalEditorUtility.SetIsInspectorExpanded(material, true);
 			var prefix = slot == 0 ? "material" : "cover";
-			AutomationShots.Run(folder, Enumerable.Range(0, 6)
+			AutomationShots.Run(folder, Enumerable.Range(0, 8)
 				.Select(i => new AutomationShots.Shot($"{prefix}-{i * 500}", material, 340f, 560f, 1f, i * 500f)));
+		}
+
+		/// <summary>
+		/// The same as Shoot Material, of a copy of the material in the project,
+		/// as an insert has once it's forked: a material variant of it, following
+		/// its presets, whose inspector isn't read-only. The copy is deleted
+		/// after the shots.
+		/// </summary>
+		[MenuItem(Automation.Menu + "Lighting/Shoot Material Copy")]
+		public static void ShootMaterialCopy()
+		{
+			if (AutomationShots.Refuse()) {
+				return;
+			}
+			var folder = Folder;
+			var insert = Find(LoadConfig().insert);
+			var slotFile = Path.Combine(folder, "material-slot.txt");
+			var slot = File.Exists(slotFile) ? int.Parse(File.ReadAllText(slotFile).Trim()) : 0;
+			var source = insert.GetComponent<MeshRenderer>().sharedMaterials[slot];
+			var path = AssetDatabase.GenerateUniqueAssetPath($"Assets/{source.name}.mat");
+			var copy = new Material(source) { parent = source, name = source.name };
+			AssetDatabase.CreateAsset(copy, path);
+			InternalEditorUtility.SetIsInspectorExpanded(copy, true);
+			var prefix = slot == 0 ? "material" : "cover";
+			AutomationShots.Run(folder, Enumerable.Range(0, 8)
+				.Select(i => new AutomationShots.Shot($"{prefix}-{i * 500}", copy, 340f, 560f, 1f, i * 500f)),
+				() => AssetDatabase.DeleteAsset(path));
 		}
 
 		/// <summary>The insert's Clear Cover section into "inspector-cover-section.png", on an unpacked copy beside it.</summary>
