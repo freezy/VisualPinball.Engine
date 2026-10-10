@@ -324,7 +324,7 @@ def check_surface_grain():
 		print(f'surface grain ok: projection {face}, median {np.median(tilts):.2f} degrees, 99% {np.percentile(tilts, 99):.2f}')
 	assert np.max(np.abs(smooth[:, :, :2])) < 0.005, 'zero strength must keep the smooth normal map'
 	for name in ('optical-normal.png', 'optical-response.png'):
-		assert np.allclose(load_png(smooth_folder / name), load_png(grain_folder / name), atol=2 / 65535), f'grain changed {name}'
+		assert np.allclose(load_png(smooth_folder / name), load_png(grain_folder / name), atol=2.5 / 255), f'grain changed {name}'
 	print('surface grain ok: optical normals and response unchanged')
 
 

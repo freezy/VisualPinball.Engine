@@ -16,6 +16,10 @@ import numpy as np
 from mathutils import Vector
 
 
+def srgb_encode(values):
+	return np.where(values <= 0.0031308, values * 12.92, 1.055 * np.power(values, 1 / 2.4) - 0.055)
+
+
 def projected(api, regular, flat, high, request, name, size, bake_type='EMIT', samples=16):
 	"""Match the normal bake's projections and its padded flat-region merge, at the map's own size."""
 	image = api.new_image(name, size)
@@ -133,7 +137,8 @@ def bake_optics(api, regular, flat, high, request, folder):
 	image = api.new_image('Optical Normal Result', optical_size)
 	image.pixels.foreach_set(optical.ravel())
 	image.update()
-	api.save_png(image, folder / 'optical-normal.png', 16)
+	# Eight bits, as the normal map: finer than that changes nothing on screen.
+	api.save_png(image, folder / 'optical-normal.png', 8)
 
 	# The angle introduced by the bevel marks ridges, hole rims and channel
 	# edges without painting stripes onto a particular UV layout.
@@ -163,8 +168,12 @@ def bake_optics(api, regular, flat, high, request, folder):
 	print('[bake_insert] Baking optical response masks', flush=True)
 	response = projected(api, regular, flat, high, request, 'Optical Response', response_size)
 	response[:, :, 0] = strength
+	# Eight bits with the sRGB curve, which the texture importer decodes: the
+	# glow's dim tail keeps its steps within a few percent, where linear eight
+	# bits would band.
+	response[:, :, :3] = srgb_encode(np.clip(response[:, :, :3], 0.0, 1.0))
 	image = api.new_image('Optical Response Result', response_size)
 	image.pixels.foreach_set(response.ravel())
 	image.update()
-	api.save_png(image, folder / 'optical-response.png', 16)
+	api.save_png(image, folder / 'optical-response.png', 8)
 	return [float(center[0]), float(low[1] - depth), float(center[2]), radius]
