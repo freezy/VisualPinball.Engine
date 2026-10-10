@@ -16,6 +16,7 @@
 
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace VisualPinball.Unity.Editor
@@ -39,6 +40,28 @@ namespace VisualPinball.Unity.Editor
 			foreach (var root in scene.GetRootGameObjects()) {
 				foreach (var insert in root.GetComponentsInChildren<InsertComponent>(true)) {
 					insert.UnsaveLegacyMesh();
+					UnsaveOverriddenMesh(insert);
+				}
+			}
+		}
+
+		/// <summary>
+		/// A prefab instance records the mesh as an override. Once the insert
+		/// rebuilt its own, which isn't saved, the override keeps pointing at the
+		/// old mesh, and that would be written into the scene again.
+		/// </summary>
+		private static void UnsaveOverriddenMesh(InsertComponent insert)
+		{
+			if (!PrefabUtility.IsPartOfPrefabInstance(insert)) {
+				return;
+			}
+			var modifications = PrefabUtility.GetPropertyModifications(insert.gameObject);
+			if (modifications == null) {
+				return;
+			}
+			foreach (var modification in modifications) {
+				if (modification.propertyPath == "m_Mesh" && modification.objectReference is Mesh mesh) {
+					InsertComponent.UnsaveLegacyMesh(mesh);
 				}
 			}
 		}

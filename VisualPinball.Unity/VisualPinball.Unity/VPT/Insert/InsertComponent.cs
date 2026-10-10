@@ -1059,9 +1059,14 @@ namespace VisualPinball.Unity
 		/// being saved again. An inactive insert never rebuilds, so it still holds
 		/// one; it is built again the next time the insert is enabled or exported.
 		/// </summary>
-		internal void UnsaveLegacyMesh()
+		internal void UnsaveLegacyMesh() => UnsaveLegacyMesh(GetComponent<MeshFilter>()?.sharedMesh);
+
+		/// <summary>
+		/// The same for a mesh held elsewhere, like a prefab instance's override
+		/// that still points at the old mesh after the insert rebuilt its own.
+		/// </summary>
+		internal static void UnsaveLegacyMesh(Mesh mesh)
 		{
-			var mesh = GetComponent<MeshFilter>()?.sharedMesh;
 			if (mesh != null && !IsAsset(mesh) && mesh.name.StartsWith(MeshNamePrefix, StringComparison.Ordinal)) {
 				mesh.hideFlags |= HideFlags.DontSave;
 			}
