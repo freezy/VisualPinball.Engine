@@ -113,6 +113,7 @@ The flash has two offset arms, flat ends, projecting spikes, and inward notches.
 - *Tip Width* is the width of each flat end.
 - *Notch Depth* is the distance inward from a spike to its notch. It must be less than half the width.
 - *Step Height* places the two steps above and below the middle. Zero aligns them with the middle line. Negative values increase the overlap of the arms.
+- *Mirror* flips the flash left to right, so the bolt runs the other way.
 - *Tip Corners* sets the radius and segments for the four corners of the flat ends.
 - *Spike Corners* sets the radius and segments for the two projecting spikes.
 - *Notch Corners* sets the radius and segments for the two inward turns. These fillets round inward.

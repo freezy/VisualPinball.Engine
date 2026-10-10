@@ -40,7 +40,7 @@ The cover is the top of a slab of plastic as deep as the insert. What shows thro
 
 ### Index of Refraction
 
-*Index of Refraction* is how much the plastic bends the view, from 1 to 2: 1.49 for acrylic, 1.59 for polycarbonate. One is no slab at all. A higher index shows the ribs nearer than they lie. The shift shows at a low angle, so these pictures look along the inserts from behind: watch the near insert's floor and holes against its frame.
+*Index of Refraction* is how much the plastic bends the view, from 1 to 2: 1.49 for acrylic, 1.59 for polycarbonate. One is no slab at all. A higher index shows the ribs nearer than they lie. The shift shows at a low angle, so these pictures look along the inserts from behind: watch the near insert's floor and holes against its frame. The refraction is a screen-space effect, and at grazing views it can slide a band of the ribs across the insert, so the shipped clear cover leaves it at one and keeps only its glossy top and its haze.
 
 | 1 | 1.49 | 2 |
 | --- | --- | --- |
@@ -48,7 +48,7 @@ The cover is the top of a slab of plastic as deep as the insert. What shows thro
 
 ### Tint
 
-*Tint* is the color the light has once it has come *Tint Depth* through the plastic. White suits clear plastic; a colored insert takes its color, and then darkens toward its edges and at grazing views, as tinted plastic does.
+*Tint* is the color the light has once it has come *Tint Depth* through the plastic. White suits clear plastic; a colored insert takes its color, and then darkens toward its edges and at grazing views, as tinted plastic does. The light takes the tint on its way through the slab, which only exists while *Index of Refraction* is above 1: at 1, *Tint* and *Tint Depth* do nothing. The shipped clear cover is at 1 and stays untinted; the colored covers are at 1.49. These pictures are at 1.49.
 
 | White (Clear) | Red | Blue |
 | --- | --- | --- |

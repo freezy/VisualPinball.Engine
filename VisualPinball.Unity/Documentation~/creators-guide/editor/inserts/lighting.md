@@ -78,7 +78,7 @@ Drag the labeled circular handles in Scene view to move lamps in the insert's lo
 
 ### Tint With Lamp
 
-*Tint With Lamp* turns the hue and saturation of the body and the cover's haze toward the lamp's color while it is lit. Off keeps their own hues. *Tint Amount* is how far they turn, from 0 to 1, at full intensity: zero keeps the plastic's own look, one takes the lamp's hue fully where its light reaches.
+*Tint With Lamp* turns the hue and saturation of the body and the cover's haze toward the lamp's color while it is lit. Off keeps their own hues. *Tint Amount* is how far they turn, from 0 to 1, at full intensity: zero keeps the plastic's own look, one takes the lamp's hue fully where its light reaches. A color is darker than the gray it replaces, so while the lamp is weak a clear body and a clear cover keep enough of their gray to hold three fifths of their brightness, pink rather than dark red under a red lamp, and give it up as the lamp's own glow takes over above a third of full. A clear body with *Room Return* gives back the rest of the brightness the room light gave it, as a brighter color of the lamp's hue, as far as that hue allows, lit by whatever lights the table.
 
 | Off (default) | Tint Amount 0.5 | Tint Amount 1 |
 | --- | --- | --- |
