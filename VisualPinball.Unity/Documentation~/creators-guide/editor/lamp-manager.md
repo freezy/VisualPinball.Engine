@@ -9,6 +9,8 @@ VPE uses the Unity game engine to accurately simulate the many types of lamps a 
 
 To link each of the playfield lamps to the gamelogic engine and configure how they behave during gameplay, the *Lamp Manager* is used. You can find it under *Pinball -> Lamp Manager*.
 
+Use the search box at the top left to filter rows by any part of their ID or description. Matching ignores case; clear the search to show all rows again. When the top row does not fit in the window, hover over it and use the mouse wheel to scroll horizontally.
+
 ![Lamp Manager](lamp-manager.png)
 
 > [!note]

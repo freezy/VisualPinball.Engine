@@ -11,6 +11,8 @@ Wiring these switches up to the gamelogic engine with code can be a tedious proc
 
 You can open the switch manager under *Pinball -> Switch Manager*.
 
+Use the search box at the top left to filter rows by any part of their ID or description. Matching ignores case; clear the search to show all rows again. When the top row does not fit in the window, hover over it and use the mouse wheel to scroll horizontally.
+
 ![Switch Manager](switch-manager.png)
 <small>Switch matrix from *Medieval Madness*.</small>
 

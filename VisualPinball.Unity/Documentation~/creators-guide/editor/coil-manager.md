@@ -9,6 +9,8 @@ On a real pinball table most moving parts, including the flippers, are triggered
 
 Just as the coils are physically wired to the power driver board on a regular machine they can be virtually connected in VPE using the coil manager under *Visual Pinball -> Coil Manager*.
 
+Use the search box at the top left to filter rows by any part of their ID or description. Matching ignores case; clear the search to show all rows again. When the top row does not fit in the window, hover over it and use the mouse wheel to scroll horizontally.
+
 ![Coil Manager](coil-manager.png)
 
 ## Setup
