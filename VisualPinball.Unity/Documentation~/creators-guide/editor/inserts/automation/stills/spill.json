@@ -1,0 +1,111 @@
+{
+ "insert": "Starburst - L35",
+ "unlit": "Starburst - L34",
+ "shots": [
+  {
+   "name": "l-lumens-0",
+   "lumens": 0,
+   "ball": true,
+   "frameBoth": false,
+   "camOffset": [
+    0,
+    0.016,
+    -0.042
+   ],
+   "lookOffset": [
+    0,
+    0.012,
+    0.022
+   ]
+  },
+  {
+   "name": "l-lumens-1.5",
+   "lumens": 1.5,
+   "ball": true,
+   "frameBoth": false,
+   "camOffset": [
+    0,
+    0.016,
+    -0.042
+   ],
+   "lookOffset": [
+    0,
+    0.012,
+    0.022
+   ]
+  },
+  {
+   "name": "l-lumens-6",
+   "lumens": 6,
+   "ball": true,
+   "frameBoth": false,
+   "camOffset": [
+    0,
+    0.016,
+    -0.042
+   ],
+   "lookOffset": [
+    0,
+    0.012,
+    0.022
+   ]
+  },
+  {
+   "name": "l-range-0.03",
+   "range": 0.03,
+   "ball": true,
+   "frameBoth": false,
+   "camOffset": [
+    0,
+    0.016,
+    -0.042
+   ],
+   "lookOffset": [
+    0,
+    0.012,
+    0.022
+   ]
+  },
+  {
+   "name": "l-range-0.1",
+   "range": 0.1,
+   "ball": true,
+   "frameBoth": false,
+   "camOffset": [
+    0,
+    0.016,
+    -0.042
+   ],
+   "lookOffset": [
+    0,
+    0.012,
+    0.022
+   ]
+  },
+  {
+   "name": "l-range-0.3",
+   "range": 0.3,
+   "ball": true,
+   "frameBoth": false,
+   "camOffset": [
+    0,
+    0.016,
+    -0.042
+   ],
+   "lookOffset": [
+    0,
+    0.012,
+    0.022
+   ]
+  }
+ ],
+ "ballOffset": [
+  0,
+  0,
+  0.025
+ ],
+ "off": [
+  "Starburst - L33",
+  "Starburst - L32"
+ ]
+}

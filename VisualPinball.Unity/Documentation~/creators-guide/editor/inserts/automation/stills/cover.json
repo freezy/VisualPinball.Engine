@@ -1,0 +1,385 @@
+{
+ "insert": "Starburst - L35",
+ "unlit": "Starburst - L34",
+ "shots": [
+  {
+   "name": "c-cover-none",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "noCover": true
+  },
+  {
+   "name": "c-cover-clear",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ]
+  },
+  {
+   "name": "c-tint-white",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "coverColors": [
+    "_CoverTint=1,1,1",
+    "_HazeColor=0.8,0.8,0.8"
+   ],
+   "coverMaterial": "Insert Cover, Red",
+   "coverFloats": [
+    "_CoverIor=1.49",
+    "_CoverTintDepth=3",
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "c-tint-red",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "coverColors": [
+    "_CoverTint=1,0.35,0.3",
+    "_HazeColor=0.8,0.8,0.8"
+   ],
+   "coverMaterial": "Insert Cover, Red",
+   "coverFloats": [
+    "_CoverIor=1.49",
+    "_CoverTintDepth=3",
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "c-tint-blue",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "coverColors": [
+    "_CoverTint=0.35,0.5,1",
+    "_HazeColor=0.8,0.8,0.8"
+   ],
+   "coverMaterial": "Insert Cover, Red",
+   "coverFloats": [
+    "_CoverIor=1.49",
+    "_CoverTintDepth=3",
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "c-tint-depth-0.1",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "coverFloats": [
+    "_CoverTintDepth=0.1",
+    "_CoverIor=1.49",
+    "_CoverOpacity=0"
+   ],
+   "coverColors": [
+    "_CoverTint=1,0.35,0.3",
+    "_HazeColor=0.8,0.8,0.8"
+   ],
+   "coverMaterial": "Insert Cover, Red"
+  },
+  {
+   "name": "c-tint-depth-3",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "coverFloats": [
+    "_CoverTintDepth=3",
+    "_CoverIor=1.49",
+    "_CoverOpacity=0"
+   ],
+   "coverColors": [
+    "_CoverTint=1,0.35,0.3",
+    "_HazeColor=0.8,0.8,0.8"
+   ],
+   "coverMaterial": "Insert Cover, Red"
+  },
+  {
+   "name": "c-tint-depth-20",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "coverFloats": [
+    "_CoverTintDepth=20",
+    "_CoverIor=1.49",
+    "_CoverOpacity=0"
+   ],
+   "coverColors": [
+    "_CoverTint=1,0.35,0.3",
+    "_HazeColor=0.8,0.8,0.8"
+   ],
+   "coverMaterial": "Insert Cover, Red"
+  },
+  {
+   "name": "c-opacity-0.01",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0.01"
+   ]
+  },
+  {
+   "name": "c-opacity-0.1",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0.1"
+   ]
+  },
+  {
+   "name": "c-opacity-0.5",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0.5"
+   ]
+  },
+  {
+   "name": "c-ior-1",
+   "camOffset": [
+    0,
+    0.03,
+    0.045
+   ],
+   "frameBoth": false,
+   "coverFloats": [
+    "_CoverIor=1",
+    "_CoverTintDepth=3",
+    "_CoverOpacity=0"
+   ],
+   "coverMaterial": "Insert Cover, Red",
+   "coverColors": [
+    "_CoverTint=1,1,1",
+    "_HazeColor=0.8,0.8,0.8"
+   ]
+  },
+  {
+   "name": "c-ior-1.49",
+   "camOffset": [
+    0,
+    0.03,
+    0.045
+   ],
+   "frameBoth": false,
+   "coverFloats": [
+    "_CoverIor=1.49",
+    "_CoverTintDepth=3",
+    "_CoverOpacity=0"
+   ],
+   "coverMaterial": "Insert Cover, Red",
+   "coverColors": [
+    "_CoverTint=1,1,1",
+    "_HazeColor=0.8,0.8,0.8"
+   ]
+  },
+  {
+   "name": "c-ior-2",
+   "camOffset": [
+    0,
+    0.03,
+    0.045
+   ],
+   "frameBoth": false,
+   "coverFloats": [
+    "_CoverIor=2",
+    "_CoverTintDepth=3",
+    "_CoverOpacity=0"
+   ],
+   "coverMaterial": "Insert Cover, Red",
+   "coverColors": [
+    "_CoverTint=1,1,1",
+    "_HazeColor=0.8,0.8,0.8"
+   ]
+  },
+  {
+   "name": "c-haze-color-light",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0.3"
+   ],
+   "coverColors": [
+    "_HazeColor=0.8,0.8,0.8"
+   ]
+  },
+  {
+   "name": "c-haze-color-blue",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0.3"
+   ],
+   "coverColors": [
+    "_HazeColor=0.3,0.5,1"
+   ]
+  },
+  {
+   "name": "c-haze-color-orange",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0.3"
+   ],
+   "coverColors": [
+    "_HazeColor=1,0.55,0.2"
+   ]
+  },
+  {
+   "name": "c-smoothness-0.5",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "coverFloats": [
+    "_Smoothness=0.5"
+   ]
+  },
+  {
+   "name": "c-smoothness-0.75",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "coverFloats": [
+    "_Smoothness=0.75"
+   ]
+  },
+  {
+   "name": "c-smoothness-0.96",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "coverFloats": [
+    "_Smoothness=0.96"
+   ]
+  }
+ ],
+ "off": [
+  "Starburst - L33",
+  "Starburst - L32"
+ ]
+}

@@ -1,0 +1,12 @@
+geometry-triangle|Insert, Triangle, 2in, Starburst, Red_001
+geometry-rectangle|Insert, Rectangle, 2.25x1.125in, Starburst, Red_001
+geometry-circle|Insert, Circle, 1in, Starburst, Red_001
+geometry-banana|temp banana
+geometry-diamond|Insert, Circle, 1.1875in, Starburst, Red_002
+geometry-flash|Insert, Circle, 1.1875in, Starburst, Red_003
+geometry-bullet|Insert, Bullet, 1.75x0.625in, Ribbed
+geometry-arrow|Insert, Circle, 1.1875in, Starburst, Red_001
+geometry-custom|Insert, Arrow, 2.5in, Stippled
+section-0|Insert, Triangle, 2in, Starburst, Red_001|0
+section-360|Insert, Triangle, 2in, Starburst, Red_001|360
+section-720|Insert, Triangle, 2in, Starburst, Red_001|720

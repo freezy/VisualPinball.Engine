@@ -1,0 +1,53 @@
+{
+ "insert": "Red, L81",
+ "unlit": "Red, L82",
+ "shots": [
+  {
+   "name": "m-min-brightness-0",
+   "camOffset": [
+    0,
+    0.1,
+    -0.004
+   ],
+   "floats": [
+    "_InsertMinBrightness=0"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-min-brightness-0.485",
+   "camOffset": [
+    0,
+    0.1,
+    -0.004
+   ],
+   "floats": [
+    "_InsertMinBrightness=0.485"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-min-brightness-1",
+   "camOffset": [
+    0,
+    0.1,
+    -0.004
+   ],
+   "floats": [
+    "_InsertMinBrightness=1"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  }
+ ],
+ "off": [
+  "Starburst - L71",
+  "Starburst, L83",
+  "Starburst - L72"
+ ]
+}

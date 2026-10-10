@@ -13,7 +13,8 @@
 					"*.md"
 				],
 				"exclude": [
-					"creators-guide/editor/inserts/visuals.md"
+					"creators-guide/editor/inserts/visuals.md",
+					"**/AGENTS.md"
 				]
 			},
 			{

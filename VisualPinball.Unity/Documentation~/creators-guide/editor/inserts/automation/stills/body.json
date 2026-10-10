@@ -1,0 +1,1351 @@
+{
+ "insert": "Starburst - L35",
+ "unlit": "Starburst - L34",
+ "off": [
+  "Starburst - L33",
+  "Starburst - L32"
+ ],
+ "shots": [
+  {
+   "name": "m-tint-white",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "colors": [
+    "_BaseColor=1,1,1"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-tint-red",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "colors": [
+    "_BaseColor=1,0.3,0.3"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-tint-blue",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "colors": [
+    "_BaseColor=0.4,0.6,1"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-clarity-0",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_InsertClarity=0",
+    "_InsertMinBrightness=0.1"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-clarity-0.5",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_InsertClarity=0.5",
+    "_InsertMinBrightness=0.1"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-clarity-1",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_InsertClarity=1",
+    "_InsertMinBrightness=0.1"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-cavity-color-dark",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "colors": [
+    "_InsertCavityColor=0.3,0.3,0.3"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-cavity-color-cool",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "colors": [
+    "_InsertCavityColor=0.7,0.76,0.86"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-cavity-color-warm",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "colors": [
+    "_InsertCavityColor=0.9,0.8,0.55"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-cavity-spread-1",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_InsertCavitySpread=1"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-cavity-spread-2.5",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_InsertCavitySpread=2.5"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-cavity-spread-8",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_InsertCavitySpread=8"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-cavity-contrast-0",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_InsertCavityContrast=0",
+    "_InsertCavitySpread=1"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-cavity-contrast-0.5",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_InsertCavityContrast=0.5",
+    "_InsertCavitySpread=1"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-cavity-contrast-1",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_InsertCavityContrast=1",
+    "_InsertCavitySpread=1"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-smoothness-0.65",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_Smoothness=0.65",
+    "_InsertFacetFlatten=0.95"
+   ],
+   "noCover": true
+  },
+  {
+   "name": "m-smoothness-0.9",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_Smoothness=0.9",
+    "_InsertFacetFlatten=0.95"
+   ],
+   "noCover": true
+  },
+  {
+   "name": "m-smoothness-1",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_Smoothness=1",
+    "_InsertFacetFlatten=0.95"
+   ],
+   "noCover": true
+  },
+  {
+   "name": "m-facet-flatten-0",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_InsertFacetFlatten=0"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-facet-flatten-0.2",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_InsertFacetFlatten=0.2"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-facet-flatten-0.95",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_InsertFacetFlatten=0.95"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-surface-grain-0",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_SurfaceGrain=0"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-surface-grain-0.5",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_SurfaceGrain=0.5"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-surface-grain-1",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_SurfaceGrain=1"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-surface-grain-size-0.1",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_SurfaceGrainSize=0.1",
+    "_SurfaceGrain=1"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-surface-grain-size-0.75",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_SurfaceGrainSize=0.75",
+    "_SurfaceGrain=1"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-surface-grain-size-5",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_SurfaceGrainSize=5",
+    "_SurfaceGrain=1"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-grain-0",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_OpticalGrain=0"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-grain-0.6",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_OpticalGrain=0.6"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-grain-1",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_OpticalGrain=1"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-max-brightness-0.1",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_InsertLuminosity=0.1"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-max-brightness-0.39",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_InsertLuminosity=0.39"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-max-brightness-1.5",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_InsertLuminosity=1.5"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-lamp-emission-quarter",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "colors": [
+    "_EmissiveColor=341.78,341.78,341.78"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-lamp-emission-neutral",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "colors": [
+    "_EmissiveColor=1367.12,1367.12,1367.12"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-lamp-emission-warm",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "colors": [
+    "_EmissiveColor=1367.12,884.6,482.5"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-radius-0.002",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "lamps": [
+    "0,-0.0215305761,0,0.002",
+    "0,0,0,0",
+    "0,0,0,0",
+    "0,0,0,0"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-radius-0.00589",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "lamps": [
+    "0,-0.0215305761,0,0.00589",
+    "0,0,0,0",
+    "0,0,0,0",
+    "0,0,0,0"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-radius-0.012",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "lamps": [
+    "0,-0.0215305761,0,0.012",
+    "0,0,0,0",
+    "0,0,0,0",
+    "0,0,0,0"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-strength-0",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_OpticalLampGain=0"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-strength-2",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_OpticalLampGain=2"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-strength-5",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_OpticalLampGain=5"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-ior-1.01",
+   "camOffset": [
+    0.02,
+    0.045,
+    -0.02
+   ],
+   "lookOffset": [
+    0,
+    0,
+    0
+   ],
+   "frameBoth": false,
+   "floats": [
+    "_OpticalIor=1.01"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-ior-1.586",
+   "camOffset": [
+    0.02,
+    0.045,
+    -0.02
+   ],
+   "lookOffset": [
+    0,
+    0,
+    0
+   ],
+   "frameBoth": false,
+   "floats": [
+    "_OpticalIor=1.586"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-ior-2",
+   "camOffset": [
+    0.02,
+    0.045,
+    -0.02
+   ],
+   "lookOffset": [
+    0,
+    0,
+    0
+   ],
+   "frameBoth": false,
+   "floats": [
+    "_OpticalIor=2"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-lamp-spread-1",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_OpticalSpread=1"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-lamp-spread-12",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_OpticalSpread=12"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-lamp-spread-100",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_OpticalSpread=100"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-baked-scatter-0",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_OpticalScatter=0"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-baked-scatter-1.2",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_OpticalScatter=1.2"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-baked-scatter-2",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_OpticalScatter=2"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-edge-glow-0",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_OpticalEdgeGlow=0"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-edge-glow-0.22",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_OpticalEdgeGlow=0.22"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-edge-glow-3",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_OpticalEdgeGlow=3"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-roughness-0",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_InsertRoughness=0",
+    "_OpticalScatter=0.4"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-roughness-0.5",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_InsertRoughness=0.5",
+    "_OpticalScatter=0.4"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-roughness-1",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_InsertRoughness=1",
+    "_OpticalScatter=0.4"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-facet-contrast-0",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_OpticalContrast=0",
+    "_OpticalScatter=0.4"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-facet-contrast-0.25",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_OpticalContrast=0.25",
+    "_OpticalScatter=0.4"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-facet-contrast-1",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_OpticalContrast=1",
+    "_OpticalScatter=0.4"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-mottle-amount-0",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_OpticalVariation=0",
+    "_OpticalMottleSize=1"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-mottle-amount-0.45",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_OpticalVariation=0.45",
+    "_OpticalMottleSize=1"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-mottle-amount-0.908",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_OpticalVariation=0.908",
+    "_OpticalMottleSize=1"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-mottle-size-0.2",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_OpticalMottleSize=0.2"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-mottle-size-1",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_OpticalMottleSize=1"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-mottle-size-5",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_OpticalMottleSize=5"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-variation-seed-3.32",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_OpticalSeed=3.32",
+    "_OpticalMottleSize=1"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-variation-seed-7",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_OpticalSeed=7",
+    "_OpticalMottleSize=1"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-variation-seed-23",
+   "camOffset": [
+    0.00298807025,
+    0.0600357875,
+    -0.00228381157
+   ],
+   "lookOffset": [
+    0.00298807025,
+    3.579026e-05,
+    0.0007161796
+   ],
+   "floats": [
+    "_OpticalSeed=23",
+    "_OpticalMottleSize=1"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  }
+ ]
+}

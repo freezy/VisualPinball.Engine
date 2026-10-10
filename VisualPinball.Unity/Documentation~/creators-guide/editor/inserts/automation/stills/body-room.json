@@ -1,0 +1,370 @@
+{
+ "insert": "Starburst - L34",
+ "unlit": "Starburst - L35",
+ "off": [
+  "Starburst - L33",
+  "Starburst - L32"
+ ],
+ "shots": [
+  {
+   "name": "m-room-return-0",
+   "camOffset": [
+    0.02023,
+    0.03726,
+    0.00189
+   ],
+   "lookOffset": [
+    0.00334,
+    0,
+    -0.01311
+   ],
+   "frameBoth": true,
+   "floats": [
+    "_InsertRoomReturn=0"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-room-return-0.775",
+   "camOffset": [
+    0.02023,
+    0.03726,
+    0.00189
+   ],
+   "lookOffset": [
+    0.00334,
+    0,
+    -0.01311
+   ],
+   "frameBoth": true,
+   "floats": [
+    "_InsertRoomReturn=0.775"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-room-return-1",
+   "camOffset": [
+    0.02023,
+    0.03726,
+    0.00189
+   ],
+   "lookOffset": [
+    0.00334,
+    0,
+    -0.01311
+   ],
+   "frameBoth": true,
+   "floats": [
+    "_InsertRoomReturn=1"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-room-blur-0",
+   "camOffset": [
+    0.02023,
+    0.03726,
+    0.00189
+   ],
+   "lookOffset": [
+    0.00334,
+    0,
+    -0.01311
+   ],
+   "frameBoth": true,
+   "floats": [
+    "_InsertRoomBlur=0"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-room-blur-3",
+   "camOffset": [
+    0.02023,
+    0.03726,
+    0.00189
+   ],
+   "lookOffset": [
+    0.00334,
+    0,
+    -0.01311
+   ],
+   "frameBoth": true,
+   "floats": [
+    "_InsertRoomBlur=3"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-room-blur-6",
+   "camOffset": [
+    0.02023,
+    0.03726,
+    0.00189
+   ],
+   "lookOffset": [
+    0.00334,
+    0,
+    -0.01311
+   ],
+   "frameBoth": true,
+   "floats": [
+    "_InsertRoomBlur=6"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-room-return-exposure--2",
+   "camOffset": [
+    0.02023,
+    0.03726,
+    0.00189
+   ],
+   "lookOffset": [
+    0.00334,
+    0,
+    -0.01311
+   ],
+   "frameBoth": true,
+   "floats": [
+    "_InsertRoomReturnEV=-2"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-room-return-exposure-0",
+   "camOffset": [
+    0.02023,
+    0.03726,
+    0.00189
+   ],
+   "lookOffset": [
+    0.00334,
+    0,
+    -0.01311
+   ],
+   "frameBoth": true,
+   "floats": [
+    "_InsertRoomReturnEV=0"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-room-return-exposure-3",
+   "camOffset": [
+    0.02023,
+    0.03726,
+    0.00189
+   ],
+   "lookOffset": [
+    0.00334,
+    0,
+    -0.01311
+   ],
+   "frameBoth": true,
+   "floats": [
+    "_InsertRoomReturnEV=3"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-surface-normal-strength-0",
+   "camOffset": [
+    0.02023,
+    0.03726,
+    0.00189
+   ],
+   "lookOffset": [
+    0.00334,
+    0,
+    -0.01311
+   ],
+   "frameBoth": true,
+   "floats": [
+    "_NormalStrength=0"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-surface-normal-strength-1",
+   "camOffset": [
+    0.02023,
+    0.03726,
+    0.00189
+   ],
+   "lookOffset": [
+    0.00334,
+    0,
+    -0.01311
+   ],
+   "frameBoth": true,
+   "floats": [
+    "_NormalStrength=1"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-surface-normal-strength-2",
+   "camOffset": [
+    0.02023,
+    0.03726,
+    0.00189
+   ],
+   "lookOffset": [
+    0.00334,
+    0,
+    -0.01311
+   ],
+   "frameBoth": true,
+   "floats": [
+    "_NormalStrength=2"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-flecks-0",
+   "camOffset": [
+    0.01763,
+    0.03152,
+    -0.00043
+   ],
+   "lookOffset": [
+    0.00334,
+    0,
+    -0.01311
+   ],
+   "frameBoth": true,
+   "floats": [
+    "_OpticalFlecks=0"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-flecks-0.5",
+   "camOffset": [
+    0.01763,
+    0.03152,
+    -0.00043
+   ],
+   "lookOffset": [
+    0.00334,
+    0,
+    -0.01311
+   ],
+   "frameBoth": true,
+   "floats": [
+    "_OpticalFlecks=0.5"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-flecks-1",
+   "camOffset": [
+    0.01763,
+    0.03152,
+    -0.00043
+   ],
+   "lookOffset": [
+    0.00334,
+    0,
+    -0.01311
+   ],
+   "frameBoth": true,
+   "floats": [
+    "_OpticalFlecks=1"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-fleck-size-0.1",
+   "camOffset": [
+    0.01763,
+    0.03152,
+    -0.00043
+   ],
+   "lookOffset": [
+    0.00334,
+    0,
+    -0.01311
+   ],
+   "frameBoth": true,
+   "floats": [
+    "_OpticalFleckSize=0.1"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-fleck-size-0.2",
+   "camOffset": [
+    0.01763,
+    0.03152,
+    -0.00043
+   ],
+   "lookOffset": [
+    0.00334,
+    0,
+    -0.01311
+   ],
+   "frameBoth": true,
+   "floats": [
+    "_OpticalFleckSize=0.2"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  },
+  {
+   "name": "m-fleck-size-1",
+   "camOffset": [
+    0.01763,
+    0.03152,
+    -0.00043
+   ],
+   "lookOffset": [
+    0.00334,
+    0,
+    -0.01311
+   ],
+   "frameBoth": true,
+   "floats": [
+    "_OpticalFleckSize=1"
+   ],
+   "coverFloats": [
+    "_CoverOpacity=0"
+   ]
+  }
+ ]
+}
