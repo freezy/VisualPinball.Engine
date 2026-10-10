@@ -65,7 +65,8 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private string MeshName => $"Insert (generated) {GetEntityId()}";
+		private const string MeshNamePrefix = "Insert (generated) ";
+		private string MeshName => MeshNamePrefix + GetEntityId();
 
 		#region Data
 
@@ -1036,16 +1037,34 @@ namespace VisualPinball.Unity
 			var filter = GetComponent<MeshFilter>();
 			var mesh = filter.sharedMesh;
 			if (OwnsMesh(mesh)) {
+				// One saved into the scene before generated meshes stopped being saved.
+				mesh.hideFlags |= HideFlags.DontSave;
 				if (_generatedMesh != mesh) { ReleaseGeneratedMesh(); }
 				_generatedMesh = mesh;
 				return mesh;
 			}
 
 			ReleaseGeneratedMesh();
-			mesh = new Mesh { name = MeshName };
+			// Never saved: the insert rebuilds it from its own fields whenever it is
+			// enabled, so a copy in the scene is only dead weight, and one left behind
+			// by an earlier session, whose name no longer matches, was never cleaned up.
+			mesh = new Mesh { name = MeshName, hideFlags = HideFlags.DontSave };
 			_generatedMesh = mesh;
 			filter.sharedMesh = mesh;
 			return mesh;
+		}
+
+		/// <summary>
+		/// Keeps a generated mesh that an older version saved into the scene from
+		/// being saved again. An inactive insert never rebuilds, so it still holds
+		/// one; it is built again the next time the insert is enabled or exported.
+		/// </summary>
+		internal void UnsaveLegacyMesh()
+		{
+			var mesh = GetComponent<MeshFilter>()?.sharedMesh;
+			if (mesh != null && !IsAsset(mesh) && mesh.name.StartsWith(MeshNamePrefix, StringComparison.Ordinal)) {
+				mesh.hideFlags |= HideFlags.DontSave;
+			}
 		}
 
 		private bool OwnsMesh(Mesh mesh) => mesh != null && mesh.name == MeshName && !IsAsset(mesh);
@@ -1145,7 +1164,15 @@ namespace VisualPinball.Unity
 			_coverPlayfield = playfield;
 		}
 
-		public void PrepareForPackageExport() => UpdateCover(true);
+		public void PrepareForPackageExport()
+		{
+			// An inactive insert has not been enabled since the scene loaded, so it has
+			// no mesh yet: it is built now, for the export to find.
+			if (!_usesPackagedMesh && !OwnsMesh(GetComponent<MeshFilter>().sharedMesh)) {
+				RebuildMesh();
+			}
+			UpdateCover(true);
+		}
 
 #if UNITY_EDITOR
 		/// <summary>Which living, enabled insert holds which id, so a duplicate shows up on arrival.</summary>
