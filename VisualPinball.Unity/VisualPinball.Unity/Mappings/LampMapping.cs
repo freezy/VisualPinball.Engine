@@ -64,9 +64,18 @@ namespace VisualPinball.Unity
 		public void RestoreReference(PackagedRefs refs)
 		{
 			var node = refs.GetNode(_deviceId);
-			_device = node && !string.IsNullOrEmpty(_deviceType) && refs.TryGetType(_deviceType, out var type)
+			if (!node) {
+				_device = null;
+				return;
+			}
+			// Packages written before the device type was saved, or naming a type that is
+			// gone, find the device by its interface, as they always did.
+			_device = !string.IsNullOrEmpty(_deviceType) && refs.TryGetType(_deviceType, out var type)
 				? node.GetComponent(type) as MonoBehaviour
 				: null;
+			if (!_device) {
+				_device = node.GetComponent<ILampDeviceComponent>() as MonoBehaviour;
+			}
 		}
 	}
 }

@@ -1380,7 +1380,16 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public float CoverThickness => Outline != null
 			? math.max(0.1f, -InsertMeshGenerator.ToLocal(float2.zero, -Body.Depth + Body.ChannelDepth).y * 1000f)
-			: 4f;
+			: _packagedCoverThickness > 0f ? _packagedCoverThickness : 4f;
+
+		// A packaged insert keeps its GLB mesh and has no outline to measure: the thickness comes with it.
+		private float _packagedCoverThickness;
+
+		internal void RestorePackagedCoverThickness(float millimetres)
+		{
+			_packagedCoverThickness = millimetres;
+			_coverThicknessApplied = false;
+		}
 
 		/// <summary>
 		/// Writes the slab's thickness into the cover's property block, once

@@ -10,14 +10,18 @@ namespace VisualPinball.Unity
 	public struct InsertPackable
 	{
 		public bool UsePlayfieldNormals;
+		/// <summary>How deep the plastic is under the cover, in millimetres; the GLB mesh doesn't say. Zero in older packages.</summary>
+		public float CoverThickness;
 
 		public static byte[] Pack(InsertComponent insert) => PackageApi.Packer.Pack(new InsertPackable {
 			UsePlayfieldNormals = insert.UsePlayfieldNormals,
+			CoverThickness = insert.CoverThickness,
 		});
 
 		public static void Unpack(byte[] bytes, InsertComponent insert)
 		{
 			var data = PackageApi.Packer.Unpack<InsertPackable>(bytes);
+			insert.RestorePackagedCoverThickness(data.CoverThickness);
 			insert.RestoreCoverState(data.UsePlayfieldNormals, null);
 			insert.UseImportedMesh(true);
 		}

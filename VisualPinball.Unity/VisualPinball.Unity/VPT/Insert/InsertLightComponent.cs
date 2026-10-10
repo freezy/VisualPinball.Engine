@@ -143,6 +143,8 @@ namespace VisualPinball.Unity
 		private float _level;
 		private float _blinkStarted;
 		private readonly float[] _bulbLevels = new float[MaxBulbs - 1];
+		// The frame the fades last moved on: the setters and LateUpdate all apply, a fade moves once a frame.
+		private int _fadedFrame = -1;
 		private string _patternSource;
 		private bool[] _pattern = { true, false };
 
@@ -553,12 +555,16 @@ namespace VisualPinball.Unity
 			// blinking it follows, or through its own status, towards which it
 			// fades at its own pace. Outside the game, what is authored shows.
 			var game = Application.isPlaying && (_driven || IsControlledByApi);
+			var fadeStep = game && Time.frameCount != _fadedFrame ? Time.deltaTime : 0f;
+			if (game) {
+				_fadedFrame = Time.frameCount;
+			}
 			if (Application.isPlaying && _driver != null && !IsControlledByApi) {
 				level = _properties.HasFloat(LevelId) ? math.saturate(_properties.GetFloat(LevelId)) : 0f;
 				color = _properties.HasVector(ColorId) ? (Color)_properties.GetVector(ColorId) : UnityEngine.Color.white;
 			} else {
 				if (game) {
-					_level = Fade(_level, Wanted(), FadeSpeedUp, FadeSpeedDown, Time.deltaTime);
+					_level = Fade(_level, Wanted(), FadeSpeedUp, FadeSpeedDown, fadeStep);
 					level = _level;
 				}
 				_properties.SetFloat(LevelId, level);
@@ -575,7 +581,7 @@ namespace VisualPinball.Unity
 				var drive = bulb != null ? bulb.Color.linear : UnityEngine.Color.white;
 				var bulbLevel = bulb != null ? math.saturate(bulb.Intensity) : 0f;
 				if (game) {
-					_bulbLevels[i] = Fade(_bulbLevels[i], bulbLevel, FadeSpeedUp, FadeSpeedDown, Time.deltaTime);
+					_bulbLevels[i] = Fade(_bulbLevels[i], bulbLevel, FadeSpeedUp, FadeSpeedDown, fadeStep);
 					bulbLevel = _bulbLevels[i];
 				}
 				_properties.SetVector(BulbColorIds[i], new Vector4(drive.r, drive.g, drive.b, bulbLevel));
