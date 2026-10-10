@@ -56,6 +56,62 @@ namespace VisualPinball.Unity.Test
 			}
 		}
 
+		[TestCase(65536, TestName = "ShouldReloadEveryCornerFromDiskWithSixteenBitIndices")]
+		[TestCase(65537, TestName = "ShouldReloadEveryCornerFromDiskWithThirtyTwoBitIndices")]
+		public void ShouldReloadEveryCornerFromDisk(int distinct)
+		{
+			// Distinct pairs on a grid the stored precision holds exactly, then the first thousand again.
+			var pairs = Enumerable.Range(0, distinct).Select(i => (
+				uv: new Vector2((i % 256) / 256f, (i / 256 % 256) / 256f),
+				tangent: new Vector4(i < 65536 ? 1f : 0f, i < 65536 ? 0f : 1f, 0f, 1f)
+			)).ToList();
+			pairs.AddRange(pairs.Take(1000));
+			var bake = ScriptableObject.CreateInstance<InsertBakeData>();
+			bake.Uvs = pairs.Select(p => p.uv).ToArray();
+			bake.Tangents = pairs.Select(p => p.tangent).ToArray();
+			var uvs = (Vector2[])bake.Uvs.Clone();
+			var tangents = (Vector4[])bake.Tangents.Clone();
+
+			AssetDatabase.CreateAsset(bake, _path);
+			AssetDatabase.SaveAssets();
+			Assert.That(File.ReadAllText(_path), Does.Contain($"_cornerIndices: {(distinct > 65536 ? "00000000" : "0000")}"));
+
+			// Forget them in memory and unload the asset, so that only a read from disk brings them back.
+			bake.Uvs = null;
+			bake.Tangents = null;
+			Resources.UnloadAsset(bake);
+			var read = AssetDatabase.LoadAssetAtPath<InsertBakeData>(_path);
+
+			Assert.That(read.Uvs, Is.EqualTo(uvs));
+			Assert.That(read.Tangents, Is.EqualTo(tangents));
+		}
+
+		[Test]
+		public void ShouldReadADamagedBakeAsNone()
+		{
+			// Three corners, the last pointing past the only record.
+			File.WriteAllText(_path, string.Join("\n",
+				"%YAML 1.1",
+				"%TAG !u! tag:unity3d.com,2011:",
+				"--- !u!114 &11400000",
+				"MonoBehaviour:",
+				"  m_ObjectHideFlags: 0",
+				"  m_Enabled: 1",
+				"  m_Script: {fileID: 11500000, guid: 952b3dd998a9d2b47bbb3aaa4fce0c8f, type: 3}",
+				"  m_Name: Damaged Bake",
+				"  Hash: 0123456789abcdef0123456789abcdef",
+				"  _cornerCount: 3",
+				"  _cornerIndices: 000000000500",
+				"  _cornerData: 004000c07f00007f",
+				""));
+			AssetDatabase.ImportAsset(_path, ImportAssetOptions.ForceUpdate);
+
+			var bake = AssetDatabase.LoadAssetAtPath<InsertBakeData>(_path);
+			Assert.That(bake, Is.Not.Null);
+			Assert.That(bake.Uvs, Is.Null);
+			Assert.That(bake.Tangents, Is.Null);
+		}
+
 		[Test]
 		public void ShouldReadABakeSavedWithALineForEveryCorner()
 		{
