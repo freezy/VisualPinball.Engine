@@ -1115,6 +1115,16 @@ namespace VisualPinball.Unity
 		{
 			if (_packageImportDepth == 0) { RebuildMesh(); }
 		}
+		private void Awake()
+		{
+			// The generated mesh isn't saved with the scene, and a disabled insert
+			// never gets OnEnable, though its renderer still draws: it is built here.
+			if (enabled || _packageImportDepth > 0 || _usesPackagedMesh) { return; }
+			if (!OwnsMesh(GetComponent<MeshFilter>().sharedMesh)) {
+				RebuildMesh();
+			}
+		}
+
 		private void OnEnable()
 		{
 			if (_packageImportDepth > 0) { return; }
