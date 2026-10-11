@@ -116,6 +116,21 @@ namespace VisualPinball.Unity
 		private readonly int[] _snapshotSpinnerIds;
 		private readonly int[] _snapshotTriggerIds;
 		private readonly int[] _snapshotSpringHingeIds;
+
+		/// <summary>
+		/// Last four physics-step poses per ball, so every snapshot carries the
+		/// history the main thread interpolates over. Double-buffered by ball
+		/// order, sized <see cref="SimulationState.MaxBalls"/>. Owned by the
+		/// simulation thread (<see cref="SnapshotAnimations"/>).
+		/// </summary>
+		private SimulationState.BallSnapshot[] _ballHistory = new SimulationState.BallSnapshot[SimulationState.MaxBalls];
+		private SimulationState.BallSnapshot[] _nextBallHistory = new SimulationState.BallSnapshot[SimulationState.MaxBalls];
+		private int _ballHistoryCount;
+		private long _ballHistoryTime0;
+		private long _ballHistoryTime1;
+		private long _ballHistoryTime2;
+		private long _ballHistoryTime3;
+
 		private bool _ballSnapshotOverflowWarningIssued;
 		private bool _ownedSnapshotSuppressionWarningIssued;
 		private bool _floatSnapshotOverflowWarningIssued;
@@ -637,6 +652,15 @@ namespace VisualPinball.Unity
 		internal void SnapshotAnimations(ref SimulationState.Snapshot snapshot)
 		{
 			// --- Balls ---
+			// Shift the pose history when physics advanced since the last snapshot.
+			var physicsTimeUsec = (long)_ctx.PhysicsEnv.CurPhysicsFrameTime;
+			var physicsAdvanced = physicsTimeUsec != _ballHistoryTime0;
+			if (physicsAdvanced) {
+				_ballHistoryTime3 = _ballHistoryTime2;
+				_ballHistoryTime2 = _ballHistoryTime1;
+				_ballHistoryTime1 = _ballHistoryTime0;
+				_ballHistoryTime0 = physicsTimeUsec;
+			}
 			var ballCount = 0;
 			var ballSourceCount = 0;
 			using (var enumerator = _ctx.BallStates.Ref.GetEnumerator()) {
@@ -647,16 +671,25 @@ namespace VisualPinball.Unity
 					}
 
 					ref var ball = ref enumerator.Current.Value;
-					snapshot.BallSnapshots[ballCount] = new SimulationState.BallSnapshot {
+					var ballSnapshot = new SimulationState.BallSnapshot {
 						Id = ball.Id,
 						Position = ball.Position,
 						Radius = ball.Radius,
 						IsFrozen = ball.IsFrozen ? (byte)1 : (byte)0,
 						Orientation = ball.BallOrientationForUnity
 					};
+					SnapshotBallHistory(ref ballSnapshot, physicsAdvanced);
+					_nextBallHistory[ballCount] = ballSnapshot;
+					snapshot.BallSnapshots[ballCount] = ballSnapshot;
 					ballCount++;
 				}
 			}
+			(_ballHistory, _nextBallHistory) = (_nextBallHistory, _ballHistory);
+			_ballHistoryCount = ballCount;
+			snapshot.PhysicsTimeUsec = _ballHistoryTime0;
+			snapshot.PhysicsTimeUsec1 = _ballHistoryTime1;
+			snapshot.PhysicsTimeUsec2 = _ballHistoryTime2;
+			snapshot.PhysicsTimeUsec3 = _ballHistoryTime3;
 			var suppressOwnedSnapshot = ShouldSuppressOwnedSnapshot(
 				_snapshotSpringHingeIds.Length, ballSourceCount);
 			snapshot.BallCount = suppressOwnedSnapshot ? 0 : ballCount;
@@ -798,6 +831,58 @@ namespace VisualPinball.Unity
 			snapshot.PlumbTiltHigh = _ctx.PhysicsEnv.Plumb.TiltHigh ? (byte)1 : (byte)0;
 		}
 
+		/// <summary>
+		/// Fill the previous three physics-step poses of a ball snapshot from
+		/// the history of the last snapshot. A new ball, or one that jumped
+		/// further than it can move (teleport), gets its current pose as
+		/// history, so the renderer snaps it instead of sliding it across the
+		/// playfield.
+		/// </summary>
+		/// <remarks>
+		/// <b>Thread:</b> Simulation thread. Allocation-free; linear search over
+		/// at most <see cref="SimulationState.MaxBalls"/> entries.
+		/// </remarks>
+		private void SnapshotBallHistory(ref SimulationState.BallSnapshot ball, bool physicsAdvanced)
+		{
+			var found = false;
+			for (var i = 0; i < _ballHistoryCount; i++) {
+				ref var last = ref _ballHistory[i];
+				if (last.Id != ball.Id) {
+					continue;
+				}
+				if (physicsAdvanced) {
+					ball.Position3 = last.Position2;
+					ball.Orientation3 = last.Orientation2;
+					ball.Position2 = last.Position1;
+					ball.Orientation2 = last.Orientation1;
+					ball.Position1 = last.Position;
+					ball.Orientation1 = last.Orientation;
+				} else {
+					ball.Position3 = last.Position3;
+					ball.Orientation3 = last.Orientation3;
+					ball.Position2 = last.Position2;
+					ball.Orientation2 = last.Orientation2;
+					ball.Position1 = last.Position1;
+					ball.Orientation1 = last.Orientation1;
+				}
+				found = true;
+				break;
+			}
+
+			if (!found || BallSnapshotInterpolation.IsTeleport(ball.Position1, ball.Position, ball.Radius)) {
+				ball.Position1 = ball.Position;
+				ball.Orientation1 = ball.Orientation;
+			}
+			if (!found || BallSnapshotInterpolation.IsTeleport(ball.Position2, ball.Position1, ball.Radius)) {
+				ball.Position2 = ball.Position1;
+				ball.Orientation2 = ball.Orientation1;
+			}
+			if (!found || BallSnapshotInterpolation.IsTeleport(ball.Position3, ball.Position2, ball.Radius)) {
+				ball.Position3 = ball.Position2;
+				ball.Orientation3 = ball.Orientation2;
+			}
+		}
+
 		#endregion
 
 		#region Main Thread — Threaded Mode
@@ -829,7 +914,7 @@ namespace VisualPinball.Unity
 
 			var applyStartTicks = Stopwatch.GetTimestamp();
 			ref readonly var snapshot = ref _ctx.SimulationState.AcquireReadBuffer();
-			ApplyMovementsFromSnapshot(in snapshot);
+			ApplyMovementsFromSnapshot(in snapshot, applyStartTicks);
 			if (SimulationTrace.IsRecording) {
 				ref var frame = ref SimulationTrace.Frame;
 				frame.ApplyUsec = SimulationTrace.ElapsedUsec(applyStartTicks, Stopwatch.GetTimestamp());
@@ -850,13 +935,31 @@ namespace VisualPinball.Unity
 		/// <b>Thread:</b> Main thread only. Lock-free.<br/>
 		/// The single-threaded path uses <see cref="ApplyAllMovements"/> instead.
 		/// </remarks>
-		private void ApplyMovementsFromSnapshot(in SimulationState.Snapshot snapshot)
+		/// <param name="snapshot">Latest published snapshot.</param>
+		/// <param name="nowTimestamp"><see cref="Stopwatch"/> timestamp of this frame's apply.</param>
+		private void ApplyMovementsFromSnapshot(in SimulationState.Snapshot snapshot, long nowTimestamp)
 		{
-			// Balls
+			// Balls, interpolated to a render time that advances with the wall
+			// clock (see BallSnapshotInterpolation), unless disabled.
+			var interpolate = _physicsEngine.InterpolateBallMovement;
+			var segment = 0;
+			var t = 1f;
+			if (interpolate) {
+				var renderTimeUsec = BallSnapshotInterpolation.RenderTimeUsec(snapshot.SimulationTimeUsec,
+					ElapsedUsec(snapshot.TickScheduledTimestamp, nowTimestamp),
+					_physicsEngine.CurrentSimulationClockScale);
+				t = BallSnapshotInterpolation.Segment(renderTimeUsec, snapshot.PhysicsTimeUsec,
+					snapshot.PhysicsTimeUsec1, snapshot.PhysicsTimeUsec2, snapshot.PhysicsTimeUsec3, out segment);
+			}
 			for (var i = 0; i < snapshot.BallCount; i++) {
 				var bs = snapshot.BallSnapshots[i];
 				if (bs.IsFrozen != 0) continue;
-				if (_ctx.BallComponents.TryGetValue(bs.Id, out var ballComponent)) {
+				if (!_ctx.BallComponents.TryGetValue(bs.Id, out var ballComponent)) continue;
+				if (interpolate) {
+					bs.GetPose(segment + 1, out var fromPosition, out var fromOrientation);
+					bs.GetPose(segment, out var toPosition, out var toOrientation);
+					ballComponent.Move(fromPosition, fromOrientation, toPosition, toOrientation, t);
+				} else {
 					var ballState = new BallState {
 						Id = bs.Id,
 						Position = bs.Position,

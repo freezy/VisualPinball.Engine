@@ -27,6 +27,7 @@ namespace VisualPinball.Unity.Editor
 		private SerializedProperty _keyboardNudgeStrengthProperty;
 		private SerializedProperty _keyboardCabinetDampingProperty;
 		private SerializedProperty _visualNudgeStrengthProperty;
+		private SerializedProperty _interpolateBallMovementProperty;
 
 		private void OnEnable()
 		{
@@ -35,6 +36,7 @@ namespace VisualPinball.Unity.Editor
 			_keyboardNudgeStrengthProperty = serializedObject.FindProperty(nameof(PhysicsEngine.KeyboardNudgeStrength));
 			_keyboardCabinetDampingProperty = serializedObject.FindProperty(nameof(PhysicsEngine.KeyboardCabinetDamping));
 			_visualNudgeStrengthProperty = serializedObject.FindProperty(nameof(PhysicsEngine.VisualNudgeStrength));
+			_interpolateBallMovementProperty = serializedObject.FindProperty(nameof(PhysicsEngine.InterpolateBallMovement));
 		}
 
 		public override void OnInspectorGUI()
@@ -54,6 +56,10 @@ namespace VisualPinball.Unity.Editor
 
 			EditorGUILayout.LabelField("Visual Nudge", EditorStyles.boldLabel);
 			EditorGUILayout.PropertyField(_visualNudgeStrengthProperty, new GUIContent("Strength"));
+			EditorGUILayout.Space();
+
+			EditorGUILayout.LabelField("Rendering", EditorStyles.boldLabel);
+			EditorGUILayout.PropertyField(_interpolateBallMovementProperty, new GUIContent("Interpolate Balls"));
 
 			if (EditorGUI.EndChangeCheck()) {
 				serializedObject.ApplyModifiedProperties();

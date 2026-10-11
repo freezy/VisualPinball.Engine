@@ -65,6 +65,33 @@ namespace VisualPinball.Unity.Simulation
 			public float Radius;
 			public byte IsFrozen; // 0 = no, 1 = yes
 			public float3x3 Orientation; // BallOrientationForUnity
+
+			/// <summary>
+			/// Poses of the previous three physics steps, at
+			/// <see cref="Snapshot.PhysicsTimeUsec1"/> to
+			/// <see cref="Snapshot.PhysicsTimeUsec3"/>, for render interpolation.
+			/// A new or teleported ball gets its current pose here, so the
+			/// renderer snaps it instead of sliding it.
+			/// </summary>
+			public float3 Position1;
+			public float3x3 Orientation1;
+			public float3 Position2;
+			public float3x3 Orientation2;
+			public float3 Position3;
+			public float3x3 Orientation3;
+
+			/// <summary>
+			/// Pose by history index: 0 = current, 1-3 = previous physics steps.
+			/// </summary>
+			internal void GetPose(int index, out float3 position, out float3x3 orientation)
+			{
+				switch (index) {
+					case 0: position = Position; orientation = Orientation; break;
+					case 1: position = Position1; orientation = Orientation1; break;
+					case 2: position = Position2; orientation = Orientation2; break;
+					default: position = Position3; orientation = Orientation3; break;
+				}
+			}
 		}
 
 		/// <summary>
@@ -131,6 +158,24 @@ namespace VisualPinball.Unity.Simulation
 		{
 			// Timing
 			public long SimulationTimeUsec;
+
+			/// <summary>
+			/// <c>Stopwatch</c> timestamp at which the tick that produced
+			/// this snapshot was scheduled to start. Anchors
+			/// <see cref="SimulationTimeUsec"/> to the wall clock for render
+			/// interpolation, independent of how long the tick took.
+			/// </summary>
+			public long TickScheduledTimestamp;
+
+			/// <summary>
+			/// Physics time of the ball poses (<c>CurPhysicsFrameTime</c>), and of
+			/// the three previous physics steps the ball history refers to.
+			/// </summary>
+			public long PhysicsTimeUsec;
+			public long PhysicsTimeUsec1;
+			public long PhysicsTimeUsec2;
+			public long PhysicsTimeUsec3;
+
 			public long RealTimeUsec;
 			public long PublishRealTimeUsec;
 			public long SimulationTickDurationUsec;
@@ -286,10 +331,17 @@ namespace VisualPinball.Unity.Simulation
 		private int _writeIndex;
 
 		/// <summary>
-		/// Index of the most recently published buffer.
-		/// Shared between threads; accessed only via Interlocked.Exchange.
+		/// Index of the most recently published buffer, plus
+		/// <see cref="FreshFlag"/> while the main thread hasn't acquired it yet.
+		/// Shared between threads; accessed only via Interlocked/Volatile.
 		/// </summary>
 		private int _readyIndex;
+
+		/// <summary>
+		/// Set on <see cref="_readyIndex"/> by a publish, cleared by an acquire.
+		/// </summary>
+		private const int FreshFlag = 4;
+		private const int IndexMask = 3;
 
 		/// <summary>
 		/// Index of the buffer the main thread is currently reading from.
@@ -350,7 +402,7 @@ namespace VisualPinball.Unity.Simulation
 			// Atomically swap _readyIndex with our _writeIndex.
 			// After this, the old ready buffer becomes our new write buffer,
 			// and the data we just wrote is now the ready buffer.
-			_writeIndex = Interlocked.Exchange(ref _readyIndex, _writeIndex);
+			_writeIndex = Interlocked.Exchange(ref _readyIndex, _writeIndex | FreshFlag) & IndexMask;
 		}
 
 		#endregion
@@ -360,17 +412,24 @@ namespace VisualPinball.Unity.Simulation
 		/// <summary>
 		/// Acquire the latest published snapshot for reading.
 		/// Returns a ref to the acquired buffer that is safe to read until the
-		/// next call to <see cref="AcquireReadBuffer"/>.
+		/// next call to <see cref="AcquireReadBuffer"/>. If nothing was
+		/// published since the last call, the same buffer is returned again.
 		/// Allocation-free.
 		/// </summary>
 		/// <remarks><b>Thread:</b> Main thread only.</remarks>
 		internal ref readonly Snapshot AcquireReadBuffer()
 		{
-			// Atomically swap _readyIndex with our _readIndex.
-			// After this we own what was the ready buffer (latest data), and
-			// our previous read buffer goes back into the ready slot (which
-			// the sim thread may reclaim as write).
-			_readIndex = Interlocked.Exchange(ref _readyIndex, _readIndex);
+			// Only swap when the sim thread published since our last acquire.
+			// Swapping without new data would hand back the buffer we read the
+			// time before, i.e. an older snapshot, and the ball would step back
+			// for a frame (two frames within one tick, or a stalled sim thread).
+			if ((Volatile.Read(ref _readyIndex) & FreshFlag) != 0) {
+				// Atomically swap _readyIndex with our _readIndex.
+				// After this we own what was the ready buffer (latest data), and
+				// our previous read buffer goes back into the ready slot (which
+				// the sim thread may reclaim as write).
+				_readIndex = Interlocked.Exchange(ref _readyIndex, _readIndex) & IndexMask;
+			}
 			return ref GetBufferByIndex(_readIndex);
 		}
 
