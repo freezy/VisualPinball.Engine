@@ -38,7 +38,6 @@ namespace VisualPinball.Unity
 		internal NativeList<PointCollider> PointColliders;
 		internal NativeList<SpinnerCollider> SpinnerColliders;
 		internal NativeList<SpringHingeCollider> SpringHingeColliders;
-		internal NativeList<SweptCircleCollider> SweptCircleColliders;
 		internal NativeList<TriangleCollider> TriangleColliders;
 		internal NativeList<PlaneCollider> PlaneColliders;
 
@@ -65,7 +64,6 @@ namespace VisualPinball.Unity
 			PointColliders = new NativeList<PointCollider>(allocator);
 			SpinnerColliders = new NativeList<SpinnerCollider>(allocator);
 			SpringHingeColliders = new NativeList<SpringHingeCollider>(allocator);
-			SweptCircleColliders = new NativeList<SweptCircleCollider>(allocator);
 			TriangleColliders = new NativeList<TriangleCollider>(allocator);
 			PlaneColliders = new NativeList<PlaneCollider>(allocator);
 
@@ -90,7 +88,6 @@ namespace VisualPinball.Unity
 			PointColliders.Dispose();
 			SpinnerColliders.Dispose();
 			SpringHingeColliders.Dispose();
-			SweptCircleColliders.Dispose();
 			TriangleColliders.Dispose();
 			PlaneColliders.Dispose();
 			using (var enumerator = _itemIdToColliderIds.GetEnumerator()) {
@@ -153,16 +150,6 @@ namespace VisualPinball.Unity
 							}
 							#endif
 							line3DCollider.Transform(Line3DColliders[lookup.Index], math.inverse(matrix));
-							break;
-
-						case ColliderType.SweptCircle:
-							ref var sweptCircleCollider = ref SweptCircleColliders.GetElementAsRef(lookup.Index);
-							#if UNITY_EDITOR
-							if (sweptCircleCollider.Header.IsTransformed) {
-								throw new InvalidOperationException("A transformed swept-circle collider shouldn't have been added as a kinematic collider.");
-							}
-							#endif
-							sweptCircleCollider.TransformAabb(math.inverse(matrix));
 							break;
 
 						case ColliderType.Triangle:
@@ -271,7 +258,6 @@ namespace VisualPinball.Unity
 				case ColliderType.Point: return PointColliders.GetElementAsRef(lookup.Index);
 				case ColliderType.Spinner: return SpinnerColliders.GetElementAsRef(lookup.Index);
 				case ColliderType.SpringHinge: return SpringHingeColliders.GetElementAsRef(lookup.Index);
-				case ColliderType.SweptCircle: return SweptCircleColliders.GetElementAsRef(lookup.Index);
 				case ColliderType.Triangle: return TriangleColliders.GetElementAsRef(lookup.Index);
 				case ColliderType.Plane: return PlaneColliders.GetElementAsRef(lookup.Index);
 			}
@@ -370,32 +356,6 @@ namespace VisualPinball.Unity
 			TrackReference(collider.Header.ItemId, collider.Header.Id);
 			Lookups.Add(new ColliderLookup(ColliderType.Line3D, Line3DColliders.Length));
 			Line3DColliders.Add(collider);
-		}
-
-		internal void Add(SweptCircleCollider collider, float4x4 matrix)
-		{
-			// A static round cord is baked into playfield space, so non-uniform scale would
-			// change its circular cross-section into geometry this collider cannot represent.
-			if (!IsKinematic && !SweptCircleCollider.IsTransformable(matrix)) {
-				throw new InvalidOperationException("A swept-circle collider requires a uniformly scaled transform.");
-			}
-			if (IsKinematic) {
-				// Kinematic colliders use the engine's local-space ball transform path. As with
-				// other non-transformable colliders, non-uniform scale keeps the ball radius
-				// unchanged and is therefore an approximation, but remains safe at runtime.
-				if (!_nonTransformableColliderTransforms.ContainsKey(collider.Header.ItemId)) {
-					_nonTransformableColliderTransforms.Add(collider.Header.ItemId, matrix);
-				}
-				collider.Header.IsTransformed = false;
-				collider.TransformAabb(matrix);
-			} else {
-				collider.Header.IsTransformed = true;
-				collider.Transform(matrix);
-			}
-			collider.Id = Lookups.Length;
-			TrackReference(collider.Header.ItemId, collider.Header.Id);
-			Lookups.Add(new ColliderLookup(ColliderType.SweptCircle, SweptCircleColliders.Length));
-			SweptCircleColliders.Add(collider);
 		}
 
 		internal void Add(LineSlingshotCollider collider, float4x4 matrix)
@@ -595,9 +555,6 @@ namespace VisualPinball.Unity
 						break;
 					case ColliderType.SpringHinge:
 						array[i] = SpringHingeColliders[lookup.Index];
-						break;
-					case ColliderType.SweptCircle:
-						array[i] = SweptCircleColliders[lookup.Index];
 						break;
 					case ColliderType.Triangle:
 						array[i] = TriangleColliders[lookup.Index];

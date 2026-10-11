@@ -74,22 +74,6 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
-		/// Enables or disables the switch at a subset of its destinations.
-		/// </summary>
-		/// <remarks>
-		/// See <see cref="SwitchHandler.OnSwitch(bool,bool,bool)"/>. The public
-		/// <see cref="Switch"/> event is raised with the wire delivery, which is the raw
-		/// edge.
-		/// </remarks>
-		internal void SetSwitch(bool enabled, bool toEngine, bool toWires)
-		{
-			_switchHandler.OnSwitch(enabled, toEngine, toWires);
-			if (toWires) {
-				Switch?.Invoke(this, new SwitchEventArgs(enabled));
-			}
-		}
-
-		/// <summary>
 		/// Schedules the switch to be enabled or disabled.
 		/// </summary>
 		/// <param name="enabled">If true, closes mechanical switch or opens opto switch. If false, opens mechanical switch or closes opto switch.</param>

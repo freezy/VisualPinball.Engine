@@ -95,34 +95,6 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void DynamicBroadPhaseIgnoresBallsRemovedAfterRebuild()
-		{
-			var balls = new NativeParallelHashMap<int, BallState>(3, Allocator.Temp);
-			var overlaps = new NativeParallelHashSet<int>(3, Allocator.Temp);
-			NativeTrees.AABB bounds = new Aabb(new float3(-100f), new float3(100f));
-			var octree = new NativeOctree<int>(bounds, 16, 4, Allocator.Temp);
-			try {
-				balls.Add(1, CreateBall(1, float3.zero, float3.zero));
-				balls.Add(2, CreateBall(2, float3.zero, float3.zero));
-				balls.Add(3, CreateBall(3, float3.zero, float3.zero));
-				PhysicsDynamicBroadPhase.RebuildOctree(ref octree, ref balls, 0.5f);
-
-				var query = balls[1];
-				balls.Remove(2);
-				PhysicsDynamicBroadPhase.FindOverlaps(in octree, in query, ref overlaps, ref balls, 0.5f);
-
-				Assert.That(overlaps.Contains(2), Is.False,
-					"an octree entry for a removed ball must not reach the narrow phase");
-				Assert.That(overlaps.Contains(3), Is.True,
-					"filtering a removed ball must preserve valid overlap candidates");
-			} finally {
-				octree.Dispose();
-				overlaps.Dispose();
-				balls.Dispose();
-			}
-		}
-
-		[Test]
 		public void SpinCorrectionDoesNotRemoveMomentumFromAttachedBall()
 		{
 			var ball = CreateBall(1, float3.zero, float3.zero);

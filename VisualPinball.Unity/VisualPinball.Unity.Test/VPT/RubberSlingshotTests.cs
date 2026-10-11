@@ -7,7 +7,6 @@
 // (at your option) any later version.
 
 using System;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -36,8 +35,7 @@ namespace VisualPinball.Unity.Test
 				guideObjects[2].transform.position = new Vector3(0f, 0f, 0.1f);
 				var guides = guideObjects.Select(AddGuide).ToArray();
 				var rubber = rubberObject.AddComponent<RubberComponent>();
-				var collider = rubberObject.AddComponent<RubberColliderComponent>();
-				collider.Mode = RubberColliderMode.Physical;
+				rubberObject.AddComponent<RubberColliderComponent>();
 				rubber.SetGuideBindings(guides.Select(guide =>
 					new RubberGuideBinding(guide, guide.Slots[0].Id)));
 				Assert.That(RubberAutofit.TryBake(rubber, out _, out var bakeError),
@@ -59,6 +57,16 @@ namespace VisualPinball.Unity.Test
 					Is.EqualTo(resolvedForward.PathElementIndex));
 				Assert.That(resolvedReversed.IsReversed, Is.True);
 				Assert.That(resolvedReversed.ToPathCoordinate(0.2f), Is.EqualTo(0.8f));
+
+				// the inside is the same side whichever way the span is bound, and it
+				// is the side the rest of the rubber lies on
+				Assert.That(math.distance(resolvedReversed.InwardAt(0.2f),
+					resolvedForward.InwardAt(0.8f)), Is.LessThan(1e-5f));
+				var centroid = rubber.BakedPath.Aggregate(float2.zero,
+					(sum, path) => sum + path.Start) / rubber.BakedPath.Count;
+				var middle = resolvedForward.PointAt(0.5f);
+				Assert.That(math.dot(resolvedForward.InwardAt(0.5f), centroid - middle),
+					Is.GreaterThan(0f));
 
 				guideObjects[2].transform.position += new Vector3(0.01f, 0f, 0f);
 				Assert.That(RubberAutofit.TryBake(rubber, out _, out bakeError),
@@ -86,8 +94,7 @@ namespace VisualPinball.Unity.Test
 				var guideA = AddGuide(guideAObject);
 				var guideB = AddGuide(guideBObject);
 				var rubber = rubberObject.AddComponent<RubberComponent>();
-				var collider = rubberObject.AddComponent<RubberColliderComponent>();
-				collider.Mode = RubberColliderMode.Physical;
+				rubberObject.AddComponent<RubberColliderComponent>();
 				rubber.SetGuideBindings(new[] {
 					new RubberGuideBinding(guideA, guideA.Slots[0].Id),
 					new RubberGuideBinding(guideB, guideB.Slots[0].Id),
@@ -130,166 +137,45 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldValidateAndInvertActuatorFluxLut()
+		public void IncompleteUnpackedSlingshotShouldWarn()
 		{
-			var actuator = ScriptableObject.CreateInstance<SlingshotActuatorAsset>();
-			try {
-				actuator.CurrentSampleCount = 3;
-				actuator.StrokeSampleCount = 2;
-				actuator.MaximumCurrentAmps = 10f;
-				actuator.ForceNewtonLut = new[] { 0f, 0f, 10f, 8f, 20f, 16f };
-				actuator.FluxLinkageWeberTurnLut = new[] {
-					0f, 0f,
-					0.01f, 0.008f,
-					0.02f, 0.016f,
-				};
-
-				Assert.That(actuator.ValidateData(), Is.Empty);
-				Assert.That(actuator.TryGetCurrent(0.012f, 0.5f, out var current), Is.True);
-				Assert.That(current, Is.EqualTo(6.6666665f).Within(1e-5f));
-
-				actuator.FluxLinkageWeberTurnLut[4] = 0.005f;
-				Assert.That(actuator.ValidateData(), Has.Some.Contains("monotone"));
-			} finally {
-				UnityEngine.Object.DestroyImmediate(actuator);
-			}
-		}
-
-		[Test]
-		public void ShouldInvertFluxPlateausAndReportSaturation()
-		{
-			var actuator = ScriptableObject.CreateInstance<SlingshotActuatorAsset>();
-			try {
-				actuator.CurrentSampleCount = 4;
-				actuator.StrokeSampleCount = 2;
-				actuator.MaximumCurrentAmps = 12f;
-				actuator.ForceNewtonLut = new float[8];
-				actuator.FluxLinkageWeberTurnLut = new[] {
-					0f, 0f,
-					0.01f, 0.008f,
-					0.01f, 0.008f,
-					0.02f, 0.016f,
-				};
-
-				Assert.That(actuator.ValidateData(), Is.Empty);
-				Assert.That(actuator.TryGetCurrent(0.01f, 0f, out var plateauCurrent,
-					out var plateauSaturated), Is.True);
-				Assert.That(plateauCurrent, Is.EqualTo(4f).Within(1e-5f));
-				Assert.That(plateauSaturated, Is.False);
-				Assert.That(actuator.TryGetCurrent(-1f, 0f, out var minimumCurrent,
-					out var minimumSaturated), Is.True);
-				Assert.That(minimumCurrent, Is.Zero);
-				Assert.That(minimumSaturated, Is.True);
-				Assert.That(actuator.TryGetCurrent(1f, 0f, out var maximumCurrent,
-					out var maximumSaturated), Is.True);
-				Assert.That(maximumCurrent, Is.EqualTo(12f).Within(1e-5f));
-				Assert.That(maximumSaturated, Is.True);
-				Assert.That(actuator.TryGetCurrent(0.01f, float.NaN, out _, out _), Is.False);
-			} finally {
-				UnityEngine.Object.DestroyImmediate(actuator);
-			}
-		}
-
-		[Test]
-		public void ShouldRoundTripEveryActuatorFieldAndRejectInvalidPayload()
-		{
-			var source = ScriptableObject.CreateInstance<SlingshotActuatorAsset>();
-			var target = ScriptableObject.CreateInstance<SlingshotActuatorAsset>();
-			try {
-				source.SupplyVoltage = 42f;
-				source.CoilResistanceOhm = 3.2f;
-				source.TurnOffClampVoltage = 47f;
-				source.StrokeMeters = 0.03f;
-				source.MaximumCurrentAmps = 11f;
-				source.EffectiveMovingMassKg = 0.09f;
-				source.ReturnSpringNewtonPerMeter = 275f;
-				source.ReturnSpringPreloadNewton = 6f;
-				source.ViscousDampingNewtonSecondPerMeter = 1.25f;
-				source.EndStopStiffnessNewtonPerMeter = 51000f;
-				source.EndStopDampingNewtonSecondPerMeter = 21f;
-				source.ForceNewtonLut = new[] { 0f, 0f, 25f, 20f };
-				source.FluxLinkageWeberTurnLut = new[] { 0f, 0f, 0.03f, 0.02f };
-				var packer = new SlingshotActuatorPacker();
-				var bytes = MetaPackable.PackMeta(packer.Pack(12, source, null));
-
-				packer.Unpack(bytes, target, null);
-
-				Assert.That(target.SupplyVoltage, Is.EqualTo(42f));
-				Assert.That(target.CoilResistanceOhm, Is.EqualTo(3.2f));
-				Assert.That(target.TurnOffClampVoltage, Is.EqualTo(47f));
-				Assert.That(target.StrokeMeters, Is.EqualTo(0.03f));
-				Assert.That(target.MaximumCurrentAmps, Is.EqualTo(11f));
-				Assert.That(target.EffectiveMovingMassKg, Is.EqualTo(0.09f));
-				Assert.That(target.ReturnSpringNewtonPerMeter, Is.EqualTo(275f));
-				Assert.That(target.ReturnSpringPreloadNewton, Is.EqualTo(6f));
-				Assert.That(target.ViscousDampingNewtonSecondPerMeter, Is.EqualTo(1.25f));
-				Assert.That(target.EndStopStiffnessNewtonPerMeter, Is.EqualTo(51000f));
-				Assert.That(target.EndStopDampingNewtonSecondPerMeter, Is.EqualTo(21f));
-				Assert.That(target.CurrentSampleCount, Is.EqualTo(2));
-				Assert.That(target.StrokeSampleCount, Is.EqualTo(2));
-				Assert.That(target.ForceNewtonLut, Is.EqualTo(source.ForceNewtonLut));
-				Assert.That(target.FluxLinkageWeberTurnLut,
-					Is.EqualTo(source.FluxLinkageWeberTurnLut));
-
-				var invalid = SlingshotActuatorPackable.From(13, source);
-				invalid.FluxLinkageWeberTurnLut = new[] { 0f };
-				var invalidBytes = MetaPackable.PackMeta(invalid);
-				Assert.Throws<InvalidDataException>(() => packer.Unpack(invalidBytes, target, null));
-			} finally {
-				UnityEngine.Object.DestroyImmediate(source);
-				UnityEngine.Object.DestroyImmediate(target);
-			}
-		}
-
-		[Test]
-		public void ShouldImportRectangularActuatorCsvInCurrentMajorOrder()
-		{
-			const string csv = "current_amps,stroke_meters,force_newton,flux_weber_turn\n"
-				+ "10,0.02,4,0.04\n"
-				+ "0,0,1,0\n"
-				+ "10,0,3,0.05\n"
-				+ "0,0.02,2,0\n";
-
-			var parsed = SlingshotActuatorCsv.TryParse(csv, out var data, out var error);
-
-			Assert.That(parsed, Is.True, error);
-			Assert.That(data.CurrentSampleCount, Is.EqualTo(2));
-			Assert.That(data.StrokeSampleCount, Is.EqualTo(2));
-			Assert.That(data.ForceNewton, Is.EqualTo(new[] { 1f, 2f, 3f, 4f }));
-			Assert.That(data.FluxLinkageWeberTurn,
-				Is.EqualTo(new[] { 0f, 0f, 0.05f, 0.04f }));
-		}
-
-		[Test]
-		public void ShouldRejectMalformedActuatorCsvGrids()
-		{
-			var invalidCsv = new[] {
-				"wrong,header,columns,here\n0,0,0,0\n0,1,0,0\n1,0,0,0\n1,1,0,0\n",
-				"current_amps,stroke_meters,force_newton,flux_weber_turn\n0,0,0,0\n0,1,0,0\n1,0,0,0\n",
-				"current_amps,stroke_meters,force_newton,flux_weber_turn\n0,0,0,0\n0,1,0,0\n1,0,0,0.1\n1,0,0,0.1\n",
-				"current_amps,stroke_meters,force_newton,flux_weber_turn\n0,0,0,0\n0,1,0,0\n1,0,0,0.1\n1,1,0,0.1\n3,0,0,0.2\n3,1,0,0.2\n",
-				"current_amps,stroke_meters,force_newton,flux_weber_turn\n0,0,0,0\n0,1,0,0\n1,0,0,NaN\n1,1,0,0.1\n",
-			};
-
-			foreach (var csv in invalidCsv) {
-				Assert.That(SlingshotActuatorCsv.TryParse(csv, out _, out var error),
-					Is.False, csv);
-				Assert.That(error, Is.Not.Empty);
-			}
-		}
-
-		[Test]
-		public void InvalidUnpackedSlingshotShouldBeDisabledWithDiagnostic()
-		{
-			var gameObject = new GameObject("Invalid Slingshot");
+			var gameObject = new GameObject("Incomplete Slingshot");
 			try {
 				var component = gameObject.AddComponent<RubberSlingshotComponent>();
 				LogAssert.Expect(LogType.Warning,
-					new Regex("Rubber slingshot 'Invalid Slingshot' was unpacked with an invalid configuration"));
+					new Regex("Rubber slingshot 'Incomplete Slingshot' was unpacked with an incomplete configuration"));
 
 				component.ValidateAfterUnpack();
 
-				Assert.That(component.enabled, Is.False);
+				Assert.That(component.enabled, Is.True);
+			} finally {
+				UnityEngine.Object.DestroyImmediate(gameObject);
+			}
+		}
+
+		[Test]
+		public void ASlingshotWithoutWallShouldSayNothingKicks()
+		{
+			var gameObject = new GameObject("Slingshot");
+			try {
+				var component = gameObject.AddComponent<RubberSlingshotComponent>();
+
+				Assert.That(component.ValidateConfiguration(),
+					Has.Some.Contains("no slingshot wall"));
+			} finally {
+				UnityEngine.Object.DestroyImmediate(gameObject);
+			}
+		}
+
+		[Test]
+		public void TheSlingshotShouldRequireTheRendererThatAnimatesItsCord()
+		{
+			var gameObject = new GameObject("Slingshot");
+			try {
+				var component = gameObject.AddComponent<RubberSlingshotComponent>();
+
+				Assert.That(gameObject.GetComponent<RubberDeformationRenderer>(), Is.Not.Null);
+				Assert.That(component.Rubber, Is.Null);
 			} finally {
 				UnityEngine.Object.DestroyImmediate(gameObject);
 			}
@@ -302,15 +188,13 @@ namespace VisualPinball.Unity.Test
 			try {
 				var rubber = rubberObject.AddComponent<RubberComponent>();
 				var component = rubberObject.AddComponent<RubberSlingshotComponent>();
-				var actuator = ScriptableObject.CreateInstance<SlingshotActuatorAsset>();
-				component.Actuator = actuator;
+				var wall = rubberObject.AddComponent<SurfaceComponent>();
+				component.SlingshotWall = wall;
 
-				RubberSlingshotReferencesPackable.Unpack(Array.Empty<byte>(), component,
-					null, null, null);
+				RubberSlingshotReferencesPackable.Unpack(Array.Empty<byte>(), component, null);
 
 				Assert.That(component.Rubber, Is.SameAs(rubber));
-				Assert.That(component.Actuator, Is.SameAs(actuator));
-				UnityEngine.Object.DestroyImmediate(actuator);
+				Assert.That(component.SlingshotWall, Is.SameAs(wall));
 			} finally {
 				UnityEngine.Object.DestroyImmediate(rubberObject);
 			}
@@ -356,56 +240,21 @@ namespace VisualPinball.Unity.Test
 				source.Span = new RubberSpanBinding(
 					new RubberGuideBinding(null, startSlot),
 					new RubberGuideBinding(null, endSlot));
-				source.SwitchZones = new[] {
-					new SlingshotSwitchZone {
-						Position01 = 0.25f,
-						CloseDeflection = 5f,
-						OpenDeflection = 2f,
-						MinimumClosedTimeMs = 9f,
-					},
-					new SlingshotSwitchZone {
-						Position01 = 0.75f,
-						CloseDeflection = 6f,
-						OpenDeflection = 3f,
-						MinimumClosedTimeMs = 10f,
-					},
-				};
 				source.ArmContactPosition01 = 0.45f;
 				source.ArmRestClearance = 1.5f;
 				source.ArmTipTravel = 19f;
 				source.SelfWired = false;
-				source.WireDelayMs = 7f;
 				source.SelfWirePulseMs = 23f;
-				source.KickSpeed = 26f;
-				source.ArmHalfWidth01 = 0.3f;
-				source.KickWindowMs = 35f;
-				source.MinimumSwitchPulseMs = 40f;
 
 				target.Unpack(source.Pack());
 
 				Assert.That(target.Span.StartSupport.SlotId, Is.EqualTo(startSlot));
 				Assert.That(target.Span.EndSupport.SlotId, Is.EqualTo(endSlot));
-				Assert.That(target.SwitchZones.Select(zone => zone.Position01),
-					Is.EqualTo(new[] { 0.25f, 0.75f }));
-				Assert.That(target.SwitchZones.Select(zone => zone.CloseDeflection),
-					Is.EqualTo(new[] { 5f, 6f }));
-				Assert.That(target.SwitchZones.Select(zone => zone.OpenDeflection),
-					Is.EqualTo(new[] { 2f, 3f }));
-				Assert.That(target.SwitchZones.Select(zone => zone.MinimumClosedTimeMs),
-					Is.EqualTo(new[] { 9f, 10f }));
 				Assert.That(target.ArmContactPosition01, Is.EqualTo(0.45f));
 				Assert.That(target.ArmRestClearance, Is.EqualTo(1.5f));
 				Assert.That(target.ArmTipTravel, Is.EqualTo(19f));
 				Assert.That(target.SelfWired, Is.False);
-				Assert.That(target.WireDelayMs, Is.EqualTo(7f));
 				Assert.That(target.SelfWirePulseMs, Is.EqualTo(23f));
-				Assert.That(target.KickSpeed, Is.EqualTo(26f));
-				Assert.That(target.ArmHalfWidth01, Is.EqualTo(0.3f));
-				Assert.That(target.KickWindowMs, Is.EqualTo(35f));
-				Assert.That(target.MinimumSwitchPulseMs, Is.EqualTo(40f));
-
-				// the runtime of commit 2 is live
-				Assert.That(RubberSlingshotComponent.RuntimeAvailable, Is.True);
 			} finally {
 				UnityEngine.Object.DestroyImmediate(sourceObject);
 				UnityEngine.Object.DestroyImmediate(targetObject);
@@ -413,75 +262,18 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void OldSlingshotPayloadShouldRestoreTheRuntimeDefaults()
-		{
-			var gameObject = new GameObject("Legacy Slingshot");
-			try {
-				var component = gameObject.AddComponent<RubberSlingshotComponent>();
-				component.SelfWired = false;
-				component.WireDelayMs = 99f;
-				component.KickSpeed = 3f;
-				component.ArmHalfWidth01 = 0.11f;
-				component.KickWindowMs = 1f;
-				component.MinimumSwitchPulseMs = 2f;
-				component.SelfWirePulseMs = 4f;
-
-				// a payload written before the runtime existed
-				var legacy = PackageApi.Packer.Pack(new RubberSlingshotPackable {
-					Version = 1,
-					SwitchZones = Array.Empty<SlingshotSwitchZonePackable>(),
-					ArmContactPosition01 = 0.4f,
-					ArmRestClearance = 3f,
-					ArmTipTravel = 17f,
-				});
-				component.Unpack(legacy);
-
-				Assert.That(component.ArmContactPosition01, Is.EqualTo(0.4f));
-				Assert.That(component.SelfWired, Is.True);
-				Assert.That(component.WireDelayMs,
-					Is.EqualTo(RubberSlingshotComponent.DefaultWireDelayMs));
-				Assert.That(component.SelfWirePulseMs,
-					Is.EqualTo(RubberSlingshotComponent.DefaultSelfWirePulseMs));
-				Assert.That(component.KickSpeed,
-					Is.EqualTo(RubberSlingshotComponent.DefaultKickSpeed));
-				Assert.That(component.ArmHalfWidth01,
-					Is.EqualTo(RubberSlingshotComponent.DefaultArmHalfWidth01));
-				Assert.That(component.KickWindowMs,
-					Is.EqualTo(RubberSlingshotComponent.DefaultKickWindowMs));
-				Assert.That(component.MinimumSwitchPulseMs,
-					Is.EqualTo(RubberSlingshotComponent.DefaultMinimumSwitchPulseMs));
-			} finally {
-				UnityEngine.Object.DestroyImmediate(gameObject);
-			}
-		}
-
-		[Test]
-		public void SanitizedRuntimeFieldsShouldFallBackToTheirDefaults()
+		public void ASanitizedPulseShouldFallBackToItsDefault()
 		{
 			var gameObject = new GameObject("Sanitizing Slingshot");
 			try {
 				var component = gameObject.AddComponent<RubberSlingshotComponent>();
-				component.WireDelayMs = float.NaN;
 				component.SelfWirePulseMs = -1f;
-				component.KickSpeed = float.NegativeInfinity;
-				component.ArmHalfWidth01 = 0f;
-				component.KickWindowMs = float.NaN;
-				component.MinimumSwitchPulseMs = -3f;
-
-				Assert.That(component.WireDelayMs,
-					Is.EqualTo(RubberSlingshotComponent.DefaultWireDelayMs));
 				Assert.That(component.SelfWirePulseMs,
 					Is.EqualTo(RubberSlingshotComponent.DefaultSelfWirePulseMs));
-				Assert.That(component.KickSpeed,
-					Is.EqualTo(RubberSlingshotComponent.DefaultKickSpeed));
-				Assert.That(component.ArmHalfWidth01,
-					Is.EqualTo(RubberSlingshotComponent.DefaultArmHalfWidth01));
-				Assert.That(component.KickWindowMs,
-					Is.EqualTo(RubberSlingshotComponent.DefaultKickWindowMs));
-				Assert.That(component.MinimumSwitchPulseMs,
-					Is.EqualTo(RubberSlingshotComponent.DefaultMinimumSwitchPulseMs));
-				Assert.That(component.KickSpeedMetersPerSecond,
-					Is.EqualTo(RubberSlingshotComponent.DefaultKickSpeed / 18.53f).Within(1e-4f));
+
+				component.SelfWirePulseMs = float.NaN;
+				Assert.That(component.SelfWirePulseMs,
+					Is.EqualTo(RubberSlingshotComponent.DefaultSelfWirePulseMs));
 			} finally {
 				UnityEngine.Object.DestroyImmediate(gameObject);
 			}

@@ -16,109 +16,71 @@
 
 using System;
 using UnityEngine;
-using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
 {
 	/// <summary>
-	/// The runtime of a physical slingshot: one blade switch and one actuator coil, as
-	/// seen by the gamelogic engine, the player wiring and the scripting api.
+	/// The runtime of a rubber slingshot: one switch and one coil, as seen by the
+	/// gamelogic engine, the player wiring and the scripting api.
 	/// </summary>
 	/// <remarks>
-	/// <para>
-	/// The api never touches balls or physics state directly. A coil command becomes a
-	/// commanded transition appended to the slingshot's ring through a physics input
-	/// action, and the physics thread decides what it does; everything the api reports
-	/// comes back through the event queue.
-	/// </para>
-	/// <para>
-	/// Switch edges reach the gamelogic engine through
-	/// <see cref="SlingshotSwitchPulseTimer"/>, which guarantees the minimum pulse at
-	/// the delivery call; player wires get the raw edges.
-	/// </para>
+	/// The switch is the slingshot wall's: every slingshot event of the wall closes it
+	/// as a pulse. The coil only animates; the wall has already kicked the ball.
 	/// </remarks>
 	[Api]
-	public class RubberSlingshotApi : IApi, IApiSwitchDevice, IApiCoilDevice, IApiWireDeviceDest,
-		IApiRubberSlingshot
+	public class RubberSlingshotApi : IApi, IApiSwitch, IApiSwitchDevice, IApiCoilDevice,
+		IApiWireDeviceDest
 	{
 		/// <summary>Event emitted when the table is started.</summary>
 		public event EventHandler Init;
 
-		/// <summary>Event emitted on every aggregate coil transition.</summary>
+		/// <summary>Event emitted when the slingshot wall fires the switch.</summary>
+		public event EventHandler<SwitchEventArgs> Switch;
+
+		/// <summary>Event emitted on every coil transition.</summary>
 		public event EventHandler<NoIdCoilEventArgs> CoilStatusChanged;
 
-		/// <summary>The OR-ed blade switch of the slingshot's switch zones.</summary>
-		public DeviceSwitch BladeSwitch { get; }
-
-		/// <summary>The actuator coil. Enabling it appends a commanded transition.</summary>
+		/// <summary>The actuator coil, driven by the gamelogic engine or a wire.</summary>
 		public DeviceCoil ActuatorCoil { get; }
 
-		/// <summary>Whether the coil is currently energized, from the last coil edge.</summary>
+		/// <summary>Whether the coil is currently energized.</summary>
 		public bool IsCoilEnergized { get; private set; }
-
-		/// <summary>Whether the blade switch is currently closed, from the last edge.</summary>
-		public bool IsSwitchClosed { get; private set; }
-
-		/// <summary>Simulation time of the last closing edge, in milliseconds.</summary>
-		public float LastSwitchCloseSimulationTimeMs { get; private set; } = float.NaN;
-
-		/// <summary>Simulation time of the last energizing edge, in milliseconds.</summary>
-		public float LastCoilEnergizedSimulationTimeMs { get; private set; } = float.NaN;
-
-		/// <summary>The ball that closed the switch last, zero if none did.</summary>
-		public int LastCausalBallId { get; private set; }
 
 		/// <summary>How many times the coil energized since the table started.</summary>
 		public int CoilEnergizeCount { get; private set; }
 
-		internal int ItemId { get; }
+		/// <summary>How many times the slingshot wall fired the switch since the table started.</summary>
+		public int SwitchCount { get; private set; }
 
+		public bool IsSwitchEnabled => _switchHandler.IsEnabled;
+
+		private readonly RubberSlingshotComponent _component;
 		private readonly Player _player;
-		private readonly PhysicsEngine _physicsEngine;
-		private SlingshotSwitchPulseTimer _pulseTimer;
+		private readonly SwitchHandler _switchHandler;
+		private SurfaceApi _wallApi;
 
-		public RubberSlingshotApi(GameObject go, Player player, PhysicsEngine physicsEngine,
+		internal RubberSlingshotApi(GameObject go, Player player, PhysicsEngine physicsEngine,
 			RubberSlingshotComponent component)
 		{
-			ItemId = UnityObjectId.Get(go);
+			_component = component;
 			_player = player;
-			_physicsEngine = physicsEngine;
-			_pulseTimer = new SlingshotSwitchPulseTimer(component.MinimumSwitchPulseMs / 1000f);
-			BladeSwitch = new DeviceSwitch(RubberSlingshotComponent.SwitchItem, false,
-				component.SwitchDefault, player, physicsEngine);
-			ActuatorCoil = new DeviceCoil(player, () => Command(true), () => Command(false));
+			_switchHandler = new SwitchHandler(go.name, player, physicsEngine);
+			ActuatorCoil = new DeviceCoil(player, () => SetCoil(true), () => SetCoil(false));
 		}
 
 		#region Wiring
 
-		IApiSwitch IApiSwitchDevice.Switch(string deviceItem) => BladeSwitch;
+		IApiSwitchStatus IApiSwitch.AddSwitchDest(SwitchConfig switchConfig, IApiSwitchStatus switchStatus)
+			=> _switchHandler.AddSwitchDest(switchConfig.WithPulse(true), switchStatus);
+
+		void IApiSwitch.AddWireDest(WireDestConfig wireConfig)
+			=> _switchHandler.AddWireDest(wireConfig.WithPulse(true));
+
+		void IApiSwitch.RemoveWireDest(string destId) => _switchHandler.RemoveWireDest(destId);
+
+		IApiSwitch IApiSwitchDevice.Switch(string deviceItem) => this;
 		IApiCoil IApiCoilDevice.Coil(string deviceItem) => ActuatorCoil;
 		IApiWireDest IApiWireDeviceDest.Wire(string deviceItem) => ActuatorCoil;
-
-		#endregion
-
-		#region Commands
-
-		/// <summary>
-		/// Appends a commanded coil transition. Repeated enables append repeated levels,
-		/// which the tick hook treats as no transition, so a held coil cannot retrigger.
-		/// </summary>
-		private void Command(bool level)
-		{
-			if (!_physicsEngine) {
-				return;
-			}
-			var itemId = ItemId;
-			_physicsEngine.MutateState((ref PhysicsState state) => {
-				if (!state.RubberSlingshotStates.IsCreated
-					|| !state.RubberSlingshotStates.ContainsKey(itemId)) {
-					return;
-				}
-				ref var slingshot = ref state.RubberSlingshotStates.GetValueByRef(itemId);
-				RubberSlingshotPhysics.EnqueueCommand(ref slingshot, level,
-					state.Env.CurPhysicsFrameTime);
-			});
-		}
 
 		#endregion
 
@@ -126,65 +88,46 @@ namespace VisualPinball.Unity
 
 		void IApi.OnInit(BallManager ballManager)
 		{
-			if (_player) {
-				_player.OnUpdate += OnPlayerUpdate;
+			var wall = _component ? _component.SlingshotWall : null;
+			_wallApi = wall && _player.TableApi != null ? _player.TableApi.Surface(wall) : null;
+			if (_wallApi != null) {
+				_wallApi.Slingshot += OnSlingshot;
 			}
 			Init?.Invoke(this, EventArgs.Empty);
 		}
 
 		void IApi.OnDestroy()
 		{
-			if (_player) {
-				_player.OnUpdate -= OnPlayerUpdate;
+			if (_wallApi != null) {
+				_wallApi.Slingshot -= OnSlingshot;
 			}
-		}
-
-		private void OnPlayerUpdate(object sender, EventArgs args) => PumpPulseTimer(NowSeconds);
-
-		/// <summary>Main-thread clock of the pulse timer.</summary>
-		private static float NowSeconds => Time.realtimeSinceStartup;
-
-		void IApiRubberSlingshot.OnSwitchEdge(bool closed, int ballId, float simulationTimeMs)
-		{
-			if (closed) {
-				LastSwitchCloseSimulationTimeMs = simulationTimeMs;
-				LastCausalBallId = ballId;
-			}
-			OnSwitchEdge(closed, ballId, NowSeconds);
-		}
-
-		void IApiRubberSlingshot.OnCoilEdge(bool energized, float simulationTimeMs)
-		{
-			IsCoilEnergized = energized;
-			if (energized) {
-				LastCoilEnergizedSimulationTimeMs = simulationTimeMs;
-				CoilEnergizeCount++;
-			}
-			CoilStatusChanged?.Invoke(this, new NoIdCoilEventArgs(energized));
 		}
 
 		/// <summary>
-		/// Delivers one switch edge: the close at once, the open only once the minimum
-		/// pulse elapsed. Wires always get the raw edge.
+		/// The wall kicked a ball: the switch closes as a pulse and, when the slingshot is
+		/// self-wired, the coil fires.
 		/// </summary>
-		internal void OnSwitchEdge(bool closed, int ballId, float nowSeconds)
+		private void OnSlingshot(object sender, EventArgs args)
 		{
-			IsSwitchClosed = closed;
-			if (closed) {
-				var toEngine = _pulseTimer.OnClose(nowSeconds);
-				BladeSwitch.SetSwitch(true, toEngine, true);
-				return;
+			SwitchCount++;
+			Switch?.Invoke(this, new SwitchEventArgs(true));
+			_switchHandler.OnSwitch(true);
+			if (_component && _component.SelfWired) {
+				_component.FireSelfWiredPulse();
 			}
-			var deliverNow = _pulseTimer.OnOpen(nowSeconds);
-			BladeSwitch.SetSwitch(false, deliverNow, true);
 		}
 
-		/// <summary>Releases a deferred opening edge once its window elapsed.</summary>
-		internal void PumpPulseTimer(float nowSeconds)
+		/// <summary>Sets the coil and reports the transition. Repeated levels are no transition.</summary>
+		internal void SetCoil(bool energized)
 		{
-			if (_pulseTimer.Poll(nowSeconds)) {
-				BladeSwitch.SetSwitch(false, true, false);
+			if (IsCoilEnergized == energized) {
+				return;
 			}
+			IsCoilEnergized = energized;
+			if (energized) {
+				CoilEnergizeCount++;
+			}
+			CoilStatusChanged?.Invoke(this, new NoIdCoilEventArgs(energized));
 		}
 
 		#endregion

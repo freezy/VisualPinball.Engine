@@ -60,7 +60,6 @@ namespace VisualPinball.Unity
 		[NativeDisableUnsafePtrRestriction] private void* m_PointColliderBuffer;
 		[NativeDisableUnsafePtrRestriction] private void* m_SpinnerColliderBuffer;
 		[NativeDisableUnsafePtrRestriction] private void* m_SpringHingeColliderBuffer;
-		[NativeDisableUnsafePtrRestriction] private void* m_SweptCircleColliderBuffer;
 		[NativeDisableUnsafePtrRestriction] private void* m_TriangleColliderBuffer;
 		[NativeDisableUnsafePtrRestriction] private void* m_PlaneColliderBuffer;
 
@@ -142,10 +141,6 @@ namespace VisualPinball.Unity
 			size = UnsafeUtility.SizeOf<SpringHingeCollider>() * colRef.SpringHingeColliders.Length;
 			m_SpringHingeColliderBuffer = UnsafeUtility.Malloc(size, UnsafeUtility.AlignOf<SpringHingeCollider>(), allocator);
 			UnsafeUtility.MemCpy(m_SpringHingeColliderBuffer, colRef.SpringHingeColliders.GetUnsafePtr(), size);
-
-			size = UnsafeUtility.SizeOf<SweptCircleCollider>() * colRef.SweptCircleColliders.Length;
-			m_SweptCircleColliderBuffer = UnsafeUtility.Malloc(size, UnsafeUtility.AlignOf<SweptCircleCollider>(), allocator);
-			UnsafeUtility.MemCpy(m_SweptCircleColliderBuffer, colRef.SweptCircleColliders.GetUnsafePtr(), size);
 
 			size = UnsafeUtility.SizeOf<TriangleCollider>() * colRef.TriangleColliders.Length;
 			m_TriangleColliderBuffer = UnsafeUtility.Malloc(size, UnsafeUtility.AlignOf<TriangleCollider>(), allocator);
@@ -292,17 +287,6 @@ namespace VisualPinball.Unity
 			return ref UnsafeUtility.ArrayElementAsRef<SpinnerCollider>(m_SpinnerColliderBuffer, lookup.Index);
 		}
 
-		internal ref SweptCircleCollider SweptCircle(int colliderId)
-		{
-			ref var lookup = ref UnsafeUtility.ArrayElementAsRef<ColliderLookup>(m_LookupBuffer, colliderId);
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-			if (lookup.Type != ColliderType.SweptCircle) {
-				throw new ArgumentException($"Invalid collider type {lookup.Type} when looking up swept-circle collider {colliderId}.");
-			}
-#endif
-			return ref UnsafeUtility.ArrayElementAsRef<SweptCircleCollider>(m_SweptCircleColliderBuffer, lookup.Index);
-		}
-
 		internal ref TriangleCollider Triangle(int colliderId)
 		{
 			ref var lookup = ref UnsafeUtility.ArrayElementAsRef<ColliderLookup>(m_LookupBuffer, colliderId);
@@ -362,7 +346,6 @@ namespace VisualPinball.Unity
 					case ColliderType.Point: return UnsafeUtility.ReadArrayElement<PointCollider>(m_PointColliderBuffer, lookup.Index);
 					case ColliderType.Spinner: return UnsafeUtility.ReadArrayElement<SpinnerCollider>(m_SpinnerColliderBuffer, lookup.Index);
 					case ColliderType.SpringHinge: return UnsafeUtility.ReadArrayElement<SpringHingeCollider>(m_SpringHingeColliderBuffer, lookup.Index);
-					case ColliderType.SweptCircle: return UnsafeUtility.ReadArrayElement<SweptCircleCollider>(m_SweptCircleColliderBuffer, lookup.Index);
 					case ColliderType.Triangle: return UnsafeUtility.ReadArrayElement<TriangleCollider>(m_TriangleColliderBuffer, lookup.Index);
 					case ColliderType.Plane: return UnsafeUtility.ReadArrayElement<PlaneCollider>(m_PlaneColliderBuffer, lookup.Index);
 				}
@@ -426,9 +409,6 @@ namespace VisualPinball.Unity
 					case ColliderType.SpringHinge:
 						UnsafeUtility.WriteArrayElement(m_SpringHingeColliderBuffer, lookup.Index, (SpringHingeCollider)value);
 						break;
-					case ColliderType.SweptCircle:
-						UnsafeUtility.WriteArrayElement(m_SweptCircleColliderBuffer, lookup.Index, (SweptCircleCollider)value);
-						break;
 					case ColliderType.Triangle:
 						UnsafeUtility.WriteArrayElement(m_TriangleColliderBuffer, lookup.Index, (TriangleCollider)value);
 						break;
@@ -460,7 +440,6 @@ namespace VisualPinball.Unity
 			UnsafeUtility.Free(m_PointColliderBuffer, m_AllocatorLabel);
 			UnsafeUtility.Free(m_SpinnerColliderBuffer, m_AllocatorLabel);
 			UnsafeUtility.Free(m_SpringHingeColliderBuffer, m_AllocatorLabel);
-			UnsafeUtility.Free(m_SweptCircleColliderBuffer, m_AllocatorLabel);
 			UnsafeUtility.Free(m_TriangleColliderBuffer, m_AllocatorLabel);
 			UnsafeUtility.Free(m_PlaneColliderBuffer, m_AllocatorLabel);
 
@@ -476,7 +455,6 @@ namespace VisualPinball.Unity
 			m_PointColliderBuffer = null;
 			m_SpinnerColliderBuffer = null;
 			m_SpringHingeColliderBuffer = null;
-			m_SweptCircleColliderBuffer = null;
 			m_TriangleColliderBuffer = null;
 			m_PlaneColliderBuffer = null;
 			m_Length = 0;
@@ -519,7 +497,6 @@ namespace VisualPinball.Unity
 				case ColliderType.Point: return UnsafeUtility.ArrayElementAsRef<PointCollider>(m_PointColliderBuffer, lookup.Index).Bounds.Aabb;
 				case ColliderType.Spinner: return UnsafeUtility.ArrayElementAsRef<SpinnerCollider>(m_SpinnerColliderBuffer, lookup.Index).Bounds.Aabb;
 				case ColliderType.SpringHinge: return UnsafeUtility.ArrayElementAsRef<SpringHingeCollider>(m_SpringHingeColliderBuffer, lookup.Index).Bounds.Aabb;
-				case ColliderType.SweptCircle: return UnsafeUtility.ArrayElementAsRef<SweptCircleCollider>(m_SweptCircleColliderBuffer, lookup.Index).Bounds.Aabb;
 				case ColliderType.Triangle: return UnsafeUtility.ArrayElementAsRef<TriangleCollider>(m_TriangleColliderBuffer, lookup.Index).Bounds.Aabb;
 				case ColliderType.Plane: return UnsafeUtility.ArrayElementAsRef<PlaneCollider>(m_PlaneColliderBuffer, lookup.Index).Bounds.Aabb;
 				default:
@@ -577,10 +554,6 @@ namespace VisualPinball.Unity
 				}
 				case ColliderType.SpringHinge:
 					return UnsafeUtility.ArrayElementAsRef<SpringHingeCollider>(m_SpringHingeColliderBuffer, lookup.Index).Bounds.Aabb;
-				case ColliderType.SweptCircle: {
-					var collider = UnsafeUtility.ArrayElementAsRef<SweptCircleCollider>(m_SweptCircleColliderBuffer, lookup.Index);
-					return collider.GetTransformedAabb(kinematicTransforms[collider.Header.ItemId]);
-				}
 				case ColliderType.Triangle: {
 					var collider = UnsafeUtility.ArrayElementAsRef<TriangleCollider>(m_TriangleColliderBuffer, lookup.Index);
 					return collider.GetTransformedAabb(kinematicTransforms[collider.Header.ItemId]);
@@ -618,7 +591,6 @@ namespace VisualPinball.Unity
 				case ColliderType.Point: return ref UnsafeUtility.ArrayElementAsRef<PointCollider>(m_PointColliderBuffer, lookup.Index).Header;
 				case ColliderType.Spinner: return ref UnsafeUtility.ArrayElementAsRef<SpinnerCollider>(m_SpinnerColliderBuffer, lookup.Index).Header;
 				case ColliderType.SpringHinge: return ref UnsafeUtility.ArrayElementAsRef<SpringHingeCollider>(m_SpringHingeColliderBuffer, lookup.Index).Header;
-				case ColliderType.SweptCircle: return ref UnsafeUtility.ArrayElementAsRef<SweptCircleCollider>(m_SweptCircleColliderBuffer, lookup.Index).Header;
 				case ColliderType.Triangle: return ref UnsafeUtility.ArrayElementAsRef<TriangleCollider>(m_TriangleColliderBuffer, lookup.Index).Header;
 				case ColliderType.Plane: return ref UnsafeUtility.ArrayElementAsRef<PlaneCollider>(m_PlaneColliderBuffer, lookup.Index).Header;
 			}
@@ -670,9 +642,6 @@ namespace VisualPinball.Unity
 						break;
 					case ColliderType.SpringHinge:
 						array[i] = UnsafeUtility.ReadArrayElement<SpringHingeCollider>(m_SpringHingeColliderBuffer, lookup.Index);
-						break;
-					case ColliderType.SweptCircle:
-						array[i] = UnsafeUtility.ReadArrayElement<SweptCircleCollider>(m_SweptCircleColliderBuffer, lookup.Index);
 						break;
 					case ColliderType.Triangle:
 						array[i] = UnsafeUtility.ReadArrayElement<TriangleCollider>(m_TriangleColliderBuffer, lookup.Index);

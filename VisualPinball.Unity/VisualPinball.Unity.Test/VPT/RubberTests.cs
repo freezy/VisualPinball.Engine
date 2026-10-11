@@ -92,20 +92,19 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldConvertEveryVpxRubberAsManualSplineAndLegacyCollider()
+		public void ShouldConvertEveryVpxRubberAsManualSpline()
 		{
 			var table = FileTableContainer.Load(VpxPath.Rubber);
 			foreach (var name in new[] { "Rubber1", "Rubber2" }) {
 				var gameObject = new GameObject(name);
 				try {
 					var rubber = gameObject.AddComponent<RubberComponent>();
-					var collider = gameObject.AddComponent<RubberColliderComponent>();
+					gameObject.AddComponent<RubberColliderComponent>();
 					rubber.SetData(table.Rubber(name).Data).ToArray();
 
 					Assert.That(rubber.PathSource, Is.EqualTo(RubberPathSource.Spline), rubber.name);
 					Assert.That(rubber.GuideBindings, Is.Empty, rubber.name);
 					Assert.That(rubber.BakedPath, Is.Empty, rubber.name);
-					Assert.That(collider.Mode, Is.EqualTo(RubberColliderMode.Legacy), rubber.name);
 				} finally {
 					Object.DestroyImmediate(gameObject);
 				}

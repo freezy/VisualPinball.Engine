@@ -18,39 +18,28 @@ namespace VisualPinball.Unity.Editor
 	public sealed class RubberSlingshotInspector : UnityEditor.Editor
 	{
 		private SerializedProperty _span;
-		private SerializedProperty _switchZones;
+		private SerializedProperty _slingshotWall;
 		private SerializedProperty _armContactPosition;
 		private SerializedProperty _armRestClearance;
 		private SerializedProperty _armTipTravel;
-		private SerializedProperty _actuator;
 		private SerializedProperty _selfWired;
-		private SerializedProperty _wireDelayMs;
 		private SerializedProperty _selfWirePulseMs;
-		private SerializedProperty _kickSpeed;
-		private SerializedProperty _armHalfWidth01;
-		private SerializedProperty _kickWindowMs;
-		private SerializedProperty _minimumSwitchPulseMs;
 		private SerializedProperty _motionController;
 
 		private float _preview;
+		private Transform _arm;
 
 		private void OnEnable()
 		{
 			EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
 			EditorSceneManager.sceneSaving += OnSceneSaving;
 			_span = serializedObject.FindProperty("_span");
-			_switchZones = serializedObject.FindProperty("_switchZones");
+			_slingshotWall = serializedObject.FindProperty("_slingshotWall");
 			_armContactPosition = serializedObject.FindProperty("_armContactPosition01");
 			_armRestClearance = serializedObject.FindProperty("_armRestClearance");
 			_armTipTravel = serializedObject.FindProperty("_armTipTravel");
-			_actuator = serializedObject.FindProperty("_actuator");
 			_selfWired = serializedObject.FindProperty("_selfWired");
-			_wireDelayMs = serializedObject.FindProperty("_wireDelayMs");
 			_selfWirePulseMs = serializedObject.FindProperty("_selfWirePulseMs");
-			_kickSpeed = serializedObject.FindProperty("_kickSpeed");
-			_armHalfWidth01 = serializedObject.FindProperty("_armHalfWidth01");
-			_kickWindowMs = serializedObject.FindProperty("_kickWindowMs");
-			_minimumSwitchPulseMs = serializedObject.FindProperty("_minimumSwitchPulseMs");
 			_motionController = serializedObject.FindProperty("_motionController");
 		}
 
@@ -86,51 +75,29 @@ namespace VisualPinball.Unity.Editor
 			EditorGUILayout.PropertyField(_span);
 
 			EditorGUILayout.Space();
-			EditorGUILayout.LabelField("Switches", EditorStyles.boldLabel);
-			EditorGUILayout.PropertyField(_switchZones, true);
-			EditorGUILayout.HelpBox("Open deflection is not consulted by the static rebound model: a zone closes at its close deflection and stays closed for its minimum closed time. The value is kept and packaged for a future deformable model.",
-				MessageType.Info);
-			EditorGUILayout.PropertyField(_minimumSwitchPulseMs);
+			EditorGUILayout.LabelField("Kick", EditorStyles.boldLabel);
+			EditorGUILayout.PropertyField(_slingshotWall, new GUIContent("Slingshot Wall"));
+			serializedObject.ApplyModifiedProperties();
+			var component = (RubberSlingshotComponent)target;
+			WallGUI(component);
+			serializedObject.Update();
 
 			EditorGUILayout.Space();
 			EditorGUILayout.LabelField("Wire", EditorStyles.boldLabel);
 			EditorGUILayout.PropertyField(_selfWired);
 			using (new EditorGUI.DisabledScope(!_selfWired.boolValue)) {
-				EditorGUILayout.PropertyField(_wireDelayMs);
 				EditorGUILayout.PropertyField(_selfWirePulseMs);
-				EditorGUILayout.PropertyField(_kickWindowMs);
 			}
-
-			EditorGUILayout.Space();
-			EditorGUILayout.LabelField("Kick", EditorStyles.boldLabel);
-			EditorGUILayout.PropertyField(_actuator, new GUIContent("Coil Model"));
-			EditorGUILayout.HelpBox("Optional. The coil model is stored and packaged for a future physical arm; this version applies the kick below and does not consult it.",
-				MessageType.None);
-			EditorGUILayout.PropertyField(_armContactPosition);
-			EditorGUILayout.PropertyField(_armRestClearance);
-			EditorGUILayout.PropertyField(_armTipTravel);
-			EditorGUILayout.PropertyField(_armHalfWidth01);
-			EditorGUILayout.PropertyField(_kickSpeed);
-			EditorGUILayout.LabelField(" ", $"= {_kickSpeed.floatValue / 18.53f:F2} m/s");
 
 			EditorGUILayout.Space();
 			EditorGUILayout.LabelField("Arm", EditorStyles.boldLabel);
+			EditorGUILayout.PropertyField(_armContactPosition);
+			EditorGUILayout.PropertyField(_armRestClearance);
+			EditorGUILayout.PropertyField(_armTipTravel);
 			EditorGUILayout.PropertyField(_motionController, new GUIContent("Motion Controller"));
-			EditorGUILayout.HelpBox("The slingshot's coil feeds this Motion Controller and the cord follows its position. Give it Motion Transform followers for the arm; One Shot with a short activation and release is a good start. Without a Motion Controller only the cord animates, on the renderer's timed curve.",
-				MessageType.None);
 			serializedObject.ApplyModifiedProperties();
+			ArmSetupGUI(component);
 
-			if (!RubberSlingshotComponent.RuntimeAvailable) {
-				EditorGUILayout.HelpBox("Physical slingshot runtime unavailable. Authoring and package data are preserved, but this component does not register play-mode controls.",
-					MessageType.Warning);
-			}
-			var component = (RubberSlingshotComponent)target;
-			var collider = component.Rubber
-				? component.Rubber.GetComponent<RubberColliderComponent>()
-				: null;
-			if (collider) {
-				collider.EnsureBakesCurrent();
-			}
 			foreach (var error in component.ValidateConfiguration(includeSceneUniqueness: true)) {
 				EditorGUILayout.HelpBox(error, MessageType.Error);
 			}
@@ -140,14 +107,14 @@ namespace VisualPinball.Unity.Editor
 			using (new EditorGUI.DisabledScope(Application.isPlaying)) {
 				EditorGUI.BeginChangeCheck();
 				var preview = EditorGUILayout.Slider(new GUIContent("Kick",
-						"Poses the arm and the cord between rest and the fully fired pose, without a game. Align Visual Fired Angle and Arm Contact Position against it, then set it back to zero. Nothing of it is saved."),
+						"Poses the arm and the cord between rest and the fully fired pose, without a game. Align the arm's contact position and travel against it, then set it back to zero. Nothing of it is saved."),
 					_preview, 0f, 1f);
 				if (EditorGUI.EndChangeCheck()) {
 					_preview = preview;
 				}
 			}
 			if (Application.isPlaying) {
-				EditorGUILayout.HelpBox("The simulation drives the arm and the cord while the game runs.",
+				EditorGUILayout.HelpBox("The coil drives the arm and the cord while the game runs.",
 					MessageType.None);
 			} else if (_preview > 0f) {
 				// re-posed every repaint, so edits to the angle, the contact position or the
@@ -157,6 +124,59 @@ namespace VisualPinball.Unity.Editor
 			} else if (component.IsPreviewing) {
 				component.EndPreview();
 				SceneView.RepaintAll();
+			}
+		}
+
+		/// <summary>
+		/// The slingshot wall: created in front of the span when there is none, and
+		/// refitted to it after the rubber, its guides or the span changed.
+		/// </summary>
+		private static void WallGUI(RubberSlingshotComponent component)
+		{
+			using (new EditorGUI.DisabledScope(Application.isPlaying)) {
+				if (GUILayout.Button(component.SlingshotWall ? "Refit Slingshot Wall" : "Create Slingshot Wall")) {
+					if (!RubberSlingshotAuthoring.TryFitSlingshotWall(component, out var error)) {
+						EditorUtility.DisplayDialog("Cannot fit the slingshot wall", error, "OK");
+					}
+				}
+			}
+			EditorGUILayout.HelpBox("The slingshot wall is an invisible Surface in front of the span whose slingshot edge kicks the ball, the way Visual Pinball does it. Its slingshot event closes this slingshot's switch; set the kick under Slingshot Force and Threshold on its collider.",
+				MessageType.None);
+		}
+
+		/// <summary>
+		/// Sets the arm up from its game object, and makes sure the cord has the renderer
+		/// that animates it.
+		/// </summary>
+		private void ArmSetupGUI(RubberSlingshotComponent component)
+		{
+			var controller = component.MotionController;
+			if (!_arm && controller) {
+				_arm = controller.transform;
+			}
+			_arm = (Transform)EditorGUILayout.ObjectField(new GUIContent("Arm",
+					"The arm's game object. Its origin must be the arm's pivot below the playfield; the arm swings about it, parallel to the span."),
+				_arm, typeof(Transform), true);
+			using (new EditorGUI.DisabledScope(!_arm || Application.isPlaying)) {
+				if (GUILayout.Button(controller ? "Refit Arm Swing" : "Animate Arm")) {
+					if (!RubberSlingshotAuthoring.TrySetUpArm(component, _arm, out var error)) {
+						EditorUtility.DisplayDialog("Cannot animate the arm", error, "OK");
+					}
+				}
+			}
+			EditorGUILayout.HelpBox(controller
+					? "The slingshot's coil fires this Motion Controller and the cord follows its position. Refit the swing after changing the arm's contact position, clearance or travel."
+					: "Pick the arm and press Animate Arm: it gets a Motion Controller that the slingshot's coil fires and a Motion Transform that swings it to the arm travel. Without one only the cord animates.",
+				MessageType.None);
+
+			if (component.Rubber && !component.DeformationRenderer) {
+				EditorGUILayout.HelpBox("The rubber has no Rubber Deformation Renderer, so its cord does not move.",
+					MessageType.Warning);
+				using (new EditorGUI.DisabledScope(Application.isPlaying)) {
+					if (GUILayout.Button("Add Deformation Renderer")) {
+						RubberSlingshotAuthoring.EnsureDeformationRenderer(component.Rubber);
+					}
+				}
 			}
 		}
 
@@ -175,22 +195,6 @@ namespace VisualPinball.Unity.Editor
 			}
 			Handles.color = new Color(1f, 0.45f, 0.05f);
 			Handles.DrawAAPolyLine(4f, pathPoints);
-			foreach (var zone in component.SwitchZones) {
-				Evaluate(resolved, zone.Position01, out var authoredPosition,
-					out var inward);
-				var position = ToWorld(rubber, authoredPosition);
-				var openPosition = ToWorld(rubber,
-					authoredPosition + inward * zone.OpenDeflection);
-				var closePosition = ToWorld(rubber,
-					authoredPosition + inward * zone.CloseDeflection);
-				var size = HandleUtility.GetHandleSize(position) * 0.045f;
-				Handles.SphereHandleCap(0, position, Quaternion.identity, size,
-					EventType.Repaint);
-				Handles.DrawDottedLine(position, openPosition, 3f);
-				Handles.DrawLine(openPosition, closePosition);
-				Handles.DrawWireDisc(openPosition, rubber.transform.up, size * 0.6f);
-				Handles.DrawWireDisc(closePosition, rubber.transform.up, size * 0.9f);
-			}
 			Handles.color = Color.cyan;
 			Evaluate(resolved, component.ArmContactPosition01, out var armPosition,
 				out var armInward);
@@ -212,8 +216,7 @@ namespace VisualPinball.Unity.Editor
 			out float2 position, out float2 inward)
 		{
 			position = span.PointAt(authoredPosition01);
-			var tangent = span.TangentAt(authoredPosition01);
-			inward = new float2(-tangent.y, tangent.x);
+			inward = span.InwardAt(authoredPosition01);
 		}
 
 		private static Vector3 ToWorld(RubberComponent rubber,

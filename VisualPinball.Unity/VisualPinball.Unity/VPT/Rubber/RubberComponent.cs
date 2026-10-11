@@ -205,8 +205,6 @@ namespace VisualPinball.Unity
 			// collider data
 			var collComponent = GetComponent<RubberColliderComponent>();
 			if (collComponent) {
-				collComponent.Mode = RubberColliderMode.Legacy;
-				collComponent.RubberPhysicsMaterial = null;
 				collComponent.enabled = data.IsCollidable;
 
 				collComponent.HitEvent = data.HitEvent;
@@ -320,10 +318,6 @@ namespace VisualPinball.Unity
 		public void DetachFromGuides()
 		{
 			ResetToSplineSource();
-			var collider = GetComponent<RubberColliderComponent>();
-			if (collider) {
-				collider.Mode = RubberColliderMode.Legacy;
-			}
 		}
 
 		private void ResetToSplineSource()

@@ -427,124 +427,6 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldRoundTripGuideDistanceElasticityColliderSettings()
-		{
-			var sourceObject = new GameObject("Source Rubber Collider");
-			var targetObject = new GameObject("Target Rubber Collider");
-			try {
-				sourceObject.AddComponent<RubberComponent>();
-				var source = sourceObject.AddComponent<RubberColliderComponent>();
-				source.GuideDistanceElasticityEnabled = true;
-				source.GuideElasticityScale = 0.35f;
-				source.GuideInfluenceLength = 75f;
-				source.MaximumResponseSegmentLength = 12f;
-
-				targetObject.AddComponent<RubberComponent>();
-				var target = targetObject.AddComponent<RubberColliderComponent>();
-				target.Unpack(source.Pack());
-
-				Assert.That(target.GuideDistanceElasticityEnabled, Is.True);
-				Assert.That(target.GuideElasticityScale, Is.EqualTo(0.35f));
-				Assert.That(target.GuideInfluenceLength, Is.EqualTo(75f));
-				Assert.That(target.MaximumResponseSegmentLength, Is.EqualTo(12f));
-			} finally {
-				Object.DestroyImmediate(sourceObject);
-				Object.DestroyImmediate(targetObject);
-			}
-		}
-
-		[Test]
-		public void ShouldDefaultOldRubberColliderPayloadsToDisabledDistanceElasticity()
-		{
-			var gameObject = new GameObject("Legacy Rubber Collider");
-			try {
-				gameObject.AddComponent<RubberComponent>();
-				var collider = gameObject.AddComponent<RubberColliderComponent>();
-				collider.GuideDistanceElasticityEnabled = true;
-				collider.GuideElasticityScale = 0f;
-				collider.GuideInfluenceLength = 1f;
-				collider.MaximumResponseSegmentLength = 1f;
-				var oldBytes = PackageApi.Packer.Pack(new LegacyRubberColliderPackable {
-					IsMovable = true,
-					HitEvent = true,
-					ZOffset = 3f,
-					Mode = (int)RubberColliderMode.Physical,
-				});
-
-				collider.Unpack(oldBytes);
-
-				Assert.That(collider.IsKinematic, Is.True);
-				Assert.That(collider.HitEvent, Is.True);
-				Assert.That(collider.ZOffset, Is.EqualTo(3f));
-				Assert.That(collider.Mode, Is.EqualTo(RubberColliderMode.Physical));
-				Assert.That(collider.GuideDistanceElasticityEnabled, Is.False);
-				Assert.That(collider.GuideElasticityScale,
-					Is.EqualTo(RubberColliderComponent.DefaultGuideElasticityScale));
-				Assert.That(collider.GuideInfluenceLength,
-					Is.EqualTo(RubberColliderComponent.DefaultGuideInfluenceLength));
-				Assert.That(collider.MaximumResponseSegmentLength,
-					Is.EqualTo(RubberColliderComponent.DefaultMaximumResponseSegmentLength));
-			} finally {
-				Object.DestroyImmediate(gameObject);
-			}
-		}
-
-		[Test]
-		public void ShouldMapVersionOneFreeSpanScaleToGuideScale()
-		{
-			var gameObject = new GameObject("Version 1 Rubber Collider");
-			try {
-				gameObject.AddComponent<RubberComponent>();
-				var collider = gameObject.AddComponent<RubberColliderComponent>();
-				var bytes = PackageApi.Packer.Pack(new RubberColliderPackable {
-					Version = 1,
-					GuideDistanceElasticityEnabled = true,
-					FreeSpanElasticityScale = 0.35f,
-					GuideInfluenceLength = 75f,
-					MaximumResponseSegmentLength = 12f,
-				});
-
-				collider.Unpack(bytes);
-
-				Assert.That(collider.GuideDistanceElasticityEnabled, Is.True);
-				Assert.That(collider.GuideElasticityScale, Is.EqualTo(0.35f));
-				Assert.That(collider.GuideInfluenceLength, Is.EqualTo(75f));
-				Assert.That(collider.MaximumResponseSegmentLength, Is.EqualTo(12f));
-			} finally {
-				Object.DestroyImmediate(gameObject);
-			}
-		}
-
-		[Test]
-		public void ShouldSanitizeMalformedGuideDistanceElasticityPayload()
-		{
-			var gameObject = new GameObject("Malformed Rubber Collider");
-			try {
-				gameObject.AddComponent<RubberComponent>();
-				var collider = gameObject.AddComponent<RubberColliderComponent>();
-				var bytes = PackageApi.Packer.Pack(new RubberColliderPackable {
-					Version = 2,
-					GuideDistanceElasticityEnabled = true,
-					GuideElasticityScale = float.NaN,
-					GuideInfluenceLength = float.NegativeInfinity,
-					MaximumResponseSegmentLength = 0.01f,
-				});
-
-				collider.Unpack(bytes);
-
-				Assert.That(collider.GuideDistanceElasticityEnabled, Is.True);
-				Assert.That(collider.GuideElasticityScale,
-					Is.EqualTo(RubberColliderComponent.DefaultGuideElasticityScale));
-				Assert.That(collider.GuideInfluenceLength,
-					Is.EqualTo(RubberColliderComponent.DefaultGuideInfluenceLength));
-				Assert.That(collider.MaximumResponseSegmentLength,
-					Is.EqualTo(RubberColliderComponent.MinimumResponseLength));
-			} finally {
-				Object.DestroyImmediate(gameObject);
-			}
-		}
-
-		[Test]
 		public void ShouldRoundTripGuidedRubberScalarData()
 		{
 			var sourceObject = new GameObject("Source Rubber");
@@ -613,48 +495,12 @@ namespace VisualPinball.Unity.Test
 			}
 		}
 
-		[Test]
-		public void ShouldRoundTripEveryMaterialCurveField()
-		{
-			var source = ScriptableObject.CreateInstance<RubberPhysicsMaterialAsset>();
-			var target = ScriptableObject.CreateInstance<RubberPhysicsMaterialAsset>();
-			try {
-				var key = new Keyframe(1.25f, 3.5f, -2f, 4f, 0.15f, 0.35f) {
-					weightedMode = WeightedMode.Both,
-				};
-				source.NominalStressMpaByStretchRatio = new AnimationCurve(key) {
-					preWrapMode = WrapMode.PingPong,
-					postWrapMode = WrapMode.Loop,
-				};
-				var packer = new RubberPhysicsMaterialPacker();
-				var meta = packer.Pack(42, source, null);
-				var bytes = MetaPackable.PackMeta(meta);
-				packer.Unpack(bytes, target, null);
-
-				var actual = target.NominalStressMpaByStretchRatio;
-				Assert.That(actual.preWrapMode, Is.EqualTo(WrapMode.PingPong));
-				Assert.That(actual.postWrapMode, Is.EqualTo(WrapMode.Loop));
-				Assert.That(actual.keys, Has.Length.EqualTo(1));
-				Assert.That(actual.keys[0].time, Is.EqualTo(key.time));
-				Assert.That(actual.keys[0].value, Is.EqualTo(key.value));
-				Assert.That(actual.keys[0].inTangent, Is.EqualTo(key.inTangent));
-				Assert.That(actual.keys[0].outTangent, Is.EqualTo(key.outTangent));
-				Assert.That(actual.keys[0].inWeight, Is.EqualTo(key.inWeight));
-				Assert.That(actual.keys[0].outWeight, Is.EqualTo(key.outWeight));
-				Assert.That(actual.keys[0].weightedMode, Is.EqualTo(key.weightedMode));
-			} finally {
-				Object.DestroyImmediate(source);
-				Object.DestroyImmediate(target);
-			}
-		}
-
 		[UnityTest]
-		public IEnumerator ShouldRoundTripGuideAndMaterialReferencesThroughPackage()
+		public IEnumerator ShouldRoundTripGuideReferencesThroughPackage()
 		{
 			var package = Path.Combine(Path.GetTempPath(), $"vpe-rubber-guide-{Guid.NewGuid():N}.vpe");
 			GameObject source = null;
 			GameObject imported = null;
-			RubberPhysicsMaterialAsset material = null;
 			try {
 				source = new GameObject("Table");
 				source.AddComponent<TableComponent>();
@@ -673,14 +519,7 @@ namespace VisualPinball.Unity.Test
 				Assert.That(RubberAutofit.TryBake(rubber, out _, out var bakeError),
 					Is.True, bakeError);
 
-				var collider = rubberObject.AddComponent<RubberColliderComponent>();
-				collider.Mode = RubberColliderMode.Physical;
-				material = ScriptableObject.CreateInstance<RubberPhysicsMaterialAsset>();
-				material.name = "Natural Rubber";
-				material.DensityKgPerCubicMeter = 1075f;
-				material.NominalStressMpaByStretchRatio = new AnimationCurve(
-					new Keyframe(1f, 0f), new Keyframe(1.5f, 1.2f));
-				collider.RubberPhysicsMaterial = material;
+				rubberObject.AddComponent<RubberColliderComponent>();
 
 				new PackageWriter(source).WritePackageSync(package);
 				var task = new RuntimePackageReader(package).ImportIntoScene();
@@ -694,18 +533,11 @@ namespace VisualPinball.Unity.Test
 
 				var importedRubber = imported.GetComponentInChildren<RubberComponent>();
 				var importedGuide = imported.GetComponentInChildren<RubberGuideComponent>();
-				var importedCollider = importedRubber.GetComponent<RubberColliderComponent>();
 				Assert.That(importedRubber.GuideBindings[0].Guide, Is.SameAs(importedGuide));
 				Assert.That(importedRubber.HasValidGuidedPath, Is.True);
-				Assert.That(importedCollider.Mode, Is.EqualTo(RubberColliderMode.Physical));
-				Assert.That(importedCollider.RubberPhysicsMaterial, Is.Not.Null);
-				Assert.That(importedCollider.RubberPhysicsMaterial.DensityKgPerCubicMeter, Is.EqualTo(1075f));
-				Assert.That(importedCollider.RubberPhysicsMaterial.NominalStressMpaByStretchRatio.keys,
-					Has.Length.EqualTo(2));
 			} finally {
 				if (source) Object.DestroyImmediate(source);
 				if (imported) Object.DestroyImmediate(imported);
-				if (material) Object.DestroyImmediate(material);
 				File.Delete(package);
 			}
 		}
@@ -735,14 +567,6 @@ namespace VisualPinball.Unity.Test
 		{
 			public int Thickness;
 			public DragPointPackable[] DragPoints;
-		}
-
-		private struct LegacyRubberColliderPackable
-		{
-			public bool IsMovable;
-			public bool HitEvent;
-			public float ZOffset;
-			public int Mode;
 		}
 	}
 }

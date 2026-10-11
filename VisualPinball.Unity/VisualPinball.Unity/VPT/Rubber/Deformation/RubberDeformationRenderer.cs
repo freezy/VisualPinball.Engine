@@ -16,23 +16,21 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Mathematics;
 using UnityEngine;
 
 namespace VisualPinball.Unity
 {
 	/// <summary>
-	/// Displaces the render mesh of a compliant Physical rubber from the impact and
-	/// coil events of the static-rebound plan's section 4.
+	/// Pushes the free spans of a guide-driven rubber out of line, so a slingshot's
+	/// kick shows on the cord.
 	/// </summary>
 	/// <remarks>
 	/// <para>
-	/// Two sources drive one signed V profile per rebound-eligible free span: the
-	/// passive twang of an impact, inward, decaying with a 40 ms time constant, and
-	/// the slingshot's kick animation, outward, played over
-	/// <see cref="AnimationDurationMs"/> on <see cref="KickCurve"/>. While the kick
-	/// plays it replaces the twang; the two are never summed.
+	/// Every free span of the rubber's guided path gets one signed V profile: pinned at
+	/// both supports, linear up to its apex and back. A slingshot drives it, either
+	/// following its arm's position or, without an animated arm, played over
+	/// <see cref="AnimationDurationMs"/> on <see cref="KickCurve"/>.
 	/// </para>
 	/// <para>
 	/// The component never writes the shared mesh. On enable it takes an instance of
@@ -40,13 +38,10 @@ namespace VisualPinball.Unity
 	/// rest chord to that chord, and restores the shared mesh on disable.
 	/// </para>
 	/// <para>
-	/// <b>Clock.</b> Everything is timed on the physics engine's simulation clock
-	/// (<c>PhysicsEngine.TimeMsec</c>), which counts the same
-	/// <c>(CurPhysicsFrameTime - StartTimeUsec) / 1000</c> milliseconds the impact
-	/// event's <c>SimulationTimeMs</c> carries, so the decay and the age gate compare
-	/// like with like. Without a physics engine — the synthetic fixtures of the test
-	/// suite — the clock falls back to accumulated frame time, and tests may inject
-	/// their own through <see cref="ClockMsOverride"/>.
+	/// <b>Clock.</b> The timed kick runs on the physics engine's simulation clock
+	/// (<c>PhysicsEngine.TimeMsec</c>). Without a physics engine, the synthetic
+	/// fixtures of the test suite, the clock falls back to accumulated frame time, and
+	/// tests may inject their own through <see cref="ClockMsOverride"/>.
 	/// </para>
 	/// </remarks>
 	[PackAs("RubberDeformationRenderer")]
@@ -61,19 +56,7 @@ namespace VisualPinball.Unity
 		/// <summary>Default length of the kick animation, in milliseconds.</summary>
 		public const float DefaultAnimationDurationMs = 60f;
 
-		/// <summary>Time constant of the passive twang, in milliseconds.</summary>
-		internal const float TwangTimeConstantMs = 40f;
-
-		/// <summary>
-		/// Impacts older than this much simulation time are dropped on arrival, per the
-		/// plan's section 4.
-		/// </summary>
-		internal const float MaximumImpactAgeMs = 100f;
-
-		/// <summary>The twang is switched off once it decayed below this many VPX units.</summary>
-		internal const float ResidualDepthVpx = 1e-3f;
-
-		/// <summary>Smallest and largest apex the profile accepts, see the plan's 2.3.</summary>
+		/// <summary>Smallest and largest apex the profile accepts.</summary>
 		internal const float MinimumApex = 0.02f;
 		internal const float MaximumApex = 0.98f;
 
@@ -89,10 +72,6 @@ namespace VisualPinball.Unity
 		[SerializeField]
 		[Tooltip("Recalculate mesh normals after displacing the vertices. Turning this off is cheaper but flattens the shading of a strongly deflected cord.")]
 		private bool _recalculateNormals = true;
-
-		[SerializeField]
-		[Tooltip("Displace the render vertices of supported arcs as well. Supported arcs do not move in this version, so this only matters once arcs may lift off their guides.")]
-		private bool _includeSupportedArcs;
 
 		[SerializeField]
 		[Tooltip("Shape of the slingshot kick animation over its duration. Starts at zero, peaks at one and returns to zero.")]
@@ -115,11 +94,6 @@ namespace VisualPinball.Unity
 		public bool RecalculateNormals {
 			get => _recalculateNormals;
 			set => _recalculateNormals = value;
-		}
-
-		public bool IncludeSupportedArcs {
-			get => _includeSupportedArcs;
-			set => _includeSupportedArcs = value;
 		}
 
 		/// <summary>Shape of the kick animation, never null.</summary>
@@ -155,7 +129,7 @@ namespace VisualPinball.Unity
 
 		#region Runtime state
 
-		/// <summary>One rebound-eligible free span, its rest chord and its profile.</summary>
+		/// <summary>One free span, its rest chord and its profile.</summary>
 		private struct SpanVisual
 		{
 			public int PathElementIndex;
@@ -174,11 +148,6 @@ namespace VisualPinball.Unity
 
 			public float AppliedApex;
 			public float AppliedDepth;
-
-			public bool TwangActive;
-			public float TwangApex;
-			public float TwangDepth;
-			public float TwangStartMs;
 
 			public bool KickActive;
 			public float KickApex;
@@ -205,25 +174,22 @@ namespace VisualPinball.Unity
 			public float3 Inward;
 		}
 
-		/// <summary>Mesh vertex count and descriptor hash the bindings were built for.</summary>
+		/// <summary>Mesh vertex count and path hash the bindings were built for.</summary>
 		private struct BindingFingerprint : IEquatable<BindingFingerprint>
 		{
 			public int VertexCount;
-			public int DescriptorHash;
+			public int PathHash;
 
 			public bool Equals(BindingFingerprint other)
-				=> VertexCount == other.VertexCount && DescriptorHash == other.DescriptorHash;
+				=> VertexCount == other.VertexCount && PathHash == other.PathHash;
 		}
 
 		private static readonly SpanVisual[] NoSpans = Array.Empty<SpanVisual>();
 		private static readonly VertexBinding[] NoBindings = Array.Empty<VertexBinding>();
 
 		[NonSerialized] private RubberComponent _rubber;
-		[NonSerialized] private RubberColliderComponent _collider;
 		[NonSerialized] private MeshFilter _meshFilter;
 		[NonSerialized] private PhysicsEngine _physicsEngine;
-		[NonSerialized] private RubberApi _api;
-		[NonSerialized] private int _rubberItemId;
 
 		[NonSerialized] private Mesh _sharedMesh;
 		[NonSerialized] private Mesh _instancedMesh;
@@ -236,8 +202,6 @@ namespace VisualPinball.Unity
 		[NonSerialized] private bool _bindingsValid;
 
 		[NonSerialized] private float _fallbackClockMs;
-		[NonSerialized] private int _droppedImpactCount;
-		[NonSerialized] private int _impactCount;
 		[NonSerialized] private int _kickCount;
 		[NonSerialized] private int _meshUpdateCount;
 		[NonSerialized] private float _heldDeflection;
@@ -264,17 +228,11 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		/// <summary>Number of rebound-eligible spans the bindings were built for.</summary>
+		/// <summary>Number of free spans the bindings were built for.</summary>
 		internal int SpanCount => _spans.Length;
 
 		/// <summary>Number of render vertices bound to a span.</summary>
 		internal int BindingCount => _bindings.Length;
-
-		/// <summary>How many impact events arrived too late to animate.</summary>
-		internal int DroppedImpactCount => _droppedImpactCount;
-
-		/// <summary>How many impacts started a twang.</summary>
-		internal int ImpactCount => _impactCount;
 
 		/// <summary>How many slingshot kicks started an outward push.</summary>
 		internal int KickCount => _kickCount;
@@ -302,13 +260,11 @@ namespace VisualPinball.Unity
 			Acquire();
 			AcquireMesh();
 			RebuildBindings();
-			Subscribe();
 		}
 
 		private void OnDisable()
 		{
 			_previewActive = false;
-			Unsubscribe();
 			ReleaseMesh();
 			_spans = NoSpans;
 			_bindings = NoBindings;
@@ -323,7 +279,6 @@ namespace VisualPinball.Unity
 			if (Time.deltaTime > 0f) {
 				_fallbackClockMs += Time.deltaTime * 1000f;
 			}
-			Subscribe();
 			RenderFrame();
 		}
 
@@ -331,32 +286,8 @@ namespace VisualPinball.Unity
 		internal void Acquire()
 		{
 			_rubber = GetComponent<RubberComponent>();
-			_collider = GetComponent<RubberColliderComponent>();
 			_meshFilter = GetComponent<MeshFilter>();
 			_physicsEngine = GetComponentInParent<PhysicsEngine>();
-			_rubberItemId = _rubber ? UnityObjectId.Get(_rubber.gameObject) : 0;
-		}
-
-		/// <summary>
-		/// Subscribes to the rubber's impact events. The api is created in the rubber's
-		/// <c>Awake</c>, so this retries until it exists.
-		/// </summary>
-		private void Subscribe()
-		{
-			if (_api != null || !_rubber || _rubber.RubberApi == null) {
-				return;
-			}
-			_api = _rubber.RubberApi;
-			_api.SpanImpact += OnSpanImpact;
-		}
-
-		private void Unsubscribe()
-		{
-			if (_api == null) {
-				return;
-			}
-			_api.SpanImpact -= OnSpanImpact;
-			_api = null;
 		}
 
 		#endregion
@@ -416,7 +347,7 @@ namespace VisualPinball.Unity
 		#region Binding
 
 		/// <summary>
-		/// Binds every render vertex within one cord diameter of a rebound-eligible
+		/// Binds every render vertex within one cord diameter of a free
 		/// span's rest chord to that chord. Deterministic: vertices go to the nearest
 		/// chord, ties to the span with the lower path element index.
 		/// </summary>
@@ -426,27 +357,24 @@ namespace VisualPinball.Unity
 			_bindings = NoBindings;
 			_fingerprint = ComputeFingerprint();
 			_bindingsValid = true;
-			if (!_rubber || !_collider) {
+			if (!_rubber || _rubber.PathSource != RubberPathSource.Guides) {
 				return;
 			}
 
 			var path = _rubber.BakedPath;
 			var frame = _rubber.BakeFrameToLocal;
-			var descriptors = RubberSpanReboundEligibility.EligibleDescriptors(_collider);
-			var spans = new List<SpanVisual>(descriptors.Count);
-			var polylines = new List<(float3[] Points, float[] Cumulative)>(descriptors.Count);
-			foreach (var descriptor in descriptors) {
-				if (descriptor.PathElementIndex < 0 || descriptor.PathElementIndex >= path.Count) {
-					continue;
-				}
-				var element = path[descriptor.PathElementIndex];
+			var insideSign = RubberPathMath.InsideSign(path);
+			var spans = new List<SpanVisual>(path.Count);
+			var polylines = new List<(float3[] Points, float[] Cumulative)>(path.Count);
+			for (var pathElementIndex = 0; pathElementIndex < path.Count; pathElementIndex++) {
+				var element = path[pathElementIndex];
 				if (element.Type != RubberPathElementType.FreeSpan) {
 					continue;
 				}
-				if (!TryBuildSpan(frame, element, descriptor.InwardSign, out var span)) {
+				if (!TryBuildSpan(frame, element, insideSign, out var span)) {
 					continue;
 				}
-				span.PathElementIndex = descriptor.PathElementIndex;
+				span.PathElementIndex = pathElementIndex;
 				spans.Add(span);
 				polylines.Add(BuildRestPolyline(frame, element));
 			}
@@ -496,7 +424,7 @@ namespace VisualPinball.Unity
 		/// <c>VpxToWorld</c>, which is exactly what the bake frame's output needs.
 		/// </summary>
 		private static bool TryBuildSpan(Matrix4x4 frame, RubberPathElement element,
-			sbyte inwardSign, out SpanVisual span)
+			int insideSign, out SpanVisual span)
 		{
 			span = default;
 			var start = ToMeshSpace(frame, element.Start);
@@ -514,7 +442,7 @@ namespace VisualPinball.Unity
 				return false;
 			}
 			var tangent = bakeChord / bakeLength;
-			var inward2 = inwardSign >= 0
+			var inward2 = insideSign >= 0
 				? new float2(-tangent.y, tangent.x)
 				: new float2(tangent.y, -tangent.x);
 			var midpoint = (element.Start + element.End) * 0.5f;
@@ -592,21 +520,12 @@ namespace VisualPinball.Unity
 				hash = hash * 31 + (int)_rubber.BakeVersion;
 				hash = hash * 31 + _rubber.BakedPath.Count;
 				hash = hash * 31 + _rubber.Thickness;
-			}
-			if (_collider) {
-				hash = hash * 31 + _collider.DeformationBakeVersion;
-				hash = hash * 31 + _collider.DeformationBakeHash.GetHashCode();
-				var descriptors = _collider.SpanDescriptors;
-				hash = hash * 31 + descriptors.Count;
-				for (var i = 0; i < descriptors.Count; i++) {
-					hash = hash * 31 + descriptors[i].PathElementIndex;
-					hash = hash * 31 + descriptors[i].InwardSign;
-					hash = hash * 31 + (descriptors[i].ReboundEligible ? 1 : 0);
-				}
+				hash = hash * 31 + (int)_rubber.PathSource;
+				hash = hash * 31 + _rubber.BakeInputHash.GetHashCode();
 			}
 			return new BindingFingerprint {
 				VertexCount = _restVertices?.Length ?? 0,
-				DescriptorHash = hash,
+				PathHash = hash,
 			};
 		}
 
@@ -622,7 +541,7 @@ namespace VisualPinball.Unity
 				yield break;
 			}
 			if (_spans.Length == 0) {
-				yield return "No rebound-eligible span to bind.";
+				yield return "No free span to bind.";
 				yield break;
 			}
 			var limit = _rubber ? _rubber.Thickness : 0f;
@@ -653,7 +572,7 @@ namespace VisualPinball.Unity
 		#region Profile
 
 		/// <summary>
-		/// The V profile of the plan's section 4: pinned at both ends, linear up to the
+		/// The V profile: pinned at both ends, linear up to the
 		/// apex and linear back down, inward positive.
 		/// </summary>
 		internal static float ProfileAt(float alpha, float apex, float depth)
@@ -697,61 +616,10 @@ namespace VisualPinball.Unity
 
 		#region Events
 
-		private void OnSpanImpact(object sender, RubberSpanImpactEventArgs args)
-		{
-			if (!_physicsEngine
-				|| !_physicsEngine.TryGetRubberSpan(args.SpanId, out var rubberItemId,
-					out var pathElementIndex)
-				|| rubberItemId != _rubberItemId) {
-				return;
-			}
-			ApplyImpact(pathElementIndex, args.ApexFraction, args.EffectiveDepth,
-				args.SimulationTimeMs);
-		}
-
 		/// <summary>
-		/// Starts the passive twang of one span. An impact older than
-		/// <see cref="MaximumImpactAgeMs"/> of simulation time is dropped; a new impact
-		/// restarts the decay.
-		/// </summary>
-		internal void ApplyImpact(int pathElementIndex, float apexFraction,
-			float effectiveDepth, float simulationTimeMs)
-		{
-			if (!TryGetSpanIndex(pathElementIndex, out var index)) {
-				return;
-			}
-			if (!float.IsFinite(effectiveDepth) || effectiveDepth == 0f) {
-				return;
-			}
-			var now = NowMs;
-			var stamp = float.IsFinite(simulationTimeMs) ? simulationTimeMs : now;
-			if (now - stamp > MaximumImpactAgeMs) {
-				_droppedImpactCount++;
-				return;
-			}
-			ref var span = ref _spans[index];
-			span.TwangActive = true;
-			span.TwangApex = math.clamp(apexFraction, MinimumApex, MaximumApex);
-			span.TwangDepth = effectiveDepth;
-			span.TwangStartMs = math.min(stamp, now);
-			_impactCount++;
-		}
-
-		/// <summary>
-		/// Twangs every bound span at its middle, as a hit of the given depth would,
-		/// for diagnosing a cord that does not move in the scene.
-		/// </summary>
-		internal void Pluck(float depthVpx)
-		{
-			for (var i = 0; i < _spans.Length; i++) {
-				ApplyImpact(_spans[i].PathElementIndex, 0.5f, depthVpx, NowMs);
-			}
-		}
-
-		/// <summary>
-		/// Starts the outward kick animation of one span. It replaces the twang while it
-		/// plays. <paramref name="outwardDepth"/> is a magnitude in VPX units; the
-		/// profile is signed outward.
+		/// Starts the outward kick animation of one span.
+		/// <paramref name="outwardDepth"/> is a magnitude in VPX units; the profile is
+		/// signed outward.
 		/// </summary>
 		internal void PlayKick(int pathElementIndex, float apexPathCoordinate01,
 			float outwardDepth)
@@ -773,8 +641,7 @@ namespace VisualPinball.Unity
 
 		/// <summary>
 		/// Holds the span at an outward push that follows an arm's position: applied as
-		/// long as the depth is non-zero, overriding the timed kick; twang shows again once
-		/// it is zero.
+		/// long as the depth is non-zero, overriding the timed kick.
 		/// </summary>
 		internal void DriveKick(int pathElementIndex, float apexPathCoordinate01,
 			float outwardDepth)
@@ -890,8 +757,8 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
-		/// The signed profile of one span. The kick wins over the twang while it plays;
-		/// the two are never summed.
+		/// The signed profile of one span: the preview, a held diagnostic deflection, the
+		/// arm's push or the timed kick, in that order.
 		/// </summary>
 		private void Evaluate(ref SpanVisual span, float now)
 		{
@@ -911,19 +778,6 @@ namespace VisualPinball.Unity
 				span.Depth = span.DrivenDepth;
 				return;
 			}
-			var twangApex = 0f;
-			var twangDepth = 0f;
-			if (span.TwangActive) {
-				var age = math.max(0f, now - span.TwangStartMs);
-				twangDepth = span.TwangDepth * math.exp(-age / TwangTimeConstantMs);
-				if (math.abs(twangDepth) < ResidualDepthVpx) {
-					span.TwangActive = false;
-					twangDepth = 0f;
-				} else {
-					twangApex = span.TwangApex;
-				}
-			}
-
 			if (span.KickActive) {
 				var duration = AnimationDurationMs;
 				var progress = duration > 0f ? (now - span.KickStartMs) / duration : 1f;
@@ -936,8 +790,8 @@ namespace VisualPinball.Unity
 				}
 			}
 
-			span.Apex = twangApex;
-			span.Depth = twangDepth;
+			span.Apex = 0f;
+			span.Depth = 0f;
 		}
 
 		/// <summary>
@@ -996,32 +850,17 @@ namespace VisualPinball.Unity
 
 	public struct RubberDeformationRendererPackable
 	{
-		/// <summary>
-		/// Version 2 adds the kick curve and its duration. A version 1 payload restores
-		/// the defaults for both.
-		/// </summary>
-		private const int CurrentVersion = 2;
-
-		public int Version;
 		public float UpdateThreshold;
 		public bool RecalculateNormals;
-		public bool IncludeSupportedArcs;
-		public CurveKeyframePackable[] KickCurveKeyframes;
-		public int KickCurvePreWrapMode;
-		public int KickCurvePostWrapMode;
+		public AnimationCurve KickCurve;
 		public float AnimationDurationMs;
 
 		public static byte[] Pack(RubberDeformationRenderer component)
 		{
-			var curve = component.KickCurve;
 			return PackageApi.Packer.Pack(new RubberDeformationRendererPackable {
-				Version = CurrentVersion,
 				UpdateThreshold = component.UpdateThreshold,
 				RecalculateNormals = component.RecalculateNormals,
-				IncludeSupportedArcs = component.IncludeSupportedArcs,
-				KickCurveKeyframes = curve.keys.Select(CurveKeyframePackable.From).ToArray(),
-				KickCurvePreWrapMode = (int)curve.preWrapMode,
-				KickCurvePostWrapMode = (int)curve.postWrapMode,
+				KickCurve = component.KickCurve,
 				AnimationDurationMs = component.AnimationDurationMs,
 			});
 		}
@@ -1034,19 +873,13 @@ namespace VisualPinball.Unity
 			var data = PackageApi.Packer.Unpack<RubberDeformationRendererPackable>(bytes);
 			component.UpdateThreshold = data.UpdateThreshold;
 			component.RecalculateNormals = data.RecalculateNormals;
-			component.IncludeSupportedArcs = data.IncludeSupportedArcs;
-			if (data.Version < 2 || data.KickCurveKeyframes == null
-				|| data.KickCurveKeyframes.Length == 0) {
+			if (data.KickCurve == null || data.KickCurve.length == 0) {
 				component.KickCurve = RubberDeformationRenderer.CreateDefaultKickCurve();
 				component.AnimationDurationMs =
 					RubberDeformationRenderer.DefaultAnimationDurationMs;
 				return;
 			}
-			component.KickCurve = new AnimationCurve(
-				data.KickCurveKeyframes.Select(key => key.ToKeyframe()).ToArray()) {
-				preWrapMode = (WrapMode)data.KickCurvePreWrapMode,
-				postWrapMode = (WrapMode)data.KickCurvePostWrapMode,
-			};
+			component.KickCurve = data.KickCurve;
 			component.AnimationDurationMs = data.AnimationDurationMs;
 		}
 	}

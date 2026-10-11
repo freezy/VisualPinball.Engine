@@ -122,33 +122,6 @@ namespace VisualPinball.Unity
 		public readonly LazyInit<NativeParallelHashMap<int, TriggerState>> TriggerStates = new(() => new NativeParallelHashMap<int, TriggerState>(0, Allocator.Persistent));
 		public readonly LazyInit<NativeParallelHashSet<int>> DisabledCollisionItems = new(() => new NativeParallelHashSet<int>(0, Allocator.Persistent));
 
-		/// <summary>
-		/// Constant per-span data of the compliant rubber rebound, keyed by the dense
-		/// span id stamped on the tagged swept-circle capsules. Written once by
-		/// <see cref="PhysicsEngine.Start"/>, read only by the collide pass.
-		/// </summary>
-		public readonly LazyInit<NativeParallelHashMap<int, RubberSpanRebound>> RubberSpanRebounds = new(() => new NativeParallelHashMap<int, RubberSpanRebound>(0, Allocator.Persistent));
-
-		/// <summary>
-		/// Physics state of the physical slingshots, keyed by the slingshot component's
-		/// item id. See <see cref="PhysicsState.RubberSlingshotStates"/>.
-		/// </summary>
-		public readonly LazyInit<NativeParallelHashMap<int, RubberSlingshotState>> RubberSlingshotStates = new(() => new NativeParallelHashMap<int, RubberSlingshotState>(0, Allocator.Persistent));
-
-		/// <summary>
-		/// Main-thread mapping between a dense compliant-span id and the rubber span it
-		/// belongs to, built in <see cref="PhysicsEngine.Start"/> and read-only after.
-		/// </summary>
-		internal RubberSpanReboundIndex RubberSpanIndex = RubberSpanReboundIndex.Empty;
-
-		/// <summary>
-		/// The physical slingshots that registered a state, in registration order. Their
-		/// dense span ids can only be resolved once every collider exists, so
-		/// <see cref="PhysicsEngine.Start"/> walks this list after the spans registered.
-		/// Main-thread only.
-		/// </summary>
-		public readonly List<RubberSlingshotComponent> SlingshotComponents = new();
-
 		public NativeParallelHashMap<int, FixedList512Bytes<float>> ElasticityOverVelocityLUTs;
 		public NativeParallelHashMap<int, FixedList512Bytes<float>> FrictionOverVelocityLUTs;
 
@@ -357,25 +330,7 @@ namespace VisualPinball.Unity
 				ref SpringHingeStates.Ref,
 				ref SurfaceStates.Ref, ref TurntableStates.Ref, ref TriggerStates.Ref, ref DisabledCollisionItems.Ref, ref SwapBallCollisionHandling,
 				ref ElasticityOverVelocityLUTs, ref FrictionOverVelocityLUTs, ref KinematicVelocities.Ref,
-				ref KinematicItemsOutOfOctree.Ref, ref KinematicMovingItemBounds.Ref,
-				ref RubberSpanRebounds.Ref, ref RubberSlingshotStates.Ref);
-		}
-
-		/// <summary>
-		/// Carries the random state a tick advanced back into the environment.
-		/// </summary>
-		/// <remarks>
-		/// <see cref="PhysicsState.Env"/> is a copy of <see cref="PhysicsEnv"/> taken by
-		/// <see cref="CreateState"/>. The collide pass draws scatter from that copy's
-		/// <see cref="PhysicsEnv.Random"/>, so without this write-back every tick would
-		/// start from the same generator state and scatter would repeat instead of
-		/// being one running sequence. <see cref="PhysicsUpdate.Execute"/> advances
-		/// everything else in the environment through its own reference, so only the
-		/// random state is copied back.
-		/// </remarks>
-		internal static void CommitRandom(ref PhysicsEnv env, in PhysicsState state)
-		{
-			env.Random = state.Env.Random;
+				ref KinematicItemsOutOfOctree.Ref, ref KinematicMovingItemBounds.Ref);
 		}
 
 		/// <summary>
@@ -428,8 +383,6 @@ namespace VisualPinball.Unity
 			TriggerStates.Ref.Dispose();
 
 			DisabledCollisionItems.Ref.Dispose();
-			RubberSpanRebounds.Ref.Dispose();
-			RubberSlingshotStates.Ref.Dispose();
 			KinematicTransforms.Ref.Dispose();
 			KinematicTargetTransforms.Ref.Dispose();
 			KinematicVelocities.Ref.Dispose();

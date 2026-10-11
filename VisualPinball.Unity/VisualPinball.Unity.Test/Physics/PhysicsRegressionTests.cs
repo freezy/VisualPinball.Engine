@@ -20,7 +20,6 @@ using System.Reflection.Emit;
 using NUnit.Framework;
 using Unity.Collections;
 using Unity.Mathematics;
-using VisualPinball.Engine.Common;
 using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Test
@@ -189,80 +188,6 @@ namespace VisualPinball.Unity.Test
 
 			Assert.That(ball.Velocity.x, Is.LessThan(5f), "kinetic friction must reduce planar skid speed");
 			Assert.That(math.lengthsq(ball.AngularMomentum), Is.GreaterThan(0f), "friction must start converting skid into rolling spin");
-		}
-
-		[Test]
-		public void SustainedRubberContactFrictionReducesTangentialSlip()
-		{
-			var hitNormal = math.normalize(new float3(-0.48791f, -0.840108f, -0.236986f));
-			var frictionAcceleration = new float3(0.0476984f, 0.170975f, -0.00000794f);
-			var ball = new BallState {
-				Mass = 1f,
-				Radius = 25f,
-				AngularMomentum = new float3(0f, 0f, -100f)
-			};
-			var contact = new CollisionEventData { HitNormal = hitNormal };
-			var frictionVelocity = ball.Velocity;
-			var frictionAngularMomentum = ball.AngularMomentum;
-			var initialSlipSpeed = TangentialSlipSpeed(in ball, in hitNormal, float3.zero);
-
-			BallCollider.HandleStaticContact(ref ball, in contact, 0.3f, PhysicsConstants.PhysFactor,
-				float3.zero, float3.zero, in frictionAcceleration, in frictionVelocity,
-				in frictionAngularMomentum);
-
-			Assert.That(TangentialSlipSpeed(in ball, in hitNormal, float3.zero), Is.LessThan(initialSlipSpeed),
-				"kinetic friction must oppose the surface slip observed in the Godzilla rubber contact");
-			Assert.That(math.abs(ball.AngularMomentum.z), Is.LessThan(math.abs(frictionAngularMomentum.z)),
-				"the friction impulse must reduce, not amplify, the observed stationary spin");
-		}
-
-		[Test]
-		public void SlowRollingBallRemainsLockedToMovingCollider()
-		{
-			var hitNormal = new float3(0f, 0f, 1f);
-			var colliderVelocity = new float3(2f, 0f, 0f);
-			const float relativeRollingSpeed = 0.001f;
-			var ball = new BallState {
-				Mass = 1f,
-				Radius = 25f,
-				Velocity = colliderVelocity + new float3(relativeRollingSpeed, 0f, 0f)
-			};
-			ball.AngularMomentum = new float3(0f, ball.Inertia * relativeRollingSpeed / ball.Radius, 0f);
-			var initialVelocity = ball.Velocity;
-			var initialAngularMomentum = ball.AngularMomentum;
-			var contact = new CollisionEventData { HitNormal = hitNormal };
-			var supportAcceleration = new float3(0f, 0f, -1f);
-
-			BallCollider.HandleStaticContact(ref ball, in contact, 0.3f, PhysicsConstants.PhysFactor,
-				float3.zero, in colliderVelocity, in supportAcceleration, in initialVelocity,
-				in initialAngularMomentum);
-
-			AssertFloat3(ball.Velocity, initialVelocity);
-			AssertFloat3(ball.AngularMomentum, initialAngularMomentum);
-			Assert.That(TangentialSlipSpeed(in ball, in hitNormal, in colliderVelocity), Is.LessThan(Tolerance),
-				"slow no-slip rolling must remain physically simulated rather than being damped or stopped");
-		}
-
-		[Test]
-		public void MovingColliderFrictionCouplesBallTranslationAndSpin()
-		{
-			var hitNormal = new float3(0f, 0f, 1f);
-			var colliderVelocity = new float3(2f, 0f, 0f);
-			var supportAcceleration = new float3(0f, 0f, -1f);
-			var ball = new BallState { Mass = 1f, Radius = 25f };
-			var contact = new CollisionEventData { HitNormal = hitNormal };
-			var frictionVelocity = ball.Velocity;
-			var frictionAngularMomentum = ball.AngularMomentum;
-			var initialSlipSpeed = TangentialSlipSpeed(in ball, in hitNormal, in colliderVelocity);
-
-			BallCollider.HandleStaticContact(ref ball, in contact, 0.3f, PhysicsConstants.PhysFactor,
-				float3.zero, in colliderVelocity, in supportAcceleration, in frictionVelocity,
-				in frictionAngularMomentum);
-
-			Assert.That(ball.Velocity.x, Is.GreaterThan(0f),
-				"surface friction must translate a ball instead of creating spin in place");
-			Assert.That(math.lengthsq(ball.AngularMomentum), Is.GreaterThan(0f));
-			Assert.That(TangentialSlipSpeed(in ball, in hitNormal, in colliderVelocity), Is.LessThan(initialSlipSpeed));
 		}
 
 		[Test]
@@ -507,15 +432,6 @@ namespace VisualPinball.Unity.Test
 				quaternion.RotateZ(math.radians(45f)),
 				new float3(2f, 1f, 3f)
 			);
-		}
-
-		private static float TangentialSlipSpeed(in BallState ball, in float3 hitNormal,
-			in float3 colliderVelocity)
-		{
-			var contactOffset = -ball.Radius * hitNormal;
-			var surfaceVelocity = BallState.SurfaceVelocity(in ball, in contactOffset) - colliderVelocity;
-			var slip = surfaceVelocity - hitNormal * math.dot(surfaceVelocity, hitNormal);
-			return math.length(slip);
 		}
 
 		private static bool CallsMethod(MethodInfo caller, MethodInfo expectedCallee)

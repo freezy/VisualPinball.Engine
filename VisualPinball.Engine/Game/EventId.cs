@@ -45,19 +45,5 @@ namespace VisualPinball.Engine.Game
 
 		// Physics diagnostics
 		PhysicsDiagnosticsUnsupportedOwnedInteraction = 1600,
-
-		// Device switches driven from the physics thread. Only edges are enqueued;
-		// the simulation time is in FloatParam and the causal ball in BallId.
-		SwitchEventsClosed = 1700,
-		SwitchEventsOpened = 1701,
-
-		// Device coils driven from the physics thread, on aggregate coil transitions.
-		CoilEventsEnergized = 1702,
-		CoilEventsReleased = 1703,
-
-		// A compliant rubber span was deflected. IntParam is the dense span id,
-		// FloatParam the simulation time, and FloatParam2 packs the apex fraction and
-		// the signed effective depth as two half-precision floats.
-		RubberSpanImpact = 1704,
 	}
 }
