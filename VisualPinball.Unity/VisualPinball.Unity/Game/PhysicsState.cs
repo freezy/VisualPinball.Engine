@@ -169,30 +169,6 @@ namespace VisualPinball.Unity
 		internal NativeParallelHashMap<int, TriggerState> TriggerStates;
 		internal NativeParallelHashSet<int> DisabledCollisionItems;
 
-		/// <summary>
-		/// Constant per-span data of the compliant rubber rebound, keyed by the dense
-		/// span id a tagged <see cref="SweptCircleCollider"/> carries. Read only.
-		/// </summary>
-		internal NativeParallelHashMap<int, RubberSpanRebound> RubberSpanRebounds;
-
-		/// <summary>
-		/// Physics state of the physical slingshots, keyed by the slingshot component's
-		/// item id. Advanced once per tick by <see cref="PhysicsUpdate"/> before the
-		/// cycle, and written by the collide pass when a bound span is deflected.
-		/// </summary>
-		internal NativeParallelHashMap<int, RubberSlingshotState> RubberSlingshotStates;
-
-		/// <summary>
-		/// Physics time of the tick currently being simulated, in microseconds.
-		/// </summary>
-		/// <remarks>
-		/// <see cref="Env"/> is a copy taken when the state was created, so its clock is
-		/// the one of the whole <see cref="PhysicsUpdate.Execute"/> call and not of the
-		/// individual tick. Mechanisms that timestamp what happens inside the cycle read
-		/// this instead; it is refreshed at the top of every tick.
-		/// </remarks>
-		internal ulong TickTimeUsec;
-
 		[MarshalAs(UnmanagedType.U1)]
 		internal bool SwapBallCollisionHandling;
 
@@ -216,9 +192,7 @@ namespace VisualPinball.Unity
 			ref NativeParallelHashMap<int, FixedList512Bytes<float>> frictionOverVelocityLUTs,
 			ref NativeParallelHashMap<int, KinematicVelocityState> kinematicVelocities,
 			ref NativeParallelHashSet<int> kinematicItemsOutOfOctree,
-			ref NativeParallelHashMap<int, Aabb> kinematicMovingItemBounds,
-			ref NativeParallelHashMap<int, RubberSpanRebound> rubberSpanRebounds,
-			ref NativeParallelHashMap<int, RubberSlingshotState> rubberSlingshotStates)
+			ref NativeParallelHashMap<int, Aabb> kinematicMovingItemBounds)
 		{
 			Env = env;
 			Octree = octree;
@@ -253,9 +227,6 @@ namespace VisualPinball.Unity
 			KinematicVelocities = kinematicVelocities;
 			KinematicItemsOutOfOctree = kinematicItemsOutOfOctree;
 			KinematicMovingItemBounds = kinematicMovingItemBounds;
-			RubberSpanRebounds = rubberSpanRebounds;
-			RubberSlingshotStates = rubberSlingshotStates;
-			TickTimeUsec = env.CurPhysicsFrameTime;
 		}
 
 		internal ref ColliderHeader GetColliderHeader(ref NativeColliders colliders, int colliderId) => ref colliders.GetHeader(colliderId);
@@ -507,10 +478,6 @@ namespace VisualPinball.Unity
 
 				case ColliderType.Spinner:
 					return colliders.Spinner(colliderId).HitTest(ref newCollEvent, ref InsideOfs, in ball,
-						ball.CollisionEvent.HitTime);
-
-				case ColliderType.SweptCircle:
-					return colliders.SweptCircle(colliderId).HitTest(ref newCollEvent, in ball,
 						ball.CollisionEvent.HitTime);
 
 				case ColliderType.Triangle:

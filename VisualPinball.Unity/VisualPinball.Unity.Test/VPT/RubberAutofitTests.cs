@@ -533,8 +533,7 @@ namespace VisualPinball.Unity.Test
 			var guideObject = new GameObject("Guide");
 			try {
 				var rubber = rubberObject.AddComponent<RubberComponent>();
-				var collider = rubberObject.AddComponent<RubberColliderComponent>();
-				collider.Mode = RubberColliderMode.Physical;
+				rubberObject.AddComponent<RubberColliderComponent>();
 				var guide = AddGuide(guideObject, 0.01f);
 				rubber.SetGuideBindings(new[] {
 					new RubberGuideBinding(guide, guide.Slots[0].Id),
@@ -550,7 +549,6 @@ namespace VisualPinball.Unity.Test
 				Assert.That(rubber.GuideBindings, Is.Empty);
 				Assert.That(rubber.BakedPath, Is.Empty);
 				Assert.That(rubber.DragPoints.Select(point => point.Center), Is.EqualTo(sampledPoints));
-				Assert.That(collider.Mode, Is.EqualTo(RubberColliderMode.Legacy));
 			} finally {
 				UnityEngine.Object.DestroyImmediate(rubberObject);
 				UnityEngine.Object.DestroyImmediate(guideObject);

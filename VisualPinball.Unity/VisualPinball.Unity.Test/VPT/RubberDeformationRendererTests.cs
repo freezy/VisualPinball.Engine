@@ -25,9 +25,9 @@ using Object = UnityEngine.Object;
 namespace VisualPinball.Unity.Test
 {
 	/// <summary>
-	/// Section 4 of the static-rebound plan, the renderer: the V profile, the vertex
-	/// binding of a synthetic tube around a known straight span, the displacement, the
-	/// twang decay with its age gate, the kick overriding the twang, and the packable.
+	/// The deformation renderer: the V profile, the vertex binding of a synthetic tube
+	/// around a known straight span, the displacement, the timed kick and the arm's
+	/// push, and the packable.
 	/// </summary>
 	public class RubberDeformationRendererTests
 	{
@@ -138,12 +138,13 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldRebuildTheBindingsWhenTheDescriptorsChange()
+		public void ShouldRebuildTheBindingsWhenThePathChanges()
 		{
 			using var fixture = Fixture.Create();
 			Assert.That(fixture.Renderer.BindingCount, Is.GreaterThan(0));
 
-			fixture.ApplyBake(Array.Empty<RubberSpanDescriptor>());
+			fixture.Rubber.ApplyGuidedBake(Array.Empty<RubberPathElement>(), null,
+				Matrix4x4.identity, default, 2);
 			fixture.Renderer.RenderFrame();
 			Assert.That(fixture.Renderer.SpanCount, Is.Zero);
 			Assert.That(fixture.Renderer.BindingCount, Is.Zero);
@@ -154,11 +155,10 @@ namespace VisualPinball.Unity.Test
 		#region Displacement
 
 		[Test]
-		public void ShouldDisplaceBoundVerticesInwardOnAnImpact()
+		public void ShouldDisplaceBoundVerticesInwardOnAnInwardProfile()
 		{
 			using var fixture = Fixture.Create();
-			fixture.ClockMs = 1000f;
-			fixture.Renderer.ApplyImpact(0, 0.5f, 6f, 1000f);
+			fixture.Renderer.HeldDeflection = 6f;
 			fixture.Renderer.RenderFrame();
 
 			// inward is -z in mesh space, so an inward-positive profile moves -z
@@ -186,8 +186,7 @@ namespace VisualPinball.Unity.Test
 		public void ShouldTranslateEveryCrossSectionRigidly()
 		{
 			using var fixture = Fixture.Create();
-			fixture.ClockMs = 1000f;
-			fixture.Renderer.ApplyImpact(0, 0.5f, 6f, 1000f);
+			fixture.Renderer.HeldDeflection = 6f;
 			fixture.Renderer.RenderFrame();
 
 			var vertices = fixture.Renderer.InstancedMesh.vertices;
@@ -206,8 +205,7 @@ namespace VisualPinball.Unity.Test
 		public void ShouldLeaveUnboundVerticesWhereTheyAre()
 		{
 			using var fixture = Fixture.Create();
-			fixture.ClockMs = 1000f;
-			fixture.Renderer.ApplyImpact(0, 0.5f, 6f, 1000f);
+			fixture.Renderer.HeldDeflection = 6f;
 			fixture.Renderer.RenderFrame();
 
 			var vertices = fixture.Renderer.InstancedMesh.vertices;
@@ -292,8 +290,7 @@ namespace VisualPinball.Unity.Test
 			Assert.That(fixture.MeshFilter.sharedMesh,
 				Is.SameAs(fixture.Renderer.InstancedMesh));
 
-			fixture.ClockMs = 1000f;
-			fixture.Renderer.ApplyImpact(0, 0.5f, 6f, 1000f);
+			fixture.Renderer.HeldDeflection = 6f;
 			fixture.Renderer.RenderFrame();
 			Assert.That(shared.vertices, Is.EqualTo(fixture.RestVertices).AsCollection);
 
@@ -303,93 +300,45 @@ namespace VisualPinball.Unity.Test
 
 		#endregion
 
-		#region Twang and kick
+		#region Kick
 
 		[Test]
-		public void ShouldDecayTheTwangWithItsTimeConstant()
+		public void ShouldEndTheTimedKickAfterItsDuration()
 		{
 			using var fixture = Fixture.Create();
 			fixture.ClockMs = 1000f;
-			fixture.Renderer.ApplyImpact(0, 0.4f, 6f, 1000f);
+			fixture.Renderer.PlayKick(0, 0.4f, 16f);
+
+			fixture.ClockMs = 1000f + fixture.Renderer.AnimationDurationMs * 0.5f;
 			fixture.Renderer.RenderFrame();
-			Assert.That(fixture.Depth(), Is.EqualTo(6f).Within(1e-4f));
+			Assert.That(fixture.Depth(), Is.EqualTo(-16f).Within(1e-3f));
 			Assert.That(fixture.Apex(), Is.EqualTo(0.4f).Within(1e-5f));
 
-			fixture.ClockMs = 1000f + RubberDeformationRenderer.TwangTimeConstantMs;
-			fixture.Renderer.RenderFrame();
-			Assert.That(fixture.Depth(), Is.EqualTo(6f / Mathf.Exp(1f)).Within(1e-3f));
-
-			fixture.ClockMs = 1000f + 4f * RubberDeformationRenderer.TwangTimeConstantMs;
-			fixture.Renderer.RenderFrame();
-			Assert.That(fixture.Depth(), Is.EqualTo(6f * Mathf.Exp(-4f)).Within(1e-3f));
-
-			// far enough out it stops entirely and the mesh returns to rest
-			fixture.ClockMs = 1000f + 1000f;
+			fixture.ClockMs = 1000f + fixture.Renderer.AnimationDurationMs + 1f;
 			fixture.Renderer.RenderFrame();
 			Assert.That(fixture.Depth(), Is.EqualTo(0f));
-			var vertices = fixture.Renderer.InstancedMesh.vertices;
-			Assert.That(vertices, Is.EqualTo(fixture.RestVertices).AsCollection);
+			Assert.That(fixture.Renderer.InstancedMesh.vertices,
+				Is.EqualTo(fixture.RestVertices).AsCollection, "the cord is back at rest");
 		}
 
 		[Test]
-		public void ShouldRestartTheTwangOnEveryImpact()
+		public void ShouldLetTheArmsPushOverrideTheTimedKick()
 		{
 			using var fixture = Fixture.Create();
 			fixture.ClockMs = 1000f;
-			fixture.Renderer.ApplyImpact(0, 0.4f, 6f, 1000f);
-
-			fixture.ClockMs = 1080f;
-			fixture.Renderer.RenderFrame();
-			Assert.That(fixture.Depth(), Is.LessThan(1f));
-
-			fixture.Renderer.ApplyImpact(0, 0.7f, 4f, 1080f);
-			fixture.Renderer.RenderFrame();
-			Assert.That(fixture.Depth(), Is.EqualTo(4f).Within(1e-4f));
-			Assert.That(fixture.Apex(), Is.EqualTo(0.7f).Within(1e-5f));
-		}
-
-		[Test]
-		public void ShouldDropImpactsOlderThanTheAgeGate()
-		{
-			using var fixture = Fixture.Create();
-			fixture.ClockMs = 1200f;
-
-			// 150 ms of simulation time late
-			fixture.Renderer.ApplyImpact(0, 0.5f, 6f, 1050f);
-			fixture.Renderer.RenderFrame();
-			Assert.That(fixture.Renderer.DroppedImpactCount, Is.EqualTo(1));
-			Assert.That(fixture.Depth(), Is.EqualTo(0f));
-
-			// 90 ms late, still inside the gate, and already partly decayed
-			fixture.Renderer.ApplyImpact(0, 0.5f, 6f, 1110f);
-			fixture.Renderer.RenderFrame();
-			Assert.That(fixture.Renderer.DroppedImpactCount, Is.EqualTo(1));
-			Assert.That(fixture.Depth(), Is.EqualTo(6f * Mathf.Exp(-90f / 40f)).Within(1e-3f));
-		}
-
-		[Test]
-		public void ShouldLetTheKickReplaceTheTwangWhileItPlays()
-		{
-			using var fixture = Fixture.Create();
-			fixture.ClockMs = 1000f;
-			fixture.Renderer.ApplyImpact(0, 0.5f, 6f, 1000f);
 			fixture.Renderer.PlayKick(0, 0.5f, 16f);
 
-			fixture.ClockMs = 1030f;
+			fixture.Renderer.DriveKick(0, 0.3f, 4f);
+			fixture.ClockMs = 1000f + fixture.Renderer.AnimationDurationMs * 0.5f;
 			fixture.Renderer.RenderFrame();
-			// signed, never summed: the kick alone, outward
-			Assert.That(fixture.Depth(), Is.EqualTo(-16f).Within(1e-3f));
+			Assert.That(fixture.Depth(), Is.EqualTo(-4f).Within(1e-4f));
+			Assert.That(fixture.Apex(), Is.EqualTo(0.3f).Within(1e-5f));
 
-			// an impact during the animation does not add to it
-			fixture.Renderer.ApplyImpact(0, 0.5f, 5f, 1030f);
+			// the arm back at rest releases the cord, and the cancelled timed kick does
+			// not come back
+			fixture.Renderer.DriveKick(0, 0.3f, 0f);
 			fixture.Renderer.RenderFrame();
-			Assert.That(fixture.Depth(), Is.EqualTo(-16f).Within(1e-3f));
-
-			// once the animation is over the twang shows through again
-			fixture.ClockMs = 1070f;
-			fixture.Renderer.RenderFrame();
-			Assert.That(fixture.Depth(), Is.GreaterThan(0f));
-			Assert.That(fixture.Depth(), Is.LessThan(5f));
+			Assert.That(fixture.Depth(), Is.EqualTo(0f));
 		}
 
 		[Test]
@@ -398,12 +347,14 @@ namespace VisualPinball.Unity.Test
 			using var fixture = Fixture.Create();
 			fixture.Renderer.UpdateThreshold = 2f;
 			fixture.ClockMs = 1000f;
-			fixture.Renderer.ApplyImpact(0, 0.5f, 6f, 1000f);
+			fixture.Renderer.PlayKick(0, 0.5f, 16f);
+			fixture.ClockMs = 1000f + fixture.Renderer.AnimationDurationMs * 0.5f;
 			fixture.Renderer.RenderFrame();
 			var written = fixture.Renderer.InstancedMesh.vertices[8];
 
-			// one millisecond later the depth moved by far less than the threshold
-			fixture.ClockMs = 1001f;
+			// one millisecond later, at the top of the curve, the depth moved by far less
+			// than the threshold
+			fixture.ClockMs += 1f;
 			fixture.Renderer.RenderFrame();
 			Assert.That(fixture.Renderer.InstancedMesh.vertices[8],
 				Is.EqualTo(written).Using(Vector3Comparer));
@@ -422,7 +373,6 @@ namespace VisualPinball.Unity.Test
 				var source = sourceObject.AddComponent<RubberDeformationRenderer>();
 				source.UpdateThreshold = 0.25f;
 				source.RecalculateNormals = false;
-				source.IncludeSupportedArcs = true;
 				source.AnimationDurationMs = 123f;
 				source.KickCurve = new AnimationCurve(
 					new Keyframe(0f, 0f, 1f, 2f),
@@ -438,7 +388,6 @@ namespace VisualPinball.Unity.Test
 
 				Assert.That(target.UpdateThreshold, Is.EqualTo(0.25f));
 				Assert.That(target.RecalculateNormals, Is.False);
-				Assert.That(target.IncludeSupportedArcs, Is.True);
 				Assert.That(target.AnimationDurationMs, Is.EqualTo(123f));
 				Assert.That(target.KickCurve.keys.Length, Is.EqualTo(3));
 				for (var i = 0; i < 3; i++) {
@@ -455,7 +404,6 @@ namespace VisualPinball.Unity.Test
 					Is.EqualTo(source.KickCurve.preWrapMode));
 				Assert.That(target.KickCurve.postWrapMode,
 					Is.EqualTo(source.KickCurve.postWrapMode));
-				Assert.That(RubberDeformationRenderer.RuntimeAvailable, Is.True);
 			} finally {
 				Object.DestroyImmediate(sourceObject);
 				Object.DestroyImmediate(targetObject);
@@ -463,7 +411,7 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ShouldRestoreTheAnimationDefaultsFromAVersionOnePayload()
+		public void ShouldRestoreTheAnimationDefaultsFromAnEmptyCurve()
 		{
 			var gameObject = new GameObject("Renderer");
 			try {
@@ -471,28 +419,16 @@ namespace VisualPinball.Unity.Test
 				renderer.AnimationDurationMs = 500f;
 				renderer.KickCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
 
-				var legacy = PackageApi.Packer.Pack(new RubberDeformationRendererPackable {
-					Version = 1,
+				renderer.Unpack(PackageApi.Packer.Pack(new RubberDeformationRendererPackable {
 					UpdateThreshold = 0.25f,
 					RecalculateNormals = false,
-					IncludeSupportedArcs = true,
-				});
-				renderer.Unpack(legacy);
+				}));
 
 				Assert.That(renderer.UpdateThreshold, Is.EqualTo(0.25f));
 				Assert.That(renderer.RecalculateNormals, Is.False);
-				Assert.That(renderer.IncludeSupportedArcs, Is.True);
 				Assert.That(renderer.AnimationDurationMs,
 					Is.EqualTo(RubberDeformationRenderer.DefaultAnimationDurationMs));
-				var defaults = RubberDeformationRenderer.CreateDefaultKickCurve();
-				Assert.That(renderer.KickCurve.keys.Length, Is.EqualTo(defaults.keys.Length));
-				Assert.That(renderer.KickCurve.Evaluate(0f), Is.EqualTo(0f).Within(1e-6f));
 				Assert.That(renderer.KickCurve.Evaluate(0.5f), Is.EqualTo(1f).Within(1e-6f));
-				Assert.That(renderer.KickCurve.Evaluate(1f), Is.EqualTo(0f).Within(1e-6f));
-
-				renderer.Unpack(null);
-				Assert.That(renderer.AnimationDurationMs,
-					Is.EqualTo(RubberDeformationRenderer.DefaultAnimationDurationMs));
 			} finally {
 				Object.DestroyImmediate(gameObject);
 			}
@@ -541,7 +477,6 @@ namespace VisualPinball.Unity.Test
 		{
 			internal GameObject GameObject;
 			internal RubberComponent Rubber;
-			internal RubberColliderComponent Collider;
 			internal MeshFilter MeshFilter;
 			internal Mesh SharedMesh;
 			internal RubberDeformationRenderer Renderer;
@@ -561,10 +496,6 @@ namespace VisualPinball.Unity.Test
 				fixture.Rubber.ApplyGuidedBake(BuildPath(spanCount), null,
 					Matrix4x4.identity, default, 1);
 
-				fixture.Collider = fixture.GameObject.AddComponent<RubberColliderComponent>();
-				fixture.Collider.Mode = RubberColliderMode.Physical;
-				fixture.Collider.DeformationEnabled = true;
-
 				fixture.MeshFilter = fixture.GameObject.AddComponent<MeshFilter>();
 				fixture.SharedMesh = BuildTube(spanCount, out fixture.RestVertices);
 				fixture.MeshFilter.sharedMesh = fixture.SharedMesh;
@@ -575,18 +506,11 @@ namespace VisualPinball.Unity.Test
 				fixture.Renderer.UpdateThreshold = 0f;
 				fixture.Renderer.ClockMsOverride = () => fixture.ClockMs;
 
-				fixture.ApplyBake(BuildDescriptors(spanCount));
 				fixture.Renderer.Acquire();
 				fixture.Renderer.AcquireMesh();
 				fixture.Renderer.RebuildBindings();
 				return fixture;
 			}
-
-			internal void ApplyBake(RubberSpanDescriptor[] descriptors)
-				=> Collider.ApplyDeformationBake(default, descriptors,
-					Array.Empty<RubberBackedResponseDescriptor>(),
-					RubberDeformationBakeOutcome.Deformable, "renderer fixture",
-					RubberDeformationBakeFormat.BakeVersion, new string('a', 64));
 
 			internal float Depth()
 			{
@@ -631,23 +555,6 @@ namespace VisualPinball.Unity.Test
 					};
 				}
 				return path;
-			}
-
-			private static RubberSpanDescriptor[] BuildDescriptors(int spanCount)
-			{
-				var descriptors = new RubberSpanDescriptor[spanCount];
-				for (var i = 0; i < spanCount; i++) {
-					descriptors[i] = new RubberSpanDescriptor {
-						PathElementIndex = i,
-						InstalledLength = SpanLengthVpx,
-						UnloadedLength = SpanLengthVpx / 1.1f,
-						InwardSign = 1,
-						SegmentCount = 8,
-						ArcLengthFractions = new[] { 0f, 1f },
-						ReboundEligible = true,
-					};
-				}
-				return descriptors;
 			}
 
 			/// <summary>

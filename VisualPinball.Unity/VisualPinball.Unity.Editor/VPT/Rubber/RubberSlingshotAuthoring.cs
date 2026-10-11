@@ -16,19 +16,21 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
+using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Unity.Editor
 {
 	/// <summary>
-	/// What the physical slingshot wizard and the rubber's scene handles share: which
-	/// spans of a rubber its slingshot can bind to, what the rubber still lacks, and how
-	/// the slingshot is added or re-bound. Both entry points go through here so they can
-	/// never disagree about a span.
+	/// What the rubber slingshot wizard, the rubber's scene handles and the slingshot
+	/// inspector share: which spans of a rubber its slingshot can bind to, how the
+	/// slingshot is added or re-bound, its slingshot wall, and its arm. All entry points
+	/// go through here so they can never disagree about a span.
 	/// </summary>
 	/// <remarks>
-	/// A physical slingshot is a component of its rubber, and a rubber has at most one.
+	/// A rubber slingshot is a component of its rubber, and a rubber has at most one.
 	/// </remarks>
 	public static class RubberSlingshotAuthoring
 	{
@@ -54,14 +56,9 @@ namespace VisualPinball.Unity.Editor
 			public bool IsBound => Existing;
 		}
 
-		/// <summary>
-		/// A slingshot binds by guide pair, so the rubber needs a current guided path and
-		/// the Physical collider that the span records come from.
-		/// </summary>
+		/// <summary>A slingshot binds by guide pair, so the rubber needs a current guided path.</summary>
 		public static bool IsEligibleRubber(RubberComponent rubber)
-			=> rubber && rubber.TryGetComponent<RubberColliderComponent>(out var collider)
-				&& collider.Mode == RubberColliderMode.Physical
-				&& (rubber.HasValidGuidedPath || RubberAutofit.EnsureCurrent(rubber, out _));
+			=> rubber && (rubber.HasValidGuidedPath || RubberAutofit.EnsureCurrent(rubber, out _));
 
 		/// <summary>The rubber's slingshot, or null.</summary>
 		public static RubberSlingshotComponent SlingshotOf(RubberComponent rubber)
@@ -112,9 +109,8 @@ namespace VisualPinball.Unity.Editor
 			=> SlingshotOf(rubber) ? new List<SpanCandidate>() : FindSpans(rubber);
 
 		/// <summary>
-		/// The first thing the rubber still lacks before its slingshot can work in play
-		/// mode, as one sentence, or null when the rubber is ready. Adding the slingshot
-		/// is allowed either way; the slingshot inspector repeats this.
+		/// What the rubber lacks before a slingshot can be added to it, as one sentence,
+		/// or null when it is ready.
 		/// </summary>
 		public static string DescribeMissing(RubberComponent rubber)
 		{
@@ -122,18 +118,7 @@ namespace VisualPinball.Unity.Editor
 				return "Select a rubber.";
 			}
 			if (!IsEligibleRubber(rubber)) {
-				return "Choose a current guide-driven Physical rubber.";
-			}
-			if (!(rubber.RestLength > 0f)) {
-				return "Set the rubber's rest length.";
-			}
-			var collider = rubber.GetComponent<RubberColliderComponent>();
-			if (!collider.DeformationEnabled) {
-				return "Enable the compliant rebound on the rubber collider.";
-			}
-			collider.EnsureBakesCurrent();
-			if (!RubberSpanReboundEligibility.TryValidate(collider, out var reason)) {
-				return $"Compliant rebound: {reason}";
+				return "Choose a rubber bound to its guides.";
 			}
 			return null;
 		}
@@ -161,40 +146,341 @@ namespace VisualPinball.Unity.Editor
 			=> left.Guide == right.Guide && left.SlotId == right.SlotId;
 
 		/// <summary>
-		/// Adds a physical slingshot to the rubber, bound to the span, with the runtime
-		/// defaults written explicitly so it does not depend on the field initializers.
-		/// The coil model asset is optional. A rubber that already has a slingshot keeps
-		/// it and gets it bound to the span instead. Registered with undo.
+		/// Adds a slingshot to the rubber, bound to the span, with its slingshot wall in
+		/// front of the span and the defaults written explicitly so it does not depend on
+		/// the field initializers. A rubber that already has a slingshot keeps it and gets
+		/// it bound to the span instead. Registered with undo.
 		/// </summary>
 		public static RubberSlingshotComponent Add(RubberComponent rubber,
-			RubberSpanBinding span, SlingshotActuatorAsset actuator)
+			RubberSpanBinding span)
 		{
 			var existing = SlingshotOf(rubber);
 			if (existing) {
 				Bind(existing, span);
 				return existing;
 			}
+			EnsureDeformationRenderer(rubber);
 			var component = Undo.AddComponent<RubberSlingshotComponent>(rubber.gameObject);
 			component.Span = span;
-			component.Actuator = actuator;
 			component.SelfWired = RubberSlingshotComponent.DefaultSelfWired;
-			component.WireDelayMs = RubberSlingshotComponent.DefaultWireDelayMs;
 			component.SelfWirePulseMs = RubberSlingshotComponent.DefaultSelfWirePulseMs;
-			component.KickSpeed = RubberSlingshotComponent.DefaultKickSpeed;
-			component.ArmHalfWidth01 = RubberSlingshotComponent.DefaultArmHalfWidth01;
-			component.KickWindowMs = RubberSlingshotComponent.DefaultKickWindowMs;
-			component.MinimumSwitchPulseMs = RubberSlingshotComponent.DefaultMinimumSwitchPulseMs;
 			EditorUtility.SetDirty(component);
+			if (!TryFitSlingshotWall(component, out var error)) {
+				Debug.LogWarning($"Rubber slingshot '{rubber.name}' has no slingshot wall: {error}", component);
+			}
 			return component;
 		}
 
-		/// <summary>Binds the slingshot to another span of its rubber. Registered with undo.</summary>
+		/// <summary>
+		/// The renderer that animates the rubber's cord, added when the rubber lacks one.
+		/// Registered with undo.
+		/// </summary>
+		public static RubberDeformationRenderer EnsureDeformationRenderer(RubberComponent rubber)
+		{
+			if (!rubber) {
+				return null;
+			}
+			return rubber.TryGetComponent<RubberDeformationRenderer>(out var renderer)
+				? renderer
+				: Undo.AddComponent<RubberDeformationRenderer>(rubber.gameObject);
+		}
+
+		/// <summary>Arm stroke out, in seconds; a slingshot arm hits within one coil pulse.</summary>
+		internal const float ArmActivationDuration = 0.012f;
+
+		/// <summary>How long the arm stays out before it falls back, in seconds.</summary>
+		internal const float ArmHoldDuration = 0.015f;
+
+		/// <summary>Arm stroke back, in seconds.</summary>
+		internal const float ArmReleaseDuration = 0.05f;
+
+		/// <summary>
+		/// Makes the arm swing with the slingshot's coil: the arm gets a One Shot Motion
+		/// Controller, which the slingshot feeds its coil, and a Motion Transform that
+		/// turns the arm about the hinge through its own origin, parallel to the span,
+		/// by the angle that carries the arm's tip from its rest clearance to its full
+		/// travel past the cord. Run it again after changing the arm's contact position,
+		/// clearance or travel. Registered with undo.
+		/// </summary>
+		public static bool TrySetUpArm(RubberSlingshotComponent slingshot, Transform arm,
+			out string error)
+		{
+			if (!slingshot || !arm) {
+				error = "Choose the arm's game object.";
+				return false;
+			}
+			if (!TryComputeArmSwing(slingshot, arm, out var rotationOffset, out error)) {
+				return false;
+			}
+			var undoGroup = Undo.GetCurrentGroup();
+			Undo.SetCurrentGroupName("Set Up Slingshot Arm");
+
+			if (!arm.TryGetComponent<MotionControllerComponent>(out var controller)) {
+				controller = Undo.AddComponent<MotionControllerComponent>(arm.gameObject);
+			} else {
+				Undo.RecordObject(controller, "Set Up Slingshot Arm");
+			}
+			controller.CoilMode = MotionCoilMode.OneShot;
+			controller.InitialPosition = 0f;
+			controller.ActivationDuration = ArmActivationDuration;
+			controller.OneShotHoldDuration = ArmHoldDuration;
+			controller.ReleaseDuration = ArmReleaseDuration;
+			controller.ReleaseDelay = 0f;
+			controller.ActivationCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
+			controller.ReleaseCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+
+			if (!arm.TryGetComponent<MotionTransformComponent>(out var follower)) {
+				follower = Undo.AddComponent<MotionTransformComponent>(arm.gameObject);
+			} else {
+				Undo.RecordObject(follower, "Set Up Slingshot Arm");
+			}
+			follower._emitter = controller;
+			follower.AnimatePosition = false;
+			follower.AnimateRotation = true;
+			follower.RotationOffset = rotationOffset;
+			follower.InputMin = 0f;
+			follower.InputMax = 1f;
+			follower.Reverse = false;
+			follower.ResponseCurve = AnimationCurve.Linear(0f, 0f, 1f, 1f);
+
+			Undo.RecordObject(slingshot, "Set Up Slingshot Arm");
+			slingshot.MotionController = controller;
+
+			foreach (var target in new Object[] { controller, follower, slingshot }) {
+				EditorUtility.SetDirty(target);
+				PrefabUtility.RecordPrefabInstancePropertyModifications(target);
+			}
+			Undo.CollapseUndoOperations(undoGroup);
+			return true;
+		}
+
+		/// <summary>
+		/// The local Euler rotation that swings the arm from rest to fired. The hinge runs
+		/// through the arm's origin along the span; the angle is the one between the
+		/// tip's rest point, the arm's rest clearance inside the cord, and its fired point,
+		/// the arm's travel past the cord, seen along the hinge.
+		/// </summary>
+		internal static bool TryComputeArmSwing(RubberSlingshotComponent slingshot,
+			Transform arm, out Vector3 rotationOffset, out string error)
+		{
+			rotationOffset = Vector3.zero;
+			var rubber = slingshot.Rubber;
+			if (!rubber) {
+				error = "The slingshot has no rubber.";
+				return false;
+			}
+			if (!slingshot.TryResolveSpan(out var resolved, out error)) {
+				return false;
+			}
+			var contact01 = Mathf.Clamp01(slingshot.ArmContactPosition01);
+			var contact = resolved.PointAt(contact01);
+			var tangent = resolved.TangentAt(contact01);
+			var inward = resolved.InwardAt(contact01);
+
+			var hinge = ToWorld(rubber, contact + tangent) - ToWorld(rubber, contact);
+			var tipRest = ToWorld(rubber, contact + inward * slingshot.ArmRestClearance);
+			var tipFired = ToWorld(rubber,
+				contact - inward * (slingshot.ArmTipTravel - slingshot.ArmRestClearance));
+			if (hinge.sqrMagnitude < 1e-12f) {
+				error = "The bound span has no direction at the arm's contact position.";
+				return false;
+			}
+			hinge.Normalize();
+			var restArm = Vector3.ProjectOnPlane(tipRest - arm.position, hinge);
+			var firedArm = Vector3.ProjectOnPlane(tipFired - arm.position, hinge);
+			// an arm whose origin lies on the cord has no lever to swing it by
+			var travel = (tipFired - tipRest).magnitude;
+			if (restArm.magnitude < travel || firedArm.magnitude < travel) {
+				error = $"The origin of '{arm.name}' must be the arm's pivot, below the playfield, but it lies on the cord.";
+				return false;
+			}
+			var angle = Vector3.SignedAngle(restArm, firedArm, hinge);
+			var localHinge = Quaternion.Inverse(arm.rotation) * hinge;
+			var euler = Quaternion.AngleAxis(angle, localHinge).eulerAngles;
+			rotationOffset = new Vector3(Mathf.DeltaAngle(0f, euler.x),
+				Mathf.DeltaAngle(0f, euler.y), Mathf.DeltaAngle(0f, euler.z));
+			error = null;
+			return true;
+		}
+
+		private static Vector3 ToWorld(RubberComponent rubber, float2 point)
+			=> rubber.BakeFrameToLocal.MultiplyPoint3x4(new Vector3(point.x, point.y, 0f))
+				.TranslateToWorld(rubber.transform);
+
+		/// <summary>
+		/// Binds the slingshot to another span of its rubber and moves its slingshot wall
+		/// there. Registered with undo.
+		/// </summary>
 		public static void Bind(RubberSlingshotComponent slingshot, RubberSpanBinding span)
 		{
 			Undo.RecordObject(slingshot, "Bind Slingshot Span");
 			slingshot.Span = span;
 			EditorUtility.SetDirty(slingshot);
 			PrefabUtility.RecordPrefabInstancePropertyModifications(slingshot);
+			if (!TryFitSlingshotWall(slingshot, out var error)) {
+				Debug.LogWarning($"Rubber slingshot '{slingshot.name}' has no slingshot wall: {error}", slingshot);
+			}
+		}
+
+		/// <summary>Name of the slingshot wall the authoring creates under the rubber.</summary>
+		public const string SlingshotWallName = "Slingshot Wall";
+
+		/// <summary>
+		/// How far the wall's slingshot edge stands in front of the cord, in VPX units, so
+		/// the ball meets the wall before the rubber's own collider.
+		/// </summary>
+		public const float SlingshotWallGap = 0.5f;
+
+		/// <summary>How finely a rounded span is sampled for its bulge.</summary>
+		private const int SlingshotWallSamples = 32;
+
+		/// <summary>
+		/// Visual Pinball's rubber physics, for the wall of a rubber whose collider has
+		/// no physics of its own: no material, no elasticity.
+		/// </summary>
+		internal const float DefaultWallElasticity = 0.8f;
+		internal const float DefaultWallElasticityFalloff = 0.3f;
+		internal const float DefaultWallFriction = 0.6f;
+		internal const float DefaultWallScatter = 5f;
+
+		/// <summary>
+		/// Puts the slingshot's wall in front of its span: an invisible Surface under the
+		/// rubber whose front edge, one slingshot segment, runs along the cord's outer
+		/// side and whose back edge lies inside the cord, from the playfield up to the top
+		/// of the cord. A rounded span's front edge is pushed out to clear its bulge, so
+		/// the ball always meets the wall before the cord. Its physics are the rubber's,
+		/// or Visual Pinball's rubber defaults when the rubber's collider has none, and it
+		/// fires the slingshot event that closes the slingshot's switch. A missing wall is
+		/// created; the slingshot's wall is refitted in place. Registered with undo.
+		/// </summary>
+		public static bool TryFitSlingshotWall(RubberSlingshotComponent slingshot,
+			out string error)
+		{
+			var rubber = slingshot ? slingshot.Rubber : null;
+			if (!rubber) {
+				error = "The slingshot has no rubber.";
+				return false;
+			}
+			if (!slingshot.TryResolveSpan(out var resolved, out error)) {
+				return false;
+			}
+			var undoGroup = Undo.GetCurrentGroup();
+			var wall = slingshot.SlingshotWall;
+			if (!wall) {
+				var wallObject = new GameObject(SlingshotWallName);
+				Undo.RegisterCreatedObjectUndo(wallObject, "Create Slingshot Wall");
+				Undo.SetTransformParent(wallObject.transform, rubber.transform, "Create Slingshot Wall");
+				wallObject.transform.localPosition = Vector3.zero;
+				wallObject.transform.localRotation = Quaternion.identity;
+				wallObject.transform.localScale = Vector3.one;
+				wall = Undo.AddComponent<SurfaceComponent>(wallObject);
+				Undo.AddComponent<SurfaceColliderComponent>(wallObject);
+				Undo.RecordObject(slingshot, "Create Slingshot Wall");
+				slingshot.SlingshotWall = wall;
+			} else {
+				var spline = wall.DragPointSpline;
+				Undo.RecordObjects(new Object[] { wall, spline, spline.Container }, "Fit Slingshot Wall");
+			}
+
+			// the span in the wall's own frame, in VPX units. One straight slingshot
+			// segment: a chain of them would leave passive joints between its segments.
+			var cordRadius = rubber.Thickness * 0.5f;
+			var start3 = WallPoint(rubber, wall, resolved.PointAt(0f));
+			var end3 = WallPoint(rubber, wall, resolved.PointAt(1f));
+			var start = new float2(start3.x, start3.y);
+			var end = new float2(end3.x, end3.y);
+			var chord = math.normalizesafe(end - start);
+			var middle3 = WallPoint(rubber, wall, resolved.PointAt(0.5f));
+			var inside3 = WallPoint(rubber, wall, resolved.PointAt(0.5f) + resolved.InwardAt(0.5f));
+			var inward = new float2(inside3.x - middle3.x, inside3.y - middle3.y);
+			// the inward normal of the chord itself, on the span's inner side
+			var chordInward = new float2(-chord.y, chord.x);
+			if (math.dot(chordInward, inward) < 0f) {
+				chordInward = -chordInward;
+			}
+			if (math.lengthsq(chord) < 0.5f || math.lengthsq(inward) < 1e-12f) {
+				error = "The span has no direction in the wall's plane.";
+				return false;
+			}
+			// how far a rounded span bulges out past its chord
+			var bulge = 0f;
+			for (var i = 1; i < SlingshotWallSamples; i++) {
+				var point = WallPoint(rubber, wall, resolved.PointAt(i / (float)SlingshotWallSamples));
+				bulge = math.max(bulge, math.dot(start - new float2(point.x, point.y), chordInward));
+			}
+			var front = -chordInward * (bulge + cordRadius + SlingshotWallGap);
+			var back = chordInward * cordRadius;
+			var frontStart = start + front;
+			var frontEnd = end + front;
+			// the slingshot segment's normal is its direction turned left; it must face
+			// the ball, out of the rubber
+			var direction = frontEnd - frontStart;
+			if (math.dot(new float2(-direction.y, direction.x), -chordInward) < 0f) {
+				(frontStart, frontEnd) = (frontEnd, frontStart);
+			}
+			var backEnd = frontEnd - front + back;
+			var backStart = frontStart - front + back;
+			wall.DragPoints = new[] {
+				new DragPointData(frontStart.x, frontStart.y) { IsSlingshot = true },
+				new DragPointData(frontEnd.x, frontEnd.y),
+				new DragPointData(backEnd.x, backEnd.y),
+				new DragPointData(backStart.x, backStart.y),
+			};
+			wall.HeightBottom = PlayfieldHeight(wall, middle3.z - cordRadius * 4f);
+			wall.HeightTop = middle3.z + cordRadius;
+
+			var collider = wall.GetComponent<SurfaceColliderComponent>();
+			if (collider) {
+				Undo.RecordObject(collider, "Fit Slingshot Wall");
+				collider.HitEvent = true;
+				// the slingshot's kick is the wall's bounce of the boosted ball, so a wall
+				// without elasticity swallows it
+				var rubberCollider = rubber.GetComponent<RubberColliderComponent>();
+				if (rubberCollider && (rubberCollider.PhysicsMaterial || rubberCollider.Elasticity > 0f)) {
+					collider.OverwritePhysics = rubberCollider.OverwritePhysics;
+					collider.Elasticity = rubberCollider.Elasticity;
+					collider.ElasticityFalloff = rubberCollider.ElasticityFalloff;
+					collider.Friction = rubberCollider.Friction;
+					collider.Scatter = rubberCollider.Scatter;
+					collider.PhysicsMaterial = rubberCollider.PhysicsMaterial;
+				} else {
+					collider.OverwritePhysics = true;
+					collider.Elasticity = DefaultWallElasticity;
+					collider.ElasticityFalloff = DefaultWallElasticityFalloff;
+					collider.Friction = DefaultWallFriction;
+					collider.Scatter = DefaultWallScatter;
+					collider.PhysicsMaterial = null;
+				}
+				EditorUtility.SetDirty(collider);
+				PrefabUtility.RecordPrefabInstancePropertyModifications(collider);
+			}
+			var wallSpline = wall.DragPointSpline;
+			foreach (var target in new Object[] { wall, wallSpline, wallSpline.Container, slingshot }) {
+				EditorUtility.SetDirty(target);
+				PrefabUtility.RecordPrefabInstancePropertyModifications(target);
+			}
+			Undo.CollapseUndoOperations(undoGroup);
+			error = null;
+			return true;
+		}
+
+		/// <summary>A point of the rubber's bake plane in the wall's local frame, in VPX units.</summary>
+		private static Vector3 WallPoint(RubberComponent rubber, SurfaceComponent wall, float2 point)
+			=> ToWorld(rubber, point).TranslateToVpx(wall.transform);
+
+		/// <summary>
+		/// The playfield's height in the wall's local frame, in VPX units, so the wall
+		/// stands on the playfield; the fallback without a playfield above it.
+		/// </summary>
+		private static float PlayfieldHeight(SurfaceComponent wall, float fallback)
+		{
+			var playfield = wall.GetComponentInParent<PlayfieldComponent>();
+			if (!playfield) {
+				return fallback;
+			}
+			var onPlayfield = playfield.transform.InverseTransformPoint(wall.transform.position);
+			onPlayfield.y = 0f;
+			return playfield.transform.TransformPoint(onPlayfield).TranslateToVpx(wall.transform).z;
 		}
 	}
 }

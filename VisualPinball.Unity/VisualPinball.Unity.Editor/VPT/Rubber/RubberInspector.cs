@@ -29,7 +29,7 @@ namespace VisualPinball.Unity.Editor
 	public class RubberInspector : MainInspector<RubberData, RubberComponent>
 	{
 		/// <summary>
-		/// Installed stretch the rest length is derived from, per the plan's section 2.3.
+		/// Installed stretch the rest length is derived from: a rubber ring is fitted about ten percent stretched.
 		/// </summary>
 		public const float DefaultInstalledStretch = 1.10f;
 
@@ -289,13 +289,6 @@ namespace VisualPinball.Unity.Editor
 			}
 			EditorUtility.SetDirty(rubber);
 			PrefabUtility.RecordPrefabInstancePropertyModifications(rubber);
-			if (detaching) {
-				var collider = rubber.GetComponent<RubberColliderComponent>();
-				if (collider) {
-					EditorUtility.SetDirty(collider);
-					PrefabUtility.RecordPrefabInstancePropertyModifications(collider);
-				}
-			}
 			RubberGuideDependencyTracker.RebuildSoon();
 			SceneView.RepaintAll();
 		}
@@ -361,11 +354,11 @@ namespace VisualPinball.Unity.Editor
 		private static GUIStyle _hintStyle;
 
 		/// <summary>
-		/// Offers the physical slingshot in the scene, on every free span the wizard
+		/// Offers the rubber slingshot in the scene, on every free span the wizard
 		/// would offer. A rubber without a slingshot gets an "Add Slingshot" button at
 		/// each span's midpoint; once it has one, the bound span is marked and the other
 		/// spans offer to move the slingshot there. One hint below names the first thing
-		/// the rubber still lacks before its slingshot can fire.
+		/// the slingshot still lacks.
 		/// </summary>
 		private static void DrawSlingshotHandles(RubberComponent rubber)
 		{
@@ -391,7 +384,7 @@ namespace VisualPinball.Unity.Editor
 			};
 
 			Handles.BeginGUI();
-			var hint = RubberSlingshotAuthoring.DescribeMissing(rubber);
+			var hint = slingshot ? slingshot.ValidateConfiguration().FirstOrDefault() : null;
 			var lowest = new Vector2(float.NaN, float.NegativeInfinity);
 			foreach (var candidate in candidates) {
 				var midpoint = BakeToWorld(rubber,
@@ -405,7 +398,7 @@ namespace VisualPinball.Unity.Editor
 					? new GUIContent("Slingshot", $"The slingshot is bound to {label}.")
 					: slingshot
 						? new GUIContent("Move Slingshot Here", $"Bind the slingshot to {label} instead.")
-						: new GUIContent("Add Slingshot", $"Add a physical slingshot to the rubber, bound to {label}.");
+						: new GUIContent("Add Slingshot", $"Add a slingshot to the rubber, bound to {label}, with its slingshot wall.");
 				var size = _spanButtonStyle.CalcSize(content);
 				var rect = new Rect(gui.x - size.x * 0.5f, gui.y - size.y * 0.5f, size.x, size.y);
 				if (candidate.IsBound) {
@@ -414,7 +407,7 @@ namespace VisualPinball.Unity.Editor
 					if (slingshot) {
 						RubberSlingshotAuthoring.Bind(slingshot, candidate.Binding);
 					} else {
-						RubberSlingshotAuthoring.Add(rubber, candidate.Binding, null);
+						RubberSlingshotAuthoring.Add(rubber, candidate.Binding);
 					}
 				}
 				if (rect.yMax > lowest.y) {

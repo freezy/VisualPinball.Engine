@@ -178,13 +178,6 @@ namespace VisualPinball.Unity
 		/// </summary>
 		[NonSerialized] private PhysicsEngineThreading _threading;
 
-		/// <summary>
-		/// Non-null only while <see cref="Start"/> creates colliders. A compliant rubber
-		/// appends its span records here instead of registering them itself, which keeps
-		/// <c>RubberApi.CreateColliders</c> pure for the collider gizmo.
-		/// </summary>
-		[NonSerialized] internal RubberSpanReboundCollector RubberSpanCollector;
-
 		// Lifecycle-local references (used during Awake/Start, then passed
 		// to _threading constructor).
 		[NonSerialized] private Player _player;
@@ -793,14 +786,6 @@ namespace VisualPinball.Unity
 				case SurfaceComponent c: _ctx.SurfaceStates.Ref[itemId] = c.CreateState(); break;
 				case TurntableComponent c: _ctx.TurntableStates.Ref[itemId] = c.CreateState(); break;
 				case TriggerComponent c: _ctx.TriggerStates.Ref[itemId] = c.CreateState(); break;
-				case RubberSlingshotComponent c:
-					// The span id is still unknown here: registration runs from the
-					// component's Awake, while the dense span ids are only assigned in
-					// Start, once every collider of the table exists. Start resolves
-					// them, see ResolveSlingshotSpans.
-					_ctx.RubberSlingshotStates.Ref[itemId] = c.CreateState();
-					_ctx.SlingshotComponents.Add(c);
-					break;
 			}
 
 			// animations
@@ -1173,12 +1158,6 @@ namespace VisualPinball.Unity
 			Debug.Log($"Found {_colliderComponents.Length} collidable items ({_colliderComponents.Count(c => c.IsKinematic)} kinematic) and {_kinematicTransformComponents.Length} kinematic transforms.");
 			var colliders = new ColliderReference(ref _ctx.NonTransformableColliderTransforms.Ref, Allocator.Temp);
 			var kinematicColliders = new ColliderReference(ref _ctx.NonTransformableColliderTransforms.Ref, Allocator.Temp, true);
-
-			// Collider generation stays pure, so a compliant rubber only appends its span
-			// records here and stamps its capsules with per-rubber indices; the dense span
-			// ids are assigned below, once every collider exists and before the colliders
-			// are copied into their native arrays.
-			RubberSpanCollector = new RubberSpanReboundCollector();
 			foreach (var colliderItem in _colliderComponents) {
 				if (!colliderItem.IsCollidable) {
 					_ctx.DisabledCollisionItems.Ref.Add(colliderItem.ItemId);
@@ -1194,14 +1173,6 @@ namespace VisualPinball.Unity
 					colliderItem.GetColliders(_player, this, ref colliders, translateWithinPlayfieldMatrix, 0);
 				}
 			}
-
-			// register the compliant rubber spans and stamp their dense ids on the capsules
-			_ctx.RubberSpanIndex = RubberSpanCollector.Register(ref colliders, ref kinematicColliders,
-				ref _ctx.RubberSpanRebounds.Ref);
-			RubberSpanCollector = null;
-
-			// now that the dense span ids exist, bind the slingshots to their spans
-			ResolveSlingshotSpans();
 
 			// allocate colliders
 			_ctx.Colliders = new NativeColliders(ref colliders, Allocator.Persistent);
@@ -1264,51 +1235,6 @@ namespace VisualPinball.Unity
 			ConfigureKeyboardNudge(KeyboardNudgeMode, KeyboardNudgeStrength, KeyboardCabinetDamping);
 			ConfigurePlumb(SimulatedPlumb, PlumbDamping, PlumbThresholdAngle);
 		}
-
-		/// <summary>
-		/// Binds every registered physical slingshot to the dense id of its span.
-		/// </summary>
-		/// <remarks>
-		/// Called from <see cref="Start"/> right after the spans registered, because a
-		/// slingshot's state is created from its own <c>Awake</c>, long before the
-		/// colliders and their dense span ids exist. A slingshot whose span did not
-		/// become eligible keeps <c>SpanId = -1</c> and simply never sees an impact.
-		/// </remarks>
-		private void ResolveSlingshotSpans()
-		{
-			foreach (var slingshot in _ctx.SlingshotComponents) {
-				if (!slingshot) {
-					continue;
-				}
-				var itemId = UnityObjectId.Get(slingshot.gameObject);
-				if (!_ctx.RubberSlingshotStates.Ref.ContainsKey(itemId)) {
-					continue;
-				}
-				ref var state = ref _ctx.RubberSlingshotStates.Ref.GetValueByRef(itemId);
-				if (state.PathElementIndex >= 0 && _ctx.RubberSpanIndex.TryGetSpanId(
-					state.RubberItemId, state.PathElementIndex, out var spanId)) {
-					state.SpanId = spanId;
-					continue;
-				}
-				state.SpanId = -1;
-				Debug.LogWarning($"Physical slingshot '{slingshot.name}' has no compliant span: its rubber's bound free span did not get the compliant rebound, so the blade switch will never close.",
-					slingshot);
-			}
-		}
-
-		/// <summary>
-		/// The rubber and baked path element a dense compliant-span id stands for.
-		/// Valid after <see cref="Start"/>.
-		/// </summary>
-		internal bool TryGetRubberSpan(int spanId, out int rubberItemId, out int pathElementIndex)
-			=> _ctx.RubberSpanIndex.TryGetSpan(spanId, out rubberItemId, out pathElementIndex);
-
-		/// <summary>The dense span id of a rubber's baked free span, if it got one.</summary>
-		internal bool TryGetRubberSpanId(int rubberItemId, int pathElementIndex, out int spanId)
-			=> _ctx.RubberSpanIndex.TryGetSpanId(rubberItemId, pathElementIndex, out spanId);
-
-		internal ref NativeParallelHashMap<int, RubberSlingshotState> RubberSlingshotStates
-			=> ref _ctx.RubberSlingshotStates.Ref;
 
 		internal PhysicsState CreateState() => _ctx.CreateState();
 

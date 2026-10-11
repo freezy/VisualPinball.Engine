@@ -7,6 +7,7 @@
 // (at your option) any later version.
 
 using System;
+using System.Collections.Generic;
 using Unity.Mathematics;
 
 namespace VisualPinball.Unity
@@ -15,12 +16,6 @@ namespace VisualPinball.Unity
 	{
 		Spline,
 		Guides,
-	}
-
-	public enum RubberColliderMode
-	{
-		Legacy,
-		Physical,
 	}
 
 	public enum RubberPathElementType
@@ -66,6 +61,38 @@ namespace VisualPinball.Unity
 				+ 3f * oneMinusT * oneMinusT * t * element.Control1
 				+ 3f * oneMinusT * t * t * element.Control2
 				+ t * t * t * element.End;
+		}
+
+		/// <summary>
+		/// Which side of a closed path its inside lies on, seen along the path: +1 when
+		/// it is to the left of the tangent t, at (-t.y, t.x), -1 when it is to the right.
+		/// From the signed area of the path, sampled along every element.
+		/// </summary>
+		public static int InsideSign(IReadOnlyList<RubberPathElement> path)
+		{
+			const int samplesPerElement = 8;
+			var area = 0f;
+			for (var i = 0; i < path.Count; i++) {
+				var previous = PointAt(path[i], 0f);
+				for (var j = 1; j <= samplesPerElement; j++) {
+					var point = PointAt(path[i], j / (float)samplesPerElement);
+					area += previous.x * point.y - point.x * previous.y;
+					previous = point;
+				}
+			}
+			return area >= 0f ? 1 : -1;
+		}
+
+		/// <summary>
+		/// The unit normal of an element at <paramref name="t"/> that points into the
+		/// path's inside, for the side <see cref="InsideSign"/> returned.
+		/// </summary>
+		public static float2 InwardAt(RubberPathElement element, float t, int insideSign)
+		{
+			var tangent = TangentAt(element, t);
+			return insideSign >= 0
+				? new float2(-tangent.y, tangent.x)
+				: new float2(tangent.y, -tangent.x);
 		}
 
 		public static float2 TangentAt(RubberPathElement element, float t)

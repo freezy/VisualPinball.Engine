@@ -20,8 +20,8 @@ using UnityEngine;
 namespace VisualPinball.Unity.Editor
 {
 	/// <summary>
-	/// The authored settings of the deformation renderer, plus what it would animate
-	/// with the rubber's current bake.
+	/// The authored settings of the deformation renderer, plus what it animates on the
+	/// rubber's guided path.
 	/// </summary>
 	[CustomEditor(typeof(RubberDeformationRenderer)), CanEditMultipleObjects]
 	public sealed class RubberDeformationRendererInspector : UnityEditor.Editor
@@ -49,30 +49,22 @@ namespace VisualPinball.Unity.Editor
 					MessageType.Warning);
 			}
 
-			var collider = renderer.GetComponent<RubberColliderComponent>();
-			if (!collider || collider.Mode != RubberColliderMode.Physical
-				|| !collider.DeformationEnabled) {
+			if (rubber.PathSource != RubberPathSource.Guides) {
 				EditorGUILayout.HelpBox(
-					"Enable the compliant rebound on the rubber's Physical collider, otherwise no span ever deflects and nothing animates.",
+					"Only the free spans of a guide-driven rubber are animated. Bind this rubber to its guides first.",
 					MessageType.Info);
 				return;
 			}
 
-			var eligible = 0;
-			var descriptors = collider.SpanDescriptors;
-			for (var i = 0; i < descriptors.Count; i++) {
-				if (descriptors[i].ReboundEligible) {
-					eligible++;
+			var freeSpans = 0;
+			foreach (var element in rubber.BakedPath) {
+				if (element.Type == RubberPathElementType.FreeSpan) {
+					freeSpans++;
 				}
 			}
-			EditorGUILayout.LabelField("Animated free spans", eligible.ToString());
-			if (eligible == 0) {
-				EditorGUILayout.HelpBox(
-					"No free span of this rubber is eligible for the compliant rebound; the Rubber Collider says why.",
-					MessageType.Warning);
-			}
+			EditorGUILayout.LabelField("Animated free spans", freeSpans.ToString());
 			EditorGUILayout.HelpBox(
-				"The kick curve and its duration also drive the arm of a physical slingshot bound to one of this rubber's spans.",
+				"A rubber slingshot drives the cord. Without an animated arm it plays the kick curve over its duration.",
 				MessageType.None);
 
 			if (Application.isPlaying || renderer.IsPreviewing) {
@@ -129,13 +121,8 @@ namespace VisualPinball.Unity.Editor
 			foreach (var line in renderer.DescribeBindings()) {
 				EditorGUILayout.LabelField(" ", line);
 			}
-			EditorGUILayout.LabelField("Impacts / kicks / mesh updates",
-				$"{renderer.ImpactCount} / {renderer.KickCount} / {renderer.MeshUpdateCount}");
-			EditorGUILayout.LabelField("Dropped impacts", renderer.DroppedImpactCount.ToString());
-			var rubber = renderer.GetComponent<RubberComponent>();
-			if (GUILayout.Button("Pluck every span")) {
-				renderer.Pluck(rubber ? rubber.Thickness * 2f : 10f);
-			}
+			EditorGUILayout.LabelField("Kicks / mesh updates",
+				$"{renderer.KickCount} / {renderer.MeshUpdateCount}");
 			renderer.HeldDeflection = EditorGUILayout.Slider(
 				new GUIContent("Hold deflection", "Pins a V of this depth in VPX units on every span, inward positive, until set back to zero."),
 				renderer.HeldDeflection, -60f, 60f);

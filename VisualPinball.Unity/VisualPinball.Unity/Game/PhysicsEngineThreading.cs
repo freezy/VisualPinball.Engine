@@ -275,7 +275,6 @@ namespace VisualPinball.Unity
 				ref _ctx.PhysicsCycle,
 				currentTimeUsec
 			);
-			PhysicsEngineContext.CommitRandom(ref _ctx.PhysicsEnv, in state);
 			var executeUsec = ElapsedUsec(executeStartTicks, Stopwatch.GetTimestamp());
 			Interlocked.Exchange(ref _ctx.LastPhysicsExecuteUsec, executeUsec);
 			// compare-exchange loop: a concurrent reset by GetSimulationTimingDiagnostics
@@ -1084,7 +1083,6 @@ namespace VisualPinball.Unity
 				ref _ctx.PhysicsCycle,
 				currentTimeUsec
 			);
-			PhysicsEngineContext.CommitRandom(ref _ctx.PhysicsEnv, in state);
 			Interlocked.Exchange(ref _ctx.PublishedPhysicsFrameTimeUsec, (long)_ctx.PhysicsEnv.CurPhysicsFrameTime);
 
 			// dequeue events

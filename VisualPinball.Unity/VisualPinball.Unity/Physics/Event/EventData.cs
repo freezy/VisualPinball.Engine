@@ -28,14 +28,6 @@ namespace VisualPinball.Unity
 		public readonly int ItemId;
 		public readonly int BallId;
 		public readonly float FloatParam;
-
-		/// <summary>
-		/// Second float payload, zero unless the emitter sets it. Events that need more
-		/// than one number pack it here; <see cref="EventId.RubberSpanImpact"/> carries
-		/// two half-precision values in it.
-		/// </summary>
-		public readonly float FloatParam2;
-
 		public readonly int IntParam;
 		public readonly bool GroupEvent;
 
@@ -67,17 +59,6 @@ namespace VisualPinball.Unity
 			GroupEvent = groupEvent;
 		}
 
-		public EventData(EventId eventId, int itemId, int ballId, float floatParam, int intParam,
-			float floatParam2, bool groupEvent = false) : this()
-		{
-			EventId = eventId;
-			ItemId = itemId;
-			BallId = ballId;
-			FloatParam = floatParam;
-			IntParam = intParam;
-			FloatParam2 = floatParam2;
-			GroupEvent = groupEvent;
-		}
 
 		public EventData(EventId eventId, int itemId, bool groupEvent = false) : this()
 		{

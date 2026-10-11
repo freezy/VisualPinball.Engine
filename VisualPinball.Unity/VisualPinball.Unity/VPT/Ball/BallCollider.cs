@@ -22,15 +22,10 @@ namespace VisualPinball.Unity
 {
 	internal static class BallCollider
 	{
-		internal const float HardScatter = 0.0f;
+		private const float HardScatter = 0.0f;
 		private const float StaticContactPenetrationTolerance = 0.5f;
 
 		public static void Collide3DWall(ref BallState ball, in PhysicsMaterialData material, in CollisionEventData collEvent, in float3 hitNormal, ref PhysicsState state)
-			=> Collide3DWall(ref ball, in material, in collEvent, in hitNormal, 1f, ref state);
-
-		internal static void Collide3DWall(ref BallState ball, in PhysicsMaterialData material,
-			in CollisionEventData collEvent, in float3 hitNormal, float elasticityScale,
-			ref PhysicsState state)
 		{
 			// surface velocity of the collider at the contact point (zero unless kinematic and moving)
 			var colliderVelocity = state.GetKinematicSurfaceVelocity(in collEvent, ball.Position - ball.Radius * hitNormal);
@@ -69,51 +64,22 @@ namespace VisualPinball.Unity
 			// magnitude of the impulse which is just sufficient to keep the ball from
 			// penetrating the wall (needed for friction computations)
 			var reactionImpulse = ball.Mass * math.abs(dot);
-			var elasticity = ResolveElasticity(in material, in collEvent, dot, ref state)
-				* elasticityScale;
+			float elasticity = 0;
+			if (material.UseElasticityOverVelocity) {
+				// nFozzy used the xy velocity, but using the dot velocity seems more "physical".
+				//var velocity = math.sqrt(ball.Velocity.x * ball.Velocity.x + ball.Velocity.y * ball.Velocity.y + ball.Velocity.z * ball.Velocity.z);
+				var velocity = math.abs(dot);
+				var colliders = collEvent.IsKinematic ? state.KinematicColliders : state.Colliders;
+				var itemId = colliders.GetItemId(collEvent.ColliderId);
+				var lut = state.ElasticityOverVelocityLUTs[itemId];
+				elasticity = lut.InterpolateLUT(0, 63f, velocity);
+			} else {
+				elasticity = Math.ElasticityWithFalloff(material.Elasticity, material.ElasticityFalloff, dot);
+			}
 
 			dot *= -(1.0f + elasticity);
 			ball.Velocity += hitNormal * dot;                                  // apply collision impulse (along normal, so no torque)
 
-			ApplyImpactFriction(ref ball, in material, in collEvent, in hitNormal,
-				in colliderVelocity, reactionImpulse, ref state);
-
-			var scatterAngle = material.ScatterAngleRad;
-			if (scatterAngle < 0.0) {
-				scatterAngle = HardScatter;
-			} // if < 0 use global value
-
-			// todo don't hardcode
-			scatterAngle *= 0.2f; //_tableData.GlobalDifficulty; // apply difficulty weighting
-
-			if (dot > 1.0 && scatterAngle > 1.0e-5) {
-				// no scatter at low velocity
-				var scatter = state.Env.Random.NextFloat(-1f, 1f);                            // -1.0f..1.0f
-				scatter *= (1.0f - scatter * scatter) * 2.59808f * scatterAngle;         // shape quadratic distribution and scale
-				var radSin = math.sin(scatter);                               // Green's transform matrix... rotate angle delta
-				var radCos = math.cos(scatter);                               // rotational transform from current position to position at time t
-				var vxt = ball.Velocity.x;
-				var vyt = ball.Velocity.y;
-				ball.Velocity.x = vxt * radCos - vyt * radSin;                           // rotate to random scatter angle
-				ball.Velocity.y = vyt * radCos + vxt * radSin;
-			}
-		}
-
-		/// <summary>
-		/// The impact-friction block of <see cref="Collide3DWall(ref BallState,in PhysicsMaterialData,in CollisionEventData,in float3,float,ref PhysicsState)"/>,
-		/// extracted verbatim so a compliant response path can reuse the wall's own
-		/// friction budget, slip direction and velocity-table sampling.
-		/// </summary>
-		/// <remarks>
-		/// Everything is evaluated on the ball state as it stands when the helper is
-		/// called, i.e. after the normal impulse has been applied, exactly as the wall
-		/// does it. <paramref name="reactionImpulse"/> is the wall's
-		/// <c>m * |v_n,in|</c>, computed from the incoming normal speed.
-		/// </remarks>
-		internal static void ApplyImpactFriction(ref BallState ball, in PhysicsMaterialData material,
-			in CollisionEventData collEvent, in float3 hitNormal, in float3 colliderVelocity,
-			float reactionImpulse, ref PhysicsState state)
-		{
 			// compute friction impulse
 			var surfP = -ball.Radius * hitNormal;                        // surface contact point relative to center of mass
 			var surfVel = BallState.SurfaceVelocity(in ball, in surfP) - colliderVelocity;           // velocity at impact point, relative to the surface
@@ -152,6 +118,26 @@ namespace VisualPinball.Unity
 				if (!float.IsNaN(jt) && !float.IsInfinity(jt)) {
 					ball.ApplySurfaceImpulse(jt * cross, jt * tangent);
 				}
+			}
+
+			var scatterAngle = material.ScatterAngleRad;
+			if (scatterAngle < 0.0) {
+				scatterAngle = HardScatter;
+			} // if < 0 use global value
+
+			// todo don't hardcode
+			scatterAngle *= 0.2f; //_tableData.GlobalDifficulty; // apply difficulty weighting
+
+			if (dot > 1.0 && scatterAngle > 1.0e-5) {
+				// no scatter at low velocity
+				var scatter = state.Env.Random.NextFloat(-1f, 1f);                            // -1.0f..1.0f
+				scatter *= (1.0f - scatter * scatter) * 2.59808f * scatterAngle;         // shape quadratic distribution and scale
+				var radSin = math.sin(scatter);                               // Green's transform matrix... rotate angle delta
+				var radCos = math.cos(scatter);                               // rotational transform from current position to position at time t
+				var vxt = ball.Velocity.x;
+				var vyt = ball.Velocity.y;
+				ball.Velocity.x = vxt * radCos - vyt * radSin;                           // rotate to random scatter angle
+				ball.Velocity.y = vyt * radCos + vxt * radSin;
 			}
 		}
 
@@ -213,20 +199,6 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		internal static float ResolveElasticity(in PhysicsMaterialData material,
-			in CollisionEventData collEvent, float normalVelocity, ref PhysicsState state)
-		{
-			if (material.UseElasticityOverVelocity) {
-				// nFozzy used the xy velocity, but using the normal velocity seems more physical.
-				var colliders = collEvent.IsKinematic ? state.KinematicColliders : state.Colliders;
-				var itemId = colliders.GetItemId(collEvent.ColliderId);
-				var lut = state.ElasticityOverVelocityLUTs[itemId];
-				return lut.InterpolateLUT(0, 63f, math.abs(normalVelocity));
-			}
-			return Math.ElasticityWithFalloff(material.Elasticity,
-				material.ElasticityFalloff, normalVelocity);
-		}
-
 		private static void ApplyFriction(ref BallState ball, in float3 hitNormal, float dTime, float frictionCoeff,
 			in float3 acceleration, in float3 colliderVelocity, in float3 frictionVelocity,
 			in float3 frictionAngularMomentum)
@@ -251,9 +223,13 @@ namespace VisualPinball.Unity
 			float3 slipDir;
 			float numer;
 
-			if (slipSpeed < PhysicsConstants.Precision) {
-				// Near-zero tangential slip: solve the friction impulse needed to prevent
-				// this tick's tangential acceleration from starting motion.
+			// The normal solve has already added this tick's support velocity. Keep that
+			// live value for the static/dynamic branch gate; otherwise a skidding ball
+			// whose pre-contact normal velocity was zero never receives kinetic friction.
+			var normVel = math.dot(ball.Velocity - colliderVelocity, hitNormal);
+			if (normVel <= 0.025 || slipSpeed < PhysicsConstants.Precision) {
+				// check for <=0.025 originated from ball<->rubber collisions pushing the ball upwards, but this is still not enough, some could even use <=0.2
+				// slip speed zero - static friction case
 
 				var surfAcc = BallState.SurfaceAcceleration(in frictionState, in surfP, in acceleration);
 				// calc the tangential slip acceleration

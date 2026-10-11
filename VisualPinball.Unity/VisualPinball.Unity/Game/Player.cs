@@ -93,8 +93,6 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<int, IApiSlingshot> _slingshots = new();
 		private readonly Dictionary<int, IApiDroppable> _droppables = new();
 		private readonly Dictionary<int, IApiMagnetEvents> _magnets = new();
-		private readonly Dictionary<int, IApiRubberSlingshot> _rubberSlingshots = new();
-		private readonly Dictionary<int, IApiRubberSpanImpact> _rubberSpanImpacts = new();
 
 		internal IEnumerable<IApiColliderGenerator> ColliderGenerators => _colliderGenerators;
 
@@ -357,12 +355,6 @@ namespace VisualPinball.Unity
 			if (api is IApiSpinnable spinnable) {
 				_spinnables[itemId] = spinnable;
 			}
-			if (api is IApiRubberSlingshot rubberSlingshot) {
-				_rubberSlingshots[itemId] = rubberSlingshot;
-			}
-			if (api is IApiRubberSpanImpact rubberSpanImpact) {
-				_rubberSpanImpacts[itemId] = rubberSpanImpact;
-			}
 			if (api is IApiSwitchDevice switchDevice) {
 				if (component is ISwitchDeviceComponent switchDeviceComponent) {
 					_switchPlayer.RegisterSwitchDevice(switchDeviceComponent, switchDevice);
@@ -485,44 +477,6 @@ namespace VisualPinball.Unity
 
 				case EventId.MagnetEventsBallReleased:
 					_magnets[eventData.ItemId].OnMagnetBallReleased(eventData.BallId);
-					break;
-
-				case EventId.SwitchEventsClosed:
-					if (_rubberSlingshots.TryGetValue(eventData.ItemId, out var closedSlingshot)) {
-						closedSlingshot.OnSwitchEdge(true, eventData.BallId, eventData.FloatParam);
-					}
-					break;
-
-				case EventId.SwitchEventsOpened:
-					if (_rubberSlingshots.TryGetValue(eventData.ItemId, out var openedSlingshot)) {
-						openedSlingshot.OnSwitchEdge(false, eventData.BallId, eventData.FloatParam);
-					}
-					break;
-
-				case EventId.CoilEventsEnergized:
-					if (_rubberSlingshots.TryGetValue(eventData.ItemId, out var energizedSlingshot)) {
-						energizedSlingshot.OnCoilEdge(true, eventData.FloatParam);
-					}
-					break;
-
-				case EventId.CoilEventsReleased:
-					if (_rubberSlingshots.TryGetValue(eventData.ItemId, out var releasedSlingshot)) {
-						releasedSlingshot.OnCoilEdge(false, eventData.FloatParam);
-					}
-					break;
-
-				// The impact is routed by the rubber's item id, to the rubber's own api:
-				// the deflection belongs to the cord, the renderer that animates it in
-				// the next commit lives on the rubber, and a span can carry a slingshot
-				// or not. The slingshot's switch zones are evaluated on the physics
-				// thread and do not need this event.
-				case EventId.RubberSpanImpact:
-					if (_rubberSpanImpacts.TryGetValue(eventData.ItemId, out var spanImpact)) {
-						RubberSpanImpactPayload.Unpack(eventData.FloatParam2, out var apexFraction,
-							out var effectiveDepth);
-						spanImpact.OnSpanImpact(eventData.IntParam, eventData.BallId,
-							eventData.FloatParam, apexFraction, effectiveDepth);
-					}
 					break;
 
 				case EventId.PhysicsDiagnosticsUnsupportedOwnedInteraction:

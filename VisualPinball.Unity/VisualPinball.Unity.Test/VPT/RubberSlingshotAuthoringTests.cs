@@ -70,33 +70,35 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void ALegacyRubberIsNotEligible()
+		public void ARubberOffItsGuidesIsNotEligible()
 		{
 			var rubber = CreateRubber(ThreePosts);
-			rubber.GetComponent<RubberColliderComponent>().Mode = RubberColliderMode.Legacy;
+			Assert.That(RubberSlingshotAuthoring.DescribeMissing(rubber), Is.Null);
+
+			rubber.DetachFromGuides();
 
 			Assert.That(RubberSlingshotAuthoring.IsEligibleRubber(rubber), Is.False);
 			Assert.That(RubberSlingshotAuthoring.FindSpans(rubber), Is.Empty);
 			Assert.That(RubberSlingshotAuthoring.DescribeMissing(rubber),
-				Does.Contain("Physical"));
+				Does.Contain("guides"));
 		}
 
 		[Test]
 		public void AddingPutsTheSlingshotOnTheRubberBoundToTheChosenSpan()
 		{
 			var rubber = CreateRubber(ThreePosts);
-			var actuator = CreateActuator();
 			var chosen = RubberSlingshotAuthoring.FindSpans(rubber)[1];
 
-			var component = RubberSlingshotAuthoring.Add(rubber, chosen.Binding, actuator);
+			var component = RubberSlingshotAuthoring.Add(rubber, chosen.Binding);
 
 			Assert.That(component.gameObject, Is.SameAs(rubber.gameObject));
 			Assert.That(component.Rubber, Is.SameAs(rubber));
-			Assert.That(component.Actuator, Is.SameAs(actuator));
 			Assert.That(component.TryResolveSpan(out var resolved, out var error), Is.True, error);
 			Assert.That(resolved.PathElementIndex, Is.EqualTo(chosen.PathElementIndex));
 			Assert.That(component.SelfWired, Is.EqualTo(RubberSlingshotComponent.DefaultSelfWired));
-			Assert.That(component.KickSpeed, Is.EqualTo(RubberSlingshotComponent.DefaultKickSpeed));
+			Assert.That(component.SelfWirePulseMs,
+				Is.EqualTo(RubberSlingshotComponent.DefaultSelfWirePulseMs));
+			Assert.That(component.ValidateConfiguration(), Is.Empty);
 			Assert.That(RubberSlingshotAuthoring.SlingshotOf(rubber), Is.SameAs(component));
 
 			var spans = RubberSlingshotAuthoring.FindSpans(rubber);
@@ -112,11 +114,10 @@ namespace VisualPinball.Unity.Test
 		public void AddingAgainRebindsTheExistingSlingshot()
 		{
 			var rubber = CreateRubber(ThreePosts);
-			var actuator = CreateActuator();
 			var spans = RubberSlingshotAuthoring.FindSpans(rubber);
-			var first = RubberSlingshotAuthoring.Add(rubber, spans[0].Binding, actuator);
+			var first = RubberSlingshotAuthoring.Add(rubber, spans[0].Binding);
 
-			var second = RubberSlingshotAuthoring.Add(rubber, spans[2].Binding, actuator);
+			var second = RubberSlingshotAuthoring.Add(rubber, spans[2].Binding);
 
 			Assert.That(second, Is.SameAs(first));
 			Assert.That(rubber.GetComponents<RubberSlingshotComponent>(), Has.Length.EqualTo(1));
@@ -129,12 +130,15 @@ namespace VisualPinball.Unity.Test
 		{
 			var rubber = CreateRubber(ThreePosts);
 			var spans = RubberSlingshotAuthoring.FindSpans(rubber);
-			var slingshot = RubberSlingshotAuthoring.Add(rubber, spans[0].Binding, CreateActuator());
+			var slingshot = RubberSlingshotAuthoring.Add(rubber, spans[0].Binding);
+			var wall = slingshot.SlingshotWall;
 
 			RubberSlingshotAuthoring.Bind(slingshot, spans[1].Binding);
 
 			Assert.That(slingshot.TryResolveSpan(out var resolved, out var error), Is.True, error);
 			Assert.That(resolved.PathElementIndex, Is.EqualTo(spans[1].PathElementIndex));
+			Assert.That(slingshot.SlingshotWall, Is.SameAs(wall), "the wall is refitted, not replaced");
+			AssertWallFacesOutOfTheSpan(slingshot);
 			var after = RubberSlingshotAuthoring.FindSpans(rubber);
 			Assert.That(after.Single(span => span.IsBound).PathElementIndex,
 				Is.EqualTo(spans[1].PathElementIndex));
@@ -145,7 +149,7 @@ namespace VisualPinball.Unity.Test
 		{
 			var rubber = CreateRubber(ThreePosts);
 			var slingshot = RubberSlingshotAuthoring.Add(rubber,
-				RubberSlingshotAuthoring.FindSpans(rubber)[0].Binding, null);
+				RubberSlingshotAuthoring.FindSpans(rubber)[0].Binding);
 			var controllerObject = new GameObject("Arm Motion Controller");
 			_objects.Add(controllerObject);
 			controllerObject.SetActive(false);
@@ -180,7 +184,7 @@ namespace VisualPinball.Unity.Test
 		{
 			var rubber = CreateRubber(ThreePosts);
 			var slingshot = RubberSlingshotAuthoring.Add(rubber,
-				RubberSlingshotAuthoring.FindSpans(rubber)[0].Binding, null);
+				RubberSlingshotAuthoring.FindSpans(rubber)[0].Binding);
 			// controller and follower on the same object, emitter left unassigned, as the
 			// runtime resolves it through the hierarchy
 			var arm = new GameObject("Arm");
@@ -201,6 +205,87 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void AddingGivesTheRubberTheRendererThatAnimatesItsCord()
+		{
+			var rubber = CreateRubber(ThreePosts);
+
+			var slingshot = RubberSlingshotAuthoring.Add(rubber,
+				RubberSlingshotAuthoring.FindSpans(rubber)[0].Binding);
+
+			Assert.That(rubber.GetComponents<RubberDeformationRenderer>(), Has.Length.EqualTo(1));
+			Assert.That(slingshot.DeformationRenderer, Is.Not.Null);
+		}
+
+		[Test]
+		public void SettingUpTheArmSwingsItsTipOutThroughTheCord()
+		{
+			var rubber = CreateRubber(ThreePosts);
+			var slingshot = RubberSlingshotAuthoring.Add(rubber,
+				RubberSlingshotAuthoring.FindSpans(rubber)[0].Binding);
+			Assert.That(slingshot.TryResolveSpan(out var span, out var error), Is.True, error);
+			var contact01 = slingshot.ArmContactPosition01;
+			var contact = span.PointAt(contact01);
+			var inward = span.InwardAt(contact01);
+			var tipRest = ToWorld(rubber, contact + inward * slingshot.ArmRestClearance);
+			var tipFired = ToWorld(rubber,
+				contact - inward * (slingshot.ArmTipTravel - slingshot.ArmRestClearance));
+			var outward = (tipFired - tipRest).normalized;
+
+			// the pivot under the playfield, below the arm's rest point, and turned
+			// arbitrarily, so the swing is not just an Euler angle of the world
+			var arm = new GameObject("Arm");
+			_objects.Add(arm);
+			arm.SetActive(false);
+			arm.transform.SetPositionAndRotation(tipRest + Vector3.down * 0.04f,
+				Quaternion.Euler(0f, 160f, -5f));
+			var tipLocal = arm.transform.InverseTransformPoint(tipRest);
+
+			Assert.That(RubberSlingshotAuthoring.TrySetUpArm(slingshot, arm.transform,
+				out error), Is.True, error);
+
+			var controller = arm.GetComponent<MotionControllerComponent>();
+			var follower = arm.GetComponent<MotionTransformComponent>();
+			Assert.That(slingshot.MotionController, Is.SameAs(controller));
+			Assert.That(controller.CoilMode, Is.EqualTo(MotionCoilMode.OneShot));
+			Assert.That(follower._emitter, Is.SameAs(controller));
+			Assert.That(follower.AnimateRotation, Is.True);
+			Assert.That(follower.AnimatePosition, Is.False);
+
+			follower.ApplyValue(1f);
+			var tipMoved = arm.transform.TransformPoint(tipLocal);
+			Assert.That(Vector3.Dot(tipMoved - tipRest, outward), Is.GreaterThan(0f),
+				"the tip swings out, through the cord");
+			Assert.That(Vector3.Angle(tipMoved - arm.transform.position,
+					tipFired - arm.transform.position), Is.LessThan(0.5f),
+				"the tip points at its full travel");
+			Assert.That(Vector3.Dot(tipMoved - tipRest, (tipFired - tipRest).normalized),
+				Is.EqualTo((tipFired - tipRest).magnitude).Within(0.1f * (tipFired - tipRest).magnitude),
+				"and has travelled the arm's travel");
+
+			follower.ApplyValue(0f);
+			Assert.That(Vector3.Distance(arm.transform.TransformPoint(tipLocal), tipRest),
+				Is.LessThan(1e-5f), "at rest the arm is where it was authored");
+		}
+
+		[Test]
+		public void AnArmWhosePivotIsOnTheCordIsRefused()
+		{
+			var rubber = CreateRubber(ThreePosts);
+			var slingshot = RubberSlingshotAuthoring.Add(rubber,
+				RubberSlingshotAuthoring.FindSpans(rubber)[0].Binding);
+			Assert.That(slingshot.TryResolveSpan(out var span, out var error), Is.True, error);
+			var arm = new GameObject("Arm");
+			_objects.Add(arm);
+			arm.transform.position = ToWorld(rubber, span.PointAt(slingshot.ArmContactPosition01));
+
+			Assert.That(RubberSlingshotAuthoring.TrySetUpArm(slingshot, arm.transform,
+				out error), Is.False);
+			Assert.That(error, Does.Contain("pivot"));
+			Assert.That(arm.GetComponent<MotionControllerComponent>(), Is.Null);
+			Assert.That(slingshot.MotionController, Is.Null);
+		}
+
+		[Test]
 		public void TheSameSpanIsRecognizedInEitherDirection()
 		{
 			var rubber = CreateRubber(ThreePosts);
@@ -213,27 +298,115 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
-		public void TheHintNamesTheFirstMissingPrerequisite()
+		public void AddingPutsASlingshotWallInFrontOfTheSpan()
 		{
 			var rubber = CreateRubber(ThreePosts);
-			var collider = rubber.GetComponent<RubberColliderComponent>();
 
-			Assert.That(RubberSlingshotAuthoring.DescribeMissing(rubber),
-				Does.Contain("rest length"), "no rest length yet");
+			var slingshot = RubberSlingshotAuthoring.Add(rubber,
+				RubberSlingshotAuthoring.FindSpans(rubber)[2].Binding);
 
-			rubber.RestLength = rubber.BakedPath.Sum(element => element.Length) / 1.1f;
-			Assert.That(RubberSlingshotAuthoring.DescribeMissing(rubber),
-				Does.Contain("compliant rebound"), "rebound not enabled yet");
+			var wall = slingshot.SlingshotWall;
+			Assert.That(wall, Is.Not.Null);
+			Assert.That(wall.name, Is.EqualTo(RubberSlingshotAuthoring.SlingshotWallName));
+			Assert.That(wall.transform.parent, Is.SameAs(rubber.transform));
+			Assert.That(wall.GetComponent<SurfaceColliderComponent>().HitEvent, Is.True,
+				"the wall's slingshot event closes the switch");
+			Assert.That(wall.GetComponents<MeshRenderer>(), Is.Empty, "the wall is not drawn");
+			Assert.That(wall.HeightTop, Is.GreaterThan(wall.HeightBottom));
+			AssertWallFacesOutOfTheSpan(slingshot);
+		}
 
-			collider.DeformationEnabled = true;
-			Assert.That(RubberSlingshotAuthoring.DescribeMissing(rubber),
-				Does.Contain("material"), "the rebound bakes on its own and reports the missing material");
+		[Test]
+		public void FittingTheWallAgainKeepsTheSameWall()
+		{
+			var rubber = CreateRubber(ThreePosts);
+			var slingshot = RubberSlingshotAuthoring.Add(rubber,
+				RubberSlingshotAuthoring.FindSpans(rubber)[0].Binding);
+			var wall = slingshot.SlingshotWall;
 
-			var material = ScriptableObject.CreateInstance<RubberPhysicsMaterialAsset>();
-			_assets.Add(material);
-			collider.RubberPhysicsMaterial = material;
-			Assert.That(RubberSlingshotAuthoring.DescribeMissing(rubber), Is.Null,
-				"with a material the rubber bakes as Deformable without anyone pressing a button");
+			Assert.That(RubberSlingshotAuthoring.TryFitSlingshotWall(slingshot, out var error),
+				Is.True, error);
+
+			Assert.That(slingshot.SlingshotWall, Is.SameAs(wall));
+			Assert.That(rubber.GetComponentsInChildren<SurfaceComponent>(), Has.Length.EqualTo(1));
+		}
+
+		[Test]
+		public void TheWallOfARoundedSpanClearsItsBulge()
+		{
+			var rubber = CreateRubber(ThreePosts);
+			rubber.Roundness = 0.6f;
+			Assert.That(RubberAutofit.TryBake(rubber, out _, out var bakeError), Is.True, bakeError);
+			var candidate = RubberSlingshotAuthoring.FindSpans(rubber)[0];
+			Assert.That(RubberPathMath.IsStraightFreeSpan(candidate.Element), Is.False,
+				"the span bulges");
+
+			var slingshot = RubberSlingshotAuthoring.Add(rubber, candidate.Binding);
+
+			AssertWallFacesOutOfTheSpan(slingshot);
+		}
+
+		[Test]
+		public void AWallOfARubberWithoutPhysicsBouncesLikeARubber()
+		{
+			var rubber = CreateRubber(ThreePosts);
+			var rubberCollider = rubber.GetComponent<RubberColliderComponent>();
+			Assert.That(rubberCollider.PhysicsMaterial, Is.Null);
+			Assert.That(rubberCollider.Elasticity, Is.Zero);
+
+			var slingshot = RubberSlingshotAuthoring.Add(rubber,
+				RubberSlingshotAuthoring.FindSpans(rubber)[0].Binding);
+
+			var wallCollider = slingshot.SlingshotWall.GetComponent<SurfaceColliderComponent>();
+			Assert.That(wallCollider.OverwritePhysics, Is.True);
+			Assert.That(wallCollider.Elasticity, Is.EqualTo(0.8f),
+				"the kick is the wall's bounce of the boosted ball");
+
+			rubberCollider.Elasticity = 0.6f;
+			Assert.That(RubberSlingshotAuthoring.TryFitSlingshotWall(slingshot, out var error),
+				Is.True, error);
+			Assert.That(wallCollider.Elasticity, Is.EqualTo(0.6f), "a rubber with physics lends them");
+		}
+
+		/// <summary>
+		/// The wall's front edge is its one slingshot segment. It faces the ball, its
+		/// normal being its direction turned left, and the cord, sampled along the span,
+		/// lies at least a cord radius and the gap behind it, exactly that at the cord's
+		/// outermost point.
+		/// </summary>
+		private static void AssertWallFacesOutOfTheSpan(RubberSlingshotComponent slingshot)
+		{
+			var rubber = slingshot.Rubber;
+			var wall = slingshot.SlingshotWall;
+			Assert.That(slingshot.TryResolveSpan(out var span, out var error), Is.True, error);
+			var points = wall.DragPoints;
+			Assert.That(points, Has.Length.EqualTo(4));
+			Assert.That(points[0].IsSlingshot, Is.True);
+			Assert.That(points.Skip(1).Any(point => point.IsSlingshot), Is.False);
+
+			Vector2 Local(global::Unity.Mathematics.float2 point)
+				=> ToWorld(rubber, point).TranslateToVpx(wall.transform);
+			Vector2 Point(int index) => new(points[index].Center.X, points[index].Center.Y);
+			var start = Point(0);
+			var end = Point(1);
+			var direction = end - start;
+			var normal = new Vector2(-direction.y, direction.x).normalized;
+			var inside = (Point(2) + Point(3)) * 0.5f;
+			Assert.That(Vector2.Dot(normal, (start + end) * 0.5f - inside), Is.GreaterThan(0f),
+				"the slingshot edge faces the ball");
+
+			var expected = rubber.Thickness * 0.5f + RubberSlingshotAuthoring.SlingshotWallGap;
+			var nearest = float.PositiveInfinity;
+			for (var k = 0; k <= 64; k++) {
+				var cord = Local(span.PointAt(k / 64f));
+				var behind = Vector2.Dot(start - cord, normal);
+				// the wall finds the bulge from fewer samples than this, which the gap absorbs
+				Assert.That(behind, Is.GreaterThanOrEqualTo(expected - 0.05f),
+					$"the cord at {k / 64f:F3} lies behind the slingshot edge");
+				nearest = Mathf.Min(nearest, behind);
+			}
+			Assert.That(nearest, Is.EqualTo(expected).Within(0.05f),
+				"the cord's outermost point lies just behind the slingshot edge");
 		}
 
 		#region Fixtures
@@ -263,20 +436,16 @@ namespace VisualPinball.Unity.Test
 			var rubberObject = new GameObject("Rubber");
 			_objects.Add(rubberObject);
 			var rubber = rubberObject.AddComponent<RubberComponent>();
-			var collider = rubberObject.AddComponent<RubberColliderComponent>();
-			collider.Mode = RubberColliderMode.Physical;
+			rubberObject.AddComponent<RubberColliderComponent>();
 			rubber.SetGuideBindings(guides.Select(guide =>
 				new RubberGuideBinding(guide, guide.Slots[0].Id)));
 			Assert.That(RubberAutofit.TryBake(rubber, out _, out var bakeError), Is.True, bakeError);
 			return rubber;
 		}
 
-		private SlingshotActuatorAsset CreateActuator()
-		{
-			var actuator = ScriptableObject.CreateInstance<SlingshotActuatorAsset>();
-			_assets.Add(actuator);
-			return actuator;
-		}
+		private static Vector3 ToWorld(RubberComponent rubber, global::Unity.Mathematics.float2 point)
+			=> rubber.BakeFrameToLocal.MultiplyPoint3x4(new Vector3(point.x, point.y, 0f))
+				.TranslateToWorld(rubber.transform);
 
 		#endregion
 	}

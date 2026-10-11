@@ -79,10 +79,6 @@ namespace VisualPinball.Unity.Editor
 			}
 			renderer.enabled = true;
 			rubber.SetGuideBindings(bindings);
-			var collider = rubber.GetComponent<RubberColliderComponent>();
-			if (collider) {
-				collider.Mode = RubberColliderMode.Legacy;
-			}
 			if (!TryBakeAligned(rubber, "Create Guided Rubber", false,
 				out _, out var error)) {
 				Undo.RevertAllInCurrentGroup();
@@ -90,9 +86,6 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 			PrefabUtility.RecordPrefabInstancePropertyModifications(rubber);
-			if (collider) {
-				PrefabUtility.RecordPrefabInstancePropertyModifications(collider);
-			}
 			PrefabUtility.RecordPrefabInstancePropertyModifications(renderer);
 			Selection.activeGameObject = gameObject;
 			Undo.CollapseUndoOperations(undoGroup);
@@ -219,9 +212,6 @@ namespace VisualPinball.Unity.Editor
 				EditorUtility.SetDirty(rubber.transform);
 				PrefabUtility.RecordPrefabInstancePropertyModifications(rubber.transform);
 			}
-			// The deformation bake is derived from the path, so a path rebake also
-			// re-bakes it. It is a no-op unless deformation is switched on.
-			RubberDeformationBaker.RebakeIfEnabled(rubber);
 			return true;
 		}
 

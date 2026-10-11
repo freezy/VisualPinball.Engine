@@ -31,12 +31,16 @@ namespace VisualPinball.Unity
 		public readonly bool IsReversed;
 		public readonly RubberPathElement Element;
 
+		/// <summary>The side of the path the rubber's inside lies on, see <see cref="RubberPathMath.InsideSign"/>.</summary>
+		public readonly int InsideSign;
+
 		public ResolvedRubberSpan(int pathElementIndex, bool isReversed,
-			RubberPathElement element)
+			RubberPathElement element, int insideSign = 1)
 		{
 			PathElementIndex = pathElementIndex;
 			IsReversed = isReversed;
 			Element = element;
+			InsideSign = insideSign >= 0 ? 1 : -1;
 		}
 
 		public float ToPathCoordinate(float authoredCoordinate01)
@@ -51,6 +55,14 @@ namespace VisualPinball.Unity
 				ToPathCoordinate(authoredCoordinate01));
 			return IsReversed ? -tangent : tangent;
 		}
+
+		/// <summary>
+		/// The unit normal into the rubber's inside, the side a slingshot's arm sits on,
+		/// whichever way the span is bound.
+		/// </summary>
+		public float2 InwardAt(float authoredCoordinate01)
+			=> RubberPathMath.InwardAt(Element, ToPathCoordinate(authoredCoordinate01),
+				InsideSign);
 	}
 
 	public static class RubberSpanResolver
@@ -67,11 +79,6 @@ namespace VisualPinball.Unity
 			}
 			if (rubber.PathSource != RubberPathSource.Guides) {
 				error = $"Rubber '{rubber.name}' is not guide-driven.";
-				return false;
-			}
-			var collider = rubber.GetComponent<RubberColliderComponent>();
-			if (!collider || collider.Mode != RubberColliderMode.Physical) {
-				error = $"Rubber '{rubber.name}' must use the Physical collider mode.";
 				return false;
 			}
 			if (!RubberAutofit.EnsureCurrent(rubber, out var fitError)) {
@@ -113,7 +120,8 @@ namespace VisualPinball.Unity
 					error = "The bound free span is degenerate.";
 					return false;
 				}
-				resolved = new ResolvedRubberSpan(i, reversed, element);
+				resolved = new ResolvedRubberSpan(i, reversed, element,
+					RubberPathMath.InsideSign(rubber.BakedPath));
 				matchCount++;
 			}
 
