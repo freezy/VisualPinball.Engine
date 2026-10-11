@@ -121,7 +121,7 @@ namespace VisualPinball.Unity.Test
 			var latestSpread = 0d;
 			for (var f = 1; f < frames; f++) {
 				Assert.That(interpolated[f] - interpolated[f - 1], Is.EqualTo(expected).Within(expected * 1e-3), $"frame {f}");
-				latestSpread = Math.Max(latestSpread, Math.Abs(latest[f] - latest[f - 1] - expected));
+				latestSpread = System.Math.Max(latestSpread, System.Math.Abs(latest[f] - latest[f - 1] - expected));
 			}
 			// sanity: the uninterpolated path does show the phase judder this fixes
 			Assert.That(latestSpread, Is.GreaterThan(expected * 0.01));
