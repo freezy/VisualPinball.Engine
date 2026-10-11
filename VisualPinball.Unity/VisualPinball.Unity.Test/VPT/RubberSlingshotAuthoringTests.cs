@@ -307,13 +307,64 @@ namespace VisualPinball.Unity.Test
 
 			var wall = slingshot.SlingshotWall;
 			Assert.That(wall, Is.Not.Null);
-			Assert.That(wall.name, Is.EqualTo(RubberSlingshotAuthoring.SlingshotWallName));
+			Assert.That(wall.name, Is.EqualTo(rubber.name + RubberSlingshotAuthoring.SlingshotWallSuffix));
 			Assert.That(wall.transform.parent, Is.SameAs(rubber.transform));
 			Assert.That(wall.GetComponent<SurfaceColliderComponent>().HitEvent, Is.True,
 				"the wall's slingshot event closes the switch");
 			Assert.That(wall.GetComponents<MeshRenderer>(), Is.Empty, "the wall is not drawn");
 			Assert.That(wall.HeightTop, Is.GreaterThan(wall.HeightBottom));
 			AssertWallFacesOutOfTheSpan(slingshot);
+		}
+
+		[Test]
+		public void EverySlingshotWallOfATableHasItsOwnName()
+		{
+			var table = new GameObject("Table");
+			_objects.Add(table);
+			var left = CreateRubber(ThreePosts);
+			var right = CreateRubber(ThreePosts);
+			left.transform.SetParent(table.transform, true);
+			right.transform.SetParent(table.transform, true);
+
+			var leftWall = RubberSlingshotAuthoring.Add(left,
+				RubberSlingshotAuthoring.FindSpans(left)[0].Binding).SlingshotWall;
+			var rightWall = RubberSlingshotAuthoring.Add(right,
+				RubberSlingshotAuthoring.FindSpans(right)[0].Binding).SlingshotWall;
+
+			Assert.That(left.name, Is.EqualTo(right.name), "the rubbers share their name");
+			Assert.That(rightWall.name, Is.Not.EqualTo(leftWall.name),
+				"table items are looked up by name");
+		}
+
+		[Test]
+		public void TheWallFollowsTheRubbersRefit()
+		{
+			var rubber = CreateRubber(ThreePosts);
+			var slingshot = RubberSlingshotAuthoring.Add(rubber,
+				RubberSlingshotAuthoring.FindSpans(rubber)[0].Binding);
+			var guide = rubber.GuideBindings[0].Guide;
+			guide.transform.position += new Vector3(0.02f, 0f, 0.01f);
+			Assert.That(RubberAutofit.TryBake(rubber, out _, out var bakeError), Is.True, bakeError);
+
+			RubberSlingshotAuthoring.RefitSlingshotWallAfterBake(rubber, false);
+
+			AssertWallFacesOutOfTheSpan(slingshot);
+		}
+
+		[Test]
+		public void AScaledRubberWrapsItsGuidesAtItsRenderedThickness()
+		{
+			var rubber = CreateRubber(ThreePosts);
+			rubber.transform.localScale = Vector3.one * 2f;
+
+			Assert.That(RubberAutofit.TryBake(rubber, out _, out var bakeError), Is.True, bakeError);
+
+			var slotRadius = Physics.ScaleToVpx(0.01f);
+			foreach (var arc in rubber.BakedPath.Where(element => element.Type == RubberPathElementType.SupportedArc)) {
+				// the cord's centreline, in the world-sized bake plane, sits a rendered
+				// half-thickness, twice the rubber's own, outside the slot
+				Assert.That(arc.Radius, Is.EqualTo(slotRadius + rubber.Thickness).Within(0.01f));
+			}
 		}
 
 		[Test]

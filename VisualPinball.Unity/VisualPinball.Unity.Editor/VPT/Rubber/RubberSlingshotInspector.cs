@@ -29,10 +29,30 @@ namespace VisualPinball.Unity.Editor
 		private float _preview;
 		private Transform _arm;
 
+		/// <summary>Every open slingshot inspector, so a package export can stop their previews.</summary>
+		private static readonly System.Collections.Generic.HashSet<RubberSlingshotInspector> Open = new();
+
+		/// <summary>
+		/// Ends every slingshot preview and sets the open inspectors' sliders back to zero,
+		/// so nothing poses the arm or the cord again while a package is written.
+		/// </summary>
+		public static void StopAllPreviews()
+		{
+			foreach (var inspector in Open) {
+				inspector.StopPreview();
+			}
+			foreach (var slingshot in Object.FindObjectsByType<RubberSlingshotComponent>(
+				FindObjectsInactive.Include, FindObjectsSortMode.None)) {
+				slingshot.EndPreview();
+			}
+		}
+
 		private void OnEnable()
 		{
 			EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
 			EditorSceneManager.sceneSaving += OnSceneSaving;
+			PrefabStage.prefabSaving += OnPrefabSaving;
+			Open.Add(this);
 			_span = serializedObject.FindProperty("_span");
 			_slingshotWall = serializedObject.FindProperty("_slingshotWall");
 			_armContactPosition = serializedObject.FindProperty("_armContactPosition01");
@@ -47,10 +67,12 @@ namespace VisualPinball.Unity.Editor
 		{
 			EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
 			EditorSceneManager.sceneSaving -= OnSceneSaving;
+			PrefabStage.prefabSaving -= OnPrefabSaving;
+			Open.Remove(this);
 			StopPreview();
 		}
 
-		/// <summary>The preview poses scene objects; it must never be carried into a game or a saved scene.</summary>
+		/// <summary>The preview poses scene objects; it must never be carried into a game, a saved scene or a saved prefab.</summary>
 		private void OnPlayModeStateChanged(PlayModeStateChange change)
 		{
 			if (change == PlayModeStateChange.ExitingEditMode) {
@@ -59,6 +81,8 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		private void OnSceneSaving(Scene scene, string path) => StopPreview();
+
+		private void OnPrefabSaving(GameObject prefab) => StopPreview();
 
 		private void StopPreview()
 		{
@@ -76,7 +100,8 @@ namespace VisualPinball.Unity.Editor
 
 			EditorGUILayout.Space();
 			EditorGUILayout.LabelField("Kick", EditorStyles.boldLabel);
-			EditorGUILayout.PropertyField(_slingshotWall, new GUIContent("Slingshot Wall"));
+			EditorGUILayout.PropertyField(_slingshotWall, new GUIContent("Slingshot Wall",
+				"The Surface in front of the span whose slingshot edge kicks the ball. Its slingshot event closes this slingshot's switch."));
 			serializedObject.ApplyModifiedProperties();
 			var component = (RubberSlingshotComponent)target;
 			WallGUI(component);
@@ -91,10 +116,14 @@ namespace VisualPinball.Unity.Editor
 
 			EditorGUILayout.Space();
 			EditorGUILayout.LabelField("Arm", EditorStyles.boldLabel);
-			EditorGUILayout.PropertyField(_armContactPosition);
-			EditorGUILayout.PropertyField(_armRestClearance);
-			EditorGUILayout.PropertyField(_armTipTravel);
-			EditorGUILayout.PropertyField(_motionController, new GUIContent("Motion Controller"));
+			EditorGUILayout.PropertyField(_armContactPosition, new GUIContent("Arm Contact Position",
+				"Where along the span the arm meets the cord, from 0 at the first post to 1 at the second."));
+			EditorGUILayout.PropertyField(_armRestClearance, new GUIContent("Arm Rest Clearance",
+				"How far behind the cord the arm's tip rests, in VPX units."));
+			EditorGUILayout.PropertyField(_armTipTravel, new GUIContent("Arm Tip Travel",
+				"How far the arm's tip travels when the coil fires, in VPX units. The cord is pushed out by the travel minus the clearance."));
+			EditorGUILayout.PropertyField(_motionController, new GUIContent("Motion Controller",
+				"The Motion Controller that moves the arm. The slingshot's coil fires it; the controller's mode, travel and followers decide how the arm moves, and the cord follows its position."));
 			serializedObject.ApplyModifiedProperties();
 			ArmSetupGUI(component);
 

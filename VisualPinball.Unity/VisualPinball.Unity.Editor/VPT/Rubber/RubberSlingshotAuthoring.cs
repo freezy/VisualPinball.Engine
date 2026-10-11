@@ -32,8 +32,37 @@ namespace VisualPinball.Unity.Editor
 	/// <remarks>
 	/// A rubber slingshot is a component of its rubber, and a rubber has at most one.
 	/// </remarks>
+	[InitializeOnLoad]
 	public static class RubberSlingshotAuthoring
 	{
+		static RubberSlingshotAuthoring()
+		{
+			RubberAutofit.Baked -= OnRubberBaked;
+			RubberAutofit.Baked += OnRubberBaked;
+		}
+
+		[System.NonSerialized] private static bool _refittingWall;
+
+		/// <summary>
+		/// A rubber's path changed: its slingshot's wall follows, so a moved guide or a
+		/// rounder span never leaves the wall behind the cord. The wall is derived from the
+		/// path the way the bake is, so the refit records no undo of its own; the commands
+		/// that rebake record the rubber's whole hierarchy, the wall included. Not while
+		/// the game runs, where the colliders are already built.
+		/// </summary>
+		private static void OnRubberBaked(RubberComponent rubber)
+		{
+			if (_refittingWall || EditorApplication.isPlayingOrWillChangePlaymode) {
+				return;
+			}
+			_refittingWall = true;
+			try {
+				RefitSlingshotWallAfterBake(rubber, false);
+			} finally {
+				_refittingWall = false;
+			}
+		}
+
 		/// <summary>A free span the rubber's slingshot can be bound to, or already is.</summary>
 		public readonly struct SpanCandidate
 		{
@@ -322,8 +351,11 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		/// <summary>Name of the slingshot wall the authoring creates under the rubber.</summary>
-		public const string SlingshotWallName = "Slingshot Wall";
+		/// <summary>
+		/// What the authoring names a slingshot wall after its rubber. Table items are
+		/// looked up by name, so the name is made unique across the table.
+		/// </summary>
+		public const string SlingshotWallSuffix = " Slingshot Wall";
 
 		/// <summary>
 		/// How far the wall's slingshot edge stands in front of the cord, in VPX units, so
@@ -351,10 +383,12 @@ namespace VisualPinball.Unity.Editor
 		/// the ball always meets the wall before the cord. Its physics are the rubber's,
 		/// or Visual Pinball's rubber defaults when the rubber's collider has none, and it
 		/// fires the slingshot event that closes the slingshot's switch. A missing wall is
-		/// created; the slingshot's wall is refitted in place. Registered with undo.
+		/// created; the slingshot's wall is refitted in place. Registered with undo unless
+		/// <paramref name="recordUndo"/> is off, for a refit that follows a rubber's own
+		/// rebake, which records its undo itself or none at all.
 		/// </summary>
 		public static bool TryFitSlingshotWall(RubberSlingshotComponent slingshot,
-			out string error)
+			out string error, bool recordUndo = true)
 		{
 			var rubber = slingshot ? slingshot.Rubber : null;
 			if (!rubber) {
@@ -367,7 +401,7 @@ namespace VisualPinball.Unity.Editor
 			var undoGroup = Undo.GetCurrentGroup();
 			var wall = slingshot.SlingshotWall;
 			if (!wall) {
-				var wallObject = new GameObject(SlingshotWallName);
+				var wallObject = new GameObject(UniqueTableItemName(rubber, rubber.name + SlingshotWallSuffix));
 				Undo.RegisterCreatedObjectUndo(wallObject, "Create Slingshot Wall");
 				Undo.SetTransformParent(wallObject.transform, rubber.transform, "Create Slingshot Wall");
 				wallObject.transform.localPosition = Vector3.zero;
@@ -377,7 +411,7 @@ namespace VisualPinball.Unity.Editor
 				Undo.AddComponent<SurfaceColliderComponent>(wallObject);
 				Undo.RecordObject(slingshot, "Create Slingshot Wall");
 				slingshot.SlingshotWall = wall;
-			} else {
+			} else if (recordUndo) {
 				var spline = wall.DragPointSpline;
 				Undo.RecordObjects(new Object[] { wall, spline, spline.Container }, "Fit Slingshot Wall");
 			}
@@ -431,7 +465,9 @@ namespace VisualPinball.Unity.Editor
 
 			var collider = wall.GetComponent<SurfaceColliderComponent>();
 			if (collider) {
-				Undo.RecordObject(collider, "Fit Slingshot Wall");
+				if (recordUndo) {
+					Undo.RecordObject(collider, "Fit Slingshot Wall");
+				}
 				collider.HitEvent = true;
 				// the slingshot's kick is the wall's bounce of the boosted ball, so a wall
 				// without elasticity swallows it
@@ -462,6 +498,44 @@ namespace VisualPinball.Unity.Editor
 			Undo.CollapseUndoOperations(undoGroup);
 			error = null;
 			return true;
+		}
+
+		/// <summary>
+		/// Refits the wall of the rubber's slingshot after the rubber's path changed, so a
+		/// guide moved or a rounder span never leaves the wall behind the cord. A rubber
+		/// without a slingshot, or a slingshot without a wall, is left alone.
+		/// </summary>
+		public static void RefitSlingshotWallAfterBake(RubberComponent rubber, bool recordUndo)
+		{
+			var slingshot = SlingshotOf(rubber);
+			if (!slingshot || !slingshot.SlingshotWall) {
+				return;
+			}
+			if (!TryFitSlingshotWall(slingshot, out var error, recordUndo)) {
+				Debug.LogWarning($"Could not refit the slingshot wall of '{rubber.name}': {error}", slingshot);
+			}
+		}
+
+		/// <summary>
+		/// The name, or the name with a number appended, that no other item of the
+		/// rubber's table carries.
+		/// </summary>
+		private static string UniqueTableItemName(RubberComponent rubber, string name)
+		{
+			var table = rubber.GetComponentInParent<TableComponent>();
+			var root = table ? table.transform : rubber.transform.root;
+			var taken = new HashSet<string>(root.GetComponentsInChildren<IMainComponent>(true)
+				.OfType<MonoBehaviour>()
+				.Select(component => component.name));
+			if (!taken.Contains(name)) {
+				return name;
+			}
+			for (var i = 2; ; i++) {
+				var candidate = $"{name} {i}";
+				if (!taken.Contains(candidate)) {
+					return candidate;
+				}
+			}
 		}
 
 		/// <summary>A point of the rubber's bake plane in the wall's local frame, in VPX units.</summary>

@@ -27,14 +27,11 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Pinball/Mesh/Rubber Mesh")]
 	public class RubberMeshComponent : MeshComponent<RubberData, RubberComponent>, IPackable
 	{
-		public override void RebuildMeshes()
-		{
-			if (!TryEnsureRenderer(out _, out var error)) {
-				Debug.LogError(error, this);
-			}
-			base.RebuildMeshes();
-		}
-
+		/// <summary>
+		/// Gives a new rubber a renderer with the default table material. Only the
+		/// authoring that creates a rubber calls it, so a rubber whose renderer was removed
+		/// on purpose stays collision-only.
+		/// </summary>
 		public bool TryEnsureRenderer(out MeshRenderer renderer, out string error)
 		{
 			renderer = GetComponent<MeshRenderer>();

@@ -119,6 +119,8 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			Logger.Info($"Writing table to {path}...");
+			// an edit-mode slingshot preview poses the arm and the cord; export the rest pose
+			RubberSlingshotInspector.StopAllPreviews();
 			IPackageStorage storage = null;
 			List<GameObject> reactivatedObjects = null;
 			List<GameObject> excludedObjects = null;

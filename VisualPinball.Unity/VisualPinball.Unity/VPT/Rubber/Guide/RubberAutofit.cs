@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Mathematics;
+using UnityEngine;
 
 namespace VisualPinball.Unity
 {
@@ -29,9 +30,16 @@ namespace VisualPinball.Unity
 
 	public static class RubberAutofit
 	{
-		public const uint CurrentBakeVersion = 4;
+		// 5: the cord radius scales with the rubber's own scale
+		public const uint CurrentBakeVersion = 5;
 		public const float SolverEpsilonVpx = 1e-4f;
 		public const float RenderToleranceVpx = 0.05f;
+
+		/// <summary>
+		/// Raised after every successful bake, whichever way it was triggered, so
+		/// what is fitted to the rubber's path, such as a slingshot's wall, can follow.
+		/// </summary>
+		public static event Action<RubberComponent> Baked;
 
 		public static bool TryBake(RubberComponent rubber, out RubberAutofitResult fit,
 			out string error)
@@ -44,8 +52,11 @@ namespace VisualPinball.Unity
 				return false;
 			}
 
+			// the guide circles are in world-sized VPX units, the thickness is the rubber's
+			// own; the resolver has made sure the rubber scales uniformly in its plane
+			var profileScale = rubber.transform.localToWorldMatrix.MultiplyVector(Vector3.right).magnitude;
 			fit = RubberCircleHullSolver.Solve(resolution.Circles,
-				rubber.Thickness * 0.5f, SolverEpsilonVpx, rubber.Roundness);
+				rubber.Thickness * 0.5f * profileScale, SolverEpsilonVpx, rubber.Roundness);
 			if (!fit.IsValid) {
 				error = fit.Error;
 				return false;
@@ -59,6 +70,7 @@ namespace VisualPinball.Unity
 			rubber.ApplyGuidedBake(fit.Elements, dragPoints,
 				resolution.Plane.BakeFrameToLocal, resolution.InputHash, CurrentBakeVersion);
 			rubber.RebuildMeshes();
+			Baked?.Invoke(rubber);
 			return true;
 		}
 
