@@ -567,6 +567,10 @@ namespace VisualPinball.Unity.Simulation
 					}
 					_simulationTimeUsec = syncedClockUsec;
 					_rebaseTimetable = true;
+					// The timetable restarts now, so this tick (and its snapshot) is scheduled
+					// now; otherwise the render clock (S + elapsed since scheduled) would skip
+					// ahead by the jump for this one snapshot.
+					_tickScheduledTimestamp = Stopwatch.GetTimestamp();
 				}
 			}
 
