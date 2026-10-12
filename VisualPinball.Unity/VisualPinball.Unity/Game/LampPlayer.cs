@@ -201,6 +201,19 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
+		/// Drives the lamps a coil is mapped to with the coil's normalized strength
+		/// (<see cref="CoilEventArgs.Value"/>): 0 or 1 for plain coils, anything in between
+		/// for PWM-integrated flashers, e.g. PinMAME's physical outputs, where it is the bulb's
+		/// brightness.
+		/// </summary>
+		/// <param name="id">Coil ID</param>
+		/// <param name="value">Strength between 0 and 1</param>
+		public void HandleCoilEvent(string id, float value)
+		{
+			Dispatch(id, LampSource.Lamp, true, LampEvent.OfCoil(value));
+		}
+
+		/// <summary>
 		/// Hands an event to every lamp its ID is mapped to, or keeps its state if
 		/// none is: an ID may drive several devices, or several bulbs of one.
 		/// </summary>
@@ -244,6 +257,32 @@ namespace VisualPinball.Unity
 				case LampEventKind.Color:
 					ApplyColor(id, lampEvent.Color, state, lamp);
 					break;
+				case LampEventKind.CoilValue:
+					ApplyCoilValue(id, lampEvent.Value, state, lamp, mapping);
+					break;
+			}
+		}
+
+		private void ApplyCoilValue(string id, float value, LampState state, IApiLamp? lamp, LampMapping? mapping)
+		{
+			// RGB mappings carry colour, a coil only switches them
+			if (mapping != null && mapping.Type is LampType.Rgb or LampType.RgbMulti) {
+				ApplyStatus(id, value > 0f ? LampStatus.On : LampStatus.Off, state, lamp);
+				return;
+			}
+
+			value = Mathf.Clamp01(value);
+			state.Status = value > 0f ? LampStatus.On : LampStatus.Off;
+			if (value > 0f) {
+				state.Intensity = value;
+			}
+			LampStates[id] = state;
+
+			// Status first: an insert's On status means full intensity, and a light's intensity
+			// only shows while it's on. Off keeps the last level, like a status Off does.
+			lamp?.OnLamp(state.Status);
+			if (value > 0f) {
+				lamp?.OnLamp(value);
 			}
 		}
 
@@ -408,6 +447,7 @@ namespace VisualPinball.Unity
 			Value,
 			Status,
 			Color,
+			CoilValue,
 		}
 
 		/// <summary>What a lamp event carries: a value, a status or a colour.</summary>
@@ -429,6 +469,7 @@ namespace VisualPinball.Unity
 			public static LampEvent Of(float value) => new(LampEventKind.Value, value, LampStatus.Off, null!);
 			public static LampEvent Of(LampStatus status) => new(LampEventKind.Status, 0f, status, null!);
 			public static LampEvent Of(Color color) => new(LampEventKind.Color, 0f, LampStatus.Off, color);
+			public static LampEvent OfCoil(float value) => new(LampEventKind.CoilValue, value, LampStatus.Off, null!);
 		}
 
 #if UNITY_EDITOR

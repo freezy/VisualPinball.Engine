@@ -161,7 +161,8 @@ namespace VisualPinball.Unity
 					}
 
 					if (destConfig.IsLampCoil) {
-						_lampPlayer!.HandleCoilEvent(coilEvent.Id, coilEvent.IsEnabled);
+						// pass the strength: PWM-integrated flashers report their brightness
+						_lampPlayer!.HandleCoilEvent(coilEvent.Id, coilEvent.Value);
 						continue;
 					}
 
