@@ -65,8 +65,32 @@ namespace VisualPinball.Unity
 			// calculate/adapt height of ball
 			var zHeight = !ball.IsFrozen ? ball.Position.z : ball.Position.z - ball.Radius;
 			ballTransform.localPosition = Physics.TranslateToWorld(ball.Position.x, ball.Position.y, zHeight);
+			ballTransform.localRotation = ToLocalRotation(ball.BallOrientationForUnity);
+		}
 
-			var or = ball.BallOrientationForUnity;
+		/// <summary>
+		/// Move the (non-frozen) ball to a pose between two physics poses:
+		/// position lerped, rotation slerped.
+		/// </summary>
+		/// <param name="t">Interpolation factor, 0 = from-pose, 1 = to-pose.</param>
+		internal void Move(float3 fromPosition, float3x3 fromOrientation, float3 toPosition, float3x3 toOrientation, float t)
+		{
+			var ballTransform = transform;
+
+			// if ball was destroyed, don't do anything.
+			if (!ballTransform || !ballTransform.gameObject) {
+				return;
+			}
+
+			var position = math.lerp(fromPosition, toPosition, t);
+			ballTransform.localPosition = Physics.TranslateToWorld(position.x, position.y, position.z);
+			ballTransform.localRotation = t >= 1f
+				? ToLocalRotation(toOrientation)
+				: Quaternion.Slerp(ToLocalRotation(fromOrientation), ToLocalRotation(toOrientation), t);
+		}
+
+		private static Quaternion ToLocalRotation(float3x3 or)
+		{
 
 			var vpX = new Vector3(or.c0.x, or.c1.x, or.c2.x);
 			var vpY = new Vector3(or.c0.y, or.c1.y, or.c2.y);
@@ -84,7 +108,7 @@ namespace VisualPinball.Unity
 			// flip Z axis
 			q = FlipZAxis(q);
 
-			ballTransform.localRotation = q.RotateToWorld();
+			return q.RotateToWorld();
 
 			static Quaternion FlipZAxis(Quaternion q)
 			{

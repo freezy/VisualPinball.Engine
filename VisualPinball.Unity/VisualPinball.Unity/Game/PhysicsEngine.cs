@@ -145,6 +145,9 @@ namespace VisualPinball.Unity
 		[Range(0f, 2f)]
 		public float VisualNudgeStrength = 1f;
 
+		[Tooltip("Render balls interpolated between physics steps (simulation thread only). Smooths ball motion at the cost of about 1.5-2.5 ms of ball display latency (1.5 physics steps plus up to one tick of phase).")]
+		public bool InterpolateBallMovement = true;
+
 		#endregion
 
 		#region Packaging

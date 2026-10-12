@@ -80,6 +80,7 @@ namespace VisualPinball.Unity.Simulation
 		private readonly long _busyWaitThresholdTicks;
 		private readonly long _maxBacklogTicks;
 		private long _lastTickTicks;
+		private long _tickScheduledTimestamp;
 		private long _simulationTimeUsec;
 		private long _droppedBacklogUsec;
 		private bool _rebaseTimetable;
@@ -507,6 +508,7 @@ namespace VisualPinball.Unity.Simulation
 					}
 
 					// Execute simulation tick (hot path - must be allocation-free!)
+					_tickScheduledTimestamp = targetTicks;
 					SimulationTick();
 					iterationStartTicks = Stopwatch.GetTimestamp();
 
@@ -565,6 +567,10 @@ namespace VisualPinball.Unity.Simulation
 					}
 					_simulationTimeUsec = syncedClockUsec;
 					_rebaseTimetable = true;
+					// The timetable restarts now, so this tick (and its snapshot) is scheduled
+					// now; otherwise the render clock (S + elapsed since scheduled) would skip
+					// ahead by the jump for this one snapshot.
+					_tickScheduledTimestamp = Stopwatch.GetTimestamp();
 				}
 			}
 
@@ -1166,6 +1172,7 @@ namespace VisualPinball.Unity.Simulation
 
 			// Update timing
 			writeBuffer.SimulationTimeUsec = _simulationTimeUsec;
+			writeBuffer.TickScheduledTimestamp = _tickScheduledTimestamp;
 			writeBuffer.RealTimeUsec = GetTimestampUsec();
 			writeBuffer.SimulationTickDurationUsec = _lastSimulationTickDurationUsec;
 			writeBuffer.FenceUpdateIntervalUsec = _lastTimeFenceIntervalUsec;
