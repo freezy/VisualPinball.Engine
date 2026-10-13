@@ -1,0 +1,8 @@
+{
+  "name": "VisualPinball.Plugins",
+  "rootNamespace": "VisualPinball.Plugins",
+	"references": ["Newtonsoft.Json"],
+	"overrideReferences": false,
+	"precompiledReferences": [],
+  "noEngineReferences": true
+}

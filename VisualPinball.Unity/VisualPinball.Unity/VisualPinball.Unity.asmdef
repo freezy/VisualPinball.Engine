@@ -10,6 +10,7 @@
         "Unity.Splines",
         "Unity.InputSystem",
         "VisualPinball.Engine",
+		"VisualPinball.Plugins",
         "com.bartofzo.nativetrees",
         "MemoryPack.Unity",
 		"Newtonsoft.Json"

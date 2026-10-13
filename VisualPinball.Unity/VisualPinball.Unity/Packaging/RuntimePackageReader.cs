@@ -73,6 +73,16 @@ namespace VisualPinball.Unity
 			IProgress<RuntimePackageLoadProgress> progress,
 			CancellationToken cancellationToken = default)
 		{
+			return await ImportIntoScene(parent, progress, null, cancellationToken);
+		}
+
+		/// <summary>The callback sees a fully restored inactive table and completes before game logic activation.</summary>
+		public async Task<GameObject> ImportIntoScene(
+			Transform parent,
+			IProgress<RuntimePackageLoadProgress> progress,
+			Func<GameObject, CancellationToken, Task> beforeActivation,
+			CancellationToken cancellationToken = default)
+		{
 			if (string.IsNullOrWhiteSpace(_vpePath)) {
 				throw new ArgumentException("No .vpe path was provided.");
 			}
@@ -270,6 +280,8 @@ namespace VisualPinball.Unity
 					foreach (var consumer in _table.GetComponentsInChildren<MonoBehaviour>(true).OfType<IPackagedContentConsumer>()) {
 						consumer.SetPackagedContentResolver(ContentResolver);
 					}
+					if (beforeActivation != null) await beforeActivation(_table, cancellationToken);
+					cancellationToken.ThrowIfCancellationRequested();
 					loadSucceeded = true;
 
 				} finally {
