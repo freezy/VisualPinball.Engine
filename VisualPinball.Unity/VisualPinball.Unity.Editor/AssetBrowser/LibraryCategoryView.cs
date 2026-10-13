@@ -1,4 +1,4 @@
-﻿// Visual Pinball Engine
+// Visual Pinball Engine
 // Copyright (C) 2023 freezy and VPE Team
 //
 // This program is free software: you can redistribute it and/or modify
@@ -106,8 +106,11 @@ namespace VisualPinball.Unity.Editor
 
 			// update categories
 
-			var categories = _browser.Libraries
-				.Where(lib => lib.IsActive)
+			var activeLibraries = _browser.Libraries.Where(lib => lib.IsActive).ToArray();
+			var categoryCounts = activeLibraries
+				.SelectMany(library => library.GetCategoryCounts())
+				.ToDictionary(pair => pair.Key, pair => pair.Value);
+			var categories = activeLibraries
 				.SelectMany(lib => lib.GetCategories().Select(c => (lib, c)))
 				.OrderBy(tuple => tuple.c.Name)
 				.GroupBy(t => t.Item2.Name, (_, g) => g);
@@ -117,7 +120,7 @@ namespace VisualPinball.Unity.Editor
 			NumCategories = 0;
 			_container.Clear();
 			foreach (var cat in categories) {
-				var categoryElement = new LibraryCategoryElement(this, cat);
+				var categoryElement = new LibraryCategoryElement(this, cat, categoryCounts);
 				_container.Add(categoryElement);
 				if (selectedCategoryNames.Contains(categoryElement.Name)) {
 					categoryElement.IsSelected = true;
