@@ -3861,7 +3861,7 @@ namespace VisualPinball.Unity
 					Elasticity = _physicsMaterial.Elasticity,
 					ElasticityFalloff = _physicsMaterial.ElasticityFalloff,
 					Friction = _physicsMaterial.Friction,
-					ScatterAngleRad = _physicsMaterial.ScatterAngle,
+					ScatterAngleRad = math.radians(_physicsMaterial.ScatterAngle),
 				}
 				: new PhysicsMaterialData {
 					Elasticity = _elasticity,
@@ -3890,7 +3890,7 @@ namespace VisualPinball.Unity
 						Elasticity = _terminalPhysicsMaterial.Elasticity,
 						ElasticityFalloff = _terminalPhysicsMaterial.ElasticityFalloff,
 						Friction = _terminalPhysicsMaterial.Friction,
-						ScatterAngleRad = _terminalPhysicsMaterial.ScatterAngle,
+						ScatterAngleRad = math.radians(_terminalPhysicsMaterial.ScatterAngle),
 					};
 				}
 				using var terminalIndices = new NativeArray<int>(_colliderMesh.GetIndices(1),

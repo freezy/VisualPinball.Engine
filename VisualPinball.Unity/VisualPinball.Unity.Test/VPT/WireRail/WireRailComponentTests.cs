@@ -1989,6 +1989,10 @@ namespace VisualPinball.Unity.Test
 				var terminalColliderCount = triangleColliders.Count(collider =>
 					math.abs(collider.Header.Material.Elasticity - 0.91f) < 0.0001f);
 				Assert.That(terminalColliderCount, Is.EqualTo(expectedTerminalTriangleCount));
+				Assert.That(triangleColliders.Where(collider =>
+					math.abs(collider.Header.Material.Elasticity - 0.91f) < 0.0001f).All(collider =>
+					math.abs(collider.Header.Material.ScatterAngleRad - math.radians(0.42f)) < 0.000001f), Is.True,
+					"the terminal material's scatter angle is in degrees");
 				Assert.That(triangleColliders.Any(collider =>
 					math.abs(collider.Header.Material.Elasticity - 0.3f) < 0.0001f), Is.True,
 					"the channel and approach leads should retain the ordinary material");

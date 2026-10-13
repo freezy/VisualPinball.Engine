@@ -46,6 +46,7 @@ namespace VisualPinball.Unity
 		public AnimationCurve FrictionOverVelocity;
 
 		// public AnimationCurve FrictionOverAngularMomentum;
+		[Tooltip("Maximum random deflection in degrees, as in VPX. Converted to radians when the colliders are built.")]
 		public float ScatterAngle;
 
 		/// <summary>
