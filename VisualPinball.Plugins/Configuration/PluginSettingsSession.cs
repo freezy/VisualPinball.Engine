@@ -65,12 +65,20 @@ namespace VisualPinball.Plugins
 				var effective = Game.HasValue ? PluginConfigurationStore.Resolve(_factory.Schema, _store.Read(_factory.Descriptor, _factory.Schema), draft) : PluginConfigurationStore.Resolve(_factory.Schema, draft);
 				var request = new PluginChoiceRequest(Game, effective, _platform, _resources());
 				var issues = _factory.Schema.Validate(effective).Concat(_factory.SettingsProvider?.Validate(request) ?? Array.Empty<PluginValidationIssue>()).ToList();
-				foreach (var field in _factory.Schema.Fields.Where(field => field.Kind == SettingKind.Choice && field.Provider.Length > 0 && field.Visible(effective))) {
-					string selected = effective.String(field.Id);
-					if (selected.Length == 0 || _factory.SettingsProvider == null) continue;
-					var catalog = await _factory.SettingsProvider.DiscoverAsync(field.Provider, request, linked.Token).ConfigureAwait(false);
-					var choice = catalog.Find(selected);
-					if (choice != null && !choice.Available || choice == null && catalog.IsComplete) issues.Add(new PluginValidationIssue(field.Id, choice?.UnavailableReason ?? "Selected item is missing."));
+				var catalogs = new Dictionary<string, PluginChoiceCatalog>(StringComparer.Ordinal);
+				foreach (var binding in ChoiceBindings(_factory.Schema.Fields, effective)) {
+					var field = binding.Field;
+					var selections = field.Kind == SettingKind.ScreenLayout ? (binding.Value as JArray)?.OfType<JObject>().Select(screen => screen["screen"]?.ToString() ?? "").ToArray() ?? Array.Empty<string>() : new[] { binding.Value?.ToString() ?? "" };
+					if (selections.Length == 0 || _factory.SettingsProvider == null) continue;
+					if (!catalogs.TryGetValue(field.Provider, out var catalog)) {
+						catalog = await _factory.SettingsProvider.DiscoverAsync(field.Provider, request, linked.Token).ConfigureAwait(false);
+						catalogs.Add(field.Provider, catalog);
+						}
+					foreach (string selected in selections) {
+						if (selected.Length == 0) continue;
+						var choice = catalog.Find(selected);
+						if (choice != null && !choice.Available || choice == null && catalog.IsComplete) issues.Add(new PluginValidationIssue(binding.Path, choice?.UnavailableReason ?? "Selected item is missing: " + selected));
+						}
 				}
 				linked.Token.ThrowIfCancellationRequested();
 				if (issues.Count > 0) return new PluginActionResult(false, string.Join("\n", issues.Select(issue => issue.Field + ": " + issue.Message)));
@@ -78,6 +86,21 @@ namespace VisualPinball.Plugins
 				_store.Save(_factory.Descriptor, _factory.Schema, draft, Game);
 				return new PluginActionResult(true, "Saved. Changes take effect on the next game.");
 			} finally { _apply.Release(); }
+		}
+		private static IEnumerable<(PluginField Field, JToken? Value, string Path)> ChoiceBindings(IEnumerable<PluginField> fields, PluginSettingsSnapshot snapshot, string prefix = "")
+		{
+			foreach (var field in fields) {
+				if (!field.Visible(snapshot)) continue;
+				var value = snapshot.Value(field.Id); string path = prefix + field.Id;
+				if ((field.Kind == SettingKind.Choice || field.Kind == SettingKind.ScreenLayout) && field.Provider.Length > 0) yield return (field, value, path);
+				if (field.Children.Count == 0) continue;
+				if (field.Kind == SettingKind.Composite && value is JObject record)
+					foreach (var child in ChoiceBindings(field.Children, new PluginSettingsSnapshot(snapshot.SchemaVersion, record), path + ".")) yield return child;
+				if (field.Kind == SettingKind.Collection && value is JArray records) for (int index = 0; index < records.Count; index++) {
+					if (!(records[index] is JObject item)) continue;
+					foreach (var child in ChoiceBindings(field.Children, new PluginSettingsSnapshot(snapshot.SchemaVersion, item), path + "[" + index + "].")) yield return child;
+					}
+			}
 		}
 		public void Dispose() { _lifetime.Cancel(); }
 	}

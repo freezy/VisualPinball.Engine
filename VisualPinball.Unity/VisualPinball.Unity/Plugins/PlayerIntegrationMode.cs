@@ -20,7 +20,6 @@ namespace VisualPinball.Unity
 			HostManaged = false;
 			PlayerPluginRegistry.Reset();
 			PackagedGameIdentityReaders.Reset();
-			PluginSettingsViews.Reset();
 		}
 	}
 }

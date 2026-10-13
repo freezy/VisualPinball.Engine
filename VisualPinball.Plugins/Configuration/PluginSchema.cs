@@ -13,7 +13,7 @@ using Newtonsoft.Json.Linq;
 
 namespace VisualPinball.Plugins
 {
-	public enum SettingKind { Boolean, Integer, Number, Text, Folder, File, Choice, Color, Rectangle, Collection, Status, Action, Custom }
+	public enum SettingKind { Boolean, Integer, Number, Text, Folder, File, Choice, Color, Rectangle, Collection, Status, Action, Composite, ScreenLayout, Preview }
 
 	public sealed class PluginField
 	{
@@ -27,7 +27,6 @@ namespace VisualPinball.Plugins
 		public double? Minimum { get; set; }
 		public double? Maximum { get; set; }
 		public string Provider { get; set; } = "";
-		public string ViewExtension { get; set; } = "";
 		public string VisibleWhen { get; set; } = "";
 		public JToken? VisibleValue { get; set; }
 		public IReadOnlyList<PluginField> Children { get; set; } = Array.Empty<PluginField>();
@@ -79,13 +78,26 @@ namespace VisualPinball.Plugins
 		{
 			var values = new JObject();
 			foreach (var field in Fields) if (field.Default != null) values[field.Id] = field.Default.DeepClone();
+			FillRecordDefaults(Fields, values);
 			return new PluginSettingsSnapshot(Version, values);
+		}
+		internal static void FillRecordDefaults(IEnumerable<PluginField> fields, JObject values)
+		{
+			foreach (var field in fields) {
+				if (values[field.Id] == null && field.Default != null) values[field.Id] = field.Default.DeepClone();
+				if (field.Kind == SettingKind.Composite) {
+					if (values[field.Id] == null) values[field.Id] = new JObject();
+					if (values[field.Id] is JObject record) FillRecordDefaults(field.Children, record);
+				} else if (field.Kind == SettingKind.Collection && field.Children.Count > 0 && values[field.Id] is JArray records) {
+					foreach (var item in records.OfType<JObject>()) FillRecordDefaults(field.Children, item);
+				}
+			}
 		}
 		public IReadOnlyList<PluginValidationIssue> Validate(PluginSettingsSnapshot snapshot)
 		{
 			var issues = new List<PluginValidationIssue>();
 			foreach (var field in Fields) {
-				if (!field.Visible(snapshot) || field.Kind == SettingKind.Status || field.Kind == SettingKind.Action || field.Kind == SettingKind.Custom) continue;
+				if (!field.Visible(snapshot) || field.Kind == SettingKind.Status || field.Kind == SettingKind.Action || field.Kind == SettingKind.Preview) continue;
 				var value = snapshot.Value(field.Id);
 				string? error = field.Validate?.Invoke(value);
 				if (error == null && value != null) {
@@ -100,6 +112,20 @@ namespace VisualPinball.Plugins
 						}
 					}
 					if (field.Kind == SettingKind.Collection && value.Type != JTokenType.Array) error = "Expected a list.";
+					if (field.Kind == SettingKind.Composite && !(value is JObject)) error = "Expected a settings record.";
+					if (field.Children.Count > 0 && error == null) {
+						var nested = new PluginSettingsSchema(Version, new PluginSettingsGroup(field.Label, "", field.Children.ToArray()));
+						if (field.Kind == SettingKind.Composite && value is JObject record) {
+							var failures = nested.Validate(new PluginSettingsSnapshot(Version, record));
+							if (failures.Count > 0) error = string.Join("; ", failures.Select(issue => issue.Field + ": " + issue.Message));
+						}
+						if (field.Kind == SettingKind.Collection && value is JArray records) foreach (var item in records) {
+							if (!(item is JObject row)) { error = "Expected a list of settings records."; break; }
+							var failures = nested.Validate(new PluginSettingsSnapshot(Version, row));
+							if (failures.Count > 0) { error = string.Join("; ", failures.Select(issue => issue.Field + ": " + issue.Message)); break; }
+							}
+						}
+					if (field.Kind == SettingKind.ScreenLayout) error = ScreenLayoutError(value);
 					if ((field.Kind == SettingKind.Text || field.Kind == SettingKind.File || field.Kind == SettingKind.Folder || field.Kind == SettingKind.Choice || field.Kind == SettingKind.Color) && value.Type != JTokenType.String) error = "Expected text.";
 					if (field.Kind == SettingKind.Rectangle) {
 						if (!(value is JObject rectangle)) error = "Expected a rectangle.";
@@ -113,6 +139,19 @@ namespace VisualPinball.Plugins
 			}
 			return issues;
 		}
+		private static string? ScreenLayoutError(JToken value)
+		{
+			if (!(value is JArray screens)) return "Expected a screen layout.";
+			var ids = new HashSet<string>(StringComparer.Ordinal);
+			foreach (var item in screens) {
+				if (!(item is JObject screen) || screen["screen"] == null || screen["screen"]!.Type != JTokenType.String && screen["screen"]!.Type != JTokenType.Integer || string.IsNullOrWhiteSpace(screen["screen"]!.ToString()) || !ids.Add(screen["screen"]!.ToString())) return "Each screen needs a unique identifier.";
+				foreach (string axis in new[] { "x", "y", "width", "height" }) {
+					var number = screen[axis];
+					if (number?.Type != JTokenType.Integer || !int.TryParse(number.ToString(), out int coordinate) || (axis == "width" || axis == "height") && (coordinate < 1 || coordinate > 16384)) return "Use integer coordinates and dimensions from 1 to 16384 pixels.";
+				}
+			}
+			return null;
+		}
 	}
 
 	public sealed class PluginSettingsSnapshot
@@ -123,7 +162,7 @@ namespace VisualPinball.Plugins
 		public JToken? Value(string id) => Values[id];
 		public string String(string id, string fallback = "") => Value(id)?.Type == JTokenType.String ? Value(id)!.Value<string>() ?? fallback : fallback;
 		public bool Boolean(string id, bool fallback = false) => Value(id)?.Type == JTokenType.Boolean ? Value(id)!.Value<bool>() : fallback;
-		public int Integer(string id, int fallback = 0) => Value(id)?.Type == JTokenType.Integer ? Value(id)!.Value<int>() : fallback;
+		public int Integer(string id, int fallback = 0) => Value(id)?.Type == JTokenType.Integer && int.TryParse(Value(id)!.ToString(), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out int number) ? number : fallback;
 		public double Number(string id, double fallback = 0) => Value(id)?.Type == JTokenType.Integer || Value(id)?.Type == JTokenType.Float ? Value(id)!.Value<double>() : fallback;
 		public PluginSettingsSnapshot Copy() => new PluginSettingsSnapshot(SchemaVersion, (JObject)Values.DeepClone());
 		public void Set(string id, JToken? value) { if (value == null) Values.Remove(id); else Values[id] = value.DeepClone(); }
