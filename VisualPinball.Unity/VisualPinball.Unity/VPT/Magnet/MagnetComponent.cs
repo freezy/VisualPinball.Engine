@@ -386,7 +386,7 @@ namespace VisualPinball.Unity
 					Elasticity = _colliderPhysicsMaterial.Elasticity,
 					ElasticityFalloff = _colliderPhysicsMaterial.ElasticityFalloff,
 					Friction = _colliderPhysicsMaterial.Friction,
-					ScatterAngleRad = _colliderPhysicsMaterial.ScatterAngle
+					ScatterAngleRad = math.radians(_colliderPhysicsMaterial.ScatterAngle)
 				}
 				: new PhysicsMaterialData {
 					Elasticity = _colliderElasticity,
