@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using ICSharpCode.SharpZipLib.Zip;
 using NLog;
 
@@ -48,7 +49,8 @@ namespace VisualPinball.Unity.Editor
 		private readonly bool _isWriteMode;
 
 		private ZipOutputStream _zipOutputStream;
-		private ZipFile _zipFile;
+		private ZipArchive _readArchive;
+		private readonly object _readGate = new object();
 
 		// A root folder abstraction to keep track of the top-level.
 		private readonly ZipPackageFolder _rootFolder;
@@ -72,11 +74,15 @@ namespace VisualPinball.Unity.Editor
 
 			} else {
 				// Open read-only
-				_zipFile = new ZipFile(File.OpenRead(path));
+				// Use the runtime ZIP reader for standalone Mono compatibility.
+				var input = File.OpenRead(path);
+				try { _readArchive = new ZipArchive(input, ZipArchiveMode.Read); }
+				catch { input.Dispose(); throw; }
 				// Build an in-memory tree of folders/files for quick lookup
 				_rootFolder = new ZipPackageFolder("", null, this, false);
 
-				BuildFolderTree();
+				try { BuildFolderTree(); }
+				catch { _readArchive.Dispose(); throw; }
 			}
 		}
 
@@ -113,11 +119,7 @@ namespace VisualPinball.Unity.Editor
 				}
 
 			} else  {
-				// If reading, close the ZipFile
-				if (_zipFile != null) {
-					_zipFile.Close();
-					_zipFile = null;
-				}
+				lock (_readGate) { _readArchive?.Dispose(); _readArchive = null; }
 			}
 		}
 
@@ -131,24 +133,43 @@ namespace VisualPinball.Unity.Editor
 			return _zipOutputStream;
 		}
 
-		public ZipFile GetZipFile()
+		internal Stream OpenReadEntry(ZipArchiveEntry entry)
 		{
-			if (_isWriteMode) {
-				throw new InvalidOperationException("Cannot get ZipFile in write mode.");
+			lock (_readGate) {
+				if (_readArchive == null) throw new ObjectDisposedException(nameof(ZipPackageStorage));
+				return new LockedEntryStream(entry.Open(), _readGate);
 			}
-			return _zipFile;
+		}
+		// Entry substreams share the archive's file cursor. Serialize each read/seek operation, not complete file copies.
+		private sealed class LockedEntryStream : Stream
+		{
+			private readonly Stream _inner;
+			private readonly object _gate;
+			internal LockedEntryStream(Stream inner, object gate) { _inner = inner; _gate = gate; }
+			public override bool CanRead => _inner.CanRead;
+			public override bool CanSeek => _inner.CanSeek;
+			public override bool CanWrite => false;
+			public override long Length { get { lock (_gate) return _inner.Length; } }
+			public override long Position { get { lock (_gate) return _inner.Position; } set { lock (_gate) _inner.Position = value; } }
+			public override int Read(byte[] buffer, int offset, int count) { lock (_gate) return _inner.Read(buffer, offset, count); }
+			public override int Read(Span<byte> buffer) { lock (_gate) return _inner.Read(buffer); }
+			public override long Seek(long offset, SeekOrigin origin) { lock (_gate) return _inner.Seek(offset, origin); }
+			public override void Flush() { }
+			public override void SetLength(long value) => throw new NotSupportedException();
+			public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+			protected override void Dispose(bool disposing) { if (disposing) { lock (_gate) _inner.Dispose(); } base.Dispose(disposing); }
 		}
 
 		/// <summary>
-		/// In read mode, we build an internal folder/file structure from the existing ZipFile.
+		/// In read mode, build a folder/file index from the archive directory.
 		/// </summary>
 		private void BuildFolderTree()
 		{
 			// Iterate over every entry in the zip and place it into the folder structure
-			foreach (ZipEntry entry in _zipFile) {
+			foreach (var entry in _readArchive.Entries) {
 
-				var entryName = entry.Name;
-				var isDirectory = entry.IsDirectory;
+				var entryName = entry.FullName;
+				var isDirectory = entryName.EndsWith("/", StringComparison.Ordinal);
 
 				// Split path by forward slash
 				var parts = entryName.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
@@ -281,7 +302,7 @@ namespace VisualPinball.Unity.Editor
 			return file;
 		}
 
-		internal void AddFileInternal(string name, ZipEntry zipEntry)
+		internal void AddFileInternal(string name, ZipArchiveEntry zipEntry)
 		{
 			// For read mode, we store a reference to the existing entry
 			if (!_files.TryGetValue(name, out var file)) {
@@ -363,7 +384,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		private readonly ZipPackageFolder _parentFolder;
 		private readonly ZipPackageStorage _storage;
-		private readonly ZipEntry _existingEntry; // non-null if read-only
+		private readonly ZipArchiveEntry _existingEntry; // non-null if read-only
 
 		public ZipPackageFile(string fileName, ZipPackageFolder parentFolder, ZipPackageStorage storage)
 		{
@@ -374,7 +395,7 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		public ZipPackageFile(string fileName, ZipPackageFolder parentFolder, ZipPackageStorage storage,
-			ZipEntry existingEntry)
+			ZipArchiveEntry existingEntry)
 		{
 			Name = fileName;
 			_parentFolder = parentFolder;
@@ -387,7 +408,7 @@ namespace VisualPinball.Unity.Editor
 		public Stream AsStream()
 		{
 			// In write mode, return the ZipOutputStream for this entry.
-			// In read mode, return the ZipFile's InputStream for this entry.
+			// In read mode, return a synchronized archive entry stream.
 			if (_storage == null) {
 				throw new InvalidOperationException("Storage reference lost.");
 			}
@@ -410,8 +431,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			// read mode
-			var zf = _storage.GetZipFile();
-			return zf.GetInputStream(_existingEntry);
+			return _storage.OpenReadEntry(_existingEntry);
 		}
 
 		public void SetData(byte[] data, PackageCompression compression = PackageCompression.Default)

@@ -33,6 +33,47 @@ namespace VisualPinball.Unity.Test.Packaging
 		}
 
 		[Test]
+		public void ReadsInterleavedCompressedAndStoredEntries()
+		{
+			var package = Path.Combine(_root, "streams.vpe");
+			var compressed = Enumerable.Range(0, 65536).Select(index => (byte)(index % 251)).ToArray();
+			var stored = Enumerable.Range(0, 65536).Select(index => (byte)(index % 197)).ToArray();
+			var manager = new VisualPinball.Unity.Editor.SharpZipStorageManager();
+			using (var output = manager.CreateStorage(package)) {
+				output.AddFile("compressed.bin").SetData(compressed);
+				output.AddFile("stored.bin").SetData(stored, PackageCompression.Stored);
+			}
+			using var input = manager.OpenStorage(package);
+			Assert.That(input.TryGetFile("compressed.bin", out var compressedFile), Is.True);
+			Assert.That(input.TryGetFile("stored.bin", out var storedFile), Is.True);
+			using var first = compressedFile.AsStream();
+			using var second = storedFile.AsStream();
+			var firstResult = new MemoryStream();
+			var secondResult = new MemoryStream();
+			var buffer = new byte[113];
+			int a, b;
+			do {
+				a = first.Read(buffer, 0, buffer.Length); firstResult.Write(buffer, 0, a);
+				b = second.Read(buffer, 0, buffer.Length); secondResult.Write(buffer, 0, b);
+			} while (a != 0 || b != 0);
+			Assert.That(firstResult.ToArray(), Is.EqualTo(compressed));
+			Assert.That(secondResult.ToArray(), Is.EqualTo(stored));
+		}
+
+		[TestCase(System.IO.Compression.CompressionLevel.Optimal)]
+		[TestCase(System.IO.Compression.CompressionLevel.NoCompression)]
+		public void ReadsMetadataFromRuntimeZipArchive(System.IO.Compression.CompressionLevel compression)
+		{
+			var package = Path.Combine(_root, "metadata.vpe");
+			using (var archive = new System.IO.Compression.ZipArchive(File.Create(package), System.IO.Compression.ZipArchiveMode.Create)) {
+				using var writer = new StreamWriter(archive.CreateEntry("table/table.json", compression).Open());
+				writer.Write("{\"TableName\":\"ZIP fixture\"}");
+			}
+			Assert.That(VpeTableMetadataReader.TryRead(package, out var metadata), Is.True);
+			Assert.That(metadata.Title, Is.EqualTo("ZIP fixture"));
+		}
+
+		[Test]
 		public async Task RoundTripsNestedTreeInEditorAndRuntimeResolver()
 		{
 			var source = CreateFixture();
@@ -152,6 +193,7 @@ namespace VisualPinball.Unity.Test.Packaging
 			Directory.CreateDirectory(orphan);
 			Directory.CreateDirectory(partial);
 			File.WriteAllText(Path.Combine(orphan, ".complete"), contentRef.ContentHash);
+			Directory.SetLastWriteTimeUtc(orphan, DateTime.UtcNow.AddDays(-1));
 			File.WriteAllText(Path.Combine(partial, "partial"), "bad");
 
 			var resolver = new PackagedContentResolver(package, CacheOptions(cache));

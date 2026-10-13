@@ -18,9 +18,9 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
-using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
 
 namespace VisualPinball.Unity
@@ -78,14 +78,14 @@ namespace VisualPinball.Unity
 			}
 
 			try {
-				using var zip = new ZipFile(File.OpenRead(fileInfo.FullName));
+				using var zip = new ZipArchive(File.OpenRead(fileInfo.FullName), ZipArchiveMode.Read);
 				var entry = FindMetadataEntry(zip);
 				if (entry == null) {
 					UpdateCache(fileInfo, false, null);
 					return false;
 				}
 
-				using var stream = zip.GetInputStream(entry);
+				using var stream = entry.Open();
 				using var reader = new StreamReader(stream);
 				using var jsonReader = new JsonTextReader(reader);
 				var tableMetadata = JsonSerializer.CreateDefault().Deserialize<TableMetadata>(jsonReader);
@@ -186,14 +186,14 @@ namespace VisualPinball.Unity
 		// Reads screenshots/table-bounds.json from the already-open zip and returns the crop aspect
 		// (cropWidth / cropHeight). Null when the entry is missing or unparseable. Cheap — the bounds
 		// file is a handful of bytes, so this adds almost nothing to the metadata read.
-		private static float? TryReadScreenshotAspect(ZipFile zip)
+		private static float? TryReadScreenshotAspect(ZipArchive zip)
 		{
 			var entry = zip.GetEntry(ScreenshotBoundsEntryPath);
 			if (entry == null) {
 				return null;
 			}
 			try {
-				using var stream = zip.GetInputStream(entry);
+				using var stream = entry.Open();
 				using var reader = new StreamReader(stream);
 				using var jsonReader = new JsonTextReader(reader);
 				var bounds = JsonSerializer.CreateDefault().Deserialize<ScreenshotBoundsData>(jsonReader);
@@ -214,15 +214,15 @@ namespace VisualPinball.Unity
 			public int cropHeight;
 		}
 
-		private static ZipEntry FindMetadataEntry(ZipFile zip)
+		private static ZipArchiveEntry FindMetadataEntry(ZipArchive zip)
 		{
 			var exact = zip.GetEntry(TableMetadataEntryPath);
 			if (exact != null) {
 				return exact;
 			}
 
-			foreach (ZipEntry entry in zip) {
-				if (!entry.IsDirectory && string.Equals(entry.Name, TableMetadataEntryPath, StringComparison.OrdinalIgnoreCase)) {
+			foreach (var entry in zip.Entries) {
+				if (string.Equals(entry.FullName, TableMetadataEntryPath, StringComparison.OrdinalIgnoreCase)) {
 					return entry;
 				}
 			}
