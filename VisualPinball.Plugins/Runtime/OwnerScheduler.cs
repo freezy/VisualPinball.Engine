@@ -2,7 +2,7 @@
 // Copyright (C) 2026 freezy and VPE Team
 //
 // SPDX-License-Identifier: MIT
-// See LICENSE for the terms of use and distribution.
+// Licensed under MIT. See https://opensource.org/license/mit.
 
 using System;
 using System.Collections.Concurrent;
