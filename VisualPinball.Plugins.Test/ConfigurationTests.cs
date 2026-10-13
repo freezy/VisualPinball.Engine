@@ -89,6 +89,55 @@ namespace VisualPinball.Plugins.Test
 			Assert.That(store.Read(_plugin, Schema(), _game).String("variant"), Is.EqualTo("one"));
 			session.Set("variant", null); Assert.That(session.Effective.String("variant"), Is.EqualTo("auto"));
 		}
+		[Test]
+		public void ScreenLayoutsAllowSignedDesktopCoordinatesAndRejectAmbiguousOrInvalidHomes()
+		{
+			var schema = new PluginSettingsSchema(1, new PluginSettingsGroup("Displays", "", new PluginField("screens", "Screens", SettingKind.ScreenLayout)));
+			var valid = JObject.Parse("{'screens':[{'screen':'backglass','x':-1920,'y':0,'width':1920,'height':1080}]}");
+			Assert.That(schema.Validate(new PluginSettingsSnapshot(1, valid)), Is.Empty);
+			((JArray)valid["screens"]!).Add(valid["screens"]![0]!.DeepClone());
+			Assert.That(schema.Validate(new PluginSettingsSnapshot(1, valid)), Has.Count.EqualTo(1));
+			valid["screens"] = JArray.Parse("[{'screen':'backglass','x':0,'y':0,'width':0,'height':1080}]");
+			Assert.That(schema.Validate(new PluginSettingsSnapshot(1, valid)), Has.Count.EqualTo(1));
+		}
+		[Test]
+		public void NestedRecordValidationChecksDeclaredTypesAndRanges()
+		{
+			var item = new PluginField("devices", "Devices", SettingKind.Collection) { Children = new[] { new PluginField("gain", "Gain", SettingKind.Number) { Minimum = 0, Maximum = 1 } } };
+			var schema = new PluginSettingsSchema(1, new PluginSettingsGroup("Output", "", item));
+			Assert.That(schema.Validate(new PluginSettingsSnapshot(1, JObject.Parse("{'devices':[{'gain':0.5}]}"))), Is.Empty);
+			Assert.That(schema.Validate(new PluginSettingsSnapshot(1, JObject.Parse("{'devices':[{'gain':2.0}]}"))), Has.Count.EqualTo(1));
+			Assert.That(schema.Validate(new PluginSettingsSnapshot(1, JObject.Parse("{'devices':['invalid']}"))), Has.Count.EqualTo(1));
+		}
+		[Test]
+		public async Task ScreenApplyRechecksAvailabilityWithoutReplacingAnExistingHome()
+		{
+			var field = new PluginField("screens", "Screens", SettingKind.ScreenLayout) { Provider = "variants", Scope = ConfigurationScope.GlobalAndGame };
+			var schema = new PluginSettingsSchema(1, new PluginSettingsGroup("Displays", "", field));
+			var store = new PluginConfigurationStore(_directory); var provider = new CatalogProvider();
+			var factory = new ConfigFactory(_plugin, schema, provider);
+			using var session = new PluginSettingsSession(factory, store, "windows", _game);
+			session.Set("screens", JArray.Parse("[{'screen':'one','x':-640,'y':0,'width':640,'height':480}]"));
+			Assert.That((await session.ApplyAsync()).Success, Is.True);
+			provider.Available = false;
+			Assert.That((await session.ApplyAsync()).Success, Is.False);
+			Assert.That(store.Read(_plugin, schema, _game).Value("screens")![0]!["x"]!.Value<int>(), Is.EqualTo(-640));
+		}
+		[Test]
+		public async Task NestedChoiceAvailabilityIsRecheckedBeforeSavingRecords()
+		{
+			var field = new PluginField("devices", "Devices", SettingKind.Collection) {
+				Children = new[] { new PluginField("variant", "Variant", SettingKind.Choice) { Provider = "variants", Default = "auto" } }
+			};
+			var schema = new PluginSettingsSchema(1, new PluginSettingsGroup("Output", "", field));
+			var store = new PluginConfigurationStore(_directory); var provider = new CatalogProvider();
+			using var session = new PluginSettingsSession(new ConfigFactory(_plugin, schema, provider), store, "windows");
+			session.Set("devices", JArray.Parse("[{'variant':'one'}]"));
+			Assert.That((await session.ApplyAsync()).Success, Is.True);
+			provider.Available = false;
+			Assert.That((await session.ApplyAsync()).Success, Is.False);
+			Assert.That(store.Read(_plugin, schema).Value("devices")![0]!["variant"]!.Value<string>(), Is.EqualTo("one"));
+		}
 		private sealed class CatalogProvider : IPluginSettingsProvider
 		{
 			internal bool Available = true;

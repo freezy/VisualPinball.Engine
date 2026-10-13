@@ -45,8 +45,10 @@ namespace VisualPinball.Plugins
 					if (gameScope ? field.Scope == ConfigurationScope.GlobalOnly : field.Scope == ConfigurationScope.GameOnly) scoped.Values.Remove(field.Id);
 				return scoped;
 			}
-			return game == null ? PluginSettingsSnapshot.Merge(schema.Defaults(), Scoped(global, false))
+			var resolved = game == null ? PluginSettingsSnapshot.Merge(schema.Defaults(), Scoped(global, false))
 				: PluginSettingsSnapshot.Merge(schema.Defaults(), Scoped(global, false), Scoped(game, true));
+			PluginSettingsSchema.FillRecordDefaults(schema.Fields, resolved.Values);
+			return resolved;
 		}
 		public void Save(PluginDescriptor plugin, PluginSettingsSchema schema, PluginSettingsSnapshot values, GameIdentity? game = null)
 		{
@@ -57,7 +59,7 @@ namespace VisualPinball.Plugins
 			var stored = Read(plugin, schema, game).Values;
 			foreach (var field in schema.Fields) {
 				bool allowed = game.HasValue ? field.Scope != ConfigurationScope.GlobalOnly : field.Scope != ConfigurationScope.GameOnly;
-				if (!allowed || field.Kind == SettingKind.Action || field.Kind == SettingKind.Status || field.Kind == SettingKind.Custom) continue;
+				if (!allowed || field.Kind == SettingKind.Action || field.Kind == SettingKind.Status || field.Kind == SettingKind.Preview) continue;
 				if (values.Values.TryGetValue(field.Id, out var value)) stored[field.Id] = value.DeepClone();
 				else stored.Remove(field.Id);
 			}

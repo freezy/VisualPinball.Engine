@@ -22,7 +22,11 @@ Fields declare GlobalOnly, GameOnly or GlobalAndGame scope and Live, NextGame or
 
 Dynamic choices use stable IDs, readable labels, availability reasons and a catalog revision. Missing explicit asset selections remain visible and require user action. A runtime-only catalog may declare `IsComplete = false` while its game is stopped; this keeps an existing source selection without claiming it is available. Explicit display selections are game-specific and controller-relative. `PluginResourceChoices` supplies the shared discovery and resolution rules.
 
-The generic player supports standard fields, lists, rectangles, actions, inheritance, Apply/Revert/Reset, and runtime diagnostics. Unity adapters register custom settings views for richer controls such as desktop placement and pack previews; the player knows only the view contract. Custom views own and release preview resources when hidden or detached.
+The Player owns every configuration control, including standard fields, typed records/lists, radio choices, screen placement, previews, inheritance, Apply/Revert/Reset and runtime diagnostics. Plugins declare labels, types, defaults, scope, validation and dynamic providers through `PluginField`; they do not supply UIElements, templates, styles or configuration shaders.
+
+`SettingKind.ScreenLayout` describes an array of homes with a stable `screen` identifier and integer `x`, `y`, `width`, `height` in physical desktop pixels. Signed coordinates support multiple monitors. Its `Provider` discovers the available screen IDs and names; Apply rechecks their availability. String IDs are preferred; legacy integer IDs remain accepted. Native placement creates a sparse game override when an inherited home is moved. The shared Player renders aspect-ratio guides against the full window bounds. `IUnitySettingsWindowProvider` adapts a plugin's native output transport; the Player owns the placeholder pixels and controls.
+
+`SettingKind.Preview` declares a preview provider without persisting UI state. `IUnitySettingsPreviewProvider` returns an owned preview with textures, normalized layer rectangles, visibility and canvas dimensions through VPE-owned contracts. The Player owns the viewport, buttons and presentation. Partial startup must be released on cancellation; hiding a settings page disposes its preview. Composite fields and collection records use `Children` to declare nested data controls, reusing the same Player rendering.
 
 ## Cross-plugin resources
 
@@ -34,6 +38,6 @@ Display pixels, PCM samples and segment buffers are borrowed during synchronous 
 
 ## Package composition and validation
 
-`VisualPinball.Plugins` contains contracts, configuration and the host. `VisualPinball.Unity/VisualPinball.Unity/Plugins` bridges scene identities and gamelogic resources. The shared player renders configuration and owns transitions. Optional PinUp and DMD player packages own all product-specific discovery, runtime bindings and custom UI. HDRP/URP shells choose these packages in their manifests.
+`VisualPinball.Plugins` contains contracts, configuration and the host. `VisualPinball.Unity/VisualPinball.Unity/Plugins` bridges scene identities, gamelogic resources and settings media transports. The shared Player renders configuration and owns transitions. Each integration's normal Unity package contains its settings schema, discovery providers and runtime plugin assembly. There is no additional Player package for PinUp or DMD. HDRP/URP shells choose optional integration packages in their manifests; shared Player code has no dependency on them.
 
 The portable suite covers failure isolation, ordering, cancellation/deadlines, sparse profiles, migrations, future versions, missing choices, raw/presentation routing, generation changes, output exclusivity, audio replacement, input ordering and representative resource families. Native desktop and hardware behavior must also be tested on the target platform; portable tests do not validate a Metal compositor, Linux desktop or attached cabinet device.
