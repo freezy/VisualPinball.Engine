@@ -21,6 +21,10 @@ namespace VisualPinball.Plugins
 		public string Label { get; }
 		public SettingKind Kind { get; }
 		public string Description { get; set; } = "";
+		/// <summary>Places the label above the editor for long values; ordinary fields render inline.</summary>
+		public bool FullWidth { get; set; }
+		/// <summary>Consecutive fields with the same non-empty hint share a row. The Player owns their sizing and appearance.</summary>
+		public string Row { get; set; } = "";
 		public ConfigurationScope Scope { get; set; } = ConfigurationScope.GlobalOnly;
 		public ConfigurationChange Change { get; set; } = ConfigurationChange.NextGame;
 		public JToken? Default { get; set; }
