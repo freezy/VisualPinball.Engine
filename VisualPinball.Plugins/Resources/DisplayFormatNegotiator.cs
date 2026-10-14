@@ -14,11 +14,12 @@ namespace VisualPinball.Plugins
 		private readonly DisplayEncoding _default;
 		private readonly DisplayEncoding _supported;
 		private readonly Action<DisplayEncoding> _request;
+		private readonly Action? _released;
 		private int _identification;
 		private DisplayEncoding _active;
 		private bool _disposed;
-		public DisplayFormatNegotiator(DisplayEncoding supported, DisplayEncoding defaultFormat, Action<DisplayEncoding> request)
-		{ _supported = supported; _default = defaultFormat; _request = request; }
+		public DisplayFormatNegotiator(DisplayEncoding supported, DisplayEncoding defaultFormat, Action<DisplayEncoding> request, Action? released = null)
+		{ _supported = supported; _default = defaultFormat; _request = request; _released = released; }
 		public IDisposable Acquire(ResourceView intent, DisplayEncoding accepted)
 		{
 			if (_disposed) throw new ObjectDisposedException(nameof(DisplayFormatNegotiator));
@@ -35,7 +36,13 @@ namespace VisualPinball.Plugins
 				_active = encoding;
 				_identification = 1;
 			}
-			return new Subscription(() => { if (!_disposed && --_identification == 0) { _active = DisplayEncoding.None; _request(_default); } });
+			return new Subscription(() => {
+				if (_disposed || --_identification != 0) return;
+				_active = DisplayEncoding.None;
+				_request(_default);
+				// Consumers that were refused because of the encoding we just gave up can try again.
+				_released?.Invoke();
+			});
 		}
 		public void Dispose() { if (_disposed) return; _disposed = true; if (_identification > 0) _request(_default); _identification = 0; }
 	}

@@ -80,7 +80,8 @@ namespace VisualPinball.Unity
 				: DisplayEncoding.Luminance8 | DisplayEncoding.Rgb24);
 			_defaultFormat = metadata?.DefaultDisplayFormat ?? DisplayEncoding.Luminance8;
 			if (metadata?.FormatAppliesToAllDisplays == true) _group = _scope.Own(new DisplayFormatNegotiator(_formats, _defaultFormat,
-				format => (engine as IDisplayFrameFormatPreference)?.RequestDisplayFrameFormat("", ToLegacy(format))));
+				format => (engine as IDisplayFrameFormatPreference)?.RequestDisplayFrameFormat("", ToLegacy(format)),
+				() => { foreach (string display in _displays.Keys.ToArray()) _registry.NotifyChanged(DisplayResourceId(display)); }));
 			_scope.Own(_controller);
 			_scope.Own(registry.Publish(new PluginResourceDescriptor(_controllerId, _provider, _controllerId, engine.Name, "controller", ResourceKind.Controller, session, Interlocked.Increment(ref _instance)), _controller));
 			if (engine is IGamelogicNativeOutputs native) {
@@ -139,12 +140,14 @@ namespace VisualPinball.Unity
 				existing.Dispose(); _displays.Remove(id);
 			}
 			var format = _group ?? new DisplayFormatNegotiator(_formats, _defaultFormat,
-				encoding => (_engine as IDisplayFrameFormatPreference)?.RequestDisplayFrameFormat(id, ToLegacy(encoding)));
+				encoding => (_engine as IDisplayFrameFormatPreference)?.RequestDisplayFrameFormat(id, ToLegacy(encoding)),
+				() => _registry.NotifyChanged(DisplayResourceId(id)));
 			var source = new DisplayResourceSource(format.Acquire, _fault);
 			long instance = Interlocked.Increment(ref _instance);
-			var descriptor = new PluginResourceDescriptor(_controllerId + "/display/" + id, _provider, _controllerId, id, "dmd", ResourceKind.Display, _session, instance, ResourceView.Original, _formats);
+			var descriptor = new PluginResourceDescriptor(DisplayResourceId(id), _provider, _controllerId, id, "dmd", ResourceKind.Display, _session, instance, ResourceView.Original, _formats);
 			_displays.Add(id, new Display(source, _registry.Publish(descriptor, source), width, height, instance, _group == null ? format : null));
 		}
+		private string DisplayResourceId(string display) => _controllerId + "/display/" + display;
 		private void DisplayFrame(object sender, DisplayFrameData args)
 		{
 			_scheduler.VerifyOwner();
