@@ -517,8 +517,10 @@ namespace VisualPinball.Unity.Editor
 				var converter = RenderPipeline.Current?.MaterialConverter;
 
 				var lightList = new List<Light>();
+				// Inserts under the group (such as L51's eye inserts) are switched by the insert pass; leave
+				// their spill lights and meshes alone, or this would turn them off again in the lit shot.
 				foreach (var l in group.GetComponentsInChildren<Light>(true)) {
-					if (l && l.GetComponentInParent<LightComponent>(true) == null) {
+					if (l && l.GetComponentInParent<LightComponent>(true) == null && !BelongsToInsert(l)) {
 						lightList.Add(l);
 					}
 				}
@@ -526,7 +528,7 @@ namespace VisualPinball.Unity.Editor
 				var rendererList = new List<Renderer>();
 				if (converter != null) {
 					foreach (var mr in group.GetComponentsInChildren<MeshRenderer>(true)) {
-						if (mr && converter.GetEmissiveIntensity(mr.sharedMaterial) > 0f && mr.GetComponentInParent<LightComponent>(true) == null) {
+						if (mr && converter.GetEmissiveIntensity(mr.sharedMaterial) > 0f && mr.GetComponentInParent<LightComponent>(true) == null && !BelongsToInsert(mr)) {
 							rendererList.Add(mr);
 						}
 					}
@@ -552,6 +554,9 @@ namespace VisualPinball.Unity.Editor
 
 			// Resolve a mapped lamp device to the concrete LightComponents it drives,
 			// expanding LightGroupComponent references recursively.
+			private static bool BelongsToInsert(Component component) =>
+				component.GetComponentInParent<InsertLightComponent>(true) || component.GetComponentInParent<InsertComponent>(true);
+
 			// Mark the insert bulbs a coil (flasher) mapping drives: one bulb of an insert mapped directly,
 			// every bulb of an insert under a mapped lamp or group.
 			private static void ResolveInsertBulbs(ILampDeviceComponent device, string deviceItem, Dictionary<InsertLightComponent, bool[]> result)
