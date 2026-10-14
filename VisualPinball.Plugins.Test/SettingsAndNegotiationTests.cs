@@ -78,6 +78,59 @@ namespace VisualPinball.Plugins.Test
 			Assert.That(requested[requested.Count - 1], Is.EqualTo(DisplayEncoding.Gray4));
 		}
 
+		[Test]
+		public void RefusedDisplayBindingRetriesWhenTheConflictingLeaseEnds()
+		{
+			var registry = new PluginResourceRegistry();
+			const string id = "pinmame/controller/0/display/dmd0";
+			using var negotiator = new DisplayFormatNegotiator(DisplayEncoding.Gray2 | DisplayEncoding.Gray4 | DisplayEncoding.Luminance8, DisplayEncoding.Luminance8,
+				_ => { }, () => registry.NotifyChanged(id));
+			using var source = new DisplayResourceSource(negotiator.Acquire);
+			using var publication = registry.Publish(new PluginResourceDescriptor(id, "pinmame", "pinmame/controller/0", "dmd0", "dmd", ResourceKind.Display, 1, 1, ResourceView.Original, DisplayEncoding.Gray2 | DisplayEncoding.Gray4 | DisplayEncoding.Luminance8), source);
+			var gray2 = registry.Bind<IPluginDisplaySource>(new PluginResourceSelection(ResourceKind.Display) { ResourceId = id, Session = 1, Intent = ResourceView.Identification, Accepts = DisplayEncoding.Gray2 });
+			using var gray4 = registry.Bind<IPluginDisplaySource>(new PluginResourceSelection(ResourceKind.Display) { ResourceId = id, Session = 1, Intent = ResourceView.Identification, Accepts = DisplayEncoding.Gray4 });
+			Assert.That(gray2.State, Is.EqualTo(ResourceBindingState.Bound));
+			Assert.That(gray4.State, Is.EqualTo(ResourceBindingState.Blocked));
+			// Stopping the first integration frees the encoding without restarting the game.
+			gray2.Dispose();
+			Assert.That(gray4.State, Is.EqualTo(ResourceBindingState.Bound));
+		}
+
+		[Test]
+		public void AFailingRetryStaysBlockedInsteadOfLooping()
+		{
+			var registry = new PluginResourceRegistry();
+			const string id = "pinmame/controller/0/display/dmd0";
+			using var negotiator = new DisplayFormatNegotiator(DisplayEncoding.Gray2 | DisplayEncoding.Gray4 | DisplayEncoding.Luminance8, DisplayEncoding.Luminance8,
+				_ => { }, () => registry.NotifyChanged(id));
+			using var source = new DisplayResourceSource(negotiator.Acquire);
+			using var publication = registry.Publish(new PluginResourceDescriptor(id, "pinmame", "pinmame/controller/0", "dmd0", "dmd", ResourceKind.Display, 1, 1, ResourceView.Original, DisplayEncoding.Gray2 | DisplayEncoding.Gray4 | DisplayEncoding.Luminance8), source);
+			var gray2 = registry.Bind<IPluginDisplaySource>(new PluginResourceSelection(ResourceKind.Display) { ResourceId = id, Session = 1, Intent = ResourceView.Identification, Accepts = DisplayEncoding.Gray2 });
+			using var gray4 = registry.Bind<IPluginDisplaySource>(new PluginResourceSelection(ResourceKind.Display) { ResourceId = id, Session = 1, Intent = ResourceView.Identification, Accepts = DisplayEncoding.Gray4 });
+			int attempts = 0;
+			using var connection = gray4.Connect(_ => { attempts++; throw new InvalidOperationException("receiver failed"); });
+			// The retry acquires the lease, the receiver throws, and the lease rollback must not trigger the same retry again.
+			Assert.DoesNotThrow(() => gray2.Dispose());
+			Assert.That(attempts, Is.LessThanOrEqualTo(2));
+			Assert.That(gray4.State, Is.EqualTo(ResourceBindingState.Blocked));
+		}
+
+		[Test]
+		public void DisposingABindingFromAChangeHandlerIsFinal()
+		{
+			var registry = new PluginResourceRegistry();
+			const string id = "pinmame/controller/0/display/dmd0";
+			using var negotiator = new DisplayFormatNegotiator(DisplayEncoding.Gray2 | DisplayEncoding.Gray4 | DisplayEncoding.Luminance8, DisplayEncoding.Luminance8,
+				_ => { }, () => registry.NotifyChanged(id));
+			using var source = new DisplayResourceSource(negotiator.Acquire);
+			using var publication = registry.Publish(new PluginResourceDescriptor(id, "pinmame", "pinmame/controller/0", "dmd0", "dmd", ResourceKind.Display, 1, 1, ResourceView.Original, DisplayEncoding.Gray2 | DisplayEncoding.Gray4 | DisplayEncoding.Luminance8), source);
+			var gray2 = registry.Bind<IPluginDisplaySource>(new PluginResourceSelection(ResourceKind.Display) { ResourceId = id, Session = 1, Intent = ResourceView.Identification, Accepts = DisplayEncoding.Gray2 });
+			var gray4 = registry.Bind<IPluginDisplaySource>(new PluginResourceSelection(ResourceKind.Display) { ResourceId = id, Session = 1, Intent = ResourceView.Identification, Accepts = DisplayEncoding.Gray4 });
+			gray4.Changed += () => gray4.Dispose();
+			gray2.Dispose();
+			Assert.That(gray4.State, Is.EqualTo(ResourceBindingState.Disposed));
+		}
+
 		private sealed class Factory : IPlayerPluginFactory
 		{
 			public PluginDescriptor Descriptor { get; }

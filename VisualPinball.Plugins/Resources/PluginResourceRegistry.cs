@@ -72,6 +72,16 @@ namespace VisualPinball.Plugins
 			}
 			return true;
 		}
+		/// <summary>
+		/// Tells observers and bindings that a published resource changed in a way that may let a refused consumer bind
+		/// now, for example when a display gave up the identification encoding another consumer could not accept.
+		/// Bindings that are blocked or waiting on the resource retry; bound bindings are unaffected.
+		/// </summary>
+		/// <param name="resourceId">The resource's <see cref="PluginResourceDescriptor.Id"/>; unknown IDs are ignored.</param>
+		public void NotifyChanged(string resourceId)
+		{
+			if (_entries.TryGetValue(resourceId, out var entry)) Notify(new PluginResourceChange(ResourceChangeKind.Changed, entry.Descriptor));
+		}
 		public IDisposable Observe(Action<PluginResourceChange> changed)
 		{
 			_observers.Add(changed);
@@ -121,12 +131,27 @@ namespace VisualPinball.Plugins
 			RefreshAttachments();
 			return new Subscription(() => { _receivers.Remove(subscribe); RefreshAttachments(); });
 		}
+		private bool _refreshing, _refreshAgain, _releasing;
 		private void Refresh()
+		{
+			// A notice caused by releasing this binding's own view says nothing new to it; retrying would repeat a failed
+			// attempt forever.
+			if (_releasing) return;
+			// Other notices during a pass (another binding released a view) are handled by one more pass afterwards.
+			if (_refreshing) { _refreshAgain = true; return; }
+			_refreshing = true;
+			try {
+				do { _refreshAgain = false; RefreshOnce(); } while (_refreshAgain && State != ResourceBindingState.Disposed);
+			} finally { _refreshing = false; }
+		}
+		private void RefreshOnce()
 		{
 			if (State == ResourceBindingState.Disposed) return;
 			var candidates = _registry.Candidates(_selection).Where(entry => entry.Source is T).ToArray();
 			if (candidates.Length == 1 && ReferenceEquals(Source, candidates[0].Source) && Descriptor?.Instance == candidates[0].Descriptor.Instance) return;
 			Detach();
+			// Releasing the old view runs observers, which may have disposed this binding.
+			if (State == ResourceBindingState.Disposed) return;
 			if (candidates.Length == 0) { State = ResourceBindingState.Waiting; Diagnostic = _selection.ResourceId.Length == 0 ? "Waiting for a compatible resource." : "Missing resource: " + _selection.ResourceId; }
 			else if (candidates.Length > 1) { State = ResourceBindingState.Blocked; Diagnostic = "Select a resource: " + string.Join(", ", candidates.Select(entry => entry.Descriptor.Id)); }
 			else {
@@ -135,7 +160,11 @@ namespace VisualPinball.Plugins
 				try {
 					_view = (Source as IPluginDisplaySource)?.AcquireView(_selection.Intent, _selection.Accepts);
 					State = ResourceBindingState.Bound; Diagnostic = ""; RefreshAttachments();
-				} catch (Exception error) { Detach(); State = ResourceBindingState.Blocked; Diagnostic = error.Message; }
+				} catch (Exception error) {
+					Detach();
+					if (State == ResourceBindingState.Disposed) return;
+					State = ResourceBindingState.Blocked; Diagnostic = error.Message;
+				}
 			}
 			try { Changed?.Invoke(); } catch (Exception error) { _registry.Report(error); }
 		}
@@ -148,7 +177,8 @@ namespace VisualPinball.Plugins
 		private void Detach()
 		{
 			ClearAttachments();
-			try { _view?.Dispose(); } catch (Exception error) { _registry.Report(error); }
+			_releasing = true;
+			try { _view?.Dispose(); } catch (Exception error) { _registry.Report(error); } finally { _releasing = false; }
 			_view = null; Source = null; Descriptor = null; ActualEncoding = DisplayEncoding.None;
 		}
 		private void ClearAttachments()
@@ -156,7 +186,13 @@ namespace VisualPinball.Plugins
 			foreach (var attached in _attached) try { attached.Dispose(); } catch (Exception error) { _registry.Report(error); }
 			_attached.Clear();
 		}
-		public void Dispose() { if (State == ResourceBindingState.Disposed) return; _watch.Dispose(); Detach(); _receivers.Clear(); State = ResourceBindingState.Disposed; Changed = null; }
+		public void Dispose()
+		{
+			if (State == ResourceBindingState.Disposed) return;
+			// Disposed first, so a refresh that is running further up the stack does not revive the binding.
+			State = ResourceBindingState.Disposed;
+			_watch.Dispose(); Detach(); _receivers.Clear(); Changed = null;
+		}
 	}
 
 	public static class DisplayBindingExtensions
