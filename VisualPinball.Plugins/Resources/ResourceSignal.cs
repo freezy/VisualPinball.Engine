@@ -47,7 +47,14 @@ namespace VisualPinball.Plugins
 	{
 		private readonly ResourceSignal<PluginSegmentFrame> _signal;
 		public ResourceKind Kind => ResourceKind.Segments;
-		public SegmentResourceSource(Action<Exception>? fault = null) { _signal = new ResourceSignal<PluginSegmentFrame>(fault); }
+		public int Order { get; }
+		public int Elements { get; }
+		public SegmentResourceSource(Action<Exception>? fault = null) : this(0, 0, fault) { }
+		public SegmentResourceSource(int order, int elements, Action<Exception>? fault = null)
+		{
+			Order = order; Elements = elements;
+			_signal = new ResourceSignal<PluginSegmentFrame>(fault);
+		}
 		public IDisposable Subscribe(Action<PluginSegmentFrame> receive) => _signal.Subscribe(receive);
 		public void Publish(in PluginSegmentFrame frame) => _signal.Publish(frame);
 		public void Dispose() => _signal.Dispose();

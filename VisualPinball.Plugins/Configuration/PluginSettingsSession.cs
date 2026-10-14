@@ -27,6 +27,8 @@ namespace VisualPinball.Plugins
 		public bool HasEdits(string field) => _resetFields.Contains(field) || !JToken.DeepEquals(_baseline.Value(field), Draft.Value(field));
 		private string[] ChangedFields() => _factory.Schema.Fields.Where(field => HasEdits(field.Id)).Select(field => field.Id).ToArray();
 		public GameIdentity? Game { get; }
+		/// <summary>The table package being configured, passed to catalogs, actions and validation.</summary>
+		public PluginPackageReference? Package { get; set; }
 		public PluginSettingsSnapshot Draft { get; private set; }
 		public PluginSettingsSnapshot Effective => Game.HasValue
 			? PluginConfigurationStore.Resolve(_factory.Schema, _store.Read(_factory.Descriptor, _factory.Schema), Draft)
@@ -58,14 +60,16 @@ namespace VisualPinball.Plugins
 		public IReadOnlyList<PluginValidationIssue> Validate()
 		{
 			var effective = Effective;
-			return _factory.Schema.Validate(effective).Concat(_factory.SettingsProvider?.Validate(new PluginChoiceRequest(Game, effective, _platform)) ?? Array.Empty<PluginValidationIssue>()).ToArray();
+			return _factory.Schema.Validate(effective).Concat(_factory.SettingsProvider?.Validate(Request(effective)) ?? Array.Empty<PluginValidationIssue>()).ToArray();
 		}
+		private PluginChoiceRequest Request(PluginSettingsSnapshot settings, IReadOnlyList<PluginResourceDescriptor>? resources = null)
+			=> new PluginChoiceRequest(Game, settings, _platform, resources) { Package = Package };
 		public Task<PluginChoiceCatalog> DiscoverAsync(string provider, CancellationToken cancellation)
-			=> _factory.SettingsProvider?.DiscoverAsync(provider, new PluginChoiceRequest(Game, Effective, _platform, _resources()), cancellation) ?? Task.FromResult(new PluginChoiceCatalog("empty", Array.Empty<PluginChoice>()));
+			=> _factory.SettingsProvider?.DiscoverAsync(provider, Request(Effective, _resources()), cancellation) ?? Task.FromResult(new PluginChoiceCatalog("empty", Array.Empty<PluginChoice>()));
 		public async Task<PluginActionResult> RunActionAsync(string action, CancellationToken cancellation)
 		{
 			if (_factory.SettingsProvider == null) return new PluginActionResult(false, "This action is unavailable.");
-			var result = await _factory.SettingsProvider.RunActionAsync(action, new PluginChoiceRequest(Game, Effective, _platform), cancellation);
+			var result = await _factory.SettingsProvider.RunActionAsync(action, Request(Effective), cancellation);
 			cancellation.ThrowIfCancellationRequested();
 			if (result.Success && result.Changes != null) foreach (var field in _factory.Schema.Fields) {
 				if (Game.HasValue ? field.Scope == ConfigurationScope.GlobalOnly : field.Scope == ConfigurationScope.GameOnly) continue;
@@ -87,7 +91,7 @@ namespace VisualPinball.Plugins
 					return Game.HasValue ? PluginConfigurationStore.Resolve(_factory.Schema, _store.Read(_factory.Descriptor, _factory.Schema), latest) : PluginConfigurationStore.Resolve(_factory.Schema, latest);
 				}, linked.Token).ConfigureAwait(false);
 				if (host != null) await host.Scheduler.Switch();
-				var request = new PluginChoiceRequest(Game, effective, _platform, resources);
+				var request = Request(effective, resources);
 				var issues = _factory.Schema.Validate(effective).Concat(_factory.SettingsProvider?.Validate(request) ?? Array.Empty<PluginValidationIssue>()).ToList();
 				var catalogs = new Dictionary<string, PluginChoiceCatalog>(StringComparer.Ordinal);
 				foreach (var binding in ChoiceBindings(_factory.Schema.Fields, effective)) {

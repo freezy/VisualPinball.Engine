@@ -94,7 +94,7 @@ namespace VisualPinball.Plugins
 					var application = new ResourceScope();
 					try {
 						var settings = Configuration.Effective(descriptor, factory.Schema, identity);
-						var issues = factory.Schema.Validate(settings).Concat(factory.SettingsProvider?.Validate(new PluginChoiceRequest(identity, settings, Platform)) ?? Array.Empty<PluginValidationIssue>()).ToArray();
+						var issues = factory.Schema.Validate(settings).Concat(factory.SettingsProvider?.Validate(new PluginChoiceRequest(identity, settings, Platform) { Package = new PluginPackageReference(packagePath, title) }) ?? Array.Empty<PluginValidationIssue>()).ToArray();
 						if (issues.Length > 0) throw new InvalidOperationException(string.Join("; ", issues.Select(issue => issue.Field + ": " + issue.Message)));
 						if (Configuration.Read(descriptor, factory.Schema).SchemaVersion > factory.Schema.Version || Configuration.Read(descriptor, factory.Schema, identity).SchemaVersion > factory.Schema.Version) throw new InvalidOperationException("Configuration requires a newer plugin version.");
 						var plugin = factory.Create(new PluginApplicationContext(descriptor, Configuration, Scheduler, Capabilities, Resources, application, message => _log(descriptor.Id + ": " + message)));

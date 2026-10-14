@@ -37,7 +37,7 @@ namespace VisualPinball.Plugins
 		{
 			if (descriptor.Kind != source.Kind) throw new ArgumentException("Resource kind and VPE source interface disagree.");
 			if (descriptor.Kind == ResourceKind.Display && !(source is IPluginDisplaySource)
-				|| descriptor.Kind == ResourceKind.Controller && !(source is IPluginControllerSource)
+				|| (descriptor.Kind == ResourceKind.Controller || descriptor.Kind == ResourceKind.Outputs) && !(source is IPluginControllerSource)
 				|| descriptor.Kind == ResourceKind.Audio && !(source is IPluginAudioSource)
 				|| descriptor.Kind == ResourceKind.Segments && !(source is IPluginSegmentSource)
 				|| descriptor.Kind == ResourceKind.Input && !(source is IPluginInputSource)

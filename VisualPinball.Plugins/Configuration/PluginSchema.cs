@@ -193,9 +193,20 @@ namespace VisualPinball.Plugins
 		{ Id = id; Label = label; Description = description; Available = available; UnavailableReason = unavailableReason; }
 	}
 
+	/// <summary>The table package a game-scoped request is about, for catalogs that look next to it.</summary>
+	public sealed class PluginPackageReference
+	{
+		/// <summary>Full path of the table package.</summary>
+		public string Path { get; }
+		public string Title { get; }
+		public PluginPackageReference(string path, string title) { Path = path ?? ""; Title = title ?? ""; }
+	}
+
 	public sealed class PluginChoiceRequest
 	{
 		public GameIdentity? Game { get; }
+		/// <summary>The selected table package, when the request concerns one; null for global settings.</summary>
+		public PluginPackageReference? Package { get; set; }
 		public PluginSettingsSnapshot Settings { get; }
 		public string Platform { get; }
 		public IReadOnlyList<PluginResourceDescriptor> Resources { get; }
