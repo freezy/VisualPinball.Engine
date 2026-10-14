@@ -116,6 +116,27 @@ namespace VisualPinball.Plugins.Test
 		}
 
 		[Test]
+		public void AFailingRetryOnASharedLeaseStaysBlockedInsteadOfLooping()
+		{
+			var registry = new PluginResourceRegistry();
+			const string first = "pinmame/controller/0/display/dmd0", second = "pinmame/controller/0/display/dmd1";
+			const DisplayEncoding formats = DisplayEncoding.Gray2 | DisplayEncoding.Gray4 | DisplayEncoding.Luminance8;
+			// One negotiator for the whole engine notifies every display when its lease ends, as GamelogicPluginResources does.
+			using var negotiator = new DisplayFormatNegotiator(formats, DisplayEncoding.Luminance8, _ => { }, () => { registry.NotifyChanged(first); registry.NotifyChanged(second); });
+			using var firstSource = new DisplayResourceSource(negotiator.Acquire);
+			using var secondSource = new DisplayResourceSource(negotiator.Acquire);
+			using var firstPublication = registry.Publish(new PluginResourceDescriptor(first, "pinmame", "pinmame/controller/0", "dmd0", "dmd", ResourceKind.Display, 1, 1, ResourceView.Original, formats), firstSource);
+			using var secondPublication = registry.Publish(new PluginResourceDescriptor(second, "pinmame", "pinmame/controller/0", "dmd1", "dmd", ResourceKind.Display, 1, 2, ResourceView.Original, formats), secondSource);
+			var gray2 = registry.Bind<IPluginDisplaySource>(new PluginResourceSelection(ResourceKind.Display) { ResourceId = first, Session = 1, Intent = ResourceView.Identification, Accepts = DisplayEncoding.Gray2 });
+			using var gray4 = registry.Bind<IPluginDisplaySource>(new PluginResourceSelection(ResourceKind.Display) { ResourceId = first, Session = 1, Intent = ResourceView.Identification, Accepts = DisplayEncoding.Gray4 });
+			int attempts = 0;
+			using var connection = gray4.Connect(_ => { attempts++; throw new InvalidOperationException("receiver failed"); });
+			Assert.DoesNotThrow(() => gray2.Dispose());
+			Assert.That(attempts, Is.LessThanOrEqualTo(2));
+			Assert.That(gray4.State, Is.EqualTo(ResourceBindingState.Blocked));
+		}
+
+		[Test]
 		public void DisposingABindingFromAChangeHandlerIsFinal()
 		{
 			var registry = new PluginResourceRegistry();
@@ -129,6 +150,37 @@ namespace VisualPinball.Plugins.Test
 			gray4.Changed += () => gray4.Dispose();
 			gray2.Dispose();
 			Assert.That(gray4.State, Is.EqualTo(ResourceBindingState.Disposed));
+		}
+
+		[Test]
+		public void ChangesDuringAReleaseAreNotLost()
+		{
+			var registry = new PluginResourceRegistry();
+			const string first = "pinmame/controller/0/display/dmd0", second = "pinmame/controller/0/display/dmd1", third = "pinmame/controller/0/display/dmd2";
+			const DisplayEncoding formats = DisplayEncoding.Gray2 | DisplayEncoding.Gray4 | DisplayEncoding.Luminance8;
+			using var negotiator = new DisplayFormatNegotiator(formats, DisplayEncoding.Luminance8, _ => { }, () => registry.NotifyChanged(first));
+			using var source = new DisplayResourceSource(negotiator.Acquire);
+			using var publication = registry.Publish(new PluginResourceDescriptor(first, "pinmame", "pinmame/controller/0", "dmd0", "dmd", ResourceKind.Display, 1, 1, ResourceView.Original, formats), source);
+			// Bound to the only display, holding Gray2.
+			using var any = registry.Bind<IPluginDisplaySource>(new PluginResourceSelection(ResourceKind.Display) { Session = 1, Intent = ResourceView.Identification, Accepts = DisplayEncoding.Gray2 });
+			// Refused on the same display until Gray2 is released; once it gets in, it publishes a third display.
+			using var thirdSource = new DisplayResourceSource();
+			IDisposable? thirdPublication = null;
+			using var gray4 = registry.Bind<IPluginDisplaySource>(new PluginResourceSelection(ResourceKind.Display) { ResourceId = first, Session = 1, Intent = ResourceView.Identification, Accepts = DisplayEncoding.Gray4 });
+			gray4.Changed += () => {
+				if (gray4.State == ResourceBindingState.Bound && thirdPublication == null)
+					thirdPublication = registry.Publish(new PluginResourceDescriptor(third, "pinmame", "pinmame/controller/0", "dmd2", "dmd", ResourceKind.Display, 1, 3, ResourceView.Original, formats), thirdSource);
+			};
+			Assert.That(any.State, Is.EqualTo(ResourceBindingState.Bound));
+			Assert.That(gray4.State, Is.EqualTo(ResourceBindingState.Blocked));
+			// A second display makes the first binding ambiguous. Releasing its view lets the Gray4 binding in, which publishes a
+			// third display while the first binding is still releasing; that publication must not be lost.
+			using var secondSource = new DisplayResourceSource();
+			using var secondPublication = registry.Publish(new PluginResourceDescriptor(second, "pinmame", "pinmame/controller/0", "dmd1", "dmd", ResourceKind.Display, 1, 2, ResourceView.Original, formats), secondSource);
+			Assert.That(gray4.State, Is.EqualTo(ResourceBindingState.Bound));
+			Assert.That(thirdPublication, Is.Not.Null);
+			Assert.That(any.Diagnostic, Does.Contain(third));
+			thirdPublication!.Dispose();
 		}
 
 		private sealed class Factory : IPlayerPluginFactory

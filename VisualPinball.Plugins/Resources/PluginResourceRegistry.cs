@@ -265,7 +265,7 @@ namespace VisualPinball.Plugins
 		internal PluginResourceBinding(PluginResourceRegistry registry, PluginResourceSelection selection)
 		{
 			_registry = registry; _selection = selection.Copy();
-			_watch = registry.Observe(_ => Refresh());
+			_watch = registry.Observe(Refresh);
 			Refresh();
 		}
 		internal bool AcceptFrame(in PluginDisplayFrame frame)
@@ -297,13 +297,20 @@ namespace VisualPinball.Plugins
 			RefreshAttachments();
 			return new Subscription(() => { _receivers.Remove(subscribe); RefreshAttachments(); });
 		}
-		private bool _refreshing, _refreshAgain, _releasing;
+		private bool _refreshing, _refreshAgain;
+		// ID of the resource whose view this binding is releasing, while it does.
+		private string? _releasingId;
+		private void Refresh(PluginResourceChange change)
+		{
+			// A change notice for a resource this binding does not select cannot affect it, and the one caused by releasing its
+			// own view says nothing new to it. Retrying on either would repeat a failed attempt forever, for example when an
+			// engine-wide format lease notifies every display of the engine. Publications and withdrawals always count.
+			if (change.Kind == ResourceChangeKind.Changed && (change.Descriptor.Id == _releasingId || !_selection.Matches(change.Descriptor))) return;
+			Refresh();
+		}
 		private void Refresh()
 		{
-			// A notice caused by releasing this binding's own view says nothing new to it; retrying would repeat a failed
-			// attempt forever.
-			if (_releasing) return;
-			// Other notices during a pass (another binding released a view) are handled by one more pass afterwards.
+			// Notices during a pass are handled by one more pass afterwards, which reads the candidates again.
 			if (_refreshing) { _refreshAgain = true; return; }
 			_refreshing = true;
 			try {
@@ -343,8 +350,8 @@ namespace VisualPinball.Plugins
 		private void Detach()
 		{
 			ClearAttachments();
-			_releasing = true;
-			try { _view?.Dispose(); } catch (Exception error) { _registry.Report(error); } finally { _releasing = false; }
+			_releasingId = Descriptor?.Id;
+			try { _view?.Dispose(); } catch (Exception error) { _registry.Report(error); } finally { _releasingId = null; }
 			_view = null; Source = null; Descriptor = null; ActualEncoding = DisplayEncoding.None;
 		}
 		private void ClearAttachments()
