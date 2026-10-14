@@ -388,10 +388,13 @@ namespace VisualPinball.Unity.Editor
 				public readonly InsertLightComponent Insert;
 				public readonly float Intensity;
 				public readonly float[] ExtraIntensities;
+				// Per bulb (0 is the main one): driven by a flasher, so it stays off in every shot.
+				public readonly bool[] Flasher;
 
-				public InsertEntry(InsertLightComponent insert)
+				public InsertEntry(InsertLightComponent insert, bool[] flasher)
 				{
 					Insert = insert;
+					Flasher = flasher;
 					Intensity = insert.Intensity;
 					ExtraIntensities = new float[insert.ExtraBulbs?.Length ?? 0];
 					for (var i = 0; i < ExtraIntensities.Length; i++) {
@@ -413,6 +416,7 @@ namespace VisualPinball.Unity.Editor
 				// non-deterministic since the uncovered set shifts with table state).
 				var flashers = new HashSet<LightComponent>();
 				var flasherDevices = new HashSet<Component>();
+				var flasherBulbs = new Dictionary<InsertLightComponent, bool[]>();
 				var lamps = tableComponent.MappingConfig?.Lamps;
 				if (lamps != null) {
 					var resolved = new List<LightComponent>();
@@ -423,6 +427,7 @@ namespace VisualPinball.Unity.Editor
 						if (lampMapping.Device is Component devComp && devComp) {
 							flasherDevices.Add(devComp);
 						}
+						ResolveInsertBulbs(lampMapping.Device, lampMapping.DeviceItem, flasherBulbs);
 						resolved.Clear();
 						ResolveLightComponents(lampMapping.Device, resolved);
 						foreach (var lc in resolved) {
@@ -444,9 +449,20 @@ namespace VisualPinball.Unity.Editor
 				}
 
 				foreach (var insert in tableComponent.GetComponentsInChildren<InsertLightComponent>(true)) {
-					if (insert) {
-						_inserts.Add(new InsertEntry(insert));
+					if (!insert) {
+						continue;
 					}
+					if (!flasherBulbs.TryGetValue(insert, out var flasher)) {
+						flasher = new bool[InsertLightComponent.MaxBulbs];
+					}
+					// An insert under a flasher lamp, or named like one (the VPX "F_" fallback), is a flasher as a whole.
+					var parentLamp = insert.GetComponentInParent<LightComponent>(true);
+					if (parentLamp && (flashers.Contains(parentLamp) || parentLamp.name.StartsWith("F_", StringComparison.Ordinal)) || insert.name.StartsWith("F_", StringComparison.Ordinal)) {
+						for (var i = 0; i < flasher.Length; i++) {
+							flasher[i] = true;
+						}
+					}
+					_inserts.Add(new InsertEntry(insert, flasher));
 				}
 
 				// Group lamps (LightGroupComponent) can drive raw Lights + faux-bulb meshes
@@ -536,6 +552,40 @@ namespace VisualPinball.Unity.Editor
 
 			// Resolve a mapped lamp device to the concrete LightComponents it drives,
 			// expanding LightGroupComponent references recursively.
+			// Mark the insert bulbs a coil (flasher) mapping drives: one bulb of an insert mapped directly,
+			// every bulb of an insert under a mapped lamp or group.
+			private static void ResolveInsertBulbs(ILampDeviceComponent device, string deviceItem, Dictionary<InsertLightComponent, bool[]> result)
+			{
+				bool[] Bulbs(InsertLightComponent insert)
+				{
+					if (!result.TryGetValue(insert, out var bulbs)) {
+						result[insert] = bulbs = new bool[InsertLightComponent.MaxBulbs];
+					}
+					return bulbs;
+				}
+				switch (device) {
+					case InsertLightComponent insert when insert:
+						Bulbs(insert)[InsertLightComponent.BulbIndex(deviceItem)] = true;
+						break;
+					case LightComponent lamp when lamp:
+						foreach (var insert in lamp.GetComponentsInChildren<InsertLightComponent>(true)) {
+							var bulbs = Bulbs(insert);
+							for (var i = 0; i < bulbs.Length; i++) {
+								bulbs[i] = true;
+							}
+						}
+						break;
+					case LightGroupComponent group when group:
+						// Each member takes part with one of its lamps, such as a single bulb of an insert.
+						for (var index = 0; index < group._lights.Length; index++) {
+							if (group._lights[index] && group._lights[index] is ILampDeviceComponent child) {
+								ResolveInsertBulbs(child, group.LampId(index), result);
+							}
+						}
+						break;
+				}
+			}
+
 			private static void ResolveLightComponents(ILampDeviceComponent device, List<LightComponent> result)
 			{
 				switch (device) {
@@ -601,11 +651,12 @@ namespace VisualPinball.Unity.Editor
 					if (!entry.Insert) {
 						continue;
 					}
-					entry.Insert.Intensity = level;
+					entry.Insert.Intensity = entry.Flasher[0] ? 0f : level;
 					if (entry.Insert.ExtraBulbs != null) {
-						foreach (var bulb in entry.Insert.ExtraBulbs) {
-							if (bulb != null) {
-								bulb.Intensity = level;
+						for (var i = 0; i < entry.Insert.ExtraBulbs.Length; i++) {
+							if (entry.Insert.ExtraBulbs[i] != null) {
+								var flasher = i + 1 < entry.Flasher.Length && entry.Flasher[i + 1];
+								entry.Insert.ExtraBulbs[i].Intensity = flasher ? 0f : level;
 							}
 						}
 					}
