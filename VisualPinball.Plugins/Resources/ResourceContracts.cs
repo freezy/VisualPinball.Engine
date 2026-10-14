@@ -363,6 +363,8 @@ namespace VisualPinball.Plugins
 		/// <summary>
 		/// The exact <see cref="PluginResourceDescriptor.Id"/> wanted, or empty (the default) for any. Use it to pick one of
 		/// several matching resources, for example from a saved choice through <see cref="PluginResourceChoices.Resolve"/>.
+		/// With <see cref="Intent"/> <see cref="ResourceView.Presentation"/>, it names the original display and also matches
+		/// the presentation views derived from it, which are then preferred, so a chosen display still shows colorized frames.
 		/// </summary>
 		public string ResourceId { get; set; } = "";
 		/// <summary>The controller ID wanted, normally <see cref="PluginGameContext.ControllerId"/>, or empty for any.</summary>
@@ -404,9 +406,16 @@ namespace VisualPinball.Plugins
 			ResourceId = ResourceId, Controller = Controller, Role = Role, Session = Session,
 			Intent = Intent, Accepts = Accepts, AllowOriginalFallback = AllowOriginalFallback
 		};
+		/// <summary>A presentation view derived from the chosen resource, wanted when the intent is presentation.</summary>
+		private bool PresentsChosen(PluginResourceDescriptor descriptor)
+		{
+			if (Intent != ResourceView.Presentation || descriptor.View != ResourceView.Presentation) return false;
+			foreach (string parent in descriptor.Parents) if (parent == ResourceId) return true;
+			return false;
+		}
 		internal bool Matches(PluginResourceDescriptor descriptor)
 		{
-			if (descriptor.Kind != Kind || ResourceId.Length > 0 && descriptor.Id != ResourceId || Controller.Length > 0 && descriptor.Controller != Controller
+			if (descriptor.Kind != Kind || ResourceId.Length > 0 && descriptor.Id != ResourceId && !PresentsChosen(descriptor) || Controller.Length > 0 && descriptor.Controller != Controller
 				|| Role.Length > 0 && descriptor.Role != Role || Session != 0 && descriptor.Session != Session) return false;
 			if (Kind == ResourceKind.Display && (descriptor.Formats & Accepts) == 0) return false;
 			if (Intent == ResourceView.Identification) return descriptor.View != ResourceView.Presentation && descriptor.Parents.Count == 0;
