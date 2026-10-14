@@ -101,6 +101,23 @@ namespace VisualPinball.Plugins.Test
 			Assert.That(schema.Validate(new PluginSettingsSnapshot(1, valid)), Has.Count.EqualTo(1));
 		}
 		[Test]
+		public void MultipleChoicesAreListsOfIds()
+		{
+			var schema = new PluginSettingsSchema(1, new PluginSettingsGroup("Test", "",
+				new PluginField("output", "Output", SettingKind.Choice) { Provider = "outputs", Multiple = true, Default = new JArray("native") },
+				new PluginField("single", "Single", SettingKind.Choice) { Provider = "outputs", Default = "native" }));
+			Assert.That(schema.Validate(new PluginSettingsSnapshot(1, JObject.Parse("{'output':['native','scene'],'single':'scene'}"))), Is.Empty);
+			Assert.That(schema.Validate(new PluginSettingsSnapshot(1, JObject.Parse("{'output':[]}"))), Is.Empty, "picking none is valid");
+			Assert.That(schema.Validate(new PluginSettingsSnapshot(1, JObject.Parse("{'output':'native'}"))), Has.Count.EqualTo(1));
+			Assert.That(schema.Validate(new PluginSettingsSnapshot(1, JObject.Parse("{'output':['native',3]}"))), Has.Count.EqualTo(1));
+			Assert.That(schema.Validate(new PluginSettingsSnapshot(1, JObject.Parse("{'single':['native']}"))), Has.Count.EqualTo(1));
+			var values = new PluginSettingsSnapshot(1, JObject.Parse("{'output':['native',1,'scene'],'single':'scene'}"));
+			Assert.That(values.Strings("output"), Is.EqualTo(new[] { "native", "scene" }));
+			Assert.That(values.Strings("single"), Is.Empty);
+			Assert.That(values.Strings("missing"), Is.Empty);
+			Assert.That(schema.Defaults().Strings("output"), Is.EqualTo(new[] { "native" }));
+		}
+		[Test]
 		public void NestedRecordValidationChecksDeclaredTypesAndRanges()
 		{
 			var item = new PluginField("devices", "Devices", SettingKind.Collection) { Children = new[] { new PluginField("gain", "Gain", SettingKind.Number) { Minimum = 0, Maximum = 1 } } };

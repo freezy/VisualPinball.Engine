@@ -186,6 +186,19 @@ namespace VisualPinball.Plugins
 		/// </summary>
 		public string Provider { get; set; } = "";
 		/// <summary>
+		/// For <see cref="SettingKind.Choice"/> fields, lets the user pick any number of the catalog's items instead of exactly one. The
+		/// Player shows every item as a button that toggles on and off, and the value is a JSON array of <see cref="PluginChoice.Id"/>s,
+		/// empty when none is picked. Read it with <see cref="PluginSettingsSnapshot.Strings"/>. Not supported inside composite or
+		/// collection records. False by default.
+		/// </summary>
+		/// <remarks>
+		/// The B2S plugin lets the user show the backglass in a window, on the table's backglass, or both:
+		/// <code>
+		/// new PluginField("Output", "Output", SettingKind.Choice) { Provider = "outputs", Multiple = true, Default = new JArray("native") }
+		/// </code>
+		/// </remarks>
+		public bool Multiple { get; set; }
+		/// <summary>
 		/// The <see cref="Id"/> of another field that controls whether this one is shown and validated; empty (the default) always shows
 		/// it. Inside a composite or collection record it names a sibling in the same record. A hidden field keeps its saved value.
 		/// See <see cref="Visible"/>.
@@ -429,7 +442,8 @@ namespace VisualPinball.Plugins
 							}
 						}
 					if (field.Kind == SettingKind.ScreenLayout) error = ScreenLayoutError(value);
-					if ((field.Kind == SettingKind.Text || field.Kind == SettingKind.File || field.Kind == SettingKind.Folder || field.Kind == SettingKind.Choice || field.Kind == SettingKind.Color) && value.Type != JTokenType.String) error = "Expected text.";
+					if ((field.Kind == SettingKind.Text || field.Kind == SettingKind.File || field.Kind == SettingKind.Folder || field.Kind == SettingKind.Choice && !field.Multiple || field.Kind == SettingKind.Color) && value.Type != JTokenType.String) error = "Expected text.";
+					if (field.Kind == SettingKind.Choice && field.Multiple && (!(value is JArray picked) || picked.Any(item => item.Type != JTokenType.String))) error = "Expected a list of choices.";
 					if (field.Kind == SettingKind.Rectangle) {
 						if (!(value is JObject rectangle)) error = "Expected a rectangle.";
 						else foreach (string dimension in new[] { "x", "y", "width", "height" }) {
@@ -509,6 +523,14 @@ namespace VisualPinball.Plugins
 		/// <param name="id">The field ID.</param>
 		/// <param name="fallback">The value to return when the field is absent or not a boolean.</param>
 		public bool Boolean(string id, bool fallback = false) => Value(id)?.Type == JTokenType.Boolean ? Value(id)!.Value<bool>() : fallback;
+		/// <summary>
+		/// Returns the strings of a field whose value is a JSON array, such as the choice IDs of a <see cref="PluginField.Multiple"/>
+		/// choice; other items are skipped. Empty when the field is absent or not an array.
+		/// </summary>
+		/// <param name="id">The field ID.</param>
+		public IReadOnlyList<string> Strings(string id) => Value(id) is JArray items
+			? items.Where(item => item.Type == JTokenType.String).Select(item => item.Value<string>() ?? "").ToArray()
+			: Array.Empty<string>();
 		/// <summary>
 		/// Returns a field's value if it is a JSON integer that fits in an <see cref="int"/>, otherwise <paramref name="fallback"/>.
 		/// Floating-point values are not converted.
