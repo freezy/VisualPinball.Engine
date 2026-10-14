@@ -30,8 +30,31 @@ namespace VisualPinball.Unity
 			{ Source = source; Publication = publication; Width = width; Height = height; Instance = instance; _format = format; }
 			public void Dispose() { Publication.Dispose(); Source.Dispose(); _format?.Dispose(); }
 		}
+		/// <summary>A segment display published as <see cref="ResourceKind.Segments"/>.</summary>
+		private sealed class Segments : IDisposable
+		{
+			internal readonly SegmentResourceSource Source;
+			internal readonly IDisposable Publication;
+			internal readonly string Layout;
+			internal readonly string Hardware;
+			internal float[] Brightness = Array.Empty<float>();
+			internal Segments(SegmentResourceSource source, IDisposable publication, string layout, string hardware)
+			{ Source = source; Publication = publication; Layout = layout; Hardware = hardware; }
+			public void Dispose() { Publication.Dispose(); Source.Dispose(); }
+		}
+		/// <summary>Forwards native outputs without exposing the listener on the public type.</summary>
+		private sealed class NativeOutputs : INativeOutputListener
+		{
+			private readonly GamelogicPluginResources _owner;
+			internal NativeOutputs(GamelogicPluginResources owner) { _owner = owner; }
+			public void NativeOutputChanged(ControllerEventKind kind, int number, double value, ControllerValueSemantics semantics, double maximum) => _owner.EmitNative(kind, number, value, semantics, maximum);
+			public void NativeOutputPollEnd() => _owner.EmitNative(ControllerEventKind.PollEnd, -1, 0, ControllerValueSemantics.Binary, 1);
+		}
 		private static long _instance;
 		private readonly IGamelogicEngine _engine;
+		private readonly Dictionary<string, Segments> _segments = new Dictionary<string, Segments>(StringComparer.Ordinal);
+		private readonly ControllerResourceSource _native;
+		private readonly string[] _numberNames = new string[1024];
 		private readonly OwnerScheduler _scheduler;
 		private readonly PluginResourceRegistry _registry;
 		private readonly Dictionary<string, Display> _displays = new Dictionary<string, Display>(StringComparer.Ordinal);
@@ -60,6 +83,13 @@ namespace VisualPinball.Unity
 				format => (engine as IDisplayFrameFormatPreference)?.RequestDisplayFrameFormat("", ToLegacy(format))));
 			_scope.Own(_controller);
 			_scope.Own(registry.Publish(new PluginResourceDescriptor(_controllerId, _provider, _controllerId, engine.Name, "controller", ResourceKind.Controller, session, Interlocked.Increment(ref _instance)), _controller));
+			if (engine is IGamelogicNativeOutputs native) {
+				// Every output by native number, for consumers such as backglasses that address ROM lamps directly.
+				_native = _scope.Own(new ControllerResourceSource(ResourceKind.Outputs, fault));
+				_scope.Own(registry.Publish(new PluginResourceDescriptor(_controllerId + "/outputs", _provider, _controllerId, engine.Name + " outputs", "outputs", ResourceKind.Outputs, session, Interlocked.Increment(ref _instance)), _native));
+				native.SetNativeOutputListener(new NativeOutputs(this));
+				_scope.Own(new Subscription(() => native.SetNativeOutputListener(null)));
+			}
 			if (engine is IGamelogicAudioResourceProvider audio) _scope.Own(registry.Publish(new PluginResourceDescriptor(_controllerId + "/audio/rom", _provider, _controllerId, engine.Name + " audio", "rom-mix", ResourceKind.Audio, session, Interlocked.Increment(ref _instance)), audio.AudioSource));
 			engine.OnDisplaysRequested += DisplaysRequested;
 			engine.OnDisplayUpdateFrame += DisplayFrame;
@@ -73,7 +103,33 @@ namespace VisualPinball.Unity
 		private void DisplaysRequested(object sender, RequestedDisplays args)
 		{
 			_scheduler.VerifyOwner();
-			foreach (var display in args.Displays) if (display.Height > 1) AddDisplay(display.Id, display.Width, display.Height);
+			foreach (var display in args.Displays) {
+				if (display.Height > 1) AddDisplay(display.Id, display.Width, display.Height);
+				else if (display.Width > 0) AddSegments(display.Id, display.Width);
+			}
+		}
+		private void AddSegments(string id, int elements)
+		{
+			if (_disposed || _segments.ContainsKey(id)) return;
+			string layout = "seg16", hardware = "";
+			if (_engine is ISegmentDisplayMetadata metadata && metadata.TryGetSegmentLayout(id, out var declared, out var declaredHardware)) { layout = declared; hardware = declaredHardware; }
+			// Displays are numbered in announcement order, so consumers can lay out digits before any frame arrives.
+			var source = new SegmentResourceSource(_segments.Count, elements, _fault);
+			var descriptor = new PluginResourceDescriptor(_controllerId + "/segments/" + id, _provider, _controllerId, id, "segments", ResourceKind.Segments, _session, Interlocked.Increment(ref _instance));
+			_segments.Add(id, new Segments(source, _registry.Publish(descriptor, source), layout, hardware));
+		}
+		private void SegmentFrame(Segments display, DisplayFrameData args)
+		{
+			// One 16-bit segment mask per element, as PinMAME reports it.
+			if (args.Data == null || args.Data.Length < 2) return;
+			int elements = args.Data.Length / 2;
+			if (display.Brightness.Length != elements * 16) display.Brightness = new float[elements * 16];
+			var brightness = display.Brightness;
+			for (int element = 0; element < elements; element++) {
+				int mask = args.Data[element * 2] | args.Data[element * 2 + 1] << 8;
+				for (int bit = 0; bit < 16; bit++) brightness[element * 16 + bit] = (mask >> bit & 1) != 0 ? 1f : 0f;
+			}
+			display.Source.Publish(new PluginSegmentFrame(display.Layout, elements, 16, brightness, display.Hardware));
 		}
 		private void AddDisplay(string id, int width, int height)
 		{
@@ -92,7 +148,9 @@ namespace VisualPinball.Unity
 		private void DisplayFrame(object sender, DisplayFrameData args)
 		{
 			_scheduler.VerifyOwner();
-			if (_disposed || !_displays.TryGetValue(args.Id, out var display)) return;
+			if (_disposed) return;
+			if (args.Format == DisplayFrameFormat.Segment && _segments.TryGetValue(args.Id, out var segments)) { SegmentFrame(segments, args); return; }
+			if (!_displays.TryGetValue(args.Id, out var display)) return;
 			var format = FromLegacy(args.Format);
 			if (format == DisplayEncoding.None) return;
 			int stride = display.Width * (format == DisplayEncoding.Rgb24 ? 3 : 1);
@@ -104,6 +162,18 @@ namespace VisualPinball.Unity
 			if (_disposed) return;
 			if (!_scheduler.IsOwner) { _scheduler.Post(() => Emit(kind, id, value)); return; }
 			_controller.Publish(new PluginControllerEvent(kind, id, value, ++_sequence, Timestamp()));
+		}
+		private void EmitNative(ControllerEventKind kind, int number, double value, ControllerValueSemantics semantics, double maximum)
+		{
+			if (_disposed || _native == null) return;
+			if (!_scheduler.IsOwner) { _scheduler.Post(() => EmitNative(kind, number, value, semantics, maximum)); return; }
+			_native.Publish(new PluginControllerEvent(kind, NumberName(number), value, ++_sequence, Timestamp(), number, semantics, maximum));
+		}
+		private string NumberName(int number)
+		{
+			if (number < 0) return "";
+			if (number >= _numberNames.Length) return number.ToString(System.Globalization.CultureInfo.InvariantCulture);
+			return _numberNames[number] ??= number.ToString(System.Globalization.CultureInfo.InvariantCulture);
 		}
 		private void Coil(object sender, CoilEventArgs args) => Emit(ControllerEventKind.Coil, args.Id, args.Value);
 		private void Lamp(object sender, LampEventArgs args) => Emit(args.Source == LampSource.GI ? ControllerEventKind.GeneralIllumination : ControllerEventKind.Lamp, args.Id, args.Value);
@@ -124,7 +194,8 @@ namespace VisualPinball.Unity
 			if (_disposed) return; _disposed = true;
 			_engine.OnDisplaysRequested -= DisplaysRequested; _engine.OnDisplayUpdateFrame -= DisplayFrame;
 			_engine.OnCoilChanged -= Coil; _engine.OnLampChanged -= Lamp; _engine.OnLampsChanged -= Lamps; _engine.OnSwitchChanged -= Switch;
-			foreach (var display in _displays.Values) display.Dispose(); _displays.Clear(); _scope.Dispose();
+			foreach (var display in _displays.Values) display.Dispose(); _displays.Clear();
+			foreach (var segments in _segments.Values) segments.Dispose(); _segments.Clear(); _scope.Dispose();
 		}
 	}
 }

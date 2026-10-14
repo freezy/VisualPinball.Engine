@@ -43,8 +43,14 @@ namespace VisualPinball.Plugins
 		private readonly List<Action<PluginControllerEvent>> _subscribers = new List<Action<PluginControllerEvent>>();
 		private Action<PluginControllerEvent>[] _dispatch = Array.Empty<Action<PluginControllerEvent>>();
 		private bool _disposed;
-		public ResourceKind Kind => ResourceKind.Controller;
-		public ControllerResourceSource(Action<Exception>? fault = null) { _fault = fault; }
+		public ResourceKind Kind { get; }
+		public ControllerResourceSource(Action<Exception>? fault = null) : this(ResourceKind.Controller, fault) { }
+		/// <param name="kind"><see cref="ResourceKind.Controller"/> for mapped outputs, <see cref="ResourceKind.Outputs"/> for native ones.</param>
+		public ControllerResourceSource(ResourceKind kind, Action<Exception>? fault = null)
+		{
+			if (kind != ResourceKind.Controller && kind != ResourceKind.Outputs) throw new ArgumentException("A controller source carries controller or output events.", nameof(kind));
+			Kind = kind; _fault = fault;
+		}
 		public IDisposable Subscribe(Action<PluginControllerEvent> receive)
 		{
 			if (_disposed) throw new ObjectDisposedException(nameof(ControllerResourceSource));

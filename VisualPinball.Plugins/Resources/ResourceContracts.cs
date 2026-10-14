@@ -9,7 +9,12 @@ using System.Collections.Generic;
 
 namespace VisualPinball.Plugins
 {
-	public enum ResourceKind { Controller, Display, Segments, Audio, Input, Surface, Triggers }
+	/// <remarks>
+	/// <see cref="Outputs"/> carries every controller output by its native number through <see cref="IPluginControllerSource"/>.
+	/// It is separate from <see cref="Controller"/>, the outputs as the table maps them, so a controller binding without a
+	/// role stays unambiguous.
+	/// </remarks>
+	public enum ResourceKind { Controller, Display, Segments, Audio, Input, Surface, Triggers, Outputs }
 	public enum ResourceView { Original, Identification, Presentation }
 	public enum ResourceBindingState { Waiting, Bound, Blocked, Disposed }
 	public enum ResourceChangeKind { Added, Changed, Removed }
@@ -17,7 +22,26 @@ namespace VisualPinball.Plugins
 	public enum FrameColorSpace { Linear, Srgb }
 	public enum FrameAlpha { None, Straight, Premultiplied }
 	public enum PcmEncoding { Int16LittleEndian, Float32 }
-	public enum ControllerEventKind { Switch, Coil, Lamp, GeneralIllumination, Trigger, State }
+	public enum ControllerEventKind
+	{
+		Switch, Coil, Lamp, GeneralIllumination, Trigger, State,
+		/// <summary>Raw position of an emulated mech, as the controller reports it.</summary>
+		Mech,
+		/// <summary>Ends one controller poll; consumers that batch per poll apply what they collected.</summary>
+		PollEnd
+	}
+	/// <summary>What a controller event's raw value means.</summary>
+	public enum ControllerValueSemantics
+	{
+		/// <summary>0 or 1.</summary>
+		Binary,
+		/// <summary>Discrete levels from 0 to the event's maximum, such as WPC GI 0..8.</summary>
+		Levels,
+		/// <summary>Already faded physical brightness from 0 to the event's maximum.</summary>
+		Physical,
+		/// <summary>A position, such as a mech step; not a brightness.</summary>
+		Position
+	}
 
 	public sealed class PluginResourceDescriptor
 	{
@@ -109,6 +133,11 @@ namespace VisualPinball.Plugins
 		IDisposable AcquireView(ResourceView intent, DisplayEncoding acceptedFormats);
 	}
 
+	/// <remarks>
+	/// Events of a <c>controller-native</c> resource address outputs by the controller's own numbering
+	/// (<see cref="Number"/>) and describe their raw value per address, because one controller can mix binary and
+	/// physically faded outputs of the same kind.
+	/// </remarks>
 	public readonly struct PluginControllerEvent
 	{
 		public ControllerEventKind Kind { get; }
@@ -116,8 +145,15 @@ namespace VisualPinball.Plugins
 		public double Value { get; }
 		public long Sequence { get; }
 		public long TimestampUs { get; }
+		/// <summary>Controller-native output number, or -1 when the event is addressed by <see cref="Id"/> only.</summary>
+		public int Number { get; }
+		public ControllerValueSemantics Semantics { get; }
+		/// <summary>Raw value of a fully on output (or the largest level); 1 for binary outputs.</summary>
+		public double Maximum { get; }
 		public PluginControllerEvent(ControllerEventKind kind, string id, double value, long sequence, long timestampUs)
-		{ Kind = kind; Id = id; Value = value; Sequence = sequence; TimestampUs = timestampUs; }
+			: this(kind, id, value, sequence, timestampUs, -1, ControllerValueSemantics.Binary, 1) { }
+		public PluginControllerEvent(ControllerEventKind kind, string id, double value, long sequence, long timestampUs, int number, ControllerValueSemantics semantics, double maximum)
+		{ Kind = kind; Id = id; Value = value; Sequence = sequence; TimestampUs = timestampUs; Number = number; Semantics = semantics; Maximum = maximum > 0 ? maximum : 1; }
 	}
 	public interface IPluginControllerSource : IPluginResourceSource { IDisposable Subscribe(Action<PluginControllerEvent> receive); }
 
@@ -141,17 +177,34 @@ namespace VisualPinball.Plugins
 	public interface IPluginAudioSource : IPluginResourceSource { IDisposable Subscribe(Action<PluginPcmFrame> receive); }
 	/// <summary>An exclusive lease replaces built-in playback while leaving the original PCM stream available.</summary>
 	public interface IPluginAudioPlaybackControl { IDisposable AcquirePlayback(string pluginId); }
-	public interface IPluginSegmentSource : IPluginResourceSource { IDisposable Subscribe(Action<PluginSegmentFrame> receive); }
+	/// <summary>A segment display. Its place and size are known when it is published, before any frame arrives.</summary>
+	public interface IPluginSegmentSource : IPluginResourceSource
+	{
+		/// <summary>Position among the controller's segment displays, in the order the controller announced them.</summary>
+		int Order { get; }
+		/// <summary>Number of elements (digits) the controller announced; frames carry the same count.</summary>
+		int Elements { get; }
+		IDisposable Subscribe(Action<PluginSegmentFrame> receive);
+	}
+	/// <remarks>
+	/// <see cref="Layout"/> names the segment arrangement of the elements: <c>seg7</c> (a-g and a comma at bit 7),
+	/// <c>seg9</c> (seven segments plus split verticals at bits 8 and 9), <c>seg14</c> (a-f, g1, comma, h, i, j, g2,
+	/// k, l, m, dot) or <c>seg16</c>. <see cref="Hardware"/> hints at the display technology: <c>plasma</c>,
+	/// <c>vfd-green</c>, <c>vfd-blue</c>, <c>led</c>, optionally followed by <c>+gottlieb</c>. Brightness is borrowed
+	/// for the synchronous callback only.
+	/// </remarks>
 	public readonly struct PluginSegmentFrame
 	{
 		public string Layout { get; }
 		public int Elements { get; }
 		public int SegmentsPerElement { get; }
 		public ReadOnlyMemory<float> Brightness { get; }
-		public PluginSegmentFrame(string layout, int elements, int segmentsPerElement, ReadOnlyMemory<float> brightness)
+		public string Hardware { get; }
+		public PluginSegmentFrame(string layout, int elements, int segmentsPerElement, ReadOnlyMemory<float> brightness) : this(layout, elements, segmentsPerElement, brightness, "") { }
+		public PluginSegmentFrame(string layout, int elements, int segmentsPerElement, ReadOnlyMemory<float> brightness, string hardware)
 		{
 			if (elements <= 0 || segmentsPerElement <= 0 || brightness.Length != checked(elements * segmentsPerElement)) throw new ArgumentException("Segment layout does not match its state.");
-			Layout = layout; Elements = elements; SegmentsPerElement = segmentsPerElement; Brightness = brightness;
+			Layout = layout; Elements = elements; SegmentsPerElement = segmentsPerElement; Brightness = brightness; Hardware = hardware ?? "";
 		}
 	}
 	public readonly struct PluginInputEvent
