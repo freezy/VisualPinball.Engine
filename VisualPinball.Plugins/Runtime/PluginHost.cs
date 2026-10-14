@@ -14,7 +14,7 @@ using Newtonsoft.Json.Linq;
 namespace VisualPinball.Plugins
 {
 	/// <summary>Serializes game hooks, resolves policy before constructing plugins, and owns reverse cleanup.</summary>
-	public sealed class PluginHost
+	public sealed partial class PluginHost
 	{
 		private sealed class HookDeadlineException : TimeoutException
 		{
@@ -274,59 +274,8 @@ namespace VisualPinball.Plugins
 			_startOrder.Clear(); _entered.Clear(); _gameCancellation?.Dispose(); _gameCancellation = null; _activeGame = null;
 		}
 		/// <summary>Applies live values and persistence within the same lifecycle gate. Plugins must roll back failed reconfiguration.</summary>
-		public async Task<PluginActionResult> CommitSettingsAsync(IPlayerPluginFactory factory, PluginSettingsSnapshot draft, GameIdentity? game, CancellationToken cancellation)
-		{
-			if (!_factories.TryGetValue(factory.Descriptor.Id, out var installed) || installed != factory) throw new ArgumentException("The factory is not installed in this host.");
-			using var operationDeadline = CancellationTokenSource.CreateLinkedTokenSource(cancellation, _gameCancellation?.Token ?? CancellationToken.None);
-			operationDeadline.CancelAfter(StartupTimeout);
-			try { await _operation.WaitAsync(operationDeadline.Token).ConfigureAwait(false); }
-			catch (OperationCanceledException) { return new PluginActionResult(false, "The plugin host is busy or stopping. Settings were not saved."); }
-			await Scheduler.Switch();
-			Instance? busyEntry = null;
-			try {
-				var entry = _entered.FirstOrDefault(candidate => candidate.Factory == factory && IsHealthy(candidate) && Available(candidate));
-				PluginSettingsSnapshot? previous = entry?.Settings;
-				PluginSettingsSnapshot? live = null;
-				IPluginReconfiguration? receiver = null;
-				if (entry != null && previous != null && _activeGame.HasValue && (!game.HasValue || game.Value.Equals(_activeGame.Value))) {
-					var next = game.HasValue ? PluginConfigurationStore.Resolve(factory.Schema, Configuration.Read(factory.Descriptor, factory.Schema), draft)
-						: PluginConfigurationStore.Resolve(factory.Schema, draft, Configuration.Read(factory.Descriptor, factory.Schema, _activeGame));
-					var changed = factory.Schema.Fields.Where(field => field.Change == ConfigurationChange.Live && !JToken.DeepEquals(previous.Value(field.Id), next.Value(field.Id))).ToArray();
-					if (changed.Length > 0) {
-						busyEntry = entry; entry.Busy = true;
-						receiver = entry.Plugin as IPluginReconfiguration;
-						if (receiver == null) return new PluginActionResult(false, "This plugin declares live settings but does not implement reconfiguration.");
-						live = previous.Copy();
-						foreach (var field in changed) live.Set(field.Id, next.Value(field.Id));
-						var apply = receiver.ApplyAsync(live, operationDeadline.Token);
-						try { await AwaitHookAsync(apply, operationDeadline.Token).ConfigureAwait(false); }
-						catch (HookDeadlineException error) { await Scheduler.Switch(); Abandon(entry, error.Hook); return new PluginActionResult(false, "Plugin reconfiguration did not finish. Settings were not saved."); }
-						var result = await apply.ConfigureAwait(false);
-						await Scheduler.Switch();
-						if (!result.Success) return result;
-					}
-				}
-				try {
-					cancellation.ThrowIfCancellationRequested();
-					Configuration.Save(factory.Descriptor, factory.Schema, draft, game);
-				} catch {
-					if (receiver != null && previous != null) {
-						try {
-							using var rollbackDeadline = new CancellationTokenSource(StartupTimeout);
-							var rollback = receiver.ApplyAsync(previous, rollbackDeadline.Token);
-							await AwaitHookAsync(rollback, rollbackDeadline.Token).ConfigureAwait(false);
-							await Scheduler.Switch();
-							if (!(await rollback).Success) Fault(factory.Descriptor.Id, PluginPhase.Prepare, new InvalidOperationException("Runtime settings rollback failed."));
-						}
-						catch (HookDeadlineException error) { await Scheduler.Switch(); if (entry != null) Abandon(entry, error.Hook); }
-						catch (Exception error) { await Scheduler.Switch(); Fault(factory.Descriptor.Id, PluginPhase.Prepare, error); }
-					}
-					throw;
-				}
-				if (live != null && entry != null) entry.Settings = live;
-				return new PluginActionResult(true, "Saved. Live settings are applied; other changes take effect on the next game or application restart.");
-			} finally { if (busyEntry != null) busyEntry.Busy = false; _operation.Release(); ReplayState(); }
-		}
+		public Task<PluginActionResult> CommitSettingsAsync(IPlayerPluginFactory factory, PluginSettingsSnapshot draft, GameIdentity? game, CancellationToken cancellation, IReadOnlyCollection<string>? edited = null)
+			=> CommitSettingsCoreAsync(factory, draft, game, cancellation, edited);
 		private async Task CleanupAsync(Instance entry, CancellationToken cleanup)
 		{
 			if (entry.Cleaned) return;

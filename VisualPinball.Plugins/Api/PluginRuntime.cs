@@ -37,6 +37,8 @@ namespace VisualPinball.Plugins
 	public interface IPluginDeferredCleanup { Task Quiescence { get; } }
 	/// <summary>Reconfiguration is transactional: failure or cancellation must leave the previous runtime state intact.</summary>
 	public interface IPluginReconfiguration { Task<PluginActionResult> ApplyAsync(PluginSettingsSnapshot settings, CancellationToken cancellation); }
+	/// <summary>Fast owner-thread updates. Failure must leave the previous runtime state intact.</summary>
+	public interface IPluginSynchronousReconfiguration { PluginActionResult Apply(PluginSettingsSnapshot settings); }
 
 	/// <summary>Implement only the hooks a plugin needs; the host still controls its lifetime.</summary>
 	public abstract class PlayerPlugin : IPlayerPlugin

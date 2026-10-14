@@ -176,7 +176,7 @@ namespace VisualPinball.Plugins.Test
 			Run(host, host.StopGameAsync());
 		}
 		[Test]
-		public void FailedPersistenceRollsBackLiveSettingsAndPreservesFutureDocuments()
+		public void FutureDocumentsAreRejectedBeforeTouchingLiveSettings()
 		{
 			var calls = new List<string>();
 			var factory = new TestFactory("live", calls) { Schema = new PluginSettingsSchema(1, new PluginSettingsGroup("Test", "",
@@ -190,7 +190,7 @@ namespace VisualPinball.Plugins.Test
 			using var session = new PluginSettingsSession(factory, host.Configuration, "windows");
 			session.Set("value", 42);
 			Assert.Throws<InvalidOperationException>(() => Run(host, session.ApplyAsync(host: host)));
-			Assert.That(calls, Does.Contain("live:apply:42")); Assert.That(calls, Does.Contain("live:apply:5"));
+			Assert.That(calls, Does.Not.Contain("live:apply:42"));
 			Assert.That(File.ReadAllText(path), Is.EqualTo(future));
 			Run(host, host.StopGameAsync());
 		}
@@ -247,10 +247,17 @@ namespace VisualPinball.Plugins.Test
 		internal Task? StopCompletion;
 		internal Task? InitializeCompletion;
 		internal Task<PluginActionResult>? ApplyCompletion;
+		internal Action<int>? ApplyAction;
+		internal bool SynchronousApply;
 		internal CancellationTokenSource? CancelDuringStart;
 		internal TestFactory(string id, List<string>? calls = null) { Descriptor = new PluginDescriptor(id, id, "Test") { EnabledByDefault = true }; Calls = calls ?? new List<string>(); }
-		public IPlayerPlugin Create(PluginApplicationContext context) { Constructions++; context.Lifetime.Own(new Subscription(() => Calls.Add(Descriptor.Id + ":release"))); return new TestPlugin(this); }
-		private sealed class TestPlugin : PlayerPlugin, IPluginReconfiguration, IPluginTick
+		public IPlayerPlugin Create(PluginApplicationContext context) { Constructions++; context.Lifetime.Own(new Subscription(() => Calls.Add(Descriptor.Id + ":release"))); return SynchronousApply ? new SynchronousTestPlugin(this) : new TestPlugin(this); }
+		private sealed class SynchronousTestPlugin : TestPlugin, IPluginSynchronousReconfiguration
+		{
+			internal SynchronousTestPlugin(TestFactory factory) : base(factory) { }
+			public PluginActionResult Apply(PluginSettingsSnapshot settings) => ApplyAsync(settings, default).GetAwaiter().GetResult();
+		}
+		private class TestPlugin : PlayerPlugin, IPluginReconfiguration, IPluginTick
 		{
 			private readonly TestFactory _factory;
 			internal TestPlugin(TestFactory factory) { _factory = factory; }
@@ -261,7 +268,7 @@ namespace VisualPinball.Plugins.Test
 			public override void GameReady() => Call("ready");
 			public override void PauseChanged(bool paused) => Call(paused ? "pause" : "resume");
 			public void Tick(double delta) => Call("tick");
-			public Task<PluginActionResult> ApplyAsync(PluginSettingsSnapshot settings, CancellationToken cancellation) { Call("apply:" + settings.Integer("value")); return _factory.ApplyCompletion ?? Task.FromResult(new PluginActionResult(true, "")); }
+			public Task<PluginActionResult> ApplyAsync(PluginSettingsSnapshot settings, CancellationToken cancellation) { Call("apply:" + settings.Integer("value")); _factory.ApplyAction?.Invoke(settings.Integer("value")); return _factory.ApplyCompletion ?? Task.FromResult(new PluginActionResult(true, "")); }
 			public override Task StopGameAsync(CancellationToken token) { _factory.CleanupWasCanceled = token.IsCancellationRequested; Call("stop"); return _factory.StopCompletion ?? (_factory.NeverFinishStop ? new TaskCompletionSource<bool>().Task : Task.CompletedTask); }
 			public override Task ShutdownAsync(CancellationToken token) { Call("shutdown"); return Task.CompletedTask; }
 			public override void Dispose() => Call("dispose");
