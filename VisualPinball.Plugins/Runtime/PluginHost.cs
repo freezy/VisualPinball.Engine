@@ -13,7 +13,55 @@ using Newtonsoft.Json.Linq;
 
 namespace VisualPinball.Plugins
 {
-	/// <summary>Serializes game hooks, resolves policy before constructing plugins, and owns reverse cleanup.</summary>
+	/// <summary>
+	/// Runs the installed Player plugins for one game at a time: decides which plugins run, creates them, drives their lifecycle
+	/// hooks in dependency order and cleans them up in reverse, so that a failing plugin does not take the others down.
+	/// </summary>
+	/// <remarks>
+	/// The Player creates one host at startup from <see cref="PlayerPluginRegistry.Installed"/> and keeps it for the application's
+	/// life. For every table it calls <see cref="PrepareAndStartAsync"/>, forwards frames and state changes (<see cref="Tick"/>,
+	/// <see cref="BeforeRender"/>, <see cref="GameReady"/>, <see cref="PauseChanged"/>, <see cref="FocusChanged"/>) while the game
+	/// runs, calls <see cref="StopGameAsync"/> when the user leaves the table, and <see cref="EmergencyStop"/> when the application
+	/// quits. Its settings page edits settings through a <see cref="PluginSettingsSession"/> that commits through the host, so live
+	/// fields reach the running plugin. Plugins never see the host; they get its services through
+	/// <see cref="PluginApplicationContext"/> and <see cref="PluginGameContext"/>.
+	/// <para>
+	/// The host belongs to the thread that created its <see cref="Scheduler"/> (Unity's main thread in the Player). Plugin hooks
+	/// run there, and the host's own asynchronous operations resume there only when the scheduler is pumped, which
+	/// <see cref="Tick"/> does. Call <see cref="Tick"/> every frame, also while no game runs, or pending starts, stops and settings
+	/// commits stall.
+	/// </para>
+	/// <para>
+	/// Starting a game, stopping it, committing settings and cleaning up after a fault are serialized behind one lifecycle gate
+	/// (see <see cref="IsTransitioning"/>). A plugin whose hook throws becomes <see cref="PluginState.Faulted"/>, is cleaned up, and
+	/// blocks the plugins that depend on it; the others keep running. A plugin whose hook misses its deadline
+	/// (<see cref="StartupTimeout"/> or <see cref="CleanupTimeout"/>), or whose workers are still busy after
+	/// <see cref="EmergencyStop"/>, is quarantined: it gets <see cref="IPluginEmergencyStop.EmergencyStop"/>, becomes
+	/// <see cref="PluginState.Unresponsive"/>, and keeps its resource scopes (native handles, device leases) until every hook the
+	/// host started on it and its <see cref="IPluginDeferredCleanup.Quiescence"/> have completed. Then the host shuts it down (after
+	/// a missed deadline) and disposes it. Meanwhile no new instance of that plugin is created; the host itself never waits for a
+	/// quarantined instance.
+	/// </para>
+	/// <example>
+	/// How the Player drives the host (simplified from its plugin controller and main menu):
+	/// <code>
+	/// // on the main thread, once:
+	/// var host = new PluginHost(PlayerPluginRegistry.Installed, new PluginConfigurationStore(root), new OwnerScheduler(),
+	///     capabilities, new PluginResourceRegistry(Debug.LogException), "windows", message =&gt; Debug.Log("[Plugins] " + message));
+	///
+	/// // per table:
+	/// await host.PrepareAndStartAsync(identity, packagePath, title, identity.Id + "/controller/0", ++session, cancellation);
+	///
+	/// // every frame:
+	/// private void Update() =&gt; host.Tick(Time.unscaledDeltaTime);
+	/// private void LateUpdate() =&gt; host.BeforeRender();
+	///
+	/// // leaving the table, and quitting:
+	/// await host.StopGameAsync();
+	/// host.EmergencyStop();
+	/// </code>
+	/// </example>
+	/// </remarks>
 	public sealed partial class PluginHost
 	{
 		private sealed class HookDeadlineException : TimeoutException
@@ -60,17 +108,89 @@ namespace VisualPinball.Plugins
 		private string[] _hostCapabilities = Array.Empty<string>();
 		private readonly Dictionary<PluginPhase, Instance[]> _dispatch = new Dictionary<PluginPhase, Instance[]>();
 		private Task _faultCleanup = Task.CompletedTask;
+		/// <summary>
+		/// The owner-thread scheduler passed to the constructor, handed to every plugin as
+		/// <see cref="PluginApplicationContext.Scheduler"/>. <see cref="Tick"/> pumps it. Code that awaited a host operation can
+		/// return to the owner thread with <c>await host.Scheduler.Switch()</c>, as the Player's settings page does.
+		/// </summary>
 		public OwnerScheduler Scheduler { get; }
+		/// <summary>
+		/// The store the host reads plugin policy and settings from when it starts a game, and saves committed settings to. Handed
+		/// to every plugin as <see cref="PluginApplicationContext.Configuration"/>; the Player's settings page and volume mixer read
+		/// through it as well.
+		/// </summary>
 		public PluginConfigurationStore Configuration { get; }
+		/// <summary>
+		/// The capability registry shared with every plugin. The Player publishes its own services here (events, output leases and
+		/// the current game's table scene). <see cref="PrepareAndStartAsync"/> takes a snapshot of the published capability IDs to
+		/// check <see cref="PluginDescriptor.Requires"/>, so publish host capabilities before starting a game.
+		/// </summary>
 		public PluginCapabilities Capabilities { get; }
+		/// <summary>
+		/// The resource registry shared with every plugin. The Player publishes the game's controller, displays and audio here
+		/// before starting plugins, and passes the registry's snapshot to settings catalogs.
+		/// </summary>
 		public PluginResourceRegistry Resources { get; }
+		/// <summary>
+		/// The platform ID the host runs on: <c>windows</c>, <c>macos</c> or <c>linux</c> in the Player, or Unity's lowercase
+		/// platform name elsewhere. Plugins whose <see cref="PluginDescriptor.Platforms"/> do not list it are
+		/// <see cref="PluginState.Unsupported"/>. It is also passed to settings providers as <see cref="PluginChoiceRequest.Platform"/>.
+		/// </summary>
 		public string Platform { get; }
+		/// <summary>
+		/// The status of every installed plugin, keyed by <see cref="PluginDescriptor.Id"/>, with an entry for each factory from the
+		/// start, also for plugins that never ran. The status objects are updated in place on the owner thread; read them there.
+		/// The Player's settings page shows them to explain why a plugin is not running.
+		/// </summary>
 		public IReadOnlyDictionary<string, PluginStatus> Statuses => _statuses;
+		/// <summary>
+		/// The installed plugin factories passed to the constructor, in no particular order. Factories registered later are not
+		/// included. The Player lists them on its settings page and in its volume mixer.
+		/// </summary>
 		public IReadOnlyCollection<IPlayerPluginFactory> Factories => _factories.Values;
+		/// <summary>
+		/// True from the end of <see cref="PrepareAndStartAsync"/> until the game is stopped by <see cref="StopGameAsync"/>,
+		/// <see cref="EmergencyStop"/> or the next start. It is also true when some or all plugins failed to start; check
+		/// <see cref="Statuses"/> for individual plugins.
+		/// </summary>
 		public bool IsRunning => _running;
+		/// <summary>
+		/// True while a lifecycle operation holds the host's gate: starting or stopping a game, committing settings, or cleaning up
+		/// a plugin that faulted during a dispatched call. Meanwhile <see cref="GameReady"/>, <see cref="PauseChanged"/> and
+		/// <see cref="FocusChanged"/> are held and delivered (latest state only) when the operation ends. <see cref="Tick"/> and
+		/// <see cref="BeforeRender"/> still reach running plugins while settings are committed or a faulted plugin is cleaned up.
+		/// </summary>
 		public bool IsTransitioning => _operation.CurrentCount == 0;
+		/// <summary>
+		/// How long each cleanup hook (<see cref="IPlayerPlugin.StopGameAsync"/>, <see cref="IPlayerPlugin.ShutdownAsync"/>) may run
+		/// before its plugin is quarantined as <see cref="PluginState.Unresponsive"/>, and how long <see cref="StopGameAsync"/> waits
+		/// for a running operation before it falls back to <see cref="EmergencyStop"/>. Also bounds the deferred shutdown of a
+		/// quarantined instance. Defaults to 10 seconds.
+		/// </summary>
 		public TimeSpan CleanupTimeout { get; set; } = TimeSpan.FromSeconds(10);
+		/// <summary>
+		/// How long each startup hook (<see cref="IPlayerPlugin.InitializeAsync"/>, <see cref="IPlayerPlugin.PrepareGameAsync"/>,
+		/// <see cref="IPlayerPlugin.StartGameAsync"/>) and each <see cref="IPluginReconfiguration.ApplyAsync"/> may run before its
+		/// plugin is quarantined as <see cref="PluginState.Unresponsive"/>, and how long <see cref="PrepareAndStartAsync"/> waits for
+		/// a running operation to finish. Defaults to 30 seconds.
+		/// </summary>
 		public TimeSpan StartupTimeout { get; set; } = TimeSpan.FromSeconds(30);
+		/// <summary>
+		/// Creates a host for a fixed set of plugins. No plugin instance is created before <see cref="PrepareAndStartAsync"/>, and
+		/// every plugin starts as <see cref="PluginState.Available"/>.
+		/// </summary>
+		/// <param name="factories">The installed plugins, usually <see cref="PlayerPluginRegistry.Installed"/>. The host copies them.</param>
+		/// <param name="configuration">The store for plugin policy and settings.</param>
+		/// <param name="scheduler">
+		/// The owner-thread scheduler. Create it on the thread that drives the host; plugin hooks run on that thread.
+		/// </param>
+		/// <param name="capabilities">The capability registry shared with plugins.</param>
+		/// <param name="resources">The resource registry shared with plugins.</param>
+		/// <param name="platform">The platform ID, compared with <see cref="PluginDescriptor.Platforms"/>; see <see cref="Platform"/>.</param>
+		/// <param name="log">
+		/// Receives diagnostics: plugin log lines (prefixed with the plugin ID), faults and cleanup errors. Null discards them.
+		/// </param>
+		/// <exception cref="ArgumentException">Two factories have the same <see cref="PluginDescriptor.Id"/>.</exception>
 		public PluginHost(IEnumerable<IPlayerPluginFactory> factories, PluginConfigurationStore configuration, OwnerScheduler scheduler,
 			PluginCapabilities capabilities, PluginResourceRegistry resources, string platform, Action<string>? log = null)
 		{
@@ -79,6 +199,53 @@ namespace VisualPinball.Plugins
 			Configuration = configuration; Scheduler = scheduler; Capabilities = capabilities; Resources = resources; Platform = platform; _log = log ?? (_ => { });
 		}
 
+		/// <summary>
+		/// Stops the current game's plugins, if any, then selects, creates and starts the plugins for a new game. Plugin failures do
+		/// not throw: they are reported in <see cref="Statuses"/>, and the game runs with the remaining plugins.
+		/// </summary>
+		/// <remarks>
+		/// The host first decides which plugins run. Plugins that are disabled for the game, unsupported on <see cref="Platform"/>,
+		/// still quarantined from an earlier instance, missing a dependency or required capability, or caught in an ordering cycle
+		/// are not created and get the matching <see cref="PluginState"/>. For the others, in initialize order, it validates the
+		/// effective settings against the schema and <see cref="IPluginSettingsProvider.Validate"/>, creates the instance and calls
+		/// <see cref="IPlayerPlugin.InitializeAsync"/>. Then it calls <see cref="IPlayerPlugin.PrepareGameAsync"/> on all of them in
+		/// prepare order, and <see cref="IPlayerPlugin.StartGameAsync"/> in start order. A plugin that fails a step is cleaned up and
+		/// the plugins depending on it are blocked before the next step. When the task completes, the started plugins are
+		/// <see cref="PluginState.Running"/> and <see cref="IsRunning"/> is true; a <see cref="GameReady"/>, pause or focus change
+		/// that arrived meanwhile is delivered then.
+		/// <para>
+		/// The Player calls it on the main thread after publishing the game's table scene capability and its controller and display
+		/// resources, so plugins find them while they prepare.
+		/// </para>
+		/// </remarks>
+		/// <param name="identity">
+		/// The game to start. Selects per-game enablement and settings, and is passed to plugins as
+		/// <see cref="PluginGameContext.Identity"/>.
+		/// </param>
+		/// <param name="packagePath">
+		/// Full path of the table package, passed to plugins as <see cref="PluginGameContext.PackagePath"/> and to settings validation.
+		/// </param>
+		/// <param name="title">The table's title, passed to plugins as <see cref="PluginGameContext.Title"/>.</param>
+		/// <param name="controllerId">
+		/// ID of the game's controller resource, passed to plugins as <see cref="PluginGameContext.ControllerId"/>. The Player uses
+		/// <c>identity.Id + "/controller/0"</c>.
+		/// </param>
+		/// <param name="session">
+		/// The game session number, increasing with every game, passed to plugins as <see cref="PluginGameContext.Session"/>.
+		/// </param>
+		/// <param name="cancellation">
+		/// Cancels the startup: the plugins started so far are stopped and the task is cancelled. The token is also linked to
+		/// <see cref="PluginGameContext.Cancellation"/>, so cancelling it after startup signals the running plugins' game token, but
+		/// does not stop them.
+		/// </param>
+		/// <returns>
+		/// A task that completes when startup has finished. It also completes, without starting anything, when another operation
+		/// still holds the host after <see cref="StartupTimeout"/>; every plugin is then <see cref="PluginState.Blocked"/>.
+		/// </returns>
+		/// <exception cref="OperationCanceledException">
+		/// <paramref name="cancellation"/> was cancelled, or the game was stopped by <see cref="StopGameAsync"/> or
+		/// <see cref="EmergencyStop"/> while it was starting.
+		/// </exception>
 		public async Task PrepareAndStartAsync(GameIdentity identity, string packagePath, string title, string controllerId, long session, CancellationToken cancellation)
 		{
 			using var gateDeadline = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
@@ -280,6 +447,24 @@ namespace VisualPinball.Plugins
 		private void Fault(string id, PluginPhase phase, Exception error) { SetStatus(id, PluginState.Faulted, error.Message, phase); _log(id + " / " + phase + ": " + error.Message); }
 		private void SafeDispose(IDisposable resource) { try { resource.Dispose(); } catch (Exception error) { _log("Plugin cleanup: " + error.Message); } }
 
+		/// <summary>
+		/// Stops the current game's plugins and releases their game and instance resources. Safe to call when no game runs.
+		/// </summary>
+		/// <remarks>
+		/// Cancels <see cref="PluginGameContext.Cancellation"/> at once, then waits up to <see cref="CleanupTimeout"/> for a running
+		/// operation, such as a startup still in progress, to finish. Plugins are then cleaned up one at a time: partially started
+		/// ones first, then started ones in reverse start order. Each gets <see cref="IPlayerPlugin.StopGameAsync"/> (if it was
+		/// prepared), disposal of <see cref="PluginGameContext.Lifetime"/>, <see cref="IPlayerPlugin.ShutdownAsync"/>, disposal of
+		/// <see cref="PluginApplicationContext.Lifetime"/>, and finally <see cref="IDisposable.Dispose"/>. Exceptions from these
+		/// steps are logged and cleanup continues; a hook that misses its deadline quarantines its plugin (see
+		/// <see cref="PluginHost"/>) and the host moves on to the next one. If the running operation does not finish in time, the
+		/// host falls back to <see cref="EmergencyStop"/>.
+		/// </remarks>
+		/// <param name="cleanup">
+		/// Cuts cleanup short. It cancels the token each cleanup hook receives, in addition to <see cref="CleanupTimeout"/>; if it
+		/// fires while the host waits for a running operation, the host falls back to <see cref="EmergencyStop"/>.
+		/// </param>
+		/// <returns>A task that completes when every plugin of the game is stopped or quarantined.</returns>
 		public async Task StopGameAsync(CancellationToken cleanup = default)
 		{
 			_gameCancellation?.Cancel();
@@ -302,7 +487,49 @@ namespace VisualPinball.Plugins
 			}
 			_startOrder.Clear(); _entered.Clear(); _gameCancellation?.Dispose(); _gameCancellation = null; _activeGame = null;
 		}
-		/// <summary>Applies live values and persistence within the same lifecycle gate. Plugins must roll back failed reconfiguration.</summary>
+		/// <summary>
+		/// Validates and saves edited settings of one plugin and, when they change <see cref="ConfigurationChange.Live"/> fields of
+		/// the running game, applies them to the running plugin first. Both happen inside the host's lifecycle gate, so a commit
+		/// never overlaps a game start or stop.
+		/// </summary>
+		/// <remarks>
+		/// <see cref="PluginSettingsSession.ApplyAsync"/> calls this after its own checks; plugins do not call it. The steps are:
+		/// <list type="number">
+		/// <item><description>
+		/// Merge the edited fields into the latest stored layer (global, or the game's profile) and validate the effective result
+		/// against the schema. Provider validation and catalog checks are left to the settings session.
+		/// </description></item>
+		/// <item><description>
+		/// If the plugin is running and the edit affects the active game (a global edit, or an edit of that game's profile), apply
+		/// the changed live fields through <see cref="IPluginSynchronousReconfiguration.Apply"/> or
+		/// <see cref="IPluginReconfiguration.ApplyAsync"/>. A plugin implementing neither, a failed result, or an asynchronous
+		/// apply that misses <see cref="StartupTimeout"/> (which quarantines the plugin) ends the commit without saving.
+		/// </description></item>
+		/// <item><description>
+		/// Save only the edited fields with <see cref="PluginConfigurationStore.SavePatch"/>, then raise
+		/// <see cref="SettingsCommitted"/>.
+		/// </description></item>
+		/// </list>
+		/// If saving fails after a live apply, the host applies the previous settings again, so plugins must keep reconfiguration
+		/// reversible. A rollback that fails faults the plugin.
+		/// </remarks>
+		/// <param name="factory">The plugin whose settings change; must be one of <see cref="Factories"/>.</param>
+		/// <param name="draft">
+		/// The edited layer: the game's overrides when <paramref name="game"/> is set, the global values otherwise. Only the fields
+		/// in <paramref name="edited"/> are taken; a listed field that the draft lacks is removed from the stored layer and inherits
+		/// again. The host copies the draft.
+		/// </param>
+		/// <param name="game">The game whose profile to change, or null for the global settings.</param>
+		/// <param name="cancellation">
+		/// Cancels waiting for the gate and the live apply. Once saving has started, it runs to completion.
+		/// </param>
+		/// <param name="edited">IDs of the top-level fields to commit, or null for every field of the schema.</param>
+		/// <returns>
+		/// Success with the message <c>Saved.</c>, or a failure whose message lists the validation issues or says why nothing was
+		/// saved. Errors and cancellation after the gate was entered are reported as failures, not thrown.
+		/// </returns>
+		/// <exception cref="ArgumentException"><paramref name="factory"/> is not installed in this host.</exception>
+		/// <exception cref="OperationCanceledException"><paramref name="cancellation"/> fired while waiting for the gate.</exception>
 		public Task<PluginActionResult> CommitSettingsAsync(IPlayerPluginFactory factory, PluginSettingsSnapshot draft, GameIdentity? game, CancellationToken cancellation, IReadOnlyCollection<string>? edited = null)
 			=> CommitSettingsCoreAsync(factory, draft, game, cancellation, edited);
 		private async Task CleanupAsync(Instance entry, CancellationToken cleanup)
@@ -379,11 +606,65 @@ namespace VisualPinball.Plugins
 				if (_paused.HasValue) { bool paused = _paused.Value; _paused = null; Dispatch(paused ? PluginPhase.Pause : PluginPhase.Resume, state: paused); }
 				if (_focused.HasValue) { bool focused = _focused.Value; _focused = null; Dispatch(PluginPhase.Focus, state: focused); }
 		}
+		/// <summary>
+		/// Tells the running plugins that the table's player has started and the game is playable; they receive
+		/// <see cref="IPlayerPlugin.GameReady"/> in ready order. Call it on the owner thread. Ignored when no game is running or
+		/// starting. While the host is busy (<see cref="IsTransitioning"/>) the call is held and delivered when the operation ends.
+		/// The Player calls it from the table player's <c>OnPlayerStarted</c> event.
+		/// </summary>
 		public void GameReady() { if (!_running && !IsTransitioning) return; _ready = true; if (!IsTransitioning) ReplayState(); }
+		/// <summary>
+		/// Tells the running plugins that the game was paused or resumed; they receive <see cref="IPlayerPlugin.PauseChanged"/> in
+		/// pause or resume order. Call it on the owner thread. Ignored when no game is running or starting. While the host is busy,
+		/// only the latest state is delivered when the operation ends. The Player calls it when its in-game menu opens and closes.
+		/// </summary>
+		/// <param name="paused">True when the game was paused, false when it resumed.</param>
 		public void PauseChanged(bool paused) { if (!_running && !IsTransitioning) return; _paused = paused; if (!IsTransitioning) ReplayState(); }
+		/// <summary>
+		/// Tells the running plugins that the application gained or lost focus; they receive
+		/// <see cref="IPlayerPlugin.FocusChanged"/> in focus order. Call it on the owner thread. Ignored when no game is running or
+		/// starting. While the host is busy, only the latest state is delivered when the operation ends. The Player calls it from
+		/// Unity's <c>OnApplicationFocus</c>.
+		/// </summary>
+		/// <param name="focused">True when the application has focus.</param>
 		public void FocusChanged(bool focused) { if (!_running && !IsTransitioning) return; _focused = focused; if (!IsTransitioning) ReplayState(); }
+		/// <summary>
+		/// Runs one frame: first runs the work queued on <see cref="Scheduler"/>, such as continuations of the host's own operations
+		/// and of plugin hooks, then calls <see cref="IPluginTick.Tick"/> on every running plugin in tick order.
+		/// </summary>
+		/// <remarks>
+		/// Call it on the owner thread every frame, also while the game is paused and while no game runs, since starting, stopping
+		/// and committing settings depend on the pump. Plugins keep being ticked while the host commits settings or cleans up a
+		/// faulted plugin, but not while a game starts or stops, and a plugin is skipped while its own asynchronous
+		/// reconfiguration runs. A plugin whose tick throws becomes <see cref="PluginState.Faulted"/> and is cleaned up in the
+		/// background. The Player calls it from its <c>Update</c> with <c>Time.unscaledDeltaTime</c>.
+		/// </remarks>
+		/// <param name="delta">Real time since the previous frame in seconds, passed on to <see cref="IPluginTick.Tick"/>.</param>
+		/// <exception cref="InvalidOperationException">Called from a thread other than the owner thread.</exception>
 		public void Tick(double delta) { Scheduler.Pump(); Dispatch(PluginPhase.Tick, delta); }
+		/// <summary>
+		/// Calls <see cref="IPluginRender.BeforeRender"/> on every running plugin in render order. Call it on the owner thread once
+		/// per frame, after all frame updates; the Player calls it from <c>LateUpdate</c>. Like <see cref="Tick"/>, it reaches
+		/// plugins while the host commits settings or cleans up a faulted plugin, and a plugin whose call throws is faulted. It
+		/// does not pump the scheduler.
+		/// </summary>
+		/// <exception cref="InvalidOperationException">Called from a thread other than the owner thread.</exception>
 		public void BeforeRender() => Dispatch(PluginPhase.Render);
+		/// <summary>
+		/// Stops all plugins of the current game immediately and synchronously, without awaiting any hook. Use it when there is no
+		/// time for <see cref="StopGameAsync"/>: the Player calls it when the application quits, and <see cref="StopGameAsync"/>
+		/// falls back to it when a running operation does not finish within <see cref="CleanupTimeout"/>.
+		/// </summary>
+		/// <remarks>
+		/// Cancels <see cref="PluginGameContext.Cancellation"/> and stops all dispatched calls. Then, in reverse order of creation,
+		/// it calls <see cref="IPluginEmergencyStop.EmergencyStop"/> on every instance (exceptions are logged) and, unless the
+		/// instance was already cleaned up, disposes its <see cref="PluginGameContext.Lifetime"/>,
+		/// <see cref="PluginApplicationContext.Lifetime"/> and the plugin right away. <see cref="IPlayerPlugin.StopGameAsync"/> and
+		/// <see cref="IPlayerPlugin.ShutdownAsync"/> are not called. An instance that still has a hook running, or whose
+		/// <see cref="IPluginDeferredCleanup.Quiescence"/> has not completed, is quarantined instead: it keeps its scopes until both
+		/// are done, and the plugin stays <see cref="PluginState.Unresponsive"/>, blocking new instances, until then.
+		/// </remarks>
+		/// <exception cref="InvalidOperationException">Called from a thread other than the owner thread.</exception>
 		public void EmergencyStop()
 		{
 			Scheduler.VerifyOwner();
