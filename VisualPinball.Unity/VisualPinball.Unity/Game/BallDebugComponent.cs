@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 			}
 
 			var mouseOnScreenPos = Mouse.current.position.ReadValue();
-			var ray = Camera.main.ScreenPointToRay(mouseOnScreenPos);
+			var ray = DisplayRotation.ScreenPointToRay(Camera.main, mouseOnScreenPos);
 
 			if (_playfieldPlane.Raycast(ray, out var enter)) {
 				worldPos = _playfield.transform.localToWorldMatrix.inverse.MultiplyPoint(ray.GetPoint(enter));
