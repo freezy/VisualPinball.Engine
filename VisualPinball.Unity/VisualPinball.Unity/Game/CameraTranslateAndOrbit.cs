@@ -33,12 +33,14 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 	public Player player;
 
 	private const float RadiusMin = 0.5f;
+	private const float RadiusMax = 20f; // unbounded zoom-out pushes the camera to float-precision distances (broken raycasts)
 
 	private Transform _transformCache;
 	private GameObject _dummyForRotation;
 	private Transform _dummyTransform;
 
 	private float _radius;
+	private float _radiusMax;
 	private Vector3 _focusPoint;
 	private float _radiusCurrent = 15f;
 
@@ -81,6 +83,7 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 
 		_transformCache = transform;
 		_radius = Vector3.Distance(Vector3.zero, _transformCache.position);
+		_radiusMax = Mathf.Max(RadiusMax, _radius);
 		_focusPoint = -_transformCache.forward * _radius;
 		_positionOffsetCurrent = positionOffset;
 		_radiusCurrent = _radius;
@@ -135,6 +138,13 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 		if (_mouse != null) {
 			UpdateMouse();
 		}
+	}
+
+	private void OnDisable()
+	{
+		// a button released while disabled is never seen, so drop any drag in progress
+		_isTrackingMouse0 = false;
+		_isTrackingMouse1 = false;
 	}
 
 	private void LateUpdate()
@@ -281,11 +291,11 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 			float deltaScroll = _mouse.scroll.y.ReadValue() / 300f * zoomSpeed;
 			/* ---------------  UpdateMouse() – ZOOM in lock  --------------- */
 			if (lockTarget != null && _isTrackingBall) {      // ★ only follow-lock zooms
-				float r = Mathf.Max(_ballFollowOffsetTarget.magnitude * (1f - deltaScroll), RadiusMin);
+				float r = Mathf.Clamp(_ballFollowOffsetTarget.magnitude * (1f - deltaScroll), RadiusMin, _radiusMax);
 				_ballFollowOffsetTarget = _ballFollowOffsetTarget.normalized * r;
 			} else if (lockTarget == null) {
 				/* original zoom path (unchanged) */
-				_radius  = Mathf.Max(_radius  - deltaScroll * _radius, RadiusMin);
+				_radius  = Mathf.Clamp(_radius  - deltaScroll * _radius, RadiusMin, _radiusMax);
 			}
 		}
 
