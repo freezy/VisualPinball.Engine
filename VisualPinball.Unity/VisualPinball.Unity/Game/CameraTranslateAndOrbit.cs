@@ -233,7 +233,8 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 
 		/* ---------------- ORBIT (left mouse) ---------------- */
 		if (_isTrackingMouse0) {
-			var delta = _mouse.position.ReadValue() - _mouse0StartPosition;
+			// in screen pixels; turned into the image's frame when the output is rotated
+			var delta = DisplayRotation.ToLogicalDelta(_mouse.position.ReadValue() - _mouse0StartPosition);
 			_mouse0StartPosition = _mouse.position.ReadValue();
 
 			if (!hasHitRestrictedHitArea) {
@@ -275,7 +276,7 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 			}
 
 			if (!hasHitRestrictedHitArea && _isTrackingMouse1) {
-				var delta = _mouse.position.ReadValue() - _mouse1StartPosition;
+				var delta = DisplayRotation.ToLogicalDelta(_mouse.position.ReadValue() - _mouse1StartPosition);
 				positionOffset += _transformCache.up * (-delta.y * (_radius * panSpeed / 60000f));
 				positionOffset += _transformCache.right * (-delta.x * (_radius * panSpeed / 60000f));
 				_mouse1StartPosition = _mouse.position.ReadValue();
