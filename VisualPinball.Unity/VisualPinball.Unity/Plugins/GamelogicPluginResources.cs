@@ -15,7 +15,69 @@ using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	/// <summary>Adapts engine output to VPE-owned resources before the inactive table starts.</summary>
+	/// <summary>
+	/// Publishes a table's gamelogic engine to plugins: its controller events, displays, segment displays, native outputs and audio
+	/// become resources in the <see cref="PluginResourceRegistry"/>, where plugins such as PinUP, the B2S backglass and DMD bind them.
+	/// </summary>
+	/// <remarks>
+	/// The Player creates one per game after loading the table, before the table starts and before
+	/// <see cref="PluginHost.PrepareAndStartAsync"/>, so the resources exist when plugins prepare. It owns the instance in its game
+	/// scope and disposes it after the plugins have stopped. Every resource carries the game session, and its ID starts with
+	/// <see cref="ControllerId"/>:
+	/// <list type="table">
+	/// <listheader><term>Resource ID</term><description>Kind, role and when it is published</description></listheader>
+	/// <item>
+	/// <term><c>&lt;controller&gt;</c></term>
+	/// <description>
+	/// <see cref="ResourceKind.Controller"/>, role <c>controller</c>: coil, lamp, GI and switch changes by mapped ID. Always.
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <term><c>&lt;controller&gt;/outputs</c></term>
+	/// <description>
+	/// <see cref="ResourceKind.Outputs"/>, role <c>outputs</c>: every output by native number, when the engine implements
+	/// <see cref="IGamelogicNativeOutputs"/>.
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <term><c>&lt;controller&gt;/audio/rom</c></term>
+	/// <description>
+	/// <see cref="ResourceKind.Audio"/>, role <c>rom-mix</c>, when the engine implements <see cref="IGamelogicAudioResourceProvider"/>.
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <term><c>&lt;controller&gt;/display/&lt;id&gt;</c></term>
+	/// <description>
+	/// <see cref="ResourceKind.Display"/>, role <c>dmd</c>: one per <see cref="DotMatrixDisplayComponent"/> in the table, and one
+	/// per dot-matrix display the engine announces through <see cref="IGamelogicEngine.OnDisplaysRequested"/>.
+	/// </description>
+	/// </item>
+	/// <item>
+	/// <term><c>&lt;controller&gt;/segments/&lt;id&gt;</c></term>
+	/// <description>
+	/// <see cref="ResourceKind.Segments"/>, role <c>segments</c>: one per segment display the engine announces (a display with a
+	/// height of 1 or less), with its layout from <see cref="ISegmentDisplayMetadata"/>.
+	/// </description>
+	/// </item>
+	/// </list>
+	/// Display frames are converted with <see cref="FromLegacy"/>; frames of unknown displays or formats are dropped. The display
+	/// encodings come from <see cref="IDisplayResourceMetadata"/>. Without it, displays offer
+	/// <see cref="DisplayEncoding.Luminance8"/> and <see cref="DisplayEncoding.Rgb24"/>, plus <see cref="DisplayEncoding.Gray2"/>
+	/// and <see cref="DisplayEncoding.Gray4"/> when the engine implements <see cref="IDisplayFrameFormatPreference"/>, through which
+	/// a consumer's request for raw identification frames is forwarded.
+	/// <para>
+	/// Create and dispose it on the owner thread. The engine must raise its display events there (they throw otherwise); coil,
+	/// lamp, switch and native output changes raised on other threads are posted to the owner thread.
+	/// </para>
+	/// <example>
+	/// From the Player's plugin controller:
+	/// <code>
+	/// if (engine != null)
+	///     _gameScope.Own(new GamelogicPluginResources(table, engine, identity, session, Host.Scheduler, Host.Resources, Debug.LogException));
+	/// await Host.PrepareAndStartAsync(identity, path, title, identity.Id + "/controller/0", session, cancellation);
+	/// </code>
+	/// </example>
+	/// </remarks>
 	public sealed class GamelogicPluginResources : IDisposable
 	{
 		private sealed class Display : IDisposable
@@ -69,6 +131,26 @@ namespace VisualPinball.Unity
 		private readonly DisplayEncoding _defaultFormat;
 		private long _sequence;
 		private bool _disposed;
+		/// <summary>
+		/// Publishes the engine's controller, native outputs and audio and the table's dot-matrix displays, and subscribes to the
+		/// engine's events. Displays and segment displays that the engine announces later are published when it announces them.
+		/// </summary>
+		/// <param name="table">
+		/// The table's root object. Every <see cref="DotMatrixDisplayComponent"/> under it, including inactive ones, is published up
+		/// front, so plugins can bind the DMD before the engine announces its displays.
+		/// </param>
+		/// <param name="engine">The table's gamelogic engine.</param>
+		/// <param name="identity">
+		/// The game. Its <see cref="GameIdentity.Provider"/> becomes the resources' provider, and its <see cref="GameIdentity.Id"/>
+		/// the start of <see cref="ControllerId"/>.
+		/// </param>
+		/// <param name="session">The game session number, the same one passed to <see cref="PluginHost.PrepareAndStartAsync"/>.</param>
+		/// <param name="scheduler">The host's owner-thread scheduler, used to check for and post to the owner thread.</param>
+		/// <param name="registry">The registry to publish into, normally <see cref="PluginHost.Resources"/>.</param>
+		/// <param name="fault">
+		/// Receives exceptions thrown by subscribers of the published sources, and errors for display frames whose buffer is too
+		/// small. The Player passes <c>Debug.LogException</c>.
+		/// </param>
 		public GamelogicPluginResources(GameObject table, IGamelogicEngine engine, GameIdentity identity, long session,
 			OwnerScheduler scheduler, PluginResourceRegistry registry, Action<Exception> fault)
 		{
@@ -100,6 +182,11 @@ namespace VisualPinball.Unity
 			engine.OnSwitchChanged += Switch;
 			foreach (var display in table.GetComponentsInChildren<DotMatrixDisplayComponent>(true)) AddDisplay(display.Id, display.Width, display.Height);
 		}
+		/// <summary>
+		/// ID of the published controller resource and prefix of every other resource ID: the game's <see cref="GameIdentity.Id"/>
+		/// followed by <c>/controller/0</c>, such as <c>pinmame:t2_l8/controller/0</c>. It matches the
+		/// <see cref="PluginGameContext.ControllerId"/> the Player passes to plugins.
+		/// </summary>
 		public string ControllerId => _controllerId;
 		private void DisplaysRequested(object sender, RequestedDisplays args)
 		{
@@ -183,15 +270,43 @@ namespace VisualPinball.Unity
 		private void Lamps(object sender, LampsEventArgs args) { foreach (var lamp in args.LampsChanged) Lamp(sender, lamp); }
 		private void Switch(object sender, SwitchEventArgs2 args) => Emit(ControllerEventKind.Switch, args.Id, args.IsEnabled ? 1 : 0);
 		private static long Timestamp() => (long)(Stopwatch.GetTimestamp() * (1000000d / Stopwatch.Frequency));
+		/// <summary>
+		/// Converts a gamelogic engine's <see cref="DisplayFrameFormat"/> to the plugin <see cref="DisplayEncoding"/>:
+		/// <see cref="DisplayFrameFormat.Dmd2"/> to <see cref="DisplayEncoding.Gray2"/>, <see cref="DisplayFrameFormat.Dmd4"/> to
+		/// <see cref="DisplayEncoding.Gray4"/>, <see cref="DisplayFrameFormat.Dmd8"/> to <see cref="DisplayEncoding.Luminance8"/>,
+		/// and <see cref="DisplayFrameFormat.Dmd24"/> and <see cref="DisplayFrameFormat.Video24"/> to <see cref="DisplayEncoding.Rgb24"/>.
+		/// </summary>
+		/// <param name="format">The engine's frame format.</param>
+		/// <returns>
+		/// The matching encoding, or <see cref="DisplayEncoding.None"/> for the segment, alphanumeric and numeric formats, which are
+		/// not published as display frames.
+		/// </returns>
 		public static DisplayEncoding FromLegacy(DisplayFrameFormat format) => format switch {
 			DisplayFrameFormat.Dmd2 => DisplayEncoding.Gray2, DisplayFrameFormat.Dmd4 => DisplayEncoding.Gray4,
 			DisplayFrameFormat.Dmd8 => DisplayEncoding.Luminance8, DisplayFrameFormat.Dmd24 => DisplayEncoding.Rgb24,
 			DisplayFrameFormat.Video24 => DisplayEncoding.Rgb24, _ => DisplayEncoding.None
 		};
+		/// <summary>
+		/// Converts a plugin <see cref="DisplayEncoding"/> to the <see cref="DisplayFrameFormat"/> to request from a gamelogic engine
+		/// through <see cref="IDisplayFrameFormatPreference.RequestDisplayFrameFormat"/>: <see cref="DisplayEncoding.Gray2"/> to
+		/// <see cref="DisplayFrameFormat.Dmd2"/>, <see cref="DisplayEncoding.Gray4"/> to <see cref="DisplayFrameFormat.Dmd4"/>,
+		/// <see cref="DisplayEncoding.Rgb24"/> to <see cref="DisplayFrameFormat.Dmd24"/>, and anything else to
+		/// <see cref="DisplayFrameFormat.Dmd8"/>. The DMD plugin also uses it to hand frames to its native pipeline.
+		/// </summary>
+		/// <param name="format">
+		/// A single encoding. <see cref="DisplayEncoding.Luminance8"/>, <see cref="DisplayEncoding.Rgba32"/>,
+		/// <see cref="DisplayEncoding.None"/> and combined flags all map to <see cref="DisplayFrameFormat.Dmd8"/>.
+		/// </param>
+		/// <returns>The matching engine frame format.</returns>
 		public static DisplayFrameFormat ToLegacy(DisplayEncoding format) => format switch {
 			DisplayEncoding.Gray2 => DisplayFrameFormat.Dmd2, DisplayEncoding.Gray4 => DisplayFrameFormat.Dmd4,
 			DisplayEncoding.Rgb24 => DisplayFrameFormat.Dmd24, _ => DisplayFrameFormat.Dmd8
 		};
+		/// <summary>
+		/// Unsubscribes from the engine, unpublishes every resource, removes the native output listener and, if raw identification
+		/// frames were requested, asks the engine for its default display format again. Safe to call more than once. Call it on the
+		/// owner thread after the plugins have stopped, as the Player does when it disposes its game scope.
+		/// </summary>
 		public void Dispose()
 		{
 			if (_disposed) return; _disposed = true;
