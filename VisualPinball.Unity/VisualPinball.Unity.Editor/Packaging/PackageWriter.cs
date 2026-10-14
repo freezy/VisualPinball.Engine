@@ -62,6 +62,12 @@ namespace VisualPinball.Unity.Editor
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+		/// <summary>The folder the package screenshots are read from, or null for a package without screenshots.</summary>
+		internal string ScreenshotFolder => _screenshotFolder;
+
+		/// <summary>The table being exported.</summary>
+		internal GameObject Table => _table;
+
 		public PackageWriter(
 			GameObject table,
 			bool runtimeCompressSideChannelTextures = true,

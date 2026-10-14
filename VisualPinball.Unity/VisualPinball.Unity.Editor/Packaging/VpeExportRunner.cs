@@ -62,6 +62,10 @@ namespace VisualPinball.Unity.Editor
 			});
 
 			try {
+				if (!await RenderScreenshotsAsync(writer, title)) {
+					Logger.Info("Export canceled: screenshots could not be rendered.");
+					return false;
+				}
 				await writer.WritePackageAsync(path, progress, cts.Token);
 				return true;
 
@@ -79,6 +83,42 @@ namespace VisualPinball.Unity.Editor
 				completed = true;
 				EditorUtility.ClearProgressBar();
 			}
+		}
+
+		/// <summary>
+		/// Renders the package screenshots afresh, so the player's table images always show the table as exported.
+		/// Earlier screenshots are removed first; if rendering fails, the user decides whether to export without them.
+		/// Returns false when the export should stop.
+		/// </summary>
+		private static async Task<bool> RenderScreenshotsAsync(PackageWriter writer, string title)
+		{
+			var folder = writer.ScreenshotFolder;
+			var table = writer.Table ? writer.Table.GetComponent<TableComponent>() : null;
+			if (string.IsNullOrEmpty(folder) || !table) {
+				return true;
+			}
+			EditorUtility.DisplayProgressBar(title, "Rendering screenshots…", 0f);
+			string failure;
+			try {
+				PackageScreenshotGenerator.DeleteGenerated(folder);
+				await PackageScreenshotGenerator.GenerateAsync(table, folder);
+				return true;
+			} catch (Exception ex) {
+				Logger.Error(ex, "Rendering the package screenshots failed.");
+				// Shots are written one by one; drop the ones that made it, so a partial set is never packed.
+				try {
+					PackageScreenshotGenerator.DeleteGenerated(folder);
+				} catch (Exception cleanup) {
+					Logger.Warn(cleanup, "Could not remove the partial screenshots.");
+				}
+				Debug.LogException(ex);
+				failure = ex.Message;
+			} finally {
+				EditorUtility.ClearProgressBar();
+			}
+			return EditorUtility.DisplayDialog(title,
+				$"The table screenshots could not be rendered:\n{failure}\n\nWithout them, the player shows no image of the table.",
+				"Export Without Screenshots", "Cancel");
 		}
 	}
 }

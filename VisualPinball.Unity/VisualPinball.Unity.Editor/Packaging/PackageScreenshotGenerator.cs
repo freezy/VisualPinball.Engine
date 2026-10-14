@@ -18,6 +18,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Unity.Mathematics;
 using UnityEditor;
 using UnityEngine;
@@ -51,7 +52,7 @@ namespace VisualPinball.Unity.Editor
 		internal const int PortraitHeight = 3840;
 		internal const TextureFormat ScreenshotTextureFormat = TextureFormat.RGBA32;
 		internal const float FieldOfView = 3f;
-		internal const string DefaultHdriAssetPath =      "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/Assets/studio_small_08_1k.exr";
+		internal const string HdriAssetPath =      "Packages/org.visualpinball.engine.unity/VisualPinball.Unity/VisualPinball.Unity.Editor/Assets/studio_small_08_1k.exr";
 		private const string CameraPrefabPath =           "Packages/org.visualpinball.engine.unity.hdrp/Assets/EditorResources/Prefabs/Screenshot/Camera.prefab";
 
 		private static readonly Quaternion TopDownRotation = Quaternion.Euler(90f, 0f, 0f);
@@ -89,7 +90,50 @@ namespace VisualPinball.Unity.Editor
 		// Generate asynchronous: the result arrives via onComplete.
 		private const int SettleFrames = 3;
 
-		internal static void Generate(TableComponent tableComponent, string outputFolderPath, Cubemap hdriCubemap, float hdriExposure,
+		// Every table is shot in the same environment, so the player's table images look alike. Not configurable.
+		internal const float HdriExposure = 4.5f;
+
+		/// <summary>The bundled studio HDRI all package screenshots are lit with.</summary>
+		/// <exception cref="InvalidOperationException">The HDRI is missing from the package.</exception>
+		private static Cubemap LoadHdri()
+		{
+			var hdri = AssetDatabase.LoadAssetAtPath<Cubemap>(HdriAssetPath);
+			if (!hdri) {
+				throw new InvalidOperationException($"The screenshot HDRI is missing at {HdriAssetPath}.");
+			}
+			return hdri;
+		}
+
+		/// <summary>
+		/// Removes previously generated screenshots and their bounds, so a package never picks up images of an
+		/// earlier state of the table.
+		/// </summary>
+		internal static void DeleteGenerated(string outputFolderPath)
+		{
+			foreach (var fileName in ScreenshotFileNames) {
+				AssetDatabase.DeleteAsset($"{outputFolderPath}/{fileName}");
+			}
+			AssetDatabase.DeleteAsset($"{outputFolderPath}/{FilenameBounds}");
+		}
+
+		/// <summary>
+		/// <see cref="Generate"/> as a task, completing once all shots are written. Await it on the main thread
+		/// without blocking it, since the shots render across several editor frames.
+		/// </summary>
+		internal static Task<PackageScreenshotResult> GenerateAsync(TableComponent tableComponent, string outputFolderPath)
+		{
+			var completion = new TaskCompletionSource<PackageScreenshotResult>();
+			try {
+				Generate(tableComponent, outputFolderPath,
+					result => completion.TrySetResult(result),
+					error => completion.TrySetException(error));
+			} catch (Exception error) {
+				completion.TrySetException(error);
+			}
+			return completion.Task;
+		}
+
+		internal static void Generate(TableComponent tableComponent, string outputFolderPath,
 			Action<PackageScreenshotResult> onComplete, Action<Exception> onError = null)
 		{
 			if (!tableComponent) {
@@ -105,11 +149,7 @@ namespace VisualPinball.Unity.Editor
 				throw new InvalidOperationException("No PlayfieldComponent was found under the selected table.");
 			}
 
-			if (!hdriCubemap) {
-				throw new ArgumentNullException(nameof(hdriCubemap), "A HDRI cubemap is required.");
-			}
-
-			var routine = GenerateRoutine(tableComponent, outputFolderPath, hdriCubemap, hdriExposure, playfield, onComplete);
+			var routine = GenerateRoutine(tableComponent, outputFolderPath, LoadHdri(), HdriExposure, playfield, onComplete);
 			EditorApplication.CallbackFunction driver = null;
 			driver = () => {
 				bool moveNext;
@@ -194,6 +234,10 @@ namespace VisualPinball.Unity.Editor
 
 					var camera = InstantiateCamera();
 					try {
+						// The render target is portrait, but a fresh camera takes its aspect from the Game view. With the
+						// prefab's gate-fitted physical lens the field of view depends on the aspect, so fix it before
+						// framing; otherwise the table shrinks whenever the Game view is landscape.
+						camera.aspect = PortraitWidth / (float)PortraitHeight;
 						var cameraDistance = CalculateTopDownDistance(playfieldWidth, playfieldHeight, PortraitWidth / (float)PortraitHeight, camera);
 						var cameraPosition = new Vector3(playfieldCenter.x, playfieldCenter.y + cameraDistance, playfieldCenter.z);
 						camera.transform.SetPositionAndRotation(cameraPosition, TopDownRotation);
