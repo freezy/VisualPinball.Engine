@@ -240,7 +240,9 @@ namespace VisualPinball.Plugins
 				var catalogs = new Dictionary<string, PluginChoiceCatalog>(StringComparer.Ordinal);
 				foreach (var binding in ChoiceBindings(_factory.Schema.Fields, effective)) {
 					var field = binding.Field;
-					var selections = field.Kind == SettingKind.ScreenLayout ? (binding.Value as JArray)?.OfType<JObject>().Select(screen => screen["screen"]?.ToString() ?? "").ToArray() ?? Array.Empty<string>() : new[] { binding.Value?.ToString() ?? "" };
+					var selections = field.Kind == SettingKind.ScreenLayout ? (binding.Value as JArray)?.OfType<JObject>().Select(screen => screen["screen"]?.ToString() ?? "").ToArray() ?? Array.Empty<string>()
+						: field.Multiple ? (binding.Value as JArray)?.Select(item => item.ToString()).ToArray() ?? Array.Empty<string>()
+						: new[] { binding.Value?.ToString() ?? "" };
 					if (selections.Length == 0 || _factory.SettingsProvider == null) continue;
 					if (!catalogs.TryGetValue(field.Provider, out var catalog)) {
 						catalog = await _factory.SettingsProvider.DiscoverAsync(field.Provider, request, linked.Token).ConfigureAwait(false);
