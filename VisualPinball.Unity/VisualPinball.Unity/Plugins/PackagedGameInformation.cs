@@ -14,7 +14,27 @@ using VisualPinball.Plugins;
 
 namespace VisualPinball.Unity
 {
-	/// <summary>Reads provider identities without restoring a scene; content hashes keep fallback identities stable across moves.</summary>
+	/// <summary>
+	/// Identifies the game in a table package without loading the table, for per-game plugin settings and for plugins that look for
+	/// matching media.
+	/// </summary>
+	/// <remarks>
+	/// The Player uses it when the loaded table's gamelogic engine does not implement <see cref="IGameIdentityProvider"/>, and its
+	/// plugin settings page uses it to open the profile of the game selected in the library before anything is loaded. The
+	/// package's components are handed to the registered <see cref="IPackagedGameIdentityReader"/>s (see
+	/// <see cref="PackagedGameIdentityReaders"/>); PinMAME's reader yields the ROM name. When no reader finds an identity, the game
+	/// is identified by the SHA-256 hash of the package file (provider <c>package</c>). That identity survives moving or renaming
+	/// the file, but changes when its content changes, for example when the table is exported again, which detaches it from the
+	/// settings saved for the old hash.
+	/// <para>
+	/// Results are cached per full path and read again when the file's size or last write time changes.
+	/// </para>
+	/// <example>
+	/// <code>
+	/// var identity = (engine as IGameIdentityProvider)?.GameIdentity ?? await PackagedGameInformation.ReadAsync(path, cancellation);
+	/// </code>
+	/// </example>
+	/// </remarks>
 	public static class PackagedGameInformation
 	{
 		private sealed class Cached
@@ -25,6 +45,18 @@ namespace VisualPinball.Unity
 		}
 		// Ordinal on every platform: Linux paths are case-sensitive, and elsewhere a differently cased path only costs a second read.
 		private static readonly Dictionary<string, Cached> Cache = new Dictionary<string, Cached>(StringComparer.Ordinal);
+		/// <summary>
+		/// Reads the game identity of a table package on a worker thread. Safe to call from any thread, also concurrently. The
+		/// identity readers run on the worker thread.
+		/// </summary>
+		/// <param name="path">Path of the table package; a relative path is resolved against the current directory.</param>
+		/// <param name="cancellation">Cancels the read, including hashing a large package.</param>
+		/// <returns>
+		/// The single identity found by the registered readers, or a <c>package</c> identity whose key is the lowercase hexadecimal
+		/// SHA-256 hash of the file. Errors opening or reading the file fault the task.
+		/// </returns>
+		/// <exception cref="InvalidDataException">The readers found more than one distinct identity in the package.</exception>
+		/// <exception cref="OperationCanceledException"><paramref name="cancellation"/> was cancelled.</exception>
 		public static Task<GameIdentity> ReadAsync(string path, CancellationToken cancellation = default) => Task.Run(() => Read(path, cancellation), cancellation);
 		private static GameIdentity Read(string path, CancellationToken cancellation)
 		{
