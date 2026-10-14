@@ -37,18 +37,11 @@ namespace VisualPinball.Unity.Editor
 		private bool _packageFoldout;
 		private bool _runtimeCompressSideChannelTextures = true;
 		private bool _runtimeCompressNormalMaps = true;
-		private string _screenshotHdriPath;
-		private Cubemap _screenshotHdri;
-		private float _screenshotHdriExposure;
 
 		private const string RuntimeCompressSideChannelTexturesKey =
 			"VisualPinball.Unity.Editor.TableInspector.RuntimeCompressSideChannelTextures";
 		private const string RuntimeCompressNormalMapsKey =
 			"VisualPinball.Unity.Editor.TableInspector.RuntimeCompressNormalMaps";
-		private const string ScreenshotHdriPathKey =
-			"VisualPinball.Unity.Editor.TableInspector.ScreenshotHdriPath";
-		private const string ScreenshotHdriExposureKey =
-			"VisualPinball.Unity.Editor.TableInspector.ScreenshotHdriExposure";
 
 		protected override void OnEnable()
 		{
@@ -59,13 +52,6 @@ namespace VisualPinball.Unity.Editor
 			_metadataProperty = serializedObject.FindProperty(nameof(TableComponent.Metadata));
 			_runtimeCompressSideChannelTextures = EditorPrefs.GetBool(RuntimeCompressSideChannelTexturesKey, true);
 			_runtimeCompressNormalMaps = EditorPrefs.GetBool(RuntimeCompressNormalMapsKey, true);
-			_screenshotHdriPath = EditorPrefs.GetString(ScreenshotHdriPathKey, PackageScreenshotGenerator.DefaultHdriAssetPath);
-			_screenshotHdri = AssetDatabase.LoadAssetAtPath<Cubemap>(_screenshotHdriPath);
-			_screenshotHdriExposure = EditorPrefs.GetFloat(ScreenshotHdriExposureKey, 4f);
-			if (!_screenshotHdri && _screenshotHdriPath != PackageScreenshotGenerator.DefaultHdriAssetPath) {
-				_screenshotHdriPath = PackageScreenshotGenerator.DefaultHdriAssetPath;
-				_screenshotHdri = AssetDatabase.LoadAssetAtPath<Cubemap>(_screenshotHdriPath);
-			}
 		}
 
 		public override void OnInspectorGUI()
@@ -94,17 +80,6 @@ namespace VisualPinball.Unity.Editor
 					$"Screenshot preset: {PackageScreenshotGenerator.PortraitWidth}x{PackageScreenshotGenerator.PortraitHeight} PNG using a computed top-down shot at {PackageScreenshotGenerator.FieldOfView:F1} deg FOV.",
 					MessageType.None);
 				EditorGUI.BeginChangeCheck();
-				_screenshotHdri = (Cubemap)EditorGUILayout.ObjectField("Screenshot HDRI", _screenshotHdri, typeof(Cubemap), false);
-				if (EditorGUI.EndChangeCheck()) {
-					_screenshotHdriPath = _screenshotHdri ? AssetDatabase.GetAssetPath(_screenshotHdri) : string.Empty;
-					EditorPrefs.SetString(ScreenshotHdriPathKey, _screenshotHdriPath);
-				}
-				EditorGUI.BeginChangeCheck();
-				_screenshotHdriExposure = EditorGUILayout.FloatField("Screenshot HDRI Exposure", _screenshotHdriExposure);
-				if (EditorGUI.EndChangeCheck()) {
-					EditorPrefs.SetFloat(ScreenshotHdriExposureKey, _screenshotHdriExposure);
-				}
-				EditorGUI.BeginChangeCheck();
 				_runtimeCompressSideChannelTextures = EditorGUILayout.ToggleLeft(
 					"Compress sidecar textures (Unity runtime compression)",
 					_runtimeCompressSideChannelTextures);
@@ -119,44 +94,37 @@ namespace VisualPinball.Unity.Editor
 					EditorPrefs.SetBool(RuntimeCompressNormalMapsKey, _runtimeCompressNormalMaps);
 				}
 				if (GUILayout.Button("Generate Screenshot")) {
-					if (!_screenshotHdri) {
-						EditorUtility.DisplayDialog("Generate Screenshot Failed",
-							"Please assign a screenshot HDRI cubemap before generating a screenshot.", "OK");
-					} else {
-						// Run the capture *outside* OnInspectorGUI. Rendering
-						// (SubmitRenderRequest/ReadPixels) inside the IMGUI event uses the
-						// GUI frame's stale culling, so the per-shot lamp/bulb toggles
-						// don't take effect and later shots leak the first shot's state.
-						var table = tableComponent;
-						var hdri = _screenshotHdri;
-						var exposure = _screenshotHdriExposure;
-						EditorApplication.delayCall += () => {
-							try {
-								// Generate runs across several editor frames (it lets HDRP settle
-								// lamp state between shots), so the result arrives via callback.
-								PackageScreenshotGenerator.Generate(table, @"Assets/Screenshots", hdri, exposure,
-									result => {
-										Debug.Log(
-											$"Generated package screenshot at {result.AssetPath} " +
-											$"(camera Y: {result.CameraPosition.y:F3}m, distance: {result.CameraDistance:F3}m, " +
-											table);
+					// Run the capture *outside* OnInspectorGUI. Rendering
+					// (SubmitRenderRequest/ReadPixels) inside the IMGUI event uses the
+					// GUI frame's stale culling, so the per-shot lamp/bulb toggles
+					// don't take effect and later shots leak the first shot's state.
+					var table = tableComponent;
+					EditorApplication.delayCall += () => {
+						try {
+							// Generate runs across several editor frames (it lets HDRP settle
+							// lamp state between shots), so the result arrives via callback.
+							PackageScreenshotGenerator.Generate(table, @"Assets/Screenshots",
+								result => {
+									Debug.Log(
+										$"Generated package screenshot at {result.AssetPath} " +
+										$"(camera Y: {result.CameraPosition.y:F3}m, distance: {result.CameraDistance:F3}m, " +
+										table);
 
-										var screenshot = AssetDatabase.LoadAssetAtPath<Texture2D>(result.AssetPath);
-										if (screenshot) {
-											Selection.activeObject = screenshot;
-											EditorGUIUtility.PingObject(screenshot);
-										}
-									},
-									exception => {
-										Debug.LogException(exception, table);
-										EditorUtility.DisplayDialog("Generate Screenshot Failed", exception.Message, "OK");
-									});
-							} catch (Exception exception) {
-								Debug.LogException(exception, table);
-								EditorUtility.DisplayDialog("Generate Screenshot Failed", exception.Message, "OK");
-							}
-						};
-					}
+									var screenshot = AssetDatabase.LoadAssetAtPath<Texture2D>(result.AssetPath);
+									if (screenshot) {
+										Selection.activeObject = screenshot;
+										EditorGUIUtility.PingObject(screenshot);
+									}
+								},
+								exception => {
+									Debug.LogException(exception, table);
+									EditorUtility.DisplayDialog("Generate Screenshot Failed", exception.Message, "OK");
+								});
+						} catch (Exception exception) {
+							Debug.LogException(exception, table);
+							EditorUtility.DisplayDialog("Generate Screenshot Failed", exception.Message, "OK");
+						}
+					};
 				}
 				if (GUILayout.Button($"Save as .{ext}")) {
 					var tableContainer = tableComponent.TableContainer;
