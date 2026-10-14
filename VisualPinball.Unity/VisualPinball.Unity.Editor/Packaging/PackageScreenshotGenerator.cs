@@ -62,11 +62,11 @@ namespace VisualPinball.Unity.Editor
 		private const float MinFarPadding = 0.5f;
 		private const byte BackgroundTolerance = 4;
 
-		// Shot 1: env (directional) + HDRI, playfield lamps on (flashers off).
+		// Shot 1: env (directional) + HDRI, inserts lit, every other lamp (GI, bulbs, flashers) off.
 		internal const string FilenameLightsOn = "table-lights-on.png";
-		// Shot 2: env (directional) + HDRI, all playfield lamps off (incl. faux bulb).
+		// Shot 2: env (directional) + HDRI, all playfield lamps and inserts off (incl. faux bulb).
 		internal const string FilenameLightsOff = "table-lights-off.png";
-		// Shot 3: HDRI only, no directional, playfield lamps on (flashers off).
+		// Shot 3: HDRI only, no directional, all playfield lamps and inserts off.
 		internal const string FilenameHdriOnly = "table-hdri.png";
 
 		// The generated screenshot files the packager pulls into the .vpe (in shot order).
@@ -313,9 +313,9 @@ namespace VisualPinball.Unity.Editor
 
 		private enum PlayfieldLightMode
 		{
-			// Non-flasher lamps (inserts + GI) on, flashers off.
+			// Inserts on; GI, bulbs and flashers off.
 			On,
-			// All lamps off and their bulbs hidden.
+			// All lamps and inserts off, their bulbs hidden.
 			Off,
 		}
 
@@ -359,6 +359,8 @@ namespace VisualPinball.Unity.Editor
 			{
 				public readonly LightComponent Lamp;
 				public readonly bool IsFlasher;
+				// A lamp under a playfield insert (a VPX-style insert mesh, or a hybrid insert it drives).
+				public readonly bool IsInsert;
 				public readonly Light[] Lights;
 				public readonly bool[] LightEnabled;
 				// Emissive meshes that LightComponent.Enabled drives (the faux bulbs),
@@ -366,10 +368,11 @@ namespace VisualPinball.Unity.Editor
 				public readonly Renderer[] EmissiveRenderers;
 				public readonly bool[] RendererActive;
 
-				public Entry(LightComponent lamp, bool isFlasher, Light[] lights, bool[] lightEnabled, Renderer[] emissiveRenderers, bool[] rendererActive)
+				public Entry(LightComponent lamp, bool isFlasher, bool isInsert, Light[] lights, bool[] lightEnabled, Renderer[] emissiveRenderers, bool[] rendererActive)
 				{
 					Lamp = lamp;
 					IsFlasher = isFlasher;
+					IsInsert = isInsert;
 					Lights = lights;
 					LightEnabled = lightEnabled;
 					EmissiveRenderers = emissiveRenderers;
@@ -378,6 +381,26 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			private readonly List<Entry> _entries = new();
+
+			// Hybrid inserts show their authored intensity outside the game, per bulb.
+			private readonly struct InsertEntry
+			{
+				public readonly InsertLightComponent Insert;
+				public readonly float Intensity;
+				public readonly float[] ExtraIntensities;
+
+				public InsertEntry(InsertLightComponent insert)
+				{
+					Insert = insert;
+					Intensity = insert.Intensity;
+					ExtraIntensities = new float[insert.ExtraBulbs?.Length ?? 0];
+					for (var i = 0; i < ExtraIntensities.Length; i++) {
+						ExtraIntensities[i] = insert.ExtraBulbs[i]?.Intensity ?? 0f;
+					}
+				}
+			}
+
+			private readonly List<InsertEntry> _inserts = new();
 
 			public PlayfieldLightSnapshot(TableComponent tableComponent)
 			{
@@ -420,6 +443,12 @@ namespace VisualPinball.Unity.Editor
 					AddEntry(lamp, isFlasher);
 				}
 
+				foreach (var insert in tableComponent.GetComponentsInChildren<InsertLightComponent>(true)) {
+					if (insert) {
+						_inserts.Add(new InsertEntry(insert));
+					}
+				}
+
 				// Group lamps (LightGroupComponent) can drive raw Lights + faux-bulb meshes
 				// that are NOT wrapped in their own LightComponent (e.g. L51's two skull-eye
 				// sub-lamps). The LightComponent pass above misses those, leaving their bulbs
@@ -459,7 +488,8 @@ namespace VisualPinball.Unity.Editor
 					rendererActive[i] = emissiveRenderers[i].gameObject.activeSelf;
 				}
 
-				_entries.Add(new Entry(lamp, isFlasher, lights, lightEnabled, emissiveRenderers, rendererActive));
+				var isInsert = lamp.GetComponentInChildren<LightInsertMeshComponent>(true) || lamp.GetComponentInChildren<InsertLightComponent>(true);
+				_entries.Add(new Entry(lamp, isFlasher, isInsert, lights, lightEnabled, emissiveRenderers, rendererActive));
 			}
 
 			// A LightGroupComponent whose member sub-lamps have no LightComponent of their
@@ -501,7 +531,7 @@ namespace VisualPinball.Unity.Editor
 					rendererActive[i] = emissiveRenderers[i].gameObject.activeSelf;
 				}
 
-				_entries.Add(new Entry(null, isFlasher, lights, lightEnabled, emissiveRenderers, rendererActive));
+				_entries.Add(new Entry(null, isFlasher, false, lights, lightEnabled, emissiveRenderers, rendererActive));
 			}
 
 			// Resolve a mapped lamp device to the concrete LightComponents it drives,
@@ -525,9 +555,9 @@ namespace VisualPinball.Unity.Editor
 			public void Apply(PlayfieldLightMode mode)
 			{
 				foreach (var entry in _entries) {
-					// Flashers are always off; "On" lights every other lamp (inserts
-					// AND GI) regardless of its edit-time default.
-					var on = mode == PlayfieldLightMode.On && !entry.IsFlasher;
+					// "On" lights the inserts only, regardless of their edit-time default; GI,
+					// bulbs and flashers stay off, so the shot shows the artwork lit from below.
+					var on = mode == PlayfieldLightMode.On && entry.IsInsert && !entry.IsFlasher;
 
 					// Same mechanism as LampManager.SetLampDeviceEnabled: flip the Unity
 					// lights directly (edit-time runtime caches aren't initialized), then
@@ -563,10 +593,40 @@ namespace VisualPinball.Unity.Editor
 						}
 					}
 				}
+
+				// Hybrid inserts follow their authored intensity outside the game, so set it for the
+				// shot and push it right away rather than waiting for an edit-mode LateUpdate.
+				var level = mode == PlayfieldLightMode.On ? 1f : 0f;
+				foreach (var entry in _inserts) {
+					if (!entry.Insert) {
+						continue;
+					}
+					entry.Insert.Intensity = level;
+					if (entry.Insert.ExtraBulbs != null) {
+						foreach (var bulb in entry.Insert.ExtraBulbs) {
+							if (bulb != null) {
+								bulb.Intensity = level;
+							}
+						}
+					}
+					entry.Insert.Apply();
+				}
 			}
 
 			public void Restore()
 			{
+				foreach (var entry in _inserts) {
+					if (!entry.Insert) {
+						continue;
+					}
+					entry.Insert.Intensity = entry.Intensity;
+					for (var i = 0; i < entry.ExtraIntensities.Length && i < (entry.Insert.ExtraBulbs?.Length ?? 0); i++) {
+						if (entry.Insert.ExtraBulbs[i] != null) {
+							entry.Insert.ExtraBulbs[i].Intensity = entry.ExtraIntensities[i];
+						}
+					}
+					entry.Insert.Apply();
+				}
 				foreach (var entry in _entries) {
 					for (var i = 0; i < entry.Lights.Length; i++) {
 						if (entry.Lights[i]) {
