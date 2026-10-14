@@ -30,6 +30,8 @@ namespace VisualPinball.Plugins
 		public string Version { get; set; } = "0.1.0";
 		public int ApiVersion { get; set; } = HostApiVersion;
 		public bool EnabledByDefault { get; set; }
+		/// <summary>False for configuration services required by an application-owned engine.</summary>
+		public bool CanDisable { get; set; } = true;
 		public string Category { get; set; } = "Integrations";
 		public int Order { get; set; }
 		public IReadOnlyList<string> DependsOn { get; set; } = Array.Empty<string>();

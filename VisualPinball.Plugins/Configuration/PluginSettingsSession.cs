@@ -22,21 +22,39 @@ namespace VisualPinball.Plugins
 		private readonly Func<IReadOnlyList<PluginResourceDescriptor>> _resources;
 		private readonly SemaphoreSlim _apply = new SemaphoreSlim(1, 1);
 		private readonly CancellationTokenSource _lifetime = new CancellationTokenSource();
+		private PluginSettingsSnapshot _baseline;
+		private readonly HashSet<string> _resetFields = new HashSet<string>(StringComparer.Ordinal);
+		public bool HasEdits(string field) => _resetFields.Contains(field) || !JToken.DeepEquals(_baseline.Value(field), Draft.Value(field));
+		private string[] ChangedFields() => _factory.Schema.Fields.Where(field => HasEdits(field.Id)).Select(field => field.Id).ToArray();
 		public GameIdentity? Game { get; }
 		public PluginSettingsSnapshot Draft { get; private set; }
 		public PluginSettingsSnapshot Effective => Game.HasValue
 			? PluginConfigurationStore.Resolve(_factory.Schema, _store.Read(_factory.Descriptor, _factory.Schema), Draft)
 			: PluginConfigurationStore.Resolve(_factory.Schema, Draft);
 		public PluginSettingsSession(IPlayerPluginFactory factory, PluginConfigurationStore store, string platform, GameIdentity? game = null, Func<IReadOnlyList<PluginResourceDescriptor>>? resources = null)
-		{ _factory = factory; _store = store; _platform = platform; Game = game; _resources = resources ?? (() => Array.Empty<PluginResourceDescriptor>()); Draft = store.Read(factory.Descriptor, factory.Schema, game); }
+		{ _factory = factory; _store = store; _platform = platform; Game = game; _resources = resources ?? (() => Array.Empty<PluginResourceDescriptor>()); Draft = store.Read(factory.Descriptor, factory.Schema, game); _baseline = Draft.Copy(); }
 		public void Set(string fieldId, JToken? value)
 		{
 			var field = _factory.Schema.Fields.First(field => field.Id == fieldId);
 			if (Game.HasValue ? field.Scope == ConfigurationScope.GlobalOnly : field.Scope == ConfigurationScope.GameOnly) throw new InvalidOperationException("This field is not configurable in the selected scope.");
 			Draft.Set(fieldId, value);
+			_resetFields.Remove(fieldId);
 		}
-		public void Revert() => Draft = _store.Read(_factory.Descriptor, _factory.Schema, Game);
-		public void Reset() => Draft = new PluginSettingsSnapshot(_factory.Schema.Version);
+		public void Revert() { Draft = _store.Read(_factory.Descriptor, _factory.Schema, Game); _baseline = Draft.Copy(); _resetFields.Clear(); }
+		/// <summary>Refreshes aliases without discarding edits already made in this draft.</summary>
+		public void RefreshUnedited(PluginSettingsSnapshot saved, IEnumerable<string> fields)
+		{
+			foreach (string id in fields) {
+				if (HasEdits(id)) continue;
+				Draft.Set(id, saved.Value(id)); _baseline.Set(id, saved.Value(id));
+			}
+		}
+		public void Reset()
+		{
+			Draft = new PluginSettingsSnapshot(_factory.Schema.Version);
+			foreach (var field in _factory.Schema.Fields)
+				if (Game.HasValue ? field.Scope != ConfigurationScope.GlobalOnly : field.Scope != ConfigurationScope.GameOnly) _resetFields.Add(field.Id);
+		}
 		public IReadOnlyList<PluginValidationIssue> Validate()
 		{
 			var effective = Effective;
@@ -62,8 +80,14 @@ namespace VisualPinball.Plugins
 			try {
 				// Freeze the draft before any asynchronous discovery so editing cannot change the validated transaction.
 				var draft = Draft.Copy();
-				var effective = Game.HasValue ? PluginConfigurationStore.Resolve(_factory.Schema, _store.Read(_factory.Descriptor, _factory.Schema), draft) : PluginConfigurationStore.Resolve(_factory.Schema, draft);
-				var request = new PluginChoiceRequest(Game, effective, _platform, _resources());
+				var changed = ChangedFields();
+				var resources = _resources();
+				var effective = await Task.Run(() => {
+					var latest = _store.MergePatch(_factory.Descriptor, _factory.Schema, draft, changed, Game);
+					return Game.HasValue ? PluginConfigurationStore.Resolve(_factory.Schema, _store.Read(_factory.Descriptor, _factory.Schema), latest) : PluginConfigurationStore.Resolve(_factory.Schema, latest);
+				}, linked.Token).ConfigureAwait(false);
+				if (host != null) await host.Scheduler.Switch();
+				var request = new PluginChoiceRequest(Game, effective, _platform, resources);
 				var issues = _factory.Schema.Validate(effective).Concat(_factory.SettingsProvider?.Validate(request) ?? Array.Empty<PluginValidationIssue>()).ToList();
 				var catalogs = new Dictionary<string, PluginChoiceCatalog>(StringComparer.Ordinal);
 				foreach (var binding in ChoiceBindings(_factory.Schema.Fields, effective)) {
@@ -82,8 +106,14 @@ namespace VisualPinball.Plugins
 				}
 				linked.Token.ThrowIfCancellationRequested();
 				if (issues.Count > 0) return new PluginActionResult(false, string.Join("\n", issues.Select(issue => issue.Field + ": " + issue.Message)));
-				if (host != null) return await host.CommitSettingsAsync(_factory, draft, Game, linked.Token).ConfigureAwait(false);
-				_store.Save(_factory.Descriptor, _factory.Schema, draft, Game);
+				if (host != null) {
+					var result = await host.CommitSettingsAsync(_factory, draft, Game, linked.Token, changed).ConfigureAwait(false);
+					await host.Scheduler.Switch();
+					if (result.Success) Revert();
+					return result;
+				}
+				await Task.Run(() => _store.SavePatch(_factory.Descriptor, _factory.Schema, draft, changed, Game)).ConfigureAwait(false);
+				Revert();
 				return new PluginActionResult(true, "Saved. Changes take effect on the next game.");
 			} finally { _apply.Release(); }
 		}

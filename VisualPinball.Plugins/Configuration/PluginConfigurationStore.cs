@@ -8,8 +8,10 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -18,6 +20,7 @@ namespace VisualPinball.Plugins
 	/// <summary>One plugin owns one folder; game overrides contain only explicitly changed values.</summary>
 	public sealed class PluginConfigurationStore
 	{
+		private readonly object _writes = new object();
 		public string Root { get; }
 		public PluginConfigurationStore(string root) { Root = Path.GetFullPath(root); }
 		public string DirectoryFor(PluginDescriptor plugin) => Path.Combine(Root, plugin.Id);
@@ -52,6 +55,10 @@ namespace VisualPinball.Plugins
 		}
 		public void Save(PluginDescriptor plugin, PluginSettingsSchema schema, PluginSettingsSnapshot values, GameIdentity? game = null)
 		{
+			lock (_writes) SaveCore(plugin, schema, values, game);
+		}
+		private void SaveCore(PluginDescriptor plugin, PluginSettingsSchema schema, PluginSettingsSnapshot values, GameIdentity? game)
+		{
 			string path = SettingsPath(plugin, game);
 			var document = ReadDocument(path);
 			if ((document.Value<int?>("schemaVersion") ?? schema.Version) > schema.Version)
@@ -68,14 +75,35 @@ namespace VisualPinball.Plugins
 			if (game.HasValue) document["game"] = game.Value.Id;
 			WriteDocument(path, document);
 		}
+		/// <summary>Merges a scoped edit into the latest profile without replacing unrelated fields.</summary>
+		public PluginSettingsSnapshot MergePatch(PluginDescriptor plugin, PluginSettingsSchema schema, PluginSettingsSnapshot values, IReadOnlyCollection<string> changed, GameIdentity? game = null)
+		{
+			var latest = Read(plugin, schema, game);
+			if (latest.SchemaVersion > schema.Version) throw new InvalidOperationException("This configuration was written by a newer plugin and cannot be overwritten.");
+			foreach (var field in schema.Fields) {
+				if (!changed.Contains(field.Id) || (game.HasValue ? field.Scope == ConfigurationScope.GlobalOnly : field.Scope == ConfigurationScope.GameOnly)
+					|| field.Kind == SettingKind.Action || field.Kind == SettingKind.Status || field.Kind == SettingKind.Preview) continue;
+				latest.Set(field.Id, values.Value(field.Id));
+			}
+			return latest;
+		}
+		public void SavePatch(PluginDescriptor plugin, PluginSettingsSchema schema, PluginSettingsSnapshot values, IReadOnlyCollection<string> changed, GameIdentity? game = null)
+		{
+			lock (_writes) SaveCore(plugin, schema, MergePatch(plugin, schema, values, changed, game), game);
+		}
 		public bool Enabled(PluginDescriptor plugin, GameIdentity? game = null)
 		{
+			if (!plugin.CanDisable) return true;
 			var policy = ReadDocument(Path.Combine(DirectoryFor(plugin), "policy.json"));
 			if (game.HasValue && policy["games"] is JObject games && games[game.Value.Id]?.Type == JTokenType.Boolean) return games.Value<bool>(game.Value.Id);
 			return policy.Value<bool?>("enabled") ?? plugin.EnabledByDefault;
 		}
 		public void SetEnabled(PluginDescriptor plugin, bool? enabled, GameIdentity? game = null)
 		{
+			if (!plugin.CanDisable) {
+				if (enabled == false) throw new InvalidOperationException("This configuration service cannot be disabled.");
+				return;
+			}
 			string path = Path.Combine(DirectoryFor(plugin), "policy.json");
 			var policy = ReadDocument(path);
 			if (game.HasValue) {
@@ -90,7 +118,7 @@ namespace VisualPinball.Plugins
 		internal static JObject ReadDocument(string path)
 		{
 			if (!File.Exists(path)) return new JObject();
-			using var stream = File.OpenText(path);
+			using var stream = new StreamReader(new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete));
 			using var reader = new JsonTextReader(stream) { DateParseHandling = DateParseHandling.None, MaxDepth = 64, FloatParseHandling = FloatParseHandling.Double };
 			return JObject.Load(reader);
 		}
@@ -101,7 +129,10 @@ namespace VisualPinball.Plugins
 			try {
 				using (var file = new StreamWriter(pending, false, new UTF8Encoding(false)))
 				using (var writer = new JsonTextWriter(file) { Formatting = Formatting.Indented }) document.WriteTo(writer);
-				if (File.Exists(path)) File.Replace(pending, path, null); else File.Move(pending, path);
+				for (int attempt = 0; ; attempt++) {
+					try { if (File.Exists(path)) File.Replace(pending, path, null); else File.Move(pending, path); break; }
+					catch (IOException error) when (attempt < 3 && ((error.HResult & 0xffff) == 32 || (error.HResult & 0xffff) == 33)) { Thread.Sleep(20 * (attempt + 1)); }
+				}
 			} finally { if (File.Exists(pending)) File.Delete(pending); }
 		}
 		public static string Hash(string identity)

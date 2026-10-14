@@ -25,6 +25,10 @@ namespace VisualPinball.Plugins
 		public bool FullWidth { get; set; }
 		/// <summary>Consecutive fields with the same non-empty hint share a row. The Player owns their sizing and appearance.</summary>
 		public string Row { get; set; } = "";
+		public PluginFieldPresentation Presentation { get; set; }
+		public string Unit { get; set; } = "";
+		/// <summary>Opt-in appearance on a shared Player page; storage still belongs to this plugin.</summary>
+		public PluginGlobalSetting? GlobalSetting { get; set; }
 		public ConfigurationScope Scope { get; set; } = ConfigurationScope.GlobalOnly;
 		public ConfigurationChange Change { get; set; } = ConfigurationChange.NextGame;
 		public JToken? Default { get; set; }

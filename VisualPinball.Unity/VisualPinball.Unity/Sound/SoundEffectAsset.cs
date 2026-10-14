@@ -112,7 +112,12 @@ namespace VisualPinball.Unity
 			try
 			{
 				ConfigureAudioSource(audioSource);
-				audioSource.volume *= volume;
+				bool mechanical = Application.isPlaying && _type == SoundEffectType.Mechanical;
+#if UNITY_EDITOR
+				mechanical &= !EditorSceneManager.IsPreviewScene(audioObj.scene);
+#endif
+				if (mechanical) MechanicalSoundGain.Register(audioSource);
+				MechanicalSoundGain.SetAuthoredLevel(audioSource, MechanicalSoundGain.AuthoredLevel(audioSource) * volume);
 				audioSource.Play();
 				using var eitherCts = CancellationTokenSource.CreateLinkedTokenSource(
 					allowFadeOutCt,
@@ -127,7 +132,7 @@ namespace VisualPinball.Unity
 						await FadeOrFinish(
 							audioSource,
 							0f,
-							audioSource.volume,
+							MechanicalSoundGain.AuthoredLevel(audioSource),
 							_fadeInTime,
 							eitherCts.Token
 						);
@@ -151,7 +156,7 @@ namespace VisualPinball.Unity
 					{
 						await FadeOrFinish(
 							audioSource,
-							audioSource.volume,
+							MechanicalSoundGain.AuthoredLevel(audioSource),
 							0f,
 							_fadeOutTime,
 							instantCt
@@ -162,6 +167,7 @@ namespace VisualPinball.Unity
 			}
 			finally
 			{
+				MechanicalSoundGain.Unregister(audioSource);
 				if (audioSource != null)
 				{
 					if (Application.isPlaying)
@@ -213,7 +219,7 @@ namespace VisualPinball.Unity
 			while (progress < 1f && audioSource != null)
 			{
 				ct.ThrowIfCancellationRequested();
-				audioSource.volume = Mathf.Lerp(fromVolume, toVolume, progress);
+				MechanicalSoundGain.SetAuthoredLevel(audioSource, Mathf.Lerp(fromVolume, toVolume, progress));
 #if UNITY_EDITOR
 				var deltaTime = (float)(EditorApplication.timeSinceStartup - lastTime);
 				lastTime = EditorApplication.timeSinceStartup;
