@@ -15,6 +15,7 @@ namespace VisualPinball.Plugins
 		private readonly DisplayEncoding _supported;
 		private readonly Action<DisplayEncoding> _request;
 		private int _identification;
+		private DisplayEncoding _active;
 		private bool _disposed;
 		public DisplayFormatNegotiator(DisplayEncoding supported, DisplayEncoding defaultFormat, Action<DisplayEncoding> request)
 		{ _supported = supported; _default = defaultFormat; _request = request; }
@@ -24,11 +25,17 @@ namespace VisualPinball.Plugins
 			if (intent != ResourceView.Identification) return new Subscription(() => { });
 			var raw = _supported & accepted & (DisplayEncoding.Gray2 | DisplayEncoding.Gray4);
 			if (raw == DisplayEncoding.None) throw new InvalidOperationException("This source cannot provide unmodified identification frames.");
-			if (_identification++ == 0) {
-				try { _request((_supported & DisplayEncoding.Gray4) != 0 ? DisplayEncoding.Gray4 : DisplayEncoding.Gray2); }
-				catch { _identification--; throw; }
+			if (_identification > 0) {
+				// The provider group delivers one raw encoding at a time; a consumer that cannot read it cannot join.
+				if ((raw & _active) == DisplayEncoding.None) throw new InvalidOperationException("Identification frames are already delivered as " + _active + ", which this consumer does not accept.");
+				_identification++;
+			} else {
+				var encoding = (raw & DisplayEncoding.Gray4) != 0 ? DisplayEncoding.Gray4 : DisplayEncoding.Gray2;
+				_request(encoding);
+				_active = encoding;
+				_identification = 1;
 			}
-			return new Subscription(() => { if (!_disposed && --_identification == 0) _request(_default); });
+			return new Subscription(() => { if (!_disposed && --_identification == 0) { _active = DisplayEncoding.None; _request(_default); } });
 		}
 		public void Dispose() { if (_disposed) return; _disposed = true; if (_identification > 0) _request(_default); _identification = 0; }
 	}

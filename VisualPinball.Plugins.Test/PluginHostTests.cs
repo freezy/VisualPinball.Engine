@@ -198,15 +198,64 @@ namespace VisualPinball.Plugins.Test
 		public void UncooperativeCleanupDoesNotBlockOtherPluginsOrExit()
 		{
 			var calls = new List<string>();
-			var factory = new TestFactory("stuck", calls) { NeverFinishStop = true };
+			var stop = new TaskCompletionSource<bool>();
+			var factory = new TestFactory("stuck", calls) { StopCompletion = stop.Task };
 			var host = Host(factory, new TestFactory("healthy", calls));
 			host.CleanupTimeout = TimeSpan.FromMilliseconds(30);
 			Run(host, host.PrepareAndStartAsync(_game, "test", "Test", "controller", 1, default));
 			Run(host, host.StopGameAsync());
 			Assert.That(host.Statuses["stuck"].State, Is.EqualTo(PluginState.Unresponsive));
 			Assert.That(calls, Does.Contain("healthy:stop"));
-			Assert.That(calls, Does.Contain("stuck:release"));
 			Assert.That(host.IsRunning, Is.False);
+			// The hung hook may still use its resources, so they stay owned until it returns.
+			Assert.That(calls, Does.Not.Contain("stuck:release"));
+			stop.SetResult(true);
+			Run(host, Task.Run(async () => { while (!calls.Contains("stuck:release")) await Task.Delay(5); }));
+			Assert.That(calls, Does.Contain("stuck:dispose"));
+			Assert.That(host.Statuses["stuck"].State, Is.EqualTo(PluginState.Available));
+		}
+		[Test]
+		public void EmergencyStoppedWorkersKeepTheirResourcesAndBlockTheNextInstance()
+		{
+			var calls = new List<string>();
+			var quiet = new TaskCompletionSource<bool>();
+			var factory = new TestFactory("busy", calls) { QuiescenceTask = quiet.Task };
+			var host = Host(factory);
+			host.CleanupTimeout = TimeSpan.FromMilliseconds(30);
+			Run(host, host.PrepareAndStartAsync(_game, "test", "Test", "controller", 1, default));
+			host.EmergencyStop();
+			// Even well past the cleanup timeout, a running worker keeps its resources and blocks a replacement.
+			Run(host, Task.Delay(100));
+			Assert.That(calls, Does.Not.Contain("busy:release"));
+			Run(host, host.PrepareAndStartAsync(_game, "test", "Test", "controller", 1, default));
+			Assert.That(factory.Constructions, Is.EqualTo(1));
+			Assert.That(host.Statuses["busy"].State, Is.EqualTo(PluginState.Unresponsive));
+			Run(host, host.StopGameAsync());
+			quiet.SetResult(true);
+			Run(host, Task.Run(async () => { while (!calls.Contains("busy:release")) await Task.Delay(5); }));
+			Run(host, Task.Delay(20));
+			Assert.That(host.Statuses["busy"].State, Is.EqualTo(PluginState.Available));
+			Run(host, host.PrepareAndStartAsync(_game, "test", "Test", "controller", 1, default));
+			Assert.That(factory.Constructions, Is.EqualTo(2));
+			Run(host, host.StopGameAsync());
+		}
+		[Test]
+		public void EmergencyStopDuringAHungHookKeepsResourcesUntilTheHookReturns()
+		{
+			var calls = new List<string>();
+			var initialize = new TaskCompletionSource<bool>();
+			var factory = new TestFactory("hung", calls) { InitializeCompletion = initialize.Task };
+			var host = Host(factory);
+			host.StartupTimeout = TimeSpan.FromSeconds(30);
+			var start = host.PrepareAndStartAsync(_game, "test", "Test", "controller", 1, default);
+			Run(host, Task.Run(async () => { while (!calls.Contains("hung:initialize")) await Task.Delay(5); }));
+			// Quiescence is complete; only the initialization hook is still running.
+			host.EmergencyStop();
+			Run(host, Task.Delay(50));
+			Assert.That(calls, Does.Not.Contain("hung:release"));
+			initialize.SetResult(true);
+			Run(host, Task.Run(async () => { while (!calls.Contains("hung:release")) await Task.Delay(5); }));
+			Run(host, Task.WhenAny(start, Task.Delay(1000)));
 		}
 		[Test]
 		public void BadPolicyAndOrderingCycleOnlyBlockAffectedPlugins()
@@ -240,6 +289,8 @@ namespace VisualPinball.Plugins.Test
 		internal readonly List<string> Calls;
 		internal string FailAt = "";
 		internal int Constructions;
+		/// <summary>Work the plugin reports as still running after its hooks returned.</summary>
+		internal Task? QuiescenceTask;
 		internal int PrepareThread;
 		internal bool AsyncInitialize;
 		internal bool CleanupWasCanceled;
@@ -257,8 +308,9 @@ namespace VisualPinball.Plugins.Test
 			internal SynchronousTestPlugin(TestFactory factory) : base(factory) { }
 			public PluginActionResult Apply(PluginSettingsSnapshot settings) => ApplyAsync(settings, default).GetAwaiter().GetResult();
 		}
-		private class TestPlugin : PlayerPlugin, IPluginReconfiguration, IPluginTick
+		private class TestPlugin : PlayerPlugin, IPluginReconfiguration, IPluginTick, IPluginDeferredCleanup
 		{
+			public Task Quiescence => _factory.QuiescenceTask ?? Task.CompletedTask;
 			private readonly TestFactory _factory;
 			internal TestPlugin(TestFactory factory) { _factory = factory; }
 			private void Call(string phase) { _factory.Calls.Add(_factory.Descriptor.Id + ":" + phase); if (_factory.FailAt == phase) throw new InvalidOperationException("Test failure"); }

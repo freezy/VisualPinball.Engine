@@ -184,6 +184,10 @@ namespace VisualPinball.Plugins
 		int Order { get; }
 		/// <summary>Number of elements (digits) the controller announced; frames carry the same count.</summary>
 		int Elements { get; }
+		/// <summary>Segment arrangement of the elements, as in <see cref="PluginSegmentFrame.Layout"/>.</summary>
+		string Layout { get; }
+		/// <summary>Display technology hint, as in <see cref="PluginSegmentFrame.Hardware"/>.</summary>
+		string Hardware { get; }
 		IDisposable Subscribe(Action<PluginSegmentFrame> receive);
 	}
 	/// <remarks>

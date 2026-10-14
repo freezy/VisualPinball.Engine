@@ -29,7 +29,18 @@ namespace VisualPinball.Plugins
 			internal readonly ResourceScope GameScope = new ResourceScope();
 			internal bool Prepared;
 			internal bool Cleaned;
+			internal bool Abandoned;
 			internal bool Busy;
+			private readonly List<Task> _hooks = new List<Task>();
+			/// <summary>Records a lifecycle hook until it completes, so a quarantine can wait for it even after its deadline.</summary>
+			internal void Track(Task hook)
+			{
+				if (hook.IsCompleted) return;
+				lock (_hooks) _hooks.Add(hook);
+				hook.ContinueWith(done => { lock (_hooks) _hooks.Remove(done); }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+			}
+			/// <summary>Completes when every hook running now has finished.</summary>
+			internal Task RunningHooks() { lock (_hooks) return _hooks.Count == 0 ? Task.CompletedTask : Task.WhenAll(_hooks.ToArray()); }
 			internal PluginSettingsSnapshot? Settings;
 			internal Instance(IPlayerPluginFactory factory, IPlayerPlugin plugin, ResourceScope applicationScope) { Factory = factory; Plugin = plugin; ApplicationScope = applicationScope; }
 		}
@@ -204,7 +215,7 @@ namespace VisualPinball.Plugins
 			SetStatus(entry.Factory.Descriptor.Id, PluginState.Starting, phase.ToString(), phase);
 			using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
 			deadline.CancelAfter(StartupTimeout);
-			try { await AwaitHookAsync(invoke(deadline.Token), deadline.Token).ConfigureAwait(false); }
+			try { await AwaitHookAsync(entry, invoke(deadline.Token), deadline.Token).ConfigureAwait(false); }
 			catch (HookDeadlineException error) {
 				await Scheduler.Switch(); Abandon(entry, error.Hook);
 				if (cancellation.IsCancellationRequested) throw new OperationCanceledException(cancellation);
@@ -212,8 +223,9 @@ namespace VisualPinball.Plugins
 			}
 			await Scheduler.Switch();
 		}
-		private async Task AwaitHookAsync(Task hook, CancellationToken deadline)
+		private async Task AwaitHookAsync(Instance entry, Task hook, CancellationToken deadline)
 		{
+			entry.Track(hook);
 			if (await Task.WhenAny(hook, Task.Delay(Timeout.Infinite, deadline)).ConfigureAwait(false) != hook) {
 				_ = hook.ContinueWith(task => { var ignored = task.Exception; }, CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted, TaskScheduler.Default);
 				throw new HookDeadlineException(hook);
@@ -224,26 +236,43 @@ namespace VisualPinball.Plugins
 		{
 			string id = entry.Factory.Descriptor.Id;
 			SetStatus(id, PluginState.Unresponsive, "Waiting for an unresponsive plugin; its next instance is blocked.");
+			// Stop the plugin now, but keep its scopes (native handles, device leases) until its hook and workers are done.
 			Emergency(entry);
-			entry.Cleaned = true;
-			SafeDispose(entry.GameScope); SafeDispose(entry.ApplicationScope);
-			if (_abandoned.ContainsKey(id)) return;
-			var quiescence = (entry.Plugin as IPluginDeferredCleanup)?.Quiescence ?? Task.CompletedTask;
-			var pending = Task.WhenAll(hook, quiescence);
-			_abandoned[id] = pending;
-			_ = FinishAbandonedAsync(entry, pending);
+			if (entry.Abandoned) return;
+			Quarantine(entry, Task.WhenAll(hook, entry.RunningHooks(), Quiescence(entry)), shutdown: true);
 		}
-		private async Task FinishAbandonedAsync(Instance entry, Task pending)
+		private static Task Quiescence(Instance entry) => (entry.Plugin as IPluginDeferredCleanup)?.Quiescence ?? Task.CompletedTask;
+		/// <summary>
+		/// Keeps a stopped instance and its scopes (native handles, device leases) until its pending work finishes, however
+		/// long that takes, and blocks new instances of the plugin meanwhile. The host itself never waits for it.
+		/// </summary>
+		private void Quarantine(Instance entry, Task pending, bool shutdown)
+		{
+			string id = entry.Factory.Descriptor.Id;
+			entry.Abandoned = entry.Cleaned = true;
+			SetStatus(id, PluginState.Unresponsive, "Waiting for an unresponsive plugin; its next instance is blocked.");
+			// Another instance of the same plugin may still be draining; the next one waits for both.
+			_abandoned[id] = _abandoned.TryGetValue(id, out var earlier) ? Task.WhenAll(earlier, pending) : pending;
+			_ = FinishQuarantineAsync(entry, pending, shutdown);
+		}
+		private async Task FinishQuarantineAsync(Instance entry, Task pending, bool shutdown)
 		{
 			try { await pending.ConfigureAwait(false); } catch (Exception error) { _log("Abandoned hook: " + error.Message); }
 			await Scheduler.Switch();
-			// This old instance is quarantined independently of the active game's lifecycle gate.
-			using var deadline = new CancellationTokenSource(CleanupTimeout);
-			try { await entry.Plugin.ShutdownAsync(deadline.Token).ConfigureAwait(false); }
-			catch (Exception error) { _log("Deferred shutdown: " + error.Message); }
-			await Scheduler.Switch();
-			SafeDispose(entry.Plugin);
+			if (shutdown) {
+				// This old instance is quarantined independently of the active game's lifecycle gate.
+				using var deadline = new CancellationTokenSource(CleanupTimeout);
+				try { await entry.Plugin.ShutdownAsync(deadline.Token).ConfigureAwait(false); }
+				catch (Exception error) { _log("Deferred shutdown: " + error.Message); }
+				await Scheduler.Switch();
+			}
+			SafeDispose(entry.GameScope); SafeDispose(entry.ApplicationScope); SafeDispose(entry.Plugin);
 			string id = entry.Factory.Descriptor.Id;
+			if (!_abandoned.TryGetValue(id, out var remaining)) return;
+			// Unblock the plugin only when every abandoned instance has drained, not just this one.
+			try { await remaining.ConfigureAwait(false); } catch { /* logged by each instance */ }
+			await Scheduler.Switch();
+			if (!_abandoned.TryGetValue(id, out var current) || current != remaining) return;
 			_abandoned.Remove(id);
 			if (_statuses[id].State == PluginState.Unresponsive) SetStatus(id, PluginState.Available, "Previous instance stopped.");
 		}
@@ -286,7 +315,7 @@ namespace VisualPinball.Plugins
 			if (entry.Prepared) {
 				using var stopDeadline = CancellationTokenSource.CreateLinkedTokenSource(cleanup);
 				stopDeadline.CancelAfter(CleanupTimeout);
-				try { await AwaitHookAsync(entry.Plugin.StopGameAsync(stopDeadline.Token), stopDeadline.Token).ConfigureAwait(false); await Scheduler.Switch(); }
+				try { await AwaitHookAsync(entry, entry.Plugin.StopGameAsync(stopDeadline.Token), stopDeadline.Token).ConfigureAwait(false); await Scheduler.Switch(); }
 				catch (HookDeadlineException error) { await Scheduler.Switch(); Abandon(entry, error.Hook); return; }
 				catch (OperationCanceledException) when (stopDeadline.IsCancellationRequested) {
 					await Scheduler.Switch(); Abandon(entry, Task.CompletedTask); return;
@@ -296,7 +325,7 @@ namespace VisualPinball.Plugins
 			SafeDispose(entry.GameScope);
 			using var shutdownDeadline = CancellationTokenSource.CreateLinkedTokenSource(cleanup);
 			shutdownDeadline.CancelAfter(CleanupTimeout);
-			try { await AwaitHookAsync(entry.Plugin.ShutdownAsync(shutdownDeadline.Token), shutdownDeadline.Token).ConfigureAwait(false); await Scheduler.Switch(); }
+			try { await AwaitHookAsync(entry, entry.Plugin.ShutdownAsync(shutdownDeadline.Token), shutdownDeadline.Token).ConfigureAwait(false); await Scheduler.Switch(); }
 			catch (HookDeadlineException error) { await Scheduler.Switch(); Abandon(entry, error.Hook); return; }
 			catch (Exception error) { await Scheduler.Switch(); _log(id + " / Shutdown: " + error.Message); }
 			SafeDispose(entry.ApplicationScope); SafeDispose(entry.Plugin);
@@ -363,6 +392,9 @@ namespace VisualPinball.Plugins
 				Emergency(entry);
 				if (entry.Cleaned) continue;
 				entry.Cleaned = true;
+				// Hooks and workers still running keep their resources until they are done; everything else goes now.
+				var pending = Task.WhenAll(entry.RunningHooks(), Quiescence(entry));
+				if (!pending.IsCompleted) { Quarantine(entry, pending, shutdown: false); continue; }
 				SafeDispose(entry.GameScope); SafeDispose(entry.ApplicationScope); SafeDispose(entry.Plugin);
 			}
 		}

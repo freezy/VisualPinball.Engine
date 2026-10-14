@@ -114,7 +114,7 @@ namespace VisualPinball.Unity
 			string layout = "seg16", hardware = "";
 			if (_engine is ISegmentDisplayMetadata metadata && metadata.TryGetSegmentLayout(id, out var declared, out var declaredHardware)) { layout = declared; hardware = declaredHardware; }
 			// Displays are numbered in announcement order, so consumers can lay out digits before any frame arrives.
-			var source = new SegmentResourceSource(_segments.Count, elements, _fault);
+			var source = new SegmentResourceSource(_segments.Count, elements, layout, hardware, _fault);
 			var descriptor = new PluginResourceDescriptor(_controllerId + "/segments/" + id, _provider, _controllerId, id, "segments", ResourceKind.Segments, _session, Interlocked.Increment(ref _instance));
 			_segments.Add(id, new Segments(source, _registry.Publish(descriptor, source), layout, hardware));
 		}

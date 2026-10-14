@@ -84,6 +84,7 @@ namespace VisualPinball.Plugins
 			try {
 				// Freeze the draft before any asynchronous discovery so editing cannot change the validated transaction.
 				var draft = Draft.Copy();
+				var frozenResets = new HashSet<string>(_resetFields, StringComparer.Ordinal);
 				var changed = ChangedFields();
 				var resources = _resources();
 				var effective = await Task.Run(() => {
@@ -113,13 +114,30 @@ namespace VisualPinball.Plugins
 				if (host != null) {
 					var result = await host.CommitSettingsAsync(_factory, draft, Game, linked.Token, changed).ConfigureAwait(false);
 					await host.Scheduler.Switch();
-					if (result.Success) Revert();
+					if (result.Success) Rebase(draft, frozenResets);
 					return result;
 				}
 				await Task.Run(() => _store.SavePatch(_factory.Descriptor, _factory.Schema, draft, changed, Game)).ConfigureAwait(false);
-				Revert();
+				Rebase(draft, frozenResets);
 				return new PluginActionResult(true, "Saved. Changes take effect on the next game.");
 			} finally { _apply.Release(); }
+		}
+		/// <summary>
+		/// Reloads the saved profile after a successful apply, then re-applies fields edited after <paramref name="frozen"/>
+		/// was taken, so changes made while the apply ran stay pending instead of being discarded.
+		/// </summary>
+		private void Rebase(PluginSettingsSnapshot frozen, HashSet<string> frozenResets)
+		{
+			var current = Draft;
+			var currentResets = new HashSet<string>(_resetFields, StringComparer.Ordinal);
+			Revert();
+			foreach (var field in _factory.Schema.Fields) {
+				string id = field.Id;
+				bool reset = currentResets.Contains(id);
+				if (JToken.DeepEquals(frozen.Value(id), current.Value(id)) && reset == frozenResets.Contains(id)) continue;
+				Draft.Set(id, current.Value(id));
+				if (reset) _resetFields.Add(id);
+			}
 		}
 		private static IEnumerable<(PluginField Field, JToken? Value, string Path)> ChoiceBindings(IEnumerable<PluginField> fields, PluginSettingsSnapshot snapshot, string prefix = "")
 		{

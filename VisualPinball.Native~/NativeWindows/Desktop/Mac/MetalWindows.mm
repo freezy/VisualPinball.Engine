@@ -52,6 +52,8 @@ fragment float4 vpnw_fragment(Varying input [[stage_in]], texture2d<float> sourc
 		CAMetalLayer* layer = nil;
 		id<MTLTexture> texture = nil;
 		id<MTLTexture> rawSnapshot = nil;
+		// Keep the drawable at the window's pixel size when the user resizes it or it moves to another display.
+		id resizeObserver = nil, scaleObserver = nil;
 		std::atomic<int> inFlight{ 0 };
 		bool alive = true, visible = false, topmost = false, flip = false, closing = false;
 		int left, top, width, height;
@@ -72,10 +74,31 @@ fragment float4 vpnw_fragment(Varying input [[stage_in]], texture2d<float> sourc
 				layer.allowsNextDrawableTimeout = YES; layer.displaySyncEnabled = NO;
 				layer.drawableSize = CGSizeMake(w, h); layer.contentsScale = window.backingScaleFactor;
 				window.contentView.wantsLayer = YES; window.contentView.layer = layer;
+				// Runs on the main thread without the window mutex: Diagnostics holds it while waiting for the main thread.
+				__weak NSWindow* weakWindow = window; __weak CAMetalLayer* weakLayer = layer;
+				void (^refresh)(NSNotification*) = ^(NSNotification*) {
+					NSWindow* resized = weakWindow; CAMetalLayer* target = weakLayer;
+					if (!resized || !target) return;
+					NSRect pixels = vpnw::PixelFrame(resized);
+					target.contentsScale = resized.backingScaleFactor;
+					target.drawableSize = CGSizeMake(std::round(pixels.size.width), std::round(pixels.size.height));
+				};
+				NSNotificationCenter* center = NSNotificationCenter.defaultCenter;
+				resizeObserver = [center addObserverForName:NSWindowDidResizeNotification object:window queue:NSOperationQueue.mainQueue usingBlock:refresh];
+				scaleObserver = [center addObserverForName:NSWindowDidChangeBackingPropertiesNotification object:window queue:NSOperationQueue.mainQueue usingBlock:refresh];
+			});
+		}
+		void StopObserving()
+		{
+			id resize = resizeObserver, scale = scaleObserver; resizeObserver = scaleObserver = nil;
+			if (resize || scale) dispatch_async(dispatch_get_main_queue(), ^{
+				if (resize) [NSNotificationCenter.defaultCenter removeObserver:resize];
+				if (scale) [NSNotificationCenter.defaultCenter removeObserver:scale];
 			});
 		}
 		~MetalWindow() override
 		{
+			StopObserving();
 			NSWindow* owned = window;
 			if (owned) dispatch_async(dispatch_get_main_queue(), ^{ [owned orderOut:nil]; [owned close]; });
 		}
@@ -123,7 +146,7 @@ fragment float4 vpnw_fragment(Varying input [[stage_in]], texture2d<float> sourc
 			if (inFlight.load() != 0) return false;
 			if (!closing)
 			{
-				closing = true; NSWindow* owned = window; window = nil; layer = nil;
+				closing = true; StopObserving(); NSWindow* owned = window; window = nil; layer = nil;
 				dispatch_async(dispatch_get_main_queue(), ^{ [owned close]; });
 			}
 			return true;

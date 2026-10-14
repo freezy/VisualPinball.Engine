@@ -66,7 +66,7 @@ namespace VisualPinball.Plugins
 							try {
 								using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellation); deadline.CancelAfter(StartupTimeout);
 								var hook = asynchronous.ApplyAsync(live, deadline.Token);
-								await AwaitHookAsync(hook, deadline.Token).ConfigureAwait(false); await Scheduler.Switch(); result = await hook.ConfigureAwait(false);
+								await AwaitHookAsync(entry, hook, deadline.Token).ConfigureAwait(false); await Scheduler.Switch(); result = await hook.ConfigureAwait(false);
 							} catch (HookDeadlineException error) { await Scheduler.Switch(); Abandon(entry, error.Hook); return new PluginActionResult(false, "Live configuration did not finish; settings were not saved."); }
 							finally { await Scheduler.Switch(); entry.Busy = false; }
 						} else return new PluginActionResult(false, "The plugin does not implement live configuration.");
@@ -89,7 +89,7 @@ namespace VisualPinball.Plugins
 						else {
 							entry.Busy = true; using var deadline = new CancellationTokenSource(StartupTimeout);
 							var hook = asynchronous!.ApplyAsync(previous, deadline.Token);
-							await AwaitHookAsync(hook, deadline.Token).ConfigureAwait(false); await Scheduler.Switch(); rollback = await hook.ConfigureAwait(false);
+							await AwaitHookAsync(entry, hook, deadline.Token).ConfigureAwait(false); await Scheduler.Switch(); rollback = await hook.ConfigureAwait(false);
 						}
 						if (!rollback.Success) Fault(factory.Descriptor.Id, PluginPhase.Prepare, new InvalidOperationException("Runtime settings rollback failed."));
 						else entry.Settings = previous;

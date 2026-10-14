@@ -49,10 +49,12 @@ namespace VisualPinball.Plugins
 		public ResourceKind Kind => ResourceKind.Segments;
 		public int Order { get; }
 		public int Elements { get; }
-		public SegmentResourceSource(Action<Exception>? fault = null) : this(0, 0, fault) { }
-		public SegmentResourceSource(int order, int elements, Action<Exception>? fault = null)
+		public string Layout { get; }
+		public string Hardware { get; }
+		public SegmentResourceSource(Action<Exception>? fault = null) : this(0, 0, "", "", fault) { }
+		public SegmentResourceSource(int order, int elements, string layout, string hardware, Action<Exception>? fault = null)
 		{
-			Order = order; Elements = elements;
+			Order = order; Elements = elements; Layout = layout ?? ""; Hardware = hardware ?? "";
 			_signal = new ResourceSignal<PluginSegmentFrame>(fault);
 		}
 		public IDisposable Subscribe(Action<PluginSegmentFrame> receive) => _signal.Subscribe(receive);

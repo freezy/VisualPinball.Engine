@@ -36,11 +36,13 @@ namespace VisualPinball.Plugins.Test
 		public void SegmentDisplaysAnnounceTheirPlaceBeforeTheFirstFrame()
 		{
 			var registry = new PluginResourceRegistry();
-			using var source = new SegmentResourceSource(1, 7);
+			using var source = new SegmentResourceSource(1, 7, "seg14", "vfd-green");
 			using var publication = registry.Publish(new PluginResourceDescriptor("pinmame/segments/display1", "pinmame", "pinmame", "display1", "segments", ResourceKind.Segments, 1, 1), source);
 			using var binding = registry.Bind<IPluginSegmentSource>(new PluginResourceSelection(ResourceKind.Segments) { Session = 1 });
 			Assert.That(binding.Source!.Order, Is.EqualTo(1));
 			Assert.That(binding.Source.Elements, Is.EqualTo(7));
+			Assert.That(binding.Source.Layout, Is.EqualTo("seg14"));
+			Assert.That(binding.Source.Hardware, Is.EqualTo("vfd-green"));
 		}
 
 		[Test]
