@@ -1989,6 +1989,10 @@ namespace VisualPinball.Unity.Test
 				var terminalColliderCount = triangleColliders.Count(collider =>
 					math.abs(collider.Header.Material.Elasticity - 0.91f) < 0.0001f);
 				Assert.That(terminalColliderCount, Is.EqualTo(expectedTerminalTriangleCount));
+				Assert.That(triangleColliders.Where(collider =>
+					math.abs(collider.Header.Material.Elasticity - 0.91f) < 0.0001f).All(collider =>
+					math.abs(collider.Header.Material.ScatterAngleRad - math.radians(0.42f)) < 0.000001f), Is.True,
+					"the terminal material's scatter angle is in degrees");
 				Assert.That(triangleColliders.Any(collider =>
 					math.abs(collider.Header.Material.Elasticity - 0.3f) < 0.0001f), Is.True,
 					"the channel and approach leads should retain the ordinary material");
@@ -1996,6 +2000,42 @@ namespace VisualPinball.Unity.Test
 				colliders.Dispose();
 				transforms.Dispose();
 				Object.DestroyImmediate(terminalMaterial);
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		[Test]
+		public void ShouldConvertTheChannelMaterialScatterAngleToRadians()
+		{
+			var go = new GameObject("Wire Rail");
+			var channelMaterial = ScriptableObject.CreateInstance<PhysicsMaterialAsset>();
+			var transforms = new NativeParallelHashMap<int, float4x4>(0, Allocator.Temp);
+			var colliders = new ColliderReference(ref transforms, Allocator.Temp);
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				component.SetRailCount(2);
+				channelMaterial.Elasticity = 0.77f;
+				channelMaterial.ElasticityFalloff = 0.11f;
+				channelMaterial.Friction = 0.23f;
+				channelMaterial.ScatterAngle = 0.35f;
+				component.PhysicsMaterialReference = channelMaterial;
+				component.PhysicsOverwrite = false;
+
+				((ICollidableComponent)component).GetColliders(null, null, ref colliders,
+					float4x4.identity, 0f);
+
+				var triangleColliders = colliders.ToArray().OfType<TriangleCollider>().ToArray();
+				Assert.That(triangleColliders, Is.Not.Empty);
+				Assert.That(triangleColliders.All(collider =>
+					math.abs(collider.Header.Material.Elasticity - 0.77f) < 0.0001f), Is.True,
+					"the channel colliders should use the referenced material");
+				Assert.That(triangleColliders.All(collider =>
+					math.abs(collider.Header.Material.ScatterAngleRad - math.radians(0.35f)) < 0.000001f), Is.True,
+					"the referenced material's scatter angle is in degrees");
+			} finally {
+				colliders.Dispose();
+				transforms.Dispose();
+				Object.DestroyImmediate(channelMaterial);
 				Object.DestroyImmediate(go);
 			}
 		}

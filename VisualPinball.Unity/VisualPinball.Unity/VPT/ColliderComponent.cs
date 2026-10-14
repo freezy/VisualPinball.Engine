@@ -110,7 +110,7 @@ namespace VisualPinball.Unity
 					Elasticity = PhysicsMaterial.Elasticity,
 					ElasticityFalloff = PhysicsMaterial.ElasticityFalloff,
 					Friction = PhysicsMaterial.Friction,
-					ScatterAngleRad = PhysicsMaterial.ScatterAngle
+					ScatterAngleRad = math.radians(PhysicsMaterial.ScatterAngle)
 				};
 				return physicsMaterialData;
 			}
