@@ -23,7 +23,8 @@ namespace VisualPinball.Unity
 			internal DateTime Modified;
 			internal GameIdentity Identity;
 		}
-		private static readonly Dictionary<string, Cached> Cache = new Dictionary<string, Cached>(StringComparer.OrdinalIgnoreCase);
+		// Ordinal on every platform: Linux paths are case-sensitive, and elsewhere a differently cased path only costs a second read.
+		private static readonly Dictionary<string, Cached> Cache = new Dictionary<string, Cached>(StringComparer.Ordinal);
 		public static Task<GameIdentity> ReadAsync(string path, CancellationToken cancellation = default) => Task.Run(() => Read(path, cancellation), cancellation);
 		private static GameIdentity Read(string path, CancellationToken cancellation)
 		{
