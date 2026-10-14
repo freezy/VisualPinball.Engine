@@ -416,18 +416,22 @@ namespace VisualPinball.Unity.Editor
 				// non-deterministic since the uncovered set shifts with table state).
 				var flashers = new HashSet<LightComponent>();
 				var flasherDevices = new HashSet<Component>();
-				var flasherBulbs = new Dictionary<InsertLightComponent, bool[]>();
+				var insertBulbs = new Dictionary<InsertLightComponent, InsertBulbMapping>();
 				var lamps = tableComponent.MappingConfig?.Lamps;
 				if (lamps != null) {
 					var resolved = new List<LightComponent>();
 					foreach (var lampMapping in lamps) {
-						if (lampMapping == null || !lampMapping.IsCoil || lampMapping.Device == null) {
+						if (lampMapping == null || lampMapping.Device == null) {
+							continue;
+						}
+						// Every mapping that reaches an insert bulb directly takes that bulb over, lamp or coil.
+						ResolveInsertBulbs(lampMapping.Device, lampMapping.DeviceItem, lampMapping.IsCoil, insertBulbs);
+						if (!lampMapping.IsCoil) {
 							continue;
 						}
 						if (lampMapping.Device is Component devComp && devComp) {
 							flasherDevices.Add(devComp);
 						}
-						ResolveInsertBulbs(lampMapping.Device, lampMapping.DeviceItem, flasherBulbs);
 						resolved.Clear();
 						ResolveLightComponents(lampMapping.Device, resolved);
 						foreach (var lc in resolved) {
@@ -452,15 +456,14 @@ namespace VisualPinball.Unity.Editor
 					if (!insert) {
 						continue;
 					}
-					if (!flasherBulbs.TryGetValue(insert, out var flasher)) {
-						flasher = new bool[InsertLightComponent.MaxBulbs];
-					}
-					// An insert under a flasher lamp, or named like one (the VPX "F_" fallback), is a flasher as a whole.
-					var parentLamp = insert.GetComponentInParent<LightComponent>(true);
-					if (parentLamp && (flashers.Contains(parentLamp) || parentLamp.name.StartsWith("F_", StringComparison.Ordinal)) || insert.name.StartsWith("F_", StringComparison.Ordinal)) {
-						for (var i = 0; i < flasher.Length; i++) {
-							flasher[i] = true;
-						}
+					var mapping = insertBulbs.TryGetValue(insert, out var found) ? found : new InsertBulbMapping();
+					var flasher = (bool[])mapping.Flasher.Clone();
+					// A lamp above the insert drives its main bulb only, and only while no mapping takes that bulb
+					// over (the extra bulbs follow their own mappings), as InsertLightComponent does in the game.
+					if (!mapping.Mapped[0]) {
+						var parentLamp = insert.GetComponentInParent<LightComponent>(true);
+						flasher[0] = parentLamp && (flashers.Contains(parentLamp) || parentLamp.name.StartsWith("F_", StringComparison.Ordinal))
+							|| insert.name.StartsWith("F_", StringComparison.Ordinal);
 					}
 					_inserts.Add(new InsertEntry(insert, flasher));
 				}
@@ -557,34 +560,31 @@ namespace VisualPinball.Unity.Editor
 			private static bool BelongsToInsert(Component component) =>
 				component.GetComponentInParent<InsertLightComponent>(true) || component.GetComponentInParent<InsertComponent>(true);
 
-			// Mark the insert bulbs a coil (flasher) mapping drives: one bulb of an insert mapped directly,
-			// every bulb of an insert under a mapped lamp or group.
-			private static void ResolveInsertBulbs(ILampDeviceComponent device, string deviceItem, Dictionary<InsertLightComponent, bool[]> result)
+			// Which bulbs of an insert mappings drive directly, and which of those are flashers (coil mappings).
+			private sealed class InsertBulbMapping
 			{
-				bool[] Bulbs(InsertLightComponent insert)
-				{
-					if (!result.TryGetValue(insert, out var bulbs)) {
-						result[insert] = bulbs = new bool[InsertLightComponent.MaxBulbs];
-					}
-					return bulbs;
-				}
+				public readonly bool[] Mapped = new bool[InsertLightComponent.MaxBulbs];
+				public readonly bool[] Flasher = new bool[InsertLightComponent.MaxBulbs];
+			}
+
+			// Record the insert bulb a mapping drives directly: the bulb of an insert mapped itself, or of an insert
+			// taking part in a mapped group. A mapped lamp above an insert is resolved per insert instead.
+			private static void ResolveInsertBulbs(ILampDeviceComponent device, string deviceItem, bool isCoil, Dictionary<InsertLightComponent, InsertBulbMapping> result)
+			{
 				switch (device) {
 					case InsertLightComponent insert when insert:
-						Bulbs(insert)[InsertLightComponent.BulbIndex(deviceItem)] = true;
-						break;
-					case LightComponent lamp when lamp:
-						foreach (var insert in lamp.GetComponentsInChildren<InsertLightComponent>(true)) {
-							var bulbs = Bulbs(insert);
-							for (var i = 0; i < bulbs.Length; i++) {
-								bulbs[i] = true;
-							}
+						if (!result.TryGetValue(insert, out var mapping)) {
+							result[insert] = mapping = new InsertBulbMapping();
 						}
+						var bulb = InsertLightComponent.BulbIndex(deviceItem);
+						mapping.Mapped[bulb] = true;
+						mapping.Flasher[bulb] |= isCoil;
 						break;
 					case LightGroupComponent group when group:
 						// Each member takes part with one of its lamps, such as a single bulb of an insert.
 						for (var index = 0; index < group._lights.Length; index++) {
 							if (group._lights[index] && group._lights[index] is ILampDeviceComponent child) {
-								ResolveInsertBulbs(child, group.LampId(index), result);
+								ResolveInsertBulbs(child, group.LampId(index), isCoil, result);
 							}
 						}
 						break;
