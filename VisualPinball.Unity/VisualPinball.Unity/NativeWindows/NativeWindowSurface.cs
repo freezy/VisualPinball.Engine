@@ -20,6 +20,32 @@ namespace VisualPinball.Unity
 	/// <see cref="NativeWindowHost"/>, which issues <see cref="DrawEventId"/> and <see cref="PresentEventId"/> once
 	/// per frame for all surfaces. Dispose the surface before releasing its RenderTexture. The wrapper has explicit
 	/// ownership and no finalizer.
+	/// <para>
+	/// Plugins use it to put a premultiplied RGBA RenderTexture on a second or third monitor, with transparent areas
+	/// showing the desktop behind: PinUP opens one per PUP screen, the B2S plugin one for the backglass and one for the
+	/// B2S DMD, and both open one in placement mode for the Player's screen layout editor (see
+	/// <see cref="IUnitySettingsWindow"/>). The texture never leaves the GPU. Use the instance from the main thread, as
+	/// all VPE users do. Instance members throw <see cref="ObjectDisposedException"/> after <see cref="Dispose"/>, and
+	/// <see cref="InvalidOperationException"/> carrying <see cref="LastError"/> when the native call fails.
+	/// </para>
+	/// <example>
+	/// <code>
+	/// if (!NativeWindowSurface.IsSupported) {
+	///     return; // Missing library or unsupported graphics backend; never throws.
+	/// }
+	/// var texture = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32);
+	/// texture.Create();
+	/// var surface = new NativeWindowSurface(x, y, width, height); // hidden
+	/// surface.SetTexture(texture.GetNativeTexturePtr());
+	/// surface.Configure(x, y, width, height, visible: true, topmost: false);
+	/// var lease = NativeWindowHost.Register(surface);
+	///
+	/// // Shutdown: unregister, destroy the window, then release the texture.
+	/// lease.Dispose();
+	/// surface.Dispose();
+	/// texture.Release();
+	/// </code>
+	/// </example>
 	/// </remarks>
 	public sealed class NativeWindowSurface : IDisposable
 	{
@@ -63,27 +89,50 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		/// <summary>Unity's UnityGfxRenderer as seen by the native plugin, or -1 when the library is unavailable.</summary>
+		/// <summary>
+		/// Unity's UnityGfxRenderer as seen by the native plugin, or -1 when the library is unavailable. The supported values
+		/// are 2 (Direct3D11), 16 (Metal), 18 (Direct3D12) and 21 (Vulkan). Useful in log messages when
+		/// <see cref="IsSupported"/> is false.
+		/// </summary>
 		public static int GraphicsRenderer => LibraryAvailable ? Native.GetGraphicsRenderer() : -1;
 
-		/// <summary>Window features of the current platform and session.</summary>
+		/// <summary>
+		/// Window features of the current platform and session, or <see cref="NativeWindowCapabilities.None"/> when the
+		/// library is unavailable.
+		/// </summary>
 		public static NativeWindowCapabilities Capabilities => LibraryAvailable
 			? (NativeWindowCapabilities)Native.GetCapabilities()
 			: NativeWindowCapabilities.None;
 
-		/// <summary>Unity rendering callback. Issue <see cref="DrawEventId"/> and then <see cref="PresentEventId"/> with it.</summary>
+		/// <summary>
+		/// Unity rendering callback for <c>GL.IssuePluginEvent</c>, or <see cref="IntPtr.Zero"/> when the library is
+		/// unavailable. Issue <see cref="DrawEventId"/> and then <see cref="PresentEventId"/> with it. Plugins do not need it:
+		/// <see cref="NativeWindowHost"/> issues the events.
+		/// </summary>
 		public static IntPtr RenderEventFunction => LibraryAvailable ? Native.GetRenderEventFunc() : IntPtr.Zero;
 
-		/// <summary>Submit after the frame's GPU work, followed immediately by <see cref="PresentEventId"/>. Operates on all surfaces.</summary>
+		/// <summary>
+		/// Event ID of the per-frame draw step for all windows. Submit after the frame's GPU work, followed immediately by
+		/// <see cref="PresentEventId"/>. Operates on all surfaces. 0 when the library is unavailable.
+		/// </summary>
 		public static int DrawEventId => LibraryAvailable ? Native.GetDrawEventId() : 0;
 
-		/// <summary>Presents all surfaces; submit right after <see cref="DrawEventId"/>, once per frame.</summary>
+		/// <summary>
+		/// Event ID that presents all surfaces; submit right after <see cref="DrawEventId"/>, once per frame. 0 when the
+		/// library is unavailable.
+		/// </summary>
 		public static int PresentEventId => LibraryAvailable ? Native.GetPresentEventId() : 0;
 
-		/// <summary>Retired GPU source and presentation objects awaiting later render events. Keep issuing event pairs until zero.</summary>
+		/// <summary>
+		/// Retired GPU source and presentation objects awaiting later render events. Keep issuing event pairs until zero.
+		/// <see cref="NativeWindowHost"/> does this after its last surface is unregistered. 0 when the library is unavailable.
+		/// </summary>
 		public static int PendingResourceCount => LibraryAvailable ? Native.GetPendingResourceCount() : 0;
 
-		/// <summary>Processes platform window events (Linux placement dragging). Call once per frame from the main thread.</summary>
+		/// <summary>
+		/// Processes platform window events (Linux placement dragging). Call once per frame from the main thread. A no-op on
+		/// Windows and macOS and when the library is unavailable. <see cref="NativeWindowHost"/> calls it every frame.
+		/// </summary>
 		public static void Pump()
 		{
 			if (LibraryAvailable) {
@@ -92,6 +141,12 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>Destroys all native windows, for shutdown or domain-reload cleanup by the host.</summary>
+		/// <remarks>
+		/// This affects the windows of every plugin. Existing <see cref="NativeWindowSurface"/> instances keep their
+		/// <see cref="Id"/>, so their other members then fail; <see cref="Dispose"/> stays safe because native destruction is
+		/// idempotent. GPU resources still retire through later render events. Plugins should dispose their own surfaces
+		/// instead.
+		/// </remarks>
 		public static void DestroyAll()
 		{
 			if (LibraryAvailable) {
@@ -99,7 +154,10 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		/// <summary>The last native error message (UTF-8), for diagnostics.</summary>
+		/// <summary>
+		/// The last native error message (UTF-8), for diagnostics, or a message naming the missing library when it is
+		/// unavailable. The native library keeps one message for all windows, so read it right after a failure.
+		/// </summary>
 		public static string LastError
 		{
 			get {
@@ -139,6 +197,15 @@ namespace VisualPinball.Unity
 		#endregion
 
 		/// <summary>Creates an initially hidden window, using signed physical desktop pixel coordinates.</summary>
+		/// <remarks>
+		/// Check <see cref="IsSupported"/> first: the constructor only verifies that the library loads, not that Unity's
+		/// graphics backend can present. Then assign a texture, call <see cref="Configure"/> to show the window and register
+		/// it with <see cref="NativeWindowHost"/>.
+		/// </remarks>
+		/// <param name="x">Left edge in physical desktop pixels; negative left of the primary monitor.</param>
+		/// <param name="y">Top edge in physical desktop pixels; negative above the primary monitor.</param>
+		/// <param name="width">Width in physical pixels.</param>
+		/// <param name="height">Height in physical pixels.</param>
 		/// <exception cref="PlatformNotSupportedException">The native library is missing or the player is not 64-bit.</exception>
 		/// <exception cref="InvalidOperationException">The native window could not be created; see <see cref="LastError"/>.</exception>
 		public NativeWindowSurface(int x, int y, int width, int height)
@@ -156,6 +223,19 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>Sets the physical desktop rectangle, visibility and topmost state. Identical calls are cached and skipped.</summary>
+		/// <remarks>
+		/// The cache makes calling it every frame cheap. It compares with the last values passed here (and the topmost state
+		/// set by <see cref="SetTopmost"/>), not with the window's current geometry, so repeating the previous call does not
+		/// undo a move the user made in placement mode.
+		/// </remarks>
+		/// <param name="x">Left edge in physical desktop pixels; negative left of the primary monitor.</param>
+		/// <param name="y">Top edge in physical desktop pixels; negative above the primary monitor.</param>
+		/// <param name="width">Width in physical pixels.</param>
+		/// <param name="height">Height in physical pixels.</param>
+		/// <param name="visible">True shows the window, false hides it.</param>
+		/// <param name="topmost">True keeps the window above normal windows.</param>
+		/// <exception cref="ObjectDisposedException">The surface was disposed.</exception>
+		/// <exception cref="InvalidOperationException">The native call failed; the message includes <see cref="LastError"/>.</exception>
 		public void Configure(int x, int y, int width, int height, bool visible, bool topmost)
 		{
 			RequireAlive();
@@ -178,7 +258,16 @@ namespace VisualPinball.Unity
 		/// Assigns the source texture, typically <c>RenderTexture.GetNativeTexturePtr()</c>, containing premultiplied RGBA
 		/// in the desired SDR encoding.
 		/// </summary>
-		/// <remarks>IntPtr.Zero detaches the source. Resubmit the pointer whenever Unity recreates or resizes the texture.</remarks>
+		/// <remarks>
+		/// IntPtr.Zero detaches the source. Resubmit the pointer whenever Unity recreates or resizes the texture. The pointer
+		/// is an <c>ID3D11Texture2D</c>, <c>ID3D12Resource</c>, <c>MTLTexture</c> or <c>VkImage*</c> depending on the
+		/// backend; the texture must be created and stay alive until it is detached or the surface is disposed. It is scaled
+		/// to the window size on the GPU.
+		/// </remarks>
+		/// <param name="texture">The native texture pointer, or <see cref="IntPtr.Zero"/> to show nothing.</param>
+		/// <param name="flipY">True flips the image vertically when it is presented. VPE's own callers pass false.</param>
+		/// <exception cref="ObjectDisposedException">The surface was disposed.</exception>
+		/// <exception cref="InvalidOperationException">The native call failed; the message includes <see cref="LastError"/>.</exception>
 		public void SetTexture(IntPtr texture, bool flipY = false)
 		{
 			RequireAlive();
@@ -188,6 +277,13 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>Allows mouse dragging and edge resizing while the user places the window. Playback windows stay fixed.</summary>
+		/// <remarks>
+		/// Read the result from <see cref="Diagnostics"/>. Only functional when <see cref="Capabilities"/> includes
+		/// <see cref="NativeWindowCapabilities.Placement"/>; on Linux the drags are processed by <see cref="Pump"/>.
+		/// </remarks>
+		/// <param name="enabled">True lets the user move and resize the window; false fixes it again.</param>
+		/// <exception cref="ObjectDisposedException">The surface was disposed.</exception>
+		/// <exception cref="InvalidOperationException">The native call failed; the message includes <see cref="LastError"/>.</exception>
 		public void SetPlacementMode(bool enabled)
 		{
 			RequireAlive();
@@ -197,15 +293,29 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>Moves the window behind other windows without moving, resizing or activating it.</summary>
+		/// <exception cref="ObjectDisposedException">The surface was disposed.</exception>
+		/// <exception cref="InvalidOperationException">The native call failed; the message includes <see cref="LastError"/>.</exception>
 		public void SendToBack() => SetZOrder(0);
 
 		/// <summary>Moves the window in front of other windows without moving, resizing or activating it.</summary>
+		/// <exception cref="ObjectDisposedException">The surface was disposed.</exception>
+		/// <exception cref="InvalidOperationException">The native call failed; the message includes <see cref="LastError"/>.</exception>
 		public void BringToFront() => SetZOrder(1);
 
 		/// <summary>Sets or clears the topmost state without moving, resizing or activating the window.</summary>
+		/// <remarks>The new state also updates the cache of <see cref="Configure"/>.</remarks>
+		/// <param name="topmost">True keeps the window above normal windows; false makes it a normal window again.</param>
+		/// <exception cref="ObjectDisposedException">The surface was disposed.</exception>
+		/// <exception cref="InvalidOperationException">The native call failed; the message includes <see cref="LastError"/>.</exception>
 		public void SetTopmost(bool topmost) => SetZOrder(topmost ? 2 : 3);
 
 		/// <summary>Actual window geometry, DPI, source and presentation counters. Query for troubleshooting, not every frame.</summary>
+		/// <remarks>
+		/// Each read crosses into the window system. The settings windows of PinUP and the B2S plugin also poll it to pick up
+		/// the rectangle after the user moved or resized the window in placement mode.
+		/// </remarks>
+		/// <exception cref="ObjectDisposedException">The surface was disposed.</exception>
+		/// <exception cref="InvalidOperationException">The native call failed; the message includes <see cref="LastError"/>.</exception>
 		public NativeWindowDiagnostics Diagnostics
 		{
 			get {
@@ -219,6 +329,11 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>Destroys the window. GPU resources are released by later render events; see <see cref="PendingResourceCount"/>.</summary>
+		/// <remarks>
+		/// Dispose the <see cref="NativeWindowHost"/> lease first and release the source texture afterwards. Calling it again
+		/// does nothing. <see cref="Id"/> is zero afterwards even when the native call fails.
+		/// </remarks>
+		/// <exception cref="InvalidOperationException">The native window could not be destroyed; see <see cref="LastError"/>.</exception>
 		public void Dispose()
 		{
 			if (Id == 0) {
