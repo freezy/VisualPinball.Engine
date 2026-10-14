@@ -43,6 +43,7 @@ namespace VisualPinball.Unity
 
 		private static readonly Dictionary<Camera, CameraState> Applied = new();
 		private static readonly HashSet<Camera> Touched = new();
+		private static readonly HashSet<Camera> Excluded = new();
 		private static int _suspended;
 		private static bool _hooked;
 
@@ -77,6 +78,30 @@ namespace VisualPinball.Unity
 				if (_active) {
 					_suspended--;
 				}
+			}
+		}
+
+		/// <summary>
+		/// Leaves a camera alone, for a camera whose projection already accounts for the turn (the cabinet
+		/// window projection).
+		/// </summary>
+		public static void Exclude(Camera camera)
+		{
+			if (camera == null || !Excluded.Add(camera)) {
+				return;
+			}
+			if (Applied.Remove(camera, out var state)) {
+				state.Restore(camera);
+			}
+			if (Touched.Remove(camera)) {
+				camera.ResetAspect();
+			}
+		}
+
+		public static void Include(Camera camera)
+		{
+			if (camera != null) {
+				Excluded.Remove(camera);
 			}
 		}
 
@@ -144,13 +169,15 @@ namespace VisualPinball.Unity
 		private static void ResetStatics()
 		{
 			SetMode(DisplayRotationMode.None);
+			Excluded.Clear();
 			_suspended = 0;
 		}
 
 		// Only the game cameras drawing on the main screen are turned; the scene view, reflection probes and
 		// cameras rendering into textures keep their image.
 		private static bool IsScreenCamera(Camera camera)
-			=> camera.cameraType == CameraType.Game && camera.targetTexture == null && camera.targetDisplay == 0;
+			=> camera.cameraType == CameraType.Game && camera.targetTexture == null && camera.targetDisplay == 0
+				&& !Excluded.Contains(camera);
 
 		// Per frame rather than per camera: HDRP derives a camera's view, projection and culling before it
 		// raises beginCameraRendering, so the camera must be turned before the pipeline starts on it.
