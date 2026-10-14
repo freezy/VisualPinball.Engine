@@ -89,9 +89,9 @@ Run `Windows/Build.ps1` from PowerShell with the Visual Studio C++ x64 toolchain
 The `Desktop` folder is a CMake project (3.22+). Point `UNITY_PLUGIN_API` at the Unity Editor's `PluginAPI` directory. With `VPNW_DEPLOY` (default on), the library is copied to `VisualPinball.Unity/Plugins/osx` or `VisualPinball.Unity/Plugins/linux-x64`.
 
 ```sh
-cmake -S Native~/NativeWindows/Desktop -B Native~/NativeWindows/Desktop/obj -DUNITY_PLUGIN_API="/Applications/Unity/Hub/Editor/6000.5.0f1/Unity.app/Contents/PluginAPI"
-cmake --build Native~/NativeWindows/Desktop/obj --config Release
-Native~/NativeWindows/Desktop/obj/NativeWindowTests
+cmake -S VisualPinball.Native~/NativeWindows/Desktop -B VisualPinball.Native~/NativeWindows/Desktop/obj -DUNITY_PLUGIN_API="/Applications/Unity/Hub/Editor/6000.5.0f1/Unity.app/Contents/PluginAPI"
+cmake --build VisualPinball.Native~/NativeWindows/Desktop/obj --config Release
+VisualPinball.Native~/NativeWindows/Desktop/obj/NativeWindowTests
 ```
 
 On macOS the default `CMAKE_OSX_ARCHITECTURES` is `arm64;x86_64`, producing a universal `libVisualPinballNativeWindows.dylib` (deployment target 14.0). Create its Unity `.meta` (Editor OSX and Standalone OSXUniversal enabled) when the binary is first added.
