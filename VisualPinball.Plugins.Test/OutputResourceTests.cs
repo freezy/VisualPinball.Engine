@@ -46,6 +46,43 @@ namespace VisualPinball.Plugins.Test
 		}
 
 		[Test]
+		public void AChosenDisplayIsPresentedThroughItsDerivedView()
+		{
+			var registry = new PluginResourceRegistry();
+			const string original = "pinmame/controller/0/display/dmd0", presentation = original + "/presentation/org.visualpinball.dmd";
+			const DisplayEncoding formats = DisplayEncoding.Gray4 | DisplayEncoding.Rgb24;
+			using var originalSource = new DisplayResourceSource();
+			using var originalPublication = registry.Publish(new PluginResourceDescriptor(original, "pinmame", "pinmame/controller/0", "dmd0", "dmd", ResourceKind.Display, 1, 1, ResourceView.Original, formats), originalSource);
+			var selection = new PluginResourceSelection(ResourceKind.Display) { ResourceId = original, Session = 1, Intent = ResourceView.Presentation, AllowOriginalFallback = true };
+			using var binding = registry.Bind<IPluginDisplaySource>(selection);
+			// Without a colorizer the chosen display itself is used.
+			Assert.That(binding.Descriptor!.Id, Is.EqualTo(original));
+			// Once a plugin presents it, the chosen display is shown through that view.
+			using var presentationSource = new DisplayResourceSource();
+			using (registry.Publish(new PluginResourceDescriptor(presentation, "org.visualpinball.dmd", "pinmame/controller/0", "dmd0 colorized", "dmd", ResourceKind.Display, 1, 2, ResourceView.Presentation, formats, original), presentationSource)) {
+				Assert.That(binding.Descriptor!.Id, Is.EqualTo(presentation));
+			}
+			Assert.That(binding.Descriptor!.Id, Is.EqualTo(original));
+		}
+
+		[Test]
+		public void AChosenDisplayIgnoresOtherDisplaysPresentations()
+		{
+			var registry = new PluginResourceRegistry();
+			const string chosen = "pinmame/controller/0/display/dmd0", other = "pinmame/controller/0/display/dmd1";
+			const DisplayEncoding formats = DisplayEncoding.Gray4 | DisplayEncoding.Rgb24;
+			using var chosenSource = new DisplayResourceSource();
+			using var otherSource = new DisplayResourceSource();
+			using var presentationSource = new DisplayResourceSource();
+			using var chosenPublication = registry.Publish(new PluginResourceDescriptor(chosen, "pinmame", "pinmame/controller/0", "dmd0", "dmd", ResourceKind.Display, 1, 1, ResourceView.Original, formats), chosenSource);
+			using var otherPublication = registry.Publish(new PluginResourceDescriptor(other, "pinmame", "pinmame/controller/0", "dmd1", "dmd", ResourceKind.Display, 1, 2, ResourceView.Original, formats), otherSource);
+			using var presentationPublication = registry.Publish(new PluginResourceDescriptor(other + "/presentation/x", "x", "pinmame/controller/0", "dmd1 colorized", "dmd", ResourceKind.Display, 1, 3, ResourceView.Presentation, formats, other), presentationSource);
+			using var binding = registry.Bind<IPluginDisplaySource>(new PluginResourceSelection(ResourceKind.Display) { ResourceId = chosen, Session = 1, Intent = ResourceView.Presentation, AllowOriginalFallback = true });
+			Assert.That(binding.State, Is.EqualTo(ResourceBindingState.Bound));
+			Assert.That(binding.Descriptor!.Id, Is.EqualTo(chosen));
+		}
+
+		[Test]
 		public void ControllerSourcesCarryOnlyControllerKinds()
 		{
 			Assert.Throws<System.ArgumentException>(() => new ControllerResourceSource(ResourceKind.Display));

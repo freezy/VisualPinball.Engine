@@ -80,7 +80,7 @@ namespace VisualPinball.Plugins
 		internal IReadOnlyList<Entry> Candidates(PluginResourceSelection selection)
 		{
 			var found = _entries.Values.Where(entry => selection.Matches(entry.Descriptor) && Reachable(entry, new HashSet<string>())).OrderBy(entry => entry.Descriptor.Id, StringComparer.Ordinal).ToList();
-			if (selection.ResourceId.Length == 0 && selection.Intent == ResourceView.Presentation && found.Any(entry => entry.Descriptor.View == ResourceView.Presentation))
+			if (selection.Intent == ResourceView.Presentation && found.Any(entry => entry.Descriptor.View == ResourceView.Presentation))
 				found.RemoveAll(entry => entry.Descriptor.View != ResourceView.Presentation);
 			return found;
 		}

@@ -120,6 +120,9 @@ namespace VisualPinball.Unity
 		private readonly OwnerScheduler _scheduler;
 		private readonly PluginResourceRegistry _registry;
 		private readonly Dictionary<string, Display> _displays = new Dictionary<string, Display>(StringComparer.Ordinal);
+		// What the engine's mapped lamp values mean, from the table's lamp mapping (the same rules LampPlayer applies).
+		private readonly Dictionary<(LampSource source, bool isCoil, string id), (ControllerValueSemantics semantics, double maximum)> _lampSemantics
+			= new Dictionary<(LampSource, bool, string), (ControllerValueSemantics, double)>();
 		private readonly ResourceScope _scope = new ResourceScope();
 		private readonly ControllerResourceSource _controller;
 		private readonly DisplayFormatNegotiator _group;
@@ -156,6 +159,8 @@ namespace VisualPinball.Unity
 		{
 			_engine = engine; _scheduler = scheduler; _registry = registry; _provider = identity.Provider; _controllerId = identity.Id + "/controller/0"; _session = session; _fault = fault;
 			_controller = new ControllerResourceSource(fault);
+			var mapping = table != null ? table.GetComponentInChildren<TableComponent>(true)?.MappingConfig : null;
+			if (mapping != null) foreach (var lamp in mapping.Lamps) AddLampSemantics(lamp);
 			var metadata = engine as IDisplayResourceMetadata;
 			_formats = metadata?.DisplayFormats ?? (engine is IDisplayFrameFormatPreference
 				? DisplayEncoding.Gray2 | DisplayEncoding.Gray4 | DisplayEncoding.Luminance8 | DisplayEncoding.Rgb24
@@ -247,11 +252,11 @@ namespace VisualPinball.Unity
 			if (args.Data == null || args.Data.Length < stride * display.Height) { _fault(new ArgumentException("Invalid frame buffer for " + args.Id)); return; }
 			display.Source.Publish(new PluginDisplayFrame(args.Data, display.Width, display.Height, stride, format, ++_sequence, Timestamp(), display.Instance));
 		}
-		private void Emit(ControllerEventKind kind, string id, double value)
+		private void Emit(ControllerEventKind kind, string id, double value, ControllerValueSemantics semantics = ControllerValueSemantics.Binary, double maximum = 1d)
 		{
 			if (_disposed) return;
-			if (!_scheduler.IsOwner) { _scheduler.Post(() => Emit(kind, id, value)); return; }
-			_controller.Publish(new PluginControllerEvent(kind, id, value, ++_sequence, Timestamp()));
+			if (!_scheduler.IsOwner) { _scheduler.Post(() => Emit(kind, id, value, semantics, maximum)); return; }
+			_controller.Publish(new PluginControllerEvent(kind, id, value, ++_sequence, Timestamp(), -1, semantics, maximum));
 		}
 		private void EmitNative(ControllerEventKind kind, int number, double value, ControllerValueSemantics semantics, double maximum)
 		{
@@ -265,8 +270,37 @@ namespace VisualPinball.Unity
 			if (number >= _numberNames.Length) return number.ToString(System.Globalization.CultureInfo.InvariantCulture);
 			return _numberNames[number] ??= number.ToString(System.Globalization.CultureInfo.InvariantCulture);
 		}
+		// Mapped coils stay binary: a normalized 0..1 value does not say whether the provider integrates it. Modulated coils
+		// are described by engines that report native outputs.
 		private void Coil(object sender, CoilEventArgs args) => Emit(ControllerEventKind.Coil, args.Id, args.Value);
-		private void Lamp(object sender, LampEventArgs args) => Emit(args.Source == LampSource.GI ? ControllerEventKind.GeneralIllumination : ControllerEventKind.Lamp, args.Id, args.Value);
+		private void Lamp(object sender, LampEventArgs args)
+		{
+			var (semantics, maximum) = _lampSemantics.TryGetValue((args.Source, args.IsCoil, args.Id), out var known) ? known : (ControllerValueSemantics.Binary, 1d);
+			Emit(args.Source == LampSource.GI ? ControllerEventKind.GeneralIllumination : ControllerEventKind.Lamp, args.Id, args.Value, semantics, maximum);
+		}
+		/// <summary>
+		/// Records what a mapped lamp's raw values mean, as <see cref="LampPlayer"/> normalizes them: on/off lamps are binary,
+		/// fading lamps run to their fading steps (a few steps are levels, such as WPC GI 0..8; one step is a normalized 0..1
+		/// brightness and many are physical brightness), and RGB channels run to 255. Numeric IDs are also registered without
+		/// leading zeros, as LampPlayer does. When several mappings share an ID, the widest range wins.
+		/// </summary>
+		private void AddLampSemantics(LampMapping lamp)
+		{
+			if (string.IsNullOrEmpty(lamp.Id)) return;
+			(ControllerValueSemantics, double) meaning = lamp.Type switch {
+				LampType.SingleFading when lamp.FadingSteps > 0 => (lamp.FadingSteps >= 2 && lamp.FadingSteps <= 9 ? ControllerValueSemantics.Levels : ControllerValueSemantics.Physical, (double)lamp.FadingSteps),
+				LampType.Rgb => (ControllerValueSemantics.Physical, 255d),
+				LampType.RgbMulti => (ControllerValueSemantics.Physical, 255d),
+				_ => (ControllerValueSemantics.Binary, 1d)
+			};
+			AddLampSemantics(lamp.Source, lamp.IsCoil, lamp.Id, meaning);
+			if (int.TryParse(lamp.Id, out int number) && number.ToString() != lamp.Id) AddLampSemantics(lamp.Source, lamp.IsCoil, number.ToString(), meaning);
+		}
+		private void AddLampSemantics(LampSource source, bool isCoil, string id, (ControllerValueSemantics semantics, double maximum) meaning)
+		{
+			var key = (source, isCoil, id);
+			if (!_lampSemantics.TryGetValue(key, out var existing) || meaning.maximum > existing.maximum) _lampSemantics[key] = meaning;
+		}
 		private void Lamps(object sender, LampsEventArgs args) { foreach (var lamp in args.LampsChanged) Lamp(sender, lamp); }
 		private void Switch(object sender, SwitchEventArgs2 args) => Emit(ControllerEventKind.Switch, args.Id, args.IsEnabled ? 1 : 0);
 		private static long Timestamp() => (long)(Stopwatch.GetTimestamp() * (1000000d / Stopwatch.Frequency));
