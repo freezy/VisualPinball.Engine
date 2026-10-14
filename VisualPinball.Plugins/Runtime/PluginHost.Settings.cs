@@ -15,8 +15,54 @@ namespace VisualPinball.Plugins
 {
 	public sealed partial class PluginHost
 	{
+		/// <summary>
+		/// Raised on the owner thread after settings were saved through <see cref="CommitGlobalSettingAsync"/> or
+		/// <see cref="CommitSettingsAsync"/>. Arguments: the plugin ID, the IDs of the saved fields, and the game whose
+		/// per-game settings changed, or null for global settings.
+		/// </summary>
+		/// <remarks>
+		/// Lets one settings view follow edits made elsewhere: the Player's plugin settings page refreshes the fields the user
+		/// has not touched when the volume mixer saves a value. Exceptions thrown by a handler are logged and do not reach other
+		/// handlers or the committing caller. Not raised when the commit fails or is cancelled.
+		/// </remarks>
 		public event Action<string, IReadOnlyCollection<string>, GameIdentity?>? SettingsCommitted;
-		/// <summary>Edits one canonical global field. Waiting for game startup does not discard a mixer edit.</summary>
+		/// <summary>
+		/// Saves one field's global value, applying it to the running plugin first when the field is
+		/// <see cref="ConfigurationChange.Live"/>. This is the write path for fields exposed on shared Player pages through
+		/// <see cref="PluginField.GlobalSetting"/>, such as the volume mixer.
+		/// </summary>
+		/// <remarks>
+		/// <para>
+		/// The call waits behind any game start, stop or other settings commit instead of failing, so an edit made while a game
+		/// is loading is applied once loading finishes rather than discarded. Only <paramref name="fieldId"/> is validated and
+		/// written; other saved fields are left as they are.
+		/// </para>
+		/// <para>
+		/// When a game is running, the field is <see cref="ConfigurationChange.Live"/> and its runtime value changes, the host
+		/// passes the plugin its current settings with the new value through <see cref="IPluginSynchronousReconfiguration"/> or
+		/// <see cref="IPluginReconfiguration"/> and saves only if that succeeds. If the plugin implements neither, the commit
+		/// fails and nothing is saved. If the running game overrides the field per game, the global edit is saved but the
+		/// runtime value, and so the plugin, stays on the game's value. Other fields take effect on the next game.
+		/// </para>
+		/// <para>
+		/// The Player queues these calls from its volume mixer and sends only the latest value per field.
+		/// </para>
+		/// </remarks>
+		/// <param name="factory">The installed plugin whose setting changes.</param>
+		/// <param name="fieldId">ID of a field that declares <see cref="PluginField.GlobalSetting"/> and is not game-only.</param>
+		/// <param name="value">The new value, in the field's JSON form.</param>
+		/// <param name="cancellation">
+		/// Cancels the commit. While waiting for the lifecycle gate it cancels the returned task; afterwards it yields a failed
+		/// result and any live change is rolled back. Once saving has started the save completes.
+		/// </param>
+		/// <returns>
+		/// Completes on the owner thread with success and <c>Saved.</c>, or failure and a message to show next to the control
+		/// (validation issues, a rejected live change, or <c>Settings change cancelled.</c>).
+		/// </returns>
+		/// <exception cref="ArgumentException">
+		/// Thrown immediately when the field does not exist, is not exposed as a global setting or is game-only; the task faults
+		/// with it when <paramref name="factory"/> is not installed in this host.
+		/// </exception>
 		public Task<PluginActionResult> CommitGlobalSettingAsync(IPlayerPluginFactory factory, string fieldId, JToken value, CancellationToken cancellation = default)
 		{
 			var field = factory.Schema.Fields.FirstOrDefault(item => item.Id == fieldId);
