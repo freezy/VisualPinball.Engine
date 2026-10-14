@@ -902,6 +902,36 @@ namespace VisualPinball.Plugins
 		/// </summary>
 		string Backend { get; }
 	}
+	/// <summary>
+	/// Well-known <see cref="PluginResourceDescriptor.Role"/> values of <see cref="ResourceKind.Surface"/> resources: the
+	/// cabinet screens a table can show in the scene.
+	/// </summary>
+	/// <remarks>
+	/// A table marks a renderer with VPE's <c>CabinetScreenComponent</c> and one of these roles. While a game runs, VPE shows
+	/// the surface published with that role on it; when several plugins publish the same role, the user's provider order
+	/// decides. Plugins may publish other roles, which tables can name as custom roles.
+	/// <example>
+	/// PinUP publishes PUP screen 0 as the topper:
+	/// <code>
+	/// game.Resources.Publish(new PluginResourceDescriptor(game.ControllerId + "/pinup/screen/0", plugin.Id, game.ControllerId,
+	///     "PUP screen 0", SurfaceRoles.Topper, ResourceKind.Surface, game.Session, instance), surface);
+	/// </code>
+	/// </example>
+	/// </remarks>
+	public static class SurfaceRoles
+	{
+		/// <summary>The backglass.</summary>
+		public const string Backglass = "backglass";
+		/// <summary>The screen of a topper above the backbox.</summary>
+		public const string Topper = "topper";
+		/// <summary>
+		/// The DMD in the backbox. In the scene, a DMD the game's own gamelogic engine announces takes precedence, so a
+		/// plugin's DMD surface only shows when the engine has none.
+		/// </summary>
+		public const string Dmd = "dmd";
+		/// <summary>A large DMD-sized screen in the backbox, PinUP's "FullDMD".</summary>
+		public const string FullDmd = "full-dmd";
+	}
 	/// <summary>One named trigger with an integer value, carried by <see cref="IPluginTriggerSource"/>.</summary>
 	/// <remarks>Nothing in VPE publishes trigger resources yet.</remarks>
 	public readonly struct PluginTriggerEvent
