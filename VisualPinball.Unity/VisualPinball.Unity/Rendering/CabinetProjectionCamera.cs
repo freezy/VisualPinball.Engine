@@ -4,6 +4,7 @@
 //
 // SPDX-License-Identifier: GPL-3.0-or-later
 
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace VisualPinball.Unity
@@ -33,6 +34,8 @@ namespace VisualPinball.Unity
 		private float _fieldOfView;
 		private float _near;
 		private float _far;
+		private float _aspect;
+		private bool _customAspect;
 
 		/// <summary>The projection currently applied, if any.</summary>
 		public bool HasProjection => _hasProjection;
@@ -67,8 +70,12 @@ namespace VisualPinball.Unity
 			_fieldOfView = _camera.fieldOfView;
 			_near = _camera.nearClipPlane;
 			_far = _camera.farClipPlane;
-
 			DisplayRotation.Exclude(_camera);
+			// After the exclusion, which resets the aspect a display rotation set. Unity doesn't tell whether the
+			// aspect is custom: one that differs from the viewport's is.
+			_aspect = _camera.aspect;
+			var viewport = _camera.pixelRect;
+			_customAspect = viewport.height > 0f && math.abs(_aspect - viewport.width / viewport.height) > 1e-4f;
 			CabinetProjection.SetActive(_camera);
 			_adapter = CabinetProjection.Adapter;
 			_adapter?.Attach(_camera);
@@ -91,7 +98,11 @@ namespace VisualPinball.Unity
 			_camera.ResetProjectionMatrix();
 			_adapter?.Detach(_camera);
 			_adapter = null;
-			_camera.ResetAspect();
+			if (_customAspect) {
+				_camera.aspect = _aspect;
+			} else {
+				_camera.ResetAspect();
+			}
 			_camera.orthographic = _orthographic;
 			_camera.usePhysicalProperties = _physical;
 			_camera.fieldOfView = _fieldOfView;

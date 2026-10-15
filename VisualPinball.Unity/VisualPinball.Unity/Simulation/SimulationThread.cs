@@ -250,8 +250,10 @@ namespace VisualPinball.Unity.Simulation
 		/// <remarks><b>Thread:</b> Main thread only (sets volatile flag).</remarks>
 		public void Pause()
 		{
+			// input stops at the source while paused; the gate first, so the simulation sees the new epoch
+			// when it stops ticking, and releases what's held
+			NativeInputManager.GamePaused = true;
 			_paused = true;
-			NativeInputManager.GamePaused = true; // input stops at the source while paused
 		}
 
 		/// <summary>
@@ -443,6 +445,9 @@ namespace VisualPinball.Unity.Simulation
 				{
 					if (_paused)
 					{
+						// No ticks run while paused, so release what's held now rather than on resume: a
+						// flipper held when pausing must not keep its switch and coil on.
+						AdvanceInputEpoch(NativeInputManager.GateEpoch);
 						Thread.Sleep(10);
 						// Unity time stands still while paused (the menu sets timeScale to
 						// zero); hold the timetable so no backlog accumulates to replay.

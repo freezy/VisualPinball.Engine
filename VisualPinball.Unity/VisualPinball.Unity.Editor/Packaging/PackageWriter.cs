@@ -486,21 +486,37 @@ namespace VisualPinball.Unity.Editor
 				// out as a live ball nobody deactivates
 				var troughs = table.GetComponentsInChildren<TroughComponent>(false);
 				var swaps = new List<(TroughComponent, GameObject, GameObject[])>();
-				foreach (var trough in troughs) {
-					var prefabs = trough.BallPrefabs ?? Array.Empty<GameObject>();
-					if (trough.Ball == null && prefabs.All(prefab => prefab == null)) {
-						continue;
-					}
-					swaps.Add((trough, trough.Ball, trough.BallPrefabs));
-					trough.Ball = Template(trough.Ball);
-					trough.BallPrefabs = prefabs.Select(Template).ToArray();
-				}
-				if (result == null) {
-					// nothing copied: give the troughs their prefabs back
+
+				void GiveBack()
+				{
 					foreach (var (trough, ball, prefabs) in swaps) {
 						trough.Ball = ball;
 						trough.BallPrefabs = prefabs;
 					}
+				}
+
+				try {
+					foreach (var trough in troughs) {
+						var prefabs = trough.BallPrefabs ?? Array.Empty<GameObject>();
+						if (trough.Ball == null && prefabs.All(prefab => prefab == null)) {
+							continue;
+						}
+						// recorded before the swap, so a failure below can give it back
+						swaps.Add((trough, trough.Ball, trough.BallPrefabs));
+						trough.Ball = Template(trough.Ball);
+						trough.BallPrefabs = prefabs.Select(Template).ToArray();
+					}
+				} catch {
+					// the caller gets no cleanup object to undo this with
+					GiveBack();
+					if (container != null) {
+						Object.DestroyImmediate(container);
+					}
+					throw;
+				}
+				if (result == null) {
+					// nothing copied: give the troughs their prefabs back
+					GiveBack();
 					return null;
 				}
 				result._troughs.AddRange(swaps);
