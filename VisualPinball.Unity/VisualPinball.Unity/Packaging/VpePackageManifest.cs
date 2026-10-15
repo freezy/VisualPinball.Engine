@@ -16,6 +16,8 @@
 
 using System;
 using System.Collections.Generic;
+using NLog;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -69,6 +71,8 @@ namespace VisualPinball.Unity
 
 	public static class VpePackageManifestIo
 	{
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		public static void Write(IPackageStorage storage, VpePackageManifest manifest)
 		{
 			storage.AddFile(PackageApi.ManifestFile, PackageApi.Packer.FileExtension)
@@ -82,7 +86,8 @@ namespace VisualPinball.Unity
 			}
 			try {
 				return PackageApi.Packer.Unpack<VpePackageManifest>(file.GetData());
-			} catch (Exception) {
+			} catch (Exception e) {
+				Logger.Warn(e, "The package manifest is corrupt, ignoring it.");
 				return null;
 			}
 		}

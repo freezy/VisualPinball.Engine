@@ -7,6 +7,8 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using NLog;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -49,6 +51,8 @@ namespace VisualPinball.Unity
 	/// </remarks>
 	public sealed class NativeWindowSurface : IDisposable
 	{
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		internal const string LibraryName = "VisualPinballNativeWindows";
 
 		// UnityGfxRenderer values of the supported graphics backends.
@@ -181,14 +185,9 @@ namespace VisualPinball.Unity
 					Native.GetCapabilities();
 					_libraryAvailable = true;
 
-				} catch (DllNotFoundException) {
+				} catch (Exception e) when (e is DllNotFoundException || e is EntryPointNotFoundException || e is BadImageFormatException) {
 					_libraryAvailable = false;
-
-				} catch (EntryPointNotFoundException) {
-					_libraryAvailable = false;
-
-				} catch (BadImageFormatException) {
-					_libraryAvailable = false;
+					Logger.Warn(e, "Native window library {Library:l} is not available, native display windows are disabled.", LibraryName);
 				}
 				return _libraryAvailable.Value;
 			}

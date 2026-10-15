@@ -16,10 +16,12 @@
 
 using System;
 using System.Collections.Generic;
+using NLog;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Splines;
 using VisualPinball.Engine.Math;
+using Logger = NLog.Logger;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -31,6 +33,8 @@ namespace VisualPinball.Unity
 	[DisallowMultipleComponent]
 	public class DragPointSplineComponent : MonoBehaviour
 	{
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		[SerializeField] private SplineContainer _container;
 		[SerializeField] private MonoBehaviour _owner;
 		[SerializeField] private List<DragPointMetadata> _metadata = new();
@@ -122,11 +126,10 @@ namespace VisualPinball.Unity
 				// spline child is the only place the geometry lives. Creating a blank one here would
 				// silently discard it - say so loudly instead of losing the shape without a trace.
 				if (dragPoints == null || dragPoints.Count == 0) {
-					Debug.LogError(
-						$"No drag-point spline could be resolved for '{owner.SplineOwner.name}' and no drag points " +
-						"were supplied, so an empty spline is being created. The previous shape is lost. " +
-						$"Owner has {owner.SplineTransform.childCount} child object(s).",
-						owner.SplineOwner);
+					Logger.Error(
+						"No drag-point spline could be resolved for {Owner} and no drag points were supplied, so an " +
+						"empty spline is being created. The previous shape is lost. Owner has {ChildCount} child object(s).",
+						owner.SplineOwner.name, owner.SplineTransform.childCount);
 				}
 				return Create(owner, dragPoints ?? Array.Empty<DragPointData>());
 			}
@@ -250,9 +253,9 @@ namespace VisualPinball.Unity
 			// owner's geometry, and they are worth more than a tidy hierarchy.
 			if (generatedChild.TryGetComponent<SplineContainer>(out var container)
 				&& container.Spline is { Count: > 0 }) {
-				Debug.LogWarning(
-					$"Keeping generated spline child '{generatedChild.name}' of '{owner.SplineOwner.name}' even though " +
-					$"{reason}, because it still holds {container.Spline.Count} knots.", owner.SplineOwner);
+				Logger.Warn(
+					"Keeping generated spline child {Child} of {Owner} even though {Reason:l}, because it still holds {KnotCount} knots.",
+					generatedChild.name, owner.SplineOwner.name, reason, container.Spline.Count);
 				return;
 			}
 
@@ -261,9 +264,8 @@ namespace VisualPinball.Unity
 			var suffix = canDestroy
 				? string.Empty
 				: " It belongs to a prefab instance and cannot be removed without unpacking it.";
-			Debug.LogWarning(
-				$"{action} generated spline child '{generatedChild.name}' from '{owner.SplineOwner.name}' because {reason}.{suffix}",
-				owner.SplineOwner);
+			Logger.Warn("{Action:l} generated spline child {Child} from {Owner} because {Reason:l}.{Suffix:l}",
+				action, generatedChild.name, owner.SplineOwner.name, reason, suffix);
 			generatedChild.SetActive(false);
 			if (!canDestroy) {
 				return;

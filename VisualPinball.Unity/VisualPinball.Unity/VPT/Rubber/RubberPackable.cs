@@ -10,8 +10,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using NLog;
 using Unity.Mathematics;
 using UnityEngine;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -84,6 +86,8 @@ namespace VisualPinball.Unity
 
 	public struct RubberReferencesPackable
 	{
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		public ReferencePackable[] Guides;
 
 		public static byte[] Pack(RubberComponent comp, PackagedRefs refs)
@@ -101,7 +105,8 @@ namespace VisualPinball.Unity
 			var data = PackageApi.Packer.Unpack<RubberReferencesPackable>(bytes);
 			var packedGuides = data.Guides ?? Array.Empty<ReferencePackable>();
 			if (packedGuides.Length != comp.GuideBindings.Count) {
-				Debug.LogError($"Rubber '{comp.name}' has {comp.GuideBindings.Count} bindings but {packedGuides.Length} guide references.");
+				Logger.Warn("Rubber {Name} has {Bindings} guide bindings but the package has {References} guide references, ignoring them.",
+					comp.name, comp.GuideBindings.Count, packedGuides.Length);
 				return;
 			}
 			comp.RestoreGuideReferences(packedGuides.Select(refs.Resolve<RubberGuideComponent>).ToArray());

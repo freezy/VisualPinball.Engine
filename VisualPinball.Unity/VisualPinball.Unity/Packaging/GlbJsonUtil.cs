@@ -20,6 +20,8 @@ using System.Collections.Generic;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NLog;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -29,6 +31,8 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public static class GlbJsonUtil
 	{
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		public const uint GlbMagic = 0x46546C67;
 		public const uint GlbVersion = 2;
 		public const uint JsonChunkType = 0x4E4F534A;
@@ -129,7 +133,8 @@ namespace VisualPinball.Unity
 				var chunks = ReadChunks(glbData);
 				var jsonChunk = chunks.Find(chunk => chunk.Type == JsonChunkType);
 				return jsonChunk.Data == null || jsonChunk.Data.Length == 0 ? null : ParseJsonChunk(jsonChunk.Data);
-			} catch (Exception) {
+			} catch (Exception e) {
+				Logger.Debug(e, "Data is not a well-formed GLB.");
 				return null;
 			}
 		}

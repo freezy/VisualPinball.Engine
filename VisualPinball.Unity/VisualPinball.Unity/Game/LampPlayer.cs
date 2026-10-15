@@ -63,6 +63,7 @@ namespace VisualPinball.Unity
 		private readonly HashSet<string> _loggedUnmappedLampIds = new();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+		private static readonly LogOncePerKey<string> UnknownLampTypeLog = new();
 		private const int MaxLoggedLampEvents = 24;
 		private const int MaxLoggedUnmappedLampEvents = 24;
 
@@ -255,9 +256,10 @@ namespace VisualPinball.Unity
 
 			if (_loggedLampEvents < MaxLoggedLampEvents) {
 				_loggedLampEvents++;
-				Logger.Info(
-					$"LampPlayer event sample #{_loggedLampEvents}: id={id}, source={source}, " +
-					$"isCoil={isCoil}, mapped={mapped}, applied={applied}.");
+				if (Logger.IsDebugEnabled) {
+					Logger.Debug("Lamp event sample #{Sample}: id={LampId}, source={Source}, isCoil={IsCoil}, mapped={Mapped}, applied={Applied}.",
+						_loggedLampEvents, id, source, isCoil, mapped, applied);
+				}
 			}
 
 			if (mapped || _loggedUnmappedLampEvents >= MaxLoggedUnmappedLampEvents || !_loggedUnmappedLampIds.Add($"{source}:{isCoil}:{id}")) {
@@ -265,7 +267,7 @@ namespace VisualPinball.Unity
 			}
 
 			_loggedUnmappedLampEvents++;
-			Logger.Warn($"LampPlayer unmapped incoming lamp event: id={id}, source={source}, isCoil={isCoil}.");
+			Logger.Warn("Unmapped lamp {LampId} (source {Source}, coil {IsCoil}) changed, ignoring it.", id, source, isCoil);
 		}
 
 		private void ApplyStatus(string id, LampStatus status, LampState state, IApiLamp? lamp)
@@ -323,7 +325,9 @@ namespace VisualPinball.Unity
 					break;
 
 				default:
-					Logger.Error($"Unknown mapping type \"{mapping.Type}\" of lamp ID {id} for light {lamp}.");
+					if (UnknownLampTypeLog.ShouldLog(id)) {
+						Logger.Warn("Unknown mapping type {Type} of lamp {LampId}.", mapping.Type, id);
+					}
 					break;
 			}
 		}

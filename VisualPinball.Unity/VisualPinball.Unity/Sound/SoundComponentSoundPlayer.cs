@@ -17,7 +17,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using NLog;
 using UnityEngine;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -38,6 +40,9 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public class SoundComponentSoundEffectPlayer : ISoundComponentSoundPlayer
 	{
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+		private static readonly LogOncePerKey<string> InvalidAssetLog = new();
+
 		private SoundEffectAsset _soundEffectAsset;
 		private GameObject _audioSourceGo;
 		private CancellationTokenSource _allowFadeCts;
@@ -57,18 +62,28 @@ namespace VisualPinball.Unity
 
 		public async void StartSound(float volume)
 		{
-			_playTask = _soundEffectAsset.Play(
-				_audioSourceGo,
-				_allowFadeCts.Token,
-				_instantFadeCts.Token,
-				volume
-			);
-
+			// a sound asset without clips is the table's problem, not a bug: say so once, then skip it
+			if (_soundEffectAsset != null && !_soundEffectAsset.IsValid()) {
+				if (InvalidAssetLog.ShouldLog(_soundEffectAsset.name)) {
+					Logger.Warn("Sound effect {Name} has no audio clips and won't play.", _soundEffectAsset.name);
+				}
+				return;
+			}
 			try
 			{
+				_playTask = _soundEffectAsset.Play(
+					_audioSourceGo,
+					_allowFadeCts.Token,
+					_instantFadeCts.Token,
+					volume
+				);
 				await _playTask;
 			}
 			catch (OperationCanceledException) { }
+			catch (Exception e)
+			{
+				Logger.Error(e, "Cannot play sound effect {Name}.", _soundEffectAsset ? _soundEffectAsset.name : "(none)");
+			}
 		}
 
 		public void StopSound(bool allowFade)

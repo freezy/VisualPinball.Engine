@@ -123,6 +123,7 @@ namespace VisualPinball.Unity
 		private const float TimeLapseMax = 2.5f;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+		private static readonly LogOncePerKey<int> UnknownHittableLog = new();
 		private TableComponent _tableComponent;
 		private PlayfieldComponent _playfieldComponent;
 		private PhysicsEngine _physicsEngine;
@@ -259,7 +260,7 @@ namespace VisualPinball.Unity
 				try {
 					i.OnInit(BallManager);
 				} catch (Exception e) {
-					Logger.Error(e, $"Initializing {i.GetType().Name} failed, skipping it.");
+					Logger.Error(e, "Initializing {Api:l} failed, skipping it.", i.GetType().Name);
 				}
 			}
 
@@ -399,7 +400,9 @@ namespace VisualPinball.Unity
 			TableApi.Register(component, api);
 			_apis.Add(api);
 			var itemId = UnityObjectId.Get(component.gameObject);
-			Debug.Log($"Registering {component.GetType()} {component.name} with ID {itemId}.");
+			if (Logger.IsDebugEnabled) {
+				Logger.Debug("Registering {Type:l} {Name} with ID {ItemId}.", component.GetType().Name, component.name, itemId);
+			}
 			if (api is IApiRotatable rotatable) {
 				_rotatables[itemId] = rotatable;
 			}
@@ -488,14 +491,16 @@ namespace VisualPinball.Unity
 		{
 				switch (eventData.EventId) {
 				case EventId.HitEventsHit:
-					if (!_hittables.ContainsKey(eventData.ItemId)) {
-						Debug.LogError($"Cannot find {eventData.ItemId} in hittables.");
-					}
-					_hittables[eventData.ItemId].OnHit(eventData.BallId);
-					break;
-
 				case EventId.HitEventsUnhit:
-					_hittables[eventData.ItemId].OnHit(eventData.BallId, true);
+					// colliders only raise hit events for items that registered a hit handler, so
+					// this is a bug; report it once per item and ignore the item's hits
+					if (!_hittables.TryGetValue(eventData.ItemId, out var hittable)) {
+						if (UnknownHittableLog.ShouldLog(eventData.ItemId)) {
+							Logger.Error("A ball hit item {ItemId}, which has no hit handler. Ignoring its hits.", eventData.ItemId);
+						}
+						break;
+					}
+					hittable.OnHit(eventData.BallId, eventData.EventId == EventId.HitEventsUnhit);
 					break;
 
 				case EventId.LimitEventsBos:

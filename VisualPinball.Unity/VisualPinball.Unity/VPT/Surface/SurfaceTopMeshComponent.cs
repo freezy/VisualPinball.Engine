@@ -16,11 +16,13 @@
 
 // ReSharper disable InconsistentNaming
 
+using NLog;
 using UnityEngine;
 using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 using VisualPinball.Engine.VPT.Surface;
 using VisualPinball.Engine.VPT.Table;
+using Logger = NLog.Logger;
 using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity
@@ -30,12 +32,14 @@ namespace VisualPinball.Unity
 	[AddComponentMenu("Pinball/Mesh/Surface Top Mesh")]
 	public class SurfaceTopMeshComponent : MeshComponent<SurfaceData, SurfaceComponent>, IPackable
 	{
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 
 		protected override Mesh GetMesh(SurfaceData data)
 		{
 			var playfieldDimensions = GetPlayfieldDimensions();
 			if (playfieldDimensions == Vector2.zero) {
-				Debug.LogError($"SurfaceTopMeshComponent of {transform.parent.name} must be a child of a PlayfieldComponent.");
+				Logger.Warn("Top mesh of surface {Name} must be a child of a playfield.", transform.parent ? transform.parent.name : name);
 				return null;
 			}
 			return new SurfaceMeshGenerator(data, MainComponent.uvOffset.ToVertex3D())

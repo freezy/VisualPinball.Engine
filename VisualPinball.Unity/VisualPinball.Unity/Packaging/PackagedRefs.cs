@@ -18,7 +18,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using NLog;
 using UnityEngine;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -29,6 +31,8 @@ namespace VisualPinball.Unity
 
 	public class PackagedRefs
 	{
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		private readonly Dictionary<Type, string> _typeToName = new();
 		private readonly Dictionary<string, Type> _nameToType = new();
 		private readonly List<Type> _nativeTypes = new();
@@ -101,7 +105,7 @@ namespace VisualPinball.Unity
 		public Type GetType(string name)
 		{
 			if (!_nameToType.TryGetValue(name, out var type)) {
-				Debug.LogError("No type found for name: " + name);
+				Logger.Warn("Unknown packaged type {TypeName}. Is the plugin providing it installed?", name);
 				return null;
 			}
 			return type;
@@ -113,7 +117,7 @@ namespace VisualPinball.Unity
 		public string GetName(Type type)
 		{
 			if (!_typeToName.TryGetValue(type, out var name)) {
-				Debug.LogError($"No name found for type: {type.FullName}. Missing PackedAs attribute?");
+				Logger.Error("No packaged name for type {Type:l}. Missing PackAs attribute?", type.FullName);
 				return null;
 			}
 			return name;
@@ -168,7 +172,7 @@ namespace VisualPinball.Unity
 			if (id == null) {
 				// Only exported (active) nodes carry ids; a reference to anything else cannot be
 				// restored and is written as a null reference.
-				Debug.LogWarning($"Reference to {typeName} on '{comp.name}' points to a non-exported object; writing null reference.");
+				Logger.Warn("Reference to {TypeName} on {Name} points to a non-exported object, writing a null reference.", typeName, comp.name);
 				return new ReferencePackable(null, typeName);
 			}
 			return new ReferencePackable(id, typeName);
@@ -181,25 +185,27 @@ namespace VisualPinball.Unity
 			}
 			var transform = GetNode(packedRef.Id);
 			if (transform == null) {
-				Debug.LogError($"Error resolving reference {packedRef.Type}@{packedRef.Id}: No node with this id.");
+				Logger.Warn("Cannot resolve reference {TypeName}@{NodeId}: no node with this id.", packedRef.Type, packedRef.Id);
 				return null;
 			}
 			var type = GetType(packedRef.Type);
 			if (type == null) {
-				Debug.LogError($"Error resolving type name {packedRef.Type} to type. PackAs[] attribute missing?");
+				Logger.Warn("Cannot resolve reference {TypeName}@{NodeId}: unknown type.", packedRef.Type, packedRef.Id);
 				return null;
 			}
 			var component = transform.gameObject.GetComponent(type);
 
 			if (component == null) {
-				Debug.LogError($"Error resolving reference {packedRef.Type}@{packedRef.Id}: No component of type {type.FullName} on game object {transform.name}");
+				Logger.Warn("Cannot resolve reference {TypeName}@{NodeId}: no {Type:l} on {Name}.", packedRef.Type, packedRef.Id, type.FullName, transform.name);
+				return null;
 			}
 
 			if (component is T compT) {
 				return compT;
 			}
 
-			Debug.LogError($"Error resolving reference {packedRef.Type}@{packedRef.Id}: Component on {transform.name} required to be of type {typeof(T).FullName}, but is {component.GetType().FullName}.");
+			Logger.Warn("Cannot resolve reference {TypeName}@{NodeId}: component on {Name} must be a {ExpectedType:l}, but is a {ActualType:l}.",
+				packedRef.Type, packedRef.Id, transform.name, typeof(T).FullName, component.GetType().FullName);
 			return null;
 		}
 
@@ -218,7 +224,7 @@ namespace VisualPinball.Unity
 			if (component is TI) {
 				return component;
 			}
-			Debug.LogError($"Error resolving reference {packedRef.Type}@{packedRef.Id}: Component does not inherit {typeof(TI).FullName}.");
+			Logger.Warn("Cannot resolve reference {TypeName}@{NodeId}: component does not implement {ExpectedType:l}.", packedRef.Type, packedRef.Id, typeof(TI).FullName);
 			return null;
 		}
 	}

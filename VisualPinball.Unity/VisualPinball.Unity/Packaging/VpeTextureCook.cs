@@ -517,7 +517,8 @@ namespace VisualPinball.Unity
 					try {
 						using var stream = new MemoryStream(sourceData, asset.ByteOffset, asset.ByteLength, false);
 						header = ImageInfo.FromStream(stream);
-					} catch {
+					} catch (Exception e) {
+						Logger.Debug(e, "Cannot read the image header of texture {TextureId}, keeping it as it is.", asset.Id);
 						header = null;
 					}
 				}

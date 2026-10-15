@@ -98,16 +98,10 @@ namespace VisualPinball.Unity
 					_currentCalloutCts.Cancel();
 					break;
 				case CalloutRequestStatus.Finished:
-					Logger.Info(
-						$"Cannot dequeue callout request with id '{requestId}' because it already "
-							+ "finished playing."
-					);
+					Logger.Debug("Cannot dequeue callout request {RequestId}, it already finished playing.", requestId);
 					break;
 				case CalloutRequestStatus.UnknownId:
-					Logger.Error(
-						$"Cannot dequeue callout request with id '{requestId}' because no such "
-							+ "request was previously made."
-					);
+					Logger.Warn("Cannot dequeue callout request {RequestId}, no such request was made.", requestId);
 					break;
 			}
 		}
@@ -131,14 +125,18 @@ namespace VisualPinball.Unity
 
 		private async void OnDisable()
 		{
-			_loopCts.Cancel();
-			_loopCts.Dispose();
-			_waitForNewCalloutTcs?.TrySetCanceled();
 			try
 			{
+				_loopCts.Cancel();
+				_loopCts.Dispose();
+				_waitForNewCalloutTcs?.TrySetCanceled();
 				await _loopTask;
 			}
 			catch (OperationCanceledException) { }
+			catch (Exception e)
+			{
+				Logger.Error(e, "Callout loop failed.");
+			}
 		}
 
 		private async Task CalloutLoop(CancellationToken ct)

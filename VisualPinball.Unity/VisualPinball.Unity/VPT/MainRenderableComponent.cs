@@ -62,7 +62,7 @@ namespace VisualPinball.Unity
 
 		public void RebuildMeshes()
 		{
-			Debug.Log("Rebuilding meshes...");
+			Logger.Debug("Rebuilding meshes of {Name}.", name);
 			foreach (var meshComponent in MeshComponents) {
 				meshComponent.RebuildMeshes();
 			}
@@ -145,7 +145,7 @@ namespace VisualPinball.Unity
 			if (!string.IsNullOrEmpty(surfaceName)) {
 				var surface = FindComponent<ISurfaceComponent>(components, surfaceName);
 				if (surface == null) {
-					Logger.Error($"Could not find surface {surfaceName} to parent to.");
+					Logger.Warn("Cannot find surface {Surface} to parent {Name} to.", surfaceName, name);
 					return;
 				}
 				transform.SetZPosition(surface.Height(center.ToUnityVector2()));

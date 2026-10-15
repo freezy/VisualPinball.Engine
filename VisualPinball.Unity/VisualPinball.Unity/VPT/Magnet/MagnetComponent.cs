@@ -188,7 +188,7 @@ namespace VisualPinball.Unity
 		{
 			var player = GetComponentInParent<Player>();
 			if (player == null) {
-				Logger.Error($"Cannot find player for magnet {name}.");
+				Logger.Warn("Cannot find player for magnet {Name}. Is it part of a table?", name);
 				return;
 			}
 
@@ -199,7 +199,7 @@ namespace VisualPinball.Unity
 			if (_physicsEngine) {
 				_physicsEngine.Register(this);
 			} else {
-				Logger.Error($"Cannot find physics engine for magnet {name}.");
+				Logger.Warn("Cannot find physics engine for magnet {Name}. Is it part of a table?", name);
 			}
 		}
 
@@ -229,7 +229,7 @@ namespace VisualPinball.Unity
 			var hinge = CoupleToParentHinge ? GetComponentInParent<SpringHingeComponent>() : null;
 			var validOwnedMode = hinge && MagnetType == VisualPinball.Unity.MagnetType.Spatial;
 			if (CoupleToParentHinge && !validOwnedMode) {
-				Logger.Error($"Magnet {name} can couple only as a Spatial child of a spring hinge.");
+				Logger.Warn("Magnet {Name} can couple only as a Spatial child of a spring hinge.", name);
 			}
 			if (validOwnedMode) {
 				var ownedMagnets = hinge.GetComponentsInChildren<MagnetComponent>(true);
@@ -241,7 +241,7 @@ namespace VisualPinball.Unity
 					}
 				}
 				if (ownedCount > 1) {
-					Logger.Error($"Spring hinge {hinge.name} has {ownedCount} owned magnets; only one reciprocal owner magnet is supported.");
+					Logger.Warn("Spring hinge {Name} has {Count} owned magnets, but only one reciprocal owner magnet is supported.", hinge.name, ownedCount);
 				}
 			}
 			var poleArm = float3.zero;

@@ -22,13 +22,17 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using NLog;
 using UnityEngine;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
 	/// <summary>Editor- and Player-safe resolver for content stored in a .vpe package.</summary>
 	public sealed class PackagedContentResolver : IPackagedContentResolver
 	{
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		private const string CompleteMarker = ".complete";
 
 		// Temp directories younger than this are assumed to belong to a concurrent extraction and are
@@ -196,7 +200,8 @@ namespace VisualPinball.Unity
 			try {
 				var marker = Path.Combine(directory, CompleteMarker);
 				return Directory.Exists(directory) && File.Exists(marker) && File.ReadAllText(marker).Trim() == hash;
-			} catch {
+			} catch (Exception e) {
+				Logger.Debug(e, "Cannot check content cache entry {Directory:l}.", directory);
 				return false;
 			}
 		}
@@ -214,7 +219,8 @@ namespace VisualPinball.Unity
 				DateTime lastWriteUtc;
 				try {
 					lastWriteUtc = Directory.GetLastWriteTimeUtc(directory);
-				} catch {
+				} catch (Exception e) {
+					Logger.Debug(e, "Cannot read age of temporary content directory {Directory:l}.", directory);
 					continue;
 				}
 				if (now - lastWriteUtc < TemporaryDirectoryStaleAfter) {
@@ -251,7 +257,8 @@ namespace VisualPinball.Unity
 		{
 			try {
 				return Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories).Sum(path => new FileInfo(path).Length);
-			} catch {
+			} catch (Exception e) {
+				Logger.Debug(e, "Cannot measure content cache entry {Directory:l}.", directory);
 				return 0;
 			}
 		}
@@ -262,10 +269,12 @@ namespace VisualPinball.Unity
 				if (Directory.Exists(directory)) {
 					Directory.Delete(directory, true);
 				}
-			} catch (IOException) {
+			} catch (IOException e) {
 				// A second resolver/process may still be publishing or reading this directory.
-			} catch (UnauthorizedAccessException) {
+				Logger.Debug(e, "Cannot delete content directory {Directory:l}.", directory);
+			} catch (UnauthorizedAccessException e) {
 				// Best-effort cache maintenance must not prevent content from loading.
+				Logger.Debug(e, "Cannot delete content directory {Directory:l}.", directory);
 			}
 		}
 

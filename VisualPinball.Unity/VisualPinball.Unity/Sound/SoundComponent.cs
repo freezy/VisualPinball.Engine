@@ -50,6 +50,7 @@ namespace VisualPinball.Unity
 		private readonly List<ISoundComponentSoundPlayer> _soundPlayers = new();
 
 		protected static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+		private static readonly LogOncePerKey<int> CannotPlayLog = new();
 
 		public bool IsPlayingOrRequestingSound()
 		{
@@ -78,11 +79,14 @@ namespace VisualPinball.Unity
 		{
 			base.OnEnableAfterAfterAwake();
 			_calloutCoordinator = GetComponentInParent<CalloutCoordinator>();
-			if (_calloutCoordinator == null)
-				Logger.Warn("No callout coordinator found in parents. Callouts will not work!");
 			_musicCoordinator = GetComponentInParent<MusicCoordinator>();
-			if (_musicCoordinator == null)
-				Logger.Warn("No music coordinator found in parents. Music will not work!");
+			// only sounds that need a coordinator care whether there is one
+			if (SoundAsset is CalloutAsset && _calloutCoordinator == null) {
+				Logger.Warn("Sound {Name} plays a callout, but there is no callout coordinator above it. It won't play.", name);
+			}
+			if (SoundAsset is MusicAsset && _musicCoordinator == null) {
+				Logger.Warn("Sound {Name} plays music, but there is no music coordinator above it. It won't play.", name);
+			}
 		}
 
 		protected void Update()
@@ -112,13 +116,17 @@ namespace VisualPinball.Unity
 		{
 			if (!isActiveAndEnabled)
 			{
-				Logger.Warn("Cannot play a disabled sound component.");
+				if (CannotPlayLog.ShouldLog(UnityObjectId.Get(this))) {
+					Logger.Warn("Cannot play sound component {Name}, it is disabled.", name);
+				}
 				return;
 			}
 
 			if (SoundAsset == null)
 			{
-				Logger.Warn("Cannot play without sound asset. Assign it in the inspector.");
+				if (CannotPlayLog.ShouldLog(UnityObjectId.Get(this))) {
+					Logger.Warn("Cannot play sound component {Name}, it has no sound asset. Assign it in the inspector.", name);
+				}
 				return;
 			}
 

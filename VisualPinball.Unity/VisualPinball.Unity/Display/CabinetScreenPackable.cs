@@ -16,7 +16,9 @@
 
 // ReSharper disable MemberCanBePrivate.Global
 
+using NLog;
 using UnityEngine;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -50,6 +52,8 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public struct CabinetScreenReferencesPackable
 	{
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		public string TargetNode;
 		public string HideRootNode;
 
@@ -77,7 +81,7 @@ namespace VisualPinball.Unity
 			}
 			var id = refs.GetNodeId(transform);
 			if (id == null) {
-				Debug.LogWarning($"Cabinet screen reference to '{transform.name}' points to a non-exported object; writing null reference.");
+				Logger.Warn("Cabinet screen reference to {Name} points to a non-exported object, writing a null reference.", transform.name);
 			}
 			return id;
 		}

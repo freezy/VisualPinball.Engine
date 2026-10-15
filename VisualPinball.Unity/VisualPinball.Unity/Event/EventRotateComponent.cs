@@ -17,8 +17,10 @@
 // ReSharper disable InconsistentNaming
 
 using System.Linq;
+using NLog;
 using Unity.Mathematics;
 using UnityEngine;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -66,6 +68,9 @@ namespace VisualPinball.Unity
 			Rotate(e.Value, e.Unit);
 		}
 
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+		private bool _warnedUnit;
+
 		private void Rotate(float value, PinballEventUnit unit)
 		{
 			float angleDeg;
@@ -77,7 +82,10 @@ namespace VisualPinball.Unity
 					angleDeg = math.degrees(value);
 					break;
 				default:
-					Debug.Log("Unsupported rotation unit: " + unit);
+					if (!_warnedUnit) {
+						_warnedUnit = true;
+						Logger.Warn("Event rotation {Name} received an event in {Unit}, which it can't rotate by. Use degrees or radians.", name, unit);
+					}
 					return;
 			}
 			var delta = Quaternion.AngleAxis(angleDeg * Factor + Offset, Axis);

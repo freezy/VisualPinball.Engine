@@ -82,10 +82,10 @@ namespace VisualPinball.Unity
 							// check if device exists
 							if (!_switchDevices.TryGetValue(switchMapping.Device, out var device)) {
 								if (switchMapping.Device is IMechHandler) {
-									Logger.Info($"Switch \"{switchMapping.Id}\" on mech device \"{switchMapping.Device}\" is handled by mech config and does not require runtime switch registration.");
+									Logger.Debug("Switch {SwitchId} on mech device {Device} is handled by the mech and needs no switch registration.", switchMapping.Id, switchMapping.Device.name);
 									break;
 								}
-								Logger.Error($"Unknown switch device \"{switchMapping.Device}\".");
+								Logger.Warn("Switch {SwitchId} is mapped to {Device}, which is not a registered switch device.", switchMapping.Id, switchMapping.Device.name);
 								break;
 							}
 
@@ -96,7 +96,7 @@ namespace VisualPinball.Unity
 							SwitchStatuses[switchMapping.Id] = switchStatus;
 
 						} else {
-								Logger.Error($"Unknown switch \"{switchMapping.DeviceItem}\" in switch device \"{switchMapping.Device}\".");
+								Logger.Warn("Unknown switch {DeviceItem} in switch device {Device} (mapped to {SwitchId}).", switchMapping.DeviceItem, switchMapping.Device.name, switchMapping.Id);
 							}
 
 							break;
@@ -117,7 +117,7 @@ namespace VisualPinball.Unity
 							break;
 
 						default:
-							Logger.Error($"Unknown switch source \"{switchMapping.Source}\".");
+							Logger.Warn("Switch {SwitchId} has unknown source {Source}.", switchMapping.Id, switchMapping.Source);
 							break;
 					}
 				}

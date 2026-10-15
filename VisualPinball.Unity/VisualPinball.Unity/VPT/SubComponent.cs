@@ -1,6 +1,8 @@
 ﻿using System.Linq;
+using NLog;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -22,6 +24,9 @@ namespace VisualPinball.Unity
 		where TData : ItemData
 		where TMainComponent : MainComponent<TData>
 	{
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+		private static readonly LogOncePerKey<int> NoMainComponentLog = new();
+
 		/// <summary>
 		/// Finds the main component in the parent.
 		/// </summary>
@@ -67,7 +72,9 @@ namespace VisualPinball.Unity
 			}
 
 			if (ac == null) {
-				Debug.LogWarning("No same- or parent component found.");
+				if (NoMainComponentLog.ShouldLog(UnityObjectId.Get(this))) {
+					Logger.Warn("{Component:l} on {Name} has no {MainComponent:l} on itself or its parents.", GetType().Name, name, typeof(TMainComponent).Name);
+				}
 			}
 
 			return ac;

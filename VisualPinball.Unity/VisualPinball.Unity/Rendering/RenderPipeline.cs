@@ -89,7 +89,7 @@ namespace VisualPinball.Unity
 		public static IRenderPipeline Current {
 			get {
 				if (_current == null) {
-					Debug.Log("Detecting render pipeline...");
+					Logger.Debug("Detecting render pipeline...");
 					var t = typeof(IRenderPipeline);
 					var pipelines = AppDomain.CurrentDomain.GetAssemblies()
 						.Where(x => x.FullName.StartsWith("VisualPinball."))
@@ -98,14 +98,13 @@ namespace VisualPinball.Unity
 						.Select(x => (IRenderPipeline) Activator.CreateInstance(x))
 						.ToArray();
 
-					Debug.Log("Found pipelines: " + string.Join(", ", pipelines.Select(p => p.Name)));
+					Logger.Debug("Found pipelines: {Pipelines:l}", string.Join(", ", pipelines.Select(p => p.Name)));
 
 					_current = pipelines.Length == 1
 						? pipelines.First()
 						: pipelines.First(p => p.Type != RenderPipelineType.Standard);
 
-					Debug.Log($"Instantiated {_current.Name}.");
-					Logger.Info($"Instantiated {_current.Name}.");
+					Logger.Info("Instantiated {Pipeline:l}.", _current.Name);
 				}
 				return _current;
 			}

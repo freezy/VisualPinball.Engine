@@ -22,6 +22,8 @@ using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using NLog;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -47,6 +49,8 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public static class VpeTableMetadataReader
 	{
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		private const string TableMetadataEntryPath = "table/table.json";
 		private const string ScreenshotBoundsEntryPath = "screenshots/table-bounds.json";
 		private const int DefaultMaxDegreeOfParallelism = 6;
@@ -112,7 +116,8 @@ namespace VisualPinball.Unity
 
 				return true;
 
-			} catch {
+			} catch (Exception e) {
+				Logger.Debug(e, "Cannot read table metadata of {File}.", fileInfo.Name);
 				UpdateCache(fileInfo, false, null);
 				return false;
 			}
@@ -200,8 +205,9 @@ namespace VisualPinball.Unity
 				if (bounds != null && bounds.cropWidth > 0 && bounds.cropHeight > 0) {
 					return (float)bounds.cropWidth / bounds.cropHeight;
 				}
-			} catch {
-				// ignore — aspect stays null, the player falls back to a default
+			} catch (Exception e) {
+				// aspect stays null, the player falls back to a default
+				Logger.Debug(e, "Cannot read the screenshot bounds of a table package.");
 			}
 			return null;
 		}

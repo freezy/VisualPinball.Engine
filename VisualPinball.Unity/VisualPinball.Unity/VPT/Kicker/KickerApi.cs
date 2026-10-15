@@ -105,8 +105,10 @@ namespace VisualPinball.Unity
 			// where the ball was spawned and what the kicker's transforms say right now. A created
 			// ball that leaves from the wrong height is otherwise impossible to diagnose afterwards.
 			var creation = MainComponent.GetBallCreationPosition();
-			Logger.Info($"Kicker \"{kickerName}\": created ball {ballId} at ({creation.X:F1}, {creation.Y:F1}, {creation.Z:F1}), " +
-			            $"kicker local {MainComponent.Position:F1}, in playfield {MainComponent.PositionInPlayfield:F1}, world {MainComponent.transform.position:F4}.");
+			if (Logger.IsDebugEnabled) {
+				Logger.Debug($"Kicker \"{kickerName}\": created ball {ballId} at ({creation.X:F1}, {creation.Y:F1}, {creation.Z:F1}), " +
+				             $"kicker local {MainComponent.Position:F1}, in playfield {MainComponent.PositionInPlayfield:F1}, world {MainComponent.transform.position:F4}.");
+			}
 
 			PhysicsEngine.MutateState((ref PhysicsState state) => {
 				if (!state.Balls.ContainsKey(ballId)) {
@@ -137,7 +139,9 @@ namespace VisualPinball.Unity
 				if (!kickerState.Static.FallThrough && kickerState.Collision.BallId != ballId) {
 					Logger.Warn($"Kicker \"{kickerName}\": created ball {ballId} was not captured, the kicker holds ball {kickerState.Collision.BallId}. The new ball is at {ball.Position}.");
 				} else {
-					Logger.Info($"Kicker \"{kickerName}\": ball {ballId} captured at {ball.Position}, kicker center {kickerState.Static.Center}, z {kickerState.Static.ZLow}.");
+					if (Logger.IsDebugEnabled) {
+						Logger.Debug($"Kicker \"{kickerName}\": ball {ballId} captured at {ball.Position}, kicker center {kickerState.Static.Center}, z {kickerState.Static.ZLow}.");
+					}
 				}
 			});
 		}

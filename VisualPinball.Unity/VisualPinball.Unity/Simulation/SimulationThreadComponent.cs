@@ -449,7 +449,7 @@ namespace VisualPinball.Unity.Simulation
 			}
 			catch (Exception ex)
 			{
-				Logger.Error($"{LogPrefix} [SimulationThreadComponent] Failed to start simulation: {ex}");
+				Logger.Error(ex, "{Prefix:l} [SimulationThreadComponent] Failed to start simulation", LogPrefix);
 			}
 		}
 

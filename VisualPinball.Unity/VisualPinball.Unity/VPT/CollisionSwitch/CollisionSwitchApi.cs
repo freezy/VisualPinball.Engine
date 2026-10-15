@@ -59,7 +59,7 @@ namespace VisualPinball.Unity
 				_hittable.Hit += OnHit;
 			}
 			else {
-				Logger.Error($"{_collisionSwitchComponent.name} not connected to a hittable component");
+				Logger.Warn("Collision switch {Name} is not on or under a hittable component.", _collisionSwitchComponent.name);
 			}
 
 			Init?.Invoke(this, EventArgs.Empty);
@@ -73,7 +73,7 @@ namespace VisualPinball.Unity
 
 		void IApi.OnDestroy()
 		{
-			Logger.Info($"Destroying {_collisionSwitchComponent.name}");
+			Logger.Debug("Destroying {Name}.", _collisionSwitchComponent.name);
 
 			if (_hittable != null) {
 				_hittable.Hit -= OnHit;

@@ -25,51 +25,31 @@ namespace VisualPinball.Unity.Editor
 	{
 		public byte[] Pack<T>(T obj)
 		{
-			try {
-				return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings {
-					ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-				}));
-			} catch (Exception e) {
-				Debug.LogError(e);
-				throw;
-			}
+			return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings {
+				ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+			}));
 		}
 
 		public byte[] Empty => Pack(new object());
 
 		public T Unpack<T>(byte[] data)
 		{
-			try {
-				return JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(data));
-			} catch (Exception e) {
-				Debug.LogError(e);
-				throw;
-			}
+			return JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(data));
 		}
 
 		public void Unpack(byte[] data, object instance)
 		{
-			try {
-				JsonConvert.PopulateObject(Encoding.UTF8.GetString(data), instance);
-			} catch (Exception e) {
-				Debug.LogError(e);
-				throw;
-			}
+			JsonConvert.PopulateObject(Encoding.UTF8.GetString(data), instance);
 		}
 
 		public object Unpack(Type t, byte[] data)
 		{
-			try {
-				if (typeof(ScriptableObject).IsAssignableFrom(t)) {
-					var instance = ScriptableObject.CreateInstance(t);
-					JsonConvert.PopulateObject(Encoding.UTF8.GetString(data), instance);
-					return instance;
-				}
-				return JsonConvert.DeserializeObject(Encoding.UTF8.GetString(data), t);
-			} catch (Exception e) {
-				Debug.LogError(e);
-				throw;
+			if (typeof(ScriptableObject).IsAssignableFrom(t)) {
+				var instance = ScriptableObject.CreateInstance(t);
+				JsonConvert.PopulateObject(Encoding.UTF8.GetString(data), instance);
+				return instance;
 			}
+			return JsonConvert.DeserializeObject(Encoding.UTF8.GetString(data), t);
 		}
 
 		public string FileExtension => ".json";

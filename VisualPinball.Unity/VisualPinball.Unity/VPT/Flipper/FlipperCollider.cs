@@ -928,10 +928,10 @@ namespace VisualPinball.Unity
 
 			if (printDetails) {
 				if (rotated) {
-					Debug.LogWarning($"Flipper rotation is at {rotation.x}/{rotation.y}, but only z-rotation is supported.");
+					Logger.Warn("Flipper rotation is at {RotationX}/{RotationY}, but only z-rotation is supported.", rotation.x, rotation.y);
 				}
 				if (scaled) {
-					Debug.LogWarning($"Flipper scale is at {scale.x}/{scale.y}/{scale.z}, but no scale is supported.");
+					Logger.Warn("Flipper scale is at {ScaleX}/{ScaleY}/{ScaleZ}, but no scale is supported.", scale.x, scale.y, scale.z);
 				}
 			}
 

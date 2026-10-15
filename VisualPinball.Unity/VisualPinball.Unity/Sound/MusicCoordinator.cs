@@ -89,10 +89,7 @@ namespace VisualPinball.Unity
 			if (i != -1)
 				_requestStack.RemoveAt(i);
 			else
-				Logger.Error(
-					$"Can't remove music request with id '{requestId}' because there is no such "
-						+ "request in the stack."
-				);
+				Logger.Warn("Cannot remove music request {RequestId}, there is no such request in the stack.", requestId);
 
 			EvaluateRequestStack();
 		}
