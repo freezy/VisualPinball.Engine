@@ -52,6 +52,10 @@ namespace VisualPinball.Unity
 			}
 
 			var ballGo = Object.Instantiate(ballPrefab, _parent);
+			// a template from a package is kept inactive under the table
+			if (!ballGo.activeSelf) {
+				ballGo.SetActive(true);
+			}
 			var ballComp = ballGo.GetComponent<BallComponent>();
 			if (!ballComp) {
 				Object.DestroyImmediate(ballGo);

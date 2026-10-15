@@ -22,11 +22,24 @@ namespace VisualPinball.Unity
 	/// Marks the table's backbox. The component carries no behaviour - it only lets tooling
 	/// locate the backbox. The package screenshot generator hides every GameObject tagged
 	/// with this component (remembering and restoring its active state) so the backbox does
-	/// not appear in the top-down playfield screenshots.
+	/// not appear in the top-down playfield screenshots, and the player's cabinet view hides
+	/// it, which is why it is packaged too.
 	/// </summary>
 	[AddComponentMenu("Pinball/Backbox")]
 	[DisallowMultipleComponent]
-	public class BackboxComponent : MonoBehaviour
+	[PackAs("Backbox")]
+	public class BackboxComponent : MonoBehaviour, IPackable
 	{
+		#region Packaging
+
+		public byte[] Pack() => PackageApi.Packer.Empty;
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) { }
+
+		public void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs, PackagedFiles files) { }
+
+		#endregion
 	}
 }
