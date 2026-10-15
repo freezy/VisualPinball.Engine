@@ -63,7 +63,7 @@ namespace VisualPinball.Unity
 		private readonly HashSet<string> _loggedUnmappedLampIds = new();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-		private static readonly LogOncePerKey<string> UnknownLampTypeLog = new();
+		private readonly LogOncePerKey<string> _unknownLampTypeLog = new();
 		private const int MaxLoggedLampEvents = 24;
 		private const int MaxLoggedUnmappedLampEvents = 24;
 
@@ -325,7 +325,7 @@ namespace VisualPinball.Unity
 					break;
 
 				default:
-					if (UnknownLampTypeLog.ShouldLog(id)) {
+					if (_unknownLampTypeLog.ShouldLog(id)) {
 						Logger.Warn("Unknown mapping type {Type} of lamp {LampId}.", mapping.Type, id);
 					}
 					break;

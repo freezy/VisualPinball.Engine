@@ -56,6 +56,17 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldSendAFatalOneEvenIfTheSameKindWasAnUnsentError()
+		{
+			var dedupe = new ReportDedupe(1);
+			dedupe.ShouldSend("a", false, out _).Should().BeTrue();
+			dedupe.ShouldSend("crash", false, out _).Should().BeFalse("the cap is reached");
+			dedupe.ShouldSend("crash", true, out _).Should().BeTrue("the first fatal one always goes");
+			dedupe.ShouldSend("crash", true, out _).Should().BeFalse();
+			dedupe.ShouldSend("crash", false, out _).Should().BeFalse();
+		}
+
+		[Test]
 		public void ShouldStartOverAfterReset()
 		{
 			var dedupe = new ReportDedupe(1);

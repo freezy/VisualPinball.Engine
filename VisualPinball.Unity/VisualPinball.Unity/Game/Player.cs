@@ -123,7 +123,7 @@ namespace VisualPinball.Unity
 		private const float TimeLapseMax = 2.5f;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-		private static readonly LogOncePerKey<int> UnknownHittableLog = new();
+		private readonly LogOncePerKey<int> _unknownHittableLog = new();
 		private TableComponent _tableComponent;
 		private PlayfieldComponent _playfieldComponent;
 		private PhysicsEngine _physicsEngine;
@@ -527,7 +527,7 @@ namespace VisualPinball.Unity
 					// colliders only raise hit events for items that registered a hit handler, so
 					// this is a bug; report it once per item and ignore the item's hits
 					if (!_hittables.TryGetValue(eventData.ItemId, out var hittable)) {
-						if (UnknownHittableLog.ShouldLog(eventData.ItemId)) {
+						if (_unknownHittableLog.ShouldLog(eventData.ItemId)) {
 							Logger.Error("A ball hit item {ItemId}, which has no hit handler. Ignoring its hits.", eventData.ItemId);
 						}
 						break;

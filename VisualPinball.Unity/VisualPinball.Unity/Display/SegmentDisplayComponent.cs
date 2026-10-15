@@ -58,7 +58,7 @@ namespace VisualPinball.Unity
 
 		private const int MaxNumSegments = 16;
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-		private static readonly LogThrottle FrameThrottle = new(3, TimeSpan.FromSeconds(30));
+		private readonly LogThrottle _frameThrottle = new(3, TimeSpan.FromSeconds(30));
 
 		#region Packaging
 
@@ -273,7 +273,7 @@ namespace VisualPinball.Unity
 				case DisplayFrameFormat.Dmd4:
 				case DisplayFrameFormat.Dmd8:
 				case DisplayFrameFormat.Dmd24:
-					if (FrameThrottle.ShouldLog(out var suppressed)) {
+					if (_frameThrottle.ShouldLog(out var suppressed)) {
 						Logger.Warn("Segment display {DisplayId} cannot render pixel data, use a DMD component ({Suppressed} suppressed).", Id, suppressed);
 					}
 					return;

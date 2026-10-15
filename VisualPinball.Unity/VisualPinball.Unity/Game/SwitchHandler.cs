@@ -56,7 +56,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, IApiSwitchStatus> _switchStatuses = new Dictionary<string, IApiSwitchStatus>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-		private static readonly LogThrottle ScheduleSwitchThrottle = new(5, TimeSpan.FromSeconds(30));
+		private readonly LogThrottle _scheduleSwitchThrottle = new(5, TimeSpan.FromSeconds(30));
 
 		public SwitchHandler(string name, Player player, PhysicsEngine physicsEngine, bool isEnabled = false)
 		{
@@ -179,7 +179,7 @@ namespace VisualPinball.Unity
 						() => _player.DispatchSwitch(switchConfig.SwitchId, isClosed));
 				}
 			} else {
-				if (ScheduleSwitchThrottle.ShouldLog(out var suppressed)) {
+				if (_scheduleSwitchThrottle.ShouldLog(out var suppressed)) {
 					Logger.Warn("Cannot schedule device switch, there is no gamelogic engine or no switch mapping ({Suppressed} suppressed).", suppressed);
 				}
 			}
@@ -193,7 +193,7 @@ namespace VisualPinball.Unity
 						_physicsEngine.ScheduleAction(delay, () => dest.OnChange(enabled));
 
 					} else {
-						if (ScheduleSwitchThrottle.ShouldLog(out var suppressed)) {
+						if (_scheduleSwitchThrottle.ShouldLog(out var suppressed)) {
 							Logger.Warn("Cannot find the wire device of {DeviceItem} ({Suppressed} suppressed).", wireConfig.DeviceItem, suppressed);
 						}
 					}

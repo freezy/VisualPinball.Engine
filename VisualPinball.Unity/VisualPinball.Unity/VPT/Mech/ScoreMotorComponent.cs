@@ -87,7 +87,7 @@ namespace VisualPinball.Unity
 		public event EventHandler<SwitchEventArgs2> OnSwitchChanged;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-		private static readonly LogThrottle TooManyIncreasesThrottle = new(5, TimeSpan.FromSeconds(30));
+		private readonly LogThrottle _tooManyIncreasesThrottle = new(5, TimeSpan.FromSeconds(30));
 
 		private float StepsPerSecond => Steps / (Duration / 1000f);
 
@@ -187,7 +187,7 @@ namespace VisualPinball.Unity
 			var increase = (int)System.Math.Floor(points / System.Math.Pow(10, System.Math.Floor(System.Math.Log10(points))));
 
 			if (increase > MaxIncrease) {
-				if (TooManyIncreasesThrottle.ShouldLog(out var suppressed)) {
+				if (_tooManyIncreasesThrottle.ShouldLog(out var suppressed)) {
 					Logger.Warn("Score motor {Name}: {Points} points need {Increase} steps, more than the motor supports, ignoring them (id {Id}, {Suppressed} suppressed).",
 						name, points, increase, id, suppressed);
 				}
