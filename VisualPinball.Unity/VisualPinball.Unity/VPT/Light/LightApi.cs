@@ -56,6 +56,12 @@ namespace VisualPinball.Unity
 				return;
 			}
 
+			// Fading and RGB mappings send an absolute level without a separate On
+			// status, and the lamp player starts them Off. A positive level must
+			// therefore also wake an off light, like InsertLightApi does.
+			if (_status == LampStatus.Off && intensity > 0) {
+				_status = LampStatus.On;
+			}
 			_intensity = intensity;
 			Update();
 		}
