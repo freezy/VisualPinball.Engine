@@ -61,8 +61,9 @@ namespace VisualPinball.Unity.Simulation
 		// Set from the main thread (Application.isFocused). When the app window isn't focused, native input
 		// is dropped so background key presses (e.g. typing in another app) don't reach the game.
 		private static volatile bool _appFocused = true;
+		// Set by the simulation when it pauses and resumes. While paused, native input is dropped so menu
+		// navigation doesn't reach the game.
 		private static volatile bool _gamePaused;
-		private static int _gateEpoch; // even while the game's input is open, odd while it's cut off
 
 		// Callback delegate (must be kept alive to prevent GC)
 		private NativeInputApi.InputEventCallback _callbackDelegate;
@@ -113,13 +114,6 @@ namespace VisualPinball.Unity.Simulation
 		/// Raised on the input polling thread for raw analog axis events.
 		/// </summary>
 		public event Action<NativeInputApi.InputEvent> AxisInputReceived;
-
-		/// <summary>
-		/// Raised on the main thread when the game's input is cut off (pause, focus loss). Axis events stop
-		/// with it, so consumers return axes that express intent (sticks) to rest. When the input opens
-		/// again, every axis's current value is relayed through <see cref="AxisInputReceived"/>.
-		/// </summary>
-		public event Action GameInputCutOff;
 
 		/// <summary>
 		/// Raised after a device arrival/removal was detected and the device-id
@@ -216,91 +210,22 @@ namespace VisualPinball.Unity.Simulation
 
 		/// <summary>
 		/// Whether the app window currently has focus. The host sets this each frame from
-		/// <c>Application.isFocused</c>; native input doesn't reach the game while it is false.
+		/// <c>Application.isFocused</c>; native input events are dropped while it is false.
 		/// </summary>
-		/// <remarks><b>Thread:</b> Main thread only.</remarks>
 		public static bool AppFocused
 		{
 			get => _appFocused;
-			set {
-				_appFocused = value;
-				UpdateGameInputGate();
-			}
+			set => _appFocused = value;
 		}
 
 		/// <summary>
-		/// Whether the game is paused. The simulation sets it when it pauses and resumes; native input
-		/// doesn't reach the game while it is true.
+		/// Whether the game is paused. The simulation sets it when it pauses and resumes; native input events
+		/// are dropped while it is true.
 		/// </summary>
-		/// <remarks><b>Thread:</b> Main thread only.</remarks>
 		public static bool GamePaused
 		{
 			get => _gamePaused;
-			set {
-				_gamePaused = value;
-				UpdateGameInputGate();
-			}
-		}
-
-		/// <summary>
-		/// Whether native input reaches the game: the app has focus and the game isn't paused. Checked on
-		/// the input polling thread for every event, so nothing is relayed while it's closed.
-		/// </summary>
-		public static bool GameInputOpen => (GateEpoch & 1) == 0;
-
-		/// <summary>
-		/// Counts the game input's openings and cut-offs: even while open, odd while cut off. Every relayed
-		/// event carries the epoch it passed the gate in (<see cref="NativeInputApi.InputEvent.GateEpoch"/>),
-		/// so consumers drop events from before a cut-off, and the simulation releases every action it holds
-		/// when the epoch moves on, since the releases of keys held at the time never reach it.
-		/// </summary>
-		public static int GateEpoch => Volatile.Read(ref _gateEpoch);
-
-		private static void UpdateGameInputGate()
-		{
-			var open = _appFocused && !_gamePaused;
-			if (open == GameInputOpen) {
-				return;
-			}
-			var epoch = Interlocked.Increment(ref _gateEpoch);
-			var instance = Volatile.Read(ref _instance);
-			if (instance == null) {
-				return;
-			}
-			try {
-				if (open) {
-					instance.RelayCurrentAxes(epoch);
-				} else {
-					instance.GameInputCutOff?.Invoke();
-				}
-			} catch (Exception e) {
-				Logger.Error(e, $"{LogPrefix} [NativeInputManager] Failed to update axis consumers after the game's input {(open ? "opened" : "was cut off")}.");
-			}
-		}
-
-		/// <summary>
-		/// Relays every device axis's current value to the axis consumers. Axis events only come on change,
-		/// so without this, what changed while the game's input was cut off would stay unseen.
-		/// </summary>
-		/// <remarks><b>Thread:</b> Main thread. Consumers order it against live events by timestamp.</remarks>
-		private void RelayCurrentAxes(int epoch)
-		{
-			var handler = AxisInputReceived;
-			if (handler == null) {
-				return;
-			}
-			foreach (var deviceIndex in _deviceIdsByIndex.Keys) {
-				foreach (var axis in ListDeviceAxes(deviceIndex)) {
-					handler(new NativeInputApi.InputEvent {
-						TimestampUsec = axis.TimestampUsec,
-						EventType = (int)NativeInputApi.InputEventType.Axis,
-						DeviceIndex = deviceIndex,
-						AxisId = axis.AxisId,
-						Value = axis.RawValue,
-						GateEpoch = epoch,
-					});
-				}
-			}
+			set => _gamePaused = value;
 		}
 
 		/// <summary>
@@ -559,26 +484,21 @@ namespace VisualPinball.Unity.Simulation
 				return;
 			}
 
-			// The single gate for the game's input: nothing is relayed while the app window isn't focused or
-			// the game is paused, so background key presses and menu navigation don't reach the game. The
-			// event carries the epoch it passed in, so a cut-off that lands while it's still on its way is
-			// noticed downstream.
-			var epoch = GateEpoch;
-			if ((epoch & 1) != 0) {
+			// Drop input while the app window isn't focused or the game is paused, so background key presses
+			// and menu navigation don't reach the game. Nothing else happens: what the game holds stays held.
+			if (!_appFocused || _gamePaused) {
 				return;
 			}
-			var relayed = evt;
-			relayed.GateEpoch = epoch;
 
 			var instance = Volatile.Read(ref _instance);
 			instance?.MarkInputEventActivity();
-			if (relayed.EventType == (int)NativeInputApi.InputEventType.Axis) {
-				instance?.AxisInputReceived?.Invoke(relayed);
+			if (evt.EventType == (int)NativeInputApi.InputEventType.Axis) {
+				instance?.AxisInputReceived?.Invoke(evt);
 				return;
 			}
 
 			// Forward action events to simulation thread via ring buffer.
-			instance?._simulationThread?.EnqueueInputEvent(relayed);
+			instance?._simulationThread?.EnqueueInputEvent(evt);
 		}
 
 		/// <summary>
