@@ -83,7 +83,7 @@ namespace VisualPinball.Unity
 
 		/// <summary>
 		/// Leaves a camera alone, for a camera whose projection already accounts for the turn (the cabinet
-		/// window projection).
+		/// cabinet projection).
 		/// </summary>
 		public static void Exclude(Camera camera)
 		{

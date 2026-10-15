@@ -9,23 +9,23 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	/// <summary>
-	/// Owns a camera's pose and projection while it renders through a cabinet window projection. Enabling
+	/// Owns a camera's pose and projection while it renders through a cabinet projection. Enabling
 	/// it saves the camera's own state, disabling it restores it. The projection is applied when it
 	/// changes, and again if something else overwrote it; steady frames only compare a few values.
 	/// </summary>
 	[RequireComponent(typeof(Camera))]
 	[DefaultExecutionOrder(int.MaxValue - 100)]
 	[DisallowMultipleComponent]
-	public sealed class WindowProjectionCamera : MonoBehaviour
+	public sealed class CabinetProjectionCamera : MonoBehaviour
 	{
 		private Camera _camera;
-		private IWindowProjectionAdapter _adapter;
-		private WindowProjectionResult _projection;
+		private ICabinetProjectionAdapter _adapter;
+		private CabinetProjectionResult _projection;
 		private bool _hasProjection;
 		private bool _dirty;
 		private bool _discontinuous;
 
-		// the camera's own state, restored when the window projection lets go of it
+		// the camera's own state, restored when the cabinet projection lets go of it
 		private Vector3 _position;
 		private Quaternion _rotation;
 		private bool _orthographic;
@@ -36,13 +36,13 @@ namespace VisualPinball.Unity
 
 		/// <summary>The projection currently applied, if any.</summary>
 		public bool HasProjection => _hasProjection;
-		public WindowProjectionResult Projection => _projection;
+		public CabinetProjectionResult Projection => _projection;
 
 		/// <summary>
 		/// Sets the projection to render with. <paramref name="discontinuous"/> resets the temporal history,
 		/// for a new table or a jump in the calibration, not for small steps.
 		/// </summary>
-		public void SetProjection(in WindowProjectionResult projection, bool discontinuous)
+		public void SetProjection(in CabinetProjectionResult projection, bool discontinuous)
 		{
 			if (!projection.IsValid) {
 				return;
@@ -69,8 +69,8 @@ namespace VisualPinball.Unity
 			_far = _camera.farClipPlane;
 
 			DisplayRotation.Exclude(_camera);
-			WindowProjection.SetActive(_camera);
-			_adapter = WindowProjection.Adapter;
+			CabinetProjection.SetActive(_camera);
+			_adapter = CabinetProjection.Adapter;
 			_adapter?.Attach(_camera);
 			_dirty = true;
 			_discontinuous = true;
@@ -85,8 +85,8 @@ namespace VisualPinball.Unity
 				return;
 			}
 			// inactive first, so the adapter restores the camera's unrestricted settings
-			if (WindowProjection.IsActive(_camera)) {
-				WindowProjection.SetActive(null);
+			if (CabinetProjection.IsActive(_camera)) {
+				CabinetProjection.SetActive(null);
 			}
 			_camera.ResetProjectionMatrix();
 			_adapter?.Detach(_camera);
