@@ -101,6 +101,38 @@ namespace VisualPinball.Unity
 			// second worker bulk-reads the thousands of tiny item/ref entries so the restore loops
 			// don't pay per-entry zip cost on the main thread. Each worker opens its own storage;
 			// SharpZipLib readers are not safe to share across threads.
+			// They start once the file turned out to be a package, so a rejected file isn't still
+			// being read in the background.
+
+			var openStopwatch = Stopwatch.StartNew();
+			IPackageStorage opened;
+			try {
+				opened = PackageApi.StorageManager.OpenStorage(_vpePath);
+			} catch (Exception e) when (!(e is OperationCanceledException)) {
+				throw new InvalidPackageException($"This file can't be opened as a .vpe table package: {e.Message}", e);
+			}
+			using var storage = opened;
+			_manifest = VpePackageManifestIo.TryRead(storage);
+			if (_manifest == null) {
+				throw new InvalidPackageException(
+					"This file has no package manifest — it is not a .vpe table package (or was written by an " +
+					"incompatible pre-release version of VPE).");
+			}
+			if (_manifest.FormatVersion > PackageApi.FormatVersion) {
+				throw new InvalidPackageException(
+					$"This package uses format version {_manifest.FormatVersion}, but this build only supports up " +
+					$"to version {PackageApi.FormatVersion}. Update VPE to load it.");
+			}
+			try {
+				_tableFolder = storage.GetFolder(PackageApi.TableFolder);
+			} catch (Exception e) when (!(e is OperationCanceledException)) {
+				throw new InvalidPackageException($"This package has no '{PackageApi.TableFolder}' folder.", e);
+			}
+			if (!_tableFolder.TryGetFile(PackageApi.SceneFile, out _)) {
+				throw new InvalidPackageException($"This package has no scene ('{PackageApi.SceneFile}').");
+			}
+			openStopwatch.Stop();
+
 			_textureCacheRoot = Application.persistentDataPath;
 			_cookSettingsHash = VpeTextureCookSettings.ComputeHash();
 			var materialPrefetchTask = Task.Run(() => PrefetchMaterialData(_vpePath, _textureCacheRoot, _cookSettingsHash), cancellationToken);
@@ -108,22 +140,6 @@ namespace VisualPinball.Unity
 			// The PackAsAttribute type scan reflects over every loaded assembly; warm it on a worker
 			// so building PackagedRefs after the scene import is effectively free.
 			var typeScanTask = Task.Run(PackagedRefs.WarmUpTypeScan, cancellationToken);
-
-			var openStopwatch = Stopwatch.StartNew();
-			using var storage = PackageApi.StorageManager.OpenStorage(_vpePath);
-			_manifest = VpePackageManifestIo.TryRead(storage);
-			if (_manifest == null) {
-				throw new Exception(
-					"This file has no package manifest — it is not a .vpe table package (or was written by an " +
-					"incompatible pre-release version of VPE).");
-			}
-			if (_manifest.FormatVersion > PackageApi.FormatVersion) {
-				throw new Exception(
-					$"This package uses format version {_manifest.FormatVersion}, but this build only supports up " +
-					$"to version {PackageApi.FormatVersion}. Update VPE to load it.");
-			}
-			_tableFolder = storage.GetFolder(PackageApi.TableFolder);
-			openStopwatch.Stop();
 			LoadAttempt.Current?.SetPackage(_manifest.FormatVersion, _manifest.WrittenBy, _manifest.ComponentTypes?.Count ?? 0);
 			LoadAttempt.Current?.SetPhase(LoadAttempt.PhaseImport);
 			Logger.Debug($"RuntimePackageReader: Opened package (format v{_manifest.FormatVersion}) in {openStopwatch.ElapsedMilliseconds}ms.");
@@ -331,7 +347,7 @@ namespace VisualPinball.Unity
 			var sceneFile = _tableFolder.GetFile(PackageApi.SceneFile);
 			var sceneData = sceneFile.GetData();
 			if (sceneData == null || sceneData.Length == 0) {
-				throw new Exception($"Scene data file '{PackageApi.SceneFile}' is missing or empty.");
+				throw new InvalidPackageException($"Scene data file '{PackageApi.SceneFile}' is missing or empty.");
 			}
 
 			_transformByNodeId = null;
