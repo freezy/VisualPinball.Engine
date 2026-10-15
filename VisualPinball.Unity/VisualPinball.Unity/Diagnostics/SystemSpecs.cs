@@ -91,7 +91,7 @@ namespace VisualPinball.Unity
 			for (var i = 0; i < args.Count; i++) {
 				var arg = args[i];
 				var isOption = arg.StartsWith("-");
-				if (editor && !(isOption && arg.StartsWith("-vpe", StringComparison.OrdinalIgnoreCase))) {
+				if (editor && !(isOption && arg.TrimStart('-').StartsWith("vpe", StringComparison.OrdinalIgnoreCase))) {
 					continue;
 				}
 				var equals = arg.IndexOf('=');

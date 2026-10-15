@@ -215,13 +215,15 @@ namespace VisualPinball.Unity.Simulation
 		private static long _beginUsec;
 
 		/// <summary>
-		/// Command-line override for player builds: <c>-simulation-trace</c> records,
-		/// <c>-no-simulation-trace</c> does not. Null when neither is given.
+		/// Command-line override for player builds: <c>--simulation-trace</c> records,
+		/// <c>--no-simulation-trace</c> does not (one dash works too). Null when neither is given.
 		/// </summary>
 		public static bool? CommandLineOverride()
 		{
 			var result = (bool?)null;
-			foreach (var arg in Environment.GetCommandLineArgs()) {
+			foreach (var raw in Environment.GetCommandLineArgs()) {
+				// --name is the documented form, -name still works
+				var arg = raw.StartsWith("--", StringComparison.Ordinal) ? raw.Substring(1) : raw;
 				if (string.Equals(arg, "-simulation-trace", StringComparison.OrdinalIgnoreCase)) {
 					result = true;
 				} else if (string.Equals(arg, "-no-simulation-trace", StringComparison.OrdinalIgnoreCase)) {
