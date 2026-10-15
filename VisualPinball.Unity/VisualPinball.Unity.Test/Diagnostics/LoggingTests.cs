@@ -153,6 +153,8 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[TestCase(new[] { "-vpe-log-level=debug" }, "Debug")]
+		[TestCase(new[] { "--vpe-log-level=debug" }, "Debug")]
+		[TestCase(new[] { "player.exe", "--vpe-log-level", "warn" }, "Warn")]
 		[TestCase(new[] { "player.exe", "-vpe-log-level", "trace" }, "Trace")]
 		[TestCase(new[] { "-VPE-LOG-LEVEL=Warning" }, "Warn")]
 		[TestCase(new[] { "-vpe-log-level" }, null)]

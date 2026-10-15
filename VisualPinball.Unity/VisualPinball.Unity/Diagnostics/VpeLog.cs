@@ -248,7 +248,7 @@ namespace VisualPinball.Unity
 		/// <param name="logDirectory">Folder for session log files. Logging to a file
 		/// starts with this call; lines logged before it are copied from the tail. An
 		/// empty string stops logging to a file.</param>
-		/// <param name="level">Lowest level to log. The <c>-vpe-log-level</c> command
+		/// <param name="level">Lowest level to log. The <c>--vpe-log-level</c> command
 		/// line argument overrides it.</param>
 		public static void Configure(string logDirectory = null, LogLevel level = null)
 		{
@@ -489,7 +489,7 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
-		/// Reads <c>-vpe-log-level=debug</c> or <c>-vpe-log-level debug</c>.
+		/// Reads <c>--vpe-log-level=debug</c> or <c>--vpe-log-level debug</c> (one dash works too).
 		/// </summary>
 		public static LogLevel ParseCommandLineLevel(IReadOnlyList<string> args)
 		{
@@ -498,6 +498,10 @@ namespace VisualPinball.Unity
 			}
 			for (var i = 0; i < args.Count; i++) {
 				var arg = args[i];
+				// --name is the documented form, -name still works
+				if (arg != null && arg.StartsWith("--", StringComparison.Ordinal)) {
+					arg = arg.Substring(1);
+				}
 				if (arg == null || !arg.StartsWith(LevelArgument, StringComparison.OrdinalIgnoreCase)) {
 					continue;
 				}
