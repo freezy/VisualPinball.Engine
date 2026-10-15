@@ -56,7 +56,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<DisplayFrameFormat, Dictionary<byte, Color32>> _map = new Dictionary<DisplayFrameFormat, Dictionary<byte, Color32>>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-		private static readonly LogThrottle FrameThrottle = new(3, TimeSpan.FromSeconds(30));
+		private readonly LogThrottle _frameThrottle = new(3, TimeSpan.FromSeconds(30));
 		private static readonly int UnlitColorProp = Shader.PropertyToID("__UnlitColor");
 		private static readonly int DimensionsProp = Shader.PropertyToID("__Dimensions");
 		private static readonly int PaddingProp = Shader.PropertyToID("__Padding");
@@ -174,7 +174,7 @@ namespace VisualPinball.Unity
 		public override void UpdateFrame(DisplayFrameFormat format, byte[] frame)
 		{
 			if (_texture == null) {
-				if (FrameThrottle.ShouldLog(out var suppressed)) {
+				if (_frameThrottle.ShouldLog(out var suppressed)) {
 					Logger.Warn("Cannot render DMD {DisplayId}, its size is unknown ({Suppressed} suppressed).", _id, suppressed);
 				}
 				return;
@@ -200,7 +200,7 @@ namespace VisualPinball.Unity
 						_texture.Apply();
 
 					} else {
-						if (FrameThrottle.ShouldLog(out var suppressed)) {
+						if (_frameThrottle.ShouldLog(out var suppressed)) {
 							Logger.Warn("Cannot render {Bytes} bytes of frame data to DMD {DisplayId} of {Width}x{Height} ({Suppressed} suppressed).", frame.Length, _id, _width, _height, suppressed);
 						}
 					}
@@ -213,14 +213,14 @@ namespace VisualPinball.Unity
 						_texture.Apply();
 
 					} else {
-						if (FrameThrottle.ShouldLog(out var suppressed)) {
+						if (_frameThrottle.ShouldLog(out var suppressed)) {
 							Logger.Warn("Cannot render {Bytes} bytes of RGB data to DMD {DisplayId} of {Width}x{Height} ({Suppressed} suppressed).", frame.Length, _id, _width, _height, suppressed);
 						}
 					}
 					break;
 
 				case DisplayFrameFormat.Segment:
-					if (FrameThrottle.ShouldLog(out var segmentSuppressed)) {
+					if (_frameThrottle.ShouldLog(out var segmentSuppressed)) {
 						Logger.Warn("DMD {DisplayId} cannot render segment data, use a segment display component ({Suppressed} suppressed).", _id, segmentSuppressed);
 					}
 					break;

@@ -161,7 +161,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, IApiSwitch> _switchLookup = new Dictionary<string, IApiSwitch>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-		private static readonly LogThrottle EjectThrottle = new(5, TimeSpan.FromSeconds(30));
+		private readonly LogThrottle _ejectThrottle = new(5, TimeSpan.FromSeconds(30));
 
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -471,7 +471,7 @@ namespace VisualPinball.Unity
 					case TroughType.ModernMech:
 					case TroughType.TwoCoilsNSwitches:
 						if (!_stackSwitches[0].IsSwitchEnabled) {
-							if (EjectThrottle.ShouldLog(out var suppressed)) {
+							if (_ejectThrottle.ShouldLog(out var suppressed)) {
 								Logger.Warn("Trough {Name}: ball not in eject position yet, ignoring the eject ({Suppressed} suppressed).", MainComponent.name, suppressed);
 							}
 							return false;
@@ -484,7 +484,7 @@ namespace VisualPinball.Unity
 
 					case TroughType.ClassicSingleBall:
 						if (!EntrySwitch.IsSwitchEnabled) {
-							if (EjectThrottle.ShouldLog(out var noBallSuppressed)) {
+							if (_ejectThrottle.ShouldLog(out var noBallSuppressed)) {
 								Logger.Warn("Trough {Name}: no ball to eject, ignoring ({Suppressed} suppressed).", MainComponent.name, noBallSuppressed);
 							}
 							return false;
@@ -497,7 +497,7 @@ namespace VisualPinball.Unity
 
 
 				if (_ejectKicker == null) {
-					if (EjectThrottle.ShouldLog(out var noKickerSuppressed)) {
+					if (_ejectThrottle.ShouldLog(out var noKickerSuppressed)) {
 						Logger.Warn("Trough {Name} cannot eject a ball, it has no exit kicker ({Suppressed} suppressed).", MainComponent.name, noKickerSuppressed);
 					}
 					return false;

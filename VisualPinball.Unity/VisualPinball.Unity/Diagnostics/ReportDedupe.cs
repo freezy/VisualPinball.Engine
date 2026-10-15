@@ -33,6 +33,7 @@ namespace VisualPinball.Unity
 		private static readonly Regex FrameLine = new(@"^\s*at\s+(?<method>[^(\[]+)", RegexOptions.Multiline);
 
 		private readonly Dictionary<string, int> _repeats = new();
+		private readonly HashSet<string> _fatalSent = new();
 		private readonly int _cap;
 		private int _sent;
 
@@ -48,16 +49,21 @@ namespace VisualPinball.Unity
 		public bool ShouldSend(string key, bool fatal, out int repeats)
 		{
 			lock (_repeats) {
-				if (_repeats.TryGetValue(key, out var seen)) {
+				var known = _repeats.TryGetValue(key, out var seen);
+				// The first fatal one of a kind always goes, even when the same kind came before
+				// as an error that wasn't sent (the cap was reached, say).
+				if (fatal && _fatalSent.Add(key)) {
+					_repeats[key] = known ? seen : 0;
+					repeats = known ? seen : 0;
+					return true;
+				}
+				if (known) {
 					_repeats[key] = seen + 1;
 					repeats = seen + 1;
 					return false;
 				}
 				_repeats[key] = 0;
 				repeats = 0;
-				if (fatal) {
-					return true;
-				}
 				if (_sent >= _cap) {
 					return false;
 				}
@@ -73,6 +79,7 @@ namespace VisualPinball.Unity
 		{
 			lock (_repeats) {
 				_repeats.Clear();
+				_fatalSent.Clear();
 				_sent = 0;
 			}
 		}

@@ -27,7 +27,7 @@ namespace VisualPinball.Unity
 	public class TeleporterApi : IApi, IApiCoilDevice
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-		private static readonly LogThrottle MissingKickerThrottle = new(3, TimeSpan.FromSeconds(60));
+		private readonly LogThrottle _missingKickerThrottle = new(3, TimeSpan.FromSeconds(60));
 
 		private readonly TeleporterComponent _component;
 		private readonly Player _player;
@@ -60,7 +60,7 @@ namespace VisualPinball.Unity
 		private void OnTeleport()
 		{
 			if (_toKicker == null || _fromKicker == null) {
-				if (MissingKickerThrottle.ShouldLog(out var suppressed)) {
+				if (_missingKickerThrottle.ShouldLog(out var suppressed)) {
 					Logger.Warn("Teleporter {Name} cannot teleport, its source or destination kicker is not set ({Suppressed} suppressed).", _component.name, suppressed);
 				}
 				return;

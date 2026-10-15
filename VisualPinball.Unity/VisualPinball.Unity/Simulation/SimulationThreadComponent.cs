@@ -340,6 +340,8 @@ namespace VisualPinball.Unity.Simulation
 			if (fault != null && !_faultRaised) {
 				_faultRaised = true;
 				SimulationFaulted?.Invoke(fault);
+				// a handler may have stopped the simulation
+				if (!_started || _simulationThread == null) return;
 			}
 
 			_simulationThread.SyncClockFromMainThread(_physicsEngine.CurrentSimulationClockUsec, _physicsEngine.CurrentSimulationClockScale);

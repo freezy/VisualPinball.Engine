@@ -46,7 +46,7 @@ namespace VisualPinball.Unity
 		private WirePlayer? _wirePlayer;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-		private static readonly LogOncePerKey<(string, string)> BrokenCoilLog = new();
+		private readonly LogOncePerKey<(string, string)> _brokenCoilLog = new();
 
 		internal Dictionary<string, bool> CoilStatuses { get; } = new();
 		internal void RegisterCoilDevice(ICoilDeviceComponent component, IApiCoilDevice coilDeviceApi) => _coilDevices[component] = coilDeviceApi;
@@ -171,7 +171,7 @@ namespace VisualPinball.Unity
 
 						// check device
 						if (!_coilDevices.ContainsKey(destConfig.Device)) {
-							if (BrokenCoilLog.ShouldLog((coilEvent.Id, destConfig.DeviceItem))) {
+							if (_brokenCoilLog.ShouldLog((coilEvent.Id, destConfig.DeviceItem))) {
 								Logger.Warn("Cannot trigger coil {CoilId}: its device {Device} is not registered.", coilEvent.Id, destConfig.Device.name);
 							}
 							continue;
@@ -180,7 +180,7 @@ namespace VisualPinball.Unity
 						// check coil in device
 						var coil = _coilDevices[destConfig.Device].Coil(destConfig.DeviceItem);
 						if (coil == null) {
-							if (BrokenCoilLog.ShouldLog((coilEvent.Id, destConfig.DeviceItem))) {
+							if (_brokenCoilLog.ShouldLog((coilEvent.Id, destConfig.DeviceItem))) {
 								Logger.Warn("Cannot trigger coil {CoilId}: device {Device} has no coil {DeviceItem}.", coilEvent.Id, destConfig.Device.name, destConfig.DeviceItem);
 							}
 							continue;
@@ -191,7 +191,7 @@ namespace VisualPinball.Unity
 						coil.OnCoil(coilEvent.Value);
 
 					} else {
-						if (BrokenCoilLog.ShouldLog((coilEvent.Id, destConfig.DeviceItem))) {
+						if (_brokenCoilLog.ShouldLog((coilEvent.Id, destConfig.DeviceItem))) {
 							Logger.Warn("Cannot trigger coil {CoilId}: it is mapped to no device.", coilEvent.Id);
 						}
 					}

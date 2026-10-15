@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 		private readonly int _gateColliderItemId;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-		private static readonly LogThrottle MissingColliderThrottle = new(3, TimeSpan.FromSeconds(60));
+		private readonly LogThrottle _missingColliderThrottle = new(3, TimeSpan.FromSeconds(60));
 		private GateApi _gateApi;
 
 		internal GateLifterApi(GameObject go, Player player, PhysicsEngine physicsEngine)
@@ -74,7 +74,7 @@ namespace VisualPinball.Unity
 		private void OnLifterCoilEnabled()
 		{
 			if (_gateColliderComponent == null) {
-				if (MissingColliderThrottle.ShouldLog(out var suppressed)) {
+				if (_missingColliderThrottle.ShouldLog(out var suppressed)) {
 					Logger.Warn("Gate lifter {Name} switched, but its gate has no collider ({Suppressed} suppressed).", _gateLifterComponent.name, suppressed);
 				}
 				return;
@@ -86,7 +86,7 @@ namespace VisualPinball.Unity
 		private void OnLifterCoilDisabled()
 		{
 			if (_gateColliderComponent == null) {
-				if (MissingColliderThrottle.ShouldLog(out var suppressed)) {
+				if (_missingColliderThrottle.ShouldLog(out var suppressed)) {
 					Logger.Warn("Gate lifter {Name} switched, but its gate has no collider ({Suppressed} suppressed).", _gateLifterComponent.name, suppressed);
 				}
 				return;
