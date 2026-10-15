@@ -70,7 +70,7 @@ namespace VisualPinball.Unity
 
 			catch(Exception e)
 			{
-				Logger.Error(e);
+				Logger.Warn(e, "Cannot read or write the input bindings in {Directory:l}, using the defaults.", directory);
 			}
 
 			if (_asset == null)

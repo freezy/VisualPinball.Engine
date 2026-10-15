@@ -40,7 +40,7 @@ namespace VisualPinball.Unity
 
 			var displays = UnityEngine.Object.FindObjectsOfType<DisplayComponent>();
 			foreach (var display in displays) {
-				Logger.Info($"[Player] display \"{display.Id}\" connected.");
+				Logger.Debug("Display {DisplayId} connected.", display.Id);
 
 				_displayGameObjects[display.Id] = display;
 				_displayGameObjects[display.Id].OnDisplayChanged += HandleDisplayChanged;
@@ -57,7 +57,7 @@ namespace VisualPinball.Unity
 					if (!displayGameObject.ReceiveGamelogicFrames) {
 						continue;
 					}
-					Logger.Info($"Updating display \"{display.Id}\" to {display.Width}x{display.Height}");
+					Logger.Debug("Updating display {DisplayId} to {Width}x{Height}.", display.Id, display.Width, display.Height);
 					displayGameObject.UpdateDimensions(display.Width, display.Height, display.FlipX);
 					if (display.LitColor.HasValue) {
 						displayGameObject.UpdateColor(display.LitColor.Value);
@@ -67,7 +67,7 @@ namespace VisualPinball.Unity
 					}
 					displayGameObject.Clear();
 				} else {
-					Logger.Warn($"Cannot find game object for display \"{display.Id}\"");
+					Logger.Warn("The gamelogic engine requested display {DisplayId}, but the table has no display component with this ID.", display.Id);
 				}
 			}
 		}

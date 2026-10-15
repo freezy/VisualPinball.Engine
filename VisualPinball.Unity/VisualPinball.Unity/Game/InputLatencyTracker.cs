@@ -62,7 +62,7 @@ namespace VisualPinball.Unity
 				_visualDetectLogCount = 0;
 				_nativeTimestampFailureLogged = false;
 			}
-			Logger.Info($"{LogPrefix} [InputLatency] Reset tracker");
+			Logger.Debug("{Prefix:l} [InputLatency] Reset tracker", LogPrefix);
 		}
 
 		public static void RecordInputPolled(NativeInputApi.InputAction action, bool isPressed, long timestampUsec)
@@ -90,7 +90,7 @@ namespace VisualPinball.Unity
 
 				if (_inputPressLogCount < 10) {
 					_inputPressLogCount++;
-					Logger.Info($"{LogPrefix} [InputLatency] Polled press action={action}, ts={timestampUsec}us");
+					Logger.Debug("{Prefix:l} [InputLatency] Polled press action={Action}, ts={TimestampUsec}us", LogPrefix, action, timestampUsec);
 				}
 			}
 		}
@@ -121,7 +121,7 @@ namespace VisualPinball.Unity
 
 				if (handled && _inputPressLogCount < 10) {
 					_inputPressLogCount++;
-					Logger.Info($"{LogPrefix} [InputLatency] Switch press dispatch switchId={switchId}, ts={timestampUsec}us");
+					Logger.Debug("{Prefix:l} [InputLatency] Switch press dispatch switchId={SwitchId}, ts={TimestampUsec}us", LogPrefix, switchId, timestampUsec);
 				}
 			}
 		}
@@ -147,7 +147,9 @@ namespace VisualPinball.Unity
 
 			var latencyUsec = visualTimestampUsec - pending.TimestampUsec;
 			if (latencyUsec < 0) {
-				Logger.Warn($"{LogPrefix} [InputLatency] Negative latency detected (clock={pending.Clock}, visual={visualTimestampUsec}us, input={pending.TimestampUsec}us)");
+				if (Logger.IsDebugEnabled) {
+					Logger.Debug("{Prefix:l} [InputLatency] Negative latency detected (clock={Clock}, visual={VisualUsec}us, input={InputUsec}us)", LogPrefix, pending.Clock, visualTimestampUsec, pending.TimestampUsec);
+				}
 				latencyUsec = 0;
 			}
 
@@ -165,7 +167,8 @@ namespace VisualPinball.Unity
 
 				if (_visualDetectLogCount < 20) {
 					_visualDetectLogCount++;
-					Logger.Info($"{LogPrefix} [InputLatency] Visual flipper movement ({(isLeftFlipper ? "L" : "R")}) latency={latencyMs:0.000}ms (clock={pending.Clock}, input={pending.TimestampUsec}us, visual={visualTimestampUsec}us)");
+					Logger.Debug("{Prefix:l} [InputLatency] Visual flipper movement ({Side:l}) latency={LatencyMs:0.000}ms (clock={Clock}, input={InputUsec}us, visual={VisualUsec}us)",
+						LogPrefix, isLeftFlipper ? "L" : "R", latencyMs, pending.Clock, pending.TimestampUsec, visualTimestampUsec);
 				}
 			}
 		}
@@ -182,7 +185,7 @@ namespace VisualPinball.Unity
 				if (_flipperLatencyCount > 0) {
 					_lastFlipperLatencyMs = (float)(_flipperLatencySumMs / _flipperLatencyCount);
 					if (log) {
-						Logger.Info($"{LogPrefix} [InputLatency] Sample window avg={_lastFlipperLatencyMs:0.000}ms from {_flipperLatencyCount} sample(s)");
+						Logger.Debug("{Prefix:l} [InputLatency] Sample window avg={LatencyMs:0.000}ms from {Count} sample(s)", LogPrefix, _lastFlipperLatencyMs, _flipperLatencyCount);
 					}
 					_flipperLatencySumMs = 0;
 					_flipperLatencyCount = 0;
@@ -219,14 +222,9 @@ namespace VisualPinball.Unity
 				timestampUsec = NativeInputApi.VpeGetTimestampUsec();
 				return timestampUsec > 0;
 			}
-			catch (DllNotFoundException) {
+			catch (Exception e) when (e is DllNotFoundException || e is EntryPointNotFoundException || e is TypeLoadException) {
 				_nativeTimestampAvailable = false;
-			}
-			catch (EntryPointNotFoundException) {
-				_nativeTimestampAvailable = false;
-			}
-			catch (TypeLoadException) {
-				_nativeTimestampAvailable = false;
+				Logger.Warn(e, "{Prefix:l} [InputLatency] Native timestamp library not available, input latency can't use the native clock.", LogPrefix);
 			}
 
 			return false;

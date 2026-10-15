@@ -417,7 +417,7 @@ namespace VisualPinball.Unity
 			if (_audioClips.TryGetValue(guid, out var clip)) {
 				return clip;
 			}
-			Logger.Error($"Could not find loaded AudioClip with GUID {guid}");
+			Logger.Warn("Cannot find audio clip {Guid} in the package.", guid);
 			return null;
 		}
 
@@ -463,7 +463,7 @@ namespace VisualPinball.Unity
 						var path = AssetDatabase.GUIDToAssetPath(meta.Guid);
 						if (!string.IsNullOrEmpty(path)) {
 							_audioClips.Add(meta.Guid, AssetDatabase.LoadAssetAtPath<AudioClip>(path));
-							Logger.Info($"Matched sound file {soundFile.Name} with existing asset at {path}, skipping.");
+							Logger.Debug("Matched sound file {File} with existing asset at {Path:l}, skipping.", soundFile.Name, path);
 							return;
 						}
 
@@ -479,7 +479,7 @@ namespace VisualPinball.Unity
 						VpeSoundImportPreprocessor.Register(relativePath.Replace('\\', '/'), meta);
 						dumpedSounds.Add(meta.Guid, relativePath);
 					} else {
-						Logger.Error($"Cannot find meta data for sound file {soundFile.Name}");
+						Logger.Warn("Cannot find meta data for sound file {File}, skipping it.", soundFile.Name);
 					}
 				});
 
@@ -595,8 +595,9 @@ namespace VisualPinball.Unity
 					if (File.Exists(tempPath)) {
 						File.Delete(tempPath);
 					}
-				} catch (Exception) {
+				} catch (Exception e) {
 					// best effort cleanup
+					Logger.Debug(e, "Cannot delete temporary sound file {Path:l}.", tempPath);
 				}
 			}
 		}

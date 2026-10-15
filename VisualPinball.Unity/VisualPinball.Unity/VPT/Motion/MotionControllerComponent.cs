@@ -238,7 +238,7 @@ namespace VisualPinball.Unity
 
 			var player = GetComponentInParent<Player>();
 			if (player == null) {
-				Logger.Error($"Cannot find player for motion controller {name}.");
+				Logger.Warn("Cannot find player for motion controller {Name}. Is it part of a table?", name);
 				return;
 			}
 

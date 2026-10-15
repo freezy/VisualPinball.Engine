@@ -225,12 +225,12 @@ namespace VisualPinball.Unity
 			}
 
 			if (Keyboard.current.fKey.wasPressedThisFrame) {
-				Debug.Log("Flippers disabled");
+				Logger.Info("Flippers disabled.");
 				_flippersEnabled = false;
 			}
 
 			if (Keyboard.current.fKey.wasReleasedThisFrame) {
-				Debug.Log("Flippers enabled");
+				Logger.Info("Flippers enabled.");
 				_flippersEnabled = true;
 			}
 		}
@@ -251,7 +251,9 @@ namespace VisualPinball.Unity
 			} else {
 				_switchTime[id].Stop();
 			}
-			Logger.Info("Switch {0} is {1}.", id, isClosed ? "closed" : "open after " + _switchTime[id].ElapsedMilliseconds + "ms");
+			if (Logger.IsTraceEnabled) {
+				Logger.Trace("Switch {SwitchId} is {State:l}.", id, isClosed ? "closed" : "open after " + _switchTime[id].ElapsedMilliseconds + "ms");
+			}
 
 			switch (id) {
 
@@ -337,7 +339,9 @@ namespace VisualPinball.Unity
 
 		private void DebugPrintCoil(object sender, CoilEventArgs e)
 		{
-			Logger.Info("Coil {0} set to {1}.", e.Id, e.IsEnabled);
+			if (Logger.IsTraceEnabled) {
+				Logger.Trace("Coil {CoilId} set to {Enabled}.", e.Id, e.IsEnabled);
+			}
 		}
 
 		private void Flip(string id, bool isClosed)

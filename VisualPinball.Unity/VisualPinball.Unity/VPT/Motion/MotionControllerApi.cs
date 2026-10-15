@@ -140,7 +140,7 @@ namespace VisualPinball.Unity
 		{
 			if (_component.CoilMode == MotionCoilMode.FollowValue && !_warnedBooleanFollowValue) {
 				_warnedBooleanFollowValue = true;
-				Debug.LogWarning($"Motion controller '{_component.name}' is configured to Follow Value but is receiving boolean wire input. Use a plain coil mapping to preserve proportional values.", _component);
+				Logger.Warn("Motion controller {Name} is configured to Follow Value but is receiving boolean wire input. Use a plain coil mapping to preserve proportional values.", _component.name);
 			}
 			ApplyCoilValue(enabled ? 1f : 0f);
 		}

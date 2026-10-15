@@ -76,7 +76,7 @@ namespace VisualPinball.Unity
 		{
 			_scoreMotorComponent.OnSwitchChanged -= HandleSwitchChanged;
 
-			Logger.Info($"Destroying {_scoreMotorComponent.name}");
+			Logger.Debug("Destroying {Name}.", _scoreMotorComponent.name);
 		}
 
 		#endregion

@@ -80,9 +80,8 @@ namespace VisualPinball.Unity
 					collEvent.HitOrgNormalVelocity = bnv; // remember original normal velocity
 					collEvent.HitDistance = bnd;
 					
-					if (collEvent.HitNormal is { x: 0, y: 0, z: 0 }) {
-						Debug.Log("Hit normal set to zero by plane collider.");
-					}
+					// HitTest runs in the Burst-compiled physics loop, so it can't log. A zero
+					// normal here would mean the playfield plane was created with one.
 
 					// hit time is ignored for contacts
 					return 0.0f;

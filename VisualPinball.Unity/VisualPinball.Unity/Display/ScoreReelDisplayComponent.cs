@@ -134,7 +134,7 @@ namespace VisualPinball.Unity
 
 		public override void UpdateDimensions(int width, int height, bool flipX = false)
 		{
-			Debug.Log($"Reel of {width} requested.");
+			Logger.Debug("Reel of {Width} requested on {Name}.", width, name);
 		}
 
 		public override Color LitColor { get; set; }

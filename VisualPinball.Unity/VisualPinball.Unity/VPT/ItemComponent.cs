@@ -41,7 +41,7 @@ namespace VisualPinball.Unity
 			if (physicsEngine) {
 				physicsEngine.Register(this);
 			} else {
-				Logger.Error("No physics engine found in parent hierarchy.");
+				Logger.Warn("No physics engine found in the parents of {Name}. Is it part of a table?", name);
 			}
 		}
 

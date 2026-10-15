@@ -17,8 +17,10 @@
 // ReSharper disable InconsistentNaming
 
 using System.Linq;
+using NLog;
 using UnityEngine;
 using UnityEngine.Serialization;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -27,6 +29,8 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public abstract class AnimationComponent<T> : MonoBehaviour
 	{
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		protected IAnimationValueEmitter<T> Emitter {
 			get => _emitter as IAnimationValueEmitter<T>;
 			set => _emitter = value as MonoBehaviour;
@@ -51,7 +55,8 @@ namespace VisualPinball.Unity
 			}
 
 			if (Emitter == null) {
-				Debug.LogError($"{GetType().Name} requires an IAnimationValueEmitter<{typeof(T).Name}>.", this);
+				Logger.Warn("{Component:l} on {Name} has no animation emitter of {ValueType:l} assigned or in its parents. It won't animate.",
+					GetType().Name, name, typeof(T).Name);
 			}
 		}
 
@@ -74,7 +79,7 @@ namespace VisualPinball.Unity
 		protected virtual void OnValidate()
 		{
 			if (_emitter != null && !(_emitter is IAnimationValueEmitter<T>)) {
-				Debug.LogError($"{name}: Assigned emitter does not implement IAnimationValueEmitter<{typeof(T).Name}>. It will be ignored.",this);
+				Debug.LogWarning($"{name}: Assigned emitter does not implement IAnimationValueEmitter<{typeof(T).Name}>. It will be ignored.", this);
 			}
 		}
 #endif

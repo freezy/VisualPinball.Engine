@@ -189,7 +189,7 @@ namespace VisualPinball.Unity
 
 				} catch (Exception e) {
 					// without logging there's nothing else to tell
-					UnityEngine.Debug.LogError($"[VisualPinball] Cannot set up logging: {e}");
+					UnityEngine.Debug.LogError($"[VisualPinball] Cannot set up logging: {e}"); // logging-rules: allow
 				}
 			}
 		}

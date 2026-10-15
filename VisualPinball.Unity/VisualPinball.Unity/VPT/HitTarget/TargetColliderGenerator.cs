@@ -14,16 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using NLog;
 using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT;
+using Logger = NLog.Logger;
 using Mesh = UnityEngine.Mesh;
 
 namespace VisualPinball.Unity
 {
 	public class TargetColliderGenerator
 	{
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		private readonly IApiColliderGenerator _api;
 		private readonly float4x4 _matrix;
 
@@ -36,7 +40,7 @@ namespace VisualPinball.Unity
 		internal void GenerateColliders(ref ColliderReference colliders, Mesh colliderMesh, ItemType itemType, MonoBehaviour mainComp)
 		{
 			if (colliderMesh == null) {
-				Debug.LogWarning($"Collider mesh of target \"{mainComp.name}\" is not set. Target will not fully work.");
+				Logger.Warn("Collider mesh of target {Name} is not set. The target won't be hit.", mainComp.name);
 				return;
 			}
 			using var meshDataArray = Mesh.AcquireReadOnlyMeshData(colliderMesh);

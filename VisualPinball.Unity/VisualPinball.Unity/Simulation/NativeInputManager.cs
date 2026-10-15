@@ -141,19 +141,19 @@ namespace VisualPinball.Unity.Simulation
 			int result = NativeInputApi.VpeInputInit();
 			if (result == 0)
 			{
-				Logger.Error($"{LogPrefix} [NativeInputManager] Failed to initialize native input system");
+				Logger.Warn("{Prefix:l} [NativeInputManager] Failed to initialize native input system", LogPrefix);
 				return false;
 			}
 
 			try {
 				var protocolVersion = NativeInputApi.VpeInputGetProtocolVersion();
 				if (protocolVersion != NativeInputApi.ProtocolVersion) {
-					Logger.Error($"{LogPrefix} [NativeInputManager] Native input protocol mismatch: managed={NativeInputApi.ProtocolVersion}, native={protocolVersion}");
+					Logger.Warn("{Prefix:l} [NativeInputManager] Native input protocol mismatch: managed={Managed}, native={Native}. Is the native input plugin up to date?", LogPrefix, NativeInputApi.ProtocolVersion, protocolVersion);
 					NativeInputApi.VpeInputShutdown();
 					return false;
 				}
 			} catch (EntryPointNotFoundException) {
-				Logger.Error($"{LogPrefix} [NativeInputManager] Native input plugin is too old for protocol {NativeInputApi.ProtocolVersion}");
+				Logger.Warn("{Prefix:l} [NativeInputManager] Native input plugin is too old for protocol {Protocol}", LogPrefix, NativeInputApi.ProtocolVersion);
 				NativeInputApi.VpeInputShutdown();
 				return false;
 			}
@@ -333,7 +333,7 @@ namespace VisualPinball.Unity.Simulation
 
 			if (!_initialized)
 			{
-				Logger.Error($"{LogPrefix} [NativeInputManager] Not initialized");
+				Logger.Error("{Prefix:l} [NativeInputManager] Cannot start polling, not initialized", LogPrefix);
 				return false;
 			}
 
@@ -347,7 +347,7 @@ namespace VisualPinball.Unity.Simulation
 			var configured = _configuredBindings;
 			var toSend = configured != null && configured.Count > 0 ? configured.ToArray() : _bindings.ToArray();
 			NativeInputApi.VpeInputSetBindings(toSend, toSend.Length);
-			Logger.Info($"{LogPrefix} [NativeInputManager] Sent {toSend.Length} bindings ({(configured != null && configured.Count > 0 ? "custom" : "default")})");
+			Logger.Debug("{Prefix:l} [NativeInputManager] Sent {Count} bindings ({Kind:l})", LogPrefix, toSend.Length, configured != null && configured.Count > 0 ? "custom" : "default");
 
 			// Create callback delegate (keep reference to prevent GC)
 			_callbackDelegate = OnInputEvent;
@@ -356,7 +356,7 @@ namespace VisualPinball.Unity.Simulation
 			int result = NativeInputApi.VpeInputStartPolling(_callbackDelegate, IntPtr.Zero, pollIntervalUs);
 			if (result == 0)
 			{
-				Logger.Error($"{LogPrefix} [NativeInputManager] Failed to start polling");
+				Logger.Warn("{Prefix:l} [NativeInputManager] Failed to start polling", LogPrefix);
 				return false;
 			}
 
@@ -397,7 +397,7 @@ namespace VisualPinball.Unity.Simulation
 		{
 			ClearBindings();
 			_bindings.AddRange(BuildDefaultBindings());
-			Logger.Info($"{LogPrefix} [NativeInputManager] Configured {_bindings.Count} default bindings");
+			Logger.Debug("{Prefix:l} [NativeInputManager] Configured {Count} default bindings", LogPrefix, _bindings.Count);
 		}
 
 		/// <summary>
@@ -471,7 +471,8 @@ namespace VisualPinball.Unity.Simulation
 		private static void OnInputEvent(ref NativeInputApi.InputEvent evt, IntPtr userData)
 		{
 			if (Interlocked.Exchange(ref _loggedFirstEvent, 1) == 0) {
-				Logger.Info($"{LogPrefix} [NativeInputManager] First event: Type={evt.EventType}, Action={evt.Action}, Device={evt.DeviceIndex}, Axis={evt.AxisId}, Value={evt.Value}, Timestamp={evt.TimestampUsec}");
+				Logger.Debug("{Prefix:l} [NativeInputManager] First event: Type={Type}, Action={Action}, Device={Device}, Axis={Axis}, Value={Value}, Timestamp={Timestamp}",
+					LogPrefix, evt.EventType, evt.Action, evt.DeviceIndex, evt.AxisId, evt.Value, evt.TimestampUsec);
 			}
 			if (Logger.IsTraceEnabled) {
 				Logger.Trace($"{LogPrefix} [NativeInputManager] Received from native: Type={evt.EventType}, Action={evt.Action}, Device={evt.DeviceIndex}, Axis={evt.AxisId}, Value={evt.Value}, Timestamp={evt.TimestampUsec}");
@@ -515,7 +516,7 @@ namespace VisualPinball.Unity.Simulation
 				ListDevices();
 				DevicesChanged?.Invoke();
 			} catch (Exception e) {
-				Logger.Error(e, $"{LogPrefix} [NativeInputManager] Failed to refresh devices after hotplug");
+				Logger.Error(e, "{Prefix:l} [NativeInputManager] Failed to refresh devices after hotplug", LogPrefix);
 			}
 		}
 

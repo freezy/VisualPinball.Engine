@@ -16,6 +16,7 @@
 
 using NUnit.Framework;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Reflection;
 using UnityEditor;
 using Unity.Mathematics;
@@ -257,7 +258,7 @@ namespace VisualPinball.Unity.Test
 				DragPointSplineComponent.Create(rubber, new DragPointData[0]);
 				ClearSplineReference(rubber);
 				LogAssert.Expect(LogType.Warning,
-					"Removing generated spline child 'Spline' from 'Rubber' because it duplicates another drag-point spline.");
+					new Regex("Removing generated spline child \"Spline\" from \"Rubber\" because it duplicates another drag-point spline"));
 
 				Assert.That(rubber.DragPointSpline, Is.SameAs(original));
 				Assert.That(go.GetComponentsInChildren<DragPointSplineComponent>(true),
@@ -279,7 +280,7 @@ namespace VisualPinball.Unity.Test
 				var duplicate = DragPointSplineComponent.Create(rubber, CreateDragPoints());
 				ClearSplineReference(rubber);
 				LogAssert.Expect(LogType.Warning,
-					"Keeping generated spline child 'Spline' of 'Rubber' even though it duplicates another drag-point spline, because it still holds 4 knots.");
+					new Regex("Keeping generated spline child \"Spline\" of \"Rubber\" even though it duplicates another drag-point spline, because it still holds 4 knots"));
 
 				Assert.That(rubber.DragPointSpline, Is.SameAs(original));
 				Assert.That(duplicate, Is.Not.Null, "knots are the only copy of the geometry and must never be destroyed");
@@ -306,7 +307,7 @@ namespace VisualPinball.Unity.Test
 				invalid.AddComponent<GeneratedDragPointSplineComponent>();
 				ClearSplineReference(rubber);
 				LogAssert.Expect(LogType.Warning,
-					"Removing generated spline child 'Invalid Spline' from 'Rubber' because it has no functional drag-point spline.");
+					new Regex("Removing generated spline child \"Invalid Spline\" from \"Rubber\" because it has no functional drag-point spline"));
 
 				Assert.That(rubber.DragPointSpline, Is.SameAs(original));
 				Assert.That(go.GetComponentsInChildren<DragPointSplineComponent>(true),

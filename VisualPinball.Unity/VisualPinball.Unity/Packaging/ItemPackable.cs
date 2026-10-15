@@ -78,10 +78,10 @@ namespace VisualPinball.Unity
 							recordPropertyOverridesOfMatches = true
 						}, UnityEditor.InteractionMode.AutomatedAction);
 					} else {
-						Debug.LogError($"Unable to load prefab {PrefabGuid} at path {path}");
+						Debug.LogWarning($"Unable to load prefab {PrefabGuid} at path {path}.");
 					}
 				} else {
-					Debug.LogWarning($"Could not find prefab ${PrefabGuid} locally. Asset library missing?");
+					Debug.LogWarning($"Could not find prefab {PrefabGuid} locally. Asset library missing?");
 				}
 			}
 			go.SetActive(IsActive);

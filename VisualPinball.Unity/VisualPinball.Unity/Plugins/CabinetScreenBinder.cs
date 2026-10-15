@@ -7,8 +7,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NLog;
 using UnityEngine;
 using VisualPinball.Plugins;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -34,6 +36,8 @@ namespace VisualPinball.Unity
 	/// </remarks>
 	public sealed class CabinetScreenBinder : IDisposable
 	{
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		/// <summary>
 		/// How long after the gamelogic engine started a DMD it announces still counts as the engine's own, in seconds.
 		/// Engines such as PinMAME announce their displays right after starting.
@@ -99,18 +103,19 @@ namespace VisualPinball.Unity
 			foreach (var component in table.GetComponentsInChildren<CabinetScreenComponent>(true)) {
 				var renderer = component.TargetRenderer;
 				if (renderer == null) {
-					Debug.LogWarning($"Cabinet screen \"{component.name}\" has no renderer to show the screen on.");
+					Logger.Warn("Cabinet screen {Name} has no renderer to show the screen on.", component.name);
 					continue;
 				}
 				if (string.IsNullOrEmpty(component.RoleName)) {
-					Debug.LogWarning($"Cabinet screen \"{component.name}\" has no role.");
+					Logger.Warn("Cabinet screen {Name} has no role.", component.name);
 					continue;
 				}
 				var materials = renderer.sharedMaterials;
 				var material = component.MaterialIndex >= 0 && component.MaterialIndex < materials.Length ? materials[component.MaterialIndex] : null;
 				var property = TextureProperty(material, component.TextureProperty);
 				if (property == null) {
-					Debug.LogWarning($"Cabinet screen \"{component.name}\": material slot {component.MaterialIndex} of \"{renderer.name}\" has no texture property to show the screen in.");
+					Logger.Warn("Cabinet screen {Name}: material slot {MaterialIndex} of {Renderer} has no texture property to show the screen in.",
+						component.name, component.MaterialIndex, renderer.name);
 					continue;
 				}
 				_screens.Add(new Screen(component, renderer, Shader.PropertyToID(property)));
@@ -177,19 +182,23 @@ namespace VisualPinball.Unity
 
 		private async void EngineStarted(object sender, EventArgs args)
 		{
-			if (_dmdDecided) {
-				return;
-			}
 			try {
+				if (_dmdDecided) {
+					return;
+				}
 				await Awaitable.WaitForSecondsAsync(DmdAnnouncementGrace);
+				if (_disposed || _dmdDecided) {
+					return;
+				}
+				_dmdDecided = true;
+				Refresh();
+
 			} catch (OperationCanceledException) {
-				return;
+				// the game stopped while waiting
+
+			} catch (Exception e) {
+				Logger.Error(e, "Cannot bind cabinet screens after the gamelogic engine started.");
 			}
-			if (_disposed || _dmdDecided) {
-				return;
-			}
-			_dmdDecided = true;
-			Refresh();
 		}
 
 		/// <summary>

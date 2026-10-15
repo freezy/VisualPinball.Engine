@@ -161,6 +161,7 @@ namespace VisualPinball.Unity
 		private readonly Dictionary<string, IApiSwitch> _switchLookup = new Dictionary<string, IApiSwitch>();
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+		private static readonly LogThrottle EjectThrottle = new(5, TimeSpan.FromSeconds(30));
 
 		/// <summary>
 		/// Event emitted when the table is started.
@@ -300,18 +301,17 @@ namespace VisualPinball.Unity
 		{
 			if (args.IsEnabled) {
 				if (!PhysicsEngine.TryGetBall(args.BallId, out var ballComponent)) {
-					Logger.Warn($"Cannot drain ball {args.BallId}: the ball no longer exists.");
+					Logger.Warn("Trough {Name} cannot drain ball {BallId}, the ball no longer exists.", MainComponent.name, args.BallId);
 					return;
 				}
 
-				Logger.Info("Draining ball into trough.");
+				if (Logger.IsDebugEnabled) {
+					Logger.Debug("Draining ball {BallId} into trough {Name}.", args.BallId, MainComponent.name);
+				}
 				var ballPrefab = ballComponent.SourcePrefab;
 				BallManager.DestroyBall(args.BallId);
 				_ballPrefabs.Enqueue(ballPrefab);
 				DrainBall();
-
-			} else {
-				Logger.Error("Draining ball into trough.");
 			}
 		}
 
@@ -471,7 +471,9 @@ namespace VisualPinball.Unity
 					case TroughType.ModernMech:
 					case TroughType.TwoCoilsNSwitches:
 						if (!_stackSwitches[0].IsSwitchEnabled) {
-							Logger.Warn("Ball not in eject position yet, ignoring.");
+							if (EjectThrottle.ShouldLog(out var suppressed)) {
+								Logger.Warn("Trough {Name}: ball not in eject position yet, ignoring the eject ({Suppressed} suppressed).", MainComponent.name, suppressed);
+							}
 							return false;
 						}
 						break;
@@ -482,7 +484,9 @@ namespace VisualPinball.Unity
 
 					case TroughType.ClassicSingleBall:
 						if (!EntrySwitch.IsSwitchEnabled) {
-							Logger.Warn("No ball, ignoring.");
+							if (EjectThrottle.ShouldLog(out var noBallSuppressed)) {
+								Logger.Warn("Trough {Name}: no ball to eject, ignoring ({Suppressed} suppressed).", MainComponent.name, noBallSuppressed);
+							}
 							return false;
 						}
 						break;
@@ -493,14 +497,18 @@ namespace VisualPinball.Unity
 
 
 				if (_ejectKicker == null) {
-					Logger.Warn("Trough: Cannot spawn ball without an exit kicker.");
+					if (EjectThrottle.ShouldLog(out var noKickerSuppressed)) {
+						Logger.Warn("Trough {Name} cannot eject a ball, it has no exit kicker ({Suppressed} suppressed).", MainComponent.name, noKickerSuppressed);
+					}
 					return false;
 				}
 				if (_ballPrefabs == null || _ballPrefabs.Count == 0) {
-					Logger.Error("Trough: Ball prefab queue is empty while the trough still contains a ball.");
+					Logger.Error("Trough {Name}: the ball prefab queue is empty while the trough still holds {Count} balls.", MainComponent.name, _countedStackBalls);
 					return false;
 				}
-				Logger.Info("Trough: Spawning new ball.");
+				if (Logger.IsDebugEnabled) {
+					Logger.Debug("Trough {Name}: spawning new ball.", MainComponent.name);
+				}
 				_ejectKicker.CreateBall(_ballPrefabs.Peek());
 				_ballPrefabs.Dequeue();
 				_ejectCoil.OnCoil(true);
@@ -677,7 +685,7 @@ namespace VisualPinball.Unity
 
 		void IApi.OnDestroy()
 		{
-			Logger.Info("Destroying trough!");
+			Logger.Debug("Destroying trough {Name}.", MainComponent.name);
 
 			if (_drainSwitch != null) {
 				if (_drainKicker != null) {

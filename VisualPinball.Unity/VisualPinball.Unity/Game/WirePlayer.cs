@@ -43,6 +43,12 @@ namespace VisualPinball.Unity
 		private SwitchPlayer _switchPlayer;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+		// keyed by the device instance, item and failure, so one broken wire never hides another
+		private static readonly LogOncePerKey<(int device, string item, int kind)> UnknownWireLog = new();
+
+		private static int DeviceKey(IWireableComponent device) => device == null ? 0 : System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(device);
+
+		private static string DeviceName(IWireableComponent device) => device is UnityEngine.Object obj ? (obj ? obj.name : null) : device?.name;
 		internal Dictionary<string, (bool, float)> WireStatuses { get; } = new Dictionary<string, (bool, float)>();
 
 		internal IApiWireDeviceDest WireDevice(IWireableComponent c) => c != null &&  _wireDevices.ContainsKey(c) ? _wireDevices[c] : null;
@@ -85,7 +91,9 @@ namespace VisualPinball.Unity
 					}
 					var lagSec = Time.realtimeSinceStartup - queue.Peek();
 					if (lagSec > WireDestConfig.DynamicThresholdSec) {
-						Logger.Info($"Disabling dynamic wire to {wireConfig.DeviceItem} @ {wireConfig.Device.gameObject.name} due to inactivity.");
+						if (Logger.IsDebugEnabled) {
+							Logger.Debug("Disabling dynamic wire to {DeviceItem} @ {Device} due to inactivity.", wireConfig.DeviceItem, wireConfig.Device.gameObject.name);
+						}
 						_wireDevices[wireConfig.Device].Wire(wireConfig.DeviceItem).OnChange(!isEnabled);
 						wireConfig.IsActive = false;
 					}
@@ -119,14 +127,14 @@ namespace VisualPinball.Unity
 
 					// check if device exists
 					if (!_switchPlayer.SwitchDeviceExists(wireMapping.SourceDevice)) {
-						Logger.Error($"Unknown wire switch device \"{wireMapping.SourceDevice}\".");
+						Logger.Warn("Wire {Wire} starts at {Device}, which is not a registered switch device.", wireMapping.Description, wireMapping.SourceDevice.name);
 						break;
 					}
 
 					var deviceSwitch = _switchPlayer.Switch(wireMapping.SourceDevice, wireMapping.SourceDeviceItem);
 					if (deviceSwitch != null) {
 						deviceSwitch.AddWireDest(SetupWireDestConfig(wireMapping, isHardwareRule));
-						Logger.Info($"Wiring device switch \"{wireMapping.Src}\" to \"{wireMapping.Dst}\"");
+						Logger.Debug("Wiring device switch {Source} to {Destination}.", wireMapping.Src, wireMapping.Dst);
 
 					} else {
 						Logger.Warn($"Unknown switch \"{wireMapping.Src}\" to wire to \"{wireMapping.Dst}\".");
@@ -181,7 +189,7 @@ namespace VisualPinball.Unity
 				}
 				_gleDestAssignments[destId].Add(wireDest);
 
-				Logger.Info($"Added dynamic wire \"{wireMapping.Description}\" ({srcId} -> {destId}).");
+				Logger.Debug("Added dynamic wire {Wire} ({SourceId} -> {DestinationId}).", wireMapping.Description, srcId, destId);
 
 			} else {
 				Logger.Warn($"GLE IDs not found for dynamic wire {wireMapping.Description} ({srcId} -> {destId}).");
@@ -220,7 +228,7 @@ namespace VisualPinball.Unity
 
 					// check if device exists
 					if (!_switchPlayer.SwitchDeviceExists(wireMapping.SourceDevice)) {
-						Logger.Error($"Unknown wire switch device \"{wireMapping.SourceDevice}\".");
+						Logger.Warn("Wire {Wire} starts at {Device}, which is not a registered switch device.", wireMapping.Description, wireMapping.SourceDevice.name);
 						break;
 					}
 
@@ -375,7 +383,9 @@ namespace VisualPinball.Unity
 #endif
 				}
 				else {
-					Logger.Warn($"Unknown wire \"{wireConfig.DeviceItem}\" in wire device \"{wireConfig.Device}\".");
+					if (UnknownWireLog.ShouldLog((DeviceKey(wireConfig.Device), wireConfig.DeviceItem, 0))) {
+						Logger.Warn("Unknown wire {DeviceItem} in wire device {Device}.", wireConfig.DeviceItem, DeviceName(wireConfig.Device) ?? "(none)");
+					}
 				}
 			}
 		}
@@ -431,7 +441,9 @@ namespace VisualPinball.Unity
 				}
 
 			} else {
-				Logger.Warn($"Cannot find wire device \"{wireConfig.Device}\".");
+				if (UnknownWireLog.ShouldLog((DeviceKey(wireConfig.Device), wireConfig.DeviceItem, 1))) {
+					Logger.Warn("Cannot find wire device {Device} of {DeviceItem}.", DeviceName(wireConfig.Device) ?? "(none)", wireConfig.DeviceItem);
+				}
 			}
 		}
 
@@ -459,7 +471,9 @@ namespace VisualPinball.Unity
 						// switch event was less than threshold ago, so let's check if the wire is active
 						if (!wireConfig.IsActive) {
 							// it wasn't active. so let's activate it
-							Logger.Info($"Enabling dynamic wire from {id} to {wireConfig.DeviceItem} @ {wireConfig.Device.gameObject.name} ({lagSec}ms).");
+							if (Logger.IsDebugEnabled) {
+								Logger.Debug("Enabling dynamic wire from {CoilId} to {DeviceItem} @ {Device} ({LagSec}s).", id, wireConfig.DeviceItem, wireConfig.Device.gameObject.name, lagSec);
+							}
 							wireConfig.IsActive = true;
 							wireConfig.ActiveSince = now;
 
@@ -490,7 +504,9 @@ namespace VisualPinball.Unity
 					}
 
 				} else {
-					Logger.Warn($"Unknown dynamic wire \"{wireConfig.DeviceItem}\" in wire device \"{wireConfig.Device}\".");
+					if (UnknownWireLog.ShouldLog((DeviceKey(wireConfig.Device), wireConfig.DeviceItem, 2))) {
+						Logger.Warn("Unknown dynamic wire {DeviceItem} in wire device {Device}.", wireConfig.DeviceItem, DeviceName(wireConfig.Device) ?? "(none)");
+					}
 				}
 			}
 		}

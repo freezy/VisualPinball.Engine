@@ -111,7 +111,7 @@ namespace VisualPinball.Unity
 		{
 			var player = GetComponentInParent<Player>();
 			if (player == null) {
-				Logger.Error($"Cannot find player for turntable {name}.");
+				Logger.Warn("Cannot find player for turntable {Name}. Is it part of a table?", name);
 				return;
 			}
 
@@ -122,7 +122,7 @@ namespace VisualPinball.Unity
 			if (_physicsEngine) {
 				_physicsEngine.Register(this);
 			} else {
-				Logger.Error($"Cannot find physics engine for turntable {name}.");
+				Logger.Warn("Cannot find physics engine for turntable {Name}. Is it part of a table?", name);
 			}
 		}
 

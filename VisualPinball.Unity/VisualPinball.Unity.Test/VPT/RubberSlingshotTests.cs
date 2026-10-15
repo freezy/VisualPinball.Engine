@@ -143,7 +143,7 @@ namespace VisualPinball.Unity.Test
 			try {
 				var component = gameObject.AddComponent<RubberSlingshotComponent>();
 				LogAssert.Expect(LogType.Warning,
-					new Regex("Rubber slingshot 'Incomplete Slingshot' was unpacked with an incomplete configuration"));
+					new Regex("Rubber slingshot \"Incomplete Slingshot\" was unpacked with an incomplete configuration"));
 
 				component.ValidateAfterUnpack();
 

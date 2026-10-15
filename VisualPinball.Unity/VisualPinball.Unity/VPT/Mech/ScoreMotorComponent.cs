@@ -87,6 +87,7 @@ namespace VisualPinball.Unity
 		public event EventHandler<SwitchEventArgs2> OnSwitchChanged;
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+		private static readonly LogThrottle TooManyIncreasesThrottle = new(5, TimeSpan.FromSeconds(30));
 
 		private float StepsPerSecond => Steps / (Duration / 1000f);
 
@@ -154,17 +155,23 @@ namespace VisualPinball.Unity
 		public void ResetScore(string id, float score, ScoreMotorResetCallback callback)
 		{
 			if (_isRunning) {
-				Logger.Debug($"already running (ignoring reset), id={id}");
+				if (Logger.IsDebugEnabled) {
+					Logger.Debug($"already running (ignoring reset), id={id}");
+				}
 				return;
 			}
 
 			if (score == 0) {
-				Logger.Debug($"score already 0 (ignoring reset), id={id}");
+				if (Logger.IsDebugEnabled) {
+					Logger.Debug($"score already 0 (ignoring reset), id={id}");
+				}
 				callback(0);
 				return;
 			}
 
-			Logger.Debug($"reset, id={id}, score={score}");
+			if (Logger.IsDebugEnabled) {
+				Logger.Debug($"reset, id={id}, score={score}");
+			}
 
 			_mode = ScoreMotorMode.Reset;
 			_id = id;
@@ -180,24 +187,33 @@ namespace VisualPinball.Unity
 			var increase = (int)System.Math.Floor(points / System.Math.Pow(10, System.Math.Floor(System.Math.Log10(points))));
 
 			if (increase > MaxIncrease) {
-				Logger.Error($"too many increases (ignoring points), id={id}, points={points}, increase={increase}");
+				if (TooManyIncreasesThrottle.ShouldLog(out var suppressed)) {
+					Logger.Warn("Score motor {Name}: {Points} points need {Increase} steps, more than the motor supports, ignoring them (id {Id}, {Suppressed} suppressed).",
+						name, points, increase, id, suppressed);
+				}
 				return;
 			}
 
 			if (_isRunning) {
 				if (increase > 1 || (increase == 1 && BlockScoring)) {
-					Logger.Debug($"already running (ignoring points), id={id}, points={points}");
+					if (Logger.IsDebugEnabled) {
+						Logger.Debug($"already running (ignoring points), id={id}, points={points}");
+					}
 					return;
 				}
 			}
 
 			if (increase == 1) {
-				Logger.Debug($"single points, id={id}, points={points}");
+				if (Logger.IsDebugEnabled) {
+					Logger.Debug($"single points, id={id}, points={points}");
+				}
 				callback(points);
 				return;
 			}
 
-			Logger.Debug($"multi points, id={id}, increase={increase}, points={points}");
+			if (Logger.IsDebugEnabled) {
+				Logger.Debug($"multi points, id={id}, increase={increase}, points={points}");
+			}
 
 			_mode = ScoreMotorMode.AddPoints;
 			_id = id;
@@ -210,7 +226,9 @@ namespace VisualPinball.Unity
 
 		private void StartMotor()
 		{
-			Logger.Debug($"start motor");
+			if (Logger.IsDebugEnabled) {
+				Logger.Debug($"start motor");
+			}
 
 			_time = 0;
 			_pos = 0;
@@ -226,7 +244,9 @@ namespace VisualPinball.Unity
 
 			var action = ScoreMotorTimingList[_increase - 1].Actions[_pos];
 
-			Logger.Debug($"advance motor, pos={_pos}, time={_time}, increase={_increase}, action={action}");
+			if (Logger.IsDebugEnabled) {
+				Logger.Debug($"advance motor, pos={_pos}, time={_time}, increase={_increase}, action={action}");
+			}
 
 			if (action == ScoreMotorAction.Increase) {
 				Increase();
@@ -237,7 +257,9 @@ namespace VisualPinball.Unity
 
 		private void StopMotor()
 		{
-			Logger.Debug($"stop motor: time={_time}");
+			if (Logger.IsDebugEnabled) {
+				Logger.Debug($"stop motor: time={_time}");
+			}
 
 			_isRunning = false;
 
@@ -249,12 +271,16 @@ namespace VisualPinball.Unity
 			switch (_mode) {
 				case ScoreMotorMode.Reset:
 					_score = ResetScore(_score);
-					Logger.Debug($"increase, mode={_mode}, id={_id}, score={_score}");
+					if (Logger.IsDebugEnabled) {
+						Logger.Debug($"increase, mode={_mode}, id={_id}, score={_score}");
+					}
 					_resetCallback(_score);
 					break;
 
 				case ScoreMotorMode.AddPoints:
-					Logger.Debug($"increase, mode={_mode}, id={_id}, points={_points}");
+					if (Logger.IsDebugEnabled) {
+						Logger.Debug($"increase, mode={_mode}, id={_id}, points={_points}");
+					}
 					_addPointsCallback(_points);
 					break;
 			}

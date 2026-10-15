@@ -14,15 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using NLog;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.VPT.Table;
 using VisualPinball.Unity.Playfield;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
 	public class PlayfieldApi : CollidableApi<PlayfieldComponent, PlayfieldColliderComponent, TableData>
 	{
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		internal PlayfieldApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
 		}
@@ -41,7 +45,7 @@ namespace VisualPinball.Unity
 					ColliderUtils.GenerateCollidersFromMesh(mf.sharedMesh.ToVpMesh().TransformToVpx(), info, ref colliders, float4x4.identity);
 
 				} else {
-					Debug.LogWarning($"Could not find mesh filter on playfield {GameObject.name}");
+					Logger.Warn("Playfield {Name} has no mesh to generate its collider from, using a flat plane.", GameObject.name);
 					colliders.Add(new PlaneCollider(new float3(0, 0, 1), 0, info));
 				}
 			} else {

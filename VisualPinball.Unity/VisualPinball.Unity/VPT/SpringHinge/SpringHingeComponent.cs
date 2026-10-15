@@ -110,7 +110,7 @@ namespace VisualPinball.Unity
 			CaptureReferencePose();
 			var player = GetComponentInParent<Player>();
 			if (!player) {
-				Logger.Error($"Cannot find player for spring hinge {name}.");
+				Logger.Warn("Cannot find player for spring hinge {Name}. Is it part of a table?", name);
 				return;
 			}
 
@@ -120,7 +120,7 @@ namespace VisualPinball.Unity
 			if (_physicsEngine) {
 				_physicsEngine.Register(this);
 			} else {
-				Logger.Error($"Cannot find physics engine for spring hinge {name}.");
+				Logger.Warn("Cannot find physics engine for spring hinge {Name}. Is it part of a table?", name);
 			}
 		}
 

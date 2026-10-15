@@ -96,13 +96,11 @@ namespace VisualPinball.Unity
 			float timeSinceLastPlay = Time.unscaledTime - _lastPlayStartTime;
 			if (timeSinceLastPlay < _cooldown)
 			{
-				Logger.Warn(
-					$"Will not play sound effect '{name}' because the time since last play is "
-						+ $"{timeSinceLastPlay} seconds, which is less than the cooldown of "
-						+ $"{_cooldown} seconds. If this is not intended by the table author, they "
-						+ $"should lower the '{nameof(_cooldown)}' parameter in the sound effect "
-						+ "asset inspector."
-				);
+				// the cooldown is doing its job, so this is not a problem
+				if (Logger.IsDebugEnabled) {
+					Logger.Debug("Not playing sound effect {Name}, {Elapsed}s since the last play is less than its cooldown of {Cooldown}s.",
+						name, timeSinceLastPlay, _cooldown);
+				}
 				return;
 			}
 			_lastPlayStartTime = Time.unscaledTime;

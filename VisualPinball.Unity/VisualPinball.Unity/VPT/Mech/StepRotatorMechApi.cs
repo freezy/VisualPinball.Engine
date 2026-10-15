@@ -95,7 +95,9 @@ namespace VisualPinball.Unity
 			_player.OnUpdate += OnUpdate;
 			_component.UpdateRotation(1, _currentStep);
 			_enabled = true;
-			Logger.Info("OnGunMotorCoilEnabled - starting rotation");
+			if (Logger.IsDebugEnabled) {
+				Logger.Debug("Step rotator {Name}: motor coil enabled, starting rotation.", _component.name);
+			}
 		}
 
 		private void OnMotorCoilDisabled()
@@ -103,7 +105,9 @@ namespace VisualPinball.Unity
 			_enabled = false;
 			_component.UpdateRotation(1, _currentStep);
 			_player.OnUpdate -= OnUpdate;
-			Logger.Info("OnGunMotorCoilDisabled - stopping rotation");
+			if (Logger.IsDebugEnabled) {
+				Logger.Debug("Step rotator {Name}: motor coil disabled, stopping rotation.", _component.name);
+			}
 		}
 
 		private void OnUpdate(object sender, EventArgs eventArgs)
@@ -157,7 +161,7 @@ namespace VisualPinball.Unity
 
 		void IApi.OnDestroy()
 		{
-			Logger.Info($"Destroying {_component.name}");
+			Logger.Debug("Destroying {Name}.", _component.name);
 		}
 	}
 }

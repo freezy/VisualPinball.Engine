@@ -91,7 +91,7 @@ namespace VisualPinball.Unity
 		{
 			var player = GetComponentInParent<Player>();
 			if (player == null) {
-				Logger.Error($"Cannot find player for step rotator {name}.");
+				Logger.Warn("Cannot find player for step rotator {Name}. Is it part of a table?", name);
 				return;
 			}
 

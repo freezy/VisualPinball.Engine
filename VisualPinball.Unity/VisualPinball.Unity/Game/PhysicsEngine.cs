@@ -21,6 +21,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using NativeTrees;
+using NLog;
 using Unity.Collections;
 using Unity.Mathematics;
 using UnityEngine;
@@ -29,6 +30,7 @@ using VisualPinball.Unity.Collections;
 using VisualPinball.Unity.Simulation;
 using AABB = NativeTrees.AABB;
 using Debug = UnityEngine.Debug;
+using Logger = NLog.Logger;
 using Random = Unity.Mathematics.Random;
 
 namespace VisualPinball.Unity
@@ -111,6 +113,8 @@ namespace VisualPinball.Unity
 	[PackAs("PhysicsEngine")]
 	public class PhysicsEngine : MonoBehaviour, IPackable
 	{
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		#region Configuration
 
 		[Tooltip("Gravity constant, in VPX units.")]
@@ -652,7 +656,7 @@ namespace VisualPinball.Unity
 		[System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
 		private static void LogQueueWarning(string message)
 		{
-			Debug.LogWarning(message);
+			Logger.Warn(message);
 		}
 
 		// State accessors
@@ -868,8 +872,8 @@ namespace VisualPinball.Unity
 				// ids are folded from Unity's entity ids; a clash would make two balls share one
 				// physics state, which shows up as a ball that is rendered somewhere else than
 				// where it is simulated
-				var other = existing ? $"\"{existing.name}\"" : "a destroyed ball";
-				Debug.LogError($"[PhysicsEngine] Ball id {ballId} of \"{ball.name}\" is already used by {other}. The new ball shares that ball's physics state.");
+				var other = existing ? existing.name : "a destroyed ball";
+				Logger.Error("Ball id {BallId} of {Ball} is already used by {Other}. The new ball shares that ball's physics state.", ballId, ball.name, other);
 			}
 			_ctx.BallComponents[ballId] = ball;
 
@@ -1155,7 +1159,10 @@ namespace VisualPinball.Unity
 			}
 
 			// create static octree
-			Debug.Log($"Found {_colliderComponents.Length} collidable items ({_colliderComponents.Count(c => c.IsKinematic)} kinematic) and {_kinematicTransformComponents.Length} kinematic transforms.");
+			if (Logger.IsDebugEnabled) {
+				Logger.Debug("Found {Items} collidable items ({Kinematic} kinematic) and {KinematicTransforms} kinematic transforms.",
+					_colliderComponents.Length, _colliderComponents.Count(c => c.IsKinematic), _kinematicTransformComponents.Length);
+			}
 			var colliders = new ColliderReference(ref _ctx.NonTransformableColliderTransforms.Ref, Allocator.Temp);
 			var kinematicColliders = new ColliderReference(ref _ctx.NonTransformableColliderTransforms.Ref, Allocator.Temp, true);
 			foreach (var colliderItem in _colliderComponents) {
@@ -1206,7 +1213,8 @@ namespace VisualPinball.Unity
 					PhysicsPopulate.PopulateUnsafe((IntPtr)c, (IntPtr)o);
 				}
 			}
-			Debug.Log($"Octree of {_ctx.Colliders.Length} constructed (colliders: {elapsedMs}ms, tree: {sw.Elapsed.TotalMilliseconds}ms).");
+			Logger.Info("Physics initialised: {Items} collidable items, {Colliders} colliders (built in {CollidersMs:0.0} ms, octree in {OctreeMs:0.0} ms).",
+				_colliderComponents.Length, _ctx.Colliders.Length, elapsedMs, sw.Elapsed.TotalMilliseconds);
 
 			// create persistent kinematic and ball octrees (cleared + rebuilt each use)
 			_ctx.KinematicOctree = new NativeOctree<int>(_ctx.PlayfieldBounds, 1024, 10, Allocator.Persistent);

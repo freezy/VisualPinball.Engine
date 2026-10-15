@@ -312,7 +312,9 @@ namespace VisualPinball.Unity
 				? new ColliderMeshData(Array.Empty<Vertex3DNoTex2>(), 0, float3.zero, Allocator.Persistent)
 				: new ColliderMeshData(KickerHitMesh.Vertices, Radius, position, Allocator.Persistent);
 
-			Logger.Info($"Kicker \"{name}\": capture center ({position.x:F1}, {position.y:F1}), z {position.z:F1}, local {Position:F1}.");
+			if (Logger.IsDebugEnabled) {
+				Logger.Debug($"Kicker \"{name}\": capture center ({position.x:F1}, {position.y:F1}), z {position.z:F1}, local {Position:F1}.");
+			}
 
 			return new KickerState(
 				staticData,

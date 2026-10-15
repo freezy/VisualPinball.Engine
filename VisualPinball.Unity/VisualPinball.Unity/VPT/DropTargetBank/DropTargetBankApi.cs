@@ -84,7 +84,7 @@ namespace VisualPinball.Unity
 
 				var dropTargetApi = _player.TableApi.DropTarget(dropTarget);
 				if (dropTargetApi == null) {
-					Debug.LogWarning($"Cannot init reference to non-existing drop target \"{dropTarget.name}\" in bank \"{_dropTargetBankComponent.name}\".");
+					Logger.Warn("Drop target {DropTarget} of bank {Bank} is not registered, ignoring it.", dropTarget.name, _dropTargetBankComponent.name);
 					continue;
 				}
 				dropTargetApi.Switch += OnSwitch;
@@ -104,14 +104,18 @@ namespace VisualPinball.Unity
 				}
 			}
 
-			Logger.Info($"OnSwitch - {_dropTargetBankComponent.name} sequence completed");
+			if (Logger.IsDebugEnabled) {
+				Logger.Debug("Drop target bank {Bank} sequence completed.", _dropTargetBankComponent.name);
+			}
 
 			SequenceCompletedSwitch.SetSwitch(true);
 		}
 
 		private void OnResetCoilEnabled()
 		{
-			Logger.Info($"OnResetCoilEnabled - resetting {_dropTargetBankComponent.name}");
+			if (Logger.IsDebugEnabled) {
+				Logger.Debug("Resetting drop target bank {Bank}.", _dropTargetBankComponent.name);
+			}
 
 			foreach (var dropTargetApi in _dropTargetApis) {
 				dropTargetApi.IsDropped = false;
@@ -124,7 +128,7 @@ namespace VisualPinball.Unity
 				dropTargetApi.Switch -= OnSwitch;
 			}
 
-			Logger.Info($"Destroying {_dropTargetBankComponent.name}");
+			Logger.Debug("Destroying {Name}.", _dropTargetBankComponent.name);
 		}
 	}
 }

@@ -19,10 +19,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using NLog;
 using Unity.Mathematics;
 using UnityEngine;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Flipper;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -30,6 +32,8 @@ namespace VisualPinball.Unity
 	[DisallowMultipleComponent]
 	public class PhysicsRenderMaskComponent : MonoBehaviour
 	{
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		[Tooltip("Master toggle for this debug rendering pass.")]
 		public bool IsEnabled = true;
 
@@ -173,7 +177,7 @@ namespace VisualPinball.Unity
 
 			_physicsEngine ??= GetComponentInParent<PhysicsEngine>();
 			if (_physicsEngine == null || !_physicsEngine.IsInitialized) {
-				Debug.LogWarning($"[{nameof(PhysicsRenderMaskComponent)}] PhysicsEngine not ready on \"{name}\".");
+				Logger.Warn("Physics engine not ready, cannot apply physics render mask on {Name}.", name);
 				return;
 			}
 
@@ -293,7 +297,8 @@ namespace VisualPinball.Unity
 				return collidable.IsKinematic
 					? _physicsEngine.GetKinematicColliders(collidable.ItemId)
 					: _physicsEngine.GetColliders(collidable.ItemId);
-			} catch {
+			} catch (Exception e) {
+				Logger.Debug(e, "No runtime colliders for item {ItemId}.", collidable.ItemId);
 				return Array.Empty<ICollider>();
 			}
 		}
@@ -325,7 +330,8 @@ namespace VisualPinball.Unity
 				isEnabled = _physicsEngine.IsColliderEnabled(itemId);
 				_runtimeColliderEnabledByItemId[itemId] = isEnabled;
 				return true;
-			} catch {
+			} catch (Exception e) {
+				Logger.Debug(e, "Cannot read collider state of item {ItemId}.", itemId);
 				isEnabled = true;
 				return false;
 			}

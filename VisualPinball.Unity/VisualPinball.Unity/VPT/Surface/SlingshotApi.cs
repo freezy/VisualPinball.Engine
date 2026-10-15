@@ -69,7 +69,7 @@ namespace VisualPinball.Unity
 
 		void IApi.OnDestroy()
 		{
-			Logger.Info($"Destroying {_slingshotComponent.name}");
+			Logger.Debug("Destroying {Name}.", _slingshotComponent.name);
 
 			if (_surfaceApi != null) {
 				_surfaceApi.Slingshot -= OnSlingshot;

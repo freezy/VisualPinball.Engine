@@ -9,8 +9,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NLog;
 using UnityEngine;
 using VisualPinball.Engine.Game.Engines;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -32,6 +34,8 @@ namespace VisualPinball.Unity
 	public sealed class RubberSlingshotComponent : MonoBehaviour,
 		ISwitchDeviceComponent, ICoilDeviceComponent, IPackable
 	{
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		public const string SwitchItem = "slingshot_switch";
 		public const string CoilItem = "slingshot_coil";
 
@@ -185,9 +189,7 @@ namespace VisualPinball.Unity
 			if (errors.Count == 0) {
 				return;
 			}
-			Debug.LogWarning(
-				$"Rubber slingshot '{name}' was unpacked with an incomplete configuration: {string.Join(" ", errors)}",
-				this);
+			Logger.Warn("Rubber slingshot {Name} was unpacked with an incomplete configuration: {Errors:l}", name, string.Join(" ", errors));
 		}
 
 		#region Runtime
@@ -202,12 +204,12 @@ namespace VisualPinball.Unity
 			var player = GetComponentInParent<Player>();
 			if (!player) {
 				enabled = false;
-				Debug.LogError($"Cannot find player for rubber slingshot '{name}'.", this);
+				Logger.Warn("Cannot find player for rubber slingshot {Name}. Is it a child of a table?", name);
 				return;
 			}
 			var errors = ValidateConfiguration();
 			if (errors.Count > 0) {
-				Debug.LogWarning($"Rubber slingshot '{name}' is incomplete: {string.Join(" ", errors)}", this);
+				Logger.Warn("Rubber slingshot {Name} is incomplete: {Errors:l}", name, string.Join(" ", errors));
 			}
 			SlingshotApi = new RubberSlingshotApi(gameObject, player,
 				GetComponentInParent<PhysicsEngine>(), this);

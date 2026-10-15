@@ -303,7 +303,6 @@ namespace VisualPinball.Unity.Simulation
 				WriteSummary(Path.Combine(directory, $"summary-{stamp}.txt"));
 				DeleteOldSessions(directory, stamp);
 				Logger.Info($"[SimulationTrace] Wrote {_tickCount} ticks, {_frameCount} frames, {_lockCount} lock records to {directory} (stamp {stamp}).");
-				UnityEngine.Debug.Log($"[SimulationTrace] Wrote trace to {directory} (stamp {stamp}).");
 			} catch (Exception e) {
 				Logger.Error(e, "[SimulationTrace] Failed to write trace.");
 			} finally {

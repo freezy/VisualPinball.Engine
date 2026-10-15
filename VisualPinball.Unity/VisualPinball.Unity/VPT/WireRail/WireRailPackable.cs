@@ -17,9 +17,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NLog;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Splines;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -37,6 +39,8 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public struct WireRailPackable
 	{
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		public const int CurrentVersion = 1;
 
 		public int Version;
@@ -84,8 +88,8 @@ namespace VisualPinball.Unity
 		{
 			var data = PackageApi.Packer.Unpack<WireRailPackable>(bytes);
 			if (data.Version > CurrentVersion) {
-				Debug.LogWarning($"Wire rail \"{comp.name}\" was packaged by a newer VPE " +
-					$"(format {data.Version}, this build reads {CurrentVersion}); loading what is understood.");
+				Logger.Warn("Wire rail {Name} was packaged by a newer VPE (format {Version}, this build reads {CurrentVersion}), loading what is understood.",
+					comp.name, data.Version, CurrentVersion);
 			}
 			var layouts = (data.Layouts ?? Array.Empty<WireRailLayoutPackable>())
 				.Select(layout => layout.ToSegment(data.Version)).ToList();
@@ -194,6 +198,8 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public struct WireRailFixturePackable
 	{
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		public const string RingKind = "Ring";
 		public const string CradleKind = "Cradle";
 		public const string RungKind = "Rung";
@@ -409,7 +415,7 @@ namespace VisualPinball.Unity
 				default:
 					// A kind this build does not know, most likely from a newer VPE. The rest of
 					// the rail still loads.
-					Debug.LogWarning($"Unknown wire rail fixture kind \"{Kind}\" in package, skipping.");
+					Logger.Warn("Unknown wire rail fixture kind {Kind} in package, skipping it.", Kind);
 					return null;
 			}
 			fixture.RestoreCommon(Distance, SolderThreshold, SolderSize, Enabled);

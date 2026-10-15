@@ -407,7 +407,7 @@ namespace VisualPinball.Unity.Simulation
 			// asset imports, editor windows). Keep time-critical only for player builds.
 			// Wait for physics engine to be fully initialized
 			// This prevents accessing physics state before it's ready
-			Logger.Info($"{LogPrefix} [SimulationThread] Waiting for physics initialization...");
+			Logger.Debug("{Prefix:l} [SimulationThread] Waiting for physics initialization...", LogPrefix);
 			int waitCount = 0;
 			while (_running && _physicsEngine != null && !_physicsEngine.IsInitialized && waitCount < 100)
 			{
@@ -418,11 +418,11 @@ namespace VisualPinball.Unity.Simulation
 			if (waitCount >= 100)
 			{
 				// _running stays set, so Stop() still joins the thread and ends the trace
-				Logger.Error("{Prefix} [SimulationThread] Timeout waiting for physics initialization", LogPrefix);
+				Logger.Error("{Prefix:l} [SimulationThread] Timeout waiting for physics initialization", LogPrefix);
 				return;
 			}
 
-			Logger.Info($"{LogPrefix} [SimulationThread] Physics initialized, starting simulation");
+			Logger.Debug("{Prefix:l} [SimulationThread] Physics initialized, starting simulation", LogPrefix);
 
 			// Try to enable no-GC region for hot path
 			bool noGcRegion = false;
@@ -432,12 +432,13 @@ namespace VisualPinball.Unity.Simulation
 				if (GC.TryStartNoGCRegion(10 * 1024 * 1024, true))
 				{
 					noGcRegion = true;
-						Logger.Info($"{LogPrefix} [SimulationThread] No-GC region enabled");
+					Logger.Debug("{Prefix:l} [SimulationThread] No-GC region enabled", LogPrefix);
 				}
 			}
 			catch (Exception ex)
 			{
-				Logger.Warn($"{LogPrefix} [SimulationThread] Failed to start no-GC region: {ex.Message}");
+				// Mono doesn't implement it; the simulation runs fine without
+				Logger.Debug(ex, "{Prefix:l} [SimulationThread] Cannot start a no-GC region", LogPrefix);
 			}
 
 			try
@@ -553,7 +554,7 @@ namespace VisualPinball.Unity.Simulation
 					try
 					{
 						GC.EndNoGCRegion();
-						Logger.Debug("{Prefix} [SimulationThread] No-GC region ended", LogPrefix);
+						Logger.Debug("{Prefix:l} [SimulationThread] No-GC region ended", LogPrefix);
 					}
 					catch (InvalidOperationException)
 					{
@@ -564,7 +565,7 @@ namespace VisualPinball.Unity.Simulation
 
 			if (_fault != null)
 			{
-				Logger.Fatal(_fault, "{Prefix} [SimulationThread] Simulation thread died after {Ticks} ticks", LogPrefix, _tickCount);
+				Logger.Fatal(_fault, "{Prefix:l} [SimulationThread] Simulation thread died after {Ticks} ticks", LogPrefix, _tickCount);
 				VpeLog.Flush(TimeSpan.FromSeconds(2));
 			}
 		}
@@ -783,8 +784,8 @@ namespace VisualPinball.Unity.Simulation
 				}
 				binding.State = isClosed;
 
-				if (Logger.IsDebugEnabled && (isPressed || actionIndex == (int)NativeInputApi.InputAction.Start)) {
-					Logger.Debug($"{LogPrefix} [SimulationThread] Input {(NativeInputApi.InputAction)actionIndex} -> Switch({binding.SwitchId}, {isClosed})");
+				if (Logger.IsTraceEnabled && (isPressed || actionIndex == (int)NativeInputApi.InputAction.Start)) {
+					Logger.Trace("{Prefix:l} [SimulationThread] Input {Action} -> Switch({SwitchId}, {IsClosed})", LogPrefix, (NativeInputApi.InputAction)actionIndex, binding.SwitchId, isClosed);
 				}
 				var followUp = i == lastDispatched ? afterDispatch : null;
 				if (followUp != null && _inputDispatcher is MainThreadQueuedInputDispatcher queuedDispatcher) {
@@ -895,7 +896,7 @@ namespace VisualPinball.Unity.Simulation
 				Logger.Debug($"{LogPrefix} [SimulationThread] Built input action -> switch mappings");
 			}
 
-			if (Logger.IsInfoEnabled) {
+			if (Logger.IsDebugEnabled) {
 				LogMapping(NativeInputApi.InputAction.Start, "Start");
 				LogMapping(NativeInputApi.InputAction.CoinInsert1, "CoinInsert1");
 				LogMapping(NativeInputApi.InputAction.LeftFlipper, "LeftFlipper");
@@ -912,7 +913,7 @@ namespace VisualPinball.Unity.Simulation
 			// Aliases such as "Fire 1" share a native action with their canonical name.
 			if (!TryMapInputActionHint(inputAction, out var action)
 				&& !TryMapInputActionHint(InputManager.GetCanonicalActionName(inputAction), out action)) {
-				Logger.Info($"{LogPrefix} [SimulationThread] Input action \"{inputAction}\" of switch \"{switchId}\" has no native input equivalent, ignoring.");
+				Logger.Debug("{Prefix:l} [SimulationThread] Input action {InputAction} of switch {SwitchId} has no native input equivalent, ignoring.", LogPrefix, inputAction, switchId);
 				return;
 			}
 
@@ -953,7 +954,7 @@ namespace VisualPinball.Unity.Simulation
 			var idx = (int)action;
 			var bindings = (uint)idx < (uint)_actionBindings.Length ? _actionBindings[idx] : null;
 			var mapped = bindings == null ? null : string.Join(", ", Array.ConvertAll(bindings, b => b.SwitchId));
-			Logger.Info($"{LogPrefix} [SimulationThread] Mapping: {name}={mapped}");
+			Logger.Debug("{Prefix:l} [SimulationThread] Mapping: {Action}={Switches:l}", LogPrefix, name, mapped);
 		}
 
 		/// <summary>

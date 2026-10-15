@@ -1,14 +1,19 @@
 using System;
 using System.Collections.Generic;
+using NLog;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VisualPinball.Unity;
 using VisualPinball.Unity.Simulation;
+using Logger = NLog.Logger;
 using Math = System.Math;
 
 [DefaultExecutionOrder(10000)]
 public class FramePacingGraph : MonoBehaviour
 {
+	private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+	private static readonly LogThrottle SamplerThrottle = new(3, TimeSpan.FromSeconds(60));
+
 	[Header("Visibility & Input")] public bool startVisible = true;
 	public InputActionReference toggleAction;
 
@@ -218,9 +223,10 @@ public class FramePacingGraph : MonoBehaviour
 					new[] { "Consolas", "Courier New", "Lucida Console", "DejaVu Sans Mono", "Menlo", "SF Mono" },
 					fontSize);
 			}
-			catch
+			catch (Exception e)
 			{
-				/* platform may not allow OS fonts; safe to ignore */
+				// platform may not allow OS fonts; safe to ignore
+				Logger.Debug(e, "Cannot load a monospace OS font for the frame pacing graph.");
 			}
 		}
 
@@ -340,8 +346,11 @@ public class FramePacingGraph : MonoBehaviour
 			{
 				v = m.sampler() * m.scale;
 			}
-			catch
+			catch (Exception e)
 			{
+				if (SamplerThrottle.ShouldLog(out var suppressed)) {
+					Logger.Debug(e, "Frame pacing metric {Metric} failed to sample ({Suppressed} suppressed).", m.name, suppressed);
+				}
 			}
 
 			m.values[idxPrev] = v;

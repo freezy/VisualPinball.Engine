@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using NLog;
 using UnityEngine;
+using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
@@ -111,6 +113,8 @@ namespace VisualPinball.Unity
 
 	public struct MotionTransformReferencesPackable
 	{
+		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
 		public ReferencePackable EmitterRef;
 
 		public static byte[] Pack(MotionTransformComponent comp, PackagedRefs refs)
@@ -121,7 +125,7 @@ namespace VisualPinball.Unity
 				if (refs.HasType(emitter.GetType())) {
 					emitterRef = refs.PackReference(emitter);
 				} else {
-					Debug.LogWarning($"Cannot package animation emitter {emitter.GetType().FullName} on '{comp.name}' because it has no PackAs attribute; writing a null reference.", comp);
+					Logger.Warn("Cannot package animation emitter {Type:l} on {Name} because it has no PackAs attribute, writing a null reference.", emitter.GetType().FullName, comp.name);
 				}
 			}
 			return PackageApi.Packer.Pack(new MotionTransformReferencesPackable { EmitterRef = emitterRef });

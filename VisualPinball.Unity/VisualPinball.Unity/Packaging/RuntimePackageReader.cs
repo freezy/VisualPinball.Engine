@@ -126,14 +126,14 @@ namespace VisualPinball.Unity
 			openStopwatch.Stop();
 			LoadAttempt.Current?.SetPackage(_manifest.FormatVersion, _manifest.WrittenBy, _manifest.ComponentTypes?.Count ?? 0);
 			LoadAttempt.Current?.SetPhase(LoadAttempt.PhaseImport);
-			Logger.Info($"RuntimePackageReader: Opened package (format v{_manifest.FormatVersion}) in {openStopwatch.ElapsedMilliseconds}ms.");
+			Logger.Debug($"RuntimePackageReader: Opened package (format v{_manifest.FormatVersion}) in {openStopwatch.ElapsedMilliseconds}ms.");
 			ReportProgress(progress, RuntimePackageLoadStage.OpeningPackage, 1f, "Package opened.");
 
 			try {
 				var importModelsStopwatch = Stopwatch.StartNew();
 				_table = await ImportModels(parent, progress, cancellationToken);
 				importModelsStopwatch.Stop();
-				Logger.Info(
+				Logger.Debug(
 					$"RuntimePackageReader: Imported {PackageApi.SceneFile} in {importModelsStopwatch.ElapsedMilliseconds}ms " +
 					$"from '{Path.GetFileName(_vpePath)}'.");
 				cancellationToken.ThrowIfCancellationRequested();
@@ -153,7 +153,7 @@ namespace VisualPinball.Unity
 					_files = new PackagedFiles(_tableFolder, _refs);
 					WarnMissingComponentTypes();
 					refsStopwatch.Stop();
-					Logger.Info($"RuntimePackageReader: Built refs/files in {refsStopwatch.ElapsedMilliseconds}ms.");
+					Logger.Debug($"RuntimePackageReader: Built refs/files in {refsStopwatch.ElapsedMilliseconds}ms.");
 
 					var unpackSoundsStopwatch = Stopwatch.StartNew();
 					ReportProgress(progress, RuntimePackageLoadStage.LoadingSounds, 0f, "Loading table audio...");
@@ -163,7 +163,7 @@ namespace VisualPinball.Unity
 					});
 					ReportProgress(progress, RuntimePackageLoadStage.LoadingSounds, 1f, "Audio ready.");
 					unpackSoundsStopwatch.Stop();
-					Logger.Info($"RuntimePackageReader: Unpacked sounds in {unpackSoundsStopwatch.ElapsedMilliseconds}ms.");
+					Logger.Debug($"RuntimePackageReader: Unpacked sounds in {unpackSoundsStopwatch.ElapsedMilliseconds}ms.");
 
 					var unpackAssetsStopwatch = Stopwatch.StartNew();
 					ReportProgress(progress, RuntimePackageLoadStage.LoadingAssets, 0f, "Loading runtime assets...");
@@ -173,14 +173,14 @@ namespace VisualPinball.Unity
 					});
 					ReportProgress(progress, RuntimePackageLoadStage.LoadingAssets, 1f, "Runtime assets ready.");
 					unpackAssetsStopwatch.Stop();
-					Logger.Info($"RuntimePackageReader: Unpacked assets in {unpackAssetsStopwatch.ElapsedMilliseconds}ms.");
+					Logger.Debug($"RuntimePackageReader: Unpacked assets in {unpackAssetsStopwatch.ElapsedMilliseconds}ms.");
 
 					var unpackMeshesStopwatch = Stopwatch.StartNew();
 					ReportProgress(progress, RuntimePackageLoadStage.LoadingColliderMeshes, 0f, "Loading collider meshes...");
 					await _files.UnpackMeshesRuntime(cancellationToken);
 					ReportProgress(progress, RuntimePackageLoadStage.LoadingColliderMeshes, 1f, "Collider meshes ready.");
 					unpackMeshesStopwatch.Stop();
-					Logger.Info($"RuntimePackageReader: Unpacked meshes in {unpackMeshesStopwatch.ElapsedMilliseconds}ms.");
+					Logger.Debug($"RuntimePackageReader: Unpacked meshes in {unpackMeshesStopwatch.ElapsedMilliseconds}ms.");
 
 					Dictionary<string, byte[]> packableBytes = null;
 					try {
@@ -210,7 +210,7 @@ namespace VisualPinball.Unity
 						progress,
 						cancellationToken);
 					readItemsStopwatch.Stop();
-					Logger.Info($"RuntimePackageReader: Restored packables in {readItemsStopwatch.ElapsedMilliseconds}ms.");
+					Logger.Debug($"RuntimePackageReader: Restored packables in {readItemsStopwatch.ElapsedMilliseconds}ms.");
 
 					var readRefsStopwatch = Stopwatch.StartNew();
 					await ReadPackablesAsync(
@@ -235,7 +235,7 @@ namespace VisualPinball.Unity
 							// Some components are intentionally refs-only and return null from Pack().
 							// Ensure they still get created so UnpackReferences can restore wiring.
 							if (comps.Length <= index) {
-								Logger.Info($"Created refs-only component {type.FullName} on {item.name} (index {index}).");
+								Logger.Debug($"Created refs-only component {type.FullName} on {item.name} (index {index}).");
 							}
 
 							try {
@@ -252,12 +252,12 @@ namespace VisualPinball.Unity
 						slingshot.ValidateAfterUnpack();
 					}
 					readRefsStopwatch.Stop();
-					Logger.Info($"RuntimePackageReader: Restored references in {readRefsStopwatch.ElapsedMilliseconds}ms.");
+					Logger.Debug($"RuntimePackageReader: Restored references in {readRefsStopwatch.ElapsedMilliseconds}ms.");
 
 					var globalsStopwatch = Stopwatch.StartNew();
 					await ReadGlobalsAsync(progress, cancellationToken);
 					globalsStopwatch.Stop();
-					Logger.Info($"RuntimePackageReader: Read globals in {globalsStopwatch.ElapsedMilliseconds}ms.");
+					Logger.Debug($"RuntimePackageReader: Read globals in {globalsStopwatch.ElapsedMilliseconds}ms.");
 
 					var tableMetadataStopwatch = Stopwatch.StartNew();
 					ReportProgress(progress, RuntimePackageLoadStage.RestoringTableMetadata, 0f, "Reading table metadata...");
@@ -265,7 +265,7 @@ namespace VisualPinball.Unity
 					SimulationThreadComponent.EnsureForTable(_table);
 					ReportProgress(progress, RuntimePackageLoadStage.RestoringTableMetadata, 1f, "Table metadata ready.");
 					tableMetadataStopwatch.Stop();
-					Logger.Info($"RuntimePackageReader: Read table metadata in {tableMetadataStopwatch.ElapsedMilliseconds}ms.");
+					Logger.Debug($"RuntimePackageReader: Read table metadata in {tableMetadataStopwatch.ElapsedMilliseconds}ms.");
 
 					var materialsStopwatch = Stopwatch.StartNew();
 					ReportProgress(progress, RuntimePackageLoadStage.RestoringMaterials, 0f, "Applying material profiles...");
@@ -278,7 +278,7 @@ namespace VisualPinball.Unity
 					await RestoreMaterialProfilesAsync(materialPrefetch, progress, cancellationToken);
 					ReportProgress(progress, RuntimePackageLoadStage.RestoringMaterials, 1f, "Material profiles applied.");
 					materialsStopwatch.Stop();
-					Logger.Info($"RuntimePackageReader: Restored material profiles in {materialsStopwatch.ElapsedMilliseconds}ms.");
+					Logger.Debug($"RuntimePackageReader: Restored material profiles in {materialsStopwatch.ElapsedMilliseconds}ms.");
 					foreach (var consumer in _table.GetComponentsInChildren<MonoBehaviour>(true).OfType<IPackagedContentConsumer>()) {
 						consumer.SetPackagedContentResolver(ContentResolver);
 					}
@@ -291,14 +291,14 @@ namespace VisualPinball.Unity
 						var activateStopwatch = Stopwatch.StartNew();
 						_table.SetActive(restoreActive);
 						activateStopwatch.Stop();
-						Logger.Info($"RuntimePackageReader: Activated table in {activateStopwatch.ElapsedMilliseconds}ms.");
+						Logger.Debug($"RuntimePackageReader: Activated table in {activateStopwatch.ElapsedMilliseconds}ms.");
 					}
 				}
 
 				importStopwatch.Stop();
 				ReportProgress(progress, RuntimePackageLoadStage.Finalizing, 1f, "Table ready.");
-				Logger.Info(
-					$"RuntimePackageReader: Imported '{Path.GetFileName(_vpePath)}' in {importStopwatch.ElapsedMilliseconds}ms total.");
+				Logger.Info("Imported {File} in {ImportMs} ms (package format {Format}, written by {WrittenBy:l})",
+					Path.GetFileName(_vpePath), importStopwatch.ElapsedMilliseconds, _manifest.FormatVersion, _manifest.WrittenBy ?? "unknown");
 				return _table;
 
 			} catch {
@@ -410,7 +410,7 @@ namespace VisualPinball.Unity
 				VpeLightRestore.NormalizeImportedLightIntensities(table);
 				VpeLightRestore.RestoreLightProfiles(table, _tableFolder, id => _transformByNodeId.GetValueOrDefault(id));
 				fixupStopwatch.Stop();
-				Logger.Info(
+				Logger.Debug(
 					$"RuntimePackageReader: glb stages: load={loadStopwatch.ElapsedMilliseconds}ms, " +
 					$"instantiate={instantiateStopwatch.ElapsedMilliseconds}ms, rootSelect={rootSelectStopwatch.ElapsedMilliseconds}ms, " +
 					$"fixups={fixupStopwatch.ElapsedMilliseconds}ms, nodeIds={_transformByNodeId.Count}.");
@@ -517,7 +517,7 @@ namespace VisualPinball.Unity
 			}
 
 			if (cleared > 0) {
-				Logger.Info($"RuntimePackageReader: cleared generated tangents on {cleared} imported meshes that had no GLB TANGENT attribute.");
+				Logger.Debug($"RuntimePackageReader: cleared generated tangents on {cleared} imported meshes that had no GLB TANGENT attribute.");
 			}
 		}
 
@@ -593,7 +593,7 @@ namespace VisualPinball.Unity
 						// Forward compatibility: data of unknown component types (newer VPE,
 						// missing plugin) is skipped instead of failing the whole import.
 						if (_unknownTypeNames.Add(typeFolder.Name)) {
-							Logger.Error($"Skipping unknown component type '{typeFolder.Name}' while reading the package. A plugin may be missing.");
+							Logger.Warn("Skipping unknown component type {Type} while reading the package. A plugin may be missing.", typeFolder.Name);
 						}
 						processedOperations += GetFiles(typeFolder).Count;
 						continue;
@@ -788,7 +788,7 @@ namespace VisualPinball.Unity
 				entries = VpeTextureCook.ReplaceEntries(entries, prefetch.CachedTextures.Manifest);
 				VpeTextureCook.RewriteNormalRefs(payload, prefetch.CachedTextures.Manifest);
 				blob = prefetch.CachedTextures.CookedData;
-				Logger.Info("RuntimePackageReader: using cooked texture cache.");
+				Logger.Debug("RuntimePackageReader: using cooked texture cache.");
 
 			} else if (blob != null && VpeTextureCook.IsSupported) {
 				// First load on this machine (or settings changed): cook the source textures into
@@ -821,7 +821,9 @@ namespace VisualPinball.Unity
 					var settingsHash = _cookSettingsHash;
 					var manifest = cookResult.Manifest;
 					var cookedData = cookResult.CookedData;
-					_ = Task.Run(() => VpeTextureCache.Write(cacheRoot, vpePath, settingsHash, manifest, cookedData));
+					_ = Task.Run(() => VpeTextureCache.Write(cacheRoot, vpePath, settingsHash, manifest, cookedData))
+						.ContinueWith(t => Logger.Warn(t.Exception?.GetBaseException(), "Cannot write the texture cache for {File}; textures are cooked again next time.", Path.GetFileName(vpePath)),
+							TaskContinuationOptions.OnlyOnFaulted);
 				}
 			}
 
