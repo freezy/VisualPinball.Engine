@@ -296,6 +296,7 @@ namespace VisualPinball.Unity
 					PublishGamelogicDiagnostics(attempt);
 				}
 				attempt?.Succeed();
+				PerformanceMonitor.BeginPlay();
 				OnPlayerStarted?.Invoke(this, EventArgs.Empty);
 
 			} catch (OperationCanceledException) {
@@ -386,6 +387,7 @@ namespace VisualPinball.Unity
 
 		private void OnDestroy()
 		{
+			PerformanceMonitor.EndPlay();
 			_gamelogicEngineInitCts?.Cancel();
 			_gamelogicEngineInitCts?.Dispose();
 
