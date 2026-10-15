@@ -37,6 +37,15 @@ namespace VisualPinball.Unity.Test
 		/// </summary>
 		private static readonly string[] Packages = {
 			"org.visualpinball.engine.unity",
+			"org.visualpinball.engine.unity.hdrp",
+			"org.visualpinball.engine.pinmame",
+			"org.visualpinball.engine.kiki",
+			"org.visualpinball.engine.missionpinball",
+			"org.visualpinball.engine.proc",
+			"org.visualpinball.engine.dmd",
+			"org.visualpinball.engine.pinup",
+			"org.visualpinball.engine.b2sbackglass",
+			"org.visualpinball.engine.player",
 		};
 
 		/// <summary>

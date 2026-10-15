@@ -84,7 +84,9 @@ namespace VisualPinball.Unity
 		public static void Set(string name, DiagnosticsWriter writer, bool log = true)
 		{
 			var section = new Section(name, writer.Entries.ToArray());
+			Section previous;
 			lock (Lock) {
+				previous = _sections.FirstOrDefault(s => s.Name == name);
 				var sections = _sections.Where(s => s.Name != name).Append(section)
 					.OrderBy(s => Rank(s.Name))
 					.ThenBy(s => s.Name, StringComparer.Ordinal)
@@ -92,9 +94,39 @@ namespace VisualPinball.Unity
 				_sections = sections;
 			}
 			if (log) {
-				Logger.Info("{Section:l}:\n{Details:l}", name, ToText(section, "  "));
+				// the whole section the first time, then only what changed
+				if (previous == null) {
+					Logger.Info("{Section:l}:\n{Details:l}", name, ToText(section, "  "));
+				} else {
+					var changes = Changes(previous, section);
+					if (changes.Length > 0) {
+						Logger.Info("{Section:l} changed:\n{Details:l}", name, changes);
+					}
+				}
 			}
 			Changed?.Invoke(section);
+		}
+
+		/// <summary>
+		/// The lines that were added or changed, and the keys that went away.
+		/// </summary>
+		internal static string Changes(Section before, Section after)
+		{
+			var old = new Dictionary<string, string>();
+			foreach (var entry in before.Entries) {
+				old[entry.Key] = entry.Value;
+			}
+			var sb = new StringBuilder();
+			foreach (var entry in after.Entries) {
+				if (!old.TryGetValue(entry.Key, out var value) || value != entry.Value) {
+					sb.Append("  ").Append(entry.Key).Append(": ").Append(entry.Value).Append('\n');
+				}
+				old.Remove(entry.Key);
+			}
+			foreach (var gone in old.Keys) {
+				sb.Append("  ").Append(gone).Append(": (removed)\n");
+			}
+			return sb.ToString();
 		}
 
 		/// <summary>
@@ -124,6 +156,17 @@ namespace VisualPinball.Unity
 		{
 			lock (Lock) {
 				_sections = _sections.Where(s => s.Name != name).ToArray();
+			}
+		}
+
+		/// <summary>
+		/// Removes all sections but the given ones, e.g. everything about the previous table
+		/// (its plugins' sections included) when the next one starts loading.
+		/// </summary>
+		public static void Retain(params string[] names)
+		{
+			lock (Lock) {
+				_sections = _sections.Where(s => Array.IndexOf(names, s.Name) >= 0).ToArray();
 			}
 		}
 

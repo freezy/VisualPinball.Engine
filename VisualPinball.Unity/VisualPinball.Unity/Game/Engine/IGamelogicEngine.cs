@@ -182,6 +182,25 @@ namespace VisualPinball.Unity
 		string RomName { get; }
 	}
 
+	/// <summary>
+	/// Optional capability interface for gamelogic engines that can fail to start for a reason
+	/// the user can fix, such as a missing ROM or an emulator that isn't installed.
+	/// </summary>
+	///
+	/// <remarks>
+	/// Such engines log what's wrong as a warning, return from <c>OnInit</c> normally and report
+	/// the reason here. An exception from <c>OnInit</c> means a bug. Engines that find out later,
+	/// e.g. when the emulated game stops right after it started, set the reason and call
+	/// <see cref="Player.RefreshGamelogicDiagnostics"/> on the main thread.
+	/// </remarks>
+	public interface IGamelogicStartupStatus
+	{
+		/// <summary>
+		/// Why the game didn't start, or null when it did (or is still starting).
+		/// </summary>
+		string StartupFailure { get; }
+	}
+
 	public enum GamelogicInputDispatchMode
 	{
 		MainThread = 0,

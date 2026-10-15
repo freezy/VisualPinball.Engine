@@ -167,14 +167,19 @@ namespace VisualPinball.Unity
 		/// <summary>
 		/// Loading failed. The attempt stays current and keeps describing the table.
 		/// </summary>
-		public void Fail(Exception exception)
+		public void Fail(Exception exception) => Fail(exception?.GetType().Name + ": " + exception?.Message);
+
+		/// <summary>
+		/// Loading failed for a reason the user can fix, like a missing ROM.
+		/// </summary>
+		public void Fail(string reason)
 		{
 			if (FailedPhase != null) {
 				return;
 			}
 			FailedPhase = Phase;
 			Phase = PhaseFailed;
-			Error = exception?.GetType().Name + ": " + exception?.Message;
+			Error = reason;
 			Publish(log: true);
 		}
 

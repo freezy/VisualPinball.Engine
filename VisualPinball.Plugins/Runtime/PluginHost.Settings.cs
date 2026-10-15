@@ -150,7 +150,7 @@ namespace VisualPinball.Plugins
 		{
 			if (SettingsCommitted == null) return;
 			foreach (Action<string, IReadOnlyCollection<string>, GameIdentity?> listener in SettingsCommitted.GetInvocationList())
-				try { listener(id, fields, game); } catch (Exception error) { _log("Settings observer: " + error.Message); }
+				try { listener(id, fields, game); } catch (Exception error) { _error("Settings observer", error); }
 		}
 	}
 }
