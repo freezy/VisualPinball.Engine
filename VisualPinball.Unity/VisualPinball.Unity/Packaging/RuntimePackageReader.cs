@@ -124,6 +124,8 @@ namespace VisualPinball.Unity
 			}
 			_tableFolder = storage.GetFolder(PackageApi.TableFolder);
 			openStopwatch.Stop();
+			LoadAttempt.Current?.SetPackage(_manifest.FormatVersion, _manifest.WrittenBy, _manifest.ComponentTypes?.Count ?? 0);
+			LoadAttempt.Current?.SetPhase(LoadAttempt.PhaseImport);
 			Logger.Info($"RuntimePackageReader: Opened package (format v{_manifest.FormatVersion}) in {openStopwatch.ElapsedMilliseconds}ms.");
 			ReportProgress(progress, RuntimePackageLoadStage.OpeningPackage, 1f, "Package opened.");
 

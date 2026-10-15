@@ -13,7 +13,8 @@
 		"VisualPinball.Engine",
 		"VisualPinball.Engine.Test",
 		"VisualPinball.Unity",
-		"VisualPinball.Unity.Editor"
+		"VisualPinball.Unity.Editor",
+		"VisualPinball.Plugins"
 	],
 	"includePlatforms": [ "Editor" ],
 	"excludePlatforms": [],
