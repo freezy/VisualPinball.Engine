@@ -195,7 +195,7 @@ namespace VisualPinball.Unity.Simulation
 	[AddComponentMenu("Pinball/Simulation Thread")]
 	[RequireComponent(typeof(PhysicsEngine))]
 	[PackAs("SimulationThread")]
-	public class SimulationThreadComponent : MonoBehaviour, IPackable
+	public class SimulationThreadComponent : MonoBehaviour, IPackable, ISimulationClockSource
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 		private const string LogPrefix = "[VPE]";
@@ -318,6 +318,19 @@ namespace VisualPinball.Unity.Simulation
 		public Exception SimulationFault => _simulationThread?.Fault;
 
 		private bool _faultRaised;
+
+		bool ISimulationClockSource.TryGetClock(out long simulationUsec, out long realUsec, out long droppedUsec)
+		{
+			if (!_started || _simulationThread == null) {
+				simulationUsec = realUsec = droppedUsec = 0;
+				return false;
+			}
+			ref readonly var state = ref _simulationThread.GetSharedState();
+			simulationUsec = state.SimulationTimeUsec;
+			realUsec = state.RealTimeUsec;
+			droppedUsec = state.DroppedBacklogUsec;
+			return true;
+		}
 
 		private void Update()
 		{
@@ -443,6 +456,7 @@ namespace VisualPinball.Unity.Simulation
 
 				_started = true;
 				_faultRaised = false;
+				PerformanceMonitor.SimulationClock = this;
 				_lastStatisticsTime = Time.time;
 
 				Logger.Info($"{LogPrefix} [SimulationThreadComponent] Simulation started with external physics timing");
@@ -474,6 +488,9 @@ namespace VisualPinball.Unity.Simulation
 			_physicsEngine.SetSimulationState(null);
 
 			_started = false;
+			if (PerformanceMonitor.SimulationClock == this) {
+				PerformanceMonitor.SimulationClock = null;
+			}
 			_simulationThreadSpeedX = 0f;
 			_simulationThreadHz = 0f;
 			_lastSampleSimulationUsec = 0;

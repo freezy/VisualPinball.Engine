@@ -299,8 +299,8 @@ public class FramePacingGraph : MonoBehaviour
 		// Get last frame timing
 		if (enableCpuGpuCollection)
 		{
-			var got = FrameTimingManager.GetLatestTimings(1, ftBuf);
-			haveFT = got > 0;
+			// PerformanceMonitor captures the frame timings once per frame for everyone
+			haveFT = VisualPinball.Unity.PerformanceMonitor.TryGetLatestFrameTiming(out ftBuf[0]);
 			if (haveFT)
 			{
 				// --- inside Update(), right after GetLatestTimings() succeeds ---
@@ -379,8 +379,6 @@ public class FramePacingGraph : MonoBehaviour
 					RecomputeStats(customMetrics[i]);
 		}
 
-		// Capture for next frame
-		if (enableCpuGpuCollection) FrameTimingManager.CaptureFrameTimings();
 	}
 
 	float EstimateCpuBusyMs(FrameTiming ft)
