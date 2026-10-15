@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Globalization;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace VisualPinball.Unity
@@ -25,6 +27,8 @@ namespace VisualPinball.Unity
 	/// </summary>
 	public static class Redaction
 	{
+		private static readonly Regex JsonString = new Regex(@"""((?:[^""\\]|\\.)*)""", RegexOptions.CultureInvariant);
+
 		private static string _home;
 		private static string _homeReplacement;
 		private static Regex _userSegment;
@@ -49,6 +53,22 @@ namespace VisualPinball.Unity
 				text = ReplaceHome(text, _home.Replace('/', '\\'));
 			}
 			return _userSegment != null ? _userSegment.Replace(text, "$1<user>") : text;
+		}
+
+		/// <summary>
+		/// <see cref="Redact"/> for JSON: each string value is redacted as the text it stands
+		/// for, so escaped backslashes in Windows paths don't hide the home folder.
+		/// </summary>
+		public static string RedactJson(string json)
+		{
+			if (string.IsNullOrEmpty(json)) {
+				return json;
+			}
+			return JsonString.Replace(json, match => {
+				var value = Unescape(match.Groups[1].Value);
+				var redacted = Redact(value);
+				return redacted == value ? match.Value : "\"" + Escape(redacted) + "\"";
+			});
 		}
 
 		/// <summary>
@@ -79,6 +99,57 @@ namespace VisualPinball.Unity
 				index = text.IndexOf(home, end, StringComparison.OrdinalIgnoreCase);
 			}
 			return text;
+		}
+
+		private static string Unescape(string text)
+		{
+			if (text.IndexOf('\\') < 0) {
+				return text;
+			}
+			var sb = new StringBuilder(text.Length);
+			for (var i = 0; i < text.Length; i++) {
+				var c = text[i];
+				if (c != '\\' || i + 1 >= text.Length) {
+					sb.Append(c);
+					continue;
+				}
+				var next = text[++i];
+				switch (next) {
+					case 'n': sb.Append('\n'); break;
+					case 'r': sb.Append('\r'); break;
+					case 't': sb.Append('\t'); break;
+					case 'b': sb.Append('\b'); break;
+					case 'f': sb.Append('\f'); break;
+					case 'u' when i + 4 < text.Length && int.TryParse(text.Substring(i + 1, 4), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var code):
+						sb.Append((char)code);
+						i += 4;
+						break;
+					default: sb.Append(next); break; // \\, \" and \/
+				}
+			}
+			return sb.ToString();
+		}
+
+		private static string Escape(string text)
+		{
+			var sb = new StringBuilder(text.Length + 8);
+			foreach (var c in text) {
+				switch (c) {
+					case '\\': sb.Append("\\\\"); break;
+					case '"': sb.Append("\\\""); break;
+					case '\n': sb.Append("\\n"); break;
+					case '\r': sb.Append("\\r"); break;
+					case '\t': sb.Append("\\t"); break;
+					default:
+						if (c < ' ') {
+							sb.Append("\\u").Append(((int)c).ToString("x4"));
+						} else {
+							sb.Append(c);
+						}
+						break;
+				}
+			}
+			return sb.ToString();
 		}
 
 		private static bool IsWindows()

@@ -77,6 +77,11 @@ namespace VisualPinball.Unity
 		public static event Action<Section> Changed;
 
 		/// <summary>
+		/// Raised after a section was removed, with its name.
+		/// </summary>
+		public static event Action<string> Removed;
+
+		/// <summary>
 		/// Replaces a section.
 		/// </summary>
 		/// <param name="log">Whether to write the section to the log. Off for sections that
@@ -154,9 +159,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public static void Remove(string name)
 		{
-			lock (Lock) {
-				_sections = _sections.Where(s => s.Name != name).ToArray();
-			}
+			RemoveWhere(s => s.Name == name);
 		}
 
 		/// <summary>
@@ -165,9 +168,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public static void Retain(params string[] names)
 		{
-			lock (Lock) {
-				_sections = _sections.Where(s => Array.IndexOf(names, s.Name) >= 0).ToArray();
-			}
+			RemoveWhere(s => Array.IndexOf(names, s.Name) < 0);
 		}
 
 		/// <summary>
@@ -175,8 +176,21 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public static void Clear()
 		{
+			RemoveWhere(_ => true);
+		}
+
+		private static void RemoveWhere(Func<Section, bool> remove)
+		{
+			Section[] removed;
 			lock (Lock) {
-				_sections = Array.Empty<Section>();
+				removed = _sections.Where(remove).ToArray();
+				if (removed.Length == 0) {
+					return;
+				}
+				_sections = _sections.Where(s => !remove(s)).ToArray();
+			}
+			foreach (var section in removed) {
+				Removed?.Invoke(section.Name);
 			}
 		}
 
