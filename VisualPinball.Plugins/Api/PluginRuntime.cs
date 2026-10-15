@@ -379,10 +379,14 @@ namespace VisualPinball.Plugins
 		/// </summary>
 		public ResourceScope Lifetime { get; }
 		/// <summary>
-		/// Writes a diagnostic line, prefixed with the plugin ID. The Player sends it to the Unity log; use it for
-		/// conditions the user may need to see, such as a missing PUP pack.
+		/// Writes a diagnostic line, prefixed with the plugin ID, at info level. Prefer <see cref="Logger"/>, which has levels.
 		/// </summary>
 		public Action<string> Log { get; }
+		/// <summary>
+		/// The plugin's log, with levels. The Player writes it to the session log; errors also end up in error reports. Use
+		/// <see cref="PluginLogLevel.Warn"/> for conditions the user can fix, such as a missing PUP pack.
+		/// </summary>
+		public IPluginLog Logger { get; }
 		/// <summary>Creates the context. Called by the <see cref="PluginHost"/>; plugins only receive it.</summary>
 		/// <param name="plugin">The descriptor of the plugin being created.</param>
 		/// <param name="configuration">The settings store.</param>
@@ -393,7 +397,16 @@ namespace VisualPinball.Plugins
 		/// <param name="log">The diagnostic sink for this plugin.</param>
 		public PluginApplicationContext(PluginDescriptor plugin, PluginConfigurationStore configuration, OwnerScheduler scheduler,
 			PluginCapabilities capabilities, PluginResourceRegistry resources, ResourceScope lifetime, Action<string> log)
-		{ Plugin = plugin; Configuration = configuration; Scheduler = scheduler; Capabilities = capabilities; Resources = resources; Lifetime = lifetime; Log = log; }
+			: this(plugin, configuration, scheduler, capabilities, resources, lifetime, new TextPluginLog(log)) { }
+		/// <summary>Creates the context with a levelled log. Called by the <see cref="PluginHost"/>; plugins only receive it.</summary>
+		/// <param name="logger">The plugin's log. <see cref="Log"/> writes to it at info level.</param>
+		public PluginApplicationContext(PluginDescriptor plugin, PluginConfigurationStore configuration, OwnerScheduler scheduler,
+			PluginCapabilities capabilities, PluginResourceRegistry resources, ResourceScope lifetime, IPluginLog logger)
+		{
+			Plugin = plugin; Configuration = configuration; Scheduler = scheduler; Capabilities = capabilities; Resources = resources; Lifetime = lifetime;
+			Logger = logger;
+			Log = message => logger.Write(PluginLogLevel.Info, message);
+		}
 	}
 
 	/// <summary>The game being started and the services scoped to it, passed to <see cref="IPlayerPlugin.PrepareGameAsync"/>.</summary>

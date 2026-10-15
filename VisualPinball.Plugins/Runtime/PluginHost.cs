@@ -99,6 +99,8 @@ namespace VisualPinball.Plugins
 		private readonly SemaphoreSlim _operation = new SemaphoreSlim(1, 1);
 		private readonly Dictionary<string, Task> _abandoned = new Dictionary<string, Task>();
 		private readonly Action<string> _log;
+		private readonly Func<PluginDescriptor, IPluginLog> _pluginLog;
+		private readonly Action<string, Exception> _error;
 		private CancellationTokenSource? _gameCancellation;
 		private bool _running;
 		private bool _ready;
@@ -188,15 +190,24 @@ namespace VisualPinball.Plugins
 		/// <param name="resources">The resource registry shared with plugins.</param>
 		/// <param name="platform">The platform ID, compared with <see cref="PluginDescriptor.Platforms"/>; see <see cref="Platform"/>.</param>
 		/// <param name="log">
-		/// Receives diagnostics: plugin log lines (prefixed with the plugin ID), faults and cleanup errors. Null discards them.
+		/// Receives diagnostics: faults and cleanup errors, and plugin log lines (prefixed with the plugin ID) unless
+		/// <paramref name="pluginLog"/> is given. Null discards them.
+		/// </param>
+		/// <param name="pluginLog">Creates each plugin's levelled log. Null sends plugin lines to <paramref name="log"/>.</param>
+		/// <param name="error">
+		/// Receives exceptions thrown by plugin code (faulted hooks, failed cleanup), with what failed. Null sends their
+		/// message to <paramref name="log"/>.
 		/// </param>
 		/// <exception cref="ArgumentException">Two factories have the same <see cref="PluginDescriptor.Id"/>.</exception>
 		public PluginHost(IEnumerable<IPlayerPluginFactory> factories, PluginConfigurationStore configuration, OwnerScheduler scheduler,
-			PluginCapabilities capabilities, PluginResourceRegistry resources, string platform, Action<string>? log = null)
+			PluginCapabilities capabilities, PluginResourceRegistry resources, string platform, Action<string>? log = null,
+			Func<PluginDescriptor, IPluginLog>? pluginLog = null, Action<string, Exception>? error = null)
 		{
 			_factories = factories.ToDictionary(factory => factory.Descriptor.Id, StringComparer.Ordinal);
 			_statuses = _factories.Keys.ToDictionary(id => id, _ => new PluginStatus());
 			Configuration = configuration; Scheduler = scheduler; Capabilities = capabilities; Resources = resources; Platform = platform; _log = log ?? (_ => { });
+			_pluginLog = pluginLog ?? (descriptor => new TextPluginLog(message => _log(descriptor.Id + ": " + message)));
+			_error = error ?? ((what, exception) => _log(what + ": " + exception.Message));
 		}
 
 		/// <summary>
@@ -273,9 +284,9 @@ namespace VisualPinball.Plugins
 					try {
 						var settings = Configuration.Effective(descriptor, factory.Schema, identity);
 						var issues = factory.Schema.Validate(settings).Concat(factory.SettingsProvider?.Validate(new PluginChoiceRequest(identity, settings, Platform) { Package = new PluginPackageReference(packagePath, title) }) ?? Array.Empty<PluginValidationIssue>()).ToArray();
-						if (issues.Length > 0) throw new InvalidOperationException(string.Join("; ", issues.Select(issue => issue.Field + ": " + issue.Message)));
-						if (Configuration.Read(descriptor, factory.Schema).SchemaVersion > factory.Schema.Version || Configuration.Read(descriptor, factory.Schema, identity).SchemaVersion > factory.Schema.Version) throw new InvalidOperationException("Configuration requires a newer plugin version.");
-						var plugin = factory.Create(new PluginApplicationContext(descriptor, Configuration, Scheduler, Capabilities, Resources, application, message => _log(descriptor.Id + ": " + message)));
+						if (issues.Length > 0) throw new PluginConfigurationException(string.Join("; ", issues.Select(issue => issue.Field + ": " + issue.Message)));
+						if (Configuration.Read(descriptor, factory.Schema).SchemaVersion > factory.Schema.Version || Configuration.Read(descriptor, factory.Schema, identity).SchemaVersion > factory.Schema.Version) throw new PluginConfigurationException("Configuration requires a newer plugin version.");
+						var plugin = factory.Create(new PluginApplicationContext(descriptor, Configuration, Scheduler, Capabilities, Resources, application, _pluginLog(descriptor)));
 						var entry = new Instance(factory, plugin, application);
 						_entered.Add(entry);
 						await InvokeAsync(entry, PluginPhase.Initialize, token => plugin.InitializeAsync(token), gameToken).ConfigureAwait(false);
@@ -424,13 +435,16 @@ namespace VisualPinball.Plugins
 		}
 		private async Task FinishQuarantineAsync(Instance entry, Task pending, bool shutdown)
 		{
-			try { await pending.ConfigureAwait(false); } catch (Exception error) { _log("Abandoned hook: " + error.Message); }
+			try { await pending.ConfigureAwait(false); }
+			catch (OperationCanceledException) { /* the plugin observed its deadline */ }
+			catch (Exception error) { _error("Abandoned hook", error); }
 			await Scheduler.Switch();
 			if (shutdown) {
 				// This old instance is quarantined independently of the active game's lifecycle gate.
 				using var deadline = new CancellationTokenSource(CleanupTimeout);
 				try { await entry.Plugin.ShutdownAsync(deadline.Token).ConfigureAwait(false); }
-				catch (Exception error) { _log("Deferred shutdown: " + error.Message); }
+				catch (OperationCanceledException) { /* the deadline passed */ }
+				catch (Exception error) { _error("Deferred shutdown", error); }
 				await Scheduler.Switch();
 			}
 			SafeDispose(entry.GameScope); SafeDispose(entry.ApplicationScope); SafeDispose(entry.Plugin);
@@ -444,8 +458,19 @@ namespace VisualPinball.Plugins
 			if (_statuses[id].State == PluginState.Unresponsive) SetStatus(id, PluginState.Available, "Previous instance stopped.");
 		}
 		private void SetStatus(string id, PluginState state, string message, PluginPhase? phase = null) { var status = _statuses[id]; status.State = state; status.Message = message; status.Phase = phase; }
-		private void Fault(string id, PluginPhase phase, Exception error) { SetStatus(id, PluginState.Faulted, error.Message, phase); _log(id + " / " + phase + ": " + error.Message); }
-		private void SafeDispose(IDisposable resource) { try { resource.Dispose(); } catch (Exception error) { _log("Plugin cleanup: " + error.Message); } }
+		private void Fault(string id, PluginPhase phase, Exception error)
+		{
+			SetStatus(id, PluginState.Faulted, error.Message, phase);
+			// invalid settings are the user's to fix, not a bug in the plugin
+			if (error is PluginConfigurationException) _log(id + " / " + phase + ": " + error.Message);
+			else _error(id + " / " + phase, error);
+		}
+		/// <summary>The plugin's settings don't validate, or need a newer plugin.</summary>
+		private sealed class PluginConfigurationException : InvalidOperationException
+		{
+			public PluginConfigurationException(string message) : base(message) { }
+		}
+		private void SafeDispose(IDisposable resource) { try { resource.Dispose(); } catch (Exception error) { _error("Plugin cleanup", error); } }
 
 		/// <summary>
 		/// Stops the current game's plugins and releases their game and instance resources. Safe to call when no game runs.
@@ -547,14 +572,15 @@ namespace VisualPinball.Plugins
 				catch (OperationCanceledException) when (stopDeadline.IsCancellationRequested) {
 					await Scheduler.Switch(); Abandon(entry, Task.CompletedTask); return;
 				}
-				catch (Exception error) { await Scheduler.Switch(); _log(id + " / Stop: " + error.Message); }
+				catch (Exception error) { await Scheduler.Switch(); _error(id + " / Stop", error); }
 			}
 			SafeDispose(entry.GameScope);
 			using var shutdownDeadline = CancellationTokenSource.CreateLinkedTokenSource(cleanup);
 			shutdownDeadline.CancelAfter(CleanupTimeout);
 			try { await AwaitHookAsync(entry, entry.Plugin.ShutdownAsync(shutdownDeadline.Token), shutdownDeadline.Token).ConfigureAwait(false); await Scheduler.Switch(); }
 			catch (HookDeadlineException error) { await Scheduler.Switch(); Abandon(entry, error.Hook); return; }
-			catch (Exception error) { await Scheduler.Switch(); _log(id + " / Shutdown: " + error.Message); }
+			catch (OperationCanceledException) { await Scheduler.Switch(); }
+			catch (Exception error) { await Scheduler.Switch(); _error(id + " / Shutdown", error); }
 			SafeDispose(entry.ApplicationScope); SafeDispose(entry.Plugin);
 			if (!keepDiagnostic) SetStatus(id, PluginState.Available, "Stopped");
 		}
@@ -597,7 +623,7 @@ namespace VisualPinball.Plugins
 				while (_entered.Any(entry => !Available(entry) && !entry.Cleaned))
 					foreach (var entry in _entered.Where(entry => !Available(entry) && !entry.Cleaned).Reverse().ToArray()) { await CleanupAsync(entry, CancellationToken.None).ConfigureAwait(false); await Scheduler.Switch(); }
 				RebuildDispatch();
-			} catch (Exception error) { _log("Plugin recovery: " + error.Message); }
+			} catch (Exception error) { _error("Plugin recovery", error); }
 			finally { _operation.Release(); ReplayState(); }
 		}
 		private void ReplayState()
@@ -681,7 +707,7 @@ namespace VisualPinball.Plugins
 		}
 		private void Emergency(Instance entry)
 		{
-			try { (entry.Plugin as IPluginEmergencyStop)?.EmergencyStop(); } catch (Exception error) { _log(error.Message); }
+			try { (entry.Plugin as IPluginEmergencyStop)?.EmergencyStop(); } catch (Exception error) { _error("Emergency stop", error); }
 		}
 	}
 }

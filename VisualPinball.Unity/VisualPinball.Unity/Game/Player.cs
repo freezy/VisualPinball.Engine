@@ -285,7 +285,13 @@ namespace VisualPinball.Unity
 						// the table was exited, or another one loaded, while the engine started
 						return;
 					}
-					Logger.Info("Gamelogic engine {Engine} started in {InitMs} ms", engineName, stopwatch.ElapsedMilliseconds);
+					if (StartupFailure(out var reason)) {
+						// the engine already told the user what's wrong; the table stays playable without it
+						Logger.Info("Gamelogic engine {Engine} did not start: {Reason}", engineName, reason);
+						attempt?.Fail(reason);
+					} else {
+						Logger.Info("Gamelogic engine {Engine} started in {InitMs} ms", engineName, stopwatch.ElapsedMilliseconds);
+					}
 					// engines know more once they run, e.g. versions reported by an emulator
 					PublishGamelogicDiagnostics(attempt);
 				}
@@ -303,6 +309,30 @@ namespace VisualPinball.Unity
 					attempt?.Fail(e);
 				}
 			}
+		}
+
+		/// <summary>
+		/// Updates the gamelogic engine's section of the diagnostics, and fails the table's load
+		/// attempt if the engine now reports a <see cref="IGamelogicStartupStatus.StartupFailure"/>.
+		/// Engines call it when they learn something after <c>OnInit</c>, e.g. once an emulated game
+		/// started or stopped. Main thread only.
+		/// </summary>
+		public void RefreshGamelogicDiagnostics()
+		{
+			var attempt = LoadAttempt.Current;
+			if (!IsCurrent(attempt)) {
+				return;
+			}
+			if (StartupFailure(out var reason)) {
+				attempt?.Fail(reason);
+			}
+			PublishGamelogicDiagnostics(attempt);
+		}
+
+		private bool StartupFailure(out string reason)
+		{
+			reason = (GamelogicEngine as IGamelogicStartupStatus)?.StartupFailure;
+			return !string.IsNullOrEmpty(reason);
 		}
 
 		/// <summary>
