@@ -19,6 +19,11 @@ namespace VisualPinball.Unity
 		Fit = 1,
 		/// <summary>Scaled across and along independently so the table fills the screen.</summary>
 		FitStretched = 2,
+		/// <summary>
+		/// Scaled uniformly and moved along so that, seen from the eye, the playfield's front and rear
+		/// edges meet the screen's front and rear edges.
+		/// </summary>
+		FillLength = 3,
 	}
 
 	/// <summary>
@@ -166,6 +171,15 @@ namespace VisualPinball.Unity
 			syz *= table.ScaleLength;
 			var front = new double3(0, 0, table.HeightFront);
 			var offset = ex * table.OffsetX + ey * table.OffsetY;
+			if (table.Fit == WindowFitPolicy.FillLength) {
+				var fill = FillLength(cab, table, alpha - gamma, front, ex, ey, out var along);
+				if (double.IsNaN(fill)) {
+					return WindowProjectionResult.Invalid("From this eye position the table can't fill the screen's length. Choose another table size or check the eye.");
+				}
+				sx = fill * table.ScaleX;
+				syz = fill * table.ScaleLength;
+				offset += ey * along;
+			}
 			var toTable = RotateX(gamma - alpha); // inverse of Rx(alpha - gamma)
 			var invScale = new double3(1 / sx, 1 / syz, 1 / syz);
 			double3 CabinetToTable(double3 p) => front + invScale * math.mul(toTable, p - offset);
@@ -252,6 +266,65 @@ namespace VisualPinball.Unity
 				LowerLeft = ToVector(pa), LowerRight = ToVector(pb), UpperLeft = ToVector(pc),
 				Eye = ToVector(pe),
 			};
+		}
+
+		/// <summary>
+		/// The uniform scale, and the shift along the screen, at which the playfield's front and rear edges,
+		/// seen from the eye, meet the screen's front and rear edges. The playfield lies below the screen's
+		/// plane, so it looks smaller than it is scaled and the eye's perspective moves it; both are found
+		/// by bisection: the shift that puts the front on the front edge, for the scale that then puts the
+		/// rear on the rear edge.
+		/// </summary>
+		private static double FillLength(CabinetGeometry cab, TableWindowPlacement table, double tilt,
+			double3 front, double3 ex, double3 ey, out double along)
+		{
+			var toCabinet = RotateX(tilt);
+			var normal = math.cross(ex, ey); // up, away from the screen
+			var eyeHeight = math.dot(cab.Eye, normal);
+			along = 0;
+			if (!(eyeHeight > 0)) {
+				return 1; // the eye is behind the screen: Solve rejects it
+			}
+			// where a point on the playfield's centre line appears along the screen
+			double Along(double scale, double shift, double y)
+			{
+				var p = ey * shift + math.mul(toCabinet, scale * (new double3(0, y, 0) - front));
+				var t = eyeHeight / (eyeHeight - math.dot(p, normal));
+				return math.dot(cab.Eye + t * (p - cab.Eye), ey);
+			}
+			double FrontShift(double scale)
+			{
+				double low = -10, high = 10;
+				for (var i = 0; i < 60; i++) {
+					var mid = 0.5 * (low + high);
+					if (Along(scale, mid, 0) < 0) {
+						low = mid;
+					} else {
+						high = mid;
+					}
+				}
+				return 0.5 * (low + high);
+			}
+			double lowScale = 1e-3, highScale = 100;
+			for (var i = 0; i < 60; i++) {
+				var mid = 0.5 * (lowScale + highScale);
+				var shift = FrontShift(mid);
+				if (Along(mid, shift, table.TableLength) - Along(mid, shift, 0) < cab.ScreenLength) {
+					lowScale = mid;
+				} else {
+					highScale = mid;
+				}
+			}
+			var scale = 0.5 * (lowScale + highScale);
+			along = FrontShift(scale);
+			// the search stops at its limits when no scale and shift fit: then there is no solution
+			const double tolerance = 1e-4;
+			var front0 = Along(scale, along, 0);
+			var rear = Along(scale, along, table.TableLength);
+			if (math.abs(front0) > tolerance || math.abs(rear - cab.ScreenLength) > tolerance) {
+				return double.NaN;
+			}
+			return scale;
 		}
 
 		/// <summary>

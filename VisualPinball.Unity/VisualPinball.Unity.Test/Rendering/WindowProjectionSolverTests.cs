@@ -143,6 +143,35 @@ namespace VisualPinball.Unity.Test
 			Assert.That(rear.y, Is.EqualTo(TableLength / 0.93f).Within(1e-3f));
 		}
 
+		[TestCase(0, 0.0, 0.08, 0.08)]
+		[TestCase(0, 0.0, 0.06, 0.14)]
+		[TestCase(1, 0.05, 0.08, 0.12)]
+		[TestCase(3, 0.0, 0.08, 0.12)]
+		public void FillLengthPutsThePlayfieldEndsOnTheScreenEnds(int quarterTurns, double eyeX, double heightFront, double heightRear)
+		{
+			var input = Input(quarterTurns, fit: WindowFitPolicy.FillLength, eye: new double3(eyeX, -0.25, 0.65), heightFront: heightFront, heightRear: heightRear);
+			var result = WindowProjectionSolver.Solve(input);
+			Assert.That(result.IsValid, result.Error);
+
+			// on the playfield (below the screen's plane): the front edge on the screen's front edge, the rear on its rear
+			WindowProjectionSolver.IntersectPicture(result, TablePoint(input, 0f, 0f, 0f), out var front);
+			WindowProjectionSolver.IntersectPicture(result, TablePoint(input, 0f, TableLength, 0f), out var rear);
+			// the screen's length runs up the picture unturned, right turned clockwise, left turned counter-clockwise
+			float Along(Vector2 picture) => quarterTurns switch { 1 => picture.x, 3 => 1f - picture.x, _ => picture.y };
+			Assert.That(Along(front), Is.EqualTo(0f).Within(1e-4f));
+			Assert.That(Along(rear), Is.EqualTo(1f).Within(1e-4f));
+		}
+
+		[Test]
+		public void FillLengthRejectsAnEyeItCannotFillFrom()
+		{
+			// a low eye and a high window: no scale and shift put both playfield ends on the screen's ends
+			var input = Input(0, fit: WindowFitPolicy.FillLength, inclination: 0, eye: new double3(0, -0.25, 0.20), heightFront: 0.30, heightRear: 0.30);
+			input.Cabinet.ScreenLength = 0.93;
+			input.Table.TableLength = 1.167;
+			Assert.That(WindowProjectionSolver.Solve(input).IsValid, Is.False);
+		}
+
 		/// <summary>
 		/// VPX scales about the table's mid-length but places the eye relative to the unscaled front. For a
 		/// flat window this acts like an eye 24.35 cm in front and 69.44 cm above the screen instead of the
