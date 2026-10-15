@@ -14,20 +14,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using NLog;
-using UnityEngine;
+using System;
 
 namespace VisualPinball.Unity
 {
 	public static class Logging
 	{
-		[RuntimeInitializeOnLoadMethod]
+		[Obsolete("Logging is set up automatically. Use VpeLog.Configure() to change it.")]
 		public static void Setup()
 		{
-			var config = new NLog.Config.LoggingConfiguration();
-			var logConsole = new UnityTarget();
-			config.AddRule(LogLevel.Info, LogLevel.Fatal, logConsole);
-			LogManager.Configuration = config;
+			VpeLog.Install();
 		}
 	}
 }

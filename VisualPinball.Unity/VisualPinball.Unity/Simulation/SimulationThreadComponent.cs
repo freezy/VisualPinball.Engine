@@ -306,9 +306,28 @@ namespace VisualPinball.Unity.Simulation
 			StartSimulation();
 		}
 
+		/// <summary>
+		/// Raised once on the main thread when the simulation thread died because of an
+		/// exception. The table is frozen from then on.
+		/// </summary>
+		public event Action<Exception> SimulationFaulted;
+
+		/// <summary>
+		/// The exception that stopped the simulation thread, or null.
+		/// </summary>
+		public Exception SimulationFault => _simulationThread?.Fault;
+
+		private bool _faultRaised;
+
 		private void Update()
 		{
 			if (!_started || _simulationThread == null) return;
+
+			var fault = _simulationThread.Fault;
+			if (fault != null && !_faultRaised) {
+				_faultRaised = true;
+				SimulationFaulted?.Invoke(fault);
+			}
 
 			_simulationThread.SyncClockFromMainThread(_physicsEngine.CurrentSimulationClockUsec, _physicsEngine.CurrentSimulationClockScale);
 
@@ -423,6 +442,7 @@ namespace VisualPinball.Unity.Simulation
 				_simulationThread.Start();
 
 				_started = true;
+				_faultRaised = false;
 				_lastStatisticsTime = Time.time;
 
 				Logger.Info($"{LogPrefix} [SimulationThreadComponent] Simulation started with external physics timing");
