@@ -45,6 +45,24 @@ namespace VisualPinball.Unity.Test
 			Redaction.Redact(input).Should().Be(expected);
 		}
 
+		[Test]
+		public void ShouldRedactPathsInsideJsonStrings()
+		{
+			Redaction.Configure(@"C:\Users\jane", "jane", windows: true);
+			const string json = "{\n\t\"tableFolder\": \"C:\\\\Users\\\\jane\\\\Documents\\\\Tables\",\n\t\"romFolder\": \"D:\\\\Users\\\\jane\\\\roms\",\n\t\"note\": \"say \\\"hi\\\"\",\n\t\"count\": 3\n}";
+
+			var redacted = Redaction.RedactJson(json);
+
+			redacted.Should().Be("{\n\t\"tableFolder\": \"%USERPROFILE%\\\\Documents\\\\Tables\",\n\t\"romFolder\": \"D:\\\\Users\\\\<user>\\\\roms\",\n\t\"note\": \"say \\\"hi\\\"\",\n\t\"count\": 3\n}");
+			UnityEngine.JsonUtility.FromJson<Folders>(redacted).tableFolder.Should().Be(@"%USERPROFILE%\Documents\Tables");
+		}
+
+		[Serializable]
+		private class Folders
+		{
+			public string tableFolder;
+		}
+
 		[TestCase("/home/jane/.local/share/vpe/logs", "~/.local/share/vpe/logs")]
 		[TestCase("/mnt/backup/home/jane/roms", "/mnt/backup/home/<user>/roms")]
 		[TestCase("/Users/jane/Library", "/Users/<user>/Library")]

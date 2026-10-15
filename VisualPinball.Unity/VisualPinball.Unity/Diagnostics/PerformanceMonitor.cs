@@ -298,6 +298,7 @@ namespace VisualPinball.Unity
 				_baselineAt = now + BaselineDelaySeconds;
 				_lastFrameAt = now;
 				StartWindow();
+				PublishSection(now); // not paused anymore
 				return;
 			}
 
@@ -600,6 +601,7 @@ namespace VisualPinball.Unity
 		{
 			var w = new DiagnosticsWriter();
 			w.Add("session.playing", _playing);
+			w.Add("session.paused", _playing && _wasPaused);
 			w.Add("session.played-minutes", _playSeconds / 60);
 			w.Add("session.avg-fps", AverageFps());
 			w.Add("session.min-fps", _minWindowFps == float.MaxValue ? 0 : _minWindowFps);

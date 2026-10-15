@@ -438,6 +438,12 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Where a snapshot of the diagnostics of the session that writes this log file goes,
+		/// so they're still there after a crash.
+		/// </summary>
+		public static string DiagnosticsSnapshotPath(string logFile) => Path.ChangeExtension(logFile, ".diagnostics.json");
+
 		private static void DeleteOldLogFiles()
 		{
 			var files = new DirectoryInfo(_logDirectory)
@@ -447,6 +453,8 @@ namespace VisualPinball.Unity
 			foreach (var file in files) {
 				try {
 					file.Delete();
+					// the diagnostics snapshot error reporting keeps next to a session's log
+					File.Delete(DiagnosticsSnapshotPath(file.FullName));
 				} catch (IOException) {
 					// still open by another instance
 				} catch (UnauthorizedAccessException) {
