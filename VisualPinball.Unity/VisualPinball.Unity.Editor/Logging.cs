@@ -23,7 +23,7 @@ namespace VisualPinball.Unity.Editor
 	{
 		static Logging()
 		{
-			Unity.Logging.Setup();
+			VpeLog.Install();
 		}
 	}
 }

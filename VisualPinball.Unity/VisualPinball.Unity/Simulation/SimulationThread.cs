@@ -74,6 +74,7 @@ namespace VisualPinball.Unity.Simulation
 		private Thread _thread;
 		private volatile bool _running = false;
 		private volatile bool _paused = false;
+		private volatile Exception _fault;
 
 		// Timing (Stopwatch ticks - avoids high-frequency P/Invoke)
 		private readonly long _tickIntervalTicks;
@@ -190,6 +191,7 @@ namespace VisualPinball.Unity.Simulation
 
 			_running = true;
 			_paused = false;
+			_fault = null;
 			NativeInputManager.GamePaused = false;
 			_gamelogicStarted = _gamelogicEngine != null;
 			_lastTickTicks = Stopwatch.GetTimestamp();
@@ -214,6 +216,12 @@ namespace VisualPinball.Unity.Simulation
 
 			Logger.Info($"{LogPrefix} [SimulationThread] Started at 1000 Hz");
 		}
+
+		/// <summary>
+		/// The exception that stopped the simulation thread, or null while it runs fine.
+		/// </summary>
+		/// <remarks><b>Thread:</b> Any thread.</remarks>
+		public Exception Fault => _fault;
 
 		/// <summary>
 		/// Stop the simulation thread.
@@ -409,8 +417,8 @@ namespace VisualPinball.Unity.Simulation
 
 			if (waitCount >= 100)
 			{
-				Logger.Error($"{LogPrefix} [SimulationThread] Timeout waiting for physics initialization");
-				_running = false;
+				// _running stays set, so Stop() still joins the thread and ends the trace
+				Logger.Error("{Prefix} [SimulationThread] Timeout waiting for physics initialization", LogPrefix);
 				return;
 			}
 
@@ -530,6 +538,13 @@ namespace VisualPinball.Unity.Simulation
 					_tickCount++;
 				}
 			}
+			catch (Exception ex)
+			{
+				// Logged below, once the no-GC region is closed: formatting the exception
+				// allocates, and the region may already be exhausted. _running stays set, so
+				// Stop() still joins the thread and ends the trace.
+				_fault = ex;
+			}
 			finally
 			{
 				// Exit no-GC region
@@ -538,10 +553,19 @@ namespace VisualPinball.Unity.Simulation
 					try
 					{
 						GC.EndNoGCRegion();
-						Logger.Info($"{LogPrefix} [SimulationThread] No-GC region ended");
+						Logger.Debug("{Prefix} [SimulationThread] No-GC region ended", LogPrefix);
 					}
-					catch { }
+					catch (InvalidOperationException)
+					{
+						// the region was already left because its budget ran out
+					}
 				}
+			}
+
+			if (_fault != null)
+			{
+				Logger.Fatal(_fault, "{Prefix} [SimulationThread] Simulation thread died after {Ticks} ticks", LogPrefix, _tickCount);
+				VpeLog.Flush(TimeSpan.FromSeconds(2));
 			}
 		}
 

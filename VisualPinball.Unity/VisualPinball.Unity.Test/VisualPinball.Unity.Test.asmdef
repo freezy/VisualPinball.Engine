@@ -21,7 +21,8 @@
 	"overrideReferences": true,
 	"precompiledReferences": [
 		"nunit.framework.dll",
-		"FluentAssertions.dll"
+		"FluentAssertions.dll",
+		"NLog.dll"
 	],
 	"autoReferenced": true,
 	"defineConstraints": [],
