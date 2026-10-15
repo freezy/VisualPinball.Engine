@@ -16,6 +16,8 @@
 
 // ReSharper disable MemberCanBePrivate.Global
 
+using System;
+using System.Linq;
 using UnityEngine;
 
 namespace VisualPinball.Unity
@@ -63,6 +65,11 @@ namespace VisualPinball.Unity
 		public ReferencePackable PlayfieldExitKickerRef;
 		public string PlayfieldExitKickerItem;
 
+		// The balls it creates, as templates under the table (the export copies the prefabs there).
+		// A null entry uses the render pipeline's default ball. Absent in older packages.
+		public ReferencePackable LegacyBallRef;
+		public ReferencePackable[] BallPrefabRefs;
+
 		public static byte[] Pack(TroughComponent comp, PackagedRefs refs)
 		{
 			return PackageApi.Packer.Pack(new TroughReferencesPackable {
@@ -70,8 +77,12 @@ namespace VisualPinball.Unity
 				PlayfieldEntrySwitchItem = comp.PlayfieldEntrySwitchItem,
 				PlayfieldExitKickerRef = refs.PackReference(comp.PlayfieldExitKicker),
 				PlayfieldExitKickerItem = comp.PlayfieldExitKickerItem,
+				LegacyBallRef = refs.PackReference(BallOf(comp.Ball)),
+				BallPrefabRefs = (comp.BallPrefabs ?? Array.Empty<GameObject>()).Select(prefab => refs.PackReference(BallOf(prefab))).ToArray(),
 			});
 		}
+
+		private static BallComponent BallOf(GameObject ball) => ball != null ? ball.GetComponent<BallComponent>() : null;
 
 		public static void Unpack(byte[] bytes, TroughComponent comp, PackagedRefs refs)
 		{
@@ -80,6 +91,22 @@ namespace VisualPinball.Unity
 			comp.PlayfieldEntrySwitchItem = data.PlayfieldEntrySwitchItem;
 			comp.PlayfieldExitKicker = refs.Resolve<KickerComponent>(data.PlayfieldExitKickerRef);
 			comp.PlayfieldExitKickerItem = data.PlayfieldExitKickerItem;
+
+			comp.Ball = Template(refs.Resolve<BallComponent>(data.LegacyBallRef));
+			if (data.BallPrefabRefs != null) {
+				comp.BallPrefabs = data.BallPrefabRefs.Select(ballRef => Template(refs.Resolve<BallComponent>(ballRef))).ToArray();
+			}
+		}
+
+		// The templates only serve to instantiate balls from; they mustn't be balls themselves. The
+		// table is still inactive while unpacking, so they never wake up.
+		private static GameObject Template(BallComponent ball)
+		{
+			if (ball == null) {
+				return null;
+			}
+			ball.gameObject.SetActive(false);
+			return ball.gameObject;
 		}
 	}
 }

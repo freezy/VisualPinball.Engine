@@ -130,6 +130,7 @@ namespace VisualPinball.Unity.Editor
 			IPackageStorage storage = null;
 			List<GameObject> reactivatedObjects = null;
 			List<GameObject> excludedObjects = null;
+			BallTemplates ballTemplates = null;
 			try {
 				Report(progress, 0f, "Starting export…");
 				storage = PackageApi.StorageManager.CreateStorage(path);
@@ -144,6 +145,10 @@ namespace VisualPinball.Unity.Editor
 				// marker components) so they flow into the active-only export. Restored in finally.
 				reactivatedObjects = ActivateMarkedObjects();
 				excludedObjects = DeactivateExcludedObjects();
+
+				// The balls the troughs create come from prefabs outside the table. Copied under it
+				// before the node ids are assigned, they are exported like any other node.
+				ballTemplates = BallTemplates.Add(_table);
 
 				// Every exported node gets a stable id; items, refs, mappings, renderer states and
 				// light profiles all reference nodes by these ids. The ids are written into the glTF
@@ -273,9 +278,14 @@ namespace VisualPinball.Unity.Editor
 				TryDeletePartial(path);
 				throw;
 			} finally {
-				storage?.Close();
-				RestoreExcludedObjects(excludedObjects);
-				RestoreMarkedObjects(reactivatedObjects);
+				try {
+					storage?.Close();
+				} finally {
+					// the author's table back as it was, even when the package can't be closed
+					ballTemplates?.Remove();
+					RestoreExcludedObjects(excludedObjects);
+					RestoreMarkedObjects(reactivatedObjects);
+				}
 			}
 		}
 
@@ -423,6 +433,91 @@ namespace VisualPinball.Unity.Editor
 			foreach (var go in deactivated) {
 				if (go) {
 					go.SetActive(true);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Copies of the ball prefabs the troughs create balls from, under the table for the export, with
+		/// the troughs pointing at the copies until <see cref="Remove"/> puts everything back.
+		/// </summary>
+		private sealed class BallTemplates
+		{
+			private const string ContainerName = "Ball Templates";
+
+			private readonly GameObject _container;
+			private readonly List<(TroughComponent Trough, GameObject Ball, GameObject[] BallPrefabs)> _troughs = new();
+
+			private BallTemplates(GameObject container) => _container = container;
+
+			public static BallTemplates Add(GameObject table)
+			{
+				var templates = new Dictionary<GameObject, GameObject>();
+				GameObject container = null;
+				BallTemplates result = null;
+
+				GameObject Template(GameObject prefab)
+				{
+					if (prefab == null) {
+						return null;
+					}
+					if (templates.TryGetValue(prefab, out var template)) {
+						return template;
+					}
+					if (prefab.GetComponent<BallComponent>() == null) {
+						Debug.LogWarning($"Ball prefab '{prefab.name}' has no BallComponent on its root and is not packaged; the default ball is used instead.", prefab);
+						templates[prefab] = null;
+						return null;
+					}
+					if (container == null) {
+						container = new GameObject(ContainerName) { hideFlags = HideFlags.DontSave };
+						container.transform.SetParent(table.transform, false);
+						result = new BallTemplates(container);
+					}
+					template = Object.Instantiate(prefab, container.transform, false);
+					template.name = prefab.name;
+					template.SetActive(true); // exported active; the trough deactivates it on import
+					template.GetComponent<BallComponent>().IsPackageTemplate = true;
+					templates[prefab] = template;
+					return template;
+				}
+
+				// only troughs that are exported (active ones): an inactive trough's template would come
+				// out as a live ball nobody deactivates
+				var troughs = table.GetComponentsInChildren<TroughComponent>(false);
+				var swaps = new List<(TroughComponent, GameObject, GameObject[])>();
+				foreach (var trough in troughs) {
+					var prefabs = trough.BallPrefabs ?? Array.Empty<GameObject>();
+					if (trough.Ball == null && prefabs.All(prefab => prefab == null)) {
+						continue;
+					}
+					swaps.Add((trough, trough.Ball, trough.BallPrefabs));
+					trough.Ball = Template(trough.Ball);
+					trough.BallPrefabs = prefabs.Select(Template).ToArray();
+				}
+				if (result == null) {
+					// nothing copied: give the troughs their prefabs back
+					foreach (var (trough, ball, prefabs) in swaps) {
+						trough.Ball = ball;
+						trough.BallPrefabs = prefabs;
+					}
+					return null;
+				}
+				result._troughs.AddRange(swaps);
+				return result;
+			}
+
+			public void Remove()
+			{
+				foreach (var (trough, ball, prefabs) in _troughs) {
+					if (trough != null) {
+						trough.Ball = ball;
+						trough.BallPrefabs = prefabs;
+					}
+				}
+				_troughs.Clear();
+				if (_container != null) {
+					Object.DestroyImmediate(_container);
 				}
 			}
 		}
@@ -753,6 +848,11 @@ namespace VisualPinball.Unity.Editor
 							Debug.LogWarning($"Skipping missing component on {t.name} during package export.", t.gameObject);
 							break;
 
+						// only the copies of the troughs' ball prefabs carry their ball; a ball placed in the
+						// scene is exported as its mesh, as before
+						case BallComponent { IsPackageTemplate: false }:
+							break;
+
 						case IPackable packageable: {
 
 							var packName = _refs.GetName(packageable.GetType());
@@ -801,11 +901,6 @@ namespace VisualPinball.Unity.Editor
 		private byte[] PackNativeComponent(Component comp)
 		{
 			if (!comp) {
-				return null;
-			}
-
-			// Cabinet/backbox markers are authoring-only and intentionally not packaged.
-			if (comp is CabinetComponent or BackboxComponent) {
 				return null;
 			}
 

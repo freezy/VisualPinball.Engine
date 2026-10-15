@@ -16,16 +16,37 @@
 
 // ReSharper disable InconsistentNaming
 
+using System;
 using Unity.Mathematics;
 using UnityEngine;
 
 namespace VisualPinball.Unity
 {
-	public class BallComponent : MonoBehaviour
+	[PackAs("Ball")]
+	public class BallComponent : MonoBehaviour, IPackable
 	{
 		public int Id => UnityObjectId.Get(gameObject);
 		public float Radius = 25;
 		public float Mass = 1;
+
+		#region Packaging
+
+		/// <summary>
+		/// Set by the export on the copies of a trough's ball prefabs. Only those are packaged: a ball
+		/// placed in the scene stays what it always was in a package, its mesh.
+		/// </summary>
+		[NonSerialized]
+		internal bool IsPackageTemplate;
+
+		public byte[] Pack() => BallPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) => BallPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs, PackagedFiles files) { }
+
+		#endregion
 		public float3 Velocity;
 		public bool IsFrozen;
 
