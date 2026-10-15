@@ -11,7 +11,7 @@ using UnityEngine;
 namespace VisualPinball.Unity
 {
 	/// <summary>How the virtual table is sized to the physical screen.</summary>
-	public enum WindowFitPolicy
+	public enum CabinetFitPolicy
 	{
 		/// <summary>The table at its real size; a short screen shows only part of it.</summary>
 		PhysicalSize = 0,
@@ -46,7 +46,7 @@ namespace VisualPinball.Unity
 	/// Where the virtual table sits behind the screen. Lengths are in metres, in the table's reference frame
 	/// (origin at the front centre of the playfield, X to the right, Y toward the rear, Z up).
 	/// </summary>
-	public struct TableWindowPlacement
+	public struct CabinetTablePlacement
 	{
 		public double TableWidth;
 		public double TableLength;
@@ -54,7 +54,7 @@ namespace VisualPinball.Unity
 		public double HeightFront;
 		/// <summary>Height of the window above the playfield at its rear.</summary>
 		public double HeightRear;
-		public WindowFitPolicy Fit;
+		public CabinetFitPolicy Fit;
 		/// <summary>Manual multiplier on the lateral scale (1 = none).</summary>
 		public double ScaleX;
 		/// <summary>Manual multiplier on the coupled length and height scale (1 = none).</summary>
@@ -65,10 +65,10 @@ namespace VisualPinball.Unity
 		public double OffsetY;
 	}
 
-	public struct WindowProjectionInput
+	public struct CabinetProjectionInput
 	{
 		public CabinetGeometry Cabinet;
-		public TableWindowPlacement Table;
+		public CabinetTablePlacement Table;
 		/// <summary>Clockwise quarter turns of the picture on the physical screen (0 to 3).</summary>
 		public int QuarterTurns;
 		/// <summary>From the table reference frame (metres) to Unity world space.</summary>
@@ -77,7 +77,7 @@ namespace VisualPinball.Unity
 		public Bounds ContentBounds;
 	}
 
-	public struct WindowProjectionResult
+	public struct CabinetProjectionResult
 	{
 		public bool IsValid;
 		public string Error;
@@ -100,7 +100,7 @@ namespace VisualPinball.Unity
 		public Vector3 LowerLeft, LowerRight, UpperLeft;
 		public Vector3 Eye;
 
-		public static WindowProjectionResult Invalid(string error) => new() { IsValid = false, Error = error };
+		public static CabinetProjectionResult Invalid(string error) => new() { IsValid = false, Error = error };
 	}
 
 	/// <summary>
@@ -114,34 +114,34 @@ namespace VisualPinball.Unity
 	/// unchanged table world, where the screen stays a rectangle, so the result is a rigid camera pose and
 	/// an ordinary asymmetric frustum. All math is in double precision.
 	/// </remarks>
-	public static class WindowProjectionSolver
+	public static class CabinetProjectionSolver
 	{
 		private const double MinClip = 0.01;
 
-		public static WindowProjectionResult Solve(in WindowProjectionInput input)
+		public static CabinetProjectionResult Solve(in CabinetProjectionInput input)
 		{
 			var cab = input.Cabinet;
 			var table = input.Table;
 			if (!Positive(cab.ScreenWidth) || !Positive(cab.ScreenLength)) {
-				return WindowProjectionResult.Invalid("The screen size must be positive.");
+				return CabinetProjectionResult.Invalid("The screen size must be positive.");
 			}
 			if (!Finite(cab.Inclination) || math.abs(cab.Inclination) > 60) {
-				return WindowProjectionResult.Invalid("The screen inclination must be between -60° and 60°.");
+				return CabinetProjectionResult.Invalid("The screen inclination must be between -60° and 60°.");
 			}
 			if (!Finite(cab.Eye.x) || !Finite(cab.Eye.y) || !Finite(cab.Eye.z)) {
-				return WindowProjectionResult.Invalid("The eye position is not a number.");
+				return CabinetProjectionResult.Invalid("The eye position is not a number.");
 			}
 			if (!Positive(table.TableWidth) || !Positive(table.TableLength)) {
-				return WindowProjectionResult.Invalid("The table has no size.");
+				return CabinetProjectionResult.Invalid("The table has no size.");
 			}
 			if (!Finite(table.HeightFront) || !Finite(table.HeightRear)) {
-				return WindowProjectionResult.Invalid("The window heights are not numbers.");
+				return CabinetProjectionResult.Invalid("The window heights are not numbers.");
 			}
 			if (!Positive(table.ScaleX) || !Positive(table.ScaleLength)) {
-				return WindowProjectionResult.Invalid("The table scales must be positive.");
+				return CabinetProjectionResult.Invalid("The table scales must be positive.");
 			}
 			if (!Finite(table.OffsetX) || !Finite(table.OffsetY)) {
-				return WindowProjectionResult.Invalid("The table offsets are not numbers.");
+				return CabinetProjectionResult.Invalid("The table offsets are not numbers.");
 			}
 
 			// the screen in the cabinet frame
@@ -156,10 +156,10 @@ namespace VisualPinball.Unity
 			var gamma = math.atan2(rise, table.TableLength);
 			double sx, syz;
 			switch (table.Fit) {
-				case WindowFitPolicy.Fit:
+				case CabinetFitPolicy.Fit:
 					sx = syz = math.min(cab.ScreenWidth / table.TableWidth, cab.ScreenLength / windowLength);
 					break;
-				case WindowFitPolicy.FitStretched:
+				case CabinetFitPolicy.FitStretched:
 					sx = cab.ScreenWidth / table.TableWidth;
 					syz = cab.ScreenLength / windowLength;
 					break;
@@ -171,10 +171,10 @@ namespace VisualPinball.Unity
 			syz *= table.ScaleLength;
 			var front = new double3(0, 0, table.HeightFront);
 			var offset = ex * table.OffsetX + ey * table.OffsetY;
-			if (table.Fit == WindowFitPolicy.FillLength) {
+			if (table.Fit == CabinetFitPolicy.FillLength) {
 				var fill = FillLength(cab, table, alpha - gamma, front, ex, ey, out var along);
 				if (double.IsNaN(fill)) {
-					return WindowProjectionResult.Invalid("From this eye position the table can't fill the screen's length. Choose another table size or check the eye.");
+					return CabinetProjectionResult.Invalid("From this eye position the table can't fill the screen's length. Choose another table size or check the eye.");
 				}
 				sx = fill * table.ScaleX;
 				syz = fill * table.ScaleLength;
@@ -208,12 +208,12 @@ namespace VisualPinball.Unity
 			var edgeRight = pb - pa;
 			var edgeUp = pc - pa;
 			if (math.length(edgeRight) < 1e-9 || math.length(edgeUp) < 1e-9) {
-				return WindowProjectionResult.Invalid("The screen maps to a degenerate rectangle.");
+				return CabinetProjectionResult.Invalid("The screen maps to a degenerate rectangle.");
 			}
 			var vr = math.normalize(edgeRight);
 			var vu = math.normalize(edgeUp);
 			if (math.abs(math.dot(vr, vu)) > 1e-4) {
-				return WindowProjectionResult.Invalid("The table is sheared or scaled unevenly, so the screen is no longer a rectangle in it.");
+				return CabinetProjectionResult.Invalid("The table is sheared or scaled unevenly, so the screen is no longer a rectangle in it.");
 			}
 			// Unity: right x up = forward. The normal toward the eye is -forward.
 			var forward = math.normalize(math.cross(vr, vu));
@@ -222,7 +222,7 @@ namespace VisualPinball.Unity
 			var vc = pc - pe;
 			var distance = math.dot(va, forward);
 			if (!(distance > 1e-6)) {
-				return WindowProjectionResult.Invalid("The eye is behind the screen. Check the eye position and the screen's orientation.");
+				return CabinetProjectionResult.Invalid("The eye is behind the screen. Check the eye position and the screen's orientation.");
 			}
 
 			// clip planes enclosing the content (which may come out in front of the screen)
@@ -242,7 +242,7 @@ namespace VisualPinball.Unity
 			var near = math.max(MinClip, math.min(minDepth * 0.9, distance * 0.9));
 			var far = maxDepth * 1.1 + 0.1;
 			if (!(far > near) || !Finite(near) || !Finite(far)) {
-				return WindowProjectionResult.Invalid("The clip planes are invalid.");
+				return CabinetProjectionResult.Invalid("The clip planes are invalid.");
 			}
 
 			var l = near * math.dot(vr, va) / distance;
@@ -252,7 +252,7 @@ namespace VisualPinball.Unity
 
 			var xExtent = math.max(math.abs(l), math.abs(r));
 			var yExtent = math.max(math.abs(b), math.abs(t));
-			return new WindowProjectionResult {
+			return new CabinetProjectionResult {
 				IsValid = true,
 				Position = ToVector(pe),
 				Rotation = Quaternion.LookRotation(ToVector(forward), ToVector(vu)),
@@ -275,7 +275,7 @@ namespace VisualPinball.Unity
 		/// by bisection: the shift that puts the front on the front edge, for the scale that then puts the
 		/// rear on the rear edge.
 		/// </summary>
-		private static double FillLength(CabinetGeometry cab, TableWindowPlacement table, double tilt,
+		private static double FillLength(CabinetGeometry cab, CabinetTablePlacement table, double tilt,
 			double3 front, double3 ex, double3 ey, out double along)
 		{
 			var toCabinet = RotateX(tilt);
@@ -331,7 +331,7 @@ namespace VisualPinball.Unity
 		/// The reference model: where the ray from the eye through a world point crosses the screen, as
 		/// picture coordinates (0,0 lower left to 1,1 upper right). False when the ray misses the plane.
 		/// </summary>
-		public static bool IntersectPicture(in WindowProjectionResult projection, Vector3 worldPoint, out Vector2 picture)
+		public static bool IntersectPicture(in CabinetProjectionResult projection, Vector3 worldPoint, out Vector2 picture)
 		{
 			picture = default;
 			var pa = (double3)(float3)projection.LowerLeft;
