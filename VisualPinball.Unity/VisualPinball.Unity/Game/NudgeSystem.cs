@@ -161,6 +161,7 @@ namespace VisualPinball.Unity
 			_inputManager = inputManager;
 			if (_inputManager != null) {
 				_inputManager.AxisInputReceived += OnAxisInputReceived;
+				_inputManager.GameInputCutOff += OnGameInputCutOff;
 			}
 		}
 
@@ -184,6 +185,7 @@ namespace VisualPinball.Unity
 		{
 			if (_inputManager != null) {
 				_inputManager.AxisInputReceived -= OnAxisInputReceived;
+				_inputManager.GameInputCutOff -= OnGameInputCutOff;
 				_inputManager = null;
 			}
 		}
@@ -209,6 +211,10 @@ namespace VisualPinball.Unity
 			}
 
 			lock (_configLock) {
+				// Relayed before a cut-off whose rest (OnGameInputCutOff) it must not undo.
+				if (evt.GateEpoch != NativeInputManager.GateEpoch) {
+					return;
+				}
 				for (var i = 0; i < _sensors.Count; i++) {
 					var sensor = _sensors[i];
 					if (sensor.Type == NudgeSensorType.GamepadIntent) {
@@ -225,6 +231,32 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
+		/// Returns the sticks to rest when the game's input is cut off (pause, focus loss), like the keys,
+		/// whose releases the simulation makes up. Cabinet sensors measure real motion and keep their last
+		/// sample; they're refreshed when the input reopens.
+		/// </summary>
+		/// <remarks><b>Thread:</b> Main thread.</remarks>
+		private void OnGameInputCutOff()
+		{
+			lock (_configLock) {
+				for (var i = 0; i < _sensors.Count; i++) {
+					var sensor = _sensors[i];
+					if (sensor.Type == NudgeSensorType.GamepadIntent) {
+						QueueRest(i, sensor.X, NudgeSensorChannel.X);
+						QueueRest(i, sensor.Y, NudgeSensorChannel.Y);
+					}
+				}
+			}
+		}
+
+		private void QueueRest(int sensorIndex, SensorMapping mapping, NudgeSensorChannel channel)
+		{
+			if (mapping != null && mapping.IsMapped) {
+				_physicsEngine.EnqueueNudgeSensorSample(sensorIndex, channel, 0f, (ulong)mapping.RawTimestampUsec);
+			}
+		}
+
+		/// <summary>
 		/// Matches one native axis event against one mapping and enqueues the
 		/// normalized sample when it belongs to that channel.
 		/// </summary>
@@ -232,6 +264,12 @@ namespace VisualPinball.Unity
 			NativeInputApi.InputEvent evt)
 		{
 			if (mapping == null || !mapping.IsMapped || mapping.AxisId != evt.AxisId || mapping.DeviceId != deviceId) {
+				return;
+			}
+			// Not newer than what the channel has: the axis snapshot relayed when the input reopens, either
+			// overtaken by a live event or unchanged since the cut-off (native polling stops while unfocused, so
+			// it may predate the cut-off and would bring back a stick the player let go of elsewhere).
+			if (evt.TimestampUsec <= mapping.RawTimestampUsec) {
 				return;
 			}
 			var mappedValue = mapping.ProcessRawValue(evt.Value, evt.TimestampUsec);
