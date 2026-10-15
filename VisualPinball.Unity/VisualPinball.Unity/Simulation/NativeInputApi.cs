@@ -192,11 +192,7 @@ namespace VisualPinball.Unity.Simulation
 			public int DeviceIndex;
 			public int AxisId;
 			public float Value;
-			/// <summary>
-			/// Padding on the native side. The managed side tags every event it relays to the game with
-			/// <see cref="NativeInputManager.GateEpoch"/>, so consumers can tell events from before a cut-off.
-			/// </summary>
-			public int GateEpoch;
+			private int _padding;
 		}
 
 		/// <summary>

@@ -96,7 +96,6 @@ namespace VisualPinball.Unity.Simulation
 
 		// Input state tracking (allocation-free indexed arrays)
 		private readonly bool[] _actionStates;
-		private int _inputEpoch; // the NativeInputManager.GateEpoch the action states belong to
 		// Switches driven by each input action. An action can drive several switches (e.g. a lower
 		// and an upper flipper switch on the same button), each with its own polarity and state.
 		private readonly InputSwitchBinding[][] _actionBindings;
@@ -192,7 +191,6 @@ namespace VisualPinball.Unity.Simulation
 			_running = true;
 			_paused = false;
 			NativeInputManager.GamePaused = false;
-			_inputEpoch = NativeInputManager.GateEpoch;
 			_gamelogicStarted = _gamelogicEngine != null;
 			_lastTickTicks = Stopwatch.GetTimestamp();
 			_simulationTimeUsec = _hasMainThreadClockSync ? Interlocked.Read(ref _latestMainThreadClockUsec) : 0;
@@ -223,6 +221,8 @@ namespace VisualPinball.Unity.Simulation
 		/// <remarks><b>Thread:</b> Main thread only.</remarks>
 		public void Stop()
 		{
+			// a session left from the pause menu must not keep the next one's input gated
+			NativeInputManager.GamePaused = false;
 			if (!_running) return;
 
 			_running = false;
@@ -250,10 +250,8 @@ namespace VisualPinball.Unity.Simulation
 		/// <remarks><b>Thread:</b> Main thread only (sets volatile flag).</remarks>
 		public void Pause()
 		{
-			// input stops at the source while paused; the gate first, so the simulation sees the new epoch
-			// when it stops ticking, and releases what's held
-			NativeInputManager.GamePaused = true;
 			_paused = true;
+			NativeInputManager.GamePaused = true; // input stops at the source while paused
 		}
 
 		/// <summary>
@@ -272,7 +270,11 @@ namespace VisualPinball.Unity.Simulation
 		/// <remarks><b>Thread:</b> Native input polling thread (thread-safe via lock-free ring buffer).</remarks>
 		public void EnqueueInputEvent(NativeInputApi.InputEvent evt)
 		{
-			// (nothing arrives while paused or unfocused: NativeInputManager gates the input at the source)
+			// While paused (e.g. the in-game menu is open) input is menu-exclusive: drop it so held/pressed
+			// keys don't accumulate in the ring buffer and flush into the game on resume.
+			if (_paused) {
+				return;
+			}
 			if (!_inputBuffer.TryEnqueue(evt)) {
 				Interlocked.Increment(ref _inputEventsDropped);
 			}
@@ -445,9 +447,6 @@ namespace VisualPinball.Unity.Simulation
 				{
 					if (_paused)
 					{
-						// No ticks run while paused, so release what's held now rather than on resume: a
-						// flipper held when pausing must not keep its switch and coil on.
-						AdvanceInputEpoch(NativeInputManager.GateEpoch);
 						Thread.Sleep(10);
 						// Unity time stands still while paused (the menu sets timeScale to
 						// zero); hold the timetable so no backlog accumulates to replay.
@@ -626,20 +625,11 @@ namespace VisualPinball.Unity.Simulation
 		{
 			BuildInputMappingsIfNeeded();
 
-			AdvanceInputEpoch(NativeInputManager.GateEpoch);
-
 			while (_inputBuffer.TryDequeue(out var evt))
 			{
 				if (evt.EventType != (int)NativeInputApi.InputEventType.Action) {
 					continue;
 				}
-
-				// Relayed before a cut-off the actions were already released for: it's from before.
-				if (unchecked(evt.GateEpoch - _inputEpoch) < 0) {
-					continue;
-				}
-				// Relayed after a reopening that happened since the epoch was read above.
-				AdvanceInputEpoch(evt.GateEpoch);
 
 				var actionIndex = evt.Action;
 				if ((uint)actionIndex >= (uint)_actionStates.Length) {
@@ -653,7 +643,43 @@ namespace VisualPinball.Unity.Simulation
 				if (previousState == isPressed) {
 					continue;
 				}
-				ProcessActionChange(actionIndex, isPressed, evt.TimestampUsec, synthetic: false);
+
+				// Fire any hardware-rule wire coils bound to this action on the simulation thread, so a
+				// P-ROC flipper energizes within the same tick as the key press. This is the wire path the
+				// managed Input System would otherwise own, which native polling bypasses.
+				DispatchInputActionWires(actionIndex, isPressed);
+
+				InputLatencyTracker.RecordInputPolled((NativeInputApi.InputAction)actionIndex, isPressed, evt.TimestampUsec);
+
+				if (actionIndex == (int)NativeInputApi.InputAction.Tilt
+				    && DispatchPhysicalTiltInputToMainThread
+				    && MainThreadTiltDispatcher != null) {
+					QueueMainThreadTiltState(isPressed);
+					_inputEventsProcessed++;
+					continue;
+				}
+
+				// Only forward to GLE once it's ready (or at least has started)
+				if (_gamelogicEngine != null && _gamelogicStarted) {
+					if (isPressed && IsNudgeAction(actionIndex)) {
+						// The default nudge is suppressed when the gamelogic reacted to the
+						// key by nudging itself. For main-thread-dispatched GLEs the switch
+						// is only queued here, so the decision must run after the main
+						// thread actually delivered it; hence the after-dispatch callback.
+						var nudgeIndexBeforeSwitchDispatch = _physicsEngine.KeyboardNudgeIndex;
+						var nudgeActionIndex = actionIndex;
+						SendMappedSwitch(actionIndex, isPressed, () => {
+							if (nudgeIndexBeforeSwitchDispatch == _physicsEngine.KeyboardNudgeIndex) {
+								ApplyDefaultKeyboardNudge(nudgeActionIndex);
+							}
+						});
+					} else {
+						SendMappedSwitch(actionIndex, isPressed);
+					}
+				} else if (isPressed && IsNudgeAction(actionIndex)) {
+					ApplyDefaultKeyboardNudge(actionIndex);
+				}
+				_inputEventsProcessed++;
 			}
 
 			// If the GLE just started, ensure it sees the current input state.
@@ -661,73 +687,6 @@ namespace VisualPinball.Unity.Simulation
 				SyncAllMappedSwitches();
 				_needsInitialSwitchSync = false;
 			}
-		}
-
-		/// <summary>
-		/// Moves the action states on to a newer gate epoch. A newer epoch means the input was cut off
-		/// (pause, focus loss) in between, and the releases of keys held at the time never come: nothing is
-		/// held anymore.
-		/// </summary>
-		/// <remarks><b>Thread:</b> Simulation thread only.</remarks>
-		private void AdvanceInputEpoch(int epoch)
-		{
-			if (unchecked(epoch - _inputEpoch) <= 0) {
-				return;
-			}
-			_inputEpoch = epoch;
-			for (var actionIndex = 0; actionIndex < _actionStates.Length; actionIndex++) {
-				if (_actionStates[actionIndex]) {
-					_actionStates[actionIndex] = false;
-					ProcessActionChange(actionIndex, false, 0, synthetic: true);
-				}
-			}
-		}
-
-		/// <summary>
-		/// Passes an action's change on to the game. <paramref name="synthetic"/> marks a release the
-		/// simulation makes up itself after the input was cut off, which has no input timing to record.
-		/// </summary>
-		/// <remarks><b>Thread:</b> Simulation thread only.</remarks>
-		private void ProcessActionChange(int actionIndex, bool isPressed, long timestampUsec, bool synthetic)
-		{
-			// Fire any hardware-rule wire coils bound to this action on the simulation thread, so a
-			// P-ROC flipper energizes within the same tick as the key press. This is the wire path the
-			// managed Input System would otherwise own, which native polling bypasses.
-			DispatchInputActionWires(actionIndex, isPressed);
-
-			if (!synthetic) {
-				InputLatencyTracker.RecordInputPolled((NativeInputApi.InputAction)actionIndex, isPressed, timestampUsec);
-			}
-
-			if (actionIndex == (int)NativeInputApi.InputAction.Tilt
-			    && DispatchPhysicalTiltInputToMainThread
-			    && MainThreadTiltDispatcher != null) {
-				QueueMainThreadTiltState(isPressed);
-				_inputEventsProcessed++;
-				return;
-			}
-
-			// Only forward to GLE once it's ready (or at least has started)
-			if (_gamelogicEngine != null && _gamelogicStarted) {
-				if (isPressed && IsNudgeAction(actionIndex)) {
-					// The default nudge is suppressed when the gamelogic reacted to the
-					// key by nudging itself. For main-thread-dispatched GLEs the switch
-					// is only queued here, so the decision must run after the main
-					// thread actually delivered it; hence the after-dispatch callback.
-					var nudgeIndexBeforeSwitchDispatch = _physicsEngine.KeyboardNudgeIndex;
-					var nudgeActionIndex = actionIndex;
-					SendMappedSwitch(actionIndex, isPressed, () => {
-						if (nudgeIndexBeforeSwitchDispatch == _physicsEngine.KeyboardNudgeIndex) {
-							ApplyDefaultKeyboardNudge(nudgeActionIndex);
-						}
-					});
-				} else {
-					SendMappedSwitch(actionIndex, isPressed);
-				}
-			} else if (isPressed && IsNudgeAction(actionIndex)) {
-				ApplyDefaultKeyboardNudge(actionIndex);
-			}
-			_inputEventsProcessed++;
 		}
 
 		private void ProcessGamelogicOutputs()
