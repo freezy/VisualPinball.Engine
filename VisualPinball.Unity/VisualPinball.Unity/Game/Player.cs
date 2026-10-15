@@ -26,6 +26,7 @@ using UnityEngine.Serialization;
 using VisualPinball.Engine.Common;
 using VisualPinball.Engine.Game;
 using VisualPinball.Engine.Game.Engines;
+using VisualPinball.Plugins;
 using VisualPinball.Unity.Simulation;
 using Color = VisualPinball.Engine.Math.Color;
 using Logger = NLog.Logger;
@@ -270,10 +271,72 @@ namespace VisualPinball.Unity
 			InputSystem.onBeforeUpdate += OnBeforeInputUpdate;
 
 			_gamelogicEngineInitCts = new CancellationTokenSource();
+			var attempt = LoadAttempt.Current;
+			var engineName = GamelogicEngine?.Name ?? "none";
+			attempt?.SetPhase(LoadAttempt.PhaseGamelogic);
+			PublishGamelogicDiagnostics(attempt);
 			try {
-				await GamelogicEngine?.OnInit(this, TableApi, BallManager, _gamelogicEngineInitCts.Token);
+				if (GamelogicEngine != null) {
+					var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+					Logger.Info("Starting gamelogic engine {Engine}", engineName);
+					await GamelogicEngine.OnInit(this, TableApi, BallManager, _gamelogicEngineInitCts.Token);
+					if (!IsCurrent(attempt)) {
+						// the table was exited, or another one loaded, while the engine started
+						return;
+					}
+					Logger.Info("Gamelogic engine {Engine} started in {InitMs} ms", engineName, stopwatch.ElapsedMilliseconds);
+					// engines know more once they run, e.g. versions reported by an emulator
+					PublishGamelogicDiagnostics(attempt);
+				}
+				attempt?.Succeed();
 				OnPlayerStarted?.Invoke(this, EventArgs.Empty);
-			} catch (OperationCanceledException) { }
+
+			} catch (OperationCanceledException) {
+				// the table was exited while the engine started
+
+			} catch (Exception e) {
+				// engines report what the user can fix (missing ROM...) themselves; anything
+				// that escapes from here is a bug
+				Logger.Error(e, "Gamelogic engine {Engine} failed to start", engineName);
+				if (IsCurrent(attempt)) {
+					attempt?.Fail(e);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Whether this player still runs the table the given load attempt is about.
+		/// </summary>
+		private bool IsCurrent(LoadAttempt attempt)
+		{
+			// destroyed Unity objects compare equal to null
+			return this != null && LoadAttempt.Current == attempt;
+		}
+
+		/// <summary>
+		/// Writes the gamelogic engine's section of the diagnostics: which engine, which game,
+		/// and whatever the engine itself reports.
+		/// </summary>
+		private void PublishGamelogicDiagnostics(LoadAttempt attempt)
+		{
+			var writer = new DiagnosticsWriter();
+			writer.Add("engine", GamelogicEngine?.Name ?? "none");
+			if (GamelogicEngine is IRomNameProvider romNameProvider && !string.IsNullOrEmpty(romNameProvider.RomName)) {
+				writer.Add("rom", romNameProvider.RomName);
+			}
+			if (GamelogicEngine is IGameIdentityProvider identityProvider && identityProvider.GameIdentity is { } identity) {
+				writer.Add("game-id", identity.Id);
+				attempt?.SetGameId(identity.Id);
+			}
+			if (GamelogicEngine is IDiagnosticsSource source) {
+				try {
+					source.Describe(writer);
+				} catch (Exception e) {
+					writer.Add("error", "describing failed: " + e.Message);
+					Logger.Error(e, "{Engine} failed to describe itself for diagnostics", GamelogicEngine.Name);
+				}
+			}
+			DiagnosticsContext.Set(DiagnosticsContext.Gamelogic, writer);
 		}
 
 		private void Update()

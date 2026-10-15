@@ -216,7 +216,30 @@ namespace VisualPinball.Unity
 				Rebuild();
 			}
 			Logger.Info("Session {SessionId:l} started", SessionId);
+			PublishSessionDiagnostics();
 			SessionStarted?.Invoke();
+		}
+
+		/// <summary>
+		/// The session header: system and build sections, which don't change during a session.
+		/// </summary>
+		private static void PublishSessionDiagnostics()
+		{
+			try {
+				DiagnosticsContext.Clear();
+				LoadAttempt.Reset();
+				BuildInfo.Invalidate();
+				var system = new VisualPinball.Plugins.DiagnosticsWriter().Add("session", SessionId);
+				SystemSpecs.Describe(system);
+				DiagnosticsContext.Set(DiagnosticsContext.System, system);
+				var build = new VisualPinball.Plugins.DiagnosticsWriter();
+				BuildInfo.Current.Describe(build);
+				DiagnosticsContext.Set(DiagnosticsContext.Build, build);
+
+			} catch (Exception e) {
+				// diagnostics must never keep the game from starting
+				Logger.Error(e, "Cannot collect the session diagnostics");
+			}
 		}
 
 		/// <summary>
