@@ -35,7 +35,8 @@ namespace VisualPinball.Unity
 		/// <param name="info">Collider info</param>
 		/// <param name="colliders">Colliders to write to</param>
 		/// <param name="matrix">Transformation matrix to supply when adding colliders.</param>
-		public static void Generate3DPolyColliders(in float3[] rgv, ColliderInfo info, ref ColliderReference colliders, float4x4 matrix)
+		/// <param name="onlyTriangles">If set, no edge and vertex colliders are added.</param>
+		public static void Generate3DPolyColliders(in float3[] rgv, ColliderInfo info, ref ColliderReference colliders, float4x4 matrix, bool onlyTriangles = false)
 		{
 			// Fewer than three points is not a polygon. Both the triangulator and the rgv[0] lookup
 			// below index unconditionally, so bail out before they do.
@@ -59,7 +60,7 @@ namespace VisualPinball.Unity
 			}
 			var mesh = new Mesh(triangulatedVerts, outputIndices);
 
-			GenerateCollidersFromMesh(mesh, info, ref colliders, matrix);
+			GenerateCollidersFromMesh(mesh, info, ref colliders, matrix, onlyTriangles);
 		}
 
 		public static void GenerateCollidersFromMesh(Mesh mesh, ColliderInfo info, ref ColliderReference colliders, float4x4 matrix, bool onlyTriangles = false)

@@ -71,7 +71,9 @@ namespace VisualPinball.Unity
 				rgv[i] = vVertex[i];
 				rgv3D[i] = new float3(rgv[i].X, rgv[i].Y, _colliderComponent.HitHeight);
 			}
-			ColliderUtils.Generate3DPolyColliders(rgv3D, _api.GetColliderInfo(), ref colliders, _matrix);
+			// like VP's Hit3DPoly, the polygon has no edges: the ball passes through it, so the
+			// edges would only add solid lines and points to bump into.
+			ColliderUtils.Generate3DPolyColliders(rgv3D, _api.GetColliderInfo(), ref colliders, _matrix, onlyTriangles: true);
 
 			// walls
 			for (var i = 0; i < count; i++) {
