@@ -59,6 +59,23 @@ namespace VisualPinball.Unity
 		private static string _romFolderOverride;
 
 		/// <summary>
+		/// A gamelogic engine couldn't find the ROM the table needs. Raised on the main thread with
+		/// the ROM's name and the folder(s) that were searched, so the host can ask for the ROM
+		/// folder.
+		/// </summary>
+		public static event Action<string, string> RomMissing;
+
+		/// <summary>
+		/// Called by a gamelogic engine on the main thread when the table's ROM isn't there.
+		/// </summary>
+		/// <param name="rom">Name of the ROM, e.g. <c>t2_l8</c></param>
+		/// <param name="searchedFolders">The ';'-separated folders it looked in, or null</param>
+		public static void ReportRomMissing(string rom, string searchedFolders)
+		{
+			RomMissing?.Invoke(rom, searchedFolders);
+		}
+
+		/// <summary>
 		/// The root of VPE's own data on this machine (<c>%LOCALAPPDATA%\Visual Pinball Engine</c>
 		/// on Windows), shared by all VPE apps. Gamelogic engines keep their data in a sub folder.
 		/// </summary>
@@ -90,6 +107,7 @@ namespace VisualPinball.Unity
 		private static void ResetPlaySession()
 		{
 			_romFolderOverride = null;
+			RomMissing = null;
 		}
 	}
 }
