@@ -93,6 +93,9 @@ namespace VisualPinball.Unity
 
 		public void OnDestroy()
 		{
+			if (_gamelogicEngine == null) {
+				return;
+			}
 			_gamelogicEngine.OnDisplaysRequested -= HandleDisplaysRequested;
 			_gamelogicEngine.OnDisplayClear -= HandleDisplayClear;
 			_gamelogicEngine.OnDisplayUpdateFrame -= HandleDisplayUpdateFrame;

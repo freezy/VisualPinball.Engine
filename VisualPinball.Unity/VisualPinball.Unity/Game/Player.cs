@@ -239,12 +239,13 @@ namespace VisualPinball.Unity
 			_inputManager = new InputManager();
 			EnsureSimulationThreadComponent();
 
+			// a table without a gamelogic engine still has its wires (keys to flippers) and devices
+			GamelogicEngine = engineComponent;
+			_lampPlayer.Awake(this, _tableComponent, GamelogicEngine);
+			_coilPlayer.Awake(this, _tableComponent, GamelogicEngine, _lampPlayer, _wirePlayer);
+			_switchPlayer.Awake(this, _tableComponent, GamelogicEngine, _inputManager);
+			_wirePlayer.Awake(_tableComponent, _inputManager, _switchPlayer, this, PhysicsEngine);
 			if (engineComponent != null) {
-				GamelogicEngine = engineComponent;
-				_lampPlayer.Awake(this, _tableComponent, GamelogicEngine);
-				_coilPlayer.Awake(this, _tableComponent, GamelogicEngine, _lampPlayer, _wirePlayer);
-				_switchPlayer.Awake(this, _tableComponent, GamelogicEngine, _inputManager);
-				_wirePlayer.Awake(_tableComponent, _inputManager, _switchPlayer, this, PhysicsEngine);
 				_displayPlayer.Awake(GamelogicEngine);
 			}
 		}
