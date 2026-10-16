@@ -24,6 +24,7 @@ using NLog.Config;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
+using VisualPinball.Unity.Simulation;
 
 namespace VisualPinball.Unity.Test
 {
@@ -164,6 +165,19 @@ namespace VisualPinball.Unity.Test
 		public void ShouldParseTheLevelFromTheCommandLine(string[] args, string expected)
 		{
 			(VpeLog.ParseCommandLineLevel(args)?.Name).Should().Be(expected);
+		}
+
+		[TestCase(new[] { "player.exe", "--simulation-trace" }, true)]
+		[TestCase(new[] { "player.exe", "-simulation-trace" }, true)]
+		[TestCase(new[] { "--no-simulation-trace" }, false)]
+		[TestCase(new[] { "-NO-SIMULATION-TRACE" }, false)]
+		[TestCase(new[] { "--simulation-trace", "--no-simulation-trace" }, false)]
+		[TestCase(new[] { "-no-simulation-trace", "-simulation-trace" }, true)]
+		[TestCase(new[] { "player.exe", "--simulation-tracex", "---simulation-trace" }, null)]
+		[TestCase(new string[0], null)]
+		public void ShouldParseTheSimulationTraceSwitch(string[] args, bool? expected)
+		{
+			SimulationTrace.ParseCommandLineOverride(args).Should().Be(expected);
 		}
 
 		[Test]

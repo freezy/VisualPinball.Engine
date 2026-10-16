@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -218,10 +219,18 @@ namespace VisualPinball.Unity.Simulation
 		/// Command-line override for player builds: <c>--simulation-trace</c> records,
 		/// <c>--no-simulation-trace</c> does not (one dash works too). Null when neither is given.
 		/// </summary>
-		public static bool? CommandLineOverride()
+		public static bool? CommandLineOverride() => ParseCommandLineOverride(Environment.GetCommandLineArgs());
+
+		/// <summary>
+		/// <see cref="CommandLineOverride"/> for given arguments. The last switch wins.
+		/// </summary>
+		public static bool? ParseCommandLineOverride(IReadOnlyList<string> args)
 		{
 			var result = (bool?)null;
-			foreach (var raw in Environment.GetCommandLineArgs()) {
+			if (args == null) {
+				return null;
+			}
+			foreach (var raw in args) {
 				// --name is the documented form, -name still works
 				var arg = raw.StartsWith("--", StringComparison.Ordinal) ? raw.Substring(1) : raw;
 				if (string.Equals(arg, "-simulation-trace", StringComparison.OrdinalIgnoreCase)) {
