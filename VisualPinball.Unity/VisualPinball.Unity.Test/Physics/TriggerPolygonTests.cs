@@ -17,6 +17,8 @@
 using NUnit.Framework;
 using Unity.Collections;
 using Unity.Mathematics;
+using UnityEngine;
+using VisualPinball.Engine.Math;
 using VisualPinball.Engine.VPT;
 
 namespace VisualPinball.Unity.Test
@@ -169,6 +171,51 @@ namespace VisualPinball.Unity.Test
 				Assert.That(collider.HitTest(ref collEvent, in insideOfs, in ball, 1f), Is.EqualTo(0.5f).Within(1e-5f));
 			} finally {
 				insideOfs.Dispose();
+			}
+		}
+
+		[Test]
+		public void GeneratedPolygonHasNoSolidEdgesAndReportsACrossing()
+		{
+			var go = new GameObject("trigger");
+			var nonTransformable = new NativeParallelHashMap<int, float4x4>(1, Allocator.Persistent);
+			var references = new ColliderReference(ref nonTransformable, Allocator.Persistent);
+			var insideOfs = new InsideOfs(Allocator.Temp);
+			try {
+				var trigger = go.AddComponent<TriggerComponent>();
+				var triggerCollider = go.AddComponent<TriggerColliderComponent>();
+				triggerCollider.HitHeight = TopZ;
+				trigger.DragPoints = new[] {
+					new DragPointData(0f, 0f), new DragPointData(100f, 0f),
+					new DragPointData(100f, 100f), new DragPointData(0f, 100f),
+				};
+				var api = new TriggerApi(go, null, null);
+				new TriggerColliderGenerator(api, trigger, triggerCollider, null, float4x4.identity).GenerateColliders(ref references);
+
+				Assert.That(references.Line3DColliders.Length, Is.EqualTo(0), "no solid edges on the polygon");
+				Assert.That(references.PointColliders.Length, Is.EqualTo(0), "no solid corners on the polygon");
+				Assert.That(references.LineColliders.Length, Is.EqualTo(4), "one wall per side");
+				Assert.That(references.TriangleColliders.Length, Is.GreaterThanOrEqualTo(2));
+
+				// a ball falling onto the middle of the polygon, which is on the seam of the triangles
+				var ball = new BallState { Id = 1, Mass = 1f, Radius = 25f, Position = new float3(50f, 50f, TopZ + 30f), Velocity = new float3(0f, 0f, -10f) };
+				var hits = 0;
+				for (var i = 0; i < references.TriangleColliders.Length; i++) {
+					var triangle = references.TriangleColliders[i];
+					Assert.That(triangle.Normal().z, Is.GreaterThan(0.99f), "the polygon faces up");
+					var collEvent = new CollisionEventData();
+					if (triangle.HitTest(ref collEvent, in insideOfs, in ball, 1f) >= 0) {
+						Assert.That(collEvent.HitFlag, Is.False, "entering the volume is a hit");
+						Assert.That(collEvent.IsContact, Is.False);
+						hits++;
+					}
+				}
+				Assert.That(hits, Is.GreaterThan(0), "the crossing is reported");
+			} finally {
+				insideOfs.Dispose();
+				references.Dispose();
+				nonTransformable.Dispose();
+				Object.DestroyImmediate(go);
 			}
 		}
 
