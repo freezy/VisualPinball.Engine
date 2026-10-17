@@ -130,6 +130,11 @@ namespace VisualPinball.Unity.Simulation
 		public struct Snapshot
 		{
 			// Timing
+			/// <summary>
+			/// Publication order, set when the buffer is published: 1 for the first, then
+			/// one more per publication. 0 for a buffer never published.
+			/// </summary>
+			public long PublishSequence;
 			public long SimulationTimeUsec;
 			public long RealTimeUsec;
 			public long PublishRealTimeUsec;
@@ -222,6 +227,7 @@ namespace VisualPinball.Unity.Simulation
 				LampCount = 0;
 				GICount = 0;
 				PublishRealTimeUsec = 0;
+				PublishSequence = 0;
 				SimulationTickDurationUsec = 0;
 				SnapshotCopyUsec = 0;
 				KinematicScanUsec = 0;
@@ -297,6 +303,17 @@ namespace VisualPinball.Unity.Simulation
 		/// </summary>
 		private int _readIndex;
 
+		/// <summary>
+		/// Sequence of the latest publication. Written by the sim thread after the swap,
+		/// read by the main thread to tell whether the ready buffer is newer than its own.
+		/// </summary>
+		private long _publishedSequence;
+
+		/// <summary>
+		/// Sequence of the last publication the sim thread made. Sim thread only.
+		/// </summary>
+		private long _nextSequence;
+
 		private bool _disposed;
 
 		#endregion
@@ -347,10 +364,15 @@ namespace VisualPinball.Unity.Simulation
 		/// <remarks><b>Thread:</b> Simulation thread only.</remarks>
 		internal void PublishWriteBuffer()
 		{
+			var sequence = ++_nextSequence;
+			GetBufferByIndex(_writeIndex).PublishSequence = sequence;
+
 			// Atomically swap _readyIndex with our _writeIndex.
 			// After this, the old ready buffer becomes our new write buffer,
-			// and the data we just wrote is now the ready buffer.
+			// and the data we just wrote is now the ready buffer. The exchange is a
+			// full fence, so the sequence above is visible before the buffer is.
 			_writeIndex = Interlocked.Exchange(ref _readyIndex, _writeIndex);
+			Volatile.Write(ref _publishedSequence, sequence);
 		}
 
 		#endregion
@@ -366,6 +388,14 @@ namespace VisualPinball.Unity.Simulation
 		/// <remarks><b>Thread:</b> Main thread only.</remarks>
 		internal ref readonly Snapshot AcquireReadBuffer()
 		{
+			// Only swap when something newer than our buffer was published. Without new
+			// data, the ready slot holds the buffer we gave back on the previous swap,
+			// which is older than ours, and taking it would make the rendered state step
+			// backwards (when frames come faster than ticks, or the sim thread stalls).
+			if (Volatile.Read(ref _publishedSequence) <= GetBufferByIndex(_readIndex).PublishSequence) {
+				return ref GetBufferByIndex(_readIndex);
+			}
+
 			// Atomically swap _readyIndex with our _readIndex.
 			// After this we own what was the ready buffer (latest data), and
 			// our previous read buffer goes back into the ready slot (which

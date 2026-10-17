@@ -60,9 +60,10 @@ namespace VisualPinball.Unity
 		public const string Plugins = "Plugins";
 		public const string Settings = "Settings";
 		public const string Performance = "Performance";
+		public const string Startup = "Startup";
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-		private static readonly string[] Order = { System, Build, Table, Gamelogic, Plugins, Settings, Performance };
+		private static readonly string[] Order = { System, Build, Startup, Table, Gamelogic, Plugins, Settings, Performance };
 		private static readonly object Lock = new();
 		private static volatile IReadOnlyList<Section> _sections = Array.Empty<Section>();
 

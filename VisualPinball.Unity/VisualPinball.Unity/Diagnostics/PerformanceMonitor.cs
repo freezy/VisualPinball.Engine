@@ -279,6 +279,8 @@ namespace VisualPinball.Unity
 			if (_haveLatest) {
 				_latest = Timing[0];
 			}
+			StartupTimeline.OnFrameEnd();
+			LoadAttempt.OnFrameEnd();
 			if (!_playing) {
 				return;
 			}

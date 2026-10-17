@@ -230,10 +230,6 @@ namespace VisualPinball.Unity
 			return false;
 		}
 
-		private static long GetStopwatchTimestampUsec()
-		{
-			var ticks = Stopwatch.GetTimestamp();
-			return (ticks * 1_000_000L) / Stopwatch.Frequency;
-		}
+		private static long GetStopwatchTimestampUsec() => VpeClock.NowUsec;
 	}
 }
