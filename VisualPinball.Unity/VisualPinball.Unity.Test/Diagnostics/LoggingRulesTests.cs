@@ -160,14 +160,14 @@ namespace VisualPinball.Unity.Test
 			return violations;
 		}
 
-		private static IEnumerable<string> PackageRoots()
+		internal static IEnumerable<string> PackageRoots()
 		{
 			return PackageInfo.GetAllRegisteredPackages()
 				.Where(p => Packages.Contains(p.name) && p.source == PackageSource.Local)
 				.Select(p => p.resolvedPath);
 		}
 
-		private static bool IsRuntimeFile(string root, string file)
+		internal static bool IsRuntimeFile(string root, string file)
 		{
 			var parts = file.Substring(root.Length).Split('\\', '/');
 			return !parts.Any(p =>
