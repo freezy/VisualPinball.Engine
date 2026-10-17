@@ -347,11 +347,14 @@ namespace VisualPinball.Unity.Profiling
 
 		/// <summary>
 		/// The interval the settings ask for: vsync, else the target frame rate, else none (0).
+		/// Runs every frame, so it takes the refresh rate the recorder polls: reading
+		/// <c>Screen.currentResolution</c> here blocked frames by 20 ms each while another
+		/// process held Windows' display configuration.
 		/// </summary>
 		private static float TargetIntervalMs(ref FrameSample f)
 		{
 			if (QualitySettings.vSyncCount > 0) {
-				var hz = Screen.currentResolution.refreshRateRatio.value;
+				var hz = FrameRecorder.RefreshHz;
 				return hz > 0 ? (float)(1000.0 / hz * QualitySettings.vSyncCount) : 0f;
 			}
 			return Application.targetFrameRate > 0 ? 1000f / Application.targetFrameRate : 0f;

@@ -163,10 +163,22 @@ namespace VisualPinball.Unity.Profiling
 
 		// environment
 		private static double _nextPollAt;
+		private static double _nextRefreshPollAt;
 		private static int _width, _height, _vsync, _targetFps, _quality, _displays;
 		private static FullScreenMode _fullScreen;
 		private static double _refresh;
 		private static bool _paused;
+
+		/// <summary>
+		/// How often the refresh rate is read when nothing else about the display changed.
+		/// <c>Screen.currentResolution</c> queries Windows' display configuration, which blocks
+		/// for tens of milliseconds while another process holds it (for example while one
+		/// creates a console window).
+		/// </summary>
+		private const double RefreshPollSeconds = 10;
+
+		/// <summary>The display's refresh rate in Hz as last polled, 0 before the first poll.</summary>
+		public static double RefreshHz => _refresh;
 
 		public static FrameSample* Frames => _frames;
 		public static long Count => _count;
@@ -195,6 +207,7 @@ namespace VisualPinball.Unity.Profiling
 			_finalizedThroughTicks = 0;
 			// realtimeSinceStartup starts over with a new play session in the editor
 			_nextPollAt = 0;
+			_nextRefreshPollAt = 0;
 			_paused = false;
 			_lastTimingStart = 0;
 			_open = false;
@@ -600,9 +613,13 @@ namespace VisualPinball.Unity.Profiling
 			var fullScreen = Screen.fullScreenMode;
 			var vsync = QualitySettings.vSyncCount;
 			var targetFps = Application.targetFrameRate;
-			var refresh = Screen.currentResolution.refreshRateRatio.value;
 			var quality = QualitySettings.GetQualityLevel();
 			var displays = Display.displays.Length;
+			var refresh = _refresh;
+			if (first || now >= _nextRefreshPollAt || width != _width || height != _height || fullScreen != _fullScreen || displays != _displays) {
+				refresh = Screen.currentResolution.refreshRateRatio.value;
+				_nextRefreshPollAt = now + RefreshPollSeconds;
+			}
 			if (!first) {
 				if (width != _width || height != _height || fullScreen != _fullScreen || vsync != _vsync || targetFps != _targetFps || System.Math.Abs(refresh - _refresh) > 0.5) {
 					Mark(ProfileEvent.DisplayModeChanged, 0);
