@@ -36,6 +36,20 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void AnErrorThrownEveryFrameIsSentOnce()
+		{
+			// VPE-3: the URP pipeline threw the same exception every frame, 4165 times in a run
+			var dedupe = new ReportDedupe();
+			var sent = 0;
+			for (var frame = 0; frame < 4165; frame++) {
+				if (dedupe.ShouldSend("ex|System.Exception|UnityEngine.Rendering.Blitter.Initialize", false, out _)) {
+					sent++;
+				}
+			}
+			sent.Should().Be(1);
+		}
+
+		[Test]
 		public void ShouldStopAtTheCap()
 		{
 			var dedupe = new ReportDedupe(3);
