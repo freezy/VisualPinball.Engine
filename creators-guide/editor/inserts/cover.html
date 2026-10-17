@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Insert Cover | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Insert Cover | VPE Documentation ">
+      
+      <meta name="description" content="Add a transparent top, tune its plastic, haze and reflections, and project the playfield&#39;s normal detail continuously across an insert.">
+      <link rel="icon" href="../../../favicon.png">
+      <link rel="stylesheet" href="../../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../../public/main.css">
+      <link rel="stylesheet" href="../../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../../toc.html">
+      <meta name="docfx:tocrel" content="../../toc.html">
+      
+      <meta name="docfx:rel" content="../../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/inserts/cover.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../../public/docfx.min.js"></script>
+      <script src="./../../../public/mermaid-11.14.0.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../../index.html">
+            <img id="logo" class="svg" src="../../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="insert_cover">
+<h1 id="insert-cover">Insert Cover</h1>
+
+<p>The body supplies the molded interior and its optical appearance. A <strong>clear cover</strong> closes the opening at the rim with a flat top, adding its own reflections, haze, and surface detail. It is optional and independent of the body bake, so you can add or tune it without baking again.</p>
+<p>The pictures show two clear inserts sharing one cover material, changing one value at a time: the upper insert is off, the lower one is lit. The middle picture is the value the clear cover has today.</p>
+<h2 id="adding-a-cover">Adding a cover</h2>
+<img src="cover/inspector-component.png" width="340" alt="The Clear Cover section of an insert" class="img-fluid float-end" style="margin-left: 15px">
+<p>In the <em>Clear Cover</em> section of the Insert component, assign <em>Material</em> or click <em>Add Clear Cover</em>. The helper creates a <em>Pinball/Insert Cover</em> material with a subtle haze and glossy finish. Clearing <em>Material</em> removes the top surface.</p>
+<ul>
+<li><em>Material</em> is the material of the generated top surface, in the renderer's second material slot. Any material can be assigned, but the dedicated cover shader supplies the plastic, haze, lamp tint, and playfield-normal features described here.</li>
+<li><em>Use Playfield Normals</em> projects the detected playfield's normal detail across the cover. Available for the dedicated Insert Cover material. Off, the cover uses its material's own map and local UVs.</li>
+<li><em>Playfield Override</em> is an optional Mesh Renderer component supplying the normal map and UV projection. Leave it empty for automatic playfield detection.</li>
+<li><em>Detected Surface</em>, <em>Source Material</em>, and <em>Source Normal Map</em> show the renderer the projection comes from, its first material, and that material's normal map.</li>
+</ul>
+<div style="clear: both"></div>
+<table>
+<thead>
+<tr>
+<th>No cover</th>
+<th>Clear cover</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="cover/cover-none.png" width="240" alt="No cover"></td>
+<td><img src="cover/cover-clear.png" width="240" alt="Clear cover"></td>
+</tr>
+</tbody>
+</table>
+<div class="NOTE">
+<h5>Note</h5>
+<p><strong>Separate material slot.</strong> The cover is added after the body's bake has been applied. Its triangles, UVs, and per-slot material overrides do not change the body's bake hash or atlas. A custom cover material determines its own transparency and shadows; the dedicated cover keeps reflections visible at low opacity and does not cast a solid shadow.</p>
+</div>
+<h2 id="plastic">Plastic</h2>
+<img src="cover/inspector-plastic.png" width="340" alt="The Plastic section of the cover material" class="img-fluid float-end" style="margin-left: 15px">
+<p>The cover is the top of a slab of plastic as deep as the insert. What shows through it is refracted as through that slab, and the light takes the plastic's tint on its way up, the more the longer its path.</p>
+<div style="clear: both"></div>
+<h3 id="index-of-refraction">Index of Refraction</h3>
+<p><em>Index of Refraction</em> is how much the plastic bends the view, from 1 to 2: 1.49 for acrylic, 1.59 for polycarbonate. One is no slab at all. A higher index shows the ribs nearer than they lie. The shift shows at a low angle, so these pictures look along the inserts from behind: watch the near insert's floor and holes against its frame. The refraction is a screen-space effect, and at grazing views it can slide a band of the ribs across the insert, so the shipped clear cover leaves it at one and keeps only its glossy top and its haze.</p>
+<table>
+<thead>
+<tr>
+<th>1</th>
+<th>1.49</th>
+<th>2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="cover/ior-1.png" width="240" alt="Index of Refraction 1"></td>
+<td><img src="cover/ior-1.49.png" width="240" alt="Index of Refraction 1.49"></td>
+<td><img src="cover/ior-2.png" width="240" alt="Index of Refraction 2"></td>
+</tr>
+</tbody>
+</table>
+<h3 id="tint">Tint</h3>
+<p><em>Tint</em> is the color the light has once it has come <em>Tint Depth</em> through the plastic. White suits clear plastic; a colored insert takes its color, and then darkens toward its edges and at grazing views, as tinted plastic does. The light takes the tint on its way through the slab, which only exists while <em>Index of Refraction</em> is above 1: at 1, <em>Tint</em> and <em>Tint Depth</em> do nothing. The shipped clear cover is at 1 and stays untinted; the colored covers are at 1.49. These pictures are at 1.49.</p>
+<table>
+<thead>
+<tr>
+<th>White (Clear)</th>
+<th>Red</th>
+<th>Blue</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="cover/tint-white.png" width="240" alt="White tint"></td>
+<td><img src="cover/tint-red.png" width="240" alt="Red tint"></td>
+<td><img src="cover/tint-blue.png" width="240" alt="Blue tint"></td>
+</tr>
+</tbody>
+</table>
+<h3 id="tint-depth">Tint Depth</h3>
+<p><em>Tint Depth (mm)</em> is how far through the plastic the light goes to take the tint, from 0.1 to 20 mm. Shorter is a denser plastic. Shown with the red tint.</p>
+<table>
+<thead>
+<tr>
+<th>0.1 mm</th>
+<th>3 mm</th>
+<th>20 mm</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="cover/tint-depth-0.1.png" width="240" alt="Tint Depth 0.1 mm"></td>
+<td><img src="cover/tint-depth-3.png" width="240" alt="Tint Depth 3 mm"></td>
+<td><img src="cover/tint-depth-20.png" width="240" alt="Tint Depth 20 mm"></td>
+</tr>
+</tbody>
+</table>
+<h2 id="haze">Haze</h2>
+<img src="cover/inspector-haze.png" width="340" alt="The Haze section of the cover material" class="img-fluid float-end" style="margin-left: 15px">
+<p>The haze is the veil seen over the interior. It can be nearly invisible, lightly worn, or milky. <em>Color Preset</em> is the <a href="presets.html#color">color preset</a> the cover follows, which owns the <em>Haze Color</em> and the plastic's <em>Tint</em>. While the material is linked, those fields are grayed out: change them in the color preset with <em>Manage</em>, or set <em>Color Preset</em> to none to change them in this material alone. A material of the asset library, or of a locked library, is grayed out and can't be changed: fork the insert wearing it first, which gives it copies of its own. See <a href="basics.html#forking-an-insert">Forking an insert</a>.</p>
+<p>With <em>Tint With Lamp</em> enabled on the Insert Light component, the haze takes the local lamp hue while keeping its brightness. Without that tint, a gray veil can make a saturated lamp look pale. See <a href="lighting.html#tint-with-lamp">Lighting</a>.</p>
+<div style="clear: both"></div>
+<h3 id="opacity">Opacity</h3>
+<p><em>Opacity</em> is how much of the haze shows over the body, from 0 to 0.5. A hundredth is a clean top with only its reflection; 0.05 to 0.1 is a veil that softens the ribs like worn or slightly frosted plastic. The reflections stay at full strength whatever the value.</p>
+<table>
+<thead>
+<tr>
+<th>0.01 (Clear)</th>
+<th>0.1</th>
+<th>0.5</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="cover/opacity-0.01.png" width="240" alt="Opacity 0.01"></td>
+<td><img src="cover/opacity-0.1.png" width="240" alt="Opacity 0.1"></td>
+<td><img src="cover/opacity-0.5.png" width="240" alt="Opacity 0.5"></td>
+</tr>
+</tbody>
+</table>
+<h3 id="haze-color">Haze Color</h3>
+<p><em>Haze Color</em> is the color of that veil. A light gray suits worn clear plastic; darker grays dull the body, white brightens it, and a colored haze filters it. Disabled at zero <em>Opacity</em>. Shown at <em>Opacity</em> 0.3, where the color reads.</p>
+<table>
+<thead>
+<tr>
+<th>Light gray (Clear)</th>
+<th>Blue</th>
+<th>Orange</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="cover/haze-color-light.png" width="240" alt="Light gray haze"></td>
+<td><img src="cover/haze-color-blue.png" width="240" alt="Blue haze"></td>
+<td><img src="cover/haze-color-orange.png" width="240" alt="Orange haze"></td>
+</tr>
+</tbody>
+</table>
+<h2 id="surface">Surface</h2>
+<img src="cover/inspector-surface.png" width="340" alt="The Surface section of the cover material" class="img-fluid float-end" style="margin-left: 15px">
+<ul>
+<li><em>Normal Map</em> holds scratches or fine texture for the top. Without playfield projection it uses local 0–1 UVs spanning the top. <em>Tiling</em> and <em>Offset</em> repeat and shift it; they are disabled when no map is assigned.</li>
+<li><em>Normal Strength</em> scales the detail, from 0 to 2. Zero is flat. With playfield projection, it multiplies the source material's normal strength; one matches the source. The playfield on these pictures has too little normal detail over the inserts to show a difference, so this one has no pictures.</li>
+</ul>
+<p>The cover's material Inspector reports when inserts in the open scene use playfield normals instead of its own map. In that case the source supplies the effective texture and projection; the cover's <em>Smoothness</em> and <em>Normal Strength</em> still apply.</p>
+<div style="clear: both"></div>
+<h3 id="smoothness">Smoothness</h3>
+<p><em>Smoothness</em> is how sharp the lights and probes reflected in the top are, from 0 to 1. Match the surrounding playfield for a highlight that continues across the insert. A rough top turns matte and veils the body under its own diffuse reflection; at zero it hides it entirely.</p>
+<table>
+<thead>
+<tr>
+<th>0.5</th>
+<th>0.75</th>
+<th>0.96 (Clear)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="cover/smoothness-0.5.png" width="240" alt="Smoothness 0.5"></td>
+<td><img src="cover/smoothness-0.75.png" width="240" alt="Smoothness 0.75"></td>
+<td><img src="cover/smoothness-0.96.png" width="240" alt="Smoothness 0.96"></td>
+</tr>
+</tbody>
+</table>
+<h2 id="playfield-normals">Playfield normals</h2>
+<p>Enable <em>Use Playfield Normals</em> when scratches, wood grain, or other top-surface normal detail should continue across the insert boundary. VPE detects a surface under the enclosing Playfield component, or under the single Playfield component in the same Table component, and can choose the largest suitable imported surface. Use <em>Playfield Override</em> when the intended surface is not the detected one. Like <em>Normal Strength</em>, it only shows where the playfield's normal map has detail over the insert, which is not the case on these pictures.</p>
+<p>The source must have a readable mesh with a planar top and usable UV0 in its first submesh. Enable <em>Read/Write</em> on an imported mesh if needed. Its first material needs a supported normal map; the projection supports HDRP Lit tangent-space normal maps and follows the source base-map tiling, offset, and normal strength.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p><strong>Projection.</strong> VPE derives the source mesh's actual XZ-to-UV mapping, including rotations, flips, and margins. The cover receives matching UVs and tangent frames, while a per-renderer override supplies the source normal texture and strength. Neither shared material is rewritten. Moving either object updates the projection in the authoring scene.</p>
+</div>
+<!-- Diagram: cover-projection. One scratch crossing playfield and cover, with the source UV transform and cover's matching projection highlighted. -->
+<p>The source texture needs detail over the insert area for anything to appear there. Matching normal detail does not also match smoothness: tune the cover's <em>Smoothness</em> to the playfield's effective mask-map smoothness for a continuous highlight.</p>
+<p>Disabling projection restores the local cover UVs and its own material settings. If detection or the source becomes invalid, the Inspector reports the problem and falls back to those material settings. Check <em>Detected Surface</em>, <em>Source Material</em>, and <em>Source Normal Map</em> before trying to compensate with cover tiling.</p>
+<h2 id="shader-properties">Shader properties</h2>
+<div class="NOTE">
+<h5>Note</h5>
+<p>The authored cover properties are <code>_CoverIor</code>, <code>_CoverTint</code>, <code>_CoverTintDepth</code>, <code>_CoverOpacity</code>, <code>_HazeColor</code>, <code>_Smoothness</code>, <code>_CoverNormalMap</code> (including its texture tiling and offset), and <code>_CoverNormalStrength</code>. <code>_CoverThickness</code> is supplied by the component from the insert's depth, and <code>_PlayfieldNormalStrength</code> for a detected source; it defaults to one for a local map. The Insert Light component also supplies <code>_InsertLampLevel</code>, <code>_InsertLampColor</code>, <code>_InsertLampTint</code>, <code>_OpticalLamp/B/C/D</code>, <code>_InsertLampColorB/C/D</code>, and <code>_OpticalSpread</code> to this material slot. Their encodings match the <a href="body-material.html#baked-data">body's runtime data</a>. They let the haze follow the same spatial lamp mix; the cover itself emits no lamp light.</p>
+</div>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/inserts/cover.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2026 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    if (window.mermaid) {
+      const getMermaidConfig = () => {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        return {
+          startOnLoad: false,
+          theme: 'base',
+          treeView: isDark ? {
+            labelColor: '#f8f9fa',
+            lineColor: '#b7bcc4'
+          } : {
+            labelColor: '#212529',
+            lineColor: '#8a8f98'
+          },
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: '#1f2328',
+            primaryColor: '#1f2328',
+            primaryTextColor: '#f8f9fa',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#292e33',
+            secondaryTextColor: '#f8f9fa',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#20242a',
+            tertiaryTextColor: '#f8f9fa',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#292e33',
+            clusterBorder: '#6c757d',
+            lineColor: '#b7bcc4',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#f8f9fa',
+            mainBkg: '#1f2328',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          } : {
+            darkMode: false,
+            background: '#ffffff',
+            primaryColor: '#f6f7f9',
+            primaryTextColor: '#212529',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#ffffff',
+            secondaryTextColor: '#212529',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#eceff3',
+            tertiaryTextColor: '#212529',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#f3f3f3',
+            clusterBorder: '#c7cbd1',
+            lineColor: '#8a8f98',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#212529',
+            mainBkg: '#f6f7f9',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          }
+        };
+      };
+
+      const initializeMermaidBlocks = () => {
+        const mermaidBlocks = document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid, pre code.mermaid');
+        mermaidBlocks.forEach((block) => {
+          const pre = block.parentElement;
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.dataset.mermaidSource = block.textContent;
+          container.textContent = block.textContent;
+          pre.replaceWith(container);
+        });
+      };
+
+      const renderMermaidBlocks = async () => {
+        const mermaidContainers = document.querySelectorAll('.mermaid[data-mermaid-source]');
+        if (mermaidContainers.length === 0) {
+          return;
+        }
+
+        mermaid.initialize(getMermaidConfig());
+
+        mermaidContainers.forEach((container) => {
+          container.removeAttribute('data-processed');
+          container.innerHTML = '';
+          container.textContent = container.dataset.mermaidSource;
+        });
+
+        await mermaid.run({ querySelector: '.mermaid[data-mermaid-source]' });
+      };
+
+      initializeMermaidBlocks();
+      renderMermaidBlocks();
+
+      let currentMermaidTheme = document.documentElement.getAttribute('data-bs-theme');
+      new MutationObserver(() => {
+        const nextTheme = document.documentElement.getAttribute('data-bs-theme');
+        if (nextTheme !== currentMermaidTheme) {
+          currentMermaidTheme = nextTheme;
+          renderMermaidBlocks();
+        }
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    }
+
+    const updateAffixHighlight = () => {
+      const affix = document.getElementById('affix');
+      if (!affix) {
+        return;
+      }
+
+      const links = Array.from(affix.querySelectorAll('a[href^="#"]'));
+      if (links.length === 0) {
+        return;
+      }
+
+      const sections = links.map((link) => {
+        const id = decodeURIComponent(link.getAttribute('href').slice(1));
+        const heading = document.getElementById(id);
+        return heading ? { link, heading } : null;
+      }).filter(Boolean);
+
+      if (sections.length === 0) {
+        return;
+      }
+
+      const threshold = 140;
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.heading.getBoundingClientRect().top - threshold <= 0) {
+          current = section;
+        } else {
+          break;
+        }
+      }
+
+      links.forEach((link) => {
+        link.classList.toggle('is-current', link === current.link);
+        if (link === current.link) {
+          link.setAttribute('aria-current', 'location');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+    }
+
+    const affixRoot = document.getElementById('affix');
+    if (affixRoot) {
+      let affixFrame = null;
+      const scheduleAffixHighlight = () => {
+        if (affixFrame !== null) {
+          cancelAnimationFrame(affixFrame);
+        }
+        affixFrame = requestAnimationFrame(() => {
+          affixFrame = null;
+          updateAffixHighlight();
+        });
+      }
+
+      scheduleAffixHighlight();
+      new MutationObserver(scheduleAffixHighlight).observe(affixRoot, { childList: true, subtree: true });
+      window.addEventListener('scroll', scheduleAffixHighlight, { passive: true });
+      window.addEventListener('resize', scheduleAffixHighlight, { passive: true });
+    }
+
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

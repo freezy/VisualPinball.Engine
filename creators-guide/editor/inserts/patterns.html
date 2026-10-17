@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Insert Patterns | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Insert Patterns | VPE Documentation ">
+      
+      <meta name="description" content="Choose and tune starbursts, ribs, rings, gems, stipples, and engraved lines, and understand which pattern details remain in the mesh after baking.">
+      <link rel="icon" href="../../../favicon.png">
+      <link rel="stylesheet" href="../../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../../public/main.css">
+      <link rel="stylesheet" href="../../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../../toc.html">
+      <meta name="docfx:tocrel" content="../../toc.html">
+      
+      <meta name="docfx:rel" content="../../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/inserts/patterns.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../../public/docfx.min.js"></script>
+      <script src="./../../../public/mermaid-11.14.0.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../../index.html">
+            <img id="logo" class="svg" src="../../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="insert_patterns">
+<h1 id="insert-patterns">Insert Patterns</h1>
+
+<p>A pattern shapes the floor you see through the insert. It changes how the lamp breaks into ribs or facets and how surface detail catches a reflection. <em>Geometry → Pattern</em> on the Insert component offers one choice at a time; the selected pattern uses the current outline, channel, and holes. New inserts start with <em>Starburst</em>.</p>
+<p>Each section below shows the pattern's settings next to the yellow wireframe the Scene view draws while an insert's geometry differs from its last bake, seen at an angle.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p><strong>Pattern shape and material response are separate.</strong> Pattern controls change the source geometry and need baking again. <em>Surface Normal Strength</em> and the material's glow controls change how existing maps are read and update immediately. <em>Facet Contrast</em> and <em>Mottle</em> are specialized for a starburst fan; the Inspector disables them for stipples, engraving, and a plain floor.</p>
+</div>
+<h2 id="none">None</h2>
+<div class="float-end" style="width: 340px; margin-left: 15px">
+<img src="patterns/wireframe-angled-none.png" width="340" alt="Wireframe of an insert without a pattern" style="display: block; margin-bottom: 8px">
+<img src="patterns/inspector-none.png" width="340" alt="Pattern set to None" style="display: block">
+</div>
+<p><em>None</em> leaves the main floor flat. The channel, bevel, and holes still apply. Baking can still give it rounded edge normals, fine grain, and hybrid optical maps. Choose this when the insert has a smooth interior or when a plain floor makes the lamp appearance you want.</p>
+<div style="clear: both"></div>
+<h2 id="starburst">Starburst</h2>
+<div class="float-end" style="width: 340px; margin-left: 15px">
+<img src="patterns/wireframe-angled-starburst.png" width="340" alt="Wireframe of a starburst" style="display: block; margin-bottom: 8px">
+<img src="patterns/inspector-starburst.png" width="340" alt="Starburst parameters" style="display: block">
+</div>
+<p>A starburst is a radial wheel of alternating ridges and valleys, clipped to the available floor. The center can sit inside the insert or outside it; a center beyond one end gives the long fan seen in many narrow inserts.</p>
+<ul>
+<li><em>Bursts</em> is the number of bursts around the complete wheel, from 0 to 128. Each burst has two slope sectors. Only the sectors that intersect the insert appear, so this is not a count of visible ribs. Below 2 there is no starburst.</li>
+<li><em>Center</em> is the center of the radial wheel in generator X/Y coordinates, relative to the insert origin, in VPX units. Moving it changes the direction and spacing of ribs on the insert.</li>
+<li><em>Centre on the Arc</em> appears on bananas only. It places <em>Center</em> at the center of the banana's arc, making the spokes cross the band.</li>
+<li><em>Offset</em> is the vertical rise and fall of the wheel's rim relative to its center plane, in VPX units. Larger values make steeper facets; zero removes their relief.</li>
+</ul>
+<p>The offset is reduced when needed to keep the ridges below the rim and, with a channel, the valleys above the channel floor. If the shape allows little vertical relief, increase the available depths or choose a smaller offset.</p>
+<!-- Diagram: patterns-starburst-wheel. Complete wheel overlaid on a narrow insert: Bursts counts the wheel, while only a subset intersects the floor. -->
+<div style="clear: both"></div>
+<div class="NOTE">
+<h5>Note</h5>
+<p><strong>Starburst normals.</strong> The finished mesh retains its slope normals. The bake also stores a tangent-space surface map and an insert-local optical map. Raising <em>Surface Normal Strength</em> strongly can exaggerate a facet already present in the mesh. <em>Facet Flatten</em> softens the surface reflection ribs without changing how the optical map bends the lamp.</p>
+</div>
+<h2 id="ribbed">Ribbed</h2>
+<div class="float-end" style="width: 340px; margin-left: 15px">
+<img src="patterns/wireframe-angled-ribbed.png" width="340" alt="Wireframe of a ribbed insert" style="display: block; margin-bottom: 8px">
+<img src="patterns/inspector-ribbed.png" width="340" alt="Ribbed parameters" style="display: block">
+</div>
+<p>Ribs are parallel ridges and grooves running straight across the floor. Like the starburst, they remain in the finished mesh.</p>
+<ul>
+<li><em>Angle</em> is the direction the ribs run, in degrees from the insert's X axis, from −180° to 180°. Zero runs them along X, 90° along Y.</li>
+<li><em>Width</em> is the distance from ridge to ridge, in VPX units. A ridge runs through the insert's origin.</li>
+<li><em>Offset</em> is how far the ridges rise above and the grooves drop below the floor, in VPX units.</li>
+<li><em>Roundness</em> is how far the ridges and grooves are rounded over, from 0 to 1. Zero leaves sharp creases; one rolls them over like a molded wave.</li>
+</ul>
+<p>The offset is limited the same way as the starburst's: the ridges stay below the rim and the grooves above the channel floor.</p>
+<div style="clear: both"></div>
+<h2 id="rings">Rings</h2>
+<div class="float-end" style="width: 340px; margin-left: 15px">
+<img src="patterns/wireframe-angled-rings.png" width="340" alt="Wireframe of an insert with rings" style="display: block; margin-bottom: 8px">
+<img src="patterns/inspector-rings.png" width="340" alt="Rings parameters" style="display: block">
+</div>
+<p>Rings are concentric ridges and grooves around a center, the round counterpart of ribs. They remain in the finished mesh.</p>
+<ul>
+<li><em>Center</em> is where the rings are centered, relative to the insert's origin, in VPX units.</li>
+<li><em>Centre on the Arc</em> appears on bananas only. It places <em>Center</em> at the center of the banana's arc, so the rings run along the band.</li>
+<li><em>Width</em> is the distance from ridge to ridge, in VPX units. The center is a ridge, and the first groove lies half a width out.</li>
+<li><em>Start</em> is how far out from the center the rings begin, in VPX units, leaving a flat disc in the middle at the ridges' height. It is rounded to whole widths, so the rings lie where they would without the disc.</li>
+<li><em>Offset</em> is how far the ridges rise above and the grooves drop below the floor, in VPX units.</li>
+<li><em>Roundness</em> is how far the ridges and grooves are rounded over, from 0 to 1. Zero leaves sharp creases; one rolls them over like a molded wave.</li>
+</ul>
+<div style="clear: both"></div>
+<h2 id="gem">Gem</h2>
+<div class="float-end" style="width: 340px; margin-left: 15px">
+<img src="patterns/wireframe-angled-gem.png" width="340" alt="Wireframe of a gem cut" style="display: block; margin-bottom: 8px">
+<img src="patterns/inspector-gem.png" width="340" alt="Gem parameters" style="display: block">
+</div>
+<p><em>Gem</em> cuts the floor like a gemstone: a flat table in the middle with rows of triangular facets zigzagging out to the edge. The facets remain in the finished mesh.</p>
+<ul>
+<li><em>Center</em> is where the gem is centered, relative to the insert's origin, in VPX units.</li>
+<li><em>Sides</em> is the number of sides of the table, and of the kites around it, from 4 to 16. A brilliant has eight.</li>
+<li><em>Table</em> is how far out the table's corners lie, as a share of the way from the center to the edge, from 0.05 to 0.9.</li>
+<li><em>Row Length</em> is how far out each further row of facets starts beyond the last, measured from the table's sides, in VPX units. Zero runs one row of facets straight from the table to the edge; a length adds a ring of facets at every such step, as a brilliant's crown has.</li>
+<li><em>Spread</em> is how evenly the facets meet the edge, from 0 to 1. At zero the lines from two neighboring corners meet the edge at one point; at one every line meets it as far from the next as from the last, and the facet off each side runs out to the edge as a trapezoid.</li>
+<li><em>Offset</em> is how far the table rises above and the girdle drops below the floor, in VPX units.</li>
+</ul>
+<div style="clear: both"></div>
+<h2 id="engraved-line">Engraved Line</h2>
+<div class="float-end" style="width: 340px; margin-left: 15px">
+<img src="patterns/wireframe-angled-engraved-line.png" width="340" alt="Wireframe of a flash with an engraved line" style="display: block; margin-bottom: 8px">
+<img src="patterns/inspector-engraved-line.png" width="340" alt="Engraved Line parameters" style="display: block">
+</div>
+<p><em>Engraved Line</em> makes a narrow trough following an inset version of the floor's outline. As the outline is inset, its flat ends can close into points and its inward notches widen. On a flash, the result resembles a lightning bolt engraved into the plastic; a custom shape follows its own floor outline.</p>
+<ul>
+<li><em>Inset</em> is the distance from the main floor edge to the middle of the line, in VPX units. It is applied inside the channel's already inset floor.</li>
+<li><em>Width</em> is the full width across the trough, in VPX units. A wider line needs more clearance from the floor edge.</li>
+<li><em>Depth</em> is the depth of the line at its middle, in VPX units. Zero removes its vertical cut.</li>
+<li><em>Segments</em> is the number of steps down each side of the trough, from 1 to 16. One gives a V cut; additional steps approximate a rounded floor. The bake's <em>Edge Bevel</em> can soften the V cut.</li>
+</ul>
+<p><em>Engraved Line</em> is available for <em>Flash</em> and <em>Custom</em> shapes only. If the inset line cannot fit or crosses itself at a narrow part of the outline, the Inspector reports why. Reduce <em>Inset</em> when the inner outline collapses; increase clearance or reduce <em>Width</em> when its outer edge reaches beyond the floor.</p>
+<!-- Diagram: patterns-engraving. Flash outline, channel edge, and line center; cross-section showing Width, Depth, and Segments. -->
+<div style="clear: both"></div>
+<div class="NOTE">
+<h5>Note</h5>
+<p><strong>Replacing the trough.</strong> The engraved middle keeps its projection from above through UV packing. After a fitting bake, VPE replaces the middle's trough geometry with a plain island carrying the same projected maps. Changing the line brings its source geometry back until the next bake. This differs from stippling, which bakes onto a separate plain body target from the start.</p>
+</div>
+<h2 id="stippled">Stippled</h2>
+<div class="float-end" style="width: 340px; margin-left: 15px">
+<img src="patterns/wireframe-angled-stippled.png" width="340" alt="Wireframe of a stippled insert" style="display: block; margin-bottom: 8px">
+<img src="patterns/inspector-stippled.png" width="340" alt="Stippled parameters" style="display: block">
+</div>
+<p>Stipples are square pyramids arranged on a grid. Each has a square base and four triangular slopes meeting at an apex. A flat margin separates neighboring bases. The grid is centered on the floor's bounding box. After baking, the pyramids live in the normal and optical maps, and the mesh is the plain body.</p>
+<ul>
+<li><em>Stipple Height</em> is the apex height above the main floor, in VPX units. Taller pyramids produce steeper normals. A negative height sinks the stipples into the floor instead. It is reduced to keep the apex below the rim, or a sunken stipple within the surface.</li>
+<li><em>Stipple Width</em> is the length of each side of the square base, in VPX units. Larger bases make a coarser pattern.</li>
+<li><em>Stipple Margin</em> is the flat gap between adjacent bases, in VPX units. Zero allows neighboring bases to touch. Grid pitch is <em>Width</em> plus <em>Margin</em>.</li>
+<li><em>Stipple Offset</em> moves the grid away from centered on the floor, in VPX units.</li>
+<li><em>Whole Only</em> builds only the stipples that fit on the floor whole. Off, every stipple the floor reaches is built and cut off at the outline.</li>
+</ul>
+<p>With <em>Whole Only</em> on, a pyramid is omitted if its base would overlap a rounded boundary or a hole. Changing <em>Width</em> or <em>Margin</em> can therefore change which pyramids fit as well as their density. The grid is limited to 4096 candidate cells across the floor's bounding box, including cells that are later omitted. If it exceeds that limit, rebuilding reports an error; increase <em>Stipple Width</em> or <em>Stipple Margin</em>.</p>
+<!-- Diagram: patterns-stipple-cell. Side and top views dimensioning Height, Width, and Margin; a hole with intersecting cells omitted. -->
+<div style="clear: both"></div>
+<div class="NOTE">
+<h5>Note</h5>
+<p><strong>Plain bake target.</strong> Blender receives the pyramids as its detailed source and the ordinary no-pattern body as its bake target. The target owns the UV atlas and tangent frames returned to Unity. Once the bake fits, that target is the displayed body, with exactly the same triangle positions as the corresponding no-pattern body. Detail remains in the normal and optical maps rather than in a flattened grid of source triangles.</p>
+</div>
+<h2 id="shared-detail">Shared detail</h2>
+<p><em>Bottom Bevel</em> shapes the actual body where the outer wall meets the channel. <em>Edge Bevel</em> rounds sharp edges in the baked surface normals, including pattern edges. <em>Grain Strength</em> and <em>Grain Size</em> add fine baked surface texture. These apply across patterns, so they are documented once under <a href="geometry.html#body-channel-and-bottom-bevel">Geometry</a> and <a href="baking.html#bake-settings">Baking</a>.</p>
+<p>The material's <em>Grain</em> is a separate procedural variation in color and emission. It needs no rebake. Its <em>Facet Contrast</em>, <em>Mottle Amount</em>, and <em>Mottle Size</em> are starburst-specific, while the virtual lamp's refraction reads the optical normals of every pattern. See <a href="body-material.html">Body Material</a>.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/inserts/patterns.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2026 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    if (window.mermaid) {
+      const getMermaidConfig = () => {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        return {
+          startOnLoad: false,
+          theme: 'base',
+          treeView: isDark ? {
+            labelColor: '#f8f9fa',
+            lineColor: '#b7bcc4'
+          } : {
+            labelColor: '#212529',
+            lineColor: '#8a8f98'
+          },
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: '#1f2328',
+            primaryColor: '#1f2328',
+            primaryTextColor: '#f8f9fa',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#292e33',
+            secondaryTextColor: '#f8f9fa',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#20242a',
+            tertiaryTextColor: '#f8f9fa',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#292e33',
+            clusterBorder: '#6c757d',
+            lineColor: '#b7bcc4',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#f8f9fa',
+            mainBkg: '#1f2328',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          } : {
+            darkMode: false,
+            background: '#ffffff',
+            primaryColor: '#f6f7f9',
+            primaryTextColor: '#212529',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#ffffff',
+            secondaryTextColor: '#212529',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#eceff3',
+            tertiaryTextColor: '#212529',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#f3f3f3',
+            clusterBorder: '#c7cbd1',
+            lineColor: '#8a8f98',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#212529',
+            mainBkg: '#f6f7f9',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          }
+        };
+      };
+
+      const initializeMermaidBlocks = () => {
+        const mermaidBlocks = document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid, pre code.mermaid');
+        mermaidBlocks.forEach((block) => {
+          const pre = block.parentElement;
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.dataset.mermaidSource = block.textContent;
+          container.textContent = block.textContent;
+          pre.replaceWith(container);
+        });
+      };
+
+      const renderMermaidBlocks = async () => {
+        const mermaidContainers = document.querySelectorAll('.mermaid[data-mermaid-source]');
+        if (mermaidContainers.length === 0) {
+          return;
+        }
+
+        mermaid.initialize(getMermaidConfig());
+
+        mermaidContainers.forEach((container) => {
+          container.removeAttribute('data-processed');
+          container.innerHTML = '';
+          container.textContent = container.dataset.mermaidSource;
+        });
+
+        await mermaid.run({ querySelector: '.mermaid[data-mermaid-source]' });
+      };
+
+      initializeMermaidBlocks();
+      renderMermaidBlocks();
+
+      let currentMermaidTheme = document.documentElement.getAttribute('data-bs-theme');
+      new MutationObserver(() => {
+        const nextTheme = document.documentElement.getAttribute('data-bs-theme');
+        if (nextTheme !== currentMermaidTheme) {
+          currentMermaidTheme = nextTheme;
+          renderMermaidBlocks();
+        }
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    }
+
+    const updateAffixHighlight = () => {
+      const affix = document.getElementById('affix');
+      if (!affix) {
+        return;
+      }
+
+      const links = Array.from(affix.querySelectorAll('a[href^="#"]'));
+      if (links.length === 0) {
+        return;
+      }
+
+      const sections = links.map((link) => {
+        const id = decodeURIComponent(link.getAttribute('href').slice(1));
+        const heading = document.getElementById(id);
+        return heading ? { link, heading } : null;
+      }).filter(Boolean);
+
+      if (sections.length === 0) {
+        return;
+      }
+
+      const threshold = 140;
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.heading.getBoundingClientRect().top - threshold <= 0) {
+          current = section;
+        } else {
+          break;
+        }
+      }
+
+      links.forEach((link) => {
+        link.classList.toggle('is-current', link === current.link);
+        if (link === current.link) {
+          link.setAttribute('aria-current', 'location');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+    }
+
+    const affixRoot = document.getElementById('affix');
+    if (affixRoot) {
+      let affixFrame = null;
+      const scheduleAffixHighlight = () => {
+        if (affixFrame !== null) {
+          cancelAnimationFrame(affixFrame);
+        }
+        affixFrame = requestAnimationFrame(() => {
+          affixFrame = null;
+          updateAffixHighlight();
+        });
+      }
+
+      scheduleAffixHighlight();
+      new MutationObserver(scheduleAffixHighlight).observe(affixRoot, { childList: true, subtree: true });
+      window.addEventListener('scroll', scheduleAffixHighlight, { passive: true });
+      window.addEventListener('resize', scheduleAffixHighlight, { passive: true });
+    }
+
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

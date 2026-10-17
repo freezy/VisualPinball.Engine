@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Baking Inserts | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Baking Inserts | VPE Documentation ">
+      
+      <meta name="description" content="Configure Blender, optimize UVs, bake surface and optical maps, and manage project-owned insert assets.">
+      <link rel="icon" href="../../../favicon.png">
+      <link rel="stylesheet" href="../../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../../public/main.css">
+      <link rel="stylesheet" href="../../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../../toc.html">
+      <meta name="docfx:tocrel" content="../../toc.html">
+      
+      <meta name="docfx:rel" content="../../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/inserts/baking.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../../public/docfx.min.js"></script>
+      <script src="./../../../public/mermaid-11.14.0.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../../index.html">
+            <img id="logo" class="svg" src="../../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="insert_baking">
+<h1 id="baking-inserts">Baking Inserts</h1>
+
+<p>Baking turns the insert's generated detail into maps that the material can read quickly: Blender turns the source geometry into textures. Stipples bake from the detailed pyramids onto a plain mesh, an engraved line is replaced by a plain middle after baking, and starburst facets stay in the mesh. The bake writes the surface normals for the reflections and separate optical maps for the lamp, optimizes the UV layout and supplies the tangent frames needed to read the surface normal map. Work through the <em>Normal Bake</em> section of the Insert component after fitting the geometry and pattern.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p><strong>Baking needs Blender 5.0 or newer.</strong> VPE runs <a href="https://www.blender.org/download/">Blender</a> in the background to bake, and <strong>there is no bake without it</strong>: <em>Bake</em> stays disabled, and an insert you created or changed keeps its unbaked mesh and material. Install it from blender.org; VPE ships its own bake script, so no add-on or Blender setup is needed.</p>
+<p>Blender is only needed where inserts are baked. The bake is saved as assets in your project and packed into the .vpe file, so the table renders in the editor, in builds and in the player without Blender. Someone who opens your table needs Blender only to change an insert's geometry or bake settings, and the baked inserts of the asset library can be placed and tuned without it.</p>
+</div>
+<h2 id="first-bake">First bake</h2>
+<p>Check the <em>Blender</em> field. VPE looks for the newest Blender 5 under <code>Program Files\Blender Foundation</code> on Windows, in <code>/Applications/Blender.app</code> on macOS, and as <code>blender</code> on the <code>PATH</code> on Linux. Anywhere else, choose the executable with the <code>…</code> button. The path is an editor setting of this machine, shared by all inserts and projects, rather than something stored in each table. VPE starts Blender once to check its version and whether UVPackMaster is installed, and the <em>Normal Bake</em> section reports what it found, or why Blender can't be used. Blender then runs in the background, one insert at a time.</p>
+<p>Keep <em>Bake Hybrid Optics</em> enabled for the hybrid lamp material. Click <em>Bake</em>, then use <em>Use HDRP Hybrid Material</em> if the current body material needs replacing. <em>Bake Hybrid and Use Material</em> on the Insert Light component combines those actions. A new insert with an Insert Light component and no body material receives the hybrid material automatically on its first bake.</p>
+<!-- Screenshot: baking-inspector. Normal Bake before the first bake and after a successful bake, including settings, progress, and the UV fill readout. -->
+<h2 id="bake-settings">Bake settings</h2>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Default / choices</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><em>Texture Size</em></td>
+<td>1024; 256 to 4096</td>
+<td>Width and height of the baked surface normal map in pixels. The creases between facets are seams in the bake, so they stay as sharp as the mesh at any size; size the map for the rounded edges and walls instead: 512 suits most inserts and 256 the small ones. Doubling each dimension uses four times as many texels.</td>
+</tr>
+<tr>
+<td><em>Optical Normals</em></td>
+<td>Same size; same size to an eighth</td>
+<td>Size of the optical normal map as a fraction of <em>Texture Size</em>, shown in pixels. Every facet is an island of its own, so a small map runs out of texels for the islands before it runs out of detail; halve it only on inserts with few facets.</td>
+</tr>
+<tr>
+<td><em>Light Response</em></td>
+<td>Half; same size to an eighth</td>
+<td>Size of the light response map as a fraction of <em>Texture Size</em>, shown in pixels. It holds a soft glow and smooth masks, which need fewer texels than the creases; its blur scales with it, never under a texel and a half, so the glow stays smooth. A quarter leaves the facet islands too few texels on a 512 map.</td>
+</tr>
+<tr>
+<td><em>Padding (px)</em></td>
+<td>8; 1–32</td>
+<td>Extension around each UV island in the normal map. Islands are packed at least twice this distance apart so their padding does not meet; the smaller maps keep the same distance in their own pixels. More padding helps filtering at a distance but leaves less space for the surfaces themselves: every facet is an island of its own, so the UV fill readout drops with many facets at a small size, which costs nothing while a facet's texels all hold the one direction.</td>
+</tr>
+<tr>
+<td><em>Edge Bevel</em></td>
+<td>1</td>
+<td>Width of rounded sharp edges in the surface normal bake, in VPX units. Zero keeps them sharp. This affects reflection detail rather than adding bevel triangles.</td>
+</tr>
+<tr>
+<td><em>Grain Strength</em></td>
+<td>0; 0–1</td>
+<td>Amount of fine texture in the body's baked surface normals. Zero is smooth and disables <em>Grain Size</em>. The hybrid material's <em>Surface Grain</em> draws the same grain at any zoom without a bake and without the texels a baked grain needs; keep this at zero with it.</td>
+</tr>
+<tr>
+<td><em>Grain Size</em></td>
+<td>1.5; minimum 0.1</td>
+<td>Size of that baked texture in VPX units. Smaller makes finer grain. It affects surface reflections, rather than the optical lamp or cover.</td>
+</tr>
+<tr>
+<td><em>Unwrap in Blender</em></td>
+<td>Enabled</td>
+<td>Unwraps along the generator's charts before packing. Disabled keeps the generator's UV shapes and repacks them.</td>
+</tr>
+<tr>
+<td><em>Prefer UVPackMaster</em></td>
+<td>Enabled</td>
+<td>Uses UVPackMaster when installed in Blender. Otherwise Blender's own packer is used; the add-on is optional. The Inspector reports the available packer.</td>
+</tr>
+<tr>
+<td><em>Bake on GPU</em></td>
+<td>Disabled</td>
+<td>Uses the GPU configured in Blender's preferences instead of the CPU. Configure Blender's Cycles device before enabling it.</td>
+</tr>
+<tr>
+<td><em>Bake Hybrid Optics</em></td>
+<td>Enabled</td>
+<td>Produces the optical normal and response maps in addition to the surface normal map. Required for the Insert Hybrid material's internal light and cavity appearance.</td>
+</tr>
+</tbody>
+</table>
+<p>Once a baked hybrid material is in use, rebaking also updates its optical maps so they stay aligned with the current atlas. Changing bake settings does not automatically mark the geometry bake stale. Press <em>Bake Again</em> to apply them even if the current status still says <em>Baked</em>.</p>
+<!-- Screenshot: baking-settings. Separate two-value comparisons for resolution, padding, edge bevel, grain strength/size, and unwrap. Compare the UV atlases for packer settings; show CPU/GPU as configuration states. -->
+<div class="NOTE">
+<h5>Note</h5>
+<p><strong>Three kinds of fine detail.</strong> <em>Bottom Bevel</em> is body geometry. <em>Edge Bevel</em> and <em>Grain Strength</em>/<em>Size</em> are baked reflection normals. The material's <em>Grain</em> adds procedural color and emission variation at rendering time, and its <em>Surface Grain</em> the procedural reflection grain that replaces the baked one. The cover's <em>Normal Map</em> is another independent surface layer. Each has its own purpose and should be tuned in the place that owns it.</p>
+</div>
+<h2 id="output">Output</h2>
+<p>VPE stores generated assets in the insert's folder. For an insert of a prefab, that's the prefab's folder at the same place under <code>Assets</code>, without the asset library's <code>Library</code> folder: the inserts of <code>Packages/org.visualpinball.unity.assets/Assets/Library/Inserts/Insert, Triangle, 2in, Starburst/Insert, Triangle, 2in, Starburst.prefab</code> go to <code>Assets/Inserts/Insert, Triangle, 2in, Starburst</code>. Every insert of that prefab shares the folder. <a href="basics.html#forking-an-insert">Forking an insert</a> puts a variant of its prefab there, with its material copies, and the variant's first bake adds its bake and maps, all named after the variant: a second variant of the same prefab is numbered, like <code>Insert, Triangle, 2in, Starburst 2</code>. The variant owns its bake, which every instance of it wears, and a bake of any instance that keeps the variant's shape updates it. An insert of no prefab gets a folder of its own under <code>Assets/Inserts</code>, named after it and an identifier, and owns its bake itself. Subsequent bakes update the existing assets and preserve the material tuning.</p>
+<table>
+<thead>
+<tr>
+<th>Output</th>
+<th>What it stores</th>
+<th>How the shader uses it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Normal Map</strong></td>
+<td>Tangent-space surface normals, including rounded edges and fine grain</td>
+<td>Reflections, controlled by <em>Surface Normal Strength</em></td>
+</tr>
+<tr>
+<td><strong>Optical Normals</strong></td>
+<td>Sharp surface directions in insert-local space, encoded into RGB</td>
+<td>Virtual lamp refraction, independently of UV chart rotation and reflection strength</td>
+</tr>
+<tr>
+<td><strong>Optical Response</strong></td>
+<td>R: soft cavity illumination; G: rounded-edge response; B: transmission mask</td>
+<td><em>Baked Scatter</em>, <em>Edge Glow</em>, and the lamp's transmission weighting</td>
+</tr>
+<tr>
+<td><strong>Bake asset</strong></td>
+<td>Source hash, final per-corner UVs and tangents, texture references, packer information, and material</td>
+<td>Applies the fitting bake to the displayed body and restores editable data on import</td>
+</tr>
+<tr>
+<td><strong>Body material</strong></td>
+<td>The chosen shader and its map references</td>
+<td>Renders the finished insert</td>
+</tr>
+</tbody>
+</table>
+<!-- Diagram: baking-maps. Surface normal, optical normal, and response channel thumbnails beside the final rendered result. -->
+<div class="NOTE">
+<h5>Note</h5>
+<p><strong>Optical background.</strong> Blender lights a neutral cavity proxy and bakes broad illumination, sharp directions, and edge response. Lamp color is applied later in Unity, so runtime RGB changes need no new bake. The runtime shader uses analytic virtual bulbs and refracted rays; this is an artistic approximation of light passing through plastic, rather than a full simulation of transmission, thickness-dependent absorption, and caustics.</p>
+<p><strong>Texture encoding.</strong> The surface normal map is an 8-bit PNG. Optical Normals and Optical Response are 16-bit linear data PNGs, imported uncompressed and without sRGB. The baker supplies the import settings; replacing or reimporting those maps should preserve their encoding.</p>
+</div>
+<h2 id="uvs-and-pattern-geometry">UVs and pattern geometry</h2>
+<p>The generator supplies UV charts for the floors and walls. The baker can unwrap them and packs walls at lower density than the floors. The status shows the packer and the percentage of texture occupied by charts. A higher fill is useful, but enough resolution and separation matter more than filling every pixel.</p>
+<p>An engraved line keeps a projection from above so a plain middle can carry its baked detail. A stippled insert sends Blender a separate no-pattern target, which owns the final atlas while the pyramids provide the high-detail source. Starburst facets remain in the displayed mesh. See <a href="patterns.html">Patterns</a> for the resulting geometry.</p>
+<p>If an unwrap folds triangles, the baker falls back to the generator's UV layout. If the packed layout overlaps, the bake stops with an error so two surfaces cannot write into the same texel.</p>
+<h2 id="what-needs-a-new-bake">What needs a new bake</h2>
+<table>
+<thead>
+<tr>
+<th>Change</th>
+<th>Bake again?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Shape, dimensions, corners, body depth, channel, bottom bevel, holes, or pattern geometry</td>
+<td><strong>Yes</strong>, when it changes the generated source mesh</td>
+</tr>
+<tr>
+<td>Texture size, padding, edge bevel, baked grain, or unwrap settings</td>
+<td><strong>Yes</strong>, to see the new settings; changing them alone does not mark the current bake stale</td>
+</tr>
+<tr>
+<td>Body material settings, presets</td>
+<td><strong>No</strong></td>
+</tr>
+<tr>
+<td>Lamp count, placement, radius, color, intensity, or spill</td>
+<td><strong>No</strong></td>
+</tr>
+<tr>
+<td>Cover material, haze, smoothness, normal strength, playfield normals</td>
+<td><strong>No</strong></td>
+</tr>
+</tbody>
+</table>
+<div class="TIP">
+<h5>Tip</h5>
+<p>Fit the shape and pattern first, bake once, then tune the material and lamps through the game camera. Material changes show immediately.</p>
+</div>
+<h2 id="stale-bakes">Stale bakes</h2>
+<p>A fitting bake matches the generated source mesh. Changing geometry invalidates that match; VPE does not apply stale per-corner UVs or tangents to a different mesh.</p>
+<p>With an existing stale bake, the normal renderer is hidden in edit mode and the Scene view shows the current source as yellow translucent geometry with contour and wall wires. This preview makes it possible to tune the source before another bake. Unity's global <em>Wireframe</em> drawing mode can still show every triangulation edge; switch back to shaded mode to judge the insert's own preview.</p>
+<p>The renderer returns when a new bake fits. Play mode and builds render the available mesh even when the authoring bake is stale, so finish the bake before evaluating or exporting the final appearance.</p>
+<!-- Screenshot: baking-stale. Fitting shaded insert versus the yellow source preview after a geometry edit. -->
+<h2 id="actions">Actions</h2>
+<table>
+<thead>
+<tr>
+<th>Action / readout</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><em>Bake</em> / <em>Bake Again</em></td>
+<td>Generates UVs, tangents, the normal map, and requested optical maps. Available outside Play mode when the insert and Blender are valid and it can be baked where it is: its bake is writable, or it's an instance of a prefab in the project. Otherwise, <a href="basics.html#forking-an-insert">fork it</a> first.</td>
+</tr>
+<tr>
+<td><em>Apply to all N inserts</em> / <em>Apply to prefab</em></td>
+<td>Shown instead of <em>Bake Again</em> when an instance's shape differs from its prefab in the project. Puts the shape into the prefab and bakes it, for every instance that keeps the prefab's shape.</td>
+</tr>
+<tr>
+<td><em>Bake as new prefab</em></td>
+<td>Makes a new variant of the prefab with the instance's shape, makes the insert an instance of it, and bakes it. The prefab's other instances stay as they are.</td>
+</tr>
+<tr>
+<td><em>Clear Bake</em></td>
+<td>Removes the bake assignment and restores the original unbaked body material. It leaves the baked assets on disk.</td>
+</tr>
+<tr>
+<td><em>Use HDRP Hybrid Material</em></td>
+<td>Creates and assigns a hybrid material from a fitting bake with optical maps. The previous material asset remains available.</td>
+</tr>
+<tr>
+<td><em>Copy Blender's Log</em></td>
+<td>Copies output after a bake failure for diagnosing Blender or device configuration problems.</td>
+</tr>
+<tr>
+<td><em>Packer</em> / <em>UV fill</em></td>
+<td>Shows how the last successful bake laid out the atlas and how much of it is occupied.</td>
+</tr>
+</tbody>
+</table>
+<div class="NOTE">
+<h5>Note</h5>
+<p><strong>Duplicated inserts.</strong> A duplicate can initially reference the original's fitting bake. Each insert has its own identifier, so baking the duplicate creates or uses its own assets rather than overwriting another insert's bake. Shared material settings still affect all users of that material; material ownership and bake ownership are separate concerns.</p>
+</div>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<p>Correct any geometry error first. For Blender failures, check the executable and reported version, then copy the log. If GPU baking fails, verify the Cycles device in Blender or try the CPU. If UVPackMaster is unavailable, turn off its preference and use Blender's packer. A failed bake keeps the previous bake, allowing you to correct the cause and try again.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/inserts/baking.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2026 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    if (window.mermaid) {
+      const getMermaidConfig = () => {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        return {
+          startOnLoad: false,
+          theme: 'base',
+          treeView: isDark ? {
+            labelColor: '#f8f9fa',
+            lineColor: '#b7bcc4'
+          } : {
+            labelColor: '#212529',
+            lineColor: '#8a8f98'
+          },
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: '#1f2328',
+            primaryColor: '#1f2328',
+            primaryTextColor: '#f8f9fa',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#292e33',
+            secondaryTextColor: '#f8f9fa',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#20242a',
+            tertiaryTextColor: '#f8f9fa',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#292e33',
+            clusterBorder: '#6c757d',
+            lineColor: '#b7bcc4',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#f8f9fa',
+            mainBkg: '#1f2328',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          } : {
+            darkMode: false,
+            background: '#ffffff',
+            primaryColor: '#f6f7f9',
+            primaryTextColor: '#212529',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#ffffff',
+            secondaryTextColor: '#212529',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#eceff3',
+            tertiaryTextColor: '#212529',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#f3f3f3',
+            clusterBorder: '#c7cbd1',
+            lineColor: '#8a8f98',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#212529',
+            mainBkg: '#f6f7f9',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          }
+        };
+      };
+
+      const initializeMermaidBlocks = () => {
+        const mermaidBlocks = document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid, pre code.mermaid');
+        mermaidBlocks.forEach((block) => {
+          const pre = block.parentElement;
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.dataset.mermaidSource = block.textContent;
+          container.textContent = block.textContent;
+          pre.replaceWith(container);
+        });
+      };
+
+      const renderMermaidBlocks = async () => {
+        const mermaidContainers = document.querySelectorAll('.mermaid[data-mermaid-source]');
+        if (mermaidContainers.length === 0) {
+          return;
+        }
+
+        mermaid.initialize(getMermaidConfig());
+
+        mermaidContainers.forEach((container) => {
+          container.removeAttribute('data-processed');
+          container.innerHTML = '';
+          container.textContent = container.dataset.mermaidSource;
+        });
+
+        await mermaid.run({ querySelector: '.mermaid[data-mermaid-source]' });
+      };
+
+      initializeMermaidBlocks();
+      renderMermaidBlocks();
+
+      let currentMermaidTheme = document.documentElement.getAttribute('data-bs-theme');
+      new MutationObserver(() => {
+        const nextTheme = document.documentElement.getAttribute('data-bs-theme');
+        if (nextTheme !== currentMermaidTheme) {
+          currentMermaidTheme = nextTheme;
+          renderMermaidBlocks();
+        }
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    }
+
+    const updateAffixHighlight = () => {
+      const affix = document.getElementById('affix');
+      if (!affix) {
+        return;
+      }
+
+      const links = Array.from(affix.querySelectorAll('a[href^="#"]'));
+      if (links.length === 0) {
+        return;
+      }
+
+      const sections = links.map((link) => {
+        const id = decodeURIComponent(link.getAttribute('href').slice(1));
+        const heading = document.getElementById(id);
+        return heading ? { link, heading } : null;
+      }).filter(Boolean);
+
+      if (sections.length === 0) {
+        return;
+      }
+
+      const threshold = 140;
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.heading.getBoundingClientRect().top - threshold <= 0) {
+          current = section;
+        } else {
+          break;
+        }
+      }
+
+      links.forEach((link) => {
+        link.classList.toggle('is-current', link === current.link);
+        if (link === current.link) {
+          link.setAttribute('aria-current', 'location');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+    }
+
+    const affixRoot = document.getElementById('affix');
+    if (affixRoot) {
+      let affixFrame = null;
+      const scheduleAffixHighlight = () => {
+        if (affixFrame !== null) {
+          cancelAnimationFrame(affixFrame);
+        }
+        affixFrame = requestAnimationFrame(() => {
+          affixFrame = null;
+          updateAffixHighlight();
+        });
+      }
+
+      scheduleAffixHighlight();
+      new MutationObserver(scheduleAffixHighlight).observe(affixRoot, { childList: true, subtree: true });
+      window.addEventListener('scroll', scheduleAffixHighlight, { passive: true });
+      window.addEventListener('resize', scheduleAffixHighlight, { passive: true });
+    }
+
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

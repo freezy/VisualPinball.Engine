@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Working with inserts | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Working with inserts | VPE Documentation ">
+      
+      <meta name="description" content="How to create an insert and how to customize it so it fits your game.">
+      <link rel="icon" href="../../../favicon.png">
+      <link rel="stylesheet" href="../../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../../public/main.css">
+      <link rel="stylesheet" href="../../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../../toc.html">
+      <meta name="docfx:tocrel" content="../../toc.html">
+      
+      <meta name="docfx:rel" content="../../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/inserts/basics.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../../public/docfx.min.js"></script>
+      <script src="./../../../public/mermaid-11.14.0.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../../index.html">
+            <img id="logo" class="svg" src="../../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="insert_basics">
+<h1 id="working-with-inserts">Working with inserts</h1>
+
+<p>The easiest way to get an insert is the <a class="xref" href="../asset-library.html">Asset Library</a>. It contains most common insert shapes and sizes, in several colors each, already baked, with their lamp and spill light set up. Open it with <em>Asset Browser</em> in the toolbox, drag the insert you want into your table, and align its rim with the opening in the playfield.</p>
+<p>Then connect its lamp in the <a class="xref" href="../lamp-manager.html"><em>Lamp Manager</em></a>, as described under <a class="xref" href="lighting.html#mapping">Mapping</a>. That's all a library insert needs.</p>
+<p><img src="basics/inserts-assetlib.png" alt="Inserts in the asset library"></p>
+<p>However, you might have different cut-outs in your playfield that don't exactly fit, or <a class="xref" href="geometry.html">shape</a>/<a class="xref" href="patterns.html">pattern</a> combinations that aren't in the asset library. Or maybe you want to tweak the look, the color or the way the bulb is rendered. This section walks you through the basics, with links to more detailed documentation as we go.</p>
+<h2 id="modifying-inserts">Modifying inserts</h2>
+<p>One important fact to understand before we go any further is that the asset library is installed as a <strong>read-only package</strong> that can't be changed, and so are its materials and presets. That means if you drop an insert from the asset library into your scene, the parameters of its materials (where you customize the look) are grayed out.</p>
+<p>What's not grayed out are the parameters of the insert's <em>geometry</em>. But if you change those, the mesh becomes a yellow wireframe in the scene view and disappears entirely in the game view. Why?</p>
+<p><img src="basics/inserts-unbaked-material.png" alt="An unbaked insert"></p>
+<p>The parameters of the insert geometry you're seeing in the screenshot above are not grayed out, because inserts from the asset library are <a href="https://docs.unity3d.com/6000.6/Documentation/Manual/Prefabs.html">prefabs</a>. Dropping a prefab into your scene creates an <em>instance</em> of it, which follows the prefab, and Unity lets you <a href="https://docs.unity3d.com/6000.6/Documentation/Manual/PrefabInstanceOverrides.html">override</a> the parameters of the instance's components. An override only applies to that one instance. The insert's geometry parameters are such component parameters, but its material properties are <strong>not</strong>: they're stored in a separate file, which every insert wearing that material shares.</p>
+<p>So, why is there a yellow wireframe? Well, the insert's geometry is turned into texture maps that its material reads, in a step called <a class="xref" href="baking.html">baking</a>. The baked maps fit exactly one geometry, so if the geometry changes, they don't fit anymore. Until the insert is baked again, you see the new geometry as a yellow wireframe instead. Baking needs Blender installed, and the asset library's baked maps can't be overwritten, so the insert first needs a copy of its own. That's what the next section is about.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>If you just want to apply another color to an existing insert without having to place and wire it again, you have a couple of options:</p>
+<ul>
+<li><strong>Apply another color preset</strong> - Inserts come with a <a class="xref" href="presets.html">preset</a> system, which you can use to quickly apply a different color: click one of the color squares under <em>Presets</em> on the Insert component. This works on inserts from the asset library too.</li>
+<li><strong>Replace the prefab</strong> - The asset library has a <em>Replace Selected</em> button, which replaces the entire prefab and re-assigns references to the new prefab. Select your insert in the scene, find the same insert in the asset library, and replace the selected insert with the variation of your choice.</li>
+<li><strong>Swap the material manually</strong> - Inserts in the asset library are organized by folders, and all materials in one folder work with the insert of that folder. If you click on the material slot of your insert (under <em>Materials</em> in the <em>Mesh Renderer</em> component), the project window of the Unity editor jumps to the folder where you'll see the other materials you can apply to the insert. Just drag the new material from the project window into the same slot as the old material.</li>
+</ul>
+</div>
+<h2 id="forking-an-insert">Forking an insert</h2>
+<img src="basics/edit-in-project.png" width="340" alt="The top of the Insert component of a library insert, with the buttons to fork it" class="img-fluid float-end" style="margin-left: 15px">
+<p>If none of the available colors is suited for your insert, or if you want to change its geometry, you'll need to &quot;fork&quot; the insert: create a new <a href="https://docs.unity3d.com/6000.6/Documentation/Manual/PrefabVariants.html">prefab variant</a> of it in your project, which you can modify. The variant gets copies of the insert's materials, and the insert becomes an instance of the variant instead of the asset library's prefab. It keeps its position, its lamp and its other settings.</p>
+<p>As long as an insert can't be modified, the top of its Insert component offers two buttons to fork it:</p>
+<ul>
+<li><em>Edit in project</em> forks the insert and only makes the selected insert an instance of the fork. Choose this when the insert you're about to fork is a new one that you've just added to the table.</li>
+<li><em>Edit {n} inserts in project</em> also forks the insert, but makes all identical inserts in your scene (same prefab, geometry and materials) instances of the fork. Choose this when the insert already has copies in the scene that you'd like to include in your future modifications.</li>
+</ul>
+<div style="clear: both"></div>
+<div class="NOTE">
+<h5>Note</h5>
+<p>This choice can only be made when forking, because at that moment, the insert is still the same as the other instances of the asset library's prefab, whereas afterwards, it differs and thus can't be automatically matched with the other inserts anymore.</p>
+</div>
+<p>After forking, the variant works like any other prefab: when you duplicate the insert, the duplicate is an instance of the variant too, and when you change the variant, all its instances change with it. The fork keeps using the asset library's baked maps until you bake it for the first time, which gives it maps of its own.</p>
+<p>With several inserts selected, <em>Edit {n} selected inserts in project</em> forks each group of them that comes from the same prefab and still has the same geometry and materials.</p>
+<h2 id="material-changes">Material changes</h2>
+<p>You can change the color of an insert by clicking on a color square under <em>Presets</em> on the Insert component. A color is a material, so the insert gets a different material for it: VPE looks for one of that color next to the insert's current material, and if there is none, it creates one in your project and links it to the <a class="xref" href="presets.html#color">color preset</a>. This works without forking the insert first.</p>
+<p>The colors in a material that's linked to a color preset come from the preset, so they're grayed out in the material's inspector, also after forking. To change them:</p>
+<ul>
+<li><strong>Change the color preset itself.</strong> Click <em>Manage</em> next to the material's <em>Color Preset</em> to open it. All materials linked to it change with it. The asset library's color presets are read-only too, so this works for your own color presets only.</li>
+<li><strong>Create your own color preset</strong>, as described under <a class="xref" href="presets.html#color">Color</a> (short version: click <em>Manage</em> and duplicate the closest color). It then appears as a new color square on every insert.</li>
+<li><strong>Unlink the material</strong> by setting its <em>Color Preset</em> to none. It keeps its colors, and you can change them in the material from then on, as described under <a class="xref" href="body-material.html">Body Material</a>.</li>
+</ul>
+<p>The plastic's molding and how it treats light is the <a class="xref" href="presets.html#look">look preset</a>, which you choose with the buttons under the colors. For an insert from the asset library, those buttons work once it's forked.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p>Remember that materials aren't overrides: every insert wearing a material changes with it. That applies to looks too, since a look is applied to the material. The lamps' colors and intensities are set on each insert, so inserts sharing a material can still differ in those.</p>
+</div>
+<h2 id="geometry-changes">Geometry changes</h2>
+<p>You can change the outline and dimensions in the <em>Geometry</em> section, as described under <a class="xref" href="geometry.html">Geometry</a>, and the floor in the same section, as described under <a class="xref" href="patterns.html">Patterns</a>. After any change to the geometry, the baked maps don't fit anymore, and the insert shows as a yellow wireframe until it's baked again; see <a class="xref" href="baking.html">Baking</a>. You can change the geometry before or after forking; if it has already changed, the fork is baked right away.</p>
+<p>A geometry change on one instance of a fork is an override that only this instance has. So instead of <em>Bake Again</em>, the <em>Normal Bake</em> section asks where the change goes:</p>
+<ul>
+<li><em>Apply to all {n} inserts</em> (or <em>Apply to prefab</em>, when no other insert is an instance of it) puts the change into the fork and bakes it, so all its instances change with it.</li>
+<li><em>Bake as new prefab</em> forks the insert again, with its new geometry, and bakes it. The other inserts stay as they were, and duplicates of this insert follow the new fork.</li>
+</ul>
+<p>That way, an insert can never leave the others with baked maps that don't fit them.</p>
+<h2 id="from-scratch">From scratch</h2>
+<img src="basics/toolbox-insert.png" width="91" alt="The Insert button in the toolbox" class="img-fluid float-end" style="margin-left: 15px">
+<p>You can also create an insert from scratch, without pulling one in from the asset library. Click on <em>Insert</em> in the toolbox (<em>Pinball → Toolbox</em>). It creates an insert in the middle of the playfield, under the table's <em>Inserts</em>, with an Insert Light component and a spill light. Then:</p>
+<ol>
+<li>Move it over its opening in the playfield.</li>
+<li>Set its shape in the <em>Geometry</em> section, as described under <a class="xref" href="geometry.html">Geometry</a>, and its floor, as described under <a class="xref" href="patterns.html">Patterns</a>.</li>
+<li>Bake it, as described under <a class="xref" href="baking.html">Baking</a>. The first bake also gives it the hybrid body material.</li>
+<li>Choose its color and look under <em>Presets</em>, as described under <a class="xref" href="presets.html">Presets</a>.</li>
+<li>Add a clear cover if it should have a glossy top, as described under <a class="xref" href="cover.html">Cover</a>.</li>
+<li>Connect its lamp in the <em>Lamp Manager</em>, as described under <a class="xref" href="lighting.html#mapping">Mapping</a>.</li>
+</ol>
+<p>You can also add <em>Pinball → Insert</em> and <em>Pinball → Insert Light</em> to any GameObject through <em>Add Component</em>. Without an Insert Light component, the insert doesn't light up.</p>
+<p>Inserts created this way aren't prefabs, so they never need forking: their baked maps and materials are their own.</p>
+<div style="clear: both"></div>
+<h2 id="preview">Preview</h2>
+<p>When you select an insert, you can preview the light effect by moving the <em>Lamp 1</em> slider in the Insert Light component, as described under <a class="xref" href="lighting.html#lamps">Lamps</a>, without having to launch a game. This allows you to get quick feedback while editing the materials.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/inserts/basics.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2026 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    if (window.mermaid) {
+      const getMermaidConfig = () => {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        return {
+          startOnLoad: false,
+          theme: 'base',
+          treeView: isDark ? {
+            labelColor: '#f8f9fa',
+            lineColor: '#b7bcc4'
+          } : {
+            labelColor: '#212529',
+            lineColor: '#8a8f98'
+          },
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: '#1f2328',
+            primaryColor: '#1f2328',
+            primaryTextColor: '#f8f9fa',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#292e33',
+            secondaryTextColor: '#f8f9fa',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#20242a',
+            tertiaryTextColor: '#f8f9fa',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#292e33',
+            clusterBorder: '#6c757d',
+            lineColor: '#b7bcc4',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#f8f9fa',
+            mainBkg: '#1f2328',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          } : {
+            darkMode: false,
+            background: '#ffffff',
+            primaryColor: '#f6f7f9',
+            primaryTextColor: '#212529',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#ffffff',
+            secondaryTextColor: '#212529',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#eceff3',
+            tertiaryTextColor: '#212529',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#f3f3f3',
+            clusterBorder: '#c7cbd1',
+            lineColor: '#8a8f98',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#212529',
+            mainBkg: '#f6f7f9',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          }
+        };
+      };
+
+      const initializeMermaidBlocks = () => {
+        const mermaidBlocks = document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid, pre code.mermaid');
+        mermaidBlocks.forEach((block) => {
+          const pre = block.parentElement;
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.dataset.mermaidSource = block.textContent;
+          container.textContent = block.textContent;
+          pre.replaceWith(container);
+        });
+      };
+
+      const renderMermaidBlocks = async () => {
+        const mermaidContainers = document.querySelectorAll('.mermaid[data-mermaid-source]');
+        if (mermaidContainers.length === 0) {
+          return;
+        }
+
+        mermaid.initialize(getMermaidConfig());
+
+        mermaidContainers.forEach((container) => {
+          container.removeAttribute('data-processed');
+          container.innerHTML = '';
+          container.textContent = container.dataset.mermaidSource;
+        });
+
+        await mermaid.run({ querySelector: '.mermaid[data-mermaid-source]' });
+      };
+
+      initializeMermaidBlocks();
+      renderMermaidBlocks();
+
+      let currentMermaidTheme = document.documentElement.getAttribute('data-bs-theme');
+      new MutationObserver(() => {
+        const nextTheme = document.documentElement.getAttribute('data-bs-theme');
+        if (nextTheme !== currentMermaidTheme) {
+          currentMermaidTheme = nextTheme;
+          renderMermaidBlocks();
+        }
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    }
+
+    const updateAffixHighlight = () => {
+      const affix = document.getElementById('affix');
+      if (!affix) {
+        return;
+      }
+
+      const links = Array.from(affix.querySelectorAll('a[href^="#"]'));
+      if (links.length === 0) {
+        return;
+      }
+
+      const sections = links.map((link) => {
+        const id = decodeURIComponent(link.getAttribute('href').slice(1));
+        const heading = document.getElementById(id);
+        return heading ? { link, heading } : null;
+      }).filter(Boolean);
+
+      if (sections.length === 0) {
+        return;
+      }
+
+      const threshold = 140;
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.heading.getBoundingClientRect().top - threshold <= 0) {
+          current = section;
+        } else {
+          break;
+        }
+      }
+
+      links.forEach((link) => {
+        link.classList.toggle('is-current', link === current.link);
+        if (link === current.link) {
+          link.setAttribute('aria-current', 'location');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+    }
+
+    const affixRoot = document.getElementById('affix');
+    if (affixRoot) {
+      let affixFrame = null;
+      const scheduleAffixHighlight = () => {
+        if (affixFrame !== null) {
+          cancelAnimationFrame(affixFrame);
+        }
+        affixFrame = requestAnimationFrame(() => {
+          affixFrame = null;
+          updateAffixHighlight();
+        });
+      }
+
+      scheduleAffixHighlight();
+      new MutationObserver(scheduleAffixHighlight).observe(affixRoot, { childList: true, subtree: true });
+      window.addEventListener('scroll', scheduleAffixHighlight, { passive: true });
+      window.addEventListener('resize', scheduleAffixHighlight, { passive: true });
+    }
+
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>
