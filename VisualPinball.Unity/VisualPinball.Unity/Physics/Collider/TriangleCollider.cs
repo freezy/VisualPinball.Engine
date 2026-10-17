@@ -33,6 +33,12 @@ namespace VisualPinball.Unity
 		/// <summary>Minimal upward normal component for a playfield triangle to count as floor.</summary>
 		private const float FloorNormalMinZ = 0.7f;
 
+		/// <summary>
+		/// Barycentric slack for the triangles of a trigger's polygon. Without it, rounding can
+		/// reject a point on the seam of two triangles in both, and the crossing goes unnoticed.
+		/// </summary>
+		private const float TriggerSeamTolerance = 1e-5f;
+
 		public int Id
 		{
 			get => Header.Id;
@@ -82,6 +88,10 @@ namespace VisualPinball.Unity
 			// 	return -1.0;
 			// }
 
+			if (Header.ItemType == ItemType.Trigger) {
+				return HitTestTrigger(ref collEvent, in insideOfs, in ball, dTime);
+			}
+
 			var bnv = math.dot(_normal, ball.Velocity);         // speed in Normal-vector direction
 			if (bnv > PhysicsConstants.ContactVel) {                          // return if clearly ball is receding from object
 				return -1.0f;
@@ -128,11 +138,73 @@ namespace VisualPinball.Unity
 			var adv = hitTime * ball.Velocity;
 			hitPos += adv;
 
-			// Check if hitPos is within the triangle
+			if (IsInTriangle(hitPos)) {
+
+				collEvent.HitNormal = _normal;
+				collEvent.HitDistance = bnd;                        // 3dhit actual contact distance ...
+				//coll.m_hitRigid = true;                      // collision type
+
+				if (isContact) {
+					collEvent.IsContact = true;
+					collEvent.HitOrgNormalVelocity = bnv;
+				}
+				return hitTime;
+			}
+
+			return -1.0f;
+		}
+
+		/// <summary>
+		/// The non-rigid branch of VP's <c>Hit3DPoly::HitTest</c>, for the polygon of a trigger.
+		/// </summary>
+		///
+		/// <remarks>
+		/// The ball passes through a trigger's polygon. It only reports when the ball crosses it, so
+		/// it never makes a contact. Otherwise, the contact solver would treat it as a floor the ball
+		/// can rest on.
+		/// </remarks>
+		private float HitTestTrigger(ref CollisionEventData collEvent, in InsideOfs insideOfs, in BallState ball, float dTime)
+		{
+			var bnv = math.dot(_normal, ball.Velocity);         // speed in Normal-vector direction
+			var hitPos = ball.Position - ball.Radius * _normal; // nearest point on ball ... projected radius along norm
+			var bnd = math.dot(_normal, hitPos - Rgv0);         // distance from plane to ball
+
+			var isUnHit = bnv > PhysicsConstants.LowNormVel;
+			var inside = bnd <= 0;                              // ball inside object volume
+
+			float hitTime;
+			if (bnv * bnd >= 0) {                               // outside-receding || inside-approaching
+				if (math.abs(bnd) >= ball.Radius * 0.5f         // not too close ... nor too far away
+				    || inside != insideOfs.IsOutsideOf(Header.ItemId, ball.Id)) { // ...ball outside and hit set or ball inside and no hit set
+					return -1.0f;
+				}
+				hitTime = 0;
+				isUnHit = !inside;                              // ball on outside is UnHit, otherwise it's a Hit
+
+			} else {
+				hitTime = bnd / -bnv;
+			}
+
+			if (float.IsNaN(hitTime) || float.IsInfinity(hitTime) || hitTime < 0 || hitTime > dTime) {
+				return -1.0f;                                   // time is outside this frame ... no collision
+			}
+
+			if (!IsInTriangle(hitPos + hitTime * ball.Velocity, TriggerSeamTolerance)) {
+				return -1.0f;
+			}
+
+			collEvent.HitNormal = _normal;
+			collEvent.HitFlag = isUnHit;                        // UnHit signal -> is receding from outside target
+			collEvent.HitDistance = bnd;
+			return hitTime;
+		}
+
+		private bool IsInTriangle(float3 pos, float tolerance = 0f)
+		{
 			// 1. Compute vectors
 			var v0 = Rgv2 - Rgv0;
 			var v1 = Rgv1 - Rgv0;
-			var v2 = hitPos - Rgv0;
+			var v2 = pos - Rgv0;
 
 			// 2. Compute dot products
 			var dot00 = math.dot(v0, v0);
@@ -147,26 +219,7 @@ namespace VisualPinball.Unity
 			var v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
 			// 4. Check if point is in triangle
-			var pointInTriangle = u >= 0 && v >= 0 && u + v <= 1;
-
-			if (pointInTriangle) {
-
-				if (Header.ItemType == ItemType.Trigger && bnd < 0 == insideOfs.IsOutsideOf(Header.ItemId, ball.Id)) {
-					collEvent.HitFlag = bnd > 0;
-				}
-
-				collEvent.HitNormal = _normal;
-				collEvent.HitDistance = bnd;                        // 3dhit actual contact distance ...
-				//coll.m_hitRigid = true;                      // collision type
-
-				if (isContact) {
-					collEvent.IsContact = true;
-					collEvent.HitOrgNormalVelocity = bnv;
-				}
-				return hitTime;
-			}
-
-			return -1.0f;
+			return u >= -tolerance && v >= -tolerance && u + v <= 1 + tolerance;
 		}
 
 		#endregion
