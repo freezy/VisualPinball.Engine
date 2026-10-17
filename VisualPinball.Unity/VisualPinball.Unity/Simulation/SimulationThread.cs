@@ -202,9 +202,7 @@ namespace VisualPinball.Unity.Simulation
 			_inputEventsDropped = 0;
 			_needsInitialSwitchSync = true;
 
-			if (SimulationTrace.Enabled) {
-				SimulationTrace.Begin();
-			}
+			SimulationTrace.Begin();
 
 			_thread = new Thread(SimulationThreadFunc)
 			{
@@ -1248,11 +1246,7 @@ namespace VisualPinball.Unity.Simulation
 			_sharedState.PublishWriteBuffer();
 		}
 
-		private static long GetTimestampUsec()
-		{
-			long ticks = Stopwatch.GetTimestamp();
-			return (ticks * 1_000_000) / Stopwatch.Frequency;
-		}
+		private static long GetTimestampUsec() => VpeClock.NowUsec;
 
 		private long ScaledTickIntervalUsec()
 		{

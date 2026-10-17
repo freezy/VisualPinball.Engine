@@ -277,6 +277,18 @@ namespace VisualPinball.Unity
 			var engineName = GamelogicEngine?.Name ?? "none";
 			attempt?.SetPhase(LoadAttempt.PhaseGamelogic);
 			PublishGamelogicDiagnostics(attempt);
+			// the table is playable once the engine runs, which may be after OnInit returned
+			var engine = GamelogicEngine;
+			void EngineStarted(object sender, EventArgs args)
+			{
+				engine.OnStarted -= EngineStarted;
+				if (IsCurrent(attempt)) {
+					attempt?.GamelogicStarted();
+				}
+			}
+			if (engine != null) {
+				engine.OnStarted += EngineStarted;
+			}
 			try {
 				if (GamelogicEngine != null) {
 					var stopwatch = System.Diagnostics.Stopwatch.StartNew();
@@ -296,7 +308,7 @@ namespace VisualPinball.Unity
 					// engines know more once they run, e.g. versions reported by an emulator
 					PublishGamelogicDiagnostics(attempt);
 				}
-				attempt?.Succeed();
+				attempt?.Succeed(waitForGamelogic: engine != null && attempt?.FailedPhase == null);
 				PerformanceMonitor.BeginPlay();
 				OnPlayerStarted?.Invoke(this, EventArgs.Empty);
 

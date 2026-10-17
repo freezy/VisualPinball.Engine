@@ -244,7 +244,7 @@ namespace VisualPinball.Unity.Simulation
 		[Range(1f, 10f)]
 		public float StatisticsInterval = 5f;
 
-		[Tooltip("Record the last ten minutes of simulation-thread and frame timing and write them as CSV files when the simulation stops (editor: Logs/SimulationTrace in the project, player: the persistent data path). -simulation-trace and -no-simulation-trace on the command line override this. Not packaged.")]
+		[Tooltip("In the editor, record the last ten minutes of simulation-thread and frame timing and write them as CSV files to Logs/SimulationTrace when the simulation stops. A player keeps a summary of the last minute instead. -simulation-trace (CSV files) and -no-simulation-trace (nothing) on the command line override this. Not packaged.")]
 		public bool RecordSimulationTrace = true;
 
 		#endregion
@@ -449,8 +449,9 @@ namespace VisualPinball.Unity.Simulation
 					}
 				}
 
-				// Timing trace of the last minutes, written when the simulation stops
-				SimulationTrace.Enabled = SimulationTrace.CommandLineOverride() ?? RecordSimulationTrace;
+				// Timing trace: CSVs of the last minutes for table developers, a summary of the
+				// last minute for players
+				SimulationTrace.Mode = SimulationTrace.ResolveMode(SimulationTrace.CommandLineOverride(), Application.isEditor, RecordSimulationTrace);
 				SimulationTrace.OutputDirectory = SimulationTrace.DefaultOutputDirectory();
 
 				// Start simulation thread
@@ -890,7 +891,7 @@ namespace VisualPinball.Unity.Simulation
 			}
 		}
 
-		private static long TimestampUsec => (Stopwatch.GetTimestamp() * 1_000_000L) / Stopwatch.Frequency;
+		private static long TimestampUsec => VpeClock.NowUsec;
 
 		/// <summary>
 		/// Picks a likely X/Y axis pair from one native device.

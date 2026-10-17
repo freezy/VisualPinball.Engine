@@ -148,6 +148,8 @@ namespace VisualPinball.Unity
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
 		private static void OnSubsystemRegistration()
 		{
+			// before anything else, so logging's own set-up is measured
+			StartupTimeline.EnsureStarted();
 			Install();
 			BeginSession();
 		}
@@ -216,6 +218,7 @@ namespace VisualPinball.Unity
 				Rebuild();
 			}
 			Logger.Info("Session {SessionId:l} started", SessionId);
+			Simulation.SimulationTrace.OnLogSessionStarted();
 			PublishSessionDiagnostics();
 			SessionStarted?.Invoke();
 		}
@@ -444,6 +447,11 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public static string DiagnosticsSnapshotPath(string logFile) => Path.ChangeExtension(logFile, ".diagnostics.json");
 
+		/// <summary>
+		/// Where the simulation trace summary of the session that writes this log file goes.
+		/// </summary>
+		public static string SimulationTraceSummaryPath(string logFile) => Path.ChangeExtension(logFile, ".simtrace.txt");
+
 		private static void DeleteOldLogFiles()
 		{
 			var files = new DirectoryInfo(_logDirectory)
@@ -455,6 +463,7 @@ namespace VisualPinball.Unity
 					file.Delete();
 					// the diagnostics snapshot error reporting keeps next to a session's log
 					File.Delete(DiagnosticsSnapshotPath(file.FullName));
+					File.Delete(SimulationTraceSummaryPath(file.FullName));
 				} catch (IOException) {
 					// still open by another instance
 				} catch (UnauthorizedAccessException) {
