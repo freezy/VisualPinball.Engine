@@ -226,8 +226,15 @@ namespace VisualPinball.Unity.Simulation
 		/// </summary>
 		public const int WindowSeconds = 600;
 
-		/// <summary>Length of the recorded window in <see cref="SimulationTraceMode.Summary"/>.</summary>
+		/// <summary>
+		/// Length of the recorded window in <see cref="SimulationTraceMode.Summary"/>; two minutes
+		/// in a profile build, matched to its frame recorder.
+		/// </summary>
+#if VPE_PROFILE
+		public const int SummaryWindowSeconds = 120;
+#else
 		public const int SummaryWindowSeconds = 60;
+#endif
 
 		/// <summary>How often the summary is refreshed while the simulation runs.</summary>
 		public const int SummaryIntervalSeconds = 60;
@@ -311,6 +318,12 @@ namespace VisualPinball.Unity.Simulation
 		/// </summary>
 		public static SimulationTraceMode ResolveMode(bool? commandLine, bool isEditor, bool componentToggle)
 		{
+#if VPE_PROFILE
+			// the profile build's detectors and traces read the ticks: never off
+			if (commandLine != true) {
+				return isEditor && componentToggle ? SimulationTraceMode.Full : SimulationTraceMode.Summary;
+			}
+#endif
 			if (commandLine.HasValue) {
 				return commandLine.Value ? SimulationTraceMode.Full : SimulationTraceMode.Off;
 			}
@@ -431,6 +444,10 @@ namespace VisualPinball.Unity.Simulation
 		/// </summary>
 		internal static void End()
 		{
+#if VPE_PROFILE
+			// a trace still waiting for its post-window needs the ticks before they go
+			Profiling.TraceCapture.Flush();
+#endif
 			var session = _session;
 			if (!_recording || session == null) {
 				return;
@@ -578,6 +595,43 @@ namespace VisualPinball.Unity.Simulation
 		// 0 is a slot never written
 		private static long Committed(long index) => (index + 1) * 2;
 		private static long InProgress(long index) => (index + 1) * 2 - 1;
+
+		/// <summary>Ticks committed in the running session, 0 without one.</summary>
+		internal static long TickCount => _session != null ? Volatile.Read(ref _session.TickCount) : 0;
+
+		internal static int SessionTickCapacity => _session?.TickCapacity ?? 1;
+
+		/// <summary>Lock records committed in the running session, 0 without one.</summary>
+		internal static long LockCount => _session != null ? Volatile.Read(ref _session.LockCount) : 0;
+
+		internal static int SessionLockCapacity => _session?.LockCapacity ?? 1;
+
+		/// <summary>
+		/// A tick of the running session, if it's complete and not overwritten. Any thread; the
+		/// reader lock isn't needed on the main thread, which is the one that frees the rings.
+		/// </summary>
+		internal static unsafe bool TryReadTick(long index, out TickRecord tick)
+		{
+			var s = _session;
+			if (s == null || s.Freed) {
+				tick = default;
+				return false;
+			}
+			return TryRead(s.Ticks, s.TickSeq, s.TickCapacity, index, out tick);
+		}
+
+		/// <summary>
+		/// A lock record of the running session, like <see cref="TryReadTick"/>.
+		/// </summary>
+		internal static unsafe bool TryReadLock(long index, out LockRecord record)
+		{
+			var s = _session;
+			if (s == null || s.Freed) {
+				record = default;
+				return false;
+			}
+			return TryRead(s.Locks, s.LockSeq, s.LockCapacity, index, out record);
+		}
 
 		/// <summary>
 		/// Copies the record of a given index from a ring, if it's complete and not lapped.

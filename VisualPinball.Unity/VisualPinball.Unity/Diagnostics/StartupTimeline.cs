@@ -173,7 +173,31 @@ namespace VisualPinball.Unity
 			if (!_menuReady || _completed || _timeline == null) {
 				return;
 			}
-			_timeline.Mark(FirstFrame);
+			Complete(FirstFrame);
+		}
+
+		/// <summary>
+		/// The host goes straight into a table (e.g. from the command line), so the menu's
+		/// first frame would only come after the load: start-up ends here instead, and the load
+		/// has its own timeline.
+		/// </summary>
+		public static void CompleteAtTableLaunch()
+		{
+			if (_completed) {
+				return;
+			}
+			Begin();
+			if (!_menuReady) {
+				_menuReady = true;
+				_timeline.Mark(MenuReady);
+			}
+			_timeline.Fact("ends", "at a table launch, before its first frame");
+			Complete("table-launch");
+		}
+
+		private static void Complete(string milestone)
+		{
+			_timeline.Mark(milestone);
 			_completed = true;
 			var preManaged = _timeline.MsTo(FirstManagedCode);
 			Logger.Info("Startup: {Total:l} to the menu{PreManaged:l}: {Steps:l}",

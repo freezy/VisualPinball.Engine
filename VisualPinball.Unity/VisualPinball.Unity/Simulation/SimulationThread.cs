@@ -401,6 +401,10 @@ namespace VisualPinball.Unity.Simulation
 
 		private void SimulationThreadFunc()
 		{
+#if VPE_PROFILE
+			// names the thread in the Unity profiler (development builds)
+			UnityEngine.Profiling.Profiler.BeginThreadProfiling("VPE", "Simulation");
+#endif
 			// Editor playmode is a hostile environment for time-critical threads (domain/scene reload,
 			// asset imports, editor windows). Keep time-critical only for player builds.
 			// Wait for physics engine to be fully initialized
@@ -462,6 +466,14 @@ namespace VisualPinball.Unity.Simulation
 						continue;
 					}
 
+#if VPE_PROFILE
+					// the self test's stall, where a real one (descheduling) lands: in the wait
+					var stall = Profiling.PerfSelfTest.SimulationStallMs;
+					if (stall > 0) {
+						Profiling.PerfSelfTest.SimulationStallMs = 0;
+						Thread.Sleep(stall);
+					}
+#endif
 					// Timing: Sleep until next tick, then busy-wait for precision.
 					long targetTicks = _lastTickTicks + _tickIntervalTicks;
 					long nowTicks = Stopwatch.GetTimestamp();
@@ -566,6 +578,9 @@ namespace VisualPinball.Unity.Simulation
 				Logger.Fatal(_fault, "{Prefix:l} [SimulationThread] Simulation thread died after {Ticks} ticks", LogPrefix, _tickCount);
 				VpeLog.Flush(TimeSpan.FromSeconds(2));
 			}
+#if VPE_PROFILE
+			UnityEngine.Profiling.Profiler.EndThreadProfiling();
+#endif
 		}
 
 		/// <summary>
