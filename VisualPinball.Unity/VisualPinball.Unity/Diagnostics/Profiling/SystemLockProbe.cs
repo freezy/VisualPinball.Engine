@@ -17,7 +17,7 @@
 #if VPE_PROFILE
 using System.Diagnostics;
 using System.Threading;
-#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN && !UNITY_EDITOR
 using System;
 using System.Runtime.InteropServices;
 #endif
@@ -86,7 +86,12 @@ namespace VisualPinball.Unity.Profiling
 
 		public static void Start()
 		{
-#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+			// the code is only compiled where Unity runs on Windows (not a Windows build target
+			// in a Mac or Linux editor); this is the second line of defence
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN && !UNITY_EDITOR
+			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+				return;
+			}
 			if (_worker != null && !_worker.Stopped) {
 				return;
 			}
@@ -161,7 +166,7 @@ namespace VisualPinball.Unity.Profiling
 			return blocked;
 		}
 
-#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN && !UNITY_EDITOR
 		private const uint QdcOnlyActivePaths = 2;
 
 		private const uint CreateWaitableTimerHighResolution = 0x2;
@@ -215,6 +220,9 @@ namespace VisualPinball.Unity.Profiling
 					}
 					lastEnd = end;
 				}
+			} catch (Exception e) {
+				// an exception on this thread would end the process; the probe isn't worth that
+				NLog.LogManager.GetCurrentClassLogger().Warn(e, "The system lock probe stopped.");
 			} finally {
 				if (timer != IntPtr.Zero) {
 					CloseHandle(timer);
