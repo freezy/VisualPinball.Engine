@@ -80,6 +80,8 @@ namespace VisualPinball.Unity.Profiling
 		private static EventSample* _events;
 		private static SimulationTrace.LockRecord* _locks;
 		private static int _frameCount, _tickCount, _slowCount, _eventCount, _lockCount;
+		private static readonly SystemLockProbe.Stall[] Stalls = new SystemLockProbe.Stall[SystemLockProbe.Capacity];
+		private static int _stallCount;
 		private static readonly byte[] Json = new byte[JsonCapacity];
 		private static readonly JsonWriter Writer = new(Json);
 
@@ -329,6 +331,15 @@ namespace VisualPinball.Unity.Profiling
 					_locks[_lockCount++] = l;
 				}
 			}
+
+			// times the window manager was locked, oldest first
+			var stalls = SystemLockProbe.Count;
+			_stallCount = 0;
+			for (var i = System.Math.Max(0, stalls - SystemLockProbe.Capacity); i < stalls; i++) {
+				if (SystemLockProbe.TryRead(i, out var s) && s.EndTicks >= from && s.StartTicks <= toTicks) {
+					Stalls[_stallCount++] = s;
+				}
+			}
 		}
 
 		#endregion
@@ -379,7 +390,7 @@ namespace VisualPinball.Unity.Profiling
 		}
 
 		private const int Pid = 1;
-		private const int MainTid = 1, SimTid = 2, GpuTid = 3;
+		private const int MainTid = 1, SimTid = 2, GpuTid = 3, SystemLockTid = 4;
 
 		private static void Serialize(JsonWriter w, double copyMs)
 		{
@@ -403,7 +414,7 @@ namespace VisualPinball.Unity.Profiling
 			w.Raw("],\"severity_ms\":").Float(_incident.SeverityMs).Raw(",\"frame_ms\":").Float(_incident.FrameMs).Raw(",\"median_ms\":").Float(_incident.MedianMs)
 				.Raw(",\"target_ms\":").Float(_incident.TargetMs).Raw(",\"unexplained_ms\":").Float(_incident.UnexplainedMs)
 				.Raw(",\"gc\":").Int(_incident.GcDelta).Raw(",\"tick_gap_us\":").Int(_incident.MaxTickGapUsec).Raw(",\"tick_work_us\":").Int(_incident.MaxTickWorkUsec)
-				.Raw(",\"lock_wait_us\":").Int(_incident.LockWaitUsec).Raw(",\"seconds_into_play\":").Float(_incident.SecondsIntoPlay);
+				.Raw(",\"lock_wait_us\":").Int(_incident.LockWaitUsec).Raw(",\"system_lock_us\":").Int(_incident.SystemLockUsec).Raw(",\"seconds_into_play\":").Float(_incident.SecondsIntoPlay);
 			if (_incident.Cause == IncidentCause.Section) {
 				w.Raw(",\"section\":").Str(SectionRecorder.Name(_incident.Section)).Raw(",\"section_us\":").Int(_incident.SectionUsec);
 			}
@@ -417,6 +428,7 @@ namespace VisualPinball.Unity.Profiling
 			Thread(w, MainTid, "Main thread");
 			Thread(w, SimTid, "Simulation thread");
 			Thread(w, GpuTid, "GPU (Unity timing)");
+			Thread(w, SystemLockTid, "Window manager locked (probe)");
 
 			// frames, their PlayerLoop phases, and Unity's timings
 			for (var i = 0; i < _frameCount && !w.Full; i++) {
@@ -490,6 +502,12 @@ namespace VisualPinball.Unity.Profiling
 					continue;
 				}
 				w.Raw(",{\"ph\":\"X\",\"pid\":1,\"tid\":1,\"name\":\"PhysicsLock wait\",\"ts\":").UsecTs(l.StartUsec - originUsec).Raw(",\"dur\":").Int(l.WaitUsec).Raw("}");
+			}
+
+			// the window manager was locked (at least this long: the probe waited that long)
+			for (var i = 0; i < _stallCount && !w.Full; i++) {
+				ref var s = ref Stalls[i];
+				w.Raw(",{\"ph\":\"X\",\"pid\":1,\"tid\":4,\"name\":\"System lock\",\"ts\":").Ts(s.StartTicks, origin).Raw(",\"dur\":").Dur(s.EndTicks - s.StartTicks).Raw("}");
 			}
 
 			// what happened

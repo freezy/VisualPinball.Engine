@@ -202,6 +202,9 @@ namespace VisualPinball.Unity.Profiling
 		private static string Details(in Incident incident)
 		{
 			var parts = "";
+			if (incident.SystemLockUsec >= 1000) {
+				parts += $", window manager locked {incident.SystemLockUsec / 1000f:0.0} ms";
+			}
 			if (incident.Cause == IncidentCause.Section) {
 				parts += $", {SectionRecorder.Name(incident.Section)} {incident.SectionUsec / 1000f:0.0} ms";
 			}
