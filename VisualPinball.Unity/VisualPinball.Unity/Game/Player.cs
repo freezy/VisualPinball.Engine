@@ -396,8 +396,11 @@ namespace VisualPinball.Unity
 			}
 
 			VpeProfiler.Begin(ProfileSection.PlayerOnUpdate);
-			OnUpdate?.Invoke(this, EventArgs.Empty);
-			VpeProfiler.End(ProfileSection.PlayerOnUpdate);
+			try {
+				OnUpdate?.Invoke(this, EventArgs.Empty);
+			} finally {
+				VpeProfiler.End(ProfileSection.PlayerOnUpdate);
+			}
 		}
 
 		private void OnDestroy()

@@ -49,6 +49,10 @@ namespace VisualPinball.Unity.Test
 		[TestCase(null, false, false, SimulationTraceMode.Summary)]
 		public void ShouldResolveTheMode(bool? commandLine, bool isEditor, bool toggle, SimulationTraceMode expected)
 		{
+			if (VpeProfiler.IsProfileBuild && expected == SimulationTraceMode.Off) {
+				// the profile build's detectors read the ticks: it never turns the trace off
+				expected = isEditor && toggle && commandLine != false ? SimulationTraceMode.Full : SimulationTraceMode.Summary;
+			}
 			SimulationTrace.ResolveMode(commandLine, isEditor, toggle).Should().Be(expected);
 		}
 

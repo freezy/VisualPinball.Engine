@@ -242,6 +242,11 @@ namespace VisualPinball.Unity
 			_playing = false;
 			LogSummary();
 #if VPE_PROFILE
+			// the last frames still waiting for their timing count, nothing after does
+			Profiling.FrameRecorder.Drain();
+			Profiling.IncidentDetector.EndPlay();
+			// a capture the last frames asked for (e.g. on quit, where nothing flushes later)
+			Profiling.TraceCapture.Flush();
 			Profiling.ProfileMetrics.EndPlay(AverageFps(), _minSimRatio == float.MaxValue ? -1 : _minSimRatio, Last.PeakVramUsage);
 			Logger.Info("Perf incidents: {Summary:l}", Profiling.ProfileSession.Summary());
 #endif

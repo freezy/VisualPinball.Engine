@@ -175,8 +175,11 @@ namespace VisualPinball.Unity
 		{
 			VpeProfiler.Begin(ProfileSection.DisplayUpload);
 			VpeProfiler.Count(ProfileCounter.DisplayFrames);
-			UploadFrame(format, frame);
-			VpeProfiler.End(ProfileSection.DisplayUpload);
+			try {
+				UploadFrame(format, frame);
+			} finally {
+				VpeProfiler.End(ProfileSection.DisplayUpload);
+			}
 		}
 
 		private void UploadFrame(DisplayFrameFormat format, byte[] frame)
