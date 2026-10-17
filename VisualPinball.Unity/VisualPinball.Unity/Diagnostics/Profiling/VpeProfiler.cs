@@ -32,9 +32,6 @@ namespace VisualPinball.Unity
 	/// test enforces that.
 	/// </para>
 	/// <para>
-	/// The recorders that implement it come with the profile build's instrumentation.
-	/// </para>
-	/// <para>
 	/// A section is measured with <see cref="Begin"/> and <see cref="End"/> on the same thread.
 	/// Don't wrap them in a <c>using</c> scope: a conditional method can't remove that.
 	/// </para>
@@ -58,6 +55,9 @@ namespace VisualPinball.Unity
 		[Conditional("VPE_PROFILE")]
 		public static void Begin(ProfileSection section)
 		{
+#if VPE_PROFILE
+			Profiling.SectionRecorder.Begin(section);
+#endif
 		}
 
 		/// <summary>
@@ -66,6 +66,9 @@ namespace VisualPinball.Unity
 		[Conditional("VPE_PROFILE")]
 		public static void End(ProfileSection section)
 		{
+#if VPE_PROFILE
+			Profiling.SectionRecorder.End(section);
+#endif
 		}
 
 		/// <summary>
@@ -75,6 +78,9 @@ namespace VisualPinball.Unity
 		[Conditional("VPE_PROFILE")]
 		public static void Mark(ProfileEvent evt, int value = 0)
 		{
+#if VPE_PROFILE
+			Profiling.FrameRecorder.Mark(evt, value);
+#endif
 		}
 
 		/// <summary>
@@ -83,6 +89,9 @@ namespace VisualPinball.Unity
 		[Conditional("VPE_PROFILE")]
 		public static void Count(ProfileCounter counter, int amount = 1)
 		{
+#if VPE_PROFILE
+			Profiling.FrameRecorder.AddCount(counter, amount);
+#endif
 		}
 	}
 }

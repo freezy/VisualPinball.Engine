@@ -241,6 +241,10 @@ namespace VisualPinball.Unity
 			}
 			_playing = false;
 			LogSummary();
+#if VPE_PROFILE
+			Profiling.ProfileMetrics.EndPlay(AverageFps(), _minSimRatio == float.MaxValue ? -1 : _minSimRatio, Last.PeakVramUsage);
+			Logger.Info("Perf incidents: {Summary:l}", Profiling.ProfileSession.Summary());
+#endif
 			ReleaseNative();
 		}
 
@@ -281,6 +285,9 @@ namespace VisualPinball.Unity
 			}
 			StartupTimeline.OnFrameEnd();
 			LoadAttempt.OnFrameEnd();
+#if VPE_PROFILE
+			Profiling.FrameRecorder.OnFrameEnd();
+#endif
 			if (!_playing) {
 				return;
 			}
@@ -584,6 +591,9 @@ namespace VisualPinball.Unity
 			if (vramUsage > Last.PeakVramUsage) {
 				Last.PeakVramUsage = vramUsage;
 				Last.PeakVramUtc = utcNow;
+			}
+			if (vramBudget > 0 && vramUsage > vramBudget) {
+				VpeProfiler.Mark(ProfileEvent.VramOverBudget);
 			}
 			if (vramBudget > 0 && vramUsage > 0.9 * vramBudget && VramThrottle.ShouldLog()) {
 				Logger.Warn("The GPU memory is nearly full ({Usage:l} of a {Budget:l} budget). Textures get paged out, which causes stutter. Lower the texture size in the graphics settings.",

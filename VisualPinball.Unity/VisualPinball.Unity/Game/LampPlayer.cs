@@ -207,6 +207,8 @@ namespace VisualPinball.Unity
 		/// </summary>
 		private void Dispatch(string id, LampSource lampSource, bool isCoil, in LampEvent lampEvent)
 		{
+			VpeProfiler.Mark(ProfileEvent.FirstUseLight);
+			VpeProfiler.Count(ProfileCounter.LampChanges);
 			if (_lampAssignments.TryGetValue(id, out var mappings)) {
 				var applied = false;
 				foreach (var mapping in mappings) {

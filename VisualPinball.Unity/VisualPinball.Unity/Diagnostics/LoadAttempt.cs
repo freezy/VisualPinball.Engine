@@ -80,6 +80,11 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public static event Action<LoadAttempt> Finished;
 
+		/// <summary>
+		/// Raised when a table starts loading, after <see cref="Current"/> changed. Main thread.
+		/// </summary>
+		public static event Action<LoadAttempt> Began;
+
 		// per session: which tables were loaded, and how many loads there were
 		private static readonly HashSet<string> LoadedThisSession = new(StringComparer.OrdinalIgnoreCase);
 		private static int _sessionLoads;
@@ -163,6 +168,12 @@ namespace VisualPinball.Unity
 			Current?.Finish(ResultCancelled);
 			var attempt = new LoadAttempt(path, title);
 			Current = attempt;
+			VpeProfiler.Mark(ProfileEvent.TableLoad);
+			try {
+				Began?.Invoke(attempt);
+			} catch (Exception e) {
+				Logger.Error(e, "A table load start handler failed");
+			}
 			Logger.Info("Loading table {Title} from {File} ({SizeMb:0.0} MB)", title, System.IO.Path.GetFileName(path), attempt.Size / 1048576.0);
 			attempt.Publish(log: false);
 			attempt.ComputeFingerprintAsync();
@@ -174,6 +185,9 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public static void End()
 		{
+			if (Current != null) {
+				VpeProfiler.Mark(ProfileEvent.TableUnload);
+			}
 			Current?.Finish(ResultCancelled);
 			Current = null;
 			DiagnosticsContext.Remove(DiagnosticsContext.Table);
@@ -428,9 +442,11 @@ namespace VisualPinball.Unity
 
 		private static string RamAtPlayable()
 		{
+			// Process.WorkingSet64 is 0 on Mono
 			try {
-				using var process = Process.GetCurrentProcess();
-				return (process.WorkingSet64 / 1048576).ToString(CultureInfo.InvariantCulture) + " MB";
+				using var probe = new MemoryProbe();
+				probe.ReadProcess(out var workingSet, out _);
+				return workingSet > 0 ? (workingSet / 1048576).ToString(CultureInfo.InvariantCulture) + " MB" : "n/a";
 			} catch (Exception) {
 				return "n/a";
 			}

@@ -173,6 +173,14 @@ namespace VisualPinball.Unity
 
 		public override void UpdateFrame(DisplayFrameFormat format, byte[] frame)
 		{
+			VpeProfiler.Begin(ProfileSection.DisplayUpload);
+			VpeProfiler.Count(ProfileCounter.DisplayFrames);
+			UploadFrame(format, frame);
+			VpeProfiler.End(ProfileSection.DisplayUpload);
+		}
+
+		private void UploadFrame(DisplayFrameFormat format, byte[] frame)
+		{
 			if (_texture == null) {
 				if (_frameThrottle.ShouldLog(out var suppressed)) {
 					Logger.Warn("Cannot render DMD {DisplayId}, its size is unknown ({Suppressed} suppressed).", _id, suppressed);

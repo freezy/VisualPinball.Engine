@@ -78,12 +78,18 @@ namespace VisualPinball.Unity
 			// register ball
 			_physicsEngine.RegisterRuntimeBall(ballComp);
 			_player.BallCreated(UnityObjectId.Get(ballGo), ballGo);
+#if VPE_PROFILE
+			if (_physicsEngine.Balls.Count() >= 2) {
+				VpeProfiler.Mark(ProfileEvent.FirstUseMultiball);
+			}
+#endif
 
 			return ballComp.Id;
 		}
 
 		public void DestroyBall(int ballId)
 		{
+			VpeProfiler.Mark(ProfileEvent.FirstUseDrain);
 			var ballComponent = _physicsEngine.UnregisterRuntimeBall(ballId);
 			_player.BallDestroyed(ballId, ballComponent.gameObject);
 

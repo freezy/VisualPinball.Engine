@@ -24,9 +24,10 @@ namespace VisualPinball.Unity
 	///
 	/// <remarks>
 	/// <para>
-	/// Timestamps stay absolute (microseconds of the performance counter, like the native
-	/// input library's <c>VpeGetTimestampUsec</c>), so they can be compared with each other
-	/// across threads and with native input timestamps.
+	/// Timestamps are the stopwatch's, so they can be compared with each other across threads.
+	/// On Mono the stopwatch counts from the process' start, not from boot like the platform's
+	/// performance counter (and Unity's frame timings, or the native input library's
+	/// <c>VpeGetTimestampUsec</c>): those need an offset to be compared.
 	/// </para>
 	/// <para>
 	/// The conversion splits whole seconds from the rest, so it's exact and can't overflow.
@@ -39,7 +40,7 @@ namespace VisualPinball.Unity
 		private static readonly long Frequency = Stopwatch.Frequency;
 
 		/// <summary>
-		/// Now, in microseconds of the performance counter.
+		/// Now, in microseconds of the stopwatch.
 		/// </summary>
 		public static long NowUsec => TicksToUsec(Stopwatch.GetTimestamp());
 
