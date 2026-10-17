@@ -219,6 +219,19 @@ namespace VisualPinball.Unity.Simulation
 
 		private static volatile string _summaryPath;
 
+		// set when the application quits: there may be no time for a worker then
+		private static volatile bool _quitting;
+
+		[UnityEngine.RuntimeInitializeOnLoadMethod(UnityEngine.RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void WatchQuit()
+		{
+			_quitting = false;
+			UnityEngine.Application.quitting -= OnQuitting;
+			UnityEngine.Application.quitting += OnQuitting;
+		}
+
+		private static void OnQuitting() => _quitting = true;
+
 		/// <summary>
 		/// Length of the recorded window in <see cref="SimulationTraceMode.Full"/>. Older records
 		/// are overwritten, so a long session keeps its last minutes; memory and per-tick cost do
@@ -321,7 +334,8 @@ namespace VisualPinball.Unity.Simulation
 #if VPE_PROFILE
 			// the profile build's detectors and traces read the ticks: never off
 			if (commandLine != true) {
-				return isEditor && componentToggle ? SimulationTraceMode.Full : SimulationTraceMode.Summary;
+				// --no-simulation-trace keeps the summary, but not the CSVs
+				return isEditor && componentToggle && commandLine != false ? SimulationTraceMode.Full : SimulationTraceMode.Summary;
 			}
 #endif
 			if (commandLine.HasValue) {
@@ -457,6 +471,15 @@ namespace VisualPinball.Unity.Simulation
 			// no periodic summary after the final one
 			session.Ended = true;
 			session.Timer?.Dispose();
+			if (session.Mode != SimulationTraceMode.Full && _quitting) {
+				// the process is about to end: summarize here, it takes a few ms
+				try {
+					RefreshSummary(session, final: true);
+				} finally {
+					session.Free();
+				}
+				return;
+			}
 			if (session.Mode != SimulationTraceMode.Full) {
 				// nothing writes anymore; the summary reads from the rings, then frees them
 				PendingEnd = Task.Run(() => {

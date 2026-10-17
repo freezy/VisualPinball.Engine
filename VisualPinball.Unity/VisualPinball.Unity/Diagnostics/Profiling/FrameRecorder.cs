@@ -354,7 +354,9 @@ namespace VisualPinball.Unity.Profiling
 					IncidentDetector.UserMarker();
 					break;
 				case ProfileEvent.TableUnload:
-					// before the simulation's rings go away with the table
+					// while the load is still current: the last frames count, nothing after does
+					Drain();
+					IncidentDetector.EndPlay();
 					TraceCapture.Flush();
 					break;
 			}
@@ -537,6 +539,24 @@ namespace VisualPinball.Unity.Profiling
 		}
 
 		private static long UsecToTicks(long usec) => usec * Stopwatch.Frequency / 1_000_000;
+
+		/// <summary>
+		/// Hands on every recorded frame now, those still waiting for their timing without it:
+		/// the play ends, and its statistics shouldn't miss the last frames.
+		/// </summary>
+		internal static void Drain()
+		{
+			if (_frames == null) {
+				return;
+			}
+			for (var i = System.Math.Max(_finalized, _count - Capacity); i < _count; i++) {
+				ref var f = ref _frames[i % Capacity];
+				if (f.Timing == TimingState.Pending) {
+					f.Timing = TimingState.None;
+				}
+			}
+			FinalizeFrames();
+		}
 
 		/// <summary>
 		/// Hands on every frame whose own and next frame's timing is settled, in order.

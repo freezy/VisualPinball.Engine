@@ -185,6 +185,7 @@ namespace VisualPinball.Unity.Profiling
 		private static int _previousGc = -1;
 		private static float _presentWaitMedian;
 		private static float _unexplainedBaseline;
+		private static bool _playEnded;
 		private static long _previousGcUsed = -1;
 		private static int _gcRisingFrames;
 
@@ -213,7 +214,13 @@ namespace VisualPinball.Unity.Profiling
 			_gcRisingFrames = 0;
 			_presentWaitMedian = 0;
 			_unexplainedBaseline = 0;
+			_playEnded = false;
 		}
+
+		/// <summary>
+		/// The table stopped playing: the frames until the next load aren't play.
+		/// </summary>
+		internal static void EndPlay() => _playEnded = true;
 
 		internal static void OnTableLoad()
 		{
@@ -237,7 +244,7 @@ namespace VisualPinball.Unity.Profiling
 		internal static void OnFrame(long index, ref FrameSample f, ref FrameSample next)
 		{
 			var load = LoadAttempt.Current;
-			if (load == null || load.PlayableMs < 0) {
+			if (load == null || load.PlayableMs < 0 || _playEnded) {
 				_playableAt = -1;
 				return;
 			}
@@ -272,7 +279,6 @@ namespace VisualPinball.Unity.Profiling
 			var frameMs = (float)Ticks.ToMs(next.StartTicks - f.StartTicks);
 			var presentMs = f.Timing == TimingState.Matched && next.Timing == TimingState.Matched && f.PresentCalledTicks > 0 && next.PresentCalledTicks > 0
 				? (float)Ticks.ToMs(next.PresentCalledTicks - f.PresentCalledTicks) : 0f;
-			ProfileMetrics.OnFrame(frameMs, presentMs, f.GcCount, ref f);
 			var median = PushInterval(frameMs);
 			var target = TargetIntervalMs(ref f);
 			UpdateBaseline(now, frameMs);
@@ -321,6 +327,8 @@ namespace VisualPinball.Unity.Profiling
 
 			TrackPacing(ref f, ref next, target, median, now, ref incident);
 			TrackDegradation(now, frameMs, target, ref incident);
+			// after the frame's incidents, which count in the window this frame may close
+			ProfileMetrics.OnFrame(frameMs, presentMs, f.GcCount, ref f);
 		}
 
 		#region Reference values
