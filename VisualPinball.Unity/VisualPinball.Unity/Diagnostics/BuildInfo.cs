@@ -65,6 +65,7 @@ namespace VisualPinball.Unity
 			w.Add("version", version);
 			w.Add("build-time", buildTime);
 			w.Add("development", development);
+			w.Add("flavor", BuildInfo.Flavor);
 			foreach (var repository in repositories) {
 				w.Add("commit." + repository.name, repository.commit + (repository.dirty ? " (dirty)" : ""));
 			}
@@ -85,6 +86,12 @@ namespace VisualPinball.Unity
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 		private static VpeBuildInfo _current;
+
+		/// <summary>
+		/// "release", or for the profile build "profile", "profile-dev" when it's a development
+		/// build. Decided by how this code was compiled, so it can't disagree with it.
+		/// </summary>
+		public static string Flavor => !VpeProfiler.IsProfileBuild ? "release" : UnityEngine.Debug.isDebugBuild && !Application.isEditor ? "profile-dev" : "profile";
 
 		/// <summary>
 		/// The build info of the running app. Main thread on first access.
