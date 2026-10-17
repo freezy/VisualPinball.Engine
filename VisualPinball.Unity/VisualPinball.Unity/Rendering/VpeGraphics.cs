@@ -40,6 +40,8 @@ namespace VisualPinball.Unity
 		public bool Bloom;
 		public bool RayTracedGlobalIllumination;
 		public bool RayTracedReflections;
+		// Experimental: clear refractive materials (ramps, transparent plastics) are ray traced recursively.
+		public bool RayTracedRecursiveRendering;
 	}
 
 	/// <summary>Implemented by the active render pipeline (e.g. HDRP) to apply <see cref="VpeGraphicsSettings"/>.</summary>
