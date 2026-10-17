@@ -34,7 +34,7 @@ namespace VisualPinball.Unity.Profiling
 	///
 	/// <remarks>
 	/// Modes: stutter, hitch, gc, gcslice, lock, gpu, simstall, pacing, deschedule, firstuse,
-	/// and all (one after the other, 10 s apart, then the player quits, so the end of a table is
+	/// syslock (Windows), and all (one after the other, 10 s apart, then the player quits, so the end of a table is
 	/// covered too).
 	/// </remarks>
 	public static class PerfSelfTest
@@ -45,7 +45,7 @@ namespace VisualPinball.Unity.Profiling
 
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-		private static readonly string[] AllModes = { "stutter", "hitch", "gc", "gcslice", "lock", "gpu", "simstall", "pacing", "deschedule", "firstuse" };
+		private static readonly string[] AllModes = { "stutter", "hitch", "gc", "gcslice", "lock", "gpu", "simstall", "pacing", "deschedule", "firstuse", "syslock" };
 
 		private static readonly Queue<string> Pending = new();
 		private static double _nextAt = -1;
@@ -211,6 +211,29 @@ namespace VisualPinball.Unity.Profiling
 					VpeProfiler.Mark(ProfileEvent.FirstUseMultiball);
 					Spin(30);
 					_running = null;
+					break;
+				case "syslock":
+					_running = null;
+					if (Application.platform != RuntimePlatform.WindowsPlayer && Application.platform != RuntimePlatform.WindowsEditor) {
+						Logger.Info("Perf self test syslock skipped: Windows only");
+						break;
+					}
+					// what a script starting console programs does to everyone: each new console
+					// window holds the window manager for about 85 ms
+					new Thread(() => {
+						for (var i = 0; i < 4; i++) {
+							try {
+								using var process = Process.Start(new ProcessStartInfo("cmd.exe", "/d /c exit") {
+									UseShellExecute = true,
+									WindowStyle = ProcessWindowStyle.Hidden,
+								});
+							} catch (Exception e) {
+								Logger.Warn(e, "Perf self test syslock: cannot start a console.");
+								return;
+							}
+							Thread.Sleep(500);
+						}
+					}) { IsBackground = true }.Start();
 					break;
 			}
 		}

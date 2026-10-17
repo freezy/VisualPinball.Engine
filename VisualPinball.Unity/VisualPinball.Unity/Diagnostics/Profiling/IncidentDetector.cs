@@ -36,6 +36,8 @@ namespace VisualPinball.Unity.Profiling
 	public enum IncidentCause : byte
 	{
 		Unknown,
+		/// <summary>Windows' window manager was locked, usually by another process, see <see cref="SystemLockProbe"/>.</summary>
+		SystemLock,
 		PhysicsLock,
 		GcPause,
 		GcSlice,
@@ -72,6 +74,8 @@ namespace VisualPinball.Unity.Profiling
 		public int MaxTickGapUsec;
 		public int MaxTickWorkUsec;
 		public int LockWaitUsec;
+		/// <summary>How long Windows' window manager was locked during the frame, as far as the probe saw.</summary>
+		public int SystemLockUsec;
 		/// <summary>The section that stood out, for <see cref="IncidentCause.Section"/>.</summary>
 		public ProfileSection Section;
 		public int SectionUsec;
@@ -101,6 +105,7 @@ namespace VisualPinball.Unity.Profiling
 		};
 
 		public static string Name(IncidentCause cause) => cause switch {
+			IncidentCause.SystemLock => "system-lock",
 			IncidentCause.PhysicsLock => "physics-lock",
 			IncidentCause.GcPause => "gc-correlated",
 			IncidentCause.GcSlice => "gc-incremental-slice",
@@ -142,6 +147,8 @@ namespace VisualPinball.Unity.Profiling
 		private const int TickGapStallUsec = 5000;
 		private const int SimStallCooldownFrames = 60;
 		private const float IncidentSliceMs = 3f;
+		/// <summary>The probe waited this long for the window manager during the frame: enough to name it.</summary>
+		private const int SystemLockMinUsec = 5000;
 
 		/// <summary>
 		/// A problem was found. Main thread, in the frame that finalized it.
@@ -482,6 +489,13 @@ namespace VisualPinball.Unity.Profiling
 			var causes = 0u;
 			void Add(IncidentCause cause) => causes |= 1u << (int)cause;
 
+			// the window manager was locked (by another process, unless the display or focus
+			// changed): whatever the frame waited on (a display query, the present, input) waited
+			// for it too, so it comes first
+			incident.SystemLockUsec = (int)System.Math.Min(int.MaxValue, Ticks.ToUsec(SystemLockProbe.BlockedTicks(incident.StartTicks, incident.EndTicks)));
+			if (incident.SystemLockUsec >= SystemLockMinUsec) {
+				Add(IncidentCause.SystemLock);
+			}
 			if (incident.LockWaitUsec > 1000) {
 				Add(IncidentCause.PhysicsLock);
 			}
@@ -535,6 +549,12 @@ namespace VisualPinball.Unity.Profiling
 				Add(IncidentCause.Environment);
 			}
 			SetCauses(ref incident, causes);
+			// changing the display mode or focus locks the window manager itself: then that's
+			// the cause, not another program
+			if (incident.Cause == IncidentCause.SystemLock && (incident.SecondaryCauses & (1u << (int)IncidentCause.Environment)) != 0) {
+				incident.Cause = IncidentCause.Environment;
+				incident.SecondaryCauses = causes & ~(1u << (int)IncidentCause.Environment);
+			}
 		}
 
 		private static void AttributeStall(ref Incident incident, int gcDelta, int lockWait, int maxWork)
@@ -799,6 +819,7 @@ namespace VisualPinball.Unity.Profiling
 		private static readonly double Frequency = Stopwatch.Frequency;
 
 		public static double ToMs(long ticks) => ticks * 1000.0 / Frequency;
+		public static long ToUsec(long ticks) => (long)(ticks * 1_000_000.0 / Frequency);
 		public static double ToSeconds(long ticks) => ticks / Frequency;
 		public static long FromSeconds(double seconds) => (long)(seconds * Frequency);
 	}

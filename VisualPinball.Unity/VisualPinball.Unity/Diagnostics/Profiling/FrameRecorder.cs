@@ -225,12 +225,15 @@ namespace VisualPinball.Unity.Profiling
 				Application.focusChanged += focused => Mark(ProfileEvent.Focus, focused ? 1 : 0);
 				// a trace still waiting for its post-window is written with what there is
 				Application.quitting += () => TraceCapture.Flush();
+				// also when the editor leaves play mode without a domain reload; Install starts it again
+				Application.quitting += SystemLockProbe.Stop;
 #if UNITY_EDITOR
 				UnityEditor.AssemblyReloadEvents.beforeAssemblyReload += Uninstall;
 #endif
 			}
 			// every time: the editor may have reset the loop since (it skips systems already in)
 			InstallPhaseStamps();
+			SystemLockProbe.Start();
 			IncidentDetector.Reset();
 			ProfileMetrics.Reset();
 		}
@@ -250,6 +253,7 @@ namespace VisualPinball.Unity.Profiling
 			}
 			PlayerLoop.SetPlayerLoop(loop);
 			_open = false;
+			SystemLockProbe.Stop();
 			if (_gcUsed.Valid) {
 				_gcUsed.Dispose();
 			}
