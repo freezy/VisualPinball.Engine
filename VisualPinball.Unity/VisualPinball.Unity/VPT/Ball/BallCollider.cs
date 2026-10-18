@@ -368,10 +368,10 @@ namespace VisualPinball.Unity
 				return -1.0f;
 			}
 
-			var hitPos = otherBall.Position + hitTime * dv; // new ball position
+			var hitPos = otherBall.Position + hitTime * otherBall.Velocity; // new ball position
 
-			// calc unit normal of collision
-			var hitNormal = hitPos - ball.Position;
+			// calc unit normal of collision, between the two centers at hit time
+			var hitNormal = hitPos - (ball.Position + hitTime * ball.Velocity);
 			if (math.abs(hitNormal.x) <= Constants.FloatMin && math.abs(hitNormal.y) <= Constants.FloatMin &&
 			    math.abs(hitNormal.z) <= Constants.FloatMin) {
 				return -1.0f;
