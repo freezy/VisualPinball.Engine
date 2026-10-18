@@ -1,0 +1,143 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 724241377b3cbb940835d81a192a6bd1, type: 3}
+  m_Name: Clear Plastic, Faceted
+  m_EditorClassIdentifier: VisualPinball.Unity::VisualPinball.Unity.InsertMaterialPreset
+  BodyShader: Pinball/Insert Hybrid
+  Body:
+  - Name: _OpticalIor
+    Kind: 0
+    Float: 1.586
+    Color: {r: 0, g: 0, b: 0, a: 0}
+    Vector: {x: 0, y: 0, z: 0, w: 0}
+  - Name: _OpticalScatter
+    Kind: 0
+    Float: 0.5
+    Color: {r: 0, g: 0, b: 0, a: 0}
+    Vector: {x: 0, y: 0, z: 0, w: 0}
+  - Name: _OpticalEdgeGlow
+    Kind: 0
+    Float: 0.5
+    Color: {r: 0, g: 0, b: 0, a: 0}
+    Vector: {x: 0, y: 0, z: 0, w: 0}
+  - Name: _OpticalLampGain
+    Kind: 0
+    Float: 2
+    Color: {r: 0, g: 0, b: 0, a: 0}
+    Vector: {x: 0, y: 0, z: 0, w: 0}
+  - Name: _NormalStrength
+    Kind: 0
+    Float: 1
+    Color: {r: 0, g: 0, b: 0, a: 0}
+    Vector: {x: 0, y: 0, z: 0, w: 0}
+  - Name: _OpticalContrast
+    Kind: 0
+    Float: 0.25
+    Color: {r: 0, g: 0, b: 0, a: 0}
+    Vector: {x: 0, y: 0, z: 0, w: 0}
+  - Name: _OpticalVariation
+    Kind: 0
+    Float: 0.908
+    Color: {r: 0, g: 0, b: 0, a: 0}
+    Vector: {x: 0, y: 0, z: 0, w: 0}
+  - Name: _OpticalSeed
+    Kind: 0
+    Float: 3.32
+    Color: {r: 0, g: 0, b: 0, a: 0}
+    Vector: {x: 0, y: 0, z: 0, w: 0}
+  - Name: _OpticalMottleSize
+    Kind: 0
+    Float: 0.2
+    Color: {r: 0, g: 0, b: 0, a: 0}
+    Vector: {x: 0, y: 0, z: 0, w: 0}
+  - Name: _OpticalGrain
+    Kind: 0
+    Float: 0.6
+    Color: {r: 0, g: 0, b: 0, a: 0}
+    Vector: {x: 0, y: 0, z: 0, w: 0}
+  - Name: _InsertMinBrightness
+    Kind: 0
+    Float: 0.485
+    Color: {r: 0, g: 0, b: 0, a: 0}
+    Vector: {x: 0, y: 0, z: 0, w: 0}
+  - Name: _InsertFacetFlatten
+    Kind: 0
+    Float: 0.2
+    Color: {r: 0, g: 0, b: 0, a: 0}
+    Vector: {x: 0, y: 0, z: 0, w: 0}
+  - Name: _InsertClarity
+    Kind: 0
+    Float: 1
+    Color: {r: 0, g: 0, b: 0, a: 0}
+    Vector: {x: 0, y: 0, z: 0, w: 0}
+  - Name: _InsertCavitySpread
+    Kind: 0
+    Float: 2.5
+    Color: {r: 0, g: 0, b: 0, a: 0}
+    Vector: {x: 0, y: 0, z: 0, w: 0}
+  - Name: _InsertCavityContrast
+    Kind: 0
+    Float: 0.9
+    Color: {r: 0, g: 0, b: 0, a: 0}
+    Vector: {x: 0, y: 0, z: 0, w: 0}
+  - Name: _OpticalSpread
+    Kind: 0
+    Float: 12
+    Color: {r: 0, g: 0, b: 0, a: 0}
+    Vector: {x: 0, y: 0, z: 0, w: 0}
+  - Name: _Smoothness
+    Kind: 0
+    Float: 0.65
+    Color: {r: 0, g: 0, b: 0, a: 0}
+    Vector: {x: 0, y: 0, z: 0, w: 0}
+  - Name: _OpticalFlecks
+    Kind: 0
+    Float: 0.7
+    Color: {r: 0, g: 0, b: 0, a: 0}
+    Vector: {x: 0, y: 0, z: 0, w: 0}
+  - Name: _OpticalFleckSize
+    Kind: 0
+    Float: 0.4
+    Color: {r: 0, g: 0, b: 0, a: 0}
+    Vector: {x: 0, y: 0, z: 0, w: 0}
+  - Name: _InsertRoomReturn
+    Kind: 0
+    Float: 0
+    Color: {r: 0, g: 0, b: 0, a: 0}
+    Vector: {x: 0, y: 0, z: 0, w: 0}
+  - Name: _InsertRoomBlur
+    Kind: 0
+    Float: 3
+    Color: {r: 0, g: 0, b: 0, a: 0}
+    Vector: {x: 0, y: 0, z: 0, w: 0}
+  - Name: _InsertRoomReturnEV
+    Kind: 0
+    Float: 0
+    Color: {r: 0, g: 0, b: 0, a: 0}
+    Vector: {x: 0, y: 0, z: 0, w: 0}
+  - Name: _SurfaceGrain
+    Kind: 0
+    Float: 0
+    Color: {r: 0, g: 0, b: 0, a: 0}
+    Vector: {x: 0, y: 0, z: 0, w: 0}
+  - Name: _SurfaceGrainSize
+    Kind: 0
+    Float: 0.75
+    Color: {r: 0, g: 0, b: 0, a: 0}
+    Vector: {x: 0, y: 0, z: 0, w: 0}
+  - Name: _InsertRoughness
+    Kind: 0
+    Float: 0
+    Color: {r: 0, g: 0, b: 0, a: 0}
+    Vector: {x: 0, y: 0, z: 0, w: 0}
+  CoverShader:
+  Cover: []

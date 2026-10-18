@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f2a7c9e1b3d4e5f8a6b7c8d9e0f1a2b, type: 3}
+  m_Name: Lamp, Incandescent
+  m_EditorClassIdentifier: VisualPinball.Unity::VisualPinball.Unity.InsertLampPreset
+  LampName: Incandescent
+  Order: 0
+  Color: {r: 1, g: 0.64, b: 0.35, a: 1}
+  Output: 1
+  FadeSpeedUp: 0.12
+  FadeSpeedDown: 0.2

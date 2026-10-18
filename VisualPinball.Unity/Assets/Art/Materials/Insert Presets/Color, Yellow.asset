@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d9e463216c5c46dd88402d4e2ed772c5, type: 3}
+  m_Name: Color, Yellow
+  m_EditorClassIdentifier: VisualPinball.Unity::VisualPinball.Unity.InsertColorPreset
+  ColorName: Yellow
+  Order: 4
+  Swatch: {r: 0.894117653, g: 0.8873156, b: 0, a: 1}
+  Tint: {r: 0.894117653, g: 0.8873156, b: 0, a: 1}
+  CavityColor: {r: 0.9, g: 0.9, b: 0.9, a: 1}
+  LampEmission: {r: 766.9961, g: 759.4387, b: 188.737259, a: 1}
+  MaxBrightness: 1.11
+  HazeColor: {r: 0.460916281, g: 0.422958523, b: 0, a: 1}
+  CoverTint: {r: 0.9019608, g: 0.61300504, b: 0.019607838, a: 1}
