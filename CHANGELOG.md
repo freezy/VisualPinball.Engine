@@ -191,6 +191,7 @@ Built with Unity 6.5
 
 ### Fixed
 
+- Packaged tables preserve the drop target's visual animation, its emitter and animation curves, and event-driven rotations such as the Terminator 2 cannon.
 - Insert Light fades advance once per frame instead of once per lamp event.
 - Packages saved before lamp mappings stored their device's type keep their lamp links.
 - A light's extra bulbs stay off until driven, instead of lighting the unused bulbs of other inserts sharing the material.

@@ -555,6 +555,11 @@ namespace VisualPinball.Unity
 			}
 			var itemData = ItemPackable.Unpack(itemFile.GetData());
 			itemData.ApplyRuntime(gameObject);
+			// The table node can itself carry an ItemPackable that reactivates it, which would run
+			// Awake and OnEnable of components added later, before their data is restored.
+			if (gameObject == _table) {
+				_table.SetActive(false);
+			}
 		}
 
 		private static Component AddPackageComponent(GameObject gameObject, Type type)

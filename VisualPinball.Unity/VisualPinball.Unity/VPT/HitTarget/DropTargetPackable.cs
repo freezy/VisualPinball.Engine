@@ -16,6 +16,8 @@
 
 // ReSharper disable MemberCanBePrivate.Global
 
+using UnityEngine;
+
 namespace VisualPinball.Unity
 {
 	public struct DropTargetPackable
@@ -85,6 +87,64 @@ namespace VisualPinball.Unity
 			comp.PhysicsMaterial = files.GetAsset<PhysicsMaterialAsset>(data.PhysicalMaterial.AssetRef);
 			comp.FrontColliderMesh = files.GetColliderMesh(data.FrontColliderMeshGuid, 0);
 			comp.BackColliderMesh = files.GetColliderMesh(data.BackColliderMeshGuid, 1);
+		}
+	}
+
+	public struct DropTargetVisualAnimationPackable
+	{
+		public float RotationAngle;
+		public float RotationDuration;
+		public AnimationCurve RotationAnimationCurve;
+		public float DropDistance;
+		public float DropDelay;
+		public float DropDuration;
+		public AnimationCurve DropAnimationCurve;
+		public float PullUpDuration;
+		public AnimationCurve PullUpAnimationCurve;
+
+		public static byte[] Pack(DropTargetAnimationComponent comp)
+		{
+			return PackageApi.Packer.Pack(new DropTargetVisualAnimationPackable {
+				RotationAngle = comp.RotationAngle,
+				RotationDuration = comp.RotationDuration,
+				RotationAnimationCurve = comp.RotationAnimationCurve,
+				DropDistance = comp.DropDistance,
+				DropDelay = comp.DropDelay,
+				DropDuration = comp.DropDuration,
+				DropAnimationCurve = comp.DropAnimationCurve,
+				PullUpDuration = comp.PullUpDuration,
+				PullUpAnimationCurve = comp.PullUpAnimationCurve,
+			});
+		}
+
+		public static void Unpack(byte[] bytes, DropTargetAnimationComponent comp)
+		{
+			var data = PackageApi.Packer.Unpack<DropTargetVisualAnimationPackable>(bytes);
+			comp.RotationAngle = data.RotationAngle;
+			comp.RotationDuration = data.RotationDuration;
+			comp.RotationAnimationCurve = data.RotationAnimationCurve;
+			comp.DropDistance = data.DropDistance;
+			comp.DropDelay = data.DropDelay;
+			comp.DropDuration = data.DropDuration;
+			comp.DropAnimationCurve = data.DropAnimationCurve;
+			comp.PullUpDuration = data.PullUpDuration;
+			comp.PullUpAnimationCurve = data.PullUpAnimationCurve;
+		}
+	}
+
+	public struct DropTargetVisualAnimationReferencesPackable
+	{
+		public ReferencePackable EmitterRef;
+
+		public static byte[] Pack(DropTargetAnimationComponent comp, PackagedRefs refs)
+			=> PackageApi.Packer.Pack(new DropTargetVisualAnimationReferencesPackable {
+				EmitterRef = refs.PackReference(comp._emitter),
+			});
+
+		public static void Unpack(byte[] bytes, DropTargetAnimationComponent comp, PackagedRefs refs)
+		{
+			var data = PackageApi.Packer.Unpack<DropTargetVisualAnimationReferencesPackable>(bytes);
+			comp._emitter = refs.Resolve<MonoBehaviour, IAnimationValueEmitter<bool>>(data.EmitterRef);
 		}
 	}
 
