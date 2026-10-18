@@ -151,11 +151,6 @@ namespace VisualPinball.Plugins
 		/// </summary>
 		public IReadOnlyCollection<IPlayerPluginFactory> Factories => _factories.Values;
 		/// <summary>
-		/// True from the end of <see cref="PrepareAndStartAsync"/> until the game is stopped by <see cref="StopGameAsync"/>,
-		/// <see cref="EmergencyStop"/> or the next start. It is also true when some or all plugins failed to start; check
-		/// <see cref="Statuses"/> for individual plugins.
-		/// </summary>
-		/// <summary>
 		/// The plugins of the current game as the Player's pause menu shows them: the running ones with what they
 		/// write as <see cref="IPluginStatusSource"/>, and the ones that should run but don't (starting, blocked,
 		/// faulted, unresponsive) with why. Disabled and unsupported plugins are left out, and so is a running one
@@ -170,8 +165,10 @@ namespace VisualPinball.Plugins
 				var status = _statuses[factory.Descriptor.Id];
 				switch (status.State) {
 					case PluginState.Running:
-						var instance = _startOrder.FirstOrDefault(entry => entry.Factory == factory);
-						if (instance?.Plugin is not IPluginStatusSource source) {
+						// an emergency stop disposes the plugins and leaves their state alone: they have nothing to say
+						var instance = _startOrder.FirstOrDefault(entry => entry.Factory == factory && !entry.Cleaned);
+						if (instance == null) break;
+						if (instance.Plugin is not IPluginStatusSource source) {
 							reports.Add(new PluginStatusReport(factory.Descriptor, status.State, "", Array.Empty<KeyValuePair<string, string>>()));
 							break;
 						}
@@ -194,6 +191,11 @@ namespace VisualPinball.Plugins
 			}
 			return reports;
 		}
+		/// <summary>
+		/// True from the end of <see cref="PrepareAndStartAsync"/> until the game is stopped by <see cref="StopGameAsync"/>,
+		/// <see cref="EmergencyStop"/> or the next start. It is also true when some or all plugins failed to start; check
+		/// <see cref="Statuses"/> for individual plugins.
+		/// </summary>
 		public bool IsRunning => _running;
 		/// <summary>
 		/// True while a lifecycle operation holds the host's gate: starting or stopping a game, committing settings, or cleaning up
