@@ -111,7 +111,7 @@ namespace VisualPinball.Unity.Editor
 					if (insert != null) {
 						var blenderError = InsertBaker.Probe()?.Error;
 						using (new EditorGUI.DisabledScope(InsertBaker.Baking != null || InsertBaker.IsReadOnly(insert.Bake) || EditorApplication.isPlayingOrWillChangePlaymode || Shader.Find(InsertBaker.HybridShaderName) == null || blenderError != null || insert.Error != null)) {
-							if (GUILayout.Button(new GUIContent("Bake Hybrid and Use Material", "Bakes optical maps and replaces the current body material with an HDRP hybrid material. The previous material stays on disk."))) {
+							if (GUILayout.Button(new GUIContent("Bake Hybrid and Use Material", "Bakes optical maps and replaces the current body material with a hybrid material. The previous material stays on disk."))) {
 								InsertBaker.Bake(insert, true);
 							}
 						}

@@ -8,6 +8,8 @@ description: Add a transparent top, tune its plastic, haze and reflections, and 
 
 The body supplies the molded interior and its optical appearance. A **clear cover** closes the opening at the rim with a flat top, adding its own reflections, haze, and surface detail. It is optional and independent of the body bake, so you can add or tune it without baking again.
 
+The Cover shader supports HDRP and URP with the same material and runtime lamp controls. URP renders reflections, haze, lamp tint, and playfield-normal detail with specular highlights preserved over the transparent surface. For slab refraction and transmission tint, enable **Opaque Texture** and **Depth Texture** on the URP asset or camera, set the renderer's **Depth Texture Mode** to **After Opaques** or **Force Prepass**, and use **None** for opaque-texture downsampling to retain the baked detail. The shader bends the opaque background through the slab and attenuates it by the plastic's tint and thickness. It cannot refract transparent objects or objects outside the camera view. A camera without both buffers before transparent rendering, or an overlay camera, renders the cover's haze and reflections over the body without slab refraction.
+
 The pictures show two clear inserts sharing one cover material, changing one value at a time: the upper insert is off, the lower one is lit. The middle picture is the value the clear cover has today.
 
 ## Adding a cover

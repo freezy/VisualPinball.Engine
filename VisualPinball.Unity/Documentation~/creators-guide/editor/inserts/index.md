@@ -24,7 +24,7 @@ Most standard inserts are in the Asset Library: place one in the desired color, 
 **Lamps:** the Insert Light component holds the lamps, lets you preview them, move them in the Scene view and map them in *Lamp Manager*, and can drive a real spill light for the ball and the objects above the insert. See [Lighting](lighting.md).
 
 > [!NOTE]
-> The mesh generator is part of VPE's main Unity package. The Insert Hybrid and Insert Cover shaders come with the HDRP package and need HDRP; they are not (yet) available in URP.
+> The mesh generator and the Insert Hybrid and Insert Cover shaders are part of VPE's main Unity package. Both shaders support HDRP and URP. Install the rendering package for the pipeline your project uses; see [Insert Cover](cover.md) for URP's refraction settings.
 
 ## Packaging
 

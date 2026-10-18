@@ -17,7 +17,7 @@ Baking turns the insert's generated detail into maps that the material can read 
 
 Check the *Blender* field. VPE looks for the newest Blender 5 under `Program Files\Blender Foundation` on Windows, in `/Applications/Blender.app` on macOS, and as `blender` on the `PATH` on Linux. Anywhere else, choose the executable with the `…` button. The path is an editor setting of this machine, shared by all inserts and projects, rather than something stored in each table. VPE starts Blender once to check its version and whether UVPackMaster is installed, and the *Normal Bake* section reports what it found, or why Blender can't be used. Blender then runs in the background, one insert at a time.
 
-Keep *Bake Hybrid Optics* enabled for the hybrid lamp material. Click *Bake*, then use *Use HDRP Hybrid Material* if the current body material needs replacing. *Bake Hybrid and Use Material* on the Insert Light component combines those actions. A new insert with an Insert Light component and no body material receives the hybrid material automatically on its first bake.
+Keep *Bake Hybrid Optics* enabled for the hybrid lamp material. Click *Bake*, then use *Use Hybrid Material* if the current body material needs replacing. *Bake Hybrid and Use Material* on the Insert Light component combines those actions. A new insert with an Insert Light component and no body material receives the hybrid material automatically on its first bake.
 
 <!-- Screenshot: baking-inspector. Normal Bake before the first bake and after a successful bake, including settings, progress, and the UV fill readout. -->
 
@@ -102,7 +102,7 @@ The renderer returns when a new bake fits. Play mode and builds render the avail
 | *Apply to all N inserts* / *Apply to prefab* | Shown instead of *Bake Again* when an instance's shape differs from its prefab in the project. Puts the shape into the prefab and bakes it, for every instance that keeps the prefab's shape. |
 | *Bake as new prefab* | Makes a new variant of the prefab with the instance's shape, makes the insert an instance of it, and bakes it. The prefab's other instances stay as they are. |
 | *Clear Bake* | Removes the bake assignment and restores the original unbaked body material. It leaves the baked assets on disk. |
-| *Use HDRP Hybrid Material* | Creates and assigns a hybrid material from a fitting bake with optical maps. The previous material asset remains available. |
+| *Use Hybrid Material* | Creates and assigns a hybrid material from a fitting bake with optical maps. The previous material asset remains available. |
 | *Copy Blender's Log* | Copies output after a bake failure for diagnosing Blender or device configuration problems. |
 | *Packer* / *UV fill* | Shows how the last successful bake laid out the atlas and how much of it is occupied. |
 

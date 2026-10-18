@@ -314,7 +314,7 @@ namespace VisualPinball.Unity.Editor
 				// A hybrid material always needs maps from this exact UV layout.
 				request.HybridOptics |= useHybridMaterial || insert.Bake != null && insert.Bake.Material != null && insert.Bake.Material.HasProperty("_OpticalNormalMap");
 				if (useHybridMaterial && hybridShader == null) {
-					throw new InvalidOperationException("The HDRP hybrid insert shader is not installed.");
+					throw new InvalidOperationException("The hybrid insert shader isn't available for the active render pipeline.");
 				}
 
 				var folder = Path.GetFullPath(Path.Combine("Library", "InsertBake", Guid.NewGuid().ToString("N")));
@@ -652,7 +652,7 @@ namespace VisualPinball.Unity.Editor
 			var shader = Shader.Find(HybridShaderName);
 			var data = insert.Bake;
 			if (shader == null || data == null || !insert.IsBakeFresh || data.OpticalNormalMap == null || data.OpticalResponseMap == null) {
-				throw new InvalidOperationException("Bake Hybrid Optics first, with the HDRP package installed.");
+				throw new InvalidOperationException("Bake Hybrid Optics first, with VPE's HDRP or URP package installed.");
 			}
 			if (IsReadOnly(data)) {
 				throw new InvalidOperationException($"This bake belongs to {ReadOnlyReason(data)} and cannot be written to. Fork it to the project first.");

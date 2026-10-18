@@ -1191,7 +1191,7 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 			using (new EditorGUI.DisabledScope(!insert.IsBakeFresh || InsertBaker.IsReadOnly(insert.Bake) || InsertBaker.Baking != null || EditorApplication.isPlaying || Shader.Find(InsertBaker.HybridShaderName) == null)) {
-				if (GUILayout.Button(new GUIContent("Use HDRP Hybrid Material", "Creates a hybrid material with the baked optical maps and puts it on the insert. The previous material stays on disk."))) {
+				if (GUILayout.Button(new GUIContent("Use Hybrid Material", "Creates a hybrid material with the baked optical maps and puts it on the insert. The previous material stays on disk."))) {
 					InsertBaker.UseHybridMaterial(insert);
 				}
 			}
@@ -1258,7 +1258,7 @@ namespace VisualPinball.Unity.Editor
 			if (lockedBody) {
 				EditorGUILayout.HelpBox("The body material can't be changed, so no look can be linked to it. Edit the insert in the project first, at the top.", MessageType.None);
 			} else if (styled == 0) {
-				EditorGUILayout.HelpBox("A look is how the insert is moulded and behaves optically: every numeric setting of the hybrid body material, but not its colours and Max Brightness, which are the Color's, nor the bulb, which is the Lamp's. Bake the insert and click Use HDRP Hybrid Material first.", MessageType.None);
+				EditorGUILayout.HelpBox("A look is how the insert is moulded and behaves optically: every numeric setting of the hybrid body material, but not its colours and Max Brightness, which are the Color's, nor the bulb, which is the Lamp's. Bake the insert and click Use Hybrid Material first.", MessageType.None);
 			} else if (followed.Length == 1 && followed[0] != null) {
 				var edited = bodies.Sum(InsertMaterialPresets.Edited);
 				EditorGUILayout.HelpBox(edited == 0
@@ -1399,7 +1399,7 @@ namespace VisualPinball.Unity.Editor
 			}
 			var shader = Shader.Find("Pinball/Insert Cover");
 			if (shader == null) {
-				throw new System.InvalidOperationException("The HDRP insert cover shader is not installed.");
+				throw new System.InvalidOperationException("The insert cover shader isn't available for the active render pipeline.");
 			}
 			// Where the insert's other materials go, named after it like them.
 			var folder = InsertBaker.MaterialFolder(insert);
