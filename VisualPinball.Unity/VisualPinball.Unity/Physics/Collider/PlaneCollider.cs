@@ -73,29 +73,28 @@ namespace VisualPinball.Unity
 				return -1.0f;
 			}
 
-			if (math.abs(bnv) <= PhysicsConstants.ContactVel) {
-				if (math.abs(bnd) <= PhysicsConstants.PhysTouch) {
-					collEvent.IsContact = true;
-					collEvent.HitNormal = _normal;
-					collEvent.HitOrgNormalVelocity = bnv; // remember original normal velocity
-					collEvent.HitDistance = bnd;
-					
-					// HitTest runs in the Burst-compiled physics loop, so it can't log. A zero
-					// normal here would mean the playfield plane was created with one.
+			// A slow ball inside the touch layer is a contact. One embedded deeper used to be
+			// ignored ("large distance, small velocity") and could sink through the playfield: it
+			// collides now, so Collide pushes it out.
+			var isContact = false;
+			float hitTime;
+			if (bnd <= PhysicsConstants.PhysTouch) {
+				if (math.abs(bnv) <= PhysicsConstants.ContactVel && bnd >= -PhysicsConstants.PhysTouch) {
+					hitTime = 0;
+					isContact = true;
 
-					// hit time is ignored for contacts
-					return 0.0f;
+				} else if (bnd <= 0) {
+					hitTime = 0; // zero time for rigid fast bodies
+
+				} else {
+					hitTime = bnd / -bnv;
 				}
 
-				// large distance, small velocity -> no hit
-				return -1.0f;
-			}
+			} else if (math.abs(bnv) > PhysicsConstants.LowNormVel) { // not velocity low?
+				hitTime = bnd / -bnv; // rate ok for safe divide
 
-			var hitTime = bnd / -bnv;
-
-			// already penetrating? then collide immediately
-			if (hitTime < 0) {
-				hitTime = 0.0f;
+			} else {
+				return -1.0f; // wait for touching
 			}
 
 			// time is outside this frame ... no collision
@@ -103,8 +102,15 @@ namespace VisualPinball.Unity
 				return -1.0f;
 			}
 
+			// HitTest runs in the Burst-compiled physics loop, so it can't log. A zero
+			// normal here would mean the playfield plane was created with one.
 			collEvent.HitNormal = _normal;
 			collEvent.HitDistance = bnd; // actual contact distance
+
+			collEvent.IsContact = isContact;
+			if (isContact) {
+				collEvent.HitOrgNormalVelocity = bnv; // remember original normal velocity
+			}
 
 			return hitTime;
 		}
