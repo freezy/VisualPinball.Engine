@@ -289,7 +289,7 @@ namespace VisualPinball.Unity
 					// displacement, so the hit normal can't split its response into normal and
 					// friction parts: passing it on would turn its normal impulse into slip.
 					if (colliderType != ColliderType.SpringHinge) {
-						PassOnFriction(ref _contacts, i, ball.Velocity - velocityBefore,
+						PassOn(ref _contacts, i, ball.Velocity - velocityBefore,
 							ball.AngularMomentum - angularMomentumBefore);
 					}
 				}
@@ -332,12 +332,14 @@ namespace VisualPinball.Unity
 
 		private void PrepareContacts(ref PhysicsState state)
 		{
+			SortBallContactsFirst(ref _contacts);
 			for (var i = 0; i < _contacts.Length; i++) {
 				ref var contact = ref _contacts.GetElementAsRef(i);
 				ref var ball = ref state.Balls.GetValueByRef(contact.BallId);
 				contact.FrictionVelocity = ball.Velocity;
 				contact.FrictionAngularMomentum = ball.AngularMomentum;
 				contact.FrictionAcceleration = state.Env.Gravity + ball.ExternalAcceleration;
+				contact.PriorContactVelocity = float3.zero;
 				contact.IsDuplicate = false;
 			}
 
@@ -383,17 +385,21 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
-		/// Friction removes the full slip at once, so every later contact of the same ball
-		/// must see what the friction of this one did, or two contacts sharing the slip
-		/// (the wires of a wire ramp) would each remove all of it. Only the friction part is
-		/// passed on: the normal solve of a contact is not slip.
+		/// Passes what a resolved contact did to its ball on to the later contacts of the same
+		/// ball. Friction removes the full slip at once, so they must see what the friction of
+		/// this one did, or two contacts sharing the slip (the wires of a wire ramp) would each
+		/// remove all of it; only the friction part counts, the normal solve of a contact is
+		/// not slip. Static contacts also cancel the velocity change of the contacts before
+		/// them along their normal: all of it for a ball/ball contact, the friction part for a
+		/// static one.
 		/// </summary>
-		internal static void PassOnFriction(ref NativeList<ContactBufferElement> contacts, int contactIndex,
+		internal static void PassOn(ref NativeList<ContactBufferElement> contacts, int contactIndex,
 			float3 deltaVelocity, float3 deltaAngularMomentum)
 		{
 			var contact = contacts[contactIndex];
 			var normal = math.normalizesafe(contact.CollEvent.HitNormal);
 			var frictionVelocity = deltaVelocity - math.dot(deltaVelocity, normal) * normal;
+			var priorVelocity = IsBallContact(in contact) ? deltaVelocity : frictionVelocity;
 			for (var j = contactIndex + 1; j < contacts.Length; j++) {
 				ref var later = ref contacts.GetElementAsRef(j);
 				if (later.IsDuplicate || later.BallId != contact.BallId) {
@@ -401,6 +407,31 @@ namespace VisualPinball.Unity
 				}
 				later.FrictionVelocity += frictionVelocity;
 				later.FrictionAngularMomentum += deltaAngularMomentum;
+				later.PriorContactVelocity += priorVelocity;
+			}
+		}
+
+		private static bool IsBallContact(in ContactBufferElement contact)
+			=> contact.CollEvent.ColliderId < 0 && contact.CollEvent.BallId != 0;
+
+		/// <summary>
+		/// Moves the ball/ball contacts in front of the others, keeping the order otherwise.
+		/// They are resolved first: their friction, stopping the spin of a ball pressed against
+		/// another ball, changes the ball's velocity on its other supports, which the static
+		/// contacts resolved after them cancel.
+		/// </summary>
+		internal static void SortBallContactsFirst(ref NativeList<ContactBufferElement> contacts)
+		{
+			var ballContacts = 0;
+			for (var i = 0; i < contacts.Length; i++) {
+				if (!IsBallContact(contacts[i])) {
+					continue;
+				}
+				var ballContact = contacts[i];
+				for (var j = i; j > ballContacts; j--) {
+					contacts[j] = contacts[j - 1];
+				}
+				contacts[ballContacts++] = ballContact;
 			}
 		}
 

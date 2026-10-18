@@ -154,11 +154,12 @@ namespace VisualPinball.Unity.Test
 				contacts.Add(new ContactBufferElement(7, new CollisionEventData { HitNormal = normal }));
 				contacts.Add(new ContactBufferElement(8, new CollisionEventData { HitNormal = normal }));
 
-				PhysicsCycle.PassOnFriction(ref contacts, 0, new float3(1f, 2f, 3f), new float3(4f, 5f, 6f));
+				PhysicsCycle.PassOn(ref contacts, 0, new float3(1f, 2f, 3f), new float3(4f, 5f, 6f));
 
 				AssertFloat3(contacts[0].FrictionVelocity, float3.zero);
 				AssertFloat3(contacts[1].FrictionVelocity, new float3(1f, 2f, 0f), "the normal part is not slip");
 				AssertFloat3(contacts[1].FrictionAngularMomentum, new float3(4f, 5f, 6f));
+				AssertFloat3(contacts[1].PriorContactVelocity, new float3(1f, 2f, 0f), "a static contact passes on its friction");
 				AssertFloat3(contacts[2].FrictionVelocity, float3.zero, "another ball");
 			} finally {
 				contacts.Dispose();
@@ -270,6 +271,231 @@ namespace VisualPinball.Unity.Test
 
 			Assert.That(hitTime, Is.EqualTo(1f).Within(1e-4f));
 			AssertFloat3(collEvent.HitNormal, new float3(-1f, 0f, 0f), "from the hit ball towards the moving one");
+		}
+
+		[Test]
+		public void SlowlyTouchingBallPairIsAContact()
+		{
+			var still = new BallState { Id = 1, Mass = 1f, Radius = 25f, Position = new float3(50.02f, 0f, 25f) }; // 0.02 apart
+			var moving = new BallState { Id = 2, Mass = 1f, Radius = 25f, Position = new float3(0f, 0f, 25f), Velocity = new float3(0.05f, 0f, 0f) };
+			var collEvent = new CollisionEventData();
+
+			Assert.That(BallCollider.HitTest(ref collEvent, ref moving, in still, 0.1f), Is.Zero);
+			Assert.That(collEvent.IsContact, Is.True);
+			Assert.That(collEvent.HitOrgNormalVelocity, Is.EqualTo(-0.05f).Within(Tolerance));
+			Assert.That(collEvent.HitDistance, Is.EqualTo(0.02f).Within(1e-4f));
+		}
+
+		[Test]
+		public void OnlyAPathologicalBallOverlapIsACollision()
+		{
+			var moving = new BallState { Id = 2, Mass = 1f, Radius = 25f, Position = new float3(0f, 0f, 25f), Velocity = new float3(0.05f, 0f, 0f) };
+
+			// the resting band: the contact drains the overlap
+			var still = new BallState { Id = 1, Mass = 1f, Radius = 25f, Position = new float3(49.94f, 0f, 25f) };
+			var collEvent = new CollisionEventData();
+			Assert.That(BallCollider.HitTest(ref collEvent, ref moving, in still, 0.1f), Is.Zero);
+			Assert.That(collEvent.IsContact, Is.True);
+
+			// deep past it: a collision, so the displacement correction digs the balls out
+			still.Position = new float3(49.4f, 0f, 25f);
+			collEvent = new CollisionEventData();
+			Assert.That(BallCollider.HitTest(ref collEvent, ref moving, in still, 0.1f), Is.Zero);
+			Assert.That(collEvent.IsContact, Is.False);
+		}
+
+		[Test]
+		public void BallContactSupportsTheBallOnTop()
+		{
+			var gravity = new float3(0f, 0f, -PhysicsConstants.GravityConst);
+			var top = new BallState { Id = 1, Mass = 1f, Radius = 25f, Velocity = gravity * PhysicsConstants.PhysFactor };
+			var bottom = new BallState { Id = 2, Mass = 1f, Radius = 25f };
+			var contact = new CollisionEventData { HitNormal = new float3(0f, 0f, 1f) };
+
+			HandleBallContact(ref top, in bottom, in contact, in gravity);
+
+			Assert.That(top.Velocity.z, Is.EqualTo(0f).Within(Tolerance), "the step of gravity is cancelled");
+		}
+
+		[Test]
+		public void TwoFreeBallsInSlowContactDoNotCancelTheirApproachTwice()
+		{
+			var gravity = new float3(0f, 0f, -PhysicsConstants.GravityConst); // flat: none along the contact normal
+			var a = new BallState { Id = 1, Mass = 1f, Radius = 25f, Velocity = new float3(0.025f, 0f, 0f) };
+			var b = new BallState { Id = 2, Mass = 1f, Radius = 25f, Velocity = new float3(-0.025f, 0f, 0f) };
+			var aAgainstB = new CollisionEventData { HitNormal = new float3(-1f, 0f, 0f) }; // from b towards a
+			var bAgainstA = new CollisionEventData { HitNormal = new float3(1f, 0f, 0f) };
+
+			HandleBallContact(ref a, in b, in aAgainstB, in gravity);
+			HandleBallContact(ref b, in a, in bAgainstA, in gravity);
+
+			Assert.That(a.Velocity.x - b.Velocity.x, Is.EqualTo(0f).Within(Tolerance), "no separation");
+			Assert.That(a.Velocity.x + b.Velocity.x, Is.EqualTo(0f).Within(Tolerance), "momentum conserved");
+		}
+
+		[Test]
+		public void FreeBallAgainstAFrozenBallTakesTheWholeResponse()
+		{
+			var gravity = new float3(0f, 0f, -PhysicsConstants.GravityConst);
+			var a = new BallState { Id = 1, Mass = 1f, Radius = 25f, Velocity = new float3(0.05f, 0f, 0f) };
+			var locked = new BallState { Id = 2, Mass = 1f, Radius = 25f, IsFrozen = true };
+			var contact = new CollisionEventData { HitNormal = new float3(-1f, 0f, 0f) };
+
+			HandleBallContact(ref a, in locked, in contact, in gravity);
+
+			Assert.That(a.Velocity.x, Is.EqualTo(0f).Within(Tolerance));
+		}
+
+		[Test]
+		public void TwoBallsRollingSideBySideAreNotBrakedByTheirContact()
+		{
+			var gravity = new float3(0f, 0f, -PhysicsConstants.GravityConst);
+			const float speed = 10f;
+			var a = new BallState { Id = 1, Mass = 1f, Radius = 25f, Velocity = new float3(0.025f, speed, 0f) };
+			var b = new BallState { Id = 2, Mass = 1f, Radius = 25f, Velocity = new float3(-0.025f, speed, 0f) };
+			// rolling on the playfield along +y: their surfaces move together where they touch
+			a.AngularMomentum = new float3(-speed / a.Radius * a.Inertia, 0f, 0f);
+			b.AngularMomentum = a.AngularMomentum;
+			var aAgainstB = new CollisionEventData { HitNormal = new float3(-1f, 0f, 0f) };
+			var bAgainstA = new CollisionEventData { HitNormal = new float3(1f, 0f, 0f) };
+
+			HandleBallContact(ref a, in b, in aAgainstB, in gravity);
+			HandleBallContact(ref b, in a, in bAgainstA, in gravity);
+
+			Assert.That(a.Velocity.y, Is.EqualTo(speed).Within(1e-5f), "a static ball would see a slip of 10 and brake");
+			Assert.That(b.Velocity.y, Is.EqualTo(speed).Within(1e-5f));
+			Assert.That(a.AngularMomentum.x, Is.EqualTo(-speed / a.Radius * a.Inertia).Within(1e-3f));
+		}
+
+		[Test]
+		public void BallContactPassesAnImpactOn()
+		{
+			// a ball hit into a resting pair earlier in the cycle: the contact cancels a contact-scale
+			// approach only, the rest reaches the other ball through their collision (Newton's cradle)
+			var gravity = new float3(0f, 0f, -PhysicsConstants.GravityConst);
+			var a = new BallState { Id = 1, Mass = 1f, Radius = 25f, Velocity = new float3(2f, 0f, 0f) };
+			var b = new BallState { Id = 2, Mass = 1f, Radius = 25f };
+			var contact = new CollisionEventData { HitNormal = new float3(-1f, 0f, 0f) };
+
+			HandleBallContact(ref a, in b, in contact, in gravity);
+
+			Assert.That(a.Velocity.x, Is.EqualTo(2f - PhysicsConstants.ContactVel).Within(Tolerance));
+		}
+
+		[Test]
+		public void StaticContactCancelsTheLiftOfEarlierContacts()
+		{
+			// the friction of a ball/ball or wall contact resolved before lifted the ball by 0.05
+			var ball = new BallState { Mass = 1f, Radius = 25f, Velocity = new float3(0f, 0f, 0.05f) };
+			var floor = new CollisionEventData { ColliderId = 1, HitNormal = new float3(0f, 0f, 1f) };
+			var priorContactVelocity = new float3(0f, 0f, 0.05f);
+			var frictionVelocity = ball.Velocity;
+			var frictionAngularMomentum = ball.AngularMomentum;
+
+			BallCollider.HandleStaticContact(ref ball, in floor, 0f, 0.1f, in DownGravity, float3.zero,
+				in DownGravity, in frictionVelocity, in frictionAngularMomentum, true, in priorContactVelocity);
+
+			Assert.That(ball.Velocity.z, Is.EqualTo(0.1f).Within(Tolerance), "only the gravity compensation, no lift");
+		}
+
+		[Test]
+		public void BallContactsPassOnAllOfTheirVelocityChange()
+		{
+			var contacts = new NativeList<ContactBufferElement>(2, Allocator.Temp);
+			try {
+				var ballContact = new CollisionEventData { HitNormal = new float3(1f, 0f, 0f) };
+				ballContact.SetBallItem(9);
+				contacts.Add(new ContactBufferElement(7, ballContact));
+				contacts.Add(new ContactBufferElement(7, new CollisionEventData { ColliderId = 1, HitNormal = new float3(0f, 0f, 1f) }));
+
+				PhysicsCycle.PassOn(ref contacts, 0, new float3(1f, 0f, 2f), float3.zero);
+
+				AssertFloat3(contacts[1].PriorContactVelocity, new float3(1f, 0f, 2f));
+				AssertFloat3(contacts[1].FrictionVelocity, new float3(0f, 0f, 2f), "friction still ignores the normal solve");
+			} finally {
+				contacts.Dispose();
+			}
+		}
+
+		[Test]
+		public void BallContactsAreResolvedFirst()
+		{
+			var contacts = new NativeList<ContactBufferElement>(4, Allocator.Temp);
+			try {
+				var ballContact = new CollisionEventData();
+				ballContact.SetBallItem(9);
+				contacts.Add(new ContactBufferElement(1, new CollisionEventData { ColliderId = 10 }));
+				contacts.Add(new ContactBufferElement(2, ballContact));
+				contacts.Add(new ContactBufferElement(3, new CollisionEventData { ColliderId = 11 }));
+				contacts.Add(new ContactBufferElement(4, ballContact));
+
+				PhysicsCycle.SortBallContactsFirst(ref contacts);
+
+				Assert.That(new[] { contacts[0].BallId, contacts[1].BallId, contacts[2].BallId, contacts[3].BallId },
+					Is.EqualTo(new[] { 2, 4, 1, 3 }));
+			} finally {
+				contacts.Dispose();
+			}
+		}
+
+		[Test]
+		public void SlowBallImpactIsInelasticAndKeepsPositions()
+		{
+			// a resting-scale impact on a shallow overlap: no restitution bounce and no displacement
+			// pop, both kept the balls of a resting stack bouncing forever
+			var hit = new BallState { Id = 1, Mass = 1f, Radius = 25f, Position = new float3(0f, 0f, 25f) };
+			var moving = new BallState { Id = 2, Mass = 1f, Radius = 25f, Position = new float3(49.9f, 0f, 25f), Velocity = new float3(-0.2f, 0f, 0f) };
+			var hitEvent = new CollisionEventData { HitNormal = new float3(-1f, 0f, 0f), HitDistance = -0.1f };
+			var movingEvent = new CollisionEventData { HitNormal = new float3(1f, 0f, 0f), HitDistance = -0.1f };
+
+			Assert.That(BallCollider.Collide(ref hit, ref moving, in hitEvent, in movingEvent, false), Is.True);
+
+			Assert.That(hit.Velocity.x, Is.EqualTo(-0.1f).Within(Tolerance));
+			Assert.That(moving.Velocity.x, Is.EqualTo(-0.1f).Within(Tolerance));
+			Assert.That(hit.Position.x, Is.EqualTo(0f));
+			Assert.That(moving.Position.x, Is.EqualTo(49.9f));
+		}
+
+		[Test]
+		public void BallImpactKeepsItsRestitution()
+		{
+			var hit = new BallState { Id = 1, Mass = 1f, Radius = 25f, Position = new float3(0f, 0f, 25f) };
+			var moving = new BallState { Id = 2, Mass = 1f, Radius = 25f, Position = new float3(50f, 0f, 25f), Velocity = new float3(-2f, 0f, 0f) };
+			var hitEvent = new CollisionEventData { HitNormal = new float3(-1f, 0f, 0f) };
+			var movingEvent = new CollisionEventData { HitNormal = new float3(1f, 0f, 0f) };
+
+			BallCollider.Collide(ref hit, ref moving, in hitEvent, in movingEvent, false);
+
+			Assert.That(hit.Velocity.x, Is.EqualTo(-1.8f).Within(Tolerance));
+			Assert.That(moving.Velocity.x, Is.EqualTo(-0.2f).Within(Tolerance));
+		}
+
+		[Test]
+		public void PackedBallsGetNoFrictionFromEachOthersNormalResponse()
+		{
+			// four balls in a square, moving together: A (0, 0), B (50, 0), C (50, 50), D (0, 50).
+			// The earlier contacts cancel the y motion of B and A; at A against B nothing slips.
+			var a = new BallState { Id = 1, Mass = 1f, Radius = 25f, Velocity = new float3(0.05f, 0.05f, 0f) };
+			var b = a;
+			b.Id = 2;
+			var c = a;
+			c.Id = 3;
+			var d = a;
+			d.Id = 4;
+			var noLoad = float3.zero;
+
+			HandleBallContact(ref b, in c, new CollisionEventData { HitNormal = new float3(0f, -1f, 0f) }, in noLoad);
+			HandleBallContact(ref b, in a, new CollisionEventData { HitNormal = new float3(1f, 0f, 0f) }, in noLoad);
+			HandleBallContact(ref a, in d, new CollisionEventData { HitNormal = new float3(0f, -1f, 0f) }, in noLoad);
+			HandleBallContact(ref a, in b, new CollisionEventData { HitNormal = new float3(-1f, 0f, 0f) }, in noLoad);
+
+			Assert.That(a.Velocity.y, Is.EqualTo(0f).Within(Tolerance), "no sideways friction");
+			Assert.That(a.AngularMomentum.z, Is.EqualTo(0f).Within(Tolerance), "no spin");
+		}
+
+		private static void HandleBallContact(ref BallState ball, in BallState other, in CollisionEventData contact, in float3 gravity)
+		{
+			BallCollider.HandleBallContact(ref ball, in other, in contact, PhysicsConstants.PhysFactor, in gravity, in gravity);
 		}
 
 		#endregion
