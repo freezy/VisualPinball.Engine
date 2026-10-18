@@ -221,6 +221,41 @@ namespace VisualPinball.Unity.Test
 
 		#endregion
 
+		#region Flipper inertia
+
+		[TestCase(21.5f, 13f, 130f)] // VPX defaults
+		[TestCase(30f, 15f, 80f)]
+		[TestCase(15f, 15f, 100f)]
+		[TestCase(40f, 8f, 60f)]
+		public void FlipperInertiaShapeMatchesTheConvexHullOfItsCircles(float baseRadius, float endRadius, float flipperRadius)
+		{
+			// numerically integrate r^2 over the hull of the two circles: a point is inside if it is
+			// within the interpolated circle at some point between the two centers
+			const float cell = 0.25f;
+			double area = 0, moment = 0;
+			for (var x = -baseRadius; x <= flipperRadius + endRadius; x += cell) {
+				for (var y = -baseRadius; y <= baseRadius; y += cell) {
+					var inside = false;
+					for (var i = 0; i <= 200 && !inside; i++) {
+						var t = i / 200f;
+						var cx = t * flipperRadius;
+						var r = math.lerp(baseRadius, endRadius, t);
+						inside = (x - cx) * (x - cx) + y * y <= r * r;
+					}
+					if (inside) {
+						area += cell * cell;
+						moment += cell * cell * (x * x + y * y);
+					}
+				}
+			}
+
+			var shape = FlipperComponent.InertiaShape(baseRadius, endRadius, flipperRadius);
+
+			Assert.That(shape, Is.EqualTo((float)(moment / area)).Within(1).Percent);
+		}
+
+		#endregion
+
 		private static float TangentialSlipSpeed(in BallState ball, in float3 hitNormal)
 		{
 			var contactOffset = -ball.Radius * hitNormal;

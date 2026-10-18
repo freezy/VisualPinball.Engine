@@ -21,6 +21,11 @@ namespace VisualPinball.Unity
 	internal struct FlipperStaticData
 	{
 		public float Inertia;
+		/// <summary>
+		/// Multiplier of the coil torque, so the shape-accurate <see cref="Inertia"/> keeps
+		/// the swing tables were tuned on with the rod approximation.
+		/// </summary>
+		public float TorqueScale;
 		public float AngleStart;
 		public float Strength;
 		public float ReturnRatio;
