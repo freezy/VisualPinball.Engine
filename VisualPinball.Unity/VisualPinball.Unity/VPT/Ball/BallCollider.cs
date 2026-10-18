@@ -217,16 +217,22 @@ namespace VisualPinball.Unity
 				// hit test velocity: the normal impulses of the other static contacts stay out (two
 				// wires of a wire ramp), and so do collisions earlier in this cycle (an impact stays
 				// a collision).
-				var hitNormVel = collEvent.HitOrgNormalVelocity + math.dot(priorContactVelocity, collEvent.HitNormal);
+				var priorNormalVelocity = math.dot(priorContactVelocity, collEvent.HitNormal);
+				var hitNormVel = collEvent.HitOrgNormalVelocity + priorNormalVelocity;
 
-				// Normal force is always nonnegative. It is the velocity change that kills the
-				// original normal velocity and counteracts the external forces for this step,
-				// whatever the ball's mass (VPX scaled the load by the mass without dividing it
-				// back out, which threw balls heavier than 1 off their support).
-				var normalForce = math.max(0.0f, -(dot * dTime + hitNormVel));
+				// The velocity change that kills the original normal velocity and counteracts the
+				// external forces for this step, whatever the ball's mass (VPX scaled the load by the
+				// mass without dividing it back out, which threw balls heavier than 1 off their
+				// support). It never pulls the ball towards the surface, except to take back a lift
+				// of the earlier contacts: that can exceed one step of load on a short step, since
+				// friction removes the slip at once, whatever the step length.
+				var normalVelocityChange = math.max(-math.max(priorNormalVelocity, 0f), -(dot * dTime + hitNormVel));
 
 				// Add just enough to kill original normal velocity and counteract the external forces.
-				ball.Velocity += collEvent.HitNormal * normalForce;
+				ball.Velocity += collEvent.HitNormal * normalVelocityChange;
+
+				// the support this contact gives, the friction budget
+				var normalForce = math.max(0f, normalVelocityChange);
 
 				ApplyFriction(ref ball, collEvent.HitNormal, dTime, friction, normalForce, isSupportContact,
 					in frictionAcceleration, in colliderVelocity, in colliderVelocity, 0f, in frictionVelocity,
@@ -268,10 +274,12 @@ namespace VisualPinball.Unity
 			// contact-scale approach is cancelled (plus the step of the load a resting stack
 			// carries): a faster one comes from a collision earlier in this cycle, a ball hit
 			// into a resting pair, and must reach the other ball through their collision
-			// instead of being absorbed here (Newton's cradle).
+			// instead of being absorbed here (Newton's cradle). Nor is more than the pair's own
+			// approach (plus the load) cancelled: two balls moving together along the normal
+			// don't close in on each other, and VPX braked the trailing one against the other.
 			var acceleration = gravity + ball.ExternalAcceleration;
-			var maxCancel = PhysicsConstants.ContactVel
-			                + math.max(-math.dot(acceleration, normal), 0f) * PhysicsConstants.PhysFactor;
+			var load = math.max(-math.dot(acceleration, normal), 0f) * PhysicsConstants.PhysFactor;
+			var maxCancel = math.min(PhysicsConstants.ContactVel, math.max(approach, 0f)) + load;
 			var normalForce = math.max(0f, math.min(-math.dot(ball.Velocity, normal), maxCancel));
 			ball.Velocity += normal * normalForce;
 

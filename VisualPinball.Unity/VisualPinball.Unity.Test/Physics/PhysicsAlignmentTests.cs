@@ -156,7 +156,7 @@ namespace VisualPinball.Unity.Test
 				contacts.Add(new ContactBufferElement(7, new CollisionEventData { HitNormal = normal }));
 				contacts.Add(new ContactBufferElement(8, new CollisionEventData { HitNormal = normal }));
 
-				PhysicsCycle.PassOn(ref contacts, 0, new float3(1f, 2f, 3f), new float3(4f, 5f, 6f));
+				PhysicsCycle.PassOn(ref contacts, 0, new float3(1f, 2f, 3f), new float3(4f, 5f, 6f), true);
 
 				AssertFloat3(contacts[0].FrictionVelocity, float3.zero);
 				AssertFloat3(contacts[1].FrictionVelocity, new float3(1f, 2f, 0f), "the normal part is not slip");
@@ -410,7 +410,7 @@ namespace VisualPinball.Unity.Test
 				contacts.Add(new ContactBufferElement(7, ballContact));
 				contacts.Add(new ContactBufferElement(7, new CollisionEventData { ColliderId = 1, HitNormal = new float3(0f, 0f, 1f) }));
 
-				PhysicsCycle.PassOn(ref contacts, 0, new float3(1f, 0f, 2f), float3.zero);
+				PhysicsCycle.PassOn(ref contacts, 0, new float3(1f, 0f, 2f), float3.zero, true);
 
 				AssertFloat3(contacts[1].PriorContactVelocity, new float3(1f, 0f, 2f));
 				AssertFloat3(contacts[1].FrictionVelocity, new float3(0f, 0f, 2f), "friction still ignores the normal solve");
@@ -491,8 +491,100 @@ namespace VisualPinball.Unity.Test
 			HandleBallContact(ref a, in d, new CollisionEventData { HitNormal = new float3(0f, -1f, 0f) }, in noLoad);
 			HandleBallContact(ref a, in b, new CollisionEventData { HitNormal = new float3(-1f, 0f, 0f) }, in noLoad);
 
-			Assert.That(a.Velocity.y, Is.EqualTo(0f).Within(Tolerance), "no sideways friction");
+			AssertFloat3(a.Velocity, new float3(0.05f, 0.05f, 0f), "a group moving together is not braked");
+			AssertFloat3(b.Velocity, new float3(0.05f, 0.05f, 0f));
 			Assert.That(a.AngularMomentum.z, Is.EqualTo(0f).Within(Tolerance), "no spin");
+		}
+
+		[Test]
+		public void TouchingBallsMovingTogetherDoNotBrakeEachOther()
+		{
+			// a rolls behind b along +x, touching: no approach, so no response
+			var gravity = new float3(0f, 0f, -PhysicsConstants.GravityConst);
+			var a = new BallState { Id = 1, Mass = 1f, Radius = 25f, Velocity = new float3(1f, 0f, 0f) };
+			var b = new BallState { Id = 2, Mass = 1f, Radius = 25f, Velocity = new float3(1f, 0f, 0f) };
+
+			HandleBallContact(ref a, in b, new CollisionEventData { HitNormal = new float3(-1f, 0f, 0f) }, in gravity);
+			HandleBallContact(ref b, in a, new CollisionEventData { HitNormal = new float3(1f, 0f, 0f) }, in gravity);
+
+			Assert.That(a.Velocity.x, Is.EqualTo(1f).Within(Tolerance));
+			Assert.That(b.Velocity.x, Is.EqualTo(1f).Within(Tolerance));
+		}
+
+		[Test]
+		public void BallInAFallingStackIsStillSupported()
+		{
+			// both balls gained a step of gravity, before the floor contact: the top one is held by the
+			// bottom one for the load, as before
+			var gravity = new float3(0f, 0f, -PhysicsConstants.GravityConst);
+			var step = gravity * PhysicsConstants.PhysFactor;
+			var top = new BallState { Id = 1, Mass = 1f, Radius = 25f, Velocity = step };
+			var bottom = new BallState { Id = 2, Mass = 1f, Radius = 25f, Velocity = step };
+
+			HandleBallContact(ref top, in bottom, new CollisionEventData { HitNormal = new float3(0f, 0f, 1f) }, in gravity);
+
+			Assert.That(top.Velocity.z, Is.EqualTo(0f).Within(Tolerance));
+		}
+
+		[Test]
+		public void StaticContactTakesBackALiftLargerThanTheStepsLoad()
+		{
+			// a short step: the earlier lift of 0.05 is more than the 0.01 of gravity to compensate
+			var ball = new BallState { Mass = 1f, Radius = 25f, Velocity = new float3(0f, 0f, 0.05f) };
+			var floor = new CollisionEventData { ColliderId = 1, HitNormal = new float3(0f, 0f, 1f) };
+			var priorContactVelocity = new float3(0f, 0f, 0.05f);
+			var frictionVelocity = ball.Velocity;
+			var frictionAngularMomentum = ball.AngularMomentum;
+
+			BallCollider.HandleStaticContact(ref ball, in floor, 0f, 0.01f, in DownGravity, float3.zero,
+				in DownGravity, in frictionVelocity, in frictionAngularMomentum, true, in priorContactVelocity);
+
+			Assert.That(ball.Velocity.z, Is.EqualTo(0.01f).Within(Tolerance), "only the gravity compensation");
+		}
+
+		[Test]
+		public void TwoSupportsTakeBackALiftOnlyOnce()
+		{
+			// a ball on the two wires of a wire ramp, lifted by 0.05 by an earlier contact, on a short step
+			var normals = new[] { new float3(0.5f, 0f, math.sqrt(0.75f)), new float3(-0.5f, 0f, math.sqrt(0.75f)) };
+			var ball = new BallState { Mass = 1f, Radius = 25f, Velocity = new float3(0f, 0f, 0.05f) };
+			var contacts = new NativeList<ContactBufferElement>(2, Allocator.Temp);
+			try {
+				foreach (var normal in normals) {
+					var contact = new ContactBufferElement(7, new CollisionEventData { ColliderId = 1, HitNormal = normal });
+					contact.PriorContactVelocity = new float3(0f, 0f, 0.05f);
+					contacts.Add(contact);
+				}
+				for (var i = 0; i < contacts.Length; i++) {
+					var velocityBefore = ball.Velocity;
+					var frictionVelocity = ball.Velocity;
+					var frictionAngularMomentum = ball.AngularMomentum;
+					BallCollider.HandleStaticContact(ref ball, contacts[i].CollEvent, 0f, 0.01f, in DownGravity, float3.zero,
+						in DownGravity, in frictionVelocity, in frictionAngularMomentum, true, contacts[i].PriorContactVelocity);
+					PhysicsCycle.PassOn(ref contacts, i, ball.Velocity - velocityBefore, float3.zero, true);
+				}
+			} finally {
+				contacts.Dispose();
+			}
+
+			// without the lift each wire would give 0.01 * cos(30) along its normal, 0.015 up together
+			Assert.That(ball.Velocity.z, Is.GreaterThanOrEqualTo(0f), "the lift is not taken back twice, into the wires");
+			Assert.That(ball.Velocity.z, Is.LessThanOrEqualTo(0.015f + Tolerance), "no lift left");
+		}
+
+		[Test]
+		public void StaticContactNeverPullsABallItDidNotLiftIntoTheSurface()
+		{
+			// receding at hit time, nothing lifted it in this pass: no response at all
+			var ball = new BallState { Mass = 1f, Radius = 25f, Velocity = new float3(0f, 0f, 0.05f) };
+			var floor = new CollisionEventData { ColliderId = 1, HitNormal = new float3(0f, 0f, 1f), HitOrgNormalVelocity = 0.05f };
+			var frictionVelocity = ball.Velocity;
+			var frictionAngularMomentum = ball.AngularMomentum;
+
+			BallCollider.HandleStaticContact(ref ball, in floor, 0f, 0.01f, in DownGravity, float3.zero,
+				in DownGravity, in frictionVelocity, in frictionAngularMomentum, true, float3.zero);
+
+			Assert.That(ball.Velocity.z, Is.EqualTo(0.05f).Within(Tolerance));
 		}
 
 		private static void HandleBallContact(ref BallState ball, in BallState other, in CollisionEventData contact, in float3 gravity)

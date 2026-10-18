@@ -290,7 +290,7 @@ namespace VisualPinball.Unity
 					// friction parts: passing it on would turn its normal impulse into slip.
 					if (colliderType != ColliderType.SpringHinge) {
 						PassOn(ref _contacts, i, ball.Velocity - velocityBefore,
-							ball.AngularMomentum - angularMomentumBefore);
+							ball.AngularMomentum - angularMomentumBefore, colliderType != ColliderType.Flipper);
 					}
 				}
 				PerfMarkerContacts.End();
@@ -393,13 +393,19 @@ namespace VisualPinball.Unity
 		/// them along their normal: all of it for a ball/ball contact, the friction part for a
 		/// static one.
 		/// </summary>
+		/// <param name="passesTakeBack">Whether a negative normal change of a static contact is it
+		/// taking back the lift of the contacts before it (BallCollider.HandleStaticContact), which
+		/// the later contacts must not take back again. A flipper's isn't.</param>
 		internal static void PassOn(ref NativeList<ContactBufferElement> contacts, int contactIndex,
-			float3 deltaVelocity, float3 deltaAngularMomentum)
+			float3 deltaVelocity, float3 deltaAngularMomentum, bool passesTakeBack)
 		{
 			var contact = contacts[contactIndex];
 			var normal = math.normalizesafe(contact.CollEvent.HitNormal);
-			var frictionVelocity = deltaVelocity - math.dot(deltaVelocity, normal) * normal;
-			var priorVelocity = IsBallContact(in contact) ? deltaVelocity : frictionVelocity;
+			var normalVelocity = math.dot(deltaVelocity, normal);
+			var frictionVelocity = deltaVelocity - normalVelocity * normal;
+			var priorVelocity = IsBallContact(in contact)
+				? deltaVelocity
+				: frictionVelocity + (passesTakeBack ? math.min(normalVelocity, 0f) : 0f) * normal;
 			for (var j = contactIndex + 1; j < contacts.Length; j++) {
 				ref var later = ref contacts.GetElementAsRef(j);
 				if (later.IsDuplicate || later.BallId != contact.BallId) {
