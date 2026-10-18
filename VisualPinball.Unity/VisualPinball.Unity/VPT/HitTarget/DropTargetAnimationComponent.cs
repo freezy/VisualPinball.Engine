@@ -24,9 +24,9 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
-	//[PackAs("DropTargetAnimation")]
+	[PackAs("DropTargetVisualAnimation")]
 	[AddComponentMenu("Pinball/Animation/Drop Target Animation")]
-	public class DropTargetAnimationComponent : AnimationComponent<bool>//, TODO IPackable
+	public class DropTargetAnimationComponent : AnimationComponent<bool>, IPackable
 	{
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -226,17 +226,19 @@ namespace VisualPinball.Unity
 			transform.localPosition = pos;
 		}
 
-		// #region Packaging
-		//
-		// public byte[] Pack() => TriggerAnimationPackable.Pack(this);
-		//
-		// public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
-		//
-		// public void Unpack(byte[] bytes) => TriggerAnimationPackable.Unpack(bytes, this);
-		//
-		// public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
-		//
-		// #endregion
+		#region Packaging
+
+		public byte[] Pack() => DropTargetVisualAnimationPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files)
+			=> DropTargetVisualAnimationReferencesPackable.Pack(this, refs);
+
+		public void Unpack(byte[] bytes) => DropTargetVisualAnimationPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files)
+			=> DropTargetVisualAnimationReferencesPackable.Unpack(data, this, refs);
+
+		#endregion
 
 	}
 }

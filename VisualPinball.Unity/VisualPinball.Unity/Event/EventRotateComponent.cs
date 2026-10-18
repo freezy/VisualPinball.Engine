@@ -24,7 +24,8 @@ using Logger = NLog.Logger;
 
 namespace VisualPinball.Unity
 {
-	public class EventRotateComponent : MonoBehaviour
+	[PackAs("EventRotate")]
+	public class EventRotateComponent : MonoBehaviour, IPackable
 	{
 		public string EventName;
 		public Vector3 Axis;
@@ -35,6 +36,32 @@ namespace VisualPinball.Unity
 
 		private IPinballEventEmitter _eventEmitter;
 		private Quaternion _initialRotation;
+
+		#region Packaging
+
+		public byte[] Pack() => PackageApi.Packer.Pack(new EventRotatePackable {
+			EventName = EventName,
+			Axis = Axis,
+			RotateGlobally = RotateGlobally,
+			Factor = Factor,
+			Offset = Offset,
+		});
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes)
+		{
+			var data = PackageApi.Packer.Unpack<EventRotatePackable>(bytes);
+			EventName = data.EventName;
+			Axis = data.Axis;
+			RotateGlobally = data.RotateGlobally;
+			Factor = data.Factor;
+			Offset = data.Offset;
+		}
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
+
+		#endregion
 
 		#region Runtime
 
@@ -105,5 +132,14 @@ namespace VisualPinball.Unity
 		}
 
 		#endregion
+	}
+
+	public struct EventRotatePackable
+	{
+		public string EventName;
+		public Vector3 Axis;
+		public bool RotateGlobally;
+		public float Factor;
+		public float Offset;
 	}
 }
