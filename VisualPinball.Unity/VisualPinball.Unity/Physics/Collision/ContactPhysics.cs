@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Mathematics;
+using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
 {
@@ -64,6 +65,7 @@ namespace VisualPinball.Unity
 
 				// the stored hit normal is in playfield space, decide before moving into the collider's frame
 				var isSupportContact = BallCollider.IsSupportContact(in collEvent.HitNormal);
+				var priorContactVelocity = contact.PriorContactVelocity;
 				var gravity = state.Env.Gravity;
 				if (!colliders.IsTransformed(collEvent.ColliderId)) {
 					ref var matrix = ref state.GetNonTransformableColliderMatrix(collEvent.ColliderId, ref colliders);
@@ -74,6 +76,7 @@ namespace VisualPinball.Unity
 					frictionVelocity = matrixInv.MultiplyVector(frictionVelocity);
 					frictionAngularMomentum = matrixInv.MultiplyVector(frictionAngularMomentum);
 					frictionAcceleration = matrixInv.MultiplyVector(frictionAcceleration);
+					priorContactVelocity = matrixInv.MultiplyVector(priorContactVelocity);
 				}
 
 				ref var collHeader = ref state.GetColliderHeader(ref colliders, collEvent.ColliderId);
@@ -98,7 +101,8 @@ namespace VisualPinball.Unity
 					// surface velocity of the collider at the contact point (zero unless kinematic and moving)
 					var colliderVelocity = state.GetKinematicSurfaceVelocity(in collEvent, ball.Position - ball.Radius * collEvent.HitNormal);
 					Collider.Contact(in collHeader, ref ball, in collEvent, hitTime, in gravity, in colliderVelocity,
-						in frictionAcceleration, in frictionVelocity, in frictionAngularMomentum, isSupportContact);
+						in frictionAcceleration, in frictionVelocity, in frictionAngularMomentum, isSupportContact,
+						in priorContactVelocity);
 				}
 
 				if (!colliders.IsTransformed(collEvent.ColliderId)) {
@@ -108,11 +112,9 @@ namespace VisualPinball.Unity
 				}
 
 			} else if (collEvent.BallId != 0) { // collide with ball
-				var collHeader = collEvent.IsKinematic
-					? ref state.GetColliderHeader(ref state.KinematicColliders, contact.CollEvent.ColliderId)
-					: ref state.GetColliderHeader(ref state.Colliders, contact.CollEvent.ColliderId);
-				BallCollider.HandleStaticContact(ref ball, in collEvent, collHeader.Material.Friction, hitTime,
-					state.Env.Gravity, float3.zero, in frictionAcceleration, in frictionVelocity, in frictionAngularMomentum);
+				ref var otherBall = ref state.Balls.GetValueByRef(collEvent.BallId);
+				BallCollider.HandleBallContact(ref ball, in otherBall, in collEvent, hitTime, state.Env.Gravity,
+					in frictionAcceleration);
 			}
 		}
 	}
