@@ -256,6 +256,24 @@ namespace VisualPinball.Unity.Test
 
 		#endregion
 
+		#region Ball/ball
+
+		[Test]
+		public void BallBallCollisionNormalIsTakenAtHitTime()
+		{
+			// an oblique hit on a resting ball: the moving ball touches it side by side at t = 1
+			var resting = new BallState { Id = 1, Mass = 1f, Radius = 25f, Position = new float3(0f, 0f, 25f) };
+			var moving = new BallState { Id = 2, Mass = 1f, Radius = 25f, Position = new float3(-60f, -10f, 25f), Velocity = new float3(10f, 10f, 0f) };
+			var collEvent = new CollisionEventData();
+
+			var hitTime = BallCollider.HitTest(ref collEvent, ref moving, in resting, 2f);
+
+			Assert.That(hitTime, Is.EqualTo(1f).Within(1e-4f));
+			AssertFloat3(collEvent.HitNormal, new float3(-1f, 0f, 0f), "from the hit ball towards the moving one");
+		}
+
+		#endregion
+
 		private static float TangentialSlipSpeed(in BallState ball, in float3 hitNormal)
 		{
 			var contactOffset = -ball.Radius * hitNormal;
