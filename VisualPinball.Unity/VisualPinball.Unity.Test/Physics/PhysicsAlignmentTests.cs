@@ -17,7 +17,9 @@
 using NUnit.Framework;
 using Unity.Collections;
 using Unity.Mathematics;
+using UnityEngine;
 using VisualPinball.Engine.Common;
+using VisualPinball.Engine.Math;
 
 namespace VisualPinball.Unity.Test
 {
@@ -496,6 +498,42 @@ namespace VisualPinball.Unity.Test
 		private static void HandleBallContact(ref BallState ball, in BallState other, in CollisionEventData contact, in float3 gravity)
 		{
 			BallCollider.HandleBallContact(ref ball, in other, in contact, PhysicsConstants.PhysFactor, in gravity, in gravity);
+		}
+
+		#endregion
+
+		#region Collider generation
+
+		[Test]
+		public void RampEntranceHasASingleJoint()
+		{
+			var go = new GameObject("ramp");
+			var nonTransformable = new NativeParallelHashMap<int, float4x4>(1, Allocator.Persistent);
+			var colliders = new ColliderReference(ref nonTransformable, Allocator.Persistent);
+			try {
+				var ramp = go.AddComponent<RampComponent>();
+				var rampCollider = go.AddComponent<RampColliderComponent>();
+				ramp.DragPoints = new[] { new DragPointData(500f, 1500f), new DragPointData(500f, 1000f) };
+				var api = new RampApi(go, null, null);
+
+				new RampColliderGenerator(api, ramp, rampCollider, float4x4.identity).GenerateColliders(0f, ref colliders);
+
+				// a flat ramp: the edge joints and the start and end joints, each once
+				var joints = colliders.Line3DColliders;
+				Assert.That(joints.Length, Is.GreaterThan(0));
+				for (var i = 0; i < joints.Length; i++) {
+					for (var j = i + 1; j < joints.Length; j++) {
+						var a = joints[i].Bounds.Aabb;
+						var b = joints[j].Bounds.Aabb;
+						Assert.That(a.Min == b.Min && a.Max == b.Max, Is.False,
+							$"joints {i} and {j} are the same edge");
+					}
+				}
+			} finally {
+				colliders.Dispose();
+				nonTransformable.Dispose();
+				Object.DestroyImmediate(go);
+			}
 		}
 
 		#endregion
