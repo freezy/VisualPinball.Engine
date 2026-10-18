@@ -167,6 +167,60 @@ namespace VisualPinball.Unity.Test
 
 		#endregion
 
+		#region Flipper contact
+
+		private const float FlipperInertia = 1f / 3f * 80f * 80f;
+
+		// a resting flipper with its base at the origin, the ball touching a face whose normal is +x
+		private static void FlipperContact(ref BallState ball, float friction, in float3 acceleration)
+		{
+			var flipper = new FlipperCollider(50f, 80f, 30f, 15f, 0f, 0f, new ColliderInfo { ItemId = 1 });
+			flipper.Header.Material.Friction = friction;
+			var movement = new FlipperMovementState();
+			var staticData = new FlipperStaticData { Inertia = FlipperInertia };
+			var velocityData = new FlipperVelocityData();
+			var collEvent = new CollisionEventData {
+				HitNormal = new float3(1f, 0f, 0f),
+				HitDistance = 0.02f,
+				HitOrgNormalVelocity = math.dot(ball.Velocity, new float3(1f, 0f, 0f)),
+			};
+			var frictionVelocity = ball.Velocity;
+			var frictionAngularMomentum = ball.AngularMomentum;
+			flipper.Contact(ref ball, ref movement, in collEvent, in staticData, in velocityData, 0.1f,
+				in acceleration, in acceleration, in frictionVelocity, in frictionAngularMomentum);
+		}
+
+		[Test]
+		public void SpinningBallKeepsFlipperContactSupport()
+		{
+			var acceleration = new float3(-1f, 0f, -1f); // pressing the ball onto the face
+			var still = new BallState { Mass = 1f, Radius = 25f, Position = new float3(55f, -40f, 25f), Velocity = new float3(-0.05f, 0f, 0f) };
+			FlipperContact(ref still, 0f, in acceleration);
+			Assert.That(still.Velocity.x, Is.GreaterThan(-0.01f), "sanity: the contact kills the approach");
+
+			// w = 4 about z: a centripetal acceleration of w^2 r = 400 along the normal at the material point
+			var spinning = still;
+			spinning.Velocity = new float3(-0.05f, 0f, 0f);
+			spinning.AngularMomentum = new float3(0f, 0f, 4f * spinning.Inertia);
+			FlipperContact(ref spinning, 0f, in acceleration);
+
+			Assert.That(spinning.Velocity.x, Is.GreaterThan(-0.01f), "spin must not release the contact");
+		}
+
+		[Test]
+		public void FlipperStaticFrictionAddsTheFlipperInertia()
+		{
+			// the ball rests on the face and gravity pulls it along the face (-y): static friction
+			var acceleration = new float3(-1f, -1f, 0f);
+			var ball = new BallState { Mass = 1f, Radius = 25f, Position = new float3(55f, -40f, 25f), Velocity = new float3(-0.05f, 0f, 0f) };
+			FlipperContact(ref ball, 10f, in acceleration);
+
+			// rF = (30, -40), slip direction -y: the flipper term is |rF.x|^2 / I = 900 / I, the ball's 2.5
+			Assert.That(ball.Velocity.y, Is.EqualTo(0.1f / (3.5f + 900f / FlipperInertia)).Within(Tolerance));
+		}
+
+		#endregion
+
 		private static float TangentialSlipSpeed(in BallState ball, in float3 hitNormal)
 		{
 			var contactOffset = -ball.Radius * hitNormal;
