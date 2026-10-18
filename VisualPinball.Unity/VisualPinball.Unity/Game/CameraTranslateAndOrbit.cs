@@ -70,11 +70,20 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 	private Keyboard _keyboard;
 	private Mouse _mouse;
 	private PhysicsEngine _physicsEngine;
+	private Camera _camera;
 
 	/* -------------------------------------------------------- */
 
 	private void Start()
 	{
+		EnsureInitialized();
+	}
+
+	private void EnsureInitialized()
+	{
+		if (_transformCache != null) {
+			return;
+		}
 		// same logic you had before to center on renderer bounds, etc.
 		if (initialOrbit != null) {
 			var pfr = initialOrbit.GetComponent<Renderer>();
@@ -99,6 +108,29 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 		}
 		_keyboard = Keyboard.current;
 		_mouse = Mouse.current;
+		_camera = GetComponent<Camera>();
+	}
+
+	/// <summary>
+	/// Puts the camera at a pose right away; from then on, it orbits around the point
+	/// <paramref name="pivotDistance"/> ahead of it. Lets go of a locked ball.
+	/// </summary>
+	public void SetPose(Vector3 position, Quaternion rotation, float pivotDistance)
+	{
+		EnsureInitialized();
+		lockTarget = null;
+		_isTrackingBall = false;
+		_isTrackingBallTarget = false;
+		_isTrackingMouse0 = false;
+		_isTrackingMouse1 = false;
+
+		_radius = _radiusCurrent = Mathf.Clamp(pivotDistance, RadiusMin, RadiusMax);
+		_radiusMax = Mathf.Max(RadiusMax, _radius);
+		positionOffset = _positionOffsetCurrent = position + rotation * Vector3.forward * _radius;
+		_rot2 = rotation;
+		_focusPoint = rotation * Vector3.forward * -_radius;
+		_transformCache.SetPositionAndRotation(position, rotation);
+		_dummyTransform.SetPositionAndRotation(position, rotation);
 	}
 
 	private void Update()
@@ -287,11 +319,16 @@ public class CameraTranslateAndOrbit : MonoBehaviour
 			}
 		}
 
-		/* ========== ZOOM (scroll) ========== */
+		/* ========== ZOOM (scroll), FIELD OF VIEW (ctrl + scroll) ========== */
 		if (!isAnimating && !hasHitRestrictedHitArea) {
 			float deltaScroll = _mouse.scroll.y.ReadValue() / 300f * zoomSpeed;
+			if (_keyboard != null && _keyboard.ctrlKey.isPressed) {
+				if (deltaScroll != 0f && _camera != null) {
+					CameraLens.SetVerticalFov(_camera, CameraLens.GetVerticalFov(_camera) * (1f - deltaScroll));
+				}
+			}
 			/* ---------------  UpdateMouse() – ZOOM in lock  --------------- */
-			if (lockTarget != null && _isTrackingBall) {      // ★ only follow-lock zooms
+			else if (lockTarget != null && _isTrackingBall) {      // ★ only follow-lock zooms
 				float r = Mathf.Clamp(_ballFollowOffsetTarget.magnitude * (1f - deltaScroll), RadiusMin, _radiusMax);
 				_ballFollowOffsetTarget = _ballFollowOffsetTarget.normalized * r;
 			} else if (lockTarget == null) {
