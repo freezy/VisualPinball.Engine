@@ -196,6 +196,66 @@ namespace VisualPinball.Engine.VPT
 			return this;
 		}
 
+		/// <summary>
+		/// Whether a drag point outline is wound clockwise, against the counterclockwise order
+		/// that code consuming the outline assumes (ear-clipping triangulation, one-sided
+		/// colliders facing out). Dragging a point across the others in the editor silently
+		/// reverses it.
+		/// </summary>
+		/// <remarks>Visual Pinball's DetermineWindingOrder: the orientation at the corner vertex.</remarks>
+		public static bool IsClockwise(IRenderVertex[] rgv)
+		{
+			var count = rgv.Length;
+			if (count <= 2) {
+				return false;
+			}
+			// a duplicated first vertex closing the polygon is skipped
+			if (rgv[count - 1].GetX() == rgv[0].GetX() && rgv[count - 1].GetY() == rgv[0].GetY()) {
+				count--;
+			}
+
+			// the corner vertex: the smallest y, then the smallest x
+			var corner = 0;
+			var minY = float.MaxValue;
+			var minXAtMinY = float.MaxValue;
+			for (var i = 0; i < rgv.Length; i++) {
+				var y = rgv[i].GetY();
+				if (y > minY || y == minY && rgv[i].GetX() >= minXAtMinY) {
+					continue;
+				}
+				corner = i;
+				minY = y;
+				minXAtMinY = rgv[i].GetX();
+			}
+
+			var a = rgv[(corner - 1 + count) % count];
+			var b = rgv[corner];
+			var c = rgv[(corner + 1) % count];
+			var detOrient = b.GetX() * c.GetY() + a.GetX() * b.GetY() + a.GetY() * c.GetX()
+			                - (a.GetY() * b.GetX() + b.GetY() * c.GetX() + a.GetX() * c.GetY());
+			return detOrient > 0f;
+		}
+
+		/// <summary>
+		/// Restores the canonical counterclockwise winding of a drag point outline, see
+		/// <see cref="IsClockwise"/>. The slingshot flag marks the segment starting at a vertex,
+		/// so it is shifted back onto the same segments.
+		/// </summary>
+		/// <returns>Whether the outline was reversed.</returns>
+		public static bool NormalizeWindingOrder(RenderVertex2D[] rgv)
+		{
+			if (!IsClockwise(rgv)) {
+				return false;
+			}
+			Array.Reverse(rgv);
+			var sling = rgv[0].IsSlingshot;
+			for (var i = 0; i < rgv.Length - 1; i++) {
+				rgv[i].IsSlingshot = rgv[i + 1].IsSlingshot;
+			}
+			rgv[rgv.Length - 1].IsSlingshot = sling;
+			return true;
+		}
+
 		public static int[] PolygonToTriangles(IRenderVertex[] rgv, List<int> poly)
 		{
 			// There should be this many convex triangles.

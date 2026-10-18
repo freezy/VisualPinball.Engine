@@ -62,6 +62,10 @@ namespace VisualPinball.Unity
 		{
 			var vVertex = DragPoint.GetRgVertex<RenderVertex2D, CatmullCurve2DCatmullCurveFactory>(_component.DragPoints);
 
+			// The volume's inside and outside come from the winding dependent normals of its
+			// lines and top: a reversed point order would swap the hit and unhit events.
+			VisualPinball.Engine.VPT.Mesh.NormalizeWindingOrder(vVertex);
+
 			var count = vVertex.Length;
 			var rgv = new RenderVertex2D[count];
 			var rgv3D = new float3[count];
