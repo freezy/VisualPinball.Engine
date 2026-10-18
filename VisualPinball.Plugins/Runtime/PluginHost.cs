@@ -155,6 +155,45 @@ namespace VisualPinball.Plugins
 		/// <see cref="EmergencyStop"/> or the next start. It is also true when some or all plugins failed to start; check
 		/// <see cref="Statuses"/> for individual plugins.
 		/// </summary>
+		/// <summary>
+		/// The plugins of the current game as the Player's pause menu shows them: the running ones with what they
+		/// write as <see cref="IPluginStatusSource"/>, and the ones that should run but don't (starting, blocked,
+		/// faulted, unresponsive) with why. Disabled and unsupported plugins are left out, and so is a running one
+		/// whose status says nothing, since it has nothing to do in this game.
+		/// </summary>
+		/// <remarks>Call on the owner thread. A plugin that throws while describing itself is logged, not faulted.</remarks>
+		public IReadOnlyList<PluginStatusReport> DescribeStatus()
+		{
+			Scheduler.VerifyOwner();
+			var reports = new List<PluginStatusReport>();
+			foreach (var factory in _factories.Values) {
+				var status = _statuses[factory.Descriptor.Id];
+				switch (status.State) {
+					case PluginState.Running:
+						var instance = _startOrder.FirstOrDefault(entry => entry.Factory == factory);
+						if (instance?.Plugin is not IPluginStatusSource source) {
+							reports.Add(new PluginStatusReport(factory.Descriptor, status.State, "", Array.Empty<KeyValuePair<string, string>>()));
+							break;
+						}
+						var writer = new PluginStatusWriter();
+						try {
+							source.DescribeStatus(writer);
+						} catch (Exception error) {
+							_error(factory.Descriptor.Id + " could not describe its status", error);
+							writer.Add("Status", "unavailable");
+						}
+						if (writer.Lines.Count > 0) reports.Add(new PluginStatusReport(factory.Descriptor, status.State, "", writer.Lines));
+						break;
+					case PluginState.Starting:
+					case PluginState.Blocked:
+					case PluginState.Faulted:
+					case PluginState.Unresponsive:
+						reports.Add(new PluginStatusReport(factory.Descriptor, status.State, status.Message, Array.Empty<KeyValuePair<string, string>>()));
+						break;
+				}
+			}
+			return reports;
+		}
 		public bool IsRunning => _running;
 		/// <summary>
 		/// True while a lifecycle operation holds the host's gate: starting or stopping a game, committing settings, or cleaning up
