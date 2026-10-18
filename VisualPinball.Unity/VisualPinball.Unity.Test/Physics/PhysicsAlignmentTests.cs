@@ -613,6 +613,28 @@ namespace VisualPinball.Unity.Test
 
 		#endregion
 
+		#region Playfield
+
+		[Test]
+		public void SlowBallEmbeddedInThePlayfieldCollides()
+		{
+			var playfield = new PlaneCollider(new float3(0f, 0f, 1f), 0f, new ColliderInfo { ItemId = 1 });
+			var ball = new BallState { Mass = 1f, Radius = 25f, Position = new float3(0f, 0f, 24f), Velocity = new float3(0f, 0f, -0.05f) };
+			var collEvent = new CollisionEventData();
+
+			Assert.That(playfield.HitTest(ref collEvent, in ball, 0.1f), Is.Zero, "1 deep: collides instead of sinking through");
+			Assert.That(collEvent.IsContact, Is.False);
+			Assert.That(collEvent.HitDistance, Is.EqualTo(-1f).Within(Tolerance));
+
+			ball.Position.z = 24.98f;
+			collEvent = new CollisionEventData();
+			Assert.That(playfield.HitTest(ref collEvent, in ball, 0.1f), Is.Zero);
+			Assert.That(collEvent.IsContact, Is.True, "inside the touch layer it is still a contact");
+			Assert.That(collEvent.HitOrgNormalVelocity, Is.EqualTo(-0.05f).Within(Tolerance));
+		}
+
+		#endregion
+
 		private static float TangentialSlipSpeed(in BallState ball, in float3 hitNormal)
 		{
 			var contactOffset = -ball.Radius * hitNormal;
