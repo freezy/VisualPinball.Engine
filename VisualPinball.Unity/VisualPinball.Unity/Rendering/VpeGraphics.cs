@@ -25,6 +25,23 @@ namespace VisualPinball.Unity
 		Taa = 3,
 	}
 
+	/// <summary>Temporal upscaler the camera renders through, at a lower internal resolution.</summary>
+	public enum VpeUpscaler
+	{
+		Off = 0,
+		Dlss = 1,   // NVIDIA Deep Learning Super Sampling
+		Fsr2 = 2,   // AMD FidelityFX Super Resolution 2
+	}
+
+	/// <summary>How far the upscaler lowers the internal resolution (each upscaler picks its own scale per mode).</summary>
+	public enum VpeUpscalerQuality
+	{
+		Quality = 0,
+		Balanced = 1,
+		Performance = 2,
+		UltraPerformance = 3,
+	}
+
 	/// <summary>
 	/// Plain-data render-quality settings that are tunable at runtime via the active render pipeline's
 	/// <see cref="IVpeGraphicsApplier"/>. Carries only the SRP-specific knobs (camera AA + Volume effects);
@@ -42,6 +59,8 @@ namespace VisualPinball.Unity
 		public bool RayTracedReflections;
 		// Experimental: clear refractive materials (ramps, transparent plastics) are ray traced recursively.
 		public bool RayTracedRecursiveRendering;
+		public int Upscaler;        // VpeUpscaler
+		public int UpscalerQuality; // VpeUpscalerQuality
 	}
 
 	/// <summary>Implemented by the active render pipeline (e.g. HDRP) to apply <see cref="VpeGraphicsSettings"/>.</summary>
@@ -64,5 +83,19 @@ namespace VisualPinball.Unity
 		public static void Register(IVpeGraphicsApplier applier) => _applier = applier;
 
 		public static void Apply(VpeGraphicsSettings settings) => _applier?.Apply(settings);
+
+		/// <summary>
+		/// Whether an upscaler runs on this machine, as the active pipeline reports it (it registers the check
+		/// next to its applier). Off is always supported.
+		/// </summary>
+		public static bool IsUpscalerSupported(VpeUpscaler upscaler)
+			=> upscaler == VpeUpscaler.Off || (UpscalerSupport != null && UpscalerSupport(upscaler));
+
+		public static System.Func<VpeUpscaler, bool> UpscalerSupport;
+
+		/// <summary>The share of the output resolution the camera renders at (1 without upscaling), as the pipeline reports it.</summary>
+		public static float RenderScale => RenderScaleSource?.Invoke() ?? 1f;
+
+		public static System.Func<float> RenderScaleSource;
 	}
 }
