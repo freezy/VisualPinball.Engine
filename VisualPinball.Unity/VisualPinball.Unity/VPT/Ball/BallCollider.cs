@@ -154,6 +154,25 @@ namespace VisualPinball.Unity
 			float dTime, in float3 gravity, in float3 colliderVelocity, in float3 frictionAcceleration,
 			in float3 frictionVelocity, in float3 frictionAngularMomentum)
 		{
+			HandleStaticContact(ref ball, in collEvent, friction, dTime, in gravity, in colliderVelocity,
+				in frictionAcceleration, in frictionVelocity, in frictionAngularMomentum,
+				IsSupportContact(in collEvent.HitNormal));
+		}
+
+		/// <summary>
+		/// Whether a contact normal, in playfield space, belongs to a support (floor,
+		/// ramp) rather than a wall.
+		/// </summary>
+		internal static bool IsSupportContact(in float3 playfieldHitNormal)
+			=> math.normalizesafe(playfieldHitNormal).z > 0.5f;
+
+		/// <param name="isSupportContact">Whether the contact supports the ball from below,
+		/// see <see cref="IsSupportContact"/>. The hit normal may be in a collider's local
+		/// frame here, so the caller decides from the playfield-space normal.</param>
+		internal static void HandleStaticContact(ref BallState ball, in CollisionEventData collEvent, float friction,
+			float dTime, in float3 gravity, in float3 colliderVelocity, in float3 frictionAcceleration,
+			in float3 frictionVelocity, in float3 frictionAngularMomentum, bool isSupportContact)
+		{
 			// this should be zero, but only up to +/- PhysicsConstants.ContactVel
 			// (relative to the surface, which may be moving if the collider is kinematic)
 			var normVel = math.dot(ball.Velocity - colliderVelocity, collEvent.HitNormal);
@@ -182,26 +201,28 @@ namespace VisualPinball.Unity
 				// additional acceleration, a magnet can press a resting ball through a wall
 				// because the contact solver only compensates gravity.
 				var acceleration = gravity + ball.ExternalAcceleration;
-				var fe = acceleration * ball.Mass;
-				var dot = math.dot(fe, collEvent.HitNormal);
+				var dot = math.dot(acceleration, collEvent.HitNormal);
 
 				// note: for kinematic colliders, HitOrgNormalVelocity is already relative to the
 				// surface — the narrow phase hit-tests in the collider's reference frame
 
-				// normal force is always nonnegative
+				// Normal force is always nonnegative. It is the velocity change that kills the
+				// original normal velocity and counteracts the external forces for this step,
+				// whatever the ball's mass (VPX scaled the load by the mass without dividing it
+				// back out, which threw balls heavier than 1 off their support).
 				var normalForce = math.max(0.0f, -(dot * dTime + collEvent.HitOrgNormalVelocity));
 
 				// Add just enough to kill original normal velocity and counteract the external forces.
 				ball.Velocity += collEvent.HitNormal * normalForce;
 
-				ApplyFriction(ref ball, collEvent.HitNormal, dTime, friction, in frictionAcceleration,
-					in colliderVelocity, in frictionVelocity, in frictionAngularMomentum);
+				ApplyFriction(ref ball, collEvent.HitNormal, dTime, friction, normalForce, isSupportContact,
+					in frictionAcceleration, in colliderVelocity, in frictionVelocity, in frictionAngularMomentum);
 			}
 		}
 
 		private static void ApplyFriction(ref BallState ball, in float3 hitNormal, float dTime, float frictionCoeff,
-			in float3 acceleration, in float3 colliderVelocity, in float3 frictionVelocity,
-			in float3 frictionAngularMomentum)
+			float normalImpulse, bool isSupportContact, in float3 acceleration, in float3 colliderVelocity,
+			in float3 frictionVelocity, in float3 frictionAngularMomentum)
 		{
 			// surface contact point relative to center of mass
 			var surfP = -ball.Radius * hitNormal;
@@ -217,17 +238,25 @@ namespace VisualPinball.Unity
 			// calc the tangential slip velocity
 			var slip = surfVel - hitNormal * math.dot(surfVel, hitNormal);
 
-			var maxFriction = frictionCoeff * ball.Mass * math.max(0f, -math.dot(acceleration, hitNormal));
+			// Coulomb cone: the friction impulse is bounded by mu times the normal impulse this
+			// contact applied in this step (normalImpulse is the velocity change of the normal
+			// solve). VPX bounded it by the gravity component pressing the ball on the surface,
+			// which is next to nothing on walls and nothing at all on the glass.
+			var maxImpulse = math.max(frictionCoeff, 0f) * ball.Mass * normalImpulse;
 
 			var slipSpeed = math.length(slip);
 			float3 slipDir;
 			float numer;
+			float numerScale; // dTime if numer is an acceleration (static case), 1 if it is a velocity (dynamic case)
 
 			// The normal solve has already added this tick's support velocity. Keep that
 			// live value for the static/dynamic branch gate; otherwise a skidding ball
 			// whose pre-contact normal velocity was zero never receives kinetic friction.
+			// After the normal solve the residual is about -(a.n) dTime, so on its own the
+			// gate tests the orientation of the normal and picks the static branch on every
+			// wall, even with real slip. Like VPX, only supports get the quench.
 			var normVel = math.dot(ball.Velocity - colliderVelocity, hitNormal);
-			if (normVel <= 0.025 || slipSpeed < PhysicsConstants.Precision) {
+			if (normVel <= 0.025 && isSupportContact || slipSpeed < PhysicsConstants.Precision) {
 				// check for <=0.025 originated from ball<->rubber collisions pushing the ball upwards, but this is still not enough, some could even use <=0.2
 				// slip speed zero - static friction case
 
@@ -242,19 +271,24 @@ namespace VisualPinball.Unity
 
 				slipDir = math.normalize(slipAcc);
 				numer = -math.dot(slipDir, surfAcc);
+				numerScale = dTime;
 
 			} else {
 				// nonzero slip speed - dynamic friction case
 				slipDir = slip / slipSpeed;
 				numer = -math.dot(slipDir, surfVel);
+				numerScale = 1f;
 			}
 
 			var cp = math.cross(surfP, slipDir);
 			var denom = 1.0f / ball.Mass + math.dot(slipDir, math.cross(cp / ball.Inertia, surfP));
-			var friction = math.clamp(numer / denom, -maxFriction, maxFriction);
+
+			// Dynamic case: the full slip-removing impulse, Coulomb bound clamped. VPX requested
+			// dTime times it, which made sliding friction depend on the step length.
+			var friction = math.clamp(numerScale * numer / denom, -maxImpulse, maxImpulse);
 
 			if (!float.IsNaN(friction) && !float.IsInfinity(friction)) {
-				ball.ApplySurfaceImpulse(dTime * friction * cp, dTime * friction * slipDir);
+				ball.ApplySurfaceImpulse(friction * cp, friction * slipDir);
 			}
 		}
 
