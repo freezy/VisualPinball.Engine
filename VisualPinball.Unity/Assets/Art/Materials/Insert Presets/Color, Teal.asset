@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d9e463216c5c46dd88402d4e2ed772c5, type: 3}
+  m_Name: Color, Teal
+  m_EditorClassIdentifier: VisualPinball.Unity::VisualPinball.Unity.InsertColorPreset
+  ColorName: Teal
+  Order: 6
+  Swatch: {r: 0, g: 0.5019608, b: 0.5019608, a: 1}
+  Tint: {r: 0, g: 0.45911932, b: 0.45911932, a: 1}
+  CavityColor: {r: 0.9, g: 0.9, b: 0.9, a: 1}
+  LampEmission: {r: 512, g: 512, b: 512, a: 1}
+  MaxBrightness: 0.36
+  HazeColor: {r: 0, g: 0.5019608, b: 0.5019608, a: 1}
+  CoverTint: {r: 0.09503168, g: 0.9748427, b: 0.9748427, a: 1}

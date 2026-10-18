@@ -1287,7 +1287,7 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 			if (presets.Length == 0) {
-				EditorGUILayout.HelpBox("No look presets found. The HDRP package ships Clear Plastic and Colored Plastic; Manage adds your own.", MessageType.Warning);
+				EditorGUILayout.HelpBox("No look presets found. VPE's main package ships Clear Plastic and Colored Plastic; Manage adds your own.", MessageType.Warning);
 			}
 		}
 
