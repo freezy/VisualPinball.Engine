@@ -62,6 +62,8 @@ namespace VisualPinball.Unity
 			var frictionAcceleration = contact.FrictionAcceleration;
 			if (collEvent.ColliderId > -1) { // collide with static collider
 
+				// the stored hit normal is in playfield space, decide before moving into the collider's frame
+				var isSupportContact = BallCollider.IsSupportContact(in collEvent.HitNormal);
 				var gravity = state.Env.Gravity;
 				if (!colliders.IsTransformed(collEvent.ColliderId)) {
 					ref var matrix = ref state.GetNonTransformableColliderMatrix(collEvent.ColliderId, ref colliders);
@@ -96,7 +98,7 @@ namespace VisualPinball.Unity
 					// surface velocity of the collider at the contact point (zero unless kinematic and moving)
 					var colliderVelocity = state.GetKinematicSurfaceVelocity(in collEvent, ball.Position - ball.Radius * collEvent.HitNormal);
 					Collider.Contact(in collHeader, ref ball, in collEvent, hitTime, in gravity, in colliderVelocity,
-						in frictionAcceleration, in frictionVelocity, in frictionAngularMomentum);
+						in frictionAcceleration, in frictionVelocity, in frictionAngularMomentum, isSupportContact);
 				}
 
 				if (!colliders.IsTransformed(collEvent.ColliderId)) {

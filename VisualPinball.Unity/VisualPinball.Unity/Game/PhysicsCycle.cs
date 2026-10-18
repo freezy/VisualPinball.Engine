@@ -273,10 +273,24 @@ namespace VisualPinball.Unity
 						// where the ball was before, its recovery would move it out of the kicker
 						continue;
 					}
+					var velocityBefore = ball.Velocity;
+					var angularMomentumBefore = ball.AngularMomentum;
+					ColliderType colliderType;
 					if (contact.CollEvent.IsKinematic) {
+						colliderType = state.GetColliderType(ref state.KinematicColliders, contact.CollEvent.ColliderId);
 						ContactPhysics.Update(ref contact, ref ball, ref state, ref state.KinematicColliders, hitTime);
 					} else {
+						colliderType = contact.CollEvent.ColliderId >= 0
+							? state.GetColliderType(ref state.Colliders, contact.CollEvent.ColliderId)
+							: ColliderType.None;
 						ContactPhysics.Update(ref contact, ref ball, ref state, ref state.Colliders, hitTime);
+					}
+					// A spring hinge solves its contact along a normal it recomputes after the
+					// displacement, so the hit normal can't split its response into normal and
+					// friction parts: passing it on would turn its normal impulse into slip.
+					if (colliderType != ColliderType.SpringHinge) {
+						PassOnFriction(ref _contacts, i, ball.Velocity - velocityBefore,
+							ball.AngularMomentum - angularMomentumBefore);
 					}
 				}
 				PerfMarkerContacts.End();
@@ -365,6 +379,28 @@ namespace VisualPinball.Unity
 					}
 				}
 				contact.FrictionAcceleration = frictionAcceleration;
+			}
+		}
+
+		/// <summary>
+		/// Friction removes the full slip at once, so every later contact of the same ball
+		/// must see what the friction of this one did, or two contacts sharing the slip
+		/// (the wires of a wire ramp) would each remove all of it. Only the friction part is
+		/// passed on: the normal solve of a contact is not slip.
+		/// </summary>
+		internal static void PassOnFriction(ref NativeList<ContactBufferElement> contacts, int contactIndex,
+			float3 deltaVelocity, float3 deltaAngularMomentum)
+		{
+			var contact = contacts[contactIndex];
+			var normal = math.normalizesafe(contact.CollEvent.HitNormal);
+			var frictionVelocity = deltaVelocity - math.dot(deltaVelocity, normal) * normal;
+			for (var j = contactIndex + 1; j < contacts.Length; j++) {
+				ref var later = ref contacts.GetElementAsRef(j);
+				if (later.IsDuplicate || later.BallId != contact.BallId) {
+					continue;
+				}
+				later.FrictionVelocity += frictionVelocity;
+				later.FrictionAngularMomentum += deltaAngularMomentum;
 			}
 		}
 

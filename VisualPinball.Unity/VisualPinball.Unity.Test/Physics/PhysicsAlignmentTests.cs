@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using NUnit.Framework;
+using Unity.Collections;
 using Unity.Mathematics;
 using VisualPinball.Engine.Common;
 
@@ -52,5 +53,133 @@ namespace VisualPinball.Unity.Test
 		}
 
 		#endregion
+
+		#region Contact friction
+
+		private static readonly float3 DownGravity = new(0f, 0f, -1f);
+
+		[TestCase(1f)]
+		[TestCase(4f)]
+		public void RestingContactVelocityGainIsMassIndependent(float mass)
+		{
+			var ball = new BallState { Mass = mass, Radius = 25f };
+			var floor = new CollisionEventData { ColliderId = 1, HitNormal = new float3(0f, 0f, 1f) };
+
+			BallCollider.HandleStaticContact(ref ball, in floor, 0f, 0.1f, in DownGravity, float3.zero);
+
+			Assert.That(ball.Velocity.z, Is.EqualTo(0.1f).Within(Tolerance),
+				"the contact cancels one step of gravity, it must not throw a heavy ball off its support");
+		}
+
+		[Test]
+		public void BallSurfaceAccelerationIsMassIndependent()
+		{
+			var ball = new BallState { Mass = 4f, Radius = 25f };
+
+			var acceleration = BallState.SurfaceAcceleration(in ball, new float3(0f, 0f, -25f), in DownGravity);
+
+			AssertFloat3(acceleration, DownGravity);
+		}
+
+		[Test]
+		public void BallSlidingAlongAWallIsBrakedByWallFriction()
+		{
+			// the ball approaches the wall slowly while sliding along it; gravity is parallel to
+			// the wall, so a cone bounded by gravity alone has no budget at all, and the static
+			// branch would only push along gravity
+			var ball = new BallState { Mass = 1f, Radius = 25f, Velocity = new float3(-0.05f, 5f, 0f) };
+			var wall = new CollisionEventData {
+				ColliderId = 1,
+				HitNormal = new float3(1f, 0f, 0f),
+				HitOrgNormalVelocity = -0.05f,
+			};
+			var frictionVelocity = ball.Velocity;
+			var frictionAngularMomentum = ball.AngularMomentum;
+
+			BallCollider.HandleStaticContact(ref ball, in wall, 0.3f, 0.1f, in DownGravity, float3.zero,
+				in DownGravity, in frictionVelocity, in frictionAngularMomentum);
+
+			Assert.That(ball.Velocity.x, Is.EqualTo(0f).Within(Tolerance), "the approach is cancelled");
+			Assert.That(ball.Velocity.y, Is.EqualTo(5f - 0.3f * 0.05f).Within(Tolerance),
+				"kinetic friction bounded by mu times the normal impulse brakes the slide");
+			Assert.That(ball.Velocity.z, Is.EqualTo(0f).Within(Tolerance), "no static friction along gravity");
+			Assert.That(ball.AngularMomentum.z, Is.Not.EqualTo(0f), "wall friction spins the ball");
+		}
+
+		[Test]
+		public void SupportContactKeepsTheStaticFrictionQuench()
+		{
+			// on a support, a residual normal velocity below 0.025 after the normal solve still
+			// selects the static branch: friction counters the tangential gravity of the 6 degree
+			// slope, not the slide (VPX's spin quench, kept for supports)
+			var slope = math.radians(6f);
+			var gravity = new float3(0f, math.sin(slope), -math.cos(slope));
+			var ball = new BallState { Mass = 1f, Radius = 25f, Velocity = new float3(2f, 0f, -0.2f) };
+			var floor = new CollisionEventData { ColliderId = 1, HitNormal = new float3(0f, 0f, 1f) };
+			var frictionVelocity = ball.Velocity;
+			var frictionAngularMomentum = ball.AngularMomentum;
+
+			BallCollider.HandleStaticContact(ref ball, in floor, 0.3f, 0.1f, in gravity, float3.zero,
+				in gravity, in frictionVelocity, in frictionAngularMomentum);
+
+			Assert.That(ball.Velocity.x, Is.EqualTo(2f).Within(Tolerance));
+			// with I = 2/5 m r^2 the impulse denominator is 3.5 / m
+			Assert.That(ball.Velocity.y, Is.EqualTo(-0.1f * math.sin(slope) / 3.5f).Within(Tolerance));
+		}
+
+		[Test]
+		public void SlidingFrictionRemovesASmallSlipInOneStep()
+		{
+			// VPX applied a tenth of the slip-removing impulse per 0.1 step (dTime times it)
+			var ball = new BallState { Mass = 1f, Radius = 25f, Velocity = new float3(0.05f, 0f, 0f) };
+			var floor = new CollisionEventData { ColliderId = 1, HitNormal = new float3(0f, 0f, 1f) };
+			var frictionVelocity = ball.Velocity;
+			var frictionAngularMomentum = ball.AngularMomentum;
+
+			BallCollider.HandleStaticContact(ref ball, in floor, 1f, 0.1f, in DownGravity, float3.zero,
+				in DownGravity, in frictionVelocity, in frictionAngularMomentum);
+
+			Assert.That(TangentialSlipSpeed(in ball, new float3(0f, 0f, 1f)), Is.LessThan(1e-4f),
+				"a slip within the Coulomb cone is removed at once: the ball rolls");
+			Assert.That(ball.Velocity.x, Is.EqualTo(0.05f * (1f - 1f / 3.5f)).Within(Tolerance));
+		}
+
+		[Test]
+		public void LaterContactsOfTheSameBallSeeTheFrictionOfEarlierOnes()
+		{
+			var normal = new float3(0f, 0f, 1f);
+			var contacts = new NativeList<ContactBufferElement>(3, Allocator.Temp);
+			try {
+				contacts.Add(new ContactBufferElement(7, new CollisionEventData { HitNormal = normal }));
+				contacts.Add(new ContactBufferElement(7, new CollisionEventData { HitNormal = normal }));
+				contacts.Add(new ContactBufferElement(8, new CollisionEventData { HitNormal = normal }));
+
+				PhysicsCycle.PassOnFriction(ref contacts, 0, new float3(1f, 2f, 3f), new float3(4f, 5f, 6f));
+
+				AssertFloat3(contacts[0].FrictionVelocity, float3.zero);
+				AssertFloat3(contacts[1].FrictionVelocity, new float3(1f, 2f, 0f), "the normal part is not slip");
+				AssertFloat3(contacts[1].FrictionAngularMomentum, new float3(4f, 5f, 6f));
+				AssertFloat3(contacts[2].FrictionVelocity, float3.zero, "another ball");
+			} finally {
+				contacts.Dispose();
+			}
+		}
+
+		#endregion
+
+		private static float TangentialSlipSpeed(in BallState ball, in float3 hitNormal)
+		{
+			var contactOffset = -ball.Radius * hitNormal;
+			var surfaceVelocity = BallState.SurfaceVelocity(in ball, in contactOffset);
+			var slip = surfaceVelocity - hitNormal * math.dot(surfaceVelocity, hitNormal);
+			return math.length(slip);
+		}
+
+		private static void AssertFloat3(float3 actual, float3 expected, string message = null)
+		{
+			Assert.That(actual.x, Is.EqualTo(expected.x).Within(Tolerance), message);
+			Assert.That(actual.y, Is.EqualTo(expected.y).Within(Tolerance), message);
+			Assert.That(actual.z, Is.EqualTo(expected.z).Within(Tolerance), message);
+		}
 	}
 }
