@@ -78,6 +78,10 @@ namespace VisualPinball.Engine.VPT.Surface
 			var topMesh = new Mesh("Top");
 			var vVertex = DragPoint.GetRgVertex<RenderVertex2D, CatmullCurve2DCatmullCurveFactory>(_data.DragPoints);
 
+			// The ear-clipping triangulation assumes the canonical winding: a reversed point order
+			// left the top empty, and with it the wall's top collider, which is generated from it.
+			Mesh.NormalizeWindingOrder(vVertex);
+
 			var numVertices = vVertex.Length;
 			var rgNormal = new Vertex2D[numVertices];
 

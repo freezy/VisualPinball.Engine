@@ -538,6 +538,81 @@ namespace VisualPinball.Unity.Test
 
 		#endregion
 
+		#region Reversed winding
+
+		// VPX's default wall outline, its canonical (counterclockwise) winding
+		private static DragPointData[] WallOutline() => new[] {
+			new DragPointData(0f, 0f), new DragPointData(0f, 100f), new DragPointData(100f, 100f), new DragPointData(100f, 0f)
+		};
+
+		[Test]
+		public void WindingOrderMatchesVisualPinball()
+		{
+			var canonical = new[] { new RenderVertex2D(0f, 0f), new RenderVertex2D(0f, 100f), new RenderVertex2D(100f, 100f), new RenderVertex2D(100f, 0f) };
+			var reversed = new[] { canonical[3], canonical[2], canonical[1], canonical[0] };
+
+			Assert.That(VisualPinball.Engine.VPT.Mesh.IsClockwise(canonical), Is.False);
+			Assert.That(VisualPinball.Engine.VPT.Mesh.IsClockwise(reversed), Is.True);
+		}
+
+		[Test]
+		public void NormalizingTheWindingKeepsTheSlingshotOnItsSegment()
+		{
+			// the slingshot is the segment from (0, 100) to (100, 100), authored backwards
+			var outline = new[] {
+				new RenderVertex2D(100f, 0f), new RenderVertex2D(100f, 100f) { IsSlingshot = true },
+				new RenderVertex2D(0f, 100f), new RenderVertex2D(0f, 0f)
+			};
+
+			Assert.That(VisualPinball.Engine.VPT.Mesh.NormalizeWindingOrder(outline), Is.True);
+
+			Assert.That(outline[0].X, Is.EqualTo(0f));
+			Assert.That(outline[0].Y, Is.EqualTo(0f));
+			for (var i = 0; i < outline.Length; i++) {
+				var to = outline[(i + 1) % outline.Length];
+				var isTheSlingshotSegment = outline[i].X == 0f && outline[i].Y == 100f && to.X == 100f && to.Y == 100f;
+				Assert.That(outline[i].IsSlingshot, Is.EqualTo(isTheSlingshotSegment), $"segment {i}");
+			}
+		}
+
+		[Test]
+		public void ReversedWallCollidesBothWaysAndKeepsItsTop()
+		{
+			var canonical = GenerateWallColliders(WallOutline(), out var canonicalTriangles);
+			var reversedOutline = WallOutline();
+			System.Array.Reverse(reversedOutline);
+			var reversed = GenerateWallColliders(reversedOutline, out var reversedTriangles);
+
+			Assert.That(canonical, Is.EqualTo(4));
+			Assert.That(reversed, Is.EqualTo(2 * canonical), "every side collides from both sides");
+			Assert.That(canonicalTriangles, Is.GreaterThan(0));
+			Assert.That(reversedTriangles, Is.EqualTo(canonicalTriangles), "the top is triangulated in either winding");
+		}
+
+		private static int GenerateWallColliders(DragPointData[] outline, out int triangles)
+		{
+			var go = new GameObject("wall");
+			var nonTransformable = new NativeParallelHashMap<int, float4x4>(1, Allocator.Persistent);
+			var colliders = new ColliderReference(ref nonTransformable, Allocator.Persistent);
+			try {
+				var wall = go.AddComponent<SurfaceComponent>();
+				var wallCollider = go.AddComponent<SurfaceColliderComponent>();
+				wall.DragPoints = outline;
+				var api = new SurfaceApi(go, null, null);
+
+				new SurfaceColliderGenerator(api, wall, wallCollider, float4x4.identity).GenerateColliders(ref colliders);
+
+				triangles = colliders.TriangleColliders.Length;
+				return colliders.LineColliders.Length;
+			} finally {
+				colliders.Dispose();
+				nonTransformable.Dispose();
+				Object.DestroyImmediate(go);
+			}
+		}
+
+		#endregion
+
 		private static float TangentialSlipSpeed(in BallState ball, in float3 hitNormal)
 		{
 			var contactOffset = -ball.Radius * hitNormal;
