@@ -10,6 +10,8 @@ The *Pinball/Insert Hybrid* material renders the inside of an insert. Its *Plast
 
 This page uses the material inspector's labels. Controls are disabled where the shader would ignore them.
 
+The Hybrid shader supports HDRP and URP with the same materials, baked maps, presets, and runtime lamp controls. Both pipelines sample the sky for the room response. URP converts physical lamp emission to its unitless lighting using the URP player's reference exposure. Its material inspector exposes the graph controls; edit linked color and look presets through the Insert inspector. HDRP retains the grouped inspector pictured here.
+
 The pictures show two clear inserts sharing one material, with the *Clear* color and the *Clear Plastic* look, changing one value at a time: the upper insert is off, the lower one is lit, so each setting shows what it does both ways. The middle picture is the value the material gets from its presets. *Min Brightness* only works on colored plastic, so it shows two red inserts with the *Colored Plastic* look, the left one off and the right one lit.
 
 ## Plastic
