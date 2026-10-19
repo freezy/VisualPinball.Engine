@@ -60,6 +60,24 @@ namespace VisualPinball.Unity
 		}
 	}
 
+	public struct PlayfieldMeshPackable
+	{
+		public bool AutoGenerate;
+
+		public static byte[] Pack(Playfield.PlayfieldMeshComponent comp)
+		{
+			return PackageApi.Packer.Pack(new PlayfieldMeshPackable {
+				AutoGenerate = comp.AutoGenerate,
+			});
+		}
+
+		public static void Unpack(byte[] bytes, Playfield.PlayfieldMeshComponent comp)
+		{
+			var data = PackageApi.Packer.Unpack<PlayfieldMeshPackable>(bytes);
+			comp.AutoGenerate = data.AutoGenerate;
+		}
+	}
+
 	public struct PlayfieldColliderPackable
 	{
 		public float Gravity;
