@@ -21,13 +21,29 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 
 namespace VisualPinball.Unity.Playfield
 {
+	[PackAs("PlayfieldMesh")]
 	[ExecuteInEditMode]
 	[AddComponentMenu("Pinball/Mesh/Playfield Mesh")]
-	public class PlayfieldMeshComponent : MeshComponent<TableData, PlayfieldComponent>
+	public class PlayfieldMeshComponent : MeshComponent<TableData, PlayfieldComponent>, IPackable
 	{
 		#region Data
 
 		public bool AutoGenerate = true;
+
+		#endregion
+
+		#region Packaging
+
+		// Packed so a custom (non auto-generated) playfield mesh survives a .vpe round trip: the mesh
+		// itself travels in the package's glb with the node, but without this component the importer
+		// falls back to a flat plane collider (PlayfieldApi) and the authored openings are lost.
+		public byte[] Pack() => PlayfieldMeshPackable.Pack(this);
+
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+
+		public void Unpack(byte[] bytes) => PlayfieldMeshPackable.Unpack(bytes, this);
+
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
 
 		#endregion
 
