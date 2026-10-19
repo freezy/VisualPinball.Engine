@@ -37,19 +37,45 @@ namespace VisualPinball.Unity
 
 		#region Creation and destruction
 
+		/// <summary>
+		/// Whether <see cref="OnDisable"/> hid the renderer, so <see cref="OnEnable"/> only
+		/// shows what this component hid. A renderer the author disabled stays disabled when
+		/// the scene loads. Serialized so a component saved disabled shows its mesh again
+		/// when it is re-enabled after a reload.
+		/// </summary>
+		[SerializeField, HideInInspector] private bool _hidRenderer;
+
+		private void Awake()
+		{
+			// Content saved before _hidRenderer existed stores a hidden item as component and
+			// renderer both disabled. Treat that renderer as hidden by this component, so enabling
+			// the component shows it again, as it did before.
+			if (!enabled && !_hidRenderer) {
+				var mr = gameObject.GetComponent<MeshRenderer>();
+				if (mr != null && !mr.enabled) {
+					_hidRenderer = true;
+				}
+			}
+#if UNITY_EDITOR
+			EditorAwake();
+#endif
+		}
+
 		private void OnEnable()
 		{
 			var mr = gameObject.GetComponent<MeshRenderer>();
-			if (mr != null) {
+			if (mr != null && _hidRenderer) {
 				mr.enabled = true;
 			}
+			_hidRenderer = false;
 		}
 
 		private void OnDisable()
 		{
 			var mr = gameObject.GetComponent<MeshRenderer>();
-			if (mr != null) {
+			if (mr != null && mr.enabled) {
 				mr.enabled = false;
+				_hidRenderer = true;
 			}
 		}
 
@@ -159,7 +185,7 @@ namespace VisualPinball.Unity
 
 #if UNITY_EDITOR
 		[SerializeField] private int _instanceID;
-		void Awake()
+		private void EditorAwake()
 		{
 			if (Application.isPlaying) {
 				return;
