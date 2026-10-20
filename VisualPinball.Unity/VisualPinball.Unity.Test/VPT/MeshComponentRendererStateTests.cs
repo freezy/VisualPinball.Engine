@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 
 namespace VisualPinball.Unity.Test
@@ -75,11 +76,16 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void ShouldShowAnItemSavedHiddenBeforeTheFlagExistedWhenEnabled()
 		{
-			// saved by an older version: component and renderer both off, _hidRenderer false
+			// saved by an older version: component and renderer both off, no _hidRenderer and no
+			// _rendererStateVersion (both load as their defaults)
 			var mr = _go.AddComponent<MeshRenderer>();
 			var mesh = _go.AddComponent<PrimitiveMeshComponent>();
 			mr.enabled = false;
 			mesh.enabled = false;
+			var state = new SerializedObject(mesh);
+			state.FindProperty("_hidRenderer").boolValue = false;
+			state.FindProperty("_rendererStateVersion").intValue = 0;
+			state.ApplyModifiedPropertiesWithoutUndo();
 			var clone = Object.Instantiate(_go);   // Awake runs on the deserialized copy
 			try {
 				var cloneMesh = clone.GetComponent<PrimitiveMeshComponent>();
@@ -92,6 +98,96 @@ namespace VisualPinball.Unity.Test
 			finally {
 				Object.DestroyImmediate(clone);
 			}
+		}
+
+		[Test]
+		public void ShouldShowTheMeshAgainWhenTheDisableIsUndone()
+		{
+			var mr = _go.AddComponent<MeshRenderer>();
+			var mesh = _go.AddComponent<PrimitiveMeshComponent>();
+
+			Undo.IncrementCurrentGroup();
+			Undo.RecordObject(mesh, "Disable Mesh");   // what the inspector checkbox records
+			mesh.enabled = false;
+			Assert.That(mr.enabled, Is.False);
+
+			Undo.FlushUndoRecordObjects();
+
+			Undo.PerformUndo();
+			Assert.That(mesh.enabled, Is.True, "undo re-enables the component");
+			Assert.That(mr.enabled, Is.True, "undo shows the mesh again");
+
+			Undo.PerformRedo();
+			Assert.That(mesh.enabled, Is.False, "redo disables the component");
+			Assert.That(mr.enabled, Is.False, "redo hides the mesh");
+		}
+
+		[Test]
+		public void ShouldLeaveTheRendererAloneWhenTheGameObjectIsDeactivated()
+		{
+			var mr = _go.AddComponent<MeshRenderer>();
+			_go.AddComponent<PrimitiveMeshComponent>();
+
+			_go.SetActive(false);
+			Assert.That(mr.enabled, Is.True);
+
+			_go.SetActive(true);
+			Assert.That(mr.enabled, Is.True);
+		}
+
+		[Test]
+		public void ShouldShowARendererTheOldCodeHidOnAnInactiveGameObjectWhenActivated()
+		{
+			// saved by an older version: GameObject inactive, component on, renderer turned off by
+			// the old OnDisable, no _hidRenderer and no _rendererStateVersion
+			var mr = _go.AddComponent<MeshRenderer>();
+			var mesh = _go.AddComponent<PrimitiveMeshComponent>();
+			_go.SetActive(false);
+			mr.enabled = false;
+			var state = new SerializedObject(mesh);
+			state.FindProperty("_hidRenderer").boolValue = false;
+			state.FindProperty("_rendererStateVersion").intValue = 0;
+			state.ApplyModifiedPropertiesWithoutUndo();
+
+			((IMeshRendererState)mesh).MigrateInactiveLegacyRenderer();   // what the editor does when the scene opens
+			_go.SetActive(true);
+
+			Assert.That(mr.enabled, Is.True);
+		}
+
+		[Test]
+		public void ShouldKeepARendererTheAuthorHidFirstHiddenAfterADuplicate()
+		{
+			var mr = _go.AddComponent<MeshRenderer>();
+			var mesh = _go.AddComponent<PrimitiveMeshComponent>();
+			mr.enabled = false;    // the author hides the renderer
+			mesh.enabled = false;  // then switches the component off
+			var clone = Object.Instantiate(_go);   // Awake runs on the deserialized copy, as after a scene reload
+			try {
+				var cloneMesh = clone.GetComponent<PrimitiveMeshComponent>();
+				var cloneRenderer = clone.GetComponent<MeshRenderer>();
+
+				cloneMesh.enabled = true;
+
+				Assert.That(cloneRenderer.enabled, Is.False);
+			}
+			finally {
+				Object.DestroyImmediate(clone);
+			}
+		}
+
+		[Test]
+		public void ShouldKeepARendererTheAuthorHidOnAnInactiveGameObjectHidden()
+		{
+			var mr = _go.AddComponent<MeshRenderer>();
+			var mesh = _go.AddComponent<PrimitiveMeshComponent>();
+			mr.enabled = false;     // the author hides the renderer
+			_go.SetActive(false);   // then deactivates the GameObject
+
+			((IMeshRendererState)mesh).MigrateInactiveLegacyRenderer();   // what the editor does when the scene opens
+			_go.SetActive(true);
+
+			Assert.That(mr.enabled, Is.False);
 		}
 	}
 }

@@ -29,7 +29,7 @@ using Mesh = VisualPinball.Engine.VPT.Mesh;
 namespace VisualPinball.Unity
 {
 	public abstract class MeshComponent<TData, TComponent> : SubComponent<TData, TComponent>,
-		IMeshComponent
+		IMeshComponent, IMeshRendererState
 		where TData : ItemData
 		where TComponent : MainRenderableComponent<TData>
 	{
@@ -45,12 +45,22 @@ namespace VisualPinball.Unity
 		/// </summary>
 		[SerializeField, HideInInspector] private bool _hidRenderer;
 
+		/// <summary>
+		/// 0 for content saved before <see cref="_hidRenderer"/> existed, which stored a hidden
+		/// item as component and renderer both disabled. Older content has no value here and
+		/// loads as 0 (no initializer on purpose: Unity keeps it for missing fields). Set as
+		/// soon as the component is enabled or disabled under the current rules, so a renderer
+		/// the author disabled is not mistaken for one this component hid.
+		/// </summary>
+		[SerializeField, HideInInspector] private int _rendererStateVersion;
+
+		private const int CurrentRendererState = 1;
+
 		private void Awake()
 		{
-			// Content saved before _hidRenderer existed stores a hidden item as component and
-			// renderer both disabled. Treat that renderer as hidden by this component, so enabling
-			// the component shows it again, as it did before.
-			if (!enabled && !_hidRenderer) {
+			// Content saved before _hidRenderer existed: treat the disabled renderer as hidden by
+			// this component, so enabling the component shows it again, as it did before.
+			if (_rendererStateVersion < CurrentRendererState && !enabled && !_hidRenderer) {
 				var mr = gameObject.GetComponent<MeshRenderer>();
 				if (mr != null && !mr.enabled) {
 					_hidRenderer = true;
@@ -61,6 +71,24 @@ namespace VisualPinball.Unity
 #endif
 		}
 
+		/// <summary>
+		/// Content saved before <see cref="_hidRenderer"/> existed also turned the renderer off
+		/// when the GameObject was deactivated, and on again when it was activated. Awake can't
+		/// tell that apart once the GameObject is active, so the editor calls this when a scene
+		/// opens, for components on inactive GameObjects.
+		/// </summary>
+		void IMeshRendererState.MigrateInactiveLegacyRenderer()
+		{
+			if (_rendererStateVersion >= CurrentRendererState || _hidRenderer || !enabled || gameObject.activeInHierarchy) {
+				return;
+			}
+			var mr = gameObject.GetComponent<MeshRenderer>();
+			if (mr != null && !mr.enabled) {
+				_hidRenderer = true;
+				_rendererStateVersion = CurrentRendererState;
+			}
+		}
+
 		private void OnEnable()
 		{
 			var mr = gameObject.GetComponent<MeshRenderer>();
@@ -68,15 +96,34 @@ namespace VisualPinball.Unity
 				mr.enabled = true;
 			}
 			_hidRenderer = false;
+			_rendererStateVersion = CurrentRendererState;
 		}
 
 		private void OnDisable()
 		{
-			var mr = gameObject.GetComponent<MeshRenderer>();
-			if (mr != null && mr.enabled) {
-				mr.enabled = false;
-				_hidRenderer = true;
+			// Only when the component itself is switched off. Deactivating the GameObject, closing
+			// the scene or reloading scripts leave enabled true and the renderer as it is (an
+			// inactive GameObject doesn't render anyway).
+			if (enabled) {
+				_rendererStateVersion = CurrentRendererState;
+				return;
 			}
+			var mr = gameObject.GetComponent<MeshRenderer>();
+			if (mr == null) {
+				return;
+			}
+			if (!mr.enabled) {
+				return;   // disabled by the author before the component: this component didn't hide it
+			}
+#if UNITY_EDITOR
+			// Record the renderer in the current Undo step (the inspector checkbox records the
+			// component in it), so undoing the toggle shows the mesh again.
+			if (!Application.isPlaying && !UnityEditor.Undo.isProcessing) {
+				UnityEditor.Undo.RecordObject(mr, "Disable Mesh");
+			}
+#endif
+			mr.enabled = false;
+			_hidRenderer = true;
 		}
 
 		#endregion
