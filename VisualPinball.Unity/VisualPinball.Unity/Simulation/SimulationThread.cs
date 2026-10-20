@@ -247,6 +247,7 @@ namespace VisualPinball.Unity.Simulation
 				SimulationTrace.Abandon();
 			}
 
+			while (_inputNotifications.TryDequeue(out _)) { }
 			Logger.Info($"{LogPrefix} [SimulationThread] Stopped after {_tickCount} ticks, {_inputEventsProcessed} input events, {_inputEventsDropped} dropped");
 		}
 
@@ -312,6 +313,45 @@ namespace VisualPinball.Unity.Simulation
 		/// only when that component exists and is enabled by player settings.
 		/// </summary>
 		public Action<bool> MainThreadTiltDispatcher { get; set; }
+		public Action<string, bool> MainThreadInputObserver { get; set; }
+		private readonly System.Collections.Concurrent.ConcurrentQueue<(int Action, bool Pressed, int Generation)> _inputNotifications = new();
+		private int _inputNotificationGeneration;
+		private int _observedInputNotificationGeneration;
+		private volatile bool _publishInputNotifications = true;
+
+		internal void ResetInputNotifications(bool? enabled = null)
+		{
+			if (enabled.HasValue) _publishInputNotifications = enabled.Value;
+			Interlocked.Increment(ref _inputNotificationGeneration);
+			while (_inputNotifications.TryDequeue(out _)) { }
+		}
+
+		internal static string GetInputActionName(int index) => (NativeInputApi.InputAction)index switch {
+				NativeInputApi.InputAction.LeftFlipper => InputConstants.ActionLeftFlipper,
+				NativeInputApi.InputAction.RightFlipper => InputConstants.ActionRightFlipper,
+				NativeInputApi.InputAction.UpperLeftFlipper => InputConstants.ActionUpperLeftFlipper,
+				NativeInputApi.InputAction.UpperRightFlipper => InputConstants.ActionUpperRightFlipper,
+				NativeInputApi.InputAction.LeftMagnasave => InputConstants.ActionLeftMagnasave,
+				NativeInputApi.InputAction.RightMagnasave => InputConstants.ActionRightMagnasave,
+				NativeInputApi.InputAction.Start => InputConstants.ActionStartGame,
+				NativeInputApi.InputAction.Plunge => InputConstants.ActionPlunger,
+				NativeInputApi.InputAction.PlungerAnalog => InputConstants.ActionPlungerAnalog,
+				NativeInputApi.InputAction.CoinInsert1 => InputConstants.ActionInsertCoin1,
+				NativeInputApi.InputAction.CoinInsert2 => InputConstants.ActionInsertCoin2,
+				NativeInputApi.InputAction.CoinInsert3 => InputConstants.ActionInsertCoin3,
+				NativeInputApi.InputAction.CoinInsert4 => InputConstants.ActionInsertCoin4,
+				NativeInputApi.InputAction.CoinDoor => InputConstants.ActionCoinDoorOpenClose,
+				NativeInputApi.InputAction.Service1 => InputConstants.ActionCoinDoorCancel,
+				NativeInputApi.InputAction.Service2 => InputConstants.ActionCoinDoorDown,
+				NativeInputApi.InputAction.Service3 => InputConstants.ActionCoinDoorUp,
+				NativeInputApi.InputAction.Service4 => InputConstants.ActionCoinDoorEnter,
+				NativeInputApi.InputAction.SlamTilt => InputConstants.ActionSlamTilt,
+				NativeInputApi.InputAction.LeftNudge => InputConstants.ActionLeftNudge,
+				NativeInputApi.InputAction.RightNudge => InputConstants.ActionRightNudge,
+				NativeInputApi.InputAction.CenterNudge => InputConstants.ActionCenterNudge,
+				NativeInputApi.InputAction.Tilt => InputConstants.ActionTilt,
+				_ => null
+		};
 
 		/// <summary>
 		/// When true, native cabinet Tilt input is routed to
@@ -330,6 +370,21 @@ namespace VisualPinball.Unity.Simulation
 		public void FlushMainThreadInputDispatch()
 		{
 			_inputDispatcher.FlushMainThread();
+			var generation = Volatile.Read(ref _inputNotificationGeneration);
+			if (_observedInputNotificationGeneration != generation) {
+				_observedInputNotificationGeneration = generation;
+				// Rearm held observers without sending switches, wires or synthetic presses.
+				for (var i = 0; i < _actionStates.Length; i++) {
+					var actionName = GetInputActionName(i);
+					if (actionName != null && i != (int)NativeInputApi.InputAction.Tilt)
+						MainThreadInputObserver?.Invoke(actionName, false);
+				}
+			}
+			while (_inputNotifications.TryDequeue(out var notification)) {
+				if (!_publishInputNotifications || notification.Generation != generation) continue;
+				var name = GetInputActionName(notification.Action);
+				if (name != null) MainThreadInputObserver?.Invoke(name, notification.Pressed);
+			}
 
 			while (true) {
 				bool tiltState;
@@ -682,6 +737,13 @@ namespace VisualPinball.Unity.Simulation
 					continue;
 				}
 
+				// Notify observers on Unity's thread without redispatching switches, wires or tilt.
+				// Initial GLE switch synchronization runs separately below; these are real
+				// input edges and remain audible even when there is no gamelogic engine.
+				if (_publishInputNotifications && actionIndex != (int)NativeInputApi.InputAction.Tilt) {
+					_inputNotifications.Enqueue((actionIndex, isPressed, Volatile.Read(ref _inputNotificationGeneration)));
+				}
+
 				// Fire any hardware-rule wire coils bound to this action on the simulation thread, so a
 				// P-ROC flipper energizes within the same tick as the key press. This is the wire path the
 				// managed Input System would otherwise own, which native polling bypasses.
@@ -977,6 +1039,7 @@ namespace VisualPinball.Unity.Simulation
 		/// </summary>
 		internal void SetInputSwitchMappings(InputSwitchMapping[] mappings)
 		{
+			ResetInputNotifications();
 			_inputSwitchMappings = mappings;
 			_inputMappingsBuilt = false;
 			_needsInitialSwitchSync = true;
@@ -1273,6 +1336,7 @@ namespace VisualPinball.Unity.Simulation
 
 		private void OnGamelogicStarted(object sender, EventArgs e)
 		{
+			ResetInputNotifications();
 			_gamelogicStarted = true;
 			_inputMappingsBuilt = false; // switches can be populated after init
 			_needsInitialSwitchSync = true;

@@ -20,6 +20,7 @@ using System.Linq;
 using NLog;
 using Unity.Mathematics;
 using UnityEngine;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Kicker;
 using VisualPinball.Unity.Collections;
 using Logger = NLog.Logger;
@@ -35,6 +36,11 @@ namespace VisualPinball.Unity
 		/// Event emitted when the table is started.
 		/// </summary>
 		public event EventHandler Init;
+		public event EventHandler<KickerReleaseEventArgs> Kicked;
+		private string[] _coilIds;
+		internal void OnKicked(int ballId, int coilIndex) => Kicked?.Invoke(this,
+			new KickerReleaseEventArgs(ballId, (uint)coilIndex < (uint)_coilIds.Length ? _coilIds[coilIndex] : null));
+		internal void KickFromCoil(KickerCoil coil) => KickXYZ(coil.Angle, coil.Speed, coil.Inclination, 0, 0, 0, Array.IndexOf(_coilIds, coil.Id));
 
 		/// <summary>
 		/// Event emitted when the ball moves into the kicker.
@@ -62,6 +68,7 @@ namespace VisualPinball.Unity
 
 		public KickerApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
+			_coilIds = MainComponent.Coils.Select(c => c.Id).ToArray();
 			foreach (var coil in MainComponent.Coils) {
 				_coils[coil.Id] = new KickerDeviceCoil(player, coil, this);
 			}
@@ -208,7 +215,7 @@ namespace VisualPinball.Unity
 
 		#endregion
 
-		private void KickXYZ(float angle, float speed, float inclination, float x, float y, float z)
+		private void KickXYZ(float angle, float speed, float inclination, float x, float y, float z, int coilIndex = -1)
 		{
 			// Captured balls are parented to the kicker so moving kickers carry them along. Once the
 			// ball is released, movement snapshots contain playfield-local coordinates again and must
@@ -280,6 +287,7 @@ namespace VisualPinball.Unity
 
 				// update kicker status
 				kickerState.Collision.BallId = 0;
+				state.EventQueue.Enqueue(new EventData(EventId.KickerEventsKicked, kickerId, ballId, 0f, coilIndex));
 			});
 		}
 
@@ -392,7 +400,7 @@ namespace VisualPinball.Unity
 			OnEnable = Kick;
 		}
 
-		private void Kick() => _kickerApi.Kick(Coil.Angle, Coil.Speed, Coil.Inclination);
+		private void Kick() => _kickerApi.KickFromCoil(Coil);
 
 	}
 }

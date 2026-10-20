@@ -383,7 +383,11 @@ namespace VisualPinball.Unity
 			}
 			var path = AssetDatabase.GetAssetPath(clip);
 			var guid = AssetDatabase.AssetPathToGUID(path);
-			var filename = UniqueName(soundFolder, Path.GetFileName(path), Path.GetExtension(path));
+			foreach (var existing in _soundMeta.Values) {
+				if (existing.Guid == guid) return guid;
+			}
+			var extension = Path.GetExtension(path);
+			var filename = UniqueName(soundFolder, Path.GetFileNameWithoutExtension(path), extension) + extension;
 			using var writeStream = soundFolder.AddFile(filename).AsStream();
 			using var readStream = File.OpenRead(path);
 			readStream.CopyTo(writeStream);

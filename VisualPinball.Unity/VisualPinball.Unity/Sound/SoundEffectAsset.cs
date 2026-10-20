@@ -17,9 +17,11 @@
 // ReSharper disable InconsistentNaming
 
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using NLog;
+using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Logger = NLog.Logger;
@@ -47,33 +49,36 @@ namespace VisualPinball.Unity
 		order = 102
 	)]
 	[PackAs("SoundEffectAsset")]
+	[PackWith(typeof(SoundAssetPacker))]
 	public class SoundEffectAsset : SoundAsset
 	{
 		public override bool Loop => _loop;
 
-		[SerializeField]
+		[SerializeField, JsonProperty]
 		private Vector2 _volumeRange = new(1f, 1f);
 
-		[SerializeField]
+		[SerializeField, JsonProperty]
 		private Vector2 _pitchRange = new(1f, 1f);
 
-		[SerializeField]
+		[SerializeField, JsonProperty]
+		private bool _quadraticPitchVariation;
+
+		[SerializeField, JsonProperty]
 		private SoundEffectType _type;
 
-		[SerializeField]
+		[SerializeField, JsonProperty]
 		private bool _loop;
 
-		[SerializeField, Range(0, 10f)]
+		[SerializeField, JsonProperty, Range(0, 10f)]
 		private float _fadeInTime;
 
-		[SerializeField, Range(0, 10f)]
+		[SerializeField, JsonProperty, Range(0, 10f)]
 		private float _fadeOutTime;
 
-		[SerializeField, Range(0, 0.2f)]
+		[SerializeField, JsonProperty, Range(0, 0.2f)]
 		private float _cooldown = 0.02f;
 
-		[NonSerialized]
-		private float _lastPlayStartTime = -1f;
+		private static readonly ConditionalWeakTable<GameObject, SoundPlaybackContext> PlaybackContexts = new();
 
 		protected static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -83,6 +88,12 @@ namespace VisualPinball.Unity
 			audioSource.spatialBlend = _type == SoundEffectType.Mechanical ? 1f : 0f;
 			audioSource.volume = UnityEngine.Random.Range(_volumeRange.x, _volumeRange.y);
 			audioSource.pitch = UnityEngine.Random.Range(_pitchRange.x, _pitchRange.y);
+			if (_quadraticPitchVariation) {
+				// VPX varies above and below normal pitch using two squared random draws.
+				var high = UnityEngine.Random.value;
+				var low = UnityEngine.Random.value;
+				audioSource.pitch = 1f + (_pitchRange.y - 1f) * high * high - (1f - _pitchRange.x) * low * low;
+			}
 			audioSource.loop = _loop;
 		}
 
@@ -90,20 +101,12 @@ namespace VisualPinball.Unity
 			GameObject audioObj,
 			CancellationToken allowFadeOutCt,
 			CancellationToken instantCt,
-			float volume = 1f
+			float volume = 1f,
+			SoundPlaybackContext context = null
 		)
 		{
-			float timeSinceLastPlay = Time.unscaledTime - _lastPlayStartTime;
-			if (timeSinceLastPlay < _cooldown)
-			{
-				// the cooldown is doing its job, so this is not a problem
-				if (Logger.IsDebugEnabled) {
-					Logger.Debug("Not playing sound effect {Name}, {Elapsed}s since the last play is less than its cooldown of {Cooldown}s.",
-						name, timeSinceLastPlay, _cooldown);
-				}
-				return;
-			}
-			_lastPlayStartTime = Time.unscaledTime;
+			context ??= PlaybackContexts.GetOrCreateValue(audioObj);
+			if (!context.TryStart(this, Time.unscaledTime, _cooldown)) return;
 
 			var audioSource = audioObj.AddComponent<AudioSource>();
 

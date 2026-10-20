@@ -420,6 +420,7 @@ namespace VisualPinball.Unity.Simulation
 						? new Action<string, float>((coilId, value) => player.DispatchCoilSimulationThread(coilId, value))
 						: null);
 				if (player != null) {
+					_simulationThread.MainThreadInputObserver = player.NotifyCabinetInputAction;
 					_simulationThread.SetInputSwitchMappings(player.SwitchMapping
 						.Where(m => m.Source == SwitchSource.InputSystem && !string.IsNullOrEmpty(m.InputAction))
 						.Select(m => new InputSwitchMapping(m.InputAction, m.Id, m.IsNormallyClosed))

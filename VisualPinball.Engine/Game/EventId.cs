@@ -22,7 +22,11 @@ namespace VisualPinball.Engine.Game
 		SurfaceEventsSlingshot = 1101, // DISPID_SurfaceEvents_Slingshot
 
 		// Flipper
+		FlipperEventsActuated = 1201,
 		FlipperEventsCollide = 1200, // DISPID_FlipperEvents_Collide
+
+		// Kicker
+		KickerEventsKicked = 1202,
 
 		// Spinner
 		SpinnerEventsSpin = 1301, // DISPID_SpinnerEvents_Spin

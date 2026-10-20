@@ -48,13 +48,13 @@ namespace VisualPinball.Unity
 			Random,
 		}
 		
-		[SerializeField]
+		[SerializeField, JsonProperty]
 		private string _description;
 
 		[JsonIgnore]
 		public AudioClip[] Clips;
 
-		[SerializeField]
+		[SerializeField, JsonProperty]
 		private SelectionMethod _clipSelectionMethod;
 
 		[SerializeField]
