@@ -14,9 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using VisualPinball.Engine.VPT.Primitive;
+using Object = UnityEngine.Object;
 
 namespace VisualPinball.Unity.Test
 {
@@ -188,6 +191,22 @@ namespace VisualPinball.Unity.Test
 			_go.SetActive(true);
 
 			Assert.That(mr.enabled, Is.False);
+		}
+
+		[Test]
+		public void ShouldExportAPrimitiveOnADeactivatedGameObjectAsHidden()
+		{
+			var primitive = _go.AddComponent<PrimitiveComponent>();
+			var mr = _go.AddComponent<MeshRenderer>();
+			_go.AddComponent<PrimitiveMeshComponent>();
+
+			var shown = primitive.CopyDataTo(new PrimitiveData("Primitive", 0f, 0f), Array.Empty<string>(), Array.Empty<string>(), false);
+			_go.SetActive(false);   // hidden through the GameObject checkbox: the renderer stays enabled
+			var hidden = primitive.CopyDataTo(new PrimitiveData("Primitive", 0f, 0f), Array.Empty<string>(), Array.Empty<string>(), false);
+
+			Assert.That(shown.IsVisible, Is.True);
+			Assert.That(mr.enabled, Is.True);
+			Assert.That(hidden.IsVisible, Is.False);
 		}
 	}
 }
