@@ -65,7 +65,7 @@ namespace VisualPinball.Unity
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		private const uint Magic = 0x43545056; // "VPTC"
-		private const int HeaderVersion = 4; // v4 uses texture content identity; v3 used package size/mtime
+		private const int HeaderVersion = 5; // Only the current cache format is supported.
 		private const string CacheFolderName = "TextureCache";
 		private const string CacheExtension = ".vptc";
 
@@ -128,19 +128,13 @@ namespace VisualPinball.Unity
 			return BitConverter.ToString(hash.ComputeHash(Encoding.UTF8.GetBytes(string.Join("\n", entries))));
 		}
 
-		public static string GetCachePath(string cacheRoot, string vpePath)
+		public static string GetCachePath(string cacheRoot, string vpePath, long settingsHash)
 		{
 			using var sha1 = SHA1.Create();
 			var hash = sha1.ComputeHash(Encoding.UTF8.GetBytes(Path.GetFullPath(vpePath).ToLowerInvariant()));
 			var name = BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant();
-			return Path.Combine(cacheRoot, CacheFolderName, name + CacheExtension);
-		}
-
-		public static string GetCachePath(string cacheRoot, string vpePath, long settingsHash)
-		{
-			var legacy = GetCachePath(cacheRoot, vpePath);
-			return Path.Combine(Path.GetDirectoryName(legacy)!, Path.GetFileNameWithoutExtension(legacy)
-				+ "-" + settingsHash.ToString("x", System.Globalization.CultureInfo.InvariantCulture) + CacheExtension);
+			return Path.Combine(cacheRoot, CacheFolderName, name + "-"
+				+ settingsHash.ToString("x", System.Globalization.CultureInfo.InvariantCulture) + CacheExtension);
 		}
 
 		public static bool TryLoad(string cacheRoot, string vpePath, long settingsHash, out CacheData data)
@@ -148,29 +142,18 @@ namespace VisualPinball.Unity
 			data = null;
 			try {
 				var cachePath = GetCachePath(cacheRoot, vpePath, settingsHash);
-				if (!File.Exists(cachePath)) {
-					cachePath = GetCachePath(cacheRoot, vpePath); // legacy single-variant cache
-					if (!File.Exists(cachePath)) return false;
-				}
-
-				var vpeInfo = new FileInfo(vpePath);
+				if (!File.Exists(cachePath)) return false;
 				using var stream = new FileStream(cachePath, FileMode.Open, FileAccess.Read, FileShare.Read, 1 << 16);
 				using var reader = new BinaryReader(stream);
 
 				if (reader.ReadUInt32() != Magic) return false;
-				var headerVersion = reader.ReadInt32();
-				if (headerVersion != 3 && headerVersion != HeaderVersion) {
+				if (reader.ReadInt32() != HeaderVersion) {
+					reader.Dispose();
+					File.Delete(cachePath);
 					return false;
 				}
-				if (reader.ReadInt64() != settingsHash) {
-					return false;
-				}
-				var sourceLength = reader.ReadInt64();
-				var sourceTime = reader.ReadInt64();
-				if (headerVersion == 3) {
-					// Legacy files have no content identity; retain their strict validation.
-					if (sourceLength != vpeInfo.Length || sourceTime != vpeInfo.LastWriteTimeUtc.Ticks) return false;
-				} else if (reader.ReadString() != ComputeTextureIdentity(vpePath)) return false;
+				if (reader.ReadInt64() != settingsHash) return false;
+				if (reader.ReadString() != ComputeTextureIdentity(vpePath)) return false;
 
 				var manifestLength = reader.ReadInt32();
 				if (manifestLength <= 0 || manifestLength > 256 * 1024 * 1024) {
@@ -262,7 +245,6 @@ namespace VisualPinball.Unity
 				var cachePath = GetCachePath(cacheRoot, vpePath, settingsHash);
 				Directory.CreateDirectory(Path.GetDirectoryName(cachePath)!);
 
-				var vpeInfo = new FileInfo(vpePath);
 				var manifestBytes = PackageApi.Packer.Pack(manifest);
 				var sourceIdentity = expectedSourceIdentity ?? ComputeTextureIdentity(vpePath);
 				if (expectedSourceIdentity != null && ComputeTextureIdentity(vpePath) != expectedSourceIdentity) {
@@ -292,8 +274,6 @@ namespace VisualPinball.Unity
 					writer.Write(Magic);
 					writer.Write(HeaderVersion);
 					writer.Write(settingsHash);
-					writer.Write(vpeInfo.Length);
-					writer.Write(vpeInfo.LastWriteTimeUtc.Ticks);
 					writer.Write(sourceIdentity);
 					writer.Write(manifestBytes.Length);
 					writer.Write(manifestBytes);
