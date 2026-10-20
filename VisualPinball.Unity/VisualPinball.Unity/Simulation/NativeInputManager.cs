@@ -353,6 +353,7 @@ namespace VisualPinball.Unity.Simulation
 			_callbackDelegate = OnInputEvent;
 
 			// Start polling thread
+			_simulationThread?.ResetInputNotifications(true);
 			int result = NativeInputApi.VpeInputStartPolling(_callbackDelegate, IntPtr.Zero, pollIntervalUs);
 			if (result == 0)
 			{
@@ -379,6 +380,7 @@ namespace VisualPinball.Unity.Simulation
 			if (!_polling) return;
 
 			NativeInputApi.VpeInputStopPolling();
+			_simulationThread?.ResetInputNotifications(false);
 			_polling = false;
 			_pollIntervalUs = 0;
 			Volatile.Write(ref _actualEventRateHz, 0f);

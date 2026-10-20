@@ -48,6 +48,7 @@ namespace VisualPinball.Unity
 		private CalloutCoordinator _calloutCoordinator;
 		private MusicCoordinator _musicCoordinator;
 		private readonly List<ISoundComponentSoundPlayer> _soundPlayers = new();
+		private readonly SoundPlaybackContext _playbackContext = new();
 
 		protected static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 		private static readonly LogOncePerKey<int> CannotPlayLog = new();
@@ -112,7 +113,9 @@ namespace VisualPinball.Unity
 			_soundPlayers.ForEach(x => x.Dispose());
 		}
 
-		protected void StartSound()
+		protected void StartSound() => StartSound(SoundAsset, 1f);
+
+		protected virtual void StartSound(SoundAsset asset, float gain = 1f)
 		{
 			if (!isActiveAndEnabled)
 			{
@@ -122,7 +125,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			if (SoundAsset == null)
+			if (asset == null)
 			{
 				if (CannotPlayLog.ShouldLog(UnityObjectId.Get(this))) {
 					Logger.Warn("Cannot play sound component {Name}, it has no sound asset. Assign it in the inspector.", name);
@@ -132,14 +135,14 @@ namespace VisualPinball.Unity
 
 			if (IsPlayingOrRequestingSound())
 			{
-				if (SoundAsset is MusicAsset)
+				if (asset is MusicAsset)
 				{
 					// We never want to have multiple active music requests. Makes no sense.
 					StopAllSounds(allowFade: true);
 				}
 				else
 				{
-					switch (MultiPlayMode)
+					switch (EffectiveMultiPlayMode)
 					{
 						case MultiPlayMode.PlayInParallel:
 							// Don't need to do anything.
@@ -156,8 +159,8 @@ namespace VisualPinball.Unity
 				}
 			}
 
-			var player = CreateSoundPlayer();
-			player.StartSound(Volume);
+			var player = CreateSoundPlayer(asset, gain);
+			player.StartSound(Volume * gain);
 			_soundPlayers.Add(player);
 		}
 
@@ -166,35 +169,38 @@ namespace VisualPinball.Unity
 			_soundPlayers.ForEach(x => x.StopSound(allowFade));
 		}
 
-		private ISoundComponentSoundPlayer CreateSoundPlayer()
+		protected virtual MultiPlayMode EffectiveMultiPlayMode => MultiPlayMode;
+
+		private ISoundComponentSoundPlayer CreateSoundPlayer(SoundAsset asset, float gain)
 		{
-			if (SoundAsset is SoundEffectAsset)
+			if (asset is SoundEffectAsset)
 			{
 				return new SoundComponentSoundEffectPlayer(
-					(SoundEffectAsset)SoundAsset,
-					gameObject
+					(SoundEffectAsset)asset,
+					gameObject,
+					_playbackContext
 				);
 			}
 
-			if (SoundAsset is CalloutAsset)
+			if (asset is CalloutAsset)
 			{
 				var request = new CalloutRequest(
-					(CalloutAsset)SoundAsset,
+					(CalloutAsset)asset,
 					Priority,
 					CalloutMaxQueueTime,
-					Volume
+					Volume * gain
 				);
 				return new SoundComponentCalloutPlayer(request, _calloutCoordinator);
 			}
 
-			if (SoundAsset is MusicAsset)
+			if (asset is MusicAsset)
 			{
-				var request = new MusicRequest((MusicAsset)SoundAsset, Priority, Volume);
+				var request = new MusicRequest((MusicAsset)asset, Priority, Volume * gain);
 				return new SoundComponentMusicPlayer(request, _musicCoordinator);
 			}
 
 			throw new NotImplementedException(
-				$"Unknown type of sound asset '{SoundAsset.GetType()}'"
+				$"Unknown type of sound asset '{asset.GetType()}'"
 			);
 		}
 

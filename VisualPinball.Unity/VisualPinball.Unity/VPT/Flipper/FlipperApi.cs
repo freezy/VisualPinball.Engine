@@ -19,6 +19,7 @@
 using System;
 using Unity.Mathematics;
 using UnityEngine;
+using VisualPinball.Engine.Game;
 using VisualPinball.Engine.VPT.Flipper;
 using VisualPinball.Unity.Collections;
 
@@ -35,6 +36,10 @@ namespace VisualPinball.Unity
 		/// Event emitted when the table is started.
 		/// </summary>
 		public event EventHandler Init;
+		public event EventHandler<FlipperActuationEventArgs> Actuated;
+
+		internal void OnActuated(float angle, bool energized) =>
+			Actuated?.Invoke(this, new FlipperActuationEventArgs(angle, energized));
 		/// <summary>
 		/// Event emitted when the flipper was touched by the ball, but did
 		/// not collide.
@@ -66,11 +71,15 @@ namespace VisualPinball.Unity
 		public event EventHandler Timer;
 
 		public int ColliderId { get; private set; }
+		public float RestAngle { get; private set; }
+		public float EndAngle { get; private set; }
 
 		private bool _isEos;
 
 		internal FlipperApi(GameObject go, Player player, PhysicsEngine physicsEngine) : base(go, player, physicsEngine)
 		{
+			RestAngle = MainComponent.StartAngle;
+			EndAngle = MainComponent.EndAngle;
 			_mainCoil = new DeviceCoil(Player, OnMainCoilEnabled, OnMainCoilDisabled, OnMainCoilEnabledSimThread, OnMainCoilDisabledSimThread);
 			_holdCoil = new DeviceCoil(Player, OnHoldCoilEnabled, OnHoldCoilDisabled, OnHoldCoilEnabledSimThread, OnHoldCoilDisabledSimThread);
 		}
@@ -96,6 +105,8 @@ namespace VisualPinball.Unity
 				flipperState.Movement.EnableRotateEvent = 1;
 				flipperState.Movement.StartRotateToEndTime = state.Env.TimeMsec;
 				flipperState.Movement.AngleAtRotateToEnd = flipperState.Movement.Angle;
+				if (!flipperState.Solenoid.Value) state.EventQueue.Enqueue(new EventData(
+					EventId.FlipperEventsActuated, ItemId, 0, flipperState.Movement.Angle, 1));
 				flipperState.Solenoid.Value = true;
 			});
 		}
@@ -109,6 +120,8 @@ namespace VisualPinball.Unity
 			PhysicsEngine.MutateState((ref PhysicsState state) => {
 				ref var flipperState = ref state.FlipperStates.GetValueByRef(ItemId);
 				flipperState.Movement.EnableRotateEvent = -1;
+				if (flipperState.Solenoid.Value) state.EventQueue.Enqueue(new EventData(
+					EventId.FlipperEventsActuated, ItemId, 0, flipperState.Movement.Angle, 0));
 				flipperState.Solenoid.Value = false;
 			});
 		}
@@ -118,6 +131,7 @@ namespace VisualPinball.Unity
 		internal float StartAngle
 		{
 			set {
+				RestAngle = math.degrees(value);
 				PhysicsEngine.MutateState((ref PhysicsState state) => {
 					ref var flipperState = ref state.FlipperStates.GetValueByRef(ItemId);
 					flipperState.Static.AngleStart = value;
@@ -170,6 +184,7 @@ namespace VisualPinball.Unity
 		{
 			ref var state = ref PhysicsEngine.FlipperState(ItemId);
 			state.Movement.EnableRotateEvent = enabled ? (sbyte)1 : (sbyte)-1;
+			if (state.Solenoid.Value != enabled) QueueActuation(state.Movement.Angle, enabled);
 			state.Solenoid.Value = enabled;
 		}
 
@@ -179,17 +194,27 @@ namespace VisualPinball.Unity
 			if (enabled) {
 				if (!isHoldCoil) {
 					state.Movement.EnableRotateEvent = 1;
+					if (!state.Solenoid.Value) QueueActuation(state.Movement.Angle, true);
 					state.Solenoid.Value = true;
 				}
 			} else {
 				if (!isHoldCoil) {
 					state.Movement.EnableRotateEvent = -1;
+					if (state.Solenoid.Value) QueueActuation(state.Movement.Angle, false);
 					state.Solenoid.Value = false;
 				}
 				// Note: dual-wound hold coil release with EOS handling requires
 				// switch events which are main-thread only. The sim-thread path
 				// handles the common single-wound and main-coil cases.
 			}
+		}
+
+		private void QueueActuation(float angle, bool energized)
+		{
+			// NativeQueue must not be written while Unity drains it. Preserve the edge's
+			// angle, then enqueue inside the next locked physics tick.
+			PhysicsEngine.Schedule((ref PhysicsState state) => state.EventQueue.Enqueue(
+				new EventData(EventId.FlipperEventsActuated, ItemId, 0, angle, energized ? 1 : 0)));
 		}
 
 		private void OnCoil(bool enabled, bool isHoldCoil)

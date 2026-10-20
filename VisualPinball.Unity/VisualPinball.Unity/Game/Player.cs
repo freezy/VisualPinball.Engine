@@ -76,6 +76,9 @@ namespace VisualPinball.Unity
 
 		public event EventHandler OnUpdate;
 		internal event Action<string, bool> CabinetInputActionChanged;
+		private readonly Dictionary<int, FlipperApi> _actuatedFlippers = new();
+		private readonly Dictionary<int, KickerApi> _releasedKickers = new();
+		internal void NotifyCabinetInputAction(string actionName, bool pressed) => CabinetInputActionChanged?.Invoke(actionName, pressed);
 
 		public event EventHandler<BallEvent> OnBallCreated;
 		public event EventHandler<BallEvent> OnBallDestroyed;
@@ -448,6 +451,8 @@ namespace VisualPinball.Unity
 		public void Register<TApi>(TApi api, MonoBehaviour component) where TApi : IApi
 		{
 			TableApi.Register(component, api);
+			if (api is FlipperApi flipper) _actuatedFlippers[UnityObjectId.Get(component.gameObject)] = flipper;
+			if (api is KickerApi kicker) _releasedKickers[UnityObjectId.Get(component.gameObject)] = kicker;
 			_apis.Add(api);
 			var itemId = UnityObjectId.Get(component.gameObject);
 			if (Logger.IsDebugEnabled) {
@@ -565,6 +570,12 @@ namespace VisualPinball.Unity
 					_spinnables[eventData.ItemId].OnSpin();
 					break;
 
+				case EventId.FlipperEventsActuated:
+					if (_actuatedFlippers.TryGetValue(eventData.ItemId, out var flipper)) flipper.OnActuated(eventData.FloatParam, eventData.IntParam != 0);
+					break;
+				case EventId.KickerEventsKicked:
+					if (_releasedKickers.TryGetValue(eventData.ItemId, out var kicker)) kicker.OnKicked(eventData.BallId, eventData.IntParam);
+					break;
 				case EventId.FlipperEventsCollide:
 					_collidables[eventData.ItemId].OnCollide(eventData.BallId, eventData.FloatParam);
 					break;

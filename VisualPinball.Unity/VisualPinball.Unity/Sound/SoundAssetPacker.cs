@@ -15,12 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using UnityEngine;
 using System.Linq;
 
 namespace VisualPinball.Unity
 {
-	public class SoundAssetPacker : IPacker<SoundAsset>
+	public class SoundAssetPacker : IPacker<SoundAsset>, IPacker<ScriptableObject>
 	{
+		MetaPackable IPacker<ScriptableObject>.Pack(int instanceId, ScriptableObject asset, PackagedFiles files)
+			=> Pack(instanceId, (SoundAsset)asset, files);
+
+		MetaPackable IPacker<ScriptableObject>.Unpack(byte[] bytes, ScriptableObject asset, PackagedFiles files)
+			=> Unpack(bytes, (SoundAsset)asset, files);
+
 		public MetaPackable Pack(int instanceId, SoundAsset soundAsset, PackagedFiles files)
 		{
 			var clipRefs = soundAsset.Clips != null

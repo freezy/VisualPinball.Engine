@@ -56,7 +56,6 @@ namespace VisualPinball.Unity
 			if (_eventSource != null)
 			{
 				Unsubscribe(_eventSource);
-				(_eventSource as IDisposable)?.Dispose();
 				_eventSource = null;
 			}
 		}
