@@ -15,6 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using NLog;
 using Unity.Collections;
 using UnityEngine;
@@ -34,10 +37,6 @@ namespace VisualPinball.Unity
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		private const string ShaderResourcePath = "VpeBc7Encode";
-
-		// The mode-137 kernels run one block per thread group, and D3D caps dispatches at 65535
-		// groups per dimension. The g_start_block_id constant exists exactly for this batching.
-		private const int MaxBlocksPerDispatch = 32768;
 
 		private static readonly int TexWidthId = Shader.PropertyToID("g_tex_width");
 		private static readonly int TexHeightId = Shader.PropertyToID("g_tex_height");
@@ -63,6 +62,15 @@ namespace VisualPinball.Unity
 		private ComputeBuffer _output;
 		private int _capacityBlocks;
 		private bool _initialized;
+		// GPU submission size and UI frame time are separate budgets. Waiting a whole
+		// rendered frame after every small batch needlessly throttles cooking to FPS.
+		private sealed class PendingReadback
+		{
+			public AsyncGPUReadbackRequest Request;
+			public Action<AsyncGPUReadbackRequest> Complete;
+		}
+		private bool _hasYielded;
+		private readonly System.Diagnostics.Stopwatch _yieldClock = System.Diagnostics.Stopwatch.StartNew();
 
 		public static bool IsSupported => SystemInfo.supportsComputeShaders
 			&& SystemInfo.SupportsTextureFormat(TextureFormat.BC7);
@@ -96,74 +104,126 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
-		/// Encodes one mip level of <paramref name="source"/> (an RGBA32 texture with the mip data
-		/// already uploaded) to BC7 and asynchronously copies the blocks into
-		/// <paramref name="destination"/> at <paramref name="destinationOffset"/>. The texture must
-		/// stay alive until the readback completes; track that via the returned request or
-		/// <paramref name="onCompleted"/> (invoked on the main thread with success=false on GPU
-		/// readback errors).
+		/// Encodes with bounded GPU submissions. A player-loop yield alone does not drain
+		/// the GPU queue: flush a bounded window of work, grouping small mips together.
+		/// The source and buffers stay alive until the last submitted request completes,
+		/// including when cancellation arrives during a readback. One encoder must not
+		/// run concurrent encodes.
 		/// </summary>
-		public AsyncGPUReadbackRequest EncodeMip(
-			Texture source,
-			int sourceMip,
-			int mipWidth,
-			int mipHeight,
-			byte[] destination,
-			int destinationOffset,
-			Action<bool> onCompleted)
+		public Task<bool> EncodeMipAsync(Texture source, int sourceMip, int mipWidth, int mipHeight,
+			byte[] destination, int destinationOffset, CancellationToken cancellationToken)
+			=> EncodeMipsAsync(source, sourceMip, new[] { mipWidth }, new[] { mipHeight },
+				new[] { (long)destinationOffset }, destination, cancellationToken);
+
+		public Task<bool> EncodeTextureAsync(Texture source, int[] widths, int[] heights, long[] offsets,
+			byte[] destination, CancellationToken cancellationToken)
+			=> EncodeMipsAsync(source, 0, widths, heights, offsets, destination, cancellationToken);
+
+		private async Task<bool> EncodeMipsAsync(Texture source, int firstMip, int[] widths, int[] heights,
+			long[] offsets, byte[] destination, CancellationToken cancellationToken)
 		{
-			if (!_initialized) {
-				throw new InvalidOperationException("VpeBc7GpuEncoder is not initialized.");
+			if (!_initialized) throw new InvalidOperationException("VpeBc7GpuEncoder is not initialized.");
+			if (source == null || destination == null) throw new ArgumentNullException();
+			if (widths.Length != heights.Length || widths.Length != offsets.Length) throw new ArgumentException("Mip arrays differ in length.");
+			var maximumBlocks = 0;
+			for (var mip = 0; mip < widths.Length; mip++) {
+				if (widths[mip] <= 0 || heights[mip] <= 0) throw new ArgumentOutOfRangeException(nameof(widths));
+				var blocks = checked(((widths[mip] + 3) / 4) * ((heights[mip] + 3) / 4));
+				var bytes = checked(blocks * 16);
+				if (offsets[mip] < 0 || offsets[mip] > destination.Length - bytes) throw new ArgumentOutOfRangeException(nameof(offsets));
+				maximumBlocks = Mathf.Max(maximumBlocks, blocks);
 			}
-
-			var blocksX = Mathf.Max(1, (mipWidth + 3) / 4);
-			var blocksY = Mathf.Max(1, (mipHeight + 3) / 4);
-			var numBlocks = blocksX * blocksY;
-			EnsureCapacity(numBlocks);
-
-			_shader.SetInt(TexWidthId, mipWidth);
-			_shader.SetInt(TexHeightId, mipHeight);
-			_shader.SetInt(NumBlockXId, blocksX);
-			_shader.SetInt(FormatId, Bc7FormatId);
-			_shader.SetInt(NumTotalBlocksId, numBlocks);
-			_shader.SetFloat(AlphaWeightId, 1f);
-			_shader.SetInt(SrcMipId, sourceMip);
-
-			for (var startBlock = 0; startBlock < numBlocks; startBlock += MaxBlocksPerDispatch) {
-				var batch = Mathf.Min(MaxBlocksPerDispatch, numBlocks - startBlock);
-				_shader.SetInt(StartBlockId, startBlock);
-
-				// Modes 4/5/6 (single subset): 4 blocks per 64-thread group, results into err1.
-				_shader.SetInt(ModeIdId, 0);
-				BindKernel(_kernelTryMode456, source, _err2, _err1);
-				_shader.Dispatch(_kernelTryMode456, Mathf.Max(1, (batch + 3) / 4), 1, 1);
-
-				// Modes 1/3/7 (two subsets): one block per group, ping-ponging the error buffers
-				// the same way DirectXTex does (err1 -> err2 -> err1 -> err2).
-				for (var i = 0; i < 3; i++) {
-					_shader.SetInt(ModeIdId, Bc7TwoSubsetModes[i]);
-					var input = (i & 1) == 1 ? _err2 : _err1;
-					var output = (i & 1) == 1 ? _err1 : _err2;
-					BindKernel(_kernelTryMode137, source, input, output);
-					_shader.Dispatch(_kernelTryMode137, batch, 1, 1);
+			// Never reallocate buffers with readbacks in flight. GPU copies are queued
+			// before subsequent dispatches reuse these buffers for another mip.
+			EnsureCapacity(maximumBlocks);
+			const int batchBlocks = 16384;
+			var pending = 0;
+			var requests = new List<PendingReadback>();
+			var queuedBlocks = 0;
+			var success = true;
+			async Task Drain()
+			{
+				// Do not free GPU resources on cancellation/timeout while a job owns them.
+				// The independent player watchdog diagnoses a genuinely hung device.
+				if (pending == 0) { queuedBlocks = 0; return; }
+				// Flush this bounded submission explicitly. A menu with no scene cameras
+				// may not otherwise submit compute/readback commands while awaiting them.
+				// Unlike the old end-of-cook wait, at most 16384 blocks are queued here.
+				AsyncGPUReadback.WaitAllRequests();
+				// Some players defer callbacks until the next rendered frame even though
+				// the request is complete. Consume completed data now, exactly once, so
+				// readback callback scheduling does not throttle every batch to frame rate.
+				foreach (var work in requests) if (work.Request.done) work.Complete(work.Request);
+				while (pending > 0) await Task.Yield();
+				requests.Clear();
+				queuedBlocks = 0;
+				if (!_hasYielded || _yieldClock.ElapsedMilliseconds >= 8) {
+					_hasYielded = true;
+					await Task.Yield();
+					_yieldClock.Restart();
 				}
-
-				// Final packing of the best candidate per block; err2 holds the last results.
-				BindKernel(_kernelEncodeBlock, source, _err2, _output);
-				_shader.Dispatch(_kernelEncodeBlock, Mathf.Max(1, (batch + 3) / 4), 1, 1);
 			}
-
-			var byteCount = numBlocks * 16;
-			return AsyncGPUReadback.Request(_output, byteCount, 0, request => {
-				if (request.hasError) {
-					Logger.Warn("VpeBc7GpuEncoder: GPU readback failed.");
-					onCompleted?.Invoke(false);
-					return;
+			try {
+				for (var mip = 0; mip < widths.Length; mip++) {
+					var blocksX = (widths[mip] + 3) / 4;
+					var numBlocks = blocksX * ((heights[mip] + 3) / 4);
+					for (var start = 0; start < numBlocks; start += batchBlocks) {
+						if (cancellationToken.IsCancellationRequested) {
+							await Drain(); cancellationToken.ThrowIfCancellationRequested();
+						}
+						var count = Mathf.Min(batchBlocks, numBlocks - start);
+						if (queuedBlocks + count > batchBlocks) await Drain();
+						if (!success) return false;
+						if (start % (batchBlocks * 64) == 0)
+							Logger.Debug("BC7: {Texture} mip {Mip}, blocks {Start}/{Total}", source.name, firstMip + mip, start, numBlocks);
+						_shader.SetInt(TexWidthId, widths[mip]);
+						_shader.SetInt(TexHeightId, heights[mip]);
+						_shader.SetInt(NumBlockXId, blocksX);
+						_shader.SetInt(FormatId, Bc7FormatId);
+						_shader.SetInt(NumTotalBlocksId, numBlocks);
+						_shader.SetFloat(AlphaWeightId, 1f);
+						_shader.SetInt(SrcMipId, firstMip + mip);
+						DispatchBatch(source, start, count);
+						var byteOffset = start * 16;
+						var destinationOffset = (int)offsets[mip] + byteOffset;
+						pending++;
+						var work = new PendingReadback();
+						var completed = false;
+						work.Complete = request => {
+							if (completed) return;
+							completed = true;
+							try {
+								if (request.hasError) success = false;
+								else NativeArray<byte>.Copy(request.GetData<byte>(), 0, destination, destinationOffset, count * 16);
+							} catch (Exception ex) {
+								success = false; Logger.Warn(ex, "VpeBc7GpuEncoder: batch readback failed.");
+							} finally { pending--; }
+						};
+						work.Request = AsyncGPUReadback.Request(_output, count * 16, byteOffset, work.Complete);
+						work.Request.forcePlayerLoopUpdate = true;
+						requests.Add(work);
+						queuedBlocks += count;
+						if (queuedBlocks >= batchBlocks) await Drain();
+					}
 				}
-				var data = request.GetData<byte>();
-				NativeArray<byte>.Copy(data, 0, destination, destinationOffset, byteCount);
-				onCompleted?.Invoke(true);
-			});
+			} finally { await Drain(); }
+			cancellationToken.ThrowIfCancellationRequested();
+			return success;
+		}
+
+		private void DispatchBatch(Texture source, int startBlock, int batch)
+		{
+			_shader.SetInt(StartBlockId, startBlock);
+			_shader.SetInt(ModeIdId, 0);
+			BindKernel(_kernelTryMode456, source, _err2, _err1);
+			_shader.Dispatch(_kernelTryMode456, Mathf.Max(1, (batch + 3) / 4), 1, 1);
+			for (var i = 0; i < 3; i++) {
+				_shader.SetInt(ModeIdId, Bc7TwoSubsetModes[i]);
+				BindKernel(_kernelTryMode137, source, (i & 1) == 1 ? _err2 : _err1, (i & 1) == 1 ? _err1 : _err2);
+				_shader.Dispatch(_kernelTryMode137, batch, 1, 1);
+			}
+			BindKernel(_kernelEncodeBlock, source, _err2, _output);
+			_shader.Dispatch(_kernelEncodeBlock, Mathf.Max(1, (batch + 3) / 4), 1, 1);
 		}
 
 		private static readonly int[] Bc7TwoSubsetModes = { 1, 3, 7 };

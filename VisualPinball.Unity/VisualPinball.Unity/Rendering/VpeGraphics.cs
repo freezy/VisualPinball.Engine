@@ -31,6 +31,8 @@ namespace VisualPinball.Unity
 		Off = 0,
 		Dlss = 1,   // NVIDIA Deep Learning Super Sampling
 		Fsr2 = 2,   // AMD FidelityFX Super Resolution 2
+		Fsr1 = 3,   // URP spatial upscaling
+		Stp = 4,    // URP Spatial-Temporal Post-processing
 	}
 
 	/// <summary>How far the upscaler lowers the internal resolution (each upscaler picks its own scale per mode).</summary>

@@ -16,6 +16,8 @@
 
 using System;
 using System.IO;
+using System.Collections.Generic;
+using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -55,7 +57,7 @@ namespace VisualPinball.Unity
 
 	/// <summary>
 	/// Per-table cache of GPU-cooked textures (see VpeTextureCook). One file per .vpe package,
-	/// validated against the package's size and write time plus the cook settings. The payload is
+	/// validated against texture/material content plus explicit cook settings. The payload is
 	/// the exact blob the material reader uploads from, so a cache hit costs one sequential read.
 	/// </summary>
 	public static class VpeTextureCache
@@ -63,7 +65,7 @@ namespace VisualPinball.Unity
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		private const uint Magic = 0x43545056; // "VPTC"
-		private const int HeaderVersion = 3; // v2 added the compression byte; v3 made zstd payloads chunked
+		private const int HeaderVersion = 4; // v4 uses texture content identity; v3 used package size/mtime
 		private const string CacheFolderName = "TextureCache";
 		private const string CacheExtension = ".vptc";
 
@@ -103,6 +105,29 @@ namespace VisualPinball.Unity
 			public byte[] CookedData;
 		}
 
+		/// <summary>
+		/// Fingerprint only texture-cook inputs, from the ZIP directory (no image decode or
+		/// large blob read). Screenshot/metadata-only edits must not discard cooked textures.
+		/// Render presets, effects and upscalers are deliberately absent from this identity.
+		/// </summary>
+		public static string ComputeTextureIdentity(string vpePath)
+		{
+			var entries = new List<string>();
+			using var input = File.OpenRead(vpePath);
+			using (var zip = new ZipArchive(input, ZipArchiveMode.Read)) {
+				foreach (var entry in zip.Entries) {
+					if (entry.Name.Length == 0) continue;
+					if (entry.FullName.StartsWith("table/textures/", StringComparison.Ordinal)
+						|| entry.FullName == "table/meta/materials.json")
+						entries.Add(entry.FullName + "\0" + entry.Length + "\0" + entry.Crc32);
+				}
+			}
+			if (entries.Count == 0) throw new InvalidDataException("Package has no texture-cook inputs.");
+			entries.Sort(StringComparer.Ordinal);
+			using var hash = SHA256.Create();
+			return BitConverter.ToString(hash.ComputeHash(Encoding.UTF8.GetBytes(string.Join("\n", entries))));
+		}
+
 		public static string GetCachePath(string cacheRoot, string vpePath)
 		{
 			using var sha1 = SHA1.Create();
@@ -111,28 +136,41 @@ namespace VisualPinball.Unity
 			return Path.Combine(cacheRoot, CacheFolderName, name + CacheExtension);
 		}
 
+		public static string GetCachePath(string cacheRoot, string vpePath, long settingsHash)
+		{
+			var legacy = GetCachePath(cacheRoot, vpePath);
+			return Path.Combine(Path.GetDirectoryName(legacy)!, Path.GetFileNameWithoutExtension(legacy)
+				+ "-" + settingsHash.ToString("x", System.Globalization.CultureInfo.InvariantCulture) + CacheExtension);
+		}
+
 		public static bool TryLoad(string cacheRoot, string vpePath, long settingsHash, out CacheData data)
 		{
 			data = null;
 			try {
-				var cachePath = GetCachePath(cacheRoot, vpePath);
+				var cachePath = GetCachePath(cacheRoot, vpePath, settingsHash);
 				if (!File.Exists(cachePath)) {
-					return false;
+					cachePath = GetCachePath(cacheRoot, vpePath); // legacy single-variant cache
+					if (!File.Exists(cachePath)) return false;
 				}
 
 				var vpeInfo = new FileInfo(vpePath);
 				using var stream = new FileStream(cachePath, FileMode.Open, FileAccess.Read, FileShare.Read, 1 << 16);
 				using var reader = new BinaryReader(stream);
 
-				if (reader.ReadUInt32() != Magic || reader.ReadInt32() != HeaderVersion) {
+				if (reader.ReadUInt32() != Magic) return false;
+				var headerVersion = reader.ReadInt32();
+				if (headerVersion != 3 && headerVersion != HeaderVersion) {
 					return false;
 				}
 				if (reader.ReadInt64() != settingsHash) {
 					return false;
 				}
-				if (reader.ReadInt64() != vpeInfo.Length || reader.ReadInt64() != vpeInfo.LastWriteTimeUtc.Ticks) {
-					return false;
-				}
+				var sourceLength = reader.ReadInt64();
+				var sourceTime = reader.ReadInt64();
+				if (headerVersion == 3) {
+					// Legacy files have no content identity; retain their strict validation.
+					if (sourceLength != vpeInfo.Length || sourceTime != vpeInfo.LastWriteTimeUtc.Ticks) return false;
+				} else if (reader.ReadString() != ComputeTextureIdentity(vpePath)) return false;
 
 				var manifestLength = reader.ReadInt32();
 				if (manifestLength <= 0 || manifestLength > 256 * 1024 * 1024) {
@@ -218,14 +256,19 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		public static void Write(string cacheRoot, string vpePath, long settingsHash, Manifest manifest, byte[] cookedData)
+		public static void Write(string cacheRoot, string vpePath, long settingsHash, Manifest manifest, byte[] cookedData, string expectedSourceIdentity = null)
 		{
 			try {
-				var cachePath = GetCachePath(cacheRoot, vpePath);
+				var cachePath = GetCachePath(cacheRoot, vpePath, settingsHash);
 				Directory.CreateDirectory(Path.GetDirectoryName(cachePath)!);
 
 				var vpeInfo = new FileInfo(vpePath);
 				var manifestBytes = PackageApi.Packer.Pack(manifest);
+				var sourceIdentity = expectedSourceIdentity ?? ComputeTextureIdentity(vpePath);
+				if (expectedSourceIdentity != null && ComputeTextureIdentity(vpePath) != expectedSourceIdentity) {
+					Logger.Warn("Texture inputs changed during cooking; not caching stale output for {File}", vpePath);
+					return;
+				}
 
 				var compress = CompressPayloadOnWrite;
 
@@ -251,6 +294,7 @@ namespace VisualPinball.Unity
 					writer.Write(settingsHash);
 					writer.Write(vpeInfo.Length);
 					writer.Write(vpeInfo.LastWriteTimeUtc.Ticks);
+					writer.Write(sourceIdentity);
 					writer.Write(manifestBytes.Length);
 					writer.Write(manifestBytes);
 					writer.Write(compress ? PayloadZstd : PayloadRaw);
