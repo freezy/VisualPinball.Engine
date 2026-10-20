@@ -42,9 +42,6 @@ namespace VisualPinball.Unity
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		private const string RawMimeType = "application/x-vpe-raw";
-		// Pixels of BC7 encode work dispatched per frame. Keeps single frames well below the
-		// Windows GPU watchdog threshold (the same lesson as the upload budget in the reader).
-		private const long EncodePixelYieldBudget = 32L * 1024 * 1024;
 		// Bounded hand-off between decode workers and the GPU stage; also bounds peak memory of
 		// decoded-but-not-yet-encoded RGBA data. Generous on purpose: while the main thread is busy
 		// decoding the big files, the workers must be able to keep going without backpressure.
@@ -144,14 +141,16 @@ namespace VisualPinball.Unity
 
 			// Decode stage: parallel workers stream BC7 work to the main thread; RGBA32 and
 			// passthrough items are written straight into the blob from the worker.
-			var gpuQueue = new BlockingCollection<GpuWork>(GpuQueueCapacity);
+			using var decodeCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+			var decodeToken = decodeCancellation.Token;
+			using var gpuQueue = new BlockingCollection<GpuWork>(GpuQueueCapacity);
 			var decodeTask = Task.Run(() => {
 				try {
 					var options = new ParallelOptions {
 						// The cook runs behind a loading screen; decoding is the long pole, so use
 						// nearly every core.
 						MaxDegreeOfParallelism = Mathf.Clamp(Environment.ProcessorCount - 1, 2, 16),
-						CancellationToken = cancellationToken,
+						CancellationToken = decodeToken,
 					};
 					Parallel.ForEach(workerItems, options, item => {
 						try {
@@ -170,7 +169,7 @@ namespace VisualPinball.Unity
 							}
 
 							if (item.UseBc7) {
-								gpuQueue.Add(work, cancellationToken);
+								gpuQueue.Add(work, decodeToken);
 							} else {
 								// Raw RGBA32: build the mip chain on the CPU (rare path, small
 								// non-block-compressible textures) and write the final payload.
@@ -188,19 +187,19 @@ namespace VisualPinball.Unity
 					Interlocked.Exchange(ref decodeWallMs, cookStopwatch.ElapsedMilliseconds);
 					gpuQueue.CompleteAdding();
 				}
-			}, cancellationToken);
+			}, decodeToken);
 
 			// GPU stage (main thread): upload base levels, build mips on the GPU, dispatch BC7
-			// encoding and async-read the blocks back into the blob. Yields by dispatched-pixel
-			// budget to keep frames sane.
-			var outstandingTextures = 0;
-			long pixelsSinceYield = 0;
+			// encoding and read the blocks back into the blob. Each bounded window completes
+			// before another is submitted; small mips share a window to avoid frame-rate throttling.
 
-			void SubmitToGpu(CookPlanItem item, Texture2D upload)
+			async Task SubmitToGpu(CookPlanItem item, Texture2D upload)
 			{
 				if (firstGpuItemMs == 0) {
 					firstGpuItemMs = cookStopwatch.ElapsedMilliseconds;
 				}
+				Logger.Debug("Cooking texture {Texture}: {Width}x{Height}, {Mips} mips ({Done}/{Total})",
+					item.Source.Id, item.Cooked.Width, item.Cooked.Height, item.Cooked.MipCount, Volatile.Read(ref finishedItems), totalItems);
 				var repackThisOnGpu = item.IsNormal && repackOnGpu;
 				RenderTexture mipped = null;
 				try {
@@ -236,27 +235,15 @@ namespace VisualPinball.Unity
 					return;
 				}
 
-				var baseTexture = upload;
-				var mipSource = mipped;
-				var remainingMips = item.Cooked.MipCount;
-				Interlocked.Increment(ref outstandingTextures);
-				for (var mip = 0; mip < item.Cooked.MipCount; mip++) {
-					encoder.EncodeMip(mipSource, mip, item.MipWidths[mip], item.MipHeights[mip], cookedData, (int)item.MipOffsets[mip], ok => {
-						if (!ok) {
-							gpuFailures++;
-						}
-						if (--remainingMips == 0) {
-							DestroyObject(baseTexture);
-							mipSource.Release();
-							DestroyObject(mipSource);
-							Interlocked.Decrement(ref outstandingTextures);
-							Interlocked.Increment(ref finishedItems);
-						}
-					});
+				try {
+					if (!await encoder.EncodeTextureAsync(mipped, item.MipWidths, item.MipHeights, item.MipOffsets,
+						cookedData, cancellationToken)) gpuFailures++;
+					Interlocked.Increment(ref finishedItems);
+				} finally {
+					DestroyObject(upload);
+					mipped.Release();
+					DestroyObject(mipped);
 				}
-
-				// rough: base level plus one third for the mip chain
-				pixelsSinceYield += (long)item.Cooked.Width * item.Cooked.Height * 4 / 3;
 				reportProgress?.Invoke(Volatile.Read(ref finishedItems), totalItems);
 			}
 
@@ -333,58 +320,58 @@ namespace VisualPinball.Unity
 				}
 			}
 
-			while (true) {
-				cancellationToken.ThrowIfCancellationRequested();
+			try {
+				while (true) {
+					cancellationToken.ThrowIfCancellationRequested();
 
-				// The big files are the long pole: decode them first while the workers fill the
-				// queue, then drain whatever the workers produced.
-				if (mainThreadItems.Count > 0) {
-					var item = mainThreadItems.Dequeue();
-					var upload = DecodeOnMainThread(item);
-					if (upload) {
-						SubmitToGpu(item, upload);
-					}
-					// One big decode blocks long enough; give the player loop a frame either way.
-					await Task.Yield();
-					continue;
-				}
-
-				GpuWork work;
-				try {
-					if (!gpuQueue.TryTake(out work, 10, cancellationToken)) {
-						if (gpuQueue.IsCompleted) {
-							break;
+					// The big files are the long pole: decode them first while the workers fill the
+					// queue, then drain whatever the workers produced.
+					if (mainThreadItems.Count > 0) {
+						var item = mainThreadItems.Dequeue();
+						var upload = DecodeOnMainThread(item);
+						if (upload) {
+							await SubmitToGpu(item, upload);
+							if (gpuFailures > 0) return null;
 						}
+						// One big decode blocks long enough; give the player loop a frame either way.
 						await Task.Yield();
 						continue;
 					}
-				} catch (InvalidOperationException) {
-					break; // completed between checks
+
+					GpuWork work;
+					try {
+						if (!gpuQueue.TryTake(out work, 10, cancellationToken)) {
+							if (gpuQueue.IsCompleted) {
+								break;
+							}
+							await Task.Yield();
+							continue;
+						}
+					} catch (InvalidOperationException) {
+						break; // completed between checks
+					}
+
+					var workerUpload = PrepareWorkerUpload(work);
+					if (workerUpload) {
+						// Worker-decoded normals arrive already AG-packed.
+						await SubmitToGpu(work.Item, workerUpload);
+						if (gpuFailures > 0) return null;
+					}
+
 				}
 
-				var workerUpload = PrepareWorkerUpload(work);
-				if (workerUpload) {
-					// Worker-decoded normals arrive already AG-packed.
-					SubmitToGpu(work.Item, workerUpload);
-				}
+				await decodeTask;
 
-				if (pixelsSinceYield > EncodePixelYieldBudget) {
-					pixelsSinceYield = 0;
-					await Task.Yield();
-				}
+			} finally {
+				// A preparation/dispatch exception can abandon a full queue. Always release
+				// and observe the decode workers before fallback or cancellation returns.
+				decodeCancellation.Cancel();
+				try { await decodeTask; }
+				catch (OperationCanceledException) { }
+				catch (Exception ex) { Logger.Debug(ex, "VpeTextureCook: decode workers stopped after cook failure."); }
 			}
 
-			await decodeTask;
-
-			// Flush all pending readbacks; their callbacks run inside WaitAllRequests.
-			AsyncGPUReadback.WaitAllRequests();
-			var guard = 0;
-			while (Volatile.Read(ref outstandingTextures) > 0 && guard++ < 1000) {
-				await Task.Yield();
-				AsyncGPUReadback.WaitAllRequests();
-			}
-
-			if (decodeFailures > 0 || gpuFailures > 0 || Volatile.Read(ref outstandingTextures) > 0) {
+			if (decodeFailures > 0 || gpuFailures > 0) {
 				Logger.Warn($"VpeTextureCook: cook aborted (decodeFailures={decodeFailures}, gpuFailures={gpuFailures}).");
 				return null;
 			}

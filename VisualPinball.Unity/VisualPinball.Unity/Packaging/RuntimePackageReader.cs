@@ -858,7 +858,8 @@ namespace VisualPinball.Unity
 					var settingsHash = _cookSettingsHash;
 					var manifest = cookResult.Manifest;
 					var cookedData = cookResult.CookedData;
-					_ = Task.Run(() => VpeTextureCache.Write(cacheRoot, vpePath, settingsHash, manifest, cookedData))
+					var sourceIdentity = prefetch?.SourceIdentity;
+					if (sourceIdentity != null) _ = Task.Run(() => VpeTextureCache.Write(cacheRoot, vpePath, settingsHash, manifest, cookedData, sourceIdentity))
 						.ContinueWith(t => Logger.Warn(t.Exception?.GetBaseException(), "Cannot write the texture cache for {File}; textures are cooked again next time.", Path.GetFileName(vpePath)),
 							TaskContinuationOptions.OnlyOnFaulted);
 				}
@@ -876,6 +877,7 @@ namespace VisualPinball.Unity
 		private static MaterialPrefetchResult PrefetchMaterialData(string vpePath, string cacheRoot, long cookSettingsHash)
 		{
 			try {
+				var sourceIdentity = VpeTextureCache.ComputeTextureIdentity(vpePath);
 				using var storage = PackageApi.StorageManager.OpenStorage(vpePath);
 				var tableFolder = storage.GetFolder(PackageApi.TableFolder);
 
@@ -884,8 +886,9 @@ namespace VisualPinball.Unity
 					return null;
 				}
 
-				var result = new MaterialPrefetchResult { Payload = payload, Sources = entriesOnly };
+				var result = new MaterialPrefetchResult { Payload = payload, Sources = entriesOnly, SourceIdentity = sourceIdentity };
 				if (VpeTextureCache.TryLoad(cacheRoot, vpePath, cookSettingsHash, out var cached)) {
+					if (sourceIdentity != VpeTextureCache.ComputeTextureIdentity(vpePath)) throw new IOException("Texture inputs changed while reading cache.");
 					result.CachedTextures = cached;
 					return result;
 				}
@@ -897,6 +900,7 @@ namespace VisualPinball.Unity
 					result.Payload = payload;
 					result.Sources = sources;
 				}
+				if (sourceIdentity != VpeTextureCache.ComputeTextureIdentity(vpePath)) throw new IOException("Texture inputs changed while reading sources.");
 				return result;
 
 			} catch (Exception ex) {
@@ -907,6 +911,7 @@ namespace VisualPinball.Unity
 
 		private sealed class MaterialPrefetchResult
 		{
+			public string SourceIdentity;
 			public VpeMaterialsPayload Payload;
 			public VpeTextureSources.Result Sources;
 			public VpeTextureCache.CacheData CachedTextures;

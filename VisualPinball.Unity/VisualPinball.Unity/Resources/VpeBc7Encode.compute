@@ -301,12 +301,12 @@ void TryMode456CS(uint GI : SV_GroupIndex, uint3 groupID : SV_GroupID) // mode 4
     uint threadBase = blockInGroup * MAX_USED_THREAD;                               // the first id of the pixel in this BC block in this thread group
     uint threadInBlock = GI - threadBase;                                           // id of the pixel in this BC block
 
-#ifndef REF_DEVICE
-    if (blockID >= g_num_total_blocks)
-    {
-        return;
-    }
-#endif
+    // All 64 lanes must reach the group barriers, including the padding blocks
+    // in tiny mips. Read a valid block for inactive lanes and suppress their writes.
+    // Returning per block here deadlocks barriers; leaving the index unchecked
+    // accesses beyond the buffers when the mip contains fewer than four blocks.
+    bool validBlock = blockID < g_num_total_blocks;
+    blockID = min(blockID, g_num_total_blocks - 1);
 
     uint block_y = blockID / g_num_block_x;
     uint block_x = blockID - block_y * g_num_block_x;
@@ -640,8 +640,9 @@ void TryMode456CS(uint GI : SV_GroupIndex, uint3 groupID : SV_GroupID) // mode 4
             shared_temp[GI].rotation = shared_temp[GI + 1].rotation;
         }
 
-        g_OutBuff[blockID] = uint4(shared_temp[GI].error, (shared_temp[GI].index_selector << 31) | shared_temp[GI].mode,
-            0, shared_temp[GI].rotation); // rotation is indeed rotation for mode 4 5. for mode 6, rotation is p bit
+        if (validBlock)
+            g_OutBuff[blockID] = uint4(shared_temp[GI].error, (shared_temp[GI].index_selector << 31) | shared_temp[GI].mode,
+                0, shared_temp[GI].rotation); // rotation is indeed rotation for mode 4 5. for mode 6, rotation is p bit
     }
 }
 
@@ -1188,12 +1189,12 @@ void EncodeBlockCS(uint GI : SV_GroupIndex, uint3 groupID : SV_GroupID)
     uint threadBase = blockInGroup * MAX_USED_THREAD;
     uint threadInBlock = GI - threadBase;
 
-#ifndef REF_DEVICE
-    if (blockID >= g_num_total_blocks)
-    {
-        return;
-    }
-#endif
+    // All 64 lanes must reach the group barriers, including the padding blocks
+    // in tiny mips. Read a valid block for inactive lanes and suppress their writes.
+    // Returning per block here deadlocks barriers; leaving the index unchecked
+    // accesses beyond the buffers when the mip contains fewer than four blocks.
+    bool validBlock = blockID < g_num_total_blocks;
+    blockID = min(blockID, g_num_total_blocks - 1);
 
     uint block_y = blockID / g_num_block_x;
     uint block_x = blockID - block_y * g_num_block_x;
@@ -1231,8 +1232,10 @@ void EncodeBlockCS(uint GI : SV_GroupIndex, uint3 groupID : SV_GroupID)
     GroupMemoryBarrierWithGroupSync();
 #endif
 
-    uint bits = candidateSectionBit[partition];
-    uint bits2 = candidateSectionBit2[partition - 64];
+    // Modes 1/3/7 use partitions 0..63; modes 0/2 use 64..127.
+    // Both values are evaluated even when only one table is used by the mode.
+    uint bits = candidateSectionBit[min(partition, 63u)];
+    uint bits2 = candidateSectionBit2[partition >= 64 ? partition - 64 : 0];
 
     uint2x4 ep;
     ep[0] = MAX_UINT;
@@ -1539,7 +1542,7 @@ void EncodeBlockCS(uint GI : SV_GroupIndex, uint3 groupID : SV_GroupID)
     GroupMemoryBarrierWithGroupSync();
 #endif
 
-    if (0 == threadInBlock)
+    if (0 == threadInBlock && validBlock)
     {
         uint4 block;
         if (0 == mode)

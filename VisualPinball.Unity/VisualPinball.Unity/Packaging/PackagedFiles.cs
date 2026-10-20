@@ -166,7 +166,8 @@ namespace VisualPinball.Unity
 			var importRoot = new GameObject("__vpe_runtime_colliders");
 			importRoot.hideFlags = HideFlags.HideAndDontSave;
 			try {
-				var gltf = new GltfImport(logger: new ConsoleLogger());
+				// Colliders need placeholder materials too; use the pipeline generator included in players.
+				var gltf = new GltfImport(materialGenerator: RuntimeGltfMaterialGenerator.Create(), logger: new ConsoleLogger());
 				var loaded = await gltf.Load(colliderMeshData, cancellationToken: cancellationToken);
 				cancellationToken.ThrowIfCancellationRequested();
 				if (!loaded) {
