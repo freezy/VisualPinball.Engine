@@ -167,6 +167,11 @@ namespace VisualPinball.Unity
 		protected void StopAllSounds(bool allowFade)
 		{
 			_soundPlayers.ForEach(x => x.StopSound(allowFade));
+			// An explicitly stopped loop must be able to follow the next active mechanism state.
+			// Keep cooldowns for one-shots and uninterrupted loop starts.
+			if (!allowFade && SoundAsset is SoundEffectAsset { Loop: true } loop) {
+				_playbackContext.Reset(loop);
+			}
 		}
 
 		protected virtual MultiPlayMode EffectiveMultiPlayMode => MultiPlayMode;

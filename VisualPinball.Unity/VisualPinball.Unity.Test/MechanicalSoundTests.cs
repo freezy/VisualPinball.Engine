@@ -15,10 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
 using VisualPinball.Unity.Simulation;
 
@@ -161,6 +163,81 @@ namespace VisualPinball.Unity.Test
 			finally { Object.DestroyImmediate(obj); }
 		}
 
+		[UnityTest]
+		public IEnumerator MotorLoopRestartsInsideBankCooldown() => MotorRestartInsideBankCooldown(true, MultiPlayMode.PlayInParallel);
+
+		[UnityTest]
+		public IEnumerator MotorLoopRestartsWithDoNotPlay() => MotorRestartInsideBankCooldown(true, MultiPlayMode.DoNotPlay);
+
+		[UnityTest]
+		public IEnumerator MotorLoopRestartsWithStopPrevious() => MotorRestartInsideBankCooldown(true, MultiPlayMode.StopPrevious);
+
+		[UnityTest]
+		public IEnumerator MotorLoopRestartsWithFadeOutPrevious() => MotorRestartInsideBankCooldown(true, MultiPlayMode.FadeOutPrevious);
+
+		[UnityTest]
+		public IEnumerator MotorOneShotKeepsBankCooldown() => MotorRestartInsideBankCooldown(false, MultiPlayMode.PlayInParallel);
+
+		private IEnumerator MotorRestartInsideBankCooldown(bool loop, MultiPlayMode mode) {
+			var obj = new GameObject("Motor loop cooldown test");
+			var asset = ScriptableObject.CreateInstance<SoundEffectAsset>();
+			var clip = AudioClip.Create("Motor test", 44100, 1, 44100, false);
+			try {
+				asset.Clips = new[] { clip };
+				typeof(SoundEffectAsset).GetField("_loop", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(asset, loop);
+				typeof(SoundEffectAsset).GetField("_cooldown", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(asset, .2f);
+				var emitter = obj.AddComponent<MechanicalSoundTestEmitter>();
+				var sound = obj.AddComponent<PinballEventSoundComponent>();
+				sound.SoundAsset = asset;
+				sound.MultiPlayMode = mode;
+				sound.EventName = "Mech Speed";
+				Invoke(sound, "OnEnableAfterAfterAwake");
+				emitter.Emit(1);
+				Assert.That(sound.IsPlayingOrRequestingSound(), Is.True, "initial sound must start");
+				emitter.Emit(0);
+				emitter.Emit(1);
+				// Observe the new playback after the canceled loop has finished cleaning up.
+				yield return null;
+				yield return null;
+				Assert.That(sound.IsPlayingOrRequestingSound(), Is.EqualTo(loop), "loops resume without another predicate transition; one-shot cooldown remains enforced");
+				Assert.That(obj.GetComponents<AudioSource>(), Has.Length.EqualTo(loop ? 1 : 0));
+				if (loop) Assert.That(obj.GetComponent<AudioSource>().isPlaying, Is.True);
+				emitter.Emit(2);
+				Assert.That(obj.GetComponents<AudioSource>(), Has.Length.EqualTo(loop ? 1 : 0), "a held true predicate must not restart playback");
+				emitter.Emit(0);
+				yield return null;
+				yield return null;
+				Assert.That(sound.IsPlayingOrRequestingSound(), Is.False);
+			}
+			finally {
+				Object.DestroyImmediate(obj);
+				Object.DestroyImmediate(asset);
+				Object.DestroyImmediate(clip);
+			}
+		}
+
+		[Test]
+		public void LoopCooldownStillDebouncesStartsWithoutAStop() {
+			var obj = new GameObject("Uninterrupted loop cooldown test");
+			var asset = ScriptableObject.CreateInstance<SoundEffectAsset>();
+			var clip = AudioClip.Create("Loop test", 44100, 1, 44100, false);
+			try {
+				asset.Clips = new[] { clip };
+				typeof(SoundEffectAsset).GetField("_loop", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(asset, true);
+				typeof(SoundEffectAsset).GetField("_cooldown", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(asset, .2f);
+				var sound = obj.AddComponent<MechanicalSoundTestPlayer>();
+				sound.SoundAsset = asset;
+				sound.Play();
+				sound.Play();
+				Assert.That(obj.GetComponents<AudioSource>(), Has.Length.EqualTo(1), "without a stop, loop starts must still respect bank cooldown");
+			}
+			finally {
+				Object.DestroyImmediate(obj);
+				Object.DestroyImmediate(asset);
+				Object.DestroyImmediate(clip);
+			}
+		}
+
 		[Test]
 		public void MotorBindsUniquelyAndKeepsPredicateActiveAfterFinitePlayback() {
 			var obj = new GameObject("Motor");
@@ -209,6 +286,11 @@ namespace VisualPinball.Unity.Test
 	{
 		public int Starts;
 		protected override void StartSound(SoundAsset asset, float gain = 1f) => Starts++;
+	}
+
+	public class MechanicalSoundTestPlayer : SoundComponent
+	{
+		public void Play() => StartSound();
 	}
 
 	public class MechanicalSoundTestFlipper : FlipperSoundComponent

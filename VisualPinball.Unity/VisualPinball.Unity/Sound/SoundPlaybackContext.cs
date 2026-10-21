@@ -22,6 +22,8 @@ namespace VisualPinball.Unity
 	{
 		private readonly Dictionary<SoundEffectAsset, float> _starts = new();
 
+		internal void Reset(SoundEffectAsset asset) => _starts.Remove(asset);
+
 		public bool TryStart(SoundEffectAsset asset, float now, float cooldown) {
 			if (_starts.TryGetValue(asset, out var last) && now >= last && now - last < cooldown)
 				return false;
