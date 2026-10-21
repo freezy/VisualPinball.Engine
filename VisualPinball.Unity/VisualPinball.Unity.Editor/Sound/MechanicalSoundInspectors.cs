@@ -18,6 +18,8 @@ using System;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using VisualPinball.Engine.Common;
 
 namespace VisualPinball.Unity.Editor
 {
@@ -59,9 +61,28 @@ namespace VisualPinball.Unity.Editor
 	[CustomEditor(typeof(InputActionSoundComponent)), CanEditMultipleObjects]
 	public class InputActionSoundInspector : MechanicalSoundInspector
 	{
+		private string[] _actionNames;
+
+		private void OnEnable() {
+			_actionNames = GetActionNames(Resources.Load<InputActionAsset>("InputBindings"));
+		}
+
+		private static string[] GetActionNames(InputActionAsset asset) {
+			var ownsAsset = !asset;
+			if (ownsAsset) asset = InputManager.GetDefaultInputActionAsset();
+			try {
+				var map = asset.FindActionMap(InputConstants.MapCabinetSwitches);
+				return map == null ? Array.Empty<string>()
+					: map.actions.Select(a => InputManager.GetCanonicalActionName(a.name)).Distinct().ToArray();
+			}
+			finally {
+				if (ownsAsset) DestroyImmediate(asset);
+			}
+		}
+
 		public override void OnInspectorGUI() {
 			serializedObject.Update();
-			DrawChoice("ActionName", new InputManager().GetActionNames(VisualPinball.Engine.Common.InputConstants.MapCabinetSwitches).Select(InputManager.GetCanonicalActionName).Distinct().ToArray());
+			DrawChoice("ActionName", _actionNames);
 			DrawSoundFields("ActionName");
 			serializedObject.ApplyModifiedProperties();
 		}
