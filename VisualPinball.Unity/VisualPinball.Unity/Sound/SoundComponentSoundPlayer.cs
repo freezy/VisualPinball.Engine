@@ -98,7 +98,7 @@ namespace VisualPinball.Unity
 
 		public bool IsPlayingOrRequestingSound()
 		{
-			return _playTask != null && !_playTask.IsCompleted;
+			return _playTask != null && !_playTask.IsCompleted && !_instantFadeCts.IsCancellationRequested;
 		}
 
 		public void Dispose()
