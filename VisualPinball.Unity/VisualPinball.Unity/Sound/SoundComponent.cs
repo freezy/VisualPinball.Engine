@@ -164,6 +164,14 @@ namespace VisualPinball.Unity
 			_soundPlayers.Add(player);
 		}
 
+		protected virtual void StartImpactSound(SoundEffectAsset asset, float gain, SoundEffectPlayback playback)
+		{
+			if (!isActiveAndEnabled || !asset || !playback.Clip || gain <= 0) return;
+			var player = new SoundComponentSoundEffectPlayer(asset, gameObject, _playbackContext, playback);
+			player.StartSound(Volume * gain);
+			_soundPlayers.Add(player);
+		}
+
 		protected void StopAllSounds(bool allowFade)
 		{
 			_soundPlayers.ForEach(x => x.StopSound(allowFade));

@@ -91,6 +91,21 @@ namespace VisualPinball.Unity
 		private readonly List<IApi> _apis = new();
 		private readonly List<IApiColliderGenerator> _colliderGenerators = new();
 		private readonly Dictionary<int, IApiHittable> _hittables = new();
+		private readonly Dictionary<int, Action<BallImpact>> _impactListeners = new();
+
+		public void SubscribeToImpacts(int itemId, Action<BallImpact> listener)
+		{
+			_impactListeners.TryGetValue(itemId, out var listeners);
+			_impactListeners[itemId] = listeners + listener;
+		}
+
+		public void UnsubscribeFromImpacts(int itemId, Action<BallImpact> listener)
+		{
+			if (!_impactListeners.TryGetValue(itemId, out var listeners)) return;
+			listeners -= listener;
+			if (listeners == null) _impactListeners.Remove(itemId);
+			else _impactListeners[itemId] = listeners;
+		}
 		private readonly Dictionary<int, IApiRotatable> _rotatables = new();
 		private readonly Dictionary<int, IApiCollidable> _collidables = new();
 		private readonly Dictionary<int, IApiSpinnable> _spinnables = new();
@@ -545,6 +560,9 @@ namespace VisualPinball.Unity
 		public void OnEvent(in EventData eventData)
 		{
 				switch (eventData.EventId) {
+				case EventId.BallImpact:
+					if (_impactListeners.TryGetValue(eventData.ItemId, out var listeners)) listeners(eventData.Impact);
+					break;
 				case EventId.HitEventsHit:
 				case EventId.HitEventsUnhit:
 					// colliders only raise hit events for items that registered a hit handler, so

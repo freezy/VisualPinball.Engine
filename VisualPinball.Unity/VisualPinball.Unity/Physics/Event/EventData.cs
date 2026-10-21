@@ -30,6 +30,15 @@ namespace VisualPinball.Unity
 		public readonly float FloatParam;
 		public readonly int IntParam;
 		public readonly bool GroupEvent;
+		public readonly BallImpact Impact;
+
+		public EventData(in BallImpact impact) : this()
+		{
+			EventId = EventId.BallImpact;
+			ItemId = impact.ItemId;
+			BallId = impact.BallId;
+			Impact = impact;
+		}
 
 		public EventData(EventId eventId, int itemId, int ballId, bool groupEvent = false) : this()
 		{

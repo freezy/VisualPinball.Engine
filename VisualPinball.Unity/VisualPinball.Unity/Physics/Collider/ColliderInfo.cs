@@ -33,5 +33,6 @@ namespace VisualPinball.Unity
 		public PhysicsMaterialData Material;
 		public float HitThreshold;
 		public bool FireEvents;
+		public bool FireImpactEvents;
 	}
 }

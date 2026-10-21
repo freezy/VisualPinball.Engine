@@ -65,6 +65,7 @@ namespace VisualPinball.Unity
 					ItemId = ItemId,
 					ItemType = itemType,
 					FireEvents = FireHitEvents,
+					FireImpactEvents = MainComponent.GetComponent<CollisionSoundComponent>() != null,
 					Material = ColliderComponent.GetPhysicsMaterialData(ref PhysicsEngine.ElasticityOverVelocityLUTs, ref PhysicsEngine.FrictionOverVelocityLUTs),
 					HitThreshold = HitThreshold,
 				};
@@ -74,6 +75,7 @@ namespace VisualPinball.Unity
 				ItemId = ItemId,
 				ItemType = itemType,
 				FireEvents = FireHitEvents,
+				FireImpactEvents = MainComponent.GetComponent<CollisionSoundComponent>() != null,
 				Material = ColliderComponent.GetPhysicsMaterialData(),
 				HitThreshold = HitThreshold,
 			};

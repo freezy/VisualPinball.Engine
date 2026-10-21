@@ -188,3 +188,14 @@ music as soon as they are enabled and cancel the request when they are disabled.
 To get some music playing as quickly as possible, simply add a music requester
 component to an enabled object in your table hierarchy and assign a reference to
 the music asset you want to play.
+
+
+## Collision sounds
+
+Add **Collision Sound** to the same GameObject as a physical item and its collider, then assign a **Collision Sound Asset**. Use the **Ball Collision** source on the table root for ball-to-ball impacts. Collider impacts are independent of switch and scoring hit events. Resting contacts, receding candidates and captures do not trigger them.
+
+A collision profile contains its clips and rules. Each matching rule selects one random clip by index, applies an optional per-choice gain, and scales volume by the selected metric. Multiple matching rules play together, allowing a hard target impact to include a playfield bounce. Planar speed uses the solver velocity after impact; planar volume uses the square of its integer speed, matching VP scripts. Vertical metrics use the incoming vertical velocity so landings retain their drop energy. Speed uses the relative normal impact speed, including flipper motion and ball-to-ball approach. Pitch From Speed adds 20 Hz per integer unit of planar velocity, converted to a playback ratio for the chosen clip.
+
+Retrigger Msec is tracked separately for each item and ball, or each unordered ball pair. It suppresses adjacent collision facets without muting another ball. The profile's ordinary sound-bank cooldown is bypassed for collision voices so intentional layers can play together. Upward Surface Only restricts a landing profile to upward-facing impacts from a falling ball. The source stays at the captured impact position. Component volume remains the table's overall level; reusable profiles can keep their normalized response.
+
+Profiles, rule parameters, component source and gain, and every referenced clip are included in the .vpe package and restored by the runtime importer. Collision sounds do not implement rolling audio.
