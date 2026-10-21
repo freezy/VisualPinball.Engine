@@ -49,16 +49,19 @@ namespace VisualPinball.Unity
 		private CancellationTokenSource _instantFadeCts;
 		private Task _playTask;
 		private readonly SoundPlaybackContext _context;
+		private readonly SoundEffectPlayback _playback;
 
 		public SoundComponentSoundEffectPlayer(
 			SoundEffectAsset soundEffectAsset,
 			GameObject audioSourceGo,
-			SoundPlaybackContext context = null
+			SoundPlaybackContext context = null,
+			SoundEffectPlayback playback = default
 		)
 		{
 			_soundEffectAsset = soundEffectAsset;
 			_audioSourceGo = audioSourceGo;
 			_context = context;
+			_playback = playback;
 			_allowFadeCts = new CancellationTokenSource();
 			_instantFadeCts = new CancellationTokenSource();
 		}
@@ -79,7 +82,8 @@ namespace VisualPinball.Unity
 					_allowFadeCts.Token,
 					_instantFadeCts.Token,
 					volume,
-					_context
+					_context,
+					_playback
 				);
 				await _playTask;
 			}

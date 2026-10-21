@@ -65,11 +65,16 @@ namespace VisualPinball.Unity
 		{
 			var colliderId = ball.CollisionEvent.ColliderId;
 			var collHeader = state.GetColliderHeader(ref colliders, colliderId);
+			var incoming = ball.Velocity;
+			var normal = ball.CollisionEvent.HitNormal;
+			var position = ball.Position;
+			var impactSpeed = math.max(0, -math.dot(incoming, normal));
 
 			TransformBallIntoColliderSpace(ref colliders, ref ball, ref state, colliderId);
 
 			if (CollidesWithItem(ref colliders, ref collHeader, ref ball, ref state)) {
 				TransformBallFromColliderSpace(ref colliders, ref ball, ref state, colliderId);
+				QueueImpact(in collHeader, in ball, incoming, normal, position, impactSpeed, ref state);
 				return;
 			}
 			switch (state.GetColliderType(ref colliders, colliderId)) {
@@ -123,7 +128,7 @@ namespace VisualPinball.Unity
 					ref var flipperCollider = ref colliders.Flipper(colliderId);
 					flipperCollider.Collide(ref ball, ref ball.CollisionEvent, ref flipperState.Movement,
 						ref state.EventQueue, in ball.Id, in flipperState.Tricks, in flipperState.Static,
-						in flipperState.Velocity, in flipperState.Hit, state.Env.TimeMsec
+						in flipperState.Velocity, in flipperState.Hit, state.Env.TimeMsec, out impactSpeed
 					);
 					break;
 
@@ -177,8 +182,23 @@ namespace VisualPinball.Unity
 
 			TransformBallFromColliderSpace(ref colliders, ref ball, ref state, colliderId);
 
+			QueueImpact(in collHeader, in ball, incoming, normal, position, impactSpeed, ref state);
 			// remove trial hit object pointer
 			ball.CollisionEvent.ClearCollider();
+		}
+
+		private static void QueueImpact(in ColliderHeader header, in BallState ball, float3 incoming,
+			float3 normal, float3 position, float speed, ref PhysicsState state)
+		{
+			// Triggers, captures, resting contact, and receding candidates are not impacts.
+			if (!header.FireImpactEvents || header.ItemType == ItemType.Trigger
+				|| header.Type == ColliderType.KickerCircle || speed <= 0.25f || speed < header.Threshold
+				|| math.lengthsq(ball.Velocity - incoming) < 0.000001f) return;
+			state.EventQueue.Enqueue(new EventData(new BallImpact {
+				ItemId = header.ItemId, BallId = ball.Id, TimeMsec = state.Env.TimeMsec,
+				Position = position, Normal = normal, IncomingVelocity = incoming,
+				Velocity = ball.Velocity, Speed = speed
+			}));
 		}
 
 		private static void ReleaseBeforeUnsupportedInteraction(ref BallState ball,

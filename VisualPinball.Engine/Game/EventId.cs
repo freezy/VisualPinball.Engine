@@ -37,6 +37,7 @@ namespace VisualPinball.Engine.Game
 
 		// Generic
 		HitEventsHit = 1400, // DISPID_HitEvents_Hit
+		BallImpact = 1404,
 		HitEventsUnhit = 1401, // DISPID_HitEvents_Unhit
 		LimitEventsEos = 1402, // DISPID_LimitEvents_EOS
 		LimitEventsBos = 1403, // DISPID_LimitEvents_BOS

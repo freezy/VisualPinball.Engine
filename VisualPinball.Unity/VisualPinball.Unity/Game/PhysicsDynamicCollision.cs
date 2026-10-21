@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Unity.Profiling;
+using Unity.Mathematics;
 using VisualPinball.Unity.Collections;
 
 namespace VisualPinball.Unity
@@ -46,8 +47,18 @@ namespace VisualPinball.Unity
 
 				//this.activeBall = ball;                         // For script that wants the ball doing the collision
 
-				BallCollider.Collide(ref otherBall, ref ball, in otherCollEvent, in collEvent,
-					state.SwapBallCollisionHandling);
+				var incoming = otherBall.Velocity;
+				var position = otherBall.Position;
+				var normal = collEvent.HitNormal;
+				var speed = -math.dot(ball.Velocity - incoming, normal);
+				if (BallCollider.Collide(ref otherBall, ref ball, in otherCollEvent, in collEvent,
+					state.SwapBallCollisionHandling) && speed > 0.25f) {
+					state.EventQueue.Enqueue(new EventData(new BallImpact {
+						Kind = BallImpactKind.BallCollision, BallId = otherBall.Id, OtherBallId = ball.Id,
+						TimeMsec = state.Env.TimeMsec, Position = position, Normal = normal,
+						IncomingVelocity = incoming, Velocity = incoming, Speed = speed
+					}));
+				}
 
 				// remove trial hit object pointer
 				collEvent.ClearCollider();

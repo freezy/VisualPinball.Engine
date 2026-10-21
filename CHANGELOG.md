@@ -8,6 +8,8 @@ Built with Unity 6.5
 
 ### Added
 
+- Collision sound profiles for velocity-dependent sample selection, gain, pitch and layers, with captured solver impacts, spatial playback, independent multiball retriggering and packaged samples.
+
 - Mechanical sound components for flipper attacks/reflips/releases, named mechanism events, successful kicker releases, cabinet input and passive solenoids, with per-owner sound cooldowns and packaged sound-bank references. Named-event loops resume immediately when their mechanism becomes active again. Passive solenoids also support direct wire destinations.
 
 - Guided rubbers: a rubber wraps the slots of the Rubber Guides on its posts, is created around the selected guides, and refits itself whenever a guide moves or a slot changes, with a roundness for its free spans and a rest length ([Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/rubbers.html)).

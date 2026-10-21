@@ -40,6 +40,7 @@ namespace VisualPinball.Unity
 
 		public float Threshold;
 		public bool FireEvents;
+		public bool FireImpactEvents;
 
 		/// <summary>
 		/// Some colliders only collide with "primitives", which aren't only
@@ -73,6 +74,7 @@ namespace VisualPinball.Unity
 			Material = info.Material;
 			Threshold = info.HitThreshold;
 			FireEvents = info.FireEvents;
+			FireImpactEvents = info.FireImpactEvents;
 		}
 
 		public ColliderInfo ColliderInfo => new ColliderInfo {
@@ -81,7 +83,8 @@ namespace VisualPinball.Unity
 			ItemType = ItemType,
 			Material = Material,
 			HitThreshold = Threshold,
-			FireEvents = FireEvents
+			FireEvents = FireEvents,
+			FireImpactEvents = FireImpactEvents
 		};
 
 		public static bool operator ==(ColliderHeader a, ColliderHeader b) => a.Equals(b);
@@ -94,7 +97,8 @@ namespace VisualPinball.Unity
 			&& ItemId == other.ItemId
 			&& Material == other.Material
 			&& Threshold == other.Threshold
-			&& FireEvents == other.FireEvents;
+			&& FireEvents == other.FireEvents
+			&& FireImpactEvents == other.FireImpactEvents;
 
 		public override readonly bool Equals(object obj)
 		{
@@ -105,6 +109,6 @@ namespace VisualPinball.Unity
 		}
 
 		public override readonly int GetHashCode() => HashCode.Combine(
-			Type, ItemType, Id, ItemId, Material, Threshold, FireEvents);
+			Type, ItemType, Id, ItemId, Material, Threshold, FireEvents, FireImpactEvents);
 	}
 }

@@ -102,17 +102,26 @@ namespace VisualPinball.Unity
 			CancellationToken allowFadeOutCt,
 			CancellationToken instantCt,
 			float volume = 1f,
-			SoundPlaybackContext context = null
+			SoundPlaybackContext context = null,
+			SoundEffectPlayback playback = default
 		)
 		{
 			context ??= PlaybackContexts.GetOrCreateValue(audioObj);
-			if (!context.TryStart(this, Time.unscaledTime, _cooldown)) return;
+			if (!playback.BypassCooldown && !context.TryStart(this, Time.unscaledTime, _cooldown)) return;
 
-			var audioSource = audioObj.AddComponent<AudioSource>();
+			GameObject voice = null;
+			if (playback.Position.HasValue) {
+				voice = new GameObject("Impact: " + name);
+				SceneManager.MoveGameObjectToScene(voice, audioObj.scene);
+				voice.transform.position = playback.Position.Value;
+			}
+			var audioSource = (voice ? voice : audioObj).AddComponent<AudioSource>();
 
 			try
 			{
 				ConfigureAudioSource(audioSource);
+				if (playback.Clip) audioSource.clip = playback.Clip;
+				if (playback.Pitch > 0) audioSource.pitch *= playback.Pitch;
 				bool mechanical = Application.isPlaying && _type == SoundEffectType.Mechanical;
 #if UNITY_EDITOR
 				mechanical &= !EditorSceneManager.IsPreviewScene(audioObj.scene);
@@ -169,12 +178,10 @@ namespace VisualPinball.Unity
 			finally
 			{
 				MechanicalSoundGain.Unregister(audioSource);
-				if (audioSource != null)
-				{
-					if (Application.isPlaying)
-						Destroy(audioSource);
-					else
-						DestroyImmediate(audioSource);
+				var disposable = voice ? (UnityEngine.Object)voice : audioSource;
+				if (disposable != null) {
+					if (Application.isPlaying) Destroy(disposable);
+					else DestroyImmediate(disposable);
 				}
 			}
 		}

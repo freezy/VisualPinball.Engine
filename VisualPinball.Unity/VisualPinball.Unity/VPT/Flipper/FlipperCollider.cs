@@ -763,7 +763,14 @@ namespace VisualPinball.Unity
 		public void Collide(ref BallState ball, ref CollisionEventData collEvent, ref FlipperMovementState movementState,
 			ref NativeQueue<EventData>.ParallelWriter events, in int ballId, in FlipperTricksData tricks, in FlipperStaticData matData,
 			in FlipperVelocityData velData, in FlipperHitData hitData, uint timeMsec)
+			=> Collide(ref ball, ref collEvent, ref movementState, ref events, in ballId, in tricks,
+				in matData, in velData, in hitData, timeMsec, out _);
+
+		public void Collide(ref BallState ball, ref CollisionEventData collEvent, ref FlipperMovementState movementState,
+			ref NativeQueue<EventData>.ParallelWriter events, in int ballId, in FlipperTricksData tricks, in FlipperStaticData matData,
+			in FlipperVelocityData velData, in FlipperHitData hitData, uint timeMsec, out float impactSpeed)
 		{
+			impactSpeed = 0;
 			var normal = collEvent.HitNormal;
 			GetRelativeVelocity(normal, ball, movementState, out var vRel, out var rB, out var rF);
 
@@ -898,7 +905,9 @@ namespace VisualPinball.Unity
 			// event
 			if (bnv < -0.25f && timeMsec - movementState.LastHitTime > 250) {
 				// limit rate to 250 milliseconds per event
-				var flipperHit = hitData.HitMomentBit ? -1.0f : -bnv; // move event processing to end of collision handler...
+				var flipperHit = hitData.HitMomentBit ? -1.0f : -bnv;
+				// Match the VP flipper collide callback, including its existing debounce.
+				if (flipperHit > 0) impactSpeed = flipperHit; // move event processing to end of collision handler...
 				if (flipperHit < 0f) {
 					// simple hit event
 					events.Enqueue(new EventData(EventId.HitEventsHit, Header.ItemId, ballId, true));

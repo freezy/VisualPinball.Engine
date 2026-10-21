@@ -1,0 +1,37 @@
+// Visual Pinball Engine
+// Copyright (C) 2026 freezy and VPE Team
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using Unity.Mathematics;
+
+namespace VisualPinball.Unity
+{
+	public enum BallImpactKind { Collision, BallCollision }
+
+	/// <summary>A solver snapshot in playfield VP units, safe to queue from either physics backend.</summary>
+	public struct BallImpact
+	{
+		public int ItemId;
+		public int BallId;
+		public int OtherBallId;
+		public uint TimeMsec;
+		public BallImpactKind Kind;
+		public float3 Position;
+		public float3 Normal;
+		public float3 IncomingVelocity;
+		public float3 Velocity;
+		public float Speed;
+	}
+}
