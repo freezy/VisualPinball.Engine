@@ -21,6 +21,9 @@ using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UnityEngine.InputSystem;
+using VisualPinball.Engine.Common;
+using VisualPinball.Unity.Editor;
 using Object = UnityEngine.Object;
 using VisualPinball.Unity.Simulation;
 
@@ -28,6 +31,56 @@ namespace VisualPinball.Unity.Test
 {
 	public class MechanicalSoundTests
 	{
+		[Test]
+		public void RegisteredSolenoidAcceptsWireChangesAndPublishesCoilStatus() {
+			var obj = new GameObject("Wired solenoid test");
+			obj.SetActive(false);
+			try {
+				var player = obj.AddComponent<Player>();
+				var component = obj.AddComponent<SolenoidComponent>();
+				player.Register(new SolenoidApi(null), component);
+				var wireDevice = player.WireDevice(component);
+				Assert.That(wireDevice, Is.Not.Null, "registration must expose the advertised wire destination");
+				var coil = (DeviceCoil)player.Coil(component, SolenoidComponent.CoilItem);
+				var states = new List<bool>();
+				coil.CoilStatusChanged += (_, e) => states.Add(e.IsEnergized);
+				var wire = wireDevice.Wire(SolenoidComponent.CoilItem);
+				Assert.That(wire, Is.SameAs(coil));
+				wire.OnChange(true);
+				wire.OnChange(false);
+				Assert.That(states, Is.EqualTo(new[] { true, false }), "coil sounds must see wire transitions");
+				Assert.That(coil.IsEnabled, Is.False);
+			}
+			finally { Object.DestroyImmediate(obj); }
+		}
+
+		[Test]
+		public void InputSoundInspectorFallbackDoesNotLeaveInputAssetsAlive() {
+			var read = typeof(InputActionSoundInspector).GetMethod("GetActionNames", BindingFlags.Static | BindingFlags.NonPublic);
+			var before = Resources.FindObjectsOfTypeAll<InputActionAsset>().Length;
+			for (var i = 0; i < 10; i++) {
+				var choices = (string[])read.Invoke(null, new object[] { null });
+				Assert.That(choices, Does.Contain(InputConstants.ActionStartGame));
+				Assert.That(Resources.FindObjectsOfTypeAll<InputActionAsset>(), Has.Length.EqualTo(before));
+			}
+		}
+
+		[Test]
+		public void InputSoundInspectorPreservesSharedBindingsAndCanonicalizesChoices() {
+			var asset = ScriptableObject.CreateInstance<InputActionAsset>();
+			try {
+				var map = asset.AddActionMap(InputConstants.MapCabinetSwitches);
+				map.AddAction(InputConstants.ActionCoinDoorBack);
+				map.AddAction(InputConstants.ActionCoinDoorCancel);
+				var read = typeof(InputActionSoundInspector).GetMethod("GetActionNames", BindingFlags.Static | BindingFlags.NonPublic);
+				var choices = (string[])read.Invoke(null, new object[] { asset });
+				Assert.That(choices, Is.EqualTo(new[] { InputConstants.ActionCoinDoorCancel }));
+				Assert.That(asset != null, Is.True, "resource-owned bindings must not be destroyed");
+				Assert.That(map.actions, Has.Count.EqualTo(2));
+			}
+			finally { Object.DestroyImmediate(asset); }
+		}
+
 		[Test]
 		public void NativeInputObserversWorkWithoutGamelogicAndDoNotRepeatHeldPresses() {
 			var obj = new GameObject("Input observer test");
@@ -194,19 +247,23 @@ namespace VisualPinball.Unity.Test
 				Invoke(sound, "OnEnableAfterAfterAwake");
 				emitter.Emit(1);
 				Assert.That(sound.IsPlayingOrRequestingSound(), Is.True, "initial sound must start");
+				var stoppedSource = obj.GetComponent<AudioSource>();
 				emitter.Emit(0);
 				emitter.Emit(1);
-				// Observe the new playback after the canceled loop has finished cleaning up.
-				yield return null;
-				yield return null;
+				// Observe the new playback after the canceled source has finished cleaning up.
+				var deadline = UnityEditor.EditorApplication.timeSinceStartup + 5;
+				while (stoppedSource && UnityEditor.EditorApplication.timeSinceStartup < deadline) yield return null;
+				Assert.That(stoppedSource == null, Is.True, "the old source must be released");
 				Assert.That(sound.IsPlayingOrRequestingSound(), Is.EqualTo(loop), "loops resume without another predicate transition; one-shot cooldown remains enforced");
 				Assert.That(obj.GetComponents<AudioSource>(), Has.Length.EqualTo(loop ? 1 : 0));
 				if (loop) Assert.That(obj.GetComponent<AudioSource>().isPlaying, Is.True);
 				emitter.Emit(2);
 				Assert.That(obj.GetComponents<AudioSource>(), Has.Length.EqualTo(loop ? 1 : 0), "a held true predicate must not restart playback");
+				stoppedSource = obj.GetComponent<AudioSource>();
 				emitter.Emit(0);
-				yield return null;
-				yield return null;
+				deadline = UnityEditor.EditorApplication.timeSinceStartup + 5;
+				while (stoppedSource && UnityEditor.EditorApplication.timeSinceStartup < deadline) yield return null;
+				Assert.That(stoppedSource == null, Is.True, "the final stop must release its source");
 				Assert.That(sound.IsPlayingOrRequestingSound(), Is.False);
 			}
 			finally {

@@ -8,7 +8,7 @@ Built with Unity 6.5
 
 ### Added
 
-- Mechanical sound components for flipper attacks/reflips/releases, named mechanism events, successful kicker releases, cabinet input and passive solenoids, with per-owner sound cooldowns and packaged sound-bank references. Named-event loops resume immediately when their mechanism becomes active again.
+- Mechanical sound components for flipper attacks/reflips/releases, named mechanism events, successful kicker releases, cabinet input and passive solenoids, with per-owner sound cooldowns and packaged sound-bank references. Named-event loops resume immediately when their mechanism becomes active again. Passive solenoids also support direct wire destinations.
 
 - Guided rubbers: a rubber wraps the slots of the Rubber Guides on its posts, is created around the selected guides, and refits itself whenever a guide moves or a slot changes, with a roundness for its free spans and a rest length ([Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/rubbers.html)).
 - Rubber slingshots: a slingshot on one free span of a guided rubber, added from the rubber's scene handles or a wizard, with a generated slingshot wall that kicks the ball and closes the switch, a self-wired or game-logic-driven coil, an arm swung by a Motion Controller set up in one click, and a deformation renderer that pushes the cord out with the arm ([Documentation](https://docs.visualpinball.org/creators-guide/manual/mechanisms/slingshots.html)).

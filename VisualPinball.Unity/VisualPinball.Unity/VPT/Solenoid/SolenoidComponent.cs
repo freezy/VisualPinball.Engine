@@ -45,7 +45,7 @@ namespace VisualPinball.Unity
 		public void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs, PackagedFiles files) {
 		}
 	}
-	public class SolenoidApi : IApi, IApiCoilDevice
+	public class SolenoidApi : IApi, IApiCoilDevice, IApiWireDeviceDest
 	{
 		public event EventHandler Init;
 		private readonly DeviceCoil _coil;
@@ -53,6 +53,7 @@ namespace VisualPinball.Unity
 			_coil = new DeviceCoil(player);
 		}
 		public IApiCoil Coil(string id) => id == SolenoidComponent.CoilItem ? _coil : throw new ArgumentException("Unknown solenoid coil: " + id);
+		IApiWireDest IApiWireDeviceDest.Wire(string id) => Coil(id);
 		void IApi.OnInit(BallManager manager) => Init?.Invoke(this, EventArgs.Empty);
 		void IApi.OnDestroy() {
 		}
