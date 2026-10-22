@@ -24,6 +24,8 @@ namespace VisualPinball.Engine.VPT.Table
 {
 	public class FileTableContainer : TableContainer
 	{
+
+		public string SourceFingerprint { get; internal set; }
 		public override Table Table { get; }
 		public override Dictionary<string, string> TableInfo { get; } = new Dictionary<string, string>();
 		public override List<CollectionData> Collections { get; } = new List<CollectionData>();

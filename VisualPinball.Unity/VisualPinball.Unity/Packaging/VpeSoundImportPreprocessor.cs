@@ -49,22 +49,7 @@ namespace VisualPinball.Unity
 				return;
 			}
 
-			var audioImporter = (AudioImporter)assetImporter;
-			audioImporter.forceToMono = meta.ForceToMono;
-			audioImporter.ambisonic = meta.Ambisonic;
-			audioImporter.loadInBackground = meta.LoadInBackground;
-
-			var sampleSettings = audioImporter.defaultSampleSettings;
-			if (Enum.TryParse<AudioClipLoadType>(meta.LoadType, out var loadType)) {
-				sampleSettings.loadType = loadType;
-			}
-			if (Enum.TryParse<AudioCompressionFormat>(meta.CompressionFormat, out var compressionFormat)) {
-				sampleSettings.compressionFormat = compressionFormat;
-			}
-			if (meta.Quality > 0f) {
-				sampleSettings.quality = meta.Quality;
-			}
-			audioImporter.defaultSampleSettings = sampleSettings;
+			VpeAudioAssetIndex.Apply((AudioImporter)assetImporter, meta);
 		}
 	}
 }

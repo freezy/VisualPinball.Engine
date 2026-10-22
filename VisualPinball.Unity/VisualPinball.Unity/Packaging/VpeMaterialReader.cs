@@ -63,22 +63,10 @@ namespace VisualPinball.Unity
 				return false;
 			}
 
-			try {
-				payload = PackageApi.Packer.Unpack<VpeMaterialsPayload>(payloadFile.GetData());
-			} catch (Exception e) {
-				Logger.Warn(e, "Failed parsing materials payload.");
-				return false;
-			}
-			if (payload == null) {
-				return false;
-			}
-			if (payload.FormatVersion != VpeMaterialSchema.Version) {
-				Logger.Warn(
-					$"Materials payload declares FormatVersion={payload.FormatVersion} which this reader does not " +
-					"understand. Falling back to glTF-imported materials.");
-				payload = null;
-				return false;
-			}
+			using (var stream = payloadFile.AsStream())
+				payload = VpeIntegrity.Parse<VpeMaterialsPayload>(VpeIntegrity.ReadBounded(stream, VpeIntegrity.MaxManifestBytes));
+			if (payload.FormatVersion != VpeMaterialSchema.Version)
+				throw new System.IO.InvalidDataException($"Unsupported materials schema {payload.FormatVersion}; expected {VpeMaterialSchema.Version}.");
 			if (!includeEditorOnlyTextures) {
 				payload.Textures = payload.Textures?.Where(texture => texture != null && !texture.EditorOnly).ToArray()
 					?? Array.Empty<VpeTexture>();
@@ -95,7 +83,7 @@ namespace VisualPinball.Unity
 			byte[] textureBlob,
 			Transform tableRoot,
 			Func<string, Transform> resolveNodeById,
-			string sourceLabel)
+			string sourceLabel, Dictionary<string, Texture2D> preloadedTextures = null)
 		{
 			if (payload == null || !tableRoot || payload.Profiles == null || payload.Profiles.Length == 0) {
 				return false;
@@ -119,7 +107,7 @@ namespace VisualPinball.Unity
 			// The semantic part of the cache key serializes the whole profile; doing that once per
 			// profile instead of once per material slot keeps the traversal cheap on big tables.
 			var semanticKeysByProfile = new Dictionary<VpeMaterialProfile, string>();
-			using var textures = new TextureProvider(textureEntries, textureBlob);
+			using var textures = new TextureProvider(textureEntries, textureBlob, preloadedTextures);
 
 			var stats = new Stats();
 			var materialTraversalStopwatch = Stopwatch.StartNew();
@@ -439,7 +427,7 @@ namespace VisualPinball.Unity
 			public readonly HashSet<string> UnsupportedTypes = new(StringComparer.Ordinal);
 		}
 
-		private sealed class TextureProvider : IVpeTextureProvider, IDisposable
+		internal sealed class TextureProvider : IVpeTextureProvider, IDisposable
 		{
 			private readonly Dictionary<string, VpeTexturePayload> _assetsById;
 			private readonly byte[] _packedTextureData;
@@ -452,8 +440,9 @@ namespace VisualPinball.Unity
 			private int _packedLoadCount;
 			public TextureProvider(
 				VpeTexturePayload[] assets,
-				byte[] packedTextureData)
+				byte[] packedTextureData, Dictionary<string, Texture2D> preloaded = null)
 			{
+				if (preloaded != null) foreach (var pair in preloaded) _loaded.Add(pair.Key, pair.Value);
 				_packedTextureData = packedTextureData;
 				_assetsById = new Dictionary<string, VpeTexturePayload>(StringComparer.Ordinal);
 				if (assets == null) {

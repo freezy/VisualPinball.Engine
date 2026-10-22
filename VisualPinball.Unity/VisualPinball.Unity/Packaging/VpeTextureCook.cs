@@ -90,7 +90,7 @@ namespace VisualPinball.Unity
 			HashSet<string> normalIds,
 			byte[] sourceTextureData,
 			Action<int, int> reportProgress,
-			CancellationToken cancellationToken)
+			CancellationToken cancellationToken, int? resolutionDivisor = null, bool? compressTextures = null)
 		{
 			if (textures == null || textures.Length == 0 || sourceTextureData == null) {
 				return null;
@@ -115,7 +115,7 @@ namespace VisualPinball.Unity
 
 			// Plan pass: image headers only. Determines final dimensions, formats, mip counts and
 			// blob offsets up front so workers can write into disjoint ranges without coordination.
-			var plan = BuildPlan(textures, sourceTextureData, normalIds, out var cookedSize);
+			var plan = BuildPlan(textures, sourceTextureData, normalIds, resolutionDivisor ?? VpeTextureCookSettings.ResolutionDivisor, compressTextures ?? VpeTextureCookSettings.CompressTextures, out var cookedSize);
 			if (plan.Count == 0) {
 				return null;
 			}
@@ -479,7 +479,7 @@ namespace VisualPinball.Unity
 		private static List<CookPlanItem> BuildPlan(
 			VpeTexturePayload[] assets,
 			byte[] sourceData,
-			HashSet<string> normalIds,
+			HashSet<string> normalIds, int resolutionDivisor, bool compressTextures,
 			out long cookedSize)
 		{
 			var plan = new List<CookPlanItem>(assets.Length);
@@ -531,14 +531,14 @@ namespace VisualPinball.Unity
 					width = Mathf.Max(1, width >> 1);
 					height = Mathf.Max(1, height >> 1);
 				}
-				for (var d = asset.ForceUncompressed ? 1 : VpeTextureCookSettings.ResolutionDivisor; d > 1; d >>= 1) {
+				for (var d = asset.ForceUncompressed ? 1 : resolutionDivisor; d > 1; d >>= 1) {
 					width = Mathf.Max(1, width >> 1);
 					height = Mathf.Max(1, height >> 1);
 				}
 
 				var mipCount = asset.GenerateMipMaps ? MipCountFor(width, height) : 1;
 				item.IsNormal = normalIds.Contains(asset.Id);
-				item.UseBc7 = !asset.ForceUncompressed && VpeTextureCookSettings.CompressTextures
+				item.UseBc7 = !asset.ForceUncompressed && compressTextures
 					&& width % 4 == 0 && height % 4 == 0 && width >= 4 && height >= 4;
 				item.MainThreadDecode = item.UseBc7 && asset.ByteLength >= MainThreadDecodeThresholdBytes;
 				item.MipWidths = new int[mipCount];

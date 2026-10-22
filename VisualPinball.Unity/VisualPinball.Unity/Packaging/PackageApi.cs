@@ -16,6 +16,7 @@
 
 using System;
 using System.IO;
+using System.Threading;
 using VisualPinball.Unity.Editor;
 
 namespace VisualPinball.Unity
@@ -29,7 +30,7 @@ namespace VisualPinball.Unity
 		/// Container format version written into the root manifest. Nodes are addressed by stable
 		/// ids carried in glTF node extras (see <see cref="VpeNodeIds"/>).
 		/// </summary>
-		public const int FormatVersion = 1;
+		public const int FormatVersion = 2;
 
 		/// <summary>Root-level manifest, see <see cref="VpePackageManifest"/>.</summary>
 		public const string ManifestFile = "manifest";
@@ -89,7 +90,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		/// <param name="path">Path to the file.</param>
 		/// <returns>Instance of the storage.</returns>
-		IPackageStorage OpenStorage(string path);
+		IPackageStorage OpenStorage(string path, CancellationToken cancellationToken = default, Action<long, long> verificationProgress = null);
 	}
 
 	/// <summary>

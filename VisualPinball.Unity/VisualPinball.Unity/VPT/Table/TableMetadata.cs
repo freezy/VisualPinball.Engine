@@ -24,6 +24,9 @@ namespace VisualPinball.Unity
 	[Serializable]
 	public class TableMetadata
 	{
+		[JsonProperty("version", Required = Required.Always)]
+		public string Version = "1.0.0";
+
 		[JsonProperty("tableName")]
 		public string TableName;
 

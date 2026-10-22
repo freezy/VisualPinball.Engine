@@ -131,6 +131,10 @@ namespace VisualPinball.Unity
 	public struct SoundMetaPackable
 	{
 		public string Guid;
+		public int ImportSettingsVersion;
+		public bool Normalize;
+		public string SampleSettings;
+		public System.Collections.Generic.Dictionary<string, string> PlatformSettings;
 
 		// Editor import intent, applied when the sound file is re-imported as an asset. The
 		// enum fields carry UnityEngine.AudioClipLoadType / AudioCompressionFormat names and are

@@ -81,7 +81,8 @@ namespace VisualPinball.Unity
 			var temporary = Path.Combine(_cacheRoot, contentRef.ContentHash + ".tmp-" + Guid.NewGuid().ToString("N"));
 			Directory.CreateDirectory(temporary);
 			try {
-				using var storage = PackageApi.StorageManager.OpenStorage(_packagePath);
+				// Admission can hash large archives; keep verification and extraction off Unity's frame loop.
+				using var storage = await Task.Run(() => PackageApi.StorageManager.OpenStorage(_packagePath, ct), ct).ConfigureAwait(false);
 				var bundleFolder = GetBundleFolder(storage, contentRef.Id);
 				var manifest = ReadManifest(bundleFolder, contentRef.Id);
 				PackagedContentValidator.ValidateManifest(manifest, contentRef, _options.MaxFileCount, _options.MaxBundleBytes);
@@ -99,11 +100,11 @@ namespace VisualPinball.Unity
 					var buffer = new byte[128 * 1024];
 					long fileBytes = 0;
 					while (true) {
-						var read = await source.ReadAsync(buffer, 0, buffer.Length, ct);
+						var read = await source.ReadAsync(buffer, 0, buffer.Length, ct).ConfigureAwait(false);
 						if (read == 0) {
 							break;
 						}
-						await target.WriteAsync(buffer, 0, read, ct);
+						await target.WriteAsync(buffer, 0, read, ct).ConfigureAwait(false);
 						sha.TransformBlock(buffer, 0, read, null, 0);
 						fileBytes += read;
 						writtenBytes += read;

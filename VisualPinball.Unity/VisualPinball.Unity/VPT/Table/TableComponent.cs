@@ -41,6 +41,11 @@ namespace VisualPinball.Unity
 		[SerializeField] [Obsolete("Use MappingConfig")] public CustomInfoTags CustomInfoTags = new CustomInfoTags();
 		[SerializeField] public List<CollectionData> Collections = new List<CollectionData>();
 		[SerializeField] public TableMetadata Metadata = new TableMetadata();
+		[SerializeField, HideInInspector] private string _provenance;
+		public bool HasProvenance => !string.IsNullOrEmpty(_provenance);
+		public TableProvenance Provenance => HasProvenance ? VpeIntegrity.Parse<TableProvenance>(System.Text.Encoding.UTF8.GetBytes(_provenance), TableProvenance.MaxBytes) : null;
+		public void RestoreProvenance(TableProvenance value) => _provenance = System.Text.Encoding.UTF8.GetString(VpeIntegrity.Json(value));
+
 
 		#region Data
 

@@ -33,7 +33,11 @@ namespace VisualPinball.Engine.VPT.Table
 
 		public static FileTableContainer Load(string filename, bool loadGameItems = true)
 		{
-			var cf = new CompoundFile(filename);
+			using var source = File.OpenRead(filename);
+			using var sha = System.Security.Cryptography.SHA256.Create();
+			var fingerprint = BitConverter.ToString(sha.ComputeHash(source)).Replace("-", "").ToLowerInvariant();
+			source.Position = 0;
+			var cf = new CompoundFile(source);
 			try {
 				var gameStorage = cf.RootStorage.GetStorage("GameStg");
 				var gameData = gameStorage.GetStream("GameData");
@@ -41,7 +45,7 @@ namespace VisualPinball.Engine.VPT.Table
 				var fileVersion = BitConverter.ToInt32(gameStorage.GetStream("Version").GetData(), 0);
 				using (var stream = new MemoryStream(gameData.GetData()))
 				using (var reader = new BinaryReader(stream)) {
-					var tableContainer = new FileTableContainer(reader);
+					var tableContainer = new FileTableContainer(reader) { SourceFingerprint = fingerprint };
 
 					var tableInfoStorage = LoadTableInfo(tableContainer, cf.RootStorage, gameStorage);
 					if (loadGameItems) {

@@ -76,6 +76,7 @@ namespace VisualPinball.Unity.Editor
 				var tableContainer = new FileTableContainer();
 				var converter = new VpxSceneConverter(tableContainer);
 				var rootGameObj = converter.Convert();
+				rootGameObj.GetComponent<TableComponent>().RestoreProvenance(TableProvenance.New());
 				Selection.activeGameObject = rootGameObj;
 				Undo.RegisterCreatedObjectUndo(rootGameObj, "New Table");
 			}
