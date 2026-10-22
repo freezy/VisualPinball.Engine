@@ -166,22 +166,40 @@ namespace VisualPinball.Unity
 			var textures = new Dictionary<string, Texture2D>(StringComparer.Ordinal);
 			var normalPacked = new List<string>();
 			var wrote = false;
+			var writtenKeys = new HashSet<string>(StringComparer.Ordinal);
 			var requests = (payload.Textures ?? Array.Empty<VpeTexture>()).Where(t => t != null && !t.EditorOnly).Select(source => {
 				if (!digests.TryGetValue(PackageApi.TableFolder + "/" + PackageApi.TexturesFolder + "/" + source.FileName, out var digest)) throw new InvalidDataException("Texture missing from integrity manifest.");
 				var descriptor = VpeTextureSources.ToPayload(source);
 				return (Source: source, Descriptor: descriptor, Digest: digest, Key: Key(descriptor, digest.Sha256, normals.Contains(source.Id), divisor, compress, backend, cookSupported));
 			}).ToArray();
-			// Read ahead by one object while the main thread uploads. This bounds CPU residency to
-			// the active object and one pending object, without forcing a frame for every hit.
-			Task<ObjectData> next = requests.Length == 0 ? null : Task.Run(() => TryRead(requests[0].Key), ct);
+			// A batch amortizes Unity's main-thread continuation over several cache reads.
+			// Only the current batch and one worker batch are retained, never the whole table.
+			var keys = requests.Select(request => request.Key).ToArray();
+			Task<List<ObjectData>> next = keys.Length == 0 ? null : Task.Run(() => ReadBatch(keys, 0, ct), ct);
+			List<ObjectData> batch = null;
+			var batchStart = 0;
 			var uploadSlice = System.Diagnostics.Stopwatch.StartNew();
 			try {
 				for (var i = 0; i < requests.Length; i++) {
 					ct.ThrowIfCancellationRequested();
 					var (source, descriptor, digest, key) = requests[i];
-					var cached = await next;
-					var following = i + 1;
-					next = following < requests.Length ? Task.Run(() => TryRead(requests[following].Key), ct) : null;
+					if (batch == null || i == batchStart + batch.Count) {
+						// Waiting for I/O already gives the UI a frame; it must not consume the upload budget too.
+						uploadSlice.Stop();
+						batch = await next;
+						uploadSlice.Start();
+						batchStart = i;
+						var following = i + batch.Count;
+						next = following < requests.Length ? Task.Run(() => ReadBatch(keys, following, ct), ct) : null;
+					}
+					var cached = batch[i - batchStart];
+					batch[i - batchStart] = null; // Release consumed CPU payloads while the next batch reads.
+					// Read-ahead can see a duplicate before its first occurrence has populated the cache.
+					if (cached == null && writtenKeys.Contains(key)) {
+						uploadSlice.Stop();
+						cached = await Task.Run(() => TryRead(key), ct);
+						uploadSlice.Start();
+					}
 					byte[] data;
 					if (cached != null) {
 						data = cached.Bytes;
@@ -205,7 +223,7 @@ namespace VisualPinball.Unity
 						// Encoded fallbacks are cached too. Compute availability is part of the recipe,
 						// so a later supported backend does not inherit an unsupported backend's fallback.
 						{
-							try { await Task.Run(() => Write(key, descriptor, data, packed), ct); wrote = true; }
+							try { await Task.Run(() => Write(key, descriptor, data, packed), ct); writtenKeys.Add(key); wrote = true; }
 							catch (Exception e) when (e is IOException || e is InvalidDataException || e is UnauthorizedAccessException) { Logger.Warn(e, "Cannot persist shared texture cache."); }
 						}
 					}
@@ -230,6 +248,21 @@ namespace VisualPinball.Unity
 				foreach (var texture in textures.Values) if (texture) { if (Application.isPlaying) UnityEngine.Object.Destroy(texture); else UnityEngine.Object.DestroyImmediate(texture); }
 				throw;
 			}
+		}
+
+		// Stop after 16 objects or 32 MiB. A single object may cross the byte budget, but
+		// TryRead caps it at MaxObjectBytes. Even oversized inputs retain at most two bounded batches.
+		internal static List<ObjectData> ReadBatch(IReadOnlyList<string> keys, int start, CancellationToken ct)
+		{
+			var batch = new List<ObjectData>(16);
+			long bytes = 0;
+			while (start + batch.Count < keys.Count && batch.Count < 16 && bytes < 32L * 1024 * 1024) {
+				ct.ThrowIfCancellationRequested();
+				var data = TryRead(keys[start + batch.Count]);
+				batch.Add(data); // Keep misses in position so the main thread can cook the right source.
+				bytes += data?.Bytes.LongLength ?? 0;
+			}
+			return batch;
 		}
 
 		private static void SplitNormalUses(VpeMaterialsPayload payload)

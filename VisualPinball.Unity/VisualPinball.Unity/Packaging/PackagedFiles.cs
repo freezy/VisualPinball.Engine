@@ -536,15 +536,35 @@ namespace VisualPinball.Unity
 				pendingSounds.Add((meta.Guid, soundFile.Name, soundFile.GetData()));
 			});
 
-			for (var index = 0; index < pendingSounds.Count; index++) {
+			// Unity completes file requests on a later frame. Starting a bounded batch avoids
+			// paying that frame once per clip, without opening every file at the same time.
+			const int batchSize = 8;
+			for (var start = 0; start < pendingSounds.Count; start += batchSize) {
 				cancellationToken.ThrowIfCancellationRequested();
-				var sound = pendingSounds[index];
-				var clip = await LoadAudioClipRuntime(sound.Name, sound.Data, cancellationToken);
-				if (clip) {
-					_audioClips[sound.Guid] = clip;
+				var count = System.Math.Min(batchSize, pendingSounds.Count - start);
+				var loads = new Task<AudioClip>[count];
+				for (var i = 0; i < count; i++) {
+					var sound = pendingSounds[start + i];
+					loads[i] = LoadAudioClipRuntime(sound.Name, sound.Data, cancellationToken);
 				}
-
-				progress?.Invoke(index + 1, pendingSounds.Count);
+				try {
+					await Task.WhenAll(loads);
+					cancellationToken.ThrowIfCancellationRequested();
+				} catch {
+					// WhenAll has observed every request. Dispose clips whose siblings failed or
+					// were canceled before ownership could pass to the restored sound assets.
+					foreach (var load in loads) {
+						if (load.Status != TaskStatus.RanToCompletion || !load.Result) continue;
+						if (Application.isPlaying) UnityEngine.Object.Destroy(load.Result);
+						else UnityEngine.Object.DestroyImmediate(load.Result);
+					}
+					throw;
+				}
+				for (var i = 0; i < count; i++) {
+					var clip = loads[i].Result;
+					if (clip) _audioClips[pendingSounds[start + i].Guid] = clip;
+					progress?.Invoke(start + i + 1, pendingSounds.Count);
+				}
 			}
 		}
 
