@@ -148,6 +148,9 @@ namespace VisualPinball.Unity
 			Logger.Debug($"RuntimePackageReader: Opened package (format v{_manifest.FormatVersion}) in {openStopwatch.ElapsedMilliseconds}ms.");
 			ReportProgress(progress, RuntimePackageLoadStage.OpeningPackage, 1f, "Package opened.");
 
+			using var materialCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+			Task<MaterialPrefetchResult> materialPreparation = null;
+			var reportMaterialProgress = false;
 			try {
 				var importModelsStopwatch = Stopwatch.StartNew();
 				_table = await ImportModels(parent, progress, cancellationToken);
@@ -175,6 +178,12 @@ namespace VisualPinball.Unity
 					refsStopwatch.Stop();
 					LoadAttempt.Current?.Mark("refs");
 					Logger.Debug($"RuntimePackageReader: Built refs/files in {refsStopwatch.ElapsedMilliseconds}ms.");
+
+					// Texture I/O/uploads can overlap audio requests and component restoration. Assign
+					// materials only after packables/globals, so their restoration order stays unchanged.
+					materialPreparation = PrepareMaterialTexturesAsync(materialPrefetchTask, materialCancellation.Token, (done, total) => {
+						if (reportMaterialProgress) ReportProgress(progress, RuntimePackageLoadStage.RestoringMaterials, GetProgress01(done, total), $"Preparing texture {done}/{total}…");
+					});
 
 					var unpackSoundsStopwatch = Stopwatch.StartNew();
 					ReportProgress(progress, RuntimePackageLoadStage.LoadingSounds, 0f, "Loading table audio...");
@@ -298,13 +307,9 @@ namespace VisualPinball.Unity
 
 					var materialsStopwatch = Stopwatch.StartNew();
 					ReportProgress(progress, RuntimePackageLoadStage.RestoringMaterials, 0f, "Applying material profiles...");
-					MaterialPrefetchResult materialPrefetch = null;
-					try {
-						materialPrefetch = await materialPrefetchTask;
-					} catch (Exception ex) {
-						Logger.Warn(ex, "RuntimePackageReader: material data prefetch failed; reading synchronously.");
-					}
-					await RestoreMaterialProfilesAsync(materialPrefetch, progress, cancellationToken);
+					reportMaterialProgress = true;
+					var preparedMaterials = await materialPreparation;
+					await ApplyMaterialProfilesAsync(preparedMaterials);
 					ReportProgress(progress, RuntimePackageLoadStage.RestoringMaterials, 1f, "Material profiles applied.");
 					materialsStopwatch.Stop();
 					LoadAttempt.Current?.Mark("materials");
@@ -334,6 +339,13 @@ namespace VisualPinball.Unity
 				return _table;
 
 			} catch {
+				// Join preparation before disposing package storage or destroying the scene. A
+				// sibling failure must not leave a cook/read task or unowned Unity textures alive.
+				materialCancellation.Cancel();
+				if (materialPreparation != null) {
+					try { DestroyPreparedTextures(await materialPreparation); }
+					catch { /* Preserve the original load failure; LoadAsync cleans up its own failure. */ }
+				}
 				importStopwatch.Stop();
 				_files?.Rolling.Dispose();
 				DestroyLoadedTable();
@@ -800,19 +812,39 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private async Task RestoreMaterialProfilesAsync(MaterialPrefetchResult prefetch, IProgress<RuntimePackageLoadProgress> progress, CancellationToken cancellationToken)
+		private async Task<MaterialPrefetchResult> PrepareMaterialTexturesAsync(Task<MaterialPrefetchResult> prefetchTask, CancellationToken cancellationToken, Action<int, int> progress)
 		{
-			var payload = prefetch?.Payload;
-			if (payload == null && !VpeMaterialReader.TryLoad(_tableFolder, false, out payload, out _, false)) return;
-			using var storage = await Task.Run(() => PackageApi.StorageManager.OpenStorage(_vpePath, cancellationToken), cancellationToken);
-			var textures = await VpeSharedTextureCache.LoadAsync(storage.GetFolder(PackageApi.TableFolder), payload, VpeIntegrity.ReadManifest(storage), _resolutionDivisor, _compressTextures, cancellationToken, (done, total) => ReportProgress(progress, RuntimePackageLoadStage.RestoringMaterials, GetProgress01(done, total), $"Preparing texture {done}/{total}…"));
-			var applied = false;
-			try { applied = await VpeMaterialReader.TryApplyAsync(payload, null, null, _table.transform, id => _transformByNodeId.GetValueOrDefault(id), "materials", textures); }
-			finally {
-				if (!applied) {
-				foreach (var texture in textures.Values) if (texture) { if (Application.isPlaying) UnityEngine.Object.Destroy(texture); else UnityEngine.Object.DestroyImmediate(texture); }
-				}
+			MaterialPrefetchResult prefetch = null;
+			try { prefetch = await prefetchTask; }
+			catch (Exception ex) when (!(ex is OperationCanceledException)) {
+				Logger.Warn(ex, "RuntimePackageReader: material data prefetch failed; reading synchronously.");
 			}
+			cancellationToken.ThrowIfCancellationRequested();
+			using var storage = await Task.Run(() => PackageApi.StorageManager.OpenStorage(_vpePath, cancellationToken), cancellationToken);
+			var tableFolder = storage.GetFolder(PackageApi.TableFolder);
+			var payload = prefetch?.Payload;
+			if (payload == null && !VpeMaterialReader.TryLoad(tableFolder, false, out payload, out _, false)) return null;
+			var textures = await VpeSharedTextureCache.LoadAsync(tableFolder, payload, VpeIntegrity.ReadManifest(storage), _resolutionDivisor, _compressTextures, cancellationToken, progress);
+			return new MaterialPrefetchResult { Payload = payload, Textures = textures };
+		}
+
+		private async Task ApplyMaterialProfilesAsync(MaterialPrefetchResult prepared)
+		{
+			if (prepared == null) return;
+			var applied = false;
+			try { applied = await VpeMaterialReader.TryApplyAsync(prepared.Payload, null, null, _table.transform, id => _transformByNodeId.GetValueOrDefault(id), "materials", prepared.Textures); }
+			finally { if (!applied) DestroyPreparedTextures(prepared); }
+		}
+
+		private static void DestroyPreparedTextures(MaterialPrefetchResult prepared)
+		{
+			if (prepared?.Textures == null) return;
+			foreach (var texture in prepared.Textures.Values) {
+				if (!texture) continue;
+				if (Application.isPlaying) UnityEngine.Object.Destroy(texture);
+				else UnityEngine.Object.DestroyImmediate(texture);
+			}
+			prepared.Textures.Clear();
 		}
 
 		private static MaterialPrefetchResult PrefetchMaterialData(string vpePath, CancellationToken cancellationToken)
@@ -822,7 +854,11 @@ namespace VisualPinball.Unity
 				? new MaterialPrefetchResult { Payload = payload } : null;
 		}
 
-		private sealed class MaterialPrefetchResult { public VpeMaterialsPayload Payload; }
+		private sealed class MaterialPrefetchResult
+		{
+			public VpeMaterialsPayload Payload;
+			public Dictionary<string, Texture2D> Textures;
+		}
 
 		private void DestroyLoadedTable()
 		{

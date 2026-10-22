@@ -254,6 +254,39 @@ namespace VisualPinball.Unity.Test
 			Assert.That(File.ReadAllBytes(path), Is.EqualTo(new byte[] { 1, 2, 3 })); Assert.That(Directory.GetFiles(_folder, "*.tmp"), Is.Empty);
 		}
 
+		[Test] public void CacheReadBatchesPreserveMissesAndStopAtSixteenObjects()
+		{
+			var key = WriteObject();
+			var missing = new string('a', 64);
+			var keys = Enumerable.Repeat(key, 18).ToArray(); keys[1] = missing;
+			long hashed = 0; VpeIntegrity.BytesHashed = bytes => hashed += bytes;
+			var batch = VpeSharedTextureCache.ReadBatch(keys, 0, default);
+			Assert.That(batch.Count, Is.EqualTo(16));
+			Assert.That(batch[1], Is.Null);
+			Assert.That(batch.Where((_, index) => index != 1).All(data => data?.Header.Key == key), Is.True);
+			Assert.That(VpeSharedTextureCache.ReadBatch(keys, 16, default).Count, Is.EqualTo(2));
+			Assert.That(hashed, Is.LessThan(32768), "Warm batches must not hash texture payloads.");
+		}
+
+		[Test] public void CacheReadBatchBudgetUsesExpandedBytes()
+		{
+			VpeTextureCache.CompressPayloadOnWrite = true;
+			var key = VpeIntegrity.Hash(new byte[] { 2 });
+			VpeSharedTextureCache.Write(key, new VpeTexturePayload { Width = 2048, Height = 2048, MipCount = 1, PixelFormat = VpePixelFormats.Rgba32 }, new byte[16 * 1024 * 1024], false);
+			Assert.That(new FileInfo(VpeSharedTextureCache.ObjectPath(key)).Length, Is.LessThan(1024 * 1024));
+			var batch = VpeSharedTextureCache.ReadBatch(new[] { key, key, key }, 0, default);
+			Assert.That(batch.Count, Is.EqualTo(2), "Stop at 32 MiB even when compressed files are tiny.");
+			Assert.That(batch.Sum(data => data.Bytes.LongLength), Is.EqualTo(32L * 1024 * 1024));
+		}
+
+		[Test] public void CanceledCacheReadBatchDoesNotOpenObjects()
+		{
+			using var cancellation = new System.Threading.CancellationTokenSource(); cancellation.Cancel();
+			long hashed = 0; VpeIntegrity.BytesHashed = bytes => hashed += bytes;
+			Assert.Throws<OperationCanceledException>(() => VpeSharedTextureCache.ReadBatch(new[] { new string('a', 64) }, 0, cancellation.Token));
+			Assert.That(hashed, Is.Zero);
+		}
+
 		private string CreatePackage()
 		{
 			var path = Path.Combine(_folder, "table.vpe");
