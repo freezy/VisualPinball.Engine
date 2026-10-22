@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using GLTFast;
@@ -35,6 +36,7 @@ namespace VisualPinball.Unity
 	public class PackagedFiles
 	{
 		private const int RuntimeYieldInterval = 8;
+		public RollingSoundGraph Rolling { get; }
 
 		private readonly IPackageFolder _tableFolder;
 		private readonly PackagedRefs _typeLookup;
@@ -45,6 +47,7 @@ namespace VisualPinball.Unity
 		{
 			_tableFolder = tableFolder;
 			_typeLookup = typeLookup;
+			Rolling = new RollingSoundGraph(this, tableFolder);
 		}
 
 		private string UniqueName(IPackageFolder folder, string name, string fileExtension = null)
@@ -248,6 +251,7 @@ namespace VisualPinball.Unity
 
 		public void PackAssets()
 		{
+			Rolling.Write(_scriptableObjects.OfType<PhysicsMaterialAsset>().ToArray());
 			if (_scriptableObjects.Count == 0) {
 				return;
 			}

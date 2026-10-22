@@ -29,6 +29,7 @@ namespace VisualPinball.Unity
 	{
 		public int Id;
 		public int ItemId;
+		public int RollingSurfaceId;
 		public ItemType ItemType;
 		public PhysicsMaterialData Material;
 		public float HitThreshold;

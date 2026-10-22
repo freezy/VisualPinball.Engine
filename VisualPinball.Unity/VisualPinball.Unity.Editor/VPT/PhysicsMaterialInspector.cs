@@ -35,6 +35,7 @@ namespace VisualPinball.Unity.Editor
 		//SerializedProperty FrictionOverAngularMomentum;
 
 		SerializedProperty ScatterAngle;
+		SerializedProperty RollingSoundMaterial;
 
 
 		private bool _foldoutDebug = true;
@@ -52,6 +53,7 @@ namespace VisualPinball.Unity.Editor
 			ElasticityOverVelocity = serializedObject.FindProperty(nameof(PhysicsMaterialAsset.ElasticityOverVelocity));
 			Friction = serializedObject.FindProperty(nameof(PhysicsMaterialAsset.Friction));
 			ScatterAngle = serializedObject.FindProperty(nameof(PhysicsMaterialAsset.ScatterAngle));
+			RollingSoundMaterial = serializedObject.FindProperty(nameof(PhysicsMaterialAsset.RollingSoundMaterial));
 			FrictionOverVelocity = serializedObject.FindProperty(nameof(PhysicsMaterialAsset.FrictionOverVelocity));
 			//FrictionOverAngularMomentum = serializedObject.FindProperty("FrictionOverAngularMomentum");
 		}
@@ -191,6 +193,8 @@ namespace VisualPinball.Unity.Editor
 
 			EditorGUI.indentLevel--;
 			EditorGUILayout.PropertyField(ScatterAngle, true);
+			EditorGUILayout.Space();
+			EditorGUILayout.PropertyField(RollingSoundMaterial, new GUIContent("Rolling Sound Material", "Acoustic material, inherited even when the collider overrides numerical physics."));
 
 			serializedObject.ApplyModifiedProperties();
 		}

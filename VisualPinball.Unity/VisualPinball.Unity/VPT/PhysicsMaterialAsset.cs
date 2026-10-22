@@ -34,6 +34,9 @@ namespace VisualPinball.Unity
 	//[CustomEditor(typeof(PhysicsMaterial))]
 	public class PhysicsMaterialAsset : ScriptableObject
 	{
+		[Newtonsoft.Json.JsonIgnore]
+		public RollingSoundMaterialAsset RollingSoundMaterial;
+
 		public float Elasticity;
 		public float ElasticityFalloff;
 

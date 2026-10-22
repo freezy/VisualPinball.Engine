@@ -28,6 +28,7 @@ namespace VisualPinball.Unity
 	internal struct PhysicsState
 	{
 		internal PhysicsEnv Env;
+		internal RollingPhysicsState Rolling;
 
 		/// <summary>
 		/// Our static octree.
@@ -195,6 +196,7 @@ namespace VisualPinball.Unity
 			ref NativeParallelHashMap<int, Aabb> kinematicMovingItemBounds)
 		{
 			Env = env;
+			Rolling = default;
 			Octree = octree;
 			Colliders = colliders;
 			KinematicColliders = kinematicColliders;

@@ -397,6 +397,7 @@ namespace VisualPinball.Unity
 			var info = new ColliderInfo {
 				ItemId = ItemId,
 				ItemType = ItemType.Primitive,
+				RollingSurfaceId = RollingSoundComponent.SurfaceId(this, _colliderPhysicsMaterial),
 				Material = material,
 				HitThreshold = HitThreshold,
 				FireEvents = true

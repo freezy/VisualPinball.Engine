@@ -772,6 +772,11 @@ namespace VisualPinball.Unity
 						_ctx.BallStates.Ref[itemId] = c.CreateState();
 					}
 					_ctx.BallComponents.TryAdd(itemId, c);
+					if (_ctx.Rolling.IsCreated && !_ctx.Rolling.Balls.ContainsKey(itemId)) {
+						var generation = ++_ctx.BallGeneration;
+						_ctx.RollingGenerations[itemId] = generation;
+						_ctx.Rolling.RegisterBall(itemId, generation);
+					}
 					break;
 				case BumperComponent c: _ctx.BumperStates.Ref[itemId] = c.CreateState(); break;
 				case FlipperComponent c:
@@ -809,6 +814,9 @@ namespace VisualPinball.Unity
 
 			var b = _ctx.BallComponents[ballId];
 			_ctx.BallComponents.Remove(ballId);
+			_ctx.RollingGenerations.Remove(ballId);
+			if (_ctx.RollingRenderer) _ctx.RollingRenderer.ForgetBall(ballId);
+			lock (_ctx.PhysicsLock) { if (_ctx.Rolling.IsCreated) _ctx.Rolling.Balls.Remove(ballId); }
 			_ctx.BallStates.Ref.Remove(ballId);
 			ReleaseDestroyedBallFromKickers(ballId, _ctx.KickerStates.Ref);
 			ReleaseDestroyedBallFromMagnets(ballId);
@@ -868,6 +876,13 @@ namespace VisualPinball.Unity
 		{
 			var ballId = UnityObjectId.Get(ball.gameObject);
 			var ballState = ball.CreateState();
+			lock (_ctx.PhysicsLock) {
+				if (_ctx.Rolling.IsCreated) {
+					var generation = ++_ctx.BallGeneration;
+					_ctx.RollingGenerations[ballId] = generation;
+					_ctx.Rolling.RegisterBall(ballId, generation);
+				}
+			}
 			if (_ctx.BallComponents.TryGetValue(ballId, out var existing) && existing != ball) {
 				// ids are folded from Unity's entity ids; a clash would make two balls share one
 				// physics state, which shows up as a ball that is rendered somewhere else than
@@ -896,6 +911,9 @@ namespace VisualPinball.Unity
 		{
 			var ball = _ctx.BallComponents[ballId];
 			_ctx.BallComponents.Remove(ballId);
+			_ctx.RollingGenerations.Remove(ballId);
+			if (_ctx.RollingRenderer) _ctx.RollingRenderer.ForgetBall(ballId);
+			lock (_ctx.PhysicsLock) { if (_ctx.Rolling.IsCreated) _ctx.Rolling.Balls.Remove(ballId); }
 
 			if (_ctx.UseExternalTiming) {
 				using (SimulationTrace.Lock(_ctx.PhysicsLock, SimulationTrace.LockSite.UnregisterBall)) {
@@ -1134,6 +1152,8 @@ namespace VisualPinball.Unity
 			var kinematicTransformComponents = GetComponentsInChildren<IKinematicTransformComponent>();
 			_colliderComponents = kinematicTransformComponents.OfType<ICollidableComponent>().ToArray();
 			_kinematicTransformComponents = kinematicTransformComponents.Where(c => c.IsKinematic).ToArray();
+			var rolling = GetComponent<RollingSoundComponent>();
+			if (rolling) rolling.Prepare(_ctx);
 		}
 
 		private void Start()

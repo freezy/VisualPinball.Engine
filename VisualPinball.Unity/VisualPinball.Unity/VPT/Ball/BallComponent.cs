@@ -28,6 +28,7 @@ namespace VisualPinball.Unity
 		public int Id => UnityObjectId.Get(gameObject);
 		public float Radius = 25;
 		public float Mass = 1;
+		public BallSoundMaterialAsset SoundMaterial;
 
 		#region Packaging
 
@@ -40,11 +41,11 @@ namespace VisualPinball.Unity
 
 		public byte[] Pack() => BallPackable.Pack(this);
 
-		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => PackageApi.Packer.Pack(files.Rolling.AddBall(SoundMaterial));
 
 		public void Unpack(byte[] bytes) => BallPackable.Unpack(bytes, this);
 
-		public void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs, PackagedFiles files) { }
+		public void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs, PackagedFiles files) => SoundMaterial = files.Rolling.Ball(PackageApi.Packer.Unpack<int>(bytes));
 
 		#endregion
 		public float3 Velocity;

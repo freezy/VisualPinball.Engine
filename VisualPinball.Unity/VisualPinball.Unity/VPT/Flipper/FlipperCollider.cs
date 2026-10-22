@@ -676,6 +676,12 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		internal float3 SurfaceVelocity(in FlipperMovementState movement, in float3 point)
+		{
+			var arm = point - new float3(_hitCircleBase.Center, point.z);
+			return FlipperMovementState.SurfaceVelocity(in movement, in arm);
+		}
+
 		private void GetRelativeVelocity(in float3 normal, in BallState ball, in FlipperMovementState movementState, out float3 vRel, out float3 rB, out float3 rF)
 		{
 			rB = -ball.Radius * normal;

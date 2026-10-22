@@ -912,6 +912,7 @@ namespace VisualPinball.Unity
 				return; // sim thread is mid-tick; drain next frame
 			}
 			try {
+				if (_ctx.RollingRenderer) _ctx.RollingRenderer.Capture();
 				while (_ctx.EventQueue.Ref.TryDequeue(out var eventData)) {
 					_deferredMainThreadEvents.Add(eventData);
 				}
@@ -930,6 +931,8 @@ namespace VisualPinball.Unity
 			foreach (var action in _deferredMainThreadScheduledActions) {
 				action();
 			}
+
+			if (_ctx.RollingRenderer) _ctx.RollingRenderer.Apply();
 
 			var drainUsec = ElapsedUsec(drainStartTicks, Stopwatch.GetTimestamp());
 			Interlocked.Exchange(ref _ctx.LastEventDrainUsec, drainUsec);
@@ -1085,6 +1088,8 @@ namespace VisualPinball.Unity
 			);
 			Interlocked.Exchange(ref _ctx.PublishedPhysicsFrameTimeUsec, (long)_ctx.PhysicsEnv.CurPhysicsFrameTime);
 
+			if (_ctx.RollingRenderer) _ctx.RollingRenderer.Capture();
+
 			// dequeue events
 			while (_ctx.EventQueue.Ref.TryDequeue(out var eventData)) {
 				_player.OnEvent(in eventData);
@@ -1097,6 +1102,8 @@ namespace VisualPinball.Unity
 			foreach (var action in _dueSingleThreadScheduledActions) {
 				action();
 			}
+
+			if (_ctx.RollingRenderer) _ctx.RollingRenderer.Apply();
 
 			// Apply movements to GameObjects
 			ApplyAllMovements(ref state);

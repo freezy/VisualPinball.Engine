@@ -3873,6 +3873,7 @@ namespace VisualPinball.Unity
 				Id = -1,
 				ItemId = ItemId,
 				ItemType = ItemType.MetalWireGuide,
+				RollingSurfaceId = RollingSoundComponent.SurfaceId(this, _physicsMaterial),
 				Material = material,
 				HitThreshold = 0f,
 				FireEvents = false,
@@ -3886,6 +3887,7 @@ namespace VisualPinball.Unity
 			if (_colliderMesh.subMeshCount > 1 && _colliderMesh.GetIndexCount(1) > 0) {
 				var terminalInfo = info;
 				if (_terminalPhysicsMaterial) {
+					terminalInfo.RollingSurfaceId = RollingSoundComponent.SurfaceId(this, _terminalPhysicsMaterial);
 					terminalInfo.Material = new PhysicsMaterialData {
 						Elasticity = _terminalPhysicsMaterial.Elasticity,
 						ElasticityFalloff = _terminalPhysicsMaterial.ElasticityFalloff,
