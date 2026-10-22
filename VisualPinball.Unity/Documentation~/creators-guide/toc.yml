@@ -37,6 +37,8 @@
           href: editor/inserts/presets.md
         - name: Baking
           href: editor/inserts/baking.md
+        - name: Traced Mode
+          href: editor/inserts/traced-mode.md
     - name: Wire Rails
       href: editor/wire-rails/index.md
       items:
