@@ -221,6 +221,9 @@ namespace VisualPinball.Unity
 				$"packedTextureLoads={textures.PackedLoadCount}, " +
 				$"resolverStats=[{resolverDiagnostics?.GetDiagnosticsSummary() ?? "n/a"}].");
 
+			// Eager cache uploads can include profiles that no renderer/resolver uses. Only
+			// textures requested by the resolver transfer to the restored table.
+			textures.ReleaseUnusedPreloadedTextures(preloadedTextures);
 			return true;
 		}
 
@@ -432,6 +435,7 @@ namespace VisualPinball.Unity
 			private readonly Dictionary<string, VpeTexturePayload> _assetsById;
 			private readonly byte[] _packedTextureData;
 			private readonly Dictionary<string, Texture2D> _loaded = new(StringComparer.Ordinal);
+			private readonly HashSet<Texture2D> _requested = new();
 			private readonly HashSet<string> _missingTextureIdsLogged = new(StringComparer.Ordinal);
 			private long _loadedBytes;
 			private long _loadMilliseconds;
@@ -462,6 +466,7 @@ namespace VisualPinball.Unity
 					return null;
 				}
 				if (_loaded.TryGetValue(textureId, out var cached)) {
+					if (cached) _requested.Add(cached);
 					_cacheHits++;
 					return cached;
 				}
@@ -547,6 +552,20 @@ namespace VisualPinball.Unity
 			public long LoadMilliseconds => _loadMilliseconds;
 			public long LoadedBytes => _loadedBytes;
 			public int PackedLoadCount => _packedLoadCount;
+
+			public void ReleaseUnusedPreloadedTextures(Dictionary<string, Texture2D> preloaded)
+			{
+				if (preloaded == null) return;
+				var destroyed = new HashSet<Texture2D>();
+				foreach (var pair in preloaded.ToArray()) {
+					// Track objects rather than IDs: multiple IDs may alias a requested texture.
+					if (_requested.Contains(pair.Value)) continue;
+					preloaded.Remove(pair.Key);
+					if (!pair.Value || !destroyed.Add(pair.Value)) continue;
+					if (Application.isPlaying) UnityEngine.Object.Destroy(pair.Value);
+					else UnityEngine.Object.DestroyImmediate(pair.Value);
+				}
+			}
 
 			public void Dispose()
 			{
