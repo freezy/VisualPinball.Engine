@@ -26,12 +26,19 @@ namespace VisualPinball.Unity.Editor
 		{
 			serializedObject.Update();
 			DrawSoundFields("MultiPlayMode");
+			serializedObject.ApplyModifiedProperties();
+			foreach (var selected in targets) {
+				var component = (CollisionSoundComponent)selected;
+				if (component.SoundAsset && component.SoundAsset.Loop) {
+					EditorGUILayout.HelpBox("Collision sounds require a non-looping profile. Looping profiles will not play.", MessageType.Error);
+					break;
+				}
+			}
 			var sound = (CollisionSoundComponent)target;
 			if (sound.SoundAsset && sound.SoundAsset is not CollisionSoundAsset)
 				EditorGUILayout.HelpBox("Assign a collision sound profile, including its impact rules and samples.", MessageType.Error);
 			if (!sound.GetComponent<ItemComponent>())
 				EditorGUILayout.HelpBox("Place this component on the collider's item, or on the table for ball collisions.", MessageType.Error);
-			serializedObject.ApplyModifiedProperties();
 		}
 	}
 }

@@ -68,9 +68,12 @@ namespace VisualPinball.Unity
 			var incoming = ball.Velocity;
 			var normal = ball.CollisionEvent.HitNormal;
 			var position = ball.Position;
-			var impactSpeed = math.max(0, -math.dot(incoming, normal));
-
 			TransformBallIntoColliderSpace(ref colliders, ref ball, ref state, colliderId);
+
+			// Measure in the solver's space, relative to the moving surface at contact.
+			var hitNormal = ball.CollisionEvent.HitNormal;
+			var surfaceVelocity = state.GetKinematicSurfaceVelocity(in ball.CollisionEvent, ball.Position - ball.Radius * hitNormal);
+			var impactSpeed = math.max(0, -math.dot(ball.Velocity - surfaceVelocity, hitNormal));
 
 			if (CollidesWithItem(ref colliders, ref collHeader, ref ball, ref state)) {
 				TransformBallFromColliderSpace(ref colliders, ref ball, ref state, colliderId);

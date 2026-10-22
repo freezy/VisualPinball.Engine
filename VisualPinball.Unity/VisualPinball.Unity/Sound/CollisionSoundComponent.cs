@@ -52,7 +52,7 @@ namespace VisualPinball.Unity
 		public void OnImpact(BallImpact impact)
 		{
 			if (!isActiveAndEnabled || impact.Kind != Source || SoundAsset is not CollisionSoundAsset profile
-				|| !profile.Accepts(impact)) return;
+				|| profile.Loop || !profile.Accepts(impact)) return;
 			// Each object and ball (or unordered ball pair) has its own retrigger clock.
 			var low = impact.OtherBallId == 0 ? impact.BallId : math.min(impact.BallId, impact.OtherBallId);
 			var high = impact.OtherBallId == 0 ? 0 : math.max(impact.BallId, impact.OtherBallId);

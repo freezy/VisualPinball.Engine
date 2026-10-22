@@ -8,7 +8,7 @@ Built with Unity 6.5
 
 ### Added
 
-- Collision sound profiles for velocity-dependent sample selection, gain, pitch and layers, with captured solver impacts, spatial playback, independent multiball retriggering and packaged samples.
+- Collision sound profiles for velocity-dependent sample selection, gain, pitch and layers, with captured solver impacts, spatial playback, independent multiball retriggering and packaged samples. Moving kinematic surfaces use relative impact speed, and collision components reject looping profiles.
 
 - Mechanical sound components for flipper attacks/reflips/releases, named mechanism events, successful kicker releases, cabinet input and passive solenoids, with per-owner sound cooldowns and packaged sound-bank references. Named-event loops resume immediately when their mechanism becomes active again. Passive solenoids also support direct wire destinations.
 
