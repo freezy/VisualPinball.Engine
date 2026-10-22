@@ -198,4 +198,8 @@ A collision profile contains its clips and rules. Each matching rule selects one
 
 Retrigger Msec is tracked separately for each item and ball, or each unordered ball pair. It suppresses adjacent collision facets without muting another ball. The profile's ordinary sound-bank cooldown is bypassed for collision voices so intentional layers can play together. Upward Surface Only restricts a landing profile to upward-facing impacts from a falling ball. The source stays at the captured impact position. Component volume remains the table's overall level; reusable profiles can keep their normalized response.
 
+Collision voices require a non-looping profile; the inspector reports looping assignments and the runtime rejects them. Moving kinematic surfaces use their relative normal speed at the contact point, while the captured position, normal and ball velocities remain in playfield space.
+
+Impacts retain VPX callback eligibility: they must exceed the contact cutoff and meet the item's hit threshold even when scoring hit events are disabled. Flipper impacts retain VPX's 250 ms per-flipper callback debounce and exclude contacts reported as a simple Hit instead of Collide. The per-ball profile retrigger clock applies after these solver eligibility checks.
+
 Profiles, rule parameters, component source and gain, and every referenced clip are included in the .vpe package and restored by the runtime importer. Collision sounds do not implement rolling audio.
