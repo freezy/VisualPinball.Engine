@@ -17,7 +17,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.IO.Compression;
+using System.Linq;
+using System.Security.Cryptography;
 using ICSharpCode.SharpZipLib.Zip;
 using NLog;
 
@@ -31,10 +34,10 @@ namespace VisualPinball.Unity.Editor
 			return new ZipPackageStorage(path, true);
 		}
 
-		public IPackageStorage OpenStorage(string path)
+		public IPackageStorage OpenStorage(string path, CancellationToken cancellationToken = default, Action<long, long> verificationProgress = null)
 		{
 			// Open existing Zip file (read mode).
-			return new ZipPackageStorage(path, false);
+			return new ZipPackageStorage(path, false, cancellationToken, verificationProgress);
 		}
 	}
 
@@ -47,6 +50,14 @@ namespace VisualPinball.Unity.Editor
 		private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 		private readonly bool _isWriteMode;
+		private readonly VpeIntegrity.Manifest _integrity = new();
+		private readonly HashSet<string> _writtenPaths = new(StringComparer.OrdinalIgnoreCase);
+		internal void Record(string path, long length, string hash) {
+			if (path == VpeIntegrity.ManifestName) return;
+			VpeIntegrity.ValidatePath(path);
+			if (!_writtenPaths.Add(path)) throw new InvalidDataException("Duplicate entry: " + path);
+			_integrity.Entries.Add(new VpeIntegrity.Entry { Path = path, Length = length, Sha256 = hash });
+		}
 
 		private ZipOutputStream _zipOutputStream;
 		private ZipArchive _readArchive;
@@ -55,7 +66,7 @@ namespace VisualPinball.Unity.Editor
 		// A root folder abstraction to keep track of the top-level.
 		private readonly ZipPackageFolder _rootFolder;
 
-		public ZipPackageStorage(string path, bool writeMode)
+		public ZipPackageStorage(string path, bool writeMode, CancellationToken cancellationToken = default, Action<long, long> verificationProgress = null)
 		{
 			_isWriteMode = writeMode;
 
@@ -81,7 +92,7 @@ namespace VisualPinball.Unity.Editor
 				// Build an in-memory tree of folders/files for quick lookup
 				_rootFolder = new ZipPackageFolder("", null, this, false);
 
-				try { BuildFolderTree(); }
+				try { VpeIntegrity.Verify(_readArchive, path, false, cancellationToken, verificationProgress); BuildFolderTree(); }
 				catch { _readArchive.Dispose(); throw; }
 			}
 		}
@@ -113,9 +124,13 @@ namespace VisualPinball.Unity.Editor
 			if (_isWriteMode) {
 
 				if (_zipOutputStream != null) {
-					_zipOutputStream.Finish();
-					_zipOutputStream.Close();
-					_zipOutputStream = null;
+					try {
+						_integrity.Entries.Sort((a, b) => StringComparer.Ordinal.Compare(a.Path, b.Path));
+						_rootFolder.AddFile(VpeIntegrity.ManifestName).SetData(VpeIntegrity.Json(_integrity));
+						_zipOutputStream.Finish();
+					} finally {
+						try { _zipOutputStream.Dispose(); } finally { _zipOutputStream = null; }
+					}
 				}
 
 			} else  {
@@ -214,6 +229,7 @@ namespace VisualPinball.Unity.Editor
 		private readonly ZipPackageFolder _parent;
 		private readonly ZipPackageStorage _storage;
 		private readonly bool _isWriteMode;
+
 
 		// Children
 		private readonly Dictionary<string, ZipPackageFolder> _subFolders = new(StringComparer.OrdinalIgnoreCase);
@@ -427,7 +443,7 @@ namespace VisualPinball.Unity.Editor
 
 				// Return a stream that writes directly to zos until closed.
 				// We'll wrap zos in a "closing" stream that calls CloseEntry() on Dispose.
-				return new ZipOutputEntryStream(zos);
+				return new ZipOutputEntryStream(zos, (length, hash) => _storage.Record(fullPath, length, hash));
 			}
 
 			// read mode
@@ -455,6 +471,7 @@ namespace VisualPinball.Unity.Editor
 				zos.PutNextEntry(entry);
 				zos.Write(data, 0, data.Length);
 				zos.CloseEntry();
+				_storage.Record(fullPath, data.LongLength, VpeIntegrity.Hash(data));
 				return;
 			}
 
@@ -484,10 +501,14 @@ namespace VisualPinball.Unity.Editor
 		{
 			private ZipOutputStream _zos;
 			private bool _disposed;
+			private readonly SHA256 _hash = SHA256.Create();
+			private readonly Action<long, string> _complete;
+			private long _length;
 
-			public ZipOutputEntryStream(ZipOutputStream zos)
+			public ZipOutputEntryStream(ZipOutputStream zos, Action<long, string> complete)
 			{
 				_zos = zos;
+				_complete = complete;
 			}
 
 			public override bool CanRead => false;
@@ -526,6 +547,8 @@ namespace VisualPinball.Unity.Editor
 				if (_disposed)
 					throw new ObjectDisposedException(nameof(ZipOutputEntryStream));
 				_zos.Write(buffer, offset, count);
+				_hash.TransformBlock(buffer, offset, count, buffer, offset);
+				_length += count;
 			}
 
 			protected override void Dispose(bool disposing)
@@ -534,6 +557,10 @@ namespace VisualPinball.Unity.Editor
 				{
 					_zos.CloseEntry();
 					_disposed = true;
+					_hash.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+					var digest = BitConverter.ToString(_hash.Hash).Replace("-", "").ToLowerInvariant();
+					_hash.Dispose();
+					_complete(_length, digest);
 				}
 
 				base.Dispose(disposing);

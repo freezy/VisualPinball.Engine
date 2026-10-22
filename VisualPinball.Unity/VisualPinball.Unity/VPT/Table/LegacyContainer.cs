@@ -84,7 +84,8 @@ namespace VisualPinball.Unity
 	[Serializable]
 	public class LegacySound
 	{
-		public string Name => AudioClip == null ? "<unset>" : AudioClip.name;
+		public string SourceName;
+		public string Name => !string.IsNullOrEmpty(SourceName) ? SourceName : AudioClip == null ? "<unset>" : AudioClip.name;
 		public string InternalName;
 		public string Path;
 		public WaveFormat Wfx;
@@ -104,6 +105,7 @@ namespace VisualPinball.Unity
 		public LegacySound(SoundData data, AudioClip audioClip)
 		{
 			AudioClip = audioClip;
+			SourceName = data.Name;
 			InternalName = data.InternalName;
 			Path = data.Path;
 			Wfx = data.Wfx;
@@ -124,7 +126,7 @@ namespace VisualPinball.Unity
 			if (AudioClip == null) {
 				throw new InvalidOperationException("Cannot convert to sound without audio clip!");
 			}
-			var data = new SoundData(AudioClip.name) {
+			var data = new SoundData(Name) {
 				InternalName = InternalName,
 				Path = Path,
 				Wfx = Wfx,
@@ -133,20 +135,20 @@ namespace VisualPinball.Unity
 				Balance = Balance,
 				Fade = Fade
 			};
-			data.Wfx.FormatTag = 1;
-			data.Wfx.Channels = (ushort)(AudioClip.channels == 2 ? 2 : 1);
-			data.Wfx.SamplesPerSec = (uint)AudioClip.frequency;
-			data.Wfx.BitsPerSample = 16;
-			data.Wfx.BlockAlign = (ushort)(data.Wfx.BitsPerSample / 8 * data.Wfx.Channels);
-			data.Wfx.AvgBytesPerSec = data.Wfx.SamplesPerSec * data.Wfx.BlockAlign;
 
 			#if UNITY_EDITOR
 			var path = UnityEditor.AssetDatabase.GetAssetPath(AudioClip);
 			if (!string.IsNullOrEmpty(path)) {
-				var bytes = File.ReadAllBytes(path);
-				data.Data = path.ToLower().EndsWith(".wav")
-					? bytes.Skip(44).ToArray()
-					: bytes;
+				var bytes = File.ReadAllBytes(VpeAudioAssetIndex.SourcePath(path));
+				if (path.EndsWith(".wav", StringComparison.OrdinalIgnoreCase)) {
+					if (!VpeAudioIdentity.TryReadPcm(bytes, out var format, out var samples)) throw new InvalidDataException("Cannot export this WAV format to VPX safely.");
+					data.Wfx = format;
+					data.Data = samples;
+					data.Path = System.IO.Path.ChangeExtension(data.Path ?? Name, ".wav");
+				} else {
+					data.Data = bytes;
+					data.Path = System.IO.Path.ChangeExtension(data.Path ?? Name, System.IO.Path.GetExtension(path));
+				}
 			}
 			#endif
 

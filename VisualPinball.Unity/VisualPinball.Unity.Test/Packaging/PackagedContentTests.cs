@@ -67,7 +67,7 @@ namespace VisualPinball.Unity.Test.Packaging
 			var package = Path.Combine(_root, "metadata.vpe");
 			using (var archive = new System.IO.Compression.ZipArchive(File.Create(package), System.IO.Compression.ZipArchiveMode.Create)) {
 				using var writer = new StreamWriter(archive.CreateEntry("table/table.json", compression).Open());
-				writer.Write("{\"TableName\":\"ZIP fixture\"}");
+				writer.Write("{\"version\":\"1.0.0\",\"TableName\":\"ZIP fixture\"}");
 			}
 			Assert.That(VpeTableMetadataReader.TryRead(package, out var metadata), Is.True);
 			Assert.That(metadata.Title, Is.EqualTo("ZIP fixture"));
@@ -320,7 +320,9 @@ namespace VisualPinball.Unity.Test.Packaging
 			}
 			var package = Path.Combine(_root, "perf.vpe");
 			var stopwatch = Stopwatch.StartNew();
+			Console.WriteLine("400 MB: starting package write");
 			var contentRef = CreatePackage(package, source);
+			Console.WriteLine("400 MB: package complete");
 			var packMs = stopwatch.ElapsedMilliseconds;
 			var resolver = new PackagedContentResolver(package, CacheOptions(Path.Combine(_root, "perf-cache")));
 			stopwatch.Restart();

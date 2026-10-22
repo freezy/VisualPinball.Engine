@@ -91,7 +91,7 @@ namespace VisualPinball.Unity.Test
 				var editorFolder = folder + "/EditorGraph"; Directory.CreateDirectory(editorFolder);
 				using (var storage = PackageApi.StorageManager.OpenStorage(package)) {
 					var editorFiles = new PackagedFiles(storage.GetFolder("table"), new PackagedRefs(source.transform));
-					editorFiles.UnpackSounds(editorFolder); editorFiles.UnpackAssets(editorFolder); editorFiles.Rolling.Read(editorFolder);
+					editorFiles.UnpackSounds(editorFolder, VpeIntegrity.ReadManifest(storage)); editorFiles.UnpackAssets(editorFolder); editorFiles.Rolling.Read(editorFolder);
 				}
 				var physicalPath = AssetDatabase.GUIDToAssetPath(AssetDatabase.FindAssets("t:PhysicsMaterialAsset", new[] { editorFolder }).Single());
 				Assert.That(File.ReadAllText(physicalPath), Does.Contain("RollingSoundMaterial: {fileID: 11400000, guid:"));

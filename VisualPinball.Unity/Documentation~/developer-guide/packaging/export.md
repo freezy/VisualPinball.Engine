@@ -10,6 +10,24 @@ This page explains what gets written into a `.vpe` package and why each part exi
 
 The export entry point is `PackageWriter`. Export runs asynchronously (`PackageWriter.WritePackageAsync`) and is driven from the editor by `VpeExportRunner` behind a cancelable progress bar: the writer yields between stages and offloads texture byte-loading to worker threads, so the editor stays responsive and the user can cancel a long export.
 
+## Identity, credits, and integrity
+
+Format 2 packages include `table/provenance.json` and a required `integrity.json`. Existing development packages without these records must be re-exported from their source scenes.
+
+A table keeps its UUID when saved, renamed, exported, or played. Bump its editable three-component release version for every published update; the inspector provides a patch-version button. Full editor import and the inspector's Create derivative action assign a new UUID and start at version `1.0.0`. The read-only ancestry records preserve the source UUID, version, and both author lists, together with inherited credits. They contain compact credit snapshots and direct source hashes, not copies of every parent's metadata hierarchy. File comparison and supplying a parent package can verify the recorded relationship.
+
+The provenance root commits to declared metadata and recorded ancestry, not to meshes, textures, or gameplay. Equal roots mean equal metadata/history commitments. SHA-256 is a corruption check and comparison mechanism; it does not authenticate authorship.
+
+Export writes a temporary sibling package, closes it successfully, then atomically replaces the destination. `integrity.json` covers every other file's exact uncompressed bytes and length. A failed export preserves the previous package.
+
+## Shared asset reuse
+
+The first runtime admission verifies the package's entries. Prepared textures are cached by source SHA-256 and cooking settings under the user's local application-data `VisualPinball/VPE` directory. Updated tables and other tables reuse identical compatible objects. Unchanged warm loads use persisted verification receipts and do no bulk package or texture-payload hashing. Disk reads, optional decompression, GPU upload, and scene construction still take time.
+
+The player exposes a disk-cache limit, defaulting to 10 GiB. It is a soft budget enforced after cache creation; evicted textures are rebuilt when needed. The editor's **Pinball > Cache** menu verifies a package, verifies or clears cooked textures, or rebuilds the audio index. Full verification detects silent payload damage that leaves file timestamps and headers unchanged; a damaged texture object is rebuilt on its next use. These commands do not delete source packages.
+
+Editor VPE and VPX imports hash incoming sounds and reuse project/package clips with matching bytes (or supported equivalent PCM) and compatible importer settings. Matches leave shared assets untouched. Re-export embeds the selected source bytes, preserving portable playback and original table sound names.
+
 ## Scene Payload
 
 The visible scene is exported to `table/table.glb` through [Unity's fork of glTFast](https://docs.unity3d.com/Packages/com.unity.cloud.gltfast@6.18/manual/index.html).

@@ -42,13 +42,14 @@ namespace VisualPinball.Unity
 
 		private readonly string _vpePath;
 		private readonly Stopwatch _yieldStopwatch = new();
-		private string _textureCacheRoot;
-		private long _cookSettingsHash;
+		private int _resolutionDivisor;
+		private bool _compressTextures;
 		private GameObject _table;
 		private IPackageFolder _tableFolder;
 		private PackagedRefs _refs;
 		private PackagedFiles _files;
 		private VpePackageManifest _manifest;
+		private TableProvenance _provenance;
 		private Dictionary<string, Transform> _transformByNodeId;
 		private readonly HashSet<string> _unknownTypeNames = new(StringComparer.Ordinal);
 
@@ -107,7 +108,7 @@ namespace VisualPinball.Unity
 			var openStopwatch = Stopwatch.StartNew();
 			IPackageStorage opened;
 			try {
-				opened = PackageApi.StorageManager.OpenStorage(_vpePath);
+				opened = await Task.Run(() => PackageApi.StorageManager.OpenStorage(_vpePath, cancellationToken, (done, total) => ReportProgress(progress, RuntimePackageLoadStage.OpeningPackage, total == 0 ? 1 : (float)((double)done / total), "Verifying package checksums…")), cancellationToken);
 			} catch (Exception e) when (!(e is OperationCanceledException)) {
 				throw new InvalidPackageException($"This file can't be opened as a .vpe table package: {e.Message}", e);
 			}
@@ -118,7 +119,7 @@ namespace VisualPinball.Unity
 					"This file has no package manifest — it is not a .vpe table package (or was written by an " +
 					"incompatible pre-release version of VPE).");
 			}
-			if (_manifest.FormatVersion > PackageApi.FormatVersion) {
+			if (_manifest.FormatVersion != PackageApi.FormatVersion) {
 				throw new InvalidPackageException(
 					$"This package uses format version {_manifest.FormatVersion}, but this build only supports up " +
 					$"to version {PackageApi.FormatVersion}. Update VPE to load it.");
@@ -131,12 +132,14 @@ namespace VisualPinball.Unity
 			if (!_tableFolder.TryGetFile(PackageApi.SceneFile, out _)) {
 				throw new InvalidPackageException($"This package has no scene ('{PackageApi.SceneFile}').");
 			}
+			try { _provenance = TableProvenance.Read(_tableFolder, out _); }
+			catch (Exception e) { throw new InvalidPackageException("Invalid table metadata or ancestry: " + e.Message, e); }
 			openStopwatch.Stop();
 
-			_textureCacheRoot = Application.persistentDataPath;
-			_cookSettingsHash = VpeTextureCookSettings.ComputeHash();
-			var materialPrefetchTask = Task.Run(() => PrefetchMaterialData(_vpePath, _textureCacheRoot, _cookSettingsHash), cancellationToken);
-			var packablePrefetchTask = Task.Run(() => PrefetchPackableData(_vpePath), cancellationToken);
+			_resolutionDivisor = VpeTextureCookSettings.ResolutionDivisor;
+			_compressTextures = VpeTextureCookSettings.CompressTextures;
+			var materialPrefetchTask = Task.Run(() => PrefetchMaterialData(_vpePath, cancellationToken), cancellationToken);
+			var packablePrefetchTask = Task.Run(() => PrefetchPackableData(_vpePath, cancellationToken), cancellationToken);
 			// The PackAsAttribute type scan reflects over every loaded assembly; warm it on a worker
 			// so building PackagedRefs after the scene import is effectively free.
 			var typeScanTask = Task.Run(PackagedRefs.WarmUpTypeScan, cancellationToken);
@@ -670,10 +673,10 @@ namespace VisualPinball.Unity
 
 		// Runs on a worker thread with its own storage instance; bulk-reads every item/ref entry so
 		// the main-thread restore loops get their bytes from memory.
-		private static Dictionary<string, byte[]> PrefetchPackableData(string vpePath)
+		private static Dictionary<string, byte[]> PrefetchPackableData(string vpePath, CancellationToken cancellationToken)
 		{
 			try {
-				using var storage = PackageApi.StorageManager.OpenStorage(vpePath);
+				using var storage = PackageApi.StorageManager.OpenStorage(vpePath, cancellationToken);
 				var tableFolder = storage.GetFolder(PackageApi.TableFolder);
 				var result = new Dictionary<string, byte[]>(4096, StringComparer.Ordinal);
 				foreach (var rootName in new[] { PackageApi.ItemFolder, PackageApi.ItemReferencesFolder }) {
@@ -693,7 +696,7 @@ namespace VisualPinball.Unity
 				}
 				return result;
 
-			} catch (Exception ex) {
+			} catch (Exception ex) when (!(ex is OperationCanceledException)) {
 				Logger.Warn(ex, "RuntimePackageReader: failed prefetching packable data; falling back to direct package reads.");
 				return null;
 			}
@@ -793,132 +796,33 @@ namespace VisualPinball.Unity
 
 			if (_tableFolder.TryGetFile(PackageApi.TableMetadataFile, out var tableMetadataFile, PackageApi.Packer.FileExtension)) {
 				tableComponent.Metadata = PackageApi.Packer.Unpack<TableMetadata>(tableMetadataFile.GetData()) ?? new TableMetadata();
+				tableComponent.RestoreProvenance(_provenance);
 			}
 		}
 
-		private async Task RestoreMaterialProfilesAsync(
-			MaterialPrefetchResult prefetch,
-			IProgress<RuntimePackageLoadProgress> progress,
-			CancellationToken cancellationToken)
+		private async Task RestoreMaterialProfilesAsync(MaterialPrefetchResult prefetch, IProgress<RuntimePackageLoadProgress> progress, CancellationToken cancellationToken)
 		{
 			var payload = prefetch?.Payload;
-			var entries = prefetch?.Sources?.Entries;
-			var blob = prefetch?.Sources?.Blob;
-
-			if (payload == null) {
-				// Prefetch failed or carried no payload; read synchronously.
-				if (VpeMaterialReader.TryLoad(_tableFolder, loadSourceBytes: true, out payload, out var sources,
-					includeEditorOnlyTextures: false)) {
-					entries = sources.Entries;
-					blob = sources.Blob;
+			if (payload == null && !VpeMaterialReader.TryLoad(_tableFolder, false, out payload, out _, false)) return;
+			using var storage = await Task.Run(() => PackageApi.StorageManager.OpenStorage(_vpePath, cancellationToken), cancellationToken);
+			var textures = await VpeSharedTextureCache.LoadAsync(storage.GetFolder(PackageApi.TableFolder), payload, VpeIntegrity.ReadManifest(storage), _resolutionDivisor, _compressTextures, cancellationToken, (done, total) => ReportProgress(progress, RuntimePackageLoadStage.RestoringMaterials, GetProgress01(done, total), $"Preparing texture {done}/{total}…"));
+			var applied = false;
+			try { applied = await VpeMaterialReader.TryApplyAsync(payload, null, null, _table.transform, id => _transformByNodeId.GetValueOrDefault(id), "materials", textures); }
+			finally {
+				if (!applied) {
+				foreach (var texture in textures.Values) if (texture) { if (Application.isPlaying) UnityEngine.Object.Destroy(texture); else UnityEngine.Object.DestroyImmediate(texture); }
 				}
 			}
-
-			if (payload == null) {
-				return;
-			}
-
-			if (prefetch?.CachedTextures != null) {
-				// Cached cook: swap in the GPU-ready entries; the source textures were never read.
-				entries = VpeTextureCook.ReplaceEntries(entries, prefetch.CachedTextures.Manifest);
-				VpeTextureCook.RewriteNormalRefs(payload, prefetch.CachedTextures.Manifest);
-				blob = prefetch.CachedTextures.CookedData;
-				Logger.Debug("RuntimePackageReader: using cooked texture cache.");
-				LoadAttempt.Current?.Fact("texture-cache", "hit");
-
-			} else if (blob != null && VpeTextureCook.IsSupported) {
-				LoadAttempt.Current?.Fact("texture-cache", "miss");
-				// First load on this machine (or settings changed): cook the source textures into
-				// GPU-ready payloads now and persist them for the next load.
-				ReportProgress(progress, RuntimePackageLoadStage.RestoringMaterials, 0f, "Optimizing textures (first load)...");
-				VpeTextureCook.Result cookResult = null;
-				try {
-					cookResult = await VpeTextureCook.CookAsync(
-						entries,
-						VpeTextureCook.CollectNormalTextureIds(payload),
-						blob,
-						(done, total) => ReportProgress(progress, RuntimePackageLoadStage.RestoringMaterials,
-							total > 0 ? done * 0.9f / total : 0f, $"Optimizing textures (first load, {done}/{total})"),
-						cancellationToken);
-					LoadAttempt.Current?.Mark("texture-cook");
-				} catch (OperationCanceledException) {
-					throw;
-				} catch (Exception ex) {
-					Logger.Warn(ex, "RuntimePackageReader: texture cook failed; decoding textures directly.");
-					LoadAttempt.Current?.Fact("texture-cache", "cook failed");
-				}
-
-				if (cookResult != null) {
-					LoadAttempt.Current?.Fact("texture-cache", "cooked");
-					entries = VpeTextureCook.ReplaceEntries(entries, cookResult.Manifest);
-					VpeTextureCook.RewriteNormalRefs(payload, cookResult.Manifest);
-					blob = cookResult.CookedData;
-
-					// Persisting ~hundreds of MB takes a moment; do it off-thread, the in-memory
-					// result is used for this load either way.
-					var vpePath = _vpePath;
-					var cacheRoot = _textureCacheRoot;
-					var settingsHash = _cookSettingsHash;
-					var manifest = cookResult.Manifest;
-					var cookedData = cookResult.CookedData;
-					var sourceIdentity = prefetch?.SourceIdentity;
-					if (sourceIdentity != null) _ = Task.Run(() => VpeTextureCache.Write(cacheRoot, vpePath, settingsHash, manifest, cookedData, sourceIdentity))
-						.ContinueWith(t => Logger.Warn(t.Exception?.GetBaseException(), "Cannot write the texture cache for {File}; textures are cooked again next time.", Path.GetFileName(vpePath)),
-							TaskContinuationOptions.OnlyOnFaulted);
-				}
-			}
-
-			await VpeMaterialReader.TryApplyAsync(
-				payload, entries, blob, _table.transform,
-				id => _transformByNodeId.GetValueOrDefault(id), "materials");
 		}
 
-		// Runs on a worker thread. Opens its own read-only view on the package so it doesn't race
-		// the main import's storage, and pre-parses the material payload (Newtonsoft is thread-safe).
-		// When a valid texture cache exists, the cooked blob is loaded instead of the source
-		// textures — the source bytes are only needed for cooking.
-		private static MaterialPrefetchResult PrefetchMaterialData(string vpePath, string cacheRoot, long cookSettingsHash)
+		private static MaterialPrefetchResult PrefetchMaterialData(string vpePath, CancellationToken cancellationToken)
 		{
-			try {
-				var sourceIdentity = VpeTextureCache.ComputeTextureIdentity(vpePath);
-				using var storage = PackageApi.StorageManager.OpenStorage(vpePath);
-				var tableFolder = storage.GetFolder(PackageApi.TableFolder);
-
-				if (!VpeMaterialReader.TryLoad(tableFolder, loadSourceBytes: false, out var payload, out var entriesOnly,
-					includeEditorOnlyTextures: false)) {
-					return null;
-				}
-
-				var result = new MaterialPrefetchResult { Payload = payload, Sources = entriesOnly, SourceIdentity = sourceIdentity };
-				if (VpeTextureCache.TryLoad(cacheRoot, vpePath, cookSettingsHash, out var cached)) {
-					if (sourceIdentity != VpeTextureCache.ComputeTextureIdentity(vpePath)) throw new IOException("Texture inputs changed while reading cache.");
-					result.CachedTextures = cached;
-					return result;
-				}
-
-				// No cache: load the source bytes for the cook (re-parses the payload; only the
-				// first load pays this, and the cook dwarfs it).
-				if (VpeMaterialReader.TryLoad(tableFolder, loadSourceBytes: true, out payload, out var sources,
-					includeEditorOnlyTextures: false)) {
-					result.Payload = payload;
-					result.Sources = sources;
-				}
-				if (sourceIdentity != VpeTextureCache.ComputeTextureIdentity(vpePath)) throw new IOException("Texture inputs changed while reading sources.");
-				return result;
-
-			} catch (Exception ex) {
-				Logger.Warn(ex, "RuntimePackageReader: failed prefetching material data; falling back to synchronous read.");
-				return null;
-			}
+			using var storage = PackageApi.StorageManager.OpenStorage(vpePath, cancellationToken);
+			return VpeMaterialReader.TryLoad(storage.GetFolder(PackageApi.TableFolder), false, out var payload, out _, false)
+				? new MaterialPrefetchResult { Payload = payload } : null;
 		}
 
-		private sealed class MaterialPrefetchResult
-		{
-			public string SourceIdentity;
-			public VpeMaterialsPayload Payload;
-			public VpeTextureSources.Result Sources;
-			public VpeTextureCache.CacheData CachedTextures;
-		}
+		private sealed class MaterialPrefetchResult { public VpeMaterialsPayload Payload; }
 
 		private void DestroyLoadedTable()
 		{

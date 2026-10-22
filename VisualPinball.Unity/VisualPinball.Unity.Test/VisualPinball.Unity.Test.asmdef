@@ -24,7 +24,8 @@
 	"precompiledReferences": [
 		"nunit.framework.dll",
 		"FluentAssertions.dll",
-		"NLog.dll"
+		"NLog.dll",
+		"Newtonsoft.Json.dll"
 	],
 	"autoReferenced": true,
 	"defineConstraints": [],

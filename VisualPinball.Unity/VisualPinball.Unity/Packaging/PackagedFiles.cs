@@ -393,7 +393,7 @@ namespace VisualPinball.Unity
 			var extension = Path.GetExtension(path);
 			var filename = UniqueName(soundFolder, Path.GetFileNameWithoutExtension(path), extension) + extension;
 			using var writeStream = soundFolder.AddFile(filename).AsStream();
-			using var readStream = File.OpenRead(path);
+			using var readStream = File.OpenRead(VpeAudioAssetIndex.SourcePath(path));
 			readStream.CopyTo(writeStream);
 
 			var meta = new SoundMetaPackable {
@@ -402,13 +402,7 @@ namespace VisualPinball.Unity
 			// Capture the clip's import intent so editor re-import restores it instead of
 			// falling back to Unity's defaults.
 			if (AssetImporter.GetAtPath(path) is AudioImporter audioImporter) {
-				var sampleSettings = audioImporter.defaultSampleSettings;
-				meta.ForceToMono = audioImporter.forceToMono;
-				meta.Ambisonic = audioImporter.ambisonic;
-				meta.LoadInBackground = audioImporter.loadInBackground;
-				meta.LoadType = sampleSettings.loadType.ToString();
-				meta.CompressionFormat = sampleSettings.compressionFormat.ToString();
-				meta.Quality = sampleSettings.quality;
+				meta = VpeAudioAssetIndex.Capture(audioImporter, guid);
 			}
 			_soundMeta.Add(filename, meta);
 
@@ -447,7 +441,7 @@ namespace VisualPinball.Unity
 
 #if UNITY_EDITOR
 
-		public void UnpackSounds(string assetPath)
+		public void UnpackSounds(string assetPath, VpeIntegrity.Manifest integrity)
 		{
 			if (!_tableFolder.TryGetFolder(PackageApi.SoundFolder, out var soundFolder)) {
 				return;
@@ -460,6 +454,8 @@ namespace VisualPinball.Unity
 			}
 			var soundMetas = PackageApi.Packer.Unpack<Dictionary<string, SoundMetaPackable>>(soundMeta.GetData());
 			var dumpedSounds = new Dictionary<string, string>();
+			var pendingSources = new Dictionary<string, string>();
+			var entries = integrity.Entries.ToDictionary(e => e.Path, StringComparer.Ordinal);
 			var folder = Path.Combine(assetPath, "Sounds");
 
 			try {
@@ -469,24 +465,30 @@ namespace VisualPinball.Unity
 					if (soundMetas.TryGetValue(soundFile.Name, out var meta)) {
 
 						// check if we don't already have this file
-						var path = AssetDatabase.GUIDToAssetPath(meta.Guid);
-						if (!string.IsNullOrEmpty(path)) {
-							_audioClips.Add(meta.Guid, AssetDatabase.LoadAssetAtPath<AudioClip>(path));
-							Logger.Debug("Matched sound file {File} with existing asset at {Path:l}, skipping.", soundFile.Name, path);
+						var sourceBytes = soundFile.GetData();
+						if (!entries.TryGetValue(PackageApi.TableFolder + "/" + PackageApi.SoundFolder + "/" + soundFile.Name, out var entry) || entry.Length != sourceBytes.LongLength) throw new InvalidDataException("Sound missing from integrity manifest.");
+						var matched = VpeAudioAssetIndex.Resolve(sourceBytes, meta, expectedHash: entry.Sha256);
+						if (matched) {
+							_audioClips.Add(meta.Guid, matched);
 							return;
 						}
+						var identity = (VpeAudioIdentity.Canonical(sourceBytes) ?? VpeIntegrity.Hash(sourceBytes)) + VpeAudioAssetIndex.IntentKey(meta);
+						if (pendingSources.TryGetValue(identity, out var pendingPath)) {
+							dumpedSounds.Add(meta.Guid, pendingPath);
+							return;
+						}
+						string path;
 
 						if (!Directory.Exists(folder)) {
 							Directory.CreateDirectory(folder);
 						}
 						// GetFileName guards against hostile entry names escaping the import folder.
 						path = Path.Combine(folder, Path.GetFileName(soundFile.Name));
-						using var readStream = soundFile.AsStream();
-						using var writeStream = new FileStream(path, FileMode.Create, FileAccess.Write);
-						readStream.CopyTo(writeStream);
+						File.WriteAllBytes(path, sourceBytes);
 						var relativePath = Path.GetRelativePath(Path.Combine(Application.dataPath, ".."), path);
 						VpeSoundImportPreprocessor.Register(relativePath.Replace('\\', '/'), meta);
 						dumpedSounds.Add(meta.Guid, relativePath);
+						pendingSources.Add(identity, relativePath);
 					} else {
 						Logger.Warn("Cannot find meta data for sound file {File}, skipping it.", soundFile.Name);
 					}

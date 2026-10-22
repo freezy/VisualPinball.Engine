@@ -44,6 +44,7 @@ namespace VisualPinball.Unity.Editor
 			switch (Path.GetExtension(path).ToLower()) {
 
 				case ".vpx": {
+					await VpeAudioAssetIndex.PrepareAsync();
 					VpxImportEngine.ImportIntoScene(path, tableName: Path.GetFileNameWithoutExtension(path));
 					break;
 				}

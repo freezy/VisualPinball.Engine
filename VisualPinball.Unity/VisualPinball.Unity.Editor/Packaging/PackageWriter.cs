@@ -116,13 +116,28 @@ namespace VisualPinball.Unity.Editor
 			throw new NotSupportedException("PackageWriter only creates content bundles. Resolve with PackageReader.ContentResolver or RuntimePackageReader.ContentResolver.");
 		}
 
+		private TableMetadata _metadataSnapshot;
+		private TableProvenance _provenanceSnapshot;
+
 		private async Task WritePackage(string path, IProgress<ExportProgress> progress, CancellationToken ct)
 		{
+			var tableComponent = _table.GetComponent<TableComponent>();
+			if (!tableComponent) throw new InvalidOperationException("Table component is required.");
+			if (!tableComponent.HasProvenance) {
+				UnityEditor.Undo.RecordObject(tableComponent, "Initialize table identity");
+				tableComponent.RestoreProvenance(TableProvenance.New("legacyScene"));
+				UnityEditor.EditorUtility.SetDirty(tableComponent);
+				UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(tableComponent.gameObject.scene);
+				UnityEditor.PrefabUtility.RecordPrefabInstancePropertyModifications(tableComponent);
+			}
+			_metadataSnapshot = TableProvenance.CopyMetadata(tableComponent.Metadata ?? new TableMetadata());
+			_provenanceSnapshot = tableComponent.Provenance.Snapshot(_metadataSnapshot);
+			if (_provenanceSnapshot.Kind == "diagnostic") throw new InvalidOperationException("Materials-only imports cannot be exported as complete tables.");
+			TableProvenanceEditor.CheckRelease(_provenanceSnapshot, _metadataSnapshot.Version);
 			var sw = new Stopwatch();
 			sw.Start();
-			if (File.Exists(path)) {
-				File.Delete(path);
-			}
+			var destination = Path.GetFullPath(path);
+			path = destination + "." + Guid.NewGuid().ToString("N") + ".tmp";
 
 			Logger.Info($"Writing table to {path}...");
 			// an edit-mode slingshot preview poses the arm and the cord; export the rest pose
@@ -261,10 +276,13 @@ namespace VisualPinball.Unity.Editor
 
 				storage.Close();
 				storage = null;
+				using (var output = new FileStream(path, FileMode.Open, FileAccess.Write, FileShare.None)) output.Flush(true);
+				VpeIntegrity.Publish(path, destination);
+				TableProvenanceEditor.RecordRelease(_provenanceSnapshot, _metadataSnapshot.Version);
 				Report(progress, 1f, "Done.");
 
 				sw.Stop();
-				Debug.Log($"Done! File saved to {path} in {sw.ElapsedMilliseconds}ms.");
+				Debug.Log($"Done! File saved to {destination} in {sw.ElapsedMilliseconds}ms.");
 
 			} catch (OperationCanceledException) {
 				storage?.Close();
@@ -972,7 +990,8 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			tableComponent.Metadata ??= new TableMetadata();
-			_tableFolder.AddFile(PackageApi.TableMetadataFile, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(tableComponent.Metadata));
+			_tableFolder.AddFile(PackageApi.TableMetadataFile, PackageApi.Packer.FileExtension).SetData(PackageApi.Packer.Pack(_metadataSnapshot));
+			_tableFolder.AddFile(TableProvenance.FileName).SetData(VpeIntegrity.Json(_provenanceSnapshot));
 		}
 
 		private void WriteMaterialProfiles()

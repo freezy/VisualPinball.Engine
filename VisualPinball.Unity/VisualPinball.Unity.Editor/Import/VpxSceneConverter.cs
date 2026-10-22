@@ -576,29 +576,25 @@ namespace VisualPinball.Unity.Editor
 
 		private void ExtractSounds()
 		{
-			try {
-				// pause asset database refreshing
-				AssetDatabase.StartAssetEditing();
-
-				foreach (var sound in _sourceContainer.Sounds) {
-					var path = sound.GetUnityFilename(_assetsSounds);
-					if (_options.SkipExistingSounds && File.Exists(path)) {
-						continue;
-					}
-					File.WriteAllBytes(path, sound.Data.GetFileData());
-					sound.Data.Path = path;
-				}
-
-			} finally {
-				// resume asset database refreshing
-				AssetDatabase.StopAssetEditing();
-				AssetDatabase.Refresh();
-			}
-
-			// now they are in the asset database, we can load them.
+			var intent = VpeAudioAssetIndex.DefaultIntent();
 			foreach (var sound in _sourceContainer.Sounds) {
-				var unitySound = AssetDatabase.LoadAssetAtPath<AudioClip>(sound.GetUnityFilename(_assetsSounds));
-				_tableComponent.LegacyContainer.Sounds.Add(new LegacySound(sound.Data, unitySound));
+				var data = sound.Data;
+				var pcm = data.IsWav ? VpeAudioIdentity.Canonical(data.Wfx, data.Data) : null;
+				// A VPX WAV holds samples plus Wfx, not an encoded RIFF file. When canonical
+				// matching is unavailable, import it normally; never compare bare samples to encoded assets.
+				var clip = VpeAudioAssetIndex.Resolve(data.Data, intent, pcm, !data.IsWav);
+				if (!clip) {
+					var path = AssetDatabase.GenerateUniqueAssetPath(sound.GetUnityFilename(_assetsSounds));
+					try {
+						VpeSoundImportPreprocessor.Register(path.Replace('\\', '/'), intent);
+						File.WriteAllBytes(path, data.GetFileData());
+						AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
+						clip = AssetDatabase.LoadAssetAtPath<AudioClip>(path);
+						if (clip) VpeAudioAssetIndex.RegisterImported(clip);
+					} finally { VpeSoundImportPreprocessor.Clear(); }
+				}
+				if (!clip) { Logger.Warn($"Cannot import sound '{data.Name}'; continuing without this sound."); continue; }
+				_tableComponent.LegacyContainer.Sounds.Add(new LegacySound(data, clip));
 			}
 		}
 
@@ -650,7 +646,13 @@ namespace VisualPinball.Unity.Editor
 				Directory.CreateDirectory("Assets/Tables/");
 			}
 
-			_assetsTableRoot = $"Assets/Tables/{_tableGo.name}/";
+			var folderName = new string(_tableGo.name.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c).ToArray()).Trim('.', ' ');
+			if (string.IsNullOrEmpty(folderName)) folderName = "Table";
+			_assetsTableRoot = $"Assets/Tables/{folderName}/";
+			if (_sourceContainer != null) {
+				var suffix = 0;
+				while (Directory.Exists(_assetsTableRoot)) _assetsTableRoot = $"Assets/Tables/{folderName} ({++suffix})/";
+			}
 			if (!Directory.Exists(_assetsTableRoot)) {
 				Directory.CreateDirectory(_assetsTableRoot);
 			}
@@ -704,6 +706,8 @@ namespace VisualPinball.Unity.Editor
 					.Replace("%INFONAME%", _sourceContainer.InfoName);
 			}
 
+			var provenance = TableProvenance.FromVpx(_sourceContainer.SourceFingerprint, _sourceContainer.InfoVersion, _sourceContainer.InfoAuthorName);
+
 			// 1. create game object hierarchy
 			_tableGo = new GameObject(tableName);
 			_playfieldGo = new GameObject("Playfield");
@@ -712,6 +716,7 @@ namespace VisualPinball.Unity.Editor
 
 			_tableComponent = _tableGo.AddComponent<TableComponent>();
 			_tableComponent.SetData(_sourceTable.Data);
+			_tableComponent.RestoreProvenance(provenance);
 
 			_playfieldGo.transform.SetParent(_tableGo.transform, false);
 			backglassGo.transform.SetParent(_tableGo.transform, false);

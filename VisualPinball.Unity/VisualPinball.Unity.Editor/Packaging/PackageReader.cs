@@ -40,6 +40,9 @@ namespace VisualPinball.Unity.Editor
 		private GameObject _table;
 		private Transform _tableRoot;
 		private VpePackageManifest _manifest;
+		private TableProvenance _sourceProvenance;
+		private TableMetadata _sourceMetadata;
+		private VpeIntegrity.Manifest _integrity;
 		private Dictionary<string, Transform> _transformByNodeId;
 		private PackagedRefs _refs;
 		private PackagedFiles _files;
@@ -61,11 +64,13 @@ namespace VisualPinball.Unity.Editor
 		{
 			var sw = new Stopwatch();
 			sw.Start();
+			if (string.IsNullOrWhiteSpace(tableName) || SanitizeFileName(tableName) != tableName || tableName == "." || tableName == "..") throw new ArgumentException("Table name must be a file name.", nameof(tableName));
 			_tableName = tableName;
+			_assetPath = null; _table = null;
 			var restoreActive = false;
 			var importSucceeded = false;
 
-			using var storage = PackageApi.StorageManager.OpenStorage(_vpePath);
+			using var storage = await Task.Run(() => PackageApi.StorageManager.OpenStorage(_vpePath));
 			try {
 				Setup(storage);
 				await ImportModels();
@@ -77,6 +82,7 @@ namespace VisualPinball.Unity.Editor
 				_files = new PackagedFiles(_tableFolder, _refs);
 				WarnMissingComponentTypes();
 
+				await VpeAudioAssetIndex.PrepareAsync();
 				await ReadAssets();
 				using var insertGenerationScope = InsertComponent.DeferGenerationForPackageImport();
 
@@ -121,10 +127,16 @@ namespace VisualPinball.Unity.Editor
 				RestoreLights();
 				ImportMaterials();
 				RestoreInsertAuthoring();
+				Undo.RegisterCreatedObjectUndo(_table, "Import VPE table");
+				UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(_table.scene);
 				importSucceeded = true;
 
 			} finally {
 				if (importSucceeded && _table) { _table.SetActive(restoreActive); }
+				if (!importSucceeded) {
+					if (_table) UnityEngine.Object.DestroyImmediate(_table);
+					CleanupImportAssets();
+				}
 				storage.Close();
 				Logger.Info($"Scene import took {sw.ElapsedMilliseconds}ms.");
 			}
@@ -139,18 +151,40 @@ namespace VisualPinball.Unity.Editor
 		public async Task ImportMaterialsOnly(string tableName)
 		{
 			var sw = Stopwatch.StartNew();
+			var succeeded = false;
+			if (string.IsNullOrWhiteSpace(tableName) || SanitizeFileName(tableName) != tableName || tableName == "." || tableName == "..") throw new ArgumentException("Table name must be a file name.", nameof(tableName));
 			_tableName = tableName;
+			_assetPath = null; _table = null;
 
-			using var storage = PackageApi.StorageManager.OpenStorage(_vpePath);
+			using var storage = await Task.Run(() => PackageApi.StorageManager.OpenStorage(_vpePath));
 			try {
 				Setup(storage);
 				await ImportModels();
+				if (!_table.TryGetComponent<TableComponent>(out var diagnostic)) diagnostic = _table.AddComponent<TableComponent>();
+				var source = TableProvenance.Derive(_sourceProvenance, _sourceMetadata);
+				source.Kind = "diagnostic";
+				diagnostic.RestoreProvenance(source);
 				RestoreLights();
 				ImportMaterials();
+				Undo.RegisterCreatedObjectUndo(_table, "Import VPE materials");
+				EditorSceneManager.MarkSceneDirty(_table.scene);
+				succeeded = true;
 			} finally {
+				if (!succeeded) { if (_table) Object.DestroyImmediate(_table); CleanupImportAssets(); }
 				storage.Close();
 				Logger.Info($"Materials-only import took {sw.ElapsedMilliseconds}ms.");
 			}
+		}
+
+		private void CleanupImportAssets()
+		{
+			if (string.IsNullOrEmpty(_assetPath)) return;
+			var root = Path.GetFullPath(Path.Combine(Application.dataPath, "Resources")) + Path.DirectorySeparatorChar;
+			var path = Path.GetFullPath(_assetPath);
+			if (!path.StartsWith(root, StringComparison.OrdinalIgnoreCase)) throw new IOException("Import cleanup path escaped the asset root.");
+			var assetPath = Path.GetRelativePath(Path.GetDirectoryName(Application.dataPath), path).Replace('\\', '/');
+			if (AssetDatabase.IsValidFolder(assetPath)) AssetDatabase.DeleteAsset(assetPath);
+			else if (Directory.Exists(path)) Directory.Delete(path, true);
 		}
 
 		private void WarnMissingComponentTypes()
@@ -289,14 +323,18 @@ namespace VisualPinball.Unity.Editor
 					"This file has no package manifest — it is not a .vpe table package (or was written by an " +
 					"incompatible pre-release version of VPE).");
 			}
-			if (_manifest.FormatVersion > PackageApi.FormatVersion) {
+			if (_manifest.FormatVersion != PackageApi.FormatVersion) {
 				throw new Exception(
 					$"This package uses format version {_manifest.FormatVersion}, but this VPE version only supports " +
 					$"up to version {PackageApi.FormatVersion}. Update VPE to import it.");
 			}
 
+			_integrity = VpeIntegrity.ReadManifest(storage);
+
 			// open storages
 			_tableFolder = storage.GetFolder(PackageApi.TableFolder);
+			_sourceProvenance = TableProvenance.Read(_tableFolder, out _sourceMetadata);
+			TableProvenance.Derive(_sourceProvenance, _sourceMetadata);
 			_assetPath = Path.Combine(Application.dataPath, "Resources", _tableName);
 			var n = 0;
 			while (Directory.Exists(_assetPath)) {
@@ -365,7 +403,7 @@ namespace VisualPinball.Unity.Editor
 
 		private async Task ReadAssets()
 		{
-			_files.UnpackSounds(_assetPath);
+			_files.UnpackSounds(_assetPath, _integrity);
 			_files.UnpackAssets(_assetPath);
 			await _files.UnpackMeshes(_assetPath);
 			_files.Rolling.Read(_assetPath, _manifest.Schemas.TryGetValue(VpePackageSchemas.Rolling, out var rollingSchema) ? rollingSchema : RollingSoundGraph.Version);
@@ -457,7 +495,9 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			if (_tableFolder.TryGetFile(PackageApi.TableMetadataFile, out var tableMetadataFile, PackageApi.Packer.FileExtension)) {
-				tableComponent.Metadata = PackageApi.Packer.Unpack<TableMetadata>(tableMetadataFile.GetData()) ?? new TableMetadata();
+				tableComponent.Metadata = TableProvenance.CopyMetadata(_sourceMetadata);
+				tableComponent.RestoreProvenance(TableProvenance.Derive(_sourceProvenance, _sourceMetadata));
+				tableComponent.Metadata.Version = "1.0.0";
 			}
 		}
 	}

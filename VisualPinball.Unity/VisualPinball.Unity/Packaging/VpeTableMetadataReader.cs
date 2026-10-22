@@ -90,9 +90,7 @@ namespace VisualPinball.Unity
 				}
 
 				using var stream = entry.Open();
-				using var reader = new StreamReader(stream);
-				using var jsonReader = new JsonTextReader(reader);
-				var tableMetadata = JsonSerializer.CreateDefault().Deserialize<TableMetadata>(jsonReader);
+				var tableMetadata = VpeIntegrity.Parse<TableMetadata>(VpeIntegrity.ReadBounded(stream, 1024 * 1024));
 				if (tableMetadata == null) {
 					return false;
 				}
@@ -199,7 +197,8 @@ namespace VisualPinball.Unity
 			}
 			try {
 				using var stream = entry.Open();
-				using var reader = new StreamReader(stream);
+				using var bounded = new MemoryStream(VpeIntegrity.ReadBounded(stream, 64 * 1024), false);
+				using var reader = new StreamReader(bounded);
 				using var jsonReader = new JsonTextReader(reader);
 				var bounds = JsonSerializer.CreateDefault().Deserialize<ScreenshotBoundsData>(jsonReader);
 				if (bounds != null && bounds.cropWidth > 0 && bounds.cropHeight > 0) {

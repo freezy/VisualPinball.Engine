@@ -72,6 +72,7 @@ namespace VisualPinball.Unity.Editor
 			}
 
 			EndEditing();
+			if (_packageFoldout && targets.Length == 1) TableProvenanceEditor.Draw(tableComponent);
 
 			if (_packageFoldout && !EditorApplication.isPlaying) {
 				//DrawDefaultInspector();
