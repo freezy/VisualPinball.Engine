@@ -358,6 +358,7 @@ namespace VisualPinball.Unity.Editor
 			}
 			if (_files.HasSounds) {
 				manifest.Schemas[VpePackageSchemas.Sounds] = 1;
+				manifest.Schemas[VpePackageSchemas.Rolling] = RollingSoundGraph.Version;
 			}
 			VpePackageManifestIo.Write(storage, manifest);
 		}

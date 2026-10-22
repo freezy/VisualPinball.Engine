@@ -124,10 +124,11 @@ namespace VisualPinball.Unity
 			Counters = default;
 		}
 
-		internal void Simulate(ref PhysicsState state, ref NativeParallelHashSet<int> overlappingColliders, ref NativeOctree<int> kinematicOctree, ref NativeOctree<int> ballOctree, float dTime)
+		internal void Simulate(ref PhysicsState state, ref NativeParallelHashSet<int> overlappingColliders, ref NativeOctree<int> kinematicOctree, ref NativeOctree<int> ballOctree, float dTime, ulong physicsTimeUsec = 0)
 		{
 			PerfMarker.Begin();
 			var staticCounts = PhysicsConstants.StaticCnts;
+			var rollingTime = physicsTimeUsec / 1000000.0;
 
 			// rebuild octree of ball-to-ball collision (clear + re-insert, no alloc)
 			// it's okay to have this code outside of the inner loop, as the ball hitrects already include the maximum distance they can travel in that timespan
@@ -280,6 +281,9 @@ namespace VisualPinball.Unity
 					}
 				}
 				PerfMarkerContacts.End();
+
+				rollingTime += hitTime * PhysicsConstants.DefaultStepTime / 1000000.0;
+				RollingPhysics.Observe(ref state, ref _contacts, hitTime, rollingTime);
 
 				// clear contacts
 				_contacts.Clear();

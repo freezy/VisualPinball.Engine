@@ -30,6 +30,7 @@ namespace VisualPinball.Unity
 		public ItemType ItemType;
 		public int Id;
 		public int ItemId;
+		public int RollingSurfaceId;
 		/**
 		 * If this is false, that means that the collider's item has a transformation matrix that is not supported
 		 * by this collider. It tells the physics runtime to instead transform the ball into this item's space before
@@ -71,6 +72,7 @@ namespace VisualPinball.Unity
 			IsTransformed = true; // per default, we assume that we don't have to transform the ball during runtime.
 			Id = info.Id;
 			ItemId = info.ItemId;
+			RollingSurfaceId = info.RollingSurfaceId;
 			Material = info.Material;
 			Threshold = info.HitThreshold;
 			FireEvents = info.FireEvents;
@@ -80,6 +82,7 @@ namespace VisualPinball.Unity
 		public ColliderInfo ColliderInfo => new ColliderInfo {
 			Id = Id,
 			ItemId = ItemId,
+			RollingSurfaceId = RollingSurfaceId,
 			ItemType = ItemType,
 			Material = Material,
 			HitThreshold = Threshold,
@@ -95,6 +98,7 @@ namespace VisualPinball.Unity
 			&& ItemType == other.ItemType
 			&& Id == other.Id
 			&& ItemId == other.ItemId
+			&& RollingSurfaceId == other.RollingSurfaceId
 			&& Material == other.Material
 			&& Threshold == other.Threshold
 			&& FireEvents == other.FireEvents
@@ -109,6 +113,6 @@ namespace VisualPinball.Unity
 		}
 
 		public override readonly int GetHashCode() => HashCode.Combine(
-			Type, ItemType, Id, ItemId, Material, Threshold, FireEvents, FireImpactEvents);
+			Type, ItemType, Id, HashCode.Combine(ItemId, RollingSurfaceId), Material, Threshold, FireEvents, FireImpactEvents);
 	}
 }

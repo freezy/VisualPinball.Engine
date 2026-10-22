@@ -163,7 +163,7 @@ namespace VisualPinball.Unity
 				#endregion
 
 				// primary physics loop
-				cycle.Simulate(ref state, ref overlappingColliders, ref kinematicOctree, ref ballOctree, physicsDiffTime);
+				cycle.Simulate(ref state, ref overlappingColliders, ref kinematicOctree, ref ballOctree, physicsDiffTime, env.CurPhysicsFrameTime);
 
 				// ball trail, keep old pos of balls
 				using (var enumerator = state.Balls.GetEnumerator()) {

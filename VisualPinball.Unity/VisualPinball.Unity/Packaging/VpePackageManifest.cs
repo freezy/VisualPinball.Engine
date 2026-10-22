@@ -67,6 +67,7 @@ namespace VisualPinball.Unity
 		public const string Inserts = "inserts";
 		public const string Lights = "lights";
 		public const string Sounds = "sounds";
+		public const string Rolling = "rolling";
 	}
 
 	public static class VpePackageManifestIo

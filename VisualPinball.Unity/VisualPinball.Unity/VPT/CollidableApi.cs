@@ -63,6 +63,7 @@ namespace VisualPinball.Unity
 				return new ColliderInfo {
 					Id = -1, // is set during allocation
 					ItemId = ItemId,
+					RollingSurfaceId = RollingSoundComponent.SurfaceId(MainComponent, ColliderComponent.PhysicsMaterial),
 					ItemType = itemType,
 					FireEvents = FireHitEvents,
 					FireImpactEvents = MainComponent.GetComponent<CollisionSoundComponent>() != null,
@@ -73,6 +74,7 @@ namespace VisualPinball.Unity
 			return new ColliderInfo {
 				Id = -1, // is set during allocation
 				ItemId = ItemId,
+				RollingSurfaceId = RollingSoundComponent.SurfaceId(MainComponent, ColliderComponent.PhysicsMaterial),
 				ItemType = itemType,
 				FireEvents = FireHitEvents,
 				FireImpactEvents = MainComponent.GetComponent<CollisionSoundComponent>() != null,

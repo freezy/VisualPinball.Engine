@@ -365,9 +365,10 @@ namespace VisualPinball.Unity.Editor
 
 		private async Task ReadAssets()
 		{
+			_files.UnpackSounds(_assetPath);
 			_files.UnpackAssets(_assetPath);
 			await _files.UnpackMeshes(_assetPath);
-			_files.UnpackSounds(_assetPath);
+			_files.Rolling.Read(_assetPath, _manifest.Schemas.TryGetValue(VpePackageSchemas.Rolling, out var rollingSchema) ? rollingSchema : RollingSoundGraph.Version);
 		}
 
 		private Transform ResolveItemNode(string itemFolderName)

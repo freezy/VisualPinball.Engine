@@ -190,6 +190,7 @@ namespace VisualPinball.Unity
 						ReportProgress(progress, RuntimePackageLoadStage.LoadingAssets, GetProgress01(processed, total),
 							FormatStageMessage("Loading runtime assets", processed, total));
 					});
+					_files.Rolling.Read(schema: _manifest.Schemas.TryGetValue(VpePackageSchemas.Rolling, out var rollingSchema) ? rollingSchema : RollingSoundGraph.Version);
 					ReportProgress(progress, RuntimePackageLoadStage.LoadingAssets, 1f, "Runtime assets ready.");
 					unpackAssetsStopwatch.Stop();
 					LoadAttempt.Current?.Mark("assets");
@@ -308,6 +309,7 @@ namespace VisualPinball.Unity
 					foreach (var consumer in _table.GetComponentsInChildren<MonoBehaviour>(true).OfType<IPackagedContentConsumer>()) {
 						consumer.SetPackagedContentResolver(ContentResolver);
 					}
+					_files.Rolling.AttachOwner(_table);
 					if (beforeActivation != null) await beforeActivation(_table, cancellationToken);
 					cancellationToken.ThrowIfCancellationRequested();
 					loadSucceeded = true;
@@ -330,6 +332,7 @@ namespace VisualPinball.Unity
 
 			} catch {
 				importStopwatch.Stop();
+				_files?.Rolling.Dispose();
 				DestroyLoadedTable();
 				throw;
 			}

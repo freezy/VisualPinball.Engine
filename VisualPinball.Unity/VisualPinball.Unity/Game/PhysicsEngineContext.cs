@@ -100,6 +100,10 @@ namespace VisualPinball.Unity
 		public NativeParallelHashSet<int> OverlappingColliders = new(0, Allocator.Persistent);
 		public PhysicsEnv PhysicsEnv;
 		public bool SwapBallCollisionHandling;
+		public RollingPhysicsState Rolling;
+		public RollingSoundComponent RollingRenderer;
+		public uint BallGeneration;
+		public readonly Dictionary<int, uint> RollingGenerations = new();
 
 		#endregion
 
@@ -322,7 +326,7 @@ namespace VisualPinball.Unity
 		internal PhysicsState CreateState()
 		{
 			var events = EventQueue.Ref.AsParallelWriter();
-			return new PhysicsState(ref PhysicsEnv, ref Octree, ref Colliders, ref KinematicColliders,
+			var state = new PhysicsState(ref PhysicsEnv, ref Octree, ref Colliders, ref KinematicColliders,
 				ref KinematicCollidersAtIdentity, ref KinematicTransforms.Ref, ref KinematicTargetTransforms.Ref,
 				ref NonTransformableColliderTransforms.Ref, ref KinematicColliderLookups, ref events,
 				ref InsideOfs, ref BallStates.Ref, ref BumperStates.Ref, ref DropTargetStates.Ref, ref FlipperStates.Ref, ref GateStates.Ref,
@@ -331,6 +335,8 @@ namespace VisualPinball.Unity
 				ref SurfaceStates.Ref, ref TurntableStates.Ref, ref TriggerStates.Ref, ref DisabledCollisionItems.Ref, ref SwapBallCollisionHandling,
 				ref ElasticityOverVelocityLUTs, ref FrictionOverVelocityLUTs, ref KinematicVelocities.Ref,
 				ref KinematicItemsOutOfOctree.Ref, ref KinematicMovingItemBounds.Ref);
+			state.Rolling = Rolling;
+			return state;
 		}
 
 		/// <summary>
@@ -339,6 +345,7 @@ namespace VisualPinball.Unity
 		/// </summary>
 		public void Dispose()
 		{
+			Rolling.Dispose();
 			OverlappingColliders.Dispose();
 			EventQueue.Ref.Dispose();
 			BallStates.Ref.Dispose();

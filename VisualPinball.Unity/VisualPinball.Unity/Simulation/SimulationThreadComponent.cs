@@ -509,6 +509,7 @@ namespace VisualPinball.Unity.Simulation
 		public void PauseSimulation()
 		{
 			_simulationThread?.Pause();
+			if (_simulationThread != null) GetComponent<RollingSoundComponent>()?.SetPaused(true);
 		}
 
 		/// <summary>
@@ -517,6 +518,7 @@ namespace VisualPinball.Unity.Simulation
 		public void ResumeSimulation()
 		{
 			_simulationThread?.Resume();
+			if (_simulationThread != null) GetComponent<RollingSoundComponent>()?.SetPaused(false);
 		}
 
 		/// <summary>

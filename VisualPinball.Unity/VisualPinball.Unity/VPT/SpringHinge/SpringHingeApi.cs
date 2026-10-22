@@ -107,7 +107,7 @@ namespace VisualPinball.Unity
 		private ColliderInfo GetColliderInfo(ItemType itemType)
 		{
 			if (!_colliderComponent) {
-				return new ColliderInfo { ItemId = _itemId, ItemType = itemType };
+				return new ColliderInfo { ItemId = _itemId, ItemType = itemType, RollingSurfaceId = RollingSoundComponent.SurfaceId(_component, null) };
 			}
 			var material = !_colliderComponent.OverwritePhysics && _colliderComponent.PhysicsMaterial
 				? new PhysicsMaterialData {
@@ -138,6 +138,7 @@ namespace VisualPinball.Unity
 			}
 			return new ColliderInfo {
 				ItemId = _itemId,
+				RollingSurfaceId = RollingSoundComponent.SurfaceId(_colliderComponent, _colliderComponent.PhysicsMaterial),
 				ItemType = itemType,
 				FireEvents = _colliderComponent.HitEvent,
 				HitThreshold = _colliderComponent.HitThreshold,
