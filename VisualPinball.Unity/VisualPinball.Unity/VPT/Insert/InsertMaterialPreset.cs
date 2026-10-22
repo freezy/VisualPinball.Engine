@@ -57,6 +57,13 @@ namespace VisualPinball.Unity
 		/// </summary>
 		private static readonly HashSet<string> Excluded = new() { "_OpticalLamp", "_OpticalLampB", "_OpticalLampC", "_OpticalLampD", "_InsertLuminosity" };
 
+		/// <summary>
+		/// The opt-in Traced mode and its values are the insert type's and its
+		/// bake's (where the render sits, its elevations, the look tuned to it),
+		/// not a look to share between inserts.
+		/// </summary>
+		private static bool IsTraced(string name) => name == "_INSERT_TRACED" || name.StartsWith("_Traced", StringComparison.Ordinal);
+
 		/// <summary>The preset's value for the property, or null when it has none.</summary>
 		public Entry Find(string name) => Body?.Find(entry => entry != null && entry.Name == name && entry.Kind != Kind.Color && !Excluded.Contains(name));
 
@@ -121,7 +128,8 @@ namespace VisualPinball.Unity
 			if ((shader.GetPropertyFlags(index) & ShaderPropertyFlags.HideInInspector) != 0) {
 				return false;
 			}
-			return !Excluded.Contains(shader.GetPropertyName(index));
+			var name = shader.GetPropertyName(index);
+			return !Excluded.Contains(name) && !IsTraced(name);
 		}
 
 		private static List<Entry> Read(Material material)
