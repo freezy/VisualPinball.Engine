@@ -156,6 +156,87 @@ namespace VisualPinball.Unity.Test
 			Assert.That(source.volume,Is.EqualTo(.75f).Within(.00001));fixture.Renderer.UpdateVoices(1);Assert.That(fixture.Source(ball),Is.Null);
 		}
 
+		[TestCase(.2f)]
+		[TestCase(.7f)]
+		public void ReturningDuringACrossfadeReusesTheOriginalLoop(float returnAfter)
+		{
+			using var fixture = new AudioFixture();
+			var from = fixture.Surface(fixture.Bank("wood", 1), 1);
+			var to = fixture.Surface(fixture.Bank("plastic", 1), 1);
+			fixture.Material(from).Responses[0].AttackSeconds = 1;
+			fixture.Material(to).Responses[0].AttackSeconds = 1;
+			fixture.Material(to).Responses[0].CrossfadeSeconds = 1;
+			var ball = fixture.Ball(); fixture.Set(ball, from); fixture.Render();
+			var original = fixture.Source(ball);
+			fixture.Set(ball, to); fixture.Apply(); fixture.Renderer.UpdateVoices(returnAfter);
+			Assert.That(fixture.Renderer.LoopStarts, Is.EqualTo(2));
+			fixture.Set(ball, from); fixture.Apply();
+			Assert.That(fixture.Source(ball), Is.SameAs(original), "reuse A even when B has become louder");
+			// Complete B's de-click before another physics snapshot can cancel a stale request.
+			fixture.Renderer.UpdateVoices(.01f);
+			Assert.That(fixture.Source(ball), Is.SameAs(original));
+			Assert.That(fixture.Renderer.LoopStarts, Is.EqualTo(2), "the restored loop must not restart");
+			Assert.That(fixture.Renderer.GetComponentsInChildren<AudioSource>(), Has.Length.EqualTo(1));
+		}
+
+		[TestCase(.1f)]
+		[TestCase(.5f)]
+		public void AttackAndReleaseDurationsDoNotDependOnTheBankVolume(float volume)
+		{
+			using var fixture = new AudioFixture();
+			var surface = fixture.Surface(fixture.Bank("quiet", volume), 1);
+			var response = fixture.Material(surface).Responses[0];
+			response.AttackSeconds = response.ReleaseSeconds = 1;
+			var ball = fixture.Ball(); fixture.Set(ball, surface); fixture.Apply();
+			fixture.Renderer.UpdateVoices(.25f);
+			Assert.That(fixture.Source(ball).volume, Is.EqualTo(volume * .25f).Within(.00001));
+			fixture.Apply(); fixture.Renderer.UpdateVoices(.25f);
+			Assert.That(fixture.Source(ball).volume, Is.EqualTo(volume * .5f).Within(.00001), "an unchanged target must not restart its envelope");
+			fixture.Renderer.UpdateVoices(.5f);
+			var source = fixture.Source(ball);
+			fixture.Set(ball, 0); fixture.Apply(); fixture.Renderer.UpdateVoices(.25f);
+			Assert.That(fixture.Source(ball), Is.SameAs(source));
+			Assert.That(source.volume, Is.EqualTo(volume * .75f).Within(.00001));
+			fixture.Apply(); fixture.Renderer.UpdateVoices(.25f);
+			Assert.That(source.volume, Is.EqualTo(volume * .5f).Within(.00001));
+			fixture.Renderer.UpdateVoices(.5f);
+			Assert.That(fixture.Source(ball), Is.Null);
+		}
+
+		[Test]
+		public void QuietOutgoingLoopUsesTheFullCrossfadeDuration()
+		{
+			using var fixture = new AudioFixture();
+			var from = fixture.Surface(fixture.Bank("quiet wood", .1f), 1);
+			var to = fixture.Surface(fixture.Bank("plastic", .2f), 1);
+			fixture.Material(to).Responses[0].CrossfadeSeconds = 1;
+			var ball = fixture.Ball(); fixture.Set(ball, from); fixture.Render(); var outgoing = fixture.Source(ball);
+			fixture.Set(ball, to); fixture.Apply(); fixture.Renderer.UpdateVoices(.25f);
+			Assert.That(outgoing, Is.Not.Null);
+			Assert.That(outgoing.volume, Is.EqualTo(.075f).Within(.00001));
+			fixture.Apply(); fixture.Renderer.UpdateVoices(.25f);
+			Assert.That(outgoing.volume, Is.EqualTo(.05f).Within(.00001));
+			fixture.Renderer.UpdateVoices(.5f);
+			Assert.That(fixture.Renderer.GetComponentsInChildren<AudioSource>(), Has.Length.EqualTo(1));
+		}
+
+		[Test]
+		public void ReturningToASlotPoolDoesNotReuseAVoiceForItsPreviousSlot()
+		{
+			using var fixture = new AudioFixture(); var bank = fixture.Bank("ramps", 1, 2);
+			var ramp = fixture.Surface(bank, 1, true); var wood = fixture.Surface(fixture.Bank("wood", 1), 1);
+			fixture.Material(wood).Responses[0].AttackSeconds = fixture.Material(wood).Responses[0].CrossfadeSeconds = 1;
+			var first = fixture.Ball(); fixture.Set(first, ramp); fixture.Render();
+			Assert.That(fixture.Source(first).clip, Is.SameAs(bank.Clips[0]));
+			fixture.Set(first, wood); fixture.Apply(); fixture.Renderer.UpdateVoices(.1f);
+			var second = fixture.Ball(); fixture.Set(second, ramp); fixture.Apply(); fixture.Renderer.UpdateVoices(.1f);
+			Assert.That(fixture.Source(second).clip, Is.SameAs(bank.Clips[0]));
+			fixture.Set(first, ramp); fixture.Apply(); fixture.Renderer.UpdateVoices(.001f);
+			fixture.Apply(); fixture.Renderer.UpdateVoices(.01f);
+			Assert.That(fixture.Source(first).clip, Is.SameAs(bank.Clips[1]), "slot zero now belongs to the other ball");
+			Assert.That(fixture.Renderer.LoopStarts, Is.EqualTo(4));
+		}
+
 		private sealed class AudioFixture : IDisposable
 		{
 			private readonly GameObject _root = new("audio review fixture");
@@ -174,6 +255,7 @@ namespace VisualPinball.Unity.Test
 			internal RollingSoundMaterialAsset Material(int id) => (RollingSoundMaterialAsset)((System.Collections.IList)typeof(RollingSoundComponent).GetField("_materials",BindingFlags.Instance|BindingFlags.NonPublic).GetValue(Renderer))[id];
 			internal int Ball() { var go = new GameObject("ball"); go.transform.SetParent(_root.transform,false); var ball = go.AddComponent<BallComponent>(); Context.BallComponents[ball.Id] = ball; Context.RollingGenerations[ball.Id] = 1; return ball.Id; }
 			internal void Set(int ball, int surface) => Context.Rolling.Balls[ball] = new RollingBallState { BallId = ball, Generation = 1, Surface = surface, ReservedSurface = surface, Supported = surface != 0, ReservedSupport = surface != 0, Speed = 10, Velocity = new float3(10,0,0) };
+			internal void Apply() { Renderer.Capture(); Renderer.Apply(); }
 			internal void Render(int firstBall = 0) { Renderer.Capture(); if(firstBall!=0) { var list=(System.Collections.IList)typeof(RollingSoundComponent).GetField("_staged",BindingFlags.Instance|BindingFlags.NonPublic).GetValue(Renderer); if((int)list[0].GetType().GetField("Ball").GetValue(list[0])!=firstBall) list.GetType().GetMethod("Reverse",Type.EmptyTypes).Invoke(list,null); } Renderer.Apply(); Renderer.UpdateVoices(1); }
 			internal AudioSource Source(int ball) { var sessions=(System.Collections.IDictionary)typeof(RollingSoundComponent).GetField("_sessions",BindingFlags.Instance|BindingFlags.NonPublic).GetValue(Renderer); var session=sessions[ball]; var voice=session.GetType().GetField("Active").GetValue(session); return voice==null ? null : (AudioSource)voice.GetType().GetField("Source").GetValue(voice); }
 			public void Dispose() { Object.DestroyImmediate(_root); Context.Rolling.Dispose(); foreach(var asset in _assets) Object.DestroyImmediate(asset); MechanicalSoundGain.Gain = _oldGain; }

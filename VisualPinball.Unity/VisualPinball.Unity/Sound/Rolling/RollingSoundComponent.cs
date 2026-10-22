@@ -152,15 +152,15 @@ namespace VisualPinball.Unity
 			var speed = response != null ? response.Speed(control.Velocity, control.Speed) : 0;
 			var gain = desired ? response.Gain(speed) * Volume * (material.Group == RollingSoundGroup.Playfield ? PlayfieldVolume : RampVolume) : 0;
 			if (!desired) session.PendingBank = null;
-			else if (session.Active?.Bank != desired || session.SlotChanged) Retarget(session, desired, response, material);
+			else if (!Matches(session.Active, desired, SelectedSlot(desired, material, session.Slot)) || session.SlotChanged) Retarget(session, desired, response, material);
 			else session.PendingBank = null;
 			session.SlotChanged = false;
 			if (session.Active != null) {
 				var voice = session.Active;
 				voice.ReleaseWhenSilent = control.Reserved == 0 || (control.Supported && !desired);
-				if (!desired || voice.Bank == desired) voice.Target = math.saturate(voice.BaseGain * gain);
+				var target = !desired || voice.Bank == desired ? math.saturate(voice.BaseGain * gain) : voice.Target;
 				if (desired && voice.Bank == desired) voice.Response = response;
-				voice.FadeSeconds = voice.Target > voice.Level ? (response?.AttackSeconds ?? 0.01f) : (response?.ReleaseSeconds ?? voice.Response?.ReleaseSeconds ?? 0.02f);
+				voice.FadeTo(target, target > voice.Level ? (response?.AttackSeconds ?? 0.01f) : (response?.ReleaseSeconds ?? voice.Response?.ReleaseSeconds ?? 0.02f));
 				SetPosition(voice.Source.transform, control.Position);
 				if (response != null && voice.Bank == desired && voice.Source.clip) {
 					var pitch = voice.BasePitch * response.Pitch(speed, voice.Source.clip.frequency);
@@ -188,23 +188,36 @@ namespace VisualPinball.Unity
 
 		private void Retarget(Session session, SoundEffectAsset bank, RollingSoundResponse response, RollingSoundMaterialAsset material)
 		{
+			var slot = SelectedSlot(bank, material, session.Slot);
+			if (!Matches(session.Active, bank, slot) && Matches(session.Outgoing, bank, slot)) {
+				var previous = session.Active; session.Active = session.Outgoing; session.Outgoing = previous;
+			}
+			if (Matches(session.Active, bank, slot)) {
+				// Returning to an existing loop preserves its playback position, even if it is quieter.
+				session.PendingBank = null;
+				if (session.Outgoing != null) { session.Outgoing.FadeTo(0, 0.003f); session.Outgoing.ReleaseWhenSilent = true; }
+				return;
+			}
 			// At most two loops per ball. On a mid-fade retarget, de-click the quieter voice before reusing its place.
 			if (session.Outgoing != null) {
 				if (session.Active != null && session.Outgoing.Level > session.Active.Level) {
 					var quieter = session.Active; session.Active = session.Outgoing; session.Outgoing = quieter;
 				}
-				session.Outgoing.Target = 0; session.Outgoing.FadeSeconds = 0.003f; session.Outgoing.ReleaseWhenSilent = true;
+				session.Outgoing.FadeTo(0, 0.003f); session.Outgoing.ReleaseWhenSilent = true;
 				session.PendingBank = bank; session.PendingResponse = response; session.PendingMaterial = material;
 				return;
 			}
 			session.Outgoing = session.Active;
-			if (session.Outgoing != null) { session.Outgoing.Target = 0; session.Outgoing.FadeSeconds = response.CrossfadeSeconds; session.Outgoing.ReleaseWhenSilent = true; }
+			if (session.Outgoing != null) { session.Outgoing.FadeTo(0, response.CrossfadeSeconds); session.Outgoing.ReleaseWhenSilent = true; }
 			var source = CreateSource(bank);
 			if (!source) { session.Active = null; return; }
-			if (material.VariantMode == RollingVariantMode.FirstFreeSlot && session.Slot >= 0 && session.Slot < bank.Clips.Length) source.clip = bank.Clips[session.Slot];
-			session.Active = new Voice { Source = source, Bank = bank, BaseGain = MechanicalSoundGain.AuthoredLevel(source), BasePitch = source.pitch, Response = response };
+			if (slot >= 0) source.clip = bank.Clips[slot];
+			session.Active = new Voice { Source = source, Bank = bank, Slot = slot, BaseGain = MechanicalSoundGain.AuthoredLevel(source), BasePitch = source.pitch, Response = response };
 			MechanicalSoundGain.SetAuthoredLevel(source, 0); source.Play(); LoopStarts++;
 		}
+		private static bool Matches(Voice voice, SoundEffectAsset bank, int slot) => voice != null && voice.Bank == bank && voice.Slot == slot;
+		private static int SelectedSlot(SoundEffectAsset bank, RollingSoundMaterialAsset material, int slot)
+			=> material.VariantMode == RollingVariantMode.FirstFreeSlot && bank.Clips != null && slot >= 0 && slot < bank.Clips.Length ? slot : -1;
 
 		private AudioSource CreateSource(SoundEffectAsset bank)
 		{
@@ -257,7 +270,8 @@ namespace VisualPinball.Unity
 		private void Advance(ref Voice voice, float deltaTime)
 		{
 			if (voice == null) return;
-			voice.Level = Mathf.MoveTowards(voice.Level, voice.Target, deltaTime / math.max(0.001f, voice.FadeSeconds));
+			voice.FadeElapsed += deltaTime;
+			voice.Level = math.lerp(voice.FadeStart, voice.Target, math.saturate(voice.FadeElapsed / math.max(0.001f, voice.FadeSeconds)));
 			MechanicalSoundGain.SetAuthoredLevel(voice.Source, voice.Level);
 			if (voice.ReleaseWhenSilent && voice.Level <= 0) { DisposeVoice(voice.Source); voice = null; }
 		}
@@ -291,7 +305,20 @@ namespace VisualPinball.Unity
 		public void UnpackReferences(byte[] bytes, Transform root, PackagedRefs refs, PackagedFiles files) => DefaultBallMaterial = files.Rolling.Ball(PackageApi.Packer.Unpack<int>(bytes));
 
 		private struct Control { public int Ball, Surface, Reserved, SupportItemId; public bool Frozen, Supported; public uint Generation; public float Speed; public float3 Velocity, Position; }
-		private sealed class Voice { public AudioSource Source; public SoundEffectAsset Bank; public RollingSoundResponse Response; public float BaseGain, BasePitch, Level, Target, FadeSeconds; public bool ReleaseWhenSilent; }
+		private sealed class Voice
+		{
+			public AudioSource Source;
+			public SoundEffectAsset Bank;
+			public RollingSoundResponse Response;
+			public int Slot;
+			public float BaseGain, BasePitch, Level, Target, FadeSeconds, FadeStart, FadeElapsed;
+			public bool ReleaseWhenSilent;
+			public void FadeTo(float target, float seconds)
+			{
+				if (Target == target && FadeSeconds == seconds) return;
+				FadeStart = Level; FadeElapsed = 0; Target = target; FadeSeconds = seconds;
+			}
+		}
 		private sealed class Session { public uint Generation; public int Surface; public string Pool; public bool SlotChanged; public int Slot = -1; public SoundEffectAsset PendingBank; public RollingSoundResponse PendingResponse; public RollingSoundMaterialAsset PendingMaterial; public Voice Active, Outgoing; public readonly Dictionary<long, double> BoundaryTimes = new(); }
 		private struct OneShot { public AudioSource Source; }
 	}
