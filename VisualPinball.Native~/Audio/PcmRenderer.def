@@ -1,0 +1,18 @@
+LIBRARY VpePcm
+EXPORTS
+ VpePcmCreate
+ VpePcmAbi
+ VpePcmDestroy
+ VpePcmRegisterClip
+ VpePcmPlay
+ VpePcmUpdate
+ VpePcmStop
+ VpePcmActive
+ VpePcmPosition
+ VpePcmSetBusGain
+ VpePcmSetStreamGain
+ VpePcmStreamPush
+ VpePcmFlushStream
+ VpePcmEnableStream
+ VpePcmRender
+ VpePcmMetrics

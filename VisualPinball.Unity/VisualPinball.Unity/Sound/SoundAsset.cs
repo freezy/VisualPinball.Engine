@@ -60,6 +60,10 @@ namespace VisualPinball.Unity
 		[SerializeField]
 		private AudioMixerGroup _audioMixerGroup;
 
+		[SerializeField] private string _busId;
+		/// <summary>Empty uses a compatible automatic route. Unknown IDs are retained when packaging.</summary>
+		[JsonIgnore] public string BusId { get => _busId; set => _busId = value; }
+
 		[NonSerialized]
 		private int _roundRobinIndex = 0;
 
@@ -115,7 +119,7 @@ namespace VisualPinball.Unity
 		{
 			if (audioSource == null)
 				return true;
-			if (audioSource.isPlaying)
+			if (SoundPlayback.IsPlaying(audioSource) || SoundPlayback.IsPaused(audioSource))
 				return false;
 #if UNITY_EDITOR
 			return EditorApplication.isFocused;

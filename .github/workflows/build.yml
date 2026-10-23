@@ -37,6 +37,28 @@ jobs:
         run: |
           cd VisualPinball.Engine.Test
           dotnet build VisualPinball.Engine.Test.csproj -c Release -r ${{ matrix.rid }}
+      - name: Build desktop PCM renderer and run native fixtures
+        if: matrix.rid == 'win-x64' || matrix.rid == 'win-x86' || matrix.rid == 'osx' || matrix.rid == 'linux-x64'
+        run: |
+          extra=()
+          case '${{ matrix.rid }}' in
+            win-x64) extra=(-A x64) ;;
+            win-x86) extra=(-A Win32) ;;
+            osx) extra=('-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64' '-DCMAKE_OSX_DEPLOYMENT_TARGET=11.0') ;;
+          esac
+          cmake -S VisualPinball.Native~/Audio -B native-audio -DCMAKE_BUILD_TYPE=Release "${extra[@]}"
+          cmake --build native-audio --config Release
+          ctest --test-dir native-audio -C Release --output-on-failure
+          case '${{ matrix.rid }}' in
+            win-*) cp native-audio/Release/VpePcm.dll VisualPinball.Unity/Plugins/${{ matrix.rid }}/ ;;
+            osx) cp native-audio/libVpePcm.dylib VisualPinball.Unity/Plugins/osx/ ;;
+            linux-x64) cp native-audio/libVpePcm.so VisualPinball.Unity/Plugins/linux-x64/ ;;
+          esac
+          case '${{ matrix.rid }}' in
+            win-*) cp VisualPinball.Native~/Audio/Importers/${{ matrix.rid }}.meta.template VisualPinball.Unity/Plugins/${{ matrix.rid }}/VpePcm.dll.meta ;;
+            osx) cp VisualPinball.Native~/Audio/Importers/osx.meta.template VisualPinball.Unity/Plugins/osx/libVpePcm.dylib.meta ;;
+            linux-x64) cp VisualPinball.Native~/Audio/Importers/linux-x64.meta.template VisualPinball.Unity/Plugins/linux-x64/libVpePcm.so.meta ;;
+          esac
       - run: |
           mkdir tmp
           cp -r VisualPinball.Unity/Plugins/${{ matrix.rid }} tmp

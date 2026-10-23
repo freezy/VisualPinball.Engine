@@ -8,6 +8,8 @@ Built with Unity 6.5
 
 ### Added
 
+- An opt-in central stereo PCM renderer with semantic sound buses, persistent player trims, packaged sound-bank routing, bounded native voice/stream transport and gain-aware PinMAME playback takeover. Reference remains the default; effects and physical SSF output remain separate milestones.
+
 - An isolated native audio-routing developer probe for stereo preservation, eight-channel generator transport and the proposed cabinet/backbox path, with offline fixtures and standalone Unity callback diagnostics. The documented stereo spatializer input selects a central PCM renderer candidate; production audio processing and physical SSF validation remain pending.
 
 - Material-driven rolling audio with separate ball sound tags, support-contact tracking, speed-dependent gain and pitch, optional material boundary sounds and packaged response graphs. Missing ball/surface pairs remain silent unless a fallback is assigned explicitly.

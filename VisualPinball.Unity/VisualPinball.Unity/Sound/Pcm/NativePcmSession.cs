@@ -1,0 +1,59 @@
+// Visual Pinball Engine. Copyright (C) 2026 freezy and VPE Team.
+// SPDX-License-Identifier: MIT
+using System;
+using System.Runtime.InteropServices;
+using System.Threading;
+
+namespace VisualPinball.Unity
+{
+	/// <summary>Owns one native graph. Control calls are main-thread only; the PCM producer is serialized by its adapter.</summary>
+	internal sealed class NativePcmSession : IDisposable
+	{
+		internal const string Library = "VpePcm";
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern int VpePcmAbi();
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern IntPtr VpePcmCreate();
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern void VpePcmDestroy(IntPtr context);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern int VpePcmRegisterClip(IntPtr context, float[] samples, int frames, int channels, int rate);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern ulong VpePcmPlay(IntPtr context, int clip, int bus, float gain, float pitch, float pan, int loop);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern int VpePcmUpdate(IntPtr context, ulong voice, float gain, float pitch, float pan, int paused);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern void VpePcmStop(IntPtr context, ulong voice);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern int VpePcmActive(IntPtr context, ulong voice);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern float VpePcmPosition(IntPtr context, ulong voice);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern int VpePcmSetBusGain(IntPtr context, int bus, float gain);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern void VpePcmSetStreamGain(IntPtr context, float gain);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern int VpePcmStreamPush(IntPtr context, IntPtr samples, int frames, int channels, int rate, int encoding, long sequence);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern void VpePcmFlushStream(IntPtr context);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern void VpePcmEnableStream(IntPtr context, int enabled);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern int VpePcmRender(IntPtr context, [In, Out] float[] output, int frames, int channels, int rate, int paused);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern int VpePcmMetrics(IntPtr context, [Out] float[] values, int count);
+		private IntPtr _context;
+		private int _readers, _blocks;
+		internal IntPtr Context => Volatile.Read(ref _context);
+		internal int RenderedBlocks => Volatile.Read(ref _blocks);
+		internal NativePcmSession()
+		{
+			if (VpePcmAbi() != 1) throw new InvalidOperationException("Unsupported native PCM ABI.");
+			_context = VpePcmCreate();
+			if (_context == IntPtr.Zero) throw new InvalidOperationException("The native PCM graph could not be allocated.");
+			VpePcmEnableStream(_context, 0);
+		}
+		internal void Render(float[] data, int channels, int rate, bool paused)
+		{
+			Interlocked.Increment(ref _readers);
+			try {
+				var context = Context;
+				if (context == IntPtr.Zero || VpePcmRender(context, data, data.Length / channels, channels, rate, paused ? 1 : 0) == 0) Array.Clear(data, 0, data.Length);
+				else Interlocked.Increment(ref _blocks);
+			} finally { Interlocked.Decrement(ref _readers); }
+		}
+		public void Dispose()
+		{
+			var context = Interlocked.Exchange(ref _context, IntPtr.Zero);
+			if (context == IntPtr.Zero) return;
+			// No audio callback waits for this main-thread teardown. The bounded native
+			// render has no locks or main-thread dependencies; new callbacks see zero.
+			SpinWait.SpinUntil(() => Volatile.Read(ref _readers) == 0);
+			VpePcmDestroy(context);
+		}
+	}
+}

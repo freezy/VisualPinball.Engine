@@ -1,8 +1,20 @@
-# Audio routing prototype
+# Native audio: routing probe and PCM renderer
 
 This is the first implementation milestone of the [audio processing and SSF plan](../../VisualPinball.Unity/Documentation~/developer-guide/audio-processing-and-ssf-plan.md). It compares Unity's selected native spatializer with an ordinary eight-channel generator for carrying four cabinet outputs plus backbox stereo through a master mixer. It is an isolated developer probe, not production audio processing or an SSF feature in the player.
 
-The native source and CMake fixtures are portable C++17. The standalone build helper currently targets Windows x64 with Unity 6000.5.0f1 and Visual Studio 2022. Linux and macOS builds and hardware validation remain pending. No native binaries are checked in or installed into an existing Unity project.
+The native source and CMake fixtures are portable C++17. The standalone routing-probe build helper targets Windows x64 with Unity 6000.5.0f1 and Visual Studio 2022. No binaries are checked in. The desktop package build now additionally compiles `VpePcm` for Windows x64/x86, Linux x64 and universal macOS; those builds still need platform playback qualification.
+
+## Central stereo PCM renderer
+
+`PcmRenderer.cpp` is the dry production candidate used by the player's opt-in **New stereo mixer** setting. It is separate from the isolated spatializer/generator probe. Build with the CMake commands below, then copy `VpePcm.dll` into `VisualPinball.Unity/Plugins/win-x64` for local Windows development; CI packages each desktop binary with its platform importer metadata. Reference playback remains the default and the managed adapter falls back when the native library or supported output is unavailable. Do not replace an already loaded native DLL in an editor session: restart the editor after rebuilding it.
+
+The C ABI has one main-thread command producer, one audio-thread renderer and one serialized live-PCM producer. The control queue has 4096 entries, voices have 512 generation-tagged slots, and the stereo stream ring has 8192 frames. Native render does not allocate, lock, log, call Unity or wait for the main thread. Stop is an out-of-band atomic so a full queue cannot lose it. Clip preparation happens on the main thread, with 32 MiB per clip and 256 MiB per table limits; oversized/unreadable/custom-mixer sources keep Unity playback. Destroy requires producer quiescence and detaches the context before waiting for an existing bounded callback to finish.
+
+Seven stable buses receive transient mechanics, rolling, ROM, table music, callouts, synthetic effects and player UI. Mono uses constant-power stereo panning; centered authored stereo preserves both channels. Per-voice pitch/sample-rate conversion retains fractional cursors and looping phase. Pause freezes clip cursors, flushes the live ring, and resumes without stale stream audio. ROM takeover requires an exclusive playback capability and explicit integration gain metadata; raw capture subscribers remain unscaled. Counters expose underflow, overflow, sequence discontinuity and command drops. This milestone uses linear interpolation and bounded discontinuity recovery; adaptive clock drift compensation remains follow-up work before this path becomes the default.
+
+Only stereo output is exposed by this renderer. Neither the C ABI nor the player claims physical SSF support. Effects, linked processing, discrete channel delivery, hardware calibration, latency qualification and listening comparisons remain later milestones in the plan. Existing `.vpe` files use compatible automatic bus selection; new bank IDs are packaged without recording any user/device configuration or depending on the authoring assets library at runtime.
+
+`Importers/*.meta.template` supplies stable platform importer GUIDs when CI assembles native artifacts. Keeping non-host importer templates outside the Unity asset tree avoids Unity deleting them as orphan metadata before those platform binaries have been built. Windows links the C++ runtime statically, so this library adds no external VC++ runtime DLL requirement.
 
 ## Build and run
 
@@ -63,7 +75,7 @@ Repeat the probe with an OS-configured discrete 7.1 device and four cabinet exci
 | Player mechanical slider and integration controls | The player currently applies `MechanicalSoundGain` independently from integration controls. Preserve those authored/user gain units during migration; no new controls or config migration are installed by this prototype. |
 | Authoring previews | The editor Sound Manager owns a preview AudioSource. Keep preview/session ownership separate from table routes and avoid loading this probe into the authoring editor. |
 
-Production sources, mixer selection, gain behavior, `.vpe` serializers and packaged recordings are untouched. The prior T2 package verification established 41 banks and 214 clips, including seven rolling banks with 29 clips; that prior result is a baseline, not a new export or a dry T2 PCM capture performed by this probe. A fresh dry capture, semantic buses, ROM ownership, `.vpe` routing metadata, EQ/compression/reverb/limiting, player settings and calibration remain subsequent milestones. The player and engine still have no runtime dependency on the assets library for this work.
+The isolated routing probe does not modify production voices or recordings. The central PCM milestone above adds production voice adapters, semantic buses, gain-aware ROM takeover, player trims and `.vpe` bank metadata independently. The prior T2 package verification established 41 banks and 214 clips, including seven rolling banks with 29 clips; that result alone is not a dry T2 PCM capture or physical output certification. EQ/compression/reverb/limiting and cabinet calibration remain subsequent milestones. The player and engine have no runtime dependency on the assets library for this work.
 
 ## Third-party source
 

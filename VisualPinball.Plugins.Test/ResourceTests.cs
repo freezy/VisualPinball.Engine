@@ -14,6 +14,48 @@ namespace VisualPinball.Plugins.Test
 	[TestFixture]
 	public sealed class ResourceTests
 	{
+		[Test]
+		public void PlaybackGainDoesNotAlterBorrowedPcmAndHandoffIsExclusive()
+		{
+			using var source = new GainControlledAudioResourceSource();
+			var bytes = new byte[] { 0, 64 };
+			var frame = new PluginPcmFrame(bytes, PcmEncoding.Int16LittleEndian, 44100, 1, 1, 1);
+			byte received = 0;
+			using var subscription = source.Subscribe(value => received = value.Samples.Span[1]);
+			source.PlaybackGain = 0;
+			Assert.That(source.PublishForPlayback(frame), Is.False);
+			Assert.That(received, Is.EqualTo(64), "raw subscribers must not inherit output mute");
+			using (source.AcquirePlayback("central")) {
+				Assert.That(source.PublishForPlayback(frame), Is.True);
+				Assert.Throws<InvalidOperationException>(() => source.AcquirePlayback("other"));
+			}
+			Assert.That(source.PublishForPlayback(frame), Is.False);
+			Assert.Throws<ArgumentOutOfRangeException>(() => source.PlaybackGain = float.NaN);
+		}
+
+		[Test]
+		public void PlaybackHandoffCannotChangeTheOwnershipDecisionDuringDispatch()
+		{
+			using var source = new GainControlledAudioResourceSource();
+			using var entered = new System.Threading.ManualResetEventSlim();
+			using var release = new System.Threading.ManualResetEventSlim();
+			using var acquiring = new System.Threading.ManualResetEventSlim();
+			using var subscription = source.Subscribe(_ => { entered.Set(); release.Wait(TimeSpan.FromSeconds(5)); });
+			var frame = new PluginPcmFrame(new byte[2], PcmEncoding.Int16LittleEndian, 44100, 1, 1, 1);
+			var publish = System.Threading.Tasks.Task.Run(() => source.PublishForPlayback(frame));
+			IDisposable? lease = null;
+			try {
+				Assert.That(entered.Wait(TimeSpan.FromSeconds(5)), Is.True);
+				var take = System.Threading.Tasks.Task.Run(() => { acquiring.Set(); lease = source.AcquirePlayback("central"); });
+				Assert.That(acquiring.Wait(TimeSpan.FromSeconds(5)), Is.True);
+				Assert.That(take.IsCompleted, Is.False, "takeover must wait for in-flight dispatch");
+				release.Set();
+				Assert.That(System.Threading.Tasks.Task.WaitAll(new System.Threading.Tasks.Task[] { publish, take }, TimeSpan.FromSeconds(5)), Is.True);
+				Assert.That(publish.Result, Is.False, "the producer still owns the in-flight block");
+				Assert.That(source.PlaybackReplaced, Is.True);
+			} finally { release.Set(); lease?.Dispose(); }
+		}
+
 		private static PluginResourceDescriptor Display(string id, long instance = 1, string controller = "game", ResourceView view = ResourceView.Original, params string[] parents)
 			=> new PluginResourceDescriptor(id, "test", controller, id, "dmd", ResourceKind.Display, 1, instance, view, DisplayEncoding.Gray2 | DisplayEncoding.Gray4 | DisplayEncoding.Rgb24, parents);
 		private static PluginResourceSelection Selection(ResourceView view = ResourceView.Identification) => new PluginResourceSelection(ResourceKind.Display) { Controller = "game", Session = 1, Intent = view };
