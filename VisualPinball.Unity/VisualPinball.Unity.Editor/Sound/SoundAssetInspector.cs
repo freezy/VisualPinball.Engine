@@ -17,6 +17,7 @@
 // ReSharper disable InconsistentNaming
 
 using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 using System.Collections.Generic;
@@ -38,8 +39,18 @@ namespace VisualPinball.Unity.Editor
 			var picker = new PopupField<string>("Sound bus", choices, bus.stringValue ?? "", id => string.IsNullOrEmpty(id) ? "Automatic" : SoundBuses.Index(id) >= 0 ? SoundBuses.Labels[SoundBuses.Index(id)] : "Unknown: " + id,
 				id => string.IsNullOrEmpty(id) ? "Automatic" : SoundBuses.Index(id) >= 0 ? SoundBuses.Labels[SoundBuses.Index(id)] : "Unknown: " + id);
 			picker.AddToClassList("unity-base-field__aligned");
-			picker.RegisterValueChangedCallback(change => { bus.stringValue = change.newValue; serializedObject.ApplyModifiedProperties(); });
+			UpdatePicker(bus);
+			picker.BindProperty(bus);
+			root.TrackPropertyValue(bus, UpdatePicker);
 			root.Add(picker); return root;
+
+			void UpdatePicker(SerializedProperty property)
+			{
+				var id = property.stringValue ?? "";
+				if (!choices.Contains(id)) choices.Add(id);
+				picker.SetValueWithoutNotify(id);
+				picker.showMixedValue = property.hasMultipleDifferentValues;
+			}
 		}
 
 		private void OnDisable()
