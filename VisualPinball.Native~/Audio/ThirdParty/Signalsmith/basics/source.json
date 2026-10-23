@@ -1,0 +1,10 @@
+{
+  "repository": "https://github.com/Signalsmith-Audio/basics",
+  "commit": "369e906e03760ec219d07b06fa06dc4fd099f377",
+  "files": "Reverb, limiter and STFX headers, with documented local patches.",
+  "license": "MIT; STFX wrapper additionally Boost-1.0",
+  "patches": [
+    "reverb.h reset(): clear delay4 alongside the other diffusers; regression exercises pause and mute tail removal.",
+    "limiter.h ChannelEnvelope: initialize BoxFilter with length 1, avoiding a zero reciprocal before configure()."
+  ]
+}

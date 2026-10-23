@@ -80,3 +80,10 @@ The isolated routing probe does not modify production voices or recordings. The 
 ## Third-party source
 
 `ThirdParty/Unity/AudioPluginInterface.h` is the unmodified Unity Native Audio Plugin SDK header pinned in `source.json`, accompanied by Unity's MIT license. The plugin requests only the 1.4.2 ABI and does not misuse the SDK's decoder-only `UseOutputChannelCount` flag to expand an ordinary spatializer.
+
+
+## Stereo DSP
+
+`AudioProcessing` adds eight filter slots (high pass, low pass, two shelves and four bells) and linked soft-knee compression to each semantic bus and the stereo output. A shared Signalsmith FDN room return feeds the final output chain. A linked Signalsmith limiter uses 1 ms lookahead, a fixed matching dry delay and a final sample-peak guard. PCM ABI 1 remains compatible; optional DSP extension ABI 1 exposes preparation, bounded settings snapshots, response queries, meters and a quiet three-second preview. Older native libraries continue dry playback.
+
+All allocation, coefficient design and graph preparation occur on the control thread. Rendering adopts prepared graphs at a block boundary and retires them for control-thread deletion. Never destroy a context while its renderer or stream producer is active. Callbacks use fixed buffers and bounded queues; DSP meters are atomic. The same native fixtures run on the desktop CI targets. Third-party revisions and local patches are recorded in `ThirdParty/Signalsmith`; runtime license notices are included in the Unity package's Resources folder.

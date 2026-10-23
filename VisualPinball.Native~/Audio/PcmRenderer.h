@@ -27,3 +27,10 @@ VPE_PCM_API void VpePcmEnableStream(void* context, int enabled);
 VPE_PCM_API int VpePcmRender(void* context, float* output, int frames, int channels, int rate, int paused);
 // Seven bus peaks, stream underflows/overflows/discontinuities, command drops, active voices.
 VPE_PCM_API int VpePcmMetrics(void* context, float* values, int count);
+// Optional DSP extension. Preparation allocates off-thread; adoption is at a render boundary.
+VPE_PCM_API int VpePcmDspAbi();
+VPE_PCM_API int VpePcmPrepareDsp(void* context, int rate);
+VPE_PCM_API int VpePcmSetProcessing(void* context, const float* values, int count);
+VPE_PCM_API int VpePcmProcessingMeters(void* context, float* values, int count);
+VPE_PCM_API void VpePcmPreview(void* context, int bus, int enabled);
+VPE_PCM_API float VpePcmEqResponse(void* context, int route, float hz);

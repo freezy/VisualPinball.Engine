@@ -1,0 +1,6 @@
+{
+  "repository": "https://github.com/Signalsmith-Audio/dsp",
+  "commit": "ca390d28c41ea5108a528e2e81faa4088f2f8ac8",
+  "files": "Headers required by reverb, limiter and biquad EQ; unmodified.",
+  "license": "MIT; STFX wrapper additionally Boost-1.0"
+}
