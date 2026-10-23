@@ -8,7 +8,9 @@ Built with Unity 6.5
 
 ### Added
 
-- An opt-in central stereo PCM renderer with semantic sound buses, persistent player trims, packaged sound-bank routing, bounded native voice/stream transport and gain-aware PinMAME playback takeover. Reference remains the default; effects and physical SSF output remain separate milestones.
+- Player-owned stereo DSP with per-bus/output parametric EQ, linked soft-knee compression, a shared Signalsmith FDN room return, and final linked sample-peak limiting. Sound settings offer Reference, Desktop Room, Headphones and Night presets, live preview/Apply/Cancel, per-table overrides, meters and bounded preset copy/paste. Listening preferences stay outside `.vpe` tables; physical SSF remains a separate milestone.
+
+- An opt-in central stereo PCM renderer with semantic sound buses, persistent player trims, packaged sound-bank routing, bounded native voice/stream transport and gain-aware PinMAME playback takeover. Reference remains the default.
 
 - An isolated native audio-routing developer probe for stereo preservation, eight-channel generator transport and the proposed cabinet/backbox path, with offline fixtures and standalone Unity callback diagnostics. The documented stereo spatializer input selects a central PCM renderer candidate; production audio processing and physical SSF validation remain pending.
 

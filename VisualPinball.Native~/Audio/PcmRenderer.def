@@ -16,3 +16,9 @@ EXPORTS
  VpePcmEnableStream
  VpePcmRender
  VpePcmMetrics
+ VpePcmDspAbi
+ VpePcmPrepareDsp
+ VpePcmSetProcessing
+ VpePcmProcessingMeters
+ VpePcmPreview
+ VpePcmEqResponse

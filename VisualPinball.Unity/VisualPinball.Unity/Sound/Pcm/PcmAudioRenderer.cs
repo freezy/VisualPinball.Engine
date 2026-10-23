@@ -14,11 +14,15 @@ namespace VisualPinball.Unity
 	{
 		private static readonly HashSet<PcmAudioRenderer> Active = new();
 		private static readonly float[] GlobalLevels = { 1, 1, 1, 1, 1, 1, 1 };
+		private static AudioProcessingSettings GlobalProcessing = AudioProcessingSettings.Preset("reference");
 		private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 		private readonly Dictionary<AudioClip, int> _clips = new();
 		private readonly HashSet<string> _diagnostics = new();
 		private readonly float[] _busLevels = { 1, 1, 1, 1, 1, 1, 1 };
 		private readonly float[] _meters = new float[12];
+		private readonly float[] _processingMeters = new float[16];
+		private float[] _pendingProcessing;
+		private bool _prepareProcessing;
 		private NativePcmSession _session;
 		private PcmRomInput _rom;
 		private AudioSource _output;
@@ -32,6 +36,25 @@ namespace VisualPinball.Unity
 		public string Status { get; private set; } = "Reference playback";
 		public string RomStatus { get; private set; } = "Waiting for the renderer";
 		public int BypassedVoices { get; private set; }
+		public bool ProcessingSupported => _session?.ProcessingSupported == true;
+		public bool ProcessingReady => IsReady && ProcessingSupported && !_prepareProcessing;
+		public float OutputPeakLeft => _processingMeters[9];
+		public float OutputPeakRight => _processingMeters[10];
+		public float LimiterReductionDb => _processingMeters[8];
+		public float ProcessingLatencyMs => _processingMeters[11];
+		public float ReverbPeak => _processingMeters[12];
+		public float RomUnderruns => _meters[7];
+		public float RomOverruns => _meters[8];
+		public float DroppedCommands => _meters[10];
+		public float EqResponseDb(int route, float hz) => _session?.EqResponse(route, hz) ?? 0;
+		public float CompressorReductionDb(int route) => route >= 0 && route < 8 ? _processingMeters[route] : 0;
+		public static PcmAudioRenderer Current { get { foreach (var renderer in Active) if (renderer && renderer.IsReady) return renderer; return null; } }
+		public static void SetGlobalProcessing(AudioProcessingSettings settings)
+		{
+			GlobalProcessing = settings.Copy(); GlobalProcessing.Normalize();
+			foreach (var renderer in Active) renderer._pendingProcessing = GlobalProcessing.ToNative();
+		}
+		public void PreviewProcessing(int bus, bool enabled) { if (bus >= 0 && bus < 7) _session?.Preview(bus, enabled); }
 		public static void SetGlobalBusGain(string bus, float gain)
 		{
 			int index = SoundBuses.Index(bus);
@@ -56,6 +79,9 @@ namespace VisualPinball.Unity
 			try {
 				if (AudioSettings.GetConfiguration().speakerMode != AudioSpeakerMode.Stereo) throw new InvalidOperationException("Central playback currently requires Stereo; discrete output is not yet enabled.");
 				_session = new NativePcmSession(); _rate = AudioSettings.outputSampleRate;
+				_prepareProcessing = _session.ProcessingSupported && !_session.PrepareProcessing(_rate);
+				_pendingProcessing = GlobalProcessing.ToNative();
+				if (!_prepareProcessing && _session.SetProcessing(_pendingProcessing)) _pendingProcessing = null;
 				Array.Copy(GlobalLevels, _busLevels, GlobalLevels.Length); Active.Add(this);
 				_playfield = GetComponentInChildren<PlayfieldComponent>(true);
 				var outputObject = new GameObject("VPE central PCM output"); outputObject.transform.SetParent(transform, false);
@@ -67,7 +93,7 @@ namespace VisualPinball.Unity
 				_output.bypassReverbZones = true; _output.Play();
 				for (int i = 0; i < _busLevels.Length; ++i) NativePcmSession.VpePcmSetBusGain(_session.Context, i, _busLevels[i]);
 				AudioSettings.OnAudioConfigurationChanged += ConfigurationChanged;
-				Status = "Central stereo PCM (dry)";
+				Status = _session.ProcessingSupported ? "Central stereo PCM; stereo DSP available" : "Central stereo PCM (dry); update native plugin to enable effects";
 			} catch (Exception error) {
 				Status = "Reference fallback: " + error.Message; Diagnose(Status); Shutdown();
 			}
@@ -75,6 +101,8 @@ namespace VisualPinball.Unity
 		private void LateUpdate()
 		{
 			if (!IsReady) return;
+			if (_prepareProcessing && _session.PrepareProcessing(_rate)) _prepareProcessing = false;
+			if (!_prepareProcessing && _pendingProcessing != null && _session.SetProcessing(_pendingProcessing)) _pendingProcessing = null;
 			bool paused = AudioListener.pause || _applicationPaused;
 			Volatile.Write(ref _paused, paused ? 1 : 0); _rom?.SetPaused(paused);
 			Volatile.Write(ref _callback.Paused, paused ? 1 : 0);
@@ -95,6 +123,7 @@ namespace VisualPinball.Unity
 			}
 			SoundPlayback.Synchronize(this);
 			NativePcmSession.VpePcmMetrics(_session.Context, _meters, _meters.Length);
+			_session.ProcessingMeters(_processingMeters);
 		}
 		internal bool TryClip(AudioSource source, out int clip)
 		{
@@ -130,8 +159,10 @@ namespace VisualPinball.Unity
 		internal void Diagnose(string message) { if (_diagnostics.Add(message)) Logger.Warn("Audio routing: {Message:l}", message); }
 		private void ConfigurationChanged(bool changed)
 		{
+			_session?.Preview(0, false);
 			Volatile.Write(ref _rate, AudioSettings.outputSampleRate);
 			if (_callback) Volatile.Write(ref _callback.SampleRate, _rate);
+			if (_session?.ProcessingSupported == true) _prepareProcessing = true;
 			if (IsReady) NativePcmSession.VpePcmFlushStream(_session.Context);
 			if (AudioSettings.GetConfiguration().speakerMode != AudioSpeakerMode.Stereo) {
 				Status = "Reference fallback after output layout changed"; Diagnose(Status);
@@ -140,6 +171,7 @@ namespace VisualPinball.Unity
 		}
 		private void OnApplicationPause(bool paused)
 		{
+			if (paused) _session?.Preview(0, false);
 			_applicationPaused = paused;
 			bool outputPaused = paused || AudioListener.pause;
 			Volatile.Write(ref _paused, outputPaused ? 1 : 0);

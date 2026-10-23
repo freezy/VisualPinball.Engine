@@ -1,6 +1,7 @@
 // Visual Pinball Engine. Copyright (C) 2026 freezy and VPE Team.
 // SPDX-License-Identifier: MIT
 #include "PcmRenderer.h"
+#include "AudioProcessing.h"
 #include <algorithm>
 #include <array>
 #include <atomic>
@@ -39,6 +40,22 @@ struct Context {
 	std::uint64_t flushed = 0;
 	std::int64_t sequence = 0; // Stream producer only.
 	double streamFraction = 0;
+	vpe::AudioProcessing* processing = nullptr; // Render thread only.
+	vpe::AudioProcessing* controlProcessing = nullptr; // Main thread only; latest prepared graph.
+	std::atomic<vpe::AudioProcessing*> pendingProcessing{nullptr};
+	std::array<vpe::AudioProcessing*, 8> retired{};
+	std::atomic<unsigned> retiredWrite{0}, retiredRead{0};
+	std::atomic<int> previewRequest{-1};
+	int previewBus = -1, previewFrames = 0;
+	unsigned noise = 1234567;
+	std::array<float, vpe::ProcessingValues> processingSettings{};
+	bool hasProcessingSettings = false;
+	void Collect() {
+		auto r = retiredRead.load(); const auto w = retiredWrite.load(std::memory_order_acquire);
+		while (r != w) { delete retired[r % retired.size()]; ++r; }
+		retiredRead.store(r, std::memory_order_release);
+	}
+	~Context() { Collect(); delete processing; delete pendingProcessing.load(); }
 	Context() { for (auto& gain : busGain) gain.store(1); for (auto& metric : metrics) metric.store(0); }
 	bool Push(const Command& command) {
 		const auto w = write.load(std::memory_order_relaxed);
@@ -64,6 +81,32 @@ Stereo Sample(const Clip& clip, double cursor, bool loop) {
 
 void* VpePcmCreate() { try { return new Context(); } catch (...) { return nullptr; } }
 int VpePcmAbi() { return 1; }
+int VpePcmDspAbi() { return 1; }
+int VpePcmPrepareDsp(void* context, int rate) {
+	if (!context || rate < 8000 || rate > 192000) return 0;
+	auto& c = *C(context); c.Collect();
+	if (c.pendingProcessing.load(std::memory_order_acquire)) return 0;
+	try {
+		auto next = std::make_unique<vpe::AudioProcessing>(rate);
+		if (c.hasProcessingSettings) next->Set(c.processingSettings.data(), vpe::ProcessingValues);
+		c.controlProcessing = next.get();
+		c.pendingProcessing.store(next.release(), std::memory_order_release); return 1;
+	} catch (...) { return 0; }
+}
+int VpePcmSetProcessing(void* context, const float* values, int count) {
+	if (!context || !values || count != vpe::ProcessingValues || !C(context)->controlProcessing) return 0;
+	auto& c = *C(context);
+	if (!c.controlProcessing->Set(values, count)) return 0;
+	std::copy_n(values, count, c.processingSettings.data()); c.hasProcessingSettings = true; return 1;
+}
+int VpePcmProcessingMeters(void* context, float* values, int count) {
+	if (!context || !values || count != vpe::ProcessingMeters || !C(context)->controlProcessing) return 0;
+	C(context)->controlProcessing->Meters(values); return 1;
+}
+void VpePcmPreview(void* context, int bus, int enabled) {
+	if (context && bus >= 0 && bus < BusCount) C(context)->previewRequest.store(enabled ? bus + 1 : 0, std::memory_order_release);
+}
+float VpePcmEqResponse(void* context, int route, float hz) { return context && C(context)->controlProcessing ? C(context)->controlProcessing->EqResponse(route, hz) : 0.f; }
 void VpePcmDestroy(void* context) { delete C(context); }
 int VpePcmRegisterClip(void* context, const float* samples, int frames, int channels, int rate) {
 	if (!context || !samples || frames <= 0 || frames > 48000 * 60 * 10 || (channels != 1 && channels != 2) || rate < 8000 || rate > 192000) return -1;
@@ -141,6 +184,13 @@ int VpePcmRender(void* context, float* output, int frames, int channels, int rat
 		return 1;
 	}
 	auto& c = *C(context);
+	if (auto* next = c.pendingProcessing.exchange(nullptr, std::memory_order_acquire)) {
+		if (c.processing) {
+			const auto w = c.retiredWrite.load(std::memory_order_relaxed);
+			c.retired[w % c.retired.size()] = c.processing; c.retiredWrite.store(w + 1, std::memory_order_release);
+		}
+		c.processing = next;
+	}
 	auto r = c.read.load(std::memory_order_relaxed); const auto w = c.write.load(std::memory_order_acquire);
 	while (r != w) {
 		const auto command = c.commands[r % QueueSize]; ++r;
@@ -205,12 +255,24 @@ int VpePcmRender(void* context, float* output, int frames, int channels, int rat
 		c.streamRead.store(read, std::memory_order_release);
 		if (underflow) c.metrics[7].store(c.metrics[7].load() + 1);
 	}
+	const auto preview = c.previewRequest.exchange(-1, std::memory_order_acquire);
+	if (preview >= 0) { c.previewBus = preview - 1; c.previewFrames = preview ? rate * 3 : 0; }
+	const bool previewActive = c.previewFrames > 0;
+	if (previewActive) for (int f = 0; f < frames && c.previewFrames > 0; ++f, --c.previewFrames) {
+		// Quiet, bounded stereo pulses audition processing without unpausing any game voice.
+		c.noise = c.noise * 1664525u + 1013904223u;
+		const float phase = float(c.previewFrames % (rate/2)) / (rate/2);
+		const float sample = (static_cast<float>(c.noise >> 8) / 8388608.f - 1) * .0630957f * std::max(0.f, 1 - phase*4);
+		const int channel = (c.previewFrames / (rate/2)) % 2;
+		c.buses[c.previewBus*BlockSize*2 + f*2 + channel] += sample;
+	}
 	for (int bus = 0; bus < BusCount; ++bus) {
 		const float* samples = c.buses.data() + bus*BlockSize*2;
 		for (int i = 0; i < frames*2; ++i) { output[i] += samples[i]; peaks[bus] = std::max(peaks[bus], std::abs(samples[i])); }
 		c.metrics[bus].store(peaks[bus], std::memory_order_relaxed);
 	}
 	c.metrics[11].store(static_cast<float>(active));
+	if (c.processing) c.processing->Process(c.buses.data(), BlockSize*2, output, frames, paused != 0, previewActive);
 	for (int i = 0; i < frames*channels; ++i) output[i] = Finite(output[i]);
 	return 1;
 }

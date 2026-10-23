@@ -26,17 +26,31 @@ namespace VisualPinball.Unity
 		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern void VpePcmEnableStream(IntPtr context, int enabled);
 		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern int VpePcmRender(IntPtr context, [In, Out] float[] output, int frames, int channels, int rate, int paused);
 		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern int VpePcmMetrics(IntPtr context, [Out] float[] values, int count);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern int VpePcmDspAbi();
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern int VpePcmPrepareDsp(IntPtr context, int rate);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern int VpePcmSetProcessing(IntPtr context, float[] values, int count);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern int VpePcmProcessingMeters(IntPtr context, [Out] float[] values, int count);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern void VpePcmPreview(IntPtr context, int bus, int enabled);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern float VpePcmEqResponse(IntPtr context, int route, float hz);
 		private IntPtr _context;
 		private int _readers, _blocks;
 		internal IntPtr Context => Volatile.Read(ref _context);
 		internal int RenderedBlocks => Volatile.Read(ref _blocks);
+		internal bool ProcessingSupported { get; private set; }
 		internal NativePcmSession()
 		{
 			if (VpePcmAbi() != 1) throw new InvalidOperationException("Unsupported native PCM ABI.");
 			_context = VpePcmCreate();
 			if (_context == IntPtr.Zero) throw new InvalidOperationException("The native PCM graph could not be allocated.");
 			VpePcmEnableStream(_context, 0);
+			try { ProcessingSupported = VpePcmDspAbi() == 1; }
+			catch (EntryPointNotFoundException) { ProcessingSupported = false; }
 		}
+		internal bool PrepareProcessing(int rate) => ProcessingSupported && VpePcmPrepareDsp(Context, rate) != 0;
+		internal bool SetProcessing(float[] values) => ProcessingSupported && VpePcmSetProcessing(Context, values, values.Length) != 0;
+		internal void ProcessingMeters(float[] values) { if (ProcessingSupported) VpePcmProcessingMeters(Context, values, values.Length); }
+		internal void Preview(int bus, bool enabled) { if (ProcessingSupported) VpePcmPreview(Context, bus, enabled ? 1 : 0); }
+		internal float EqResponse(int route, float hz) => ProcessingSupported ? VpePcmEqResponse(Context, route, hz) : 0;
 		internal void Render(float[] data, int channels, int rate, bool paused)
 		{
 			Interlocked.Increment(ref _readers);
