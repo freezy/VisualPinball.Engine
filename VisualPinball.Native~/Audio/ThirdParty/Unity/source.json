@@ -1,0 +1,13 @@
+{
+  "commit": "bc7893edbba4c8a592777e590e34f21a11d762b4",
+  "files": {
+    "AudioPluginInterface.h": {
+      "url": "https://raw.githubusercontent.com/Unity-Technologies/NativeAudioPlugins/bc7893edbba4c8a592777e590e34f21a11d762b4/NativeCode/AudioPluginInterface.h",
+      "sha256": "d82f1cf073ecd17a727c01761c14fd923277d70497519cc1dea7c179bbeb6197"
+    },
+    "LICENSE.txt": {
+      "url": "https://raw.githubusercontent.com/Unity-Technologies/NativeAudioPlugins/bc7893edbba4c8a592777e590e34f21a11d762b4/LICENSE",
+      "sha256": "3a0dfbf43ded1b73f6ac3afe5c061b3faf5bacdec09a2c6c05d84a58bdb7d8b2"
+    }
+  }
+}
