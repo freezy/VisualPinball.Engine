@@ -21,7 +21,7 @@ namespace VisualPinball.Unity
 			var bus = SoundBuses.Index(SoundBuses.Resolve(asset, automaticBus));
 			if (!string.IsNullOrEmpty(asset.BusId) && SoundBuses.Index(asset.BusId) < 0) renderer.Diagnose("Unknown bus '" + asset.BusId + "' retained; using the asset's compatible default.");
 			var id = NativePcmSession.VpePcmPlay(renderer.Session.Context, clip, bus, source.mute ? 0 : source.volume, source.pitch, renderer.Pan(source, bus), source.loop ? 1 : 0);
-			if (id == 0) { renderer.Diagnose("Central voice capacity exhausted; this voice was not started."); return; }
+			if (id == 0) { renderer.Diagnose("Central voice capacity exhausted; using Reference playback."); source.Play(); return; }
 			Voices[source] = new Voice { Owner = renderer, Id = id, Bus = bus };
 		}
 		public static bool IsPlaying(AudioSource source) => source && (Voices.TryGetValue(source, out var voice) ? voice.Owner && voice.Owner.IsReady && !voice.Paused && NativePcmSession.VpePcmActive(voice.Owner.Session.Context, voice.Id) != 0 : source.isPlaying);
