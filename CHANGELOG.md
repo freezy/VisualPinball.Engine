@@ -8,6 +8,8 @@ Built with Unity 6.5
 
 ### Added
 
+- An isolated native audio-routing developer probe for stereo preservation, eight-channel generator transport and the proposed cabinet/backbox path, with offline fixtures and standalone Unity callback diagnostics. The documented stereo spatializer input selects a central PCM renderer candidate; production audio processing and physical SSF validation remain pending.
+
 - Material-driven rolling audio with separate ball sound tags, support-contact tracking, speed-dependent gain and pitch, optional material boundary sounds and packaged response graphs. Missing ball/surface pairs remain silent unless a fallback is assigned explicitly.
 
 - Collision sound profiles for velocity-dependent sample selection, gain, pitch and layers, with captured solver impacts, spatial playback, independent multiball retriggering and packaged samples. Moving kinematic surfaces use relative impact speed, and collision components reject looping profiles.
