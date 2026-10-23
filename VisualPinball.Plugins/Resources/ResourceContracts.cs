@@ -748,6 +748,11 @@ namespace VisualPinball.Plugins
 		/// <exception cref="InvalidOperationException">Another plugin already holds the lease.</exception>
 		IDisposable AcquirePlayback(string pluginId);
 	}
+	/// <summary>Optional integration-owned gain for raw PCM takeover. The accessor is thread-safe and returns 0..1.</summary>
+	public interface IPluginAudioPlaybackGainSource
+	{
+		float PlaybackGain { get; }
+	}
 	/// <summary>A segment display. Its place and size are known when it is published, before any frame arrives.</summary>
 	/// <remarks>
 	/// VPE publishes one per segment display the engine announces, as <c>&lt;controller&gt;/segments/&lt;id&gt;</c> with the

@@ -36,7 +36,7 @@ namespace VisualPinball.Unity
 		}
 
 		public bool ShouldPlay { get; set; }
-		public bool IsPlaying => _audioSource != null && _audioSource.isPlaying;
+		public bool IsPlaying => SoundPlayback.IsPlaying(_audioSource);
 		public bool StartAtFullVolume { get; set; }
 
 		/// <summary>
@@ -76,18 +76,18 @@ namespace VisualPinball.Unity
 #else
 			canPlay &= Application.isFocused;
 #endif
-			if (ShouldPlay && canPlay && !_audioSource.isPlaying)
+			if (ShouldPlay && canPlay && !SoundPlayback.IsPlaying(_audioSource))
 			{
 				var oldVolume = _audioSource.volume;
 				MusicAsset.ConfigureAudioSource(_audioSource);
-				_audioSource.Play();
 				_audioSource.volume = StartAtFullVolume
 					? MusicAsset.Volume * RequestVolume
 					: oldVolume;
+				SoundPlayback.Play(_audioSource, MusicAsset);
 			}
-			else if (!ShouldPlay && _audioSource.isPlaying && _audioSource.volume == 0f)
+			else if (!ShouldPlay && SoundPlayback.IsPlaying(_audioSource) && _audioSource.volume == 0f)
 			{
-				_audioSource.Stop();
+				SoundPlayback.Stop(_audioSource);
 				switch (_afterStopAction)
 				{
 					case AfterStopAction.None:
@@ -122,6 +122,7 @@ namespace VisualPinball.Unity
 
 		private void OnDestroy()
 		{
+			SoundPlayback.Stop(_audioSource);
 			if (_audioSource != null)
 				Destroy(_audioSource);
 		}

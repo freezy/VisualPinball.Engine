@@ -192,13 +192,14 @@ namespace VisualPinball.Unity
 			{
 				request.CalloutAsset.ConfigureAudioSource(audioSource);
 				audioSource.volume *= request.Volume;
-				audioSource.Play();
+				SoundPlayback.Play(audioSource, request.CalloutAsset);
 				await SoundAsset.WaitUntilAudioStops(audioSource, ct);
 			}
 			finally
 			{
 				if (audioSource != null)
 				{
+					SoundPlayback.Stop(audioSource);
 					if (Application.isPlaying)
 						Destroy(audioSource);
 					else
