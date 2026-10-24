@@ -154,6 +154,29 @@ namespace VisualPinball.Unity
 			float dTime, in float3 gravity, in float3 colliderVelocity, in float3 frictionAcceleration,
 			in float3 frictionVelocity, in float3 frictionAngularMomentum)
 		{
+			HandleStaticContact(ref ball, in collEvent, friction, dTime, in gravity, in colliderVelocity,
+				in frictionAcceleration, in frictionVelocity, in frictionAngularMomentum,
+				IsSupportContact(in collEvent.HitNormal), float3.zero);
+		}
+
+		/// <summary>
+		/// Whether a contact normal, in playfield space, belongs to a support (floor,
+		/// ramp) rather than a wall.
+		/// </summary>
+		internal static bool IsSupportContact(in float3 playfieldHitNormal)
+			=> math.normalizesafe(playfieldHitNormal).z > 0.5f;
+
+		/// <param name="isSupportContact">Whether the contact supports the ball from below,
+		/// see <see cref="IsSupportContact"/>. The hit normal may be in a collider's local
+		/// frame here, so the caller decides from the playfield-space normal.</param>
+		/// <param name="priorContactVelocity">What the contacts resolved before this one in the
+		/// same pass did to the ball's velocity: all of it for ball/ball contacts, the friction
+		/// part for static ones (see <see cref="ContactBufferElement.PriorContactVelocity"/>).</param>
+		internal static void HandleStaticContact(ref BallState ball, in CollisionEventData collEvent, float friction,
+			float dTime, in float3 gravity, in float3 colliderVelocity, in float3 frictionAcceleration,
+			in float3 frictionVelocity, in float3 frictionAngularMomentum, bool isSupportContact,
+			in float3 priorContactVelocity)
+		{
 			// this should be zero, but only up to +/- PhysicsConstants.ContactVel
 			// (relative to the surface, which may be moving if the collider is kinematic)
 			var normVel = math.dot(ball.Velocity - colliderVelocity, collEvent.HitNormal);
@@ -182,52 +205,152 @@ namespace VisualPinball.Unity
 				// additional acceleration, a magnet can press a resting ball through a wall
 				// because the contact solver only compensates gravity.
 				var acceleration = gravity + ball.ExternalAcceleration;
-				var fe = acceleration * ball.Mass;
-				var dot = math.dot(fe, collEvent.HitNormal);
+				var dot = math.dot(acceleration, collEvent.HitNormal);
 
 				// note: for kinematic colliders, HitOrgNormalVelocity is already relative to the
 				// surface — the narrow phase hit-tests in the collider's reference frame
 
-				// normal force is always nonnegative
-				var normalForce = math.max(0.0f, -(dot * dTime + collEvent.HitOrgNormalVelocity));
+				// Also cancel what the contacts resolved before this one did to the ball: stopping
+				// the spin of a ball pressed against a wall or another ball, their friction pushes it
+				// up, and left alone the ball climbs a bit every step until it leaves its support and
+				// drops back (the jitter of balls resting in a row). Otherwise this works from the
+				// hit test velocity: the normal impulses of the other static contacts stay out (two
+				// wires of a wire ramp), and so do collisions earlier in this cycle (an impact stays
+				// a collision).
+				var priorNormalVelocity = math.dot(priorContactVelocity, collEvent.HitNormal);
+				var hitNormVel = collEvent.HitOrgNormalVelocity + priorNormalVelocity;
+
+				// The velocity change that kills the original normal velocity and counteracts the
+				// external forces for this step, whatever the ball's mass (VPX scaled the load by the
+				// mass without dividing it back out, which threw balls heavier than 1 off their
+				// support). It never pulls the ball towards the surface, except to take back a lift
+				// of the earlier contacts: that can exceed one step of load on a short step, since
+				// friction removes the slip at once, whatever the step length.
+				var normalVelocityChange = math.max(-math.max(priorNormalVelocity, 0f), -(dot * dTime + hitNormVel));
 
 				// Add just enough to kill original normal velocity and counteract the external forces.
-				ball.Velocity += collEvent.HitNormal * normalForce;
+				ball.Velocity += collEvent.HitNormal * normalVelocityChange;
 
-				ApplyFriction(ref ball, collEvent.HitNormal, dTime, friction, in frictionAcceleration,
-					in colliderVelocity, in frictionVelocity, in frictionAngularMomentum);
+				// the support this contact gives, the friction budget
+				var normalForce = math.max(0f, normalVelocityChange);
+
+				ApplyFriction(ref ball, collEvent.HitNormal, dTime, friction, normalForce, isSupportContact,
+					in frictionAcceleration, in colliderVelocity, in colliderVelocity, 0f, in frictionVelocity,
+					in frictionAngularMomentum);
 			}
 		}
 
+		/// <summary>
+		/// Ball/ball contact: <paramref name="ball"/> touches <paramref name="otherBall"/>, which
+		/// reports its own contact with this ball if it is free (each ball of a pair resolves its
+		/// own record).
+		/// </summary>
+		/// <param name="collEvent">The contact, its normal pointing from the other ball to this one.</param>
+		/// <remarks>
+		/// Unlike static contacts, the friction works from the live motion of both balls, as in
+		/// Visual Pinball: the other ball's motion already holds the normal response of its own
+		/// earlier ball contacts, and comparing it to a snapshot of this ball would read those
+		/// as slip (a packed group of balls would get sideways friction and spin). Ball/ball
+		/// contacts are resolved before any static one, so the live motion holds nothing else.
+		/// </remarks>
+		internal static void HandleBallContact(ref BallState ball, in BallState otherBall, in CollisionEventData collEvent,
+			float dTime, in float3 gravity, in float3 frictionAcceleration)
+		{
+			var normal = collEvent.HitNormal;
+
+			// The approach is relative to the supporting ball, which may itself be moving (a stack
+			// pressed on a wall, a ball resting on a rolling ball): using the ball's own normal
+			// velocity here either lets it creep into its support or wrongly skips the impulse.
+			var approach = math.dot(otherBall.Velocity - ball.Velocity, normal);
+
+			// If some collision has changed the ball's velocity, we may not have to do anything.
+			if (approach <= -PhysicsConstants.ContactVel) {
+				return;
+			}
+
+			// Resting on another ball: kill the residual normal velocity only (vel.n -> 0).
+			// Matching the supporting ball's velocity instead lets each neighbour's contact
+			// rewrite this velocity in a single pass, and the chain never converges. Only a
+			// contact-scale approach is cancelled (plus the step of the load a resting stack
+			// carries): a faster one comes from a collision earlier in this cycle, a ball hit
+			// into a resting pair, and must reach the other ball through their collision
+			// instead of being absorbed here (Newton's cradle). Nor is more than the pair's own
+			// approach (plus the load) cancelled: two balls moving together along the normal
+			// don't close in on each other, and VPX braked the trailing one against the other.
+			var acceleration = gravity + ball.ExternalAcceleration;
+			var load = math.max(-math.dot(acceleration, normal), 0f) * PhysicsConstants.PhysFactor;
+			var maxCancel = math.min(PhysicsConstants.ContactVel, math.max(approach, 0f)) + load;
+			var normalForce = math.max(0f, math.min(-math.dot(ball.Velocity, normal), maxCancel));
+			ball.Velocity += normal * normalForce;
+
+			// Contacts resolve after displacement, so a slowly pressed ball still creeps into its
+			// support a little each step; left alone the overlap sinks past the contact band,
+			// turns into a restitution collision plus a displacement-correction pop, and the cycle
+			// repeats. Drain the overlap with a small capped nudge, quiet enough to stay a contact.
+			if (collEvent.HitDistance < 0f) {
+				ball.Position += normal * math.min(-0.5f * collEvent.HitDistance, 0.02f);
+			}
+
+			// Friction acts on the slip relative to the other ball's surface, and the other ball
+			// takes its share of the impulse (its effective inverse mass along the tangent is
+			// 1/m + r^2/I for a sphere, none if it is frozen), so the two records of a pair don't
+			// overshoot: for equal balls 75% of the slip is removed per step, the rest later.
+			var otherContactPoint = otherBall.Radius * normal;
+			var otherSurfaceVelocity = BallState.SurfaceVelocity(in otherBall, in otherContactPoint);
+			var otherInvMassTangent = otherBall.IsFrozen
+				? 0f
+				: otherBall.InvMass + otherBall.Radius * otherBall.Radius / otherBall.Inertia;
+			var velocity = ball.Velocity;
+			var angularMomentum = ball.AngularMomentum;
+			ApplyFriction(ref ball, in normal, dTime, PhysicsConstants.BallBallFriction, normalForce,
+				IsSupportContact(in normal), in frictionAcceleration, in otherSurfaceVelocity, float3.zero,
+				otherInvMassTangent, in velocity, in angularMomentum);
+		}
+
+		/// <param name="slipReferenceVelocity">Velocity of the other surface at the contact point
+		/// (a moving collider, the other ball), the slip is relative to it.</param>
+		/// <param name="normalReferenceVelocity">Velocity the residual normal velocity of the
+		/// static friction gate is measured against.</param>
+		/// <param name="otherInvMassTangent">Effective inverse mass of the other body along the
+		/// tangent, zero for static colliders.</param>
 		private static void ApplyFriction(ref BallState ball, in float3 hitNormal, float dTime, float frictionCoeff,
-			in float3 acceleration, in float3 colliderVelocity, in float3 frictionVelocity,
+			float normalImpulse, bool isSupportContact, in float3 acceleration, in float3 slipReferenceVelocity,
+			in float3 normalReferenceVelocity, float otherInvMassTangent, in float3 frictionVelocity,
 			in float3 frictionAngularMomentum)
 		{
 			// surface contact point relative to center of mass
 			var surfP = -ball.Radius * hitNormal;
 
-			// velocity of the ball's surface relative to the (possibly moving) collider surface:
+			// velocity of the ball's surface relative to the (possibly moving) other surface:
 			// once the ball rides along with a moving surface, slip goes to zero and static
 			// friction keeps it locked to the surface
 			var frictionState = ball;
 			frictionState.Velocity = frictionVelocity;
 			frictionState.AngularMomentum = frictionAngularMomentum;
-			var surfVel = BallState.SurfaceVelocity(in frictionState, in surfP) - colliderVelocity;
+			var surfVel = BallState.SurfaceVelocity(in frictionState, in surfP) - slipReferenceVelocity;
 
 			// calc the tangential slip velocity
 			var slip = surfVel - hitNormal * math.dot(surfVel, hitNormal);
 
-			var maxFriction = frictionCoeff * ball.Mass * math.max(0f, -math.dot(acceleration, hitNormal));
+			// Coulomb cone: the friction impulse is bounded by mu times the normal impulse this
+			// contact applied in this step (normalImpulse is the velocity change of the normal
+			// solve). VPX bounded it by the gravity component pressing the ball on the surface,
+			// which is next to nothing on walls and nothing at all on the glass.
+			var maxImpulse = math.max(frictionCoeff, 0f) * ball.Mass * normalImpulse;
 
 			var slipSpeed = math.length(slip);
 			float3 slipDir;
 			float numer;
+			float numerScale; // dTime if numer is an acceleration (static case), 1 if it is a velocity (dynamic case)
 
 			// The normal solve has already added this tick's support velocity. Keep that
 			// live value for the static/dynamic branch gate; otherwise a skidding ball
 			// whose pre-contact normal velocity was zero never receives kinetic friction.
-			var normVel = math.dot(ball.Velocity - colliderVelocity, hitNormal);
-			if (normVel <= 0.025 || slipSpeed < PhysicsConstants.Precision) {
+			// After the normal solve the residual is about -(a.n) dTime, so on its own the
+			// gate tests the orientation of the normal and picks the static branch on every
+			// wall, even with real slip. Like VPX, only supports get the quench.
+			var normVel = math.dot(ball.Velocity - normalReferenceVelocity, hitNormal);
+			if (normVel <= 0.025 && isSupportContact || slipSpeed < PhysicsConstants.Precision) {
 				// check for <=0.025 originated from ball<->rubber collisions pushing the ball upwards, but this is still not enough, some could even use <=0.2
 				// slip speed zero - static friction case
 
@@ -242,19 +365,25 @@ namespace VisualPinball.Unity
 
 				slipDir = math.normalize(slipAcc);
 				numer = -math.dot(slipDir, surfAcc);
+				numerScale = dTime;
+				otherInvMassTangent = 0f; // this ball's own slip acceleration: the other ball holds it like a static surface
 
 			} else {
 				// nonzero slip speed - dynamic friction case
 				slipDir = slip / slipSpeed;
 				numer = -math.dot(slipDir, surfVel);
+				numerScale = 1f;
 			}
 
 			var cp = math.cross(surfP, slipDir);
-			var denom = 1.0f / ball.Mass + math.dot(slipDir, math.cross(cp / ball.Inertia, surfP));
-			var friction = math.clamp(numer / denom, -maxFriction, maxFriction);
+			var denom = 1.0f / ball.Mass + math.dot(slipDir, math.cross(cp / ball.Inertia, surfP)) + otherInvMassTangent;
+
+			// Dynamic case: the full slip-removing impulse, Coulomb bound clamped. VPX requested
+			// dTime times it, which made sliding friction depend on the step length.
+			var friction = math.clamp(numerScale * numer / denom, -maxImpulse, maxImpulse);
 
 			if (!float.IsNaN(friction) && !float.IsInfinity(friction)) {
-				ball.ApplySurfaceImpulse(dTime * friction * cp, dTime * friction * slipDir);
+				ball.ApplySurfaceImpulse(friction * cp, friction * slipDir);
 			}
 		}
 
@@ -289,27 +418,20 @@ namespace VisualPinball.Unity
 			var bnd = bcdd - totalRadius;                                      // distance between ball surfaces
 
 			float hitTime;
-			//#ifdef BALL_CONTACTS
-			//var isContact = false;
+			var isContact = false;
 			if (bnd <= PhysicsConstants.PhysTouch) {
 				// in contact?
 				if (bnd < otherBall.Radius * -2.0f) {
 					return -1.0f;                                              // embedded too deep?
 				}
 
-				if (math.abs(bnv) > PhysicsConstants.ContactVel               // >fast velocity, return zero time
-				    || bnd <= -PhysicsConstants.PhysTouch) {
-					// zero time for rigid fast bodies
-					hitTime = 0; // slow moving but embedded
+				hitTime = 0; // already touching or overlapping: immediate response
 
-				} else {
-					hitTime = bnd / -bnv;
-				}
-
-				//#ifdef BALL_CONTACTS
-				// if (math.abs(bnv) <= PhysicsConstants.ContactVel) {
-				// 	isContact = true;
-				// }
+				// A slow pair inside the touch layer is a steady contact. Keep it a contact for a
+				// deeper overlap too: a resting stack always hovers a bit inside the touch layer,
+				// and crossing it turned the pair into a restitution collision plus a
+				// displacement-correction pop, the slow sink-then-pop jitter of resting stacks.
+				isContact = math.abs(bnv) <= PhysicsConstants.ContactVel && bnd > -0.5f;
 
 			} else {
 				var a = math.lengthsq(dv);                                         // square of differential velocity
@@ -334,10 +456,10 @@ namespace VisualPinball.Unity
 				return -1.0f;
 			}
 
-			var hitPos = otherBall.Position + hitTime * dv; // new ball position
+			var hitPos = otherBall.Position + hitTime * otherBall.Velocity; // new ball position
 
-			// calc unit normal of collision
-			var hitNormal = hitPos - ball.Position;
+			// calc unit normal of collision, between the two centers at hit time
+			var hitNormal = hitPos - (ball.Position + hitTime * ball.Velocity);
 			if (math.abs(hitNormal.x) <= Constants.FloatMin && math.abs(hitNormal.y) <= Constants.FloatMin &&
 			    math.abs(hitNormal.z) <= Constants.FloatMin) {
 				return -1.0f;
@@ -346,11 +468,10 @@ namespace VisualPinball.Unity
 			collEvent.HitNormal = math.normalize(hitNormal);
 			collEvent.HitDistance = bnd;                                            // actual contact distance
 
-			//#ifdef BALL_CONTACTS
-			// collEvent.IsContact = isContact;
-			// if (isContact) {
-			// 	collEvent.HitOrgNormalVelocity = bnv;
-			// }
+			collEvent.IsContact = isContact;
+			if (isContact) {
+				collEvent.HitOrgNormalVelocity = bnv;
+			}
 
 			return hitTime;
 		}
@@ -370,6 +491,7 @@ namespace VisualPinball.Unity
 			var vRel = otherBall.Velocity - ball.Velocity;
 			var vNormal = otherCollEvent.HitNormal;
 			var dot = math.dot(vRel, vNormal);
+			var impactSpeed = -dot; // approach speed before the embedded kick below
 
 			// correct displacements, mostly from low velocity, alternative to true acceleration processing
 			if (dot >= -PhysicsConstants.LowNormVel) {
@@ -398,32 +520,45 @@ namespace VisualPinball.Unity
 			//      g_pplayer->m_ptable->InvokeBallBallCollisionCallback(this, pball, -dot);
 			// }
 
-			var eDist = -PhysicsConstants.DispGain * otherCollEvent.HitDistance;
-			if (eDist > 1.0e-4) {
-				if (eDist > PhysicsConstants.DispLimit) {
-					eDist = PhysicsConstants.DispLimit; // crossing ramps, delta noise
+			// For resting-scale impacts (below the script-event impact speed) on shallow overlap,
+			// skip the displacement correction: it pops the pair far enough apart that the
+			// following ball re-approaches as a new collision forever (the slow jitter loop of
+			// resting stacks). Persistent contacts handle the small residual overlap instead;
+			// deep embeds and real impacts keep it.
+			if (impactSpeed > 0.25f || otherCollEvent.HitDistance < -0.5f) {
+				var eDist = -PhysicsConstants.DispGain * otherCollEvent.HitDistance;
+				if (eDist > 1.0e-4) {
+					if (eDist > PhysicsConstants.DispLimit) {
+						eDist = PhysicsConstants.DispLimit; // crossing ramps, delta noise
+					}
+
+					if (!ball.IsFrozen) {
+						// if the hit ball is not frozen
+						eDist *= 0.5f;
+					}
+					otherBall.Position += eDist * vNormal; // push along norm, back to free area
+					// use the norm, but is not correct, but cheaply handled
 				}
 
-				if (!ball.IsFrozen) {
-					// if the hit ball is not frozen
+				eDist = -PhysicsConstants.DispGain * ballCollEvent.HitDistance; // noisy value .... needs investigation
+				if (!ball.IsFrozen && eDist > 1.0e-4) {
+					if (eDist > PhysicsConstants.DispLimit) {
+						eDist = PhysicsConstants.DispLimit; // crossing ramps, delta noise
+					}
+
 					eDist *= 0.5f;
+					ball.Position -= eDist * vNormal; // pull along norm, back to free area
 				}
-				otherBall.Position += eDist * vNormal; // push along norm, back to free area
-				// use the norm, but is not correct, but cheaply handled
-			}
-
-			eDist = -PhysicsConstants.DispGain * ballCollEvent.HitDistance; // noisy value .... needs investigation
-			if (!ball.IsFrozen && eDist > 1.0e-4) {
-				if (eDist > PhysicsConstants.DispLimit) {
-					eDist = PhysicsConstants.DispLimit; // crossing ramps, delta noise
-				}
-
-				eDist *= 0.5f;
-				ball.Position -= eDist * vNormal; // pull along norm, back to free area
 			}
 
 			var myInvMass = ball.IsFrozen ? 0.0f : ball.InvMass; // frozen ball has infinite mass
-			var impulse = -(float)(1.0 + 0.8) * dot / (myInvMass + otherBall.InvMass); // resitution = 0.8
+
+			// Low speed impacts stay inelastic: a restitution bounce leaves the pair receding just
+			// above the contact velocity window, so balls resting in a stack would be kicked apart,
+			// re-approach above the contact velocity and bounce again forever. -0.25 is the impact
+			// scale under which a collision is not worth a script event either.
+			var restitution = dot < -0.25f ? 0.8f : 0.0f;
+			var impulse = -(1.0f + restitution) * dot / (myInvMass + otherBall.InvMass);
 
 			if (!ball.IsFrozen) {
 				ball.Velocity -= impulse * myInvMass * vNormal;
