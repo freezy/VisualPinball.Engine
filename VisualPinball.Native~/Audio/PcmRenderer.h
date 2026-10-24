@@ -39,8 +39,13 @@ VPE_PCM_API float VpePcmEqResponse(void* context, int route, float hz);
 // While an output exists it is the graph's only renderer: never call VpePcmRender concurrently.
 // Destroy the output before the graph.
 VPE_PCM_API void* VpePcmOutputCreate(void* context, int rate, int paused);
+// Mode 0 shares the device through the Windows audio engine; 1 opens it exclusively (no mixing with other apps)
+// with a period of bufferFrames (0 for the device's minimum). Exclusive fails while another app owns the device.
+VPE_PCM_API void* VpePcmOutputCreateEx(void* context, int rate, int paused, int mode, int bufferFrames);
 VPE_PCM_API void VpePcmOutputDestroy(void* output);
 VPE_PCM_API void VpePcmOutputSetPaused(void* output, int paused);
+// HRESULT of the last create that returned null because no device stream opened (0 when none failed).
+VPE_PCM_API unsigned VpePcmOutputLastError();
 // State (0 stopped, 1 playing, 2 waiting for a device), render callbacks, period/buffer/queued/margin ms, underruns, reopens, last HRESULT, rate,
 // seconds of the first and last underrun since creation, longest gap between device wake-ups in ms.
 VPE_PCM_API int VpePcmOutputMetrics(void* output, float* values, int count);

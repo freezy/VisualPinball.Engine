@@ -53,7 +53,26 @@ namespace VisualPinball.Unity
 		/// Unity's callback remains the fallback when no device stream opens.
 		/// </summary>
 		public static bool PreferDeviceOutput { get; set; } = true;
+		/// <summary>How the device stream reaches the hardware (Windows). Falls back to Shared, then to Unity.</summary>
+		public static PcmOutputMode OutputMode { get; set; } = PcmOutputMode.Shared;
+		/// <summary>
+		/// ASIO driver for <see cref="PcmOutputMode.Asio"/> (needs the optional VpeAsio library). ASIO skips the
+		/// Windows audio engine and the device's Windows driver buffers entirely.
+		/// </summary>
+		public static string AsioDriver { get; set; } = string.Empty;
+		/// <summary>Buffer size in frames for exclusive and ASIO output, or 0 for the device's or driver's default.</summary>
+		public static int OutputBufferFrames { get; set; }
+		public static string[] AsioDrivers() => NativePcmSession.AsioDrivers();
+		/// <summary>Whether this build ships the optional ASIO library (Windows x64).</summary>
+		public static bool AsioAvailable => NativePcmSession.AsioAvailable;
+		/// <summary>Opens the ASIO driver's settings window, also when no table is playing.</summary>
+		public static bool ShowAsioControlPanel(string driver) => !string.IsNullOrEmpty(driver) && NativePcmSession.ShowAsioControlPanel(driver);
+		/// <summary>Unloads a driver loaded only for its settings window. Playing streams are not affected.</summary>
+		public static void CloseAsioControlPanel() => NativePcmSession.CloseAsioControlPanel();
 		public bool DeviceOutput => _session?.HasDeviceOutput == true;
+		public bool AsioOutput => _session?.HasAsioOutput == true;
+		/// <summary>The mode actually playing: the requested one or what it fell back to.</summary>
+		public PcmOutputMode ActiveOutputMode { get; private set; }
 		/// <summary>Audio queued in the device stream after the last write, or 0 on Unity's callback.</summary>
 		public float DeviceOutputQueuedMs => DeviceOutput ? _outputMetrics[4] : 0;
 		public float DeviceOutputUnderruns => DeviceOutput ? _outputMetrics[6] : 0;
@@ -101,19 +120,70 @@ namespace VisualPinball.Unity
 				Array.Copy(GlobalLevels, _busLevels, GlobalLevels.Length); Active.Add(this);
 				_playfield = GetComponentInChildren<PlayfieldComponent>(true);
 				for (int i = 0; i < _busLevels.Length; ++i) NativePcmSession.VpePcmSetBusGain(_session.Context, i, _busLevels[i]);
-				if (!PreferDeviceOutput || !_session.StartDeviceOutput(_rate, AudioListener.pause || _applicationPaused)) CreateCarrier();
+				if (!StartDeviceOutput(AudioListener.pause || _applicationPaused)) CreateCarrier();
 				AudioSettings.OnAudioConfigurationChanged += ConfigurationChanged;
-				Status = (_session.HasDeviceOutput ? "Central stereo PCM, low-latency output" : "Central stereo PCM")
-					+ (_session.ProcessingSupported ? "; stereo DSP available" : " (dry); update native plugin to enable effects");
+				UpdateStatus();
 			} catch (Exception error) {
 				Status = "Reference fallback: " + error.Message; Diagnose(Status); Shutdown();
 			}
+		}
+		/// <summary>Opens ASIO when configured, else the WASAPI stream. False leaves the graph to Unity's carrier.</summary>
+		private bool StartDeviceOutput(bool paused)
+		{
+			ActiveOutputMode = PcmOutputMode.Shared;
+			if (!PreferDeviceOutput) return false;
+			if (OutputMode == PcmOutputMode.Asio) {
+				if (string.IsNullOrEmpty(AsioDriver)) Diagnose("ASIO output has no driver selected; using shared output.");
+				else if (_session.StartAsioOutput(AsioDriver, _rate, OutputBufferFrames, paused, out var error)) { ActiveOutputMode = PcmOutputMode.Asio; return true; }
+				else Diagnose("ASIO driver '" + AsioDriver + "' did not start (" + error + "); using shared output.");
+			}
+			if (OutputMode == PcmOutputMode.Exclusive) {
+				if (_session.StartDeviceOutput(_rate, paused, true, OutputBufferFrames)) { ActiveOutputMode = PcmOutputMode.Exclusive; return true; }
+				Diagnose("Exclusive output is not available (the device is in use or the format is unsupported, 0x" + NativePcmSession.LastDeviceOutputError.ToString("X8") + "); using shared output.");
+			}
+			return _session.StartDeviceOutput(_rate, paused);
+		}
+
+		/// <summary>
+		/// Reopens the output with the current <see cref="OutputMode"/>, <see cref="AsioDriver"/> and
+		/// <see cref="OutputBufferFrames"/>, without reloading the table. Main thread only.
+		/// </summary>
+		public void ReopenOutput()
+		{
+			if (_session == null || _session.Context == IntPtr.Zero) return;
+			_session.StopDeviceOutput();
+			DestroyCarrier();
+			if (!StartDeviceOutput(Paused)) CreateCarrier();
+			UpdateStatus();
+		}
+
+		private void UpdateStatus()
+		{
+			var output = !_session.HasDeviceOutput ? "Unity output"
+				: ActiveOutputMode == PcmOutputMode.Asio ? "ASIO output (" + AsioDriver + ")"
+				: ActiveOutputMode == PcmOutputMode.Exclusive ? "exclusive output" : "low-latency output";
+			// Exclusive can't take a device that Unity's own output is using during play; it usually can when a table loads.
+			var requested = OutputMode != PcmOutputMode.Shared && ActiveOutputMode != OutputMode
+				? " (" + (OutputMode == PcmOutputMode.Asio ? "ASIO" : "exclusive") + " output unavailable, retried when the next table loads)" : "";
+			Status = "Central stereo PCM, " + output + requested + (_session.ProcessingSupported ? "; stereo DSP available" : " (dry); update native plugin to enable effects");
+		}
+
+		/// <summary>Removes Unity's carrier and waits until its callback left the graph, so a device stream can render alone.</summary>
+		private void DestroyCarrier()
+		{
+			if (_callback) _callback.Session = null;
+			_session?.CloseCallbackRendering();
+			if (_output) { _output.Stop(); Destroy(_output.gameObject); }
+			_output = null; _callback = null;
+			if (_silence) { Destroy(_silence); _silence = null; }
 		}
 		/// <summary>Unity audio callback that renders the graph when no device stream is open.</summary>
 		private void CreateCarrier()
 		{
 			var outputObject = new GameObject("VPE central PCM output"); outputObject.transform.SetParent(transform, false);
+			_session.OpenCallbackRendering();
 			_callback = outputObject.AddComponent<PcmAudioOutput>(); _callback.Session = _session; _callback.SampleRate = _rate;
+			_callback.Paused = Paused || AudioListener.pause || _applicationPaused ? 1 : 0; // before Play: the carrier ignores the listener's pause
 			_output = outputObject.AddComponent<AudioSource>();
 			_silence = AudioClip.Create("VPE PCM carrier", 32, 2, _rate, false);
 			_output.clip = _silence; _output.loop = true; _output.playOnAwake = false; _output.spatialBlend = 0;
@@ -193,7 +263,10 @@ namespace VisualPinball.Unity
 			Volatile.Write(ref _rate, AudioSettings.outputSampleRate);
 			if (_callback) Volatile.Write(ref _callback.SampleRate, _rate);
 			// The device stream follows device changes itself; it only reopens to render at Unity's new rate.
-			if (_session?.HasDeviceOutput == true && _rate != previousRate && !_session.StartDeviceOutput(_rate, Paused)) CreateCarrier();
+			if (_session?.HasDeviceOutput == true && _rate != previousRate) {
+				if (!StartDeviceOutput(Paused)) CreateCarrier();
+				UpdateStatus();
+			}
 			if (_session?.ProcessingSupported == true) _prepareProcessing = true;
 			if (IsReady) NativePcmSession.VpePcmFlushStream(_session.Context);
 			if (AudioSettings.GetConfiguration().speakerMode != AudioSpeakerMode.Stereo) {
