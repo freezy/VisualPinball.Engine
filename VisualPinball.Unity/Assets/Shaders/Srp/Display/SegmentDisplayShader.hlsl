@@ -1,5 +1,4 @@
-﻿static float SegmentGap;
-
+﻿
 static float EdgeBlur = 0.1; // used to remove aliasing
 static float SharpEdge = 0.7;
 static float RoundEdge = 0.15;
@@ -109,12 +108,12 @@ float DiagDist(float2 v)
 
 float LongLine(float2 a, float2 b, float2 p, bool topFlat, bool bottomFlat, SegContext ctx)
 {
-	if ((topFlat && p.y < min(-a.y, -b.y) + SegmentGap) || (bottomFlat && p.y > max(-a.y, -b.y) - SegmentGap)) {
+	if ((topFlat && p.y < min(-a.y, -b.y) + ctx.segmentGap) || (bottomFlat && p.y > max(-a.y, -b.y) - ctx.segmentGap)) {
 		return 0;
 	}
 	float2 pa = p - float2(a.x, -a.y);
 	float2 ba = float2(b.x, -b.y) - float2(a.x, -a.y);
-	float t = clamp(dot(pa, ba) / dot(ba, ba), SegmentGap, 1.0 - SegmentGap);
+	float t = clamp(dot(pa, ba) / dot(ba, ba), ctx.segmentGap, 1.0 - ctx.segmentGap);
 	float2 v = abs(pa - ba * t) / ctx.segmentWeight * 0.5;
 	return Rounder2(1 - v.x, 1 - v.y - v.x);
 }
@@ -123,7 +122,7 @@ float ShortLine(float2 a, float2 b, float2 p, SegContext ctx)
 {
 	float2 pa = p - float2(a.x, -a.y);
 	float2 ba = float2(b.x, -b.y) - float2(a.x, -a.y);
-	float t = clamp(dot(pa, ba) / dot(ba, ba), SegmentGap * 2.0, 1.0 - SegmentGap * 2.0);
+	float t = clamp(dot(pa, ba) / dot(ba, ba), ctx.segmentGap * 2.0, 1.0 - ctx.segmentGap * 2.0);
 	float2 v = abs(pa - ba * t) / ctx.segmentWeight * 0.5;
 
 	return Rounder2(1 - v.x, 1 - v.y - v.x);
@@ -133,7 +132,7 @@ float MidLine(float2 a, float2 b, float2 p, SegContext ctx)
 {
 	float2 pa = p - float2(a.x, -a.y);
 	float2 ba = float2(b.x, -b.y) - float2(a.x, -a.y);
-	float t = clamp(dot(pa, ba) / dot(ba, ba), SegmentGap * 1.1, 1.0 - SegmentGap * 1.1);
+	float t = clamp(dot(pa, ba) / dot(ba, ba), ctx.segmentGap * 1.1, 1.0 - ctx.segmentGap * 1.1);
 	float2 v = abs(pa - ba * t) / ctx.segmentWeight * 0.5;
 
 	return Rounder2(1 - v.x, 1 - v.y - v.x);
@@ -145,17 +144,17 @@ float DiagLineForward(float2 a, float2 b, float2 p, SegContext ctx)
 	float2 ba = float2(b.x, -b.y) - float2(a.x, -a.y);
 	float t = pa.x / ba.x;
 	float2 intersectP = abs(pa - ba * t);
-	float xl = clamp(1 - (p.x - a.x + SegmentGap + ctx.segmentWeight) / ctx.segmentWeight * 0.5, -9999, 1);
-	float xr = clamp(0 + (p.x - b.x - SegmentGap + ctx.segmentWeight) / ctx.segmentWeight * 0.5, -9999, 1);
+	float xl = clamp(1 - (p.x - a.x + ctx.segmentGap + ctx.segmentWeight) / ctx.segmentWeight * 0.5, -9999, 1);
+	float xr = clamp(0 + (p.x - b.x - ctx.segmentGap + ctx.segmentWeight) / ctx.segmentWeight * 0.5, -9999, 1);
 
 	float t2 = pa.y / ba.y;
-	float yu = clamp(t2 + 1.0 - SegmentGap * 2, -9999, 1);
-	float yd = clamp(2 - t2 - SegmentGap * 2, -9999, 1);
+	float yu = clamp(t2 + 1.0 - ctx.segmentGap * 2, -9999, 1);
+	float yd = clamp(2 - t2 - ctx.segmentGap * 2, -9999, 1);
 
 	return Rounder(
 		1 - intersectP.y / (ctx.segmentWeight * 4.0),
 		xl * xr,
-		(yd * yu) / SegmentGap * 0.5 - 4.0
+		(yd * yu) / ctx.segmentGap * 0.5 - 4.0
 	);
 }
 
@@ -165,17 +164,17 @@ float DiagLineBackward(float2 a, float2 b, float2 p, SegContext ctx)
 	float2 ba = float2(b.x, -b.y) - float2(a.x, -a.y);
 	float t = pa.x / ba.x;
 	float2 intersectP = abs(pa - ba * t);
-	float xr = clamp(0 + (p.x - a.x - SegmentGap + ctx.segmentWeight) / ctx.segmentWeight * 0.5, -9999, 1);
-	float xl = clamp(1 - (p.x - b.x + SegmentGap + ctx.segmentWeight) / ctx.segmentWeight * 0.5, -9999, 1);
+	float xr = clamp(0 + (p.x - a.x - ctx.segmentGap + ctx.segmentWeight) / ctx.segmentWeight * 0.5, -9999, 1);
+	float xl = clamp(1 - (p.x - b.x + ctx.segmentGap + ctx.segmentWeight) / ctx.segmentWeight * 0.5, -9999, 1);
 
 	float t2 = pa.y / ba.y;
-	float yu = clamp(t2 + 1.0 - SegmentGap * 2, -9999, 1);
-	float yd = clamp(2 - t2 - SegmentGap * 2, -9999, 1);
+	float yu = clamp(t2 + 1.0 - ctx.segmentGap * 2, -9999, 1);
+	float yd = clamp(2 - t2 - ctx.segmentGap * 2, -9999, 1);
 
 	return Rounder(
 		1 - intersectP.y / (ctx.segmentWeight * 4.0),
 		xl * xr,
-		(yd * yu) / SegmentGap * 0.5 - 4.0
+		(yd * yu) / ctx.segmentGap * 0.5 - 4.0
 	);
 }
 
