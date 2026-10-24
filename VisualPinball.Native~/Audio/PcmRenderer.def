@@ -21,4 +21,5 @@ EXPORTS
  VpePcmSetProcessing
  VpePcmProcessingMeters
  VpePcmPreview
+ VpePcmPreviewClip
  VpePcmEqResponse

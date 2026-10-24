@@ -112,5 +112,28 @@ int main() {
 		}
 		done.store(true);audio.join();Check(finite.load(),"concurrent controls, producer and render stay finite");
 	}
+	{
+		Session s; std::array<float, 512> data{};
+		for (int i = 0; i < 256; ++i) { data[i*2] = .2f; data[i*2+1] = .1f; }
+		int clip = VpePcmRegisterClip(s.c, data.data(), 256, 2, 24000);
+		auto gameVoice = VpePcmPlay(s.c, clip, 0, 1, 1, 0, 1);
+		Check(!VpePcmPreviewClip(s.c, -1, 0), "preview rejects unknown clips");
+		Check(!VpePcmPreviewClip(s.c, clip, 7), "preview rejects unknown buses");
+		Check(VpePcmPreviewClip(s.c, clip, 1) == 1, "recorded preview starts");
+		std::array<float, 1024> output{};
+		VpePcmRender(s.c, output.data(), 512, 2, 48000, 1);
+		Check(Near(output[0], .106f) && Near(output[1], .053f), "paused preview resamples the recording and preserves stereo");
+		Check(Near(VpePcmPosition(s.c, gameVoice), 0), "preview never advances paused game voices");
+		std::array<float, 12> meters{}; VpePcmMetrics(s.c, meters.data(), 12);
+		Check(Near(meters[1], .106f) && meters[0] == 0, "preview reaches only its selected sound group");
+		VpePcmPreview(s.c, 0, 0); VpePcmRender(s.c, output.data(), 512, 2, 48000, 1);
+		Check(std::all_of(output.begin(), output.end(), [](float value) { return value == 0; }), "stop cancels recorded preview without unpausing the game");
+		VpePcmPreviewClip(s.c, clip, 0);
+		for (int i = 0; i < 284; ++i) VpePcmRender(s.c, output.data(), 512, 2, 48000, 1);
+		Check(std::all_of(output.begin(), output.end(), [](float value) { return value == 0; }), "recorded preview ends within three seconds");
+		VpePcmPreviewClip(s.c, clip, 0); VpePcmRender(s.c, output.data(), 512, 2, 48000, 1);
+		VpePcmRender(s.c, output.data(), 512, 2, 24000, 1);
+		Check(std::all_of(output.begin(), output.end(), [](float value) { return value == 0; }), "device sample-rate changes cancel preview safely");
+	}
 	std::printf("Passed %d PCM renderer checks\n",checks);
 }

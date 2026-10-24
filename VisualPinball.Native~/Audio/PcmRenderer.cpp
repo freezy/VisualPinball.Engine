@@ -22,6 +22,7 @@ struct Voice { Command controls{}; double cursor = 0; float left = 0, right = 0;
 struct Stereo { float left = 0, right = 0; };
 struct Context {
 	std::vector<std::unique_ptr<Clip>> clips; // Main thread only; the queue publishes stable Clip pointers.
+	std::array<const Clip*, 4096> previewClips{}; // Entries are immutable and published by previewRequest.
 	std::size_t clipSamples = 0;
 	std::array<Slot, VoiceCount> slots{};
 	std::array<Voice, VoiceCount> voices{};
@@ -46,7 +47,8 @@ struct Context {
 	std::array<vpe::AudioProcessing*, 8> retired{};
 	std::atomic<unsigned> retiredWrite{0}, retiredRead{0};
 	std::atomic<int> previewRequest{-1};
-	int previewBus = -1, previewFrames = 0;
+	int previewBus = -1, previewFrames = 0, previewRate = 0;
+	const Clip* previewClip = nullptr;
 	unsigned noise = 1234567;
 	std::array<float, vpe::ProcessingValues> processingSettings{};
 	bool hasProcessingSettings = false;
@@ -106,6 +108,12 @@ int VpePcmProcessingMeters(void* context, float* values, int count) {
 void VpePcmPreview(void* context, int bus, int enabled) {
 	if (context && bus >= 0 && bus < BusCount) C(context)->previewRequest.store(enabled ? bus + 1 : 0, std::memory_order_release);
 }
+int VpePcmPreviewClip(void* context, int clip, int bus) {
+	if (!context || clip < 0 || clip >= static_cast<int>(C(context)->clips.size()) || bus < 0 || bus >= BusCount) return 0;
+	// One atomic message publishes the immutable clip and destination together, including when replacing a preview.
+	C(context)->previewRequest.store((clip + 1) * 8 + bus, std::memory_order_release);
+	return 1;
+}
 float VpePcmEqResponse(void* context, int route, float hz) { return context && C(context)->controlProcessing ? C(context)->controlProcessing->EqResponse(route, hz) : 0.f; }
 void VpePcmDestroy(void* context) { delete C(context); }
 int VpePcmRegisterClip(void* context, const float* samples, int frames, int channels, int rate) {
@@ -117,7 +125,10 @@ int VpePcmRegisterClip(void* context, const float* samples, int frames, int chan
 		auto clip = std::make_unique<Clip>(); clip->frames = frames; clip->channels = channels; clip->rate = rate;
 		clip->samples.assign(samples, samples + static_cast<size_t>(frames) * channels);
 		for (auto& value : clip->samples) value = Finite(value);
-		owner.clips.push_back(std::move(clip)); owner.clipSamples += count; return static_cast<int>(owner.clips.size() - 1);
+		owner.clips.push_back(std::move(clip)); owner.clipSamples += count;
+		const int index = static_cast<int>(owner.clips.size() - 1);
+		owner.previewClips[index] = owner.clips[index].get();
+		return index;
 	} catch (...) { return -1; }
 }
 std::uint64_t VpePcmPlay(void* context, int clip, int bus, float gain, float pitch, float pan, int loop) {
@@ -256,9 +267,27 @@ int VpePcmRender(void* context, float* output, int frames, int channels, int rat
 		if (underflow) c.metrics[7].store(c.metrics[7].load() + 1);
 	}
 	const auto preview = c.previewRequest.exchange(-1, std::memory_order_acquire);
-	if (preview >= 0) { c.previewBus = preview - 1; c.previewFrames = preview ? rate * 3 : 0; }
+	if (preview >= 0) {
+		c.previewClip = preview >= 8 ? c.previewClips[preview / 8 - 1] : nullptr;
+		c.previewBus = preview >= 8 ? preview % 8 : preview - 1;
+		c.previewFrames = preview ? rate * 3 : 0;
+		c.previewRate = rate;
+	}
+	if (c.previewRate != rate) { c.previewFrames = 0; c.previewClip = nullptr; }
 	const bool previewActive = c.previewFrames > 0;
 	if (previewActive) for (int f = 0; f < frames && c.previewFrames > 0; ++f, --c.previewFrames) {
+		if (c.previewClip) {
+			// Three real flipper strokes with gaps to hear the room tail. Game voices remain paused.
+			const int elapsed = rate * 3 - c.previewFrames;
+			const int interval = std::max(1, rate * 4 / 5);
+			const double cursor = double(elapsed % interval) * c.previewClip->rate / rate;
+			if (elapsed / interval < 3 && cursor < c.previewClip->frames) {
+				const auto sample = Sample(*c.previewClip, cursor, false);
+				c.buses[c.previewBus*BlockSize*2 + f*2] += sample.left * .53f;
+				c.buses[c.previewBus*BlockSize*2 + f*2+1] += sample.right * .53f;
+			}
+			continue;
+		}
 		// Quiet, bounded stereo pulses audition processing without unpausing any game voice.
 		c.noise = c.noise * 1664525u + 1013904223u;
 		const float phase = float(c.previewFrames % (rate/2)) / (rate/2);
