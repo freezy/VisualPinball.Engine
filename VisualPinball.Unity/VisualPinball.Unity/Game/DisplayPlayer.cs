@@ -58,6 +58,9 @@ namespace VisualPinball.Unity
 						continue;
 					}
 					Logger.Debug("Updating display {DisplayId} to {Width}x{Height}.", display.Id, display.Width, display.Height);
+					if (displayGameObject is SegmentDisplayComponent segmentDisplay) {
+						ApplySegmentLayout(segmentDisplay, display.Id);
+					}
 					displayGameObject.UpdateDimensions(display.Width, display.Height, display.FlipX);
 					if (display.LitColor.HasValue) {
 						displayGameObject.UpdateColor(display.LitColor.Value);
@@ -69,6 +72,22 @@ namespace VisualPinball.Unity
 				} else {
 					Logger.Warn("The gamelogic engine requested display {DisplayId}, but the table has no display component with this ID.", display.Id);
 				}
+			}
+		}
+
+		/// <summary>
+		/// The segment layout the engine reports decides how many segments the component draws: a frame's bits only
+		/// mean anything in the layout they were made for.
+		/// </summary>
+		private void ApplySegmentLayout(SegmentDisplayComponent segmentDisplay, string displayId)
+		{
+			if (_gamelogicEngine is not ISegmentDisplayMetadata metadata || !metadata.TryGetSegmentLayout(displayId, out var layout, out _)) {
+				return;
+			}
+			var segments = SegmentDisplayComponent.SegmentsOf(layout);
+			if (segments > 0 && segments != segmentDisplay.NumSegments) {
+				Logger.Info("Display {DisplayId} is {Layout}: drawing it with {Segments} segments instead of {Configured}.", displayId, layout, segments, segmentDisplay.NumSegments);
+				segmentDisplay.NumSegments = segments;
 			}
 		}
 

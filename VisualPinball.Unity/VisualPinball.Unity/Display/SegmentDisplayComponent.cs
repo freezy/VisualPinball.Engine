@@ -108,7 +108,7 @@ namespace VisualPinball.Unity
 			set {
 				_numSegments = value;
 				var mr = gameObject.GetComponent<MeshRenderer>();
-				if (mr != null) {
+				if (mr != null && mr.sharedMaterial) {
 					mr.sharedMaterial.SetFloat(NumSegmentsProp, value);
 				}
 			}
@@ -229,6 +229,18 @@ namespace VisualPinball.Unity
 		}
 
 		public string SegmentTypeName;
+
+		/// <summary>
+		/// The number of segments a reported segment layout (<see cref="ISegmentDisplayMetadata"/>) has, or 0 for an
+		/// unknown layout.
+		/// </summary>
+		public static int SegmentsOf(string layout) => layout switch {
+			"seg7" => 7,
+			"seg9" => 9,
+			"seg14" => 14,
+			"seg16" => 16,
+			_ => 0,
+		};
 
 		#endregion
 
