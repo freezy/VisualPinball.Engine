@@ -40,6 +40,19 @@ namespace VisualPinball.Unity.Test
 		[TearDown]
 		public void TearDown()
 		{
+			// the display makes its material, texture and mesh itself; they outlive the game object
+			var renderer = _go.GetComponent<MeshRenderer>();
+			var material = renderer ? renderer.sharedMaterial : null;
+			if (material) {
+				if (material.mainTexture) {
+					UnityEngine.Object.DestroyImmediate(material.mainTexture);
+				}
+				UnityEngine.Object.DestroyImmediate(material);
+			}
+			var filter = _go.GetComponent<MeshFilter>();
+			if (filter && filter.sharedMesh) {
+				UnityEngine.Object.DestroyImmediate(filter.sharedMesh);
+			}
 			UnityEngine.Object.DestroyImmediate(_go);
 		}
 
