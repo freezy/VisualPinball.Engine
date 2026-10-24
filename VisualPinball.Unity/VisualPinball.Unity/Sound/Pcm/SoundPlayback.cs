@@ -8,7 +8,7 @@ namespace VisualPinball.Unity
 	/// <summary>Existing source settings remain authored units; central voices never also play through Unity.</summary>
 	public static class SoundPlayback
 	{
-		private sealed class Voice { public PcmAudioRenderer Owner; public ulong Id; public bool Paused; public int Bus; }
+		private sealed class Voice { public PcmAudioRenderer Owner; public ulong Id; public bool Paused; public int Bus; public bool Listener; }
 		private static readonly Dictionary<AudioSource, Voice> Voices = new();
 		private static readonly HashSet<AudioSource> ReferencePaused = new();
 		private static readonly List<AudioSource> Removed = new();
@@ -17,12 +17,36 @@ namespace VisualPinball.Unity
 			Stop(source);
 			if (!source || !source.isActiveAndEnabled) return;
 			var renderer = Application.isPlaying ? (owner ? owner : source.gameObject).GetComponentInParent<PcmAudioRenderer>() : null;
-			if (!renderer || !renderer.IsReady || !renderer.TryClip(source, out int clip) || source.pitch < .01f) { source.Play(); return; }
 			var bus = SoundBuses.Index(SoundBuses.Resolve(asset, automaticBus));
-			if (!string.IsNullOrEmpty(asset.BusId) && SoundBuses.Index(asset.BusId) < 0) renderer.Diagnose("Unknown bus '" + asset.BusId + "' retained; using the asset's compatible default.");
-			var id = NativePcmSession.VpePcmPlay(renderer.Session.Context, clip, bus, source.mute ? 0 : source.volume, source.pitch, renderer.Pan(source, bus), source.loop ? 1 : 0);
+			if (renderer && renderer.IsReady && !string.IsNullOrEmpty(asset.BusId) && SoundBuses.Index(asset.BusId) < 0) renderer.Diagnose("Unknown bus '" + asset.BusId + "' retained; using the asset's compatible default.");
+			Start(source, renderer, bus, false);
+		}
+		/// <summary>
+		/// Plays a plugin's <see cref="AudioSource"/> (clip, volume, pitch, loop, 3D position) through the central mixer on
+		/// <paramref name="bus"/>, or through Unity when the mixer is off. Use <see cref="Stop"/>, <see cref="IsPlaying"/>,
+		/// <see cref="Pause"/> and <see cref="UnPause"/> instead of the source's own methods for it; volume, pitch and
+		/// position changes on the source follow each frame.
+		/// </summary>
+		public static void Play(AudioSource source, string bus, GameObject owner = null)
+		{
+			Stop(source);
+			if (!source || !source.isActiveAndEnabled) return;
+			var index = SoundBuses.Index(bus);
+			if (index < 0) index = SoundBuses.Index(SoundBuses.Synthetic);
+			PcmAudioRenderer renderer = null;
+			if (Application.isPlaying) {
+				renderer = (owner ? owner : source.gameObject).GetComponentInParent<PcmAudioRenderer>();
+				if (!renderer) renderer = PcmAudioRenderer.Current; // plugin objects live outside the table's hierarchy
+			}
+			Start(source, renderer, index, true);
+		}
+		// listener: 3D plugin voices pan and attenuate relative to the listener, like Unity would play them
+		private static void Start(AudioSource source, PcmAudioRenderer renderer, int bus, bool listener)
+		{
+			if (!renderer || !renderer.IsReady || !renderer.TryClip(source, out int clip, listener) || source.pitch < .01f) { source.Play(); return; }
+			var id = NativePcmSession.VpePcmPlay(renderer.Session.Context, clip, bus, renderer.Gain(source, bus, listener), source.pitch, renderer.Pan(source, bus, listener), source.loop ? 1 : 0);
 			if (id == 0) { renderer.Diagnose("Central voice capacity exhausted; using Reference playback."); source.Play(); return; }
-			Voices[source] = new Voice { Owner = renderer, Id = id, Bus = bus };
+			Voices[source] = new Voice { Owner = renderer, Id = id, Bus = bus, Listener = listener };
 		}
 		public static bool IsPlaying(AudioSource source) => source && (Voices.TryGetValue(source, out var voice) ? voice.Owner && voice.Owner.IsReady && !voice.Paused && NativePcmSession.VpePcmActive(voice.Owner.Session.Context, voice.Id) != 0 : source.isPlaying);
 		public static bool IsPaused(AudioSource source) => source && (ReferencePaused.Contains(source) || Voices.TryGetValue(source, out var voice) && (voice.Paused || voice.Owner && voice.Owner.Paused));
@@ -49,7 +73,7 @@ namespace VisualPinball.Unity
 			foreach (var pair in Voices) {
 				var source = pair.Key; var voice = pair.Value; if (voice.Owner != owner) continue;
 				if (!source || !source.isActiveAndEnabled) { NativePcmSession.VpePcmStop(owner.Session.Context, voice.Id); Removed.Add(source); continue; }
-				NativePcmSession.VpePcmUpdate(owner.Session.Context, voice.Id, source.mute ? 0 : source.volume, Mathf.Clamp(source.pitch, .01f, 3), owner.Pan(source, voice.Bus), voice.Paused ? 1 : 0);
+				NativePcmSession.VpePcmUpdate(owner.Session.Context, voice.Id, owner.Gain(source, voice.Bus, voice.Listener), Mathf.Clamp(source.pitch, .01f, 3), owner.Pan(source, voice.Bus, voice.Listener), voice.Paused ? 1 : 0);
 			}
 			foreach (var source in Removed) Voices.Remove(source); Removed.Clear();
 		}

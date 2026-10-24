@@ -14,6 +14,14 @@ EXPORTS
  VpePcmStreamPush
  VpePcmFlushStream
  VpePcmEnableStream
+ VpePcmStreamOpen
+ VpePcmStreamClose
+ VpePcmStreamPushTo
+ VpePcmStreamSetGain
+ VpePcmStreamFlush
+ VpePcmStreamEnable
+ VpePcmStreamSetBuffer
+ VpePcmStreamMetrics
  VpePcmRender
  VpePcmMetrics
  VpePcmDspAbi

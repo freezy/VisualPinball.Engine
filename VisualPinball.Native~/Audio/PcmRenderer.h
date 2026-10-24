@@ -24,6 +24,21 @@ VPE_PCM_API void VpePcmSetStreamGain(void* context, float gain);
 VPE_PCM_API int VpePcmStreamPush(void* context, const void* samples, int frames, int channels, int rate, int encoding, std::int64_t sequence);
 VPE_PCM_API void VpePcmFlushStream(void* context);
 VPE_PCM_API void VpePcmEnableStream(void* context, int enabled);
+// More live inputs besides the ROM stream (which is stream 0, also reachable through the functions above). Open and
+// close on the main thread; each stream has one producer. Open returns 1..7, or -1 when all are in use.
+VPE_PCM_API int VpePcmStreamOpen(void* context, int bus);
+VPE_PCM_API void VpePcmStreamClose(void* context, int stream);
+VPE_PCM_API int VpePcmStreamPushTo(void* context, int stream, const void* samples, int frames, int channels, int rate, int encoding, std::int64_t sequence);
+VPE_PCM_API void VpePcmStreamSetGain(void* context, int stream, float gain);
+VPE_PCM_API void VpePcmStreamFlush(void* context, int stream);
+VPE_PCM_API void VpePcmStreamEnable(void* context, int stream, int enabled);
+// Input frames queued before playing after start, flush or underflow: 0 plays as soon as data arrives (the ROM stream's
+// default, which also leaves its queue uncontrolled), -1 (the default of opened streams) holds the producer's and the
+// renderer's largest recent blocks plus a quarter, -2 does so too but plays at once until the first underflow. Buffered
+// streams are steered to that size: up to 0.3% faster or slower against clock drift, and a jump back after a burst.
+VPE_PCM_API int VpePcmStreamSetBuffer(void* context, int stream, int frames);
+// Queued frames, buffer size steered to, underflows, overflows, discontinuities, catch-up drops.
+VPE_PCM_API int VpePcmStreamMetrics(void* context, int stream, float* values, int count);
 VPE_PCM_API int VpePcmRender(void* context, float* output, int frames, int channels, int rate, int paused);
 // Seven bus peaks, stream underflows/overflows/discontinuities, command drops, active voices.
 VPE_PCM_API int VpePcmMetrics(void* context, float* values, int count);

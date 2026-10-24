@@ -16,12 +16,15 @@ namespace VisualPinball.Unity
 		private static readonly float[] GlobalLevels = { 1, 1, 1, 1, 1, 1, 1 };
 		private static AudioProcessingSettings GlobalProcessing = AudioProcessingSettings.Preset("reference");
 		private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
-		private readonly Dictionary<AudioClip, int> _clips = new();
+		private readonly Dictionary<AudioClip, int> _clips = new(), _monoClips = new();
 		private readonly HashSet<string> _diagnostics = new();
 		private readonly float[] _busLevels = { 1, 1, 1, 1, 1, 1, 1 };
 		private readonly float[] _meters = new float[12];
 		private readonly float[] _processingMeters = new float[16];
 		private readonly float[] _outputMetrics = new float[NativePcmSession.OutputMetricCount];
+		private readonly System.Collections.Generic.List<PcmAudioStream> _streams = new();
+		private AudioListener _listener;
+		private float _listenerSearch;
 		private float[] _pendingProcessing;
 		private bool _prepareProcessing;
 		private NativePcmSession _session;
@@ -127,6 +130,48 @@ namespace VisualPinball.Unity
 				Status = "Reference fallback: " + error.Message; Diagnose(Status); Shutdown();
 			}
 		}
+		/// <summary>
+		/// Opens a live PCM input on a sound bus (see <see cref="SoundBuses"/>), for audio a plugin produces itself.
+		/// Null when the mixer isn't ready or all inputs are in use; the caller then keeps its own playback.
+		/// </summary>
+		public PcmAudioStream OpenStream(string bus)
+		{
+			var index = SoundBuses.Index(bus);
+			if (!IsReady || index < 0) return null;
+			var id = _session.OpenStream(index);
+			if (id < 0) { Diagnose("All live audio inputs of the mixer are in use; a plugin keeps its own playback."); return null; }
+			var stream = new PcmAudioStream(_session, id);
+			_streams.RemoveAll(existing => !existing.IsOpen);
+			_streams.Add(stream);
+			return stream;
+		}
+
+		/// <summary>Volume of a voice: its source's, and for 3D plugin voices (<paramref name="listener"/>) attenuated by distance.</summary>
+		internal float Gain(AudioSource source, int bus, bool listener = false)
+		{
+			if (source.mute) return 0;
+			if (!listener || bus == 0 || bus == 1 || source.spatialBlend <= 0) return source.volume; // mechanical sounds pan across the playfield instead
+			var ear = Listener();
+			if (!ear) return source.volume;
+			var distance = Vector3.Distance(ear.transform.position, source.transform.position);
+			float min = Mathf.Max(source.minDistance, .0001f), max = Mathf.Max(source.maxDistance, min);
+			float attenuation = source.rolloffMode switch {
+				AudioRolloffMode.Linear => Mathf.Clamp01(1 - (distance - min) / Mathf.Max(max - min, .0001f)),
+				AudioRolloffMode.Custom => Mathf.Clamp01(source.GetCustomCurve(AudioSourceCurveType.CustomRolloff).Evaluate(Mathf.Clamp01(distance / max))),
+				_ => distance <= min ? 1 : min / Mathf.Min(distance, max),
+			};
+			return source.volume * Mathf.Lerp(1, attenuation, source.spatialBlend);
+		}
+
+		private AudioListener Listener()
+		{
+			if (!_listener && Time.unscaledTime >= _listenerSearch) {
+				_listener = FindAnyObjectByType<AudioListener>();
+				_listenerSearch = Time.unscaledTime + 1;
+			}
+			return _listener;
+		}
+
 		/// <summary>Opens ASIO when configured, else the WASAPI stream. False leaves the graph to Unity's carrier.</summary>
 		private bool StartDeviceOutput(bool paused)
 		{
@@ -219,18 +264,20 @@ namespace VisualPinball.Unity
 			NativePcmSession.VpePcmMetrics(_session.Context, _meters, _meters.Length);
 			_session.ProcessingMeters(_processingMeters);
 		}
-		internal bool TryClip(AudioSource source, out int clip)
+		internal bool TryClip(AudioSource source, out int clip, bool listener = false)
 		{
 			clip = -1;
 			if (!IsReady || !source.clip) return false;
 			if (source.outputAudioMixerGroup) { BypassedVoices++; Diagnose("An authored mixer group remains on Reference playback and bypasses central buses."); return false; }
-			return TryClip(source.clip, out clip);
+			// a 3D plugin voice pans like Unity's, which mixes the clip down to mono first
+			return TryClip(source.clip, out clip, listener && source.spatialBlend >= .5f && source.clip.channels == 2);
 		}
-		private bool TryClip(AudioClip asset, out int clip)
+		private bool TryClip(AudioClip asset, out int clip, bool mono = false)
 		{
 			clip = -1;
 			if (!IsReady || !asset) return false;
-			if (_clips.TryGetValue(asset, out clip)) return clip >= 0;
+			var clips = mono ? _monoClips : _clips;
+			if (clips.TryGetValue(asset, out clip)) return clip >= 0;
 			if (asset.loadState != AudioDataLoadState.Loaded) {
 				BypassedVoices++; Diagnose("A clip still loading uses Reference playback; later plays will retry the central route.");
 				return false;
@@ -239,19 +286,34 @@ namespace VisualPinball.Unity
 			if ((asset.channels == 1 || asset.channels == 2) && asset.loadState == AudioDataLoadState.Loaded && count <= 8 * 1024 * 1024 && _clipSamples + count <= 64 * 1024 * 1024) {
 				try {
 					var samples = new float[(int)count];
-					if (asset.GetData(samples, 0)) clip = NativePcmSession.VpePcmRegisterClip(_session.Context, samples, asset.samples, asset.channels, asset.frequency);
+					if (asset.GetData(samples, 0)) {
+						if (mono) {
+							var down = new float[asset.samples];
+							for (int i = 0; i < down.Length; ++i) down[i] = (samples[2 * i] + samples[2 * i + 1]) * .5f;
+							clip = NativePcmSession.VpePcmRegisterClip(_session.Context, down, asset.samples, 1, asset.frequency);
+							count = down.Length;
+						} else {
+							clip = NativePcmSession.VpePcmRegisterClip(_session.Context, samples, asset.samples, asset.channels, asset.frequency);
+						}
+					}
 					if (clip >= 0) _clipSamples += count;
 				} catch (Exception error) { Diagnose("Clip preparation failed: " + error.Message); }
 			}
-			_clips.Add(asset, clip);
+			clips.Add(asset, clip);
 			if (clip < 0) { BypassedVoices++; Diagnose("An unreadable, oversized or unsupported clip remains on Reference playback."); }
 			return clip >= 0;
 		}
-		internal float Pan(AudioSource source, int bus)
+		internal float Pan(AudioSource source, int bus, bool listener = false)
 		{
 			if ((bus == 0 || bus == 1) && _playfield && source.spatialBlend > 0) {
 				var position = source.transform.position.TranslateToVpx(_playfield.transform);
 				return Mathf.Lerp(source.panStereo, Mathf.Clamp((position.x-_playfield.Left) / Mathf.Max(1, _playfield.Right-_playfield.Left) * 2-1, -1, 1), source.spatialBlend);
+			}
+			if (listener && source.spatialBlend > 0 && Listener() is { } ear && ear) {
+				// 3D plugin voices pan by their direction from the listener, as Unity's own stereo panning does.
+				var local = ear.transform.InverseTransformPoint(source.transform.position);
+				var side = local.sqrMagnitude > 1e-8f ? local.normalized.x : 0;
+				return Mathf.Clamp(Mathf.Lerp(source.panStereo, side, source.spatialBlend), -1, 1);
 			}
 			return source.panStereo;
 		}
@@ -291,9 +353,11 @@ namespace VisualPinball.Unity
 			Active.Remove(this);
 			AudioSettings.OnAudioConfigurationChanged -= ConfigurationChanged;
 			_rom?.Dispose(); _rom = null; _romAttempted = false;
+			foreach (var stream in _streams) stream.Detach();
+			_streams.Clear();
 			SoundPlayback.StopOwner(this);
 			if (_output) { _output.Stop(); Destroy(_output.gameObject); _output = null; _callback = null; }
-			_session?.Dispose(); _session = null; _clips.Clear(); _clipSamples = 0;
+			_session?.Dispose(); _session = null; _clips.Clear(); _monoClips.Clear(); _clipSamples = 0;
 			if (_silence) { Destroy(_silence); _silence = null; }
 		}
 	}

@@ -138,6 +138,93 @@ int main(int argc, char** argv) {
 		Check(std::all_of(output.begin(), output.end(), [](float value) { return value == 0; }), "device sample-rate changes cancel preview safely");
 	}
 	{
+		Session s; std::array<float,12> meters{};
+		std::vector<int> ids; for (int i = 0; i < 7; ++i) ids.push_back(VpePcmStreamOpen(s.c, 5));
+		Check(ids.front() == 1 && ids.back() == 7, "seven extra streams besides the ROM stream");
+		Check(VpePcmStreamOpen(s.c, 5) == -1, "stream slots are bounded");
+		Check(VpePcmStreamOpen(s.c, 9) == -1, "invalid bus refused");
+		for (int id : ids) VpePcmStreamClose(s.c, id);
+		VpePcmStreamClose(s.c, 0); { std::array<float, 6> rom{}; Check(VpePcmStreamMetrics(s.c, 0, rom.data(), 6) == 1, "the ROM stream cannot be closed"); }
+		Check(VpePcmStreamOpen(s.c, 5) == -1, "a closed slot is not reused before the renderer let go of it");
+		{ std::array<float, 2> idle{}; VpePcmRender(s.c, idle.data(), 1, 2, 48000, 0); }
+		const int id = VpePcmStreamOpen(s.c, 5);
+		Check(id == 1, "closed slots are reused once the renderer saw them closed");
+		std::vector<float> block(480 * 2, .25f);
+		VpePcmStreamPushTo(s.c, id, block.data(), 480, 2, 48000, 1, 1);
+		std::array<float, 256 * 2> out{};
+		VpePcmRender(s.c, out.data(), 256, 2, 48000, 0);
+		Check(out[0] == 0, "an opened stream waits for its jitter buffer (both sides' largest blocks plus a quarter)");
+		VpePcmStreamPushTo(s.c, id, block.data(), 480, 2, 48000, 1, 2);
+		VpePcmRender(s.c, out.data(), 256, 2, 48000, 0);
+		Check(Near(out[0], .25f) && Near(out[511], .25f), "a filled jitter buffer plays");
+		VpePcmMetrics(s.c, meters.data(), 12); Check(Near(meters[5], .25f) && meters[2] == 0, "an opened stream mixes into its own bus");
+		std::array<float, 6> m{};
+		for (int i = 0; i < 4; ++i) VpePcmRender(s.c, out.data(), 256, 2, 48000, 0);
+		VpePcmStreamMetrics(s.c, id, m.data(), 6); Check(m[2] >= 1, "running dry counts an underflow");
+		VpePcmStreamPushTo(s.c, id, block.data(), 480, 2, 48000, 1, 3);
+		VpePcmRender(s.c, out.data(), 256, 2, 48000, 0);
+		Check(out[0] == 0, "after an underflow the jitter buffer refills before playing again");
+		VpePcmStreamSetBuffer(s.c, id, 0); VpePcmRender(s.c, out.data(), 256, 2, 48000, 0);
+		Check(Near(out[0], .25f), "a zero buffer plays as soon as data arrives");
+		VpePcmStreamSetBuffer(s.c, id, 128);
+		for (int i = 0; i < 12; ++i) VpePcmStreamPushTo(s.c, id, block.data(), 480, 2, 48000, 1, 4 + i);
+		VpePcmRender(s.c, out.data(), 256, 2, 48000, 0);
+		VpePcmStreamMetrics(s.c, id, m.data(), 6); Check(m[5] == 1 && m[0] <= 128, "a producer far ahead is pulled back to the buffer target");
+		std::array<float, 2> rom{{.5f, .5f}}; VpePcmStreamPush(s.c, rom.data(), 1, 2, 48000, 1, 1);
+		VpePcmStreamPush(s.c, rom.data(), 1, 2, 48000, 1, 2);
+		VpePcmStreamPushTo(s.c, id, block.data(), 480, 2, 48000, 1, 16);
+		VpePcmRender(s.c, out.data(), 1, 2, 48000, 0);
+		Check(Near(out[0], .75f), "the ROM stream and an opened stream mix together");
+		VpePcmStreamClose(s.c, id); VpePcmRender(s.c, out.data(), 256, 2, 48000, 0);
+		Check(Near(out[2], 0) || out[2] == 0, "a closed stream stops");
+		Check(VpePcmStreamPushTo(s.c, id, block.data(), 480, 2, 48000, 1, 17) == 0, "pushing to a closed stream is refused");
+		Check(VpePcmStreamMetrics(s.c, 0, m.data(), 6) == 1 && m[1] == 0, "the ROM stream keeps playing as soon as data arrives");
+		Check(VpePcmStreamSetBuffer(s.c, 0, -2) == 1 && VpePcmStreamMetrics(s.c, 0, m.data(), 6) == 1, "adaptive buffer accepted");
+		Check(m[2] == 0 ? m[1] == 0 : m[1] > 0, "adaptive buffer adds latency only after an underflow");
+	}
+	{
+		// A producer running 0.1% fast against the device clock for a minute: drift compensation holds the queue.
+		Session s; const int id = VpePcmStreamOpen(s.c, 5); VpePcmStreamSetBuffer(s.c, id, 960);
+		std::vector<float> block(480 * 2, .1f); std::array<float, 480 * 2> out{}; std::array<float, 6> m{};
+		double produced = 0; long long sequence = 0;
+		for (int period = 0; period < 6000; ++period) {
+			for (produced += 480 * 1.001; produced >= 480; produced -= 480) VpePcmStreamPushTo(s.c, id, block.data(), 480, 2, 48000, 1, ++sequence);
+			VpePcmRender(s.c, out.data(), 480, 2, 48000, 0);
+		}
+		VpePcmStreamMetrics(s.c, id, m.data(), 6);
+		Check(m[5] == 0 && m[3] == 0 && m[0] < 960 * 2.5, "drift compensation keeps a fast producer without drops or overflows");
+		Check(m[2] <= 1, "drift compensation keeps a fast producer without underflows after the start");
+	}
+	{
+		Session s; const int id = VpePcmStreamOpen(s.c, 5); VpePcmStreamSetBuffer(s.c, id, 960);
+		std::vector<float> block(480 * 2, .1f); std::array<float, 480 * 2> out{}; std::array<float, 6> m{};
+		double produced = 0; long long sequence = 0;
+		for (int period = 0; period < 6000; ++period) {
+			for (produced += 480 * .999; produced >= 480; produced -= 480) VpePcmStreamPushTo(s.c, id, block.data(), 480, 2, 48000, 1, ++sequence);
+			VpePcmRender(s.c, out.data(), 480, 2, 48000, 0);
+		}
+		VpePcmStreamMetrics(s.c, id, m.data(), 6);
+		Check(m[2] <= 1 && m[5] == 0, "drift compensation keeps a slow producer from running dry");
+	}
+	{
+		// The ROM stream with PinMAME's shape: 800-frame blocks every 16.7 ms, 480-frame pulls, and a 4000-frame catch-up
+		// burst at start. The adaptive buffer must bound the queue instead of carrying the burst as latency.
+		Session s; VpePcmStreamSetBuffer(s.c, 0, -2); VpePcmEnableStream(s.c, 1);
+		std::vector<float> block(800 * 2, .1f); std::array<float, 480 * 2> out{}; std::array<float, 6> m{};
+		long long sequence = 0; double due = 0;
+		for (int i = 0; i < 5; ++i) VpePcmStreamPush(s.c, block.data(), 800, 2, 48000, 1, ++sequence);
+		float largest = 0;
+		for (int period = 0; period < 3000; ++period) {
+			for (due += 480; due >= 800; due -= 800) VpePcmStreamPush(s.c, block.data(), 800, 2, 48000, 1, ++sequence);
+			VpePcmRender(s.c, out.data(), 480, 2, 48000, 0);
+			VpePcmStreamMetrics(s.c, 0, m.data(), 6);
+			if (period > 300) largest = std::max(largest, m[0]);
+		}
+		Check(m[3] == 0, "the ROM stream's catch-up burst does not overflow");
+		Check(largest <= m[1] * 2 + 256 + 800, "the ROM stream's queue stays bounded after a burst");
+		Check(m[1] > 0 && m[1] <= 1700, "the ROM stream is steered to a block-sized buffer");
+	}
+	{
 		Check(VpePcmOutputCreate(nullptr, 48000, 0) == nullptr, "device output needs a graph");
 		Session s; Check(VpePcmOutputCreate(s.c, 1000, 0) == nullptr, "device output rejects invalid rates");
 		Check(VpePcmOutputMetrics(nullptr, nullptr, 13) == 0, "metrics of a missing output are refused");
