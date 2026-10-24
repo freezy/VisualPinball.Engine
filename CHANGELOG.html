@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Changelog | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Changelog | VPE Documentation ">
+      
+      
+      <link rel="icon" href="favicon.png">
+      <link rel="stylesheet" href="public/docfx.min.css">
+      <link rel="stylesheet" href="public/main.css">
+      <link rel="stylesheet" href="public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="toc.html">
+      <meta name="docfx:tocrel" content="toc.html">
+      
+      <meta name="docfx:rel" content="">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/CHANGELOG.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./public/docfx.min.js"></script>
+      <script src="./public/mermaid-11.14.0.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="index.html">
+            <img id="logo" class="svg" src="logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="changelog">Changelog</h1>
+
+<p><em>This documents all notable changes to the Visual Pinball Engine and its dependent projects.</em></p>
+<h2 id="unreleased">Unreleased</h2>
+<p>Built with Unity 6.5</p>
+<h3 id="added">Added</h3>
+<ul>
+<li><p>Material-driven rolling audio with separate ball sound tags, support-contact tracking, speed-dependent gain and pitch, optional material boundary sounds and packaged response graphs. Missing ball/surface pairs remain silent unless a fallback is assigned explicitly.</p>
+</li>
+<li><p>Collision sound profiles for velocity-dependent sample selection, gain, pitch and layers, with captured solver impacts, spatial playback, independent multiball retriggering and packaged samples. Moving kinematic surfaces use relative impact speed, and collision components reject looping profiles.</p>
+</li>
+<li><p>Mechanical sound components for flipper attacks/reflips/releases, named mechanism events, successful kicker releases, cabinet input and passive solenoids, with per-owner sound cooldowns and packaged sound-bank references. Named-event loops resume immediately when their mechanism becomes active again. Passive solenoids also support direct wire destinations.</p>
+</li>
+<li><p>Guided rubbers: a rubber wraps the slots of the Rubber Guides on its posts, is created around the selected guides, and refits itself whenever a guide moves or a slot changes, with a roundness for its free spans and a rest length (<a href="https://docs.visualpinball.org/creators-guide/manual/mechanisms/rubbers.html">Documentation</a>).</p>
+</li>
+<li><p>Rubber slingshots: a slingshot on one free span of a guided rubber, added from the rubber's scene handles or a wizard, with a generated slingshot wall that kicks the ball and closes the switch, a self-wired or game-logic-driven coil, an arm swung by a Motion Controller set up in one click, and a deformation renderer that pushes the cord out with the arm (<a href="https://docs.visualpinball.org/creators-guide/manual/mechanisms/slingshots.html">Documentation</a>).</p>
+</li>
+<li><p>Insert presets: lamp presets (incandescent and LED, with bulb colour, fade times and an output factor), color presets (tint, cavity, lamp emission and the cover's tint and haze) and look presets (Clear Plastic, Colored Plastic), each owning its values. Materials link to a preset and follow it, and the fields a linked color preset owns are locked in the material.</p>
+</li>
+<li><p>Every insert shape in the library is a prefab variant that owns its bake. A library insert whose geometry changes is forked into the project with <em>Edit in project</em>, for that insert alone or for every insert of the same prefab, material and shape in the scene, keeping the library's cover material.</p>
+</li>
+<li><p>A stippled insert pattern: a grid of bumps over the raised floor, set by their spacing, size and height.</p>
+</li>
+<li><p>A Mirror option for the flash insert shape.</p>
+</li>
+<li><p>The hybrid insert material's Clarity, Cavity Color, Cavity Spread and Cavity Contrast: a clear insert shows the lamp board under it, lit by room light, lamp or no lamp.</p>
+</li>
+<li><p>Room Return for clear inserts: room light that comes in through the top, reflects in the grooves and leaves through the top again, followed through the groove, normalised by the sky's brightness and lit by whatever lights the insert. Room Blur and Room Return Exposure soften and scale it.</p>
+</li>
+<li><p>Flecks on the hybrid insert material: the nicks along a moulded rib's ridges, dashes that glint with the lights, with a Fleck Size.</p>
+</li>
+<li><p>Mottle clouds the unlit insert plastic, blotches lighter and darker than the rest, set by Mottle Amount and Mottle Size.</p>
+</li>
+<li><p>Surface grain is drawn in the hybrid insert material instead of baked, as fine at any zoom.</p>
+</li>
+<li><p>Insert bakes write the optical maps at a fraction of the normal map's size, cut seams along creases steeper than 15 degrees for sharp facets, go down to 256 pixels, and fall back to Blender's packer when UVPackMaster crashes.</p>
+</li>
+<li><p>Packaged inserts keep their GLB meshes, shader materials, lamps and cover depth, with their authoring data in an editor sidecar.</p>
+</li>
+<li><p>Toolbox buttons and thumbnail camera presets for inserts and wire rails.</p>
+</li>
+<li><p>Assets dropped on the playfield go into or beside the selected object, depending on whether it is a prefab, with a label saying where.</p>
+</li>
+<li><p>Light groups pick which lamp of a multi-bulb light they drive, in a reorderable list.</p>
+</li>
+<li><p>Lamp Manager has a table lighting row: the kind of bulb the whole table is lit by, and a table-wide insert brightness packed with the table as the player's default.</p>
+</li>
+<li><p>Device pickers accept a GameObject dropped on them; an insert dropped into a light group, for example, takes its Insert Light.</p>
+</li>
+<li><p>Asset Browser: copy and paste of asset metadata, and previews lit and exposed like a table instead of Unity's default preview.</p>
+</li>
+<li><p>Material variation tiles in the Asset Browser can be dragged onto the playfield, previewing and placing the prefab with the displayed material combination.</p>
+</li>
+<li><p>Search boxes in Switch, Coil and Lamp Manager filter rows by ID or description, ignoring case. Manager toolbars scroll horizontally with the mouse wheel when their controls exceed the window width, without a visible scrollbar.</p>
+</li>
+<li><p>Prefabs dragged from the Asset Browser or Project window preview under the cursor on the playfield and drop at their mounting height, with prefab links and Undo preserved. Playfields need no Unity collider for placement.</p>
+</li>
+<li><p>Custom insert outlines from a flat, closed wire or filled mesh, with Inspector validation, shared corner rounding, extrusion, channels, holes, all patterns, and normal/optical baking. Custom source meshes are preserved in the editor sidecar when packaging and restored for editing; the player uses the finished GLB mesh.</p>
+</li>
+<li><p>A flash insert's engraved line: a thin trough a little way in from the raised middle's edge, in the starburst's place, chosen under Pattern with its inset, width, depth and rounding. The trough is geometry for the bake alone: while a bake fits, the middle's triangles give way to a plain flat island carrying the maps, the middle's chart having kept its projection through the bake so any triangulation of it carries the map. A geometry change makes the bake stale, and until the next bake the insert's renderer is off and the geometry to be baked is drawn in the scene instead, a yellow see-through body under its wireframe the way a collider preview is drawn, so the line can be tuned without a bake for every step.</p>
+</li>
+<li><p>The insert's spill light is a wide spot under the insert pointing up, cheaper than the point light above it that earlier inserts got and aimed; an insert that still has a point light offers to turn it round.</p>
+</li>
+<li><p>The hybrid insert material takes up to four virtual bulbs, for a banana with its bulbs in a row: each with a position, a level and a colour of its own, the radius shared, every bulb adding its own halo in its own colour, and each bulb a lamp of its own in Lamp Manager, picked in the Element column by the name the Insert Light gives it, RGB channels included. Every lit bulb lights the body by the inverse square of its distance over the Lamp Spread, bulbs that are off taking nothing away, and Tint With Lamp follows the nearest lit bulb, on the body and the cover alike.</p>
+</li>
+<li><p>Insert material templates: the look of an insert's hybrid material and clear cover, everything but the baked maps and the virtual lamps, saved as an asset and put on other inserts from the insert's Material Template section. Clear and Colored ship with the HDRP package; the look of any insert can be saved as another.</p>
+</li>
+<li><p>The insert light has the Light's State, Blink Pattern, Blink Interval and fade speeds: the status it starts the game in, how it blinks and how fast it fades when the game drives it; and the insert components carry an insert icon of their own, in the inspector and in Lamp Manager.</p>
+</li>
+<li><p>A Start for the rings insert pattern: how far out from the centre the rings begin, leaving a flat disc in the middle.</p>
+</li>
+<li><p>A Stipple Offset that moves the grid of stipples across the surface, and a negative stipple height that sinks the stipples into it.</p>
+</li>
+<li><p>A Whole Only toggle for the stippled insert pattern: off builds every stipple the surface reaches and cuts it off at the outline, instead of only those that fit on it whole.</p>
+</li>
+<li><p>A Roundness setting for the ribbed and rings insert patterns, rolling their ridges and grooves over from sharp creases towards a moulded wave, in the mesh and its normals.</p>
+</li>
+<li><p>A gem insert pattern: a flat table with rows of triangular facets zigzagging out from it to the edge, set by the centre, the number of sides, the table's size, the row length, how evenly the facets meet the edge and the height, under Pattern beside the other reliefs.</p>
+</li>
+<li><p>A rings insert pattern: concentric ridges and grooves round a centre across the raised floor, set by the centre, the ridge-to-ridge width and the height, under Pattern beside the starburst and the ribs; the bake tells the hybrid material, so the facet variation follows the rings.</p>
+</li>
+<li><p>A ribbed insert pattern: parallel ridges and grooves across the raised floor, set by the direction they run, the ridge-to-ridge width and the height, in the starburst's place under Pattern; the bake tells the hybrid material which it found, so the facet variation follows the ribs.</p>
+</li>
+<li><p>The hybrid insert material's mottle and grain are three-dimensional noise, the same on any slope: laid over the floor with a share of the height, they were sheared into streaks along one slope of every starburst ridge. The bake's cavity glow is blurred wider, taking out the plateaus the light bouncing between steep pleats left on each facet.</p>
+</li>
+<li><p>The insert cover is the top of a slab of plastic as deep as the insert: HDRP's planar refraction bends the view into it by an index of refraction, so the ribs are seen a third nearer than they lie and the top reads as a surface, and the light takes the cover's tint over a tint depth on its way up, deeper the longer its path, so a coloured insert is coloured plastic rather than a lit tray under a pane. The insert writes the slab's thickness into the cover for its own depth.</p>
+</li>
+<li><p>The hybrid insert material keeps the bulb in view from every angle: a starburst facet steep enough to trap the view ray inside the plastic, or to throw it out sideways, hands the ray to the straight path instead of losing the bulb, as a narrow-spoked starburst did when seen along its length.</p>
+</li>
+<li><p>The hybrid insert material has Lamp Spread: how far from the virtual lamp the lit look reaches before it has fallen to half, so raising Max Brightness brightens the bulb region without flooding the whole body.</p>
+</li>
+<li><p>Insert Light has Tint With Lamp: the hue and saturation of the clear cover's haze and of the body turn towards the lamp's while the lamp is lit, in proportion to its intensity and never their brightness, so a coloured lamp is not milked by a grey cover and a lamp that is off leaves both their own colour.</p>
+</li>
+<li><p>An insert keeps the material it is given: a bake goes into the material the insert wears when that carries the bake's maps, such as a copy made for another colour, or into a copy of it otherwise, and never puts an older material back. The cover is whatever the renderer's second slot holds. The hybrid material's baked maps and starburst are editable, to be put back after another material's properties were copied over them.</p>
+</li>
+<li><p>An arrow insert shape: an arrowhead on two feet with a notch cut up into its base, set by the notch's depth and width and the tilt of the feet, with fillets at the tip, the notch, the inner corners and the feet; it covers the scooped arrow, the arrowhead with a hollow base and the chevron, and fills its width and height exactly.</p>
+</li>
+<li><p>A bullet insert shape: a flat base, straight sides up to the shoulders, and flanks that lean in as tangents to a round tip, with fillets on the shoulders and the base corners; the width and height are exact.</p>
+</li>
+<li><p>A flash insert shape, the lightning bolt: width, height, tip width, notch depth and step height, with fillets of their own on the tips, the spikes and the notches; it fills its width and height exactly.</p>
+</li>
+<li><p>A diamond insert shape, with its own fillets on the side points and on the top and bottom, and a shear that leans it over; the fillets and the shear leave the width and height exactly as set.</p>
+</li>
+<li><p>A banana insert shape: a band bent round a circle of a given diameter, with rounded ends, set by its thickness, angle and vertex counts, with a button that centres the starburst on the circle; every option of the other shapes works on it.</p>
+</li>
+<li><p>A circle insert shape, drawn as a regular polygon of a chosen diameter and vertex count, with every option of the other shapes.</p>
+</li>
+<li><p>The insert's channel is optional: without it the floor is the outline itself, straight down, flat or with the starburst; holes and the bottom bevel need a channel. Depth is now the floor's own depth, with the channel sunk below it.</p>
+</li>
+<li><p>The insert's starburst can be switched off, keeping the raised floor flat, and its holes are listed one per line.</p>
+</li>
+<li><p>The Insert and Insert Light inspectors are grouped into sections with a tooltip on every control, controls that would do nothing greyed out, and a top view of the insert's outline, raised floor, starburst and holes.</p>
+</li>
+<li><p>Insert bakes record the insert they were made for, so a duplicated insert, wherever it ends up, bakes into a folder of its own instead of over the original's.</p>
+</li>
+<li><p>Inserts whose bake lives in a read-only package have their bake options locked, with Fork to Project copying the bake into the project as a material variant that keeps following the package's tuning and baking there from then on.</p>
+</li>
+<li><p>Insert Light is directly selectable in Lamp Manager and light groups, with ROM on/off, fading, RGB channels, wire events and editor previews driving both the lens and spill light.</p>
+</li>
+<li><p>Fine surface grain in the insert normal bake, with adjustable strength and size in VPX units; optical bulb normals and the clear cover remain independent.</p>
+</li>
+<li><p>Optional clear insert cover in a second material slot, using any assigned material or automatically detecting and aligning the playfield's normal map across insert position, rotation and scale changes.</p>
+</li>
+<li><p>Hybrid insert materials expose Min Brightness for a darker, adjustable unlit body while the bulb and spill remain off at zero intensity.</p>
+</li>
+<li><p>Optional hybrid insert optics bake: neutral cavity illumination and sharp optical normals for the HDRP virtual lamp shader, with face contrast, stable optical variation, independent runtime RGB/fading, and insert brightness controls linked to a real spill light.</p>
+</li>
+<li><p>Trough ball queues are prefab-aware: one prefab per slot, drained balls return as their own prefab, and the ball manager scales relative to the prefab's radius (<a href="https://github.com/freezy/VisualPinball.Engine/pull/578">#578</a>).</p>
+</li>
+<li><p>Simulation trace: a per-tick, per-frame and lock ring buffer written to <code>Logs/SimulationTrace</code>, switched on the Simulation Thread component or with <code>-simulation-trace</code> (<a href="https://github.com/freezy/VisualPinball.Engine/pull/577">#577</a>).</p>
+</li>
+<li><p>Portable content bundles in <code>.vpe</code> packages: hash-addressed directory trees with a verified extraction cache, path-traversal protection and per-content user consent (<a href="https://github.com/freezy/VisualPinball.Engine/pull/574">#574</a>).</p>
+</li>
+<li><p>Cylindrical surface magnets with configurable damping and a hit switch.</p>
+</li>
+<li><p>Pinball 2000 video output: a 24-bit video frame format rendered through the display texture path with overlay blending (<a href="https://github.com/freezy/VisualPinball.Engine/pull/573">#573</a>).</p>
+</li>
+<li><p>Motion Controller: a generic coil-driven motion with position switches, arbitrary position targets and an edit-mode preview, with Motion Transform followers (<a href="https://docs.visualpinball.org/creators-guide/manual/mechanisms/motion-controllers.html">Documentation</a>).</p>
+</li>
+<li><p>Gate and spinner colliders take a single offset instead of Z-Low, Distance and Z-Position, and the playfield's backside collider can be replaced.</p>
+</li>
+<li><p>Drag points are Unity Splines: VPX drag points convert losslessly to Bezier knots, edited with Unity's spline tools, with double-click to add or remove knots (<a href="https://github.com/freezy/VisualPinball.Engine/pull/567">#567</a>).</p>
+</li>
+<li><p>Collider meshes get Read/Write enabled automatically, with an error when they can't be.</p>
+</li>
+<li><p>Magnets: attract, repel, grab, hold and eject, with a force profile matching VPX's <code>cvpmMagnet</code> or a physical one with coil rise and decay, spatial magnets mounted on mechanisms that carry the ball in 3D, and PWM strength from the ROM (<a href="https://github.com/freezy/VisualPinball.Engine/pull/561">#561</a>, <a href="https://docs.visualpinball.org/creators-guide/manual/mechanisms/magnets.html">Documentation</a>).</p>
+</li>
+<li><p>Turntables: a spinning disc with motor and direction coils and VPX-compatible tangential force (<a href="https://github.com/freezy/VisualPinball.Engine/pull/561">#561</a>).</p>
+</li>
+<li><p>Coils carry a normalized strength for PWM-driven devices.</p>
+</li>
+<li><p>Cabinet nudging: keyboard nudge with damping, an analog cabinet sensor model with a Kalman filter, and render-only table motion (<a href="https://github.com/freezy/VisualPinball.Engine/pull/560">#560</a>, <a href="https://docs.visualpinball.org/creators-guide/manual/nudging.html">Documentation</a>).</p>
+</li>
+<li><p>Plumb-bob tilt simulation driven by cabinet acceleration, and a Tilt Bob component that is either simulated or a real mapped switch (<a href="https://docs.visualpinball.org/creators-guide/manual/mechanisms/tilt-bobs.html">Documentation</a>).</p>
+</li>
+<li><p>KL25Z and Pinscape accelerometer calibration in the Simulation Thread inspector, with live axis graphs and mount orientation.</p>
+</li>
+<li><p>Moving kinematic colliders pass their velocity and friction to the ball, and step their pose per physics tick so fast movers don't tunnel through it (<a href="https://github.com/freezy/VisualPinball.Engine/pull/559">#559</a>).</p>
+</li>
+<li><p>A <code>vpe.insert</code> material type in packages, and packaged audio clips load at runtime.</p>
+</li>
+<li><p>Display hook for external DMD output: an external package such as DMD Extensions can own a display and drive real, virtual or colorized DMDs from the gamelogic engine's frames (<a href="https://github.com/freezy/VisualPinball.Engine/pull/558">#558</a>).</p>
+</li>
+<li><p>Package screenshots of the table, cabinet and backbox with lamps on and off, with Cabinet and Backbox marker components.</p>
+</li>
+<li><p>Runtime loading of <code>.vpe</code> packages, asynchronous with progress, for the player app (<a href="https://github.com/freezy/VisualPinball.Engine/pull/557">#557</a>).</p>
+</li>
+<li><p>Packages store lossless source textures and the player cooks them on first load (BC7 on the GPU, optional zstd cache), so a large table loads in about a second after its first start (<a href="https://github.com/freezy/VisualPinball.Engine/pull/557">#557</a>).</p>
+</li>
+<li><p>The <code>.vpe</code> format is glTF-based, with a <code>manifest.json</code>, stable node IDs and a versioned specification (<a href="https://docs.visualpinball.org/developer-guide/packaging/index.html">Documentation</a>).</p>
+</li>
+<li><p>Asynchronous, cancelable package export, compression options and materials-only import (<a href="https://github.com/freezy/VisualPinball.Engine/pull/557">#557</a>).</p>
+</li>
+<li><p>Simulation thread: physics at 1 kHz and gamelogic timing run on a thread of their own, with triple-buffered shared state (<a href="https://github.com/freezy/VisualPinball.Engine/pull/552">#552</a>, <a href="https://docs.visualpinball.org/developer-guide/threading-model.html">Documentation</a>).</p>
+</li>
+<li><p>Native input polling, independent of the frame rate and fed straight to the simulation thread, for lower flipper latency (<a href="https://github.com/freezy/VisualPinball.Engine/pull/552">#552</a>).</p>
+</li>
+<li><p>PinMAME runs in step with the simulation thread: switches are forwarded from it, its time fence follows the simulation clock, and coils that support it, such as flippers and gate lifters, are dispatched straight into physics (<a href="https://github.com/freezy/VisualPinball.Engine/pull/552">#552</a>).</p>
+</li>
+<li><p>Frame pacing overlay with FPS, CPU busy time, the physics loop and input latency.</p>
+</li>
+<li><p>Plunger &quot;fire and pull back&quot; mode for kickbacks (<a href="https://docs.visualpinball.org/creators-guide/manual/mechanisms/plungers.html">Documentation</a>).</p>
+</li>
+<li><p>Physics render mask, showing only the components that take part in physics (<a href="https://github.com/freezy/VisualPinball.Engine/pull/554">#554</a>).</p>
+</li>
+<li><p>VPX import options: dump the table script, render bumpers as colliders, skip images and sounds, import only collidables, and use one material for all objects (<a href="https://github.com/freezy/VisualPinball.Engine/pull/554">#554</a>).</p>
+</li>
+<li><p>Developer guide: setup, the threading model, packaging, and designs for accelerometer input, B2S and DOF integration (<a href="https://docs.visualpinball.org/developer-guide/index.html">Documentation</a>).</p>
+</li>
+<li><p>Asset and package reference locator tools (<a href="https://github.com/freezy/VisualPinball.Engine/pull/550">#550</a>).</p>
+</li>
+<li><p>Spinner mass, and lever animation offsets for spinners and gates.</p>
+</li>
+<li><p>Event Rotate and Event Translate components, moving or rotating an object on device events from bumpers, flippers, kickers, troughs and others.</p>
+</li>
+<li><p>Switch Animation component for rollover and trigger wires, and a new drop target animation component (<a href="https://github.com/freezy/VisualPinball.Engine/pull/546">#546</a>).</p>
+</li>
+<li><p>Asset Browser: material defaults, combination rules, decal variations, grouping, moving assets between libraries and a clean-up tool for wrongly linked assets; thumbnails are WebP.</p>
+</li>
+<li><p>Debug Shot component: click and drag to shoot the nearest ball, Space to repeat, Ctrl for a new ball; and a debug keyboard shortcut manager.</p>
+</li>
+<li><p>Runtime camera controller with smoothing, target lock and ball lock.</p>
+</li>
+<li><p>Asset library style guide (<a href="https://github.com/freezy/VisualPinball.Engine/pull/530">#530</a>, <a href="https://docs.visualpinball.org/creators-guide/editor/asset-library-styleguide.html">Documentation</a>).</p>
+</li>
+<li><p>Music and callout sound assets, coordinated by a music coordinator (a priority stack with cross-fades) and a callout coordinator (a priority queue with a minimum pause), a default audio mixer that ducks music and effects during callouts, and multi-play modes for re-triggered sounds (thanks @arthurkehrwald, <a href="https://github.com/freezy/VisualPinball.Engine/pull/521">#521</a>, <a href="https://docs.visualpinball.org/creators-guide/manual/sound.html">Documentation</a>).</p>
+</li>
+<li><p>One import menu for both <code>.vpx</code> and <code>.vpe</code> files (<a href="https://github.com/freezy/VisualPinball.Engine/pull/526">#526</a>).</p>
+</li>
+<li><p>Drop target banks support inactive targets, and drop and hit targets support front and back colliders.</p>
+</li>
+<li><p>The <code>.vpe</code> package format: a single file with JSON payloads and GLB collider meshes, packing every component, mechanism, display and sound with its references and mappings (<a href="https://github.com/freezy/VisualPinball.Engine/pull/515">#515</a>).</p>
+</li>
+<li><p>Spring-hinge bash toys with a finite-inertia analytic box collider, reciprocal Spatial magnet holds, packaged player reconstruction, editor setup/handles, and a Play Mode qualification sample.</p>
+</li>
+<li><p>Motion Transform input ranges for animating a follower during only part of its source travel.</p>
+</li>
+<li><p>Wire Rail component with native spline authoring, fixtures (rings, rungs, cradles, stands, hairpins, and elbows), and an inferred ball-channel collider (<a href="https://docs.visualpinball.org/creators-guide/editor/wire-rails/index.html">Documentation</a>).</p>
+</li>
+<li><p>Free transformation (<a href="https://github.com/freezy/VisualPinball.Engine/pull/500">#500</a>)</p>
+</li>
+<li><p>Kinematic collisions (<a href="https://github.com/freezy/VisualPinball.Engine/pull/460">#460</a>)</p>
+</li>
+<li><p>Flipper tricks by nFozzy (<a href="https://github.com/freezy/VisualPinball.Engine/pull/436">#436</a>)</p>
+</li>
+<li><p>Asset Library now has thumbnails.</p>
+</li>
+<li><p>Documentation for score reels.</p>
+</li>
+<li><p>Score Motor Component (<a href="https://github.com/freezy/VisualPinball.Engine/pull/435">#435</a>, <a href="https://docs.visualpinball.org/creators-guide/manual/mechanisms/score-motors.html">Documentation</a>).</p>
+</li>
+<li><p>Scale support for rubbers.</p>
+</li>
+<li><p>Slingarm coil arms can now be any game objects, not just primitives (<a href="https://github.com/freezy/VisualPinball.Engine/pull/432">#432</a>).</p>
+</li>
+<li><p>Gate Lifter Component (<a href="https://github.com/freezy/VisualPinball.Engine/pull/418">#418</a>, <a href="https://docs.visualpinball.org/creators-guide/manual/mechanisms/lifting-gates.html">Documentation</a>).</p>
+</li>
+<li><p>Asset Browser (<a href="https://github.com/freezy/VisualPinball.Engine/pull/412">#412</a>)</p>
+</li>
+<li><p>Trigger meshes can now be easily scaled (<a href="https://github.com/freezy/VisualPinball.Engine/pull/374">#374</a>)</p>
+</li>
+<li><p>We got a new game item called <em>Metal Wire Guide</em> (thanks @Cupiii, <a href="https://github.com/freezy/VisualPinball.Engine/pull/366">#366</a>)</p>
+</li>
+<li><p>A <em>Collision Switch</em> component (<a href="https://github.com/freezy/VisualPinball.Engine/pull/344">#344</a>, <a href="https://docs.visualpinball.org/creators-guide/manual/mechanisms/collision-switches.html">Documentation</a>).</p>
+</li>
+<li><p>A <em>Rotator</em> component (<a href="https://github.com/freezy/VisualPinball.Engine/pull/337">#337</a>, <a href="https://docs.visualpinball.org/creators-guide/manual/mechanisms/rotators.html">Documentation</a>).</p>
+</li>
+<li><p>A <em>Teleporter</em> component (<a href="https://github.com/freezy/VisualPinball.Engine/pull/336">#336</a>, <a href="https://docs.visualpinball.org/creators-guide/manual/mechanisms/teleporters.html">Documentation</a>).</p>
+</li>
+<li><p>A <em>Drop Target Bank</em> component (<a href="https://github.com/freezy/VisualPinball.Engine/pull/333">#333</a>, <a href="https://docs.visualpinball.org/creators-guide/manual/mechanisms/drop-target-banks.html">Documentation</a>).</p>
+</li>
+<li><p>Editor: Enable manual trigger for coils, switches, lamps and wires during gameplay (<a href="https://github.com/freezy/VisualPinball.Engine/pull/332">#332</a>)</p>
+</li>
+<li><p>Support for dynamic wires, also known as <em>Fast Flip</em> (<a href="https://github.com/freezy/VisualPinball.Engine/pull/330">#330</a>, <a href="https://docs.visualpinball.org/creators-guide/editor/wire-manager.html#dynamic">Documentation</a>).</p>
+</li>
+<li><p>Component for light groups, allowing easy grouping of GI lamps. (<a href="https://github.com/freezy/VisualPinball.Engine/pull/330">#330</a> <a href="https://docs.visualpinball.org/creators-guide/manual/mechanisms/light-groups.html">Documentation</a>).</p>
+</li>
+<li><p>Slingshot component (<a href="https://github.com/freezy/VisualPinball.Engine/pull/329">#329</a>, <a href="https://docs.visualpinball.org/creators-guide/manual/mechanisms/slingshots.html">Documentation</a>).</p>
+</li>
+<li><p>Create insert meshes (<a href="https://github.com/freezy/VisualPinball.Engine/pull/320">#320</a>).</p>
+</li>
+<li><p>Full support for custom playfield meshes.</p>
+</li>
+<li><p>Remove Hybrid Renderer (<a href="https://github.com/freezy/VisualPinball.Engine/pull/316">#316</a>).</p>
+</li>
+<li><p>Create and use Unity assets when importing (<a href="https://github.com/freezy/VisualPinball.Engine/pull/302">#320</a>).</p>
+</li>
+<li><p>Native support for nFozzy flipper physics (<a href="https://github.com/freezy/VisualPinball.Engine/pull/305">#305</a>).</p>
+</li>
+<li><p>Automated camera clipping (<a href="https://github.com/freezy/VisualPinball.Engine/pull/304/files">#304</a>).</p>
+</li>
+<li><p>DMD and segment display support (<a href="https://docs.visualpinball.org/creators-guide/manual/displays.html">Documentation</a>).</p>
+</li>
+<li><p>Plugin: Mission Pinball Framework (<a href="https://docs.visualpinball.org/plugins/mpf/index.html">Documentation</a>).</p>
+</li>
+<li><p>Gamelogic Engine: Support for hardware rules (<a href="https://github.com/freezy/VisualPinball.Engine/pull/293">#293</a>).</p>
+</li>
+<li><p>Support for Extended ASCII strings (<a href="https://github.com/freezy/VisualPinball.Engine/pull/291">#291</a>).</p>
+</li>
+<li><p>Support for Elasticity Falloff in walls (added in VP 10.7) (<a href="https://github.com/freezy/VisualPinball.Engine/pull/291">#291</a>).</p>
+</li>
+<li><p>Support for table notes (added in VP 10.7) (<a href="https://github.com/freezy/VisualPinball.Engine/pull/291">#291</a>).</p>
+</li>
+<li><p>Slow motion during gameplay (<a href="https://github.com/freezy/VisualPinball.Engine/pull/288">#288</a>).</p>
+</li>
+<li><p><a href="https://docs.visualpinball.org/creators-guide/editor/lamp-manager.html">Lamp Manager</a> (<a href="https://github.com/freezy/VisualPinball.Engine/pull/282">#282</a>).</p>
+</li>
+<li><p>The VPE core is now also available on <a href="https://www.nuget.org/packages/VisualPinball.Engine/">NuGet</a>.</p>
+</li>
+<li><p>VPE is now packaged and published on every merge!</p>
+</li>
+<li><p>Native trough component (<a href="https://github.com/freezy/VisualPinball.Engine/pull/229">#229</a>, <a href="https://github.com/freezy/VisualPinball.Engine/pull/248">#248</a>, <a href="https://github.com/freezy/VisualPinball.Engine/pull/256">#256</a>, <a href="https://docs.visualpinball.org/creators-guide/manual/mechanisms/troughs.html">Documentation</a>).</p>
+</li>
+</ul>
+<h3 id="changed">Changed</h3>
+<ul>
+<li>Upgraded from Unity 2022.3 to Unity 6, and later to Unity 6.5 with HDRP 17. New dependencies: Unity Splines and NativeTrees.</li>
+<li>Hybrid optics are on by default for newly lit inserts, and RGB-mapped lamps are treated as game-driven LEDs.</li>
+<li>The VPE editor menus and the insert shaders are under <em>Pinball</em> instead of <em>Visual Pinball</em> (<a href="https://github.com/freezy/VisualPinball.Engine/pull/520">#520</a>).</li>
+<li><code>IGamelogicEngine.Init</code> is asynchronous, so engines such as MPF connect without blocking (thanks @arthurkehrwald, <a href="https://github.com/freezy/VisualPinball.Engine/pull/504">#504</a>).</li>
+<li><code>IApiCoil.OnCoil</code> takes a float strength instead of a bool.</li>
+<li>Sound assets have a type (synthetic or mechanical), only effects can be spatial, and spam protection moved from the component to the asset (<a href="https://github.com/freezy/VisualPinball.Engine/pull/521">#521</a>).</li>
+<li>Animations are published through generic value emitters, with the animation code in per-item animation components (<a href="https://github.com/freezy/VisualPinball.Engine/pull/546">#546</a>).</li>
+<li>Flipper tricks follow the current nFozzy and rothbauerw implementations.</li>
+<li>Surfaces collide with their render mesh, keeping the side mesh for slingshot colliders.</li>
+<li>Kinematic octree rebuilds are Burst-compiled, and moving kinematic items are kept out of the octree (<a href="https://github.com/freezy/VisualPinball.Engine/pull/577">#577</a>).</li>
+<li>The broad phase queries with the ball's swept bounds instead of the full physics step, cutting the worst tick's hit tests by an order of magnitude (<a href="https://github.com/freezy/VisualPinball.Engine/pull/577">#577</a>).</li>
+<li>The UPM package is signed before publishing.</li>
+<li>Renamed Actuator and Actuator Transform to Motion Controller and Motion Transform in components, APIs, editor menus, and documentation; packages keep their identifiers and coil mappings.</li>
+<li>Removed DOTS in favor of Jobs with Burst (<a href="https://github.com/freezy/VisualPinball.Engine/pull/459">#459</a>)</li>
+<li>All geometry is now in world space.</li>
+<li>Removed internal ID in gamelogic engine API (<a href="https://github.com/freezy/VisualPinball.Engine/pull/408">#408</a>)</li>
+<li>When importing, meshes are now saved as easily editable <code>.fbx</code> files instead of Unity's internal format (<a href="https://github.com/freezy/VisualPinball.Engine/pull/387">#387</a>).</li>
+<li>Revised rubber mesh generation (<a href="https://github.com/freezy/VisualPinball.Engine/pull/384">#384</a>).</li>
+<li>APIs for RGB lamps and Visual Scripting (<a href="https://github.com/freezy/VisualPinball.Engine/pull/382">#382</a>).</li>
+<li>Playfield is now rotated to the correct angle during gameplay (<a href="https://github.com/freezy/VisualPinball.Engine/pull/370">#370</a>).</li>
+<li>Decouple light components from transformation override (<a href="https://github.com/freezy/VisualPinball.Engine/pull/350">#350</a>).</li>
+<li>Refactored drag points. They are nicely separated and typed now.</li>
+<li>Collider debug view is now much faster and intuitive. It's also activated per default when there is no visible mesh.</li>
+<li>Drop and hit targets are now different components.</li>
+<li>Kicker is now a coil device with different coils for different angles/forces.</li>
+<li>Ground truth of data is now the scene, not the imported data anymore (<a href="https://github.com/freezy/VisualPinball.Engine/pull/302">#302</a>).</li>
+<li>Plunger is now a coil device, meaning it can both be pulled back and fired through different inputs.</li>
+<li>Move render pipelines into separate repos (<a href="https://github.com/freezy/VisualPinball.Engine/pull/259">#259</a>).</li>
+<li>Put game-, mesh-, collision- animation data into separate components (<a href="https://github.com/freezy/VisualPinball.Engine/pull/227">#227</a>, <a href="https://docs.visualpinball.org/creators-guide/editor/unity-components.html">Documentation</a>).</li>
+</ul>
+<h3 id="removed">Removed</h3>
+<ul>
+<li>NuGet packages of the core are no longer published.</li>
+<li>The <code>[MovedFrom]</code> mappings from the old Actuator and wire rail fixture names; existing tables have been migrated.</li>
+<li>The legacy VPX table patcher and its import option, including <code>IPatcher</code>, <code>PatcherManager</code>, the render-pipeline material-adapter APIs, and the <code>applyPatch</code> import parameters.</li>
+</ul>
+<h3 id="fixed">Fixed</h3>
+<ul>
+<li><p>Rolling loops retain their playback position when returning to a surface during a crossfade, and authored fade durations apply equally to quiet and loud sounds.</p>
+</li>
+<li><p>Packaged tables preserve the drop target's visual animation, its emitter and animation curves, and event-driven rotations such as the Terminator 2 cannon.</p>
+</li>
+<li><p>Insert Light fades advance once per frame instead of once per lamp event.</p>
+</li>
+<li><p>Packages saved before lamp mappings stored their device's type keep their lamp links.</p>
+</li>
+<li><p>A light's extra bulbs stay off until driven, instead of lighting the unused bulbs of other inserts sharing the material.</p>
+</li>
+<li><p>Native input goes through the table's Switch Manager key mappings, and hardware-rule wires such as P-ROC flipper rules work under native input.</p>
+</li>
+<li><p>Populate no longer adds lamp rows for flasher coils, and updates existing rows to the lamp type the gamelogic engine reports.</p>
+</li>
+<li><p>RGB multi-channel lamps are composed per device instead of each channel overwriting the light.</p>
+</li>
+<li><p>The player keeps starting when an item fails to initialize.</p>
+</li>
+<li><p>Balls created by a kicker spawn at its height and are captured, instead of being launched from playfield level (<a href="https://github.com/freezy/VisualPinball.Engine/pull/579">#579</a>).</p>
+</li>
+<li><p>After a stall the simulation thread caught up every missed tick, so balls raced as if the playfield were steeper; catch-up is capped at 100 ms and resuming from pause doesn't replay the pause (<a href="https://github.com/freezy/VisualPinball.Engine/pull/577">#577</a>).</p>
+</li>
+<li><p>Balls no longer sink into the floor under covers embedded in them from above.</p>
+</li>
+<li><p>Collider bounds: the flipper's backside, kicker and trigger sphere caps, plunger height and degenerate mesh triangles (<a href="https://github.com/freezy/VisualPinball.Engine/pull/577">#577</a>).</p>
+</li>
+<li><p>Spinner collision speed and direction.</p>
+</li>
+<li><p>Transformed colliders: Line3D hit normals, point collider bounds, LineZ endpoints, scale from the basis, and the ball radius in scaled collider space (<a href="https://github.com/freezy/VisualPinball.Engine/pull/562">#562</a>).</p>
+</li>
+<li><p>Input is dropped while the player is paused or unfocused.</p>
+</li>
+<li><p>Dot-matrix and segment display shaders, DMD colours, and RGB24 frames rendered upside down (<a href="https://github.com/freezy/VisualPinball.Engine/pull/548">#548</a>, <a href="https://github.com/freezy/VisualPinball.Engine/pull/549">#549</a>, <a href="https://github.com/freezy/VisualPinball.Engine/pull/558">#558</a>).</p>
+</li>
+<li><p>Lamp Manager batch activation, and the faux bulb is hidden when the light is off.</p>
+</li>
+<li><p>Asset Browser: replacing an object re-points references to it, applied variation materials survive a reload, and each variation is listed once.</p>
+</li>
+<li><p>VPX import: ramp and surface UVs when centring the pivot, randomly missing elements, and textures in the screenshot slot of old files (<a href="https://github.com/freezy/VisualPinball.Engine/pull/526">#526</a>).</p>
+</li>
+<li><p>Bumpers apply their impulse in the physics loop, and their coil events and sounds work again (thanks @arthurkehrwald, <a href="https://github.com/freezy/VisualPinball.Engine/pull/491">#491</a>, <a href="https://github.com/freezy/VisualPinball.Engine/pull/528">#528</a>).</p>
+</li>
+<li><p>Rubber meshes under transformation (<a href="https://github.com/freezy/VisualPinball.Engine/pull/516">#516</a>).</p>
+</li>
+<li><p>Exception when a ball drained while parented to a kicker (<a href="https://github.com/freezy/VisualPinball.Engine/pull/517">#517</a>).</p>
+</li>
+<li><p>Hardware rules are flagged as such (thanks @arthurkehrwald, <a href="https://github.com/freezy/VisualPinball.Engine/pull/502">#502</a>).</p>
+</li>
+<li><p>Burst crash with <code>NativeParallelHashMap.GetKeyArray()</code>.</p>
+</li>
+<li><p>Multi-bulb inserts spill light from every active bulb, adding their intensities and mixing their colours in linear space.</p>
+</li>
+<li><p>Destroying an insert releases its generated mesh without destroying imported or shared meshes.</p>
+</li>
+<li><p>Insert rebakes write their texture maps to the resolved location of local packages.</p>
+</li>
+<li><p>Applying an insert color preset preserves its material family instead of selecting another insert's baked maps and bulb positions.</p>
+</li>
+<li><p>Insert Light components mapped in Lamp Manager never lit from the ROM in a project that enters play mode without a scene reload: the component executes always, so its Awake had run in edit mode only and a later script reload dropped that registration. The lamp player now takes any mapped device that missed its Awake, and the component registers on enable as well.</p>
+</li>
+<li><p>Insert rebakes correctly restore the generator UV layout when Blender produces folded UVs, preventing false fallback success followed by overlapping-texel errors.</p>
+</li>
+<li><p>Hybrid inserts expose normalized Intensity and Color on the component, driven by ROM lamps at runtime, with unrestricted Max Brightness on the material and matching environmental spill.</p>
+</li>
+<li><p>Insert geometry edits rebuild tangent data to prevent HDRP blackouts, keep the current material visible, and show a rebake warning.</p>
+</li>
+<li><p>Disappearing objects due to wrong bounding box (<a href="https://github.com/freezy/VisualPinball.Engine/pull/441">#441</a>).</p>
+</li>
+<li><p>Default table import (<a href="https://github.com/freezy/VisualPinball.Engine/pull/434">#434</a>)</p>
+</li>
+<li><p>Remaining ball spinning issue should now be solved (<a href="https://github.com/freezy/VisualPinball.Engine/pull/397">#397</a>).</p>
+</li>
+<li><p>Physics error when the ball would stop rotate (<a href="https://github.com/freezy/VisualPinball.Engine/pull/393">#393</a>).</p>
+</li>
+<li><p>Finally, ball rotation is rendered correctly (<a href="https://github.com/freezy/VisualPinball.Engine/pull/386">#386</a>).</p>
+</li>
+<li><p>Ball stuttering when rolling over dropped target (<a href="https://github.com/freezy/VisualPinball.Engine/pull/375">#375</a>).</p>
+</li>
+<li><p>Plunger disappearing due to too small bounding box.</p>
+</li>
+<li><p>Fixed switch status when multiple mappings point to the same ID (<a href="https://github.com/freezy/VisualPinball.Engine/pull/347">#347</a>).</p>
+</li>
+<li><p>Lighting setup. It's now usable (<a href="https://github.com/freezy/VisualPinball.Engine/pull/330">#330</a>).</p>
+</li>
+<li><p>Ball passing through collider plane and disappearing.</p>
+</li>
+<li><p>Alpha channel of color values is now correctly written (<a href="https://github.com/freezy/VisualPinball.Engine/pull/291">#291</a>).</p>
+</li>
+<li><p>Layer names are correctly computed when importing a 10.6 file (<a href="https://github.com/freezy/VisualPinball.Engine/pull/291">#291</a>).</p>
+</li>
+<li><p>Clear texture and material references that don't exist before writing (VP 10.7 behavior) (<a href="https://github.com/freezy/VisualPinball.Engine/pull/291">#291</a>).</p>
+</li>
+<li><p>Bug in writing animation vertices which caused VP to hang when re-reading the file (<a href="https://github.com/freezy/VisualPinball.Engine/pull/291">#291</a>).</p>
+</li>
+<li><p>A few bugs in drag point gizmos (<a href="https://github.com/freezy/VisualPinball.Engine/pull/246">#246</a>).</p>
+</li>
+</ul>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/CHANGELOG.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2026 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    if (window.mermaid) {
+      const getMermaidConfig = () => {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        return {
+          startOnLoad: false,
+          theme: 'base',
+          treeView: isDark ? {
+            labelColor: '#f8f9fa',
+            lineColor: '#b7bcc4'
+          } : {
+            labelColor: '#212529',
+            lineColor: '#8a8f98'
+          },
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: '#1f2328',
+            primaryColor: '#1f2328',
+            primaryTextColor: '#f8f9fa',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#292e33',
+            secondaryTextColor: '#f8f9fa',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#20242a',
+            tertiaryTextColor: '#f8f9fa',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#292e33',
+            clusterBorder: '#6c757d',
+            lineColor: '#b7bcc4',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#f8f9fa',
+            mainBkg: '#1f2328',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          } : {
+            darkMode: false,
+            background: '#ffffff',
+            primaryColor: '#f6f7f9',
+            primaryTextColor: '#212529',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#ffffff',
+            secondaryTextColor: '#212529',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#eceff3',
+            tertiaryTextColor: '#212529',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#f3f3f3',
+            clusterBorder: '#c7cbd1',
+            lineColor: '#8a8f98',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#212529',
+            mainBkg: '#f6f7f9',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          }
+        };
+      };
+
+      const initializeMermaidBlocks = () => {
+        const mermaidBlocks = document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid, pre code.mermaid');
+        mermaidBlocks.forEach((block) => {
+          const pre = block.parentElement;
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.dataset.mermaidSource = block.textContent;
+          container.textContent = block.textContent;
+          pre.replaceWith(container);
+        });
+      };
+
+      const renderMermaidBlocks = async () => {
+        const mermaidContainers = document.querySelectorAll('.mermaid[data-mermaid-source]');
+        if (mermaidContainers.length === 0) {
+          return;
+        }
+
+        mermaid.initialize(getMermaidConfig());
+
+        mermaidContainers.forEach((container) => {
+          container.removeAttribute('data-processed');
+          container.innerHTML = '';
+          container.textContent = container.dataset.mermaidSource;
+        });
+
+        await mermaid.run({ querySelector: '.mermaid[data-mermaid-source]' });
+      };
+
+      initializeMermaidBlocks();
+      renderMermaidBlocks();
+
+      let currentMermaidTheme = document.documentElement.getAttribute('data-bs-theme');
+      new MutationObserver(() => {
+        const nextTheme = document.documentElement.getAttribute('data-bs-theme');
+        if (nextTheme !== currentMermaidTheme) {
+          currentMermaidTheme = nextTheme;
+          renderMermaidBlocks();
+        }
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    }
+
+    const updateAffixHighlight = () => {
+      const affix = document.getElementById('affix');
+      if (!affix) {
+        return;
+      }
+
+      const links = Array.from(affix.querySelectorAll('a[href^="#"]'));
+      if (links.length === 0) {
+        return;
+      }
+
+      const sections = links.map((link) => {
+        const id = decodeURIComponent(link.getAttribute('href').slice(1));
+        const heading = document.getElementById(id);
+        return heading ? { link, heading } : null;
+      }).filter(Boolean);
+
+      if (sections.length === 0) {
+        return;
+      }
+
+      const threshold = 140;
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.heading.getBoundingClientRect().top - threshold <= 0) {
+          current = section;
+        } else {
+          break;
+        }
+      }
+
+      links.forEach((link) => {
+        link.classList.toggle('is-current', link === current.link);
+        if (link === current.link) {
+          link.setAttribute('aria-current', 'location');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+    }
+
+    const affixRoot = document.getElementById('affix');
+    if (affixRoot) {
+      let affixFrame = null;
+      const scheduleAffixHighlight = () => {
+        if (affixFrame !== null) {
+          cancelAnimationFrame(affixFrame);
+        }
+        affixFrame = requestAnimationFrame(() => {
+          affixFrame = null;
+          updateAffixHighlight();
+        });
+      }
+
+      scheduleAffixHighlight();
+      new MutationObserver(scheduleAffixHighlight).observe(affixRoot, { childList: true, subtree: true });
+      window.addEventListener('scroll', scheduleAffixHighlight, { passive: true });
+      window.addEventListener('resize', scheduleAffixHighlight, { passive: true });
+    }
+
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

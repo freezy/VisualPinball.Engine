@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Magnets and Turntables | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Magnets and Turntables | VPE Documentation ">
+      
+      <meta name="description" content="Configure playfield, spatial, and cylindrical magnets, ball holds, coils, and spinning disc turntables.">
+      <link rel="icon" href="../../../favicon.png">
+      <link rel="stylesheet" href="../../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../../public/main.css">
+      <link rel="stylesheet" href="../../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../../toc.html">
+      <meta name="docfx:tocrel" content="../../toc.html">
+      
+      <meta name="docfx:rel" content="../../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/manual/mechanisms/magnets.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../../public/docfx.min.js"></script>
+      <script src="./../../../public/mermaid-11.14.0.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../../index.html">
+            <img id="logo" class="svg" src="../../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="magnets">
+<h1 id="magnets-and-turntables">Magnets and Turntables</h1>
+
+<p>VPE simulates magnets inside the physics loop, so their force, electrical response, and ball capture are updated every physics tick. Use a <strong>Magnet</strong> for attraction, holding, legacy VPX repulsion, or a mech that carries a ball. Use a <strong>Turntable</strong> for a spinning disc that pushes a ball tangentially.</p>
+<h2 id="magnet-setup">Magnet Setup</h2>
+<p>Add a <strong>Magnet</strong> component with <em>Add Component -&gt; Pinball -&gt; Mechs -&gt; Magnet</em>. Its transform defines the field origin. Playfield and Spatial magnets create only a force field, so their solid hardware needs a separate collider. A Cylindrical magnet can also generate its own exact circular sidewall collider.</p>
+<p>All Magnet distance fields use <strong>VPX units</strong>, not millimeters or Unity world units. A standard pinball has a radius of 25 VPX units, which is a useful reference when choosing distances.</p>
+<div class="IMPORTANT">
+<h5>Important</h5>
+<p>Magnet distance fields in older VPE versions were authored in millimeters. When upgrading an existing table or code that sets <code>MagnetApi.Radius</code>, multiply the old value by <strong>1.85271</strong> to preserve the same physical distance. New Magnet components use converted defaults, so no adjustment is needed for a newly added component.</p>
+</div>
+<h3 id="choose-a-magnet-type">Choose a Magnet Type</h3>
+<table>
+<thead>
+<tr>
+<th>Magnet Type</th>
+<th>Field shape</th>
+<th>Typical use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Playfield</strong></td>
+<td>A vertical field around a point on the playfield. Distance is measured in the playfield plane.</td>
+<td>Under-playfield magnets, Magna-Save, and imported <code>cvpmMagnet</code> behavior.</td>
+</tr>
+<tr>
+<td><strong>Spatial</strong></td>
+<td>A sphere around the transform. Distance is measured from the transform to the ball center in 3-D.</td>
+<td>A mouth, hand, wand, or other mech that catches and carries a ball.</td>
+</tr>
+<tr>
+<td><strong>Cylindrical</strong></td>
+<td>A field around the exterior sidewall of a finite upright cylinder. Distance is measured from the ball surface to the sidewall or its top and bottom rim. The cap faces are not magnetic surfaces, and attraction fades to zero as the ball centre moves inward over a cap.</td>
+<td>An exposed magnet core that balls can approach and touch from any direction around its side.</td>
+</tr>
+</tbody>
+</table>
+<p>Playfield and Spatial magnets treat the transform as the center of the field. A Cylindrical magnet treats the transform as the center of the cylinder base; <strong>Cylinder Height</strong> extends upward along the playfield normal. Tilted cylinder axes are not modeled.</p>
+<h3 id="understand-the-distance-fields">Understand the Distance Fields</h3>
+<p>The fields have different jobs and are not interchangeable:</p>
+<table>
+<thead>
+<tr>
+<th>Inspector field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Influence Radius / Influence Distance</strong></td>
+<td>The outer cutoff of the field. A ball beyond this distance receives no force. Playfield and Spatial modes measure from the transform to the ball center. Cylindrical mode measures the empty air gap between the ball and the exterior cylinder sidewall.</td>
+</tr>
+<tr>
+<td><strong>Pole Radius</strong></td>
+<td>Shapes a Physical Playfield or Spatial field. It is not used by a Cylindrical magnet.</td>
+</tr>
+<tr>
+<td><strong>Grab Radius</strong></td>
+<td>Defines the capture area around a Playfield or Spatial magnet's center. It is not shown for a Cylindrical magnet, which grabs automatically at contact.</td>
+</tr>
+<tr>
+<td><strong>Cylinder Radius</strong></td>
+<td>The radius of the magnetic cylinder itself. Match it to the associated collider, in VPX units. It does not control how far the field reaches.</td>
+</tr>
+<tr>
+<td><strong>Cylinder Height</strong></td>
+<td>The height from the component origin to the top of the sidewall, in VPX units. Match it to the associated collider. A value of zero makes the sidewall vertically unlimited.</td>
+</tr>
+<tr>
+<td><strong>Generate Cylinder Collider</strong></td>
+<td>Creates one smooth, circular sidewall collider using Cylinder Radius and Cylinder Height. It requires a positive height. Disable any mesh collider covering the same cylinder. If that collider is on the Magnet GameObject itself, move it to a separate GameObject before disabling it so the two components do not share one physics item ID.</td>
+</tr>
+<tr>
+<td><strong>Height Range</strong></td>
+<td>The vertical window above a Playfield magnet. Use it to prevent a magnet from affecting balls on an overhead ramp. Zero removes the limit. Spatial and Cylindrical modes ignore this field.</td>
+</tr>
+</tbody>
+</table>
+<p>The Cylindrical controls are deliberately simpler. <strong>Strength</strong> controls the pull at the metal surface. <strong>Influence Distance</strong> says how far the pull reaches outside that surface: relative to the configured contact pull, force is 100% at contact, 50% at half the Influence Distance, and zero at or beyond the Influence Distance. There is no separate falloff setting.</p>
+<p><strong>Damping</strong> is viscous drag, not collider friction. It damps motion toward or away from the cylinder throughout the field. It also damps motion around the cylinder and ball spin around the cylinder's upright axis only near the sidewall: the effect is full within 1 VPX unit of the wall, blends smoothly, and is gone by 2 VPX units. This lets Damping settle a captured ball without slowing an ordinary fly-by farther out in the field. It does not change vertical velocity or rolling spin around horizontal axes. Set it to <strong>0</strong> for no magnetic damping, <strong>1</strong> for the standard response, or higher for faster settling. Lower it below 1 when the real ball should swing back and forth or spin longer before coming to rest.</p>
+<p>For an exposed cylindrical magnet:</p>
+<ol>
+<li>Place the Magnet transform at the center of the collider's bottom face.</li>
+<li>Set <strong>Cylinder Radius</strong> and <strong>Cylinder Height</strong> to the visible cylinder dimensions in VPX units. If the solid geometry is a child Primitive Collider, click <strong>Fit Cylinder to Child Collider Mesh</strong> to fill both values automatically.</li>
+<li>Enable <strong>Generate Cylinder Collider</strong>. If the visible cylinder already has a Primitive Collider or Mesh Collider, disable that collider so the ball does not contact both shapes. A collider on the Magnet GameObject must first be moved to its own GameObject; disabling a co-located collider would disable their shared physics item ID.</li>
+<li>Set <strong>Influence Distance</strong> to the maximum air gap where the ball should begin to bend toward the magnet.</li>
+<li>Set <strong>Strength</strong> for the amount of pull at contact.</li>
+<li>Set <strong>Damping</strong> for how quickly motion along the sidewall should settle after contact.</li>
+<li>Enable <strong>Grab Ball</strong> if a ball that reaches the metal should close <code>ball_held</code> and remain pressed against the collider while the field can retain it.</li>
+</ol>
+<p>The Cylindrical field measures its air gap from the closest point on the exterior sidewall or either boundary rim. The flat cap faces are excluded, and attraction fades as the ball centre moves inward over a cap until it reaches zero inside the cylinder radius. Magnetic acceleration is always parallel to the playfield and directed toward the cylinder axis; it never adds or removes vertical velocity. Grab has no distance setting: sidewall contact starts a hold when the active field is strong enough to retain the ball's separating motion and the ball is not moving outward past a finite top or bottom rim. A moving ball can glide around the cylinder while Damping gradually reduces the swing. Gravity still acts along the sidewall, so a fixed upright cylinder naturally settles the ball at its downhill middle point.</p>
+<p><strong>Generate Cylinder Collider</strong> creates real VPE collision geometry, not a hidden movement constraint. It is an exact circle at every angle, so the outward contact normal always points directly away from the cylinder axis. The magnet pulls in the opposite radial direction, the collider balances that inward load, and gravity remains free to move the ball around the sidewall toward the downhill point. A polygonal mesh cylinder has flat faces and edge contacts instead; using it at the same time can apply two contacts or create false resting directions, so disable the overlapping mesh collider. The ball remains a normal live physics object and can roll, swing, collide, and separate. The generated sidewall starts with zero collider friction; use magnetic Damping to control swing and spin settling without adding another authoring control.</p>
+<h3 id="other-magnet-fields">Other Magnet Fields</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Strength</strong></td>
+<td>The authored full-power force control. VPX Compatible uses familiar <code>cvpmMagnet</code> strength values. Physical, Spatial, and Cylindrical modes always attract and use the magnitude of this value, but their numeric acceleration is calculated by their respective field models.</td>
+</tr>
+<tr>
+<td><strong>Force Profile</strong></td>
+<td>Selects <strong>VPX Compatible</strong> or <strong>Physical</strong> for a Playfield magnet. Spatial and Cylindrical magnets always use physical electrical response and force semantics.</td>
+</tr>
+<tr>
+<td><strong>Coil Rise Time</strong></td>
+<td>Electrical rise time constant in milliseconds. Current reaches about 63% of a steady command after one time constant.</td>
+</tr>
+<tr>
+<td><strong>Coil Fall Time</strong></td>
+<td>Electrical decay time constant in milliseconds after the command is reduced or switched off.</td>
+</tr>
+<tr>
+<td><strong>Grab Ball</strong></td>
+<td>Enables capture and hold behavior. Cylindrical magnets acquire at contact; Playfield and Spatial magnets use Grab Radius.</td>
+</tr>
+<tr>
+<td><strong>Generate Cylinder Collider</strong></td>
+<td>For a Cylindrical magnet, creates the smooth solid sidewall needed for stable contact. Disable overlapping colliders.</td>
+</tr>
+<tr>
+<td><strong>Is Enabled On Start</strong></td>
+<td>Starts the field at full command before a coil or script changes it.</td>
+</tr>
+<tr>
+<td><strong>Is Kinematic</strong></td>
+<td>Updates the field origin from the GameObject transform during gameplay. Leave this disabled for a fixed magnet.</td>
+</tr>
+<tr>
+<td><strong>Draw Debug Forces</strong></td>
+<td>Draws play-mode force lines and a runtime coil-status gizmo. The magnet surface and marker are green while the coil is on and red while it is off.</td>
+</tr>
+</tbody>
+</table>
+<p>The selected object also shows scene-view gizmos. Blue indicates the physical field shape and influence boundary, orange indicates the grab boundary for point magnets, and purple indicates Pole Radius for a Physical Playfield or Spatial magnet. These gizmos use the authored VPX dimensions directly and do not change size when the magnet model's Transform scale changes.</p>
+<h2 id="electrical-response-and-pwm">Electrical Response and PWM</h2>
+<p>Magnets expose one coil:</p>
+<table>
+<thead>
+<tr>
+<th>Device item</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>magnet_coil</code></td>
+<td>Sets the normalized magnet command while the coil is active.</td>
+</tr>
+</tbody>
+</table>
+<p>Map a ROM solenoid to <code>magnet_coil</code> in the <a href="../../editor/coil-manager.html">Coil Manager</a>. The command can be any value from 0 to 1; it is not reduced to a simple on/off flag.</p>
+<p><strong>VPX Compatible</strong> applies the command immediately and scales <strong>Strength</strong> directly. The physical modes use <strong>Coil Rise Time</strong> and <strong>Coil Fall Time</strong> to model effective current, then calculate force from current squared. A 25% command therefore produces much less than 25% of full physical force, and a short pulse may end before the current reaches its commanded level.</p>
+<p>Tune <strong>Strength</strong> at 100% current first. If the game drives the coil with short or partial-power pulses, test with those real commands instead of tuning only with the coil held fully on.</p>
+<h2 id="force-profiles">Force Profiles</h2>
+<h3 id="vpx-compatible">VPX Compatible</h3>
+<p>Use <strong>VPX Compatible</strong> for an imported table or a port that already has tuned <code>cvpmMagnet</code> values. It follows the legacy VPX force curve and normalizes it to VPE's 1 kHz physics loop. Positive strength attracts and negative strength repels, which preserves scripts that use fictional magnetic repulsion.</p>
+<p>This profile applies only to a Playfield magnet. Its attraction acts in the playfield plane and can be limited vertically with <strong>Height Range</strong>.</p>
+<h3 id="physical">Physical</h3>
+<p>Use <strong>Physical</strong> for a newly authored under-playfield magnet. Its field ramps with coil current, weakens with vertical air gap, and tapers smoothly to zero at <strong>Influence Radius</strong>. The lateral force is zero on the center axis and strongest in an annulus determined by <strong>Pole Radius</strong>.</p>
+<p>A physical magnet always attracts an ordinary steel pinball. Reversing coil polarity changes the magnetic flux but not the direction of attraction. Use VPX Compatible only when a legacy script intentionally needs negative-strength repulsion.</p>
+<p>Physical strength values are not equivalent to VPX Compatible values. Tune them in play mode while observing ball speed, air gap, PWM command, and capture behavior.</p>
+<h2 id="ball-capture-and-release">Ball Capture and Release</h2>
+<p>Magnets also expose one switch:</p>
+<table>
+<thead>
+<tr>
+<th>Device item</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ball_held</code></td>
+<td>Closes while one or more balls are currently grabbed.</td>
+</tr>
+</tbody>
+</table>
+<p>With <strong>Grab Ball</strong> disabled, the magnet only applies attraction. With it enabled, Playfield and Spatial magnets attempt capture inside Grab Radius. A Cylindrical magnet attempts capture when the ball touches its sidewall; it compares motion separating the ball from the wall with the strength available across the field and rejects vertical motion that its planar force cannot retain. A weak field may fail to retain a fast rebound, while fast motion along the cylinder is allowed.</p>
+<p>VPX Compatible capture snaps the ball to the Playfield magnet's planar center. Physical Playfield and Spatial capture use a capped spring-damper force, so the ball decelerates visibly and a sufficiently hard collision can knock it away. Cylindrical capture retains motion that separates from the surface without locking the ball to one point around the cylinder or driving it continuously into the collider.</p>
+<p>Turning the coil off or calling <code>ReleaseBall()</code> removes the hold without freezing or teleporting the ball. The ball keeps its current velocity. <code>Eject(speed, angleDeg, verticalAngleDeg)</code> releases and throws held balls; the horizontal angle follows the kicker convention, while the optional vertical angle applies to Spatial and Cylindrical magnets.</p>
+<h2 id="spatial-and-kinematic-magnets">Spatial and Kinematic Magnets</h2>
+<p>Use <strong>Spatial</strong> when a mechanism must carry a ball away from the playfield. The transform is the 3-D hold point, and a grabbed ball is pulled toward it while remaining a normal colliding physics object.</p>
+<p>Enable <strong>Is Kinematic</strong> only when the magnet's transform moves during gameplay. The field then follows the transform position and a held ball inherits the carrier motion. Playfield and Cylindrical fields remain aligned to the playfield normal; transform rotation does not tilt their field axis.</p>
+<h2 id="turntable-setup">Turntable Setup</h2>
+<p>Add a <strong>Turntable</strong> component with <em>Add Component -&gt; Pinball -&gt; Mechs -&gt; Turntable</em>. Place it at the disc center and set <strong>Radius</strong> to cover the area where the spinning disc should affect the ball. Turntable Radius and Height Range are authored in millimeters, as indicated by their inspector unit labels. <strong>Height Range</strong> prevents the disc from affecting balls on ramps above it; zero removes that limit.</p>
+<p>Turntables expose two coils:</p>
+<table>
+<thead>
+<tr>
+<th>Device item</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>motor_coil</code></td>
+<td>Turns the motor on while active.</td>
+</tr>
+<tr>
+<td><code>direction_coil</code></td>
+<td>Selects clockwise while active and counter-clockwise while inactive.</td>
+</tr>
+</tbody>
+</table>
+<p>The turntable ramps toward <strong>Max Speed</strong> using <strong>Spin Up</strong>, then ramps toward zero using <strong>Spin Down</strong> after the motor turns off. Assign <strong>Rotation Target</strong> to the visible disc mesh if it should rotate with the simulated speed. Enable <strong>Is Kinematic</strong> only if the entire turntable moves during gameplay.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/manual/mechanisms/magnets.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2026 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    if (window.mermaid) {
+      const getMermaidConfig = () => {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        return {
+          startOnLoad: false,
+          theme: 'base',
+          treeView: isDark ? {
+            labelColor: '#f8f9fa',
+            lineColor: '#b7bcc4'
+          } : {
+            labelColor: '#212529',
+            lineColor: '#8a8f98'
+          },
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: '#1f2328',
+            primaryColor: '#1f2328',
+            primaryTextColor: '#f8f9fa',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#292e33',
+            secondaryTextColor: '#f8f9fa',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#20242a',
+            tertiaryTextColor: '#f8f9fa',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#292e33',
+            clusterBorder: '#6c757d',
+            lineColor: '#b7bcc4',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#f8f9fa',
+            mainBkg: '#1f2328',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          } : {
+            darkMode: false,
+            background: '#ffffff',
+            primaryColor: '#f6f7f9',
+            primaryTextColor: '#212529',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#ffffff',
+            secondaryTextColor: '#212529',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#eceff3',
+            tertiaryTextColor: '#212529',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#f3f3f3',
+            clusterBorder: '#c7cbd1',
+            lineColor: '#8a8f98',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#212529',
+            mainBkg: '#f6f7f9',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          }
+        };
+      };
+
+      const initializeMermaidBlocks = () => {
+        const mermaidBlocks = document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid, pre code.mermaid');
+        mermaidBlocks.forEach((block) => {
+          const pre = block.parentElement;
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.dataset.mermaidSource = block.textContent;
+          container.textContent = block.textContent;
+          pre.replaceWith(container);
+        });
+      };
+
+      const renderMermaidBlocks = async () => {
+        const mermaidContainers = document.querySelectorAll('.mermaid[data-mermaid-source]');
+        if (mermaidContainers.length === 0) {
+          return;
+        }
+
+        mermaid.initialize(getMermaidConfig());
+
+        mermaidContainers.forEach((container) => {
+          container.removeAttribute('data-processed');
+          container.innerHTML = '';
+          container.textContent = container.dataset.mermaidSource;
+        });
+
+        await mermaid.run({ querySelector: '.mermaid[data-mermaid-source]' });
+      };
+
+      initializeMermaidBlocks();
+      renderMermaidBlocks();
+
+      let currentMermaidTheme = document.documentElement.getAttribute('data-bs-theme');
+      new MutationObserver(() => {
+        const nextTheme = document.documentElement.getAttribute('data-bs-theme');
+        if (nextTheme !== currentMermaidTheme) {
+          currentMermaidTheme = nextTheme;
+          renderMermaidBlocks();
+        }
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    }
+
+    const updateAffixHighlight = () => {
+      const affix = document.getElementById('affix');
+      if (!affix) {
+        return;
+      }
+
+      const links = Array.from(affix.querySelectorAll('a[href^="#"]'));
+      if (links.length === 0) {
+        return;
+      }
+
+      const sections = links.map((link) => {
+        const id = decodeURIComponent(link.getAttribute('href').slice(1));
+        const heading = document.getElementById(id);
+        return heading ? { link, heading } : null;
+      }).filter(Boolean);
+
+      if (sections.length === 0) {
+        return;
+      }
+
+      const threshold = 140;
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.heading.getBoundingClientRect().top - threshold <= 0) {
+          current = section;
+        } else {
+          break;
+        }
+      }
+
+      links.forEach((link) => {
+        link.classList.toggle('is-current', link === current.link);
+        if (link === current.link) {
+          link.setAttribute('aria-current', 'location');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+    }
+
+    const affixRoot = document.getElementById('affix');
+    if (affixRoot) {
+      let affixFrame = null;
+      const scheduleAffixHighlight = () => {
+        if (affixFrame !== null) {
+          cancelAnimationFrame(affixFrame);
+        }
+        affixFrame = requestAnimationFrame(() => {
+          affixFrame = null;
+          updateAffixHighlight();
+        });
+      }
+
+      scheduleAffixHighlight();
+      new MutationObserver(scheduleAffixHighlight).observe(affixRoot, { childList: true, subtree: true });
+      window.addEventListener('scroll', scheduleAffixHighlight, { passive: true });
+      window.addEventListener('resize', scheduleAffixHighlight, { passive: true });
+    }
+
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>

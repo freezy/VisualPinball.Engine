@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Insert Lighting | VPE Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Insert Lighting | VPE Documentation ">
+      
+      <meta name="description" content="Preview and place up to four virtual lamps, map them to the game, tint the plastic, and configure real light spill.">
+      <link rel="icon" href="../../../favicon.png">
+      <link rel="stylesheet" href="../../../public/docfx.min.css">
+      <link rel="stylesheet" href="../../../public/main.css">
+      <link rel="stylesheet" href="../../../public/basicLightbox.min.css">
+      <meta name="docfx:navrel" content="../../../toc.html">
+      <meta name="docfx:tocrel" content="../../toc.html">
+      
+      <meta name="docfx:rel" content="../../../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/inserts/lighting.md/#L1">
+      <meta name="loc:inThisArticle" content="Table of Contents">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../../../public/docfx.min.js"></script>
+      <script src="./../../../public/mermaid-11.14.0.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+     <script type="text/javascript">
+     var _paq = window._paq || [];
+     _paq.push(["setCookieDomain", "*.docs.visualpinball.org"]);
+     _paq.push(['trackPageView']);
+     _paq.push(['enableLinkTracking']);
+     (function() {
+       var u="//count.vpdb.io/";
+       _paq.push(['setTrackerUrl', u+'matomo.php']);
+       _paq.push(['setSiteId', '2']);
+       var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+       g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+     })();
+     </script>
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom" data-bs-theme="dark">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container flex-nowrap">
+          <a class="navbar-brand" href="../../../index.html">
+            <img id="logo" class="svg" src="../../../logo.svg" alt="">
+            
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+              <a title="VPE is open source!" class="navbar-github" href="https://github.com/freezy/VisualPinball.Engine" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 33.5 33.1" width="33.5" height="33.1"><path d="M16.7.4a16.3 16.3 0 00-5.2 31.8c.8.1 1.1-.4 1.1-.8v-2.8c-4.5 1-5.5-2.2-5.5-2.2-.6-1.9-1.7-2.4-1.7-2.4-1.5-1 .1-1 .1-1 1.6.1 2.5 1.7 2.5 1.7 1.5 2.5 3.8 1.8 4.7 1.4.1-1.1.6-1.8 1-2.2-3.6-.4-7.4-1.8-7.4-8.1 0-1.8.7-3.2 1.7-4.4-.1-.4-.7-2 .2-4.3 0 0 1.4-.4 4.5 1.7a18.4 18.4 0 018.2 0c3.1-2.1 4.5-1.7 4.5-1.7.9 2.2.3 3.9.2 4.3 1 1.1 1.7 2.6 1.7 4.4 0 6.3-3.8 7.6-7.4 8 .6.5 1.1 1.5 1.1 3v4.5c0 .4.3.9 1.1.8A16.3 16.3 0 0016.7.4z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+      <div class="toc-offcanvas">
+        <div class="offcanvas-md offcanvas-start" tabindex="-1" id="tocOffcanvas" aria-labelledby="tocOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="tocOffcanvasLabel">Table of Contents</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#tocOffcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <nav class="toc" id="toc"></nav>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="actionbar">
+          <button class="btn btn-lg border-0 d-md-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#tocOffcanvas" aria-controls="tocOffcanvas" aria-expanded="false" aria-label="Show table of contents">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="insert_lighting">
+<h1 id="insert-lighting">Insert Lighting</h1>
+
+<p>The Insert Light component drives the lamp colors and intensities seen through the body and, optionally, a real light above the insert. Every shape can have one to four lamps; a banana usually wants several along its length.</p>
+<p>The body needs a hybrid material with optical maps. If the Inspector reports that they are missing, use <em>Bake Hybrid and Use Material</em> (see <a href="baking.html">baking</a>). The material sets the full-intensity look - The Insert Light component previews and animates it.</p>
+<p>The pictures on this page show two clear inserts sharing one material, with a single setting changed at a time and everything else at its default. The upper insert is off and the lower one is lit by an incandescent lamp. Insert Light component settings change only the lit insert; <em>Number of lamps</em> and <em>Position</em> are stored in the material, so they change both. The spill pictures show a ball next to the lit insert.</p>
+<h2 id="lamps">Lamps</h2>
+<img src="lighting/inspector-lamps.png" width="340" alt="The Lamps section of an Insert Light" class="img-fluid float-end" style="margin-left: 15px">
+<ul>
+<li><em>Lamp 1</em> to <em>Lamp 4</em> preview each lamp's intensity, from 0, off, to 1, the material's <em>Max Brightness</em>. There is one slider per active lamp. In a multi-object selection, a single <em>Intensity</em> and <em>Color</em> edit the first lamp. During Play mode the game takes over: mapped lamp events overwrite these values.</li>
+<li><em>Lamp Preset</em> is the bulb under the insert, taken from a <a href="presets.html#lamp">lamp preset</a>: it sets the lamps' color, the <em>Output</em>, and the fade times. <em>Custom</em> keeps the values as they are, following no preset. <em>Manage</em> opens the <a href="presets.html"><em>Insert Presets</em></a> window.</li>
+<li><em>Apply to All Lamps</em> puts the same bulb under every insert of the table. Editing the light's color, output or fades switches <em>Lamp Preset</em> to <em>Custom</em>. When the preset itself was changed since, <em>Reset to Preset</em> takes its values again.</li>
+<li><em>Name</em> is what <em>Lamp Manager</em> calls that lamp. Empty names show as <em>Bulb 1</em>, <em>Bulb 2</em>, and so on; names like Left, Center, and Right make mapping easier.</li>
+</ul>
+<p>The other settings are described below, each with how it looks.</p>
+<div style="clear: both"></div>
+<table>
+<thead>
+<tr>
+<th>Intensity 0</th>
+<th>0.5</th>
+<th>1 (default)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="lighting/intensity-0.png" width="240" alt="Intensity 0"></td>
+<td><img src="lighting/intensity-0.5.png" width="240" alt="Intensity 0.5"></td>
+<td><img src="lighting/intensity-1.png" width="240" alt="Intensity 1"></td>
+</tr>
+</tbody>
+</table>
+<p>An insert whose lamp is mapped as <em>RGB</em> or <em>RGB Multi</em> in <a href="../lamp-manager.html"><em>Lamp Manager</em></a> is an RGB LED whatever the rest of the table runs: the game drives its color and fading, so no preset is applied to it, and its Insert Light component says so instead of offering a lamp preset. The <em>Incandescent</em> and <em>LED</em> buttons in <a href="../lamp-manager.html#lamp-type"><em>Lamp Manager</em></a> switch every other insert at once and also give the table's other lamps the fades. An insert driven by a parent VPE Light component fades with that component's settings instead.</p>
+<h3 id="output">Output</h3>
+<p><em>Output</em> is how much light the bulb gives, relative to a #44 filament. It scales every lamp's lit look and the spill alike, at every intensity, without touching the material's <em>Max Brightness</em>. The lamp preset sets it: 1 for an incandescent bulb, 3 for an LED.</p>
+<table>
+<thead>
+<tr>
+<th>0.25</th>
+<th>1 (default, incandescent)</th>
+<th>3 (LED)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="lighting/output-0.25.png" width="240" alt="Output 0.25"></td>
+<td><img src="lighting/output-1.png" width="240" alt="Output 1"></td>
+<td><img src="lighting/output-3.png" width="240" alt="Output 3"></td>
+</tr>
+</tbody>
+</table>
+<p>An insert that already clips to white does not get whiter with more output; the difference shows in its fall-off, its spill and its bloom.</p>
+<h3 id="color">Color</h3>
+<p><em>Color</em> is each lamp's color, independent of the plastic's tint. The lamp preset sets it for every lamp, and each lamp can still get its own RGB mapping. It is the swatch in each lamp's row.</p>
+<table>
+<thead>
+<tr>
+<th>Incandescent (default)</th>
+<th>White</th>
+<th>Red</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="lighting/color-incandescent.png" width="240" alt="Incandescent lamp"></td>
+<td><img src="lighting/color-white.png" width="240" alt="White lamp"></td>
+<td><img src="lighting/color-red.png" width="240" alt="Red lamp"></td>
+</tr>
+</tbody>
+</table>
+<p>A blue insert is the dimmest on an incandescent table: a warm filament has little blue to give, and the blue plastic keeps the rest. Where a table needs it brighter all the same, raise <em>Max Brightness</em> in its body material, as described under <a href="basics.html#material-changes">Material changes</a>.</p>
+<h3 id="number-of-lamps">Number of lamps</h3>
+<p><em>Number of lamps</em> is how many virtual lamps the insert has, from 1 to 4, each with its own row, intensity slider, and mapping. The count is stored in the body material; lowering it keeps the disabled lamps' placement for later.</p>
+<table>
+<thead>
+<tr>
+<th>1 (default)</th>
+<th>2</th>
+<th>3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="lighting/lamps-1.png" width="240" alt="One lamp"></td>
+<td><img src="lighting/lamps-2.png" width="240" alt="Two lamps"></td>
+<td><img src="lighting/lamps-3.png" width="240" alt="Three lamps"></td>
+</tr>
+</tbody>
+</table>
+<p>Preview one lamp at a time before checking how their bright regions overlap.</p>
+<h3 id="position">Position</h3>
+<p><em>Position (mm)</em> is each lamp's place relative to the insert, in local X, Y, and Z, in millimeters. X and Z move the bright region across the insert; the pictures move the lamp along the insert's length. Y is the lamp's depth below the rim, negative downward: a shallow lamp makes a small, hot spot, and a deep one spreads its light evenly and dims it.</p>
+<table>
+<thead>
+<tr>
+<th>Z −12 mm</th>
+<th>0 (default)</th>
+<th>+12 mm</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="lighting/position-z-n12.png" width="240" alt="Z −12 mm"></td>
+<td><img src="lighting/position-z-0.png" width="240" alt="Z 0 mm"></td>
+<td><img src="lighting/position-z-p12.png" width="240" alt="Z +12 mm"></td>
+</tr>
+</tbody>
+</table>
+<p>Drag the labeled circular handles in Scene view to move lamps in the insert's local XZ plane. The handles keep their Y height; edit Y in the Inspector to move a lamp vertically. Lamp count and position edits are disabled during Play mode and for read-only materials.</p>
+<p><em>Bulbs</em>, <em>Position</em>, and <em>Radius</em> in the <a href="body-material.html#virtual-lamp">body material</a> refer to the same virtual lamps. <em>Radius</em> is shared by the active lamps and is edited in that material Inspector. Lamp placements and radius are material settings, so all inserts sharing the material share that layout.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p><strong>A virtual lamp is a shader image.</strong> Its position describes where the optical shader looks for a bulb. It is not a Unity Light component and moving it does not move the spill light. Colors and intensities are passed as per-renderer material overrides, so different insert objects can animate independently while sharing a material.</p>
+</div>
+<h3 id="tint-with-lamp">Tint With Lamp</h3>
+<p><em>Tint With Lamp</em> turns the hue and saturation of the body and the cover's haze toward the lamp's color while it is lit. Off keeps their own hues. <em>Tint Amount</em> is how far they turn, from 0 to 1, at full intensity: zero keeps the plastic's own look, one takes the lamp's hue fully where its light reaches. A color is darker than the gray it replaces, so while the lamp is weak a clear body and a clear cover keep enough of their gray to hold three fifths of their brightness, pink rather than dark red under a red lamp, and give it up as the lamp's own glow takes over above a third of full. A clear body with <em>Room Return</em> gives back the rest of the brightness the room light gave it, as a brighter color of the lamp's hue, as far as that hue allows, lit by whatever lights the table.</p>
+<table>
+<thead>
+<tr>
+<th>Off (default)</th>
+<th>Tint Amount 0.5</th>
+<th>Tint Amount 1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="lighting/tint-off.png" width="240" alt="Blue lamp, no tint"></td>
+<td><img src="lighting/tint-0.5.png" width="240" alt="Blue lamp, tint 0.5"></td>
+<td><img src="lighting/tint-1.png" width="240" alt="Blue lamp, tint 1"></td>
+</tr>
+</tbody>
+</table>
+<p>Shown with a blue lamp, as an RGB LED would give. The blend keeps the color's brightness. It does not make the body emit on its own, an off lamp leaves the plastic's tint intact, and a white lamp changes nothing. With several colored lamps, the blend follows their positions and <em>Lamp Spread</em>, so a long insert can be red at one end and blue at the other. This helps a neutral haze keep the color of an RGB lamp.</p>
+<h2 id="state">State</h2>
+<img src="lighting/inspector-state.png" width="340" alt="The State section of an Insert Light" class="img-fluid float-end" style="margin-left: 15px">
+<ul>
+<li><em>State</em> is the lamp's status when the game starts: <em>Off</em>, <em>On</em>, or <em>Blinking</em>. The game's lamp events take over from there.</li>
+<li><em>Blink Pattern</em> is the blink sequence as ones and zeros, one step per interval, such as 10 or 1100. Empty blinks on and off.</li>
+<li><em>Blink Interval (ms)</em> is how long each step of the pattern lasts, in milliseconds. Zero is a second.</li>
+<li><em>Fade Up (s)</em> is the time the lamp takes to reach full intensity, in seconds.</li>
+<li><em>Fade Down (s)</em> is the time the lamp takes to turn off, in seconds.</li>
+</ul>
+<p>The lamp preset sets both fade times. An insert under a VPE Light component uses that component's settings instead.</p>
+<div style="clear: both"></div>
+<h2 id="spill">Spill</h2>
+<img src="lighting/inspector-spill.png" width="340" alt="The Spill section of an Insert Light" class="img-fluid float-end" style="margin-left: 15px">
+<p>A glowing insert does not by itself light anything around it. A spill light does: a real Unity Light component driven by the active lamps, which lights the ball and whatever else is above the insert.</p>
+<ul>
+<li><em>Light</em> is the Unity Light component driven by the lamps. Its transform remains editable, so you can aim it. Without one, <em>Add Spill Light</em> creates a wide spot just under the insert, pointing up through it, and assigns it.</li>
+<li><em>Configured Spill</em> is what the light puts out at the current preview: Lumens × Max Brightness × Output × Insert Brightness × Intensity.</li>
+<li><em>Make It a Spot Light</em> appears for an older point-light spill and turns it into the wide upward spot.</li>
+</ul>
+<div style="clear: both"></div>
+<h3 id="lumens">Lumens</h3>
+<p><em>Lumens</em> is the spill's output per active lamp at <em>Max Brightness</em> 1 and full intensity.</p>
+<table>
+<thead>
+<tr>
+<th>0</th>
+<th>1.5 (default)</th>
+<th>6</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="lighting/lumens-0.png" width="240" alt="Lumens 0"></td>
+<td><img src="lighting/lumens-1.5.png" width="240" alt="Lumens 1.5"></td>
+<td><img src="lighting/lumens-6.png" width="240" alt="Lumens 6"></td>
+</tr>
+</tbody>
+</table>
+<p>The glow under the ball is the spill; the bright spot reflected in it is the insert itself, there at every setting.</p>
+<p>For several lamps, the output is <strong>Lumens × Max Brightness × Output × Insert Brightness × sum of active lamp intensities</strong>. Their linear colors are averaged with intensity weights and multiplied by the hue of <em>Lamp Emission</em>. The single spill represents their combined illumination; it is not a separate real light for every virtual lamp. Insert Brightness is the table's, set in <a href="presets.html#global-controls">Lamp Manager</a>. For example, Lumens 1.5, Max Brightness 20, Output 1, Insert Brightness 1, and one lamp at 0.5 gives 15 lm. A second lamp at 0.5 brings the output to 30 lm.</p>
+<h3 id="range">Range</h3>
+<p><em>Range (m)</em> is how far the spill reaches, in meters, independent of the virtual <em>Lamp Spread</em>.</p>
+<table>
+<thead>
+<tr>
+<th>0.03 m</th>
+<th>0.1 m (default)</th>
+<th>0.3 m</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="lighting/range-0.03.png" width="240" alt="Range 0.03 m"></td>
+<td><img src="lighting/range-0.1.png" width="240" alt="Range 0.1 m"></td>
+<td><img src="lighting/range-0.3.png" width="240" alt="Range 0.3 m"></td>
+</tr>
+</tbody>
+</table>
+<p>A ball rolling over an insert is always within a few centimeters of it; a longer range reaches further but makes no difference this close.</p>
+<div class="NOTE">
+<h5>Note</h5>
+<p><strong>Default spill setup.</strong> The helper creates a wide spot with a 147° cone, a soft inner cone, a small light source, and no shadows, bounce, or volumetric contribution. Aim and range are important because the light is deliberately broad. Each enabled spill also adds a real light's rendering cost; use it where nearby objects need illumination.</p>
+</div>
+<h2 id="mapping">Mapping</h2>
+<p>Select the Insert Light component as a destination in <a href="../lamp-manager.html"><em>Lamp Manager</em></a>. A single-lamp insert offers its normal lamp item; an insert with several lamps offers a separately named item for each lamp. Map each game output to the intended item.</p>
+<p>Use <em>Single On/Off</em> for binary output, <em>Single Fading</em> for stepped intensity, and <em>RGB</em> for a color-and-intensity output. For separate red, green, and blue game outputs, use <em>RGB Multi</em> with the appropriate channel on each mapping; an optional alpha channel drives intensity. The Insert Light component is also available to <a href="../../manual/mechanisms/light-groups.html">Light Groups</a> and as a <a href="../wire-manager.html"><em>Wire Manager</em></a> destination.</p>
+<p>During Play mode, mapped lamp events overwrite preview drive values. An unmapped Insert Light component can follow a parent VPE Light component, while direct lamp/wire control takes precedence. Without either driver, the Inspector values remain the manual control.</p>
+<div class="TIP">
+<h5>Tip</h5>
+<p>Test the unlit state, each lamp separately, and the combined state. A material that looks good with every lamp at one can still be too bright where colors overlap or too dark at the far end when only one lamp is on.</p>
+</div>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/freezy/VisualPinball.Engine/blob/master/VisualPinball.Unity/Documentation~/creators-guide/editor/inserts/lighting.md/#L1" class="edit-link">Improve this Page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          <span>Copyright © 2026 VPE Team</span>
+        </div>
+      </div>
+    </footer>
+    <script src="./../../../public/basicLightbox.min.js"></script>
+    <script type="text/javascript">
+    if (window.mermaid) {
+      const getMermaidConfig = () => {
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        return {
+          startOnLoad: false,
+          theme: 'base',
+          treeView: isDark ? {
+            labelColor: '#f8f9fa',
+            lineColor: '#b7bcc4'
+          } : {
+            labelColor: '#212529',
+            lineColor: '#8a8f98'
+          },
+          themeVariables: isDark ? {
+            darkMode: true,
+            background: '#1f2328',
+            primaryColor: '#1f2328',
+            primaryTextColor: '#f8f9fa',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#292e33',
+            secondaryTextColor: '#f8f9fa',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#20242a',
+            tertiaryTextColor: '#f8f9fa',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#292e33',
+            clusterBorder: '#6c757d',
+            lineColor: '#b7bcc4',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#f8f9fa',
+            mainBkg: '#1f2328',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          } : {
+            darkMode: false,
+            background: '#ffffff',
+            primaryColor: '#f6f7f9',
+            primaryTextColor: '#212529',
+            primaryBorderColor: '#6c757d',
+            secondaryColor: '#ffffff',
+            secondaryTextColor: '#212529',
+            secondaryBorderColor: '#6c757d',
+            tertiaryColor: '#eceff3',
+            tertiaryTextColor: '#212529',
+            tertiaryBorderColor: '#6c757d',
+            clusterBkg: '#f3f3f3',
+            clusterBorder: '#c7cbd1',
+            lineColor: '#8a8f98',
+            edgeLabelBackground: 'rgba(0,0,0,0)',
+            textColor: '#212529',
+            mainBkg: '#f6f7f9',
+            fontFamily: 'Inter, Segoe UI, Tahoma, Helvetica, sans-serif'
+          }
+        };
+      };
+
+      const initializeMermaidBlocks = () => {
+        const mermaidBlocks = document.querySelectorAll('pre code.lang-mermaid, pre code.language-mermaid, pre code.mermaid');
+        mermaidBlocks.forEach((block) => {
+          const pre = block.parentElement;
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.dataset.mermaidSource = block.textContent;
+          container.textContent = block.textContent;
+          pre.replaceWith(container);
+        });
+      };
+
+      const renderMermaidBlocks = async () => {
+        const mermaidContainers = document.querySelectorAll('.mermaid[data-mermaid-source]');
+        if (mermaidContainers.length === 0) {
+          return;
+        }
+
+        mermaid.initialize(getMermaidConfig());
+
+        mermaidContainers.forEach((container) => {
+          container.removeAttribute('data-processed');
+          container.innerHTML = '';
+          container.textContent = container.dataset.mermaidSource;
+        });
+
+        await mermaid.run({ querySelector: '.mermaid[data-mermaid-source]' });
+      };
+
+      initializeMermaidBlocks();
+      renderMermaidBlocks();
+
+      let currentMermaidTheme = document.documentElement.getAttribute('data-bs-theme');
+      new MutationObserver(() => {
+        const nextTheme = document.documentElement.getAttribute('data-bs-theme');
+        if (nextTheme !== currentMermaidTheme) {
+          currentMermaidTheme = nextTheme;
+          renderMermaidBlocks();
+        }
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+    }
+
+    const updateAffixHighlight = () => {
+      const affix = document.getElementById('affix');
+      if (!affix) {
+        return;
+      }
+
+      const links = Array.from(affix.querySelectorAll('a[href^="#"]'));
+      if (links.length === 0) {
+        return;
+      }
+
+      const sections = links.map((link) => {
+        const id = decodeURIComponent(link.getAttribute('href').slice(1));
+        const heading = document.getElementById(id);
+        return heading ? { link, heading } : null;
+      }).filter(Boolean);
+
+      if (sections.length === 0) {
+        return;
+      }
+
+      const threshold = 140;
+      let current = sections[0];
+      for (const section of sections) {
+        if (section.heading.getBoundingClientRect().top - threshold <= 0) {
+          current = section;
+        } else {
+          break;
+        }
+      }
+
+      links.forEach((link) => {
+        link.classList.toggle('is-current', link === current.link);
+        if (link === current.link) {
+          link.setAttribute('aria-current', 'location');
+        } else {
+          link.removeAttribute('aria-current');
+        }
+      });
+    }
+
+    const affixRoot = document.getElementById('affix');
+    if (affixRoot) {
+      let affixFrame = null;
+      const scheduleAffixHighlight = () => {
+        if (affixFrame !== null) {
+          cancelAnimationFrame(affixFrame);
+        }
+        affixFrame = requestAnimationFrame(() => {
+          affixFrame = null;
+          updateAffixHighlight();
+        });
+      }
+
+      scheduleAffixHighlight();
+      new MutationObserver(scheduleAffixHighlight).observe(affixRoot, { childList: true, subtree: true });
+      window.addEventListener('scroll', scheduleAffixHighlight, { passive: true });
+      window.addEventListener('resize', scheduleAffixHighlight, { passive: true });
+    }
+
+    for (const img of document.querySelectorAll('img:not(#logo)')) {
+      img.onclick = () => {
+        basicLightbox.create(`<img src="${img.src}">`).show()
+        if (img.parentElement.tagName === 'A') {
+          img.parentElement.href = 'javascript:void(0)'
+          img.parentElement.target = '_self'
+        }
+      }
+    }
+    </script>
+  </body>
+</html>
