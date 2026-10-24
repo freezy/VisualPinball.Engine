@@ -4,10 +4,12 @@
 #include <algorithm>
 #include <atomic>
 #include <array>
+#include <chrono>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <limits>
+#include <string>
 #include <thread>
 #include <vector>
 namespace {
@@ -16,7 +18,7 @@ void Check(bool value, const char* message) { ++checks; if (!value) { std::fprin
 bool Near(float a,float b) { return std::abs(a-b)<.00001f; }
 struct Session { void* c=VpePcmCreate(); ~Session(){VpePcmDestroy(c);} };
 }
-int main() {
+int main(int argc, char** argv) {
 	for (int rate : {22050,44100,48000,96000}) {
 		Session s; std::array<float,8> clip{{.1f,.2f,.3f,.4f,.5f,.6f,.7f,.8f}};
 		int bank=VpePcmRegisterClip(s.c,clip.data(),4,2,rate);
@@ -134,6 +136,26 @@ int main() {
 		VpePcmPreviewClip(s.c, clip, 0); VpePcmRender(s.c, output.data(), 512, 2, 48000, 1);
 		VpePcmRender(s.c, output.data(), 512, 2, 24000, 1);
 		Check(std::all_of(output.begin(), output.end(), [](float value) { return value == 0; }), "device sample-rate changes cancel preview safely");
+	}
+	{
+		Check(VpePcmOutputCreate(nullptr, 48000, 0) == nullptr, "device output needs a graph");
+		Session s; Check(VpePcmOutputCreate(s.c, 1000, 0) == nullptr, "device output rejects invalid rates");
+		Check(VpePcmOutputMetrics(nullptr, nullptr, 13) == 0, "metrics of a missing output are refused");
+		VpePcmOutputDestroy(nullptr); VpePcmOutputSetPaused(nullptr, 1);
+		// Needs a real playback device, so it only runs when asked to (--live-output).
+		if (argc > 1 && std::string(argv[1]) == "--live-output") {
+			std::array<float, 960> tick{}; tick[0] = .001f; int clip = VpePcmRegisterClip(s.c, tick.data(), 960, 1, 48000);
+			void* output = VpePcmOutputCreate(s.c, 48000, 0);
+			Check(output != nullptr, "live device output opens the default endpoint");
+			auto id = VpePcmPlay(s.c, clip, 0, 1, 1, 0, 0);
+			std::this_thread::sleep_for(std::chrono::milliseconds(300));
+			std::array<float, 13> metrics{}; Check(VpePcmOutputMetrics(output, metrics.data(), 13) == 1, "live metrics");
+			std::printf("live output: state %.0f, callbacks %.0f, period %.2f ms, buffer %.2f ms, queued %.2f ms, margin %.2f ms, underruns %.0f, max wake gap %.2f ms\n",
+				metrics[0], metrics[1], metrics[2], metrics[3], metrics[4], metrics[5], metrics[6], metrics[12]);
+			Check(metrics[0] == 1 && metrics[1] > 10, "live output keeps rendering");
+			Check(!VpePcmActive(s.c, id), "live output advances one-shot voices");
+			VpePcmOutputDestroy(output);
+		}
 	}
 	std::printf("Passed %d PCM renderer checks\n",checks);
 }

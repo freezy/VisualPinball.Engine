@@ -21,6 +21,7 @@ namespace VisualPinball.Unity
 		private readonly float[] _busLevels = { 1, 1, 1, 1, 1, 1, 1 };
 		private readonly float[] _meters = new float[12];
 		private readonly float[] _processingMeters = new float[16];
+		private readonly float[] _outputMetrics = new float[NativePcmSession.OutputMetricCount];
 		private float[] _pendingProcessing;
 		private bool _prepareProcessing;
 		private NativePcmSession _session;
@@ -46,6 +47,16 @@ namespace VisualPinball.Unity
 		public float RomUnderruns => _meters[7];
 		public float RomOverruns => _meters[8];
 		public float DroppedCommands => _meters[10];
+		/// <summary>
+		/// Whether new renderers play through the graph's own low-latency device stream (Windows WASAPI)
+		/// instead of a Unity audio callback, which adds Unity's mixer ring and FMOD's device buffer.
+		/// Unity's callback remains the fallback when no device stream opens.
+		/// </summary>
+		public static bool PreferDeviceOutput { get; set; } = true;
+		public bool DeviceOutput => _session?.HasDeviceOutput == true;
+		/// <summary>Audio queued in the device stream after the last write, or 0 on Unity's callback.</summary>
+		public float DeviceOutputQueuedMs => DeviceOutput ? _outputMetrics[4] : 0;
+		public float DeviceOutputUnderruns => DeviceOutput ? _outputMetrics[6] : 0;
 		public float EqResponseDb(int route, float hz) => _session?.EqResponse(route, hz) ?? 0;
 		public float CompressorReductionDb(int route) => route >= 0 && route < 8 ? _processingMeters[route] : 0;
 		public static PcmAudioRenderer Current { get { foreach (var renderer in Active) if (renderer && renderer.IsReady) return renderer; return null; } }
@@ -89,19 +100,25 @@ namespace VisualPinball.Unity
 				if (!_prepareProcessing && _session.SetProcessing(_pendingProcessing)) _pendingProcessing = null;
 				Array.Copy(GlobalLevels, _busLevels, GlobalLevels.Length); Active.Add(this);
 				_playfield = GetComponentInChildren<PlayfieldComponent>(true);
-				var outputObject = new GameObject("VPE central PCM output"); outputObject.transform.SetParent(transform, false);
-				_callback = outputObject.AddComponent<PcmAudioOutput>(); _callback.Session = _session; _callback.SampleRate = _rate;
-				_output = outputObject.AddComponent<AudioSource>();
-				_silence = AudioClip.Create("VPE PCM carrier", 32, 2, _rate, false);
-				_output.clip = _silence; _output.loop = true; _output.playOnAwake = false; _output.spatialBlend = 0;
-				_output.spatialize = false; _output.dopplerLevel = 0; _output.priority = 0; _output.ignoreListenerPause = true;
-				_output.bypassReverbZones = true; _output.Play();
 				for (int i = 0; i < _busLevels.Length; ++i) NativePcmSession.VpePcmSetBusGain(_session.Context, i, _busLevels[i]);
+				if (!PreferDeviceOutput || !_session.StartDeviceOutput(_rate, AudioListener.pause || _applicationPaused)) CreateCarrier();
 				AudioSettings.OnAudioConfigurationChanged += ConfigurationChanged;
-				Status = _session.ProcessingSupported ? "Central stereo PCM; stereo DSP available" : "Central stereo PCM (dry); update native plugin to enable effects";
+				Status = (_session.HasDeviceOutput ? "Central stereo PCM, low-latency output" : "Central stereo PCM")
+					+ (_session.ProcessingSupported ? "; stereo DSP available" : " (dry); update native plugin to enable effects");
 			} catch (Exception error) {
 				Status = "Reference fallback: " + error.Message; Diagnose(Status); Shutdown();
 			}
+		}
+		/// <summary>Unity audio callback that renders the graph when no device stream is open.</summary>
+		private void CreateCarrier()
+		{
+			var outputObject = new GameObject("VPE central PCM output"); outputObject.transform.SetParent(transform, false);
+			_callback = outputObject.AddComponent<PcmAudioOutput>(); _callback.Session = _session; _callback.SampleRate = _rate;
+			_output = outputObject.AddComponent<AudioSource>();
+			_silence = AudioClip.Create("VPE PCM carrier", 32, 2, _rate, false);
+			_output.clip = _silence; _output.loop = true; _output.playOnAwake = false; _output.spatialBlend = 0;
+			_output.spatialize = false; _output.dopplerLevel = 0; _output.priority = 0; _output.ignoreListenerPause = true;
+			_output.bypassReverbZones = true; _output.Play();
 		}
 		private void LateUpdate()
 		{
@@ -110,8 +127,10 @@ namespace VisualPinball.Unity
 			if (!_prepareProcessing && _pendingProcessing != null && _session.SetProcessing(_pendingProcessing)) _pendingProcessing = null;
 			bool paused = AudioListener.pause || _applicationPaused;
 			Volatile.Write(ref _paused, paused ? 1 : 0); _rom?.SetPaused(paused);
-			Volatile.Write(ref _callback.Paused, paused ? 1 : 0);
-			if (!_output.isPlaying && !paused) _output.Play(); // AudioSettings.Reset can stop the carrier.
+			_session.SetDeviceOutputPaused(paused);
+			if (_callback) Volatile.Write(ref _callback.Paused, paused ? 1 : 0);
+			if (_output && !_output.isPlaying && !paused) _output.Play(); // AudioSettings.Reset can stop the carrier.
+			_session.DeviceOutputMetrics(_outputMetrics);
 			if (!_romAttempted && _session.RenderedBlocks > 0) {
 				_romAttempted = true;
 				var player = GetComponentInChildren<Player>(true);
@@ -170,8 +189,11 @@ namespace VisualPinball.Unity
 		private void ConfigurationChanged(bool changed)
 		{
 			_session?.Preview(0, false);
+			var previousRate = _rate;
 			Volatile.Write(ref _rate, AudioSettings.outputSampleRate);
 			if (_callback) Volatile.Write(ref _callback.SampleRate, _rate);
+			// The device stream follows device changes itself; it only reopens to render at Unity's new rate.
+			if (_session?.HasDeviceOutput == true && _rate != previousRate && !_session.StartDeviceOutput(_rate, Paused)) CreateCarrier();
 			if (_session?.ProcessingSupported == true) _prepareProcessing = true;
 			if (IsReady) NativePcmSession.VpePcmFlushStream(_session.Context);
 			if (AudioSettings.GetConfiguration().speakerMode != AudioSpeakerMode.Stereo) {
@@ -185,6 +207,7 @@ namespace VisualPinball.Unity
 			_applicationPaused = paused;
 			bool outputPaused = paused || AudioListener.pause;
 			Volatile.Write(ref _paused, outputPaused ? 1 : 0);
+			_session?.SetDeviceOutputPaused(outputPaused);
 			if (_callback) Volatile.Write(ref _callback.Paused, outputPaused ? 1 : 0);
 			_rom?.SetPaused(outputPaused);
 		}
