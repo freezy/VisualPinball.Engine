@@ -55,9 +55,11 @@ namespace VisualPinball.Unity.Test
 				AssetDatabase.ImportAsset(wav);
 				var first = ScriptableObject.CreateInstance<SoundEffectAsset>();
 				first.Clips = new[] { AssetDatabase.LoadAssetAtPath<AudioClip>(wav) };
+				first.BusId = SoundBuses.Transients;
 				AssetDatabase.CreateAsset(first, assetFolder + "/first.asset");
 				var second = ScriptableObject.CreateInstance<SoundEffectAsset>();
 				second.Clips = first.Clips;
+				second.BusId = "future.bus";
 				AssetDatabase.CreateAsset(second, assetFolder + "/second.asset");
 				source.AddComponent<TableComponent>();
 				source.isStatic = true;
@@ -84,6 +86,9 @@ namespace VisualPinball.Unity.Test
 				Assert.That(restored, Is.Not.Null, "flipper component");
 				Assert.That(restored.Attack, Is.Not.Null, "attack bank");
 				Assert.That(restored.Up, Is.Not.Null, "up bank");
+				Assert.That(restored.Attack.BusId, Is.EqualTo(SoundBuses.Transients));
+				Assert.That(restored.Up.BusId, Is.EqualTo("future.bus"), "unknown routes survive round-trip");
+				Assert.That(SoundBuses.Resolve(restored.Up, SoundBuses.Rolling), Is.EqualTo(SoundBuses.Rolling), "unknown routes use the component's compatible automatic default");
 				Assert.That(restored.Attack, Is.SameAs(restored.Reflip));
 				Assert.That(restored.Down, Is.Null);
 				Assert.That(restored.Attack.Clips[0], Is.Not.Null, "packed audio clip");

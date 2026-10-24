@@ -95,3 +95,14 @@ Collision voices require a non-looping profile; the inspector reports looping as
 Impacts retain VPX callback eligibility: they must exceed the contact cutoff and meet the item's hit threshold even when scoring hit events are disabled. Flipper impacts retain VPX's 250 ms per-flipper callback debounce and exclude contacts reported as a simple Hit instead of Collide. The per-ball profile retrigger clock applies after these solver eligibility checks.
 
 Profiles, rule parameters, component source and gain, and every referenced clip are included in the .vpe package and restored by the runtime importer. Collision sounds do not implement rolling audio.
+
+
+## Player processing
+
+In the Player, open **Settings → Sound**. Under **Volume & playback**, choose **Stereo effects** and reload the table. The controls preview live. **Apply** in the fixed footer saves them for the game; **Revert** restores saved settings. Unapplied edits stay available when you return to the game or switch editing scope, and the footer identifies them as unsaved. A failed Apply preserves the draft and reports the failure instead of discarding it. **All tables** and **This table** at the top right select which sound preferences you are editing. The scope note names the table and explains inheritance. **Use settings from All tables** removes its override. Volume and playback controls inside the separately labelled global section continue to apply to every table.
+
+**Original** disables processing. **Desktop room** and **Headphones** add subtle ambience to mechanical sounds; **Night** reduces the gap between quiet sounds and loud hits. Adjusting a setting changes the preset to **Custom** and clears its highlight. EQ, compression, room ambience and peak protection each have their own switch; inactive controls are hidden. Each clearly labelled **Advanced** section expands only that effect's detailed controls. Individual sound groups can be selected separately in the advanced group selector.
+
+**Play flipper** auditions an actual recording through the selected sound settings, including while the game stays paused. **Play original** auditions the same recording with effects temporarily bypassed; it does not change saved settings. Both previews are bounded to three seconds, and leaving settings stops them. Playback details include output and gain-reduction meters. The sample-peak limiter retains approximately 1 ms of lookahead; device buffering is additional.
+
+These preferences belong to the Player, are never packaged in a table, and need neither an asset-library dependency nor a new table export. The Player includes the preview recording with its source credit and asset-library license. Authored custom mixer routes, unsupported clips and externally owned ROM playback keep their existing route. DSP requires the updated native plugin; the standard playback route remains available. SSF and surround calibration are separate from this stereo release.

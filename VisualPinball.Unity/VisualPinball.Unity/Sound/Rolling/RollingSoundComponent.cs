@@ -183,7 +183,7 @@ namespace VisualPinball.Unity
 					session.PendingBank = null; Retarget(session, bank, response, material);
 				}
 			}
-			for (var i = _oneShots.Count - 1; i >= 0; i--) if (!_oneShots[i].Source || !_oneShots[i].Source.isPlaying) { DisposeVoice(_oneShots[i].Source); _oneShots.RemoveAt(i); }
+			for (var i = _oneShots.Count - 1; i >= 0; i--) if (!_oneShots[i].Source || !SoundPlayback.IsPlaying(_oneShots[i].Source)) { DisposeVoice(_oneShots[i].Source); _oneShots.RemoveAt(i); }
 		}
 
 		private void Retarget(Session session, SoundEffectAsset bank, RollingSoundResponse response, RollingSoundMaterialAsset material)
@@ -213,7 +213,7 @@ namespace VisualPinball.Unity
 			if (!source) { session.Active = null; return; }
 			if (slot >= 0) source.clip = bank.Clips[slot];
 			session.Active = new Voice { Source = source, Bank = bank, Slot = slot, BaseGain = MechanicalSoundGain.AuthoredLevel(source), BasePitch = source.pitch, Response = response };
-			MechanicalSoundGain.SetAuthoredLevel(source, 0); source.Play(); LoopStarts++;
+			MechanicalSoundGain.SetAuthoredLevel(source, 0); SoundPlayback.Play(source, bank, null, SoundBuses.Rolling); LoopStarts++;
 		}
 		private static bool Matches(Voice voice, SoundEffectAsset bank, int slot) => voice != null && voice.Bank == bank && voice.Slot == slot;
 		private static int SelectedSlot(SoundEffectAsset bank, RollingSoundMaterialAsset material, int slot)
@@ -264,7 +264,7 @@ namespace VisualPinball.Unity
 			var source = CreateSource(bank); if (!source) return;
 			SetPosition(source.transform, transition.Position);
 			MechanicalSoundGain.SetAuthoredLevel(source, MechanicalSoundGain.AuthoredLevel(source) * Volume * (material.Group == RollingSoundGroup.Playfield ? PlayfieldVolume : RampVolume));
-			source.Play(); _oneShots.Add(new OneShot { Source = source });
+			SoundPlayback.Play(source, bank, null, SoundBuses.Transients); _oneShots.Add(new OneShot { Source = source });
 		}
 
 		private void Advance(ref Voice voice, float deltaTime)
@@ -278,7 +278,7 @@ namespace VisualPinball.Unity
 
 		private RollingSoundMaterialAsset Material(int id) => id > 0 && id < _materials.Count ? _materials[id] : null;
 		private void SetPosition(Transform target, float3 position) => target.position = _player ? (Vector3)math.transform(_player.PlayfieldToWorldMatrix, Physics.TranslateToWorld(position.x, position.y, position.z)) : transform.position;
-		private static void DisposeVoice(AudioSource source) { if (!source) return; MechanicalSoundGain.Unregister(source); source.Stop(); if (Application.isPlaying) Destroy(source.gameObject); else DestroyImmediate(source.gameObject); }
+		private static void DisposeVoice(AudioSource source) { if (!source) return; MechanicalSoundGain.Unregister(source); SoundPlayback.Stop(source); if (Application.isPlaying) Destroy(source.gameObject); else DestroyImmediate(source.gameObject); }
 		private void DisposeSession(int ball, Session session) { if (session.Active != null) DisposeVoice(session.Active.Source); if (session.Outgoing != null) DisposeVoice(session.Outgoing.Source); if (session.Pool != null && _slots.TryGetValue(session.Pool, out var slots)) slots.Remove(ball); }
 		internal void ForgetBall(int ball) { if (_sessions.TryGetValue(ball, out var session)) { DisposeSession(ball, session); _sessions.Remove(ball); } }
 		private void StopAll() { foreach (var pair in _sessions) DisposeSession(pair.Key, pair.Value); _sessions.Clear(); _slots.Clear(); foreach (var shot in _oneShots) DisposeVoice(shot.Source); _oneShots.Clear(); }
@@ -292,7 +292,7 @@ namespace VisualPinball.Unity
 			foreach (var shot in _oneShots) PauseSource(shot.Source, paused);
 			if (!paused) _resuming = true;
 		}
-		private static void PauseSource(AudioSource source, bool paused) { if (!source) return; if (paused) source.Pause(); else source.UnPause(); }
+		private static void PauseSource(AudioSource source, bool paused) { if (!source) return; if (paused) SoundPlayback.Pause(source); else SoundPlayback.UnPause(source); }
 		private void OnApplicationPause(bool paused) => SetPaused(paused);
 		private void OnEnable() { _resuming = true; _paused = false; }
 		private void OnDisable() => StopAll();

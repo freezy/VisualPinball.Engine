@@ -35,6 +35,8 @@ namespace VisualPinball.Unity
 				: Array.Empty<string>();
 
 			return new SoundAssetMetaPackable {
+				RoutingVersion = 1,
+				BusId = soundAsset.BusId,
 				ClipRefs = clipRefs,
 				InstanceId = instanceId
 			};
@@ -43,6 +45,7 @@ namespace VisualPinball.Unity
 		public MetaPackable Unpack(byte[] bytes, SoundAsset soundAsset, PackagedFiles files)
 		{
 			var data = PackageApi.Packer.Unpack<SoundAssetMetaPackable>(bytes);
+			soundAsset.BusId = data.BusId; // Missing v0 metadata naturally selects the legacy-compatible automatic route.
 			soundAsset.Clips = data.ClipRefs.Select(files.GetAudioClip).ToArray();
 			return data;
 		}
@@ -51,5 +54,7 @@ namespace VisualPinball.Unity
 	public class SoundAssetMetaPackable : MetaPackable
 	{
 		public string[] ClipRefs;
+		public int RoutingVersion;
+		public string BusId;
 	}
 }

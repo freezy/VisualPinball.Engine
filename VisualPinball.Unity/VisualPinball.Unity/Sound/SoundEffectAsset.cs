@@ -53,6 +53,7 @@ namespace VisualPinball.Unity
 	public class SoundEffectAsset : SoundAsset
 	{
 		public override bool Loop => _loop;
+		[JsonIgnore] public SoundEffectType Type => _type;
 
 		[SerializeField, JsonProperty]
 		private Vector2 _volumeRange = new(1f, 1f);
@@ -128,7 +129,7 @@ namespace VisualPinball.Unity
 #endif
 				if (mechanical) MechanicalSoundGain.Register(audioSource);
 				MechanicalSoundGain.SetAuthoredLevel(audioSource, MechanicalSoundGain.AuthoredLevel(audioSource) * volume);
-				audioSource.Play();
+				SoundPlayback.Play(audioSource, this, audioObj);
 				using var eitherCts = CancellationTokenSource.CreateLinkedTokenSource(
 					allowFadeOutCt,
 					instantCt
@@ -178,6 +179,7 @@ namespace VisualPinball.Unity
 			finally
 			{
 				MechanicalSoundGain.Unregister(audioSource);
+				SoundPlayback.Stop(audioSource);
 				var disposable = voice ? (UnityEngine.Object)voice : audioSource;
 				if (disposable != null) {
 					if (Application.isPlaying) Destroy(disposable);
