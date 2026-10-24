@@ -55,6 +55,11 @@ namespace VisualPinball.Unity
 			foreach (var renderer in Active) renderer._pendingProcessing = GlobalProcessing.ToNative();
 		}
 		public void PreviewProcessing(int bus, bool enabled) { if (bus >= 0 && bus < 7) _session?.Preview(bus, enabled); }
+		public bool PreviewProcessing(AudioClip clip, int bus)
+		{
+			if (_pendingProcessing != null && ProcessingReady && _session.SetProcessing(_pendingProcessing)) _pendingProcessing = null;
+			return ProcessingReady && bus >= 0 && bus < 7 && TryClip(clip, out int id) && _session.PreviewClip(id, bus);
+		}
 		public static void SetGlobalBusGain(string bus, float gain)
 		{
 			int index = SoundBuses.Index(bus);
@@ -130,8 +135,13 @@ namespace VisualPinball.Unity
 			clip = -1;
 			if (!IsReady || !source.clip) return false;
 			if (source.outputAudioMixerGroup) { BypassedVoices++; Diagnose("An authored mixer group remains on Reference playback and bypasses central buses."); return false; }
-			if (_clips.TryGetValue(source.clip, out clip)) return clip >= 0;
-			var asset = source.clip;
+			return TryClip(source.clip, out clip);
+		}
+		private bool TryClip(AudioClip asset, out int clip)
+		{
+			clip = -1;
+			if (!IsReady || !asset) return false;
+			if (_clips.TryGetValue(asset, out clip)) return clip >= 0;
 			if (asset.loadState != AudioDataLoadState.Loaded) {
 				BypassedVoices++; Diagnose("A clip still loading uses Reference playback; later plays will retry the central route.");
 				return false;

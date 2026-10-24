@@ -33,4 +33,5 @@ VPE_PCM_API int VpePcmPrepareDsp(void* context, int rate);
 VPE_PCM_API int VpePcmSetProcessing(void* context, const float* values, int count);
 VPE_PCM_API int VpePcmProcessingMeters(void* context, float* values, int count);
 VPE_PCM_API void VpePcmPreview(void* context, int bus, int enabled);
+VPE_PCM_API int VpePcmPreviewClip(void* context, int clip, int bus);
 VPE_PCM_API float VpePcmEqResponse(void* context, int route, float hz);

@@ -31,6 +31,7 @@ namespace VisualPinball.Unity
 		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern int VpePcmSetProcessing(IntPtr context, float[] values, int count);
 		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern int VpePcmProcessingMeters(IntPtr context, [Out] float[] values, int count);
 		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern void VpePcmPreview(IntPtr context, int bus, int enabled);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern int VpePcmPreviewClip(IntPtr context, int clip, int bus);
 		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern float VpePcmEqResponse(IntPtr context, int route, float hz);
 		private IntPtr _context;
 		private int _readers, _blocks;
@@ -50,6 +51,12 @@ namespace VisualPinball.Unity
 		internal bool SetProcessing(float[] values) => ProcessingSupported && VpePcmSetProcessing(Context, values, values.Length) != 0;
 		internal void ProcessingMeters(float[] values) { if (ProcessingSupported) VpePcmProcessingMeters(Context, values, values.Length); }
 		internal void Preview(int bus, bool enabled) { if (ProcessingSupported) VpePcmPreview(Context, bus, enabled ? 1 : 0); }
+		internal bool PreviewClip(int clip, int bus)
+		{
+			if (!ProcessingSupported) return false;
+			try { return VpePcmPreviewClip(Context, clip, bus) != 0; }
+			catch (EntryPointNotFoundException) { return false; }
+		}
 		internal float EqResponse(int route, float hz) => ProcessingSupported ? VpePcmEqResponse(Context, route, hz) : 0;
 		internal void Render(float[] data, int channels, int rate, bool paused)
 		{
