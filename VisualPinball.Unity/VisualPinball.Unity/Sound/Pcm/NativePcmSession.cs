@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 
 namespace VisualPinball.Unity
@@ -34,12 +35,27 @@ namespace VisualPinball.Unity
 		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern int VpePcmPreviewClip(IntPtr context, int clip, int bus);
 		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern float VpePcmEqResponse(IntPtr context, int route, float hz);
 		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern IntPtr VpePcmOutputCreate(IntPtr context, int rate, int paused);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern IntPtr VpePcmOutputCreateEx(IntPtr context, int rate, int paused, int mode, int bufferFrames);
 		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern void VpePcmOutputDestroy(IntPtr output);
 		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern void VpePcmOutputSetPaused(IntPtr output, int paused);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern uint VpePcmOutputLastError();
+		/// <summary>HRESULT of the last device stream that failed to open, for diagnostics.</summary>
+		internal static uint LastDeviceOutputError { get { try { return VpePcmOutputLastError(); } catch (EntryPointNotFoundException) { return 0; } } }
 		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern int VpePcmOutputMetrics(IntPtr output, [Out] float[] values, int count);
+		// Optional GPLv3 ASIO output (VisualPinball.Native~/Asio). Same metrics layout as the WASAPI stream.
+		private const string AsioLibrary = "VpeAsio";
+		[DllImport(AsioLibrary, CallingConvention = CallingConvention.Cdecl)] private static extern IntPtr VpeAsioOutputCreate(IntPtr context, string driver, int rate, int bufferFrames, int paused, StringBuilder error, int errorLength);
+		[DllImport(AsioLibrary, CallingConvention = CallingConvention.Cdecl)] private static extern void VpeAsioOutputDestroy(IntPtr output);
+		[DllImport(AsioLibrary, CallingConvention = CallingConvention.Cdecl)] private static extern void VpeAsioOutputSetPaused(IntPtr output, int paused);
+		[DllImport(AsioLibrary, CallingConvention = CallingConvention.Cdecl)] private static extern int VpeAsioOutputMetrics(IntPtr output, [Out] float[] values, int count);
+		[DllImport(AsioLibrary, CallingConvention = CallingConvention.Cdecl)] private static extern int VpeAsioDriverCount();
+		[DllImport(AsioLibrary, CallingConvention = CallingConvention.Cdecl)] private static extern int VpeAsioDriverName(int index, StringBuilder name, int length);
+		[DllImport(AsioLibrary, CallingConvention = CallingConvention.Cdecl)] private static extern int VpeAsioShowControlPanel(string driver);
+		[DllImport(AsioLibrary, CallingConvention = CallingConvention.Cdecl)] private static extern void VpeAsioCloseControlPanel();
 		internal const int OutputMetricCount = 13;
 		private IntPtr _context, _output;
-		private int _readers, _blocks;
+		private bool _asio; // written before _output is published, only by the main thread
+		private int _readers, _blocks, _renderClosed;
 		internal IntPtr Context => Volatile.Read(ref _context);
 		internal int RenderedBlocks => Volatile.Read(ref _blocks);
 		internal bool ProcessingSupported { get; private set; }
@@ -66,43 +82,124 @@ namespace VisualPinball.Unity
 
 		/// <summary>Whether the graph plays through its own low-latency device stream instead of a Unity audio callback.</summary>
 		internal bool HasDeviceOutput => Volatile.Read(ref _output) != IntPtr.Zero;
+		internal bool HasAsioOutput => HasDeviceOutput && _asio;
 
 		/// <summary>
 		/// Opens the native device stream (Windows WASAPI). While it runs, it is the graph's only renderer, so
 		/// <see cref="Render"/> must not be fed by a Unity callback. False when unsupported or no device opened.
 		/// </summary>
-		internal bool StartDeviceOutput(int rate, bool paused)
+		internal bool StartDeviceOutput(int rate, bool paused, bool exclusive = false, int bufferFrames = 0)
 		{
 			StopDeviceOutput();
 			IntPtr output;
-			try { output = VpePcmOutputCreate(Context, rate, paused ? 1 : 0); }
-			catch (EntryPointNotFoundException) { return false; }
+			try { output = VpePcmOutputCreateEx(Context, rate, paused ? 1 : 0, exclusive ? 1 : 0, bufferFrames); }
+			catch (EntryPointNotFoundException) {
+				if (exclusive) return false;
+				try { output = VpePcmOutputCreate(Context, rate, paused ? 1 : 0); }
+				catch (EntryPointNotFoundException) { return false; }
+			}
 			if (output == IntPtr.Zero) return false;
+			_asio = false;
 			Volatile.Write(ref _output, output);
 			Interlocked.Increment(ref _blocks); // creation renders the stream's prefill
 			return true;
 		}
+
+		/// <summary>
+		/// Opens an ASIO driver for the graph. The device runs at <paramref name="rate"/>; 0 frames keeps the
+		/// driver's preferred buffer size. Only one ASIO stream can exist per process.
+		/// </summary>
+		internal bool StartAsioOutput(string driver, int rate, int bufferFrames, bool paused, out string error)
+		{
+			StopDeviceOutput();
+			var message = new StringBuilder(256);
+			IntPtr output;
+			try { output = VpeAsioOutputCreate(Context, driver, rate, bufferFrames, paused ? 1 : 0, message, message.Capacity); }
+			catch (DllNotFoundException) { error = "the ASIO library is not installed"; return false; }
+			catch (EntryPointNotFoundException) { error = "the ASIO library is outdated"; return false; }
+			error = message.ToString();
+			if (output == IntPtr.Zero) return false;
+			_asio = true;
+			Volatile.Write(ref _output, output);
+			Interlocked.Increment(ref _blocks);
+			return true;
+		}
+
+		/// <summary>
+		/// Opens an ASIO driver's own settings window, through the playing stream when it uses that driver,
+		/// otherwise by loading the driver just for the panel until <see cref="CloseAsioControlPanel"/>.
+		/// </summary>
+		internal static bool ShowAsioControlPanel(string driver)
+		{
+			try { return VpeAsioShowControlPanel(driver) != 0; }
+			catch (Exception e) when (e is DllNotFoundException || e is EntryPointNotFoundException) { return false; }
+		}
+		internal static void CloseAsioControlPanel()
+		{
+			try { VpeAsioCloseControlPanel(); }
+			catch (Exception e) when (e is DllNotFoundException || e is EntryPointNotFoundException) { }
+		}
+
+		/// <summary>
+		/// Stops Unity callbacks from rendering and waits for one already inside <see cref="Render"/>, so
+		/// a device stream can become the graph's only renderer. A callback that captured the session
+		/// earlier counts itself in before it checks the gate, so it either renders before this returns or not at all.
+		/// </summary>
+		internal void CloseCallbackRendering()
+		{
+			Interlocked.Exchange(ref _renderClosed, 1);
+			SpinWait.SpinUntil(() => Volatile.Read(ref _readers) == 0);
+		}
+		/// <summary>Lets Unity callbacks render again, for a fallback carrier.</summary>
+		internal void OpenCallbackRendering() => Interlocked.Exchange(ref _renderClosed, 0);
+
+		/// <summary>Whether this build ships the optional ASIO library.</summary>
+		internal static bool AsioAvailable
+		{
+			get {
+				try { VpeAsioDriverCount(); return true; }
+				catch (Exception e) when (e is DllNotFoundException || e is EntryPointNotFoundException) { return false; }
+			}
+		}
+
+		/// <summary>Installed ASIO drivers, empty when the ASIO library is missing.</summary>
+		internal static string[] AsioDrivers()
+		{
+			try {
+				var names = new string[VpeAsioDriverCount()];
+				for (var i = 0; i < names.Length; i++) {
+					var name = new StringBuilder(64);
+					names[i] = VpeAsioDriverName(i, name, name.Capacity) != 0 ? name.ToString() : string.Empty;
+				}
+				return names;
+			} catch (Exception e) when (e is DllNotFoundException || e is EntryPointNotFoundException) {
+				return Array.Empty<string>();
+			}
+		}
 		internal void StopDeviceOutput()
 		{
 			var output = Interlocked.Exchange(ref _output, IntPtr.Zero);
-			if (output != IntPtr.Zero) VpePcmOutputDestroy(output);
+			if (output == IntPtr.Zero) return;
+			if (_asio) VpeAsioOutputDestroy(output); else VpePcmOutputDestroy(output);
 		}
 		internal void SetDeviceOutputPaused(bool paused)
 		{
 			var output = Volatile.Read(ref _output);
-			if (output != IntPtr.Zero) VpePcmOutputSetPaused(output, paused ? 1 : 0);
+			if (output == IntPtr.Zero) return;
+			if (_asio) VpeAsioOutputSetPaused(output, paused ? 1 : 0); else VpePcmOutputSetPaused(output, paused ? 1 : 0);
 		}
 		internal bool DeviceOutputMetrics(float[] values)
 		{
 			var output = Volatile.Read(ref _output);
-			return output != IntPtr.Zero && VpePcmOutputMetrics(output, values, values.Length) != 0;
+			if (output == IntPtr.Zero) return false;
+			return (_asio ? VpeAsioOutputMetrics(output, values, values.Length) : VpePcmOutputMetrics(output, values, values.Length)) != 0;
 		}
 		internal void Render(float[] data, int channels, int rate, bool paused)
 		{
 			Interlocked.Increment(ref _readers);
 			try {
 				var context = Context;
-				if (context == IntPtr.Zero || VpePcmRender(context, data, data.Length / channels, channels, rate, paused ? 1 : 0) == 0) Array.Clear(data, 0, data.Length);
+				if (context == IntPtr.Zero || Volatile.Read(ref _renderClosed) != 0 || VpePcmRender(context, data, data.Length / channels, channels, rate, paused ? 1 : 0) == 0) Array.Clear(data, 0, data.Length);
 				else Interlocked.Increment(ref _blocks);
 			} finally { Interlocked.Decrement(ref _readers); }
 		}

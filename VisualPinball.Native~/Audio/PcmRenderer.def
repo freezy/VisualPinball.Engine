@@ -24,6 +24,8 @@ EXPORTS
  VpePcmPreviewClip
  VpePcmEqResponse
  VpePcmOutputCreate
+ VpePcmOutputCreateEx
  VpePcmOutputDestroy
  VpePcmOutputSetPaused
+ VpePcmOutputLastError
  VpePcmOutputMetrics
