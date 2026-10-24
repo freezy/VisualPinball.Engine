@@ -11,7 +11,7 @@
 #include <vector>
 
 namespace {
-constexpr int BusCount = 7, VoiceCount = 512, QueueSize = 4096, StreamSize = 8192, BlockSize = 4096;
+constexpr int BusCount = 7, VoiceCount = 512, QueueSize = 4096, StreamSize = 8192, BlockSize = 4096, StreamCount = 8, RomBus = 2;
 static_assert(std::atomic<float>::is_always_lock_free && std::atomic<std::uint64_t>::is_always_lock_free, "PCM control atomics must be lock-free");
 float Finite(float value) { return std::isfinite(value) ? value : 0.f; }
 bool Controls(float gain, float pitch, float pan) { return std::isfinite(gain) && gain >= 0 && gain <= 4 && std::isfinite(pitch) && pitch >= .01f && pitch <= 3 && std::isfinite(pan) && pan >= -1 && pan <= 1; }
@@ -20,6 +20,40 @@ struct Command { std::uint64_t id = 0; Clip* clip = nullptr; int bus = 0; float 
 struct Slot { std::atomic<std::uint64_t> generation{0}, stop{0}; std::atomic<int> state{0}; std::atomic<float> seconds{0}; };
 struct Voice { Command controls{}; double cursor = 0; float left = 0, right = 0; bool active = false, fresh = true; };
 struct Stereo { float left = 0, right = 0; };
+// One live PCM input: a single producer pushes, the renderer reads. Slot 0 is the ROM stream of the original API;
+// slots 1.. are opened for other producers (plugin game audio, videos). A jitter buffer waits for `target` frames
+// after start, flush or underflow, so producers that deliver in bursts don't click on every gap.
+struct StreamInput {
+	std::array<Stereo, StreamSize> ring{};
+	std::atomic<std::uint64_t> write{0}, read{0}, flush{0};
+	std::atomic<int> rate{0}, enabled{1}, open{0}, bus{RomBus};
+	// Closes so far, and the count the renderer last saw while the slot was closed. Only a slot whose every close was
+	// seen by the renderer is reused, so it can't be reset while the renderer still plays an earlier stream in it.
+	std::atomic<std::uint32_t> closes{0}, seenCloses{0};
+	std::atomic<int> target{0}; // frames to queue before playing; -1 sizes it from the producer's blocks, -2 does so after the first underflow
+	std::atomic<int> largestPush{0}, largestPull{0}; // biggest block in and out, in input frames
+	std::atomic<float> gain{1};
+	std::atomic<float> underflows{0}, overflows{0}, discontinuities{0}, drops{0};
+	std::int64_t sequence = 0; // producer only
+	// renderer only
+	float currentGain = -1;
+	std::uint64_t flushed = 0;
+	double fraction = 0;
+	bool priming = true;
+	// The queue the renderer steers to (drift correction, catch-up). 0 leaves the stream uncontrolled.
+	int Control() const {
+		const int configured = target.load(std::memory_order_relaxed);
+		if (configured >= 0) return configured;
+		// Both sides move whole blocks: hold the producer's and the renderer's largest, plus room for arrival jitter.
+		const int blocks = largestPush.load(std::memory_order_relaxed) + largestPull.load(std::memory_order_relaxed);
+		return std::min(blocks + blocks / 4, StreamSize / 2);
+	}
+	// What to queue before playing after start, flush or underflow.
+	int Prime() const {
+		if (target.load(std::memory_order_relaxed) == -2 && underflows.load(std::memory_order_relaxed) == 0) return 0; // no wait while the producer keeps up
+		return Control();
+	}
+};
 struct Context {
 	std::vector<std::unique_ptr<Clip>> clips; // Main thread only; the queue publishes stable Clip pointers.
 	std::array<const Clip*, 4096> previewClips{}; // Entries are immutable and published by previewRequest.
@@ -32,15 +66,7 @@ struct Context {
 	std::array<std::atomic<float>, BusCount> busGain{};
 	std::array<float, BusCount * BlockSize * 2> buses{};
 	std::array<std::atomic<float>, 12> metrics{};
-	std::array<Stereo, StreamSize> stream{};
-	std::atomic<std::uint64_t> streamWrite{0}, streamRead{0}, flush{0};
-	std::atomic<int> streamRate{0};
-	std::atomic<int> streamEnabled{1};
-	std::atomic<float> streamGain{1};
-	float currentStreamGain = -1;
-	std::uint64_t flushed = 0;
-	std::int64_t sequence = 0; // Stream producer only.
-	double streamFraction = 0;
+	std::array<StreamInput, StreamCount> streams{};
 	vpe::AudioProcessing* processing = nullptr; // Render thread only.
 	vpe::AudioProcessing* controlProcessing = nullptr; // Main thread only; latest prepared graph.
 	std::atomic<vpe::AudioProcessing*> pendingProcessing{nullptr};
@@ -58,7 +84,7 @@ struct Context {
 		retiredRead.store(r, std::memory_order_release);
 	}
 	~Context() { Collect(); delete processing; delete pendingProcessing.load(); }
-	Context() { for (auto& gain : busGain) gain.store(1); for (auto& metric : metrics) metric.store(0); }
+	Context() { for (auto& gain : busGain) gain.store(1); for (auto& metric : metrics) metric.store(0); streams[0].open.store(1); }
 	bool Push(const Command& command) {
 		const auto w = write.load(std::memory_order_relaxed);
 		if (w - read.load(std::memory_order_acquire) >= QueueSize) { metrics[10].store(metrics[10].load() + 1); return false; }
@@ -161,19 +187,67 @@ int VpePcmSetBusGain(void* context, int bus, float gain) {
 	C(context)->busGain[bus].store(gain, std::memory_order_relaxed); return 1;
 }
 float VpePcmPosition(void* context, std::uint64_t id) { return context && Current(C(context), id) ? C(context)->slots[Index(id)].seconds.load() : 0.f; }
-void VpePcmSetStreamGain(void* context, float gain) { if (context && std::isfinite(gain) && gain >= 0 && gain <= 1) C(context)->streamGain.store(gain); }
-void VpePcmFlushStream(void* context) { if (context) C(context)->flush.fetch_add(1, std::memory_order_release); }
-void VpePcmEnableStream(void* context, int enabled) { if (context) C(context)->streamEnabled.store(enabled != 0 ? 1 : 0, std::memory_order_release); }
+namespace {
+StreamInput* Stream(void* context, int id) { return context && id >= 0 && id < StreamCount && C(context)->streams[id].open.load(std::memory_order_acquire) ? &C(context)->streams[id] : nullptr; }
+void Bump(std::atomic<float>& metric) { metric.store(metric.load(std::memory_order_relaxed) + 1, std::memory_order_relaxed); }
+}
+void VpePcmSetStreamGain(void* context, float gain) { VpePcmStreamSetGain(context, 0, gain); }
+void VpePcmFlushStream(void* context) { VpePcmStreamFlush(context, 0); }
+void VpePcmEnableStream(void* context, int enabled) { VpePcmStreamEnable(context, 0, enabled); }
 int VpePcmStreamPush(void* context, const void* samples, int frames, int channels, int rate, int encoding, std::int64_t sequence) {
-	if (!context || !samples || frames <= 0 || frames > StreamSize || (channels != 1 && channels != 2) || rate < 8000 || rate > 192000 || (encoding != 0 && encoding != 1)) return 0;
+	return VpePcmStreamPushTo(context, 0, samples, frames, channels, rate, encoding, sequence);
+}
+int VpePcmStreamOpen(void* context, int bus) {
+	if (!context || bus < 0 || bus >= BusCount) return -1;
 	auto& c = *C(context);
-	const auto previousRate = c.streamRate.load();
+	for (int id = 1; id < StreamCount; ++id) {
+		auto& s = c.streams[id];
+		if (s.open.load(std::memory_order_acquire) || s.seenCloses.load(std::memory_order_acquire) != s.closes.load(std::memory_order_relaxed)) continue; // the renderer may still be in it
+		// The renderer skips closed slots, so its own fields can be reset here; opening publishes them.
+		s.rate.store(0); s.gain.store(1); s.bus.store(bus); s.target.store(-1); s.largestPush.store(0); s.largestPull.store(0); s.enabled.store(1);
+		s.underflows.store(0); s.overflows.store(0); s.discontinuities.store(0); s.drops.store(0); s.sequence = 0;
+		s.read.store(s.write.load()); s.flushed = s.flush.load(); s.fraction = 0; s.priming = true; s.currentGain = -1;
+		s.open.store(1, std::memory_order_release);
+		return id;
+	}
+	return -1;
+}
+void VpePcmStreamClose(void* context, int stream) {
+	if (auto* s = stream > 0 ? Stream(context, stream) : nullptr) {
+		s->enabled.store(0, std::memory_order_release);
+		s->closes.fetch_add(1, std::memory_order_release); // counted before the slot reads as closed
+		s->open.store(0, std::memory_order_release);
+	}
+}
+void VpePcmStreamSetGain(void* context, int stream, float gain) { if (auto* s = Stream(context, stream); s && std::isfinite(gain) && gain >= 0 && gain <= 1) s->gain.store(gain); }
+void VpePcmStreamFlush(void* context, int stream) { if (auto* s = Stream(context, stream)) s->flush.fetch_add(1, std::memory_order_release); }
+void VpePcmStreamEnable(void* context, int stream, int enabled) { if (auto* s = Stream(context, stream)) s->enabled.store(enabled != 0 ? 1 : 0, std::memory_order_release); }
+int VpePcmStreamSetBuffer(void* context, int stream, int frames) {
+	auto* s = Stream(context, stream);
+	if (!s || frames < -2 || frames > StreamSize / 2) return 0;
+	s->target.store(frames); return 1;
+}
+int VpePcmStreamPushTo(void* context, int stream, const void* samples, int frames, int channels, int rate, int encoding, std::int64_t sequence) {
+	auto* input = Stream(context, stream);
+	if (!input || !samples || frames <= 0 || frames > StreamSize || (channels != 1 && channels != 2) || rate < 8000 || rate > 192000 || (encoding != 0 && encoding != 1)) return 0;
+	auto& c = *C(context); auto& s = *input;
+	const auto previousRate = s.rate.load();
 	if (previousRate && previousRate != rate) return 0; // A new format requires a new session.
-	c.streamRate.store(rate);
-	if (c.sequence && sequence != c.sequence + 1) { c.flush.fetch_add(1); c.metrics[9].store(c.metrics[9].load() + 1); }
-	c.sequence = sequence;
-	const auto w = c.streamWrite.load(std::memory_order_relaxed), r = c.streamRead.load(std::memory_order_acquire);
-	if (w - r + frames > StreamSize) { c.flush.fetch_add(1); c.metrics[8].store(c.metrics[8].load() + 1); return 0; }
+	s.rate.store(rate);
+	{
+		// The largest recent block: a burst raises it at once, and it decays back over the next blocks.
+		int largest = s.largestPush.load(std::memory_order_relaxed);
+		largest = frames >= largest ? frames : largest - std::max(1, (largest - frames) / 64);
+		s.largestPush.store(std::min(largest, StreamSize / 2), std::memory_order_relaxed);
+	}
+	if (s.sequence && sequence != s.sequence + 1) { s.flush.fetch_add(1); Bump(s.discontinuities); if (stream == 0) Bump(c.metrics[9]); }
+	s.sequence = sequence;
+	const auto w = s.write.load(std::memory_order_relaxed), r = s.read.load(std::memory_order_acquire);
+	if (w - r + frames > StreamSize) {
+		// Unbuffered streams start over; buffered ones drop this block and the renderer's catch-up trims back to the newest audio.
+		if (s.Control() == 0) s.flush.fetch_add(1);
+		Bump(s.overflows); if (stream == 0) Bump(c.metrics[8]); return 0;
+	}
 	const auto* bytes = static_cast<const unsigned char*>(samples);
 	for (int f = 0; f < frames; ++f) {
 		auto sample = [&](int channel) {
@@ -182,9 +256,16 @@ int VpePcmStreamPush(void* context, const void* samples, int frames, int channel
 			const auto value = static_cast<std::int16_t>(static_cast<unsigned int>(bytes[offset]) | (static_cast<unsigned int>(bytes[offset+1]) << 8));
 			return value / 32768.f;
 		};
-		const auto left = sample(0); c.stream[(w + f) % StreamSize] = {left, channels == 1 ? left : sample(1)};
+		const auto left = sample(0); s.ring[(w + f) % StreamSize] = {left, channels == 1 ? left : sample(1)};
 	}
-	c.streamWrite.store(w + frames, std::memory_order_release); return frames;
+	s.write.store(w + frames, std::memory_order_release); return frames;
+}
+int VpePcmStreamMetrics(void* context, int stream, float* values, int count) {
+	auto* s = Stream(context, stream);
+	if (!s || !values || count != 6) return 0;
+	values[0] = static_cast<float>(s->write.load() - s->read.load()); values[1] = static_cast<float>(s->Control());
+	values[2] = s->underflows.load(); values[3] = s->overflows.load(); values[4] = s->discontinuities.load(); values[5] = s->drops.load();
+	return 1;
 }
 int VpePcmRender(void* context, float* output, int frames, int channels, int rate, int paused) {
 	if (!output || frames < 0 || channels <= 0 || channels > 8) return 0;
@@ -242,29 +323,56 @@ int VpePcmRender(void* context, float* output, int frames, int channels, int rat
 			if (!control.loop && voice.cursor >= clip.frames) End(c, voice);
 		}
 	}
-	const auto flush = c.flush.load(std::memory_order_acquire);
-	const bool streamEnabled = c.streamEnabled.load(std::memory_order_acquire) != 0;
-	if (paused || !streamEnabled || flush != c.flushed) { c.streamRead.store(c.streamWrite.load(std::memory_order_acquire), std::memory_order_release); c.streamFraction = 0; c.flushed = flush; }
-	if (paused || !streamEnabled) c.currentStreamGain = -1;
-	if (!paused && streamEnabled) {
-		auto read = c.streamRead.load(std::memory_order_relaxed); const auto written = c.streamWrite.load(std::memory_order_acquire);
-		const auto inputRate = c.streamRate.load(); const float targetGain = c.streamGain.load() * gains[2];
-		if (inputRate && (c.currentStreamGain < 0 || targetGain == 0)) c.currentStreamGain = targetGain;
-		const int ramp = std::max(1, rate/200); const float gainStep = (targetGain-c.currentStreamGain)/ramp;
-		const double step = static_cast<double>(inputRate) / rate;
-		bool underflow = false;
-		for (int f = 0; f < frames && inputRate; ++f) {
-			if (read + 1 >= written) { underflow = true; c.streamFraction = 0; break; }
-			const auto a = c.stream[read % StreamSize], b = c.stream[(read+1) % StreamSize];
-			c.currentStreamGain = f < ramp ? c.currentStreamGain + gainStep : targetGain;
-			const float l = (a.left + (b.left-a.left)*static_cast<float>(c.streamFraction)) * c.currentStreamGain;
-			const float rr = (a.right + (b.right-a.right)*static_cast<float>(c.streamFraction)) * c.currentStreamGain;
-			c.buses[2*BlockSize*2 + f*2] += l; c.buses[2*BlockSize*2 + f*2+1] += rr;
-			c.streamFraction += step; const auto advance = static_cast<std::uint64_t>(c.streamFraction);
-			read = std::min(read + advance, written); c.streamFraction -= advance;
+	for (int id = 0; id < StreamCount; ++id) {
+		auto& s = c.streams[id];
+		if (!s.open.load(std::memory_order_acquire)) { s.seenCloses.store(s.closes.load(std::memory_order_acquire), std::memory_order_release); continue; }
+		const auto flush = s.flush.load(std::memory_order_acquire);
+		const bool enabled = s.enabled.load(std::memory_order_acquire) != 0;
+		if (paused || !enabled || flush != s.flushed) {
+			s.read.store(s.write.load(std::memory_order_acquire), std::memory_order_release);
+			s.fraction = 0; s.flushed = flush; s.priming = true;
 		}
-		c.streamRead.store(read, std::memory_order_release);
-		if (underflow) c.metrics[7].store(c.metrics[7].load() + 1);
+		if (paused || !enabled) { s.currentGain = -1; continue; }
+		auto read = s.read.load(std::memory_order_relaxed); const auto written = s.write.load(std::memory_order_acquire);
+		const auto inputRate = s.rate.load();
+		if (!inputRate) continue;
+		const int pull = static_cast<int>(std::ceil(frames * static_cast<double>(inputRate) / rate));
+		if (pull > s.largestPull.load(std::memory_order_relaxed)) s.largestPull.store(std::min(pull, StreamSize / 2), std::memory_order_relaxed);
+		const auto target = static_cast<std::uint64_t>(s.Control());
+		if (s.priming) {
+			if (written - read < std::max<std::uint64_t>(2, static_cast<std::uint64_t>(s.Prime()))) continue; // still filling the jitter buffer
+			s.priming = false;
+		} else if (target && written - read > target * 2 + 256) {
+			// The producer ran far ahead (a burst after a stall, or a stalled output): skip back to the target instead of
+			// staying late; drift correction alone would take many seconds to drain it.
+			read = written - target; s.fraction = 0; Bump(s.drops);
+		}
+		const int bus = std::clamp(s.bus.load(std::memory_order_relaxed), 0, BusCount - 1);
+		const float targetGain = s.gain.load() * gains[bus];
+		if (s.currentGain < 0 || targetGain == 0) s.currentGain = targetGain;
+		const int ramp = std::max(1, rate/200); const float gainStep = (targetGain-s.currentGain)/ramp;
+		double step = static_cast<double>(inputRate) / rate;
+		if (target) {
+			// The producer's clock and the device's drift apart. Keep the queue a little above the buffer by playing up to
+			// 0.3% faster or slower (under 5 cents), instead of letting it run dry or jump back.
+			const double setpoint = target * 1.25;
+			const double error = (static_cast<double>(written - read) - setpoint) / setpoint;
+			step *= 1 + std::clamp(error * .004, -.003, .003);
+		}
+		float* out = c.buses.data() + bus*BlockSize*2;
+		bool underflow = false;
+		for (int f = 0; f < frames; ++f) {
+			if (read + 1 >= written) { underflow = true; s.fraction = 0; break; }
+			const auto a = s.ring[read % StreamSize], b = s.ring[(read+1) % StreamSize];
+			s.currentGain = f < ramp ? s.currentGain + gainStep : targetGain;
+			const float l = (a.left + (b.left-a.left)*static_cast<float>(s.fraction)) * s.currentGain;
+			const float rr = (a.right + (b.right-a.right)*static_cast<float>(s.fraction)) * s.currentGain;
+			out[f*2] += l; out[f*2+1] += rr;
+			s.fraction += step; const auto advance = static_cast<std::uint64_t>(s.fraction);
+			read = std::min(read + advance, written); s.fraction -= advance;
+		}
+		s.read.store(read, std::memory_order_release);
+		if (underflow) { Bump(s.underflows); if (id == 0) Bump(c.metrics[7]); s.priming = s.Prime() > 0; }
 	}
 	const auto preview = c.previewRequest.exchange(-1, std::memory_order_acquire);
 	if (preview >= 0) {

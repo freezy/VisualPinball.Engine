@@ -27,6 +27,8 @@ namespace VisualPinball.Unity
 				PublishGain();
 				_subscription = source.Subscribe(Receive);
 				_lease = control.AcquirePlayback("vpe.audio");
+				// Producers that deliver in bursts get a jitter buffer after their first underflow; steady ones keep no added delay.
+				_session.SetStreamBuffer(0, -2);
 				lock (_gate) { NativePcmSession.VpePcmEnableStream(_session.Context, 1); _accept = true; }
 			} catch { Dispose(); throw; }
 		}

@@ -25,6 +25,13 @@ namespace VisualPinball.Unity
 		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern int VpePcmStreamPush(IntPtr context, IntPtr samples, int frames, int channels, int rate, int encoding, long sequence);
 		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern void VpePcmFlushStream(IntPtr context);
 		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern void VpePcmEnableStream(IntPtr context, int enabled);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern int VpePcmStreamOpen(IntPtr context, int bus);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern void VpePcmStreamClose(IntPtr context, int stream);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern int VpePcmStreamPushTo(IntPtr context, int stream, IntPtr samples, int frames, int channels, int rate, int encoding, long sequence);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern void VpePcmStreamSetGain(IntPtr context, int stream, float gain);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern void VpePcmStreamFlush(IntPtr context, int stream);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern int VpePcmStreamSetBuffer(IntPtr context, int stream, int frames);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern int VpePcmStreamMetrics(IntPtr context, int stream, [Out] float[] values, int count);
 		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern int VpePcmRender(IntPtr context, [In, Out] float[] output, int frames, int channels, int rate, int paused);
 		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] internal static extern int VpePcmMetrics(IntPtr context, [Out] float[] values, int count);
 		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern int VpePcmDspAbi();
@@ -152,6 +159,55 @@ namespace VisualPinball.Unity
 		}
 		/// <summary>Lets Unity callbacks render again, for a fallback carrier.</summary>
 		internal void OpenCallbackRendering() => Interlocked.Exchange(ref _renderClosed, 0);
+
+		/// <summary>Opens one more live PCM input on a bus (1..7), or -1 when they are all in use or the library is older.</summary>
+		internal int OpenStream(int bus)
+		{
+			try { return VpePcmStreamOpen(Context, bus); }
+			catch (EntryPointNotFoundException) { return -1; }
+		}
+		internal void CloseStream(int stream) { var context = Context; if (context != IntPtr.Zero) VpePcmStreamClose(context, stream); }
+		// These may run on a producer's thread, so they count as readers: Dispose waits for them before freeing the graph.
+		internal void SetStreamGain(int stream, float gain)
+		{
+			Interlocked.Increment(ref _readers);
+			try { var context = Context; if (context != IntPtr.Zero) VpePcmStreamSetGain(context, stream, gain); }
+			finally { Interlocked.Decrement(ref _readers); }
+		}
+		internal void FlushStream(int stream)
+		{
+			Interlocked.Increment(ref _readers);
+			try { var context = Context; if (context != IntPtr.Zero) VpePcmStreamFlush(context, stream); }
+			finally { Interlocked.Decrement(ref _readers); }
+		}
+		/// <summary>Jitter buffer of a stream in input frames: 0 none, -1 sized from the producer's blocks, -2 that after the first underflow.</summary>
+		internal bool SetStreamBuffer(int stream, int frames)
+		{
+			Interlocked.Increment(ref _readers);
+			try {
+				var context = Context;
+				return context != IntPtr.Zero && VpePcmStreamSetBuffer(context, stream, frames) != 0;
+			}
+			catch (EntryPointNotFoundException) { return false; }
+			finally { Interlocked.Decrement(ref _readers); }
+		}
+		/// <summary>Queued frames, buffer target, underflows, overflows, discontinuities and catch-up drops of a stream.</summary>
+		internal bool StreamMetrics(int stream, float[] values)
+		{
+			var context = Context;
+			if (context == IntPtr.Zero) return false;
+			try { return VpePcmStreamMetrics(context, stream, values, values.Length) != 0; }
+			catch (EntryPointNotFoundException) { return false; }
+		}
+		/// <summary>Pushes into an opened stream from its producer's thread. Counted like a render call, so disposal waits for it.</summary>
+		internal bool PushStream(int stream, IntPtr samples, int frames, int channels, int rate, int encoding, long sequence)
+		{
+			Interlocked.Increment(ref _readers);
+			try {
+				var context = Context;
+				return context != IntPtr.Zero && VpePcmStreamPushTo(context, stream, samples, frames, channels, rate, encoding, sequence) == frames;
+			} finally { Interlocked.Decrement(ref _readers); }
+		}
 
 		/// <summary>Whether this build ships the optional ASIO library.</summary>
 		internal static bool AsioAvailable
