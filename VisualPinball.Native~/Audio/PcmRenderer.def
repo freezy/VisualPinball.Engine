@@ -23,3 +23,7 @@ EXPORTS
  VpePcmPreview
  VpePcmPreviewClip
  VpePcmEqResponse
+ VpePcmOutputCreate
+ VpePcmOutputDestroy
+ VpePcmOutputSetPaused
+ VpePcmOutputMetrics

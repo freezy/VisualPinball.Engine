@@ -33,7 +33,12 @@ namespace VisualPinball.Unity
 		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern void VpePcmPreview(IntPtr context, int bus, int enabled);
 		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern int VpePcmPreviewClip(IntPtr context, int clip, int bus);
 		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern float VpePcmEqResponse(IntPtr context, int route, float hz);
-		private IntPtr _context;
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern IntPtr VpePcmOutputCreate(IntPtr context, int rate, int paused);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern void VpePcmOutputDestroy(IntPtr output);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern void VpePcmOutputSetPaused(IntPtr output, int paused);
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern int VpePcmOutputMetrics(IntPtr output, [Out] float[] values, int count);
+		internal const int OutputMetricCount = 13;
+		private IntPtr _context, _output;
 		private int _readers, _blocks;
 		internal IntPtr Context => Volatile.Read(ref _context);
 		internal int RenderedBlocks => Volatile.Read(ref _blocks);
@@ -58,6 +63,40 @@ namespace VisualPinball.Unity
 			catch (EntryPointNotFoundException) { return false; }
 		}
 		internal float EqResponse(int route, float hz) => ProcessingSupported ? VpePcmEqResponse(Context, route, hz) : 0;
+
+		/// <summary>Whether the graph plays through its own low-latency device stream instead of a Unity audio callback.</summary>
+		internal bool HasDeviceOutput => Volatile.Read(ref _output) != IntPtr.Zero;
+
+		/// <summary>
+		/// Opens the native device stream (Windows WASAPI). While it runs, it is the graph's only renderer, so
+		/// <see cref="Render"/> must not be fed by a Unity callback. False when unsupported or no device opened.
+		/// </summary>
+		internal bool StartDeviceOutput(int rate, bool paused)
+		{
+			StopDeviceOutput();
+			IntPtr output;
+			try { output = VpePcmOutputCreate(Context, rate, paused ? 1 : 0); }
+			catch (EntryPointNotFoundException) { return false; }
+			if (output == IntPtr.Zero) return false;
+			Volatile.Write(ref _output, output);
+			Interlocked.Increment(ref _blocks); // creation renders the stream's prefill
+			return true;
+		}
+		internal void StopDeviceOutput()
+		{
+			var output = Interlocked.Exchange(ref _output, IntPtr.Zero);
+			if (output != IntPtr.Zero) VpePcmOutputDestroy(output);
+		}
+		internal void SetDeviceOutputPaused(bool paused)
+		{
+			var output = Volatile.Read(ref _output);
+			if (output != IntPtr.Zero) VpePcmOutputSetPaused(output, paused ? 1 : 0);
+		}
+		internal bool DeviceOutputMetrics(float[] values)
+		{
+			var output = Volatile.Read(ref _output);
+			return output != IntPtr.Zero && VpePcmOutputMetrics(output, values, values.Length) != 0;
+		}
 		internal void Render(float[] data, int channels, int rate, bool paused)
 		{
 			Interlocked.Increment(ref _readers);
@@ -69,6 +108,7 @@ namespace VisualPinball.Unity
 		}
 		public void Dispose()
 		{
+			StopDeviceOutput(); // joins the device thread, the graph's other renderer
 			var context = Interlocked.Exchange(ref _context, IntPtr.Zero);
 			if (context == IntPtr.Zero) return;
 			// No audio callback waits for this main-thread teardown. The bounded native

@@ -35,3 +35,12 @@ VPE_PCM_API int VpePcmProcessingMeters(void* context, float* values, int count);
 VPE_PCM_API void VpePcmPreview(void* context, int bus, int enabled);
 VPE_PCM_API int VpePcmPreviewClip(void* context, int clip, int bus);
 VPE_PCM_API float VpePcmEqResponse(void* context, int route, float hz);
+// Optional low-latency device output (Windows WASAPI shared mode; null elsewhere or without a device).
+// While an output exists it is the graph's only renderer: never call VpePcmRender concurrently.
+// Destroy the output before the graph.
+VPE_PCM_API void* VpePcmOutputCreate(void* context, int rate, int paused);
+VPE_PCM_API void VpePcmOutputDestroy(void* output);
+VPE_PCM_API void VpePcmOutputSetPaused(void* output, int paused);
+// State (0 stopped, 1 playing, 2 waiting for a device), render callbacks, period/buffer/queued/margin ms, underruns, reopens, last HRESULT, rate,
+// seconds of the first and last underrun since creation, longest gap between device wake-ups in ms.
+VPE_PCM_API int VpePcmOutputMetrics(void* output, float* values, int count);
