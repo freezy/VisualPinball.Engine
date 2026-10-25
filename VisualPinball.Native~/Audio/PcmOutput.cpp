@@ -14,7 +14,7 @@
 
 namespace {
 enum Metric { State, Callbacks, PeriodMs, BufferMs, QueuedMs, MarginMs, Glitches, Reopens, LastError, Rate, FirstUnderrunS, LastUnderrunS, MaxWakeGapMs, MetricCount };
-std::atomic<unsigned> lastCreateError{0}; // HRESULT of the last create that failed to open a device
+[[maybe_unused]] std::atomic<unsigned> lastCreateError{0}; // HRESULT of the last create that failed to open a device
 }
 
 #if defined(_WIN32)

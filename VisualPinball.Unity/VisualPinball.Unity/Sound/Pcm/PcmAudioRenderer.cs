@@ -244,7 +244,7 @@ namespace VisualPinball.Unity
 			Volatile.Write(ref _paused, paused ? 1 : 0); _rom?.SetPaused(paused);
 			_session.SetDeviceOutputPaused(paused);
 			if (_callback) Volatile.Write(ref _callback.Paused, paused ? 1 : 0);
-			if (_output && !_output.isPlaying && !paused) _output.Play(); // AudioSettings.Reset can stop the carrier.
+			if (_output && !_output.isPlaying) _output.Play(); // AudioSettings.Reset can stop the carrier; it ignores the listener's pause, the graph pauses game voices itself
 			_session.DeviceOutputMetrics(_outputMetrics);
 			if (!_romAttempted && _session.RenderedBlocks > 0) {
 				_romAttempted = true;
