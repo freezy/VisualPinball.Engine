@@ -128,7 +128,10 @@ namespace VisualPinball.Unity
 				mechanical &= !EditorSceneManager.IsPreviewScene(audioObj.scene);
 #endif
 				if (mechanical) MechanicalSoundGain.Register(audioSource);
-				MechanicalSoundGain.SetAuthoredLevel(audioSource, MechanicalSoundGain.AuthoredLevel(audioSource) * volume);
+				float level = MechanicalSoundGain.AuthoredLevel(audioSource) * volume;
+				bool fadeIn = _loop && _fadeInTime > 0f;
+				// a fading loop starts silent: the central mixer takes the level the moment it starts the voice
+				MechanicalSoundGain.SetAuthoredLevel(audioSource, fadeIn ? 0f : level);
 				SoundPlayback.Play(audioSource, this, audioObj);
 				using var eitherCts = CancellationTokenSource.CreateLinkedTokenSource(
 					allowFadeOutCt,
@@ -136,14 +139,14 @@ namespace VisualPinball.Unity
 				);
 
 				// Fade in
-				if (_loop && _fadeInTime > 0f)
+				if (fadeIn)
 				{
 					try
 					{
 						await FadeOrFinish(
 							audioSource,
 							0f,
-							MechanicalSoundGain.AuthoredLevel(audioSource),
+							level,
 							_fadeInTime,
 							eitherCts.Token
 						);
