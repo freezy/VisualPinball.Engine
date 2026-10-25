@@ -30,6 +30,7 @@ namespace VisualPinball.Unity
 
 		private readonly Reader _read;
 		private readonly Func<int> _sampleRate;
+		private readonly Func<PluginPcmFrame?> _readBlock;
 		private readonly GainControlledAudioResourceSource _source;
 		private readonly Thread _thread;
 		private readonly short[] _samples;
@@ -64,6 +65,7 @@ namespace VisualPinball.Unity
 			_bytes = new byte[frameCapacity * 4];
 			_intervalMs = System.Math.Max(1, intervalMs);
 			_source = new GainControlledAudioResourceSource(error => NLog.LogManager.GetCurrentClassLogger().Warn(error, "Gamelogic audio subscriber failed."));
+			_readBlock = ReadBlock;
 			_thread = new Thread(Run) { IsBackground = true, Name = name, Priority = ThreadPriority.AboveNormal };
 			_thread.Start();
 		}
@@ -80,20 +82,23 @@ namespace VisualPinball.Unity
 			}
 		}
 
-		private void Pump()
+		// The read and its publication happen under the lease gate, so a block taken from the queue always reaches the mixer.
+		private void Pump() => _source.PublishWhileReplaced(_readBlock);
+
+		private PluginPcmFrame? ReadBlock()
 		{
 			int rate, frames;
 			lock (ReadLock) {
 				// both touch the engine's native handle, which its shutdown clears under this lock
 				rate = _sampleRate();
-				if (rate <= 0) return;
+				if (rate <= 0) return null;
 				frames = _read(_samples, _samples.Length / 2);
 			}
 			if (_rate == 0) _rate = rate;
-			if (frames <= 0) return;
+			if (frames <= 0) return null;
 			Buffer.BlockCopy(_samples, 0, _bytes, 0, frames * 4);
 			// A rate change is published as is; the mixer then refuses the format and the engine plays on its own again.
-			_source.PublishForPlayback(new PluginPcmFrame(_bytes.AsMemory(0, frames * 4), PcmEncoding.Int16LittleEndian, rate, 2, frames, ++_sequence));
+			return new PluginPcmFrame(_bytes.AsMemory(0, frames * 4), PcmEncoding.Int16LittleEndian, rate, 2, frames, ++_sequence);
 		}
 
 		/// <summary>Stops the thread. The engine disposes it when it stops.</summary>
