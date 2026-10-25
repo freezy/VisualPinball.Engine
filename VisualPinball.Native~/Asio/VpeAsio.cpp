@@ -194,8 +194,10 @@ void Run(Stream& s)
 	s.opened.store(ok ? 1 : -1, std::memory_order_release);
 	SetEvent(s.ready);
 	ULONGLONG retryAt = 0;
+	std::vector<float> idle(static_cast<size_t>(s.rate / 100) * 2);
+	LARGE_INTEGER idleFrom{};
 	while (ok) {
-		const DWORD signaled = MsgWaitForMultipleObjects(1, &s.stop, FALSE, 100, QS_ALLINPUT);
+		const DWORD signaled = MsgWaitForMultipleObjects(1, &s.stop, FALSE, started || s.panelOnly ? 100 : 10, QS_ALLINPUT);
 		if (signaled == WAIT_OBJECT_0) break;
 		MSG msg; while (PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE)) { TranslateMessage(&msg); DispatchMessageW(&msg); }
 		// The driver's own settings window (device choice, buffer size). Called on the owner thread, as drivers expect.
@@ -210,6 +212,19 @@ void Run(Stream& s)
 		if (!started && retryAt && GetTickCount64() >= retryAt) {
 			if (Open(s, initialized) && (started = Start(s))) retryAt = 0;
 			else { Shut(s, initialized, started); s.Set(LastError, 1); retryAt = GetTickCount64() + 1000; }
+		}
+		if (started) { idleFrom.QuadPart = 0; continue; }
+		// No device: keep the graph's clock running so one-shots finish and the ROM stream drains, as the WASAPI output does.
+		// Messages wake the loop early, so it renders what elapsed rather than a fixed block per wake.
+		LARGE_INTEGER now; QueryPerformanceCounter(&now);
+		if (!idleFrom.QuadPart) { idleFrom = now; continue; }
+		long long due = (now.QuadPart - idleFrom.QuadPart) * s.rate / s.frequency.QuadPart;
+		if (due > s.rate / 10) { due = s.rate / 10; idleFrom = now; } // after a stall, skip ahead instead of catching up
+		else idleFrom.QuadPart += due * s.frequency.QuadPart / s.rate;
+		while (due > 0) {
+			const int frames = static_cast<int>(std::min<long long>(due, s.rate / 100));
+			s.render(s.context, idle.data(), frames, 2, s.rate, s.paused.load(std::memory_order_relaxed));
+			due -= frames;
 		}
 	}
 	Shut(s, initialized, started);

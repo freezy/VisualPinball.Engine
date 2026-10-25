@@ -36,6 +36,20 @@ namespace VisualPinball.Plugins
 			lock (_handoff) { _source.Publish(frame); return _source.PlaybackReplaced; }
 		}
 		public void Publish(in PluginPcmFrame frame) => PublishForPlayback(frame);
+		/// <summary>
+		/// For producers that drain a queue only on the mixer's behalf: reads a block and publishes it while the mixer holds playback,
+		/// both under the gate lease changes take, so a block read for the mixer is never lost to a lease that ended in between.
+		/// Returns false, without reading, when playback isn't replaced.
+		/// </summary>
+		public bool PublishWhileReplaced(Func<PluginPcmFrame?> read)
+		{
+			lock (_handoff) {
+				if (!_source.PlaybackReplaced) return false;
+				var frame = read();
+				if (frame.HasValue) _source.Publish(frame.Value);
+				return true;
+			}
+		}
 		public void Dispose() => _source.Dispose();
 	}
 }

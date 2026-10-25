@@ -25,7 +25,8 @@ namespace VisualPinball.Unity
 		/// Plays a plugin's <see cref="AudioSource"/> (clip, volume, pitch, loop, 3D position) through the central mixer on
 		/// <paramref name="bus"/>, or through Unity when the mixer is off. Use <see cref="Stop"/>, <see cref="IsPlaying"/>,
 		/// <see cref="Pause"/> and <see cref="UnPause"/> instead of the source's own methods for it; volume, pitch and
-		/// position changes on the source follow each frame.
+		/// position changes on the source follow each frame. A source that ignores the listener's pause, such as a pause-menu
+		/// sound, plays through Unity, since the mixer pauses all of its voices with the game.
 		/// </summary>
 		public static void Play(AudioSource source, string bus, GameObject owner = null)
 		{
@@ -34,7 +35,7 @@ namespace VisualPinball.Unity
 			var index = SoundBuses.Index(bus);
 			if (index < 0) index = SoundBuses.Index(SoundBuses.Synthetic);
 			PcmAudioRenderer renderer = null;
-			if (Application.isPlaying) {
+			if (Application.isPlaying && !source.ignoreListenerPause) {
 				renderer = (owner ? owner : source.gameObject).GetComponentInParent<PcmAudioRenderer>();
 				if (!renderer) renderer = PcmAudioRenderer.Current; // plugin objects live outside the table's hierarchy
 			}
