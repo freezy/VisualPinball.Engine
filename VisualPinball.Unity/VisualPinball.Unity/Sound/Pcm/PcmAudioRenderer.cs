@@ -15,6 +15,7 @@ namespace VisualPinball.Unity
 		private static readonly HashSet<PcmAudioRenderer> Active = new();
 		private static readonly float[] GlobalLevels = { 1, 1, 1, 1, 1, 1, 1 };
 		private static AudioProcessingSettings GlobalProcessing = AudioProcessingSettings.Preset("reference");
+		private static float GlobalTransitionGain = 1;
 		private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 		private readonly Dictionary<AudioClip, int> _clips = new(), _monoClips = new();
 		private readonly HashSet<string> _diagnostics = new();
@@ -82,6 +83,15 @@ namespace VisualPinball.Unity
 		public float EqResponseDb(int route, float hz) => _session?.EqResponse(route, hz) ?? 0;
 		public float CompressorReductionDb(int route) => route >= 0 && route < 8 ? _processingMeters[route] : 0;
 		public static PcmAudioRenderer Current { get { foreach (var renderer in Active) if (renderer && renderer.IsReady) return renderer; return null; } }
+		/// <summary>Temporary master envelope for Player transitions. Does not edit the user's processing or volume settings.</summary>
+		public static void SetGlobalTransitionGain(float gain, int milliseconds)
+		{
+			if (float.IsNaN(gain) || float.IsInfinity(gain) || gain < 0 || gain > 1) throw new ArgumentOutOfRangeException(nameof(gain));
+			if (milliseconds < 0 || milliseconds > 1000) throw new ArgumentOutOfRangeException(nameof(milliseconds));
+			GlobalTransitionGain = gain;
+			foreach (var renderer in Active)
+				if (!renderer._session.SetTransitionGain(gain, milliseconds)) renderer.Diagnose("Update the native audio plugin to enable smooth master transitions.");
+		}
 		public static void SetGlobalProcessing(AudioProcessingSettings settings)
 		{
 			GlobalProcessing = settings.Copy(); GlobalProcessing.Normalize();
@@ -117,6 +127,7 @@ namespace VisualPinball.Unity
 			try {
 				if (AudioSettings.GetConfiguration().speakerMode != AudioSpeakerMode.Stereo) throw new InvalidOperationException("Central playback currently requires Stereo; discrete output is not yet enabled.");
 				_session = new NativePcmSession(); _rate = AudioSettings.outputSampleRate;
+				_session.SetTransitionGain(GlobalTransitionGain, 0);
 				_prepareProcessing = _session.ProcessingSupported && !_session.PrepareProcessing(_rate);
 				_pendingProcessing = GlobalProcessing.ToNative();
 				if (!_prepareProcessing && _session.SetProcessing(_pendingProcessing)) _pendingProcessing = null;

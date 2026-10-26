@@ -78,6 +78,12 @@ struct Context {
 	unsigned noise = 1234567;
 	std::array<float, vpe::ProcessingValues> processingSettings{};
 	bool hasProcessingSettings = false;
+	// Single control writer publishes a target + milliseconds together; only the render thread owns the envelope.
+	std::atomic<std::uint64_t> transitionRequest{0x3f800000u};
+	std::uint64_t transitionSeen = 0x3f800000u;
+	float transitionTarget = 1;
+	double transitionGain = 1, transitionStep = 0;
+	int transitionRemaining = 0, transitionRate = 0;
 	void Collect() {
 		auto r = retiredRead.load(); const auto w = retiredWrite.load(std::memory_order_acquire);
 		while (r != w) { delete retired[r % retired.size()]; ++r; }
@@ -267,6 +273,12 @@ int VpePcmStreamMetrics(void* context, int stream, float* values, int count) {
 	values[2] = s->underflows.load(); values[3] = s->overflows.load(); values[4] = s->discontinuities.load(); values[5] = s->drops.load();
 	return 1;
 }
+int VpePcmSetTransitionGain(void* context, float gain, int milliseconds) {
+	if (!context || !std::isfinite(gain) || gain < 0 || gain > 1 || milliseconds < 0 || milliseconds > 1000) return 0;
+	std::uint32_t bits; std::memcpy(&bits, &gain, sizeof(bits));
+	C(context)->transitionRequest.store((static_cast<std::uint64_t>(milliseconds) << 32) | bits, std::memory_order_release);
+	return 1;
+}
 int VpePcmRender(void* context, float* output, int frames, int channels, int rate, int paused) {
 	if (!output || frames < 0 || channels <= 0 || channels > 8) return 0;
 	std::fill_n(output, static_cast<size_t>(frames) * channels, 0.f);
@@ -410,7 +422,26 @@ int VpePcmRender(void* context, float* output, int frames, int channels, int rat
 	}
 	c.metrics[11].store(static_cast<float>(active));
 	if (c.processing) c.processing->Process(c.buses.data(), BlockSize*2, output, frames, paused != 0, previewActive);
-	for (int i = 0; i < frames*channels; ++i) output[i] = Finite(output[i]);
+	const auto transition = c.transitionRequest.load(std::memory_order_acquire);
+	if (transition != c.transitionSeen) {
+		const auto bits = static_cast<std::uint32_t>(transition);
+		std::memcpy(&c.transitionTarget, &bits, sizeof(bits));
+		c.transitionRemaining = static_cast<int>((transition >> 32) * rate / 1000);
+		c.transitionSeen = transition;
+	} else if (c.transitionRate && c.transitionRate != rate) {
+		c.transitionRemaining = static_cast<int>(std::llround(static_cast<double>(c.transitionRemaining) * rate / c.transitionRate));
+	}
+	c.transitionRate = rate;
+	c.transitionStep = c.transitionRemaining ? (c.transitionTarget - c.transitionGain) / c.transitionRemaining : 0;
+	if (!c.transitionRemaining) c.transitionGain = c.transitionTarget;
+	for (int f = 0; f < frames; ++f) {
+		if (c.transitionRemaining && !--c.transitionRemaining) c.transitionGain = c.transitionTarget;
+		else if (c.transitionRemaining) c.transitionGain += c.transitionStep;
+		// Settings previews are independent of the paused game's temporary master envelope.
+		const float gain = paused && previewActive ? 1.f : static_cast<float>(c.transitionGain);
+		output[f*2] = Finite(output[f*2]) * gain;
+		output[f*2+1] = Finite(output[f*2+1]) * gain;
+	}
 	return 1;
 }
 int VpePcmMetrics(void* context, float* values, int count) {

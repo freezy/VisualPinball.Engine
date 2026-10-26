@@ -238,6 +238,12 @@ namespace VisualPinball.Unity
 			if (output == IntPtr.Zero) return;
 			if (_asio) VpeAsioOutputDestroy(output); else VpePcmOutputDestroy(output);
 		}
+		[DllImport(Library, CallingConvention = CallingConvention.Cdecl)] private static extern int VpePcmSetTransitionGain(IntPtr context, float gain, int milliseconds);
+		internal bool SetTransitionGain(float gain, int milliseconds)
+		{
+			try { return Context != IntPtr.Zero && VpePcmSetTransitionGain(Context, gain, milliseconds) != 0; }
+			catch (EntryPointNotFoundException) { return false; }
+		}
 		internal void SetDeviceOutputPaused(bool paused)
 		{
 			var output = Volatile.Read(ref _output);
