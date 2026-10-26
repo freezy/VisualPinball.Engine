@@ -8,6 +8,8 @@ Built with Unity 6.5
 
 ### Added
 
+- Smooth 100 ms master fades when opening and closing the Player pause menu, with rapid-toggle cancellation and independent sound previews.
+
 - Player-owned stereo DSP with per-bus/output parametric EQ, linked soft-knee compression, a shared Signalsmith FDN room return, and final linked sample-peak limiting. Sound settings offer Reference, Desktop Room, Headphones and Night presets, live preview/Apply/Cancel, per-table overrides, meters and bounded preset copy/paste. Listening preferences stay outside `.vpe` tables; physical SSF remains a separate milestone.
 
 - An opt-in central stereo PCM renderer with semantic sound buses, persistent player trims, packaged sound-bank routing, bounded native voice/stream transport and gain-aware PinMAME playback takeover. Reference remains the default.

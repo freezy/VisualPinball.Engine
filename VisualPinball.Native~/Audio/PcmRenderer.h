@@ -39,6 +39,8 @@ VPE_PCM_API void VpePcmStreamEnable(void* context, int stream, int enabled);
 VPE_PCM_API int VpePcmStreamSetBuffer(void* context, int stream, int frames);
 // Queued frames, buffer size steered to, underflows, overflows, discontinuities, catch-up drops.
 VPE_PCM_API int VpePcmStreamMetrics(void* context, int stream, float* values, int count);
+// Temporary output envelope, independent of processing preferences. Zero ms snaps; otherwise ramps per sample.
+VPE_PCM_API int VpePcmSetTransitionGain(void* context, float gain, int milliseconds);
 VPE_PCM_API int VpePcmRender(void* context, float* output, int frames, int channels, int rate, int paused);
 // Seven bus peaks, stream underflows/overflows/discontinuities, command drops, active voices.
 VPE_PCM_API int VpePcmMetrics(void* context, float* values, int count);

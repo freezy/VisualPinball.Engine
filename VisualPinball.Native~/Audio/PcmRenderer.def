@@ -22,6 +22,7 @@ EXPORTS
  VpePcmStreamEnable
  VpePcmStreamSetBuffer
  VpePcmStreamMetrics
+ VpePcmSetTransitionGain
  VpePcmRender
  VpePcmMetrics
  VpePcmDspAbi

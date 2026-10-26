@@ -99,6 +99,8 @@ Profiles, rule parameters, component source and gain, and every referenced clip 
 
 ## Player processing
 
+Opening the pause menu fades game audio to silence over approximately 100 ms before pausing playback. Continuing resumes from silence and fades back up over 100 ms. Sound previews remain available while paused. The transition is temporary: it preserves saved volume and processing settings and resets when leaving the table.
+
 In the Player, open **Settings → Sound**. Under **Volume & playback**, choose **Stereo effects** and reload the table. The controls preview live. **Apply** in the fixed footer saves them for the game; **Revert** restores saved settings. Unapplied edits stay available when you return to the game or switch editing scope, and the footer identifies them as unsaved. A failed Apply preserves the draft and reports the failure instead of discarding it. **All tables** and **This table** at the top right select which sound preferences you are editing. The scope note names the table and explains inheritance. **Use settings from All tables** removes its override. Volume and playback controls inside the separately labelled global section continue to apply to every table.
 
 **Original** disables processing. **Desktop room** and **Headphones** add subtle ambience to mechanical sounds; **Night** reduces the gap between quiet sounds and loud hits. Adjusting a setting changes the preset to **Custom** and clears its highlight. EQ, compression, room ambience and peak protection each have their own switch; inactive controls are hidden. Each clearly labelled **Advanced** section expands only that effect's detailed controls. Individual sound groups can be selected separately in the advanced group selector.

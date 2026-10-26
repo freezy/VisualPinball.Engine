@@ -244,5 +244,44 @@ int main(int argc, char** argv) {
 			VpePcmOutputDestroy(output);
 		}
 	}
+	for (int rate : {44100, 48000, 96000}) {
+		Session s; const std::array<float, 2> constant{{.4f, .2f}};
+		int clip = VpePcmRegisterClip(s.c, constant.data(), 1, 2, rate);
+		VpePcmPlay(s.c, clip, 0, 1, 1, 0, 1);
+		std::array<float, 2> sample{};
+		VpePcmRender(s.c, sample.data(), 1, 2, rate, 0);
+		Check(VpePcmSetTransitionGain(s.c, 0, 100) == 1, "master fade accepts a bounded duration");
+		float previous = sample[0]; bool smooth = true, stereo = true;
+		for (int i = 0; i < rate/10; ++i) {
+			VpePcmRender(s.c, sample.data(), 1, 2, rate, 0);
+			smooth = smooth && sample[0] <= previous && previous - sample[0] < .001f;
+			stereo = stereo && Near(sample[0], sample[1] * 2); previous = sample[0];
+		}
+		Check(smooth && sample[0] == 0, "master reaches silence smoothly in exactly 100 ms");
+		Check(stereo, "master fade preserves the stereo image");
+		VpePcmRender(s.c, sample.data(), 1, 2, rate, 1);
+		Check(sample[0] == 0, "the hard pause remains silent after fading");
+		VpePcmSetTransitionGain(s.c, 1, 100); previous = 0; smooth = true;
+		for (int i = 0; i < rate/10; ++i) {
+			VpePcmRender(s.c, sample.data(), 1, 2, rate, 0);
+			smooth = smooth && sample[0] >= previous && sample[0] - previous < .001f; previous = sample[0];
+		}
+		Check(smooth && Near(sample[0], .4f), "resume fades smoothly back to the authored level");
+		VpePcmSetTransitionGain(s.c, 0, 100);
+		std::vector<float> half(rate/20*2); VpePcmRender(s.c, half.data(), rate/20, 2, rate, 0);
+		Check(Near(half.back(), .1f), "the fade duration is independent of callback block size");
+		VpePcmSetTransitionGain(s.c, 1, 100); VpePcmRender(s.c, sample.data(), 1, 2, rate, 0);
+		Check(sample[0] > .19f && sample[0] < .21f, "a reversed transition starts at the current envelope value");
+		Check(!VpePcmSetTransitionGain(s.c, std::numeric_limits<float>::quiet_NaN(), 100) && !VpePcmSetTransitionGain(s.c, 1, -1), "invalid transition controls are rejected");
+		VpePcmSetTransitionGain(s.c, 1, 0); VpePcmRender(s.c, sample.data(), 1, 2, rate, 0);
+		Check(Near(sample[0], .4f), "teardown can reset the transient gain immediately");
+	}
+	{
+		Session s; std::array<float, 2> recording{{.2f, .1f}};
+		int clip = VpePcmRegisterClip(s.c, recording.data(), 1, 2, 48000);
+		VpePcmSetTransitionGain(s.c, 0, 0); VpePcmPreviewClip(s.c, clip, 0);
+		std::array<float, 2> sample{}; VpePcmRender(s.c, sample.data(), 1, 2, 48000, 1);
+		Check(Near(sample[0], .106f), "settings preview bypasses the paused game's master envelope");
+	}
 	std::printf("Passed %d PCM renderer checks\n",checks);
 }
