@@ -221,7 +221,7 @@ namespace VisualPinball.Unity
 			data.DragPoints = DragPoints;
 
 			// visibility
-			data.IsVisible = GetEnabled<Renderer>();
+			data.IsVisible = GetRendererVisible();
 
 			// mesh
 			var meshComponent = GetComponent<TriggerMeshComponent>();
