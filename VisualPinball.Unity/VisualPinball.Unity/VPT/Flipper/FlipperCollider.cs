@@ -610,8 +610,11 @@ namespace VisualPinball.Unity
 				// time derivative of the normal vector
 				var normalDeriv = Math.CrossZ(movementState.AngleSpeed, normal);
 
-				// relative acceleration in the normal direction
-				var normAcc = math.dot(aRel, normal) + 2.0f * math.dot(normalDeriv, vRel);
+				// Relative acceleration in the normal direction. The gap closes with the acceleration
+				// of the ball's center, not of its material contact point: the centripetal term of the
+				// latter (w x (w x rB), >= 0 along the normal for any spin) read as accelerating away,
+				// and a spinning ball lost its support. Friction below keeps the material point (slip).
+				var normAcc = math.dot(acceleration - aF, normal) + 2.0f * math.dot(normalDeriv, vRel);
 
 				if (normAcc >= 0) {
 					return; // objects accelerating away from each other, nothing to do
@@ -635,7 +638,7 @@ namespace VisualPinball.Unity
 				// first check for slippage
 				var frictionNormVel = math.dot(frictionVRel, normal);
 				var slip = frictionVRel - frictionNormVel * normal; // calc the tangential slip velocity
-				var frictionNormAcc = math.dot(frictionARel, normal) + 2.0f * math.dot(normalDeriv, frictionVRel);
+				var frictionNormAcc = math.dot(frictionAcceleration - frictionAF, normal) + 2.0f * math.dot(normalDeriv, frictionVRel);
 				var frictionNormalForce = math.max(0f, -frictionNormAcc / contactForceAcc);
 				var maxFriction = frictionNormalForce * Header.Material.Friction;
 				var slipSpeed = math.length(slip);
@@ -656,7 +659,7 @@ namespace VisualPinball.Unity
 					slipDir = math.normalize(slipAcc);
 					numer = math.dot(-slipDir, frictionARel);
 					crossF = math.cross(rF, slipDir);
-					denomF = math.dot(slipDir, math.cross(crossF / -matData.Inertia, rF));
+					denomF = math.dot(slipDir, math.cross(crossF / matData.Inertia, rF)); // the flipper's inertia adds to the ball's, as in the dynamic case
 
 				} else {
 					// nonzero slip speed - dynamic friction case

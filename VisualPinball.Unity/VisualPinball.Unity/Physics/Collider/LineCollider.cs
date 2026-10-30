@@ -154,7 +154,10 @@ namespace VisualPinball.Unity
 						hitTime = 0; // slow moving but embedded
 
 					} else {
-						hitTime = bnd * (float)(1.0 / (2.0 * PhysicsConstants.PhysTouch)) + 0.5f; // don't compete for fast zero time events
+						// slow and within touch distance: a contact (flagged below), not a collision in the
+						// future. VP's legacy bnd * 10 + 0.5 remapped the distance into a hit time that never
+						// fits a 0.1 step, so slow touches were dropped and the wall's touch band was dead.
+						hitTime = 0;
 					}
 
 				} else if (math.abs(bnv) > PhysicsConstants.LowNormVel) {

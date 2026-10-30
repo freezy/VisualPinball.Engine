@@ -567,11 +567,21 @@ namespace VisualPinball.Unity
 				angleEnd += 0.0001f;
 			}
 
-			// model inertia of flipper as that of rod of length flipper around its end
-			var inertia = (float)(1.0 / 3.0) * colliderComponent.Mass * (flipperRadius * flipperRadius);
+			// The moment of inertia uses the real flipper shape, the rod approximation
+			// (mass * flipperRadius^2 / 3) only rescales the coil torque, so the flipper
+			// still swings like tables were tuned on. Ball impacts do change: they now see
+			// the shape's inertia.
+			var inertiaShape = InertiaShape(math.max(_baseRadius, 0.01f), endRadius, flipperRadius);
+			var torqueScale = 3f * inertiaShape / (flipperRadius * flipperRadius);
+			if (!math.isfinite(inertiaShape) || inertiaShape <= 0f) {
+				// one circle inside the other has no tangent faces: keep the rod
+				inertiaShape = (float)(1.0 / 3.0) * (flipperRadius * flipperRadius);
+				torqueScale = 1f;
+			}
 
 			return new FlipperStaticData {
-				Inertia = inertia,
+				Inertia = colliderComponent.Mass * inertiaShape,
+				TorqueScale = torqueScale,
 				AngleStart = angleStart,
 				AngleEnd = angleEnd,
 				Strength = colliderComponent.Strength,
@@ -583,6 +593,62 @@ namespace VisualPinball.Unity
 				EndRadius = endRadius,
 				FlipperRadius = flipperRadius
 			};
+		}
+
+		/// <summary>
+		/// Shape factor k^2 of the flipper's moment of inertia about its base circle's
+		/// center (I = mass * k^2). The flipper is the convex hull of the base and end
+		/// circles, an isosceles trapezoid plus two circular segments, with a uniform area
+		/// density. Each section's polar second moment about the rotation axis is summed
+		/// and divided by the total area.
+		/// </summary>
+		/// <remarks>Ported from Visual Pinball's FlipperMoverObject::UpdateInertia.</remarks>
+		internal static float InertiaShape(float baseRadius, float endRadius, float flipperRadius)
+		{
+			var ratio = (baseRadius - endRadius) / flipperRadius;
+
+			var fa = math.asin(ratio); // face-to-centerline angle (center to center)
+			var sinFa = ratio;
+			var cosFa = math.sqrt(1.0f - ratio * ratio);
+
+			var twoFa = fa + fa;
+			var eTheta = math.PI - twoFa; // end segment central angle (minor)
+			var bTheta = math.PI + twoFa; // base segment central angle (major)
+			var sin2Fa = math.sin(twoFa);
+			var sinE = sin2Fa;            // sin(pi - 2fa)
+			var sinB = -sin2Fa;           // sin(pi + 2fa)
+			var cosFa2 = cosFa * cosFa;   // sin^2(theta/2) for both segments
+
+			// Trapezoid: parallel sides b (base end) and a (flipper end), height ht
+			//   chord b at x = baseRadius * sinFa, width 2 * baseRadius * cosFa
+			//   chord a at x = flipperRadius + endRadius * sinFa, width 2 * endRadius * cosFa
+			var a = endRadius * (2.0f * cosFa);
+			var b = baseRadius * (2.0f * cosFa);
+			var ht = flipperRadius - sinFa * (baseRadius - endRadius); // = flipperRadius * cos^2(fa)
+			var areaT = 0.5f * ht * (a + b);
+			var inertiaTc = ht * (16.0f * (ht * ht) * (a * b) + 4.0f * (ht * ht) * (a * a + b * b)
+			                      + 3.0f * (a * a) * (a * a) + 6.0f * (a * a) * (b * b)
+			                      + 6.0f * (a * b) * (a * a + b * b) + 3.0f * (b * b) * (b * b))
+			                / (144.0f * (a + b));
+			var xcT = baseRadius * sinFa + ht * (2.0f * a + b) / (3.0f * (a + b));
+			var inertiaT = inertiaTc + areaT * xcT * xcT;
+
+			// Base segment (major): chord at x = baseRadius * sinFa, the segment wraps the back.
+			// The polar moment formula gives it about the base circle's center, the rotation axis.
+			var areaB = 0.5f * (baseRadius * baseRadius) * (bTheta - sinB);
+			var inertiaB = 0.25f * (baseRadius * baseRadius) * (baseRadius * baseRadius)
+			               * (bTheta - sinB + (float)(2.0 / 3.0) * sinB * cosFa2);
+
+			// End segment (minor): chord at x = flipperRadius + endRadius * sinFa, the segment on the
+			// far side. Translated from the end circle's center, through the segment's centroid,
+			// out to the rotation axis.
+			var areaE = 0.5f * (endRadius * endRadius) * (eTheta - sinE);
+			var inertiaELocal = 0.25f * (endRadius * endRadius) * (endRadius * endRadius)
+			                    * (eTheta - sinE + (float)(2.0 / 3.0) * sinE * cosFa2);
+			var dE = (float)(4.0 / 3.0) * endRadius * cosFa * cosFa2 / (eTheta - sinE);
+			var inertiaE = inertiaELocal + areaE * ((flipperRadius + dE) * (flipperRadius + dE) - dE * dE);
+
+			return (inertiaT + inertiaB + inertiaE) / (areaT + areaB + areaE);
 		}
 
 		internal FlipperMovementState GetMovementData(FlipperStaticData d)

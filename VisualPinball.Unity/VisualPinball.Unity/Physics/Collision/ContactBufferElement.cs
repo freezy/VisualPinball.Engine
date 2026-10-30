@@ -25,6 +25,13 @@ namespace VisualPinball.Unity
 		public float3 FrictionVelocity;
 		public float3 FrictionAngularMomentum;
 		public float3 FrictionAcceleration;
+
+		/// <summary>
+		/// What the contacts of the same ball resolved before this one in the pass did to its
+		/// velocity: all of it for ball/ball contacts, the friction part for static ones.
+		/// Static contacts cancel it along their normal, see <see cref="PhysicsCycle.PassOn"/>.
+		/// </summary>
+		public float3 PriorContactVelocity;
 		public bool IsDuplicate;
 
 		public ContactBufferElement(int ballId, CollisionEventData collEvent)
@@ -34,6 +41,7 @@ namespace VisualPinball.Unity
 			FrictionVelocity = float3.zero;
 			FrictionAngularMomentum = float3.zero;
 			FrictionAcceleration = float3.zero;
+			PriorContactVelocity = float3.zero;
 			IsDuplicate = false;
 		}
 	}

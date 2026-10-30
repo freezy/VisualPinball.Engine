@@ -35,7 +35,7 @@ namespace VisualPinball.Unity
 			var angleMax = math.max(data.AngleStart, tricks.AngleEnd);
 			var minIsStart = angleMin == data.AngleStart; // Usually true for the right Flipper
 
-			var desiredTorque = data.Strength;
+			var desiredTorque = data.Strength * data.TorqueScale;
 			if (!solenoid.Value)
 			{
 				// True solState = button pressed, false = released
@@ -85,7 +85,7 @@ namespace VisualPinball.Unity
 				torqueRampUpSpeed = 1e6f;
 
 			} else {
-				torqueRampUpSpeed = math.min(data.Strength / torqueRampUpSpeed, 1e6f);
+				torqueRampUpSpeed = math.min(data.Strength * data.TorqueScale / torqueRampUpSpeed, 1e6f);
 			}
 
 			// update current torque linearly towards desired torque
