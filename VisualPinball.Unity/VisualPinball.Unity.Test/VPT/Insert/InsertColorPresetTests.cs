@@ -369,6 +369,45 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldBakeAnUnlockedLocalLibrarysInsertsIntoTheLibrary()
+		{
+			var prefabPath = AssetDatabase.FindAssets("t:Prefab", new[] { "Packages/org.visualpinball.unity.assets/Assets/Library/Inserts" })
+				.Select(AssetDatabase.GUIDToAssetPath)
+				.FirstOrDefault(path => AssetDatabase.LoadAssetAtPath<GameObject>(path)?.GetComponent<InsertComponent>() != null);
+			var library = AssetDatabase.FindAssets("t:" + nameof(AssetLibrary))
+				.Select(guid => AssetDatabase.LoadAssetAtPath<AssetLibrary>(AssetDatabase.GUIDToAssetPath(guid)))
+				.FirstOrDefault(each => each != null && prefabPath != null && prefabPath.StartsWith(each.LibraryRoot.TrimEnd('/') + "/"));
+			if (prefabPath == null || library == null || library.IsLocked) {
+				Assert.Ignore("Requires the asset library as an unlocked local package.");
+			}
+			var prefabBakePath = typeof(InsertBaker).GetMethod("PrefabBakePath", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+			var prefabFolder = Path.GetDirectoryName(prefabPath)?.Replace('\\', '/');
+			var mirrored = InsertBaker.MirroredFolder(prefabFolder);
+			var mirroredExisted = AssetDatabase.IsValidFolder(mirrored);
+			var insertsExisted = AssetDatabase.IsValidFolder("Assets/Inserts");
+			var instance = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath));
+			try {
+				var insert = instance.GetComponent<InsertComponent>();
+				Assert.That(InsertBaker.IsReadOnly(prefabPath), Is.False);
+				Assert.That(InsertBaker.InsertFolder(insert), Is.EqualTo(prefabFolder), "new assets go next to the library's prefab");
+				Assert.That(prefabBakePath.Invoke(null, new object[] { insert }), Is.EqualTo(prefabPath), "an unchanged instance bakes the library's prefab");
+
+				library.IsLocked = true;
+				Assert.That(InsertBaker.InsertFolder(insert), Is.EqualTo(mirrored), "a locked library's go into the project");
+				Assert.That(prefabBakePath.Invoke(null, new object[] { insert }), Is.Null, "and its prefab isn't baked");
+			} finally {
+				library.IsLocked = false;
+				Object.DestroyImmediate(instance);
+				if (!mirroredExisted) {
+					AssetDatabase.DeleteAsset(mirrored);
+				}
+				if (!insertsExisted) {
+					AssetDatabase.DeleteAsset("Assets/Inserts");
+				}
+			}
+		}
+
+		[Test]
 		public void ShouldPutANewCoverInTheInsertsFolder()
 		{
 			if (Shader.Find("Pinball/Insert Cover") == null) {

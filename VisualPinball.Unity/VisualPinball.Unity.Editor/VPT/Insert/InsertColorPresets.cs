@@ -44,8 +44,7 @@ namespace VisualPinball.Unity.Editor
 		/// <summary>Assigns existing color materials, or creates new ones beside their source materials, linked to the preset.</summary>
 		/// <param name="preset">The color to apply</param>
 		/// <param name="insert">The insert to apply it to</param>
-		/// <param name="toPackage">Whether new materials go next to their source when that's in a package that can be written to, instead of into the project</param>
-		public static bool Apply(InsertColorPreset preset, InsertComponent insert, bool toPackage = false)
+		public static bool Apply(InsertColorPreset preset, InsertComponent insert)
 		{
 			if (preset == null || !CanApply(insert)) {
 				return false;
@@ -55,8 +54,8 @@ namespace VisualPinball.Unity.Editor
 			var sourceCover = insert.CoverMaterial;
 			var created = new List<Material>();
 			try {
-				var body = Resolve(sourceBody, preset, false, created, toPackage);
-				var cover = sourceCover != null ? Resolve(sourceCover, preset, true, created, toPackage) : null;
+				var body = Resolve(sourceBody, preset, false, created);
+				var cover = sourceCover != null ? Resolve(sourceCover, preset, true, created) : null;
 				if (body == sourceBody && cover == sourceCover) {
 					return false;
 				}
@@ -80,13 +79,14 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		private static Material Resolve(Material source, InsertColorPreset preset, bool cover, List<Material> created, bool toPackage)
+		private static Material Resolve(Material source, InsertColorPreset preset, bool cover, List<Material> created)
 		{
 			if (HasColor(source.name, preset.ColorName)) {
 				return source;
 			}
 			var sourcePath = AssetDatabase.GetAssetPath(source);
-			var folder = toPackage && IsWritablePackage(sourcePath)
+			// Next to a library's own, when it's not locked, so what's made for its inserts stays in it.
+			var folder = IsWritablePackage(sourcePath)
 				? Path.GetDirectoryName(sourcePath)?.Replace('\\', '/')
 				: WritableFolder(sourcePath);
 			var name = NameFor(source.name, preset.ColorName);

@@ -244,6 +244,11 @@ namespace VisualPinball.Unity.Editor
 				}
 
 				if (!clickedAsset.Asset.Library.IsLocked) {
+					var prefabPath = AssetDatabase.GetAssetPath(clickedAsset.Asset.Object);
+					if (InsertLibraryClone.CannotClone(prefabPath) == null) {
+						evt.menu.AppendSeparator();
+						evt.menu.AppendAction("Clone to Library…", _ => InsertLibraryClone.ShowCloneDialog(prefabPath, OnInsertCloned));
+					}
 					evt.menu.AppendSeparator();
 					evt.menu.AppendAction("Copy Metadata", _ => CopyMetadata(clickedAsset.Asset));
 					if (_copiedMetadata != null) {
@@ -330,6 +335,27 @@ namespace VisualPinball.Unity.Editor
 		private IEnumerable<Asset> OtherSelected(AssetResult src)
 		{
 			return _selectedResults.Where(a => !a.Asset.Library.IsLocked && a.Asset.GUID != src.Asset.GUID).Select(ar => ar.Asset);
+		}
+
+		/// <summary>Shows the clone among the results, selected, and its prefab in the Project window.</summary>
+		private void OnInsertCloned(GameObject prefab)
+		{
+			var guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(prefab));
+			var library = Libraries.FirstOrDefault(lib => lib.HasAsset(guid));
+			// a search for the source might not find the clone
+			if (!string.IsNullOrWhiteSpace(_queryInput.value)) {
+				_queryInput.SetValueWithoutNotify(prefab.name);
+			}
+			RefreshCategories();
+			// after the categories, whose refresh filters with the old search, which drops the selection
+			if (library != null) {
+				_firstSelectedResult = new AssetResult(library.GetAsset(guid), 0);
+			}
+			RefreshAssets();
+			EditorGUIUtility.PingObject(prefab);
+			_statusLabel.text = library != null
+				? $"Cloned to {prefab.name} in library {library.Name}."
+				: $"Cloned to {prefab.name}, which isn't in a library yet.";
 		}
 
 		private static void CopyMetadata(Asset src)

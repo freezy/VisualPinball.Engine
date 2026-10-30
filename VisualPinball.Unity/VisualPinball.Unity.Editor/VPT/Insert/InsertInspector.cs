@@ -1156,8 +1156,8 @@ namespace VisualPinball.Unity.Editor
 
 			using (new EditorGUILayout.HorizontalScope()) {
 				using (new EditorGUI.DisabledScope(IsLocked || reshaped != null || !canBake)) {
-					if (GUILayout.Button(new GUIContent(insert.Bake != null ? "Bake Again" : "Bake", "Unwraps and packs the UVs and bakes the normal map, and the optical maps when asked, in Blender. An instance of a prefab in the project bakes the prefab, which all its instances wear. Ctrl/Cmd+Shift+click to bake into the package the insert's prefab comes from, next to the prefab, when that package can be written to."))) {
-						InsertBaker.Bake(insert, toPackage: EditorGUI.actionKey && Event.current.shift);
+					if (GUILayout.Button(new GUIContent(insert.Bake != null ? "Bake Again" : "Bake", "Unwraps and packs the UVs and bakes the normal map, and the optical maps when asked, in Blender. An instance of a prefab in the project, or in an unlocked local asset library, bakes the prefab, next to it, which all its instances wear."))) {
+						InsertBaker.Bake(insert);
 					}
 				}
 				using (new EditorGUI.DisabledScope(insert.Bake == null || IsLocked)) {
@@ -1205,9 +1205,8 @@ namespace VisualPinball.Unity.Editor
 		private void DrawPresets()
 		{
 			var inserts = targets.OfType<InsertComponent>().ToArray();
-			// Ctrl/Cmd+click highlights a preset; with Shift, new materials go into a package that can be written to.
-			var toPackage = EditorGUI.actionKey && Event.current.shift;
-			var revealAsset = EditorGUI.actionKey && !toPackage;
+			// Ctrl/Cmd+click highlights a preset.
+			var revealAsset = EditorGUI.actionKey;
 			SubHeader("Color");
 			var colors = InsertColorPresets.Find();
 			if (colors.Length == 0) {
@@ -1219,7 +1218,7 @@ namespace VisualPinball.Unity.Editor
 				worn.Add(System.Array.IndexOf(colors, current[0]));
 			}
 			using (new EditorGUI.DisabledScope(!revealAsset && (EditorApplication.isPlaying || !inserts.Any(InsertColorPresets.CanApply)))) {
-				var labels = colors.Select(color => InsertPresetGui.Label(color, $"{color.ColorName}. {InsertPresetGui.Where(color)} Materials made for it follow the preset when it changes. Ctrl/Cmd+click to highlight the asset. Ctrl/Cmd+Shift+click to create missing materials next to the insert's own when those are in a package that can be written to, instead of in the project.")).ToArray();
+				var labels = colors.Select(color => InsertPresetGui.Label(color, $"{color.ColorName}. {InsertPresetGui.Where(color)} Materials made for it follow the preset when it changes. Ctrl/Cmd+click to highlight the asset.")).ToArray();
 				var clicked = InsertPresetGui.Buttons(labels, worn, () => InsertPresetGui.EditButton(InsertPresetWindow.Kind.Color, current.Length == 1 ? current[0] : null), 64f);
 				if (clicked >= 0) {
 					var color = colors[clicked];
@@ -1232,7 +1231,7 @@ namespace VisualPinball.Unity.Editor
 						var changed = 0;
 						try {
 							foreach (var insert in inserts) {
-								if (InsertColorPresets.Apply(color, insert, toPackage)) {
+								if (InsertColorPresets.Apply(color, insert)) {
 									changed++;
 								}
 							}
