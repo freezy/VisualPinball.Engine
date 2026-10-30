@@ -575,12 +575,31 @@ namespace VisualPinball.Unity.Editor
 
 		// Encodes the generated screenshots to jpg (libvips via NetVips) and stores them under a
 		// top-level "screenshots/" folder in the package, alongside the user-supplied backglass
-		// image. Missing screenshots are skipped.
+		// image. Each one also gets a small copy under "screenshots/thumbs/", so a table browser
+		// doesn't have to decode the full 4K renders. Missing screenshots are skipped.
 		private void WriteScreenshots(IPackageStorage storage)
 		{
 			IPackageFolder screenshotsFolder = null;
+			IPackageFolder thumbsFolder = null;
 
 			if (!string.IsNullOrEmpty(_screenshotFolder)) {
+
+				// The table crop-bounds sidecar (json), packaged next to the screenshots.
+				var boundsPath = Path.GetFullPath(Path.Combine(_screenshotFolder, PackageScreenshotGenerator.FilenameBounds));
+				PackageScreenshotGenerator.ScreenshotBounds? bounds = null;
+				if (File.Exists(boundsPath)) {
+					var boundsData = File.ReadAllBytes(boundsPath);
+					screenshotsFolder ??= storage.AddFolder(PackageApi.ScreenshotsFolder);
+					var boundsName = Path.GetFileNameWithoutExtension(PackageScreenshotGenerator.FilenameBounds);
+					screenshotsFolder.AddFile(boundsName, ".json").SetData(boundsData);
+					Logger.Info($"Packaged screenshot bounds '{boundsName}.json'.");
+					try {
+						bounds = JsonUtility.FromJson<PackageScreenshotGenerator.ScreenshotBounds>(Encoding.UTF8.GetString(boundsData));
+					} catch (Exception ex) {
+						Logger.Warn(ex, $"Cannot parse screenshot bounds '{boundsPath}'; thumbnails won't be cropped.");
+					}
+				}
+
 				foreach (var fileName in PackageScreenshotGenerator.ScreenshotFileNames) {
 					var pngPath = Path.GetFullPath(Path.Combine(_screenshotFolder, fileName));
 					if (!File.Exists(pngPath)) {
@@ -588,37 +607,55 @@ namespace VisualPinball.Unity.Editor
 						continue;
 					}
 
-					byte[] jpegData;
+					byte[] jpegData, thumbData;
 					try {
 						using var image = NetVips.Image.NewFromFile(pngPath);
 						jpegData = image.JpegsaveBuffer(q: 90);
+						thumbData = EncodeThumbnail(image, bounds, PackageApi.ScreenshotThumbnailWidth);
 					} catch (Exception ex) {
 						Logger.Warn(ex, $"Failed to encode screenshot '{pngPath}' to jpg; skipping.");
 						continue;
 					}
 
 					screenshotsFolder ??= storage.AddFolder(PackageApi.ScreenshotsFolder);
+					thumbsFolder ??= screenshotsFolder.AddFolder(PackageApi.ScreenshotThumbnailsFolder);
 					var name = Path.GetFileNameWithoutExtension(fileName);
 					screenshotsFolder.AddFile(name, ".jpg").SetData(jpegData);
-					Logger.Info($"Packaged screenshot '{name}.jpg' ({jpegData.Length / 1024f:F1} KB).");
-				}
-
-				// The table crop-bounds sidecar (json), packaged next to the screenshots.
-				var boundsPath = Path.GetFullPath(Path.Combine(_screenshotFolder, PackageScreenshotGenerator.FilenameBounds));
-				if (File.Exists(boundsPath)) {
-					screenshotsFolder ??= storage.AddFolder(PackageApi.ScreenshotsFolder);
-					var boundsName = Path.GetFileNameWithoutExtension(PackageScreenshotGenerator.FilenameBounds);
-					screenshotsFolder.AddFile(boundsName, ".json").SetData(File.ReadAllBytes(boundsPath));
-					Logger.Info($"Packaged screenshot bounds '{boundsName}.json'.");
+					thumbsFolder.AddFile(name, ".jpg").SetData(thumbData);
+					Logger.Info($"Packaged screenshot '{name}.jpg' ({jpegData.Length / 1024f:F1} KB, thumbnail {thumbData.Length / 1024f:F1} KB).");
 				}
 			}
 
-			WriteBackglass(storage, ref screenshotsFolder);
+			WriteBackglass(storage, ref screenshotsFolder, ref thumbsFolder);
+		}
+
+		// Crops the image to the table bounds (when known and inside the image) and downscales it to
+		// at most maxWidth, never up.
+		private static byte[] EncodeThumbnail(NetVips.Image image, PackageScreenshotGenerator.ScreenshotBounds? bounds, int maxWidth)
+		{
+			NetVips.Image cropped = null;
+			try {
+				var source = image;
+				if (bounds is { } b && b.cropWidth > 0 && b.cropHeight > 0 && b.cropX >= 0 && b.cropY >= 0
+				    && b.cropX + b.cropWidth <= image.Width && b.cropY + b.cropHeight <= image.Height) {
+					cropped = image.Crop(b.cropX, b.cropY, b.cropWidth, b.cropHeight);
+					source = cropped;
+				}
+				if (source.Width <= maxWidth) {
+					return source.JpegsaveBuffer(q: 90);
+				}
+				using var scaled = source.Resize((double)maxWidth / source.Width, NetVips.Enums.Kernel.Lanczos3);
+				return scaled.JpegsaveBuffer(q: 90);
+
+			} finally {
+				cropped?.Dispose();
+			}
 		}
 
 		// Encodes the user-supplied backglass image (linked in the table metadata) to jpg and
-		// stores it as screenshots/backglass.jpg. No-op when no backglass image is linked.
-		private void WriteBackglass(IPackageStorage storage, ref IPackageFolder screenshotsFolder)
+		// stores it as screenshots/backglass.jpg, plus a downscaled copy under screenshots/thumbs/
+		// when it's wider than that. No-op when no backglass image is linked.
+		private void WriteBackglass(IPackageStorage storage, ref IPackageFolder screenshotsFolder, ref IPackageFolder thumbsFolder)
 		{
 			var tableComponent = _table.GetComponent<TableComponent>();
 			if (!tableComponent || tableComponent.Metadata == null || !tableComponent.Metadata.BackglassImage) {
@@ -637,10 +674,13 @@ namespace VisualPinball.Unity.Editor
 				return;
 			}
 
-			byte[] jpegData;
+			byte[] jpegData, thumbData = null;
 			try {
 				using var image = NetVips.Image.NewFromFile(fullPath);
 				jpegData = image.JpegsaveBuffer(q: 90);
+				if (image.Width > PackageApi.BackglassThumbnailWidth) {
+					thumbData = EncodeThumbnail(image, null, PackageApi.BackglassThumbnailWidth);
+				}
 			} catch (Exception ex) {
 				Logger.Warn(ex, $"Failed to encode backglass '{fullPath}' to jpg; skipping.");
 				return;
@@ -649,6 +689,11 @@ namespace VisualPinball.Unity.Editor
 			screenshotsFolder ??= storage.AddFolder(PackageApi.ScreenshotsFolder);
 			screenshotsFolder.AddFile("backglass", ".jpg").SetData(jpegData);
 			Logger.Info($"Packaged backglass 'backglass.jpg' ({jpegData.Length / 1024f:F1} KB).");
+			if (thumbData != null) {
+				thumbsFolder ??= screenshotsFolder.AddFolder(PackageApi.ScreenshotThumbnailsFolder);
+				thumbsFolder.AddFile("backglass", ".jpg").SetData(thumbData);
+				Logger.Info($"Packaged backglass thumbnail ({thumbData.Length / 1024f:F1} KB).");
+			}
 		}
 
 		private Func<Task<byte[]>> PrepareScene()

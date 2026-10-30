@@ -52,6 +52,11 @@ namespace VisualPinball.Unity
 		public const string AssetFolder = "assets";
 		public const string SoundFolder = "sounds";
 		public const string ScreenshotsFolder = "screenshots";
+		// Small copies of the screenshots under screenshots/thumbs/, for table browsers: the playfield
+		// shots cropped to the table bounds, the backglass only when it's wider than its thumbnail.
+		public const string ScreenshotThumbnailsFolder = "thumbs";
+		public const int ScreenshotThumbnailWidth = 768;
+		public const int BackglassThumbnailWidth = 1024;
 		public const string ContentFolder = "content";
 
 		// Source textures are plain image files under table/textures/, one zip entry per
