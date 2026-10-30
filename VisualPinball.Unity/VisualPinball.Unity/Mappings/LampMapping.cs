@@ -38,7 +38,6 @@ namespace VisualPinball.Unity
 		public string Description = string.Empty;
 
 		[JsonIgnore]
-		[SerializeReference]
 		public MonoBehaviour _device;
 
 		[JsonIgnore]
