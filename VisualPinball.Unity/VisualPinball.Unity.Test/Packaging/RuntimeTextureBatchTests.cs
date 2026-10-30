@@ -90,6 +90,23 @@ namespace VisualPinball.Unity.Test
 			Assert.That(Directory.GetFiles(VpeSharedTextureCache.Root, "*.vpto", SearchOption.AllDirectories).Length, Is.EqualTo(1));
 		}
 
+		[UnityTest] public IEnumerator NormalRefsToStrippedEditorOnlyTexturesAreIgnored()
+		{
+			var (payload, integrity) = Seed(1);
+			// A bake-source insert profile keeps referencing its editor-only normal maps after the reader strips them.
+			payload.Profiles = payload.Profiles.Append(new VpeMaterialProfile {
+				Type = VpeMaterialTypes.Lit, Lit = new VpeLitProfile { NormalMap = new VpeNormalMapRef { TextureId = "editor-only-normal" } },
+				InsertHybrid = new VpeInsertShaderProfile { Properties = new[] {
+					new VpeInsertShaderProperty { Name = "_NormalMap", Kind = "texture", Texture = new VpeTextureRef { TextureId = "editor-only-insert-normal" } }
+				} }
+			}).ToArray();
+			var task = VpeSharedTextureCache.LoadAsync(null, payload, integrity, 1, false, default);
+			while (!task.IsCompleted) yield return null;
+			if (task.IsFaulted) throw task.Exception.GetBaseException();
+			Assert.That(task.Result.Keys, Is.EquivalentTo(new[] { "texture-0" }));
+			Assert.That(payload.Profiles[1].Lit.NormalMap.TextureId, Is.EqualTo("editor-only-normal"));
+		}
+
 		private static void UseAllTextures(VpeMaterialsPayload payload)
 		{
 			payload.Profiles = payload.Textures.Select(texture => new VpeMaterialProfile {

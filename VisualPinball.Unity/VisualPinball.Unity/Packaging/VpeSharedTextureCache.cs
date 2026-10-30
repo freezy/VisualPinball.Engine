@@ -272,7 +272,10 @@ namespace VisualPinball.Unity
 			string NormalId(string id) {
 				if (string.IsNullOrEmpty(id)) return id;
 				if (copies.TryGetValue(id, out var copyId)) return copyId;
-				var source = textures.SingleOrDefault(t => t.Id == id) ?? throw new InvalidDataException("Unknown normal texture ID.");
+				// Editor-only textures are stripped before loading, but the bake-source insert
+				// profiles that reference them stay in the payload. Leave those refs dangling.
+				var source = textures.SingleOrDefault(t => t.Id == id);
+				if (source == null) return id;
 				var copy = PackageApi.Packer.Unpack<VpeTexture>(PackageApi.Packer.Pack(source));
 				copy.Id = id + ":normal";
 				while (textures.Any(t => t.Id == copy.Id)) copy.Id += ":normal";
