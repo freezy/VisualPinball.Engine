@@ -170,6 +170,13 @@ namespace VisualPinball.Unity.Editor
 					// Also when it's a variant's override, which the text didn't match.
 					var id = new SerializedObject(root.GetComponent<InsertComponent>());
 					id.FindProperty("_id").stringValue = newId;
+					// What the source wore before its bake is the clone's only when it was
+					// copied with it. Another insert's, which a clone of a clone carries,
+					// would come back when the clone's bake is removed.
+					var preBake = id.FindProperty("_unbakedMaterial");
+					if (preBake.objectReferenceValue != null && !AssetDatabase.GetAssetPath(preBake.objectReferenceValue).StartsWith(folder + "/", StringComparison.Ordinal)) {
+						preBake.objectReferenceValue = null;
+					}
 					id.ApplyModifiedPropertiesWithoutUndo();
 					PrefabUtility.SaveAsPrefabAsset(root, prefabCopy);
 				} finally {

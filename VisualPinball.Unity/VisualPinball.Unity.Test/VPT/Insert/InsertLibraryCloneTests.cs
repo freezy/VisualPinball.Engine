@@ -74,6 +74,10 @@ namespace VisualPinball.Unity.Test
 				AssetDatabase.CreateAsset(red, Source + "/Insert, Source, Starburst, Red.mat");
 				var cover = new Material(shader);
 				AssetDatabase.CreateAsset(cover, Root + "/Inserts/Insert Cover, Red.mat");
+				// What it wore before its bake belongs to another insert, as it does when the source is a clone itself.
+				AssetDatabase.CreateFolder(Root + "/Inserts", "Insert, Other");
+				var other = new Material(shader);
+				AssetDatabase.CreateAsset(other, Root + "/Inserts/Insert, Other/Insert, Other.mat");
 				var bake = ScriptableObject.CreateInstance<InsertBakeData>();
 				bake.NormalMap = map;
 				bake.Material = red;
@@ -88,6 +92,7 @@ namespace VisualPinball.Unity.Test
 				var serialized = new SerializedObject(insert);
 				serialized.FindProperty("_bake").objectReferenceValue = bake;
 				serialized.FindProperty("_coverMaterial").objectReferenceValue = cover;
+				serialized.FindProperty("_unbakedMaterial").objectReferenceValue = other;
 				serialized.ApplyModifiedPropertiesWithoutUndo();
 				go.GetComponent<MeshRenderer>().sharedMaterials = new[] { red, cover };
 				var sourcePrefab = PrefabUtility.SaveAsPrefabAsset(go, Source + "/Insert, Source.prefab");
@@ -129,10 +134,12 @@ namespace VisualPinball.Unity.Test
 				const string coverPath = Root + "/Inserts/Insert Cover, Red.mat";
 				Assert.That(AssetDatabase.GetAssetPath(clone.GetComponent<MeshRenderer>().sharedMaterials[1]), Is.EqualTo(coverPath), "the cover stays the library's");
 				Assert.That(AssetDatabase.GetAssetPath(cloned.CoverMaterial), Is.EqualTo(coverPath));
+				Assert.That(cloned.PreBakeMaterial, Is.Null, "not another insert's material from before the bake");
 
 				var red2 = AssetDatabase.LoadAssetAtPath<Material>(Source + "/Insert, Source, Starburst, Red.mat");
 				Assert.That(AssetDatabase.LoadAssetAtPath<InsertBakeData>(Source + "/Insert, Source, Bake.asset").Owner, Is.EqualTo("0123456789abcdef0123456789abcdef"), "the source is left as it was");
 				Assert.That(AssetDatabase.GetAssetPath(red2.parent), Is.EqualTo(Source + "/Insert, Source, Starburst.mat"));
+				Assert.That(AssetDatabase.GetAssetPath(AssetDatabase.LoadAssetAtPath<GameObject>(Source + "/Insert, Source.prefab").GetComponent<InsertComponent>().PreBakeMaterial), Is.EqualTo(Root + "/Inserts/Insert, Other/Insert, Other.mat"));
 
 				var asset = library.GetAsset(AssetDatabase.AssetPathToGUID(folder + "/Insert, Clone.prefab"));
 				Assert.That(asset, Is.Not.Null, "added to the library");
