@@ -80,13 +80,12 @@ namespace VisualPinball.Unity
 		private void SetIsDropped(bool isDropped)
 		{
 			var resetTimestamp = PhysicsEngine.TimeMsec;
-			if (IsCurrentlyDropped() != isDropped && !isDropped) {
-				Reset?.Invoke(this, EventArgs.Empty);
-				MainComponent.UpdateAnimationValue(false);
-			}
+			var itemId = ItemId;
+			var physicsEngine = PhysicsEngine;
 
+			// with external timing, this runs on the simulation thread, which owns the drop status
 			PhysicsEngine.MutateState((ref PhysicsState state) => {
-				ref var dropTargetState = ref state.DropTargetStates.GetValueByRef(ItemId);
+				ref var dropTargetState = ref state.DropTargetStates.GetValueByRef(itemId);
 				if (dropTargetState.Animation.IsDropped != isDropped) {
 					dropTargetState.Animation.MoveAnimation = true;
 					if (isDropped) {
@@ -94,11 +93,18 @@ namespace VisualPinball.Unity
 					} else {
 						dropTargetState.Animation.MoveDown = false;
 						dropTargetState.Animation.TimeStamp = resetTimestamp;
+						physicsEngine.RunOnMainThread(OnResetStarted);
 					}
 				} else {
 					dropTargetState.Animation.IsDropped = isDropped;
 				}
 			});
+		}
+
+		private void OnResetStarted()
+		{
+			Reset?.Invoke(this, EventArgs.Empty);
+			MainComponent.UpdateAnimationValue(false);
 		}
 
 		private bool IsCurrentlyDropped()

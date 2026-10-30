@@ -256,6 +256,42 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		/// <summary>
+		/// Runs an action on the main thread: right away when called from there, otherwise
+		/// with the next drain of scheduled actions.
+		/// </summary>
+		/// <remarks>
+		/// <b>Thread:</b> Any thread. Lets state mutations notify Unity-side listeners.
+		/// </remarks>
+		internal void RunOnMainThread(Action action)
+		{
+			if (!_ctx.UseExternalTiming || IsMainThread) {
+				action();
+				return;
+			}
+			ScheduleAction(0, action);
+		}
+
+		/// <summary>
+		/// Copy of a ball's state for handlers of physics events.
+		/// </summary>
+		/// <remarks>
+		/// <b>Thread:</b> Main thread. With external timing, this is the state copied under
+		/// <c>PhysicsLock</c> when the current batch of events was drained, so it never blocks.
+		/// </remarks>
+		internal bool TryGetEventBallState(int ballId, out BallState ballState)
+		{
+			if (!_ctx.UseExternalTiming || IsSimulationThread) {
+				return _ctx.BallStates.Ref.TryGetValue(ballId, out ballState);
+			}
+			// an earlier handler of the same drain may have destroyed the ball (a trough drain does)
+			if (!_ctx.BallComponents.ContainsKey(ballId)) {
+				ballState = default;
+				return false;
+			}
+			return _threading.TryGetDrainedBallState(ballId, out ballState);
+		}
+
 		private void PushScheduledAction(PhysicsEngineContext.ScheduledAction action)
 		{
 			var scheduledActions = _ctx.ScheduledActions;
@@ -639,7 +675,8 @@ namespace VisualPinball.Unity
 
 		private void GuardLiveStateAccess(string accessorName)
 		{
-			if (!_ctx.UseExternalTiming || IsSimulationThread) {
+			// before Start() completes, the simulation thread doesn't touch state yet (collider setup writes it from the main thread)
+			if (!_ctx.UseExternalTiming || !_ctx.IsInitialized || IsSimulationThread) {
 				return;
 			}
 

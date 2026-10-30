@@ -84,6 +84,12 @@ namespace VisualPinball.Unity
 				return;
 			}
 
+#if UNITY_EDITOR
+			_debugPosition = ball.Position;
+			_debugVelocity = ball.Velocity;
+			_hasDebugState = true;
+#endif
+
 			// calculate/adapt height of ball
 			var zHeight = !ball.IsFrozen ? ball.Position.z : ball.Position.z - ball.Radius;
 			ballTransform.localPosition = Physics.TranslateToWorld(ball.Position.x, ball.Position.y, zHeight);
@@ -147,12 +153,14 @@ namespace VisualPinball.Unity
 		}
 
 #if UNITY_EDITOR
-		private PhysicsEngine _physicsEngine;
+		// the last state handed to Move(), so the debug drawing doesn't read the live physics state
+		private float3 _debugPosition;
+		private float3 _debugVelocity;
+		private bool _hasDebugState;
 		private float4x4 _playfieldToWorld;
 
 		private void Awake()
 		{
-			_physicsEngine = GetComponentInParent<PhysicsEngine>();
 			_playfieldToWorld = GetComponentInParent<PlayfieldComponent>().transform.localToWorldMatrix;
 			UnityEditor.SceneView.duringSceneGui += DrawPhysicsDebug;
 		}
@@ -164,16 +172,14 @@ namespace VisualPinball.Unity
 
 		private void DrawPhysicsDebug(UnityEditor.SceneView sceneView)
 		{
-			if (!_physicsEngine.BallExists(Id)) {
+			if (!_hasDebugState) {
 				return;
 			}
 
-			ref var ballState = ref _physicsEngine.BallState(Id);
-
 			// velocity
 			DrawArrow(
-				_playfieldToWorld.MultiplyPoint(ballState.Position.TranslateToWorld()),
-				_playfieldToWorld.MultiplyVector((ballState.Velocity * 10).TranslateToWorld()),
+				_playfieldToWorld.MultiplyPoint(_debugPosition.TranslateToWorld()),
+				_playfieldToWorld.MultiplyVector((_debugVelocity * 10).TranslateToWorld()),
 				Color.white,
 				0.01f
 			);

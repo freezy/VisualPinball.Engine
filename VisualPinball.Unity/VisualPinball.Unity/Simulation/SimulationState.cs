@@ -62,6 +62,7 @@ namespace VisualPinball.Unity.Simulation
 		{
 			public int Id;
 			public float3 Position;
+			public float3 Velocity;
 			public float Radius;
 			public byte IsFrozen; // 0 = no, 1 = yes
 			public float3x3 Orientation; // BallOrientationForUnity

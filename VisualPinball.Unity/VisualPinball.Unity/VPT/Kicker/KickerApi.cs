@@ -362,8 +362,8 @@ namespace VisualPinball.Unity
 				Switch?.Invoke(this, new SwitchEventArgs(true, ballId));
 				OnSwitch(true);
 				// check if ball is destroyed
-				if (PhysicsEngine.BallExists(ballId)) {
-					BallMovementPhysics.Move(PhysicsEngine.BallState(ballId), ballTransform); // do the last update, since frozen balls don't get updated
+				if (PhysicsEngine.TryGetEventBallState(ballId, out var ballState)) {
+					ballComponent.Move(ballState); // do the last update, since frozen balls don't get updated
 					ballTransform.SetParent(MainComponent.transform, true);
 					_capturedBallTransform = ballTransform;
 				}

@@ -54,6 +54,7 @@ namespace VisualPinball.Unity
 		private readonly float4x4 _worldToPlayfield;
 		private readonly PhysicsMovements _physicsMovements = new();
 		private readonly List<EventData> _deferredMainThreadEvents = new();
+		private readonly Dictionary<int, BallState> _deferredMainThreadBallStates = new();
 		private readonly List<Action> _deferredMainThreadScheduledActions = new();
 		private readonly List<Action> _dueSingleThreadScheduledActions = new();
 		private readonly List<PhysicsEngine.InputAction> _pendingInputActions = new();
@@ -650,6 +651,7 @@ namespace VisualPinball.Unity
 					snapshot.BallSnapshots[ballCount] = new SimulationState.BallSnapshot {
 						Id = ball.Id,
 						Position = ball.Position,
+						Velocity = ball.Velocity,
 						Radius = ball.Radius,
 						IsFrozen = ball.IsFrozen ? (byte)1 : (byte)0,
 						Orientation = ball.BallOrientationForUnity
@@ -860,6 +862,7 @@ namespace VisualPinball.Unity
 					var ballState = new BallState {
 						Id = bs.Id,
 						Position = bs.Position,
+						Velocity = bs.Velocity,
 						Radius = bs.Radius,
 						IsFrozen = false,
 						BallOrientationForUnity = bs.Orientation,
@@ -888,6 +891,16 @@ namespace VisualPinball.Unity
 		}
 
 		/// <summary>
+		/// State of a ball referenced by the events of the current drain, copied while the
+		/// physics lock was held.
+		/// </summary>
+		/// <remarks>
+		/// <b>Thread:</b> Main thread only.
+		/// </remarks>
+		internal bool TryGetDrainedBallState(int ballId, out BallState ballState)
+			=> _deferredMainThreadBallStates.TryGetValue(ballId, out ballState);
+
+		/// <summary>
 		/// Drain physics-originated managed callbacks on the Unity main thread.
 		/// Non-blocking: if the simulation thread currently holds the physics
 		/// lock, callbacks are deferred to the next frame.
@@ -902,6 +915,7 @@ namespace VisualPinball.Unity
 			}
 
 			_deferredMainThreadEvents.Clear();
+			_deferredMainThreadBallStates.Clear();
 			_deferredMainThreadScheduledActions.Clear();
 			var drainStartTicks = Stopwatch.GetTimestamp();
 
@@ -915,6 +929,11 @@ namespace VisualPinball.Unity
 				if (_ctx.RollingRenderer) _ctx.RollingRenderer.Capture();
 				while (_ctx.EventQueue.Ref.TryDequeue(out var eventData)) {
 					_deferredMainThreadEvents.Add(eventData);
+					// copy the ball while we hold the lock, so handlers can read it without touching live state
+					if (eventData.BallId != 0 && !_deferredMainThreadBallStates.ContainsKey(eventData.BallId)
+					    && _ctx.BallStates.Ref.TryGetValue(eventData.BallId, out var ballState)) {
+						_deferredMainThreadBallStates[eventData.BallId] = ballState;
+					}
 				}
 
 				lock (_ctx.ScheduledActionsLock) {
