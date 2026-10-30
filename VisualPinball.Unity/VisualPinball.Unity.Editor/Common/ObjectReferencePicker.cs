@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
@@ -32,6 +33,9 @@ namespace VisualPinball.Unity.Editor
 		private readonly TableComponent _tableComp;
 		private readonly bool _showIcon;
 
+		/// <summary>Names more than one element of the table has, rebuilt when the dropdown opens.</summary>
+		private HashSet<string> _ambiguousNames;
+
 		public ObjectReferencePicker(string pickerTitle, TableComponent tableComp, bool showIcon)
 		{
 			_pickerTitle = pickerTitle;
@@ -42,11 +46,15 @@ namespace VisualPinball.Unity.Editor
 		public void Render(Rect pos, T currentObj, Action<T> onUpdated, Func<T, bool> filter = null)
 		{
 			// render content
+			if (_ambiguousNames == null && _tableComp) {
+				_ambiguousNames = ObjectReferenceLabels.AmbiguousNames(_tableComp.GetComponentsInChildren<T>());
+			}
+			var label = currentObj == null ? null : ObjectReferenceLabels.Label(currentObj, _ambiguousNames);
 			var content = currentObj == null
 				? new GUIContent("None")
 				: _showIcon
-					? new GUIContent(currentObj.name, Icons.ByComponent(currentObj, IconSize.Small, IconColor))
-					: new GUIContent(currentObj.name);
+					? new GUIContent(label, Icons.ByComponent(currentObj, IconSize.Small, IconColor))
+					: new GUIContent(label);
 
 			// render drawer
 			var id = GUIUtility.GetControlID(FocusType.Keyboard, pos);
@@ -66,6 +74,7 @@ namespace VisualPinball.Unity.Editor
 
 				} else {
 					// click on picker
+					_ambiguousNames = null;
 					_itemPickDropdownState ??= new AdvancedDropdownState();
 					var dropdown = new ItemSearchableDropdown<T>(
 						_itemPickDropdownState,
@@ -107,13 +116,18 @@ namespace VisualPinball.Unity.Editor
 		protected override AdvancedDropdownItem BuildRoot()
 		{
 			var node = new AdvancedDropdownItem(_title);
-			var elements = _filter == null
-				? _tableComponent.GetComponentsInChildren<T>()
-				: _tableComponent.GetComponentsInChildren<T>().Where(_filter);
+			var all = _tableComponent.GetComponentsInChildren<T>();
+			var elements = _filter == null ? all : all.Where(_filter);
+			var ambiguousNames = ObjectReferenceLabels.AmbiguousNames(all);
 
-			node.AddChild(new ElementDropdownItem<T>(null));
+			node.AddChild(new ElementDropdownItem<T>(null, null));
 			foreach (var element in elements) {
-				node.AddChild(new ElementDropdownItem<T>(element));
+				var item = new ElementDropdownItem<T>(element, ObjectReferenceLabels.Label(element, ambiguousNames));
+				node.AddChild(item);
+				// AddChild derives the id from the label, which same-named elements under same-named parents still share
+				if (element is UnityEngine.Object obj) {
+					item.id = UnityObjectId.Get(obj);
+				}
 			}
 			return node;
 		}
@@ -128,13 +142,37 @@ namespace VisualPinball.Unity.Editor
 		{
 			public readonly TItem Item;
 
-			public ElementDropdownItem(TItem element) : base(element == null ? "None" : element.name)
+			public ElementDropdownItem(TItem element, string label) : base(element == null ? "None" : label)
 			{
 				if (element != null) {
 					Item = element;
 					icon = Icons.ByComponent(element, color: IconColor.Gray, size: IconSize.Small);
 				}
 			}
+		}
+	}
+
+	/// <summary>
+	/// Labels of table elements in the device pickers. Elements share names when they come from
+	/// the same prefab, like the "Lamp" of every bumper, so those get their parent's name too.
+	/// </summary>
+	internal static class ObjectReferenceLabels
+	{
+		public static HashSet<string> AmbiguousNames(IEnumerable<IIdentifiableItemComponent> elements)
+		{
+			return new HashSet<string>(elements
+				.GroupBy(e => e.name)
+				.Where(g => g.Count() > 1)
+				.Select(g => g.Key));
+		}
+
+		public static string Label(IIdentifiableItemComponent element, HashSet<string> ambiguousNames)
+		{
+			if (ambiguousNames == null || !ambiguousNames.Contains(element.name)) {
+				return element.name;
+			}
+			var parent = (element as Component)?.transform.parent;
+			return parent ? $"{element.name} ({parent.name})" : element.name;
 		}
 	}
 }
