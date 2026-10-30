@@ -258,28 +258,18 @@ namespace VisualPinball.Unity.Editor
 
 		/// <param name="insert">The insert to bake</param>
 		/// <param name="useHybridMaterial">Whether to put a hybrid material on the insert afterwards</param>
-		/// <param name="toPackage">Whether to bake into the package folder of the prefab the insert comes from, when that package can be written to</param>
-		/// <param name="prefab">The project prefab the insert is an instance of, to bake into that prefab, which all its instances wear, rather than into the insert</param>
-		public static void Bake(InsertComponent insert, bool useHybridMaterial = false, bool toPackage = false, string prefab = null)
+		/// <param name="prefab">The prefab the insert is an instance of, to bake into that prefab, which all its instances wear, rather than into the insert</param>
+		public static void Bake(InsertComponent insert, bool useHybridMaterial = false, string prefab = null)
 		{
 			if (_job != null) {
 				return;
 			}
 			LastError = null;
 			LastErrorInsert = null;
-			string packagePrefab = null;
-			if (prefab != null) {
-				packagePrefab = prefab;
-			} else if (toPackage) {
-				packagePrefab = PackagePrefabPath(insert);
-				if (packagePrefab == null) {
-					Debug.LogWarning($"{insert.name} isn't from a prefab in a package that can be written to, so it's baked into the project as usual.");
-				}
-			} else {
-				// An unchanged instance of a project prefab, like a variant made by
-				// Edit in project, bakes the prefab's bake, which all its instances wear.
-				packagePrefab = PrefabBakePath(insert);
-			}
+			// An unchanged instance of a prefab that can be written to, like a
+			// variant made by Edit in project or one in an unlocked local asset
+			// library, bakes the prefab's bake, which all its instances wear.
+			var packagePrefab = prefab ?? PrefabBakePath(insert);
 			var blender = BlenderPath;
 			var info = Probe();
 			if (info?.Error != null) {
@@ -546,10 +536,12 @@ namespace VisualPinball.Unity.Editor
 			}
 			AssetDatabase.SaveAssets();
 
-			// A project prefab's bake is the prefab's: what the bake puts on this
-			// instance goes into the prefab, for all its instances, and so does the
-			// material when the prefab wore its bake's, rather than a colour of its own.
-			var projectPrefab = packagePrefab != null && packagePrefab.StartsWith("Assets/", StringComparison.Ordinal) && PrefabUtility.IsPartOfPrefabInstance(insert)
+			// A prefab's bake is the prefab's, in the project as in an unlocked
+			// library: what the bake puts on this instance goes into the prefab, for
+			// all its instances, and so does the material when the prefab wore its
+			// bake's, rather than a colour of its own. Not when the instance has a
+			// shape of its own, which the bake then fits and the prefab doesn't.
+			var projectPrefab = packagePrefab != null && PrefabUtility.IsPartOfPrefabInstance(insert) && ShapeOverrides(insert).Length == 0
 				? PrefabUtility.GetCorrespondingObjectFromSource(insert)
 				: null;
 			var prefabWoreBake = projectPrefab != null && projectPrefab.TryGetComponent<MeshRenderer>(out var prefabRenderer)
@@ -694,10 +686,11 @@ namespace VisualPinball.Unity.Editor
 		{
 			var worn = insert.GetComponent<MeshRenderer>().sharedMaterial;
 			var material = worn;
-			// A project prefab's own body is its bake's, also before its first bake,
+			// A prefab's own body is its bake's, also before its first bake,
 			// when it's still a copy carrying another prefab's maps.
-			var prefabBody = packagePrefab != null && packagePrefab.StartsWith("Assets/", StringComparison.Ordinal) && worn != null
-				&& PrefabUtility.GetCorrespondingObjectFromSource(insert.GetComponent<MeshRenderer>()) is { } prefabRenderer && prefabRenderer.sharedMaterial == worn;
+			var prefabBody = packagePrefab != null && worn != null
+				&& PrefabUtility.GetCorrespondingObjectFromSource(insert.GetComponent<MeshRenderer>()) is { } prefabRenderer && prefabRenderer.sharedMaterial == worn
+				&& !WornByOtherPrefab(worn, packagePrefab);
 			var created = worn == null || !(wornIsOwn || prefabBody) || !EditorUtility.IsPersistent(worn) || IsReadOnly(AssetDatabase.GetAssetPath(worn));
 			if (!created && WornElsewhere(worn, insert, packagePrefab)) {
 				created = true;
@@ -734,6 +727,25 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 			return false;
+		}
+
+		/// <summary>
+		/// Whether another prefab next to the material or to <paramref name="prefab"/>
+		/// wears it, like a prefab duplicated from it in the Project window: its body
+		/// is the original's then, not one a bake may write into.
+		/// </summary>
+		private static bool WornByOtherPrefab(Material material, string prefab)
+		{
+			var path = AssetDatabase.GetAssetPath(material);
+			var folders = new[] { Path.GetDirectoryName(path), Path.GetDirectoryName(prefab) }
+				.Where(folder => !string.IsNullOrEmpty(folder))
+				.Select(folder => folder.Replace('\\', '/'))
+				.Distinct()
+				.ToArray();
+			return AssetDatabase.FindAssets("t:Prefab", folders)
+				.Select(AssetDatabase.GUIDToAssetPath)
+				.Where(other => other != prefab)
+				.Any(other => AssetDatabase.GetDependencies(other, false).Contains(path));
 		}
 
 		/// <summary>
@@ -850,7 +862,7 @@ namespace VisualPinball.Unity.Editor
 		public static bool IsReadOnly(InsertBakeData bake) => bake != null && IsReadOnly(AssetDatabase.GetAssetPath(bake));
 
 		/// <summary>The physical destination for a project or package asset; imports still use its asset path.</summary>
-		private static string DiskPath(string assetPath)
+		internal static string DiskPath(string assetPath)
 		{
 			var package = PackageInfo.FindForAssetPath(assetPath);
 			return package != null
@@ -1051,15 +1063,22 @@ namespace VisualPinball.Unity.Editor
 		public static bool NeedsEditing(InsertComponent insert)
 			=> !BakesHere(insert) || InsertColorPresets.HasReadOnlyMaterial(insert);
 
-		/// <summary>The prefab in the project, which can be written to, that the insert is an instance of, or null.</summary>
+		/// <summary>The prefab that can be written to that the insert is an instance of, or null.</summary>
 		private static string ProjectPrefab(InsertComponent insert)
 		{
 			if (!IsInstanceRoot(insert)) {
 				return null;
 			}
 			var path = PrefabPath(insert);
-			return !string.IsNullOrEmpty(path) && path.StartsWith("Assets/", StringComparison.Ordinal) && !IsReadOnly(path) ? path : null;
+			return IsWritablePrefab(path) ? path : null;
 		}
+
+		/// <summary>
+		/// Whether the prefab can be written to: one in the project, or in a
+		/// local package, like an asset library, that isn't locked.
+		/// </summary>
+		private static bool IsWritablePrefab(string path)
+			=> !string.IsNullOrEmpty(path) && (path.StartsWith("Assets/", StringComparison.Ordinal) || path.StartsWith("Packages/", StringComparison.Ordinal)) && !IsReadOnly(path);
 
 		/// <summary>
 		/// Makes a variant of the insert's prefab in the project, and the insert
@@ -1229,26 +1248,31 @@ namespace VisualPinball.Unity.Editor
 		};
 
 		/// <summary>
-		/// The prefab in the project whose bake the insert is to bake: the one it
-		/// is an instance of, when it wears the prefab's bake and doesn't change
-		/// its shape, so the bake fits every instance alike. Null otherwise. Only
+		/// The prefab whose bake the insert is to bake, in the project or in an
+		/// unlocked local asset library: the one it is an instance of, when it
+		/// doesn't change its shape, so the bake fits every instance alike. Null
+		/// otherwise, and for a prefab that can't be written to. Only
 		/// the bake named after the prefab, next to it, is baked over; any other
 		/// gives way to a new one there, which the prefab then wears.
 		/// </summary>
 		private static string PrefabBakePath(InsertComponent insert)
 		{
-			if (insert.Bake == null || !PrefabUtility.IsPartOfPrefabInstance(insert)) {
+			if (!PrefabUtility.IsPartOfPrefabInstance(insert)) {
 				return null;
 			}
 			var path = PrefabPath(insert);
-			if (string.IsNullOrEmpty(path) || !path.StartsWith("Assets/", StringComparison.Ordinal) || IsReadOnly(path)) {
+			if (!IsWritablePrefab(path)) {
 				return null;
 			}
 			var source = PrefabUtility.GetCorrespondingObjectFromSource(insert);
-			if (source == null || source.Bake != insert.Bake) {
+			if (source == null || ShapeOverrides(insert).Length > 0) {
 				return null;
 			}
-			return ShapeOverrides(insert).Length == 0 ? path : null;
+			// An instance of the insert's own prefab bakes it also before its first
+			// bake, and when it wears a bake of its own, like one made into the
+			// project before: with the same shape, it's the same bake. An insert
+			// inside a larger prefab, like a table's, only bakes the bake it shares.
+			return IsInstanceRoot(insert) || insert.Bake != null && source.Bake == insert.Bake ? path : null;
 		}
 
 		/// <summary>
@@ -1436,15 +1460,20 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		/// <summary>
-		/// Where the insert's own assets go in the project when it has none yet:
-		/// its bake, its maps, and the materials made for it. For an insert of a
-		/// prefab, that's the prefab's folder mirrored under Assets, which every
-		/// insert of that prefab shares; for any other, a folder of its own.
+		/// Where the insert's own assets go when it has none yet: its bake, its
+		/// maps, and the materials made for it. For an insert of a prefab, that's
+		/// the prefab's folder when it can be written to, like an unlocked local
+		/// asset library's, or else that folder mirrored under Assets; every
+		/// insert of that prefab shares it. For any other, a folder of its own.
 		/// </summary>
 		public static string InsertFolder(InsertComponent insert)
 		{
 			var prefab = PrefabPath(insert);
-			var folder = string.IsNullOrEmpty(prefab) ? null : MirroredFolder(Path.GetDirectoryName(prefab)?.Replace('\\', '/'));
+			var prefabFolder = string.IsNullOrEmpty(prefab) ? null : Path.GetDirectoryName(prefab)?.Replace('\\', '/');
+			if (prefabFolder != null && prefab.StartsWith("Packages/", StringComparison.Ordinal) && !IsReadOnly(prefab)) {
+				return prefabFolder;
+			}
+			var folder = MirroredFolder(prefabFolder);
 			// A locked library in the project mirrors onto itself: what's written there would be the library's again.
 			if (folder == null || LockedLibrary(folder + "/") != null) {
 				return NewFolder(insert);
@@ -1516,21 +1545,14 @@ namespace VisualPinball.Unity.Editor
 			}
 		}
 
-		/// <summary>
-		/// The prefab the insert comes from, when it lives in a package that can
-		/// be written to, or null. Baking into the package puts the bake next to it.
-		/// </summary>
-		private static string PackagePrefabPath(InsertComponent insert)
-		{
-			var path = PrefabPath(insert);
-			return !string.IsNullOrEmpty(path) && path.StartsWith("Packages/", StringComparison.Ordinal) && !IsReadOnly(path) ? path : null;
-		}
-
-		/// <summary>The prefab asset the insert is an instance of, or the one open in prefab mode, or null.</summary>
+		/// <summary>The prefab asset the insert is an instance of, or is in, or the one open in prefab mode, or null.</summary>
 		private static string PrefabPath(InsertComponent insert)
 		{
 			if (PrefabUtility.IsPartOfPrefabInstance(insert)) {
 				return PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(insert.gameObject);
+			}
+			if (PrefabUtility.IsPartOfPrefabAsset(insert)) {
+				return AssetDatabase.GetAssetPath(insert);
 			}
 			var stage = PrefabStageUtility.GetPrefabStage(insert.gameObject);
 			return stage != null ? stage.assetPath : null;
