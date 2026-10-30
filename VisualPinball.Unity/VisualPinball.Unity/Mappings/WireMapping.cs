@@ -40,7 +40,6 @@ namespace VisualPinball.Unity
 		public SwitchConstant SourceConstant;
 
 		[JsonIgnore]
-		[SerializeReference]
 		public MonoBehaviour _sourceDevice;
 
 		[JsonIgnore]
@@ -53,7 +52,6 @@ namespace VisualPinball.Unity
 
 		/* Destination */
 		[JsonIgnore]
-		[SerializeReference]
 		public MonoBehaviour _destinationDevice;
 
 		[JsonIgnore]

@@ -32,7 +32,6 @@ namespace VisualPinball.Unity
 		public CoilDestination Destination = CoilDestination.Playfield;
 
 		[JsonIgnore]
-		[SerializeReference]
 		public MonoBehaviour _device;
 
 		[JsonIgnore]
