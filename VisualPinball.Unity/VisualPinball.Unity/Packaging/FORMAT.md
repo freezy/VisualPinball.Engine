@@ -43,6 +43,7 @@ table/
     ├── sounds.json          ← audio meta (ids, import intent)
     └── colliders.json       ← collider-mesh meta
 screenshots/                 ← preview images (jpg) + crop bounds (json, optional)
+└── thumbs/                  ← small cropped copies of the preview images (jpg, optional)
 ```
 
 Already-compressed payloads (the two GLBs, everything under `textures/`) are written as *stored*
@@ -296,8 +297,15 @@ directory modification time under a configurable LRU cap (4 GiB by default).
 
 ## screenshots/
 
-Generated preview renders (`*.jpg`), the user-supplied `backglass.jpg`, and `bounds.json` (table
-crop bounds). Informational; not needed to load the table.
+Generated preview renders (`*.jpg`), the user-supplied `backglass.jpg`, and `table-bounds.json`
+(table crop bounds). Informational; not needed to load the table.
+
+`thumbs/` holds small copies for table browsers, which show many tables at once and would
+otherwise decode every 4K render: each preview render cropped to the table bounds and downscaled
+to 768 px wide, and `backglass.jpg` downscaled to 1024 px wide when it is wider than that. They
+carry the same file names as the full images. A reader falls back to the full image when a
+thumbnail is missing (packages written before thumbnails, a small backglass) or narrower than it
+needs, cropping it with `table-bounds.json` itself.
 
 ## Reader requirements
 

@@ -861,7 +861,7 @@ namespace VisualPinball.Unity.Editor
 		}
 
 		[Serializable]
-		private struct ScreenshotBounds
+		internal struct ScreenshotBounds
 		{
 			public int imageWidth;
 			public int imageHeight;
