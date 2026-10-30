@@ -63,6 +63,8 @@ namespace VisualPinball.Unity
 		public bool RayTracedRecursiveRendering;
 		public int Upscaler;        // VpeUpscaler
 		public int UpscalerQuality; // VpeUpscalerQuality
+		// The balls reflect the playfield and what stands on it where SSR finds nothing, instead of the sky.
+		public bool BallReflections;
 	}
 
 	/// <summary>Implemented by the active render pipeline (e.g. HDRP) to apply <see cref="VpeGraphicsSettings"/>.</summary>
@@ -94,6 +96,9 @@ namespace VisualPinball.Unity
 			=> upscaler == VpeUpscaler.Off || (UpscalerSupport != null && UpscalerSupport(upscaler));
 
 		public static System.Func<VpeUpscaler, bool> UpscalerSupport;
+
+		/// <summary>Whether the active pipeline applies <see cref="VpeGraphicsSettings.BallReflections"/> (it sets this next to its applier).</summary>
+		public static bool BallReflectionsSupported;
 
 		/// <summary>The share of the output resolution the camera renders at (1 without upscaling), as the pipeline reports it.</summary>
 		public static float RenderScale => RenderScaleSource?.Invoke() ?? 1f;
