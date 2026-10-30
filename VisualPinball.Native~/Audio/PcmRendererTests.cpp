@@ -283,5 +283,20 @@ int main(int argc, char** argv) {
 		std::array<float, 2> sample{}; VpePcmRender(s.c, sample.data(), 1, 2, 48000, 1);
 		Check(Near(sample[0], .106f), "settings preview bypasses the paused game's master envelope");
 	}
+	{
+		Session s; const std::array<float, 2> constant{{.4f, .2f}};
+		int clip = VpePcmRegisterClip(s.c, constant.data(), 1, 2, 48000);
+		VpePcmPlay(s.c, clip, 0, 1, 1, 0, 1);
+		std::array<float, 2> sample{}; VpePcmRender(s.c, sample.data(), 1, 2, 48000, 0);
+		VpePcmSetTransitionGain(s.c, 0, 100);
+		std::vector<float> block(4800*2); VpePcmRender(s.c, block.data(), 2400, 2, 48000, 0);
+		const float halfway = block[2399*2];
+		// The output device switches to 96 kHz halfway: 50 ms remain, now 4800 frames.
+		VpePcmRender(s.c, block.data(), 4799, 2, 96000, 0);
+		Check(Near(halfway, .2f) && std::abs(block[0] - halfway) < .001f, "a rate change mid-fade keeps the envelope continuous");
+		Check(block[4798*2] > 0, "a rate change mid-fade doesn't shorten the remaining fade");
+		VpePcmRender(s.c, sample.data(), 1, 2, 96000, 0);
+		Check(sample[0] == 0, "a rate change mid-fade reaches the target after the remaining time");
+	}
 	std::printf("Passed %d PCM renderer checks\n",checks);
 }
