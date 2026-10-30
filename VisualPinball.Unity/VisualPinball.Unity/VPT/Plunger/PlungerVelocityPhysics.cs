@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Unity.Mathematics;
 using VisualPinball.Engine.VPT.Plunger;
 
 namespace VisualPinball.Unity
@@ -28,7 +29,11 @@ namespace VisualPinball.Unity
 			// maximum retracted position)
 			var pos = (movement.Position - staticState.FrameEnd) / staticState.FrameLen;
 
-			var mech = staticState.IsMechPlunger ? movement.AnalogPosition : 0.0f;
+			// the analog reading is 0 at rest and 1 fully retracted, so map it onto the stroke starting at the
+			// rest position, like VPX does. Without a mech plunger, the plunger rests at the park position.
+			var mech = staticState.IsMechPlunger
+				? math.saturate(math.lerp(staticState.RestPosition, 1f, movement.AnalogPosition))
+				: staticState.RestPosition;
 
 			// calculate the delta from the last reading
 			var dMech = velocity.Mech0 - mech;
