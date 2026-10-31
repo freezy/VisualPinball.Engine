@@ -100,6 +100,17 @@ namespace VisualPinball.Unity
 		/// <summary>Whether the active pipeline applies <see cref="VpeGraphicsSettings.BallReflections"/> (it sets this next to its applier).</summary>
 		public static bool BallReflectionsSupported;
 
+		/// <summary>Whether the active pipeline can blur what's out of focus (it registers <see cref="DepthOfFieldHandler"/> next to its applier).</summary>
+		public static bool DepthOfFieldSupported => DepthOfFieldHandler != null;
+
+		/// <summary>
+		/// Turns depth of field on the main camera on or off, focused on whatever is at the center of the screen.
+		/// A table load brings its own volume, so the host sets it again after one.
+		/// </summary>
+		public static void SetDepthOfField(bool on) => DepthOfFieldHandler?.Invoke(on);
+
+		public static System.Action<bool> DepthOfFieldHandler;
+
 		/// <summary>The share of the output resolution the camera renders at (1 without upscaling), as the pipeline reports it.</summary>
 		public static float RenderScale => RenderScaleSource?.Invoke() ?? 1f;
 
