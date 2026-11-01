@@ -205,6 +205,8 @@ Built with Unity 6.5
 
 ### Fixed
 
+- The flipper collider gizmo follows the bat's rotation in edit mode so its shape can be compared with the visible mesh.
+
 - Rolling loops retain their playback position when returning to a surface during a crossfade, and authored fade durations apply equally to quiet and loud sounds.
 
 - Packaged tables preserve the drop target's visual animation, its emitter and animation curves, and event-driven rotations such as the Terminator 2 cannon.

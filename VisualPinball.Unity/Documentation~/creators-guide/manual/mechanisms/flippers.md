@@ -18,6 +18,8 @@ VPE provides a procedurally generated flipper mesh. It consist of a *base mesh* 
 
 It's possible to provide a custom mesh for the flipper by replacing the game objects used to generate the procedural meshes. However, the physics simulation will still use the original colliders, so make sure to adapt the parameters to match the custom flipper's dimensions.
 
+Enable **Show Collider Mesh** on the *Flipper Collider* component to compare the collider with the bat. In edit mode, the collider gizmo follows the bat's rotation.
+
 ### Physics
 
 <img src="flipper-collider-inspector.png" width="438" alt="Flipper Collider" class="img-fluid float-end" style="margin-left: 15px"/>
