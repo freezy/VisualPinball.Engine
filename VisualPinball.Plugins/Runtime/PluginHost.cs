@@ -254,6 +254,8 @@ namespace VisualPinball.Plugins
 		/// <summary>
 		/// Stops the current game's plugins, if any, then selects, creates and starts the plugins for a new game. Plugin failures do
 		/// not throw: they are reported in <see cref="Statuses"/>, and the game runs with the remaining plugins.
+		/// Factories implementing <see cref="IPluginLaunchCheck"/> opt into mandatory launch requirements: unmet requirements
+		/// or failure to start an applicable, enabled plugin throw <see cref="PluginLaunchBlockedException"/> and stop all plugins.
 		/// </summary>
 		/// <remarks>
 		/// The host first decides which plugins run. Plugins that are disabled for the game, unsupported on <see cref="Platform"/>,
@@ -306,12 +308,16 @@ namespace VisualPinball.Plugins
 			catch (OperationCanceledException) when (!cancellation.IsCancellationRequested) {
 				await Scheduler.Switch();
 				foreach (var factory in _factories.Values) SetStatus(factory.Descriptor.Id, PluginState.Blocked, "Plugin host is still stopping a previous operation.");
+				RequireLaunchPluginsStarted(identity);
 				return;
 			}
 			await Scheduler.Switch();
 			try {
 				await StopCoreAsync(CancellationToken.None).ConfigureAwait(false);
 				await Scheduler.Switch();
+				var blockers = await CheckLaunchCoreAsync(identity, packagePath, title, cancellation).ConfigureAwait(false);
+				await Scheduler.Switch();
+				if (blockers.Count > 0) throw new PluginLaunchBlockedException(blockers);
 				_gameCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
 				_activeGame = identity;
 				_hostCapabilities = Capabilities.Ids.ToArray();
@@ -333,6 +339,10 @@ namespace VisualPinball.Plugins
 						await InvokeAsync(entry, PluginPhase.Initialize, token => plugin.InitializeAsync(token), gameToken).ConfigureAwait(false);
 						await Scheduler.Switch();
 					} catch (OperationCanceledException) when (gameToken.IsCancellationRequested) { throw; }
+					catch (PluginLaunchBlockedException) {
+						if (!_entered.Any(entry => entry.ApplicationScope == application)) SafeDispose(application);
+						throw;
+					}
 					catch (Exception error) {
 						await Scheduler.Switch();
 						if (!(error is HookDeadlineException)) Fault(descriptor.Id, PluginPhase.Initialize, error);
@@ -358,6 +368,7 @@ namespace VisualPinball.Plugins
 							await Scheduler.Switch();
 							if (phase == PluginPhase.Start) SetStatus(descriptor.Id, PluginState.Running, "Running", phase);
 						} catch (OperationCanceledException) when (gameToken.IsCancellationRequested) { throw; }
+						catch (PluginLaunchBlockedException) { throw; }
 						catch (Exception error) {
 							await Scheduler.Switch();
 							if (!(error is HookDeadlineException)) Fault(descriptor.Id, phase, error);
@@ -366,6 +377,7 @@ namespace VisualPinball.Plugins
 						}
 					}
 				}
+				RequireLaunchPluginsStarted(identity);
 				_running = true;
 				RebuildDispatch();
 			} catch {
