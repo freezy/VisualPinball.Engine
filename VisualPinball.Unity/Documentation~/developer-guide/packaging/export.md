@@ -80,6 +80,10 @@ Gameplay and authoring data is split into two trees:
 
 The split exists because some data can be applied immediately, while other data only makes sense after the whole object/component graph has been rebuilt.
 
+Visual mechanism drivers are components too: the drop target's `DropTargetAnimationComponent` is stored as `DropTargetVisualAnimation`, including its timing, curves and optional emitter reference. The legacy animation keeps the `DropTargetAnimation` type name. `EventRotateComponent` is stored as `EventRotate`, including its event name, axis, rotation space, factor and offset; it reconnects to an event emitter on the same GameObject when the loaded table starts.
+
+Packages exported before these visual drivers were supported must be exported again from the authored table, then loaded with a player built with that support. The mesh hierarchy alone cannot reconstruct the missing animation settings.
+
 ## Table Metadata
 
 Table-level metadata is written to `table/table.json` as a `TableMetadata` object: table name, abbreviation, primary and secondary authors, release date, original release year, and manufacturer. Captured table screenshots are not part of this file — they are written separately, under the top-level `screenshots/` folder, alongside a `table-bounds.json` crop sidecar.
