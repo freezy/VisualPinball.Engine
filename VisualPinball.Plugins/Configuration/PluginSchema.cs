@@ -135,6 +135,9 @@ namespace VisualPinball.Plugins
 		public bool FullWidth { get; set; }
 		/// <summary>Optional previous setting in guided launch setup. Enables changing an earlier choice when setup resumes at this field.</summary>
 		public string SetupPrevious { get; set; } = "";
+		/// <summary>For an Action field, runs it without another confirmation when a launch check requires it during guided setup.</summary>
+		/// <remarks>Defaults to false. Normal settings pages still require pressing the action button. A failed action waits for an explicit retry.</remarks>
+		public bool SetupAutoRun { get; set; }
 		/// <summary>Consecutive fields with the same non-empty hint share a row. The Player owns their sizing and appearance.</summary>
 		/// <remarks>The B2S plugin puts its fade-in and fade-out times on one row with <c>Row = "fade"</c>.</remarks>
 		public string Row { get; set; } = "";
