@@ -538,16 +538,15 @@ namespace VisualPinball.Unity.Editor
 
 			// A prefab's bake is the prefab's, in the project as in an unlocked
 			// library: what the bake puts on this instance goes into the prefab, for
-			// all its instances, and so does the material when the prefab wore its
-			// bake's, rather than a colour of its own. Not when the instance has a
-			// shape of its own, which the bake then fits and the prefab doesn't.
+			// all its instances, and so does the material, unless the prefab or the
+			// instance has a colour of its own. Not when the instance has a shape of
+			// its own, which the bake then fits and the prefab doesn't.
 			var projectPrefab = packagePrefab != null && PrefabUtility.IsPartOfPrefabInstance(insert) && ShapeOverrides(insert).Length == 0
 				? PrefabUtility.GetCorrespondingObjectFromSource(insert)
 				: null;
-			var prefabWoreBake = projectPrefab != null && projectPrefab.TryGetComponent<MeshRenderer>(out var prefabRenderer)
-				&& (prefabRenderer.sharedMaterial == null || Carries(prefabRenderer.sharedMaterial, projectPrefab.Bake));
-
 			var wornBeforeBake = renderer.sharedMaterial;
+			var prefabTakesMaterial = projectPrefab != null && PrefabTakesMaterial(projectPrefab, wornBeforeBake);
+
 			Undo.RecordObjects(new Object[] { insert, renderer }, "Bake Insert");
 			insert.SetBake(data);
 			if (job.UseHybridMaterial) {
@@ -587,7 +586,7 @@ namespace VisualPinball.Unity.Editor
 					}
 				}
 				var material = new SerializedObject(renderer).FindProperty("m_Materials.Array.data[0]");
-				if (prefabWoreBake && material != null && material.prefabOverride) {
+				if (prefabTakesMaterial && material != null && material.prefabOverride) {
 					PrefabUtility.ApplyPropertyOverride(material, packagePrefab, InteractionMode.AutomatedAction);
 				}
 			}
@@ -598,6 +597,17 @@ namespace VisualPinball.Unity.Editor
 				}
 			}
 		}
+
+		/// <summary>
+		/// Whether the material a bake puts on an instance of the prefab goes into
+		/// the prefab too: when the prefab wore its bake's, or, before its first
+		/// bake, the one the instance wore, which the bake was made from. A colour
+		/// the prefab wears over its bake, or the instance over the prefab's, stays.
+		/// </summary>
+		private static bool PrefabTakesMaterial(InsertComponent prefab, Material wornBeforeBake)
+			=> prefab.TryGetComponent<MeshRenderer>(out var renderer)
+				&& (renderer.sharedMaterial == null || Carries(renderer.sharedMaterial, prefab.Bake)
+					|| prefab.Bake == null && renderer.sharedMaterial == wornBeforeBake);
 
 		private static Texture2D ImportOptics(Job job, string folder, string name, string source, string suffix, Texture2D existing, int size, bool srgb)
 		{

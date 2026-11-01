@@ -2003,6 +2003,51 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldPutTheBakedMaterialOnThePrefabUnlessAColourIsItsOwn()
+		{
+			var probe = new Mesh();
+			var go = new GameObject("Prefab Material Test");
+			var plain = new Material(Shader.Find("Hidden/InternalErrorShader"));
+			var own = new Material(plain);
+			var normalMap = new Texture2D(2, 2);
+			InsertBakeData bake = null;
+			try {
+				var prefab = go.AddComponent<InsertComponent>();
+				var renderer = go.GetComponent<MeshRenderer>();
+				renderer.sharedMaterial = plain;
+				var method = typeof(InsertBaker).GetMethod("PrefabTakesMaterial", BindingFlags.Static | BindingFlags.NonPublic);
+				bool Takes(Material worn) => (bool)method.Invoke(null, new object[] { prefab, worn });
+
+				// Before its first bake, the prefab takes what the bake put on an instance that wore its body,
+				Assert.That(Takes(plain), Is.True);
+				// but not from an instance that wore a colour of its own.
+				Assert.That(Takes(own), Is.False);
+
+				var layout = new InsertMeshLayout();
+				prefab.Generate(probe, layout);
+				bake = FakeBake(probe, layout.Hash);
+				bake.NormalMap = normalMap;
+				bake.Material = new Material(plain);
+				prefab.SetBake(bake);
+				// Baked, it takes it while it wears its bake's material,
+				Assert.That(Takes(bake.Material), Is.True);
+				// and not while it wears a colour of its own over the bake.
+				renderer.sharedMaterial = plain;
+				Assert.That(Takes(plain), Is.False);
+			} finally {
+				Object.DestroyImmediate(go);
+				if (bake != null) {
+					Object.DestroyImmediate(bake.Material);
+					Object.DestroyImmediate(bake);
+				}
+				Object.DestroyImmediate(plain);
+				Object.DestroyImmediate(own);
+				Object.DestroyImmediate(normalMap);
+				Object.DestroyImmediate(probe);
+			}
+		}
+
+		[Test]
 		public void ShouldEditInsertsInTheProjectAsAPrefabVariant()
 		{
 			const string folder = "Assets/Library/Inserts/Share Test";
