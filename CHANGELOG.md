@@ -8,6 +8,8 @@ Built with Unity 6.5
 
 ### Added
 
+- Extensible shared plugin settings sections for paths and multiple mixer channels, with canonical plugin-owned values and provider validation for global edits.
+
 - Smooth 100 ms master fades when opening and closing the Player pause menu, with rapid-toggle cancellation and independent sound previews.
 
 - Player-owned stereo DSP with per-bus/output parametric EQ, linked soft-knee compression, a shared Signalsmith FDN room return, and final linked sample-peak limiting. Sound settings offer Reference, Desktop Room, Headphones and Night presets, live preview/Apply/Cancel, per-table overrides, meters and bounded preset copy/paste. Listening preferences stay outside `.vpe` tables; physical SSF remains a separate milestone.

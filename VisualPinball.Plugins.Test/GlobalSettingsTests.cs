@@ -46,6 +46,78 @@ namespace VisualPinball.Plugins.Test
 			Assert.That(PluginGlobalSettingBinding.Discover(new[] { first }, _store, "windows", "unknown"), Is.Empty);
 		}
 		[Test]
+		public void PathsAndFutureSectionsUseTheSameBindingsWithoutConstructingPlugins()
+		{
+			var factory = new TestFactory("library") { Schema = new PluginSettingsSchema(1, new PluginSettingsGroup("", "",
+				new PluginField("root", "Archive folder", SettingKind.Folder) { GlobalSetting = new PluginGlobalSetting(PluginGlobalSections.Paths) },
+				new PluginField("invalid", "Wrong type", SettingKind.Boolean) { GlobalSetting = new PluginGlobalSetting(PluginGlobalSections.Paths) },
+				new PluginField("future", "Enabled", SettingKind.Boolean) { GlobalSetting = new PluginGlobalSetting("future.preferences") })) };
+			Assert.That(PluginGlobalSettingBinding.Discover(new[] { factory }, _store, "windows", PluginGlobalSections.Paths).Select(item => item.Field.Id), Is.EqualTo(new[] { "root" }));
+			Assert.That(PluginGlobalSettingBinding.Discover(new[] { factory }, _store, "windows", "future.preferences"), Is.Empty);
+			var future = new PluginGlobalSection("future.preferences", field => field.Kind == SettingKind.Boolean);
+			Assert.That(PluginGlobalSettingBinding.Discover(new[] { factory }, _store, "windows", future).Single().Field.Id, Is.EqualTo("future"));
+			Assert.That(factory.Constructions, Is.Zero);
+		}
+		[Test]
+		public void MultipleMixerChannelsHaveDistinctDefaultLabels()
+		{
+			var first = Volume("music"); var second = new PluginField("speech", "Speech", SettingKind.Integer) {
+				Minimum = 0, Maximum = 100, GlobalSetting = new PluginGlobalSetting(PluginGlobalSections.VolumeMixer) };
+			var factory = new TestFactory("audio") { Schema = new PluginSettingsSchema(1, new PluginSettingsGroup("", "", first, second)) };
+			var bindings = PluginGlobalSettingBinding.Discover(new[] { factory }, _store, "windows", PluginGlobalSections.VolumeMixer);
+			Assert.That(bindings.Select(binding => binding.Label).Distinct().Count(), Is.EqualTo(2));
+		}
+		[Test]
+		public void SharedPathEditsHonorProviderValidation()
+		{
+			var factory = new TestFactory("library") { Schema = new PluginSettingsSchema(1, new PluginSettingsGroup("", "",
+				new PluginField("root", "Folder", SettingKind.Folder) { Default = "", GlobalSetting = new PluginGlobalSetting(PluginGlobalSections.Paths) })),
+				SettingsProvider = new RejectingPaths() };
+			var host = Host(factory);
+			var commit = host.CommitGlobalSettingAsync(factory, "root", new JValue("unsafe")); PluginHostTests.Run(host, commit);
+			Assert.That(commit.Result.Success, Is.False);
+			Assert.That(File.Exists(_store.SettingsPath(factory.Descriptor)), Is.False);
+		}
+		private sealed class RejectingPaths : IPluginSettingsProvider
+		{
+			public System.Threading.Tasks.Task<PluginChoiceCatalog> DiscoverAsync(string provider, PluginChoiceRequest request, CancellationToken cancellation)
+				=> System.Threading.Tasks.Task.FromResult(new PluginChoiceCatalog("", Array.Empty<PluginChoice>()));
+			public System.Threading.Tasks.Task<PluginActionResult> RunActionAsync(string action, PluginChoiceRequest request, CancellationToken cancellation)
+				=> System.Threading.Tasks.Task.FromResult(new PluginActionResult(false, ""));
+			public IReadOnlyList<PluginValidationIssue> Validate(PluginChoiceRequest request) => new[] { new PluginValidationIssue("root", "Rejected by provider") };
+		}
+		[Test]
+		public void SharedValidationRunsOnOwnerAndKeepsUnrelatedOfflinePreferencesEditable()
+		{
+			var owner = Thread.CurrentThread.ManagedThreadId; var calls = 0; var factory = Factory();
+			factory.SettingsProvider = new ValidationProvider(request => {
+				Assert.That(Thread.CurrentThread.ManagedThreadId, Is.EqualTo(owner)); calls++;
+				return new[] { new PluginValidationIssue("path", "The media drive is offline") };
+			});
+			var host = Host(factory); var commit = host.CommitGlobalSettingAsync(factory, "value", new JValue(37)); PluginHostTests.Run(host, commit);
+			Assert.That(commit.Result.Success, Is.True); Assert.That(calls, Is.EqualTo(2));
+			Assert.That(_store.Effective(factory.Descriptor, factory.Schema).Integer("value"), Is.EqualTo(37));
+		}
+		[Test]
+		public void SharedEditCannotIntroduceAnErrorReportedOnADependentField()
+		{
+			var factory = Factory(); factory.SettingsProvider = new ValidationProvider(request => request.Settings.Integer("value") > 50
+				? new[] { new PluginValidationIssue("path", "This value conflicts with the selected output") } : Array.Empty<PluginValidationIssue>());
+			var initial = new PluginSettingsSnapshot(1); initial.Set("value", 20); _store.Save(factory.Descriptor, factory.Schema, initial);
+			var host = Host(factory); var commit = host.CommitGlobalSettingAsync(factory, "value", new JValue(80)); PluginHostTests.Run(host, commit);
+			Assert.That(commit.Result.Success, Is.False); Assert.That(_store.Effective(factory.Descriptor, factory.Schema).Integer("value"), Is.EqualTo(20));
+		}
+		private sealed class ValidationProvider : IPluginSettingsProvider
+		{
+			private readonly Func<PluginChoiceRequest, IReadOnlyList<PluginValidationIssue>> _validate;
+			internal ValidationProvider(Func<PluginChoiceRequest, IReadOnlyList<PluginValidationIssue>> validate) => _validate = validate;
+			public IReadOnlyList<PluginValidationIssue> Validate(PluginChoiceRequest request) => _validate(request);
+			public System.Threading.Tasks.Task<PluginChoiceCatalog> DiscoverAsync(string provider, PluginChoiceRequest request, CancellationToken cancellation)
+				=> System.Threading.Tasks.Task.FromResult(new PluginChoiceCatalog("", Array.Empty<PluginChoice>()));
+			public System.Threading.Tasks.Task<PluginActionResult> RunActionAsync(string action, PluginChoiceRequest request, CancellationToken cancellation)
+				=> System.Threading.Tasks.Task.FromResult(new PluginActionResult(false, ""));
+		}
+		[Test]
 		public void OrdinaryDraftCannotOverwriteANewerMixerValueAndResetIsExplicit()
 		{
 			var factory = Factory(); var host = Host(factory);

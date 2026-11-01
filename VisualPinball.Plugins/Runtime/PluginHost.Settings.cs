@@ -85,17 +85,28 @@ namespace VisualPinball.Plugins
 				entry = _entered.FirstOrDefault(candidate => candidate.Factory == factory && IsHealthy(candidate) && Available(candidate));
 				GameIdentity? active = _activeGame;
 				var prepared = await Task.Run(() => {
+					var before = single == null ? null : Configuration.Effective(factory.Descriptor, factory.Schema, game);
 					var latest = Configuration.MergePatch(factory.Descriptor, factory.Schema, patch, fields, game);
 					var global = game.HasValue ? Configuration.Read(factory.Descriptor, factory.Schema) : latest;
 					var effective = game.HasValue ? PluginConfigurationStore.Resolve(factory.Schema, global, latest) : PluginConfigurationStore.Resolve(factory.Schema, global);
 					var runtime = active.HasValue && (!game.HasValue || game.Value.Equals(active.Value))
 						? PluginConfigurationStore.Resolve(factory.Schema, global, game.HasValue ? latest : Configuration.Read(factory.Descriptor, factory.Schema, active)) : effective;
-					return (Effective: effective, Runtime: runtime);
+					return (Effective: effective, Runtime: runtime, Before: before);
 				}, cancellation).ConfigureAwait(false);
 				await Scheduler.Switch(); cancellation.ThrowIfCancellationRequested();
 				var validation = single == null ? factory.Schema : new PluginSettingsSchema(factory.Schema.Version, new PluginSettingsGroup("", "", single));
 				var issues = validation.Validate(prepared.Effective);
 				if (issues.Count > 0) return new PluginActionResult(false, string.Join("\n", issues.Select(issue => issue.Field + ": " + issue.Message)));
+				// Providers validate on the owner thread. Existing unrelated errors must not disable other shared controls.
+				if (single != null && factory.SettingsProvider != null) {
+					var before = factory.SettingsProvider.Validate(new PluginChoiceRequest(game, prepared.Before!, Platform)).ToArray();
+					var providerIssues = factory.SettingsProvider.Validate(new PluginChoiceRequest(game, prepared.Effective, Platform))
+						.Where(issue => string.IsNullOrEmpty(issue.Field) || issue.Field == single.Id || issue.Field.StartsWith(single.Id + ".", StringComparison.Ordinal)
+							|| issue.Field.StartsWith(single.Id + "[", StringComparison.Ordinal)
+							|| !before.Any(previousIssue => previousIssue.Field == issue.Field && previousIssue.Message == issue.Message)).ToArray();
+					cancellation.ThrowIfCancellationRequested();
+					if (providerIssues.Length > 0) return new PluginActionResult(false, string.Join("\n", providerIssues.Select(issue => issue.Field + ": " + issue.Message)));
+				}
 				if (single != null && !single.Visible(prepared.Effective)) return new PluginActionResult(false, "This setting is currently unavailable.");
 				previous = entry?.Settings;
 				PluginSettingsSnapshot? live = null;
