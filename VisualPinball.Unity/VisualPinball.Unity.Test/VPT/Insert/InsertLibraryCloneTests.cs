@@ -158,5 +158,90 @@ namespace VisualPinball.Unity.Test
 				forget.Invoke(null, null);
 			}
 		}
+
+		[Test]
+		public void ShouldCloneTheBodyAndBakeOfAPrefabDuplicatedIntoAFolderOfItsOwn()
+		{
+			const string copyFolder = Root + "/Inserts/Insert, Copy";
+			var forget = typeof(InsertBaker).GetMethod("ForgetLibraries", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+			AssetDatabase.CreateFolder("Assets", "Clone Library Test");
+			AssetDatabase.CreateFolder(Root, "Inserts");
+			AssetDatabase.CreateFolder(Root + "/Inserts", "Insert, Source");
+			AssetDatabase.CreateFolder(Root + "/Inserts", "Insert, Copy");
+			AssetDatabase.CreateFolder(Root, "Database");
+			try {
+				var library = ScriptableObject.CreateInstance<AssetLibrary>();
+				library.LibraryRoot = Root;
+				library.DatabaseRoot = Root + "/Database";
+				library.ThumbnailRoot = Root + "/Thumbnails";
+				AssetDatabase.CreateAsset(library, Root + "/Library.asset");
+				AssetDatabase.SaveAssets();
+				var category = library.AddCategory("Inserts");
+				forget.Invoke(null, null);
+
+				// The original's body, color, map and bake, which the copy's prefab still wears.
+				var texture = new Texture2D(4, 4);
+				File.WriteAllBytes(Path.GetFullPath(Source + "/Insert, Source, Normal Map.png"), texture.EncodeToPNG());
+				Object.DestroyImmediate(texture);
+				AssetDatabase.ImportAsset(Source + "/Insert, Source, Normal Map.png");
+				var map = AssetDatabase.LoadAssetAtPath<Texture2D>(Source + "/Insert, Source, Normal Map.png");
+				var shader = Shader.Find("HDRP/Lit") ?? Shader.Find("Standard");
+				var body = new Material(shader);
+				body.SetTexture("_NormalMap", map);
+				AssetDatabase.CreateAsset(body, Source + "/Insert, Source, Starburst.mat");
+				var red = new Material(body) { parent = body };
+				AssetDatabase.CreateAsset(red, Source + "/Insert, Source, Starburst, Red.mat");
+				var cover = new Material(shader);
+				AssetDatabase.CreateAsset(cover, Root + "/Inserts/Insert Cover, Red.mat");
+				var bake = ScriptableObject.CreateInstance<InsertBakeData>();
+				bake.NormalMap = map;
+				bake.Material = red;
+				AssetDatabase.CreateAsset(bake, Source + "/Insert, Source, Bake.asset");
+
+				var go = new GameObject("Insert, Copy");
+				var insert = go.AddComponent<InsertComponent>();
+				bake.Owner = insert.EnsureId();
+				EditorUtility.SetDirty(bake);
+				var serialized = new SerializedObject(insert);
+				serialized.FindProperty("_bake").objectReferenceValue = bake;
+				serialized.FindProperty("_coverMaterial").objectReferenceValue = cover;
+				serialized.ApplyModifiedPropertiesWithoutUndo();
+				go.GetComponent<MeshRenderer>().sharedMaterials = new[] { red, cover };
+				var copyPrefab = PrefabUtility.SaveAsPrefabAsset(go, copyFolder + "/Insert, Copy.prefab");
+				Object.DestroyImmediate(go);
+				AssetDatabase.SaveAssets();
+				library.AddAsset(copyPrefab, category);
+				var copyAsset = library.GetAsset(AssetDatabase.AssetPathToGUID(copyFolder + "/Insert, Copy.prefab"));
+				copyAsset.MaterialVariations = new List<AssetMaterialVariation> {
+					new() { Name = "Body", Target = new AssetMaterialTarget { Object = copyPrefab, Slot = 0 }, Overrides = new List<AssetMaterialOverride> { new() { Name = "Red", Material = red, Id = "body-red" } } },
+					new() { Name = "Cover", Target = new AssetMaterialTarget { Object = copyPrefab, Slot = 1 }, Overrides = new List<AssetMaterialOverride> { new() { Name = "Red", Material = cover, Id = "cover-red" } } },
+				};
+				copyAsset.Save();
+
+				var clone = InsertLibraryClone.Clone(copyFolder + "/Insert, Copy.prefab", "Insert, Clone");
+
+				const string folder = Root + "/Inserts/Insert, Clone";
+				var cloned = clone.GetComponent<InsertComponent>();
+				var clonedBake = cloned.Bake;
+				Assert.That(AssetDatabase.GetAssetPath(clonedBake), Is.EqualTo(folder + "/Insert, Clone, Bake.asset"), "a bake of its own, named after the clone");
+				Assert.That(clonedBake.Owner, Is.EqualTo(cloned.Id));
+				Assert.That(AssetDatabase.GetAssetPath(clonedBake.NormalMap), Is.EqualTo(folder + "/Insert, Clone, Normal Map.png"));
+				var clonedRed = clone.GetComponent<MeshRenderer>().sharedMaterials[0];
+				Assert.That(AssetDatabase.GetAssetPath(clonedRed), Is.EqualTo(folder + "/Insert, Clone, Red.mat"));
+				Assert.That(clonedBake.Material, Is.SameAs(clonedRed));
+				Assert.That(AssetDatabase.GetAssetPath(clonedRed.parent), Is.EqualTo(folder + "/Insert, Clone.mat"), "the body it's a variant of too");
+				Assert.That(clonedRed.parent.GetTexture("_NormalMap"), Is.SameAs(clonedBake.NormalMap));
+				Assert.That(AssetDatabase.GetAssetPath(clone.GetComponent<MeshRenderer>().sharedMaterials[1]), Is.EqualTo(Root + "/Inserts/Insert Cover, Red.mat"), "the cover stays shared");
+				var asset = library.GetAsset(AssetDatabase.AssetPathToGUID(folder + "/Insert, Clone.prefab"));
+				Assert.That(asset.MaterialVariations[0].Overrides[0].Material, Is.SameAs(clonedRed));
+
+				var copy = AssetDatabase.LoadAssetAtPath<GameObject>(copyFolder + "/Insert, Copy.prefab");
+				Assert.That(AssetDatabase.GetAssetPath(copy.GetComponent<InsertComponent>().Bake), Is.EqualTo(Source + "/Insert, Source, Bake.asset"), "the copy is left as it was");
+				Assert.That(AssetDatabase.GetAssetPath(copy.GetComponent<MeshRenderer>().sharedMaterials[0]), Is.EqualTo(Source + "/Insert, Source, Starburst, Red.mat"));
+			} finally {
+				AssetDatabase.DeleteAsset(Root);
+				forget.Invoke(null, null);
+			}
+		}
 	}
 }

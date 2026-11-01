@@ -28,11 +28,12 @@ namespace VisualPinball.Unity.Editor
 	/// Clones an insert of an asset library that can be written to into a new
 	/// insert of the same library: its folder, next to the source's, holds
 	/// copies of the prefab, its bake and maps, and its body materials with
-	/// every color, all named after it and pointing at each other. The covers
-	/// stay the library's shared ones. The clone owns its bake, so reshaping
-	/// and baking it updates its own assets, and it's added to the library
-	/// with the source's metadata and material variations. The Asset Browser
-	/// offers it on the inserts of its libraries that aren't locked.
+	/// every color, wherever they lived, all named after it and pointing at
+	/// each other. The covers stay the library's shared ones. The clone owns
+	/// its bake, so reshaping and baking it updates its own assets, and it's
+	/// added to the library with the source's metadata and material
+	/// variations. The Asset Browser offers it on the inserts of its libraries
+	/// that aren't locked.
 	/// </summary>
 	public static class InsertLibraryClone
 	{
@@ -109,13 +110,16 @@ namespace VisualPinball.Unity.Editor
 			if (source.CoverMaterial != null) {
 				covers.Add(source.CoverMaterial);
 			}
-			var files = Directory.GetFiles(InsertBaker.DiskPath(sourceFolder))
+			var inside = Directory.GetFiles(InsertBaker.DiskPath(sourceFolder))
 				.Where(file => !file.EndsWith(".meta", StringComparison.OrdinalIgnoreCase))
 				.Select(file => $"{sourceFolder}/{Path.GetFileName(file)}")
 				.Where(path => !string.IsNullOrEmpty(AssetDatabase.AssetPathToGUID(path)))
 				.Where(path => !(AssetDatabase.LoadMainAssetAtPath(path) is Material material && covers.Contains(material)))
 				.ToArray();
-			var stems = Stems(Path.GetFileNameWithoutExtension(prefabPath), files.Select(AssetDatabase.LoadMainAssetAtPath).OfType<Material>());
+			var files = inside.Concat(OwnAssetsElsewhere(source, sourceAsset, sourceFolder, covers, inside.Select(AssetDatabase.LoadMainAssetAtPath).OfType<Material>())).ToArray();
+			var stems = Stems(Path.GetFileNameWithoutExtension(prefabPath), files.Select(AssetDatabase.LoadMainAssetAtPath).OfType<Material>())
+				.Concat(BakeStem(source.Bake))
+				.ToArray();
 
 			AssetDatabase.CreateFolder(parent, name);
 			Asset asset = null;
@@ -219,6 +223,56 @@ namespace VisualPinball.Unity.Editor
 				AssetDatabase.DeleteAsset(folder);
 				throw;
 			}
+		}
+
+		/// <summary>
+		/// The insert's own assets outside its folder, which a prefab duplicated
+		/// into a folder of its own still points at: its bake with the bake's maps
+		/// and material, its body with every color, and the bodies those are
+		/// variants of that carry the bake. Not the covers, nor what isn't a file
+		/// of its own, like a built-in material.
+		/// </summary>
+		private static IEnumerable<string> OwnAssetsElsewhere(InsertComponent source, Asset sourceAsset, string sourceFolder, ICollection<Material> covers, IEnumerable<Material> insideMaterials)
+		{
+			var bake = source.Bake;
+			var assets = new List<Object>();
+			var materials = new List<Material> { source.GetComponent<MeshRenderer>().sharedMaterial };
+			materials.AddRange(insideMaterials);
+			materials.AddRange(sourceAsset?.MaterialVariations?
+				.Where(variation => variation.Target?.Slot == 0)
+				.SelectMany(variation => variation.Overrides ?? new List<AssetMaterialOverride>())
+				.Select(o => o.Material) ?? Enumerable.Empty<Material>());
+			if (bake != null) {
+				assets.AddRange(new Object[] { bake, bake.NormalMap, bake.OpticalNormalMap, bake.OpticalResponseMap });
+				materials.Add(bake.Material);
+			}
+			var seen = new HashSet<Material>();
+			var pending = new Queue<Material>(materials.Where(material => material != null));
+			while (pending.Count > 0) {
+				var material = pending.Dequeue();
+				if (covers.Contains(material) || !seen.Add(material)) {
+					continue;
+				}
+				assets.Add(material);
+				if (material.parent != null && InsertBaker.Carries(material.parent, bake)) {
+					pending.Enqueue(material.parent);
+				}
+			}
+			return assets
+				.Where(asset => asset != null && AssetDatabase.IsMainAsset(asset))
+				.Select(AssetDatabase.GetAssetPath)
+				.Where(path => path.StartsWith("Assets/", StringComparison.Ordinal) || path.StartsWith("Packages/", StringComparison.Ordinal))
+				.Where(path => !path.StartsWith(sourceFolder + "/", StringComparison.Ordinal))
+				.Distinct();
+		}
+
+		/// <summary>The name the bake's files start with, which is its prefab's, also when that's another than the source.</summary>
+		private static IEnumerable<string> BakeStem(InsertBakeData bake)
+		{
+			var fileName = bake != null ? Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(bake)) : null;
+			return fileName != null && fileName.EndsWith(", Bake", StringComparison.Ordinal)
+				? new[] { fileName.Substring(0, fileName.Length - ", Bake".Length) }
+				: Array.Empty<string>();
 		}
 
 		/// <summary>
