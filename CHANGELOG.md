@@ -206,6 +206,7 @@ Built with Unity 6.5
 ### Fixed
 
 - The flipper collider gizmo follows the bat's rotation in edit mode so its shape can be compared with the visible mesh.
+- A ball held by a moving kicker keeps its height above the kicker, instead of being pulled down to the kicker's base, and balls only passing over it are left alone.
 
 - Rolling loops retain their playback position when returning to a surface during a crossfade, and authored fade durations apply equally to quiet and loud sounds.
 
