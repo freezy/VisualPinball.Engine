@@ -177,10 +177,14 @@ namespace VisualPinball.Plugins
 		/// <exception cref="OperationCanceledException">
 		/// <paramref name="cancellation"/> was cancelled; the draft is then left unchanged.
 		/// </exception>
-		public async Task<PluginActionResult> RunActionAsync(string action, CancellationToken cancellation)
+		public Task<PluginActionResult> RunActionAsync(string action, CancellationToken cancellation)
+			=> RunActionAsync(action, cancellation, null);
+		/// <summary>Runs a settings action with optional progress reporting, without saving draft settings.</summary>
+		public async Task<PluginActionResult> RunActionAsync(string action, CancellationToken cancellation, IProgress<PluginActionProgress>? progress)
 		{
 			if (_factory.SettingsProvider == null) return new PluginActionResult(false, "This action is unavailable.");
-			var result = await _factory.SettingsProvider.RunActionAsync(action, Request(Effective), cancellation);
+			var request = Request(Effective); request.Progress = progress;
+			var result = await _factory.SettingsProvider.RunActionAsync(action, request, cancellation);
 			cancellation.ThrowIfCancellationRequested();
 			if (result.Success && result.Changes != null) foreach (var field in _factory.Schema.Fields) {
 				if (Game.HasValue ? field.Scope == ConfigurationScope.GlobalOnly : field.Scope == ConfigurationScope.GameOnly) continue;
@@ -284,7 +288,7 @@ namespace VisualPinball.Plugins
 				if (reset) _resetFields.Add(id);
 			}
 		}
-		private static IEnumerable<(PluginField Field, JToken? Value, string Path)> ChoiceBindings(IEnumerable<PluginField> fields, PluginSettingsSnapshot snapshot, string prefix = "")
+		internal static IEnumerable<(PluginField Field, JToken? Value, string Path)> ChoiceBindings(IEnumerable<PluginField> fields, PluginSettingsSnapshot snapshot, string prefix = "")
 		{
 			foreach (var field in fields) {
 				if (!field.Visible(snapshot)) continue;

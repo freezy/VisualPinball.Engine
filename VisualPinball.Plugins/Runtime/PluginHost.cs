@@ -380,10 +380,11 @@ namespace VisualPinball.Plugins
 				RequireLaunchPluginsStarted(identity);
 				_running = true;
 				RebuildDispatch();
-			} catch {
+			} catch (Exception error) {
 				await Scheduler.Switch();
 				await StopCoreAsync(CancellationToken.None).ConfigureAwait(false);
 				await Scheduler.Switch();
+				if (error is PluginLaunchBlockedException blocked) throw blocked.ForGame(identity);
 				throw;
 			} finally { _operation.Release(); ReplayState(); }
 		}

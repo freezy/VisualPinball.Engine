@@ -31,7 +31,7 @@ namespace VisualPinball.Plugins
 				cancellation.ThrowIfCancellationRequested();
 				return candidates.Select(factory => new PluginLaunchBlocker(factory.Descriptor, new[] {
 					new PluginValidationIssue("", "Plugin settings are still being saved or a previous game is stopping. Try launching again.")
-				})).ToArray();
+				}, game)).ToArray();
 			}
 			await Scheduler.Switch();
 			try { return await CheckLaunchCoreAsync(game, packagePath, title, cancellation).ConfigureAwait(false); }
@@ -86,7 +86,7 @@ namespace VisualPinball.Plugins
 				catch (Exception error) { issues.Add(new PluginValidationIssue("", error.Message)); }
 				await Scheduler.Switch();
 				cancellation.ThrowIfCancellationRequested();
-				if (issues.Count > 0) blockers.Add(new PluginLaunchBlocker(descriptor, issues));
+				if (issues.Count > 0) blockers.Add(new PluginLaunchBlocker(descriptor, issues, game));
 			}
 			return blockers;
 		}
@@ -97,7 +97,7 @@ namespace VisualPinball.Plugins
 			foreach (var factory in _factories.Values) {
 				if (factory is IPluginLaunchCheck check && Configuration.Enabled(factory.Descriptor, game) && check.AppliesTo(game)
 					&& _statuses[factory.Descriptor.Id].State != PluginState.Running)
-					blockers.Add(new PluginLaunchBlocker(factory.Descriptor, new[] { new PluginValidationIssue("", _statuses[factory.Descriptor.Id].Message) }));
+					blockers.Add(new PluginLaunchBlocker(factory.Descriptor, new[] { new PluginValidationIssue("", _statuses[factory.Descriptor.Id].Message) }, game));
 			}
 			if (blockers.Count > 0) throw new PluginLaunchBlockedException(blockers);
 		}

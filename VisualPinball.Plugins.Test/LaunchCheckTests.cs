@@ -145,6 +145,7 @@ namespace VisualPinball.Plugins.Test
 			var factory = new CheckFactory("required") { BlockDuringInitialize = true }; var host = Host(factory);
 			var blocked = Assert.Throws<PluginLaunchBlockedException>(() => Run(host, host.PrepareAndStartAsync(_game, "test", "Test", "controller", 1, default)));
 			Assert.That(blocked!.Blockers.Single().Issues.Single().Field, Is.EqualTo("rom"));
+			Assert.That(blocked.Blockers.Single().Game, Is.EqualTo(_game));
 			Assert.That(factory.Inner.Calls, Is.EqualTo(new[] { "shutdown", "release", "dispose" }));
 			Assert.That(host.IsRunning, Is.False); Assert.That(host.IsTransitioning, Is.False);
 		}
