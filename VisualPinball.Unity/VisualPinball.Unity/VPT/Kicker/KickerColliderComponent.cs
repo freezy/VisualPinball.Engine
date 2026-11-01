@@ -111,14 +111,16 @@ namespace VisualPinball.Unity
 		{
 			base.OnTransformationChanged(currTransformationMatrix);
 
-			// update kicker center, so the internal collision shape is correct
+			// Keep the captured ball at its height above the moving kicker's base.
 			ref var kickerData = ref PhysicsEngine.KickerState(_itemId);
+			var previousZ = kickerData.Static.ZLow;
 			kickerData.Static.Center = currTransformationMatrix.c3.xy;
 			kickerData.Static.ZLow = currTransformationMatrix.c3.z;
-			if (PhysicsEngine.HasBallsInsideOf(_itemId)) {
-				foreach (var ballId in PhysicsEngine.GetBallsInsideOf(_itemId)) {
-					ref var ball = ref PhysicsEngine.BallState(ballId);
-					ball.Position = currTransformationMatrix.c3.xyz;
+			if (kickerData.Collision.HasBall) {
+				ref var ball = ref PhysicsEngine.BallState(kickerData.Collision.BallId);
+				if (ball.IsFrozen) {
+					var height = ball.Position.z - previousZ;
+					ball.Position = new float3(currTransformationMatrix.c3.xy, currTransformationMatrix.c3.z + height);
 				}
 			}
 		}
