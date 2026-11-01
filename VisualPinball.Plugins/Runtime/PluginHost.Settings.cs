@@ -70,7 +70,18 @@ namespace VisualPinball.Plugins
 			var patch = new PluginSettingsSnapshot(factory.Schema.Version); patch.Set(fieldId, value);
 			return CommitSettingsCoreAsync(factory, patch, null, cancellation, new[] { fieldId }, field);
 		}
-		private async Task<PluginActionResult> CommitSettingsCoreAsync(IPlayerPluginFactory factory, PluginSettingsSnapshot draft, GameIdentity? game, CancellationToken cancellation, IReadOnlyCollection<string>? edited, PluginField? single = null)
+		/// <summary>Saves one setting during guided setup. Validates that field, its choices and new cross-field issues;
+		/// existing unrelated issues may remain until later steps. Scope and live-setting rules are unchanged.</summary>
+		public Task<PluginActionResult> CommitSettingAsync(IPlayerPluginFactory factory, string fieldId, JToken? value,
+			GameIdentity? game = null, PluginPackageReference? package = null, CancellationToken cancellation = default)
+		{
+			var field = factory.Schema.Fields.FirstOrDefault(item => item.Id == fieldId) ?? throw new ArgumentException("Unknown setting.");
+			if (game.HasValue ? field.Scope == ConfigurationScope.GlobalOnly : field.Scope == ConfigurationScope.GameOnly) throw new ArgumentException("This setting cannot be edited in this scope.");
+			if (field.Kind == SettingKind.Action || field.Kind == SettingKind.Status || field.Kind == SettingKind.Preview) throw new ArgumentException("This field does not store a setting.");
+			var patch = new PluginSettingsSnapshot(factory.Schema.Version); patch.Set(fieldId, value);
+			return CommitSettingsCoreAsync(factory, patch, game, cancellation, new[] { fieldId }, field, package);
+		}
+		private async Task<PluginActionResult> CommitSettingsCoreAsync(IPlayerPluginFactory factory, PluginSettingsSnapshot draft, GameIdentity? game, CancellationToken cancellation, IReadOnlyCollection<string>? edited, PluginField? single = null, PluginPackageReference? package = null)
 		{
 			if (!_factories.TryGetValue(factory.Descriptor.Id, out var installed) || installed != factory) throw new ArgumentException("The factory is not installed in this host.");
 			var patch = draft.Copy(); var fields = (edited ?? factory.Schema.Fields.Select(field => field.Id).ToArray()).ToArray();
@@ -99,8 +110,8 @@ namespace VisualPinball.Plugins
 				if (issues.Count > 0) return new PluginActionResult(false, string.Join("\n", issues.Select(issue => issue.Field + ": " + issue.Message)));
 				// Providers validate on the owner thread. Existing unrelated errors must not disable other shared controls.
 				if (single != null && factory.SettingsProvider != null) {
-					var before = factory.SettingsProvider.Validate(new PluginChoiceRequest(game, prepared.Before!, Platform)).ToArray();
-					var providerIssues = factory.SettingsProvider.Validate(new PluginChoiceRequest(game, prepared.Effective, Platform))
+					var before = factory.SettingsProvider.Validate(new PluginChoiceRequest(game, prepared.Before!, Platform) { Package = package }).ToArray();
+					var providerIssues = factory.SettingsProvider.Validate(new PluginChoiceRequest(game, prepared.Effective, Platform) { Package = package })
 						.Where(issue => string.IsNullOrEmpty(issue.Field) || issue.Field == single.Id || issue.Field.StartsWith(single.Id + ".", StringComparison.Ordinal)
 							|| issue.Field.StartsWith(single.Id + "[", StringComparison.Ordinal)
 							|| !before.Any(previousIssue => previousIssue.Field == issue.Field && previousIssue.Message == issue.Message)).ToArray();
@@ -108,6 +119,19 @@ namespace VisualPinball.Plugins
 					if (providerIssues.Length > 0) return new PluginActionResult(false, string.Join("\n", providerIssues.Select(issue => issue.Field + ": " + issue.Message)));
 				}
 				if (single != null && !single.Visible(prepared.Effective)) return new PluginActionResult(false, "This setting is currently unavailable.");
+				if (single != null && factory.SettingsProvider != null) {
+					var request = new PluginChoiceRequest(game, prepared.Effective, Platform, Resources.Snapshot()) { Package = package };
+					foreach (var binding in PluginSettingsSession.ChoiceBindings(new[] { single }, prepared.Effective)) {
+						var selections = binding.Field.Kind == SettingKind.ScreenLayout ? (binding.Value as JArray)?.OfType<JObject>().Select(item => item.Value<string>("screen") ?? "").ToArray() ?? Array.Empty<string>()
+							: binding.Field.Multiple ? (binding.Value as JArray)?.Select(item => item.ToString()).ToArray() ?? Array.Empty<string>() : new[] { binding.Value?.ToString() ?? "" };
+						var catalog = await factory.SettingsProvider.DiscoverAsync(binding.Field.Provider, request, cancellation).ConfigureAwait(false);
+						await Scheduler.Switch(); cancellation.ThrowIfCancellationRequested();
+						foreach (var selected in selections.Where(value => value.Length > 0)) {
+							var choice = catalog.Find(selected);
+							if (choice != null && !choice.Available || choice == null && catalog.IsComplete) return new PluginActionResult(false, choice?.UnavailableReason ?? "The selected item is no longer available. Refresh the list and choose again.");
+						}
+					}
+				}
 				previous = entry?.Settings;
 				PluginSettingsSnapshot? live = null;
 				if (entry != null && previous != null && active.HasValue && (!game.HasValue || game.Value.Equals(active.Value))) {

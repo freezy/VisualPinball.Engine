@@ -40,8 +40,10 @@ namespace VisualPinball.Plugins
 	{
 		public PluginDescriptor Plugin { get; }
 		public IReadOnlyList<PluginValidationIssue> Issues { get; }
-		public PluginLaunchBlocker(PluginDescriptor plugin, IEnumerable<PluginValidationIssue> issues)
-		{ Plugin = plugin; Issues = Array.AsReadOnly(issues.ToArray()); }
+		/// <summary>The checked game, so setup can edit its settings without rereading ambiguous package metadata.</summary>
+		public GameIdentity? Game { get; }
+		public PluginLaunchBlocker(PluginDescriptor plugin, IEnumerable<PluginValidationIssue> issues, GameIdentity? game = null)
+		{ Plugin = plugin; Issues = Array.AsReadOnly(issues.ToArray()); Game = game; }
 	}
 
 	/// <summary>Stops table activation when a requirement fails, including a race detected during plugin preparation.</summary>
@@ -54,5 +56,7 @@ namespace VisualPinball.Plugins
 		{ Blockers = Array.AsReadOnly(blockers); }
 		public PluginLaunchBlockedException(PluginDescriptor plugin, string message, string field = "")
 			: this(new[] { new PluginLaunchBlocker(plugin, new[] { new PluginValidationIssue(field, message) }) }) { }
+		internal PluginLaunchBlockedException ForGame(GameIdentity game)
+			=> new PluginLaunchBlockedException(Blockers.Select(blocker => new PluginLaunchBlocker(blocker.Plugin, blocker.Issues, blocker.Game ?? game)));
 	}
 }

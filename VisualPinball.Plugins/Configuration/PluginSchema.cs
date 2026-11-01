@@ -133,6 +133,8 @@ namespace VisualPinball.Plugins
 		/// <c>PUPVideos</c> library folder.
 		/// </remarks>
 		public bool FullWidth { get; set; }
+		/// <summary>Optional previous setting in guided launch setup. Enables changing an earlier choice when setup resumes at this field.</summary>
+		public string SetupPrevious { get; set; } = "";
 		/// <summary>Consecutive fields with the same non-empty hint share a row. The Player owns their sizing and appearance.</summary>
 		/// <remarks>The B2S plugin puts its fade-in and fade-out times on one row with <c>Row = "fade"</c>.</remarks>
 		public string Row { get; set; } = "";
@@ -627,6 +629,8 @@ namespace VisualPinball.Plugins
 		public GameIdentity? Game { get; }
 		/// <summary>The selected table package, when the request concerns one; null for global settings.</summary>
 		public PluginPackageReference? Package { get; set; }
+		/// <summary>Optional progress sink for a user-requested action. Report from any thread; the caller owns dispatch.</summary>
+		public IProgress<PluginActionProgress>? Progress { get; set; }
 		/// <summary>
 		/// The effective settings to work with, including unsaved edits from the settings page. Use these, not the saved values, so that
 		/// catalogs follow what the user just changed (for example PinUP lists the packs of the library folder in the draft).
@@ -663,6 +667,14 @@ namespace VisualPinball.Plugins
 		public string Revision { get; }
 		/// <summary>The items in display order, including unavailable ones.</summary>
 		public IReadOnlyList<PluginChoice> Choices { get; }
+		/// <summary>Explains how to get choices when none are available; shown instead of an empty selector.</summary>
+		public string EmptyMessage { get; set; } = "";
+		/// <summary>Explains a saved choice absent from an incomplete catalog, if the default offline-source message does not apply.</summary>
+		public string MissingSelectionMessage { get; set; } = "";
+		/// <summary>Optional HTTPS page where the user can obtain the items this catalog requires.</summary>
+		public string SourceUrl { get; set; } = "";
+		/// <summary>Label for the optional source-page button.</summary>
+		public string SourceLabel { get; set; } = "Open download page";
 		/// <summary>False when a runtime-only catalog cannot be inspected while its game is stopped.</summary>
 		/// <remarks>
 		/// A saved selection missing from an incomplete catalog is kept and not reported as an error. <see cref="PluginResourceChoices.Displays"/>
@@ -677,6 +689,14 @@ namespace VisualPinball.Plugins
 		/// <summary>Returns the first item with the given ID, or null when the catalog has none.</summary>
 		/// <param name="id">The <see cref="PluginChoice.Id"/> to look for.</param>
 		public PluginChoice? Find(string id) => Choices.FirstOrDefault(choice => choice.Id == id);
+	}
+
+	/// <summary>Progress of a settings action, with a fraction from zero to one and a user-facing message.</summary>
+	public readonly struct PluginActionProgress
+	{
+		public double Fraction { get; }
+		public string Message { get; }
+		public PluginActionProgress(double fraction, string message) { Fraction = fraction; Message = message; }
 	}
 
 	/// <summary>The outcome of a settings action, a reconfiguration or a settings commit.</summary>
