@@ -669,6 +669,8 @@ namespace VisualPinball.Plugins
 		public IReadOnlyList<PluginChoice> Choices { get; }
 		/// <summary>Explains how to get choices when none are available; shown instead of an empty selector.</summary>
 		public string EmptyMessage { get; set; } = "";
+		/// <summary>Optional guidance when selectable items exist, replacing empty-source instructions during launch setup.</summary>
+		public string AvailableMessage { get; set; } = "";
 		/// <summary>Explains a saved choice absent from an incomplete catalog, if the default offline-source message does not apply.</summary>
 		public string MissingSelectionMessage { get; set; } = "";
 		/// <summary>Optional HTTPS page where the user can obtain the items this catalog requires.</summary>
