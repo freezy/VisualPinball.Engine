@@ -207,6 +207,8 @@ Built with Unity 6.5
 
 - The flipper collider gizmo follows the bat's rotation in edit mode so its shape can be compared with the visible mesh.
 - A ball held by a moving kicker keeps its height above the kicker, instead of being pulled down to the kicker's base, and balls only passing over it are left alone.
+- Devices assigned in the coil, lamp, switch and wire managers survive a recompile or entering play mode, instead of being dropped until the scene is reloaded.
+- The mapping pickers show the parent's name next to devices that share a name, like the lamp of every bumper, so they can be told apart and searched.
 
 - Rolling loops retain their playback position when returning to a surface during a crossfade, and authored fade durations apply equally to quiet and loud sounds.
 
