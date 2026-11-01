@@ -309,9 +309,13 @@ namespace VisualPinball.Unity
 				}
 
 				if (_transformedColliderMesh) {
+					// Flipper physics strips the bat angle; the local gizmo mesh needs it to match the bat.
+					var editorMeshMatrixInVpx = this is FlipperColliderComponent
+						? unmodifiedLocalToPlayfieldMatrixInVpx
+						: localToPlayfieldMatrixInVpx;
 					Gizmos.matrix = Application.isPlaying
 						? playfieldToWorld * (Matrix4x4)Physics.VpxToWorld
-						: playfieldToWorld * (Matrix4x4)Physics.VpxToWorld * (Matrix4x4)localToPlayfieldMatrixInVpx;
+						: playfieldToWorld * (Matrix4x4)Physics.VpxToWorld * (Matrix4x4)editorMeshMatrixInVpx;
 					//Gizmos.matrix = MainComponent.transform.localToWorldMatrix * playfieldToWorld * (Matrix4x4)Physics.VpxToWorld;
 					if (_transformedColliderMesh) {
 						if (IsKinematic) {
