@@ -940,6 +940,8 @@ namespace VisualPinball.Plugins
 		public const string Dmd = "dmd";
 		/// <summary>A large DMD-sized screen in the backbox, PinUP's "FullDMD".</summary>
 		public const string FullDmd = "full-dmd";
+		/// <summary>A game LCD/HD display, independent of backglass artwork and dot-matrix output.</summary>
+		public const string GameDisplay = "game-display";
 	}
 	/// <summary>One named trigger with an integer value, carried by <see cref="IPluginTriggerSource"/>.</summary>
 	/// <remarks>Nothing in VPE publishes trigger resources yet.</remarks>

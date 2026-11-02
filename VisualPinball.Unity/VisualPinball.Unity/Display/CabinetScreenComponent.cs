@@ -29,6 +29,7 @@ namespace VisualPinball.Unity
 		Dmd,
 		FullDmd,
 		Custom,
+		GameDisplay, // Appended to preserve existing serialized enum values.
 	}
 
 	/// <summary>
@@ -76,6 +77,7 @@ namespace VisualPinball.Unity
 			CabinetScreenRole.Topper => SurfaceRoles.Topper,
 			CabinetScreenRole.Dmd => SurfaceRoles.Dmd,
 			CabinetScreenRole.FullDmd => SurfaceRoles.FullDmd,
+			CabinetScreenRole.GameDisplay => SurfaceRoles.GameDisplay,
 			_ => CustomRole?.Trim() ?? string.Empty,
 		};
 
@@ -94,6 +96,7 @@ namespace VisualPinball.Unity
 				case SurfaceRoles.Topper: Role = CabinetScreenRole.Topper; break;
 				case SurfaceRoles.Dmd: Role = CabinetScreenRole.Dmd; break;
 				case SurfaceRoles.FullDmd: Role = CabinetScreenRole.FullDmd; break;
+				case SurfaceRoles.GameDisplay: Role = CabinetScreenRole.GameDisplay; break;
 				default:
 					Role = CabinetScreenRole.Custom;
 					CustomRole = role ?? string.Empty;

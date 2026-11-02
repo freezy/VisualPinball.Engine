@@ -28,7 +28,7 @@ namespace VisualPinball.Plugins
 	/// <summary>One adapter-described legacy output. Coordinates use physical virtual-desktop pixels, the same space as CabinetDisplayTarget; adapters must convert monitor-relative or DPI-scaled legacy values. No monitor identity is inferred here.</summary>
 	public sealed class CabinetDisplayImportCandidate
 	{
-		public string Role { get; }
+		public CabinetOutputRole Role { get; }
 		public CabinetEndpointKind Kind { get; }
 		public int X { get; }
 		public int Y { get; }
@@ -37,15 +37,15 @@ namespace VisualPinball.Plugins
 		public string DeviceProfileId { get; }
 		public string Note { get; }
 		public bool Supported { get; }
-		public CabinetDisplayImportCandidate(string role, int x, int y, int width, int height, string note = "", bool supported = true)
+		public CabinetDisplayImportCandidate(CabinetOutputRole role, int x, int y, int width, int height, string note = "", bool supported = true)
 		{
-			if (string.IsNullOrWhiteSpace(role)) throw new ArgumentException("An import candidate needs a role.");
+			if (!CabinetOutputRoles.IsDefined(role)) throw new ArgumentException("An import candidate needs a role.");
 			Role = role; Kind = CabinetEndpointKind.DesktopRegion; X = x; Y = y; Width = width; Height = height;
 			DeviceProfileId = ""; Note = note ?? ""; Supported = supported && width > 0 && height > 0 && (long)x + width <= int.MaxValue && (long)y + height <= int.MaxValue;
 		}
-		public CabinetDisplayImportCandidate(string role, string deviceProfileId, string note = "", bool supported = true)
+		public CabinetDisplayImportCandidate(CabinetOutputRole role, string deviceProfileId, string note = "", bool supported = true)
 		{
-			if (string.IsNullOrWhiteSpace(role) || string.IsNullOrWhiteSpace(deviceProfileId)) throw new ArgumentException("A device candidate needs a role and profile ID.");
+			if (!CabinetOutputRoles.IsDefined(role) || string.IsNullOrWhiteSpace(deviceProfileId)) throw new ArgumentException("A device candidate needs a role and profile ID.");
 			Role = role; Kind = CabinetEndpointKind.Device; DeviceProfileId = deviceProfileId; Note = note ?? ""; Supported = supported;
 		}
 	}

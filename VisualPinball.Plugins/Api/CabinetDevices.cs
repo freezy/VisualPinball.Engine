@@ -14,7 +14,7 @@ namespace VisualPinball.Plugins
 	{
 		public string Id { get; }
 		public string Provider { get; }
-		public string Role { get; }
+		public CabinetOutputRole Role { get; }
 		public string Label { get; }
 		public string LeaseKey { get; }
 		/// <summary>Optional conservative reservation shared by auto and explicit choices of one driver family.</summary>
@@ -23,9 +23,9 @@ namespace VisualPinball.Plugins
 		public string Configuration { get; }
 		public bool Available { get; }
 		public string Reason { get; }
-		public CabinetDeviceProfile(string id, string provider, string role, string label, string leaseKey, string familyLeaseKey, string configuration, bool available = true, string reason = "")
+		public CabinetDeviceProfile(string id, string provider, CabinetOutputRole role, string label, string leaseKey, string familyLeaseKey, string configuration, bool available = true, string reason = "")
 		{
-			if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(provider) || string.IsNullOrWhiteSpace(role)) throw new ArgumentException("A device profile needs an ID, provider and role.");
+			if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(provider) || !CabinetOutputRoles.IsDefined(role)) throw new ArgumentException("A device profile needs an ID, provider and role.");
 			if (available && string.IsNullOrWhiteSpace(leaseKey)) throw new ArgumentException("An available profile needs a canonical device lease key.");
 			if ((configuration?.Length ?? 0) > 65536) throw new ArgumentException("Device configuration exceeds 65536 characters.");
 			Id = id; Provider = provider; Role = role; Label = label ?? id; LeaseKey = leaseKey ?? ""; FamilyLeaseKey = familyLeaseKey ?? "";

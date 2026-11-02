@@ -25,3 +25,9 @@ The next Player phase adds persisted layout, Windows topology, browsing backglas
 The owned output texture can copy clockwise quarter-turn rotation and output-axis mirrors into a normalized viewport. The viewport uses bottom-left Unity UV coordinates; the Player converts its saved top-left percentages once. Inside the viewport, contain-fit bars are opaque black. Outside it, existing pixels are retained using an explicit color Load/Store action. This supports a Full DMD background and an independently selected DMD inset in one native window. The existing four-argument full-frame copy API remains available. Producer textures are unbound from the copy material immediately after submission.
 
 Physical multi-monitor and rotated-panel certification remains outstanding. The test suite covers all eight dihedral transforms, asymmetric partial viewports and render-state restoration, alpha/color conversion, two native presenters and deferred output retirement on the available Windows D3D12 backend. Metal and Vulkan must pass their platform matrices before certification.
+
+## Known output roles
+
+The cabinet API uses the closed `CabinetOutputRole` enum: Backglass, Dmd, GameDisplay, FullDmd, Topper and ScorePanel. The game LCD/HD display, cabinet Full DMD video panel and backglass are independent destinations; none is inferred from image dimensions. GameDisplay uses ordinary texture presentation, without DMD dot processing. Playfield placement remains in Video.
+
+Generic resource descriptors and authored custom scene bindings retain string IDs for compatibility. Convert only known IDs with `CabinetOutputRoles.TryParse` at that boundary. Shared targets, assignments, device profiles, import candidates and factory role declarations use the enum. Private plug-in screens stay inside the plug-in and cannot become arbitrary global cabinet settings. Stable string IDs in saved JSON remain compatible, including separate `game-display` and `full-dmd` records.
