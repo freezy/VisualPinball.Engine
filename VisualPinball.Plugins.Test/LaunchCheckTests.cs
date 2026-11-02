@@ -129,6 +129,122 @@ namespace VisualPinball.Plugins.Test
 			var task = host.CheckLaunchAsync(_game, "test", "Test", default); Run(host, task); Assert.That(task.Result, Is.Empty);
 		}
 
+		[TestCase(false)]
+		[TestCase(true)]
+		public void StopDuringLaunchCheckCannotResumeStartup(bool emergency)
+		{
+			var completion = new TaskCompletionSource<IReadOnlyList<PluginValidationIssue>>(TaskCreationOptions.RunContinuationsAsynchronously);
+			CancellationToken checkToken = default;
+			var factory = new CheckFactory("required") { Hook = (_, token) => { checkToken = token; return completion.Task; } };
+			var host = Host(factory); host.StartupTimeout = TimeSpan.FromSeconds(5); host.CleanupTimeout = TimeSpan.FromMilliseconds(25);
+			var starting = host.PrepareAndStartAsync(_game, "test", "Test", "controller", 1, default);
+			try {
+				Assert.That(factory.Checks, Is.EqualTo(1));
+				if (emergency) host.EmergencyStop(); else Run(host, host.StopGameAsync());
+				Assert.That(checkToken.IsCancellationRequested, Is.True, "Stopping must cancel the pending launch check.");
+				completion.SetResult(Array.Empty<PluginValidationIssue>());
+				Assert.Catch<OperationCanceledException>(() => Run(host, starting));
+				Assert.That(factory.Inner.Constructions, Is.Zero);
+				Assert.That(host.IsRunning, Is.False); Assert.That(host.IsTransitioning, Is.False);
+			} finally {
+				completion.TrySetResult(Array.Empty<PluginValidationIssue>());
+				try { Run(host, starting); } catch (OperationCanceledException) { }
+				Run(host, host.StopGameAsync());
+			}
+		}
+
+		[TestCase("success")]
+		[TestCase("error")]
+		[TestCase("cancel")]
+		[TestCase("timeout")]
+		public void PreflightReplaysHeldStateOnOwnerThread(string outcome)
+		{
+			var factory = new CheckFactory("required"); var host = Host(factory);
+			Run(host, host.PrepareAndStartAsync(_game, "test", "Test", "controller", 1, default));
+			var completion = new TaskCompletionSource<IReadOnlyList<PluginValidationIssue>>(TaskCreationOptions.RunContinuationsAsynchronously);
+			factory.Hook = (_, __) => completion.Task;
+			host.StartupTimeout = TimeSpan.FromMilliseconds(100);
+			using var cancellation = new CancellationTokenSource();
+			var callCount = factory.Inner.Calls.Count;
+			var check = host.CheckLaunchAsync(_game, "next", "Next", cancellation.Token);
+			try {
+				Assert.That(host.IsTransitioning, Is.True);
+				host.GameReady(); host.PauseChanged(true); host.PauseChanged(false); host.FocusChanged(false);
+				Assert.That(factory.Inner.Calls.Count, Is.EqualTo(callCount));
+				switch (outcome) {
+					case "success": completion.SetResult(Array.Empty<PluginValidationIssue>()); break;
+					case "error": completion.SetException(new IOException("Cannot read next game")); break;
+					case "cancel": cancellation.Cancel(); break;
+				}
+				if (outcome == "cancel") Assert.Catch<OperationCanceledException>(() => Run(host, check));
+				else {
+					Run(host, check);
+					Assert.That(check.Result.Count, Is.EqualTo(outcome == "success" ? 0 : 1));
+				}
+				Assert.That(factory.Inner.Calls.Skip(callCount), Is.EqualTo(new[] { "required:ready", "required:resume", "required:blur" }));
+				Assert.That(factory.Inner.FocusThread, Is.EqualTo(Thread.CurrentThread.ManagedThreadId));
+				Assert.That(host.IsRunning, Is.True); Assert.That(host.IsTransitioning, Is.False);
+			} finally {
+				completion.TrySetResult(Array.Empty<PluginValidationIssue>());
+				Run(host, host.StopGameAsync());
+			}
+		}
+
+		[TestCase(false)]
+		[TestCase(true)]
+		public void StopDuringPreviousGameCleanupCannotResumeStartup(bool emergency)
+		{
+			var factory = new CheckFactory("required"); var host = Host(factory);
+			Run(host, host.PrepareAndStartAsync(_game, "test", "Test", "controller", 1, default));
+			var completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+			factory.Inner.StopCompletion = completion.Task;
+			host.StartupTimeout = host.CleanupTimeout = TimeSpan.FromSeconds(5);
+			var starting = host.PrepareAndStartAsync(_game, "next", "Next", "controller", 2, default);
+			try {
+				Assert.That(factory.Inner.Calls, Does.Contain("required:stop"));
+				StopImmediately(host, emergency);
+				completion.SetResult(true);
+				Assert.Catch<OperationCanceledException>(() => Run(host, starting));
+				Assert.That(factory.Inner.Constructions, Is.EqualTo(1)); Assert.That(factory.Checks, Is.EqualTo(1));
+				Assert.That(host.IsRunning, Is.False); Assert.That(host.IsTransitioning, Is.False);
+			} finally {
+				completion.TrySetResult(true);
+				try { Run(host, starting); } catch (OperationCanceledException) { }
+				Run(host, host.StopGameAsync());
+			}
+		}
+
+		[TestCase(false)]
+		[TestCase(true)]
+		public void StopWhileStartupWaitsForPreflightCannotResumeStartup(bool emergency)
+		{
+			var factory = new CheckFactory("required"); var host = Host(factory);
+			Run(host, host.PrepareAndStartAsync(_game, "test", "Test", "controller", 1, default));
+			var completion = new TaskCompletionSource<IReadOnlyList<PluginValidationIssue>>(TaskCreationOptions.RunContinuationsAsynchronously);
+			factory.Hook = (_, __) => completion.Task;
+			var check = host.CheckLaunchAsync(_game, "next", "Next", default);
+			var starting = host.PrepareAndStartAsync(_game, "next", "Next", "controller", 2, default);
+			try {
+				Assert.That(factory.Checks, Is.EqualTo(2)); Assert.That(starting.IsCompleted, Is.False);
+				StopImmediately(host, emergency);
+				factory.Hook = null; completion.SetResult(Array.Empty<PluginValidationIssue>()); Run(host, check);
+				Assert.Catch<OperationCanceledException>(() => Run(host, starting));
+				Assert.That(factory.Inner.Constructions, Is.EqualTo(1)); Assert.That(factory.Checks, Is.EqualTo(2));
+				Assert.That(host.IsRunning, Is.False); Assert.That(host.IsTransitioning, Is.False);
+			} finally {
+				completion.TrySetResult(Array.Empty<PluginValidationIssue>()); Run(host, check);
+				try { Run(host, starting); } catch (OperationCanceledException) { }
+				Run(host, host.StopGameAsync());
+			}
+		}
+
+		private static void StopImmediately(PluginHost host, bool emergency)
+		{
+			if (emergency) { host.EmergencyStop(); return; }
+			using var cleanup = new CancellationTokenSource(); cleanup.Cancel();
+			Run(host, host.StopGameAsync(cleanup.Token));
+		}
+
 		[Test]
 		public void RequiredPluginFailureDuringPreparationStopsEveryPlugin()
 		{

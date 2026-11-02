@@ -292,6 +292,7 @@ namespace VisualPinball.Plugins.Test
 		/// <summary>Work the plugin reports as still running after its hooks returned.</summary>
 		internal Task? QuiescenceTask;
 		internal int PrepareThread;
+		internal int FocusThread;
 		internal bool AsyncInitialize;
 		internal bool CleanupWasCanceled;
 		internal bool NeverFinishStop;
@@ -319,6 +320,7 @@ namespace VisualPinball.Plugins.Test
 			public override Task StartGameAsync(CancellationToken token) { Call("start"); _factory.CancelDuringStart?.Cancel(); token.ThrowIfCancellationRequested(); return Task.CompletedTask; }
 			public override void GameReady() => Call("ready");
 			public override void PauseChanged(bool paused) => Call(paused ? "pause" : "resume");
+			public override void FocusChanged(bool focused) { _factory.FocusThread = Thread.CurrentThread.ManagedThreadId; Call(focused ? "focus" : "blur"); }
 			public void Tick(double delta) => Call("tick");
 			public Task<PluginActionResult> ApplyAsync(PluginSettingsSnapshot settings, CancellationToken cancellation) { Call("apply:" + settings.Integer("value")); _factory.ApplyAction?.Invoke(settings.Integer("value")); return _factory.ApplyCompletion ?? Task.FromResult(new PluginActionResult(true, "")); }
 			public override Task StopGameAsync(CancellationToken token) { _factory.CleanupWasCanceled = token.IsCancellationRequested; Call("stop"); return _factory.StopCompletion ?? (_factory.NeverFinishStop ? new TaskCompletionSource<bool>().Task : Task.CompletedTask); }
