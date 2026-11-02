@@ -78,6 +78,30 @@ namespace VisualPinball.Unity
 		}
 	}
 
+	public struct PlayfieldMeshReferencesPackable
+	{
+		public string ColliderMeshGuid;
+
+		public static byte[] Pack(Playfield.PlayfieldMeshComponent comp, PackagedFiles files)
+		{
+			var guid = files.GetColliderMeshGuid(comp, 0);
+			return string.IsNullOrEmpty(guid) ? null : PackageApi.Packer.Pack(new PlayfieldMeshReferencesPackable { ColliderMeshGuid = guid });
+		}
+
+		public static void Unpack(byte[] bytes, Playfield.PlayfieldMeshComponent comp, PackagedFiles files)
+		{
+			if (bytes == null || bytes.Length == 0) return;
+			var data = PackageApi.Packer.Unpack<PlayfieldMeshReferencesPackable>(bytes);
+			if (string.IsNullOrEmpty(data.ColliderMeshGuid)) return;
+			var mesh = files.GetColliderMesh(data.ColliderMeshGuid, 0);
+			// Report incomplete collision data rather than silently installing a null mesh.
+			if (!mesh) throw new System.IO.InvalidDataException("The packaged custom playfield collider mesh is missing.");
+			var filter = comp.GetComponent<UnityEngine.MeshFilter>();
+			if (!filter) filter = comp.gameObject.AddComponent<UnityEngine.MeshFilter>();
+			filter.sharedMesh = mesh;
+		}
+	}
+
 	public struct PlayfieldColliderPackable
 	{
 		public float Gravity;

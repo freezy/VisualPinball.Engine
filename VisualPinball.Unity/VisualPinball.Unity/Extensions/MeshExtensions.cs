@@ -38,9 +38,11 @@ namespace VisualPinball.Unity
 			var unityNormals = new NativeArray<Vector3>(meshData.vertexCount, Allocator.TempJob);
 			meshData.GetVertices(unityVertices);
 			meshData.GetNormals(unityNormals);
+			// Collision-only GLBs can omit UVs; their physics still needs the vertices and triangles.
+			var unityUvs = unityMesh.uv;
 
 			for (var i = 0; i < vpMesh.Vertices.Length; i++) {
-				var unityUv = unityMesh.uv[i];
+				var unityUv = i < unityUvs.Length ? unityUvs[i] : Vector2.zero;
 				vpMesh.Vertices[i] = new Vertex3DNoTex2(
 					unityVertices[i].x, unityVertices[i].y, unityVertices[i].z,
 					unityNormals[i].x, unityNormals[i].y, unityNormals[i].z,

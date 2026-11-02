@@ -71,6 +71,8 @@ Physics-only meshes are exported to `table/colliders.glb`. Related metadata is w
 
 This lets editor re-import reconnect those meshes correctly.
 
+Custom playfields with no enabled renderer store their authored collision mesh in `table/colliders.glb` and reference it from `PlayfieldMesh` data under `table/refs`. Both the Editor and Player restore the mesh to its `MeshFilter` before collider generation. Visible custom playfields reuse their scene mesh. Packages exported before this collision-only support must be exported again from the source table; the absent geometry cannot be recovered from those packages.
+
 ## Packables and References
 
 Gameplay and authoring data is split into two trees:

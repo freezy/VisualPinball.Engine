@@ -24,7 +24,7 @@ namespace VisualPinball.Unity.Playfield
 	[PackAs("PlayfieldMesh")]
 	[ExecuteInEditMode]
 	[AddComponentMenu("Pinball/Mesh/Playfield Mesh")]
-	public class PlayfieldMeshComponent : MeshComponent<TableData, PlayfieldComponent>, IPackable
+	public class PlayfieldMeshComponent : MeshComponent<TableData, PlayfieldComponent>, IPackable, IColliderMesh
 	{
 		#region Data
 
@@ -34,16 +34,24 @@ namespace VisualPinball.Unity.Playfield
 
 		#region Packaging
 
-		// Packed so a custom (non auto-generated) playfield mesh survives a .vpe round trip: the mesh
-		// itself travels in the package's glb with the node, but without this component the importer
-		// falls back to a flat plane collider (PlayfieldApi) and the authored openings are lost.
+		// Visible custom meshes travel in table.glb. Collision-only meshes need colliders.glb because
+		// the scene exporter omits meshes without an enabled renderer.
 		public byte[] Pack() => PlayfieldMeshPackable.Pack(this);
 
-		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => null;
+		public byte[] PackReferences(Transform root, PackagedRefs refs, PackagedFiles files) => PlayfieldMeshReferencesPackable.Pack(this, files);
 
 		public void Unpack(byte[] bytes) => PlayfieldMeshPackable.Unpack(bytes, this);
 
-		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) { }
+		public void UnpackReferences(byte[] data, Transform root, PackagedRefs refs, PackagedFiles files) => PlayfieldMeshReferencesPackable.Unpack(data, this, files);
+
+		public int NumColliderMeshes {
+			get {
+				if (AutoGenerate || !TryGetComponent<MeshFilter>(out var filter) || !filter.sharedMesh) return 0;
+				var renderer = GetComponent<MeshRenderer>();
+				return !(renderer && renderer.enabled) ? 1 : 0;
+			}
+		}
+		public UnityEngine.Mesh GetColliderMesh(int index) => index == 0 && TryGetComponent<MeshFilter>(out var filter) ? filter.sharedMesh : null;
 
 		#endregion
 
