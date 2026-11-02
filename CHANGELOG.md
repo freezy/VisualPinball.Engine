@@ -8,6 +8,8 @@ Built with Unity 6.5
 
 ### Added
 
+- Closed shared cabinet output roles with independent LCD/HD game display routing and preserved custom scene bindings.
+
 - Cabinet output content rotation, mirroring, and explicit-load inset composition with asymmetric GPU validation.
 
 - Shared cabinet display configuration contracts, deterministic surface ranking, and an owned SDR output-copy target with GPU and native-window validation probes, preparing centralized Player display routing.
