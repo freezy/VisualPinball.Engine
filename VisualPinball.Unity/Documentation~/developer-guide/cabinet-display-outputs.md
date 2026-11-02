@@ -19,3 +19,9 @@ The Player must drive plugin BeforeRender, then its cabinet copy pass in the sam
 The initial shared boundary has pure contract tests, GPU-copy tests, and an EditMode native probe for two windows, pointer replacement and retirement. Run the native probe on each supported platform/backend before certifying it; a single Windows graphics backend does not certify Metal or Vulkan.
 
 The next Player phase adds persisted layout, Windows topology, browsing backglass and playfield monitor selection. Playfield placement stays in the Video transaction, not an auxiliary MainWindow endpoint. The asynchronous move, verification, Keep/Revert and cancellation must use one version token. Later phases adapt B2S, PinUP and DMD in that order, preserving legacy output for unsupported layouts and device configurations.
+
+## Content transforms and a shared panel
+
+The owned output texture can copy clockwise quarter-turn rotation and output-axis mirrors into a normalized viewport. The viewport uses bottom-left Unity UV coordinates; the Player converts its saved top-left percentages once. Inside the viewport, contain-fit bars are opaque black. Outside it, existing pixels are retained using an explicit color Load/Store action. This supports a Full DMD background and an independently selected DMD inset in one native window. The existing four-argument full-frame copy API remains available. Producer textures are unbound from the copy material immediately after submission.
+
+Physical multi-monitor and rotated-panel certification remains outstanding. The test suite covers all eight dihedral transforms, asymmetric partial viewports and render-state restoration, alpha/color conversion, two native presenters and deferred output retirement on the available Windows D3D12 backend. Metal and Vulkan must pass their platform matrices before certification.

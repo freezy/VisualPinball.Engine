@@ -8,6 +8,8 @@ Built with Unity 6.5
 
 ### Added
 
+- Cabinet output content rotation, mirroring, and explicit-load inset composition with asymmetric GPU validation.
+
 - Shared cabinet display configuration contracts, deterministic surface ranking, and an owned SDR output-copy target with GPU and native-window validation probes, preparing centralized Player display routing.
 
 - Extensible shared plugin settings sections for paths and multiple mixer channels, with canonical plugin-owned values and provider validation for global edits.

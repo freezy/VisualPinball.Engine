@@ -6,6 +6,7 @@
 
 using System;
 using UnityEngine;
+using UnityEngine.Rendering;
 using VisualPinball.Plugins;
 
 namespace VisualPinball.Unity
@@ -17,6 +18,9 @@ namespace VisualPinball.Unity
 	public sealed class CabinetOutputTexture : IDisposable
 	{
 		private readonly Material _copy;
+		private readonly RenderBuffer[] _insetColor = new RenderBuffer[1];
+		private static readonly RenderBufferLoadAction[] InsetLoad = { RenderBufferLoadAction.Load };
+		private static readonly RenderBufferStoreAction[] InsetStore = { RenderBufferStoreAction.Store };
 		private bool _disposed;
 		public RenderTexture Texture { get; }
 		/// <summary>Changes after allocation/recreation. A borrowing window must resubmit its native pointer.</summary>
@@ -47,21 +51,55 @@ namespace VisualPinball.Unity
 
 		/// <summary>Copies immediately; source is not retained. Color space describes shader-sampled values.</summary>
 		public void Copy(UnityEngine.Texture source, FrameColorSpace colorSpace, FrameAlpha alpha = FrameAlpha.None, bool flipY = false)
+			=> Copy(source, colorSpace, alpha, flipY, 0, false, false, new Rect(0, 0, 1, 1));
+
+		/// <summary>Contains transformed content inside a normalized viewport measured from the bottom-left (Unity UV coordinates). Preserves pixels outside; letterbox bars inside are opaque black. Rotation is clockwise quarter-turns.</summary>
+		public void Copy(UnityEngine.Texture source, FrameColorSpace colorSpace, FrameAlpha alpha, bool flipY,
+			int rotation, bool mirrorX, bool mirrorY, Rect viewport)
 		{
 			if (_disposed) throw new ObjectDisposedException(nameof(CabinetOutputTexture));
-			EnsureCreated();
-			if (source == null || source.width < 1 || source.height < 1) { Clear(); return; }
+			if (viewport.x < 0 || viewport.y < 0 || viewport.width <= 0 || viewport.height <= 0 || viewport.xMax > 1 || viewport.yMax > 1
+				|| float.IsNaN(viewport.x) || float.IsNaN(viewport.y) || float.IsNaN(viewport.width) || float.IsNaN(viewport.height)) throw new ArgumentOutOfRangeException(nameof(viewport));
+			if (EnsureCreated()) Clear();
+			if (source == null || source.width < 1 || source.height < 1) source = Texture2D.blackTexture;
+			rotation = ((rotation % 4) + 4) % 4;
 			double aspect = (double)source.width / source.height;
-			double outputAspect = (double)Texture.width / Texture.height;
+			if ((rotation & 1) != 0) aspect = 1 / aspect;
+			double outputAspect = Texture.width * (double)viewport.width / (Texture.height * viewport.height);
 			float width = (float)System.Math.Min(1, aspect / outputAspect), height = (float)System.Math.Min(1, outputAspect / aspect);
-			_copy.SetVector("_Content", new Vector4((1 - width) * .5f, (1 - height) * .5f, width, height));
+			_copy.SetVector("_Viewport", new Vector4(viewport.x, viewport.y, viewport.width, viewport.height));
+			_copy.SetVector("_Content", new Vector4(viewport.x + (1 - width) * .5f * viewport.width, viewport.y + (1 - height) * .5f * viewport.height, width * viewport.width, height * viewport.height));
+			_copy.SetVector("_SourceTexel", new Vector4(1f / source.width, 1f / source.height, source.width, source.height));
 			_copy.SetFloat("_Encoded", colorSpace == FrameColorSpace.Srgb ? 1 : 0);
 			_copy.SetFloat("_Alpha", alpha == FrameAlpha.Premultiplied ? 2 : alpha == FrameAlpha.Straight ? 1 : 0);
 			_copy.SetFloat("_FlipY", flipY ? 1 : 0);
+			_copy.SetFloat("_Rotation", rotation);
+			_copy.SetVector("_Mirror", new Vector4(mirrorX ? 1 : 0, mirrorY ? 1 : 0, 0, 0));
 			var active = RenderTexture.active;
 			bool srgb = GL.sRGBWrite;
-			try { GL.sRGBWrite = false; Graphics.Blit(source, Texture, _copy); }
-			finally { GL.sRGBWrite = srgb; RenderTexture.active = active; }
+			try {
+				GL.sRGBWrite = false;
+				if (viewport == new Rect(0, 0, 1, 1)) Graphics.Blit(source, Texture, _copy);
+				else {
+					// Explicitly retain the base image; a Blit may choose DontCare on tile-based GPUs.
+					_insetColor[0] = Texture.colorBuffer;
+					Graphics.SetRenderTarget(new RenderTargetSetup(_insetColor, Texture.depthBuffer, 0, CubemapFace.Unknown, InsetLoad, InsetStore, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare));
+					_copy.SetTexture("_MainTex", source);
+					GL.PushMatrix();
+					try {
+						GL.LoadOrtho();
+						if (!_copy.SetPass(0)) throw new InvalidOperationException("Cannot draw cabinet inset.");
+						GL.Begin(GL.QUADS);
+						try {
+							GL.TexCoord2(0, 0); GL.Vertex3(0, 0, 0);
+							GL.TexCoord2(1, 0); GL.Vertex3(1, 0, 0);
+							GL.TexCoord2(1, 1); GL.Vertex3(1, 1, 0);
+							GL.TexCoord2(0, 1); GL.Vertex3(0, 1, 0);
+						} finally { GL.End(); }
+					} finally { GL.PopMatrix(); }
+				}
+			}
+			finally { _copy.SetTexture("_MainTex", null); GL.sRGBWrite = srgb; RenderTexture.active = active; }
 		}
 
 		public void Clear()
