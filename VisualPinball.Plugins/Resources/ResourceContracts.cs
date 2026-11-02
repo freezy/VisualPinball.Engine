@@ -908,8 +908,8 @@ namespace VisualPinball.Plugins
 		string Backend { get; }
 	}
 	/// <summary>
-	/// Well-known <see cref="PluginResourceDescriptor.Role"/> values of <see cref="ResourceKind.Surface"/> resources: the
-	/// cabinet screens a table can show in the scene.
+	/// Well-known cabinet output roles. Surface resources use the auxiliary roles for scene and desktop consumers;
+	/// Playfield identifies the Player's separately configured main window, not an auxiliary surface route.
 	/// </summary>
 	/// <remarks>
 	/// A table marks a renderer with VPE's <c>CabinetScreenComponent</c> and one of these roles. While a game runs, VPE shows
@@ -925,6 +925,10 @@ namespace VisualPinball.Plugins
 	/// </remarks>
 	public static class SurfaceRoles
 	{
+		/// <summary>The Player's main window; placement stays in Video settings.</summary>
+		public const string Playfield = "playfield";
+		/// <summary>A composed score panel, distinct from a controller's raw DMD.</summary>
+		public const string ScorePanel = "score-panel";
 		/// <summary>The backglass.</summary>
 		public const string Backglass = "backglass";
 		/// <summary>The screen of a topper above the backbox.</summary>

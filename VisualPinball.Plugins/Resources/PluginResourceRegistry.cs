@@ -77,6 +77,15 @@ namespace VisualPinball.Plugins
 		/// </remarks>
 		/// <param name="selection">What to look for.</param>
 		public IReadOnlyList<PluginResourceDescriptor> Snapshot(PluginResourceSelection selection) => Candidates(selection).Select(entry => entry.Descriptor).ToArray();
+
+		/// <summary>Probes the current source for an observed descriptor. Borrow only on the owner thread; do not retain it.</summary>
+		public bool TryGetSource<T>(PluginResourceDescriptor descriptor, out T? source) where T : class, IPluginResourceSource
+		{
+			source = null;
+			if (!_entries.TryGetValue(descriptor.Id, out var entry) || entry.Descriptor.Session != descriptor.Session || entry.Descriptor.Instance != descriptor.Instance || !Reachable(entry, new HashSet<string>())) return false;
+			source = entry.Source as T;
+			return source != null;
+		}
 		internal IReadOnlyList<Entry> Candidates(PluginResourceSelection selection)
 		{
 			var found = _entries.Values.Where(entry => selection.Matches(entry.Descriptor) && Reachable(entry, new HashSet<string>())).OrderBy(entry => entry.Descriptor.Id, StringComparer.Ordinal).ToList();
