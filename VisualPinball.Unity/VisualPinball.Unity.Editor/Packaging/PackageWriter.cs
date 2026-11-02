@@ -841,6 +841,7 @@ namespace VisualPinball.Unity.Editor
 			var meshGos = new List<GameObject>();
 			var colliderMeshesMeta = new Dictionary<string, ColliderMeshMetaPackable>();
 			GameObjectExport export = null;
+			GameObject exportRoot = null;
 			try {
 				foreach (var colMesh in _table.GetComponentsInChildren<IColliderMesh>(!ExportActivesOnly)) {
 					for (var index = 0; index < colMesh.NumColliderMeshes; index++) {
@@ -872,7 +873,11 @@ namespace VisualPinball.Unity.Editor
 						Format = GltfFormat.Binary,
 					};
 					export = new GameObjectExport(exportSettings, logger: logger);
-					export.AddScene(meshGos.ToArray(), _table.transform.worldToLocalMatrix, "Colliders");
+					// Keep collider nodes below a container even when there is only one mesh.
+					// The Editor glTF importer renames a lone root node to the asset filename.
+					exportRoot = new GameObject("Colliders");
+					foreach (var meshGo in meshGos) meshGo.transform.SetParent(exportRoot.transform, false);
+					export.AddScene(new[] { exportRoot }, _table.transform.worldToLocalMatrix, "Colliders");
 
 					var glbMeta = _metaFolder.AddFile(PackageApi.ColliderMeshesMeta, PackageApi.Packer.FileExtension);
 					glbMeta.SetData(PackageApi.Packer.Pack(colliderMeshesMeta));
@@ -881,8 +886,9 @@ namespace VisualPinball.Unity.Editor
 			} finally {
 
 				// cleanup scene
+				if (exportRoot) Object.DestroyImmediate(exportRoot);
 				foreach (var meshGo in meshGos) {
-					Object.DestroyImmediate(meshGo);
+					if (meshGo) Object.DestroyImmediate(meshGo);
 				}
 			}
 

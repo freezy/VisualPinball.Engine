@@ -213,6 +213,8 @@ Built with Unity 6.5
 
 ### Fixed
 
+- Preserve custom playfield collider meshes without an enabled renderer when exporting tables, and load hidden collision meshes without UVs, so authored openings remain functional in the Player.
+
 - The flipper collider gizmo follows the bat's rotation in edit mode so its shape can be compared with the visible mesh.
 - A ball held by a moving kicker keeps its height above the kicker, instead of being pulled down to the kicker's base, and balls only passing over it are left alone.
 - Devices assigned in the coil, lamp, switch and wire managers survive a recompile or entering play mode, instead of being dropped until the scene is reloaded.
