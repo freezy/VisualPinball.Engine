@@ -105,6 +105,17 @@ namespace VisualPinball.Plugins.Test
 			Assert.Throws<ArgumentException>(() => new CabinetDeviceProfile("p", "dmd", SurfaceRoles.Dmd, "DMD", "", "", "{}"));
 		}
 
+		[Test]
+		public void ImportPreviewCopiesSettingsAndKeepsUnusableGeometryUnsupported()
+		{
+			var settings = new PluginSettingsSnapshot(1); settings.Values["x"] = 10; var keys = new[] { "x" };
+			var request = new CabinetDisplayImportRequest(settings, keys, "windows"); settings.Values["x"] = 20; keys[0] = "y";
+			Assert.That(request.Settings.Integer("x"), Is.EqualTo(10)); Assert.That(request.SavedKeys, Is.EqualTo(new[] { "x" }));
+			Assert.That(new CabinetDisplayImportCandidate(SurfaceRoles.Dmd, 0, 0, 0, 32).Supported, Is.False);
+			Assert.That(new CabinetDisplayImportCandidate(SurfaceRoles.Dmd, int.MaxValue, 0, 128, 32).Supported, Is.False);
+			var hardware = new CabinetDisplayImportCandidate(SurfaceRoles.Dmd, "profile"); Assert.That(hardware.Kind, Is.EqualTo(CabinetEndpointKind.Device)); Assert.That(hardware.DeviceProfileId, Is.EqualTo("profile"));
+		}
+
 		private static PluginResourceDescriptor Descriptor(string id, string provider) => new PluginResourceDescriptor(id, provider, "controller", id, "backglass", ResourceKind.Surface, 1, 1);
 		private sealed class Surface : IPluginSurface, ICabinetSurface
 		{
