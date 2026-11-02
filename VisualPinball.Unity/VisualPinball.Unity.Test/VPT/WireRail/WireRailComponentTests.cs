@@ -35,6 +35,54 @@ namespace VisualPinball.Unity.Test
 		}
 
 		[Test]
+		public void ShouldKeepResolvedRenderMaterialAcrossActivationAndMeshRebuilds()
+		{
+			var go = new GameObject("Wire Rail"); go.SetActive(false);
+			var imported = new Material(Shader.Find("Hidden/InternalErrorShader"));
+			var resolved = new Material(imported);
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var renderer = component.SplineContainer.GetComponent<MeshRenderer>();
+				renderer.sharedMaterial = imported;
+				component.RebuildRenderGeometry();
+				// Package profiles replace glTF placeholders while the table is inactive.
+				renderer.sharedMaterial = resolved;
+				go.SetActive(true);
+				Assert.That(renderer.sharedMaterial, Is.SameAs(resolved));
+				component.RebuildRenderGeometry();
+				Assert.That(renderer.sharedMaterial, Is.SameAs(resolved));
+				Object.DestroyImmediate(renderer);
+				component.RebuildRenderGeometry();
+				Assert.That(component.SplineContainer.GetComponent<MeshRenderer>().sharedMaterial, Is.SameAs(resolved));
+			} finally {
+				Object.DestroyImmediate(go); Object.DestroyImmediate(imported); Object.DestroyImmediate(resolved);
+			}
+		}
+		[TestCase(false)]
+		[TestCase(true)]
+		public void ShouldApplyAnExplicitRenderMaterialChangeAfterAssigningTheRenderer(bool afterDomainReload)
+		{
+			var go = new GameObject("Wire Rail");
+			var original = new Material(Shader.Find("Hidden/InternalErrorShader"));
+			var chosen = new Material(original);
+			try {
+				var component = go.AddComponent<WireRailComponent>();
+				var renderer = component.SplineContainer.GetComponent<MeshRenderer>();
+				renderer.sharedMaterial = original;
+				component.RebuildRenderGeometry();
+				// The inspector edits this serialized choice, rather than the generated renderer.
+				typeof(WireRailComponent).GetField("_renderMaterial", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(component, chosen);
+				if (afterDomainReload) {
+					// Unity retains the serialized choice but clears assignment tracking on reload.
+					typeof(WireRailComponent).GetField("_lastAssignedRenderMaterial", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(component, null);
+				}
+				component.RebuildRenderGeometry();
+				Assert.That(renderer.sharedMaterial, Is.SameAs(chosen));
+			} finally {
+				Object.DestroyImmediate(go); Object.DestroyImmediate(original); Object.DestroyImmediate(chosen);
+			}
+		}
+		[Test]
 		public void ShouldCreateAThreeDimensionalVpxSpline()
 		{
 			var go = new GameObject("Wire Rail");
