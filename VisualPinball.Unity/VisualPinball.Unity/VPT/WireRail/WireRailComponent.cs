@@ -1763,6 +1763,7 @@ namespace VisualPinball.Unity
 		[NonSerialized] private Vector3[] _colliderEdgeVertices = Array.Empty<Vector3>();
 		[NonSerialized] private int _colliderTopologyRetryCount;
 		[NonSerialized] private bool _rebuildingGeneratedMeshes;
+		[NonSerialized] private Material _lastAssignedRenderMaterial;
 		[NonSerialized] private bool _collidersDirty = true;
 		[NonSerialized] private bool _colliderGeometryDirty = true;
 		[NonSerialized] private int _renderGeometryVersion;
@@ -3626,16 +3627,19 @@ namespace VisualPinball.Unity
 		{
 			var pipeline = GraphicsSettings.currentRenderPipeline;
 			var pipelineDefault = pipeline ? pipeline.defaultMaterial : GetBuiltinDefaultMaterial();
-			if (adoptExisting && !_renderMaterial && renderer.sharedMaterial
-				&& renderer.sharedMaterial != pipelineDefault) {
+			if (adoptExisting && renderer.sharedMaterial
+				&& renderer.sharedMaterial != pipelineDefault
+				&& (!_renderMaterial || _lastAssignedRenderMaterial && renderer.sharedMaterial != _lastAssignedRenderMaterial)) {
 				// The renderer arrived with a material of its own, e.g. restored from a
-				// package; that is the author's choice, not something to overwrite.
+				// package, or a material resolver replaced our last assignment. Keep that
+				// resolved material when activation or a spline edit rebuilds the mesh.
 				_renderMaterial = renderer.sharedMaterial;
 			}
 			var material = _renderMaterial ? _renderMaterial : pipelineDefault;
 			if (renderer.sharedMaterial != material) {
 				renderer.sharedMaterial = material;
 			}
+			_lastAssignedRenderMaterial = material;
 		}
 
 		private static Material GetBuiltinDefaultMaterial()
