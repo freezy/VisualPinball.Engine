@@ -8,6 +8,8 @@ Built with Unity 6.5
 
 ### Added
 
+- Shared cabinet display configuration contracts, deterministic surface ranking, and an owned SDR output-copy target with GPU and native-window validation probes, preparing centralized Player display routing.
+
 - Extensible shared plugin settings sections for paths and multiple mixer channels, with canonical plugin-owned values and provider validation for global edits.
 
 - Smooth 100 ms master fades when opening and closing the Player pause menu, with rapid-toggle cancellation and independent sound previews.

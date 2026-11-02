@@ -166,7 +166,7 @@ namespace VisualPinball.Unity
 
 		private void RegistryChanged(PluginResourceChange change)
 		{
-			if (change.Descriptor.Kind == ResourceKind.Surface && change.Kind != ResourceChangeKind.Changed) {
+			if (change.Descriptor.Kind == ResourceKind.Surface) {
 				Refresh();
 			}
 		}
@@ -246,21 +246,8 @@ namespace VisualPinball.Unity
 			var candidates = _registry.Snapshot(new PluginResourceSelection(ResourceKind.Surface) {
 				Role = role, Controller = _controller, Session = _session,
 			});
-			return candidates
-				.OrderBy(descriptor => Rank(descriptor.Provider))
-				.ThenBy(descriptor => descriptor.Provider, StringComparer.Ordinal)
-				.ThenBy(descriptor => descriptor.Id, StringComparer.Ordinal)
-				.FirstOrDefault()?.Id;
-		}
-
-		private int Rank(string provider)
-		{
-			for (var i = 0; i < _providers.Count; i++) {
-				if (string.Equals(_providers[i], provider, StringComparison.Ordinal)) {
-					return i;
-				}
-			}
-			return int.MaxValue;
+			return CabinetSurfaceSelector.Choose(candidates, _providers, descriptor =>
+				_registry.TryGetSource<IUnityTextureResource>(descriptor, out var source) && CabinetSurfaceSelector.Eligible(source, CabinetSurfaceConsumers.Scene))?.Id;
 		}
 
 		/// <summary>
