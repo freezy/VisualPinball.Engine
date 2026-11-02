@@ -102,6 +102,7 @@ namespace VisualPinball.Plugins
 		private readonly Func<PluginDescriptor, IPluginLog> _pluginLog;
 		private readonly Action<string, Exception> _error;
 		private CancellationTokenSource? _gameCancellation;
+		private int _stopVersion;
 		private bool _running;
 		private bool _ready;
 		private bool? _paused;
@@ -295,6 +296,7 @@ namespace VisualPinball.Plugins
 		/// <returns>
 		/// A task that completes when startup has finished. It also completes, without starting anything, when another operation
 		/// still holds the host after <see cref="StartupTimeout"/>; every plugin is then <see cref="PluginState.Blocked"/>.
+		/// A stop request during that wait cancels startup instead.
 		/// </returns>
 		/// <exception cref="OperationCanceledException">
 		/// <paramref name="cancellation"/> was cancelled, or the game was stopped by <see cref="StopGameAsync"/> or
@@ -302,11 +304,13 @@ namespace VisualPinball.Plugins
 		/// </exception>
 		public async Task PrepareAndStartAsync(GameIdentity identity, string packagePath, string title, string controllerId, long session, CancellationToken cancellation)
 		{
+			int stopVersion = Volatile.Read(ref _stopVersion);
 			using var gateDeadline = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
 			gateDeadline.CancelAfter(StartupTimeout);
 			try { await _operation.WaitAsync(gateDeadline.Token).ConfigureAwait(false); }
 			catch (OperationCanceledException) when (!cancellation.IsCancellationRequested) {
 				await Scheduler.Switch();
+				if (stopVersion != Volatile.Read(ref _stopVersion)) throw new OperationCanceledException("Game startup was stopped.");
 				foreach (var factory in _factories.Values) SetStatus(factory.Descriptor.Id, PluginState.Blocked, "Plugin host is still stopping a previous operation.");
 				RequireLaunchPluginsStarted(identity);
 				return;
@@ -315,13 +319,16 @@ namespace VisualPinball.Plugins
 			try {
 				await StopCoreAsync(CancellationToken.None).ConfigureAwait(false);
 				await Scheduler.Switch();
-				var blockers = await CheckLaunchCoreAsync(identity, packagePath, title, cancellation).ConfigureAwait(false);
-				await Scheduler.Switch();
-				if (blockers.Count > 0) throw new PluginLaunchBlockedException(blockers);
 				_gameCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
+				// A stop may have arrived while waiting for the gate or cleaning up the previous game.
+				if (stopVersion != Volatile.Read(ref _stopVersion)) _gameCancellation.Cancel();
+				var gameToken = _gameCancellation.Token;
+				var blockers = await CheckLaunchCoreAsync(identity, packagePath, title, gameToken).ConfigureAwait(false);
+				await Scheduler.Switch();
+				gameToken.ThrowIfCancellationRequested();
+				if (blockers.Count > 0) throw new PluginLaunchBlockedException(blockers);
 				_activeGame = identity;
 				_hostCapabilities = Capabilities.Ids.ToArray();
-				var gameToken = _gameCancellation.Token;
 				var selected = Select(identity);
 				foreach (var descriptor in PluginOrderResolver.Resolve(selected, PluginPhase.Initialize, _hostCapabilities)) {
 					gameToken.ThrowIfCancellationRequested();
@@ -378,6 +385,7 @@ namespace VisualPinball.Plugins
 					}
 				}
 				RequireLaunchPluginsStarted(identity);
+				gameToken.ThrowIfCancellationRequested();
 				_running = true;
 				RebuildDispatch();
 			} catch (Exception error) {
@@ -546,6 +554,7 @@ namespace VisualPinball.Plugins
 		/// <returns>A task that completes when every plugin of the game is stopped or quarantined.</returns>
 		public async Task StopGameAsync(CancellationToken cleanup = default)
 		{
+			Interlocked.Increment(ref _stopVersion);
 			_gameCancellation?.Cancel();
 			using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cleanup);
 			deadline.CancelAfter(CleanupTimeout);
@@ -748,6 +757,7 @@ namespace VisualPinball.Plugins
 		public void EmergencyStop()
 		{
 			Scheduler.VerifyOwner();
+			Interlocked.Increment(ref _stopVersion);
 			_running = false; _gameCancellation?.Cancel(); _dispatch.Clear();
 			foreach (var entry in _entered.AsEnumerable().Reverse()) {
 				Emergency(entry);

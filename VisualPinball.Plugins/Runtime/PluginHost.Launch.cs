@@ -35,7 +35,7 @@ namespace VisualPinball.Plugins
 			}
 			await Scheduler.Switch();
 			try { return await CheckLaunchCoreAsync(game, packagePath, title, cancellation).ConfigureAwait(false); }
-			finally { _operation.Release(); }
+			finally { await Scheduler.Switch(); _operation.Release(); ReplayState(); }
 		}
 
 		private IReadOnlyList<IPlayerPluginFactory> LaunchCheckCandidates(GameIdentity game)
