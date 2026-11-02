@@ -79,6 +79,32 @@ namespace VisualPinball.Plugins.Test
 			Assert.That(registry.TryGetSource<IPluginSurface>(stale, out _), Is.False);
 		}
 
+		[Test]
+		public void MonitorAndDeviceAdoptionAreIndependentAndLegacyOverloadMeansMonitor()
+		{
+			var snapshot = new CabinetDisplaySnapshot(1, 1, 1, Array.Empty<CabinetDisplayTarget>(), new[] {
+				new CabinetOutputAssignment("dmd", SurfaceRoles.Dmd, CabinetOutputMode.Player),
+				new CabinetOutputAssignment("dmd", SurfaceRoles.Dmd, CabinetOutputMode.Off, CabinetEndpointKind.Device) });
+			Assert.That(snapshot.ModeFor("dmd", SurfaceRoles.Dmd), Is.EqualTo(CabinetOutputMode.Player));
+			Assert.That(snapshot.ModeFor("dmd", SurfaceRoles.Dmd, CabinetEndpointKind.Device), Is.EqualTo(CabinetOutputMode.Off));
+			Assert.That(snapshot.ModeFor("other", SurfaceRoles.Dmd, CabinetEndpointKind.Device), Is.EqualTo(CabinetOutputMode.Custom));
+		}
+
+		[Test]
+		public void DeviceProfileRequestIsDetachedAndTargetCannotContradictItsProfile()
+		{
+			var settings = new PluginSettingsSnapshot(1, Newtonsoft.Json.Linq.JObject.Parse("{\"port\":\"COM3\"}"));
+			var keys = new[] { "port" }; var request = new CabinetDeviceProfileRequest(settings, keys, "windows");
+			settings.Values["port"] = "COM4"; keys[0] = "other";
+			Assert.That(request.Settings.String("port"), Is.EqualTo("COM3")); Assert.That(request.SavedKeys, Is.EqualTo(new[] { "port" }));
+			var profile = new CabinetDeviceProfile("profile", "dmd", SurfaceRoles.Dmd, "DMD", "serial:COM3", "usb:family", "{}");
+			var target = CabinetDisplayTarget.Device("device", SurfaceRoles.Dmd, CabinetEndpointState.Available, profile);
+			Assert.That(target.DeviceProfile, Is.SameAs(profile)); Assert.That(target.DeviceLeaseKey, Is.EqualTo(profile.LeaseKey));
+			Assert.Throws<ArgumentException>(() => CabinetDisplayTarget.Device("device", SurfaceRoles.Topper, CabinetEndpointState.Available, profile));
+			Assert.Throws<ArgumentException>(() => CabinetDisplayTarget.Device("device", SurfaceRoles.Dmd, CabinetEndpointState.Available, null));
+			Assert.Throws<ArgumentException>(() => new CabinetDeviceProfile("p", "dmd", SurfaceRoles.Dmd, "DMD", "", "", "{}"));
+		}
+
 		private static PluginResourceDescriptor Descriptor(string id, string provider) => new PluginResourceDescriptor(id, provider, "controller", id, "backglass", ResourceKind.Surface, 1, 1);
 		private sealed class Surface : IPluginSurface, ICabinetSurface
 		{

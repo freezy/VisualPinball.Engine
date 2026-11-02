@@ -38,6 +38,8 @@ namespace VisualPinball.Plugins
 		public int Height { get; }
 		/// <summary>Canonical provider-resolved lease key, never a guessed USB identifier.</summary>
 		public string DeviceLeaseKey { get; }
+		/// <summary>Adapter profile; null on targets made with the legacy public constructor.</summary>
+		public CabinetDeviceProfile? DeviceProfile { get; }
 
 		public CabinetDisplayTarget(string endpointId, string role, CabinetEndpointKind kind, CabinetEndpointState state,
 			int x = 0, int y = 0, int width = 0, int height = 0, string reason = "", string deviceLeaseKey = "")
@@ -51,6 +53,14 @@ namespace VisualPinball.Plugins
 			EndpointId = endpointId; Role = role; Kind = kind; State = state;
 			X = x; Y = y; Width = width; Height = height; Reason = reason ?? ""; DeviceLeaseKey = deviceLeaseKey ?? "";
 		}
+		private CabinetDisplayTarget(string endpointId, string role, CabinetEndpointState state, CabinetDeviceProfile? profile, string reason)
+			: this(endpointId, role, CabinetEndpointKind.Device, state, reason: reason, deviceLeaseKey: profile?.LeaseKey ?? "") { DeviceProfile = profile; }
+		public static CabinetDisplayTarget Device(string endpointId, string role, CabinetEndpointState state, CabinetDeviceProfile? profile, string reason = "")
+		{
+			if (profile != null && profile.Role != role) throw new ArgumentException("The profile role must match the target.", nameof(profile));
+			if (state == CabinetEndpointState.Available && (profile == null || !profile.Available)) throw new ArgumentException("An available device needs an available profile.", nameof(profile));
+			return new CabinetDisplayTarget(endpointId, role, state, profile, reason);
+		}
 	}
 
 	/// <summary>Explicit adoption of one plugin output; absence always means Custom.</summary>
@@ -59,11 +69,15 @@ namespace VisualPinball.Plugins
 		public string PluginId { get; }
 		public string Role { get; }
 		public CabinetOutputMode Mode { get; }
+		public CabinetEndpointKind Kind { get; }
 		public CabinetOutputAssignment(string pluginId, string role, CabinetOutputMode mode)
+			: this(pluginId, role, mode, CabinetEndpointKind.DesktopRegion) { }
+		public CabinetOutputAssignment(string pluginId, string role, CabinetOutputMode mode, CabinetEndpointKind kind)
 		{
 			if (string.IsNullOrWhiteSpace(pluginId) || string.IsNullOrWhiteSpace(role)) throw new ArgumentException("An assignment needs a plugin and role.");
 			if (!Enum.IsDefined(typeof(CabinetOutputMode), mode)) throw new ArgumentOutOfRangeException(nameof(mode));
-			PluginId = pluginId; Role = role; Mode = mode;
+			if (!Enum.IsDefined(typeof(CabinetEndpointKind), kind)) throw new ArgumentOutOfRangeException(nameof(kind));
+			PluginId = pluginId; Role = role; Mode = mode; Kind = kind;
 		}
 	}
 
@@ -86,13 +100,15 @@ namespace VisualPinball.Plugins
 			var assignmentArray = (assignments ?? throw new ArgumentNullException(nameof(assignments))).ToArray();
 			if (targetArray.Any(value => value == null) || assignmentArray.Any(value => value == null)) throw new ArgumentException("Snapshot entries cannot be null.");
 			if (targetArray.GroupBy(value => (value.EndpointId, value.Role)).Any(group => group.Count() > 1)) throw new ArgumentException("Duplicate endpoint/role target.", nameof(targets));
-			if (assignmentArray.GroupBy(value => (value.PluginId, value.Role)).Any(group => group.Count() > 1)) throw new ArgumentException("Duplicate plugin/role assignment.", nameof(assignments));
+			if (assignmentArray.GroupBy(value => (value.PluginId, value.Role, value.Kind)).Any(group => group.Count() > 1)) throw new ArgumentException("Duplicate plugin/role/kind assignment.", nameof(assignments));
 			Targets = Array.AsReadOnly(targetArray); Assignments = Array.AsReadOnly(assignmentArray);
 		}
 
 		public CabinetOutputMode ModeFor(string pluginId, string role)
+			=> ModeFor(pluginId, role, CabinetEndpointKind.DesktopRegion);
+		public CabinetOutputMode ModeFor(string pluginId, string role, CabinetEndpointKind kind)
 		{
-			foreach (var assignment in Assignments) if (assignment.PluginId == pluginId && assignment.Role == role) return assignment.Mode;
+			foreach (var assignment in Assignments) if (assignment.PluginId == pluginId && assignment.Role == role && assignment.Kind == kind) return assignment.Mode;
 			return CabinetOutputMode.Custom;
 		}
 
