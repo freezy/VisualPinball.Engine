@@ -43,19 +43,33 @@ namespace VisualPinball.Plugins.Test
 			var found = PluginGlobalSettingBinding.Discover(new[] { first, second, unsupported, game, unbounded, absent, broken }, _store, "windows", PluginGlobalSections.VolumeMixer, diagnostics.Add);
 			Assert.That(found.Select(item => item.Id), Is.EqualTo(new[] { "second/value", "first/value" }));
 			Assert.That(diagnostics.Count, Is.EqualTo(3));
-			Assert.That(PluginGlobalSettingBinding.Discover(new[] { first }, _store, "windows", "unknown"), Is.Empty);
 		}
 		[Test]
-		public void PathsAndFutureSectionsUseTheSameBindingsWithoutConstructingPlugins()
+		public void PathsAcceptFilesAndFoldersWithoutConstructingPlugins()
 		{
 			var factory = new TestFactory("library") { Schema = new PluginSettingsSchema(1, new PluginSettingsGroup("", "",
 				new PluginField("root", "Archive folder", SettingKind.Folder) { GlobalSetting = new PluginGlobalSetting(PluginGlobalSections.Paths) },
+				new PluginField("image", "Disk image", SettingKind.File) { GlobalSetting = new PluginGlobalSetting(PluginGlobalSections.Paths) },
 				new PluginField("invalid", "Wrong type", SettingKind.Boolean) { GlobalSetting = new PluginGlobalSetting(PluginGlobalSections.Paths) },
-				new PluginField("future", "Enabled", SettingKind.Boolean) { GlobalSetting = new PluginGlobalSetting("future.preferences") })) };
-			Assert.That(PluginGlobalSettingBinding.Discover(new[] { factory }, _store, "windows", PluginGlobalSections.Paths).Select(item => item.Field.Id), Is.EqualTo(new[] { "root" }));
-			Assert.That(PluginGlobalSettingBinding.Discover(new[] { factory }, _store, "windows", "future.preferences"), Is.Empty);
-			var future = new PluginGlobalSection("future.preferences", field => field.Kind == SettingKind.Boolean);
-			Assert.That(PluginGlobalSettingBinding.Discover(new[] { factory }, _store, "windows", future).Single().Field.Id, Is.EqualTo("future"));
+				new PluginField("game", "Game folder", SettingKind.Folder) { Scope = ConfigurationScope.GameOnly, GlobalSetting = new PluginGlobalSetting(PluginGlobalSections.Paths) })) };
+			var diagnostics = new List<string>();
+			Assert.That(PluginGlobalSettingBinding.Discover(new[] { factory }, _store, "windows", PluginGlobalSections.Paths, diagnostics.Add).Select(item => item.Field.Id), Is.EqualTo(new[] { "image", "root" }));
+			Assert.That(diagnostics.Count, Is.EqualTo(2));
+			Assert.That(factory.Constructions, Is.Zero);
+		}
+		[TestCase(-1)]
+		[TestCase(999)]
+		public void UnsupportedSectionsAreIgnoredWithoutHidingPluginSettings(int value)
+		{
+			var section = (PluginGlobalSections)value;
+			var future = new PluginField("future", "Future preference", SettingKind.Boolean) { GlobalSetting = new PluginGlobalSetting(section) };
+			var factory = Factory();
+			factory.Schema = new PluginSettingsSchema(1, new PluginSettingsGroup("", "", Volume(), future));
+			var diagnostics = new List<string>();
+			Assert.That(PluginGlobalSettingBinding.Discover(new[] { factory }, _store, "windows", section, diagnostics.Add), Is.Empty);
+			Assert.That(PluginGlobalSettingBinding.Discover(new[] { factory }, _store, "windows", PluginGlobalSections.VolumeMixer).Single().Field.Id, Is.EqualTo("value"));
+			Assert.That(factory.Schema.Fields, Does.Contain(future));
+			Assert.That(diagnostics, Is.Empty);
 			Assert.That(factory.Constructions, Is.Zero);
 		}
 		[Test]

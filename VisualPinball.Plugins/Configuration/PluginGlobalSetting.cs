@@ -34,7 +34,7 @@ namespace VisualPinball.Plugins
 	/// A shared page collects one kind of setting from every installed plugin, so the user can adjust them in one place instead of
 	/// visiting each plugin's settings page.
 	/// </remarks>
-	public static class PluginGlobalSections
+	public enum PluginGlobalSections
 	{
 		/// <summary>
 		/// The Player's global volume mixer, which lists the table's mechanical sounds next to every plugin's volume. Fields exposed here
@@ -42,29 +42,9 @@ namespace VisualPinball.Plugins
 		/// <see cref="PluginField.Maximum"/> (minimum below maximum); <see cref="PluginGlobalSettingBinding.Discover"/> skips any other field
 		/// with a diagnostic. PinMAME's ROM volume and PinUP's media volume appear here.
 		/// </summary>
-		public const string VolumeMixer = "audio.mixer";
+		VolumeMixer = 0,
 		/// <summary>File and folder preferences contributed to the Player's Paths page.</summary>
-		public const string Paths = "paths";
-	}
-	/// <summary>A host-supported shared section and the fields it can present. Contains no UI or saved values.</summary>
-	/// <remarks>Hosts may supply additional definitions to Discover without changing plugin storage or lifecycle. Unknown IDs are ignored by older hosts.</remarks>
-	public sealed class PluginGlobalSection
-	{
-		public string Id { get; }
-		private readonly Func<PluginField, bool> _accepts;
-		public PluginGlobalSection(string id, Func<PluginField, bool> accepts)
-		{
-			if (string.IsNullOrWhiteSpace(id)) throw new ArgumentException("A section ID is required.", nameof(id));
-			Id = id; _accepts = accepts ?? throw new ArgumentNullException(nameof(accepts));
-		}
-		public bool Accepts(PluginField field) => field.Scope != ConfigurationScope.GameOnly && _accepts(field);
-		public static PluginGlobalSection VolumeMixer { get; } = new PluginGlobalSection(PluginGlobalSections.VolumeMixer,
-			field => (field.Kind == SettingKind.Integer || field.Kind == SettingKind.Number)
-				&& field.Minimum.HasValue && field.Maximum.HasValue && double.IsFinite(field.Minimum.Value)
-				&& double.IsFinite(field.Maximum.Value) && field.Minimum < field.Maximum);
-		public static PluginGlobalSection Paths { get; } = new PluginGlobalSection(PluginGlobalSections.Paths,
-			field => field.Kind == SettingKind.File || field.Kind == SettingKind.Folder);
-		public static PluginGlobalSection? Find(string id) => id == VolumeMixer.Id ? VolumeMixer : id == Paths.Id ? Paths : null;
+		Paths = 1
 	}
 	/// <summary>
 	/// Asks the Player to also show a plugin field on a shared page, such as the global volume mixer, in addition to the plugin's own
@@ -88,8 +68,8 @@ namespace VisualPinball.Plugins
 	/// </remarks>
 	public sealed class PluginGlobalSetting
 	{
-		/// <summary>The shared page the field appears on, one of the <see cref="PluginGlobalSections"/> constants.</summary>
-		public string Section { get; }
+		/// <summary>The shared page the field appears on. Unsupported sections are ignored by the host.</summary>
+		public PluginGlobalSections Section { get; }
 		/// <summary>
 		/// Label shown on the shared page. Empty (the default) uses the plugin's <see cref="PluginDescriptor.Name"/>, which reads better
 		/// on the mixer than a generic field label such as "Volume".
@@ -103,9 +83,8 @@ namespace VisualPinball.Plugins
 		/// <summary>Optional grouping hint within the shared page. The Player owns its presentation.</summary>
 		public string Group { get; set; } = "";
 		/// <summary>Creates an exposure on the given shared page.</summary>
-		/// <param name="section">One of the <see cref="PluginGlobalSections"/> constants.</param>
-		/// <exception cref="ArgumentNullException"><paramref name="section"/> is null.</exception>
-		public PluginGlobalSetting(string section) => Section = section ?? throw new ArgumentNullException(nameof(section));
+		/// <param name="section">The shared Player page.</param>
+		public PluginGlobalSetting(PluginGlobalSections section) => Section = section;
 	}
 	/// <summary>An alias identifies a field in its owning factory, never a second copy of its value.</summary>
 	/// <remarks>
@@ -153,28 +132,23 @@ namespace VisualPinball.Plugins
 		/// <param name="platform">
 		/// The current platform ID (<c>windows</c>, <c>macos</c>, <c>linux</c>), matched against <see cref="PluginDescriptor.Platforms"/>.
 		/// </param>
-		/// <param name="section">The shared page, one of the <see cref="PluginGlobalSections"/> constants.</param>
+		/// <param name="section">The shared Player page. Unsupported values return no bindings.</param>
 		/// <param name="diagnostic">Optional receiver of messages about skipped plugins and invalid exposures.</param>
 		/// <returns>The bindings to show, possibly empty.</returns>
-		public static IReadOnlyList<PluginGlobalSettingBinding> Discover(IEnumerable<IPlayerPluginFactory> factories, PluginConfigurationStore store, string platform, string section, Action<string>? diagnostic = null)
+		public static IReadOnlyList<PluginGlobalSettingBinding> Discover(IEnumerable<IPlayerPluginFactory> factories, PluginConfigurationStore store, string platform, PluginGlobalSections section, Action<string>? diagnostic = null)
 		{
-			var definition = PluginGlobalSection.Find(section);
-			return definition == null ? Array.Empty<PluginGlobalSettingBinding>() : Discover(factories, store, platform, definition, diagnostic);
-		}
-		/// <summary>Discovers bindings for a section definition supplied by the host, including future sections.</summary>
-		public static IReadOnlyList<PluginGlobalSettingBinding> Discover(IEnumerable<IPlayerPluginFactory> factories, PluginConfigurationStore store, string platform, PluginGlobalSection section, Action<string>? diagnostic = null)
-		{
+			if (section != PluginGlobalSections.VolumeMixer && section != PluginGlobalSections.Paths) return Array.Empty<PluginGlobalSettingBinding>();
 			var bindings = new List<PluginGlobalSettingBinding>();
 			foreach (var factory in factories) {
 				if (factory.Descriptor.Platforms.Count > 0 && !factory.Descriptor.Platforms.Contains(platform)) continue;
-				var fields = factory.Schema.Fields.Where(field => field.GlobalSetting?.Section == section.Id).ToArray();
+				var fields = factory.Schema.Fields.Where(field => field.GlobalSetting?.Section == section).ToArray();
 				if (fields.Length == 0) continue;
 				PluginSettingsSnapshot effective;
 				try { effective = store.Effective(factory.Descriptor, factory.Schema); }
 				catch (Exception error) { diagnostic?.Invoke(factory.Descriptor.Name + ": " + error.Message); continue; }
 				foreach (var field in fields) {
 					if (!field.Visible(effective)) continue;
-					if (!section.Accepts(field)) {
+					if (!Accepts(section, field)) {
 						diagnostic?.Invoke("Invalid global setting exposure: " + factory.Descriptor.Id + "/" + field.Id); continue;
 					}
 					bindings.Add(new PluginGlobalSettingBinding(factory, field));
@@ -182,5 +156,12 @@ namespace VisualPinball.Plugins
 			}
 			return bindings.OrderBy(binding => binding.Field.GlobalSetting!.Order).ThenBy(binding => binding.Id, StringComparer.Ordinal).ToArray();
 		}
+		private static bool Accepts(PluginGlobalSections section, PluginField field) => field.Scope != ConfigurationScope.GameOnly && section switch {
+			PluginGlobalSections.VolumeMixer => (field.Kind == SettingKind.Integer || field.Kind == SettingKind.Number)
+				&& field.Minimum.HasValue && field.Maximum.HasValue && double.IsFinite(field.Minimum.Value)
+				&& double.IsFinite(field.Maximum.Value) && field.Minimum < field.Maximum,
+			PluginGlobalSections.Paths => field.Kind == SettingKind.File || field.Kind == SettingKind.Folder,
+			_ => false
+		};
 	}
 }
