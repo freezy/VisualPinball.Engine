@@ -41,6 +41,9 @@ namespace VisualPinball.Unity.Test
 				source.SetVector("_OpticalLamp", new Vector4(0.01f, -0.02f, 0.03f, 0.009f));
 				source.SetVector("_OpticalStarburst", new Vector4(1f, 2f, 3f, 4f));
 				source.SetFloat("_InsertLampLevel", 0.7f);
+				source.SetFloat("_INSERT_TRACED", 1f);
+				source.SetFloat("_TracedGlow", 0.5f);
+				source.SetVector("_TracedFrame", new Vector4(0.001f, 0.002f, 90f, 0.034f));
 				source.SetTexture("_NormalMap", sourceMap);
 				sourceCover.SetColor("_HazeColor", new Color(0.8f, 0.8f, 0.8f));
 				sourceCover.SetFloat("_CoverOpacity", 0.365f);
@@ -57,6 +60,7 @@ namespace VisualPinball.Unity.Test
 				Assert.That(preset.Body, Has.None.Matches<InsertMaterialPreset.Entry>(e => e.Name == "_NormalMap"), "new presets exclude texture maps");
 				Assert.That(preset.Body, Has.None.Matches<InsertMaterialPreset.Entry>(e => e.Name is "_OpticalLamp" or "_OpticalLampB" or "_OpticalLampC" or "_OpticalLampD"), "the virtual lamps are the insert's own");
 				Assert.That(preset.Body, Has.None.Matches<InsertMaterialPreset.Entry>(e => e.Name == "_OpticalStarburst" || e.Name == "_InsertLampLevel"), "hidden bake and runtime values stay out");
+				Assert.That(preset.Body, Has.None.Matches<InsertMaterialPreset.Entry>(e => e.Name == "_INSERT_TRACED" || e.Name.StartsWith("_Traced")), "the Traced mode and its bake's values are the insert's own");
 				Assert.That(preset.Cover, Is.Empty, "new presets exclude the cover material");
 				Assert.That(preset.CoverShader, Is.Empty);
 
@@ -75,6 +79,7 @@ namespace VisualPinball.Unity.Test
 				target.SetColor("_EmissiveColor", Color.magenta);
 				target.SetVector("_OpticalLamp", new Vector4(0f, -0.015f, 0f, 0.007f));
 				target.SetVector("_OpticalStarburst", new Vector4(9f, 9f, 9f, 9f));
+				target.SetVector("_TracedFrame", new Vector4(0f, 0f, 0f, 0.05f));
 				target.SetTexture("_NormalMap", targetMap);
 				target.SetTextureScale("_NormalMap", new Vector2(2f, 3f));
 				targetCover.SetColor("_HazeColor", Color.red);
@@ -91,6 +96,7 @@ namespace VisualPinball.Unity.Test
 				Assert.That(target.GetColor("_EmissiveColor"), Is.EqualTo(Color.magenta));
 				Assert.That(target.GetVector("_OpticalLamp"), Is.EqualTo(new Vector4(0f, -0.015f, 0f, 0.007f)), "the target keeps its own lamp");
 				Assert.That(target.GetVector("_OpticalStarburst"), Is.EqualTo(new Vector4(9f, 9f, 9f, 9f)), "and its own bake");
+				Assert.That(target.GetVector("_TracedFrame"), Is.EqualTo(new Vector4(0f, 0f, 0f, 0.05f)), "and its own traced bake");
 				Assert.That(target.GetTexture("_NormalMap"), Is.SameAs(targetMap), "and its own maps");
 				Assert.That(target.GetTextureScale("_NormalMap"), Is.EqualTo(new Vector2(2f, 3f)));
 				Assert.That(targetCover.GetColor("_HazeColor"), Is.EqualTo(Color.red));
