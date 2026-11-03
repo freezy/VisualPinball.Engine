@@ -250,7 +250,7 @@ namespace VisualPinball.Unity
 			data.DragPoints = DragPoints;
 
 			// visibility
-			data.IsVisible = GetEnabled<Renderer>();
+			data.IsVisible = GetRendererVisible();
 
 			// collision
 			var collComponent = GetComponentInChildren<RubberColliderComponent>();
