@@ -20,7 +20,7 @@ namespace VisualPinball.Unity
 	/// <remarks>
 	/// <para>
 	/// Every cabinet screen follows the <see cref="ResourceKind.Surface"/> published for its role. When several plugins
-	/// publish the same role, the one listed first in the provider order wins; providers not listed come after, by ID.
+	/// publish the same role, the one listed first in that role's provider order wins; providers not listed come after, by ID.
 	/// The surface's texture is written into the screen's material with a property block, and the screen's hide root is
 	/// activated. Without a surface, or before its texture exists, the material's own texture is put back and the hide
 	/// root is deactivated, so screens without a provider are hidden from the start when the binder is created before the
@@ -76,7 +76,7 @@ namespace VisualPinball.Unity
 		private readonly PluginResourceRegistry _registry;
 		private readonly string _controller;
 		private readonly long _session;
-		private readonly IReadOnlyList<string> _providers;
+		private readonly Func<string, IReadOnlyList<string>> _providers;
 		private readonly MaterialPropertyBlock _properties = new MaterialPropertyBlock();
 		private readonly IDisposable _observation;
 		private bool _engineDmd;
@@ -93,12 +93,26 @@ namespace VisualPinball.Unity
 		/// <param name="session">The game session; only surfaces of this session are shown.</param>
 		/// <param name="providers">Plugin IDs in order of preference, for roles several plugins provide.</param>
 		public CabinetScreenBinder(GameObject table, IGamelogicEngine engine, PluginResourceRegistry registry, string controller, long session, IReadOnlyList<string> providers)
+			: this(table, engine, registry, controller, session, Fixed(providers))
+		{
+		}
+
+		/// <summary>
+		/// Starts showing surfaces on the cabinet screens of <paramref name="table"/>, including inactive ones.
+		/// </summary>
+		/// <param name="table">The table's root object.</param>
+		/// <param name="engine">The table's gamelogic engine, or null if it has none.</param>
+		/// <param name="registry">The registry plugins publish their surfaces to.</param>
+		/// <param name="controller">The game's controller ID; only surfaces of this controller are shown.</param>
+		/// <param name="session">The game session; only surfaces of this session are shown.</param>
+		/// <param name="providers">For each role, plugin IDs in order of preference, for roles several plugins provide.</param>
+		public CabinetScreenBinder(GameObject table, IGamelogicEngine engine, PluginResourceRegistry registry, string controller, long session, Func<string, IReadOnlyList<string>> providers)
 		{
 			_engine = engine;
 			_registry = registry;
 			_controller = controller ?? string.Empty;
 			_session = session;
-			_providers = providers?.ToArray() ?? Array.Empty<string>();
+			_providers = providers ?? Fixed(null);
 
 			foreach (var component in table.GetComponentsInChildren<CabinetScreenComponent>(true)) {
 				var renderer = component.TargetRenderer;
@@ -235,6 +249,12 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		private static Func<string, IReadOnlyList<string>> Fixed(IReadOnlyList<string> providers)
+		{
+			var order = providers?.ToArray() ?? Array.Empty<string>();
+			return _ => order;
+		}
+
 		/// <summary>
 		/// The ID of the surface a role shows: the one of the most preferred provider, or null for none.
 		/// </summary>
@@ -246,7 +266,7 @@ namespace VisualPinball.Unity
 			var candidates = _registry.Snapshot(new PluginResourceSelection(ResourceKind.Surface) {
 				Role = role, Controller = _controller, Session = _session,
 			});
-			return CabinetSurfaceSelector.Choose(candidates, _providers, descriptor =>
+			return CabinetSurfaceSelector.Choose(candidates, _providers(role) ?? Array.Empty<string>(), descriptor =>
 				_registry.TryGetSource<IUnityTextureResource>(descriptor, out var source) && CabinetSurfaceSelector.Eligible(source, CabinetSurfaceConsumers.Scene))?.Id;
 		}
 
