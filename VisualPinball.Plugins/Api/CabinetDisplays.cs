@@ -26,8 +26,6 @@ namespace VisualPinball.Plugins
 		GameDisplay = 3,
 		Topper = 4,
 		ScorePanel = 5,
-		/// <summary>A cabinet video panel for DMD surrounds and media, distinct from the game LCD.</summary>
-		FullDmd = 6,
 	}
 
 	/// <summary>Conversion at the generic resource/persistence boundary. The cabinet API itself uses the enum.</summary>
@@ -38,7 +36,6 @@ namespace VisualPinball.Plugins
 			CabinetOutputRole.Backglass => SurfaceRoles.Backglass,
 			CabinetOutputRole.Dmd => SurfaceRoles.Dmd,
 			CabinetOutputRole.GameDisplay => SurfaceRoles.GameDisplay,
-			CabinetOutputRole.FullDmd => SurfaceRoles.FullDmd,
 			CabinetOutputRole.Topper => SurfaceRoles.Topper,
 			CabinetOutputRole.ScorePanel => SurfaceRoles.ScorePanel,
 			_ => throw new ArgumentOutOfRangeException(nameof(role)),
@@ -49,7 +46,6 @@ namespace VisualPinball.Plugins
 				case SurfaceRoles.Backglass: role = CabinetOutputRole.Backglass; return true;
 				case SurfaceRoles.Dmd: role = CabinetOutputRole.Dmd; return true;
 				case SurfaceRoles.GameDisplay: role = CabinetOutputRole.GameDisplay; return true;
-				case SurfaceRoles.FullDmd: role = CabinetOutputRole.FullDmd; return true;
 				case SurfaceRoles.Topper: role = CabinetOutputRole.Topper; return true;
 				case SurfaceRoles.ScorePanel: role = CabinetOutputRole.ScorePanel; return true;
 				default: role = default; return false;
@@ -61,47 +57,31 @@ namespace VisualPinball.Plugins
 
 	/// <summary>Who places one plugin's physical output. Does not control its in-scene output.</summary>
 	public enum CabinetOutputMode { Custom = 0, Player = 1, Off = 2 }
-	/// <summary>Physical destination; device drivers remain responsible for device protocols.</summary>
-	public enum CabinetEndpointKind { DesktopRegion = 0, Device = 1 }
 	/// <summary>Availability of a configured destination, independent of its content source.</summary>
 	public enum CabinetEndpointState { Unassigned = 0, Available = 1, Disabled = 2, Unavailable = 3 }
 
-	/// <summary>Immutable resolved destination. Desktop coordinates are physical pixels, including negative origins.</summary>
+	/// <summary>Immutable resolved destination: a region of the desktop, in physical pixels, including negative origins.</summary>
+	/// <remarks>Physical DMD panels are not player destinations. Their plug-ins open them from their own settings.</remarks>
 	public sealed class CabinetDisplayTarget
 	{
 		public string EndpointId { get; }
 		public CabinetOutputRole Role { get; }
-		public CabinetEndpointKind Kind { get; }
 		public CabinetEndpointState State { get; }
 		public string Reason { get; }
 		public int X { get; }
 		public int Y { get; }
 		public int Width { get; }
 		public int Height { get; }
-		/// <summary>Canonical provider-resolved lease key, never a guessed USB identifier.</summary>
-		public string DeviceLeaseKey { get; }
-		/// <summary>Adapter profile; null on targets made with the legacy public constructor.</summary>
-		public CabinetDeviceProfile? DeviceProfile { get; }
 
-		public CabinetDisplayTarget(string endpointId, CabinetOutputRole role, CabinetEndpointKind kind, CabinetEndpointState state,
-			int x = 0, int y = 0, int width = 0, int height = 0, string reason = "", string deviceLeaseKey = "")
+		public CabinetDisplayTarget(string endpointId, CabinetOutputRole role, CabinetEndpointState state,
+			int x = 0, int y = 0, int width = 0, int height = 0, string reason = "")
 		{
 			if (string.IsNullOrWhiteSpace(endpointId)) throw new ArgumentException("An endpoint needs an ID.", nameof(endpointId));
 			if (!CabinetOutputRoles.IsDefined(role)) throw new ArgumentException("An output needs a role.", nameof(role));
-			if (!Enum.IsDefined(typeof(CabinetEndpointKind), kind)) throw new ArgumentOutOfRangeException(nameof(kind));
 			if (!Enum.IsDefined(typeof(CabinetEndpointState), state)) throw new ArgumentOutOfRangeException(nameof(state));
-			if (state == CabinetEndpointState.Available && kind == CabinetEndpointKind.DesktopRegion && (width < 1 || height < 1)) throw new ArgumentOutOfRangeException(nameof(width));
-			if (state == CabinetEndpointState.Available && kind == CabinetEndpointKind.Device && string.IsNullOrWhiteSpace(deviceLeaseKey)) throw new ArgumentException("An available device needs a canonical lease key.", nameof(deviceLeaseKey));
-			EndpointId = endpointId; Role = role; Kind = kind; State = state;
-			X = x; Y = y; Width = width; Height = height; Reason = reason ?? ""; DeviceLeaseKey = deviceLeaseKey ?? "";
-		}
-		private CabinetDisplayTarget(string endpointId, CabinetOutputRole role, CabinetEndpointState state, CabinetDeviceProfile? profile, string reason)
-			: this(endpointId, role, CabinetEndpointKind.Device, state, reason: reason, deviceLeaseKey: profile?.LeaseKey ?? "") { DeviceProfile = profile; }
-		public static CabinetDisplayTarget Device(string endpointId, CabinetOutputRole role, CabinetEndpointState state, CabinetDeviceProfile? profile, string reason = "")
-		{
-			if (profile != null && profile.Role != role) throw new ArgumentException("The profile role must match the target.", nameof(profile));
-			if (state == CabinetEndpointState.Available && (profile == null || !profile.Available)) throw new ArgumentException("An available device needs an available profile.", nameof(profile));
-			return new CabinetDisplayTarget(endpointId, role, state, profile, reason);
+			if (state == CabinetEndpointState.Available && (width < 1 || height < 1)) throw new ArgumentOutOfRangeException(nameof(width));
+			EndpointId = endpointId; Role = role; State = state;
+			X = x; Y = y; Width = width; Height = height; Reason = reason ?? "";
 		}
 	}
 
@@ -111,15 +91,11 @@ namespace VisualPinball.Plugins
 		public string PluginId { get; }
 		public CabinetOutputRole Role { get; }
 		public CabinetOutputMode Mode { get; }
-		public CabinetEndpointKind Kind { get; }
 		public CabinetOutputAssignment(string pluginId, CabinetOutputRole role, CabinetOutputMode mode)
-			: this(pluginId, role, mode, CabinetEndpointKind.DesktopRegion) { }
-		public CabinetOutputAssignment(string pluginId, CabinetOutputRole role, CabinetOutputMode mode, CabinetEndpointKind kind)
 		{
 			if (string.IsNullOrWhiteSpace(pluginId) || !CabinetOutputRoles.IsDefined(role)) throw new ArgumentException("An assignment needs a plugin and role.");
 			if (!Enum.IsDefined(typeof(CabinetOutputMode), mode)) throw new ArgumentOutOfRangeException(nameof(mode));
-			if (!Enum.IsDefined(typeof(CabinetEndpointKind), kind)) throw new ArgumentOutOfRangeException(nameof(kind));
-			PluginId = pluginId; Role = role; Mode = mode; Kind = kind;
+			PluginId = pluginId; Role = role; Mode = mode;
 		}
 	}
 
@@ -142,19 +118,17 @@ namespace VisualPinball.Plugins
 			var assignmentArray = (assignments ?? throw new ArgumentNullException(nameof(assignments))).ToArray();
 			if (targetArray.Any(value => value == null) || assignmentArray.Any(value => value == null)) throw new ArgumentException("Snapshot entries cannot be null.");
 			if (targetArray.GroupBy(value => (value.EndpointId, value.Role)).Any(group => group.Count() > 1)) throw new ArgumentException("Duplicate endpoint/role target.", nameof(targets));
-			if (assignmentArray.GroupBy(value => (value.PluginId, value.Role, value.Kind)).Any(group => group.Count() > 1)) throw new ArgumentException("Duplicate plugin/role/kind assignment.", nameof(assignments));
+			if (assignmentArray.GroupBy(value => (value.PluginId, value.Role)).Any(group => group.Count() > 1)) throw new ArgumentException("Duplicate plugin/role assignment.", nameof(assignments));
 			Targets = Array.AsReadOnly(targetArray); Assignments = Array.AsReadOnly(assignmentArray);
 		}
 
 		public CabinetOutputMode ModeFor(string pluginId, CabinetOutputRole role)
-			=> ModeFor(pluginId, role, CabinetEndpointKind.DesktopRegion);
-		public CabinetOutputMode ModeFor(string pluginId, CabinetOutputRole role, CabinetEndpointKind kind)
 		{
-			foreach (var assignment in Assignments) if (assignment.PluginId == pluginId && assignment.Role == role && assignment.Kind == kind) return assignment.Mode;
+			foreach (var assignment in Assignments) if (assignment.PluginId == pluginId && assignment.Role == role) return assignment.Mode;
 			return CabinetOutputMode.Custom;
 		}
 
-		/// <summary>All destinations for this role, including unavailable ones; a monitor and device may mirror it.</summary>
+		/// <summary>All destinations for this role, including unavailable ones.</summary>
 		public IReadOnlyList<CabinetDisplayTarget> TargetsFor(CabinetOutputRole role)
 			=> Array.AsReadOnly(Targets.Where(target => target.Role == role).ToArray());
 	}
