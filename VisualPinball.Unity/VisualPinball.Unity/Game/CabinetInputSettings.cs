@@ -139,6 +139,7 @@ namespace VisualPinball.Unity
 		public float visualStrength = 1f;
 		public CabinetPlumbSettings plumb = new();
 		public List<CabinetNudgeSensorSettings> sensors = new();
+		public string preferredDeviceId;
 
 		/// <summary>
 		/// Clamps values and guarantees nested objects/lists are non-null.
@@ -160,6 +161,9 @@ namespace VisualPinball.Unity
 			for (var i = 0; i < sensors.Count; i++) {
 				sensors[i] ??= new CabinetNudgeSensorSettings();
 				sensors[i].Normalize();
+			}
+			if (!string.IsNullOrEmpty(preferredDeviceId) && !sensors.Exists(sensor => sensor.SingleDeviceId() == preferredDeviceId)) {
+				preferredDeviceId = null;
 			}
 		}
 
@@ -185,7 +189,7 @@ namespace VisualPinball.Unity
 			Normalize();
 			var sensorConfigs = new List<NudgeSensorConfig>(sensors.Count);
 			foreach (var sensor in sensors) {
-				sensorConfigs.Add(sensor.ToEngineConfig());
+				if (UsesSensor(sensor)) sensorConfigs.Add(sensor.ToEngineConfig());
 			}
 			return sensorConfigs;
 		}
@@ -199,10 +203,13 @@ namespace VisualPinball.Unity
 			Normalize();
 			var sensorConfigs = new List<SimulationThreadNudgeSensorConfig>(sensors.Count);
 			foreach (var sensor in sensors) {
-				sensorConfigs.Add(sensor.ToSimulationThreadConfig());
+				if (UsesSensor(sensor)) sensorConfigs.Add(sensor.ToSimulationThreadConfig());
 			}
 			return sensorConfigs;
 		}
+
+		private bool UsesSensor(CabinetNudgeSensorSettings sensor) =>
+			string.IsNullOrEmpty(preferredDeviceId) || sensor.SingleDeviceId() == preferredDeviceId;
 
 		/// <summary>
 		/// Captures the nudge fields currently stored on a physics engine.
@@ -291,6 +298,22 @@ namespace VisualPinball.Unity
 		public string velY = string.Empty;
 		public int mountRotation;
 		public bool mountMirror;
+
+		/// <summary>Returns the device ID when all mapped channels belong to one device.</summary>
+		public string SingleDeviceId()
+		{
+			string deviceId = null;
+			bool SameDevice(string value)
+			{
+				if (!SensorMapping.TryParse(value, out var mapping) || !mapping.IsMapped) return true;
+				deviceId ??= mapping.DeviceId;
+				return mapping.DeviceId == deviceId;
+			}
+			var singleDevice = type == TypeGamepad
+				? SameDevice(x) && SameDevice(y)
+				: SameDevice(accX) && SameDevice(accY) && SameDevice(velX) && SameDevice(velY);
+			return singleDevice ? deviceId : null;
+		}
 
 		/// <summary>
 		/// Clamps values, normalizes type names, and guarantees mapping strings are

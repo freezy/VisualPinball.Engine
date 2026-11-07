@@ -59,8 +59,9 @@ namespace VisualPinball.Unity.Simulation
 		// StartPolling sends these to the native layer instead of the built-in defaults. Static so it
 		// survives the per-table singleton churn (Dispose nulls _instance).
 		private static volatile List<NativeInputApi.InputBinding> _configuredBindings;
-		private static volatile NativeInputApi.InputButtonBinding[] _configuredButtonBindings = Array.Empty<NativeInputApi.InputButtonBinding>();
+		private static volatile NativeInputApi.InputControlBinding[] _configuredControlBindings = Array.Empty<NativeInputApi.InputControlBinding>();
 		private bool _hasNativeButtons;
+		private bool _hasNativeControlBindings;
 
 		// Set from the main thread (Application.isFocused). When the app window isn't focused, native input
 		// is dropped so background key presses (e.g. typing in another app) don't reach the game.
@@ -175,6 +176,12 @@ namespace VisualPinball.Unity.Simulation
 			} catch (EntryPointNotFoundException) {
 				_hasNativeButtons = false;
 			}
+			try {
+				NativeInputApi.VpeInputReadControlCapture(null, 0);
+				_hasNativeControlBindings = true;
+			} catch (EntryPointNotFoundException) {
+				_hasNativeControlBindings = false;
+			}
 			Logger.Info($"{LogPrefix} [NativeInputManager] Initialized");
 
 			// Setup default bindings
@@ -227,17 +234,59 @@ namespace VisualPinball.Unity.Simulation
 		/// <summary>Applies controller bindings to current and future polling sessions.</summary>
 		public static void ConfigureButtonBindings(IReadOnlyList<NativeInputApi.InputButtonBinding> bindings)
 		{
-			_configuredButtonBindings = bindings?.ToArray() ?? Array.Empty<NativeInputApi.InputButtonBinding>();
-			TryGetExistingInstance()?.SendButtonBindings();
+			var controls = new List<NativeInputApi.InputControlBinding>();
+			for (var i = 0; i < (bindings?.Count ?? 0); i++) {
+				var binding = bindings[i];
+				if (NativeInputApi.InputControlBinding.TryCreate((NativeInputApi.InputAction)binding.Action, i,
+						NativeInputApi.InputControlKind.Button, binding.ButtonId, 0f, binding.DeviceId, out var control)) {
+					controls.Add(control);
+				}
+			}
+			ConfigureControlBindings(controls);
+		}
+
+		public static void ConfigureControlBindings(IReadOnlyList<NativeInputApi.InputControlBinding> controls)
+		{
+			_configuredControlBindings = controls?.ToArray() ?? Array.Empty<NativeInputApi.InputControlBinding>();
+			TryGetExistingInstance()?.SendControlBindings();
 		}
 
 		public bool SupportsControllerButtons => _hasNativeButtons;
+		public bool SupportsControlBindings => _hasNativeControlBindings;
 
-		private void SendButtonBindings()
+		private void SendControlBindings()
 		{
 			if (!_initialized || !_hasNativeButtons) return;
-			var bindings = _configuredButtonBindings;
-			NativeInputApi.VpeInputSetButtonBindings(bindings, bindings.Length);
+			var controls = _configuredControlBindings;
+			if (_hasNativeControlBindings) {
+				NativeInputApi.VpeInputSetControlBindings(controls, controls.Length);
+				return;
+			}
+			// Older plugins can still handle standalone digital bindings.
+			var buttons = new List<NativeInputApi.InputButtonBinding>();
+			foreach (var group in controls.GroupBy(control => (control.Action, control.Group))) {
+				if (group.Count() != 1) continue;
+				var control = group.First();
+				if (control.Kind == NativeInputApi.InputControlKind.Button
+					&& NativeInputApi.InputButtonBinding.TryCreate((NativeInputApi.InputAction)control.Action,
+						control.ControlId, control.DeviceId, out var button)) buttons.Add(button);
+			}
+			NativeInputApi.VpeInputSetButtonBindings(buttons.ToArray(), buttons.Count);
+		}
+
+		public bool StartControlCapture(bool combo)
+		{
+			if (!_polling || !_hasNativeControlBindings) return false;
+			NativeInputApi.VpeInputStartControlCapture(combo ? 2 : 1);
+			return true;
+		}
+
+		public int ReadControlCapture(NativeInputApi.InputControlBinding[] controls) =>
+			_polling && _hasNativeControlBindings ? NativeInputApi.VpeInputReadControlCapture(controls, controls.Length) : 0;
+
+		public void CancelControlCapture()
+		{
+			if (_hasNativeControlBindings) NativeInputApi.VpeInputStartControlCapture(0);
 		}
 
 		/// <summary>
@@ -406,7 +455,7 @@ namespace VisualPinball.Unity.Simulation
 			var configured = _configuredBindings;
 			var toSend = configured != null && configured.Count > 0 ? configured.ToArray() : _bindings.ToArray();
 			NativeInputApi.VpeInputSetBindings(toSend, toSend.Length);
-			SendButtonBindings();
+			SendControlBindings();
 			Logger.Debug("{Prefix:l} [NativeInputManager] Sent {Count} bindings ({Kind:l})", LogPrefix, toSend.Length, configured != null && configured.Count > 0 ? "custom" : "default");
 
 			// Create callback delegate (keep reference to prevent GC)
@@ -623,6 +672,7 @@ namespace VisualPinball.Unity.Simulation
 				_initialized = false;
 				_hasNativeGameplayGate = false;
 				_hasNativeButtons = false;
+				_hasNativeControlBindings = false;
 			}
 
 			_instance = null;
