@@ -202,6 +202,7 @@ Built with Unity 6.5
 - Balls created by a kicker spawn at its height and are captured, instead of being launched from playfield level ([#579](https://github.com/freezy/VisualPinball.Engine/pull/579)).
 - After a stall the simulation thread caught up every missed tick, so balls raced as if the playfield were steeper; catch-up is capped at 100 ms and resuming from pause doesn't replay the pause ([#577](https://github.com/freezy/VisualPinball.Engine/pull/577)).
 - Balls no longer sink into the floor under covers embedded in them from above.
+- Slowly touching free balls exchange momentum, and ball stacks keep their support. Slow wall touches, reversed walls and triggers, and embedded playfield contacts are handled consistently with Visual Pinball's recent physics fixes.
 - Collider bounds: the flipper's backside, kicker and trigger sphere caps, plunger height and degenerate mesh triangles ([#577](https://github.com/freezy/VisualPinball.Engine/pull/577)).
 - Spinner collision speed and direction.
 - Transformed colliders: Line3D hit normals, point collider bounds, LineZ endpoints, scale from the basis, and the ball radius in scaled collider space ([#562](https://github.com/freezy/VisualPinball.Engine/pull/562)).

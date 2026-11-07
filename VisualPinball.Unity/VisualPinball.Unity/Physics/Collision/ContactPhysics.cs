@@ -111,10 +111,6 @@ namespace VisualPinball.Unity
 					collEvent.Transform(matrix);
 				}
 
-			} else if (collEvent.BallId != 0) { // collide with ball
-				ref var otherBall = ref state.Balls.GetValueByRef(collEvent.BallId);
-				BallCollider.HandleBallContact(ref ball, in otherBall, in collEvent, hitTime, state.Env.Gravity,
-					in frictionAcceleration);
 			}
 		}
 	}

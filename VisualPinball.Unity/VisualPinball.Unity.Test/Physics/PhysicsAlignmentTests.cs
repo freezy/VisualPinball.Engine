@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using NativeTrees;
 using NUnit.Framework;
 using Unity.Collections;
 using Unity.Mathematics;
@@ -322,17 +323,89 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void TwoFreeBallsInSlowContactDoNotCancelTheirApproachTwice()
 		{
-			var gravity = new float3(0f, 0f, -PhysicsConstants.GravityConst); // flat: none along the contact normal
 			var a = new BallState { Id = 1, Mass = 1f, Radius = 25f, Velocity = new float3(0.025f, 0f, 0f) };
 			var b = new BallState { Id = 2, Mass = 1f, Radius = 25f, Velocity = new float3(-0.025f, 0f, 0f) };
 			var aAgainstB = new CollisionEventData { HitNormal = new float3(-1f, 0f, 0f) }; // from b towards a
-			var bAgainstA = new CollisionEventData { HitNormal = new float3(1f, 0f, 0f) };
 
-			HandleBallContact(ref a, in b, in aAgainstB, in gravity);
-			HandleBallContact(ref b, in a, in bAgainstA, in gravity);
+			BallCollider.HandleFreeBallContact(ref a, ref b, in aAgainstB);
 
 			Assert.That(a.Velocity.x - b.Velocity.x, Is.EqualTo(0f).Within(Tolerance), "no separation");
 			Assert.That(a.Velocity.x + b.Velocity.x, Is.EqualTo(0f).Within(Tolerance), "momentum conserved");
+		}
+
+		[TestCase(1f, false)]
+		[TestCase(3f, false)]
+		[TestCase(3f, true)]
+		public void SlowlyApproachingFreeBallsConserveMomentumThroughThePhysicsCycle(float otherMass, bool vertical)
+		{
+			using var harness = new PhysicsStateHarness();
+			var direction = vertical ? new float3(0f, 0f, -1f) : new float3(1f, 0f, 0f);
+			var a = new BallState { Id = 1, Mass = 1f, Radius = 25f, Position = new float3(0f, 0f, 75f), Velocity = 1.05f * direction };
+			var b = new BallState { Id = 2, Mass = otherMass, Radius = 25f, Position = a.Position + 50f * direction, Velocity = direction };
+			harness.Balls.Add(a.Id, a);
+			harness.Balls.Add(b.Id, b);
+			var state = harness.CreateState();
+			var playfield = new GameObject("playfield");
+			try {
+				state.Env = new PhysicsEnv(0, playfield.AddComponent<PlayfieldComponent>(), 1f);
+				SimulateBallContacts(ref state);
+
+				var expectedVelocity = (a.Mass * a.Velocity + b.Mass * b.Velocity) / (a.Mass + b.Mass);
+				AssertFloat3(harness.Balls[a.Id].Velocity, expectedVelocity, "trailing ball");
+				AssertFloat3(harness.Balls[b.Id].Velocity, expectedVelocity, "leading ball");
+			} finally {
+				Object.DestroyImmediate(playfield);
+			}
+		}
+
+		[Test]
+		public void FreeBallContactFrictionTransfersMomentumBetweenTheBalls()
+		{
+			var a = new BallState { Id = 1, Mass = 1f, Radius = 25f, Velocity = new float3(0.05f, 1f, 0f) };
+			var b = new BallState { Id = 2, Mass = 2f, Radius = 25f };
+			var contact = new CollisionEventData { HitNormal = new float3(-1f, 0f, 0f) };
+
+			BallCollider.HandleFreeBallContact(ref a, ref b, in contact);
+
+			Assert.That(b.Velocity.y, Is.GreaterThan(0f), "friction pulls the other ball along");
+			AssertFloat3(a.Mass * a.Velocity + b.Mass * b.Velocity, new float3(0.05f, 1f, 0f));
+		}
+
+		[TestCase(0.5f)] // the playfield reports a contact
+		[TestCase(PhysicsConstants.GravityConst)] // the playfield reports a low-speed impact
+		public void StackedBallsKeepTheirSupportThroughThePhysicsCycle(float gravityStrength)
+		{
+			using var harness = new PhysicsStateHarness();
+			var transforms = new NativeParallelHashMap<int, float4x4>(1, Allocator.Temp);
+			var colliders = new ColliderReference(ref transforms, Allocator.Temp);
+			var playfield = new GameObject("playfield");
+			try {
+				var component = playfield.AddComponent<PlayfieldComponent>();
+				component.AngleTiltMin = component.AngleTiltMax = 0f;
+				var env = new PhysicsEnv(0, component, gravityStrength);
+				var floor = new PlaneCollider(new float3(0f, 0f, 1f), 0f, new ColliderInfo { ItemId = 1 });
+				colliders.Add(floor);
+				harness.SetStaticColliders(ref colliders);
+				for (var i = 0; i < 3; i++) {
+					var ball = new BallState {
+						Id = i + 1, Mass = 1f, Radius = 25f, Position = new float3(0f, 0f, 25f + i * 50f),
+						Velocity = env.Gravity * PhysicsConstants.PhysFactor,
+					};
+					harness.Balls.Add(ball.Id, ball);
+				}
+				var state = harness.CreateState();
+				state.Env = env;
+				SimulateBallContacts(ref state, hasFloor: true);
+
+				Assert.That(harness.Balls[1].Position.z, Is.GreaterThanOrEqualTo(25f - PhysicsConstants.PhysTouch));
+				for (var i = 2; i <= 3; i++) {
+					Assert.That(harness.Balls[i].Velocity.z, Is.EqualTo(0f).Within(Tolerance), $"ball {i}");
+				}
+			} finally {
+				Object.DestroyImmediate(playfield);
+				colliders.Dispose();
+				transforms.Dispose();
+			}
 		}
 
 		[Test]
@@ -351,7 +424,6 @@ namespace VisualPinball.Unity.Test
 		[Test]
 		public void TwoBallsRollingSideBySideAreNotBrakedByTheirContact()
 		{
-			var gravity = new float3(0f, 0f, -PhysicsConstants.GravityConst);
 			const float speed = 10f;
 			var a = new BallState { Id = 1, Mass = 1f, Radius = 25f, Velocity = new float3(0.025f, speed, 0f) };
 			var b = new BallState { Id = 2, Mass = 1f, Radius = 25f, Velocity = new float3(-0.025f, speed, 0f) };
@@ -359,10 +431,8 @@ namespace VisualPinball.Unity.Test
 			a.AngularMomentum = new float3(-speed / a.Radius * a.Inertia, 0f, 0f);
 			b.AngularMomentum = a.AngularMomentum;
 			var aAgainstB = new CollisionEventData { HitNormal = new float3(-1f, 0f, 0f) };
-			var bAgainstA = new CollisionEventData { HitNormal = new float3(1f, 0f, 0f) };
 
-			HandleBallContact(ref a, in b, in aAgainstB, in gravity);
-			HandleBallContact(ref b, in a, in bAgainstA, in gravity);
+			BallCollider.HandleFreeBallContact(ref a, ref b, in aAgainstB);
 
 			Assert.That(a.Velocity.y, Is.EqualTo(speed).Within(1e-5f), "a static ball would see a slip of 10 and brake");
 			Assert.That(b.Velocity.y, Is.EqualTo(speed).Within(1e-5f));
@@ -374,14 +444,14 @@ namespace VisualPinball.Unity.Test
 		{
 			// a ball hit into a resting pair earlier in the cycle: the contact cancels a contact-scale
 			// approach only, the rest reaches the other ball through their collision (Newton's cradle)
-			var gravity = new float3(0f, 0f, -PhysicsConstants.GravityConst);
 			var a = new BallState { Id = 1, Mass = 1f, Radius = 25f, Velocity = new float3(2f, 0f, 0f) };
 			var b = new BallState { Id = 2, Mass = 1f, Radius = 25f };
 			var contact = new CollisionEventData { HitNormal = new float3(-1f, 0f, 0f) };
 
-			HandleBallContact(ref a, in b, in contact, in gravity);
+			BallCollider.HandleFreeBallContact(ref a, ref b, in contact);
 
-			Assert.That(a.Velocity.x, Is.EqualTo(2f - PhysicsConstants.ContactVel).Within(Tolerance));
+			Assert.That(a.Velocity.x, Is.EqualTo(2f - 0.5f * PhysicsConstants.ContactVel).Within(Tolerance));
+			Assert.That(b.Velocity.x, Is.EqualTo(0.5f * PhysicsConstants.ContactVel).Within(Tolerance));
 		}
 
 		[Test]
@@ -476,7 +546,7 @@ namespace VisualPinball.Unity.Test
 		public void PackedBallsGetNoFrictionFromEachOthersNormalResponse()
 		{
 			// four balls in a square, moving together: A (0, 0), B (50, 0), C (50, 50), D (0, 50).
-			// The earlier contacts cancel the y motion of B and A; at A against B nothing slips.
+			// No pair is approaching, so none has a normal impulse to spend on friction.
 			var a = new BallState { Id = 1, Mass = 1f, Radius = 25f, Velocity = new float3(0.05f, 0.05f, 0f) };
 			var b = a;
 			b.Id = 2;
@@ -484,12 +554,9 @@ namespace VisualPinball.Unity.Test
 			c.Id = 3;
 			var d = a;
 			d.Id = 4;
-			var noLoad = float3.zero;
-
-			HandleBallContact(ref b, in c, new CollisionEventData { HitNormal = new float3(0f, -1f, 0f) }, in noLoad);
-			HandleBallContact(ref b, in a, new CollisionEventData { HitNormal = new float3(1f, 0f, 0f) }, in noLoad);
-			HandleBallContact(ref a, in d, new CollisionEventData { HitNormal = new float3(0f, -1f, 0f) }, in noLoad);
-			HandleBallContact(ref a, in b, new CollisionEventData { HitNormal = new float3(-1f, 0f, 0f) }, in noLoad);
+			BallCollider.HandleFreeBallContact(ref b, ref c, new CollisionEventData { HitNormal = new float3(0f, -1f, 0f) });
+			BallCollider.HandleFreeBallContact(ref a, ref d, new CollisionEventData { HitNormal = new float3(0f, -1f, 0f) });
+			BallCollider.HandleFreeBallContact(ref a, ref b, new CollisionEventData { HitNormal = new float3(-1f, 0f, 0f) });
 
 			AssertFloat3(a.Velocity, new float3(0.05f, 0.05f, 0f), "a group moving together is not braked");
 			AssertFloat3(b.Velocity, new float3(0.05f, 0.05f, 0f));
@@ -500,19 +567,17 @@ namespace VisualPinball.Unity.Test
 		public void TouchingBallsMovingTogetherDoNotBrakeEachOther()
 		{
 			// a rolls behind b along +x, touching: no approach, so no response
-			var gravity = new float3(0f, 0f, -PhysicsConstants.GravityConst);
 			var a = new BallState { Id = 1, Mass = 1f, Radius = 25f, Velocity = new float3(1f, 0f, 0f) };
 			var b = new BallState { Id = 2, Mass = 1f, Radius = 25f, Velocity = new float3(1f, 0f, 0f) };
 
-			HandleBallContact(ref a, in b, new CollisionEventData { HitNormal = new float3(-1f, 0f, 0f) }, in gravity);
-			HandleBallContact(ref b, in a, new CollisionEventData { HitNormal = new float3(1f, 0f, 0f) }, in gravity);
+			BallCollider.HandleFreeBallContact(ref a, ref b, new CollisionEventData { HitNormal = new float3(-1f, 0f, 0f) });
 
 			Assert.That(a.Velocity.x, Is.EqualTo(1f).Within(Tolerance));
 			Assert.That(b.Velocity.x, Is.EqualTo(1f).Within(Tolerance));
 		}
 
 		[Test]
-		public void BallInAFallingStackIsStillSupported()
+		public void StackLoadIsCancelledBeforeTheFloorContact()
 		{
 			// both balls gained a step of gravity, before the floor contact: the top one is held by the
 			// bottom one for the load, as before
@@ -589,7 +654,33 @@ namespace VisualPinball.Unity.Test
 
 		private static void HandleBallContact(ref BallState ball, in BallState other, in CollisionEventData contact, in float3 gravity)
 		{
-			BallCollider.HandleBallContact(ref ball, in other, in contact, PhysicsConstants.PhysFactor, in gravity, in gravity);
+			BallCollider.HandleSupportedBallContact(ref ball, in other, in contact, PhysicsConstants.PhysFactor, in gravity, in gravity);
+		}
+
+		private static void SimulateBallContacts(ref PhysicsState state, bool hasFloor = false)
+		{
+			var overlapping = new NativeParallelHashSet<int>(8, Allocator.Temp);
+			var disabled = new NativeParallelHashSet<int>(1, Allocator.Temp);
+			var bounds = new AABB(new float3(-200f), new float3(200f));
+			var staticOctree = new NativeOctree<int>(bounds, 16, 4, Allocator.Temp);
+			var kinematicOctree = new NativeOctree<int>(bounds, 16, 4, Allocator.Temp);
+			var ballOctree = new NativeOctree<int>(bounds, 16, 4, Allocator.Temp);
+			var cycle = new PhysicsCycle(Allocator.Temp);
+			try {
+				state.Octree = staticOctree;
+				state.DisabledCollisionItems = disabled;
+				if (hasFloor) {
+					PhysicsPopulate.Populate(ref state.Colliders, ref state.Octree);
+				}
+				cycle.Simulate(ref state, ref overlapping, ref kinematicOctree, ref ballOctree, PhysicsConstants.PhysFactor);
+			} finally {
+				cycle.Dispose();
+				ballOctree.Dispose();
+				kinematicOctree.Dispose();
+				staticOctree.Dispose();
+				disabled.Dispose();
+				overlapping.Dispose();
+			}
 		}
 
 		#endregion

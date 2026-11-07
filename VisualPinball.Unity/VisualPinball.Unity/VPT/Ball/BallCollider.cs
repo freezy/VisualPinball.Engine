@@ -240,10 +240,51 @@ namespace VisualPinball.Unity
 			}
 		}
 
+		internal static void HandleFreeBallContact(ref BallState ball, ref BallState otherBall,
+			in CollisionEventData collEvent)
+		{
+			var normal = collEvent.HitNormal;
+			var approach = math.dot(otherBall.Velocity - ball.Velocity, normal);
+			if (approach <= -PhysicsConstants.ContactVel) {
+				return;
+			}
+
+			var invMass = ball.InvMass + otherBall.InvMass;
+			// Cancel only a contact-scale approach. Faster motion imparted by an impact in
+			// this cycle still reaches the next ball as a collision.
+			var normalImpulse = math.clamp(approach, 0f, PhysicsConstants.ContactVel) / invMass;
+			ball.Velocity += normal * (normalImpulse * ball.InvMass);
+			otherBall.Velocity -= normal * (normalImpulse * otherBall.InvMass);
+
+			if (collEvent.HitDistance < 0f) {
+				var correction = normal * (math.min(-collEvent.HitDistance, 0.04f) / invMass);
+				ball.Position += correction * ball.InvMass;
+				otherBall.Position -= correction * otherBall.InvMass;
+			}
+			if (normalImpulse == 0f) {
+				return;
+			}
+
+			var point = -ball.Radius * normal;
+			var otherPoint = otherBall.Radius * normal;
+			var slip = BallState.SurfaceVelocity(in ball, in point) - BallState.SurfaceVelocity(in otherBall, in otherPoint);
+			slip -= normal * math.dot(slip, normal);
+			var slipSpeed = math.length(slip);
+			if (slipSpeed < PhysicsConstants.Precision) {
+				return;
+			}
+
+			var tangentInvMass = invMass + ball.Radius * ball.Radius / ball.Inertia
+			                            + otherBall.Radius * otherBall.Radius / otherBall.Inertia;
+			var friction = math.min(slipSpeed / tangentInvMass, PhysicsConstants.BallBallFriction * normalImpulse);
+			var impulse = -friction * slip / slipSpeed;
+			ball.ApplySurfaceImpulse(math.cross(point, impulse), impulse);
+			otherBall.ApplySurfaceImpulse(math.cross(otherPoint, -impulse), -impulse);
+		}
+
 		/// <summary>
-		/// Ball/ball contact: <paramref name="ball"/> touches <paramref name="otherBall"/>, which
-		/// reports its own contact with this ball if it is free (each ball of a pair resolves its
-		/// own record).
+		/// Stabilize a stack backed by a collider, or a ball pressed against a frozen ball.
+		/// Each moving ball resolves its own record so it can shed its load in one pass.
 		/// </summary>
 		/// <param name="collEvent">The contact, its normal pointing from the other ball to this one.</param>
 		/// <remarks>
@@ -253,7 +294,7 @@ namespace VisualPinball.Unity
 		/// as slip (a packed group of balls would get sideways friction and spin). Ball/ball
 		/// contacts are resolved before any static one, so the live motion holds nothing else.
 		/// </remarks>
-		internal static void HandleBallContact(ref BallState ball, in BallState otherBall, in CollisionEventData collEvent,
+		internal static void HandleSupportedBallContact(ref BallState ball, in BallState otherBall, in CollisionEventData collEvent,
 			float dTime, in float3 gravity, in float3 frictionAcceleration)
 		{
 			var normal = collEvent.HitNormal;
