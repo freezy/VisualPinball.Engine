@@ -10,7 +10,7 @@ using System.IO;
 
 namespace VisualPinball.Plugins
 {
-	/// <summary>Locates VPX-compatible media paths on both case-sensitive and case-insensitive filesystems.</summary>
+	/// <summary>Locates VPX-compatible media paths, skipping ambiguous case-insensitive matches.</summary>
 	public static class TableMediaPaths
 	{
 		private static readonly char[] InvalidNameCharacters = { '/', '\\', ':', '\0' };
@@ -47,16 +47,14 @@ namespace VisualPinball.Plugins
 			if (string.IsNullOrWhiteSpace(directory) || !IsName(name)) return null;
 			try {
 				string? match = null;
-				bool ambiguous = false;
 				var entries = directoryOnly ? Directory.EnumerateDirectories(directory) : Directory.EnumerateFiles(directory);
 				foreach (string path in entries) {
 					string actual = Path.GetFileName(path);
-					if (string.Equals(actual, name, StringComparison.Ordinal)) return path;
 					if (!string.Equals(actual, name, StringComparison.OrdinalIgnoreCase)) continue;
-					ambiguous |= match != null;
+					if (match != null) return null;
 					match = path;
 				}
-				return ambiguous ? null : match;
+				return match;
 			} catch (Exception error) when (error is IOException || error is UnauthorizedAccessException
 			                                || error is ArgumentException || error is NotSupportedException) {
 				return null;
